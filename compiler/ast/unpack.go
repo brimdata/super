@@ -96,6 +96,19 @@ var unpacker = unpack.New(
 	Where{},
 	Yield{},
 	Sample{},
+	// SuperSQL
+	Select{},
+	Table{},
+	Ordinality{},
+	Alias{},
+	CrossJoin{},
+	SQLJoin{},
+	Union{},
+	OrderBy{},
+	Limit{},
+	With{},
+	JoinOn{},
+	JoinUsing{},
 )
 
 // UnmarshalOp transforms a JSON representation of an operator into an Op.

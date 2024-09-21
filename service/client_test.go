@@ -48,7 +48,7 @@ func (c *testClient) TestBranchGet(id ksuid.KSUID) (config lake.BranchMeta) {
 }
 
 func (c *testClient) TestPoolList() []pools.Config {
-	r, err := c.Query(context.Background(), nil, "from :pools")
+	r, err := c.Query(context.Background(), nil, false, "from :pools")
 	require.NoError(c, err)
 	defer r.Body.Close()
 	var confs []pools.Config
@@ -80,7 +80,7 @@ func (c *testClient) TestBranchPost(poolID ksuid.KSUID, payload api.BranchPostRe
 }
 
 func (c *testClient) TestQuery(query string) string {
-	r, err := c.Connection.Query(context.Background(), nil, query)
+	r, err := c.Connection.Query(context.Background(), nil, false, query)
 	require.NoError(c, err)
 	defer r.Body.Close()
 	zr := zngio.NewReader(super.NewContext(), r.Body)

@@ -19,9 +19,9 @@ import (
 var spec = &charm.Spec{
 	Name:  "query",
 	Usage: "query [options] [zed-query]",
-	Short: "run a Zed query on a Zed data lake",
+	Short: "run a query on a Zed data lake",
 	Long: `
-"zed query" runs a Zed query on a Zed data lake.
+"zed query" runs a query on a Zed data lake.
 `,
 	New: New,
 }
@@ -69,7 +69,7 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	head, _ := c.poolFlags.HEAD()
-	query, err := lake.Query(ctx, head, src, c.queryFlags.Includes...)
+	query, err := lake.Query(ctx, head, c.queryFlags.SQL, src, c.queryFlags.Includes...)
 	if err != nil {
 		w.Close()
 		return err

@@ -23,11 +23,13 @@ type Flags struct {
 	Verbose  bool
 	Stats    bool
 	Includes Includes
+	SQL      bool
 }
 
 func (f *Flags) SetFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&f.Stats, "s", false, "display search stats on stderr")
 	fs.Var(&f.Includes, "I", "source file containing Zed query text (may be used multiple times)")
+	fs.BoolVar(&f.SQL, "sql", false, "interpret query text as SuperSQL")
 }
 
 func (f *Flags) ParseSourcesAndInputs(src string, paths []string) ([]string, ast.Seq, *parser.SourceSet, bool, error) {
@@ -35,7 +37,7 @@ func (f *Flags) ParseSourcesAndInputs(src string, paths []string) ([]string, ast
 		// Consider a lone argument to be a query if it compiles
 		// and appears to start with a from or yield operator.
 		// Otherwise, consider it a file.
-		query, sset, err := compiler.Parse(src, f.Includes...)
+		query, sset, err := compiler.Parse(f.SQL, src, f.Includes...)
 		if err != nil {
 			return nil, nil, nil, false, err
 		}
@@ -56,7 +58,7 @@ func (f *Flags) ParseSourcesAndInputs(src string, paths []string) ([]string, ast
 		}
 		return nil, nil, nil, false, errors.New("no data source found")
 	}
-	query, sset, err := parser.ParseSuperPipe(f.Includes, src)
+	query, sset, err := parser.ParseSuperPipe(f.SQL, f.Includes, src)
 	if err != nil {
 		return nil, nil, nil, false, err
 	}

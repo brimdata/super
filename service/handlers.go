@@ -57,7 +57,7 @@ func handleQuery(c *Core, w *ResponseWriter, r *Request) {
 	// The client must look at the return code and interpret the result
 	// accordingly and when it sees a ZNG error after underway,
 	// the error should be relay that to the caller/user.
-	query, sset, err := parser.ParseSuperPipe(nil, req.Query)
+	query, sset, err := parser.ParseSuperPipe(req.SQL, nil, req.Query)
 	if err != nil {
 		w.Error(srverr.ErrInvalid(err))
 		return
@@ -168,7 +168,7 @@ func handleCompile(c *Core, w *ResponseWriter, r *Request) {
 	if !r.Unmarshal(w, &req) {
 		return
 	}
-	ast, _, err := c.compiler.Parse(req.Query)
+	ast, _, err := c.compiler.Parse(req.SQL, req.Query)
 	if err != nil {
 		w.Error(srverr.ErrInvalid(err))
 		return
@@ -182,7 +182,7 @@ func handleQueryDescribe(c *Core, w *ResponseWriter, r *Request) {
 		return
 	}
 	src := data.NewSource(storage.NewRemoteEngine(), c.root)
-	info, err := describe.Analyze(r.Context(), req.Query, src, &req.Head)
+	info, err := describe.Analyze(r.Context(), req.SQL, req.Query, src, &req.Head)
 	if err != nil {
 		w.Error(srverr.ErrInvalid(err))
 		return
@@ -577,7 +577,7 @@ func handleDelete(c *Core, w *ResponseWriter, r *Request) {
 			w.Error(srverr.ErrInvalid("either object_ids or where must be set"))
 			return
 		}
-		program, sset, err2 := c.compiler.Parse(payload.Where)
+		program, sset, err2 := c.compiler.Parse(false, payload.Where)
 		if err != nil {
 			w.Error(srverr.ErrInvalid(err2))
 			return

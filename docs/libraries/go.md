@@ -134,7 +134,7 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	q, err := lake.Query(ctx, nil, "from Demo")
+	q, err := lake.Query(ctx, nil, false, "from Demo")
 	if err != nil {
 		log.Fatalln(err)
 	}

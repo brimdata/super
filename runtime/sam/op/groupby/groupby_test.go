@@ -103,7 +103,7 @@ func TestGroupbyStreamingSpill(t *testing.T) {
 	}
 
 	runOne := func(inputSortKey string) []string {
-		proc, _, err := compiler.Parse("count() by every(1s), ip")
+		proc, _, err := compiler.Parse(false, "count() by every(1s), ip")
 		assert.NoError(t, err)
 
 		zctx := super.NewContext()

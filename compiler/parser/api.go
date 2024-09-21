@@ -10,12 +10,18 @@ import (
 
 // ParseSuperPipe calls ConcatSource followed by Parse.  If Parse returns an error,
 // ConcatSource tries to convert it to an ErrorList.
-func ParseSuperPipe(filenames []string, src string) (ast.Seq, *SourceSet, error) {
+func ParseSuperPipe(sql bool, filenames []string, src string) (ast.Seq, *SourceSet, error) {
 	sset, err := ConcatSource(filenames, src)
 	if err != nil {
 		return nil, nil, err
 	}
-	p, err := Parse("", []byte(sset.Text), Recover(false))
+	var opt Option
+	if sql {
+		opt = Entrypoint("SuperSQL")
+	} else {
+		opt = Entrypoint("start")
+	}
+	p, err := Parse("", []byte(sset.Text), opt, Recover(false))
 	if err != nil {
 		return nil, nil, convertErrList(err, sset)
 	}

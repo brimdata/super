@@ -3,12 +3,18 @@
 
     import (
         "github.com/brimdata/super/compiler/ast"
+        "github.com/brimdata/super/compiler/ast/sql"
         astzed "github.com/brimdata/super/compiler/ast/zed"
     )
-
 }
 
-start
+//start
+//  = SuperSQL
+//  = SuperPipe
+
+start = SuperSQL / SuperPipe 
+
+SuperPipe
   = __ scope:Scope __ EOF { return []any{scope}, nil }
   / __ seq:Seq __ EOF { return seq, nil }
 
@@ -135,7 +141,7 @@ Operation
     }
 
 EndOfOp = __ (Pipe / SearchKeywordGuard / "=>" / ")" / EOF)
-Pipe = "|" !("{" / "[")
+Pipe = "|>" / "|" !("{" / "[")
 
 Leg = __ "=>" __ seq:Seq { return seq, nil }
 
@@ -250,7 +256,7 @@ Regexp
 /// === Aggregations ===
 
 Aggregation
-  = Summarize? keys:GroupByKeys limit:LimitArg {
+  = Summarize keys:GroupByKeys limit:LimitArg {
       return &ast.Summarize{
         Kind: "Summarize",
         Keys: sliceOf[ast.Assignment](keys),
@@ -258,7 +264,7 @@ Aggregation
         StartPos: c.pos.offset,
       }, nil
     }
-  / Summarize? aggs:AggAssignments keys:(_ GroupByKeys)? limit:LimitArg {
+  / Summarize aggs:AggAssignments keys:(_ GroupByKeys)? limit:LimitArg {
       s := &ast.Summarize{
         Kind: "Summarize",
         Aggs: sliceOf[ast.Assignment](aggs),
@@ -271,10 +277,10 @@ Aggregation
       return s, nil
     }
 
-Summarize = "summarize" _
+Summarize = KW_AGGREGATE _ / ("summarize" _)?
 
 GroupByKeys
-  = ByToken _ columns:FlexAssignments { return columns, nil }
+  = (KW_GROUP _)? ByToken _ columns:FlexAssignments { return columns, nil }
 
 LimitArg
   = _ "with" _ "-limit" _ limit:UInt { return limit, nil }
@@ -1070,7 +1076,7 @@ Primary
   / "(" __ expr:Expr __ ")" { return expr, nil }
 
 OverExpr
-  = "over" _ exprs:Exprs locals:Locals? __ "|" __ body:Seq {
+  = ("over" / "from") _ exprs:Exprs locals:Locals? __ Pipe __ body:Seq {
       return &ast.OverExpr{
           Kind: "OverExpr",
           KeywordPos: c.pos.offset,
@@ -1740,3 +1746,692 @@ EOT = _ / EOF
 EOF = !.
 
 EOKW = !KeyWordChars
+
+/// === SuperSQL ===
+
+SuperSQL
+  = __ s:SQLPipe __ EOF           { return s, nil}
+
+SQLPipe
+  = s:SelectExpr tail:SQLPipeElem* {
+      return prepend(s, tail), nil
+  }
+
+SQLPipeElem = __ Pipe __ o:SQLPipeOp { return o, nil }
+
+SQLPipeOp
+  = SelectExpr
+  / WhereOp
+  / DropOp 
+  / RenameOp //XXX this needs to use as syntax
+  / &KW_AGGREGATE SummarizeOp
+  / FuseOp
+
+  // NOT YET - AsOp, 
+
+  
+
+SelectExpr 
+  = with:OptWithClause
+    body:(
+        SetOperation
+      / Select
+      / "(" __ s:SelectExpr __")" { return s, nil }
+    )
+    sort:OptSortClause
+    limit:OptLimitClause {
+      op := body.(ast.Op)
+      if with != nil {
+          w := with.(*ast.With)
+          w.Body = op
+          op = w 
+      }
+      if sort != nil {
+          op = &ast.OrderBy{
+            Kind: "OrderBy",
+            Op: op,
+            Exprs: sort.([]ast.SortExpr),
+          }
+      }
+      if limit != nil {
+          l := limit.(*ast.Limit)
+          l.Op = op
+          op = l
+      }
+      return op, nil
+    }
+
+//SimpleSelect 
+//  = SimpleSelectClause
+//XXX  / ValuesClause 
+
+Select 
+  = KW_SELECT 
+    distinct:OptDistinct
+    value:OptSelectValue
+    //XXX for whitespace in front of target need it only if it begins with 
+    // an identifier, e.g., select(1); is ok
+    _ args:SelectList
+    from:OptFromClause
+    where:OptWhereClause
+    group:OptGroupClause
+    having:OptHavingClause
+    // XXX NOTYET OptQualifyClause
+    // XXX NOTYET OptWindowClause
+    {
+      sel := &ast.Select{
+          Kind: "Select",
+          Distinct: distinct.(bool),
+          Value: value.(bool),
+          Args: sliceOf[ast.Assignment](args),
+      }
+      if from != nil {
+        sel.From = sliceOf[ast.Op](from)
+      }
+      if where != nil {
+        sel.Where = where.(ast.Expr)
+      }
+      if group != nil {
+        sel.GroupBy = sliceOf[ast.Expr](group)
+      }
+      if having != nil {
+        sel.Having = having.(ast.Expr)
+      }
+      return sel, nil
+    }
+
+OptDistinct
+  = _ KW_ALL        { return false, nil }
+  / _ KW_DISTINCT   { return true, nil }
+  / ""              { return false, nil }
+
+OptSelectValue
+  = _ KW_AS _ KW_VALUE  { return true, nil }
+  / _ KW_VALUE          { return true, nil } // SQL++ form XXX decide which
+  / ""                  { return false, nil }
+
+OptWithClause 
+  = WithClause 
+  / ""          { return nil, nil }
+
+WithClause 
+  = _ KW_WITH r:OptRecursive _ ctes:CteList {
+        return &ast.With{
+            Kind: "With",
+            Recursive: r.(bool), 
+            CTEs: sliceOf[ast.CTE](ctes),
+        }, nil
+    }
+
+OptRecursive 
+  = _ KW_RECURSIVE  { return true, nil }
+  / ""              { return false, nil }
+
+CteList = first:Cte rest:( __ "," __ cte:Cte { return cte, nil} )* {
+    return prepend(first, rest), nil 
+}
+
+Cte
+  = name:AliasName _ KW_AS m:OptMaterialized __ "(" __ s:SelectExpr __ ")" {
+        return ast.CTE{
+            Name: name.(string),
+            Materialized: m.(*bool),
+            Op: s.(ast.Op),
+        }, nil
+    }
+
+AliasName = Identifier // XXX add backquoted strings
+
+//XXX NOT is different than nothing here
+OptMaterialized 
+  = _ KW_MATERIALIZED _             { return true, nil }
+  / _ KW_NOT _ KW_MATERIALIZED _    { return false, nil }
+  / ""                              { return false, nil }
+
+OptAllClause
+  = _ KW_ALL 
+  / ""
+
+OptFromClause 
+  = _ KW_FROM _ list:FromList { // OptAsOfClause
+      return list, nil
+    }
+  / ""                  { return nil, nil }
+
+//XXX add pivot, unpivot, type projection
+FromList
+  = first:FromItem rest:( __ "," __ t:FromItem { return t, nil} )* {
+      return prepend(first, rest), nil
+    }
+
+OptWhereClause
+  = where:WhereClause     { return where, nil }
+  / ""                      { return nil, nil }
+
+OptGroupClause
+  = _ group:GroupClause { return group, nil }
+  / ""                  { return nil, nil }
+
+GroupClause
+  = KW_GROUP _ KW_BY _ list:GroupByList { return list, nil }
+
+GroupByList 
+  = first:GroupByItem rest:( __ "," __ g:GroupByItem { return g, nil } )* {
+      return prepend(first, rest), nil
+    }
+
+GroupByItem = Expr
+
+OptHavingClause
+  = _ h:HavingClause { return h, nil }
+  / "" { return nil, nil }
+
+HavingClause
+  = KW_HAVING _ e:Expr { return e, nil } // XXX whitespace optional before noident
+
+//XXX see field_path
+FromItem 
+  = JoinOperation 
+  / "(" __ join:JoinOperation __ ")" { return join, nil }
+  / !SQLGuard ref:TableRef a:OptAlias {
+      table := ref.(*ast.Table)
+      if a.(string) != "" {
+        return &ast.Alias{
+            Kind: "Alias",
+            Name: a.(string),
+            Op: table,
+        }, nil
+      }
+      return table, nil
+    }
+  / "(" __ s:SelectExpr __ ")" a:OptAlias {
+      if a != "" {
+        return ast.Alias{
+            Kind: "Alias",
+            Op: s.(ast.Op),
+            Name:a.(string),
+        }, nil
+      }
+      return s, nil
+    }
+  // XXX UnnestOperator 
+
+JoinOperation
+  = CrossJoin
+  / ConditionJoin
+
+CrossJoin
+  = left:FromItem op:CrossJoinOp right:FromItem {
+        return &ast.CrossJoin{
+            Kind: "CrossJoin",
+            Left: left.(ast.Op),
+            Right: right.(ast.Op),
+        }, nil
+    }
+
+CrossJoinOp 
+  = __ "," __ 
+  / _ KW_CROSS _ KW_JOIN _ 
+
+ConditionJoin
+  = left:FromItem style:SQLJoinStyle _ right:FromItem e:JoinExpr {
+        return &ast.SQLJoin{
+            Kind: "SQLJoin",
+            Style: style.(string),
+            Left: left.(ast.Op),
+            Right: right.(ast.Op),
+            Cond: e.(ast.JoinExpr),
+        }, nil
+    }
+
+//XXX requiring whitespace before join keywords problematic because 
+// a table expression can end in close paren etc >
+
+// XXX need anti join
+
+SQLJoinStyle 
+  = (_ KW_INNER)? _ KW_JOIN             { return "inner", nil }
+  / _ KW_FULL (_ KW_OUTER)? _ KW_JOIN   { return "full", nil }
+  / _ KW_LEFT (_ KW_OUTER)? _ KW_JOIN   { return "left", nil }
+  / _ KW_RIGHT (_ KW_OUTER)? _ KW_JOIN   { return "right", nil }
+
+JoinExpr 
+  = _ KW_ON _ e:Expr { // XXX == for equijoin here
+        return &ast.JoinOn{
+            Kind: "JoinOn", 
+            Expr: e.(ast.Expr),
+        }, nil
+    }
+  / _ KW_USING __ "(" __ fields:FieldExprs __ ")" {
+        return &ast.JoinUsing{
+            Kind: "JoinUsing",
+            Fields: sliceOf[ast.Expr](fields),
+        }, nil
+    }
+
+//XXX decide how file vs pool vs url will work; for now, the prototype 
+// assumes file
+TableRef = name:(IdentifierName / QuotedString) {
+    return &ast.Table{ //XXX
+        Kind: "Table",
+        Name: name.(string),
+    }, nil
+  }
+
+OptAlias
+  = _ a:AliasClause { return a, nil }
+  / ""              { return "", nil }
+
+OptOrdinality 
+  = _ KW_WITH _ KW_ORDINALITY   { return true, nil }
+  / ""                          { return false, nil }
+
+AliasClause 
+  = (KW_AS _)? !SQLGuard name:IdentifierName { // optional column defs no types
+      return name, nil
+    }
+
+SelectList
+  = first:SelectElem rest:( __ "," __ s:SelectElem{ return s, nil })* {
+      return prepend(first, rest), nil
+  }
+
+//XXX need to add *, id.*, except, replace
+SelectElem 
+  = e:Expr as:OptAsClause {
+      elem := ast.Assignment{
+        Kind: "Assignment",
+        RHS: e.(ast.Expr),
+      }
+      if as != nil {
+          elem.LHS = as.(*ast.ID)
+      }
+      return elem, nil
+    }
+
+OptAsClause 
+  = _ KW_AS _ id:Identifier { return id, nil } // XXX need to expand beyond Identifier 
+  / ""  { return nil, nil }
+
+OptSortClause 
+  = _ KW_ORDER _ KW_BY _ list:OrderByList { return list, nil }
+  / ""          { return nil, nil }
+
+OrderByList 
+  = first:OrderByItem rest:( __ "," __ o:OrderByItem{ return o, nil})* {
+      return sliceOf[ast.SortExpr](prepend(first, rest)), nil
+    }
+
+OrderByItem
+  = e:Expr order:OptAscDesc nulls:OptNullsOrder {
+      s := ast.SortExpr{Kind: "SortExpr", Expr: e.(ast.Expr)}
+      if order != nil {
+        s.Order = order.(*ast.ID)
+      }
+      if nulls != nil {
+        s.Nulls = nulls.(*ast.ID)
+      }
+      return s, nil
+    }
+
+OptAscDesc
+  = _ KW_ASC   { return &ast.ID{Kind: "ID", Name: "asc", NamePos: c.pos.offset}, nil }
+  / _ KW_DESC  { return &ast.ID{Kind: "ID", Name: "desc", NamePos: c.pos.offset}, nil }
+  / ""         { return nil, nil }
+
+OptNullsOrder
+  = _ KW_NULLS _ KW_FIRST   { return &ast.ID{Kind: "ID", Name: "first", NamePos: c.pos.offset}, nil }
+  / _ KW_NULLS _ KW_LAST    { return &ast.ID{Kind: "ID", Name: "last", NamePos: c.pos.offset}, nil }
+  / ""                      { return nil, nil }
+
+SelectLimit
+  = l:LimitClause o:OptOffsetClause {
+      limit := l.(*ast.Limit)
+      if o != nil {
+        limit.Offset = o.(ast.Expr)
+      }
+      return limit, nil
+    }
+  / o:OffsetClause l:OptLimitClause {
+      if l == nil {
+          return &ast.Limit{
+            Kind: "Limit",
+            Offset: o.(ast.Expr),
+          }, nil
+      }
+      limit := l.(*ast.Limit)
+      limit.Offset = o.(ast.Expr)
+      return limit, nil
+    }
+
+OptLimitClause 
+  = _ l:LimitClause { return l, nil }
+  / ""              { return nil, nil }
+
+LimitClause 
+  = KW_LIMIT _ KW_ALL { return &ast.Limit{Kind:"Limit"}, nil }
+  / KW_LIMIT _ e:Expr {
+      return &ast.Limit{
+        Kind: "Limit",
+        Count: e.(ast.Expr),
+      }, nil
+    }
+
+OptOffsetClause 
+  = _ o:OffsetClause  { return o, nil }
+  / ""  { return nil, nil }
+
+OffsetClause 
+  = KW_OFFSET _ e:Expr  { return e, nil }
+
+SetOperation
+  = left:SelectExpr distinct:SetOp _ right:SelectExpr {
+        return &ast.Union{
+            Kind: "Union",
+            Distinct: distinct.(bool),
+            Left: left.(ast.Op),
+            Right: right.(ast.Op),
+        }, nil //XXX
+    }
+
+SetOp 
+  = _ KW_UNION _ KW_ALL       { return false, nil }
+  / _ KW_UNION _ KW_DISTINCT  { return true, nil }
+  / ""                      { return true, nil}
+
+CaseExpr
+  = KW_CASE __
+    condition_list:case_when_then_list __
+    otherwise:case_else? __
+    KW_END __ KW_CASE? {
+//      if (otherwise) condition_list.push(otherwise);
+//      return {
+//        type: 'case',
+//        expr: null,
+//        args: condition_list
+//      }
+        return nil, nil
+    }
+  / KW_CASE __
+    expr:expr __
+    condition_list:case_when_then_list __
+    otherwise:case_else? __
+    KW_END __ KW_CASE? {
+//      if (otherwise) condition_list.push(otherwise);
+//      return {
+//        type: 'case',
+//        expr: expr,
+//        args: condition_list
+//      }
+        return nil, nil
+    }
+
+case_when_then_list
+  = head:case_when_then __ tail:(__ case_when_then)* {
+//    return createList(head, tail, 1)
+    return nil, nil
+  }
+
+case_when_then
+  = KW_WHEN __ condition:or_and_where_expr __ KW_THEN __ result:expr {
+//    return {
+//      type: 'when',
+//      cond: condition,
+//      result: result
+//    };
+    return nil, nil
+  }
+
+CaseElse = KW_ELSE __ result:expr {
+//    return { type: 'else', result: result }
+    return nil, nil
+  }
+
+//XXX need select *
+//Star
+//  = "*" {
+//    return &ast.Star{}
+//    }
+
+CastExpr
+  = KW_CAST __ "(" __ e:Expr _ KW_AS _ t:Type __ ")" {
+    return nil, nil
+  }
+  / k:cast_keyword __ LPAREN __ e:expr __ KW_AS __ KW_DECIMAL __ LPAREN __ precision:int __ RPAREN __ RPAREN {
+//    return {
+//      type: 'cast',
+//      keyword: c.toLowerCase(),
+//      expr: e,
+//      symbol: 'as',
+//      target: {
+//        dataType: 'DECIMAL(' + precision + ')'
+//      }
+//    };
+    return nil, nil
+  }
+  / k:cast_keyword __ LPAREN __ e:expr __ KW_AS __ KW_DECIMAL __ LPAREN __ precision:int __ COMMA __ scale:int __ RPAREN __ RPAREN {
+//      return {
+//        type: 'cast',
+//        keyword: c.toLowerCase(),
+//        expr: e,
+//        symbol: 'as',
+//        target: {
+//          dataType: 'DECIMAL(' + precision + ', ' + scale + ')'
+//        }
+//      }
+      return nil, nil
+    }
+  / k:cast_keyword __ LPAREN __ e:expr __ KW_AS __ s:signedness __ t:KW_INTEGER? __ RPAREN { /* MySQL cast to un-/signed integer */
+//    return {
+//      type: 'cast',
+//      keyword: c.toLowerCase(),
+//      expr: e,
+//      symbol: 'as',
+//      target: {
+//        dataType: s + (t ? ' ' + t: '')
+//      }
+//    }
+    return nil, nil
+  }
+
+
+//XXX not complete
+SQLGuard =
+    KW_FROM / KW_GROUP / KW_HAVING / KW_SELECT / KW_RECURSIVE
+  / KW_INNER / KW_LEFT / KW_RIGHT / KW_OUTER / KW_CROSS / KW_JOIN
+  / KW_UNION / KW_INTERSECT
+  / KW_ORDER
+  / KW_LIMIT
+  / KW_WHERE 
+  / KW_WITH
+  / KW_USING
+  / KW_ON
+
+KW_AGGREGATE  = "AGGREGATE"i    !IdentifierStart
+
+KW_ONLY = "ONLY"i       !IdentifierStart
+KW_NULLS    = "NULLS"i       !IdentifierStart
+KW_NULL     = "NULL"i       !IdentifierStart
+KW_NOT_NULL = "NOT NULL"i   !IdentifierStart
+KW_TRUE     = "TRUE"i       !IdentifierStart
+KW_TO       = "TO"i         !IdentifierStart
+KW_FALSE    = "FALSE"i      !IdentifierStart
+
+KW_SELECT   = "SELECT"i     !IdentifierStart
+KW_RECURSIVE= "RECURSIVE"   !IdentifierStart
+KW_IGNORE   = "IGNORE"i     !IdentifierStart
+KW_EXPLAIN  = "EXPLAIN"i    !IdentifierStart
+
+KW_INTO     = "INTO"i       !IdentifierStart
+KW_FROM     = "FROM"i       !IdentifierStart
+KW_SET      = "SET"i        !IdentifierStart { return "SET", nil }
+KW_UNLOCK   = "UNLOCK"i     !IdentifierStart
+KW_LOCK     = "LOCK"i       !IdentifierStart
+
+KW_AS       = "AS"i         !IdentifierStart
+KW_TABLE    = "TABLE"i      !IdentifierStart { return "TABLE", nil }
+KW_TABLES   = "TABLES"i      !IdentifierStart { return "TABLES", nil }
+KW_COLLATE  = "COLLATE"i    !IdentifierStart { return "COLLATE", nil }
+
+KW_ON       = "ON"i       !IdentifierStart
+KW_LEFT     = "LEFT"i     !IdentifierStart
+KW_RIGHT    = "RIGHT"i    !IdentifierStart
+KW_FULL     = "FULL"i     !IdentifierStart
+KW_INNER    = "INNER"i    !IdentifierStart
+KW_CROSS    = "CROSS"i    !IdentifierStart
+KW_JOIN     = "JOIN"i     !IdentifierStart
+KW_OUTER    = "OUTER"i    !IdentifierStart
+KW_OVER     = "OVER"i     !IdentifierStart
+KW_UNION    = "UNION"i    !IdentifierStart
+KW_INTERSECT    = "INTERSECT"i    !IdentifierStart
+KW_EXCEPT    = "EXCEPT"i    !IdentifierStart
+
+KW_VALUE    = "VALUE"i    !IdentifierStart { return "VALUE", nil }
+KW_VALUES   = "VALUES"i   !IdentifierStart
+KW_USING    = "USING"i    !IdentifierStart
+
+KW_WHERE    = "WHERE"i      !IdentifierStart
+KW_WITH     = "WITH"i       !IdentifierStart
+
+KW_GROUP    = "GROUP"i      !IdentifierStart
+KW_BY       = "BY"i         !IdentifierStart
+KW_ORDER    = "ORDER"i      !IdentifierStart
+KW_HAVING   = "HAVING"i     !IdentifierStart
+KW_QUALIFY  = "QUALIFY"i     !IdentifierStart
+KW_WINDOW   = "WINDOW"i  !IdentifierStart
+KW_ORDINAL  = "ORDINAL"i !IdentifierStart { return "ORDINAL", nil }
+KW_SAFE_ORDINAL  = "SAFE_ORDINAL"i !IdentifierStart { return "SAFE_ORDINAL", nil }
+
+KW_LIMIT    = "LIMIT"i      !IdentifierStart
+KW_OFFSET   = "OFFSET"i     !IdentifierStart { return "OFFSET", nil }
+KW_SAFE_OFFSET   = "SAFE_OFFSET"i     !IdentifierStart { return "SAFE_OFFSET", nil }
+
+KW_ASC      = "ASC"i        !IdentifierStart { return "ASC", nil }
+KW_DESC     = "DESC"i       !IdentifierStart { return "DESC", nil }
+
+KW_ALL      = "ALL"i        !IdentifierStart { return "ALL", nil }
+KW_DISTINCT = "DISTINCT"i   !IdentifierStart { return "DISTINCT", nil }
+
+KW_BETWEEN  = "BETWEEN"i    !IdentifierStart { return "BETWEEN", nil }
+KW_IN       = "IN"i         !IdentifierStart { return "IN", nil }
+KW_IS       = "IS"i         !IdentifierStart { return "IS", nil }
+KW_LIKE     = "LIKE"i       !IdentifierStart { return "LIKE", nil }
+KW_EXISTS   = "EXISTS"i     !IdentifierStart { return "EXISTS", nil }
+
+KW_NOT      = "NOT"i        !IdentifierStart { return "NOT", nil }
+KW_AND      = "AND"i        !IdentifierStart { return "AND", nil }
+KW_OR       = "OR"i         !IdentifierStart { return "OR", nil }
+
+KW_COUNT    = "COUNT"i      !IdentifierStart { return "COUNT", nil }
+KW_MAX      = "MAX"i        !IdentifierStart { return "MAX", nil }
+KW_MIN      = "MIN"i        !IdentifierStart { return "MIN", nil }
+KW_SUM      = "SUM"i        !IdentifierStart { return "SUM", nil }
+KW_AVG      = "AVG"i        !IdentifierStart { return "AVG", nil }
+
+KW_EXTRACT  = "EXTRACT"i    !IdentifierStart { return "EXTRACT", nil }
+KW_CALL     = "CALL"i       !IdentifierStart { return "CALL", nil }
+
+KW_CASE     = "CASE"i       !IdentifierStart
+KW_WHEN     = "WHEN"i       !IdentifierStart
+KW_THEN     = "THEN"i       !IdentifierStart
+KW_ELSE     = "ELSE"i       !IdentifierStart
+KW_END      = "END"i        !IdentifierStart
+
+KW_CAST     = "CAST"i       !IdentifierStart { return "CAST", nil }
+KW_SAFE_CAST     = "SAFE_CAST"i   !IdentifierStart { return "SAFE_CAST", nil }
+
+KW_ARRAY     = "ARRAY"i     !IdentifierStart { return "ARRAY", nil }
+KW_BYTES     = "BYTES"i     !IdentifierStart { return "BYTES", nil }
+KW_BOOL     = "BOOL"i     !IdentifierStart { return "BOOL", nil }
+KW_CHAR     = "CHAR"i     !IdentifierStart { return "CHAR", nil }
+KW_GEOGRAPHY = "GEOGRAPHY"i     !IdentifierStart { return "GEOGRAPHY", nil }
+KW_VARCHAR  = "VARCHAR"i  !IdentifierStart { return "VARCHAR", nil }
+KW_NUMERIC  = "NUMERIC"i  !IdentifierStart { return "NUMERIC", nil }
+KW_DECIMAL  = "DECIMAL"i  !IdentifierStart { return "DECIMAL", nil }
+KW_SIGNED   = "SIGNED"i   !IdentifierStart { return "SIGNED", nil }
+KW_UNSIGNED = "UNSIGNED"i !IdentifierStart { return "UNSIGNED", nil }
+KW_INT_64     = "INT64"i      !IdentifierStart { return "INT64", nil }
+KW_ZEROFILL = "ZEROFILL"i !IdentifierStart { return "ZEROFILL", nil }
+KW_INTEGER  = "INTEGER"i  !IdentifierStart { return "INTEGER", nil }
+KW_JSON     = "JSON"i     !IdentifierStart { return "JSON", nil }
+KW_SMALLINT = "SMALLINT"i !IdentifierStart { return "SMALLINT", nil }
+KW_STRING = "STRING"i !IdentifierStart { return "STRING", nil }
+KW_STRUCT = "STRUCT"i !IdentifierStart { return "STRUCT", nil }
+KW_TINYINT  = "TINYINT"i  !IdentifierStart { return "TINYINT", nil }
+KW_TINYTEXT = "TINYTEXT"i !IdentifierStart { return "TINYTEXT", nil }
+KW_TEXT     = "TEXT"i     !IdentifierStart { return "TEXT", nil }
+KW_MEDIUMTEXT = "MEDIUMTEXT"i  !IdentifierStart { return "MEDIUMTEXT", nil }
+KW_LONGTEXT  = "LONGTEXT"i  !IdentifierStart { return "LONGTEXT", nil }
+KW_BIGINT   = "BIGINT"i   !IdentifierStart { return "BIGINT", nil }
+KW_FLOAT_64   = "FLOAT64"i   !IdentifierStart { return "FLOAT64", nil }
+KW_DOUBLE   = "DOUBLE"i   !IdentifierStart { return "DOUBLE", nil }
+KW_DATE     = "DATE"i     !IdentifierStart { return "DATE", nil }
+KW_DATETIME = "DATETIME"i     !IdentifierStart { return "DATETIME", nil }
+KW_ROWS     = "ROWS"i     !IdentifierStart { return "ROWS", nil }
+KW_TIME     = "TIME"i     !IdentifierStart { return "TIME", nil }
+KW_TIMESTAMP= "TIMESTAMP"i!IdentifierStart { return "TIMESTAMP", nil }
+
+KW_CURRENT_DATE     = "CURRENT_DATE"i !IdentifierStart { return "CURRENT_DATE", nil }
+KW_ADD_DATE         = "ADDDATE"i !IdentifierStart { return "ADDDATE", nil }
+KW_INTERVAL         = "INTERVAL"i !IdentifierStart { return "INTERVAL", nil }
+KW_UNIT_YEAR        = "YEAR"i !IdentifierStart { return "YEAR", nil }
+KW_UNIT_ISOYEAR     = "ISOYEAR"i !IdentifierStart { return "ISOYEAR", nil }
+KW_UNIT_MONTH       = "MONTH"i !IdentifierStart { return "MONTH", nil }
+KW_UNIT_DAY         = "DAY"i !IdentifierStart { return "DAY", nil }
+KW_UNIT_HOUR        = "HOUR"i !IdentifierStart { return "HOUR", nil }
+KW_UNIT_MINUTE      = "MINUTE"i !IdentifierStart { return "MINUTE", nil }
+KW_UNIT_SECOND      = "SECOND"i !IdentifierStart { return "SECOND", nil }
+KW_UNIT_WEEK        = "WEEK"i !IdentifierStart { return "WEEK", nil }
+KW_CURRENT_TIME     = "CURRENT_TIME"i !IdentifierStart { return "CURRENT_TIME", nil }
+KW_CURRENT_TIMESTAMP= "CURRENT_TIMESTAMP"i !IdentifierStart { return "CURRENT_TIMESTAMP", nil }
+KW_SESSION_USER     = "SESSION_USER"i !IdentifierStart { return "SESSION_USER", nil }
+
+KW_GLOBAL         = "GLOBAL"i    !IdentifierStart { return "GLOBAL", nil }
+KW_SESSION        = "SESSION"i   !IdentifierStart { return "SESSION", nil }
+KW_LOCAL          = "LOCAL"i     !IdentifierStart { return "LOCAL", nil }
+KW_PIVOT          = "PIVOT"i   !IdentifierStart { return "PIVOT", nil }
+KW_PERSIST        = "PERSIST"i   !IdentifierStart { return "PERSIST", nil }
+KW_PERSIST_ONLY   = "PERSIST_ONLY"i   !IdentifierStart { return "PERSIST_ONLY", nil }
+KW_VIEW           = "VIEW"i    !IdentifierStart { return "VIEW", nil }
+
+// MySQL Alter
+KW_ADD     = "ADD"i     !IdentifierStart { return "ADD", nil }
+KW_COLUMN  = "COLUMN"i  !IdentifierStart { return "COLUMN", nil }
+KW_INDEX   = "INDEX"i  !IdentifierStart { return "INDEX", nil }
+KW_KEY     = "KEY"i  !IdentifierStart { return "KEY", nil }
+KW_FULLTEXT = "FULLTEXT"i  !IdentifierStart { return "FULLTEXT", nil }
+KW_UNIQUE     = "UNIQUE"i  !IdentifierStart { return "UNIQUE", nil }
+KW_COMMENT     = "COMMENT"i  !IdentifierStart { return "COMMENT", nil }
+KW_CONSTRAINT  = "CONSTRAINT"i  !IdentifierStart { return "CONSTRAINT", nil }
+KW_REFERENCES  = "REFERENCES"i  !IdentifierStart { return "REFERENCES", nil }
+
+
+comment
+  = block_comment
+  / line_comment
+  / pound_sign_comment
+
+block_comment
+  = "/*" (!"*/" char)* "*/"
+
+line_comment
+  = "--" (!EOL char)*
+
+pound_sign_comment
+  = "#" (!EOL char)*
+
+char = .
+
+interval_unit
+  = KW_UNIT_YEAR
+  / KW_UNIT_ISOYEAR
+  / KW_UNIT_MONTH
+  / KW_UNIT_DAY
+  / KW_UNIT_HOUR
+  / KW_UNIT_MINUTE
+  / KW_UNIT_SECOND
+  / KW_UNIT_WEEK
+
+whitespace =
+  [ \t\n\r]
+

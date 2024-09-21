@@ -139,7 +139,7 @@ func runOneBoomerang(t *testing.T, format, data string) {
 	dataReader := zio.Reader(dataReadCloser)
 	if format == "parquet" {
 		// Fuse for formats that require uniform values.
-		proc, _, err := compiler.NewCompiler().Parse("fuse")
+		proc, _, err := compiler.NewCompiler().Parse(false, "fuse")
 		require.NoError(t, err)
 		rctx := runtime.NewContext(context.Background(), zctx)
 		q, err := compiler.NewCompiler().NewQuery(rctx, proc, []zio.Reader{dataReadCloser})

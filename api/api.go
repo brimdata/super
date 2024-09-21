@@ -100,6 +100,7 @@ type EventBranch struct {
 type QueryRequest struct {
 	Query string              `json:"query"`
 	Head  lakeparse.Commitish `json:"head"`
+	SQL   bool                `json:"sql"`
 }
 
 type QueryChannelSet struct {

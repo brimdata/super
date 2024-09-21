@@ -13,5 +13,5 @@ endif
 ifeq "$(shell go version -m $(deps)/bin/pigeon 2>&1 | fgrep $(PIGEON_VERSION))" ""
 	GOBIN=$(deps)/bin go install github.com/mna/pigeon@$(PIGEON_VERSION)
 endif
-	$(deps)/bin/pigeon -support-left-recursion -o $@ parser.peg
+	$(deps)/bin/pigeon -alternate-entrypoints SuperSQL -support-left-recursion -o $@ parser.peg
 	$(deps)/bin/goimports -w $@

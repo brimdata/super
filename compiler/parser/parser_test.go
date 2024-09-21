@@ -40,7 +40,7 @@ func searchForZed() ([]string, error) {
 }
 
 func parseOp(z string) ([]byte, error) {
-	o, _, err := compiler.Parse(z)
+	o, _, err := compiler.Parse(false, z)
 	if err != nil {
 		return nil, err
 	}

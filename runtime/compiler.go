@@ -17,7 +17,7 @@ type Compiler interface {
 	NewQuery(*Context, ast.Seq, []zio.Reader) (Query, error)
 	NewLakeQuery(*Context, ast.Seq, int, *lakeparse.Commitish) (Query, error)
 	NewLakeDeleteQuery(*Context, ast.Seq, *lakeparse.Commitish) (DeleteQuery, error)
-	Parse(string, ...string) (ast.Seq, *parser.SourceSet, error)
+	Parse(bool, string, ...string) (ast.Seq, *parser.SourceSet, error)
 }
 
 type Query interface {

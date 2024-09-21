@@ -131,7 +131,7 @@ func (c *Command) list(ctx context.Context, lake api.Interface) error {
 	if err != nil {
 		return err
 	}
-	q, err := lake.Query(ctx, nil, query)
+	q, err := lake.Query(ctx, nil, false, query)
 	if err != nil {
 		w.Close()
 		return err

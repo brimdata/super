@@ -498,7 +498,7 @@ func runzq(path, zedProgram, input string, outputFlags []string, inputFlags []st
 		err = cmd.Run()
 		return outbuf.String(), errbuf.String(), err
 	}
-	proc, sset, err := compiler.Parse(zedProgram)
+	proc, sset, err := compiler.Parse(false, zedProgram)
 	if err != nil {
 		return "", err.Error(), err
 	}
@@ -581,7 +581,7 @@ func runvec(zedProgram string, input string, outputFlags []string) (string, stri
 	}
 	defer object.Close()
 	rctx := runtime.NewContext(context.Background(), zctx)
-	puller, err := compiler.VectorCompile(rctx, zedProgram, object)
+	puller, err := compiler.VectorCompile(rctx, false, zedProgram, object)
 	if err != nil {
 		return "", err.Error(), err
 	}

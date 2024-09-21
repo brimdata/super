@@ -89,13 +89,13 @@ func (j *Job) Parallelize(n int) error {
 	return err
 }
 
-func Parse(src string, filenames ...string) (ast.Seq, *parser.SourceSet, error) {
-	return parser.ParseSuperPipe(filenames, src)
+func Parse(sql bool, src string, filenames ...string) (ast.Seq, *parser.SourceSet, error) {
+	return parser.ParseSuperPipe(sql, filenames, src)
 }
 
 // MustParse is like Parse but panics if an error is encountered.
-func MustParse(query string) ast.Seq {
-	seq, _, err := (*anyCompiler)(nil).Parse(query)
+func MustParse(sql bool, query string) ast.Seq {
+	seq, _, err := (*anyCompiler)(nil).Parse(sql, query)
 	if err != nil {
 		panic(err)
 	}
@@ -138,16 +138,16 @@ type anyCompiler struct{}
 
 // Parse concatenates the source files in filenames followed by src and parses
 // the resulting program.
-func (*anyCompiler) Parse(src string, filenames ...string) (ast.Seq, *parser.SourceSet, error) {
-	return Parse(src, filenames...)
+func (*anyCompiler) Parse(sql bool, src string, filenames ...string) (ast.Seq, *parser.SourceSet, error) {
+	return Parse(sql, src, filenames...)
 }
 
 // VectorCompile is used for testing queries over single VNG object scans
 // where the entire query is vectorizable.  It does not call optimize
 // nor does it compute the demand of the query to prune the projection
 // from the vcache.
-func VectorCompile(rctx *runtime.Context, query string, object *vcache.Object) (zbuf.Puller, error) {
-	seq, sset, err := Parse(query)
+func VectorCompile(rctx *runtime.Context, sql bool, query string, object *vcache.Object) (zbuf.Puller, error) {
+	seq, sset, err := Parse(sql, query)
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +173,7 @@ func VectorCompile(rctx *runtime.Context, query string, object *vcache.Object) (
 	return vam.NewMaterializer(puller), nil
 }
 
-func VectorFilterCompile(rctx *runtime.Context, query string, src *data.Source, head *lakeparse.Commitish) (zbuf.Puller, error) {
+func VectorFilterCompile(rctx *runtime.Context, sql bool, query string, src *data.Source, head *lakeparse.Commitish) (zbuf.Puller, error) {
 	// Eventually the semantic analyzer + kernel will resolve the pool but
 	// for now just do this manually.
 	if !src.IsLake() {
@@ -187,7 +187,7 @@ func VectorFilterCompile(rctx *runtime.Context, query string, src *data.Source, 
 	if err != nil {
 		return nil, err
 	}
-	seq, sset, err := Parse(query)
+	seq, sset, err := Parse(sql, query)
 	if err != nil {
 		return nil, err
 	}

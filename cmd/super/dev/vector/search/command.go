@@ -67,7 +67,7 @@ func (c *Command) Run(args []string) error {
 	}
 	text := args[0]
 	rctx := runtime.NewContext(ctx, super.NewContext())
-	puller, err := compiler.VectorFilterCompile(rctx, text, data.NewSource(nil, root), head)
+	puller, err := compiler.VectorFilterCompile(rctx, false, text, data.NewSource(nil, root), head)
 	if err != nil {
 		return err
 	}

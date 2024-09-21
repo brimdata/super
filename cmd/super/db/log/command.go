@@ -73,7 +73,7 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	defer w.Close()
-	q, err := lake.Query(ctx, nil, query)
+	q, err := lake.Query(ctx, nil, false, query)
 	if err != nil {
 		if list := (parser.ErrorList)(nil); errors.As(err, &list) && len(list) == 1 {
 			return errors.New(list[0].Msg)
