@@ -1,7 +1,9 @@
 package vector
 
 import (
-	"github.com/brimdata/super"
+	"encoding/binary"
+
+	zed "github.com/brimdata/super"
 	"github.com/brimdata/super/zcode"
 )
 
@@ -26,6 +28,14 @@ func (u *Union) Serialize(b *zcode.Builder, slot uint32) {
 	b.Append(zed.EncodeInt(int64(u.Tags[slot])))
 	u.Dynamic.Serialize(b, slot)
 	b.EndContainer()
+}
+
+func (u *Union) AppendKey(b []byte, slot uint32) []byte {
+	b = binary.NativeEndian.AppendUint64(b, uint64(u.Typ.ID()))
+	if u.Nulls.Value(slot) {
+		return append(b, 0)
+	}
+	return u.Dynamic.AppendKey(b, slot)
 }
 
 func Deunion(vec Any) Any {

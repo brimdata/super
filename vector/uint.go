@@ -46,6 +46,21 @@ func (u *Uint) Serialize(b *zcode.Builder, slot uint32) {
 	}
 }
 
+func (u *Uint) AppendKey(b []byte, slot uint32) []byte {
+	if u.Nulls.Value(slot) {
+		b = append(b, 0)
+	}
+	val := u.Values[slot]
+	b = append(b, byte(val>>(8*7)))
+	b = append(b, byte(val>>(8*6)))
+	b = append(b, byte(val>>(8*5)))
+	b = append(b, byte(val>>(8*4)))
+	b = append(b, byte(val>>(8*3)))
+	b = append(b, byte(val>>(8*2)))
+	b = append(b, byte(val>>(8*1)))
+	return append(b, byte(val>>(8*0)))
+}
+
 func (u *Uint) Promote(typ zed.Type) Promotable {
 	return &Uint{typ, u.Values, u.Nulls}
 }

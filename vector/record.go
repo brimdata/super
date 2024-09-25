@@ -1,7 +1,9 @@
 package vector
 
 import (
-	"github.com/brimdata/super"
+	"encoding/binary"
+
+	zed "github.com/brimdata/super"
 	"github.com/brimdata/super/zcode"
 )
 
@@ -36,4 +38,16 @@ func (r *Record) Serialize(b *zcode.Builder, slot uint32) {
 		f.Serialize(b, slot)
 	}
 	b.EndContainer()
+}
+
+func (r *Record) AppendKey(b []byte, slot uint32) []byte {
+	b = binary.NativeEndian.AppendUint64(b, uint64(r.Typ.ID()))
+	if r.Nulls.Value(slot) {
+		return append(b, 0)
+	}
+	for _, f := range r.Fields {
+		b = append(b, 0)
+		b = f.AppendKey(b, slot)
+	}
+	return b
 }

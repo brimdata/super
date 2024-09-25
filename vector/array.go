@@ -1,7 +1,9 @@
 package vector
 
 import (
-	"github.com/brimdata/super"
+	"encoding/binary"
+
+	zed "github.com/brimdata/super"
 	"github.com/brimdata/super/zcode"
 )
 
@@ -37,6 +39,19 @@ func (a *Array) Serialize(b *zcode.Builder, slot uint32) {
 		a.Values.Serialize(b, off)
 	}
 	b.EndContainer()
+}
+
+func (a *Array) AppendKey(b []byte, slot uint32) []byte {
+	b = binary.NativeEndian.AppendUint64(b, uint64(a.Typ.ID()))
+	if a.Nulls.Value(slot) {
+		return append(b, 0)
+	}
+	off := a.Offsets[slot]
+	for end := a.Offsets[slot+1]; off < end; off++ {
+		b = append(b, 0)
+		b = a.Values.AppendKey(b, off)
+	}
+	return b
 }
 
 func ContainerOffset(val Any, slot uint32) (uint32, uint32, bool) {

@@ -1,4 +1,6 @@
-zed: 'by s | sort s'
+zed: by s | sort s
+
+vector: true
 
 input: |
   {x:1(int32),s:"b"}

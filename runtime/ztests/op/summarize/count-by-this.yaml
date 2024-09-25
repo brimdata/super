@@ -1,5 +1,7 @@
 zed: count() by val:=this | sort this
 
+vector: true
+
 input: |
   {x:1(int32),s:"foo"}
   {x:2(int32),s:"Bar"}

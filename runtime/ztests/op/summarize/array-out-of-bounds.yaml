@@ -1,5 +1,7 @@
 zed: count() by arr | sort
 
+vector: true
+
 input: |
   {arr:null([int32]),val:2(int32)}
   {arr:[1(int32),2(int32)],val:2(int32)}
