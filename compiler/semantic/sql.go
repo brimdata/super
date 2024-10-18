@@ -4,14 +4,14 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/brimdata/zed"
-	"github.com/brimdata/zed/compiler/ast"
-	"github.com/brimdata/zed/compiler/ast/dag"
-	"github.com/brimdata/zed/compiler/kernel"
-	"github.com/brimdata/zed/order"
-	"github.com/brimdata/zed/pkg/field"
-	"github.com/brimdata/zed/runtime/sam/expr/agg"
-	"github.com/brimdata/zed/zson"
+	zed "github.com/brimdata/super"
+	"github.com/brimdata/super/compiler/ast"
+	"github.com/brimdata/super/compiler/ast/dag"
+	"github.com/brimdata/super/compiler/kernel"
+	"github.com/brimdata/super/order"
+	"github.com/brimdata/super/pkg/field"
+	"github.com/brimdata/super/runtime/sam/expr/agg"
+	"github.com/brimdata/super/zson"
 )
 
 // Analyze a SQL select expression which may have arbitrary nested subqueries

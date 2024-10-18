@@ -6,6 +6,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/cli/outputflags"
+	"github.com/brimdata/super/cli/queryflags"
 	"github.com/brimdata/super/cmd/super/dev/vector"
 	"github.com/brimdata/super/cmd/super/root"
 	"github.com/brimdata/super/compiler"
