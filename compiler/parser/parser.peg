@@ -1754,14 +1754,14 @@ SuperSQL
 
 SQLPipe
   = s:SelectExpr tail:SQLPipeElem+ {
-        return &ast.SelectPipe{
-            Kind: "SelectPipe",
+        return &ast.SQLPipe{
+            Kind: "SQLPipe",
             Ops: sliceOf[ast.Op](prepend(s, tail)),
         }, nil
       }
     / from:FromExpr tail:SQLPipeElem+ {
-        return &ast.SelectPipe{
-            Kind: "SelectPipe",
+        return &ast.SQLPipe{
+            Kind: "SQLPipe",
             Ops: sliceOf[ast.Op](prepend(from, tail)),
         }, nil
       }

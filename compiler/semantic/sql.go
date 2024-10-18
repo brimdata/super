@@ -134,6 +134,11 @@ func (a *analyzer) semSQLFrom(froms []ast.Op, seq dag.Seq) dag.Seq {
 
 func (a *analyzer) semSQLOp(op ast.Op, seq dag.Seq) dag.Seq {
 	switch op := op.(type) {
+	case *ast.SQLPipe:
+		if len(seq) > 0 {
+			panic("semSQLOp: SQL pipes can't have parents")
+		}
+		return a.semSeq(op.Ops)
 	case *ast.Select:
 		if len(seq) > 0 {
 			panic("semSQLOp: select can't have parents")

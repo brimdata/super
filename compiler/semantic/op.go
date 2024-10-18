@@ -7,7 +7,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/brimdata/super"
+	zed "github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/ast/dag"
 	"github.com/brimdata/super/compiler/kernel"
@@ -446,7 +446,7 @@ func (a *analyzer) semDebugOp(o *ast.Debug, mainAst ast.Seq, in dag.Seq) dag.Seq
 // with either a group-by or filter op based on the function's name.
 func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 	switch o := o.(type) {
-	case *ast.Select, *ast.Limit:
+	case *ast.Select, *ast.Limit, *ast.OrderBy, *ast.SQLPipe:
 		if len(seq) > 0 {
 			// This shouldn't happen because we shouldn't allow the mixture
 			// of the two grammars but check in case.
