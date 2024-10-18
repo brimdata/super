@@ -15,6 +15,11 @@ type Select struct {
 	Having   Expr        `json:"having"`
 }
 
+type SelectPipe struct {
+	Kind string `json:"kind" unpack:""`
+	Ops  Seq    `json:"ops"`
+}
+
 type Limit struct {
 	Kind   string `json:"kind" unpack:""`
 	Op     Op     `json:"op"`
@@ -109,6 +114,7 @@ type Alias struct {
 	Name string `json:"name"`
 }
 
+func (*SelectPipe) OpAST() {}
 func (*Select) OpAST()     {}
 func (*Table) OpAST()      {}
 func (*Ordinality) OpAST() {}
@@ -119,6 +125,9 @@ func (*Union) OpAST()      {}
 func (*OrderBy) OpAST()    {}
 func (*Limit) OpAST()      {}
 func (*With) OpAST()       {}
+
+func (*SelectPipe) Pos() int { return 0 } //XXX
+func (*SelectPipe) End() int { return 0 } //XXX
 
 func (*Select) Pos() int { return 0 } //XXX
 func (*Select) End() int { return 0 } //XXX

@@ -1750,12 +1750,32 @@ EOKW = !KeyWordChars
 /// === SuperSQL ===
 
 SuperSQL
-  = __ s:SQLPipe __ EOF           { return s, nil}
+  = __ s:SQLPipe __ EOF           { return []any{s}, nil}
 
 SQLPipe
-  = s:SelectExpr tail:SQLPipeElem* {
-      return prepend(s, tail), nil
-  }
+  = s:SelectExpr tail:SQLPipeElem+ {
+        return &ast.SelectPipe{
+            Kind: "SelectPipe",
+            Ops: sliceOf[ast.Op](prepend(s, tail)),
+        }, nil
+      }
+    / from:FromExpr tail:SQLPipeElem+ {
+        return &ast.SelectPipe{
+            Kind: "SelectPipe",
+            Ops: sliceOf[ast.Op](prepend(from, tail)),
+        }, nil
+      }
+    / SelectExpr
+
+FromExpr
+  = KW_FROM _ from:FromList {
+      // Select with no args is like select * (i.e., from only)
+      return &ast.Select{
+          Kind: "Select",
+          Value: true,
+          From: sliceOf[ast.Op](from),
+      }, nil
+    }
 
 SQLPipeElem = __ Pipe __ o:SQLPipeOp { return o, nil }
 
@@ -1764,19 +1784,17 @@ SQLPipeOp
   / WhereOp
   / DropOp 
   / RenameOp //XXX this needs to use as syntax
-  / &KW_AGGREGATE SummarizeOp
+  / &KW_AGGREGATE a:Aggregation { return a, nil }
   / FuseOp
 
   // NOT YET - AsOp, 
-
-  
 
 SelectExpr 
   = with:OptWithClause
     body:(
         SetOperation
       / Select
-      / "(" __ s:SelectExpr __")" { return s, nil }
+      / "(" __ s:SQLPipe __")"      { return s, nil }
     )
     sort:OptSortClause
     limit:OptLimitClause {
@@ -1872,7 +1890,7 @@ CteList = first:Cte rest:( __ "," __ cte:Cte { return cte, nil} )* {
 }
 
 Cte
-  = name:AliasName _ KW_AS m:OptMaterialized __ "(" __ s:SelectExpr __ ")" {
+  = name:AliasName _ KW_AS m:OptMaterialized __ "(" __ s:SQLPipe __ ")" {
         return ast.CTE{
             Name: name.(string),
             Materialized: m.(*bool),
@@ -1944,7 +1962,7 @@ FromItem
       }
       return table, nil
     }
-  / "(" __ s:SelectExpr __ ")" a:OptAlias {
+  / "(" __ s:SQLPipe __ ")" a:OptAlias {
       if a != "" {
         return ast.Alias{
             Kind: "Alias",
