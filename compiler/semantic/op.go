@@ -33,7 +33,7 @@ func (a *analyzer) semSeq(seq ast.Seq) dag.Seq {
 	return converted
 }
 
-func (a *analyzer) semFrom(from *ast.From, seq dag.Seq) dag.Seq {
+func (a *analyzer) semFromList(from *ast.FromList, seq dag.Seq) dag.Seq {
 	switch len(from.Trunks) {
 	case 0:
 		a.error(from, errors.New("from operator has no paths"))
@@ -75,7 +75,7 @@ func (a *analyzer) semTrunk(trunk ast.Seq, out dag.Seq) dag.Seq {
 
 //XXX make sure you can't read files from a lake instance
 
-func (a *analyzer) semOpSource(source ast.Source, out dag.Seq) dag.Seq {
+func (a *analyzer) semFrom(from *ast.From, out dag.Seq) dag.Seq {
 	sources := a.semSource(source)
 	if len(sources) == 1 {
 		return append(sources, out...)
@@ -87,13 +87,31 @@ func (a *analyzer) semOpSource(source ast.Source, out dag.Seq) dag.Seq {
 	return append(out, &dag.Fork{Kind: "Fork", Paths: paths})
 }
 
+// from id  (const)		-> eval, lookup file or pool
+// from join(id,"foo")	-> eval, lookup file or pool
+// from "foo bar"		-> lookup file or pool
+// from foo*			-> glob file or pool
+// from /foo[0-9]+bar/ -> glob file or pool
+
+// heuristic for expr:
+// if it evals to const => name
+// otherwise if it's an id path (id.id.id), then use that as the name
+// then for pool: check if pool name exists, otherwise, check if HTTP
+// otherwise, check if file exists, otherwise, check if HTTP
+
+// FromSpec:
+// unquoted URL that begins with https:// or http://
+//  glob
+//  regexp
+//  expr (which may represent id or id derefed path that should be a string if not compile-time const)
+//    expr may also be string literal
+
 func (a *analyzer) semSource(source ast.Source) []dag.Op {
 	switch s := source.(type) {
-	case *ast.File:
+	case *ast.FromExpr:
+	case *ast.FromString:
 		var path string
 		switch p := s.Path.(type) {
-		case *ast.QuotedString:
-			path = p.Text
 		case *ast.String:
 			// This can be either a reference to a constant or a string.
 			var err error
@@ -105,13 +123,12 @@ func (a *analyzer) semSource(source ast.Source) []dag.Op {
 		}
 		return []dag.Op{
 			&dag.FileScan{
-				Kind:     "FileScan",
-				Path:     path,
-				Format:   s.Format,
-				SortKeys: a.semSortKeys(s.SortKeys),
+				Kind:   "FileScan",
+				Path:   path,
+				Format: s.Format,
 			},
 		}
-	case *ast.HTTP:
+	case *ast.FromHTTP:
 		var headers map[string][]string
 		if s.Headers != nil {
 			expr := a.semExpr(s.Headers)
@@ -145,16 +162,15 @@ func (a *analyzer) semSource(source ast.Source) []dag.Op {
 		}
 		return []dag.Op{
 			&dag.HTTPScan{
-				Kind:     "HTTPScan",
-				URL:      url,
-				Format:   s.Format,
-				SortKeys: a.semSortKeys(s.SortKeys),
-				Method:   s.Method,
-				Headers:  headers,
-				Body:     s.Body,
+				Kind:    "HTTPScan",
+				URL:     url,
+				Format:  s.Format,
+				Method:  s.Method,
+				Headers: headers,
+				Body:    s.Body,
 			},
 		}
-	case *ast.Pool:
+	case *ast.FromPool:
 		if !a.source.IsLake() {
 			a.error(s, errors.New("\"from pool\" cannot be used without a lake"))
 			return []dag.Op{badOp()}
@@ -163,28 +179,6 @@ func (a *analyzer) semSource(source ast.Source) []dag.Op {
 	case *ast.Pass:
 		//XXX just connect parent
 		return []dag.Op{dag.PassOp}
-	case *ast.Delete:
-		if !a.source.IsLake() {
-			a.error(s, errors.New("deletions cannot be applied to non-lake entity"))
-			return []dag.Op{badOp()}
-		}
-		pool, commit, err := a.checkHead("HEAD", "")
-		if err != nil {
-			a.error(s, err)
-			return []dag.Op{badOp()}
-		}
-		poolID, commitID, err := a.lookupPoolIDs(pool, commit)
-		if err != nil {
-			a.error(s, err)
-			return []dag.Op{badOp()}
-		}
-		return []dag.Op{
-			&dag.DeleteScan{
-				Kind:   "DeleteScan",
-				ID:     poolID,
-				Commit: commitID,
-			},
-		}
 	default:
 		panic(fmt.Errorf("semantic analyzer: unknown AST source type %T", s))
 	}
@@ -291,10 +285,14 @@ func (a *analyzer) maybeStringConst(name string) (string, error) {
 }
 
 func (a *analyzer) semPoolWithName(p *ast.Pool, poolName string) dag.Op {
-	poolName, commit, err := a.checkHead(poolName, p.Spec.Commit)
-	if err != nil {
-		a.error(p.Spec.Pool, errors.New("cannot scan from unknown HEAD"))
-		return badOp()
+	commit := p.Spec.Commit
+	if poolName == "HEAD" {
+		if a.head == nil {
+			a.error(p.Spec.Pool, errors.New("cannot scan from unknown HEAD"))
+			return badOp()
+		}
+		poolName = a.head.Pool
+		commit = a.head.Branch
 	}
 	if poolName == "" {
 		meta := p.Spec.Meta
@@ -311,10 +309,20 @@ func (a *analyzer) semPoolWithName(p *ast.Pool, poolName string) dag.Op {
 			Meta: p.Spec.Meta,
 		}
 	}
-	poolID, commitID, err := a.lookupPoolIDs(poolName, commit)
+	poolID, err := a.source.PoolID(a.ctx, poolName)
 	if err != nil {
 		a.error(p.Spec.Pool, err)
 		return badOp()
+	}
+	var commitID ksuid.KSUID
+	if commit != "" {
+		if commitID, err = lakeparse.ParseID(commit); err != nil {
+			commitID, err = a.source.CommitObject(a.ctx, poolID, commit)
+			if err != nil {
+				a.error(p, err)
+				return badOp()
+			}
+		}
 	}
 	if meta := p.Spec.Meta; meta != "" {
 		if _, ok := dag.CommitMetas[meta]; ok {
@@ -352,39 +360,18 @@ func (a *analyzer) semPoolWithName(p *ast.Pool, poolName string) dag.Op {
 			return badOp()
 		}
 	}
+	if p.Delete {
+		return &dag.DeleteScan{
+			Kind:   "DeleteScan",
+			ID:     poolID,
+			Commit: commitID,
+		}
+	}
 	return &dag.PoolScan{
 		Kind:   "PoolScan",
 		ID:     poolID,
 		Commit: commitID,
 	}
-}
-
-func (a *analyzer) checkHead(pool, commit string) (string, string, error) {
-	if pool == "HEAD" {
-		if a.head == nil {
-			return "", "", errors.New("cannot scan from unknown HEAD")
-		}
-		pool = a.head.Pool
-		commit = a.head.Branch
-	}
-	return pool, commit, nil
-}
-
-func (a *analyzer) lookupPoolIDs(pool, commit string) (ksuid.KSUID, ksuid.KSUID, error) {
-	poolID, err := a.source.PoolID(a.ctx, pool)
-	if err != nil {
-		return ksuid.Nil, ksuid.Nil, err
-	}
-	var commitID ksuid.KSUID
-	if commit != "" {
-		if commitID, err = lakeparse.ParseID(commit); err != nil {
-			commitID, err = a.source.CommitObject(a.ctx, poolID, commit)
-			if err != nil {
-				return ksuid.Nil, ksuid.Nil, err
-			}
-		}
-	}
-	return poolID, commitID, nil
 }
 
 func (a *analyzer) matchPools(pattern, origPattern, patternDesc string) ([]string, error) {
@@ -446,10 +433,14 @@ func (a *analyzer) semDebugOp(o *ast.Debug, mainAst ast.Seq, in dag.Seq) dag.Seq
 // with either a group-by or filter op based on the function's name.
 func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 	switch o := o.(type) {
+	case *ast.FromList:
+		return a.semFromList(o, seq)
 	case *ast.From:
 		return a.semFrom(o, seq)
-	case *ast.Pool, *ast.File, *ast.HTTP, *ast.Delete:
-		return a.semOpSource(o.(ast.Source), seq)
+	case *ast.Lake:
+		return a.semLake(o, seq)
+	case *ast.Delete:
+		return a.semDelete(o, seq)
 	case *ast.Summarize:
 		keys := a.semAssignments(o.Keys)
 		a.checkStaticAssignment(o.Keys, keys)

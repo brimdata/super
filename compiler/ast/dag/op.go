@@ -201,25 +201,22 @@ type (
 
 	// DefaultScan scans an input stream provided by the runtime.
 	DefaultScan struct {
-		Kind     string         `json:"kind" unpack:""`
-		Filter   Expr           `json:"filter"`
-		SortKeys order.SortKeys `json:"sort_keys"`
+		Kind   string `json:"kind" unpack:""`
+		Filter Expr   `json:"filter"`
 	}
 	FileScan struct {
-		Kind     string         `json:"kind" unpack:""`
-		Path     string         `json:"path"`
-		Format   string         `json:"format"`
-		SortKeys order.SortKeys `json:"sort_keys"`
-		Filter   Expr           `json:"filter"`
+		Kind   string `json:"kind" unpack:""`
+		Path   string `json:"path"`
+		Format string `json:"format"`
+		Filter Expr   `json:"filter"`
 	}
 	HTTPScan struct {
-		Kind     string              `json:"kind" unpack:""`
-		URL      string              `json:"url"`
-		Format   string              `json:"format"`
-		SortKeys order.SortKeys      `json:"sort_keys"`
-		Method   string              `json:"method"`
-		Headers  map[string][]string `json:"headers"`
-		Body     string              `json:"body"`
+		Kind    string              `json:"kind" unpack:""`
+		URL     string              `json:"url"`
+		Format  string              `json:"format"`
+		Method  string              `json:"method"`
+		Headers map[string][]string `json:"headers"`
+		Body    string              `json:"body"`
 	}
 	PoolScan struct {
 		Kind   string      `json:"kind" unpack:""`

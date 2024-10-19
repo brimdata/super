@@ -161,15 +161,6 @@ type Glob struct {
 func (g *Glob) Pos() int { return g.PatternPos }
 func (g *Glob) End() int { return g.PatternPos + len(g.Pattern) }
 
-type QuotedString struct {
-	Kind   string `json:"kind" unpack:""`
-	Lquote int    `json:"lquote"`
-	Text   string `json:"text"`
-}
-
-func (q *QuotedString) Pos() int { return q.Lquote }
-func (q *QuotedString) End() int { return q.Lquote + 2 + len(q.Text) }
-
 type Regexp struct {
 	Kind       string `json:"kind" unpack:""`
 	Pattern    string `json:"pattern"`
@@ -179,24 +170,22 @@ type Regexp struct {
 func (r *Regexp) Pos() int { return r.PatternPos }
 func (r *Regexp) End() int { return r.PatternPos + len(r.Pattern) + 2 }
 
-type String struct {
-	Kind    string `json:"kind" unpack:""`
-	Text    string `json:"text"`
-	TextPos int    `json:"text_pos"`
-}
-
-func (s *String) Pos() int { return s.TextPos }
-func (s *String) End() int { return s.TextPos + len(s.Text) }
-
-type Pattern interface {
+type FromEntity interface {
 	Node
-	PatternAST()
+	FromEntityAST()
 }
 
-func (*Glob) PatternAST()         {}
-func (*QuotedString) PatternAST() {}
-func (*Regexp) PatternAST()       {}
-func (*String) PatternAST()       {}
+type ExprEntity struct {
+	Kind string `json:"kind" unpack:""`
+	Expr Expr   `json:"text"`
+}
+
+func (r *ExprEntity) Pos() int { return 0 } //XXX
+func (r *ExprEntity) End() int { return 0 } //XXX
+
+func (*Glob) FromEntityAST()       {}
+func (*Regexp) FromEntityAST()     {}
+func (*ExprEntity) FromEntityAST() {}
 
 type RecordExpr struct {
 	Kind   string       `json:"kind" unpack:""`
@@ -590,7 +579,7 @@ type (
 		Kind       string `json:"kind" unpack:""`
 		KeywordPos int    `json:"keyword_pos"`
 	}
-	From struct {
+	FromList struct {
 		Kind       string `json:"kind" unpack:""`
 		KeywordPos int    `json:"keyword_pos"`
 		Trunks     []Seq  `json:"trunks"`
@@ -626,65 +615,64 @@ type (
 	}
 )
 
-// Source structure
-
 type (
-	File struct {
+	From struct {
 		Kind       string     `json:"kind" unpack:""`
 		KeywordPos int        `json:"keyword_pos"`
-		Path       Pattern    `json:"path"`
-		Format     string     `json:"format"`
-		SortKeys   []SortExpr `json:"sort_keys"`
+		Entity     FromEntity `json:"entity"`
+		Args       FromArgs   `json:"args"`
 		EndPos     int        `json:"end_pos"`
 	}
-	HTTP struct {
-		Kind       string      `json:"kind" unpack:""`
-		KeywordPos int         `json:"keyword_pos"`
-		URL        Pattern     `json:"url"`
-		Format     string      `json:"format"`
-		SortKeys   []SortExpr  `json:"sort_keys"`
-		Method     string      `json:"method"`
-		Headers    *RecordExpr `json:"headers"`
-		Body       string      `json:"body"`
-		EndPos     int         `json:"end_pos"`
-	}
-	Pool struct {
-		Kind       string   `json:"kind" unpack:""`
-		KeywordPos int      `json:"keyword_pos"`
-		Spec       PoolSpec `json:"spec"`
-		EndPos     int      `json:"end_pos"`
+	Lake struct {
+		Kind       string `json:"kind" unpack:""`
+		KeywordPos int    `json:"keyword_pos"`
+		Meta       string `json:"meta"`
+		EndPos     int    `json:"end_pos"`
 	}
 	Delete struct {
 		Kind string `json:"kind" unpack:""`
 	}
 )
 
-type PoolSpec struct {
-	Pool   Pattern `json:"pool"`
-	Commit string  `json:"commit"`
-	Meta   string  `json:"meta"`
-	Tap    bool    `json:"tap"`
+type PoolArgs struct {
+	Kind       string `json:"kind" unpack:""`
+	Commit     string `json:"commit"`
+	Meta       string `json:"meta"`
+	Tap        bool   `json:"tap"`
+	KeywordPos int    `json:"keyword_pos"`
+	EndPos     int    `json:"end_pos"`
 }
 
-type Source interface {
+type FormatArg struct {
+	Kind       string `json:"kind" unpack:""`
+	Format     string `json:"format"`
+	KeywordPos int    `json:"keyword_pos"`
+	EndPos     int    `json:"end_pos"`
+}
+
+type HTTPArgs struct {
+	Kind       string      `json:"kind" unpack:""`
+	KeywordPos int         `json:"keyword_pos"`
+	Format     string      `json:"format"`
+	Method     string      `json:"method"`
+	Headers    *RecordExpr `json:"headers"`
+	Body       string      `json:"body"`
+	EndPos     int         `json:"end_pos"`
+}
+
+type FromArgs interface {
 	Node
-	Source()
+	FromArgs()
 }
 
-func (*Pool) Source()   {}
-func (*File) Source()   {}
-func (*HTTP) Source()   {}
-func (*Pass) Source()   {}
-func (*Delete) Source() {}
+func (*PoolArgs) FromArgs()  {}
+func (*FormatArg) FromArgs() {}
+func (*HTTPArgs) FromArgs()  {}
 
-func (x *Pool) Pos() int { return x.KeywordPos }
-func (x *File) Pos() int { return x.KeywordPos }
-func (x *HTTP) Pos() int { return x.KeywordPos }
+func (x *From) Pos() int { return x.KeywordPos }
 func (*Delete) Pos() int { return 0 }
 
-func (x *Pool) End() int { return x.EndPos }
-func (x *File) End() int { return x.EndPos }
-func (x *HTTP) End() int { return x.EndPos }
+func (x *From) End() int { return x.EndPos }
 func (*Delete) End() int { return 0 }
 
 type SortExpr struct {
@@ -751,9 +739,6 @@ func (*Cut) OpAST()          {}
 func (*Drop) OpAST()         {}
 func (*Head) OpAST()         {}
 func (*Tail) OpAST()         {}
-func (*Pool) OpAST()         {}
-func (*File) OpAST()         {}
-func (*HTTP) OpAST()         {}
 func (*Pass) OpAST()         {}
 func (*Uniq) OpAST()         {}
 func (*Summarize) OpAST()    {}
@@ -766,6 +751,7 @@ func (*Fuse) OpAST()         {}
 func (*Join) OpAST()         {}
 func (*Shape) OpAST()        {}
 func (*From) OpAST()         {}
+func (*FromList) OpAST()     {}
 func (*Explode) OpAST()      {}
 func (*Merge) OpAST()        {}
 func (*Over) OpAST()         {}
@@ -803,7 +789,7 @@ func (x *Rename) Pos() int       { return x.KeywordPos }
 func (x *Fuse) Pos() int         { return x.KeywordPos }
 func (x *Join) Pos() int         { return x.KeywordPos }
 func (x *Shape) Pos() int        { return x.KeywordPos }
-func (x *From) Pos() int         { return x.KeywordPos }
+func (x *FromList) Pos() int     { return x.KeywordPos }
 func (x *Explode) Pos() int      { return x.KeywordPos }
 func (x *Merge) Pos() int        { return x.KeywordPos }
 func (x *Over) Pos() int         { return x.KeywordPos }
@@ -894,8 +880,8 @@ func (x *Join) End() int {
 	}
 	return x.LeftKey.End()
 }
-func (x *Shape) End() int { return x.KeywordPos + 6 }
-func (x *From) End() int  { return x.Rparen + 1 }
+func (x *Shape) End() int    { return x.KeywordPos + 6 }
+func (x *FromList) End() int { return x.Rparen + 1 }
 func (x *Explode) End() int {
 	if x.As != nil {
 		return x.As.End()
