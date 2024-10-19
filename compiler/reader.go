@@ -1,15 +1,12 @@
 package compiler
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/data"
 	"github.com/brimdata/super/lakeparse"
-	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/zio"
 )
 
@@ -21,21 +18,11 @@ func (i *anyCompiler) NewQuery(rctx *runtime.Context, seq ast.Seq, readers []zio
 	if len(readers) != 1 {
 		return nil, fmt.Errorf("NewQuery: Zed program expected %d readers", len(readers))
 	}
-	return CompileWithSortKey(rctx, seq, readers[0], order.SortKey{})
-}
-
-// XXX currently used only by group-by test, need to deprecate
-func CompileWithSortKey(rctx *runtime.Context, seq ast.Seq, r zio.Reader, sortKey order.SortKey) (*exec.Query, error) {
 	job, err := NewJob(rctx, seq, data.NewSource(nil, nil), nil)
 	if err != nil {
 		return nil, err
 	}
-	scan, ok := job.DefaultScan()
-	if !ok {
-		return nil, errors.New("CompileWithSortKey: Zed program expected a reader")
-	}
-	scan.SortKeys = order.SortKeys{sortKey}
-	return optimizeAndBuild(job, []zio.Reader{r})
+	return optimizeAndBuild(job, readers)
 }
 
 func (*anyCompiler) NewLakeQuery(rctx *runtime.Context, program ast.Seq, parallelism int, head *lakeparse.Commitish) (runtime.Query, error) {

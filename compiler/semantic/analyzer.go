@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 
-	"github.com/brimdata/super"
+	zed "github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/ast/dag"
+	astzed "github.com/brimdata/super/compiler/ast/zed"
 	"github.com/brimdata/super/compiler/data"
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/lakeparse"
@@ -89,11 +90,13 @@ func AddDefaultSource(ctx context.Context, seq *dag.Seq, source *data.Source, he
 	if _, err := source.PoolID(ctx, head.Pool); err != nil {
 		return err
 	}
-	pool := &ast.Pool{
-		Kind: "Pool",
-		Spec: ast.PoolSpec{
-			Pool: &ast.String{
-				Kind: "String",
+	pool := &ast.From{
+		Kind: "From",
+		Entity: &ast.ExprEntity{
+			Kind: "ExprEntity",
+			Expr: &astzed.Primitive{
+				Kind: "Primitive",
+				Type: "string",
 				Text: "HEAD",
 			},
 		},

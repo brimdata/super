@@ -110,9 +110,9 @@ Operation
       }, nil
     }
   / "from" __ "(" trunks:FromLeg+ __ ")" {
-      return &ast.From{
-          Kind: "From",
-          Trunks: sliceOf[ast.Seq](trunks),
+      return &ast.Parallel{
+          Kind: "Parallel",
+          Ops: sliceOf[Seq](trunks),
           KeywordPos: c.pos.offset,
           Rparen: lastPos(c, ")"),
       }, nil
@@ -162,9 +162,7 @@ FromLeg
     }
 
 FromSource
-  = File
-  / Get
-  / Pool
+  = (FromKeyWord _)? spec:FromBody{ return spec, nil }
   / PassOp
 
 ExprGuard = __ ((!"=>" Comparator) / AdditiveOperator / MultiplicativeOperator / ":" / "(" / "[" / "~")
@@ -230,11 +228,6 @@ SearchValue
   = Literal
   / !RegexpPattern v:KeyWord {
       return newPrimitive(c, "string", v.(string)), nil
-    }
-
-QuotedStringNode 
-  = s:QuotedString {
-      return &ast.QuotedString{Kind: "QuotedString", Text: s.(string), Lquote: c.pos.offset}, nil
     }
 
 Glob
@@ -617,49 +610,91 @@ DebugOp
     }
 
 FromOp
-  = File
-  / Get
-  / From
+  = FromKeyWord _ FromBody
 
-File
-  = "file" _ path:Path format:FormatArg? sortKeys:OrderArg? {
-      return &ast.File{
-        Kind: "File",
-        KeywordPos: c.pos.offset,
-        Path: path.(ast.Pattern),
+FromKeyWord 
+  = "from" 
+  / DeprecatedFroms
+
+DeprecatedFroms = "get" / "file" / "pool"
+
+// FromBody:
+// unquoted URL that begins with https:// or http://
+//  glob
+//  regexp
+//  expr (which may represent id or id derefed path that should be a string if not compile-time const)
+//    expr may also be string literal
+//
+// when string: check if it's an URL, then if it's a pool (in a lake), then if it's a file
+// when pattern: check if it matches pools (in a lake), otherwise check if it matches files
+//
+// if pool modifiers are present, then it must be a pool
+// if format modifier is present, then it must be a file or URL
+
+FromBody
+  = entity:FromEntity args:FromArgs {
+      from := &ast.From{
+        //XXX positions
+        Kind: "From",
+        Entity: entity.(ast.FromEntity),
+      }
+      if args != nil {
+        from.Args = args.(ast.FromArgs)
+      }
+      return from, nil
+    }
+
+FromEntity 
+  = UnquotedURL {
+      return &ast.ExprEntity{
+        Kind: "ExprEntity",
+        Expr: newPrimitive(c, "string", string(c.text)),
+      }, nil
+    }
+  / Regexp
+  / Glob
+  / "*" !ExprGuard { return &ast.Glob{Kind: "Glob", Pattern: "*", PatternPos: c.pos.offset}, nil }
+  / e:Expr {
+      return &ast.ExprEntity{
+        Kind: "ExprEntity",
+        Expr: e.(ast.Expr),
+      }, nil
+    }
+  / PoolNameString {
+      return &ast.ExprEntity{
+        Kind: "ExprEntity",
+        //XXX position info
+        Expr: newPrimitive(c, "string", string(c.text)),
+      }, nil    
+    }
+  / meta:PoolMeta {
+      return &ast.Lake{
+        Kind: "Lake",
+        Meta: meta.(string),
+      }, nil 
+    }
+
+FromArgs
+  = commit:PoolCommit meta:PoolMeta? tap:TapArg {
+      return &ast.PoolArgs{
+        Kind: "PoolArgs",
+        Commit: commit.(string),
+        Meta: nullableString(meta),
+        Tap: tap.(bool),
+      }, nil
+    }
+  / meta:PoolMeta tap:TapArg {
+      return &ast.PoolArgs{
+        Kind: "PoolArgs",
+        Meta: nullableString(meta),
+        Tap: tap.(bool),
+      }, nil
+    }
+  / &(MethodArg / HeadersArg / BodyArg)
+    format:FormatArg? method:MethodArg? headers:HeadersArg? body:BodyArg? {
+      h := &ast.HTTPArgs{
+        Kind: "HTTPArgs",
         Format: nullableString(format),
-        SortKeys: sliceOf[ast.SortExpr](sortKeys),
-        EndPos: c.pos.offset+len(c.text),
-      }, nil
-    }
-
-From
-  = "from" _ spec:PoolSpec {
-      return &ast.Pool{
-        Kind: "Pool",
-        Spec: spec.(ast.PoolSpec),
-        KeywordPos: c.pos.offset,
-        EndPos: c.pos.offset+len(c.text),
-      }, nil
-    }
-
-Pool
-  = "pool" _ spec:PoolSpec {
-      return &ast.Pool{
-        Kind: "Pool",
-        Spec: spec.(ast.PoolSpec),
-        KeywordPos: c.pos.offset,
-        EndPos: c.pos.offset+len(c.text),
-      }, nil
-    }
-
-Get
-  = "get" _ url:Path format:FormatArg? sortKeys:OrderArg? method:MethodArg? headers:HeadersArg? body:BodyArg? {
-      h := &ast.HTTP{
-        Kind: "HTTP",
-        URL: url.(ast.Pattern),
-        Format: nullableString(format),
-        SortKeys: sliceOf[ast.SortExpr](sortKeys),
         Method: nullableString(method),
         KeywordPos: c.pos.offset,
         Body: nullableString(body),
@@ -668,8 +703,16 @@ Get
       if headers != nil {
         h.Headers = headers.(*ast.RecordExpr)
       }
-      return h, nil
+      return h, nil    
     }
+  / format:FormatArg? {
+      return &ast.FormatArg{
+        Kind: "FormatArg",
+        Format: format.(string),
+        KeywordPos: c.pos.offset,
+        EndPos: c.pos.offset+len(c.text),
+      }, nil
+  }
 
 MethodArg = _ "method" _ v:(IdentifierName / QuotedString) { return v, nil }
 
@@ -677,11 +720,10 @@ HeadersArg = _ "headers" _ v:Record { return v, nil }
 
 BodyArg = _ "body" _ v:(IdentifierName / QuotedString) { return v, nil }
 
-Path
-  = QuotedStringNode
-  / [0-9a-zA-Z!@$%^&*_=<>,./?:[\]{}~+-]+ {
-      return &ast.String{Kind: "String", Text: string(c.text), TextPos: c.pos.offset}, nil
-    }
+UnquotedURL = ("http://" / "https://") UnquotedFromName
+
+//XXX why this? I think we had this before quoted names... it also embodies URLS
+UnquotedFromName = [0-9a-zA-Z!@$%^&*_=<>,./?:[\]{}~+-]+
 
 //XXX this should be a timestamp
 PoolAt
@@ -690,37 +732,18 @@ PoolAt
 //XXX this should allow 0x bytes format
 KSUID = ([0-9a-zA-Z])+ { return string(c.text), nil }
 
-PoolSpec
-  = pool:PoolName commit:PoolCommit? meta:PoolMeta? tap:TapArg {
-      return ast.PoolSpec{
-        Pool: pool.(ast.Pattern),
-        Commit: nullableString(commit),
-        Meta: nullableString(meta),
-        Tap: tap.(bool),
-      }, nil
-    }
-  / meta:PoolMeta {
-      return ast.PoolSpec{Meta: meta.(string)}, nil
-    }
-
 PoolCommit
   = "@" commit:PoolNameString { return commit, nil }
 
 PoolMeta
   = ":" meta:PoolIdentifier { return meta, nil }
 
-PoolName
-  = Regexp
-  / Glob
-  / "*" !ExprGuard { return &ast.Glob{Kind: "Glob", Pattern: "*", PatternPos: c.pos.offset}, nil }
-  / QuotedStringNode
-  / name:PoolNameString { return &ast.String{Kind: "String", Text: name.(string), TextPos: c.pos.offset}, nil }
-
 PoolNameString
   = PoolIdentifier
   / KSUID
   / QuotedString
 
+//XXX this belongs somewhere else... Deref will catch it in expression
 PoolIdentifier
   = (IdentifierStart / ".") (IdentifierRest / ".")* { return string(c.text), nil }
 
