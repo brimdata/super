@@ -132,6 +132,32 @@ produces
 {name:"chris",age:47,likes:"tart",fruit:"apple"}
 ```
 
+## Anti join
+
+:::tip note
+In some databases an anti join is called a _left anti join_.
+:::
+
+The join type `anti` allows us to see which fruits are not liked by anyone.
+Note that with anti join only values from the left-hand input appear in the
+results.
+
+The Zed script `anti-join.zed`:
+```mdtest-input anti-join.zed
+file fruit.ndjson
+| anti join (
+  file people.ndjson
+) on flavor=likes
+```
+Executing the Zed script:
+```mdtest-command
+zq -z -I anti-join.zed
+```
+produces
+```mdtest-output
+{name:"avocado",color:"green",flavor:"savory"}
+```
+
 ## Inputs from Pools
 
 In the examples above, we used the
