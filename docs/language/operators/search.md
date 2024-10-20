@@ -8,7 +8,7 @@
 ```
 ### Description
 
-The `search` operator filters its input by applying a search expression `<sexpr>`
+The `search` operator filters its input by applying a [search expression](../search-expressions.md) `<sexpr>`
 to each input value and dropping each value for which the expression evaluates
 to `false` or to an error.
 
@@ -48,7 +48,7 @@ echo '1 2 3' | super query -z -c '2 or 3' -
 2
 3
 ```
-_A search with Boolean logic_
+_A search with [Boolean logic](../search-expressions.md#boolean-logic)_
 ```mdtest-command
 echo '1 2 3' | super query -z -c 'search this >= 2 AND this <= 2' -
 ```
