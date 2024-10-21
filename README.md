@@ -2,8 +2,8 @@
 
 SuperDB is an analytics database that supports relational tables and JSON 
 on an equal footing.  It shines when it comes to complex data wrangling use cases
-where you need to explore large eclectic data sets.  It's also pretty decent
-at analytics and search use cases.
+where you need to explore or process large eclectic data sets.  It's also pretty
+decent at analytics and search use cases.
 
 In SuperDB's SQL dialect, there are no "JSON columns" so there isn't a "relational
 way to do things" and a different "JSON way to do things".  Instead of having
@@ -48,8 +48,8 @@ of GoogleSQL, recently described in their
 [VLDB 2024 paper](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/).
 
 In addition to the GoogleSQL syntax, SuperSQL includes additional pipeline 
-operators to enhance usuability, e.g., for search and for traversing 
-highly nested JSON.
+operators to enhance usuability, e.g., for search, for traversing 
+highly nested JSON, for data shaping, etc.
 
 To facilitate real-time, data exploration use cases,
 SuperDB supports an abbreviated form of SuperSQL called the
