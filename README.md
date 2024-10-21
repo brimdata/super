@@ -1,31 +1,67 @@
-# Zed [![Tests][tests-img]][tests] [![GoPkg][gopkg-img]][gopkg]
+# SuperDB [![Tests][tests-img]][tests] [![GoPkg][gopkg-img]][gopkg]
 
-Zed offers a new approach to data that makes it easier to manipulate and manage
-your data.
+SuperDB is an analytics database that supports relational tables and JSON 
+on an equal footing.  It shines when it comes to complex data wrangling use cases
+where you need to explore large eclectic data sets.  It's also pretty decent
+at analytics and search use cases.
 
-With Zed's new
-[super-structured data model](https://zed.brimdata.io/docs/formats/#2-zed-a-super-structured-pattern),
-messy JSON data can easily be given the fully-typed precision of relational tables
-without giving up JSON's uncanny ability to represent eclectic data.
+In SuperDB's SQL dialect, there are no "JSON columns" so there isn't a "relational
+way to do things" and a different "JSON way to do things".  Instead of having
+a relational type system for structured data and completely separate JSON type
+system for semi-structured data,
+all data handled by SuperDB (e.g., JSON, CSV, Parquet files, Arrow streams, relational tables, etc) is automatically massaged into
+[super-structured data](https://zed.brimdata.io/docs/formats/#2-zed-a-super-structured-pattern)
+form.  This super-structured data is then processed by a runtime that simultaneously
+supports the statically-typed relational model and the dynamically-typed 
+JSON data model in a unified compute engine.
 
-Trying out Zed is easy: just [install](https://zed.brimdata.io/docs/#getting-started)
-the command-line tool [`zq`](https://zed.brimdata.io/docs/commands/zq/).
+Super-structured data is strongly typed and "polymorphic": any value can take on any type 
+and sequences of data need not all conform to a predefined schema.  To this end,
+SuperDB extends the JSON format to support super-structured data in a format called
+[Super JSON](https://zed.brimdata.io/docs/formats/zson) where all JSON possible values 
+are also Super JSON values.  Similarly,
+the [Super Binary](https://zed.brimdata.io/docs/formats/zson) format is an efficient
+binary representation of Super JSON (a bit like Avro) and the
+[Super Columnar](https://zed.brimdata.io/docs/formats/zson) format is a columnar
+representation of Super JSON (a bit like Parquet).
 
-`zq` is a lot like [`jq`](https://stedolan.github.io/jq/)
-but is built from the ground up as a search and analytics engine based
-on the [Zed data model](https://zed.brimdata.io/docs/formats/zed).
-Since Zed data is a proper superset of JSON, `zq` also works natively with JSON.
+Even though SuperDB is based on these super-structured data formats, it can read and write
+any common data format.
 
-While `zq` and the Zed data formats are production quality, the Zed project's
-[Zed data lake](https://zed.brimdata.io/docs/commands/zed/#1-the-lake-model)
-is a bit [earlier in development](https://zed.brimdata.io/docs/commands/zed/#status).
+Trying out SuperDB is super easy: just [install](https://zed.brimdata.io/docs/#getting-started)
+the command-line tool [`super`](https://zed.brimdata.io/docs/commands/zq/).
 
-For a non-technical user, Zed is as easy to use as web search
-while for a technical user, Zed exposes its technical underpinnings
-in a gradual slope, providing as much detail as desired,
-packaged up in the easy-to-understand
-[ZSON data format](https://zed.brimdata.io/docs/formats/zson) and
-[Zed language](https://zed.brimdata.io/docs/language).
+The SuperDB query engine can run locally without a storage engine by accessing
+files, HTTP endpoints, or S3 paths using the `super query` subcommand. While [earlier
+in its development](https://zed.brimdata.io/docs/commands/zed/#status), SuperDB can also run
+on a [super-structured data lake]https://zed.brimdata.io/docs/commands/zed/#1-the-lake-model)
+using the `suber db ...` set of commands.
+
+## Pipe Query Syntax
+
+The goal for SuperDB's SQL syntax (SuperSQL) is to be Postgres-compatibe and interoperate 
+with BI tools though this is currently a roadmap item.  At the same time, the project
+seeks to forge now ground on the usability of SQL for data exploration.  To this end,
+SuperSQL supports the
+[pipe query syntax](https://github.com/google/zetasql/blob/master/docs/pipe-syntax.md)
+of GoogleSQL, recently described in their
+[VLDB 2024 paper](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/).
+
+In addition to the GoogleSQL syntax, SuperSQL includes additional pipeline 
+operators to enhance usuability, e.g., for search and for traversing 
+highly nested JSON.
+
+To facilitate real-time, data exploration use cases,
+SuperDB supports an abbreviated form of SuperSQL called the
+[SuperPipe]((https://zed.brimdata.io/docs/language) query language.
+SuperPipe provides a large number of shortcuts when typing interactive 
+queries, e.g., implied group-by clauses, dropping keywords,
+implied keyword searches, and so forth.  Even though SuperPipe is 
+a form SuperSQL, it sort of looks like the pipeline-style search languages
+utilized in search systems.
+
+
+XXX TODO ...
 
 ## Why?
 
