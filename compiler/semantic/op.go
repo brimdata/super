@@ -33,26 +33,10 @@ func (a *analyzer) semSeq(seq ast.Seq) dag.Seq {
 	return converted
 }
 
-func (a *analyzer) semFromList(from *ast.FromList, seq dag.Seq) dag.Seq {
-	switch len(from.Trunks) {
-	case 0:
-		a.error(from, errors.New("from operator has no paths"))
-		return append(seq, badOp())
-	case 1:
-		return a.semTrunk(from.Trunks[0], seq)
-	default:
-		paths := make([]dag.Seq, 0, len(from.Trunks))
-		for _, in := range from.Trunks {
-			paths = append(paths, a.semTrunk(in, nil))
-		}
-		return append(seq, &dag.Fork{
-			Kind:  "Fork",
-			Paths: paths,
-		})
-	}
-}
-
+/* ... we the part below that makes a fork from a globbed from...
 func (a *analyzer) semTrunk(trunk ast.Seq, out dag.Seq) dag.Seq {
+	// Each trunk must begin with a pass or a from...
+
 	src := trunk[0].(ast.Source)
 	if pool, ok := src.(*ast.Pool); ok && len(trunk) > 1 {
 		switch pool.Spec.Pool.(type) {
@@ -72,11 +56,12 @@ func (a *analyzer) semTrunk(trunk ast.Seq, out dag.Seq) dag.Seq {
 	}
 	return append(out, &dag.Fork{Kind: "Fork", Paths: paths})
 }
+*/
 
 //XXX make sure you can't read files from a lake instance
 
 func (a *analyzer) semFrom(from *ast.From, out dag.Seq) dag.Seq {
-	sources := a.semSource(source)
+	sources := a.semFromEntity(from.Entity, from.Args)
 	if len(sources) == 1 {
 		return append(sources, out...)
 	}
@@ -106,8 +91,24 @@ func (a *analyzer) semFrom(from *ast.From, out dag.Seq) dag.Seq {
 //  expr (which may represent id or id derefed path that should be a string if not compile-time const)
 //    expr may also be string literal
 
-func (a *analyzer) semSource(source ast.Source) []dag.Op {
-	switch s := source.(type) {
+// Need to debug this:
+// from foo | from ( x => ... y => ... z => ... pass => ...)
+
+func (a *analyzer) semFromEntity(entity ast.FromEntity, args ast.FromArgs) dag.Seq {
+	switch entity := entity.(type) {
+	case *ast.Glob:
+		return a.semFromRegexp(entity, reglob.Reglob(entity.Pattern), entity.Pattern, "glob", args)
+	case *ast.Regexp:
+		return a.semFromRegexp(entity, entity.Pattern, entity.Pattern, "regexp", args)
+	case *ast.ExprEntity:
+		return a.semFromExpr(entity, args)
+	default:
+		panic(fmt.Sprintf("semFromEntity: unknown entity type: %T"))
+	}
+}
+
+/* XXX need these leaf cases
+
 	case *ast.FromExpr:
 	case *ast.FromString:
 		var path string
@@ -183,6 +184,79 @@ func (a *analyzer) semSource(source ast.Source) []dag.Op {
 		panic(fmt.Errorf("semantic analyzer: unknown AST source type %T", s))
 	}
 }
+*/
+
+func (a *analyzer) semFromExpr(entity *ast.ExprEntity, args ast.FromArgs) dag.Seq {
+	// The expression must eval to a single string constant.
+	// Then we figure out if it's a pool or an URL.
+	expr := a.semExpr(entity.Expr)
+	val, err := kernel.EvalAtCompileTime(a.zctx, expr)
+	if err != nil {
+		a.error(entity, err)
+		return dag.Seq{badOp()}
+	}
+	if zed.TypeUnder(val.Type()) != zed.TypeString {
+		a.error(entity, errors.New("from operator requires a string name"))
+		return dag.Seq{badOp()}
+	}
+	return dag.Seq{a.semFromName(val.AsString(), args)}
+}
+
+func (a *analyzer) semFromName(name string, args ast.FromArgs) dag.Op {
+	if isURL(name) {
+		return a.semFromURL(name, args)
+	}
+	if a.source.IsLake() {
+		return a.semFromLake(name, args)
+	}
+	//XXX
+	return nil
+}
+
+func (a *analyzer) semFromLake(name string, args ast.FromArgs) dag.Op {
+}
+
+func (a *analyzer) semFromURL(url string, args ast.FromArgs) dag.Op {
+	format, method, headers, body, err := a.evalHTTPArgs(args)
+	if err != nil {
+		a.error(args, err)
+		return badOp()
+	}
+	return &dag.HTTPScan{
+		Kind:    "HTTPScan",
+		URL:     url,
+		Format:  format,
+		Method:  method,
+		Headers: headers,
+		Body:    body,
+	}
+}
+
+func (a *analyzer) evalHTTPArgs(args ast.FromArgs) (string, string, map[string][]string, string, error) {
+	switch args := args.(type) {
+	case *ast.HTTPArgs:
+		var headers map[string][]string
+		if args.Headers != nil {
+			expr := a.semExpr(args.Headers)
+			val, err := kernel.EvalAtCompileTime(a.zctx, expr)
+			if err != nil {
+				a.error(args.Headers, err)
+			} else {
+				headers, err = unmarshalHeaders(val)
+				if err != nil {
+					a.error(args.Headers, err)
+				}
+			}
+		}
+		return args.Format, args.Method, headers, args.Body, nil
+	case *ast.FormatArg:
+		return args.Format, "", nil, "", nil
+	case *ast.PoolArgs:
+		return "", "", nil, "", errors.New("cannot use pool-style argument with a URL in a from operator")
+	default:
+		panic(fmt.Errorf("semantic analyzer: unsupported AST get type %T", p))
+	}
+}
 
 func unmarshalHeaders(val super.Value) (map[string][]string, error) {
 	if !super.IsRecordType(val.Type()) {
@@ -204,6 +278,39 @@ func unmarshalHeaders(val super.Value) (map[string][]string, error) {
 		}
 	}
 	return headers, nil
+}
+
+// XXX line numbers?
+// this is a pattern match either on files or URLs
+func (a *analyzer) semFromRegexp(n ast.Node, re, orig, which string, args ast.FromArgs) dag.Seq {
+	// args: http, pool, or format
+	if a.source.IsLake() {
+		poolNames, err := a.matchPools(re, orig, which)
+		if err != nil {
+			a.error(n, err)
+			return dag.Seq{badOp()}
+		}
+		//XXX check pool args...
+		var poolArgs *ast.PoolArgs
+		switch args := args.(type) {
+		case *ast.PoolArgs:
+			poolArgs = args
+		case *ast.FormatArg:
+			a.error(n, errors.New("cannot specify a format in a pool query"))
+			return dag.Seq{badOp()}
+		case *ast.HTTPArgs:
+			a.error(n, errors.New("cannot specify HTTP parameters in a pool query"))
+			return dag.Seq{badOp()}
+		}
+		var sources []dag.Op
+		for _, name := range poolNames {
+			sources = append(sources, a.semPoolWithName(name, poolArgs))
+		}
+		return sources
+	}
+
+	//XXX
+	return nil
 }
 
 func (a *analyzer) semSortKeys(sortExprs []ast.SortExpr) order.SortKeys {
@@ -284,30 +391,19 @@ func (a *analyzer) maybeStringConst(name string) (string, error) {
 	return val.AsString(), nil
 }
 
-func (a *analyzer) semPoolWithName(p *ast.Pool, poolName string) dag.Op {
-	commit := p.Spec.Commit
+func (a *analyzer) semPoolWithName(poolName string, args *ast.PoolArgs) dag.Op {
+	commit := args.Commit
 	if poolName == "HEAD" {
 		if a.head == nil {
-			a.error(p.Spec.Pool, errors.New("cannot scan from unknown HEAD"))
+			a.error(args, errors.New("cannot scan from unknown HEAD"))
 			return badOp()
 		}
 		poolName = a.head.Pool
 		commit = a.head.Branch
 	}
 	if poolName == "" {
-		meta := p.Spec.Meta
-		if meta == "" {
-			a.error(p, errors.New("pool name missing"))
-			return badOp()
-		}
-		if _, ok := dag.LakeMetas[meta]; !ok {
-			a.error(p, fmt.Errorf("unknown lake metadata type %q in from operator", meta))
-			return badOp()
-		}
-		return &dag.LakeMetaScan{
-			Kind: "LakeMetaScan",
-			Meta: p.Spec.Meta,
-		}
+		meta := args.Meta
+
 	}
 	poolID, err := a.source.PoolID(a.ctx, poolName)
 	if err != nil {
@@ -360,15 +456,33 @@ func (a *analyzer) semPoolWithName(p *ast.Pool, poolName string) dag.Op {
 			return badOp()
 		}
 	}
-	if p.Delete {
-		return &dag.DeleteScan{
-			Kind:   "DeleteScan",
-			ID:     poolID,
-			Commit: commitID,
-		}
-	}
+
 	return &dag.PoolScan{
 		Kind:   "PoolScan",
+		ID:     poolID,
+		Commit: commitID,
+	}
+}
+
+func (a *analyzer) semLake(op *ast.Lake) dag.Op {
+	meta := op.Meta
+	if _, ok := dag.LakeMetas[meta]; !ok {
+		a.error(op, fmt.Errorf("unknown lake metadata type %q in from operator", meta))
+		return badOp()
+	}
+	return &dag.LakeMetaScan{
+		Kind: "LakeMetaScan",
+		Meta: meta,
+	}
+}
+
+func (a *analyzer) semDelete(d *ast.Delete) dag.Op {
+	if !a.source.IsLake() {
+		a.error(d, errors.New("deletion requires data lake"))
+		return badOp()
+	}
+	return &dag.DeleteScan{
+		Kind:   "DeleteScan",
 		ID:     poolID,
 		Commit: commitID,
 	}
@@ -433,8 +547,6 @@ func (a *analyzer) semDebugOp(o *ast.Debug, mainAst ast.Seq, in dag.Seq) dag.Seq
 // with either a group-by or filter op based on the function's name.
 func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 	switch o := o.(type) {
-	case *ast.FromList:
-		return a.semFromList(o, seq)
 	case *ast.From:
 		return a.semFrom(o, seq)
 	case *ast.Lake:
@@ -1172,4 +1284,8 @@ func (a *analyzer) maybeConvertUserOp(call *ast.Call) dag.Seq {
 		}
 	}
 	return a.semSeq(decl.ast.Body)
+}
+
+func isURL(s string) bool {
+	return strings.HasPrefix(s, "http://") || strings.HasPrefix(s, "https://")
 }

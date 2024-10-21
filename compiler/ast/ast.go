@@ -579,12 +579,6 @@ type (
 		Kind       string `json:"kind" unpack:""`
 		KeywordPos int    `json:"keyword_pos"`
 	}
-	FromList struct {
-		Kind       string `json:"kind" unpack:""`
-		KeywordPos int    `json:"keyword_pos"`
-		Trunks     []Seq  `json:"trunks"`
-		Rparen     int    `json:"rparen"`
-	}
 	Load struct {
 		Kind       string `json:"kind" unpack:""`
 		KeywordPos int    `json:"keyword_pos"`
@@ -665,15 +659,24 @@ type FromArgs interface {
 	FromArgs()
 }
 
+func (*PoolArgs) Pos() int  { return 0 } //XXX
+func (*HTTPArgs) Pos() int  { return 0 } //XXX
+func (*FormatArg) Pos() int { return 0 } //XXX
+func (*PoolArgs) End() int  { return 0 } //XXX
+func (*HTTPArgs) End() int  { return 0 } //XXX
+func (*FormatArg) End() int { return 0 } //XXX
+
 func (*PoolArgs) FromArgs()  {}
 func (*FormatArg) FromArgs() {}
 func (*HTTPArgs) FromArgs()  {}
 
 func (x *From) Pos() int { return x.KeywordPos }
-func (*Delete) Pos() int { return 0 }
+func (*Delete) Pos() int { return 0 } // XXX
+func (*Lake) Pos() int   { return 0 } // XXX
 
 func (x *From) End() int { return x.EndPos }
-func (*Delete) End() int { return 0 }
+func (*Delete) End() int { return 0 } // XXX
+func (*Lake) End() int   { return 0 } //XXX
 
 type SortExpr struct {
 	Kind  string `json:"kind" unpack:""`
@@ -751,7 +754,6 @@ func (*Fuse) OpAST()         {}
 func (*Join) OpAST()         {}
 func (*Shape) OpAST()        {}
 func (*From) OpAST()         {}
-func (*FromList) OpAST()     {}
 func (*Explode) OpAST()      {}
 func (*Merge) OpAST()        {}
 func (*Over) OpAST()         {}
@@ -789,7 +791,6 @@ func (x *Rename) Pos() int       { return x.KeywordPos }
 func (x *Fuse) Pos() int         { return x.KeywordPos }
 func (x *Join) Pos() int         { return x.KeywordPos }
 func (x *Shape) Pos() int        { return x.KeywordPos }
-func (x *FromList) Pos() int     { return x.KeywordPos }
 func (x *Explode) Pos() int      { return x.KeywordPos }
 func (x *Merge) Pos() int        { return x.KeywordPos }
 func (x *Over) Pos() int         { return x.KeywordPos }
@@ -880,8 +881,7 @@ func (x *Join) End() int {
 	}
 	return x.LeftKey.End()
 }
-func (x *Shape) End() int    { return x.KeywordPos + 6 }
-func (x *FromList) End() int { return x.Rparen + 1 }
+func (x *Shape) End() int { return x.KeywordPos + 6 }
 func (x *Explode) End() int {
 	if x.As != nil {
 		return x.As.End()

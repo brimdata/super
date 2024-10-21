@@ -112,7 +112,7 @@ Operation
   / "from" __ "(" trunks:FromLeg+ __ ")" {
       return &ast.Parallel{
           Kind: "Parallel",
-          Ops: sliceOf[Seq](trunks),
+          Paths: sliceOf[ast.Seq](trunks),
           KeywordPos: c.pos.offset,
           Rparen: lastPos(c, ")"),
       }, nil
