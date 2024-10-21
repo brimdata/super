@@ -38,6 +38,9 @@ func (b *Bool) Set(slot uint32) {
 }
 
 func (b *Bool) Len() uint32 {
+	if b == nil {
+		return 0
+	}
 	return b.len
 }
 
@@ -48,7 +51,7 @@ func (b *Bool) CopyWithBits(bits []uint64) *Bool {
 }
 
 func (b *Bool) Serialize(builder *zcode.Builder, slot uint32) {
-	if b.Nulls.Value(slot) {
+	if b != nil && b.Nulls.Value(slot) {
 		builder.Append(nil)
 	} else {
 		builder.Append(zed.EncodeBool(b.Value(slot)))
@@ -142,7 +145,7 @@ func NullsOf(v Any) *Bool {
 	case *Union:
 		return v.Nulls
 	case *View:
-		return nullsView(NullsOf(v.Any), v.Index)
+		return NewView(v.Index, NullsOf(v.Any)).(*Bool)
 	}
 	panic(v)
 }
