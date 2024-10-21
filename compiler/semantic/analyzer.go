@@ -90,7 +90,7 @@ func AddDefaultSource(ctx context.Context, seq *dag.Seq, source *data.Source, he
 	if _, err := source.PoolID(ctx, head.Pool); err != nil {
 		return err
 	}
-	pool := &ast.From{
+	fromHead := &ast.From{
 		Kind: "From",
 		Entity: &ast.ExprEntity{
 			Kind: "ExprEntity",
@@ -101,7 +101,7 @@ func AddDefaultSource(ctx context.Context, seq *dag.Seq, source *data.Source, he
 			},
 		},
 	}
-	ops := newAnalyzer(ctx, source, head).semPool(pool)
+	ops := newAnalyzer(ctx, source, head).semFrom(fromHead, nil) //XXX nil
 	seq.Prepend(ops[0])
 	return nil
 }

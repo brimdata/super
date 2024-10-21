@@ -304,7 +304,7 @@ func (a *analyzer) semFromRegexp(n ast.Node, re, orig, which string, args ast.Fr
 		}
 		var sources []dag.Op
 		for _, name := range poolNames {
-			sources = append(sources, a.semPoolWithName(name, poolArgs))
+			sources = append(sources, a.semPool(n, name, poolArgs))
 		}
 		return sources
 	}
@@ -340,41 +340,6 @@ func (a *analyzer) semSortExpr(s ast.SortExpr) dag.SortExpr {
 	return dag.SortExpr{Key: e, Order: o}
 }
 
-func (a *analyzer) semPool(p *ast.Pool) []dag.Op {
-	var poolNames []string
-	var err error
-	switch specPool := p.Spec.Pool.(type) {
-	case nil:
-		// This is a lake meta-query.
-		poolNames = []string{""}
-	case *ast.Glob:
-		poolNames, err = a.matchPools(reglob.Reglob(specPool.Pattern), specPool.Pattern, "glob")
-	case *ast.Regexp:
-		poolNames, err = a.matchPools(specPool.Pattern, specPool.Pattern, "regexp")
-	case *ast.String:
-		// This can be either a reference to a constant or a string.
-		var name string
-		if name, err = a.maybeStringConst(specPool.Text); err == nil {
-			poolNames = []string{name}
-		}
-	case *ast.QuotedString:
-		poolNames = []string{specPool.Text}
-	default:
-		panic(fmt.Errorf("semantic analyzer: unknown AST pool type %T", specPool))
-	}
-	if err != nil {
-		// XXX PoolSpec should have a node position but for now just report
-		// error as entire source.
-		a.error(p.Spec.Pool, err)
-		return []dag.Op{badOp()}
-	}
-	var sources []dag.Op
-	for _, name := range poolNames {
-		sources = append(sources, a.semPoolWithName(p, name))
-	}
-	return sources
-}
-
 func (a *analyzer) maybeStringConst(name string) (string, error) {
 	e, err := a.scope.LookupExpr(name)
 	if err != nil || e == nil {
@@ -391,7 +356,7 @@ func (a *analyzer) maybeStringConst(name string) (string, error) {
 	return val.AsString(), nil
 }
 
-func (a *analyzer) semPoolWithName(poolName string, args *ast.PoolArgs) dag.Op {
+func (a *analyzer) semPool(from ast.Node, poolName string, args *ast.PoolArgs) dag.Op {
 	commit := args.Commit
 	if poolName == "HEAD" {
 		if a.head == nil {
@@ -400,10 +365,6 @@ func (a *analyzer) semPoolWithName(poolName string, args *ast.PoolArgs) dag.Op {
 		}
 		poolName = a.head.Pool
 		commit = a.head.Branch
-	}
-	if poolName == "" {
-		meta := args.Meta
-
 	}
 	poolID, err := a.source.PoolID(a.ctx, poolName)
 	if err != nil {
@@ -415,17 +376,17 @@ func (a *analyzer) semPoolWithName(poolName string, args *ast.PoolArgs) dag.Op {
 		if commitID, err = lakeparse.ParseID(commit); err != nil {
 			commitID, err = a.source.CommitObject(a.ctx, poolID, commit)
 			if err != nil {
-				a.error(p, err)
+				a.error(from, err)
 				return badOp()
 			}
 		}
 	}
-	if meta := p.Spec.Meta; meta != "" {
+	if meta := args.Meta; meta != "" {
 		if _, ok := dag.CommitMetas[meta]; ok {
 			if commitID == ksuid.Nil {
 				commitID, err = a.source.CommitObject(a.ctx, poolID, "main")
 				if err != nil {
-					a.error(p, err)
+					a.error(from, err)
 					return badOp()
 				}
 			}
@@ -444,7 +405,7 @@ func (a *analyzer) semPoolWithName(poolName string, args *ast.PoolArgs) dag.Op {
 				ID:   poolID,
 			}
 		}
-		a.error(p, fmt.Errorf("unknown metadata type %q", meta))
+		a.error(from, fmt.Errorf("unknown metadata type %q", meta))
 		return badOp()
 	}
 	if commitID == ksuid.Nil {
@@ -452,11 +413,10 @@ func (a *analyzer) semPoolWithName(poolName string, args *ast.PoolArgs) dag.Op {
 		// there is a "from pool" operator with no meta query or commit object.
 		commitID, err = a.source.CommitObject(a.ctx, poolID, "main")
 		if err != nil {
-			a.error(p, err)
+			a.error(from, err)
 			return badOp()
 		}
 	}
-
 	return &dag.PoolScan{
 		Kind:   "PoolScan",
 		ID:     poolID,
@@ -476,10 +436,31 @@ func (a *analyzer) semLake(op *ast.Lake) dag.Op {
 	}
 }
 
-func (a *analyzer) semDelete(d *ast.Delete) dag.Op {
+func (a *analyzer) semDelete(op *ast.Delete) dag.Op {
 	if !a.source.IsLake() {
-		a.error(d, errors.New("deletion requires data lake"))
+		a.error(op, errors.New("deletion requires data lake"))
 		return badOp()
+	}
+	//XXX parse tree supports just reading from HEAD right now
+	pool := a.head.Pool
+	commit := a.head.Branch
+
+	//XXX share lookup logic here with semPool
+	poolID, err := a.source.PoolID(a.ctx, pool)
+	if err != nil {
+		a.error(op, err)
+		return badOp()
+	}
+	var commitID ksuid.KSUID
+	if commit != "" {
+		var err error
+		if commitID, err = lakeparse.ParseID(commit); err != nil {
+			commitID, err = a.source.CommitObject(a.ctx, poolID, commit)
+			if err != nil {
+				a.error(op, err)
+				return badOp()
+			}
+		}
 	}
 	return &dag.DeleteScan{
 		Kind:   "DeleteScan",
