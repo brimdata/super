@@ -144,7 +144,7 @@ func (p *objectPuller) Pull(done bool) (*data.Object, error) {
 		// We require exactly one data object per pull.
 		return nil, errors.New("system error: vam.objectPuller encountered multi-valued batch")
 	}
-	named, ok := vals[0].Type().(*zed.TypeNamed)
+	named, ok := vals[0].Type().(*super.TypeNamed)
 	if !ok {
 		return nil, fmt.Errorf("system error: vam.objectPuller encountered unnamed object: %s", zson.String(vals[0]))
 	}

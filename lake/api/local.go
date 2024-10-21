@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	zed "github.com/brimdata/super"
+	 "github.com/brimdata/super"
 	"github.com/brimdata/super/api"
 	"github.com/brimdata/super/compiler"
 	"github.com/brimdata/super/compiler/parser"
@@ -110,7 +110,7 @@ func (l *local) Query(ctx context.Context, head *lakeparse.Commitish, src string
 	if err != nil {
 		return nil, err
 	}
-	q, err := runtime.CompileLakeQuery(ctx, zed.NewContext(), l.compiler, flowgraph, sset, head)
+	q, err := runtime.CompileLakeQuery(ctx, super.NewContext(), l.compiler, flowgraph, sset, head)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +145,7 @@ func (l *local) lookupBranch(ctx context.Context, poolID ksuid.KSUID, branchName
 	return pool, branch, nil
 }
 
-func (l *local) Load(ctx context.Context, ztcx *zed.Context, poolID ksuid.KSUID, branchName string, r zio.Reader, message api.CommitMessage) (ksuid.KSUID, error) {
+func (l *local) Load(ctx context.Context, ztcx *super.Context, poolID ksuid.KSUID, branchName string, r zio.Reader, message api.CommitMessage) (ksuid.KSUID, error) {
 	_, branch, err := l.lookupBranch(ctx, poolID, branchName)
 	if err != nil {
 		return ksuid.Nil, err

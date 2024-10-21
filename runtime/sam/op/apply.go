@@ -31,7 +31,7 @@ func (a *applier) Pull(done bool) (zbuf.Batch, error) {
 			return nil, err
 		}
 		vals := batch.Values()
-		out := make([]zed.Value, 0, len(vals))
+		out := make([]super.Value, 0, len(vals))
 		for i := range vals {
 			val := a.expr.Eval(batch, vals[i])
 			if val.IsError() {

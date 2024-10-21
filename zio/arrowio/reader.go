@@ -18,20 +18,20 @@ import (
 
 // Reader is a zio.Reader for the Arrow IPC stream format.
 type Reader struct {
-	zctx *zed.Context
+	zctx *super.Context
 	rr   pqarrow.RecordReader
 
-	typ              zed.Type
+	typ              super.Type
 	unionTagMappings map[string][]int
 
 	rec arrow.Record
 	i   int
 
 	builder zcode.Builder
-	val     zed.Value
+	val     super.Value
 }
 
-func NewReader(zctx *zed.Context, r io.Reader) (*Reader, error) {
+func NewReader(zctx *super.Context, r io.Reader) (*Reader, error) {
 	ipcReader, err := ipc.NewReader(r)
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func NewReader(zctx *zed.Context, r io.Reader) (*Reader, error) {
 	return ar, nil
 }
 
-func NewReaderFromRecordReader(zctx *zed.Context, rr pqarrow.RecordReader) (*Reader, error) {
+func NewReaderFromRecordReader(zctx *super.Context, rr pqarrow.RecordReader) (*Reader, error) {
 	fields := slices.Clone(rr.Schema().Fields())
 	uniquifyFieldNames(fields)
 	r := &Reader{
@@ -82,7 +82,7 @@ func (r *Reader) Close() error {
 	return nil
 }
 
-func (r *Reader) Read() (*zed.Value, error) {
+func (r *Reader) Read() (*super.Value, error) {
 	for r.rec == nil {
 		rec, err := r.rr.Read()
 		if err != nil {
@@ -104,7 +104,7 @@ func (r *Reader) Read() (*zed.Value, error) {
 			return nil, err
 		}
 	}
-	r.val = zed.NewValue(r.typ, r.builder.Bytes())
+	r.val = super.NewValue(r.typ, r.builder.Bytes())
 	r.i++
 	if r.i >= int(r.rec.NumRows()) {
 		r.rec.Release()
@@ -113,73 +113,73 @@ func (r *Reader) Read() (*zed.Value, error) {
 	return &r.val, nil
 }
 
-var dayTimeIntervalFields = []zed.Field{
-	{Name: "days", Type: zed.TypeInt32},
-	{Name: "milliseconds", Type: zed.TypeUint32},
+var dayTimeIntervalFields = []super.Field{
+	{Name: "days", Type: super.TypeInt32},
+	{Name: "milliseconds", Type: super.TypeUint32},
 }
-var decimal128Fields = []zed.Field{
-	{Name: "high", Type: zed.TypeInt64},
-	{Name: "low", Type: zed.TypeUint64},
+var decimal128Fields = []super.Field{
+	{Name: "high", Type: super.TypeInt64},
+	{Name: "low", Type: super.TypeUint64},
 }
-var monthDayNanoIntervalFields = []zed.Field{
-	{Name: "month", Type: zed.TypeInt32},
-	{Name: "day", Type: zed.TypeInt32},
-	{Name: "nanoseconds", Type: zed.TypeInt64},
+var monthDayNanoIntervalFields = []super.Field{
+	{Name: "month", Type: super.TypeInt32},
+	{Name: "day", Type: super.TypeInt32},
+	{Name: "nanoseconds", Type: super.TypeInt64},
 }
 
-func (r *Reader) newZedType(dt arrow.DataType) (zed.Type, error) {
+func (r *Reader) newZedType(dt arrow.DataType) (super.Type, error) {
 	// Order here follows that of the arrow.Time constants.
 	switch dt.ID() {
 	case arrow.NULL:
-		return zed.TypeNull, nil
+		return super.TypeNull, nil
 	case arrow.BOOL:
-		return zed.TypeBool, nil
+		return super.TypeBool, nil
 	case arrow.UINT8:
-		return zed.TypeUint8, nil
+		return super.TypeUint8, nil
 	case arrow.INT8:
-		return zed.TypeInt8, nil
+		return super.TypeInt8, nil
 	case arrow.UINT16:
-		return zed.TypeUint16, nil
+		return super.TypeUint16, nil
 	case arrow.INT16:
-		return zed.TypeInt16, nil
+		return super.TypeInt16, nil
 	case arrow.UINT32:
-		return zed.TypeUint32, nil
+		return super.TypeUint32, nil
 	case arrow.INT32:
-		return zed.TypeInt32, nil
+		return super.TypeInt32, nil
 	case arrow.UINT64:
-		return zed.TypeUint64, nil
+		return super.TypeUint64, nil
 	case arrow.INT64:
-		return zed.TypeInt64, nil
+		return super.TypeInt64, nil
 	case arrow.FLOAT16:
-		return zed.TypeFloat16, nil
+		return super.TypeFloat16, nil
 	case arrow.FLOAT32:
-		return zed.TypeFloat32, nil
+		return super.TypeFloat32, nil
 	case arrow.FLOAT64:
-		return zed.TypeFloat64, nil
+		return super.TypeFloat64, nil
 	case arrow.STRING:
-		return zed.TypeString, nil
+		return super.TypeString, nil
 	case arrow.BINARY:
-		return zed.TypeBytes, nil
+		return super.TypeBytes, nil
 	case arrow.FIXED_SIZE_BINARY:
 		width := strconv.Itoa(dt.(*arrow.FixedSizeBinaryType).ByteWidth)
-		return r.zctx.LookupTypeNamed("arrow_fixed_size_binary_"+width, zed.TypeBytes)
+		return r.zctx.LookupTypeNamed("arrow_fixed_size_binary_"+width, super.TypeBytes)
 	case arrow.DATE32:
-		return r.zctx.LookupTypeNamed("arrow_date32", zed.TypeTime)
+		return r.zctx.LookupTypeNamed("arrow_date32", super.TypeTime)
 	case arrow.DATE64:
-		return r.zctx.LookupTypeNamed("arrow_date64", zed.TypeTime)
+		return r.zctx.LookupTypeNamed("arrow_date64", super.TypeTime)
 	case arrow.TIMESTAMP:
 		if unit := dt.(*arrow.TimestampType).Unit; unit != arrow.Nanosecond {
-			return r.zctx.LookupTypeNamed("arrow_timestamp_"+unit.String(), zed.TypeTime)
+			return r.zctx.LookupTypeNamed("arrow_timestamp_"+unit.String(), super.TypeTime)
 		}
-		return zed.TypeTime, nil
+		return super.TypeTime, nil
 	case arrow.TIME32:
 		unit := dt.(*arrow.Time32Type).Unit.String()
-		return r.zctx.LookupTypeNamed("arrow_time32_"+unit, zed.TypeTime)
+		return r.zctx.LookupTypeNamed("arrow_time32_"+unit, super.TypeTime)
 	case arrow.TIME64:
 		unit := dt.(*arrow.Time64Type).Unit.String()
-		return r.zctx.LookupTypeNamed("arrow_time64_"+unit, zed.TypeTime)
+		return r.zctx.LookupTypeNamed("arrow_time64_"+unit, super.TypeTime)
 	case arrow.INTERVAL_MONTHS:
-		return r.zctx.LookupTypeNamed("arrow_month_interval", zed.TypeInt32)
+		return r.zctx.LookupTypeNamed("arrow_month_interval", super.TypeInt32)
 	case arrow.INTERVAL_DAY_TIME:
 		typ, err := r.zctx.LookupTypeRecord(dayTimeIntervalFields)
 		if err != nil {
@@ -193,7 +193,7 @@ func (r *Reader) newZedType(dt arrow.DataType) (zed.Type, error) {
 		}
 		return r.zctx.LookupTypeNamed("arrow_decimal128", typ)
 	case arrow.DECIMAL256:
-		return r.zctx.LookupTypeNamed("arrow_decimal256", r.zctx.LookupTypeArray(zed.TypeUint64))
+		return r.zctx.LookupTypeNamed("arrow_decimal256", r.zctx.LookupTypeArray(super.TypeUint64))
 	case arrow.LIST:
 		typ, err := r.newZedType(dt.(*arrow.ListType).Elem())
 		if err != nil {
@@ -201,13 +201,13 @@ func (r *Reader) newZedType(dt arrow.DataType) (zed.Type, error) {
 		}
 		return r.zctx.LookupTypeArray(typ), nil
 	case arrow.STRUCT:
-		var fields []zed.Field
+		var fields []super.Field
 		for _, f := range dt.(*arrow.StructType).Fields() {
 			typ, err := r.newZedType(f.Type)
 			if err != nil {
 				return nil, err
 			}
-			fields = append(fields, zed.NewField(f.Name, typ))
+			fields = append(fields, super.NewField(f.Name, typ))
 		}
 		return r.zctx.LookupTypeRecord(fields)
 	case arrow.SPARSE_UNION, arrow.DENSE_UNION:
@@ -233,13 +233,13 @@ func (r *Reader) newZedType(dt arrow.DataType) (zed.Type, error) {
 		return r.zctx.LookupTypeNamed("arrow_fixed_size_list_"+size, r.zctx.LookupTypeArray(typ))
 	case arrow.DURATION:
 		if unit := dt.(*arrow.DurationType).Unit; unit != arrow.Nanosecond {
-			return r.zctx.LookupTypeNamed("arrow_duration_"+unit.String(), zed.TypeDuration)
+			return r.zctx.LookupTypeNamed("arrow_duration_"+unit.String(), super.TypeDuration)
 		}
-		return zed.TypeDuration, nil
+		return super.TypeDuration, nil
 	case arrow.LARGE_STRING:
-		return r.zctx.LookupTypeNamed("arrow_large_string", zed.TypeString)
+		return r.zctx.LookupTypeNamed("arrow_large_string", super.TypeString)
 	case arrow.LARGE_BINARY:
-		return r.zctx.LookupTypeNamed("arrow_large_binary", zed.TypeBytes)
+		return r.zctx.LookupTypeNamed("arrow_large_binary", super.TypeBytes)
 	case arrow.LARGE_LIST:
 		typ, err := r.newZedType(dt.(*arrow.LargeListType).Elem())
 		if err != nil {
@@ -257,8 +257,8 @@ func (r *Reader) newZedType(dt arrow.DataType) (zed.Type, error) {
 	}
 }
 
-func (r *Reader) newZedUnionType(union arrow.UnionType, fingerprint string) (zed.Type, error) {
-	var types []zed.Type
+func (r *Reader) newZedUnionType(union arrow.UnionType, fingerprint string) (super.Type, error) {
+	var types []super.Type
 	for _, f := range union.Fields() {
 		typ, err := r.newZedType(f.Type)
 		if err != nil {
@@ -266,7 +266,7 @@ func (r *Reader) newZedUnionType(union arrow.UnionType, fingerprint string) (zed
 		}
 		types = append(types, typ)
 	}
-	uniqueTypes := zed.UniqueTypes(slices.Clone(types))
+	uniqueTypes := super.UniqueTypes(slices.Clone(types))
 	var x []int
 Loop:
 	for _, typ2 := range types {
@@ -296,66 +296,66 @@ func (r *Reader) buildZcode(a arrow.Array, i int) error {
 	case arrow.NULL:
 		b.Append(nil)
 	case arrow.BOOL:
-		b.Append(zed.EncodeBool(array.NewBooleanData(data).Value(i)))
+		b.Append(super.EncodeBool(array.NewBooleanData(data).Value(i)))
 	case arrow.UINT8:
-		b.Append(zed.EncodeUint(uint64(array.NewUint8Data(data).Value(i))))
+		b.Append(super.EncodeUint(uint64(array.NewUint8Data(data).Value(i))))
 	case arrow.INT8:
-		b.Append(zed.EncodeInt(int64(array.NewInt8Data(data).Value(i))))
+		b.Append(super.EncodeInt(int64(array.NewInt8Data(data).Value(i))))
 	case arrow.UINT16:
-		b.Append(zed.EncodeUint(uint64(array.NewUint16Data(data).Value(i))))
+		b.Append(super.EncodeUint(uint64(array.NewUint16Data(data).Value(i))))
 	case arrow.INT16:
-		b.Append(zed.EncodeInt(int64(array.NewInt16Data(data).Value(i))))
+		b.Append(super.EncodeInt(int64(array.NewInt16Data(data).Value(i))))
 	case arrow.UINT32:
-		b.Append(zed.EncodeUint(uint64(array.NewUint32Data(data).Value(i))))
+		b.Append(super.EncodeUint(uint64(array.NewUint32Data(data).Value(i))))
 	case arrow.INT32:
-		b.Append(zed.EncodeInt(int64(array.NewInt32Data(data).Value(i))))
+		b.Append(super.EncodeInt(int64(array.NewInt32Data(data).Value(i))))
 	case arrow.UINT64:
-		b.Append(zed.EncodeUint(array.NewUint64Data(data).Value(i)))
+		b.Append(super.EncodeUint(array.NewUint64Data(data).Value(i)))
 	case arrow.INT64:
-		b.Append(zed.EncodeInt(array.NewInt64Data(data).Value(i)))
+		b.Append(super.EncodeInt(array.NewInt64Data(data).Value(i)))
 	case arrow.FLOAT16:
-		b.Append(zed.EncodeFloat16(array.NewFloat16Data(data).Value(i).Float32()))
+		b.Append(super.EncodeFloat16(array.NewFloat16Data(data).Value(i).Float32()))
 	case arrow.FLOAT32:
-		b.Append(zed.EncodeFloat32(array.NewFloat32Data(data).Value(i)))
+		b.Append(super.EncodeFloat32(array.NewFloat32Data(data).Value(i)))
 	case arrow.FLOAT64:
-		b.Append(zed.EncodeFloat64(array.NewFloat64Data(data).Value(i)))
+		b.Append(super.EncodeFloat64(array.NewFloat64Data(data).Value(i)))
 	case arrow.STRING:
 		appendString(b, array.NewStringData(data).Value(i))
 	case arrow.BINARY:
-		b.Append(zed.EncodeBytes(array.NewBinaryData(data).Value(i)))
+		b.Append(super.EncodeBytes(array.NewBinaryData(data).Value(i)))
 	case arrow.FIXED_SIZE_BINARY:
-		b.Append(zed.EncodeBytes(array.NewFixedSizeBinaryData(data).Value(i)))
+		b.Append(super.EncodeBytes(array.NewFixedSizeBinaryData(data).Value(i)))
 	case arrow.DATE32:
-		b.Append(zed.EncodeTime(nano.TimeToTs(array.NewDate32Data(data).Value(i).ToTime())))
+		b.Append(super.EncodeTime(nano.TimeToTs(array.NewDate32Data(data).Value(i).ToTime())))
 	case arrow.DATE64:
-		b.Append(zed.EncodeTime(nano.TimeToTs(array.NewDate64Data(data).Value(i).ToTime())))
+		b.Append(super.EncodeTime(nano.TimeToTs(array.NewDate64Data(data).Value(i).ToTime())))
 	case arrow.TIMESTAMP:
 		unit := a.DataType().(*arrow.TimestampType).Unit
-		b.Append(zed.EncodeTime(nano.TimeToTs(array.NewTimestampData(data).Value(i).ToTime(unit))))
+		b.Append(super.EncodeTime(nano.TimeToTs(array.NewTimestampData(data).Value(i).ToTime(unit))))
 	case arrow.TIME32:
 		unit := a.DataType().(*arrow.Time32Type).Unit
-		b.Append(zed.EncodeTime(nano.TimeToTs(array.NewTime32Data(data).Value(i).ToTime(unit))))
+		b.Append(super.EncodeTime(nano.TimeToTs(array.NewTime32Data(data).Value(i).ToTime(unit))))
 	case arrow.TIME64:
 		unit := a.DataType().(*arrow.Time64Type).Unit
-		b.Append(zed.EncodeTime(nano.TimeToTs(array.NewTime64Data(data).Value(i).ToTime(unit))))
+		b.Append(super.EncodeTime(nano.TimeToTs(array.NewTime64Data(data).Value(i).ToTime(unit))))
 	case arrow.INTERVAL_MONTHS:
-		b.Append(zed.EncodeInt(int64(array.NewMonthIntervalData(data).Value(i))))
+		b.Append(super.EncodeInt(int64(array.NewMonthIntervalData(data).Value(i))))
 	case arrow.INTERVAL_DAY_TIME:
 		v := array.NewDayTimeIntervalData(data).Value(i)
 		b.BeginContainer()
-		b.Append(zed.EncodeInt(int64(v.Days)))
-		b.Append(zed.EncodeInt(int64(v.Milliseconds)))
+		b.Append(super.EncodeInt(int64(v.Days)))
+		b.Append(super.EncodeInt(int64(v.Milliseconds)))
 		b.EndContainer()
 	case arrow.DECIMAL128:
 		v := array.NewDecimal128Data(data).Value(i)
 		b.BeginContainer()
-		b.Append(zed.EncodeInt(v.HighBits()))
-		b.Append(zed.EncodeUint(v.LowBits()))
+		b.Append(super.EncodeInt(v.HighBits()))
+		b.Append(super.EncodeUint(v.LowBits()))
 		b.EndContainer()
 	case arrow.DECIMAL256:
 		b.BeginContainer()
 		for _, u := range array.NewDecimal256Data(data).Value(i).Array() {
-			b.Append(zed.EncodeUint(u))
+			b.Append(super.EncodeUint(u))
 		}
 		b.EndContainer()
 	case arrow.LIST:
@@ -390,7 +390,7 @@ func (r *Reader) buildZcode(a arrow.Array, i int) error {
 				return err
 			}
 		}
-		b.TransformContainer(zed.NormalizeMap)
+		b.TransformContainer(super.NormalizeMap)
 		b.EndContainer()
 	case arrow.FIXED_SIZE_LIST:
 		v := array.NewFixedSizeListData(data)
@@ -405,11 +405,11 @@ func (r *Reader) buildZcode(a arrow.Array, i int) error {
 		case arrow.Microsecond:
 			d *= nano.Microsecond
 		}
-		b.Append(zed.EncodeDuration(d))
+		b.Append(super.EncodeDuration(d))
 	case arrow.LARGE_STRING:
 		appendString(b, array.NewLargeStringData(data).Value(i))
 	case arrow.LARGE_BINARY:
-		b.Append(zed.EncodeBytes(array.NewLargeBinaryData(data).Value(i)))
+		b.Append(super.EncodeBytes(array.NewLargeBinaryData(data).Value(i)))
 	case arrow.LARGE_LIST:
 		v := array.NewLargeListData(data)
 		start, end := v.ValueOffsets(i)
@@ -417,9 +417,9 @@ func (r *Reader) buildZcode(a arrow.Array, i int) error {
 	case arrow.INTERVAL_MONTH_DAY_NANO:
 		v := array.NewMonthDayNanoIntervalData(data).Value(i)
 		b.BeginContainer()
-		b.Append(zed.EncodeInt(int64(v.Months)))
-		b.Append(zed.EncodeInt(int64(v.Days)))
-		b.Append(zed.EncodeInt(v.Nanoseconds))
+		b.Append(super.EncodeInt(int64(v.Months)))
+		b.Append(super.EncodeInt(int64(v.Days)))
+		b.Append(super.EncodeInt(v.Nanoseconds))
 		b.EndContainer()
 	default:
 		return fmt.Errorf("unimplemented Arrow type: %s", a.DataType().Name())
@@ -448,7 +448,7 @@ func (r *Reader) buildZcodeUnion(u array.Union, dt arrow.DataType, i int) error 
 		b.Append(nil)
 	} else {
 		b.BeginContainer()
-		b.Append(zed.EncodeInt(int64(r.unionTagMappings[dt.Fingerprint()][childID])))
+		b.Append(super.EncodeInt(int64(r.unionTagMappings[dt.Fingerprint()][childID])))
 		if err := r.buildZcode(field, i); err != nil {
 			return err
 		}
@@ -459,7 +459,7 @@ func (r *Reader) buildZcodeUnion(u array.Union, dt arrow.DataType, i int) error 
 
 func appendString(b *zcode.Builder, s string) {
 	if s == "" {
-		b.Append(zed.EncodeString(s))
+		b.Append(super.EncodeString(s))
 	} else {
 		// Avoid a call to runtime.stringtoslicebyte.
 		b.Append(*(*[]byte)(unsafe.Pointer(&s)))

@@ -15,8 +15,8 @@ import (
 	"github.com/segmentio/ksuid"
 )
 
-func NewLakeMetaScanner(ctx context.Context, zctx *zed.Context, r *lake.Root, meta string) (zbuf.Scanner, error) {
-	var vals []zed.Value
+func NewLakeMetaScanner(ctx context.Context, zctx *super.Context, r *lake.Root, meta string) (zbuf.Scanner, error) {
+	var vals []super.Value
 	var err error
 	switch meta {
 	case "pools":
@@ -32,12 +32,12 @@ func NewLakeMetaScanner(ctx context.Context, zctx *zed.Context, r *lake.Root, me
 	return zbuf.NewScanner(ctx, zbuf.NewArray(vals), nil)
 }
 
-func NewPoolMetaScanner(ctx context.Context, zctx *zed.Context, r *lake.Root, poolID ksuid.KSUID, meta string) (zbuf.Scanner, error) {
+func NewPoolMetaScanner(ctx context.Context, zctx *super.Context, r *lake.Root, poolID ksuid.KSUID, meta string) (zbuf.Scanner, error) {
 	p, err := r.OpenPool(ctx, poolID)
 	if err != nil {
 		return nil, err
 	}
-	var vals []zed.Value
+	var vals []super.Value
 	switch meta {
 	case "branches":
 		m := zson.NewZNGMarshalerWithContext(zctx)
@@ -52,7 +52,7 @@ func NewPoolMetaScanner(ctx context.Context, zctx *zed.Context, r *lake.Root, po
 	return zbuf.NewScanner(ctx, zbuf.NewArray(vals), nil)
 }
 
-func NewCommitMetaScanner(ctx context.Context, zctx *zed.Context, r *lake.Root, poolID, commit ksuid.KSUID, meta string, pruner expr.Evaluator) (zbuf.Puller, error) {
+func NewCommitMetaScanner(ctx context.Context, zctx *super.Context, r *lake.Root, poolID, commit ksuid.KSUID, meta string, pruner expr.Evaluator) (zbuf.Puller, error) {
 	p, err := r.OpenPool(ctx, poolID)
 	if err != nil {
 		return nil, err
@@ -111,11 +111,11 @@ func NewCommitMetaScanner(ctx context.Context, zctx *zed.Context, r *lake.Root, 
 	}
 }
 
-func objectReader(ctx context.Context, zctx *zed.Context, snap commits.View, order order.Which) (zio.Reader, error) {
+func objectReader(ctx context.Context, zctx *super.Context, snap commits.View, order order.Which) (zio.Reader, error) {
 	objects := snap.Select(nil, order)
 	m := zson.NewZNGMarshalerWithContext(zctx)
 	m.Decorate(zson.StylePackage)
-	return readerFunc(func() (*zed.Value, error) {
+	return readerFunc(func() (*super.Value, error) {
 		if len(objects) == 0 {
 			return nil, nil
 		}
@@ -125,6 +125,6 @@ func objectReader(ctx context.Context, zctx *zed.Context, snap commits.View, ord
 	}), nil
 }
 
-type readerFunc func() (*zed.Value, error)
+type readerFunc func() (*super.Value, error)
 
-func (r readerFunc) Read() (*zed.Value, error) { return r() }
+func (r readerFunc) Read() (*super.Value, error) { return r() }

@@ -8,12 +8,12 @@ import (
 )
 
 type dropper struct {
-	typ       zed.Type
-	builder   *zed.RecordBuilder
+	typ       super.Type
+	builder   *super.RecordBuilder
 	fieldRefs []Evaluator
 }
 
-func (d *dropper) drop(ectx Context, in zed.Value) zed.Value {
+func (d *dropper) drop(ectx Context, in super.Value) super.Value {
 	if d.typ == in.Type() {
 		return in
 	}
@@ -27,16 +27,16 @@ func (d *dropper) drop(ectx Context, in zed.Value) zed.Value {
 	if err != nil {
 		panic(err)
 	}
-	return zed.NewValue(d.typ, val)
+	return super.NewValue(d.typ, val)
 }
 
 type Dropper struct {
-	zctx     *zed.Context
+	zctx     *super.Context
 	fields   field.List
 	droppers map[int]*dropper
 }
 
-func NewDropper(zctx *zed.Context, fields field.List) *Dropper {
+func NewDropper(zctx *super.Context, fields field.List) *Dropper {
 	return &Dropper{
 		zctx:     zctx,
 		fields:   fields,
@@ -44,8 +44,8 @@ func NewDropper(zctx *zed.Context, fields field.List) *Dropper {
 	}
 }
 
-func (d *Dropper) newDropper(zctx *zed.Context, r zed.Value) *dropper {
-	fields, fieldTypes, match := complementFields(d.fields, nil, zed.TypeRecordOf(r.Type()))
+func (d *Dropper) newDropper(zctx *super.Context, r super.Value) *dropper {
+	fields, fieldTypes, match := complementFields(d.fields, nil, super.TypeRecordOf(r.Type()))
 	if !match {
 		// r.Type contains no fields matching d.fields, so we set
 		// dropper.typ to r.Type to indicate that records of this type
@@ -62,7 +62,7 @@ func (d *Dropper) newDropper(zctx *zed.Context, r zed.Value) *dropper {
 	for _, f := range fields {
 		fieldRefs = append(fieldRefs, NewDottedExpr(zctx, f))
 	}
-	builder, err := zed.NewRecordBuilder(d.zctx, fields)
+	builder, err := super.NewRecordBuilder(d.zctx, fields)
 	if err != nil {
 		panic(err)
 	}
@@ -73,9 +73,9 @@ func (d *Dropper) newDropper(zctx *zed.Context, r zed.Value) *dropper {
 // complementFields returns the slice of fields and associated types that make
 // up the complement of the set of fields in drops along with a boolean that is
 // true if typ contains any the fields in drops.
-func complementFields(drops field.List, prefix field.Path, typ *zed.TypeRecord) (field.List, []zed.Type, bool) {
+func complementFields(drops field.List, prefix field.Path, typ *super.TypeRecord) (field.List, []super.Type, bool) {
 	var fields field.List
-	var types []zed.Type
+	var types []super.Type
 	var match bool
 	for _, f := range typ.Fields {
 		fld := append(prefix, f.Name)
@@ -83,7 +83,7 @@ func complementFields(drops field.List, prefix field.Path, typ *zed.TypeRecord) 
 			match = true
 			continue
 		}
-		if typ, ok := zed.TypeUnder(f.Type).(*zed.TypeRecord); ok {
+		if typ, ok := super.TypeUnder(f.Type).(*super.TypeRecord); ok {
 			if fs, ts, m := complementFields(drops, fld, typ); m {
 				fields = append(fields, fs...)
 				types = append(types, ts...)
@@ -97,8 +97,8 @@ func complementFields(drops field.List, prefix field.Path, typ *zed.TypeRecord) 
 	return fields, types, match
 }
 
-func (d *Dropper) Eval(ectx Context, in zed.Value) zed.Value {
-	if !zed.IsRecordType(in.Type()) {
+func (d *Dropper) Eval(ectx Context, in super.Value) super.Value {
+	if !super.IsRecordType(in.Type()) {
 		return in
 	}
 	id := in.Type().ID()

@@ -9,11 +9,11 @@ import (
 
 type peeker struct {
 	*File
-	nextRecord *zed.Value
+	nextRecord *super.Value
 	ordinal    int
 }
 
-func newPeeker(ctx context.Context, zctx *zed.Context, filename string, ordinal int, zr zio.Reader) (*peeker, error) {
+func newPeeker(ctx context.Context, zctx *super.Context, filename string, ordinal int, zr zio.Reader) (*peeker, error) {
 	f, err := NewFileWithPath(filename)
 	if err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func newPeeker(ctx context.Context, zctx *zed.Context, filename string, ordinal 
 
 // read is like Read but returns eof at the last record so a MergeSort can
 // do its heap management a bit more easily.
-func (p *peeker) read() (*zed.Value, bool, error) {
+func (p *peeker) read() (*super.Value, bool, error) {
 	rec := p.nextRecord
 	if rec != nil {
 		rec = rec.Copy().Ptr()

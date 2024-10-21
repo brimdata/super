@@ -155,8 +155,8 @@ func (s *SearchScanner) Pull(done bool) (zbuf.Batch, error) {
 	}
 }
 
-func newScanner(ctx context.Context, zctx *zed.Context, pool *lake.Pool, u *zson.UnmarshalZNGContext, pruner expr.Evaluator, filter zbuf.Filter, progress *zbuf.Progress, val zed.Value) (zbuf.Puller, *data.Object, error) {
-	named, ok := val.Type().(*zed.TypeNamed)
+func newScanner(ctx context.Context, zctx *super.Context, pool *lake.Pool, u *zson.UnmarshalZNGContext, pruner expr.Evaluator, filter zbuf.Filter, progress *zbuf.Progress, val super.Value) (zbuf.Puller, *data.Object, error) {
+	named, ok := val.Type().(*super.TypeNamed)
 	if !ok {
 		return nil, nil, errors.New("system error: SequenceScanner encountered unnamed object")
 	}
@@ -178,7 +178,7 @@ func newScanner(ctx context.Context, zctx *zed.Context, pool *lake.Pool, u *zson
 	return scanner, objects[0], err
 }
 
-func newObjectsScanner(ctx context.Context, zctx *zed.Context, pool *lake.Pool, objects []*data.Object, pruner expr.Evaluator, filter zbuf.Filter, progress *zbuf.Progress) (zbuf.Puller, error) {
+func newObjectsScanner(ctx context.Context, zctx *super.Context, pool *lake.Pool, objects []*data.Object, pruner expr.Evaluator, filter zbuf.Filter, progress *zbuf.Progress) (zbuf.Puller, error) {
 	pullers := make([]zbuf.Puller, 0, len(objects))
 	pullersDone := func() {
 		for _, puller := range pullers {
@@ -203,7 +203,7 @@ func newObjectsScanner(ctx context.Context, zctx *zed.Context, pool *lake.Pool, 
 	return merge.New(ctx, pullers, lake.ImportComparator(zctx, pool).Compare, expr.Resetters{}), nil
 }
 
-func newObjectScanner(ctx context.Context, zctx *zed.Context, pool *lake.Pool, object *data.Object, ranges []seekindex.Range, filter zbuf.Filter, progress *zbuf.Progress) (zbuf.Puller, error) {
+func newObjectScanner(ctx context.Context, zctx *super.Context, pool *lake.Pool, object *data.Object, ranges []seekindex.Range, filter zbuf.Filter, progress *zbuf.Progress) (zbuf.Puller, error) {
 	rc, err := object.NewReader(ctx, pool.Storage(), pool.DataPath, ranges)
 	if err != nil {
 		return nil, err

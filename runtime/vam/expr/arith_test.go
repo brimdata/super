@@ -11,15 +11,15 @@ import (
 // Test that Arith.Eval handles all ops for all vector forms.
 func TestArithOpsAndForms(t *testing.T) {
 	// These are all [0, 1, 2].
-	lhsFlat := vector.NewInt(zed.TypeInt64, []int64{0, 1, 2}, nil)
+	lhsFlat := vector.NewInt(super.TypeInt64, []int64{0, 1, 2}, nil)
 	lhsDict := vector.NewDict(lhsFlat, []byte{0, 1, 2}, nil, nil)
 	lhsView := vector.NewView([]uint32{0, 1, 2}, lhsFlat)
 
 	// These are all [1, 1, 1].
-	rhsFlat := vector.NewInt(zed.TypeInt64, []int64{1, 1, 1}, nil)
+	rhsFlat := vector.NewInt(super.TypeInt64, []int64{1, 1, 1}, nil)
 	rhsDict := vector.NewDict(rhsFlat, []byte{0, 0, 0}, nil, nil)
 	rhsView := vector.NewView([]uint32{0, 1, 2}, rhsFlat)
-	Const := vector.NewConst(zed.NewInt64(1), 3, nil)
+	Const := vector.NewConst(super.NewInt64(1), 3, nil)
 
 	cases := []struct {
 		op                            string
@@ -34,7 +34,7 @@ func TestArithOpsAndForms(t *testing.T) {
 	for _, c := range cases {
 		f := func(expected []int64, lhs, rhs vector.Any) {
 			t.Helper()
-			cmp := NewArith(zed.NewContext(), &testEval{lhs}, &testEval{rhs}, c.op)
+			cmp := NewArith(super.NewContext(), &testEval{lhs}, &testEval{rhs}, c.op)
 			assert.Equal(t, expected, cmp.Eval(nil).(*vector.Int).Values, "op: %s", c.op)
 		}
 
@@ -58,10 +58,10 @@ func TestArithOpsAndForms(t *testing.T) {
 		f(c.expectedForConstLHS, Const, rhsView)
 
 		// Arithmetic on two vector.Consts yields another vector.Const.
-		cmp := NewArith(zed.NewContext(), &testEval{Const}, &testEval{Const}, c.op)
+		cmp := NewArith(super.NewContext(), &testEval{Const}, &testEval{Const}, c.op)
 		val := cmp.Eval(nil).(*vector.Const)
 		assert.Equal(t, uint32(3), val.Len(), "op: %s", c.op)
-		expected := zed.NewInt64(c.expectedForConstLHS[0])
+		expected := super.NewInt64(c.expectedForConstLHS[0])
 		assert.Equal(t, expected, val.Value(), "op: %s", c.op)
 	}
 

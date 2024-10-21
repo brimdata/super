@@ -9,13 +9,13 @@ import (
 )
 
 type Compare struct {
-	zctx   *zed.Context
+	zctx   *super.Context
 	opCode int
 	lhs    Evaluator
 	rhs    Evaluator
 }
 
-func NewCompare(zctx *zed.Context, lhs, rhs Evaluator, op string) *Compare {
+func NewCompare(zctx *super.Context, lhs, rhs Evaluator, op string) *Compare {
 	return &Compare{zctx, vector.CompareOpFromString(op), lhs, rhs}
 }
 

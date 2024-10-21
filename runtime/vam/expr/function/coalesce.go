@@ -45,13 +45,13 @@ func (c *Coalesce) Call(vecs ...vector.Any) vector.Any {
 		out[i] = vector.NewView(c.viewIndexes[i], vecs[i])
 	}
 	if nullcnt > 0 {
-		out = append(out, vector.NewConst(zed.Null, nullcnt, nil))
+		out = append(out, vector.NewConst(super.Null, nullcnt, nil))
 	}
 	return vector.NewDynamic(c.tags, out)
 }
 
 func (c *Coalesce) arg(vec vector.Any, tag uint32) {
-	if errvec, ok := vec.(*vector.Error); ok && errvec.Typ.Type == zed.TypeString {
+	if errvec, ok := vec.(*vector.Error); ok && errvec.Typ.Type == super.TypeString {
 		c.errString(tag, errvec)
 	} else {
 		c.checkNulls(vec, tag)

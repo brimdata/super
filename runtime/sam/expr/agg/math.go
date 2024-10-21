@@ -11,9 +11,9 @@ import (
 )
 
 type consumer interface {
-	result() zed.Value
-	consume(zed.Value)
-	typ() zed.Type
+	result() super.Value
+	consume(super.Value)
+	typ() super.Type
 }
 
 type mathReducer struct {
@@ -28,25 +28,25 @@ func newMathReducer(f *anymath.Function) *mathReducer {
 	return &mathReducer{function: f}
 }
 
-func (m *mathReducer) Result(zctx *zed.Context) zed.Value {
+func (m *mathReducer) Result(zctx *super.Context) super.Value {
 	if !m.hasval {
 		if m.math == nil {
-			return zed.Null
+			return super.Null
 		}
-		return zed.NewValue(m.math.typ(), nil)
+		return super.NewValue(m.math.typ(), nil)
 	}
 	return m.math.result()
 }
 
-func (m *mathReducer) Consume(val zed.Value) {
+func (m *mathReducer) Consume(val super.Value) {
 	m.consumeVal(val)
 }
 
-func (m *mathReducer) consumeVal(val zed.Value) {
+func (m *mathReducer) consumeVal(val super.Value) {
 	var id int
 	if m.math != nil {
 		var err error
-		id, err = coerce.Promote(zed.NewValue(m.math.typ(), nil), val)
+		id, err = coerce.Promote(super.NewValue(m.math.typ(), nil), val)
 		if err != nil {
 			// Skip invalid values.
 			return
@@ -55,20 +55,20 @@ func (m *mathReducer) consumeVal(val zed.Value) {
 		id = val.Type().ID()
 	}
 	if m.math == nil || m.math.typ().ID() != id {
-		state := zed.Null
+		state := super.Null
 		if m.math != nil {
 			state = m.math.result()
 		}
 		switch id {
-		case zed.IDInt8, zed.IDInt16, zed.IDInt32, zed.IDInt64:
+		case super.IDInt8, super.IDInt16, super.IDInt32, super.IDInt64:
 			m.math = NewInt64(m.function, state)
-		case zed.IDUint8, zed.IDUint16, zed.IDUint32, zed.IDUint64:
+		case super.IDUint8, super.IDUint16, super.IDUint32, super.IDUint64:
 			m.math = NewUint64(m.function, state)
-		case zed.IDFloat16, zed.IDFloat32, zed.IDFloat64:
+		case super.IDFloat16, super.IDFloat32, super.IDFloat64:
 			m.math = NewFloat64(m.function, state)
-		case zed.IDDuration:
+		case super.IDDuration:
 			m.math = NewDuration(m.function, state)
-		case zed.IDTime:
+		case super.IDTime:
 			m.math = NewTime(m.function, state)
 		default:
 			// Ignore types we can't handle.
@@ -82,11 +82,11 @@ func (m *mathReducer) consumeVal(val zed.Value) {
 	m.math.consume(val)
 }
 
-func (m *mathReducer) ResultAsPartial(*zed.Context) zed.Value {
+func (m *mathReducer) ResultAsPartial(*super.Context) super.Value {
 	return m.Result(nil)
 }
 
-func (m *mathReducer) ConsumeAsPartial(val zed.Value) {
+func (m *mathReducer) ConsumeAsPartial(val super.Value) {
 	m.consumeVal(val)
 }
 
@@ -95,13 +95,13 @@ type Float64 struct {
 	function anymath.Float64
 }
 
-func NewFloat64(f *anymath.Function, val zed.Value) *Float64 {
+func NewFloat64(f *anymath.Function, val super.Value) *Float64 {
 	state := f.Init.Float64
 	if !val.IsNull() {
 		var ok bool
 		state, ok = coerce.ToFloat(val)
 		if !ok {
-			panicCoercionFail(zed.TypeFloat64, val.Type())
+			panicCoercionFail(super.TypeFloat64, val.Type())
 		}
 	}
 	return &Float64{
@@ -110,30 +110,30 @@ func NewFloat64(f *anymath.Function, val zed.Value) *Float64 {
 	}
 }
 
-func (f *Float64) result() zed.Value {
-	return zed.NewFloat64(f.state)
+func (f *Float64) result() super.Value {
+	return super.NewFloat64(f.state)
 }
 
-func (f *Float64) consume(val zed.Value) {
+func (f *Float64) consume(val super.Value) {
 	if v, ok := coerce.ToFloat(val); ok {
 		f.state = f.function(f.state, v)
 	}
 }
 
-func (f *Float64) typ() zed.Type { return zed.TypeFloat64 }
+func (f *Float64) typ() super.Type { return super.TypeFloat64 }
 
 type Int64 struct {
 	state    int64
 	function anymath.Int64
 }
 
-func NewInt64(f *anymath.Function, val zed.Value) *Int64 {
+func NewInt64(f *anymath.Function, val super.Value) *Int64 {
 	state := f.Init.Int64
 	if !val.IsNull() {
 		var ok bool
 		state, ok = coerce.ToInt(val)
 		if !ok {
-			panicCoercionFail(zed.TypeInt64, val.Type())
+			panicCoercionFail(super.TypeInt64, val.Type())
 		}
 	}
 	return &Int64{
@@ -142,30 +142,30 @@ func NewInt64(f *anymath.Function, val zed.Value) *Int64 {
 	}
 }
 
-func (i *Int64) result() zed.Value {
-	return zed.NewInt64(i.state)
+func (i *Int64) result() super.Value {
+	return super.NewInt64(i.state)
 }
 
-func (i *Int64) consume(val zed.Value) {
+func (i *Int64) consume(val super.Value) {
 	if v, ok := coerce.ToInt(val); ok {
 		i.state = i.function(i.state, v)
 	}
 }
 
-func (f *Int64) typ() zed.Type { return zed.TypeInt64 }
+func (f *Int64) typ() super.Type { return super.TypeInt64 }
 
 type Uint64 struct {
 	state    uint64
 	function anymath.Uint64
 }
 
-func NewUint64(f *anymath.Function, val zed.Value) *Uint64 {
+func NewUint64(f *anymath.Function, val super.Value) *Uint64 {
 	state := f.Init.Uint64
 	if !val.IsNull() {
 		var ok bool
 		state, ok = coerce.ToUint(val)
 		if !ok {
-			panicCoercionFail(zed.TypeUint64, val.Type())
+			panicCoercionFail(super.TypeUint64, val.Type())
 		}
 	}
 	return &Uint64{
@@ -174,30 +174,30 @@ func NewUint64(f *anymath.Function, val zed.Value) *Uint64 {
 	}
 }
 
-func (u *Uint64) result() zed.Value {
-	return zed.NewUint64(u.state)
+func (u *Uint64) result() super.Value {
+	return super.NewUint64(u.state)
 }
 
-func (u *Uint64) consume(val zed.Value) {
+func (u *Uint64) consume(val super.Value) {
 	if v, ok := coerce.ToUint(val); ok {
 		u.state = u.function(u.state, v)
 	}
 }
 
-func (f *Uint64) typ() zed.Type { return zed.TypeUint64 }
+func (f *Uint64) typ() super.Type { return super.TypeUint64 }
 
 type Duration struct {
 	state    int64
 	function anymath.Int64
 }
 
-func NewDuration(f *anymath.Function, val zed.Value) *Duration {
+func NewDuration(f *anymath.Function, val super.Value) *Duration {
 	state := f.Init.Int64
 	if !val.IsNull() {
 		var ok bool
 		state, ok = coerce.ToInt(val)
 		if !ok {
-			panicCoercionFail(zed.TypeDuration, val.Type())
+			panicCoercionFail(super.TypeDuration, val.Type())
 		}
 	}
 	return &Duration{
@@ -206,30 +206,30 @@ func NewDuration(f *anymath.Function, val zed.Value) *Duration {
 	}
 }
 
-func (d *Duration) result() zed.Value {
-	return zed.NewDuration(nano.Duration(d.state))
+func (d *Duration) result() super.Value {
+	return super.NewDuration(nano.Duration(d.state))
 }
 
-func (d *Duration) consume(val zed.Value) {
+func (d *Duration) consume(val super.Value) {
 	if v, ok := coerce.ToInt(val); ok {
 		d.state = d.function(d.state, v)
 	}
 }
 
-func (f *Duration) typ() zed.Type { return zed.TypeDuration }
+func (f *Duration) typ() super.Type { return super.TypeDuration }
 
 type Time struct {
 	state    nano.Ts
 	function anymath.Int64
 }
 
-func NewTime(f *anymath.Function, val zed.Value) *Time {
+func NewTime(f *anymath.Function, val super.Value) *Time {
 	state := f.Init.Int64
 	if !val.IsNull() {
 		var ok bool
 		state, ok = coerce.ToInt(val)
 		if !ok {
-			panicCoercionFail(zed.TypeTime, val.Type())
+			panicCoercionFail(super.TypeTime, val.Type())
 		}
 	}
 	return &Time{
@@ -238,18 +238,18 @@ func NewTime(f *anymath.Function, val zed.Value) *Time {
 	}
 }
 
-func (t *Time) result() zed.Value {
-	return zed.NewTime(t.state)
+func (t *Time) result() super.Value {
+	return super.NewTime(t.state)
 }
 
-func (t *Time) consume(val zed.Value) {
+func (t *Time) consume(val super.Value) {
 	if v, ok := coerce.ToInt(val); ok {
 		t.state = nano.Ts(t.function(int64(t.state), v))
 	}
 }
 
-func (f *Time) typ() zed.Type { return zed.TypeTime }
+func (f *Time) typ() super.Type { return super.TypeTime }
 
-func panicCoercionFail(to, from zed.Type) {
+func panicCoercionFail(to, from super.Type) {
 	panic(fmt.Sprintf("internal aggregation error: cannot coerce %s to %s", zson.String(from), zson.String(to)))
 }

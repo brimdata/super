@@ -66,7 +66,7 @@ func NewBufferFilterForStringCase(pattern string) *BufferFilter {
 }
 
 // Eval returns true if buf matches the receiver and false otherwise.
-func (b *BufferFilter) Eval(zctx *zed.Context, buf []byte) bool {
+func (b *BufferFilter) Eval(zctx *super.Context, buf []byte) bool {
 	switch b.op {
 	case opAnd:
 		return b.left.Eval(zctx, buf) && b.right.Eval(zctx, buf)

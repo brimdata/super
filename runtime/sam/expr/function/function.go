@@ -17,7 +17,7 @@ var (
 	ErrTooManyArgs    = errors.New("too many arguments")
 )
 
-func New(zctx *zed.Context, name string, narg int) (expr.Function, field.Path, error) {
+func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path, error) {
 	argmin := 1
 	argmax := 1
 	var path field.Path
@@ -197,7 +197,7 @@ func HasBoolResult(name string) bool {
 	return false
 }
 
-func underAll(args []zed.Value) []zed.Value {
+func underAll(args []super.Value) []super.Value {
 	for i := range args {
 		args[i] = args[i].Under()
 	}

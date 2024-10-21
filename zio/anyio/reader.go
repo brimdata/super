@@ -28,11 +28,11 @@ type ReaderOpts struct {
 	ZNG    zngio.ReaderOpts
 }
 
-func NewReader(zctx *zed.Context, r io.Reader, demandOut demand.Demand) (zio.ReadCloser, error) {
+func NewReader(zctx *super.Context, r io.Reader, demandOut demand.Demand) (zio.ReadCloser, error) {
 	return NewReaderWithOpts(zctx, r, demandOut, ReaderOpts{})
 }
 
-func NewReaderWithOpts(zctx *zed.Context, r io.Reader, demandOut demand.Demand, opts ReaderOpts) (zio.ReadCloser, error) {
+func NewReaderWithOpts(zctx *super.Context, r io.Reader, demandOut demand.Demand, opts ReaderOpts) (zio.ReadCloser, error) {
 	if opts.Format != "" && opts.Format != "auto" {
 		return lookupReader(zctx, r, demandOut, opts)
 	}
@@ -75,14 +75,14 @@ func NewReaderWithOpts(zctx *zed.Context, r io.Reader, demandOut demand.Demand, 
 	arrowsErr = fmt.Errorf("arrows: %w", arrowsErr)
 	track.Reset()
 
-	zeekErr := match(zeekio.NewReader(zed.NewContext(), track), "zeek", 1)
+	zeekErr := match(zeekio.NewReader(super.NewContext(), track), "zeek", 1)
 	if zeekErr == nil {
 		return zio.NopReadCloser(zeekio.NewReader(zctx, track.Reader())), nil
 	}
 	track.Reset()
 
 	// ZJSON must come before JSON and ZSON since it is a subset of both.
-	zjsonErr := match(zjsonio.NewReader(zed.NewContext(), track), "zjson", 1)
+	zjsonErr := match(zjsonio.NewReader(super.NewContext(), track), "zjson", 1)
 	if zjsonErr == nil {
 		return zio.NopReadCloser(zjsonio.NewReader(zctx, track.Reader())), nil
 	}
@@ -91,13 +91,13 @@ func NewReaderWithOpts(zctx *zed.Context, r io.Reader, demandOut demand.Demand, 
 	// JSON comes before ZSON because the JSON reader is faster than the
 	// ZSON reader.  The number of values wanted is greater than one for the
 	// sake of tests.
-	jsonErr := match(jsonio.NewReader(zed.NewContext(), track), "json", 10)
+	jsonErr := match(jsonio.NewReader(super.NewContext(), track), "json", 10)
 	if jsonErr == nil {
 		return zio.NopReadCloser(jsonio.NewReader(zctx, track.Reader())), nil
 	}
 	track.Reset()
 
-	zsonErr := match(zsonio.NewReader(zed.NewContext(), track), "zson", 1)
+	zsonErr := match(zsonio.NewReader(super.NewContext(), track), "zson", 1)
 	if zsonErr == nil {
 		return zio.NopReadCloser(zsonio.NewReader(zctx, track.Reader())), nil
 	}
@@ -108,7 +108,7 @@ func NewReaderWithOpts(zctx *zed.Context, r io.Reader, demandOut demand.Demand, 
 	// validation to the user setting in the actual reader returned.
 	zngOpts := opts.ZNG
 	zngOpts.Validate = true
-	zngReader := zngio.NewReaderWithOpts(zed.NewContext(), track, zngOpts)
+	zngReader := zngio.NewReaderWithOpts(super.NewContext(), track, zngOpts)
 	zngErr := match(zngReader, "zng", 1)
 	// Close zngReader to ensure that it does not continue to call track.Read.
 	zngReader.Close()
@@ -166,7 +166,7 @@ func isArrowStream(track *Track) error {
 		return errors.New("schema message length exceeds 1 MiB")
 	}
 	track.Reset()
-	zrc, err := arrowio.NewReader(zed.NewContext(), track)
+	zrc, err := arrowio.NewReader(super.NewContext(), track)
 	if err != nil {
 		return err
 	}
@@ -182,7 +182,7 @@ func isCSVStream(track *Track, delim rune, name string) error {
 		return fmt.Errorf("%s: line 1: delimiter %q not found", name, delim)
 	}
 	track.Reset()
-	return match(csvio.NewReader(zed.NewContext(), track, csvio.ReaderOpts{Delim: delim}), name, 1)
+	return match(csvio.NewReader(super.NewContext(), track, csvio.ReaderOpts{Delim: delim}), name, 1)
 }
 
 func joinErrs(errs []error) error {

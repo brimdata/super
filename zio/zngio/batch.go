@@ -12,7 +12,7 @@ import (
 type batch struct {
 	buf  *buffer
 	refs int32
-	vals []zed.Value
+	vals []super.Value
 }
 
 var _ zbuf.Batch = (*batch)(nil)
@@ -22,7 +22,7 @@ var batchPool sync.Pool
 func newBatch(buf *buffer) *batch {
 	b, ok := batchPool.Get().(*batch)
 	if !ok {
-		b = &batch{vals: make([]zed.Value, 200)}
+		b = &batch{vals: make([]super.Value, 200)}
 	}
 	b.buf = buf
 	b.refs = 1
@@ -30,7 +30,7 @@ func newBatch(buf *buffer) *batch {
 	return b
 }
 
-func (b *batch) extend() *zed.Value {
+func (b *batch) extend() *super.Value {
 	n := len(b.vals)
 	b.vals = slices.Grow(b.vals, 1)[:n+1]
 	return &b.vals[n]
@@ -55,8 +55,8 @@ func (b *batch) Unref() {
 	}
 }
 
-func (b *batch) Values() []zed.Value { return b.vals }
+func (b *batch) Values() []super.Value { return b.vals }
 
 // XXX this should be ok, but we should handle nil receiver in scope so push
 // will do the right thing
-func (*batch) Vars() []zed.Value { return nil }
+func (*batch) Vars() []super.Value { return nil }

@@ -19,7 +19,7 @@ const (
 )
 
 type Reader struct {
-	zctx    *zed.Context
+	zctx    *super.Context
 	reader  io.Reader
 	opts    ReaderOpts
 	scanner zbuf.Scanner
@@ -40,11 +40,11 @@ type Control struct {
 	Bytes  []byte
 }
 
-func NewReader(sctx *zed.Context, reader io.Reader) *Reader {
+func NewReader(sctx *super.Context, reader io.Reader) *Reader {
 	return NewReaderWithOpts(sctx, reader, ReaderOpts{})
 }
 
-func NewReaderWithOpts(zctx *zed.Context, reader io.Reader, opts ReaderOpts) *Reader {
+func NewReaderWithOpts(zctx *super.Context, reader io.Reader, opts ReaderOpts) *Reader {
 	if opts.Size == 0 {
 		opts.Size = ReadSize
 	}
@@ -94,7 +94,7 @@ func (r *Reader) init() error {
 	return nil
 }
 
-func (r *Reader) Read() (*zed.Value, error) {
+func (r *Reader) Read() (*super.Value, error) {
 	// If Read is called, then this Reader is being used as a zio.Reader and
 	// not as a zbuf.Puller.  We just wrap the scanner in a puller to
 	// implement the Reader interface.  If it's used a zbuf.Scanner, then
@@ -114,7 +114,7 @@ func (r *Reader) Read() (*zed.Value, error) {
 	}
 }
 
-func (r *Reader) ReadPayload() (*zed.Value, *Control, error) {
+func (r *Reader) ReadPayload() (*super.Value, *Control, error) {
 	if err := r.init(); err != nil {
 		return nil, nil, err
 	}

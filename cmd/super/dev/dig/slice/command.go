@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	zed "github.com/brimdata/super"
+	 "github.com/brimdata/super"
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/cmd/super/dev/dig"
 	"github.com/brimdata/super/pkg/charm"
@@ -76,7 +76,7 @@ func (c *Command) Run(args []string) error {
 	if from > to {
 		return errors.New("slice start cannot be after the end")
 	}
-	reader := zngio.NewReader(zed.NewContext(), io.NewSectionReader(r, int64(from), int64(to-from)))
+	reader := zngio.NewReader(super.NewContext(), io.NewSectionReader(r, int64(from), int64(to-from)))
 	defer reader.Close()
 	writer, err := c.outputFlags.Open(ctx, engine)
 	if err != nil {

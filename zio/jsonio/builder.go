@@ -10,21 +10,21 @@ import (
 )
 
 type builder struct {
-	zctx *zed.Context
+	zctx *super.Context
 
 	containers []int  // Stack of open containers (as indexes into items).
 	items      []item // Stack of items.
 
 	// These exist only to reduce memory allocations.
-	fields   []zed.Field
+	fields   []super.Field
 	itemptrs []*item
-	types    []zed.Type
-	val      zed.Value
+	types    []super.Type
+	val      super.Value
 }
 
 type item struct {
 	fieldName string
-	typ       zed.Type
+	typ       super.Type
 	zb        zcode.Builder
 }
 
@@ -33,7 +33,7 @@ func (b *builder) reset() {
 	b.items = b.items[:0]
 }
 
-func (b *builder) pushPrimitiveItem(fieldName string, typ zed.Type, bytes zcode.Bytes) {
+func (b *builder) pushPrimitiveItem(fieldName string, typ super.Type, bytes zcode.Bytes) {
 	i := b.pushItem(fieldName)
 	i.typ = typ
 	i.zb.Append(bytes)
@@ -68,17 +68,17 @@ func (b *builder) endArray() {
 
 	b.types = b.types[:0]
 	for i := range items {
-		if items[i].typ != zed.TypeNull {
+		if items[i].typ != super.TypeNull {
 			b.types = append(b.types, items[i].typ)
 		}
 	}
 	sort.Slice(b.types, func(i, j int) bool { return b.types[i].ID() < b.types[j].ID() })
 	dedupedTypes := b.types[:0]
-	var prev zed.Type
+	var prev super.Type
 	for _, t := range b.types {
 		// JSON doesn't use named types, so even though b.types was
-		// sorted by zed.Type.ID above, we can compare elements directly
-		// without calling zed.TypeUnder.
+		// sorted by super.Type.ID above, we can compare elements directly
+		// without calling super.TypeUnder.
 		if t != prev {
 			dedupedTypes = append(dedupedTypes, t)
 			prev = t
@@ -89,7 +89,7 @@ func (b *builder) endArray() {
 	container.zb.BeginContainer()
 	switch len(b.types) {
 	case 0:
-		container.typ = b.zctx.LookupTypeArray(zed.TypeNull)
+		container.typ = b.zctx.LookupTypeArray(super.TypeNull)
 		for range items {
 			container.zb.Append(nil)
 		}
@@ -106,7 +106,7 @@ func (b *builder) endArray() {
 				container.zb.Append(nil)
 			} else {
 				tag := union.TagOf(items[i].typ)
-				zed.BuildUnion(&container.zb, tag, bytes)
+				super.BuildUnion(&container.zb, tag, bytes)
 			}
 		}
 	}
@@ -123,14 +123,14 @@ func (b *builder) endRecord() {
 	for {
 		b.fields = b.fields[:0]
 		for _, item := range itemptrs {
-			b.fields = append(b.fields, zed.NewField(item.fieldName, item.typ))
+			b.fields = append(b.fields, super.NewField(item.fieldName, item.typ))
 		}
 		var err error
 		container.typ, err = b.zctx.LookupTypeRecord(b.fields)
 		if err == nil {
 			break
 		}
-		var dferr *zed.DuplicateFieldError
+		var dferr *super.DuplicateFieldError
 		if !errors.As(err, &dferr) {
 			panic(err)
 		}
@@ -165,7 +165,7 @@ func removeDuplicateItems(itemptrs []*item, name string) []*item {
 	return out
 }
 
-func (b *builder) value() *zed.Value {
+func (b *builder) value() *super.Value {
 	if len(b.containers) > 0 {
 		panic("open container")
 	}
@@ -173,6 +173,6 @@ func (b *builder) value() *zed.Value {
 		panic("multiple items")
 	}
 	item := &b.items[0]
-	b.val = zed.NewValue(item.typ, item.zb.Bytes().Body())
+	b.val = super.NewValue(item.typ, item.zb.Bytes().Body())
 	return &b.val
 }

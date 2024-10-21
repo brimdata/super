@@ -15,7 +15,7 @@ import (
 // vectors are returned, not changed in place).  When errors are
 // encountered an error vector is returned and the coerced values
 // are abandoned.
-func coerceVals(zctx *zed.Context, a, b vector.Any) (vector.Any, vector.Any, vector.Any) {
+func coerceVals(zctx *super.Context, a, b vector.Any) (vector.Any, vector.Any, vector.Any) {
 	aid := a.Type().ID()
 	bid := b.Type().ID()
 	if aid == bid {
@@ -24,38 +24,38 @@ func coerceVals(zctx *zed.Context, a, b vector.Any) (vector.Any, vector.Any, vec
 		// sam doesn't support this yet.
 		return a, b, nil
 	}
-	if aid == zed.IDNull {
+	if aid == super.IDNull {
 		return a, b, nil //XXX
 	}
-	if bid == zed.IDNull {
+	if bid == super.IDNull {
 		return a, b, nil //XXX
 	}
-	if !zed.IsNumber(aid) || !zed.IsNumber(bid) {
+	if !super.IsNumber(aid) || !super.IsNumber(bid) {
 		return nil, nil, vector.NewStringError(zctx, coerce.ErrIncompatibleTypes.Error(), a.Len())
 	}
 	// Both a and b are numbers.  We need to promote to a common
 	// type based on Zed's coercion rules.
 	// XXX currently vector supports only 64-bit stuff...
 	// need to handle all sizes.
-	if zed.IsFloat(aid) {
-		//if aid == zed.IDFloat16 {
-		//	c.A = c.buf2.Float64(float64(zed.DecodeFloat16(c.A)))
-		//} else if aid == zed.IDFloat32 {
-		//	c.A = c.buf2.Float64(float64(zed.DecodeFloat32(c.A)))
+	if super.IsFloat(aid) {
+		//if aid == super.IDFloat16 {
+		//	c.A = c.buf2.Float64(float64(super.DecodeFloat16(c.A)))
+		//} else if aid == super.IDFloat32 {
+		//	c.A = c.buf2.Float64(float64(super.DecodeFloat32(c.A)))
 		//}
 		// need to handle other number types not just ints
 		return a, intToFloat(b), nil
 	}
-	if zed.IsFloat(bid) {
-		//if bid == zed.IDFloat16 {
-		//	c.B = c.buf2.Float64(float64(zed.DecodeFloat16(c.B)))
-		//} else if bid == zed.IDFloat32 {
-		//	c.B = c.buf2.Float64(float64(zed.DecodeFloat32(c.B)))
+	if super.IsFloat(bid) {
+		//if bid == super.IDFloat16 {
+		//	c.B = c.buf2.Float64(float64(super.DecodeFloat16(c.B)))
+		//} else if bid == super.IDFloat32 {
+		//	c.B = c.buf2.Float64(float64(super.DecodeFloat32(c.B)))
 		//}
 		return intToFloat(a), b, nil
 	}
-	aIsSigned := zed.IsSigned(aid)
-	if aIsSigned == zed.IsSigned(bid) {
+	aIsSigned := super.IsSigned(aid)
+	if aIsSigned == super.IsSigned(bid) {
 		// They have the same signed-ness.  Promote to the wider
 		// type by rank and leave the zcode.Bytes as is since
 		// the varint encoding is the same for all the widths.
@@ -86,13 +86,13 @@ func coerceVals(zctx *zed.Context, a, b vector.Any) (vector.Any, vector.Any, vec
 	//	} else {
 	//		c.B, ok = c.promoteToUnsigned(c.B)
 	//	}
-	//	id = zed.IDUint64
+	//	id = super.IDUint64
 	//}
 	//return id, ok
 }
 
 func promoteWider(id int, val vector.Any) vector.Any {
-	typ, err := zed.LookupPrimitiveByID(id)
+	typ, err := super.LookupPrimitiveByID(id)
 	if err != nil {
 		panic(err)
 	}
@@ -102,11 +102,11 @@ func promoteWider(id int, val vector.Any) vector.Any {
 	case *vector.Uint:
 		return val.Promote(typ)
 	case *vector.Const:
-		var zedVal zed.Value
-		if zed.IsSigned(id) {
-			zedVal = zed.NewInt(typ, val.Value().Int())
+		var zedVal super.Value
+		if super.IsSigned(id) {
+			zedVal = super.NewInt(typ, val.Value().Int())
 		} else {
-			zedVal = zed.NewUint(typ, val.Value().Uint())
+			zedVal = super.NewUint(typ, val.Value().Uint())
 		}
 		return vector.NewConst(zedVal, val.Len(), val.Nulls)
 	case *vector.Dict:
@@ -136,7 +136,7 @@ func promoteToSigned(val vector.Any) vector.Any {
 		if !ok {
 			panic("ToInt failed")
 		}
-		return vector.NewConst(zed.NewInt64(v), val.Len(), val.Nulls)
+		return vector.NewConst(super.NewInt64(v), val.Len(), val.Nulls)
 	case *vector.Dict:
 		promoted := promoteToSigned(val.Any)
 		return vector.NewDict(promoted, val.Index, val.Counts, val.Nulls)
@@ -149,64 +149,64 @@ func promoteToSigned(val vector.Any) vector.Any {
 }
 
 //func (c *Pair) promoteToUnsigned(in zcode.Bytes) (zcode.Bytes, bool) {
-//	v := zed.DecodeInt(in)
+//	v := super.DecodeInt(in)
 //	if v < 0 {
 //		return nil, false
 //	}
 //	return c.Uint(uint64(v)), true
 //}
 
-func ToFloat(val zed.Value) (float64, bool) {
+func ToFloat(val super.Value) (float64, bool) {
 	switch id := val.Type().ID(); {
-	case zed.IsUnsigned(id):
+	case super.IsUnsigned(id):
 		return float64(val.Uint()), true
-	case zed.IsSigned(id):
+	case super.IsSigned(id):
 		return float64(val.Int()), true
-	case zed.IsFloat(id):
+	case super.IsFloat(id):
 		return val.Float(), true
-	case id == zed.IDString:
+	case id == super.IDString:
 		v, err := byteconv.ParseFloat64(val.Bytes())
 		return v, err == nil
 	}
 	return 0, false
 }
 
-func ToUint(val zed.Value) (uint64, bool) {
+func ToUint(val super.Value) (uint64, bool) {
 	switch id := val.Type().ID(); {
-	case zed.IsUnsigned(id):
+	case super.IsUnsigned(id):
 		return val.Uint(), true
-	case zed.IsSigned(id):
+	case super.IsSigned(id):
 		v := val.Int()
 		if v < 0 {
 			return 0, false
 		}
 		return uint64(v), true
-	case zed.IsFloat(id):
+	case super.IsFloat(id):
 		return uint64(val.Float()), true
-	case id == zed.IDString:
+	case id == super.IDString:
 		v, err := byteconv.ParseUint64(val.Bytes())
 		return v, err == nil
 	}
 	return 0, false
 }
 
-func ToInt(val zed.Value) (int64, bool) {
+func ToInt(val super.Value) (int64, bool) {
 	switch id := val.Type().ID(); {
-	case zed.IsUnsigned(id):
+	case super.IsUnsigned(id):
 		return int64(val.Uint()), true
-	case zed.IsSigned(id):
+	case super.IsSigned(id):
 		// XXX check if negative? should -1:uint64 be maxint64 or an error?
 		return val.Int(), true
-	case zed.IsFloat(id):
+	case super.IsFloat(id):
 		return int64(val.Float()), true
-	case id == zed.IDString:
+	case id == super.IDString:
 		v, err := byteconv.ParseInt64(val.Bytes())
 		return v, err == nil
 	}
 	return 0, false
 }
 
-func ToBool(val zed.Value) (bool, bool) {
+func ToBool(val super.Value) (bool, bool) {
 	if val.IsString() {
 		v, err := byteconv.ParseBool(val.Bytes())
 		return v, err == nil
@@ -226,7 +226,7 @@ func intToFloat(val vector.Any) vector.Any {
 		for k := 0; k < n; k++ {
 			f[k] = float64(vals[k])
 		}
-		return vector.NewFloat(zed.TypeFloat64, f, val.Nulls)
+		return vector.NewFloat(super.TypeFloat64, f, val.Nulls)
 	case *vector.Uint:
 		vals := val.Values
 		n := int(len(vals))
@@ -234,13 +234,13 @@ func intToFloat(val vector.Any) vector.Any {
 		for k := 0; k < n; k++ {
 			f[k] = float64(vals[k])
 		}
-		return vector.NewFloat(zed.TypeFloat64, f, val.Nulls)
+		return vector.NewFloat(super.TypeFloat64, f, val.Nulls)
 	case *vector.Const:
 		f, ok := ToFloat(val.Value())
 		if !ok {
 			panic("ToFloat failed")
 		}
-		return vector.NewConst(zed.NewFloat64(f), val.Len(), val.Nulls)
+		return vector.NewConst(super.NewFloat64(f), val.Len(), val.Nulls)
 	case *vector.Dict:
 		return vector.NewDict(intToFloat(val.Any), val.Index, val.Counts, val.Nulls)
 	case *vector.View:
@@ -260,7 +260,7 @@ func uintToInt(val vector.Any) vector.Any {
 		for k := 0; k < n; k++ {
 			out[k] = int64(vals[k])
 		}
-		return vector.NewInt(zed.TypeInt64, out, val.Nulls)
+		return vector.NewInt(super.TypeInt64, out, val.Nulls)
 	default:
 		panic(fmt.Sprintf("intToFloat invalid type: %T", val))
 	}

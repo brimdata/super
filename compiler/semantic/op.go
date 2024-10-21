@@ -7,7 +7,7 @@ import (
 	"slices"
 	"strings"
 
-	zed "github.com/brimdata/super"
+	 "github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/ast/dag"
 	"github.com/brimdata/super/compiler/kernel"
@@ -190,13 +190,13 @@ func (a *analyzer) semSource(source ast.Source) []dag.Op {
 	}
 }
 
-func unmarshalHeaders(val zed.Value) (map[string][]string, error) {
-	if !zed.IsRecordType(val.Type()) {
+func unmarshalHeaders(val super.Value) (map[string][]string, error) {
+	if !super.IsRecordType(val.Type()) {
 		return nil, errors.New("headers value must be a record")
 	}
 	headers := map[string][]string{}
 	for i, f := range val.Fields() {
-		if inner := zed.InnerType(f.Type); inner == nil || inner.ID() != zed.IDString {
+		if inner := super.InnerType(f.Type); inner == nil || inner.ID() != super.IDString {
 			return nil, errors.New("headers field value must be an array or set of strings")
 		}
 		fieldVal := val.DerefByColumn(i)
@@ -205,7 +205,7 @@ func unmarshalHeaders(val zed.Value) (map[string][]string, error) {
 		}
 		for it := fieldVal.Iter(); !it.Done(); {
 			if b := it.Next(); b != nil {
-				headers[f.Name] = append(headers[f.Name], zed.DecodeString(b))
+				headers[f.Name] = append(headers[f.Name], super.DecodeString(b))
 			}
 		}
 	}
@@ -284,7 +284,7 @@ func (a *analyzer) maybeStringConst(name string) (string, error) {
 		return "", fmt.Errorf("%s: string value required", name)
 	}
 	val := zson.MustParseValue(a.zctx, l.Value)
-	if val.Type().ID() != zed.IDString {
+	if val.Type().ID() != super.IDString {
 		return "", fmt.Errorf("%s: string value required", name)
 	}
 	return val.AsString(), nil
@@ -523,7 +523,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 				fields = append(fields, this.Path)
 			}
 		}
-		if _, err := zed.NewRecordBuilder(a.zctx, fields); err != nil {
+		if _, err := super.NewRecordBuilder(a.zctx, fields); err != nil {
 			a.error(o.Args, err)
 			return append(seq, badOp())
 		}
@@ -552,7 +552,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 			Reverse:    o.Reverse,
 		})
 	case *ast.Head:
-		val := zed.NewInt64(1)
+		val := super.NewInt64(1)
 		if o.Count != nil {
 			expr := a.semExpr(o.Count)
 			var err error
@@ -560,7 +560,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 				a.error(o.Count, err)
 				return append(seq, badOp())
 			}
-			if !zed.IsInteger(val.Type().ID()) {
+			if !super.IsInteger(val.Type().ID()) {
 				a.error(o.Count, fmt.Errorf("expression value must be an integer value: %s", zson.FormatValue(val)))
 				return append(seq, badOp())
 			}
@@ -573,7 +573,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 			Count: int(val.AsInt()),
 		})
 	case *ast.Tail:
-		val := zed.NewInt64(1)
+		val := super.NewInt64(1)
 		if o.Count != nil {
 			expr := a.semExpr(o.Count)
 			var err error
@@ -581,7 +581,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 				a.error(o.Count, err)
 				return append(seq, badOp())
 			}
-			if !zed.IsInteger(val.Type().ID()) {
+			if !super.IsInteger(val.Type().ID()) {
 				a.error(o.Count, fmt.Errorf("expression value must be an integer value: %s", zson.FormatValue(val)))
 				return append(seq, badOp())
 			}
@@ -621,7 +621,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 				a.error(o.Limit, err)
 				return append(seq, badOp())
 			}
-			if !zed.IsSigned(val.Type().ID()) {
+			if !super.IsSigned(val.Type().ID()) {
 				a.error(o.Limit, errors.New("limit argument must be an integer"))
 				return append(seq, badOp())
 			}

@@ -13,7 +13,7 @@ import (
 func FuzzVngRoundtripGen(f *testing.F) {
 	f.Fuzz(func(t *testing.T, b []byte) {
 		bytesReader := bytes.NewReader(b)
-		context := zed.NewContext()
+		context := super.NewContext()
 		types := fuzz.GenTypes(bytesReader, context, 3)
 		values := fuzz.GenValues(bytesReader, context, types)
 		roundtrip(t, values)
@@ -30,7 +30,7 @@ func FuzzVngRoundtripBytes(f *testing.F) {
 	})
 }
 
-func roundtrip(t *testing.T, valuesIn []zed.Value) {
+func roundtrip(t *testing.T, valuesIn []super.Value) {
 	var buf bytes.Buffer
 	fuzz.WriteVNG(t, valuesIn, &buf)
 	valuesOut, err := fuzz.ReadVNG(buf.Bytes(), demand.All())

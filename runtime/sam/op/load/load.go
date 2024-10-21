@@ -66,6 +66,6 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 	if err != nil {
 		return nil, err
 	}
-	val := zed.NewBytes(commitID[:])
-	return zbuf.NewArray([]zed.Value{val}), nil
+	val := super.NewBytes(commitID[:])
+	return zbuf.NewArray([]super.Value{val}), nil
 }

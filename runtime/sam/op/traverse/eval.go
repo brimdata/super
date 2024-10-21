@@ -18,7 +18,7 @@ import (
 // then they are returned in an array (with union elements if the type varies).
 type Expr struct {
 	ctx     context.Context
-	zctx    *zed.Context
+	zctx    *super.Context
 	batchCh chan zbuf.Batch
 	eos     bool
 
@@ -29,7 +29,7 @@ type Expr struct {
 var _ expr.Evaluator = (*Expr)(nil)
 var _ zbuf.Puller = (*Expr)(nil)
 
-func NewExpr(ctx context.Context, zctx *zed.Context) *Expr {
+func NewExpr(ctx context.Context, zctx *super.Context) *Expr {
 	return &Expr{
 		ctx:     ctx,
 		zctx:    zctx,
@@ -41,8 +41,8 @@ func (e *Expr) SetExit(exit *Exit) {
 	e.exit = exit
 }
 
-func (e *Expr) Eval(ectx expr.Context, this zed.Value) zed.Value {
-	b := zbuf.NewArray([]zed.Value{this})
+func (e *Expr) Eval(ectx expr.Context, this super.Value) super.Value {
+	b := zbuf.NewArray([]super.Value{this})
 	b.SetVars(ectx.Vars())
 	select {
 	case e.batchCh <- b:
@@ -63,14 +63,14 @@ func (e *Expr) Eval(ectx expr.Context, this zed.Value) zed.Value {
 	}
 }
 
-func (e *Expr) combine(ectx expr.Context, batches []zbuf.Batch) zed.Value {
+func (e *Expr) combine(ectx expr.Context, batches []zbuf.Batch) super.Value {
 	switch len(batches) {
 	case 0:
-		return zed.Null
+		return super.Null
 	case 1:
 		return e.makeArray(ectx, batches[0].Values())
 	default:
-		var vals []zed.Value
+		var vals []super.Value
 		for _, batch := range batches {
 			vals = append(vals, batch.Values()...)
 		}
@@ -78,9 +78,9 @@ func (e *Expr) combine(ectx expr.Context, batches []zbuf.Batch) zed.Value {
 	}
 }
 
-func (e *Expr) makeArray(ectx expr.Context, vals []zed.Value) zed.Value {
+func (e *Expr) makeArray(ectx expr.Context, vals []super.Value) super.Value {
 	if len(vals) == 0 {
-		return zed.Null
+		return super.Null
 	}
 	if len(vals) == 1 {
 		return vals[0]
@@ -95,24 +95,24 @@ func (e *Expr) makeArray(ectx expr.Context, vals []zed.Value) zed.Value {
 	for _, val := range vals {
 		b.Append(val.Bytes())
 	}
-	return zed.NewValue(e.zctx.LookupTypeArray(typ), b.Bytes())
+	return super.NewValue(e.zctx.LookupTypeArray(typ), b.Bytes())
 }
 
-func (e *Expr) makeUnionArray(ectx expr.Context, vals []zed.Value) zed.Value {
-	types := make(map[zed.Type]struct{})
+func (e *Expr) makeUnionArray(ectx expr.Context, vals []super.Value) super.Value {
+	types := make(map[super.Type]struct{})
 	for _, val := range vals {
 		types[val.Type()] = struct{}{}
 	}
-	utypes := make([]zed.Type, 0, len(types))
+	utypes := make([]super.Type, 0, len(types))
 	for typ := range types {
 		utypes = append(utypes, typ)
 	}
 	union := e.zctx.LookupTypeUnion(utypes)
 	var b zcode.Builder
 	for _, val := range vals {
-		zed.BuildUnion(&b, union.TagOf(val.Type()), val.Bytes())
+		super.BuildUnion(&b, union.TagOf(val.Type()), val.Bytes())
 	}
-	return zed.NewValue(e.zctx.LookupTypeArray(union), b.Bytes())
+	return super.NewValue(e.zctx.LookupTypeArray(union), b.Bytes())
 }
 
 func (e *Expr) Pull(done bool) (zbuf.Batch, error) {

@@ -157,7 +157,7 @@ func NewEnter(names []string, exprs []expr.Evaluator) *Enter {
 	}
 }
 
-func (e *Enter) addLocals(batch zbuf.Batch, this zed.Value) zbuf.Batch {
+func (e *Enter) addLocals(batch zbuf.Batch, this super.Value) zbuf.Batch {
 	inner := newScopedBatch(batch, len(e.exprs))
 	for _, expr := range e.exprs {
 		// Note that we add a var to the frame on each Eval call
@@ -245,7 +245,7 @@ func (e *Exit) pullPlatoon() error {
 
 type scope struct {
 	zbuf.Batch
-	vars []zed.Value
+	vars []super.Value
 }
 
 var _ zbuf.Batch = (*scope)(nil)
@@ -255,7 +255,7 @@ func newScopedBatch(batch zbuf.Batch, nvar int) *scope {
 	if len(vars) != 0 {
 		// XXX for now we just copy the slice.  we can be
 		// more sophisticated later.
-		newvars := make([]zed.Value, len(vars), len(vars)+nvar)
+		newvars := make([]super.Value, len(vars), len(vars)+nvar)
 		copy(newvars, vars)
 		vars = newvars
 	}
@@ -265,17 +265,17 @@ func newScopedBatch(batch zbuf.Batch, nvar int) *scope {
 	}
 }
 
-func (s *scope) Vars() []zed.Value {
+func (s *scope) Vars() []super.Value {
 	return s.vars
 }
 
-func (s *scope) push(val zed.Value) {
+func (s *scope) push(val super.Value) {
 	s.vars = append(s.vars, val)
 }
 
 type exitScope struct {
 	zbuf.Batch
-	vars []zed.Value
+	vars []super.Value
 }
 
 var _ zbuf.Batch = (*exitScope)(nil)
@@ -292,6 +292,6 @@ func newExitScope(batch zbuf.Batch, nvar int) *exitScope {
 	}
 }
 
-func (s *exitScope) Vars() []zed.Value {
+func (s *exitScope) Vars() []super.Value {
 	return s.vars
 }

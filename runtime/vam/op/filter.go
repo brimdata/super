@@ -7,12 +7,12 @@ import (
 )
 
 type Filter struct {
-	zctx   *zed.Context
+	zctx   *super.Context
 	parent vector.Puller
 	expr   expr.Evaluator
 }
 
-func NewFilter(zctx *zed.Context, parent vector.Puller, expr expr.Evaluator) *Filter {
+func NewFilter(zctx *super.Context, parent vector.Puller, expr expr.Evaluator) *Filter {
 	return &Filter{zctx, parent, expr}
 }
 

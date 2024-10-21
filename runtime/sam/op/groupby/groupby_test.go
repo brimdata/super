@@ -44,7 +44,7 @@ func (cr *countReader) records() int {
 	return cr.n
 }
 
-func (cr *countReader) Read() (*zed.Value, error) {
+func (cr *countReader) Read() (*super.Value, error) {
 	rec, err := cr.r.Read()
 	if rec != nil {
 		cr.mu.Lock()
@@ -60,7 +60,7 @@ type testGroupByWriter struct {
 	cb     func(n int)
 }
 
-func (w *testGroupByWriter) Write(val zed.Value) error {
+func (w *testGroupByWriter) Write(val super.Value) error {
 	if err := w.writer.Write(val); err != nil {
 		return err
 	}
@@ -106,7 +106,7 @@ func TestGroupbyStreamingSpill(t *testing.T) {
 		proc, _, err := compiler.Parse("count() by every(1s), ip")
 		assert.NoError(t, err)
 
-		zctx := zed.NewContext()
+		zctx := super.NewContext()
 		zr := zsonio.NewReader(zctx, strings.NewReader(strings.Join(data, "\n")))
 		cr := &countReader{r: zr}
 		var outbuf bytes.Buffer
@@ -137,7 +137,7 @@ func TestGroupbyStreamingSpill(t *testing.T) {
 	require.Equal(t, res, resStreaming)
 }
 
-func newQueryOnOrderedReader(ctx context.Context, zctx *zed.Context, program ast.Seq, reader zio.Reader, sortKey order.SortKey) (runtime.Query, error) {
+func newQueryOnOrderedReader(ctx context.Context, zctx *super.Context, program ast.Seq, reader zio.Reader, sortKey order.SortKey) (runtime.Query, error) {
 	rctx := runtime.NewContext(ctx, zctx)
 	q, err := compiler.CompileWithSortKey(rctx, program, reader, sortKey)
 	if err != nil {

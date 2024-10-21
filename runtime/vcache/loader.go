@@ -31,9 +31,9 @@ import (
 // The zctx passed into the loader is dynamic and comes from each query context that
 // uses the vcache.  No zctx types are stored in the shadow (except for primitive types
 // in shadowed vector.Any primitives that are shared).  We otherwise allocate all
-// vector.Any zed.Types using the passed-in zctx.
+// vector.Any super.Types using the passed-in zctx.
 type loader struct {
-	zctx *zed.Context
+	zctx *super.Context
 	r    io.ReaderAt
 }
 
@@ -179,7 +179,7 @@ func (l *loader) loadPrimitive(g *errgroup.Group, paths Path, s *primitive) {
 	})
 }
 
-func (l *loader) loadVals(typ zed.Type, s *primitive, nulls *vector.Bool) (vector.Any, error) {
+func (l *loader) loadVals(typ super.Type, s *primitive, nulls *vector.Bool) (vector.Any, error) {
 	if s.vng.Count == 0 {
 		return empty(typ, s.length(), nulls), nil
 	}
@@ -193,86 +193,86 @@ func (l *loader) loadVals(typ zed.Type, s *primitive, nulls *vector.Bool) (vecto
 	}
 	it := zcode.Iter(bytes)
 	switch typ := typ.(type) {
-	case *zed.TypeOfUint8, *zed.TypeOfUint16, *zed.TypeOfUint32, *zed.TypeOfUint64:
+	case *super.TypeOfUint8, *super.TypeOfUint16, *super.TypeOfUint32, *super.TypeOfUint64:
 		values := make([]uint64, length)
 		for slot := uint32(0); slot < length; slot++ {
 			if nulls == nil || !nulls.Value(slot) {
-				values[slot] = zed.DecodeUint(it.Next())
+				values[slot] = super.DecodeUint(it.Next())
 			}
 		}
 		return vector.NewUint(typ, values, nulls), nil
-	case *zed.TypeOfInt8, *zed.TypeOfInt16, *zed.TypeOfInt32, *zed.TypeOfInt64, *zed.TypeOfDuration, *zed.TypeOfTime:
+	case *super.TypeOfInt8, *super.TypeOfInt16, *super.TypeOfInt32, *super.TypeOfInt64, *super.TypeOfDuration, *super.TypeOfTime:
 		values := make([]int64, length)
 		for slot := uint32(0); slot < length; slot++ {
 
 			if nulls == nil || !nulls.Value(slot) {
-				values[slot] = zed.DecodeInt(it.Next())
+				values[slot] = super.DecodeInt(it.Next())
 			}
 		}
 		return vector.NewInt(typ, values, nulls), nil
-	case *zed.TypeOfFloat16, *zed.TypeOfFloat32, *zed.TypeOfFloat64:
+	case *super.TypeOfFloat16, *super.TypeOfFloat32, *super.TypeOfFloat64:
 		values := make([]float64, length)
 		for slot := uint32(0); slot < length; slot++ {
 			if nulls == nil || !nulls.Value(slot) {
-				values[slot] = zed.DecodeFloat(it.Next())
+				values[slot] = super.DecodeFloat(it.Next())
 			}
 		}
 		return vector.NewFloat(typ, values, nulls), nil
-	case *zed.TypeOfBool:
+	case *super.TypeOfBool:
 		b := vector.NewBoolEmpty(length, nulls)
 		for slot := uint32(0); slot < length; slot++ {
 			if nulls == nil || !nulls.Value(slot) {
-				if zed.DecodeBool(it.Next()) {
+				if super.DecodeBool(it.Next()) {
 					b.Set(slot)
 				}
 			}
 		}
 		return b, nil
-	case *zed.TypeOfBytes:
+	case *super.TypeOfBytes:
 		var bytes []byte
 		offs := make([]uint32, length+1)
 		var off uint32
 		for slot := uint32(0); slot < length; slot++ {
 			offs[slot] = off
 			if nulls == nil || !nulls.Value(slot) {
-				b := zed.DecodeBytes(it.Next())
+				b := super.DecodeBytes(it.Next())
 				bytes = append(bytes, b...)
 				off += uint32(len(b))
 			}
 		}
 		offs[length] = off
 		return vector.NewBytes(offs, bytes, nulls), nil
-	case *zed.TypeOfString:
+	case *super.TypeOfString:
 		var bytes []byte
 		offs := make([]uint32, length+1)
 		var off uint32
 		for slot := uint32(0); slot < length; slot++ {
 			offs[slot] = off
 			if nulls == nil || !nulls.Value(slot) {
-				s := zed.DecodeString(it.Next())
+				s := super.DecodeString(it.Next())
 				bytes = append(bytes, []byte(s)...)
 				off += uint32(len(s))
 			}
 		}
 		offs[length] = off
 		return vector.NewString(offs, bytes, nulls), nil
-	case *zed.TypeOfIP:
+	case *super.TypeOfIP:
 		values := make([]netip.Addr, length)
 		for slot := uint32(0); slot < length; slot++ {
 			if nulls == nil || !nulls.Value(slot) {
-				values[slot] = zed.DecodeIP(it.Next())
+				values[slot] = super.DecodeIP(it.Next())
 			}
 		}
 		return vector.NewIP(values, nulls), nil
-	case *zed.TypeOfNet:
+	case *super.TypeOfNet:
 		var values []netip.Prefix
 		for slot := uint32(0); slot < length; slot++ {
 			if nulls == nil || !nulls.Value(slot) {
-				values[slot] = zed.DecodeNet(it.Next())
+				values[slot] = super.DecodeNet(it.Next())
 			}
 		}
 		return vector.NewNet(values, nulls), nil
-	case *zed.TypeOfType:
+	case *super.TypeOfType:
 		var bytes []byte
 		offs := make([]uint32, length+1)
 		var off uint32
@@ -286,52 +286,52 @@ func (l *loader) loadVals(typ zed.Type, s *primitive, nulls *vector.Bool) (vecto
 		}
 		offs[length] = off
 		return vector.NewTypeValue(offs, bytes, nulls), nil
-	case *zed.TypeOfNull:
-		return vector.NewConst(zed.Null, s.length(), nil), nil
+	case *super.TypeOfNull:
+		return vector.NewConst(super.Null, s.length(), nil), nil
 	}
 	return nil, fmt.Errorf("internal error: vcache.loadPrimitive got unknown type %#v", typ)
 }
 
-func (l *loader) loadDict(typ zed.Type, dict []vng.DictEntry, tags []byte, nulls *vector.Bool) vector.Any {
+func (l *loader) loadDict(typ super.Type, dict []vng.DictEntry, tags []byte, nulls *vector.Bool) vector.Any {
 	length := len(dict)
 	counts := make([]uint32, 0, length)
 	switch typ := typ.(type) {
-	case *zed.TypeOfUint8, *zed.TypeOfUint16, *zed.TypeOfUint32, *zed.TypeOfUint64:
+	case *super.TypeOfUint8, *super.TypeOfUint16, *super.TypeOfUint32, *super.TypeOfUint64:
 		values := make([]uint64, 0, length)
 		for _, d := range dict {
-			values = append(values, zed.DecodeUint(d.Value.Bytes()))
+			values = append(values, super.DecodeUint(d.Value.Bytes()))
 			counts = append(counts, d.Count)
 		}
 		return vector.NewDict(vector.NewUint(typ, values, nil), tags, counts, nulls)
-	case *zed.TypeOfInt8, *zed.TypeOfInt16, *zed.TypeOfInt32, *zed.TypeOfInt64, *zed.TypeOfDuration, *zed.TypeOfTime:
+	case *super.TypeOfInt8, *super.TypeOfInt16, *super.TypeOfInt32, *super.TypeOfInt64, *super.TypeOfDuration, *super.TypeOfTime:
 		values := make([]int64, 0, length)
 		for _, d := range dict {
-			values = append(values, zed.DecodeInt(d.Value.Bytes()))
+			values = append(values, super.DecodeInt(d.Value.Bytes()))
 			counts = append(counts, d.Count)
 		}
 		return vector.NewDict(vector.NewInt(typ, values, nil), tags, counts, nulls)
-	case *zed.TypeOfFloat64:
+	case *super.TypeOfFloat64:
 		values := make([]float64, 0, length)
 		for _, d := range dict {
-			values = append(values, zed.DecodeFloat64(d.Value.Bytes()))
+			values = append(values, super.DecodeFloat64(d.Value.Bytes()))
 			counts = append(counts, d.Count)
 		}
 		return vector.NewDict(vector.NewFloat(typ, values, nil), tags, counts, nulls)
-	case *zed.TypeOfFloat32:
+	case *super.TypeOfFloat32:
 		values := make([]float64, 0, length)
 		for _, d := range dict {
-			values = append(values, float64(zed.DecodeFloat32(d.Value.Bytes())))
+			values = append(values, float64(super.DecodeFloat32(d.Value.Bytes())))
 			counts = append(counts, d.Count)
 		}
 		return vector.NewDict(vector.NewFloat(typ, values, nil), tags, counts, nulls)
-	case *zed.TypeOfFloat16:
+	case *super.TypeOfFloat16:
 		values := make([]float64, 0, length)
 		for _, d := range dict {
-			values = append(values, float64(zed.DecodeFloat16(d.Value.Bytes())))
+			values = append(values, float64(super.DecodeFloat16(d.Value.Bytes())))
 			counts = append(counts, d.Count)
 		}
 		return vector.NewDict(vector.NewFloat(typ, values, nil), tags, counts, nulls)
-	case *zed.TypeOfBytes:
+	case *super.TypeOfBytes:
 		//XXX fix VNG to use this single string slice and offs, and later prefix trick
 		var bytes []byte
 		offs := make([]uint32, 0, length+1)
@@ -345,7 +345,7 @@ func (l *loader) loadDict(typ zed.Type, dict []vng.DictEntry, tags []byte, nulls
 		}
 		offs = append(offs, off)
 		return vector.NewDict(vector.NewBytes(offs, bytes, nil), tags, counts, nulls)
-	case *zed.TypeOfString:
+	case *super.TypeOfString:
 		//XXX fix VNG to use this single string slice and offs, and later prefix trick
 		var bytes []byte
 		offs := make([]uint32, 0, length+1)
@@ -359,21 +359,21 @@ func (l *loader) loadDict(typ zed.Type, dict []vng.DictEntry, tags []byte, nulls
 		}
 		offs = append(offs, off)
 		return vector.NewDict(vector.NewString(offs, bytes, nil), tags, counts, nulls)
-	case *zed.TypeOfIP:
+	case *super.TypeOfIP:
 		values := make([]netip.Addr, 0, length)
 		for _, d := range dict {
-			values = append(values, zed.DecodeIP(d.Value.Bytes()))
+			values = append(values, super.DecodeIP(d.Value.Bytes()))
 			counts = append(counts, d.Count)
 		}
 		return vector.NewDict(vector.NewIP(values, nil), tags, counts, nulls)
-	case *zed.TypeOfNet:
+	case *super.TypeOfNet:
 		values := make([]netip.Prefix, 0, length)
 		for _, d := range dict {
-			values = append(values, zed.DecodeNet(d.Value.Bytes()))
+			values = append(values, super.DecodeNet(d.Value.Bytes()))
 			counts = append(counts, d.Count)
 		}
 		return vector.NewDict(vector.NewNet(values, nil), tags, counts, nulls)
-	case *zed.TypeOfType:
+	case *super.TypeOfType:
 		//XXX fix VNG to use this single string slice and offs, and later prefix trick
 		var bytes []byte
 		offs := make([]uint32, 0, length+1)
@@ -393,28 +393,28 @@ func (l *loader) loadDict(typ zed.Type, dict []vng.DictEntry, tags []byte, nulls
 }
 
 // XXX need nullscnt to pass as length (ugh, need empty buffer nullscnt long because of flattened assumption)
-func empty(typ zed.Type, length uint32, nulls *vector.Bool) vector.Any {
+func empty(typ super.Type, length uint32, nulls *vector.Bool) vector.Any {
 	switch typ := typ.(type) {
-	case *zed.TypeOfUint8, *zed.TypeOfUint16, *zed.TypeOfUint32, *zed.TypeOfUint64:
+	case *super.TypeOfUint8, *super.TypeOfUint16, *super.TypeOfUint32, *super.TypeOfUint64:
 		return vector.NewUint(typ, make([]uint64, length), nulls)
-	case *zed.TypeOfInt8, *zed.TypeOfInt16, *zed.TypeOfInt32, *zed.TypeOfInt64, *zed.TypeOfDuration, *zed.TypeOfTime:
+	case *super.TypeOfInt8, *super.TypeOfInt16, *super.TypeOfInt32, *super.TypeOfInt64, *super.TypeOfDuration, *super.TypeOfTime:
 		return vector.NewInt(typ, make([]int64, length), nulls)
-	case *zed.TypeOfFloat16, *zed.TypeOfFloat32, *zed.TypeOfFloat64:
+	case *super.TypeOfFloat16, *super.TypeOfFloat32, *super.TypeOfFloat64:
 		return vector.NewFloat(typ, make([]float64, length), nulls)
-	case *zed.TypeOfBool:
+	case *super.TypeOfBool:
 		return vector.NewBool(make([]uint64, (length+63)/64), length, nulls)
-	case *zed.TypeOfBytes:
+	case *super.TypeOfBytes:
 		return vector.NewBytes(make([]uint32, length+1), nil, nulls)
-	case *zed.TypeOfString:
+	case *super.TypeOfString:
 		return vector.NewString(make([]uint32, length+1), nil, nulls)
-	case *zed.TypeOfIP:
+	case *super.TypeOfIP:
 		return vector.NewIP(make([]netip.Addr, length), nulls)
-	case *zed.TypeOfNet:
+	case *super.TypeOfNet:
 		return vector.NewNet(make([]netip.Prefix, length), nulls)
-	case *zed.TypeOfType:
+	case *super.TypeOfType:
 		return vector.NewTypeValue(make([]uint32, length+1), nil, nulls)
-	case *zed.TypeOfNull:
-		return vector.NewConst(zed.Null, length, nil)
+	case *super.TypeOfNull:
+		return vector.NewConst(super.Null, length, nil)
 	default:
 		panic(fmt.Sprintf("vcache.empty: unknown type encountered: %T", typ))
 	}

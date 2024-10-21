@@ -13,12 +13,12 @@ func (*This) Eval(val vector.Any) vector.Any {
 }
 
 type DotExpr struct {
-	zctx   *zed.Context
+	zctx   *super.Context
 	record Evaluator
 	field  string
 }
 
-func NewDotExpr(zctx *zed.Context, record Evaluator, field string) *DotExpr {
+func NewDotExpr(zctx *super.Context, record Evaluator, field string) *DotExpr {
 	return &DotExpr{
 		zctx:   zctx,
 		record: record,
@@ -26,7 +26,7 @@ func NewDotExpr(zctx *zed.Context, record Evaluator, field string) *DotExpr {
 	}
 }
 
-func NewDottedExpr(zctx *zed.Context, f field.Path) Evaluator {
+func NewDottedExpr(zctx *super.Context, f field.Path) Evaluator {
 	ret := Evaluator(&This{})
 	for _, name := range f {
 		ret = NewDotExpr(zctx, ret, name)

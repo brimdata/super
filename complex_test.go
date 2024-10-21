@@ -1,4 +1,4 @@
-package zed_test
+package super_test
 
 import (
 	"bytes"
@@ -15,7 +15,7 @@ import (
 
 func TestRecordAccessNamed(t *testing.T) {
 	const input = `{foo:"hello" (=zfile),bar:true (=zbool)} (=0)`
-	rec := zson.MustParseValue(zed.NewContext(), input)
+	rec := zson.MustParseValue(super.NewContext(), input)
 	s := rec.Deref("foo").AsString()
 	assert.Equal(t, s, "hello")
 	b := rec.Deref("bar").AsBool()
@@ -29,7 +29,7 @@ func TestNonRecordDeref(t *testing.T) {
 null
 [1,2,3]
 |[1,2,3]|`
-	reader := zsonio.NewReader(zed.NewContext(), strings.NewReader(input))
+	reader := zsonio.NewReader(super.NewContext(), strings.NewReader(input))
 	for {
 		val, err := reader.Read()
 		if val == nil {
@@ -47,7 +47,7 @@ func TestNormalizeSet(t *testing.T) {
 		b.BeginContainer()
 		b.Append([]byte("dup"))
 		b.Append([]byte("dup"))
-		b.TransformContainer(zed.NormalizeSet)
+		b.TransformContainer(super.NormalizeSet)
 		b.EndContainer()
 		set := zcode.Append(nil, []byte("dup"))
 		expected := zcode.Append(nil, set)
@@ -58,7 +58,7 @@ func TestNormalizeSet(t *testing.T) {
 		b.BeginContainer()
 		b.Append([]byte("z"))
 		b.Append([]byte("a"))
-		b.TransformContainer(zed.NormalizeSet)
+		b.TransformContainer(super.NormalizeSet)
 		b.EndContainer()
 		set := zcode.Append(nil, []byte("a"))
 		set = zcode.Append(set, []byte("z"))
@@ -80,7 +80,7 @@ func TestNormalizeSet(t *testing.T) {
 			b.Append(nil)
 			b.Append(nil)
 		}
-		b.TransformContainer(zed.NormalizeSet)
+		b.TransformContainer(super.NormalizeSet)
 		b.EndContainer()
 		set := zcode.Append(nil, nil)
 		set = zcode.Append(set, small)
@@ -92,25 +92,25 @@ func TestNormalizeSet(t *testing.T) {
 }
 
 func TestDuplicates(t *testing.T) {
-	ctx := zed.NewContext()
-	setType := ctx.LookupTypeSet(zed.TypeInt32)
-	typ1, err := ctx.LookupTypeRecord([]zed.Field{
-		{"a", zed.TypeString},
+	ctx := super.NewContext()
+	setType := ctx.LookupTypeSet(super.TypeInt32)
+	typ1, err := ctx.LookupTypeRecord([]super.Field{
+		{"a", super.TypeString},
 		{"b", setType},
 	})
 	require.NoError(t, err)
 	typ2, err := zson.ParseType(ctx, "{a:string,b:|[int32]|}")
 	require.NoError(t, err)
 	assert.EqualValues(t, typ1.ID(), typ2.ID())
-	assert.EqualValues(t, setType.ID(), typ2.(*zed.TypeRecord).Fields[1].Type.ID())
-	typ3, err := ctx.LookupByValue(zed.EncodeTypeValue(setType))
+	assert.EqualValues(t, setType.ID(), typ2.(*super.TypeRecord).Fields[1].Type.ID())
+	typ3, err := ctx.LookupByValue(super.EncodeTypeValue(setType))
 	require.NoError(t, err)
 	assert.Equal(t, setType.ID(), typ3.ID())
 }
 
 func TestTranslateNamed(t *testing.T) {
-	c1 := zed.NewContext()
-	c2 := zed.NewContext()
+	c1 := super.NewContext()
+	c2 := super.NewContext()
 	set1, err := zson.ParseType(c1, "|[int64]|")
 	require.NoError(t, err)
 	set2, err := zson.ParseType(c2, "|[int64]|")
@@ -125,8 +125,8 @@ func TestTranslateNamed(t *testing.T) {
 }
 
 func TestCopyMutateFields(t *testing.T) {
-	c := zed.NewContext()
-	fields := []zed.Field{{"foo", zed.TypeString}, {"bar", zed.TypeInt64}}
+	c := super.NewContext()
+	fields := []super.Field{{"foo", super.TypeString}, {"bar", super.TypeInt64}}
 	typ, err := c.LookupTypeRecord(fields)
 	require.NoError(t, err)
 	fields[0].Type = nil

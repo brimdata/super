@@ -18,7 +18,7 @@ func NewLval(evals []LvalElem) *Lval {
 }
 
 // Eval returns the path of the lval.
-func (l *Lval) Eval(ectx Context, this zed.Value) (field.Path, error) {
+func (l *Lval) Eval(ectx Context, this super.Value) (field.Path, error) {
 	l.cache = l.cache[:0]
 	for _, e := range l.Elems {
 		name, err := e.Eval(ectx, this)
@@ -45,14 +45,14 @@ func (l *Lval) Path() (field.Path, bool) {
 }
 
 type LvalElem interface {
-	Eval(ectx Context, this zed.Value) (string, error)
+	Eval(ectx Context, this super.Value) (string, error)
 }
 
 type StaticLvalElem struct {
 	Name string
 }
 
-func (l *StaticLvalElem) Eval(_ Context, _ zed.Value) (string, error) {
+func (l *StaticLvalElem) Eval(_ Context, _ super.Value) (string, error) {
 	return l.Name, nil
 }
 
@@ -61,14 +61,14 @@ type ExprLvalElem struct {
 	eval   Evaluator
 }
 
-func NewExprLvalElem(zctx *zed.Context, e Evaluator) *ExprLvalElem {
+func NewExprLvalElem(zctx *super.Context, e Evaluator) *ExprLvalElem {
 	return &ExprLvalElem{
 		eval:   e,
-		caster: LookupPrimitiveCaster(zctx, zed.TypeString),
+		caster: LookupPrimitiveCaster(zctx, super.TypeString),
 	}
 }
 
-func (l *ExprLvalElem) Eval(ectx Context, this zed.Value) (string, error) {
+func (l *ExprLvalElem) Eval(ectx Context, this super.Value) (string, error) {
 	val := l.eval.Eval(ectx, this)
 	if val.IsError() {
 		return "", lvalErr(ectx, val)
@@ -81,8 +81,8 @@ func (l *ExprLvalElem) Eval(ectx Context, this zed.Value) (string, error) {
 	return val.AsString(), nil
 }
 
-func lvalErr(ectx Context, errVal zed.Value) error {
-	val := zed.NewValue(errVal.Type().(*zed.TypeError).Type, errVal.Bytes())
+func lvalErr(ectx Context, errVal super.Value) error {
+	val := super.NewValue(errVal.Type().(*super.TypeError).Type, errVal.Bytes())
 	if val.IsString() {
 		return errors.New(val.AsString())
 	}

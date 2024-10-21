@@ -11,10 +11,10 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#replace
 type Replace struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
-func (r *Replace) Call(_ zed.Allocator, args []zed.Value) zed.Value {
+func (r *Replace) Call(_ super.Allocator, args []super.Value) super.Value {
 	args = underAll(args)
 	sVal := args[0]
 	oldVal := args[1]
@@ -25,99 +25,99 @@ func (r *Replace) Call(_ zed.Allocator, args []zed.Value) zed.Value {
 		}
 	}
 	if sVal.IsNull() {
-		return zed.Null
+		return super.Null
 	}
 	if oldVal.IsNull() || newVal.IsNull() {
 		return r.zctx.NewErrorf("replace: an input arg is null")
 	}
-	s := zed.DecodeString(sVal.Bytes())
-	old := zed.DecodeString(oldVal.Bytes())
-	new := zed.DecodeString(newVal.Bytes())
-	return zed.NewString(strings.ReplaceAll(s, old, new))
+	s := super.DecodeString(sVal.Bytes())
+	old := super.DecodeString(oldVal.Bytes())
+	new := super.DecodeString(newVal.Bytes())
+	return super.NewString(strings.ReplaceAll(s, old, new))
 }
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#run_len
 type RuneLen struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
-func (r *RuneLen) Call(_ zed.Allocator, args []zed.Value) zed.Value {
+func (r *RuneLen) Call(_ super.Allocator, args []super.Value) super.Value {
 	val := args[0].Under()
 	if !val.IsString() {
 		return r.zctx.WrapError("rune_len: string arg required", val)
 	}
 	if val.IsNull() {
-		return zed.NewInt64(0)
+		return super.NewInt64(0)
 	}
-	s := zed.DecodeString(val.Bytes())
-	return zed.NewInt64(int64(utf8.RuneCountInString(s)))
+	s := super.DecodeString(val.Bytes())
+	return super.NewInt64(int64(utf8.RuneCountInString(s)))
 }
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#lower
 type ToLower struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
-func (t *ToLower) Call(_ zed.Allocator, args []zed.Value) zed.Value {
+func (t *ToLower) Call(_ super.Allocator, args []super.Value) super.Value {
 	val := args[0].Under()
 	if !val.IsString() {
 		return t.zctx.WrapError("lower: string arg required", val)
 	}
 	if val.IsNull() {
-		return zed.NullString
+		return super.NullString
 	}
-	s := zed.DecodeString(val.Bytes())
-	return zed.NewString(strings.ToLower(s))
+	s := super.DecodeString(val.Bytes())
+	return super.NewString(strings.ToLower(s))
 }
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#upper
 type ToUpper struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
-func (t *ToUpper) Call(_ zed.Allocator, args []zed.Value) zed.Value {
+func (t *ToUpper) Call(_ super.Allocator, args []super.Value) super.Value {
 	val := args[0].Under()
 	if !val.IsString() {
 		return t.zctx.WrapError("upper: string arg required", val)
 	}
 	if val.IsNull() {
-		return zed.NullString
+		return super.NullString
 	}
-	s := zed.DecodeString(val.Bytes())
-	return zed.NewString(strings.ToUpper(s))
+	s := super.DecodeString(val.Bytes())
+	return super.NewString(strings.ToUpper(s))
 }
 
 type Trim struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#trim
-func (t *Trim) Call(_ zed.Allocator, args []zed.Value) zed.Value {
+func (t *Trim) Call(_ super.Allocator, args []super.Value) super.Value {
 	val := args[0].Under()
 	if !val.IsString() {
 		return t.zctx.WrapError("trim: string arg required", val)
 	}
 	if val.IsNull() {
-		return zed.NullString
+		return super.NullString
 	}
-	s := zed.DecodeString(val.Bytes())
-	return zed.NewString(strings.TrimSpace(s))
+	s := super.DecodeString(val.Bytes())
+	return super.NewString(strings.TrimSpace(s))
 }
 
 // // https://github.com/brimdata/super/blob/main/docs/language/functions.md#split
 type Split struct {
-	zctx *zed.Context
-	typ  zed.Type
+	zctx *super.Context
+	typ  super.Type
 }
 
-func newSplit(zctx *zed.Context) *Split {
+func newSplit(zctx *super.Context) *Split {
 	return &Split{
 		zctx: zctx,
-		typ:  zctx.LookupTypeArray(zed.TypeString),
+		typ:  zctx.LookupTypeArray(super.TypeString),
 	}
 }
 
-func (s *Split) Call(_ zed.Allocator, args []zed.Value) zed.Value {
+func (s *Split) Call(_ super.Allocator, args []super.Value) super.Value {
 	args = underAll(args)
 	for i := range args {
 		if !args[i].IsString() {
@@ -126,29 +126,29 @@ func (s *Split) Call(_ zed.Allocator, args []zed.Value) zed.Value {
 	}
 	sVal, sepVal := args[0], args[1]
 	if sVal.IsNull() || sepVal.IsNull() {
-		return zed.NewValue(s.typ, nil)
+		return super.NewValue(s.typ, nil)
 	}
-	str := zed.DecodeString(sVal.Bytes())
-	sep := zed.DecodeString(sepVal.Bytes())
+	str := super.DecodeString(sVal.Bytes())
+	sep := super.DecodeString(sepVal.Bytes())
 	splits := strings.Split(str, sep)
 	var b zcode.Bytes
 	for _, substr := range splits {
-		b = zcode.Append(b, zed.EncodeString(substr))
+		b = zcode.Append(b, super.EncodeString(substr))
 	}
-	return zed.NewValue(s.typ, b)
+	return super.NewValue(s.typ, b)
 }
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#join
 type Join struct {
-	zctx    *zed.Context
+	zctx    *super.Context
 	builder strings.Builder
 }
 
-func (j *Join) Call(_ zed.Allocator, args []zed.Value) zed.Value {
+func (j *Join) Call(_ super.Allocator, args []super.Value) super.Value {
 	args = underAll(args)
 	splitsVal := args[0]
-	typ, ok := zed.TypeUnder(splitsVal.Type()).(*zed.TypeArray)
-	if !ok || typ.Type.ID() != zed.IDString {
+	typ, ok := super.TypeUnder(splitsVal.Type()).(*super.TypeArray)
+	if !ok || typ.Type.ID() != super.IDString {
 		return j.zctx.WrapError("join: array of string arg required", splitsVal)
 	}
 	var separator string
@@ -157,7 +157,7 @@ func (j *Join) Call(_ zed.Allocator, args []zed.Value) zed.Value {
 		if !sepVal.IsString() {
 			return j.zctx.WrapError("join: separator must be string", sepVal)
 		}
-		separator = zed.DecodeString(sepVal.Bytes())
+		separator = super.DecodeString(sepVal.Bytes())
 	}
 	b := j.builder
 	b.Reset()
@@ -165,18 +165,18 @@ func (j *Join) Call(_ zed.Allocator, args []zed.Value) zed.Value {
 	var sep string
 	for !it.Done() {
 		b.WriteString(sep)
-		b.WriteString(zed.DecodeString(it.Next()))
+		b.WriteString(super.DecodeString(it.Next()))
 		sep = separator
 	}
-	return zed.NewString(b.String())
+	return super.NewString(b.String())
 }
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#levenshtein
 type Levenshtein struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
-func (l *Levenshtein) Call(_ zed.Allocator, args []zed.Value) zed.Value {
+func (l *Levenshtein) Call(_ super.Allocator, args []super.Value) super.Value {
 	args = underAll(args)
 	a, b := args[0], args[1]
 	if !a.IsString() {
@@ -185,6 +185,6 @@ func (l *Levenshtein) Call(_ zed.Allocator, args []zed.Value) zed.Value {
 	if !b.IsString() {
 		return l.zctx.WrapError("levenshtein: string args required", b)
 	}
-	as, bs := zed.DecodeString(a.Bytes()), zed.DecodeString(b.Bytes())
-	return zed.NewInt64(int64(levenshtein.ComputeDistance(as, bs)))
+	as, bs := super.DecodeString(a.Bytes()), super.DecodeString(b.Bytes())
+	return super.NewInt64(int64(levenshtein.ComputeDistance(as, bs)))
 }

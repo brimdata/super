@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	zed "github.com/brimdata/super"
+	 "github.com/brimdata/super"
 	"github.com/brimdata/super/cli/commitflags"
 	"github.com/brimdata/super/cli/inputflags"
 	"github.com/brimdata/super/cli/lakeflags"
@@ -78,7 +78,7 @@ func (c *Command) Run(args []string) error {
 	}
 	paths := args
 	c.engine = &engineWrap{Engine: storage.NewLocalEngine()}
-	zctx := zed.NewContext()
+	zctx := super.NewContext()
 	readers, err := c.inputFlags.Open(ctx, zctx, c.engine, paths, false)
 	if err != nil {
 		return err

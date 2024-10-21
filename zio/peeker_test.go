@@ -18,7 +18,7 @@ func TestPeeker(t *testing.T) {
 {key:"key5",value:"value5"}
 {key:"key6",value:"value6"}
 `
-	stream := zsonio.NewReader(zed.NewContext(), strings.NewReader(input))
+	stream := zsonio.NewReader(super.NewContext(), strings.NewReader(input))
 	peeker := NewPeeker(stream)
 	rec1, err := peeker.Peek()
 	if err != nil {

@@ -167,11 +167,11 @@ func TestMixedTypeArrayInsideRecord(t *testing.T) {
 
 	var buffer bytes.Buffer
 	writer := zngio.NewWriter(zio.NopCloser(&buffer))
-	recExpected := zed.NewValue(zv.Type(), zv.Bytes())
+	recExpected := super.NewValue(zv.Type(), zv.Bytes())
 	writer.Write(recExpected)
 	writer.Close()
 
-	reader := zngio.NewReader(zed.NewContext(), &buffer)
+	reader := zngio.NewReader(super.NewContext(), &buffer)
 	defer reader.Close()
 	recActual, err := reader.Read()
 	exp := zson.FormatValue(recExpected)
@@ -226,11 +226,11 @@ func TestMixedTypeArrayOfStructWithInterface(t *testing.T) {
 
 	var buffer bytes.Buffer
 	writer := zngio.NewWriter(zio.NopCloser(&buffer))
-	recExpected := zed.NewValue(zv.Type(), zv.Bytes())
+	recExpected := super.NewValue(zv.Type(), zv.Bytes())
 	writer.Write(recExpected)
 	writer.Close()
 
-	reader := zngio.NewReader(zed.NewContext(), &buffer)
+	reader := zngio.NewReader(super.NewContext(), &buffer)
 	defer reader.Close()
 	recActual, err := reader.Read()
 	require.NoError(t, err)
@@ -262,14 +262,14 @@ func TestUnexported(t *testing.T) {
 
 type ZNGValueField struct {
 	Name  string
-	Field zed.Value `zed:"field"`
+	Field super.Value `zed:"field"`
 }
 
 func TestZNGValueField(t *testing.T) {
-	// Include a Zed int64 inside a Go struct as a zed.Value field.
+	// Include a Zed int64 inside a Go struct as a super.Value field.
 	zngValueField := &ZNGValueField{
 		Name:  "test1",
-		Field: zed.NewInt64(123),
+		Field: super.NewInt64(123),
 	}
 	m := zson.NewZNGMarshaler()
 	m.Decorate(zson.StyleSimple)
@@ -282,8 +282,8 @@ func TestZNGValueField(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, zngValueField.Name, out.Name)
 	assert.True(t, zngValueField.Field.Equal(out.Field))
-	// Include a Zed record inside a Go struct in a zed.Value field.
-	zv2, err := zson.ParseValue(zed.NewContext(), `{s:"foo",a:[1,2,3]}`)
+	// Include a Zed record inside a Go struct in a super.Value field.
+	zv2, err := zson.ParseValue(super.NewContext(), `{s:"foo",a:[1,2,3]}`)
 	require.NoError(t, err)
 	zngValueField2 := &ZNGValueField{
 		Name:  "test2",
@@ -369,15 +369,15 @@ func TestMarshalGoTime(t *testing.T) {
 }
 
 type Metadata interface {
-	Type() zed.Type
+	Type() super.Type
 }
 
 type Record struct {
 	Fields []Field
 }
 
-func (r *Record) Type() zed.Type {
-	return zed.TypeNull
+func (r *Record) Type() super.Type {
+	return super.TypeNull
 }
 
 type Field struct {
@@ -389,16 +389,16 @@ type Primitive struct {
 	Foo string
 }
 
-func (*Primitive) Type() zed.Type {
-	return zed.TypeNull
+func (*Primitive) Type() super.Type {
+	return super.TypeNull
 }
 
 type Array struct {
 	Values Metadata
 }
 
-func (*Array) Type() zed.Type {
-	return zed.TypeNull
+func (*Array) Type() super.Type {
+	return super.TypeNull
 }
 
 func TestRecordWithMixedTypeNamedArrayElems(t *testing.T) {
@@ -443,18 +443,18 @@ func TestInterfaceWithConcreteEmptyValue(t *testing.T) {
 }
 
 func TestZedType(t *testing.T) {
-	zctx := zed.NewContext()
+	zctx := super.NewContext()
 	u := zson.NewUnmarshaler()
-	var typ zed.Type
+	var typ super.Type
 	err := u.Unmarshal(`<string>`, &typ)
 	assert.EqualError(t, err, `cannot unmarshal type value without type context`)
 	u.SetContext(zctx)
 	err = u.Unmarshal(`<string>`, &typ)
 	require.NoError(t, err)
-	assert.Equal(t, zed.TypeString, typ)
+	assert.Equal(t, super.TypeString, typ)
 	err = u.Unmarshal(`<int64>`, &typ)
 	require.NoError(t, err)
-	assert.Equal(t, zed.TypeInt64, typ)
+	assert.Equal(t, super.TypeInt64, typ)
 }
 
 func TestSimpleUnionUnmarshal(t *testing.T) {

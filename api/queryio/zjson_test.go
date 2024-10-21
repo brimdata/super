@@ -24,7 +24,7 @@ func TestZJSONWriter(t *testing.T) {
 	w := queryio.NewZJSONWriter(&buf)
 	err := w.WriteControl(api.QueryChannelSet{Channel: "main"})
 	require.NoError(t, err)
-	err = w.Write(zson.MustParseValue(zed.NewContext(), record))
+	err = w.Write(zson.MustParseValue(super.NewContext(), record))
 	require.NoError(t, err)
 	err = w.WriteControl(api.QueryChannelEnd{Channel: "main"})
 	require.NoError(t, err)

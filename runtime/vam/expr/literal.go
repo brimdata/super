@@ -6,12 +6,12 @@ import (
 )
 
 type Literal struct {
-	val zed.Value
+	val super.Value
 }
 
 var _ Evaluator = (*Literal)(nil)
 
-func NewLiteral(val zed.Value) *Literal {
+func NewLiteral(val super.Value) *Literal {
 	return &Literal{val: val}
 }
 

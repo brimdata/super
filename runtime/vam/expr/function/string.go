@@ -11,20 +11,20 @@ import (
 
 // // https://github.com/brimdata/super/blob/main/docs/language/functions.md#join
 type Join struct {
-	zctx    *zed.Context
+	zctx    *super.Context
 	builder strings.Builder
 }
 
 func (j *Join) Call(args ...vector.Any) vector.Any {
 	args = underAll(args)
 	splitsVal := args[0]
-	typ, ok := splitsVal.Type().(*zed.TypeArray)
-	if !ok || typ.Type.ID() != zed.IDString {
+	typ, ok := splitsVal.Type().(*super.TypeArray)
+	if !ok || typ.Type.ID() != super.IDString {
 		return vector.NewWrappedError(j.zctx, "join: array of string arg required", splitsVal)
 	}
 	var sepVal vector.Any
 	if len(args) == 2 {
-		if sepVal = args[1]; sepVal.Type() != zed.TypeString {
+		if sepVal = args[1]; sepVal.Type() != super.TypeString {
 			return vector.NewWrappedError(j.zctx, "join: separator must be string", sepVal)
 		}
 	}
@@ -54,18 +54,18 @@ func (j *Join) Call(args ...vector.Any) vector.Any {
 
 // // https://github.com/brimdata/super/blob/main/docs/language/functions.md#levenshtein
 type Levenshtein struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
 func (l *Levenshtein) Call(args ...vector.Any) vector.Any {
 	args = underAll(args)
 	for _, a := range args {
-		if a.Type() != zed.TypeString {
+		if a.Type() != super.TypeString {
 			return vector.NewWrappedError(l.zctx, "levenshtein: string args required", a)
 		}
 	}
 	a, b := args[0], args[1]
-	out := vector.NewIntEmpty(zed.TypeInt64, a.Len(), nil)
+	out := vector.NewIntEmpty(super.TypeInt64, a.Len(), nil)
 	for i := uint32(0); i < a.Len(); i++ {
 		as, _ := vector.StringValue(a, i)
 		bs, _ := vector.StringValue(b, i)
@@ -76,13 +76,13 @@ func (l *Levenshtein) Call(args ...vector.Any) vector.Any {
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#replace
 type Replace struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
 func (r *Replace) Call(args ...vector.Any) vector.Any {
 	args = underAll(args)
 	for _, arg := range args {
-		if arg.Type() != zed.TypeString {
+		if arg.Type() != super.TypeString {
 			return vector.NewWrappedError(r.zctx, "replace: string arg required", arg)
 		}
 	}
@@ -110,15 +110,15 @@ func (r *Replace) Call(args ...vector.Any) vector.Any {
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#run_len
 type RuneLen struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
 func (r *RuneLen) Call(args ...vector.Any) vector.Any {
 	val := underAll(args)[0]
-	if val.Type() != zed.TypeString {
+	if val.Type() != super.TypeString {
 		return vector.NewWrappedError(r.zctx, "rune_len: string arg required", val)
 	}
-	out := vector.NewIntEmpty(zed.TypeInt64, val.Len(), vector.NewBoolEmpty(val.Len(), nil))
+	out := vector.NewIntEmpty(super.TypeInt64, val.Len(), vector.NewBoolEmpty(val.Len(), nil))
 	for i := uint32(0); i < val.Len(); i++ {
 		s, null := vector.StringValue(val, i)
 		if null {
@@ -131,13 +131,13 @@ func (r *RuneLen) Call(args ...vector.Any) vector.Any {
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#split
 type Split struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
 func (s *Split) Call(args ...vector.Any) vector.Any {
 	args = underAll(args)
 	for i := range args {
-		if args[i].Type() != zed.TypeString {
+		if args[i].Type() != super.TypeString {
 			return vector.NewWrappedError(s.zctx, "split: string arg required", args[i])
 		}
 	}
@@ -162,17 +162,17 @@ func (s *Split) Call(args ...vector.Any) vector.Any {
 		off += uint32(len(splits))
 	}
 	offsets = append(offsets, off)
-	return vector.NewArray(s.zctx.LookupTypeArray(zed.TypeString), offsets, values, nulls)
+	return vector.NewArray(s.zctx.LookupTypeArray(super.TypeString), offsets, values, nulls)
 }
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#lower
 type ToLower struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
 func (t *ToLower) Call(args ...vector.Any) vector.Any {
 	v := vector.Under(args[0])
-	if v.Type() != zed.TypeString {
+	if v.Type() != super.TypeString {
 		return vector.NewWrappedError(t.zctx, "lower: string arg required", v)
 	}
 	out := vector.NewStringEmpty(v.Len(), vector.NewBoolEmpty(v.Len(), nil))
@@ -188,12 +188,12 @@ func (t *ToLower) Call(args ...vector.Any) vector.Any {
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#upper
 type ToUpper struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
 func (t *ToUpper) Call(args ...vector.Any) vector.Any {
 	v := vector.Under(args[0])
-	if v.Type() != zed.TypeString {
+	if v.Type() != super.TypeString {
 		return vector.NewWrappedError(t.zctx, "upper: string arg required", v)
 	}
 	out := vector.NewStringEmpty(v.Len(), vector.NewBoolEmpty(v.Len(), nil))
@@ -209,12 +209,12 @@ func (t *ToUpper) Call(args ...vector.Any) vector.Any {
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#trim
 type Trim struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
 func (t *Trim) Call(args ...vector.Any) vector.Any {
 	val := vector.Under(args[0])
-	if val.Type() != zed.TypeString {
+	if val.Type() != super.TypeString {
 		return vector.NewWrappedError(t.zctx, "trim: string arg required", val)
 	}
 	out := vector.NewStringEmpty(val.Len(), vector.NewBoolEmpty(val.Len(), nil))

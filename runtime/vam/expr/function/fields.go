@@ -7,13 +7,13 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#fields
 type Fields struct {
-	zctx     *zed.Context
-	innerTyp *zed.TypeArray
-	outerTyp *zed.TypeArray
+	zctx     *super.Context
+	innerTyp *super.TypeArray
+	outerTyp *super.TypeArray
 }
 
-func NewFields(zctx *zed.Context) *Fields {
-	inner := zctx.LookupTypeArray(zed.TypeString)
+func NewFields(zctx *super.Context) *Fields {
+	inner := zctx.LookupTypeArray(super.TypeString)
 	return &Fields{
 		zctx:     zctx,
 		innerTyp: inner,
@@ -24,7 +24,7 @@ func NewFields(zctx *zed.Context) *Fields {
 func (f *Fields) Call(args ...vector.Any) vector.Any {
 	val := vector.Under(args[0])
 	switch typ := val.Type().(type) {
-	case *zed.TypeRecord:
+	case *super.TypeRecord:
 		paths := buildPath(typ, nil)
 		s := vector.NewStringEmpty(val.Len(), nil)
 		inOffs, outOffs := []uint32{0}, []uint32{0}
@@ -33,7 +33,7 @@ func (f *Fields) Call(args ...vector.Any) vector.Any {
 		}
 		inner := vector.NewArray(f.innerTyp, inOffs, s, nil)
 		return vector.NewArray(f.outerTyp, outOffs, inner, nil)
-	case *zed.TypeOfType:
+	case *super.TypeOfType:
 		var errs []uint32
 		s := vector.NewStringEmpty(val.Len(), nil)
 		inOffs, outOffs := []uint32{0}, []uint32{0}
@@ -57,19 +57,19 @@ func (f *Fields) Call(args ...vector.Any) vector.Any {
 	}
 }
 
-func (f *Fields) recordType(b []byte) *zed.TypeRecord {
+func (f *Fields) recordType(b []byte) *super.TypeRecord {
 	typ, err := f.zctx.LookupByValue(b)
 	if err != nil {
 		return nil
 	}
-	rtyp, _ := typ.(*zed.TypeRecord)
+	rtyp, _ := typ.(*super.TypeRecord)
 	return rtyp
 }
 
-func buildPath(typ *zed.TypeRecord, prefix []string) [][]string {
+func buildPath(typ *super.TypeRecord, prefix []string) [][]string {
 	var out [][]string
 	for _, f := range typ.Fields {
-		if typ, ok := zed.TypeUnder(f.Type).(*zed.TypeRecord); ok {
+		if typ, ok := super.TypeUnder(f.Type).(*super.TypeRecord); ok {
 			out = append(out, buildPath(typ, append(prefix, f.Name))...)
 		} else {
 			out = append(out, append(prefix, f.Name))

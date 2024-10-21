@@ -26,7 +26,7 @@ func LookupSeekRange(ctx context.Context, engine storage.Engine, path *storage.U
 	defer r.Close()
 	var ranges seekindex.Ranges
 	unmarshaler := zson.NewZNGUnmarshaler()
-	reader := zngio.NewReader(zed.NewContext(), r)
+	reader := zngio.NewReader(super.NewContext(), r)
 	defer reader.Close()
 	ectx := expr.NewContext()
 	for {
@@ -35,7 +35,7 @@ func LookupSeekRange(ctx context.Context, engine storage.Engine, path *storage.U
 			return ranges, err
 		}
 		result := pruner.Eval(ectx, *val)
-		if result.Type() == zed.TypeBool && result.Bool() {
+		if result.Type() == super.TypeBool && result.Bool() {
 			continue
 		}
 		var entry seekindex.Entry
@@ -61,7 +61,7 @@ func readSeekIndex(ctx context.Context, engine storage.Engine, path *storage.URI
 		return nil, err
 	}
 	defer r.Close()
-	zr := zngio.NewReader(zed.NewContext(), r)
+	zr := zngio.NewReader(super.NewContext(), r)
 	u := zson.NewZNGUnmarshaler()
 	var index seekindex.Index
 	for {

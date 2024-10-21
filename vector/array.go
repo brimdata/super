@@ -6,7 +6,7 @@ import (
 )
 
 type Array struct {
-	Typ     *zed.TypeArray
+	Typ     *super.TypeArray
 	Offsets []uint32
 	Values  Any
 	Nulls   *Bool
@@ -14,11 +14,11 @@ type Array struct {
 
 var _ Any = (*Array)(nil)
 
-func NewArray(typ *zed.TypeArray, offsets []uint32, values Any, nulls *Bool) *Array {
+func NewArray(typ *super.TypeArray, offsets []uint32, values Any, nulls *Bool) *Array {
 	return &Array{Typ: typ, Offsets: offsets, Values: values, Nulls: nulls}
 }
 
-func (a *Array) Type() zed.Type {
+func (a *Array) Type() super.Type {
 	return a.Typ
 }
 

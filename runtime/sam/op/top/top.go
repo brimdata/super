@@ -18,7 +18,7 @@ const defaultTopLimit = 100
 // - It has a hidden option (FlushEvery) to sort and emit on every batch.
 type Op struct {
 	parent     zbuf.Puller
-	zctx       *zed.Context
+	zctx       *super.Context
 	limit      int
 	fields     []expr.Evaluator
 	flushEvery bool
@@ -27,7 +27,7 @@ type Op struct {
 	compare    expr.CompareFn
 }
 
-func New(zctx *zed.Context, parent zbuf.Puller, limit int, fields []expr.Evaluator, flushEvery bool, resetter expr.Resetter) *Op {
+func New(zctx *super.Context, parent zbuf.Puller, limit int, fields []expr.Evaluator, flushEvery bool, resetter expr.Resetter) *Op {
 	if limit == 0 {
 		limit = defaultTopLimit
 	}
@@ -61,7 +61,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 	}
 }
 
-func (o *Op) consume(rec zed.Value) {
+func (o *Op) consume(rec super.Value) {
 	if o.fields == nil {
 		fld := sort.GuessSortKey(rec)
 		accessor := expr.NewDottedExpr(o.zctx, fld)
@@ -84,9 +84,9 @@ func (o *Op) sorted() zbuf.Batch {
 	if o.records == nil {
 		return nil
 	}
-	out := make([]zed.Value, o.records.Len())
+	out := make([]super.Value, o.records.Len())
 	for i := o.records.Len() - 1; i >= 0; i-- {
-		out[i] = heap.Pop(o.records).(zed.Value)
+		out[i] = heap.Pop(o.records).(super.Value)
 	}
 	// clear records
 	o.records = nil

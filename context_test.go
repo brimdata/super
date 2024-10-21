@@ -1,4 +1,4 @@
-package zed_test
+package super_test
 
 import (
 	"testing"
@@ -10,29 +10,29 @@ import (
 )
 
 func TestContextLookupTypeNamedErrors(t *testing.T) {
-	zctx := zed.NewContext()
+	zctx := super.NewContext()
 
-	_, err := zctx.LookupTypeNamed("\xff", zed.TypeNull)
+	_, err := zctx.LookupTypeNamed("\xff", super.TypeNull)
 	assert.EqualError(t, err, `bad type name "\xff": invalid UTF-8`)
 
-	_, err = zctx.LookupTypeNamed("null", zed.TypeNull)
+	_, err = zctx.LookupTypeNamed("null", super.TypeNull)
 	assert.EqualError(t, err, `bad type name "null": primitive type name`)
 }
 
 func TestContextLookupTypeNamedAndLookupTypeDef(t *testing.T) {
-	zctx := zed.NewContext()
+	zctx := super.NewContext()
 
 	assert.Nil(t, zctx.LookupTypeDef("x"))
 
-	named1, err := zctx.LookupTypeNamed("x", zed.TypeNull)
+	named1, err := zctx.LookupTypeNamed("x", super.TypeNull)
 	require.NoError(t, err)
 	assert.Same(t, named1, zctx.LookupTypeDef("x"))
 
-	named2, err := zctx.LookupTypeNamed("x", zed.TypeInt8)
+	named2, err := zctx.LookupTypeNamed("x", super.TypeInt8)
 	require.NoError(t, err)
 	assert.Same(t, named2, zctx.LookupTypeDef("x"))
 
-	named3, err := zctx.LookupTypeNamed("x", zed.TypeNull)
+	named3, err := zctx.LookupTypeNamed("x", super.TypeNull)
 	require.NoError(t, err)
 	assert.Same(t, named3, zctx.LookupTypeDef("x"))
 	assert.Same(t, named3, named1)
@@ -43,12 +43,12 @@ func TestContextTranslateTypeNameConflictUnion(t *testing.T) {
 	// decoded.  There was a bug where child typedefs would override the
 	// top level typedef in TranslateType so foo in the value below had
 	// two of the same union type instead of the two it should have had.
-	zctx := zed.NewContext()
+	zctx := super.NewContext()
 	val := zson.MustParseValue(zctx, `[{x:{y:63}}(=foo),{x:{abcdef:{x:{y:127}}(foo)}}(=foo)]`)
-	foreign := zed.NewContext()
+	foreign := super.NewContext()
 	twin, err := foreign.TranslateType(val.Type())
 	require.NoError(t, err)
-	union := twin.(*zed.TypeArray).Type.(*zed.TypeUnion)
+	union := twin.(*super.TypeArray).Type.(*super.TypeUnion)
 	assert.Equal(t, `foo={x:{abcdef:foo={x:{y:int64}}}}`, zson.String(union.Types[0]))
 	assert.Equal(t, `foo={x:{y:int64}}`, zson.String(union.Types[1]))
 }

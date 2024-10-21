@@ -110,11 +110,11 @@ func (p *Pool) Snapshot(ctx context.Context, commit ksuid.KSUID) (commits.View, 
 	return p.commits.Snapshot(ctx, commit)
 }
 
-func (p *Pool) OpenCommitLog(ctx context.Context, zctx *zed.Context, commit ksuid.KSUID) zio.Reader {
+func (p *Pool) OpenCommitLog(ctx context.Context, zctx *super.Context, commit ksuid.KSUID) zio.Reader {
 	return p.commits.OpenCommitLog(ctx, zctx, commit, ksuid.Nil)
 }
 
-func (p *Pool) OpenCommitLogAsZNG(ctx context.Context, zctx *zed.Context, commit ksuid.KSUID) (*zngio.Reader, error) {
+func (p *Pool) OpenCommitLogAsZNG(ctx context.Context, zctx *super.Context, commit ksuid.KSUID) (*zngio.Reader, error) {
 	return p.commits.OpenAsZNG(ctx, zctx, commit, ksuid.Nil)
 }
 
@@ -156,7 +156,7 @@ func (p *Pool) ResolveRevision(ctx context.Context, revision string) (ksuid.KSUI
 	return id, nil
 }
 
-func (p *Pool) BatchifyBranches(ctx context.Context, zctx *zed.Context, recs []zed.Value, m *zson.MarshalZNGContext, f expr.Evaluator) ([]zed.Value, error) {
+func (p *Pool) BatchifyBranches(ctx context.Context, zctx *super.Context, recs []super.Value, m *zson.MarshalZNGContext, f expr.Evaluator) ([]super.Value, error) {
 	branches, err := p.ListBranches(ctx)
 	if err != nil {
 		return nil, err
@@ -175,7 +175,7 @@ func (p *Pool) BatchifyBranches(ctx context.Context, zctx *zed.Context, recs []z
 	return recs, nil
 }
 
-func filter(zctx *zed.Context, ectx expr.Context, this zed.Value, e expr.Evaluator) bool {
+func filter(zctx *super.Context, ectx expr.Context, this super.Value, e expr.Evaluator) bool {
 	if e == nil {
 		return true
 	}
@@ -188,14 +188,14 @@ type BranchTip struct {
 	Commit ksuid.KSUID
 }
 
-func (p *Pool) BatchifyBranchTips(ctx context.Context, zctx *zed.Context, f expr.Evaluator) ([]zed.Value, error) {
+func (p *Pool) BatchifyBranchTips(ctx context.Context, zctx *super.Context, f expr.Evaluator) ([]super.Value, error) {
 	branches, err := p.ListBranches(ctx)
 	if err != nil {
 		return nil, err
 	}
 	m := zson.NewZNGMarshalerWithContext(zctx)
 	m.Decorate(zson.StylePackage)
-	recs := make([]zed.Value, 0, len(branches))
+	recs := make([]super.Value, 0, len(branches))
 	ectx := expr.NewContext()
 	for _, branchRef := range branches {
 		rec, err := m.Marshal(&BranchTip{branchRef.Name, branchRef.Commit})

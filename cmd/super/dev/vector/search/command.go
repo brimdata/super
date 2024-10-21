@@ -4,7 +4,7 @@ import (
 	"errors"
 	"flag"
 
-	zed "github.com/brimdata/super"
+	 "github.com/brimdata/super"
 	"github.com/brimdata/super/cli/lakeflags"
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/cli/poolflags"
@@ -66,7 +66,7 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	text := args[0]
-	rctx := runtime.NewContext(ctx, zed.NewContext())
+	rctx := runtime.NewContext(ctx, super.NewContext())
 	puller, err := compiler.VectorFilterCompile(rctx, text, data.NewSource(nil, root), head)
 	if err != nil {
 		return err

@@ -28,7 +28,7 @@ func (o *Output) Close() error {
 // Send logs to ZSON reader -> ZNG writer -> ZNG reader -> ZSON writer.
 func boomerang(t *testing.T, logs string, compress bool) {
 	in := []byte(strings.TrimSpace(logs) + "\n")
-	zsonSrc := zsonio.NewReader(zed.NewContext(), bytes.NewReader(in))
+	zsonSrc := zsonio.NewReader(super.NewContext(), bytes.NewReader(in))
 	var rawzng Output
 	rawDst := zngio.NewWriterWithOpts(&rawzng, zngio.WriterOpts{
 		Compress:    compress,
@@ -38,7 +38,7 @@ func boomerang(t *testing.T, logs string, compress bool) {
 	require.NoError(t, rawDst.Close())
 
 	var out Output
-	rawSrc := zngio.NewReader(zed.NewContext(), &rawzng)
+	rawSrc := zngio.NewReader(super.NewContext(), &rawzng)
 	defer rawSrc.Close()
 	zsonDst := zsonio.NewWriter(&out, zsonio.WriterOpts{})
 	err := zio.Copy(zsonDst, rawSrc)
@@ -48,14 +48,14 @@ func boomerang(t *testing.T, logs string, compress bool) {
 }
 
 func boomerangZJSON(t *testing.T, logs string) {
-	zsonSrc := zsonio.NewReader(zed.NewContext(), strings.NewReader(logs))
+	zsonSrc := zsonio.NewReader(super.NewContext(), strings.NewReader(logs))
 	var zjsonOutput Output
 	zjsonDst := zjsonio.NewWriter(&zjsonOutput)
 	err := zio.Copy(zjsonDst, zsonSrc)
 	require.NoError(t, err)
 
 	var out Output
-	zjsonSrc := zjsonio.NewReader(zed.NewContext(), &zjsonOutput)
+	zjsonSrc := zjsonio.NewReader(super.NewContext(), &zjsonOutput)
 	zsonDst := zsonio.NewWriter(&out, zsonio.WriterOpts{})
 	err = zio.Copy(zsonDst, zjsonSrc)
 	if assert.NoError(t, err) {

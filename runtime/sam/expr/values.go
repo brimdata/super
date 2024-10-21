@@ -8,14 +8,14 @@ import (
 )
 
 type recordExpr struct {
-	zctx    *zed.Context
-	typ     *zed.TypeRecord
+	zctx    *super.Context
+	typ     *super.TypeRecord
 	builder *zcode.Builder
-	fields  []zed.Field
+	fields  []super.Field
 	exprs   []Evaluator
 }
 
-func NewRecordExpr(zctx *zed.Context, elems []RecordElem) (Evaluator, error) {
+func NewRecordExpr(zctx *super.Context, elems []RecordElem) (Evaluator, error) {
 	for _, e := range elems {
 		if e.Spread != nil {
 			return newRecordSpreadExpr(zctx, elems)
@@ -24,16 +24,16 @@ func NewRecordExpr(zctx *zed.Context, elems []RecordElem) (Evaluator, error) {
 	return newRecordExpr(zctx, elems), nil
 }
 
-func newRecordExpr(zctx *zed.Context, elems []RecordElem) *recordExpr {
-	fields := make([]zed.Field, 0, len(elems))
+func newRecordExpr(zctx *super.Context, elems []RecordElem) *recordExpr {
+	fields := make([]super.Field, 0, len(elems))
 	exprs := make([]Evaluator, 0, len(elems))
 	for _, elem := range elems {
-		fields = append(fields, zed.NewField(elem.Name, nil))
+		fields = append(fields, super.NewField(elem.Name, nil))
 		exprs = append(exprs, elem.Field)
 	}
-	var typ *zed.TypeRecord
+	var typ *super.TypeRecord
 	if len(exprs) == 0 {
-		typ = zctx.MustLookupTypeRecord([]zed.Field{})
+		typ = zctx.MustLookupTypeRecord([]super.Field{})
 	}
 	return &recordExpr{
 		zctx:    zctx,
@@ -44,7 +44,7 @@ func newRecordExpr(zctx *zed.Context, elems []RecordElem) *recordExpr {
 	}
 }
 
-func (r *recordExpr) Eval(ectx Context, this zed.Value) zed.Value {
+func (r *recordExpr) Eval(ectx Context, this super.Value) super.Value {
 	var changed bool
 	b := r.builder
 	b.Reset()
@@ -64,7 +64,7 @@ func (r *recordExpr) Eval(ectx Context, this zed.Value) zed.Value {
 		// Return empty record instead of null record.
 		bytes = []byte{}
 	}
-	return zed.NewValue(r.typ, bytes)
+	return super.NewValue(r.typ, bytes)
 }
 
 type RecordElem struct {
@@ -74,15 +74,15 @@ type RecordElem struct {
 }
 
 type recordSpreadExpr struct {
-	zctx    *zed.Context
+	zctx    *super.Context
 	elems   []RecordElem
 	builder zcode.Builder
-	fields  []zed.Field
+	fields  []super.Field
 	bytes   []zcode.Bytes
-	cache   *zed.TypeRecord
+	cache   *super.TypeRecord
 }
 
-func newRecordSpreadExpr(zctx *zed.Context, elems []RecordElem) (*recordSpreadExpr, error) {
+func newRecordSpreadExpr(zctx *super.Context, elems []RecordElem) (*recordSpreadExpr, error) {
 	return &recordSpreadExpr{
 		zctx:  zctx,
 		elems: elems,
@@ -91,10 +91,10 @@ func newRecordSpreadExpr(zctx *zed.Context, elems []RecordElem) (*recordSpreadEx
 
 type fieldValue struct {
 	index int
-	value zed.Value
+	value super.Value
 }
 
-func (r *recordSpreadExpr) Eval(ectx Context, this zed.Value) zed.Value {
+func (r *recordSpreadExpr) Eval(ectx Context, this super.Value) super.Value {
 	object := make(map[string]fieldValue)
 	for _, elem := range r.elems {
 		if elem.Spread != nil {
@@ -102,7 +102,7 @@ func (r *recordSpreadExpr) Eval(ectx Context, this zed.Value) zed.Value {
 			if rec.IsMissing() {
 				continue
 			}
-			typ := zed.TypeRecordOf(rec.Type())
+			typ := super.TypeRecordOf(rec.Type())
 			if typ == nil {
 				// Treat non-record spread values like missing.
 				continue
@@ -113,7 +113,7 @@ func (r *recordSpreadExpr) Eval(ectx Context, this zed.Value) zed.Value {
 				if !ok {
 					fv = fieldValue{index: len(object)}
 				}
-				fv.value = zed.NewValue(f.Type, it.Next())
+				fv.value = super.NewValue(f.Type, it.Next())
 				object[f.Name] = fv
 			}
 		} else {
@@ -128,7 +128,7 @@ func (r *recordSpreadExpr) Eval(ectx Context, this zed.Value) zed.Value {
 		}
 	}
 	if len(object) == 0 {
-		return zed.NewValue(r.zctx.MustLookupTypeRecord([]zed.Field{}), []byte{})
+		return super.NewValue(r.zctx.MustLookupTypeRecord([]super.Field{}), []byte{})
 	}
 	r.update(object)
 	b := r.builder
@@ -136,7 +136,7 @@ func (r *recordSpreadExpr) Eval(ectx Context, this zed.Value) zed.Value {
 	for _, bytes := range r.bytes {
 		b.Append(bytes)
 	}
-	return zed.NewValue(r.cache, b.Bytes())
+	return super.NewValue(r.cache, b.Bytes())
 }
 
 // update maps the object into the receiver's vals slice while also
@@ -148,7 +148,7 @@ func (r *recordSpreadExpr) update(object map[string]fieldValue) {
 		return
 	}
 	for name, field := range object {
-		if r.fields[field.index] != zed.NewField(name, field.value.Type()) {
+		if r.fields[field.index] != super.NewField(name, field.value.Type()) {
 			r.invalidate(object)
 			return
 		}
@@ -161,7 +161,7 @@ func (r *recordSpreadExpr) invalidate(object map[string]fieldValue) {
 	r.fields = slices.Grow(r.fields[:0], n)[:n]
 	r.bytes = slices.Grow(r.bytes[:0], n)[:n]
 	for name, field := range object {
-		r.fields[field.index] = zed.NewField(name, field.value.Type())
+		r.fields[field.index] = super.NewField(name, field.value.Type())
 		r.bytes[field.index] = field.value.Bytes()
 	}
 	r.cache = r.zctx.MustLookupTypeRecord(r.fields)
@@ -174,20 +174,20 @@ type VectorElem struct {
 
 type ArrayExpr struct {
 	elems []VectorElem
-	zctx  *zed.Context
+	zctx  *super.Context
 
 	builder    zcode.Builder
 	collection collectionBuilder
 }
 
-func NewArrayExpr(zctx *zed.Context, elems []VectorElem) *ArrayExpr {
+func NewArrayExpr(zctx *super.Context, elems []VectorElem) *ArrayExpr {
 	return &ArrayExpr{
 		elems: elems,
 		zctx:  zctx,
 	}
 }
 
-func (a *ArrayExpr) Eval(ectx Context, this zed.Value) zed.Value {
+func (a *ArrayExpr) Eval(ectx Context, this super.Value) super.Value {
 	a.builder.Reset()
 	a.collection.reset()
 	for _, e := range a.elems {
@@ -196,7 +196,7 @@ func (a *ArrayExpr) Eval(ectx Context, this zed.Value) zed.Value {
 			continue
 		}
 		val := e.Spread.Eval(ectx, this)
-		inner := zed.InnerType(val.Type())
+		inner := super.InnerType(val.Type())
 		if inner == nil {
 			// Treat non-list spread values values like missing.
 			continue
@@ -204,30 +204,30 @@ func (a *ArrayExpr) Eval(ectx Context, this zed.Value) zed.Value {
 		a.collection.appendSpread(inner, val.Bytes())
 	}
 	if len(a.collection.types) == 0 {
-		return zed.NewValue(a.zctx.LookupTypeArray(zed.TypeNull), []byte{})
+		return super.NewValue(a.zctx.LookupTypeArray(super.TypeNull), []byte{})
 	}
 	it := a.collection.iter(a.zctx)
 	for !it.done() {
 		it.appendNext(&a.builder)
 	}
-	return zed.NewValue(a.zctx.LookupTypeArray(it.typ), a.builder.Bytes())
+	return super.NewValue(a.zctx.LookupTypeArray(it.typ), a.builder.Bytes())
 }
 
 type SetExpr struct {
 	builder    zcode.Builder
 	collection collectionBuilder
 	elems      []VectorElem
-	zctx       *zed.Context
+	zctx       *super.Context
 }
 
-func NewSetExpr(zctx *zed.Context, elems []VectorElem) *SetExpr {
+func NewSetExpr(zctx *super.Context, elems []VectorElem) *SetExpr {
 	return &SetExpr{
 		elems: elems,
 		zctx:  zctx,
 	}
 }
 
-func (a *SetExpr) Eval(ectx Context, this zed.Value) zed.Value {
+func (a *SetExpr) Eval(ectx Context, this super.Value) super.Value {
 	a.builder.Reset()
 	a.collection.reset()
 	for _, e := range a.elems {
@@ -236,7 +236,7 @@ func (a *SetExpr) Eval(ectx Context, this zed.Value) zed.Value {
 			continue
 		}
 		val := e.Spread.Eval(ectx, this)
-		inner := zed.InnerType(val.Type())
+		inner := super.InnerType(val.Type())
 		if inner == nil {
 			// Treat non-list spread values values like missing.
 			continue
@@ -244,13 +244,13 @@ func (a *SetExpr) Eval(ectx Context, this zed.Value) zed.Value {
 		a.collection.appendSpread(inner, val.Bytes())
 	}
 	if len(a.collection.types) == 0 {
-		return zed.NewValue(a.zctx.LookupTypeSet(zed.TypeNull), []byte{})
+		return super.NewValue(a.zctx.LookupTypeSet(super.TypeNull), []byte{})
 	}
 	it := a.collection.iter(a.zctx)
 	for !it.done() {
 		it.appendNext(&a.builder)
 	}
-	return zed.NewValue(a.zctx.LookupTypeSet(it.typ), zed.NormalizeSet(a.builder.Bytes()))
+	return super.NewValue(a.zctx.LookupTypeSet(it.typ), super.NormalizeSet(a.builder.Bytes()))
 }
 
 type Entry struct {
@@ -263,17 +263,17 @@ type MapExpr struct {
 	entries []Entry
 	keys    collectionBuilder
 	vals    collectionBuilder
-	zctx    *zed.Context
+	zctx    *super.Context
 }
 
-func NewMapExpr(zctx *zed.Context, entries []Entry) *MapExpr {
+func NewMapExpr(zctx *super.Context, entries []Entry) *MapExpr {
 	return &MapExpr{
 		entries: entries,
 		zctx:    zctx,
 	}
 }
 
-func (m *MapExpr) Eval(ectx Context, this zed.Value) zed.Value {
+func (m *MapExpr) Eval(ectx Context, this super.Value) super.Value {
 	m.keys.reset()
 	m.vals.reset()
 	for _, e := range m.entries {
@@ -281,8 +281,8 @@ func (m *MapExpr) Eval(ectx Context, this zed.Value) zed.Value {
 		m.vals.append(e.Val.Eval(ectx, this))
 	}
 	if len(m.keys.types) == 0 {
-		typ := m.zctx.LookupTypeMap(zed.TypeNull, zed.TypeNull)
-		return zed.NewValue(typ, []byte{})
+		typ := m.zctx.LookupTypeMap(super.TypeNull, super.TypeNull)
+		return super.NewValue(typ, []byte{})
 	}
 	m.builder.Reset()
 	kIter, vIter := m.keys.iter(m.zctx), m.vals.iter(m.zctx)
@@ -292,12 +292,12 @@ func (m *MapExpr) Eval(ectx Context, this zed.Value) zed.Value {
 	}
 	bytes := m.builder.Bytes()
 	typ := m.zctx.LookupTypeMap(kIter.typ, vIter.typ)
-	return zed.NewValue(typ, zed.NormalizeMap(bytes))
+	return super.NewValue(typ, super.NormalizeMap(bytes))
 }
 
 type collectionBuilder struct {
-	types       []zed.Type
-	uniqueTypes []zed.Type
+	types       []super.Type
+	uniqueTypes []super.Type
 	bytes       []zcode.Bytes
 }
 
@@ -307,13 +307,13 @@ func (c *collectionBuilder) reset() {
 	c.bytes = c.bytes[:0]
 }
 
-func (c *collectionBuilder) append(val zed.Value) {
+func (c *collectionBuilder) append(val super.Value) {
 	c.types = append(c.types, val.Type())
 	c.bytes = append(c.bytes, val.Bytes())
 }
 
-func (c *collectionBuilder) appendSpread(inner zed.Type, b zcode.Bytes) {
-	union, _ := zed.TypeUnder(inner).(*zed.TypeUnion)
+func (c *collectionBuilder) appendSpread(inner super.Type, b zcode.Bytes) {
+	union, _ := super.TypeUnder(inner).(*super.TypeUnion)
 	for it := b.Iter(); !it.Done(); {
 		typ := inner
 		bytes := it.Next()
@@ -325,8 +325,8 @@ func (c *collectionBuilder) appendSpread(inner zed.Type, b zcode.Bytes) {
 	}
 }
 
-func (c *collectionBuilder) iter(zctx *zed.Context) collectionIter {
-	// uniqueTypes must be copied since zed.UniqueTypes operates on the type
+func (c *collectionBuilder) iter(zctx *super.Context) collectionIter {
+	// uniqueTypes must be copied since super.UniqueTypes operates on the type
 	// array in place and thus we'll lose order.
 	c.uniqueTypes = append(c.uniqueTypes[:0], c.types...)
 	return collectionIter{
@@ -338,15 +338,15 @@ func (c *collectionBuilder) iter(zctx *zed.Context) collectionIter {
 }
 
 type collectionIter struct {
-	typ   zed.Type
+	typ   super.Type
 	bytes []zcode.Bytes
-	types []zed.Type
+	types []super.Type
 	uniq  int
 }
 
 func (c *collectionIter) appendNext(b *zcode.Builder) {
-	if union, ok := c.typ.(*zed.TypeUnion); ok && c.uniq > 1 {
-		zed.BuildUnion(b, union.TagOf(c.types[0]), c.bytes[0])
+	if union, ok := c.typ.(*super.TypeUnion); ok && c.uniq > 1 {
+		super.BuildUnion(b, union.TagOf(c.types[0]), c.bytes[0])
 	} else {
 		b.Append(c.bytes[0])
 	}
@@ -358,15 +358,15 @@ func (c *collectionIter) done() bool {
 	return len(c.types) == 0
 }
 
-func unionOf(zctx *zed.Context, types []zed.Type) zed.Type {
+func unionOf(zctx *super.Context, types []super.Type) super.Type {
 	unique := types[:0]
-	for _, t := range zed.UniqueTypes(types) {
-		if t != zed.TypeNull {
+	for _, t := range super.UniqueTypes(types) {
+		if t != super.TypeNull {
 			unique = append(unique, t)
 		}
 	}
 	if len(unique) == 0 {
-		return zed.TypeNull
+		return super.TypeNull
 	}
 	if len(unique) == 1 {
 		return unique[0]

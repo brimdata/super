@@ -6,12 +6,12 @@ import (
 )
 
 type Entry struct {
-	Min    zed.Value `zed:"min"`
-	Max    zed.Value `zed:"max"`
-	ValOff uint64    `zed:"val_off"`
-	ValCnt uint64    `zed:"val_cnt"`
-	Offset uint64    `zed:"offset"`
-	Length uint64    `zed:"length"`
+	Min    super.Value `zed:"min"`
+	Max    super.Value `zed:"max"`
+	ValOff uint64      `zed:"val_off"`
+	ValCnt uint64      `zed:"val_cnt"`
+	Offset uint64      `zed:"offset"`
+	Length uint64      `zed:"length"`
 }
 
 func (e Entry) Range() Range {

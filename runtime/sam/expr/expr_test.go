@@ -387,25 +387,25 @@ func TestArithmetic(t *testing.T) {
 
 	width := func(id int) int {
 		switch id {
-		case zed.IDInt8, zed.IDUint8:
+		case super.IDInt8, super.IDUint8:
 			return 8
-		case zed.IDInt16, zed.IDUint16:
+		case super.IDInt16, super.IDUint16:
 			return 16
-		case zed.IDInt32, zed.IDUint32:
+		case super.IDInt32, super.IDUint32:
 			return 32
-		case zed.IDInt64, zed.IDUint64:
+		case super.IDInt64, super.IDUint64:
 			return 64
 		}
 		panic("width")
 	}
 	// Test arithmetic between integer types
 	intResultDecorator := func(t1, t2 string) string {
-		typ1 := zed.LookupPrimitive(t1)
-		typ2 := zed.LookupPrimitive(t2)
+		typ1 := super.LookupPrimitive(t1)
+		typ2 := super.LookupPrimitive(t2)
 		id1 := typ1.ID()
 		id2 := typ2.ID()
-		sign1 := zed.IsSigned(id1)
-		sign2 := zed.IsSigned(id2)
+		sign1 := super.IsSigned(id1)
+		sign2 := super.IsSigned(id2)
 		sign := true
 		if sign1 == sign2 {
 			sign = sign1

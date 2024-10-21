@@ -35,13 +35,13 @@ import (
 // each record type is like a schema and as we encounter them, we can compile
 // optimized code for the now-static types within that record type.
 //
-// The Evaluator return by CompileExpr produces zed.Values that are stored
+// The Evaluator return by CompileExpr produces super.Values that are stored
 // in temporary buffers and may be modified on subsequent calls to Eval.
 // This is intended to minimize the garbage collection needs of the inner loop
 // by not allocating memory on a per-Eval basis.  For uses like filtering and
 // aggregations, where the results are immediately used, this is desirable and
 // efficient but for use cases like storing the results as groupby keys, the
-// resulting zed.Value should be copied (e.g., via zed.Value.Copy()).
+// resulting super.Value should be copied (e.g., via super.Value.Copy()).
 //
 // TBD: string values and net.IP address do not need to be copied because they
 // are allocated by go libraries and temporary buffers are not used.  This will
@@ -202,7 +202,7 @@ func (b *Builder) compileSearch(search *dag.Search) (expr.Evaluator, error) {
 	if err != nil {
 		return nil, err
 	}
-	if zed.TypeUnder(val.Type()) == zed.TypeString {
+	if super.TypeUnder(val.Type()) == super.TypeString {
 		// Do a grep-style substring search instead of an
 		// exact match on each value.
 		term := norm.NFC.Bytes(val.Bytes())

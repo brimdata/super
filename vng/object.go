@@ -71,12 +71,12 @@ func (o *Object) DataReader() io.ReaderAt {
 	return o.readerAt
 }
 
-func (o *Object) NewReader(zctx *zed.Context) (zio.Reader, error) {
+func (o *Object) NewReader(zctx *super.Context) (zio.Reader, error) {
 	return NewZedReader(zctx, o.meta, o.readerAt)
 }
 
 func readMetadata(r io.Reader) (Metadata, error) {
-	zctx := zed.NewContext()
+	zctx := super.NewContext()
 	zr := zngio.NewReader(zctx, r)
 	defer zr.Close()
 	val, err := zr.Read()

@@ -14,21 +14,21 @@ import (
 // to id.src, but it cannot be renamed to src. Renames are applied
 // left to right; each rename observes the effect of all.
 type Renamer struct {
-	zctx *zed.Context
+	zctx *super.Context
 	// For the dst field name, we just store the leaf name since the
 	// src path and the dst path are the same and only differ in the leaf name.
 	srcs    []*Lval
 	dsts    []*Lval
-	typeMap map[int]map[string]*zed.TypeRecord
+	typeMap map[int]map[string]*super.TypeRecord
 	// fieldsStr is used to reduce allocations when computing the fields id.
 	fieldsStr []byte
 }
 
-func NewRenamer(zctx *zed.Context, srcs, dsts []*Lval) *Renamer {
-	return &Renamer{zctx, srcs, dsts, make(map[int]map[string]*zed.TypeRecord), nil}
+func NewRenamer(zctx *super.Context, srcs, dsts []*Lval) *Renamer {
+	return &Renamer{zctx, srcs, dsts, make(map[int]map[string]*super.TypeRecord), nil}
 }
 
-func (r *Renamer) Eval(ectx Context, this zed.Value) zed.Value {
+func (r *Renamer) Eval(ectx Context, this super.Value) super.Value {
 	val, err := r.EvalToValAndError(ectx, this)
 	if err != nil {
 		return r.zctx.WrapError(err.Error(), this)
@@ -36,31 +36,31 @@ func (r *Renamer) Eval(ectx Context, this zed.Value) zed.Value {
 	return val
 }
 
-func (r *Renamer) EvalToValAndError(ectx Context, this zed.Value) (zed.Value, error) {
-	if !zed.IsRecordType(this.Type()) {
+func (r *Renamer) EvalToValAndError(ectx Context, this super.Value) (super.Value, error) {
+	if !super.IsRecordType(this.Type()) {
 		return this, nil
 	}
 	srcs, dsts, err := r.evalFields(ectx, this)
 	if err != nil {
-		return zed.Null, fmt.Errorf("rename: %w", err)
+		return super.Null, fmt.Errorf("rename: %w", err)
 	}
 	id := this.Type().ID()
 	m, ok := r.typeMap[id]
 	if !ok {
-		m = make(map[string]*zed.TypeRecord)
+		m = make(map[string]*super.TypeRecord)
 		r.typeMap[id] = m
 	}
 	r.fieldsStr = dsts.AppendTo(srcs.AppendTo(r.fieldsStr[:0]))
 	typ, ok := m[string(r.fieldsStr)]
 	if !ok {
 		var err error
-		typ, err = r.computeType(zed.TypeRecordOf(this.Type()), srcs, dsts)
+		typ, err = r.computeType(super.TypeRecordOf(this.Type()), srcs, dsts)
 		if err != nil {
-			return zed.Null, fmt.Errorf("rename: %w", err)
+			return super.Null, fmt.Errorf("rename: %w", err)
 		}
 		m[string(r.fieldsStr)] = typ
 	}
-	return zed.NewValue(typ, this.Bytes()), nil
+	return super.NewValue(typ, this.Bytes()), nil
 }
 
 func CheckRenameField(src, dst field.Path) error {
@@ -75,7 +75,7 @@ func CheckRenameField(src, dst field.Path) error {
 	return nil
 }
 
-func (r *Renamer) evalFields(ectx Context, this zed.Value) (field.List, field.List, error) {
+func (r *Renamer) evalFields(ectx Context, this super.Value) (field.List, field.List, error) {
 	var srcs, dsts field.List
 	for i := range r.srcs {
 		src, err := r.srcs[i].Eval(ectx, this)
@@ -95,7 +95,7 @@ func (r *Renamer) evalFields(ectx Context, this zed.Value) (field.List, field.Li
 	return srcs, dsts, nil
 }
 
-func (r *Renamer) computeType(typ *zed.TypeRecord, srcs, dsts field.List) (*zed.TypeRecord, error) {
+func (r *Renamer) computeType(typ *super.TypeRecord, srcs, dsts field.List) (*super.TypeRecord, error) {
 	for k, dst := range dsts {
 		var err error
 		typ, err = r.dstType(typ, srcs[k], dst)
@@ -106,14 +106,14 @@ func (r *Renamer) computeType(typ *zed.TypeRecord, srcs, dsts field.List) (*zed.
 	return typ, nil
 }
 
-func (r *Renamer) dstType(typ *zed.TypeRecord, src, dst field.Path) (*zed.TypeRecord, error) {
+func (r *Renamer) dstType(typ *super.TypeRecord, src, dst field.Path) (*super.TypeRecord, error) {
 	i, ok := typ.IndexOfField(src[0])
 	if !ok {
 		return typ, nil
 	}
-	var innerType zed.Type
+	var innerType super.Type
 	if len(src) > 1 {
-		recType, ok := typ.Fields[i].Type.(*zed.TypeRecord)
+		recType, ok := typ.Fields[i].Type.(*super.TypeRecord)
 		if !ok {
 			return typ, nil
 		}
@@ -126,10 +126,10 @@ func (r *Renamer) dstType(typ *zed.TypeRecord, src, dst field.Path) (*zed.TypeRe
 		innerType = typ.Fields[i].Type
 	}
 	fields := slices.Clone(typ.Fields)
-	fields[i] = zed.NewField(dst[0], innerType)
+	fields[i] = super.NewField(dst[0], innerType)
 	typ, err := r.zctx.LookupTypeRecord(fields)
 	if err != nil {
-		var dferr *zed.DuplicateFieldError
+		var dferr *super.DuplicateFieldError
 		if errors.As(err, &dferr) {
 			return nil, err
 		}

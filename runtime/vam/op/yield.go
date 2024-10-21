@@ -7,14 +7,14 @@ import (
 )
 
 type Yield struct {
-	zctx   *zed.Context
+	zctx   *super.Context
 	parent vector.Puller
 	exprs  []expr.Evaluator
 }
 
 var _ vector.Puller = (*Yield)(nil)
 
-func NewYield(zctx *zed.Context, parent vector.Puller, exprs []expr.Evaluator) *Yield {
+func NewYield(zctx *super.Context, parent vector.Puller, exprs []expr.Evaluator) *Yield {
 	return &Yield{
 		zctx:   zctx,
 		parent: parent,
@@ -76,16 +76,16 @@ func filterQuiet(vec vector.Any) vector.Any {
 func quietMask(vec vector.Any) (vector.Any, bool) {
 	errvec, ok := vec.(*vector.Error)
 	if !ok {
-		return vector.NewConst(zed.True, vec.Len(), nil), false
+		return vector.NewConst(super.True, vec.Len(), nil), false
 	}
-	if _, ok := errvec.Vals.Type().(*zed.TypeOfString); !ok {
-		return vector.NewConst(zed.True, vec.Len(), nil), false
+	if _, ok := errvec.Vals.Type().(*super.TypeOfString); !ok {
+		return vector.NewConst(super.True, vec.Len(), nil), false
 	}
 	if c, ok := errvec.Vals.(*vector.Const); ok {
 		if s, _ := c.AsString(); s == "quiet" {
-			return vector.NewConst(zed.False, vec.Len(), nil), true
+			return vector.NewConst(super.False, vec.Len(), nil), true
 		}
-		return vector.NewConst(zed.True, vec.Len(), nil), false
+		return vector.NewConst(super.True, vec.Len(), nil), false
 	}
 	n := vec.Len()
 	mask := vector.NewBoolEmpty(n, nil)

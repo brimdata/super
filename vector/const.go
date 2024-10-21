@@ -7,18 +7,18 @@ import (
 )
 
 type Const struct {
-	val   zed.Value
+	val   super.Value
 	len   uint32
 	Nulls *Bool
 }
 
 var _ Any = (*Const)(nil)
 
-func NewConst(val zed.Value, len uint32, nulls *Bool) *Const {
+func NewConst(val super.Value, len uint32, nulls *Bool) *Const {
 	return &Const{val: val, len: len, Nulls: nulls}
 }
 
-func (c *Const) Type() zed.Type {
+func (c *Const) Type() super.Type {
 	return c.val.Type()
 }
 
@@ -33,7 +33,7 @@ func (c *Const) Length() int {
 	return int(c.len)
 }
 
-func (c *Const) Value() zed.Value {
+func (c *Const) Value() super.Value {
 	return c.val
 }
 
@@ -46,7 +46,7 @@ func (c *Const) Serialize(b *zcode.Builder, slot uint32) {
 }
 
 func (c *Const) AsBytes() ([]byte, bool) {
-	return c.val.Bytes(), c.val.Type().ID() == zed.IDBytes
+	return c.val.Bytes(), c.val.Type().ID() == super.IDBytes
 }
 
 func (c *Const) AsFloat() (float64, bool) {

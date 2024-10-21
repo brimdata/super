@@ -7,27 +7,27 @@ import (
 )
 
 type fuse struct {
-	shapes   map[zed.Type]int
-	partials []zed.Value
+	shapes   map[super.Type]int
+	partials []super.Value
 }
 
 var _ Function = (*fuse)(nil)
 
 func newFuse() *fuse {
 	return &fuse{
-		shapes: make(map[zed.Type]int),
+		shapes: make(map[super.Type]int),
 	}
 }
 
-func (f *fuse) Consume(val zed.Value) {
+func (f *fuse) Consume(val super.Value) {
 	if _, ok := f.shapes[val.Type()]; !ok {
 		f.shapes[val.Type()] = len(f.shapes)
 	}
 }
 
-func (f *fuse) Result(zctx *zed.Context) zed.Value {
+func (f *fuse) Result(zctx *super.Context) super.Value {
 	if len(f.shapes)+len(f.partials) == 0 {
-		return zed.NullType
+		return super.NullType
 	}
 	schema := NewSchema(zctx)
 	for _, p := range f.partials {
@@ -37,7 +37,7 @@ func (f *fuse) Result(zctx *zed.Context) zed.Value {
 		}
 		schema.Mixin(typ)
 	}
-	shapes := make([]zed.Type, len(f.shapes))
+	shapes := make([]super.Type, len(f.shapes))
 	for typ, i := range f.shapes {
 		shapes[i] = typ
 	}
@@ -47,13 +47,13 @@ func (f *fuse) Result(zctx *zed.Context) zed.Value {
 	return zctx.LookupTypeValue(schema.Type())
 }
 
-func (f *fuse) ConsumeAsPartial(partial zed.Value) {
-	if partial.Type() != zed.TypeType {
+func (f *fuse) ConsumeAsPartial(partial super.Value) {
+	if partial.Type() != super.TypeType {
 		panic("fuse: partial not a type value")
 	}
 	f.partials = append(f.partials, partial.Copy())
 }
 
-func (f *fuse) ResultAsPartial(zctx *zed.Context) zed.Value {
+func (f *fuse) ResultAsPartial(zctx *super.Context) super.Value {
 	return f.Result(zctx)
 }

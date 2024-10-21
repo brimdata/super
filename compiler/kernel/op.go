@@ -51,7 +51,7 @@ var ErrJoinParents = errors.New("join requires two upstream parallel query paths
 
 type Builder struct {
 	rctx         *runtime.Context
-	mctx         *zed.Context
+	mctx         *super.Context
 	source       *data.Source
 	readers      []zio.Reader
 	progress     *zbuf.Progress
@@ -65,7 +65,7 @@ type Builder struct {
 func NewBuilder(rctx *runtime.Context, source *data.Source) *Builder {
 	return &Builder{
 		rctx:   rctx,
-		mctx:   zed.NewContext(),
+		mctx:   super.NewContext(),
 		source: source,
 		progress: &zbuf.Progress{
 			BytesRead:      0,
@@ -127,7 +127,7 @@ func (b *Builder) BuildVamToSeqFilter(filter dag.Expr, poolID, commitID ksuid.KS
 	return meta.NewSearchScanner(b.rctx, search, pool, b.PushdownOf(filter), b.progress), nil
 }
 
-func (b *Builder) zctx() *zed.Context {
+func (b *Builder) zctx() *super.Context {
 	return b.rctx.Zctx
 }
 
@@ -551,7 +551,7 @@ func (b *Builder) compileExprSwitch(swtch *dag.Switch, parents []zbuf.Puller) ([
 	s := exprswitch.New(b.rctx, parent, e, b.resetters)
 	var exits []zbuf.Puller
 	for _, c := range swtch.Cases {
-		var val *zed.Value
+		var val *super.Value
 		if c.Expr != nil {
 			val2, err := b.evalAtCompileTime(c.Expr)
 			if err != nil {
@@ -709,13 +709,13 @@ func (b *Builder) lookupPool(id ksuid.KSUID) (*lake.Pool, error) {
 	return b.source.Lake().OpenPool(b.rctx.Context, id)
 }
 
-func (b *Builder) evalAtCompileTime(in dag.Expr) (val zed.Value, err error) {
+func (b *Builder) evalAtCompileTime(in dag.Expr) (val super.Value, err error) {
 	if in == nil {
-		return zed.Null, nil
+		return super.Null, nil
 	}
 	e, err := b.compileExpr(in)
 	if err != nil {
-		return zed.Null, err
+		return super.Null, err
 	}
 	// Catch panic as the runtime will panic if there is a
 	// reference to a var not in scope, a field access null this, etc.
@@ -728,11 +728,11 @@ func (b *Builder) evalAtCompileTime(in dag.Expr) (val zed.Value, err error) {
 }
 
 func compileExpr(in dag.Expr) (expr.Evaluator, error) {
-	b := NewBuilder(runtime.NewContext(context.Background(), zed.NewContext()), nil)
+	b := NewBuilder(runtime.NewContext(context.Background(), super.NewContext()), nil)
 	return b.compileExpr(in)
 }
 
-func EvalAtCompileTime(zctx *zed.Context, in dag.Expr) (val zed.Value, err error) {
+func EvalAtCompileTime(zctx *super.Context, in dag.Expr) (val super.Value, err error) {
 	// We pass in a nil adaptor, which causes a panic for anything adaptor
 	// related, which is not currently allowed in an expression sub-query.
 	b := NewBuilder(runtime.NewContext(context.Background(), zctx), nil)

@@ -10,8 +10,8 @@ type And struct {
 
 var _ Function = (*And)(nil)
 
-func (a *And) Consume(val zed.Value) {
-	if val.IsNull() || zed.TypeUnder(val.Type()) != zed.TypeBool {
+func (a *And) Consume(val super.Value) {
+	if val.IsNull() || super.TypeUnder(val.Type()) != super.TypeBool {
 		return
 	}
 	if a.val == nil {
@@ -21,21 +21,21 @@ func (a *And) Consume(val zed.Value) {
 	*a.val = *a.val && val.Bool()
 }
 
-func (a *And) Result(*zed.Context) zed.Value {
+func (a *And) Result(*super.Context) super.Value {
 	if a.val == nil {
-		return zed.NullBool
+		return super.NullBool
 	}
-	return zed.NewBool(*a.val)
+	return super.NewBool(*a.val)
 }
 
-func (a *And) ConsumeAsPartial(val zed.Value) {
-	if val.Type() != zed.TypeBool {
+func (a *And) ConsumeAsPartial(val super.Value) {
+	if val.Type() != super.TypeBool {
 		panic("and: partial not a bool")
 	}
 	a.Consume(val)
 }
 
-func (a *And) ResultAsPartial(*zed.Context) zed.Value {
+func (a *And) ResultAsPartial(*super.Context) super.Value {
 	return a.Result(nil)
 }
 
@@ -45,8 +45,8 @@ type Or struct {
 
 var _ Function = (*Or)(nil)
 
-func (o *Or) Consume(val zed.Value) {
-	if val.IsNull() || zed.TypeUnder(val.Type()) != zed.TypeBool {
+func (o *Or) Consume(val super.Value) {
+	if val.IsNull() || super.TypeUnder(val.Type()) != super.TypeBool {
 		return
 	}
 	if o.val == nil {
@@ -56,20 +56,20 @@ func (o *Or) Consume(val zed.Value) {
 	*o.val = *o.val || val.Bool()
 }
 
-func (o *Or) Result(*zed.Context) zed.Value {
+func (o *Or) Result(*super.Context) super.Value {
 	if o.val == nil {
-		return zed.NullBool
+		return super.NullBool
 	}
-	return zed.NewBool(*o.val)
+	return super.NewBool(*o.val)
 }
 
-func (o *Or) ConsumeAsPartial(val zed.Value) {
-	if val.Type() != zed.TypeBool {
+func (o *Or) ConsumeAsPartial(val super.Value) {
+	if val.Type() != super.TypeBool {
 		panic("or: partial not a bool")
 	}
 	o.Consume(val)
 }
 
-func (o *Or) ResultAsPartial(*zed.Context) zed.Value {
+func (o *Or) ResultAsPartial(*super.Context) super.Value {
 	return o.Result(nil)
 }

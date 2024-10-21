@@ -27,16 +27,16 @@ func unmarshal(b []byte) (*Object, error) {
 
 type Writer struct {
 	writer  io.WriteCloser
-	zctx    *zed.Context
-	types   map[zed.Type]zed.Type
+	zctx    *super.Context
+	types   map[super.Type]super.Type
 	encoder encoder
 }
 
 func NewWriter(w io.WriteCloser) *Writer {
 	return &Writer{
 		writer:  w,
-		zctx:    zed.NewContext(),
-		types:   make(map[zed.Type]zed.Type),
+		zctx:    super.NewContext(),
+		types:   make(map[super.Type]super.Type),
 		encoder: make(encoder),
 	}
 }
@@ -45,7 +45,7 @@ func (w *Writer) Close() error {
 	return w.writer.Close()
 }
 
-func (w *Writer) Write(val zed.Value) error {
+func (w *Writer) Write(val super.Value) error {
 	rec, err := w.Transform(&val)
 	if err != nil {
 		return err
@@ -66,7 +66,7 @@ func (w *Writer) write(s string) error {
 	return err
 }
 
-func (w *Writer) Transform(r *zed.Value) (Object, error) {
+func (w *Writer) Transform(r *super.Value) (Object, error) {
 	local, ok := w.types[r.Type()]
 	if !ok {
 		var err error
@@ -89,28 +89,28 @@ func (w *Writer) Transform(r *zed.Value) (Object, error) {
 	}, nil
 }
 
-func (w *Writer) encodeValue(zctx *zed.Context, typ zed.Type, val zcode.Bytes) (interface{}, error) {
+func (w *Writer) encodeValue(zctx *super.Context, typ super.Type, val zcode.Bytes) (interface{}, error) {
 	if val == nil {
 		return nil, nil
 	}
 	switch typ := typ.(type) {
-	case *zed.TypeRecord:
+	case *super.TypeRecord:
 		return w.encodeRecord(zctx, typ, val)
-	case *zed.TypeArray:
+	case *super.TypeArray:
 		return w.encodeContainer(zctx, typ.Type, val)
-	case *zed.TypeSet:
+	case *super.TypeSet:
 		return w.encodeContainer(zctx, typ.Type, val)
-	case *zed.TypeMap:
+	case *super.TypeMap:
 		return w.encodeMap(zctx, typ, val)
-	case *zed.TypeUnion:
+	case *super.TypeUnion:
 		return w.encodeUnion(zctx, typ, val)
-	case *zed.TypeEnum:
-		return w.encodePrimitive(zctx, zed.TypeUint64, val)
-	case *zed.TypeError:
+	case *super.TypeEnum:
+		return w.encodePrimitive(zctx, super.TypeUint64, val)
+	case *super.TypeError:
 		return w.encodeValue(zctx, typ.Type, val)
-	case *zed.TypeNamed:
+	case *super.TypeNamed:
 		return w.encodeValue(zctx, typ.Type, val)
-	case *zed.TypeOfType:
+	case *super.TypeOfType:
 		inner, err := w.zctx.LookupByValue(val)
 		if err != nil {
 			return nil, err
@@ -121,7 +121,7 @@ func (w *Writer) encodeValue(zctx *zed.Context, typ zed.Type, val zcode.Bytes) (
 	}
 }
 
-func (w *Writer) encodeRecord(zctx *zed.Context, typ *zed.TypeRecord, val zcode.Bytes) (interface{}, error) {
+func (w *Writer) encodeRecord(zctx *super.Context, typ *super.TypeRecord, val zcode.Bytes) (interface{}, error) {
 	// We start out with a slice that contains nothing instead of nil
 	// so that an empty container encodes as a JSON empty array [].
 	out := []interface{}{}
@@ -135,7 +135,7 @@ func (w *Writer) encodeRecord(zctx *zed.Context, typ *zed.TypeRecord, val zcode.
 	return out, nil
 }
 
-func (w *Writer) encodeContainer(zctx *zed.Context, typ zed.Type, bytes zcode.Bytes) (interface{}, error) {
+func (w *Writer) encodeContainer(zctx *super.Context, typ super.Type, bytes zcode.Bytes) (interface{}, error) {
 	// We start out with a slice that contains nothing instead of nil
 	// so that an empty container encodes as a JSON empty array [].
 	out := []interface{}{}
@@ -149,7 +149,7 @@ func (w *Writer) encodeContainer(zctx *zed.Context, typ zed.Type, bytes zcode.By
 	return out, nil
 }
 
-func (w *Writer) encodeMap(zctx *zed.Context, typ *zed.TypeMap, v zcode.Bytes) (interface{}, error) {
+func (w *Writer) encodeMap(zctx *super.Context, typ *super.TypeMap, v zcode.Bytes) (interface{}, error) {
 	// We start out with a slice that contains nothing instead of nil
 	// so that an empty map encodes as a JSON empty array [].
 	out := []interface{}{}
@@ -169,7 +169,7 @@ func (w *Writer) encodeMap(zctx *zed.Context, typ *zed.TypeMap, v zcode.Bytes) (
 	return out, nil
 }
 
-func (w *Writer) encodeUnion(zctx *zed.Context, union *zed.TypeUnion, bytes zcode.Bytes) (interface{}, error) {
+func (w *Writer) encodeUnion(zctx *super.Context, union *super.TypeUnion, bytes zcode.Bytes) (interface{}, error) {
 	inner, b := union.Untag(bytes)
 	val, err := w.encodeValue(zctx, inner, b)
 	if err != nil {
@@ -178,21 +178,21 @@ func (w *Writer) encodeUnion(zctx *zed.Context, union *zed.TypeUnion, bytes zcod
 	return []interface{}{strconv.Itoa(union.TagOf(inner)), val}, nil
 }
 
-func (w *Writer) encodePrimitive(zctx *zed.Context, typ zed.Type, v zcode.Bytes) (interface{}, error) {
-	if typ == zed.TypeType {
+func (w *Writer) encodePrimitive(zctx *super.Context, typ super.Type, v zcode.Bytes) (interface{}, error) {
+	if typ == super.TypeType {
 		typ, err := zctx.LookupByValue(v)
 		if err != nil {
 			return nil, err
 		}
-		if zed.TypeID(typ) < zed.IDTypeComplex {
-			return zed.PrimitiveName(typ), nil
+		if super.TypeID(typ) < super.IDTypeComplex {
+			return super.PrimitiveName(typ), nil
 		}
-		if named, ok := typ.(*zed.TypeNamed); ok {
+		if named, ok := typ.(*super.TypeNamed); ok {
 			return named.Name, nil
 		}
-		return strconv.Itoa(zed.TypeID(typ)), nil
+		return strconv.Itoa(super.TypeID(typ)), nil
 	}
-	if typ.ID() == zed.IDString {
+	if typ.ID() == super.IDString {
 		return string(v), nil
 	}
 	return zson.FormatPrimitive(typ, v), nil

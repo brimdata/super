@@ -1,4 +1,4 @@
-package zed_test
+package super_test
 
 import (
 	"bytes"
@@ -98,7 +98,7 @@ func loadZTestInputsAndOutputs(ztestDirs map[string]struct{}) (map[string]string
 // isValid returns true if and only if s can be read fully without error by
 // anyio and contains at least one value.
 func isValid(s string) bool {
-	zrc, err := anyio.NewReader(zed.NewContext(), strings.NewReader(s), demand.All())
+	zrc, err := anyio.NewReader(super.NewContext(), strings.NewReader(s), demand.All())
 	if err != nil {
 		return false
 	}
@@ -131,7 +131,7 @@ func runAllBoomerangs(t *testing.T, format string, data map[string]string) {
 
 func runOneBoomerang(t *testing.T, format, data string) {
 	// Create an auto-detecting reader for data.
-	zctx := zed.NewContext()
+	zctx := super.NewContext()
 	dataReadCloser, err := anyio.NewReader(zctx, strings.NewReader(data), demand.All())
 	require.NoError(t, err)
 	defer dataReadCloser.Close()
@@ -166,7 +166,7 @@ func runOneBoomerang(t *testing.T, format, data string) {
 	}
 
 	// Create a reader for baseline.
-	baselineReader, err := anyio.NewReaderWithOpts(zed.NewContext(), bytes.NewReader(baseline.Bytes()), demand.All(), anyio.ReaderOpts{
+	baselineReader, err := anyio.NewReaderWithOpts(super.NewContext(), bytes.NewReader(baseline.Bytes()), demand.All(), anyio.ReaderOpts{
 		Format: format,
 		ZNG: zngio.ReaderOpts{
 			Validate: true,

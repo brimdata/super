@@ -20,21 +20,21 @@ const (
 )
 
 type Encoder struct {
-	zctx    *zed.Context
-	encoded map[zed.Type]zed.Type
+	zctx    *super.Context
+	encoded map[super.Type]super.Type
 	bytes   []byte
 }
 
 func NewEncoder() *Encoder {
 	return &Encoder{
-		zctx:    zed.NewContext(),
-		encoded: make(map[zed.Type]zed.Type),
+		zctx:    super.NewContext(),
+		encoded: make(map[super.Type]super.Type),
 	}
 }
 
 func (e *Encoder) Reset() {
 	e.bytes = e.bytes[:0]
-	e.encoded = make(map[zed.Type]zed.Type)
+	e.encoded = make(map[super.Type]super.Type)
 	e.zctx.Reset()
 }
 
@@ -42,14 +42,14 @@ func (e *Encoder) Flush() {
 	e.bytes = e.bytes[:0]
 }
 
-func (e *Encoder) Lookup(external zed.Type) zed.Type {
+func (e *Encoder) Lookup(external super.Type) super.Type {
 	return e.encoded[external]
 }
 
 // Encode takes a type from outside this context and constructs a type from
 // inside this context and emits ZNG typedefs for any type needed to construct
 // the new type into the buffer provided.
-func (e *Encoder) Encode(external zed.Type) (zed.Type, error) {
+func (e *Encoder) Encode(external super.Type) (super.Type, error) {
 	if typ, ok := e.encoded[external]; ok {
 		return typ, nil
 	}
@@ -61,37 +61,37 @@ func (e *Encoder) Encode(external zed.Type) (zed.Type, error) {
 	return internal, err
 }
 
-func (e *Encoder) encode(ext zed.Type) (zed.Type, error) {
+func (e *Encoder) encode(ext super.Type) (super.Type, error) {
 	switch ext := ext.(type) {
-	case *zed.TypeRecord:
+	case *super.TypeRecord:
 		return e.encodeTypeRecord(ext)
-	case *zed.TypeSet:
+	case *super.TypeSet:
 		return e.encodeTypeSet(ext)
-	case *zed.TypeArray:
+	case *super.TypeArray:
 		return e.encodeTypeArray(ext)
-	case *zed.TypeUnion:
+	case *super.TypeUnion:
 		return e.encodeTypeUnion(ext)
-	case *zed.TypeMap:
+	case *super.TypeMap:
 		return e.encodeTypeMap(ext)
-	case *zed.TypeEnum:
+	case *super.TypeEnum:
 		return e.encodeTypeEnum(ext)
-	case *zed.TypeNamed:
+	case *super.TypeNamed:
 		return e.encodeTypeName(ext)
-	case *zed.TypeError:
+	case *super.TypeError:
 		return e.encodeTypeError(ext)
 	default:
 		return ext, nil
 	}
 }
 
-func (e *Encoder) encodeTypeRecord(ext *zed.TypeRecord) (zed.Type, error) {
-	var fields []zed.Field
+func (e *Encoder) encodeTypeRecord(ext *super.TypeRecord) (super.Type, error) {
+	var fields []super.Field
 	for _, f := range ext.Fields {
 		child, err := e.Encode(f.Type)
 		if err != nil {
 			return nil, err
 		}
-		fields = append(fields, zed.NewField(f.Name, child))
+		fields = append(fields, super.NewField(f.Name, child))
 	}
 	typ, err := e.zctx.LookupTypeRecord(fields)
 	if err != nil {
@@ -102,13 +102,13 @@ func (e *Encoder) encodeTypeRecord(ext *zed.TypeRecord) (zed.Type, error) {
 	for _, f := range fields {
 		e.bytes = binary.AppendUvarint(e.bytes, uint64(len(f.Name)))
 		e.bytes = append(e.bytes, f.Name...)
-		e.bytes = binary.AppendUvarint(e.bytes, uint64(zed.TypeID(f.Type)))
+		e.bytes = binary.AppendUvarint(e.bytes, uint64(super.TypeID(f.Type)))
 	}
 	return typ, nil
 }
 
-func (e *Encoder) encodeTypeUnion(ext *zed.TypeUnion) (zed.Type, error) {
-	var types []zed.Type
+func (e *Encoder) encodeTypeUnion(ext *super.TypeUnion) (super.Type, error) {
+	var types []super.Type
 	for _, t := range ext.Types {
 		t, err := e.Encode(t)
 		if err != nil {
@@ -120,34 +120,34 @@ func (e *Encoder) encodeTypeUnion(ext *zed.TypeUnion) (zed.Type, error) {
 	e.bytes = append(e.bytes, TypeDefUnion)
 	e.bytes = binary.AppendUvarint(e.bytes, uint64(len(types)))
 	for _, t := range types {
-		e.bytes = binary.AppendUvarint(e.bytes, uint64(zed.TypeID(t)))
+		e.bytes = binary.AppendUvarint(e.bytes, uint64(super.TypeID(t)))
 	}
 	return typ, nil
 }
 
-func (e *Encoder) encodeTypeSet(ext *zed.TypeSet) (*zed.TypeSet, error) {
+func (e *Encoder) encodeTypeSet(ext *super.TypeSet) (*super.TypeSet, error) {
 	inner, err := e.Encode(ext.Type)
 	if err != nil {
 		return nil, err
 	}
 	typ := e.zctx.LookupTypeSet(inner)
 	e.bytes = append(e.bytes, TypeDefSet)
-	e.bytes = binary.AppendUvarint(e.bytes, uint64(zed.TypeID(inner)))
+	e.bytes = binary.AppendUvarint(e.bytes, uint64(super.TypeID(inner)))
 	return typ, nil
 }
 
-func (e *Encoder) encodeTypeArray(ext *zed.TypeArray) (*zed.TypeArray, error) {
+func (e *Encoder) encodeTypeArray(ext *super.TypeArray) (*super.TypeArray, error) {
 	inner, err := e.Encode(ext.Type)
 	if err != nil {
 		return nil, err
 	}
 	typ := e.zctx.LookupTypeArray(inner)
 	e.bytes = append(e.bytes, TypeDefArray)
-	e.bytes = binary.AppendUvarint(e.bytes, uint64(zed.TypeID(inner)))
+	e.bytes = binary.AppendUvarint(e.bytes, uint64(super.TypeID(inner)))
 	return typ, nil
 }
 
-func (e *Encoder) encodeTypeEnum(ext *zed.TypeEnum) (*zed.TypeEnum, error) {
+func (e *Encoder) encodeTypeEnum(ext *super.TypeEnum) (*super.TypeEnum, error) {
 	symbols := ext.Symbols
 	typ := e.zctx.LookupTypeEnum(symbols)
 	e.bytes = append(e.bytes, TypeDefEnum)
@@ -159,7 +159,7 @@ func (e *Encoder) encodeTypeEnum(ext *zed.TypeEnum) (*zed.TypeEnum, error) {
 	return typ, nil
 }
 
-func (e *Encoder) encodeTypeMap(ext *zed.TypeMap) (*zed.TypeMap, error) {
+func (e *Encoder) encodeTypeMap(ext *super.TypeMap) (*super.TypeMap, error) {
 	keyType, err := e.Encode(ext.KeyType)
 	if err != nil {
 		return nil, err
@@ -170,12 +170,12 @@ func (e *Encoder) encodeTypeMap(ext *zed.TypeMap) (*zed.TypeMap, error) {
 	}
 	typ := e.zctx.LookupTypeMap(keyType, valType)
 	e.bytes = append(e.bytes, TypeDefMap)
-	e.bytes = binary.AppendUvarint(e.bytes, uint64(zed.TypeID(keyType)))
-	e.bytes = binary.AppendUvarint(e.bytes, uint64(zed.TypeID(valType)))
+	e.bytes = binary.AppendUvarint(e.bytes, uint64(super.TypeID(keyType)))
+	e.bytes = binary.AppendUvarint(e.bytes, uint64(super.TypeID(valType)))
 	return typ, nil
 }
 
-func (e *Encoder) encodeTypeName(ext *zed.TypeNamed) (*zed.TypeNamed, error) {
+func (e *Encoder) encodeTypeName(ext *super.TypeNamed) (*super.TypeNamed, error) {
 	inner, err := e.Encode(ext.Type)
 	if err != nil {
 		return nil, err
@@ -187,42 +187,42 @@ func (e *Encoder) encodeTypeName(ext *zed.TypeNamed) (*zed.TypeNamed, error) {
 	e.bytes = append(e.bytes, TypeDefName)
 	e.bytes = binary.AppendUvarint(e.bytes, uint64(len(typ.Name)))
 	e.bytes = append(e.bytes, typ.Name...)
-	e.bytes = binary.AppendUvarint(e.bytes, uint64(zed.TypeID(typ.Type)))
+	e.bytes = binary.AppendUvarint(e.bytes, uint64(super.TypeID(typ.Type)))
 	return typ, nil
 }
 
-func (e *Encoder) encodeTypeError(ext *zed.TypeError) (*zed.TypeError, error) {
+func (e *Encoder) encodeTypeError(ext *super.TypeError) (*super.TypeError, error) {
 	inner, err := e.Encode(ext.Type)
 	if err != nil {
 		return nil, err
 	}
 	typ := e.zctx.LookupTypeError(inner)
 	e.bytes = append(e.bytes, TypeDefError)
-	e.bytes = binary.AppendUvarint(e.bytes, uint64(zed.TypeID(typ.Type)))
+	e.bytes = binary.AppendUvarint(e.bytes, uint64(super.TypeID(typ.Type)))
 	return typ, nil
 }
 
 type localctx struct {
 	// internal context implied by ZNG file
-	zctx *zed.Context
+	zctx *super.Context
 	// mapper to map internal to shared type contexts
-	mapper *zed.Mapper
+	mapper *super.Mapper
 }
 
 // Called at end-of-stream... XXX elaborate
-func (l *localctx) reset(shared *zed.Context) {
-	l.zctx = zed.NewContext()
-	l.mapper = zed.NewMapper(shared)
+func (l *localctx) reset(shared *super.Context) {
+	l.zctx = super.NewContext()
+	l.mapper = super.NewMapper(shared)
 }
 
 type Decoder struct {
 	// shared/output context
-	zctx *zed.Context
+	zctx *super.Context
 	// local context and mapper from local to shared
 	local localctx
 }
 
-func NewDecoder(zctx *zed.Context) *Decoder {
+func NewDecoder(zctx *super.Context) *Decoder {
 	d := &Decoder{zctx: zctx}
 	d.reset()
 	return d
@@ -270,7 +270,7 @@ func (d *Decoder) readTypeRecord(b *buffer) error {
 	if err != nil {
 		return errBadFormat
 	}
-	var fields []zed.Field
+	var fields []super.Field
 	for k := 0; k < nfields; k++ {
 		f, err := d.readField(b)
 		if err != nil {
@@ -286,20 +286,20 @@ func (d *Decoder) readTypeRecord(b *buffer) error {
 	return err
 }
 
-func (d *Decoder) readField(b *buffer) (zed.Field, error) {
+func (d *Decoder) readField(b *buffer) (super.Field, error) {
 	name, err := d.readCountedString(b)
 	if err != nil {
-		return zed.Field{}, err
+		return super.Field{}, err
 	}
 	id, err := readUvarintAsInt(b)
 	if err != nil {
-		return zed.Field{}, errBadFormat
+		return super.Field{}, errBadFormat
 	}
 	typ, err := d.local.zctx.LookupType(id)
 	if err != nil {
-		return zed.Field{}, err
+		return super.Field{}, err
 	}
-	return zed.NewField(name, typ), nil
+	return super.NewField(name, typ), nil
 }
 
 func (d *Decoder) readTypeArray(b *buffer) error {
@@ -360,7 +360,7 @@ func (d *Decoder) readTypeUnion(b *buffer) error {
 	if ntyp == 0 {
 		return errors.New("type union: zero types not allowed")
 	}
-	var types []zed.Type
+	var types []super.Type
 	for k := 0; k < ntyp; k++ {
 		id, err := readUvarintAsInt(b)
 		if err != nil {

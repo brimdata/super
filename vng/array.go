@@ -9,7 +9,7 @@ import (
 )
 
 type ArrayEncoder struct {
-	typ     zed.Type
+	typ     super.Type
 	values  Encoder
 	lengths *Int64Encoder
 	count   uint32
@@ -17,7 +17,7 @@ type ArrayEncoder struct {
 
 var _ Encoder = (*ArrayEncoder)(nil)
 
-func NewArrayEncoder(typ *zed.TypeArray) *ArrayEncoder {
+func NewArrayEncoder(typ *super.TypeArray) *ArrayEncoder {
 	return &ArrayEncoder{
 		typ:     typ.Type,
 		values:  NewEncoder(typ.Type),
@@ -95,7 +95,7 @@ type SetEncoder struct {
 	ArrayEncoder
 }
 
-func NewSetEncoder(typ *zed.TypeSet) *SetEncoder {
+func NewSetEncoder(typ *super.TypeSet) *SetEncoder {
 	return &SetEncoder{
 		ArrayEncoder{
 			typ:     typ.Type,

@@ -10,24 +10,24 @@ import (
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#now
 type Now struct{}
 
-func (n *Now) Call(_ zed.Allocator, _ []zed.Value) zed.Value {
-	return zed.NewTime(nano.Now())
+func (n *Now) Call(_ super.Allocator, _ []super.Value) super.Value {
+	return super.NewTime(nano.Now())
 }
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#bucket
 type Bucket struct {
 	name string
-	zctx *zed.Context
+	zctx *super.Context
 }
 
-func (b *Bucket) Call(_ zed.Allocator, args []zed.Value) zed.Value {
+func (b *Bucket) Call(_ super.Allocator, args []super.Value) super.Value {
 	tsArg := args[0]
 	binArg := args[1]
 	if tsArg.IsNull() || binArg.IsNull() {
-		return zed.NullTime
+		return super.NullTime
 	}
 	var bin nano.Duration
-	if binArg.Type() == zed.TypeDuration {
+	if binArg.Type() == super.TypeDuration {
 		bin = nano.Duration(binArg.Int())
 	} else {
 		d, ok := coerce.ToInt(binArg)
@@ -36,29 +36,29 @@ func (b *Bucket) Call(_ zed.Allocator, args []zed.Value) zed.Value {
 		}
 		bin = nano.Duration(d) * nano.Second
 	}
-	if zed.TypeUnder(tsArg.Type()) == zed.TypeDuration {
+	if super.TypeUnder(tsArg.Type()) == super.TypeDuration {
 		dur := nano.Duration(tsArg.Int())
-		return zed.NewDuration(dur.Trunc(bin))
+		return super.NewDuration(dur.Trunc(bin))
 	}
 	v, ok := coerce.ToInt(tsArg)
 	if !ok {
 		return b.zctx.WrapError(b.name+": first argument is not a time", tsArg)
 	}
-	return zed.NewTime(nano.Ts(v).Trunc(bin))
+	return super.NewTime(nano.Ts(v).Trunc(bin))
 }
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#strftime
 type Strftime struct {
-	zctx      *zed.Context
+	zctx      *super.Context
 	formatter *strftime.Strftime
 }
 
-func (s *Strftime) Call(_ zed.Allocator, args []zed.Value) zed.Value {
+func (s *Strftime) Call(_ super.Allocator, args []super.Value) super.Value {
 	formatArg, timeArg := args[0], args[1]
 	if !formatArg.IsString() {
 		return s.zctx.WrapError("strftime: string value required for format arg", formatArg)
 	}
-	if zed.TypeUnder(timeArg.Type()) != zed.TypeTime {
+	if super.TypeUnder(timeArg.Type()) != super.TypeTime {
 		return s.zctx.WrapError("strftime: time value required for time arg", args[1])
 	}
 	format := formatArg.AsString()
@@ -69,8 +69,8 @@ func (s *Strftime) Call(_ zed.Allocator, args []zed.Value) zed.Value {
 		}
 	}
 	if timeArg.IsNull() {
-		return zed.NullString
+		return super.NullString
 	}
 	out := s.formatter.FormatString(timeArg.AsTime().Time())
-	return zed.NewString(out)
+	return super.NewString(out)
 }

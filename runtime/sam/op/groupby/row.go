@@ -19,13 +19,13 @@ func newValRow(aggs []*expr.Aggregator) valRow {
 	return row
 }
 
-func (v valRow) apply(zctx *zed.Context, ectx expr.Context, aggs []*expr.Aggregator, this zed.Value) {
+func (v valRow) apply(zctx *super.Context, ectx expr.Context, aggs []*expr.Aggregator, this super.Value) {
 	for k, a := range aggs {
 		a.Apply(zctx, ectx, v[k], this)
 	}
 }
 
-func (v valRow) consumeAsPartial(rec zed.Value, exprs []expr.Evaluator, ectx expr.Context) {
+func (v valRow) consumeAsPartial(rec super.Value, exprs []expr.Evaluator, ectx expr.Context) {
 	for k, r := range v {
 		val := exprs[k].Eval(ectx, rec)
 		if val.IsError() {

@@ -17,8 +17,8 @@ func NewTypeValue(offs []uint32, bytes []byte, nulls *Bool) *TypeValue {
 	return &TypeValue{Offsets: offs, Bytes: bytes, Nulls: nulls}
 }
 
-func (t *TypeValue) Type() zed.Type {
-	return zed.TypeType
+func (t *TypeValue) Type() super.Type {
+	return super.TypeType
 }
 
 func (t *TypeValue) Len() uint32 {

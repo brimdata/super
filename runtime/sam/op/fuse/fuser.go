@@ -11,14 +11,14 @@ import (
 // fields and types.  Fuser then transforms those records to the unified schema
 // as they are read back from it.
 type Fuser struct {
-	zctx        *zed.Context
+	zctx        *super.Context
 	memMaxBytes int
 
 	nbytes  int
-	vals    []zed.Value
+	vals    []super.Value
 	spiller *spill.File
 
-	types      map[zed.Type]struct{}
+	types      map[super.Type]struct{}
 	uberSchema *agg.Schema
 	shaper     *expr.ConstShaper
 	ectx       expr.Context
@@ -27,11 +27,11 @@ type Fuser struct {
 // NewFuser returns a new Fuser.  The Fuser buffers records in memory until
 // their cumulative size (measured in zcode.Bytes length) exceeds memMaxBytes,
 // at which point it buffers them in a temporary file.
-func NewFuser(zctx *zed.Context, memMaxBytes int) *Fuser {
+func NewFuser(zctx *super.Context, memMaxBytes int) *Fuser {
 	return &Fuser{
 		zctx:        zctx,
 		memMaxBytes: memMaxBytes,
-		types:       make(map[zed.Type]struct{}),
+		types:       make(map[super.Type]struct{}),
 		uberSchema:  agg.NewSchema(zctx),
 		ectx:        expr.NewContext(),
 	}
@@ -46,7 +46,7 @@ func (f *Fuser) Close() error {
 }
 
 // Write buffers rec. If called after Read, Write panics.
-func (f *Fuser) Write(rec zed.Value) error {
+func (f *Fuser) Write(rec super.Value) error {
 	if f.shaper != nil {
 		panic("fuser: write after read")
 	}
@@ -60,7 +60,7 @@ func (f *Fuser) Write(rec zed.Value) error {
 	return f.stash(rec)
 }
 
-func (f *Fuser) stash(rec zed.Value) error {
+func (f *Fuser) stash(rec super.Value) error {
 	f.nbytes += len(rec.Bytes())
 	if f.nbytes >= f.memMaxBytes {
 		var err error
@@ -82,7 +82,7 @@ func (f *Fuser) stash(rec zed.Value) error {
 
 // Read returns the next buffered record after transforming it to the unified
 // schema.
-func (f *Fuser) Read() (*zed.Value, error) {
+func (f *Fuser) Read() (*super.Value, error) {
 	if f.shaper == nil {
 		t := f.uberSchema.Type()
 		f.shaper = expr.NewConstShaper(f.zctx, &expr.This{}, t, expr.Cast|expr.Fill|expr.Order)
@@ -99,11 +99,11 @@ func (f *Fuser) Read() (*zed.Value, error) {
 	return f.shaper.Eval(f.ectx, *rec).Ptr(), nil
 }
 
-func (f *Fuser) next() (*zed.Value, error) {
+func (f *Fuser) next() (*super.Value, error) {
 	if f.spiller != nil {
 		return f.spiller.Read()
 	}
-	var rec *zed.Value
+	var rec *super.Value
 	if len(f.vals) > 0 {
 		rec = &f.vals[0]
 		f.vals = f.vals[1:]

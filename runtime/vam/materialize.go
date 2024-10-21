@@ -27,19 +27,19 @@ func (m *Materializer) Pull(done bool) (zbuf.Batch, error) {
 		return nil, err
 	}
 	d, _ := vec.(*vector.Dynamic)
-	var typ zed.Type
+	var typ super.Type
 	if d == nil {
 		typ = vec.Type()
 	}
 	builder := zcode.NewBuilder()
-	var vals []zed.Value
+	var vals []super.Value
 	n := vec.Len()
 	for slot := uint32(0); slot < n; slot++ {
 		vec.Serialize(builder, slot)
 		if d != nil {
 			typ = d.TypeOf(slot)
 		}
-		val := zed.NewValue(typ, bytes.Clone(builder.Bytes().Body()))
+		val := super.NewValue(typ, bytes.Clone(builder.Bytes().Body()))
 		vals = append(vals, val)
 		builder.Reset()
 	}

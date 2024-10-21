@@ -24,13 +24,13 @@ type Writer struct {
 	seekIndexStride  int
 	seekIndexTrigger int
 	first            bool
-	seekMin          *zed.Value
+	seekMin          *super.Value
 }
 
 // NewWriter returns a writer for writing the data of a zng-row storage object as
 // well as optionally creating a seek index for the row object when the
 // seekIndexStride is non-zero.  We assume all records are non-volatile until
-// Close as zed.Values from the various record bodies are referenced across
+// Close as super.Values from the various record bodies are referenced across
 // calls to Write.
 func (o *Object) NewWriter(ctx context.Context, engine storage.Engine, path *storage.URI, sortKey order.SortKey, seekIndexStride int) (*Writer, error) {
 	out, err := engine.Put(ctx, o.SequenceURI(path))
@@ -57,12 +57,12 @@ func (o *Object) NewWriter(ctx context.Context, engine storage.Engine, path *sto
 	return w, nil
 }
 
-func (w *Writer) Write(val zed.Value) error {
+func (w *Writer) Write(val super.Value) error {
 	key := val.DerefPath(w.sortKey.Key).MissingAsNull()
 	return w.WriteWithKey(key, val)
 }
 
-func (w *Writer) WriteWithKey(key, val zed.Value) error {
+func (w *Writer) WriteWithKey(key, val super.Value) error {
 	w.count++
 	if err := w.writer.Write(val); err != nil {
 		return err
@@ -71,7 +71,7 @@ func (w *Writer) WriteWithKey(key, val zed.Value) error {
 	return w.writeIndex(key)
 }
 
-func (w *Writer) writeIndex(key zed.Value) error {
+func (w *Writer) writeIndex(key super.Value) error {
 	w.seekIndexTrigger += len(key.Bytes())
 	if w.first {
 		w.first = false

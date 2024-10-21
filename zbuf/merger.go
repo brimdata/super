@@ -6,7 +6,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 )
 
-func NewComparator(zctx *zed.Context, sortKeys []order.SortKey) *expr.Comparator {
+func NewComparator(zctx *super.Context, sortKeys []order.SortKey) *expr.Comparator {
 	exprs := make([]expr.SortEvaluator, len(sortKeys))
 	for i, k := range sortKeys {
 		exprs[i] = expr.NewSortEvaluator(expr.NewDottedExpr(zctx, k.Key), k.Order)
@@ -17,7 +17,7 @@ func NewComparator(zctx *zed.Context, sortKeys []order.SortKey) *expr.Comparator
 	return expr.NewComparator(nullsMax, exprs...).WithMissingAsNull()
 }
 
-func NewComparatorNullsMax(zctx *zed.Context, sortKeys order.SortKeys) *expr.Comparator {
+func NewComparatorNullsMax(zctx *super.Context, sortKeys order.SortKeys) *expr.Comparator {
 	exprs := make([]expr.SortEvaluator, len(sortKeys))
 	for i, k := range sortKeys {
 		exprs[i] = expr.NewSortEvaluator(expr.NewDottedExpr(zctx, k.Key), k.Order)
@@ -33,6 +33,6 @@ func NewComparatorNullsMax(zctx *zed.Context, sortKeys order.SortKeys) *expr.Com
 
 type valueAsBytes struct{}
 
-func (v *valueAsBytes) Eval(ectx expr.Context, val zed.Value) zed.Value {
-	return zed.NewBytes(val.Bytes())
+func (v *valueAsBytes) Eval(ectx expr.Context, val super.Value) super.Value {
+	return super.NewBytes(val.Bytes())
 }

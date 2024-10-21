@@ -31,7 +31,7 @@ func TestZSONParser(t *testing.T) {
 	assert.NotEqual(t, s, "")
 }
 
-func analyze(zctx *zed.Context, path string) (zson.Value, error) {
+func analyze(zctx *super.Context, path string) (zson.Value, error) {
 	val, err := parse(path)
 	if err != nil {
 		return nil, err
@@ -41,26 +41,26 @@ func analyze(zctx *zed.Context, path string) (zson.Value, error) {
 }
 
 func TestZSONAnalyzer(t *testing.T) {
-	zctx := zed.NewContext()
+	zctx := super.NewContext()
 	val, err := analyze(zctx, testFile)
 	require.NoError(t, err)
 	assert.NotNil(t, val)
 }
 
 func TestZSONBuilder(t *testing.T) {
-	zctx := zed.NewContext()
+	zctx := super.NewContext()
 	val, err := analyze(zctx, testFile)
 	require.NoError(t, err)
 	b := zcode.NewBuilder()
 	zv, err := zson.Build(b, val)
 	require.NoError(t, err)
-	rec := zed.NewValue(zv.Type().(*zed.TypeRecord), zv.Bytes())
+	rec := super.NewValue(zv.Type().(*super.TypeRecord), zv.Bytes())
 	a := rec.Deref("a")
 	assert.Equal(t, `["1","2","3"]`, zson.String(a))
 }
 
 func TestFormatPrimitiveNull(t *testing.T) {
-	assert.Equal(t, "null", zson.FormatPrimitive(zed.TypeString, nil))
+	assert.Equal(t, "null", zson.FormatPrimitive(super.TypeString, nil))
 }
 
 func TestParseValueStringEscapeSequences(t *testing.T) {
@@ -72,9 +72,9 @@ func TestParseValueStringEscapeSequences(t *testing.T) {
 		{` "\u0000\u000A\u000b" `, "\u0000\u000A\u000b"},
 	}
 	for _, c := range cases {
-		val, err := zson.ParseValue(zed.NewContext(), c.in)
+		val, err := zson.ParseValue(super.NewContext(), c.in)
 		assert.NoError(t, err)
-		assert.Equal(t, zed.NewString(c.expected), val, "in %q", c.in)
+		assert.Equal(t, super.NewString(c.expected), val, "in %q", c.in)
 	}
 }
 
@@ -102,7 +102,7 @@ func TestParseValueErrors(t *testing.T) {
 		{` "\v" `, `parse error: string literal: illegal escape (\v)`},
 	}
 	for _, c := range cases {
-		_, err := zson.ParseValue(zed.NewContext(), c.in)
+		_, err := zson.ParseValue(super.NewContext(), c.in)
 		assert.EqualError(t, err, c.expectedError, "in: %q", c.in)
 	}
 }

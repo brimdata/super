@@ -28,9 +28,9 @@ type Op struct {
 	resetter    expr.Resetter
 	compare     expr.CompareFn
 	cutter      *expr.Cutter
-	joinKey     *zed.Value
-	joinSet     []zed.Value
-	types       map[int]map[int]*zed.TypeRecord
+	joinKey     *super.Value
+	joinSet     []super.Value
+	types       map[int]map[int]*super.TypeRecord
 }
 
 func New(rctx *runtime.Context, anti, inner bool, left, right zbuf.Puller, leftKey, rightKey expr.Evaluator,
@@ -65,7 +65,7 @@ func New(rctx *runtime.Context, anti, inner bool, left, right zbuf.Puller, leftK
 		resetter:    resetter,
 		compare:     expr.NewValueCompareFn(o, true),
 		cutter:      expr.NewCutter(rctx.Zctx, lhs, rhs),
-		types:       make(map[int]map[int]*zed.TypeRecord),
+		types:       make(map[int]map[int]*super.TypeRecord),
 	}, nil
 }
 
@@ -76,7 +76,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 		go o.left.run()
 		go o.right.Reader.(*puller).run()
 	})
-	var out []zed.Value
+	var out []super.Value
 	// See #3366
 	ectx := expr.NewContext()
 	for {
@@ -134,7 +134,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 	}
 }
 
-func (o *Op) getJoinSet(leftKey zed.Value) ([]zed.Value, error) {
+func (o *Op) getJoinSet(leftKey super.Value) ([]super.Value, error) {
 	if o.joinKey != nil && o.compare(leftKey, *o.joinKey) == 0 {
 		return o.joinSet, nil
 	}
@@ -177,8 +177,8 @@ func (o *Op) getJoinSet(leftKey zed.Value) ([]zed.Value, error) {
 // fillJoinSet is called when a join key has been found that matches
 // the current lefthand key.  It returns the all the subsequent records
 // from the righthand stream that match this key.
-func (o *Op) readJoinSet(joinKey *zed.Value) ([]zed.Value, error) {
-	var recs []zed.Value
+func (o *Op) readJoinSet(joinKey *super.Value) ([]super.Value, error) {
+	var recs []super.Value
 	// See #3366
 	ectx := expr.NewContext()
 	for {
@@ -202,37 +202,37 @@ func (o *Op) readJoinSet(joinKey *zed.Value) ([]zed.Value, error) {
 	}
 }
 
-func (o *Op) lookupType(left, right *zed.TypeRecord) *zed.TypeRecord {
+func (o *Op) lookupType(left, right *super.TypeRecord) *super.TypeRecord {
 	if table, ok := o.types[left.ID()]; ok {
 		return table[right.ID()]
 	}
 	return nil
 }
 
-func (o *Op) enterType(combined, left, right *zed.TypeRecord) {
+func (o *Op) enterType(combined, left, right *super.TypeRecord) {
 	id := left.ID()
 	table := o.types[id]
 	if table == nil {
-		table = make(map[int]*zed.TypeRecord)
+		table = make(map[int]*super.TypeRecord)
 		o.types[id] = table
 	}
 	table[right.ID()] = combined
 }
 
-func (o *Op) buildType(left, right *zed.TypeRecord) (*zed.TypeRecord, error) {
-	fields := make([]zed.Field, 0, len(left.Fields)+len(right.Fields))
+func (o *Op) buildType(left, right *super.TypeRecord) (*super.TypeRecord, error) {
+	fields := make([]super.Field, 0, len(left.Fields)+len(right.Fields))
 	fields = append(fields, left.Fields...)
 	for _, f := range right.Fields {
 		name := f.Name
 		for k := 2; left.HasField(name); k++ {
 			name = fmt.Sprintf("%s_%d", f.Name, k)
 		}
-		fields = append(fields, zed.NewField(name, f.Type))
+		fields = append(fields, super.NewField(name, f.Type))
 	}
 	return o.rctx.Zctx.LookupTypeRecord(fields)
 }
 
-func (o *Op) combinedType(left, right *zed.TypeRecord) (*zed.TypeRecord, error) {
+func (o *Op) combinedType(left, right *super.TypeRecord) (*super.TypeRecord, error) {
 	if typ := o.lookupType(left, right); typ != nil {
 		return typ, nil
 	}
@@ -244,16 +244,16 @@ func (o *Op) combinedType(left, right *zed.TypeRecord) (*zed.TypeRecord, error) 
 	return typ, nil
 }
 
-func (o *Op) splice(left, right zed.Value) (zed.Value, error) {
+func (o *Op) splice(left, right super.Value) (super.Value, error) {
 	left = left.Under()
 	right = right.Under()
-	typ, err := o.combinedType(zed.TypeRecordOf(left.Type()), zed.TypeRecordOf(right.Type()))
+	typ, err := o.combinedType(super.TypeRecordOf(left.Type()), super.TypeRecordOf(right.Type()))
 	if err != nil {
-		return zed.Null, err
+		return super.Null, err
 	}
 	n := len(left.Bytes())
 	bytes := make([]byte, n+len(right.Bytes()))
 	copy(bytes, left.Bytes())
 	copy(bytes[n:], right.Bytes())
-	return zed.NewValue(typ, bytes), nil
+	return super.NewValue(typ, bytes), nil
 }

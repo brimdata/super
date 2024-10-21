@@ -9,12 +9,12 @@ import (
 )
 
 type Cutter struct {
-	zctx       *zed.Context
+	zctx       *super.Context
 	fieldRefs  field.List
 	fieldExprs []Evaluator
 	lvals      []*Lval
-	outTypes   *zed.TypeVectorTable
-	typeCache  []zed.Type
+	outTypes   *super.TypeVectorTable
+	typeCache  []super.Type
 
 	builders     map[string]*recordBuilderCachedTypes
 	droppers     map[string]*Dropper
@@ -26,7 +26,7 @@ type Cutter struct {
 // the Cutter copies fields that are not in fieldnames. If complement
 // is false, the Cutter copies any fields in fieldnames, where targets
 // specifies the copied field names.
-func NewCutter(zctx *zed.Context, fieldRefs []*Lval, fieldExprs []Evaluator) *Cutter {
+func NewCutter(zctx *super.Context, fieldRefs []*Lval, fieldExprs []Evaluator) *Cutter {
 	n := len(fieldRefs)
 	return &Cutter{
 		zctx:         zctx,
@@ -34,8 +34,8 @@ func NewCutter(zctx *zed.Context, fieldRefs []*Lval, fieldExprs []Evaluator) *Cu
 		fieldRefs:    make(field.List, n),
 		fieldExprs:   fieldExprs,
 		lvals:        fieldRefs,
-		outTypes:     zed.NewTypeVectorTable(),
-		typeCache:    make([]zed.Type, n),
+		outTypes:     super.NewTypeVectorTable(),
+		typeCache:    make([]super.Type, n),
 		droppers:     make(map[string]*Dropper),
 		dropperCache: make([]*Dropper, n),
 	}
@@ -47,8 +47,8 @@ func (c *Cutter) FoundCut() bool {
 
 // Apply returns a new record comprising fields copied from in according to the
 // receiver's configuration.  If the resulting record would be empty, Apply
-// returns zed.Missing.
-func (c *Cutter) Eval(ectx Context, in zed.Value) zed.Value {
+// returns super.Missing.
+func (c *Cutter) Eval(ectx Context, in super.Value) super.Value {
 	rb, paths, err := c.lookupBuilder(ectx, in)
 	if err != nil {
 		return c.zctx.WrapError(fmt.Sprintf("cut: %s", err), in)
@@ -66,7 +66,7 @@ func (c *Cutter) Eval(ectx Context, in zed.Value) zed.Value {
 			}
 			droppers = append(droppers, c.droppers[pathID])
 			rb.Append(val.Bytes())
-			types[k] = zed.TypeNull
+			types[k] = super.TypeNull
 			continue
 		}
 		rb.Append(val.Bytes())
@@ -76,7 +76,7 @@ func (c *Cutter) Eval(ectx Context, in zed.Value) zed.Value {
 	if err != nil {
 		panic(err)
 	}
-	rec := zed.NewValue(rb.Type(c.outTypes.Lookup(types), types), bytes)
+	rec := super.NewValue(rb.Type(c.outTypes.Lookup(types), types), bytes)
 	for _, d := range droppers {
 		rec = d.Eval(ectx, rec)
 	}
@@ -86,7 +86,7 @@ func (c *Cutter) Eval(ectx Context, in zed.Value) zed.Value {
 	return rec
 }
 
-func (c *Cutter) lookupBuilder(ectx Context, in zed.Value) (*recordBuilderCachedTypes, field.List, error) {
+func (c *Cutter) lookupBuilder(ectx Context, in super.Value) (*recordBuilderCachedTypes, field.List, error) {
 	paths := c.fieldRefs[:0]
 	for _, p := range c.lvals {
 		path, err := p.Eval(ectx, in)
@@ -110,22 +110,22 @@ func (c *Cutter) lookupBuilder(ectx Context, in zed.Value) (*recordBuilderCached
 }
 
 type recordBuilderCachedTypes struct {
-	*zed.RecordBuilder
-	recordTypes map[int]*zed.TypeRecord
+	*super.RecordBuilder
+	recordTypes map[int]*super.TypeRecord
 }
 
-func newRecordBuilderCachedTypes(zctx *zed.Context, paths field.List) (*recordBuilderCachedTypes, error) {
-	b, err := zed.NewRecordBuilder(zctx, paths)
+func newRecordBuilderCachedTypes(zctx *super.Context, paths field.List) (*recordBuilderCachedTypes, error) {
+	b, err := super.NewRecordBuilder(zctx, paths)
 	if err != nil {
 		return nil, err
 	}
 	return &recordBuilderCachedTypes{
 		RecordBuilder: b,
-		recordTypes:   make(map[int]*zed.TypeRecord),
+		recordTypes:   make(map[int]*super.TypeRecord),
 	}, nil
 }
 
-func (r *recordBuilderCachedTypes) Type(id int, types []zed.Type) *zed.TypeRecord {
+func (r *recordBuilderCachedTypes) Type(id int, types []super.Type) *super.TypeRecord {
 	typ, ok := r.recordTypes[id]
 	if !ok {
 		typ = r.RecordBuilder.Type(types)

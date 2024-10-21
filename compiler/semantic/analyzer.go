@@ -50,7 +50,7 @@ type analyzer struct {
 	outputs map[*dag.Output]ast.Node
 	source  *data.Source
 	scope   *Scope
-	zctx    *zed.Context
+	zctx    *super.Context
 }
 
 func newAnalyzer(ctx context.Context, source *data.Source, head *lakeparse.Commitish) *analyzer {
@@ -60,7 +60,7 @@ func newAnalyzer(ctx context.Context, source *data.Source, head *lakeparse.Commi
 		outputs: make(map[*dag.Output]ast.Node),
 		source:  source,
 		scope:   NewScope(nil),
-		zctx:    zed.NewContext(),
+		zctx:    super.NewContext(),
 	}
 }
 

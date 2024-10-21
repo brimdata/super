@@ -15,7 +15,7 @@ type Op struct {
 	builder zcode.Builder
 	cflag   bool
 	count   uint64
-	last    *zed.Value
+	last    *super.Value
 }
 
 func New(rctx *runtime.Context, parent zbuf.Puller, cflag bool) *Op {
@@ -26,21 +26,21 @@ func New(rctx *runtime.Context, parent zbuf.Puller, cflag bool) *Op {
 	}
 }
 
-func (o *Op) wrap(t *zed.Value) zed.Value {
+func (o *Op) wrap(t *super.Value) super.Value {
 	if o.cflag {
 		o.builder.Reset()
 		o.builder.Append(t.Bytes())
-		o.builder.Append(zed.EncodeUint(o.count))
-		typ := o.rctx.Zctx.MustLookupTypeRecord([]zed.Field{
-			zed.NewField("value", t.Type()),
-			zed.NewField("count", zed.TypeUint64),
+		o.builder.Append(super.EncodeUint(o.count))
+		typ := o.rctx.Zctx.MustLookupTypeRecord([]super.Field{
+			super.NewField("value", t.Type()),
+			super.NewField("count", super.TypeUint64),
 		})
-		return zed.NewValue(typ, o.builder.Bytes()).Copy()
+		return super.NewValue(typ, o.builder.Bytes()).Copy()
 	}
 	return *t
 }
 
-func (o *Op) appendUniq(out []zed.Value, t *zed.Value) []zed.Value {
+func (o *Op) appendUniq(out []super.Value, t *super.Value) []super.Value {
 	if o.count == 0 {
 		o.last = t.Copy().Ptr()
 		o.count = 1
@@ -69,9 +69,9 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 			}
 			t := o.wrap(o.last)
 			o.last = nil
-			return zbuf.NewArray([]zed.Value{t}), nil
+			return zbuf.NewArray([]super.Value{t}), nil
 		}
-		var out []zed.Value
+		var out []super.Value
 		vals := batch.Values()
 		for i := range vals {
 			out = o.appendUniq(out, &vals[i])

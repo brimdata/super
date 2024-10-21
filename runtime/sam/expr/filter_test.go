@@ -30,12 +30,12 @@ func runCasesExpectBufferFilterFalsePositives(t *testing.T, record string, cases
 	runCasesHelper(t, record, cases, true)
 }
 
-func filter(ectx expr.Context, this zed.Value, e expr.Evaluator) bool {
+func filter(ectx expr.Context, this super.Value, e expr.Evaluator) bool {
 	if e == nil {
 		return true
 	}
 	val := e.Eval(ectx, this)
-	if val.Type() == zed.TypeBool && val.Bool() {
+	if val.Type() == super.TypeBool && val.Bool() {
 		return true
 	}
 	return false
@@ -44,7 +44,7 @@ func filter(ectx expr.Context, this zed.Value, e expr.Evaluator) bool {
 func runCasesHelper(t *testing.T, record string, cases []testcase, expectBufferFilterFalsePositives bool) {
 	t.Helper()
 
-	zctx := zed.NewContext()
+	zctx := super.NewContext()
 	rec, err := zson.ParseValue(zctx, record)
 	require.NoError(t, err, "record: %q", record)
 

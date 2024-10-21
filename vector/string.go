@@ -26,8 +26,8 @@ func (s *String) Append(v string) {
 	s.Offsets = append(s.Offsets, uint32(len(s.Bytes)))
 }
 
-func (s *String) Type() zed.Type {
-	return zed.TypeString
+func (s *String) Type() super.Type {
+	return super.TypeString
 }
 
 func (s *String) Len() uint32 {
@@ -42,7 +42,7 @@ func (s *String) Serialize(b *zcode.Builder, slot uint32) {
 	if s.Nulls.Value(slot) {
 		b.Append(nil)
 	} else {
-		b.Append(zed.EncodeString(s.Value(slot)))
+		b.Append(super.EncodeString(s.Value(slot)))
 	}
 }
 

@@ -36,7 +36,7 @@ func AsReader(q Query) zio.Reader {
 	return zbuf.PullerReader(q)
 }
 
-func CompileQuery(ctx context.Context, zctx *zed.Context, c Compiler, program ast.Seq, sset *parser.SourceSet, readers []zio.Reader) (Query, error) {
+func CompileQuery(ctx context.Context, zctx *super.Context, c Compiler, program ast.Seq, sset *parser.SourceSet, readers []zio.Reader) (Query, error) {
 	rctx := NewContext(ctx, zctx)
 	q, err := c.NewQuery(rctx, program, readers)
 	if err != nil {
@@ -49,7 +49,7 @@ func CompileQuery(ctx context.Context, zctx *zed.Context, c Compiler, program as
 	return q, nil
 }
 
-func CompileLakeQuery(ctx context.Context, zctx *zed.Context, c Compiler, program ast.Seq, sset *parser.SourceSet, head *lakeparse.Commitish) (Query, error) {
+func CompileLakeQuery(ctx context.Context, zctx *super.Context, c Compiler, program ast.Seq, sset *parser.SourceSet, head *lakeparse.Commitish) (Query, error) {
 	rctx := NewContext(ctx, zctx)
 	q, err := c.NewLakeQuery(rctx, program, 0, head)
 	if err != nil {

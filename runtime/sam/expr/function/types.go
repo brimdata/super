@@ -8,39 +8,39 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#typeof
 type TypeOf struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
-func (t *TypeOf) Call(_ zed.Allocator, args []zed.Value) zed.Value {
+func (t *TypeOf) Call(_ super.Allocator, args []super.Value) super.Value {
 	return t.zctx.LookupTypeValue(args[0].Type())
 }
 
 type typeUnder struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
-func (t *typeUnder) Call(_ zed.Allocator, args []zed.Value) zed.Value {
-	typ := zed.TypeUnder(args[0].Type())
+func (t *typeUnder) Call(_ super.Allocator, args []super.Value) super.Value {
+	typ := super.TypeUnder(args[0].Type())
 	return t.zctx.LookupTypeValue(typ)
 }
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#nameof
 type NameOf struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
-func (n *NameOf) Call(_ zed.Allocator, args []zed.Value) zed.Value {
+func (n *NameOf) Call(_ super.Allocator, args []super.Value) super.Value {
 	typ := args[0].Type()
-	if named, ok := typ.(*zed.TypeNamed); ok {
-		return zed.NewString(named.Name)
+	if named, ok := typ.(*super.TypeNamed); ok {
+		return super.NewString(named.Name)
 	}
-	if typ.ID() == zed.IDType {
+	if typ.ID() == super.IDType {
 		var err error
 		if typ, err = n.zctx.LookupByValue(args[0].Bytes()); err != nil {
 			panic(err)
 		}
-		if named, ok := typ.(*zed.TypeNamed); ok {
-			return zed.NewString(named.Name)
+		if named, ok := typ.(*super.TypeNamed); ok {
+			return super.NewString(named.Name)
 		}
 	}
 	return n.zctx.Missing()
@@ -48,11 +48,11 @@ func (n *NameOf) Call(_ zed.Allocator, args []zed.Value) zed.Value {
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#typename
 type typeName struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
-func (t *typeName) Call(_ zed.Allocator, args []zed.Value) zed.Value {
-	if zed.TypeUnder(args[0].Type()) != zed.TypeString {
+func (t *typeName) Call(_ super.Allocator, args []super.Value) super.Value {
+	if super.TypeUnder(args[0].Type()) != super.TypeString {
 		return t.zctx.WrapError("typename: first argument not a string", args[0])
 	}
 	name := string(args[0].Bytes())
@@ -63,7 +63,7 @@ func (t *typeName) Call(_ zed.Allocator, args []zed.Value) zed.Value {
 		}
 		return t.zctx.LookupTypeValue(typ)
 	}
-	if zed.TypeUnder(args[1].Type()) != zed.TypeType {
+	if super.TypeUnder(args[1].Type()) != super.TypeType {
 		return t.zctx.WrapError("typename: second argument not a type value", args[1])
 	}
 	typ, err := t.zctx.LookupByValue(args[1].Bytes())
@@ -75,40 +75,40 @@ func (t *typeName) Call(_ zed.Allocator, args []zed.Value) zed.Value {
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#error
 type Error struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
-func (e *Error) Call(_ zed.Allocator, args []zed.Value) zed.Value {
-	return zed.NewValue(e.zctx.LookupTypeError(args[0].Type()), args[0].Bytes())
+func (e *Error) Call(_ super.Allocator, args []super.Value) super.Value {
+	return super.NewValue(e.zctx.LookupTypeError(args[0].Type()), args[0].Bytes())
 }
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#iserr
 type IsErr struct{}
 
-func (*IsErr) Call(_ zed.Allocator, args []zed.Value) zed.Value {
-	return zed.NewBool(args[0].IsError())
+func (*IsErr) Call(_ super.Allocator, args []super.Value) super.Value {
+	return super.NewBool(args[0].IsError())
 }
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#is
 type Is struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
-func (i *Is) Call(_ zed.Allocator, args []zed.Value) zed.Value {
+func (i *Is) Call(_ super.Allocator, args []super.Value) super.Value {
 	zvSubject := args[0]
 	zvTypeVal := args[1]
 	if len(args) == 3 {
 		zvSubject = args[1]
 		zvTypeVal = args[2]
 	}
-	var typ zed.Type
+	var typ super.Type
 	var err error
 	if zvTypeVal.IsString() {
 		typ, err = zson.ParseType(i.zctx, string(zvTypeVal.Bytes()))
 	} else {
 		typ, err = i.zctx.LookupByValue(zvTypeVal.Bytes())
 	}
-	return zed.NewBool(err == nil && typ == zvSubject.Type())
+	return super.NewBool(err == nil && typ == zvSubject.Type())
 }
 
 type HasError struct {
@@ -121,15 +121,15 @@ func NewHasError() *HasError {
 	}
 }
 
-func (h *HasError) Call(_ zed.Allocator, args []zed.Value) zed.Value {
+func (h *HasError) Call(_ super.Allocator, args []super.Value) super.Value {
 	val := args[0]
 	hasError, _ := h.hasError(val.Type(), val.Bytes())
-	return zed.NewBool(hasError)
+	return super.NewBool(hasError)
 }
 
-func (h *HasError) hasError(t zed.Type, b zcode.Bytes) (bool, bool) {
-	typ := zed.TypeUnder(t)
-	if _, ok := typ.(*zed.TypeError); ok {
+func (h *HasError) hasError(t super.Type, b zcode.Bytes) (bool, bool) {
+	typ := super.TypeUnder(t)
+	if _, ok := typ.(*super.TypeError); ok {
 		return true, false
 	}
 	// If a value is null we can skip since an null error is not an error.
@@ -142,21 +142,21 @@ func (h *HasError) hasError(t zed.Type, b zcode.Bytes) (bool, bool) {
 	var hasErr bool
 	canCache := true
 	switch typ := typ.(type) {
-	case *zed.TypeRecord:
+	case *super.TypeRecord:
 		it := b.Iter()
 		for _, f := range typ.Fields {
 			e, c := h.hasError(f.Type, it.Next())
 			hasErr = hasErr || e
 			canCache = !canCache || c
 		}
-	case *zed.TypeArray, *zed.TypeSet:
-		inner := zed.InnerType(typ)
+	case *super.TypeArray, *super.TypeSet:
+		inner := super.InnerType(typ)
 		for it := b.Iter(); !it.Done(); {
 			e, c := h.hasError(inner, it.Next())
 			hasErr = hasErr || e
 			canCache = !canCache || c
 		}
-	case *zed.TypeMap:
+	case *super.TypeMap:
 		for it := b.Iter(); !it.Done(); {
 			e, c := h.hasError(typ.KeyType, it.Next())
 			hasErr = hasErr || e
@@ -165,9 +165,9 @@ func (h *HasError) hasError(t zed.Type, b zcode.Bytes) (bool, bool) {
 			hasErr = hasErr || e
 			canCache = !canCache || c
 		}
-	case *zed.TypeUnion:
+	case *super.TypeUnion:
 		for _, typ := range typ.Types {
-			_, isErr := zed.TypeUnder(typ).(*zed.TypeError)
+			_, isErr := super.TypeUnder(typ).(*super.TypeError)
 			canCache = !canCache || isErr
 		}
 		if typ, b := typ.Untag(b); b != nil {
@@ -187,10 +187,10 @@ func (h *HasError) hasError(t zed.Type, b zcode.Bytes) (bool, bool) {
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#quiet
 type Quiet struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
-func (q *Quiet) Call(_ zed.Allocator, args []zed.Value) zed.Value {
+func (q *Quiet) Call(_ super.Allocator, args []super.Value) super.Value {
 	val := args[0]
 	if val.IsMissing() {
 		return q.zctx.Quiet()
@@ -200,13 +200,13 @@ func (q *Quiet) Call(_ zed.Allocator, args []zed.Value) zed.Value {
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#kind
 type Kind struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
-func (k *Kind) Call(_ zed.Allocator, args []zed.Value) zed.Value {
+func (k *Kind) Call(_ super.Allocator, args []super.Value) super.Value {
 	val := args[0]
-	var typ zed.Type
-	if _, ok := zed.TypeUnder(val.Type()).(*zed.TypeOfType); ok {
+	var typ super.Type
+	if _, ok := super.TypeUnder(val.Type()).(*super.TypeOfType); ok {
 		var err error
 		typ, err = k.zctx.LookupByValue(val.Bytes())
 		if err != nil {
@@ -215,5 +215,5 @@ func (k *Kind) Call(_ zed.Allocator, args []zed.Value) zed.Value {
 	} else {
 		typ = val.Type()
 	}
-	return zed.NewString(typ.Kind().String())
+	return super.NewString(typ.Kind().String())
 }

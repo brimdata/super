@@ -23,12 +23,12 @@ type Slicer struct {
 	unmarshaler *zson.UnmarshalZNGContext
 	objects     []*data.Object
 	cmp         expr.CompareFn
-	min         *zed.Value
-	max         *zed.Value
+	min         *super.Value
+	max         *super.Value
 	mu          sync.Mutex
 }
 
-func NewSlicer(parent zbuf.Puller, zctx *zed.Context) *Slicer {
+func NewSlicer(parent zbuf.Puller, zctx *super.Context) *Slicer {
 	m := zson.NewZNGMarshalerWithContext(zctx)
 	m.Decorate(zson.StylePackage)
 	return &Slicer{
@@ -101,7 +101,7 @@ func (s *Slicer) nextPartition() (zbuf.Batch, error) {
 	if err != nil {
 		return nil, err
 	}
-	return zbuf.NewArray([]zed.Value{val}), nil
+	return zbuf.NewArray([]super.Value{val}), nil
 }
 
 func (s *Slicer) stash(o *data.Object) (zbuf.Batch, error) {
@@ -135,8 +135,8 @@ func (s *Slicer) stash(o *data.Object) (zbuf.Batch, error) {
 // objects that should be scanned along with a span to limit the scan
 // to only the span involved.
 type Partition struct {
-	Min     zed.Value      `zed:"min"`
-	Max     zed.Value      `zed:"max"`
+	Min     super.Value    `zed:"min"`
+	Max     super.Value    `zed:"max"`
 	Objects []*data.Object `zed:"objects"`
 }
 

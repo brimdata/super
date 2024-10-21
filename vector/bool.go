@@ -23,8 +23,8 @@ func NewBoolEmpty(length uint32, nulls *Bool) *Bool {
 	return &Bool{len: length, Bits: make([]uint64, (length+63)/64), Nulls: nulls}
 }
 
-func (b *Bool) Type() zed.Type {
-	return zed.TypeBool
+func (b *Bool) Type() super.Type {
+	return super.TypeBool
 }
 
 func (b *Bool) Value(slot uint32) bool {
@@ -51,7 +51,7 @@ func (b *Bool) Serialize(builder *zcode.Builder, slot uint32) {
 	if b.Nulls.Value(slot) {
 		builder.Append(nil)
 	} else {
-		builder.Append(zed.EncodeBool(b.Value(slot)))
+		builder.Append(super.EncodeBool(b.Value(slot)))
 	}
 }
 

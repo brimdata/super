@@ -4,7 +4,7 @@ import (
 	"errors"
 	"flag"
 
-	zed "github.com/brimdata/super"
+	 "github.com/brimdata/super"
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/cmd/super/dev/vector"
 	"github.com/brimdata/super/cmd/super/root"
@@ -71,7 +71,7 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	defer object.Close()
-	projection := vam.NewProjection(zed.NewContext(), object, paths)
+	projection := vam.NewProjection(super.NewContext(), object, paths)
 	writer, err := c.outputFlags.Open(ctx, local)
 	if err != nil {
 		return err

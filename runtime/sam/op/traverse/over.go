@@ -15,10 +15,10 @@ type Over struct {
 	exprs    []expr.Evaluator
 	resetter expr.Resetter
 
-	outer []zed.Value
+	outer []super.Value
 	batch zbuf.Batch
 	enter *Enter
-	zctx  *zed.Context
+	zctx  *super.Context
 }
 
 func NewOver(rctx *runtime.Context, parent zbuf.Puller, exprs []expr.Evaluator, resetter expr.Resetter) *Over {
@@ -68,11 +68,11 @@ func (o *Over) Pull(done bool) (zbuf.Batch, error) {
 	}
 }
 
-func (o *Over) over(batch zbuf.Batch, this zed.Value) zbuf.Batch {
+func (o *Over) over(batch zbuf.Batch, this super.Value) zbuf.Batch {
 	// Copy the vars into a new scope since downstream, nested subgraphs
 	// can have concurrent operators.  We can optimize these copies out
 	// later depending on the nested subgraph.
-	var vals []zed.Value
+	var vals []super.Value
 	for _, e := range o.exprs {
 		val := e.Eval(batch, this)
 		// Propagate errors but skip missing values.
@@ -86,43 +86,43 @@ func (o *Over) over(batch zbuf.Batch, this zed.Value) zbuf.Batch {
 	return zbuf.NewBatch(batch, vals)
 }
 
-func appendOver(zctx *zed.Context, vals []zed.Value, val zed.Value) []zed.Value {
+func appendOver(zctx *super.Context, vals []super.Value, val super.Value) []super.Value {
 	val = val.Under()
-	switch typ := zed.TypeUnder(val.Type()).(type) {
-	case *zed.TypeArray, *zed.TypeSet:
-		typ = zed.InnerType(typ)
+	switch typ := super.TypeUnder(val.Type()).(type) {
+	case *super.TypeArray, *super.TypeSet:
+		typ = super.InnerType(typ)
 		for it := val.Bytes().Iter(); !it.Done(); {
 			// XXX when we do proper expr.Context, we can allocate
 			// this copy through the batch.
-			val := zed.NewValue(typ, it.Next())
+			val := super.NewValue(typ, it.Next())
 			val = val.Under()
 			vals = append(vals, val.Copy())
 		}
 		return vals
-	case *zed.TypeMap:
-		rtyp := zctx.MustLookupTypeRecord([]zed.Field{
-			zed.NewField("key", typ.KeyType),
-			zed.NewField("value", typ.ValType),
+	case *super.TypeMap:
+		rtyp := zctx.MustLookupTypeRecord([]super.Field{
+			super.NewField("key", typ.KeyType),
+			super.NewField("value", typ.ValType),
 		})
 		for it := val.Bytes().Iter(); !it.Done(); {
 			bytes := zcode.Append(zcode.Append(nil, it.Next()), it.Next())
-			vals = append(vals, zed.NewValue(rtyp, bytes))
+			vals = append(vals, super.NewValue(rtyp, bytes))
 		}
 		return vals
-	case *zed.TypeRecord:
+	case *super.TypeRecord:
 		builder := zcode.NewBuilder()
 		for i, it := 0, val.Bytes().Iter(); !it.Done(); i++ {
 			builder.Reset()
 			field := typ.Fields[i]
-			typ := zctx.MustLookupTypeRecord([]zed.Field{
-				{Name: "key", Type: zctx.LookupTypeArray(zed.TypeString)},
+			typ := zctx.MustLookupTypeRecord([]super.Field{
+				{Name: "key", Type: zctx.LookupTypeArray(super.TypeString)},
 				{Name: "value", Type: field.Type},
 			})
 			builder.BeginContainer()
-			builder.Append(zed.EncodeString(field.Name))
+			builder.Append(super.EncodeString(field.Name))
 			builder.EndContainer()
 			builder.Append(it.Next())
-			vals = append(vals, zed.NewValue(typ, builder.Bytes()).Copy())
+			vals = append(vals, super.NewValue(typ, builder.Bytes()).Copy())
 		}
 		return vals
 	default:

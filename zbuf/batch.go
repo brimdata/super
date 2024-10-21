@@ -28,9 +28,9 @@ import (
 type Batch interface {
 	Ref()
 	Unref()
-	Values() []zed.Value
+	Values() []super.Value
 	// Vars accesses the variables reachable in the current scope.
-	Vars() []zed.Value
+	Vars() []super.Value
 }
 
 // WriteBatch writes the values in batch to zw.  If an error occurs, WriteBatch
@@ -58,7 +58,7 @@ type Puller interface {
 	Pull(bool) (Batch, error)
 }
 
-// PullerBatchBytes is the maximum number of bytes (in the zed.Value.Byte
+// PullerBatchBytes is the maximum number of bytes (in the super.Value.Byte
 // sense) per batch for a [Puller] created by [NewPuller].
 const PullerBatchBytes = 512 * 1024
 
@@ -105,7 +105,7 @@ func (p *puller) Pull(done bool) (Batch, error) {
 type pullerBatch struct {
 	buf  []byte
 	refs atomic.Int32
-	vals []zed.Value
+	vals []super.Value
 }
 
 var pullerBatchPool sync.Pool
@@ -115,7 +115,7 @@ func newPullerBatch() *pullerBatch {
 	if !ok {
 		b = &pullerBatch{
 			buf:  make([]byte, PullerBatchBytes),
-			vals: make([]zed.Value, PullerBatchValues),
+			vals: make([]super.Value, PullerBatchValues),
 		}
 	}
 	b.buf = b.buf[:0]
@@ -127,7 +127,7 @@ func newPullerBatch() *pullerBatch {
 // appendVal appends a copy of val to b.  appendVal returns true if b is full
 // (i.e., b.buf is full, b.buf had insufficient space for val.Bytes, or b.val is
 // full).  appendVal never reallocates b.buf or b.vals.
-func (b *pullerBatch) appendVal(val zed.Value) bool {
+func (b *pullerBatch) appendVal(val super.Value) bool {
 	var bytes []byte
 	var bufFull bool
 	if !val.IsNull() {
@@ -143,7 +143,7 @@ func (b *pullerBatch) appendVal(val zed.Value) bool {
 			bufFull = true
 		}
 	}
-	b.vals = append(b.vals, zed.NewValue(val.Type(), bytes))
+	b.vals = append(b.vals, super.NewValue(val.Type(), bytes))
 	return bufFull || len(b.vals) == cap(b.vals)
 }
 
@@ -157,8 +157,8 @@ func (b *pullerBatch) Unref() {
 	}
 }
 
-func (p *pullerBatch) Values() []zed.Value { return p.vals }
-func (*pullerBatch) Vars() []zed.Value     { return nil }
+func (p *pullerBatch) Values() []super.Value { return p.vals }
+func (*pullerBatch) Vars() []super.Value     { return nil }
 
 func CopyPuller(w zio.Writer, p Puller) error {
 	for {
@@ -180,10 +180,10 @@ func PullerReader(p Puller) zio.Reader {
 type pullerReader struct {
 	p     Puller
 	batch Batch
-	vals  []zed.Value
+	vals  []super.Value
 }
 
-func (r *pullerReader) Read() (*zed.Value, error) {
+func (r *pullerReader) Read() (*super.Value, error) {
 	// Loop handles zero-length batches.
 	for len(r.vals) == 0 {
 		if r.batch != nil {
@@ -214,24 +214,24 @@ func (r *pullerReader) Read() (*zed.Value, error) {
 
 type batch struct {
 	Batch
-	vars []zed.Value
+	vars []super.Value
 }
 
-func NewBatch(b Batch, vals []zed.Value) Batch {
+func NewBatch(b Batch, vals []super.Value) Batch {
 	return &batch{
 		Batch: NewArray(vals),
 		vars:  CopyVars(b),
 	}
 }
 
-func (b *batch) Vars() []zed.Value {
+func (b *batch) Vars() []super.Value {
 	return b.vars
 }
 
-func CopyVars(b Batch) []zed.Value {
+func CopyVars(b Batch) []super.Value {
 	vars := b.Vars()
 	if len(vars) > 0 {
-		newvars := make([]zed.Value, len(vars))
+		newvars := make([]super.Value, len(vars))
 		for k, v := range vars {
 			newvars[k] = v.Copy()
 		}

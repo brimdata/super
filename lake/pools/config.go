@@ -73,7 +73,7 @@ var hackedBindings = []zson.Binding{
 	{Name: "pools.Config", Template: marshalConfig{}},
 }
 
-func (p Config) MarshalZNG(ctx *zson.MarshalZNGContext) (zed.Type, error) {
+func (p Config) MarshalZNG(ctx *zson.MarshalZNGContext) (super.Type, error) {
 	ctx.NamedBindings(hackedBindings)
 	m := marshalConfig{
 		Ts:         p.Ts,
@@ -92,7 +92,7 @@ func (p Config) MarshalZNG(ctx *zson.MarshalZNGContext) (zed.Type, error) {
 	return typ, err
 }
 
-func (p *Config) UnmarshalZNG(ctx *zson.UnmarshalZNGContext, val zed.Value) error {
+func (p *Config) UnmarshalZNG(ctx *zson.UnmarshalZNGContext, val super.Value) error {
 	ctx.NamedBindings(hackedBindings)
 	var m marshalConfig
 	if err := ctx.Unmarshal(val, &m); err != nil {

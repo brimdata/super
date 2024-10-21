@@ -123,7 +123,7 @@ func newRunBuilder() *runBuilder {
 	return &runBuilder{cmp: expr.NewValueCompareFn(order.Asc, true)}
 }
 
-func (r *runBuilder) overlaps(first, last zed.Value) bool {
+func (r *runBuilder) overlaps(first, last super.Value) bool {
 	if r.span == nil {
 		return false
 	}

@@ -15,51 +15,51 @@ import (
 	"github.com/brimdata/super/zson"
 )
 
-func formatAny(val zed.Value, inContainer bool) string {
+func formatAny(val super.Value, inContainer bool) string {
 	switch t := val.Type().(type) {
-	case *zed.TypeArray:
+	case *super.TypeArray:
 		return formatArray(t, val.Bytes())
-	case *zed.TypeNamed:
-		return formatAny(zed.NewValue(t.Type, val.Bytes()), inContainer)
-	case *zed.TypeOfBool:
+	case *super.TypeNamed:
+		return formatAny(super.NewValue(t.Type, val.Bytes()), inContainer)
+	case *super.TypeOfBool:
 		if val.Bool() {
 			return "T"
 		}
 		return "F"
-	case *zed.TypeOfBytes:
+	case *super.TypeOfBytes:
 		return base64.StdEncoding.EncodeToString(val.Bytes())
-	case *zed.TypeOfDuration, *zed.TypeOfTime:
+	case *super.TypeOfDuration, *super.TypeOfTime:
 		return formatTime(nano.Ts(val.Int()))
-	case *zed.TypeEnum:
-		return formatAny(zed.NewValue(zed.TypeUint64, val.Bytes()), false)
-	case *zed.TypeOfFloat16, *zed.TypeOfFloat32:
+	case *super.TypeEnum:
+		return formatAny(super.NewValue(super.TypeUint64, val.Bytes()), false)
+	case *super.TypeOfFloat16, *super.TypeOfFloat32:
 		return strconv.FormatFloat(val.Float(), 'f', -1, 32)
-	case *zed.TypeOfFloat64:
+	case *super.TypeOfFloat64:
 		return strconv.FormatFloat(val.Float(), 'f', -1, 64)
-	case *zed.TypeOfInt8, *zed.TypeOfInt16, *zed.TypeOfInt32, *zed.TypeOfInt64:
+	case *super.TypeOfInt8, *super.TypeOfInt16, *super.TypeOfInt32, *super.TypeOfInt64:
 		return strconv.FormatInt(val.Int(), 10)
-	case *zed.TypeOfUint8, *zed.TypeOfUint16, *zed.TypeOfUint32, *zed.TypeOfUint64:
+	case *super.TypeOfUint8, *super.TypeOfUint16, *super.TypeOfUint32, *super.TypeOfUint64:
 		return strconv.FormatUint(val.Uint(), 10)
-	case *zed.TypeOfIP:
-		return zed.DecodeIP(val.Bytes()).String()
-	case *zed.TypeMap:
+	case *super.TypeOfIP:
+		return super.DecodeIP(val.Bytes()).String()
+	case *super.TypeMap:
 		return formatMap(t, val.Bytes())
-	case *zed.TypeOfNet:
-		return zed.DecodeNet(val.Bytes()).String()
-	case *zed.TypeOfNull:
+	case *super.TypeOfNet:
+		return super.DecodeNet(val.Bytes()).String()
+	case *super.TypeOfNull:
 		return "-"
-	case *zed.TypeRecord:
+	case *super.TypeRecord:
 		return formatRecord(t, val.Bytes())
-	case *zed.TypeSet:
+	case *super.TypeSet:
 		return formatSet(t, val.Bytes())
-	case *zed.TypeOfString:
+	case *super.TypeOfString:
 		return formatString(t, val.Bytes(), inContainer)
-	case *zed.TypeOfType:
+	case *super.TypeOfType:
 		return zson.String(val)
-	case *zed.TypeUnion:
+	case *super.TypeUnion:
 		return formatUnion(t, val.Bytes())
-	case *zed.TypeError:
-		if zed.TypeUnder(t.Type) == zed.TypeString {
+	case *super.TypeError:
+		if super.TypeUnder(t.Type) == super.TypeString {
 			return string(val.Bytes())
 		}
 		return zson.FormatValue(val)
@@ -68,7 +68,7 @@ func formatAny(val zed.Value, inContainer bool) string {
 	}
 }
 
-func formatArray(t *zed.TypeArray, zv zcode.Bytes) string {
+func formatArray(t *super.TypeArray, zv zcode.Bytes) string {
 	if len(zv) == 0 {
 		return "(empty)"
 	}
@@ -87,25 +87,25 @@ func formatArray(t *zed.TypeArray, zv zcode.Bytes) string {
 		if val := it.Next(); val == nil {
 			b.WriteByte('-')
 		} else {
-			b.WriteString(formatAny(zed.NewValue(t.Type, val), true))
+			b.WriteString(formatAny(super.NewValue(t.Type, val), true))
 		}
 	}
 	return b.String()
 }
 
-func formatMap(t *zed.TypeMap, zv zcode.Bytes) string {
+func formatMap(t *super.TypeMap, zv zcode.Bytes) string {
 	var b strings.Builder
 	it := zv.Iter()
 	b.WriteByte('[')
 	for !it.Done() {
-		b.WriteString(formatAny(zed.NewValue(t.KeyType, it.Next()), true))
-		b.WriteString(formatAny(zed.NewValue(t.ValType, it.Next()), true))
+		b.WriteString(formatAny(super.NewValue(t.KeyType, it.Next()), true))
+		b.WriteString(formatAny(super.NewValue(t.ValType, it.Next()), true))
 	}
 	b.WriteByte(']')
 	return b.String()
 }
 
-func formatRecord(t *zed.TypeRecord, zv zcode.Bytes) string {
+func formatRecord(t *super.TypeRecord, zv zcode.Bytes) string {
 	var b strings.Builder
 	separator := byte(',')
 	first := true
@@ -119,13 +119,13 @@ func formatRecord(t *zed.TypeRecord, zv zcode.Bytes) string {
 		if val := it.Next(); val == nil {
 			b.WriteByte('-')
 		} else {
-			b.WriteString(formatAny(zed.NewValue(f.Type, val), false))
+			b.WriteString(formatAny(super.NewValue(f.Type, val), false))
 		}
 	}
 	return b.String()
 }
 
-func formatSet(t *zed.TypeSet, zv zcode.Bytes) string {
+func formatSet(t *super.TypeSet, zv zcode.Bytes) string {
 	if len(zv) == 0 {
 		return "(empty)"
 	}
@@ -139,12 +139,12 @@ func formatSet(t *zed.TypeSet, zv zcode.Bytes) string {
 		} else {
 			b.WriteByte(separator)
 		}
-		b.WriteString(formatAny(zed.NewValue(t.Type, it.Next()), true))
+		b.WriteString(formatAny(super.NewValue(t.Type, it.Next()), true))
 	}
 	return b.String()
 }
 
-func formatString(t *zed.TypeOfString, zv zcode.Bytes, inContainer bool) string {
+func formatString(t *super.TypeOfString, zv zcode.Bytes, inContainer bool) string {
 	if bytes.Equal(zv, []byte{'-'}) {
 		return "\\x2d"
 	}
@@ -189,16 +189,16 @@ func unescape(r rune) []byte {
 	return b.Bytes()
 }
 
-func formatUnion(t *zed.TypeUnion, zv zcode.Bytes) string {
+func formatUnion(t *super.TypeUnion, zv zcode.Bytes) string {
 	if zv == nil {
-		return FormatValue(zed.Null)
+		return FormatValue(super.Null)
 	}
 	typ, iv := t.Untag(zv)
 	s := strconv.FormatInt(int64(t.TagOf(typ)), 10) + ":"
-	return s + formatAny(zed.NewValue(typ, iv), false)
+	return s + formatAny(super.NewValue(typ, iv), false)
 }
 
-func FormatValue(v zed.Value) string {
+func FormatValue(v super.Value) string {
 	if v.IsNull() {
 		return "-"
 	}

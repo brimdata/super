@@ -4,7 +4,7 @@ import (
 	"errors"
 	"flag"
 
-	zed "github.com/brimdata/super"
+	 "github.com/brimdata/super"
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/cmd/super/dev/vector"
 	"github.com/brimdata/super/cmd/super/root"
@@ -67,7 +67,7 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	puller := vam.NewProjection(zed.NewContext(), object, nil)
+	puller := vam.NewProjection(super.NewContext(), object, nil)
 	if err := zbuf.CopyPuller(writer, puller); err != nil {
 		writer.Close()
 		return err

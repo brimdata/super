@@ -10,7 +10,7 @@ type RecordElem struct {
 	Expr Evaluator
 }
 
-func NewRecordExpr(zctx *zed.Context, elems []RecordElem) Evaluator {
+func NewRecordExpr(zctx *super.Context, elems []RecordElem) Evaluator {
 	return &recordExpr{
 		zctx:         zctx,
 		elems:        elems,
@@ -19,11 +19,11 @@ func NewRecordExpr(zctx *zed.Context, elems []RecordElem) Evaluator {
 }
 
 type recordExpr struct {
-	zctx  *zed.Context
+	zctx  *super.Context
 	elems []RecordElem
 
 	elemVecs     []vector.Any
-	fields       []zed.Field
+	fields       []super.Field
 	fieldIndexes map[string]int
 	fieldVecs    []vector.Any
 }
@@ -62,7 +62,7 @@ func (r *recordExpr) addOrUpdateField(name string, vec vector.Any) {
 		return
 	}
 	r.fieldIndexes[name] = len(r.fields)
-	r.fields = append(r.fields, zed.NewField(name, vec.Type()))
+	r.fields = append(r.fields, super.NewField(name, vec.Type()))
 	r.fieldVecs = append(r.fieldVecs, vec)
 }
 
@@ -70,12 +70,12 @@ func (r *recordExpr) spread(vec vector.Any) {
 	// Ignore non-record values.
 	switch vec := vector.Under(vec).(type) {
 	case *vector.Record:
-		for k, f := range zed.TypeRecordOf(vec.Type()).Fields {
+		for k, f := range super.TypeRecordOf(vec.Type()).Fields {
 			r.addOrUpdateField(f.Name, vec.Fields[k])
 		}
 	case *vector.View:
 		if rec, ok := vec.Any.(*vector.Record); ok {
-			for k, f := range zed.TypeRecordOf(rec.Type()).Fields {
+			for k, f := range super.TypeRecordOf(rec.Type()).Fields {
 				r.addOrUpdateField(f.Name, vector.NewView(vec.Index, rec.Fields[k]))
 			}
 		}

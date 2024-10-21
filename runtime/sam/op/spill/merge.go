@@ -21,7 +21,7 @@ type MergeSort struct {
 	runs       []*peeker
 	tempDir    string
 	spillSize  int64
-	zctx       *zed.Context
+	zctx       *super.Context
 }
 
 const TempPrefix = "zed-spill-"
@@ -45,7 +45,7 @@ func NewMergeSort(comparator *expr.Comparator) (*MergeSort, error) {
 	return &MergeSort{
 		comparator: comparator,
 		tempDir:    tempDir,
-		zctx:       zed.NewContext(),
+		zctx:       super.NewContext(),
 	}, nil
 }
 
@@ -60,7 +60,7 @@ func (r *MergeSort) Cleanup() {
 // temp directory.  Since we sort each chunk in memory before spilling, the
 // different chunks can be easily merged into sorted order when reading back
 // the chunks sequentially.
-func (r *MergeSort) Spill(ctx context.Context, vals []zed.Value) error {
+func (r *MergeSort) Spill(ctx context.Context, vals []super.Value) error {
 	var zr zio.Reader
 	// Sorting can be slow, so check for cancellation.
 	if err := goWithContext(ctx, func() {
@@ -99,7 +99,7 @@ func goWithContext(ctx context.Context, f func()) error {
 
 // Peek returns the next record without advancing the reader.  The record stops
 // being valid at the next read call.
-func (r *MergeSort) Peek() (*zed.Value, error) {
+func (r *MergeSort) Peek() (*super.Value, error) {
 	if r.Len() == 0 {
 		return nil, nil
 	}
@@ -109,7 +109,7 @@ func (r *MergeSort) Peek() (*zed.Value, error) {
 // Read returns the smallest record (per the comparison function provided to MewMergeSort)
 // from among the next records in the spilled chunks.  It implements the merge operation
 // for an external merge sort.
-func (r *MergeSort) Read() (*zed.Value, error) {
+func (r *MergeSort) Read() (*super.Value, error) {
 	for {
 		if r.Len() == 0 {
 			return nil, nil

@@ -6,7 +6,7 @@ import (
 )
 
 type Metadata interface {
-	Type(*zed.Context) zed.Type
+	Type(*super.Context) super.Type
 	Len() uint32
 }
 
@@ -15,11 +15,11 @@ type Record struct {
 	Fields []Field
 }
 
-func (r *Record) Type(zctx *zed.Context) zed.Type {
-	fields := make([]zed.Field, 0, len(r.Fields))
+func (r *Record) Type(zctx *super.Context) super.Type {
+	fields := make([]super.Field, 0, len(r.Fields))
 	for _, field := range r.Fields {
 		typ := field.Values.Type(zctx)
-		fields = append(fields, zed.Field{Name: field.Name, Type: typ})
+		fields = append(fields, super.Field{Name: field.Name, Type: typ})
 	}
 	return zctx.MustLookupTypeRecord(fields)
 }
@@ -77,7 +77,7 @@ type Array struct {
 	Values  Metadata
 }
 
-func (a *Array) Type(zctx *zed.Context) zed.Type {
+func (a *Array) Type(zctx *super.Context) super.Type {
 	return zctx.LookupTypeArray(a.Values.Type(zctx))
 }
 
@@ -87,7 +87,7 @@ func (a *Array) Len() uint32 {
 
 type Set Array
 
-func (s *Set) Type(zctx *zed.Context) zed.Type {
+func (s *Set) Type(zctx *super.Context) super.Type {
 	return zctx.LookupTypeSet(s.Values.Type(zctx))
 }
 
@@ -102,7 +102,7 @@ type Map struct {
 	Values  Metadata
 }
 
-func (m *Map) Type(zctx *zed.Context) zed.Type {
+func (m *Map) Type(zctx *super.Context) super.Type {
 	keyType := m.Keys.Type(zctx)
 	valType := m.Values.Type(zctx)
 	return zctx.LookupTypeMap(keyType, valType)
@@ -118,8 +118,8 @@ type Union struct {
 	Values []Metadata
 }
 
-func (u *Union) Type(zctx *zed.Context) zed.Type {
-	types := make([]zed.Type, 0, len(u.Values))
+func (u *Union) Type(zctx *super.Context) super.Type {
+	types := make([]super.Type, 0, len(u.Values))
 	for _, value := range u.Values {
 		types = append(types, value.Type(zctx))
 	}
@@ -135,7 +135,7 @@ type Named struct {
 	Values Metadata
 }
 
-func (n *Named) Type(zctx *zed.Context) zed.Type {
+func (n *Named) Type(zctx *super.Context) super.Type {
 	t, err := zctx.LookupTypeNamed(n.Name, n.Values.Type(zctx))
 	if err != nil {
 		panic(err) //XXX
@@ -151,7 +151,7 @@ type Error struct {
 	Values Metadata
 }
 
-func (e *Error) Type(zctx *zed.Context) zed.Type {
+func (e *Error) Type(zctx *super.Context) super.Type {
 	return zctx.LookupTypeError(e.Values.Type(zctx))
 }
 
@@ -160,20 +160,20 @@ func (e *Error) Len() uint32 {
 }
 
 type DictEntry struct {
-	Value zed.Value
+	Value super.Value
 	Count uint32
 }
 
 type Primitive struct {
-	Typ      zed.Type `zed:"Type"`
+	Typ      super.Type `zed:"Type"`
 	Location Segment
 	Dict     []DictEntry
-	Min      *zed.Value
-	Max      *zed.Value
+	Min      *super.Value
+	Max      *super.Value
 	Count    uint32
 }
 
-func (p *Primitive) Type(zctx *zed.Context) zed.Type {
+func (p *Primitive) Type(zctx *super.Context) super.Type {
 	return p.Typ
 }
 
@@ -187,7 +187,7 @@ type Nulls struct {
 	Count  uint32 // Count of nulls
 }
 
-func (n *Nulls) Type(zctx *zed.Context) zed.Type {
+func (n *Nulls) Type(zctx *super.Context) super.Type {
 	return n.Values.Type(zctx)
 }
 
@@ -196,11 +196,11 @@ func (n *Nulls) Len() uint32 {
 }
 
 type Const struct {
-	Value zed.Value
+	Value super.Value
 	Count uint32
 }
 
-func (c *Const) Type(zctx *zed.Context) zed.Type {
+func (c *Const) Type(zctx *super.Context) super.Type {
 	return c.Value.Type()
 }
 
@@ -216,7 +216,7 @@ type Dynamic struct {
 
 var _ Metadata = (*Dynamic)(nil)
 
-func (*Dynamic) Type(zctx *zed.Context) zed.Type {
+func (*Dynamic) Type(zctx *super.Context) super.Type {
 	panic("Type should not be called on Dynamic")
 }
 

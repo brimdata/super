@@ -20,7 +20,7 @@ type scannerSync struct {
 	eof      bool
 }
 
-func newScannerSync(ctx context.Context, zctx *zed.Context, r io.Reader, filter zbuf.Filter, opts ReaderOpts) (*scannerSync, error) {
+func newScannerSync(ctx context.Context, zctx *super.Context, r io.Reader, filter zbuf.Filter, opts ReaderOpts) (*scannerSync, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	s := &scannerSync{
 		ctx:    ctx,

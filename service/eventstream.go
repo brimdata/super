@@ -12,7 +12,7 @@ import (
 
 type event struct {
 	name  string
-	value zed.Value
+	value super.Value
 }
 
 type eventStreamWriter struct {

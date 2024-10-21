@@ -9,17 +9,17 @@ import (
 // Schema constructs a fused type for types passed to Mixin.  Values of any
 // mixed-in type can be shaped to the fused type without loss of information.
 type Schema struct {
-	zctx *zed.Context
+	zctx *super.Context
 
-	typ zed.Type
+	typ super.Type
 }
 
-func NewSchema(zctx *zed.Context) *Schema {
+func NewSchema(zctx *super.Context) *Schema {
 	return &Schema{zctx: zctx}
 }
 
 // Mixin mixes t into the fused type.
-func (s *Schema) Mixin(t zed.Type) {
+func (s *Schema) Mixin(t super.Type) {
 	if s.typ == nil {
 		s.typ = t
 	} else {
@@ -28,21 +28,21 @@ func (s *Schema) Mixin(t zed.Type) {
 }
 
 // Type returns the fused type.
-func (s *Schema) Type() zed.Type {
+func (s *Schema) Type() super.Type {
 	return s.typ
 }
 
-func merge(zctx *zed.Context, a, b zed.Type) zed.Type {
-	aUnder := zed.TypeUnder(a)
-	if aUnder == zed.TypeNull {
+func merge(zctx *super.Context, a, b super.Type) super.Type {
+	aUnder := super.TypeUnder(a)
+	if aUnder == super.TypeNull {
 		return b
 	}
-	bUnder := zed.TypeUnder(b)
-	if bUnder == zed.TypeNull {
+	bUnder := super.TypeUnder(b)
+	if bUnder == super.TypeNull {
 		return a
 	}
-	if a, ok := aUnder.(*zed.TypeRecord); ok {
-		if b, ok := bUnder.(*zed.TypeRecord); ok {
+	if a, ok := aUnder.(*super.TypeRecord); ok {
+		if b, ok := bUnder.(*super.TypeRecord); ok {
 			fields := slices.Clone(a.Fields)
 			for _, f := range b.Fields {
 				if i, ok := indexOfField(fields, f.Name); !ok {
@@ -54,32 +54,32 @@ func merge(zctx *zed.Context, a, b zed.Type) zed.Type {
 			return zctx.MustLookupTypeRecord(fields)
 		}
 	}
-	if a, ok := aUnder.(*zed.TypeArray); ok {
-		if b, ok := bUnder.(*zed.TypeArray); ok {
+	if a, ok := aUnder.(*super.TypeArray); ok {
+		if b, ok := bUnder.(*super.TypeArray); ok {
 			return zctx.LookupTypeArray(merge(zctx, a.Type, b.Type))
 		}
-		if b, ok := bUnder.(*zed.TypeSet); ok {
+		if b, ok := bUnder.(*super.TypeSet); ok {
 			return zctx.LookupTypeArray(merge(zctx, a.Type, b.Type))
 		}
 	}
-	if a, ok := aUnder.(*zed.TypeSet); ok {
-		if b, ok := bUnder.(*zed.TypeArray); ok {
+	if a, ok := aUnder.(*super.TypeSet); ok {
+		if b, ok := bUnder.(*super.TypeArray); ok {
 			return zctx.LookupTypeArray(merge(zctx, a.Type, b.Type))
 		}
-		if b, ok := bUnder.(*zed.TypeSet); ok {
+		if b, ok := bUnder.(*super.TypeSet); ok {
 			return zctx.LookupTypeSet(merge(zctx, a.Type, b.Type))
 		}
 	}
-	if a, ok := aUnder.(*zed.TypeMap); ok {
-		if b, ok := bUnder.(*zed.TypeMap); ok {
+	if a, ok := aUnder.(*super.TypeMap); ok {
+		if b, ok := bUnder.(*super.TypeMap); ok {
 			keyType := merge(zctx, a.KeyType, b.KeyType)
 			valType := merge(zctx, a.ValType, b.ValType)
 			return zctx.LookupTypeMap(keyType, valType)
 		}
 	}
-	if a, ok := aUnder.(*zed.TypeUnion); ok {
+	if a, ok := aUnder.(*super.TypeUnion); ok {
 		types := slices.Clone(a.Types)
-		if bUnion, ok := bUnder.(*zed.TypeUnion); ok {
+		if bUnion, ok := bUnder.(*super.TypeUnion); ok {
 			for _, t := range bUnion.Types {
 				types = appendIfAbsent(types, t)
 			}
@@ -92,14 +92,14 @@ func merge(zctx *zed.Context, a, b zed.Type) zed.Type {
 		}
 		return zctx.LookupTypeUnion(types)
 	}
-	if _, ok := bUnder.(*zed.TypeUnion); ok {
+	if _, ok := bUnder.(*super.TypeUnion); ok {
 		return merge(zctx, b, a)
 	}
 	// XXX Merge enums?
-	return zctx.LookupTypeUnion([]zed.Type{a, b})
+	return zctx.LookupTypeUnion([]super.Type{a, b})
 }
 
-func appendIfAbsent(types []zed.Type, typ zed.Type) []zed.Type {
+func appendIfAbsent(types []super.Type, typ super.Type) []super.Type {
 	for _, t := range types {
 		if t == typ {
 			return types
@@ -108,7 +108,7 @@ func appendIfAbsent(types []zed.Type, typ zed.Type) []zed.Type {
 	return append(types, typ)
 }
 
-func indexOfField(fields []zed.Field, name string) (int, bool) {
+func indexOfField(fields []super.Field, name string) (int, bool) {
 	for i, f := range fields {
 		if f.Name == name {
 			return i, true
@@ -117,11 +117,11 @@ func indexOfField(fields []zed.Field, name string) (int, bool) {
 	return -1, false
 }
 
-func mergeAllRecords(zctx *zed.Context, types []zed.Type) []zed.Type {
+func mergeAllRecords(zctx *super.Context, types []super.Type) []super.Type {
 	out := types[:0]
 	recIndex := -1
 	for _, t := range types {
-		if zed.IsRecordType(t) {
+		if super.IsRecordType(t) {
 			if recIndex < 0 {
 				recIndex = len(out)
 			} else {

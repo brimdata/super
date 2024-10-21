@@ -19,7 +19,7 @@ import (
 	"github.com/brimdata/super/zio/zsonio"
 )
 
-func lookupReader(zctx *zed.Context, r io.Reader, demandOut demand.Demand, opts ReaderOpts) (zio.ReadCloser, error) {
+func lookupReader(zctx *super.Context, r io.Reader, demandOut demand.Demand, opts ReaderOpts) (zio.ReadCloser, error) {
 	switch opts.Format {
 	case "arrows":
 		return arrowio.NewReader(zctx, r)

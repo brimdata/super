@@ -18,7 +18,7 @@ type Reader struct {
 	buf     []byte
 }
 
-func NewReader(zctx *zed.Context, r io.Reader) *Reader {
+func NewReader(zctx *super.Context, r io.Reader) *Reader {
 	return &Reader{
 		builder: builder{zctx: zctx},
 		// 64 KB gave the best performance when this was written.
@@ -29,7 +29,7 @@ func NewReader(zctx *zed.Context, r io.Reader) *Reader {
 	}
 }
 
-func (r *Reader) Read() (*zed.Value, error) {
+func (r *Reader) Read() (*super.Value, error) {
 	t := r.lexer.Token()
 	if t == jsonlexer.TokenErr {
 		err := r.lexer.Err()
@@ -54,14 +54,14 @@ func (r *Reader) handleToken(fieldName string, t jsonlexer.Token) error {
 			return fmt.Errorf("invalid JSON string %q", r.lexer.Buf())
 		}
 		r.buf = norm.NFC.Append(r.buf, b...)
-		r.builder.pushPrimitiveItem(fieldName, zed.TypeString, r.buf)
+		r.builder.pushPrimitiveItem(fieldName, super.TypeString, r.buf)
 	case jsonlexer.TokenNumber:
 		if i, err := byteconv.ParseInt64(r.lexer.Buf()); err == nil {
-			r.buf = zed.AppendInt(r.buf, i)
-			r.builder.pushPrimitiveItem(fieldName, zed.TypeInt64, r.buf)
+			r.buf = super.AppendInt(r.buf, i)
+			r.builder.pushPrimitiveItem(fieldName, super.TypeInt64, r.buf)
 		} else if f, err := byteconv.ParseFloat64(r.lexer.Buf()); err == nil {
-			r.buf = zed.AppendFloat64(r.buf, f)
-			r.builder.pushPrimitiveItem(fieldName, zed.TypeFloat64, r.buf)
+			r.buf = super.AppendFloat64(r.buf, f)
+			r.builder.pushPrimitiveItem(fieldName, super.TypeFloat64, r.buf)
 		} else {
 			return err
 		}
@@ -78,10 +78,10 @@ func (r *Reader) handleToken(fieldName string, t jsonlexer.Token) error {
 		}
 		r.builder.endArray()
 	case jsonlexer.TokenNull:
-		r.builder.pushPrimitiveItem(fieldName, zed.TypeNull, nil)
+		r.builder.pushPrimitiveItem(fieldName, super.TypeNull, nil)
 	case jsonlexer.TokenFalse, jsonlexer.TokenTrue:
-		r.buf = zed.AppendBool(r.buf, t == jsonlexer.TokenTrue)
-		r.builder.pushPrimitiveItem(fieldName, zed.TypeBool, r.buf)
+		r.buf = super.AppendBool(r.buf, t == jsonlexer.TokenTrue)
+		r.builder.pushPrimitiveItem(fieldName, super.TypeBool, r.buf)
 	default:
 		return r.error(t, "looking for beginning of value")
 	}

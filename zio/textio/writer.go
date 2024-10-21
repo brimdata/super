@@ -19,7 +19,7 @@ type Writer struct {
 func NewWriter(w io.WriteCloser) *Writer {
 	return &Writer{
 		writer:    w,
-		flattener: expr.NewFlattener(zed.NewContext()),
+		flattener: expr.NewFlattener(super.NewContext()),
 	}
 }
 
@@ -27,28 +27,28 @@ func (w *Writer) Close() error {
 	return w.writer.Close()
 }
 
-func (w *Writer) Write(val zed.Value) error {
-	if _, ok := zed.TypeUnder(val.Type()).(*zed.TypeRecord); ok {
+func (w *Writer) Write(val super.Value) error {
+	if _, ok := super.TypeUnder(val.Type()).(*super.TypeRecord); ok {
 		return w.writeRecord(val)
 	}
 	_, err := fmt.Fprintln(w.writer, zeekio.FormatValue(val))
 	return err
 }
 
-func (w *Writer) writeRecord(rec zed.Value) error {
+func (w *Writer) writeRecord(rec super.Value) error {
 	rec, err := w.flattener.Flatten(rec)
 	if err != nil {
 		return err
 	}
 	var out []string
-	for k, f := range zed.TypeRecordOf(rec.Type()).Fields {
+	for k, f := range super.TypeRecordOf(rec.Type()).Fields {
 		var s string
 		value := rec.DerefByColumn(k).MissingAsNull()
-		if f.Type == zed.TypeTime {
+		if f.Type == super.TypeTime {
 			if value.IsNull() {
 				s = "-"
 			} else {
-				s = zed.DecodeTime(value.Bytes()).Time().Format(time.RFC3339Nano)
+				s = super.DecodeTime(value.Bytes()).Time().Format(time.RFC3339Nano)
 			}
 		} else {
 			s = zeekio.FormatValue(value)

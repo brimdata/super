@@ -19,7 +19,7 @@ func FuzzQuery(f *testing.F) {
 	f.Fuzz(func(t *testing.T, b []byte) {
 		bytesReader := bytes.NewReader(b)
 		querySource := fuzz.GenAscii(bytesReader)
-		context := zed.NewContext()
+		context := super.NewContext()
 		types := fuzz.GenTypes(bytesReader, context, 3)
 		values := fuzz.GenValues(bytesReader, context, types)
 
@@ -45,9 +45,9 @@ const N = 10000000
 
 func BenchmarkReadZng(b *testing.B) {
 	rand := rand.New(rand.NewSource(42))
-	valuesIn := make([]zed.Value, N)
+	valuesIn := make([]super.Value, N)
 	for i := range valuesIn {
-		valuesIn[i] = zed.NewInt64(rand.Int63n(N))
+		valuesIn[i] = super.NewInt64(rand.Int63n(N))
 	}
 	var buf bytes.Buffer
 	fuzz.WriteZNG(b, valuesIn, &buf)
@@ -58,7 +58,7 @@ func BenchmarkReadZng(b *testing.B) {
 		if err != nil {
 			panic(err)
 		}
-		if zed.DecodeInt(valuesIn[N-1].Bytes()) != zed.DecodeInt(valuesOut[N-1].Bytes()) {
+		if super.DecodeInt(valuesIn[N-1].Bytes()) != super.DecodeInt(valuesOut[N-1].Bytes()) {
 			panic("oh no")
 		}
 	}
@@ -66,9 +66,9 @@ func BenchmarkReadZng(b *testing.B) {
 
 func BenchmarkReadVng(b *testing.B) {
 	rand := rand.New(rand.NewSource(42))
-	valuesIn := make([]zed.Value, N)
+	valuesIn := make([]super.Value, N)
 	for i := range valuesIn {
-		valuesIn[i] = zed.NewValue(zed.TypeInt64, zed.EncodeInt(int64(rand.Intn(N))))
+		valuesIn[i] = super.NewValue(super.TypeInt64, super.EncodeInt(int64(rand.Intn(N))))
 	}
 	var buf bytes.Buffer
 	fuzz.WriteVNG(b, valuesIn, &buf)

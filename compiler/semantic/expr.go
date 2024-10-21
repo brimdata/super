@@ -165,7 +165,7 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 			switch elem := elem.(type) {
 			case *ast.Field:
 				if _, ok := fields[elem.Name]; ok {
-					a.error(elem, fmt.Errorf("record expression: %w", &zed.DuplicateFieldError{Name: elem.Name}))
+					a.error(elem, fmt.Errorf("record expression: %w", &super.DuplicateFieldError{Name: elem.Name}))
 					continue
 				}
 				fields[elem.Name] = struct{}{}
@@ -177,7 +177,7 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 				})
 			case *ast.ID:
 				if _, ok := fields[elem.Name]; ok {
-					a.error(elem, fmt.Errorf("record expression: %w", &zed.DuplicateFieldError{Name: elem.Name}))
+					a.error(elem, fmt.Errorf("record expression: %w", &super.DuplicateFieldError{Name: elem.Name}))
 					continue
 				}
 				fields[elem.Name] = struct{}{}
@@ -368,9 +368,9 @@ func (a *analyzer) isIndexOfThis(lhs, rhs dag.Expr) *dag.This {
 	return nil
 }
 
-func isStringConst(zctx *zed.Context, e dag.Expr) (field string, ok bool) {
+func isStringConst(zctx *super.Context, e dag.Expr) (field string, ok bool) {
 	val, err := kernel.EvalAtCompileTime(zctx, e)
-	if err == nil && !val.IsError() && zed.TypeUnder(val.Type()) == zed.TypeString {
+	if err == nil && !val.IsError() && super.TypeUnder(val.Type()) == super.TypeString {
 		return string(val.Bytes()), true
 	}
 	return "", false
@@ -423,7 +423,7 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 			a.error(call, fmt.Errorf("call expects %d argument(s)", len(f.Params)))
 			return badExpr()
 		}
-	case zed.LookupPrimitive(name) != nil:
+	case super.LookupPrimitive(name) != nil:
 		// Primitive function call, change this to a cast.
 		if err := function.CheckArgCount(nargs, 1, 1); err != nil {
 			a.error(call, err)

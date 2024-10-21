@@ -9,13 +9,13 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#network_of
 type NetworkOf struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
 func (n *NetworkOf) Call(args ...vector.Any) vector.Any {
 	args = underAll(args)
 	ipvec := args[0]
-	if ipvec.Type().ID() != zed.IDIP {
+	if ipvec.Type().ID() != super.IDIP {
 		return vector.NewWrappedError(n.zctx, "network_of: not an IP", ipvec)
 	}
 	if len(args) == 1 {
@@ -23,9 +23,9 @@ func (n *NetworkOf) Call(args ...vector.Any) vector.Any {
 	}
 	maskvec := args[1]
 	switch id := maskvec.Type().ID(); {
-	case id == zed.IDIP:
+	case id == super.IDIP:
 		return n.ipMask(ipvec, maskvec)
-	case zed.IsInteger(id):
+	case super.IsInteger(id):
 		return n.intMask(ipvec, maskvec)
 	default:
 		return vector.NewWrappedError(n.zctx, "network_of: bad arg for CIDR mask", maskvec)
@@ -39,7 +39,7 @@ func (n *NetworkOf) singleIP(vec vector.Any) vector.Any {
 			return errNotIP4(n.zctx, vec)
 		}
 		net := netip.PrefixFrom(ip, bitsFromIP(ip.As4())).Masked()
-		return vector.NewConst(zed.NewNet(net), c.Len(), c.Nulls)
+		return vector.NewConst(super.NewNet(net), c.Len(), c.Nulls)
 	}
 	var errs []uint32
 	var nets vector.Any
@@ -102,7 +102,7 @@ func (n *NetworkOf) ipMask(ipvec, maskvec vector.Any) vector.Any {
 			errsLen = append(errsLen, i)
 			continue
 		}
-		bits := zed.LeadingOnes(mask.AsSlice())
+		bits := super.LeadingOnes(mask.AsSlice())
 		if netip.PrefixFrom(mask, bits).Masked().Addr() != mask {
 			errsCont = append(errsCont, i)
 			continue
@@ -127,7 +127,7 @@ func (n *NetworkOf) intMask(ipvec, maskvec vector.Any) vector.Any {
 			if net.Bits() < 0 {
 				return errCIDRRange(n.zctx, ipvec, maskvec)
 			}
-			return vector.NewConst(zed.NewNet(net.Masked()), ipvec.Len(), nil)
+			return vector.NewConst(super.NewNet(net.Masked()), ipvec.Len(), nil)
 		}
 		out, errs = n.intMaskFast(ipvec, int(bits))
 	} else {
@@ -135,7 +135,7 @@ func (n *NetworkOf) intMask(ipvec, maskvec vector.Any) vector.Any {
 		var nets []netip.Prefix
 		for i := range ipvec.Len() {
 			var bits int
-			if zed.IsSigned(id) {
+			if super.IsSigned(id) {
 				b, _ := vector.IntValue(maskvec, i)
 				bits = int(b)
 			} else {
@@ -198,17 +198,17 @@ func (n *NetworkOf) intMaskFastLoop(vec *vector.IP, index []uint32, bits int) (v
 	return vector.NewNet(nets, nil), errs
 }
 
-func errCIDRRange(zctx *zed.Context, ipvec, maskvec vector.Any) vector.Any {
+func errCIDRRange(zctx *super.Context, ipvec, maskvec vector.Any) vector.Any {
 	vec := addressAndMask(zctx, ipvec, maskvec)
 	return vector.NewWrappedError(zctx, "network_of: CIDR bit count out of range", vec)
 }
 
-func errNotIP4(zctx *zed.Context, vec vector.Any) vector.Any {
+func errNotIP4(zctx *super.Context, vec vector.Any) vector.Any {
 	return vector.NewWrappedError(zctx, "network_of: not an IPv4 address", vec)
 }
 
-func addressAndMask(zctx *zed.Context, address, mask vector.Any) vector.Any {
-	typ := zctx.MustLookupTypeRecord([]zed.Field{
+func addressAndMask(zctx *super.Context, address, mask vector.Any) vector.Any {
+	typ := zctx.MustLookupTypeRecord([]super.Field{
 		{Name: "address", Type: address.Type()},
 		{Name: "mask", Type: mask.Type()},
 	})

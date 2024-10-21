@@ -61,11 +61,11 @@ func (w *Which) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (w Which) MarshalZNG(m *zson.MarshalZNGContext) (zed.Type, error) {
+func (w Which) MarshalZNG(m *zson.MarshalZNGContext) (super.Type, error) {
 	return m.MarshalValue(w.String())
 }
 
-func (w *Which) UnmarshalZNG(u *zson.UnmarshalZNGContext, val zed.Value) error {
+func (w *Which) UnmarshalZNG(u *zson.UnmarshalZNGContext, val super.Value) error {
 	which, err := Parse(string(val.Bytes()))
 	if err != nil {
 		return err

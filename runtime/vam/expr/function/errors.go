@@ -7,7 +7,7 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#quiet
 type Quiet struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
 func (q *Quiet) Call(args ...vector.Any) vector.Any {
@@ -15,7 +15,7 @@ func (q *Quiet) Call(args ...vector.Any) vector.Any {
 	if !ok {
 		return args[0]
 	}
-	if _, ok := arg.Vals.Type().(*zed.TypeOfString); !ok {
+	if _, ok := arg.Vals.Type().(*super.TypeOfString); !ok {
 		return args[0]
 	}
 	if c, ok := arg.Vals.(*vector.Const); ok {

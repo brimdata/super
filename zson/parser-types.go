@@ -69,7 +69,7 @@ func (p *Parser) matchTypeName() (astzed.Type, error) {
 	if name == "enum" {
 		return p.matchTypeEnumBody()
 	}
-	if t := zed.LookupPrimitive(name); t != nil {
+	if t := super.LookupPrimitive(name); t != nil {
 		return &astzed.TypePrimitive{Kind: "TypePrimitive", Name: name}, nil
 	}
 	// Wherever we have a type name, we can have a type def defining the

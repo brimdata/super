@@ -5,17 +5,17 @@ import (
 )
 
 type Named struct {
-	Typ *zed.TypeNamed
+	Typ *super.TypeNamed
 	Any
 }
 
 var _ Any = (*Named)(nil)
 
-func NewNamed(typ *zed.TypeNamed, v Any) Any {
+func NewNamed(typ *super.TypeNamed, v Any) Any {
 	return &Named{Typ: typ, Any: v}
 }
 
-func (n *Named) Type() zed.Type {
+func (n *Named) Type() super.Type {
 	return n.Typ
 }
 

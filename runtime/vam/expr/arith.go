@@ -11,13 +11,13 @@ import (
 )
 
 type Arith struct {
-	zctx   *zed.Context
+	zctx   *super.Context
 	opCode int
 	lhs    Evaluator
 	rhs    Evaluator
 }
 
-func NewArith(zctx *zed.Context, lhs, rhs Evaluator, op string) *Arith {
+func NewArith(zctx *super.Context, lhs, rhs Evaluator, op string) *Arith {
 	return &Arith{zctx, vector.ArithOpFromString(op), lhs, rhs}
 }
 

@@ -10,13 +10,13 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#base64
 type Base64 struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
 func (b *Base64) Call(args ...vector.Any) vector.Any {
 	val := vector.Under(args[0])
 	switch val.Type().ID() {
-	case zed.IDBytes:
+	case super.IDBytes:
 		var errcnt uint32
 		tags := make([]uint32, val.Len())
 		out := vector.NewStringEmpty(0, nil)
@@ -31,7 +31,7 @@ func (b *Base64) Call(args ...vector.Any) vector.Any {
 		}
 		err := vector.NewStringError(b.zctx, "base64: illegal null argument", errcnt)
 		return vector.NewDynamic(tags, []vector.Any{out, err})
-	case zed.IDString:
+	case super.IDString:
 		errvals := vector.NewStringEmpty(0, nil)
 		tags := make([]uint32, val.Len())
 		out := vector.NewBytesEmpty(0, vector.NewBoolEmpty(val.Len(), nil))
@@ -57,13 +57,13 @@ func (b *Base64) Call(args ...vector.Any) vector.Any {
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#hex
 type Hex struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
 func (h *Hex) Call(args ...vector.Any) vector.Any {
 	val := vector.Under(args[0])
 	switch val.Type().ID() {
-	case zed.IDBytes:
+	case super.IDBytes:
 		var errcnt uint32
 		tags := make([]uint32, val.Len())
 		out := vector.NewStringEmpty(val.Len(), nil)
@@ -78,7 +78,7 @@ func (h *Hex) Call(args ...vector.Any) vector.Any {
 		}
 		err := vector.NewStringError(h.zctx, "hex: illegal null argument", errcnt)
 		return vector.NewDynamic(tags, []vector.Any{out, err})
-	case zed.IDString:
+	case super.IDString:
 		errvals := vector.NewStringEmpty(0, nil)
 		tags := make([]uint32, val.Len())
 		out := vector.NewBytesEmpty(0, vector.NewBoolEmpty(val.Len(), nil))

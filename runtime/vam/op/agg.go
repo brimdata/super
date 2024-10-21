@@ -13,14 +13,14 @@ import (
 
 type CountByString struct {
 	parent vector.Puller
-	zctx   *zed.Context
+	zctx   *super.Context
 	field  expr.Evaluator
 	name   string
 	table  countByString
 	done   bool
 }
 
-func NewCountByString(zctx *zed.Context, parent vector.Puller, name string) *CountByString {
+func NewCountByString(zctx *super.Context, parent vector.Puller, name string) *CountByString {
 	return &CountByString{
 		parent: parent,
 		zctx:   zctx,
@@ -98,17 +98,17 @@ func (c *countByString) countFixed(vec *vector.Const) {
 	//XXX
 	val := vec.Value()
 	switch val.Type().ID() {
-	case zed.IDString:
-		c.table[zed.DecodeString(val.Bytes())] += uint64(vec.Length())
-	case zed.IDNull:
+	case super.IDString:
+		c.table[super.DecodeString(val.Bytes())] += uint64(vec.Length())
+	case super.IDNull:
 		c.nulls += uint64(vec.Length())
 	}
 }
 
-func (c *countByString) materialize(zctx *zed.Context, name string) *vector.Record {
-	typ := zctx.MustLookupTypeRecord([]zed.Field{
-		{Type: zed.TypeString, Name: name},
-		{Type: zed.TypeUint64, Name: "count"},
+func (c *countByString) materialize(zctx *super.Context, name string) *vector.Record {
+	typ := zctx.MustLookupTypeRecord([]super.Field{
+		{Type: super.TypeString, Name: name},
+		{Type: super.TypeUint64, Name: "count"},
 	})
 	length := len(c.table)
 	counts := make([]uint64, length)
@@ -136,20 +136,20 @@ func (c *countByString) materialize(zctx *zed.Context, name string) *vector.Reco
 		nulls.Set(uint32(k - 1))
 	}
 	keyVec := vector.NewString(offs, bytes, nulls)
-	countVec := vector.NewUint(zed.TypeUint64, counts, nil)
+	countVec := vector.NewUint(super.TypeUint64, counts, nil)
 	return vector.NewRecord(typ, []vector.Any{keyVec, countVec}, uint32(length), nil)
 }
 
 type Sum struct {
 	parent vector.Puller
-	zctx   *zed.Context
+	zctx   *super.Context
 	field  expr.Evaluator
 	name   string
 	sum    int64
 	done   bool
 }
 
-func NewSum(zctx *zed.Context, parent vector.Puller, name string) *Sum {
+func NewSum(zctx *super.Context, parent vector.Puller, name string) *Sum {
 	return &Sum{
 		parent: parent,
 		zctx:   zctx,
@@ -212,9 +212,9 @@ func (c *Sum) update(vec vector.Any) {
 	}
 }
 
-func (c *Sum) materialize(zctx *zed.Context, name string) *vector.Record {
-	typ := zctx.MustLookupTypeRecord([]zed.Field{
-		{Type: zed.TypeInt64, Name: "sum"},
+func (c *Sum) materialize(zctx *super.Context, name string) *vector.Record {
+	typ := zctx.MustLookupTypeRecord([]super.Field{
+		{Type: super.TypeInt64, Name: "sum"},
 	})
-	return vector.NewRecord(typ, []vector.Any{vector.NewInt(zed.TypeInt64, []int64{c.sum}, nil)}, 1, nil)
+	return vector.NewRecord(typ, []vector.Any{vector.NewInt(super.TypeInt64, []int64{c.sum}, nil)}, 1, nil)
 }

@@ -29,7 +29,7 @@ type scanner struct {
 	eof        bool
 }
 
-func newScanner(ctx context.Context, zctx *zed.Context, r io.Reader, filter zbuf.Filter, opts ReaderOpts) (zbuf.Scanner, error) {
+func newScanner(ctx context.Context, zctx *super.Context, r io.Reader, filter zbuf.Filter, opts ReaderOpts) (zbuf.Scanner, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	s := &scanner{
 		ctx:    ctx,
@@ -184,7 +184,7 @@ type worker struct {
 	ectx         expr.Context
 	validate     bool
 
-	mapperLookupCache zed.MapperLookupCache
+	mapperLookupCache super.MapperLookupCache
 }
 
 type work struct {
@@ -295,7 +295,7 @@ func (w *worker) scanBatch(buf *buffer, local localctx) (zbuf.Batch, error) {
 	return batch, nil
 }
 
-func (w *worker) decodeVal(buf *buffer, valRef *zed.Value) error {
+func (w *worker) decodeVal(buf *buffer, valRef *super.Value) error {
 	id, err := readUvarintAsInt(buf)
 	if err != nil {
 		return err
@@ -320,7 +320,7 @@ func (w *worker) decodeVal(buf *buffer, valRef *zed.Value) error {
 	if typ == nil {
 		return fmt.Errorf("zngio: type ID %d not in context", id)
 	}
-	*valRef = zed.NewValue(typ, b)
+	*valRef = super.NewValue(typ, b)
 	if w.validate {
 		if err := valRef.Validate(); err != nil {
 			return err
@@ -329,7 +329,7 @@ func (w *worker) decodeVal(buf *buffer, valRef *zed.Value) error {
 	return nil
 }
 
-func (w *worker) wantValue(val zed.Value, progress *zbuf.Progress) bool {
+func (w *worker) wantValue(val super.Value, progress *zbuf.Progress) bool {
 	progress.BytesRead += int64(len(val.Bytes()))
 	progress.RecordsRead++
 	// It's tempting to call w.bufferFilter.Eval on rec.Bytes here, but that
@@ -345,7 +345,7 @@ func (w *worker) wantValue(val zed.Value, progress *zbuf.Progress) bool {
 	return false
 }
 
-func check(ectx expr.Context, this zed.Value, filter expr.Evaluator) bool {
+func check(ectx expr.Context, this super.Value, filter expr.Evaluator) bool {
 	val := filter.Eval(ectx, this)
-	return val.Type() == zed.TypeBool && val.Bool()
+	return val.Type() == super.TypeBool && val.Bool()
 }

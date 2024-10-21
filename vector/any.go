@@ -6,14 +6,14 @@ import (
 )
 
 type Any interface {
-	Type() zed.Type
+	Type() super.Type
 	Len() uint32
 	Serialize(*zcode.Builder, uint32)
 }
 
 type Promotable interface {
 	Any
-	Promote(zed.Type) Promotable
+	Promote(super.Type) Promotable
 }
 
 type Puller interface {

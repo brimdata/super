@@ -19,15 +19,15 @@ func (t *testEval) Eval(_ vector.Any) vector.Any {
 // Test that Compare.Eval handles all ops for all vector forms.
 func TestCompareOpsAndForms(t *testing.T) {
 	// These are all [0, 1, 2].
-	lhsFlat := vector.NewUint(zed.TypeUint64, []uint64{0, 1, 2}, nil)
+	lhsFlat := vector.NewUint(super.TypeUint64, []uint64{0, 1, 2}, nil)
 	lhsDict := vector.NewDict(lhsFlat, []byte{0, 1, 2}, nil, nil)
 	lhsView := vector.NewView([]uint32{0, 1, 2}, lhsFlat)
 
 	// These are all [1, 1, 1].
-	rhsFlat := vector.NewUint(zed.TypeUint64, []uint64{1, 1, 1}, nil)
+	rhsFlat := vector.NewUint(super.TypeUint64, []uint64{1, 1, 1}, nil)
 	rhsDict := vector.NewDict(rhsFlat, []byte{0, 0, 0}, nil, nil)
 	rhsView := vector.NewView([]uint32{0, 1, 2}, rhsFlat)
-	Const := vector.NewConst(zed.NewUint64(1), 3, nil)
+	Const := vector.NewConst(super.NewUint64(1), 3, nil)
 
 	cases := []struct {
 		op, expected, expectedForConstLHS string
@@ -42,7 +42,7 @@ func TestCompareOpsAndForms(t *testing.T) {
 	for _, c := range cases {
 		f := func(expected string, lhs, rhs vector.Any) {
 			t.Helper()
-			cmp := NewCompare(zed.NewContext(), &testEval{lhs}, &testEval{rhs}, c.op)
+			cmp := NewCompare(super.NewContext(), &testEval{lhs}, &testEval{rhs}, c.op)
 			assert.Equal(t, expected, cmp.Eval(nil).(*vector.Bool).String(), "op: %s", c.op)
 		}
 
@@ -66,10 +66,10 @@ func TestCompareOpsAndForms(t *testing.T) {
 		f(c.expectedForConstLHS, Const, rhsView)
 
 		// Comparing two vector.Consts yields another vector.Const.
-		cmp := NewCompare(zed.NewContext(), &testEval{Const}, &testEval{Const}, c.op)
+		cmp := NewCompare(super.NewContext(), &testEval{Const}, &testEval{Const}, c.op)
 		val := cmp.Eval(nil).(*vector.Const)
 		assert.Equal(t, uint32(3), val.Len(), "op: %s", c.op)
-		expected := zed.NewBool(c.expectedForConstLHS == "111")
+		expected := super.NewBool(c.expectedForConstLHS == "111")
 		assert.Equal(t, expected, val.Value(), "op: %s", c.op)
 	}
 

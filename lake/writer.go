@@ -23,15 +23,15 @@ type Writer struct {
 	objects     []data.Object
 	inputSorted bool
 	ctx         context.Context
-	zctx        *zed.Context
+	zctx        *super.Context
 	errgroup    *errgroup.Group
-	vals        []zed.Value
+	vals        []super.Value
 	// XXX this is a simple double buffering model so the cloud-object
 	// writer can run in parallel with the reader filling the records
 	// buffer.  This can be later extended to pass a big bytes buffer
 	// back and forth where the bytes buffer holds all of the record
 	// data efficiently in one big backing store.
-	buffer      chan []zed.Value
+	buffer      chan []super.Value
 	comparator  *expr.Comparator
 	memBuffered int64
 	stats       ImportStats
@@ -49,9 +49,9 @@ type Writer struct {
 // XXX we should make another writer that takes sorted input and is a bit
 // more efficient.  This other writer could have different commit triggers
 // to do useful things like paritioning given the context is a rollup.
-func NewWriter(ctx context.Context, zctx *zed.Context, pool *Pool) (*Writer, error) {
+func NewWriter(ctx context.Context, zctx *super.Context, pool *Pool) (*Writer, error) {
 	g, ctx := errgroup.WithContext(ctx)
-	ch := make(chan []zed.Value, 1)
+	ch := make(chan []super.Value, 1)
 	ch <- nil
 	return &Writer{
 		pool:       pool,
@@ -72,7 +72,7 @@ func (w *Writer) newObject() *data.Object {
 	return &w.objects[len(w.objects)-1]
 }
 
-func (w *Writer) Write(rec zed.Value) error {
+func (w *Writer) Write(rec super.Value) error {
 	if w.ctx.Err() != nil {
 		if err := w.errgroup.Wait(); err != nil {
 			return err
@@ -122,7 +122,7 @@ func (w *Writer) Close() error {
 	return w.errgroup.Wait()
 }
 
-func (w *Writer) writeObject(object *data.Object, recs []zed.Value) error {
+func (w *Writer) writeObject(object *data.Object, recs []super.Value) error {
 	var zr zio.Reader
 	if w.inputSorted {
 		zr = zbuf.NewArray(recs)
@@ -166,14 +166,14 @@ type SortedWriter struct {
 	ctx           context.Context
 	pool          *Pool
 	sortKey       order.SortKey
-	lastKey       zed.Value
+	lastKey       super.Value
 	writer        *data.Writer
 	vectorEnabled bool
 	vectorWriter  *data.VectorWriter
 	objects       []*data.Object
 }
 
-func NewSortedWriter(ctx context.Context, zctx *zed.Context, pool *Pool, vectorEnabled bool) *SortedWriter {
+func NewSortedWriter(ctx context.Context, zctx *super.Context, pool *Pool, vectorEnabled bool) *SortedWriter {
 	return &SortedWriter{
 		comparator:    ImportComparator(zctx, pool),
 		ctx:           ctx,
@@ -183,7 +183,7 @@ func NewSortedWriter(ctx context.Context, zctx *zed.Context, pool *Pool, vectorE
 	}
 }
 
-func (w *SortedWriter) Write(val zed.Value) error {
+func (w *SortedWriter) Write(val super.Value) error {
 	key := val.DerefPath(w.sortKey.Key).MissingAsNull()
 again:
 	if w.writer == nil {
@@ -295,6 +295,6 @@ func (s *ImportStats) Copy() ImportStats {
 	}
 }
 
-func ImportComparator(zctx *zed.Context, pool *Pool) *expr.Comparator {
+func ImportComparator(zctx *super.Context, pool *Pool) *expr.Comparator {
 	return zbuf.NewComparatorNullsMax(zctx, pool.SortKeys)
 }

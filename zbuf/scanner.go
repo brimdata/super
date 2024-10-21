@@ -118,7 +118,7 @@ func (s *scanner) Progress() Progress {
 }
 
 // Read implements Reader.Read.
-func (s *scanner) Read() (*zed.Value, error) {
+func (s *scanner) Read() (*super.Value, error) {
 	for {
 		if err := s.ctx.Err(); err != nil {
 			return nil, err
@@ -131,7 +131,7 @@ func (s *scanner) Read() (*zed.Value, error) {
 		atomic.AddInt64(&s.progress.RecordsRead, 1)
 		if s.filter != nil {
 			val := s.filter.Eval(s.ectx, *this)
-			if !(val.Type() == zed.TypeBool && val.Bool()) {
+			if !(val.Type() == super.TypeBool && val.Bool()) {
 				continue
 			}
 		}

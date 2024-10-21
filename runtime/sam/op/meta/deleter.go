@@ -103,7 +103,7 @@ func (d *Deleter) nextDeletion() (zbuf.Puller, error) {
 	}
 }
 
-func (d *Deleter) hasDeletes(val zed.Value) (bool, error) {
+func (d *Deleter) hasDeletes(val super.Value) (bool, error) {
 	scanner, object, err := newScanner(d.rctx.Context, d.rctx.Zctx, d.pool, d.unmarshaler, d.pruner, d.filter, d.progress, val)
 	if err != nil {
 		return false, err

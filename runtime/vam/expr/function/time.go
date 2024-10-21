@@ -9,16 +9,16 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#strftime
 type Strftime struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
 func (s *Strftime) Call(args ...vector.Any) vector.Any {
 	args = underAll(args)
 	formatVec, timeVec := args[0], args[1]
-	if formatVec.Type().ID() != zed.IDString {
+	if formatVec.Type().ID() != super.IDString {
 		return vector.NewWrappedError(s.zctx, "strftime: string value required for format arg", formatVec)
 	}
-	if timeVec.Type().ID() != zed.IDTime {
+	if timeVec.Type().ID() != super.IDTime {
 		return vector.NewWrappedError(s.zctx, "strftime: time value required for time arg", args[1])
 	}
 	if cnst, ok := formatVec.(*vector.Const); ok {
@@ -44,7 +44,7 @@ func (s *Strftime) fastPath(fvec *vector.Const, tvec vector.Any) vector.Any {
 	case *vector.Const:
 		t, _ := tvec.AsInt()
 		s := f.FormatString(nano.Ts(t).Time())
-		return vector.NewConst(zed.NewString(s), tvec.Len(), tvec.Nulls)
+		return vector.NewConst(super.NewString(s), tvec.Len(), tvec.Nulls)
 	default:
 		panic(tvec)
 	}

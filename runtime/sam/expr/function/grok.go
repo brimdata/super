@@ -9,31 +9,31 @@ import (
 )
 
 type Grok struct {
-	zctx    *zed.Context
+	zctx    *super.Context
 	builder zcode.Builder
 	hosts   map[string]*host
 	// fields is used as a scratch space to avoid allocating a new slice.
-	fields []zed.Field
+	fields []super.Field
 }
 
-func newGrok(zctx *zed.Context) *Grok {
+func newGrok(zctx *super.Context) *Grok {
 	return &Grok{
 		zctx:  zctx,
 		hosts: make(map[string]*host),
 	}
 }
 
-func (g *Grok) Call(_ zed.Allocator, args []zed.Value) zed.Value {
-	patternArg, inputArg, defArg := args[0], args[1], zed.NullString
+func (g *Grok) Call(_ super.Allocator, args []super.Value) super.Value {
+	patternArg, inputArg, defArg := args[0], args[1], super.NullString
 	if len(args) == 3 {
 		defArg = args[2]
 	}
 	switch {
-	case zed.TypeUnder(defArg.Type()) != zed.TypeString:
+	case super.TypeUnder(defArg.Type()) != super.TypeString:
 		return g.error("definitions argument must be a string", defArg)
-	case zed.TypeUnder(patternArg.Type()) != zed.TypeString:
+	case super.TypeUnder(patternArg.Type()) != super.TypeString:
 		return g.error("pattern argument must be a string", patternArg)
-	case zed.TypeUnder(inputArg.Type()) != zed.TypeString:
+	case super.TypeUnder(inputArg.Type()) != super.TypeString:
 		return g.error("input argument must be a string", inputArg)
 	}
 	h, err := g.getHost(defArg.AsString())
@@ -50,17 +50,17 @@ func (g *Grok) Call(_ zed.Allocator, args []zed.Value) zed.Value {
 	}
 	g.fields = g.fields[:0]
 	for _, key := range keys {
-		g.fields = append(g.fields, zed.NewField(key, zed.TypeString))
+		g.fields = append(g.fields, super.NewField(key, super.TypeString))
 	}
 	typ := g.zctx.MustLookupTypeRecord(g.fields)
 	g.builder.Reset()
 	for _, s := range vals {
 		g.builder.Append([]byte(s))
 	}
-	return zed.NewValue(typ, g.builder.Bytes())
+	return super.NewValue(typ, g.builder.Bytes())
 }
 
-func (g *Grok) error(msg string, val zed.Value) zed.Value {
+func (g *Grok) error(msg string, val super.Value) super.Value {
 	return g.zctx.WrapError("grok(): "+msg, val)
 }
 

@@ -9,33 +9,33 @@ import (
 
 var ErrIncompatibleZeekType = errors.New("type cannot be represented in zeek format")
 
-func zngTypeToZeek(typ zed.Type) (string, error) {
+func zngTypeToZeek(typ super.Type) (string, error) {
 	switch typ := typ.(type) {
-	case *zed.TypeArray:
+	case *super.TypeArray:
 		inner, err := zngTypeToZeek(typ.Type)
 		if err != nil {
 			return "", err
 		}
 		return fmt.Sprintf("vector[%s]", inner), nil
-	case *zed.TypeSet:
+	case *super.TypeSet:
 		inner, err := zngTypeToZeek(typ.Type)
 		if err != nil {
 			return "", err
 		}
 		return fmt.Sprintf("set[%s]", inner), nil
-	case *zed.TypeOfUint8, *zed.TypeOfInt8, *zed.TypeOfInt16, *zed.TypeOfInt32, *zed.TypeOfInt64, *zed.TypeOfUint16, *zed.TypeOfUint32:
+	case *super.TypeOfUint8, *super.TypeOfInt8, *super.TypeOfInt16, *super.TypeOfInt32, *super.TypeOfInt64, *super.TypeOfUint16, *super.TypeOfUint32:
 		return "int", nil
-	case *zed.TypeOfUint64:
+	case *super.TypeOfUint64:
 		return "count", nil
-	case *zed.TypeOfFloat16, *zed.TypeOfFloat32, *zed.TypeOfFloat64:
+	case *super.TypeOfFloat16, *super.TypeOfFloat32, *super.TypeOfFloat64:
 		return "double", nil
-	case *zed.TypeOfIP:
+	case *super.TypeOfIP:
 		return "addr", nil
-	case *zed.TypeOfNet:
+	case *super.TypeOfNet:
 		return "subnet", nil
-	case *zed.TypeOfDuration:
+	case *super.TypeOfDuration:
 		return "interval", nil
-	case *zed.TypeNamed:
+	case *super.TypeNamed:
 		if typ.Name == "zenum" {
 			return "enum", nil
 		}
@@ -43,8 +43,8 @@ func zngTypeToZeek(typ zed.Type) (string, error) {
 			return "port", nil
 		}
 		return zngTypeToZeek(typ.Type)
-	case *zed.TypeOfBool, *zed.TypeOfString, *zed.TypeOfTime:
-		return zed.PrimitiveName(typ), nil
+	case *super.TypeOfBool, *super.TypeOfString, *super.TypeOfTime:
+		return super.PrimitiveName(typ), nil
 	default:
 		return "", fmt.Errorf("type %s: %w", typ, ErrIncompatibleZeekType)
 	}

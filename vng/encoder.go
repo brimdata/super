@@ -28,26 +28,26 @@ type Encoder interface {
 	Emit(w io.Writer) error
 }
 
-func NewEncoder(typ zed.Type) Encoder {
+func NewEncoder(typ super.Type) Encoder {
 	switch typ := typ.(type) {
-	case *zed.TypeNamed:
+	case *super.TypeNamed:
 		return &NamedEncoder{NewEncoder(typ.Type), typ.Name}
-	case *zed.TypeError:
+	case *super.TypeError:
 		return &ErrorEncoder{NewEncoder(typ.Type)}
-	case *zed.TypeRecord:
+	case *super.TypeRecord:
 		return NewNullsEncoder(NewRecordEncoder(typ))
-	case *zed.TypeArray:
+	case *super.TypeArray:
 		return NewNullsEncoder(NewArrayEncoder(typ))
-	case *zed.TypeSet:
+	case *super.TypeSet:
 		// Sets encode the same way as arrays but behave
 		// differently semantically, and we don't care here.
 		return NewNullsEncoder(NewSetEncoder(typ))
-	case *zed.TypeMap:
+	case *super.TypeMap:
 		return NewNullsEncoder(NewMapEncoder(typ))
-	case *zed.TypeUnion:
+	case *super.TypeUnion:
 		return NewNullsEncoder(NewUnionEncoder(typ))
 	default:
-		if !zed.IsPrimitiveType(typ) {
+		if !super.IsPrimitiveType(typ) {
 			panic(fmt.Sprintf("unsupported type in VNG file: %T", typ))
 		}
 		return NewNullsEncoder(NewPrimitiveEncoder(typ, true))

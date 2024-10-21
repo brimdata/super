@@ -6,7 +6,7 @@ import (
 )
 
 type Record struct {
-	Typ    *zed.TypeRecord
+	Typ    *super.TypeRecord
 	Fields []Any
 	len    uint32
 	Nulls  *Bool
@@ -14,11 +14,11 @@ type Record struct {
 
 var _ Any = (*Record)(nil)
 
-func NewRecord(typ *zed.TypeRecord, fields []Any, length uint32, nulls *Bool) *Record {
+func NewRecord(typ *super.TypeRecord, fields []Any, length uint32, nulls *Bool) *Record {
 	return &Record{Typ: typ, Fields: fields, len: length, Nulls: nulls}
 }
 
-func (r *Record) Type() zed.Type {
+func (r *Record) Type() super.Type {
 	return r.Typ
 }
 

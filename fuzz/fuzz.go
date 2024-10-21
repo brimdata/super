@@ -31,9 +31,9 @@ import (
 	"github.com/x448/float16"
 )
 
-func ReadZNG(bs []byte) ([]zed.Value, error) {
+func ReadZNG(bs []byte) ([]super.Value, error) {
 	bytesReader := bytes.NewReader(bs)
-	context := zed.NewContext()
+	context := super.NewContext()
 	reader := zngio.NewReader(context, bytesReader)
 	defer reader.Close()
 	var a zbuf.Array
@@ -44,9 +44,9 @@ func ReadZNG(bs []byte) ([]zed.Value, error) {
 	return a.Values(), nil
 }
 
-func ReadVNG(bs []byte, demandOut demand.Demand) ([]zed.Value, error) {
+func ReadVNG(bs []byte, demandOut demand.Demand) ([]super.Value, error) {
 	bytesReader := bytes.NewReader(bs)
-	context := zed.NewContext()
+	context := super.NewContext()
 	reader, err := vngio.NewReader(context, bytesReader, demandOut)
 	if err != nil {
 		return nil, err
@@ -59,27 +59,27 @@ func ReadVNG(bs []byte, demandOut demand.Demand) ([]zed.Value, error) {
 	return a.Values(), nil
 }
 
-func WriteZNG(t testing.TB, valuesIn []zed.Value, buf *bytes.Buffer) {
+func WriteZNG(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
 	writer := zngio.NewWriter(zio.NopCloser(buf))
 	require.NoError(t, zio.Copy(writer, zbuf.NewArray(valuesIn)))
 	require.NoError(t, writer.Close())
 }
 
-func WriteVNG(t testing.TB, valuesIn []zed.Value, buf *bytes.Buffer) {
+func WriteVNG(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
 	writer := vngio.NewWriter(zio.NopCloser(buf))
 	require.NoError(t, zio.Copy(writer, zbuf.NewArray(valuesIn)))
 	require.NoError(t, writer.Close())
 }
 
-func RunQueryZNG(t testing.TB, buf *bytes.Buffer, querySource string) []zed.Value {
-	zctx := zed.NewContext()
+func RunQueryZNG(t testing.TB, buf *bytes.Buffer, querySource string) []super.Value {
+	zctx := super.NewContext()
 	readers := []zio.Reader{zngio.NewReader(zctx, buf)}
 	defer zio.CloseReaders(readers)
 	return RunQuery(t, zctx, readers, querySource, func(_ demand.Demand) {})
 }
 
-func RunQueryVNG(t testing.TB, buf *bytes.Buffer, querySource string) []zed.Value {
-	zctx := zed.NewContext()
+func RunQueryVNG(t testing.TB, buf *bytes.Buffer, querySource string) []super.Value {
+	zctx := super.NewContext()
 	reader, err := vngio.NewReader(zctx, bytes.NewReader(buf.Bytes()), demand.All())
 	require.NoError(t, err)
 	readers := []zio.Reader{reader}
@@ -87,7 +87,7 @@ func RunQueryVNG(t testing.TB, buf *bytes.Buffer, querySource string) []zed.Valu
 	return RunQuery(t, zctx, readers, querySource, func(_ demand.Demand) {})
 }
 
-func RunQuery(t testing.TB, zctx *zed.Context, readers []zio.Reader, querySource string, useDemand func(demandIn demand.Demand)) []zed.Value {
+func RunQuery(t testing.TB, zctx *super.Context, readers []zio.Reader, querySource string, useDemand func(demandIn demand.Demand)) []super.Value {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -119,7 +119,7 @@ func RunQuery(t testing.TB, zctx *zed.Context, readers []zio.Reader, querySource
 	}
 
 	// Run query
-	var valuesOut []zed.Value
+	var valuesOut []super.Value
 	for {
 		batch, err := query.Pull(false)
 		require.NoError(t, err)
@@ -135,7 +135,7 @@ func RunQuery(t testing.TB, zctx *zed.Context, readers []zio.Reader, querySource
 	return valuesOut
 }
 
-func CompareValues(t testing.TB, valuesExpected []zed.Value, valuesActual []zed.Value) {
+func CompareValues(t testing.TB, valuesExpected []super.Value, valuesActual []super.Value) {
 	t.Logf("comparing: len(expected)=%v vs len(actual)=%v", len(valuesExpected), len(valuesActual))
 	for i := range valuesExpected {
 		if i >= len(valuesActual) {
@@ -146,7 +146,7 @@ func CompareValues(t testing.TB, valuesExpected []zed.Value, valuesActual []zed.
 		valueExpected := valuesExpected[i]
 		valueActual := valuesActual[i]
 		t.Logf("comparing: expected[%v]=%v vs actual[%v]=%v", i, zson.String(&valueExpected), i, zson.String(&valueActual))
-		if !bytes.Equal(zed.EncodeTypeValue(valueExpected.Type()), zed.EncodeTypeValue(valueActual.Type())) {
+		if !bytes.Equal(super.EncodeTypeValue(valueExpected.Type()), super.EncodeTypeValue(valueActual.Type())) {
 			t.Errorf("values have different types: %v vs %v", valueExpected.Type(), valueActual.Type())
 		}
 		if !bytes.Equal(valueExpected.Bytes(), valueActual.Bytes()) {
@@ -159,59 +159,59 @@ func CompareValues(t testing.TB, valuesExpected []zed.Value, valuesActual []zed.
 	}
 }
 
-func GenValues(b *bytes.Reader, context *zed.Context, types []zed.Type) []zed.Value {
-	var values []zed.Value
+func GenValues(b *bytes.Reader, context *super.Context, types []super.Type) []super.Value {
+	var values []super.Value
 	var builder zcode.Builder
 	for GenByte(b) != 0 {
 		typ := types[int(GenByte(b))%len(types)]
 		builder.Reset()
 		GenValue(b, context, typ, &builder)
-		values = append(values, zed.NewValue(typ, builder.Bytes().Body()))
+		values = append(values, super.NewValue(typ, builder.Bytes().Body()))
 	}
 	return values
 }
 
-func GenValue(b *bytes.Reader, context *zed.Context, typ zed.Type, builder *zcode.Builder) {
+func GenValue(b *bytes.Reader, context *super.Context, typ super.Type, builder *zcode.Builder) {
 	if GenByte(b) == 0 {
 		builder.Append(nil)
 		return
 	}
 	switch typ {
-	case zed.TypeUint8:
-		builder.Append(zed.EncodeUint(uint64(GenByte(b))))
-	case zed.TypeUint16:
-		builder.Append(zed.EncodeUint(uint64(binary.LittleEndian.Uint16(GenBytes(b, 2)))))
-	case zed.TypeUint32:
-		builder.Append(zed.EncodeUint(uint64(binary.LittleEndian.Uint32(GenBytes(b, 4)))))
-	case zed.TypeUint64:
-		builder.Append(zed.EncodeUint(uint64(binary.LittleEndian.Uint64(GenBytes(b, 8)))))
-	case zed.TypeInt8:
-		builder.Append(zed.EncodeInt(int64(GenByte(b))))
-	case zed.TypeInt16:
-		builder.Append(zed.EncodeInt(int64(binary.LittleEndian.Uint16(GenBytes(b, 2)))))
-	case zed.TypeInt32:
-		builder.Append(zed.EncodeInt(int64(binary.LittleEndian.Uint32(GenBytes(b, 4)))))
-	case zed.TypeInt64:
-		builder.Append(zed.EncodeInt(int64(binary.LittleEndian.Uint64(GenBytes(b, 8)))))
-	case zed.TypeDuration:
-		builder.Append(zed.EncodeDuration(nano.Duration(int64(binary.LittleEndian.Uint64(GenBytes(b, 8))))))
-	case zed.TypeTime:
-		builder.Append(zed.EncodeTime(nano.Ts(int64(binary.LittleEndian.Uint64(GenBytes(b, 8))))))
-	case zed.TypeFloat16:
-		builder.Append(zed.EncodeFloat16(float32(float16.Frombits(binary.LittleEndian.Uint16(GenBytes(b, 4))))))
-	case zed.TypeFloat32:
-		builder.Append(zed.EncodeFloat32(math.Float32frombits(binary.LittleEndian.Uint32(GenBytes(b, 4)))))
-	case zed.TypeFloat64:
-		builder.Append(zed.EncodeFloat64(math.Float64frombits(binary.LittleEndian.Uint64(GenBytes(b, 8)))))
-	case zed.TypeBool:
-		builder.Append(zed.EncodeBool(GenByte(b) > 0))
-	case zed.TypeBytes:
-		builder.Append(zed.EncodeBytes(GenBytes(b, int(GenByte(b)))))
-	case zed.TypeString:
-		builder.Append(zed.EncodeString(string(GenBytes(b, int(GenByte(b))))))
-	case zed.TypeIP:
-		builder.Append(zed.EncodeIP(netip.AddrFrom16([16]byte(GenBytes(b, 16)))))
-	case zed.TypeNet:
+	case super.TypeUint8:
+		builder.Append(super.EncodeUint(uint64(GenByte(b))))
+	case super.TypeUint16:
+		builder.Append(super.EncodeUint(uint64(binary.LittleEndian.Uint16(GenBytes(b, 2)))))
+	case super.TypeUint32:
+		builder.Append(super.EncodeUint(uint64(binary.LittleEndian.Uint32(GenBytes(b, 4)))))
+	case super.TypeUint64:
+		builder.Append(super.EncodeUint(uint64(binary.LittleEndian.Uint64(GenBytes(b, 8)))))
+	case super.TypeInt8:
+		builder.Append(super.EncodeInt(int64(GenByte(b))))
+	case super.TypeInt16:
+		builder.Append(super.EncodeInt(int64(binary.LittleEndian.Uint16(GenBytes(b, 2)))))
+	case super.TypeInt32:
+		builder.Append(super.EncodeInt(int64(binary.LittleEndian.Uint32(GenBytes(b, 4)))))
+	case super.TypeInt64:
+		builder.Append(super.EncodeInt(int64(binary.LittleEndian.Uint64(GenBytes(b, 8)))))
+	case super.TypeDuration:
+		builder.Append(super.EncodeDuration(nano.Duration(int64(binary.LittleEndian.Uint64(GenBytes(b, 8))))))
+	case super.TypeTime:
+		builder.Append(super.EncodeTime(nano.Ts(int64(binary.LittleEndian.Uint64(GenBytes(b, 8))))))
+	case super.TypeFloat16:
+		builder.Append(super.EncodeFloat16(float32(float16.Frombits(binary.LittleEndian.Uint16(GenBytes(b, 4))))))
+	case super.TypeFloat32:
+		builder.Append(super.EncodeFloat32(math.Float32frombits(binary.LittleEndian.Uint32(GenBytes(b, 4)))))
+	case super.TypeFloat64:
+		builder.Append(super.EncodeFloat64(math.Float64frombits(binary.LittleEndian.Uint64(GenBytes(b, 8)))))
+	case super.TypeBool:
+		builder.Append(super.EncodeBool(GenByte(b) > 0))
+	case super.TypeBytes:
+		builder.Append(super.EncodeBytes(GenBytes(b, int(GenByte(b)))))
+	case super.TypeString:
+		builder.Append(super.EncodeString(string(GenBytes(b, int(GenByte(b))))))
+	case super.TypeIP:
+		builder.Append(super.EncodeIP(netip.AddrFrom16([16]byte(GenBytes(b, 16)))))
+	case super.TypeNet:
 		ip := netip.AddrFrom16([16]byte(GenBytes(b, 16)))
 		numBits := int(GenByte(b)) % ip.BitLen()
 		net, err := ip.Prefix(numBits)
@@ -219,45 +219,45 @@ func GenValue(b *bytes.Reader, context *zed.Context, typ zed.Type, builder *zcod
 			// Should be unreachable.
 			panic(err)
 		}
-		builder.Append(zed.EncodeNet(net))
-	case zed.TypeType:
+		builder.Append(super.EncodeNet(net))
+	case super.TypeType:
 		typ := GenType(b, context, 3)
-		builder.Append(zed.EncodeTypeValue(typ))
-	case zed.TypeNull:
+		builder.Append(super.EncodeTypeValue(typ))
+	case super.TypeNull:
 		builder.Append(nil)
 	default:
 		switch typ := typ.(type) {
-		case *zed.TypeRecord:
+		case *super.TypeRecord:
 			builder.BeginContainer()
 			for _, field := range typ.Fields {
 				GenValue(b, context, field.Type, builder)
 			}
 			builder.EndContainer()
-		case *zed.TypeArray:
+		case *super.TypeArray:
 			builder.BeginContainer()
 			for GenByte(b) != 0 {
 				GenValue(b, context, typ.Type, builder)
 			}
 			builder.EndContainer()
-		case *zed.TypeMap:
+		case *super.TypeMap:
 			builder.BeginContainer()
 			for GenByte(b) != 0 {
 				GenValue(b, context, typ.KeyType, builder)
 				GenValue(b, context, typ.ValType, builder)
 			}
-			builder.TransformContainer(zed.NormalizeMap)
+			builder.TransformContainer(super.NormalizeMap)
 			builder.EndContainer()
-		case *zed.TypeSet:
+		case *super.TypeSet:
 			builder.BeginContainer()
 			for GenByte(b) != 0 {
 				GenValue(b, context, typ.Type, builder)
 			}
-			builder.TransformContainer(zed.NormalizeSet)
+			builder.TransformContainer(super.NormalizeSet)
 			builder.EndContainer()
-		case *zed.TypeUnion:
+		case *super.TypeUnion:
 			tag := binary.LittleEndian.Uint64(GenBytes(b, 8)) % uint64(len(typ.Types))
 			builder.BeginContainer()
-			builder.Append(zed.EncodeInt(int64(tag)))
+			builder.Append(super.EncodeInt(int64(tag)))
 			GenValue(b, context, typ.Types[tag], builder)
 			builder.EndContainer()
 		default:
@@ -266,55 +266,55 @@ func GenValue(b *bytes.Reader, context *zed.Context, typ zed.Type, builder *zcod
 	}
 }
 
-func GenTypes(b *bytes.Reader, context *zed.Context, depth int) []zed.Type {
-	var types []zed.Type
+func GenTypes(b *bytes.Reader, context *super.Context, depth int) []super.Type {
+	var types []super.Type
 	for len(types) == 0 || GenByte(b) != 0 {
 		types = append(types, GenType(b, context, depth))
 	}
 	return types
 }
 
-func GenType(b *bytes.Reader, context *zed.Context, depth int) zed.Type {
+func GenType(b *bytes.Reader, context *super.Context, depth int) super.Type {
 	if depth < 0 || GenByte(b)%2 == 0 {
 		switch GenByte(b) % 19 {
 		case 0:
-			return zed.TypeUint8
+			return super.TypeUint8
 		case 1:
-			return zed.TypeUint16
+			return super.TypeUint16
 		case 2:
-			return zed.TypeUint32
+			return super.TypeUint32
 		case 3:
-			return zed.TypeUint64
+			return super.TypeUint64
 		case 4:
-			return zed.TypeInt8
+			return super.TypeInt8
 		case 5:
-			return zed.TypeInt16
+			return super.TypeInt16
 		case 6:
-			return zed.TypeInt32
+			return super.TypeInt32
 		case 7:
-			return zed.TypeInt64
+			return super.TypeInt64
 		case 8:
-			return zed.TypeDuration
+			return super.TypeDuration
 		case 9:
-			return zed.TypeTime
+			return super.TypeTime
 		case 10:
-			return zed.TypeFloat16
+			return super.TypeFloat16
 		case 11:
-			return zed.TypeFloat32
+			return super.TypeFloat32
 		case 12:
-			return zed.TypeBool
+			return super.TypeBool
 		case 13:
-			return zed.TypeBytes
+			return super.TypeBytes
 		case 14:
-			return zed.TypeString
+			return super.TypeString
 		case 15:
-			return zed.TypeIP
+			return super.TypeIP
 		case 16:
-			return zed.TypeNet
+			return super.TypeNet
 		case 17:
-			return zed.TypeType
+			return super.TypeType
 		case 18:
-			return zed.TypeNull
+			return super.TypeNull
 		default:
 			panic("Unreachable")
 		}
@@ -323,9 +323,9 @@ func GenType(b *bytes.Reader, context *zed.Context, depth int) zed.Type {
 		switch GenByte(b) % 5 {
 		case 0:
 			fieldTypes := GenTypes(b, context, depth)
-			fields := make([]zed.Field, len(fieldTypes))
+			fields := make([]super.Field, len(fieldTypes))
 			for i, fieldType := range fieldTypes {
-				fields[i] = zed.Field{
+				fields[i] = super.Field{
 					Name: fmt.Sprintf("f%d", i),
 					Type: fieldType,
 				}
@@ -350,10 +350,10 @@ func GenType(b *bytes.Reader, context *zed.Context, depth int) zed.Type {
 			// TODO There are some weird corners around unions that contain null or duplicate types eg
 			// vng_test.go:107: comparing: in[0]=null((null,null)) vs out[0]=null((null,null))
 			// vng_test.go:112: values have different zng bytes: [1 0] vs [2 2 0]
-			var unionTypes []zed.Type
+			var unionTypes []super.Type
 			for _, typ := range types {
 				skip := false
-				if typ == zed.TypeNull {
+				if typ == super.TypeNull {
 					skip = true
 				}
 				for _, unionType := range unionTypes {
@@ -366,7 +366,7 @@ func GenType(b *bytes.Reader, context *zed.Context, depth int) zed.Type {
 				}
 			}
 			if len(unionTypes) == 0 {
-				return zed.TypeNull
+				return super.TypeNull
 			}
 			return context.LookupTypeUnion(unionTypes)
 		default:

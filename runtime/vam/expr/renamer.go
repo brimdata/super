@@ -9,11 +9,11 @@ import (
 // Renamer renames one or more fields in a record.  See [expr.Renamer], on which
 // it relies, for more detail.
 type Renamer struct {
-	zctx    *zed.Context
+	zctx    *super.Context
 	renamer *expr.Renamer
 }
 
-func NewRenamer(zctx *zed.Context, srcs, dsts []*expr.Lval) *Renamer {
+func NewRenamer(zctx *super.Context, srcs, dsts []*expr.Lval) *Renamer {
 	return &Renamer{zctx, expr.NewRenamer(zctx, srcs, dsts)}
 }
 
@@ -27,9 +27,9 @@ func (r *Renamer) eval(vecs ...vector.Any) vector.Any {
 	if !ok {
 		return vec
 	}
-	val, err := r.renamer.EvalToValAndError(nil, zed.NewValue(vec.Type(), nil))
+	val, err := r.renamer.EvalToValAndError(nil, super.NewValue(vec.Type(), nil))
 	if err != nil {
 		return vector.NewWrappedError(r.zctx, err.Error(), vec)
 	}
-	return vector.NewRecord(val.Type().(*zed.TypeRecord), recVec.Fields, recVec.Len(), recVec.Nulls)
+	return vector.NewRecord(val.Type().(*super.TypeRecord), recVec.Fields, recVec.Len(), recVec.Nulls)
 }

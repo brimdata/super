@@ -61,7 +61,7 @@ func (s *Source) SortKeys(ctx context.Context, src dag.Op) order.SortKeys {
 	return nil
 }
 
-func (s *Source) Open(ctx context.Context, zctx *zed.Context, path, format string, pushdown zbuf.Filter, demandOut demand.Demand) (zbuf.Puller, error) {
+func (s *Source) Open(ctx context.Context, zctx *super.Context, path, format string, pushdown zbuf.Filter, demandOut demand.Demand) (zbuf.Puller, error) {
 	if path == "-" {
 		path = "stdio:stdin"
 	}
@@ -78,7 +78,7 @@ func (s *Source) Open(ctx context.Context, zctx *zed.Context, path, format strin
 	return &closePuller{sn, file}, nil
 }
 
-func (s *Source) OpenHTTP(ctx context.Context, zctx *zed.Context, url, format, method string, headers http.Header, body io.Reader, demandOut demand.Demand) (zbuf.Puller, error) {
+func (s *Source) OpenHTTP(ctx context.Context, zctx *super.Context, url, format, method string, headers http.Header, body io.Reader, demandOut demand.Demand) (zbuf.Puller, error) {
 	req, err := http.NewRequestWithContext(ctx, method, url, body)
 	if err != nil {
 		return nil, err

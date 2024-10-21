@@ -11,26 +11,26 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#unflatten
 type Unflatten struct {
-	zctx *zed.Context
+	zctx *super.Context
 
 	builder     zcode.Builder
 	recordCache recordCache
 
 	// These exist only to reduce memory allocations.
 	path   field.Path
-	types  []zed.Type
+	types  []super.Type
 	values []zcode.Bytes
 }
 
-func NewUnflatten(zctx *zed.Context) *Unflatten {
+func NewUnflatten(zctx *super.Context) *Unflatten {
 	return &Unflatten{
 		zctx: zctx,
 	}
 }
 
-func (u *Unflatten) Call(_ zed.Allocator, args []zed.Value) zed.Value {
+func (u *Unflatten) Call(_ super.Allocator, args []super.Value) super.Value {
 	val := args[0]
-	array, ok := zed.TypeUnder(val.Type()).(*zed.TypeArray)
+	array, ok := super.TypeUnder(val.Type()).(*super.TypeArray)
 	if !ok {
 		return val
 	}
@@ -42,7 +42,7 @@ func (u *Unflatten) Call(_ zed.Allocator, args []zed.Value) zed.Value {
 		bytes := it.Next()
 		path, typ, vb, err := u.parseElem(array.Type, bytes)
 		if err != nil {
-			return u.zctx.WrapError(err.Error(), zed.NewValue(array.Type, bytes))
+			return u.zctx.WrapError(err.Error(), super.NewValue(array.Type, bytes))
 		}
 		if typ == nil {
 			continue
@@ -56,7 +56,7 @@ func (u *Unflatten) Call(_ zed.Allocator, args []zed.Value) zed.Value {
 	}
 	u.builder.Reset()
 	types, values := u.types, u.values
-	typ, err := root.build(u.zctx, &u.builder, func() (zed.Type, zcode.Bytes) {
+	typ, err := root.build(u.zctx, &u.builder, func() (super.Type, zcode.Bytes) {
 		typ, value := types[0], values[0]
 		types, values = types[1:], values[1:]
 		return typ, value
@@ -64,14 +64,14 @@ func (u *Unflatten) Call(_ zed.Allocator, args []zed.Value) zed.Value {
 	if err != nil {
 		return u.zctx.WrapError(err.Error(), val)
 	}
-	return zed.NewValue(typ, u.builder.Bytes())
+	return super.NewValue(typ, u.builder.Bytes())
 }
 
-func (u *Unflatten) parseElem(inner zed.Type, vb zcode.Bytes) (field.Path, zed.Type, zcode.Bytes, error) {
-	if union, ok := zed.TypeUnder(inner).(*zed.TypeUnion); ok {
+func (u *Unflatten) parseElem(inner super.Type, vb zcode.Bytes) (field.Path, super.Type, zcode.Bytes, error) {
+	if union, ok := super.TypeUnder(inner).(*super.TypeUnion); ok {
 		inner, vb = union.Untag(vb)
 	}
-	typ := zed.TypeRecordOf(inner)
+	typ := super.TypeRecordOf(inner)
 	if typ == nil || len(typ.Fields) != 2 {
 		return nil, nil, nil, nil
 	}
@@ -90,11 +90,11 @@ func (u *Unflatten) parseElem(inner zed.Type, vb zcode.Bytes) (field.Path, zed.T
 		kbytes, vbytes = vbytes, kbytes
 	}
 	ktyp := typ.Fields[nkey].Type
-	if ktyp.ID() == zed.IDString {
-		u.path = append(u.path[:0], zed.DecodeString(kbytes))
+	if ktyp.ID() == super.IDString {
+		u.path = append(u.path[:0], super.DecodeString(kbytes))
 		return u.path, vtyp, vbytes, nil
 	}
-	if a, ok := zed.TypeUnder(ktyp).(*zed.TypeArray); ok && a.Type.ID() == zed.IDString {
+	if a, ok := super.TypeUnder(ktyp).(*super.TypeArray); ok && a.Type.ID() == super.IDString {
 		return u.decodeKey(kbytes), vtyp, vbytes, nil
 	}
 	return nil, nil, nil, fmt.Errorf("invalid key type %s: expected either string or [string]", zson.FormatType(ktyp))
@@ -103,7 +103,7 @@ func (u *Unflatten) parseElem(inner zed.Type, vb zcode.Bytes) (field.Path, zed.T
 func (u *Unflatten) decodeKey(b zcode.Bytes) field.Path {
 	u.path = u.path[:0]
 	for it := b.Iter(); !it.Done(); {
-		u.path = append(u.path, zed.DecodeString(it.Next()))
+		u.path = append(u.path, super.DecodeString(it.Next()))
 	}
 	return u.path
 }
@@ -129,7 +129,7 @@ func (c *recordCache) reset() {
 }
 
 type record struct {
-	fields  []zed.Field
+	fields  []super.Field
 	records []*record
 }
 
@@ -139,7 +139,7 @@ func (r *record) addPath(c *recordCache, p []string) (removed int) {
 	}
 	at := len(r.fields) - 1
 	if len(r.fields) == 0 || r.fields[at].Name != p[0] {
-		r.fields = append(r.fields, zed.NewField(p[0], nil))
+		r.fields = append(r.fields, super.NewField(p[0], nil))
 		var rec *record
 		if len(p) > 1 {
 			rec = c.new()
@@ -170,7 +170,7 @@ func (r *record) countLeaves() int {
 	return count
 }
 
-func (r *record) build(zctx *zed.Context, b *zcode.Builder, next func() (zed.Type, zcode.Bytes)) (zed.Type, error) {
+func (r *record) build(zctx *super.Context, b *zcode.Builder, next func() (super.Type, zcode.Bytes)) (super.Type, error) {
 	for i, rec := range r.records {
 		if rec == nil {
 			typ, value := next()

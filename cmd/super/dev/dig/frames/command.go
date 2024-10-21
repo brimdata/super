@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"io"
 
-	zed "github.com/brimdata/super"
+	 "github.com/brimdata/super"
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/cmd/super/dev/dig"
 	"github.com/brimdata/super/pkg/charm"
@@ -111,7 +111,7 @@ type CompressedBlock struct {
 	Size   int64  `zed:"size"`
 }
 
-func (m *metaReader) Read() (*zed.Value, error) {
+func (m *metaReader) Read() (*super.Value, error) {
 	f, err := m.nextFrame()
 	if f == nil || err != nil {
 		return nil, err

@@ -15,13 +15,13 @@ type Writer struct {
 	buf bytes.Buffer
 	header
 	flattener *expr.Flattener
-	typ       *zed.TypeRecord
+	typ       *super.TypeRecord
 }
 
 func NewWriter(w io.WriteCloser) *Writer {
 	return &Writer{
 		writer:    w,
-		flattener: expr.NewFlattener(zed.NewContext()),
+		flattener: expr.NewFlattener(super.NewContext()),
 	}
 }
 
@@ -29,7 +29,7 @@ func (w *Writer) Close() error {
 	return w.writer.Close()
 }
 
-func (w *Writer) Write(r zed.Value) error {
+func (w *Writer) Write(r super.Value) error {
 	r, err := w.flattener.Flatten(r)
 	if err != nil {
 		return err
@@ -39,12 +39,12 @@ func (w *Writer) Write(r zed.Value) error {
 		if err := w.writeHeader(r, path); err != nil {
 			return err
 		}
-		w.typ = zed.TypeRecordOf(r.Type())
+		w.typ = super.TypeRecordOf(r.Type())
 	}
 	w.buf.Reset()
 	var needSeparator bool
 	it := r.Bytes().Iter()
-	for _, f := range zed.TypeRecordOf(r.Type()).Fields {
+	for _, f := range super.TypeRecordOf(r.Type()).Fields {
 		bytes := it.Next()
 		if f.Name == "_path" {
 			continue
@@ -53,14 +53,14 @@ func (w *Writer) Write(r zed.Value) error {
 			w.buf.WriteByte('\t')
 		}
 		needSeparator = true
-		w.buf.WriteString(FormatValue(zed.NewValue(f.Type, bytes)))
+		w.buf.WriteString(FormatValue(super.NewValue(f.Type, bytes)))
 	}
 	w.buf.WriteByte('\n')
 	_, err = w.writer.Write(w.buf.Bytes())
 	return err
 }
 
-func (w *Writer) writeHeader(r zed.Value, path string) error {
+func (w *Writer) writeHeader(r super.Value, path string) error {
 	d := r.Type()
 	var s string
 	if w.separator != "\\x90" {
@@ -88,7 +88,7 @@ func (w *Writer) writeHeader(r zed.Value, path string) error {
 	}
 	if d != w.typ {
 		s += "#fields"
-		for _, f := range zed.TypeRecordOf(d).Fields {
+		for _, f := range super.TypeRecordOf(d).Fields {
 			if f.Name == "_path" {
 				continue
 			}
@@ -96,7 +96,7 @@ func (w *Writer) writeHeader(r zed.Value, path string) error {
 		}
 		s += "\n"
 		s += "#types"
-		for _, f := range zed.TypeRecordOf(d).Fields {
+		for _, f := range super.TypeRecordOf(d).Fields {
 			if f.Name == "_path" {
 				continue
 			}

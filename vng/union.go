@@ -10,7 +10,7 @@ import (
 )
 
 type UnionEncoder struct {
-	typ    *zed.TypeUnion
+	typ    *super.TypeUnion
 	values []Encoder
 	tags   *Int64Encoder
 	count  uint32
@@ -18,7 +18,7 @@ type UnionEncoder struct {
 
 var _ Encoder = (*UnionEncoder)(nil)
 
-func NewUnionEncoder(typ *zed.TypeUnion) *UnionEncoder {
+func NewUnionEncoder(typ *super.TypeUnion) *UnionEncoder {
 	var values []Encoder
 	for _, typ := range typ.Types {
 		values = append(values, NewEncoder(typ))
@@ -103,7 +103,7 @@ func (u *UnionBuilder) Build(b *zcode.Builder) error {
 		return errors.New("bad tag in VNG union builder")
 	}
 	b.BeginContainer()
-	b.Append(zed.EncodeInt(tag))
+	b.Append(super.EncodeInt(tag))
 	if err := u.builders[tag].Build(b); err != nil {
 		return err
 	}

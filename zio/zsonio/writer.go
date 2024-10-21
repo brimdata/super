@@ -30,7 +30,7 @@ func (w *Writer) Close() error {
 	return w.writer.Close()
 }
 
-func (w *Writer) Write(rec zed.Value) error {
+func (w *Writer) Write(rec super.Value) error {
 	if _, err := io.WriteString(w.writer, w.formatter.FormatRecord(rec)); err != nil {
 		return err
 	}

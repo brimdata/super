@@ -77,8 +77,8 @@ func FileMatch(s string) (kind FileKind, id ksuid.KSUID, ok bool) {
 // persisted to storage (i.e., its compressed size).
 type Object struct {
 	ID    ksuid.KSUID `zed:"id"`
-	Min   zed.Value   `zed:"min"`
-	Max   zed.Value   `zed:"max"`
+	Min   super.Value `zed:"min"`
+	Max   super.Value `zed:"max"`
 	Count uint64      `zed:"count"`
 	Size  int64       `zed:"size"`
 }

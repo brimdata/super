@@ -23,7 +23,7 @@ func TestOpenFifoCancelation(t *testing.T) {
 		errCh := make(chan error)
 		ctx, cancel := context.WithCancel(context.Background())
 		go func() {
-			_, err := Open(ctx, zed.NewContext(), storage.NewFileSystem(), path, demand.All(), ReaderOpts{})
+			_, err := Open(ctx, super.NewContext(), storage.NewFileSystem(), path, demand.All(), ReaderOpts{})
 			errCh <- err
 		}()
 		time.Sleep(10 * time.Millisecond)

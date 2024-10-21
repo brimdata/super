@@ -12,18 +12,18 @@ import (
 // type T. It is useful for type-based indexing.
 type Op struct {
 	parent   zbuf.Puller
-	outType  zed.Type
-	typ      zed.Type
+	outType  super.Type
+	typ      super.Type
 	args     []expr.Evaluator
 	resetter expr.Resetter
 }
 
 // New creates a exploder for type typ, where the
 // output records' single field is named name.
-func New(zctx *zed.Context, parent zbuf.Puller, args []expr.Evaluator, typ zed.Type, name string, resetter expr.Resetter) (zbuf.Puller, error) {
+func New(zctx *super.Context, parent zbuf.Puller, args []expr.Evaluator, typ super.Type, name string, resetter expr.Resetter) (zbuf.Puller, error) {
 	return &Op{
 		parent:   parent,
-		outType:  zctx.MustLookupTypeRecord([]zed.Field{{Name: name, Type: typ}}),
+		outType:  zctx.MustLookupTypeRecord([]super.Field{{Name: name, Type: typ}}),
 		typ:      typ,
 		args:     args,
 		resetter: resetter,
@@ -38,7 +38,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 			return nil, err
 		}
 		vals := batch.Values()
-		out := make([]zed.Value, 0, len(vals))
+		out := make([]super.Value, 0, len(vals))
 		for i := range vals {
 			for _, arg := range o.args {
 				val := arg.Eval(batch, vals[i])
@@ -48,11 +48,11 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 					}
 					continue
 				}
-				zed.Walk(val.Type(), val.Bytes(), func(typ zed.Type, body zcode.Bytes) error {
+				super.Walk(val.Type(), val.Bytes(), func(typ super.Type, body zcode.Bytes) error {
 					if typ == o.typ && body != nil {
 						bytes := zcode.Append(nil, body)
-						out = append(out, zed.NewValue(o.outType, bytes))
-						return zed.SkipContainer
+						out = append(out, super.NewValue(o.outType, bytes))
+						return super.SkipContainer
 					}
 					return nil
 				})

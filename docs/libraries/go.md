@@ -47,13 +47,13 @@ import (
 	"log"
 	"os"
 
-	zed "github.com/brimdata/super"
+	"github.com/brimdata/super"
 	"github.com/brimdata/super/zio/zsonio"
 	"github.com/brimdata/super/zson"
 )
 
 func main() {
-	zctx := zed.NewContext()
+	zctx := super.NewContext()
 	reader := zsonio.NewReader(zctx, os.Stdin)
 	for {
 		val, err := reader.Read()
@@ -114,7 +114,7 @@ import (
 	"log"
 	"os"
 
-	zed "github.com/brimdata/super"
+	"github.com/brimdata/super"
 	"github.com/brimdata/super/lake/api"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/zbuf"
@@ -140,7 +140,7 @@ func main() {
 	}
 	defer q.Pull(true)
 	reader := zbuf.PullerReader(q)
-	zctx := zed.NewContext()
+	zctx := super.NewContext()
 	for {
 		val, err := reader.Read()
 		if err != nil {

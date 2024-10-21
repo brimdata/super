@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	zed "github.com/brimdata/super"
+	 "github.com/brimdata/super"
 	"github.com/brimdata/super/api"
 	"github.com/brimdata/super/api/queryio"
 	"github.com/brimdata/super/compiler"
@@ -62,7 +62,7 @@ func handleQuery(c *Core, w *ResponseWriter, r *Request) {
 		w.Error(srverr.ErrInvalid(err))
 		return
 	}
-	flowgraph, err := runtime.CompileLakeQuery(r.Context(), zed.NewContext(), c.compiler, query, sset, &req.Head)
+	flowgraph, err := runtime.CompileLakeQuery(r.Context(), super.NewContext(), c.compiler, query, sset, &req.Head)
 	if err != nil {
 		w.Error(srverr.ErrInvalid(err))
 		return
@@ -459,7 +459,7 @@ func handleBranchLoad(c *Core, w *ResponseWriter, r *Request) {
 		// Force validation of ZNG when loading into the lake.
 		ZNG: zngio.ReaderOpts{Validate: true},
 	}
-	zctx := zed.NewContext()
+	zctx := super.NewContext()
 	zrc, err := anyio.NewReaderWithOpts(zctx, reader, demand.All(), opts)
 	if err != nil {
 		w.Error(srverr.ErrInvalid(err))
@@ -494,7 +494,7 @@ type warningsReader struct {
 	warnings []string
 }
 
-func (w *warningsReader) Read() (*zed.Value, error) {
+func (w *warningsReader) Read() (*super.Value, error) {
 	val, err := w.Reader.Read()
 	if err != nil {
 		w.warnings = append(w.warnings, err.Error())

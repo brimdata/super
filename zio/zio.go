@@ -59,14 +59,14 @@ func NopCloser(w io.Writer) io.WriteCloser {
 // may overwrite them.  Clients that wish to use val or val.Bytes after the next
 // Read must make a copy.
 type Reader interface {
-	Read() (val *zed.Value, err error)
+	Read() (val *super.Value, err error)
 }
 
 // Writer wraps the Write method.
 //
 // Implementations must not retain val or val.Bytes.
 type Writer interface {
-	Write(val zed.Value) error
+	Write(val super.Value) error
 }
 
 type ReadCloser interface {
@@ -113,7 +113,7 @@ type concatReader struct {
 	readers []Reader
 }
 
-func (c *concatReader) Read() (*zed.Value, error) {
+func (c *concatReader) Read() (*super.Value, error) {
 	for len(c.readers) > 0 {
 		rec, err := c.readers[0].Read()
 		if rec != nil || err != nil {
@@ -132,7 +132,7 @@ type multiWriter struct {
 	writers []Writer
 }
 
-func (m *multiWriter) Write(rec zed.Value) error {
+func (m *multiWriter) Write(rec super.Value) error {
 	for _, w := range m.writers {
 		if err := w.Write(rec); err != nil {
 			return err

@@ -24,21 +24,21 @@ func NewDCount() *DCount {
 	}
 }
 
-func (d *DCount) Consume(val zed.Value) {
+func (d *DCount) Consume(val super.Value) {
 	d.scratch = d.scratch[:0]
 	// append type id to vals so we get a unique count where the bytes are same
-	// but the zed.Type is different.
-	d.scratch = zed.AppendInt(d.scratch, int64(val.Type().ID()))
+	// but the super.Type is different.
+	d.scratch = super.AppendInt(d.scratch, int64(val.Type().ID()))
 	d.scratch = append(d.scratch, val.Bytes()...)
 	d.sketch.Insert(d.scratch)
 }
 
-func (d *DCount) Result(*zed.Context) zed.Value {
-	return zed.NewUint64(d.sketch.Estimate())
+func (d *DCount) Result(*super.Context) super.Value {
+	return super.NewUint64(d.sketch.Estimate())
 }
 
-func (d *DCount) ConsumeAsPartial(partial zed.Value) {
-	if partial.Type() != zed.TypeBytes {
+func (d *DCount) ConsumeAsPartial(partial super.Value) {
+	if partial.Type() != super.TypeBytes {
 		panic(fmt.Errorf("dcount: partial has bad type: %s", zson.FormatValue(partial)))
 	}
 	var s hyperloglog.Sketch
@@ -48,10 +48,10 @@ func (d *DCount) ConsumeAsPartial(partial zed.Value) {
 	d.sketch.Merge(&s)
 }
 
-func (d *DCount) ResultAsPartial(zctx *zed.Context) zed.Value {
+func (d *DCount) ResultAsPartial(zctx *super.Context) super.Value {
 	b, err := d.sketch.MarshalBinary()
 	if err != nil {
 		panic(fmt.Errorf("dcount: marshaling partial: %w", err))
 	}
-	return zed.NewBytes(b)
+	return super.NewBytes(b)
 }

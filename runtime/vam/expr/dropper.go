@@ -13,11 +13,11 @@ import (
 // fields of a nested record, the nested record is dropped.  Dropper does not
 // modify non-records.
 type Dropper struct {
-	zctx *zed.Context
+	zctx *super.Context
 	fm   fieldsMap
 }
 
-func NewDropper(zctx *zed.Context, fields field.List) *Dropper {
+func NewDropper(zctx *super.Context, fields field.List) *Dropper {
 	fm := fieldsMap{}
 	for _, f := range fields {
 		fm.Add(f)
@@ -31,7 +31,7 @@ func (d *Dropper) Eval(vec vector.Any) vector.Any {
 
 func (d *Dropper) eval(vecs ...vector.Any) vector.Any {
 	vec := vecs[0]
-	if vec.Type().Kind() != zed.RecordKind {
+	if vec.Type().Kind() != super.RecordKind {
 		return vec
 	}
 	if vec2, ok := d.drop(vec, d.fm); ok {
@@ -50,9 +50,9 @@ func (d *Dropper) eval(vecs ...vector.Any) vector.Any {
 func (d *Dropper) drop(vec vector.Any, fm fieldsMap) (vector.Any, bool) {
 	switch vec := vector.Under(vec).(type) {
 	case *vector.Record:
-		fields := zed.TypeRecordOf(vec.Type()).Fields
+		fields := super.TypeRecordOf(vec.Type()).Fields
 		var changed bool
-		var newFields []zed.Field
+		var newFields []super.Field
 		var newVecs []vector.Any
 		for i, f := range fields {
 			if ff, ok := fm[f.Name]; ok {
@@ -77,7 +77,7 @@ func (d *Dropper) drop(vec vector.Any, fm fieldsMap) (vector.Any, bool) {
 						continue
 					}
 					// Substitute modified field.
-					newFields = append(newFields, zed.NewField(f.Name, vec2.Type()))
+					newFields = append(newFields, super.NewField(f.Name, vec2.Type()))
 					newVecs = append(newVecs, vec2)
 					continue
 				}

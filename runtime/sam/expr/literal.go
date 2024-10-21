@@ -3,15 +3,15 @@ package expr
 import "github.com/brimdata/super"
 
 type Literal struct {
-	val zed.Value
+	val super.Value
 }
 
 var _ Evaluator = (*Literal)(nil)
 
-func NewLiteral(val zed.Value) *Literal {
+func NewLiteral(val super.Value) *Literal {
 	return &Literal{val: val}
 }
 
-func (l Literal) Eval(Context, zed.Value) zed.Value {
+func (l Literal) Eval(Context, super.Value) super.Value {
 	return l.val
 }

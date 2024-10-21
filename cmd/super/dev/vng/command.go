@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"io"
 
-	zed "github.com/brimdata/super"
+	 "github.com/brimdata/super"
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/cmd/super/dev"
 	"github.com/brimdata/super/cmd/super/root"
@@ -76,7 +76,7 @@ func (c *Command) Run(args []string) error {
 }
 
 type reader struct {
-	zctx      *zed.Context
+	zctx      *super.Context
 	reader    *bufio.Reader
 	meta      *zngio.Reader
 	marshaler *zson.MarshalZNGContext
@@ -86,7 +86,7 @@ type reader struct {
 var _ zio.Reader = (*reader)(nil)
 
 func newReader(r io.Reader) *reader {
-	zctx := zed.NewContext()
+	zctx := super.NewContext()
 	return &reader{
 		zctx:      zctx,
 		reader:    bufio.NewReader(r),
@@ -94,7 +94,7 @@ func newReader(r io.Reader) *reader {
 	}
 }
 
-func (r *reader) Read() (*zed.Value, error) {
+func (r *reader) Read() (*super.Value, error) {
 	for {
 		if r.meta == nil {
 			hdr, err := r.readHeader()

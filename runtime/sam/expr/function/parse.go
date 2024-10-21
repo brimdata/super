@@ -12,16 +12,16 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#parse_uri
 type ParseURI struct {
-	zctx      *zed.Context
+	zctx      *super.Context
 	marshaler *zson.MarshalZNGContext
 }
 
-func (p *ParseURI) Call(_ zed.Allocator, args []zed.Value) zed.Value {
+func (p *ParseURI) Call(_ super.Allocator, args []super.Value) super.Value {
 	in := args[0]
 	if !in.IsString() || in.IsNull() {
 		return p.zctx.WrapError("parse_uri: non-empty string arg required", in)
 	}
-	s := zed.DecodeString(in.Bytes())
+	s := super.DecodeString(in.Bytes())
 	u, err := url.Parse(s)
 	if err != nil {
 		return p.zctx.WrapError("parse_uri: "+err.Error(), in)
@@ -78,31 +78,31 @@ func (p *ParseURI) Call(_ zed.Allocator, args []zed.Value) zed.Value {
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#parse_zson
 type ParseZSON struct {
-	zctx *zed.Context
+	zctx *super.Context
 	sr   *strings.Reader
 	zr   *zsonio.Reader
 }
 
-func newParseZSON(zctx *zed.Context) *ParseZSON {
+func newParseZSON(zctx *super.Context) *ParseZSON {
 	var sr strings.Reader
 	return &ParseZSON{zctx, &sr, zsonio.NewReader(zctx, &sr)}
 }
 
-func (p *ParseZSON) Call(_ zed.Allocator, args []zed.Value) zed.Value {
+func (p *ParseZSON) Call(_ super.Allocator, args []super.Value) super.Value {
 	in := args[0]
 	if !in.IsString() {
 		return p.zctx.WrapError("parse_zson: string arg required", in)
 	}
 	if in.IsNull() {
-		return zed.Null
+		return super.Null
 	}
-	p.sr.Reset(zed.DecodeString(in.Bytes()))
+	p.sr.Reset(super.DecodeString(in.Bytes()))
 	val, err := p.zr.Read()
 	if err != nil {
 		return p.zctx.WrapError("parse_zson: "+err.Error(), in)
 	}
 	if val == nil {
-		return zed.Null
+		return super.Null
 	}
 	return *val
 }

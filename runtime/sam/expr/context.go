@@ -10,8 +10,8 @@ import (
 // the scope and for allocating results.
 type Context interface {
 	// Vars() accesses the variables reachable in the current scope.
-	Vars() []zed.Value
-	zed.Allocator
+	Vars() []super.Value
+	super.Allocator
 }
 
 type allocator struct{}
@@ -22,6 +22,6 @@ func NewContext() *allocator {
 	return &allocator{}
 }
 
-func (*allocator) Vars() []zed.Value {
+func (*allocator) Vars() []super.Value {
 	return nil
 }

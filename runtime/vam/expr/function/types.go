@@ -7,7 +7,7 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#typeof
 type TypeOf struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
 func (t *TypeOf) Call(args ...vector.Any) vector.Any {
@@ -17,18 +17,18 @@ func (t *TypeOf) Call(args ...vector.Any) vector.Any {
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#kind
 type Kind struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
-func NewKind(zctx *zed.Context) *Kind {
+func NewKind(zctx *super.Context) *Kind {
 	return &Kind{zctx}
 }
 
 func (k *Kind) Call(args ...vector.Any) vector.Any {
 	vec := vector.Under(args[0])
-	if typ := vec.Type(); typ.ID() != zed.IDType {
+	if typ := vec.Type(); typ.ID() != super.IDType {
 		s := typ.Kind().String()
-		return vector.NewConst(zed.NewString(s), vec.Len(), nil)
+		return vector.NewConst(super.NewString(s), vec.Len(), nil)
 	}
 	out := vector.NewStringEmpty(vec.Len(), nil)
 	for i, n := uint32(0), vec.Len(); i < n; i++ {

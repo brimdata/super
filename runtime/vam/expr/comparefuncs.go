@@ -237,7 +237,7 @@ func compareEQIntConstView(lhs, rhs vector.Any) vector.Any {
 func compareEQIntConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsInt()
 	rconst, _ := rhs.(*vector.Const).AsInt()
-	return vector.NewConst(zed.NewBool(lconst == rconst), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(lconst == rconst), lhs.Len(), nil)
 }
 
 func compareEQUintFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -470,7 +470,7 @@ func compareEQUintConstView(lhs, rhs vector.Any) vector.Any {
 func compareEQUintConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsUint()
 	rconst, _ := rhs.(*vector.Const).AsUint()
-	return vector.NewConst(zed.NewBool(lconst == rconst), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(lconst == rconst), lhs.Len(), nil)
 }
 
 func compareEQFloatFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -703,7 +703,7 @@ func compareEQFloatConstView(lhs, rhs vector.Any) vector.Any {
 func compareEQFloatConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsFloat()
 	rconst, _ := rhs.(*vector.Const).AsFloat()
-	return vector.NewConst(zed.NewBool(lconst == rconst), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(lconst == rconst), lhs.Len(), nil)
 }
 
 func compareEQStringFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -936,7 +936,7 @@ func compareEQStringConstView(lhs, rhs vector.Any) vector.Any {
 func compareEQStringConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsString()
 	rconst, _ := rhs.(*vector.Const).AsString()
-	return vector.NewConst(zed.NewBool(lconst == rconst), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(lconst == rconst), lhs.Len(), nil)
 }
 
 func compareEQBytesFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -1169,7 +1169,7 @@ func compareEQBytesConstView(lhs, rhs vector.Any) vector.Any {
 func compareEQBytesConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsBytes()
 	rconst, _ := rhs.(*vector.Const).AsBytes()
-	return vector.NewConst(zed.NewBool(string(lconst) == string(rconst)), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(string(lconst) == string(rconst)), lhs.Len(), nil)
 }
 
 func compareNEIntFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -1402,7 +1402,7 @@ func compareNEIntConstView(lhs, rhs vector.Any) vector.Any {
 func compareNEIntConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsInt()
 	rconst, _ := rhs.(*vector.Const).AsInt()
-	return vector.NewConst(zed.NewBool(lconst != rconst), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(lconst != rconst), lhs.Len(), nil)
 }
 
 func compareNEUintFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -1635,7 +1635,7 @@ func compareNEUintConstView(lhs, rhs vector.Any) vector.Any {
 func compareNEUintConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsUint()
 	rconst, _ := rhs.(*vector.Const).AsUint()
-	return vector.NewConst(zed.NewBool(lconst != rconst), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(lconst != rconst), lhs.Len(), nil)
 }
 
 func compareNEFloatFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -1868,7 +1868,7 @@ func compareNEFloatConstView(lhs, rhs vector.Any) vector.Any {
 func compareNEFloatConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsFloat()
 	rconst, _ := rhs.(*vector.Const).AsFloat()
-	return vector.NewConst(zed.NewBool(lconst != rconst), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(lconst != rconst), lhs.Len(), nil)
 }
 
 func compareNEStringFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -2101,7 +2101,7 @@ func compareNEStringConstView(lhs, rhs vector.Any) vector.Any {
 func compareNEStringConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsString()
 	rconst, _ := rhs.(*vector.Const).AsString()
-	return vector.NewConst(zed.NewBool(lconst != rconst), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(lconst != rconst), lhs.Len(), nil)
 }
 
 func compareNEBytesFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -2334,7 +2334,7 @@ func compareNEBytesConstView(lhs, rhs vector.Any) vector.Any {
 func compareNEBytesConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsBytes()
 	rconst, _ := rhs.(*vector.Const).AsBytes()
-	return vector.NewConst(zed.NewBool(string(lconst) != string(rconst)), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(string(lconst) != string(rconst)), lhs.Len(), nil)
 }
 
 func compareLTIntFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -2567,7 +2567,7 @@ func compareLTIntConstView(lhs, rhs vector.Any) vector.Any {
 func compareLTIntConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsInt()
 	rconst, _ := rhs.(*vector.Const).AsInt()
-	return vector.NewConst(zed.NewBool(lconst < rconst), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(lconst < rconst), lhs.Len(), nil)
 }
 
 func compareLTUintFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -2800,7 +2800,7 @@ func compareLTUintConstView(lhs, rhs vector.Any) vector.Any {
 func compareLTUintConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsUint()
 	rconst, _ := rhs.(*vector.Const).AsUint()
-	return vector.NewConst(zed.NewBool(lconst < rconst), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(lconst < rconst), lhs.Len(), nil)
 }
 
 func compareLTFloatFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -3033,7 +3033,7 @@ func compareLTFloatConstView(lhs, rhs vector.Any) vector.Any {
 func compareLTFloatConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsFloat()
 	rconst, _ := rhs.(*vector.Const).AsFloat()
-	return vector.NewConst(zed.NewBool(lconst < rconst), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(lconst < rconst), lhs.Len(), nil)
 }
 
 func compareLTStringFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -3266,7 +3266,7 @@ func compareLTStringConstView(lhs, rhs vector.Any) vector.Any {
 func compareLTStringConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsString()
 	rconst, _ := rhs.(*vector.Const).AsString()
-	return vector.NewConst(zed.NewBool(lconst < rconst), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(lconst < rconst), lhs.Len(), nil)
 }
 
 func compareLTBytesFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -3499,7 +3499,7 @@ func compareLTBytesConstView(lhs, rhs vector.Any) vector.Any {
 func compareLTBytesConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsBytes()
 	rconst, _ := rhs.(*vector.Const).AsBytes()
-	return vector.NewConst(zed.NewBool(string(lconst) < string(rconst)), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(string(lconst) < string(rconst)), lhs.Len(), nil)
 }
 
 func compareLEIntFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -3732,7 +3732,7 @@ func compareLEIntConstView(lhs, rhs vector.Any) vector.Any {
 func compareLEIntConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsInt()
 	rconst, _ := rhs.(*vector.Const).AsInt()
-	return vector.NewConst(zed.NewBool(lconst <= rconst), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(lconst <= rconst), lhs.Len(), nil)
 }
 
 func compareLEUintFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -3965,7 +3965,7 @@ func compareLEUintConstView(lhs, rhs vector.Any) vector.Any {
 func compareLEUintConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsUint()
 	rconst, _ := rhs.(*vector.Const).AsUint()
-	return vector.NewConst(zed.NewBool(lconst <= rconst), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(lconst <= rconst), lhs.Len(), nil)
 }
 
 func compareLEFloatFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -4198,7 +4198,7 @@ func compareLEFloatConstView(lhs, rhs vector.Any) vector.Any {
 func compareLEFloatConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsFloat()
 	rconst, _ := rhs.(*vector.Const).AsFloat()
-	return vector.NewConst(zed.NewBool(lconst <= rconst), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(lconst <= rconst), lhs.Len(), nil)
 }
 
 func compareLEStringFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -4431,7 +4431,7 @@ func compareLEStringConstView(lhs, rhs vector.Any) vector.Any {
 func compareLEStringConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsString()
 	rconst, _ := rhs.(*vector.Const).AsString()
-	return vector.NewConst(zed.NewBool(lconst <= rconst), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(lconst <= rconst), lhs.Len(), nil)
 }
 
 func compareLEBytesFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -4664,7 +4664,7 @@ func compareLEBytesConstView(lhs, rhs vector.Any) vector.Any {
 func compareLEBytesConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsBytes()
 	rconst, _ := rhs.(*vector.Const).AsBytes()
-	return vector.NewConst(zed.NewBool(string(lconst) <= string(rconst)), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(string(lconst) <= string(rconst)), lhs.Len(), nil)
 }
 
 func compareGTIntFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -4897,7 +4897,7 @@ func compareGTIntConstView(lhs, rhs vector.Any) vector.Any {
 func compareGTIntConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsInt()
 	rconst, _ := rhs.(*vector.Const).AsInt()
-	return vector.NewConst(zed.NewBool(lconst > rconst), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(lconst > rconst), lhs.Len(), nil)
 }
 
 func compareGTUintFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -5130,7 +5130,7 @@ func compareGTUintConstView(lhs, rhs vector.Any) vector.Any {
 func compareGTUintConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsUint()
 	rconst, _ := rhs.(*vector.Const).AsUint()
-	return vector.NewConst(zed.NewBool(lconst > rconst), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(lconst > rconst), lhs.Len(), nil)
 }
 
 func compareGTFloatFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -5363,7 +5363,7 @@ func compareGTFloatConstView(lhs, rhs vector.Any) vector.Any {
 func compareGTFloatConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsFloat()
 	rconst, _ := rhs.(*vector.Const).AsFloat()
-	return vector.NewConst(zed.NewBool(lconst > rconst), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(lconst > rconst), lhs.Len(), nil)
 }
 
 func compareGTStringFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -5596,7 +5596,7 @@ func compareGTStringConstView(lhs, rhs vector.Any) vector.Any {
 func compareGTStringConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsString()
 	rconst, _ := rhs.(*vector.Const).AsString()
-	return vector.NewConst(zed.NewBool(lconst > rconst), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(lconst > rconst), lhs.Len(), nil)
 }
 
 func compareGTBytesFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -5829,7 +5829,7 @@ func compareGTBytesConstView(lhs, rhs vector.Any) vector.Any {
 func compareGTBytesConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsBytes()
 	rconst, _ := rhs.(*vector.Const).AsBytes()
-	return vector.NewConst(zed.NewBool(string(lconst) > string(rconst)), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(string(lconst) > string(rconst)), lhs.Len(), nil)
 }
 
 func compareGEIntFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -6062,7 +6062,7 @@ func compareGEIntConstView(lhs, rhs vector.Any) vector.Any {
 func compareGEIntConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsInt()
 	rconst, _ := rhs.(*vector.Const).AsInt()
-	return vector.NewConst(zed.NewBool(lconst >= rconst), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(lconst >= rconst), lhs.Len(), nil)
 }
 
 func compareGEUintFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -6295,7 +6295,7 @@ func compareGEUintConstView(lhs, rhs vector.Any) vector.Any {
 func compareGEUintConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsUint()
 	rconst, _ := rhs.(*vector.Const).AsUint()
-	return vector.NewConst(zed.NewBool(lconst >= rconst), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(lconst >= rconst), lhs.Len(), nil)
 }
 
 func compareGEFloatFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -6528,7 +6528,7 @@ func compareGEFloatConstView(lhs, rhs vector.Any) vector.Any {
 func compareGEFloatConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsFloat()
 	rconst, _ := rhs.(*vector.Const).AsFloat()
-	return vector.NewConst(zed.NewBool(lconst >= rconst), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(lconst >= rconst), lhs.Len(), nil)
 }
 
 func compareGEStringFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -6761,7 +6761,7 @@ func compareGEStringConstView(lhs, rhs vector.Any) vector.Any {
 func compareGEStringConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsString()
 	rconst, _ := rhs.(*vector.Const).AsString()
-	return vector.NewConst(zed.NewBool(lconst >= rconst), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(lconst >= rconst), lhs.Len(), nil)
 }
 
 func compareGEBytesFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -6994,7 +6994,7 @@ func compareGEBytesConstView(lhs, rhs vector.Any) vector.Any {
 func compareGEBytesConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := lhs.(*vector.Const).AsBytes()
 	rconst, _ := rhs.(*vector.Const).AsBytes()
-	return vector.NewConst(zed.NewBool(string(lconst) >= string(rconst)), lhs.Len(), nil)
+	return vector.NewConst(super.NewBool(string(lconst) >= string(rconst)), lhs.Len(), nil)
 }
 
 var compareFuncs = map[int]func(vector.Any, vector.Any) vector.Any{

@@ -9,12 +9,12 @@ import (
 )
 
 type Projection struct {
-	zctx   *zed.Context
+	zctx   *super.Context
 	object *vcache.Object
 	path   vcache.Path
 }
 
-func NewProjection(zctx *zed.Context, o *vcache.Object, paths []field.Path) zbuf.Puller {
+func NewProjection(zctx *super.Context, o *vcache.Object, paths []field.Path) zbuf.Puller {
 	return NewMaterializer(&Projection{
 		zctx:   zctx,
 		object: o,
@@ -22,7 +22,7 @@ func NewProjection(zctx *zed.Context, o *vcache.Object, paths []field.Path) zbuf
 	})
 }
 
-func NewVectorProjection(zctx *zed.Context, o *vcache.Object, paths []field.Path) vector.Puller {
+func NewVectorProjection(zctx *super.Context, o *vcache.Object, paths []field.Path) vector.Puller {
 	return &Projection{
 		zctx:   zctx,
 		object: o,

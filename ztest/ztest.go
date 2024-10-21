@@ -133,7 +133,7 @@ import (
 	"testing"
 	"unicode/utf8"
 
-	zed "github.com/brimdata/super"
+	 "github.com/brimdata/super"
 	"github.com/brimdata/super/cli/inputflags"
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/compiler"
@@ -513,7 +513,7 @@ func runzq(path, zedProgram, input string, outputFlags []string, inputFlags []st
 	if err != nil {
 		return "", err.Error(), err
 	}
-	zctx := zed.NewContext()
+	zctx := super.NewContext()
 	zrc, err := anyio.NewReaderWithOpts(zctx, r, demand.All(), inflags.Options())
 	if err != nil {
 		return "", err.Error(), err
@@ -568,7 +568,7 @@ func runvec(zedProgram string, input string, outputFlags []string) (string, stri
 	if err := flags.Parse(outputFlags); err != nil {
 		return "", "", err
 	}
-	zctx := zed.NewContext()
+	zctx := super.NewContext()
 	local := storage.NewLocalEngine()
 	cache := vcache.NewCache(local)
 	uri, cleanup, err := writeVNGFile(input)
@@ -606,7 +606,7 @@ func writeVNGFile(input string) (*storage.URI, func(), error) {
 		return nil, nil, err
 	}
 	w := vngio.NewWriter(f)
-	r := zsonio.NewReader(zed.NewContext(), strings.NewReader(input))
+	r := zsonio.NewReader(super.NewContext(), strings.NewReader(input))
 	if err = errors.Join(zio.Copy(w, r), w.Close()); err != nil {
 		return nil, nil, err
 	}

@@ -13,7 +13,7 @@ import (
 // memory and perform projections (or whole value reads) of the in-memory data.
 // This is also suitable for one-pass use where the data is read on demand,
 // used for processing, then discarded.  Objects maybe be persisted across
-// multiple callers of Cache and the zed.Context in use is passed in for
+// multiple callers of Cache and the super.Context in use is passed in for
 // each vector constructed from its in-memory shadow.
 type Object struct {
 	object *vng.Object
@@ -58,6 +58,6 @@ func (o *Object) Close() error {
 // storage and cached in memory so that subsequent calls run from memory.
 // The vectors returned will have types from the provided zctx.  Multiple
 // Fetch calls to the same object may run concurrently.
-func (o *Object) Fetch(zctx *zed.Context, projection Path) (vector.Any, error) {
+func (o *Object) Fetch(zctx *super.Context, projection Path) (vector.Any, error) {
 	return (&loader{zctx, o.object.DataReader()}).load(projection, o.root)
 }

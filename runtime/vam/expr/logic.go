@@ -6,13 +6,13 @@ import (
 )
 
 type Not struct {
-	zctx *zed.Context
+	zctx *super.Context
 	expr Evaluator
 }
 
 var _ Evaluator = (*Not)(nil)
 
-func NewLogicalNot(zctx *zed.Context, e Evaluator) *Not {
+func NewLogicalNot(zctx *super.Context, e Evaluator) *Not {
 	return &Not{zctx, e}
 }
 
@@ -30,22 +30,22 @@ func (n *Not) Eval(val vector.Any) vector.Any {
 }
 
 type And struct {
-	zctx *zed.Context
+	zctx *super.Context
 	lhs  Evaluator
 	rhs  Evaluator
 }
 
-func NewLogicalAnd(zctx *zed.Context, lhs, rhs Evaluator) *And {
+func NewLogicalAnd(zctx *super.Context, lhs, rhs Evaluator) *And {
 	return &And{zctx, lhs, rhs}
 }
 
 type Or struct {
-	zctx *zed.Context
+	zctx *super.Context
 	lhs  Evaluator
 	rhs  Evaluator
 }
 
-func NewLogicalOr(zctx *zed.Context, lhs, rhs Evaluator) *Or {
+func NewLogicalOr(zctx *super.Context, lhs, rhs Evaluator) *Or {
 	return &Or{zctx, lhs, rhs}
 }
 
@@ -101,7 +101,7 @@ func (o *Or) Eval(val vector.Any) vector.Any {
 // of the result that are not boolean, an error is calculated for each non-bool
 // slot and they are returned as an error.  If all of the value slots are errors,
 // then the return value is nil.
-func EvalBool(zctx *zed.Context, val vector.Any, e Evaluator) (vector.Any, bool) {
+func EvalBool(zctx *super.Context, val vector.Any, e Evaluator) (vector.Any, bool) {
 	//XXX Eval could return a dynamic vector of errors and bools and we should
 	// handle this correctly so the logic above is really the fast path
 	// and a slower path will handle picking apart the dynamic vector.

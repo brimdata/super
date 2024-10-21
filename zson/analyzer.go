@@ -9,40 +9,40 @@ import (
 )
 
 type Value interface {
-	TypeOf() zed.Type
-	SetType(zed.Type)
+	TypeOf() super.Type
+	SetType(super.Type)
 }
 
-// Note that all of the types include a generic zed.Type as their type since
-// anything can have a zed.TypeNamed along with its normal type.
+// Note that all of the types include a generic super.Type as their type since
+// anything can have a super.TypeNamed along with its normal type.
 type (
 	Primitive struct {
-		Type zed.Type
+		Type super.Type
 		Text string
 	}
 	Record struct {
-		Type   zed.Type
+		Type   super.Type
 		Fields []Value
 	}
 	Array struct {
-		Type     zed.Type
+		Type     super.Type
 		Elements []Value
 	}
 	Set struct {
-		Type     zed.Type
+		Type     super.Type
 		Elements []Value
 	}
 	Union struct {
-		Type  zed.Type
+		Type  super.Type
 		Tag   int
 		Value Value
 	}
 	Enum struct {
-		Type zed.Type
+		Type super.Type
 		Name string
 	}
 	Map struct {
-		Type    zed.Type
+		Type    super.Type
 		Entries []Entry
 	}
 	Entry struct {
@@ -50,39 +50,39 @@ type (
 		Value Value
 	}
 	Null struct {
-		Type zed.Type
+		Type super.Type
 	}
 	TypeValue struct {
-		Type  zed.Type
-		Value zed.Type
+		Type  super.Type
+		Value super.Type
 	}
 	Error struct {
-		Type  zed.Type
+		Type  super.Type
 		Value Value
 	}
 )
 
-func (p *Primitive) TypeOf() zed.Type { return p.Type }
-func (r *Record) TypeOf() zed.Type    { return r.Type }
-func (a *Array) TypeOf() zed.Type     { return a.Type }
-func (s *Set) TypeOf() zed.Type       { return s.Type }
-func (u *Union) TypeOf() zed.Type     { return u.Type }
-func (e *Enum) TypeOf() zed.Type      { return e.Type }
-func (m *Map) TypeOf() zed.Type       { return m.Type }
-func (n *Null) TypeOf() zed.Type      { return n.Type }
-func (t *TypeValue) TypeOf() zed.Type { return t.Type }
-func (e *Error) TypeOf() zed.Type     { return e.Type }
+func (p *Primitive) TypeOf() super.Type { return p.Type }
+func (r *Record) TypeOf() super.Type    { return r.Type }
+func (a *Array) TypeOf() super.Type     { return a.Type }
+func (s *Set) TypeOf() super.Type       { return s.Type }
+func (u *Union) TypeOf() super.Type     { return u.Type }
+func (e *Enum) TypeOf() super.Type      { return e.Type }
+func (m *Map) TypeOf() super.Type       { return m.Type }
+func (n *Null) TypeOf() super.Type      { return n.Type }
+func (t *TypeValue) TypeOf() super.Type { return t.Type }
+func (e *Error) TypeOf() super.Type     { return e.Type }
 
-func (p *Primitive) SetType(t zed.Type) { p.Type = t }
-func (r *Record) SetType(t zed.Type)    { r.Type = t }
-func (a *Array) SetType(t zed.Type)     { a.Type = t }
-func (s *Set) SetType(t zed.Type)       { s.Type = t }
-func (u *Union) SetType(t zed.Type)     { u.Type = t }
-func (e *Enum) SetType(t zed.Type)      { e.Type = t }
-func (m *Map) SetType(t zed.Type)       { m.Type = t }
-func (n *Null) SetType(t zed.Type)      { n.Type = t }
-func (t *TypeValue) SetType(T zed.Type) { t.Type = T }
-func (e *Error) SetType(t zed.Type)     { e.Type = t }
+func (p *Primitive) SetType(t super.Type) { p.Type = t }
+func (r *Record) SetType(t super.Type)    { r.Type = t }
+func (a *Array) SetType(t super.Type)     { a.Type = t }
+func (s *Set) SetType(t super.Type)       { s.Type = t }
+func (u *Union) SetType(t super.Type)     { u.Type = t }
+func (e *Enum) SetType(t super.Type)      { e.Type = t }
+func (m *Map) SetType(t super.Type)       { m.Type = t }
+func (n *Null) SetType(t super.Type)      { n.Type = t }
+func (t *TypeValue) SetType(T super.Type) { t.Type = T }
+func (e *Error) SetType(t super.Type)     { e.Type = t }
 
 // An Analyzer transforms an astzed.Value (which has decentralized type decorators)
 // to a typed Value, where every component of a nested Value is explicitly typed.
@@ -91,17 +91,17 @@ func (e *Error) SetType(t zed.Type)     { e.Type = t }
 // whose types are then usable as typedefs.  The Analyzer tracks the ZSON typedef
 // semantics by updating its table of name-to-type bindings in accordance with the
 // left-to-right, depth-first semantics of ZSON typedefs.
-type Analyzer map[string]zed.Type
+type Analyzer map[string]super.Type
 
 func NewAnalyzer() Analyzer {
-	return Analyzer(make(map[string]zed.Type))
+	return Analyzer(make(map[string]super.Type))
 }
 
-func (a Analyzer) ConvertValue(zctx *zed.Context, val astzed.Value) (Value, error) {
+func (a Analyzer) ConvertValue(zctx *super.Context, val astzed.Value) (Value, error) {
 	return a.convertValue(zctx, val, nil)
 }
 
-func (a Analyzer) convertValue(zctx *zed.Context, val astzed.Value, parent zed.Type) (Value, error) {
+func (a Analyzer) convertValue(zctx *super.Context, val astzed.Value, parent super.Type) (Value, error) {
 	switch val := val.(type) {
 	case *astzed.ImpliedValue:
 		return a.convertAny(zctx, val.Of, parent)
@@ -139,7 +139,7 @@ func (a Analyzer) convertValue(zctx *zed.Context, val astzed.Value, parent zed.T
 			return nil, err
 		}
 		var v Value
-		if union, ok := zed.TypeUnder(cast).(*zed.TypeUnion); ok {
+		if union, ok := super.TypeUnder(cast).(*super.TypeUnion); ok {
 			v, err = a.convertValue(zctx, val.Of, nil)
 			if err != nil {
 				return nil, err
@@ -151,7 +151,7 @@ func (a Analyzer) convertValue(zctx *zed.Context, val astzed.Value, parent zed.T
 		if err != nil {
 			return nil, err
 		}
-		if union, ok := zed.TypeUnder(parent).(*zed.TypeUnion); ok {
+		if union, ok := super.TypeUnder(parent).(*super.TypeUnion); ok {
 			v, err = a.convertUnion(zctx, v, union, parent)
 		}
 		return v, err
@@ -159,11 +159,11 @@ func (a Analyzer) convertValue(zctx *zed.Context, val astzed.Value, parent zed.T
 	return nil, fmt.Errorf("unknown value ast type: %T", val)
 }
 
-func (a Analyzer) typeCheck(cast, parent zed.Type) error {
+func (a Analyzer) typeCheck(cast, parent super.Type) error {
 	if parent == nil || cast == parent {
 		return nil
 	}
-	if _, ok := zed.TypeUnder(parent).(*zed.TypeUnion); ok {
+	if _, ok := super.TypeUnder(parent).(*super.TypeUnion); ok {
 		// We let unions through this type check with no further checking
 		// as any union incompability will be caught in convertAnyValue().
 		return nil
@@ -171,8 +171,8 @@ func (a Analyzer) typeCheck(cast, parent zed.Type) error {
 	return fmt.Errorf("decorator conflict enclosing context %q and decorator cast %q", FormatType(parent), FormatType(cast))
 }
 
-func (a Analyzer) enterTypeDef(zctx *zed.Context, name string, typ zed.Type) (*zed.TypeNamed, error) {
-	var named *zed.TypeNamed
+func (a Analyzer) enterTypeDef(zctx *super.Context, name string, typ super.Type) (*super.TypeNamed, error) {
+	var named *super.TypeNamed
 	if !isNumeric(name) {
 		var err error
 		if named, err = zctx.LookupTypeNamed(name, typ); err != nil {
@@ -197,11 +197,11 @@ func isDigit(r rune) bool {
 	return r >= '0' && r <= '9'
 }
 
-func (a Analyzer) convertAny(zctx *zed.Context, val astzed.Any, cast zed.Type) (Value, error) {
+func (a Analyzer) convertAny(zctx *super.Context, val astzed.Any, cast super.Type) (Value, error) {
 	// If we're casting something to a union, then the thing inside needs to
 	// describe itself and we can convert the inner value to a union value when
 	// we know its type (so we can code the tag).
-	if union, ok := zed.TypeUnder(cast).(*zed.TypeUnion); ok {
+	if union, ok := super.TypeUnder(cast).(*super.TypeUnion); ok {
 		v, err := a.convertAny(zctx, val, nil)
 		if err != nil {
 			return nil, err
@@ -229,12 +229,12 @@ func (a Analyzer) convertAny(zctx *zed.Context, val astzed.Any, cast zed.Type) (
 	return nil, fmt.Errorf("internal error: unknown ast type in Analyzer.convertAny(): %T", val)
 }
 
-func (a Analyzer) convertPrimitive(zctx *zed.Context, val *astzed.Primitive, cast zed.Type) (Value, error) {
-	typ := zed.LookupPrimitive(val.Type)
+func (a Analyzer) convertPrimitive(zctx *super.Context, val *astzed.Primitive, cast super.Type) (Value, error) {
+	typ := super.LookupPrimitive(val.Type)
 	if typ == nil {
 		return nil, fmt.Errorf("no such primitive type: %q", val.Type)
 	}
-	isNull := typ == zed.TypeNull
+	isNull := typ == super.TypeNull
 	if cast != nil {
 		// The parser emits Enum values for identifiers but not for
 		// string enum names.  Check if the cast type is an enum,
@@ -254,8 +254,8 @@ func (a Analyzer) convertPrimitive(zctx *zed.Context, val *astzed.Primitive, cas
 	return &Primitive{Type: typ, Text: val.Text}, nil
 }
 
-func stringToEnum(val *astzed.Primitive, cast zed.Type) Value {
-	if enum, ok := cast.(*zed.TypeEnum); ok {
+func stringToEnum(val *astzed.Primitive, cast super.Type) Value {
+	if enum, ok := cast.(*super.TypeEnum); ok {
 		if val.Type == "string" {
 			return &Enum{
 				Type: enum,
@@ -266,21 +266,21 @@ func stringToEnum(val *astzed.Primitive, cast zed.Type) Value {
 	return nil
 }
 
-func castType(typ, cast zed.Type) (zed.Type, error) {
+func castType(typ, cast super.Type) (super.Type, error) {
 	typID, castID := typ.ID(), cast.ID()
-	if typID == castID || typID == zed.IDNull ||
-		zed.IsInteger(typID) && (zed.IsInteger(castID) || zed.IsFloat(castID)) ||
-		zed.IsFloat(typID) && zed.IsFloat(castID) {
+	if typID == castID || typID == super.IDNull ||
+		super.IsInteger(typID) && (super.IsInteger(castID) || super.IsFloat(castID)) ||
+		super.IsFloat(typID) && super.IsFloat(castID) {
 		return cast, nil
 	}
 	return nil, fmt.Errorf("type mismatch: %q cannot be used as %q", FormatType(typ), FormatType(cast))
 }
 
-func (a Analyzer) convertRecord(zctx *zed.Context, val *astzed.Record, cast zed.Type) (Value, error) {
+func (a Analyzer) convertRecord(zctx *super.Context, val *astzed.Record, cast super.Type) (Value, error) {
 	var fields []Value
 	var err error
 	if cast != nil {
-		recType, ok := zed.TypeUnder(cast).(*zed.TypeRecord)
+		recType, ok := super.TypeUnder(cast).(*super.TypeRecord)
 		if !ok {
 			return nil, fmt.Errorf("record decorator not of type record: %T", cast)
 		}
@@ -304,10 +304,10 @@ func (a Analyzer) convertRecord(zctx *zed.Context, val *astzed.Record, cast zed.
 	}, nil
 }
 
-func (a Analyzer) convertFields(zctx *zed.Context, in []astzed.Field, fields []zed.Field) ([]Value, error) {
+func (a Analyzer) convertFields(zctx *super.Context, in []astzed.Field, fields []super.Field) ([]Value, error) {
 	vals := make([]Value, 0, len(in))
 	for k, f := range in {
-		var cast zed.Type
+		var cast super.Type
 		if fields != nil {
 			cast = fields[k].Type
 		}
@@ -320,26 +320,26 @@ func (a Analyzer) convertFields(zctx *zed.Context, in []astzed.Field, fields []z
 	return vals, nil
 }
 
-func lookupRecordType(zctx *zed.Context, in []astzed.Field, vals []Value) (*zed.TypeRecord, error) {
-	fields := make([]zed.Field, 0, len(in))
+func lookupRecordType(zctx *super.Context, in []astzed.Field, vals []Value) (*super.TypeRecord, error) {
+	fields := make([]super.Field, 0, len(in))
 	for k, f := range in {
-		fields = append(fields, zed.Field{Name: f.Name, Type: vals[k].TypeOf()})
+		fields = append(fields, super.Field{Name: f.Name, Type: vals[k].TypeOf()})
 	}
 	return zctx.LookupTypeRecord(fields)
 }
 
 // Figure out what the cast should be for the elements and for the union conversion if any.
-func arrayElemCast(cast zed.Type) (zed.Type, error) {
+func arrayElemCast(cast super.Type) (super.Type, error) {
 	if cast == nil {
 		return nil, nil
 	}
-	if arrayType, ok := zed.TypeUnder(cast).(*zed.TypeArray); ok {
+	if arrayType, ok := super.TypeUnder(cast).(*super.TypeArray); ok {
 		return arrayType.Type, nil
 	}
 	return nil, errors.New("array decorator not of type array")
 }
 
-func (a Analyzer) convertArray(zctx *zed.Context, array *astzed.Array, cast zed.Type) (Value, error) {
+func (a Analyzer) convertArray(zctx *super.Context, array *astzed.Array, cast super.Type) (Value, error) {
 	vals := make([]Value, 0, len(array.Elements))
 	typ, err := arrayElemCast(cast)
 	if err != nil {
@@ -356,7 +356,7 @@ func (a Analyzer) convertArray(zctx *zed.Context, array *astzed.Array, cast zed.
 		// We had a cast so we know any type mistmatches we have been
 		// caught below...
 		if cast == nil {
-			cast = zctx.LookupTypeArray(zed.TypeNull)
+			cast = zctx.LookupTypeArray(super.TypeNull)
 		}
 		return &Array{
 			Type:     cast,
@@ -373,14 +373,14 @@ func (a Analyzer) convertArray(zctx *zed.Context, array *astzed.Array, cast zed.
 	}, nil
 }
 
-func (a Analyzer) normalizeElems(zctx *zed.Context, vals []Value) ([]Value, zed.Type, error) {
-	types := make([]zed.Type, len(vals))
+func (a Analyzer) normalizeElems(zctx *super.Context, vals []Value) ([]Value, super.Type, error) {
+	types := make([]super.Type, len(vals))
 	for i, val := range vals {
 		types[i] = val.TypeOf()
 	}
 	unique := types[:0]
-	for _, typ := range zed.UniqueTypes(types) {
-		if typ != zed.TypeNull {
+	for _, typ := range super.UniqueTypes(types) {
+		if typ != super.TypeNull {
 			unique = append(unique, typ)
 		}
 	}
@@ -388,7 +388,7 @@ func (a Analyzer) normalizeElems(zctx *zed.Context, vals []Value) ([]Value, zed.
 		return vals, unique[0], nil
 	}
 	if len(unique) == 0 {
-		return vals, zed.TypeNull, nil
+		return vals, super.TypeNull, nil
 	}
 	union := zctx.LookupTypeUnion(unique)
 	var unions []Value
@@ -402,10 +402,10 @@ func (a Analyzer) normalizeElems(zctx *zed.Context, vals []Value) ([]Value, zed.
 	return unions, union, nil
 }
 
-func (a Analyzer) convertSet(zctx *zed.Context, set *astzed.Set, cast zed.Type) (Value, error) {
-	var elemType zed.Type
+func (a Analyzer) convertSet(zctx *super.Context, set *astzed.Set, cast super.Type) (Value, error) {
+	var elemType super.Type
 	if cast != nil {
-		setType, ok := zed.TypeUnder(cast).(*zed.TypeSet)
+		setType, ok := super.TypeUnder(cast).(*super.TypeSet)
 		if !ok {
 			return nil, fmt.Errorf("set decorator not of type set: %T", cast)
 		}
@@ -421,7 +421,7 @@ func (a Analyzer) convertSet(zctx *zed.Context, set *astzed.Set, cast zed.Type) 
 	}
 	if cast != nil || len(vals) == 0 {
 		if cast == nil {
-			cast = zctx.LookupTypeSet(zed.TypeNull)
+			cast = zctx.LookupTypeSet(super.TypeNull)
 		}
 		return &Array{
 			Type:     cast,
@@ -438,9 +438,9 @@ func (a Analyzer) convertSet(zctx *zed.Context, set *astzed.Set, cast zed.Type) 
 	}, nil
 }
 
-func (a Analyzer) convertUnion(zctx *zed.Context, v Value, union *zed.TypeUnion, cast zed.Type) (Value, error) {
+func (a Analyzer) convertUnion(zctx *super.Context, v Value, union *super.TypeUnion, cast super.Type) (Value, error) {
 	valType := v.TypeOf()
-	if valType == zed.TypeNull {
+	if valType == super.TypeNull {
 		// Set tag to -1 to signal to the builder to encode a null.
 		return &Union{
 			Type:  cast,
@@ -460,11 +460,11 @@ func (a Analyzer) convertUnion(zctx *zed.Context, v Value, union *zed.TypeUnion,
 	return nil, fmt.Errorf("type %q is not in union type %q", FormatType(valType), FormatType(union))
 }
 
-func (a Analyzer) convertEnum(zctx *zed.Context, val *astzed.Enum, cast zed.Type) (Value, error) {
+func (a Analyzer) convertEnum(zctx *super.Context, val *astzed.Enum, cast super.Type) (Value, error) {
 	if cast == nil {
 		return nil, fmt.Errorf("identifier %q must be enum and requires decorator", val.Name)
 	}
-	enum, ok := zed.TypeUnder(cast).(*zed.TypeEnum)
+	enum, ok := super.TypeUnder(cast).(*super.TypeEnum)
 	if !ok {
 		return nil, fmt.Errorf("identifier %q is enum and incompatible with type %q", val.Name, FormatType(cast))
 	}
@@ -479,10 +479,10 @@ func (a Analyzer) convertEnum(zctx *zed.Context, val *astzed.Enum, cast zed.Type
 	return nil, fmt.Errorf("symbol %q not a member of type %q", val.Name, FormatType(enum))
 }
 
-func (a Analyzer) convertMap(zctx *zed.Context, m *astzed.Map, cast zed.Type) (Value, error) {
-	var keyType, valType zed.Type
+func (a Analyzer) convertMap(zctx *super.Context, m *astzed.Map, cast super.Type) (Value, error) {
+	var keyType, valType super.Type
 	if cast != nil {
-		typ, ok := zed.TypeUnder(cast).(*zed.TypeMap)
+		typ, ok := super.TypeUnder(cast).(*super.TypeMap)
 		if !ok {
 			return nil, errors.New("map decorator not of type map")
 		}
@@ -508,8 +508,8 @@ func (a Analyzer) convertMap(zctx *zed.Context, m *astzed.Map, cast zed.Type) (V
 		// entry we just analyed.
 		if len(keys) == 0 {
 			// empty set with no decorator
-			keyType = zed.TypeNull
-			valType = zed.TypeNull
+			keyType = super.TypeNull
+			valType = super.TypeNull
 		} else {
 			var err error
 			keys, keyType, err = a.normalizeElems(zctx, keys)
@@ -533,9 +533,9 @@ func (a Analyzer) convertMap(zctx *zed.Context, m *astzed.Map, cast zed.Type) (V
 	}, nil
 }
 
-func (a Analyzer) convertTypeValue(zctx *zed.Context, tv *astzed.TypeValue, cast zed.Type) (Value, error) {
+func (a Analyzer) convertTypeValue(zctx *super.Context, tv *astzed.TypeValue, cast super.Type) (Value, error) {
 	if cast != nil {
-		if _, ok := zed.TypeUnder(cast).(*zed.TypeOfType); !ok {
+		if _, ok := super.TypeUnder(cast).(*super.TypeOfType); !ok {
 			return nil, fmt.Errorf("cannot apply decorator (%q) to a type value", FormatType(cast))
 		}
 	}
@@ -544,7 +544,7 @@ func (a Analyzer) convertTypeValue(zctx *zed.Context, tv *astzed.TypeValue, cast
 		return nil, err
 	}
 	if cast == nil {
-		cast = zed.TypeType
+		cast = super.TypeType
 	}
 	return &TypeValue{
 		Type:  cast,
@@ -552,10 +552,10 @@ func (a Analyzer) convertTypeValue(zctx *zed.Context, tv *astzed.TypeValue, cast
 	}, nil
 }
 
-func (a Analyzer) convertError(zctx *zed.Context, val *astzed.Error, cast zed.Type) (Value, error) {
-	var inner zed.Type
+func (a Analyzer) convertError(zctx *super.Context, val *astzed.Error, cast super.Type) (Value, error) {
+	var inner super.Type
 	if cast != nil {
-		typ, ok := zed.TypeUnder(cast).(*zed.TypeError)
+		typ, ok := super.TypeUnder(cast).(*super.TypeError)
 		if !ok {
 			return nil, errors.New("error decorator not of type error")
 		}
@@ -574,11 +574,11 @@ func (a Analyzer) convertError(zctx *zed.Context, val *astzed.Error, cast zed.Ty
 	}, nil
 }
 
-func (a Analyzer) convertType(zctx *zed.Context, typ astzed.Type) (zed.Type, error) {
+func (a Analyzer) convertType(zctx *super.Context, typ astzed.Type) (super.Type, error) {
 	switch t := typ.(type) {
 	case *astzed.TypePrimitive:
 		name := t.Name
-		typ := zed.LookupPrimitive(name)
+		typ := super.LookupPrimitive(name)
 		if typ == nil {
 			return nil, fmt.Errorf("no such primitive type: %q", name)
 		}
@@ -639,19 +639,19 @@ func (a Analyzer) convertType(zctx *zed.Context, typ astzed.Type) (zed.Type, err
 	return nil, fmt.Errorf("unknown type in Analyzer.convertType: %T", typ)
 }
 
-func (a Analyzer) convertTypeRecord(zctx *zed.Context, typ *astzed.TypeRecord) (*zed.TypeRecord, error) {
-	fields := make([]zed.Field, 0, len(typ.Fields))
+func (a Analyzer) convertTypeRecord(zctx *super.Context, typ *astzed.TypeRecord) (*super.TypeRecord, error) {
+	fields := make([]super.Field, 0, len(typ.Fields))
 	for _, f := range typ.Fields {
 		typ, err := a.convertType(zctx, f.Type)
 		if err != nil {
 			return nil, err
 		}
-		fields = append(fields, zed.Field{Name: f.Name, Type: typ})
+		fields = append(fields, super.Field{Name: f.Name, Type: typ})
 	}
 	return zctx.LookupTypeRecord(fields)
 }
 
-func (a Analyzer) convertTypeMap(zctx *zed.Context, tmap *astzed.TypeMap) (*zed.TypeMap, error) {
+func (a Analyzer) convertTypeMap(zctx *super.Context, tmap *astzed.TypeMap) (*super.TypeMap, error) {
 	keyType, err := a.convertType(zctx, tmap.KeyType)
 	if err != nil {
 		return nil, err
@@ -663,8 +663,8 @@ func (a Analyzer) convertTypeMap(zctx *zed.Context, tmap *astzed.TypeMap) (*zed.
 	return zctx.LookupTypeMap(keyType, valType), nil
 }
 
-func (a Analyzer) convertTypeUnion(zctx *zed.Context, union *astzed.TypeUnion) (*zed.TypeUnion, error) {
-	var types []zed.Type
+func (a Analyzer) convertTypeUnion(zctx *super.Context, union *astzed.TypeUnion) (*super.TypeUnion, error) {
+	var types []super.Type
 	for _, typ := range union.Types {
 		typ, err := a.convertType(zctx, typ)
 		if err != nil {
@@ -675,7 +675,7 @@ func (a Analyzer) convertTypeUnion(zctx *zed.Context, union *astzed.TypeUnion) (
 	return zctx.LookupTypeUnion(types), nil
 }
 
-func (a Analyzer) convertTypeEnum(zctx *zed.Context, enum *astzed.TypeEnum) (*zed.TypeEnum, error) {
+func (a Analyzer) convertTypeEnum(zctx *super.Context, enum *astzed.TypeEnum) (*super.TypeEnum, error) {
 	if len(enum.Symbols) == 0 {
 		return nil, errors.New("enum body is empty")
 	}

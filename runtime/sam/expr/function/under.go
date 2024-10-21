@@ -6,24 +6,24 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#under
 type Under struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
-func (u *Under) Call(_ zed.Allocator, args []zed.Value) zed.Value {
+func (u *Under) Call(_ super.Allocator, args []super.Value) super.Value {
 	val := args[0]
 	switch typ := args[0].Type().(type) {
-	case *zed.TypeNamed:
-		return zed.NewValue(typ.Type, val.Bytes())
-	case *zed.TypeError:
-		return zed.NewValue(typ.Type, val.Bytes())
-	case *zed.TypeUnion:
-		return zed.NewValue(typ.Untag(val.Bytes()))
-	case *zed.TypeOfType:
+	case *super.TypeNamed:
+		return super.NewValue(typ.Type, val.Bytes())
+	case *super.TypeError:
+		return super.NewValue(typ.Type, val.Bytes())
+	case *super.TypeUnion:
+		return super.NewValue(typ.Untag(val.Bytes()))
+	case *super.TypeOfType:
 		t, err := u.zctx.LookupByValue(val.Bytes())
 		if err != nil {
 			return u.zctx.NewError(err)
 		}
-		return u.zctx.LookupTypeValue(zed.TypeUnder(t))
+		return u.zctx.LookupTypeValue(super.TypeUnder(t))
 	default:
 		return val
 	}

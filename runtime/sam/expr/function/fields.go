@@ -7,20 +7,20 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#fields
 type Fields struct {
-	zctx *zed.Context
-	typ  zed.Type
+	zctx *super.Context
+	typ  super.Type
 }
 
-func NewFields(zctx *zed.Context) *Fields {
+func NewFields(zctx *super.Context) *Fields {
 	return &Fields{
 		zctx: zctx,
-		typ:  zctx.LookupTypeArray(zctx.LookupTypeArray(zed.TypeString)),
+		typ:  zctx.LookupTypeArray(zctx.LookupTypeArray(super.TypeString)),
 	}
 }
 
-func buildPath(typ *zed.TypeRecord, b *zcode.Builder, prefix []string) {
+func buildPath(typ *super.TypeRecord, b *zcode.Builder, prefix []string) {
 	for _, f := range typ.Fields {
-		if typ, ok := zed.TypeUnder(f.Type).(*zed.TypeRecord); ok {
+		if typ, ok := super.TypeUnder(f.Type).(*super.TypeRecord); ok {
 			buildPath(typ, b, append(prefix, f.Name))
 		} else {
 			b.BeginContainer()
@@ -33,7 +33,7 @@ func buildPath(typ *zed.TypeRecord, b *zcode.Builder, prefix []string) {
 	}
 }
 
-func (f *Fields) Call(_ zed.Allocator, args []zed.Value) zed.Value {
+func (f *Fields) Call(_ super.Allocator, args []super.Value) super.Value {
 	subjectVal := args[0].Under()
 	typ := f.recordType(subjectVal)
 	if typ == nil {
@@ -41,19 +41,19 @@ func (f *Fields) Call(_ zed.Allocator, args []zed.Value) zed.Value {
 	}
 	var b zcode.Builder
 	buildPath(typ, &b, nil)
-	return zed.NewValue(f.typ, b.Bytes())
+	return super.NewValue(f.typ, b.Bytes())
 }
 
-func (f *Fields) recordType(val zed.Value) *zed.TypeRecord {
-	if typ, ok := zed.TypeUnder(val.Type()).(*zed.TypeRecord); ok {
+func (f *Fields) recordType(val super.Value) *super.TypeRecord {
+	if typ, ok := super.TypeUnder(val.Type()).(*super.TypeRecord); ok {
 		return typ
 	}
-	if val.Type() == zed.TypeType {
+	if val.Type() == super.TypeType {
 		typ, err := f.zctx.LookupByValue(val.Bytes())
 		if err != nil {
 			return nil
 		}
-		if typ, ok := zed.TypeUnder(typ).(*zed.TypeRecord); ok {
+		if typ, ok := super.TypeUnder(typ).(*super.TypeRecord); ok {
 			return typ
 		}
 	}

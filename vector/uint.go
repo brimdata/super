@@ -6,7 +6,7 @@ import (
 )
 
 type Uint struct {
-	Typ    zed.Type
+	Typ    super.Type
 	Values []uint64
 	Nulls  *Bool
 }
@@ -14,11 +14,11 @@ type Uint struct {
 var _ Any = (*Uint)(nil)
 var _ Promotable = (*Uint)(nil)
 
-func NewUint(typ zed.Type, values []uint64, nulls *Bool) *Uint {
+func NewUint(typ super.Type, values []uint64, nulls *Bool) *Uint {
 	return &Uint{Typ: typ, Values: values, Nulls: nulls}
 }
 
-func NewUintEmpty(typ zed.Type, length uint32, nulls *Bool) *Uint {
+func NewUintEmpty(typ super.Type, length uint32, nulls *Bool) *Uint {
 	return NewUint(typ, make([]uint64, 0, length), nulls)
 }
 
@@ -26,7 +26,7 @@ func (u *Uint) Append(v uint64) {
 	u.Values = append(u.Values, v)
 }
 
-func (u *Uint) Type() zed.Type {
+func (u *Uint) Type() super.Type {
 	return u.Typ
 }
 
@@ -42,11 +42,11 @@ func (u *Uint) Serialize(b *zcode.Builder, slot uint32) {
 	if u.Nulls.Value(slot) {
 		b.Append(nil)
 	} else {
-		b.Append(zed.EncodeUint(u.Values[slot]))
+		b.Append(super.EncodeUint(u.Values[slot]))
 	}
 }
 
-func (u *Uint) Promote(typ zed.Type) Promotable {
+func (u *Uint) Promote(typ super.Type) Promotable {
 	return &Uint{typ, u.Values, u.Nulls}
 }
 

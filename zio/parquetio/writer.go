@@ -28,7 +28,7 @@ func NewWriter(wc io.WriteCloser) *Writer {
 	return &Writer{w}
 }
 
-func (w *Writer) Write(val zed.Value) error {
+func (w *Writer) Write(val super.Value) error {
 	if err := w.Writer.Write(val); err != nil {
 		return parquetioError{err}
 	}

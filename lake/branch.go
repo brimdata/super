@@ -46,7 +46,7 @@ func OpenBranch(ctx context.Context, config *branches.Config, engine storage.Eng
 	}, nil
 }
 
-func (b *Branch) Load(ctx context.Context, zctx *zed.Context, r zio.Reader, author, message, meta string) (ksuid.KSUID, error) {
+func (b *Branch) Load(ctx context.Context, zctx *super.Context, r zio.Reader, author, message, meta string) (ksuid.KSUID, error) {
 	w, err := NewWriter(ctx, zctx, b.pool)
 	if err != nil {
 		return ksuid.Nil, err
@@ -93,11 +93,11 @@ func loadMessage(objects []data.Object) string {
 	return b.String()
 }
 
-func loadMeta(zctx *zed.Context, meta string) (zed.Value, error) {
+func loadMeta(zctx *super.Context, meta string) (super.Value, error) {
 	if meta == "" {
-		return zed.Null, nil
+		return super.Null, nil
 	}
-	val, err := zson.ParseValue(zed.NewContext(), meta)
+	val, err := zson.ParseValue(super.NewContext(), meta)
 	if err != nil {
 		return zctx.Missing(), fmt.Errorf("%w %q: %s", ErrInvalidCommitMeta, meta, err)
 	}
@@ -129,7 +129,7 @@ func (b *Branch) Delete(ctx context.Context, ids []ksuid.KSUID, author, message 
 }
 
 func (b *Branch) DeleteWhere(ctx context.Context, c runtime.Compiler, program ast.Seq, author, message, meta string) (ksuid.KSUID, error) {
-	zctx := zed.NewContext()
+	zctx := super.NewContext()
 	appMeta, err := loadMeta(zctx, meta)
 	if err != nil {
 		return ksuid.Nil, err
@@ -239,7 +239,7 @@ func (b *Branch) CommitCompact(ctx context.Context, src, rollup []*data.Object, 
 	if len(rollup) < 1 {
 		return ksuid.Nil, errors.New("compact: one or more rollup objects required")
 	}
-	zctx := zed.NewContext()
+	zctx := super.NewContext()
 	appMeta, err := loadMeta(zctx, meta)
 	if err != nil {
 		return ksuid.Nil, err
@@ -335,7 +335,7 @@ func (b *Branch) buildMergeObject(ctx context.Context, parent *branches.Config, 
 	if err != nil {
 		return nil, fmt.Errorf("error merging %q into %q: %w", b.Name, parent.Name, err)
 	}
-	return diff.NewCommitObject(parent.Commit, retries, author, message, zed.Null), nil
+	return diff.NewCommitObject(parent.Commit, retries, author, message, super.Null), nil
 }
 
 func commonAncestor(a, b []ksuid.KSUID) ksuid.KSUID {

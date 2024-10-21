@@ -15,7 +15,7 @@ type RecordEncoder struct {
 
 var _ Encoder = (*RecordEncoder)(nil)
 
-func NewRecordEncoder(typ *zed.TypeRecord) *RecordEncoder {
+func NewRecordEncoder(typ *super.TypeRecord) *RecordEncoder {
 	fields := make([]*FieldEncoder, 0, len(typ.Fields))
 	for _, f := range typ.Fields {
 		fields = append(fields, &FieldEncoder{

@@ -6,7 +6,7 @@ import (
 )
 
 type Set struct {
-	Typ     *zed.TypeSet
+	Typ     *super.TypeSet
 	Offsets []uint32
 	Values  Any
 	Nulls   *Bool
@@ -14,11 +14,11 @@ type Set struct {
 
 var _ Any = (*Set)(nil)
 
-func NewSet(typ *zed.TypeSet, offsets []uint32, values Any, nulls *Bool) *Set {
+func NewSet(typ *super.TypeSet, offsets []uint32, values Any, nulls *Bool) *Set {
 	return &Set{Typ: typ, Offsets: offsets, Values: values, Nulls: nulls}
 }
 
-func (s *Set) Type() zed.Type {
+func (s *Set) Type() super.Type {
 	return s.Typ
 }
 
@@ -36,6 +36,6 @@ func (s *Set) Serialize(b *zcode.Builder, slot uint32) {
 	for end := s.Offsets[slot+1]; off < end; off++ {
 		s.Values.Serialize(b, off)
 	}
-	b.TransformContainer(zed.NormalizeSet)
+	b.TransformContainer(super.NormalizeSet)
 	b.EndContainer()
 }

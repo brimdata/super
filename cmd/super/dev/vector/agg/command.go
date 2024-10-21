@@ -4,7 +4,7 @@ import (
 	"errors"
 	"flag"
 
-	zed "github.com/brimdata/super"
+	 "github.com/brimdata/super"
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/cmd/super/dev/vector"
 	"github.com/brimdata/super/cmd/super/root"
@@ -70,7 +70,7 @@ func (c *Command) Run(args []string) error {
 	}
 	defer object.Close()
 	//XXX nil puller
-	agg := op.NewCountByString(zed.NewContext(), nil, field)
+	agg := op.NewCountByString(super.NewContext(), nil, field)
 	writer, err := c.outputFlags.Open(ctx, local)
 	if err != nil {
 		return err

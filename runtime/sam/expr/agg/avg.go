@@ -17,7 +17,7 @@ type Avg struct {
 
 var _ Function = (*Avg)(nil)
 
-func (a *Avg) Consume(val zed.Value) {
+func (a *Avg) Consume(val super.Value) {
 	if val.IsNull() {
 		return
 	}
@@ -27,11 +27,11 @@ func (a *Avg) Consume(val zed.Value) {
 	}
 }
 
-func (a *Avg) Result(*zed.Context) zed.Value {
+func (a *Avg) Result(*super.Context) super.Value {
 	if a.count > 0 {
-		return zed.NewFloat64(a.sum / float64(a.count))
+		return super.NewFloat64(a.sum / float64(a.count))
 	}
-	return zed.NullFloat64
+	return super.NullFloat64
 }
 
 const (
@@ -39,32 +39,32 @@ const (
 	countName = "count"
 )
 
-func (a *Avg) ConsumeAsPartial(partial zed.Value) {
+func (a *Avg) ConsumeAsPartial(partial super.Value) {
 	sumVal := partial.Deref(sumName)
 	if sumVal == nil {
 		panic(errors.New("avg: partial sum is missing"))
 	}
-	if sumVal.Type() != zed.TypeFloat64 {
+	if sumVal.Type() != super.TypeFloat64 {
 		panic(fmt.Errorf("avg: partial sum has bad type: %s", zson.FormatValue(*sumVal)))
 	}
 	countVal := partial.Deref(countName)
 	if countVal == nil {
 		panic("avg: partial count is missing")
 	}
-	if countVal.Type() != zed.TypeUint64 {
+	if countVal.Type() != super.TypeUint64 {
 		panic(fmt.Errorf("avg: partial count has bad type: %s", zson.FormatValue(*countVal)))
 	}
 	a.sum += sumVal.Float()
 	a.count += countVal.Uint()
 }
 
-func (a *Avg) ResultAsPartial(zctx *zed.Context) zed.Value {
+func (a *Avg) ResultAsPartial(zctx *super.Context) super.Value {
 	var zv zcode.Bytes
-	zv = zed.NewFloat64(a.sum).Encode(zv)
-	zv = zed.NewUint64(a.count).Encode(zv)
-	typ := zctx.MustLookupTypeRecord([]zed.Field{
-		zed.NewField(sumName, zed.TypeFloat64),
-		zed.NewField(countName, zed.TypeUint64),
+	zv = super.NewFloat64(a.sum).Encode(zv)
+	zv = super.NewUint64(a.count).Encode(zv)
+	typ := zctx.MustLookupTypeRecord([]super.Field{
+		super.NewField(sumName, super.TypeFloat64),
+		super.NewField(countName, super.TypeUint64),
 	})
-	return zed.NewValue(typ, zv)
+	return super.NewValue(typ, zv)
 }

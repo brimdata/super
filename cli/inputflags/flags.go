@@ -59,7 +59,7 @@ func (f *Flags) Init() error {
 	return nil
 }
 
-func (f *Flags) Open(ctx context.Context, zctx *zed.Context, engine storage.Engine, paths []string, stopOnErr bool) ([]zio.Reader, error) {
+func (f *Flags) Open(ctx context.Context, zctx *super.Context, engine storage.Engine, paths []string, stopOnErr bool) ([]zio.Reader, error) {
 	var readers []zio.Reader
 	for _, path := range paths {
 		if path == "-" {

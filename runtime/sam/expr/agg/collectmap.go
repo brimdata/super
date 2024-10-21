@@ -19,15 +19,15 @@ func newCollectMap() *CollectMap {
 var _ Function = (*Collect)(nil)
 
 type mapEntry struct {
-	key zed.Value
-	val zed.Value
+	key super.Value
+	val super.Value
 }
 
-func (c *CollectMap) Consume(val zed.Value) {
+func (c *CollectMap) Consume(val super.Value) {
 	if val.IsNull() {
 		return
 	}
-	mtyp, ok := zed.TypeUnder(val.Type()).(*zed.TypeMap)
+	mtyp, ok := super.TypeUnder(val.Type()).(*super.TypeMap)
 	if !ok {
 		return
 	}
@@ -37,22 +37,22 @@ func (c *CollectMap) Consume(val zed.Value) {
 		keyTagAndBody := it.NextTagAndBody()
 		key := valueUnder(mtyp.KeyType, keyTagAndBody.Body())
 		val := valueUnder(mtyp.ValType, it.Next())
-		c.scratch = zed.AppendTypeValue(c.scratch[:0], key.Type())
+		c.scratch = super.AppendTypeValue(c.scratch[:0], key.Type())
 		c.scratch = append(c.scratch, keyTagAndBody...)
 		// This will squash existing values which is what we want.
 		c.entries[string(c.scratch)] = mapEntry{key, val}
 	}
 }
 
-func (c *CollectMap) ConsumeAsPartial(val zed.Value) {
+func (c *CollectMap) ConsumeAsPartial(val super.Value) {
 	c.Consume(val)
 }
 
-func (c *CollectMap) Result(zctx *zed.Context) zed.Value {
+func (c *CollectMap) Result(zctx *super.Context) super.Value {
 	if len(c.entries) == 0 {
-		return zed.Null
+		return super.Null
 	}
-	var ktypes, vtypes []zed.Type
+	var ktypes, vtypes []super.Type
 	for _, e := range c.entries {
 		ktypes = append(ktypes, e.key.Type())
 		vtypes = append(vtypes, e.val.Type())
@@ -68,35 +68,35 @@ func (c *CollectMap) Result(zctx *zed.Context) zed.Value {
 		appendMapVal(&builder, vtyp, e.val, vuniq)
 	}
 	typ := zctx.LookupTypeMap(ktyp, vtyp)
-	b := zed.NormalizeMap(builder.Bytes())
-	return zed.NewValue(typ, b)
+	b := super.NormalizeMap(builder.Bytes())
+	return super.NewValue(typ, b)
 }
 
-func (c *CollectMap) ResultAsPartial(zctx *zed.Context) zed.Value {
+func (c *CollectMap) ResultAsPartial(zctx *super.Context) super.Value {
 	return c.Result(zctx)
 }
 
-func appendMapVal(b *zcode.Builder, typ zed.Type, val zed.Value, uniq int) {
+func appendMapVal(b *zcode.Builder, typ super.Type, val super.Value, uniq int) {
 	if uniq > 1 {
-		u := zed.TypeUnder(typ).(*zed.TypeUnion)
-		zed.BuildUnion(b, u.TagOf(val.Type()), val.Bytes())
+		u := super.TypeUnder(typ).(*super.TypeUnion)
+		super.BuildUnion(b, u.TagOf(val.Type()), val.Bytes())
 	} else {
 		b.Append(val.Bytes())
 	}
 }
 
-func unionOf(zctx *zed.Context, types []zed.Type) (zed.Type, int) {
-	types = zed.UniqueTypes(types)
+func unionOf(zctx *super.Context, types []super.Type) (super.Type, int) {
+	types = super.UniqueTypes(types)
 	if len(types) == 1 {
 		return types[0], 1
 	}
 	return zctx.LookupTypeUnion(types), len(types)
 }
 
-// valueUnder is like zed.(*Value).Under but it preserves non-union named types.
-func valueUnder(typ zed.Type, b zcode.Bytes) zed.Value {
-	val := zed.NewValue(typ, b)
-	if _, ok := zed.TypeUnder(typ).(*zed.TypeUnion); !ok {
+// valueUnder is like super.(*Value).Under but it preserves non-union named types.
+func valueUnder(typ super.Type, b zcode.Bytes) super.Value {
+	val := super.NewValue(typ, b)
+	if _, ok := super.TypeUnder(typ).(*super.TypeUnion); !ok {
 		return val
 	}
 	return val.Under()

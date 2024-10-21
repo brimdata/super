@@ -1,4 +1,4 @@
-package zed
+package super
 
 import (
 	"slices"

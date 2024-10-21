@@ -15,7 +15,7 @@ type MapEncoder struct {
 	count   uint32
 }
 
-func NewMapEncoder(typ *zed.TypeMap) *MapEncoder {
+func NewMapEncoder(typ *super.TypeMap) *MapEncoder {
 	return &MapEncoder{
 		keys:    NewEncoder(typ.KeyType),
 		values:  NewEncoder(typ.ValType),

@@ -38,7 +38,7 @@ func NewMarshalerIndent(indent int) *MarshalContext {
 	}
 }
 
-func NewMarshalerWithContext(zctx *zed.Context) *MarshalContext {
+func NewMarshalerWithContext(zctx *super.Context) *MarshalContext {
 	return &MarshalContext{
 		MarshalZNGContext: NewZNGMarshalerWithContext(zctx),
 	}
@@ -62,7 +62,7 @@ func (m *MarshalContext) MarshalCustom(names []string, fields []interface{}) (st
 
 type UnmarshalContext struct {
 	*UnmarshalZNGContext
-	zctx     *zed.Context
+	zctx     *super.Context
 	analyzer Analyzer
 	builder  *zcode.Builder
 }
@@ -70,7 +70,7 @@ type UnmarshalContext struct {
 func NewUnmarshaler() *UnmarshalContext {
 	return &UnmarshalContext{
 		UnmarshalZNGContext: NewZNGUnmarshaler(),
-		zctx:                zed.NewContext(),
+		zctx:                super.NewContext(),
 		analyzer:            NewAnalyzer(),
 		builder:             zcode.NewBuilder(),
 	}
@@ -98,25 +98,25 @@ func (u *UnmarshalContext) Unmarshal(zson string, v interface{}) error {
 }
 
 type ZNGMarshaler interface {
-	MarshalZNG(*MarshalZNGContext) (zed.Type, error)
+	MarshalZNG(*MarshalZNGContext) (super.Type, error)
 }
 
-func MarshalZNG(v interface{}) (zed.Value, error) {
+func MarshalZNG(v interface{}) (super.Value, error) {
 	return NewZNGMarshaler().Marshal(v)
 }
 
 type MarshalZNGContext struct {
-	*zed.Context
+	*super.Context
 	zcode.Builder
 	decorator func(string, string) string
 	bindings  map[string]string
 }
 
 func NewZNGMarshaler() *MarshalZNGContext {
-	return NewZNGMarshalerWithContext(zed.NewContext())
+	return NewZNGMarshalerWithContext(super.NewContext())
 }
 
-func NewZNGMarshalerWithContext(zctx *zed.Context) *MarshalZNGContext {
+func NewZNGMarshalerWithContext(zctx *super.Context) *MarshalZNGContext {
 	return &MarshalZNGContext{
 		Context: zctx,
 	}
@@ -124,36 +124,36 @@ func NewZNGMarshalerWithContext(zctx *zed.Context) *MarshalZNGContext {
 
 // MarshalValue marshals v into the value that is being built and is
 // typically called by a custom marshaler.
-func (m *MarshalZNGContext) MarshalValue(v interface{}) (zed.Type, error) {
+func (m *MarshalZNGContext) MarshalValue(v interface{}) (super.Type, error) {
 	return m.encodeValue(reflect.ValueOf(v))
 }
 
-func (m *MarshalZNGContext) Marshal(v interface{}) (zed.Value, error) {
+func (m *MarshalZNGContext) Marshal(v interface{}) (super.Value, error) {
 	m.Builder.Reset()
 	typ, err := m.encodeValue(reflect.ValueOf(v))
 	if err != nil {
-		return zed.Null, err
+		return super.Null, err
 	}
 	bytes := m.Builder.Bytes()
 	it := bytes.Iter()
 	if it.Done() {
-		return zed.Null, errors.New("no value found")
+		return super.Null, errors.New("no value found")
 	}
-	return zed.NewValue(typ, it.Next()), nil
+	return super.NewValue(typ, it.Next()), nil
 }
 
-func (m *MarshalZNGContext) MarshalCustom(names []string, vals []interface{}) (zed.Value, error) {
+func (m *MarshalZNGContext) MarshalCustom(names []string, vals []interface{}) (super.Value, error) {
 	if len(names) != len(vals) {
-		return zed.Null, errors.New("names and vals have different lengths")
+		return super.Null, errors.New("names and vals have different lengths")
 	}
 	m.Builder.Reset()
-	var fields []zed.Field
+	var fields []super.Field
 	for k, v := range vals {
 		typ, err := m.encodeValue(reflect.ValueOf(v))
 		if err != nil {
-			return zed.Null, err
+			return super.Null, err
 		}
-		fields = append(fields, zed.Field{Name: names[k], Type: typ})
+		fields = append(fields, super.Field{Name: names[k], Type: typ})
 	}
 	// XXX issue #1836
 	// Since this can be the inner loop here and nowhere else do we call
@@ -163,9 +163,9 @@ func (m *MarshalZNGContext) MarshalCustom(names []string, vals []interface{}) (z
 	// closed-address exact match for the values in the slot.
 	recType, err := m.Context.LookupTypeRecord(fields)
 	if err != nil {
-		return zed.Null, err
+		return super.Null, err
 	}
-	return zed.NewValue(recType, m.Builder.Bytes()), nil
+	return super.NewValue(recType, m.Builder.Bytes()), nil
 }
 
 const (
@@ -253,14 +253,14 @@ func (m *MarshalZNGContext) NamedBindings(bindings []Binding) error {
 }
 
 var nanoTsType = reflect.TypeOf(nano.Ts(0))
-var zngValueType = reflect.TypeOf(zed.Value{})
+var zngValueType = reflect.TypeOf(super.Value{})
 
-func (m *MarshalZNGContext) encodeValue(v reflect.Value) (zed.Type, error) {
+func (m *MarshalZNGContext) encodeValue(v reflect.Value) (super.Type, error) {
 	typ, err := m.encodeAny(v)
 	if err != nil {
 		return nil, err
 	}
-	if _, ok := typ.(*zed.TypeNamed); ok {
+	if _, ok := typ.(*super.TypeNamed); ok {
 		// We already have a named type.
 		return typ, nil
 	}
@@ -271,33 +271,33 @@ func (m *MarshalZNGContext) encodeValue(v reflect.Value) (zed.Type, error) {
 	return m.lookupTypeNamed(v.Type(), typ)
 }
 
-func (m *MarshalZNGContext) encodeAny(v reflect.Value) (zed.Type, error) {
+func (m *MarshalZNGContext) encodeAny(v reflect.Value) (super.Type, error) {
 	if !v.IsValid() {
 		m.Builder.Append(nil)
-		return zed.TypeNull, nil
+		return super.TypeNull, nil
 	}
 	switch v := v.Interface().(type) {
 	case ZNGMarshaler:
 		return v.MarshalZNG(m)
 	case float16.Float16:
-		m.Builder.Append(zed.EncodeFloat16(v.Float32()))
-		return zed.TypeFloat16, nil
+		m.Builder.Append(super.EncodeFloat16(v.Float32()))
+		return super.TypeFloat16, nil
 	case nano.Ts:
-		m.Builder.Append(zed.EncodeTime(v))
-		return zed.TypeTime, nil
+		m.Builder.Append(super.EncodeTime(v))
+		return super.TypeTime, nil
 	case net.IP:
 		if a, err := netip.ParseAddr(v.String()); err == nil {
-			m.Builder.Append(zed.EncodeIP(a))
-			return zed.TypeIP, nil
+			m.Builder.Append(super.EncodeIP(a))
+			return super.TypeIP, nil
 		}
 	case time.Time:
-		m.Builder.Append(zed.EncodeTime(nano.TimeToTs(v)))
-		return zed.TypeTime, nil
-	case zed.Type:
+		m.Builder.Append(super.EncodeTime(nano.TimeToTs(v)))
+		return super.TypeTime, nil
+	case super.Type:
 		val := m.Context.LookupTypeValue(v)
 		m.Builder.Append(val.Bytes())
 		return val.Type(), nil
-	case zed.Value:
+	case super.Value:
 		typ, err := m.TranslateType(v.Type())
 		if err != nil {
 			return nil, err
@@ -326,8 +326,8 @@ func (m *MarshalZNGContext) encodeAny(v reflect.Value) (zed.Type, error) {
 		return m.encodeArray(v)
 	case reflect.Struct:
 		if a, ok := v.Interface().(netip.Addr); ok {
-			m.Builder.Append(zed.EncodeIP(a))
-			return zed.TypeIP, nil
+			m.Builder.Append(super.EncodeIP(a))
+			return super.TypeIP, nil
 		}
 		return m.encodeRecord(v)
 	case reflect.Ptr:
@@ -341,38 +341,38 @@ func (m *MarshalZNGContext) encodeAny(v reflect.Value) (zed.Type, error) {
 		}
 		return m.encodeValue(v.Elem())
 	case reflect.String:
-		m.Builder.Append(zed.EncodeString(v.String()))
-		return zed.TypeString, nil
+		m.Builder.Append(super.EncodeString(v.String()))
+		return super.TypeString, nil
 	case reflect.Bool:
-		m.Builder.Append(zed.EncodeBool(v.Bool()))
-		return zed.TypeBool, nil
+		m.Builder.Append(super.EncodeBool(v.Bool()))
+		return super.TypeBool, nil
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		zt, err := m.lookupType(v.Type())
 		if err != nil {
 			return nil, err
 		}
-		m.Builder.Append(zed.EncodeInt(v.Int()))
+		m.Builder.Append(super.EncodeInt(v.Int()))
 		return zt, nil
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		zt, err := m.lookupType(v.Type())
 		if err != nil {
 			return nil, err
 		}
-		m.Builder.Append(zed.EncodeUint(v.Uint()))
+		m.Builder.Append(super.EncodeUint(v.Uint()))
 		return zt, nil
 	case reflect.Float32:
-		m.Builder.Append(zed.EncodeFloat32(float32(v.Float())))
-		return zed.TypeFloat32, nil
+		m.Builder.Append(super.EncodeFloat32(float32(v.Float())))
+		return super.TypeFloat32, nil
 	case reflect.Float64:
-		m.Builder.Append(zed.EncodeFloat64(v.Float()))
-		return zed.TypeFloat64, nil
+		m.Builder.Append(super.EncodeFloat64(v.Float()))
+		return super.TypeFloat64, nil
 	default:
 		return nil, fmt.Errorf("unsupported type: %v", v.Kind())
 	}
 }
 
-func (m *MarshalZNGContext) encodeMap(v reflect.Value) (zed.Type, error) {
-	var lastKeyType, lastValType zed.Type
+func (m *MarshalZNGContext) encodeMap(v reflect.Value) (super.Type, error) {
+	var lastKeyType, lastValType super.Type
 	m.Builder.BeginContainer()
 	for it := v.MapRange(); it.Next(); {
 		keyType, err := m.encodeValue(it.Key())
@@ -392,7 +392,7 @@ func (m *MarshalZNGContext) encodeMap(v reflect.Value) (zed.Type, error) {
 		}
 		lastValType = valType
 	}
-	m.Builder.TransformContainer(zed.NormalizeMap)
+	m.Builder.TransformContainer(super.NormalizeMap)
 	m.Builder.EndContainer()
 	if lastKeyType == nil {
 		// Map is empty so look up types.
@@ -409,7 +409,7 @@ func (m *MarshalZNGContext) encodeMap(v reflect.Value) (zed.Type, error) {
 	return m.Context.LookupTypeMap(lastKeyType, lastValType), nil
 }
 
-func (m *MarshalZNGContext) encodeNil(t reflect.Type) (zed.Type, error) {
+func (m *MarshalZNGContext) encodeNil(t reflect.Type) (super.Type, error) {
 	typ, err := m.lookupType(t)
 	if err != nil {
 		return nil, err
@@ -418,9 +418,9 @@ func (m *MarshalZNGContext) encodeNil(t reflect.Type) (zed.Type, error) {
 	return typ, nil
 }
 
-func (m *MarshalZNGContext) encodeRecord(sval reflect.Value) (zed.Type, error) {
+func (m *MarshalZNGContext) encodeRecord(sval reflect.Value) (super.Type, error) {
 	m.Builder.BeginContainer()
-	var fields []zed.Field
+	var fields []super.Field
 	stype := sval.Type()
 	for i := 0; i < stype.NumField(); i++ {
 		sf := stype.Field(i)
@@ -450,18 +450,18 @@ func (m *MarshalZNGContext) encodeRecord(sval reflect.Value) (zed.Type, error) {
 		if err != nil {
 			return nil, err
 		}
-		fields = append(fields, zed.Field{Name: name, Type: typ})
+		fields = append(fields, super.Field{Name: name, Type: typ})
 	}
 	m.Builder.EndContainer()
 	return m.Context.LookupTypeRecord(fields)
 }
 
-func (m *MarshalZNGContext) encodeSliceBytes(sliceVal reflect.Value) (zed.Type, error) {
+func (m *MarshalZNGContext) encodeSliceBytes(sliceVal reflect.Value) (super.Type, error) {
 	m.Builder.Append(sliceVal.Bytes())
-	return zed.TypeBytes, nil
+	return super.TypeBytes, nil
 }
 
-func (m *MarshalZNGContext) encodeArrayBytes(arrayVal reflect.Value) (zed.Type, error) {
+func (m *MarshalZNGContext) encodeArrayBytes(arrayVal reflect.Value) (super.Type, error) {
 	n := arrayVal.Len()
 	bytes := make([]byte, 0, n)
 	for k := 0; k < n; k++ {
@@ -469,13 +469,13 @@ func (m *MarshalZNGContext) encodeArrayBytes(arrayVal reflect.Value) (zed.Type, 
 		bytes = append(bytes, v.Interface().(uint8))
 	}
 	m.Builder.Append(bytes)
-	return zed.TypeBytes, nil
+	return super.TypeBytes, nil
 }
 
-func (m *MarshalZNGContext) encodeArray(arrayVal reflect.Value) (zed.Type, error) {
+func (m *MarshalZNGContext) encodeArray(arrayVal reflect.Value) (super.Type, error) {
 	m.Builder.BeginContainer()
 	arrayLen := arrayVal.Len()
-	types := make([]zed.Type, 0, arrayLen)
+	types := make([]super.Type, 0, arrayLen)
 	for i := 0; i < arrayLen; i++ {
 		item := arrayVal.Index(i)
 		typ, err := m.encodeValue(item)
@@ -484,8 +484,8 @@ func (m *MarshalZNGContext) encodeArray(arrayVal reflect.Value) (zed.Type, error
 		}
 		types = append(types, typ)
 	}
-	uniqueTypes := zed.UniqueTypes(slices.Clone(types))
-	var innerType zed.Type
+	uniqueTypes := super.UniqueTypes(slices.Clone(types))
+	var innerType super.Type
 	switch len(uniqueTypes) {
 	case 0:
 		// if slice was empty, look up the type without a value
@@ -502,7 +502,7 @@ func (m *MarshalZNGContext) encodeArray(arrayVal reflect.Value) (zed.Type, error
 		m.Builder.TransformContainer(func(bytes zcode.Bytes) zcode.Bytes {
 			var b zcode.Builder
 			for i, it := 0, bytes.Iter(); !it.Done(); i++ {
-				zed.BuildUnion(&b, unionType.TagOf(types[i]), it.Next())
+				super.BuildUnion(&b, unionType.TagOf(types[i]), it.Next())
 			}
 			return b.Bytes()
 		})
@@ -512,12 +512,12 @@ func (m *MarshalZNGContext) encodeArray(arrayVal reflect.Value) (zed.Type, error
 	return m.Context.LookupTypeArray(innerType), nil
 }
 
-func (m *MarshalZNGContext) lookupType(t reflect.Type) (zed.Type, error) {
-	var typ zed.Type
+func (m *MarshalZNGContext) lookupType(t reflect.Type) (super.Type, error) {
+	var typ super.Type
 	switch t.Kind() {
 	case reflect.Array, reflect.Slice:
 		if t.Elem().Kind() == reflect.Uint8 {
-			typ = zed.TypeBytes
+			typ = super.TypeBytes
 		} else {
 			inner, err := m.lookupType(t.Elem())
 			if err != nil {
@@ -548,40 +548,40 @@ func (m *MarshalZNGContext) lookupType(t reflect.Type) (zed.Type, error) {
 			return nil, err
 		}
 	case reflect.String:
-		typ = zed.TypeString
+		typ = super.TypeString
 	case reflect.Bool:
-		typ = zed.TypeBool
+		typ = super.TypeBool
 	case reflect.Int, reflect.Int64:
-		typ = zed.TypeInt64
+		typ = super.TypeInt64
 	case reflect.Int32:
-		typ = zed.TypeInt32
+		typ = super.TypeInt32
 	case reflect.Int16:
-		typ = zed.TypeInt16
+		typ = super.TypeInt16
 	case reflect.Int8:
-		typ = zed.TypeInt8
+		typ = super.TypeInt8
 	case reflect.Uint, reflect.Uint64:
-		typ = zed.TypeUint64
+		typ = super.TypeUint64
 	case reflect.Uint32:
-		typ = zed.TypeUint32
+		typ = super.TypeUint32
 	case reflect.Uint16:
-		typ = zed.TypeUint16
+		typ = super.TypeUint16
 	case reflect.Uint8:
-		typ = zed.TypeUint8
+		typ = super.TypeUint8
 	case reflect.Float32:
-		typ = zed.TypeFloat32
+		typ = super.TypeFloat32
 	case reflect.Float64:
-		typ = zed.TypeFloat64
+		typ = super.TypeFloat64
 	case reflect.Interface:
 		// Encode interfaces when we don't know the underlying concrete type as null type.
-		typ = zed.TypeNull
+		typ = super.TypeNull
 	default:
 		return nil, fmt.Errorf("unsupported type: %v", t.Kind())
 	}
 	return m.lookupTypeNamed(t, typ)
 }
 
-func (m *MarshalZNGContext) lookupTypeRecord(structType reflect.Type) (zed.Type, error) {
-	var fields []zed.Field
+func (m *MarshalZNGContext) lookupTypeRecord(structType reflect.Type) (super.Type, error) {
+	var fields []super.Field
 	for i := 0; i < structType.NumField(); i++ {
 		field := structType.Field(i)
 		name := fieldName(field)
@@ -589,14 +589,14 @@ func (m *MarshalZNGContext) lookupTypeRecord(structType reflect.Type) (zed.Type,
 		if err != nil {
 			return nil, err
 		}
-		fields = append(fields, zed.Field{Name: name, Type: fieldType})
+		fields = append(fields, super.Field{Name: name, Type: fieldType})
 	}
 	return m.Context.LookupTypeRecord(fields)
 }
 
 // lookupTypeNamed returns a named type for typ with a name derived from t.  It
 // returns typ if it shouldn't derive a name from t.
-func (m *MarshalZNGContext) lookupTypeNamed(t reflect.Type, typ zed.Type) (zed.Type, error) {
+func (m *MarshalZNGContext) lookupTypeNamed(t reflect.Type, typ super.Type) (super.Type, error) {
 	if m.decorator == nil && m.bindings == nil {
 		return typ, nil
 	}
@@ -608,7 +608,7 @@ func (m *MarshalZNGContext) lookupTypeNamed(t reflect.Type, typ zed.Type) (zed.T
 	}
 	// We do not want to further decorate nano.Ts as
 	// it's already been converted to a Zed time;
-	// likewise for zed.Value, which gets encoded as
+	// likewise for super.Value, which gets encoded as
 	// itself and its own named type if it has one.
 	if t == nanoTsType || t == zngValueType || t == netipAddrType || t == netIPType {
 		return typ, nil
@@ -632,11 +632,11 @@ func (m *MarshalZNGContext) lookupTypeNamed(t reflect.Type, typ zed.Type) (zed.T
 }
 
 type ZNGUnmarshaler interface {
-	UnmarshalZNG(*UnmarshalZNGContext, zed.Value) error
+	UnmarshalZNG(*UnmarshalZNGContext, super.Value) error
 }
 
 type UnmarshalZNGContext struct {
-	zctx   *zed.Context
+	zctx   *super.Context
 	binder binder
 }
 
@@ -644,21 +644,21 @@ func NewZNGUnmarshaler() *UnmarshalZNGContext {
 	return &UnmarshalZNGContext{}
 }
 
-func UnmarshalZNG(val zed.Value, v interface{}) error {
+func UnmarshalZNG(val super.Value, v interface{}) error {
 	return NewZNGUnmarshaler().decodeAny(val, reflect.ValueOf(v))
 }
 
-func incompatTypeError(zt zed.Type, v reflect.Value) error {
+func incompatTypeError(zt super.Type, v reflect.Value) error {
 	return fmt.Errorf("incompatible type translation: zng type %v go type %v go kind %v", FormatType(zt), v.Type(), v.Kind())
 }
 
 // SetContext provides an optional type context to the unmarshaler.  This is
-// needed only when unmarshaling Zed type values into Go zed.Type interface values.
-func (u *UnmarshalZNGContext) SetContext(zctx *zed.Context) {
+// needed only when unmarshaling Zed type values into Go super.Type interface values.
+func (u *UnmarshalZNGContext) SetContext(zctx *super.Context) {
 	u.zctx = zctx
 }
 
-func (u *UnmarshalZNGContext) Unmarshal(val zed.Value, v interface{}) error {
+func (u *UnmarshalZNGContext) Unmarshal(val super.Value, v interface{}) error {
 	return u.decodeAny(val, reflect.ValueOf(v))
 }
 
@@ -691,7 +691,7 @@ func (u *UnmarshalZNGContext) NamedBindings(bindings []Binding) error {
 var netipAddrType = reflect.TypeOf(netip.Addr{})
 var netIPType = reflect.TypeOf(net.IP{})
 
-func (u *UnmarshalZNGContext) decodeAny(val zed.Value, v reflect.Value) (x error) {
+func (u *UnmarshalZNGContext) decodeAny(val super.Value, v reflect.Value) (x error) {
 	if !v.IsValid() {
 		return errors.New("cannot unmarshal into value provided")
 	}
@@ -701,24 +701,24 @@ func (u *UnmarshalZNGContext) decodeAny(val zed.Value, v reflect.Value) (x error
 	}
 	switch v.Interface().(type) {
 	case float16.Float16:
-		if val.Type() != zed.TypeFloat16 {
+		if val.Type() != super.TypeFloat16 {
 			return incompatTypeError(val.Type(), v)
 		}
 		v.SetUint(uint64(float16.Fromfloat32(float32(val.Float()))))
 		return nil
 	case nano.Ts:
-		if val.Type() != zed.TypeTime {
+		if val.Type() != super.TypeTime {
 			return incompatTypeError(val.Type(), v)
 		}
-		v.Set(reflect.ValueOf(zed.DecodeTime(val.Bytes())))
+		v.Set(reflect.ValueOf(super.DecodeTime(val.Bytes())))
 		return nil
-	case zed.Value:
-		// For zed.Values we simply set the reflect value to the
-		// zed.Value that has been decoded.
+	case super.Value:
+		// For super.Values we simply set the reflect value to the
+		// super.Value that has been decoded.
 		v.Set(reflect.ValueOf(val.Copy()))
 		return nil
 	}
-	if zed.TypeUnder(val.Type()) == zed.TypeNull {
+	if super.TypeUnder(val.Type()) == super.TypeNull {
 		// A zed null value should successfully unmarshal to any go type. Typed
 		// nulls however need to be type checked.
 		v.Set(reflect.Zero(v.Type()))
@@ -743,7 +743,7 @@ func (u *UnmarshalZNGContext) decodeAny(val zed.Value, v reflect.Value) (x error
 		}
 		return u.decodeRecord(val, v)
 	case reflect.Interface:
-		if zed.TypeUnder(val.Type()) == zed.TypeType {
+		if super.TypeUnder(val.Type()) == super.TypeType {
 			if u.zctx == nil {
 				return errors.New("cannot unmarshal type value without type context")
 			}
@@ -789,43 +789,43 @@ func (u *UnmarshalZNGContext) decodeAny(val zed.Value, v reflect.Value) (x error
 	case reflect.String:
 		// XXX We bundle string, type, error all into string.
 		// See issue #1853.
-		switch zed.TypeUnder(val.Type()) {
-		case zed.TypeString, zed.TypeType:
+		switch super.TypeUnder(val.Type()) {
+		case super.TypeString, super.TypeType:
 		default:
 			return incompatTypeError(val.Type(), v)
 		}
-		v.SetString(zed.DecodeString(val.Bytes()))
+		v.SetString(super.DecodeString(val.Bytes()))
 		return nil
 	case reflect.Bool:
-		if zed.TypeUnder(val.Type()) != zed.TypeBool {
+		if super.TypeUnder(val.Type()) != super.TypeBool {
 			return incompatTypeError(val.Type(), v)
 		}
 		v.SetBool(val.Bool())
 		return nil
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		switch zed.TypeUnder(val.Type()) {
-		case zed.TypeInt8, zed.TypeInt16, zed.TypeInt32, zed.TypeInt64:
+		switch super.TypeUnder(val.Type()) {
+		case super.TypeInt8, super.TypeInt16, super.TypeInt32, super.TypeInt64:
 		default:
 			return incompatTypeError(val.Type(), v)
 		}
 		v.SetInt(val.Int())
 		return nil
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		switch zed.TypeUnder(val.Type()) {
-		case zed.TypeUint8, zed.TypeUint16, zed.TypeUint32, zed.TypeUint64:
+		switch super.TypeUnder(val.Type()) {
+		case super.TypeUint8, super.TypeUint16, super.TypeUint32, super.TypeUint64:
 		default:
 			return incompatTypeError(val.Type(), v)
 		}
 		v.SetUint(val.Uint())
 		return nil
 	case reflect.Float32:
-		if zed.TypeUnder(val.Type()) != zed.TypeFloat32 {
+		if super.TypeUnder(val.Type()) != super.TypeFloat32 {
 			return incompatTypeError(val.Type(), v)
 		}
 		v.SetFloat(val.Float())
 		return nil
 	case reflect.Float64:
-		if zed.TypeUnder(val.Type()) != zed.TypeFloat64 {
+		if super.TypeUnder(val.Type()) != super.TypeFloat64 {
 			return incompatTypeError(val.Type(), v)
 		}
 		v.SetFloat(val.Float())
@@ -837,7 +837,7 @@ func (u *UnmarshalZNGContext) decodeAny(val zed.Value, v reflect.Value) (x error
 
 // Adapted from:
 // https://github.com/golang/go/blob/46ab7a5c4f80d912f25b6b3e1044282a2a79df8b/src/encoding/json/decode.go#L426
-func indirect(v reflect.Value, val zed.Value) (ZNGUnmarshaler, reflect.Value) {
+func indirect(v reflect.Value, val super.Value) (ZNGUnmarshaler, reflect.Value) {
 	// If v is a named type and is addressable,
 	// start with its address, so that if the type has pointer methods,
 	// we find them.
@@ -848,7 +848,7 @@ func indirect(v reflect.Value, val zed.Value) (ZNGUnmarshaler, reflect.Value) {
 	for v.Kind() == reflect.Pointer {
 		if v.CanSet() && val.IsNull() {
 			// If the reflect value can be set and the zed Value is nil we want
-			// to store this pointer since if destination is not a zed.Value the
+			// to store this pointer since if destination is not a super.Value the
 			// pointer will be set to nil.
 			nilptr = v
 		}
@@ -862,13 +862,13 @@ func indirect(v reflect.Value, val zed.Value) (ZNGUnmarshaler, reflect.Value) {
 		}
 		v = v.Elem()
 	}
-	if _, ok := v.Interface().(zed.Value); !ok && nilptr.IsValid() {
+	if _, ok := v.Interface().(super.Value); !ok && nilptr.IsValid() {
 		return nil, nilptr
 	}
 	return nil, v
 }
 
-func (u *UnmarshalZNGContext) decodeNull(val zed.Value, v reflect.Value) error {
+func (u *UnmarshalZNGContext) decodeNull(val super.Value, v reflect.Value) error {
 	inner := v
 	for inner.Kind() == reflect.Ptr {
 		if inner.IsNil() {
@@ -887,24 +887,24 @@ func (u *UnmarshalZNGContext) decodeNull(val zed.Value, v reflect.Value) error {
 	return nil
 }
 
-func (u *UnmarshalZNGContext) decodeNetipAddr(val zed.Value, v reflect.Value) error {
-	if zed.TypeUnder(val.Type()) != zed.TypeIP {
+func (u *UnmarshalZNGContext) decodeNetipAddr(val super.Value, v reflect.Value) error {
+	if super.TypeUnder(val.Type()) != super.TypeIP {
 		return incompatTypeError(val.Type(), v)
 	}
-	v.Set(reflect.ValueOf(zed.DecodeIP(val.Bytes())))
+	v.Set(reflect.ValueOf(super.DecodeIP(val.Bytes())))
 	return nil
 }
 
-func (u *UnmarshalZNGContext) decodeNetIP(val zed.Value, v reflect.Value) error {
-	if zed.TypeUnder(val.Type()) != zed.TypeIP {
+func (u *UnmarshalZNGContext) decodeNetIP(val super.Value, v reflect.Value) error {
+	if super.TypeUnder(val.Type()) != super.TypeIP {
 		return incompatTypeError(val.Type(), v)
 	}
-	v.Set(reflect.ValueOf(net.ParseIP(zed.DecodeIP(val.Bytes()).String())))
+	v.Set(reflect.ValueOf(net.ParseIP(super.DecodeIP(val.Bytes()).String())))
 	return nil
 }
 
-func (u *UnmarshalZNGContext) decodeMap(val zed.Value, mapVal reflect.Value) error {
-	typ, ok := zed.TypeUnder(val.Type()).(*zed.TypeMap)
+func (u *UnmarshalZNGContext) decodeMap(val super.Value, mapVal reflect.Value) error {
+	typ, ok := super.TypeUnder(val.Type()).(*super.TypeMap)
 	if !ok {
 		return errors.New("not a map")
 	}
@@ -920,11 +920,11 @@ func (u *UnmarshalZNGContext) decodeMap(val zed.Value, mapVal reflect.Value) err
 	valType := mapVal.Type().Elem()
 	for it := val.Iter(); !it.Done(); {
 		key := reflect.New(keyType).Elem()
-		if err := u.decodeAny(zed.NewValue(typ.KeyType, it.Next()), key); err != nil {
+		if err := u.decodeAny(super.NewValue(typ.KeyType, it.Next()), key); err != nil {
 			return err
 		}
 		val := reflect.New(valType).Elem()
-		if err := u.decodeAny(zed.NewValue(typ.ValType, it.Next()), val); err != nil {
+		if err := u.decodeAny(super.NewValue(typ.ValType, it.Next()), val); err != nil {
 			return err
 		}
 		mapVal.SetMapIndex(key, val)
@@ -932,12 +932,12 @@ func (u *UnmarshalZNGContext) decodeMap(val zed.Value, mapVal reflect.Value) err
 	return nil
 }
 
-func (u *UnmarshalZNGContext) decodeRecord(val zed.Value, sval reflect.Value) error {
-	if union, ok := val.Type().(*zed.TypeUnion); ok {
+func (u *UnmarshalZNGContext) decodeRecord(val super.Value, sval reflect.Value) error {
+	if union, ok := val.Type().(*super.TypeUnion); ok {
 		typ, bytes := union.Untag(val.Bytes())
-		val = zed.NewValue(typ, bytes)
+		val = super.NewValue(typ, bytes)
 	}
-	recType, ok := zed.TypeUnder(val.Type()).(*zed.TypeRecord)
+	recType, ok := super.TypeUnder(val.Type()).(*super.TypeRecord)
 	if !ok {
 		return fmt.Errorf("cannot unmarshal Zed value %q into Go struct", String(val))
 	}
@@ -956,7 +956,7 @@ func (u *UnmarshalZNGContext) decodeRecord(val zed.Value, sval reflect.Value) er
 		name := recType.Fields[i].Name
 		if fieldIdx, ok := nameToField[name]; ok {
 			typ := recType.Fields[i].Type
-			if err := u.decodeAny(zed.NewValue(typ, itzv), sval.Field(fieldIdx)); err != nil {
+			if err := u.decodeAny(super.NewValue(typ, itzv), sval.Field(fieldIdx)); err != nil {
 				return err
 			}
 		}
@@ -964,9 +964,9 @@ func (u *UnmarshalZNGContext) decodeRecord(val zed.Value, sval reflect.Value) er
 	return nil
 }
 
-func (u *UnmarshalZNGContext) decodeArray(val zed.Value, arrVal reflect.Value) error {
-	typ := zed.TypeUnder(val.Type())
-	if typ == zed.TypeBytes && arrVal.Type().Elem().Kind() == reflect.Uint8 {
+func (u *UnmarshalZNGContext) decodeArray(val super.Value, arrVal reflect.Value) error {
+	typ := super.TypeUnder(val.Type())
+	if typ == super.TypeBytes && arrVal.Type().Elem().Kind() == reflect.Uint8 {
 		if val.IsNull() {
 			arrVal.Set(reflect.Zero(arrVal.Type()))
 			return nil
@@ -978,7 +978,7 @@ func (u *UnmarshalZNGContext) decodeArray(val zed.Value, arrVal reflect.Value) e
 		arrVal.SetBytes(val.Bytes())
 		return nil
 	}
-	arrType, ok := typ.(*zed.TypeArray)
+	arrType, ok := typ.(*super.TypeArray)
 	if !ok {
 		return fmt.Errorf("unmarshaling type %q: not an array", String(typ))
 	}
@@ -1002,7 +1002,7 @@ func (u *UnmarshalZNGContext) decodeArray(val zed.Value, arrVal reflect.Value) e
 		if i >= arrVal.Len() {
 			arrVal.SetLen(i + 1)
 		}
-		if err := u.decodeAny(zed.NewValue(arrType.Type, itzv), arrVal.Index(i)); err != nil {
+		if err := u.decodeAny(super.NewValue(arrType.Type, itzv), arrVal.Index(i)); err != nil {
 			return err
 		}
 	}
@@ -1015,7 +1015,7 @@ func (u *UnmarshalZNGContext) decodeArray(val zed.Value, arrVal reflect.Value) e
 	return nil
 }
 
-func (u *UnmarshalZNGContext) decodeArrayBytes(val zed.Value, arrayVal reflect.Value) error {
+func (u *UnmarshalZNGContext) decodeArrayBytes(val super.Value, arrayVal reflect.Value) error {
 	if len(val.Bytes()) != arrayVal.Len() {
 		return errors.New("ZNG bytes value length differs from Go array")
 	}
@@ -1118,9 +1118,9 @@ func typeNameOfValue(value interface{}) (string, error) {
 // This process requires
 // a value rather than a Zed type as it must determine the types of union elements
 // from their tags.
-func (u *UnmarshalZNGContext) lookupGoType(typ zed.Type, bytes zcode.Bytes) (reflect.Type, error) {
+func (u *UnmarshalZNGContext) lookupGoType(typ super.Type, bytes zcode.Bytes) (reflect.Type, error) {
 	switch typ := typ.(type) {
-	case *zed.TypeNamed:
+	case *super.TypeNamed:
 		if template := u.binder.lookup(typ.Name); template != nil {
 			return template, nil
 		}
@@ -1131,9 +1131,9 @@ func (u *UnmarshalZNGContext) lookupGoType(typ zed.Type, bytes zcode.Bytes) (ref
 		// value and the concrete value doesn't implement the
 		// interface.
 		return u.lookupGoType(typ.Type, bytes)
-	case *zed.TypeRecord:
+	case *super.TypeRecord:
 		return nil, errors.New("unmarshaling records into interface value requires type binding")
-	case *zed.TypeArray:
+	case *super.TypeArray:
 		// If we got here, we know the array type wasn't named and
 		// therefore cannot have mixed-type elements.  So we don't need
 		// to traverse the array and can just take the first element
@@ -1161,7 +1161,7 @@ func (u *UnmarshalZNGContext) lookupGoType(typ zed.Type, bytes zcode.Bytes) (ref
 			return nil, err
 		}
 		return reflect.SliceOf(elemType), nil
-	case *zed.TypeSet:
+	case *super.TypeSet:
 		// See comment above for TypeArray as it applies here.
 		it := bytes.Iter()
 		if it.Done() {
@@ -1174,15 +1174,15 @@ func (u *UnmarshalZNGContext) lookupGoType(typ zed.Type, bytes zcode.Bytes) (ref
 			return nil, err
 		}
 		return reflect.SliceOf(elemType), nil
-	case *zed.TypeUnion:
+	case *super.TypeUnion:
 		return u.lookupGoType(typ.Untag(bytes))
-	case *zed.TypeEnum:
+	case *super.TypeEnum:
 		// For now just return nil here. The layer above will flag
 		// a type error.  At some point, we can create Go-native data structures
 		// in package zng for representing a union or enum as a standalone
 		// entity.  See issue #1853.
 		return nil, nil
-	case *zed.TypeMap:
+	case *super.TypeMap:
 		it := bytes.Iter()
 		if it.Done() {
 			return nil, fmt.Errorf("corrupt Zed map value in Zed unmarshal: type %q", String(typ))
@@ -1204,47 +1204,47 @@ func (u *UnmarshalZNGContext) lookupGoType(typ zed.Type, bytes zcode.Bytes) (ref
 	}
 }
 
-func (u *UnmarshalZNGContext) lookupPrimitiveType(typ zed.Type) (reflect.Type, error) {
+func (u *UnmarshalZNGContext) lookupPrimitiveType(typ super.Type) (reflect.Type, error) {
 	var v interface{}
 	switch typ := typ.(type) {
 	// XXX We should have counterparts for error and type type.
 	// See issue #1853.
 	// XXX udpate issue?
-	case *zed.TypeOfString, *zed.TypeOfType:
+	case *super.TypeOfString, *super.TypeOfType:
 		v = ""
-	case *zed.TypeOfBool:
+	case *super.TypeOfBool:
 		v = false
-	case *zed.TypeOfUint8:
+	case *super.TypeOfUint8:
 		v = uint8(0)
-	case *zed.TypeOfUint16:
+	case *super.TypeOfUint16:
 		v = uint16(0)
-	case *zed.TypeOfUint32:
+	case *super.TypeOfUint32:
 		v = uint32(0)
-	case *zed.TypeOfUint64:
+	case *super.TypeOfUint64:
 		v = uint64(0)
-	case *zed.TypeOfInt8:
+	case *super.TypeOfInt8:
 		v = int8(0)
-	case *zed.TypeOfInt16:
+	case *super.TypeOfInt16:
 		v = int16(0)
-	case *zed.TypeOfInt32:
+	case *super.TypeOfInt32:
 		v = int32(0)
-	case *zed.TypeOfInt64:
+	case *super.TypeOfInt64:
 		v = int64(0)
-	case *zed.TypeOfFloat16:
+	case *super.TypeOfFloat16:
 		v = float16.Fromfloat32(0)
-	case *zed.TypeOfFloat32:
+	case *super.TypeOfFloat32:
 		v = float32(0)
-	case *zed.TypeOfFloat64:
+	case *super.TypeOfFloat64:
 		v = float64(0)
-	case *zed.TypeOfIP:
+	case *super.TypeOfIP:
 		v = netip.Addr{}
-	case *zed.TypeOfNet:
+	case *super.TypeOfNet:
 		v = net.IPNet{}
-	case *zed.TypeOfTime:
+	case *super.TypeOfTime:
 		v = time.Time{}
-	case *zed.TypeOfDuration:
+	case *super.TypeOfDuration:
 		v = time.Duration(0)
-	case *zed.TypeOfNull:
+	case *super.TypeOfNull:
 		return nil, nil
 	default:
 		return nil, fmt.Errorf("unknown zng type: %v", typ)

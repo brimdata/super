@@ -95,7 +95,7 @@ func TestParallelOrder(t *testing.T) {
 
 	for i, c := range cases {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			zctx := zed.NewContext()
+			zctx := super.NewContext()
 			var parents []zbuf.Puller
 			for _, input := range c.inputs {
 				r := zsonio.NewReader(zctx, strings.NewReader(input))

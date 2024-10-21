@@ -10,13 +10,13 @@ import (
 )
 
 type Slice struct {
-	zctx *zed.Context
+	zctx *super.Context
 	elem Evaluator
 	from Evaluator
 	to   Evaluator
 }
 
-func NewSlice(zctx *zed.Context, elem, from, to Evaluator) *Slice {
+func NewSlice(zctx *super.Context, elem, from, to Evaluator) *Slice {
 	return &Slice{
 		zctx: zctx,
 		elem: elem,
@@ -28,18 +28,18 @@ func NewSlice(zctx *zed.Context, elem, from, to Evaluator) *Slice {
 var ErrSliceIndex = errors.New("slice index is not a number")
 var ErrSliceIndexEmpty = errors.New("slice index is empty")
 
-func (s *Slice) Eval(ectx Context, this zed.Value) zed.Value {
+func (s *Slice) Eval(ectx Context, this super.Value) super.Value {
 	elem := s.elem.Eval(ectx, this)
 	if elem.IsError() {
 		return elem
 	}
 	var length int
-	switch zed.TypeUnder(elem.Type()).(type) {
-	case *zed.TypeOfBytes:
+	switch super.TypeUnder(elem.Type()).(type) {
+	case *super.TypeOfBytes:
 		length = len(elem.Bytes())
-	case *zed.TypeOfString:
+	case *super.TypeOfString:
 		length = utf8.RuneCount(elem.Bytes())
-	case *zed.TypeArray, *zed.TypeSet:
+	case *super.TypeArray, *super.TypeSet:
 		n, err := elem.ContainerLength()
 		if err != nil {
 			panic(err)
@@ -63,13 +63,13 @@ func (s *Slice) Eval(ectx Context, this zed.Value) zed.Value {
 		to = length
 	}
 	bytes := elem.Bytes()
-	switch zed.TypeUnder(elem.Type()).(type) {
-	case *zed.TypeOfBytes:
+	switch super.TypeUnder(elem.Type()).(type) {
+	case *super.TypeOfBytes:
 		bytes = bytes[from:to]
-	case *zed.TypeOfString:
+	case *super.TypeOfString:
 		bytes = bytes[utf8PrefixLen(bytes, from):]
 		bytes = bytes[:utf8PrefixLen(bytes, to-from)]
-	case *zed.TypeArray, *zed.TypeSet:
+	case *super.TypeArray, *super.TypeSet:
 		it := bytes.Iter()
 		for k := 0; k < to && !it.Done(); k++ {
 			if k == from {
@@ -81,10 +81,10 @@ func (s *Slice) Eval(ectx Context, this zed.Value) zed.Value {
 	default:
 		panic(elem.Type())
 	}
-	return zed.NewValue(elem.Type(), bytes)
+	return super.NewValue(elem.Type(), bytes)
 }
 
-func sliceIndex(ectx Context, this zed.Value, slot Evaluator, length int) (int, error) {
+func sliceIndex(ectx Context, this super.Value, slot Evaluator, length int) (int, error) {
 	if slot == nil {
 		//XXX
 		return 0, ErrSliceIndexEmpty

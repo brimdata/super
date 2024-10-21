@@ -18,10 +18,10 @@ type builder struct {
 	buf             []byte
 	fields          [][]byte
 	reorderedFields [][]byte
-	val             zed.Value
+	val             super.Value
 }
 
-func (b *builder) build(typ *zed.TypeRecord, sourceFields []int, path []byte, data []byte) (*zed.Value, error) {
+func (b *builder) build(typ *super.TypeRecord, sourceFields []int, path []byte, data []byte) (*super.Value, error) {
 	b.Truncate()
 	b.Grow(len(data))
 	fields := typ.Fields
@@ -60,11 +60,11 @@ func (b *builder) build(typ *zed.TypeRecord, sourceFields []int, path []byte, da
 	if len(leftoverFields) != 0 {
 		return nil, errors.New("too many values")
 	}
-	b.val = zed.NewValue(typ, b.Bytes())
+	b.val = super.NewValue(typ, b.Bytes())
 	return &b.val, nil
 }
 
-func (b *builder) appendFields(fields []zed.Field, values [][]byte) ([][]byte, error) {
+func (b *builder) appendFields(fields []super.Field, values [][]byte) ([][]byte, error) {
 	const setSeparator = ','
 	const emptyContainer = "(empty)"
 	for _, f := range fields {
@@ -72,7 +72,7 @@ func (b *builder) appendFields(fields []zed.Field, values [][]byte) ([][]byte, e
 			return nil, errors.New("too few values")
 		}
 		switch typ := f.Type.(type) {
-		case *zed.TypeArray, *zed.TypeSet:
+		case *super.TypeArray, *super.TypeSet:
 			val := values[0]
 			values = values[1:]
 			if string(val) == "-" {
@@ -84,7 +84,7 @@ func (b *builder) appendFields(fields []zed.Field, values [][]byte) ([][]byte, e
 				b.EndContainer()
 				continue
 			}
-			inner := zed.InnerType(typ)
+			inner := super.InnerType(typ)
 			var cstart int
 			for i, ch := range val {
 				if ch == setSeparator {
@@ -97,11 +97,11 @@ func (b *builder) appendFields(fields []zed.Field, values [][]byte) ([][]byte, e
 			if err := b.appendPrimitive(inner, val[cstart:]); err != nil {
 				return nil, err
 			}
-			if _, ok := typ.(*zed.TypeSet); ok {
-				b.TransformContainer(zed.NormalizeSet)
+			if _, ok := typ.(*super.TypeSet); ok {
+				b.TransformContainer(super.NormalizeSet)
 			}
 			b.EndContainer()
-		case *zed.TypeRecord:
+		case *super.TypeRecord:
 			b.BeginContainer()
 			var err error
 			if values, err = b.appendFields(typ.Fields, values); err != nil {
@@ -118,56 +118,56 @@ func (b *builder) appendFields(fields []zed.Field, values [][]byte) ([][]byte, e
 	return values, nil
 }
 
-func (b *builder) appendPrimitive(typ zed.Type, val []byte) error {
+func (b *builder) appendPrimitive(typ super.Type, val []byte) error {
 	if string(val) == "-" {
 		b.Append(nil)
 		return nil
 	}
 	switch typ.ID() {
-	case zed.IDInt64:
+	case super.IDInt64:
 		v, err := byteconv.ParseInt64(val)
 		if err != nil {
 			return err
 		}
-		b.buf = zed.AppendInt(b.buf[:0], v)
-	case zed.IDUint16:
+		b.buf = super.AppendInt(b.buf[:0], v)
+	case super.IDUint16:
 		// Zeek's port type is mapped to a uint16 named type.
 		v, err := byteconv.ParseUint16(val)
 		if err != nil {
 			return err
 		}
-		b.buf = zed.AppendUint(b.buf[:0], uint64(v))
-	case zed.IDUint64:
+		b.buf = super.AppendUint(b.buf[:0], uint64(v))
+	case super.IDUint64:
 		v, err := byteconv.ParseUint64(val)
 		if err != nil {
 			return err
 		}
-		b.buf = zed.AppendUint(b.buf[:0], v)
-	case zed.IDDuration:
+		b.buf = super.AppendUint(b.buf[:0], v)
+	case super.IDDuration:
 		v, err := parseTime(val)
 		if err != nil {
 			return err
 		}
-		b.buf = zed.AppendDuration(b.buf[:0], nano.Duration(v))
-	case zed.IDTime:
+		b.buf = super.AppendDuration(b.buf[:0], nano.Duration(v))
+	case super.IDTime:
 		v, err := parseTime(val)
 		if err != nil {
 			return err
 		}
-		b.buf = zed.AppendTime(b.buf[:0], v)
-	case zed.IDFloat64:
+		b.buf = super.AppendTime(b.buf[:0], v)
+	case super.IDFloat64:
 		v, err := byteconv.ParseFloat64(val)
 		if err != nil {
 			return err
 		}
-		b.buf = zed.AppendFloat64(b.buf[:0], v)
-	case zed.IDBool:
+		b.buf = super.AppendFloat64(b.buf[:0], v)
+	case super.IDBool:
 		v, err := byteconv.ParseBool(val)
 		if err != nil {
 			return err
 		}
-		b.buf = zed.AppendBool(b.buf[:0], v)
-	case zed.IDString:
+		b.buf = super.AppendBool(b.buf[:0], v)
+	case super.IDString:
 		// Zeek's enum type is mapped to string named type.
 		val = unescapeZeekString(val)
 		if !utf8.Valid(val) {
@@ -194,18 +194,18 @@ func (b *builder) appendPrimitive(typ zed.Type, val []byte) error {
 		}
 		b.Append(norm.NFC.Bytes(val))
 		return nil
-	case zed.IDIP:
+	case super.IDIP:
 		v, err := byteconv.ParseIP(val)
 		if err != nil {
 			return err
 		}
-		b.buf = zed.AppendIP(b.buf[:0], v)
-	case zed.IDNet:
+		b.buf = super.AppendIP(b.buf[:0], v)
+	case super.IDNet:
 		v, err := netip.ParsePrefix(string(val))
 		if err != nil {
 			return err
 		}
-		b.buf = zed.AppendNet(b.buf[:0], v)
+		b.buf = super.AppendNet(b.buf[:0], v)
 	default:
 		panic(typ)
 	}

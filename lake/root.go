@@ -156,7 +156,7 @@ func (r *Root) readLakeMagic(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	zr := zngio.NewReader(zed.NewContext(), reader)
+	zr := zngio.NewReader(super.NewContext(), reader)
 	defer zr.Close()
 	val, err := zr.Read()
 	if err != nil {
@@ -182,7 +182,7 @@ func (r *Root) readLakeMagic(ctx context.Context) error {
 	return nil
 }
 
-func (r *Root) BatchifyPools(ctx context.Context, zctx *zed.Context, f expr.Evaluator) ([]zed.Value, error) {
+func (r *Root) BatchifyPools(ctx context.Context, zctx *super.Context, f expr.Evaluator) ([]super.Value, error) {
 	m := zson.NewZNGMarshalerWithContext(zctx)
 	m.Decorate(zson.StylePackage)
 	pools, err := r.ListPools(ctx)
@@ -190,7 +190,7 @@ func (r *Root) BatchifyPools(ctx context.Context, zctx *zed.Context, f expr.Eval
 		return nil, err
 	}
 	ectx := expr.NewContext()
-	var vals []zed.Value
+	var vals []super.Value
 	for k := range pools {
 		rec, err := m.Marshal(&pools[k])
 		if err != nil {
@@ -203,14 +203,14 @@ func (r *Root) BatchifyPools(ctx context.Context, zctx *zed.Context, f expr.Eval
 	return vals, nil
 }
 
-func (r *Root) BatchifyBranches(ctx context.Context, zctx *zed.Context, f expr.Evaluator) ([]zed.Value, error) {
+func (r *Root) BatchifyBranches(ctx context.Context, zctx *super.Context, f expr.Evaluator) ([]super.Value, error) {
 	m := zson.NewZNGMarshalerWithContext(zctx)
 	m.Decorate(zson.StylePackage)
 	poolRefs, err := r.ListPools(ctx)
 	if err != nil {
 		return nil, err
 	}
-	var vals []zed.Value
+	var vals []super.Value
 	for k := range poolRefs {
 		pool, err := r.openPool(ctx, &poolRefs[k])
 		if err != nil {
@@ -406,7 +406,7 @@ func (r *Root) Revert(ctx context.Context, poolID ksuid.KSUID, branchName string
 	return branch.Revert(ctx, commitID, author, message)
 }
 
-func (r *Root) Open(context.Context, *zed.Context, string, string, zbuf.Filter) (zbuf.Puller, error) {
+func (r *Root) Open(context.Context, *super.Context, string, string, zbuf.Filter) (zbuf.Puller, error) {
 	return nil, errors.New("cannot use 'file' or 'http' source in a lake query")
 }
 

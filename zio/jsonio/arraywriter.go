@@ -35,7 +35,7 @@ func (a *ArrayWriter) Close() error {
 	return a.wc.Close()
 }
 
-func (a *ArrayWriter) Write(val zed.Value) error {
+func (a *ArrayWriter) Write(val super.Value) error {
 	a.buf.Reset()
 	if a.wrote {
 		a.buf.WriteByte(',')

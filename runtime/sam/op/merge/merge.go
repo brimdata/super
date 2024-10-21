@@ -20,7 +20,7 @@ import (
 // Merger is waiting on the upstream puller.
 type Op struct {
 	ctx      context.Context
-	zctx     *zed.Context
+	zctx     *super.Context
 	cmp      expr.CompareFn
 	resetter expr.Resetter
 
@@ -90,7 +90,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 	return zbuf.NewPuller(o).Pull(false)
 }
 
-func (o *Op) Read() (*zed.Value, error) {
+func (o *Op) Read() (*super.Value, error) {
 	if o.unref != nil {
 		o.unref.Unref()
 		o.unref = nil
@@ -193,7 +193,7 @@ type puller struct {
 	resultCh chan op.Result
 	doneCh   chan struct{}
 	batch    zbuf.Batch
-	vals     []zed.Value
+	vals     []super.Value
 	// Used only by Proc
 	blocked bool
 }

@@ -21,7 +21,7 @@ type Object struct {
 	Actions []Action    `zed:"actions"`
 }
 
-func NewObject(parent ksuid.KSUID, author, message string, meta zed.Value, retries int) *Object {
+func NewObject(parent ksuid.KSUID, author, message string, meta super.Value, retries int) *Object {
 	commit := ksuid.New()
 	o := &Object{
 		Commit: commit,
@@ -39,7 +39,7 @@ func NewObject(parent ksuid.KSUID, author, message string, meta zed.Value, retri
 	return o
 }
 
-func NewAddsObject(parent ksuid.KSUID, retries int, author, message string, meta zed.Value, objects []data.Object) *Object {
+func NewAddsObject(parent ksuid.KSUID, retries int, author, message string, meta super.Value, objects []data.Object) *Object {
 	o := NewObject(parent, author, message, meta, retries)
 	for _, dataObject := range objects {
 		o.append(&Add{Commit: o.Commit, Object: dataObject})
@@ -48,7 +48,7 @@ func NewAddsObject(parent ksuid.KSUID, retries int, author, message string, meta
 }
 
 func NewDeletesObject(parent ksuid.KSUID, retries int, author, message string, ids []ksuid.KSUID) *Object {
-	o := NewObject(parent, author, message, zed.Null, retries)
+	o := NewObject(parent, author, message, super.Null, retries)
 	for _, id := range ids {
 		o.appendDelete(id)
 	}
@@ -56,7 +56,7 @@ func NewDeletesObject(parent ksuid.KSUID, retries int, author, message string, i
 }
 
 func NewAddVectorsObject(parent ksuid.KSUID, author, message string, ids []ksuid.KSUID, retries int) *Object {
-	o := NewObject(parent, author, message, zed.Null, retries)
+	o := NewObject(parent, author, message, super.Null, retries)
 	for _, id := range ids {
 		o.appendAddVector(id)
 	}
@@ -64,7 +64,7 @@ func NewAddVectorsObject(parent ksuid.KSUID, author, message string, ids []ksuid
 }
 
 func NewDeleteVectorsObject(parent ksuid.KSUID, author, message string, ids []ksuid.KSUID, retries int) *Object {
-	o := NewObject(parent, author, message, zed.Null, retries)
+	o := NewObject(parent, author, message, super.Null, retries)
 	for _, id := range ids {
 		o.appendDeleteVector(id)
 	}

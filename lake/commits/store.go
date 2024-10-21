@@ -268,7 +268,7 @@ func (s *Store) Open(ctx context.Context, commit, stop ksuid.KSUID) (io.Reader, 
 	return bytes.NewReader(b), nil
 }
 
-func (s *Store) OpenAsZNG(ctx context.Context, zctx *zed.Context, commit, stop ksuid.KSUID) (*zngio.Reader, error) {
+func (s *Store) OpenAsZNG(ctx context.Context, zctx *super.Context, commit, stop ksuid.KSUID) (*zngio.Reader, error) {
 	r, err := s.Open(ctx, commit, stop)
 	if err != nil {
 		return nil, err
@@ -276,7 +276,7 @@ func (s *Store) OpenAsZNG(ctx context.Context, zctx *zed.Context, commit, stop k
 	return zngio.NewReader(zctx, r), nil
 }
 
-func (s *Store) OpenCommitLog(ctx context.Context, zctx *zed.Context, commit, stop ksuid.KSUID) zio.Reader {
+func (s *Store) OpenCommitLog(ctx context.Context, zctx *super.Context, commit, stop ksuid.KSUID) zio.Reader {
 	return newLogReader(ctx, zctx, s, commit, stop)
 }
 

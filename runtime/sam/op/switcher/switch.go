@@ -19,7 +19,7 @@ var _ op.Selector = (*Selector)(nil)
 type switchCase struct {
 	filter expr.Evaluator
 	route  zbuf.Puller
-	vals   []zed.Value
+	vals   []super.Value
 }
 
 func New(rctx *runtime.Context, parent zbuf.Puller, resetter expr.Resetter) *Selector {
@@ -55,7 +55,7 @@ func (s *Selector) Forward(router *op.Router, batch zbuf.Batch) bool {
 				//XXX don't break here?
 				//break
 			}
-			if val.Type() == zed.TypeBool && val.Bool() {
+			if val.Type() == super.TypeBool && val.Bool() {
 				c.vals = append(c.vals, this)
 				break
 			}

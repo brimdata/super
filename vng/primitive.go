@@ -15,24 +15,24 @@ import (
 const MaxDictSize = 256
 
 type PrimitiveEncoder struct {
-	typ      zed.Type
+	typ      super.Type
 	bytes    zcode.Bytes
 	bytesLen uint64
 	format   uint8
 	out      []byte
 	dict     map[string]uint32
 	cmp      expr.CompareFn
-	min      *zed.Value
-	max      *zed.Value
+	min      *super.Value
+	max      *super.Value
 	count    uint32
 }
 
-func NewPrimitiveEncoder(typ zed.Type, useDict bool) *PrimitiveEncoder {
+func NewPrimitiveEncoder(typ super.Type, useDict bool) *PrimitiveEncoder {
 	var dict map[string]uint32
 	if useDict {
 		// Don't bother using a dictionary (which takes 8-bit tags) to encode
 		// other 8-bit values.
-		if id := typ.ID(); id != zed.IDUint8 && id != zed.IDInt8 && id != zed.IDBool {
+		if id := typ.ID(); id != super.IDUint8 && id != super.IDInt8 && id != super.IDBool {
 			dict = make(map[string]uint32)
 		}
 	}
@@ -53,7 +53,7 @@ func (p *PrimitiveEncoder) update(body zcode.Bytes) {
 	if body == nil {
 		panic("PrimitiveWriter should not be called with null")
 	}
-	val := zed.NewValue(p.typ, body)
+	val := super.NewValue(p.typ, body)
 	if p.min == nil || p.cmp(val, *p.min) < 0 {
 		p.min = val.Copy().Ptr()
 	}
@@ -121,7 +121,7 @@ func (p *PrimitiveEncoder) Const() *Const {
 		}
 	}
 	return &Const{
-		Value: zed.NewValue(p.typ, bytes),
+		Value: super.NewValue(p.typ, bytes),
 		Count: p.count,
 	}
 }
@@ -169,7 +169,7 @@ func (p *PrimitiveEncoder) makeDict() []DictEntry {
 	dict := make([]DictEntry, 0, len(p.dict))
 	for key, cnt := range p.dict {
 		dict = append(dict, DictEntry{
-			zed.NewValue(p.typ, zcode.Bytes(key)),
+			super.NewValue(p.typ, zcode.Bytes(key)),
 			cnt,
 		})
 	}
@@ -184,7 +184,7 @@ func sortDict(entries []DictEntry, cmp expr.CompareFn) {
 }
 
 type PrimitiveBuilder struct {
-	Typ zed.Type
+	Typ super.Type
 
 	loc    Segment
 	reader io.ReaderAt
@@ -224,7 +224,7 @@ func (p *PrimitiveBuilder) ReadBytes() (zcode.Bytes, error) {
 }
 
 type DictBuilder struct {
-	Typ zed.Type
+	Typ super.Type
 
 	loc       Segment
 	reader    io.ReaderAt
@@ -271,7 +271,7 @@ func (d *DictBuilder) ReadBytes() (zcode.Bytes, error) {
 }
 
 type ConstBuilder struct {
-	Typ   zed.Type
+	Typ   super.Type
 	bytes zcode.Bytes
 	cnt   uint32
 }

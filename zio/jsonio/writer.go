@@ -52,7 +52,7 @@ func NewWriter(writer io.WriteCloser, opts WriterOpts) *Writer {
 	return w
 }
 
-func (w *Writer) Write(val zed.Value) error {
+func (w *Writer) Write(val super.Value) error {
 	// writeAny doesn't return an error because any error that occurs will be
 	// surfaced with w.writer.Flush is called.
 	w.writeAny(0, val)
@@ -60,35 +60,35 @@ func (w *Writer) Write(val zed.Value) error {
 	return w.writer.Flush()
 }
 
-func (w *Writer) writeAny(tab int, val zed.Value) {
+func (w *Writer) writeAny(tab int, val super.Value) {
 	val = val.Under()
 	if val.IsNull() {
 		w.writeColor([]byte("null"), nullColor)
 		return
 	}
-	if val.Type().ID() < zed.IDTypeComplex {
+	if val.Type().ID() < super.IDTypeComplex {
 		w.writePrimitive(val)
 		return
 	}
 	switch typ := val.Type().(type) {
-	case *zed.TypeRecord:
+	case *super.TypeRecord:
 		w.writeRecord(tab, typ, val.Bytes())
-	case *zed.TypeArray:
+	case *super.TypeArray:
 		w.writeArray(tab, typ.Type, val.Bytes())
-	case *zed.TypeSet:
+	case *super.TypeSet:
 		w.writeArray(tab, typ.Type, val.Bytes())
-	case *zed.TypeMap:
+	case *super.TypeMap:
 		w.writeMap(tab, typ, val.Bytes())
-	case *zed.TypeEnum:
+	case *super.TypeEnum:
 		w.writeEnum(typ, val.Bytes())
-	case *zed.TypeError:
+	case *super.TypeError:
 		w.writeError(tab, typ, val.Bytes())
 	default:
 		panic(fmt.Sprintf("unsupported type: %s", zson.FormatType(typ)))
 	}
 }
 
-func (w *Writer) writeRecord(tab int, typ *zed.TypeRecord, bytes zcode.Bytes) {
+func (w *Writer) writeRecord(tab int, typ *super.TypeRecord, bytes zcode.Bytes) {
 	tab += w.tab
 	w.punc('{')
 	if len(bytes) == 0 {
@@ -100,14 +100,14 @@ func (w *Writer) writeRecord(tab int, typ *zed.TypeRecord, bytes zcode.Bytes) {
 		if i != 0 {
 			w.punc(',')
 		}
-		w.writeEntry(tab, f.Name, zed.NewValue(f.Type, it.Next()))
+		w.writeEntry(tab, f.Name, super.NewValue(f.Type, it.Next()))
 	}
 	w.newline()
 	w.indent(tab - w.tab)
 	w.punc('}')
 }
 
-func (w *Writer) writeArray(tab int, typ zed.Type, bytes zcode.Bytes) {
+func (w *Writer) writeArray(tab int, typ super.Type, bytes zcode.Bytes) {
 	tab += w.tab
 	w.punc('[')
 	if len(bytes) == 0 {
@@ -121,14 +121,14 @@ func (w *Writer) writeArray(tab int, typ zed.Type, bytes zcode.Bytes) {
 		}
 		w.newline()
 		w.indent(tab)
-		w.writeAny(tab, zed.NewValue(typ, it.Next()))
+		w.writeAny(tab, super.NewValue(typ, it.Next()))
 	}
 	w.newline()
 	w.indent(tab - w.tab)
 	w.punc(']')
 }
 
-func (w *Writer) writeMap(tab int, typ *zed.TypeMap, bytes zcode.Bytes) {
+func (w *Writer) writeMap(tab int, typ *super.TypeMap, bytes zcode.Bytes) {
 	tab += w.tab
 	w.punc('{')
 	if len(bytes) == 0 {
@@ -141,55 +141,55 @@ func (w *Writer) writeMap(tab int, typ *zed.TypeMap, bytes zcode.Bytes) {
 			w.punc(',')
 		}
 		key := mapKey(typ.KeyType, it.Next())
-		w.writeEntry(tab, key, zed.NewValue(typ.ValType, it.Next()))
+		w.writeEntry(tab, key, super.NewValue(typ.ValType, it.Next()))
 	}
 	w.newline()
 	w.indent(tab - w.tab)
 	w.punc('}')
 }
 
-func mapKey(typ zed.Type, b zcode.Bytes) string {
-	val := zed.NewValue(typ, b)
+func mapKey(typ super.Type, b zcode.Bytes) string {
+	val := super.NewValue(typ, b)
 	switch val.Type().Kind() {
-	case zed.PrimitiveKind:
-		if val.Type().ID() == zed.IDString {
+	case super.PrimitiveKind:
+		if val.Type().ID() == super.IDString {
 			// Don't quote strings.
 			return val.AsString()
 		}
 		return zson.FormatPrimitive(val.Type(), val.Bytes())
-	case zed.UnionKind:
+	case super.UnionKind:
 		// Untagged, decorated ZSON so
 		// |{0:1,0(uint64):2,0(=t):3,"0":4}| gets unique keys.
-		typ, bytes := typ.(*zed.TypeUnion).Untag(b)
-		return zson.FormatValue(zed.NewValue(typ, bytes))
-	case zed.EnumKind:
-		return convertEnum(typ.(*zed.TypeEnum), b)
+		typ, bytes := typ.(*super.TypeUnion).Untag(b)
+		return zson.FormatValue(super.NewValue(typ, bytes))
+	case super.EnumKind:
+		return convertEnum(typ.(*super.TypeEnum), b)
 	default:
 		return zson.FormatValue(val)
 	}
 }
 
-func (w *Writer) writeEnum(typ *zed.TypeEnum, bytes zcode.Bytes) {
+func (w *Writer) writeEnum(typ *super.TypeEnum, bytes zcode.Bytes) {
 	w.writeColor(w.marshalJSON(convertEnum(typ, bytes)), stringColor)
 }
 
-func convertEnum(typ *zed.TypeEnum, bytes zcode.Bytes) string {
-	if k := int(zed.DecodeUint(bytes)); k < len(typ.Symbols) {
+func convertEnum(typ *super.TypeEnum, bytes zcode.Bytes) string {
+	if k := int(super.DecodeUint(bytes)); k < len(typ.Symbols) {
 		return typ.Symbols[k]
 	}
 	return "<bad enum>"
 }
 
-func (w *Writer) writeError(tab int, typ *zed.TypeError, bytes zcode.Bytes) {
+func (w *Writer) writeError(tab int, typ *super.TypeError, bytes zcode.Bytes) {
 	tab += w.tab
 	w.punc('{')
-	w.writeEntry(tab, "error", zed.NewValue(typ.Type, bytes))
+	w.writeEntry(tab, "error", super.NewValue(typ.Type, bytes))
 	w.newline()
 	w.indent(tab - w.tab)
 	w.punc('}')
 }
 
-func (w *Writer) writeEntry(tab int, name string, val zed.Value) {
+func (w *Writer) writeEntry(tab int, name string, val super.Value) {
 	w.newline()
 	w.indent(tab)
 	w.writeColor(w.marshalJSON(name), fieldColor)
@@ -200,31 +200,31 @@ func (w *Writer) writeEntry(tab int, name string, val zed.Value) {
 	w.writeAny(tab, val)
 }
 
-func (w *Writer) writePrimitive(val zed.Value) {
+func (w *Writer) writePrimitive(val super.Value) {
 	var v any
 	c := stringColor
 	switch id := val.Type().ID(); {
-	case id == zed.IDDuration:
+	case id == super.IDDuration:
 		v = nano.Duration(val.Int()).String()
-	case id == zed.IDTime:
+	case id == super.IDTime:
 		v = nano.Ts(val.Int()).Time().Format(time.RFC3339Nano)
-	case zed.IsSigned(id):
+	case super.IsSigned(id):
 		v, c = val.Int(), numberColor
-	case zed.IsUnsigned(id):
+	case super.IsUnsigned(id):
 		v, c = val.Uint(), numberColor
-	case zed.IsFloat(id):
+	case super.IsFloat(id):
 		v, c = val.Float(), numberColor
-	case id == zed.IDBool:
+	case id == super.IDBool:
 		v, c = val.AsBool(), boolColor
-	case id == zed.IDBytes:
+	case id == super.IDBytes:
 		v = "0x" + hex.EncodeToString(val.Bytes())
-	case id == zed.IDString:
+	case id == super.IDString:
 		v = val.AsString()
-	case id == zed.IDIP:
-		v = zed.DecodeIP(val.Bytes()).String()
-	case id == zed.IDNet:
-		v = zed.DecodeNet(val.Bytes()).String()
-	case id == zed.IDType:
+	case id == super.IDIP:
+		v = super.DecodeIP(val.Bytes()).String()
+	case id == super.IDNet:
+		v = super.DecodeNet(val.Bytes()).String()
+	case id == super.IDType:
 		v = zson.FormatValue(val)
 	default:
 		panic(fmt.Sprintf("unsupported id=%d", id))

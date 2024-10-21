@@ -602,15 +602,15 @@ func (p *Parser) matchTypeValue() (*astzed.TypeValue, error) {
 	}, nil
 }
 
-func ParsePrimitive(typeText, valText string) (zed.Value, error) {
-	typ := zed.LookupPrimitive(typeText)
+func ParsePrimitive(typeText, valText string) (super.Value, error) {
+	typ := super.LookupPrimitive(typeText)
 	if typ == nil {
-		return zed.Null, fmt.Errorf("no such type: %s", typeText)
+		return super.Null, fmt.Errorf("no such type: %s", typeText)
 	}
 	var b zcode.Builder
 	if err := BuildPrimitive(&b, Primitive{Type: typ, Text: valText}); err != nil {
-		return zed.Null, err
+		return super.Null, err
 	}
 	it := b.Bytes().Iter()
-	return zed.NewValue(typ, it.Next()), nil
+	return super.NewValue(typ, it.Next()), nil
 }

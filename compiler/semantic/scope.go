@@ -51,7 +51,7 @@ func (s *Scope) DefineAs(name *ast.ID, e any) error {
 	return nil
 }
 
-func (s *Scope) DefineConst(zctx *zed.Context, name *ast.ID, def dag.Expr) error {
+func (s *Scope) DefineConst(zctx *super.Context, name *ast.ID, def dag.Expr) error {
 	val, err := kernel.EvalAtCompileTime(zctx, def)
 	if err != nil {
 		return err

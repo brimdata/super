@@ -9,12 +9,12 @@ import (
 // either an array or set (with index type integer), or a record
 // (with index type string), or a map (with any index type).
 type Index struct {
-	zctx      *zed.Context
+	zctx      *super.Context
 	container Evaluator
 	index     Evaluator
 }
 
-func NewIndexExpr(zctx *zed.Context, container, index Evaluator) Evaluator {
+func NewIndexExpr(zctx *super.Context, container, index Evaluator) Evaluator {
 	return &Index{zctx, container, index}
 }
 
@@ -40,8 +40,8 @@ func (i *Index) eval(args ...vector.Any) vector.Any {
 	}
 }
 
-func indexArrayOrSet(zctx *zed.Context, offsets []uint32, vals, index vector.Any, nulls *vector.Bool) vector.Any {
-	if !zed.IsInteger(index.Type().ID()) {
+func indexArrayOrSet(zctx *super.Context, offsets []uint32, vals, index vector.Any, nulls *vector.Bool) vector.Any {
+	if !super.IsInteger(index.Type().ID()) {
 		return vector.NewWrappedError(zctx, "index is not an integer", index)
 	}
 	index = promoteToSigned(index)
@@ -68,8 +68,8 @@ func indexArrayOrSet(zctx *zed.Context, offsets []uint32, vals, index vector.Any
 	return out
 }
 
-func indexRecord(zctx *zed.Context, record *vector.Record, index vector.Any) vector.Any {
-	if index.Type().ID() != zed.IDString {
+func indexRecord(zctx *super.Context, record *vector.Record, index vector.Any) vector.Any {
+	if index.Type().ID() != super.IDString {
 		return vector.NewWrappedError(zctx, "record index is not a string", index)
 	}
 	var errcnt uint32

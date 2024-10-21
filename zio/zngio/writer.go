@@ -100,7 +100,7 @@ func (w *Writer) EndStream() error {
 	return nil
 }
 
-func (w *Writer) Write(val zed.Value) error {
+func (w *Writer) Write(val super.Value) error {
 	typ := w.types.Lookup(val.Type())
 	if typ == nil {
 		var err error
@@ -109,7 +109,7 @@ func (w *Writer) Write(val zed.Value) error {
 			return err
 		}
 	}
-	id := zed.TypeID(typ)
+	id := super.TypeID(typ)
 	w.values = binary.AppendUvarint(w.values, uint64(id))
 	w.values = zcode.Append(w.values, val.Bytes())
 	if thresh := w.opts.FrameThresh; len(w.values) >= thresh || len(w.types.bytes) >= thresh {

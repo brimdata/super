@@ -12,7 +12,7 @@ type UDF struct {
 	Body Evaluator
 }
 
-func (u *UDF) Call(ectx zed.Allocator, args []zed.Value) zed.Value {
+func (u *UDF) Call(ectx super.Allocator, args []super.Value) super.Value {
 	stack := 1
 	if f, ok := ectx.(*frame); ok {
 		stack += f.stack
@@ -24,16 +24,16 @@ func (u *UDF) Call(ectx zed.Allocator, args []zed.Value) zed.Value {
 	// recursive calls.
 	f := &frame{stack: stack, vars: slices.Clone(args)}
 	defer f.exit()
-	return u.Body.Eval(f, zed.Null)
+	return u.Body.Eval(f, super.Null)
 }
 
 type frame struct {
 	allocator
 	stack int
-	vars  []zed.Value
+	vars  []super.Value
 }
 
-func (f *frame) Vars() []zed.Value {
+func (f *frame) Vars() []super.Value {
 	return f.vars
 }
 

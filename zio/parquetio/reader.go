@@ -13,7 +13,7 @@ import (
 	"github.com/brimdata/super/zio/arrowio"
 )
 
-func NewReader(zctx *zed.Context, r io.Reader) (*arrowio.Reader, error) {
+func NewReader(zctx *super.Context, r io.Reader) (*arrowio.Reader, error) {
 	ras, ok := r.(parquet.ReaderAtSeeker)
 	if !ok {
 		return nil, errors.New("reader cannot seek")

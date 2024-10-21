@@ -10,7 +10,7 @@ import (
 	"github.com/brimdata/super/zio"
 )
 
-func NewReader(zctx *zed.Context, r io.Reader, demandOut demand.Demand) (zio.Reader, error) {
+func NewReader(zctx *super.Context, r io.Reader, demandOut demand.Demand) (zio.Reader, error) {
 	ra, ok := r.(io.ReaderAt)
 	if !ok {
 		return nil, errors.New("VNG requires a seekable input")

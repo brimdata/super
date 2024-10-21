@@ -73,9 +73,9 @@ func genFunc(name, op, typ string, lhs, rhs vector.Form) string {
 	s += genVarInit("r", typ, rhs)
 	if lhs == vector.FormConst && rhs == vector.FormConst {
 		if typ == "String" {
-			s += fmt.Sprintf("val := zed.NewString(lconst %s rconst)\n", op)
+			s += fmt.Sprintf("val := super.NewString(lconst %s rconst)\n", op)
 		} else {
-			s += fmt.Sprintf("val := zed.New%s64(lconst %s rconst)\n", typ, op)
+			s += fmt.Sprintf("val := super.New%s64(lconst %s rconst)\n", typ, op)
 		}
 		s += "return vector.NewConst(val, lhs.Len(), nil)\n"
 	} else {
@@ -83,7 +83,7 @@ func genFunc(name, op, typ string, lhs, rhs vector.Form) string {
 		if typ == "String" {
 			s += "out := vector.NewStringEmpty(n, nil)\n"
 		} else {
-			s += fmt.Sprintf("out := vector.New%sEmpty(zed.Type%s64, n, nil)\n", typ, typ)
+			s += fmt.Sprintf("out := vector.New%sEmpty(super.Type%s64, n, nil)\n", typ, typ)
 		}
 		s += genLoop(op, typ, lhs, rhs)
 		s += "return out\n"

@@ -33,7 +33,7 @@ func (p *parser) read() (frame, error) {
 			// decoded by a worker will still point to the old context
 			// and the old mapper and context will continue on just fine as
 			// everything gets properly mappped to the shared context
-			// under concurrent locking within zed.Context.
+			// under concurrent locking within super.Context.
 			p.types.reset()
 			continue
 		}

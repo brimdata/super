@@ -9,7 +9,7 @@ import (
 
 type Reader struct {
 	scanner *bufio.Scanner
-	val     zed.Value
+	val     super.Value
 }
 
 func NewReader(r io.Reader) *Reader {
@@ -18,10 +18,10 @@ func NewReader(r io.Reader) *Reader {
 	return &Reader{scanner: s}
 }
 
-func (r *Reader) Read() (*zed.Value, error) {
+func (r *Reader) Read() (*super.Value, error) {
 	if !r.scanner.Scan() || r.scanner.Err() != nil {
 		return nil, r.scanner.Err()
 	}
-	r.val = zed.NewString(r.scanner.Text())
+	r.val = super.NewString(r.scanner.Text())
 	return &r.val, nil
 }

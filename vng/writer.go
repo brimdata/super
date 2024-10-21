@@ -12,9 +12,9 @@ import (
 )
 
 // Writer implements the zio.Writer interface. A Writer creates a vector
-// VNG object from a stream of zed.Records.
+// VNG object from a stream of super.Records.
 type Writer struct {
-	zctx    *zed.Context
+	zctx    *super.Context
 	writer  io.WriteCloser
 	dynamic *DynamicEncoder
 }
@@ -23,7 +23,7 @@ var _ zio.Writer = (*Writer)(nil)
 
 func NewWriter(w io.WriteCloser) *Writer {
 	return &Writer{
-		zctx:    zed.NewContext(),
+		zctx:    super.NewContext(),
 		writer:  w,
 		dynamic: NewDynamicEncoder(),
 	}
@@ -37,7 +37,7 @@ func (w *Writer) Close() error {
 	return firstErr
 }
 
-func (w *Writer) Write(val zed.Value) error {
+func (w *Writer) Write(val super.Value) error {
 	return w.dynamic.Write(val)
 }
 

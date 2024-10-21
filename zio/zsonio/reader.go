@@ -10,14 +10,14 @@ import (
 
 type Reader struct {
 	reader   io.Reader
-	zctx     *zed.Context
+	zctx     *super.Context
 	parser   *zson.Parser
 	analyzer zson.Analyzer
 	builder  *zcode.Builder
-	val      zed.Value
+	val      super.Value
 }
 
-func NewReader(zctx *zed.Context, r io.Reader) *Reader {
+func NewReader(zctx *super.Context, r io.Reader) *Reader {
 	return &Reader{
 		reader:   r,
 		zctx:     zctx,
@@ -26,7 +26,7 @@ func NewReader(zctx *zed.Context, r io.Reader) *Reader {
 	}
 }
 
-func (r *Reader) Read() (*zed.Value, error) {
+func (r *Reader) Read() (*super.Value, error) {
 	if r.parser == nil {
 		r.parser = zson.NewParser(r.reader)
 	}

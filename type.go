@@ -7,7 +7,7 @@
 // takes a byte slice and a Type and returns a boolean indicating whether the
 // the byte slice with the indicated Type matches the value.  The package also
 // provides mechanism for coercing values in well-defined and natural ways.
-package zed
+package super
 
 import (
 	"cmp"

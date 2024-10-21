@@ -13,7 +13,7 @@ import (
 type DynamicEncoder struct {
 	tags   *Int64Encoder
 	values []Encoder
-	which  map[zed.Type]int
+	which  map[super.Type]int
 	len    uint32
 }
 
@@ -22,7 +22,7 @@ var _ zio.Writer = (*DynamicEncoder)(nil)
 func NewDynamicEncoder() *DynamicEncoder {
 	return &DynamicEncoder{
 		tags:  NewInt64Encoder(),
-		which: make(map[zed.Type]int),
+		which: make(map[super.Type]int),
 	}
 }
 
@@ -30,7 +30,7 @@ func NewDynamicEncoder() *DynamicEncoder {
 // written to it.  No need to define the schema up front!
 // We track the types seen first-come, first-served and the
 // VNG metadata structure follows accordingly.
-func (d *DynamicEncoder) Write(val zed.Value) error {
+func (d *DynamicEncoder) Write(val super.Value) error {
 	typ := val.Type()
 	tag, ok := d.which[typ]
 	if !ok {
@@ -88,15 +88,15 @@ func (d *DynamicEncoder) Emit(w io.Writer) error {
 }
 
 type dynamicBuilder struct {
-	types   []zed.Type
+	types   []super.Type
 	tags    *Int64Decoder
 	values  []Builder
 	builder *zcode.Builder
 }
 
-func newDynamicBuilder(zctx *zed.Context, d *Dynamic, reader io.ReaderAt) (*dynamicBuilder, error) {
+func newDynamicBuilder(zctx *super.Context, d *Dynamic, reader io.ReaderAt) (*dynamicBuilder, error) {
 	values := make([]Builder, 0, len(d.Values))
-	types := make([]zed.Type, 0, len(d.Values))
+	types := make([]super.Type, 0, len(d.Values))
 	for _, val := range d.Values {
 		r, err := NewBuilder(val, reader)
 		if err != nil {
@@ -113,7 +113,7 @@ func newDynamicBuilder(zctx *zed.Context, d *Dynamic, reader io.ReaderAt) (*dyna
 	}, nil
 }
 
-func (d *dynamicBuilder) Read() (*zed.Value, error) {
+func (d *dynamicBuilder) Read() (*super.Value, error) {
 	b := d.builder
 	b.Truncate()
 	tag, err := d.tags.Next()
@@ -129,10 +129,10 @@ func (d *dynamicBuilder) Read() (*zed.Value, error) {
 	if err := d.values[tag].Build(b); err != nil {
 		return nil, err
 	}
-	return zed.NewValue(d.types[tag], b.Bytes().Body()).Ptr(), nil
+	return super.NewValue(d.types[tag], b.Bytes().Body()).Ptr(), nil
 }
 
-func NewZedReader(zctx *zed.Context, meta Metadata, r io.ReaderAt) (zio.Reader, error) {
+func NewZedReader(zctx *super.Context, meta Metadata, r io.ReaderAt) (zio.Reader, error) {
 	if d, ok := meta.(*Dynamic); ok {
 		return newDynamicBuilder(zctx, d, r)
 	}
@@ -149,13 +149,13 @@ func NewZedReader(zctx *zed.Context, meta Metadata, r io.ReaderAt) (zio.Reader, 
 }
 
 type vectorBuilder struct {
-	typ     zed.Type
+	typ     super.Type
 	values  Builder
 	builder *zcode.Builder
 	count   uint32
 }
 
-func (v *vectorBuilder) Read() (*zed.Value, error) {
+func (v *vectorBuilder) Read() (*super.Value, error) {
 	if v.count == 0 {
 		return nil, nil
 	}
@@ -165,5 +165,5 @@ func (v *vectorBuilder) Read() (*zed.Value, error) {
 	if err := v.values.Build(b); err != nil {
 		return nil, err
 	}
-	return zed.NewValue(v.typ, b.Bytes().Body()).Ptr(), nil
+	return super.NewValue(v.typ, b.Bytes().Body()).Ptr(), nil
 }

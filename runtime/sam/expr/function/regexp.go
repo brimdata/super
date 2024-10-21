@@ -12,16 +12,16 @@ type Regexp struct {
 	builder zcode.Builder
 	re      *regexp.Regexp
 	restr   string
-	typ     zed.Type
+	typ     super.Type
 	err     error
-	zctx    *zed.Context
+	zctx    *super.Context
 }
 
-func (r *Regexp) Call(_ zed.Allocator, args []zed.Value) zed.Value {
+func (r *Regexp) Call(_ super.Allocator, args []super.Value) super.Value {
 	if !args[0].IsString() {
 		return r.zctx.WrapError("regexp: string required for first arg", args[0])
 	}
-	s := zed.DecodeString(args[0].Bytes())
+	s := super.DecodeString(args[0].Bytes())
 	if r.restr != s {
 		r.restr = s
 		r.re, r.err = regexp.Compile(r.restr)
@@ -37,20 +37,20 @@ func (r *Regexp) Call(_ zed.Allocator, args []zed.Value) zed.Value {
 		r.builder.Append(b)
 	}
 	if r.typ == nil {
-		r.typ = r.zctx.LookupTypeArray(zed.TypeString)
+		r.typ = r.zctx.LookupTypeArray(super.TypeString)
 	}
-	return zed.NewValue(r.typ, r.builder.Bytes())
+	return super.NewValue(r.typ, r.builder.Bytes())
 }
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#regexp_replace
 type RegexpReplace struct {
-	zctx  *zed.Context
+	zctx  *super.Context
 	re    *regexp.Regexp
 	restr string
 	err   error
 }
 
-func (r *RegexpReplace) Call(_ zed.Allocator, args []zed.Value) zed.Value {
+func (r *RegexpReplace) Call(_ super.Allocator, args []super.Value) super.Value {
 	sVal := args[0]
 	reVal := args[1]
 	newVal := args[2]
@@ -60,17 +60,17 @@ func (r *RegexpReplace) Call(_ zed.Allocator, args []zed.Value) zed.Value {
 		}
 	}
 	if sVal.IsNull() {
-		return zed.Null
+		return super.Null
 	}
 	if reVal.IsNull() || newVal.IsNull() {
 		return r.zctx.NewErrorf("regexp_replace: 2nd and 3rd args cannot be null")
 	}
-	if re := zed.DecodeString(reVal.Bytes()); r.restr != re {
+	if re := super.DecodeString(reVal.Bytes()); r.restr != re {
 		r.restr = re
 		r.re, r.err = regexp.Compile(re)
 	}
 	if r.err != nil {
 		return r.zctx.NewErrorf("regexp_replace: %s", r.err)
 	}
-	return zed.NewString(string(r.re.ReplaceAll(sVal.Bytes(), newVal.Bytes())))
+	return super.NewString(string(r.re.ReplaceAll(sVal.Bytes(), newVal.Bytes())))
 }

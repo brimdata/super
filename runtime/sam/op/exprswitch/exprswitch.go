@@ -20,7 +20,7 @@ var _ op.Selector = (*ExprSwitch)(nil)
 
 type switchCase struct {
 	route zbuf.Puller
-	vals  []zed.Value
+	vals  []super.Value
 }
 
 func New(rctx *runtime.Context, parent zbuf.Puller, e expr.Evaluator, resetter expr.Resetter) *ExprSwitch {
@@ -35,7 +35,7 @@ func New(rctx *runtime.Context, parent zbuf.Puller, e expr.Evaluator, resetter e
 	return s
 }
 
-func (s *ExprSwitch) AddCase(val *zed.Value) zbuf.Puller {
+func (s *ExprSwitch) AddCase(val *super.Value) zbuf.Puller {
 	route := s.Router.AddRoute()
 	if val == nil {
 		s.defaultCase = &switchCase{route: route}

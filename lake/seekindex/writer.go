@@ -20,7 +20,7 @@ func NewWriter(w zio.WriteCloser) *Writer {
 	}
 }
 
-func (w *Writer) Write(min, max zed.Value, valoff uint64, offset uint64) error {
+func (w *Writer) Write(min, max super.Value, valoff uint64, offset uint64) error {
 	val, err := w.marshal.Marshal(&Entry{
 		Min:    min,
 		Max:    max,

@@ -16,26 +16,26 @@ type header struct {
 	Path         string
 	open         string
 	close        string
-	fields       []zed.Field
+	fields       []super.Field
 }
 
 type Parser struct {
 	header
-	zctx       *zed.Context
+	zctx       *super.Context
 	unknown    int // Count of unknown directives
 	needfields bool
 	needtypes  bool
 	addpath    bool
 	// descriptor is a lazily-allocated Descriptor corresponding
 	// to the contents of the #fields and #types directives.
-	descriptor   *zed.TypeRecord
+	descriptor   *super.TypeRecord
 	builder      builder
 	sourceFields []int
 }
 
 var ErrBadRecordDef = errors.New("bad types/fields definition in zeek header")
 
-func NewParser(r *zed.Context) *Parser {
+func NewParser(r *super.Context) *Parser {
 	return &Parser{
 		header: header{separator: " "},
 		zctx:   r,
@@ -48,7 +48,7 @@ func badfield(field string) error {
 
 func (p *Parser) parseFields(fieldNames []string) error {
 	if len(p.fields) != len(fieldNames) {
-		p.fields = make([]zed.Field, len(fieldNames))
+		p.fields = make([]super.Field, len(fieldNames))
 		p.needtypes = true
 	}
 	for k, name := range fieldNames {
@@ -62,7 +62,7 @@ func (p *Parser) parseFields(fieldNames []string) error {
 
 func (p *Parser) parseTypes(types []string) error {
 	if len(p.fields) != len(types) {
-		p.fields = make([]zed.Field, len(types))
+		p.fields = make([]super.Field, len(types))
 		p.needfields = true
 	}
 	for k, name := range types {
@@ -80,20 +80,20 @@ func (p *Parser) parseTypes(types []string) error {
 	return nil
 }
 
-func isValidInputType(typ zed.Type) bool {
+func isValidInputType(typ super.Type) bool {
 	switch t := typ.(type) {
-	case *zed.TypeRecord, *zed.TypeUnion:
+	case *super.TypeRecord, *super.TypeUnion:
 		return false
-	case *zed.TypeSet:
+	case *super.TypeSet:
 		return isValidInputType(t.Type)
-	case *zed.TypeArray:
+	case *super.TypeArray:
 		return isValidInputType(t.Type)
 	default:
 		return true
 	}
 }
 
-func (p *Parser) parseType(in string) (zed.Type, error) {
+func (p *Parser) parseType(in string) (super.Type, error) {
 	in = strings.TrimSpace(in)
 	if words := strings.SplitN(in, "[", 2); len(words) == 2 && strings.HasSuffix(words[1], "]") {
 		if typ, err := p.parsePrimitiveType(strings.TrimSuffix(words[1], "]")); err == nil {
@@ -108,31 +108,31 @@ func (p *Parser) parseType(in string) (zed.Type, error) {
 	return p.parsePrimitiveType(in)
 }
 
-func (p *Parser) parsePrimitiveType(in string) (zed.Type, error) {
+func (p *Parser) parsePrimitiveType(in string) (super.Type, error) {
 	in = strings.TrimSpace(in)
 	switch in {
 	case "addr":
-		return zed.TypeIP, nil
+		return super.TypeIP, nil
 	case "bool":
-		return zed.TypeBool, nil
+		return super.TypeBool, nil
 	case "count":
-		return zed.TypeUint64, nil
+		return super.TypeUint64, nil
 	case "double":
-		return zed.TypeFloat64, nil
+		return super.TypeFloat64, nil
 	case "enum":
-		return p.zctx.LookupTypeNamed("zenum", zed.TypeString)
+		return p.zctx.LookupTypeNamed("zenum", super.TypeString)
 	case "int":
-		return zed.TypeInt64, nil
+		return super.TypeInt64, nil
 	case "interval":
-		return zed.TypeDuration, nil
+		return super.TypeDuration, nil
 	case "port":
-		return p.zctx.LookupTypeNamed("port", zed.TypeUint16)
+		return p.zctx.LookupTypeNamed("port", super.TypeUint16)
 	case "string":
-		return zed.TypeString, nil
+		return super.TypeString, nil
 	case "subnet":
-		return zed.TypeNet, nil
+		return super.TypeNet, nil
 	case "time":
-		return zed.TypeTime, nil
+		return super.TypeTime, nil
 	}
 	return nil, fmt.Errorf("unknown type: %s", in)
 }
@@ -222,7 +222,7 @@ func (p *Parser) ParseDirective(line []byte) error {
 // bool indicating if a _path field was added.
 // Note that according to the Zed spec, all the fields for a nested
 // record must be adjacent which simplifies the logic here.
-func Unflatten(zctx *zed.Context, fields []zed.Field, addPath bool) ([]zed.Field, bool, error) {
+func Unflatten(zctx *super.Context, fields []super.Field, addPath bool) ([]super.Field, bool, error) {
 	hasPath := false
 	for _, f := range fields {
 		// XXX could validate field names here...
@@ -237,19 +237,19 @@ func Unflatten(zctx *zed.Context, fields []zed.Field, addPath bool) ([]zed.Field
 
 	var needpath bool
 	if addPath && !hasPath {
-		out = append([]zed.Field{zed.NewField("_path", zed.TypeString)}, out...)
+		out = append([]super.Field{super.NewField("_path", super.TypeString)}, out...)
 		needpath = true
 	}
 	return out, needpath, nil
 }
 
-func unflattenRecord(zctx *zed.Context, fields []zed.Field) ([]zed.Field, error) {
-	// Extract a []zed.Field consisting of all the leading fields
+func unflattenRecord(zctx *super.Context, fields []super.Field) ([]super.Field, error) {
+	// Extract a []super.Field consisting of all the leading fields
 	// from the input that belong to the same record, with the
 	// common prefix removed from their name.
 	// Returns the prefix and the extracted same-record fields.
-	recFields := func(fields []zed.Field) (string, []zed.Field) {
-		var ret []zed.Field
+	recFields := func(fields []super.Field) (string, []super.Field) {
+		var ret []super.Field
 		var prefix string
 		if dot := strings.IndexByte(fields[0].Name, '.'); dot != -1 {
 			prefix = fields[0].Name[:dot]
@@ -259,11 +259,11 @@ func unflattenRecord(zctx *zed.Context, fields []zed.Field) ([]zed.Field, error)
 				break
 			}
 			trimmed := strings.TrimPrefix(fields[i].Name, prefix+".")
-			ret = append(ret, zed.NewField(trimmed, fields[i].Type))
+			ret = append(ret, super.NewField(trimmed, fields[i].Type))
 		}
 		return prefix, ret
 	}
-	var out []zed.Field
+	var out []super.Field
 	i := 0
 	for i < len(fields) {
 		f := fields[i]
@@ -282,7 +282,7 @@ func unflattenRecord(zctx *zed.Context, fields []zed.Field) ([]zed.Field, error)
 		if err != nil {
 			return nil, err
 		}
-		out = append(out, zed.NewField(prefix, recType))
+		out = append(out, super.NewField(prefix, recType))
 		i += len(nestedFields)
 	}
 	return out, nil
@@ -309,9 +309,9 @@ func (p *Parser) setDescriptor() error {
 // coalesceRecordFields returns a permutation of fields in which the fields of
 // each nested record have been made adjacent along with a slice containing the
 // index of the source field for each field in that permutation.
-func coalesceRecordFields(fields []zed.Field) ([]zed.Field, []int) {
+func coalesceRecordFields(fields []super.Field) ([]super.Field, []int) {
 	prefixes := map[string]bool{"": true}
-	var outFields []zed.Field
+	var outFields []super.Field
 	var sourceFields []int
 	for i, f := range fields {
 		outFields = append(outFields, f)
@@ -352,7 +352,7 @@ func getPrefix(name string) string {
 // seen #types and #fields lines) and a bool indicating whether _path
 // was added to the descriptor. If no descriptor is present, nil and
 // and false are returned.
-func (p *Parser) Descriptor() (*zed.TypeRecord, bool) {
+func (p *Parser) Descriptor() (*super.TypeRecord, bool) {
 	if p.descriptor != nil {
 		return p.descriptor, p.addpath
 	}
@@ -363,7 +363,7 @@ func (p *Parser) Descriptor() (*zed.TypeRecord, bool) {
 
 }
 
-func (p *Parser) ParseValue(line []byte) (*zed.Value, error) {
+func (p *Parser) ParseValue(line []byte) (*super.Value, error) {
 	if p.descriptor == nil {
 		if err := p.setDescriptor(); err != nil {
 			return nil, err

@@ -11,18 +11,18 @@ import (
 
 type This struct{}
 
-func (*This) Eval(_ Context, this zed.Value) zed.Value {
+func (*This) Eval(_ Context, this super.Value) super.Value {
 	return this
 }
 
 type DotExpr struct {
-	zctx         *zed.Context
+	zctx         *super.Context
 	record       Evaluator
 	field        string
 	fieldIndices []int
 }
 
-func NewDotExpr(zctx *zed.Context, record Evaluator, field string) *DotExpr {
+func NewDotExpr(zctx *super.Context, record Evaluator, field string) *DotExpr {
 	return &DotExpr{
 		zctx:   zctx,
 		record: record,
@@ -30,7 +30,7 @@ func NewDotExpr(zctx *zed.Context, record Evaluator, field string) *DotExpr {
 	}
 }
 
-func NewDottedExpr(zctx *zed.Context, f field.Path) Evaluator {
+func NewDottedExpr(zctx *super.Context, f field.Path) Evaluator {
 	ret := Evaluator(&This{})
 	for _, name := range f {
 		ret = NewDotExpr(zctx, ret, name)
@@ -38,25 +38,25 @@ func NewDottedExpr(zctx *zed.Context, f field.Path) Evaluator {
 	return ret
 }
 
-func (d *DotExpr) Eval(ectx Context, this zed.Value) zed.Value {
+func (d *DotExpr) Eval(ectx Context, this super.Value) super.Value {
 	val := d.record.Eval(ectx, this).Under()
 	// Cases are ordered by decreasing expected frequency.
 	switch typ := val.Type().(type) {
-	case *zed.TypeRecord:
+	case *super.TypeRecord:
 		i, ok := d.fieldIndex(typ)
 		if !ok {
 			return d.zctx.Missing()
 		}
-		return zed.NewValue(typ.Fields[i].Type, getNthFromContainer(val.Bytes(), i))
-	case *zed.TypeMap:
-		return indexMap(d.zctx, ectx, typ, val.Bytes(), zed.NewString(d.field))
-	case *zed.TypeOfType:
+		return super.NewValue(typ.Fields[i].Type, getNthFromContainer(val.Bytes(), i))
+	case *super.TypeMap:
+		return indexMap(d.zctx, ectx, typ, val.Bytes(), super.NewString(d.field))
+	case *super.TypeOfType:
 		return d.evalTypeOfType(ectx, val.Bytes())
 	}
 	return d.zctx.Missing()
 }
 
-func (d *DotExpr) fieldIndex(typ *zed.TypeRecord) (int, bool) {
+func (d *DotExpr) fieldIndex(typ *super.TypeRecord) (int, bool) {
 	id := typ.ID()
 	if id >= len(d.fieldIndices) {
 		d.fieldIndices = slices.Grow(d.fieldIndices[:0], id+1)[:id+1]
@@ -75,9 +75,9 @@ func (d *DotExpr) fieldIndex(typ *zed.TypeRecord) (int, bool) {
 	return i, ok
 }
 
-func (d *DotExpr) evalTypeOfType(ectx Context, b zcode.Bytes) zed.Value {
+func (d *DotExpr) evalTypeOfType(ectx Context, b zcode.Bytes) super.Value {
 	typ, _ := d.zctx.DecodeTypeValue(b)
-	if typ, ok := zed.TypeUnder(typ).(*zed.TypeRecord); ok {
+	if typ, ok := super.TypeUnder(typ).(*super.TypeRecord); ok {
 		if typ, ok := typ.TypeOfField(d.field); ok {
 			return d.zctx.LookupTypeValue(typ)
 		}

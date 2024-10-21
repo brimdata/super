@@ -7,9 +7,9 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#nest_dotted.md
 type NestDotted struct {
-	zctx        *zed.Context
-	builders    map[int]*zed.RecordBuilder
-	recordTypes map[int]*zed.TypeRecord
+	zctx        *super.Context
+	builders    map[int]*super.RecordBuilder
+	recordTypes map[int]*super.TypeRecord
 }
 
 // NewNestDotted returns a function that turns successive dotted
@@ -19,21 +19,21 @@ type NestDotted struct {
 // to arbitrary-depth dotted names, it is not applied to dotted names
 // that start at lower levels (for example {a:{"a.a":1}} is
 // unchanged).
-func NewNestDotted(zctx *zed.Context) *NestDotted {
+func NewNestDotted(zctx *super.Context) *NestDotted {
 	return &NestDotted{
 		zctx:        zctx,
-		builders:    make(map[int]*zed.RecordBuilder),
-		recordTypes: make(map[int]*zed.TypeRecord),
+		builders:    make(map[int]*super.RecordBuilder),
+		recordTypes: make(map[int]*super.TypeRecord),
 	}
 }
 
-func (n *NestDotted) lookupBuilderAndType(in *zed.TypeRecord) (*zed.RecordBuilder, *zed.TypeRecord, error) {
+func (n *NestDotted) lookupBuilderAndType(in *super.TypeRecord) (*super.RecordBuilder, *super.TypeRecord, error) {
 	if b, ok := n.builders[in.ID()]; ok {
 		return b, n.recordTypes[in.ID()], nil
 	}
 	var foundDotted bool
 	var fields field.List
-	var types []zed.Type
+	var types []super.Type
 	for _, f := range in.Fields {
 		dotted := field.Dotted(f.Name)
 		if len(dotted) > 1 {
@@ -45,7 +45,7 @@ func (n *NestDotted) lookupBuilderAndType(in *zed.TypeRecord) (*zed.RecordBuilde
 	if !foundDotted {
 		return nil, nil, nil
 	}
-	b, err := zed.NewRecordBuilder(n.zctx, fields)
+	b, err := super.NewRecordBuilder(n.zctx, fields)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -55,9 +55,9 @@ func (n *NestDotted) lookupBuilderAndType(in *zed.TypeRecord) (*zed.RecordBuilde
 	return b, typ, nil
 }
 
-func (n *NestDotted) Call(_ zed.Allocator, args []zed.Value) zed.Value {
+func (n *NestDotted) Call(_ super.Allocator, args []super.Value) super.Value {
 	val := args[len(args)-1]
-	b, typ, err := n.lookupBuilderAndType(zed.TypeRecordOf(val.Type()))
+	b, typ, err := n.lookupBuilderAndType(super.TypeRecordOf(val.Type()))
 	if err != nil {
 		return n.zctx.WrapError("nest_dotted(): "+err.Error(), val)
 	}
@@ -72,5 +72,5 @@ func (n *NestDotted) Call(_ zed.Allocator, args []zed.Value) zed.Value {
 	if err != nil {
 		panic(err)
 	}
-	return zed.NewValue(typ, zbytes)
+	return super.NewValue(typ, zbytes)
 }

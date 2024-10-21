@@ -17,10 +17,10 @@ func newPruner(e expr.Evaluator) *pruner {
 	}
 }
 
-func (p *pruner) prune(val zed.Value) bool {
+func (p *pruner) prune(val super.Value) bool {
 	if p == nil {
 		return false
 	}
 	result := p.pred.Eval(p.ectx, val)
-	return result.Type() == zed.TypeBool && result.Bool()
+	return result.Type() == super.TypeBool && result.Bool()
 }

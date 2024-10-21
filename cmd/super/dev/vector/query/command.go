@@ -4,7 +4,7 @@ import (
 	"errors"
 	"flag"
 
-	zed "github.com/brimdata/super"
+	 "github.com/brimdata/super"
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/cmd/super/dev/vector"
 	"github.com/brimdata/super/cmd/super/root"
@@ -69,7 +69,7 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	defer object.Close()
-	rctx := runtime.NewContext(ctx, zed.NewContext())
+	rctx := runtime.NewContext(ctx, super.NewContext())
 	puller, err := compiler.VectorCompile(rctx, text, object)
 	if err != nil {
 		return err

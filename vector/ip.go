@@ -18,8 +18,8 @@ func NewIP(values []netip.Addr, nulls *Bool) *IP {
 	return &IP{Values: values, Nulls: nulls}
 }
 
-func (i *IP) Type() zed.Type {
-	return zed.TypeIP
+func (i *IP) Type() super.Type {
+	return super.TypeIP
 }
 
 func (i *IP) Len() uint32 {
@@ -30,7 +30,7 @@ func (i *IP) Serialize(b *zcode.Builder, slot uint32) {
 	if i.Nulls.Value(slot) {
 		b.Append(nil)
 	} else {
-		b.Append(zed.EncodeIP(i.Values[slot]))
+		b.Append(super.EncodeIP(i.Values[slot]))
 	}
 }
 
@@ -43,7 +43,7 @@ func IPValue(val Any, slot uint32) (netip.Addr, bool) {
 			return netip.Addr{}, true
 		}
 		b, _ := val.AsBytes()
-		return zed.DecodeIP(b), false
+		return super.DecodeIP(b), false
 	case *Dict:
 		if val.Nulls.Value(slot) {
 			return netip.Addr{}, true

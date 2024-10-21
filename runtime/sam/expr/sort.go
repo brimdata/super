@@ -22,7 +22,7 @@ func NewSortEvaluator(eval Evaluator, o order.Which) SortEvaluator {
 	return SortEvaluator{eval, o}
 }
 
-func (c *Comparator) sortStableIndices(vals []zed.Value) []uint32 {
+func (c *Comparator) sortStableIndices(vals []super.Value) []uint32 {
 	if len(c.exprs) == 0 {
 		return nil
 	}
@@ -32,21 +32,21 @@ func (c *Comparator) sortStableIndices(vals []zed.Value) []uint32 {
 	}
 	indices := make([]uint32, n)
 	i64s := make([]int64, n)
-	val0s := make([]zed.Value, n)
+	val0s := make([]super.Value, n)
 	ectx := NewContext()
 	native := true
 	for i := range indices {
 		indices[i] = uint32(i)
 		val := c.exprs[0].Eval(ectx, vals[i])
 		val0s[i] = val
-		if id := val.Type().ID(); id <= zed.IDTime {
+		if id := val.Type().ID(); id <= super.IDTime {
 			if val.IsNull() {
 				if c.nullsMax {
 					i64s[i] = math.MaxInt64
 				} else {
 					i64s[i] = math.MinInt64
 				}
-			} else if zed.IsSigned(id) {
+			} else if super.IsSigned(id) {
 				i64s[i] = val.Int()
 			} else {
 				v := val.Uint()
@@ -65,7 +65,7 @@ func (c *Comparator) sortStableIndices(vals []zed.Value) []uint32 {
 			if expr.Order == order.Desc {
 				iidx, jidx = jidx, iidx
 			}
-			var ival, jval zed.Value
+			var ival, jval super.Value
 			if k == 0 {
 				if native {
 					if i64, j64 := i64s[iidx], i64s[jidx]; i64 != j64 {
@@ -88,7 +88,7 @@ func (c *Comparator) sortStableIndices(vals []zed.Value) []uint32 {
 	return indices
 }
 
-type CompareFn func(a, b zed.Value) int
+type CompareFn func(a, b super.Value) int
 
 // NewCompareFn creates a function that compares two values a and b according to
 // nullsMax and exprs.  To compare a and b, it iterates over the elements e of
@@ -115,7 +115,7 @@ type Comparator struct {
 	nullsMax bool
 }
 
-// NewComparator returns a zed.Value comparator for exprs according to nullsMax
+// NewComparator returns a super.Value comparator for exprs according to nullsMax
 // and reverse.  To compare values a and b, it iterates over the elements e of
 // exprs, stopping when e(a)!=e(b).  nullsMax determines whether a null value
 // compares larger (if true) or smaller (if false) than a non-null value.
@@ -139,17 +139,17 @@ func (c *Comparator) WithMissingAsNull() *Comparator {
 
 type missingAsNull struct{ Evaluator }
 
-func (m *missingAsNull) Eval(ectx Context, val zed.Value) zed.Value {
+func (m *missingAsNull) Eval(ectx Context, val super.Value) super.Value {
 	val = m.Evaluator.Eval(ectx, val)
 	if val.IsMissing() {
-		return zed.Null
+		return super.Null
 	}
 	return val
 }
 
 // Compare returns an interger comparing two values according to the receiver's
 // configuration.  The result will be 0 if a==b, -1 if a < b, and +1 if a > b.
-func (c *Comparator) Compare(a, b zed.Value) int {
+func (c *Comparator) Compare(a, b super.Value) int {
 	for _, k := range c.exprs {
 		aval := k.Eval(c.ectx, a)
 		bval := k.Eval(c.ectx, b)
@@ -163,7 +163,7 @@ func (c *Comparator) Compare(a, b zed.Value) int {
 	return 0
 }
 
-func compareValues(a, b zed.Value, nullsMax bool) int {
+func compareValues(a, b super.Value, nullsMax bool) int {
 	// Handle nulls according to nullsMax
 	nullA := a.IsNull()
 	nullB := b.IsNull()
@@ -185,34 +185,34 @@ func compareValues(a, b zed.Value, nullsMax bool) int {
 		}
 	}
 	switch aid, bid := a.Type().ID(), b.Type().ID(); {
-	case zed.IsNumber(aid) && zed.IsNumber(bid):
+	case super.IsNumber(aid) && super.IsNumber(bid):
 		return compareNumbers(a, b, aid, bid)
 	case aid != bid:
-		return zed.CompareTypes(a.Type(), b.Type())
-	case aid == zed.IDBool:
+		return super.CompareTypes(a.Type(), b.Type())
+	case aid == super.IDBool:
 		if av, bv := a.Bool(), b.Bool(); av == bv {
 			return 0
 		} else if av {
 			return 1
 		}
 		return -1
-	case aid == zed.IDBytes:
-		return bytes.Compare(zed.DecodeBytes(a.Bytes()), zed.DecodeBytes(b.Bytes()))
-	case aid == zed.IDString:
-		return cmp.Compare(zed.DecodeString(a.Bytes()), zed.DecodeString(b.Bytes()))
-	case aid == zed.IDIP:
-		return zed.DecodeIP(a.Bytes()).Compare(zed.DecodeIP(b.Bytes()))
-	case aid == zed.IDType:
-		zctx := zed.NewContext() // XXX This is expensive.
+	case aid == super.IDBytes:
+		return bytes.Compare(super.DecodeBytes(a.Bytes()), super.DecodeBytes(b.Bytes()))
+	case aid == super.IDString:
+		return cmp.Compare(super.DecodeString(a.Bytes()), super.DecodeString(b.Bytes()))
+	case aid == super.IDIP:
+		return super.DecodeIP(a.Bytes()).Compare(super.DecodeIP(b.Bytes()))
+	case aid == super.IDType:
+		zctx := super.NewContext() // XXX This is expensive.
 		// XXX This isn't cheap eventually we should add
-		// zed.CompareTypeValues(a, b zcode.Bytes).
+		// super.CompareTypeValues(a, b zcode.Bytes).
 		av, _ := zctx.DecodeTypeValue(a.Bytes())
 		bv, _ := zctx.DecodeTypeValue(b.Bytes())
-		return zed.CompareTypes(av, bv)
+		return super.CompareTypes(av, bv)
 	}
 	// XXX record support easy to add here if we moved the creation of the
 	// field resolvers into this package.
-	if innerType := zed.InnerType(a.Type()); innerType != nil {
+	if innerType := super.InnerType(a.Type()); innerType != nil {
 		ait, bit := a.Iter(), b.Iter()
 		for {
 			if ait.Done() {
@@ -224,8 +224,8 @@ func compareValues(a, b zed.Value, nullsMax bool) int {
 			if bit.Done() {
 				return 1
 			}
-			aa := zed.NewValue(innerType, ait.Next())
-			bb := zed.NewValue(innerType, bit.Next())
+			aa := super.NewValue(innerType, ait.Next())
+			bb := super.NewValue(innerType, bit.Next())
 			if v := compareValues(aa, bb, nullsMax); v != 0 {
 				return v
 			}
@@ -236,8 +236,8 @@ func compareValues(a, b zed.Value, nullsMax bool) int {
 
 // SortStable sorts vals according to c, with equal values in their original
 // order.  SortStable allocates more memory than [SortStableReader].
-func (c *Comparator) SortStable(vals []zed.Value) {
-	tmp := make([]zed.Value, len(vals))
+func (c *Comparator) SortStable(vals []super.Value) {
+	tmp := make([]super.Value, len(vals))
 	for i, index := range c.sortStableIndices(vals) {
 		tmp[i] = vals[i]
 		if j := int(index); i < j {
@@ -250,7 +250,7 @@ func (c *Comparator) SortStable(vals []zed.Value) {
 
 // SortStableReader returns a reader for vals sorted according to c, with equal
 // values in their original order.
-func (c *Comparator) SortStableReader(vals []zed.Value) zio.Reader {
+func (c *Comparator) SortStableReader(vals []super.Value) zio.Reader {
 	return &sortStableReader{
 		indices: c.sortStableIndices(vals),
 		vals:    vals,
@@ -259,10 +259,10 @@ func (c *Comparator) SortStableReader(vals []zed.Value) zio.Reader {
 
 type sortStableReader struct {
 	indices []uint32
-	vals    []zed.Value
+	vals    []super.Value
 }
 
-func (s *sortStableReader) Read() (*zed.Value, error) {
+func (s *sortStableReader) Read() (*super.Value, error) {
 	if len(s.indices) == 0 {
 		return nil, nil
 	}
@@ -272,7 +272,7 @@ func (s *sortStableReader) Read() (*zed.Value, error) {
 }
 
 type RecordSlice struct {
-	vals    []zed.Value
+	vals    []super.Value
 	compare CompareFn
 }
 
@@ -293,7 +293,7 @@ func (r *RecordSlice) Less(i, j int) bool {
 
 // Push adds x as element Len(). Implements heap.Interface.
 func (r *RecordSlice) Push(rec interface{}) {
-	r.vals = append(r.vals, rec.(zed.Value))
+	r.vals = append(r.vals, rec.(super.Value))
 }
 
 // Pop removes the first element in the array. Implements heap.Interface.
@@ -304,6 +304,6 @@ func (r *RecordSlice) Pop() interface{} {
 }
 
 // Index returns the ith record.
-func (r *RecordSlice) Index(i int) zed.Value {
+func (r *RecordSlice) Index(i int) super.Value {
 	return r.vals[i]
 }

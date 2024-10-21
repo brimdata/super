@@ -24,7 +24,7 @@ func NewZJSONWriter(w io.Writer) *ZJSONWriter {
 	}
 }
 
-func (w *ZJSONWriter) Write(rec zed.Value) error {
+func (w *ZJSONWriter) Write(rec super.Value) error {
 	return w.writer.Write(rec)
 }
 

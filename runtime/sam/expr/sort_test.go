@@ -12,23 +12,23 @@ import (
 
 func BenchmarkSort(b *testing.B) {
 	cases := []struct {
-		typ   zed.Type
+		typ   super.Type
 		bytes func() []byte
 	}{
-		{zed.TypeInt64, func() []byte { return zed.EncodeInt(int64(rand.Uint64())) }},
-		{zed.TypeUint64, func() []byte { return zed.EncodeUint(rand.Uint64()) }},
-		{zed.TypeString, func() []byte { return strconv.AppendUint(nil, rand.Uint64(), 16) }},
-		{zed.TypeDuration, func() []byte { return zed.EncodeInt(int64(rand.Uint64())) }},
-		{zed.TypeTime, func() []byte { return zed.EncodeInt(int64(rand.Uint64())) }},
+		{super.TypeInt64, func() []byte { return super.EncodeInt(int64(rand.Uint64())) }},
+		{super.TypeUint64, func() []byte { return super.EncodeUint(rand.Uint64()) }},
+		{super.TypeString, func() []byte { return strconv.AppendUint(nil, rand.Uint64(), 16) }},
+		{super.TypeDuration, func() []byte { return super.EncodeInt(int64(rand.Uint64())) }},
+		{super.TypeTime, func() []byte { return super.EncodeInt(int64(rand.Uint64())) }},
 	}
 	for _, c := range cases {
 		b.Run(zson.FormatType(c.typ), func(b *testing.B) {
 			cmp := NewComparator(false, SortEvaluator{&This{}, order.Asc})
-			vals := make([]zed.Value, 1048576)
+			vals := make([]super.Value, 1048576)
 			for i := 0; i < b.N; i++ {
 				b.StopTimer()
 				for i := range vals {
-					vals[i] = zed.NewValue(c.typ, c.bytes())
+					vals[i] = super.NewValue(c.typ, c.bytes())
 				}
 				b.StartTimer()
 				cmp.SortStable(vals)

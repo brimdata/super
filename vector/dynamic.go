@@ -19,11 +19,11 @@ func NewDynamic(tags []uint32, values []Any) *Dynamic {
 	return &Dynamic{Tags: tags, Values: values, TagMap: NewTagMap(tags, values)}
 }
 
-func (*Dynamic) Type() zed.Type {
+func (*Dynamic) Type() super.Type {
 	panic("can't call Type() on a vector.Dynamic")
 }
 
-func (d *Dynamic) TypeOf(slot uint32) zed.Type {
+func (d *Dynamic) TypeOf(slot uint32) super.Type {
 	vals := d.Values[d.Tags[slot]]
 	if v2, ok := vals.(*Dynamic); ok {
 		return v2.TypeOf(d.TagMap.Forward[slot])

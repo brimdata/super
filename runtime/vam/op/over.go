@@ -7,7 +7,7 @@ import (
 )
 
 type Over struct {
-	zctx   *zed.Context
+	zctx   *super.Context
 	parent vector.Puller
 	exprs  []expr.Evaluator
 
@@ -15,7 +15,7 @@ type Over struct {
 	idx  uint32
 }
 
-func NewOver(zctx *zed.Context, parent vector.Puller, exprs []expr.Evaluator) *Over {
+func NewOver(zctx *super.Context, parent vector.Puller, exprs []expr.Evaluator) *Over {
 	return &Over{
 		zctx:   zctx,
 		parent: parent,
@@ -79,17 +79,17 @@ func (o *Over) flatten(vec vector.Any, slot uint32) vector.Any {
 		if len(vec.Fields) == 0 || vec.Nulls.Value(slot) {
 			return nil
 		}
-		keyType := o.zctx.LookupTypeArray(zed.TypeString)
+		keyType := o.zctx.LookupTypeArray(super.TypeString)
 		keyOffsets := []uint32{0, 1}
 		var tags []uint32
 		var vecs []vector.Any
-		for i, f := range zed.TypeRecordOf(vec.Type()).Fields {
+		for i, f := range super.TypeRecordOf(vec.Type()).Fields {
 			tags = append(tags, uint32(i))
-			typ := o.zctx.MustLookupTypeRecord([]zed.Field{
+			typ := o.zctx.MustLookupTypeRecord([]super.Field{
 				{Name: "key", Type: keyType},
 				{Name: "value", Type: f.Type},
 			})
-			keyVec := vector.NewArray(keyType, keyOffsets, vector.NewConst(zed.NewString(f.Name), 1, nil), nil)
+			keyVec := vector.NewArray(keyType, keyOffsets, vector.NewConst(super.NewString(f.Name), 1, nil), nil)
 			valVec := vector.NewView([]uint32{slot}, vec.Fields[i])
 			vecs = append(vecs, vector.NewRecord(typ, []vector.Any{keyVec, valVec}, keyVec.Len(), nil))
 		}

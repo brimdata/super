@@ -28,7 +28,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 			return nil, err
 		}
 		vals := batch.Values()
-		out := make([]zed.Value, 0, len(o.exprs)*len(vals))
+		out := make([]super.Value, 0, len(o.exprs)*len(vals))
 		for i := range vals {
 			for _, e := range o.exprs {
 				val := e.Eval(batch, vals[i])

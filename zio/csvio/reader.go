@@ -34,7 +34,7 @@ type ReaderOpts struct {
 //	StringsOnly bool
 //}
 
-func NewReader(zctx *zed.Context, r io.Reader, opts ReaderOpts) *Reader {
+func NewReader(zctx *super.Context, r io.Reader, opts ReaderOpts) *Reader {
 	preprocess := newPreprocess(r, opts.Delim)
 	reader := csv.NewReader(preprocess)
 	if opts.Delim != 0 {
@@ -53,7 +53,7 @@ func NewReader(zctx *zed.Context, r io.Reader, opts ReaderOpts) *Reader {
 	}
 }
 
-func (r *Reader) Read() (*zed.Value, error) {
+func (r *Reader) Read() (*super.Value, error) {
 	for {
 		csvRec, err := r.reader.Read()
 		if err != nil {
@@ -84,11 +84,11 @@ func (r *Reader) init(hdr []string) {
 	r.vals = make([]interface{}, len(hdr))
 }
 
-func (r *Reader) translate(fields []string) (zed.Value, error) {
+func (r *Reader) translate(fields []string) (super.Value, error) {
 	if len(fields) != len(r.vals) {
 		// This error shouldn't happen as it should be caught by the
 		// csv package but we check anyway.
-		return zed.Null, errors.New("length of record doesn't match heading")
+		return super.Null, errors.New("length of record doesn't match heading")
 	}
 	vals := r.vals[:0]
 	for _, field := range fields {

@@ -19,7 +19,7 @@ type LogReader struct {
 
 var _ zio.Reader = (*LogReader)(nil)
 
-func newLogReader(ctx context.Context, zctx *zed.Context, store *Store, leaf, stop ksuid.KSUID) *LogReader {
+func newLogReader(ctx context.Context, zctx *super.Context, store *Store, leaf, stop ksuid.KSUID) *LogReader {
 	m := zson.NewZNGMarshalerWithContext(zctx)
 	m.Decorate(zson.StyleSimple)
 	return &LogReader{
@@ -31,7 +31,7 @@ func newLogReader(ctx context.Context, zctx *zed.Context, store *Store, leaf, st
 	}
 }
 
-func (r *LogReader) Read() (*zed.Value, error) {
+func (r *LogReader) Read() (*super.Value, error) {
 	if r.cursor == ksuid.Nil {
 		return nil, nil
 	}

@@ -72,11 +72,11 @@ func (d Direction) MarshalJSON() ([]byte, error) {
 	return json.Marshal(d.String())
 }
 
-func (d Direction) MarshalZNG(m *zson.MarshalZNGContext) (zed.Type, error) {
+func (d Direction) MarshalZNG(m *zson.MarshalZNGContext) (super.Type, error) {
 	return m.MarshalValue(d.String())
 }
 
-func (d *Direction) UnmarshalZNG(u *zson.UnmarshalZNGContext, val zed.Value) error {
+func (d *Direction) UnmarshalZNG(u *zson.UnmarshalZNGContext, val super.Value) error {
 	dir, err := ParseDirection(string(val.Bytes()))
 	if err != nil {
 		return err

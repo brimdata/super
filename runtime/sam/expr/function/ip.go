@@ -11,15 +11,15 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#network_of
 type NetworkOf struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
-func (n *NetworkOf) Call(_ zed.Allocator, args []zed.Value) zed.Value {
+func (n *NetworkOf) Call(_ super.Allocator, args []super.Value) super.Value {
 	id := args[0].Type().ID()
-	if id != zed.IDIP {
+	if id != super.IDIP {
 		return n.zctx.WrapError("network_of: not an IP", args[0])
 	}
-	ip := zed.DecodeIP(args[0].Bytes())
+	ip := super.DecodeIP(args[0].Bytes())
 	var bits int
 	if len(args) == 1 {
 		switch {
@@ -36,17 +36,17 @@ func (n *NetworkOf) Call(_ zed.Allocator, args []zed.Value) zed.Value {
 		// two args
 		body := args[1].Bytes()
 		switch id := args[1].Type().ID(); {
-		case id == zed.IDIP:
-			mask := zed.DecodeIP(body)
+		case id == super.IDIP:
+			mask := super.DecodeIP(body)
 			if mask.BitLen() != ip.BitLen() {
 				return n.zctx.WrapError("network_of: address and mask have different lengths", addressAndMask(args[0], args[1]))
 			}
-			bits = zed.LeadingOnes(mask.AsSlice())
+			bits = super.LeadingOnes(mask.AsSlice())
 			if netip.PrefixFrom(mask, bits).Masked().Addr() != mask {
 				return n.zctx.WrapError("network_of: mask is non-contiguous", args[1])
 			}
-		case zed.IsInteger(id):
-			if zed.IsSigned(id) {
+		case super.IsInteger(id):
+			if super.IsSigned(id) {
 				bits = int(args[1].Int())
 			} else {
 				bits = int(args[1].Uint())
@@ -60,13 +60,13 @@ func (n *NetworkOf) Call(_ zed.Allocator, args []zed.Value) zed.Value {
 	}
 	// Mask for canonical form.
 	prefix := netip.PrefixFrom(ip, bits).Masked()
-	return zed.NewNet(prefix)
+	return super.NewNet(prefix)
 }
 
-func addressAndMask(address, mask zed.Value) zed.Value {
+func addressAndMask(address, mask super.Value) super.Value {
 	val, err := zson.MarshalZNG(struct {
-		Address zed.Value `zed:"address"`
-		Mask    zed.Value `zed:"mask"`
+		Address super.Value `zed:"address"`
+		Mask    super.Value `zed:"mask"`
 	}{address, mask})
 	if err != nil {
 		panic(err)
@@ -76,24 +76,24 @@ func addressAndMask(address, mask zed.Value) zed.Value {
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#cidr_match
 type CIDRMatch struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
 var errMatch = errors.New("match")
 
-func (c *CIDRMatch) Call(_ zed.Allocator, args []zed.Value) zed.Value {
+func (c *CIDRMatch) Call(_ super.Allocator, args []super.Value) super.Value {
 	maskVal := args[0]
-	if maskVal.Type().ID() != zed.IDNet {
+	if maskVal.Type().ID() != super.IDNet {
 		return c.zctx.WrapError("cidr_match: not a net", maskVal)
 	}
-	prefix := zed.DecodeNet(maskVal.Bytes())
-	err := args[1].Walk(func(typ zed.Type, body zcode.Bytes) error {
-		if typ.ID() == zed.IDIP {
-			if prefix.Contains(zed.DecodeIP(body)) {
+	prefix := super.DecodeNet(maskVal.Bytes())
+	err := args[1].Walk(func(typ super.Type, body zcode.Bytes) error {
+		if typ.ID() == super.IDIP {
+			if prefix.Contains(super.DecodeIP(body)) {
 				return errMatch
 			}
 		}
 		return nil
 	})
-	return zed.NewBool(err == errMatch)
+	return super.NewBool(err == errMatch)
 }

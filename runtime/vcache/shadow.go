@@ -93,7 +93,7 @@ type primitive struct {
 type const_ struct {
 	mu sync.Mutex
 	count
-	val zed.Value //XXX map this value? XXX, maybe wrap a shadow vector?, which could
+	val super.Value //XXX map this value? XXX, maybe wrap a shadow vector?, which could
 	// have a named in it
 	vec   *vector.Const
 	nulls nulls

@@ -9,19 +9,19 @@ type mapCall struct {
 	builder zcode.Builder
 	eval    Evaluator
 	inner   Evaluator
-	zctx    *zed.Context
+	zctx    *super.Context
 
 	// vals is used to reduce allocations
-	vals []zed.Value
+	vals []super.Value
 	// types is used to reduce allocations
-	types []zed.Type
+	types []super.Type
 }
 
-func NewMapCall(zctx *zed.Context, e, inner Evaluator) Evaluator {
+func NewMapCall(zctx *super.Context, e, inner Evaluator) Evaluator {
 	return &mapCall{eval: e, inner: inner, zctx: zctx}
 }
 
-func (a *mapCall) Eval(ectx Context, in zed.Value) zed.Value {
+func (a *mapCall) Eval(ectx Context, in super.Value) super.Value {
 	val := a.eval.Eval(ectx, in)
 	if val.IsError() {
 		return val
@@ -42,17 +42,17 @@ func (a *mapCall) Eval(ectx Context, in zed.Value) zed.Value {
 	}
 	inner := a.innerType(a.types)
 	bytes := a.buildVal(inner, a.vals)
-	if _, ok := zed.TypeUnder(val.Type()).(*zed.TypeSet); ok {
-		return zed.NewValue(a.zctx.LookupTypeSet(inner), zed.NormalizeSet(bytes))
+	if _, ok := super.TypeUnder(val.Type()).(*super.TypeSet); ok {
+		return super.NewValue(a.zctx.LookupTypeSet(inner), super.NormalizeSet(bytes))
 	}
-	return zed.NewValue(a.zctx.LookupTypeArray(inner), bytes)
+	return super.NewValue(a.zctx.LookupTypeArray(inner), bytes)
 }
 
-func (a *mapCall) buildVal(inner zed.Type, vals []zed.Value) []byte {
+func (a *mapCall) buildVal(inner super.Type, vals []super.Value) []byte {
 	a.builder.Reset()
-	if union, ok := inner.(*zed.TypeUnion); ok {
+	if union, ok := inner.(*super.TypeUnion); ok {
 		for _, val := range a.vals {
-			zed.BuildUnion(&a.builder, union.TagOf(val.Type()), val.Bytes())
+			super.BuildUnion(&a.builder, union.TagOf(val.Type()), val.Bytes())
 		}
 	} else {
 		for _, val := range a.vals {
@@ -62,8 +62,8 @@ func (a *mapCall) buildVal(inner zed.Type, vals []zed.Value) []byte {
 	return a.builder.Bytes()
 }
 
-func (a *mapCall) innerType(types []zed.Type) zed.Type {
-	types = zed.UniqueTypes(types)
+func (a *mapCall) innerType(types []super.Type) super.Type {
+	types = super.UniqueTypes(types)
 	if len(types) == 1 {
 		return types[0]
 	}

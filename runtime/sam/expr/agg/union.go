@@ -6,7 +6,7 @@ import (
 )
 
 type Union struct {
-	types map[zed.Type]map[string]struct{}
+	types map[super.Type]map[string]struct{}
 	size  int
 }
 
@@ -14,18 +14,18 @@ var _ Function = (*Union)(nil)
 
 func newUnion() *Union {
 	return &Union{
-		types: make(map[zed.Type]map[string]struct{}),
+		types: make(map[super.Type]map[string]struct{}),
 	}
 }
 
-func (u *Union) Consume(val zed.Value) {
+func (u *Union) Consume(val super.Value) {
 	if val.IsNull() {
 		return
 	}
 	u.update(val.Type(), val.Bytes())
 }
 
-func (u *Union) update(typ zed.Type, b zcode.Bytes) {
+func (u *Union) update(typ super.Type, b zcode.Bytes) {
 	m, ok := u.types[typ]
 	if !ok {
 		m = make(map[string]struct{})
@@ -56,22 +56,22 @@ func (u *Union) deleteOne() {
 	}
 }
 
-func (u *Union) Result(zctx *zed.Context) zed.Value {
+func (u *Union) Result(zctx *super.Context) super.Value {
 	if len(u.types) == 0 {
-		return zed.Null
+		return super.Null
 	}
-	types := make([]zed.Type, 0, len(u.types))
+	types := make([]super.Type, 0, len(u.types))
 	for typ := range u.types {
 		types = append(types, typ)
 	}
-	var inner zed.Type
+	var inner super.Type
 	var b zcode.Builder
 	if len(types) > 1 {
 		union := zctx.LookupTypeUnion(types)
 		inner = union
 		for typ, m := range u.types {
 			for v := range m {
-				zed.BuildUnion(&b, union.TagOf(typ), []byte(v))
+				super.BuildUnion(&b, union.TagOf(typ), []byte(v))
 			}
 		}
 	} else {
@@ -80,27 +80,27 @@ func (u *Union) Result(zctx *zed.Context) zed.Value {
 			b.Append([]byte(v))
 		}
 	}
-	return zed.NewValue(zctx.LookupTypeSet(inner), zed.NormalizeSet(b.Bytes()))
+	return super.NewValue(zctx.LookupTypeSet(inner), super.NormalizeSet(b.Bytes()))
 }
 
-func (u *Union) ConsumeAsPartial(val zed.Value) {
+func (u *Union) ConsumeAsPartial(val super.Value) {
 	if val.IsNull() {
 		return
 	}
-	styp, ok := val.Type().(*zed.TypeSet)
+	styp, ok := val.Type().(*super.TypeSet)
 	if !ok {
 		panic("union: partial not a set type")
 	}
 	for it := val.Iter(); !it.Done(); {
 		typ := styp.Type
 		b := it.Next()
-		if union, ok := zed.TypeUnder(typ).(*zed.TypeUnion); ok {
+		if union, ok := super.TypeUnder(typ).(*super.TypeUnion); ok {
 			typ, b = union.Untag(b)
 		}
 		u.update(typ, b)
 	}
 }
 
-func (u *Union) ResultAsPartial(zctx *zed.Context) zed.Value {
+func (u *Union) ResultAsPartial(zctx *super.Context) super.Value {
 	return u.Result(zctx)
 }

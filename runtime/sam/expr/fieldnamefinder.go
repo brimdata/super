@@ -23,7 +23,7 @@ func NewFieldNameFinder(pattern string) *FieldNameFinder {
 // Find returns true if buf, which holds a sequence of ZNG value messages, might
 // contain a record with a field whose fully-qualified name (e.g., a.b.c)
 // matches the pattern.  Find also returns true if it encounters an error.
-func (f *FieldNameFinder) Find(zctx *zed.Context, buf []byte) bool {
+func (f *FieldNameFinder) Find(zctx *super.Context, buf []byte) bool {
 	f.checkedIDs.SetInt64(0)
 	for len(buf) > 0 {
 		id, idLen := binary.Uvarint(buf)
@@ -40,7 +40,7 @@ func (f *FieldNameFinder) Find(zctx *zed.Context, buf []byte) bool {
 		if err != nil {
 			return true
 		}
-		tr, ok := zed.TypeUnder(t).(*zed.TypeRecord)
+		tr, ok := super.TypeUnder(t).(*super.TypeRecord)
 		if !ok {
 			return true
 		}
@@ -60,11 +60,11 @@ type FieldNameIter struct {
 }
 
 type fieldNameIterInfo struct {
-	fields []zed.Field
+	fields []super.Field
 	offset int
 }
 
-func (f *FieldNameIter) Init(t *zed.TypeRecord) {
+func (f *FieldNameIter) Init(t *super.TypeRecord) {
 	f.buf = f.buf[:0]
 	f.stack = f.stack[:0]
 	if len(t.Fields) > 0 {
@@ -82,7 +82,7 @@ func (f *FieldNameIter) Next() []byte {
 		info := &f.stack[len(f.stack)-1]
 		field := info.fields[info.offset]
 		f.buf = append(f.buf, "."+field.Name...)
-		t, ok := zed.TypeUnder(field.Type).(*zed.TypeRecord)
+		t, ok := super.TypeUnder(field.Type).(*super.TypeRecord)
 		if !ok || len(t.Fields) == 0 {
 			break
 		}

@@ -14,49 +14,49 @@ import (
 type searchByPred struct {
 	pred  Boolean
 	expr  Evaluator
-	types map[zed.Type]bool
+	types map[super.Type]bool
 }
 
 func SearchByPredicate(pred Boolean, e Evaluator) Evaluator {
 	return &searchByPred{
 		pred:  pred,
 		expr:  e,
-		types: make(map[zed.Type]bool),
+		types: make(map[super.Type]bool),
 	}
 }
 
-func (s *searchByPred) Eval(ectx Context, val zed.Value) zed.Value {
+func (s *searchByPred) Eval(ectx Context, val super.Value) super.Value {
 	if s.expr != nil {
 		val = s.expr.Eval(ectx, val)
 		if val.IsError() {
-			return zed.False
+			return super.False
 		}
 	}
-	if errMatch == val.Walk(func(typ zed.Type, body zcode.Bytes) error {
+	if errMatch == val.Walk(func(typ super.Type, body zcode.Bytes) error {
 		if s.searchType(typ) {
 			return errMatch
 		}
-		if s.pred(zed.NewValue(typ, body)) {
+		if s.pred(super.NewValue(typ, body)) {
 			return errMatch
 		}
 		return nil
 	}) {
-		return zed.True
+		return super.True
 	}
-	return zed.False
+	return super.False
 }
 
-func (s *searchByPred) searchType(typ zed.Type) bool {
+func (s *searchByPred) searchType(typ super.Type) bool {
 	if match, ok := s.types[typ]; ok {
 		return match
 	}
 	var match bool
-	recType := zed.TypeRecordOf(typ)
+	recType := super.TypeRecordOf(typ)
 	if recType != nil {
 		var nameIter FieldNameIter
 		nameIter.Init(recType)
 		for !nameIter.Done() {
-			if s.pred(zed.NewString(string(nameIter.Next()))) {
+			if s.pred(super.NewString(string(nameIter.Next()))) {
 				match = true
 				break
 			}
@@ -101,10 +101,10 @@ type search struct {
 // field or inside any set or array.  It also matches a record if the string
 // representaton of the search value appears inside inside any string-valued
 // field (or inside any element of a set or array of strings).
-func NewSearch(searchtext string, searchval zed.Value, expr Evaluator) (Evaluator, error) {
-	if zed.TypeUnder(searchval.Type()) == zed.TypeNet {
+func NewSearch(searchtext string, searchval super.Value, expr Evaluator) (Evaluator, error) {
+	if super.TypeUnder(searchval.Type()) == super.TypeNet {
 		return &searchCIDR{
-			net:   zed.DecodeNet(searchval.Bytes()),
+			net:   super.DecodeNet(searchval.Bytes()),
 			bytes: searchval.Bytes(),
 		}, nil
 	}
@@ -115,28 +115,28 @@ func NewSearch(searchtext string, searchval zed.Value, expr Evaluator) (Evaluato
 	return &search{searchtext, typedCompare, expr}, nil
 }
 
-func (s *search) Eval(ectx Context, val zed.Value) zed.Value {
+func (s *search) Eval(ectx Context, val super.Value) super.Value {
 	if s.expr != nil {
 		val = s.expr.Eval(ectx, val)
 		if val.IsError() {
-			return zed.False
+			return super.False
 		}
 	}
-	if errMatch == val.Walk(func(typ zed.Type, body zcode.Bytes) error {
-		if typ.ID() == zed.IDString {
+	if errMatch == val.Walk(func(typ super.Type, body zcode.Bytes) error {
+		if typ.ID() == super.IDString {
 			if stringSearch(byteconv.UnsafeString(body), s.text) {
 				return errMatch
 			}
 			return nil
 		}
-		if s.compare(zed.NewValue(typ, body)) {
+		if s.compare(super.NewValue(typ, body)) {
 			return errMatch
 		}
 		return nil
 	}) {
-		return zed.True
+		return super.True
 	}
-	return zed.False
+	return super.False
 }
 
 type searchCIDR struct {
@@ -144,29 +144,29 @@ type searchCIDR struct {
 	bytes zcode.Bytes
 }
 
-func (s *searchCIDR) Eval(_ Context, val zed.Value) zed.Value {
-	if errMatch == val.Walk(func(typ zed.Type, body zcode.Bytes) error {
+func (s *searchCIDR) Eval(_ Context, val super.Value) super.Value {
+	if errMatch == val.Walk(func(typ super.Type, body zcode.Bytes) error {
 		switch typ.ID() {
-		case zed.IDNet:
+		case super.IDNet:
 			if bytes.Equal(body, s.bytes) {
 				return errMatch
 			}
-		case zed.IDIP:
-			if s.net.Contains(zed.DecodeIP(body)) {
+		case super.IDIP:
+			if s.net.Contains(super.DecodeIP(body)) {
 				return errMatch
 			}
 		}
 		return nil
 	}) {
-		return zed.True
+		return super.True
 	}
-	return zed.False
+	return super.False
 }
 
 type searchString struct {
 	term  string
 	expr  Evaluator
-	types map[zed.Type]bool
+	types map[super.Type]bool
 }
 
 // NewSearchString is like NewSeach but handles the special case of matching
@@ -175,16 +175,16 @@ func NewSearchString(term string, expr Evaluator) Evaluator {
 	return &searchString{
 		term:  term,
 		expr:  expr,
-		types: make(map[zed.Type]bool),
+		types: make(map[super.Type]bool),
 	}
 }
 
-func (s *searchString) searchType(typ zed.Type) bool {
+func (s *searchString) searchType(typ super.Type) bool {
 	if match, ok := s.types[typ]; ok {
 		return match
 	}
 	var match bool
-	recType := zed.TypeRecordOf(typ)
+	recType := super.TypeRecordOf(typ)
 	if recType != nil {
 		var nameIter FieldNameIter
 		nameIter.Init(recType)
@@ -200,31 +200,31 @@ func (s *searchString) searchType(typ zed.Type) bool {
 	return match
 }
 
-func (s *searchString) Eval(ectx Context, val zed.Value) zed.Value {
+func (s *searchString) Eval(ectx Context, val super.Value) super.Value {
 	if s.expr != nil {
 		val = s.expr.Eval(ectx, val)
 		if val.IsError() {
-			return zed.False
+			return super.False
 		}
 	}
 	// Memoize the result of a search across the names in the
 	// record fields for each unique record type.
 	if s.searchType(val.Type()) {
-		return zed.True
+		return super.True
 	}
-	if errMatch == val.Walk(func(typ zed.Type, body zcode.Bytes) error {
+	if errMatch == val.Walk(func(typ super.Type, body zcode.Bytes) error {
 		if s.searchType(typ) {
 			return errMatch
 		}
-		if typ.ID() == zed.IDString &&
+		if typ.ID() == super.IDString &&
 			stringSearch(byteconv.UnsafeString(body), s.term) {
 			return errMatch
 		}
 		return nil
 	}) {
-		return zed.True
+		return super.True
 	}
-	return zed.False
+	return super.False
 }
 
 type filter struct {
@@ -236,27 +236,27 @@ func NewFilter(expr Evaluator, pred Boolean) Evaluator {
 	return &filter{expr, pred}
 }
 
-func (f *filter) Eval(ectx Context, this zed.Value) zed.Value {
+func (f *filter) Eval(ectx Context, this super.Value) super.Value {
 	val := f.expr.Eval(ectx, this)
 	if val.IsError() {
 		return val
 	}
 	if f.pred(val) {
-		return zed.True
+		return super.True
 	}
-	return zed.False
+	return super.False
 }
 
 type filterApplier struct {
-	zctx *zed.Context
+	zctx *super.Context
 	expr Evaluator
 }
 
-func NewFilterApplier(zctx *zed.Context, e Evaluator) Evaluator {
+func NewFilterApplier(zctx *super.Context, e Evaluator) Evaluator {
 	return &filterApplier{zctx, e}
 }
 
-func (f *filterApplier) Eval(ectx Context, this zed.Value) zed.Value {
+func (f *filterApplier) Eval(ectx Context, this super.Value) super.Value {
 	val, ok := EvalBool(f.zctx, ectx, this, f.expr)
 	if ok {
 		if val.Bool() {

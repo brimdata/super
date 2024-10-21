@@ -32,7 +32,7 @@ type Interface interface {
 	RemoveBranch(ctx context.Context, pool ksuid.KSUID, branchName string) error
 	MergeBranch(ctx context.Context, pool ksuid.KSUID, childBranch, parentBranch string, message api.CommitMessage) (ksuid.KSUID, error)
 	Compact(ctx context.Context, pool ksuid.KSUID, branch string, objects []ksuid.KSUID, writeVectors bool, message api.CommitMessage) (ksuid.KSUID, error)
-	Load(ctx context.Context, zctx *zed.Context, pool ksuid.KSUID, branch string, r zio.Reader, message api.CommitMessage) (ksuid.KSUID, error)
+	Load(ctx context.Context, zctx *super.Context, pool ksuid.KSUID, branch string, r zio.Reader, message api.CommitMessage) (ksuid.KSUID, error)
 	Delete(ctx context.Context, poolID ksuid.KSUID, branchName string, tags []ksuid.KSUID, message api.CommitMessage) (ksuid.KSUID, error)
 	DeleteWhere(ctx context.Context, poolID ksuid.KSUID, branchName, src string, commit api.CommitMessage) (ksuid.KSUID, error)
 	Revert(ctx context.Context, poolID ksuid.KSUID, branch string, commitID ksuid.KSUID, commit api.CommitMessage) (ksuid.KSUID, error)
@@ -186,7 +186,7 @@ func newBuffer(types ...interface{}) *buffer {
 	return &buffer{unmarshaler: u}
 }
 
-func (b *buffer) Write(val zed.Value) error {
+func (b *buffer) Write(val super.Value) error {
 	var v interface{}
 	if err := b.unmarshaler.Unmarshal(val, &v); err != nil {
 		return err

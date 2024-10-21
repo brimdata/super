@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	zed "github.com/brimdata/super"
+	 "github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/zio/zngio"
 	"github.com/brimdata/super/zngbytes"
@@ -98,7 +98,7 @@ func (s *Store) load(ctx context.Context) error {
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		s.logger.Error("Loading snapshot", zap.Error(err))
 	}
-	r, err := s.journal.OpenAsZNG(ctx, zed.NewContext(), head, at)
+	r, err := s.journal.OpenAsZNG(ctx, super.NewContext(), head, at)
 	if err != nil {
 		return err
 	}
@@ -152,13 +152,13 @@ func (s *Store) getSnapshot(ctx context.Context, unmarshaler *zson.UnmarshalZNGC
 		return Nil, table, err
 	}
 	defer r.Close()
-	zr := zngio.NewReader(zed.NewContext(), r)
+	zr := zngio.NewReader(super.NewContext(), r)
 	defer zr.Close()
 	val, err := zr.Read()
 	if val == nil || err != nil {
 		return Nil, table, err
 	}
-	if val.Type().ID() != zed.IDUint64 {
+	if val.Type().ID() != super.IDUint64 {
 		return Nil, table, errors.New("corrupted journal snapshot")
 	}
 	at := ID(val.Uint())
@@ -183,7 +183,7 @@ func (s *Store) putSnapshot(ctx context.Context, at ID, table map[string]Entry) 
 	}
 	zw := zngio.NewWriter(w)
 	defer zw.Close()
-	if err := zw.Write(zed.NewUint64(uint64(at))); err != nil {
+	if err := zw.Write(super.NewUint64(uint64(at))); err != nil {
 		return err
 	}
 	marshaler := zson.NewZNGMarshaler()

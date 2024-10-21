@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	zed "github.com/brimdata/super"
+	 "github.com/brimdata/super"
 	"github.com/brimdata/super/cli/inputflags"
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/cli/queryflags"
@@ -144,11 +144,11 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return fmt.Errorf("super query: %w", err)
 	}
-	zctx := zed.NewContext()
+	zctx := super.NewContext()
 	local := storage.NewLocalEngine()
 	var readers []zio.Reader
 	if null {
-		readers = []zio.Reader{zbuf.NewArray([]zed.Value{zed.Null})}
+		readers = []zio.Reader{zbuf.NewArray([]super.Value{super.Null})}
 	} else {
 		readers, err = c.inputFlags.Open(ctx, zctx, local, paths, c.stopErr)
 		if err != nil {

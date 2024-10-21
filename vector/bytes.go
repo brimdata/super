@@ -26,8 +26,8 @@ func (b *Bytes) Append(v []byte) {
 	b.Offs = append(b.Offs, uint32(len(b.Bytes)))
 }
 
-func (b *Bytes) Type() zed.Type {
-	return zed.TypeBytes
+func (b *Bytes) Type() super.Type {
+	return super.TypeBytes
 }
 
 func (b *Bytes) Len() uint32 {

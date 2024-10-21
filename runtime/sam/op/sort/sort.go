@@ -72,7 +72,7 @@ func (o *Op) run() {
 		o.rctx.WaitGroup.Done()
 	}()
 	var nbytes int
-	var out []zed.Value
+	var out []super.Value
 	for {
 		batch, err := o.parent.Pull(false)
 		if err != nil {
@@ -148,7 +148,7 @@ func (o *Op) run() {
 }
 
 // send sorts vals in memory and sends the result downstream.
-func (o *Op) send(vals []zed.Value) bool {
+func (o *Op) send(vals []super.Value) bool {
 	o.comparator.SortStable(vals)
 	out := zbuf.NewBatch(o.lastBatch, vals)
 	return o.sendResult(out, nil)
@@ -184,7 +184,7 @@ func (o *Op) sendResult(b zbuf.Batch, err error) bool {
 	}
 }
 
-func (o *Op) append(out []zed.Value, batch zbuf.Batch) ([]zed.Value, int) {
+func (o *Op) append(out []super.Value, batch zbuf.Batch) ([]super.Value, int) {
 	var nbytes int
 	vals := batch.Values()
 	for i := range vals {
@@ -196,7 +196,7 @@ func (o *Op) append(out []zed.Value, batch zbuf.Batch) ([]zed.Value, int) {
 	return out, nbytes
 }
 
-func (o *Op) setComparator(r zed.Value) {
+func (o *Op) setComparator(r super.Value) {
 	resolvers := o.fieldResolvers
 	if resolvers == nil {
 		fld := GuessSortKey(r)
@@ -215,31 +215,31 @@ func (o *Op) setComparator(r zed.Value) {
 	o.comparator = expr.NewComparator(nullsMax, resolvers...).WithMissingAsNull()
 }
 
-func GuessSortKey(val zed.Value) field.Path {
-	recType := zed.TypeRecordOf(val.Type())
+func GuessSortKey(val super.Value) field.Path {
+	recType := super.TypeRecordOf(val.Type())
 	if recType == nil {
 		// A nil field.Path is equivalent to "this".
 		return nil
 	}
-	if f := firstMatchingField(recType, zed.IsInteger); f != nil {
+	if f := firstMatchingField(recType, super.IsInteger); f != nil {
 		return f
 	}
-	if f := firstMatchingField(recType, zed.IsFloat); f != nil {
+	if f := firstMatchingField(recType, super.IsFloat); f != nil {
 		return f
 	}
-	isNotTime := func(id int) bool { return id != zed.IDTime }
+	isNotTime := func(id int) bool { return id != super.IDTime }
 	if f := firstMatchingField(recType, isNotTime); f != nil {
 		return f
 	}
 	return field.Path{"ts"}
 }
 
-func firstMatchingField(typ *zed.TypeRecord, pred func(id int) bool) field.Path {
+func firstMatchingField(typ *super.TypeRecord, pred func(id int) bool) field.Path {
 	for _, f := range typ.Fields {
 		if pred(f.Type.ID()) {
 			return field.Path{f.Name}
 		}
-		if typ := zed.TypeRecordOf(f.Type); typ != nil {
+		if typ := super.TypeRecordOf(f.Type); typ != nil {
 			if ff := firstMatchingField(typ, pred); ff != nil {
 				return append(field.Path{f.Name}, ff...)
 			}

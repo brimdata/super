@@ -15,13 +15,13 @@ import (
 	"golang.org/x/text/unicode/norm"
 )
 
-func Build(b *zcode.Builder, val Value) (zed.Value, error) {
+func Build(b *zcode.Builder, val Value) (super.Value, error) {
 	b.Truncate()
 	if err := buildValue(b, val); err != nil {
-		return zed.Null, err
+		return super.Null, err
 	}
 	it := b.Bytes().Iter()
-	return zed.NewValue(val.TypeOf(), it.Next()), nil
+	return super.NewValue(val.TypeOf(), it.Next()), nil
 }
 
 func buildValue(b *zcode.Builder, val Value) error {
@@ -52,29 +52,29 @@ func buildValue(b *zcode.Builder, val Value) error {
 }
 
 func BuildPrimitive(b *zcode.Builder, val Primitive) error {
-	switch zed.TypeUnder(val.Type).(type) {
-	case *zed.TypeOfUint8, *zed.TypeOfUint16, *zed.TypeOfUint32, *zed.TypeOfUint64:
+	switch super.TypeUnder(val.Type).(type) {
+	case *super.TypeOfUint8, *super.TypeOfUint16, *super.TypeOfUint32, *super.TypeOfUint64:
 		v, err := strconv.ParseUint(val.Text, 10, 64)
 		if err != nil {
 			return fmt.Errorf("invalid unsigned integer: %s", val.Text)
 		}
-		b.Append(zed.EncodeUint(v))
+		b.Append(super.EncodeUint(v))
 		return nil
-	case *zed.TypeOfInt8, *zed.TypeOfInt16, *zed.TypeOfInt32, *zed.TypeOfInt64:
+	case *super.TypeOfInt8, *super.TypeOfInt16, *super.TypeOfInt32, *super.TypeOfInt64:
 		v, err := strconv.ParseInt(val.Text, 10, 64)
 		if err != nil {
 			return fmt.Errorf("invalid integer: %s", val.Text)
 		}
-		b.Append(zed.EncodeInt(v))
+		b.Append(super.EncodeInt(v))
 		return nil
-	case *zed.TypeOfDuration:
+	case *super.TypeOfDuration:
 		d, err := nano.ParseDuration(val.Text)
 		if err != nil {
 			return fmt.Errorf("invalid duration: %s", val.Text)
 		}
-		b.Append(zed.EncodeDuration(d))
+		b.Append(super.EncodeDuration(d))
 		return nil
-	case *zed.TypeOfTime:
+	case *super.TypeOfTime:
 		t, err := time.Parse(time.RFC3339Nano, val.Text)
 		if err != nil {
 			return fmt.Errorf("invalid ISO time: %s", val.Text)
@@ -82,40 +82,40 @@ func BuildPrimitive(b *zcode.Builder, val Primitive) error {
 		if nano.MaxTs.Time().Sub(t) < 0 {
 			return fmt.Errorf("time overflow: %s (max: %s)", val.Text, nano.MaxTs)
 		}
-		b.Append(zed.EncodeTime(nano.TimeToTs(t)))
+		b.Append(super.EncodeTime(nano.TimeToTs(t)))
 		return nil
-	case *zed.TypeOfFloat16:
+	case *super.TypeOfFloat16:
 		v, err := strconv.ParseFloat(val.Text, 32)
 		if err != nil {
 			return fmt.Errorf("invalid floating point: %s", val.Text)
 		}
 
-		b.Append(zed.EncodeFloat16(float32(v)))
+		b.Append(super.EncodeFloat16(float32(v)))
 		return nil
-	case *zed.TypeOfFloat32:
+	case *super.TypeOfFloat32:
 		v, err := strconv.ParseFloat(val.Text, 32)
 		if err != nil {
 			return fmt.Errorf("invalid floating point: %s", val.Text)
 		}
-		b.Append(zed.EncodeFloat32(float32(v)))
+		b.Append(super.EncodeFloat32(float32(v)))
 		return nil
-	case *zed.TypeOfFloat64:
+	case *super.TypeOfFloat64:
 		v, err := strconv.ParseFloat(val.Text, 64)
 		if err != nil {
 			return fmt.Errorf("invalid floating point: %s", val.Text)
 		}
-		b.Append(zed.EncodeFloat64(v))
+		b.Append(super.EncodeFloat64(v))
 		return nil
-	case *zed.TypeOfBool:
+	case *super.TypeOfBool:
 		var v bool
 		if val.Text == "true" {
 			v = true
 		} else if val.Text != "false" {
 			return fmt.Errorf("invalid bool: %s", val.Text)
 		}
-		b.Append(zed.EncodeBool(v))
+		b.Append(super.EncodeBool(v))
 		return nil
-	case *zed.TypeOfBytes:
+	case *super.TypeOfBytes:
 		s := val.Text
 		if len(s) < 2 || s[0:2] != "0x" {
 			return fmt.Errorf("invalid bytes: %s", s)
@@ -133,34 +133,34 @@ func BuildPrimitive(b *zcode.Builder, val Primitive) error {
 		}
 		b.Append(zcode.Bytes(bytes))
 		return nil
-	case *zed.TypeOfString:
-		body := zed.EncodeString(val.Text)
+	case *super.TypeOfString:
+		body := super.EncodeString(val.Text)
 		if !utf8.Valid(body) {
 			return fmt.Errorf("invalid utf8 string: %q", val.Text)
 		}
 		b.Append(norm.NFC.Bytes(body))
 		return nil
-	case *zed.TypeOfIP:
+	case *super.TypeOfIP:
 		ip, err := netip.ParseAddr(val.Text)
 		if err != nil {
 			return err
 		}
-		b.Append(zed.EncodeIP(ip))
+		b.Append(super.EncodeIP(ip))
 		return nil
-	case *zed.TypeOfNet:
+	case *super.TypeOfNet:
 		net, err := netip.ParsePrefix(val.Text)
 		if err != nil {
 			return fmt.Errorf("invalid network: %s (%w)", val.Text, err)
 		}
-		b.Append(zed.EncodeNet(net.Masked()))
+		b.Append(super.EncodeNet(net.Masked()))
 		return nil
-	case *zed.TypeOfNull:
+	case *super.TypeOfNull:
 		if val.Text != "" {
 			return fmt.Errorf("invalid text body of null value: %q", val.Text)
 		}
 		b.Append(nil)
 		return nil
-	case *zed.TypeOfType:
+	case *super.TypeOfType:
 		return fmt.Errorf("type values should not be encoded as primitives: %q", val.Text)
 	}
 	return fmt.Errorf("unknown primitive: %T", val.Type)
@@ -195,7 +195,7 @@ func buildSet(b *zcode.Builder, set *Set) error {
 			return err
 		}
 	}
-	b.TransformContainer(zed.NormalizeSet)
+	b.TransformContainer(super.NormalizeSet)
 	b.EndContainer()
 	return nil
 }
@@ -210,7 +210,7 @@ func buildMap(b *zcode.Builder, m *Map) error {
 			return err
 		}
 	}
-	b.TransformContainer(zed.NormalizeMap)
+	b.TransformContainer(super.NormalizeMap)
 	b.EndContainer()
 	return nil
 }
@@ -218,7 +218,7 @@ func buildMap(b *zcode.Builder, m *Map) error {
 func buildUnion(b *zcode.Builder, union *Union) error {
 	if tag := union.Tag; tag >= 0 {
 		b.BeginContainer()
-		b.Append(zed.EncodeInt(int64(tag)))
+		b.Append(super.EncodeInt(int64(tag)))
 		if err := buildValue(b, union.Value); err != nil {
 			return err
 		}
@@ -230,17 +230,17 @@ func buildUnion(b *zcode.Builder, union *Union) error {
 }
 
 func buildEnum(b *zcode.Builder, enum *Enum) error {
-	typ, ok := enum.Type.(*zed.TypeEnum)
+	typ, ok := enum.Type.(*super.TypeEnum)
 	if !ok {
 		// This shouldn't happen.
 		return errors.New("enum value is not of type enum")
 	}
 	selector := typ.Lookup(enum.Name)
-	b.Append(zed.EncodeUint(uint64(selector)))
+	b.Append(super.EncodeUint(uint64(selector)))
 	return nil
 }
 
 func buildTypeValue(b *zcode.Builder, tv *TypeValue) error {
-	b.Append(zed.EncodeTypeValue(tv.Value))
+	b.Append(super.EncodeTypeValue(tv.Value))
 	return nil
 }

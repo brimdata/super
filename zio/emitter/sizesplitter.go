@@ -61,7 +61,7 @@ func (s *sizeSplitter) Close() error {
 	return s.zwc.Close()
 }
 
-func (s *sizeSplitter) Write(val zed.Value) error {
+func (s *sizeSplitter) Write(val super.Value) error {
 	if s.zwc == nil {
 		if err := s.nextFile(); err != nil {
 			return err

@@ -1,4 +1,4 @@
-package zed
+package super
 
 import (
 	"bytes"
@@ -112,7 +112,7 @@ func nonNilUnsafeStringData(s string) *byte {
 // TypeUint8, TypeUint16, TypeUint32, or TypeUint64.
 func (v Value) Uint() uint64 {
 	if v.Type().ID() > IDUint64 {
-		panic(fmt.Sprintf("zed.Value.Uint called on %T", v.Type()))
+		panic(fmt.Sprintf("super.Value.Uint called on %T", v.Type()))
 	}
 	if x, ok := v.native(); ok {
 		return x
@@ -124,7 +124,7 @@ func (v Value) Uint() uint64 {
 // TypeInt8, TypeInt16, TypeInt32, TypeInt64, TypeDuration, or TypeTime.
 func (v Value) Int() int64 {
 	if !IsSigned(v.Type().ID()) {
-		panic(fmt.Sprintf("zed.Value.Int called on %T", v.Type()))
+		panic(fmt.Sprintf("super.Value.Int called on %T", v.Type()))
 	}
 	if x, ok := v.native(); ok {
 		return int64(x)
@@ -136,7 +136,7 @@ func (v Value) Int() int64 {
 // TypeFloat16, TypeFloat32, or TypeFloat64.
 func (v Value) Float() float64 {
 	if !IsFloat(v.Type().ID()) {
-		panic(fmt.Sprintf("zed.Value.Float called on %T", v.Type()))
+		panic(fmt.Sprintf("super.Value.Float called on %T", v.Type()))
 	}
 	if x, ok := v.native(); ok {
 		return math.Float64frombits(x)
@@ -148,7 +148,7 @@ func (v Value) Float() float64 {
 // TypeBool.
 func (v Value) Bool() bool {
 	if v.Type().ID() != IDBool {
-		panic(fmt.Sprintf("zed.Value.Bool called on %T", v.Type()))
+		panic(fmt.Sprintf("super.Value.Bool called on %T", v.Type()))
 	}
 	if x, ok := v.native(); ok {
 		return x != 0

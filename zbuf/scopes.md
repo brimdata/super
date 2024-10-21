@@ -76,7 +76,7 @@ over(bar) with foo:=this (
 
 Whatever we decide above, we can solve the scoping problem by carrying
 the scope context in a "frame" attached to the batch.  The frame is simply
-a slice of zed.Values where the slice index can be determined by the compiler
+a slice of super.Values where the slice index can be determined by the compiler
 using lexical scope.  Each reference to an identifier can be turned into
 a reference to the proper slot in the frame based on lexical scope.  A new
 dag.Node will represent such references (dag.FrameRef?).  We also change
@@ -86,7 +86,7 @@ to a parent scope value in the frame (dag.FlowVal?)
 With this design:
 * the dataflow values come from batch.Values
 * refs come from batch.Frame
-* expr.Eval() is changed to take the dataflow zed.Value along with the Frame
+* expr.Eval() is changed to take the dataflow super.Value along with the Frame
 * the compiler turns references to "this" or other vars bound by "over" and "with"
 into a frame ref or a dataflow ref.
 

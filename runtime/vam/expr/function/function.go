@@ -10,7 +10,7 @@ import (
 	"github.com/brimdata/super/vector"
 )
 
-func New(zctx *zed.Context, name string, narg int) (expr.Function, field.Path, error) {
+func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path, error) {
 	argmin := 1
 	argmax := 1
 	var path field.Path

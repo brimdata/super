@@ -100,7 +100,7 @@ func (r *remote) RenamePool(ctx context.Context, pool ksuid.KSUID, name string) 
 	return r.conn.RenamePool(ctx, pool, api.PoolPutRequest{Name: name})
 }
 
-func (r *remote) Load(ctx context.Context, _ *zed.Context, poolID ksuid.KSUID, branchName string, reader zio.Reader, commit api.CommitMessage) (ksuid.KSUID, error) {
+func (r *remote) Load(ctx context.Context, _ *super.Context, poolID ksuid.KSUID, branchName string, reader zio.Reader, commit api.CommitMessage) (ksuid.KSUID, error) {
 	pr, pw := io.Pipe()
 	go func() {
 		w := zngio.NewWriter(zio.NopCloser(pw))

@@ -9,12 +9,12 @@ import (
 type Grep struct {
 	grep    expr.Evaluator
 	pattern string
-	zctx    *zed.Context
+	zctx    *super.Context
 }
 
-func (g *Grep) Call(_ zed.Allocator, vals []zed.Value) zed.Value {
+func (g *Grep) Call(_ super.Allocator, vals []super.Value) super.Value {
 	patternVal, inputVal := vals[0], vals[1]
-	if zed.TypeUnder(patternVal.Type()) != zed.TypeString {
+	if super.TypeUnder(patternVal.Type()) != super.TypeString {
 		return g.zctx.WrapError("grep(): pattern argument must be a string", patternVal)
 	}
 	if p := patternVal.AsString(); g.grep == nil || g.pattern != p {

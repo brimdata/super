@@ -6,27 +6,27 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#len
 type LenFn struct {
-	zctx *zed.Context
+	zctx *super.Context
 }
 
-func (l *LenFn) Call(_ zed.Allocator, args []zed.Value) zed.Value {
+func (l *LenFn) Call(_ super.Allocator, args []super.Value) super.Value {
 	val := args[0].Under()
 	var length int
-	switch typ := zed.TypeUnder(val.Type()).(type) {
-	case *zed.TypeOfNull:
-	case *zed.TypeRecord:
+	switch typ := super.TypeUnder(val.Type()).(type) {
+	case *super.TypeOfNull:
+	case *super.TypeRecord:
 		length = len(typ.Fields)
-	case *zed.TypeArray, *zed.TypeSet, *zed.TypeMap:
+	case *super.TypeArray, *super.TypeSet, *super.TypeMap:
 		var err error
 		length, err = val.ContainerLength()
 		if err != nil {
 			panic(err)
 		}
-	case *zed.TypeOfBytes, *zed.TypeOfString, *zed.TypeOfIP, *zed.TypeOfNet:
+	case *super.TypeOfBytes, *super.TypeOfString, *super.TypeOfIP, *super.TypeOfNet:
 		length = len(val.Bytes())
-	case *zed.TypeError:
+	case *super.TypeError:
 		return l.zctx.WrapError("len()", val)
-	case *zed.TypeOfType:
+	case *super.TypeOfType:
 		t, err := l.zctx.LookupByValue(val.Bytes())
 		if err != nil {
 			return l.zctx.NewError(err)
@@ -35,26 +35,26 @@ func (l *LenFn) Call(_ zed.Allocator, args []zed.Value) zed.Value {
 	default:
 		return l.zctx.WrapError("len: bad type", val)
 	}
-	return zed.NewInt64(int64(length))
+	return super.NewInt64(int64(length))
 }
 
-func TypeLength(typ zed.Type) int {
+func TypeLength(typ super.Type) int {
 	switch typ := typ.(type) {
-	case *zed.TypeNamed:
+	case *super.TypeNamed:
 		return TypeLength(typ.Type)
-	case *zed.TypeRecord:
+	case *super.TypeRecord:
 		return len(typ.Fields)
-	case *zed.TypeUnion:
+	case *super.TypeUnion:
 		return len(typ.Types)
-	case *zed.TypeSet:
+	case *super.TypeSet:
 		return TypeLength(typ.Type)
-	case *zed.TypeArray:
+	case *super.TypeArray:
 		return TypeLength(typ.Type)
-	case *zed.TypeEnum:
+	case *super.TypeEnum:
 		return len(typ.Symbols)
-	case *zed.TypeMap:
+	case *super.TypeMap:
 		return TypeLength(typ.ValType)
-	case *zed.TypeError:
+	case *super.TypeError:
 		return TypeLength(typ.Type)
 	default:
 		// Primitive type

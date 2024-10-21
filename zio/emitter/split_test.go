@@ -33,7 +33,7 @@ func TestDirS3Source(t *testing.T) {
 	engine.EXPECT().Put(context.Background(), uri.JoinPath("http.zson")).
 		Return(zio.NopCloser(bytes.NewBuffer(nil)), nil)
 
-	r := zsonio.NewReader(zed.NewContext(), strings.NewReader(input))
+	r := zsonio.NewReader(super.NewContext(), strings.NewReader(input))
 	require.NoError(t, err)
 	w, err := NewSplit(context.Background(), engine, uri, "", false, anyio.WriterOpts{Format: "zson"})
 	require.NoError(t, err)

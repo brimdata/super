@@ -21,7 +21,7 @@ type scanner struct {
 }
 
 func NewScanner(ctx context.Context, rc io.ReadCloser) (zbuf.Scanner, error) {
-	s, err := zngio.NewReader(zed.NewContext(), rc).NewScanner(ctx, nil)
+	s, err := zngio.NewReader(super.NewContext(), rc).NewScanner(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func marshalControl(zctrl *zbuf.Control) (any, error) {
 	if ctrl.Format != zngio.ControlFormatZSON {
 		return nil, fmt.Errorf("unsupported app encoding: %v", ctrl.Format)
 	}
-	value, err := zson.ParseValue(zed.NewContext(), string(ctrl.Bytes))
+	value, err := zson.ParseValue(super.NewContext(), string(ctrl.Bytes))
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse Zed control message: %w (%s)", err, ctrl.Bytes)
 	}

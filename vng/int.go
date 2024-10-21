@@ -11,11 +11,11 @@ type Int64Encoder struct {
 }
 
 func NewInt64Encoder() *Int64Encoder {
-	return &Int64Encoder{*NewPrimitiveEncoder(zed.TypeInt64, false)}
+	return &Int64Encoder{*NewPrimitiveEncoder(super.TypeInt64, false)}
 }
 
 func (p *Int64Encoder) Write(v int64) {
-	p.PrimitiveEncoder.Write(zed.EncodeInt(v))
+	p.PrimitiveEncoder.Write(super.EncodeInt(v))
 }
 
 type Int64Decoder struct {
@@ -23,7 +23,7 @@ type Int64Decoder struct {
 }
 
 func NewInt64Decoder(loc Segment, r io.ReaderAt) *Int64Decoder {
-	return &Int64Decoder{*NewPrimitiveBuilder(&Primitive{Typ: zed.TypeInt64, Location: loc}, r)}
+	return &Int64Decoder{*NewPrimitiveBuilder(&Primitive{Typ: super.TypeInt64, Location: loc}, r)}
 }
 
 func (p *Int64Decoder) Next() (int64, error) {
@@ -31,5 +31,5 @@ func (p *Int64Decoder) Next() (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return zed.DecodeInt(zv), err
+	return super.DecodeInt(zv), err
 }

@@ -8,28 +8,28 @@ import (
 )
 
 type Flattener struct {
-	zctx   *zed.Context
-	mapper *zed.Mapper
+	zctx   *super.Context
+	mapper *super.Mapper
 }
 
 // NewFlattener returns a flattener that transforms nested records to flattened
 // records where the type context of the received records must match the
 // zctx parameter provided here.  Any new type descriptors that are created
 // to flatten types also use zctx.
-func NewFlattener(zctx *zed.Context) *Flattener {
+func NewFlattener(zctx *super.Context) *Flattener {
 	return &Flattener{
 		zctx: zctx,
 		// This mapper maps types back into the same context and gives
 		// us a convenient way to track type-ID to type-ID for types that
 		// need to be flattened.
-		mapper: zed.NewMapper(zctx),
+		mapper: super.NewMapper(zctx),
 	}
 }
 
-func recode(dst zcode.Bytes, typ *zed.TypeRecord, in zcode.Bytes) (zcode.Bytes, error) {
+func recode(dst zcode.Bytes, typ *super.TypeRecord, in zcode.Bytes) (zcode.Bytes, error) {
 	if in == nil {
 		for _, f := range typ.Fields {
-			if typ, ok := zed.TypeUnder(f.Type).(*zed.TypeRecord); ok {
+			if typ, ok := super.TypeUnder(f.Type).(*super.TypeRecord); ok {
 				var err error
 				dst, err = recode(dst, typ, nil)
 				if err != nil {
@@ -47,7 +47,7 @@ func recode(dst zcode.Bytes, typ *zed.TypeRecord, in zcode.Bytes) (zcode.Bytes, 
 		val := it.Next()
 		f := typ.Fields[fieldno]
 		fieldno++
-		if childType, ok := zed.TypeUnder(f.Type).(*zed.TypeRecord); ok {
+		if childType, ok := super.TypeUnder(f.Type).(*super.TypeRecord); ok {
 			var err error
 			dst, err = recode(dst, childType, val)
 			if err != nil {
@@ -60,7 +60,7 @@ func recode(dst zcode.Bytes, typ *zed.TypeRecord, in zcode.Bytes) (zcode.Bytes, 
 	return dst, nil
 }
 
-func (f *Flattener) Flatten(r zed.Value) (zed.Value, error) {
+func (f *Flattener) Flatten(r super.Value) (super.Value, error) {
 	id := r.Type().ID()
 	flatType := f.mapper.Lookup(id)
 	if flatType == nil {
@@ -70,22 +70,22 @@ func (f *Flattener) Flatten(r zed.Value) (zed.Value, error) {
 	// Since we are mapping the input context to itself we can do a
 	// pointer comparison to see if the types are the same and there
 	// is no need to record.
-	if zed.TypeUnder(r.Type()) == flatType {
+	if super.TypeUnder(r.Type()) == flatType {
 		return r, nil
 	}
-	zv, err := recode(nil, zed.TypeRecordOf(r.Type()), r.Bytes())
+	zv, err := recode(nil, super.TypeRecordOf(r.Type()), r.Bytes())
 	if err != nil {
-		return zed.Null, err
+		return super.Null, err
 	}
-	return zed.NewValue(flatType.(*zed.TypeRecord), zv), nil
+	return super.NewValue(flatType.(*super.TypeRecord), zv), nil
 }
 
 // FlattenFields turns nested records into a series of fields of
 // the form "outer.inner".
-func FlattenFields(fields []zed.Field) []zed.Field {
-	ret := []zed.Field{}
+func FlattenFields(fields []super.Field) []super.Field {
+	ret := []super.Field{}
 	for _, f := range fields {
-		if recType, ok := zed.TypeUnder(f.Type).(*zed.TypeRecord); ok {
+		if recType, ok := super.TypeUnder(f.Type).(*super.TypeRecord); ok {
 			inners := FlattenFields(recType.Fields)
 			for i := range inners {
 				inners[i].Name = fmt.Sprintf("%s.%s", f.Name, inners[i].Name)

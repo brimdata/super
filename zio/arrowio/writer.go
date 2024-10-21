@@ -39,8 +39,8 @@ type Writer struct {
 	w                io.WriteCloser
 	writer           WriteCloser
 	builder          *array.RecordBuilder
-	unionTagMappings map[zed.Type][]int
-	typ              *zed.TypeRecord
+	unionTagMappings map[super.Type][]int
+	typ              *super.TypeRecord
 }
 
 type WriteCloser interface {
@@ -54,7 +54,7 @@ func NewWriter(w io.WriteCloser) *Writer {
 			return ipc.NewWriter(w, ipc.WithSchema(s)), nil
 		},
 		w:                w,
-		unionTagMappings: map[zed.Type][]int{},
+		unionTagMappings: map[super.Type][]int{},
 	}
 }
 
@@ -76,8 +76,8 @@ func (w *Writer) Close() error {
 
 const recordBatchSize = 1024
 
-func (w *Writer) Write(val zed.Value) error {
-	recType, ok := zed.TypeUnder(val.Type()).(*zed.TypeRecord)
+func (w *Writer) Write(val super.Value) error {
+	recType, ok := super.TypeUnder(val.Type()).(*super.TypeRecord)
 	if !ok {
 		return fmt.Errorf("%w: %s", ErrNotRecord, zson.FormatValue(val))
 	}
@@ -118,34 +118,34 @@ func (w *Writer) flush(min int) error {
 	return w.writer.Write(rec)
 }
 
-func (w *Writer) newArrowDataType(typ zed.Type) (arrow.DataType, error) {
+func (w *Writer) newArrowDataType(typ super.Type) (arrow.DataType, error) {
 	var name string
-	if n, ok := typ.(*zed.TypeNamed); ok {
+	if n, ok := typ.(*super.TypeNamed); ok {
 		name = n.Name
-		typ = zed.TypeUnder(n.Type)
+		typ = super.TypeUnder(n.Type)
 	}
-	// Order here follows that of the zed.ID* and zed.TypeValue* constants.
+	// Order here follows that of the super.ID* and super.TypeValue* constants.
 	switch typ := typ.(type) {
-	case *zed.TypeOfUint8:
+	case *super.TypeOfUint8:
 		return arrow.PrimitiveTypes.Uint8, nil
-	case *zed.TypeOfUint16:
+	case *super.TypeOfUint16:
 		return arrow.PrimitiveTypes.Uint16, nil
-	case *zed.TypeOfUint32:
+	case *super.TypeOfUint32:
 		return arrow.PrimitiveTypes.Uint32, nil
-	case *zed.TypeOfUint64:
+	case *super.TypeOfUint64:
 		return arrow.PrimitiveTypes.Uint64, nil
-	case *zed.TypeOfInt8:
+	case *super.TypeOfInt8:
 		return arrow.PrimitiveTypes.Int8, nil
-	case *zed.TypeOfInt16:
+	case *super.TypeOfInt16:
 		return arrow.PrimitiveTypes.Int16, nil
-	case *zed.TypeOfInt32:
+	case *super.TypeOfInt32:
 		if name == "arrow_month_interval" {
 			return arrow.FixedWidthTypes.MonthInterval, nil
 		}
 		return arrow.PrimitiveTypes.Int32, nil
-	case *zed.TypeOfInt64:
+	case *super.TypeOfInt64:
 		return arrow.PrimitiveTypes.Int64, nil
-	case *zed.TypeOfDuration:
+	case *super.TypeOfDuration:
 		switch name {
 		case "arrow_duration_s":
 			return arrow.FixedWidthTypes.Duration_s, nil
@@ -157,7 +157,7 @@ func (w *Writer) newArrowDataType(typ zed.Type) (arrow.DataType, error) {
 			return arrow.FixedWidthTypes.DayTimeInterval, nil
 		}
 		return arrow.FixedWidthTypes.Duration_ns, nil
-	case *zed.TypeOfTime:
+	case *super.TypeOfTime:
 		switch name {
 		case "arrow_date32":
 			return arrow.FixedWidthTypes.Date32, nil
@@ -179,15 +179,15 @@ func (w *Writer) newArrowDataType(typ zed.Type) (arrow.DataType, error) {
 			return arrow.FixedWidthTypes.Time64ns, nil
 		}
 		return arrow.FixedWidthTypes.Timestamp_ns, nil
-	case *zed.TypeOfFloat16:
+	case *super.TypeOfFloat16:
 		return arrow.FixedWidthTypes.Float16, nil
-	case *zed.TypeOfFloat32:
+	case *super.TypeOfFloat32:
 		return arrow.PrimitiveTypes.Float32, nil
-	case *zed.TypeOfFloat64:
+	case *super.TypeOfFloat64:
 		return arrow.PrimitiveTypes.Float64, nil
-	case *zed.TypeOfBool:
+	case *super.TypeOfBool:
 		return arrow.FixedWidthTypes.Boolean, nil
-	case *zed.TypeOfBytes:
+	case *super.TypeOfBytes:
 		const prefix = "arrow_fixed_size_binary_"
 		switch {
 		case strings.HasPrefix(name, prefix):
@@ -198,16 +198,16 @@ func (w *Writer) newArrowDataType(typ zed.Type) (arrow.DataType, error) {
 			return arrow.BinaryTypes.LargeBinary, nil
 		}
 		return arrow.BinaryTypes.Binary, nil
-	case *zed.TypeOfString:
+	case *super.TypeOfString:
 		if name == "arrow_large_string" {
 			return arrow.BinaryTypes.LargeString, nil
 		}
 		return arrow.BinaryTypes.String, nil
-	case *zed.TypeOfIP, *zed.TypeOfNet, *zed.TypeOfType:
+	case *super.TypeOfIP, *super.TypeOfNet, *super.TypeOfType:
 		return arrow.BinaryTypes.String, nil
-	case *zed.TypeOfNull:
+	case *super.TypeOfNull:
 		return arrow.Null, nil
-	case *zed.TypeRecord:
+	case *super.TypeRecord:
 		if len(typ.Fields) == 0 {
 			return nil, fmt.Errorf("%w: empty record", ErrUnsupportedType)
 		}
@@ -238,8 +238,8 @@ func (w *Writer) newArrowDataType(typ zed.Type) (arrow.DataType, error) {
 			})
 		}
 		return arrow.StructOf(fields...), nil
-	case *zed.TypeArray, *zed.TypeSet:
-		dt, err := w.newArrowDataType(zed.InnerType(typ))
+	case *super.TypeArray, *super.TypeSet:
+		dt, err := w.newArrowDataType(super.InnerType(typ))
 		if err != nil {
 			return nil, err
 		}
@@ -250,14 +250,14 @@ func (w *Writer) newArrowDataType(typ zed.Type) (arrow.DataType, error) {
 				return arrow.FixedSizeListOf(int32(n), dt), nil
 			}
 		case name == "arrow_decimal256":
-			if inner := zed.InnerType(typ); inner == zed.TypeUint64 {
+			if inner := super.InnerType(typ); inner == super.TypeUint64 {
 				return &arrow.Decimal256Type{}, nil
 			}
 		case name == "arrow_large_list":
 			return arrow.LargeListOf(dt), nil
 		}
 		return arrow.ListOf(dt), nil
-	case *zed.TypeMap:
+	case *super.TypeMap:
 		keyDT, err := w.newArrowDataType(typ.KeyType)
 		if err != nil {
 			return nil, err
@@ -267,7 +267,7 @@ func (w *Writer) newArrowDataType(typ zed.Type) (arrow.DataType, error) {
 			return nil, err
 		}
 		return arrow.MapOf(keyDT, valDT), nil
-	case *zed.TypeUnion:
+	case *super.TypeUnion:
 		if len(typ.Types) > math.MaxUint8 {
 			return nil, fmt.Errorf("%w: union with more than %d fields", ErrUnsupportedType, math.MaxUint8)
 		}
@@ -293,82 +293,82 @@ func (w *Writer) newArrowDataType(typ zed.Type) (arrow.DataType, error) {
 		}
 		w.unionTagMappings[typ] = mapping
 		return arrow.DenseUnionOf(fields, typeCodes), nil
-	case *zed.TypeEnum, *zed.TypeError:
+	case *super.TypeEnum, *super.TypeError:
 		return arrow.BinaryTypes.String, nil
 	default:
 		return nil, fmt.Errorf("%w: %s", ErrUnsupportedType, zson.FormatType(typ))
 	}
 }
 
-func (w *Writer) buildArrowValue(b array.Builder, typ zed.Type, bytes zcode.Bytes) {
+func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes zcode.Bytes) {
 	if bytes == nil {
 		b.AppendNull()
 		return
 	}
 	var name string
-	if n, ok := typ.(*zed.TypeNamed); ok {
+	if n, ok := typ.(*super.TypeNamed); ok {
 		name = n.Name
-		typ = zed.TypeUnder(n.Type)
+		typ = super.TypeUnder(n.Type)
 	}
 	// Order here follows that of the arrow.Type constants.
 	switch b := b.(type) {
 	case *array.NullBuilder:
 		b.AppendNull()
 	case *array.BooleanBuilder:
-		b.Append(zed.DecodeBool(bytes))
+		b.Append(super.DecodeBool(bytes))
 	case *array.Uint8Builder:
-		b.Append(uint8(zed.DecodeUint(bytes)))
+		b.Append(uint8(super.DecodeUint(bytes)))
 	case *array.Int8Builder:
-		b.Append(int8(zed.DecodeInt(bytes)))
+		b.Append(int8(super.DecodeInt(bytes)))
 	case *array.Uint16Builder:
-		b.Append(uint16(zed.DecodeUint(bytes)))
+		b.Append(uint16(super.DecodeUint(bytes)))
 	case *array.Int16Builder:
-		b.Append(int16(zed.DecodeInt(bytes)))
+		b.Append(int16(super.DecodeInt(bytes)))
 	case *array.Uint32Builder:
-		b.Append(uint32(zed.DecodeUint(bytes)))
+		b.Append(uint32(super.DecodeUint(bytes)))
 	case *array.Int32Builder:
-		b.Append(int32(zed.DecodeInt(bytes)))
+		b.Append(int32(super.DecodeInt(bytes)))
 	case *array.Uint64Builder:
-		b.Append(zed.DecodeUint(bytes))
+		b.Append(super.DecodeUint(bytes))
 	case *array.Int64Builder:
-		b.Append(zed.DecodeInt(bytes))
+		b.Append(super.DecodeInt(bytes))
 	case *array.Float16Builder:
-		b.Append(float16.New(zed.DecodeFloat16(bytes)))
+		b.Append(float16.New(super.DecodeFloat16(bytes)))
 	case *array.Float32Builder:
-		b.Append(zed.DecodeFloat32(bytes))
+		b.Append(super.DecodeFloat32(bytes))
 	case *array.Float64Builder:
-		b.Append(zed.DecodeFloat64(bytes))
+		b.Append(super.DecodeFloat64(bytes))
 	case *array.StringBuilder:
 		switch typ := typ.(type) {
-		case *zed.TypeOfString:
-			b.Append(zed.DecodeString(bytes))
-		case *zed.TypeOfIP:
-			b.Append(zed.DecodeIP(bytes).String())
-		case *zed.TypeOfNet:
-			b.Append(zed.DecodeNet(bytes).String())
-		case *zed.TypeOfType:
+		case *super.TypeOfString:
+			b.Append(super.DecodeString(bytes))
+		case *super.TypeOfIP:
+			b.Append(super.DecodeIP(bytes).String())
+		case *super.TypeOfNet:
+			b.Append(super.DecodeNet(bytes).String())
+		case *super.TypeOfType:
 			b.Append(zson.FormatTypeValue(bytes))
-		case *zed.TypeEnum:
-			s, err := typ.Symbol(int(zed.DecodeUint(bytes)))
+		case *super.TypeEnum:
+			s, err := typ.Symbol(int(super.DecodeUint(bytes)))
 			if err != nil {
 				panic(fmt.Sprintf("decoding %s with bytes %s: %s", zson.FormatType(typ), hex.EncodeToString(bytes), err))
 			}
 			b.Append(s)
-		case *zed.TypeError:
-			b.Append(zson.FormatValue(zed.NewValue(typ, bytes)))
+		case *super.TypeError:
+			b.Append(zson.FormatValue(super.NewValue(typ, bytes)))
 		default:
 			panic(fmt.Sprintf("unexpected Zed type for StringBuilder: %s", zson.FormatType(typ)))
 		}
 	case *array.BinaryBuilder:
-		b.Append(zed.DecodeBytes(bytes))
+		b.Append(super.DecodeBytes(bytes))
 	case *array.FixedSizeBinaryBuilder:
-		b.Append(zed.DecodeBytes(bytes))
+		b.Append(super.DecodeBytes(bytes))
 	case *array.Date32Builder:
-		b.Append(arrow.Date32FromTime(zed.DecodeTime(bytes).Time()))
+		b.Append(arrow.Date32FromTime(super.DecodeTime(bytes).Time()))
 	case *array.Date64Builder:
-		b.Append(arrow.Date64FromTime(zed.DecodeTime(bytes).Time()))
+		b.Append(arrow.Date64FromTime(super.DecodeTime(bytes).Time()))
 	case *array.TimestampBuilder:
-		ts := zed.DecodeTime(bytes)
+		ts := super.DecodeTime(bytes)
 		switch name {
 		case "arrow_timestamp_s":
 			ts /= nano.Ts(nano.Second)
@@ -379,7 +379,7 @@ func (w *Writer) buildArrowValue(b array.Builder, typ zed.Type, bytes zcode.Byte
 		}
 		b.Append(arrow.Timestamp(ts))
 	case *array.Time32Builder:
-		ts := zed.DecodeTime(bytes)
+		ts := super.DecodeTime(bytes)
 		switch name {
 		case "arrow_time32_s":
 			ts /= nano.Ts(nano.Second)
@@ -390,48 +390,48 @@ func (w *Writer) buildArrowValue(b array.Builder, typ zed.Type, bytes zcode.Byte
 		}
 		b.Append(arrow.Time32(ts))
 	case *array.Time64Builder:
-		ts := zed.DecodeTime(bytes)
+		ts := super.DecodeTime(bytes)
 		if name == "arrow_time64_us" {
 			ts /= nano.Ts(nano.Microsecond)
 		}
 		b.Append(arrow.Time64(ts))
 	case *array.MonthIntervalBuilder:
-		b.Append(arrow.MonthInterval(zed.DecodeInt(bytes)))
+		b.Append(arrow.MonthInterval(super.DecodeInt(bytes)))
 	case *array.DayTimeIntervalBuilder:
 		it := bytes.Iter()
 		b.Append(arrow.DayTimeInterval{
-			Days:         int32(zed.DecodeInt(it.Next())),
-			Milliseconds: int32(zed.DecodeInt(it.Next())),
+			Days:         int32(super.DecodeInt(it.Next())),
+			Milliseconds: int32(super.DecodeInt(it.Next())),
 		})
 	case *array.Decimal128Builder:
 		it := bytes.Iter()
-		high := zed.DecodeInt(it.Next())
-		low := zed.DecodeUint(it.Next())
+		high := super.DecodeInt(it.Next())
+		low := super.DecodeUint(it.Next())
 		b.Append(decimal128.New(high, low))
 	case *array.Decimal256Builder:
 		it := bytes.Iter()
-		x4 := zed.DecodeUint(it.Next())
-		x3 := zed.DecodeUint(it.Next())
-		x2 := zed.DecodeUint(it.Next())
-		x1 := zed.DecodeUint(it.Next())
+		x4 := super.DecodeUint(it.Next())
+		x3 := super.DecodeUint(it.Next())
+		x2 := super.DecodeUint(it.Next())
+		x1 := super.DecodeUint(it.Next())
 		b.Append(decimal256.New(x1, x2, x3, x4))
 	case *array.ListBuilder:
 		w.buildArrowListValue(b, typ, bytes)
 	case *array.StructBuilder:
 		b.Append(true)
 		it := bytes.Iter()
-		for i, field := range zed.TypeRecordOf(typ).Fields {
+		for i, field := range super.TypeRecordOf(typ).Fields {
 			w.buildArrowValue(b.FieldBuilder(i), field.Type, it.Next())
 		}
 	case *array.DenseUnionBuilder:
 		it := bytes.Iter()
-		tag := zed.DecodeInt(it.Next())
+		tag := super.DecodeInt(it.Next())
 		typeCode := w.unionTagMappings[typ][tag]
 		b.Append(arrow.UnionTypeCode(typeCode))
-		w.buildArrowValue(b.Child(typeCode), typ.(*zed.TypeUnion).Types[tag], it.Next())
+		w.buildArrowValue(b.Child(typeCode), typ.(*super.TypeUnion).Types[tag], it.Next())
 	case *array.MapBuilder:
 		b.Append(true)
-		typ := zed.TypeUnder(typ).(*zed.TypeMap)
+		typ := super.TypeUnder(typ).(*super.TypeMap)
 		for it := bytes.Iter(); !it.Done(); {
 			w.buildArrowValue(b.KeyBuilder(), typ.KeyType, it.Next())
 			w.buildArrowValue(b.ItemBuilder(), typ.ValType, it.Next())
@@ -439,7 +439,7 @@ func (w *Writer) buildArrowValue(b array.Builder, typ zed.Type, bytes zcode.Byte
 	case *array.FixedSizeListBuilder:
 		w.buildArrowListValue(b, typ, bytes)
 	case *array.DurationBuilder:
-		d := zed.DecodeDuration(bytes)
+		d := super.DecodeDuration(bytes)
 		switch name {
 		case "arrow_duration_s":
 			d /= nano.Second
@@ -450,24 +450,24 @@ func (w *Writer) buildArrowValue(b array.Builder, typ zed.Type, bytes zcode.Byte
 		}
 		b.Append(arrow.Duration(d))
 	case *array.LargeStringBuilder:
-		b.Append(zed.DecodeString(bytes))
+		b.Append(super.DecodeString(bytes))
 	case *array.LargeListBuilder:
 		w.buildArrowListValue(b, typ, bytes)
 	case *array.MonthDayNanoIntervalBuilder:
 		it := bytes.Iter()
 		b.Append(arrow.MonthDayNanoInterval{
-			Months:      int32(zed.DecodeInt(it.Next())),
-			Days:        int32(zed.DecodeInt(it.Next())),
-			Nanoseconds: zed.DecodeInt(it.Next()),
+			Months:      int32(super.DecodeInt(it.Next())),
+			Days:        int32(super.DecodeInt(it.Next())),
+			Nanoseconds: super.DecodeInt(it.Next()),
 		})
 	default:
 		panic(fmt.Sprintf("unknown builder type %T", b))
 	}
 }
 
-func (w *Writer) buildArrowListValue(b array.ListLikeBuilder, typ zed.Type, bytes zcode.Bytes) {
+func (w *Writer) buildArrowListValue(b array.ListLikeBuilder, typ super.Type, bytes zcode.Bytes) {
 	b.Append(true)
 	for it := bytes.Iter(); !it.Done(); {
-		w.buildArrowValue(b.ValueBuilder(), zed.InnerType(typ), it.Next())
+		w.buildArrowValue(b.ValueBuilder(), super.InnerType(typ), it.Next())
 	}
 }
