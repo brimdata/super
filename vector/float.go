@@ -1,7 +1,9 @@
 package vector
 
 import (
-	"github.com/brimdata/super"
+	"math"
+
+	zed "github.com/brimdata/super"
 	"github.com/brimdata/super/zcode"
 )
 
@@ -52,4 +54,19 @@ func (f *Float) Serialize(b *zcode.Builder, slot uint32) {
 	default:
 		panic(f.Typ)
 	}
+}
+
+func (f *Float) AppendKey(b []byte, slot uint32) []byte {
+	if f.Nulls.Value(slot) {
+		b = append(b, 0)
+	}
+	val := math.Float64bits(f.Values[slot])
+	b = append(b, byte(val>>(8*7)))
+	b = append(b, byte(val>>(8*6)))
+	b = append(b, byte(val>>(8*5)))
+	b = append(b, byte(val>>(8*4)))
+	b = append(b, byte(val>>(8*3)))
+	b = append(b, byte(val>>(8*2)))
+	b = append(b, byte(val>>(8*1)))
+	return append(b, byte(val>>(8*0)))
 }

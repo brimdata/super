@@ -1,13 +1,106 @@
-package op
+package summarize
 
 import (
 	"fmt"
 	"slices"
 
-	"github.com/brimdata/super"
+	zed "github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
+	"github.com/brimdata/super/runtime/vam/expr/agg"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/zcode"
 )
+
+// XXX use zed.Value for slow path stuff, e.g., when the group-by key is
+// a complex type.  when we improve the zed.Value impl this will get better.
+
+// one aggTable per fixed set of types of aggs and keys.
+type aggTable interface {
+	update([]vector.Any, []vector.Any)
+	materialize() vector.Any
+}
+
+type superTable struct {
+	table   map[string]aggRow
+	aggs    []*expr.Aggregator
+	builder *vector.RecordBuilder
+}
+
+var _ aggTable = (*superTable)(nil)
+
+type aggRow struct {
+	keys  []zed.Value
+	funcs []agg.Func
+}
+
+func (s *superTable) update(keys []vector.Any, args []vector.Any) {
+	m := make(map[string][]uint32)
+	var n uint32
+	if len(keys) > 0 {
+		n = keys[0].Len()
+	} else {
+		n = args[0].Len()
+	}
+	var keyBytes []byte
+	for slot := uint32(0); slot < n; slot++ {
+		keyBytes = keyBytes[:0]
+		for _, key := range keys {
+			keyBytes = key.AppendKey(keyBytes, slot)
+		}
+		m[string(keyBytes)] = append(m[string(keyBytes)], slot)
+	}
+	for rowKey, index := range m {
+		row, ok := s.table[rowKey]
+		if !ok {
+			row = s.newRow(keys, index)
+			s.table[rowKey] = row
+		}
+		for i, arg := range args {
+			if len(m) > 1 {
+				arg = vector.NewView(index, arg)
+			}
+			row.funcs[i].Consume(arg)
+		}
+	}
+}
+
+func (s *superTable) newRow(keys []vector.Any, index []uint32) aggRow {
+	var row aggRow
+	for _, agg := range s.aggs {
+		row.funcs = append(row.funcs, agg.Pattern())
+	}
+	var b zcode.Builder
+	for _, key := range keys {
+		b.Reset()
+		key.Serialize(&b, index[0])
+		row.keys = append(row.keys, zed.NewValue(key.Type(), b.Bytes().Body()))
+	}
+	return row
+}
+
+func (s *superTable) materialize() vector.Any {
+	var vecs []vector.Any
+	var tags []uint32
+	// XXX This should reasonably concat all materialize rows together instead
+	// of this crazy Dynamic hack.
+	for _, row := range s.table {
+		tags = append(tags, uint32(len(tags)))
+		vecs = append(vecs, s.materializeRow(row))
+	}
+	return vector.NewDynamic(tags, vecs)
+}
+
+func (s *superTable) materializeRow(row aggRow) vector.Any {
+	var vecs []vector.Any
+	for _, key := range row.keys {
+		vecs = append(vecs, vector.NewConst(key, 1, nil))
+	}
+	for _, fn := range row.funcs {
+		val := fn.Result()
+		vecs = append(vecs, vector.NewConst(val, 1, nil))
+	}
+	return s.builder.New(vecs)
+}
 
 //XXX need to make sure vam operator objects are returned to GC as they are finished
 
@@ -99,9 +192,9 @@ func (c *countByString) countFixed(vec *vector.Const) {
 	val := vec.Value()
 	switch val.Type().ID() {
 	case zed.IDString:
-		c.table[zed.DecodeString(val.Bytes())] += uint64(vec.Length())
+		c.table[zed.DecodeString(val.Bytes())] += uint64(vec.Len())
 	case zed.IDNull:
-		c.nulls += uint64(vec.Length())
+		c.nulls += uint64(vec.Len())
 	}
 }
 

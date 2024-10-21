@@ -1,4 +1,6 @@
-zed: 'by x:=network_of(addr) | sort this'
+zed: by x:=network_of(addr) | sort this
+
+vector: true
 
 input: |
   {addr:10.0.0.1}

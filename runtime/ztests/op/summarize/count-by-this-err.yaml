@@ -1,3 +1,5 @@
 zed: count() by this
 
+vector: true
+
 errorRE: cannot assign to 'this'

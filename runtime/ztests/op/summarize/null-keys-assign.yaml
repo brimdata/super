@@ -1,4 +1,6 @@
-zed: count() by key1:=lower(upper(key1)) | sort key1
+zed: count() by newkey:=key1 | sort newkey
+
+vector: true
 
 input: |
   {key1:"a",key2:"x",n:1(int32)}
@@ -8,6 +10,6 @@ input: |
   {key1:null(string),key2:null(string),n:4(int32)}
 
 output: |
-  {key1:"a",count:2(uint64)}
-  {key1:"b",count:1(uint64)}
-  {key1:null(string),count:2(uint64)}
+  {newkey:"a",count:2(uint64)}
+  {newkey:"b",count:1(uint64)}
+  {newkey:null(string),count:2(uint64)}

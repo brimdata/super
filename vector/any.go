@@ -9,6 +9,7 @@ type Any interface {
 	Type() zed.Type
 	Len() uint32
 	Serialize(*zcode.Builder, uint32)
+	AppendKey([]byte, uint32) []byte
 }
 
 type Promotable interface {

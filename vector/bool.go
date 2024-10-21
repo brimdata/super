@@ -55,6 +55,14 @@ func (b *Bool) Serialize(builder *zcode.Builder, slot uint32) {
 	}
 }
 
+func (b *Bool) AppendKey(bytes []byte, slot uint32) []byte {
+	var v byte
+	if b.Value(slot) {
+		v = 1
+	}
+	return append(bytes, v)
+}
+
 // helpful to have around for debugging
 func (b *Bool) String() string {
 	var s strings.Builder

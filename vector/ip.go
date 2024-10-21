@@ -34,6 +34,13 @@ func (i *IP) Serialize(b *zcode.Builder, slot uint32) {
 	}
 }
 
+func (i *IP) AppendKey(b []byte, slot uint32) []byte {
+	if i.Nulls.Value(slot) {
+		return append(b, 0)
+	}
+	return zed.AppendIP(b, i.Values[slot])
+}
+
 func IPValue(val Any, slot uint32) (netip.Addr, bool) {
 	switch val := val.(type) {
 	case *IP:

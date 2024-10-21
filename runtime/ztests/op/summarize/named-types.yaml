@@ -1,5 +1,7 @@
 zed: count() by host | sort host
 
+vector: true
+
 input: |
   {host:127.0.0.1(=ipaddr)}
   {host:127.0.0.2}

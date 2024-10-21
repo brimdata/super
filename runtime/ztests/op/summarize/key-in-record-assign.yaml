@@ -1,4 +1,6 @@
-zed: count() by rec.i | sort rec.i
+zed: count() by newkey:=rec.i | sort newkey
+
+vector: true
 
 input: |
   {rec:{i:1(int32),s:"bleah"},val:1}
@@ -6,5 +8,5 @@ input: |
   {rec:{i:2(int32),s:"bleah"},val:3}
 
 output: |
-  {rec:{i:1(int32)},count:2(uint64)}
-  {rec:{i:2(int32)},count:1(uint64)}
+  {newkey:1(int32),count:2(uint64)}
+  {newkey:2(int32),count:1(uint64)}

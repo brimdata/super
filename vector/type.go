@@ -37,6 +37,13 @@ func (t *TypeValue) Serialize(b *zcode.Builder, slot uint32) {
 	}
 }
 
+func (t *TypeValue) AppendKey(b []byte, slot uint32) []byte {
+	if t.Nulls.Value(slot) {
+		return append(b, 0)
+	}
+	return append(b, t.Value(slot)...)
+}
+
 func TypeValueValue(val Any, slot uint32) ([]byte, bool) {
 	switch val := val.(type) {
 	case *TypeValue:

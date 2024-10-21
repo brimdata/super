@@ -1,5 +1,7 @@
 zed: count:=count()
 
+vector: true
+
 input: |
   {_path:"conn",foo:"1"}
   {_path:"conn",foo:"2"}

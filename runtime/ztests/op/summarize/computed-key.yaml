@@ -1,4 +1,6 @@
-zed: count() by s:=lower(s), ij:=i+j | sort
+zed: count() by s:=lower(s), ij:=i+j
+
+vector: true
 
 input: |
   {s:"foo",i:2(uint64),j:2(uint64)}
