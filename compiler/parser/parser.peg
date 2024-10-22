@@ -1786,6 +1786,9 @@ SQLPipeOp
   / RenameOp //XXX this needs to use as syntax
   / &KW_AGGREGATE a:Aggregation { return a, nil }
   / FuseOp
+  / "search" _ expr:SearchBoolean {
+      return &ast.Search{Kind:"Search",Expr:expr.(ast.Expr),KeywordPos:c.pos.offset}, nil
+    }
 
   // NOT YET - AsOp, 
 

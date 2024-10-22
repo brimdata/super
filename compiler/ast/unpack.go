@@ -97,6 +97,7 @@ var unpacker = unpack.New(
 	Yield{},
 	Sample{},
 	// SuperSQL
+	SQLPipe{},
 	Select{},
 	Table{},
 	Ordinality{},
