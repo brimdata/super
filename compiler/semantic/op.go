@@ -7,7 +7,7 @@ import (
 	"slices"
 	"strings"
 
-	zed "github.com/brimdata/super"
+	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/ast/dag"
 	"github.com/brimdata/super/compiler/kernel"
