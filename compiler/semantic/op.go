@@ -97,9 +97,15 @@ func (a *analyzer) semFrom(from *ast.From, out dag.Seq) dag.Seq {
 func (a *analyzer) semFromEntity(entity ast.FromEntity, args ast.FromArgs) dag.Seq {
 	switch entity := entity.(type) {
 	case *ast.Glob:
-		return a.semFromRegexp(entity, reglob.Reglob(entity.Pattern), entity.Pattern, "glob", args)
+		if a.source.IsLake() {
+			return a.semPoolFromRegexp(entity, reglob.Reglob(entity.Pattern), entity.Pattern, "glob", args)
+		}
+		return dag.Seq{a.semFromFileGlob(entity, entity.Pattern, args)}
 	case *ast.Regexp:
-		return a.semFromRegexp(entity, entity.Pattern, entity.Pattern, "regexp", args)
+		if !a.source.IsLake() {
+			a.error(entity, errors.New("cannot use regular expression with from operaetor on local file system"))
+		}
+		return a.semPoolFromRegexp(entity, reglob.Reglob(entity.Pattern), entity.Pattern, "glob", args)
 	case *ast.ExprEntity:
 		return a.semFromExpr(entity, args)
 	default:
@@ -217,6 +223,31 @@ func (a *analyzer) semFromName(nameLoc ast.Node, name string, args ast.FromArgs)
 	return a.semFile(nameLoc, name, args)
 }
 
+func (a *analyzer) semFile(nameLoc ast.Node, name string, args ast.FromArgs) dag.Op {
+	var format string
+	switch args := args.(type) {
+	case *ast.FormatArg:
+		format = args.Format
+	case *ast.PoolArgs:
+		a.error(args, errors.New("cannot use pool arguments when from operator references a file "))
+		return badOp()
+	case *ast.HTTPArgs:
+		a.error(args, errors.New("cannot use http arguments when from operator references a file"))
+		return badOp()
+	default:
+		panic(fmt.Sprintf("unknown args type: %T", args)
+	}
+	return &dag.FileScan{
+		Kind:   "FileScan",
+		Path:   name,
+		Format: format,
+	}
+}
+
+func (a *analyzer) semFromFileGlob(globLoc ast.Node, pattern string, args ast.FromArgs) dag.Op {
+	// XXX
+}
+
 func (a *analyzer) semFromURL(url string, args ast.FromArgs) dag.Op {
 	format, method, headers, body, err := a.evalHTTPArgs(args)
 	if err != nil {
@@ -281,9 +312,7 @@ func unmarshalHeaders(val super.Value) (map[string][]string, error) {
 	return headers, nil
 }
 
-// XXX line numbers?
-// this is a pattern match either on files or URLs
-func (a *analyzer) semFromRegexp(patternLoc ast.Node, re, orig, which string, args ast.FromArgs) dag.Seq {
+func (a *analyzer) semPoolFromRegexp(patternLoc ast.Node, re, orig, which string, args ast.FromArgs) dag.Seq {
 	// args: http, pool, or format
 	if a.source.IsLake() {
 		poolNames, err := a.matchPools(re, orig, which)
