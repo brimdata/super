@@ -414,7 +414,7 @@ func (o *Optimizer) propagateSortKeyOp(op dag.Op, parents []order.SortKeys) ([]o
 func (o *Optimizer) sortKeysOfSource(op dag.Op) (order.SortKeys, error) {
 	switch op := op.(type) {
 	case *dag.DefaultScan:
-		return nil, nil
+		return op.SortKeys, nil
 	case *dag.FileScan:
 		return nil, nil
 	case *dag.HTTPScan:

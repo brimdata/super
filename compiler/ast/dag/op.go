@@ -201,8 +201,9 @@ type (
 
 	// DefaultScan scans an input stream provided by the runtime.
 	DefaultScan struct {
-		Kind   string `json:"kind" unpack:""`
-		Filter Expr   `json:"filter"`
+		Kind     string         `json:"kind" unpack:""`
+		Filter   Expr           `json:"filter"`
+		SortKeys order.SortKeys `json:"sort_keys"`
 	}
 	FileScan struct {
 		Kind   string `json:"kind" unpack:""`
