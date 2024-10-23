@@ -323,33 +323,27 @@ func unmarshalHeaders(val super.Value) (map[string][]string, error) {
 }
 
 func (a *analyzer) semPoolFromRegexp(patternLoc ast.Node, re, orig, which string, args ast.FromArgs) dag.Seq {
-	// args: http, pool, or format
-	if a.source.IsLake() {
-		poolNames, err := a.matchPools(re, orig, which)
-		if err != nil {
-			a.error(patternLoc, err)
-			return dag.Seq{badOp()}
-		}
-		//XXX check pool args...
-		var poolArgs *ast.PoolArgs
-		switch args := args.(type) {
-		case *ast.PoolArgs:
-			poolArgs = args
-		case *ast.FormatArg:
-			a.error(args, errors.New("cannot specify a format in a pool query"))
-			return dag.Seq{badOp()}
-		case *ast.HTTPArgs:
-			a.error(args, errors.New("cannot specify HTTP parameters in a pool query"))
-			return dag.Seq{badOp()}
-		}
-		var sources []dag.Op
-		for _, name := range poolNames {
-			sources = append(sources, a.semPool(patternLoc, name, poolArgs))
-		}
-		return sources
+	poolNames, err := a.matchPools(re, orig, which)
+	if err != nil {
+		a.error(patternLoc, err)
+		return dag.Seq{badOp()}
 	}
-	//XXX need to glob files...
-	return nil
+	var poolArgs *ast.PoolArgs
+	switch args := args.(type) {
+	case *ast.PoolArgs:
+		poolArgs = args
+	case *ast.FormatArg:
+		a.error(args, errors.New("cannot specify a format in a pool query"))
+		return dag.Seq{badOp()}
+	case *ast.HTTPArgs:
+		a.error(args, errors.New("cannot specify HTTP parameters in a pool query"))
+		return dag.Seq{badOp()}
+	}
+	var sources []dag.Op
+	for _, name := range poolNames {
+		sources = append(sources, a.semPool(patternLoc, name, poolArgs))
+	}
+	return sources
 }
 
 // XXX unused now?
@@ -397,7 +391,7 @@ func (a *analyzer) maybeStringConst(name string) (string, error) {
 	return val.AsString(), nil
 }
 
-func (a *analyzer) semPool(from ast.Node, poolName string, args *ast.PoolArgs) dag.Op {
+func (a *analyzer) semPool(nameLoc ast.Node, poolName string, args *ast.PoolArgs) dag.Op {
 	commit := args.Commit
 	if poolName == "HEAD" {
 		if a.head == nil {
@@ -409,7 +403,7 @@ func (a *analyzer) semPool(from ast.Node, poolName string, args *ast.PoolArgs) d
 	}
 	poolID, err := a.source.PoolID(a.ctx, poolName)
 	if err != nil {
-		a.error(from, err) //XXX want location of name not from
+		a.error(nameLoc, err) //XXX want location of name not from
 		return badOp()
 	}
 	var commitID ksuid.KSUID
@@ -417,7 +411,7 @@ func (a *analyzer) semPool(from ast.Node, poolName string, args *ast.PoolArgs) d
 		if commitID, err = lakeparse.ParseID(commit); err != nil {
 			commitID, err = a.source.CommitObject(a.ctx, poolID, commit)
 			if err != nil {
-				a.error(from, err)
+				a.error(nameLoc, err)
 				return badOp()
 			}
 		}
@@ -427,7 +421,7 @@ func (a *analyzer) semPool(from ast.Node, poolName string, args *ast.PoolArgs) d
 			if commitID == ksuid.Nil {
 				commitID, err = a.source.CommitObject(a.ctx, poolID, "main")
 				if err != nil {
-					a.error(from, err)
+					a.error(nameLoc, err)
 					return badOp()
 				}
 			}
@@ -446,7 +440,7 @@ func (a *analyzer) semPool(from ast.Node, poolName string, args *ast.PoolArgs) d
 				ID:   poolID,
 			}
 		}
-		a.error(from, fmt.Errorf("unknown metadata type %q", meta))
+		a.error(nameLoc, fmt.Errorf("unknown metadata type %q", meta))
 		return badOp()
 	}
 	if commitID == ksuid.Nil {
@@ -454,7 +448,7 @@ func (a *analyzer) semPool(from ast.Node, poolName string, args *ast.PoolArgs) d
 		// there is a "from pool" operator with no meta query or commit object.
 		commitID, err = a.source.CommitObject(a.ctx, poolID, "main")
 		if err != nil {
-			a.error(from, err)
+			a.error(nameLoc, err)
 			return badOp()
 		}
 	}
