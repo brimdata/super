@@ -3,6 +3,7 @@ package semantic
 import (
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"regexp"
 	"slices"
@@ -33,33 +34,6 @@ func (a *analyzer) semSeq(seq ast.Seq) dag.Seq {
 	}
 	return converted
 }
-
-/* ... we the part below that makes a fork from a globbed from...
-func (a *analyzer) semTrunk(trunk ast.Seq, out dag.Seq) dag.Seq {
-	// Each trunk must begin with a pass or a from...
-
-	src := trunk[0].(ast.Source)
-	if pool, ok := src.(*ast.Pool); ok && len(trunk) > 1 {
-		switch pool.Spec.Pool.(type) {
-		case *ast.Glob, *ast.Regexp:
-			a.error(src, errors.New("=> not allowed after pool pattern in 'from' operator"))
-			return append(out, badOp())
-		}
-	}
-	sources := a.semSource(src)
-	seq := a.semSeq(trunk[1:])
-	if len(sources) == 1 {
-		return append(out, append(dag.Seq{sources[0]}, seq...)...)
-	}
-	paths := make([]dag.Seq, 0, len(sources))
-	for _, source := range sources {
-		paths = append(paths, append(dag.Seq{source}, seq...))
-	}
-	return append(out, &dag.Fork{Kind: "Fork", Paths: paths})
-}
-*/
-
-//XXX make sure you can't read files from a lake instance
 
 func (a *analyzer) semFrom(from *ast.From, out dag.Seq) dag.Seq {
 	sources := a.semFromEntity(from.Entity, from.Args)
@@ -110,7 +84,7 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, args ast.FromArgs) dag.S
 	case *ast.ExprEntity:
 		return a.semFromExpr(entity, args)
 	default:
-		panic(fmt.Sprintf("semFromEntity: unknown entity type: %T"))
+		panic(fmt.Sprintf("semFromEntity: unknown entity type: %T", entity))
 	}
 }
 
@@ -225,7 +199,22 @@ func (a *analyzer) semFromName(nameLoc ast.Node, name string, args ast.FromArgs)
 	return a.semFile(nameLoc, name, args)
 }
 
+func fileExists(name string) (bool, error) {
+	_, err := os.Stat(name)
+	if err == nil {
+		return true, nil
+	}
+	if errors.Is(err, os.ErrNotExist) {
+		return false, nil
+	}
+	return false, err
+}
+
 func (a *analyzer) semFile(nameLoc ast.Node, name string, args ast.FromArgs) dag.Op {
+	if _, err := os.Stat(name); err != nil {
+		a.error(nameLoc, fmt.Errorf("%s: %w", name, err))
+		return badOp()
+	}
 	var format string
 	switch args := args.(type) {
 	case *ast.FormatArg:
@@ -252,15 +241,21 @@ func (a *analyzer) semFromFileGlob(globLoc ast.Node, pattern string, args ast.Fr
 		a.error(globLoc, err)
 		return badOp()
 	}
-	if len(names) == nil {
+	if len(names) == 0 {
 		a.error(globLoc, errors.New("no file names match glob pattern"))
 		return badOp()
 	}
-	var ops []dag.Op
-	for _, name := range names {
-		ops = append(ops, a.semFile(globLoc, name, args))
+	if len(names) == 1 {
+		return a.semFile(globLoc, names[0], args)
 	}
-	if len(ops) 
+	paths := make([]dag.Seq, 0, len(names))
+	for _, name := range names {
+		paths = append(paths, dag.Seq{a.semFile(globLoc, name, args)})
+	}
+	return &dag.Fork{
+		Kind:  "Fork",
+		Paths: paths,
+	}
 }
 
 func (a *analyzer) semFromURL(url string, args ast.FromArgs) dag.Op {
@@ -349,7 +344,7 @@ func (a *analyzer) semPoolFromRegexp(patternLoc ast.Node, re, orig, which string
 		}
 		var sources []dag.Op
 		for _, name := range poolNames {
-			sources = append(sources, a.semPool(n, name, poolArgs))
+			sources = append(sources, a.semPool(patternLoc, name, poolArgs))
 		}
 		return sources
 	}
@@ -357,6 +352,7 @@ func (a *analyzer) semPoolFromRegexp(patternLoc ast.Node, re, orig, which string
 	return nil
 }
 
+// XXX unused now?
 func (a *analyzer) semSortKeys(sortExprs []ast.SortExpr) order.SortKeys {
 	var sortKeys order.SortKeys
 	for _, e := range sortExprs {
@@ -384,6 +380,7 @@ func (a *analyzer) semSortExpr(s ast.SortExpr) dag.SortExpr {
 	return dag.SortExpr{Key: e, Order: o}
 }
 
+// XXX unused now
 func (a *analyzer) maybeStringConst(name string) (string, error) {
 	e, err := a.scope.LookupExpr(name)
 	if err != nil || e == nil {

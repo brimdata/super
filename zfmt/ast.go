@@ -422,26 +422,13 @@ func (c *canon) op(p ast.Op) {
 		c.next()
 		c.open("from ")
 		c.fromEntity(p.Entity)
+		if p.Args != nil {
+			c.fromArgs(p.Args)
+		}
 		c.close()
 		c.ret()
 		c.flush()
 		c.write(")")
-	case *ast.Pool:
-		c.next()
-		c.open("")
-		c.write("from ")
-		c.pool(p)
-		c.close()
-	case *ast.File:
-		c.next()
-		c.open("")
-		c.file(p)
-		c.close()
-	case *ast.HTTP:
-		c.next()
-		c.open("")
-		c.http(p)
-		c.close()
 	case *ast.Summarize:
 		c.next()
 		c.open("summarize")
@@ -636,7 +623,7 @@ func (c *canon) fromEntity(e ast.FromEntity) {
 	case *ast.ExprEntity:
 		c.expr(e.Expr, "")
 	case *ast.Glob, *ast.Regexp:
-		c.write(pattern(e))
+		c.pattern(e)
 	default:
 		c.open("unknown from expression: %T", e)
 		c.close()
@@ -683,35 +670,30 @@ func (c *canon) scope(s *ast.Scope, parens bool) {
 	}
 }
 
-func (c *canon) pool(p *ast.Pool) {
-	//XXX TBD name, from, to, id etc
-	s := pattern(p.Spec.Pool)
-	if p.Spec.Commit != "" {
-		s += "@" + p.Spec.Commit
+func (c *canon) poolArgs(args *ast.PoolArgs) {
+	s := ""
+	if args.Commit != "" {
+		s += "@" + args.Commit
 	}
-	if p.Spec.Meta != "" {
-		s += ":" + p.Spec.Meta
+	if args.Meta != "" {
+		s += ":" + args.Meta
 	}
-	if p.Spec.Tap {
+	if args.Tap {
 		s += " tap"
 	}
 	c.write(s)
 }
 
-func pattern(p ast.Pattern) string {
+func (c *canon) pattern(p ast.FromEntity) {
 	switch p := p.(type) {
-	case nil:
-		return ""
 	case *ast.Glob:
-		return p.Pattern
+		c.write(p.Pattern)
 	case *ast.Regexp:
-		return "/" + p.Pattern + "/"
-	case *ast.String:
-		return p.Text
-	case *ast.QuotedString:
-		return zson.QuotedString([]byte(p.Text))
+		c.write("/" + p.Pattern + "/")
+	case *ast.ExprEntity:
+		c.expr(p.Expr, "")
 	default:
-		return fmt.Sprintf("(unknown pattern type %T)", p)
+		c.write(fmt.Sprintf("(unknown pattern type %T)", p))
 	}
 }
 
@@ -787,42 +769,37 @@ func IsSearch(e ast.Expr) bool {
 	}
 }
 
-func (c *canon) http(p *ast.HTTP) {
-	//XXX TBD other stuff
-	c.write("get %s", pattern(p.URL))
-	if p.Format != "" {
-		c.write(" format %s", p.Format)
+func (c *canon) httpArgs(args *ast.HTTPArgs) {
+	if args.Format != "" {
+		c.write(" format %s", args.Format)
 	}
-	if p.Method != "" {
-		c.write(" method %s", zson.QuotedName(p.Method))
+	if args.Method != "" {
+		c.write(" method %s", zson.QuotedName(args.Method))
 	}
-	if p.Headers != nil {
+	if args.Headers != nil {
 		c.write(" headers ")
-		c.expr(p.Headers, "")
+		c.expr(args.Headers, "")
 	}
-	if p.Body != "" {
-		c.write(" body %s", zson.QuotedName(p.Body))
-	}
-}
-
-func (c *canon) file(p *ast.File) {
-	//XXX TBD other stuff
-	c.write("file %s", pattern(p.Path))
-	if p.Format != "" {
-		c.write(" format %s", p.Format)
+	if args.Body != "" {
+		c.write(" body %s", zson.QuotedName(args.Body))
 	}
 }
 
-func (c *canon) source(src ast.Source) {
-	switch src := src.(type) {
-	case *ast.Pool:
-		c.write("pool ")
-		c.pool(src)
-	case *ast.HTTP:
-		c.http(src)
-	case *ast.File:
-		c.file(src)
+func (c *canon) formatArg(arg *ast.FormatArg) {
+	if arg.Format != "" {
+		c.write(" format %s", arg.Format)
+	}
+}
+
+func (c *canon) fromArgs(args ast.FromArgs) {
+	switch args := args.(type) {
+	case *ast.PoolArgs:
+		c.poolArgs(args)
+	case *ast.HTTPArgs:
+		c.httpArgs(args)
+	case *ast.FormatArg:
+		c.formatArg(args)
 	default:
-		c.write("unknown source type: %T", src)
+		c.write("unknown argument type in from operaetor: %T", args)
 	}
 }
