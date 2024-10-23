@@ -766,6 +766,7 @@ func (*Assert) OpAST()       {}
 func (*Output) OpAST()       {}
 func (*Debug) OpAST()        {}
 func (*Delete) OpAST()       {}
+func (*Lake) OpAST()         {}
 
 func (x *Scope) Pos() int {
 	if x.Decls != nil {

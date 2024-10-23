@@ -95,6 +95,8 @@ var unpacker = unpack.New(
 	Where{},
 	Yield{},
 	Sample{},
+	Delete{},
+	Lake{},
 )
 
 // UnmarshalOp transforms a JSON representation of an operator into an Op.

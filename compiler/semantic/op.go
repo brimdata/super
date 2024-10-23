@@ -195,7 +195,7 @@ func (a *analyzer) semFromExpr(entity *ast.ExprEntity, args ast.FromArgs) dag.Se
 		a.error(entity, err)
 		return dag.Seq{badOp()}
 	}
-	if zed.TypeUnder(val.Type()) != zed.TypeString {
+	if super.TypeUnder(val.Type()) != super.TypeString {
 		a.error(entity, errors.New("from operator requires a string name"))
 		return dag.Seq{badOp()}
 	}
@@ -254,7 +254,7 @@ func (a *analyzer) evalHTTPArgs(args ast.FromArgs) (string, string, map[string][
 	case *ast.PoolArgs:
 		return "", "", nil, "", errors.New("cannot use pool-style argument with a URL in a from operator")
 	default:
-		panic(fmt.Errorf("semantic analyzer: unsupported AST get type %T", p))
+		panic(fmt.Errorf("semantic analyzer: unsupported AST args type %T", args))
 	}
 }
 
@@ -368,7 +368,7 @@ func (a *analyzer) semPool(from ast.Node, poolName string, args *ast.PoolArgs) d
 	}
 	poolID, err := a.source.PoolID(a.ctx, poolName)
 	if err != nil {
-		a.error(p.Spec.Pool, err)
+		a.error(from, err) //XXX want location of name not from
 		return badOp()
 	}
 	var commitID ksuid.KSUID
@@ -395,7 +395,7 @@ func (a *analyzer) semPool(from ast.Node, poolName string, args *ast.PoolArgs) d
 				Meta:   meta,
 				Pool:   poolID,
 				Commit: commitID,
-				Tap:    p.Spec.Tap,
+				Tap:    args.Tap,
 			}
 		}
 		if _, ok := dag.PoolMetas[meta]; ok {
@@ -531,9 +531,15 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 	case *ast.From:
 		return a.semFrom(o, seq)
 	case *ast.Lake:
-		return a.semLake(o, seq)
+		if len(seq) > 0 {
+			panic("analyzer.SemOp: lake scan cannot have parent in AST")
+		}
+		return dag.Seq{a.semLake(o)}
 	case *ast.Delete:
-		return a.semDelete(o, seq)
+		if len(seq) > 0 {
+			panic("analyzer.SemOp: delete scan cannot have parent in AST")
+		}
+		return dag.Seq{a.semDelete(o)}
 	case *ast.Summarize:
 		keys := a.semAssignments(o.Keys)
 		a.checkStaticAssignment(o.Keys, keys)
