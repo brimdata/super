@@ -511,15 +511,6 @@ func (c *canonDAG) op(p dag.Op) {
 		if p.Format != "" {
 			c.write(" format %s", p.Format)
 		}
-		if !p.SortKeys.IsNil() {
-			c.write(" order")
-			for i, s := range p.SortKeys {
-				if i > 0 {
-					c.write(",")
-				}
-				c.write(" %s  %s", s.Key, s.Order)
-			}
-		}
 		if p.Filter != nil {
 			c.write(" filter (")
 			c.expr(p.Filter, "")
