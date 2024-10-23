@@ -196,24 +196,25 @@ func (a *analyzer) semFromExpr(entity *ast.ExprEntity, args ast.FromArgs) dag.Se
 		return dag.Seq{badOp()}
 	}
 	if super.TypeUnder(val.Type()) != super.TypeString {
-		a.error(entity, errors.New("from operator requires a string name"))
+		a.error(entity.Expr, errors.New("from operator requires a string name"))
 		return dag.Seq{badOp()}
 	}
-	return dag.Seq{a.semFromName(val.AsString(), args)}
+	return dag.Seq{a.semFromName(entity, val.AsString(), args)}
 }
 
-func (a *analyzer) semFromName(name string, args ast.FromArgs) dag.Op {
+func (a *analyzer) semFromName(nameLoc ast.Node, name string, args ast.FromArgs) dag.Op {
 	if isURL(name) {
 		return a.semFromURL(name, args)
 	}
 	if a.source.IsLake() {
-		return a.semFromLake(name, args)
+		args, ok := (args).(*ast.PoolArgs)
+		if !ok {
+			a.error(args, errors.New("invalid options provided to pool reference in from operator"))
+			return badOp()
+		}
+		return a.semPool(nameLoc, name, args)
 	}
-	//XXX
-	return nil
-}
-
-func (a *analyzer) semFromLake(name string, args ast.FromArgs) dag.Op {
+	return a.semFile(nameLoc, name, args)
 }
 
 func (a *analyzer) semFromURL(url string, args ast.FromArgs) dag.Op {
@@ -282,12 +283,12 @@ func unmarshalHeaders(val super.Value) (map[string][]string, error) {
 
 // XXX line numbers?
 // this is a pattern match either on files or URLs
-func (a *analyzer) semFromRegexp(n ast.Node, re, orig, which string, args ast.FromArgs) dag.Seq {
+func (a *analyzer) semFromRegexp(patternLoc ast.Node, re, orig, which string, args ast.FromArgs) dag.Seq {
 	// args: http, pool, or format
 	if a.source.IsLake() {
 		poolNames, err := a.matchPools(re, orig, which)
 		if err != nil {
-			a.error(n, err)
+			a.error(patternLoc, err)
 			return dag.Seq{badOp()}
 		}
 		//XXX check pool args...
@@ -296,10 +297,10 @@ func (a *analyzer) semFromRegexp(n ast.Node, re, orig, which string, args ast.Fr
 		case *ast.PoolArgs:
 			poolArgs = args
 		case *ast.FormatArg:
-			a.error(n, errors.New("cannot specify a format in a pool query"))
+			a.error(args, errors.New("cannot specify a format in a pool query"))
 			return dag.Seq{badOp()}
 		case *ast.HTTPArgs:
-			a.error(n, errors.New("cannot specify HTTP parameters in a pool query"))
+			a.error(args, errors.New("cannot specify HTTP parameters in a pool query"))
 			return dag.Seq{badOp()}
 		}
 		var sources []dag.Op
@@ -308,8 +309,7 @@ func (a *analyzer) semFromRegexp(n ast.Node, re, orig, which string, args ast.Fr
 		}
 		return sources
 	}
-
-	//XXX
+	//XXX need to glob files...
 	return nil
 }
 
