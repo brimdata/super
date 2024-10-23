@@ -420,18 +420,8 @@ func (c *canon) op(p ast.Op) {
 		c.write(")")
 	case *ast.From:
 		c.next()
-		c.open("from (")
-		for _, seq := range p.Trunks {
-			c.ret()
-			c.source(seq[0].(ast.Source))
-			if len(seq) > 1 {
-				c.write(" =>")
-				c.open()
-				c.head = true
-				c.seq(seq[1:])
-				c.close()
-			}
-		}
+		c.open("from ")
+		c.fromEntity(p.Entity)
 		c.close()
 		c.ret()
 		c.flush()
@@ -637,6 +627,18 @@ func (c *canon) op(p ast.Op) {
 		}
 	default:
 		c.open("unknown proc: %T", p)
+		c.close()
+	}
+}
+
+func (c *canon) fromEntity(e ast.FromEntity) {
+	switch e := e.(type) {
+	case *ast.ExprEntity:
+		c.expr(e.Expr, "")
+	case *ast.Glob, *ast.Regexp:
+		c.write(pattern(e))
+	default:
+		c.open("unknown from expression: %T", e)
 		c.close()
 	}
 }

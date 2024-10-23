@@ -3,6 +3,7 @@ package semantic
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 	"regexp"
 	"slices"
 	"strings"
@@ -201,6 +202,7 @@ func (a *analyzer) semFromExpr(entity *ast.ExprEntity, args ast.FromArgs) dag.Se
 		a.error(entity, err)
 		return dag.Seq{badOp()}
 	}
+	//XXX should handle array of strings too
 	if super.TypeUnder(val.Type()) != super.TypeString {
 		a.error(entity.Expr, errors.New("from operator requires a string name"))
 		return dag.Seq{badOp()}
@@ -235,7 +237,7 @@ func (a *analyzer) semFile(nameLoc ast.Node, name string, args ast.FromArgs) dag
 		a.error(args, errors.New("cannot use http arguments when from operator references a file"))
 		return badOp()
 	default:
-		panic(fmt.Sprintf("unknown args type: %T", args)
+		panic(fmt.Sprintf("unknown args type: %T", args))
 	}
 	return &dag.FileScan{
 		Kind:   "FileScan",
@@ -245,7 +247,20 @@ func (a *analyzer) semFile(nameLoc ast.Node, name string, args ast.FromArgs) dag
 }
 
 func (a *analyzer) semFromFileGlob(globLoc ast.Node, pattern string, args ast.FromArgs) dag.Op {
-	// XXX
+	names, err := filepath.Glob(pattern)
+	if err != nil {
+		a.error(globLoc, err)
+		return badOp()
+	}
+	if len(names) == nil {
+		a.error(globLoc, errors.New("no file names match glob pattern"))
+		return badOp()
+	}
+	var ops []dag.Op
+	for _, name := range names {
+		ops = append(ops, a.semFile(globLoc, name, args))
+	}
+	if len(ops) 
 }
 
 func (a *analyzer) semFromURL(url string, args ast.FromArgs) dag.Op {
