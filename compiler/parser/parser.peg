@@ -162,7 +162,7 @@ FromLeg
     }
 
 FromSource
-  = (FromKeyWord _)? spec:FromBody{ return spec, nil }
+  = FromKeyWord _ spec:FromBody{ return spec, nil }
   / PassOp
 
 ExprGuard = __ ((!"=>" Comparator) / AdditiveOperator / MultiplicativeOperator / ":" / "(" / "[" / "~")
@@ -668,9 +668,11 @@ FromEntity
       }, nil    
     }
   / meta:PoolMeta {
-      return &ast.Lake{
-        Kind: "Lake",
+      return &ast.LakeMeta{
+        Kind: "LakeMeta",
         Meta: meta.(string),
+        MetaPos: c.pos.offset,
+        EndPos: c.pos.offset+len(meta)+1,
       }, nil 
     }
 

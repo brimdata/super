@@ -83,6 +83,8 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, args ast.FromArgs) dag.S
 		return a.semPoolFromRegexp(entity, reglob.Reglob(entity.Pattern), entity.Pattern, "glob", args)
 	case *ast.ExprEntity:
 		return a.semFromExpr(entity, args)
+	case *ast.LakeMeta:
+		return dag.Seq{a.semLakeMeta(entity)}
 	default:
 		panic(fmt.Sprintf("semFromEntity: unknown entity type: %T", entity))
 	}
@@ -502,10 +504,10 @@ func (a *analyzer) semPool(nameLoc ast.Node, poolName string, args *ast.PoolArgs
 	}
 }
 
-func (a *analyzer) semLake(op *ast.Lake) dag.Op {
-	meta := op.Meta
+func (a *analyzer) semLakeMeta(entity *ast.LakeMeta) dag.Op {
+	meta := entity.Meta
 	if _, ok := dag.LakeMetas[meta]; !ok {
-		a.error(op, fmt.Errorf("unknown lake metadata type %q in from operator", meta))
+		a.error(entity, fmt.Errorf("unknown lake metadata type %q in from operator", meta))
 		return badOp()
 	}
 	return &dag.LakeMetaScan{
@@ -608,11 +610,6 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 	switch o := o.(type) {
 	case *ast.From:
 		return a.semFrom(o, seq)
-	case *ast.Lake:
-		if len(seq) > 0 {
-			panic("analyzer.SemOp: lake scan cannot have parent in AST")
-		}
-		return dag.Seq{a.semLake(o)}
 	case *ast.Delete:
 		if len(seq) > 0 {
 			panic("analyzer.SemOp: delete scan cannot have parent in AST")

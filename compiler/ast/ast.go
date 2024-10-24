@@ -177,15 +177,16 @@ type FromEntity interface {
 
 type ExprEntity struct {
 	Kind string `json:"kind" unpack:""`
-	Expr Expr   `json:"text"`
+	Expr Expr   `json:"expr"`
 }
 
-func (r *ExprEntity) Pos() int { return 0 } //XXX
-func (r *ExprEntity) End() int { return 0 } //XXX
+func (e *ExprEntity) Pos() int { return e.Expr.Pos() }
+func (e *ExprEntity) End() int { return e.Expr.End() }
 
 func (*Glob) FromEntityAST()       {}
 func (*Regexp) FromEntityAST()     {}
 func (*ExprEntity) FromEntityAST() {}
+func (*LakeMeta) FromEntityAST()   {}
 
 type RecordExpr struct {
 	Kind   string       `json:"kind" unpack:""`
@@ -617,11 +618,11 @@ type (
 		Args       FromArgs   `json:"args"`
 		EndPos     int        `json:"end_pos"`
 	}
-	Lake struct {
-		Kind       string `json:"kind" unpack:""`
-		KeywordPos int    `json:"keyword_pos"`
-		Meta       string `json:"meta"`
-		EndPos     int    `json:"end_pos"`
+	LakeMeta struct {
+		Kind    string `json:"kind" unpack:""`
+		MetaPos int    `json:"meta_pos"`
+		Meta    string `json:"meta"`
+		EndPos  int    `json:"end_pos"`
 	}
 	Delete struct {
 		Kind string `json:"kind" unpack:""`
@@ -670,13 +671,13 @@ func (*PoolArgs) FromArgs()  {}
 func (*FormatArg) FromArgs() {}
 func (*HTTPArgs) FromArgs()  {}
 
-func (x *From) Pos() int { return x.KeywordPos }
-func (*Delete) Pos() int { return 0 } // XXX
-func (*Lake) Pos() int   { return 0 } // XXX
+func (x *From) Pos() int     { return x.KeywordPos }
+func (*Delete) Pos() int     { return 0 } // XXX
+func (x *LakeMeta) Pos() int { return x.MetaPos }
 
-func (x *From) End() int { return x.EndPos }
-func (*Delete) End() int { return 0 } // XXX
-func (*Lake) End() int   { return 0 } //XXX
+func (x *From) End() int     { return x.EndPos }
+func (*Delete) End() int     { return 0 } // XXX
+func (x *LakeMeta) End() int { return x.EndPos }
 
 type SortExpr struct {
 	Kind  string `json:"kind" unpack:""`
@@ -766,7 +767,6 @@ func (*Assert) OpAST()       {}
 func (*Output) OpAST()       {}
 func (*Debug) OpAST()        {}
 func (*Delete) OpAST()       {}
-func (*Lake) OpAST()         {}
 
 func (x *Scope) Pos() int {
 	if x.Decls != nil {
