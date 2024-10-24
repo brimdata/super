@@ -171,6 +171,13 @@ func (a *analyzer) semFromExpr(entity *ast.ExprEntity, args ast.FromArgs) dag.Se
 	// The expression must eval to a single string constant.
 	// Then we figure out if it's a pool or an URL.
 	expr := a.semExpr(entity.Expr)
+	if this, ok := expr.(*dag.This); ok {
+		// If the expression was unquoted and is a dotted name, we treat this as
+		// the name of a pool or file.  This keeps backward compat for now, but we
+		// should devise how we are going to mix expression logic with unquoted
+		// pool/file names.
+		return dag.Seq{a.semFromName(entity, strings.Join(this.Path, "."), args)}
+	}
 	val, err := kernel.EvalAtCompileTime(a.zctx, expr)
 	if err != nil {
 		a.error(entity, err)
@@ -189,14 +196,46 @@ func (a *analyzer) semFromName(nameLoc ast.Node, name string, args ast.FromArgs)
 		return a.semFromURL(name, args)
 	}
 	if a.source.IsLake() {
-		args, ok := (args).(*ast.PoolArgs)
-		if !ok {
-			a.error(args, errors.New("invalid options provided to pool reference in from operator"))
+		poolArgs, err := asPoolArgs(args)
+		if err != nil {
+			a.error(args, err)
 			return badOp()
 		}
-		return a.semPool(nameLoc, name, args)
+		return a.semPool(nameLoc, name, poolArgs)
 	}
 	return a.semFile(nameLoc, name, args)
+}
+
+func asPoolArgs(args ast.FromArgs) (*ast.PoolArgs, error) {
+	if args == nil {
+		return nil, nil
+	}
+	switch args := args.(type) {
+	case *ast.FormatArg:
+		return nil, errors.New("cannot use format argument with a pool")
+	case *ast.PoolArgs:
+		return args, nil
+	case *ast.HTTPArgs:
+		return nil, errors.New("cannot use http arguments with a pool")
+	default:
+		panic(fmt.Sprintf("unknown args type: %T", args))
+	}
+}
+
+func asFileArgs(args ast.FromArgs) (*ast.FormatArg, error) {
+	if args == nil {
+		return nil, nil
+	}
+	switch args := args.(type) {
+	case *ast.FormatArg:
+		return args, nil
+	case *ast.PoolArgs:
+		return nil, errors.New("cannot use pool arguments when from operator references a file ")
+	case *ast.HTTPArgs:
+		return nil, errors.New("cannot use http arguments when from operator references a file")
+	default:
+		panic(fmt.Sprintf("unknown args type: %T", args))
+	}
 }
 
 func fileExists(name string) (bool, error) {
@@ -215,18 +254,14 @@ func (a *analyzer) semFile(nameLoc ast.Node, name string, args ast.FromArgs) dag
 		a.error(nameLoc, fmt.Errorf("%s: %w", name, err))
 		return badOp()
 	}
+	formatArg, err := asFileArgs(args)
+	if err != nil {
+		a.error(args, err)
+		return badOp()
+	}
 	var format string
-	switch args := args.(type) {
-	case *ast.FormatArg:
-		format = args.Format
-	case *ast.PoolArgs:
-		a.error(args, errors.New("cannot use pool arguments when from operator references a file "))
-		return badOp()
-	case *ast.HTTPArgs:
-		a.error(args, errors.New("cannot use http arguments when from operator references a file"))
-		return badOp()
-	default:
-		panic(fmt.Sprintf("unknown args type: %T", args))
+	if formatArg != nil {
+		format = formatArg.Format
 	}
 	return &dag.FileScan{
 		Kind:   "FileScan",
@@ -392,10 +427,18 @@ func (a *analyzer) maybeStringConst(name string) (string, error) {
 }
 
 func (a *analyzer) semPool(nameLoc ast.Node, poolName string, args *ast.PoolArgs) dag.Op {
-	commit := args.Commit
+	var commit, meta string
+	var tap bool
+	loc := nameLoc
+	if args != nil {
+		commit = args.Commit
+		meta = args.Meta
+		tap = args.Tap
+		loc = args
+	}
 	if poolName == "HEAD" {
 		if a.head == nil {
-			a.error(args, errors.New("cannot scan from unknown HEAD"))
+			a.error(nameLoc, errors.New("cannot scan from unknown HEAD"))
 			return badOp()
 		}
 		poolName = a.head.Pool
@@ -411,17 +454,17 @@ func (a *analyzer) semPool(nameLoc ast.Node, poolName string, args *ast.PoolArgs
 		if commitID, err = lakeparse.ParseID(commit); err != nil {
 			commitID, err = a.source.CommitObject(a.ctx, poolID, commit)
 			if err != nil {
-				a.error(nameLoc, err)
+				a.error(loc, err)
 				return badOp()
 			}
 		}
 	}
-	if meta := args.Meta; meta != "" {
+	if meta != "" {
 		if _, ok := dag.CommitMetas[meta]; ok {
 			if commitID == ksuid.Nil {
 				commitID, err = a.source.CommitObject(a.ctx, poolID, "main")
 				if err != nil {
-					a.error(nameLoc, err)
+					a.error(loc, err)
 					return badOp()
 				}
 			}
@@ -430,7 +473,7 @@ func (a *analyzer) semPool(nameLoc ast.Node, poolName string, args *ast.PoolArgs
 				Meta:   meta,
 				Pool:   poolID,
 				Commit: commitID,
-				Tap:    args.Tap,
+				Tap:    tap,
 			}
 		}
 		if _, ok := dag.PoolMetas[meta]; ok {

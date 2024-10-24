@@ -420,15 +420,12 @@ func (c *canon) op(p ast.Op) {
 		c.write(")")
 	case *ast.From:
 		c.next()
-		c.open("from ")
+		c.write("from ")
 		c.fromEntity(p.Entity)
 		if p.Args != nil {
+			c.write(" ")
 			c.fromArgs(p.Args)
 		}
-		c.close()
-		c.ret()
-		c.flush()
-		c.write(")")
 	case *ast.Summarize:
 		c.next()
 		c.open("summarize")

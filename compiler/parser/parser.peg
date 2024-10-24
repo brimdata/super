@@ -610,7 +610,7 @@ DebugOp
     }
 
 FromOp
-  = FromKeyWord _ FromBody
+  = FromKeyWord _ from:FromBody { return from, nil }
 
 FromKeyWord 
   = "from" 
@@ -645,10 +645,10 @@ FromBody
     }
 
 FromEntity 
-  = UnquotedURL {
+  = url:UnquotedURL {
       return &ast.ExprEntity{
         Kind: "ExprEntity",
-        Expr: newPrimitive(c, "string", string(c.text)),
+        Expr: newPrimitive(c, "string", url.(string)),
       }, nil
     }
   / Regexp
@@ -705,14 +705,15 @@ FromArgs
       }
       return h, nil    
     }
-  / format:FormatArg? {
+  / format:FormatArg {
       return &ast.FormatArg{
         Kind: "FormatArg",
-        Format: format.(string),
+        Format: nullableString(format),
         KeywordPos: c.pos.offset,
         EndPos: c.pos.offset+len(c.text),
       }, nil
   }
+  / "" { return nil, nil }
 
 MethodArg = _ "method" _ v:(IdentifierName / QuotedString) { return v, nil }
 
@@ -720,7 +721,7 @@ HeadersArg = _ "headers" _ v:Record { return v, nil }
 
 BodyArg = _ "body" _ v:(IdentifierName / QuotedString) { return v, nil }
 
-UnquotedURL = ("http://" / "https://") UnquotedFromName
+UnquotedURL = ("http://" / "https://") UnquotedFromName { return string(c.text), nil }
 
 //XXX why this? I think we had this before quoted names... it also embodies URLS
 UnquotedFromName = [0-9a-zA-Z!@$%^&*_=<>,./?:[\]{}~+-]+
