@@ -439,8 +439,8 @@ func (a *analyzer) semPool(nameLoc ast.Node, poolName string, args *ast.PoolArgs
 		loc = args
 	}
 	if poolName == "HEAD" {
-		if a.head == nil {
-			a.error(nameLoc, errors.New("cannot scan from unknown HEAD"))
+		if a.head.Pool == "" {
+			a.error(nameLoc, errors.New("cannot resolve unknown HEAD"))
 			return badOp()
 		}
 		poolName = a.head.Pool

@@ -162,7 +162,7 @@ FromLeg
     }
 
 FromSource
-  = FromKeyWord _ spec:FromBody{ return spec, nil }
+  = FromKeyWord _ spec:FromBody { return spec, nil }
   / PassOp
 
 ExprGuard = __ ((!"=>" Comparator) / AdditiveOperator / MultiplicativeOperator / ":" / "(" / "[" / "~")
@@ -610,7 +610,11 @@ DebugOp
     }
 
 FromOp
-  = FromKeyWord _ from:FromBody { return from, nil }
+  = FromKeyWord _ f:FromBody {
+      from := f.(*ast.From)
+      from.KeywordPos = c.pos.offset
+      return from, nil
+  }
 
 FromKeyWord 
   = "from" 
@@ -672,7 +676,7 @@ FromEntity
         Kind: "LakeMeta",
         Meta: meta.(string),
         MetaPos: c.pos.offset,
-        EndPos: c.pos.offset+len(meta)+1,
+        EndPos: c.pos.offset+len(meta.(string))+1,
       }, nil 
     }
 

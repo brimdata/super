@@ -13,12 +13,12 @@ outputs:
   - name: stderr
     data: |
       status code 400: no pool name given
-      pool name missing at line 1, column 1:
+      cannot resolve unknown HEAD at line 1, column 6:
       from HEAD
-      ~~~~~~~~~
-      unknown lake metadata type "unknownmeta" in from operator at line 1, column 1:
+           ~~~~
+      unknown lake metadata type "unknownmeta" in from operator at line 1, column 6:
       from :unknownmeta
-      ~~~~~~~~~~~~~~~~~
+           ~~~~~~~~~~~~
       doesnotexist: pool not found at line 1, column 6:
       from doesnotexist
            ~~~~~~~~~~~~

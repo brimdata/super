@@ -17,9 +17,9 @@ outputs:
       code 400
       {"type":"Error","kind":"invalid operation","error":"no pool name given"}
       code 400
-      {"type":"Error","kind":"invalid operation","error":"pool name missing at line 1, column 1:\nfrom HEAD\n~~~~~~~~~","compilation_errors":[{"Msg":"pool name missing","Pos":0,"End":9}]}
+      {"type":"Error","kind":"invalid operation","error":"cannot resolve unknown HEAD at line 1, column 6:\nfrom HEAD\n     ~~~~","compilation_errors":[{"Msg":"cannot resolve unknown HEAD","Pos":5,"End":9}]}
       code 400
-      {"type":"Error","kind":"invalid operation","error":"unknown lake metadata type \"unknownmeta\" in from operator at line 1, column 1:\nfrom :unknownmeta\n~~~~~~~~~~~~~~~~~","compilation_errors":[{"Msg":"unknown lake metadata type \"unknownmeta\" in from operator","Pos":0,"End":17}]}
+      {"type":"Error","kind":"invalid operation","error":"unknown lake metadata type \"unknownmeta\" in from operator at line 1, column 6:\nfrom :unknownmeta\n     ~~~~~~~~~~~~","compilation_errors":[{"Msg":"unknown lake metadata type \"unknownmeta\" in from operator","Pos":5,"End":17}]}
       code 400
       {"type":"Error","kind":"invalid operation","error":"doesnotexist: pool not found at line 1, column 6:\nfrom doesnotexist\n     ~~~~~~~~~~~~","compilation_errors":[{"Msg":"doesnotexist: pool not found","Pos":5,"End":17}]}
       code 400

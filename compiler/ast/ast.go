@@ -616,7 +616,6 @@ type (
 		KeywordPos int        `json:"keyword_pos"`
 		Entity     FromEntity `json:"entity"`
 		Args       FromArgs   `json:"args"`
-		EndPos     int        `json:"end_pos"`
 	}
 	LakeMeta struct {
 		Kind    string `json:"kind" unpack:""`
@@ -630,12 +629,12 @@ type (
 )
 
 type PoolArgs struct {
-	Kind       string `json:"kind" unpack:""`
-	Commit     string `json:"commit"`
-	Meta       string `json:"meta"`
-	Tap        bool   `json:"tap"`
-	KeywordPos int    `json:"keyword_pos"`
-	EndPos     int    `json:"end_pos"`
+	Kind     string `json:"kind" unpack:""`
+	Commit   string `json:"commit"`
+	Meta     string `json:"meta"`
+	Tap      bool   `json:"tap"`
+	FirstPos int    `json:"first_pos"`
+	EndPos   int    `json:"end_pos"`
 }
 
 type FormatArg struct {
@@ -671,11 +670,16 @@ func (*PoolArgs) FromArgs()  {}
 func (*FormatArg) FromArgs() {}
 func (*HTTPArgs) FromArgs()  {}
 
-func (x *From) Pos() int     { return x.KeywordPos }
+func (x *From) Pos() int { return x.KeywordPos }
+func (x *From) End() int {
+	if x.Args != nil {
+		return x.Args.End()
+	}
+	return x.Entity.End()
+}
+
 func (*Delete) Pos() int     { return 0 } // XXX
 func (x *LakeMeta) Pos() int { return x.MetaPos }
-
-func (x *From) End() int     { return x.EndPos }
 func (*Delete) End() int     { return 0 } // XXX
 func (x *LakeMeta) End() int { return x.EndPos }
 
