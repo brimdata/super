@@ -138,16 +138,14 @@ import (
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/compiler"
 	"github.com/brimdata/super/compiler/optimizer/demand"
-	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/vcache"
+	"github.com/brimdata/super/vng"
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/anyio"
-	"github.com/brimdata/super/zio/vngio"
 	"github.com/brimdata/super/zio/zsonio"
 	"github.com/pmezard/go-difflib/difflib"
-	"github.com/segmentio/ksuid"
 	"gopkg.in/yaml.v3"
 )
 
@@ -567,21 +565,12 @@ func runvec(zedProgram string, input string, outputFlags []string) (string, stri
 	if err := flags.Parse(outputFlags); err != nil {
 		return "", "", err
 	}
-	zctx := super.NewContext()
-	local := storage.NewLocalEngine()
-	cache := vcache.NewCache(local)
-	uri, cleanup, err := writeVNGFile(input)
-	if err != nil {
-		return "", "", err
-	}
-	defer cleanup()
-	object, err := cache.Fetch(context.Background(), uri, ksuid.Nil)
+	object, err := createVCacheObject(input)
 	if err != nil {
 		return "", "", err
 	}
 	defer object.Close()
-	rctx := runtime.NewContext(context.Background(), zctx)
-	puller, err := compiler.VectorCompile(rctx, zedProgram, object)
+	puller, err := compiler.VectorCompile(runtime.DefaultContext(), zedProgram, object)
 	if err != nil {
 		return "", err.Error(), err
 	}
@@ -599,16 +588,16 @@ func runvec(zedProgram string, input string, outputFlags []string) (string, stri
 	return outbuf.String(), errbuf.String(), nil
 }
 
-func writeVNGFile(input string) (*storage.URI, func(), error) {
-	f, err := os.CreateTemp("", "test.*.vng")
-	if err != nil {
-		return nil, nil, err
-	}
-	w := vngio.NewWriter(f)
+func createVCacheObject(input string) (*vcache.Object, error) {
+	var buf bytes.Buffer
+	w := vng.NewWriter(zio.NopCloser(&buf))
 	r := zsonio.NewReader(super.NewContext(), strings.NewReader(input))
-	if err = errors.Join(zio.Copy(w, r), w.Close()); err != nil {
-		return nil, nil, err
+	if err := errors.Join(zio.Copy(w, r), w.Close()); err != nil {
+		return nil, err
 	}
-	u, err := storage.ParseURI(f.Name())
-	return u, func() { os.Remove(f.Name()) }, err
+	o, err := vng.NewObject(bytes.NewReader(buf.Bytes()))
+	if err != nil {
+		return nil, err
+	}
+	return vcache.NewObjectFromVNG(o), nil
 }
