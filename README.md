@@ -1,8 +1,8 @@
 # SuperDB [![Tests][tests-img]][tests] [![GoPkg][gopkg-img]][gopkg]
 
 SuperDB is a new analytics database that supports relational tables and JSON 
-on an equal footing.  It shines when it comes to complex data wrangling use cases
-where you need to explore or process large eclectic data sets.  It's also pretty
+on an equal footing.  It shines when it comes to data wrangling where
+you need to explore or process large eclectic data sets.  It's also pretty
 decent at analytics and
 [search use cases](https://zed.brimdata.io/docs/language/search-expressions).
 
