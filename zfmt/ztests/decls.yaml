@@ -1,7 +1,7 @@
 script: |
-  super dev compile -C -I test.spq
+  super compile -C -I test.spq
   echo "==="
-  super dev compile -s -C -I test.spq
+  super compile -dag -C -I test.spq
 
 inputs:
   - name: test.spq

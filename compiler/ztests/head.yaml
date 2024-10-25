@@ -1,10 +1,10 @@
 script: |
-  super dev compile -C -s 'head 1'
+  super compile -C -dag 'head 1'
   echo ===
-  super dev compile -C -s 'const x=1 head x + 1'
-  ! super dev compile -C -s 'head 1.'
-  ! super dev compile -C -s 'head "1"'
-  ! super dev compile -C -s 'head x'
+  super compile -C -dag 'const x=1 head x + 1'
+  ! super compile -C -dag 'head 1.'
+  ! super compile -C -dag 'head "1"'
+  ! super compile -C -dag 'head x'
 
 outputs:
   - name: stdout

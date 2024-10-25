@@ -75,7 +75,7 @@ func (l *Flags) Open(ctx context.Context) (api.Interface, error) {
 	}
 	lk, err := api.OpenLocalLake(ctx, zap.Must(zap.NewProduction()), uri.String())
 	if errors.Is(err, lake.ErrNotExist) {
-		return nil, fmt.Errorf("%w\n(hint: run 'zed init' to initialize lake at this location)", err)
+		return nil, fmt.Errorf("%w\n(hint: run 'super db init' to initialize lake at this location)", err)
 	}
 	return lk, err
 }

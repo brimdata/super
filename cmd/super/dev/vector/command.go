@@ -4,7 +4,6 @@ import (
 	"flag"
 
 	"github.com/brimdata/super/cmd/super/dev"
-	"github.com/brimdata/super/cmd/super/root"
 	"github.com/brimdata/super/pkg/charm"
 )
 
@@ -17,10 +16,18 @@ vector runs various tests of the vector cache and runtime as specified by its su
 	New: New,
 }
 
+type Command struct {
+	*dev.Command
+}
+
 func init() {
 	dev.Spec.Add(Spec)
 }
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
-	return parent.(*root.Command), nil
+	return &Command{Command: parent.(*dev.Command)}, nil
+}
+
+func (c *Command) Run(args []string) error {
+	return charm.NoRun(args)
 }

@@ -1,15 +1,15 @@
 script: |
-  super dev compile -C '{x:1,...y}'
-  super dev compile -C '[1,2,3]'
-  super dev compile -C '|["foo","bar"]|'
-  super dev compile -C '|{"foo":1,"bar":2}|'
-  super dev compile -C '<(int64,string)>(1)'
+  super compile -C '{x:1,...y}'
+  super compile -C '[1,2,3]'
+  super compile -C '|["foo","bar"]|'
+  super compile -C '|{"foo":1,"bar":2}|'
+  super compile -C '<(int64,string)>(1)'
   echo "==="
-  super dev compile -s -C '{x:1,...y}'
-  super dev compile -s -C '[1,2,3]'
-  super dev compile -s -C '|["foo","bar"]|'
-  super dev compile -s -C '|{"foo":1,"bar":2}|'
-  super dev compile -s -C '<(int64,string)>(1)'
+  super compile -dag -C '{x:1,...y}'
+  super compile -dag -C '[1,2,3]'
+  super compile -dag -C '|["foo","bar"]|'
+  super compile -dag -C '|{"foo":1,"bar":2}|'
+  super compile -dag -C '<(int64,string)>(1)'
 
 outputs:
   - name: stdout

@@ -1,6 +1,6 @@
 script: |
-  super dev compile -C 'debug f"debug: {this}" | head 1'
-  super dev compile -s -C 'debug f"debug: {this}" | head 1'
+  super compile -C 'debug f"debug: {this}" | head 1'
+  super compile -dag -C 'debug f"debug: {this}" | head 1'
 
 outputs:
   - name: stdout

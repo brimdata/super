@@ -1,7 +1,7 @@
 script: |
-  ! super dev compile -s 'count() by this[a] := key'
-  ! super dev compile -s 'this[a] := count() by key'
-  ! super dev compile -s 'this[a] := count()'
+  ! super compile -dag 'count() by this[a] := key'
+  ! super compile -dag 'this[a] := count() by key'
+  ! super compile -dag 'this[a] := count()'
 
 outputs:
   - name: stderr

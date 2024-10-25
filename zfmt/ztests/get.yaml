@@ -1,9 +1,9 @@
 script: |
-  super dev compile -C 'get http://host/path'
+  super compile -C 'get http://host/path'
   echo ===
-  super dev compile -C 'get http://host/path format f method m headers {a:["b"]} body b'
+  super compile -C 'get http://host/path format f method m headers {a:["b"]} body b'
   echo ===
-  super dev compile -C 'get http://host/path method "m|" body "b|"'
+  super compile -C 'get http://host/path method "m|" body "b|"'
 outputs:
   - name: stdout
     data: |

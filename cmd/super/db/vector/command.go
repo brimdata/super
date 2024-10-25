@@ -33,8 +33,5 @@ func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 }
 
 func (c *Command) Run(args []string) error {
-	if len(args) == 0 {
-		return charm.NeedHelp
-	}
-	return charm.ErrNoRun
+	return charm.NoRun(args)
 }

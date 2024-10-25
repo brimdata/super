@@ -1,7 +1,7 @@
 script: |
-  super dev compile -C 'file a | join (file b) on c'
+  super compile -C 'file a | join (file b) on c'
   echo ===
-  super dev compile -C -s 'file a | join (file b) on c'
+  super compile -C -dag 'file a | join (file b) on c'
 
 outputs:
   - name: stdout

@@ -17,10 +17,18 @@ prints the list of known dev tools.`,
 	New: New,
 }
 
+type Command struct {
+	*root.Command
+}
+
 func init() {
 	root.Super.Add(Spec)
 }
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
-	return parent.(*root.Command), nil
+	return &Command{Command: parent.(*root.Command)}, nil
+}
+
+func (c *Command) Run(args []string) error {
+	return charm.NoRun(args)
 }

@@ -1,10 +1,10 @@
 script: |
-  super dev compile -C -s 'tail 1'
+  super compile -C -dag 'tail 1'
   echo ===
-  super dev compile -C -s 'const x=1 tail x + 1'
-  ! super dev compile -C -s 'tail 1.'
-  ! super dev compile -C -s 'tail "1"'
-  ! super dev compile -C -s 'tail x'
+  super compile -C -dag 'const x=1 tail x + 1'
+  ! super compile -C -dag 'tail 1.'
+  ! super compile -C -dag 'tail "1"'
+  ! super compile -C -dag 'tail x'
 
 outputs:
   - name: stdout

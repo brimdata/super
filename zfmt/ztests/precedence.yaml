@@ -1,6 +1,6 @@
 script: |
   while read -r line; do
-    super dev compile -C $line
+    super compile -C "$line"
   done < inputs.spq
 
 inputs:

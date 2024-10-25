@@ -4,7 +4,6 @@ import (
 	"flag"
 
 	"github.com/brimdata/super/cmd/super/dev"
-	"github.com/brimdata/super/cmd/super/root"
 	"github.com/brimdata/super/pkg/charm"
 )
 
@@ -23,13 +22,13 @@ func init() {
 }
 
 type Command struct {
-	*root.Command
+	*dev.Command
 }
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
-	return &Command{Command: parent.(*root.Command)}, nil
+	return &Command{Command: parent.(*dev.Command)}, nil
 }
 
 func (c *Command) Run(args []string) error {
-	return charm.NeedHelp
+	return charm.NoRun(args)
 }

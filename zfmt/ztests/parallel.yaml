@@ -1,5 +1,5 @@
 script: |
-  super dev compile -s -C 'file bar | foo | fork (=> count() by x:=this["@foo"] => sum(x) => put a:=b*c) | cut cake | sort -r x'
+  super compile -dag -C 'file bar | foo | fork (=> count() by x:=this["@foo"] => sum(x) => put a:=b*c) | cut cake | sort -r x'
 
 outputs:
   - name: stdout

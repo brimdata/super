@@ -1,4 +1,4 @@
-script: super dev compile -O -C 'x>1 | pass | pass | x>2 | pass'
+script: super compile -O -C 'x>1 | pass | pass | x>2 | pass'
 
 outputs:
   - name: stdout

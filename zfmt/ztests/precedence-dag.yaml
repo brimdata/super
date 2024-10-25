@@ -3,7 +3,7 @@
 # same code path.
 script: |
   while read -r line; do
-    super dev compile -s -C $line
+    super compile -dag -C "$line"
   done < inputs.spq
 
 inputs:

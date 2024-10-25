@@ -6,7 +6,7 @@ script: |
   echo ===
   super db drop -lake $SUPER_DB_LAKE -p test
   echo ===
-  super db ls -lake $ZED_LAKE
+  super db ls -lake $SUPER_DB_LAKE
   echo ===
 
 inputs:

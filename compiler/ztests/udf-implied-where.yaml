@@ -1,5 +1,5 @@
 script: |
-  super dev compile -C -s 'func h(e): ( has(e) ) h(foo)'
+  super compile -C -dag 'func h(e): ( has(e) ) h(foo)'
 
 outputs:
   - name: stdout

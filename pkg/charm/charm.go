@@ -80,3 +80,10 @@ func (s *Spec) Exec(args []string) error {
 	}
 	return err
 }
+
+func NoRun(args []string) error {
+	if len(args) == 0 {
+		return NeedHelp
+	}
+	return ErrNoRun
+}

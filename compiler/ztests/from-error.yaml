@@ -1,16 +1,15 @@
 script: |
-  ! super dev compile -lake='' -C -s 'from p'
+  ! super compile -C -dag 'from p'
+  export SUPER_DB_LAKE=test
+  super db init -q
+  ! super db compile -C -dag 'from test'
   echo === >&2
-  export ZED_LAKE=test
-  super db init
-  ! super dev compile -C -s 'from test'
+  ! super db compile -C -dag 'from test*'
   echo === >&2
-  ! super dev compile -C -s 'from test*'
-  echo === >&2
-  ! super dev compile -C -s 'from /test/'
+  ! super db compile -C -dag 'from /test/'
   echo === >&2
   super db create -q test
-  ! super dev compile -C -s 'from (pool * => count())'
+  ! super db compile -C -dag 'from (pool * => count())'
 
 outputs:
   - name: stderr
@@ -18,7 +17,6 @@ outputs:
       "from pool" cannot be used without a lake at line 1, column 1:
       from p
       ~~~~~~
-      ===
       test: pool not found at line 1, column 6:
       from test
            ~~~~

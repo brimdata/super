@@ -1,9 +1,9 @@
 script: |
-  super dev compile -C 'yield <{a:int64}>'
-  super dev compile -C 'yield <[int64]>'
-  super dev compile -C 'yield <|[int64]|>'
-  super dev compile -C 'yield <|{int64:string}|>'
-  super dev compile -C 'yield <error({msg:string})>'
+  super compile -C 'yield <{a:int64}>'
+  super compile -C 'yield <[int64]>'
+  super compile -C 'yield <|[int64]|>'
+  super compile -C 'yield <|{int64:string}|>'
+  super compile -C 'yield <error({msg:string})>'
 
 outputs:
   - name: stdout

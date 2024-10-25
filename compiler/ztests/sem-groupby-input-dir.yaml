@@ -1,8 +1,8 @@
 script: |
-  export ZED_LAKE=test
+  export SUPER_DB_LAKE=test
   super db init -q
   super db create -q -orderby ts pool-ts
-  super dev compile -C -O "from 'pool-ts'| count() by every(1h)" |  sed -e 's/pool .*/.../'
+  super db compile -C -O "from 'pool-ts'| count() by every(1h)" |  sed -e 's/pool .*/.../'
 
 outputs:
   - name: stdout

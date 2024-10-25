@@ -7,7 +7,7 @@
 # ============================================================================
 
 script: |
-  super dev compile -C 'widget | count() by color | COLOR := upper(color)'
+  super compile -C 'widget | count() by color | COLOR := upper(color)'
 
 outputs:
   - name: stdout

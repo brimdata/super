@@ -1,11 +1,11 @@
 script: |
-  super dev compile -C -O 'where a | where b'
+  super compile -C -O 'where a | where b'
   echo ===
-  super dev compile -C -O 'from ( file a => where b | where c file d => where e | where f ) | where g'
+  super compile -C -O 'from ( file a => where b | where c file d => where e | where f ) | where g'
   echo ===
-  super dev compile -C -O 'over a => ( where b | where c )'
+  super compile -C -O 'over a => ( where b | where c )'
   echo ===
-  super dev compile -C -O 'fork ( => where a | where b => where c | where d  )'
+  super compile -C -O 'fork ( => where a | where b => where c | where d  )'
 
 outputs:
   - name: stdout

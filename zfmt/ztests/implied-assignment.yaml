@@ -1,7 +1,7 @@
 script: |
-  super dev compile -C 'x:=1'
-  super dev compile -C 'x:=1,y:=lower(s)'
-  super dev compile -C 'x:=count(),sum(x)'
+  super compile -C 'x:=1'
+  super compile -C 'x:=1,y:=lower(s)'
+  super compile -C 'x:=count(),sum(x)'
 
 outputs:
   - name: stdout

@@ -1,27 +1,27 @@
 script: |
-  export ZED_LAKE=test
+  export SUPER_DB_LAKE=test
   super db init -q
   super db create -q -orderby ts test
   echo "<CUT PUT RENAME>"
-  super dev compile -C -P 2 "from test | cut ts, y, z | put x := y | rename y := z" | sed -e 's/pool .*/.../'
+  super db compile -C -P 2 "from test | cut ts, y, z | put x := y | rename y := z" | sed -e 's/pool .*/.../'
   echo "<CUT UNIQ>"
-  super dev compile -C -P 2  "from test | cut ts, foo:=x | uniq" | sed -e 's/pool .*/.../'
+  super db compile -C -P 2  "from test | cut ts, foo:=x | uniq" | sed -e 's/pool .*/.../'
   echo "<DROP UNIQ>"
-  super dev compile -C -P 2 "from test | drop x | uniq" | sed -e 's/pool .*/.../'
+  super db compile -C -P 2 "from test | drop x | uniq" | sed -e 's/pool .*/.../'
   echo "<EVERY COUNT>"
-  super dev compile -C -P 2 "from test | count() by y, every(1h)" | sed -e 's/pool .*/.../'
+  super db compile -C -P 2 "from test | count() by y, every(1h)" | sed -e 's/pool .*/.../'
   echo "<PUT COUNTDISTINCT UNIQ>"
-  super dev compile -C -P 2  "from test | put x:=y | countdistinct(x) by y | uniq" | sed -e 's/pool .*/.../'
+  super db compile -C -P 2  "from test | put x:=y | countdistinct(x) by y | uniq" | sed -e 's/pool .*/.../'
   echo "<RENAME UNIQ>"
-  super dev compile -C -P 2  "from test | put x:=foo | rename foo:=boo | uniq" | sed -e 's/pool .*/.../'
+  super db compile -C -P 2  "from test | put x:=foo | rename foo:=boo | uniq" | sed -e 's/pool .*/.../'
   echo "<PUT TAIL>"
-  super dev compile -C -P 2 "from test | put a:=1 | tail" | sed -e 's/pool .*/.../'
+  super db compile -C -P 2 "from test | put a:=1 | tail" | sed -e 's/pool .*/.../'
   echo "<SORT UNIQ>"
-  super dev compile -C -P 2 "from test | sort | uniq" | sed -e 's/pool .*/.../'
+  super db compile -C -P 2 "from test | sort | uniq" | sed -e 's/pool .*/.../'
   echo "<SORT X UNIQ>"
-  super dev compile -C -P 2 "from test | sort x | uniq" | sed -e 's/pool .*/.../'
+  super db compile -C -P 2 "from test | sort x | uniq" | sed -e 's/pool .*/.../'
   echo "<UNIQ>"
-  super dev compile -C -P 2 "from test | uniq" | sed -e 's/pool .*/.../'
+  super db compile -C -P 2 "from test | uniq" | sed -e 's/pool .*/.../'
 
 outputs:
   - name: stdout

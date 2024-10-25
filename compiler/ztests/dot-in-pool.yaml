@@ -1,5 +1,5 @@
 script: |
-  export ZED_LAKE=test
+  export SUPER_DB_LAKE=test
   super db init -q
   super db create -q foo.bar
   super db use -q foo.bar

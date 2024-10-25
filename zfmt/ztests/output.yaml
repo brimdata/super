@@ -1,7 +1,7 @@
 script: |
-  super dev compile -C -s 'fork (=> output foo => pass)'
+  super compile -C -dag 'fork (=> output foo => pass)'
   echo '// ==='
-  super dev compile -C -s 'switch x (case "foo" => output foo case "bar" => pass)'
+  super compile -C -dag 'switch x (case "foo" => output foo case "bar" => pass)'
 
 outputs:
   - name: stdout

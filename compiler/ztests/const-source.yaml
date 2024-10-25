@@ -1,15 +1,15 @@
 script: |
-  export ZED_LAKE=test
+  export SUPER_DB_LAKE=test
   super db init -q
   super db create -q test
-  super dev compile -s -C 'const POOL = "test" from POOL' | sed -e "s/[a-zA-Z0-9]\{27\}/XXX/"
+  super db compile -dag -C 'const POOL = "test" from POOL' | sed -e "s/[a-zA-Z0-9]\{27\}/XXX/"
   echo "==="
-  super dev compile -s -C 'const FILE = "A.zson" file FILE'
+  super db compile -dag -C 'const FILE = "A.zson" file FILE'
   echo "==="
-  super dev compile -s -C 'const URL = "http://brimdata.io" get URL'
-  ! super dev compile -s -C 'const POOL = 3.14 from POOL'
-  ! super dev compile -s -C 'const FILE = 127.0.0.1 file FILE'
-  ! super dev compile -s -C 'const URL = true get URL'
+  super db compile -dag -C 'const URL = "http://brimdata.io" get URL'
+  ! super db compile -dag -C 'const POOL = 3.14 from POOL'
+  ! super db compile -dag -C 'const FILE = 127.0.0.1 file FILE'
+  ! super db compile -dag -C 'const URL = true get URL'
 
 outputs:
   - name: stdout

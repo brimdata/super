@@ -16,7 +16,7 @@ script: |
   echo "// ==="
   echo {} | super -z -c 'this[doesnotexist] := "world"' - 
   # semantic error cases
-  ! super dev compile -s 'op foo(): ( yield "error" ) put this[foo] := "hello world"'
+  ! super compile -dag 'op foo(): ( yield "error" ) put this[foo] := "hello world"'
 
 outputs:
   - name: stdout

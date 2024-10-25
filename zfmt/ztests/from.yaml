@@ -1,25 +1,25 @@
 script: |
-  super dev compile -C 'file path'
+  super compile -C 'file path'
   echo ===
-  super dev compile -C 'file path format f'
+  super compile -C 'file path format f'
   echo ===
-  super dev compile -C 'get http://host/path'
+  super compile -C 'get http://host/path'
   echo ===
-  super dev compile -C 'get http://host/path format f'
+  super compile -C 'get http://host/path format f'
   echo ===
-  super dev compile -C 'from foo'
+  super compile -C 'from foo'
   echo ===
-  super dev compile -C 'from foo*'
+  super compile -C 'from foo*'
   echo ===
-  super dev compile -C 'from /foo/'
+  super compile -C 'from /foo/'
   echo ===
-  super dev compile -C 'from ( file path get http://host/path pool name )'
+  super compile -C 'from ( file path get http://host/path pool name )'
   echo ===
-  super dev compile -C 'from ( file path format f get http://host/path format g pool name )'
+  super compile -C 'from ( file path format f get http://host/path format g pool name )'
   echo ===
-  super dev compile -C 'from ( file path => head get http://host/path => head pool name => head )'
+  super compile -C 'from ( file path => head get http://host/path => head pool name => head )'
   echo ===
-  super dev compile -C 'from ( file path format f => head get http://host/path format g => head pool name => head )'
+  super compile -C 'from ( file path format f => head get http://host/path format g => head pool name => head )'
 
 outputs:
   - name: stdout

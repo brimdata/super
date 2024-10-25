@@ -1,7 +1,7 @@
 script: |
-  super dev compile -C "join (file test.zson) on x=x p:=a"
+  super compile -C "join (file test.zson) on x=x p:=a"
   echo ===
-  super dev compile -C -s "join (file test.zson) on x=x p:=a"
+  super compile -C -dag "join (file test.zson) on x=x p:=a"
 
 outputs:
   - name: stdout

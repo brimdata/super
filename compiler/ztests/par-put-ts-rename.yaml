@@ -1,6 +1,6 @@
 skip: we no longer parallelize now when we clobber the sort key.  issue 2756
 
-script: super dev compile -C -P 2  "from 'pool-ts' | put ts:=foo | rename foo:=boo"
+script: super compile -C -P 2  "from 'pool-ts' | put ts:=foo | rename foo:=boo"
 
 outputs:
   - name: stdout

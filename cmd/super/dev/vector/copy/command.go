@@ -7,7 +7,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/cmd/super/dev/vector"
-	"github.com/brimdata/super/cmd/super/root"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime/vam"
@@ -34,12 +33,12 @@ func init() {
 }
 
 type Command struct {
-	*root.Command
+	*vector.Command
 	outputFlags outputflags.Flags
 }
 
 func newCommand(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
-	c := &Command{Command: parent.(*root.Command)}
+	c := &Command{Command: parent.(*vector.Command)}
 	c.outputFlags.SetFlags(f)
 	return c, nil
 }

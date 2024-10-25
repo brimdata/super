@@ -1,18 +1,18 @@
 script: |
-  export ZED_LAKE=test
+  export SUPER_DB_LAKE=test
   super db init -q
   super db create -q -orderby ts pool-ts
-  super dev compile -C -O "from 'pool-ts' | x=='hello' or x==1.0" | sed -e 's/lister .*/lister/' -e 's/seqscan .*filter/seqscan filter/'
+  super db compile -C -O "from 'pool-ts' | x=='hello' or x==1.0" | sed -e 's/lister .*/lister/' -e 's/seqscan .*filter/seqscan filter/'
   echo ===
-  super dev compile -C -O "from 'pool-ts' | x > 1 y <= 1.0" | sed -e 's/lister .*/lister/' -e 's/seqscan .*filter/seqscan filter/'
+  super db compile -C -O "from 'pool-ts' | x > 1 y <= 1.0" | sed -e 's/lister .*/lister/' -e 's/seqscan .*filter/seqscan filter/'
   echo ===
-  super dev compile -C -O "from 'pool-ts' | x=='hello' or x!=1.0" | sed -e 's/lister .*/lister/' -e 's/seqscan .*filter/seqscan filter/'
+  super db compile -C -O "from 'pool-ts' | x=='hello' or x!=1.0" | sed -e 's/lister .*/lister/' -e 's/seqscan .*filter/seqscan filter/'
   echo ===
-  super dev compile -C -O "from 'pool-ts' | x=='hello' or !(y==2 or y==3)" | sed -e 's/lister .*/lister/' -e 's/seqscan .*filter/seqscan filter/'
+  super db compile -C -O "from 'pool-ts' | x=='hello' or !(y==2 or y==3)" | sed -e 's/lister .*/lister/' -e 's/seqscan .*filter/seqscan filter/'
   echo ===
-  super dev compile -C -O "from 'pool-ts' | ts >= 0 and ts <= 2" | sed -e 's/lister .*pruner/lister pruner/' -e 's/seqscan .*pruner/seqscan pruner/'
+  super db compile -C -O "from 'pool-ts' | ts >= 0 and ts <= 2" | sed -e 's/lister .*pruner/lister pruner/' -e 's/seqscan .*pruner/seqscan pruner/'
   echo ===
-  super dev compile -C -O "from 'pool-ts' | ts >= 0 and ts <= 2 and x=='hello'"| sed -e 's/lister .*pruner/lister pruner/' -e 's/seqscan .*pruner/seqscan pruner/'
+  super db compile -C -O "from 'pool-ts' | ts >= 0 and ts <= 2 and x=='hello'"| sed -e 's/lister .*pruner/lister pruner/' -e 's/seqscan .*pruner/seqscan pruner/'
 
 outputs:
   - name: stdout

@@ -34,14 +34,5 @@ func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 }
 
 func (c *Command) Run(args []string) error {
-	//XXX
-	_, cancel, err := c.Init()
-	if err != nil {
-		return err
-	}
-	defer cancel()
-	if len(args) == 0 {
-		return charm.NeedHelp
-	}
-	return charm.ErrNoRun
+	return charm.NoRun(args)
 }

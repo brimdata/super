@@ -1,11 +1,11 @@
 script: |
-  super dev compile -C 'switch ( case grep("a") => head case grep("c") => tail )'
+  super compile -C 'switch ( case grep("a") => head case grep("c") => tail )'
   echo ===
-  super dev compile -C -s 'switch ( case grep("a") => head case grep("c") => tail )'
+  super compile -C -dag 'switch ( case grep("a") => head case grep("c") => tail )'
   echo ===
-  super dev compile -C 'switch ( case grep("a") => head default => tail )'
+  super compile -C 'switch ( case grep("a") => head default => tail )'
   echo ===
-  super dev compile -C -s 'switch ( case grep("a") => head default => tail )'
+  super compile -C -dag 'switch ( case grep("a") => head default => tail )'
 
 outputs:
   - name: stdout
