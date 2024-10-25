@@ -7,8 +7,9 @@ decent at analytics and
 [search use cases](https://zed.brimdata.io/docs/language/search-expressions).
 
 Unlike other relational systems that do schema inference of JSON,
-SuperDB won't fall over if you throw a bunch of eclectic JSON.
-You can easily do schema inference if you want, but data is ingested
+SuperDB won't fall over if you throw a bunch of eclectic JSON at it.
+You can easily do [schema inference if you want]
+(https://zed.brimdata.io/docs/language/operators/fuse), but data is ingested
 by default as strongly but dynamically typed data.
 
 In SuperDB's SQL dialect, there are no "JSON columns" so there isn't a "relational
@@ -80,8 +81,8 @@ desktop app to explore, query, and shape data in SuperDB data lake.
 It combines a search experience with a SQL query and has some really slick
 design for dealing with complex and large JSON data.
 
-Unlike most JSON browsing tools, it won't fall over if you load up ginormous
-JSON values.
+Unlike most JSON browsing tools, it won't slow to a crawl --- or worse crash ---
+if you load it up with ginormous JSON values.
 
 ## Contributing
 
