@@ -3,7 +3,9 @@
 SuperDB is a new analytics database that supports relational tables and JSON 
 on an equal footing.  It shines when it comes to complex data wrangling use cases
 where you need to explore or process large eclectic data sets.  It's also pretty
-decent at analytics and [search use cases](https://zed.brimdata.io/docs/language/#7-search-expressions).
+decent at analytics and
+[search use cases](https://zed.brimdata.io/docs/language/search-expressions).
+
 
 In SuperDB's SQL dialect, there are no "JSON columns" so there isn't a "relational
 way to do things" and a different "JSON way to do things".  Instead of having
