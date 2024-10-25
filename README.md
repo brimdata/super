@@ -6,6 +6,10 @@ where you need to explore or process large eclectic data sets.  It's also pretty
 decent at analytics and
 [search use cases](https://zed.brimdata.io/docs/language/search-expressions).
 
+Unlike other relational systems that do schema inference of JSON,
+SuperDB won't fall over if you throw a bunch of eclectic JSON.
+You can easily do schema inference if you want, but data is ingested
+by default as strongly but dynamically typed data.
 
 In SuperDB's SQL dialect, there are no "JSON columns" so there isn't a "relational
 way to do things" and a different "JSON way to do things".  Instead of having
