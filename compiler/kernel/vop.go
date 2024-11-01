@@ -176,6 +176,12 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 			return nil, err
 		}
 		return vamop.NewYield(b.zctx(), parent, []vamexpr.Evaluator{e}), nil
+	case *dag.DefaultScan:
+		zbufPuller, err := b.compileLeaf(o, nil)
+		if err != nil {
+			return nil, err
+		}
+		return vam.NewDematerializer(zbufPuller), nil
 	case *dag.Drop:
 		fields := make(field.List, 0, len(o.Args))
 		for _, e := range o.Args {

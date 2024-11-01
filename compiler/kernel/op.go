@@ -87,9 +87,6 @@ func (b *Builder) Build(seq dag.Seq, readers ...zio.Reader) (map[string]zbuf.Pul
 	}
 	b.readers = readers
 	if b.env.UseVAM() {
-		if len(readers) > 0 {
-			return nil, errors.New("vector runtime does not support internal readers")
-		}
 		if _, err := b.compileVamSeq(seq, nil); err != nil {
 			return nil, err
 		}
