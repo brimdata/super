@@ -7,7 +7,7 @@ import (
 )
 
 type schema interface {
-	schemaType()
+	Name() string
 }
 
 type schemaStatic struct {
@@ -28,15 +28,18 @@ type schemaSelect struct {
 }
 
 type schemaJoin struct {
-	name  string
 	left  schema
 	right schema
 }
 
-func (*schemaStatic) schemaType()  {}
-func (*schemaDynamic) schemaType() {}
-func (*schemaSelect) schemaType()  {}
-func (*schemaJoin) schemaType()    {}
+func (s *schemaStatic) Name() string  { return s.name }
+func (s *schemaDynamic) Name() string { return s.name }
+func (s *schemaSelect) Name() string  { return s.name }
+func (s *schemaJoin) Name() string    { return "" }
+
+func badSchema() schema {
+	return &schemaDynamic{}
+}
 
 // Column of a select statement.  We bookkeep here whether
 // a column is a scalar expression or an aggregation by looking up the function
