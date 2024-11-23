@@ -43,16 +43,18 @@ func (a *analyzer) semFrom(from *ast.From, seq dag.Seq) dag.Seq {
 	return a.semFromElem(from.Elems[0], seq)
 }
 
-func (a *analyzer) semFromElem(elem *ast.FromElem, seq dag.Seq) dag.Seq {
-	seq = a.semFromEntity(elem.Entity, elem.Args, seq)
+func (a *analyzer) semFromElem(elem *ast.FromElem, seq dag.Seq) (dag.Seq, schema) {
+	var sch schema
+	seq, sch = a.semFromEntity(elem.Entity, elem.Args, seq)
 	if elem.Ordinality != nil {
 		a.error(elem.Ordinality, errors.New("WITH ORDINALITY clause is not yet supported"))
-		return dag.Seq{badOp()}
+		return dag.Seq{badOp()}, nil //XXX schemaBad?
 	}
 	if elem.Alias != nil {
 		seq = wrapAlias(elem.Alias.Text, seq)
+		schm.prefi
 	}
-	return seq
+	return seq, sch
 }
 
 func wrapAlias(alias string, seq dag.Seq) dag.Seq {
@@ -74,7 +76,7 @@ func wrapAlias(alias string, seq dag.Seq) dag.Seq {
 	})
 }
 
-func (a *analyzer) semFromEntity(entity ast.FromEntity, args ast.FromArgs, seq dag.Seq) dag.Seq {
+func (a *analyzer) semFromEntity(entity ast.FromEntity, args ast.FromArgs, seq dag.Seq) (dag.Seq, schema) {
 	switch entity := entity.(type) {
 	case *ast.Glob:
 		if bad := a.hasFromParent(entity, seq); bad != nil {

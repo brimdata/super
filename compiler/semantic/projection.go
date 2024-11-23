@@ -6,6 +6,38 @@ import (
 	"github.com/brimdata/super/pkg/field"
 )
 
+type schema interface {
+	schemaType()
+}
+
+type schemaStatic struct {
+	name   string
+	path   field.Path
+	column []string
+}
+
+type schemaDynamic struct {
+	name string
+	path field.Path
+}
+
+type schemaSelect struct {
+	name string
+	in   schema
+	out  schema
+}
+
+type schemaJoin struct {
+	name  string
+	left  schema
+	right schema
+}
+
+func (*schemaStatic) schemaType()  {}
+func (*schemaDynamic) schemaType() {}
+func (*schemaSelect) schemaType()  {}
+func (*schemaJoin) schemaType()    {}
+
 // Column of a select statement.  We bookkeep here whether
 // a column is a scalar expression or an aggregation by looking up the function
 // name and seeing if it's an aggregator or not.  We also infer the column
