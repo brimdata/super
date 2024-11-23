@@ -19,8 +19,7 @@ type Selection struct {
 }
 
 // SQLPipe turns a Seq into an Op.  We need this to put pipes inside
-// of SQL expressions.  SuperPipe doesn't have this weirdism (though you
-// can put pipes inside of expressions for correlated subqueries).
+// of SQL expressions.
 type SQLPipe struct {
 	Kind string `json:"kind" unpack:""`
 	Ops  Seq    `json:"ops"`

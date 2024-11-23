@@ -35,77 +35,110 @@ func (a *analyzer) semSeq(seq ast.Seq) dag.Seq {
 	return converted
 }
 
-func (a *analyzer) semFrom(from *ast.From, seq dag.Seq) dag.Seq {
+func (a *analyzer) semFrom(from *ast.From, seq dag.Seq) (dag.Seq, schema) {
 	if len(from.Elems) > 1 {
 		a.error(from, errors.New("cross join implied by multiple elements in from clause is not yet supported"))
-		return dag.Seq{badOp()}
+		return dag.Seq{badOp()}, badSchema()
 	}
 	return a.semFromElem(from.Elems[0], seq)
 }
 
-func (a *analyzer) semFromElem(elem *ast.FromElem, seq dag.Seq) dag.Seq {
-	seq = a.semFromEntity(elem.Entity, elem.Args, seq)
+// semFromElem generates a DAG fragment to read from the various sources potentially
+// with embedded SQL subexpressions and joins.  We return the schema of the
+// the entity to support SQL scoping semantics  The callee is responsible for
+// wrapping the result in a named record when needed as by default the data is
+// simply a polymorphic sequence.
+func (a *analyzer) semFromElem(elem *ast.FromElem, seq dag.Seq) (dag.Seq, schema) {
+	var sch schema
+	seq, sch = a.semFromEntity(elem.Entity, elem.Alias, elem.Args, seq)
 	if elem.Ordinality != nil {
 		a.error(elem.Ordinality, errors.New("WITH ORDINALITY clause is not yet supported"))
-		return dag.Seq{badOp()}
+		return dag.Seq{badOp()}, badSchema()
 	}
-	if elem.Alias != nil {
-		seq = wrapAlias(elem.Alias.Text, seq)
-	}
-	return seq
+	return seq, sch
 }
 
-func wrapAlias(alias string, seq dag.Seq) dag.Seq {
-	// Wrap the values in a single-field record with the name of the alias.
+func yieldExpr(e dag.Expr, seq dag.Seq) dag.Seq {
 	return append(seq, &dag.Yield{
-		Kind: "Yield",
-		Exprs: []dag.Expr{
-			&dag.RecordExpr{
-				Kind: "RecordExpr",
-				Elems: []dag.RecordElem{
-					&dag.Field{
-						Kind:  "Field",
-						Name:  alias,
-						Value: &dag.This{Kind: "This"},
-					},
-				},
-			},
-		},
+		Kind:  "Yield",
+		Exprs: []dag.Expr{e},
 	})
 }
 
-func (a *analyzer) semFromEntity(entity ast.FromEntity, args ast.FromArgs, seq dag.Seq) dag.Seq {
+func wrapThis(field string) *dag.RecordExpr {
+	return wrapField(field, &dag.This{Kind: "This"})
+}
+
+func wrapField(field string, e dag.Expr) *dag.RecordExpr {
+	return &dag.RecordExpr{
+		Kind: "RecordExpr",
+		Elems: []dag.RecordElem{
+			&dag.Field{
+				Kind:  "Field",
+				Name:  field,
+				Value: e,
+			},
+		},
+	}
+}
+
+// XXX drop this
+func (a *analyzer) genPseudoTable() string {
+	a.prels++
+	return fmt.Sprintf("prel%d", a.prels)
+}
+
+func (a *analyzer) fromSchema(alias *ast.Name, name string) schema {
+	if alias != nil {
+		name = alias.Text
+	}
+	return &schemaDynamic{name: name}
+}
+
+func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.Name, args ast.FromArgs, seq dag.Seq) (dag.Seq, schema) {
 	switch entity := entity.(type) {
 	case *ast.Glob:
 		if bad := a.hasFromParent(entity, seq); bad != nil {
-			return bad
+			return bad, badSchema()
 		}
+		s := a.fromSchema(alias, "")
 		if a.env.IsLake() {
-			return a.semPoolFromRegexp(entity, reglob.Reglob(entity.Pattern), entity.Pattern, "glob", args)
+			return a.semPoolFromRegexp(entity, reglob.Reglob(entity.Pattern), entity.Pattern, "glob", args), s
 		}
-		return dag.Seq{a.semFromFileGlob(entity, entity.Pattern, args)}
+		return dag.Seq{a.semFromFileGlob(entity, entity.Pattern, args)}, s
 	case *ast.Regexp:
 		if bad := a.hasFromParent(entity, seq); bad != nil {
-			return bad
+			return bad, badSchema()
 		}
 		if !a.env.IsLake() {
 			a.error(entity, errors.New("cannot use regular expression with from operator on local file system"))
 		}
-		return a.semPoolFromRegexp(entity, entity.Pattern, entity.Pattern, "regexp", args)
+		return a.semPoolFromRegexp(entity, entity.Pattern, entity.Pattern, "regexp", args), a.fromSchema(alias, "")
+
 	case *ast.Name:
 		if bad := a.hasFromParent(entity, seq); bad != nil {
-			return bad
+			return bad, badSchema()
 		}
-		return dag.Seq{a.semFromName(entity, entity.Text, args)}
+		op, def := a.semFromName(entity, entity.Text, args)
+		return dag.Seq{op}, a.fromSchema(alias, def)
 	case *ast.ExprEntity:
-		return a.semFromExpr(entity, args, seq)
+		seq, def := a.semFromExpr(entity, args, seq)
+		return seq, a.fromSchema(alias, def)
 	case *ast.LakeMeta:
 		if bad := a.hasFromParent(entity, seq); bad != nil {
-			return bad
+			return bad, badSchema()
 		}
-		return dag.Seq{a.semLakeMeta(entity)}
+		return dag.Seq{a.semLakeMeta(entity)}, &schemaDynamic{} //XXX
 	case *ast.SQLPipe:
-		return a.semOp(entity, seq)
+		//XXX since this is an embedded scope, I think we should hide the schema.
+		// it's up to the outer scope to provide the schema
+		// e.g., this should fail: select T.a from (from (select * from a1.json) T)
+		// while this should work: select T.a from (from (select * from a1.json)) T
+		var name string
+		if alias != nil {
+			name = alias.Text
+		}
+		return a.semSQLPipe(entity, seq, name)
 	case *ast.SQLJoin:
 		return a.semSQLJoin(entity, seq)
 	default:
@@ -113,12 +146,12 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, args ast.FromArgs, seq d
 	}
 }
 
-func (a *analyzer) semFromExpr(entity *ast.ExprEntity, args ast.FromArgs, seq dag.Seq) dag.Seq {
+func (a *analyzer) semFromExpr(entity *ast.ExprEntity, args ast.FromArgs, seq dag.Seq) (dag.Seq, string) {
 	expr := a.semExpr(entity.Expr)
 	val, err := kernel.EvalAtCompileTime(a.zctx, expr)
 	if err == nil && !hasError(val) {
 		if bad := a.hasFromParent(entity, seq); bad != nil {
-			return bad
+			return bad, ""
 		}
 		return a.semFromConstVal(val, entity, args)
 	}
@@ -128,7 +161,7 @@ func (a *analyzer) semFromExpr(entity *ast.ExprEntity, args ast.FromArgs, seq da
 		Kind:   "RobotScan",
 		Expr:   expr,
 		Format: a.formatArg(args),
-	})
+	}), ""
 }
 
 func hasError(val super.Value) bool {
@@ -145,51 +178,56 @@ func (a *analyzer) hasFromParent(loc ast.Node, seq dag.Seq) dag.Seq {
 	return nil
 }
 
-func (a *analyzer) semFromConstVal(val super.Value, entity *ast.ExprEntity, args ast.FromArgs) dag.Seq {
+// XXX return default name here too
+func (a *analyzer) semFromConstVal(val super.Value, entity *ast.ExprEntity, args ast.FromArgs) (dag.Seq, string) {
 	if super.TypeUnder(val.Type()) == super.TypeString {
-		return dag.Seq{a.semFromName(entity, val.AsString(), args)}
+		op, name := a.semFromName(entity, val.AsString(), args)
+		return dag.Seq{op}, name
 	}
 	vals, err := val.Elements()
 	if err != nil {
 		a.error(entity.Expr, fmt.Errorf("from expression requires a string but encountered %s", zson.String(val)))
-		return dag.Seq{badOp()}
+		return dag.Seq{badOp()}, ""
 	}
 	names := make([]string, 0, len(vals))
 	for _, val := range vals {
 		if super.TypeUnder(val.Type()) != super.TypeString {
 			a.error(entity.Expr, fmt.Errorf("from expression requires a string but encountered %s", zson.String(val)))
-			return dag.Seq{badOp()}
+			return dag.Seq{badOp()}, ""
 		}
 		names = append(names, val.AsString())
 	}
 	if len(names) == 1 {
-		return dag.Seq{a.semFromName(entity, names[0], args)}
+		op, _ := a.semFromName(entity, names[0], args)
+		return dag.Seq{op}, names[0]
 	}
 	var paths []dag.Seq
 	for _, name := range names {
-		paths = append(paths, dag.Seq{a.semFromName(entity, name, args)})
+		op, _ := a.semFromName(entity, name, args)
+		paths = append(paths, dag.Seq{op})
 	}
 	return dag.Seq{
 		&dag.Fork{
 			Kind:  "Fork",
 			Paths: paths,
 		},
-	}
+	}, ""
 }
 
-func (a *analyzer) semFromName(nameLoc ast.Node, name string, args ast.FromArgs) dag.Op {
+func (a *analyzer) semFromName(nameLoc ast.Node, name string, args ast.FromArgs) (dag.Op, string) {
 	if isURL(name) {
-		return a.semFromURL(nameLoc, name, args)
+		return a.semFromURL(nameLoc, name, args), ""
 	}
+	prefix := strings.Split(name, ".")[0]
 	if a.env.IsLake() {
 		poolArgs, err := asPoolArgs(args)
 		if err != nil {
 			a.error(args, err)
-			return badOp()
+			return badOp(), ""
 		}
-		return a.semPool(nameLoc, name, poolArgs)
+		return a.semPool(nameLoc, name, poolArgs), prefix
 	}
-	return a.semFile(name, args)
+	return a.semFile(name, args), prefix
 }
 
 func asPoolArgs(args ast.FromArgs) (*ast.PoolArgs, error) {
@@ -545,9 +583,16 @@ func (a *analyzer) semDebugOp(o *ast.Debug, mainAst ast.Seq, in dag.Seq) dag.Seq
 func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 	switch o := o.(type) {
 	case *ast.Select, *ast.Limit, *ast.OrderBy, *ast.SQLPipe:
-		return a.semSQLOp(o, seq)
+		seq, s := a.semSQLOp(o, seq)
+		//XXX fix comment here
+		//XXX here is where we should use the returned schema to yield out
+		// the right entity from the binder-modeled data sequence
+		// seq = yieldFromSchema(seq, schema)
+		seq, _ = derefSchema(s, seq, "")
+		return seq
 	case *ast.From:
-		return a.semFrom(o, seq)
+		seq, _ := a.semFrom(o, seq)
+		return seq
 	case *ast.Delete:
 		if len(seq) > 0 {
 			panic("analyzer.SemOp: delete scan cannot have parent in AST")
@@ -1050,7 +1095,7 @@ func (a *analyzer) semFuncDecls(decls []*ast.FuncDecl) []*dag.Func {
 			Name:   d.Name.Name,
 			Params: params,
 		}
-		if err := a.scope.DefineAs(d.Name, f); err != nil {
+		if err := a.scope.DefineAs(d.Name.Name, f); err != nil {
 			a.error(d.Name, err)
 		}
 		funcs = append(funcs, f)
@@ -1079,12 +1124,12 @@ func (a *analyzer) semOpDecl(d *ast.OpDecl) {
 	for _, p := range d.Params {
 		if m[p.Name] {
 			a.error(p, fmt.Errorf("duplicate parameter %q", p.Name))
-			a.scope.DefineAs(d.Name, &opDecl{bad: true})
+			a.scope.DefineAs(d.Name.Name, &opDecl{bad: true})
 			return
 		}
 		m[p.Name] = true
 	}
-	if err := a.scope.DefineAs(d.Name, &opDecl{ast: d, scope: a.scope}); err != nil {
+	if err := a.scope.DefineAs(d.Name.Name, &opDecl{ast: d, scope: a.scope}); err != nil {
 		a.error(d, err)
 	}
 }
@@ -1292,7 +1337,7 @@ func (a *analyzer) maybeConvertUserOp(call *ast.Call) dag.Seq {
 		a.scope = oldscope
 	}()
 	for i, p := range params {
-		if err := a.scope.DefineAs(p, exprs[i]); err != nil {
+		if err := a.scope.DefineAs(p.Name, exprs[i]); err != nil {
 			a.error(call, err)
 			return dag.Seq{badOp()}
 		}

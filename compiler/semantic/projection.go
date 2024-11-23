@@ -6,6 +6,43 @@ import (
 	"github.com/brimdata/super/pkg/field"
 )
 
+type schema interface {
+	Name() string
+}
+
+type schemaStatic struct {
+	name    string
+	columns []string
+}
+
+type schemaAnon struct {
+	columns []string
+}
+
+type schemaDynamic struct {
+	name string
+}
+
+type schemaSelect struct {
+	in  schema
+	out schema
+}
+
+type schemaJoin struct {
+	left  schema
+	right schema
+}
+
+func (s *schemaStatic) Name() string  { return s.name }
+func (s *schemaDynamic) Name() string { return s.name }
+func (s *schemaAnon) Name() string    { return "" }
+func (s *schemaSelect) Name() string  { return "" }
+func (s *schemaJoin) Name() string    { return "" }
+
+func badSchema() schema {
+	return &schemaDynamic{}
+}
+
 // Column of a select statement.  We bookkeep here whether
 // a column is a scalar expression or an aggregation by looking up the function
 // name and seeing if it's an aggregator or not.  We also infer the column
@@ -68,34 +105,71 @@ func (p projection) scalars() projection {
 	return scalars
 }
 
-func (p projection) yieldScalars(seq dag.Seq) dag.Seq {
+func (p projection) yieldScalars(seq dag.Seq, sch *schemaSelect) dag.Seq {
 	if len(p) == 0 {
 		return nil
 	}
-	var elems []dag.RecordElem
-	for _, col := range p {
-		var elem dag.RecordElem
-		if col.isStar() {
-			elem = &dag.Spread{
+	for k, col := range p {
+		var elems []dag.RecordElem
+		if k != 0 {
+			elems = append(elems, &dag.Spread{
 				Kind: "Spread",
-				Expr: &dag.This{Kind: "This"},
+				Expr: &dag.This{Kind: "This", Path: []string{"out"}},
+			})
+		}
+		if col.isStar() {
+			for _, path := range unravel(sch, nil) {
+				elems = append(elems, &dag.Spread{
+					Kind: "Spread",
+					Expr: &dag.This{Kind: "This", Path: path},
+				})
 			}
 		} else {
-			elem = &dag.Field{
+			elems = append(elems, &dag.Field{
 				Kind:  "Field",
 				Name:  col.name,
 				Value: col.scalar,
-			}
+			})
 		}
-		elems = append(elems, elem)
-	}
-	return append(seq, &dag.Yield{
-		Kind: "Yield",
-		Exprs: []dag.Expr{
-			&dag.RecordExpr{
-				Kind:  "RecordExpr",
-				Elems: elems,
+		e := &dag.RecordExpr{
+			Kind: "RecordExpr",
+			Elems: []dag.RecordElem{
+				&dag.Field{
+					Kind:  "Field",
+					Name:  "in",
+					Value: &dag.This{Kind: "This", Path: field.Path{"in"}},
+				},
+				&dag.Field{
+					Kind: "Field",
+					Name: "out",
+					Value: &dag.RecordExpr{
+						Kind:  "RecordExpr",
+						Elems: elems,
+					},
+				},
 			},
-		},
-	})
+		}
+		// {in:this,out:{a:e1,b:e2}}
+		// | yield {in:this} (above)
+		//
+		// | yield {in,out:{a:e1}}
+		// | yield {in,out:{...out,b:e2}}
+		seq = append(seq, &dag.Yield{
+			Kind:  "Yield",
+			Exprs: []dag.Expr{e},
+		})
+	}
+	return seq
+}
+
+func unravel(schema schema, prefix field.Path) []field.Path {
+	switch schema := schema.(type) {
+	default:
+		return []field.Path{prefix}
+	case *schemaSelect:
+		return unravel(schema.in, append(prefix, "in"))
+	case *schemaJoin:
+		out := unravel(schema.left, append(prefix, "left"))
+		return append(out, unravel(schema.right, append(prefix, "right"))...)
+	}
 }
