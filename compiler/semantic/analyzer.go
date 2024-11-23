@@ -45,6 +45,7 @@ type analyzer struct {
 	env     *exec.Environment
 	scope   *Scope
 	zctx    *super.Context
+	prels   int
 }
 
 func newAnalyzer(ctx context.Context, files *srcfiles.List, env *exec.Environment) *analyzer {
@@ -79,6 +80,11 @@ func (a *analyzer) enterScope() {
 
 func (a *analyzer) exitScope() {
 	a.scope = a.scope.parent
+}
+
+func (a *analyzer) enterScopeWithSchema(s schema) {
+	a.scope = NewScope(a.scope)
+	a.scope.schema = s
 }
 
 type opDecl struct {

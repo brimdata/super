@@ -46,7 +46,19 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 			Value: zson.FormatValue(val),
 		}
 	case *ast.ID:
-		return a.semID(e)
+		id := a.semID(e)
+		if a.scope.schema != nil {
+			if this, ok := id.(*dag.This); ok {
+				path, err := a.scope.resolve(this.Path)
+				if err != nil {
+					a.error(e, err)
+					return badExpr()
+				}
+				this.Path = path
+				return this
+			}
+		}
+		return id
 	case *ast.Term:
 		var val string
 		switch t := e.Value.(type) {
@@ -226,7 +238,7 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 					continue
 				}
 				fields[elem.Name] = struct{}{}
-				v := a.semID(elem)
+				v := a.semID(elem) //XXX need to handle sql column lookup?
 				out = append(out, &dag.Field{
 					Kind:  "Field",
 					Name:  elem.Name,
@@ -389,6 +401,19 @@ func (a *analyzer) semRegexp(b *ast.BinaryExpr) dag.Expr {
 }
 
 func (a *analyzer) semBinary(e *ast.BinaryExpr) dag.Expr {
+	if path := a.semDotted(e); path != nil {
+		if a.scope.schema != nil {
+			//XXX need to check first val for const since we're overriding here
+			// as well as check schema in ID cast in semExpr
+			var err error
+			path, err = a.scope.resolve(path)
+			if err != nil {
+				a.error(e, err)
+				return badExpr()
+			}
+		}
+		return &dag.This{Kind: "This", Path: path}
+	}
 	if e := a.semRegexp(e); e != nil {
 		return e
 	}
@@ -464,6 +489,31 @@ func (a *analyzer) semExprNullable(e ast.Expr) dag.Expr {
 		return nil
 	}
 	return a.semExpr(e)
+}
+
+func (a *analyzer) semDotted(e *ast.BinaryExpr) []string {
+	if e.Op != "." {
+		return nil
+	}
+	rhs, ok := e.RHS.(*ast.ID)
+	if !ok {
+		return nil
+	}
+	switch lhs := e.LHS.(type) {
+	case *ast.ID:
+		id := a.semID(lhs)
+		if this, ok := id.(*dag.This); ok {
+			return append(this.Path, rhs.Name)
+		}
+		return nil
+	case *ast.BinaryExpr:
+		this := a.semDotted(lhs)
+		if this == nil {
+			return nil
+		}
+		return append(this, rhs.Name)
+	}
+	return nil
 }
 
 func (a *analyzer) semCall(call *ast.Call) dag.Expr {
