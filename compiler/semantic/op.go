@@ -35,24 +35,30 @@ func (a *analyzer) semSeq(seq ast.Seq) dag.Seq {
 	return converted
 }
 
-func (a *analyzer) semFrom(from *ast.From, seq dag.Seq) dag.Seq {
+func (a *analyzer) semFrom(from *ast.From, seq dag.Seq) (dag.Seq, schema) {
 	if len(from.Elems) > 1 {
 		a.error(from, errors.New("cross join implied by multiple elements in from clause is not yet supported"))
-		return dag.Seq{badOp()}
+		return dag.Seq{badOp()}, badSchema()
 	}
 	return a.semFromElem(from.Elems[0], seq)
 }
 
+// semFromElem generates a DAG fragment to read from the various sources potentially
+// with embedded SQL subexpressions and joins.  We wrap all of the pseduo-table expressions
+// in a named entity as a record expression to support SQL scoping semantics.  When the
+// from appears as a pipe-only from operator, then it's up to the callee to strip the
+// DAG segment that wraps the pseudo-table but only if the naming is not explicit.
+// e.g., "from foo" would generate values without wrapping but "from foo as bar" would
+// wrap the sequence in a {bar:...} record even in the case of a pipe-only from op.
 func (a *analyzer) semFromElem(elem *ast.FromElem, seq dag.Seq) (dag.Seq, schema) {
 	var sch schema
 	seq, sch = a.semFromEntity(elem.Entity, elem.Args, seq)
 	if elem.Ordinality != nil {
 		a.error(elem.Ordinality, errors.New("WITH ORDINALITY clause is not yet supported"))
-		return dag.Seq{badOp()}, nil //XXX schemaBad?
+		return dag.Seq{badOp()}, badSchema()
 	}
-	if elem.Alias != nil {
+	if name := sch.Name(); name != "" {
 		seq = wrapAlias(elem.Alias.Text, seq)
-		schm.prefi
 	}
 	return seq, sch
 }
@@ -76,7 +82,7 @@ func wrapAlias(alias string, seq dag.Seq) dag.Seq {
 	})
 }
 
-func (a *analyzer) semFromEntity(entity ast.FromEntity, args ast.FromArgs, seq dag.Seq) (dag.Seq, schema) {
+func (a *analyzer) semFromEntity(entity ast.FromEntity, alias string, args ast.FromArgs, seq dag.Seq) (dag.Seq, schema) {
 	switch entity := entity.(type) {
 	case *ast.Glob:
 		if bad := a.hasFromParent(entity, seq); bad != nil {
