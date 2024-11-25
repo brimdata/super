@@ -87,11 +87,10 @@ func (a *analyzer) genPseudoTable() string {
 	return fmt.Sprintf("prel%s", a.prels)
 }
 
-func (a *analyzer) wrapFrom(alias *ast.Name, seq dag.Seq) (dag.Seq, schema) {
-	var name string
+func (a *analyzer) wrapFrom(alias *ast.Name, name string, seq dag.Seq) (dag.Seq, schema) {
 	if alias != nil {
 		name = alias.Text
-	} else {
+	} else if name == "" {
 		name = a.genPseudoTable()
 	}
 	return wrapAlias(name, seq), &schemaDynamic{name: name}
@@ -104,9 +103,9 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.Name, args as
 			return bad, badSchema()
 		}
 		if a.env.IsLake() {
-			return a.wrapFrom(alias, a.semPoolFromRegexp(entity, reglob.Reglob(entity.Pattern), entity.Pattern, "glob", args))
+			return a.wrapFrom(alias, "", a.semPoolFromRegexp(entity, reglob.Reglob(entity.Pattern), entity.Pattern, "glob", args))
 		}
-		return a.wrapFrom(alias, dag.Seq{a.semFromFileGlob(entity, entity.Pattern, args)})
+		return a.wrapFrom(alias, "", dag.Seq{a.semFromFileGlob(entity, entity.Pattern, args)})
 	case *ast.Regexp:
 		if bad := a.hasFromParent(entity, seq); bad != nil {
 			return bad, badSchema()
@@ -114,12 +113,13 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.Name, args as
 		if !a.env.IsLake() {
 			a.error(entity, errors.New("cannot use regular expression with from operator on local file system"))
 		}
-		return a.wrapFrom(alias, a.semPoolFromRegexp(entity, entity.Pattern, entity.Pattern, "regexp", args))
+		return a.wrapFrom(alias, "", a.semPoolFromRegexp(entity, entity.Pattern, entity.Pattern, "regexp", args))
 	case *ast.Name:
 		if bad := a.hasFromParent(entity, seq); bad != nil {
-			return bad
+			return bad, badSchema()
 		}
-		return dag.Seq{a.semFromName(entity, entity.Text, args)}
+		op, prName := a.semFromName(entity, entity.Text, args)
+		return a.wrapFrom(alias, prName, dag.Seq{op})
 	case *ast.ExprEntity:
 		return a.semFromExpr(entity, args, seq)
 	case *ast.LakeMeta:
@@ -168,6 +168,7 @@ func (a *analyzer) hasFromParent(loc ast.Node, seq dag.Seq) dag.Seq {
 	return nil
 }
 
+// XXX return default name here too
 func (a *analyzer) semFromConstVal(val super.Value, entity *ast.ExprEntity, args ast.FromArgs) dag.Seq {
 	if super.TypeUnder(val.Type()) == super.TypeString {
 		return dag.Seq{a.semFromName(entity, val.AsString(), args)}
@@ -186,11 +187,13 @@ func (a *analyzer) semFromConstVal(val super.Value, entity *ast.ExprEntity, args
 		names = append(names, val.AsString())
 	}
 	if len(names) == 1 {
-		return dag.Seq{a.semFromName(entity, names[0], args)}
+		op, _ := a.semFromName(entity, names[0], args)
+		return dag.Seq{op} // XXX should return a default name for this
 	}
 	var paths []dag.Seq
 	for _, name := range names {
-		paths = append(paths, dag.Seq{a.semFromName(entity, name, args)})
+		op, _ := a.semFromName(entity, name, args)
+		paths = append(paths, dag.Seq{op})
 	}
 	return dag.Seq{
 		&dag.Fork{
@@ -200,19 +203,20 @@ func (a *analyzer) semFromConstVal(val super.Value, entity *ast.ExprEntity, args
 	}
 }
 
-func (a *analyzer) semFromName(nameLoc ast.Node, name string, args ast.FromArgs) dag.Op {
+func (a *analyzer) semFromName(nameLoc ast.Node, name string, args ast.FromArgs) (dag.Op, string) {
 	if isURL(name) {
-		return a.semFromURL(nameLoc, name, args)
+		return a.semFromURL(nameLoc, name, args), ""
 	}
+	prefix := strings.Split(name, ".")[0]
 	if a.env.IsLake() {
 		poolArgs, err := asPoolArgs(args)
 		if err != nil {
 			a.error(args, err)
 			return badOp()
 		}
-		return a.semPool(nameLoc, name, poolArgs)
+		return a.semPool(nameLoc, name, poolArgs), prefix
 	}
-	return a.semFile(name, args)
+	return a.semFile(name, args), prefix
 }
 
 func asPoolArgs(args ast.FromArgs) (*ast.PoolArgs, error) {

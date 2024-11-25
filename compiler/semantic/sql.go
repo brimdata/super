@@ -20,7 +20,8 @@ func (a *analyzer) semSelect(sel *ast.Select, seq dag.Seq) dag.Seq {
 	if sel.From != nil {
 		off := len(seq)
 		hasParent := off > 0
-		seq = a.semFrom(sel.From, seq)
+		var schema schema
+		seq, schema = a.semFrom(sel.From, seq)
 		if off >= len(seq) {
 			// The chain didn't get lengthed so semFrom must have enocounteded
 			// an error...
