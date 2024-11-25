@@ -52,7 +52,7 @@ func (a *analyzer) semFrom(from *ast.From, seq dag.Seq) (dag.Seq, schema) {
 // wrap the sequence in a {bar:...} record even in the case of a pipe-only from op.
 func (a *analyzer) semFromElem(elem *ast.FromElem, seq dag.Seq) (dag.Seq, schema) {
 	var sch schema
-	seq, sch = a.semFromEntity(elem.Entity, elem.Args, seq)
+	seq, sch = a.semFromEntity(elem.Entity, elem.Alias, elem.Args, seq)
 	if elem.Ordinality != nil {
 		a.error(elem.Ordinality, errors.New("WITH ORDINALITY clause is not yet supported"))
 		return dag.Seq{badOp()}, badSchema()
@@ -82,24 +82,39 @@ func wrapAlias(alias string, seq dag.Seq) dag.Seq {
 	})
 }
 
-func (a *analyzer) semFromEntity(entity ast.FromEntity, alias string, args ast.FromArgs, seq dag.Seq) (dag.Seq, schema) {
+func (a *analyzer) genPseudoTable() string {
+	a.prels++
+	return fmt.Sprintf("prel%s", a.prels)
+}
+
+func (a *analyzer) wrapFrom(alias *ast.Name, seq dag.Seq) (dag.Seq, schema) {
+	var name string
+	if alias != nil {
+		name = alias.Text
+	} else {
+		name = a.genPseudoTable()
+	}
+	return wrapAlias(name, seq), &schemaDynamic{name: name}
+}
+
+func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.Name, args ast.FromArgs, seq dag.Seq) (dag.Seq, schema) {
 	switch entity := entity.(type) {
 	case *ast.Glob:
 		if bad := a.hasFromParent(entity, seq); bad != nil {
-			return bad
+			return bad, badSchema()
 		}
 		if a.env.IsLake() {
-			return a.semPoolFromRegexp(entity, reglob.Reglob(entity.Pattern), entity.Pattern, "glob", args)
+			return a.wrapFrom(alias, a.semPoolFromRegexp(entity, reglob.Reglob(entity.Pattern), entity.Pattern, "glob", args))
 		}
-		return dag.Seq{a.semFromFileGlob(entity, entity.Pattern, args)}
+		return a.wrapFrom(alias, dag.Seq{a.semFromFileGlob(entity, entity.Pattern, args)})
 	case *ast.Regexp:
 		if bad := a.hasFromParent(entity, seq); bad != nil {
-			return bad
+			return bad, badSchema()
 		}
 		if !a.env.IsLake() {
 			a.error(entity, errors.New("cannot use regular expression with from operator on local file system"))
 		}
-		return a.semPoolFromRegexp(entity, entity.Pattern, entity.Pattern, "regexp", args)
+		return a.wrapFrom(alias, a.semPoolFromRegexp(entity, entity.Pattern, entity.Pattern, "regexp", args))
 	case *ast.Name:
 		if bad := a.hasFromParent(entity, seq); bad != nil {
 			return bad
