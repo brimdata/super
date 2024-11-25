@@ -45,6 +45,7 @@ type analyzer struct {
 	env     *exec.Environment
 	scope   *Scope
 	zctx    *super.Context
+	prels   int
 }
 
 func newAnalyzer(ctx context.Context, files *srcfiles.List, env *exec.Environment) *analyzer {
