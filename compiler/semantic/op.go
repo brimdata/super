@@ -129,7 +129,7 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.Name, args as
 		}
 		return dag.Seq{a.semLakeMeta(entity)}, &schemaDynamic{} //XXX
 	case *ast.SQLPipe:
-		return a.semOp(entity, seq)
+		return a.semOp(entity, seq), &schemaDynamic{} //XXX semOp should return schema
 	case *ast.SQLJoin:
 		return a.semSQLJoin(entity, seq)
 	default:
@@ -172,7 +172,8 @@ func (a *analyzer) hasFromParent(loc ast.Node, seq dag.Seq) dag.Seq {
 // XXX return default name here too
 func (a *analyzer) semFromConstVal(val super.Value, entity *ast.ExprEntity, args ast.FromArgs) (dag.Seq, string) {
 	if super.TypeUnder(val.Type()) == super.TypeString {
-		return dag.Seq{a.semFromName(entity, val.AsString(), args)}
+		op, name := a.semFromName(entity, val.AsString(), args)
+		return dag.Seq{op}, name
 	}
 	vals, err := val.Elements()
 	if err != nil {
@@ -573,9 +574,14 @@ func (a *analyzer) semDebugOp(o *ast.Debug, mainAst ast.Seq, in dag.Seq) dag.Seq
 func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 	switch o := o.(type) {
 	case *ast.Select, *ast.Limit, *ast.OrderBy, *ast.SQLPipe:
-		return a.semSQLOp(o, seq)
+		seq, _ := a.semSQLOp(o, seq)
+		//XXX here is where we should use the returned schema to yield out
+		// the right entity from the binder-modeled data sequence
+		// seq = yieldFromSchema(seq, schema)
+		return seq
 	case *ast.From:
-		return a.semFrom(o, seq)
+		seq, _ := a.semFrom(o, seq)
+		return seq
 	case *ast.Delete:
 		if len(seq) > 0 {
 			panic("analyzer.SemOp: delete scan cannot have parent in AST")
