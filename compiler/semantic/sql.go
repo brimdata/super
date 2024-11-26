@@ -16,7 +16,7 @@ import (
 
 // Analyze a SQL select expression which may have arbitrary nested subqueries
 // and may or may not have its sources embedded.
-func (a *analyzer) semSelect(sel *ast.Select, seq dag.Seq) dag.Seq {
+func (a *analyzer) semSelect(sel *ast.Select, seq dag.Seq) (dag.Seq, schema) {
 	if sel.From != nil {
 		off := len(seq)
 		hasParent := off > 0
@@ -115,13 +115,13 @@ func (a *analyzer) semDistinct(seq dag.Seq) dag.Seq {
 	})
 }
 
-func (a *analyzer) semSQLOp(op ast.Op, seq dag.Seq) dag.Seq {
+func (a *analyzer) semSQLOp(op ast.Op, seq dag.Seq) (dag.Seq, schema) {
 	switch op := op.(type) {
 	case *ast.SQLPipe:
 		if len(seq) > 0 {
 			panic("semSQLOp: SQL pipes can't have parents")
 		}
-		return a.semSeq(op.Ops)
+		return a.semSeq(op.Ops), &schemaDynamic{} //XXX
 	case *ast.Select:
 		return a.semSelect(op, seq)
 	case *ast.SQLJoin:
@@ -170,7 +170,7 @@ func (a *analyzer) semSQLOp(op ast.Op, seq dag.Seq) dag.Seq {
 
 // For now, each joining table is on the right...
 // We don't have logic to not care about the side of the JOIN ON keys...
-func (a *analyzer) semSQLJoin(join *ast.SQLJoin, seq dag.Seq) dag.Seq {
+func (a *analyzer) semSQLJoin(join *ast.SQLJoin, seq dag.Seq) (dag.Seq, schema) {
 	// XXX  For now we require an alias on the
 	// right side and combine the entire right side value into the row
 	// using the existing join semantics of assignment where the lval

@@ -118,15 +118,16 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.Name, args as
 		if bad := a.hasFromParent(entity, seq); bad != nil {
 			return bad, badSchema()
 		}
-		op, prName := a.semFromName(entity, entity.Text, args)
-		return a.wrapFrom(alias, prName, dag.Seq{op})
+		op, def := a.semFromName(entity, entity.Text, args)
+		return a.wrapFrom(alias, def, dag.Seq{op})
 	case *ast.ExprEntity:
-		return a.semFromExpr(entity, args, seq)
+		seq, def := a.semFromExpr(entity, args, seq)
+		return a.wrapFrom(alias, def, seq)
 	case *ast.LakeMeta:
 		if bad := a.hasFromParent(entity, seq); bad != nil {
-			return bad
+			return bad, badSchema()
 		}
-		return dag.Seq{a.semLakeMeta(entity)}
+		return dag.Seq{a.semLakeMeta(entity)}, &schemaDynamic{} //XXX
 	case *ast.SQLPipe:
 		return a.semOp(entity, seq)
 	case *ast.SQLJoin:
@@ -136,12 +137,12 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.Name, args as
 	}
 }
 
-func (a *analyzer) semFromExpr(entity *ast.ExprEntity, args ast.FromArgs, seq dag.Seq) dag.Seq {
+func (a *analyzer) semFromExpr(entity *ast.ExprEntity, args ast.FromArgs, seq dag.Seq) (dag.Seq, string) {
 	expr := a.semExpr(entity.Expr)
 	val, err := kernel.EvalAtCompileTime(a.zctx, expr)
 	if err == nil && !hasError(val) {
 		if bad := a.hasFromParent(entity, seq); bad != nil {
-			return bad
+			return bad, ""
 		}
 		return a.semFromConstVal(val, entity, args)
 	}
@@ -151,7 +152,7 @@ func (a *analyzer) semFromExpr(entity *ast.ExprEntity, args ast.FromArgs, seq da
 		Kind:   "RobotScan",
 		Expr:   expr,
 		Format: a.formatArg(args),
-	})
+	}), ""
 }
 
 func hasError(val super.Value) bool {
@@ -169,26 +170,26 @@ func (a *analyzer) hasFromParent(loc ast.Node, seq dag.Seq) dag.Seq {
 }
 
 // XXX return default name here too
-func (a *analyzer) semFromConstVal(val super.Value, entity *ast.ExprEntity, args ast.FromArgs) dag.Seq {
+func (a *analyzer) semFromConstVal(val super.Value, entity *ast.ExprEntity, args ast.FromArgs) (dag.Seq, string) {
 	if super.TypeUnder(val.Type()) == super.TypeString {
 		return dag.Seq{a.semFromName(entity, val.AsString(), args)}
 	}
 	vals, err := val.Elements()
 	if err != nil {
 		a.error(entity.Expr, fmt.Errorf("from expression requires a string but encountered %s", zson.String(val)))
-		return dag.Seq{badOp()}
+		return dag.Seq{badOp()}, ""
 	}
 	names := make([]string, 0, len(vals))
 	for _, val := range vals {
 		if super.TypeUnder(val.Type()) != super.TypeString {
 			a.error(entity.Expr, fmt.Errorf("from expression requires a string but encountered %s", zson.String(val)))
-			return dag.Seq{badOp()}
+			return dag.Seq{badOp()}, ""
 		}
 		names = append(names, val.AsString())
 	}
 	if len(names) == 1 {
 		op, _ := a.semFromName(entity, names[0], args)
-		return dag.Seq{op} // XXX should return a default name for this
+		return dag.Seq{op}, names[0]
 	}
 	var paths []dag.Seq
 	for _, name := range names {
@@ -200,7 +201,7 @@ func (a *analyzer) semFromConstVal(val super.Value, entity *ast.ExprEntity, args
 			Kind:  "Fork",
 			Paths: paths,
 		},
-	}
+	}, ""
 }
 
 func (a *analyzer) semFromName(nameLoc ast.Node, name string, args ast.FromArgs) (dag.Op, string) {
@@ -212,7 +213,7 @@ func (a *analyzer) semFromName(nameLoc ast.Node, name string, args ast.FromArgs)
 		poolArgs, err := asPoolArgs(args)
 		if err != nil {
 			a.error(args, err)
-			return badOp()
+			return badOp(), ""
 		}
 		return a.semPool(nameLoc, name, poolArgs), prefix
 	}
