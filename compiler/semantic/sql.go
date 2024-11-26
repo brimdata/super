@@ -115,13 +115,28 @@ func (a *analyzer) semDistinct(seq dag.Seq) dag.Seq {
 	})
 }
 
+func (a *analyzer) semSQLPipe(op *ast.SQLPipe, seq dag.Seq) (dag.Seq, schema) {
+	if len(op.Ops) == 1 && isSQLOp(op.Ops[0]) {
+		return a.semSQLOp(op.Ops[0], seq)
+	}
+	if len(seq) > 0 {
+		panic("semSQLOp: SQL pipes can't have parents")
+	}
+	return a.semSeq(op.Ops), &schemaDynamic{}
+}
+
+func isSQLOp(op ast.Op) bool {
+	switch op.(type) {
+	case *ast.Select, *ast.Limit, *ast.OrderBy, *ast.SQLPipe, *ast.SQLJoin:
+		return true
+	}
+	return false
+}
+
 func (a *analyzer) semSQLOp(op ast.Op, seq dag.Seq) (dag.Seq, schema) {
 	switch op := op.(type) {
 	case *ast.SQLPipe:
-		if len(seq) > 0 {
-			panic("semSQLOp: SQL pipes can't have parents")
-		}
-		return a.semSeq(op.Ops), &schemaDynamic{} //XXX
+		return a.semSQLPipe(op, seq)
 	case *ast.Select:
 		return a.semSelect(op, seq)
 	case *ast.SQLJoin:
@@ -130,29 +145,30 @@ func (a *analyzer) semSQLOp(op ast.Op, seq dag.Seq) (dag.Seq, schema) {
 		nullsFirst, ok := nullsFirst(op.Exprs)
 		if !ok {
 			a.error(op, errors.New("differring nulls first/last clauses not yet supported"))
-			return append(seq, badOp())
+			return append(seq, badOp()), badSchema()
 		}
 		var exprs []dag.SortExpr
 		for _, e := range op.Exprs {
 			exprs = append(exprs, a.semSortExpr(e))
 		}
-		return append(a.semSQLOp(op.Op, seq), &dag.Sort{
+		out, schema := a.semSQLOp(op.Op, seq)
+		return append(out, &dag.Sort{
 			Kind:       "Sort",
 			Args:       exprs,
 			NullsFirst: nullsFirst,
 			Reverse:    false, //XXX this should go away
-		})
+		}), schema
 	case *ast.Limit:
 		e := a.semExpr(op.Count)
 		var err error
 		val, err := kernel.EvalAtCompileTime(a.zctx, e)
 		if err != nil {
 			a.error(op.Count, err)
-			return append(seq, badOp())
+			return append(seq, badOp()), badSchema()
 		}
 		if !super.IsInteger(val.Type().ID()) {
 			a.error(op.Count, fmt.Errorf("expression value must be an integer value: %s", zson.FormatValue(val)))
-			return append(seq, badOp())
+			return append(seq, badOp()), badSchema()
 		}
 		limit := val.AsInt()
 		if limit < 1 {
@@ -162,7 +178,8 @@ func (a *analyzer) semSQLOp(op ast.Op, seq dag.Seq) (dag.Seq, schema) {
 			Kind:  "Head",
 			Count: int(limit),
 		}
-		return append(a.semSQLOp(op.Op, seq), head)
+		out, schema := a.semSQLOp(op.Op, seq)
+		return append(out, head), schema
 	default:
 		panic(fmt.Sprintf("semSQLOp: unknown op: %#v", op))
 	}
