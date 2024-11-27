@@ -84,7 +84,7 @@ func wrapAlias(alias string, seq dag.Seq) dag.Seq {
 
 func (a *analyzer) genPseudoTable() string {
 	a.prels++
-	return fmt.Sprintf("prel%s", a.prels)
+	return fmt.Sprintf("prel%d", a.prels)
 }
 
 func (a *analyzer) wrapFrom(alias *ast.Name, name string, seq dag.Seq) (dag.Seq, schema) {
@@ -129,7 +129,7 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.Name, args as
 		}
 		return dag.Seq{a.semLakeMeta(entity)}, &schemaDynamic{} //XXX
 	case *ast.SQLPipe:
-		return a.semOp(entity, seq), &schemaDynamic{} //XXX semOp should return schema
+		return a.semSQLPipe(entity, seq)
 	case *ast.SQLJoin:
 		return a.semSQLJoin(entity, seq)
 	default:
