@@ -17,61 +17,68 @@ import (
 // Analyze a SQL select expression which may have arbitrary nested subqueries
 // and may or may not have its sources embedded.
 func (a *analyzer) semSelect(sel *ast.Select, seq dag.Seq) (dag.Seq, schema) {
+	var selSchema schemaSelect
 	if sel.From != nil {
 		off := len(seq)
 		hasParent := off > 0
-		var schema schema
-		seq, schema = a.semFrom(sel.From, seq)
+		var from schema
+		seq, from = a.semFrom(sel.From, seq)
 		if off >= len(seq) {
 			// The chain didn't get lengthed so semFrom must have enocounteded
 			// an error...
-			return seq
+			return seq, badSchema()
 		}
 		// If we have parents with both a from and select, report an error but
 		// only if it's not a RobotScan where the parent feeds the from operateor.
 		if _, ok := seq[off].(*dag.RobotScan); !ok {
 			if hasParent {
 				a.error(sel, errors.New("SELECT cannot have both an embedded FROM claue and input from parents"))
-				return append(seq, badOp())
+				return append(seq, badOp()), badSchema()
 			}
 		}
+		selSchema.in = from
 	}
 	if sel.Value {
-		return a.semSelectValue(sel, seq)
+		//XXX pass in schema
+		return a.semSelectValue(sel, selSchema, seq)
 	}
 	proj, ok := a.semProjection(sel.Selection.Args)
 	if !ok {
-		return dag.Seq{badOp()}
+		return dag.Seq{badOp()}, badSchema()
 	}
+	// XXX form out schema here from proj
 	if sel.Where != nil {
 		seq = append(seq, dag.NewFilter(a.semExpr(sel.Where)))
 	}
 	if sel.GroupBy != nil {
 		if proj.hasStar() {
 			a.error(sel, errors.New("aggregate mixed with *-selector not yet supported"))
-			return append(seq, badOp())
+			return append(seq, badOp()), badSchema()
 		}
 		seq, ok = a.semGroupBy(sel.GroupBy, proj, seq)
 		if !ok {
-			return seq
+			return seq, badSchema()
 		}
+		//XXX need having schema... can have mix of agg output and unselected group-by keys
+		// maybe just another in/out as order can also reach into unselected group-by keys
 		if sel.Having != nil {
 			seq = append(seq, dag.NewFilter(a.semExpr(sel.Having)))
 		}
 	} else if sel.Selection.Args != nil {
 		if sel.Having != nil {
 			a.error(sel.Having, errors.New("HAVING clause used without GROUP BY"))
-			return append(seq, badOp())
+			return append(seq, badOp()), badSchema()
 		}
 		seq = a.convertProjection(sel.Selection.Loc, proj, seq)
 	}
+	//XXX hmm, this needs to operate on out
 	if sel.Distinct {
 		seq = a.semDistinct(seq)
 	}
-	return seq
+	return seq, &selSchema
 }
 
-func (a *analyzer) semSelectValue(sel *ast.Select, seq dag.Seq) dag.Seq {
+func (a *analyzer) semSelectValue(sel *ast.Select, schema schemaSelect, seq dag.Seq) (dag.Seq, schema) {
 	if sel.GroupBy != nil {
 		a.error(sel, errors.New("SELECT VALUE cannot be used with GROUP BY"))
 		seq = append(seq, badOp())
@@ -91,13 +98,16 @@ func (a *analyzer) semSelectValue(sel *ast.Select, seq dag.Seq) dag.Seq {
 		Kind:  "Yield",
 		Exprs: exprs,
 	})
+	out := &schemaSelect{in: schema.in, out: &schemaDynamic{}}
+	//XXX need in/out here
 	if sel.Where != nil {
 		seq = append(seq, dag.NewFilter(a.semExpr(sel.Where)))
 	}
+	//XXX hmm, this needs to operate on out
 	if sel.Distinct {
 		seq = a.semDistinct(seq)
 	}
-	return seq
+	return seq, out
 }
 
 func (a *analyzer) semDistinct(seq dag.Seq) dag.Seq {
@@ -199,15 +209,15 @@ func (a *analyzer) semSQLJoin(join *ast.SQLJoin, seq dag.Seq) (dag.Seq, schema) 
 	leftKey, rightKey, err := a.semSQLJoinCond(join.Cond)
 	if err != nil {
 		a.error(join.Cond, errors.New("SQL joins currently limited to equijoin on fields"))
-		return append(seq, badOp())
+		return append(seq, badOp()), badSchema()
 	}
 	if len(seq) > 0 {
 		// At some point we might want to let parent data flow into a join somehow,
 		// but for now we flag an error.
 		a.error(join, errors.New("SQL join cannot inherit data from pipeline parent"))
 	}
-	leftPath := a.semFromElem(join.Left, nil)
-	rightPath := a.semFromElem(join.Right, nil)
+	leftPath, leftSchema := a.semFromElem(join.Left, nil)
+	rightPath, rightSchema := a.semFromElem(join.Right, nil)
 	alias := join.Right.Alias.Text
 	assignment := dag.Assignment{
 		Kind: "Assignment",
@@ -229,7 +239,7 @@ func (a *analyzer) semSQLJoin(join *ast.SQLJoin, seq dag.Seq) (dag.Seq, schema) 
 	}
 	seq = leftPath
 	seq = append(seq, par)
-	return append(seq, dagJoin)
+	return append(seq, dagJoin), &schemaJoin{left: leftSchema, right: rightSchema}
 }
 
 func (a *analyzer) semSQLJoinCond(cond ast.JoinExpr) (*dag.This, *dag.This, error) {
