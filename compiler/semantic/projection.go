@@ -12,13 +12,11 @@ type schema interface {
 
 type schemaStatic struct {
 	name   string
-	path   field.Path
 	column []string
 }
 
 type schemaDynamic struct {
 	name string
-	path field.Path
 }
 
 type schemaSelect struct {
