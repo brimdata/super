@@ -1074,7 +1074,7 @@ func (a *analyzer) semFuncDecls(decls []*ast.FuncDecl) []*dag.Func {
 			Name:   d.Name.Name,
 			Params: params,
 		}
-		if err := a.scope.DefineAs(d.Name, f); err != nil {
+		if err := a.scope.DefineAs(d.Name.Name, f); err != nil {
 			a.error(d.Name, err)
 		}
 		funcs = append(funcs, f)
@@ -1103,12 +1103,12 @@ func (a *analyzer) semOpDecl(d *ast.OpDecl) {
 	for _, p := range d.Params {
 		if m[p.Name] {
 			a.error(p, fmt.Errorf("duplicate parameter %q", p.Name))
-			a.scope.DefineAs(d.Name, &opDecl{bad: true})
+			a.scope.DefineAs(d.Name.Name, &opDecl{bad: true})
 			return
 		}
 		m[p.Name] = true
 	}
-	if err := a.scope.DefineAs(d.Name, &opDecl{ast: d, scope: a.scope}); err != nil {
+	if err := a.scope.DefineAs(d.Name.Name, &opDecl{ast: d, scope: a.scope}); err != nil {
 		a.error(d, err)
 	}
 }
@@ -1316,7 +1316,7 @@ func (a *analyzer) maybeConvertUserOp(call *ast.Call) dag.Seq {
 		a.scope = oldscope
 	}()
 	for i, p := range params {
-		if err := a.scope.DefineAs(p, exprs[i]); err != nil {
+		if err := a.scope.DefineAs(p.Name, exprs[i]); err != nil {
 			a.error(call, err)
 			return dag.Seq{badOp()}
 		}

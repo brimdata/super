@@ -18,7 +18,11 @@ type Scope struct {
 }
 
 func NewScope(parent *Scope) *Scope {
-	return &Scope{parent: parent, symbols: make(map[string]*entry)}
+	return &Scope{
+		parent:  parent,
+		symbols: make(map[string]*entry),
+		tables:  make(map[string]schema),
+	}
 }
 
 type entry struct {
@@ -32,18 +36,26 @@ func (s *Scope) DefineVar(name *ast.ID) error {
 		Name: name.Name,
 		Slot: s.nvars(),
 	}
-	if err := s.DefineAs(name, ref); err != nil {
+	if err := s.DefineAs(name.Name, ref); err != nil {
 		return err
 	}
 	s.nvar++
 	return nil
 }
 
-func (s *Scope) DefineAs(name *ast.ID, e any) error {
-	if _, ok := s.symbols[name.Name]; ok {
-		return fmt.Errorf("symbol %q redefined", name.Name)
+func (s *Scope) DefineAs(name string, e any) error {
+	if _, ok := s.symbols[name]; ok {
+		return fmt.Errorf("symbol %q redefined", name)
 	}
-	s.symbols[name.Name] = &entry{ref: e, order: len(s.symbols)}
+	s.symbols[name] = &entry{ref: e, order: len(s.symbols)}
+	return nil
+}
+
+func (s *Scope) DefineSchema(schema schema) error {
+	if err := s.DefineAs(schema.Name(), schema); err != nil {
+		return err
+	}
+	s.nvar++
 	return nil
 }
 
@@ -63,7 +75,7 @@ func (s *Scope) DefineConst(zctx *super.Context, name *ast.ID, def dag.Expr) err
 		Kind:  "Literal",
 		Value: zson.FormatValue(val),
 	}
-	return s.DefineAs(name, literal)
+	return s.DefineAs(name.Name, literal)
 }
 
 func (s *Scope) LookupExpr(name string) (dag.Expr, error) {
