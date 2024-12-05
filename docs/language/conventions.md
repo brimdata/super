@@ -1,11 +1,10 @@
 ---
-sidebar_position: 9
-sidebar_label: Conventions
+weight: 9
+title: Conventions
+heading: Type Conventions
 ---
 
-# Type Conventions
-
-[Function](functions/README.md) arguments and [operator](operators/README.md) input values are all dynamically typed,
+[Function](functions/_index.md) arguments and [operator](operators/_index.md) input values are all dynamically typed,
 yet certain functions expect certain specific [data types](data-types.md)
 or classes of data types. To this end, the function and operator prototypes
 in the Zed documentation include several type classes as follows:

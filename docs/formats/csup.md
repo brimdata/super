@@ -1,14 +1,13 @@
 ---
-sidebar_position: 4
-sidebar_label: Super Columnar
+weight: 4
+title: Super Columnar
+heading: Super Columnar Specification
 ---
-
-# Super Columnar Specification
 
 Super Columnar is a file format based on
 the [super data model](zed.md) where data is stacked to form columns.
 Its purpose is to provide for efficient analytics and search over
-bounded-length sequences of [super-structured data](./README.md#2-a-super-structured-pattern) that is stored in columnar form.
+bounded-length sequences of [super-structured data](./_index.md#2-a-super-structured-pattern) that is stored in columnar form.
 
 Like [Parquet](https://github.com/apache/parquet-format),
 Super Columnar provides an efficient representation for semi-structured data,
@@ -245,7 +244,7 @@ and has the form:
         <fld2>:{column:<any_column>,presence:<segmap>},
         ...
         <fldn>:{column:<any_column>,presence:<segmap>}
-}        
+}
 ```
 where
 * `<fld1>` through `<fldn>` are the names of the top-level fields of the
@@ -268,7 +267,7 @@ An `<array_column>` has the form:
 {values:<any_column>,lengths:<segmap>}
 ```
 where
-* `values` represents a continuous sequence of values of the array elements  
+* `values` represents a continuous sequence of values of the array elements
 that are sliced into array values based on the length information, and
 * `lengths` encodes an `int32` sequence of values that represent the length
 of each array value.

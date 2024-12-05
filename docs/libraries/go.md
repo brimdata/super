@@ -1,9 +1,7 @@
 ---
-sidebar_position: 1
-sidebar_label: Go
+weight: 1
+title: Go
 ---
-
-# Go
 
 The Zed system was developed in Go so support for Go clients is
 fairly comprehensive.  That said, the code-embedded documentation of exported

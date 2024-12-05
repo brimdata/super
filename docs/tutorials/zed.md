@@ -1,9 +1,8 @@
 ---
-sidebar_position: 2
-sidebar_label: zed
+weight: 2
+title: zed
+heading: zed Tutorial
 ---
-
-# zed Tutorial
 
 `zq` is great, but what if we have a lot of data on which we want to perform search and
 analytics? This is where the `zed` command comes in. `zed` builds on the type
@@ -319,7 +318,7 @@ the `zed` command. Some suggested next steps:
 
 1. Dig deeper into SuperDB data lakes by having a look at the [`super db` command](../commands/super-db.md) documentation.
 2. Get a better idea of ways you can query your data by looking at the
-[Zed language documentation](../language/README.md).
+[Zed language documentation](../language/_index.md).
 
 If you have any questions or run into any snags, join the friendly Zed community
 at the [Brim Data Slack workspace](https://www.brimdata.io/join-slack/).

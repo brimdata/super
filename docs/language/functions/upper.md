@@ -18,7 +18,7 @@ to upper case and returns the result.
 ```mdtest-command
 echo '"Super JSON"' | super -z -c 'yield upper(this)' -
 ```
-=>
+
 ```mdtest-output
 "SUPER JSON"
 ```
@@ -33,7 +33,7 @@ echo '"super JSON"' |
          yield capitalize(this)
   ' -
 ```
-=>
+
 ```mdtest-output
 "Super JSON"
 ```

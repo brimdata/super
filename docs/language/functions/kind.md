@@ -20,7 +20,7 @@ A primitive value's kind is "primitive":
 ```mdtest-command
 echo '1 "a" 10.0.0.1' | super -z -c 'yield kind(this)' -
 ```
-=>
+
 ```mdtest-output
 "primitive"
 "primitive"
@@ -32,7 +32,7 @@ these empty values of various complex types:
 ```mdtest-command
 echo '{} [] |[]| |{}| 1((int64,string))' | super -z -c 'yield kind(this)' -
 ```
-=>
+
 ```mdtest-output
 "record"
 "array"
@@ -45,7 +45,7 @@ A Zed error has kind "error":
 ```mdtest-command
 echo null | super -z -c 'yield kind(1/0)' -
 ```
-=>
+
 ```mdtest-output
 "error"
 ```
@@ -54,7 +54,7 @@ A Zed type's kind is the kind of the type:
 ```mdtest-command
 echo '<{s:string}>' | super -z -c 'yield kind(this)' -
 ```
-=>
+
 ```mdtest-output
 "record"
 ```

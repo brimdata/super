@@ -1,15 +1,14 @@
 ---
-sidebar_position: 1
-sidebar_label: super
+weight: 1
+title: super
+heading: super Tutorial
 ---
 
-# super Tutorial
-
 This tour provides new users of `super` an overview of the tool and
-the [SuperPipe language](../language/README.md)
+the [SuperPipe language](../language/_index.md)
 by walking through a number of examples on the command-line.
 This should get you started without having to read through all the gory details
-of the [SuperPipe language](../language/README.md) or [`super` command-line usage](../commands/super.md).
+of the [SuperPipe language](../language/_index.md) or [`super` command-line usage](../commands/super.md).
 
 We'll start with some simple one-liners on the command line where we feed
 some data to `super` with `echo` and specify `-` for `super` input to indicate
@@ -411,7 +410,7 @@ preparation, union types are really quite powerful.  They allow records
 with fields of different types or mixed-type arrays to be easily expressed
 while also having a very precise type definition.  This is the essence
 of Zed's new
-[super-structured data model](../formats/README.md#2-a-super-structured-pattern).
+[super-structured data model](../formats/_index.md#2-a-super-structured-pattern).
 
 ## First-class Types
 
@@ -624,7 +623,7 @@ produces
 ```mdtest-output
 "array"
 ```
-Ok got it.  But, how many items are in the array?  
+Ok got it.  But, how many items are in the array?
 ```mdtest-command dir=docs/tutorials
 super -z -c 'len(this)' prs.json
 ```
@@ -1254,6 +1253,6 @@ of tricks to:
 clean data for analysis by `zq` or even export into other systems or for testing.
 
 If you'd like to learn more, feel free to read through the
-[language docs](../language/README.md) in depth
+[language docs](../language/_index.md) in depth
 or see how you can organize [data into a lake](../commands/super-db.md)
 using a git-like commit model.

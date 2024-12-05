@@ -155,7 +155,7 @@ echo '"2020-09-16T04:20:42.45+01:00 DEBUG This is a sample debug log message"' |
   super -Z -c 'yield grok("%{TIMESTAMP_ISO8601:timestamp} %{LOGLEVEL:level} %{GREEDYDATA:message}",
                     this)' -
 ```
-=>
+
 ```mdtest-output
 {
     timestamp: "2020-09-16T04:20:42.45+01:00",
@@ -175,7 +175,7 @@ echo '"+7000"' |
                     this,
                     "MY_NUMTZ [+-]\\d{4}")' -
 ```
-=>
+
 ```mdtest-output
 {tz:"+7000"}
 ```
@@ -187,11 +187,11 @@ readability.
 ```mdtest-command
 echo '"(555)-1212"' |
   super -z -c 'yield grok("\\(%{PH_PREFIX:prefix}\\)-%{PH_LINE_NUM:line_number}",
-                    this, 
+                    this,
                     "PH_PREFIX \\d{3}\n" +
                     "PH_LINE_NUM \\d{4}")' -
 ```
-=>
+
 ```mdtest-output
 {prefix:"555",line_number:"1212"}
 ```

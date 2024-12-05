@@ -1,9 +1,7 @@
 ---
-sidebar_position: 6
-sidebar_label: Search Expressions
+weight: 6
+title: Search Expressions
 ---
-
-# Search Expressions
 
 Search expressions provide a hybrid syntax between keyword search
 and boolean expressions.  In this way, a search is a shorthand for
@@ -278,7 +276,7 @@ the "in" operator, e.g.,
 
 #### Predicate Search Term
 
-Any Boolean-valued [function](functions/README.md) like `is`, `has`,
+Any Boolean-valued [function](functions/_index.md) like `is`, `has`,
 `grep`, etc. and any [comparison expression](expressions.md#comparisons)
 may be used as a search term and mixed into a search expression.
 
