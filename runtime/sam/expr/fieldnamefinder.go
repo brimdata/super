@@ -11,13 +11,16 @@ import (
 )
 
 type FieldNameFinder struct {
-	checkedIDs    big.Int
-	fieldNameIter FieldNameIter
-	caseFinder    *stringsearch.CaseFinder
+	checkedIDs big.Int
+	fnm        *FieldNameMatcher
 }
 
 func NewFieldNameFinder(pattern string) *FieldNameFinder {
-	return &FieldNameFinder{caseFinder: stringsearch.NewCaseFinder(pattern)}
+	caseFinder := stringsearch.NewCaseFinder(pattern)
+	pred := func(b []byte) bool {
+		return caseFinder.Next(byteconv.UnsafeString(b)) != -1
+	}
+	return &FieldNameFinder{fnm: NewFieldNameMatcher(pred)}
 }
 
 // Find returns true if buf, which holds a sequence of ZNG value messages, might
@@ -25,6 +28,7 @@ func NewFieldNameFinder(pattern string) *FieldNameFinder {
 // matches the pattern.  Find also returns true if it encounters an error.
 func (f *FieldNameFinder) Find(zctx *super.Context, buf []byte) bool {
 	f.checkedIDs.SetInt64(0)
+	clear(f.fnm.checkedIDs)
 	for len(buf) > 0 {
 		id, idLen := binary.Uvarint(buf)
 		if idLen <= 0 {
@@ -40,18 +44,64 @@ func (f *FieldNameFinder) Find(zctx *super.Context, buf []byte) bool {
 		if err != nil {
 			return true
 		}
-		tr, ok := super.TypeUnder(t).(*super.TypeRecord)
-		if !ok {
+		if f.fnm.Match(t) {
 			return true
-		}
-		for f.fieldNameIter.Init(tr); !f.fieldNameIter.Done(); {
-			name := f.fieldNameIter.Next()
-			if f.caseFinder.Next(byteconv.UnsafeString(name)) != -1 {
-				return true
-			}
 		}
 	}
 	return false
+}
+
+type FieldNameMatcher struct {
+	pred       func([]byte) bool
+	checkedIDs map[int]bool
+	fni        FieldNameIter
+}
+
+func NewFieldNameMatcher(pred func([]byte) bool) *FieldNameMatcher {
+	return &FieldNameMatcher{pred: pred, checkedIDs: map[int]bool{}}
+}
+
+func (f *FieldNameMatcher) Match(typ super.Type) bool {
+	id := typ.ID()
+	match, ok := f.checkedIDs[id]
+	if ok {
+		return match
+	}
+	switch typ := super.TypeUnder(typ).(type) {
+	case *super.TypeRecord:
+		for f.fni.Init(typ); !f.fni.Done() && !match; {
+			match = f.pred(f.fni.Next())
+		}
+		if match {
+			break
+		}
+		for _, field := range typ.Fields {
+			match = f.Match(field.Type)
+			if match {
+				break
+			}
+		}
+	case *super.TypeArray:
+		match = f.Match(typ.Type)
+	case *super.TypeSet:
+		match = f.Match(typ.Type)
+	case *super.TypeMap:
+		match = f.Match(typ.KeyType)
+		if !match {
+			match = f.Match(typ.ValType)
+		}
+	case *super.TypeUnion:
+		for _, t := range typ.Types {
+			match = f.Match(t)
+			if match {
+				break
+			}
+		}
+	case *super.TypeError:
+		match = f.Match(typ.Type)
+	}
+	f.checkedIDs[id] = match
+	return match
 }
 
 type FieldNameIter struct {

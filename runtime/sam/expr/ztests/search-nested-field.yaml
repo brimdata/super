@@ -4,7 +4,13 @@ input: |
   {a:[{b:"foo"}]}
   {a:[{c:"foo"}]}
   {a:[{c:"foo"},{b:1}]}
+  null({a:[{b:null}]})
+  null({a:[{c:null}]})
+  {a:[]([{b:null}])}
+  {a:[]([{c:null}])}
 
 output: |
   {a:[{b:"foo"}]}
   {a:[{c:"foo"},{b:1}]}
+  null({a:[{b:null}]})
+  {a:[]([{b:null}])}
