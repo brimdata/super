@@ -146,13 +146,16 @@ func And(a, b *Bool) *Bool {
 
 // BoolValue returns the value of slot in vec if the value is a Boolean.  It
 // returns false otherwise.
-func BoolValue(vec Any, slot uint32) bool {
+func BoolValue(vec Any, slot uint32) (bool, bool) {
 	switch vec := Under(vec).(type) {
 	case *Bool:
-		return vec.Value(slot)
+		return vec.Value(slot), vec.Nulls.Value(slot)
 	case *Const:
-		return vec.Value().Ptr().AsBool()
+		return vec.Value().Ptr().AsBool(), vec.Nulls.Value(slot)
 	case *Dict:
+		if vec.Nulls.Value(slot) {
+			return false, true
+		}
 		return BoolValue(vec.Any, uint32(vec.Index[slot]))
 	case *Dynamic:
 		tag := vec.Tags[slot]
@@ -160,7 +163,7 @@ func BoolValue(vec Any, slot uint32) bool {
 	case *View:
 		return BoolValue(vec.Any, vec.Index[slot])
 	}
-	return false
+	panic(vec)
 }
 
 func NullsOf(v Any) *Bool {

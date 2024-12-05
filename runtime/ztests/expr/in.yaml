@@ -1,0 +1,28 @@
+zed: |
+  yield [1 in this, 9 in this]
+
+vector: true
+
+input: |
+  1
+  {a:1}
+  [0,1,2]
+  |[0,1,2]|
+  |{1:null}|
+  |{null:1}|
+  1((int64,string))
+  {a:[0,1]([(int64,string)])}
+  [error(0),error(1)]
+  error(0)
+
+output: |
+  [true,false]
+  [true,false]
+  [true,false]
+  [true,false]
+  [true,false]
+  [true,false]
+  [true,false]
+  [true,false]
+  [true,false]
+  [error(0),error(0)]

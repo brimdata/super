@@ -1,6 +1,8 @@
 package expr
 
 import (
+	"slices"
+
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
 )
@@ -177,6 +179,18 @@ func toBool(vec vector.Any) *vector.Bool {
 		} else {
 			return vector.NewBoolEmpty(vec.Len(), vec.Nulls)
 		}
+	case *vector.Dynamic:
+		nulls := vector.NewBoolEmpty(vec.Len(), nil)
+		out := vector.NewBoolEmpty(vec.Len(), nulls)
+		for i := range vec.Len() {
+			v, null := vector.BoolValue(vec, i)
+			if null {
+				nulls.Set(i)
+			} else if v {
+				out.Set(i)
+			}
+		}
+		return out
 	case *vector.Bool:
 		return vec
 	default:
@@ -190,4 +204,91 @@ func trueBool(n uint32) *vector.Bool {
 		vec.Bits[i] = ^uint64(0)
 	}
 	return vec
+}
+
+type In struct {
+	zctx *super.Context
+	lhs  Evaluator
+	rhs  Evaluator
+	eq   *Compare
+}
+
+func NewIn(zctx *super.Context, lhs, rhs Evaluator) *In {
+	return &In{zctx, lhs, rhs, NewCompare(zctx, nil, nil, "==")}
+}
+
+func (i *In) Eval(this vector.Any) vector.Any {
+	return vector.Apply(true, i.eval, i.lhs.Eval(this), i.rhs.Eval(this))
+}
+
+func (i *In) eval(vecs ...vector.Any) vector.Any {
+	lhs, rhs := vecs[0], vecs[1]
+	if lhs.Type().Kind() == super.ErrorKind {
+		return lhs
+	}
+	if rhs.Type().Kind() == super.ErrorKind {
+		return rhs
+	}
+	return i.evalResursive(lhs, rhs)
+}
+
+func (i *In) evalResursive(vecs ...vector.Any) vector.Any {
+	lhs, rhs := vecs[0], vecs[1]
+	rhs = vector.Under(rhs)
+	var index []uint32
+	if view, ok := rhs.(*vector.View); ok {
+		rhs = view.Any
+		index = view.Index
+	}
+	switch rhs := rhs.(type) {
+	case *vector.Record:
+		out := vector.NewBoolEmpty(lhs.Len(), nil)
+		for _, f := range rhs.Fields {
+			if index != nil {
+				f = vector.NewView(f, index)
+			}
+			out = vector.Or(out, toBool(i.evalResursive(lhs, f)))
+		}
+		return out
+	case *vector.Array:
+		return i.evalForList(lhs, rhs.Values, rhs.Offsets, index)
+	case *vector.Set:
+		return i.evalForList(lhs, rhs.Values, rhs.Offsets, index)
+	case *vector.Map:
+		return vector.Or(i.evalForList(lhs, rhs.Keys, rhs.Offsets, index),
+			i.evalForList(lhs, rhs.Values, rhs.Offsets, index))
+	case *vector.Union:
+		return vector.Apply(true, i.evalResursive, lhs, rhs)
+	case *vector.Error:
+		return i.evalResursive(lhs, rhs.Vals)
+	default:
+		return i.eq.eval(lhs, rhs)
+	}
+}
+
+func (i *In) evalForList(lhs, rhs vector.Any, offsets, index []uint32) *vector.Bool {
+	out := vector.NewBoolEmpty(lhs.Len(), nil)
+	var lhsIndex, rhsIndex []uint32
+	for j := range lhs.Len() {
+		if index != nil {
+			j = index[j]
+		}
+		start, end := offsets[j], offsets[j+1]
+		if start == end {
+			continue
+		}
+		n := end - start
+		lhsIndex = slices.Grow(lhsIndex[:0], int(n))[:n]
+		rhsIndex = slices.Grow(rhsIndex[:0], int(n))[:n]
+		for k := range n {
+			lhsIndex[k] = k
+			rhsIndex[k] = k + start
+		}
+		lhsView := vector.NewView(lhs, lhsIndex)
+		rhsView := vector.NewView(rhs, rhsIndex)
+		if toBool(i.evalResursive(lhsView, rhsView)).TrueCount() > 0 {
+			out.Set(j)
+		}
+	}
+	return out
 }

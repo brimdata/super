@@ -100,8 +100,8 @@ func (b *Builder) compileVamBinary(e *dag.BinaryExpr) (vamexpr.Evaluator, error)
 		return vamexpr.NewLogicalAnd(b.zctx(), lhs, rhs), nil
 	case "or":
 		return vamexpr.NewLogicalOr(b.zctx(), lhs, rhs), nil
-	//case "in": XXX TBD
-	//	return vamexpr.NewIn(b.zctx(), lhs, rhs), nil
+	case "in":
+		return vamexpr.NewIn(b.zctx(), lhs, rhs), nil
 	case "==", "!=", "<", "<=", ">", ">=":
 		return vamexpr.NewCompare(b.zctx(), lhs, rhs, op), nil
 	case "+", "-", "*", "/", "%":
