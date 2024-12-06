@@ -16,8 +16,15 @@ import (
 
 // Analyze a SQL select expression which may have arbitrary nested subqueries
 // and may or may not have its sources embedded.
+// The output of a select expression is a record that wraps its input and it's
+// selected columns in a record {in:any,out:any}.  The schema returned represents
+// the observable scope of the selected elements.  When the parent operator is
+// an OrderBy, it can reach into the "in" part of the select scope (for non-aggregates)
+// and also sort by the out elements.  It's up to the caller to unwrap the in/out
+// record when returning to pipeline context.
 func (a *analyzer) semSelect(sel *ast.Select, seq dag.Seq) (dag.Seq, schema) {
 	var selSchema schemaSelect
+	//XXX if we hit a lateral join in the from clause we need to refer back to this schema
 	if sel.From != nil {
 		off := len(seq)
 		hasParent := off > 0
@@ -38,6 +45,8 @@ func (a *analyzer) semSelect(sel *ast.Select, seq dag.Seq) (dag.Seq, schema) {
 		}
 		selSchema.in = from
 	}
+	a.enterScopeWithSchema(&selSchema)
+	defer a.exitScope()
 	if sel.Value {
 		//XXX pass in schema
 		return a.semSelectValue(sel, selSchema, seq)

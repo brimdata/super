@@ -82,6 +82,11 @@ func (a *analyzer) exitScope() {
 	a.scope = a.scope.parent
 }
 
+func (a *analyzer) enterScopeWithSchema(s schema) {
+	a.scope = NewScope(a.scope)
+	a.scope.schema = s
+}
+
 type opDecl struct {
 	ast   *ast.OpDecl
 	scope *Scope // parent scope of op declaration.

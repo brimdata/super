@@ -14,7 +14,7 @@ type Scope struct {
 	parent  *Scope
 	nvar    int
 	symbols map[string]*entry
-	tables  map[string]schema
+	schema  schema
 }
 
 func NewScope(parent *Scope) *Scope {
