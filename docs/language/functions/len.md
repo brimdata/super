@@ -33,7 +33,7 @@ Take the length of various types:
 echo '[1,2,3] |["hello"]| {a:1,b:2} "hello" 10.0.0.1 1' |
   super -z -c 'yield {this,len:len(this)}' -
 ```
-=>
+
 ```mdtest-output
 {this:[1,2,3],len:3}
 {this:|["hello"]|,len:1}

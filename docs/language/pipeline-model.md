@@ -1,14 +1,12 @@
 ---
-sidebar_position: 2
-sidebar_label: Pipeline Model
+weight: 2
+title: Pipeline Model
 ---
-
-# The Pipeline Model
 
 In SuperPipe, each operator takes its input from the output of its upstream operator beginning
 either with a data source or with an implied source.
 
-All available operators are listed on the [reference page](operators/README.md).
+All available operators are listed on the [reference page](operators/_index.md).
 
 ## Pipeline Sources
 
@@ -106,7 +104,7 @@ in parallel on multiple threads).  To establish a consistent sequence order,
 a [`merge` operator](operators/merge.md)
 may be applied at the output of the switch specifying a sort key upon which
 to order the upstream data.  Often such order does not matter (e.g., when the output
-of the switch hits an [aggregator](aggregates/README.md)), in which case it is typically more performant
+of the switch hits an [aggregator](aggregates/_index.md)), in which case it is typically more performant
 to omit the merge (though the SuperDB runtime will often delete such unnecessary
 operations automatically as part optimizing queries when they are compiled).
 
@@ -136,7 +134,7 @@ produces this case-sensitive output:
 "bar"
 "foo"
 ```
-But we can make the sort case-insensitive by applying a [function](functions/README.md) to the
+But we can make the sort case-insensitive by applying a [function](functions/_index.md) to the
 input values with the expression `lower(this)`, which converts
 each value to lower-case for use in in the sort without actually modifying
 the input value, e.g.,

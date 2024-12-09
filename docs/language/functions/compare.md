@@ -23,7 +23,7 @@ is treated as the minimum or maximum value.
 ```mdtest-command
 echo '{a: 2, b: "1"}' | super -z -c 'yield compare(a, b)' -
 ```
-=>
+
 ```mdtest-output
 -1
 ```

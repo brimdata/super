@@ -26,7 +26,7 @@ _Copy input to two pipeline branches and merge_
 ```mdtest-command
 echo '1 2' | super -z -c 'fork (=>pass =>pass) |> sort this' -
 ```
-=>
+
 ```mdtest-output
 1
 1

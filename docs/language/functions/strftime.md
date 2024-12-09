@@ -61,7 +61,7 @@ Print the year number as a string
 ```mdtest-command
 echo 2024-07-30T20:05:15.118252Z | super -z -c 'strftime("%Y", this)' -
 ```
-=>
+
 ```mdtest-output
 "2024"
 ```
@@ -70,7 +70,7 @@ Print a date in European format with slashes
 ```mdtest-command
 echo 2024-07-30T20:05:15.118252Z | super -z -c 'strftime("%d/%m/%Y", this)' -
 ```
-=>
+
 ```mdtest-output
 "30/07/2024"
 ```

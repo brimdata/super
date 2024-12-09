@@ -1,9 +1,8 @@
 ---
-sidebar_position: 2
-sidebar_label: Authentication Configuration
+weight: 2
+title: Authentication Configuration
+heading: Configuring Authentication for a Zed Lake Service
 ---
-
-# Configuring Authentication for a Zed Lake Service
 
 A [SuperDB data lake service](../commands/super-db.md#serve) may be configured to require
 user authentication to be accessed from clients such as the
@@ -136,7 +135,7 @@ authentication configuration along with a directory name for lake storage.
        -auth.jwkspath=jwks.json \
        -auth.audience=$auth0_api_identifier \
        -lake=lake
-   
+
    {"level":"info","ts":1678909988.9797907,"logger":"core","msg":"Started"}
    {"level":"info","ts":1678909988.9804773,"logger":"httpd","msg":"Listening","addr":"[::]:9867"}
    ...

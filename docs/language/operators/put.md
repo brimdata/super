@@ -47,7 +47,7 @@ _A simple put_
 ```mdtest-command
 echo '{a:1,b:2}' | super -z -c 'put c:=3' -
 ```
-=>
+
 ```mdtest-output
 {a:1,b:2,c:3}
 ```
@@ -55,7 +55,7 @@ _The `put` keyword may be omitted_
 ```mdtest-command
 echo '{a:1,b:2}' | super -z -c 'c:=3' -
 ```
-=>
+
 ```mdtest-output
 {a:1,b:2,c:3}
 ```
@@ -63,7 +63,7 @@ _A `put` operation can also be done with a record literal_
 ```mdtest-command
 echo '{a:1,b:2}' | super -z -c 'yield {...this, c:3}' -
 ```
-=>
+
 ```mdtest-output
 {a:1,b:2,c:3}
 ```
@@ -71,7 +71,7 @@ _Missing fields show up as missing errors_
 ```mdtest-command
 echo '{a:1,b:2,c:3}' | super -z -c 'put d:=e' -
 ```
-=>
+
 ```mdtest-output
 {a:1,b:2,c:3,d:error("missing")}
 ```
@@ -79,7 +79,7 @@ _Non-record input values generate errors_
 ```mdtest-command
 echo '{a:1} 1' | super -z -c 'b:=2' -
 ```
-=>
+
 ```mdtest-output
 {a:1,b:2}
 error({message:"put: not a record",on:1})

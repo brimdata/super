@@ -1,9 +1,7 @@
 ---
-sidebar_position: 3
-sidebar_label: Join
+weight: 3
+title: Join Overview
 ---
-
-# Join Overview
 
 This is a brief primer on the SuperPipe [`join` operator](../language/operators/join.md).
 

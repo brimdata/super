@@ -1,9 +1,7 @@
 ---
-sidebar_position: 2
-sidebar_label: Zed/Zeek Data Type Compatibility
+weight: 2
+title: Zed/Zeek Data Type Compatibility
 ---
-
-# Zed/Zeek Data Type Compatibility
 
 As the [super data model](../../formats/zed.md) was in many ways inspired by the
 [Zeek TSV log format](https://docs.zeek.org/en/master/log-formats.html#zeek-tsv-format-logs),
@@ -21,7 +19,7 @@ the types that may appear in Zeek logs.
 Zed tools maintain an internal Zed-typed
 representation of any Zeek data that is read or imported. Therefore, knowing
 the equivalent types will prove useful when performing operations in the
-[Zed language](../../language/README.md) such as
+[Zed language](../../language/_index.md) such as
 [type casting](../../language/shaping.md#cast) or looking at the data
 when output as Super JSON.
 

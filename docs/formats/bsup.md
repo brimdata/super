@@ -1,9 +1,8 @@
 ---
-sidebar_position: 2
-sidebar_label: Super Binary
+weight: 2
+title: Super Binary
+heading: Super Binary Specification
 ---
-
-# Super Binary Specification
 
 ## 1. Introduction
 
@@ -296,7 +295,7 @@ indicated by `<type-id>`.
 
 #### 2.1.8 Named Type Typedef
 
-A named type defines a new type ID that binds a name to a previously existing type ID.  
+A named type defines a new type ID that binds a name to a previously existing type ID.
 
 A named type is encoded as follows:
 ```

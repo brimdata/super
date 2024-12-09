@@ -1,9 +1,7 @@
 ---
-sidebar_position: 3
-sidebar_label: Shaping Zeek JSON
+weight: 3
+title: Shaping Zeek JSON
 ---
-
-# Shaping Zeek JSON
 
 When [reading Zeek JSON format logs](reading-zeek-log-formats.md#zeek-json),
 much of the rich data typing that was originally present inside Zeek is at risk

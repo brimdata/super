@@ -34,7 +34,7 @@ with the following type signature:
 echo '"scheme://user:password@host:12345/path?a=1&a=2&b=3&c=#fragment"' |
   super -Z -c 'yield parse_uri(this)' -
 ```
-=>
+
 ```mdtest-output
 {
     scheme: "scheme",

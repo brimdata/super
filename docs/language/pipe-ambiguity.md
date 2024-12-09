@@ -1,4 +1,6 @@
-# The Pipeline Symbol
+---
+title: The Pipeline Symbol
+---
 
 In SuperSQL, you can use one of two symbols to separate pipeline operators: `|` or `|>`.
 
