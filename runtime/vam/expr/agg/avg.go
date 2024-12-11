@@ -14,11 +14,14 @@ type avg struct {
 var _ Func = (*avg)(nil)
 
 func (a *avg) Consume(vec vector.Any) {
-	if isNull(vec) {
-		return
+	var ncount uint32
+	if nulls := vector.NullsOf(vec); nulls != nil {
+		ncount = nulls.TrueCount()
 	}
-	a.count += uint64(vec.Len())
-	a.sum = sum(a.sum, vec)
+	if ncount != vec.Len() {
+		a.count += uint64(vec.Len() - ncount)
+		a.sum = sum(a.sum, vec)
+	}
 }
 
 func (a *avg) Result(*super.Context) super.Value {
