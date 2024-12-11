@@ -57,7 +57,7 @@ echo '1 2 3 4' |
     |> sort odd,even
   ' -
 ```
-=>
+
 ```mdtest-output
 {odd:1}
 {odd:3}
@@ -75,7 +75,7 @@ echo '1 2 3 4' |
     |> sort
   ' -
 ```
-=>
+
 ```mdtest-output
 "1!"
 "2"

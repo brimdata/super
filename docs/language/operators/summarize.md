@@ -14,7 +14,7 @@
 ### Description
 
 In the first four forms, the `summarize` operator consumes all of its input,
-applies an [aggregate function](../aggregates/README.md) to each input value
+applies an [aggregate function](../aggregates/_index.md) to each input value
 optionally filtered by a `where` clause and/or organized with the group-by
 keys specified after the `by` keyword, and at the end of input produces one
 or more aggregations for each unique set of group-by key values.
@@ -56,7 +56,7 @@ Average the input sequence:
 ```mdtest-command
 echo '1 2 3 4' | super -z -c 'summarize avg(this)' -
 ```
-=>
+
 ```mdtest-output
 2.5
 ```
@@ -66,7 +66,7 @@ an explicit field for the output:
 ```mdtest-command
 echo '1 2 3 4' | super -z -c 'summarize mean:=avg(this)' -
 ```
-=>
+
 ```mdtest-output
 {mean:2.5}
 ```
@@ -76,7 +76,7 @@ a record result is generated with field names implied by the functions:
 ```mdtest-command
 echo '1 2 3 4' | super -z -c 'summarize avg(this),sum(this),count()' -
 ```
-=>
+
 ```mdtest-output
 {avg:2.5,sum:10,count:4(uint64)}
 ```
@@ -85,7 +85,7 @@ Sum the input sequence, leaving out the `summarize` keyword:
 ```mdtest-command
 echo '1 2 3 4' | super -z -c 'sum(this)' -
 ```
-=>
+
 ```mdtest-output
 10
 ```
@@ -95,7 +95,7 @@ Create integer sets by key and sort the output to get a deterministic order:
 echo '{k:"foo",v:1}{k:"bar",v:2}{k:"foo",v:3}{k:"baz",v:4}' |
   super -z -c 'set:=union(v) by key:=k |> sort' -
 ```
-=>
+
 ```mdtest-output
 {key:"bar",set:|[2]|}
 {key:"baz",set:|[4]|}
@@ -107,7 +107,7 @@ Use a `where` clause:
 echo '{k:"foo",v:1}{k:"bar",v:2}{k:"foo",v:3}{k:"baz",v:4}' |
   super -z -c 'set:=union(v) where v > 1 by key:=k |> sort' -
 ```
-=>
+
 ```mdtest-output
 {key:"bar",set:|[2]|}
 {key:"baz",set:|[4]|}
@@ -121,7 +121,7 @@ echo '{k:"foo",v:1}{k:"bar",v:2}{k:"foo",v:3}{k:"baz",v:4}' |
          array:=collect(v) where k=="foo"
          by key:=k |> sort' -
 ```
-=>
+
 ```mdtest-output
 {key:"bar",set:|[2]|,array:null}
 {key:"baz",set:|[4]|,array:null}
@@ -134,7 +134,7 @@ clauses are used inside `summarize`:
 echo '{k:"foo",v:1}{k:"bar",v:2}{k:"foo",v:3}{k:"baz",v:4}' |
   super -z -c 'sum(v) where k=="bar" by key:=k |> sort' -
 ```
-=>
+
 ```mdtest-output
 {key:"bar",sum:2}
 {key:"baz",sum:null}
@@ -146,7 +146,7 @@ To avoid null results for `by` groupings a just shown, filter before `summarize`
 echo '{k:"foo",v:1}{k:"bar",v:2}{k:"foo",v:3}{k:"baz",v:4}' |
   super -z -c 'k=="bar" |> sum(v) by key:=k |> sort' -
 ```
-=>
+
 ```mdtest-output
 {key:"bar",sum:2}
 ```
@@ -156,7 +156,7 @@ Output just the unique key values:
 echo '{k:"foo",v:1}{k:"bar",v:2}{k:"foo",v:3}{k:"baz",v:4}' |
   super -z -c 'by k |> sort' -
 ```
-=>
+
 ```mdtest-output
 {k:"bar"}
 {k:"baz"}

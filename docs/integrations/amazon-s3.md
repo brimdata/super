@@ -1,9 +1,7 @@
 ---
-sidebar_position: 1
-sidebar_label: Amazon S3
+weight: 1
+title: Amazon S3
 ---
-
-# Amazon S3
 
 Zed tools can access [Amazon S3](https://aws.amazon.com/s3/) and
 S3-compatible storage via `s3://` URIs. Details are described below.

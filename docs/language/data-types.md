@@ -1,9 +1,7 @@
 ---
-sidebar_position: 3
-sidebar_label: Data Types
+weight: 3
+title: Data Types
 ---
-
-# Data Types
 
 The SuperPipe language includes most data types of a typical programming language
 as defined in the [super data model](../formats/zed.md).
@@ -163,7 +161,7 @@ the scope of the Zed data model and language.  That said, Zed provides flexible
 building blocks so systems can define their own schema versioning and schema
 management policies on top of these Zed primitives.
 
-The [super-structured data model](../formats/README.md#2-a-super-structured-pattern)
+The [super-structured data model](../formats/_index.md#2-a-super-structured-pattern)
 is a superset of relational tables and
 SuperPipe's type system can easily make this connection.
 As an example, consider this type definition for "employee":
@@ -315,7 +313,7 @@ results from accessing a field that is not present.  Thus, `x==NULL` and
 `x==MISSING` could disambiguate the two cases above.
 
 SuperPipe, instead, recognizes that the SQL value `MISSING` is a paradox:
-I'm here but I'm not.  
+I'm here but I'm not.
 
 In reality, a `MISSING` value is not a value.  It's an error condition
 that resulted from trying to reference something that didn't exist.

@@ -1,9 +1,7 @@
 ---
-sidebar_position: 2
-sidebar_label: Installation
+weight: 2
+title: Installation
 ---
-
-# Installation
 
 Several options for installing `super` are available:
 * [Homebrew](#homebrew) for Mac or Linux,

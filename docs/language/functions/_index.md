@@ -1,5 +1,5 @@
-# Functions
-
+---
+title: Functions
 ---
 
 Functions appear in [expression](../expressions.md) context and

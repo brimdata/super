@@ -23,7 +23,7 @@ _Parse Super JSON text_
 ```mdtest-command
 echo '{foo:"{a:\"1\",b:2}"}' | super -z -c 'foo := parse_zson(foo)' -
 ```
-=>
+
 ```mdtest-output
 {foo:{a:"1",b:2}}
 ```
@@ -33,7 +33,7 @@ _Parse JSON text_
 echo '{"foo": "{\"a\": \"1\", \"b\": 2}"}' |
   super -z -c 'foo := parse_zson(foo)' -
 ```
-=>
+
 ```mdtest-output
 {foo:{a:"1",b:2}}
 ```

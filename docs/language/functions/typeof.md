@@ -22,7 +22,7 @@ The types of various values:
 echo  '1 "foo" 10.0.0.1 [1,2,3] {s:"foo"} null error("missing")' |
   super -z -c 'yield typeof(this)' -
 ```
-=>
+
 ```mdtest-output
 <int64>
 <string>
@@ -36,7 +36,7 @@ The type of a type is type `type`:
 ```mdtest-command
 echo null | super -z -c 'yield typeof(typeof(this))' -
 ```
-=>
+
 ```mdtest-output
 <type>
 ```

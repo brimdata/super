@@ -19,7 +19,7 @@ _Copy input to output_
 ```mdtest-command
 echo '1 2 3' | super -z -c pass -
 ```
-=>
+
 ```mdtest-output
 1
 2
@@ -35,7 +35,7 @@ echo '"HeLlo, WoRlD!"' | super -z -c '
     => lower(this)
 ) |> sort' -
 ```
-=>
+
 ```mdtest-output
 "HELLO, WORLD!"
 "HeLlo, WoRlD!"

@@ -1,5 +1,6 @@
-# Aggregate Functions
-
+---
+title: Aggregates
+heading: Aggregate Functions
 ---
 
 Aggregate functions appear in either [summarization](../operators/summarize.md)

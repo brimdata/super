@@ -34,7 +34,7 @@ Replace regular expression matches with a letter:
 ```mdtest-command
 echo '"-ab-axxb-"' | super -z -c 'yield regexp_replace(this, /ax*b/, "T")' -
 ```
-=>
+
 ```mdtest-output
 "-T-T-"
 ```
@@ -45,7 +45,7 @@ Replace regular expression matches using numeric references to submatches:
 echo '"option: value"' |
   super -z -c 'yield regexp_replace(this,/(\w+):\s+(\w+)$/,"$1=$2")' -
 ```
-=>
+
 ```mdtest-output
 "option=value"
 ```
@@ -60,7 +60,7 @@ echo '"option: value"' |
                  "$key=$value")
   ' -
 ```
-=>
+
 ```mdtest-output
 "option=value"
 ```
@@ -75,7 +75,7 @@ echo '"option: value"' |
                 "$key=${value}AppendedText")
   ' -
 ```
-=>
+
 ```mdtest-output
 "option=valueAppendedText"
 ```

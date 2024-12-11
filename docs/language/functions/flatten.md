@@ -20,7 +20,7 @@ inner type is a union of the record types present.
 ```mdtest-command
 echo '{a:1,b:{c:"foo"}}' | super -z -c 'yield flatten(this)' -
 ```
-=>
+
 ```mdtest-output
 [{key:["a"],value:1},{key:["b","c"],value:"foo"}]
 ```
