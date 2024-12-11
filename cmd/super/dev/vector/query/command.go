@@ -3,6 +3,7 @@ package query
 import (
 	"errors"
 	"flag"
+	"os"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/cli/outputflags"
@@ -11,10 +12,9 @@ import (
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/runtime/vcache"
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio"
-	"github.com/segmentio/ksuid"
+	"github.com/brimdata/super/zio/vngio"
 )
 
 var spec = &charm.Spec{
@@ -57,23 +57,21 @@ func (c *Command) Run(args []string) error {
 		return errors.New("usage: query followed by a single path argument of VNG data")
 	}
 	text := args[0]
-	uri, err := storage.ParseURI(args[1])
+	f, err := os.Open(args[1])
 	if err != nil {
 		return err
 	}
-	local := storage.NewLocalEngine()
-	cache := vcache.NewCache(local)
-	object, err := cache.Fetch(ctx, uri, ksuid.Nil)
-	if err != nil {
-		return err
-	}
-	defer object.Close()
 	rctx := runtime.NewContext(ctx, super.NewContext())
-	puller, err := compiler.VectorCompile(rctx, text, object)
+	r, err := vngio.NewVectorReader(ctx, rctx.Zctx, f, nil)
 	if err != nil {
 		return err
 	}
-	writer, err := c.outputFlags.Open(ctx, local)
+	defer r.Pull(true)
+	puller, err := compiler.VectorCompile(rctx, text, r)
+	if err != nil {
+		return err
+	}
+	writer, err := c.outputFlags.Open(ctx, storage.NewLocalEngine())
 	if err != nil {
 		return err
 	}

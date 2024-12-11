@@ -139,11 +139,12 @@ import (
 	"github.com/brimdata/super/compiler"
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/runtime/vcache"
+	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vng"
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/anyio"
+	"github.com/brimdata/super/zio/vngio"
 	"github.com/brimdata/super/zio/zsonio"
 	"github.com/pmezard/go-difflib/difflib"
 	"gopkg.in/yaml.v3"
@@ -554,12 +555,12 @@ func runvec(zedProgram string, input string, outputFlags []string) (string, erro
 	if err := flags.Parse(outputFlags); err != nil {
 		return "", err
 	}
-	object, err := createVCacheObject(input)
+	r, err := createVPuller(input)
 	if err != nil {
 		return "", err
 	}
-	defer object.Close()
-	puller, err := compiler.VectorCompile(runtime.DefaultContext(), zedProgram, object)
+	defer r.Pull(true)
+	puller, err := compiler.VectorCompile(runtime.DefaultContext(), zedProgram, r)
 	if err != nil {
 		return "", err
 	}
@@ -575,16 +576,13 @@ func runvec(zedProgram string, input string, outputFlags []string) (string, erro
 	return outbuf.String(), err
 }
 
-func createVCacheObject(input string) (*vcache.Object, error) {
+func createVPuller(input string) (vector.Puller, error) {
 	var buf bytes.Buffer
 	w := vng.NewWriter(zio.NopCloser(&buf))
 	r := zsonio.NewReader(super.NewContext(), strings.NewReader(input))
 	if err := errors.Join(zio.Copy(w, r), w.Close()); err != nil {
 		return nil, err
 	}
-	o, err := vng.NewObject(bytes.NewReader(buf.Bytes()))
-	if err != nil {
-		return nil, err
-	}
-	return vcache.NewObjectFromVNG(o), nil
+	rctx := runtime.DefaultContext()
+	return vngio.NewVectorReader(rctx.Context, rctx.Zctx, bytes.NewReader(buf.Bytes()), nil)
 }

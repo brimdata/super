@@ -17,7 +17,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/op"
 	"github.com/brimdata/super/runtime/vam"
 	vamop "github.com/brimdata/super/runtime/vam/op"
-	"github.com/brimdata/super/runtime/vcache"
+	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio"
 )
@@ -118,7 +118,7 @@ func bundleOutputs(rctx *runtime.Context, outputs map[string]zbuf.Puller) zbuf.P
 // where the entire query is vectorizable.  It does not call optimize
 // nor does it compute the demand of the query to prune the projection
 // from the vcache.
-func VectorCompile(rctx *runtime.Context, query string, object *vcache.Object) (zbuf.Puller, error) {
+func VectorCompile(rctx *runtime.Context, query string, puller vector.Puller) (zbuf.Puller, error) {
 	ast, err := parser.ParseQuery(query)
 	if err != nil {
 		return nil, err
@@ -132,7 +132,6 @@ func VectorCompile(rctx *runtime.Context, query string, object *vcache.Object) (
 		panic("DAG assumptions violated")
 	}
 	entry = entry[1:]
-	puller := vam.NewVectorProjection(rctx.Zctx, object, nil) //XXX project all
 	builder := kernel.NewBuilder(rctx, env)
 	outputs, err := builder.BuildWithPuller(entry, puller)
 	if err != nil {
