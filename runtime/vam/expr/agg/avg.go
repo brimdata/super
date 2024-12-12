@@ -14,6 +14,9 @@ type avg struct {
 var _ Func = (*avg)(nil)
 
 func (a *avg) Consume(vec vector.Any) {
+	if !super.IsNumber(vec.Type().ID()) {
+		return
+	}
 	var ncount uint32
 	if nulls := vector.NullsOf(vec); nulls != nil {
 		ncount = nulls.TrueCount()
