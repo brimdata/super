@@ -1,9 +1,7 @@
 ---
-sidebar_position: 7
-sidebar_label: Lateral Subqueries
+weight: 7
+title: Lateral Subqueries
 ---
-
-# Lateral Subqueries
 
 Lateral subqueries provide a powerful means to apply a Zed query
 to each subsequence of values generated from an outer sequence of values.
@@ -11,10 +9,12 @@ The inner query may be _any_ pipeline operator sequence (excluding
 [`from` operators](operators/from.md)) and may refer to values from
 the outer sequence.
 
-:::tip Note
+{{% tip "Note" %}}
+
 This pattern rhymes with the SQL pattern of a "lateral
 join", which runs a subquery for each row of the outer query's results.
-:::
+
+{{% /tip %}}
 
 Lateral subqueries are created using the scoped form of the
 [`over` operator](operators/over.md). They may be nested to arbitrary depth
@@ -127,9 +127,11 @@ parenthesized form:
 ( over <expr> [, <expr>...] [with <var>=<expr> [, ... <var>[=<expr>]] |> <lateral> )
 ```
 
-:::tip
+{{% tip "Note" %}}
+
 The parentheses disambiguate a lateral expression from a [lateral pipeline operator](operators/over.md).
-:::
+
+{{% /tip %}}
 
 This form must always include a [lateral scope](#lateral-scope) as indicated by `<lateral>`.
 
@@ -189,5 +191,5 @@ produces
 ```
 Similarly, a primitive value may be consistently produced by concluding the
 lateral scope with an operator such as [`head`](operators/head.md) or
-[`tail`](operators/tail.md), or by applying certain [aggregate functions](aggregates/README.md)
+[`tail`](operators/tail.md), or by applying certain [aggregate functions](aggregates/_index.md)
 such as done with [`sum`](aggregates/sum.md) above.

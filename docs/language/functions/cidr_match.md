@@ -22,7 +22,7 @@ Test whether values are IP addresses in a network:
 echo '10.1.2.129 11.1.2.129 10 "foo"' |
   super -z -c 'yield cidr_match(10.0.0.0/8, this)' -
 ```
-=>
+
 ```mdtest-output
 true
 false
@@ -35,7 +35,7 @@ It also works for IPs in complex values:
 echo '[10.1.2.129,11.1.2.129] {a:10.0.0.1} {a:11.0.0.1}' |
   super -z -c 'yield cidr_match(10.0.0.0/8, this)' -
 ```
-=>
+
 ```mdtest-output
 true
 true
@@ -46,7 +46,7 @@ The first argument must be a network:
 ```mdtest-command
 echo '10.0.0.1' | super -z -c 'yield cidr_match([1,2,3], this)' -
 ```
-=>
+
 ```mdtest-output
 error({message:"cidr_match: not a net",on:[1,2,3]})
 ```

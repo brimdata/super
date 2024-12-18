@@ -19,7 +19,7 @@ Return a simple named type with a string constant argument:
 ```mdtest-command
 echo  '80(port=int16)' | super -z -c 'yield typename("port")' -
 ```
-=>
+
 ```mdtest-output
 <port=int16>
 ```
@@ -27,7 +27,7 @@ Return a named type using an expression:
 ```mdtest-command
 echo  '{name:"port",p:80(port=int16)}' | super -z -c 'yield typename(name)' -
 ```
-=>
+
 ```mdtest-output
 <port=int16>
 ```
@@ -35,7 +35,7 @@ The result is `error("missing")` if the type name does not exist:
 ```mdtest-command
 echo  '80' | super -z -c 'yield typename("port")' -
 ```
-=>
+
 ```mdtest-output
 error("missing")
 ```

@@ -18,7 +18,7 @@ that occur in string `s` with the string `new`.
 ```mdtest-command
 echo '"oink oink oink"' | super -z -c 'yield replace(this, "oink", "moo")' -
 ```
-=>
+
 ```mdtest-output
 "moo moo moo"
 ```

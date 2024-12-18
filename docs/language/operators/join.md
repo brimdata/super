@@ -14,13 +14,15 @@
 | [anti|inner|left|right] join on <left-key>=<right-key> [[<field>:=]<right-expr>, ...]
 ```
 
-:::tip Note
+{{% tip "Note" %}}
+
 The first `join` syntax shown above was more recently introduced and is in some
 ways similar to other languages such as SQL.  The second was the original `join`
 syntax in SuperPipe.  Most joins can be expressed using either syntax.  See the
 [join tutorial](../../tutorials/join.md)
 for details.
-:::
+
+{{% /tip %}}
 
 ### Description
 

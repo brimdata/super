@@ -1,9 +1,7 @@
 ---
-sidebar_position: 8
-sidebar_label: Shaping and Type Fusion
+weight: 8
+title: Shaping and Type Fusion
 ---
-
-# Shaping and Type Fusion
 
 ## Shaping
 
@@ -14,7 +12,7 @@ a well-defined set of schemas, which combines the data into a unified
 store like a data warehouse.
 
 In Zed, this cleansing process is called "shaping" the data, and Zed leverages
-its rich, [super-structured](../formats/README.md#2-a-super-structured-pattern)
+its rich, [super-structured](../formats/_index.md#2-a-super-structured-pattern)
 type system to perform core aspects of data transformation.
 In a data model with nesting and multiple scalar types (such as Zed or JSON),
 shaping includes converting the type of leaf fields, adding or removing fields

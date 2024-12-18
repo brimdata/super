@@ -26,16 +26,20 @@ the empty record type, i.e.,
 ```
 order(val, <{}>)
 ```
-:::tip
+{{% tip "Tip" %}}
+
 Many users seeking the functionality of `order` prefer to use the
 [`shape` function](./shape.md) which applies the `order`, [`cast`](./cast.md),
 and [`fill`](./fill.md) functions simultaneously on a record.
-:::
 
-:::tip Note
+{{% /tip %}}
+
+{{% tip "Note" %}}
+
 [Record expressions](../expressions.md#record-expressions) can also be used to
 reorder fields without specifying types ([example](../shaping.md#order)).
-:::
+
+{{% /tip %}}
 
 ### Examples
 

@@ -1,9 +1,8 @@
 ---
-sidebar_position: 4
-sidebar_label: Const, Func, Operator, and Type Statements
+weight: 4
+title: Const, Func, Operator, and Type Statements
+heading: Statements
 ---
-
-# Statements
 
 ## Const Statements
 

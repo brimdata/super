@@ -1,4 +1,7 @@
-# Libraries
+---
+title: Libraries
+weight: 7
+---
 
 Zed currently supports a small number of languages
 with client libraries for manipulating Zed data and interacting

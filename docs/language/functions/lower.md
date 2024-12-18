@@ -18,7 +18,7 @@ to lower case and returns the result.
 ```mdtest-command
 echo '"Zed"' | super -z -c 'yield lower(this)' -
 ```
-=>
+
 ```mdtest-output
 "zed"
 ```
