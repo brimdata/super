@@ -44,7 +44,7 @@ function run_query {
   fi
 
   if [ "$cmd" == "super" ]; then
-    if [ "$source" == "gha.parquet" ]; then
+    if [ "$source" == "gha.parquet" ] || [ "$source" == "gha.csup" ]; then
       cmd="SUPER_VAM=1 super"
     fi
     cmd="$cmd -z -I $final_query"
@@ -80,7 +80,7 @@ echo "|**Tool**|**Format**|**search**|**search+**|**count**|**agg**|**union**|" 
 echo "|-|-|-|-|-|-|-|" >> "$report"
 echo "Tool,Format,search,search+,count,agg,union" > "$csv_report"
 
-for source in gha.bsup gha.parquet
+for source in gha.bsup gha.parquet gha.csup
 do
   echo -n "|\`super\`|\`${source/gha./}\`|" >> "$report"
   echo -n "super,${source/gha./}" >> "$csv_report"
