@@ -38,7 +38,7 @@ echo '{foo:10}' | super -z -c 'yield {yes:missing(bar+1),no:missing(foo+1)}' -
 echo 1 | super -z -c 'yield missing(bar)' -
 echo '{x:error("missing")}' | super -z -c 'yield missing(x)' -
 ```
-=>
+
 ```mdtest-output
 {yes:true,no:false}
 {yes:false,no:true}

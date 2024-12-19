@@ -1,5 +1,6 @@
-# Operators
-
+---
+weight: 1
+title: Operators
 ---
 
 Operators process a sequence of input values to create an output sequence

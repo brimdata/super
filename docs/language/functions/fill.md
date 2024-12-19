@@ -20,11 +20,13 @@ you want to be sure that all fields in a schema are present in a record.
 
 If `val` is not a record, it is returned unmodified.
 
-:::tip
+{{% tip "Tip" %}}
+
 Many users seeking the functionality of `fill` prefer to use the
 [`shape` function](./shape.md) which applies the `fill`, [`cast`](./cast.md),
 and [`order`](./order.md) functions simultaneously on a record.
-:::
+
+{{% /tip %}}
 
 ### Examples
 

@@ -20,7 +20,7 @@ returned instead of the named type.
 echo  '{which:"chocolate"}(=flavor)' |
   super -z -c 'yield {typeof:typeof(this),typeunder:typeunder(this)}' -
 ```
-=>
+
 ```mdtest-output
 {typeof:<flavor={which:string}>,typeunder:<{which:string}>}
 ```

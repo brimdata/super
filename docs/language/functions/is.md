@@ -19,7 +19,7 @@ Test simple types:
 ```mdtest-command
 echo '1.' | super -z -c 'yield {yes:is(<float64>),no:is(<int64>)}' -
 ```
-=>
+
 ```mdtest-output
 {yes:true,no:false}
 ```
@@ -28,7 +28,7 @@ Test for a given input's record type or "shape":
 ```mdtest-command
 echo '{s:"hello"}' | super -z -c 'yield is(<{s:string}>)' -
 ```
-=>
+
 ```mdtest-output
 true
 ```
@@ -38,7 +38,7 @@ but if you use the type name or typeunder function, there is a match:
 echo '{s:"hello"}(=foo)' | super -z -c 'yield is(<{s:string}>)' -
 echo '{s:"hello"}(=foo)' | super -z -c 'yield is(<foo>)' -
 ```
-=>
+
 ```mdtest-output
 false
 true
@@ -48,7 +48,7 @@ To test the underlying type, just use `==`:
 ```mdtest-command
 echo '{s:"hello"}(=foo)' | super -z -c 'yield typeunder(this)==<{s:string}>' -
 ```
-=>
+
 ```mdtest-output
 true
 ```

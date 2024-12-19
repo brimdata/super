@@ -20,7 +20,7 @@ into value's leaves to determine if there is an error in the value.
 echo '{a:{b:"foo"}}' | super -z -c 'yield has_error(this)' -
 echo '{a:{b:"foo"}}' | super -z -c 'a.x := a.y + 1 |> yield has_error(this)' -
 ```
-=>
+
 ```mdtest-output
 false
 true

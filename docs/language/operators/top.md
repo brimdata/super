@@ -23,7 +23,7 @@ _Grab the top two values from a sequence of integers_
 ```mdtest-command
 echo '1 5 3 9 23 7' | super -z -c 'top 2 this' -
 ```
-=>
+
 ```mdtest-output
 23
 9
@@ -35,7 +35,7 @@ echo '{name:"joe", age:22} {name:"bob", age:37} {name:"liz", age:25}
       {name:"ray", age:44} {name:"sue", age:41} {name:"liz", age:60}' |
   super -z -c 'count() by name |> top 2 count' -
 ```
-=>
+
 ```mdtest-output
 {name:"liz",count:3(uint64)}
 {name:"bob",count:2(uint64)}

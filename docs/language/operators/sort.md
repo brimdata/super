@@ -59,7 +59,7 @@ _A simple sort with a null_
 ```mdtest-command
 echo '2 null 1 3' | super -z -c 'sort this' -
 ```
-=>
+
 ```mdtest-output
 1
 2
@@ -70,7 +70,7 @@ _With no sort expression, sort will sort by [`this`](../pipeline-model.md#the-sp
 ```mdtest-command
 echo '2 null 1 3' | super -z -c sort -
 ```
-=>
+
 ```mdtest-output
 1
 2
@@ -81,7 +81,7 @@ _The "nulls last" default may be overridden_
 ```mdtest-command
 echo '2 null 1 3' | super -z -c 'sort -nulls first' -
 ```
-=>
+
 ```mdtest-output
 null
 1
@@ -92,7 +92,7 @@ _With no sort expression, sort's heuristics will find a numeric key_
 ```mdtest-command
 echo '{s:"bar",k:2}{s:"bar",k:3}{s:"foo",k:1}' | super -z -c sort -
 ```
-=>
+
 ```mdtest-output
 {s:"foo",k:1}
 {s:"bar",k:2}
@@ -102,7 +102,7 @@ _It's best practice to provide the sort key_
 ```mdtest-command
 echo '{s:"bar",k:2}{s:"bar",k:3}{s:"foo",k:1}' | super -z -c 'sort k' -
 ```
-=>
+
 ```mdtest-output
 {s:"foo",k:1}
 {s:"bar",k:2}
@@ -112,7 +112,7 @@ _Sort with a secondary key_
 ```mdtest-command
 echo '{s:"bar",k:2}{s:"bar",k:3}{s:"foo",k:2}' | super -z -c 'sort k,s' -
 ```
-=>
+
 ```mdtest-output
 {s:"bar",k:2}
 {s:"foo",k:2}
@@ -122,7 +122,7 @@ _Sort by secondary key in reverse order when the primary keys are identical_
 ```mdtest-command
 echo '{s:"bar",k:2}{s:"bar",k:3}{s:"foo",k:2}' | super -z -c 'sort k,s desc' -
 ```
-=>
+
 ```mdtest-output
 {s:"foo",k:2}
 {s:"bar",k:2}
@@ -133,7 +133,7 @@ _Sort with a numeric expression_
 echo '{s:"sum 2",x:2,y:0}{s:"sum 3",x:1,y:2}{s:"sum 0",x:-1,y:-1}' |
   super -z -c 'sort x+y' -
 ```
-=>
+
 ```mdtest-output
 {s:"sum 0",x:-1,y:-1}
 {s:"sum 2",x:2,y:0}
@@ -144,7 +144,7 @@ _Case sensitivity affects sorting "lowest value to highest" in string values_
 echo '{word:"hello"}{word:"Hi"}{word:"WORLD"}' |
   super -z -c 'sort' -
 ```
-=>
+
 ```mdtest-output
 {word:"Hi"}
 {word:"WORLD"}
@@ -155,7 +155,7 @@ _Case-insensitive sort by using a string expression_
 echo '{word:"hello"}{word:"Hi"}{word:"WORLD"}' |
   super -z -c 'sort lower(word)' -
 ```
-=>
+
 ```mdtest-output
 {word:"hello"}
 {word:"Hi"}
@@ -165,7 +165,7 @@ _Shorthand to reverse the sort order for each key_
 ```mdtest-command
 echo '2 null 1 3' | super -z -c 'sort -r' -
 ```
-=>
+
 ```mdtest-output
 3
 2

@@ -19,7 +19,7 @@ The floor of a various numbers:
 ```mdtest-command
 echo '1.5 -1.5 1(uint8) 1.5(float32)' | super -z -c 'yield floor(this)' -
 ```
-=>
+
 ```mdtest-output
 1.
 -2.

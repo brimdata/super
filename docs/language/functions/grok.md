@@ -42,12 +42,14 @@ been published by Elastic and others that provide helpful guidance on becoming
 proficient in Grok. To help you adapt what you learn from these resources to
 the use of the `grok` function, review the tips below.
 
-:::tip Note
+{{% tip "Note" %}}
+
 As these represent areas of possible future SuperPipe enhancement, links to open
 issues are provided. If you find a functional gap significantly impacts your
 ability to use the `grok` function, please add a comment to the relevant
 issue describing your use case.
-:::
+
+{{% /tip %}}
 
 1. Logstash's Grok offers an optional data type conversion syntax,
    e.g.,
@@ -111,7 +113,8 @@ issue describing your use case.
    avoid compatibility issues, we recommend building configurations starting
    from the RE2-based [included patterns](#included-patterns).
 
-:::tip Note
+{{% tip "Note" %}}
+
 If you absolutely require features of Logstash's Grok that are not currently
 present in SuperPipe, you can create a Logstash-based preprocessing
 pipeline that uses its
@@ -121,7 +124,8 @@ and send its output as JSON to SuperPipe. Issue
 getting started. If you pursue this approach, please add a comment to the
 issue describing your use case or come talk to us on
 [community Slack](https://www.brimdata.io/join-slack/).
-:::
+
+{{% /tip %}}
 
 ### Debugging
 
@@ -155,7 +159,7 @@ echo '"2020-09-16T04:20:42.45+01:00 DEBUG This is a sample debug log message"' |
   super -Z -c 'yield grok("%{TIMESTAMP_ISO8601:timestamp} %{LOGLEVEL:level} %{GREEDYDATA:message}",
                     this)' -
 ```
-=>
+
 ```mdtest-output
 {
     timestamp: "2020-09-16T04:20:42.45+01:00",
@@ -175,7 +179,7 @@ echo '"+7000"' |
                     this,
                     "MY_NUMTZ [+-]\\d{4}")' -
 ```
-=>
+
 ```mdtest-output
 {tz:"+7000"}
 ```
@@ -187,11 +191,11 @@ readability.
 ```mdtest-command
 echo '"(555)-1212"' |
   super -z -c 'yield grok("\\(%{PH_PREFIX:prefix}\\)-%{PH_LINE_NUM:line_number}",
-                    this, 
+                    this,
                     "PH_PREFIX \\d{3}\n" +
                     "PH_LINE_NUM \\d{4}")' -
 ```
-=>
+
 ```mdtest-output
 {prefix:"555",line_number:"1212"}
 ```

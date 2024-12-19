@@ -23,7 +23,7 @@ Bucket a couple times to hour intervals:
 echo '2020-05-26T15:27:47Z "5/26/2020 3:27pm"' |
   super -z -c 'yield bucket(time(this), 1h)' -
 ```
-=>
+
 ```mdtest-output
 2020-05-26T15:00:00Z
 2020-05-26T15:00:00Z

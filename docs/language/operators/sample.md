@@ -25,7 +25,7 @@ _A simple sample_
 ```mdtest-command
 echo '1 2 3 "foo" "bar" 10.0.0.1 10.0.0.2' | super -z -c 'sample |> sort this' -
 ```
-=>
+
 ```mdtest-output
 1
 "foo"
@@ -37,7 +37,7 @@ _Sampling record shapes_
 echo '{a:1}{a:2}{s:"foo"}{s:"bar"}{a:3,s:"baz"}' |
   super -z -c 'sample |> sort a' -
 ```
-=>
+
 ```mdtest-output
 {a:1}
 {a:3,s:"baz"}

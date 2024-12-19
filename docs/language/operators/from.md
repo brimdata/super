@@ -28,9 +28,11 @@ their data to its output.  A data source can be
 * an HTTP, HTTPS, or S3 URI; or
 * the [`pass` operator](pass.md), to treat the upstream pipeline branch as a source.
 
-:::tip Note
+{{% tip "Note" %}}
+
 File paths and URIs may be followed by an optional [format](../../commands/super.md#input-formats) specifier.
-:::
+
+{{% /tip %}}
 
 Sourcing data from pools is only possible when querying a lake, such as
 via the [`super db` command](../../commands/super-db.md) or
@@ -82,7 +84,7 @@ super db -q init
 super db -q create -orderby flip:desc coinflips
 echo '{flip:1,result:"heads"} {flip:2,result:"tails"}' |
   super db load -q -use coinflips -
-super db branch -q -use coinflips trial 
+super db branch -q -use coinflips trial
 echo '{flip:3,result:"heads"}' | super db load -q -use coinflips@trial -
 super db -q create numbers
 echo '{number:1,word:"one"} {number:2,word:"two"} {number:3,word:"three"}' |
@@ -114,7 +116,7 @@ _Source structured data from a local file_
 ```mdtest-command
 super -z -c 'file hello.jsup |> yield greeting'
 ```
-=>
+
 ```mdtest-output
 "hello world!"
 ```
@@ -123,7 +125,7 @@ _Source data from a local file, but in line format_
 ```mdtest-command
 super -z -c 'file hello.jsup format line'
 ```
-=>
+
 ```mdtest-output
 "{greeting:\"hello world!\"}"
 ```
@@ -142,7 +144,7 @@ _Source data from the `main` branch of a pool_
 ```mdtest-command
 super db -lake example query -z 'from coinflips'
 ```
-=>
+
 ```mdtest-output
 {flip:2,result:"tails"}
 {flip:1,result:"heads"}
@@ -152,7 +154,7 @@ _Source data from a specific branch of a pool_
 ```mdtest-command
 super db -lake example query -z 'from coinflips@trial'
 ```
-=>
+
 ```mdtest-output
 {flip:3,result:"heads"}
 {flip:2,result:"tails"}
@@ -163,7 +165,7 @@ _Count the number of values in the `main` branch of all pools_
 ```mdtest-command
 super db -lake example query -f text 'from * |> count()'
 ```
-=>
+
 ```mdtest-output
 5
 ```
@@ -175,7 +177,7 @@ super db -lake example query -z '
     from numbers |> sort number
   ) on flip=number word'
 ```
-=>
+
 ```mdtest-output
 {flip:1,result:"heads",word:"one"}
 {flip:2,result:"tails",word:"two"}
@@ -195,7 +197,7 @@ super db -lake example query -z '
       |> yield f"There were {int64(c)} flips"
   ) |> sort this'
 ```
-=>
+
 ```mdtest-output
 "There were 3 flips"
 {flip:1,result:"heads",word:"one"}
