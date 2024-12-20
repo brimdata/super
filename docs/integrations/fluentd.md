@@ -30,7 +30,7 @@ were used for the referenced software:
 ### Zeek
 
 The commands below were used to
-[install Zeek from a binary package](https://software.opensuse.org//download.html?project=security%3Azeek&package=zeek).
+[install Zeek from a binary package](https://github.com/zeek/zeek/wiki/Binary-Packages).
 The [JSON Streaming Logs](https://github.com/corelight/json-streaming-logs)
 package was also installed, as this log format is preferred in many production
 Zeek environments and it lends itself to use with Fluentd's
