@@ -19,7 +19,7 @@ converted into nested records. If no argument is supplied to `nest_dotted`,
 ```mdtest-command
 echo '{"a.b.c":"foo"}' | super -z -c 'yield nest_dotted()' -
 ```
-=>
+
 ```mdtest-output
 {a:{b:{c:"foo"}}}
 ```

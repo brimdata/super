@@ -1,5 +1,6 @@
-# Functions
-
+---
+weight: 2
+title: Functions
 ---
 
 Functions appear in [expression](../expressions.md) context and

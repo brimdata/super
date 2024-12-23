@@ -18,7 +18,7 @@ from string argument `s` and returns the result.
 ```mdtest-command
 echo '" = Zed = "' | super -z -c 'yield trim(this)' -
 ```
-=>
+
 ```mdtest-output
 "= Zed ="
 ```

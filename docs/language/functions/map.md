@@ -21,7 +21,7 @@ Upper case each element of an array:
 ```mdtest-command
 echo '["foo","bar","baz"]' | super -z -c 'yield map(this, upper)' -
 ```
-=>
+
 ```mdtest-output
 ["FOO","BAR","BAZ"]
 ```
@@ -37,7 +37,7 @@ echo '[1697151533.41415,1697151540.716529]' |
     yield map(this, floatToTime)
   ' -
 ```
-=>
+
 ```mdtest-output
 [2023-10-12T22:58:53.414149888Z,2023-10-12T22:59:00.716528896Z]
 ```

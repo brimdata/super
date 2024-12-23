@@ -1,9 +1,8 @@
 ---
-sidebar_position: 2
-sidebar_label: Format
+weight: 2
+title: Format
+heading: Zed Lake Format
 ---
-
-# Zed Lake Format
 
 ## _Status_
 
@@ -32,7 +31,7 @@ to provide a universal data representation for all of these different approaches
 
 Also, while we are not currently focused on building a SQL engine for the Zed lake,
 it is most certainly possible to do so, as a Zed record type
-[is analagous to](../formats/README.md#2-a-super-structured-pattern)
+[is analagous to](../formats/_index.md#2-a-super-structured-pattern)
 a SQL table definition.  SQL tables can essentially be dynamically projected
 via a table virtualization layer built on top of the Zed lake model.
 
@@ -69,7 +68,7 @@ such an assumption).
 #### Data Objects
 
 A data object is created by a single writer using a globally unique name
-with an embedded KSUID.  
+with an embedded KSUID.
 
 New objects are written in their entirety.  No updates, appends, or modifications
 may be made once an object exists.  Given these semantics, any such object may be

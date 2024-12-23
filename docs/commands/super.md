@@ -1,11 +1,9 @@
 ---
-sidebar_position: 1
-sidebar_label: super
+weight: 1
+title: super
 ---
 
-# `super`
-
-> **TL;DR** `super` is a command-line tool that uses [SuperSQL](../language/README.md)
+> **TL;DR** `super` is a command-line tool that uses [SuperSQL](../language/_index.md)
 > to query a variety of data formats in files, over HTTP, or in [S3](../integrations/amazon-s3.md)
 > storage. Best performance is achieved when operating on data in binary formats such as
 > [Super Binary](../formats/bsup.md), [Super Columnar](../formats/csup.md),
@@ -20,7 +18,7 @@ super [ options ] [ -c query ] input [ input ... ]
 
 `super` is a command-line tool for processing data in diverse input
 formats, providing data wrangling, search, analytics, and extensive transformations
-using the [SuperSQL](../language/README.md) dialect of SQL. Any SQL query expression
+using the [SuperSQL](../language/_index.md) dialect of SQL. Any SQL query expression
 may be extended with [pipe syntax](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/)
 to filter, transform, and/or analyze input data.
 Super's SQL pipes dialect is extensive, so much so that it can resemble
@@ -30,10 +28,10 @@ The `super` command works with data from ephemeral sources like files and URLs.
 If you want to persist your data into a data lake for persistent storage,
 check out the [`super db`](super-db.md) set of commands.
 
-By invoking the `-c` option, a query expressed in the [SuperSQL language](../language/README.md)
+By invoking the `-c` option, a query expressed in the [SuperSQL language](../language/_index.md)
 may be specified and applied to the input stream.
 
-The [super data model](../formats/zed.md) is based on [super-structured data](../formats/README.md#2-a-super-structured-pattern), meaning that all data
+The [super data model](../formats/zed.md) is based on [super-structured data](../formats/_index.md#2-a-super-structured-pattern), meaning that all data
 is both strongly _and_ dynamically typed and need not conform to a homogeneous
 schema.  The type structure is self-describing so it's easy to daisy-chain
 queries and inspect data at any point in a complex query or data pipeline.
@@ -189,13 +187,15 @@ not desirable because (1) the Super JSON parser is not particularly performant a
 (2) all JSON numbers are floating point but the Super JSON parser will parse as
 JSON any number that appears without a decimal point as an integer type.
 
-:::tip note
+{{% tip "Note" %}}
+
 The reason `super` is not particularly performant for Super JSON is that the [Super Binary](../formats/bsup.md) or
 [Super Columnar](../formats/csup.md) formats are semantically equivalent to Super JSON but much more efficient and
 the design intent is that these efficient binary formats should be used in
 use cases where performance matters.  Super JSON is typically used only when
 data needs to be human-readable in interactive settings or in automated tests.
-:::
+
+{{% /tip %}}
 
 To this end, `super` uses a heuristic to select between Super JSON and plain JSON when the
 `-i` option is not specified. Specifically, plain JSON is selected when the first values
@@ -573,15 +573,15 @@ error("divide by zero")
 
 ## Examples
 
-As you may have noticed, many examples of the [SuperSQL language](../language/README.md)
+As you may have noticed, many examples of the [SuperSQL language](../language/_index.md)
 are illustrated using this pattern
 ```
 echo <values> | super -c <query> -
 ```
-which is used throughout the [language documentation](../language/README.md)
-and [operator reference](../language/operators/README.md).
+which is used throughout the [language documentation](../language/_index.md)
+and [operator reference](../language/operators/_index.md).
 
-The language documentation and [tutorials directory](../tutorials/README.md)
+The language documentation and [tutorials directory](../tutorials/_index.md)
 have many examples, but here are a few more simple `super` use cases.
 
 _Hello, world_
@@ -615,7 +615,7 @@ produces
 <[(int64,string)]>
 <|[string]|>
 ```
-_A simple [aggregation](../language/aggregates/README.md)_
+_A simple [aggregation](../language/aggregates/_index.md)_
 ```mdtest-command
 echo '{key:"foo",val:1}{key:"bar",val:2}{key:"foo",val:3}' |
   super -z -c 'sum(val) by key | sort key' -

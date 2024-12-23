@@ -17,7 +17,7 @@ Anded value of simple sequence:
 ```mdtest-command
 echo 'true false true' | super -z -c 'and(this)' -
 ```
-=>
+
 ```mdtest-output
 false
 ```
@@ -26,7 +26,7 @@ Continuous AND of simple sequence:
 ```mdtest-command
 echo 'true false true' | super -z -c 'yield and(this)' -
 ```
-=>
+
 ```mdtest-output
 true
 false
@@ -37,7 +37,7 @@ Unrecognized types are ignored and not coerced for truthiness:
 ```mdtest-command
 echo 'true "foo" 0 false true' | super -z -c 'yield and(this)' -
 ```
-=>
+
 ```mdtest-output
 true
 true
@@ -51,7 +51,7 @@ AND of values grouped by key:
 echo '{a:true,k:1} {a:true,k:1} {a:true,k:2} {a:false,k:2}' |
   super -z -c 'and(a) by k |> sort' -
 ```
-=>
+
 ```mdtest-output
 {k:1,and:true}
 {k:2,and:false}

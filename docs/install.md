@@ -1,9 +1,6 @@
 ---
-sidebar_position: 2
-sidebar_label: Installation
+title: Installation
 ---
-
-# Installation
 
 Several options for installing `super` are available:
 * [Homebrew](#homebrew) for Mac or Linux,
@@ -42,11 +39,13 @@ This installs the `super` binary in your `$GOPATH/bin`.
 
 Once installed, run a [quick test](#quick-tests).
 
-:::tip note
+{{% tip "Note" %}}
+
 If you don't have Go installed, download and install it from the
 [Go install page](https://golang.org/doc/install). Go 1.23 or later is
 required.
-:::
+
+{{% /tip %}}
 
 ## Quick Tests
 

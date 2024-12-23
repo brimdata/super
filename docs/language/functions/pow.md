@@ -18,7 +18,7 @@ The return value is a float64 or an error.
 ```mdtest-command
 echo '2' | super -z -c 'yield pow(this, 5)' -
 ```
-=>
+
 ```mdtest-output
 32.
 ```

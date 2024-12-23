@@ -21,7 +21,7 @@ Wrap a record as a structured error:
 echo '{foo:"foo"}' |
   super -z -c 'yield error({message:"bad value", value:this})' -
 ```
-=>
+
 ```mdtest-output
 error({message:"bad value",value:{foo:"foo"}})
 ```
@@ -30,7 +30,7 @@ Wrap any value as an error:
 ```mdtest-command
 echo '1 "foo" [1,2,3]' | super -z -c 'yield error(this)' -
 ```
-=>
+
 ```mdtest-output
 error(1)
 error("foo")
@@ -42,7 +42,7 @@ Test if a value is an error and show its type "kind":
 echo 'error("exception") "exception"' |
   super -Z -c 'yield {this,err:is_error(this),kind:kind(this)}' -
 ```
-=>
+
 ```mdtest-output
 {
     this: error("exception"),
@@ -62,7 +62,7 @@ missing fields to succeed:
 ```mdtest-command
 echo '{}' | super -z -c 'badfield:=x |> yield badfield==error("missing")' -
 ```
-=>
+
 ```mdtest-output
 error("missing")
 ```

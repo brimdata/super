@@ -20,7 +20,7 @@ Split a semi-colon delimited list of fruits:
 ```mdtest-command
 echo '"apple;banana;pear;peach"' | super -z -c 'yield split(this,";")' -
 ```
-=>
+
 ```mdtest-output
 ["apple","banana","pear","peach"]
 ```
@@ -31,7 +31,7 @@ array of IPs:
 echo '"10.0.0.1,10.0.0.2,10.0.0.3"' |
   super -z -c 'yield cast(split(this,","),<[ip]>)' -
 ```
-=>
+
 ```mdtest-output
 [10.0.0.1,10.0.0.2,10.0.0.3]
 ```
