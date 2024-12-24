@@ -86,11 +86,6 @@ do
   echo -n "super,${source/gha./}" >> "$csv_report"
   for queryfile in search.spq search+.spq count.sql agg.sql union.spq
   do
-    if [ "$source" == "gha.parquet" ] && { [ "$queryfile" == "search.spq" ] || [ "$queryfile" == "search+.spq" ] || [ "$queryfile" == "union.spq" ]; }; then
-      echo -n "N/A|" >> "$report"
-      echo -n ",N/A" >> "$csv_report"
-      continue
-    fi
     run_query super $queryfile "$source"
     result=$(grep Time < "$rundir/super-$queryfile-$source.out" | awk '{ print $4 }')
     echo -n "$result" >> "$report"
