@@ -68,9 +68,15 @@ type Log struct {
 }
 
 func (l *Log) Call(_ super.Allocator, args []super.Value) super.Value {
+	if args[0].IsError() {
+		return args[0]
+	}
 	x, ok := coerce.ToFloat(args[0], super.TypeFloat64)
 	if !ok {
 		return l.zctx.WrapError("log: not a number", args[0])
+	}
+	if args[0].IsNull() {
+		return super.NullFloat64
 	}
 	if x <= 0 {
 		return l.zctx.WrapError("log: illegal argument", args[0])

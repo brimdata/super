@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/runtime/vam/expr/cast"
 	"github.com/brimdata/super/vector"
 )
 
@@ -131,4 +132,49 @@ func (f *Floor) floor(vec vector.Any) vector.Any {
 	default:
 		panic(vec)
 	}
+}
+
+// https://github.com/brimdata/super/blob/main/docs/language/functions.md#log
+type Log struct {
+	zctx *super.Context
+}
+
+func (l *Log) Call(args ...vector.Any) vector.Any {
+	arg := vector.Under(args[0])
+	if !super.IsNumber(arg.Type().ID()) {
+		if vector.KindOf(arg) == vector.KindError {
+			return arg
+		}
+		return vector.NewWrappedError(l.zctx, "log: not a number", arg)
+	}
+	// No error casting number to float so no need to Apply.
+	vec := cast.To(l.zctx, arg, super.TypeFloat64)
+	var errs []uint32
+	var floats []float64
+	var nulls *vector.Bool
+	for i := range vec.Len() {
+		v, isnull := vector.FloatValue(vec, i)
+		if isnull {
+			if nulls == nil {
+				nulls = vector.NewBoolEmpty(vec.Len(), nil)
+			}
+			nulls.Set(uint32(len(floats)))
+			floats = append(floats, 0)
+			continue
+		}
+		if v <= 0 {
+			errs = append(errs, i)
+			continue
+		}
+		floats = append(floats, math.Log(v))
+	}
+	out := vector.NewFloat(super.TypeFloat64, floats, nulls)
+	if nulls != nil {
+		nulls.SetLen(out.Len())
+	}
+	if len(errs) > 0 {
+		err := vector.NewWrappedError(l.zctx, "log: illegal argument", vector.NewView(arg, errs))
+		return vector.Combine(out, errs, err)
+	}
+	return out
 }

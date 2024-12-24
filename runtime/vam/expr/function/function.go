@@ -53,6 +53,8 @@ func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path,
 	case "levenshtein":
 		argmin, argmax = 2, 2
 		f = &Levenshtein{zctx}
+	case "log":
+		f = &Log{zctx}
 	case "lower":
 		f = &ToLower{zctx}
 	case "network_of":
