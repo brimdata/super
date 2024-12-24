@@ -70,7 +70,7 @@ if [ -n "$RUNNING_ON_AWS_EC2" ]; then
     "$rundir/clickhouse-table-create.out" \
     "clickhouse-client < clickhouse-table-create.sql"
   sudo systemctl stop clickhouse-server
-  du -h clickhouse/store
+  sudo du -sh clickhouse/store
 fi
 
 du -h gha.db gha.parquet gha.bsup gharchive_gz
