@@ -44,7 +44,7 @@ function run_query {
   fi
 
   if [ "$cmd" == "super" ]; then
-    if [ "$source" == "gha.parquet" ]; then
+    if [ "$source" == "gha.parquet" ] || [ "$source" == "gha.csup" ]; then
       cmd="SUPER_VAM=1 super"
     fi
     cmd="$cmd -z -I $final_query"
@@ -80,17 +80,14 @@ echo "|**Tool**|**Format**|**search**|**search+**|**count**|**agg**|**union**|" 
 echo "|-|-|-|-|-|-|-|" >> "$report"
 echo "Tool,Format,search,search+,count,agg,union" > "$csv_report"
 
-for source in gha.bsup gha.parquet
+# Skipping CSUP for now due to https://github.com/brimdata/super/issues/5550
+#
+for source in gha.bsup gha.parquet # gha.csup
 do
   echo -n "|\`super\`|\`${source/gha./}\`|" >> "$report"
   echo -n "super,${source/gha./}" >> "$csv_report"
   for queryfile in search.spq search+.spq count.sql agg.sql union.spq
   do
-    if [ "$source" == "gha.parquet" ] && { [ "$queryfile" == "search.spq" ] || [ "$queryfile" == "search+.spq" ] || [ "$queryfile" == "union.spq" ]; }; then
-      echo -n "N/A|" >> "$report"
-      echo -n ",N/A" >> "$csv_report"
-      continue
-    fi
     run_query super $queryfile "$source"
     result=$(grep Time < "$rundir/super-$queryfile-$source.out" | awk '{ print $4 }')
     echo -n "$result" >> "$report"

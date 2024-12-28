@@ -56,6 +56,12 @@ run_cmd \
   "$rundir/super-bsup-create.out" \
   "super -o gha.bsup gharchive_gz/*.json.gz"
 
+# Skipping CSUP for now due to https://github.com/brimdata/super/issues/5550
+#
+#run_cmd \
+#  "$rundir/super-csup-create.out" \
+#  "super -f csup -o gha.csup gharchive_gz/*.json.gz"
+
 if [ -n "$RUNNING_ON_AWS_EC2" ]; then
   sudo mkdir -p /var/lib/clickhouse/user_files
   sudo chown clickhouse:clickhouse /var/lib/clickhouse/user_files
@@ -66,7 +72,7 @@ if [ -n "$RUNNING_ON_AWS_EC2" ]; then
     "$rundir/clickhouse-table-create.out" \
     "clickhouse-client < clickhouse-table-create.sql"
   sudo systemctl stop clickhouse-server
-  du -h clickhouse/store
+  sudo du -sh clickhouse/store
 fi
 
 du -h gha.db gha.parquet gha.bsup gharchive_gz
