@@ -20,7 +20,7 @@ _Drop of a field_
 ```mdtest-command
 echo '{a:1,b:2,c:3}' | super -z -c 'drop b' -
 ```
-=>
+
 ```mdtest-output
 {a:1,c:3}
 ```
@@ -28,7 +28,7 @@ _Non-record values are copied to output_
 ```mdtest-command
 echo '1 {a:1,b:2,c:3}' | super -z -c 'drop a,b' -
 ```
-=>
+
 ```mdtest-output
 1
 {c:3}

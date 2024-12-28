@@ -45,7 +45,7 @@ _A simple Unix-like cut_
 ```mdtest-command
 echo '{a:1,b:2,c:3}' | super -z -c 'cut a,c' -
 ```
-=>
+
 ```mdtest-output
 {a:1,c:3}
 ```
@@ -53,7 +53,7 @@ _Missing fields show up as missing errors_
 ```mdtest-command
 echo '{a:1,b:2,c:3}' | super -z -c 'cut a,d' -
 ```
-=>
+
 ```mdtest-output
 {a:1,d:error("missing")}
 ```
@@ -61,7 +61,7 @@ _The missing fields can be ignored with quiet_
 ```mdtest-command
 echo '{a:1,b:2,c:3}' | super -z -c 'cut a:=quiet(a),d:=quiet(d)' -
 ```
-=>
+
 ```mdtest-output
 {a:1}
 ```
@@ -69,23 +69,25 @@ _Non-record values generate missing errors for fields not present in a non-recor
 ```mdtest-command
 echo '1 {a:1,b:2,c:3}' | super -z -c 'cut a,b' -
 ```
-=>
+
 ```mdtest-output
 {a:error("missing"),b:error("missing")}
 {a:1,b:2}
 ```
 _Invoke a function while cutting to set a default value for a field_
 
-:::tip
+{{% tip "Tip" %}}
+
 This can be helpful to transform data into a uniform record type, such as if
 the output will be exported in formats such as `csv` or `parquet` (see also:
 [`fuse`](fuse.md)).
-:::
+
+{{% /tip %}}
 
 ```mdtest-command
 echo '{a:1,b:null}{a:1,b:2}' | super -z -c 'cut a,b:=coalesce(b, 0)' -
 ```
-=>
+
 ```mdtest-output
 {a:1,b:0}
 {a:1,b:2}

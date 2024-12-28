@@ -19,7 +19,7 @@ are null, `error("missing")`, or `error("quiet")`.
 ```mdtest-command
 super -z -c 'yield coalesce(null, error("missing"), error("quiet"), 1)'
 ```
-=>
+
 ```mdtest-output
 1
 ```
@@ -27,7 +27,7 @@ super -z -c 'yield coalesce(null, error("missing"), error("quiet"), 1)'
 ```mdtest-command
 super -z -c 'yield coalesce(null, error("missing"), error("quiet"))'
 ```
-=>
+
 ```mdtest-output
 null
 ```

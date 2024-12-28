@@ -22,7 +22,7 @@ Regexp returns an array of the match and its subexpressions:
 echo '"seafood fool friend"' |
   super -z -c 'yield regexp(/foo(.?) (\w+) fr.*/, this)' -
 ```
-=>
+
 ```mdtest-output
 ["food fool friend","d","fool"]
 ```
@@ -31,7 +31,7 @@ A null is returned if there is no match:
 ```mdtest-command
 echo '"foo"' | super -z -c 'yield regexp("bar", this)' -
 ```
-=>
+
 ```mdtest-output
 null([string])
 ```

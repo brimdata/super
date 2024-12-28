@@ -41,11 +41,13 @@ to match the output type's order but rather just modifies the leaf values.
 If a cast fails, an error is returned when casting to primitive types
 and the input value is returned when casting to complex types.
 
-:::tip
+{{% tip "Note" %}}
+
 Many users seeking to `cast` record values prefer to use the
 [`shape` function](./shape.md) which applies the `cast`, [`fill`](./fill.md),
 and [`order`](./order.md) functions simultaneously.
-:::
+
+{{% /tip %}}
 
 ### Examples
 

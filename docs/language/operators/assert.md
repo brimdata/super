@@ -18,7 +18,7 @@ structured error if it does not.
 ```mdtest-command
 echo {a:1} | super -z -c 'assert a > 0' -
 ```
-=>
+
 ```mdtest-output
 {a:1}
 ```
@@ -26,7 +26,7 @@ echo {a:1} | super -z -c 'assert a > 0' -
 ```mdtest-command
 echo {a:-1} | super -z -c 'assert a > 0' -
 ```
-=>
+
 ```mdtest-output
 error({message:"assertion failed",expr:"a > 0",on:{a:-1}})
 ```

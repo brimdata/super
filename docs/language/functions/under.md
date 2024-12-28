@@ -26,7 +26,7 @@ echo '1((int64,string)) "foo"((int64,string))' |
 echo '1((int64,string)) "foo"((int64,string))' |
   super -z -c 'yield under(this)' -
 ```
-=>
+
 ```mdtest-output
 1((int64,string))
 "foo"((int64,string))
@@ -39,7 +39,7 @@ Errors are unwrapped:
 echo 'error("foo") error({err:"message"})' | super -z -c 'yield this' -
 echo 'error("foo") error({err:"message"})' | super -z -c 'yield under(this)' -
 ```
-=>
+
 ```mdtest-output
 error("foo")
 error({err:"message"})
@@ -52,7 +52,7 @@ Values of named types are unwrapped:
 echo '80(port=uint16)' | super -z -c 'yield this' -
 echo '80(port=uint16)' | super -z -c 'yield under(this)' -
 ```
-=>
+
 ```mdtest-output
 80(port=uint16)
 80(uint16)
@@ -61,7 +61,7 @@ Values that are not wrapped are unmodified:
 ```mdtest-command
 echo '1 "foo" <int16> {x:1}' | super -z -c 'yield under(this)' -
 ```
-=>
+
 ```mdtest-output
 1
 "foo"

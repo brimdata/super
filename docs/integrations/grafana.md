@@ -1,9 +1,8 @@
 ---
-sidebar_position: 4
-sidebar_label: Grafana
+weight: 4
+title: Grafana
+heading: Grafana Data Source Plugin
 ---
-
-# Grafana Data Source Plugin
 
 A [data source plugin](https://grafana.com/grafana/plugins/?type=datasource)
 for [Grafana](https://grafana.com/) is available that enables plotting of

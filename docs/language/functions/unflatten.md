@@ -20,7 +20,7 @@ Simple:
 echo '[{key:"a",value:1},{key:["b"],value:2}]' |
   super -z -c 'yield unflatten(this)' -
 ```
-=>
+
 ```mdtest-output
 {a:1,b:2}
 ```
@@ -35,7 +35,7 @@ echo '{a:1,rm:2}' |
          |> yield unflatten(this)
   ' -
 ```
-=>
+
 ```mdtest-output
 {a:1}
 ```
