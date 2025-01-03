@@ -1,6 +1,10 @@
 package demand
 
-import "github.com/brimdata/super/pkg/field"
+import (
+	"maps"
+
+	"github.com/brimdata/super/pkg/field"
+)
 
 type Demand interface {
 	isDemand()
@@ -59,6 +63,35 @@ func Key(key string, value Demand) Demand {
 		return value
 	}
 	return keys{key: value}
+}
+
+// Delete deletes entries in b from a.
+func Delete(a, b Demand) Demand {
+	aa, ok := a.(keys)
+	if !ok {
+		return a
+	}
+	bb, ok := b.(keys)
+	if !ok {
+		return a
+	}
+	copyOnWrite := true
+	for k, bv := range bb {
+		av, ok := aa[k]
+		if !ok {
+			continue
+		}
+		if copyOnWrite {
+			aa = maps.Clone(aa)
+			copyOnWrite = false
+		}
+		if IsAll(bv) {
+			delete(aa, k)
+			continue
+		}
+		aa[k] = Delete(av, bv)
+	}
+	return aa
 }
 
 func Union(a Demand, b Demand) Demand {
