@@ -4,6 +4,8 @@ zed: |
     => x > 2
   ) |> merge x
 
+vector: true
+
 input: |
   {x:1}
   {x:3}

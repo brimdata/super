@@ -28,13 +28,13 @@ func (b *Builder) compileVam(o dag.Op, parents []vector.Puller) ([]vector.Puller
 	case *dag.Join:
 		// see sam version for ref
 	case *dag.Merge:
-		//e, err := b.compileVamExpr(o.Expr)
-		//if err != nil {
-		//	return nil, err
-		//}
-		//XXX this needs to be native
-		//cmp := vamexpr.NewComparator(true, o.Order == order.Desc, e).WithMissingAsNull()
-		//return []vector.Puller{vamop.NewMerge(b.rctx, parents, cmp.Compare)}, nil
+		b.resetResetters()
+		e, err := b.compileExpr(o.Expr)
+		if err != nil {
+			return nil, err
+		}
+		cmp := expr.NewComparator(true, expr.NewSortEvaluator(e, o.Order)).WithMissingAsNull()
+		return []vector.Puller{vamop.NewMerge(b.rctx, parents, cmp.Compare)}, nil
 	case *dag.Scatter:
 		return b.compileVamScatter(o, parents)
 	case *dag.Scope:
