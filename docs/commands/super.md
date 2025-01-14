@@ -133,11 +133,11 @@ in the order appearing on the command line forming the input stream.
 | `csv`     |  yes | [Comma-Separated Values (RFC 4180)](https://www.rfc-editor.org/rfc/rfc4180.html) |
 | `json`    |  yes | [JSON (RFC 8259)](https://www.rfc-editor.org/rfc/rfc8259.html) |
 | `jsup`    |  yes | [Super JSON](../formats/jsup.md) |
-| `zjson`   |  yes | [Super JSON over JSON](../formats/zjson.md) |
 | `line`    |  no  | One string value per input line |
 | `parquet` |  yes | [Apache Parquet](https://github.com/apache/parquet-format) |
 | `tsv`     |  yes | [Tab-Separated Values](https://en.wikipedia.org/wiki/Tab-separated_values) |
 | `zeek`    |  yes | [Zeek Logs](https://docs.zeek.org/en/master/logs/index.html) |
+| `zjson`   |  yes | [Super JSON over JSON](../formats/zjson.md) |
 
 The input format is typically [detected automatically](#auto-detection) and the formats for which
 "Auto" is "yes" in the table above support _auto-detection_.
@@ -217,13 +217,14 @@ typically omit quotes around field names.
 | `csv`     | [Comma-Separated Values (RFC 4180)](https://www.rfc-editor.org/rfc/rfc4180.html) |
 | `json`    | [JSON (RFC 8259)](https://www.rfc-editor.org/rfc/rfc8259.html) |
 | `jsup`    | [Super JSON](../formats/jsup.md) |
-| `zjson`   | [Super JSON over JSON](../formats/zjson.md) |
 | `lake`    | [SuperDB Data Lake Metadata Output](#superdb-data-lake-metadata-output) |
+| `line`    | (described [below](#simplified-text-outputs)) |
 | `parquet` | [Apache Parquet](https://github.com/apache/parquet-format) |
 | `table`   | (described [below](#simplified-text-outputs)) |
 | `text`    | (described [below](#simplified-text-outputs)) |
 | `tsv`     | [Tab-Separated Values](https://en.wikipedia.org/wiki/Tab-separated_values) |
 | `zeek`    | [Zeek Logs](https://docs.zeek.org/en/master/logs/index.html) |
+| `zjson`   | [Super JSON over JSON](../formats/zjson.md) |
 
 The output format defaults to either Super JSON or Super Binary and may be specified
 with the `-f` option.
@@ -399,11 +400,38 @@ be used with any output format.
 
 #### Simplified Text Outputs
 
-The `text` and `table` formats simplify data to fit within the
-limitations of text-based output. Because they do not capture all the
-information required to reconstruct the original data, they are not supported
-input formats. They may be a good fit for use with other text-based shell
+The `line`, `text`, and `table` formats simplify data to fit within the
+limitations of text-based output. They may be a good fit for use with other text-based shell
 tools, but due to their limitations should be used with care.
+
+In `line` output, each string value is printed on its own line, with minimal
+formatting applied if any of the following escape sequences are present:
+
+| Escape Sequence | Rendered As                             |
+|-----------------|-----------------------------------------|
+| `\n`            | Newline                                 |
+| `\t`            | Horizontal tab                          |
+| `\\`            | Backslash                               |
+| `\"`            | Double quote                            |
+| `\r`            | Carriage return                         |
+| `\b`            | Backspace                               |
+| `\f`            | Form feed                               |
+| `\u`            | Unicode escape (e.g., `\u0041` for `A`) |
+
+Non-string values are formatted as [Super JSON](../formats/jsup.md).
+
+For example:
+
+```mdtest-command
+echo '"hi" "hello\nworld" { time_elapsed: 86400s }' | super -f line -
+```
+produces
+```mdtest-output
+hi
+hello
+world
+{time_elapsed:1d}
+```
 
 In `text` output, minimal formatting is applied, e.g., strings are shown
 without quotes and brackets are dropped from [arrays](../formats/zed.md#22-array)
