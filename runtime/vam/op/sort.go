@@ -1,17 +1,11 @@
 package op
 
 import (
-	"bytes"
-
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/op/sort"
 	"github.com/brimdata/super/runtime/vam"
-	"github.com/brimdata/super/runtime/vcache"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vng"
-	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zio"
 )
 
 type Sort struct {
@@ -30,21 +24,9 @@ func (s *Sort) Pull(done bool) (vector.Any, error) {
 	if batch == nil || err != nil {
 		return nil, err
 	}
-	return s.convertBatchToVec(batch)
-}
-
-func (s *Sort) convertBatchToVec(batch zbuf.Batch) (vector.Any, error) {
-	var buf bytes.Buffer
-	w := vng.NewWriter(zio.NopCloser(&buf))
+	b := vector.NewDynamicBuilder()
 	for _, val := range batch.Values() {
-		w.Write(val)
+		b.Write(val)
 	}
-	if err := w.Close(); err != nil {
-		return nil, err
-	}
-	o, err := vng.NewObject(bytes.NewReader(buf.Bytes()))
-	if err != nil {
-		return nil, err
-	}
-	return vcache.NewObjectFromVNG(o).Fetch(s.rctx.Zctx, nil)
+	return b.Build(), nil
 }
