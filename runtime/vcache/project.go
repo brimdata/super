@@ -28,6 +28,16 @@ func project(zctx *super.Context, paths Path, s shadow) vector.Any {
 		return vector.NewMap(typ, s.offs, keys, vals, s.nulls.flat)
 	case *union:
 		return projectUnion(zctx, nil, s)
+	case *int_:
+		if len(paths) > 0 {
+			return vector.NewMissing(zctx, s.length())
+		}
+		return s.vec
+	case *uint_:
+		if len(paths) > 0 {
+			return vector.NewMissing(zctx, s.length())
+		}
+		return s.vec
 	case *primitive:
 		if len(paths) > 0 {
 			return vector.NewMissing(zctx, s.length())

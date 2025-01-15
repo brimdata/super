@@ -8,10 +8,12 @@ import (
 	"sync"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/pkg/byteconv"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vng"
 	"github.com/brimdata/super/zcode"
 	"github.com/brimdata/super/zson"
+	"github.com/ronanh/intcomp"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -79,6 +81,10 @@ func (l *loader) loadVector(g *errgroup.Group, paths Path, s shadow) {
 		l.loadVector(g, paths, s.vals)
 	case *union:
 		l.loadUnion(g, paths, s)
+	case *int_:
+		l.loadInt(g, s)
+	case *uint_:
+		l.loadUint(g, s)
 	case *primitive:
 		l.loadPrimitive(g, paths, s)
 	case *const_:
@@ -134,6 +140,54 @@ func (l *loader) loadUnion(g *errgroup.Group, paths Path, s *union) {
 	for _, val := range s.vals {
 		l.loadVector(g, paths, val)
 	}
+}
+
+func (l *loader) loadInt(g *errgroup.Group, s *int_) {
+	s.mu.Lock()
+	if s.vec != nil {
+		s.mu.Unlock()
+		return
+	}
+	s.mu.Unlock()
+	g.Go(func() error {
+		s.mu.Lock()
+		defer s.mu.Unlock()
+		if s.vec != nil {
+			return nil
+		}
+		bytes := make([]byte, s.vng.Location.MemLength)
+		if err := s.vng.Location.Read(l.r, bytes); err != nil {
+			return err
+		}
+		vals := intcomp.UncompressInt64(byteconv.ReinterpretSlice[uint64](bytes), nil)
+		vals = extendForNulls(vals, s.nulls.flat, s.count)
+		s.vec = vector.NewInt(s.vng.Type(l.zctx), vals, s.nulls.flat)
+		return nil
+	})
+}
+
+func (l *loader) loadUint(g *errgroup.Group, s *uint_) {
+	s.mu.Lock()
+	if s.vec != nil {
+		s.mu.Unlock()
+		return
+	}
+	s.mu.Unlock()
+	g.Go(func() error {
+		s.mu.Lock()
+		defer s.mu.Unlock()
+		if s.vec != nil {
+			return nil
+		}
+		bytes := make([]byte, s.vng.Location.MemLength)
+		if err := s.vng.Location.Read(l.r, bytes); err != nil {
+			return err
+		}
+		vals := intcomp.UncompressUint64(byteconv.ReinterpretSlice[uint64](bytes), nil)
+		vals = extendForNulls(vals, s.nulls.flat, s.count)
+		s.vec = vector.NewUint(s.vng.Type(l.zctx), vals, s.nulls.flat)
+		return nil
+	})
 }
 
 func (l *loader) loadPrimitive(g *errgroup.Group, paths Path, s *primitive) {
@@ -440,6 +494,10 @@ func (l *loader) fetchNulls(g *errgroup.Group, paths Path, s shadow) {
 		for _, val := range s.vals {
 			l.fetchNulls(g, paths, val)
 		}
+	case *int_:
+		s.nulls.fetch(g, l.r)
+	case *uint_:
+		s.nulls.fetch(g, l.r)
 	case *primitive:
 		s.nulls.fetch(g, l.r)
 	case *const_:
@@ -499,6 +557,10 @@ func flattenNulls(paths Path, s shadow, parent *vector.Bool) {
 		for _, val := range s.vals {
 			flattenNulls(paths, val, nil)
 		}
+	case *int_:
+		s.nulls.flatten(parent)
+	case *uint_:
+		s.nulls.flatten(parent)
 	case *primitive:
 		s.nulls.flatten(parent)
 	case *const_:

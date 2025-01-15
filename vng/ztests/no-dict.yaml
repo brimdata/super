@@ -5,4 +5,4 @@ script: |
 outputs:
   - name: stdout
     data: |
-      "Primitive"
+      "Int"

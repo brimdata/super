@@ -52,7 +52,16 @@ func NewEncoder(typ super.Type) Encoder {
 		if !super.IsPrimitiveType(typ) {
 			panic(fmt.Sprintf("unsupported type in VNG file: %T", typ))
 		}
-		return NewNullsEncoder(NewDictEncoder(typ, NewPrimitiveEncoder(typ)))
+		var enc Encoder
+		switch id := typ.ID(); {
+		case super.IsSigned(id):
+			enc = NewIntEncoder(typ)
+		case super.IsUnsigned(id):
+			enc = NewUintEncoder(typ)
+		default:
+			enc = NewPrimitiveEncoder(typ)
+		}
+		return NewNullsEncoder(NewDictEncoder(typ, enc))
 	}
 }
 

@@ -159,6 +159,38 @@ func (e *Error) Len() uint32 {
 	return e.Values.Len()
 }
 
+type Int struct {
+	Typ      super.Type `zed:"Type"`
+	Location Segment
+	Min      int64
+	Max      int64
+	Count    uint32
+}
+
+func (i *Int) Type(*super.Context) super.Type {
+	return i.Typ
+}
+
+func (i *Int) Len() uint32 {
+	return i.Count
+}
+
+type Uint struct {
+	Typ      super.Type `zed:"Type"`
+	Location Segment
+	Min      uint64
+	Max      uint64
+	Count    uint32
+}
+
+func (u *Uint) Type(*super.Context) super.Type {
+	return u.Typ
+}
+
+func (u *Uint) Len() uint32 {
+	return u.Count
+}
+
 type Primitive struct {
 	Typ      super.Type `zed:"Type"`
 	Location Segment
@@ -239,6 +271,8 @@ var Template = []interface{}{
 	Set{},
 	Map{},
 	Union{},
+	Int{},
+	Uint{},
 	Primitive{},
 	Named{},
 	Error{},

@@ -90,6 +90,22 @@ type primitive struct {
 	nulls nulls
 }
 
+type int_ struct {
+	mu sync.Mutex
+	count
+	vng   *vng.Int
+	vec   vector.Any
+	nulls nulls
+}
+
+type uint_ struct {
+	mu sync.Mutex
+	count
+	vng   *vng.Uint
+	vec   vector.Any
+	nulls nulls
+}
+
 type const_ struct {
 	mu sync.Mutex
 	count
@@ -204,6 +220,18 @@ func newShadow(m vng.Metadata, n *vng.Nulls, nullsCnt uint32) shadow {
 			count: count{m.Len(), nullsCnt},
 			loc:   m.Tags,
 			vals:  vals,
+			nulls: nulls{meta: n},
+		}
+	case *vng.Int:
+		return &int_{
+			count: count{m.Len(), nullsCnt},
+			vng:   m,
+			nulls: nulls{meta: n},
+		}
+	case *vng.Uint:
+		return &uint_{
+			count: count{m.Len(), nullsCnt},
+			vng:   m,
 			nulls: nulls{meta: n},
 		}
 	case *vng.Primitive:
