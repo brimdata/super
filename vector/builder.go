@@ -140,6 +140,7 @@ func (n *nullsBuilder) Build() Any {
 type recordBuilder struct {
 	typ    *super.TypeRecord
 	values []Builder
+	len    uint32
 }
 
 func newRecordBuilder(typ *super.TypeRecord) Builder {
@@ -151,6 +152,7 @@ func newRecordBuilder(typ *super.TypeRecord) Builder {
 }
 
 func (r *recordBuilder) Write(bytes zcode.Bytes) {
+	r.len++
 	if bytes == nil {
 		for _, v := range r.values {
 			v.Write(nil)
@@ -168,7 +170,7 @@ func (r *recordBuilder) Build() Any {
 	for _, v := range r.values {
 		vecs = append(vecs, v.Build())
 	}
-	return NewRecord(r.typ, vecs, vecs[0].Len(), nil)
+	return NewRecord(r.typ, vecs, r.len, nil)
 }
 
 type errorBuilder struct {
