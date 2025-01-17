@@ -53,8 +53,10 @@ func NewPattern(op string, hasarg bool) (Pattern, error) {
 		pattern = func() Func {
 			return newMathReducer(mathMax)
 		}
-	// case "union":
-	// 	panic("TBD")
+	case "union":
+		pattern = func() Func {
+			return newUnion()
+		}
 	// case "collect":
 	// 	panic("TBD")
 	// case "and":
