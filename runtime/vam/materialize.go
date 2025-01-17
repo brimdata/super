@@ -45,3 +45,24 @@ func (m *Materializer) Pull(done bool) (zbuf.Batch, error) {
 	}
 	return zbuf.NewArray(vals), nil
 }
+
+type dematerializer struct {
+	parent zbuf.Puller
+}
+
+func NewDematerializer(p zbuf.Puller) vector.Puller {
+	return &dematerializer{p}
+}
+
+func (d *dematerializer) Pull(done bool) (vector.Any, error) {
+	batch, err := d.parent.Pull(done)
+	if batch == nil || err != nil {
+		return nil, err
+	}
+	defer batch.Unref()
+	builder := vector.NewDynamicBuilder()
+	for _, val := range batch.Values() {
+		builder.Write(val)
+	}
+	return builder.Build(), nil
+}
