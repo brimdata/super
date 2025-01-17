@@ -66,6 +66,8 @@ func NewBuilder(typ super.Type) Builder {
 		b = newMapBuilder(typ)
 	case *super.TypeUnion:
 		b = newUnionBuilder(typ)
+	case *super.TypeEnum:
+		b = &enumBuilder{typ, nil}
 	default:
 		id := typ.ID()
 		if super.IsNumber(id) {
@@ -268,6 +270,19 @@ func (u *unionBuilder) Build() Any {
 		vecs = append(vecs, v.Build())
 	}
 	return NewUnion(u.typ, u.tags, vecs, nil)
+}
+
+type enumBuilder struct {
+	typ    *super.TypeEnum
+	values []uint64
+}
+
+func (e *enumBuilder) Write(bytes zcode.Bytes) {
+	e.values = append(e.values, super.DecodeUint(bytes))
+}
+
+func (e *enumBuilder) Build() Any {
+	return NewEnum(e.typ, e.values, nil)
 }
 
 type intBuilder struct {
