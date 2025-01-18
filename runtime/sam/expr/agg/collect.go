@@ -2,6 +2,7 @@ package agg
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/zcode"
@@ -9,54 +10,56 @@ import (
 )
 
 type Collect struct {
-	values []super.Value
-	size   int
+	types []super.Type
+	bytes []zcode.Bytes
+	size  int
 }
 
 var _ Function = (*Collect)(nil)
 
 func (c *Collect) Consume(val super.Value) {
 	if !val.IsNull() {
-		c.update(val)
+		c.Update(val.Type(), val.Bytes())
 	}
 }
 
-func (c *Collect) update(val super.Value) {
-	c.values = append(c.values, val.Under().Copy())
-	c.size += len(val.Bytes())
+func (c *Collect) Update(typ super.Type, bytes zcode.Bytes) {
+	if union, ok := typ.(*super.TypeUnion); ok {
+		typ, bytes = union.Untag(bytes)
+	}
+	c.types = append(c.types, typ)
+	c.bytes = append(c.bytes, slices.Clone(bytes))
+	c.size += len(bytes)
 	for c.size > MaxValueSize {
 		// XXX See issue #1813.  For now we silently discard entries
 		// to maintain the size limit.
 		//c.MemExceeded++
-		c.size -= len(c.values[0].Bytes())
-		c.values = c.values[1:]
+		c.size -= len(c.bytes[0])
+		c.bytes = c.bytes[1:]
+		c.types = c.types[1:]
 	}
 }
 
 func (c *Collect) Result(zctx *super.Context) super.Value {
-	if len(c.values) == 0 {
+	if len(c.bytes) == 0 {
 		// no values found
 		return super.Null
 	}
 	var b zcode.Builder
-	inner := innerType(zctx, c.values)
+	inner := innerType(zctx, slices.Clone(c.types))
 	if union, ok := inner.(*super.TypeUnion); ok {
-		for _, val := range c.values {
-			super.BuildUnion(&b, union.TagOf(val.Type()), val.Bytes())
+		for i, bytes := range c.bytes {
+			super.BuildUnion(&b, union.TagOf(c.types[i]), bytes)
 		}
 	} else {
-		for _, val := range c.values {
-			b.Append(val.Bytes())
+		for _, bytes := range c.bytes {
+			b.Append(bytes)
 		}
 	}
 	return super.NewValue(zctx.LookupTypeArray(inner), b.Bytes())
 }
 
-func innerType(zctx *super.Context, vals []super.Value) super.Type {
-	var types []super.Type
-	for _, val := range vals {
-		types = append(types, val.Type())
-	}
+func innerType(zctx *super.Context, types []super.Type) super.Type {
 	types = super.UniqueTypes(types)
 	if len(types) == 1 {
 		return types[0]
@@ -75,7 +78,7 @@ func (c *Collect) ConsumeAsPartial(val super.Value) {
 	}
 	typ := arrayType.Type
 	for it := val.Iter(); !it.Done(); {
-		c.update(super.NewValue(typ, it.Next()))
+		c.Update(typ, it.Next())
 	}
 }
 
