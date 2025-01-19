@@ -16,6 +16,7 @@ import (
 	"github.com/brimdata/super/pkg/plural"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
+	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zson"
 	"github.com/segmentio/ksuid"
@@ -154,7 +155,7 @@ func (b *Branch) DeleteWhere(ctx context.Context, c runtime.Compiler, ast *parse
 		if err != nil {
 			return nil, err
 		}
-		err = zio.CopyWithContext(ctx, w, runtime.AsReader(query))
+		err = zbuf.CopyPuller(w, query)
 		if closeErr := w.Close(); err == nil {
 			err = closeErr
 		}

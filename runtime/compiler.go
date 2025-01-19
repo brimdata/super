@@ -29,10 +29,6 @@ type DeleteQuery interface {
 	DeletionSet() []ksuid.KSUID
 }
 
-func AsReader(q Query) zio.Reader {
-	return zbuf.PullerReader(q)
-}
-
 func CompileQuery(ctx context.Context, zctx *super.Context, c Compiler, ast *parser.AST, readers []zio.Reader) (Query, error) {
 	rctx := NewContext(ctx, zctx)
 	q, err := c.NewQuery(rctx, ast, readers, 0)
