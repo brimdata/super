@@ -72,7 +72,7 @@ func (f *Flags) SetFormatFlags(fs *flag.FlagSet) {
 	if f.DefaultFormat == "" {
 		f.DefaultFormat = "bsup"
 	}
-	fs.StringVar(&f.Format, "f", f.DefaultFormat, "format for output data [arrows,bsup,csup,csv,json,jsup,lake,parquet,table,text,tsv,zeek,zjson]")
+	fs.StringVar(&f.Format, "f", f.DefaultFormat, "format for output data [arrows,bsup,csup,csv,json,jsup,lake,line,parquet,table,text,tsv,zeek,zjson]")
 	fs.BoolVar(&f.forceBinary, "B", false, "allow Super Binary to be sent to a terminal output")
 	fs.BoolVar(&f.jsonPretty, "J", false, "use formatted JSON output independent of -f option")
 	fs.BoolVar(&f.jsonShortcut, "j", false, "use line-oriented JSON output independent of -f option")

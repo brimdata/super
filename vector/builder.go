@@ -66,6 +66,8 @@ func NewBuilder(typ super.Type) Builder {
 		b = newMapBuilder(typ)
 	case *super.TypeUnion:
 		b = newUnionBuilder(typ)
+	case *super.TypeEnum:
+		b = &enumBuilder{typ, nil}
 	default:
 		id := typ.ID()
 		if super.IsNumber(id) {
@@ -140,6 +142,7 @@ func (n *nullsBuilder) Build() Any {
 type recordBuilder struct {
 	typ    *super.TypeRecord
 	values []Builder
+	len    uint32
 }
 
 func newRecordBuilder(typ *super.TypeRecord) Builder {
@@ -151,6 +154,7 @@ func newRecordBuilder(typ *super.TypeRecord) Builder {
 }
 
 func (r *recordBuilder) Write(bytes zcode.Bytes) {
+	r.len++
 	if bytes == nil {
 		for _, v := range r.values {
 			v.Write(nil)
@@ -168,7 +172,7 @@ func (r *recordBuilder) Build() Any {
 	for _, v := range r.values {
 		vecs = append(vecs, v.Build())
 	}
-	return NewRecord(r.typ, vecs, vecs[0].Len(), nil)
+	return NewRecord(r.typ, vecs, r.len, nil)
 }
 
 type errorBuilder struct {
@@ -268,6 +272,19 @@ func (u *unionBuilder) Build() Any {
 		vecs = append(vecs, v.Build())
 	}
 	return NewUnion(u.typ, u.tags, vecs, nil)
+}
+
+type enumBuilder struct {
+	typ    *super.TypeEnum
+	values []uint64
+}
+
+func (e *enumBuilder) Write(bytes zcode.Bytes) {
+	e.values = append(e.values, super.DecodeUint(bytes))
+}
+
+func (e *enumBuilder) Build() Any {
+	return NewEnum(e.typ, e.values, nil)
 }
 
 type intBuilder struct {

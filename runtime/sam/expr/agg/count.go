@@ -9,7 +9,7 @@ type Count uint64
 var _ Function = (*Count)(nil)
 
 func (c *Count) Consume(val super.Value) {
-	if val.Bytes() != nil {
+	if !val.IsNull() {
 		*c++
 	}
 }

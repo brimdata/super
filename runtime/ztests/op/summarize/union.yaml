@@ -1,5 +1,7 @@
 zed: over this => (union(this))
 
+vector: true
+
 input: |
   [
     {x:1,s:"a"},

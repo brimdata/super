@@ -1,5 +1,7 @@
 zed: union(this)
 
+vector: true
+
 input: |
   1((int64,string))
   1((int64,string))

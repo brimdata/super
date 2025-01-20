@@ -1,5 +1,7 @@
 zed: over a => (sum(this))
 
+vector: true
+
 input: |
   {a:null([int64])}
   {a:[6,5,4]}

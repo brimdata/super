@@ -2,7 +2,10 @@ zed: |
   switch (
      case a == 1 => put v:='one'
      case a / 0 => put v:='xxx'
+     case a % 0 => put v:='yyy'
      ) |> sort this
+
+vector: true
 
 input: |
   {a:1,s:"a"}
@@ -10,4 +13,5 @@ input: |
 
 output: |
   {a:1,s:"a",v:"one"}
+  error("divide by zero")
   error("divide by zero")

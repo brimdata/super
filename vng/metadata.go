@@ -159,15 +159,41 @@ func (e *Error) Len() uint32 {
 	return e.Values.Len()
 }
 
-type DictEntry struct {
-	Value super.Value
-	Count uint32
+type Int struct {
+	Typ      super.Type `zed:"Type"`
+	Location Segment
+	Min      int64
+	Max      int64
+	Count    uint32
+}
+
+func (i *Int) Type(*super.Context) super.Type {
+	return i.Typ
+}
+
+func (i *Int) Len() uint32 {
+	return i.Count
+}
+
+type Uint struct {
+	Typ      super.Type `zed:"Type"`
+	Location Segment
+	Min      uint64
+	Max      uint64
+	Count    uint32
+}
+
+func (u *Uint) Type(*super.Context) super.Type {
+	return u.Typ
+}
+
+func (u *Uint) Len() uint32 {
+	return u.Count
 }
 
 type Primitive struct {
 	Typ      super.Type `zed:"Type"`
 	Location Segment
-	Dict     []DictEntry
 	Min      *super.Value
 	Max      *super.Value
 	Count    uint32
@@ -208,6 +234,21 @@ func (c *Const) Len() uint32 {
 	return c.Count
 }
 
+type Dict struct {
+	Values Metadata
+	Counts Segment
+	Index  Segment
+	Length uint32
+}
+
+func (d *Dict) Type(zctx *super.Context) super.Type {
+	return d.Values.Type(zctx)
+}
+
+func (d *Dict) Len() uint32 {
+	return d.Length
+}
+
 type Dynamic struct {
 	Tags   Segment
 	Values []Metadata
@@ -230,10 +271,13 @@ var Template = []interface{}{
 	Set{},
 	Map{},
 	Union{},
+	Int{},
+	Uint{},
 	Primitive{},
 	Named{},
 	Error{},
 	Nulls{},
 	Const{},
+	Dict{},
 	Dynamic{},
 }

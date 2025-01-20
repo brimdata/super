@@ -6,6 +6,8 @@ zed: |
      default => count:=count() |> put a:=-1
      ) |> sort a
 
+vector: true
+
 input: |
   {a:1,s:"a"}
   {a:2,s:"B"}

@@ -29,7 +29,6 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/zngio"
 	"github.com/brimdata/super/zson"
 )
@@ -71,10 +70,6 @@ func (o *Object) DataReader() io.ReaderAt {
 	return o.readerAt
 }
 
-func (o *Object) NewReader(zctx *super.Context) (zio.Reader, error) {
-	return NewZedReader(zctx, o.meta, o.readerAt)
-}
-
 func (o *Object) Size() uint64 {
 	return HeaderSize + o.header.MetaSize + o.header.DataSize
 }
@@ -99,35 +94,4 @@ func readMetadata(r io.Reader) (Metadata, error) {
 		return nil, errors.New("corrupt VNG: metadata section has more than one Zed value")
 	}
 	return meta, nil
-}
-
-// XXX change this to single vector read
-func ReadIntVector(loc Segment, r io.ReaderAt) ([]int32, error) {
-	decoder := NewInt64Decoder(loc, r)
-	var out []int32
-	for {
-		val, err := decoder.Next()
-		if err != nil {
-			if err == io.EOF {
-				return out, nil
-			}
-			return nil, err
-		}
-		out = append(out, int32(val))
-	}
-}
-
-func ReadUint32Vector(loc Segment, r io.ReaderAt) ([]uint32, error) {
-	decoder := NewInt64Decoder(loc, r)
-	var out []uint32
-	for {
-		val, err := decoder.Next()
-		if err != nil {
-			if err == io.EOF {
-				return out, nil
-			}
-			return nil, err
-		}
-		out = append(out, uint32(val))
-	}
 }

@@ -1,0 +1,13 @@
+zed: assert a==1
+
+vector: true
+
+input: |
+  {a:1}
+  {a:2}
+  1
+
+output: |
+  {a:1}
+  error({message:"assertion failed",expr:"a==1",on:{a:2}})
+  error({message:"?-operator: bool predicate required",on:error("missing")})

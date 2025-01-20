@@ -58,16 +58,17 @@ func (d *Dict) RebuildDropTags(tags ...uint32) ([]byte, []uint32, *Bool, []uint3
 	var index []byte
 	var dropped []uint32
 	for i, tag := range d.Index {
+		if d.Nulls.Value(uint32(i)) {
+			nulls.Set(uint32(len(index)))
+			index = append(index, 0)
+			continue
+		}
 		k := m[tag]
 		if k == -1 {
 			dropped = append(dropped, uint32(i))
 			continue
 		}
 		index = append(index, byte(k))
-		if d.Nulls.Value(uint32(i)) {
-			nulls.Set(uint32(len(index) - 1))
-			continue
-		}
 		counts[k]++
 	}
 	return index, counts, nulls, dropped

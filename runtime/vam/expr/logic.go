@@ -281,7 +281,7 @@ func (i *In) evalForList(lhs, rhs vector.Any, offsets, index []uint32) *vector.B
 		lhsIndex = slices.Grow(lhsIndex[:0], int(n))[:n]
 		rhsIndex = slices.Grow(rhsIndex[:0], int(n))[:n]
 		for k := range n {
-			lhsIndex[k] = k
+			lhsIndex[k] = j
 			rhsIndex[k] = k + start
 		}
 		lhsView := vector.NewView(lhs, lhsIndex)

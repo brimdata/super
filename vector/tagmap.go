@@ -13,7 +13,11 @@ type TagMap struct {
 func NewTagMap(tags []uint32, vals []Any) *TagMap {
 	lens := make([]uint32, 0, len(vals))
 	for _, v := range vals {
-		lens = append(lens, uint32(v.Len()))
+		var length uint32
+		if v != nil {
+			length = v.Len()
+		}
+		lens = append(lens, length)
 	}
 	return NewTagMapFromLens(tags, lens)
 }

@@ -6,6 +6,8 @@ zed: |
      case true => count:=count() |> put a:=-1
    ) |> sort a
 
+vector: true
+
 input: |
   {a:1(int32),s:"a"}
   {a:2(int32),s:"B"}

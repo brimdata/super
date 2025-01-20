@@ -16,20 +16,28 @@ func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path,
 	var path field.Path
 	var f expr.Function
 	switch name {
+	case "abs":
+		f = &Abs{zctx}
 	case "base64":
 		f = &Base64{zctx}
 	case "bucket":
 		argmin = 2
 		argmax = 2
 		f = &Bucket{zctx: zctx, name: name}
+	case "ceil":
+		f = &Ceil{zctx}
 	case "coalesce":
 		argmax = -1
 		f = &Coalesce{}
 	case "every":
 		path = field.Path{"ts"}
 		f = &Bucket{zctx: zctx, name: name}
+	case "error":
+		f = &Error{zctx}
 	case "fields":
 		f = NewFields(zctx)
+	case "floor":
+		f = &Floor{zctx}
 	case "grep":
 		argmax = 2
 		f = &Grep{zctx: zctx}
@@ -45,6 +53,8 @@ func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path,
 	case "levenshtein":
 		argmin, argmax = 2, 2
 		f = &Levenshtein{zctx}
+	case "log":
+		f = &Log{zctx}
 	case "lower":
 		f = &ToLower{zctx}
 	case "network_of":

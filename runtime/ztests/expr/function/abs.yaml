@@ -1,0 +1,23 @@
+zed: abs(this)
+
+vector: true
+
+input: |
+  1
+  -1
+  0
+  1.0
+  -1.0
+  -1(int8)
+  1(uint8)
+  "foo"
+
+output: |
+  1
+  1
+  0
+  1.
+  1.
+  1(int8)
+  1(uint8)
+  error({message:"abs: not a number",on:"foo"})

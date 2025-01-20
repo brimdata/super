@@ -28,6 +28,16 @@ func project(zctx *super.Context, paths Path, s shadow) vector.Any {
 		return vector.NewMap(typ, s.offs, keys, vals, s.nulls.flat)
 	case *union:
 		return projectUnion(zctx, nil, s)
+	case *int_:
+		if len(paths) > 0 {
+			return vector.NewMissing(zctx, s.length())
+		}
+		return s.vec
+	case *uint_:
+		if len(paths) > 0 {
+			return vector.NewMissing(zctx, s.length())
+		}
+		return s.vec
 	case *primitive:
 		if len(paths) > 0 {
 			return vector.NewMissing(zctx, s.length())
@@ -38,6 +48,12 @@ func project(zctx *super.Context, paths Path, s shadow) vector.Any {
 			return vector.NewMissing(zctx, s.length())
 		}
 		return s.vec
+	case *dict:
+		if len(paths) > 0 {
+			return vector.NewMissing(zctx, s.length())
+		}
+		vals := project(zctx, paths, s.vals)
+		return vector.NewDict(vals, s.index, s.counts, s.nulls.flat)
 	case *error_:
 		v := project(zctx, paths, s.vals)
 		typ := zctx.LookupTypeError(v.Type())
@@ -124,5 +140,25 @@ func projectUnion(zctx *super.Context, paths Path, s *union) vector.Any {
 		vals = append(vals, val)
 		types = append(types, val.Type())
 	}
-	return vector.NewUnion(zctx.LookupTypeUnion(types), s.tags, vals, s.nulls.flat)
+	utyp := zctx.LookupTypeUnion(types)
+	tags := s.tags
+	nulls := s.nulls.flat
+	// If there are nulls add a null vector and rebuild tags.
+	if nulls != nil {
+		var newtags []uint32
+		n := uint32(len(vals))
+		var nullcount uint32
+		for i := range nulls.Len() {
+			if nulls.Value(i) {
+				newtags = append(newtags, n)
+				nullcount++
+			} else {
+				newtags = append(newtags, tags[0])
+				tags = tags[1:]
+			}
+		}
+		tags = newtags
+		vals = append(vals, vector.NewConst(super.NewValue(utyp, nil), nullcount, nil))
+	}
+	return vector.NewUnion(utyp, tags, vals, nulls)
 }

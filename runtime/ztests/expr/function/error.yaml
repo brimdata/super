@@ -1,0 +1,17 @@
+zed: yield error(this)
+
+vector: true
+
+input: |
+  1
+  "s"
+  {a:1}
+  null
+  null(int64)
+
+output: |
+  error(1)
+  error("s")
+  error({a:1})
+  null(error(null))
+  null(error(int64))

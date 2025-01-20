@@ -12,6 +12,8 @@ zed: |
     case this==3 => yield 4
   )
 
+vector: true
+
 input: |
   1
 

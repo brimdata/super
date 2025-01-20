@@ -184,7 +184,7 @@ func (n *NetworkOf) intMaskFastLoop(vec *vector.IP, index []uint32, bits int) (v
 	var nets []netip.Prefix
 	for i := range vec.Len() {
 		idx := i
-		if index == nil {
+		if index != nil {
 			idx = index[i]
 		}
 		ip := vec.Values[idx]

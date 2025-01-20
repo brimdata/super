@@ -4,6 +4,8 @@ vector: true
 
 input: |
   0
+  error("kaboom")
 
 output: |
   error({message:"put: not a record",on:0})
+  error("kaboom")

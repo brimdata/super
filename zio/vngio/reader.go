@@ -1,22 +1,26 @@
 package vngio
 
 import (
+	"bytes"
 	"errors"
 	"io"
 	"math"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
+	"github.com/brimdata/super/runtime/vcache"
+	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vng"
+	"github.com/brimdata/super/zcode"
 	"github.com/brimdata/super/zio"
 )
 
 type reader struct {
-	zctx     *super.Context
-	objects  []*vng.Object
-	n        int
-	readerAt io.ReaderAt
-	reader   zio.Reader
+	zctx       *super.Context
+	objects    []*vng.Object
+	projection vcache.Path
+	readerAt   io.ReaderAt
+	vals       []super.Value
 }
 
 func NewReader(zctx *super.Context, r io.Reader, fields []field.Path) (zio.Reader, error) {
@@ -29,31 +33,51 @@ func NewReader(zctx *super.Context, r io.Reader, fields []field.Path) (zio.Reade
 		return nil, err
 	}
 	return &reader{
-		zctx:     zctx,
-		objects:  objects,
-		readerAt: ra,
+		zctx:       zctx,
+		objects:    objects,
+		projection: vcache.NewProjection(fields),
+		readerAt:   ra,
 	}, nil
 }
 
 func (r *reader) Read() (*super.Value, error) {
 again:
-	if r.reader == nil {
-		if r.n >= len(r.objects) {
+	if len(r.vals) == 0 {
+		if len(r.objects) == 0 {
 			return nil, nil
 		}
-		o := r.objects[r.n]
-		r.n++
-		var err error
-		if r.reader, err = o.NewReader(r.zctx); err != nil {
+		o := r.objects[0]
+		r.objects = r.objects[1:]
+		vec, err := vcache.NewObjectFromVNG(o).Fetch(r.zctx, r.projection)
+		if err != nil {
 			return nil, err
 		}
-	}
-	v, err := r.reader.Read()
-	if v == nil && err == nil {
-		r.reader = nil
+		r.materializeVector(vec)
 		goto again
 	}
-	return v, err
+	val := r.vals[0]
+	r.vals = r.vals[1:]
+	return &val, nil
+}
+
+func (r *reader) materializeVector(vec vector.Any) {
+	r.vals = r.vals[:0]
+	d, _ := vec.(*vector.Dynamic)
+	var typ super.Type
+	if d == nil {
+		typ = vec.Type()
+	}
+	builder := zcode.NewBuilder()
+	n := vec.Len()
+	for slot := uint32(0); slot < n; slot++ {
+		vec.Serialize(builder, slot)
+		if d != nil {
+			typ = d.TypeOf(slot)
+		}
+		val := super.NewValue(typ, bytes.Clone(builder.Bytes().Body()))
+		r.vals = append(r.vals, val)
+		builder.Truncate()
+	}
 }
 
 func (r *reader) Close() error {

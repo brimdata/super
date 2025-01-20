@@ -1,9 +1,11 @@
 zed: |
   over this => (
     over this => (
-      where this > 2 |> head 1
+      where this > 2
     )
   )
+
+vector: true
 
 input: |
   [[1,2],[3,4]]
@@ -12,3 +14,5 @@ input: |
 output: |
   3
   4
+  4
+  3

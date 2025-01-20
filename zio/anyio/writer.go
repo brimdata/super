@@ -10,6 +10,7 @@ import (
 	"github.com/brimdata/super/zio/csvio"
 	"github.com/brimdata/super/zio/jsonio"
 	"github.com/brimdata/super/zio/lakeio"
+	"github.com/brimdata/super/zio/lineio"
 	"github.com/brimdata/super/zio/parquetio"
 	"github.com/brimdata/super/zio/tableio"
 	"github.com/brimdata/super/zio/textio"
@@ -48,6 +49,8 @@ func NewWriter(w io.WriteCloser, opts WriterOpts) (zio.WriteCloser, error) {
 		return jsonio.NewWriter(w, opts.JSON), nil
 	case "lake":
 		return lakeio.NewWriter(w, opts.Lake), nil
+	case "line":
+		return lineio.NewWriter(w), nil
 	case "null":
 		return &nullWriter{}, nil
 	case "parquet":

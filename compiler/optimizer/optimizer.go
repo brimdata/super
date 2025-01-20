@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/brimdata/super/compiler/dag"
+	"github.com/brimdata/super/compiler/optimizer/demand"
 	"github.com/brimdata/super/lake"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
@@ -152,8 +153,8 @@ func (o *Optimizer) Optimize(seq dag.Seq) (dag.Seq, error) {
 	if err != nil {
 		return nil, err
 	}
-	seq = insertDemand(seq)
 	seq = removePassOps(seq)
+	DemandForSeq(seq, demand.All())
 	return seq, nil
 }
 

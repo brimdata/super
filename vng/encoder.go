@@ -46,12 +46,27 @@ func NewEncoder(typ super.Type) Encoder {
 		return NewNullsEncoder(NewMapEncoder(typ))
 	case *super.TypeUnion:
 		return NewNullsEncoder(NewUnionEncoder(typ))
+	case *super.TypeEnum:
+		return NewNullsEncoder(NewPrimitiveEncoder(typ))
 	default:
 		if !super.IsPrimitiveType(typ) {
 			panic(fmt.Sprintf("unsupported type in VNG file: %T", typ))
 		}
-		return NewNullsEncoder(NewPrimitiveEncoder(typ, true))
+		var enc Encoder
+		switch id := typ.ID(); {
+		case super.IsSigned(id):
+			enc = NewIntEncoder(typ)
+		case super.IsUnsigned(id):
+			enc = NewUintEncoder(typ)
+		default:
+			enc = NewPrimitiveEncoder(typ)
+		}
+		return NewNullsEncoder(NewDictEncoder(typ, enc))
 	}
+}
+
+type resetter interface {
+	reset()
 }
 
 type NamedEncoder struct {

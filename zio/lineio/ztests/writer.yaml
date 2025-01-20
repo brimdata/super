@@ -1,0 +1,14 @@
+zed: pass
+
+output-flags: -f line
+
+input: |
+  "a"
+  "b\nc"
+  {x:1}
+
+output: |
+  a
+  b
+  c
+  {x:1}

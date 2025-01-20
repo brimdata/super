@@ -27,8 +27,8 @@ func (a *Arith) Eval(val vector.Any) vector.Any {
 }
 
 func (a *Arith) eval(vecs ...vector.Any) (out vector.Any) {
-	lhs := vector.Under(vecs[0])
-	rhs := vector.Under(vecs[1])
+	lhs := enumToIndex(vector.Under(vecs[0]))
+	rhs := enumToIndex(vector.Under(vecs[1]))
 	lhs, rhs, errVal := coerceVals(a.zctx, lhs, rhs)
 	if errVal != nil {
 		return errVal
@@ -65,6 +65,18 @@ func (a *Arith) eval(vecs ...vector.Any) (out vector.Any) {
 	}
 	out = f(lhs, rhs)
 	return vector.CopyAndSetNulls(out, vector.Or(vector.NullsOf(lhs), vector.NullsOf(rhs)))
+}
+
+func enumToIndex(vec vector.Any) vector.Any {
+	switch vec := vec.(type) {
+	case *vector.View:
+		if enum, ok := vec.Any.(*vector.Enum); ok {
+			return vector.NewView(enum.Uint, vec.Index)
+		}
+	case *vector.Enum:
+		return vec.Uint
+	}
+	return vec
 }
 
 func (a *Arith) evalDivideByZero(kind vector.Kind, lhs, rhs vector.Any) vector.Any {

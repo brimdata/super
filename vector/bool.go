@@ -188,6 +188,8 @@ func NullsOf(v Any) *Bool {
 		return v.Nulls
 	case *Dict:
 		return v.Nulls
+	case *Enum:
+		return v.Nulls
 	case *Error:
 		return Or(v.Nulls, NullsOf(v.Vals))
 	case *Float:
@@ -253,6 +255,11 @@ func CopyAndSetNulls(v Any, nulls *Bool) Any {
 			Index:  v.Index,
 			Counts: v.Counts,
 			Nulls:  nulls,
+		}
+	case *Enum:
+		return &Enum{
+			Typ:  v.Typ,
+			Uint: CopyAndSetNulls(v.Uint, nulls).(*Uint),
 		}
 	case *Error:
 		return &Error{

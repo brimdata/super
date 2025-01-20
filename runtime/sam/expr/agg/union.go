@@ -12,7 +12,7 @@ type Union struct {
 
 var _ Function = (*Union)(nil)
 
-func newUnion() *Union {
+func NewUnion() *Union {
 	return &Union{
 		types: make(map[super.Type]map[string]struct{}),
 	}
@@ -22,10 +22,10 @@ func (u *Union) Consume(val super.Value) {
 	if val.IsNull() {
 		return
 	}
-	u.update(val.Type(), val.Bytes())
+	u.Update(val.Type(), val.Bytes())
 }
 
-func (u *Union) update(typ super.Type, b zcode.Bytes) {
+func (u *Union) Update(typ super.Type, b zcode.Bytes) {
 	m, ok := u.types[typ]
 	if !ok {
 		m = make(map[string]struct{})
@@ -97,7 +97,7 @@ func (u *Union) ConsumeAsPartial(val super.Value) {
 		if union, ok := super.TypeUnder(typ).(*super.TypeUnion); ok {
 			typ, b = union.Untag(b)
 		}
-		u.update(typ, b)
+		u.Update(typ, b)
 	}
 }
 

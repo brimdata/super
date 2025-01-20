@@ -84,8 +84,7 @@ func (o *Optimizer) parallelizeFileScan(seq dag.Seq, replicas int) (dag.Seq, err
 	}
 	if n < len(seq) {
 		switch seq[n].(type) {
-		// TODO: Add dag.Sort when the vector runtime implements dag.Merge.
-		case *dag.Summarize:
+		case *dag.Sort, *dag.Summarize:
 			return parallelizeHead(seq, n, outputKeys, replicas), nil
 		}
 	}

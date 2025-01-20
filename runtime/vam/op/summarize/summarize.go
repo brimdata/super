@@ -63,7 +63,7 @@ func (s *Summarize) Pull(done bool) (vector.Any, error) {
 			for _, t := range s.tables {
 				s.results = append(s.results, t)
 			}
-			s.tables = nil
+			clear(s.tables)
 			return s.next(), nil
 		}
 		var keys, vals []vector.Any
@@ -124,6 +124,7 @@ func (s *Summarize) isCountByString(keyTypes []super.Type) bool {
 
 func (s *Summarize) next() vector.Any {
 	if len(s.results) == 0 {
+		s.results = nil
 		return nil
 	}
 	t := s.results[0]

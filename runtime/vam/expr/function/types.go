@@ -15,6 +15,16 @@ func (t *TypeOf) Call(args ...vector.Any) vector.Any {
 	return vector.NewConst(val, args[0].Len(), nil)
 }
 
+// https://github.com/brimdata/super/blob/main/docs/language/functions.md#error
+type Error struct {
+	zctx *super.Context
+}
+
+func (e *Error) Call(args ...vector.Any) vector.Any {
+	vec := args[0]
+	return vector.NewError(e.zctx.LookupTypeError(vec.Type()), vec, nil)
+}
+
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#kind
 type Kind struct {
 	zctx *super.Context

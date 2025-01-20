@@ -1,5 +1,7 @@
 zed: "put s:=string(e), v:=e+1"
 
+vector: true
+
 input: |
   {e:%foo(enum(foo,bar,baz))}
   {e:%bar(enum(foo,bar,baz))}

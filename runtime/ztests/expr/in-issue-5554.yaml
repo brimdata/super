@@ -1,0 +1,14 @@
+zed: |
+  yield this in [1, 3]
+
+vector: true
+
+input: |
+  1
+  2
+  3
+
+output: |
+  true
+  false
+  true

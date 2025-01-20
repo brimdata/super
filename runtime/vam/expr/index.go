@@ -26,36 +26,44 @@ func (i *Index) eval(args ...vector.Any) vector.Any {
 	this := args[0]
 	container := i.container.Eval(this)
 	index := i.index.Eval(this)
-	switch val := vector.Under(container).(type) {
-	case *vector.Array:
-		return indexArrayOrSet(i.zctx, val.Offsets, val.Values, index, val.Nulls)
-	case *vector.Set:
-		return indexArrayOrSet(i.zctx, val.Offsets, val.Values, index, val.Nulls)
-	case *vector.Record:
-		return indexRecord(i.zctx, val, index)
-	case *vector.Map:
+	switch vector.KindOf(vector.Under(container)) {
+	case vector.KindArray, vector.KindSet:
+		return indexArrayOrSet(i.zctx, container, index)
+	case vector.KindRecord:
+		return indexRecord(i.zctx, container, index)
+	case vector.KindMap:
 		panic("vector index operations on maps not supported")
 	default:
 		return vector.NewMissing(i.zctx, this.Len())
 	}
 }
 
-func indexArrayOrSet(zctx *super.Context, offsets []uint32, vals, index vector.Any, nulls *vector.Bool) vector.Any {
-	if !super.IsInteger(index.Type().ID()) {
-		return vector.NewWrappedError(zctx, "index is not an integer", index)
+func indexArrayOrSet(zctx *super.Context, vec, indexVec vector.Any) vector.Any {
+	if !super.IsInteger(indexVec.Type().ID()) {
+		return vector.NewWrappedError(zctx, "index is not an integer", indexVec)
 	}
-	index = promoteToSigned(index)
+	var index []uint32
+	if view, ok := vec.(*vector.View); ok {
+		vec, index = view.Any, view.Index
+	}
+	offsets, vals, nulls := arrayOrSetContents(vec)
+	indexVec = promoteToSigned(indexVec)
 	var errs []uint32
 	var viewIndexes []uint32
-	for i, start := range offsets[:len(offsets)-1] {
-		idx, idxNull := vector.IntValue(index, uint32(i))
-		if !nulls.Value(uint32(i)) && !idxNull {
-			len := int64(offsets[i+1]) - int64(start)
-			if idx < 0 {
-				idx = len + idx
+	for i := range indexVec.Len() {
+		idx := i
+		if index != nil {
+			idx = index[i]
+		}
+		idxVal, isnull := vector.IntValue(indexVec, uint32(i))
+		if !nulls.Value(idx) && !isnull {
+			start := offsets[idx]
+			len := int64(offsets[idx+1]) - int64(start)
+			if idxVal < 0 {
+				idxVal = len + idxVal
 			}
-			if idx >= 0 && idx < len {
-				viewIndexes = append(viewIndexes, start+uint32(idx))
+			if idxVal >= 0 && idxVal < len {
+				viewIndexes = append(viewIndexes, start+uint32(idxVal))
 				continue
 			}
 		}
@@ -68,28 +76,42 @@ func indexArrayOrSet(zctx *super.Context, offsets []uint32, vals, index vector.A
 	return out
 }
 
-func indexRecord(zctx *super.Context, record *vector.Record, index vector.Any) vector.Any {
-	if index.Type().ID() != super.IDString {
-		return vector.NewWrappedError(zctx, "record index is not a string", index)
+func indexRecord(zctx *super.Context, vec, indexVec vector.Any) vector.Any {
+	if indexVec.Type().ID() != super.IDString {
+		return vector.NewWrappedError(zctx, "record index is not a string", indexVec)
+	}
+	var rec *vector.Record
+	var index []uint32
+	switch vec := vec.(type) {
+	case *vector.Record:
+		rec = vec
+	case *vector.View:
+		rec, index = vec.Any.(*vector.Record), vec.Index
+	default:
+		panic(vec)
 	}
 	var errcnt uint32
-	tags := make([]uint32, record.Len())
-	n := len(record.Typ.Fields)
+	tags := make([]uint32, vec.Len())
+	n := len(rec.Typ.Fields)
 	viewIndexes := make([][]uint32, n)
-	for i := uint32(0); i < record.Len(); i++ {
-		field, _ := vector.StringValue(index, i)
-		k, ok := record.Typ.IndexOfField(field)
+	for i := range vec.Len() {
+		field, _ := vector.StringValue(indexVec, i)
+		k, ok := rec.Typ.IndexOfField(field)
 		if !ok {
 			tags[i] = uint32(n)
 			errcnt++
 			continue
 		}
+		idx := i
+		if index != nil {
+			idx = index[i]
+		}
 		tags[i] = uint32(k)
-		viewIndexes[k] = append(viewIndexes[k], i)
+		viewIndexes[k] = append(viewIndexes[k], idx)
 	}
 	out := make([]vector.Any, n+1)
 	out[n] = vector.NewMissing(zctx, errcnt)
-	for i, field := range record.Fields {
+	for i, field := range rec.Fields {
 		out[i] = vector.NewView(field, viewIndexes[i])
 	}
 	return vector.NewDynamic(tags, out)

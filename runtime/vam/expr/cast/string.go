@@ -89,6 +89,18 @@ func castToString(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
 			bytes = append(bytes, vec.Values[idx].String()...)
 			offs = append(offs, uint32(len(bytes)))
 		}
+	case *vector.Enum:
+		for i := range n {
+			idx := i
+			if index != nil {
+				idx = index[i]
+			}
+			if !nulls.Value(i) {
+				val := vec.Uint.Values[idx]
+				bytes = append(bytes, vec.Typ.Symbols[val]...)
+			}
+			offs = append(offs, uint32(len(bytes)))
+		}
 	default:
 		var b zcode.Builder
 		for i := range n {

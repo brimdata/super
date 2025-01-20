@@ -54,6 +54,8 @@ func (b *Builder) compileVamExpr(e dag.Expr) (vamexpr.Evaluator, error) {
 		return b.compileVamRegexpSearch(e)
 	case *dag.RecordExpr:
 		return b.compileVamRecordExpr(e)
+	case *dag.SliceExpr:
+		return b.compileVamSliceExpr(e)
 	//case *dag.SetExpr:
 	//	return b.compileVamSetExpr(e)
 	//case *dag.MapCall:
@@ -73,12 +75,14 @@ func (b *Builder) compileVamExpr(e dag.Expr) (vamexpr.Evaluator, error) {
 	}
 }
 
-func (b *Builder) compileVamBinary(e *dag.BinaryExpr) (vamexpr.Evaluator, error) {
-	//XXX TBD
-	//if slice, ok := e.RHS.(*dag.BinaryExpr); ok && slice.Op == ":" {
-	//	return b.compileVamSlice(e.LHS, slice)
-	//}
+func (b *Builder) compileVamExprWithEmpty(e dag.Expr) (vamexpr.Evaluator, error) {
+	if e == nil {
+		return nil, nil
+	}
+	return b.compileVamExpr(e)
+}
 
+func (b *Builder) compileVamBinary(e *dag.BinaryExpr) (vamexpr.Evaluator, error) {
 	//XXX TBD
 	//if e.Op == "in" {
 	// Do a faster comparison if the LHS is a compile-time constant expression.
@@ -275,6 +279,22 @@ func (b *Builder) compileVamSearch(search *dag.Search) (vamexpr.Evaluator, error
 		return vamexpr.NewSearchString(string(term), e), nil
 	}
 	return vamexpr.NewSearch(search.Text, val, e), nil
+}
+
+func (b *Builder) compileVamSliceExpr(slice *dag.SliceExpr) (vamexpr.Evaluator, error) {
+	e, err := b.compileVamExpr(slice.Expr)
+	if err != nil {
+		return nil, err
+	}
+	from, err := b.compileVamExprWithEmpty(slice.From)
+	if err != nil {
+		return nil, err
+	}
+	to, err := b.compileVamExprWithEmpty(slice.To)
+	if err != nil {
+		return nil, err
+	}
+	return vamexpr.NewSliceExpr(b.zctx(), e, from, to), nil
 }
 
 func (b *Builder) compileVamArrayExpr(e *dag.ArrayExpr) (vamexpr.Evaluator, error) {
