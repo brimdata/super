@@ -26,6 +26,10 @@ func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path,
 		f = &Bucket{zctx: zctx, name: name}
 	case "ceil":
 		f = &Ceil{zctx}
+	case "cidr_match":
+		argmin = 2
+		argmax = 2
+		f = NewCIDRMatch(zctx)
 	case "coalesce":
 		argmax = -1
 		f = &Coalesce{}
