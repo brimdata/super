@@ -601,7 +601,7 @@ func (u *UnaryMinus) Eval(ectx Context, this super.Value) super.Value {
 	return u.zctx.WrapError("type incompatible with unary '-' operator", val)
 }
 
-func getNthFromContainer(container zcode.Bytes, idx int) zcode.Bytes {
+func getNthFromContainer(container zcode.Bytes, idx int) (zcode.Bytes, bool) {
 	if idx < 0 {
 		var length int
 		for it := container.Iter(); !it.Done(); it.Next() {
@@ -609,16 +609,16 @@ func getNthFromContainer(container zcode.Bytes, idx int) zcode.Bytes {
 		}
 		idx = length + idx
 		if idx < 0 || idx >= length {
-			return nil
+			return nil, false
 		}
 	}
 	for i, it := 0, container.Iter(); !it.Done(); i++ {
 		zv := it.Next()
 		if i == idx {
-			return zv
+			return zv, true
 		}
 	}
-	return nil
+	return nil, false
 }
 
 func lookupKey(mapBytes, target zcode.Bytes) (zcode.Bytes, bool) {
@@ -673,11 +673,11 @@ func indexVector(zctx *super.Context, ectx Context, inner super.Type, vector zco
 	} else {
 		idx = int(index.Uint())
 	}
-	zv := getNthFromContainer(vector, idx)
-	if zv == nil {
+	bytes, ok := getNthFromContainer(vector, idx)
+	if !ok {
 		return zctx.Missing()
 	}
-	return deunion(ectx, inner, zv)
+	return deunion(ectx, inner, bytes)
 }
 
 func indexRecord(zctx *super.Context, ectx Context, typ *super.TypeRecord, record zcode.Bytes, index super.Value) super.Value {

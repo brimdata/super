@@ -7,6 +7,7 @@ input: |
   {val:[1,2,3,"foo"],idx:-1}
   {val:[1,2,3,"bar"],idx:1(uint8)}
   {val:[1,2,3,"foo"],idx:-4}
+  {val:[1,2,3,null],idx:3}
   {val:[1,2,3,"foo"],idx:-5}
   {val:null([(int64,string)]),idx:-5}
   {val:[1,2,3,"foo"],idx:null(int64)}
@@ -15,6 +16,7 @@ input: |
   {val:|[1,2,3,"foo"]|,idx:-1}
   {val:|[1,2,3,"bar"]|,idx:1}
   {val:|[1,2,3,"foo"]|,idx:-4}
+  {val:[1,2,3,null],idx:3}
   {val:|[1,2,3,"foo"]|,idx:-5}
   {val:|[1,2,3,"foo"]|,idx:"hi"}
   // record
@@ -27,6 +29,7 @@ output: |
   "foo"
   2
   1
+  null(int64)
   error("missing")
   error("missing")
   error("missing")
@@ -34,6 +37,7 @@ output: |
   "foo"
   2
   1
+  null(int64)
   error("missing")
   error({message:"index is not an integer",on:"hi"})
   "foo"

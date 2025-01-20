@@ -527,7 +527,7 @@ func (s *step) buildRecord(zctx *super.Context, ectx Context, in zcode.Bytes, b 
 		// reordering) would be make direct use of a
 		// zcode.Iter along with keeping track of our
 		// position.
-		bytes := getNthFromContainer(in, child.fromIndex)
+		bytes, _ := getNthFromContainer(in, child.fromIndex)
 		typ := child.build(zctx, ectx, bytes, b)
 		if super.TypeUnder(typ) == super.TypeUnder(child.toType) {
 			// Prefer child.toType in case it's a named type.
