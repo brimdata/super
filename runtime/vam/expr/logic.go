@@ -235,6 +235,7 @@ func (i *In) eval(vecs ...vector.Any) vector.Any {
 func (i *In) evalResursive(vecs ...vector.Any) vector.Any {
 	lhs, rhs := vecs[0], vecs[1]
 	rhs = vector.Under(rhs)
+	rhsOrig := rhs
 	var index []uint32
 	if view, ok := rhs.(*vector.View); ok {
 		rhs = view.Any
@@ -258,11 +259,17 @@ func (i *In) evalResursive(vecs ...vector.Any) vector.Any {
 		return vector.Or(i.evalForList(lhs, rhs.Keys, rhs.Offsets, index),
 			i.evalForList(lhs, rhs.Values, rhs.Offsets, index))
 	case *vector.Union:
+		if index != nil {
+			panic("vector.Union unexpected in vector.View")
+		}
 		return vector.Apply(true, i.evalResursive, lhs, rhs)
 	case *vector.Error:
+		if index != nil {
+			panic("vector.Error unexpected in vector.View")
+		}
 		return i.evalResursive(lhs, rhs.Vals)
 	default:
-		return i.eq.eval(lhs, rhs)
+		return i.eq.eval(lhs, rhsOrig)
 	}
 }
 
