@@ -82,8 +82,6 @@ type CIDRMatch struct {
 var errMatch = errors.New("match")
 
 func (c *CIDRMatch) Call(_ super.Allocator, args []super.Value) super.Value {
-	//fmt.Println(zson.FormatValue(args[0]))
-	//fmt.Println(zson.FormatValue(args[1]))
 	maskVal := args[0]
 	if maskVal.Type().ID() != super.IDNet {
 		return c.zctx.WrapError("cidr_match: not a net", maskVal)
