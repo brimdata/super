@@ -42,7 +42,7 @@ on AWS because when we attempted to load data to this type on our Macbooks
 that have 16 GB of RAM it consistently failed with a "too many open files"
 error.
 
-As the benchmarks may take a long time to run, the use of [`screen`](https://www.gnu.org/software/screen/)
+As the benchmarks may take a long time to run, the use of [`screen`](https://en.wikipedia.org/wiki/GNU_Screen)
 or a similar "detachable" terminal tool is recommended in case your remote
 network connection drops during a run.
 
