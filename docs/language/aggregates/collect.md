@@ -16,11 +16,12 @@ of union of the types encountered.
 ### Examples
 
 Simple sequence collected into an array:
-```mdtest-command
-echo '1 2 3 4' | super -z -c 'collect(this)' -
-```
-
-```mdtest-output
+```mdtest-spq
+# spq
+collect(this)
+# input
+1 2 3 4
+# expected output
 [1,2,3,4]
 ```
 
