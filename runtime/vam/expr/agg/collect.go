@@ -25,7 +25,7 @@ func (c *collect) Consume(vec vector.Any) {
 		}
 		b.Truncate()
 		vec.Serialize(&b, i)
-		c.samcollect.Update(typ, b.Bytes().Body())
+		c.samcollect.Consume(super.NewValue(typ, b.Bytes().Body()))
 	}
 }
 
@@ -47,7 +47,7 @@ func (c *collect) ConsumeAsPartial(partial vector.Any) {
 		for k := array.Offsets[i]; k < array.Offsets[i+1]; k++ {
 			b.Truncate()
 			array.Values.Serialize(&b, k)
-			c.samcollect.Update(typ, b.Bytes().Body())
+			c.samcollect.Consume(super.NewValue(typ, b.Bytes().Body()))
 		}
 	}
 }
