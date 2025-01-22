@@ -15,6 +15,7 @@ import (
 	"github.com/brimdata/super/compiler"
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/runtime"
+	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/anyio"
 	"github.com/brimdata/super/zio/arrowio"
@@ -145,7 +146,7 @@ func runOneBoomerang(t *testing.T, format, data string) {
 		q, err := compiler.NewCompiler(nil).NewQuery(rctx, ast, []zio.Reader{dataReadCloser}, 0)
 		require.NoError(t, err)
 		defer q.Pull(true)
-		dataReader = runtime.AsReader(q)
+		dataReader = zbuf.PullerReader(q)
 	}
 
 	// Copy from dataReader to baseline as format.

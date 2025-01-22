@@ -339,15 +339,15 @@ func (r Value) Walk(rv Visitor) error {
 	return Walk(r.Type(), r.Bytes(), rv)
 }
 
-func (r Value) nth(n int) zcode.Bytes {
+func (r Value) nth(n int) (zcode.Bytes, bool) {
 	var zv zcode.Bytes
 	for i, it := 0, r.Bytes().Iter(); i <= n; i++ {
 		if it.Done() {
-			return nil
+			return nil, false
 		}
 		zv = it.Next()
 	}
-	return zv
+	return zv, true
 }
 
 func (r Value) Fields() []Field {
@@ -356,7 +356,7 @@ func (r Value) Fields() []Field {
 
 func (v *Value) DerefByColumn(col int) *Value {
 	if v != nil {
-		if bytes := v.nth(col); bytes != nil {
+		if bytes, ok := v.nth(col); ok {
 			return NewValue(v.Fields()[col].Type, bytes).Ptr()
 		}
 	}

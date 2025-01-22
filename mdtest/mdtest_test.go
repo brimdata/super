@@ -162,6 +162,66 @@ block 2
 				{Command: "block 1\n", Expected: "block 2\n...\n", Line: 2},
 			},
 		},
+		{
+			name: "mdtest-spq",
+			markdown: `
+~~~mdtest-spq
+# Multiple '#' lines are allowed.
+#
+spq
+#
+input
+#
+expected
+~~~
+`,
+			tests: []*Test{
+				{Expected: "expected\n", Line: 2, Input: "input\n", SPQ: "spq\n"},
+			},
+		},
+		{
+			name: "mdtest-spq with leading garbage",
+			markdown: `
+~~~mdtest-spq
+garbage
+#
+spq
+#
+input
+#
+expected
+~~~
+	`,
+			strerror: `line 2: mdtest-spq content must begin with '#'`,
+		},
+		{
+			name: "mdtest-spq with too many sections",
+			markdown: `
+~~~mdtest-spq
+#
+spq
+#
+input
+#
+expected
+#
+extra
+~~~
+	`,
+			strerror: `line 2: mdtest-spq content has 4 '#'-prefixed sections (expected 3)`,
+		},
+		{
+			name: "mdtest-spq with too few sections",
+			markdown: `
+~~~mdtest-spq
+#
+spq
+#
+input
+~~~
+	`,
+			strerror: `line 2: mdtest-spq content has 2 '#'-prefixed sections (expected 3)`,
+		},
 	}
 	for _, tc := range tests {
 		tc := tc

@@ -16,12 +16,9 @@ type Collect struct {
 var _ Function = (*Collect)(nil)
 
 func (c *Collect) Consume(val super.Value) {
-	if !val.IsNull() {
-		c.update(val)
+	if val.IsNull() {
+		return
 	}
-}
-
-func (c *Collect) update(val super.Value) {
 	c.values = append(c.values, val.Under().Copy())
 	c.size += len(val.Bytes())
 	for c.size > MaxValueSize {
@@ -75,7 +72,7 @@ func (c *Collect) ConsumeAsPartial(val super.Value) {
 	}
 	typ := arrayType.Type
 	for it := val.Iter(); !it.Done(); {
-		c.update(super.NewValue(typ, it.Next()))
+		c.Consume(super.NewValue(typ, it.Next()))
 	}
 }
 

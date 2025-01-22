@@ -57,8 +57,10 @@ func NewPattern(op string, hasarg bool) (Pattern, error) {
 		pattern = func() Func {
 			return newUnion()
 		}
-	// case "collect":
-	// 	panic("TBD")
+	case "collect":
+		pattern = func() Func {
+			return &collect{}
+		}
 	// case "and":
 	// 	pattern = func() AggFunc {
 	// 		return &aggAnd{}

@@ -1,9 +1,0 @@
-zed: collect(this)
-
-input: |
-  {a:1}
-  {b:1.5}
-  {a:2}
-
-output: |
-  [{a:1},{b:1.5},{a:2}]
