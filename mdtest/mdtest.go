@@ -53,7 +53,7 @@
 // an SPQ program, the second contains input provided to the program when the
 // test runs, and the third contains the program's expected output.
 //
-//	```mdtest-sqp
+//	```mdtest-spq
 //	# spq
 //	yield a
 //	# input
