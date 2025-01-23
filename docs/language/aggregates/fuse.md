@@ -19,20 +19,22 @@ types to a smaller number of fused types each from a set of interrelated types.
 ### Examples
 
 Fuse two records:
-```mdtest-command
-echo '{a:1,b:2}{a:2,b:"foo"}' | super -z -c 'fuse(this)' -
-```
-
-```mdtest-output
+```mdtest-spq
+# spq
+fuse(this)
+# input
+{a:1,b:2}{a:2,b:"foo"}
+# expected output
 <{a:int64,b:(int64,string)}>
 ```
-Fuse records with a group-by key:
-```mdtest-command
-echo '{a:1,b:"bar"}{a:2.1,b:"foo"}{a:3,b:"bar"}' |
-  super -z -c 'fuse(this) by b |> sort' -
-```
 
-```mdtest-output
+Fuse records with a group-by key:
+```mdtest-spq {data-layout="stacked"}
+# spq
+fuse(this) by b | sort
+# input
+{a:1,b:"bar"}{a:2.1,b:"foo"}{a:3,b:"bar"}
+# expected output
 {b:"bar",fuse:<{a:int64,b:string}>}
 {b:"foo",fuse:<{a:float64,b:string}>}
 ```

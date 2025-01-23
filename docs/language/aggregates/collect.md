@@ -26,11 +26,12 @@ collect(this)
 ```
 
 Continuous collection over a simple sequence:
-```mdtest-command
-echo '1 2 3 4' | super -z -c 'yield collect(this)' -
-```
-
-```mdtest-output
+```mdtest-spq
+# spq
+yield collect(this)
+# input
+1 2 3 4
+# expected output
 [1]
 [1,2]
 [1,2,3]
@@ -38,21 +39,22 @@ echo '1 2 3 4' | super -z -c 'yield collect(this)' -
 ```
 
 Mixed types create a union type for the array elements:
-```mdtest-command
-echo '1 2 3 4 "foo"' | super -z -c 'collect(this)' -
-```
-
-```mdtest-output
+```mdtest-spq
+# spq
+collect(this)
+# input
+1 2 3 4 "foo"
+# expected output
 [1,2,3,4,"foo"]
 ```
 
 Create arrays of values bucketed by key:
-```mdtest-command
-echo '{a:1,k:1} {a:2,k:1} {a:3,k:2} {a:4,k:2}' |
-  super -z -c 'collect(a) by k |> sort' -
-```
-
-```mdtest-output
+```mdtest-spq
+# spq
+collect(a) by k | sort
+# input
+{a:1,k:1} {a:2,k:1} {a:3,k:2} {a:4,k:2}
+# expected output
 {k:1,collect:[1,2]}
 {k:2,collect:[3,4]}
 ```
