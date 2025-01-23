@@ -20,7 +20,10 @@ Simple sequence collected into an array:
 # spq
 collect(this)
 # input
-1 2 3 4
+1
+2
+3
+4
 # expected output
 [1,2,3,4]
 ```
@@ -30,7 +33,10 @@ Continuous collection over a simple sequence:
 # spq
 yield collect(this)
 # input
-1 2 3 4
+1
+2
+3
+4
 # expected output
 [1]
 [1,2]
@@ -43,7 +49,11 @@ Mixed types create a union type for the array elements:
 # spq
 collect(this)
 # input
-1 2 3 4 "foo"
+1
+2
+3
+4
+"foo"
 # expected output
 [1,2,3,4,"foo"]
 ```
@@ -53,7 +63,10 @@ Create arrays of values bucketed by key:
 # spq
 collect(a) by k | sort
 # input
-{a:1,k:1} {a:2,k:1} {a:3,k:2} {a:4,k:2}
+{a:1,k:1}
+{a:2,k:1}
+{a:3,k:2}
+{a:4,k:2}
 # expected output
 {k:1,collect:[1,2]}
 {k:2,collect:[3,4]}

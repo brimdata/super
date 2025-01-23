@@ -20,7 +20,13 @@ Absolute value of various numbers:
 # spq
 yield abs(this)
 # input
-1 -1 0 -1.0 -1(int8) 1(uint8) "foo"
+1
+-1
+0
+-1.0
+-1(int8)
+1(uint8)
+"foo"
 # expected output
 1
 1

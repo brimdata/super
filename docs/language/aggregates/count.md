@@ -18,7 +18,9 @@ Count of values in a simple sequence:
 # spq
 count()
 # input
-1 2 3
+1
+2
+3
 # expected output
 3(uint64)
 ```
@@ -28,7 +30,9 @@ Continuous count of simple sequence:
 # spq
 yield count()
 # input
-1 2 3
+1
+2
+3
 # expected output
 1(uint64)
 2(uint64)
@@ -40,7 +44,9 @@ Mixed types are handled:
 # spq
 yield count()
 # input
-1 "foo" 10.0.0.1
+1
+"foo"
+10.0.0.1
 # expected output
 1(uint64)
 2(uint64)
@@ -52,7 +58,9 @@ Count of values in buckets grouped by key:
 # spq
 count() by k | sort
 # input
-{a:1,k:1} {a:2,k:1} {a:3,k:2}
+{a:1,k:1}
+{a:2,k:1}
+{a:3,k:2}
 # expected output
 {k:1,count:2(uint64)}
 {k:2,count:1(uint64)}
@@ -63,7 +71,9 @@ A simple count with no input values returns no output:
 # spq
 where grep("bar") | count()
 # input
-1 "foo" 10.0.0.1
+1
+"foo"
+10.0.0.1
 # expected output
 ```
 
@@ -72,7 +82,9 @@ Count can return an explicit zero when using a `where` clause in the aggregation
 # spq
 count() where grep("bar")
 # input
-1 "foo" 10.0.0.1
+1
+"foo"
+10.0.0.1
 # expected output
 0(uint64)
 ```

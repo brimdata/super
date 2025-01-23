@@ -18,7 +18,10 @@ Sum of simple sequence:
 # spq
 sum(this)
 # input
-1 2 3 4
+1
+2
+3
+4
 # expected output
 10
 ```
@@ -28,7 +31,10 @@ Continuous sum of simple sequence:
 # spq
 yield sum(this)
 # input
-1 2 3 4
+1
+2
+3
+4
 # expected output
 1
 3
@@ -41,7 +47,11 @@ Unrecognized types are ignored:
 # spq
 sum(this)
 # input
-1 2 3 4 "foo"
+1
+2
+3
+4
+"foo"
 # expected output
 10
 ```
@@ -51,7 +61,10 @@ Sum of values bucketed by key:
 # spq
 sum(a) by k | sort
 # input
-{a:1,k:1} {a:2,k:1} {a:3,k:2} {a:4,k:2}
+{a:1,k:1}
+{a:2,k:1}
+{a:3,k:2}
+{a:4,k:2}
 # expected output
 {k:1,sum:3}
 {k:2,sum:7}

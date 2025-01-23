@@ -23,7 +23,8 @@ Fuse two records:
 # spq
 fuse(this)
 # input
-{a:1,b:2} {a:2,b:"foo"}
+{a:1,b:2}
+{a:2,b:"foo"}
 # expected output
 <{a:int64,b:(int64,string)}>
 ```
@@ -33,7 +34,9 @@ Fuse records with a group-by key:
 # spq
 fuse(this) by b | sort
 # input
-{a:1,b:"bar"} {a:2.1,b:"foo"} {a:3,b:"bar"}
+{a:1,b:"bar"}
+{a:2.1,b:"foo"}
+{a:3,b:"bar"}
 # expected output
 {b:"bar",fuse:<{a:int64,b:string}>}
 {b:"foo",fuse:<{a:float64,b:string}>}

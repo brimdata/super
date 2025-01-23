@@ -18,7 +18,10 @@ Minimum value of simple sequence:
 # spq
 min(this)
 # input
-1 2 3 4
+1
+2
+3
+4
 # expected output
 1
 ```
@@ -28,7 +31,10 @@ Continuous minimum of simple sequence:
 # spq
 yield min(this)
 # input
-1 2 3 4
+1
+2
+3
+4
 # expected output
 1
 1
@@ -41,7 +47,11 @@ Unrecognized types are ignored:
 # spq
 min(this)
 # input
-1 2 3 4 "foo"
+1
+2
+3
+4
+"foo"
 # expected output
 1
 ```
@@ -51,7 +61,10 @@ Minimum value within buckets grouped by key:
 # spq
 min(a) by k | sort
 # input
-{a:1,k:1} {a:2,k:1} {a:3,k:2} {a:4,k:2}
+{a:1,k:1}
+{a:2,k:1}
+{a:3,k:2}
+{a:4,k:2}
 # expected output
 {k:1,min:1}
 {k:2,min:3}

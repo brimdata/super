@@ -19,7 +19,10 @@ Any picks the first one in this scenario but this behavior is undefined:
 # spq
 any(this)
 # input
-1 2 3 4
+1
+2
+3
+4
 # expected output
 1
 ```
@@ -42,7 +45,10 @@ Any is not sensitive to mixed types as it just picks one:
 # spq
 any(this)
 # input
-"foo" 1 2 3
+"foo"
+1
+2
+3
 # expected output
 "foo"
 ```
@@ -52,7 +58,10 @@ Pick from groups bucketed by key:
 # spq
 any(a) by k | sort
 # input
-{a:1,k:1} {a:2,k:1} {a:3,k:2} {a:4,k:2}
+{a:1,k:1}
+{a:2,k:1}
+{a:3,k:2}
+{a:4,k:2}
 # expected output
 {k:1,any:1}
 {k:2,any:3}

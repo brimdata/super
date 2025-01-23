@@ -28,7 +28,10 @@ Continuous maximum of simple sequence:
 # spq
 yield max(this)
 # input
-1 2 3 4
+1
+2
+3
+4
 # expected output
 1
 2
@@ -41,7 +44,11 @@ Unrecognized types are ignored:
 # spq
 max(this)
 # input
-1 2 3 4 "foo"
+1
+2
+3
+4
+"foo"
 # expected output
 4
 ```
@@ -51,7 +58,10 @@ Maximum value within buckets grouped by key:
 # spq
 max(a) by k | sort
 # input
-{a:1,k:1} {a:2,k:1} {a:3,k:2} {a:4,k:2}
+{a:1,k:1}
+{a:2,k:1}
+{a:3,k:2}
+{a:4,k:2}
 # expected output
 {k:1,max:2}
 {k:2,max:4}

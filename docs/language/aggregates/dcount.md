@@ -19,7 +19,10 @@ Count of values in a simple sequence:
 # spq
 dcount(this)
 # input
-1 2 2 3
+1
+2
+2
+3
 # expected output
 3(uint64)
 ```
@@ -29,7 +32,10 @@ Continuous count of simple sequence:
 # spq
 yield dcount(this)
 # input
-1 2 2 3
+1
+2
+2
+3
 # expected output
 1(uint64)
 2(uint64)
@@ -42,7 +48,9 @@ Mixed types are handled:
 # spq
 yield dcount(this)
 # input
-1 "foo" 10.0.0.1
+1
+"foo"
+10.0.0.1
 # expected output
 1(uint64)
 2(uint64)
@@ -63,7 +71,9 @@ Count of values in buckets grouped by key:
 # spq
 dcount(a) by k | sort
 # input
-{a:1,k:1} {a:2,k:1} {a:3,k:2}
+{a:1,k:1}
+{a:2,k:1}
+{a:3,k:2}
 # expected output
 {k:1,dcount:2(uint64)}
 {k:2,dcount:1(uint64)}

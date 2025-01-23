@@ -21,7 +21,10 @@ Create a set of values from a simple sequence:
 # spq
 union(this)
 # input
-1 2 3 3
+1
+2
+3
+3
 # expected output
 |[1,2,3]|
 ```
@@ -31,7 +34,10 @@ Create sets continuously from values in a simple sequence:
 # spq
 yield union(this)
 # input
-1 2 3 3
+1
+2
+3
+3
 # expected output
 |[1]|
 |[1,2]|
@@ -44,7 +50,10 @@ Mixed types create a union type for the set elements:
 # spq
 set:=union(this) | yield this,typeof(set)
 # input
-1 2 3 "foo"
+1
+2
+3
+"foo"
 # expected output
 {set:|[1,2,3,"foo"]|}
 <|[(int64,string)]|>
@@ -55,7 +64,10 @@ Create sets of values bucketed by key:
 # spq
 union(a) by k | sort
 # input
-{a:1,k:1} {a:2,k:1} {a:3,k:2} {a:4,k:2}
+{a:1,k:1}
+{a:2,k:1}
+{a:3,k:2}
+{a:4,k:2}
 # expected output
 {k:1,union:|[1,2]|}
 {k:2,union:|[3,4]|}
