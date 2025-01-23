@@ -31,29 +31,34 @@ and [`order`](./order.md) functions simultaneously on a record.
 ### Examples
 
 _Fill a record_
-```mdtest-command
-echo '{a:1}' | super -z -c 'fill(this, <{a:int64,b:string}>)' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+fill(this, <{a:int64,b:string}>)
+# input
+{a:1}
+# expected output
 {a:1,b:null(string)}
 ```
 
 _Fill an array of records_
-```mdtest-command
-echo '[{a:1},{a:2}]' | super -z -c 'fill(this, <[{a:int64,b:int64}]>)' -
-```
-produces
-```mdtest-output
+```mdtest-spq {data-layout="stacked"}
+# spq
+fill(this, <[{a:int64,b:int64}]>)
+# input
+[{a:1},{a:2}]
+# expected output
 [{a:1,b:null(int64)},{a:2,b:null(int64)}]
 ```
 
 _Non-records are returned unmodified_
-```mdtest-command
-echo '10.0.0.1 1 "foo"' | super -z -c 'fill(this, <{a:int64,b:int64}>)' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+fill(this, <{a:int64,b:int64}>)
+# input
+10.0.0.1
+1
+"foo"
+# expected output
 10.0.0.1
 1
 "foo"

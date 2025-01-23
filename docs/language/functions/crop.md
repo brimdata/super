@@ -25,29 +25,33 @@ If `val` is not a record, it is returned unmodified.
 ### Examples
 
 _Crop a record_
-```mdtest-command
-echo '{a:1,b:2}' | super -z -c 'crop(this, <{a:int64}>)' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+crop(this, <{a:int64}>)
+# input
+{a:1,b:2}
+# expected output
 {a:1}
 ```
 
 _Crop an array of records_
-```mdtest-command
-echo '[{a:1,b:2},{a:3,b:4}]' | super -z -c 'crop(this, <[{a:int64}]>)' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+crop(this, <[{a:int64}]>)
+# input
+[{a:1,b:2},{a:3,b:4}]
+# expected output
 [{a:1},{a:3}]
 ```
 
 _Cropped primitives are returned unmodified_
-```mdtest-command
-echo '10.0.0.1 1 "foo"' | super -z -c 'crop(this, <{a:int64}>)' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+crop(this, <{a:int64}>)
+# input
+10.0.0.1 1
+"foo"
+# expected output
 10.0.0.1
 1
 "foo"
