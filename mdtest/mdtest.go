@@ -53,7 +53,12 @@
 // an SPQ program, the second contains input provided to the program when the
 // test runs, and the third contains the program's expected output.
 //
-//	```mdtest-spq
+// SPQ tests are run via the super command.  The command's exit status must
+// indicate success (i.e., be zero) unless the mdtest-spq block's info string
+// contains the word "fails", in which case the exit status must indicate
+// failure (i.e. be nonzero).
+//
+//	```mdtest-spq [fails]
 //	# spq
 //	yield a
 //	# input
@@ -219,6 +224,12 @@ func parseMarkdown(source []byte) (map[string]string, []*Test, error) {
 				Line:      fcbLineNumber(fcb, source),
 			})
 		case "mdtest-spq":
+			var fails bool
+			for _, word := range fcbInfoWords(fcb, source)[1:] {
+				if word == "fails" {
+					fails = true
+				}
+			}
 			lines := fcbLines(fcb, source)
 			if !strings.HasPrefix(lines, "#") {
 				return ast.WalkStop, fcbError(fcb, source, "mdtest-spq content must begin with '#'")
@@ -231,6 +242,7 @@ func parseMarkdown(source []byte) (map[string]string, []*Test, error) {
 			}
 			tests = append(tests, &Test{
 				Expected: sections[3],
+				Fails:    fails,
 				Line:     fcbLineNumber(fcb, source),
 				Input:    sections[2],
 				SPQ:      sections[1],
