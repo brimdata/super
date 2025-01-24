@@ -65,6 +65,8 @@ func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path,
 	case "replace":
 		argmin, argmax = 3, 3
 		f = &Replace{zctx}
+	case "round":
+		f = &Round{zctx}
 	case "rune_len":
 		f = &RuneLen{zctx}
 	case "split":

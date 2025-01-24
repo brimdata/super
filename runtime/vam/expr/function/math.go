@@ -179,6 +179,29 @@ func (l *Log) Call(args ...vector.Any) vector.Any {
 	return out
 }
 
+// https://github.com/brimdata/super/blob/main/docs/language/functions.md#round
+type Round struct {
+	zctx *super.Context
+}
+
+func (r *Round) Call(args ...vector.Any) vector.Any {
+	vec := args[0]
+	switch id := vec.Type().ID(); {
+	case id == super.IDNull:
+		return vec
+	case super.IsUnsigned(id) || super.IsSigned(id):
+		return vec
+	case super.IsFloat(id):
+		vals := make([]float64, vec.Len())
+		for i := range vec.Len() {
+			v, _ := vector.FloatValue(vec, i)
+			vals[i] = math.Round(v)
+		}
+		return vector.NewFloat(vec.Type(), vals, vector.NullsOf(vec))
+	}
+	return vector.NewWrappedError(r.zctx, "round: not a number", vec)
+}
+
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#sqrt
 type Sqrt struct {
 	zctx *super.Context

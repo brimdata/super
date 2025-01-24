@@ -139,9 +139,14 @@ type Round struct {
 func (r *Round) Call(_ super.Allocator, args []super.Value) super.Value {
 	val := args[0]
 	switch id := val.Type().ID(); {
+	case id == super.IDNull:
+		return val
 	case super.IsUnsigned(id) || super.IsSigned(id):
 		return val
 	case super.IsFloat(id):
+		if val.IsNull() {
+			return val
+		}
 		return super.NewFloat(val.Type(), math.Round(val.Float()))
 	}
 	return r.zctx.WrapError("round: not a number", val)
