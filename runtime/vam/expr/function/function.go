@@ -79,6 +79,8 @@ func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path,
 		f = &TypeOf{zctx}
 	case "upper":
 		f = &ToUpper{zctx}
+	case "under":
+		f = &Under{zctx}
 	default:
 		return nil, nil, function.ErrNoSuchFunction
 	}
