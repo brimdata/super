@@ -100,7 +100,7 @@ func (s *superTable) materialize() vector.Any {
 	}
 	// Since aggs can return dynamic values need to do apply to create record.
 	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
-		return s.builder.New(vecs)
+		return s.builder.New(vecs, nil)
 	}, vecs...)
 }
 
@@ -271,7 +271,7 @@ func (c *countByString) materialize() vector.Any {
 	}
 	keyVec := vector.NewString(offs, bytes, nulls)
 	countVec := vector.NewUint(super.TypeUint64, counts, nil)
-	return c.builder.New([]vector.Any{keyVec, countVec})
+	return c.builder.New([]vector.Any{keyVec, countVec}, nil)
 }
 
 type Sum struct {

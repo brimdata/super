@@ -57,12 +57,22 @@ func (n *NestDotted) lookupBuilderAndType(in *super.TypeRecord) (*super.RecordBu
 
 func (n *NestDotted) Call(_ super.Allocator, args []super.Value) super.Value {
 	val := args[len(args)-1]
-	b, typ, err := n.lookupBuilderAndType(super.TypeRecordOf(val.Type()))
+	if val.Type().ID() == super.IDNull {
+		return val
+	}
+	rtyp := super.TypeRecordOf(val.Type())
+	if rtyp == nil {
+		return n.zctx.WrapError("nest_dotted: non-record value", val)
+	}
+	b, typ, err := n.lookupBuilderAndType(rtyp)
 	if err != nil {
-		return n.zctx.WrapError("nest_dotted(): "+err.Error(), val)
+		return n.zctx.WrapError("nest_dotted: "+err.Error(), val)
 	}
 	if b == nil {
 		return val
+	}
+	if val.IsNull() {
+		return super.NewValue(typ, nil)
 	}
 	b.Reset()
 	for it := val.Bytes().Iter(); !it.Done(); {
