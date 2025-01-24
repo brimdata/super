@@ -49,28 +49,28 @@ In the fifth form, multiple sources are accessed in parallel and may be
 
 A pipeline can be split with the [`fork` operator](fork.md) as in
 ```
-from PoolOne |> fork (
-  => op1 |> op2 | ...
-  => op1 |> op2 | ...
-) |> merge ts | ...
+from PoolOne | fork (
+  => op1 | op2 | ...
+  => op1 | op2 | ...
+) | merge ts | ...
 ```
 
 Or multiple pools can be accessed and, for example, joined:
 ```
 from (
-  pool PoolOne => op1 |> op2 | ...
-  pool PoolTwo => op1 |> op2 | ...
-) |> join on key=key | ...
+  pool PoolOne => op1 | op2 | ...
+  pool PoolTwo => op1 | op2 | ...
+) | join on key=key | ...
 ```
 
 Similarly, data can be routed to different pipeline branches with replication
 using the [`switch` operator](switch.md):
 ```
-from ... |> switch color (
-  case "red" => op1 |> op2 | ...
-  case "blue" => op1 |> op2 | ...
-  default => op1 |> op2 | ...
-) |> ...
+from ... | switch color (
+  case "red" => op1 | op2 | ...
+  case "blue" => op1 | op2 | ...
+  default => op1 | op2 | ...
+) | ...
 ```
 
 ### Input Data
@@ -91,8 +91,8 @@ echo '{number:1,word:"one"} {number:2,word:"two"} {number:3,word:"three"}' |
   super db load -q -use numbers -
 super db query -f text '
   from :branches
-  |> yield pool.name + "@" + branch.name
-  |> sort'
+  | yield pool.name + "@" + branch.name
+  | sort'
 ```
 
 The lake then contains the two pools:
@@ -114,7 +114,7 @@ The following file `hello.jsup` is also used.
 _Source structured data from a local file_
 
 ```mdtest-command
-super -z -c 'file hello.jsup |> yield greeting'
+super -z -c 'file hello.jsup | yield greeting'
 ```
 
 ```mdtest-output
@@ -133,7 +133,7 @@ super -z -c 'file hello.jsup format line'
 _Source structured data from a URI_
 ```
 super -z -c 'get https://raw.githubusercontent.com/brimdata/zui-insiders/main/package.json
-       |> yield productName'
+       | yield productName'
 ```
 =>
 ```
@@ -163,7 +163,7 @@ super db -lake example query -z 'from coinflips@trial'
 
 _Count the number of values in the `main` branch of all pools_
 ```mdtest-command
-super db -lake example query -f text 'from * |> count()'
+super db -lake example query -f text 'from * | count()'
 ```
 
 ```mdtest-output
@@ -172,9 +172,9 @@ super db -lake example query -f text 'from * |> count()'
 _Join the data from multiple pools_
 ```mdtest-command
 super db -lake example query -z '
-  from coinflips |> sort flip
-  |> join (
-    from numbers |> sort number
+  from coinflips | sort flip
+  | join (
+    from numbers | sort number
   ) on flip=number word'
 ```
 
@@ -186,16 +186,16 @@ super db -lake example query -z '
 _Use `pass` to combine our join output with data from yet another source_
 ```mdtest-command
 super db -lake example query -z '
-  from coinflips |> sort flip
-  |> join (
-    from numbers |> sort number
+  from coinflips | sort flip
+  | join (
+    from numbers | sort number
   ) on flip=number word
-  |> from (
+  | from (
     pass
     pool coinflips@trial =>
       c:=count()
-      |> yield f"There were {int64(c)} flips"
-  ) |> sort this'
+      | yield f"There were {int64(c)} flips"
+  ) | sort this'
 ```
 
 ```mdtest-output
