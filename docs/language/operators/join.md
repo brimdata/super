@@ -18,7 +18,7 @@
 
 The first `join` syntax shown above was more recently introduced and is in some
 ways similar to other languages such as SQL.  The second was the original `join`
-syntax in SuperPipe.  Most joins can be expressed using either syntax.  See the
+syntax in the language.  Most joins can be expressed using either syntax.  See the
 [join tutorial](../../tutorials/join.md)
 for details.
 
@@ -40,9 +40,13 @@ The available join types are:
 
 For anti join, the `<right-expr>` is undefined and thus cannot be specified.
 
-> Currently, only exact equi-join is supported and join keys must be field
-> expressions. A future version of join will have more flexible join
-> expressions.
+{{% tip "Note" %}}
+
+Currently, only exact equi-join is supported and join keys must be field
+expressions. A future version of `join` will have more flexible join
+expressions.
+
+{{% /tip %}}
 
 ### Examples
 

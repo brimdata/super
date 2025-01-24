@@ -44,8 +44,8 @@ echo '{flip:1,result:"heads"} {flip:2,result:"tails"}' |
 super db -q create -orderby flip:asc bigflips
 super db query -f text '
   from :branches
-  |> yield pool.name + "@" + branch.name
-  |> sort'
+  | yield pool.name + "@" + branch.name
+  | sort'
 ```
 
 The lake then contains the two pools:
@@ -62,8 +62,8 @@ _Modify some values, load them into the `main` branch of our empty `bigflips` po
 ```mdtest-command
 super db -lake example query '
   from coinflips
-  |> result:=upper(result)
-  |> load bigflips
+  | result:=upper(result)
+  | load bigflips
 ' > /dev/null
 
 super db -lake example query -z 'from bigflips'
@@ -78,8 +78,8 @@ _Add a filtered subset of records to our `onlytails` branch, while also adding m
 ```mdtest-command
 super db -lake example query '
   from coinflips
-  |> result=="tails"
-  |> load coinflips@onlytails
+  | result=="tails"
+  | load coinflips@onlytails
       author "Steve"
       message "A subset"
       meta "\"Additional metadata\""
