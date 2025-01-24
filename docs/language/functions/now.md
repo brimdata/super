@@ -24,10 +24,10 @@ switch (
 ### Examples
 
 ```
-echo null | super -z -c 'yield now()' -
+super -z -c 'yield now()'
 ```
 =>
 ```
-2022-02-06T18:35:35.053843Z
+2025-01-24T16:57:20.555988Z
 ```
-(at the time this document was written)
+(at the time this document was last updated)
