@@ -148,7 +148,7 @@ Parsing a simple log line using the built-in named patterns:
 ```mdtest-spq {data-layout="stacked"}
 # spq
 yield grok("%{TIMESTAMP_ISO8601:timestamp} %{LOGLEVEL:level} %{GREEDYDATA:message}",
-      this)
+           this)
 # input
 "2020-09-16T04:20:42.45+01:00 DEBUG This is a sample debug log message"
 # expected output
