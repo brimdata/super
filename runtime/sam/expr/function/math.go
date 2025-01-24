@@ -170,9 +170,18 @@ type Sqrt struct {
 }
 
 func (s *Sqrt) Call(_ super.Allocator, args []super.Value) super.Value {
-	x, ok := coerce.ToFloat(args[0], super.TypeFloat64)
+	val := args[0].Under()
+	if id := val.Type().ID(); id == super.IDNull {
+		return val
+	} else if !super.IsNumber(id) {
+		return s.zctx.WrapError("sqrt: number argument required", val)
+	}
+	if val.IsNull() {
+		return super.NullFloat64
+	}
+	x, ok := coerce.ToFloat(val, super.TypeFloat64)
 	if !ok {
-		return s.zctx.WrapError("sqrt: not a number", args[0])
+		return s.zctx.WrapError("sqrt: not a number", val)
 	}
 	return super.NewFloat64(math.Sqrt(x))
 }

@@ -178,3 +178,27 @@ func (l *Log) Call(args ...vector.Any) vector.Any {
 	}
 	return out
 }
+
+// https://github.com/brimdata/super/blob/main/docs/language/functions.md#sqrt
+type Sqrt struct {
+	zctx *super.Context
+}
+
+func (s *Sqrt) Call(args ...vector.Any) vector.Any {
+	vec := vector.Under(args[0])
+	if id := vec.Type().ID(); id == super.IDNull {
+		return vec
+	} else if !super.IsNumber(id) {
+		return vector.NewWrappedError(s.zctx, "sqrt: number argument required", vec)
+	}
+	vec = cast.To(s.zctx, vec, super.TypeFloat64)
+	vals := make([]float64, vec.Len())
+	for i := range vec.Len() {
+		v, isnull := vector.FloatValue(vec, i)
+		if isnull {
+			continue
+		}
+		vals[i] = math.Sqrt(v)
+	}
+	return vector.NewFloat(super.TypeFloat64, vals, vector.NullsOf(vec))
+}

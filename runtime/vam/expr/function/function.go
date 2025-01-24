@@ -70,6 +70,8 @@ func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path,
 	case "split":
 		argmin, argmax = 2, 2
 		f = &Split{zctx}
+	case "sqrt":
+		f = &Sqrt{zctx}
 	case "strftime":
 		argmin, argmax = 2, 2
 		f = &Strftime{zctx: zctx}
