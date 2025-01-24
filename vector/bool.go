@@ -40,7 +40,9 @@ func (b *Bool) Set(slot uint32) {
 }
 
 func (b *Bool) SetLen(len uint32) {
-	b.len = len
+	if b != nil {
+		b.len = len
+	}
 }
 
 func (b *Bool) Len() uint32 {

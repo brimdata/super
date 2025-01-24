@@ -75,6 +75,8 @@ func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path,
 		f = &Strftime{zctx: zctx}
 	case "trim":
 		f = &Trim{zctx}
+	case "typename":
+		f = &TypeName{zctx: zctx}
 	case "typeof":
 		f = &TypeOf{zctx}
 	case "upper":

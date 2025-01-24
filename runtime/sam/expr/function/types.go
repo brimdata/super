@@ -53,22 +53,12 @@ type typeName struct {
 
 func (t *typeName) Call(_ super.Allocator, args []super.Value) super.Value {
 	if super.TypeUnder(args[0].Type()) != super.TypeString {
-		return t.zctx.WrapError("typename: first argument not a string", args[0])
+		return t.zctx.WrapError("typename: argument must be a string", args[0])
 	}
 	name := string(args[0].Bytes())
-	if len(args) == 1 {
-		typ := t.zctx.LookupTypeDef(name)
-		if typ == nil {
-			return t.zctx.Missing()
-		}
-		return t.zctx.LookupTypeValue(typ)
-	}
-	if super.TypeUnder(args[1].Type()) != super.TypeType {
-		return t.zctx.WrapError("typename: second argument not a type value", args[1])
-	}
-	typ, err := t.zctx.LookupByValue(args[1].Bytes())
-	if err != nil {
-		return t.zctx.NewError(err)
+	typ := t.zctx.LookupTypeDef(name)
+	if typ == nil {
+		return t.zctx.Missing()
 	}
 	return t.zctx.LookupTypeValue(typ)
 }
