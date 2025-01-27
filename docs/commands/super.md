@@ -601,13 +601,41 @@ error("divide by zero")
 
 ## Examples
 
-As you may have noticed, many examples of the [SuperSQL language](../language/_index.md)
-are illustrated using this pattern
+As you may have noticed, many examples shown above were illustrated using this
+pattern:
 ```
 echo <values> | super -c <query> -
 ```
-which is used throughout the [language documentation](../language/_index.md)
-and [operator reference](../language/operators/_index.md).
+
+While this is suitable for showing command line operations, in documentation
+focused on showing the [SuperSQL language](../language/_index.md) (such as the
+[operator](../language/operators/_index.md) and [function](../language/functions/_index.md)
+references), interactive examples are often used that are pre-populated with
+the query, input, and a "live" result that's generated using a
+[browser-based packaging of the SuperDB runtime](https://github.com/brimdata/superdb-wasm).
+This allows you to modify the query and/or inputs and immediately see how it
+changes the result, all without having to drop to the shell. If you make
+changes to an example and want to return it to its original state, just
+refresh the page in your browser.
+
+For example, here's an interactive rendering of the example from the
+[Error Handling](#error-handling) section above. Try adding an additional
+input value and notice the immediate change in the result.
+
+```mdtest-spq
+# spq
+10.0/this
+# input
+1
+2
+0
+3
+# expected output
+10.
+5.
+error("divide by zero")
+3.3333333333333335
+```
 
 The language documentation and [tutorials directory](../tutorials/_index.md)
 have many examples, but here are a few more simple `super` use cases.
@@ -622,55 +650,75 @@ produces this Super JSON output
 ```
 
 _Some values of available [data types](../language/data-types.md)_
-```mdtest-command
-echo '1 1.5 [1,"foo"] |["apple","banana"]|' | super -z -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+SELECT VALUE this
+# input
+1
+1.5
+[1,"foo"]
+|["apple","banana"]|
+# expected output
 1
 1.5
 [1,"foo"]
 |["apple","banana"]|
 ```
+
 _The types of various data_
-```mdtest-command
-echo '1 1.5 [1,"foo"] |["apple","banana"]|' | super -z -c 'SELECT VALUE typeof(this)' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+SELECT VALUE typeof(this)
+# input
+1
+1.5
+[1,"foo"]
+|["apple","banana"]|
+# expected output
 <int64>
 <float64>
 <[(int64,string)]>
 <|[string]|>
 ```
+
 _A simple [aggregation](../language/aggregates/_index.md)_
-```mdtest-command
-echo '{key:"foo",val:1}{key:"bar",val:2}{key:"foo",val:3}' |
-  super -z -c 'sum(val) by key | sort key' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+sum(val) by key | sort key
+# input
+{key:"foo",val:1}
+{key:"bar",val:2}
+{key:"foo",val:3}
+# expected output
 {key:"bar",sum:2}
 {key:"foo",sum:4}
 ```
+
 _Read CSV input and [cast](../language/functions/cast.md) a to an integer from default float_
-```mdtest-command
-printf "a,b\n1,foo\n2,bar\n" | super -z -c 'a:=int64(a)' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+a:=int64(a)
+# input
+a,b
+1,foo
+2,bar
+# expected output
 {a:1,b:"foo"}
 {a:2,b:"bar"}
 ```
+
 _Read JSON input and cast to an integer from default float_
-```mdtest-command
-echo '{"a":1,"b":"foo"}{"a":2,"b":"bar"}' | super -z -c 'a:=int64(a)' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+a:=int64(a)
+# input
+{"a":1,"b":"foo"}
+{"a":2,"b":"bar"}
+# expected output
 {a:1,b:"foo"}
 {a:2,b:"bar"}
 ```
+
 _Make a schema-rigid Parquet file using fuse, then output the Parquet file as Super JSON_
 ```mdtest-command
 echo '{a:1}{a:2}{b:3}' | super -f parquet -o tmp.parquet -c fuse -
