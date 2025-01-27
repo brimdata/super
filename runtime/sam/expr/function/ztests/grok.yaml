@@ -11,6 +11,9 @@ script: |
   super -z -c 'grok("%{INT:one} %{INT:one}", "1 2")'
   echo "// ==="
   echo '"string value"' | super -z -c 'grok("%{INT:int}", this)' -
+  # Differentiate between no keys and a non-match
+  echo "// ==="
+  super -z -c 'yield "1", "foo" | grok("%{INT}", this)'
 
 inputs:
   - name: simple.jsup
@@ -36,3 +39,6 @@ outputs:
       {one:"2"}
       // ===
       error({message:"grok(): value does not match pattern",on:"string value"})
+      // ===
+      {}
+      error({message:"grok(): value does not match pattern",on:"foo"})

@@ -44,8 +44,8 @@ func (g *Grok) Call(_ super.Allocator, args []super.Value) super.Value {
 	if err != nil {
 		return g.error(err.Error(), patternArg)
 	}
-	keys, vals := p.ParseKeyValues(inputArg.AsString())
-	if vals == nil {
+	keys, vals, match := p.ParseKeyValues(inputArg.AsString())
+	if !match {
 		return g.error("value does not match pattern", inputArg)
 	}
 	g.fields = g.fields[:0]
@@ -54,8 +54,13 @@ func (g *Grok) Call(_ super.Allocator, args []super.Value) super.Value {
 	}
 	typ := g.zctx.MustLookupTypeRecord(g.fields)
 	g.builder.Reset()
-	for _, s := range vals {
-		g.builder.Append([]byte(s))
+	if len(vals) == 0 {
+		// If we have a match but no key/vals return empty record.
+		g.builder.Append(nil)
+	} else {
+		for _, s := range vals {
+			g.builder.Append([]byte(s))
+		}
 	}
 	return super.NewValue(typ, g.builder.Bytes())
 }
