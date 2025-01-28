@@ -48,11 +48,12 @@ rename r.a:=r.b
 ```
 
 _Trying to mutate records with rename produces a compile-time error_
-```mdtest-command fails
-echo '{a:1,r:{b:2,c:3}}' | super -z -c 'rename w:=r.b' -
-```
-=>
-```mdtest-output
+```mdtest-spq fails
+# spq
+rename w:=r.b
+# input
+{a:1,r:{b:2,c:3}}
+# expected output
 left-hand side and right-hand side must have the same depth (w vs r.b) at line 1, column 8:
 rename w:=r.b
        ~~~~~~

@@ -52,20 +52,25 @@ serve as group-by keys or be used in ["data shaping"](shaping.md) logic.
 A common workflow for data introspection is to first perform a search of
 exploratory data and then count the shapes of each type of data as follows:
 ```
-search ... |> count() by typeof(this)
+search ... | count() by typeof(this)
 ```
 For example,
-```mdtest-command
-echo '1 2 "foo" 10.0.0.1 <string>' |
-  super -z -c 'count() by typeof(this) |> sort this' -
-```
-produces
-```mdtest-output
+``` mdtest-spq
+# spq
+count() by typeof(this) | sort this
+# input
+1
+2
+"foo"
+10.0.0.1
+<string>
+# expected output
 {typeof:<int64>,count:2(uint64)}
 {typeof:<string>,count:1(uint64)}
 {typeof:<ip>,count:1(uint64)}
 {typeof:<type>,count:1(uint64)}
 ```
+
 When running such a query over complex, semi-structured data, the results can
 be quite illuminating and can inform the design of "data shaping" queries
 to transform raw, messy data into clean data for downstream tooling.
@@ -111,30 +116,37 @@ In this case, a SuperPipe expression may refer to the type by the name that simp
 appears to the runtime as a side effect of operating upon the data.  If the type
 name referred to in this way does not exist, then the type value reference
 results in `error("missing")`.  For example,
-```mdtest-command
-echo '1(=foo) 2(=bar) 3(=foo)' | super -z -c 'typeof(this)==<foo>' -
-```
-results in
-```mdtest-output
+
+```mdtest-spq
+# spq
+typeof(this)==<foo>
+# input
+1(=foo)
+2(=bar)
+3(=foo)
+# expected output
 1(=foo)
 3(=foo)
 ```
-and
-```mdtest-command
-echo '1(=foo)' | super -z -c 'yield <foo>' -
-```
-results in
-```mdtest-output
+
+```mdtest-spq
+# spq
+yield <foo>
+# input
+1(=foo)
+# expected output
 <foo=int64>
 ```
-but
-```mdtest-command
-super -z -c 'yield <foo>'
-```
-gives
-```mdtest-output
+
+```mdtest-spq
+# spq
+yield <foo>
+# input
+null
+# expected output
 error("missing")
 ```
+
 Each instance of a named type definition overrides any earlier definition.
 In this way, types are local in scope.
 
@@ -143,7 +155,7 @@ named type retaining the proper type binding while accommodating changes in a
 particular named type.  For example,
 ```mdtest-command
 echo '1(=foo) 2(=bar) "hello"(=foo) 3(=foo)' |
-  super -z -c 'count() by typeof(this) |> sort this' -
+  super -z -c 'count() by typeof(this) | sort this' -
 ```
 results in
 ```mdtest-output
