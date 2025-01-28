@@ -180,6 +180,23 @@ expected
 			},
 		},
 		{
+			name: "mdtest-spq with fails",
+			markdown: `
+~~~mdtest-spq fails
+# Multiple '#' lines are allowed.
+#
+spq
+#
+input
+#
+expected
+~~~
+`,
+			tests: []*Test{
+				{Expected: "expected\n", Fails: true, Line: 2, Input: "input\n", SPQ: "spq\n"},
+			},
+		},
+		{
 			name: "mdtest-spq with leading garbage",
 			markdown: `
 ~~~mdtest-spq
