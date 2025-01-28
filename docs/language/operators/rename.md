@@ -48,7 +48,7 @@ rename r.a:=r.b
 ```
 
 _Trying to mutate records with rename produces a compile-time error_
-```mdtest-spq fails
+```mdtest-spq fails {data-layout="stacked"}
 # spq
 rename w:=r.b
 # input
@@ -72,7 +72,7 @@ yield {a,r:{c:r.c},w:r.b}
 _Alternatively, mutations can be more generic and use drop_
 ```mdtest-spq
 # spq
-yield {a,r,w:r.b} |> drop r.b
+yield {a,r,w:r.b} | drop r.b
 # input
 {a:1,r:{b:2,c:3}}
 # expected output
