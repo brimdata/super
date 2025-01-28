@@ -39,7 +39,7 @@ in the [Super JSON format](../formats/jsup.md)
 with query text is expressed as the `-c` argument of the `super` command
 in the syntax of the SuperSQL language described here. Some examples are
 instead presented in an interactive form as described in the
-[`super` command doc](http://localhost:1313/docs/commands/super/#examples).
+[`super` command doc](../commands/super.md#examples).
 
 ## Pipeline Operators
 
