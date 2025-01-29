@@ -22,16 +22,20 @@ and accesses to variables in parent lateral query bodies follows lexical
 scoping.
 
 For example,
-```mdtest-command
-echo '{s:"foo",a:[1,2]} {s:"bar",a:[3]}' |
-  super -z -c 'over a with name=s => (yield {name,elem:this})' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+over a with name=s => (
+  yield {name,elem:this}
+)
+# input
+{s:"foo",a:[1,2]}
+{s:"bar",a:[3]}
+# expected output
 {name:"foo",elem:1}
 {name:"foo",elem:2}
 {name:"bar",elem:3}
 ```
+
 Here the [lateral scope](#lateral-scope), described below, creates a subquery
 ```
 yield {name,elem:this}
@@ -57,12 +61,15 @@ and the second subquery operates on the input value `3` with the variable
 
 You can also import a parent-scope field reference into the inner scope by
 simply referring to its name without assignment, e.g.,
-```mdtest-command
-echo '{s:"foo",a:[1,2]} {s:"bar",a:[3]}' |
-  super -z -c 'over a with s => (yield {s,elem:this})' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+over a with s => (
+  yield {s,elem:this}
+)
+# input
+{s:"foo",a:[1,2]}
+{s:"bar",a:[3]}
+# expected output
 {s:"foo",elem:1}
 {s:"foo",elem:2}
 {s:"bar",elem:3}
@@ -108,12 +115,16 @@ the lateral scope.  In contrast to the [`yield`](operators/yield.md) example abo
 applied to each subsequence in the subquery, where `sort`
 reads all values of the subsequence, sorts them, emits them, then
 repeats the process for the next subsequence.  For example,
-```mdtest-command
-echo '[3,2,1] [4,1,7] [1,2,3]' |
-  super -z -c 'over this => (sort this |> collect(this))' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+over this => (
+  sort this | collect(this)
+)
+# input
+[3,2,1]
+[4,1,7]
+[1,2,3]
+# expected output
 [1,2,3]
 [1,4,7]
 [1,2,3]
@@ -124,7 +135,7 @@ produces
 Lateral subqueries can also appear in expression context using the
 parenthesized form:
 ```
-( over <expr> [, <expr>...] [with <var>=<expr> [, ... <var>[=<expr>]] |> <lateral> )
+( over <expr> [, <expr>...] [with <var>=<expr> [, ... <var>[=<expr>]] | <lateral> )
 ```
 
 {{% tip "Note" %}}
@@ -139,56 +150,70 @@ The lateral expression is evaluated by evaluating each `<expr>` and feeding
 the results as inputs to the `<lateral>` pipeline.  Each time the
 lateral expression is evaluated, the lateral operators are run to completion,
 e.g.,
-```mdtest-command
-echo '[3,2,1] [4,1,7] [1,2,3]' | super -z -c 'yield (over this |> sum(this))' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+yield (
+  over this | sum(this)
+)
+# input
+[3,2,1]
+[4,1,7]
+[1,2,3]
+# expected output
 6
 12
 6
 ```
+
 This structure generalizes to any more complicated expression context,
 e.g., we can embed multiple lateral expressions inside of a record literal
 and use the spread operator to tighten up the output:
-```mdtest-command
-echo '[3,2,1] [4,1,7] [1,2,3]' |
-  super -z -c '
-    {...(over this |> sort this |> sorted:=collect(this)),
-     ...(over this |> sum:=sum(this))}' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+{...(over this | sort this | sorted:=collect(this)),
+ ...(over this | sum:=sum(this))}
+# input
+[3,2,1]
+[4,1,7]
+[1,2,3]
+# expected output
 {sorted:[1,2,3],sum:6}
 {sorted:[1,4,7],sum:12}
 {sorted:[1,2,3],sum:6}
 ```
+
 Because Zed expressions evaluate to a single result, if multiple values remain
 at the conclusion of the lateral pipeline, they are automatically wrapped in
 an array, e.g.,
-```mdtest-command
-echo '{x:1} {x:[2]} {x:[3,4]}' |
-  super -z -c 'yield {s:(over x |> yield this+1)}' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+yield {s:(over x | yield this+1)}
+# input
+{x:1}
+{x:[2]}
+{x:[3,4]}
+# expected output
 {s:2}
 {s:3}
 {s:[4,5]}
 ```
+
 To handle such dynamic input data, you can ensure your downstream pipeline
 always receives consistently packaged values by explicitly wrapping the result
 of the lateral scope, e.g.,
-```mdtest-command
-echo '{x:1} {x:[2]} {x:[3,4]}' |
-  super -z -c 'yield {s:(over x |> yield this+1 |> collect(this))}' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+yield {s:(over x | yield this+1 | collect(this))}
+# input
+{x:1}
+{x:[2]}
+{x:[3,4]}
+# expected output
 {s:[2]}
 {s:[3]}
 {s:[4,5]}
 ```
+
 Similarly, a primitive value may be consistently produced by concluding the
 lateral scope with an operator such as [`head`](operators/head.md) or
 [`tail`](operators/tail.md), or by applying certain [aggregate functions](aggregates/_index.md)
