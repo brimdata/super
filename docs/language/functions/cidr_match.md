@@ -48,7 +48,7 @@ false
 ```
 
 The first argument must be a network:
-```spq
+```mdtest-spq {data-layout="stacked"}
 # spq
 yield cidr_match([1,2,3], this)
 # input
