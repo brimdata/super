@@ -83,7 +83,7 @@ _The table format clarifies what fuse does_
 ```mdtest-command
 echo '{a:1}{b:2}{a:3}' | super -f table -c fuse -
 ```
-
+=>
 ```mdtest-output
 a b
 1 -

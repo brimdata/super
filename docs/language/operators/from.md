@@ -116,7 +116,7 @@ _Source structured data from a local file_
 ```mdtest-command
 super -z -c 'file hello.jsup | yield greeting'
 ```
-
+=>
 ```mdtest-output
 "hello world!"
 ```
@@ -125,7 +125,7 @@ _Source data from a local file, but in line format_
 ```mdtest-command
 super -z -c 'file hello.jsup format line'
 ```
-
+=>
 ```mdtest-output
 "{greeting:\"hello world!\"}"
 ```
@@ -144,7 +144,7 @@ _Source data from the `main` branch of a pool_
 ```mdtest-command
 super db -lake example query -z 'from coinflips'
 ```
-
+=>
 ```mdtest-output
 {flip:2,result:"tails"}
 {flip:1,result:"heads"}
@@ -154,7 +154,7 @@ _Source data from a specific branch of a pool_
 ```mdtest-command
 super db -lake example query -z 'from coinflips@trial'
 ```
-
+=>
 ```mdtest-output
 {flip:3,result:"heads"}
 {flip:2,result:"tails"}
@@ -165,7 +165,7 @@ _Count the number of values in the `main` branch of all pools_
 ```mdtest-command
 super db -lake example query -f text 'from * | count()'
 ```
-
+=>
 ```mdtest-output
 5
 ```
@@ -177,7 +177,7 @@ super db -lake example query -z '
     from numbers | sort number
   ) on flip=number word'
 ```
-
+=>
 ```mdtest-output
 {flip:1,result:"heads",word:"one"}
 {flip:2,result:"tails",word:"two"}
@@ -197,7 +197,7 @@ super db -lake example query -z '
       | yield f"There were {int64(c)} flips"
   ) | sort this'
 ```
-
+=>
 ```mdtest-output
 "There were 3 flips"
 {flip:1,result:"heads",word:"one"}

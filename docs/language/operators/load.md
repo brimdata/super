@@ -68,7 +68,7 @@ super db -lake example query '
 
 super db -lake example query -z 'from bigflips'
 ```
-
+=>
 ```mdtest-output
 {flip:1,result:"HEADS"}
 {flip:2,result:"TAILS"}
@@ -87,7 +87,7 @@ super db -lake example query '
 
 super db -lake example query -z 'from coinflips@onlytails'
 ```
-
+=>
 ```mdtest-output
 {flip:2,result:"tails"}
 ```
