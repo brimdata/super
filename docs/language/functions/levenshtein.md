@@ -16,10 +16,11 @@ distance](https://en.wikipedia.org/wiki/Levenshtein_distance) between strings
 
 ### Examples
 
-```mdtest-command
-echo '{a:"kitten",b:"sitting"}' | super -z -c 'yield levenshtein(a, b)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield levenshtein(a, b)
+# input
+{a:"kitten",b:"sitting"}
+# expected output
 3
 ```

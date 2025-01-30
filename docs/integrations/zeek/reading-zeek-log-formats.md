@@ -1,13 +1,11 @@
 ---
-sidebar_position: 1
-sidebar_label: Reading Zeek Log Formats
+weight: 1
+title: Reading Zeek Log Formats
 ---
-
-# Reading Zeek Log Formats
 
 Zed is capable of reading both common Zeek log formats. This document
 provides guidance for what to expect when reading logs of these formats using
-the Zed [command line tools](../../commands/README.md).
+the Zed [command line tools](../../commands/_index.md).
 
 ## Zeek TSV
 

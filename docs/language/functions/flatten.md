@@ -17,10 +17,11 @@ inner type is a union of the record types present.
 
 ### Examples
 
-```mdtest-command
-echo '{a:1,b:{c:"foo"}}' | super -z -c 'yield flatten(this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq {data-layout="stacked"}
+# spq
+yield flatten(this)
+# input
+{a:1,b:{c:"foo"}}
+# expected output
 [{key:["a"],value:1},{key:["b","c"],value:"foo"}]
 ```

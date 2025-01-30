@@ -15,12 +15,19 @@ must be a numeric type.
 
 ### Examples
 
-Absolute value of a various numbers:
-```mdtest-command
-echo '1 -1 0 -1.0 -1(int8) 1(uint8) "foo"' | super -z -c 'yield abs(this)' -
-```
-=>
-```mdtest-output
+Absolute value of various numbers:
+```mdtest-spq {data-layout="stacked"}
+# spq
+yield abs(this)
+# input
+1
+-1
+0
+-1.0
+-1(int8)
+1(uint8)
+"foo"
+# expected output
 1
 1
 0

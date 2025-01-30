@@ -1,9 +1,7 @@
 ---
-sidebar_position: 1
-sidebar_label: Data Model
+weight: 1
+title: Data Model
 ---
-
-# Zed Data Model
 
 Zed data is defined as an ordered sequence of one or more typed data values.
 Each value's type is either a "primitive type", a "complex type", the "type type",
@@ -154,7 +152,7 @@ have a common Zed type and the values have a common Zed type.
 
 Each key across an instance of a map value must be a unique value.
 
-A map value may be empty.  
+A map value may be empty.
 
 A map type is uniquely defined by its key type and value type.
 
@@ -196,7 +194,7 @@ the type order of the constituent types in left to right order.
 
 ### 2.7 Error
 
-An error represents any value designated as an error.  
+An error represents any value designated as an error.
 
 The type order of an error is the type order of the type of its contained value.
 

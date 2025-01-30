@@ -1,9 +1,8 @@
 ---
-sidebar_position: 4
-sidebar_label: Const, Func, Operator, and Type Statements
+weight: 4
+title: Const, Func, Operator, and Type Statements
+heading: Statements
 ---
-
-# Statements
 
 ## Const Statements
 
@@ -14,11 +13,13 @@ const <id> = <expr>
 where `<id>` is an identifier and `<expr>` is a constant [expression](expressions.md)
 that must evaluate to a constant at compile time and not reference any
 runtime state such as `this`, e.g.,
-```mdtest-command
-echo '{r:5}{r:10}' | super -z -c "const PI=3.14159 2*PI*r" -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+const PI=3.14159 2*PI*r
+# input
+{r:5}
+{r:10}
+# expected output
 31.4159
 62.8318
 ```
@@ -47,11 +48,19 @@ where `<id>` and `<param>` are identifiers and `<expr>` is an
 state such as `this`.
 
 For example,
-```mdtest-command
-echo 1 2 3 4 | super -z -c 'func add1(n): (n+1) add1(this)' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+func add1(n): (
+  n+1
+)
+
+add1(this)
+# input
+1
+2
+3
+4
+# expected output
 2
 3
 4
@@ -81,7 +90,7 @@ op <id> ( [<param> [, <param> ...]] ) : (
 )
 ```
 where `<id>` is the operator identifier, `<param>` are the parameters for the
-operator, and `<sequence>` is the chain of operators (e.g., `operator |> ...`)
+operator, and `<sequence>` is the chain of operators (e.g., `operator | ...`)
 where the operator does its work.
 
 A user-defined operator can then be called with using the familiar call syntax
@@ -105,19 +114,17 @@ to any contained scopes.
 The `this` value of a user-defined operator's sequence is provided by the
 calling sequence.
 
-For instance the program in `myop.spq`
-```mdtest-input myop.spq
+For example,
+```mdtest-spq
+# spq
 op myop(): (
   yield this
 )
+
 myop()
-```
-run via
-```mdtest-command
-echo {x:1} | super -z -I myop.spq -
-```
-produces
-```mdtest-output
+# input
+{x:1}
+# expected output
 {x:1}
 ```
 
@@ -132,23 +139,31 @@ other expression will result in a compile-time error.
 Because both constant values and path references evaluate in
 [expression](expressions.md) contexts, a `<param>` may often be used inside of
 a user-defined operator without regard to the argument's origin. For instance,
-with the program `params.spq`
-```mdtest-input params.spq
+the `msg` parameter is used flexibly in the following examples.
+
+```mdtest-spq
+# spq
 op AddMessage(field_for_message, msg): (
   field_for_message:=msg
 )
-```
-the `msg` parameter may be used flexibly
-```mdtest-command
-echo '{greeting: "hi"}' |
-  super -z -I params.spq -c 'AddMessage(message, "hello")' -
 
-echo '{greeting: "hi"}' |
-  super -z -I params.spq -c 'AddMessage(message, greeting)' -
-```
-to produce the respective outputs
-```mdtest-output
+AddMessage(message, "hello")
+# input
+{greeting: "hi"}
+# expected output
 {greeting:"hi",message:"hello"}
+```
+
+```mdtest-spq
+# spq
+op AddMessage(field_for_message, msg): (
+  field_for_message:=msg
+)
+
+AddMessage(message, greeting)
+# input
+{greeting: "hi"}
+# expected output
 {greeting:"hi",message:"hi"}
 ```
 
@@ -156,13 +171,17 @@ However, you may find it beneficial to use descriptive names for parameters
 where _only_ a certain category of argument is expected. For instance, having
 explicitly mentioned "field" in the name of our first parameter's name may help
 us avoid making mistakes when passing arguments, such as
-```mdtest-command fails
-echo '{greeting: "hi"}' |
-  super -z -I params.spq -c 'AddMessage("message", "hello")' -
-```
-which produces
-```mdtest-output
-illegal left-hand side of assignment in params.spq at line 2, column 3:
+```mdtest-spq fails {data-layout="stacked"}
+# spq
+op AddMessage(field_for_message, msg): (
+  field_for_message:=msg
+)
+
+AddMessage("message", "hello")
+# input
+{greeting: "hi"}
+# expected output
+illegal left-hand side of assignment at line 2, column 3:
   field_for_message:=msg
   ~~~~~~~~~~~~~~~~~~~~~~
 ```
@@ -172,7 +191,7 @@ the data source of a [`from` operator](operators/from.md). For example, we
 quote the pool name in our program `count-pool.spq`
 ```mdtest-input count-pool.spq
 op CountPool(pool_name): (
-  from eval(pool_name) |> count()
+  from eval(pool_name) | count()
 )
 
 CountPool("example")
@@ -194,26 +213,23 @@ it produces the output
 ### Nested Calls
 
 User-defined operators can make calls to other user-defined operators that
-are declared within the same scope or in a parent's scope. To illustrate, a program in `nested.spq`
-```mdtest-input nested.spq
+are declared within the same scope or in a parent's scope. For example,
+```mdtest-spq
+# spq
 op add1(x): (
   x := x + 1
 )
 op add2(x): (
-  add1(x) |> add1(x)
+  add1(x) | add1(x)
 )
 op add4(x): (
-  add2(x) |> add2(x)
+  add2(x) | add2(x)
 )
 
 add4(a.b)
-```
-run via
-```mdtest-command
-echo '{a:{b:1}}' | super -z -I nested.spq -
-```
-produces
-```mdtest-output
+# input
+{a:{b:1}}
+# expected output
 {a:{b:5}}
 ```
 
@@ -229,11 +245,14 @@ type <id> = <type>
 ```
 where `<id>` is an identifier and `<type>` is a [type](data-types.md#first-class-types).
 This creates a new type with the given name in the type system, e.g.,
-```mdtest-command
-echo 80 | super -z -c 'type port=uint16 cast(this, <port>)' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+type port=uint16
+
+cast(this, <port>)
+# input
+80
+# expected output
 80(port=uint16)
 ```
 

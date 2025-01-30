@@ -29,21 +29,56 @@ switch (
 
 ### Examples
 
-```mdtest-command
-echo '{foo:10}' | super -z -c 'yield {yes:missing(bar),no:missing(foo)}' -
-echo '{foo:[1,2,3]}' | super -z -c 'yield {yes:has(foo[3]),no:has(foo[0])}' -
-echo '{foo:{bar:"value"}}' |
-  super -z -c 'yield {yes:missing(foo.baz),no:missing(foo.bar)}' -
-echo '{foo:10}' | super -z -c 'yield {yes:missing(bar+1),no:missing(foo+1)}' -
-echo 1 | super -z -c 'yield missing(bar)' -
-echo '{x:error("missing")}' | super -z -c 'yield missing(x)' -
+```mdtest-spq
+# spq
+yield {yes:missing(bar),no:missing(foo)}
+# input
+{foo:10}
+# expected output
+{yes:true,no:false}
 ```
-=>
-```mdtest-output
-{yes:true,no:false}
+
+```mdtest-spq
+# spq
+yield {yes:has(foo[3]),no:has(foo[0])}
+# input
+{foo:[1,2,3]}
+# expected output
 {yes:false,no:true}
+```
+
+```mdtest-spq
+# spq
+yield {yes:missing(foo.baz),no:missing(foo.bar)}
+# input
+{foo:{bar:"value"}}
+# expected output
 {yes:true,no:false}
+```
+
+```mdtest-spq
+# spq
+yield {yes:missing(bar+1),no:missing(foo+1)}
+# input
+{foo:10}
+# expected output
 {yes:true,no:false}
+```
+
+```mdtest-spq
+# spq
+yield missing(bar)
+# input
+1
+# expected output
 true
+```
+
+```mdtest-spq
+# spq
+yield missing(x)
+# input
+{x:error("missing")}
+# expected output
 true
 ```

@@ -1,9 +1,7 @@
 ---
-sidebar_position: 3
-sidebar_label: Data Types
+weight: 3
+title: Data Types
 ---
-
-# Data Types
 
 The SuperPipe language includes most data types of a typical programming language
 as defined in the [super data model](../formats/zed.md).
@@ -54,20 +52,25 @@ serve as group-by keys or be used in ["data shaping"](shaping.md) logic.
 A common workflow for data introspection is to first perform a search of
 exploratory data and then count the shapes of each type of data as follows:
 ```
-search ... |> count() by typeof(this)
+search ... | count() by typeof(this)
 ```
 For example,
-```mdtest-command
-echo '1 2 "foo" 10.0.0.1 <string>' |
-  super -z -c 'count() by typeof(this) |> sort this' -
-```
-produces
-```mdtest-output
+``` mdtest-spq
+# spq
+count() by typeof(this) | sort this
+# input
+1
+2
+"foo"
+10.0.0.1
+<string>
+# expected output
 {typeof:<int64>,count:2(uint64)}
 {typeof:<string>,count:1(uint64)}
 {typeof:<ip>,count:1(uint64)}
 {typeof:<type>,count:1(uint64)}
 ```
+
 When running such a query over complex, semi-structured data, the results can
 be quite illuminating and can inform the design of "data shaping" queries
 to transform raw, messy data into clean data for downstream tooling.
@@ -109,51 +112,64 @@ Named types may also be defined by the input data itself, as super data is
 comprehensively self describing.
 When named types are defined in the input data, there is no need to declare their
 type in a query.
-In this case, a SuperPipe expression may refer to the type by the name that simply
-appears to the runtime as a side effect of operating upon the data.  If the type
-name referred to in this way does not exist, then the type value reference
-results in `error("missing")`.  For example,
-```mdtest-command
-echo '1(=foo) 2(=bar) 3(=foo)' | super -z -c 'typeof(this)==<foo>' -
-```
-results in
-```mdtest-output
+In this case, a SuperSQL expression may refer to the type by the name that simply
+appears to the runtime as a side effect of operating upon the data, e.g.,
+
+```mdtest-spq
+# spq
+typeof(this)==<foo>
+# input
+1(=foo)
+2(=bar)
+3(=foo)
+# expected output
 1(=foo)
 3(=foo)
 ```
+
 and
-```mdtest-command
-echo '1(=foo)' | super -z -c 'yield <foo>' -
-```
-results in
-```mdtest-output
+
+```mdtest-spq
+# spq
+yield <foo>
+# input
+1(=foo)
+# expected output
 <foo=int64>
 ```
-but
-```mdtest-command
-super -z -c 'yield <foo>'
-```
-gives
-```mdtest-output
+
+If the type name referred to in this way does not exist, then the type value
+reference results in `error("missing")`.  For example,
+```mdtest-spq
+# spq
+yield <foo>
+# input
+1
+# expected output
 error("missing")
 ```
+
 Each instance of a named type definition overrides any earlier definition.
 In this way, types are local in scope.
 
 Each value that references a named type retains its local definition of the
 named type retaining the proper type binding while accommodating changes in a
 particular named type.  For example,
-```mdtest-command
-echo '1(=foo) 2(=bar) "hello"(=foo) 3(=foo)' |
-  super -z -c 'count() by typeof(this) |> sort this' -
-```
-results in
-```mdtest-output
+```mdtest-spq {data-layout="stacked"}
+# spq
+count() by typeof(this) | sort this
+# input
+1(=foo)
+2(=bar)
+"hello"(=foo)
+3(=foo)
+# expected output
 {typeof:<bar=int64>,count:1(uint64)}
 {typeof:<foo=int64>,count:2(uint64)}
 {typeof:<foo=string>,count:1(uint64)}
 ```
-Here, the two versions of type "foo" are retained in the group-by results.
+
+Here, the two versions of type "foo" were retained in the group-by results.
 
 In general, it is bad practice to define multiple versions of a single named type,
 though the SuperDB system and super data model accommodate such dynamic bindings.
@@ -163,7 +179,7 @@ the scope of the Zed data model and language.  That said, Zed provides flexible
 building blocks so systems can define their own schema versioning and schema
 management policies on top of these Zed primitives.
 
-The [super-structured data model](../formats/README.md#2-a-super-structured-pattern)
+The [super-structured data model](../formats/_index.md#2-a-super-structured-pattern)
 is a superset of relational tables and
 SuperPipe's type system can easily make this connection.
 As an example, consider this type definition for "employee":
@@ -216,34 +232,42 @@ logs to find out what happened.
 
 For example,
 input values can be transformed to errors as follows:
-```mdtest-command
-echo '0 "foo" 10.0.0.1' | super -z -c 'error(this)' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+error(this)
+# input
+0
+"foo"
+10.0.0.1
+# expected output
 error(0)
 error("foo")
 error(10.0.0.1)
 ```
+
 More practically, errors from the runtime show up as error values.
 For example,
-```mdtest-command
-echo 0 | super -z -c '1/this' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+1/this
+# input
+0
+# expected output
 error("divide by zero")
 ```
+
 And since errors are first-class and just values, they have a type.
 In particular, they are a complex type where the error value's type is the
 complex type `error` containing the type of the value.  For example,
-```mdtest-command
-echo 0 | super -z -c 'typeof(1/this)' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+typeof(1/this)
+# input
+0
+# expected output
 <error(string)>
 ```
+
 First-class errors are particularly useful for creating structured errors.
 When a SuperPipe query encounters a problematic condition,
 instead of silently dropping the problematic error
@@ -315,7 +339,7 @@ results from accessing a field that is not present.  Thus, `x==NULL` and
 `x==MISSING` could disambiguate the two cases above.
 
 SuperPipe, instead, recognizes that the SQL value `MISSING` is a paradox:
-I'm here but I'm not.  
+I'm here but I'm not.
 
 In reality, a `MISSING` value is not a value.  It's an error condition
 that resulted from trying to reference something that didn't exist.
@@ -326,34 +350,41 @@ approach because it lacks first-class errors.
 But SuperPipe has first-class errors so
 a reference to something that does not exist is an error of type
 `error(string)` whose value is `error("missing")`.  For example,
-```mdtest-command
-echo "{x:1} {y:2}" | super -z -c 'yield x' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+yield x
+# input
+{x:1}
+{y:2}
+# expected output
 1
 error("missing")
 ```
+
 Sometimes you want missing errors to show up and sometimes you don't.
 The [`quiet` function](functions/quiet.md) transforms missing errors into
 "quiet errors".  A quiet error is the value `error("quiet")` and is ignored
 by most operators, in particular `yield`.  For example,
-```mdtest-command
-echo "{x:1} {y:2}" | super -z -c "yield quiet(x)" -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+yield quiet(x)
+# input
+{x:1}
+{y:2}
+# expected output
 1
 ```
 
-And what if you want a default value instead of a missing error?  The
+And what if you want a default value instead of a "missing" error?  The
 [`coalesce` function](functions/coalesce.md) returns the first value that is not
 null, `error("missing")`, or `error("quiet")`.  For example,
-```mdtest-command
-echo "{x:1} {y:2}" | super -z -c "yield coalesce(x, 0)" -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+yield coalesce(x, 0)
+# input
+{x:1}
+{y:2}
+# expected output
 1
 0
 ```

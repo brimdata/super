@@ -1,9 +1,7 @@
 ---
-sidebar_position: 3
-sidebar_label: Shaping Zeek JSON
+weight: 3
+title: Shaping Zeek JSON
 ---
-
-# Shaping Zeek JSON
 
 When [reading Zeek JSON format logs](reading-zeek-log-formats.md#zeek-json),
 much of the rich data typing that was originally present inside Zeek is at risk
@@ -195,11 +193,13 @@ specification.
 ...
 ```
 
-:::tip note
+{{% tip "Note" %}}
+
 See [the role of `_path`](reading-zeek-log-formats.md#the-role-of-_path)
 for important details if you're using Zeek's built-in [ASCII logger](https://docs.zeek.org/en/current/scripts/base/frameworks/logging/writers/ascii.zeek.html)
 rather than the [JSON Streaming Logs](https://github.com/corelight/json-streaming-logs) package.
-:::
+
+{{% /tip %}}
 
 ### Zed Pipeline
 

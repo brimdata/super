@@ -16,11 +16,11 @@ returned instead of the named type.
 
 ### Examples
 
-```mdtest-command
-echo  '{which:"chocolate"}(=flavor)' |
-  super -z -c 'yield {typeof:typeof(this),typeunder:typeunder(this)}' -
-```
-=>
-```mdtest-output
+```mdtest-spq {data-layout="stacked"}
+# spq
+yield {typeof:typeof(this),typeunder:typeunder(this)}
+# input
+{which:"chocolate"}(=flavor)
+# expected output
 {typeof:<flavor={which:string}>,typeunder:<{which:string}>}
 ```

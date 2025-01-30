@@ -15,10 +15,11 @@ from string argument `s` and returns the result.
 
 ### Examples
 
-```mdtest-command
-echo '" = Zed = "' | super -z -c 'yield trim(this)' -
-```
-=>
-```mdtest-output
-"= Zed ="
+```mdtest-spq
+# spq
+yield trim(this)
+# input
+" = SuperDB = "
+# expected output
+"= SuperDB ="
 ```

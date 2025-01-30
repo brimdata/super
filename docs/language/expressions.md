@@ -1,9 +1,7 @@
 ---
-sidebar_position: 5
-sidebar_label: Expressions
+weight: 5
+title: Expressions
 ---
-
-# Expressions
 
 Zed expressions follow the typical patterns in programming languages.
 Expressions are typically used within pipeline operators
@@ -20,11 +18,12 @@ and semantics and are left-associative with multiplication and division having
 precedence over addition and subtraction.  `%` is the modulo operator.
 
 For example,
-```mdtest-command
-super -z -c 'yield 2*3+1, 11%5, 1/0, "foo"+"bar"'
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+yield 2*3+1, 11%5, 1/0, "foo"+"bar"
+# input
+null
+# expected output
 7
 1
 error("divide by zero")
@@ -45,12 +44,12 @@ If either operand to a comparison
 is `error("missing")`, then the result is `error("missing")`.
 
 For example,
-```mdtest-command
-super -z -c 'yield 1 > 2, 1 < 2, "b" > "a", 1 > "a", 1 > x'
-
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+yield 1 > 2, 1 < 2, "b" > "a", 1 > "a", 1 > x
+# input
+null
+# expected output
 false
 true
 true
@@ -70,21 +69,25 @@ The right-hand side value can be any Zed value and complex values are
 recursively traversed to determine if the item is present anywhere within them.
 
 For example,
-```mdtest-command
-echo '{a:[1,2]}{b:{c:3}}{d:{e:1}}' | super -z -c '1 in this' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+1 in this
+# input
+{a:[1,2]}
+{b:{c:3}}
+{d:{e:1}}
+# expected output
 {a:[1,2]}
 {d:{e:1}}
 ```
+
 You can also use this operator with a static array:
-```mdtest-command
-echo '{accounts:[{id:1},{id:2},{id:3}]}' |
-  super -z -c 'over accounts |> where id in [1,2]' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+over accounts | where id in [1,2]
+# input
+{accounts:[{id:1},{id:2},{id:3}]}
+# expected output
 {id:1}
 {id:2}
 ```
@@ -186,11 +189,13 @@ the result.  Otherwise, the second `<expr>` expression is evaluated and
 becomes the result.
 
 For example,
-```mdtest-command
-echo '{s:"foo",v:1}{s:"bar",v:2}' | super -z -c 'yield (s=="foo") ? v : -v' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+yield (s=="foo") ? v : -v
+# input
+{s:"foo",v:1}
+{s:"bar",v:2}
+# expected output
 1
 -2
 ```
@@ -199,12 +204,14 @@ Conditional expressions can be chained, providing behavior equivalent to
 "else if" as appears in other languages.
 
 For example,
-```mdtest-command
-echo '{s:"foo",v:1}{s:"bar",v:2}{s:"baz",v:3}' |
-  super -z -c 'yield (s=="foo") ? v : (s=="bar") ? -v : v*v' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+yield (s=="foo") ? v : (s=="bar") ? -v : v*v
+# input
+{s:"foo",v:1}
+{s:"bar",v:2}
+{s:"baz",v:3}
+# expected output
 1
 -2
 9
@@ -215,12 +222,14 @@ as with [aggregate function calls](expressions.md#aggregate-function-calls), onl
 will be evaluated.
 
 For example,
-```mdtest-command
-echo '"foo" "bar" "foo"' |
-  super -z -c 'yield this=="foo" ? {foocount:count()} : {barcount:count()}' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+yield this=="foo" ? {foocount:count()} : {barcount:count()}
+# input
+"foo"
+"bar"
+"foo"
+# expected output
 {foocount:1(uint64)}
 {barcount:1(uint64)}
 {foocount:2(uint64)}
@@ -232,24 +241,25 @@ Functions perform stateless transformations of their input value to their return
 value and utilize call-by value semantics with positional and unnamed arguments.
 
 For example,
-```mdtest-command
-super -z -c 'yield pow(2,3), lower("ABC")+upper("def"), typeof(1)'
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+yield pow(2,3), lower("ABC")+upper("def"), typeof(1)
+# input
+null
+# expected output
 8.
 "abcDEF"
 <int64>
 ```
 
-Zed includes many [built-in functions](functions/README.md), some of which take
-a variable number of arguments.  
+Zed includes many [built-in functions](functions/_index.md), some of which take
+a variable number of arguments.
 
 Zed also allows you to create [user-defined functions](statements.md#func-statements).
 
 ## Aggregate Function Calls
 
-[Aggregate functions](aggregates/README.md) may be called within an expression.
+[Aggregate functions](aggregates/_index.md) may be called within an expression.
 Unlike the aggregation context provided by a [summarizing group-by](operators/summarize.md), such calls
 in expression context yield an output value for each input value.
 
@@ -259,21 +269,29 @@ optimizer from parallelizing a query.
 
 That said, aggregate function calls can be quite useful in a number of contexts.
 For example, a unique ID can be assigned to the input quite easily:
-```mdtest-command
-echo '"foo" "bar" "baz"' | super -z -c 'yield {id:count(),value:this}' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+yield {id:count(),value:this}
+# input
+"foo"
+"bar"
+"baz"
+# expected output
 {id:1(uint64),value:"foo"}
 {id:2(uint64),value:"bar"}
 {id:3(uint64),value:"baz"}
 ```
+
 In contrast, calling aggregate functions within the [`summarize` operator](operators/summarize.md)
-```mdtest-command
-echo '"foo" "bar" "baz"' | super -z -c 'summarize count(),union(this)' -
-```
-produces just one output value
-```mdtest-output
+produces just one output value.
+```mdtest-spq {data-layout="stacked"}
+# spq
+summarize count(),union(this)
+# input
+"foo"
+"bar"
+"baz"
+# expected output
 {count:3(uint64),union:|["bar","baz","foo"]|}
 ```
 
@@ -299,12 +317,12 @@ with the result of evaluating the expression `<expr>`.  If this result is not
 a string, it is implicitly cast to a string.
 
 For example,
-```mdtest-command
-echo '{numerator:22.0, denominator:7.0}' |
-  super -z -c 'yield f"pi is approximately {numerator / denominator}"' -
-```
-produces
-```mdtest-output
+```mdtest-spq {data-layout="stacked"}
+# spq
+yield f"pi is approximately {numerator / denominator}"
+# input
+{numerator:22.0, denominator:7.0}
+# expected output
 "pi is approximately 3.142857142857143"
 ```
 
@@ -318,12 +336,12 @@ first error encountered in left-to-right order.
 F-strings may be nested, where a child `<expr>` may contain f-strings.
 
 For example,
-```mdtest-command
-echo '{foo:"hello", bar:"world", HELLOWORLD:"hi!"}' |
-  super -z -c 'yield f"oh {this[upper(f"{foo + bar}")]}"' -
-```
-produces
-```mdtest-output
+```mdtest-spq {data-layout="stacked"}
+# spq
+yield f"oh {this[upper(f"{foo + bar}")]}"
+# input
+{foo:"hello", bar:"world", HELLOWORLD:"hi!"}
+# expected output
 "oh hi!"
 ```
 
@@ -331,11 +349,12 @@ To represent a literal `{` character inside an f-string, it must be escaped,
 i.e., `\{`.
 
 For example,
-```mdtest-command
-echo '"brackets"' | super -z -c 'yield f"{this} look like: \{ }"' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+yield f"{this} look like: \{ }"
+# input
+"brackets"
+# expected output
 "brackets look like: { }"
 ```
 
@@ -365,12 +384,12 @@ field names collide the rightmost instance of the name determines that
 field's value.
 
 For example,
-```mdtest-command
-echo '{x:1,y:2,r:{a:1,b:2}}' |
-  super -z -c 'yield {a:0},{x}, {...r}, {a:0,...r,b:3}' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+yield {a:0},{x}, {...r}, {a:0,...r,b:3}
+# input
+{x:1,y:2,r:{a:1,b:2}}
+# expected output
 {a:0}
 {x:1}
 {a:1,b:2}
@@ -398,21 +417,23 @@ When the expressions result in values of non-uniform type, then the implied
 type of the array is an array of type `union` of the types that appear.
 
 For example,
-```mdtest-command
-super -z -c 'yield [1,2,3],["hello","world"]'
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+yield [1,2,3],["hello","world"]
+# input
+null
+# expected output
 [1,2,3]
 ["hello","world"]
 ```
 
 Arrays can be concatenated using the spread operator,
-```mdtest-command
-echo '{a:[1,2],b:[3,4]}' | super -z -c 'yield [...a,...b,5]' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+yield [...a,...b,5]
+# input
+{a:[1,2],b:[3,4]}
+# expected output
 [1,2,3,4,5]
 ```
 
@@ -440,21 +461,23 @@ Set values are always organized in their "natural order" independent of the orde
 they appear in the set literal.
 
 For example,
-```mdtest-command
-super -z -c 'yield |[3,1,2]|,|["hello","world","hello"]|'
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+yield |[3,1,2]|,|["hello","world","hello"]|
+# input
+null
+# expected output
 |[1,2,3]|
 |["hello","world"]|
 ```
 
 Arrays and sets can be concatenated using the spread operator,
-```mdtest-command
-echo '{a:[1,2],b:|[2,3]|}' | super -z -c 'yield |[...a,...b,4]|' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+yield |[...a,...b,4]|
+# input
+{a:[1,2],b:|[2,3]|}
+# expected output
 |[1,2,3,4]|
 ```
 
@@ -471,11 +494,12 @@ then the implied type of the map has a key type and/or value type that is
 a union of the types that appear in each respective category.
 
 For example,
-```mdtest-command
-super -z -c 'yield |{"foo":1,"bar"+"baz":2+3}|'
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+yield |{"foo":1,"bar"+"baz":2+3}|
+# input
+null
+# expected output
 |{"foo":1,"barbaz":5}|
 ```
 
@@ -486,33 +510,39 @@ and `string` is expressed as `(int64,string)` and any value that has a type
 that appears in the union type may be cast to that union type.
 Since 1 is an `int64` and "foo" is a `string`, they both can be
 values of type `(int64,string)`, e.g.,
-```mdtest-command
-echo '1 "foo"' | super -z -c 'yield cast(this,<(int64,string)>)' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+yield cast(this,<(int64,string)>)
+# input
+1
+"foo"
+# expected output
 1((int64,string))
 "foo"((int64,string))
 ```
+
 The value underlying a union-tagged value is accessed with the
 [`under` function](functions/under.md):
-```mdtest-command
-echo '1((int64,string))' | super -z -c 'yield under(this)' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+yield under(this)
+# input
+1((int64,string))
+# expected output
 1
 ```
+
 Union values are powerful because they provide a mechanism to precisely
 describe the type of any nested, semi-structured value composed of elements
 of different types.  For example, the type of the value `[1,"foo"]` in JavaScript
 is simply a generic JavaScript "object".  But in Zed, the type of this
 value is an array of union of string and integer, e.g.,
-```mdtest-command
-echo '[1,"foo"]' | super -z -c 'typeof(this)' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+typeof(this)
+# input
+[1,"foo"]
+# expected output
 <[(int64,string)]>
 ```
 
@@ -531,11 +561,15 @@ If the result of `<expr>` cannot be converted
 to the indicated type, then the cast's result is an error value.
 
 For example,
-```mdtest-command
-echo '1 200 "123" "200"' | super -z -c 'yield int8(this)' -
-```
-produces
-```mdtest-output
+```mdtest-spq {data-layout="stacked"}
+# spq
+yield int8(this)
+# input
+1
+200
+"123"
+"200"
+# expected output
 1(int8)
 error({message:"cannot cast to int8",on:200})
 123(int8)
@@ -546,11 +580,13 @@ Casting attempts to be fairly liberal in conversions.  For example, values
 of type `time` can be created from a diverse set of date/time input strings
 based on the [Go Date Parser library](https://github.com/araddon/dateparse).
 
-```mdtest-command
-echo '"May 8, 2009 5:57:51 PM" "oct 7, 1970"' | super -z -c 'yield time(this)' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+yield time(this)
+# input
+"May 8, 2009 5:57:51 PM"
+"oct 7, 1970"
+# expected output
 2009-05-08T17:57:51Z
 1970-10-07T00:00:00Z
 ```
@@ -562,11 +598,15 @@ either in functional form or with `cast`:
 cast(<expr>, <type-value>)
 ```
 For example
-```mdtest-command
-echo '80 8080' | super -z -c 'type port = uint16 yield <port>(this)' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+type port = uint16
+
+yield <port>(this)
+# input
+80
+8080
+# expected output
 80(port=uint16)
 8080(port=uint16)
 ```
@@ -574,20 +614,23 @@ produces
 Casts may be used with complex types as well.  As long as the target type can
 accommodate the value, the case will be recursively applied to the components
 of a nested value.  For example,
-```mdtest-command
-echo '["10.0.0.1","10.0.0.2"]' | super -z -c 'cast(this,<[ip]>)' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+cast(this,<[ip]>)
+# input
+["10.0.0.1","10.0.0.2"]
+# expected output
 [10.0.0.1,10.0.0.2]
 ```
+
 and
-```mdtest-command
-echo '{ts:"1/1/2022",r:{x:"1",y:"2"}} {ts:"1/2/2022",r:{x:3,y:4}}' |
-  super -z -c 'cast(this,<{ts:time,r:{x:float64,y:float64}}>)' -
-```
-produces
-```mdtest-output
+```mdtest-spq {data-layout="stacked"}
+# spq
+cast(this,<{ts:time,r:{x:float64,y:float64}}>)
+# input
+{ts:"1/1/2022",r:{x:"1",y:"2"}}
+{ts:"1/2/2022",r:{x:3,y:4}}
+# expected output
 {ts:2022-01-01T00:00:00Z,r:{x:1.,y:2.}}
 {ts:2022-01-02T00:00:00Z,r:{x:3.,y:4.}}
 ```

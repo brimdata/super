@@ -16,11 +16,15 @@ which must be a numeric type.  The return type retains the type of the argument.
 ### Examples
 
 The floor of a various numbers:
-```mdtest-command
-echo '1.5 -1.5 1(uint8) 1.5(float32)' | super -z -c 'yield floor(this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield floor(this)
+# input
+1.5
+-1.5
+1(uint8)
+1.5(float32)
+# expected output
 1.
 -2.
 1(uint8)

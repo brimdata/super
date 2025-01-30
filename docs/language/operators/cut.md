@@ -23,7 +23,7 @@ Each right-hand side `<expr>` can be any Zed expression and is optional.
 When the right-hand side expressions are omitted,
 the _cut_ operation resembles the Unix shell command, e.g.,
 ```
-... |> cut a,c |> ...
+... | cut a,c | ...
 ```
 If an expression results in `error("quiet")`, the corresponding field is omitted
 from the output.  This allows you to wrap expressions in a `quiet()` function
@@ -42,51 +42,64 @@ yield {<field>:<expr> [, <field>:<expr>...]}
 ### Examples
 
 _A simple Unix-like cut_
-```mdtest-command
-echo '{a:1,b:2,c:3}' | super -z -c 'cut a,c' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+cut a,c
+# input
+{a:1,b:2,c:3}
+# expected output
 {a:1,c:3}
 ```
+
 _Missing fields show up as missing errors_
-```mdtest-command
-echo '{a:1,b:2,c:3}' | super -z -c 'cut a,d' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+cut a,d
+# input
+{a:1,b:2,c:3}
+# expected output
 {a:1,d:error("missing")}
 ```
+
 _The missing fields can be ignored with quiet_
-```mdtest-command
-echo '{a:1,b:2,c:3}' | super -z -c 'cut a:=quiet(a),d:=quiet(d)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+cut a:=quiet(a),d:=quiet(d)
+# input
+{a:1,b:2,c:3}
+# expected output
 {a:1}
 ```
+
 _Non-record values generate missing errors for fields not present in a non-record `this`_
-```mdtest-command
-echo '1 {a:1,b:2,c:3}' | super -z -c 'cut a,b' -
-```
-=>
-```mdtest-output
+```mdtest-spq {data-layout="stacked"}
+# spq
+cut a,b
+# input
+1
+{a:1,b:2,c:3}
+# expected output
 {a:error("missing"),b:error("missing")}
 {a:1,b:2}
 ```
+
 _Invoke a function while cutting to set a default value for a field_
 
-:::tip
+{{% tip "Tip" %}}
+
 This can be helpful to transform data into a uniform record type, such as if
 the output will be exported in formats such as `csv` or `parquet` (see also:
 [`fuse`](fuse.md)).
-:::
 
-```mdtest-command
-echo '{a:1,b:null}{a:1,b:2}' | super -z -c 'cut a,b:=coalesce(b, 0)' -
-```
-=>
-```mdtest-output
+{{% /tip %}}
+
+```mdtest-spq
+# spq
+cut a,b:=coalesce(b, 0)
+# input
+{a:1,b:null}
+{a:1,b:2}
+# expected output
 {a:1,b:0}
 {a:1,b:2}
 ```

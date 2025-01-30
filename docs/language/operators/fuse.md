@@ -44,32 +44,41 @@ Super data is super-structured, and fortunately, does not require such a structu
 ### Examples
 
 _Fuse two records_
-```mdtest-command
-echo '{a:1}{b:2}' | super -z -c fuse -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+fuse
+# input
+{a:1}
+{b:2}
+# expected output
 {a:1,b:null(int64)}
 {a:null(int64),b:2}
 ```
+
 _Fuse records with type variation_
-```mdtest-command
-echo '{a:1}{a:"foo"}' | super -z -c fuse -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+fuse
+# input
+{a:1}
+{a:"foo"}
+# expected output
 {a:1((int64,string))}
 {a:"foo"((int64,string))}
 ```
+
 _Fuse records with complex type variation_
-```mdtest-command
-echo '{a:[1,2]}{a:["foo","bar"],b:10.0.0.1}' | super -z -c fuse -
-```
-=>
-```mdtest-output
+```mdtest-spq {data-layout="stacked"}
+# spq
+fuse
+# input
+{a:[1,2]}
+{a:["foo","bar"],b:10.0.0.1}
+# expected output
 {a:[1,2]([(int64,string)]),b:null(ip)}
 {a:["foo","bar"]([(int64,string)]),b:10.0.0.1}
 ```
+
 _The table format clarifies what fuse does_
 ```mdtest-command
 echo '{a:1}{b:2}{a:3}' | super -f table -c fuse -

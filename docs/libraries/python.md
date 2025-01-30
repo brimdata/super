@@ -1,9 +1,7 @@
 ---
-sidebar_position: 3
-sidebar_label: Python
+weight: 3
+title: Python
 ---
-
-# Python
 
 Zed includes preliminary support for Python-based interaction
 with a Zed lake.

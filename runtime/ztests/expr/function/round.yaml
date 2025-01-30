@@ -1,0 +1,21 @@
+zed: "round(this)"
+
+vector: true
+
+input: |
+  -1
+  2(uint64)
+  1.5
+  2.4
+  null(float64)
+  null
+  "foo"
+
+output: |
+  -1
+  2(uint64)
+  2.
+  2.
+  null(float64)
+  null
+  error({message:"round: not a number",on:"foo"})

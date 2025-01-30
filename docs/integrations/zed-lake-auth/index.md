@@ -1,15 +1,14 @@
 ---
-sidebar_position: 2
-sidebar_label: Authentication Configuration
+weight: 2
+title: Authentication Configuration
+heading: Configuring Authentication for a Zed Lake Service
 ---
 
-# Configuring Authentication for a Zed Lake Service
-
-A [SuperDB data lake service](../commands/super-db.md#serve) may be configured to require
+A [SuperDB data lake service](../../commands/super-db.md#serve) may be configured to require
 user authentication to be accessed from clients such as the
 [Zui](https://zui.brimdata.io/) application, the
-[`super db`](../commands/super.md) CLI commands, or the
-[SuperDB Python client](../libraries/python.md). This document describes a simple
+[`super db`](../../commands/super.md) CLI commands, or the
+[SuperDB Python client](../../libraries/python.md). This document describes a simple
 [Auth0](https://auth0.com) configuration with accompanying `super db serve` flags
 that can be used as a starting point for creating similar configurations in
 your own environment.
@@ -31,10 +30,12 @@ and then clicking the **Create API** button.
 
 2. Enter any **Name** and URL **Identifier** for the API, then click the
 **Create** button.
-:::tip
+{{% tip "Tip" %}}
+
 Note the value you enter for the **Identifier** as you'll
 need it later for the Zed lake service configuration.
-:::
+
+{{% /tip %}}
 
    ![api-name-identifier](api-name-identifier.png)
 
@@ -51,11 +52,13 @@ need it later for the Zed lake service configuration.
 
 1. Begin creating a new application by clicking **Applications** in the left
 navigation menu and then clicking the **Create Application** button.
-:::tip Note
+{{% tip "Note" %}}
+
 Neither the "Zed lake (Test Application)" that was created for us
 automatically when we created our API nor the Default App that came with the
 trial are used in this configuration.
-:::
+
+{{% /tip %}}
 
    ![create-application](create-application.png)
 
@@ -97,7 +100,7 @@ checkbox to enable the **Device Code** grant type.
 
 ## Zed Lake Service Configuration
 
-1. Login to our Linux VM and [install](../install.md#building-from-source)
+1. Login to our Linux VM and [install](../../install.md#building-from-source)
 the most recent Zed tools from source.
 
    ```
@@ -136,7 +139,7 @@ authentication configuration along with a directory name for lake storage.
        -auth.jwkspath=jwks.json \
        -auth.audience=$auth0_api_identifier \
        -lake=lake
-   
+
    {"level":"info","ts":1678909988.9797907,"logger":"core","msg":"Started"}
    {"level":"info","ts":1678909988.9804773,"logger":"httpd","msg":"Listening","addr":"[::]:9867"}
    ...

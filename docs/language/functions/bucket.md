@@ -19,12 +19,13 @@ aligns with 0.
 ### Examples
 
 Bucket a couple times to hour intervals:
-```mdtest-command
-echo '2020-05-26T15:27:47Z "5/26/2020 3:27pm"' |
-  super -z -c 'yield bucket(time(this), 1h)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield bucket(time(this), 1h)
+# input
+2020-05-26T15:27:47Z
+"5/26/2020 3:27pm"
+# expected output
 2020-05-26T15:00:00Z
 2020-05-26T15:00:00Z
 ```

@@ -4,12 +4,12 @@ SuperDB is a new analytics database that supports relational tables and JSON
 on an equal footing.  It shines when it comes to data wrangling where
 you need to explore or process large eclectic data sets.  It's also pretty
 decent at analytics and
-[search use cases](https://zed.brimdata.io/docs/language/search-expressions).
+[search use cases](https://superdb.org/docs/language/search-expressions).
 
 Unlike other relational systems that do performance-fragile "schema inference" of JSON,
 SuperDB won't fall over if you throw a bunch of eclectic JSON at it.
 You can easily do
-[schema inference if you want](https://zed.brimdata.io/docs/language/operators/fuse),
+[schema inference if you want](https://superdb.org/docs/language/operators/fuse),
 but data is ingested by default in its natural form no matter how much heterogeneity
 it might have.  And unlike systems based on the document data model,
 every value in SuperDB is strongly and dynamically typed thus providing the
@@ -21,7 +21,7 @@ way to do things" and a different "JSON way to do things".  Instead of having
 a relational type system for structured data and completely separate JSON type
 system for semi-structured data,
 all data handled by SuperDB (e.g., JSON, CSV, Parquet files, Arrow streams, relational tables, etc) is automatically massaged into
-[super-structured data](https://zed.brimdata.io/docs/formats/#2-zed-a-super-structured-pattern)
+[super-structured data](https://superdb.org/docs/formats/#2-a-super-structured-pattern)
 form.  This super-structured data is then processed by a runtime that simultaneously
 supports the statically-typed relational model and the dynamically-typed
 JSON data model in a unified compute engine.
@@ -30,7 +30,7 @@ JSON data model in a unified compute engine.
 
 SuperDB uses SQL as its query language, but it's a SQL that has been extended
 with [pipe syntax](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/)
-and [lots of fun shortcuts](https://zed.brimdata.io/docs/language/pipeline-model#implied-operators).
+and [lots of fun shortcuts](https://superdb.org/docs/language/pipeline-model/#implied-operators).
 This extended SQL is called SuperSQL.
 
 Here's a SuperSQL query that fetches some data from GitHub Archive,
@@ -57,11 +57,11 @@ FROM 'https://data.gharchive.org/2015-01-01-15.json.gz'
 Super-structured data is strongly typed and "polymorphic": any value can take on any type
 and sequences of data need not all conform to a predefined schema.  To this end,
 SuperDB extends the JSON format to support super-structured data in a format called
-[Super JSON](https://zed.brimdata.io/docs/next/formats/jsup) where all JSON values
+[Super JSON](https://superdb.org/docs/formats/jsup) where all JSON values
 are also Super JSON values.  Similarly,
-the [Super Binary](https://zed.brimdata.io/docs/formats/zng) format is an efficient
+the [Super Binary](https://superdb.org/docs/formats/bsup) format is an efficient
 binary representation of Super JSON (a bit like Avro) and the
-[Super Columnar](https://zed.brimdata.io/docs/formats/vng) format is a columnar
+[Super Columnar](https://superdb.org/docs/formats/csup) format is a columnar
 representation of Super JSON (a bit like Parquet).
 
 Even though SuperDB is based on these super-structured data formats, it can read and write
@@ -69,17 +69,17 @@ most common data formats.
 
 ## Try It
 
-Trying out SuperDB is super easy: just [install](https://zed.brimdata.io/docs/#getting-started)
-the command-line tool [`super`](https://zed.brimdata.io/docs/commands/zq/).
+Trying out SuperDB is super easy: just [install](https://superdb.org/docs/install)
+the command-line tool [`super`](https://superdb.org/docs/commands/super).
 
 Detailed documentation for the entire SuperDB system and its piped SQL syntax
-is available on the [SuperDB docs site](https://zed.brimdata.io/docs).
+is available on the [SuperDB docs site](https://superdb.org/docs).
 
 The SuperDB query engine can run locally without a storage engine by accessing
 files, HTTP endpoints, or S3 paths using the `super` command. While
-[earlier in its development](https://zed.brimdata.io/docs/commands/zed/#status),
+[earlier in its development](https://superdb.org/docs/commands/super-db/#status),
 SuperDB can also run on a
-[super-structured data lake](https://zed.brimdata.io/docs/commands/zed/#the-lake-model)
+[super-structured data lake](https://superdb.org/docs/commands/super-db/#the-lake-model)
 using the `super db` sub-commands.
 
 ## Project Status

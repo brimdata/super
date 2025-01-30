@@ -17,11 +17,17 @@ where the values from the upstream pipeline branches are forwarded based on thes
 ### Examples
 
 _Copy input to two pipeline branches and merge_
-```mdtest-command
-echo '1 2' | super -z -c 'fork (=>pass =>pass) |> merge this' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+fork (
+  =>pass
+  =>pass
+)
+| merge this
+# input
+1
+2
+# expected output
 1
 1
 2

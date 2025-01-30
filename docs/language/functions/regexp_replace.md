@@ -31,51 +31,47 @@ To insert a literal `$` in the output, use `$$` in the template.
 
 Replace regular expression matches with a letter:
 
-```mdtest-command
-echo '"-ab-axxb-"' | super -z -c 'yield regexp_replace(this, /ax*b/, "T")' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield regexp_replace(this, /ax*b/, "T")
+# input
+"-ab-axxb-"
+# expected output
 "-T-T-"
 ```
 
 Replace regular expression matches using numeric references to submatches:
-
-```mdtest-command
-echo '"option: value"' |
-  super -z -c 'yield regexp_replace(this,/(\w+):\s+(\w+)$/,"$1=$2")' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield regexp_replace(this,
+                     /(\w+):\s+(\w+)$/,
+                     "$1=$2")
+# input
+"option: value"
+# expected output
 "option=value"
 ```
 
 Replace regular expression matches using named references:
-
-```mdtest-command
-echo '"option: value"' |
-  super -z -c 'yield regexp_replace(
-                 this,
-                 /(?P<key>\w+):\s+(?P<value>\w+)$/,
-                 "$key=$value")
-  ' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield regexp_replace(this,
+                     /(?P<key>\w+):\s+(?P<value>\w+)$/,
+                     "$key=$value")
+# input
+"option: value"
+# expected output
 "option=value"
 ```
 
 Wrap a named reference in curly braces to avoid ambiguity:
-
-```mdtest-command
-echo '"option: value"' |
-  super -z -c 'yield regexp_replace(
-                 this,
-                /(?P<key>\w+):\s+(?P<value>\w+)$/,
-                "$key=${value}AppendedText")
-  ' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield regexp_replace(this,
+                     /(?P<key>\w+):\s+(?P<value>\w+)$/,
+                     "$key=${value}AppendedText")
+# input
+"option: value"
+# expected output
 "option=valueAppendedText"
 ```

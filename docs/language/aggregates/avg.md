@@ -14,20 +14,28 @@ The _avg_ aggregate function computes the mathematical average value of its inpu
 ### Examples
 
 Average value of simple sequence:
-```mdtest-command
-echo '1 2 3 4' | super -z -c 'avg(this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+avg(this)
+# input
+1
+2
+3
+4
+# expected output
 2.5
 ```
 
 Continuous average of simple sequence:
-```mdtest-command
-echo '1 2 3 4' | super -z -c 'yield avg(this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield avg(this)
+# input
+1
+2
+3
+4
+# expected output
 1.
 1.5
 2.
@@ -35,21 +43,29 @@ echo '1 2 3 4' | super -z -c 'yield avg(this)' -
 ```
 
 Unrecognized types are ignored:
-```mdtest-command
-echo '1 2 3 4 "foo"' | super -z -c 'avg(this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+avg(this)
+# input
+1
+2
+3
+4
+"foo"
+# expected output
 2.5
 ```
 
 Average of values bucketed by key:
-```mdtest-command
-echo '{a:1,k:1} {a:2,k:1} {a:3,k:2} {a:4,k:2}' |
-  super -z -c 'avg(a) by k |> sort' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+avg(a) by k | sort
+# input
+{a:1,k:1}
+{a:2,k:1}
+{a:3,k:2}
+{a:4,k:2}
+# expected output
 {k:1,avg:1.5}
 {k:2,avg:3.5}
 ```

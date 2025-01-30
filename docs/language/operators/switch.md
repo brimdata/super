@@ -42,41 +42,44 @@ where it appears does not influence the result.
 
 The output of a switch consists of multiple branches that must be merged.
 If the downstream operator expects a single input, then the output branches are
-merged with an automatically inserted [combine operator](combine.md).
+merged with an automatically inserted [`combine` operator](combine.md).
 
 ### Examples
 
 _Split input into evens and odds_
-```mdtest-command
-echo '1 2 3 4' |
-  super -z -c '
-    switch (
-      case this%2==0 => {even:this}
-      case this%2==1 => {odd:this}
-    )
-    |> sort odd,even
-  ' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+switch (
+  case this%2==0 => {even:this}
+  case this%2==1 => {odd:this}
+)
+| sort odd,even
+# input
+1
+2
+3
+4
+# expected output
 {odd:1}
 {odd:3}
 {even:2}
 {even:4}
 ```
+
 _Switch on `this` with a constant case_
-```mdtest-command
-echo '1 2 3 4' |
-  super -z -c '
-    switch this (
-      case 1 => yield "1!"
-      default => yield string(this)
-    )
-    |> sort
-  ' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+switch this (
+  case 1 => yield "1!"
+  default => yield string(this)
+)
+| sort
+# input
+1
+2
+3
+4
+# expected output
 "1!"
 "2"
 "3"

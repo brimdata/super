@@ -1,9 +1,7 @@
 ---
-sidebar_position: 2
-sidebar_label: Zed/Zeek Data Type Compatibility
+weight: 2
+title: Zed/Zeek Data Type Compatibility
 ---
-
-# Zed/Zeek Data Type Compatibility
 
 As the [super data model](../../formats/zed.md) was in many ways inspired by the
 [Zeek TSV log format](https://docs.zeek.org/en/master/log-formats.html#zeek-tsv-format-logs),
@@ -21,7 +19,7 @@ the types that may appear in Zeek logs.
 Zed tools maintain an internal Zed-typed
 representation of any Zeek data that is read or imported. Therefore, knowing
 the equivalent types will prove useful when performing operations in the
-[Zed language](../../language/README.md) such as
+[Zed language](../../language/_index.md) such as
 [type casting](../../language/shaping.md#cast) or looking at the data
 when output as Super JSON.
 
@@ -51,7 +49,8 @@ applicable to handling certain types.
 | [`vector`](https://docs.zeek.org/en/current/script-reference/types.html#type-vector)     | [`array`](../../formats/zed.md#22-array              | |
 | [`record`](https://docs.zeek.org/en/current/script-reference/types.html#type-record)     | [`record`](../../formats/zed.md#21-record            | See [`record` details](#record) |
 
-:::tip Note
+{{% tip "Note" %}}
+
 The [Zeek data types](https://docs.zeek.org/en/current/script-reference/types.html)
 page describes the types in the context of the
 [Zeek scripting language](https://docs.zeek.org/en/master/scripting/index.html).
@@ -59,7 +58,8 @@ The Zeek types available in scripting are a superset of the data types that
 may appear in Zeek log files. The encodings of the types also differ in some
 ways between the two contexts. However, we link to this reference because
 there is no authoritative specification of the Zeek TSV log format.
-:::
+
+{{% /tip %}}
 
 ## Example
 

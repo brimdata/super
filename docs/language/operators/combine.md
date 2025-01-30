@@ -5,7 +5,7 @@
 ### Synopsis
 
 ```
-( => ... => ...) |> ...
+( => ... => ...) | ...
 ```
 ### Description
 
@@ -20,11 +20,16 @@ and its semantics of undefined merge order.
 ### Examples
 
 _Copy input to two pipeline branches and combine with the implied operator_
-```mdtest-command
-echo '1 2' | super -z -c 'fork (=>pass =>pass) |> sort this' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+fork (
+  =>pass
+  =>pass
+)
+| sort this
+# input
+1 2
+# expected output
 1
 1
 2

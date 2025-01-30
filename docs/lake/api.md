@@ -1,9 +1,8 @@
 ---
-sidebar_position: 1
-sidebar_label: API
+weight: 1
+title: API
+heading: Zed lake API
 ---
-
-# Zed lake API
 
 ## _Status_
 

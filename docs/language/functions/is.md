@@ -16,39 +16,51 @@ is omitted, it defaults to `this`.  The _is_ function is shorthand for `typeof(v
 ### Examples
 
 Test simple types:
-```mdtest-command
-echo '1.' | super -z -c 'yield {yes:is(<float64>),no:is(<int64>)}' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield {yes:is(<float64>),no:is(<int64>)}
+# input
+1.
+# expected output
 {yes:true,no:false}
 ```
 
 Test for a given input's record type or "shape":
-```mdtest-command
-echo '{s:"hello"}' | super -z -c 'yield is(<{s:string}>)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield is(<{s:string}>)
+# input
+{s:"hello"}
+# expected output
 true
 ```
-If you test a named type with it's underlying type, the types are different,
+
+If you test a named type with its underlying type, the types are different,
 but if you use the type name or typeunder function, there is a match:
-```mdtest-command
-echo '{s:"hello"}(=foo)' | super -z -c 'yield is(<{s:string}>)' -
-echo '{s:"hello"}(=foo)' | super -z -c 'yield is(<foo>)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield is(<{s:string}>)
+# input
+{s:"hello"}(=foo)
+# expected output
 false
+```
+
+```mdtest-spq
+# spq
+yield is(<foo>)
+# input
+{s:"hello"}(=foo)
+# expected output
 true
 ```
 
 To test the underlying type, just use `==`:
-```mdtest-command
-echo '{s:"hello"}(=foo)' | super -z -c 'yield typeunder(this)==<{s:string}>' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield typeunder(this)==<{s:string}>
+# input
+{s:"hello"}(=foo)
+# expected output
 true
 ```

@@ -1,9 +1,7 @@
 ---
-sidebar_position: 2
-sidebar_label: JavaScript
+weight: 2
+title: JavaScript
 ---
-
-# JavaScript
 
 The [zed-js library](https://github.com/brimdata/zui/tree/main/packages/zed-js)
 provides support for the Zed data model from within

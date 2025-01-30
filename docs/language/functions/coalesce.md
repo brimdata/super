@@ -16,18 +16,20 @@ are null, `error("missing")`, or `error("quiet")`.
 
 ### Examples
 
-```mdtest-command
-super -z -c 'yield coalesce(null, error("missing"), error("quiet"), 1)'
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield coalesce(null, error("missing"), error("quiet"), this)
+# input
+1
+# expected output
 1
 ```
 
-```mdtest-command
-super -z -c 'yield coalesce(null, error("missing"), error("quiet"))'
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield coalesce(null, error("missing"), this)
+# input
+error("quiet")
+# expected output
 null
 ```

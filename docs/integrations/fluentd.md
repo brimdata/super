@@ -1,9 +1,7 @@
 ---
-sidebar_position: 3
-sidebar_label: Fluentd
+weight: 3
+title: Fluentd
 ---
-
-# Fluentd
 
 The [Fluentd](https://www.fluentd.org/) open source data collector can be used
 to push log data to a [SuperDB data lake](../commands/super-db.md) in a continuous manner.
@@ -14,7 +12,7 @@ record for archiving and analytics.
 This guide walks through two simple configurations of Fluentd with a Zed lake
 that can be used as reference for starting your own production configuration.
 As it's a data source important to many in the Zed community, log data from
-[Zeek](./zeek/README.md) is used in this guide. The approach shown can be
+[Zeek](./zeek/_index.md) is used in this guide. The approach shown can be
 easily adapted to any log data source.
 
 ## Software
@@ -83,13 +81,15 @@ The default settings when running `zed create` set the
 field and sort the stored data in descending order by that key. This
 configuration is ideal for Zeek log data.
 
-:::tip Note
+{{% tip "Note" %}}
+
 The [Zui](https://zui.brimdata.io/) desktop application automatically starts a
 Zed lake service when it launches. Therefore if you are using Zui you can
 skip the first set of commands shown above. The pool can be created from Zui
 by clicking **+**, selecting **New Pool**, then entering `ts` for the
 [pool key](../commands/super-db.md#pool-key).
-:::
+
+{{% /tip %}}
 
 ### Fluentd
 
@@ -307,7 +307,7 @@ Example output:
 
 Notice quotes are no longer present around the values that contain IP addresses
 and times, since they are no longer stored as strings. With the data in this
-shaped form, we could now invoke [Zed language](../language/README.md)
+shaped form, we could now invoke [Zed language](../language/_index.md)
 functionality that leverages the richer data typing such as filtering `ip`
 values by CIDR block, e.g.,
 
@@ -368,7 +368,8 @@ leverage, you can reduce the lake's storage footprint by periodically running
 storage that contain the granular commits that have already been rolled into
 larger objects by compaction.
 
-:::tip Note
+{{% tip "Note" %}}
+
 As described in issue [super/4934](https://github.com/brimdata/super/issues/4934),
 even after running `zed vacuum`, some files related to commit history are
 currently still left behind below the lake storage path. The issue describes
@@ -376,7 +377,8 @@ manual steps that can be taken to remove these files safely, if desired.
 However, if you find yourself needing to take these steps in your environment,
 please [contact us](#contact-us) as it will allow us to boost the priority
 of addressing the issue.
-:::
+
+{{% /tip %}}
 
 ## Ideas For Enhancement
 

@@ -1,4 +1,7 @@
-# Zed Interoperability with Zeek Logs
+---
+title: Zeek
+heading: Zed Interoperability with Zeek Logs
+---
 
 Zed includes functionality and reference configurations specific to working
 with logs from the [Zeek](https://zeek.org/) open source network security
