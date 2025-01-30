@@ -41,6 +41,9 @@ func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path,
 	case "grep":
 		argmax = 2
 		f = &Grep{zctx: zctx}
+	case "grok":
+		argmin, argmax = 2, 3
+		f = newGrok(zctx)
 	case "hex":
 		f = &Hex{zctx}
 	case "join":
