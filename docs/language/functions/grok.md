@@ -161,16 +161,14 @@ yield grok("%{TIMESTAMP_ISO8601:timestamp} %{LOGLEVEL:level} %{GREEDYDATA:messag
 ```
 
 Parsing the log line using the same patterns but only capturing the log level:
-```mdtest-command
-echo '"2020-09-16T04:20:42.45+01:00 DEBUG This is a sample debug log message"' |
-  super -Z -c 'yield grok("%{TIMESTAMP_ISO8601} %{LOGLEVEL:level} %{GREEDYDATA}",
-                    this)' -
-```
-=>
-```mdtest-output
-{
-    level: "DEBUG"
-}
+```mdtest-spq {data-layout="stacked"}
+# spq
+yield grok("%{TIMESTAMP_ISO8601} %{LOGLEVEL:level} %{GREEDYDATA}",
+           this)
+# input
+"2020-09-16T04:20:42.45+01:00 DEBUG This is a sample debug log message"
+# expected output
+{level:"DEBUG"}
 ```
 
 As with any [string literal](../expressions.md#literals), the
@@ -193,7 +191,7 @@ In addition to using `\n` newline escapes to separate multiple named patterns
 in the `definitions` argument, string concatenation via `+` may further enhance
 readability.
 
-```mdtest-spq
+```mdtest-spq {data-layout="stacked"}
 # spq
 yield grok("\\(%{PH_PREFIX:prefix}\\)-%{PH_LINE_NUM:line_number}",
            this,
@@ -207,39 +205,43 @@ yield grok("\\(%{PH_PREFIX:prefix}\\)-%{PH_LINE_NUM:line_number}",
 
 Failure to parse due to non-matching Grok pattern:
 
-```mdtest-command
-echo '"www.example.com"' | super -z -c 'grok("%{EMAILADDRESS:email}", this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq {data-layout="stacked"}
+# spq
+grok("%{EMAILADDRESS:email}", this)
+# input
+"www.example.com"
+# expected output
 error({message:"grok(): value does not match pattern",on:"www.example.com"})
 ```
 
 Failure to parse due to mismatch outside of Grok patterns:
 
-```mdtest-command
-echo '"hello world"' | super -z -c 'grok("%{WORD:one}     %{WORD:two}", this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq {data-layout="stacked"}
+# spq
+grok("%{WORD:one}     %{WORD:two}", this)
+# input
+"hello world"
+# expected output
 error({message:"grok(): value does not match pattern",on:"hello world"})
 ```
 
 Using a regular expression to match outside of Grok patterns:
-```mdtest-command
-echo '"hello     world"' | super -z -c 'grok("%{WORD:one}\\s+%{WORD:two}", this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+grok("%{WORD:one}\\s+%{WORD:two}", this)
+# input
+"hello     world"
+# expected output
 {one:"hello",two:"world"}
 ```
 
 Successful parsing in the absence of any named fields in Grok patterns returns
 an empty record:
-```mdtest-command
-echo '"hello world"' | super -z -c 'grok("%{WORD}\\s+%{WORD}", this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq {data-layout="stacked"}
+# spq
+grok("%{WORD}\\s+%{WORD}", this)
+# input
+"hello world"
+# expected output
 {}
 ```
