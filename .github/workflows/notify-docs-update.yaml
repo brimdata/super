@@ -3,7 +3,7 @@ name: Notify docs update
 on:
   push:
     branches:
-      - hugo-docs
+      - main
     paths:
       - 'docs/**.md'
 
@@ -13,4 +13,4 @@ jobs:
     steps:
     - name: Send dispatch event
       run: |
-        curl -XPOST -u "${{ secrets.PAT_USERNAME }}:${{ secrets.PAT_TOKEN }}" -H "Accept: application/vnd.github.v3+json" -H "Content-Type: application/json" https://api.github.com/repos/brimdata/superdb-website/dispatches --data '{"event_type":"super-docs-update", "client_payload": {"commit_sha": "${{ github.sha }}"}}'
+        curl -XPOST -u "${{ secrets.PAT_USERNAME }}:${{ secrets.PAT_TOKEN }}" -H "Accept: application/vnd.github.v3+json" -H "Content-Type: application/json" https://api.github.com/repos/brimdata/superdb-website/dispatches --data '{"event_type":"super-docs-update", "client_payload": {"commit_sha": "${{ github.event.pull_request.merge_commit_sha }}"}}'
