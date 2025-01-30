@@ -1,8 +1,8 @@
 # Query Performance From `super` Command Doc
 
 These scripts were used to generate the results in the
-[Performance](https://zed.brimdata.io/docs/next/commands/super#performance)
-section of the [`super` command doc](https://zed.brimdata.io/docs/next/commands/super).
+[Performance](https://superdb.org/docs/commands/super/#performance)
+section of the [`super` command doc](https://superdb.org/docs/commands/super).
 The scripts have been made available to allow for easy reproduction of the
 results under different conditions and/or as tested systems evolve.
 
