@@ -16,9 +16,9 @@ returns a record containing parsed fields.
 
 The string `p` may contain one or more Grok patterns of syntax
 `%{pattern:field_name}` where _pattern_ is the name of the pattern to match in
-`s` and _field_name_ is the resultant field name of the capture value. If the
+`s` and _field_name_ is the resultant field name of the captured value. If the
 _field_name_ portion is not included, the _pattern_ must still match but the
-capture value will not be present in the returned record. Any non-pattern
+captured value will not be present in the returned record. Any non-pattern
 portions of `p` must also match against the contents of `s`. Non-pattern
 portions of `p` may contain regular expressions.
 
