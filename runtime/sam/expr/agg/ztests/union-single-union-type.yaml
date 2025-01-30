@@ -1,8 +1,0 @@
-zed: union(this)
-
-input: |
-  1((int64,string))
-  1((int64,string))
-
-output: |
-  |[1]|(|[(int64,string)]|)

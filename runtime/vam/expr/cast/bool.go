@@ -22,7 +22,7 @@ func castToBool(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
 	}
 	out.Nulls = vector.NullsOf(vec)
 	if index != nil {
-		out.Nulls = vector.NullsView(out.Nulls, index)
+		out.Nulls = vector.NewBoolView(out.Nulls, index)
 	}
 	return out, nil, true
 }
@@ -59,7 +59,7 @@ func stringToBool(vec *vector.String, index []uint32) (vector.Any, []uint32) {
 			idx = index[i]
 		}
 		if vec.Nulls.Value(idx) {
-			bools.Nulls.Set(i)
+			bools.Nulls.Set(boollen)
 			boollen++
 			continue
 		}
@@ -73,6 +73,10 @@ func stringToBool(vec *vector.String, index []uint32) (vector.Any, []uint32) {
 			bools.Set(boollen)
 		}
 		boollen++
+	}
+	bools.SetLen(boollen)
+	if bools.Nulls != nil {
+		bools.Nulls.SetLen(boollen)
 	}
 	return bools, errs
 }

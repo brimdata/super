@@ -14,7 +14,7 @@ import (
 func castToString(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
 	nulls := vector.NullsOf(vec)
 	if index != nil {
-		nulls = vector.NullsView(nulls, index)
+		nulls = vector.NewBoolView(nulls, index)
 	}
 	n := lengthOf(vec, index)
 	var bytes []byte
@@ -87,6 +87,18 @@ func castToString(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
 				idx = index[i]
 			}
 			bytes = append(bytes, vec.Values[idx].String()...)
+			offs = append(offs, uint32(len(bytes)))
+		}
+	case *vector.Enum:
+		for i := range n {
+			idx := i
+			if index != nil {
+				idx = index[i]
+			}
+			if !nulls.Value(i) {
+				val := vec.Uint.Values[idx]
+				bytes = append(bytes, vec.Typ.Symbols[val]...)
+			}
 			offs = append(offs, uint32(len(bytes)))
 		}
 	default:

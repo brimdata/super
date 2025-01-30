@@ -12,16 +12,19 @@ import (
 )
 
 type searchByPred struct {
-	pred  Boolean
-	expr  Evaluator
-	types map[super.Type]bool
+	pred Boolean
+	expr Evaluator
+	fnm  *FieldNameMatcher
 }
 
 func SearchByPredicate(pred Boolean, e Evaluator) Evaluator {
 	return &searchByPred{
-		pred:  pred,
-		expr:  e,
-		types: make(map[super.Type]bool),
+		pred: pred,
+		expr: e,
+		fnm: NewFieldNameMatcher(func(b []byte) bool {
+			val := super.NewValue(super.TypeString, b)
+			return pred(val).Ptr().AsBool()
+		}),
 	}
 }
 
@@ -32,11 +35,11 @@ func (s *searchByPred) Eval(ectx Context, val super.Value) super.Value {
 			return super.False
 		}
 	}
+	if s.fnm.Match(val.Type()) {
+		return super.True
+	}
 	if errMatch == val.Walk(func(typ super.Type, body zcode.Bytes) error {
-		if s.searchType(typ) {
-			return errMatch
-		}
-		if s.pred(super.NewValue(typ, body)) {
+		if s.pred(super.NewValue(typ, body)).Ptr().AsBool() {
 			return errMatch
 		}
 		return nil
@@ -46,29 +49,9 @@ func (s *searchByPred) Eval(ectx Context, val super.Value) super.Value {
 	return super.False
 }
 
-func (s *searchByPred) searchType(typ super.Type) bool {
-	if match, ok := s.types[typ]; ok {
-		return match
-	}
-	var match bool
-	recType := super.TypeRecordOf(typ)
-	if recType != nil {
-		var nameIter FieldNameIter
-		nameIter.Init(recType)
-		for !nameIter.Done() {
-			if s.pred(super.NewString(string(nameIter.Next()))) {
-				match = true
-				break
-			}
-		}
-	}
-	s.types[typ] = match
-	return match
-}
-
-// stringSearch is like strings.Contains() but with case-insensitive
+// StringContainsFold is like strings.Contains but with case-insensitive
 // comparison.
-func stringSearch(a, b string) bool {
+func StringContainsFold(a, b string) bool {
 	alen := len(a)
 	blen := len(b)
 
@@ -124,12 +107,12 @@ func (s *search) Eval(ectx Context, val super.Value) super.Value {
 	}
 	if errMatch == val.Walk(func(typ super.Type, body zcode.Bytes) error {
 		if typ.ID() == super.IDString {
-			if stringSearch(byteconv.UnsafeString(body), s.text) {
+			if StringContainsFold(byteconv.UnsafeString(body), s.text) {
 				return errMatch
 			}
 			return nil
 		}
-		if s.compare(super.NewValue(typ, body)) {
+		if s.compare(super.NewValue(typ, body)).Ptr().AsBool() {
 			return errMatch
 		}
 		return nil
@@ -164,40 +147,21 @@ func (s *searchCIDR) Eval(_ Context, val super.Value) super.Value {
 }
 
 type searchString struct {
-	term  string
-	expr  Evaluator
-	types map[super.Type]bool
+	term string
+	expr Evaluator
+	fnm  *FieldNameMatcher
 }
 
 // NewSearchString is like NewSeach but handles the special case of matching
 // field names in addition to string values.
 func NewSearchString(term string, expr Evaluator) Evaluator {
 	return &searchString{
-		term:  term,
-		expr:  expr,
-		types: make(map[super.Type]bool),
+		term: term,
+		expr: expr,
+		fnm: NewFieldNameMatcher(func(b []byte) bool {
+			return StringContainsFold(byteconv.UnsafeString(b), term)
+		}),
 	}
-}
-
-func (s *searchString) searchType(typ super.Type) bool {
-	if match, ok := s.types[typ]; ok {
-		return match
-	}
-	var match bool
-	recType := super.TypeRecordOf(typ)
-	if recType != nil {
-		var nameIter FieldNameIter
-		nameIter.Init(recType)
-		for !nameIter.Done() {
-			if stringSearch(byteconv.UnsafeString(nameIter.Next()), s.term) {
-				match = true
-				break
-			}
-		}
-	}
-	s.types[typ] = match
-	s.types[recType] = match
-	return match
 }
 
 func (s *searchString) Eval(ectx Context, val super.Value) super.Value {
@@ -207,17 +171,12 @@ func (s *searchString) Eval(ectx Context, val super.Value) super.Value {
 			return super.False
 		}
 	}
-	// Memoize the result of a search across the names in the
-	// record fields for each unique record type.
-	if s.searchType(val.Type()) {
+	if s.fnm.Match(val.Type()) {
 		return super.True
 	}
 	if errMatch == val.Walk(func(typ super.Type, body zcode.Bytes) error {
-		if s.searchType(typ) {
-			return errMatch
-		}
 		if typ.ID() == super.IDString &&
-			stringSearch(byteconv.UnsafeString(body), s.term) {
+			StringContainsFold(byteconv.UnsafeString(body), s.term) {
 			return errMatch
 		}
 		return nil
@@ -241,10 +200,7 @@ func (f *filter) Eval(ectx Context, this super.Value) super.Value {
 	if val.IsError() {
 		return val
 	}
-	if f.pred(val) {
-		return super.True
-	}
-	return super.False
+	return f.pred(val)
 }
 
 type filterApplier struct {
@@ -257,8 +213,8 @@ func NewFilterApplier(zctx *super.Context, e Evaluator) Evaluator {
 }
 
 func (f *filterApplier) Eval(ectx Context, this super.Value) super.Value {
-	val, ok := EvalBool(f.zctx, ectx, this, f.expr)
-	if ok {
+	val := EvalBool(f.zctx, ectx, this, f.expr)
+	if val.Type().ID() == super.IDBool {
 		if val.Bool() {
 			return this
 		}

@@ -1,0 +1,19 @@
+zed: floor(this)
+
+vector: true
+
+input: |
+  1.5
+  1.7
+  -1.5
+  1(uint8)
+  1.5(float32)
+  "foo"
+
+output: |
+  1.
+  1.
+  -2.
+  1(uint8)
+  1.(float32)
+  error({message:"floor: not a number",on:"foo"})

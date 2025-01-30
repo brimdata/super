@@ -1,6 +1,8 @@
 package expr
 
 import (
+	"slices"
+
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
 )
@@ -17,16 +19,24 @@ func NewLogicalNot(zctx *super.Context, e Evaluator) *Not {
 }
 
 func (n *Not) Eval(val vector.Any) vector.Any {
-	val, ok := EvalBool(n.zctx, val, n.expr)
-	if !ok {
-		return val
+	return evalBool(n.zctx, n.eval, n.expr.Eval(val))
+}
+
+func (n *Not) eval(vecs ...vector.Any) vector.Any {
+	switch vec := vecs[0].(type) {
+	case *vector.Bool:
+		bits := make([]uint64, len(vec.Bits))
+		for k := range bits {
+			bits[k] = ^vec.Bits[k]
+		}
+		return vec.CopyWithBits(bits)
+	case *vector.Const:
+		return vector.NewConst(super.NewBool(!vec.Value().Bool()), vec.Len(), vec.Nulls)
+	case *vector.Error:
+		return vec
+	default:
+		panic(vec)
 	}
-	b := val.(*vector.Bool)
-	bits := make([]uint64, len(b.Bits))
-	for k := range bits {
-		bits[k] = ^b.Bits[k]
-	}
-	return b.CopyWithBits(bits)
 }
 
 type And struct {
@@ -50,72 +60,242 @@ func NewLogicalOr(zctx *super.Context, lhs, rhs Evaluator) *Or {
 }
 
 func (a *And) Eval(val vector.Any) vector.Any {
-	//XXX change this logic to handle dynamic instead of simple ok decision,
-	// if there are any valid bools then we need to and them together
-	lhs, ok := EvalBool(a.zctx, val, a.lhs)
-	if !ok {
-		//XXX mix errors
-		return lhs
+	return evalBool(a.zctx, a.eval, a.lhs.Eval(val), a.rhs.Eval(val))
+}
+
+func (a *And) eval(vecs ...vector.Any) vector.Any {
+	if vecs[0].Len() == 0 {
+		return vecs[0]
 	}
-	rhs, ok := EvalBool(a.zctx, val, a.rhs)
-	if !ok {
-		//XXX mix errors
-		return rhs
+	lhs, rhs := vector.Under(vecs[0]), vector.Under(vecs[1])
+	if _, ok := lhs.(*vector.Error); ok {
+		return a.andError(lhs, rhs)
 	}
-	blhs := lhs.(*vector.Bool)
-	brhs := rhs.(*vector.Bool)
-	if len(blhs.Bits) != len(brhs.Bits) {
-		panic("length mistmatch")
+	if _, ok := rhs.(*vector.Error); ok {
+		return a.andError(rhs, lhs)
 	}
-	bits := make([]uint64, len(blhs.Bits))
-	for k := range bits {
-		bits[k] = blhs.Bits[k] & brhs.Bits[k]
+	blhs, brhs := toBool(lhs), toBool(rhs)
+	out := vector.And(blhs, brhs)
+	if blhs.Nulls == nil && brhs.Nulls == nil {
+		return out
 	}
-	//XXX intersect nulls
-	return blhs.CopyWithBits(bits)
+	// any and false = false
+	// null and true = null
+	notfalse := vector.And(vector.Or(blhs, blhs.Nulls), vector.Or(brhs, brhs.Nulls))
+	out.Nulls = vector.And(notfalse, vector.Or(blhs.Nulls, brhs.Nulls))
+	return out
+}
+
+func (a *And) andError(err vector.Any, vec vector.Any) vector.Any {
+	if _, ok := vec.(*vector.Error); ok {
+		return err
+	}
+	b := toBool(vec)
+	// anything and FALSE = FALSE
+	isError := vector.Or(b, b.Nulls)
+	var index []uint32
+	for i := range err.Len() {
+		if isError.Value(i) {
+			index = append(index, i)
+		}
+	}
+	if len(index) > 0 {
+		base := vector.NewInverseView(vec, index)
+		return vector.Combine(base, index, vector.NewView(err, index))
+	}
+	return vec
 }
 
 func (o *Or) Eval(val vector.Any) vector.Any {
-	lhs, ok := EvalBool(o.zctx, val, o.lhs)
-	if !ok {
-		return lhs
-	}
-	rhs, ok := EvalBool(o.zctx, val, o.rhs)
-	if !ok {
-		return rhs
-	}
-	blhs := lhs.(*vector.Bool)
-	brhs := rhs.(*vector.Bool)
-	bits := make([]uint64, len(blhs.Bits))
-	if len(blhs.Bits) != len(brhs.Bits) {
-		panic("length mistmatch")
-	}
-	for k := range bits {
-		bits[k] = blhs.Bits[k] | brhs.Bits[k]
-	}
-	//XXX intersect nulls
-	return blhs.CopyWithBits(bits)
+	return evalBool(o.zctx, o.eval, o.lhs.Eval(val), o.rhs.Eval(val))
 }
 
-// EvalBool evaluates e using val to computs a boolean result.  For elements
+func (o *Or) eval(vecs ...vector.Any) vector.Any {
+	if vecs[0].Len() == 0 {
+		return vecs[0]
+	}
+	lhs, rhs := vector.Under(vecs[0]), vector.Under(vecs[1])
+	if _, ok := lhs.(*vector.Error); ok {
+		return o.orError(lhs, rhs)
+	}
+	if _, ok := rhs.(*vector.Error); ok {
+		return o.orError(rhs, lhs)
+	}
+	blhs, brhs := toBool(lhs), toBool(rhs)
+	out := vector.Or(blhs, brhs)
+	if blhs.Nulls == nil && brhs.Nulls == nil {
+		return out
+	}
+	nulls := vector.Or(blhs.Nulls, brhs.Nulls)
+	out.Nulls = vector.And(vector.Not(out), nulls)
+	return out
+}
+
+func (o *Or) orError(err, vec vector.Any) vector.Any {
+	if _, ok := vec.(*vector.Error); ok {
+		return err
+	}
+	b := toBool(vec)
+	// not error if true or null
+	notError := vector.Or(b, b.Nulls)
+	var index []uint32
+	for i := range b.Len() {
+		if !notError.Value(i) {
+			index = append(index, i)
+		}
+	}
+	if len(index) > 0 {
+		base := vector.NewInverseView(vec, index)
+		return vector.Combine(base, index, vector.NewView(err, index))
+	}
+	return vec
+}
+
+// evalBool evaluates e using val to computs a boolean result.  For elements
 // of the result that are not boolean, an error is calculated for each non-bool
 // slot and they are returned as an error.  If all of the value slots are errors,
 // then the return value is nil.
-func EvalBool(zctx *super.Context, val vector.Any, e Evaluator) (vector.Any, bool) {
-	//XXX Eval could return a dynamic vector of errors and bools and we should
-	// handle this correctly so the logic above is really the fast path
-	// and a slower path will handle picking apart the dynamic vector.
-	// maybe we could have a generic way to traverse dynamics for
-	// appliers doing their thing along the slow path
-	if val, ok := vector.Under(e.Eval(val)).(*vector.Bool); ok {
-		return val, true
+func evalBool(zctx *super.Context, fn func(...vector.Any) vector.Any, vecs ...vector.Any) vector.Any {
+	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
+		for i, vec := range vecs {
+			if vec := vector.Under(vec); vec.Type() == super.TypeBool || vector.KindOf(vec) == vector.KindError {
+				vecs[i] = vec
+			} else {
+				vecs[i] = vector.NewWrappedError(zctx, "not type bool", vec)
+			}
+		}
+		return fn(vecs...)
+	}, vecs...)
+}
+
+func toBool(vec vector.Any) *vector.Bool {
+	switch vec := vec.(type) {
+	case *vector.Const:
+		val := vec.Value()
+		if val.Bool() {
+			out := trueBool(vec.Len())
+			out.Nulls = vec.Nulls
+			return out
+		} else {
+			return vector.NewBoolEmpty(vec.Len(), vec.Nulls)
+		}
+	case *vector.Dynamic:
+		nulls := vector.NewBoolEmpty(vec.Len(), nil)
+		out := vector.NewBoolEmpty(vec.Len(), nulls)
+		for i := range vec.Len() {
+			v, null := vector.BoolValue(vec, i)
+			if null {
+				nulls.Set(i)
+			} else if v {
+				out.Set(i)
+			}
+		}
+		return out
+	case *vector.Bool:
+		return vec
+	default:
+		panic(vec)
 	}
-	//XXX need to implement a sparse dynamic (vector.Collection?)
-	// and check for that here.
-	// for now, if the vector is not uniformly boolean, we return error.
-	// XXX example is a field ref a union of structs where the type of
-	// the referenced field changes... there can be an arbitrary number
-	// of underlying types though any given slot has only one type
-	// obviously at any given time.
-	return vector.NewStringError(zctx, "not type bool", val.Len()), false
+}
+
+func trueBool(n uint32) *vector.Bool {
+	vec := vector.NewBoolEmpty(n, nil)
+	for i := range vec.Bits {
+		vec.Bits[i] = ^uint64(0)
+	}
+	return vec
+}
+
+type In struct {
+	zctx *super.Context
+	lhs  Evaluator
+	rhs  Evaluator
+	eq   *Compare
+}
+
+func NewIn(zctx *super.Context, lhs, rhs Evaluator) *In {
+	return &In{zctx, lhs, rhs, NewCompare(zctx, nil, nil, "==")}
+}
+
+func (i *In) Eval(this vector.Any) vector.Any {
+	return vector.Apply(true, i.eval, i.lhs.Eval(this), i.rhs.Eval(this))
+}
+
+func (i *In) eval(vecs ...vector.Any) vector.Any {
+	lhs, rhs := vecs[0], vecs[1]
+	if lhs.Type().Kind() == super.ErrorKind {
+		return lhs
+	}
+	if rhs.Type().Kind() == super.ErrorKind {
+		return rhs
+	}
+	return i.evalResursive(lhs, rhs)
+}
+
+func (i *In) evalResursive(vecs ...vector.Any) vector.Any {
+	lhs, rhs := vecs[0], vecs[1]
+	rhs = vector.Under(rhs)
+	rhsOrig := rhs
+	var index []uint32
+	if view, ok := rhs.(*vector.View); ok {
+		rhs = view.Any
+		index = view.Index
+	}
+	switch rhs := rhs.(type) {
+	case *vector.Record:
+		out := vector.NewBoolEmpty(lhs.Len(), nil)
+		for _, f := range rhs.Fields {
+			if index != nil {
+				f = vector.NewView(f, index)
+			}
+			out = vector.Or(out, toBool(i.evalResursive(lhs, f)))
+		}
+		return out
+	case *vector.Array:
+		return i.evalForList(lhs, rhs.Values, rhs.Offsets, index)
+	case *vector.Set:
+		return i.evalForList(lhs, rhs.Values, rhs.Offsets, index)
+	case *vector.Map:
+		return vector.Or(i.evalForList(lhs, rhs.Keys, rhs.Offsets, index),
+			i.evalForList(lhs, rhs.Values, rhs.Offsets, index))
+	case *vector.Union:
+		if index != nil {
+			panic("vector.Union unexpected in vector.View")
+		}
+		return vector.Apply(true, i.evalResursive, lhs, rhs)
+	case *vector.Error:
+		if index != nil {
+			panic("vector.Error unexpected in vector.View")
+		}
+		return i.evalResursive(lhs, rhs.Vals)
+	default:
+		return i.eq.eval(lhs, rhsOrig)
+	}
+}
+
+func (i *In) evalForList(lhs, rhs vector.Any, offsets, index []uint32) *vector.Bool {
+	out := vector.NewBoolEmpty(lhs.Len(), nil)
+	var lhsIndex, rhsIndex []uint32
+	for j := range lhs.Len() {
+		if index != nil {
+			j = index[j]
+		}
+		start, end := offsets[j], offsets[j+1]
+		if start == end {
+			continue
+		}
+		n := end - start
+		lhsIndex = slices.Grow(lhsIndex[:0], int(n))[:n]
+		rhsIndex = slices.Grow(rhsIndex[:0], int(n))[:n]
+		for k := range n {
+			lhsIndex[k] = j
+			rhsIndex[k] = k + start
+		}
+		lhsView := vector.NewView(lhs, lhsIndex)
+		rhsView := vector.NewView(rhs, rhsIndex)
+		if toBool(i.evalResursive(lhsView, rhsView)).TrueCount() > 0 {
+			out.Set(j)
+		}
+	}
+	return out
 }

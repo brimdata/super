@@ -1,11 +1,9 @@
 ---
-sidebar_position: 1
-sidebar_label: super
+weight: 1
+title: super
 ---
 
-# `super`
-
-> **TL;DR** `super` is a command-line tool that uses [SuperSQL](../language/README.md)
+> **TL;DR** `super` is a command-line tool that uses [SuperSQL](../language/_index.md)
 > to query a variety of data formats in files, over HTTP, or in [S3](../integrations/amazon-s3.md)
 > storage. Best performance is achieved when operating on data in binary formats such as
 > [Super Binary](../formats/bsup.md), [Super Columnar](../formats/csup.md),
@@ -20,7 +18,7 @@ super [ options ] [ -c query ] input [ input ... ]
 
 `super` is a command-line tool for processing data in diverse input
 formats, providing data wrangling, search, analytics, and extensive transformations
-using the [SuperSQL](../language/README.md) dialect of SQL. Any SQL query expression
+using the [SuperSQL](../language/_index.md) dialect of SQL. Any SQL query expression
 may be extended with [pipe syntax](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/)
 to filter, transform, and/or analyze input data.
 Super's SQL pipes dialect is extensive, so much so that it can resemble
@@ -30,10 +28,10 @@ The `super` command works with data from ephemeral sources like files and URLs.
 If you want to persist your data into a data lake for persistent storage,
 check out the [`super db`](super-db.md) set of commands.
 
-By invoking the `-c` option, a query expressed in the [SuperSQL language](../language/README.md)
+By invoking the `-c` option, a query expressed in the [SuperSQL language](../language/_index.md)
 may be specified and applied to the input stream.
 
-The [super data model](../formats/zed.md) is based on [super-structured data](../formats/README.md#2-a-super-structured-pattern), meaning that all data
+The [super data model](../formats/zed.md) is based on [super-structured data](../formats/_index.md#2-a-super-structured-pattern), meaning that all data
 is both strongly _and_ dynamically typed and need not conform to a homogeneous
 schema.  The type structure is self-describing so it's easy to daisy-chain
 queries and inspect data at any point in a complex query or data pipeline.
@@ -133,11 +131,11 @@ in the order appearing on the command line forming the input stream.
 | `csv`     |  yes | [Comma-Separated Values (RFC 4180)](https://www.rfc-editor.org/rfc/rfc4180.html) |
 | `json`    |  yes | [JSON (RFC 8259)](https://www.rfc-editor.org/rfc/rfc8259.html) |
 | `jsup`    |  yes | [Super JSON](../formats/jsup.md) |
-| `zjson`   |  yes | [Super JSON over JSON](../formats/zjson.md) |
 | `line`    |  no  | One string value per input line |
 | `parquet` |  yes | [Apache Parquet](https://github.com/apache/parquet-format) |
 | `tsv`     |  yes | [Tab-Separated Values](https://en.wikipedia.org/wiki/Tab-separated_values) |
 | `zeek`    |  yes | [Zeek Logs](https://docs.zeek.org/en/master/logs/index.html) |
+| `zjson`   |  yes | [Super JSON over JSON](../formats/zjson.md) |
 
 The input format is typically [detected automatically](#auto-detection) and the formats for which
 "Auto" is "yes" in the table above support _auto-detection_.
@@ -189,13 +187,15 @@ not desirable because (1) the Super JSON parser is not particularly performant a
 (2) all JSON numbers are floating point but the Super JSON parser will parse as
 JSON any number that appears without a decimal point as an integer type.
 
-:::tip note
+{{% tip "Note" %}}
+
 The reason `super` is not particularly performant for Super JSON is that the [Super Binary](../formats/bsup.md) or
 [Super Columnar](../formats/csup.md) formats are semantically equivalent to Super JSON but much more efficient and
 the design intent is that these efficient binary formats should be used in
 use cases where performance matters.  Super JSON is typically used only when
 data needs to be human-readable in interactive settings or in automated tests.
-:::
+
+{{% /tip %}}
 
 To this end, `super` uses a heuristic to select between Super JSON and plain JSON when the
 `-i` option is not specified. Specifically, plain JSON is selected when the first values
@@ -217,13 +217,14 @@ typically omit quotes around field names.
 | `csv`     | [Comma-Separated Values (RFC 4180)](https://www.rfc-editor.org/rfc/rfc4180.html) |
 | `json`    | [JSON (RFC 8259)](https://www.rfc-editor.org/rfc/rfc8259.html) |
 | `jsup`    | [Super JSON](../formats/jsup.md) |
-| `zjson`   | [Super JSON over JSON](../formats/zjson.md) |
 | `lake`    | [SuperDB Data Lake Metadata Output](#superdb-data-lake-metadata-output) |
+| `line`    | (described [below](#simplified-text-outputs)) |
 | `parquet` | [Apache Parquet](https://github.com/apache/parquet-format) |
 | `table`   | (described [below](#simplified-text-outputs)) |
 | `text`    | (described [below](#simplified-text-outputs)) |
 | `tsv`     | [Tab-Separated Values](https://en.wikipedia.org/wiki/Tab-separated_values) |
 | `zeek`    | [Zeek Logs](https://docs.zeek.org/en/master/logs/index.html) |
+| `zjson`   | [Super JSON over JSON](../formats/zjson.md) |
 
 The output format defaults to either Super JSON or Super Binary and may be specified
 with the `-f` option.
@@ -399,11 +400,38 @@ be used with any output format.
 
 #### Simplified Text Outputs
 
-The `text` and `table` formats simplify data to fit within the
-limitations of text-based output. Because they do not capture all the
-information required to reconstruct the original data, they are not supported
-input formats. They may be a good fit for use with other text-based shell
+The `line`, `text`, and `table` formats simplify data to fit within the
+limitations of text-based output. They may be a good fit for use with other text-based shell
 tools, but due to their limitations should be used with care.
+
+In `line` output, each string value is printed on its own line, with minimal
+formatting applied if any of the following escape sequences are present:
+
+| Escape Sequence | Rendered As                             |
+|-----------------|-----------------------------------------|
+| `\n`            | Newline                                 |
+| `\t`            | Horizontal tab                          |
+| `\\`            | Backslash                               |
+| `\"`            | Double quote                            |
+| `\r`            | Carriage return                         |
+| `\b`            | Backspace                               |
+| `\f`            | Form feed                               |
+| `\u`            | Unicode escape (e.g., `\u0041` for `A`) |
+
+Non-string values are formatted as [Super JSON](../formats/jsup.md).
+
+For example:
+
+```mdtest-command
+echo '"hi" "hello\nworld" { time_elapsed: 86400s }' | super -f line -
+```
+produces
+```mdtest-output
+hi
+hello
+world
+{time_elapsed:1d}
+```
 
 In `text` output, minimal formatting is applied, e.g., strings are shown
 without quotes and brackets are dropped from [arrays](../formats/zed.md#22-array)
@@ -573,15 +601,43 @@ error("divide by zero")
 
 ## Examples
 
-As you may have noticed, many examples of the [SuperSQL language](../language/README.md)
-are illustrated using this pattern
+As you may have noticed, many examples shown above were illustrated using this
+pattern:
 ```
 echo <values> | super -c <query> -
 ```
-which is used throughout the [language documentation](../language/README.md)
-and [operator reference](../language/operators/README.md).
 
-The language documentation and [tutorials directory](../tutorials/README.md)
+While this is suitable for showing command line operations, in documentation
+focused on showing the [SuperSQL language](../language/_index.md) (such as the
+[operator](../language/operators/_index.md) and [function](../language/functions/_index.md)
+references), interactive examples are often used that are pre-populated with
+the query, input, and a "live" result that's generated using a
+[browser-based packaging of the SuperDB runtime](https://github.com/brimdata/superdb-wasm).
+This allows you to modify the query and/or inputs and immediately see how it
+changes the result, all without having to drop to the shell. If you make
+changes to an example and want to return it to its original state, just
+refresh the page in your browser.
+
+For example, here's an interactive rendering of the example from the
+[Error Handling](#error-handling) section above. Try adding an additional
+input value and notice the immediate change in the result.
+
+```mdtest-spq
+# spq
+10.0/this
+# input
+1
+2
+0
+3
+# expected output
+10.
+5.
+error("divide by zero")
+3.3333333333333335
+```
+
+The language documentation and [tutorials directory](../tutorials/_index.md)
 have many examples, but here are a few more simple `super` use cases.
 
 _Hello, world_
@@ -594,55 +650,75 @@ produces this Super JSON output
 ```
 
 _Some values of available [data types](../language/data-types.md)_
-```mdtest-command
-echo '1 1.5 [1,"foo"] |["apple","banana"]|' | super -z -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+SELECT VALUE this
+# input
+1
+1.5
+[1,"foo"]
+|["apple","banana"]|
+# expected output
 1
 1.5
 [1,"foo"]
 |["apple","banana"]|
 ```
+
 _The types of various data_
-```mdtest-command
-echo '1 1.5 [1,"foo"] |["apple","banana"]|' | super -z -c 'SELECT VALUE typeof(this)' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+SELECT VALUE typeof(this)
+# input
+1
+1.5
+[1,"foo"]
+|["apple","banana"]|
+# expected output
 <int64>
 <float64>
 <[(int64,string)]>
 <|[string]|>
 ```
-_A simple [aggregation](../language/aggregates/README.md)_
-```mdtest-command
-echo '{key:"foo",val:1}{key:"bar",val:2}{key:"foo",val:3}' |
-  super -z -c 'sum(val) by key | sort key' -
-```
-produces
-```mdtest-output
+
+_A simple [aggregation](../language/aggregates/_index.md)_
+```mdtest-spq
+# spq
+sum(val) by key | sort key
+# input
+{key:"foo",val:1}
+{key:"bar",val:2}
+{key:"foo",val:3}
+# expected output
 {key:"bar",sum:2}
 {key:"foo",sum:4}
 ```
+
 _Read CSV input and [cast](../language/functions/cast.md) a to an integer from default float_
-```mdtest-command
-printf "a,b\n1,foo\n2,bar\n" | super -z -c 'a:=int64(a)' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+a:=int64(a)
+# input
+a,b
+1,foo
+2,bar
+# expected output
 {a:1,b:"foo"}
 {a:2,b:"bar"}
 ```
+
 _Read JSON input and cast to an integer from default float_
-```mdtest-command
-echo '{"a":1,"b":"foo"}{"a":2,"b":"bar"}' | super -z -c 'a:=int64(a)' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+a:=int64(a)
+# input
+{"a":1,"b":"foo"}
+{"a":2,"b":"bar"}
+# expected output
 {a:1,b:"foo"}
 {a:2,b:"bar"}
 ```
+
 _Make a schema-rigid Parquet file using fuse, then output the Parquet file as Super JSON_
 ```mdtest-command
 echo '{a:1}{a:2}{b:3}' | super -f parquet -o tmp.parquet -c fuse -
@@ -663,20 +739,30 @@ the `super` command, but it turns out that `super` can hold its own when
 compared to other analytics systems.
 
 To illustrate comparative performance, we'll present some informal performance
-measurements among `super`,
-[`DuckDB`](https://duckdb.org/),
-[`ClickHouse`](https://clickhouse.com/), and
-[`DataFusion`](https://datafusion.apache.org/).
+measurements among SuperDB,
+[DuckDB](https://duckdb.org/),
+[ClickHouse](https://clickhouse.com/), and
+[DataFusion](https://datafusion.apache.org/).
 
 We'll use the Parquet format to compare apples to apples
-and also report results for the custom columnar database format of DuckDB
-and the Super Binary format used by `super`.
-We tried loading our test data into a ClickHouse table using its
-[new experimental JSON type](https://clickhouse.com/blog/a-new-powerful-json-data-type-for-clickhouse)
-but those attempts failed with "too many open files".
+and also report results for the custom columnar database format of DuckDB,
+the [new beta JSON type](https://clickhouse.com/blog/a-new-powerful-json-data-type-for-clickhouse) of ClickHouse,
+and the [Super Binary](../formats/bsup.md) format used by `super`.
 
-As of this writing in November 2024, we're using the latest version 1.1.3 of `duckdb`.
-version 24.11.1.1393 of `clickhouse`, and v43.0.0 of `datafusion-cli`.
+The detailed steps shown [below](#appendix-2-running-the-tests) can be reproduced via
+[automated scripts](https://github.com/brimdata/super/blob/main/scripts/super-cmd-perf).
+As of this writing in December 2024, [results](#the-test-results) were gathered on an AWS
+[`m6idn.2xlarge`](https://aws.amazon.com/ec2/instance-types/m6i/) instance
+with the following software versions:
+
+|**Software**|**Version**|
+|-|-|
+|`super`|Commit `3900a40`|
+|`duckdb`|`v1.1.3` 19864453f7|
+|`datafusion-cli`|datafusion-cli `43.0.0`|
+|`clickhouse`|ClickHouse local version `24.12.1.1614` (official build)|
+
+The complete run logs are [archived here](https://super-cmd-perf.s3.us-east-2.amazonaws.com/2024-12-27_21-58-22.tgz).
 
 ### The Test Data
 
@@ -694,7 +780,7 @@ wget https://data.gharchive.org/2023-02-08-1.json.gz
 wget https://data.gharchive.org/2023-02-08-23.json.gz
 ```
 We downloaded these files into a directory called `gharchive_gz`
-and created a duckdb database file called `gha.db` and a table called `gha`
+and created a DuckDB database file called `gha.db` and a table called `gha`
 using this command:
 ```
 duckdb gha.db -c "CREATE TABLE gha AS FROM read_json('gharchive_gz/*.json.gz', union_by_name=true)"
@@ -707,24 +793,34 @@ We then created a Parquet file called `gha.parquet` with this command:
 ```
 duckdb gha.db -c "COPY (from gha) TO 'gha.parquet'"
 ```
+To create a ClickHouse table using their beta JSON type, after starting
+a ClickHouse server we defined the single-column schema before loading the
+data using this command:
+```
+clickhouse-client --query "
+  SET enable_json_type = 1;
+  CREATE TABLE gha (v JSON) ENGINE MergeTree() ORDER BY tuple();
+  INSERT INTO gha SELECT * FROM file('gharchive_gz/*.json.gz', JSONAsObject);"
+```
 To create a super-structed file for the `super` command, there is no need to
-fuse the data into a single schema (though `super` can still work with the fused
+[`fuse`](../language/operators/fuse.md) the data into a single schema (though `super` can still work with the fused
 schema in the Parquet file), and we simply ran this command to create a Super Binary
 file:
 ```
 super gharchive_gz/*.json.gz > gha.bsup
 ```
-This code path in `super` is not multi-threaded so not particularly performant but,
-on our test machine, it takes about the same time as the `duckdb` method of creating
-a schema-fused table.
+This code path in `super` is not multi-threaded so not particularly performant,
+but on our test machine it runs a bit faster than both the `duckdb` method of
+creating a schema-fused table or loading the data to the `clickhouse` beta JSON type.
 
 Here are the resulting file sizes:
 ```
-% du -h gha.db gha.parquet gha.bsup gharchive_gz
-9.3G	gha.db
-4.6G	gha.parquet
-2.8G	gha.bsup
-2.2G	gharchive_gz
+% du -h gha.db gha.parquet gha.bsup gharchive_gz clickhouse/store
+9.4G gha.db
+4.7G gha.parquet
+2.9G gha.bsup
+2.3G gharchive_gz
+ 11G clickhouse/store
 ```
 
 ### The Test Queries
@@ -735,17 +831,17 @@ The test queries involve these patterns:
 * count by field aggregation
 * rank over union of disparate field types
 
-We will call these tests `search`, `search+`, `count`, `agg`, and `union`, respectively
+We will call these tests [search](#search), [search+](#search-1), [count](#count), [agg](#agg), and [union](#union), respectively
 
 #### Search
 
-For the search test, we'll search for the string pattern
+For the _search_ test, we'll search for the string pattern
 ```
     "in case you have any feedback 😊"
 ```
 in the field `payload.pull_request.body`
 and we'll just count the number of matches found.
-The number of matches is small (3) so the query performance is dominated
+The number of matches is small (2) so the query performance is dominated
 by the search.
 
 The SQL for this query is
@@ -754,9 +850,17 @@ SELECT count()
 FROM 'gha.parquet' -- or gha
 WHERE payload.pull_request.body LIKE '%in case you have any feedback 😊%'
 ```
-SuperSQL has a function called `grep` that is similar to the SQL `LIKE` clause but
-can operate over specified fields or default to all the string fields in any value.
-The SuperSQL query is
+To query the data stored with the ClickHouse JSON type, field
+references needed to be rewritten relative to the named column `v`.
+```sql
+SELECT count()
+FROM 'gha'
+WHERE v.payload.pull_request.body LIKE '%in case you have any feedback 😊%'
+```
+SuperSQL supports `LIKE` and could run the plain SQL query, but it also has a
+similar function called [`grep`](../language/functions/grep.md) that can operate over specified fields or
+default to all the string fields in any value. The SuperSQL query that uses
+`grep` is
 ```sql
 SELECT count()
 FROM 'gha.bsup'
@@ -778,34 +882,82 @@ WHERE id LIKE '%in case you have any feedback 😊%'
   OR payload.member.type LIKE '%in case you have any feedback 😊%'
 ```
 There are 486 such fields.  You can review the entire query in
-[docs/commands/search.sql](search.sql).
+[`search+.sql`](https://github.com/brimdata/super/blob/main/scripts/super-cmd-perf/queries/search%2B.sql).
+
+To query the data stored with the ClickHouse JSON type, field
+references needed to be rewritten relative to the named column `v`.
+```sql
+SELECT count()
+FROM 'gha'
+WHERE
+   v.id LIKE '%in case you have any feedback 😊%'
+   OR v.type LIKE '%in case you have any feedback 😊%'
+...
+```
+
+In SuperSQL, `grep` allows for a much shorter query.
+```sql
+SELLECT count()
+FROM 'gha.bsup'
+WHERE grep('in case you have any feedback 😊')
+```
 
 #### Count
 
-In the `count` test, we filter the input with a WHERE clause and count the results.
+In the _count_ test, we filter the input with a `WHERE` clause and count the results.
 We chose a random GitHub user name for the filter.
 This query has the form:
-```
+```sql
 SELECT count()
 FROM 'gha.parquet' -- or gha or 'gha.bsup'
 WHERE actor.login='johnbieren'"
 ```
 
+To query the data stored with the ClickHouse JSON type, field
+references needed to be rewritten relative to the named column `v`.
+```sql
+SELECT count()
+FROM 'gha'
+WHERE v.actor.login='johnbieren'
+```
+
 #### Agg
 
-In the `agg` test, we filter the input and count the results grouped by the field `type`
+In the _agg_ test, we filter the input and count the results grouped by the field `type`
 as in the DuckDB blog.
 This query has the form:
-```
+```sql
 SELECT count(),type
 FROM 'gha.parquet' -- or 'gha' or 'gha.bsup'
 WHERE repo.name='duckdb/duckdb'
 GROUP BY type
 ```
 
+To query the data stored with the ClickHouse JSON type, field
+references needed to be rewritten relative to the named column `v`.
+```sql
+SET allow_suspicious_types_in_group_by = 1;
+SELECT count(),v.type
+FROM 'gha'
+WHERE v.repo.name='duckdb/duckdb'
+GROUP BY v.type
+```
+
+Also, we had to enable the `allow_suspicious_types_in_group_by` setting as
+shown above because an initial attempt to query with default settings
+triggered the error:
+```
+Code: 44. DB::Exception: Received from localhost:9000. DB::Exception: Data
+types Variant/Dynamic are not allowed in GROUP BY keys, because it can lead
+to unexpected results. Consider using a subcolumn with a specific data type
+instead (for example 'column.Int64' or 'json.some.path.:Int64' if its a JSON
+path subcolumn) or casting this column to a specific data type. Set setting
+allow_suspicious_types_in_group_by = 1 in order to allow it. (ILLEGAL_COLUMN)
+```
+
 #### Union
 
-The `union` test is straight out of the DuckDB blog at the end of
+The _union_ test is straight out of the DuckDB blog at the end of
 [this section](https://duckdb.org/2023/03/03/json.html#handling-inconsistent-json-schemas).
 This query computes the GitHub users that were assigned as a PR reviewer the most often
 and returns the top 5 such users.
@@ -818,10 +970,10 @@ This query is:
 ```sql
 WITH assignees AS (
   SELECT payload.pull_request.assignee.login assignee
-  FROM 'gha.parquet'
+  FROM 'gha.parquet' -- or 'gha'
   UNION ALL
   SELECT unnest(payload.pull_request.assignees).login assignee
-  FROM 'gha.parquet'
+  FROM 'gha.parquet' -- or 'gha'
 )
 SELECT assignee, count(*) count
 FROM assignees
@@ -837,19 +989,47 @@ FROM 'gha.parquet'
 ```
 as
 ```sql
-SELECT rec.login as assignee FROM (
-    SELECT unnest(payload.pull_request.assignees) rec
+SELECT object.login as assignee FROM (
+    SELECT unnest(payload.pull_request.assignees) object
     FROM 'gha.parquet'
 )
 ```
 and for ClickHouse, we had to use `arrayJoin` instead of `unnest`.
 
-SuperSQL's data model does not require these sorts of gymnastics as
+Even with this change ClickHouse could only run the query successfully against
+the Parquet data, as after rewriting the field references to attempt to
+query the data stored with the ClickHouse JSON type it would not run. We
+suspect this is likely due to some remaining work in ClickHouse for `arrayJoin`
+to work with the new JSON type.
+```
+$ clickhouse-client --query "
+  WITH assignees AS (
+    SELECT v.payload.pull_request.assignee.login assignee
+    FROM 'gha'
+    UNION ALL
+    SELECT arrayJoin(v.payload.pull_request.assignees).login assignee
+    FROM 'gha'
+  )
+  SELECT assignee, count(*) count
+  FROM assignees
+  WHERE assignee IS NOT NULL
+  GROUP BY assignee
+  ORDER BY count DESC
+  LIMIT 5"
+
+Received exception from server (version 24.11.1):
+Code: 43. DB::Exception: Received from localhost:9000. DB::Exception: First
+argument for function tupleElement must be tuple or array of tuple. Actual
+Dynamic: In scope SELECT tupleElement(arrayJoin(v.payload.pull_request.assignees),
+'login') AS assignee FROM gha. (ILLEGAL_TYPE_OF_ARGUMENT)
+```
+
+SuperSQL's data model does not require these kinds of gymnastics as
 everything does not have to be jammed into a table.  Instead, we can use the
-`UNNEST` pipe operator combined with the spread operator applied to the array of
+`UNNEST` pipe operator combined with the [spread operator](../language/expressions.md#array-expressions) applied to the array of
 string fields to easily produce a stream of string values representing the
 assignees.  Then we simply aggregate the assignee stream:
-```
+```sql
 FROM 'gha.bsup'
 | UNNEST [...payload.pull_request.assignees, payload.pull_request.assignee]
 | WHERE this IS NOT NULL
@@ -860,30 +1040,32 @@ FROM 'gha.bsup'
 
 ### The Test Results
 
-The following table summarizes the results of each test as a column and
-each tool as a row with the speed-up factor shown in parentheses:
+The following table summarizes the query performance for each tool as recorded in the
+[most recent archived run](https://super-cmd-perf.s3.us-east-2.amazonaws.com/2024-12-27_21-58-22.tgz).
+The run time for each query in seconds is shown along with the speed-up factor
+in parentheses:
 
-| tool | format | search | search+ | count | agg | union |
-|--------------|---------------|---------------|---------------|----|------|-------|
-| `super` | `bsup` | 3.2 (2.6X) | 6.7 (3.6X) | 3.2 (0.04X) | 3.1 (0.04X) | 3.8 (117X) |
-| `super` | `parquet` | note 1 | note 1  | 0.18 (0.7X) | 0.27 (0.4X) | note 2 |
-| `duckdb` | `db` | 8.2  | 24  | 0.13 | 0.12  | 446  |
-| `duckdb` | `parquet` | 8.4 (1) | 23 (1X)  | 0.26 (0.5X) | 0.21 (0.6X) | 419 (1.1X) |
-| `datafusion` | `parquet` | 9.1 (0.9X) | 18 (1.3X)  | 0.24 (0.5X) | 0.24 (0.5X) | 40 (11x) |
-| `clickhouse` | `parquet` | 56 (0.1X) | 463 (0.1X)  | 1 (0.1X) | 0.91 (0.1X) | 66 (7X) |
+|**Tool**|**Format**|**search**|**search+**|**count**|**agg**|**union**|
+|-|-|-|-|-|-|-|
+|`super`|`bsup`|6.4<br/>(1.9x)|12.5<br/>(1.6x)|5.8<br/>(0.03x)|5.6<br/>(0.03x)|8.2<br/>(64x)|
+|`super`|`parquet`|40.8<br/>(0.3x)|55.1<br/>(0.4x)|0.3<br/>(0.6x)|0.5<br/>(0.3x)|40<br/>(13.2x)|
+|`duckdb`|`db`|12.1<br/>(1x)|19.8<br/>(1x)|0.2<br/>(1x)|0.1<br/>(1x)|527<br/>(1x)|
+|`duckdb`|`parquet`|13.3<br/>(0.9x)|21.3<br/>(0.9x)|0.4<br/>(0.4x)|0.3<br/>(0.4x)|488<br/>(1.1x)|
+|`datafusion`|`parquet`|11.0<br/>(1.1x)|21.2<br/>(0.9x)|0.4<br/>(0.5x)|0.4<br/>(0.4x)|24.2<br/>(22x)|
+|`clickhouse`|`parquet`|70<br/>(0.2x)|829<br/>(0.02x)|1.0<br/>(0.2x)|0.9<br/>(0.2x)|71.4<br/>(7x)|
+|`clickhouse`|`db`|0.9<br/>(14x)|12.8<br/>(1.6x)|0.1<br/>(2.2x)|0.1<br/>(1.2x)|note|
 
-_Note 1: the `super` vectorized runtime does not yet support `grep`_
+_Note: we were not able to successfully run the [union query](#union) with
+ClickHouse's beta JSON type_
 
-_Note 2: the `super` vectorized runtime does not yet support array expressions_
-
-Since DuckDB with its native format is overall the best performing,
-we used it as the baseline for all of the speedup factors.
+Since DuckDB with its native format could successfully run all queries with
+decent performance, we used it as the baseline for all of the speed-up factors.
 
 To summarize,
-`super` with Super Binary is substantially faster than the relational systems for
-the search use cases and performs on par with the others for traditional OLAP queries,
-except for the union query, where the super-structured data model trounces the relational
-model (by over 100X!) for stitching together disparate data types for analysis in an aggregation.
+`super` with Super Binary is substantially faster than multiple relational systems for
+the search use cases, and with Parquet performs on par with the others for traditional OLAP queries,
+except for the _union_ query, where the super-structured data model trounces the relational
+model (by over 60x!) for stitching together disparate data types for analysis in an aggregation.
 
 ## Appendix 1: Preparing the Test Data
 
@@ -927,16 +1109,16 @@ FROM (
 Hmm, now `duckdb` runs out of memory.
 
 We then thought we'd see if the sampling algorithm of `read_json` is more efficient,
-so we ran tried this command with successively larger sample sizes:
+so we tried this command with successively larger sample sizes:
 ```
 duckdb scratch -c "CREATE TABLE gha AS FROM read_json('gharchive_gz/*.json.gz', sample_size=1000000)"
 ```
-even with a million rows as the sample, `duckdb` fails with
+Even with a million rows as the sample, `duckdb` fails with
 ```
 Invalid Input Error: JSON transform error in file "gharchive_gz/2023-02-08-14.json.gz", in line 49745: Object {"issues":"write","metadata":"read","pull_requests... has unknown key "repository_hooks"
 Try increasing 'sample_size', reducing 'maximum_depth', specifying 'columns', 'format' or 'records' manually, setting 'ignore_errors' to true, or setting 'union_by_name' to true when reading multiple files with a different structure.
 ```
-Ok, there 4434953 JSON objects in the input so let's try this:
+Ok, there 4,434,953 JSON objects in the input so let's try this:
 ```
 duckdb gha.db -c "CREATE TABLE gha AS FROM read_json('gharchive_gz/*.json.gz', sample_size=4434953)"
 ```
@@ -951,400 +1133,661 @@ Sure enough, this works:
 ```
 duckdb gha.db -c "CREATE TABLE gha AS FROM read_json('gharchive_gz/*.json.gz', union_by_name=true)"
 ```
-We now have the `duckdb` database file for our GitHub Archive data called `gha.db`
+We now have the DuckDB database file for our GitHub Archive data called `gha.db`
 containing a single table called `gha` embedded in that database.
 What about the super-structured
 format for the `super` command?  There is no need to futz with sample sizes,
-schema inference, or union by name, just run this to create a Super Binary file:
+schema inference, or union by name. Just run this to create a Super Binary file:
 ```
 super gharchive_gz/*.json.gz > gha.bsup
 ```
 
 ## Appendix 2: Running the Tests
 
-This appendix provides the raw tests and output that we run on a MacBook Pro to generate
-the table of results above.
+This appendix provides the raw tests and output from the [most recent archived run](https://super-cmd-perf.s3.us-east-2.amazonaws.com/2024-12-27_21-58-22.tgz)
+of the tests via [automated scripts](https://github.com/brimdata/super/blob/main/scripts/super-cmd-perf)
+on an AWS [`m6idn.2xlarge`](https://aws.amazon.com/ec2/instance-types/m6i/) instance.
 
 ### Search Test
 
 ```
-; time super -c "
-  SELECT count()
-  FROM 'gha.bsup'
-  WHERE grep('in case you have any feedback 😊', payload.pull_request.body)
-"
-{count:2(uint64)}
-super -c   12.70s user 0.69s system 415% cpu 3.223 total
+About to execute
+================
+clickhouse-client --queries-file /mnt/tmpdir/tmp.NlvDgOOmnG
 
-time duckdb gha.db -c "
-  SELECT count()
-  FROM gha
-  WHERE payload.pull_request.body LIKE '%in case you have any feedback 😊%'
-"
-┌──────────────┐
-│ count_star() │
-│    int64     │
-├──────────────┤
-│            2 │
-└──────────────┘
-duckdb gha.db -c   26.66s user 6.90s system 406% cpu 8.266 total
+With query
+==========
+SELECT count()
+FROM 'gha'
+WHERE v.payload.pull_request.body LIKE '%in case you have any feedback 😊%'
 
-; time duckdb -c "
-  SELECT count()
-  FROM gha.parquet
-  WHERE payload.pull_request.body LIKE '%in case you have any feedback 😊%'
-"
-┌──────────────┐
-│ count_star() │
-│    int64     │
-├──────────────┤
-│            2 │
-└──────────────┘
-duckdb -c   42.71s user 6.06s system 582% cpu 8.380 total
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'clickhouse-client --queries-file /mnt/tmpdir/tmp.NlvDgOOmnG'
+Benchmark 1: clickhouse-client --queries-file /mnt/tmpdir/tmp.NlvDgOOmnG
+2
+  Time (abs ≡):         0.870 s               [User: 0.045 s, System: 0.023 s]
 
-; time datafusion-cli -c "
-  SELECT count()
-  FROM 'gha.parquet'
-  WHERE payload.pull_request.body LIKE '%in case you have any feedback 😊%'
-"
+About to execute
+================
+clickhouse --queries-file /mnt/tmpdir/tmp.0bwhkb0l9n
+
+With query
+==========
+SELECT count()
+FROM '/mnt/gha.parquet'
+WHERE payload.pull_request.body LIKE '%in case you have any feedback 😊%'
+
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'clickhouse --queries-file /mnt/tmpdir/tmp.0bwhkb0l9n'
+Benchmark 1: clickhouse --queries-file /mnt/tmpdir/tmp.0bwhkb0l9n
+2
+  Time (abs ≡):        69.650 s               [User: 69.485 s, System: 3.096 s]
+ 
+About to execute
+================
+datafusion-cli --file /mnt/tmpdir/tmp.S0ITz1nHQG
+
+With query
+==========
+SELECT count()
+FROM '/mnt/gha.parquet'
+WHERE payload.pull_request.body LIKE '%in case you have any feedback 😊%'
+
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'datafusion-cli --file /mnt/tmpdir/tmp.S0ITz1nHQG'
+Benchmark 1: datafusion-cli --file /mnt/tmpdir/tmp.S0ITz1nHQG
 DataFusion CLI v43.0.0
 +---------+
 | count() |
 +---------+
 | 2       |
 +---------+
-1 row(s) fetched.
-Elapsed 8.819 seconds.
+1 row(s) fetched. 
+Elapsed 10.811 seconds.
 
-datafusion-cli -c   40.75s user 6.72s system 521% cpu 9.106 total
+  Time (abs ≡):        11.041 s               [User: 65.647 s, System: 11.209 s]
+ 
+About to execute
+================
+duckdb /mnt/gha.db < /mnt/tmpdir/tmp.wsNTlXhTTF
 
-; time clickhouse -q "
-  SELECT count()
-  FROM 'gha.parquet'
-  WHERE payload.pull_request.body LIKE '%in case you have any feedback 😊%'
-"
-2
-clickhouse -q   50.81s user 1.83s system 94% cpu 55.994 total
+With query
+==========
+SELECT count()
+FROM 'gha'
+WHERE payload.pull_request.body LIKE '%in case you have any feedback 😊%'
+
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'duckdb /mnt/gha.db < /mnt/tmpdir/tmp.wsNTlXhTTF'
+Benchmark 1: duckdb /mnt/gha.db < /mnt/tmpdir/tmp.wsNTlXhTTF
+┌──────────────┐
+│ count_star() │
+│    int64     │
+├──────────────┤
+│            2 │
+└──────────────┘
+  Time (abs ≡):        12.051 s               [User: 78.680 s, System: 8.891 s]
+ 
+About to execute
+================
+duckdb < /mnt/tmpdir/tmp.hPiKS1Qi1A
+
+With query
+==========
+SELECT count()
+FROM '/mnt/gha.parquet'
+WHERE payload.pull_request.body LIKE '%in case you have any feedback 😊%'
+
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'duckdb < /mnt/tmpdir/tmp.hPiKS1Qi1A'
+Benchmark 1: duckdb < /mnt/tmpdir/tmp.hPiKS1Qi1A
+┌──────────────┐
+│ count_star() │
+│    int64     │
+├──────────────┤
+│            2 │
+└──────────────┘
+  Time (abs ≡):        13.267 s               [User: 90.148 s, System: 6.506 s]
+ 
+About to execute
+================
+super -z -I /mnt/tmpdir/tmp.pDeSZCTa2V
+
+With query
+==========
+SELECT count()
+FROM '/mnt/gha.bsup'
+WHERE grep('in case you have any feedback 😊', payload.pull_request.body)
+
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'super -z -I /mnt/tmpdir/tmp.pDeSZCTa2V'
+Benchmark 1: super -z -I /mnt/tmpdir/tmp.pDeSZCTa2V
+{count:2(uint64)}
+  Time (abs ≡):         6.371 s               [User: 23.178 s, System: 1.700 s]
+ 
+About to execute
+================
+SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.AYZIh6yi2s
+
+With query
+==========
+SELECT count()
+FROM '/mnt/gha.parquet'
+WHERE grep('in case you have any feedback 😊', payload.pull_request.body)
+
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.AYZIh6yi2s'
+Benchmark 1: SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.AYZIh6yi2s
+{count:2(uint64)}
+  Time (abs ≡):        40.838 s               [User: 292.674 s, System: 18.797 s]
 ```
-
 ### Search+ Test
 
 ```
-; time super -c "
-  SELECT count()
-  FROM 'gha.bsup'
-  WHERE grep('in case you have any feedback 😊')
-"
-{count:3(uint64)}
-super -c   43.80s user 0.71s system 669% cpu 6.653 total
+About to execute
+================
+clickhouse-client --queries-file /mnt/tmpdir/tmp.PFNN1fKojv
 
-; time duckdb gha.db < search.sql
-┌──────────────┐
-│ count_star() │
-│    int64     │
-├──────────────┤
-│            3 │
-└──────────────┘
-duckdb gha.db < search.sql  73.60s user 33.29s system 435% cpu 24.563 total
+With query
+==========
+SELECT count()
+FROM 'gha'
+WHERE
+   v.id LIKE '%in case you have any feedback 😊%'
+   OR v.type LIKE '%in case you have any feedback 😊%'
+   ...
+   OR v.payload.member.type LIKE '%in case you have any feedback 😊%'
 
-; time duckdb < search-parquet.sql
-┌──────────────┐
-│ count_star() │
-│    int64     │
-├──────────────┤
-│            3 │
-└──────────────┘
-duckdb < search-parquet.sql  89.57s user 29.21s system 513% cpu 23.113 total
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'clickhouse-client --queries-file /mnt/tmpdir/tmp.PFNN1fKojv'
+Benchmark 1: clickhouse-client --queries-file /mnt/tmpdir/tmp.PFNN1fKojv
+3
+  Time (abs ≡):        12.773 s               [User: 0.061 s, System: 0.025 s]
 
-; time datafusion-cli -f search-parquet.sql
+About to execute
+================
+clickhouse --queries-file /mnt/tmpdir/tmp.PTRkZ4ZIXX
+
+With query
+==========
+SELECT count()
+FROM '/mnt/gha.parquet'
+WHERE
+   id LIKE '%in case you have any feedback 😊%'
+   OR type LIKE '%in case you have any feedback 😊%'
+   ...
+   OR payload.member.type LIKE '%in case you have any feedback 😊%'
+
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'clickhouse --queries-file /mnt/tmpdir/tmp.PTRkZ4ZIXX'
+Benchmark 1: clickhouse --queries-file /mnt/tmpdir/tmp.PTRkZ4ZIXX
+3
+  Time (abs ≡):        828.691 s               [User: 908.452 s, System: 17.692 s]
+ 
+About to execute
+================
+datafusion-cli --file /mnt/tmpdir/tmp.SCtJ9sNeBA
+
+With query
+==========
+SELECT count()
+FROM '/mnt/gha.parquet'
+WHERE
+   id LIKE '%in case you have any feedback 😊%'
+   OR type LIKE '%in case you have any feedback 😊%'
+   ...
+   OR payload.member.type LIKE '%in case you have any feedback 😊%'
+
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'datafusion-cli --file /mnt/tmpdir/tmp.SCtJ9sNeBA'
+Benchmark 1: datafusion-cli --file /mnt/tmpdir/tmp.SCtJ9sNeBA
 DataFusion CLI v43.0.0
 +---------+
 | count() |
 +---------+
 | 3       |
 +---------+
-1 row(s) fetched.
-Elapsed 18.184 seconds.
-datafusion-cli -f search-parquet.sql  83.84s user 11.13s system 513% cpu 18.494 total
+1 row(s) fetched. 
+Elapsed 20.990 seconds.
 
-; time clickhouse --queries-file search-parquet.sql
-3
-clickhouse --queries-file search-parquet.sql  515.68s user 5.50s system 112% cpu 7:43.37 total
+  Time (abs ≡):        21.228 s               [User: 127.034 s, System: 19.513 s]
+ 
+About to execute
+================
+duckdb /mnt/gha.db < /mnt/tmpdir/tmp.SXkIoC2XJo
+
+With query
+==========
+SELECT count()
+FROM 'gha'
+WHERE
+   id LIKE '%in case you have any feedback 😊%'
+   OR type LIKE '%in case you have any feedback 😊%'
+   ...
+   OR payload.member.type LIKE '%in case you have any feedback 😊%'
+
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'duckdb /mnt/gha.db < /mnt/tmpdir/tmp.SXkIoC2XJo'
+Benchmark 1: duckdb /mnt/gha.db < /mnt/tmpdir/tmp.SXkIoC2XJo
+┌──────────────┐
+│ count_star() │
+│    int64     │
+├──────────────┤
+│            3 │
+└──────────────┘
+  Time (abs ≡):        19.814 s               [User: 140.302 s, System: 9.875 s]
+ 
+About to execute
+================
+duckdb < /mnt/tmpdir/tmp.k6yVjzT4cu
+
+With query
+==========
+SELECT count()
+FROM '/mnt/gha.parquet'
+WHERE
+   id LIKE '%in case you have any feedback 😊%'
+   OR type LIKE '%in case you have any feedback 😊%'
+   ...
+   OR payload.member.type LIKE '%in case you have any feedback 😊%'
+
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'duckdb < /mnt/tmpdir/tmp.k6yVjzT4cu'
+Benchmark 1: duckdb < /mnt/tmpdir/tmp.k6yVjzT4cu
+┌──────────────┐
+│ count_star() │
+│    int64     │
+├──────────────┤
+│            3 │
+└──────────────┘
+  Time (abs ≡):        21.286 s               [User: 145.120 s, System: 8.677 s]
+ 
+About to execute
+================
+super -z -I /mnt/tmpdir/tmp.jJSibCjp8r
+
+With query
+==========
+SELECT count()
+FROM '/mnt/gha.bsup'
+WHERE grep('in case you have any feedback 😊')
+
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'super -z -I /mnt/tmpdir/tmp.jJSibCjp8r'
+Benchmark 1: super -z -I /mnt/tmpdir/tmp.jJSibCjp8r
+{count:3(uint64)}
+  Time (abs ≡):        12.492 s               [User: 88.901 s, System: 1.672 s]
+ 
+About to execute
+================
+SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.evXq1mxkI0
+
+With query
+==========
+SELECT count()
+FROM '/mnt/gha.parquet'
+WHERE grep('in case you have any feedback 😊')
+
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.evXq1mxkI0'
+Benchmark 1: SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.evXq1mxkI0
+{count:3(uint64)}
+  Time (abs ≡):        55.081 s               [User: 408.337 s, System: 18.597 s]
 ```
+
 ### Count Test
 
 ```
-; time super -c "
-  SELECT count()
-  FROM 'gha.bsup'
-  WHERE actor.login='johnbieren'
-"
-{count:879(uint64)}
-super -c   13.81s user 0.71s system 449% cpu 3.233 total
+About to execute
+================
+clickhouse-client --queries-file /mnt/tmpdir/tmp.Wqytp5T3II
 
-; time SUPER_VAM=1 super -c "
-  SELECT count()
-  FROM 'gha.parquet'
-  WHERE actor.login='johnbieren'
-"
-{count:879(uint64)}
-SUPER_VAM=1 super -c   0.43s user 0.08s system 277% cpu 0.182 total
+With query
+==========
+SELECT count()
+FROM 'gha'
+WHERE v.actor.login='johnbieren'
 
-; time duckdb gha.db -c "
-  SELECT count()
-  FROM gha
-  WHERE actor.login='johnbieren'
-"
-┌──────────────┐
-│ count_star() │
-│    int64     │
-├──────────────┤
-│          879 │
-└──────────────┘
-duckdb gha.db -c   0.64s user 0.06s system 517% cpu 0.134 total
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'clickhouse-client --queries-file /mnt/tmpdir/tmp.Wqytp5T3II'
+Benchmark 1: clickhouse-client --queries-file /mnt/tmpdir/tmp.Wqytp5T3II
+879
+  Time (abs ≡):         0.081 s               [User: 0.021 s, System: 0.023 s]
+ 
+About to execute
+================
+clickhouse --queries-file /mnt/tmpdir/tmp.O95s9fJprP
 
-; time duckdb -c "
-  SELECT count()
-  FROM 'gha.parquet'
-  WHERE actor.login='johnbieren'
-"
-┌──────────────┐
-│ count_star() │
-│    int64     │
-├──────────────┤
-│          879 │
-└──────────────┘
-duckdb gha.db -c   1.14s user 0.14s system 490% cpu 0.261 total
+With query
+==========
+SELECT count()
+FROM '/mnt/gha.parquet'
+WHERE actor.login='johnbieren'
 
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'clickhouse --queries-file /mnt/tmpdir/tmp.O95s9fJprP'
+Benchmark 1: clickhouse --queries-file /mnt/tmpdir/tmp.O95s9fJprP
+879
+  Time (abs ≡):         0.972 s               [User: 0.836 s, System: 0.156 s]
+ 
+About to execute
+================
+datafusion-cli --file /mnt/tmpdir/tmp.CHTPCdHbaG
+
+With query
+==========
+SELECT count()
+FROM '/mnt/gha.parquet'
+WHERE actor.login='johnbieren'
+
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'datafusion-cli --file /mnt/tmpdir/tmp.CHTPCdHbaG'
+Benchmark 1: datafusion-cli --file /mnt/tmpdir/tmp.CHTPCdHbaG
 DataFusion CLI v43.0.0
 +---------+
 | count() |
 +---------+
 | 879     |
 +---------+
-1 row(s) fetched.
-Elapsed 0.203 seconds.
+1 row(s) fetched. 
+Elapsed 0.340 seconds.
 
-datafusion-cli -c   0.93s user 0.15s system 453% cpu 0.238 total
+  Time (abs ≡):         0.384 s               [User: 1.600 s, System: 0.409 s]
+ 
+About to execute
+================
+duckdb /mnt/gha.db < /mnt/tmpdir/tmp.VQ2IgDaeUO
 
-; time clickhouse -q "
-  SELECT count()
-  FROM 'gha.parquet'
-  WHERE actor.login='johnbieren'
-"
-879
-clickhouse -q   0.86s user 0.07s system 93% cpu 1.001 total
+With query
+==========
+SELECT count()
+FROM 'gha'
+WHERE actor.login='johnbieren'
+
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'duckdb /mnt/gha.db < /mnt/tmpdir/tmp.VQ2IgDaeUO'
+Benchmark 1: duckdb /mnt/gha.db < /mnt/tmpdir/tmp.VQ2IgDaeUO
+┌──────────────┐
+│ count_star() │
+│    int64     │
+├──────────────┤
+│          879 │
+└──────────────┘
+  Time (abs ≡):         0.178 s               [User: 1.070 s, System: 0.131 s]
+ 
+About to execute
+================
+duckdb < /mnt/tmpdir/tmp.rjFqrZFUtF
+
+With query
+==========
+SELECT count()
+FROM '/mnt/gha.parquet'
+WHERE actor.login='johnbieren'
+
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'duckdb < /mnt/tmpdir/tmp.rjFqrZFUtF'
+Benchmark 1: duckdb < /mnt/tmpdir/tmp.rjFqrZFUtF
+┌──────────────┐
+│ count_star() │
+│    int64     │
+├──────────────┤
+│          879 │
+└──────────────┘
+  Time (abs ≡):         0.426 s               [User: 2.252 s, System: 0.194 s]
+ 
+About to execute
+================
+super -z -I /mnt/tmpdir/tmp.AbeKpBbYW8
+
+With query
+==========
+SELECT count()
+FROM '/mnt/gha.bsup'
+WHERE actor.login='johnbieren'
+
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'super -z -I /mnt/tmpdir/tmp.AbeKpBbYW8'
+Benchmark 1: super -z -I /mnt/tmpdir/tmp.AbeKpBbYW8
+{count:879(uint64)}
+  Time (abs ≡):         5.786 s               [User: 17.405 s, System: 1.637 s]
+ 
+About to execute
+================
+SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.5xTnB02WgG
+
+With query
+==========
+SELECT count()
+FROM '/mnt/gha.parquet'
+WHERE actor.login='johnbieren'
+
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.5xTnB02WgG'
+Benchmark 1: SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.5xTnB02WgG
+{count:879(uint64)}
+  Time (abs ≡):         0.303 s               [User: 0.792 s, System: 0.240 s]
 ```
 
 ### Agg Test
 
 ```
-; time super -c "
-  SELECT count(),type
-  FROM 'gha.bsup'
-  WHERE repo.name='duckdb/duckdb'
-  GROUP BY type
-"
-{type:"PullRequestReviewEvent",count:14(uint64)}
-{type:"IssueCommentEvent",count:30(uint64)}
-{type:"WatchEvent",count:29(uint64)}
-{type:"PullRequestEvent",count:35(uint64)}
-{type:"PushEvent",count:15(uint64)}
-{type:"IssuesEvent",count:9(uint64)}
-{type:"ForkEvent",count:3(uint64)}
-{type:"PullRequestReviewCommentEvent",count:7(uint64)}
-super -c   12.24s user 0.68s system 413% cpu 3.129 total
+About to execute
+================
+clickhouse --queries-file /mnt/tmpdir/tmp.k2UT3NLBd6
 
-; time SUPER_VAM=1 super -c "
-  SELECT count(),type
-  FROM 'gha.parquet'
-  WHERE repo.name='duckdb/duckdb'
-  GROUP BY type
-"
-{type:"IssueCommentEvent",count:30(uint64)}
-{type:"PullRequestEvent",count:35(uint64)}
-{type:"PushEvent",count:15(uint64)}
-{type:"WatchEvent",count:29(uint64)}
-{type:"PullRequestReviewEvent",count:14(uint64)}
-{type:"ForkEvent",count:3(uint64)}
-{type:"PullRequestReviewCommentEvent",count:7(uint64)}
-{type:"IssuesEvent",count:9(uint64)}
-SUPER_VAM=1 super -c   1.01s user 0.13s system 421% cpu 0.271 total
+With query
+==========
+SELECT count(),type
+FROM '/mnt/gha.parquet'
+WHERE repo.name='duckdb/duckdb'
+GROUP BY type
 
-; time duckdb gha.db -c "
-  SELECT count(),type
-  FROM gha
-  WHERE repo.name='duckdb/duckdb'
-  GROUP BY type
-"
-┌──────────────┬───────────────────────────────┐
-│ count_star() │             type              │
-│    int64     │            varchar            │
-├──────────────┼───────────────────────────────┤
-│            3 │ ForkEvent                     │
-│           35 │ PullRequestEvent              │
-│           29 │ WatchEvent                    │
-│            7 │ PullRequestReviewCommentEvent │
-│           15 │ PushEvent                     │
-│            9 │ IssuesEvent                   │
-│           14 │ PullRequestReviewEvent        │
-│           30 │ IssueCommentEvent             │
-└──────────────┴───────────────────────────────┘
-duckdb gha.db -c   0.49s user 0.06s system 466% cpu 0.119 total
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'clickhouse --queries-file /mnt/tmpdir/tmp.k2UT3NLBd6'
+Benchmark 1: clickhouse --queries-file /mnt/tmpdir/tmp.k2UT3NLBd6
+30	IssueCommentEvent
+14	PullRequestReviewEvent
+29	WatchEvent
+15	PushEvent
+7	PullRequestReviewCommentEvent
+9	IssuesEvent
+3	ForkEvent
+35	PullRequestEvent
+  Time (abs ≡):         0.860 s               [User: 0.757 s, System: 0.172 s]
+ 
+About to execute
+================
+clickhouse-client --queries-file /mnt/tmpdir/tmp.MqFw3Iihza
 
-; time duckdb -c "
-  SELECT count(),type
-  FROM 'gha.parquet'
-  WHERE repo.name='duckdb/duckdb'
-  GROUP BY type
-"
-┌──────────────┬───────────────────────────────┐
-│ count_star() │             type              │
-│    int64     │            varchar            │
-├──────────────┼───────────────────────────────┤
-│            9 │ IssuesEvent                   │
-│            7 │ PullRequestReviewCommentEvent │
-│           15 │ PushEvent                     │
-│           14 │ PullRequestReviewEvent        │
-│            3 │ ForkEvent                     │
-│           29 │ WatchEvent                    │
-│           35 │ PullRequestEvent              │
-│           30 │ IssueCommentEvent             │
-└──────────────┴───────────────────────────────┘
-duckdb -c   0.73s user 0.14s system 413% cpu 0.211 total
+With query
+==========
+SET allow_suspicious_types_in_group_by = 1;
+SELECT count(),v.type
+FROM 'gha'
+WHERE v.repo.name='duckdb/duckdb'
+GROUP BY v.type
 
-; time datafusion-cli -c "
-  SELECT count(),type
-  FROM 'gha.parquet'
-  WHERE repo.name='duckdb/duckdb'
-  GROUP BY type
-"
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'clickhouse-client --queries-file /mnt/tmpdir/tmp.MqFw3Iihza'
+Benchmark 1: clickhouse-client --queries-file /mnt/tmpdir/tmp.MqFw3Iihza
+14	PullRequestReviewEvent
+15	PushEvent
+9	IssuesEvent
+3	ForkEvent
+7	PullRequestReviewCommentEvent
+29	WatchEvent
+30	IssueCommentEvent
+35	PullRequestEvent
+  Time (abs ≡):         0.122 s               [User: 0.032 s, System: 0.019 s]
+ 
+About to execute
+================
+datafusion-cli --file /mnt/tmpdir/tmp.Rf1BJWypeQ
+
+With query
+==========
+SELECT count(),type
+FROM '/mnt/gha.parquet'
+WHERE repo.name='duckdb/duckdb'
+GROUP BY type
+
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'datafusion-cli --file /mnt/tmpdir/tmp.Rf1BJWypeQ'
+Benchmark 1: datafusion-cli --file /mnt/tmpdir/tmp.Rf1BJWypeQ
 DataFusion CLI v43.0.0
 +---------+-------------------------------+
 | count() | type                          |
 +---------+-------------------------------+
-| 15      | PushEvent                     |
-| 35      | PullRequestEvent              |
-| 7       | PullRequestReviewCommentEvent |
-| 14      | PullRequestReviewEvent        |
-| 30      | IssueCommentEvent             |
-| 9       | IssuesEvent                   |
 | 29      | WatchEvent                    |
 | 3       | ForkEvent                     |
+| 35      | PullRequestEvent              |
+| 14      | PullRequestReviewEvent        |
+| 7       | PullRequestReviewCommentEvent |
+| 30      | IssueCommentEvent             |
+| 9       | IssuesEvent                   |
+| 15      | PushEvent                     |
 +---------+-------------------------------+
-8 row(s) fetched.
-Elapsed 0.200 seconds.
+8 row(s) fetched. 
+Elapsed 0.320 seconds.
 
-datafusion-cli -c   0.80s user 0.15s system 398% cpu 0.238 total
+  Time (abs ≡):         0.365 s               [User: 1.399 s, System: 0.399 s]
+ 
+About to execute
+================
+duckdb /mnt/gha.db < /mnt/tmpdir/tmp.pEWjK5q2sA
 
-; time clickhouse -q "
-  SELECT count(),type
-  FROM 'gha.parquet'
-  WHERE repo.name='duckdb/duckdb'
-  GROUP BY type
-"
-30	IssueCommentEvent
-14	PullRequestReviewEvent
-15	PushEvent
-29	WatchEvent
-9	IssuesEvent
-7	PullRequestReviewCommentEvent
-3	ForkEvent
-35	PullRequestEvent
-clickhouse -q   0.77s user 0.11s system 97% cpu 0.908 total
+With query
+==========
+SELECT count(),type
+FROM 'gha'
+WHERE repo.name='duckdb/duckdb'
+GROUP BY type
+
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'duckdb /mnt/gha.db < /mnt/tmpdir/tmp.pEWjK5q2sA'
+Benchmark 1: duckdb /mnt/gha.db < /mnt/tmpdir/tmp.pEWjK5q2sA
+┌──────────────┬───────────────────────────────┐
+│ count_star() │             type              │
+│    int64     │            varchar            │
+├──────────────┼───────────────────────────────┤
+│           14 │ PullRequestReviewEvent        │
+│           29 │ WatchEvent                    │
+│           30 │ IssueCommentEvent             │
+│           15 │ PushEvent                     │
+│            9 │ IssuesEvent                   │
+│            7 │ PullRequestReviewCommentEvent │
+│            3 │ ForkEvent                     │
+│           35 │ PullRequestEvent              │
+└──────────────┴───────────────────────────────┘
+  Time (abs ≡):         0.141 s               [User: 0.756 s, System: 0.147 s]
+ 
+About to execute
+================
+duckdb < /mnt/tmpdir/tmp.cC0xpHh2ee
+
+With query
+==========
+SELECT count(),type
+FROM '/mnt/gha.parquet'
+WHERE repo.name='duckdb/duckdb'
+GROUP BY type
+
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'duckdb < /mnt/tmpdir/tmp.cC0xpHh2ee'
+Benchmark 1: duckdb < /mnt/tmpdir/tmp.cC0xpHh2ee
+┌──────────────┬───────────────────────────────┐
+│ count_star() │             type              │
+│    int64     │            varchar            │
+├──────────────┼───────────────────────────────┤
+│            3 │ ForkEvent                     │
+│           14 │ PullRequestReviewEvent        │
+│           15 │ PushEvent                     │
+│            9 │ IssuesEvent                   │
+│            7 │ PullRequestReviewCommentEvent │
+│           29 │ WatchEvent                    │
+│           30 │ IssueCommentEvent             │
+│           35 │ PullRequestEvent              │
+└──────────────┴───────────────────────────────┘
+  Time (abs ≡):         0.320 s               [User: 1.529 s, System: 0.175 s]
+ 
+About to execute
+================
+super -z -I /mnt/tmpdir/tmp.QMhaBvUi2y
+
+With query
+==========
+SELECT count(),type
+FROM '/mnt/gha.bsup'
+WHERE repo.name='duckdb/duckdb'
+GROUP BY type
+
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'super -z -I /mnt/tmpdir/tmp.QMhaBvUi2y'
+Benchmark 1: super -z -I /mnt/tmpdir/tmp.QMhaBvUi2y
+{type:"PullRequestReviewCommentEvent",count:7(uint64)}
+{type:"PullRequestReviewEvent",count:14(uint64)}
+{type:"IssueCommentEvent",count:30(uint64)}
+{type:"WatchEvent",count:29(uint64)}
+{type:"PullRequestEvent",count:35(uint64)}
+{type:"PushEvent",count:15(uint64)}
+{type:"IssuesEvent",count:9(uint64)}
+{type:"ForkEvent",count:3(uint64)}
+  Time (abs ≡):         5.626 s               [User: 15.509 s, System: 1.552 s]
+ 
+About to execute
+================
+SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.yfAdMeskPR
+
+With query
+==========
+SELECT count(),type
+FROM '/mnt/gha.parquet'
+WHERE repo.name='duckdb/duckdb'
+GROUP BY type
+
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.yfAdMeskPR'
+Benchmark 1: SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.yfAdMeskPR
+{type:"PushEvent",count:15(uint64)}
+{type:"IssuesEvent",count:9(uint64)}
+{type:"WatchEvent",count:29(uint64)}
+{type:"PullRequestEvent",count:35(uint64)}
+{type:"ForkEvent",count:3(uint64)}
+{type:"PullRequestReviewCommentEvent",count:7(uint64)}
+{type:"PullRequestReviewEvent",count:14(uint64)}
+{type:"IssueCommentEvent",count:30(uint64)}
+  Time (abs ≡):         0.491 s               [User: 2.049 s, System: 0.357 s]
 ```
 
 ### Union Test
 
 ```
-time super -c "
-  FROM 'gha.bsup'
-  | SELECT VALUE payload.pull_request
-  | WHERE this IS NOT NULL
-  | UNNEST [...assignees, assignee]
-  | WHERE this IS NOT NULL
-  | AGGREGATE count() BY assignee:=login
-  | ORDER BY count DESC
-  | LIMIT 5
-"
-{assignee:"poad",count:1966(uint64)}
-{assignee:"vinayakkulkarni",count:508(uint64)}
-{assignee:"tmtmtmtm",count:356(uint64)}
-{assignee:"AMatutat",count:260(uint64)}
-{assignee:"danwinship",count:208(uint64)}
-super -c   12.39s user 0.95s system 351% cpu 3.797 total
+About to execute
+================
+clickhouse --queries-file /mnt/tmpdir/tmp.6r4kTKMn1T
 
-; time duckdb gha.db -c "
-  WITH assignees AS (
-    SELECT payload.pull_request.assignee.login assignee
-    FROM gha
-    UNION ALL
-    SELECT unnest(payload.pull_request.assignees).login assignee
-    FROM gha
-  )
-  SELECT assignee, count(*) count
-  FROM assignees
-  WHERE assignee NOT NULL
-  GROUP BY assignee
-  ORDER BY count DESC
-  LIMIT 5
-"
-┌─────────────────┬───────┐
-│    assignee     │ count │
-│     varchar     │ int64 │
-├─────────────────┼───────┤
-│ poad            │  1966 │
-│ vinayakkulkarni │   508 │
-│ tmtmtmtm        │   356 │
-│ AMatutat        │   260 │
-│ danwinship      │   208 │
-└─────────────────┴───────┘
-duckdb gha.db -c   3119.93s user 90.86s system 719% cpu 7:26.22 total
+With query
+==========
+WITH assignees AS (
+  SELECT payload.pull_request.assignee.login assignee
+  FROM '/mnt/gha.parquet'
+  UNION ALL
+  SELECT arrayJoin(payload.pull_request.assignees).login assignee
+  FROM '/mnt/gha.parquet'
+)
+SELECT assignee, count(*) count
+FROM assignees
+WHERE assignee IS NOT NULL
+GROUP BY assignee
+ORDER BY count DESC
+LIMIT 5
 
-time duckdb -c "
-  WITH assignees AS (
-    SELECT payload.pull_request.assignee.login assignee
-    FROM 'gha.parquet'
-    UNION ALL
-    SELECT unnest(payload.pull_request.assignees).login assignee
-    FROM 'gha.parquet'
-  )
-  SELECT assignee, count(*) count
-  FROM assignees
-  WHERE assignee NOT NULL
-  GROUP BY assignee
-  ORDER BY count DESC
-  LIMIT 5
-"
-┌─────────────────┬───────┐
-│    assignee     │ count │
-│     varchar     │ int64 │
-├─────────────────┼───────┤
-│ poad            │  1966 │
-│ vinayakkulkarni │   508 │
-│ tmtmtmtm        │   356 │
-│ AMatutat        │   260 │
-│ danwinship      │   208 │
-└─────────────────┴───────┘
-duckdb -c   2914.72s user 107.15s system 721% cpu 6:58.68 total
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'clickhouse --queries-file /mnt/tmpdir/tmp.6r4kTKMn1T'
+Benchmark 1: clickhouse --queries-file /mnt/tmpdir/tmp.6r4kTKMn1T
+poad	1966
+vinayakkulkarni	508
+tmtmtmtm	356
+AMatutat	260
+danwinship	208
+  Time (abs ≡):        71.372 s               [User: 142.043 s, System: 6.278 s]
+ 
+About to execute
+================
+datafusion-cli --file /mnt/tmpdir/tmp.GgJzlAtf6a
 
-time datafusion-cli -c "
-  WITH assignees AS (
-    SELECT payload.pull_request.assignee.login assignee
-    FROM 'gha.parquet'
-    UNION ALL
-    SELECT object.login as assignee FROM (
-      SELECT unnest(payload.pull_request.assignees) object
-      FROM 'gha.parquet'
-    )
+With query
+==========
+WITH assignees AS (
+  SELECT payload.pull_request.assignee.login assignee
+  FROM '/mnt/gha.parquet'
+  UNION ALL
+  SELECT object.login as assignee FROM (
+    SELECT unnest(payload.pull_request.assignees) object
+    FROM '/mnt/gha.parquet'
   )
-  SELECT assignee, count() count
-  FROM assignees
-  WHERE assignee IS NOT NULL
-  GROUP BY assignee
-  ORDER BY count DESC
-  LIMIT 5
-"
+)
+SELECT assignee, count() count
+FROM assignees
+WHERE assignee IS NOT NULL
+GROUP BY assignee
+ORDER BY count DESC
+LIMIT 5
+
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'datafusion-cli --file /mnt/tmpdir/tmp.GgJzlAtf6a'
+Benchmark 1: datafusion-cli --file /mnt/tmpdir/tmp.GgJzlAtf6a
 DataFusion CLI v43.0.0
 +-----------------+-------+
 | assignee        | count |
@@ -1355,30 +1798,120 @@ DataFusion CLI v43.0.0
 | AMatutat        | 260   |
 | danwinship      | 208   |
 +-----------------+-------+
-5 row(s) fetched.
-Elapsed 39.012 seconds.
+5 row(s) fetched. 
+Elapsed 23.907 seconds.
 
-datafusion-cli -c   116.97s user 44.50s system 408% cpu 39.533 total
+  Time (abs ≡):        24.215 s               [User: 163.583 s, System: 24.973 s]
+ 
+About to execute
+================
+duckdb /mnt/gha.db < /mnt/tmpdir/tmp.Q49a92Gvr5
 
-; time clickhouse -q "
- WITH assignees AS (
-    SELECT payload.pull_request.assignee.login assignee
-    FROM 'gha.parquet'
-    UNION ALL
-    SELECT arrayJoin(payload.pull_request.assignees).login assignee
-    FROM 'gha.parquet'
-  )
-  SELECT assignee, count(*) count
-  FROM assignees
-  WHERE assignee IS NOT NULL
-  GROUP BY assignee
-  ORDER BY count DESC
-  LIMIT 5
-"
-poad	1966
-vinayakkulkarni	508
-tmtmtmtm	356
-AMatutat	260
-danwinship	208
-clickhouse -q   105.49s user 6.54s system 169% cpu 1:06.27 total
+With query
+==========
+WITH assignees AS (
+  SELECT payload.pull_request.assignee.login assignee
+  FROM 'gha'
+  UNION ALL
+  SELECT unnest(payload.pull_request.assignees).login assignee
+  FROM 'gha'
+)
+SELECT assignee, count(*) count
+FROM assignees
+WHERE assignee IS NOT NULL
+GROUP BY assignee
+ORDER BY count DESC
+LIMIT 5
+
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'duckdb /mnt/gha.db < /mnt/tmpdir/tmp.Q49a92Gvr5'
+Benchmark 1: duckdb /mnt/gha.db < /mnt/tmpdir/tmp.Q49a92Gvr5
+┌─────────────────┬───────┐
+│    assignee     │ count │
+│     varchar     │ int64 │
+├─────────────────┼───────┤
+│ poad            │  1966 │
+│ vinayakkulkarni │   508 │
+│ tmtmtmtm        │   356 │
+│ AMatutat        │   260 │
+│ danwinship      │   208 │
+└─────────────────┴───────┘
+  Time (abs ≡):        527.130 s               [User: 4056.419 s, System: 15.145 s]
+ 
+About to execute
+================
+duckdb < /mnt/tmpdir/tmp.VQYM2LCNeB
+
+With query
+==========
+WITH assignees AS (
+  SELECT payload.pull_request.assignee.login assignee
+  FROM '/mnt/gha.parquet'
+  UNION ALL
+  SELECT unnest(payload.pull_request.assignees).login assignee
+  FROM '/mnt/gha.parquet'
+)
+SELECT assignee, count(*) count
+FROM assignees
+WHERE assignee IS NOT NULL
+GROUP BY assignee
+ORDER BY count DESC
+LIMIT 5
+
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'duckdb < /mnt/tmpdir/tmp.VQYM2LCNeB'
+Benchmark 1: duckdb < /mnt/tmpdir/tmp.VQYM2LCNeB
+┌─────────────────┬───────┐
+│    assignee     │ count │
+│     varchar     │ int64 │
+├─────────────────┼───────┤
+│ poad            │  1966 │
+│ vinayakkulkarni │   508 │
+│ tmtmtmtm        │   356 │
+│ AMatutat        │   260 │
+│ danwinship      │   208 │
+└─────────────────┴───────┘
+  Time (abs ≡):        488.127 s               [User: 3660.271 s, System: 10.031 s]
+ 
+About to execute
+================
+super -z -I /mnt/tmpdir/tmp.JzRx6IABuv
+
+With query
+==========
+FROM '/mnt/gha.bsup'
+| UNNEST [...payload.pull_request.assignees, payload.pull_request.assignee]
+| WHERE this IS NOT NULL
+| AGGREGATE count() BY assignee:=login
+| ORDER BY count DESC
+| LIMIT 5
+
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'super -z -I /mnt/tmpdir/tmp.JzRx6IABuv'
+Benchmark 1: super -z -I /mnt/tmpdir/tmp.JzRx6IABuv
+{assignee:"poad",count:1966(uint64)}
+{assignee:"vinayakkulkarni",count:508(uint64)}
+{assignee:"tmtmtmtm",count:356(uint64)}
+{assignee:"AMatutat",count:260(uint64)}
+{assignee:"danwinship",count:208(uint64)}
+  Time (abs ≡):         8.245 s               [User: 17.489 s, System: 1.938 s]
+ 
+About to execute
+================
+SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.djiUKncZ0T
+
+With query
+==========
+FROM '/mnt/gha.parquet'
+| UNNEST [...payload.pull_request.assignees, payload.pull_request.assignee]
+| WHERE this IS NOT NULL
+| AGGREGATE count() BY assignee:=login
+| ORDER BY count DESC
+| LIMIT 5
+
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.djiUKncZ0T'
+Benchmark 1: SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.djiUKncZ0T
+{assignee:"poad",count:1966(uint64)}
+{assignee:"vinayakkulkarni",count:508(uint64)}
+{assignee:"tmtmtmtm",count:356(uint64)}
+{assignee:"AMatutat",count:260(uint64)}
+{assignee:"danwinship",count:208(uint64)}
+  Time (abs ≡):        40.014 s               [User: 291.269 s, System: 17.516 s]
 ```

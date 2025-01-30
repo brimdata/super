@@ -137,6 +137,13 @@ func (c *canon) expr(e ast.Expr, parent string) {
 		c.write("[")
 		c.expr(e.Index, "")
 		c.write("]")
+	case *ast.IsNullExpr:
+		c.expr(e.Expr, "")
+		c.write("IS ")
+		if e.Not {
+			c.write("NOT ")
+		}
+		c.write("NULL")
 	case *ast.SliceExpr:
 		c.expr(e.Expr, "")
 		c.write("[")

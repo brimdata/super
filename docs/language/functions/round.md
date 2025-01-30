@@ -15,11 +15,15 @@ which must be a numeric type.  The return type retains the type of the argument.
 
 ### Examples
 
-```mdtest-command
-echo '3.14 -1.5 0 1' | super -z -c 'yield round(this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield round(this)
+# input
+3.14
+-1.5
+0
+1
+# expected output
 3.
 -2.
 0

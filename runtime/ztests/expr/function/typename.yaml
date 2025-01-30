@@ -1,0 +1,13 @@
+zed: typename(name)
+
+vector: true
+
+input: |
+  {name:"port",p:80(port=int16)}
+  {name:"doesnotexit"}
+  {name:1}
+
+output: |
+  <port=int16>
+  error("missing")
+  error({message:"typename: argument must be a string",on:1})

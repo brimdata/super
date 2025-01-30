@@ -1,0 +1,12 @@
+zed: s IS NULL
+
+vector: true
+
+input: |
+  {s:"A=B"}
+  {s:"A=*"}
+  {s:null(string)}
+  {s:""}
+
+output: |
+  {s:null(string)}

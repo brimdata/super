@@ -1,5 +1,7 @@
 zed: '? \"foo'
 
+vector: true
+
 input: |
   {s:"foo"}
   {s:"\"foo"}

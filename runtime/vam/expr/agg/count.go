@@ -10,25 +10,20 @@ type count struct {
 }
 
 func (a *count) Consume(vec vector.Any) {
-	if c, ok := vec.(*vector.Const); ok {
-		val := c.Value()
-		if !val.IsNull() && !val.IsError() {
-			a.count += uint64(vec.Len())
-		}
+	if c, ok := vec.(*vector.Const); ok && c.Value().IsNull() {
 		return
 	}
 	if _, ok := vector.Under(vec).Type().(*super.TypeError); ok {
 		return
 	}
-	nulls := vector.NullsOf(vec)
-	if nulls == nil {
-		a.count += uint64(vec.Len())
-		return
-	}
-	for i := range vec.Len() {
-		if !nulls.Value(i) {
-			a.count++
+	if nulls := vector.NullsOf(vec); nulls != nil {
+		for i := range vec.Len() {
+			if !nulls.Value(i) {
+				a.count++
+			}
 		}
+	} else {
+		a.count += uint64(vec.Len())
 	}
 }
 
@@ -37,11 +32,11 @@ func (a *count) Result(*super.Context) super.Value {
 }
 
 func (a *count) ConsumeAsPartial(partial vector.Any) {
-	c, ok := partial.(*vector.Const)
-	if !ok || c.Len() != 1 || partial.Type() != super.TypeUint64 {
+	if partial.Len() != 1 || partial.Type() != super.TypeUint64 {
 		panic("count: bad partial")
 	}
-	a.count += c.Value().Uint()
+	count, _ := vector.UintValue(partial, 0)
+	a.count += count
 }
 
 func (a *count) ResultAsPartial(*super.Context) super.Value {

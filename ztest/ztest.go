@@ -139,8 +139,7 @@ import (
 	"github.com/brimdata/super/compiler"
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/runtime/vcache"
-	"github.com/brimdata/super/vng"
+	"github.com/brimdata/super/runtime/vam"
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/anyio"
@@ -554,12 +553,11 @@ func runvec(zedProgram string, input string, outputFlags []string) (string, erro
 	if err := flags.Parse(outputFlags); err != nil {
 		return "", err
 	}
-	object, err := createVCacheObject(input)
-	if err != nil {
-		return "", err
-	}
-	defer object.Close()
-	puller, err := compiler.VectorCompile(runtime.DefaultContext(), zedProgram, object)
+	zctx := super.NewContext()
+	rctx := runtime.NewContext(context.Background(), zctx)
+	r := zsonio.NewReader(zctx, strings.NewReader(input))
+	d := vam.NewDematerializer(zbuf.NewPuller(r))
+	puller, err := compiler.VectorCompile(rctx, zedProgram, d)
 	if err != nil {
 		return "", err
 	}
@@ -573,18 +571,4 @@ func runvec(zedProgram string, input string, outputFlags []string) (string, erro
 		err = err2
 	}
 	return outbuf.String(), err
-}
-
-func createVCacheObject(input string) (*vcache.Object, error) {
-	var buf bytes.Buffer
-	w := vng.NewWriter(zio.NopCloser(&buf))
-	r := zsonio.NewReader(super.NewContext(), strings.NewReader(input))
-	if err := errors.Join(zio.Copy(w, r), w.Close()); err != nil {
-		return nil, err
-	}
-	o, err := vng.NewObject(bytes.NewReader(buf.Bytes()))
-	if err != nil {
-		return nil, err
-	}
-	return vcache.NewObjectFromVNG(o), nil
 }

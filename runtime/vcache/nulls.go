@@ -34,28 +34,24 @@ func (n *nulls) fetch(g *errgroup.Group, reader io.ReaderAt) {
 		}
 		length := n.meta.Count + n.meta.Values.Len()
 		n.local = vector.NewBoolEmpty(length, nil)
-		runlens := vng.NewInt64Decoder(n.meta.Runs, reader) //XXX 32-bit reader?
+		runlens, err := vng.ReadUint32s(n.meta.Runs, reader)
+		if err != nil {
+			return err
+		}
 		var null bool
-		var off int
+		var off uint32
 		b := n.local
-		for {
-			run, err := runlens.Next()
-			if err != nil {
-				if err == io.EOF {
-					n.meta = nil
-					err = nil
-				}
-				return err
-			}
+		for _, run := range runlens {
 			if null {
-				for i := 0; int64(i) < run; i++ {
-					slot := uint32(off + i)
+				for i := range run {
+					slot := off + i
 					b.Set(slot)
 				}
 			}
-			off += int(run)
+			off += run
 			null = !null
 		}
+		return nil
 	})
 }
 

@@ -1,10 +1,7 @@
 ---
-sidebar_position: 1
-sidebar_label: Overview
----
-
-# Zed Language Overview
-
+weight: 1
+title: Overview
+heading: Zed Language Overview
 ---
 
 The Zed language is a query language for search, analytics,
@@ -17,7 +14,7 @@ by a number of commands:
 command |> command | command | ...
 ```
 However, in Zed, the entities that transform data are called
-"[operators](operators/README.md)" instead of "commands" and unlike Unix pipelines,
+"[operators](operators/_index.md)" instead of "commands" and unlike Unix pipelines,
 the streams of data in a Zed query
 are typed data sequences that adhere to the
 [Zed data model](../formats/zed.md).
@@ -122,4 +119,4 @@ The following sections continue describing the Zed language.
 * [Lateral Subqueries](lateral-subqueries.md)
 * [Shaping and Type Fusion](shaping.md)
 
-You may also be interested in the detailed reference materials on [operators](operators/README.md), [functions](functions/README.md), and [aggregate functions](aggregates/README.md), as well as the [conventions](conventions.md) for how they're described.
+You may also be interested in the detailed reference materials on [operators](operators/_index.md), [functions](functions/_index.md), and [aggregate functions](aggregates/_index.md), as well as the [conventions](conventions.md) for how they're described.

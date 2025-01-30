@@ -319,14 +319,15 @@ func makeNulls(a arrow.Array) *vector.Bool {
 	if len(bytes) == 0 {
 		return nil
 	}
-	bits := make([]uint64, (len(bytes)+7)/8)
+	n := a.Len()
+	bits := make([]uint64, (n+63)/64)
 	bitsAsBytes := reinterpretSlice[byte](bits)
 	copy(bitsAsBytes, bytes)
 	for i := range bits {
 		// Flip bits
 		bits[i] ^= ^uint64(0)
 	}
-	return vector.NewBool(bits, uint32(a.Len()), nil)
+	return vector.NewBool(bits, uint32(n), nil)
 }
 
 func convertSlice[Out, In uint8 | uint16 | uint32 | uint64 | int8 | int16 | int32 | int64 | float32 | float64](in []In) []Out {

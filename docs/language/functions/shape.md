@@ -22,12 +22,14 @@ extra fields in the input are propagated to the output.
 ### Examples
 
 _Shape input records_
-```mdtest-command
-echo '{b:1,a:2}{a:3}{b:4,c:5}' |
-  super -z -c 'shape(this, <{a:int64,b:string}>)' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+shape(this, <{a:int64,b:string}>)
+# input
+{b:1,a:2}
+{a:3}
+{b:4,c:5}
+# expected output
 {a:2,b:"1"}
 {a:3,b:null(string)}
 {a:null(int64),b:"4",c:5}

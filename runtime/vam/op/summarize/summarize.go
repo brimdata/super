@@ -32,6 +32,7 @@ func New(parent vector.Puller, zctx *super.Context, aggNames []field.Path, aggEx
 	}
 	return &Summarize{
 		parent:      parent,
+		zctx:        zctx,
 		aggs:        aggs,
 		aggExprs:    aggExprs,
 		keyExprs:    keyExprs,
@@ -62,7 +63,7 @@ func (s *Summarize) Pull(done bool) (vector.Any, error) {
 			for _, t := range s.tables {
 				s.results = append(s.results, t)
 			}
-			s.tables = nil
+			clear(s.tables)
 			return s.next(), nil
 		}
 		var keys, vals []vector.Any
@@ -111,7 +112,7 @@ func (s *Summarize) newAggTable(keyTypes []super.Type) aggTable {
 		builder:     s.builder,
 		partialsIn:  s.partialsIn,
 		partialsOut: s.partialsOut,
-		table:       make(map[string]aggRow),
+		table:       make(map[string]int),
 		zctx:        s.zctx,
 	}
 }
@@ -123,6 +124,7 @@ func (s *Summarize) isCountByString(keyTypes []super.Type) bool {
 
 func (s *Summarize) next() vector.Any {
 	if len(s.results) == 0 {
+		s.results = nil
 		return nil
 	}
 	t := s.results[0]

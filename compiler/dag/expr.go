@@ -27,11 +27,6 @@ type (
 		Kind  string       `json:"kind" unpack:""`
 		Elems []VectorElem `json:"elems"`
 	}
-	Assignment struct {
-		Kind string `json:"kind" unpack:""`
-		LHS  Expr   `json:"lhs"`
-		RHS  Expr   `json:"rhs"`
-	}
 	// A BadExpr node is a placeholder for an expression containing semantic
 	// errors.
 	BadExpr struct {
@@ -69,6 +64,10 @@ type (
 		Kind  string `json:"kind" unpack:""`
 		Expr  Expr   `json:"expr"`
 		Index Expr   `json:"index"`
+	}
+	IsNullExpr struct {
+		Kind string `json:"kind" unpack:""`
+		Expr Expr   `json:"expr"`
 	}
 	Literal struct {
 		Kind  string `json:"kind" unpack:""`
@@ -148,6 +147,7 @@ func (*Conditional) ExprDAG()  {}
 func (*Dot) ExprDAG()          {}
 func (*Func) ExprDAG()         {}
 func (*IndexExpr) ExprDAG()    {}
+func (*IsNullExpr) ExprDAG()   {}
 func (*Literal) ExprDAG()      {}
 func (*MapCall) ExprDAG()      {}
 func (*MapExpr) ExprDAG()      {}

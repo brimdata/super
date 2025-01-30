@@ -90,6 +90,22 @@ type primitive struct {
 	nulls nulls
 }
 
+type int_ struct {
+	mu sync.Mutex
+	count
+	vng   *vng.Int
+	vec   vector.Any
+	nulls nulls
+}
+
+type uint_ struct {
+	mu sync.Mutex
+	count
+	vng   *vng.Uint
+	vec   vector.Any
+	nulls nulls
+}
+
 type const_ struct {
 	mu sync.Mutex
 	count
@@ -97,6 +113,16 @@ type const_ struct {
 	// have a named in it
 	vec   *vector.Const
 	nulls nulls
+}
+
+type dict struct {
+	mu sync.Mutex
+	count
+	vng    *vng.Dict
+	nulls  nulls
+	vals   shadow
+	counts []uint32
+	index  []byte
 }
 
 type error_ struct {
@@ -196,6 +222,18 @@ func newShadow(m vng.Metadata, n *vng.Nulls, nullsCnt uint32) shadow {
 			vals:  vals,
 			nulls: nulls{meta: n},
 		}
+	case *vng.Int:
+		return &int_{
+			count: count{m.Len(), nullsCnt},
+			vng:   m,
+			nulls: nulls{meta: n},
+		}
+	case *vng.Uint:
+		return &uint_{
+			count: count{m.Len(), nullsCnt},
+			vng:   m,
+			nulls: nulls{meta: n},
+		}
 	case *vng.Primitive:
 		return &primitive{
 			count: count{m.Len(), nullsCnt},
@@ -206,6 +244,13 @@ func newShadow(m vng.Metadata, n *vng.Nulls, nullsCnt uint32) shadow {
 		return &const_{
 			count: count{m.Len(), nullsCnt},
 			val:   m.Value,
+			nulls: nulls{meta: n},
+		}
+	case *vng.Dict:
+		return &dict{
+			vals:  newShadow(m.Values, nil, 0),
+			count: count{m.Len(), nullsCnt},
+			vng:   m,
 			nulls: nulls{meta: n},
 		}
 	default:

@@ -1,0 +1,21 @@
+zed: over this => (union(this))
+
+vector: true
+
+input: |
+  [
+    {x:1,s:"a"},
+    {x:2,s:"b"},
+    {x:1,s:"a"},
+    {x:3,s:"e"},
+  ]
+  [1,"1",1]
+  [
+    []([string]),
+    null([string]),
+  ]
+
+output: |
+  |[{x:1,s:"a"},{x:2,s:"b"},{x:3,s:"e"}]|
+  |[1,"1"]|
+  |[[]([string])]|

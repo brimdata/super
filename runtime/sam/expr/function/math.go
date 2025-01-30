@@ -14,7 +14,7 @@ type Abs struct {
 }
 
 func (a *Abs) Call(_ super.Allocator, args []super.Value) super.Value {
-	val := args[0]
+	val := args[0].Under()
 	switch id := val.Type().ID(); {
 	case super.IsUnsigned(id):
 		return val
@@ -68,9 +68,15 @@ type Log struct {
 }
 
 func (l *Log) Call(_ super.Allocator, args []super.Value) super.Value {
+	if args[0].IsError() {
+		return args[0]
+	}
 	x, ok := coerce.ToFloat(args[0], super.TypeFloat64)
 	if !ok {
 		return l.zctx.WrapError("log: not a number", args[0])
+	}
+	if args[0].IsNull() {
+		return super.NullFloat64
 	}
 	if x <= 0 {
 		return l.zctx.WrapError("log: illegal argument", args[0])
@@ -133,9 +139,14 @@ type Round struct {
 func (r *Round) Call(_ super.Allocator, args []super.Value) super.Value {
 	val := args[0]
 	switch id := val.Type().ID(); {
+	case id == super.IDNull:
+		return val
 	case super.IsUnsigned(id) || super.IsSigned(id):
 		return val
 	case super.IsFloat(id):
+		if val.IsNull() {
+			return val
+		}
 		return super.NewFloat(val.Type(), math.Round(val.Float()))
 	}
 	return r.zctx.WrapError("round: not a number", val)
@@ -164,9 +175,18 @@ type Sqrt struct {
 }
 
 func (s *Sqrt) Call(_ super.Allocator, args []super.Value) super.Value {
-	x, ok := coerce.ToFloat(args[0], super.TypeFloat64)
+	val := args[0].Under()
+	if id := val.Type().ID(); id == super.IDNull {
+		return val
+	} else if !super.IsNumber(id) {
+		return s.zctx.WrapError("sqrt: number argument required", val)
+	}
+	if val.IsNull() {
+		return super.NullFloat64
+	}
+	x, ok := coerce.ToFloat(val, super.TypeFloat64)
 	if !ok {
-		return s.zctx.WrapError("sqrt: not a number", args[0])
+		return s.zctx.WrapError("sqrt: not a number", val)
 	}
 	return super.NewFloat64(math.Sqrt(x))
 }

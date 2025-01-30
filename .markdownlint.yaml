@@ -11,4 +11,4 @@ whitespace: true
 MD010:
   code_blocks: false # Disallow hard tabs except in code blocks.
 MD033:
-  allowed_elements: ["p"]
+  allowed_elements: ["p","br"]

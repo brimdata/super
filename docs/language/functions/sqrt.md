@@ -15,11 +15,15 @@ result in `NaN`.
 ### Examples
 
 The logarithm of a various numbers:
-```mdtest-command
-echo '4 2. 1e10 -1' | super -z -c 'yield sqrt(this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield sqrt(this)
+# input
+4
+2.
+1e10
+-1
+# expected output
 2.
 1.4142135623730951
 100000.

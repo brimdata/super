@@ -15,10 +15,11 @@ The return value is a float64 or an error.
 
 ### Examples
 
-```mdtest-command
-echo '2' | super -z -c 'yield pow(this, 5)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield pow(this, 5)
+# input
+2
+# expected output
 32.
 ```

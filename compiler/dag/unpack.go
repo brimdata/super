@@ -33,6 +33,7 @@ var unpacker = unpack.New(
 	Head{},
 	HTTPScan{},
 	IndexExpr{},
+	IsNullExpr{},
 	Join{},
 	LakeMetaScan{},
 	Lister{},

@@ -14,6 +14,41 @@ type Builder interface {
 	Build() Any
 }
 
+type DynamicBuilder struct {
+	tags   []uint32
+	values []Builder
+	which  map[super.Type]int
+}
+
+func NewDynamicBuilder() *DynamicBuilder {
+	return &DynamicBuilder{
+		which: make(map[super.Type]int),
+	}
+}
+
+func (d *DynamicBuilder) Write(val super.Value) {
+	typ := val.Type()
+	tag, ok := d.which[typ]
+	if !ok {
+		tag = len(d.values)
+		d.values = append(d.values, NewBuilder(typ))
+		d.which[typ] = tag
+	}
+	d.tags = append(d.tags, uint32(tag))
+	d.values[tag].Write(val.Bytes())
+}
+
+func (d *DynamicBuilder) Build() Any {
+	var vecs []Any
+	for _, b := range d.values {
+		vecs = append(vecs, b.Build())
+	}
+	if len(vecs) == 1 {
+		return vecs[0]
+	}
+	return NewDynamic(d.tags, vecs)
+}
+
 func NewBuilder(typ super.Type) Builder {
 	var b Builder
 	switch typ := typ.(type) {
@@ -31,6 +66,8 @@ func NewBuilder(typ super.Type) Builder {
 		b = newMapBuilder(typ)
 	case *super.TypeUnion:
 		b = newUnionBuilder(typ)
+	case *super.TypeEnum:
+		b = &enumBuilder{typ, nil}
 	default:
 		id := typ.ID()
 		if super.IsNumber(id) {
@@ -40,7 +77,7 @@ func NewBuilder(typ super.Type) Builder {
 			case super.IsSigned(id):
 				b = &intBuilder{typ: typ}
 			case super.IsFloat(id):
-				b = &intBuilder{typ: typ}
+				b = &floatBuilder{typ: typ}
 			}
 		} else {
 			switch id {
@@ -97,7 +134,7 @@ func (n *nullsBuilder) Build() Any {
 	if !n.nulls.IsEmpty() {
 		bits := make([]uint64, (n.n+63)/64)
 		n.nulls.WriteDenseTo(bits)
-		setNulls(vec, NewBool(bits, n.n, nil))
+		vec = CopyAndSetNulls(vec, NewBool(bits, n.n, nil))
 	}
 	return vec
 }
@@ -105,6 +142,7 @@ func (n *nullsBuilder) Build() Any {
 type recordBuilder struct {
 	typ    *super.TypeRecord
 	values []Builder
+	len    uint32
 }
 
 func newRecordBuilder(typ *super.TypeRecord) Builder {
@@ -116,6 +154,7 @@ func newRecordBuilder(typ *super.TypeRecord) Builder {
 }
 
 func (r *recordBuilder) Write(bytes zcode.Bytes) {
+	r.len++
 	if bytes == nil {
 		for _, v := range r.values {
 			v.Write(nil)
@@ -133,7 +172,7 @@ func (r *recordBuilder) Build() Any {
 	for _, v := range r.values {
 		vecs = append(vecs, v.Build())
 	}
-	return NewRecord(r.typ, vecs, vecs[0].Len(), nil)
+	return NewRecord(r.typ, vecs, r.len, nil)
 }
 
 type errorBuilder struct {
@@ -233,6 +272,19 @@ func (u *unionBuilder) Build() Any {
 		vecs = append(vecs, v.Build())
 	}
 	return NewUnion(u.typ, u.tags, vecs, nil)
+}
+
+type enumBuilder struct {
+	typ    *super.TypeEnum
+	values []uint64
+}
+
+func (e *enumBuilder) Write(bytes zcode.Bytes) {
+	e.values = append(e.values, super.DecodeUint(bytes))
+}
+
+func (e *enumBuilder) Build() Any {
+	return NewEnum(e.typ, e.values, nil)
 }
 
 type intBuilder struct {

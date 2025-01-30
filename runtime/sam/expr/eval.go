@@ -34,14 +34,11 @@ func NewLogicalNot(zctx *super.Context, e Evaluator) *Not {
 }
 
 func (n *Not) Eval(ectx Context, this super.Value) super.Value {
-	val, ok := EvalBool(n.zctx, ectx, this, n.expr)
-	if !ok {
+	val := EvalBool(n.zctx, ectx, this, n.expr)
+	if val.IsError() || val.IsNull() {
 		return val
 	}
-	if val.Bool() {
-		return super.False
-	}
-	return super.True
+	return super.NewBool(!val.Bool())
 }
 
 type And struct {
@@ -64,54 +61,62 @@ func NewLogicalOr(zctx *super.Context, lhs, rhs Evaluator) *Or {
 	return &Or{zctx, lhs, rhs}
 }
 
-// EvalBool evaluates e with this and if the result is a Zed bool, returns the
-// result and true.  Otherwise, a Zed error (inclusive of missing) and false
-// are returned.
-func EvalBool(zctx *super.Context, ectx Context, this super.Value, e Evaluator) (super.Value, bool) {
+// EvalBool evaluates e with this and returns the result if it is a bool or error.
+// Otherwise, EvalBool returns an error.
+func EvalBool(zctx *super.Context, ectx Context, this super.Value, e Evaluator) super.Value {
 	val := e.Eval(ectx, this)
-	if super.TypeUnder(val.Type()) == super.TypeBool {
-		return val, true
+	if super.TypeUnder(val.Type()) == super.TypeBool || val.IsError() {
+		return val
 	}
-	if val.IsError() {
-		return val, false
-	}
-	return zctx.WrapError("not type bool", val), false
+	return zctx.WrapError("not type bool", val)
 }
 
 func (a *And) Eval(ectx Context, this super.Value) super.Value {
-	lhs, ok := EvalBool(a.zctx, ectx, this, a.lhs)
-	if !ok {
+	lhs := EvalBool(a.zctx, ectx, this, a.lhs)
+	rhs := EvalBool(a.zctx, ectx, this, a.rhs)
+	if isfalse(lhs) || isfalse(rhs) {
+		// anything AND FALSE = FALSE
+		return super.False
+	}
+	// ERROR AND NULL = ERROR
+	// ERROR AND TRUE = ERROR
+	if lhs.IsError() {
 		return lhs
 	}
-	if !lhs.Bool() {
-		return super.False
-	}
-	rhs, ok := EvalBool(a.zctx, ectx, this, a.rhs)
-	if !ok {
+	if rhs.IsError() {
 		return rhs
 	}
-	if !rhs.Bool() {
-		return super.False
+	if lhs.IsNull() || rhs.IsNull() {
+		// NULL AND TRUE = NULL
+		return super.NullBool
 	}
 	return super.True
 }
 
+func isfalse(val super.Value) bool {
+	return val.Type().ID() == super.IDBool && !val.IsNull() && !val.Bool()
+}
+
 func (o *Or) Eval(ectx Context, this super.Value) super.Value {
-	lhs, ok := EvalBool(o.zctx, ectx, this, o.lhs)
-	if ok && lhs.Bool() {
+	lhs := EvalBool(o.zctx, ectx, this, o.lhs)
+	rhs := EvalBool(o.zctx, ectx, this, o.rhs)
+	if lhs.AsBool() || rhs.AsBool() {
+		// anything OR TRUE = TRUE
 		return super.True
 	}
-	if lhs.IsError() && !lhs.IsMissing() {
+	if lhs.IsNull() || rhs.IsNull() {
+		// NULL OR FALSE = NULL
+		// NULL OR ERROR = NULL
+		return super.NullBool
+	}
+	// ERROR OR FALSE = ERROR
+	if lhs.IsError() {
 		return lhs
 	}
-	rhs, ok := EvalBool(o.zctx, ectx, this, o.rhs)
-	if ok {
-		if rhs.Bool() {
-			return super.True
-		}
-		return super.False
+	if rhs.IsError() {
+		return rhs
 	}
-	return rhs
+	return super.False
 }
 
 type In struct {
@@ -174,6 +179,9 @@ func (e *Equal) Eval(ectx Context, this super.Value) super.Value {
 	lhsVal, rhsVal, errVal := e.numeric.eval(ectx, this)
 	if errVal != nil {
 		return *errVal
+	}
+	if lhsVal.IsNull() || rhsVal.IsNull() {
+		return super.NullBool
 	}
 	result := coerce.Equal(lhsVal, rhsVal)
 	if !e.equality {
@@ -292,17 +300,9 @@ func (c *Compare) Eval(ectx Context, this super.Value) super.Value {
 		return rhs
 	}
 	lhs, rhs = lhs.Under(), rhs.Under()
-
-	if lhs.IsNull() {
-		if rhs.IsNull() {
-			return c.result(0)
-		}
-		return super.False
-	} else if rhs.IsNull() {
-		// We know lhs isn't null.
-		return super.False
+	if lhs.IsNull() || rhs.IsNull() {
+		return super.NullBool
 	}
-
 	switch lid, rid := lhs.Type().ID(), rhs.Type().ID(); {
 	case super.IsNumber(lid) && super.IsNumber(rid):
 		return c.result(compareNumbers(lhs, rhs, lid, rid))
@@ -319,6 +319,8 @@ func (c *Compare) Eval(ectx Context, this super.Value) super.Value {
 		return c.result(bytes.Compare(super.DecodeBytes(lhs.Bytes()), super.DecodeBytes(rhs.Bytes())))
 	case lid == super.IDString:
 		return c.result(cmp.Compare(super.DecodeString(lhs.Bytes()), super.DecodeString(rhs.Bytes())))
+	case lid == super.IDIP:
+		return c.result(super.DecodeIP(lhs.Bytes()).Compare(super.DecodeIP(rhs.Bytes())))
 	default:
 		if bytes.Equal(lhs.Bytes(), rhs.Bytes()) {
 			return c.result(0)
@@ -353,6 +355,23 @@ func compareNumbers(a, b super.Value, aid, bid int) int {
 		return cmp.Compare(a.Int(), bv)
 	}
 	return cmp.Compare(a.Uint(), b.Uint())
+}
+
+type isNullExpr struct {
+	eval Evaluator
+}
+
+func NewIsNullExpr(e Evaluator) Evaluator {
+	return &isNullExpr{e}
+}
+
+func (i *isNullExpr) Eval(ectx Context, this super.Value) super.Value {
+	val := i.eval.Eval(ectx, this)
+	if val.IsError() {
+		return val
+	}
+	return super.NewBool(val.IsNull())
+
 }
 
 func toFloat(val super.Value) float64 { return coerce.ToNumeric[float64](val) }
@@ -528,6 +547,26 @@ func NewUnaryMinus(zctx *super.Context, e Evaluator) *UnaryMinus {
 func (u *UnaryMinus) Eval(ectx Context, this super.Value) super.Value {
 	val := u.expr.Eval(ectx, this)
 	typ := val.Type()
+	if super.IsUnsigned(typ.ID()) {
+		switch typ.ID() {
+		case super.IDUint8:
+			typ = super.TypeInt8
+		case super.IDUint16:
+			typ = super.TypeInt16
+		case super.IDUint32:
+			typ = super.TypeInt32
+		default:
+			typ = super.TypeInt64
+		}
+		v, ok := coerce.ToInt(val, typ)
+		if !ok {
+			return u.zctx.WrapError("cannot cast to "+zson.FormatType(typ), val)
+		}
+		if val.IsNull() {
+			return super.NewValue(typ, nil)
+		}
+		val = super.NewInt(typ, v)
+	}
 	if val.IsNull() && super.IsNumber(typ.ID()) {
 		return val
 	}
@@ -558,35 +597,11 @@ func (u *UnaryMinus) Eval(ectx Context, this super.Value) super.Value {
 			return u.zctx.WrapError("unary '-' underflow", val)
 		}
 		return super.NewInt64(-v)
-	case super.IDUint8:
-		v := val.Uint()
-		if v > math.MaxInt8 {
-			return u.zctx.WrapError("unary '-' overflow", val)
-		}
-		return super.NewInt8(int8(-v))
-	case super.IDUint16:
-		v := val.Uint()
-		if v > math.MaxInt16 {
-			return u.zctx.WrapError("unary '-' overflow", val)
-		}
-		return super.NewInt16(int16(-v))
-	case super.IDUint32:
-		v := val.Uint()
-		if v > math.MaxInt32 {
-			return u.zctx.WrapError("unary '-' overflow", val)
-		}
-		return super.NewInt32(int32(-v))
-	case super.IDUint64:
-		v := val.Uint()
-		if v > math.MaxInt64 {
-			return u.zctx.WrapError("unary '-' overflow", val)
-		}
-		return super.NewInt64(int64(-v))
 	}
 	return u.zctx.WrapError("type incompatible with unary '-' operator", val)
 }
 
-func getNthFromContainer(container zcode.Bytes, idx int) zcode.Bytes {
+func getNthFromContainer(container zcode.Bytes, idx int) (zcode.Bytes, bool) {
 	if idx < 0 {
 		var length int
 		for it := container.Iter(); !it.Done(); it.Next() {
@@ -594,16 +609,16 @@ func getNthFromContainer(container zcode.Bytes, idx int) zcode.Bytes {
 		}
 		idx = length + idx
 		if idx < 0 || idx >= length {
-			return nil
+			return nil, false
 		}
 	}
 	for i, it := 0, container.Iter(); !it.Done(); i++ {
 		zv := it.Next()
 		if i == idx {
-			return zv
+			return zv, true
 		}
 	}
-	return nil
+	return nil, false
 }
 
 func lookupKey(mapBytes, target zcode.Bytes) (zcode.Bytes, bool) {
@@ -658,11 +673,11 @@ func indexVector(zctx *super.Context, ectx Context, inner super.Type, vector zco
 	} else {
 		idx = int(index.Uint())
 	}
-	zv := getNthFromContainer(vector, idx)
-	if zv == nil {
+	bytes, ok := getNthFromContainer(vector, idx)
+	if !ok {
 		return zctx.Missing()
 	}
-	return deunion(ectx, inner, zv)
+	return deunion(ectx, inner, bytes)
 }
 
 func indexRecord(zctx *super.Context, ectx Context, typ *super.TypeRecord, record zcode.Bytes, index super.Value) super.Value {

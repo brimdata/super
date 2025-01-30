@@ -69,6 +69,8 @@ func (o *Over) flatten(vec vector.Any, slot uint32) vector.Any {
 	switch vec := vector.Under(vec).(type) {
 	case *vector.Dynamic:
 		return o.flatten(vec.Values[vec.Tags[slot]], vec.TagMap.Forward[slot])
+	case *vector.View:
+		return o.flatten(vec.Any, vec.Index[slot])
 	case *vector.Array:
 		return flattenArrayOrSet(vec.Values, vec.Offsets, slot)
 	case *vector.Set:

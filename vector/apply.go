@@ -18,7 +18,11 @@ func Apply(ripUnions bool, eval func(...Any) Any, vecs ...Any) Any {
 	}
 	var results []Any
 	for _, ripped := range rip(vecs, d) {
-		results = append(results, Apply(ripUnions, eval, ripped...))
+		var result Any
+		if len(ripped) > 0 {
+			result = Apply(ripUnions, eval, ripped...)
+		}
+		results = append(results, result)
 	}
 	return stitch(d.Tags, results)
 }
@@ -36,11 +40,13 @@ func rip(vecs []Any, d *Dynamic) [][]Any {
 	var ripped [][]Any
 	for j, rev := range d.TagMap.Reverse {
 		var newVecs []Any
-		for _, vec := range vecs {
-			if vec == d {
-				newVecs = append(newVecs, d.Values[j])
-			} else {
-				newVecs = append(newVecs, NewView(vec, rev))
+		if len(rev) > 0 {
+			for _, vec := range vecs {
+				if vec == d {
+					newVecs = append(newVecs, d.Values[j])
+				} else {
+					newVecs = append(newVecs, NewView(vec, rev))
+				}
 			}
 		}
 		ripped = append(ripped, newVecs)

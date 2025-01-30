@@ -1,0 +1,12 @@
+zed: '? A\=\*'
+
+vector: true
+
+input: |
+  {s:"A=B"}
+  {s:"A=*"}
+  {s:null(string)}
+  {s:""}
+
+output: |
+  {s:"A=*"}

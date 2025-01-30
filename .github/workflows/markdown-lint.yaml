@@ -15,10 +15,10 @@ jobs:
     - uses: actions/checkout@v4
     - name: Lint
       run: make markdown-lint
-    - uses: gaurav-nelson/github-action-markdown-link-check@v1
+    - uses: umbrelladocs/action-linkspector@v1
       with:
-        config-file: .github/workflows/markdown-link-check-config.json
-        use-quiet-mode: yes
+        fail_on_error: true
+        filter_mode: nofilter
     - name: Inform Slack users of link check failures
       uses: tiloio/slack-webhook-action@v1.1.2
       if: failure() && github.ref_name == 'main'

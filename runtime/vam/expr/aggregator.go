@@ -41,15 +41,19 @@ func (a *Aggregator) Eval(this vector.Any) vector.Any {
 
 func (a *Aggregator) apply(args ...vector.Any) vector.Any {
 	vec, where := args[0], args[1]
-	var tags []uint32
-	// If type is not bool then we want to filter everything.
-	if where.Type().ID() == super.IDBool {
-		for slot := uint32(0); slot < where.Len(); slot++ {
-			// XXX Feels like we should have a optimzed version of this.
-			if vector.BoolValue(where, slot) {
-				tags = append(tags, slot)
-			}
-		}
+	bools, _ := BoolMask(where)
+	if bools.IsEmpty() {
+		// everything is filtered.
+		return vector.NewConst(super.NewValue(vec.Type(), nil), vec.Len(), nil)
 	}
-	return vector.NewView(vec, tags)
+	bools.Flip(0, uint64(vec.Len()))
+	if !bools.IsEmpty() {
+		nulls := vector.NewBoolEmpty(vec.Len(), nil)
+		bools.WriteDenseTo(nulls.Bits)
+		if origNulls := vector.NullsOf(vec); origNulls != nil {
+			nulls = vector.Or(nulls, origNulls)
+		}
+		vec = vector.CopyAndSetNulls(vec, nulls)
+	}
+	return vec
 }

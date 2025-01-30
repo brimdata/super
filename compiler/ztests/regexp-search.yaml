@@ -1,5 +1,7 @@
 zed: yield grep(*foo*)
 
+vector: true
+
 input: |
   "foo"
   1

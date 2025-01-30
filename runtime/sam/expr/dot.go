@@ -47,7 +47,11 @@ func (d *DotExpr) Eval(ectx Context, this super.Value) super.Value {
 		if !ok {
 			return d.zctx.Missing()
 		}
-		return super.NewValue(typ.Fields[i].Type, getNthFromContainer(val.Bytes(), i))
+		bytes, ok := getNthFromContainer(val.Bytes(), i)
+		if !ok {
+			return d.zctx.Missing()
+		}
+		return super.NewValue(typ.Fields[i].Type, bytes)
 	case *super.TypeMap:
 		return indexMap(d.zctx, ectx, typ, val.Bytes(), super.NewString(d.field))
 	case *super.TypeOfType:

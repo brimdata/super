@@ -1,5 +1,7 @@
 zed: '?bar'
 
+vector: true
+
 input: |
   {s1:"foo",s2:"bar"}
   {s1:"foo",s2:null(string)}

@@ -1,14 +1,12 @@
 ---
-sidebar_position: 2
-sidebar_label: Pipeline Model
+weight: 2
+title: Pipeline Model
 ---
-
-# The Pipeline Model
 
 In SuperPipe, each operator takes its input from the output of its upstream operator beginning
 either with a data source or with an implied source.
 
-All available operators are listed on the [reference page](operators/README.md).
+All available operators are listed on the [reference page](operators/_index.md).
 
 ## Pipeline Sources
 
@@ -26,20 +24,22 @@ HTTP endpoint and process it with `super`, in this case, to extract the descript
 and license of a GitHub repository:
 ```
 super -f text -c 'get https://api.github.com/repos/brimdata/super
-            |> yield description,license.name'
+                  | yield description,license.name'
 ```
 When a query is run on the command-line with `super`, the `from` source is
 typically omitted and implied instead by the command-line file arguments.
 The input may be stdin via `-` as in
 ```
-echo '"hello, world"' | super  -
+echo '"hello, world"' | super -
 ```
-The examples throughout the language documentation use this "echo pattern"
-to standard input of `super -` to illustrate language semantics.
+Many examples throughout the language documentation use this "echo pattern"
+to standard input of `super -`.
 Note that in these examples, the input values are expressed as a sequence of values serialized
 in the [Super JSON format](../formats/jsup.md)
-and the `super` query text expressed as the `-c` argument of the `super` command
-is expressed in the syntax of the SuperPipe language described here.
+with query text is expressed as the `-c` argument of the `super` command
+in the syntax of the SuperSQL language described here. Some examples are
+instead presented in an interactive form as described in the
+[`super` command doc](../commands/super.md#examples).
 
 ## Pipeline Operators
 
@@ -78,24 +78,22 @@ in a number of ways:
 
 A pipeline can also be split to multiple branches using the
 [`switch` operator](operators/switch.md), in which data is routed to only one
-corresponding branch (or dropped) based on the switch clauses.
+corresponding branch (or dropped) based on the switch clauses. For example:
 
-Switch operators typically
-involve multiline SuperPipe programs, which are easiest to edit in a file.  For example,
-suppose this text is in a file called `switch.spq`:
-```mdtest-input switch.spq
+```mdtest-spq
+# spq
 switch this (
   case 1 => yield {val:this,message:"one"}
   case 2 => yield {val:this,message:"two"}
   default => yield {val:this,message:"many"}
-) |> merge val
-```
-Then, running `super` with `-I switch.spq` like so:
-```mdtest-command
-echo '1 2 3 4' | super -z -I switch.spq -
-```
-produces
-```mdtest-output
+)
+| merge val
+# input
+1
+2
+3
+4
+# expected output
 {val:1,message:"one"}
 {val:2,message:"two"}
 {val:3,message:"many"}
@@ -104,9 +102,9 @@ produces
 Note that the output order of the switch branches is undefined (indeed they run
 in parallel on multiple threads).  To establish a consistent sequence order,
 a [`merge` operator](operators/merge.md)
-may be applied at the output of the switch specifying a sort key upon which
+may be applied at the output of the `switch` specifying a sort key upon which
 to order the upstream data.  Often such order does not matter (e.g., when the output
-of the switch hits an [aggregator](aggregates/README.md)), in which case it is typically more performant
+of the switch hits an [aggregator](aggregates/_index.md)), in which case it is typically more performant
 to omit the merge (though the SuperDB runtime will often delete such unnecessary
 operations automatically as part optimizing queries when they are compiled).
 
@@ -126,25 +124,34 @@ In contrast to SQL, where a query may refer to input tables by name,
 there are no explicit tables and an operator instead refers
 to its input values using the special identifier `this`.
 
-For example, sorting the following input
-```mdtest-command
-echo '"foo" "bar" "BAZ"' | super -z -c sort -
-```
-produces this case-sensitive output:
-```mdtest-output
+For example, sorting the following input produces the case-sensitive output
+shown.
+```mdtest-spq
+# spq
+sort
+# input
+"foo"
+"bar"
+"BAZ"
+# expected output
 "BAZ"
 "bar"
 "foo"
 ```
-But we can make the sort case-insensitive by applying a [function](functions/README.md) to the
+
+But we can make the sort case-insensitive by applying a [function](functions/_index.md) to the
 input values with the expression `lower(this)`, which converts
 each value to lower-case for use in in the sort without actually modifying
 the input value, e.g.,
-```
-echo '"foo" "bar" "BAZ"' | super -z -c 'sort lower(this)' -
-```
-produces
-```
+
+```mdtest-spq
+# spq
+sort lower(this)
+# input
+"foo"
+"bar"
+"BAZ"
+# expected output
 "bar"
 "BAZ"
 "foo"
@@ -158,26 +165,37 @@ or structured logs.  In this case, the input values to the operators
 are [records](../formats/zed.md#21-record) and the fields of a record are referenced with the dot operator.
 
 For example, if the input above were a sequence of records instead of strings
-and perhaps contained a second field, e.g.,
-```
+and perhaps contained a second field, then we could refer to the field `s`
+using `this.s` when sorting, which would give e.g.,
+```mdtest-spq
+# spq
+sort this.s
+# input
 {s:"foo",x:1}
 {s:"bar",x:2}
 {s:"BAZ",x:3}
-```
-Then we could refer to the field `s` using `this.s` and sort the records
-as above with `sort this.s`, which would give
-```
+# expected output
 {s:"BAZ",x:3}
 {s:"bar",x:2}
 {s:"foo",x:1}
 ```
+
 This pattern is so common that field references to `this` may be shortened
 by simply referring to the field by name wherever an expression is expected,
-e.g.,
-```
+e.g., `sort s` is shorthand for `sort this.s`.
+
+```mdtest-spq
+# spq
 sort s
+# input
+{s:"foo",x:1}
+{s:"bar",x:2}
+{s:"BAZ",x:3}
+# expected output
+{s:"BAZ",x:3}
+{s:"bar",x:2}
+{s:"foo",x:1}
 ```
-is shorthand for `sort this.s`
 
 ## Field Assignments
 

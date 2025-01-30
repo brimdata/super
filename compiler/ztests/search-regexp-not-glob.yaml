@@ -1,6 +1,8 @@
 zed: |
   ? /.*/
 
+vector: true
+
 input: &input |
   "a"
 

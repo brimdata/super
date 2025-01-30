@@ -4,12 +4,15 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/pkg/field"
+	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/expr/function"
 	vamexpr "github.com/brimdata/super/runtime/vam/expr"
 	vamfunction "github.com/brimdata/super/runtime/vam/expr/function"
 	"github.com/brimdata/super/zson"
+	"golang.org/x/text/unicode/norm"
 )
 
 func (b *Builder) compileVamExpr(e dag.Expr) (vamexpr.Evaluator, error) {
@@ -27,28 +30,32 @@ func (b *Builder) compileVamExpr(e dag.Expr) (vamexpr.Evaluator, error) {
 		return vamexpr.NewLiteral(val), nil
 	//case *dag.Var:
 	//	return vamexpr.NewVar(e.Slot), nil
-	//case *dag.Search:
-	//	return b.compileSearch(e)
+	case *dag.Search:
+		return b.compileVamSearch(e)
 	case *dag.This:
 		return vamexpr.NewDottedExpr(b.zctx(), field.Path(e.Path)), nil
 	case *dag.Dot:
 		return b.compileVamDotExpr(e)
 	case *dag.IndexExpr:
 		return b.compileVamIndexExpr(e)
+	case *dag.IsNullExpr:
+		return b.compileVamIsNullExpr(e)
 	case *dag.UnaryExpr:
 		return b.compileVamUnary(*e)
 	case *dag.BinaryExpr:
 		return b.compileVamBinary(e)
-	//case *dag.Conditional:
-	//	return b.compileVamConditional(*e)
+	case *dag.Conditional:
+		return b.compileVamConditional(*e)
 	case *dag.Call:
 		return b.compileVamCall(e)
 	//case *dag.RegexpMatch:
 	//	return b.compileVamRegexpMatch(e)
-	//case *dag.RegexpSearch:
-	//	return b.compileVamRegexpSearch(e)
+	case *dag.RegexpSearch:
+		return b.compileVamRegexpSearch(e)
 	case *dag.RecordExpr:
 		return b.compileVamRecordExpr(e)
+	case *dag.SliceExpr:
+		return b.compileVamSliceExpr(e)
 	//case *dag.SetExpr:
 	//	return b.compileVamSetExpr(e)
 	//case *dag.MapCall:
@@ -68,12 +75,14 @@ func (b *Builder) compileVamExpr(e dag.Expr) (vamexpr.Evaluator, error) {
 	}
 }
 
-func (b *Builder) compileVamBinary(e *dag.BinaryExpr) (vamexpr.Evaluator, error) {
-	//XXX TBD
-	//if slice, ok := e.RHS.(*dag.BinaryExpr); ok && slice.Op == ":" {
-	//	return b.compileVamSlice(e.LHS, slice)
-	//}
+func (b *Builder) compileVamExprWithEmpty(e dag.Expr) (vamexpr.Evaluator, error) {
+	if e == nil {
+		return nil, nil
+	}
+	return b.compileVamExpr(e)
+}
 
+func (b *Builder) compileVamBinary(e *dag.BinaryExpr) (vamexpr.Evaluator, error) {
 	//XXX TBD
 	//if e.Op == "in" {
 	// Do a faster comparison if the LHS is a compile-time constant expression.
@@ -98,8 +107,8 @@ func (b *Builder) compileVamBinary(e *dag.BinaryExpr) (vamexpr.Evaluator, error)
 		return vamexpr.NewLogicalAnd(b.zctx(), lhs, rhs), nil
 	case "or":
 		return vamexpr.NewLogicalOr(b.zctx(), lhs, rhs), nil
-	//case "in": XXX TBD
-	//	return vamexpr.NewIn(b.zctx(), lhs, rhs), nil
+	case "in":
+		return vamexpr.NewIn(b.zctx(), lhs, rhs), nil
 	case "==", "!=", "<", "<=", ">", ">=":
 		return vamexpr.NewCompare(b.zctx(), lhs, rhs, op), nil
 	case "+", "-", "*", "/", "%":
@@ -109,15 +118,30 @@ func (b *Builder) compileVamBinary(e *dag.BinaryExpr) (vamexpr.Evaluator, error)
 	}
 }
 
+func (b *Builder) compileVamConditional(node dag.Conditional) (vamexpr.Evaluator, error) {
+	predicate, err := b.compileVamExpr(node.Cond)
+	if err != nil {
+		return nil, err
+	}
+	thenExpr, err := b.compileVamExpr(node.Then)
+	if err != nil {
+		return nil, err
+	}
+	elseExpr, err := b.compileVamExpr(node.Else)
+	if err != nil {
+		return nil, err
+	}
+	return vamexpr.NewConditional(b.zctx(), predicate, thenExpr, elseExpr), nil
+}
+
 func (b *Builder) compileVamUnary(unary dag.UnaryExpr) (vamexpr.Evaluator, error) {
 	e, err := b.compileVamExpr(unary.Operand)
 	if err != nil {
 		return nil, err
 	}
 	switch unary.Op {
-	//XXX TBD
-	//case "-":
-	//	return vamexpr.NewUnaryMinus(b.zctx(), e), nil
+	case "-":
+		return vamexpr.NewUnaryMinus(b.zctx(), e), nil
 	case "!":
 		return vamexpr.NewLogicalNot(b.zctx(), e), nil
 	default:
@@ -143,6 +167,14 @@ func (b *Builder) compileVamIndexExpr(idx *dag.IndexExpr) (vamexpr.Evaluator, er
 		return nil, err
 	}
 	return vamexpr.NewIndexExpr(b.zctx(), e, index), nil
+}
+
+func (b *Builder) compileVamIsNullExpr(idx *dag.IsNullExpr) (vamexpr.Evaluator, error) {
+	e, err := b.compileVamExpr(idx.Expr)
+	if err != nil {
+		return nil, err
+	}
+	return vamexpr.NewIsNull(e), nil
 }
 
 func (b *Builder) compileVamExprs(in []dag.Expr) ([]vamexpr.Evaluator, error) {
@@ -217,6 +249,52 @@ func (b *Builder) compileVamRecordExpr(e *dag.RecordExpr) (vamexpr.Evaluator, er
 		})
 	}
 	return vamexpr.NewRecordExpr(b.zctx(), elems), nil
+}
+
+func (b *Builder) compileVamRegexpSearch(search *dag.RegexpSearch) (vamexpr.Evaluator, error) {
+	e, err := b.compileVamExpr(search.Expr)
+	if err != nil {
+		return nil, err
+	}
+	re, err := expr.CompileRegexp(search.Pattern)
+	if err != nil {
+		return nil, err
+	}
+	return vamexpr.NewSearchRegexp(re, e), nil
+}
+
+func (b *Builder) compileVamSearch(search *dag.Search) (vamexpr.Evaluator, error) {
+	val, err := zson.ParseValue(b.zctx(), search.Value)
+	if err != nil {
+		return nil, err
+	}
+	e, err := b.compileVamExpr(search.Expr)
+	if err != nil {
+		return nil, err
+	}
+	if super.TypeUnder(val.Type()) == super.TypeString {
+		// Do a grep-style substring search instead of an
+		// exact match on each value.
+		term := norm.NFC.Bytes(val.Bytes())
+		return vamexpr.NewSearchString(string(term), e), nil
+	}
+	return vamexpr.NewSearch(search.Text, val, e), nil
+}
+
+func (b *Builder) compileVamSliceExpr(slice *dag.SliceExpr) (vamexpr.Evaluator, error) {
+	e, err := b.compileVamExpr(slice.Expr)
+	if err != nil {
+		return nil, err
+	}
+	from, err := b.compileVamExprWithEmpty(slice.From)
+	if err != nil {
+		return nil, err
+	}
+	to, err := b.compileVamExprWithEmpty(slice.To)
+	if err != nil {
+		return nil, err
+	}
+	return vamexpr.NewSliceExpr(b.zctx(), e, from, to), nil
 }
 
 func (b *Builder) compileVamArrayExpr(e *dag.ArrayExpr) (vamexpr.Evaluator, error) {

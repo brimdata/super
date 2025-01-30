@@ -294,6 +294,11 @@ func (*Deleter) OpNode() {}
 // Various Op fields
 
 type (
+	Assignment struct {
+		Kind string `json:"kind" unpack:""`
+		LHS  Expr   `json:"lhs"`
+		RHS  Expr   `json:"rhs"`
+	}
 	Case struct {
 		Expr Expr `json:"expr"`
 		Path Seq  `json:"seq"`

@@ -2,6 +2,7 @@ package vector
 
 import (
 	"math/bits"
+	"slices"
 	"strings"
 
 	"github.com/brimdata/super"
@@ -38,6 +39,12 @@ func (b *Bool) Set(slot uint32) {
 	b.Bits[slot>>6] |= (1 << (slot & 0x3f))
 }
 
+func (b *Bool) SetLen(len uint32) {
+	if b != nil {
+		b.len = len
+	}
+}
+
 func (b *Bool) Len() uint32 {
 	if b == nil {
 		return 0
@@ -52,7 +59,7 @@ func (b *Bool) CopyWithBits(bits []uint64) *Bool {
 }
 
 func (b *Bool) Serialize(builder *zcode.Builder, slot uint32) {
-	if b.Nulls.Value(slot) {
+	if b != nil && b.Nulls.Value(slot) {
 		builder.Append(nil)
 	} else {
 		builder.Append(super.EncodeBool(b.Value(slot)))
@@ -94,6 +101,17 @@ func (b *Bool) String() string {
 	return s.String()
 }
 
+func Not(a *Bool) *Bool {
+	if a == nil {
+		panic("not: nil bool")
+	}
+	bits := slices.Clone(a.Bits)
+	for i := range bits {
+		bits[i] = ^a.Bits[i]
+	}
+	return a.CopyWithBits(bits)
+}
+
 func Or(a, b *Bool) *Bool {
 	if b == nil {
 		return a
@@ -111,15 +129,35 @@ func Or(a, b *Bool) *Bool {
 	return out
 }
 
+func And(a, b *Bool) *Bool {
+	if b == nil {
+		return nil
+	}
+	if a == nil {
+		return nil
+	}
+	if a.Len() != b.Len() {
+		panic("and'ing two different length bool vectors")
+	}
+	out := NewBoolEmpty(a.Len(), nil)
+	for i := range len(a.Bits) {
+		out.Bits[i] = a.Bits[i] & b.Bits[i]
+	}
+	return out
+}
+
 // BoolValue returns the value of slot in vec if the value is a Boolean.  It
 // returns false otherwise.
-func BoolValue(vec Any, slot uint32) bool {
+func BoolValue(vec Any, slot uint32) (bool, bool) {
 	switch vec := Under(vec).(type) {
 	case *Bool:
-		return vec.Value(slot)
+		return vec.Value(slot), vec.Nulls.Value(slot)
 	case *Const:
-		return vec.Value().Ptr().AsBool()
+		return vec.Value().Ptr().AsBool(), vec.Nulls.Value(slot)
 	case *Dict:
+		if vec.Nulls.Value(slot) {
+			return false, true
+		}
 		return BoolValue(vec.Any, uint32(vec.Index[slot]))
 	case *Dynamic:
 		tag := vec.Tags[slot]
@@ -127,7 +165,7 @@ func BoolValue(vec Any, slot uint32) bool {
 	case *View:
 		return BoolValue(vec.Any, vec.Index[slot])
 	}
-	return false
+	panic(vec)
 }
 
 func NullsOf(v Any) *Bool {
@@ -136,9 +174,23 @@ func NullsOf(v Any) *Bool {
 		return v.Nulls
 	case *Bytes:
 		return v.Nulls
+	case *Bool:
+		if v != nil {
+			return v.Nulls
+		}
+		return nil
 	case *Const:
+		if v.Value().IsNull() {
+			out := NewBoolEmpty(v.Len(), nil)
+			for i := range out.Bits {
+				out.Bits[i] = ^uint64(0)
+			}
+			return out
+		}
 		return v.Nulls
 	case *Dict:
+		return v.Nulls
+	case *Enum:
 		return v.Nulls
 	case *Error:
 		return Or(v.Nulls, NullsOf(v.Vals))
@@ -167,49 +219,129 @@ func NullsOf(v Any) *Bool {
 	case *Union:
 		return v.Nulls
 	case *View:
-		return NullsView(NullsOf(v.Any), v.Index)
+		return NewBoolView(NullsOf(v.Any), v.Index)
 	}
 	panic(v)
 }
 
-func setNulls(v Any, nulls *Bool) {
+func CopyAndSetNulls(v Any, nulls *Bool) Any {
 	switch v := v.(type) {
 	case *Array:
-		v.Nulls = nulls
+		return &Array{
+			Typ:     v.Typ,
+			Offsets: v.Offsets,
+			Values:  v.Values,
+			Nulls:   nulls,
+		}
 	case *Bytes:
-		v.Nulls = nulls
+		return &Bytes{
+			Offs:  v.Offs,
+			Bytes: v.Bytes,
+			Nulls: nulls,
+		}
 	case *Bool:
-		v.Nulls = nulls
+		return &Bool{
+			len:   v.len,
+			Bits:  v.Bits,
+			Nulls: nulls,
+		}
 	case *Const:
-		v.Nulls = nulls
+		return &Const{
+			val:   v.val,
+			len:   v.len,
+			Nulls: nulls,
+		}
 	case *Dict:
-		v.Nulls = nulls
+		return &Dict{
+			Any:    v.Any,
+			Index:  v.Index,
+			Counts: v.Counts,
+			Nulls:  nulls,
+		}
+	case *Enum:
+		return &Enum{
+			Typ:  v.Typ,
+			Uint: CopyAndSetNulls(v.Uint, nulls).(*Uint),
+		}
 	case *Error:
-		v.Nulls = nulls
+		return &Error{
+			Typ:   v.Typ,
+			Vals:  v.Vals,
+			Nulls: nulls,
+		}
 	case *Float:
-		v.Nulls = nulls
+		return &Float{
+			Typ:    v.Typ,
+			Values: v.Values,
+			Nulls:  nulls,
+		}
 	case *Int:
-		v.Nulls = nulls
+		return &Int{
+			Typ:    v.Typ,
+			Values: v.Values,
+			Nulls:  nulls,
+		}
 	case *IP:
-		v.Nulls = nulls
+		return &IP{
+			Values: v.Values,
+			Nulls:  nulls,
+		}
 	case *Map:
-		v.Nulls = nulls
+		return &Map{
+			Typ:     v.Typ,
+			Offsets: v.Offsets,
+			Keys:    v.Keys,
+			Values:  v.Values,
+			Nulls:   nulls,
+		}
 	case *Named:
-		setNulls(v.Any, nulls)
+		return &Named{
+			Typ: v.Typ,
+			Any: CopyAndSetNulls(v.Any, nulls),
+		}
 	case *Net:
-		v.Nulls = nulls
+		return &Net{
+			Values: v.Values,
+			Nulls:  nulls,
+		}
 	case *Record:
-		v.Nulls = nulls
+		return &Record{
+			Typ:    v.Typ,
+			Fields: v.Fields,
+			len:    v.len,
+			Nulls:  nulls,
+		}
 	case *Set:
-		v.Nulls = nulls
+		return &Set{
+			Typ:     v.Typ,
+			Offsets: v.Offsets,
+			Values:  v.Values,
+			Nulls:   nulls,
+		}
 	case *String:
-		v.Nulls = nulls
+		return &String{
+			Offsets: v.Offsets,
+			Bytes:   v.Bytes,
+			Nulls:   nulls,
+		}
 	case *TypeValue:
-		v.Nulls = nulls
+		return &TypeValue{
+			Offsets: v.Offsets,
+			Bytes:   v.Bytes,
+			Nulls:   nulls,
+		}
 	case *Uint:
-		v.Nulls = nulls
+		return &Uint{
+			Typ:    v.Typ,
+			Values: v.Values,
+			Nulls:  nulls,
+		}
 	case *Union:
-		v.Nulls = nulls
+		return &Union{
+			Dynamic: v.Dynamic,
+			Typ:     v.Typ,
+			Nulls:   nulls,
+		}
 	default:
 		panic(v)
 	}

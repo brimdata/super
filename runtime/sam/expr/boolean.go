@@ -15,7 +15,7 @@ import (
 
 // Boolean is a function that takes a Value and returns a boolean result
 // based on the typed value.
-type Boolean func(super.Value) bool
+type Boolean func(super.Value) super.Value
 
 var compareBool = map[string]func(bool, bool) bool{
 	"==": func(a, b bool) bool { return a == b },
@@ -34,12 +34,18 @@ func CompareBool(op string, pattern bool) (Boolean, error) {
 	if !ok {
 		return nil, fmt.Errorf("unknown bool comparator: %s", op)
 	}
-	return func(val super.Value) bool {
+	return func(val super.Value) super.Value {
+		if val.IsNull() {
+			return super.NullBool
+		}
+		if val.IsError() {
+			return val
+		}
 		if val.Type().ID() != super.IDBool {
-			return false
+			return super.False
 		}
 		b := val.Bool()
-		return compare(b, pattern)
+		return super.NewBool(compare(b, pattern))
 	}, nil
 }
 
@@ -69,18 +75,24 @@ func CompareInt64(op string, pattern int64) (Boolean, error) {
 		return nil, fmt.Errorf("unknown int comparator: %s", op)
 	}
 	// many different Zed data types can be compared with integers
-	return func(val super.Value) bool {
+	return func(val super.Value) super.Value {
+		if val.IsNull() {
+			return super.NullBool
+		}
+		if val.IsError() {
+			return val
+		}
 		switch val.Type().ID() {
 		case super.IDUint8, super.IDUint16, super.IDUint32, super.IDUint64:
 			if v := val.Uint(); v <= math.MaxInt64 {
-				return CompareInt(int64(v), pattern)
+				return super.NewBool(CompareInt(int64(v), pattern))
 			}
 		case super.IDInt8, super.IDInt16, super.IDInt32, super.IDInt64, super.IDTime, super.IDDuration:
-			return CompareInt(val.Int(), pattern)
+			return super.NewBool(CompareInt(val.Int(), pattern))
 		case super.IDFloat16, super.IDFloat32, super.IDFloat64:
-			return CompareFloat(val.Float(), float64(pattern))
+			return super.NewBool(CompareFloat(val.Float(), float64(pattern)))
 		}
-		return false
+		return super.False
 	}, nil
 }
 
@@ -103,11 +115,17 @@ func CompareIP(op string, pattern netip.Addr) (Boolean, error) {
 	if !ok {
 		return nil, fmt.Errorf("unknown addr comparator: %s", op)
 	}
-	return func(val super.Value) bool {
-		if val.Type().ID() != super.IDIP {
-			return false
+	return func(val super.Value) super.Value {
+		if val.IsNull() {
+			return super.NullBool
 		}
-		return compare(super.DecodeIP(val.Bytes()), pattern)
+		if val.IsError() {
+			return val
+		}
+		if val.Type().ID() != super.IDIP {
+			return super.False
+		}
+		return super.NewBool(compare(super.DecodeIP(val.Bytes()), pattern))
 	}, nil
 }
 
@@ -120,7 +138,13 @@ func CompareFloat64(op string, pattern float64) (Boolean, error) {
 	if !ok {
 		return nil, fmt.Errorf("unknown double comparator: %s", op)
 	}
-	return func(val super.Value) bool {
+	return func(val super.Value) super.Value {
+		if val.IsNull() {
+			return super.NullBool
+		}
+		if val.IsError() {
+			return val
+		}
 		switch val.Type().ID() {
 		// We allow comparison of float constant with integer-y
 		// fields and just use typeDouble to parse since it will do
@@ -129,13 +153,13 @@ func CompareFloat64(op string, pattern float64) (Boolean, error) {
 		// use an integer constant instead of a float constant to
 		// compare with the integer-y field.
 		case super.IDUint8, super.IDUint16, super.IDUint32, super.IDUint64:
-			return compare(float64(val.Uint()), pattern)
+			return super.NewBool(compare(float64(val.Uint()), pattern))
 		case super.IDInt8, super.IDInt16, super.IDInt32, super.IDInt64, super.IDTime, super.IDDuration:
-			return compare(float64(val.Int()), pattern)
+			return super.NewBool(compare(float64(val.Int()), pattern))
 		case super.IDFloat16, super.IDFloat32, super.IDFloat64:
-			return compare(val.Float(), pattern)
+			return super.NewBool(compare(val.Float(), pattern))
 		}
-		return false
+		return super.False
 	}, nil
 }
 
@@ -154,11 +178,17 @@ func CompareString(op string, pattern []byte) (Boolean, error) {
 		return nil, fmt.Errorf("unknown string comparator: %s", op)
 	}
 	s := string(pattern)
-	return func(val super.Value) bool {
-		if val.Type().ID() == super.IDString {
-			return compare(byteconv.UnsafeString(val.Bytes()), s)
+	return func(val super.Value) super.Value {
+		if val.IsNull() {
+			return super.NullBool
 		}
-		return false
+		if val.IsError() {
+			return val
+		}
+		if val.Type().ID() == super.IDString {
+			return super.NewBool(compare(byteconv.UnsafeString(val.Bytes()), s))
+		}
+		return super.False
 	}, nil
 }
 
@@ -176,12 +206,19 @@ func CompareBytes(op string, pattern []byte) (Boolean, error) {
 	if !ok {
 		return nil, fmt.Errorf("unknown bytes comparator: %s", op)
 	}
-	return func(val super.Value) bool {
+	return func(val super.Value) super.Value {
+		if val.IsNull() {
+			return super.NullBool
+		}
+		if val.IsError() {
+			return val
+		}
+		v := false
 		switch val.Type().ID() {
 		case super.IDBytes, super.IDType:
-			return compare(val.Bytes(), pattern)
+			v = compare(val.Bytes(), pattern)
 		}
-		return false
+		return super.NewBool(v)
 	}, nil
 }
 
@@ -199,39 +236,38 @@ func CompileRegexp(pattern string) (*regexp.Regexp, error) {
 // NewRegexpBoolean returns a Boolean that compares values that must
 // be a stringy the given regexp.
 func NewRegexpBoolean(re *regexp.Regexp) Boolean {
-	return func(val super.Value) bool {
-		if val.IsString() {
-			return re.Match(val.Bytes())
+	return func(val super.Value) super.Value {
+		if val.IsNull() {
+			return super.NullBool
 		}
-		return false
+		v := false
+		if val.IsString() {
+			v = re.Match(val.Bytes())
+		}
+		return super.NewBool(v)
 	}
 }
 
 func CompareNull(op string) (Boolean, error) {
-	switch op {
-	case "==":
-		return func(val super.Value) bool {
-			return val.IsNull()
-		}, nil
-	case "!=":
-		return func(val super.Value) bool {
-			return !val.IsNull()
-		}, nil
-	default:
-		return nil, fmt.Errorf("unknown null comparator: %s", op)
-	}
+	return func(val super.Value) super.Value {
+		if val.IsError() {
+			return val
+		}
+		return super.NullBool
+	}, nil
 }
 
 // Given a predicate for comparing individual elements, produce a new
 // predicate that implements the "in" comparison.
 func Contains(compare Boolean) Boolean {
-	return func(val super.Value) bool {
-		return errMatch == val.Walk(func(typ super.Type, body zcode.Bytes) error {
-			if compare(super.NewValue(typ, body)) {
+	return func(val super.Value) super.Value {
+		err := val.Walk(func(typ super.Type, body zcode.Bytes) error {
+			if compare(super.NewValue(typ, body)) == super.True {
 				return errMatch
 			}
 			return nil
 		})
+		return super.NewBool(err == errMatch)
 	}
 }
 
@@ -241,6 +277,9 @@ func Contains(compare Boolean) Boolean {
 // of this method as some types limit the operand to equality and
 // the various types handle coercion in different ways.
 func Comparison(op string, val super.Value) (Boolean, error) {
+	if val.IsNull() {
+		return CompareNull(op)
+	}
 	switch super.TypeUnder(val.Type()).(type) {
 	case *super.TypeOfNull:
 		return CompareNull(op)

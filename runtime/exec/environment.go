@@ -18,6 +18,7 @@ import (
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio/anyio"
 	"github.com/brimdata/super/zio/parquetio"
+	"github.com/brimdata/super/zio/vngio"
 	"github.com/segmentio/ksuid"
 )
 
@@ -124,8 +125,8 @@ func (c *closePuller) Pull(done bool) (zbuf.Batch, error) {
 }
 
 func (e *Environment) VectorOpen(ctx context.Context, zctx *super.Context, path, format string, fields []field.Path) (vector.Puller, error) {
-	if format != "parquet" {
-		return nil, fmt.Errorf("vector runtime supports only Parquet files")
+	if format != "parquet" && format != "csup" {
+		return nil, fmt.Errorf("vector runtime supports only Parquet and CSUP files")
 	}
 	if path == "-" {
 		path = "stdio:stdin"
@@ -138,7 +139,12 @@ func (e *Environment) VectorOpen(ctx context.Context, zctx *super.Context, path,
 	if err != nil {
 		return nil, err
 	}
-	puller, err := parquetio.NewVectorReader(ctx, zctx, r, fields)
+	var puller vector.Puller
+	if format == "parquet" {
+		puller, err = parquetio.NewVectorReader(ctx, zctx, r, fields)
+	} else {
+		puller, err = vngio.NewVectorReader(ctx, zctx, r, fields)
+	}
 	if err != nil {
 		r.Close()
 		return nil, err

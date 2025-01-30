@@ -64,3 +64,10 @@ func ParseUint64(b []byte) (uint64, error) {
 func ParseFloat64(b []byte) (float64, error) {
 	return strconv.ParseFloat(UnsafeString(b), 64)
 }
+
+func ReinterpretSlice[Out, In any](in []In) []Out {
+	outData := (*Out)(unsafe.Pointer(unsafe.SliceData(in)))
+	outLen := len(in) * int(unsafe.Sizeof(in[0])) / int(unsafe.Sizeof(*outData))
+	outCap := cap(in) * int(unsafe.Sizeof(in[0])) / int(unsafe.Sizeof(*outData))
+	return unsafe.Slice(outData, outCap)[:outLen]
+}

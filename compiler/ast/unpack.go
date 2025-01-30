@@ -45,6 +45,7 @@ var unpacker = unpack.New(
 	ID{},
 	ImpliedValue{},
 	IndexExpr{},
+	IsNullExpr{},
 	Join{},
 	Load{},
 	Merge{},

@@ -1,0 +1,3 @@
+SELECT count()
+FROM '__SOURCE__'
+WHERE grep('in case you have any feedback 😊', payload.pull_request.body)

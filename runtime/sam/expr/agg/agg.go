@@ -67,7 +67,7 @@ func NewPattern(op string, hasarg bool) (Pattern, error) {
 		}
 	case "union":
 		pattern = func() Function {
-			return newUnion()
+			return NewUnion()
 		}
 	case "collect":
 		pattern = func() Function {

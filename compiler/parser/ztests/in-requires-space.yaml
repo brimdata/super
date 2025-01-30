@@ -2,6 +2,8 @@
 # longer doing this
 zed: '? x==1 inaction'
 
+vector: true
+
 input: |
   {x:1,text:"inaction"}
 

@@ -133,6 +133,13 @@ type IndexExpr struct {
 	Loc   `json:"loc"`
 }
 
+type IsNullExpr struct {
+	Kind string `json:"kind" unpack:""`
+	Expr Expr   `json:"expr"`
+	Not  bool   `json:"not"`
+	Loc  `json:"loc"`
+}
+
 type SliceExpr struct {
 	Kind string `json:"kind" unpack:""`
 	Expr Expr   `json:"expr"`
@@ -315,6 +322,7 @@ func (*CaseExpr) ExprAST()    {}
 func (*Cast) ExprAST()        {}
 func (*ID) ExprAST()          {}
 func (*IndexExpr) ExprAST()   {}
+func (*IsNullExpr) ExprAST()  {}
 func (*SliceExpr) ExprAST()   {}
 
 func (*Assignment) ExprAST() {}

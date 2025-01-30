@@ -15,18 +15,20 @@ structured error if it does not.
 
 ### Examples
 
-```mdtest-command
-echo {a:1} | super -z -c 'assert a > 0' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+assert a > 0
+# input
+{a:1}
+# expected output
 {a:1}
 ```
 
-```mdtest-command
-echo {a:-1} | super -z -c 'assert a > 0' -
-```
-=>
-```mdtest-output
+```mdtest-spq {data-layout="stacked"}
+# spq
+assert a > 0
+# input
+{a:-1}
+# expected output
 error({message:"assertion failed",expr:"a > 0",on:{a:-1}})
 ```

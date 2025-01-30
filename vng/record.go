@@ -58,39 +58,3 @@ func (r *RecordEncoder) Emit(w io.Writer) error {
 	}
 	return nil
 }
-
-type RecordBuilder struct {
-	Names  []string
-	Values []FieldBuilder
-}
-
-var _ Builder = (*RecordBuilder)(nil)
-
-func NewRecordBuilder(record *Record, reader io.ReaderAt) (*RecordBuilder, error) {
-	names := make([]string, 0, len(record.Fields))
-	values := make([]FieldBuilder, 0, len(record.Fields))
-	for _, field := range record.Fields {
-		names = append(names, field.Name)
-		fr, err := NewFieldBuilder(field, reader)
-		if err != nil {
-			return nil, err
-		}
-		values = append(values, *fr)
-	}
-	result := &RecordBuilder{
-		Names:  names,
-		Values: values,
-	}
-	return result, nil
-}
-
-func (r *RecordBuilder) Build(b *zcode.Builder) error {
-	b.BeginContainer()
-	for _, f := range r.Values {
-		if err := f.Build(b); err != nil {
-			return err
-		}
-	}
-	b.EndContainer()
-	return nil
-}

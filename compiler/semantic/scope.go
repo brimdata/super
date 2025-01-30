@@ -11,18 +11,13 @@ import (
 )
 
 type Scope struct {
-	parent   *Scope
-	children []*Scope
-	nvar     int
-	symbols  map[string]*entry
+	parent  *Scope
+	nvar    int
+	symbols map[string]*entry
 }
 
 func NewScope(parent *Scope) *Scope {
-	s := &Scope{parent: parent, symbols: make(map[string]*entry)}
-	if parent != nil {
-		parent.children = append(parent.children, s)
-	}
-	return s
+	return &Scope{parent: parent, symbols: make(map[string]*entry)}
 }
 
 type entry struct {

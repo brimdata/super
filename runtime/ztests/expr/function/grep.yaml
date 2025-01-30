@@ -1,0 +1,28 @@
+# This test tests grep as a function call which only happens when the pattern
+# arg is not a glob, regular expression, or resolvable to a string at compile
+# time.
+
+zed: |
+  [grep(pattern),grep(pattern,input)]
+
+vector: true
+
+input: |
+  {pattern:"a",input:"a"}
+  {pattern:"z",input:"a"}
+  {pattern:"b",input:{a:{b:1}}}
+  {pattern:"z",input:{a:{b:1}}}
+  {pattern:"c",input:{a:{b:"c"}}}
+  {pattern:"z",input:{a:{b:"c"}}}
+  {pattern:1,input:""}
+  {pattern:null(string),input:"a"}
+
+output: |
+  [true,true]
+  [true,false]
+  [true,true]
+  [true,false]
+  [true,true]
+  [true,false]
+  [error({message:"grep(): pattern argument must be a string",on:1}),error({message:"grep(): pattern argument must be a string",on:1})]
+  [null(bool),null(bool)]

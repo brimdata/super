@@ -1,0 +1,12 @@
+zed: summarize collect(this)
+
+vector: true
+
+input: |
+  {a:1}
+  {a:2}
+  null({a:int64})
+  {b:1.5}
+
+output: |
+  [{a:1},{a:2},{b:1.5}]

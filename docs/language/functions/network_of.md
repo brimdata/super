@@ -19,46 +19,51 @@ network is inferred from `val`, which in this case, must be an IPv4 address.
 ### Examples
 
 Compute the network address of an IP using an `ip` mask argument:
-```mdtest-command
-echo '10.1.2.129' | super -z -c 'yield network_of(this, 255.255.255.128)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield network_of(this, 255.255.255.128)
+# input
+10.1.2.129
+# expected output
 10.1.2.128/25
 ```
 
 Compute the network address of an IP given an integer prefix argument:
-```mdtest-command
-echo '10.1.2.129' | super -z -c 'yield network_of(this, 25)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield network_of(this, 25)
+# input
+10.1.2.129
+# expected output
 10.1.2.128/25
 ```
 
 Compute the network address implied by IP classful addressing:
-```mdtest-command
-echo '10.1.2.129' | super -z -c 'yield network_of(this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield network_of(this)
+# input
+10.1.2.129
+# expected output
 10.0.0.0/8
 ```
 
 The network of a value that is not an IP is an error:
-```mdtest-command
-echo 1 | super -z -c 'yield network_of(this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq {data-layout="stacked"}
+# spq
+yield network_of(this)
+# input
+1
+# expected output
 error({message:"network_of: not an IP",on:1})
 ```
 
 Network masks must be contiguous:
-```mdtest-command
-echo '10.1.2.129' | super -z -c 'yield network_of(this, 255.255.128.255)' -
-```
-=>
-```mdtest-output
+```mdtest-spq {data-layout="stacked"}
+# spq
+yield network_of(this, 255.255.128.255)
+# input
+10.1.2.129
+# expected output
 error({message:"network_of: mask is non-contiguous",on:255.255.128.255})
 ```

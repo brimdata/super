@@ -1,6 +1,8 @@
 zed: |
   ? <{x:int64}>
 
+vector: true
+
 input: <int64> <string> <{x:int64}>
 
 output: |

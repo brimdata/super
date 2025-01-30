@@ -4,7 +4,7 @@
 
 ### Synopsis
 ```
-min(...number) -> number
+min(number) -> number
 ```
 
 ### Description
@@ -14,20 +14,28 @@ The _min_ aggregate function computes the minimum value of its input.
 ### Examples
 
 Minimum value of simple sequence:
-```mdtest-command
-echo '1 2 3 4' | super -z -c 'min(this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+min(this)
+# input
+1
+2
+3
+4
+# expected output
 1
 ```
 
 Continuous minimum of simple sequence:
-```mdtest-command
-echo '1 2 3 4' | super -z -c 'yield min(this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield min(this)
+# input
+1
+2
+3
+4
+# expected output
 1
 1
 1
@@ -35,21 +43,29 @@ echo '1 2 3 4' | super -z -c 'yield min(this)' -
 ```
 
 Unrecognized types are ignored:
-```mdtest-command
-echo '1 2 3 4 "foo"' | super -z -c 'min(this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+min(this)
+# input
+1
+2
+3
+4
+"foo"
+# expected output
 1
 ```
 
 Minimum value within buckets grouped by key:
-```mdtest-command
-echo '{a:1,k:1} {a:2,k:1} {a:3,k:2} {a:4,k:2}' |
-  super -z -c 'min(a) by k |> sort' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+min(a) by k | sort
+# input
+{a:1,k:1}
+{a:2,k:1}
+{a:3,k:2}
+{a:4,k:2}
+# expected output
 {k:1,min:1}
 {k:2,min:3}
 ```

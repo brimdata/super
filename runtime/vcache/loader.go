@@ -8,10 +8,12 @@ import (
 	"sync"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/pkg/byteconv"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vng"
 	"github.com/brimdata/super/zcode"
 	"github.com/brimdata/super/zson"
+	"github.com/ronanh/intcomp"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -79,6 +81,10 @@ func (l *loader) loadVector(g *errgroup.Group, paths Path, s shadow) {
 		l.loadVector(g, paths, s.vals)
 	case *union:
 		l.loadUnion(g, paths, s)
+	case *int_:
+		l.loadInt(g, s)
+	case *uint_:
+		l.loadUint(g, s)
 	case *primitive:
 		l.loadPrimitive(g, paths, s)
 	case *const_:
@@ -89,6 +95,8 @@ func (l *loader) loadVector(g *errgroup.Group, paths Path, s shadow) {
 			s.vec = vec
 		}
 		s.mu.Unlock()
+	case *dict:
+		l.loadDict(g, paths, s)
 	case *error_:
 		l.loadVector(g, paths, s.vals)
 	case *named:
@@ -134,6 +142,54 @@ func (l *loader) loadUnion(g *errgroup.Group, paths Path, s *union) {
 	}
 }
 
+func (l *loader) loadInt(g *errgroup.Group, s *int_) {
+	s.mu.Lock()
+	if s.vec != nil {
+		s.mu.Unlock()
+		return
+	}
+	s.mu.Unlock()
+	g.Go(func() error {
+		s.mu.Lock()
+		defer s.mu.Unlock()
+		if s.vec != nil {
+			return nil
+		}
+		bytes := make([]byte, s.vng.Location.MemLength)
+		if err := s.vng.Location.Read(l.r, bytes); err != nil {
+			return err
+		}
+		vals := intcomp.UncompressInt64(byteconv.ReinterpretSlice[uint64](bytes), nil)
+		vals = extendForNulls(vals, s.nulls.flat, s.count)
+		s.vec = vector.NewInt(s.vng.Type(l.zctx), vals, s.nulls.flat)
+		return nil
+	})
+}
+
+func (l *loader) loadUint(g *errgroup.Group, s *uint_) {
+	s.mu.Lock()
+	if s.vec != nil {
+		s.mu.Unlock()
+		return
+	}
+	s.mu.Unlock()
+	g.Go(func() error {
+		s.mu.Lock()
+		defer s.mu.Unlock()
+		if s.vec != nil {
+			return nil
+		}
+		bytes := make([]byte, s.vng.Location.MemLength)
+		if err := s.vng.Location.Read(l.r, bytes); err != nil {
+			return err
+		}
+		vals := intcomp.UncompressUint64(byteconv.ReinterpretSlice[uint64](bytes), nil)
+		vals = extendForNulls(vals, s.nulls.flat, s.count)
+		s.vec = vector.NewUint(s.vng.Type(l.zctx), vals, s.nulls.flat)
+		return nil
+	})
+}
+
 func (l *loader) loadPrimitive(g *errgroup.Group, paths Path, s *primitive) {
 	s.mu.Lock()
 	if s.vec != nil {
@@ -148,33 +204,11 @@ func (l *loader) loadPrimitive(g *errgroup.Group, paths Path, s *primitive) {
 			return nil
 		}
 		typ := s.vng.Type(l.zctx)
-		nulls := s.nulls.flat
-		if len(s.vng.Dict) > 0 {
-			loc := s.vng.Location
-			tags := make([]byte, loc.MemLength)
-			if err := loc.Read(l.r, tags); err != nil {
-				return err
-			}
-			if s.count.nulls > 0 {
-				n := s.length()
-				ntags := make([]byte, n)
-				var off int
-				for slot := uint32(0); slot < n; slot++ {
-					if !nulls.Value(slot) {
-						ntags[slot] = tags[off]
-						off++
-					}
-				}
-				tags = ntags
-			}
-			s.vec = l.loadDict(typ, s.vng.Dict, tags, nulls)
-		} else {
-			vec, err := l.loadVals(typ, s, nulls)
-			if err != nil {
-				return err
-			}
-			s.vec = vec
+		vec, err := l.loadVals(typ, s, s.nulls.flat)
+		if err != nil {
+			return err
 		}
+		s.vec = vec
 		return nil
 	})
 }
@@ -265,7 +299,7 @@ func (l *loader) loadVals(typ super.Type, s *primitive, nulls *vector.Bool) (vec
 		}
 		return vector.NewIP(values, nulls), nil
 	case *super.TypeOfNet:
-		var values []netip.Prefix
+		values := make([]netip.Prefix, length)
 		for slot := uint32(0); slot < length; slot++ {
 			if nulls == nil || !nulls.Value(slot) {
 				values[slot] = super.DecodeNet(it.Next())
@@ -286,110 +320,53 @@ func (l *loader) loadVals(typ super.Type, s *primitive, nulls *vector.Bool) (vec
 		}
 		offs[length] = off
 		return vector.NewTypeValue(offs, bytes, nulls), nil
+	case *super.TypeEnum:
+		values := make([]uint64, length)
+		for slot := range length {
+			if !nulls.Value(slot) {
+				values[slot] = super.DecodeUint(it.Next())
+			}
+		}
+		return vector.NewEnum(typ, values, nulls), nil
 	case *super.TypeOfNull:
 		return vector.NewConst(super.Null, s.length(), nil), nil
 	}
 	return nil, fmt.Errorf("internal error: vcache.loadPrimitive got unknown type %#v", typ)
 }
 
-func (l *loader) loadDict(typ super.Type, dict []vng.DictEntry, tags []byte, nulls *vector.Bool) vector.Any {
-	length := len(dict)
-	counts := make([]uint32, 0, length)
-	switch typ := typ.(type) {
-	case *super.TypeOfUint8, *super.TypeOfUint16, *super.TypeOfUint32, *super.TypeOfUint64:
-		values := make([]uint64, 0, length)
-		for _, d := range dict {
-			values = append(values, super.DecodeUint(d.Value.Bytes()))
-			counts = append(counts, d.Count)
-		}
-		return vector.NewDict(vector.NewUint(typ, values, nil), tags, counts, nulls)
-	case *super.TypeOfInt8, *super.TypeOfInt16, *super.TypeOfInt32, *super.TypeOfInt64, *super.TypeOfDuration, *super.TypeOfTime:
-		values := make([]int64, 0, length)
-		for _, d := range dict {
-			values = append(values, super.DecodeInt(d.Value.Bytes()))
-			counts = append(counts, d.Count)
-		}
-		return vector.NewDict(vector.NewInt(typ, values, nil), tags, counts, nulls)
-	case *super.TypeOfFloat64:
-		values := make([]float64, 0, length)
-		for _, d := range dict {
-			values = append(values, super.DecodeFloat64(d.Value.Bytes()))
-			counts = append(counts, d.Count)
-		}
-		return vector.NewDict(vector.NewFloat(typ, values, nil), tags, counts, nulls)
-	case *super.TypeOfFloat32:
-		values := make([]float64, 0, length)
-		for _, d := range dict {
-			values = append(values, float64(super.DecodeFloat32(d.Value.Bytes())))
-			counts = append(counts, d.Count)
-		}
-		return vector.NewDict(vector.NewFloat(typ, values, nil), tags, counts, nulls)
-	case *super.TypeOfFloat16:
-		values := make([]float64, 0, length)
-		for _, d := range dict {
-			values = append(values, float64(super.DecodeFloat16(d.Value.Bytes())))
-			counts = append(counts, d.Count)
-		}
-		return vector.NewDict(vector.NewFloat(typ, values, nil), tags, counts, nulls)
-	case *super.TypeOfBytes:
-		//XXX fix VNG to use this single string slice and offs, and later prefix trick
-		var bytes []byte
-		offs := make([]uint32, 0, length+1)
-		var off uint32
-		for _, d := range dict {
-			offs = append(offs, off)
-			b := d.Value.Bytes()
-			bytes = append(bytes, b...)
-			off += uint32(len(b))
-			counts = append(counts, d.Count)
-		}
-		offs = append(offs, off)
-		return vector.NewDict(vector.NewBytes(offs, bytes, nil), tags, counts, nulls)
-	case *super.TypeOfString:
-		//XXX fix VNG to use this single string slice and offs, and later prefix trick
-		var bytes []byte
-		offs := make([]uint32, 0, length+1)
-		var off uint32
-		for _, d := range dict {
-			offs = append(offs, off)
-			b := d.Value.Bytes()
-			bytes = append(bytes, b...)
-			off += uint32(len(b))
-			counts = append(counts, d.Count)
-		}
-		offs = append(offs, off)
-		return vector.NewDict(vector.NewString(offs, bytes, nil), tags, counts, nulls)
-	case *super.TypeOfIP:
-		values := make([]netip.Addr, 0, length)
-		for _, d := range dict {
-			values = append(values, super.DecodeIP(d.Value.Bytes()))
-			counts = append(counts, d.Count)
-		}
-		return vector.NewDict(vector.NewIP(values, nil), tags, counts, nulls)
-	case *super.TypeOfNet:
-		values := make([]netip.Prefix, 0, length)
-		for _, d := range dict {
-			values = append(values, super.DecodeNet(d.Value.Bytes()))
-			counts = append(counts, d.Count)
-		}
-		return vector.NewDict(vector.NewNet(values, nil), tags, counts, nulls)
-	case *super.TypeOfType:
-		//XXX fix VNG to use this single string slice and offs, and later prefix trick
-		var bytes []byte
-		offs := make([]uint32, 0, length+1)
-		var off uint32
-		for _, d := range dict {
-			offs = append(offs, off)
-			b := d.Value.Bytes()
-			bytes = append(bytes, b...)
-			off += uint32(len(b))
-			counts = append(counts, d.Count)
-		}
-		offs = append(offs, off)
-		return vector.NewDict(vector.NewTypeValue(offs, bytes, nil), tags, counts, nulls)
-	default:
-		panic(fmt.Sprintf("vcache: encountered bad or unknown Zed type for vector dict: %T", typ))
+func (l *loader) loadDict(g *errgroup.Group, paths Path, s *dict) {
+	if s.vng.Length == 0 {
+		panic("empty dict") // empty dictionaries should not happen!
 	}
+	l.loadVector(g, paths, s.vals)
+	l.loadUint32(g, &s.mu, &s.counts, s.vng.Counts)
+	g.Go(func() error {
+		s.mu.Lock()
+		defer s.mu.Unlock()
+		loc := s.vng.Index
+		s.index = make([]byte, loc.MemLength)
+		if err := loc.Read(l.r, s.index); err != nil {
+			return err
+		}
+		s.index = extendForNulls(s.index, s.nulls.flat, s.count)
+		return nil
+	})
+
+}
+
+func extendForNulls[T any](in []T, nulls *vector.Bool, count count) []T {
+	if count.nulls == 0 {
+		return in
+	}
+	out := make([]T, count.length())
+	var off int
+	for i := range count.length() {
+		if !nulls.Value(i) {
+			out[i] = in[off]
+			off++
+		}
+	}
+	return out
 }
 
 // XXX need nullscnt to pass as length (ugh, need empty buffer nullscnt long because of flattened assumption)
@@ -433,7 +410,7 @@ func (l *loader) loadUint32(g *errgroup.Group, mu *sync.Mutex, slice *[]uint32, 
 		if *slice != nil {
 			return nil
 		}
-		v, err := vng.ReadUint32Vector(loc, l.r)
+		v, err := vng.ReadUint32s(loc, l.r)
 		if err != nil {
 			return err
 		}
@@ -455,7 +432,7 @@ func (l *loader) loadOffsets(g *errgroup.Group, mu *sync.Mutex, slice *[]uint32,
 		if *slice != nil {
 			return nil
 		}
-		v, err := vng.ReadUint32Vector(loc, l.r)
+		v, err := vng.ReadUint32s(loc, l.r)
 		if err != nil {
 			return err
 		}
@@ -517,9 +494,15 @@ func (l *loader) fetchNulls(g *errgroup.Group, paths Path, s shadow) {
 		for _, val := range s.vals {
 			l.fetchNulls(g, paths, val)
 		}
+	case *int_:
+		s.nulls.fetch(g, l.r)
+	case *uint_:
+		s.nulls.fetch(g, l.r)
 	case *primitive:
 		s.nulls.fetch(g, l.r)
 	case *const_:
+		s.nulls.fetch(g, l.r)
+	case *dict:
 		s.nulls.fetch(g, l.r)
 	case *error_:
 		s.nulls.fetch(g, l.r)
@@ -574,9 +557,15 @@ func flattenNulls(paths Path, s shadow, parent *vector.Bool) {
 		for _, val := range s.vals {
 			flattenNulls(paths, val, nil)
 		}
+	case *int_:
+		s.nulls.flatten(parent)
+	case *uint_:
+		s.nulls.flatten(parent)
 	case *primitive:
 		s.nulls.flatten(parent)
 	case *const_:
+		s.nulls.flatten(parent)
+	case *dict:
 		s.nulls.flatten(parent)
 	case *error_:
 		s.nulls.flatten(parent)

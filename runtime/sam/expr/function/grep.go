@@ -17,6 +17,9 @@ func (g *Grep) Call(_ super.Allocator, vals []super.Value) super.Value {
 	if super.TypeUnder(patternVal.Type()) != super.TypeString {
 		return g.zctx.WrapError("grep(): pattern argument must be a string", patternVal)
 	}
+	if patternVal.IsNull() {
+		return super.NullBool
+	}
 	if p := patternVal.AsString(); g.grep == nil || g.pattern != p {
 		g.pattern = p
 		term := norm.NFC.Bytes(patternVal.Bytes())

@@ -17,30 +17,37 @@ is not provided, the value of N defaults to `1`.
 ### Examples
 
 _Grab first two values of arbitrary sequence_
-```mdtest-command
-echo '1 "foo" [1,2,3]' | super -z -c 'head 2' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+head 2
+# input
+1
+"foo"
+[1,2,3]
+# expected output
 1
 "foo"
 ```
 
 _Grab first two values of arbitrary sequence, using a different representation of two_
-```mdtest-command
-echo '1 "foo" [1,2,3]' | super -z -c 'head 1+1' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+head 1+1
+# input
+1
+"foo"
+[1,2,3]
+# expected output
 1
 "foo"
 ```
 
 _Grab the first record of a record sequence_
-```mdtest-command
-echo '{a:"hello"}{b:"world"}' | super -z -c head -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+head
+# input
+{a:"hello"}
+# expected output
 {a:"hello"}
 ```

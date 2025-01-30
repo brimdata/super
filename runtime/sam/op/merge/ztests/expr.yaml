@@ -1,9 +1,0 @@
-zed: fork (=>pass =>pass) |> merge this
-
-input: 1 2
-
-output: |
-  1
-  1
-  2
-  2

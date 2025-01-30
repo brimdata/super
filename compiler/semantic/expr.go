@@ -145,6 +145,17 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 			Expr:  expr,
 			Index: index,
 		}
+	case *ast.IsNullExpr:
+		expr := a.semExpr(e.Expr)
+		var out dag.Expr = &dag.IsNullExpr{Kind: "IsNullExpr", Expr: expr}
+		if e.Not {
+			out = &dag.UnaryExpr{
+				Kind:    "UnaryExpr",
+				Op:      "!",
+				Operand: out,
+			}
+		}
+		return out
 	case *ast.SliceExpr:
 		expr := a.semExpr(e.Expr)
 		// XXX Literal indices should be type checked as int.

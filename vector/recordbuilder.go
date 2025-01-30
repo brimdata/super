@@ -23,8 +23,9 @@ func NewRecordBuilder(zctx *super.Context, fields field.List) (*RecordBuilder, e
 	return &RecordBuilder{zctx: zctx, base: base}, nil
 }
 
-func (r *RecordBuilder) New(vecs []Any) *Record {
+func (r *RecordBuilder) New(vecs []Any, nulls *Bool) *Record {
 	rec, _ := r.base.build(r.zctx, vecs)
+	rec.Nulls = nulls
 	return rec
 }
 

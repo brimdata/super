@@ -179,8 +179,7 @@ func filter(zctx *super.Context, ectx expr.Context, this super.Value, e expr.Eva
 	if e == nil {
 		return true
 	}
-	val, ok := expr.EvalBool(zctx, ectx, this, e)
-	return ok && val.Bool()
+	return expr.EvalBool(zctx, ectx, this, e).Ptr().AsBool()
 }
 
 type BranchTip struct {

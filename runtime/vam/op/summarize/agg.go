@@ -24,7 +24,8 @@ type superTable struct {
 	builder     *vector.RecordBuilder
 	partialsIn  bool
 	partialsOut bool
-	table       map[string]aggRow
+	table       map[string]int
+	rows        []aggRow
 	zctx        *super.Context
 }
 
@@ -52,11 +53,13 @@ func (s *superTable) update(keys []vector.Any, args []vector.Any) {
 		m[string(keyBytes)] = append(m[string(keyBytes)], slot)
 	}
 	for rowKey, index := range m {
-		row, ok := s.table[rowKey]
+		id, ok := s.table[rowKey]
 		if !ok {
-			row = s.newRow(keys, index)
-			s.table[rowKey] = row
+			id = len(s.rows)
+			s.table[rowKey] = id
+			s.rows = append(s.rows, s.newRow(keys, index))
 		}
+		row := s.rows[id]
 		for i, arg := range args {
 			if len(m) > 1 {
 				arg = vector.NewView(arg, index)
@@ -85,32 +88,40 @@ func (s *superTable) newRow(keys []vector.Any, index []uint32) aggRow {
 }
 
 func (s *superTable) materialize() vector.Any {
-	var vecs []vector.Any
-	var tags []uint32
-	// XXX This should reasonably concat all materialize rows together instead
-	// of this crazy Dynamic hack.
-	for _, row := range s.table {
-		tags = append(tags, uint32(len(tags)))
-		vecs = append(vecs, s.materializeRow(row))
+	if len(s.rows) == 0 {
+		return vector.NewConst(super.Null, 0, nil)
 	}
-	return vector.NewDynamic(tags, vecs)
+	var vecs []vector.Any
+	for i := range s.rows[0].keys {
+		vecs = append(vecs, s.materializeKey(i))
+	}
+	for i := range s.rows[0].funcs {
+		vecs = append(vecs, s.materializeAgg(i))
+	}
+	// Since aggs can return dynamic values need to do apply to create record.
+	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
+		return s.builder.New(vecs, nil)
+	}, vecs...)
 }
 
-func (s *superTable) materializeRow(row aggRow) vector.Any {
-	var vecs []vector.Any
-	for _, key := range row.keys {
-		vecs = append(vecs, vector.NewConst(key, 1, nil))
+func (s *superTable) materializeKey(i int) vector.Any {
+	b := vector.NewBuilder(s.rows[0].keys[i].Type())
+	for _, row := range s.rows {
+		b.Write(row.keys[i].Bytes())
 	}
-	for _, fn := range row.funcs {
-		var val super.Value
+	return b.Build()
+}
+
+func (s *superTable) materializeAgg(i int) vector.Any {
+	b := vector.NewDynamicBuilder()
+	for _, row := range s.rows {
 		if s.partialsOut {
-			val = fn.ResultAsPartial(s.zctx)
+			b.Write(row.funcs[i].ResultAsPartial(s.zctx))
 		} else {
-			val = fn.Result(s.zctx)
+			b.Write(row.funcs[i].Result(s.zctx))
 		}
-		vecs = append(vecs, vector.NewConst(val, 1, nil))
 	}
-	return s.builder.New(vecs)
+	return b.Build()
 }
 
 type countByString struct {
@@ -260,7 +271,7 @@ func (c *countByString) materialize() vector.Any {
 	}
 	keyVec := vector.NewString(offs, bytes, nulls)
 	countVec := vector.NewUint(super.TypeUint64, counts, nil)
-	return c.builder.New([]vector.Any{keyVec, countVec})
+	return c.builder.New([]vector.Any{keyVec, countVec}, nil)
 }
 
 type Sum struct {

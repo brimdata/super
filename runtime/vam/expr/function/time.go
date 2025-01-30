@@ -136,13 +136,17 @@ func (s *Strftime) fastPath(fvec *vector.Const, tvec vector.Any) vector.Any {
 }
 
 func (s *Strftime) fastPathLoop(f *strftime.Strftime, vec *vector.Int, index []uint32) *vector.String {
+	if index != nil {
+		out := vector.NewStringEmpty(uint32(len(index)), vector.NewBoolView(vec.Nulls, index))
+		for _, i := range index {
+			s := f.FormatString(nano.Ts(vec.Values[i]).Time())
+			out.Append(s)
+		}
+		return out
+	}
 	out := vector.NewStringEmpty(vec.Len(), vec.Nulls)
 	for i := range vec.Len() {
-		idx := i
-		if index != nil {
-			idx = index[i]
-		}
-		s := f.FormatString(nano.Ts(vec.Values[idx]).Time())
+		s := f.FormatString(nano.Ts(vec.Values[i]).Time())
 		out.Append(s)
 	}
 	return out

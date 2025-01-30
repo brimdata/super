@@ -17,30 +17,38 @@ is not provided, the value of N defaults to `1`.
 ### Examples
 
 _Grab last two values of arbitrary sequence_
-```mdtest-command
-echo '1 "foo" [1,2,3]' | super -z -c 'tail 2' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+tail 2
+# input
+1
+"foo"
+[1,2,3]
+# expected output
 "foo"
 [1,2,3]
 ```
 
 _Grab last two values of arbitrary sequence, using a different representation of two_
-```mdtest-command
-echo '1 "foo" [1,2,3]' | super -z -c 'tail 1+1' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+tail 1+1
+# input
+1
+"foo"
+[1,2,3]
+# expected output
 "foo"
 [1,2,3]
 ```
 
 _Grab the last record of a record sequence_
-```mdtest-command
-echo '{a:"hello"}{b:"world"}' | super -z -c tail -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+tail
+# input
+{a:"hello"}
+{b:"world"}
+# expected output
 {b:"world"}
 ```

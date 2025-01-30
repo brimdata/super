@@ -11,6 +11,8 @@ import (
 	"github.com/brimdata/super/zson"
 )
 
+var maxObjectSize uint32 = 120_000
+
 // Writer implements the zio.Writer interface. A Writer creates a vector
 // VNG object from a stream of super.Records.
 type Writer struct {
@@ -30,7 +32,7 @@ func NewWriter(w io.WriteCloser) *Writer {
 }
 
 func (w *Writer) Close() error {
-	firstErr := w.finalize()
+	firstErr := w.finalizeObject()
 	if err := w.writer.Close(); err != nil && firstErr == nil {
 		firstErr = err
 	}
@@ -38,10 +40,16 @@ func (w *Writer) Close() error {
 }
 
 func (w *Writer) Write(val super.Value) error {
-	return w.dynamic.Write(val)
+	if err := w.dynamic.Write(val); err != nil {
+		return err
+	}
+	if w.dynamic.len >= maxObjectSize {
+		return w.finalizeObject()
+	}
+	return nil
 }
 
-func (w *Writer) finalize() error {
+func (w *Writer) finalizeObject() error {
 	meta, dataSize, err := w.dynamic.Encode()
 	if err != nil {
 		return fmt.Errorf("system error: could not encode VNG metadata: %w", err)
@@ -74,5 +82,8 @@ func (w *Writer) finalize() error {
 	if err := w.dynamic.Emit(w.writer); err != nil {
 		return fmt.Errorf("system error: could not write VNG data section: %w", err)
 	}
+	// Set new dynamic so we can write the next section.
+	w.dynamic = NewDynamicEncoder()
+	w.zctx.Reset()
 	return nil
 }

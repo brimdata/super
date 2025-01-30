@@ -199,7 +199,7 @@ func (s *Scanner) ScanLine() ([]byte, error) {
 			if line == nil {
 				return nil, nil
 			}
-			if len(line) <= 1 {
+			if string(line) == "\n" {
 				// blank line, keep going
 				s.BlankLines++
 				continue

@@ -1,0 +1,17 @@
+zed: yield not this
+
+vector: true
+
+input: |
+  true
+  false
+  null(bool)
+  error("missing")
+  error("foo")
+
+output: |
+  false
+  true
+  null(bool)
+  error("missing")
+  error("foo")

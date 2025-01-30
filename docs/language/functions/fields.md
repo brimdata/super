@@ -20,30 +20,34 @@ can appear in a field name.
 ### Examples
 
 Extract the fields of a nested record:
-```mdtest-command
-echo '{a:1,b:2,c:{d:3,e:4}}' | super -z -c 'yield fields(this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield fields(this)
+# input
+{a:1,b:2,c:{d:3,e:4}}
+# expected output
 [["a"],["b"],["c","d"],["c","e"]]
 ```
+
 Easily convert to dotted names if you prefer:
-```mdtest-command
-echo '{a:1,b:2,c:{d:3,e:4}}' |
-  super -z -c 'over fields(this) |> yield join(this,".")' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+over fields(this) | yield join(this,".")
+# input
+{a:1,b:2,c:{d:3,e:4}}
+# expected output
 "a"
 "b"
 "c.d"
 "c.e"
 ```
+
 A record is expected:
-```mdtest-command
-echo 1 | super -z -c 'yield {f:fields(this)}' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield {f:fields(this)}
+# input
+1
+# expected output
 {f:error("missing")}
 ```

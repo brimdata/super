@@ -1,0 +1,17 @@
+zed: |
+  summarize
+    num_requests := count()
+    where log_time >= 2012-10-01T00:00:00Z
+    by client_ip
+  | sort client_ip
+
+vector: true
+
+input: |
+  {log_time:2012-01-01T00:00:44Z,client_ip:249.92.17.134}
+  {log_time:2012-10-01T00:24:30Z,client_ip:249.92.17.134}
+  {log_time:2012-05-12T10:23:22Z,client_ip:251.58.48.137}
+
+output: |
+  {client_ip:249.92.17.134,num_requests:1(uint64)}
+  {client_ip:251.58.48.137,num_requests:0(uint64)}

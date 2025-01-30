@@ -948,12 +948,11 @@ BetweenExpr
   / ComparisonExpr
 
 ComparisonExpr
-  = lhs:AdditiveExpr _ op:IsNull {
-      return &ast.BinaryExpr{
-        Kind: "BinaryExpr",
-        Op: op.(string),
-        LHS: lhs.(ast.Expr),
-        RHS: newPrimitive(c, "null", ""),
+  = expr:AdditiveExpr _ IS not:(_ NOT)? _ NULL {
+      return &ast.IsNullExpr{
+        Kind: "IsNullExpr",
+        Expr: expr.(ast.Expr),
+        Not: not != nil,
         Loc: loc(c),
       }, nil
     }   
@@ -970,10 +969,6 @@ ComparisonExpr
       }, nil
     }
  
- IsNull
-  = IS _ NULL { return "==", nil }
-  / IS _ NOT _ NULL { return "!=", nil }
-
 AdditiveExpr
   = first:MultiplicativeExpr
     rest:(__ op:AdditiveOperator __ expr:MultiplicativeExpr { return []any{op, expr}, nil })* {

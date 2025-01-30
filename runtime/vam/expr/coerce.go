@@ -25,9 +25,11 @@ func coerceVals(zctx *super.Context, a, b vector.Any) (vector.Any, vector.Any, v
 		return a, b, nil
 	}
 	if aid == super.IDNull {
+		a = vector.NewConst(super.NewValue(b.Type(), nil), b.Len(), nil)
 		return a, b, nil //XXX
 	}
 	if bid == super.IDNull {
+		b = vector.NewConst(super.NewValue(a.Type(), nil), a.Len(), nil)
 		return a, b, nil //XXX
 	}
 	if !super.IsNumber(aid) || !super.IsNumber(bid) {

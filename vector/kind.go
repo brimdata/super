@@ -16,7 +16,13 @@ const (
 	KindFloat   = 3
 	KindString  = 4
 	KindBytes   = 5
-	KindType    = 6
+	KindIP      = 6
+	KindType    = 7
+	KindError   = 8
+	KindArray   = 9
+	KindSet     = 10
+	KindMap     = 11
+	KindRecord  = 12
 )
 
 const (
@@ -30,6 +36,8 @@ const (
 
 func KindOf(v Any) Kind {
 	switch v := v.(type) {
+	case *Array:
+		return KindArray
 	case *Int:
 		return KindInt
 	case *Uint:
@@ -40,6 +48,18 @@ func KindOf(v Any) Kind {
 		return KindBytes
 	case *String:
 		return KindString
+	case *Error:
+		return KindError
+	case *IP:
+		return KindIP
+	case *TypeValue:
+		return KindType
+	case *Map:
+		return KindMap
+	case *Record:
+		return KindRecord
+	case *Set:
+		return KindSet
 	case *Dict:
 		return KindOf(v.Any)
 	case *View:
@@ -63,6 +83,16 @@ func KindFromString(v string) Kind {
 		return KindBytes
 	case "String":
 		return KindString
+	case "TypeValue":
+		return KindType
+	case "Array":
+		return KindArray
+	case "Set":
+		return KindSet
+	case "Map":
+		return KindMap
+	case "Record":
+		return KindRecord
 	default:
 		return KindInvalid
 	}
@@ -80,8 +110,18 @@ func KindOfType(typ super.Type) Kind {
 		return KindString
 	case *super.TypeOfBytes:
 		return KindBytes
+	case *super.TypeOfIP:
+		return KindIP
 	case *super.TypeOfType:
 		return KindType
+	case *super.TypeArray:
+		return KindArray
+	case *super.TypeSet:
+		return KindSet
+	case *super.TypeMap:
+		return KindMap
+	case *super.TypeRecord:
+		return KindRecord
 	}
 	return KindInvalid
 }

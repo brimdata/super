@@ -1,0 +1,71 @@
+zed: |
+  yield case when typeof(this) == <string> 
+    then this 
+    else a AND b
+  end
+
+vector: true
+
+input: |
+  "=== TRUE ==="
+  {a:true,b:true}
+  {a:true,b:false}
+  {a:true,b:null(bool)}
+  {a:true}
+  {a:true,b:"foo"}
+  "=== FALSE ==="
+  {a:false,b:true}
+  {a:false,b:false}
+  {a:false,b:null(bool)}
+  {a:false}
+  {a:false,b:"foo"}
+  "=== NULL ==="
+  {a:null(bool),b:true}
+  {a:null(bool),b:false}
+  {a:null(bool),b:null(bool)}
+  {a:null(bool)}
+  {a:null(bool),b:"foo"}
+  "=== MISSING ==="
+  {b:true}
+  {b:false}
+  {b:null(bool)}
+  {}
+  {b:"foo"}
+  "=== ERROR ==="
+  {a:"foo",b:true}
+  {a:"foo",b:false}
+  {a:"foo",b:null(bool)}
+  {a:"foo"}
+  {a:"foo",b:"foo"}
+
+output: |
+  "=== TRUE ==="
+  true
+  false
+  null(bool)
+  error("missing")
+  error({message:"not type bool",on:"foo"})
+  "=== FALSE ==="
+  false
+  false
+  false
+  false
+  false
+  "=== NULL ==="
+  null(bool)
+  false
+  null(bool)
+  error("missing")
+  error({message:"not type bool",on:"foo"})
+  "=== MISSING ==="
+  error("missing")
+  false
+  error("missing")
+  error("missing")
+  error("missing")
+  "=== ERROR ==="
+  error({message:"not type bool",on:"foo"})
+  false
+  error({message:"not type bool",on:"foo"})
+  error({message:"not type bool",on:"foo"})
+  error({message:"not type bool",on:"foo"})

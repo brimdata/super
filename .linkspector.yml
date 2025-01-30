@@ -1,0 +1,5 @@
+dirs:
+  - .
+useGitIgnore: true
+excludedDirs:
+  - node_modules

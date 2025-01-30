@@ -16,10 +16,11 @@ converted into nested records. If no argument is supplied to `nest_dotted`,
 
 ### Examples
 
-```mdtest-command
-echo '{"a.b.c":"foo"}' | super -z -c 'yield nest_dotted()' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield nest_dotted()
+# input
+{"a.b.c":"foo"}
+# expected output
 {a:{b:{c:"foo"}}}
 ```

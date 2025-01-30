@@ -21,11 +21,11 @@ returned as a bytes value.
 
 #### Example:
 
-```mdtest-command
-echo  '{id:0x0dfc90519b60f362e84a3fdddd9b9e63e1fb90d1}' |
-  super -z -c 'id := ksuid(id)' -
-```
-=>
-```mdtest-output
+```mdtest-spq {data-layout="stacked"}
+# spq
+id := ksuid(id)
+# input
+{id:0x0dfc90519b60f362e84a3fdddd9b9e63e1fb90d1}
+# expected output
 {id:"1zjJzTWWCJNVrGwqB8kZwhTM2fR"}
 ```

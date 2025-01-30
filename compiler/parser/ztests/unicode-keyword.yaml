@@ -1,5 +1,7 @@
 zed: '? bjørndal'
 
+vector: true
+
 input: '"bjørndal"'
 
 output: |

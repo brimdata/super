@@ -85,8 +85,13 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 	case *ast.Primitive:
 		c.literal(*e)
 	case *dag.UnaryExpr:
-		c.write(e.Op)
-		c.expr(e.Operand, "not")
+		if isnull, ok := e.Operand.(*dag.IsNullExpr); ok && e.Op == "!" {
+			c.expr(isnull.Expr, "")
+			c.write(" IS NOT NULL")
+		} else {
+			c.write(e.Op)
+			c.expr(e.Operand, "not")
+		}
 	case *dag.BinaryExpr:
 		c.binary(e, parent)
 	case *dag.Conditional:
@@ -105,6 +110,9 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 		c.write("[")
 		c.expr(e.Index, "")
 		c.write("]")
+	case *dag.IsNullExpr:
+		c.expr(e.Expr, "")
+		c.write("IS NULL")
 	case *dag.SliceExpr:
 		c.expr(e.Expr, "")
 		c.write("[")

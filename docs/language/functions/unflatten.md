@@ -15,27 +15,27 @@ a single record. _unflatten_ is the inverse of _flatten_, i.e., `unflatten(flatt
 will produce a record identical to `r`.
 
 ### Examples
+
 Simple:
-```mdtest-command
-echo '[{key:"a",value:1},{key:["b"],value:2}]' |
-  super -z -c 'yield unflatten(this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq {data-layout="stacked"}
+# spq
+yield unflatten(this)
+# input
+[{key:"a",value:1},{key:["b"],value:2}]
+# expected output
 {a:1,b:2}
 ```
 
 Flatten to unflatten:
-```mdtest-command
-echo '{a:1,rm:2}' |
-  super -z -c 'over flatten(this) => (
-           key[0] != "rm"
-           |> yield collect(this)
-         )
-         |> yield unflatten(this)
-  ' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+over flatten(this) => (
+  key[0] != "rm"
+  | yield collect(this)
+)
+| yield unflatten(this)
+# input
+{a:1,rm:2}
+# expected output
 {a:1}
 ```

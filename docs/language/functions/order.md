@@ -26,53 +26,52 @@ the empty record type, i.e.,
 ```
 order(val, <{}>)
 ```
-:::tip
+{{% tip "Tip" %}}
+
 Many users seeking the functionality of `order` prefer to use the
 [`shape` function](./shape.md) which applies the `order`, [`cast`](./cast.md),
 and [`fill`](./fill.md) functions simultaneously on a record.
-:::
 
-:::tip Note
+{{% /tip %}}
+
+{{% tip "Note" %}}
+
 [Record expressions](../expressions.md#record-expressions) can also be used to
 reorder fields without specifying types ([example](../shaping.md#order)).
-:::
+
+{{% /tip %}}
 
 ### Examples
 
 _Order a record_
-```mdtest-command
-echo '{b:"foo", a:1}' | super -z -c 'order(this, <{a:int64,b:string}>)' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+order(this, <{a:int64,b:string}>)
+# input
+{b:"foo", a:1}
+# expected output
 {a:1,b:"foo"}
 ```
+
 _Order fields lexicographically_
-```mdtest-command
-echo '{c:0, a:1, b:"foo"}' | super -z -c 'order(this, <{}>)' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+order(this, <{}>)
+# input
+{c:0, a:1, b:"foo"}
+# expected output
 {a:1,b:"foo",c:0}
 ```
 
-TBD: fix this bug or remove example...
-
-_Order an array of records_
-```mdtest-command-skip
-echo '[{b:1,a:1},{a:2,b:2}]' | super -z -c 'order(this, <[{a:int64,b:int64}]>)' -
-```
-produces
-```mdtest-output-skip
-[{a:1,b:1},{a:2,b:2}]
-```
-
 _Non-records are returned unmodified_
-```mdtest-command
-echo '10.0.0.1 1 "foo"' | super -z -c 'fill(this, <{a:int64,b:int64}>)' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+order(this, <{a:int64,b:int64}>)
+# input
+10.0.0.1
+1
+"foo"
+# expected output
 10.0.0.1
 1
 "foo"

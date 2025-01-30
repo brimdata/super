@@ -31,18 +31,13 @@ func (f *Filter) Pull(done bool) (vector.Any, error) {
 // applyMask applies the mask vector mask to vec.  Elements of mask that are not
 // Boolean are considered false.
 func applyMask(vec, mask vector.Any) (vector.Any, bool) {
-	n := mask.Len()
-	var index []uint32
-	for k := uint32(0); k < n; k++ {
-		if vector.BoolValue(mask, k) {
-			index = append(index, k)
-		}
-	}
-	if len(index) == 0 {
+	// errors are ignored for filters
+	b, _ := expr.BoolMask(mask)
+	if b.IsEmpty() {
 		return nil, false
 	}
-	if len(index) == int(n) {
+	if b.GetCardinality() == uint64(mask.Len()) {
 		return vec, true
 	}
-	return vector.NewView(vec, index), true
+	return vector.NewView(vec, b.ToArray()), true
 }

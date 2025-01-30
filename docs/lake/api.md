@@ -1,9 +1,8 @@
 ---
-sidebar_position: 1
-sidebar_label: API
+weight: 1
+title: API
+heading: Zed lake API
 ---
-
-# Zed lake API
 
 ## _Status_
 
@@ -549,7 +548,7 @@ The following table shows the supported MIME types and where they can be used.
 | Arrow IPC Stream | yes       | yes      | `application/vnd.apache.arrow.stream` |
 | CSV              | yes       | yes      | `text/csv`                            |
 | JSON             | yes       | yes      | `application/json`                    |
-| Line             | yes       | no       | `application/x-line`                  |
+| Line             | yes       | yes      | `application/x-line`                  |
 | NDJSON           | no        | yes      | `application/x-ndjson`                |
 | Parquet          | yes       | yes      | `application/x-parquet`               |
 | TSV              | yes       | yes      | `text/tab-separated-values`           |

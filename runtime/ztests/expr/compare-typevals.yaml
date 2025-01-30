@@ -1,0 +1,16 @@
+zed: yield a == b, a != b
+
+vector: true
+
+input: |
+  {a:<string>,b:<string>}
+  {a:<{x:ip}>,b:<{x:ip}>}
+  {a:<{x:net}>,b:<{y:net}>}
+
+output: |
+  true
+  false
+  true
+  false
+  false
+  true

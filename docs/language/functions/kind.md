@@ -17,23 +17,31 @@ then the type category of the referenced type is returned.
 #### Example:
 
 A primitive value's kind is "primitive":
-```mdtest-command
-echo '1 "a" 10.0.0.1' | super -z -c 'yield kind(this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield kind(this)
+# input
+1
+"a"
+10.0.0.1
+# expected output
 "primitive"
 "primitive"
 "primitive"
 ```
 
-A complex value's kind is it's complex type category.  Try it on
+A complex value's kind is its complex type category.  Try it on
 these empty values of various complex types:
-```mdtest-command
-echo '{} [] |[]| |{}| 1((int64,string))' | super -z -c 'yield kind(this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield kind(this)
+# input
+{}
+[]
+|[]|
+|{}|
+1((int64,string))
+# expected output
 "record"
 "array"
 "set"
@@ -41,20 +49,22 @@ echo '{} [] |[]| |{}| 1((int64,string))' | super -z -c 'yield kind(this)' -
 "union"
 ```
 
-A Zed error has kind "error":
-```mdtest-command
-echo null | super -z -c 'yield kind(1/0)' -
-```
-=>
-```mdtest-output
+An error has kind "error":
+```mdtest-spq
+# spq
+yield kind(1/this)
+# input
+0
+# expected output
 "error"
 ```
 
-A Zed type's kind is the kind of the type:
-```mdtest-command
-echo '<{s:string}>' | super -z -c 'yield kind(this)' -
-```
-=>
-```mdtest-output
+A type's kind is the kind of the type:
+```mdtest-spq
+# spq
+yield kind(this)
+# input
+<{s:string}>
+# expected output
 "record"
 ```

@@ -13,10 +13,13 @@ var _ Any = (*View)(nil)
 
 func NewView(val Any, index []uint32) Any {
 	switch val := val.(type) {
+	case *Bool:
+		return NewBoolView(val, index)
 	case *Const:
-		return NewConst(val.val, uint32(len(index)), NullsView(val.Nulls, index))
+		return NewConst(val.val, uint32(len(index)), NewBoolView(val.Nulls, index))
 	case *Dict:
 		index2 := make([]byte, len(index))
+		counts := make([]uint32, val.Any.Len())
 		var nulls *Bool
 		if val.Nulls != nil {
 			nulls = NewBoolEmpty(uint32(len(index)), nil)
@@ -24,19 +27,23 @@ func NewView(val Any, index []uint32) Any {
 				if val.Nulls.Value(idx) {
 					nulls.Set(uint32(k))
 				}
-				index2[k] = val.Index[idx]
+				v := val.Index[idx]
+				index2[k] = v
+				counts[v]++
 			}
 		} else {
 			for k, idx := range index {
-				index2[k] = val.Index[idx]
+				v := val.Index[idx]
+				index2[k] = v
+				counts[v]++
 			}
 		}
-		return NewDict(val.Any, index2, nil, nulls)
+		return NewDict(val.Any, index2, counts, nulls)
 	case *Error:
-		return NewError(val.Typ, NewView(val.Vals, index), NullsView(val.Nulls, index))
+		return NewError(val.Typ, NewView(val.Vals, index), NewBoolView(val.Nulls, index))
 	case *Union:
 		tags, values := viewForUnionOrDynamic(index, val.Tags, val.TagMap.Forward, val.Values)
-		return NewUnion(val.Typ, tags, values, NullsView(val.Nulls, index))
+		return NewUnion(val.Typ, tags, values, NewBoolView(val.Nulls, index))
 	case *Dynamic:
 		return NewDynamic(viewForUnionOrDynamic(index, val.Tags, val.TagMap.Forward, val.Values))
 	case *View:
@@ -52,18 +59,30 @@ func NewView(val Any, index []uint32) Any {
 	return &View{val, index}
 }
 
-func NullsView(nulls *Bool, index []uint32) *Bool {
-	if nulls == nil {
+func NewInverseView(vec Any, index []uint32) Any {
+	var inverse []uint32
+	for i := range vec.Len() {
+		if len(index) > 0 && index[0] == i {
+			index = index[1:]
+			continue
+		}
+		inverse = append(inverse, i)
+	}
+	return NewView(vec, inverse)
+}
+
+func NewBoolView(vec *Bool, index []uint32) *Bool {
+	if vec == nil {
 		return nil
 	}
-	var out *Bool
+	out := NewBoolEmpty(uint32(len(index)), nil)
 	for k, slot := range index {
-		if nulls.Value(slot) {
-			if out == nil {
-				out = NewBoolEmpty(uint32(len(index)), nil)
-			}
+		if vec.Value(slot) {
 			out.Set(uint32(k))
 		}
+	}
+	if vec.Nulls != nil {
+		out.Nulls = NewBoolView(vec.Nulls, index)
 	}
 	return out
 }

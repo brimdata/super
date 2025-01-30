@@ -18,35 +18,41 @@ If `network` is not type `net`, then an error is returned.
 ### Examples
 
 Test whether values are IP addresses in a network:
-```mdtest-command
-echo '10.1.2.129 11.1.2.129 10 "foo"' |
-  super -z -c 'yield cidr_match(10.0.0.0/8, this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield cidr_match(10.0.0.0/8, this)
+# input
+10.1.2.129
+11.1.2.129
+10
+"foo"
+# expected output
 true
 false
 false
 false
 ```
-It also works for IPs in complex values:
 
-```mdtest-command
-echo '[10.1.2.129,11.1.2.129] {a:10.0.0.1} {a:11.0.0.1}' |
-  super -z -c 'yield cidr_match(10.0.0.0/8, this)' -
-```
-=>
-```mdtest-output
+It also works for IPs in complex values:
+```mdtest-spq
+# spq
+yield cidr_match(10.0.0.0/8, this)
+# input
+[10.1.2.129,11.1.2.129]
+{a:10.0.0.1}
+{a:11.0.0.1}
+# expected output
 true
 true
 false
 ```
 
 The first argument must be a network:
-```mdtest-command
-echo '10.0.0.1' | super -z -c 'yield cidr_match([1,2,3], this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq {data-layout="stacked"}
+# spq
+yield cidr_match([1,2,3], this)
+# input
+10.0.0.1
+# expected output
 error({message:"cidr_match: not a net",on:[1,2,3]})
 ```

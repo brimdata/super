@@ -1,0 +1,5 @@
+<clickhouse>
+    <custom_cached_disks_base_directory>/mnt/clickhouse/caches/</custom_cached_disks_base_directory>
+    <path>/mnt/clickhouse/</path>
+    <tmp_path>/mnt/clickhouse/tmp/</tmp_path>
+</clickhouse>

@@ -1,5 +1,7 @@
 zed: '? *1'
 
+vector: true
+
 input: |
   "1"
   "a1"

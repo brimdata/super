@@ -1,9 +1,8 @@
 ---
-sidebar_position: 3
-sidebar_label: Super JSON
+weight: 3
+title: Super JSON
+heading: Super JSON Specification
 ---
-
-# Super JSON Specification
 
 ## 1. Introduction
 

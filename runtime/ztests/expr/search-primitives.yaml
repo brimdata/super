@@ -1,0 +1,12 @@
+zed: '?foo'
+
+vector: true
+
+input: |
+  "foo"
+  "bar"
+  "foo"
+
+output: |
+  "foo"
+  "foo"
