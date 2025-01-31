@@ -202,6 +202,8 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		return vamop.NewFilter(b.zctx(), parent, e), nil
 	case *dag.Head:
 		return vamop.NewHead(parent, o.Count), nil
+	case *dag.NullScan:
+		return vector.NewPuller(vector.NewConst(super.Null, 1, nil)), nil
 	case *dag.Output:
 		b.channels[o.Name] = append(b.channels[o.Name], vam.NewMaterializer(parent))
 		return parent, nil
