@@ -1,0 +1,30 @@
+zed: |
+  yield cidr_match(this[0], this[1])
+
+vector: true
+
+input: |
+  [1.1.0.0/16, 1.1.1.1]
+  [1.1.0.0/16, {a:1.1.1.1,b:2.2.2.2}]
+  [1.1.0.0/16, [2.2.2.2,1.1.1.1]]
+  [1.1.0.0/16, |[2.2.2.2,1.1.1.1]|]
+  [1.1.0.0/16, 2.2.2.2]
+  [1.1.0.0/16, {a:2.2.2.2,b:3.3.3.3}]
+  [1.1.0.0/16, [2.2.2.2,3.3.3.3]]
+  [1.1.0.0/16, null]
+  [1.1.0.0/16, "s"]
+  [null, 1.1.1.1]
+  ["s", 1.1.1.1]
+
+output: |
+  true
+  true
+  true
+  true
+  false
+  false
+  false
+  false
+  false
+  error({message:"cidr_match: not a net",on:null(ip)})
+  error({message:"cidr_match: not a net",on:"s"})

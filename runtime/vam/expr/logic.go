@@ -210,11 +210,11 @@ type In struct {
 	zctx *super.Context
 	lhs  Evaluator
 	rhs  Evaluator
-	eq   *Compare
+	pw   *PredicateWalk
 }
 
 func NewIn(zctx *super.Context, lhs, rhs Evaluator) *In {
-	return &In{zctx, lhs, rhs, NewCompare(zctx, nil, nil, "==")}
+	return &In{zctx, lhs, rhs, NewPredicateWalk(NewCompare(zctx, nil, nil, "==").eval)}
 }
 
 func (i *In) Eval(this vector.Any) vector.Any {
@@ -229,10 +229,18 @@ func (i *In) eval(vecs ...vector.Any) vector.Any {
 	if rhs.Type().Kind() == super.ErrorKind {
 		return rhs
 	}
-	return i.evalResursive(lhs, rhs)
+	return i.pw.Eval(lhs, rhs)
 }
 
-func (i *In) evalResursive(vecs ...vector.Any) vector.Any {
+type PredicateWalk struct {
+	pred func(...vector.Any) vector.Any
+}
+
+func NewPredicateWalk(pred func(...vector.Any) vector.Any) *PredicateWalk {
+	return &PredicateWalk{pred}
+}
+
+func (p *PredicateWalk) Eval(vecs ...vector.Any) vector.Any {
 	lhs, rhs := vecs[0], vecs[1]
 	rhs = vector.Under(rhs)
 	rhsOrig := rhs
@@ -248,32 +256,32 @@ func (i *In) evalResursive(vecs ...vector.Any) vector.Any {
 			if index != nil {
 				f = vector.NewView(f, index)
 			}
-			out = vector.Or(out, toBool(i.evalResursive(lhs, f)))
+			out = vector.Or(out, toBool(p.Eval(lhs, f)))
 		}
 		return out
 	case *vector.Array:
-		return i.evalForList(lhs, rhs.Values, rhs.Offsets, index)
+		return p.evalForList(lhs, rhs.Values, rhs.Offsets, index)
 	case *vector.Set:
-		return i.evalForList(lhs, rhs.Values, rhs.Offsets, index)
+		return p.evalForList(lhs, rhs.Values, rhs.Offsets, index)
 	case *vector.Map:
-		return vector.Or(i.evalForList(lhs, rhs.Keys, rhs.Offsets, index),
-			i.evalForList(lhs, rhs.Values, rhs.Offsets, index))
+		return vector.Or(p.evalForList(lhs, rhs.Keys, rhs.Offsets, index),
+			p.evalForList(lhs, rhs.Values, rhs.Offsets, index))
 	case *vector.Union:
 		if index != nil {
 			panic("vector.Union unexpected in vector.View")
 		}
-		return vector.Apply(true, i.evalResursive, lhs, rhs)
+		return vector.Apply(true, p.Eval, lhs, rhs)
 	case *vector.Error:
 		if index != nil {
 			panic("vector.Error unexpected in vector.View")
 		}
-		return i.evalResursive(lhs, rhs.Vals)
+		return p.Eval(lhs, rhs.Vals)
 	default:
-		return i.eq.eval(lhs, rhsOrig)
+		return p.pred(lhs, rhsOrig)
 	}
 }
 
-func (i *In) evalForList(lhs, rhs vector.Any, offsets, index []uint32) *vector.Bool {
+func (p *PredicateWalk) evalForList(lhs, rhs vector.Any, offsets, index []uint32) *vector.Bool {
 	out := vector.NewBoolEmpty(lhs.Len(), nil)
 	var lhsIndex, rhsIndex []uint32
 	for j := range lhs.Len() {
@@ -293,7 +301,7 @@ func (i *In) evalForList(lhs, rhs vector.Any, offsets, index []uint32) *vector.B
 		}
 		lhsView := vector.NewView(lhs, lhsIndex)
 		rhsView := vector.NewView(rhs, rhsIndex)
-		if toBool(i.evalResursive(lhsView, rhsView)).TrueCount() > 0 {
+		if toBool(p.Eval(lhsView, rhsView)).TrueCount() > 0 {
 			out.Set(j)
 		}
 	}
