@@ -1,4 +1,4 @@
-zed: count() by arr |> sort
+zed: count() by arr | sort
 
 vector: true
 

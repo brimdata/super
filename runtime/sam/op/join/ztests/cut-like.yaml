@@ -6,7 +6,7 @@ inputs:
       from (
         file people.json
         file fruit.json
-      ) |> left join on likes=flavor fruit:=name,note:=quiet(note)
+      ) | left join on likes=flavor fruit:=name,note:=quiet(note)
   - name: people.json
     data: |
       {"name":"morgan","age":61,"likes":"tart"}

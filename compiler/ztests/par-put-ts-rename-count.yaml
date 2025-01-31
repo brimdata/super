@@ -1,6 +1,6 @@
 skip: we no longer parallelize now when we clobber the sort key.  issue 2756
 
-script: super compile -C -P 2  "from 'pool-ts' |> put ts:=foo |> rename foo:=boo |> count()"
+script: super compile -C -P 2  "from 'pool-ts' | put ts:=foo | rename foo:=boo | count()"
 
 outputs:
   - name: stdout
@@ -8,14 +8,14 @@ outputs:
       from (
         G2eDzBUfU6IEmUSGCa5kHyXMhoO =>
           put ts:=foo
-          |> rename foo:=boo
-          |> summarize partials-out
+          | rename foo:=boo
+          | summarize partials-out
               count:=count();
         G2eDzBUfU6IEmUSGCa5kHyXMhoO =>
           put ts:=foo
-          |> rename foo:=boo
-          |> summarize partials-out
+          | rename foo:=boo
+          | summarize partials-out
               count:=count();
       )
-      |> summarize partials-in
+      | summarize partials-in
           count:=count()

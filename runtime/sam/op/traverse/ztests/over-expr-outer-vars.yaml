@@ -1,6 +1,6 @@
 zed: |
   func sumvals(vals): (
-    (over vals |> sum(this))
+    (over vals | sum(this))
   )
   sum := sumvals(v)
 

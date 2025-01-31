@@ -11,11 +11,11 @@ outputs:
       ) on x=x p:=a
       ===
       null
-      |> fork (
+      | fork (
         =>
           pass
         =>
           file test.jsup
       )
-      |> join on x=x p:=a
-      |> output main
+      | join on x=x p:=a
+      | output main

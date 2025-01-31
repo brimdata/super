@@ -1,18 +1,18 @@
 script: |
-  super compile -C 'debug f"debug: {this}" |> head 1'
-  super compile -dag -C 'debug f"debug: {this}" |> head 1'
+  super compile -C 'debug f"debug: {this}" | head 1'
+  super compile -dag -C 'debug f"debug: {this}" | head 1'
 
 outputs:
   - name: stdout
     data: |
       debug f"debug: {this}"
-      |> head 1
+      | head 1
       null
-      |> mirror (
+      | mirror (
         =>
           yield "debug: "+cast(this, <string>)
-          |> output debug
+          | output debug
         =>
           head 1
-          |> output main
+          | output main
       )

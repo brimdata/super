@@ -1,4 +1,4 @@
-zed: sample |> sort this
+zed: sample | sort this
 
 vector: true
 

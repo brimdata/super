@@ -6,7 +6,7 @@ script: |
   super db use -q test
   super db post babble.jsup >/dev/null
   echo ===
-  super db info |> egrep -v 'id'
+  super db info | egrep -v 'id'
   echo ===
   super db get -z 's=="harefoot-raucous"'
 

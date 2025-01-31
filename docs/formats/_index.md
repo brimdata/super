@@ -247,7 +247,7 @@ that more directly leverage the nature of super-structured data. For example,
 the above two SuperSQL queries could be written as:
 ```
   count() by shape:=typeof(this)
-  any(this) by typeof(this) |> cut any
+  any(this) by typeof(this) | cut any
 ```
 
 ### 2.5 First-class Errors

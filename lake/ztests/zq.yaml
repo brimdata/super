@@ -3,7 +3,7 @@ script: |
   super db init -q
   super db create -q logs
   super db load -q -use logs babble.jsup
-  super db query "from logs |> count()" | super -z -
+  super db query "from logs | count()" | super -z -
 
 inputs:
   - name: babble.jsup

@@ -4,7 +4,7 @@ script: |
   super db create -use -q logs
   super db load -q babble-split1.jsup
   super db load -q babble-split2.jsup
-  super db query -Z "from logs@main:objects |> sort -r size |> drop id"
+  super db query -Z "from logs@main:objects | sort -r size | drop id"
 
 inputs:
   - name: babble.jsup

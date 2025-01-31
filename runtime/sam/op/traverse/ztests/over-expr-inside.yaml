@@ -1,4 +1,4 @@
-zed: over a => ( {y,s:(over x |> sum(this))} )
+zed: over a => ( {y,s:(over x | sum(this))} )
 
 input: |
   {a:[{x:[1,2],y:2},{x:[3,2],y:4}]}

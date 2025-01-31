@@ -1,6 +1,6 @@
 script: |
   seq 100 | super -f csup -o out.csup -c "{x:this}" -
-  super dev csup out.csup | super -Z -c "over Fields |> yield nameof(Values)" -
+  super dev csup out.csup | super -Z -c "over Fields | yield nameof(Values)" -
 
 outputs:
   - name: stdout

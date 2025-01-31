@@ -53,7 +53,7 @@ func IsLakeService(u string) bool {
 
 func LookupPoolByName(ctx context.Context, api Interface, name string) (*pools.Config, error) {
 	b := newBuffer(pools.Config{})
-	zed := fmt.Sprintf("from :pools |> name == '%s'", name)
+	zed := fmt.Sprintf("from :pools | name == '%s'", name)
 	q, err := api.Query(ctx, zed)
 	if err != nil {
 		return nil, err
@@ -95,7 +95,7 @@ func GetPools(ctx context.Context, api Interface) ([]*pools.Config, error) {
 
 func LookupPoolByID(ctx context.Context, api Interface, id ksuid.KSUID) (*pools.Config, error) {
 	b := newBuffer(pools.Config{})
-	zed := fmt.Sprintf("from :pools |> id == hex('%s')", idToHex(id))
+	zed := fmt.Sprintf("from :pools | id == hex('%s')", idToHex(id))
 	q, err := api.Query(ctx, zed)
 	if err != nil {
 		return nil, err
@@ -120,7 +120,7 @@ func LookupPoolByID(ctx context.Context, api Interface, id ksuid.KSUID) (*pools.
 
 func LookupBranchByName(ctx context.Context, api Interface, poolName, branchName string) (*lake.BranchMeta, error) {
 	b := newBuffer(lake.BranchMeta{})
-	zed := fmt.Sprintf("from :branches |> pool.name == '%s' branch.name == '%s'", poolName, branchName)
+	zed := fmt.Sprintf("from :branches | pool.name == '%s' branch.name == '%s'", poolName, branchName)
 	q, err := api.Query(ctx, zed)
 	if err != nil {
 		return nil, err
@@ -145,7 +145,7 @@ func LookupBranchByName(ctx context.Context, api Interface, poolName, branchName
 
 func LookupBranchByID(ctx context.Context, api Interface, id ksuid.KSUID) (*lake.BranchMeta, error) {
 	b := newBuffer(lake.BranchMeta{})
-	zed := fmt.Sprintf("from :branches |> branch.id == 'hex(%s)'", idToHex(id))
+	zed := fmt.Sprintf("from :branches | branch.id == 'hex(%s)'", idToHex(id))
 	q, err := api.Query(ctx, zed)
 	if err != nil {
 		return nil, err

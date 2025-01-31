@@ -2,7 +2,7 @@ zed: |
   fork (
     => x <= 2
     => x > 2
-  ) |> merge x
+  ) | merge x
 
 vector: true
 

@@ -1,4 +1,4 @@
-zed: count() by rec.i |> sort rec.i
+zed: count() by rec.i | sort rec.i
 
 vector: true
 

@@ -45,7 +45,7 @@ explicit `inner` is not strictly necessary, but including it clarifies our inten
 The SuperPipe query `inner-join.spq`:
 ```mdtest-input inner-join.spq
 file fruit.json
-|> inner join (
+| inner join (
   file people.json
 ) on flavor=likes eater:=name
 ```
@@ -82,7 +82,7 @@ original field name `age` is maintained in the results.
 The query `left-join.spq`:
 ```mdtest-input left-join.spq
 file fruit.json
-|> left join (
+| left join (
   file people.json
 ) on flavor=likes eater:=name,age
 ```
@@ -117,7 +117,7 @@ the `note` field from the right-hand input to appear in the joined results.
 The query `right-join.spq`:
 ```mdtest-input right-join.spq
 file fruit.json
-|> right join (
+| right join (
   file people.json
 ) on flavor=likes fruit:=name
 ```
@@ -150,7 +150,7 @@ results.
 The query `anti-join.spq`:
 ```mdtest-input anti-join.spq
 file fruit.json
-|> anti join (
+| anti join (
   file people.json
 ) on flavor=likes
 ```
@@ -178,7 +178,7 @@ The query `inner-join-pools.spq`:
 
 ```mdtest-input inner-join-pools.spq
 from fruit
-|> inner join (
+| inner join (
   from people
 ) on flavor=likes eater:=name
 ```
@@ -220,7 +220,7 @@ The query `inner-join-alternate.spq`:
 from (
   file fruit.json
   file people.json
-) |> inner join on flavor=likes eater:=name
+) | inner join on flavor=likes eater:=name
 ```
 
 Executing the query:
@@ -254,7 +254,7 @@ The query `inner-join-streamed.spq`:
 switch (
   case has(color) => pass
   case has(age) => pass
-) |> inner join on flavor=likes eater:=name
+) | inner join on flavor=likes eater:=name
 ```
 
 Executing the query:
@@ -297,9 +297,9 @@ they look like, but since it represents redundant data, in practice we'd
 typically [`drop`](../language/operators/drop.md) it after the `join` in our pipeline.
 
 ```mdtest-input multi-value-join.spq
-file fruit.json |> put fruitkey:={name,color}
-|> inner join (
-  file inventory.json |> put invkey:={name,color}
+file fruit.json | put fruitkey:={name,color}
+| inner join (
+  file inventory.json | put invkey:={name,color}
 ) on fruitkey=invkey quantity
 ```
 
@@ -335,10 +335,10 @@ against the price list.
 
 ```mdtest-input three-way-join.spq
 file fruit.json
-|> inner join (
+| inner join (
   file people.json
 ) on flavor=likes eater:=name
-|> inner join (
+| inner join (
   file prices.json
 ) on name=name price:=price
 ```
@@ -376,7 +376,7 @@ The query `embed-opposite.spq`:
 
 ```mdtest-input embed-opposite.spq
 file fruit.json
-|> inner join (
+| inner join (
   file people.json
 ) on flavor=likes eaterinfo:=this
 ```
@@ -406,12 +406,12 @@ to produce `merge-opposite.spq`.
 
 ```mdtest-input merge-opposite.spq
 file fruit.json
-|> inner join (
+| inner join (
   file people.json
 ) on flavor=likes eaterinfo:=this
-|> rename fruit:=name
-|> yield {...this,...eaterinfo}
-|> drop eaterinfo
+| rename fruit:=name
+| yield {...this,...eaterinfo}
+| drop eaterinfo
 ```
 
 Executing the query:

@@ -1,5 +1,5 @@
 script: |
-  echo '"foo" "bar"' | super -z -c 'debug f"debug: {this}" |> yield f"{this}2" |> head 1' -
+  echo '"foo" "bar"' | super -z -c 'debug f"debug: {this}" | yield f"{this}2" | head 1' -
 
 outputs:
   - name: stderr

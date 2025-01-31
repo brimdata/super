@@ -5,10 +5,10 @@ script: |
   super db create -q -orderby b:desc poolB
   super db load -q -use poolA a.jsup
   super db load -q -use poolB b.jsup
-  super db query -Z 'from :pools |> drop id |> sort name |> drop ts'
+  super db query -Z 'from :pools | drop id | sort name | drop ts'
   echo ===
-  super db query -Z 'from poolA@main:objects |> {nameof:nameof(this),...this} |> drop id'
-  super db query -Z 'from poolA:log |> cut nameof(this) |> drop ts'
+  super db query -Z 'from poolA@main:objects | {nameof:nameof(this),...this} | drop id'
+  super db query -Z 'from poolA:log | cut nameof(this) | drop ts'
 
 inputs:
   - name: a.jsup

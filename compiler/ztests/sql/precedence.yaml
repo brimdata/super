@@ -3,7 +3,7 @@ script: |
   echo ===
   super -z -c "SELECT * FROM 'data.csv' WHERE NOT Country = 'Spain';"
   echo ===
-  super -z -c "select 'a' || 'b' |> count()"
+  super -z -c "select 'a' || 'b' | count()"
   echo ===
   super -z -c "SELECT - - 34 + - 26 + - 34 + - 34;"
 

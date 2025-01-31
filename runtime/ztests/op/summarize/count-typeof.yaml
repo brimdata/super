@@ -1,4 +1,4 @@
-zed: count() by typeof(this) |> sort count
+zed: count() by typeof(this) | sort count
 
 vector: true
 

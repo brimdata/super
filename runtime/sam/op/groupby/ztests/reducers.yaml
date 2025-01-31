@@ -1,4 +1,4 @@
-zed: any(n), sum(n), avg(n), min(n), max(n) by key1 |> sort key1
+zed: any(n), sum(n), avg(n), min(n), max(n) by key1 | sort key1
 
 input: |
   {key1:"a",key2:"x",n:1(int32)}

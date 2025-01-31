@@ -5,7 +5,7 @@ script: |
     echo // $o
     super db create -q -orderby k:$o $o
     super db load -q -use $o in.jsup
-    super db query -z "from $o |> k >= 1 and k <= 3"
+    super db query -z "from $o | k >= 1 and k <= 3"
   done
 
 inputs:

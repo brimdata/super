@@ -87,7 +87,7 @@ do
         spq=${SPQS[$n]}
         echo -n "|\`super\`|\`$spq\`|$INPUT|$OUTPUT|" | tee -a "$MD"
         case $INPUT in
-          json ) super_flags="-i json -I $shaper" spq="|> $spq" ;;
+          json ) super_flags="-i json -I $shaper" spq="| $spq" ;;
           bsup-uncompressed ) super_flags="-i bsup" ;;
           * ) super_flags="-i $INPUT" ;;
         esac

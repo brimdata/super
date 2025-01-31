@@ -1,4 +1,4 @@
-zed: "put t:=typeof(s) |> put tt:=typeof(t)"
+zed: "put t:=typeof(s) | put tt:=typeof(t)"
 
 output-flags: -f jsup -pretty=4
 

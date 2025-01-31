@@ -5,13 +5,13 @@ script: |
     super db create -q $pool
     echo "\"$pool\"" | super db load -q -use $pool -
   done
-  super db query -z 'from * |> sort this'
+  super db query -z 'from * | sort this'
   echo ===
-  super db query -z 'from /.*/ |> sort this'
+  super db query -z 'from /.*/ | sort this'
   echo ===
-  super db query -z 'from match* |> sort this'
+  super db query -z 'from match* | sort this'
   echo ===
-  super db query -z 'from /match/ |> sort this'
+  super db query -z 'from /match/ | sort this'
 
 outputs:
   - name: stdout

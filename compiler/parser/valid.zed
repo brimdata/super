@@ -1,5 +1,5 @@
 ?foo
-?foo |> count()
+?foo | count()
 count() with -limit 10
 count() by _path with -limit 10
 count() by _path,every(1h) with -limit 10
@@ -9,13 +9,13 @@ _path=='conn' and id.resp_p==80
 count(), sum(foo)
 fork (=>count() by _path =>count() by addr)
 switch (case grep("foo") => count() by _path case field==1 => count() by addr)
-count() by _path |> count() by addr
-fork (=>count() by _path =>sort) |> fork (=>count() by addr)
-switch (case grep("foo") => count() by _path case field==1 => sort) |> switch (default => count() by addr)
+count() by _path | count() by addr
+fork (=>count() by _path =>sort) | fork (=>count() by addr)
+switch (case grep("foo") => count() by _path case field==1 => sort) | switch (default => count() by addr)
 sort -r
 sort -r a, b, c
 sort -r a, b, c
-count() |> sort
+count() | sort
 top 1
 top 1 -flush
 ? foo\tbar
@@ -37,4 +37,4 @@ nullkeys()
 truevals()
 falsevals()
 yield 2600:1901:101::/126, ::1/1, 2001:0db8:85a3:0000:0000:8a2e:0370:7334/55
-func head(): (1) func tail(): (1) func uniq(): (1) func pass(): (1) head() |> tail() |> uniq() |> pass()
+func head(): (1) func tail(): (1) func uniq(): (1) func pass(): (1) head() | tail() | uniq() | pass()

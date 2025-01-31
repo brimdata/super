@@ -1,7 +1,7 @@
 zed: |
   over tweet_ids with that=this => (
     ids:=collect(string(this))
-    |> yield {...that,tweet_ids:join(ids,',')}
+    | yield {...that,tweet_ids:join(ids,',')}
   )
 
 input: |

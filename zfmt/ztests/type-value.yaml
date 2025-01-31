@@ -7,5 +7,5 @@ outputs:
     data: |
       search is(<foo>) and bar
       null
-      |> where is(<(uint16,ip)>) and search(80)
-      |> output main
+      | where is(<(uint16,ip)>) and search(80)
+      | output main

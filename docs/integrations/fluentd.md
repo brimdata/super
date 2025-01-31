@@ -150,7 +150,7 @@ nslookup example.com
 To see the event was been stored in our pool, we executed the following query:
 
 ```
-zed query -Z 'from zeek |> _path=="dns" query=="example.com"'
+zed query -Z 'from zeek | _path=="dns" query=="example.com"'
 ```
 
 With the Fluentd configuration shown here, it took about a minute for the
@@ -263,7 +263,7 @@ After a delay, we executed the following query to see the event in its shaped
 form:
 
 ```
-zed query -Z 'from "zeek-shaped" |> _path=="dns" query=="example.org"'
+zed query -Z 'from "zeek-shaped" | _path=="dns" query=="example.org"'
 ```
 
 Example output:
@@ -312,7 +312,7 @@ functionality that leverages the richer data typing such as filtering `ip`
 values by CIDR block, e.g.,
 
 ```
-zed query 'from "zeek-shaped" |> _path=="conn" | cidr_match(172.31.0.0/16, id.resp_h) | count() by id'
+zed query 'from "zeek-shaped" | _path=="conn" | cidr_match(172.31.0.0/16, id.resp_h) | count() by id'
 ```
 
 which in our test environment produced
@@ -329,7 +329,7 @@ which in our test environment produced
 or this query that counts events into buckets by `time` span
 
 ```
-zed query 'from "zeek-shaped" |> count() by bucket(ts,5m) | sort bucket'
+zed query 'from "zeek-shaped" | count() by bucket(ts,5m) | sort bucket'
 ```
 
 which in our test environment produced

@@ -1,7 +1,7 @@
 zed: |
   type socket={addr:ip, port:uint16}
   const PI=3.14
-  is(src,<socket>) |> put pi:=PI
+  is(src,<socket>) | put pi:=PI
 
 input: |
   {

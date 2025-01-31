@@ -1,17 +1,17 @@
 script: |
-  super compile -C -O 'from foo |> where a |> where b'
+  super compile -C -O 'from foo | where a | where b'
   echo ===
-  super compile -C -O 'from ( file a => where b |> where c file d => where e |> where f ) |> where g'
+  super compile -C -O 'from ( file a => where b | where c file d => where e | where f ) | where g'
   echo ===
-  super compile -C -O 'over a => ( where b |> where c )'
+  super compile -C -O 'over a => ( where b | where c )'
   echo ===
-  super compile -C -O 'fork ( => where a |> where b => where c |> where d  )'
+  super compile -C -O 'fork ( => where a | where b => where c | where d  )'
 
 outputs:
   - name: stdout
     data: |
       file foo filter (a and b)
-      |> output main
+      | output main
       ===
       fork (
         =>
@@ -19,20 +19,20 @@ outputs:
         =>
           file d filter (e and f and g)
       )
-      |> output main
+      | output main
       ===
       null
-      |> over a => (
+      | over a => (
         where b and c
       )
-      |> output main
+      | output main
       ===
       null
-      |> fork (
+      | fork (
         =>
           where a and b
-          |> output main
+          | output main
         =>
           where c and d
-          |> output main
+          | output main
       )

@@ -5,7 +5,7 @@
 ### Synopsis
 
 ```
-( => ... => ...) |> merge <expr> [, <expr>, ...]
+( => ... => ...) | merge <expr> [, <expr>, ...]
 ```
 ### Description
 

@@ -4,13 +4,13 @@ script: |
   super db create -use -q test
   a=$(super db load a.jsup | head -1 | awk '{print $1}')
   b=$(super db load b.jsup | head -1 | awk '{print $1}')
-  super db query -z "from test |> sort this"
+  super db query -z "from test | sort this"
   r=$(super db revert $a | awk '{print $5}')
   echo ===
-  super db query -z "from test |> sort this"
+  super db query -z "from test | sort this"
   super db revert -q $r
   echo ===
-  super db query -z "from test |> sort this"
+  super db query -z "from test | sort this"
 
 inputs:
   - name: a.jsup

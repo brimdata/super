@@ -1,28 +1,28 @@
 script: |
   echo // yield
-  super -z -c 'yield null, null |> over this => ( yield count() )'
+  super -z -c 'yield null, null | over this => ( yield count() )'
   echo // filter
-  super -z -c 'yield [1,2,3,4], [5,6,7] |> over this => ( where count() % 3 == 0 )'
+  super -z -c 'yield [1,2,3,4], [5,6,7] | over this => ( where count() % 3 == 0 )'
   echo // switch
-  super -z -c 'yield [1], [1] |> over this => (
+  super -z -c 'yield [1], [1] | over this => (
     switch sum(this) (
        case 1  => yield "sum is 1"
     )
   )'
   echo // exprswitch
-  super -z -c 'yield [1], [1] |> over this => (
+  super -z -c 'yield [1], [1] | over this => (
     switch (
       case sum(this) == 1 => yield "sum is 1"
     )
   )'
   echo // over
-  super -z -c 'yield null, null |> over this => ( over count() )'
+  super -z -c 'yield null, null | over this => ( over count() )'
   echo // over with
-  super -z -c 'yield [1], [1] |> over this => (
+  super -z -c 'yield [1], [1] | over this => (
     over this with count = count() => ( yield count )
   )'
   echo // summarize
-  super -z -c 'yield [1], [1] |> over this => ( sum(this) by c := count() )'
+  super -z -c 'yield [1], [1] | over this => ( sum(this) by c := count() )'
 
 outputs:
   - name: stdout
