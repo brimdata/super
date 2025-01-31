@@ -24,5 +24,5 @@ output: |
   [true,false]
   [true,true]
   [true,false]
-  [error({message:"grep(): pattern argument must be a string",on:1}),error({message:"grep(): pattern argument must be a string",on:1})]
+  [error({message:"grep: pattern argument must be a string",on:1}),error({message:"grep: pattern argument must be a string",on:1})]
   [null(bool),null(bool)]
