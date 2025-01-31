@@ -5,7 +5,7 @@ zed: |
       => yield this+10
     )
   )
-  |> sort this
+  | sort this
 
 vector: true
 

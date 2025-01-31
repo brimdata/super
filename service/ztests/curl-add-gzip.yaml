@@ -6,7 +6,7 @@ script: |
 
 inputs:
   - name: stdin
-    # Generated with `bash -c 'gzip -c <<<{x:1} |> base64'`.
+    # Generated with `bash -c 'gzip -c <<<{x:1} | base64'`.
     data: !!binary |
       H4sIAMaiGmEAA6uusDKs5QIAaI7+2QYAAAA=
   - name: service.sh

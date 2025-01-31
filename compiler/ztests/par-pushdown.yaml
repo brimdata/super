@@ -2,7 +2,7 @@ script: |
   export SUPER_DB_LAKE=test
   super db init -q
   super db create -q -orderby ts test
-  super db compile -P 3 "from test |> x==1" | super -z -c 'over this |> kind=="Scatter" |> over paths |> yield this[0].filter.kind' -
+  super db compile -P 3 "from test | x==1" | super -z -c 'over this | kind=="Scatter" | over paths | yield this[0].filter.kind' -
 
 outputs:
   - name: stdout

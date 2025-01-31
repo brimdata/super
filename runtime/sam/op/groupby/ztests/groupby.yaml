@@ -1,24 +1,24 @@
 script: |
   echo === forward-sorted ===
-  super -z -c "count() by ts |> sort this" in.jsup
+  super -z -c "count() by ts | sort this" in.jsup
   echo === forward-sorted-with-null ===
-  super -z -c "count() by ts |> sort this" in-with-null.jsup
+  super -z -c "count() by ts | sort this" in-with-null.jsup
   echo === forward-sorted-every ===
-  super -z -c "count() by every(1s) |> sort this" in.jsup
+  super -z -c "count() by every(1s) | sort this" in.jsup
   echo === forward-sorted-every-null ===
-  super -z -c "count() by every(1s) |> sort this" in-with-null.jsup
+  super -z -c "count() by every(1s) | sort this" in-with-null.jsup
   echo === forward-sorted-record-key ===
-  super -z -c "count() by foo |> sort this" in-record-key.jsup
+  super -z -c "count() by foo | sort this" in-record-key.jsup
   echo === forward-sorted-nested-key ===
-  super -z -c "count() by foo.a |> sort this" in-record-key.jsup
+  super -z -c "count() by foo.a | sort this" in-record-key.jsup
   echo === forward-sorted-record-key-null ===
-  super -z -c "count() by foo |> sort this" in-record-key-null.jsup
+  super -z -c "count() by foo | sort this" in-record-key-null.jsup
   echo === forward-sorted-nested-key-null ===
-  super -z -c "count() by foo |> sort this" in-record-key-null.jsup
+  super -z -c "count() by foo | sort this" in-record-key-null.jsup
   echo === reverse-sorted ===
-  super -z -c "count() by ts |> sort this" in-rev.jsup
+  super -z -c "count() by ts | sort this" in-rev.jsup
   echo === reverse-sorted-null ===
-  super -z -c "count() by every(1s) |> sort this" in-rev.jsup
+  super -z -c "count() by every(1s) | sort this" in-rev.jsup
 
 inputs:
   - name: in.jsup

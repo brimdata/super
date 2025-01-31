@@ -1,5 +1,5 @@
 zed: |
-  over this with foo="bar" => (sort this |> yield {num: this, foo})
+  over this with foo="bar" => (sort this | yield {num: this, foo})
 
 input: "[4,2,6,1]"
 

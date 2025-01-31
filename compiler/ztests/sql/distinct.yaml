@@ -1,7 +1,7 @@
 script: |
-  super -z -c 'select distinct value this from "d.json" |> sort this'
+  super -z -c 'select distinct value this from "d.json" | sort this'
   echo ===
-  super -z -c 'select distinct a,c from "d.json" |> sort this'
+  super -z -c 'select distinct a,c from "d.json" | sort this'
 
 inputs:
   - name: d.json

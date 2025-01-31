@@ -1,7 +1,7 @@
 zed: |
   over this => (
     over this => (
-      tail 2 |> head 1
+      tail 2 | head 1
     )
   )
 

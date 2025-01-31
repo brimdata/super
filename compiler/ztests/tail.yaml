@@ -10,15 +10,15 @@ outputs:
   - name: stdout
     data: |
       null
-      |> tail 1
-      |> output main
+      | tail 1
+      | output main
       ===
       null
-      |> (
+      | (
         const x = 1
         
         tail 2
-        |> output main
+        | output main
       )
   - name: stderr
     data: |

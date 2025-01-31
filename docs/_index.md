@@ -80,7 +80,7 @@ Since super-structured data is self-describing, this approach makes stream compo
 very easy.  Data from a SuperPipe query can trivially be piped to a local
 instance of `super` by feeding the resulting output stream to stdin of `super`, for example,
 ```
-super db query "from pool |> ...remote query..." | super "...local query..." -
+super db query "from pool | ...remote query..." | super "...local query..." -
 ```
 There is no need to configure the SuperDB entities with schema information
 like [protobuf configs](https://developers.google.com/protocol-buffers/docs/proto3)

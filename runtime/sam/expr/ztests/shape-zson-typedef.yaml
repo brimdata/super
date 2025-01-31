@@ -1,4 +1,4 @@
-zed: name=='steve' |> yield shape(this,<person>)
+zed: name=='steve' | yield shape(this,<person>)
 
 input: |
   {name:"jim",likes:"plain",age:30}(=person)

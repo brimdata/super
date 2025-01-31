@@ -4,33 +4,33 @@ script: |
   super db create -q -orderby ts test
   # At the time of writing, the where operator is necessary because a pool scan
   # is parallelized only when followed by another operator.
-  super db compile -C -P 2 "from test |> join (from test |> where true) on a=b" | sed -e 's/pool .*/.../'
+  super db compile -C -P 2 "from test | join (from test | where true) on a=b" | sed -e 's/pool .*/.../'
 
 outputs:
   - name: stdout
     data: |
       lister ...
-      |> slicer
-      |> scatter (
+      | slicer
+      | scatter (
         =>
           seqscan ...
         =>
           seqscan ...
       )
-      |> merge ts:asc
-      |> fork (
+      | merge ts:asc
+      | fork (
         =>
           pass
         =>
           lister ...
-          |> slicer
-          |> scatter (
+          | slicer
+          | scatter (
             =>
               seqscan ...
             =>
               seqscan ...
           )
-          |> merge ts:asc
+          | merge ts:asc
       )
-      |> join on a=b
-      |> output main
+      | join on a=b
+      | output main

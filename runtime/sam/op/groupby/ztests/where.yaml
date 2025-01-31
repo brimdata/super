@@ -1,4 +1,4 @@
-zed: "sum(x) where s=='a', s2:=sum(x) by key:=animal |> sort this"
+zed: "sum(x) where s=='a', s2:=sum(x) by key:=animal | sort this"
 
 input: |
   {animal:"cat",s:"a",x:1(int32)}

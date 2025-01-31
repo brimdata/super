@@ -1,5 +1,5 @@
 script: |
-  super -z -c 'Select value this FROM "a.jsup" |> droP c'
+  super -z -c 'Select value this FROM "a.jsup" | droP c'
 
 inputs:
   - name: a.jsup

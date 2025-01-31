@@ -1,7 +1,7 @@
 zed: |
   over this => (
     over this => (
-      where this > 2 |> head 1
+      where this > 2 | head 1
     )
   )
 

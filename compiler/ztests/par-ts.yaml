@@ -3,176 +3,176 @@ script: |
   super db init -q
   super db create -q -orderby ts test
   echo "<CUT PUT RENAME>"
-  super db compile -C -P 2 "from test |> cut ts, y, z |> put x := y |> rename y := z" | sed -e 's/pool .*/.../'
+  super db compile -C -P 2 "from test | cut ts, y, z | put x := y | rename y := z" | sed -e 's/pool .*/.../'
   echo "<CUT UNIQ>"
-  super db compile -C -P 2  "from test |> cut ts, foo:=x |> uniq" | sed -e 's/pool .*/.../'
+  super db compile -C -P 2  "from test | cut ts, foo:=x | uniq" | sed -e 's/pool .*/.../'
   echo "<DROP UNIQ>"
-  super db compile -C -P 2 "from test |> drop x |> uniq" | sed -e 's/pool .*/.../'
+  super db compile -C -P 2 "from test | drop x | uniq" | sed -e 's/pool .*/.../'
   echo "<EVERY COUNT>"
-  super db compile -C -P 2 "from test |> count() by y, every(1h)" | sed -e 's/pool .*/.../'
+  super db compile -C -P 2 "from test | count() by y, every(1h)" | sed -e 's/pool .*/.../'
   echo "<PUT COUNTDISTINCT UNIQ>"
-  super db compile -C -P 2  "from test |> put x:=y |> countdistinct(x) by y |> uniq" | sed -e 's/pool .*/.../'
+  super db compile -C -P 2  "from test | put x:=y | countdistinct(x) by y | uniq" | sed -e 's/pool .*/.../'
   echo "<RENAME UNIQ>"
-  super db compile -C -P 2  "from test |> put x:=foo |> rename foo:=boo |> uniq" | sed -e 's/pool .*/.../'
+  super db compile -C -P 2  "from test | put x:=foo | rename foo:=boo | uniq" | sed -e 's/pool .*/.../'
   echo "<PUT TAIL>"
-  super db compile -C -P 2 "from test |> put a:=1 |> tail" | sed -e 's/pool .*/.../'
+  super db compile -C -P 2 "from test | put a:=1 | tail" | sed -e 's/pool .*/.../'
   echo "<SORT UNIQ>"
-  super db compile -C -P 2 "from test |> sort |> uniq" | sed -e 's/pool .*/.../'
+  super db compile -C -P 2 "from test | sort | uniq" | sed -e 's/pool .*/.../'
   echo "<SORT X UNIQ>"
-  super db compile -C -P 2 "from test |> sort x |> uniq" | sed -e 's/pool .*/.../'
+  super db compile -C -P 2 "from test | sort x | uniq" | sed -e 's/pool .*/.../'
   echo "<UNIQ>"
-  super db compile -C -P 2 "from test |> uniq" | sed -e 's/pool .*/.../'
+  super db compile -C -P 2 "from test | uniq" | sed -e 's/pool .*/.../'
 
 outputs:
   - name: stdout
     data: |
       <CUT PUT RENAME>
       lister ...
-      |> slicer
-      |> scatter (
+      | slicer
+      | scatter (
         =>
           seqscan ...
-          |> cut ts:=ts,y:=y,z:=z
-          |> put x:=y
-          |> rename y:=z
+          | cut ts:=ts,y:=y,z:=z
+          | put x:=y
+          | rename y:=z
         =>
           seqscan ...
-          |> cut ts:=ts,y:=y,z:=z
-          |> put x:=y
-          |> rename y:=z
+          | cut ts:=ts,y:=y,z:=z
+          | put x:=y
+          | rename y:=z
       )
-      |> merge ts:asc
-      |> output main
+      | merge ts:asc
+      | output main
       <CUT UNIQ>
       lister ...
-      |> slicer
-      |> scatter (
+      | slicer
+      | scatter (
         =>
           seqscan ...
-          |> cut ts:=ts,foo:=x
+          | cut ts:=ts,foo:=x
         =>
           seqscan ...
-          |> cut ts:=ts,foo:=x
+          | cut ts:=ts,foo:=x
       )
-      |> merge ts:asc
-      |> uniq
-      |> output main
+      | merge ts:asc
+      | uniq
+      | output main
       <DROP UNIQ>
       lister ...
-      |> slicer
-      |> scatter (
+      | slicer
+      | scatter (
         =>
           seqscan ...
-          |> drop x
+          | drop x
         =>
           seqscan ...
-          |> drop x
+          | drop x
       )
-      |> merge ts:asc
-      |> uniq
-      |> output main
+      | merge ts:asc
+      | uniq
+      | output main
       <EVERY COUNT>
       lister ...
-      |> slicer
-      |> scatter (
+      | slicer
+      | scatter (
         =>
           seqscan ...
-          |> summarize partials-out sort-dir 1
+          | summarize partials-out sort-dir 1
               count:=count() by y:=y,ts:=every(1h)
         =>
           seqscan ...
-          |> summarize partials-out sort-dir 1
+          | summarize partials-out sort-dir 1
               count:=count() by y:=y,ts:=every(1h)
       )
-      |> merge ts:asc
-      |> summarize partials-in sort-dir 1
+      | merge ts:asc
+      | summarize partials-in sort-dir 1
           count:=count() by y:=y,ts:=ts
-      |> output main
+      | output main
       <PUT COUNTDISTINCT UNIQ>
       lister ...
-      |> scatter (
+      | scatter (
         =>
           seqscan ...
-          |> put x:=y
-          |> summarize partials-out
+          | put x:=y
+          | summarize partials-out
               countdistinct:=countdistinct(x) by y:=y
         =>
           seqscan ...
-          |> put x:=y
-          |> summarize partials-out
+          | put x:=y
+          | summarize partials-out
               countdistinct:=countdistinct(x) by y:=y
       )
-      |> combine
-      |> summarize partials-in
+      | combine
+      | summarize partials-in
           countdistinct:=countdistinct(x) by y:=y
-      |> uniq
-      |> output main
+      | uniq
+      | output main
       <RENAME UNIQ>
       lister ...
-      |> slicer
-      |> scatter (
+      | slicer
+      | scatter (
         =>
           seqscan ...
-          |> put x:=foo
-          |> rename foo:=boo
+          | put x:=foo
+          | rename foo:=boo
         =>
           seqscan ...
-          |> put x:=foo
-          |> rename foo:=boo
+          | put x:=foo
+          | rename foo:=boo
       )
-      |> merge ts:asc
-      |> uniq
-      |> output main
+      | merge ts:asc
+      | uniq
+      | output main
       <PUT TAIL>
       lister ...
-      |> slicer
-      |> scatter (
+      | slicer
+      | scatter (
         =>
           seqscan ...
-          |> put a:=1
-          |> tail 1
+          | put a:=1
+          | tail 1
         =>
           seqscan ...
-          |> put a:=1
-          |> tail 1
+          | put a:=1
+          | tail 1
       )
-      |> merge ts:asc
-      |> tail 1
-      |> output main
+      | merge ts:asc
+      | tail 1
+      | output main
       <SORT UNIQ>
       lister ...
-      |> scatter (
+      | scatter (
         =>
           seqscan ...
         =>
           seqscan ...
       )
-      |> combine
-      |> sort
-      |> uniq
-      |> output main
+      | combine
+      | sort
+      | uniq
+      | output main
       <SORT X UNIQ>
       lister ...
-      |> scatter (
+      | scatter (
         =>
           seqscan ...
-          |> sort x asc
+          | sort x asc
         =>
           seqscan ...
-          |> sort x asc
+          | sort x asc
       )
-      |> merge x:asc
-      |> uniq
-      |> output main
+      | merge x:asc
+      | uniq
+      | output main
       <UNIQ>
       lister ...
-      |> slicer
-      |> scatter (
+      | slicer
+      | scatter (
         =>
           seqscan ...
         =>
           seqscan ...
       )
-      |> merge ts:asc
-      |> uniq
-      |> output main
+      | merge ts:asc
+      | uniq
+      | output main

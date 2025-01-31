@@ -2,14 +2,14 @@ zed: |
   over this => (
     over this => (
       fork (
-        => tail 1 |> a:=collect(this)
-        => tail 2 |> a:=collect(this)
+        => tail 1 | a:=collect(this)
+        => tail 2 | a:=collect(this)
         => summarize a:=collect(this)
       )
-      |> sort this
-      |> tail 2
+      | sort this
+      | tail 2
     )
-    |> sort this
+    | sort this
   )
 
 input: |

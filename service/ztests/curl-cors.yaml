@@ -19,14 +19,14 @@ script: |
     -X POST \
     -H "Origin: http://wildcard.b" \
     -H "Accept: application/json" \
-    -d '{"query":"from :pools |> *"}' \
+    -d '{"query":"from :pools | *"}' \
     $SUPER_DB_LAKE/query | grep Access-Control-Allow | tr -d '\015'
   echo === POST: not allowed ===
   ! curl -sD - \
     -X POST \
     -H "Origin: http://wildcard.not-b" \
     -H "Accept: application/json" \
-    -d '{"query":"from :pools |> *"}' \
+    -d '{"query":"from :pools | *"}' \
     $SUPER_DB_LAKE/query | grep Access-Control-Allow
 
 inputs:

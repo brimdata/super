@@ -1,5 +1,5 @@
 script: |
-  super -z -c "_path == 'conn' |> count()" in.jsup
+  super -z -c "_path == 'conn' | count()" in.jsup
   echo ===
   super -z -c "count() where _path == 'conn'" in.jsup
 

@@ -7,8 +7,8 @@ inputs:
       select value this
       from (
         select value this from "a.jsup"
-        |> drop c
-        |> put a:=a-10
+        | drop c
+        | put a:=a-10
       ) l
       join "b.jsup" r on l.a==r.c
   - name: a.jsup

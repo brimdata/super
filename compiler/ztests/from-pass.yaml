@@ -6,7 +6,7 @@ inputs:
       from (
         pass
         file right.jsup
-      ) |> inner join on x=y matched:=true
+      ) | inner join on x=y matched:=true
   - name: left.jsup
     data: |
       {x:1,s:"one"}

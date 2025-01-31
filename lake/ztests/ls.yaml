@@ -5,7 +5,7 @@ script: |
   super db load -q -use logs babble.jsup
   super db ls -f bsup | super -Z -c "drop id,ts" -
   echo ===
-  super db query -Z "from logs@main:objects |> drop id"
+  super db query -Z "from logs@main:objects | drop id"
 
 inputs:
   - name: babble.jsup

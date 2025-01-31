@@ -18,13 +18,13 @@ outputs:
       )
       ===
       null
-      |> switch (
+      | switch (
           case search("a") =>
             head 1
-            |> output main
+            | output main
           case search("c") =>
             tail 1
-            |> output main
+            | output main
         )
       ===
       switch (
@@ -35,11 +35,11 @@ outputs:
       )
       ===
       null
-      |> switch (
+      | switch (
           case search("a") =>
             head 1
-            |> output main
+            | output main
           case true =>
             tail 1
-            |> output main
+            | output main
         )

@@ -1,4 +1,4 @@
-zed: fork (=> head 1 => tail 1) |> sort
+zed: fork (=> head 1 => tail 1) | sort
 
 vector: true
 

@@ -2,7 +2,7 @@ zed: |
   fork (
     => pass
     => pass
-  ) |> join on a=a
+  ) | join on a=a
 
 input: &input |
   {a:null(int64)}

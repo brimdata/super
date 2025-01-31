@@ -1,9 +1,9 @@
 script: |
-  super -z -c 'select value this from "a.jsup" |> drop c'
+  super -z -c 'select value this from "a.jsup" | drop c'
   echo ===
-  super -z -c 'select value this from "messy.jsup" |> drop s,t'
+  super -z -c 'select value this from "messy.jsup" | drop s,t'
   echo ===
-  super -z -c 'select value this from "b.jsup" |> drop b'
+  super -z -c 'select value this from "b.jsup" | drop b'
 
 inputs:
   - name: a.jsup

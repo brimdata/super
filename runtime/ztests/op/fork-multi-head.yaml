@@ -3,7 +3,7 @@ zed: |
     => head 1
     => head 2
   )
-  |> head 1
+  | head 1
 
 vector: true
 

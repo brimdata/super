@@ -3,7 +3,7 @@ script: |
   super db init -q
   super db create -q -S 75B -orderby addr:asc logs
   super db load -q -use logs in.jsup
-  super db query -z 'from logs |> cut addr'
+  super db query -z 'from logs | cut addr'
 
 inputs:
   - name: in.jsup

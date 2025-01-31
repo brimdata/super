@@ -3,7 +3,7 @@ zed: |
      case 1 => head 1
      case 2 => tail 1
      default => pass
-  ) |> sort b
+  ) | sort b
 
 vector: true
 

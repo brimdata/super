@@ -3,35 +3,35 @@ script: |
   super db init -q
   super db create -q -orderby ts:asc ASC
   super db create -q -orderby ts:desc DESC
-  super db compile -C -P 2 "from ASC |> cut x:=ts,ts:=1" | sed -e 's/pool .*/.../'
+  super db compile -C -P 2 "from ASC | cut x:=ts,ts:=1" | sed -e 's/pool .*/.../'
   echo ===
-  super db compile -C -P 2 "from DESC |> cut x:=ts,ts:=1" | sed -e 's/pool .*/.../'
+  super db compile -C -P 2 "from DESC | cut x:=ts,ts:=1" | sed -e 's/pool .*/.../'
 
 outputs:
   - name: stdout
     data: |
       lister ...
-      |> slicer
-      |> scatter (
+      | slicer
+      | scatter (
         =>
           seqscan ...
-          |> cut x:=ts,ts:=1
+          | cut x:=ts,ts:=1
         =>
           seqscan ...
-          |> cut x:=ts,ts:=1
+          | cut x:=ts,ts:=1
       )
-      |> merge x:asc
-      |> output main
+      | merge x:asc
+      | output main
       ===
       lister ...
-      |> slicer
-      |> scatter (
+      | slicer
+      | scatter (
         =>
           seqscan ...
-          |> cut x:=ts,ts:=1
+          | cut x:=ts,ts:=1
         =>
           seqscan ...
-          |> cut x:=ts,ts:=1
+          | cut x:=ts,ts:=1
       )
-      |> merge x:desc
-      |> output main
+      | merge x:desc
+      | output main

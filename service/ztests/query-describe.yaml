@@ -6,7 +6,7 @@ script: |
     echo // === $file ===
     query="$(cat $file | jq -Rsa .)"
     curl -H "Accept: application/json" -d "{\"query\":$query,\"head\":{\"pool\":\"test1\"}}" $SUPER_DB_LAKE/query/describe |
-      super -J -c 'sources := (over sources |> id := "XXX")' -
+      super -J -c 'sources := (over sources | id := "XXX")' -
   done
 
 
@@ -17,29 +17,29 @@ inputs:
       fork (
         => from test1
         => from test2
-      ) |> put foo := "bar"
+      ) | put foo := "bar"
   - name: agg.spq
     data: |
-      from test1 |> count() by key1:=v1, key2
+      from test1 | count() by key1:=v1, key2
   - name: agg-no-keys.spq
     data: |
-      from test1 |> sum(this)
+      from test1 | sum(this)
   - name: two-channels.spq
     data: |
       fork (
-      => from test1 |> sum(y) by key1 |> output main
-      => from test2 |> put x := "foo" |> output secondary
+      => from test1 | sum(y) by key1 | output main
+      => from test2 | put x := "foo" | output secondary
       )
   - name: agg-sort.spq
     data: |
-      from test1 |> sum(this) by foo |> sort x
+      from test1 | sum(this) by foo | sort x
   - name: scope.spq
     data: |
       type port = uint16
-      from test1 |> fork (=> output main => yield "bar" |> output secondary)
+      from test1 | fork (=> output main => yield "bar" | output secondary)
   - name: auto-combined-channels.spq
     data: |
-      from test1 |> fork (=> pass => pass)
+      from test1 | fork (=> pass => pass)
 
 outputs:
   - name: stdout

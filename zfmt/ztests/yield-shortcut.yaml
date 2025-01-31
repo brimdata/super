@@ -21,17 +21,17 @@ outputs:
       yield <(int64,string)>(1)
       ===
       null
-      |> yield {x:1,...y}
-      |> output main
+      | yield {x:1,...y}
+      | output main
       null
-      |> yield [1,2,3]
-      |> output main
+      | yield [1,2,3]
+      | output main
       null
-      |> yield |["foo","bar"]|
-      |> output main
+      | yield |["foo","bar"]|
+      | output main
       null
-      |> yield |{"foo":1,"bar":2}|
-      |> output main
+      | yield |{"foo":1,"bar":2}|
+      | output main
       null
-      |> yield cast(1, <(int64,string)>)
-      |> output main
+      | yield cast(1, <(int64,string)>)
+      | output main

@@ -163,7 +163,7 @@ func VectorFilterCompile(rctx *runtime.Context, query string, env *exec.Environm
 	if err != nil {
 		return nil, err
 	}
-	ast, err := parser.ParseQuery(fmt.Sprintf("%s |> %s", spec, query))
+	ast, err := parser.ParseQuery(fmt.Sprintf("%s | %s", spec, query))
 	if err != nil {
 		return nil, err
 	}

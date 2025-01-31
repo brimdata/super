@@ -12,7 +12,7 @@ zed: |
     )
     case 3 =>
       yield {k:2,a:[103, a, b]}
-  ) |> sort k
+  ) | sort k
 
 input: |
   {a:1,b:1001}

@@ -2,42 +2,42 @@ script: |
   export SUPER_DB_LAKE=test
   super db init -q
   super db create -q -orderby ts test
-  super db compile -C -P 2 "from test |> count() by y" | sed -e 's/pool .*/.../'
+  super db compile -C -P 2 "from test | count() by y" | sed -e 's/pool .*/.../'
   echo ===
-  super db compile -C -P 2 "from test |> count()" | sed -e 's/pool .*/.../'
+  super db compile -C -P 2 "from test | count()" | sed -e 's/pool .*/.../'
 
 outputs:
   - name: stdout
     data: |
       lister ...
-      |> scatter (
+      | scatter (
         =>
           seqscan ...
-          |> summarize partials-out
+          | summarize partials-out
               count:=count() by y:=y
         =>
           seqscan ...
-          |> summarize partials-out
+          | summarize partials-out
               count:=count() by y:=y
       )
-      |> combine
-      |> summarize partials-in
+      | combine
+      | summarize partials-in
           count:=count() by y:=y
-      |> output main
+      | output main
       ===
       lister ...
-      |> scatter (
+      | scatter (
         =>
           seqscan ...
-          |> summarize partials-out
+          | summarize partials-out
               count:=count()
         =>
           seqscan ...
-          |> summarize partials-out
+          | summarize partials-out
               count:=count()
       )
-      |> combine
-      |> summarize partials-in
+      | combine
+      | summarize partials-in
           count:=count()
-      |> yield count
-      |> output main
+      | yield count
+      | output main

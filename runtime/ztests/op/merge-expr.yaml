@@ -1,4 +1,4 @@
-zed: fork (=>pass =>pass) |> merge this
+zed: fork (=>pass =>pass) | merge this
 
 vector: true
 

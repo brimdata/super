@@ -2,23 +2,23 @@ script: |
   export SUPER_DB_LAKE=test
   super db init -q
   super db create -q -orderby s:asc test
-  super db compile -P 2 -C "from test |> union(s) by n:=len(s)" | sed -e 's/pool .*/.../'
+  super db compile -P 2 -C "from test | union(s) by n:=len(s)" | sed -e 's/pool .*/.../'
 
 outputs:
   - name: stdout
     data: |
       lister ...
-      |> scatter (
+      | scatter (
         =>
           seqscan ...
-          |> summarize partials-out
+          | summarize partials-out
               union:=union(s) by n:=len(s)
         =>
           seqscan ...
-          |> summarize partials-out
+          | summarize partials-out
               union:=union(s) by n:=len(s)
       )
-      |> combine
-      |> summarize partials-in
+      | combine
+      | summarize partials-in
           union:=union(s) by n:=n
-      |> output main
+      | output main

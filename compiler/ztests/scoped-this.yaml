@@ -1,7 +1,7 @@
 zed: |
   over ids with name => (
     ids:=collect(string(this))
-    |> yield {name,ids:join(ids,',')}
+    | yield {name,ids:join(ids,',')}
   )
 
 input: |

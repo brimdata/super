@@ -1,5 +1,5 @@
 script: |
-  super -z -c 'from (file in.jsup file in.jsup ) |> fork (=> count() => count())'
+  super -z -c 'from (file in.jsup file in.jsup ) | fork (=> count() => count())'
 
 inputs:
   - name: in.jsup

@@ -17,11 +17,11 @@ outputs:
   -  name: stdout
      data: |
         null
-        |> yield (10+2)/8
-        |> output main
+        | yield (10+2)/8
+        | output main
         null
-        |> where (y==2 or x==4) and z==5
-        |> output main
+        | where (y==2 or x==4) and z==5
+        | output main
         null
-        |> where !(ts<=2)
-        |> output main
+        | where !(ts<=2)
+        | output main

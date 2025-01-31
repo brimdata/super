@@ -1,4 +1,4 @@
-zed: over a |> sum(this)
+zed: over a | sum(this)
 
 input: |
   {a:[6,5,4]}

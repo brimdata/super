@@ -5,9 +5,9 @@ script: |
   super compile -C 'from(get http://a)'
   super compile -C 'from(pool a)'
   echo === No space before vertical bar.
-  super compile -C 'file a|> ?b'
-  super compile -C 'get http://a|> ?b'
-  super compile -C 'from a|> ?b'
+  super compile -C 'file a| ?b'
+  super compile -C 'get http://a| ?b'
+  super compile -C 'from a| ?b'
 
 outputs:
   - name: stdout
@@ -15,7 +15,7 @@ outputs:
       fork (
         =>
           from a
-          |> search x and pool and b
+          | search x and pool and b
       )
       === No spaces around parentheses.
       fork (
@@ -32,8 +32,8 @@ outputs:
       )
       === No space before vertical bar.
       from a
-      |> search b
+      | search b
       from "http://a"
-      |> search b
+      | search b
       from a
-      |> search b
+      | search b

@@ -2,7 +2,7 @@ script: |
   source service.sh
   super db create -q test
   super db load -q -use test -
-  super db query -j "from test |> cut a,b"
+  super db query -j "from test | cut a,b"
 
 inputs:
   - name: service.sh

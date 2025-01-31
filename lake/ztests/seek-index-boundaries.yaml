@@ -4,11 +4,11 @@ script: |
   for o in asc desc; do
     super db create -use -q -seekstride 1B -orderby ts:$o $o
     seq 20 | super -c 'yield {ts:this}' - | super db load -q -
-    source query.sh "from $o |> ts == 5"
-    source query.sh "from $o |> ts < 2"
-    source query.sh "from $o |> ts <= 2"
-    source query.sh "from $o |> ts > 19"
-    source query.sh "from $o |> ts >= 19"
+    source query.sh "from $o | ts == 5"
+    source query.sh "from $o | ts < 2"
+    source query.sh "from $o | ts <= 2"
+    source query.sh "from $o | ts > 19"
+    source query.sh "from $o | ts >= 19"
   done
 
 inputs:
@@ -19,49 +19,49 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      // from asc |> ts == 5
+      // from asc | ts == 5
       {ts:5}
-      // from asc |> ts < 2
+      // from asc | ts < 2
       {ts:1}
-      // from asc |> ts <= 2
+      // from asc | ts <= 2
       {ts:1}
       {ts:2}
-      // from asc |> ts > 19
+      // from asc | ts > 19
       {ts:20}
-      // from asc |> ts >= 19
+      // from asc | ts >= 19
       {ts:19}
       {ts:20}
-      // from desc |> ts == 5
+      // from desc | ts == 5
       {ts:5}
-      // from desc |> ts < 2
+      // from desc | ts < 2
       {ts:1}
-      // from desc |> ts <= 2
+      // from desc | ts <= 2
       {ts:2}
       {ts:1}
-      // from desc |> ts > 19
+      // from desc | ts > 19
       {ts:20}
-      // from desc |> ts >= 19
+      // from desc | ts >= 19
       {ts:20}
       {ts:19}
   - name: stderr
     data: |
-      // from asc |> ts == 5
+      // from asc | ts == 5
       {bytes_read:2,bytes_matched:2,records_read:1,records_matched:1}
-      // from asc |> ts < 2
+      // from asc | ts < 2
       {bytes_read:2,bytes_matched:2,records_read:1,records_matched:1}
-      // from asc |> ts <= 2
+      // from asc | ts <= 2
       {bytes_read:4,bytes_matched:4,records_read:2,records_matched:2}
-      // from asc |> ts > 19
+      // from asc | ts > 19
       {bytes_read:2,bytes_matched:2,records_read:1,records_matched:1}
-      // from asc |> ts >= 19
+      // from asc | ts >= 19
       {bytes_read:4,bytes_matched:4,records_read:2,records_matched:2}
-      // from desc |> ts == 5
+      // from desc | ts == 5
       {bytes_read:2,bytes_matched:2,records_read:1,records_matched:1}
-      // from desc |> ts < 2
+      // from desc | ts < 2
       {bytes_read:2,bytes_matched:2,records_read:1,records_matched:1}
-      // from desc |> ts <= 2
+      // from desc | ts <= 2
       {bytes_read:4,bytes_matched:4,records_read:2,records_matched:2}
-      // from desc |> ts > 19
+      // from desc | ts > 19
       {bytes_read:2,bytes_matched:2,records_read:1,records_matched:1}
-      // from desc |> ts >= 19
+      // from desc | ts >= 19
       {bytes_read:4,bytes_matched:4,records_read:2,records_matched:2}

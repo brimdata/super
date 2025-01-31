@@ -1,7 +1,7 @@
-script: super compile -O -C 'from foo |> x>1 |> pass |> pass |> x>2 |> pass'
+script: super compile -O -C 'from foo | x>1 | pass | pass | x>2 | pass'
 
 outputs:
   - name: stdout
     data: |
       file foo filter (x>1 and x>2)
-      |> output main
+      | output main

@@ -36,7 +36,7 @@ And it's all recursive...
 with bar := <complex-expression> => (
   // scope-1 (this comes from scope-0, bar comes from expr)
   yield {a:complexFunc(bar,this),b:this.b}
-  |> baz := over(a) (
+  | baz := over(a) (
     // scope-2 (this comes from scope-a, bar comes from scope-1, baz comes from batch)
     yield {x:baz,y:bar.a,z:this.x} // yields into baz, is this confusing?
   )
@@ -61,7 +61,7 @@ Or perhaps over should be separated from with:
 with foo:=this (
   // scope-1 (foo comes from scope-0 this, this comes from batch from over)
   over(bar)
-  |> yield {a:this.a,b:foo.b} // -> lexical scope: yields into this (is this less confusing?)
+  | yield {a:this.a,b:foo.b} // -> lexical scope: yields into this (is this less confusing?)
 )
 ```
 And we could have shorthand for the above:

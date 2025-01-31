@@ -1,4 +1,4 @@
-zed: count() by nameof(this) |> sort this
+zed: count() by nameof(this) | sort this
 
 input: |
   {x:1}

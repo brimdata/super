@@ -25,12 +25,12 @@ inputs:
       {"name":"figs","color":"brown","flavor":"plain"}
   - name: file.zed
     data: |
-      file fruits.jsup |> sort -r flavor
-      |> join (file people.jsup |> sort -r likes) on flavor=likes eater:=name
+      file fruits.jsup | sort -r flavor
+      | join (file people.jsup | sort -r likes) on flavor=likes eater:=name
   - name: pool.zed
     data: |
       from fruits
-      |> join (from people) on flavor=likes eater:=name
+      | join (from people) on flavor=likes eater:=name
 
 outputs:
   - name: stdout

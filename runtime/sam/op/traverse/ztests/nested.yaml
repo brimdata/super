@@ -1,7 +1,7 @@
 zed: |
   over outer with TOP=this["top"] => (
     yield {msg:"OUTER", top:`TOP`, inner:inner, b:b}
-    |> over inner with BOTTOM=b => (
+    | over inner with BOTTOM=b => (
       yield {top:`TOP`, bottom:BOTTOM, elem:this}
     )
   )

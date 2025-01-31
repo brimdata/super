@@ -1,4 +1,4 @@
-zed: const THREE = 3 switch x ( case 1 => y:=3 case 2 => y:=2 case THREE => y:=1 ) |> sort x
+zed: const THREE = 3 switch x ( case 1 => y:=3 case 2 => y:=2 case THREE => y:=1 ) | sort x
 
 input: |
   {x:1}

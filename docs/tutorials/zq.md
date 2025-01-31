@@ -449,7 +449,7 @@ But more powerfully, types can be used anywhere a value can be used and
 in particular, they can be group-by keys, e.g.,
 ```mdtest-command
 echo '{x:1,y:2}{s:"foo"}{x:3,y:4}' |
-  super -f table -c "count() by \`shape\`:=typeof(this) |> sort count" -
+  super -f table -c "count() by \`shape\`:=typeof(this) | sort count" -
 ```
 produces
 ```mdtest-output
@@ -502,7 +502,7 @@ This is easy to do with the [any aggregate function](../language/aggregates/any.
 e.g,
 ```mdtest-command
 echo '{x:1,y:2}{s:"foo"}{x:3,y:4}' |
-  super -z -c 'val:=any(this) by typeof(this) |> sort val |> yield val' -
+  super -z -c 'val:=any(this) by typeof(this) | sort val | yield val' -
 ```
 produces
 ```mdtest-output
@@ -511,7 +511,7 @@ produces
 ```
 We like this pattern so much there is a shortcut [sample operator](../language/operators/sample.md), e.g.,
 ```mdtest-command
-echo '{x:1,y:2}{s:"foo"}{x:3,y:4}' | super -z -c 'sample this |> sort this' -
+echo '{x:1,y:2}{s:"foo"}{x:3,y:4}' | super -z -c 'sample this | sort this' -
 ```
 emits the same result:
 ```mdtest-output
@@ -562,7 +562,7 @@ Now you can see all the detail.
 This turns out to be so useful, especially with large amounts of messy input data,
 you will often find yourself fusing data then sampling it, e.g.,
 ```mdtest-command
-echo '{a:1,b:null}{a:null,b:[2,3,4]}' | super -Z -c 'fuse |> sample' -
+echo '{a:1,b:null}{a:null,b:[2,3,4]}' | super -Z -c 'fuse | sample' -
 ```
 produces a comprehensively-typed sample:
 ```mdtest-output
@@ -573,7 +573,7 @@ produces a comprehensively-typed sample:
 ```
 As you explore data in this fashion, you will often type various searches
 to slice and dice the data as you get a feel for it all while sending
-your interactive search results to `fuse |> sample`.
+your interactive search results to `fuse | sample`.
 
 To appreciate all this, let's have a look next at some real-world data...
 
@@ -641,7 +641,7 @@ the items from the array and do something with them.  So how about we use
 the [over operator](../language/operators/over.md)
 to traverse the array and count the array items by their "kind",
 ```mdtest-command dir=docs/tutorials
-super -z -c 'over this |> count() by kind(this)' prs.json
+super -z -c 'over this | count() by kind(this)' prs.json
 ```
 produces
 ```mdtest-output
@@ -652,7 +652,7 @@ Ok, they're all records.  Good, this should be easy!
 The Zed records were all originally JSON objects.
 Maybe we can just use "sample" to have a deeper look...
 ```
-super -Z -c 'over this |> sample' prs.json
+super -Z -c 'over this | sample' prs.json
 ```
 > Here we are using `-Z`, which is like `-z`, but instead of formatting each
 > ZSON value on its own line, it pretty-prints the ZSON with vertical
@@ -663,7 +663,7 @@ more than 700 lines of pretty-printed ZSON.
 
 Ok, maybe it's not so bad.  Let's check how many shapes there are with `sample`...
 ```mdtest-command dir=docs/tutorials
-super -z -c 'over this |> sample |> count()' prs.json
+super -z -c 'over this | sample | count()' prs.json
 ```
 produces
 ```mdtest-output
@@ -675,7 +675,7 @@ They must each be really big.  Let's check that out.
 We can use the [len function](../language/functions/len.md) on the records to
 see the size of each of the four records:
 ```mdtest-command dir=docs/tutorials
-super -z -c 'over this |> sample |> len(this) |> sort this' prs.json
+super -z -c 'over this | sample | len(this) | sort this' prs.json
 ```
 and we get
 ```mdtest-output
@@ -686,7 +686,7 @@ and we get
 Ok, this isn't so bad... two shapes each have 36 fields but one is length zero?!
 That outlier could only be the empty record.  Let's check:
 ```mdtest-command dir=docs/tutorials
-super -z -c 'over this |> sample |> len(this)==0' prs.json
+super -z -c 'over this | sample | len(this)==0' prs.json
 ```
 produces
 ```mdtest-output
@@ -707,23 +707,23 @@ Who knows why they are there?  No fun. Real-world data is messy.
 
 How about we fuse the 3 shapes together and have a look at the result:
 ```
-super -Z -c 'over this |> fuse |> sample' prs.json
+super -Z -c 'over this | fuse | sample' prs.json
 ```
 We won't display the result here as it's still pretty big.  But you can
 give it a try.  It's 379 lines.
 
 But let's break down what's taking up all this space.
 
-We can take the output from `fuse |> sample` and list the fields with
+We can take the output from `fuse | sample` and list the fields with
 and their "kind".  Note that when we do an `over this` with records as
 input, we get a new record value for each field structured as a key/value pair:
 ```mdtest-command dir=docs/tutorials
 super -f table -c '
   over this
-  |> fuse
-  |> sample
-  |> over this
-  |> {field:key[0],kind:kind(value)}
+  | fuse
+  | sample
+  | over this
+  | {field:key[0],kind:kind(value)}
 ' prs.json
 ```
 produces
@@ -770,15 +770,15 @@ With this list of top-level fields, we can easily explore the different
 pieces of their structure with sample.  Let's have a look at a few of the
 record fields by giving these one-liners each a try and looking at the output:
 ```
-super -Z -c 'over this |> sample head' prs.json
-super -Z -c 'over this |> sample base' prs.json
-super -Z -c 'over this |> sample _links' prs.json
+super -Z -c 'over this | sample head' prs.json
+super -Z -c 'over this | sample base' prs.json
+super -Z -c 'over this | sample _links' prs.json
 ```
 While these fields have some useful information, we'll decide to drop them here
 and focus on other top-level fields.  To do this, we can use the
 [drop operator](../language/operators/drop.md) to whittle down the data:
 ```
-super -Z -c 'over this |> fuse |> drop head,base,_link |> sample' prs.json
+super -Z -c 'over this | fuse | drop head,base,_link | sample' prs.json
 ```
 Ok, this looks more reasonable and is now only 120 lines of pretty-printed ZSON.
 
@@ -786,7 +786,7 @@ One more annoying detail here about JSON: time values are stored as strings,
 in this case, in ISO format, e.g., we can pull this value out with
 this query:
 ```mdtest-command dir=docs/tutorials
-super -z -c 'over this |> head 1 |> yield created_at' prs.json
+super -z -c 'over this | head 1 | yield created_at' prs.json
 ```
 which produces this string:
 ```mdtest-output
@@ -795,7 +795,7 @@ which produces this string:
 Since Zed has a native `time` type and we might want to do native date comparisons
 on these time fields, we can easily translate the string to a time with a cast, e.g.,
 ```mdtest-command dir=docs/tutorials
-super -z -c 'over this |> head 1 |> yield time(created_at)' prs.json
+super -z -c 'over this | head 1 | yield time(created_at)' prs.json
 ```
 produces the native time value:
 ```mdtest-output
@@ -803,7 +803,7 @@ produces the native time value:
 ```
 To be sure, you can check any value's type with the `typeof` function, e.g.,
 ```mdtest-command dir=docs/tutorials
-super -z -c 'over this |> head 1 |> yield time(created_at) |> typeof(this)' prs.json
+super -z -c 'over this | head 1 | yield time(created_at) | typeof(this)' prs.json
 ```
 produces the native time value:
 ```mdtest-output
@@ -820,12 +820,12 @@ First, let's get rid of the outer array and generate elements of an array
 as a sequence of Zed records that have been fused and let's filter out
 the empty records:
 ```
-super -c 'over this |> len(this) != 0 |> fuse' prs.json > prs1.bsup
+super -c 'over this | len(this) != 0 | fuse' prs.json > prs1.bsup
 ```
 We can check that worked with count:
 ```
 super -z -c 'count()' prs1.bsup
-super -z -c 'sample |> count()' prs1.bsup
+super -z -c 'sample | count()' prs1.bsup
 ```
 produces
 ```
@@ -845,8 +845,8 @@ to primitive types:
 ```
 super -z -c '
   over this
-  |> kind(value)=="primitive"
-  |> fields:=union(key[0]) by type:=typeof(value)
+  | kind(value)=="primitive"
+  | fields:=union(key[0]) by type:=typeof(value)
 ' prs2.bsup
 ```
 which gives
@@ -890,9 +890,9 @@ We can check the result with our type analysis:
 ```mdtest-command dir=docs/tutorials
 super -z -c '
   over this
-  |> kind(value)=="primitive"
-  |> fields:=union(key[0]) by type:=typeof(value)
-  |> sort type
+  | kind(value)=="primitive"
+  | fields:=union(key[0]) by type:=typeof(value)
+  | sort type
 ' prs.bsup
 ```
 which now gives:
@@ -916,10 +916,10 @@ put all the transformations together in a single
 Zed pipeline, where the Zed source text might look like this:
 ```
 over this                      // traverse the array of objects
-|> len(this) != 0               // skip empty objects
-|> fuse                         // fuse objects into records of a combined type
-|> drop head,base,_links        // drop fields that we don't need
-|> closed_at:=time(closed_at),  // transform string dates to type time
+| len(this) != 0               // skip empty objects
+| fuse                         // fuse objects into records of a combined type
+| drop head,base,_links        // drop fields that we don't need
+| closed_at:=time(closed_at),  // transform string dates to type time
   merged_at:=time(merged_at),
   created_at:=time(created_at),
   updated_at:=time(updated_at)
@@ -966,7 +966,7 @@ chronologically. This command retrieves the last five PRs in the dataset:
 ```mdtest-command dir=docs/tutorials
 super -f table -c '
   tail 5
-  |> {DATE:created_at,"NUMBER":f"PR #{number}",TITLE:title}
+  | {DATE:created_at,"NUMBER":f"PR #{number}",TITLE:title}
 ' prs.bsup
 ```
 and the output is:
@@ -982,7 +982,7 @@ DATE                 NUMBER TITLE
 How about some aggregations?  We can count the number of PRs and sort by the
 count highest first:
 ```mdtest-command dir=docs/tutorials
-super -z -c "count() by user:=user.login |> sort count desc" prs.bsup
+super -z -c "count() by user:=user.login | sort count desc" prs.bsup
 ```
 produces
 ```mdtest-output
@@ -996,7 +996,7 @@ How about getting a list of all of the reviewers?  To do this, we need to
 traverse the records in the `requested_reviewers` array and collect up
 the login field from each record:
 ```mdtest-command dir=docs/tutorials
-super -z -c 'over requested_reviewers |> collect(login)' prs.bsup
+super -z -c 'over requested_reviewers | collect(login)' prs.bsup
 ```
 Oops, this gives us an array of the reviewer logins
 with repetitions since [collect](../language/aggregates/collect.md)
@@ -1011,7 +1011,7 @@ computes the set-wise union of its input and produces a Zed `set` type as its
 output.  In this case, the output is a set of strings, written `|[string]|`
 in the Zed language.  For example:
 ```mdtest-command dir=docs/tutorials
-super -z -c 'over requested_reviewers |> reviewers:=union(login)' prs.bsup
+super -z -c 'over requested_reviewers | reviewers:=union(login)' prs.bsup
 ```
 produces
 ```mdtest-output
@@ -1056,9 +1056,9 @@ bringing that value into the scope using a `with` clause appended to the
 super -z -c '
   over requested_reviewers with user=user.login => (
     reviewers:=union(login)
-    |> {user,reviewers}
+    | {user,reviewers}
   )
-  |> sort user,len(reviewers)
+  | sort user,len(reviewers)
 ' prs.bsup
 ```
 which gives us
@@ -1079,10 +1079,10 @@ as the group-by key:
 super -Z -c '
   over requested_reviewers with user=user.login => (
     reviewers:=union(login)
-    |> {user,reviewers}
+    | {user,reviewers}
   )
-  |> groups:=union(reviewers) by user
-  |> sort user,len(groups)
+  | groups:=union(reviewers) by user
+  | sort user,len(groups)
 ' prs.bsup
 ```
 and we get
@@ -1203,10 +1203,10 @@ with an aggregation:
 super -z -c '
   over requested_reviewers with user=user.login => (
     reviewers:=union(login)
-    |> {user,reviewers}
+    | {user,reviewers}
   )
-  |> avg_reviewers:=avg(len(reviewers)) by user
-  |> sort avg_reviewers
+  | avg_reviewers:=avg(len(reviewers)) by user
+  | sort avg_reviewers
 ' prs.bsup
 ```
 which produces
@@ -1224,10 +1224,10 @@ Of course, if you'd like the query output in JSON, you can just say `-j` and
 super -j -c '
   over requested_reviewers with user=user.login => (
     reviewers:=union(login)
-    |> {user,reviewers}
+    | {user,reviewers}
   )
-  |> groups:=union(reviewers) by user
-  |> sort user,len(groups)
+  | groups:=union(reviewers) by user
+  | sort user,len(groups)
 ' prs.bsup
 ```
 produces

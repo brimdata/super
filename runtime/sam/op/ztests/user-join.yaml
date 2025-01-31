@@ -12,7 +12,7 @@ inputs:
     data: |
       op test(lpool, rpool, lkey, rkey, ldest, rsrc): (
         from eval(lpool)
-        |> inner join ( from eval(rpool) ) on lkey = rkey ldest := rsrc
+        | inner join ( from eval(rpool) ) on lkey = rkey ldest := rsrc
       )
       test("fruit", "people", flavor, likes, eater, name)
   - name: fruit.jsup

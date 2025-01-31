@@ -107,7 +107,7 @@ We can run an aggregation to see who has created the most PRs during the time ra
 of this first data set:
 
 ```bash
-$ zed query 'count() by user:=user.login |> sort count desc'
+$ zed query 'count() by user:=user.login | sort count desc'
 ```
 =>
 ```
@@ -163,7 +163,7 @@ Now let's run a bucketed aggregation to count approximate PRs per month (specifi
 bucketed in 12 equal spans of a year):
 
 ```
-$ zed query 'count() by ts:=bucket(created_at, 1y/12) |> sort ts'
+$ zed query 'count() by ts:=bucket(created_at, 1y/12) | sort ts'
 ```
 =>
 ```
@@ -183,7 +183,7 @@ and see who created these PRs:
 
 ```
 $ zed query 'from prs range 2020-04-19T16:00:00Z to 2020-05-20T02:00:00Z
-             |> count() by user:=user.login | sort count desc'
+             | count() by user:=user.login | sort count desc'
 ```
 =>
 ```

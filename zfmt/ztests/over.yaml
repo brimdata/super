@@ -7,62 +7,62 @@ inputs:
   - name: test.zed
     data: |
       // Expressions
-      yield (over a |> ?b)
-      |> yield (over a with b=c |> ?d)
-      |> yield (over a, b with c=d, e=f |> ?g)
+      yield (over a | ?b)
+      | yield (over a with b=c | ?d)
+      | yield (over a, b with c=d, e=f | ?g)
       // Operators
-      |> over a
-      |> over a => ( ?b )
-      |> over a with b=c => ( ?d )
-      |> over a, b with c=d, e=f => ( ?g )
+      | over a
+      | over a => ( ?b )
+      | over a with b=c => ( ?d )
+      | over a, b with c=d, e=f => ( ?g )
 
 outputs:
   - name: stdout
     data: |
       yield (
         over a
-        |> search b
+        | search b
       )
-      |> yield (
+      | yield (
         over a with b=c
-        |> search d
+        | search d
       )
-      |> yield (
+      | yield (
         over a, b with c=d, e=f
-        |> search g
+        | search g
       )
-      |> over a
-      |> over a => (
+      | over a
+      | over a => (
         search b
       )
-      |> over a with b=c => (
+      | over a with b=c => (
         search d
       )
-      |> over a, b with c=d, e=f => (
+      | over a, b with c=d, e=f => (
         search g
       )
       ===
       null
-      |> yield (
+      | yield (
         over a
-        |> where search("b")
+        | where search("b")
       )
-      |> yield (
+      | yield (
         over ab=c
-        |> where search("d")
+        | where search("d")
       )
-      |> yield (
+      | yield (
         over a, bc=d, e=f
-        |> where search("g")
+        | where search("g")
       )
-      |> over a
-      |> over a => (
+      | over a
+      | over a => (
         where search("b")
       )
-      |> over a with b=c => (
+      | over a with b=c => (
         where search("d")
       )
-      |> over a, b with c=d, e=f => (
+      | over a, b with c=d, e=f => (
         where search("g")
       )
-      |> output main
+      | output main

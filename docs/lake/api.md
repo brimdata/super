@@ -410,7 +410,7 @@ POST /query
 curl -X POST \
      -H 'Accept: application/x-zson' \
      -H 'Content-Type: application/json' \
-     http://localhost:9867/query -d '{"query":"from inventory@main |> count() by warehouse"}'
+     http://localhost:9867/query -d '{"query":"from inventory@main | count() by warehouse"}'
 ```
 
 **Example Response**
@@ -426,7 +426,7 @@ curl -X POST \
 curl -X POST \
      -H 'Accept: application/x-zjson' \
      -H 'Content-Type: application/json' \
-     http://localhost:9867/query?ctrl=T -d '{"query":"from inventory@main |> count() by warehouse"}'
+     http://localhost:9867/query?ctrl=T -d '{"query":"from inventory@main | count() by warehouse"}'
 ```
 
 **Example Response**

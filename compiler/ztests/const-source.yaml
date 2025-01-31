@@ -18,21 +18,21 @@ outputs:
         const POOL = "test"
         
         pool XXX
-        |> output main
+        | output main
       )
       ===
       (
         const FILE = "A.jsup"
         
         file A.jsup
-        |> output main
+        | output main
       )
       ===
       (
         const URL = "http://brimdata.io"
         
         get http://brimdata.io
-        |> output main
+        | output main
       )
   - name: stderr
     data: |

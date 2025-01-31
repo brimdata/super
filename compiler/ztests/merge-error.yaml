@@ -1,6 +1,6 @@
 skip: issue 3681
 
-zed: '? foo |> merge x'
+zed: '? foo | merge x'
 
 input: null
 
