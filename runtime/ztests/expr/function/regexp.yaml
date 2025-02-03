@@ -1,5 +1,7 @@
 zed: "yield regexp(re, in)"
 
+vector: true
+
 input: |
   {re:"abc|ced",in: "abcdef"}
   {re:"foo(.?) (\\w+) fr.*",in: "seafood fool friend"}
@@ -9,5 +11,5 @@ input: |
 output: |
   ["abc"]
   ["food fool friend","d","fool"]
-  error("regexp: error parsing regexp: missing closing ): `foo(.?`")
+  error({message:"regexp: invalid regular expression: missing closing )",on:"foo(.?"})
   null([string])

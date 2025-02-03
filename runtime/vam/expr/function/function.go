@@ -66,6 +66,9 @@ func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path,
 		f = &NetworkOf{zctx}
 	case "quiet":
 		f = &Quiet{zctx}
+	case "regexp":
+		argmin, argmax = 2, 2
+		f = &Regexp{zctx: zctx}
 	case "replace":
 		argmin, argmax = 3, 3
 		f = &Replace{zctx}
