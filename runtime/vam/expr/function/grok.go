@@ -26,7 +26,7 @@ func newGrok(zctx *super.Context) *Grok {
 
 func (g *Grok) Call(args ...vector.Any) vector.Any {
 	patternArg, inputArg := args[0], args[1]
-	var defArg vector.Any = vector.NewConst(super.NullString, args[0].Len(), nil)
+	defArg := vector.Any(vector.NewConst(super.NullString, args[0].Len(), nil))
 	if len(args) == 3 {
 		defArg = args[2]
 	}
@@ -49,14 +49,22 @@ func (g *Grok) Call(args ...vector.Any) vector.Any {
 			defErrsIdx = append(defErrsIdx, i)
 			continue
 		}
-		pat, _ := vector.StringValue(patternArg, i)
+		pat, isnull := vector.StringValue(patternArg, i)
+		if isnull {
+			builder.Write(super.NewValue(g.zctx.MustLookupTypeRecord(nil), nil))
+			continue
+		}
 		p, err := h.getPattern(pat)
 		if err != nil {
 			patErrs = append(patErrs, err.Error())
 			patErrsIdx = append(patErrsIdx, i)
 			continue
 		}
-		in, _ := vector.StringValue(inputArg, i)
+		in, isnull := vector.StringValue(inputArg, i)
+		if isnull {
+			builder.Write(super.NewValue(g.zctx.MustLookupTypeRecord(nil), nil))
+			continue
+		}
 		keys, vals, match := p.ParseKeyValues(in)
 		if !match {
 			inErrsIdx = append(inErrsIdx, i)
