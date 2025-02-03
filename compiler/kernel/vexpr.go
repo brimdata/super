@@ -48,8 +48,8 @@ func (b *Builder) compileVamExpr(e dag.Expr) (vamexpr.Evaluator, error) {
 		return b.compileVamConditional(*e)
 	case *dag.Call:
 		return b.compileVamCall(e)
-	//case *dag.RegexpMatch:
-	//	return b.compileVamRegexpMatch(e)
+	case *dag.RegexpMatch:
+		return b.compileVamRegexpMatch(e)
 	case *dag.RegexpSearch:
 		return b.compileVamRegexpSearch(e)
 	case *dag.RecordExpr:
@@ -249,6 +249,18 @@ func (b *Builder) compileVamRecordExpr(e *dag.RecordExpr) (vamexpr.Evaluator, er
 		})
 	}
 	return vamexpr.NewRecordExpr(b.zctx(), elems), nil
+}
+
+func (b *Builder) compileVamRegexpMatch(match *dag.RegexpMatch) (vamexpr.Evaluator, error) {
+	e, err := b.compileVamExpr(match.Expr)
+	if err != nil {
+		return nil, err
+	}
+	re, err := expr.CompileRegexp(match.Pattern)
+	if err != nil {
+		return nil, err
+	}
+	return vamexpr.NewRegexpMatch(re, e), nil
 }
 
 func (b *Builder) compileVamRegexpSearch(search *dag.RegexpSearch) (vamexpr.Evaluator, error) {

@@ -204,8 +204,16 @@ func NewRegexpMatch(re *regexp.Regexp, e Evaluator) *RegexpMatch {
 
 func (r *RegexpMatch) Eval(ectx Context, this super.Value) super.Value {
 	val := r.expr.Eval(ectx, this)
-	if val.Type().ID() == super.IDString && r.re.Match(val.Bytes()) {
-		return super.True
+	switch id := val.Type().ID(); id {
+	case super.IDString:
+		if val.IsNull() {
+			return super.NullBool
+		}
+		if r.re.Match(val.Bytes()) {
+			return super.True
+		}
+	case super.IDNull:
+		return super.NullBool
 	}
 	return super.False
 }

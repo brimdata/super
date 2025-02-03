@@ -1,0 +1,25 @@
+zed: yield this ~ /^foo.*bar$/
+
+vector: true
+
+input: |
+  "foo"
+  "bar"
+  "foobar"
+  "foobazbar"
+  "xfoobazbar"
+  "foobazbarx"
+  null(string)
+  127.0.0.1
+  null
+
+output: |
+  false
+  false
+  true
+  true
+  false
+  false
+  null(bool)
+  false
+  null(bool)
