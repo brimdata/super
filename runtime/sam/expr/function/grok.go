@@ -40,6 +40,9 @@ func (g *Grok) Call(_ super.Allocator, args []super.Value) super.Value {
 	if err != nil {
 		return g.error(err.Error(), defArg)
 	}
+	if patternArg.IsNull() || inputArg.IsNull() {
+		return super.NewValue(g.zctx.MustLookupTypeRecord(nil), nil)
+	}
 	p, err := h.getPattern(patternArg.AsString())
 	if err != nil {
 		return g.error(err.Error(), patternArg)

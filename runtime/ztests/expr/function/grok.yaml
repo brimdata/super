@@ -1,0 +1,70 @@
+zed: yield grok(pattern, input, defs)
+
+vector: true
+
+input: |
+  {
+    pattern: "%{TIMESTAMP_ISO8601:event_time} %{LOGLEVEL:log_level} %{GREEDYDATA:log_message}",
+    input: "2020-09-16T04:20:42.45+01:00 DEBUG This is a sample debug log message",
+    defs: null(string)
+  }
+  {
+    pattern: "%{ONE:zero}-%{TWO:three}",
+    input: "0-1-2",
+    defs: "ONE \\d\nTWO %{ONE:one}-%{ONE:two}"
+  }
+  // Ignores type annotation.
+  {
+    pattern: "%{INT:int:int64}",
+    input: "'0'",
+    defs: null(string)
+  }
+  // Check to see that duplicate fields are squashed. This is not great but
+  // this is what grokconstructor.appspot.com does.
+  {
+    pattern: "%{INT:one} %{INT:one}",
+    input: "1 2",
+    defs: null(string)
+  }
+  // Differentiate between no keys and a non-match
+  {
+    pattern: "%{INT}",
+    input: "1",
+    defs: null(string)
+  }
+  {
+    pattern: "%{INT}",
+    input: "foo",
+    defs: null(string)
+  }
+  {pattern: null(string),input: "foo",defs: null(string)}
+  {pattern: "%{INT:int}",input:null(string),defs: null(string)}
+  // Error cases
+  {
+    pattern: "%{INT:int}",
+    input: "string value",
+    defs: null(string)
+  }
+  {
+    pattern: "%{DOESNOTEXIST:dne}",
+    input: "foo",
+    defs: null(string)
+  }
+  {pattern: 1,input: "foo",defs: null(string)}
+  {pattern: "%{INT:int}",input:1,defs: null(string)}
+  {pattern: "%{INT:int}",input:"1",defs:1}
+
+output: |
+  {event_time:"2020-09-16T04:20:42.45+01:00",log_level:"DEBUG",log_message:"This is a sample debug log message"}
+  {zero:"0",three:"1-2",one:"1",two:"2"}
+  {int:"0"}
+  {one:"2"}
+  {}
+  error({message:"grok(): value does not match pattern",on:"foo"})
+  null({})
+  null({})
+  error({message:"grok(): value does not match pattern",on:"string value"})
+  error({message:"grok(): the 'DOESNOTEXIST' pattern doesn't exist",on:"%{DOESNOTEXIST:dne}"})
+  error({message:"grok(): pattern argument must be a string",on:1})
+  error({message:"grok(): input argument must be a string",on:1})
+  error({message:"grok(): definitions argument must be a string",on:1})
