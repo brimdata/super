@@ -36,7 +36,7 @@ true
 ```
 
 If you test a named type with its underlying type, the types are different,
-but if you use the type name or typeunder function, there is a match:
+but if you use the type name or typeof and under functions, there is a match:
 ```mdtest-spq
 # spq
 yield is(<{s:string}>)
@@ -58,7 +58,7 @@ true
 To test the underlying type, just use `==`:
 ```mdtest-spq
 # spq
-yield typeunder(this)==<{s:string}>
+yield under(typeof(this))==<{s:string}>
 # input
 {s:"hello"}(=foo)
 # expected output

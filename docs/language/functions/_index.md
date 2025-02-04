@@ -65,7 +65,6 @@ Zed's [primitive types](../../formats/zed.md#1-primitive-types), e.g.,
 * [trim](trim.md) - strip leading and trailing whitespace
 * [typename](typename.md) - look up and return a named type
 * [typeof](typeof.md) - the type of a value
-* [typeunder](typeunder.md) - the underlying type of a value
 * [under](under.md) - the underlying value
 * [unflatten](unflatten.md) - transform a record with dotted names to a nested record
 * [upper](upper.md) - convert a string to upper case

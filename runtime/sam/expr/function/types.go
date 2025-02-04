@@ -15,15 +15,6 @@ func (t *TypeOf) Call(_ super.Allocator, args []super.Value) super.Value {
 	return t.zctx.LookupTypeValue(args[0].Type())
 }
 
-type typeUnder struct {
-	zctx *super.Context
-}
-
-func (t *typeUnder) Call(_ super.Allocator, args []super.Value) super.Value {
-	typ := super.TypeUnder(args[0].Type())
-	return t.zctx.LookupTypeValue(typ)
-}
-
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#nameof
 type NameOf struct {
 	zctx *super.Context

@@ -104,8 +104,6 @@ func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path,
 		f = &typeName{zctx: zctx}
 	case "typeof":
 		f = &TypeOf{zctx: zctx}
-	case "typeunder":
-		f = &typeUnder{zctx: zctx}
 	case "nameof":
 		f = &NameOf{zctx: zctx}
 	case "fields":
