@@ -24,7 +24,7 @@ func (f *flatten) Call(args ...vector.Any) vector.Any {
 	builder := vector.NewDynamicBuilder()
 	var b zcode.Builder
 	for i := range vec.Len() {
-		b.Reset()
+		b.Truncate()
 		vec.Serialize(&b, i)
 		val := f.fn.Call(nil, []super.Value{super.NewValue(rtyp, b.Bytes().Body())})
 		builder.Write(val)
