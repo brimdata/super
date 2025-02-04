@@ -1,0 +1,13 @@
+zed: dcount:=dcount(this)
+
+vector: true
+
+input: |
+  null
+  null({x:int64})
+  {x:1}
+  {x:1(int8)}
+  1
+
+output: |
+  {dcount:3(uint64)}

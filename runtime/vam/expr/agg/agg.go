@@ -33,10 +33,10 @@ func NewPattern(op string, hasarg bool) (Pattern, error) {
 		pattern = func() Func {
 			return &avg{}
 		}
-	// case "dcount":
-	// 	pattern = func() AggFunc {
-	// 		return NewDCount()
-	// 	}
+	case "dcount":
+		pattern = func() Func {
+			return newDCount()
+		}
 	// case "fuse":
 	// 	pattern = func() AggFunc {
 	// 		return newFuse()
