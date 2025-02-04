@@ -61,14 +61,14 @@ func NewPattern(op string, hasarg bool) (Pattern, error) {
 		pattern = func() Func {
 			return &collect{}
 		}
-	// case "and":
-	// 	pattern = func() AggFunc {
-	// 		return &aggAnd{}
-	// 	}
-	// case "or":
-	// 	pattern = func() AggFunc {
-	// 		return &aggOr{}
-	// 	}
+	case "and":
+		pattern = func() Func {
+			return &and{}
+		}
+	case "or":
+		pattern = func() Func {
+			return &or{}
+		}
 	default:
 		return nil, fmt.Errorf("unknown aggregation function: %s", op)
 	}
