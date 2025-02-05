@@ -16,25 +16,27 @@ func NewCIDRMatch(zctx *super.Context) *CIDRMatch {
 }
 
 func (c *CIDRMatch) Call(args ...vector.Any) vector.Any {
-	if args[0].Type().ID() != super.IDNet {
-		return vector.NewWrappedError(c.zctx, "cidr_match: not a net", args[0])
+	if id := args[0].Type().ID(); id != super.IDNet && id != super.IDNull {
+		out := vector.NewWrappedError(c.zctx, "cidr_match: not a net", args[0])
+		out.Nulls = vector.Or(vector.NullsOf(args[0]), vector.NullsOf(args[1]))
+		return out
 	}
 	return c.pw.Eval(args...)
 }
 
 func cidrMatch(vec ...vector.Any) vector.Any {
-	netVec := vec[0]
-	ipVec := vec[1]
-	if ipVec.Type().ID() != super.IDIP {
-		return vector.NewConst(super.False, ipVec.Len(), nil)
+	netVec, valVec := vec[0], vec[1]
+	nulls := vector.Or(vector.NullsOf(netVec), vector.NullsOf(valVec))
+	if id := valVec.Type().ID(); id != super.IDIP {
+		return vector.NewConst(super.False, valVec.Len(), nulls)
 	}
-	out := vector.NewBoolEmpty(netVec.Len(), nil)
+	out := vector.NewBoolEmpty(valVec.Len(), nulls)
 	for i := range netVec.Len() {
 		net, null := vector.NetValue(netVec, i)
 		if null {
 			continue
 		}
-		ip, null := vector.IPValue(ipVec, i)
+		ip, null := vector.IPValue(valVec, i)
 		if null {
 			continue
 		}
