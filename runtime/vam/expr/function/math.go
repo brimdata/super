@@ -179,6 +179,37 @@ func (l *Log) Call(args ...vector.Any) vector.Any {
 	return out
 }
 
+// https://github.com/brimdata/super/blob/main/docs/language/functions.md#pow
+type Pow struct {
+	zctx *super.Context
+}
+
+func (p *Pow) Call(args ...vector.Any) vector.Any {
+	a, b := vector.Under(args[0]), vector.Under(args[1])
+	if !super.IsNumber(a.Type().ID()) {
+		return vector.NewWrappedError(p.zctx, "pow: not a number", args[0])
+	}
+	if !super.IsNumber(b.Type().ID()) {
+		return vector.NewWrappedError(p.zctx, "pow: not a number", args[1])
+	}
+	a = cast.To(p.zctx, a, super.TypeFloat64)
+	b = cast.To(p.zctx, b, super.TypeFloat64)
+	nulls := vector.Or(vector.NullsOf(a), vector.NullsOf(b))
+	vals := make([]float64, a.Len())
+	for i := range a.Len() {
+		x, null := vector.FloatValue(a, i)
+		if null {
+			continue
+		}
+		y, null := vector.FloatValue(b, i)
+		if null {
+			continue
+		}
+		vals[i] = math.Pow(x, y)
+	}
+	return vector.NewFloat(super.TypeFloat64, vals, nulls)
+}
+
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#round
 type Round struct {
 	zctx *super.Context

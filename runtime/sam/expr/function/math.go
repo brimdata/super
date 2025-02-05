@@ -158,14 +158,18 @@ type Pow struct {
 }
 
 func (p *Pow) Call(_ super.Allocator, args []super.Value) super.Value {
-	x, ok := coerce.ToFloat(args[0], super.TypeFloat64)
-	if !ok {
+	a, b := args[0].Under(), args[1].Under()
+	if !super.IsNumber(a.Type().ID()) {
 		return p.zctx.WrapError("pow: not a number", args[0])
 	}
-	y, ok := coerce.ToFloat(args[1], super.TypeFloat64)
-	if !ok {
+	if !super.IsNumber(b.Type().ID()) {
 		return p.zctx.WrapError("pow: not a number", args[1])
 	}
+	if a.IsNull() || b.IsNull() {
+		return super.NullFloat64
+	}
+	x, _ := coerce.ToFloat(a, super.TypeFloat64)
+	y, _ := coerce.ToFloat(b, super.TypeFloat64)
 	return super.NewFloat64(math.Pow(x, y))
 }
 
