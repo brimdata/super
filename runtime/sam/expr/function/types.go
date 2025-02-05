@@ -26,6 +26,9 @@ func (n *NameOf) Call(_ super.Allocator, args []super.Value) super.Value {
 		return super.NewString(named.Name)
 	}
 	if typ.ID() == super.IDType {
+		if args[0].IsNull() {
+			return super.NullString
+		}
 		var err error
 		if typ, err = n.zctx.LookupByValue(args[0].Bytes()); err != nil {
 			panic(err)

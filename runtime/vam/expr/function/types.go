@@ -5,6 +5,46 @@ import (
 	"github.com/brimdata/super/vector"
 )
 
+// https://github.com/brimdata/super/blob/main/docs/language/functions.md#nameof
+type NameOf struct {
+	zctx *super.Context
+}
+
+func (n *NameOf) Call(args ...vector.Any) vector.Any {
+	vec := args[0]
+	typ := vec.Type()
+	if named, ok := typ.(*super.TypeNamed); ok {
+		return vector.NewConst(super.NewString(named.Name), vec.Len(), nil)
+	}
+	if typ.ID() != super.IDType {
+		return vector.NewMissing(n.zctx, vec.Len())
+	}
+	nulls := vector.NullsOf(vec)
+	out := vector.NewStringEmpty(vec.Len(), nulls)
+	var errs []uint32
+	for i := range vec.Len() {
+		b, null := vector.TypeValueValue(vec, i)
+		if null {
+			out.Append("")
+			continue
+		}
+		var err error
+		if typ, err = n.zctx.LookupByValue(b); err != nil {
+			panic(err)
+		}
+		if named, ok := typ.(*super.TypeNamed); ok {
+			out.Append(named.Name)
+		} else {
+			errs = append(errs, i)
+		}
+	}
+	if len(errs) > 0 {
+		out.Nulls = vector.NewInverseView(out.Nulls, errs).(*vector.Bool)
+		return vector.Combine(out, errs, vector.NewMissing(n.zctx, uint32(len(errs))))
+	}
+	return out
+}
+
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#typeof
 type TypeOf struct {
 	zctx *super.Context

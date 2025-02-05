@@ -66,6 +66,8 @@ func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path,
 		f = &Log{zctx}
 	case "lower":
 		f = &ToLower{zctx}
+	case "nameof":
+		f = &NameOf{zctx: zctx}
 	case "nest_dotted":
 		path = field.Path{}
 		argmin = 0

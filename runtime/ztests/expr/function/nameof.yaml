@@ -1,0 +1,27 @@
+zed: nameof(this)
+
+vector: true
+
+input: |
+  {x:1}
+  {x:1}(=foo)
+  null(foo={x:int64})
+  <foo={x:int64}>
+  <{x:int64}>(=bar)
+  {y:1}
+  {x:"foo",y:1,z:2}
+  {x:"foo",y:1,z:2}(=bar)
+  <{x:string,y:int64,z:int64}>
+  null(type)
+
+output: |
+  error("missing")
+  "foo"
+  "foo"
+  "foo"
+  "bar"
+  error("missing")
+  error("missing")
+  "bar"
+  error("missing")
+  null(string)
