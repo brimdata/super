@@ -38,7 +38,7 @@ func (b *Builder) compileVam(o dag.Op, parents []vector.Puller) ([]vector.Puller
 	case *dag.Scatter:
 		return b.compileVamScatter(o, parents)
 	case *dag.Scope:
-		//return b.compileVecScope(o, parents)
+		return b.compileVamScope(o, parents)
 	case *dag.Switch:
 		if o.Expr != nil {
 			return b.compileVamExprSwitch(o, parents)
@@ -166,6 +166,13 @@ func (b *Builder) compileVamSwitch(swtch *dag.Switch, parents []vector.Puller) (
 		exits = append(exits, exit...)
 	}
 	return exits, nil
+}
+
+func (b *Builder) compileVamScope(scope *dag.Scope, parents []vector.Puller) ([]vector.Puller, error) {
+	if len(scope.Funcs) > 0 {
+		return nil, errors.New("udfs not currently supported in vector runtime")
+	}
+	return b.compileVamSeq(scope.Body, parents)
 }
 
 func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller, error) {

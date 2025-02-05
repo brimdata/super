@@ -1,0 +1,13 @@
+zed: |
+  const t1 = now()
+  yield t1, now()
+  | yield string(this) ~ /[0-9TZ:\-\.]+/
+
+vector: true
+
+input: |
+  null
+
+output: |
+  true
+  true

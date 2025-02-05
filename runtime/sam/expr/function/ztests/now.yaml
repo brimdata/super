@@ -1,7 +1,0 @@
-script: echo {} | super -z -c 'const t1 = now() yield t1, now()' -
-
-outputs:
-  - name: stdout
-    regexp: |
-      [0-9TZ:\-\.]+
-      [0-9TZ:\-\.]+

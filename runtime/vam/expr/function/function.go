@@ -66,6 +66,11 @@ func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path,
 		path = field.Path{}
 		argmin = 0
 		f = &NestDotted{zctx}
+	case "now":
+		path = field.Path{}
+		argmax = 0
+		argmin = 0
+		f = &Now{}
 	case "network_of":
 		argmax = 2
 		f = &NetworkOf{zctx}

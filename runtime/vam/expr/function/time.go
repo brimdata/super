@@ -92,6 +92,13 @@ func (b *Bucket) resultType(tsVec vector.Any) super.Type {
 	return super.TypeTime
 }
 
+// https://github.com/brimdata/zed/blob/main/docs/language/functions.md#now
+type Now struct{}
+
+func (n *Now) Call(args ...vector.Any) vector.Any {
+	return vector.NewConst(super.NewTime(nano.Now()), args[0].Len(), nil)
+}
+
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#strftime
 type Strftime struct {
 	zctx *super.Context
