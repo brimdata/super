@@ -56,26 +56,27 @@ type RegexpReplace struct {
 }
 
 func (r *RegexpReplace) Call(_ super.Allocator, args []super.Value) super.Value {
-	sVal := args[0]
-	reVal := args[1]
-	newVal := args[2]
+	sVal := args[0].Under()
+	reVal := args[1].Under()
+	newVal := args[2].Under()
 	for i := range args {
 		if !args[i].IsString() {
 			return r.zctx.WrapError("regexp_replace: string arg required", args[i])
 		}
 	}
-	if sVal.IsNull() {
-		return super.Null
-	}
-	if reVal.IsNull() || newVal.IsNull() {
-		return r.zctx.NewErrorf("regexp_replace: 2nd and 3rd args cannot be null")
+	if sVal.IsNull() || reVal.IsNull() || newVal.IsNull() {
+		return super.NullString
 	}
 	if re := super.DecodeString(reVal.Bytes()); r.restr != re {
 		r.restr = re
 		r.re, r.err = regexp.Compile(re)
 	}
 	if r.err != nil {
-		return r.zctx.NewErrorf("regexp_replace: %s", r.err)
+		msg := "regexp_replace: invalid regular expression"
+		if syntaxErr, ok := r.err.(*syntax.Error); ok {
+			msg += ": " + syntaxErr.Code.String()
+		}
+		return r.zctx.WrapError(msg, args[1])
 	}
 	return super.NewString(string(r.re.ReplaceAll(sVal.Bytes(), newVal.Bytes())))
 }

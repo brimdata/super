@@ -1,14 +1,18 @@
 zed: "yield regexp_replace(in, re, new)"
 
+vector: true
+
 input: |
   {in:"-ab-axxb-",re:"ax*b",new:"T"}
   {in:"-ab-axxb-",re:"a(x*)b",new:"$1"}
   {in:"-ab-axxb-",re:"a(?P<X>x*)b",new:"$X"}
   {in:"Foo bar",re:"Foo",new:"foo"}
   {in:"", re:"a(x*)b",new:""}
+  {in:"foo",re:null(string),new:null(string)}
+  {in:null(string),re:"foo",new:"bar"}
+  // error cases
   {in:"seafood fool",re:"foo(.?",new:"food"}
   {in:4,re:5,new:["foo"]}
-  {in:"foo",re:null(string),new:null(string)}
 
 output: |
   "-T-T-"
@@ -16,6 +20,7 @@ output: |
   "--xx-"
   "foo bar"
   ""
-  error("regexp_replace: error parsing regexp: missing closing ): `foo(.?`")
+  null(string)
+  null(string)
+  error({message:"regexp_replace: invalid regular expression: missing closing )",on:"foo(.?"})
   error({message:"regexp_replace: string arg required",on:4})
-  error("regexp_replace: 2nd and 3rd args cannot be null")

@@ -83,6 +83,9 @@ func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path,
 	case "regexp":
 		argmin, argmax = 2, 2
 		f = &Regexp{zctx: zctx}
+	case "regexp_replace":
+		argmin, argmax = 3, 3
+		f = &RegexpReplace{zctx: zctx}
 	case "replace":
 		argmin, argmax = 3, 3
 		f = &Replace{zctx}

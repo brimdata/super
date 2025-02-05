@@ -1,6 +1,7 @@
 package function
 
 import (
+	"fmt"
 	"regexp"
 	"regexp/syntax"
 
@@ -39,11 +40,7 @@ func (r *Regexp) Call(args ...vector.Any) vector.Any {
 			r.re, r.err = regexp.Compile(r.restr)
 		}
 		if r.err != nil {
-			msg := "regexp: invalid regular expression"
-			if syntaxErr, ok := r.err.(*syntax.Error); ok {
-				msg += ": " + syntaxErr.Code.String()
-			}
-			errMsg.Append(msg)
+			errMsg.Append(regexpErrMsg("regexp", r.err))
 			errs = append(errs, i)
 			continue
 		}
@@ -67,4 +64,68 @@ func (r *Regexp) Call(args ...vector.Any) vector.Any {
 		return vector.Combine(out, errs, vector.NewVecWrappedError(r.zctx, errMsg, vector.NewView(regVec, errs)))
 	}
 	return out
+}
+
+// https://github.com/brimdata/super/blob/main/docs/language/functions.md#regexp_replace
+type RegexpReplace struct {
+	zctx  *super.Context
+	re    *regexp.Regexp
+	restr string
+	err   error
+}
+
+func (r *RegexpReplace) Call(args ...vector.Any) vector.Any {
+	args = underAll(args)
+	for i := range args {
+		if args[i].Type().ID() != super.IDString {
+			return vector.NewWrappedError(r.zctx, "regexp_replace: string arg required", args[i])
+		}
+	}
+	sVec := args[0]
+	reVec := args[1]
+	replaceVec := args[2]
+	errMsg := vector.NewStringEmpty(0, nil)
+	var errs []uint32
+	nulls := vector.Or(vector.Or(vector.NullsOf(sVec), vector.NullsOf(reVec)), vector.NullsOf(replaceVec))
+	out := vector.NewStringEmpty(0, nulls)
+	for i := range sVec.Len() {
+		s, null := vector.StringValue(sVec, i)
+		if null {
+			out.Append("")
+			continue
+		}
+		re, null := vector.StringValue(reVec, i)
+		if null {
+			out.Append("")
+			continue
+		}
+		replace, null := vector.StringValue(replaceVec, i)
+		if null {
+			out.Append("")
+			continue
+		}
+		if r.restr != re {
+			r.restr = re
+			r.re, r.err = regexp.Compile(re)
+		}
+		if r.err != nil {
+			errMsg.Append(regexpErrMsg("regexp_replace", r.err))
+			errs = append(errs, i)
+			continue
+		}
+		out.Append(r.re.ReplaceAllString(s, replace))
+	}
+	if len(errs) > 0 {
+		out.Nulls = vector.NewInverseView(out.Nulls, errs).(*vector.Bool)
+		return vector.Combine(out, errs, vector.NewVecWrappedError(r.zctx, errMsg, vector.NewView(args[1], errs)))
+	}
+	return out
+}
+
+func regexpErrMsg(fn string, err error) string {
+	msg := fmt.Sprintf("%s: invalid regular expression", fn)
+	if syntaxErr, ok := err.(*syntax.Error); ok {
+		msg += ": " + syntaxErr.Code.String()
+	}
+	return msg
 }
