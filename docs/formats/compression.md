@@ -1,9 +1,8 @@
 ---
-sidebar_position: 6
-sidebar_label: Compression
+weight: 6
+title: Compression
+heading: ZNG Compression Types
 ---
-
-# ZNG Compression Types
 
 This document specifies values for the `<format>` byte of a
 [Super Binary compressed value message block](bsup.md#2-the-super-binary-format)

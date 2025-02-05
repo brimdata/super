@@ -3,7 +3,7 @@ script: |
   super db init -q
   super db create -use -q test
   echo '{x: "foo"}' | super db load -q -
-  super db query -z 'from test |> debug f"debug: {x}"'
+  super db query -z 'from test | debug f"debug: {x}"'
 
 outputs:
   - name: stdout

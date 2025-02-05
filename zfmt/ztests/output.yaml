@@ -7,19 +7,19 @@ outputs:
   - name: stdout
     data: |
       null
-      |> fork (
+      | fork (
         =>
           output foo
         =>
           pass
-          |> output main
+          | output main
       )
       // ===
       null
-      |> switch x (
+      | switch x (
           case "foo" =>
             output foo
           case "bar" =>
             pass
-            |> output main
+            | output main
         )

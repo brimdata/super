@@ -140,3 +140,41 @@ func (s *search) match(vec vector.Any) vector.Any {
 	}
 	return vector.NewConst(super.False, vec.Len(), nil)
 }
+
+type regexpMatch struct {
+	re *regexp.Regexp
+	e  Evaluator
+}
+
+func NewRegexpMatch(re *regexp.Regexp, e Evaluator) Evaluator {
+	return &regexpMatch{re, e}
+}
+
+func (r *regexpMatch) Eval(this vector.Any) vector.Any {
+	return vector.Apply(true, r.eval, r.e.Eval(this))
+}
+
+func (r *regexpMatch) eval(vecs ...vector.Any) vector.Any {
+	vec := vector.Under(vecs[0])
+	if c, ok := vec.(*vector.Const); ok && c.Value().Type().ID() == super.IDNull {
+		return vector.NewConst(super.NullBool, vec.Len(), nil)
+	}
+	if vec.Type().ID() != super.IDString {
+		return vector.NewConst(super.False, vec.Len(), nil)
+	}
+	out := vector.NewBoolEmpty(vec.Len(), nil)
+	for i := range vec.Len() {
+		s, isnull := vector.StringValue(vec, i)
+		if isnull {
+			if out.Nulls == nil {
+				out.Nulls = vector.NewBoolEmpty(vec.Len(), nil)
+			}
+			out.Nulls.Set(i)
+			continue
+		}
+		if r.re.MatchString(s) {
+			out.Set(i)
+		}
+	}
+	return out
+}

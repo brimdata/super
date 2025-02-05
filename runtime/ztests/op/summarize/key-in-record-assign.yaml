@@ -1,4 +1,4 @@
-zed: count() by newkey:=rec.i |> sort newkey
+zed: count() by newkey:=rec.i | sort newkey
 
 vector: true
 

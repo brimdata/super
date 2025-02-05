@@ -1,9 +1,7 @@
 ---
-sidebar_position: 1
-sidebar_label: Amazon S3
+weight: 1
+title: Amazon S3
 ---
-
-# Amazon S3
 
 Zed tools can access [Amazon S3](https://aws.amazon.com/s3/) and
 S3-compatible storage via `s3://` URIs. Details are described below.
@@ -18,11 +16,13 @@ You must specify an AWS region via one of the following:
 You can create `~/.aws/config` by installing the
 [AWS CLI](https://aws.amazon.com/cli/) and running `aws configure`.
 
-:::tip Note
+{{% tip "Note" %}}
+
 If using S3-compatible storage that does not recognize the concept of regions,
 a region must still be specified, e.g., by providing a dummy value for
 `AWS_REGION`.
-:::
+
+{{% /tip %}}
 
 ## Credentials
 

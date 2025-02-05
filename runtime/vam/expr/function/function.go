@@ -40,11 +40,16 @@ func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path,
 		f = &Error{zctx}
 	case "fields":
 		f = NewFields(zctx)
+	case "flatten":
+		f = newFlatten(zctx)
 	case "floor":
 		f = &Floor{zctx}
 	case "grep":
 		argmax = 2
 		f = &Grep{zctx: zctx}
+	case "grok":
+		argmin, argmax = 2, 3
+		f = newGrok(zctx)
 	case "hex":
 		f = &Hex{zctx}
 	case "join":
@@ -61,28 +66,43 @@ func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path,
 		f = &Log{zctx}
 	case "lower":
 		f = &ToLower{zctx}
+	case "nest_dotted":
+		path = field.Path{}
+		argmin = 0
+		f = &NestDotted{zctx}
 	case "network_of":
 		argmax = 2
 		f = &NetworkOf{zctx}
 	case "quiet":
 		f = &Quiet{zctx}
+	case "regexp":
+		argmin, argmax = 2, 2
+		f = &Regexp{zctx: zctx}
 	case "replace":
 		argmin, argmax = 3, 3
 		f = &Replace{zctx}
+	case "round":
+		f = &Round{zctx}
 	case "rune_len":
 		f = &RuneLen{zctx}
 	case "split":
 		argmin, argmax = 2, 2
 		f = &Split{zctx}
+	case "sqrt":
+		f = &Sqrt{zctx}
 	case "strftime":
 		argmin, argmax = 2, 2
 		f = &Strftime{zctx: zctx}
 	case "trim":
 		f = &Trim{zctx}
+	case "typename":
+		f = &TypeName{zctx: zctx}
 	case "typeof":
 		f = &TypeOf{zctx}
 	case "upper":
 		f = &ToUpper{zctx}
+	case "under":
+		f = &Under{zctx}
 	default:
 		return nil, nil, function.ErrNoSuchFunction
 	}

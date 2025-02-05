@@ -17,19 +17,23 @@ non-record values are copied unmodified.
 ### Examples
 
 _Drop of a field_
-```mdtest-command
-echo '{a:1,b:2,c:3}' | super -z -c 'drop b' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+drop b
+# input
+{a:1,b:2,c:3}
+# expected output
 {a:1,c:3}
 ```
+
 _Non-record values are copied to output_
-```mdtest-command
-echo '1 {a:1,b:2,c:3}' | super -z -c 'drop a,b' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+drop a,b
+# input
+1
+{a:1,b:2,c:3}
+# expected output
 1
 {c:3}
 ```

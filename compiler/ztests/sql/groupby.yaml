@@ -1,7 +1,7 @@
 script: |
-  super -z -c 'select val.radius,count() from shapes.json group by val.radius |> sort this'
+  super -z -c 'select val.radius,count() from shapes.json group by val.radius | sort this'
   echo ===
-  super -z -c 'select type,sum(val.radius) from shapes.json group by type |> sort this'
+  super -z -c 'select type,sum(val.radius) from shapes.json group by type | sort this'
 
 inputs:
   - name: shapes.json

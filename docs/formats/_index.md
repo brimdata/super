@@ -1,4 +1,7 @@
-# Formats
+---
+title: Formats
+weight: 5
+---
 
 > **TL;DR** The super data model defines a new and easy way to manage, store,
 > and process data utilizing an emerging concept called
@@ -228,11 +231,13 @@ anywhere that a value can appear.  In particular, types can be aggregation keys.
 This is very powerful for data discovery and introspection.  For example,
 to count the different shapes of data, you might have a SuperSQL query,
 operating on each input value as `this`, that has the form:
-```
+
+```sql
   SELECT count(), typeof(this) AS shape GROUP BY shape, count
 ```
 Likewise, you could select a sample value of each shape like this:
-```
+
+```sql
   SELECT shape FROM (
     SELECT any(this) AS sample, typeof(this) AS shape GROUP BY shape,sample
   )
@@ -242,7 +247,7 @@ that more directly leverage the nature of super-structured data. For example,
 the above two SuperSQL queries could be written as:
 ```
   count() by shape:=typeof(this)
-  any(this) by typeof(this) |> cut any
+  any(this) by typeof(this) | cut any
 ```
 
 ### 2.5 First-class Errors

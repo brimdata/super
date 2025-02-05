@@ -57,7 +57,8 @@ func TestPattern_ParseKeyValues(t *testing.T) {
 	h := NewBase()
 	p, err := h.Compile("%{TIMESTAMP_ISO8601:event_time} %{LOGLEVEL:log_level} %{GREEDYDATA:log_message}")
 	require.NoError(t, err)
-	_, ss := p.ParseKeyValues("2020-09-16T04:20:42.45+01:00 DEBUG This is a sample debug log message")
+	_, ss, match := p.ParseKeyValues("2020-09-16T04:20:42.45+01:00 DEBUG This is a sample debug log message")
+	require.True(t, match)
 	require.Equal(t, []string{"2020-09-16T04:20:42.45+01:00", "DEBUG", "This is a sample debug log message"}, ss)
 }
 
@@ -81,7 +82,8 @@ func TestPattern_OptionalValues(t *testing.T) {
 	h := NewBase()
 	p, err := h.Compile("(%{INT:a}|%{INT:b})")
 	require.NoError(t, err)
-	keys, values := p.ParseKeyValues("1")
+	keys, values, match := p.ParseKeyValues("1")
+	require.True(t, match)
 	require.Equal(t, []string{"a"}, keys)
 	require.Equal(t, []string{"1"}, values)
 }

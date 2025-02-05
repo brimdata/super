@@ -1,4 +1,8 @@
-# The Zed Language
+---
+title: Language
+weight: 4
+heading: The Zed Language
+---
 
 The language documents:
 * provide an [overview](overview.md) of the Zed language,
@@ -8,5 +12,5 @@ The language documents:
 * describe the syntax of [expressions](expressions.md) and [search expressions](search-expressions.md),
 * explain [lateral subqueries](lateral-subqueries.md),
 * describe [shaping and type fusion](shaping.md), and
-* enumerate the [operators](operators/README.md), [functions](functions/README.md),
-and [aggregate functions](aggregates/README.md) in reference format.
+* enumerate the [operators](operators/_index.md), [functions](functions/_index.md),
+and [aggregate functions](aggregates/_index.md) in reference format.

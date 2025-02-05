@@ -18,12 +18,18 @@ also a value.  The type of a type is type `type`.
 
 The types of various values:
 
-```mdtest-command
-echo  '1 "foo" 10.0.0.1 [1,2,3] {s:"foo"} null error("missing")' |
-  super -z -c 'yield typeof(this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield typeof(this)
+# input
+1
+"foo"
+10.0.0.1
+[1,2,3]
+{s:"foo"}
+null
+error("missing")
+# expected output
 <int64>
 <string>
 <ip>
@@ -32,11 +38,13 @@ echo  '1 "foo" 10.0.0.1 [1,2,3] {s:"foo"} null error("missing")' |
 <null>
 <error(string)>
 ```
+
 The type of a type is type `type`:
-```mdtest-command
-echo null | super -z -c 'yield typeof(typeof(this))' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield typeof(typeof(this))
+# input
+null
+# expected output
 <type>
 ```

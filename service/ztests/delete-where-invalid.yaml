@@ -1,7 +1,7 @@
 script: |
   source service.sh
   super db create -use -q test
-  ! super db delete -where 'me == "hi" |> cut me'
+  ! super db delete -where 'me == "hi" | cut me'
   ! super db delete -where 'cut that'
 
 inputs:

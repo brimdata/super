@@ -180,10 +180,10 @@ func (p *Pattern) Parse(input string) map[string]string {
 	return r
 }
 
-func (p *Pattern) ParseKeyValues(input string) ([]string, []string) {
+func (p *Pattern) ParseKeyValues(input string) ([]string, []string, bool) {
 	a := p.FindStringSubmatchIndex(input)
 	if a == nil {
-		return nil, nil
+		return nil, nil, false
 	}
 	p.valCache = p.valCache[:0]
 	p.keyCache = p.keyCache[:0]
@@ -197,7 +197,7 @@ func (p *Pattern) ParseKeyValues(input string) ([]string, []string) {
 		p.keyCache = append(p.keyCache, p.order[i])
 		p.valCache = append(p.valCache, input[a[i*2]:a[i*2+1]])
 	}
-	return p.keyCache, p.valCache
+	return p.keyCache, p.valCache, true
 }
 
 // Names returns all names that this pattern has in order.

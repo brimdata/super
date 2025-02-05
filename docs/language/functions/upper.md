@@ -15,25 +15,25 @@ to upper case and returns the result.
 
 ### Examples
 
-```mdtest-command
-echo '"Super JSON"' | super -z -c 'yield upper(this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield upper(this)
+# input
+"Super JSON"
+# expected output
 "SUPER JSON"
 ```
 
 [Slices](../expressions.md#slices) can be used to uppercase a subset of a string as well.
 
-```mdtest-command
-echo '"super JSON"' |
-  super -z -c 'func capitalize(str): (
-           upper(str[0:1]) + str[1:]
-         )
-         yield capitalize(this)
-  ' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+func capitalize(str): (
+  upper(str[0:1]) + str[1:]
+)
+yield capitalize(this)
+# input
+"super JSON"
+# expected output
 "Super JSON"
 ```

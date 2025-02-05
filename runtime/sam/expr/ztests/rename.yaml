@@ -1,4 +1,4 @@
-zed: 'rename s2:=s |> count() by s2 |> sort s2'
+zed: 'rename s2:=s | count() by s2 | sort s2'
 
 # This test previously failed only for binary zng.
 # {s:"a"}

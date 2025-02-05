@@ -1,16 +1,15 @@
 ---
-sidebar_position: 2
-sidebar_label: zed
+weight: 2
+title: zed
+heading: zed Tutorial
 ---
-
-# zed Tutorial
 
 `zq` is great, but what if we have a lot of data on which we want to perform search and
 analytics? This is where the `zed` command comes in. `zed` builds on the type
 system and language found in `zq` and adds a high performance data lake on top.
 
 > Note: `zed` is currently in alpha form. Check out its current status in the
-> [`super db` command](../commands/super-db.md) documentation..
+> [`super db` command](../../commands/super-db.md) documentation..
 
 ## Creating a Lake
 
@@ -85,7 +84,7 @@ Our data has been committed. The `-use prs` argument in `zed load` tells
 
 With our data now loaded let's run a quick `count()` query to verify that we have
 the expected data. To do this we'll use the `zed query` command. To those
-familiar with [`super`](../commands/super.md), `zed query` operates similarly except
+familiar with [`super`](../../commands/super.md), `zed query` operates similarly except
 it doesn't accept file input arguments since it queries pools.
 
 ```bash
@@ -108,7 +107,7 @@ We can run an aggregation to see who has created the most PRs during the time ra
 of this first data set:
 
 ```bash
-$ zed query 'count() by user:=user.login |> sort count desc'
+$ zed query 'count() by user:=user.login | sort count desc'
 ```
 =>
 ```
@@ -164,7 +163,7 @@ Now let's run a bucketed aggregation to count approximate PRs per month (specifi
 bucketed in 12 equal spans of a year):
 
 ```
-$ zed query 'count() by ts:=bucket(created_at, 1y/12) |> sort ts'
+$ zed query 'count() by ts:=bucket(created_at, 1y/12) | sort ts'
 ```
 =>
 ```
@@ -184,7 +183,7 @@ and see who created these PRs:
 
 ```
 $ zed query 'from prs range 2020-04-19T16:00:00Z to 2020-05-20T02:00:00Z
-             |> count() by user:=user.login | sort count desc'
+             | count() by user:=user.login | sort count desc'
 ```
 =>
 ```
@@ -317,9 +316,9 @@ $ zed query -Z 'min(created_at), max(created_at)'
 Obviously this is only the tip of the iceberg in terms of things that can be done with
 the `zed` command. Some suggested next steps:
 
-1. Dig deeper into SuperDB data lakes by having a look at the [`super db` command](../commands/super-db.md) documentation.
+1. Dig deeper into SuperDB data lakes by having a look at the [`super db` command](../../commands/super-db.md) documentation.
 2. Get a better idea of ways you can query your data by looking at the
-[Zed language documentation](../language/README.md).
+[Zed language documentation](../../language/_index.md).
 
 If you have any questions or run into any snags, join the friendly Zed community
 at the [Brim Data Slack workspace](https://www.brimdata.io/join-slack/).

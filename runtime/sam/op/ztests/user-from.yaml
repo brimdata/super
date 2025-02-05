@@ -6,7 +6,7 @@ inputs:
     data: |
       const FILE = "A.jsup"
       op test(path): (
-        file eval(path) |> sort a 
+        file eval(path) | sort a 
       )
       test(FILE)
   - name: A.jsup

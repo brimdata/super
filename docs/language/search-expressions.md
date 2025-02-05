@@ -1,9 +1,7 @@
 ---
-sidebar_position: 6
-sidebar_label: Search Expressions
+weight: 6
+title: Search Expressions
 ---
-
-# Search Expressions
 
 Search expressions provide a hybrid syntax between keyword search
 and boolean expressions.  In this way, a search is a shorthand for
@@ -29,23 +27,30 @@ and is documented in the
 [RE2 Wiki](https://github.com/google/re2/wiki/Syntax).
 
 Regular expressions may be used freely in search expressions, e.g.,
-```mdtest-command
-echo '"foo" {s:"bar"} {s:"baz"} {foo:1}' | super -z -c '? /(foo|bar)/' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+? /(foo|bar)/
+# input
+"foo"
+{s:"bar"}
+{s:"baz"}
+{foo:1}
+# expected output
 "foo"
 {s:"bar"}
 {foo:1}
 ```
 Regular expressions may also appear in the [`grep`](functions/grep.md),
 [`regexp`](functions/regexp.md), and [`regexp_replace`](functions/regexp_replace.md) functions:
-```mdtest-command
-echo '"foo" {s:"bar"} {s:"baz"} {foo:1}' |
-  super -z -c 'yield {ba_start:grep(/^ba.*/, s),last_s_char:regexp(/(.)$/,s)[1]}' -
-```
-produces
-```mdtest-output
+```mdtest-spq {data-layout="stacked"}
+# spq
+yield {ba_start:grep(/^ba.*/, s),last_s_char:regexp(/(.)$/,s)[1]}
+# input
+"foo"
+{s:"bar"}
+{s:"baz"}
+{foo:1}
+# expected output
 {ba_start:false,last_s_char:error("missing")}
 {ba_start:true,last_s_char:"r"}
 {ba_start:true,last_s_char:"z"}
@@ -67,44 +72,60 @@ _ . : / % # @ ~
 A glob must begin with one of these characters or `*` then may be
 followed by any of these characters, `*`, or digits `0` through `9`.
 
-:::tip note
+{{% tip "Note" %}}
+
 These rules do not allow for a leading digit.
-:::
+
+{{% /tip %}}
 
 For example, a prefix match is easily accomplished via `prefix*`, e.g.,
-```mdtest-command
-echo '"foo" {s:"bar"} {s:"baz"} {foo:1}' | super -z -c '? b*' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+? b*
+# input
+"foo"
+{s:"bar"}
+{s:"baz"}
+{foo:1}
+# expected output
 {s:"bar"}
 {s:"baz"}
 ```
+
 Likewise, a suffix match may be performed as follows:
-```mdtest-command
-echo '"foo" {s:"bar"} {s:"baz"} {foo:1}' | super -z -c '? *z' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+? *z
+# input
+"foo"
+{s:"bar"}
+{s:"baz"}
+{foo:1}
+# expected output
 {s:"baz"}
 ```
 and
-```mdtest-command
-echo '"foo" {s:"bar"} {s:"baz"} {a:1}' | super -z -c '? *a*' -
-```
-produces
-```mdtest-output
+```mdtest-spq
+# spq
+? *a*
+# input
+"foo"
+{s:"bar"}
+{s:"baz"}
+{a:1}
+# expected output
 {s:"bar"}
 {s:"baz"}
 {a:1}
 ```
 
-Globs may also appear in the [`grep` function](functions/grep.md)):
-```mdtest-command
-echo '"foo" {s:"bar"} {s:"baz"} {foo:1}' | super -z -c 'yield grep(ba*, s)' -
-```
-produces
-```mdtest-output
+Globs may also appear in the [`grep` function](functions/grep.md):
+```mdtest-spq
+# spq
+yield grep(ba*, s)
+# input
+"foo" {s:"bar"} {s:"baz"} {foo:1}
+# expected output
 false
 true
 true
@@ -127,13 +148,15 @@ is a Boolean comparison between the product `a*b` and `c`.
 The search patterns described above can be combined with other "search terms"
 using Boolean logic to form search expressions.
 
-:::tip note
+{{% tip "Note" %}}
+
 When processing [Super Binary](../formats/bsup.md) data, the SuperDB runtime performs a multi-threaded
 Boyer-Moore scan over decompressed data buffers before parsing any data.
 This allows large buffers of data to be efficiently discarded and skipped when
 searching for rarely occurring values.  For a [SuperDB data lake](../lake/format.md),
 a planned feature will use [Super Columnar](../formats/csup.md) files to further accelerate searches.
-:::
+
+{{% /tip %}}
 
 ### Search Terms
 
@@ -230,12 +253,14 @@ is equivalent to
 where grep("foo", this)
 ```
 
-:::tip note
+{{% tip "Note" %}}
+
 This equivalency between keyword search terms and grep semantics
 will change in the near future when we add support for full-text search.
 In this case, grep will still support substring match but keyword search
 will match segmented words from string fields.
-:::
+
+{{% /tip %}}
 
 #### Non-String Literal Search Term
 
@@ -278,7 +303,7 @@ the "in" operator, e.g.,
 
 #### Predicate Search Term
 
-Any Boolean-valued [function](functions/README.md) like `is`, `has`,
+Any Boolean-valued [function](functions/_index.md) like `is`, `has`,
 `grep`, etc. and any [comparison expression](expressions.md#comparisons)
 may be used as a search term and mixed into a search expression.
 

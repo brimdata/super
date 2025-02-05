@@ -59,23 +59,23 @@ outputs:
       fork (
         =>
           from path
-          |> head
+          | head
         =>
           from "http://host/path"
-          |> head
+          | head
         =>
           from name
-          |> head
+          | head
       )
       ===
       fork (
         =>
           from path format f
-          |> head
+          | head
         =>
           from "http://host/path" format g
-          |> head
+          | head
         =>
           from name
-          |> head
+          | head
       )

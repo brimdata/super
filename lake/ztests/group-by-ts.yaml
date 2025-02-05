@@ -7,15 +7,15 @@ script: |
   # causes parition to have several chunk files.
   super db load -q -use logs group-by-ts.jsup
   echo ===
-  super db query -z 'from logs |> head 1'
+  super db query -z 'from logs | head 1'
   echo ===
-  super db query -z 'from logs |> tail 1'
+  super db query -z 'from logs | tail 1'
   echo ===
-  super db query -z 'from logs |> avg:=avg(g)'
+  super db query -z 'from logs | avg:=avg(g)'
   echo ===
-  super db query -z 'from logs |> count:=count() by g |> sort g'
+  super db query -z 'from logs | count:=count() by g | sort g'
   echo ===
-  super db query -z 'from logs |> count:=count() by every(3600s), g |> sort ts, g'
+  super db query -z 'from logs | count:=count() by every(3600s), g | sort ts, g'
 
 inputs:
   - name: group-by-ts.jsup

@@ -3,7 +3,7 @@ zed: |
      case 2 => put v:='two'
      case 1 => put v:='one'
      case 3 => ? null
-  ) |> sort a
+  ) | sort a
 
 vector: true
 

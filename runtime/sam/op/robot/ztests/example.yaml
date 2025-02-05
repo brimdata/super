@@ -19,16 +19,16 @@ inputs:
   - name: query.spq
     data: |
       FROM gharchive.jsup
-      |> SELECT union(repo.name) AS repo, actor.login AS user
+      | SELECT union(repo.name) AS repo, actor.login AS user
         GROUP BY user
         ORDER BY len(repo) DESC
         LIMIT 5
-      |> FORK (
+      | FORK (
         => FROM [f'{user}.jsup']
-          |> SELECT VALUE {user:login,created_at:time(created_at)}
+          | SELECT VALUE {user:login,created_at:time(created_at)}
         => PASS
         )
-      |> JOIN USING (user)
+      | JOIN USING (user)
 
 outputs:
   - name: stdout

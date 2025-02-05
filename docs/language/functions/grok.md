@@ -1,6 +1,6 @@
 ### Function
 
-&emsp; **grok** &mdash; parse a string using a Grok pattern
+&emsp; **grok** &mdash; parse a string using Grok patterns
 
 ### Synopsis
 
@@ -11,11 +11,16 @@ grok(p: string, s: string, definitions: string) -> record
 
 ### Description
 
-The _grok_ function parses a string `s` using Grok pattern `p` and returns
-a record containing the parsed fields. The syntax for pattern `p`
-is `%{pattern:field_name}` where _pattern_ is the name of the pattern
-to match in `s` and _field_name_ is the resultant field name of the capture
-value.
+The _grok_ function parses a string `s` using patterns in string `p` and
+returns a record containing parsed fields.
+
+The string `p` may contain one or more Grok patterns of syntax
+`%{pattern:field_name}` where _pattern_ is the name of the pattern to match in
+`s` and _field_name_ is the resultant field name of the captured value. If the
+_field_name_ portion is not included, the _pattern_ must still match but the
+captured value will not be present in the returned record. Any non-pattern
+portions of `p` must also match against the contents of `s`. Non-pattern
+portions of `p` may contain regular expressions.
 
 When provided with three arguments, `definitions` is a string
 of named patterns in the format `PATTERN_NAME PATTERN` each separated by
@@ -42,12 +47,14 @@ been published by Elastic and others that provide helpful guidance on becoming
 proficient in Grok. To help you adapt what you learn from these resources to
 the use of the `grok` function, review the tips below.
 
-:::tip Note
+{{% tip "Note" %}}
+
 As these represent areas of possible future SuperPipe enhancement, links to open
 issues are provided. If you find a functional gap significantly impacts your
 ability to use the `grok` function, please add a comment to the relevant
 issue describing your use case.
-:::
+
+{{% /tip %}}
 
 1. Logstash's Grok offers an optional data type conversion syntax,
    e.g.,
@@ -79,24 +86,15 @@ issue describing your use case.
    Instead use the the approach shown later in that section of the Logstash
    docs by including a custom pattern in the `definitions` argument, e.g.,
 
-   ```mdtest-command
-   echo '"Jan  1 06:25:43 mailserver14 postfix/cleanup[21403]: BEF25A72965: message-id=<20130101142543.5828399CCAF@mailserver14.example.com>"' |
-     super -Z -c 'yield grok("%{SYSLOGBASE} %{POSTFIX_QUEUEID:queue_id}: %{GREEDYDATA:syslog_message}",
-                       this,
-                       "POSTFIX_QUEUEID [0-9A-F]{10,11}")' -
-   ```
-
-   produces
-
-   ```mdtest-output
-   {
-       timestamp: "Jan  1 06:25:43",
-       logsource: "mailserver14",
-       program: "postfix/cleanup",
-       pid: "21403",
-       queue_id: "BEF25A72965",
-       syslog_message: "message-id=<20130101142543.5828399CCAF@mailserver14.example.com>"
-   }
+   ```mdtest-spq {data-layout="stacked"}
+   # spq
+   yield grok("%{SYSLOGBASE} %{POSTFIX_QUEUEID:queue_id}: %{GREEDYDATA:syslog_message}",
+              this,
+              "POSTFIX_QUEUEID [0-9A-F]{10,11}")
+   # input
+   "Jan  1 06:25:43 mailserver14 postfix/cleanup[21403]: BEF25A72965: message-id=<20130101142543.5828399CCAF@mailserver14.example.com>"
+   # expected output
+   {timestamp:"Jan  1 06:25:43",logsource:"mailserver14",program:"postfix/cleanup",pid:"21403",queue_id:"BEF25A72965",syslog_message:"message-id=<20130101142543.5828399CCAF@mailserver14.example.com>"}
    ```
 
 4. The Grok implementation for Logstash uses the
@@ -111,7 +109,8 @@ issue describing your use case.
    avoid compatibility issues, we recommend building configurations starting
    from the RE2-based [included patterns](#included-patterns).
 
-:::tip Note
+{{% tip "Note" %}}
+
 If you absolutely require features of Logstash's Grok that are not currently
 present in SuperPipe, you can create a Logstash-based preprocessing
 pipeline that uses its
@@ -121,7 +120,8 @@ and send its output as JSON to SuperPipe. Issue
 getting started. If you pursue this approach, please add a comment to the
 issue describing your use case or come talk to us on
 [community Slack](https://www.brimdata.io/join-slack/).
-:::
+
+{{% /tip %}}
 
 ### Debugging
 
@@ -150,18 +150,25 @@ on the [community Slack](https://www.brimdata.io/join-slack/).
 ### Examples
 
 Parsing a simple log line using the built-in named patterns:
-```mdtest-command
-echo '"2020-09-16T04:20:42.45+01:00 DEBUG This is a sample debug log message"' |
-  super -Z -c 'yield grok("%{TIMESTAMP_ISO8601:timestamp} %{LOGLEVEL:level} %{GREEDYDATA:message}",
-                    this)' -
+```mdtest-spq {data-layout="stacked"}
+# spq
+yield grok("%{TIMESTAMP_ISO8601:timestamp} %{LOGLEVEL:level} %{GREEDYDATA:message}",
+           this)
+# input
+"2020-09-16T04:20:42.45+01:00 DEBUG This is a sample debug log message"
+# expected output
+{timestamp:"2020-09-16T04:20:42.45+01:00",level:"DEBUG",message:"This is a sample debug log message"}
 ```
-=>
-```mdtest-output
-{
-    timestamp: "2020-09-16T04:20:42.45+01:00",
-    level: "DEBUG",
-    message: "This is a sample debug log message"
-}
+
+Parsing the log line using the same patterns but only capturing the log level:
+```mdtest-spq {data-layout="stacked"}
+# spq
+yield grok("%{TIMESTAMP_ISO8601} %{LOGLEVEL:level} %{GREEDYDATA}",
+           this)
+# input
+"2020-09-16T04:20:42.45+01:00 DEBUG This is a sample debug log message"
+# expected output
+{level:"DEBUG"}
 ```
 
 As with any [string literal](../expressions.md#literals), the
@@ -169,14 +176,14 @@ leading backslash in escape sequences in string arguments must be doubled,
 such as changing the `\d` to `\\d` if we repurpose the
 [included pattern](#included-patterns) for `NUMTZ` as a `definitions` argument:
 
-```mdtest-command
-echo '"+7000"' |
-  super -z -c 'yield grok("%{MY_NUMTZ:tz}",
-                    this,
-                    "MY_NUMTZ [+-]\\d{4}")' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield grok("%{MY_NUMTZ:tz}",
+           this,
+           "MY_NUMTZ [+-]\\d{4}")
+# input
+"+7000"
+# expected output
 {tz:"+7000"}
 ```
 
@@ -184,14 +191,57 @@ In addition to using `\n` newline escapes to separate multiple named patterns
 in the `definitions` argument, string concatenation via `+` may further enhance
 readability.
 
-```mdtest-command
-echo '"(555)-1212"' |
-  super -z -c 'yield grok("\\(%{PH_PREFIX:prefix}\\)-%{PH_LINE_NUM:line_number}",
-                    this, 
-                    "PH_PREFIX \\d{3}\n" +
-                    "PH_LINE_NUM \\d{4}")' -
-```
-=>
-```mdtest-output
+```mdtest-spq {data-layout="stacked"}
+# spq
+yield grok("\\(%{PH_PREFIX:prefix}\\)-%{PH_LINE_NUM:line_number}",
+           this,
+          "PH_PREFIX \\d{3}\n" +
+          "PH_LINE_NUM \\d{4}")
+# input
+"(555)-1212"
+# expected output
 {prefix:"555",line_number:"1212"}
+```
+
+Failure to parse due to non-matching Grok pattern:
+
+```mdtest-spq {data-layout="stacked"}
+# spq
+grok("%{EMAILADDRESS:email}", this)
+# input
+"www.example.com"
+# expected output
+error({message:"grok(): value does not match pattern",on:"www.example.com"})
+```
+
+Failure to parse due to mismatch outside of Grok patterns:
+
+```mdtest-spq {data-layout="stacked"}
+# spq
+grok("%{WORD:one}     %{WORD:two}", this)
+# input
+"hello world"
+# expected output
+error({message:"grok(): value does not match pattern",on:"hello world"})
+```
+
+Using a regular expression to match outside of Grok patterns:
+```mdtest-spq
+# spq
+grok("%{WORD:one}\\s+%{WORD:two}", this)
+# input
+"hello     world"
+# expected output
+{one:"hello",two:"world"}
+```
+
+Successful parsing in the absence of any named fields in Grok patterns returns
+an empty record:
+```mdtest-spq {data-layout="stacked"}
+# spq
+grok("%{WORD}\\s+%{WORD}", this)
+# input
+"hello world"
+# expected output
+{}
 ```

@@ -4,7 +4,7 @@ script: |
 inputs:
   - name: count.zed
     data: |
-      ?2 |> c  := count() //,
+      ?2 | c  := count() //,
           , sum(v) // moon
   - name: in.jsup
     data: |

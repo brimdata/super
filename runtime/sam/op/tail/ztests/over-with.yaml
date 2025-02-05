@@ -1,5 +1,5 @@
 zed: |
-  over this with foo="bar" => (tail 1 |> yield {num: this, foo})
+  over this with foo="bar" => (tail 1 | yield {num: this, foo})
 
 input: '[1,2,3,4,5]'
 

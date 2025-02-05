@@ -15,6 +15,42 @@ func (t *TypeOf) Call(args ...vector.Any) vector.Any {
 	return vector.NewConst(val, args[0].Len(), nil)
 }
 
+// https://github.com/brimdata/super/blob/main/docs/language/functions.md#typename
+type TypeName struct {
+	zctx *super.Context
+}
+
+func (t *TypeName) Call(args ...vector.Any) vector.Any {
+	vec := vector.Under(args[0])
+	if vec.Type() != super.TypeString {
+		return vector.NewWrappedError(t.zctx, "typename: argument must be a string", args[0])
+	}
+	var errs []uint32
+	out := vector.NewTypeValueEmpty(0, nil)
+	for i := range vec.Len() {
+		s, isnull := vector.StringValue(vec, i)
+		if isnull {
+			if out.Nulls == nil {
+				out.Nulls = vector.NewBoolEmpty(vec.Len(), nil)
+			}
+			out.Nulls.Set(out.Len())
+			out.Append(nil)
+			continue
+		}
+
+		if typ := t.zctx.LookupTypeDef(s); typ == nil {
+			errs = append(errs, i)
+		} else {
+			out.Append(t.zctx.LookupTypeValue(typ).Bytes())
+		}
+	}
+	out.Nulls.SetLen(out.Len())
+	if len(errs) > 0 {
+		return vector.Combine(out, errs, vector.NewMissing(t.zctx, uint32(len(errs))))
+	}
+	return out
+}
+
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#error
 type Error struct {
 	zctx *super.Context

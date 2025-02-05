@@ -1,5 +1,5 @@
 script: |
-  super -z -c 'file a.jsup |> inner join (file b.jsup) on a=b'
+  super -z -c 'file a.jsup | inner join (file b.jsup) on a=b'
 
 inputs:
   - name: a.jsup

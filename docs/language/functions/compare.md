@@ -20,10 +20,11 @@ is treated as the minimum or maximum value.
 
 ### Examples
 
-```mdtest-command
-echo '{a: 2, b: "1"}' | super -z -c 'yield compare(a, b)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield compare(a, b)
+# input
+{a:2,b:"1"}
+# expected output
 -1
 ```

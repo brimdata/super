@@ -1,9 +1,8 @@
 ---
-sidebar_position: 2
-sidebar_label: Super Binary
+weight: 2
+title: Super Binary
+heading: Super Binary Specification
 ---
-
-# Super Binary Specification
 
 ## 1. Introduction
 
@@ -131,7 +130,8 @@ size decompression buffers in advance of decoding.
 Values for the `format` byte are defined in the
 [Super Binary compression format specification](./compression.md).
 
-:::tip note
+{{% tip "Note" %}}
+
 This arrangement of frames separating types and values allows
 for efficient scanning and parallelization.  In general, values depend
 on type definitions but as long as all of the types are known when
@@ -144,7 +144,8 @@ heuristics, e.g., knowing a filtering predicate can't be true based on a
 quick scan of the data perhaps using the Boyer-Moore algorithm to determine
 that a comparison with a string constant would not work for any
 value in the buffer.
-:::
+
+{{% /tip %}}
 
 Whether the payload was originally uncompressed or was decompressed, it is
 then interpreted according to the `T` bits of the frame code as a
@@ -212,12 +213,14 @@ is further encoded as a "counted string", which is the `uvarint` encoding
 of the length of the string followed by that many bytes of UTF-8 encoded
 string data.
 
-:::tip note
+{{% tip "Note" %}}
+
 As defined by [Super JSON](jsup.md), a field name can be any valid UTF-8 string much like JSON
 objects can be indexed with arbitrary string keys (via index operator)
 even if the field names available to the dot operator are restricted
 by language syntax for identifiers.
-:::
+
+{{% /tip %}}
 
 The type ID follows the field name and is encoded as a `uvarint`.
 
@@ -296,7 +299,7 @@ indicated by `<type-id>`.
 
 #### 2.1.8 Named Type Typedef
 
-A named type defines a new type ID that binds a name to a previously existing type ID.  
+A named type defines a new type ID that binds a name to a previously existing type ID.
 
 A named type is encoded as follows:
 ```

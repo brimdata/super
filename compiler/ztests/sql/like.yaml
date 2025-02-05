@@ -1,7 +1,7 @@
 script: |
   super -z -c "select a from s.json where a||b like '%os%'"
   echo ===
-  super -z -c "from s.json |> yield a LIKE 'f%'"
+  super -z -c "from s.json | yield a LIKE 'f%'"
 
 inputs:
   - name: s.json

@@ -2,6 +2,7 @@ package function
 
 import (
 	"regexp"
+	"regexp/syntax"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/zcode"
@@ -27,7 +28,11 @@ func (r *Regexp) Call(_ super.Allocator, args []super.Value) super.Value {
 		r.re, r.err = regexp.Compile(r.restr)
 	}
 	if r.err != nil {
-		return r.zctx.NewErrorf("regexp: %s", r.err)
+		msg := "regexp: invalid regular expression"
+		if syntaxErr, ok := r.err.(*syntax.Error); ok {
+			msg += ": " + syntaxErr.Code.String()
+		}
+		return r.zctx.WrapError(msg, args[0])
 	}
 	if !args[1].IsString() {
 		return r.zctx.WrapError("regexp: string required for second arg", args[1])

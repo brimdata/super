@@ -1,9 +1,9 @@
 script: |
-  super -z -c 'select value this from "a.jsup" |> search 13'
+  super -z -c 'select value this from "a.jsup" | search 13'
   echo ===
-  super -z -c 'select value this from "messy.jsup" |> search bar or s==4'
+  super -z -c 'select value this from "messy.jsup" | search bar or s==4'
   echo ===
-  super -z -c 'select value this from "b.jsup" |> search len(b) >= 3'
+  super -z -c 'select value this from "b.jsup" | search len(b) >= 3'
 
 inputs:
   - name: a.jsup

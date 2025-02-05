@@ -1,0 +1,31 @@
+zed: under(this)
+
+vector: true
+
+input: |
+  null
+  null(bytes)
+  0x1234
+  error(null)
+  error("foo")
+  {}
+  [1,2,3]
+  [1,2,3](array=[int8])
+  80(port=uint16)
+  "foo"((int64,string))
+  1((int64,string))
+  <rec={s:string}>
+
+output: |
+  null
+  null(bytes)
+  0x1234
+  null
+  "foo"
+  {}
+  [1,2,3]
+  [1(int8),2(int8),3(int8)]
+  80(uint16)
+  "foo"
+  1
+  <{s:string}>

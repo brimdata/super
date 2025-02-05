@@ -1,9 +1,9 @@
 script: |
-  ! super -c 'file sample.jsup |> count('
+  ! super -c 'file sample.jsup | count('
 
 outputs:
   - name: stderr
     data: |
-      parse error at line 1, column 27:
-      file sample.jsup |> count(
-                            === ^ ===
+      parse error at line 1, column 26:
+      file sample.jsup | count(
+                           === ^ ===

@@ -1,14 +1,14 @@
 script: |
   echo === aggregation and locals
-  super compile -C 'collect(over a with b=c |> ?d)'
+  super compile -C 'collect(over a with b=c | ?d)'
   echo === cast
-  super compile -C 'uint8(over a |> ?b)'
+  super compile -C 'uint8(over a | ?b)'
   echo === expression
-  super compile -C 'yield (over a |> ?b)'
+  super compile -C 'yield (over a | ?b)'
   echo === function
-  super compile -C 'quiet(over a |> ?b)'
+  super compile -C 'quiet(over a | ?b)'
   echo === grep
-  super compile -C 'grep(/regexp/, over a |> ?b)'
+  super compile -C 'grep(/regexp/, over a | ?b)'
 
 outputs:
   - name: stdout
@@ -17,25 +17,25 @@ outputs:
       summarize
           collect((
             over a with b=c
-            |> search d
+            | search d
           ))
       === cast
       uint8((
         over a
-        |> search b
+        | search b
       ))
       === expression
       yield (
         over a
-        |> search b
+        | search b
       )
       === function
       quiet((
         over a
-        |> search b
+        | search b
       ))
       === grep
       where grep(/regexp/,(
           over a
-          |> search b
+          | search b
         ))

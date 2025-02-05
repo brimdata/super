@@ -1,9 +1,7 @@
 ---
-sidebar_position: 3
-sidebar_label: Shaping Zeek JSON
+weight: 3
+title: Shaping Zeek JSON
 ---
-
-# Shaping Zeek JSON
 
 When [reading Zeek JSON format logs](reading-zeek-log-formats.md#zeek-json),
 much of the rich data typing that was originally present inside Zeek is at risk
@@ -118,18 +116,18 @@ const zeek_log_types = |{
 }|
 
 yield nest_dotted(this)
-|> switch has(_path) (
+| switch has(_path) (
   case true => switch (_path in zeek_log_types) (
     case true => yield {_original: this, _shaped: shape(zeek_log_types[_path])}
-      |> switch has_error(_shaped) (
+      | switch has_error(_shaped) (
           case true => yield error({msg: "shaper error(s): see inner error value(s) for details", _original, _shaped})
           case false => yield {_original, _shaped}
-            |> switch _crop_records (
+            | switch _crop_records (
                 case true => put _cropped := crop(_shaped, zeek_log_types[_shaped._path])
-                  |> switch (_cropped == _shaped) (
+                  | switch (_cropped == _shaped) (
                       case true => yield _shaped
                       case false => yield {_original, _shaped, _cropped}
-                      |> switch _error_if_cropped (
+                      | switch _error_if_cropped (
                           case true => yield error({msg: "shaper error: one or more fields were cropped", _original, _shaped, _cropped})
                           case false => yield _cropped
                         )
@@ -195,11 +193,13 @@ specification.
 ...
 ```
 
-:::tip note
+{{% tip "Note" %}}
+
 See [the role of `_path`](reading-zeek-log-formats.md#the-role-of-_path)
 for important details if you're using Zeek's built-in [ASCII logger](https://docs.zeek.org/en/current/scripts/base/frameworks/logging/writers/ascii.zeek.html)
 rather than the [JSON Streaming Logs](https://github.com/corelight/json-streaming-logs) package.
-:::
+
+{{% /tip %}}
 
 ### Zed Pipeline
 
@@ -208,18 +208,18 @@ so far.
 
 ```
 yield nest_dotted(this)
-|> switch has(_path) (
+| switch has(_path) (
   case true => switch (_path in zeek_log_types) (
     case true => yield {_original: this, _shaped: shape(zeek_log_types[_path])}
-      |> switch has_error(_shaped) (
+      | switch has_error(_shaped) (
           case true => yield error({msg: "shaper error(s): see inner error value(s) for details", _original, _shaped})
           case false => yield {_original, _shaped}
-            |> switch _crop_records (
+            | switch _crop_records (
                 case true => put _cropped := crop(_shaped, zeek_log_types[_shaped._path])
-                  |> switch (_cropped == _shaped) (
+                  | switch (_cropped == _shaped) (
                       case true => yield _shaped
                       case false => yield {_original, _shaped, _cropped}
-                      |> switch _error_if_cropped (
+                      | switch _error_if_cropped (
                           case true => yield error({msg: "shaper error: one ore more fields were cropped", _original, _shaped, _cropped})
                           case false => yield _cropped
                         )
@@ -335,7 +335,7 @@ For example, to see a Super JSON representation of just the errors that may have
 come from attempting to shape all the logs in the current directory:
 
 ```
-super -Z -I shaper.zed -c '|> has_error(this)' *.log
+super -Z -I shaper.zed -c '| has_error(this)' *.log
 ```
 
 ## Importing Shaped Data Into Zui

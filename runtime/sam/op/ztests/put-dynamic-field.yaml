@@ -1,13 +1,13 @@
 script: |
-  echo '{a:"hi",b:"hello"}' | super -z -c 'this[a][b] := "world" |> drop a, b' -
+  echo '{a:"hi",b:"hello"}' | super -z -c 'this[a][b] := "world" | drop a, b' -
   echo "// ==="
-  echo '{a:{b:"hello"}}' | super -z -c 'this[a.b]:="world" |> drop a' -
+  echo '{a:{b:"hello"}}' | super -z -c 'this[a.b]:="world" | drop a' -
   echo "// ==="
-  echo '{a:"hello"}' | super -z -c 'this[this["a"]] := "world" |> drop a' -
+  echo '{a:"hello"}' | super -z -c 'this[this["a"]] := "world" | drop a' -
   echo "// ==="
-  echo '{a:{},b:"hello"}' | super -z -c 'a[b] := "world" |> drop b' -
+  echo '{a:{},b:"hello"}' | super -z -c 'a[b] := "world" | drop b' -
   echo "// ==="
-  echo '{a:"foo"}' | super -z -c 'this[a]["bar"] := "baz" |> cut foo' -
+  echo '{a:"foo"}' | super -z -c 'this[a]["bar"] := "baz" | cut foo' -
   echo "// ==="
   # runtime error cases
   echo '{a:"hello",b:"hello"}' | super -z -c 'this[a] := "world1", this[b] := "world2"' -

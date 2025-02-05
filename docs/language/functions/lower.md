@@ -15,10 +15,11 @@ to lower case and returns the result.
 
 ### Examples
 
-```mdtest-command
-echo '"Zed"' | super -z -c 'yield lower(this)' -
-```
-=>
-```mdtest-output
-"zed"
+```mdtest-spq
+# spq
+yield lower(this)
+# input
+"SuperDB"
+# expected output
+"superdb"
 ```

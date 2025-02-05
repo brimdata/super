@@ -13,56 +13,87 @@ under(val: any) -> any
 The _under_ function returns the value underlying the argument `val`:
 * for unions, it returns the value as its elemental type of the union,
 * for errors, it returns the value that the error wraps,
-* for types, it returns the value typed as `typeunder()` indicates; otherwise,
+* for named values, it returns the value with the name removed,
+* for type values, it removes the named type if one exists; otherwise,
 * it returns `val` unmodified.
 
 ### Examples
 
 Unions are unwrapped:
-```mdtest-command
-echo '1((int64,string)) "foo"((int64,string))' |
-  super -z -c 'yield this' -
-
-echo '1((int64,string)) "foo"((int64,string))' |
-  super -z -c 'yield under(this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield this
+# input
 1((int64,string))
 "foo"((int64,string))
+# expected output
+1((int64,string))
+"foo"((int64,string))
+```
+
+```mdtest-spq
+# spq
+yield under(this)
+# input
+1((int64,string))
+"foo"((int64,string))
+# expected output
 1
 "foo"
 ```
 
 Errors are unwrapped:
-```mdtest-command
-echo 'error("foo") error({err:"message"})' | super -z -c 'yield this' -
-echo 'error("foo") error({err:"message"})' | super -z -c 'yield under(this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield this
+# input
 error("foo")
 error({err:"message"})
+# expected output
+error("foo")
+error({err:"message"})
+```
+
+```mdtest-spq
+# spq
+yield under(this)
+# input
+error("foo")
+error({err:"message"})
+# expected output
 "foo"
 {err:"message"}
 ```
 
 Values of named types are unwrapped:
-```mdtest-command
-echo '80(port=uint16)' | super -z -c 'yield this' -
-echo '80(port=uint16)' | super -z -c 'yield under(this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield this
+# input
 80(port=uint16)
+# expected output
+80(port=uint16)
+```
+
+```mdtest-spq
+# spq
+yield under(this)
+# input
+80(port=uint16)
+# expected output
 80(uint16)
 ```
+
 Values that are not wrapped are unmodified:
-```mdtest-command
-echo '1 "foo" <int16> {x:1}' | super -z -c 'yield under(this)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield under(this)
+# input
+1
+"foo"
+<int16>
+{x:1}
+# expected output
 1
 "foo"
 <int16>

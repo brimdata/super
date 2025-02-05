@@ -1,4 +1,4 @@
-zed: by s |> sort s
+zed: by s | sort s
 
 vector: true
 

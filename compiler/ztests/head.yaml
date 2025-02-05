@@ -10,15 +10,15 @@ outputs:
   - name: stdout
     data: |
       null
-      |> head 1
-      |> output main
+      | head 1
+      | output main
       ===
       null
-      |> (
+      | (
         const x = 1
         
         head 2
-        |> output main
+        | output main
       )
   - name: stderr
     data: |

@@ -7,7 +7,7 @@ inputs:
       fork (
         => from (file a.jsup => pass)
         => from (file b.jsup => pass)
-      ) |> sort a
+      ) | sort a
   - name: a.jsup
     data: |
       {a:1}

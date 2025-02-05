@@ -16,27 +16,31 @@ with operators that handle multiple branches of the pipeline such as
 ### Examples
 
 _Copy input to output_
-```mdtest-command
-echo '1 2 3' | super -z -c pass -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+pass
+# input
+1
+2
+3
+# expected output
 1
 2
 3
 ```
 
 _Copy each input value to three parallel pipeline branches and leave the values unmodified on one of them_
-```mdtest-command
-echo '"HeLlo, WoRlD!"' | super -z -c '
-  fork (
-    => pass
-    => upper(this)
-    => lower(this)
-) |> sort' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+fork (
+  => pass
+  => upper(this)
+  => lower(this)
+)
+| sort
+# input
+"HeLlo, WoRlD!"
+# expected output
 "HELLO, WORLD!"
 "HeLlo, WoRlD!"
 "hello, world!"

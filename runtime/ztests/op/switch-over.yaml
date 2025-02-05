@@ -1,8 +1,8 @@
 zed: |
   switch (
     case len(a)==3 => over a => (sum:=sum(this))
-    default => over a |> yield {b:this}
-  ) |> sort this
+    default => over a | yield {b:this}
+  ) | sort this
 
 vector: true
 

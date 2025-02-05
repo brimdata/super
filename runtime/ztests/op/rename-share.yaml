@@ -1,5 +1,5 @@
 # tests that a rename isn't visible to other procs operating on same records.
-zed: fork (=> rename id2:=id => cut id.orig_h) |> sort id
+zed: fork (=> rename id2:=id => cut id.orig_h) | sort id
 
 vector: true
 

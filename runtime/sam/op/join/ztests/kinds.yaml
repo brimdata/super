@@ -1,12 +1,12 @@
 script: |
   echo === ANTI ===
-  super -z -c 'anti join (file B.jsup) on a=b |> sort a' A.jsup
+  super -z -c 'anti join (file B.jsup) on a=b | sort a' A.jsup
   echo === LEFT ===
-  super -z -c 'left join (file B.jsup) on a=b hit:=sb |> sort a' A.jsup
+  super -z -c 'left join (file B.jsup) on a=b hit:=sb | sort a' A.jsup
   echo === INNER ===
-  super -z -c 'inner join (file B.jsup) on a=b hit:=sb |> sort a' A.jsup
+  super -z -c 'inner join (file B.jsup) on a=b hit:=sb | sort a' A.jsup
   echo === RIGHT ===
-  super -z -c 'right join (file C.jsup) on b=c hit:=sb |> sort c' B.jsup
+  super -z -c 'right join (file C.jsup) on b=c hit:=sb | sort c' B.jsup
 
 inputs:
   - name: A.jsup

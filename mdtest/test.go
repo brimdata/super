@@ -20,6 +20,10 @@ type Test struct {
 	Head      bool
 	Line      int
 	GoExample string
+
+	// For SPQ tests
+	Input string
+	SPQ   string
 }
 
 // Run runs the test, returning nil on success.
@@ -27,9 +31,15 @@ func (t *Test) Run() error {
 	if t.GoExample != "" {
 		return t.vetGoExample()
 	}
-	c := exec.Command("bash", "-e", "-o", "pipefail")
-	c.Dir = t.Dir
-	c.Stdin = strings.NewReader(t.Command)
+	var c *exec.Cmd
+	if t.SPQ != "" {
+		c = exec.Command("super", "-z", "-c", t.SPQ, "-")
+		c.Stdin = strings.NewReader(t.Input)
+	} else {
+		c = exec.Command("bash", "-e", "-o", "pipefail")
+		c.Dir = t.Dir
+		c.Stdin = strings.NewReader(t.Command)
+	}
 	outBytes, err := c.CombinedOutput()
 	out := string(outBytes)
 	if t.Fails {

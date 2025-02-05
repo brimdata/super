@@ -3,10 +3,10 @@ zed: |
     x := x+1
   )
   op add2(x): (
-    add1(x) |> add1(x)
+    add1(x) | add1(x)
   )
   op add4(x): (
-    add2(x) |> add2(x)
+    add2(x) | add2(x)
   )
   add4(y)
 

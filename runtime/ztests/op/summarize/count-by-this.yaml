@@ -1,4 +1,4 @@
-zed: count() by val:=this |> sort this
+zed: count() by val:=this | sort this
 
 vector: true
 

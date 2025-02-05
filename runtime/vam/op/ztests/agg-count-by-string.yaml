@@ -10,6 +10,7 @@ script: |
   super dev vector query -z 'count() by x' t.csup
   super dev vector query -z 'count() by y' t.csup | super -z -c 'sort y' -
   super dev vector query -z 'count() by z' t.csup | super -z -c 'z=="257"' -
+  super dev vector query -z 'count() where y=="1" by z' t.csup | super -z -c 'z=="257"' -
 
 outputs:
   - name: stdout
@@ -18,3 +19,4 @@ outputs:
       {y:"1",count:257(uint64)}
       {y:"2",count:257(uint64)}
       {z:"257",count:2(uint64)}
+      {z:"257",count:1(uint64)}

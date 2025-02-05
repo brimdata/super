@@ -9,17 +9,17 @@ script: |
   seq 8 12 | super -c '{k:this}' - | super db load -q -
   seq 20 25 | super -c '{k:this}' - | super db load -q -
   seq 14 16 | super -c '{k:this}' - | super db load -q -
-  super db query "from tmp:objects tap |> k > 18" | super -z -c "drop id" -
+  super db query "from tmp:objects tap | k > 18" | super -z -c "drop id" -
   echo ===
-  super db query "from tmp:objects tap |> k <= 10" | super -z -c "drop id" -
+  super db query "from tmp:objects tap | k <= 10" | super -z -c "drop id" -
   echo ===
-  super db query "from tmp:objects tap |> k >= 15 and k < 20" | super -z -c "drop id" -
+  super db query "from tmp:objects tap | k >= 15 and k < 20" | super -z -c "drop id" -
   echo ===
-  super db query "from tmp:objects tap |> k <= 9 or k > 24" | super -z -c "drop id" -
+  super db query "from tmp:objects tap | k <= 9 or k > 24" | super -z -c "drop id" -
   echo ===
-  super db query 'from tmp:objects tap |> a[k] == "foo" or k >= 20' | super -z -c "drop id" -
+  super db query 'from tmp:objects tap | a[k] == "foo" or k >= 20' | super -z -c "drop id" -
   echo ===
-  super db query 'from tmp:objects tap |> a[k] == "foo" and k >= 20' | super -z -c "drop id" -
+  super db query 'from tmp:objects tap | a[k] == "foo" and k >= 20' | super -z -c "drop id" -
 
 outputs:
   - name: stdout

@@ -44,6 +44,28 @@
 //	hello
 //	...
 //	```
+//
+// # SPQ tests
+//
+// A fenced code block with mdtest-spq as the first word of its info string
+// contains an SPQ test.  The content of the block must comprise three sections,
+// each preceeded by one or more "#"-prefixed lines.  The first section contains
+// an SPQ program, the second contains input provided to the program when the
+// test runs, and the third contains the program's expected output.
+//
+// SPQ tests are run via the super command.  The command's exit status must
+// indicate success (i.e., be zero) unless the mdtest-spq block's info string
+// contains the word "fails", in which case the exit status must indicate
+// failure (i.e. be nonzero).
+//
+//	```mdtest-spq [fails]
+//	# spq
+//	yield a
+//	# input
+//	{a:1}
+//	# expected output
+//	1
+//	```
 package mdtest
 
 import (
@@ -53,6 +75,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"testing"
@@ -131,6 +154,9 @@ func (f *File) Run(t *testing.T) {
 	}
 }
 
+// Matches one or more "#"-prefixed lines.
+var spqSeparatorRE = regexp.MustCompile(`(?m:^#.*\n)+`)
+
 func parseMarkdown(source []byte) (map[string]string, []*Test, error) {
 	var commandFCB *ast.FencedCodeBlock
 	var inputs map[string]string
@@ -196,6 +222,30 @@ func parseMarkdown(source []byte) (map[string]string, []*Test, error) {
 			tests = append(tests, &Test{
 				GoExample: fcbLines(fcb, source),
 				Line:      fcbLineNumber(fcb, source),
+			})
+		case "mdtest-spq":
+			var fails bool
+			for _, word := range fcbInfoWords(fcb, source)[1:] {
+				if word == "fails" {
+					fails = true
+				}
+			}
+			lines := fcbLines(fcb, source)
+			if !strings.HasPrefix(lines, "#") {
+				return ast.WalkStop, fcbError(fcb, source, "mdtest-spq content must begin with '#'")
+			}
+			sections := spqSeparatorRE.Split(lines, -1)
+			// Ignore sections[0].
+			if n := len(sections); n != 4 {
+				msg := fmt.Sprintf("mdtest-spq content has %d '#'-prefixed sections (expected 3)", n-1)
+				return ast.WalkStop, fcbError(fcb, source, msg)
+			}
+			tests = append(tests, &Test{
+				Expected: sections[3],
+				Fails:    fails,
+				Line:     fcbLineNumber(fcb, source),
+				Input:    sections[2],
+				SPQ:      sections[1],
 			})
 		}
 		return ast.WalkContinue, nil

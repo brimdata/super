@@ -15,7 +15,7 @@ script: |
   echo '{k:10}{k:13}' | super db load -q -
   super db query -z "from tmp"
   echo ===
-  super db query -Z "from tmp:partitions |> over objects => (collect({min,max}))"
+  super db query -Z "from tmp:partitions | over objects => (collect({min,max}))"
 
 outputs:
   - name: stdout

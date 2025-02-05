@@ -44,43 +44,53 @@ yield {...this, <field>:<expr> [, <field>:<expr>...]}
 ### Examples
 
 _A simple put_
-```mdtest-command
-echo '{a:1,b:2}' | super -z -c 'put c:=3' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+put c:=3
+# input
+{a:1,b:2}
+# expected output
 {a:1,b:2,c:3}
 ```
+
 _The `put` keyword may be omitted_
-```mdtest-command
-echo '{a:1,b:2}' | super -z -c 'c:=3' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+c:=3
+# input
+{a:1,b:2}
+# expected output
 {a:1,b:2,c:3}
 ```
+
 _A `put` operation can also be done with a record literal_
-```mdtest-command
-echo '{a:1,b:2}' | super -z -c 'yield {...this, c:3}' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield {...this, c:3}
+# input
+{a:1,b:2}
+# expected output
 {a:1,b:2,c:3}
 ```
+
 _Missing fields show up as missing errors_
-```mdtest-command
-echo '{a:1,b:2,c:3}' | super -z -c 'put d:=e' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+put d:=e
+# input
+{a:1,b:2,c:3}
+# expected output
 {a:1,b:2,c:3,d:error("missing")}
 ```
+
 _Non-record input values generate errors_
-```mdtest-command
-echo '{a:1} 1' | super -z -c 'b:=2' -
-```
-=>
-```mdtest-output
+```mdtest-spq {data-layout="stacked"}
+# spq
+b:=2
+# input
+{a:1}
+1
+# expected output
 {a:1,b:2}
 error({message:"put: not a record",on:1})
 ```

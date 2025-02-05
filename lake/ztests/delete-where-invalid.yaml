@@ -2,7 +2,7 @@ script: |
   export SUPER_DB_LAKE=test
   super db init -q
   super db create -use -q test
-  ! super db delete -where 'me == "hi" |> cut me'
+  ! super db delete -where 'me == "hi" | cut me'
   ! super db delete -where 'cut that'
 
 outputs:

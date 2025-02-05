@@ -1,13 +1,11 @@
 ---
-sidebar_position: 2
-sidebar_label: super db
+weight: 2
+title: super db
 ---
-
-# `super db`
 
 > **TL;DR** `super db` is a sub-command of `super` to manage and query SuperDB data lakes.
 > You can import data from a variety of formats and it will automatically
-> be committed in [super-structured](../formats/README.md)
+> be committed in [super-structured](../formats/_index.md)
 > format, providing full fidelity of the original format and the ability
 > to reconstruct the original data without loss of information.
 >
@@ -17,8 +15,9 @@ sidebar_label: super db
 
 <p id="status"></p>
 
-:::tip Status
-While [`super`](super.md) and its accompanying [formats](../formats/README.md)
+{{% tip "Status" %}}
+
+While [`super`](super.md) and its accompanying [formats](../formats/_index.md)
 are production quality, the SuperDB data lake is still fairly early in development
 and alpha quality.
 That said, SuperDB data lakes can be utilized quite effectively at small scale,
@@ -27,7 +26,8 @@ is deployed to manage the lake's data layout via the
 [lake API](../lake/api.md).
 
 Enhanced scalability with self-tuning configuration is under development.
-:::
+
+{{% /tip %}}
 
 ## The Lake Model
 
@@ -155,7 +155,8 @@ running any `super db` lake command all pointing at the same storage endpoint
 and the lake's data footprint will always remain consistent as the endpoints
 all adhere to the consistency semantics of the lake.
 
-:::tip caveat
+{{% tip "Caveat" %}}
+
 Data consistency is not fully implemented yet for
 the S3 endpoint so only single-node access to S3 is available right now,
 though support for multi-node access is forthcoming.
@@ -166,7 +167,8 @@ access to a local file system has been thoroughly tested and should be
 deemed reliable, i.e., you can run a direct-access instance of `super db` alongside
 a server instance of `super db` on the same file system and data consistency will
 be maintained.
-:::
+
+{{% /tip %}}
 
 ### Locating the Lake
 
@@ -208,11 +210,13 @@ Each commit object is assigned a global ID.
 Similar to Git, commit objects are arranged into a tree and
 represent the entire commit history of the lake.
 
-:::tip note
+{{% tip "Note" %}}
+
 Technically speaking, Git can merge from multiple parents and thus
 Git commits form a directed acyclic graph instead of a tree;
 SuperDB does not currently support multiple parents in the commit object history.
-:::
+
+{{% /tip %}}
 
 A branch is simply a named pointer to a commit object in the lake
 and like a pool, a branch name can be any valid UTF-8 string.
@@ -274,10 +278,12 @@ key.  For example, on a pool with pool key `ts`, the query `ts == 100`
 will be optimized to scan only the data objects where the value `100` could be
 present.
 
-:::tip note
+{{% tip "Note" %}}
+
 The pool key will also serve as the primary key for the forthcoming
 CRUD semantics.
-:::
+
+{{% /tip %}}
 
 A pool also has a configured sort order, either ascending or descending
 and data is organized in the pool in accordance with this order.
@@ -327,9 +333,11 @@ using that pool's "branches log" in a similar fashion, then its corresponding
 commit object can be used to construct the data of that branch at that
 past point in time.
 
-:::tip note
+{{% tip "Note" %}}
+
 Time travel using timestamps is a forthcoming feature.
-:::
+
+{{% /tip %}}
 
 ## `super db` Commands
 
@@ -358,7 +366,7 @@ format.  However, the `-f` option can be used to specify any supported
 super db auth login|logout|method|verify
 ```
 Access to a lake can be secured with [Auth0 authentication](https://auth0.com/).
-A [guide](../integrations/zed-lake-auth.md) is available with example configurations.
+A [guide](../integrations/zed-lake-auth/index.md) is available with example configurations.
 Please reach out to us on our [community Slack](https://www.brimdata.io/join-slack/)
 if you have feedback on your experience or need additional help.
 
@@ -409,11 +417,13 @@ the [special value `this`](../language/pipeline-model.md#the-special-value-this)
 
 A newly created pool is initialized with a branch called `main`.
 
-:::tip note
+{{% tip "Note" %}}
+
 Lakes can be used without thinking about branches.  When referencing a pool without
 a branch, the tooling presumes the "main" branch as the default, and everything
 can be done on main without having to think about branching.
-:::
+
+{{% /tip %}}
 
 ### Delete
 ```
@@ -584,9 +594,11 @@ that is stored in the commit journal for reference.  These values may
 be specified as options to the [`load`](#load) command, and are also available in the
 [lake API](../lake/api.md) for automation.
 
-:::tip note
+{{% tip "Note" %}}
+
 The branchlog meta-query source is not yet implemented.
-:::
+
+{{% /tip %}}
 
 ### Ls
 ```
@@ -659,7 +671,7 @@ according to configured policies and logic.
 ```
 super db query [options] <query>
 ```
-The `query` command runs a [SuperSQL](../language/README.md) query with data from a lake as input.
+The `query` command runs a [SuperSQL](../language/_index.md) query with data from a lake as input.
 A query typically begins with a [`from` operator](../language/operators/from.md)
 indicating the pool and branch to use as input.
 

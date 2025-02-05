@@ -104,7 +104,8 @@ func (s *Summarize) consume(keys []vector.Any, vals []vector.Any) {
 
 func (s *Summarize) newAggTable(keyTypes []super.Type) aggTable {
 	// Check if we can us an optimized table, else go slow path.
-	if s.isCountByString(keyTypes) {
+	if s.isCountByString(keyTypes) && len(s.aggs) == 1 && s.aggs[0].Where == nil {
+		// countByString.update does not handle nulls in its vals param.
 		return newCountByString(s.builder, s.partialsIn)
 	}
 	return &superTable{

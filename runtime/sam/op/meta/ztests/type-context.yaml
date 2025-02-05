@@ -6,9 +6,9 @@ script: |
   super db create -q tmp
   echo '1 2' | super db load -q -use tmp -
   echo '3' | super db load -q -use tmp -
-  super db query -z 'from tmp |> yield typeof(<"data.Object">)'
+  super db query -z 'from tmp | yield typeof(<"data.Object">)'
   echo ===
-  super db query -z 'from tmp@main:objects |> yield typeof(<"data.Object">)'
+  super db query -z 'from tmp@main:objects | yield typeof(<"data.Object">)'
 
 outputs:
   - name: stdout

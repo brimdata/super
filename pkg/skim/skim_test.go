@@ -3,6 +3,7 @@ package skim_test
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/brimdata/super/pkg/skim"
@@ -70,6 +71,14 @@ func TestSkimNoNewLine(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	require.Equal(t, []byte(nil), line)
+
+	scanner = skim.NewScanner(strings.NewReader("x"), buf, MaxLineSize)
+	line, err = scanner.ScanLine()
+	require.NoError(t, err)
+	require.Equal(t, "x", string(line))
+	line, err = scanner.ScanLine()
+	require.NoError(t, err)
 	require.Equal(t, []byte(nil), line)
 }
 

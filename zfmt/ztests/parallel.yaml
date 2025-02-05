@@ -1,22 +1,22 @@
 script: |
-  super compile -dag -C 'file bar |> ?foo |> fork (=> count() by x:=this["@foo"] => sum(x) => put a:=b*c) |> cut cake |> sort -r x'
+  super compile -dag -C 'file bar | ?foo | fork (=> count() by x:=this["@foo"] => sum(x) => put a:=b*c) | cut cake | sort -r x'
 
 outputs:
   - name: stdout
     data: |
       file bar
-      |> where search("foo")
-      |> fork (
+      | where search("foo")
+      | fork (
         =>
           summarize
               count:=count() by x:=.["@foo"]
         =>
           summarize
               sum:=sum(x)
-          |> yield sum
+          | yield sum
         =>
           put a:=b*c
       )
-      |> cut cake:=cake
-      |> sort -r x asc
-      |> output main
+      | cut cake:=cake
+      | sort -r x asc
+      | output main

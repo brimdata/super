@@ -1,5 +1,5 @@
 script: |
-  super -z -c 'c:=COUNT(),d:=Count(),Collect(LoweR(s)) by key |> sort key' in.jsup
+  super -z -c 'c:=COUNT(),d:=Count(),Collect(LoweR(s)) by key | sort key' in.jsup
   echo ===
   super -z -c 'yield LOWER(s),Collect(LoweR(s))' in.jsup
   echo ===

@@ -17,27 +17,24 @@ only one argument. `f` may be a [user-defined function](../statements.md#func-st
 ### Examples
 
 Upper case each element of an array:
-
-```mdtest-command
-echo '["foo","bar","baz"]' | super -z -c 'yield map(this, upper)' -
-```
-=>
-```mdtest-output
+```mdtest-spq
+# spq
+yield map(this, upper)
+# input
+["foo","bar","baz"]
+# expected output
 ["FOO","BAR","BAZ"]
 ```
 
-Using a user-defined function to convert an epoch float to a time:
-
-```mdtest-command
-echo '[1697151533.41415,1697151540.716529]' |
-  super -z -c '
-    func floatToTime(x): (
-      cast(x*1000000000, <time>)
-    )
-    yield map(this, floatToTime)
-  ' -
-```
-=>
-```mdtest-output
+Using a user-defined function to convert epoch floats to time values:
+```mdtest-spq {data-layout="stacked"}
+# spq
+func floatToTime(x): (
+  cast(x*1000000000, <time>)
+)
+yield map(this, floatToTime)
+# input
+[1697151533.41415,1697151540.716529]
+# expected output
 [2023-10-12T22:58:53.414149888Z,2023-10-12T22:59:00.716528896Z]
 ```

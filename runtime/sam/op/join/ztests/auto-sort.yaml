@@ -1,15 +1,15 @@
 script: |
-  super -z -c 'file a.jsup |> join (file b.jsup) on a=b'
+  super -z -c 'file a.jsup | join (file b.jsup) on a=b'
   echo '// ==='
-  super -z -c 'file a.jsup |> join (file b.jsup |> sort -r b) on a=b'
+  super -z -c 'file a.jsup | join (file b.jsup | sort -r b) on a=b'
   echo '// ==='
-  super -z -c 'file a.jsup |> join (file b.jsup |> sort b) on a=b'
+  super -z -c 'file a.jsup | join (file b.jsup | sort b) on a=b'
   echo '// ==='
-  super -z -c 'file a.jsup |> sort a |> join (file b.jsup |> sort -r b) on a=b'
+  super -z -c 'file a.jsup | sort a | join (file b.jsup | sort -r b) on a=b'
   echo '// ==='
-  super -z -c 'file a.jsup |> sort -r a |> join (file b.jsup) on a=b'
+  super -z -c 'file a.jsup | sort -r a | join (file b.jsup) on a=b'
   echo '// ==='
-  super -z -c 'file a.jsup |> sort -r a |> join (file b.jsup |> sort b) on a=b'
+  super -z -c 'file a.jsup | sort -r a | join (file b.jsup | sort b) on a=b'
 
 inputs:
   - name: a.jsup
