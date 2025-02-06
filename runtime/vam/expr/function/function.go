@@ -113,12 +113,12 @@ func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path,
 		f = &TypeName{zctx: zctx}
 	case "typeof":
 		f = &TypeOf{zctx}
-	case "upper":
-		f = &ToUpper{zctx}
-	case "unflatten":
-		f = newUnflatten(zctx)
 	case "under":
 		f = &Under{zctx}
+	case "unflatten":
+		f = newUnflatten(zctx)
+	case "upper":
+		f = &ToUpper{zctx}
 	default:
 		return nil, nil, function.ErrNoSuchFunction
 	}
