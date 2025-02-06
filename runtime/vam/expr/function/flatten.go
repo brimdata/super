@@ -46,7 +46,7 @@ func (u *unflatten) Call(args ...vector.Any) vector.Any {
 	builder := vector.NewDynamicBuilder()
 	var b zcode.Builder
 	for i := range vec.Len() {
-		b.Reset()
+		b.Truncate()
 		vec.Serialize(&b, i)
 		val := u.fn.Call(nil, []super.Value{super.NewValue(typ, b.Bytes().Body())})
 		builder.Write(val)
