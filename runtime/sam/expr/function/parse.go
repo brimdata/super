@@ -102,9 +102,9 @@ func newParseZSON(zctx *super.Context) *ParseZSON {
 }
 
 func (p *ParseZSON) Call(_ super.Allocator, args []super.Value) super.Value {
-	in := args[0]
+	in := args[0].Under()
 	if !in.IsString() {
-		return p.zctx.WrapError("parse_zson: string arg required", in)
+		return p.zctx.WrapError("parse_zson: string arg required", args[0])
 	}
 	if in.IsNull() {
 		return super.Null
@@ -112,7 +112,7 @@ func (p *ParseZSON) Call(_ super.Allocator, args []super.Value) super.Value {
 	p.sr.Reset(super.DecodeString(in.Bytes()))
 	val, err := p.zr.Read()
 	if err != nil {
-		return p.zctx.WrapError("parse_zson: "+err.Error(), in)
+		return p.zctx.WrapError("parse_zson: "+err.Error(), args[0])
 	}
 	if val == nil {
 		return super.Null

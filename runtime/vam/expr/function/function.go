@@ -88,6 +88,8 @@ func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path,
 		f = &NetworkOf{zctx}
 	case "parse_uri":
 		f = newParseURI(zctx)
+	case "parse_zson":
+		f = newParseZSON(zctx)
 	case "pow":
 		argmin = 2
 		argmax = 2

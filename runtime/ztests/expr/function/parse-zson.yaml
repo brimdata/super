@@ -1,6 +1,8 @@
 zed: |
   yield parse_zson(this)
 
+vector: true
+
 input: |
   "{a:1}"
   null(string)
