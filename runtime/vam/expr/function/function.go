@@ -115,6 +115,8 @@ func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path,
 		f = &TypeOf{zctx}
 	case "upper":
 		f = &ToUpper{zctx}
+	case "unflatten":
+		f = newUnflatten(zctx)
 	case "under":
 		f = &Under{zctx}
 	default:

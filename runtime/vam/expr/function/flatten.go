@@ -31,3 +31,25 @@ func (f *flatten) Call(args ...vector.Any) vector.Any {
 	}
 	return builder.Build()
 }
+
+type unflatten struct {
+	fn *samfunc.Unflatten
+}
+
+func newUnflatten(zctx *super.Context) *unflatten {
+	return &unflatten{samfunc.NewUnflatten(zctx)}
+}
+
+func (u *unflatten) Call(args ...vector.Any) vector.Any {
+	vec := vector.Under(args[0])
+	typ := vec.Type()
+	builder := vector.NewDynamicBuilder()
+	var b zcode.Builder
+	for i := range vec.Len() {
+		b.Reset()
+		vec.Serialize(&b, i)
+		val := u.fn.Call(nil, []super.Value{super.NewValue(typ, b.Bytes().Body())})
+		builder.Write(val)
+	}
+	return builder.Build()
+}

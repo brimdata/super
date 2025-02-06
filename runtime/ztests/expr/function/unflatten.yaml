@@ -1,4 +1,6 @@
-zed: "yield unflatten(this)"
+zed: yield unflatten(this)
+
+vector: true
 
 input: |
   [{key:["a","a"],value:1},{key:["a","b"],value:2},{key:["a","x","z"],value:"foo"},{key:["b"],value:2},{key:["c"],value:3}]
