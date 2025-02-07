@@ -1,0 +1,21 @@
+zed: yield missing(a,b)
+
+vector: true
+
+input: |
+  {a:"foo",b:"bar"}
+  {a:null(bool),b:"bar"}
+  {a:"foo",b:null(bool)}
+  {b:null(bool)}
+  {a:null(bool)}
+  {a:"foo",b:error("other")}
+  {b:error("other")}
+
+output: |
+  false
+  null(bool)
+  null(bool)
+  true
+  null(bool)
+  error("other")
+  true

@@ -7,6 +7,9 @@ type Has struct{}
 
 func (h *Has) Call(_ super.Allocator, args []super.Value) super.Value {
 	for _, val := range args {
+		if val.IsNull() {
+			return super.NullBool
+		}
 		if val.IsError() {
 			if val.IsMissing() || val.IsQuiet() {
 				return super.False
@@ -24,7 +27,7 @@ type Missing struct {
 
 func (m *Missing) Call(ectx super.Allocator, args []super.Value) super.Value {
 	val := m.has.Call(ectx, args)
-	if val.Type() == super.TypeBool {
+	if val.Type() == super.TypeBool && !val.IsNull() {
 		return super.NewBool(!val.Bool())
 	}
 	return val

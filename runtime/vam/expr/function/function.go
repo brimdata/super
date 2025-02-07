@@ -50,6 +50,9 @@ func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path,
 	case "grok":
 		argmin, argmax = 2, 3
 		f = newGrok(zctx)
+	case "has":
+		argmax = -1
+		f = newHas(zctx)
 	case "hex":
 		f = &Hex{zctx}
 	case "join":
@@ -66,6 +69,9 @@ func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path,
 		f = &Log{zctx}
 	case "lower":
 		f = &ToLower{zctx}
+	case "missing":
+		argmax = -1
+		f = &Missing{}
 	case "nameof":
 		f = &NameOf{zctx: zctx}
 	case "nest_dotted":
