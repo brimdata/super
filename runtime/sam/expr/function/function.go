@@ -23,96 +23,54 @@ func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path,
 	var path field.Path
 	var f expr.Function
 	switch name {
-	default:
-		return nil, nil, ErrNoSuchFunction
+	case "abs":
+		f = &Abs{zctx: zctx}
+	case "base64":
+		f = &Base64{zctx: zctx}
+	case "bucket":
+		argmin = 2
+		argmax = 2
+		f = &Bucket{zctx: zctx, name: name}
+	case "ceil":
+		f = &Ceil{zctx: zctx}
+	case "cidr_match":
+		argmin = 2
+		argmax = 2
+		f = &CIDRMatch{zctx: zctx}
 	case "coalesce":
 		argmax = -1
 		f = &Coalesce{}
-	case "grep":
-		argmax = 2
-		f = &Grep{zctx: zctx}
-	case "grok":
-		argmin, argmax = 2, 3
-		f = newGrok(zctx)
-	case "len", "length":
-		f = &LenFn{zctx: zctx}
-	case "abs":
-		f = &Abs{zctx: zctx}
+	case "compare":
+		argmin = 2
+		argmax = 3
+		f = NewCompare(zctx)
+	case "error":
+		f = &Error{zctx: zctx}
 	case "every":
 		path = field.Path{"ts"}
 		f = &Bucket{
 			zctx: zctx,
 			name: "every",
 		}
-	case "ceil":
-		f = &Ceil{zctx: zctx}
+	case "fields":
+		f = NewFields(zctx)
 	case "flatten":
 		f = NewFlatten(zctx)
 	case "floor":
 		f = &Floor{zctx: zctx}
-	case "join":
+	case "grep":
 		argmax = 2
-		f = &Join{zctx: zctx}
-	case "ksuid":
-		argmin = 0
-		f = &KSUIDToString{zctx: zctx}
-	case "levenshtein":
-		argmin = 2
-		argmax = 2
-		f = &Levenshtein{zctx: zctx}
-	case "log":
-		f = &Log{zctx: zctx}
-	case "max":
-		argmax = -1
-		f = &reducer{zctx: zctx, fn: anymath.Max, name: name}
-	case "min":
-		argmax = -1
-		f = &reducer{zctx: zctx, fn: anymath.Min, name: name}
-	case "now":
-		argmax = 0
-		argmin = 0
-		f = &Now{}
-	case "round":
-		f = &Round{zctx: zctx}
-	case "pow":
-		argmin = 2
-		argmax = 2
-		f = &Pow{zctx: zctx}
-	case "sqrt":
-		f = &Sqrt{zctx: zctx}
-	case "replace":
-		argmin = 3
-		argmax = 3
-		f = &Replace{zctx: zctx}
-	case "rune_len":
-		f = &RuneLen{zctx: zctx}
-	case "lower":
-		f = &ToLower{zctx: zctx}
-	case "upper":
-		f = &ToUpper{zctx: zctx}
-	case "trim":
-		f = &Trim{zctx: zctx}
-	case "split":
-		argmin = 2
-		argmax = 2
-		f = newSplit(zctx)
-	case "bucket":
-		argmin = 2
-		argmax = 2
-		f = &Bucket{zctx: zctx, name: name}
-	case "typename":
-		f = &typeName{zctx: zctx}
-	case "typeof":
-		f = &TypeOf{zctx: zctx}
-	case "nameof":
-		f = &NameOf{zctx: zctx}
-	case "fields":
-		f = NewFields(zctx)
+		f = &Grep{zctx: zctx}
+	case "grok":
+		argmin, argmax = 2, 3
+		f = newGrok(zctx)
 	case "has":
 		argmax = -1
 		f = &Has{}
 	case "has_error":
 		f = NewHasError()
+	case "hex":
+		f = &Hex{zctx: zctx}
 	case "is":
 		argmin = 1
 		argmax = 2
@@ -120,36 +78,54 @@ func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path,
 		f = &Is{zctx: zctx}
 	case "is_error":
 		f = &IsErr{}
-	case "error":
-		f = &Error{zctx: zctx}
+	case "join":
+		argmax = 2
+		f = &Join{zctx: zctx}
 	case "kind":
 		f = &Kind{zctx: zctx}
-	case "base64":
-		f = &Base64{zctx: zctx}
-	case "hex":
-		f = &Hex{zctx: zctx}
-	case "compare":
-		argmin = 2
-		argmax = 3
-		f = NewCompare(zctx)
-	case "cidr_match":
+	case "ksuid":
+		argmin = 0
+		f = &KSUIDToString{zctx: zctx}
+	case "len", "length":
+		f = &LenFn{zctx: zctx}
+	case "levenshtein":
 		argmin = 2
 		argmax = 2
-		f = &CIDRMatch{zctx: zctx}
+		f = &Levenshtein{zctx: zctx}
+	case "log":
+		f = &Log{zctx: zctx}
+	case "lower":
+		f = &ToLower{zctx: zctx}
+	case "max":
+		argmax = -1
+		f = &reducer{zctx: zctx, fn: anymath.Max, name: name}
+	case "min":
+		argmax = -1
+		f = &reducer{zctx: zctx, fn: anymath.Min, name: name}
 	case "missing":
 		argmax = -1
 		f = &Missing{}
-	case "network_of":
-		argmax = 2
-		f = &NetworkOf{zctx: zctx}
+	case "nameof":
+		f = &NameOf{zctx: zctx}
 	case "nest_dotted":
 		path = field.Path{}
 		argmin = 0
 		f = NewNestDotted(zctx)
+	case "network_of":
+		argmax = 2
+		f = &NetworkOf{zctx: zctx}
+	case "now":
+		argmax = 0
+		argmin = 0
+		f = &Now{}
 	case "parse_uri":
 		f = &ParseURI{zctx: zctx, marshaler: zson.NewZNGMarshalerWithContext(zctx)}
 	case "parse_zson":
 		f = newParseZSON(zctx)
+	case "pow":
+		argmin = 2
+		argmax = 2
+		f = &Pow{zctx: zctx}
 	case "quiet":
 		f = &Quiet{zctx: zctx}
 	case "regexp":
@@ -158,13 +134,37 @@ func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path,
 	case "regexp_replace":
 		argmin, argmax = 3, 3
 		f = &RegexpReplace{zctx: zctx}
+	case "replace":
+		argmin = 3
+		argmax = 3
+		f = &Replace{zctx: zctx}
+	case "round":
+		f = &Round{zctx: zctx}
+	case "rune_len":
+		f = &RuneLen{zctx: zctx}
+	case "split":
+		argmin = 2
+		argmax = 2
+		f = newSplit(zctx)
+	case "sqrt":
+		f = &Sqrt{zctx: zctx}
 	case "strftime":
 		argmin, argmax = 2, 2
 		f = &Strftime{zctx: zctx}
+	case "trim":
+		f = &Trim{zctx: zctx}
+	case "typename":
+		f = &typeName{zctx: zctx}
+	case "typeof":
+		f = &TypeOf{zctx: zctx}
 	case "under":
 		f = &Under{zctx: zctx}
 	case "unflatten":
 		f = NewUnflatten(zctx)
+	case "upper":
+		f = &ToUpper{zctx: zctx}
+	default:
+		return nil, nil, ErrNoSuchFunction
 	}
 	if err := CheckArgCount(narg, argmin, argmax); err != nil {
 		return nil, nil, err
