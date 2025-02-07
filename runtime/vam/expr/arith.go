@@ -29,6 +29,12 @@ func (a *Arith) Eval(val vector.Any) vector.Any {
 func (a *Arith) eval(vecs ...vector.Any) (out vector.Any) {
 	lhs := enumToIndex(vector.Under(vecs[0]))
 	rhs := enumToIndex(vector.Under(vecs[1]))
+	if vector.KindOf(lhs) == vector.KindError {
+		return lhs
+	}
+	if vector.KindOf(rhs) == vector.KindError {
+		return rhs
+	}
 	lhs, rhs, errVal := coerceVals(a.zctx, lhs, rhs)
 	if errVal != nil {
 		return errVal

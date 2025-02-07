@@ -1,0 +1,13 @@
+zed: yield s/0
+
+vector: true
+
+input: |
+  {}
+  {s:error("other")}
+  {s:1}
+
+output: |
+  error("missing")
+  error("other")
+  error("divide by zero")
