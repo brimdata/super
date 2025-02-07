@@ -34,7 +34,7 @@ type Op struct {
 }
 
 func New(rctx *runtime.Context, anti, inner bool, left, right zbuf.Puller, leftKey, rightKey expr.Evaluator,
-	leftDir, rightDir order.Direction, lhs []*expr.Lval, rhs []expr.Evaluator, resetter expr.Resetter) (*Op, error) {
+	leftDir, rightDir order.Direction, lhs []*expr.Lval, rhs []expr.Evaluator, resetter expr.Resetter) *Op {
 	var o order.Which
 	switch {
 	case leftDir != order.Unknown:
@@ -66,7 +66,7 @@ func New(rctx *runtime.Context, anti, inner bool, left, right zbuf.Puller, leftK
 		compare:     expr.NewValueCompareFn(o, true),
 		cutter:      expr.NewCutter(rctx.Zctx, lhs, rhs),
 		types:       make(map[int]map[int]*super.TypeRecord),
-	}, nil
+	}
 }
 
 // Pull implements the merge logic for returning data from the upstreams.

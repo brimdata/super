@@ -662,10 +662,7 @@ func (b *Builder) compile(o dag.Op, parents []zbuf.Puller) ([]zbuf.Puller, error
 		default:
 			return nil, fmt.Errorf("unknown kind of join: '%s'", o.Style)
 		}
-		join, err := join.New(b.rctx, anti, inner, leftParent, rightParent, leftKey, rightKey, leftDir, rightDir, lhs, rhs, b.resetters)
-		if err != nil {
-			return nil, err
-		}
+		join := join.New(b.rctx, anti, inner, leftParent, rightParent, leftKey, rightKey, leftDir, rightDir, lhs, rhs, b.resetters)
 		return []zbuf.Puller{join}, nil
 	case *dag.Merge:
 		b.resetResetters()
