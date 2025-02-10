@@ -14,6 +14,7 @@ import (
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/storage"
+	"github.com/brimdata/super/runtime/vam"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio/anyio"
@@ -125,9 +126,6 @@ func (c *closePuller) Pull(done bool) (zbuf.Batch, error) {
 }
 
 func (e *Environment) VectorOpen(ctx context.Context, zctx *super.Context, path, format string, fields []field.Path) (vector.Puller, error) {
-	if format != "parquet" && format != "csup" {
-		return nil, fmt.Errorf("vector runtime supports only Parquet and CSUP files")
-	}
 	if path == "-" {
 		path = "stdio:stdin"
 	}
@@ -140,10 +138,15 @@ func (e *Environment) VectorOpen(ctx context.Context, zctx *super.Context, path,
 		return nil, err
 	}
 	var puller vector.Puller
-	if format == "parquet" {
-		puller, err = parquetio.NewVectorReader(ctx, zctx, r, fields)
-	} else {
+	switch format {
+	case "csup":
 		puller, err = vngio.NewVectorReader(ctx, zctx, r, fields)
+	case "parquet":
+		puller, err = parquetio.NewVectorReader(ctx, zctx, r, fields)
+	default:
+		var zbufPuller zbuf.Puller
+		zbufPuller, err = e.Open(ctx, zctx, path, format, fields, nil)
+		puller = vam.NewDematerializer(zbufPuller)
 	}
 	if err != nil {
 		r.Close()
