@@ -634,6 +634,11 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 			Kind: "Cut",
 			Args: assignments,
 		})
+	case *ast.Distinct:
+		return append(seq, &dag.Distinct{
+			Kind: "Distinct",
+			Expr: a.semExpr(o.Expr),
+		})
 	case *ast.Drop:
 		args := a.semFields(o.Args)
 		if len(args) == 0 {

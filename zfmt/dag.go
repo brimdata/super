@@ -403,6 +403,10 @@ func (c *canonDAG) op(p dag.Op) {
 		c.next()
 		c.write("cut ")
 		c.assignments(p.Args)
+	case *dag.Distinct:
+		c.next()
+		c.write("distinct ")
+		c.expr(p.Expr, "")
 	case *dag.Drop:
 		c.next()
 		c.write("drop ")

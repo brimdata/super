@@ -38,6 +38,10 @@ type (
 		Kind string       `json:"kind" unpack:""`
 		Args []Assignment `json:"args"`
 	}
+	Distinct struct {
+		Kind string `json:"kind" unpack:""`
+		Expr Expr   `json:"expr"`
+	}
 	Drop struct {
 		Kind string `json:"kind" unpack:""`
 		Args []Expr `json:"args"`
@@ -315,6 +319,7 @@ func (*Scatter) OpNode()   {}
 func (*Switch) OpNode()    {}
 func (*Sort) OpNode()      {}
 func (*Cut) OpNode()       {}
+func (*Distinct) OpNode()  {}
 func (*Drop) OpNode()      {}
 func (*Head) OpNode()      {}
 func (*Tail) OpNode()      {}

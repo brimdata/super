@@ -283,6 +283,7 @@ Operator
   / SortOp
   / TopOp
   / CutOp
+  / DistinctOp
   / DropOp
   / HeadOp
   / TailOp
@@ -449,6 +450,15 @@ CutOp
         Kind: "Cut",
         Args: sliceOf[ast.Assignment](args),
         Loc: loc(c),
+      }, nil
+    }
+
+DistinctOp
+  = DISTINCT _ e:Expr {
+      return &ast.Distinct{
+          Kind: "Distinct",
+          Expr: e.(ast.Expr),
+          Loc: loc(c),
       }, nil
     }
 

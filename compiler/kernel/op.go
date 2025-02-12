@@ -19,6 +19,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/op"
 	"github.com/brimdata/super/runtime/sam/op/combine"
+	"github.com/brimdata/super/runtime/sam/op/distinct"
 	"github.com/brimdata/super/runtime/sam/op/explode"
 	"github.com/brimdata/super/runtime/sam/op/exprswitch"
 	"github.com/brimdata/super/runtime/sam/op/fork"
@@ -168,6 +169,13 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 		}
 		dropper := expr.NewDropper(b.zctx(), fields)
 		return op.NewApplier(b.rctx, parent, dropper, expr.Resetters{}), nil
+	case *dag.Distinct:
+		b.resetResetters()
+		e, err := b.compileExpr(v.Expr)
+		if err != nil {
+			return nil, err
+		}
+		return distinct.New(parent, e), nil
 	case *dag.Sort:
 		b.resetResetters()
 		var sortExprs []expr.SortEvaluator

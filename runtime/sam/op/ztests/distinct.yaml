@@ -1,0 +1,29 @@
+script: |
+  super -z -c 'from "1.jsup" | distinct x'
+  echo ===
+  super -z -c 'from "2.jsup" | distinct abs(this)'
+
+inputs:
+  - name: 1.jsup
+    data: |
+      {x:1}
+      {x:2}
+      {x:2}
+      {y:3}
+  - name: 2.jsup
+    data: |
+      1
+      -2
+      2
+      3
+
+outputs:
+  - name: stdout
+    data: |
+      {x:1}
+      {x:2}
+      {y:3}
+      ===
+      1
+      -2
+      3

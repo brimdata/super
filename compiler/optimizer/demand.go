@@ -18,6 +18,8 @@ func demandForOp(op dag.Op, downstream demand.Demand) demand.Demand {
 		return downstream
 	case *dag.Cut:
 		return demandForAssignments(op.Args, demand.None())
+	case *dag.Distinct:
+		return demand.All()
 	case *dag.Drop:
 		return downstream
 	case *dag.Explode:

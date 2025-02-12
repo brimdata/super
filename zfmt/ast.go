@@ -447,6 +447,10 @@ func (c *canon) op(p ast.Op) {
 		c.next()
 		c.write("cut ")
 		c.assignments(p.Args)
+	case *ast.Distinct:
+		c.next()
+		c.write("distinct ")
+		c.expr(p.Expr, "")
 	case *ast.Drop:
 		c.next()
 		c.write("drop ")

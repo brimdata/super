@@ -581,6 +581,11 @@ type (
 		Expr Expr   `json:"expr"`
 		Loc  `json:"loc"`
 	}
+	Distinct struct {
+		Kind string `json:"kind" unpack:""`
+		Expr Expr   `json:"expr"`
+		Loc  `json:"loc"`
+	}
 )
 
 type (
@@ -701,6 +706,7 @@ func (*Load) OpAST()         {}
 func (*Assert) OpAST()       {}
 func (*Output) OpAST()       {}
 func (*Debug) OpAST()        {}
+func (*Distinct) OpAST()     {}
 func (*Delete) OpAST()       {}
 
 // An Agg is an AST node that represents a aggregate function.  The Name
