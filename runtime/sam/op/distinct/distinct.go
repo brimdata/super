@@ -30,7 +30,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 	for {
 		batch, err := o.parent.Pull(done)
 		if batch == nil || err != nil {
-			o.block = nil
+			clear(o.block)
 			return nil, err
 		}
 		vals := batch.Values()

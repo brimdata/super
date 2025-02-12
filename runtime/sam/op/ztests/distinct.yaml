@@ -2,6 +2,9 @@ script: |
   super -z -c 'from "1.jsup" | distinct x'
   echo ===
   super -z -c 'from "2.jsup" | distinct abs(this)'
+  echo ===
+  super -z -c 'from "3.jsup" | over this => (distinct this | count())'
+
 
 inputs:
   - name: 1.jsup
@@ -10,12 +13,17 @@ inputs:
       {x:2}
       {x:2}
       {y:3}
+      {y:3}(=named)
   - name: 2.jsup
     data: |
       1
       -2
       2
       3
+  - name: 3.jsup
+    data: |
+      [1,2,2,3]
+      [2,2,3]
 
 outputs:
   - name: stdout
@@ -27,3 +35,6 @@ outputs:
       1
       -2
       3
+      ===
+      3(uint64)
+      2(uint64)
