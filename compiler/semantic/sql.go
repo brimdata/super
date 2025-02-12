@@ -89,7 +89,7 @@ func (a *analyzer) semSelect(sel *ast.Select, seq dag.Seq) (dag.Seq, schema) {
 		seq = append(seq, dag.NewFilter(a.semExprSchema(sch, sel.Where)))
 	}
 	if sel.Distinct {
-		seq = a.semDistinct(seq)
+		seq = a.semDistinct(pathOf("out"), seq)
 	}
 	return seq, sch
 }
@@ -122,24 +122,16 @@ func (a *analyzer) semSelectValue(sel *ast.Select, sch schema, seq dag.Seq) (dag
 	})
 	//XXX FIX and ADD ZTEST
 	if sel.Distinct {
-		seq = a.semDistinct(seq)
+		seq = a.semDistinct(pathOf("this"), seq)
 	}
 	//XXX should have schemaAnon for record expression
 	return seq, &schemaDynamic{}
 }
 
-func (a *analyzer) semDistinct(seq dag.Seq) dag.Seq {
-	seq = append(seq, &dag.Sort{
-		Kind: "Sort",
-		Args: []dag.SortExpr{
-			{
-				Key:   &dag.This{Kind: "This"},
-				Order: order.Asc,
-			},
-		},
-	})
-	return append(seq, &dag.Uniq{
-		Kind: "Uniq",
+func (a *analyzer) semDistinct(e dag.Expr, seq dag.Seq) dag.Seq {
+	return append(seq, &dag.Distinct{
+		Kind: "Distinct",
+		Expr: e,
 	})
 }
 
