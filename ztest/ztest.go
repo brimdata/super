@@ -553,6 +553,9 @@ func runvec(zedProgram string, input string, outputFlags []string) (string, erro
 	if err := flags.Parse(outputFlags); err != nil {
 		return "", err
 	}
+	if err := outflags.Init(); err != nil {
+		return "", err
+	}
 	zctx := super.NewContext()
 	rctx := runtime.NewContext(context.Background(), zctx)
 	r := zsonio.NewReader(zctx, strings.NewReader(input))

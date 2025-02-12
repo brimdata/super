@@ -1,6 +1,7 @@
 package function
 
 import (
+	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
@@ -16,17 +17,12 @@ type ParseURI struct {
 	marshaler *zson.MarshalZNGContext
 }
 
+func NewParseURI(zctx *super.Context) *ParseURI {
+	return &ParseURI{zctx, zson.NewZNGMarshalerWithContext(zctx)}
+}
+
 func (p *ParseURI) Call(_ super.Allocator, args []super.Value) super.Value {
-	in := args[0]
-	if !in.IsString() || in.IsNull() {
-		return p.zctx.WrapError("parse_uri: non-empty string arg required", in)
-	}
-	s := super.DecodeString(in.Bytes())
-	u, err := url.Parse(s)
-	if err != nil {
-		return p.zctx.WrapError("parse_uri: "+err.Error(), in)
-	}
-	var v struct {
+	type uri struct {
 		Scheme   *string    `zed:"scheme"`
 		Opaque   *string    `zed:"opaque"`
 		User     *string    `zed:"user"`
@@ -37,6 +33,23 @@ func (p *ParseURI) Call(_ super.Allocator, args []super.Value) super.Value {
 		Query    url.Values `zed:"query"`
 		Fragment *string    `zed:"fragment"`
 	}
+	in := args[0]
+	if !in.IsString() {
+		return p.zctx.WrapError("parse_uri: string arg required", in)
+	}
+	if in.IsNull() {
+		out, err := p.marshaler.Marshal((*uri)(nil))
+		if err != nil {
+			panic(err)
+		}
+		return out
+	}
+	s := super.DecodeString(in.Bytes())
+	u, err := url.Parse(s)
+	if err != nil {
+		return p.zctx.WrapError("parse_uri: "+err.Error(), in)
+	}
+	var v uri
 	if u.Scheme != "" {
 		v.Scheme = &u.Scheme
 	}
@@ -55,7 +68,7 @@ func (p *ParseURI) Call(_ super.Allocator, args []super.Value) super.Value {
 	if portString := u.Port(); portString != "" {
 		u64, err := strconv.ParseUint(portString, 10, 16)
 		if err != nil {
-			return p.zctx.WrapError("parse_uri: invalid port: "+portString, in)
+			return p.zctx.WrapError(fmt.Sprintf("parse_uri: invalid port %q", portString), in)
 		}
 		u16 := uint16(u64)
 		v.Port = &u16

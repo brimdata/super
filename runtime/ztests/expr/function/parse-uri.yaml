@@ -1,5 +1,6 @@
-zed: |
-  uri := parse_uri(s)
+zed: uri := parse_uri(s)
+
+vector: true
 
 input: |
   {s:""}
@@ -69,16 +70,13 @@ output: |
   {
     s: 1,
     uri: error({
-      message: "parse_uri: non-empty string arg required",
+      message: "parse_uri: string arg required",
       on: 1
     })
   }
   {
     s: null (string),
-    uri: error({
-      message: "parse_uri: non-empty string arg required",
-      on: null (string)
-    })
+    uri: null ({scheme:string,opaque:string,user:string,password:string,host:string,port:uint16,path:string,query:|{string:[string]}|,fragment:string})
   }
   {
     s: ":no-scheme",
@@ -90,7 +88,7 @@ output: |
   {
     s: "scheme://bad-port:1234567",
     uri: error({
-      message: "parse_uri: invalid port: 1234567",
+      message: "parse_uri: invalid port \"1234567\"",
       on: "scheme://bad-port:1234567"
     })
   }

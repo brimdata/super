@@ -7,7 +7,6 @@ import (
 	"github.com/brimdata/super/pkg/anymath"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/zson"
 )
 
 var (
@@ -119,7 +118,7 @@ func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path,
 		argmin = 0
 		f = &Now{}
 	case "parse_uri":
-		f = &ParseURI{zctx: zctx, marshaler: zson.NewZNGMarshalerWithContext(zctx)}
+		f = NewParseURI(zctx)
 	case "parse_zson":
 		f = newParseZSON(zctx)
 	case "pow":
