@@ -2,6 +2,7 @@ package vam
 
 import (
 	"bytes"
+	"sync"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
@@ -47,15 +48,18 @@ func (m *Materializer) Pull(done bool) (zbuf.Batch, error) {
 }
 
 type dematerializer struct {
+	mu     sync.Mutex
 	parent zbuf.Puller
 }
 
 func NewDematerializer(p zbuf.Puller) vector.Puller {
-	return &dematerializer{p}
+	return &dematerializer{parent: p}
 }
 
 func (d *dematerializer) Pull(done bool) (vector.Any, error) {
+	d.mu.Lock()
 	batch, err := d.parent.Pull(done)
+	d.mu.Unlock()
 	if batch == nil || err != nil {
 		return nil, err
 	}
