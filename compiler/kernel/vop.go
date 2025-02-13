@@ -6,7 +6,6 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/compiler/optimizer"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/vam"
@@ -247,15 +246,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		}
 		return vamop.NewSort(b.rctx, parent, sortExprs, o.NullsFirst, o.Reverse, b.resetters), nil
 	case *dag.Summarize:
-		// XXX This only works if the key is a string which is unknowable at
-		// compile time.
-		// if name, ok := optimizer.IsCountByString(o); ok {
-		// 	return summarize.NewCountByString(b.zctx(), parent, name), nil
-		if name, ok := optimizer.IsSum(o); ok {
-			return summarize.NewSum(b.zctx(), parent, name), nil
-		} else {
-			return b.compileVamSummarize(o, parent)
-		}
+		return b.compileVamSummarize(o, parent)
 	case *dag.Tail:
 		return vamop.NewTail(parent, o.Count), nil
 	case *dag.Yield:

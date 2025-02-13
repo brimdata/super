@@ -38,19 +38,17 @@ type aggRow struct {
 
 func (s *superTable) update(keys []vector.Any, args []vector.Any) {
 	m := make(map[string][]uint32)
-	var n uint32
 	if len(keys) > 0 {
-		n = keys[0].Len()
-	} else {
-		n = args[0].Len()
-	}
-	var keyBytes []byte
-	for slot := uint32(0); slot < n; slot++ {
-		keyBytes = keyBytes[:0]
-		for _, key := range keys {
-			keyBytes = key.AppendKey(keyBytes, slot)
+		var keyBytes []byte
+		for slot := range keys[0].Len() {
+			keyBytes = keyBytes[:0]
+			for _, key := range keys {
+				keyBytes = key.AppendKey(keyBytes, slot)
+			}
+			m[string(keyBytes)] = append(m[string(keyBytes)], slot)
 		}
-		m[string(keyBytes)] = append(m[string(keyBytes)], slot)
+	} else {
+		m[""] = nil
 	}
 	for rowKey, index := range m {
 		id, ok := s.table[rowKey]
@@ -272,83 +270,4 @@ func (c *countByString) materialize() vector.Any {
 	keyVec := vector.NewString(offs, bytes, nulls)
 	countVec := vector.NewUint(super.TypeUint64, counts, nil)
 	return c.builder.New([]vector.Any{keyVec, countVec}, nil)
-}
-
-type Sum struct {
-	parent vector.Puller
-	zctx   *super.Context
-	field  expr.Evaluator
-	name   string
-	sum    int64
-	done   bool
-}
-
-func NewSum(zctx *super.Context, parent vector.Puller, name string) *Sum {
-	return &Sum{
-		parent: parent,
-		zctx:   zctx,
-		field:  expr.NewDotExpr(zctx, &expr.This{}, name),
-		name:   name,
-	}
-}
-
-func (c *Sum) Pull(done bool) (vector.Any, error) {
-	if done {
-		_, err := c.parent.Pull(done)
-		return nil, err
-	}
-	if c.done {
-		return nil, nil
-	}
-	for {
-		//XXX check context Done
-		// XXX PullVec returns a single vector and enumerates through the
-		// different underlying types that match a particular projection
-		vec, err := c.parent.Pull(false)
-		if err != nil {
-			return nil, err
-		}
-		if vec == nil {
-			c.done = true
-			return c.materialize(c.zctx, c.name), nil
-		}
-		c.update(vec)
-	}
-}
-
-func (c *Sum) update(vec vector.Any) {
-	if vec, ok := vec.(*vector.Dynamic); ok {
-		for _, vec := range vec.Values {
-			c.update(vec)
-		}
-		return
-	}
-	switch vec := c.field.Eval(vec).(type) {
-	case *vector.Int:
-		for _, x := range vec.Values {
-			c.sum += x
-		}
-	case *vector.Uint:
-		for _, x := range vec.Values {
-			c.sum += int64(x)
-		}
-	case *vector.Dict:
-		switch number := vec.Any.(type) {
-		case *vector.Int:
-			for k, val := range number.Values {
-				c.sum += val * int64(vec.Counts[k])
-			}
-		case *vector.Uint:
-			for k, val := range number.Values {
-				c.sum += int64(val) * int64(vec.Counts[k])
-			}
-		}
-	}
-}
-
-func (c *Sum) materialize(zctx *super.Context, name string) *vector.Record {
-	typ := zctx.MustLookupTypeRecord([]super.Field{
-		{Type: super.TypeInt64, Name: "sum"},
-	})
-	return vector.NewRecord(typ, []vector.Any{vector.NewInt(super.TypeInt64, []int64{c.sum}, nil)}, 1, nil)
 }
