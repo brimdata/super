@@ -126,7 +126,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -327,6 +326,8 @@ func (z *ZTest) ShouldSkip(path string) string {
 	switch {
 	case z.Script != "" && path == "":
 		return "script test on in-process run"
+	case z.Zed != "" && path != "":
+		return "in-process test on script run"
 	case z.Skip != "":
 		return z.Skip
 	case z.Tag != "" && z.Tag != os.Getenv("ZTEST_TAG"):
@@ -342,7 +343,7 @@ func (z *ZTest) RunScript(shellPath, testDir, tempDir string) error {
 	return runsh(shellPath, testDir, tempDir, z)
 }
 
-func (z *ZTest) RunInternal(path string) error {
+func (z *ZTest) RunInternal() error {
 	if err := z.check(); err != nil {
 		return fmt.Errorf("bad yaml format: %w", err)
 	}
@@ -356,13 +357,13 @@ func (z *ZTest) RunInternal(path string) error {
 		if verr != nil {
 			verr = fmt.Errorf("=== vector ===\n%w", verr)
 		}
-		serr := z.diffInternal(runzq(path, z.Zed, z.Input, outputFlags, inputFlags))
+		serr := z.diffInternal(runzq(z.Zed, z.Input, outputFlags, inputFlags))
 		if serr != nil {
 			serr = fmt.Errorf("=== sequence ===\n%w", serr)
 		}
 		return errors.Join(verr, serr)
 	}
-	return z.diffInternal(runzq(path, z.Zed, z.Input, outputFlags, inputFlags))
+	return z.diffInternal(runzq(z.Zed, z.Input, outputFlags, inputFlags))
 }
 
 func (z *ZTest) diffInternal(out string, err error) error {
@@ -389,7 +390,7 @@ func (z *ZTest) Run(t *testing.T, path, filename string) {
 	if z.Script != "" {
 		err = z.RunScript(path, filepath.Dir(filename), t.TempDir())
 	} else {
-		err = z.RunInternal(path)
+		err = z.RunInternal()
 	}
 	if err != nil {
 		t.Fatalf("%s: %s", filename, err)
@@ -464,30 +465,8 @@ func runsh(path, testDir, tempDir string, zt *ZTest) error {
 
 // runzq runs zedProgram over input and returns the output.  input
 // may be in any format recognized by "zq -i auto" and may be gzip-compressed.
-// outputFlags may contain any flags accepted by cli/outputflags.Flags.  If path
-// is empty, the program runs in the current process.  If path is not empty, it
-// specifies a command search path used to find a zq executable to run the
-// program.
-func runzq(path, zedProgram, input string, outputFlags []string, inputFlags []string) (string, error) {
-	var outbuf bytes.Buffer
-	if path != "" {
-		super, err := lookupSuper(path)
-		if err != nil {
-			return "", err
-		}
-		flags := append(outputFlags, inputFlags...)
-		args := append(flags, []string{"-c", zedProgram, "-"}...)
-		cmd := exec.Command(super, args...)
-		cmd.Stdin = strings.NewReader(input)
-		cmd.Stdout = &outbuf
-		var errbuf bytes.Buffer
-		cmd.Stderr = &errbuf
-		err = cmd.Run()
-		if errbuf.Len() > 0 {
-			err = errors.New(errbuf.String())
-		}
-		return outbuf.String(), err
-	}
+// outputFlags may contain any flags accepted by cli/outputflags.Flags.
+func runzq(zedProgram, input string, outputFlags []string, inputFlags []string) (string, error) {
 	ast, err := parser.ParseQuery(zedProgram)
 	if err != nil {
 		return "", err
@@ -517,6 +496,7 @@ func runzq(path, zedProgram, input string, outputFlags []string, inputFlags []st
 	if err := outflags.Init(); err != nil {
 		return "", err
 	}
+	var outbuf bytes.Buffer
 	zw, err := anyio.NewWriter(zio.NopCloser(&outbuf), outflags.Options())
 	if err != nil {
 		return "", err
@@ -532,18 +512,6 @@ func runzq(path, zedProgram, input string, outputFlags []string, inputFlags []st
 		err = err2
 	}
 	return outbuf.String(), err
-}
-
-func lookupSuper(path string) (string, error) {
-	var super string
-	var err error
-	for _, dir := range filepath.SplitList(path) {
-		super, err = exec.LookPath(filepath.Join(dir, "super"))
-		if err == nil {
-			return super, nil
-		}
-	}
-	return "", err
 }
 
 func runvec(zedProgram string, input string, outputFlags []string) (string, error) {
