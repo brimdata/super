@@ -1,0 +1,15 @@
+script: |
+  super -z -c "select sum(a) s, b, max(a+1) as m from t.json group by b having max(a)/m > 0.7"
+
+inputs:
+  - name: t.json
+    data: |
+      {"a":1,"b":1}
+      {"a":2,"b":1}
+      {"a":3,"b":2}
+      {"a":4,"b":2}
+
+outputs:
+  - name: stdout
+    data: |
+      {s:7,b:2,m:5}

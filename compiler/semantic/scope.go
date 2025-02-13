@@ -287,8 +287,8 @@ func derefSchema(sch schema, seq dag.Seq, name string) (dag.Seq, schema) {
 		}
 		return seq, sch
 	case *schemaAnon:
-		//XXX isn't anon a dynamic with name ""
-		panic("XXX this shouldn't happen")
+		//XXX
+		return seq, sch
 	case *schemaSelect:
 		// XXX
 		if name == "" {
@@ -309,7 +309,7 @@ func derefSchema(sch schema, seq dag.Seq, name string) (dag.Seq, schema) {
 		}
 		return append(seq, &dag.Yield{
 			Kind:  "Yield",
-			Exprs: []dag.Expr{&dag.This{Kind: "This", Path: []string{"out"}}},
+			Exprs: []dag.Expr{pathOf("out")},
 		}), outSchema
 	case *schemaJoin:
 		// leave left/right join legs in place

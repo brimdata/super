@@ -14,6 +14,7 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/zfmt"
 	"github.com/brimdata/super/zson"
+	"github.com/kr/pretty"
 )
 
 // Analyze a SQL select expression which may have arbitrary nested subqueries
@@ -25,7 +26,12 @@ import (
 // and also sort by the out elements.  It's up to the caller to unwrap the in/out
 // record when returning to pipeline context.
 func (a *analyzer) semSelect(sel *ast.Select, seq dag.Seq) (dag.Seq, schema) {
-	sch := &schemaSelect{}
+	if len(sel.Selection.Args) == 0 {
+		a.error(sel, errors.New("SELECT clause has no selection"))
+		return seq, badSchema()
+	}
+	selSchema := &schemaSelect{}
+	sch := schema(selSchema)
 	//XXX if we hit a lateral join in the from clause we need to refer back to this schema
 	if sel.From != nil {
 		off := len(seq)
@@ -45,7 +51,7 @@ func (a *analyzer) semSelect(sel *ast.Select, seq dag.Seq) (dag.Seq, schema) {
 				return append(seq, badOp()), badSchema()
 			}
 		}
-		sch.in = from
+		selSchema.in = from
 		// Wrap input as the "in" field of the select record with "yield {in:this}"
 		if !sel.Value {
 			seq = yieldExpr(wrapThis("in"), seq)
@@ -55,41 +61,48 @@ func (a *analyzer) semSelect(sel *ast.Select, seq dag.Seq) (dag.Seq, schema) {
 		// XXX we need to handle recursive cases where the select is a
 		// correlated subquery.
 		// XXX we should figure out if this is a null input and set up a null schema?
-		sch.in = &schemaDynamic{}
+		selSchema.in = &schemaDynamic{}
+		seq = yieldExpr(wrapThis("in"), seq)
 	}
 	if sel.Value {
-		return a.semSelectValue(sel, sch.in, seq)
+		return a.semSelectValue(sel, selSchema.in, seq)
 	}
-	proj, ok := a.semProjection(sch, sel.Selection.Args)
+	proj, ok := a.semProjection(selSchema, sel.Selection.Args)
 	if !ok {
 		return dag.Seq{badOp()}, badSchema()
 	}
+	pretty.Println("CHECK GROUP BY", sel.GroupBy)
 	if sel.GroupBy != nil {
 		if proj.hasStar() {
 			a.error(sel, errors.New("aggregate mixed with *-selector not yet supported"))
 			return append(seq, badOp()), badSchema()
 		}
-		seq, ok = a.semGroupBy(sch, sel.GroupBy, proj, seq)
-		if !ok {
+		if sel.Where != nil {
+			seq = append(seq, dag.NewFilter(a.semExprSchema(sch, sel.Where)))
+		}
+		seq, sch = a.semGroupBy(sch, sel.GroupBy, proj, seq)
+		if sch == nil {
 			return seq, badSchema()
 		}
-		//XXX need having schema... can have mix of agg output and unselected group-by keys
-		// maybe just another in/out as order can also reach into unselected group-by keys
 		if sel.Having != nil {
-			seq = append(seq, dag.NewFilter(a.semExpr(sel.Having)))
+			seq = append(seq, dag.NewFilter(a.semExprSchema(sch, sel.Having)))
 		}
-	} else if sel.Selection.Args != nil {
+		pretty.Println("SEQ", seq)
+	} else {
 		if sel.Having != nil {
 			a.error(sel.Having, errors.New("HAVING clause used without GROUP BY"))
 			return append(seq, badOp()), badSchema()
 		}
-		seq = a.convertProjection(sel.Selection.Loc, proj, seq, sch)
-	}
-	if sel.Where != nil {
-		seq = append(seq, dag.NewFilter(a.semExprSchema(sch, sel.Where)))
+		if len(proj.aggs()) == 0 {
+			seq, sch = a.convertProjection(sel.Selection.Loc, proj, seq, selSchema)
+			if sel.Where != nil {
+				seq = append(seq, dag.NewFilter(a.semExprSchema(sch, sel.Where)))
+			}
+		}
+
 	}
 	if sel.Distinct {
-		seq = a.semDistinct(pathOf("out"), seq)
+		seq = a.semDistinct(pathOf("out"), seq) //XXX doesn't work for group by
 	}
 	return seq, sch
 }
@@ -336,7 +349,7 @@ func hasNullsFirst(exprs []ast.SortExpr) bool {
 	return false
 }
 
-func (a *analyzer) convertProjection(loc ast.Node, proj projection, seq dag.Seq, sch *schemaSelect) dag.Seq {
+func (a *analyzer) convertProjection(loc ast.Node, proj projection, seq dag.Seq, sch *schemaSelect) (dag.Seq, schema) {
 	// This is a straight select without a group-by.
 	// If all the expressions are aggregators, then we build a group-by.
 	// If it's mixed, we return an error.  Otherwise, we yield a record.
@@ -347,31 +360,33 @@ func (a *analyzer) convertProjection(loc ast.Node, proj projection, seq dag.Seq,
 		}
 	}
 	if nagg == 0 {
-		return proj.yieldScalars(seq, sch)
+		return proj.yieldScalars(seq, sch), sch
 	}
 	if nagg != len(proj) {
 		a.error(loc, errors.New("cannot mix aggregations and non-aggregations without a GROUP BY"))
-		return seq
+		return seq, badSchema()
 	}
 	// This projection has agg funcs but no group-by keys and we've
 	// confirmed that all the columns are agg funcs, so build a simple
 	// Summarize operator without group-by keys.
 	var assignments []dag.Assignment
+	var cols []string
 	for _, col := range proj {
 		a := dag.Assignment{
 			Kind: "Assignment",
 			LHS:  &dag.This{Kind: "This", Path: field.Path{col.name}},
 			RHS:  col.agg,
 		}
+		cols = append(cols, col.name)
 		assignments = append(assignments, a)
 	}
 	return append(seq, &dag.Summarize{
 		Kind: "Summarize",
 		Aggs: assignments,
-	})
+	}), &schemaAnon{columns: cols}
 }
 
-func (a *analyzer) semGroupBy(s schema, exprs []ast.Expr, proj projection, seq dag.Seq) (dag.Seq, bool) {
+func (a *analyzer) semGroupBy(s schema, exprs []ast.Expr, proj projection, seq dag.Seq) (dag.Seq, schema) {
 	// Unlike the original zed runtime, SQL group-by elements do not have explicit
 	// keys and may just be a single identifier or an expression.  We don't quite
 	// capture the correct scoping here but this is a start before we implement
@@ -383,7 +398,7 @@ func (a *analyzer) semGroupBy(s schema, exprs []ast.Expr, proj projection, seq d
 	for _, e := range exprs {
 		this, ok := a.semGroupByKey(s, e)
 		if !ok {
-			return nil, false
+			return nil, nil
 		}
 		paths = append(paths, this.Path)
 	}
@@ -398,9 +413,10 @@ func (a *analyzer) semGroupBy(s schema, exprs []ast.Expr, proj projection, seq d
 		}
 		if !(field.Path{col.name}).In(paths) {
 			a.error(exprs[k], fmt.Errorf("'%s': selected expression is missing from GROUP BY clause (and is not an aggregation)", path))
-			return nil, false
+			return nil, nil
 		}
 	}
+	sch := &schemaAnon{}
 	// Now that the selection and keys have been checked, build the
 	// key expressions from the scalars of the select and build the
 	// aggregators from the aggregation functions present in the select clause.
@@ -411,6 +427,7 @@ func (a *analyzer) semGroupBy(s schema, exprs []ast.Expr, proj projection, seq d
 			LHS:  &dag.This{Kind: "This", Path: field.Path{col.name}},
 			RHS:  col.scalar,
 		})
+		sch.columns = append(sch.columns, col.name)
 	}
 	var aggExprs []dag.Assignment
 	for _, col := range proj.aggs() {
@@ -419,12 +436,13 @@ func (a *analyzer) semGroupBy(s schema, exprs []ast.Expr, proj projection, seq d
 			LHS:  &dag.This{Kind: "This", Path: field.Path{col.name}},
 			RHS:  col.agg,
 		})
+		sch.columns = append(sch.columns, col.name)
 	}
 	return append(seq, &dag.Summarize{
 		Kind: "Summarize",
 		Keys: keyExprs,
 		Aggs: aggExprs,
-	}), true
+	}), sch
 }
 
 func (a *analyzer) semProjection(sch *schemaSelect, args []ast.AsExpr) (projection, bool) {
