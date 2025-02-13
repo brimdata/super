@@ -1,6 +1,6 @@
 {
-  "name": "zed",
-  "version": "0.33.0-dev",
+  "name": "super",
+  "version": "0.0.1-dev",
   "scripts": {
     "prepack": "make build"
   },
@@ -10,10 +10,8 @@
   ],
   "publishConfig": {
     "executableFiles": [
-      "./dist/zq",
-      "./dist/zq.exe",
-      "./dist/zed",
-      "./dist/zed.exe"
+      "./dist/super",
+      "./dist/super.exe",
     ]
   },
   "directories": {
