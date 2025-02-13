@@ -11,7 +11,7 @@
   "publishConfig": {
     "executableFiles": [
       "./dist/super",
-      "./dist/super.exe",
+      "./dist/super.exe"
     ]
   },
   "directories": {
