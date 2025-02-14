@@ -637,6 +637,12 @@ error("divide by zero")
 3.3333333333333335
 ```
 
+To run an example in a shell rather than the browser, clicking the "CLI" tab
+will format it as a `super` command line. Hovering your mouse pointer over the
+panel will reveal a "COPY" button that can be clicked to bring the contents
+into your paste buffer so you can easily transfer it into a Bash (or similar)
+shell for execution.
+
 The language documentation and [tutorials directory](../tutorials/_index.md)
 have many examples, but here are a few more simple `super` use cases.
 
