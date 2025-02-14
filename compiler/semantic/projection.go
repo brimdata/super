@@ -1,10 +1,21 @@
 package semantic
 
 import (
-	"github.com/brimdata/super/compiler/ast"
+	"fmt"
+
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/pkg/field"
 )
+
+// For aggs, we have the following structure:
+//
+// {in:input_rel}
+// {in:<input>,out:{c0:<expr>}}
+// {in:<input>,out:{c0:<expr>,c1:<expr>}}
+// where(in,out)
+// summarize f1_1:=fn(<expr>),k1:=<expr>,k2:<expr>...,f1_k:=fn(<e>),h group keys, h agg funcs
+// having = filter(haggs, group-keys)
+// anon{projName1:<key or func>}, etc... in/out gone
 
 type schema interface {
 	Name() string
@@ -47,63 +58,78 @@ func badSchema() schema {
 // a column is a scalar expression or an aggregation by looking up the function
 // name and seeing if it's an aggregator or not.  We also infer the column
 // names so we can do SQL error checking relating the selections to the group-by keys.
-type column struct {
+type column interface {
+	Name() string
+}
+
+type scalarExpr struct {
+	name string
+	expr dag.Expr
+}
+
+func (s *scalarExpr) Name() string { return s.name }
+
+type aggExpr struct {
 	name   string
-	agg    *dag.Agg
-	scalar dag.Expr
+	prefix string
+	aggs   []*dag.Agg
+	expr   dag.Expr
 }
 
-func (c column) isStar() bool {
-	return c.agg == nil && c.scalar == nil
-}
+func (a *aggExpr) Name() string { return a.name }
 
-func isStar(a ast.AsExpr) bool {
-	return a.Expr == nil && a.ID == nil
-}
+func (a *aggExpr) TempName(col, off int) string { return fmt.Sprintf("%s%d_%d", a.prefix, col, off) }
+
+type starExpr struct{}
+
+func (*starExpr) Name() string { return "" }
 
 type projection []column
 
 func (p projection) hasStar() bool {
 	for _, col := range p {
-		if col.isStar() {
+		if _, ok := col.(*starExpr); ok {
 			return true
 		}
 	}
 	return false
 }
 
-// Return the scalar paths that are in the selection.
-func (p projection) paths() field.List {
-	var fields field.List
+func (p projection) aggExprs() []*aggExpr {
+	aggs := make([]*aggExpr, 0, len(p))
 	for _, col := range p {
-		if col.scalar != nil {
-			if this, ok := col.scalar.(*dag.This); ok {
-				fields = append(fields, this.Path)
-			}
-		}
-	}
-	return fields
-}
-
-func (p projection) aggs() projection {
-	var aggs projection
-	for _, col := range p {
-		if col.agg != nil {
-			aggs = append(aggs, col)
+		if a, ok := col.(*aggExpr); ok {
+			aggs = append(aggs, a)
 		}
 	}
 	return aggs
 }
 
-func (p projection) scalars() projection {
-	var scalars projection
+// Return the scalar paths that are in the selection.
+func (p projection) paths() field.List {
+	var fields field.List
+	for _, col := range p.scalarExprs() {
+		if this, ok := col.expr.(*dag.This); ok {
+			fields = append(fields, this.Path)
+		}
+	}
+	return fields
+}
+
+func (p projection) scalarExprs() []*scalarExpr {
+	scalars := make([]*scalarExpr, 0, len(p))
 	for _, col := range p {
-		if col.agg == nil {
-			scalars = append(scalars, col)
+		if s, ok := col.(*scalarExpr); ok {
+			scalars = append(scalars, s)
 		}
 	}
 	return scalars
 }
+
+// For each aggfunc, we'll gen fk:=f()
+// For each aggexpr as v, we'll generate v:=expr(fk,...) from the aggs
+// For the having expr, we'll filter on predicate after table gen'd,
+// For each having aggfun, we'll gen hk:=f()
 
 func (p projection) yieldScalars(seq dag.Seq, sch *schemaSelect) dag.Seq {
 	if len(p) == 0 {
@@ -172,4 +198,106 @@ func unravel(schema schema, prefix field.Path) []field.Path {
 		out := unravel(schema.left, append(prefix, "left"))
 		return append(out, unravel(schema.right, append(prefix, "right"))...)
 	}
+}
+
+//XXX need to detect mixed aggfunc calls with scalars that aren't
+// in the input to an aggfunc... two traversals?  but we should let
+// path refs to aggfunc results or group-by keys in...
+// so traversal should detect scalar terms that aren't in group-by
+// (or if group-by clause not present or we have group-by all we can
+// infer they are group-by keys)
+
+//XXX come up for tests for all these cases
+
+func (a *aggExpr) build(colno int, e dag.Expr) dag.Expr {
+	switch e := e.(type) {
+	case nil:
+		return e
+	case *dag.Agg:
+		//XXX don't do anything to input param or where clause
+		// XXX need tests where we gen refs to non-existent things because
+		// of scoping, e.g., select max(x) m, min(y) / m
+		off := len(a.aggs)
+		a.aggs = append(a.aggs, e)
+		return pathOf(a.TempName(colno, off))
+	case *dag.ArrayExpr:
+		for _, elem := range e.Elems {
+			switch elem := elem.(type) {
+			case *dag.Spread:
+				elem.Expr = a.build(colno, elem.Expr)
+			case *dag.VectorValue:
+				elem.Expr = a.build(colno, elem.Expr)
+			default:
+				panic(elem)
+			}
+		}
+	case *dag.BinaryExpr:
+		e.LHS = a.build(colno, e.LHS)
+		e.RHS = a.build(colno, e.RHS)
+	case *dag.Call:
+		for k, arg := range e.Args {
+			e.Args[k] = a.build(colno, arg)
+		}
+	case *dag.Conditional:
+		e.Cond = a.build(colno, e.Cond)
+		e.Then = a.build(colno, e.Then)
+		e.Else = a.build(colno, e.Else)
+	case *dag.Dot:
+		e.LHS = a.build(colno, e.LHS)
+	case *dag.Func:
+		// XXX
+	case *dag.IndexExpr:
+		e.Expr = a.build(colno, e.Expr)
+		e.Index = a.build(colno, e.Index)
+	case *dag.IsNullExpr:
+		e.Expr = a.build(colno, e.Expr)
+	case *dag.Literal:
+	case *dag.MapCall:
+		e.Expr = a.build(colno, e.Expr)
+	case *dag.MapExpr:
+		for _, ent := range e.Entries {
+			ent.Key = a.build(colno, ent.Key)
+			ent.Value = a.build(colno, ent.Value)
+		}
+	case *dag.OverExpr:
+		panic("TBD ERROR") //XXX
+	case *dag.RecordExpr:
+		for _, elem := range e.Elems {
+			switch elem := elem.(type) {
+			case *dag.Field:
+				elem.Value = a.build(colno, elem.Value)
+			case *dag.Spread:
+				elem.Expr = a.build(colno, elem.Expr)
+			default:
+				panic(elem)
+			}
+		}
+		return d
+	case *dag.RegexpMatch:
+		e.Expr = a.build(colno, e.Expr)
+	case *dag.RegexpSearch:
+		e.Expr = a.build(colno, e.Expr)
+	case *dag.Search:
+		e.Expr = a.build(colno, e.Expr)
+	case *dag.SetExpr:
+		for _, elem := range e.Elems {
+			switch elem := elem.(type) {
+			case *dag.Spread:
+				elem.Expr = a.build(colno, elem.Expr)
+			case *dag.VectorValue:
+				elem.Expr = a.build(colno, elem.Expr)
+			default:
+				panic(elem)
+			}
+		}
+	case *dag.SliceExpr:
+		e.Expr = a.build(colno, e.Expr)
+		e.From = a.build(colno, e.From)
+		e.To = a.build(colno, e.To)
+	case *dag.This:
+	case *dag.UnaryExpr:
+		e.Operand = a.build(colno, e.Operand)
+	case *dag.Var:
+	}
+	return e
 }

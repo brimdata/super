@@ -94,12 +94,16 @@ func (a *analyzer) semSelect(sel *ast.Select, seq dag.Seq) (dag.Seq, schema) {
 			return append(seq, badOp()), badSchema()
 		}
 		if len(proj.aggs()) == 0 {
+			seq = proj.yieldScalars(seq, selSchema)
+			if sel.Where != nil {
+				seq = append(seq, dag.NewFilter(a.semExprSchema(sch, sel.Where)))
+			}
+		} else {
 			seq, sch = a.convertProjection(sel.Selection.Loc, proj, seq, selSchema)
 			if sel.Where != nil {
 				seq = append(seq, dag.NewFilter(a.semExprSchema(sch, sel.Where)))
 			}
 		}
-
 	}
 	if sel.Distinct {
 		seq = a.semDistinct(pathOf("out"), seq) //XXX doesn't work for group by
@@ -353,16 +357,11 @@ func (a *analyzer) convertProjection(loc ast.Node, proj projection, seq dag.Seq,
 	// This is a straight select without a group-by.
 	// If all the expressions are aggregators, then we build a group-by.
 	// If it's mixed, we return an error.  Otherwise, we yield a record.
-	var nagg int
-	for _, p := range proj {
-		if p.agg != nil {
-			nagg++
-		}
-	}
-	if nagg == 0 {
+	aggs := proj.aggExprs()
+	if len(aggs) == 0 {
 		return proj.yieldScalars(seq, sch), sch
 	}
-	if nagg != len(proj) {
+	if len(aggs) != len(proj) {
 		a.error(loc, errors.New("cannot mix aggregations and non-aggregations without a GROUP BY"))
 		return seq, badSchema()
 	}
@@ -371,7 +370,7 @@ func (a *analyzer) convertProjection(loc ast.Node, proj projection, seq dag.Seq,
 	// Summarize operator without group-by keys.
 	var assignments []dag.Assignment
 	var cols []string
-	for _, col := range proj {
+	for _, col := range aggs {
 		a := dag.Assignment{
 			Kind: "Assignment",
 			LHS:  &dag.This{Kind: "This", Path: field.Path{col.name}},
@@ -387,6 +386,7 @@ func (a *analyzer) convertProjection(loc ast.Node, proj projection, seq dag.Seq,
 }
 
 func (a *analyzer) semGroupBy(s schema, exprs []ast.Expr, proj projection, seq dag.Seq) (dag.Seq, schema) {
+	//XXX update comment
 	// Unlike the original zed runtime, SQL group-by elements do not have explicit
 	// keys and may just be a single identifier or an expression.  We don't quite
 	// capture the correct scoping here but this is a start before we implement
@@ -396,7 +396,7 @@ func (a *analyzer) semGroupBy(s schema, exprs []ast.Expr, proj projection, seq d
 	// and match them with equivalent path expressions in the selection.
 	var paths field.List
 	for _, e := range exprs {
-		this, ok := a.semGroupByKey(s, e)
+		this, ok := a.semGroupByKey(s, e) //XXX need to handle expressions
 		if !ok {
 			return nil, nil
 		}
@@ -405,12 +405,15 @@ func (a *analyzer) semGroupBy(s schema, exprs []ast.Expr, proj projection, seq d
 	// Make sure all scalars are in the group-by keys.
 	scalars := proj.scalars()
 	for k, col := range scalars {
-		path := col.scalar
-		if this, ok := col.scalar.(*dag.This); ok {
+		ref := col.(*scalarExpr).expr
+		if this, ok := ref.(*dag.This); ok {
 			if field.Path(this.Path).In(paths) {
 				continue
 			}
 		}
+		//XXX we need to do this differently by traversing each expression
+		// and making sure this reference is in group-by keys, we also need
+		// to do expression matching here, e.g., select x+y from ... group by x+y
 		if !(field.Path{col.name}).In(paths) {
 			a.error(exprs[k], fmt.Errorf("'%s': selected expression is missing from GROUP BY clause (and is not an aggregation)", path))
 			return nil, nil
@@ -452,24 +455,28 @@ func (a *analyzer) semProjection(sch *schemaSelect, args []ast.AsExpr) (projecti
 	var proj projection
 	for _, as := range args {
 		if isStar(as) {
-			proj = append(proj, column{})
+			proj = append(proj, &starExpr{})
 			continue
 		}
 		col, ok := a.semAs(sch, as)
 		if !ok {
 			return nil, false
 		}
-		if _, ok := conflict[col.name]; ok {
+		if _, ok := conflict[col.Name()]; ok {
 			a.error(as.ID, fmt.Errorf("%q: conflicting name in projection; try an AS clause", col.name))
 			return nil, false
 		}
 		proj = append(proj, col)
-		out.columns = append(out.columns, col.name)
+		out.columns = append(out.columns, col.Name())
 	}
 	return proj, true
 }
 
-func (a *analyzer) semAs(sch schema, as ast.AsExpr) (column, bool) {
+func isStar(a ast.AsExpr) bool {
+	return a.Expr == nil && a.ID == nil
+}
+
+func (a *analyzer) semAs(sch schema, as ast.AsExpr) column {
 	e := a.semExprSchema(sch, as.Expr)
 	// If we have a name from an AS clause, use it.  Otherwise,
 	// infer a name.
@@ -479,15 +486,12 @@ func (a *analyzer) semAs(sch schema, as ast.AsExpr) (column, bool) {
 	} else {
 		name = inferColumnName(e)
 	}
-	// We currently recognize only agg funcs that are top level.
-	// This means expressions with embedded agg funcs will turn
-	// into streaming aggs, which is not what we want, but we will
-	// address this later. XXX
-	if agg, ok := e.(*dag.Agg); ok {
-		// The name here was already pulled out of the Agg by inference above.
-		return column{name: name, agg: agg}, true
+	//XXX descend dag expr looking for any agg and check for references
+	// within agg function inputs to non-agg columns (i.e., )
+	if aggExpr := asAggExpr(e); aggExpr != nil {
+		return aggExpr
 	}
-	return column{name: name, scalar: e}, true
+	return &scalarExpr{name: name, expr: e}
 }
 
 func (a *analyzer) semExprSchema(s schema, e ast.Expr) dag.Expr {
