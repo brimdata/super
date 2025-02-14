@@ -40,14 +40,14 @@ func TestRunScript(t *testing.T) {
 				{Name: "testdirfile"},
 				{Name: "testdirfile2", Source: "testdirfile"},
 			},
-		}).RunScript("", testDir, t.TempDir())
+		}).RunScript("", testDir, t.TempDir)
 		assert.NoError(t, err)
 	})
 	t.Run("error", func(t *testing.T) {
 		err := (&ZTest{
 			Script:  "echo 1; echo 2 >&2; exit 3",
 			Outputs: []File{},
-		}).RunScript("", "", "")
+		}).RunScript("", "", func() string { return "" })
 		assert.EqualError(t, err, "script failed: exit status 3\n=== stdout ===\n1\n=== stderr ===\n2\n")
 	})
 }

@@ -8,7 +8,7 @@ import (
 	"os/exec"
 )
 
-func RunShell(dir, bindir, script string, stdin io.Reader, useenvs []string) (string, string, error) {
+func RunShell(dir, bindir, script string, stdin io.Reader, useenvs, extraenvs []string) (string, string, error) {
 	// "-e -o pipefile" ensures a test will fail if any command
 	// fails unexpectedly.
 	cmd := exec.Command("bash", "-e", "-o", "pipefail", "-c", script)
@@ -26,6 +26,7 @@ func RunShell(dir, bindir, script string, stdin io.Reader, useenvs []string) (st
 			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", env, v))
 		}
 	}
+	cmd.Env = append(cmd.Env, extraenvs...)
 	cmd.Stdin = stdin
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout

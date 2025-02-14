@@ -158,10 +158,6 @@ type Bundle struct {
 	Error    error
 }
 
-func (b *Bundle) RunScript(shellPath, tempDir string) error {
-	return b.Test.RunScript(shellPath, filepath.Dir(b.FileName), tempDir)
-}
-
 func Load(dirname string) ([]Bundle, error) {
 	var bundles []Bundle
 	fileinfos, err := os.ReadDir(dirname)
@@ -336,11 +332,22 @@ func (z *ZTest) ShouldSkip(path string) string {
 	return ""
 }
 
-func (z *ZTest) RunScript(shellPath, testDir, tempDir string) error {
+func (z *ZTest) RunScript(shellPath, testDir string, tempDir func() string) error {
 	if err := z.check(); err != nil {
 		return fmt.Errorf("bad yaml format: %w", err)
 	}
-	return runsh(shellPath, testDir, tempDir, z)
+	serr := runsh(shellPath, testDir, tempDir(), z)
+	if !z.Vector {
+		return serr
+	}
+	if serr != nil {
+		serr = fmt.Errorf("=== sequence ===\n%w", serr)
+	}
+	verr := runsh(shellPath, testDir, tempDir(), z, "SUPER_VAM=1")
+	if verr != nil {
+		verr = fmt.Errorf("=== vector ===\n%w", verr)
+	}
+	return errors.Join(serr, verr)
 }
 
 func (z *ZTest) RunInternal() error {
@@ -388,7 +395,7 @@ func (z *ZTest) Run(t *testing.T, path, filename string) {
 	}
 	var err error
 	if z.Script != "" {
-		err = z.RunScript(path, filepath.Dir(filename), t.TempDir())
+		err = z.RunScript(path, filepath.Dir(filename), t.TempDir)
 	} else {
 		err = z.RunInternal()
 	}
@@ -415,7 +422,7 @@ func diffErr(name, expected, actual string) error {
 	return fmt.Errorf("expected and actual %s differ:\n%s", name, diff)
 }
 
-func runsh(path, testDir, tempDir string, zt *ZTest) error {
+func runsh(path, testDir, tempDir string, zt *ZTest, extraEnv ...string) error {
 	var stdin io.Reader
 	for _, f := range zt.Inputs {
 		b, _, err := f.load(testDir)
@@ -430,7 +437,7 @@ func runsh(path, testDir, tempDir string, zt *ZTest) error {
 			return err
 		}
 	}
-	stdout, stderr, err := RunShell(tempDir, path, zt.Script, stdin, zt.Env)
+	stdout, stderr, err := RunShell(tempDir, path, zt.Script, stdin, zt.Env, extraEnv)
 	if err != nil {
 		return fmt.Errorf("script failed: %w\n=== stdout ===\n%s=== stderr ===\n%s",
 			err, stdout, stderr)
