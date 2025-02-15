@@ -57,49 +57,48 @@ func badSchema() schema {
 // Column of a select statement.  We bookkeep here whether
 // a column is a scalar expression or an aggregation by looking up the function
 // name and seeing if it's an aggregator or not.  We also infer the column
-// names so we can do SQL error checking relating the selections to the group-by keys.
-type column interface {
-	Name() string
-}
-
-type scalarExpr struct {
+// names so we can do SQL error checking relating the selections to the group-by keys,
+// and statically compute the resulting schema from the selection.
+// When the column is an agg function expression,
+// the expression is composed of agg functions and
+// fixed references relative to the agg (like group-by keys)
+// as well as alias from selected columns to the left of the
+// agg expression.  e.g., select max(x) m, (sum(a) + sum(b)) / m as q
+// would be two aggExprs where sum(a) and sum(b) are
+// stored inside the second aggExpr.  They are given temp variable
+// names so the expression be computed on exit from the summarize pipe
+// operator, e.g.,
+//
+//	summarize t1:=max(x),t2:=sum(a),t3:=sum(b)
+//	yield {m:t1}
+//	yield {...this,q:(t1+t2)/m}
+type column struct {
 	name string
 	expr dag.Expr
+	aggs []namedAgg
 }
 
-func (s *scalarExpr) Name() string { return s.name }
-
-type aggExpr struct {
-	name   string
-	prefix string
-	aggs   []*dag.Agg
-	expr   dag.Expr
+type namedAgg struct {
+	name string
+	agg  *dag.Agg
 }
-
-func (a *aggExpr) Name() string { return a.name }
-
-func (a *aggExpr) TempName(col, off int) string { return fmt.Sprintf("%s%d_%d", a.prefix, col, off) }
-
-type starExpr struct{}
-
-func (*starExpr) Name() string { return "" }
 
 type projection []column
 
 func (p projection) hasStar() bool {
 	for _, col := range p {
-		if _, ok := col.(*starExpr); ok {
+		if col.expr == nil {
 			return true
 		}
 	}
 	return false
 }
 
-func (p projection) aggExprs() []*aggExpr {
-	aggs := make([]*aggExpr, 0, len(p))
+func (p projection) aggExprs() []column {
+	aggs := make([]column, 0, len(p))
 	for _, col := range p {
-		if a, ok := col.(*aggExpr); ok {
-			aggs = append(aggs, a)
+		if len(col.aggs) != 0 {
+			aggs = append(aggs, col)
 		}
 	}
 	return aggs
@@ -116,88 +115,26 @@ func (p projection) paths() field.List {
 	return fields
 }
 
-func (p projection) scalarExprs() []*scalarExpr {
-	scalars := make([]*scalarExpr, 0, len(p))
+func (p projection) scalarExprs() []column {
+	scalars := make([]column, 0, len(p))
 	for _, col := range p {
-		if s, ok := col.(*scalarExpr); ok {
-			scalars = append(scalars, s)
+		if len(col.aggs) == 0 {
+			scalars = append(scalars, col)
 		}
 	}
 	return scalars
 }
 
+//XXX
 // For each aggfunc, we'll gen fk:=f()
 // For each aggexpr as v, we'll generate v:=expr(fk,...) from the aggs
 // For the having expr, we'll filter on predicate after table gen'd,
 // For each having aggfun, we'll gen hk:=f()
 
-func (p projection) yieldScalars(seq dag.Seq, sch *schemaSelect) dag.Seq {
-	if len(p) == 0 {
-		return nil
-	}
-	for k, col := range p {
-		var elems []dag.RecordElem
-		if k != 0 {
-			elems = append(elems, &dag.Spread{
-				Kind: "Spread",
-				Expr: &dag.This{Kind: "This", Path: []string{"out"}},
-			})
-		}
-		if col.isStar() {
-			for _, path := range unravel(sch, nil) {
-				elems = append(elems, &dag.Spread{
-					Kind: "Spread",
-					Expr: &dag.This{Kind: "This", Path: path},
-				})
-			}
-		} else {
-			elems = append(elems, &dag.Field{
-				Kind:  "Field",
-				Name:  col.name,
-				Value: col.scalar,
-			})
-		}
-		e := &dag.RecordExpr{
-			Kind: "RecordExpr",
-			Elems: []dag.RecordElem{
-				&dag.Field{
-					Kind:  "Field",
-					Name:  "in",
-					Value: &dag.This{Kind: "This", Path: field.Path{"in"}},
-				},
-				&dag.Field{
-					Kind: "Field",
-					Name: "out",
-					Value: &dag.RecordExpr{
-						Kind:  "RecordExpr",
-						Elems: elems,
-					},
-				},
-			},
-		}
-		// {in:this,out:{a:e1,b:e2}}
-		// | yield {in:this} (above)
-		//
-		// | yield {in,out:{a:e1}}
-		// | yield {in,out:{...out,b:e2}}
-		seq = append(seq, &dag.Yield{
-			Kind:  "Yield",
-			Exprs: []dag.Expr{e},
-		})
-	}
-	return seq
-}
-
-func unravel(schema schema, prefix field.Path) []field.Path {
-	switch schema := schema.(type) {
-	default:
-		return []field.Path{prefix}
-	case *schemaSelect:
-		return unravel(schema.in, append(prefix, "in"))
-	case *schemaJoin:
-		out := unravel(schema.left, append(prefix, "left"))
-		return append(out, unravel(schema.right, append(prefix, "right"))...)
-	}
+func newColumn(e dag.Expr, tm *tmpMaker) *column {
+	c := &column{}
+	c.expr = c.build(tm, e)
+	return c
 }
 
 //XXX need to detect mixed aggfunc calls with scalars that aren't
@@ -209,55 +146,56 @@ func unravel(schema schema, prefix field.Path) []field.Path {
 
 //XXX come up for tests for all these cases
 
-func (a *aggExpr) build(colno int, e dag.Expr) dag.Expr {
+func (a *column) build(tm *tmpMaker, e dag.Expr) dag.Expr {
 	switch e := e.(type) {
 	case nil:
 		return e
 	case *dag.Agg:
-		//XXX don't do anything to input param or where clause
-		// XXX need tests where we gen refs to non-existent things because
-		// of scoping, e.g., select max(x) m, min(y) / m
-		off := len(a.aggs)
-		a.aggs = append(a.aggs, e)
-		return pathOf(a.TempName(colno, off))
+		// swap in a temp column for each agg function found, which
+		// will then be referred to by the containing expression.
+		// The agg function is computed into the tmp value with
+		// the generated summarize operator.
+		tmp := tm.get()
+		a.aggs = append(a.aggs, namedAgg{name: tmp, agg: e})
+		return pathOf(tmp)
 	case *dag.ArrayExpr:
 		for _, elem := range e.Elems {
 			switch elem := elem.(type) {
 			case *dag.Spread:
-				elem.Expr = a.build(colno, elem.Expr)
+				elem.Expr = a.build(tm, elem.Expr)
 			case *dag.VectorValue:
-				elem.Expr = a.build(colno, elem.Expr)
+				elem.Expr = a.build(tm, elem.Expr)
 			default:
 				panic(elem)
 			}
 		}
 	case *dag.BinaryExpr:
-		e.LHS = a.build(colno, e.LHS)
-		e.RHS = a.build(colno, e.RHS)
+		e.LHS = a.build(tm, e.LHS)
+		e.RHS = a.build(tm, e.RHS)
 	case *dag.Call:
 		for k, arg := range e.Args {
-			e.Args[k] = a.build(colno, arg)
+			e.Args[k] = a.build(tm, arg)
 		}
 	case *dag.Conditional:
-		e.Cond = a.build(colno, e.Cond)
-		e.Then = a.build(colno, e.Then)
-		e.Else = a.build(colno, e.Else)
+		e.Cond = a.build(tm, e.Cond)
+		e.Then = a.build(tm, e.Then)
+		e.Else = a.build(tm, e.Else)
 	case *dag.Dot:
-		e.LHS = a.build(colno, e.LHS)
+		e.LHS = a.build(tm, e.LHS)
 	case *dag.Func:
 		// XXX
 	case *dag.IndexExpr:
-		e.Expr = a.build(colno, e.Expr)
-		e.Index = a.build(colno, e.Index)
+		e.Expr = a.build(tm, e.Expr)
+		e.Index = a.build(tm, e.Index)
 	case *dag.IsNullExpr:
-		e.Expr = a.build(colno, e.Expr)
+		e.Expr = a.build(tm, e.Expr)
 	case *dag.Literal:
 	case *dag.MapCall:
-		e.Expr = a.build(colno, e.Expr)
+		e.Expr = a.build(tm, e.Expr)
 	case *dag.MapExpr:
 		for _, ent := range e.Entries {
-			ent.Key = a.build(colno, ent.Key)
-			ent.Value = a.build(colno, ent.Value)
+			ent.Key = a.build(tm, ent.Key)
+			ent.Value = a.build(tm, ent.Value)
 		}
 	case *dag.OverExpr:
 		panic("TBD ERROR") //XXX
@@ -265,39 +203,51 @@ func (a *aggExpr) build(colno int, e dag.Expr) dag.Expr {
 		for _, elem := range e.Elems {
 			switch elem := elem.(type) {
 			case *dag.Field:
-				elem.Value = a.build(colno, elem.Value)
+				elem.Value = a.build(tm, elem.Value)
 			case *dag.Spread:
-				elem.Expr = a.build(colno, elem.Expr)
+				elem.Expr = a.build(tm, elem.Expr)
 			default:
 				panic(elem)
 			}
 		}
 		return d
 	case *dag.RegexpMatch:
-		e.Expr = a.build(colno, e.Expr)
+		e.Expr = a.build(tm, e.Expr)
 	case *dag.RegexpSearch:
-		e.Expr = a.build(colno, e.Expr)
+		e.Expr = a.build(tm, e.Expr)
 	case *dag.Search:
-		e.Expr = a.build(colno, e.Expr)
+		e.Expr = a.build(tm, e.Expr)
 	case *dag.SetExpr:
 		for _, elem := range e.Elems {
 			switch elem := elem.(type) {
 			case *dag.Spread:
-				elem.Expr = a.build(colno, elem.Expr)
+				elem.Expr = a.build(tm, elem.Expr)
 			case *dag.VectorValue:
-				elem.Expr = a.build(colno, elem.Expr)
+				elem.Expr = a.build(tm, elem.Expr)
 			default:
 				panic(elem)
 			}
 		}
 	case *dag.SliceExpr:
-		e.Expr = a.build(colno, e.Expr)
-		e.From = a.build(colno, e.From)
-		e.To = a.build(colno, e.To)
+		e.Expr = a.build(tm, e.Expr)
+		e.From = a.build(tm, e.From)
+		e.To = a.build(tm, e.To)
 	case *dag.This:
 	case *dag.UnaryExpr:
-		e.Operand = a.build(colno, e.Operand)
+		e.Operand = a.build(tm, e.Operand)
 	case *dag.Var:
 	}
 	return e
+}
+
+func (c *column) isStar() bool {
+	return c.expr == nil
+}
+
+type tmpMaker int
+
+func (t *tmpMaker) get() string {
+	k := *t
+	*t++
+	return fmt.Sprintf("t%d", k)
 }

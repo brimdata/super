@@ -17,6 +17,16 @@ import (
 	"github.com/kr/pretty"
 )
 
+// Collect up the following:
+//   - selected columns as scalar/aggs
+//   - aggs from having (scope is out from selection)
+//   - group-by exprs (do not appear in output unless selected)
+//   - where expr on input/select scope.. when there are aggs, where clause
+//       cannot refer to select-out scope (i.e., that's what having is for)
+//
+// when we have group-by, we make sure every input to agg is from input scope
+// and every non-agg-input value is from
+
 // Analyze a SQL select expression which may have arbitrary nested subqueries
 // and may or may not have its sources embedded.
 // The output of a select expression is a record that wraps its input and it's
@@ -30,55 +40,168 @@ func (a *analyzer) semSelect(sel *ast.Select, seq dag.Seq) (dag.Seq, schema) {
 		a.error(sel, errors.New("SELECT clause has no selection"))
 		return seq, badSchema()
 	}
-	selSchema := &schemaSelect{}
-	sch := schema(selSchema)
-	//XXX if we hit a lateral join in the from clause we need to refer back to this schema
-	if sel.From != nil {
-		off := len(seq)
-		hasParent := off > 0
-		var from schema
-		seq, from = a.semFrom(sel.From, seq)
-		if off >= len(seq) {
-			// The chain didn't get lengthed so semFrom must have enocounteded
-			// an error...
-			return seq, badSchema()
-		}
-		// If we have parents with both a from and select, report an error but
-		// only if it's not a RobotScan where the parent feeds the from operateor.
-		if _, ok := seq[off].(*dag.RobotScan); !ok {
-			if hasParent {
-				a.error(sel, errors.New("SELECT cannot have both an embedded FROM claue and input from parents"))
-				return append(seq, badOp()), badSchema()
-			}
-		}
-		selSchema.in = from
-		// Wrap input as the "in" field of the select record with "yield {in:this}"
-		if !sel.Value {
-			seq = yieldExpr(wrapThis("in"), seq)
-		}
-	} else {
-		// If there's no from clause, presume a dynamic schema.
-		// XXX we need to handle recursive cases where the select is a
-		// correlated subquery.
-		// XXX we should figure out if this is a null input and set up a null schema?
-		selSchema.in = &schemaDynamic{}
-		seq = yieldExpr(wrapThis("in"), seq)
+	var fromSchema schema
+	seq, fromSchema = a.semSelectFrom(sel.Loc, sel.From, seq)
+	if fromSchema == nil {
+		return seq, badSchema()
 	}
 	if sel.Value {
-		return a.semSelectValue(sel, selSchema.in, seq)
+		return a.semSelectValue(sel, fromSchema, seq)
 	}
-	proj, ok := a.semProjection(selSchema, sel.Selection.Args)
-	if !ok {
-		return dag.Seq{badOp()}, badSchema()
+	var tm tmpMaker
+	sch := &schemaSelect{in: fromSchema}
+	//XXX if we hit a lateral join in the from clause we need to refer back to this schema
+	proj := a.semProjection(sch, sel.Selection.Args, &tm)
+	var where dag.Expr
+	if sel.Where != nil {
+		where = a.semExprSchema(sch, sel.Where)
 	}
-	pretty.Println("CHECK GROUP BY", sel.GroupBy)
+	keyExprs := a.semGroupBy(sch, sel.GroupBy)
+	having := a.semHaving(sch, sel.Having, &tm)
+	aggs := proj.aggExprs()
+	// Now, stitch together the components into pipeline operators.
+	seq = yieldExpr(wrapThis("in"), seq)
+	var schOut schema
+	if len(aggs) != 0 || len(having.aggs) != 0 || len(keyExprs) != 0 {
+		seq = a.genSummarize(proj, where, aggs, keyExprs, having, seq)
+		schOut = sch.out
+	} else {
+		seq = a.genYield(proj, where, sch, seq)
+		schOut = sch
+	}
+	if sel.Distinct {
+		seq = a.genDistinct(pathOf("out"), seq) //XXX doesn't work for group by?
+	}
+	return seq, schOut
+}
+
+func xxx() {
+	if proj.hasStar() {
+		a.error(sel, errors.New("aggregate mixed with *-selector not yet supported"))
+		return append(seq, badOp()), badSchema()
+	}
+	if sel.Where != nil {
+		seq = append(seq, dag.NewFilter(a.semExprSchema(sch, sel.Where)))
+	}
+	seq, sch = a.semGroupBy(sch, sel.GroupBy, proj, seq)
+	if sch == nil {
+		return seq, badSchema()
+	}
+	if sel.Having != nil {
+		seq = append(seq, dag.NewFilter(a.semExprSchema(sch, sel.Having)))
+	}
+	if sel.Having != nil {
+		a.error(sel.Having, errors.New("HAVING clause used without GROUP BY"))
+		return append(seq, badOp()), badSchema()
+	}
+	if len(proj.aggs()) == 0 {
+		seq = proj.yieldScalars(seq, selSchema)
+		if sel.Where != nil {
+			seq = append(seq, dag.NewFilter(a.semExprSchema(sch, sel.Where)))
+		}
+	} else {
+		seq, sch = a.convertProjection(sel.Selection.Loc, proj, seq, selSchema)
+		if sel.Where != nil {
+			seq = append(seq, dag.NewFilter(a.semExprSchema(sch, sel.Where)))
+		}
+	}
+	seq = yieldExpr(wrapThis("in"), seq) //XXX delay this to stitching
+	if sel.Distinct {
+		seq = a.semDistinct(pathOf("out"), seq) //XXX doesn't work for group by
+	}
+	return seq, sch
+}
+
+func (a *analyzer) semHaving(sch schema, e ast.Expr, tm *tmpMaker) *column {
+	if e == nil {
+		return nil
+	}
+	c := &column{}
+	c.expr = c.build(tm, a.semExprSchema(sch, e))
+	return c
+}
+
+func (a *analyzer) genYield(proj projection, where dag.Expr, sch *schemaSelect, seq dag.Seq) dag.Seq {
+	if len(p) == 0 {
+		return nil
+	}
+	for k, col := range proj {
+		var elems []dag.RecordElem
+		if k != 0 {
+			elems = append(elems, &dag.Spread{
+				Kind: "Spread",
+				Expr: &dag.This{Kind: "This", Path: []string{"out"}},
+			})
+		}
+		if col.isStar() {
+			for _, path := range unravel(sch, nil) {
+				elems = append(elems, &dag.Spread{
+					Kind: "Spread",
+					Expr: &dag.This{Kind: "This", Path: path},
+				})
+			}
+		} else {
+			elems = append(elems, &dag.Field{
+				Kind:  "Field",
+				Name:  col.name,
+				Value: col.expr,
+			})
+		}
+		e := &dag.RecordExpr{
+			Kind: "RecordExpr",
+			Elems: []dag.RecordElem{
+				&dag.Field{
+					Kind:  "Field",
+					Name:  "in",
+					Value: &dag.This{Kind: "This", Path: field.Path{"in"}},
+				},
+				&dag.Field{
+					Kind: "Field",
+					Name: "out",
+					Value: &dag.RecordExpr{
+						Kind:  "RecordExpr",
+						Elems: elems,
+					},
+				},
+			},
+		}
+		// {in:this,out:{a:e1,b:e2}}
+		// | yield {in:this} (above)
+		//
+		// | yield {in,out:{a:e1}}
+		// | yield {in,out:{...out,b:e2}}
+		seq = append(seq, &dag.Yield{
+			Kind:  "Yield",
+			Exprs: []dag.Expr{e},
+		})
+	}
+	if where != nil {
+		seq = append(seq, dag.NewFilter(where))
+	}
+	return seq
+}
+
+func unravel(schema schema, prefix field.Path) []field.Path {
+	switch schema := schema.(type) {
+	default:
+		return []field.Path{prefix}
+	case *schemaSelect:
+		return unravel(schema.in, append(prefix, "in"))
+	case *schemaJoin:
+		out := unravel(schema.left, append(prefix, "left"))
+		return append(out, unravel(schema.right, append(prefix, "right"))...)
+	}
+}
+
+//XXX for summarize we need to emit the scalar keys into out to apply where
+// before running the summarize op
+
+func (a *analyzer) genSummarize(proj projection, where dag.Expr, aggs []column, keyExprs []dag.Expr, having *column, seq dag.Seq) dag.Seq {
+
 	if sel.GroupBy != nil {
 		if proj.hasStar() {
 			a.error(sel, errors.New("aggregate mixed with *-selector not yet supported"))
 			return append(seq, badOp()), badSchema()
-		}
-		if sel.Where != nil {
-			seq = append(seq, dag.NewFilter(a.semExprSchema(sch, sel.Where)))
 		}
 		seq, sch = a.semGroupBy(sch, sel.GroupBy, proj, seq)
 		if sch == nil {
@@ -105,8 +228,28 @@ func (a *analyzer) semSelect(sel *ast.Select, seq dag.Seq) (dag.Seq, schema) {
 			}
 		}
 	}
-	if sel.Distinct {
-		seq = a.semDistinct(pathOf("out"), seq) //XXX doesn't work for group by
+}
+
+func (a *analyzer) semSelectFrom(loc ast.Loc, from *ast.From, seq dag.Seq) (dag.Seq, schema) {
+	if from == nil {
+		return seq, &schemaDynamic{}
+	}
+	off := len(seq)
+	hasParent := off > 0
+	var sch schema
+	seq, sch = a.semFrom(from, seq)
+	if off >= len(seq) {
+		// The chain didn't get lengthed so semFrom must have enocounteded
+		// an error...
+		return seq, nil
+	}
+	// If we have parents with both a from and select, report an error but
+	// only if it's not a RobotScan where the parent feeds the from operateor.
+	if _, ok := seq[off].(*dag.RobotScan); !ok {
+		if hasParent {
+			a.error(loc, errors.New("SELECT cannot have both an embedded FROM claue and input from parents"))
+			return append(seq, badOp()), nil
+		}
 	}
 	return seq, sch
 }
@@ -145,7 +288,7 @@ func (a *analyzer) semSelectValue(sel *ast.Select, sch schema, seq dag.Seq) (dag
 	return seq, &schemaDynamic{}
 }
 
-func (a *analyzer) semDistinct(e dag.Expr, seq dag.Seq) dag.Seq {
+func (a *analyzer) genDistinct(e dag.Expr, seq dag.Seq) dag.Seq {
 	return append(seq, &dag.Distinct{
 		Kind: "Distinct",
 		Expr: e,
@@ -385,23 +528,21 @@ func (a *analyzer) convertProjection(loc ast.Node, proj projection, seq dag.Seq,
 	}), &schemaAnon{columns: cols}
 }
 
-func (a *analyzer) semGroupBy(s schema, exprs []ast.Expr, proj projection, seq dag.Seq) (dag.Seq, schema) {
-	//XXX update comment
-	// Unlike the original zed runtime, SQL group-by elements do not have explicit
-	// keys and may just be a single identifier or an expression.  We don't quite
-	// capture the correct scoping here but this is a start before we implement
-	// more sophisticated scoping and identifier bindings.  For our binding-in-the-data
-	// approach, we can create temp fields for unnamed group-by expressions and
-	// drop them on exit from the scope.  For now, we allow only path expressions
-	// and match them with equivalent path expressions in the selection.
-	var paths field.List
-	for _, e := range exprs {
-		this, ok := a.semGroupByKey(s, e) //XXX need to handle expressions
-		if !ok {
-			return nil, nil
+func (a *analyzer) semGroupBy(sch *selSchema, exprs []ast.Expr) []dag.Expr {
+	var exprs []dag.Expr
+	for _, expr := range exprs {
+		e := a.semExprSchema(sch, expr)
+		// Group-by keys can't have agg funcs so we parse as a column
+		// and see if any agg functions were found.
+		if c := newColumn(e, &tmpMaker{}); len(c.aggs) != 0 {
+			a.error(e, errors.New("aggregate function cannot appear in GROUP BY clause"))
 		}
-		paths = append(paths, this.Path)
+		exprs = append(exprs, e)
 	}
+	return exprs
+}
+
+func (a *analyzer) genGroupBy(s schema, exprs []ast.Expr, proj projection, seq dag.Seq) (dag.Seq, schema) {
 	// Make sure all scalars are in the group-by keys.
 	scalars := proj.scalars()
 	for k, col := range scalars {
@@ -448,35 +589,32 @@ func (a *analyzer) semGroupBy(s schema, exprs []ast.Expr, proj projection, seq d
 	}), sch
 }
 
-func (a *analyzer) semProjection(sch *schemaSelect, args []ast.AsExpr) (projection, bool) {
+func (a *analyzer) semProjection(sch *schemaSelect, args []ast.AsExpr, tm *tmpMaker) projection {
 	out := &schemaAnon{}
 	sch.out = out
 	conflict := make(map[string]struct{})
 	var proj projection
 	for _, as := range args {
 		if isStar(as) {
-			proj = append(proj, &starExpr{})
+			proj = append(proj, column{})
 			continue
 		}
-		col, ok := a.semAs(sch, as)
-		if !ok {
-			return nil, false
-		}
-		if _, ok := conflict[col.Name()]; ok {
+		col := a.semAs(sch, as, tm)
+		//XXX check for conflict for now, but we're getting rid of this soon
+		if _, ok := conflict[col.name]; ok {
 			a.error(as.ID, fmt.Errorf("%q: conflicting name in projection; try an AS clause", col.name))
-			return nil, false
 		}
-		proj = append(proj, col)
-		out.columns = append(out.columns, col.Name())
+		proj = append(proj, *col)
+		out.columns = append(out.columns, col.name)
 	}
-	return proj, true
+	return proj
 }
 
 func isStar(a ast.AsExpr) bool {
 	return a.Expr == nil && a.ID == nil
 }
 
-func (a *analyzer) semAs(sch schema, as ast.AsExpr) column {
+func (a *analyzer) semAs(sch schema, as ast.AsExpr, tm *tmpMaker) *column {
 	e := a.semExprSchema(sch, as.Expr)
 	// If we have a name from an AS clause, use it.  Otherwise,
 	// infer a name.
@@ -486,12 +624,9 @@ func (a *analyzer) semAs(sch schema, as ast.AsExpr) column {
 	} else {
 		name = inferColumnName(e)
 	}
-	//XXX descend dag expr looking for any agg and check for references
-	// within agg function inputs to non-agg columns (i.e., )
-	if aggExpr := asAggExpr(e); aggExpr != nil {
-		return aggExpr
-	}
-	return &scalarExpr{name: name, expr: e}
+	c := &column{name: name}
+	c.expr = c.build(tm, e)
+	return c
 }
 
 func (a *analyzer) semExprSchema(s schema, e ast.Expr) dag.Expr {
