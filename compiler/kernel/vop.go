@@ -87,7 +87,6 @@ func (b *Builder) compileVam(o dag.Op, parents []vector.Puller) ([]vector.Puller
 		}
 		return []vector.Puller{p}, nil
 	}
-	return nil, fmt.Errorf("unsupported dag op in vectorize: %T", o)
 }
 
 func (b *Builder) compileVamScan(scan *dag.SeqScan, parent zbuf.Puller) (vector.Puller, error) {
