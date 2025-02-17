@@ -30,7 +30,7 @@ type Op struct {
 	cutter      *expr.Cutter
 	joinKey     *super.Value
 	joinSet     []super.Value
-	types       map[int]map[int]*super.TypeRecord
+	splicer     *RecordSplicer
 }
 
 func New(rctx *runtime.Context, anti, inner bool, left, right zbuf.Puller, leftKey, rightKey expr.Evaluator,
@@ -65,7 +65,7 @@ func New(rctx *runtime.Context, anti, inner bool, left, right zbuf.Puller, leftK
 		resetter:    resetter,
 		compare:     expr.NewValueCompareFn(o, true),
 		cutter:      expr.NewCutter(rctx.Zctx, lhs, rhs),
-		types:       make(map[int]map[int]*super.TypeRecord),
+		splicer:     NewRecordSplicer(rctx.Zctx),
 	}
 }
 
@@ -125,7 +125,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 		// release the batch with and bypass GC.
 		for _, rightRec := range rightRecs {
 			cutRec := o.cutter.Eval(ectx, rightRec)
-			rec, err := o.splice(*leftRec, cutRec)
+			rec, err := o.splicer.Splice(*leftRec, cutRec)
 			if err != nil {
 				return nil, err
 			}
@@ -202,14 +202,23 @@ func (o *Op) readJoinSet(joinKey *super.Value) ([]super.Value, error) {
 	}
 }
 
-func (o *Op) lookupType(left, right *super.TypeRecord) *super.TypeRecord {
+type RecordSplicer struct {
+	zctx  *super.Context
+	types map[int]map[int]*super.TypeRecord
+}
+
+func NewRecordSplicer(zctx *super.Context) *RecordSplicer {
+	return &RecordSplicer{zctx, map[int]map[int]*super.TypeRecord{}}
+}
+
+func (o *RecordSplicer) lookupType(left, right *super.TypeRecord) *super.TypeRecord {
 	if table, ok := o.types[left.ID()]; ok {
 		return table[right.ID()]
 	}
 	return nil
 }
 
-func (o *Op) enterType(combined, left, right *super.TypeRecord) {
+func (o *RecordSplicer) enterType(combined, left, right *super.TypeRecord) {
 	id := left.ID()
 	table := o.types[id]
 	if table == nil {
@@ -219,7 +228,7 @@ func (o *Op) enterType(combined, left, right *super.TypeRecord) {
 	table[right.ID()] = combined
 }
 
-func (o *Op) buildType(left, right *super.TypeRecord) (*super.TypeRecord, error) {
+func (o *RecordSplicer) buildType(left, right *super.TypeRecord) (*super.TypeRecord, error) {
 	fields := make([]super.Field, 0, len(left.Fields)+len(right.Fields))
 	fields = append(fields, left.Fields...)
 	for _, f := range right.Fields {
@@ -229,10 +238,10 @@ func (o *Op) buildType(left, right *super.TypeRecord) (*super.TypeRecord, error)
 		}
 		fields = append(fields, super.NewField(name, f.Type))
 	}
-	return o.rctx.Zctx.LookupTypeRecord(fields)
+	return o.zctx.LookupTypeRecord(fields)
 }
 
-func (o *Op) combinedType(left, right *super.TypeRecord) (*super.TypeRecord, error) {
+func (o *RecordSplicer) combinedType(left, right *super.TypeRecord) (*super.TypeRecord, error) {
 	if typ := o.lookupType(left, right); typ != nil {
 		return typ, nil
 	}
@@ -244,7 +253,7 @@ func (o *Op) combinedType(left, right *super.TypeRecord) (*super.TypeRecord, err
 	return typ, nil
 }
 
-func (o *Op) splice(left, right super.Value) (super.Value, error) {
+func (o *RecordSplicer) Splice(left, right super.Value) (super.Value, error) {
 	left = left.Under()
 	right = right.Under()
 	typ, err := o.combinedType(super.TypeRecordOf(left.Type()), super.TypeRecordOf(right.Type()))

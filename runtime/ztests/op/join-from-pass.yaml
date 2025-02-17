@@ -1,5 +1,7 @@
 script: super -z -I join.zed left.jsup
 
+vector: true
+
 inputs:
   - name: join.zed
     data: |

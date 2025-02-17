@@ -1,5 +1,7 @@
 script: |
-  super -z -c 'left join (file C.jsup) on a=b hit:=sc' A.jsup
+  super -z -c 'left join (file C.jsup) on a=b hit:=sc | sort' A.jsup
+
+vector: true
 
 inputs:
   - name: A.jsup

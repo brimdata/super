@@ -8,6 +8,8 @@ script: |
   echo === RIGHT ===
   super -z -c 'right join (file C.jsup) on b=c hit:=sb | sort c' B.jsup
 
+vector: true
+
 inputs:
   - name: A.jsup
     data: |

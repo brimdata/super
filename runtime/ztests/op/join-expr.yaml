@@ -1,11 +1,13 @@
 script: |
-  super -z -c 'left join (file B.jsup) on s b' A.jsup
+  super -z -c 'left join (file B.jsup) on s b | sort' A.jsup
   echo ===
-  super -z -c 'left join (file B.jsup) on s=(lower(s)) b' A.jsup
+  super -z -c 'left join (file B.jsup) on s=(lower(s)) b | sort' A.jsup
   echo ===
-  super -z -c 'left join (file B.jsup) on (lower(s))=(lower(s)) b' A.jsup
+  super -z -c 'left join (file B.jsup) on (lower(s))=(lower(s)) b | sort' A.jsup
   echo ===
-  super -z -c 'left join (file B.jsup) on s' A.jsup
+  super -z -c 'left join (file B.jsup) on s | sort' A.jsup
+
+vector: true
 
 inputs:
   - name: A.jsup
@@ -22,18 +24,18 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {a:2(int32),s:"B"}
       {a:1(int32),s:"a"}
+      {a:2(int32),s:"B"}
       {a:3(int32),s:"c",b:6(int32)}
       ===
-      {a:2(int32),s:"B"}
       {a:1(int32),s:"a",b:4(int32)}
+      {a:2(int32),s:"B"}
       {a:3(int32),s:"c",b:6(int32)}
       ===
       {a:1(int32),s:"a",b:4(int32)}
       {a:2(int32),s:"B",b:5(int32)}
       {a:3(int32),s:"c",b:6(int32)}
       ===
-      {a:2(int32),s:"B"}
       {a:1(int32),s:"a"}
+      {a:2(int32),s:"B"}
       {a:3(int32),s:"c"}

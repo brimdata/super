@@ -1,4 +1,7 @@
-script: super -z -I test.zed
+script: |
+  super -z -I test.zed
+
+vector: true
 
 inputs:
   - name: test.zed
@@ -7,6 +10,7 @@ inputs:
         file people.json
         file fruit.json
       ) | left join on likes=flavor fruit:=name,note:=quiet(note)
+      | sort
   - name: people.json
     data: |
       {"name":"morgan","age":61,"likes":"tart"}
@@ -25,9 +29,9 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {name:"jessie",age:30,likes:"plain",fruit:"figs"}
       {name:"quinn",age:14,likes:"sweet",fruit:"banana"}
       {name:"quinn",age:14,likes:"sweet",fruit:"strawberry"}
       {name:"quinn",age:14,likes:"sweet",fruit:"dates",note:"in season"}
-      {name:"morgan",age:61,likes:"tart",fruit:"apple"}
+      {name:"jessie",age:30,likes:"plain",fruit:"figs"}
       {name:"chris",age:47,likes:"tart",fruit:"apple"}
+      {name:"morgan",age:61,likes:"tart",fruit:"apple"}

@@ -1,5 +1,8 @@
 script: |
-  super -z -c 'inner join (file b.jsup) on a=b' a.jsup
+  super -z -c 'inner join (file b.jsup) on a=b | sort' a.jsup
+
+vector: true
+
 inputs:
   - name: a.jsup
     data: |

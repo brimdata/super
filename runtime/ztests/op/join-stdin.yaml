@@ -1,8 +1,10 @@
 script: |
-  super -z -c 'join (file B.jsup) on a=b b:=b' A.jsup
+  super -z -c 'join (file B.jsup) on a=b b:=b' -
+
+vector: true
 
 inputs:
-  - name: A.jsup
+  - name: stdin
     data: |
       {a:1(int32)}
       {a:2(int32)}
