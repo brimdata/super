@@ -28,6 +28,12 @@ func (e *Compare) Call(_ super.Allocator, args []super.Value) super.Value {
 		}
 		nullsMax = args[2].Bool()
 	}
+	if args[0].IsError() {
+		return args[0]
+	}
+	if args[1].IsError() {
+		return args[1]
+	}
 	cmp := e.nullsMax
 	if !nullsMax {
 		cmp = e.nullsMin
