@@ -7,10 +7,11 @@ script: |
     seq -f '{x: "0", y: "1", z: "%.0f"}' 257
     seq -f '{x: "0", y: "2", z: "%.0f"}' 257
   } | super -o t.csup -f csup -
-  super dev vector query -z 'count() by x' t.csup
-  super dev vector query -z 'count() by y' t.csup | super -z -c 'sort y' -
-  super dev vector query -z 'count() by z' t.csup | super -z -c 'z=="257"' -
-  super dev vector query -z 'count() where y=="1" by z' t.csup | super -z -c 'z=="257"' -
+  export SUPER_VAM=1
+  super -z -c 'from t.csup | count() by x'
+  super -z -c 'from t.csup | count() by y | sort y'
+  super -z -c 'from t.csup | count() by z | z == "257"'
+  super -z -c 'from t.csup | count() where y=="1" by z | z == "257"'
 
 outputs:
   - name: stdout

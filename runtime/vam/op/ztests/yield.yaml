@@ -1,6 +1,6 @@
 script: |
   super -o t.csup -f csup -
-  super dev vector query -z "yield a >= 1, a >= b, a >= 1 or a >= b" t.csup
+  SUPER_VAM=1 super -z -c "from t.csup | yield a >= 1, a >= b, a >= 1 or a >= b"
 
 inputs:
   - name: stdin
