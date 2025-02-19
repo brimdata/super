@@ -218,6 +218,12 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 			return nil, err
 		}
 		return vam.NewDematerializer(zbufPuller), nil
+	case *dag.Distinct:
+		e, err := b.compileVamExpr(o.Expr)
+		if err != nil {
+			return nil, err
+		}
+		return vamop.NewDistinct(parent, e), nil
 	case *dag.Drop:
 		fields := make(field.List, 0, len(o.Args))
 		for _, e := range o.Args {
