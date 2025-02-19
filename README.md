@@ -1,5 +1,11 @@
 # SuperDB [![Tests][tests-img]][tests] [![GoPkg][gopkg-img]][gopkg]
 
+> 🔴 **NOTICE OF PROJECT READINESS** 🔴
+>
+> SuperDB is still under development so there's not yet a GA release.
+> You're welcome to [try it out](#try-it) in its early form (i.e.,
+> tip-of-`main`) and we'd love to hear your feedback. Read on for more info!
+
 SuperDB is a new analytics database that supports relational tables and JSON
 on an equal footing.  It shines when it comes to data wrangling where
 you need to explore or process large eclectic data sets.  It's also pretty
