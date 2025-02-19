@@ -38,6 +38,7 @@ func (m *mathReducer) Result(*super.Context) super.Value {
 }
 
 func (m *mathReducer) Consume(vec vector.Any) {
+	vec = vector.Under(vec)
 	typ := vec.Type()
 	var id int
 	if m.math != nil {

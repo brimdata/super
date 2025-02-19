@@ -14,6 +14,7 @@ type avg struct {
 var _ Func = (*avg)(nil)
 
 func (a *avg) Consume(vec vector.Any) {
+	vec = vector.Under(vec)
 	if !super.IsNumber(vec.Type().ID()) {
 		return
 	}
