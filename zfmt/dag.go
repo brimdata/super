@@ -548,6 +548,17 @@ func (c *canonDAG) op(p dag.Op) {
 		if len(p.Fields) > 0 {
 			c.fields(p.Fields)
 		}
+		if p.ZoneMapPruner != nil {
+			c.ret()
+			c.open()
+			c.open(" zonemap (")
+			c.ret()
+			c.expr(p.ZoneMapPruner, "")
+			c.ret()
+			c.close()
+			c.write(")")
+			c.close()
+		}
 		if p.Filter != nil {
 			c.write(" filter (")
 			c.expr(p.Filter, "")
