@@ -8,6 +8,7 @@ import (
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
+	samexpr "github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/vam"
 	vamexpr "github.com/brimdata/super/runtime/vam/expr"
 	vamop "github.com/brimdata/super/runtime/vam/op"
@@ -232,10 +233,14 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		dropper := vamexpr.NewDropper(b.zctx(), fields)
 		return vamop.NewYield(b.zctx(), parent, []vamexpr.Evaluator{dropper}), nil
 	case *dag.FileScan:
-		if o.Filter != nil {
-			return nil, errors.New("internal error: vector runtime does not support filter pushdown on files")
+		var pruner samexpr.Evaluator
+		if o.MetadataPruner != nil {
+			var err error
+			if pruner, err = b.compileExpr(o.MetadataPruner); err != nil {
+				return nil, err
+			}
 		}
-		return b.env.VectorOpen(b.rctx, b.zctx(), o.Path, o.Format, o.Fields)
+		return b.env.VectorOpen(b.rctx, b.zctx(), o.Path, o.Format, o.Fields, pruner)
 	case *dag.Filter:
 		e, err := b.compileVamExpr(o.Expr)
 		if err != nil {

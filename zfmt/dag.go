@@ -548,6 +548,17 @@ func (c *canonDAG) op(p dag.Op) {
 		if len(p.Fields) > 0 {
 			c.fields(p.Fields)
 		}
+		if p.MetadataPruner != nil {
+			c.ret()
+			c.open()
+			c.open(" pruner (")
+			c.ret()
+			c.expr(p.MetadataPruner, "")
+			c.ret()
+			c.close()
+			c.write(")")
+			c.close()
+		}
 		if p.Filter != nil {
 			c.write(" filter (")
 			c.expr(p.Filter, "")

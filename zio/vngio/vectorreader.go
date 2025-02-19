@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"io"
+	"slices"
 	"sync/atomic"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
+	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/vcache"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vng"
@@ -24,7 +26,7 @@ type VectorReader struct {
 	readerAt      io.ReaderAt
 }
 
-func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, fields []field.Path) (*VectorReader, error) {
+func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, fields []field.Path, pruner expr.Evaluator) (*VectorReader, error) {
 	ra, ok := r.(io.ReaderAt)
 	if !ok {
 		return nil, errors.New("Super Columnar requires a seekable input")
@@ -38,7 +40,7 @@ func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, fiel
 		zctx:          zctx,
 		activeReaders: &atomic.Int64{},
 		nextObject:    &atomic.Int64{},
-		objects:       objects,
+		objects:       filterObjects(zctx, pruner, objects),
 		projection:    vcache.NewProjection(fields),
 		readerAt:      ra,
 	}, nil
@@ -63,6 +65,24 @@ func (v *VectorReader) Pull(done bool) (vector.Any, error) {
 	}
 	o := v.objects[n]
 	return vcache.NewObjectFromVNG(o).Fetch(v.zctx, v.projection)
+}
+
+func filterObjects(zctx *super.Context, pruner expr.Evaluator, objects []*vng.Object) []*vng.Object {
+	if pruner == nil {
+		return objects
+	}
+	return slices.DeleteFunc(objects, func(o *vng.Object) bool {
+		return pruneObject(zctx, pruner, o.Metadata())
+	})
+}
+
+func pruneObject(zctx *super.Context, pruner expr.Evaluator, m vng.Metadata) bool {
+	for _, val := range vng.MetadataValues(zctx, m) {
+		if pruner.Eval(nil, val).Ptr().AsBool() {
+			return false
+		}
+	}
+	return true
 }
 
 func (v *VectorReader) close() error {

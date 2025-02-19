@@ -3,6 +3,7 @@ package vng
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
+	"github.com/brimdata/super/zcode"
 )
 
 type Metadata interface {
@@ -263,6 +264,68 @@ func (*Dynamic) Type(zctx *super.Context) super.Type {
 
 func (d *Dynamic) Len() uint32 {
 	return d.Length
+}
+
+func MetadataValues(zctx *super.Context, m Metadata) []super.Value {
+	var b zcode.Builder
+	var values []super.Value
+	if dynamic, ok := m.(*Dynamic); ok {
+		for _, m := range dynamic.Values {
+			b.Reset()
+			typ := metadataValue(zctx, &b, m)
+			values = append(values, super.NewValue(typ, b.Bytes().Body()))
+		}
+	} else {
+		typ := metadataValue(zctx, &b, m)
+		values = append(values, super.NewValue(typ, b.Bytes().Body()))
+	}
+	return values
+}
+
+func metadataValue(zctx *super.Context, b *zcode.Builder, m Metadata) super.Type {
+	switch m := Under(m).(type) {
+	case *Dict:
+		return metadataValue(zctx, b, m.Values)
+	case *Record:
+		var fields []super.Field
+		b.BeginContainer()
+		for _, f := range m.Fields {
+			fields = append(fields, super.Field{Name: f.Name, Type: metadataValue(zctx, b, f.Values)})
+		}
+		b.EndContainer()
+		return zctx.MustLookupTypeRecord(fields)
+	case *Array:
+	case *Set:
+	case *Map:
+	case *Union:
+	case *Primitive:
+		min, max := super.NewValue(m.Typ, nil), super.NewValue(m.Typ, nil)
+		if m.Min != nil {
+			min = *m.Min
+		}
+		if m.Max != nil {
+			max = *m.Max
+		}
+		return metadataLeaf(zctx, b, min, max)
+	case *Int:
+		return metadataLeaf(zctx, b, super.NewInt(m.Typ, m.Min), super.NewInt(m.Typ, m.Max))
+	case *Uint:
+		return metadataLeaf(zctx, b, super.NewUint(m.Typ, m.Min), super.NewUint(m.Typ, m.Max))
+	case *Const:
+		return metadataLeaf(zctx, b, m.Value, m.Value)
+	}
+	panic(m)
+}
+
+func metadataLeaf(zctx *super.Context, b *zcode.Builder, min, max super.Value) super.Type {
+	b.BeginContainer()
+	b.Append(min.Bytes())
+	b.Append(max.Bytes())
+	b.EndContainer()
+	return zctx.MustLookupTypeRecord([]super.Field{
+		{Name: "min", Type: min.Type()},
+		{Name: "max", Type: max.Type()},
+	})
 }
 
 var Template = []interface{}{

@@ -14,6 +14,7 @@ import (
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/storage"
+	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/vam"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/zbuf"
@@ -125,7 +126,7 @@ func (c *closePuller) Pull(done bool) (zbuf.Batch, error) {
 	return batch, err
 }
 
-func (e *Environment) VectorOpen(ctx context.Context, zctx *super.Context, path, format string, fields []field.Path) (vector.Puller, error) {
+func (e *Environment) VectorOpen(ctx context.Context, zctx *super.Context, path, format string, fields []field.Path, pruner expr.Evaluator) (vector.Puller, error) {
 	if path == "-" {
 		path = "stdio:stdin"
 	}
@@ -140,7 +141,7 @@ func (e *Environment) VectorOpen(ctx context.Context, zctx *super.Context, path,
 	var puller vector.Puller
 	switch format {
 	case "csup":
-		puller, err = vngio.NewVectorReader(ctx, zctx, r, fields)
+		puller, err = vngio.NewVectorReader(ctx, zctx, r, fields, pruner)
 	case "parquet":
 		puller, err = parquetio.NewVectorReader(ctx, zctx, r, fields)
 	default:

@@ -1,0 +1,12 @@
+script: |
+  SUPER_VAM=1 super compile -C -O 'file test.csup | x in ["foo","bar"]'
+
+outputs:
+  - name: stdout
+    data: |
+      file test.csup format csup
+         pruner (
+          compare("foo", x.min, true)>=0 and compare("foo", x.max, true)<=0 or compare("bar", x.min, true)>=0 and compare("bar", x.max, true)<=0
+        )
+      | where x in ["foo","bar"]
+      | output main
