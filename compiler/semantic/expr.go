@@ -50,12 +50,12 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 		id := a.semID(e)
 		if a.scope.schema != nil {
 			if this, ok := id.(*dag.This); ok {
-				path, err := a.scope.resolve(this.Path)
+				out, err := a.scope.resolve(this.Path)
 				if err != nil {
 					a.error(e, err)
 					return badExpr()
 				}
-				return &dag.This{Kind: "This", Path: path}
+				return out
 			}
 		}
 		return id
@@ -405,12 +405,12 @@ func (a *analyzer) semRegexp(b *ast.BinaryExpr) dag.Expr {
 func (a *analyzer) semBinary(e *ast.BinaryExpr) dag.Expr {
 	if path := a.semDotted(e); path != nil {
 		if a.scope.schema != nil {
-			var err error
-			path, err = a.scope.resolve(path)
+			out, err := a.scope.resolve(path)
 			if err != nil {
 				a.error(e, err)
 				return badExpr()
 			}
+			return out
 		}
 		return &dag.This{Kind: "This", Path: path}
 	}
