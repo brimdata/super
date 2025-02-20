@@ -112,14 +112,14 @@ func (s *Scope) nvars() int {
 // In the case of unqualified col ref, check that it is not ambiguous
 // when there are multiple tables (i.e., from joins).
 // An unqualified field reference is valid only in dynamic schemas.
-func (s *Scope) resolve(path field.Path) (field.Path, error) {
+func (s *Scope) resolve(path field.Path) (dag.Expr, error) {
 	// If there's no schema, we're not in a SQL context so we just
 	// return the path unmodified.  Otherwise, we apply SQL scoping
 	// rules to transform the abstract path to the dataflow path
 	// implied by the schema.
 	sch := s.schema
 	if sch == nil {
-		return path, nil
+		return &dag.This{Kind: "This", Path: path}, nil
 	}
 	if len(path) == 0 {
 		// XXX this should really treat this as a column in sql context but
@@ -127,15 +127,34 @@ func (s *Scope) resolve(path field.Path) (field.Path, error) {
 		// should flag and maybe make it part of a strict mode (like bitwise |)
 		return nil, errors.New("cannot reference 'this' in relational context; consider the 'yield' operator")
 	}
+	path, err := resolvePath(sch, path)
+	return &dag.This{Kind: "This", Path: path}, err
+}
+
+func resolvePath(sch schema, path field.Path) (field.Path, error) {
 	if len(path) == 1 {
-		return sch.resolveColumn(path[0], nil)
+		return sch.resolveColumn(path[0])
 	}
-	if out, err := sch.resolveTable(path[0], path[1:]); out != nil || err != nil {
-		return out, err
+	table, tablePath, err := sch.resolveTable(path[0])
+	if err != nil {
+		return nil, err
 	}
-	out, err := sch.resolveColumn(path[0], path[1:])
+	if table != nil {
+		columnPath, err := table.resolveColumn(path[1])
+		if err != nil {
+			return nil, err
+		}
+		if columnPath != nil {
+			out := append(tablePath, columnPath...)
+			if len(path) > 2 {
+				out = append(out, path[2:]...)
+			}
+			return out, nil
+		}
+	}
+	out, err := sch.resolveColumn(path[0])
 	if out == nil && err == nil {
 		err = fmt.Errorf("%q: not a column or table", path[0])
 	}
-	return out, err
+	return append(out, path[1:]...), err
 }

@@ -335,12 +335,20 @@ func (a *analyzer) genDistinct(e dag.Expr, seq dag.Seq) dag.Seq {
 func (a *analyzer) semSQLPipe(op *ast.SQLPipe, seq dag.Seq, alias string) (dag.Seq, schema) {
 	if len(op.Ops) == 1 && isSQLOp(op.Ops[0]) {
 		seq, sch := a.semSQLOp(op.Ops[0], seq)
-		return sch.deref(seq, alias)
+		return derefSchema(sch, alias, seq)
 	}
 	if len(seq) > 0 {
 		panic("semSQLOp: SQL pipes can't have parents")
 	}
 	return a.semSeq(op.Ops), &dynamicSchema{name: alias}
+}
+
+func derefSchema(sch schema, alias string, seq dag.Seq) (dag.Seq, schema) {
+	e, sch := sch.deref(alias)
+	if e != nil {
+		seq = yieldExpr(e, seq)
+	}
+	return seq, sch
 }
 
 func isSQLOp(op ast.Op) bool {

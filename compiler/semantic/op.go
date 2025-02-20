@@ -553,7 +553,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 	switch o := o.(type) {
 	case *ast.Select, *ast.Limit, *ast.OrderBy, *ast.SQLPipe:
 		seq, sch := a.semSQLOp(o, seq)
-		seq, _ = sch.deref(seq, "")
+		seq, _ = derefSchema(sch, "", seq)
 		return seq
 	case *ast.From:
 		seq, _ := a.semFrom(o, seq)
