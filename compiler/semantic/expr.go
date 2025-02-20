@@ -588,6 +588,18 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 			Expr:  exprs[0],
 			Inner: inner,
 		}
+	case nameLower == "this":
+		if nargs != 0 {
+			a.error(call, errors.New("this() takes no arguments"))
+			return badExpr()
+		}
+		sch := a.scope.schema
+		if sch == nil {
+			// In pipe context, treat this() and this the same.
+			return &dag.This{Kind: "This"}
+		}
+		return derefThis(sch, nil)
+
 	default:
 		if _, _, err = function.New(a.zctx, nameLower, nargs); err != nil {
 			a.error(call, err)

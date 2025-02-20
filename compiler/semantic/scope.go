@@ -139,3 +139,41 @@ func (s *Scope) resolve(path field.Path) (field.Path, error) {
 	}
 	return out, err
 }
+
+func derefThis(sch schema, path []string) dag.Expr {
+	switch sch := sch.(type) {
+	case *schemaDynamic, *schemaStatic, *schemaAnon:
+		return &dag.This{Kind: "This", Path: path}
+	case *schemaSelect:
+		return derefThis(sch.in, append(path, "in"))
+	case *schemaJoin:
+		left := derefThis(sch.left, append(path, "left"))
+		right := derefThis(sch.right, append(path, "right"))
+		return joinSpread(left, right)
+	default:
+		panic(fmt.Sprintf("unknown schema type: %T", sch))
+	}
+}
+
+// spread left/right join legs into "this"
+func joinSpread(left, right dag.Expr) *dag.RecordExpr {
+	if left == nil {
+		left = &dag.This{Kind: "This"}
+	}
+	if right == nil {
+		right = &dag.This{Kind: "This"}
+	}
+	return &dag.RecordExpr{
+		Kind: "RecordExpr",
+		Elems: []dag.RecordElem{
+			&dag.Spread{
+				Kind: "Spread",
+				Expr: left,
+			},
+			&dag.Spread{
+				Kind: "Spread",
+				Expr: right,
+			},
+		},
+	}
+}
