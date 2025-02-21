@@ -6,51 +6,7 @@ import (
 
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/pkg/field"
 )
-
-type schema interface {
-	Name() string
-	resolveColumn(col string, path field.Path) (field.Path, error)
-	resolveTable(table string, path field.Path) (field.Path, error)
-	// deref adds logic to seq to yield out the value from a SQL-schema-contained
-	// value set and returns the resulting schema.  If name is non-zero, then a new
-	// schema is returned that represents the aliased table name that results.
-	deref(seq dag.Seq, name string) (dag.Seq, schema)
-}
-
-type staticSchema struct {
-	name    string
-	columns []string
-}
-
-type anonSchema struct {
-	columns []string
-}
-
-type dynamicSchema struct {
-	name string
-}
-
-type selectSchema struct {
-	in  schema
-	out schema
-}
-
-type joinSchema struct {
-	left  schema
-	right schema
-}
-
-func (s *staticSchema) Name() string  { return s.name }
-func (d *dynamicSchema) Name() string { return d.name }
-func (*anonSchema) Name() string      { return "" }
-func (*selectSchema) Name() string    { return "" }
-func (*joinSchema) Name() string      { return "" }
-
-func badSchema() schema {
-	return &dynamicSchema{}
-}
 
 // Column of a select statement.  We bookkeep here whether
 // a column is a scalar expression or an aggregation by looking up the function
@@ -70,12 +26,6 @@ type column struct {
 	loc   ast.Expr
 	expr  dag.Expr
 	isAgg bool
-}
-
-// namedAgg gives us a place to bind temp name to each agg function.
-type namedAgg struct {
-	name string
-	agg  *dag.Agg
 }
 
 type projection []column
@@ -113,6 +63,12 @@ func newColumn(name string, loc ast.Expr, e dag.Expr, funcs *aggfuncs) (*column,
 
 func (c *column) isStar() bool {
 	return c.expr == nil
+}
+
+// namedAgg gives us a place to bind temp name to each agg function.
+type namedAgg struct {
+	name string
+	agg  *dag.Agg
 }
 
 type aggfuncs []namedAgg
