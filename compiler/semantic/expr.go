@@ -3,6 +3,7 @@ package semantic
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/brimdata/super"
@@ -54,8 +55,7 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 					a.error(e, err)
 					return badExpr()
 				}
-				this.Path = path
-				return this
+				return &dag.This{Kind: "This", Path: path}
 			}
 		}
 		return id
@@ -238,7 +238,7 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 					continue
 				}
 				fields[elem.Name] = struct{}{}
-				// Call semExpr even though we know this is an ID so to
+				// Call semExpr even though we know this is an ID so
 				// SQL-context scope mappings are carried out.
 				v := a.semExpr(elem)
 				out = append(out, &dag.Field{
@@ -503,7 +503,7 @@ func (a *analyzer) semDotted(e *ast.BinaryExpr) []string {
 	case *ast.ID:
 		id := a.semID(lhs)
 		if this, ok := id.(*dag.This); ok {
-			return append(this.Path, rhs.Name)
+			return append(slices.Clone(this.Path), rhs.Name)
 		}
 		return nil
 	case *ast.BinaryExpr:

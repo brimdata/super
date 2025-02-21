@@ -27,15 +27,14 @@ func (a *analyzer) semSelect(sel *ast.Select, seq dag.Seq) (dag.Seq, schema) {
 		a.error(sel, errors.New("SELECT clause has no selection"))
 		return seq, badSchema()
 	}
-	var fromSchema schema
-	seq, fromSchema = a.semSelectFrom(sel.Loc, sel.From, seq)
+	seq, fromSchema := a.semSelectFrom(sel.Loc, sel.From, seq)
 	if fromSchema == nil {
 		return seq, badSchema()
 	}
 	if sel.Value {
 		return a.semSelectValue(sel, fromSchema, seq)
 	}
-	sch := &schemaSelect{in: fromSchema}
+	sch := &selectSchema{in: fromSchema}
 	var funcs aggfuncs
 	proj := a.semProjection(sch, sel.Selection.Args, &funcs)
 	var where dag.Expr
@@ -52,21 +51,18 @@ func (a *analyzer) semSelect(sel *ast.Select, seq dag.Seq) (dag.Seq, schema) {
 	// we stitch together the fragments into pipeline operators depending
 	// on whether its an aggregation or a selection of scalar expressions.
 	seq = yieldExpr(wrapThis("in"), seq)
-	var schOut schema
 	if len(funcs) != 0 || len(keyExprs) != 0 {
 		seq = a.genSummarize(sel.Loc, proj, where, keyExprs, funcs, having, seq)
-		schOut = sch.out
-	} else {
-		if having != nil {
-			a.error(sel.Having, errors.New("HAVING clause requires aggregations and/or a GROUP BY clause"))
-		}
-		seq = a.genYield(proj, where, sch, seq)
-		schOut = sch
-		if sel.Distinct {
-			seq = a.genDistinct(pathOf("out"), seq)
-		}
+		return seq, sch.out
 	}
-	return seq, schOut
+	if having != nil {
+		a.error(sel.Having, errors.New("HAVING clause requires aggregations and/or a GROUP BY clause"))
+	}
+	seq = a.genYield(proj, where, sch, seq)
+	if sel.Distinct {
+		seq = a.genDistinct(pathOf("out"), seq)
+	}
+	return seq, sch
 }
 
 func (a *analyzer) semHaving(sch schema, e ast.Expr, funcs *aggfuncs) (dag.Expr, error) {
@@ -76,7 +72,7 @@ func (a *analyzer) semHaving(sch schema, e ast.Expr, funcs *aggfuncs) (dag.Expr,
 	return funcs.subst(a.semExprSchema(sch, e))
 }
 
-func (a *analyzer) genYield(proj projection, where dag.Expr, sch *schemaSelect, seq dag.Seq) dag.Seq {
+func (a *analyzer) genYield(proj projection, where dag.Expr, sch *selectSchema, seq dag.Seq) dag.Seq {
 	if len(proj) == 0 {
 		return nil
 	}
@@ -87,8 +83,8 @@ func (a *analyzer) genYield(proj projection, where dag.Expr, sch *schemaSelect, 
 	return seq
 }
 
-func (a *analyzer) genColumns(proj projection, sch *schemaSelect, seq dag.Seq) dag.Seq {
-	notFirst := false
+func (a *analyzer) genColumns(proj projection, sch *selectSchema, seq dag.Seq) dag.Seq {
+	var notFirst bool
 	for _, col := range proj {
 		if col.isAgg {
 			continue
@@ -146,9 +142,9 @@ func unravel(schema schema, prefix field.Path) []field.Path {
 	switch schema := schema.(type) {
 	default:
 		return []field.Path{prefix}
-	case *schemaSelect:
+	case *selectSchema:
 		return unravel(schema.in, append(prefix, "in"))
-	case *schemaJoin:
+	case *joinSchema:
 		out := unravel(schema.left, append(prefix, "left"))
 		return append(out, unravel(schema.right, append(prefix, "right"))...)
 	}
@@ -162,7 +158,7 @@ func (a *analyzer) genSummarize(loc ast.Loc, proj projection, where dag.Expr, ke
 	}
 	if len(proj) != len(proj.aggCols()) {
 		// Yield expressions for potentially left-to-right-dependent
-		// columns expressions of the group-by expression components.
+		// column expressions of the group-by expression components.
 		seq = a.genYield(proj, nil, nil, seq)
 	}
 	if where != nil {
@@ -279,12 +275,11 @@ func exprMatch(e dag.Expr, exprs []exprloc) int {
 
 func (a *analyzer) semSelectFrom(loc ast.Loc, from *ast.From, seq dag.Seq) (dag.Seq, schema) {
 	if from == nil {
-		return seq, &schemaDynamic{}
+		return seq, &dynamicSchema{}
 	}
 	off := len(seq)
 	hasParent := off > 0
-	var sch schema
-	seq, sch = a.semFrom(from, seq)
+	seq, sch := a.semFrom(from, seq)
 	if off >= len(seq) {
 		// The chain didn't get lengthed so semFrom must have enocounteded
 		// an error...
@@ -327,7 +322,7 @@ func (a *analyzer) semSelectValue(sel *ast.Select, sch schema, seq dag.Seq) (dag
 	if sel.Distinct {
 		seq = a.genDistinct(pathOf("this"), seq)
 	}
-	return seq, &schemaDynamic{}
+	return seq, &dynamicSchema{}
 }
 
 func (a *analyzer) genDistinct(e dag.Expr, seq dag.Seq) dag.Seq {
@@ -339,13 +334,13 @@ func (a *analyzer) genDistinct(e dag.Expr, seq dag.Seq) dag.Seq {
 
 func (a *analyzer) semSQLPipe(op *ast.SQLPipe, seq dag.Seq, alias string) (dag.Seq, schema) {
 	if len(op.Ops) == 1 && isSQLOp(op.Ops[0]) {
-		seq, s := a.semSQLOp(op.Ops[0], seq)
-		return derefSchema(s, seq, alias)
+		seq, sch := a.semSQLOp(op.Ops[0], seq)
+		return sch.deref(seq, alias)
 	}
 	if len(seq) > 0 {
 		panic("semSQLOp: SQL pipes can't have parents")
 	}
-	return a.semSeq(op.Ops), &schemaDynamic{name: alias}
+	return a.semSeq(op.Ops), &dynamicSchema{name: alias}
 }
 
 func isSQLOp(op ast.Op) bool {
@@ -420,7 +415,7 @@ func (a *analyzer) semSQLJoin(join *ast.SQLJoin, seq dag.Seq) (dag.Seq, schema) 
 	leftSeq = yieldExpr(wrapThis("left"), leftSeq)
 	rightSeq, rightSchema := a.semFromElem(join.Right, nil)
 	rightSeq = yieldExpr(wrapThis("right"), rightSeq)
-	sch := &schemaJoin{left: leftSchema, right: rightSchema}
+	sch := &joinSchema{left: leftSchema, right: rightSchema}
 	leftKey, rightKey, err := a.semSQLJoinCond(join.Cond, sch)
 	if err != nil {
 		a.error(join.Cond, errors.New("SQL joins currently limited to equijoin on fields"))
@@ -447,7 +442,7 @@ func (a *analyzer) semSQLJoin(join *ast.SQLJoin, seq dag.Seq) (dag.Seq, schema) 
 	return append(append(leftSeq, par), dagJoin), sch
 }
 
-func (a *analyzer) semSQLJoinCond(cond ast.JoinExpr, sch *schemaJoin) (*dag.This, *dag.This, error) {
+func (a *analyzer) semSQLJoinCond(cond ast.JoinExpr, sch *joinSchema) (*dag.This, *dag.This, error) {
 	//XXX we currently require field expressions for SQL joins and will need them
 	// to resolve names to join side when we add scope tracking
 	saved := a.scope.schema
@@ -529,7 +524,7 @@ type exprloc struct {
 	loc  ast.Expr
 }
 
-func (a *analyzer) semGroupBy(sch *schemaSelect, in []ast.Expr) []exprloc {
+func (a *analyzer) semGroupBy(sch *selectSchema, in []ast.Expr) []exprloc {
 	var out []exprloc
 	var funcs aggfuncs
 	for k, expr := range in {
@@ -545,8 +540,8 @@ func (a *analyzer) semGroupBy(sch *schemaSelect, in []ast.Expr) []exprloc {
 	return out
 }
 
-func (a *analyzer) semProjection(sch *schemaSelect, args []ast.AsExpr, funcs *aggfuncs) projection {
-	out := &schemaAnon{}
+func (a *analyzer) semProjection(sch *selectSchema, args []ast.AsExpr, funcs *aggfuncs) projection {
+	out := &anonSchema{}
 	sch.out = out
 	conflict := make(map[string]struct{})
 	var proj projection
@@ -606,4 +601,28 @@ func inferColumnName(e dag.Expr, ae ast.Expr) string {
 		return zfmt.ASTExpr(ae)
 	}
 	return field.Path(path).Leaf()
+}
+
+func yieldExpr(e dag.Expr, seq dag.Seq) dag.Seq {
+	return append(seq, &dag.Yield{
+		Kind:  "Yield",
+		Exprs: []dag.Expr{e},
+	})
+}
+
+func wrapThis(field string) *dag.RecordExpr {
+	return wrapField(field, &dag.This{Kind: "This"})
+}
+
+func wrapField(field string, e dag.Expr) *dag.RecordExpr {
+	return &dag.RecordExpr{
+		Kind: "RecordExpr",
+		Elems: []dag.RecordElem{
+			&dag.Field{
+				Kind:  "Field",
+				Name:  field,
+				Value: e,
+			},
+		},
+	}
 }

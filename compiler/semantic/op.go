@@ -45,7 +45,7 @@ func (a *analyzer) semFrom(from *ast.From, seq dag.Seq) (dag.Seq, schema) {
 
 // semFromElem generates a DAG fragment to read from the various sources potentially
 // with embedded SQL subexpressions and joins.  We return the schema of the
-// the entity to support SQL scoping semantics  The callee is responsible for
+// the entity to support SQL scoping semantics.  The callee is responsible for
 // wrapping the result in a record representing the schemafied data as the output
 // here is simply the underlying data sequence.
 func (a *analyzer) semFromElem(elem *ast.FromElem, seq dag.Seq) (dag.Seq, schema) {
@@ -58,35 +58,11 @@ func (a *analyzer) semFromElem(elem *ast.FromElem, seq dag.Seq) (dag.Seq, schema
 	return seq, sch
 }
 
-func yieldExpr(e dag.Expr, seq dag.Seq) dag.Seq {
-	return append(seq, &dag.Yield{
-		Kind:  "Yield",
-		Exprs: []dag.Expr{e},
-	})
-}
-
-func wrapThis(field string) *dag.RecordExpr {
-	return wrapField(field, &dag.This{Kind: "This"})
-}
-
-func wrapField(field string, e dag.Expr) *dag.RecordExpr {
-	return &dag.RecordExpr{
-		Kind: "RecordExpr",
-		Elems: []dag.RecordElem{
-			&dag.Field{
-				Kind:  "Field",
-				Name:  field,
-				Value: e,
-			},
-		},
-	}
-}
-
 func (a *analyzer) fromSchema(alias *ast.Name, name string) schema {
 	if alias != nil {
 		name = alias.Text
 	}
-	return &schemaDynamic{name: name}
+	return &dynamicSchema{name: name}
 }
 
 func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.Name, args ast.FromArgs, seq dag.Seq) (dag.Seq, schema) {
@@ -108,7 +84,6 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.Name, args as
 			a.error(entity, errors.New("cannot use regular expression with from operator on local file system"))
 		}
 		return a.semPoolFromRegexp(entity, entity.Pattern, entity.Pattern, "regexp", args), a.fromSchema(alias, "")
-
 	case *ast.Name:
 		if bad := a.hasFromParent(entity, seq); bad != nil {
 			return bad, badSchema()
@@ -122,7 +97,7 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.Name, args as
 		if bad := a.hasFromParent(entity, seq); bad != nil {
 			return bad, badSchema()
 		}
-		return dag.Seq{a.semLakeMeta(entity)}, &schemaDynamic{}
+		return dag.Seq{a.semLakeMeta(entity)}, &dynamicSchema{}
 	case *ast.SQLPipe:
 		var name string
 		if alias != nil {
@@ -577,8 +552,8 @@ func (a *analyzer) semDebugOp(o *ast.Debug, mainAst ast.Seq, in dag.Seq) dag.Seq
 func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 	switch o := o.(type) {
 	case *ast.Select, *ast.Limit, *ast.OrderBy, *ast.SQLPipe:
-		seq, s := a.semSQLOp(o, seq)
-		seq, _ = derefSchema(s, seq, "")
+		seq, sch := a.semSQLOp(o, seq)
+		seq, _ = sch.deref(seq, "")
 		return seq
 	case *ast.From:
 		seq, _ := a.semFrom(o, seq)

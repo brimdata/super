@@ -6,43 +6,50 @@ import (
 
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/dag"
+	"github.com/brimdata/super/pkg/field"
 )
 
 type schema interface {
 	Name() string
+	resolveColumn(col string, path field.Path) (field.Path, error)
+	resolveTable(table string, path field.Path) (field.Path, error)
+	// deref adds logic to seq to yield out the value from a SQL-schema-contained
+	// value set and returns the resulting schema.  If name is non-zero, then a new
+	// schema is returned that represents the aliased table name that results.
+	deref(seq dag.Seq, name string) (dag.Seq, schema)
 }
 
-type schemaStatic struct {
+type staticSchema struct {
 	name    string
 	columns []string
 }
 
-type schemaAnon struct {
+type anonSchema struct {
 	columns []string
 }
 
-type schemaDynamic struct {
+type dynamicSchema struct {
 	name string
 }
 
-type schemaSelect struct {
+type selectSchema struct {
 	in  schema
 	out schema
 }
 
-type schemaJoin struct {
+type joinSchema struct {
 	left  schema
 	right schema
 }
 
-func (s *schemaStatic) Name() string  { return s.name }
-func (s *schemaDynamic) Name() string { return s.name }
-func (s *schemaAnon) Name() string    { return "" }
-func (s *schemaSelect) Name() string  { return "" }
-func (s *schemaJoin) Name() string    { return "" }
+func (s *staticSchema) Name() string  { return s.name }
+func (d *dynamicSchema) Name() string { return d.name }
+func (*anonSchema) Name() string      { return "" }
+func (*selectSchema) Name() string    { return "" }
+func (*joinSchema) Name() string      { return "" }
 
 func badSchema() schema {
-	return &schemaDynamic{}
+	return &dynamicSchema{}
 }
 
 // Column of a select statement.  We bookkeep here whether
