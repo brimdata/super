@@ -1,8 +1,6 @@
 package vector
 
 import (
-	"encoding/binary"
-
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/zcode"
 )
@@ -36,14 +34,6 @@ func (e *Error) Serialize(b *zcode.Builder, slot uint32) {
 	}
 	e.Vals.Serialize(b, slot)
 
-}
-
-func (e *Error) AppendKey(bytes []byte, slot uint32) []byte {
-	bytes = binary.NativeEndian.AppendUint32(bytes, uint32(e.Typ.ID()))
-	if e.Nulls.Value(slot) {
-		return append(bytes, 0)
-	}
-	return e.Vals.AppendKey(bytes, slot)
 }
 
 func NewStringError(zctx *super.Context, msg string, len uint32) *Error {

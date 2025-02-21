@@ -46,13 +46,6 @@ func (s *String) Serialize(b *zcode.Builder, slot uint32) {
 	}
 }
 
-func (s *String) AppendKey(bytes []byte, slot uint32) []byte {
-	if s.Nulls.Value(slot) {
-		return append(bytes, 0)
-	}
-	return append(bytes, s.Bytes[s.Offsets[slot]:s.Offsets[slot+1]]...)
-}
-
 func StringValue(val Any, slot uint32) (string, bool) {
 	switch val := val.(type) {
 	case *String:

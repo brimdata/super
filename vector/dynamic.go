@@ -45,7 +45,3 @@ func (d *Dynamic) Len() uint32 {
 func (d *Dynamic) Serialize(b *zcode.Builder, slot uint32) {
 	d.Values[d.Tags[slot]].Serialize(b, d.TagMap.Forward[slot])
 }
-
-func (d *Dynamic) AppendKey(b []byte, slot uint32) []byte {
-	return d.Values[d.Tags[slot]].AppendKey(b, d.TagMap.Forward[slot])
-}
