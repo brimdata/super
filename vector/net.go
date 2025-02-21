@@ -34,13 +34,6 @@ func (n *Net) Serialize(b *zcode.Builder, slot uint32) {
 	}
 }
 
-func (n *Net) AppendKey(b []byte, slot uint32) []byte {
-	if n.Nulls.Value(slot) {
-		return append(b, 0)
-	}
-	return super.AppendNet(b, n.Values[slot])
-}
-
 func NetValue(val Any, slot uint32) (netip.Prefix, bool) {
 	switch val := val.(type) {
 	case *Net:

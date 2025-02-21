@@ -39,13 +39,14 @@ type aggRow struct {
 func (s *superTable) update(keys []vector.Any, args []vector.Any) {
 	m := make(map[string][]uint32)
 	if len(keys) > 0 {
-		var keyBytes []byte
+		var b zcode.Builder
 		for slot := range keys[0].Len() {
-			keyBytes = keyBytes[:0]
+			b.Truncate()
 			for _, key := range keys {
-				keyBytes = key.AppendKey(keyBytes, slot)
+				key.Serialize(&b, slot)
 			}
-			m[string(keyBytes)] = append(m[string(keyBytes)], slot)
+			keyStr := string(b.Bytes())
+			m[keyStr] = append(m[keyStr], slot)
 		}
 	} else {
 		m[""] = nil

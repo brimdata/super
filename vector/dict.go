@@ -29,13 +29,6 @@ func (d *Dict) Serialize(builder *zcode.Builder, slot uint32) {
 	}
 }
 
-func (d *Dict) AppendKey(bytes []byte, slot uint32) []byte {
-	if d.Nulls.Value(slot) {
-		return append(bytes, 0)
-	}
-	return d.Any.AppendKey(bytes, uint32(d.Index[slot]))
-}
-
 // RebuildDropIndex rebuilds the dictionary Index, Count and Nulls values with
 // the passed in tags removed.
 func (d *Dict) RebuildDropTags(tags ...uint32) ([]byte, []uint32, *Bool, []uint32) {

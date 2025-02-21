@@ -66,14 +66,6 @@ func (b *Bool) Serialize(builder *zcode.Builder, slot uint32) {
 	}
 }
 
-func (b *Bool) AppendKey(bytes []byte, slot uint32) []byte {
-	var v byte
-	if b.Value(slot) {
-		v = 1
-	}
-	return append(bytes, v)
-}
-
 func (b *Bool) TrueCount() uint32 {
 	if b == nil {
 		return 0

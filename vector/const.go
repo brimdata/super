@@ -45,13 +45,6 @@ func (c *Const) Serialize(b *zcode.Builder, slot uint32) {
 	}
 }
 
-func (c *Const) AppendKey(bytes []byte, slot uint32) []byte {
-	if c.Nulls.Value(slot) {
-		return append(bytes, 0)
-	}
-	return append(bytes, c.val.Bytes()...)
-}
-
 func (c *Const) AsBytes() ([]byte, bool) {
 	return c.val.Bytes(), c.val.Type().ID() == super.IDBytes
 }

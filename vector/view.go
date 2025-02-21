@@ -109,7 +109,3 @@ func (v *View) Len() uint32 {
 func (v *View) Serialize(b *zcode.Builder, slot uint32) {
 	v.Any.Serialize(b, v.Index[slot])
 }
-
-func (v *View) AppendKey(b []byte, slot uint32) []byte {
-	return v.Any.AppendKey(b, v.Index[slot])
-}

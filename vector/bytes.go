@@ -45,13 +45,6 @@ func (b *Bytes) Value(slot uint32) []byte {
 	return b.Bytes[b.Offs[slot]:b.Offs[slot+1]]
 }
 
-func (b *Bytes) AppendKey(bytes []byte, slot uint32) []byte {
-	if b.Nulls.Value(slot) {
-		return append(bytes, 0)
-	}
-	return append(bytes, b.Bytes[b.Offs[slot]:b.Offs[slot+1]]...)
-}
-
 func BytesValue(val Any, slot uint32) ([]byte, bool) {
 	switch val := val.(type) {
 	case *Bytes:
