@@ -15,6 +15,21 @@ without giving up JSON's uncanny ability to represent eclectic data.
 Trying out SuperDB is easy: just [install](install.md) the command-line tool
 [`super`](commands/super.md) and run through its [usage documentation](commands/super.md).
 
+{{% tip "Note" %}}
+
+The SuperDB code and docs are still under construction. Once you've
+[installed](install.md) `super` we
+recommend focusing first on the functionality shown in the
+[`super` command doc](commands/super.md). Feel free to explore other docs and
+try things out, but please don't be shocked if you hit speedbumps in the near
+term, particularly in areas like performance and full SQL coverage. We're
+working on it! 😉
+
+Once you've tried it out, we'd love to hear your feedback via
+our [community Slack](https://www.brimdata.io/join-slack/).
+
+{{% /tip %}}
+
 Compared to putting JSON data in a relational column, the
 [super-structured data model](formats/zed.md) makes it really easy to
 mash up JSON with your relational tables.  The `super` command is a little
@@ -29,7 +44,7 @@ packaged up in the easy-to-understand
 [Super JSON data format](formats/jsup.md) and
 [SuperSQL language](language/_index.md).
 
-While `super` and its accompanying data formats are production quality, the project's
+While `super` and its accompanying data formats are production quality for some use cases, the project's
 [SuperDB data lake](commands/super-db.md) is a bit earlier in development.
 
 ## Terminology

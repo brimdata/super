@@ -10,6 +10,19 @@ title: super
 > [Parquet](https://github.com/apache/parquet-format), or
 > [Arrow](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format).
 
+{{% tip "Note" %}}
+
+The SuperDB code and docs are still under construction. Once you've [installed](../install.md) `super` we
+recommend focusing first on the functionality shown in this page. Feel free to
+explore other docs and try things out, but please don't be shocked if you hit
+speedbumps in the near term, particularly in areas like performance and full
+SQL coverage. We're working on it! 😉
+
+Once you've tried it out, we'd love to
+hear your feedback via our [community Slack](https://www.brimdata.io/join-slack/).
+
+{{% /tip %}}
+
 ## Usage
 
 ```

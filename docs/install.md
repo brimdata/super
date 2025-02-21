@@ -2,13 +2,30 @@
 title: Installation
 ---
 
-Several options for installing `super` are available:
+Because SuperDB is still under construction, GA releases are not yet available.
+However, you can install a build of the [`super`](https://superdb.org/docs/commands/super)
+command-line tool based on code that's under active development to start
+tinkering.
+
+Multiple options for installing `super` are available:
 * [Homebrew](#homebrew) for Mac or Linux,
-* [Binary download](#binary-download), or
 * [Build from source](#building-from-source).
 
 To install the SuperDB Python client, see the
 [Python library documentation](libraries/python.md).
+
+{{% tip "Note" %}}
+
+Once you've installed `super` we recommend focusing first on the functionality
+shown in the [`super` command doc](commands/super.md). Feel free to explore
+other docs and try things out, but please don't be shocked if you hit
+speedbumps in the near term, particularly in areas like performance and full
+SQL coverage. We're working on it! 😉
+
+Once you've tried it out, we'd love to hear your feedback via
+our [community Slack](https://www.brimdata.io/join-slack/).
+
+{{% /tip %}}
 
 ## Homebrew
 
@@ -20,19 +37,12 @@ brew install brimdata/tap/super
 
 Once installed, run a [quick test](#quick-tests).
 
-## Binary Download
-
-We offer pre-built binaries for macOS, Windows and Linux for both amd64/x86 and arm
-architectures in the super [GitHub Release page](https://github.com/brimdata/super/releases).
-
-Once the `super` binary is unpacked from a downloaded package, run a [quick test](#quick-tests).
-
 ## Building From Source
 
 If you have Go installed, you can easily build `super` from source:
 
 ```bash
-go install github.com/brimdata/super/cmd/super@latest
+go install github.com/brimdata/super/cmd/super@main
 ```
 
 This installs the `super` binary in your `$GOPATH/bin`.
