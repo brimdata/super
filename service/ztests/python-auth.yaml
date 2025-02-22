@@ -3,7 +3,7 @@ script: |
   . v/bin/activate
 
   mkdir superdb
-  mv setup.py superdb.py superdb
+  mv pyproject.toml superdb.py README.md superdb
   # -qq supresses warnings about availability of newer pip versions.
   pip install -qq ./superdb
 
@@ -33,10 +33,12 @@ inputs:
   - name: auth-public-jwks.json
     source: ../testdata/auth-public-jwks.json
   - name: service.sh
-  - name: setup.py
-    source: ../../python/superdb/setup.py
+  - name: pyproject.toml
+    source: ../../python/superdb/pyproject.toml
   - name: superdb.py
     source: ../../python/superdb/superdb.py
+  - name: README.md
+    source: ../../python/superdb/README.md
 
 outputs:
   - name: stdout
