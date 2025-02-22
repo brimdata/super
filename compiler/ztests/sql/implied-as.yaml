@@ -1,0 +1,25 @@
+script: |
+  super -z -c "select a x from t.json"
+  echo ===
+  super -z -c "select a x, a as y, b z from t.json"
+
+inputs:
+  - name: t.json
+    data: |
+      {"a":1,"b":1}
+      {"a":2,"b":1}
+      {"a":3,"b":2}
+      {"a":4,"b":2}
+
+outputs:
+  - name: stdout
+    data: |
+      {x:1}
+      {x:2}
+      {x:3}
+      {x:4}
+      ===
+      {x:1,y:1,z:1}
+      {x:2,y:2,z:1}
+      {x:3,y:3,z:2}
+      {x:4,y:4,z:2}
