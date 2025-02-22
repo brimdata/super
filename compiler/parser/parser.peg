@@ -2109,6 +2109,7 @@ SelectElem
 
 OptAsClause 
   = _ AS _ id:Identifier { return id, nil }
+  / _ !SQLGuard id:Identifier { return id, nil }
   / ""  { return nil, nil }
 
 OptOrderByClause 
