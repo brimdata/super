@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "superdb"
+dynamic = ["version"]
+readme = "README.md"
+license = "BSD-3-Clause"
+requires-python = ">=3.3"
+dependencies = [
+    "durationpy",
+    "python-dateutil",
+    "requests",
+]
+
+[tool.hatch.version]
+source = "vcs"
+fallback-version = "0+unknown"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "_version.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "superdb/*",
+]
