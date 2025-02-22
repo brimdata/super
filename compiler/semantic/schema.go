@@ -16,6 +16,7 @@ type schema interface {
 	// value set and returns the resulting schema.  If name is non-zero, then a new
 	// schema is returned that represents the aliased table name that results.
 	deref(seq dag.Seq, name string) (dag.Seq, schema)
+	this(path []string) dag.Expr
 }
 
 type staticSchema struct {
@@ -243,4 +244,49 @@ func (j *joinSchema) deref(seq dag.Seq, name string) (dag.Seq, schema) {
 		Kind:  "Yield",
 		Exprs: []dag.Expr{e},
 	}), &dynamicSchema{name: name}
+}
+
+func (d *dynamicSchema) this(path []string) dag.Expr {
+	return &dag.This{Kind: "This", Path: path}
+}
+
+func (s *staticSchema) this(path []string) dag.Expr {
+	return &dag.This{Kind: "This", Path: path}
+}
+
+func (a *anonSchema) this(path []string) dag.Expr {
+	return &dag.This{Kind: "This", Path: path}
+}
+
+func (s *selectSchema) this(path []string) dag.Expr {
+	return s.in.this(append(path, "in"))
+}
+
+func (j *joinSchema) this(path []string) dag.Expr {
+	left := j.left.this(append(path, "left"))
+	right := j.right.this(append(path, "right"))
+	return joinSpread(left, right)
+}
+
+// spread left/right join legs into "this"
+func joinSpread(left, right dag.Expr) *dag.RecordExpr {
+	if left == nil {
+		left = &dag.This{Kind: "This"}
+	}
+	if right == nil {
+		right = &dag.This{Kind: "This"}
+	}
+	return &dag.RecordExpr{
+		Kind: "RecordExpr",
+		Elems: []dag.RecordElem{
+			&dag.Spread{
+				Kind: "Spread",
+				Expr: left,
+			},
+			&dag.Spread{
+				Kind: "Spread",
+				Expr: right,
+			},
+		},
+	}
 }

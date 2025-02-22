@@ -50,12 +50,12 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 		id := a.semID(e)
 		if a.scope.schema != nil {
 			if this, ok := id.(*dag.This); ok {
-				path, err := a.scope.resolve(this.Path)
+				resolved, err := a.scope.resolve(this.Path)
 				if err != nil {
 					a.error(e, err)
 					return badExpr()
 				}
-				return &dag.This{Kind: "This", Path: path}
+				return resolved
 			}
 		}
 		return id
@@ -405,12 +405,12 @@ func (a *analyzer) semRegexp(b *ast.BinaryExpr) dag.Expr {
 func (a *analyzer) semBinary(e *ast.BinaryExpr) dag.Expr {
 	if path := a.semDotted(e); path != nil {
 		if a.scope.schema != nil {
-			var err error
-			path, err = a.scope.resolve(path)
+			out, err := a.scope.resolve(path)
 			if err != nil {
 				a.error(e, err)
 				return badExpr()
 			}
+			return out
 		}
 		return &dag.This{Kind: "This", Path: path}
 	}
@@ -588,7 +588,7 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 			Expr:  exprs[0],
 			Inner: inner,
 		}
-	case nameLower == "this":
+	case nameLower == "this": //XXX move this
 		if nargs != 0 {
 			a.error(call, errors.New("this() takes no arguments"))
 			return badExpr()
@@ -598,7 +598,7 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 			// In pipe context, treat this() and this the same.
 			return &dag.This{Kind: "This"}
 		}
-		return derefThis(sch, nil)
+		return sch.this(nil)
 
 	default:
 		if _, _, err = function.New(a.zctx, nameLower, nargs); err != nil {

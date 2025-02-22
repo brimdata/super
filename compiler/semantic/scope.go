@@ -1,7 +1,6 @@
 package semantic
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/brimdata/super"
@@ -112,21 +111,23 @@ func (s *Scope) nvars() int {
 // In the case of unqualified col ref, check that it is not ambiguous
 // when there are multiple tables (i.e., from joins).
 // An unqualified field reference is valid only in dynamic schemas.
-func (s *Scope) resolve(path field.Path) (field.Path, error) {
+func (s *Scope) resolve(path field.Path) (dag.Expr, error) {
+	sch := s.schema
+	if sch == nil {
+		return &dag.This{Kind: "This", Path: path}, nil
+	}
+	if len(path) == 0 {
+		return sch.this(nil), nil
+	}
+	path, err := resolvePath(sch, path)
+	return &dag.This{Kind: "This", Path: path}, err
+}
+
+func resolvePath(sch schema, path field.Path) (field.Path, error) {
 	// If there's no schema, we're not in a SQL context so we just
 	// return the path unmodified.  Otherwise, we apply SQL scoping
 	// rules to transform the abstract path to the dataflow path
 	// implied by the schema.
-	sch := s.schema
-	if sch == nil {
-		return path, nil
-	}
-	if len(path) == 0 {
-		// XXX this should really treat this as a column in sql context but
-		// but this will cause dynamic stuff to silently fail so I think we
-		// should flag and maybe make it part of a strict mode (like bitwise |)
-		return nil, errors.New("cannot reference 'this' in relational context; consider the 'yield' operator")
-	}
 	if len(path) == 1 {
 		return sch.resolveColumn(path[0], nil)
 	}
@@ -138,42 +139,4 @@ func (s *Scope) resolve(path field.Path) (field.Path, error) {
 		err = fmt.Errorf("%q: not a column or table", path[0])
 	}
 	return out, err
-}
-
-func derefThis(sch schema, path []string) dag.Expr {
-	switch sch := sch.(type) {
-	case *schemaDynamic, *schemaStatic, *schemaAnon:
-		return &dag.This{Kind: "This", Path: path}
-	case *schemaSelect:
-		return derefThis(sch.in, append(path, "in"))
-	case *schemaJoin:
-		left := derefThis(sch.left, append(path, "left"))
-		right := derefThis(sch.right, append(path, "right"))
-		return joinSpread(left, right)
-	default:
-		panic(fmt.Sprintf("unknown schema type: %T", sch))
-	}
-}
-
-// spread left/right join legs into "this"
-func joinSpread(left, right dag.Expr) *dag.RecordExpr {
-	if left == nil {
-		left = &dag.This{Kind: "This"}
-	}
-	if right == nil {
-		right = &dag.This{Kind: "This"}
-	}
-	return &dag.RecordExpr{
-		Kind: "RecordExpr",
-		Elems: []dag.RecordElem{
-			&dag.Spread{
-				Kind: "Spread",
-				Expr: left,
-			},
-			&dag.Spread{
-				Kind: "Spread",
-				Expr: right,
-			},
-		},
-	}
 }
