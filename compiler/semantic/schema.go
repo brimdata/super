@@ -53,24 +53,34 @@ func badSchema() schema {
 }
 
 func (d *dynamicSchema) resolveTable(table string) (schema, field.Path, error) {
-	if strings.EqualFold(d.name, table) {
+	if table == "" || strings.EqualFold(d.name, table) {
 		return d, nil, nil
 	}
 	return nil, nil, nil
 }
 
-func (*anonSchema) resolveTable(table string) (schema, field.Path, error) {
+func (a *anonSchema) resolveTable(table string) (schema, field.Path, error) {
+	if table == "" {
+		return a, nil, nil
+	}
 	return nil, nil, nil
 }
 
 func (s *staticSchema) resolveTable(table string) (schema, field.Path, error) {
-	if strings.EqualFold(s.name, table) {
+	if table == "" || strings.EqualFold(s.name, table) {
 		return s, nil, nil
 	}
 	return nil, nil, nil
 }
 
 func (s *selectSchema) resolveTable(table string) (schema, field.Path, error) {
+	if table == "" {
+		sch, path, err := s.in.resolveTable(table)
+		if sch != nil {
+			path = append([]string{"in"}, path...)
+		}
+		return sch, path, err
+	}
 	if s.out != nil {
 		sch, path, err := s.out.resolveTable(table)
 		if err != nil {
@@ -91,6 +101,9 @@ func (s *selectSchema) resolveTable(table string) (schema, field.Path, error) {
 }
 
 func (j *joinSchema) resolveTable(table string) (schema, field.Path, error) {
+	if table == "" {
+		return j, nil, nil
+	}
 	sch, path, err := j.left.resolveTable(table)
 	if err != nil {
 		return nil, nil, err

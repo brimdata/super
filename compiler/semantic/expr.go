@@ -15,6 +15,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr/agg"
 	"github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/zson"
+	"github.com/kr/pretty"
 	"github.com/shellyln/go-sql-like-expr/likeexpr"
 )
 
@@ -604,12 +605,13 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 			table = sch.Name()
 			loc = call
 		} else {
-			this, ok := exprs[0].(*dag.This)
-			if !ok || len(this.Path) != 1 {
+			id, ok := call.Args[0].(*ast.ID)
+			if !ok {
+				pretty.Println(exprs[0], call.Args[0])
 				a.error(call.Args[0], errors.New("this() argument must be a table name"))
 				return badExpr()
 			}
-			table = this.Path[0]
+			table = id.Name
 			loc = call.Args[0]
 		}
 		sch, path, err := sch.resolveTable(table)
