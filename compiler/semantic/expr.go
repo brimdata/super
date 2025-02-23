@@ -525,7 +525,6 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 		a.error(call, errors.New("'where' clause on non-aggregation function"))
 		return badExpr()
 	}
-	exprs := a.semExprs(call.Args)
 	name, nargs := call.Name.Name, len(call.Args)
 	nameLower := strings.ToLower(name)
 	// Call could be to a user defined func. Check if we have a matching func in
@@ -535,6 +534,10 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 		a.error(call, err)
 		return badExpr()
 	}
+	if udf == nil && nameLower == "this" {
+		return a.semThisFunc(call)
+	}
+	exprs := a.semExprs(call.Args)
 	switch {
 	// udf should be checked first since a udf can override builtin functions.
 	case udf != nil:
@@ -589,41 +592,7 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 			Expr:  exprs[0],
 			Inner: inner,
 		}
-	case nameLower == "this": //XXX move this
-		if nargs > 1 {
-			a.error(call, errors.New("this() takes a table name or no arguments"))
-			return badExpr()
-		}
-		sch := a.scope.schema
-		if sch == nil {
-			// In pipe context, treat this() and this the same.
-			return &dag.This{Kind: "This"}
-		}
-		var table string
-		var loc ast.Expr
-		if nargs == 0 {
-			table = sch.Name()
-			loc = call
-		} else {
-			id, ok := call.Args[0].(*ast.ID)
-			if !ok {
-				pretty.Println(exprs[0], call.Args[0])
-				a.error(call.Args[0], errors.New("this() argument must be a table name"))
-				return badExpr()
-			}
-			table = id.Name
-			loc = call.Args[0]
-		}
-		sch, path, err := sch.resolveTable(table)
-		if err != nil {
-			a.error(loc, err)
-			return badExpr()
-		}
-		if sch == nil {
-			a.error(loc, fmt.Errorf("%q: no such table in scope", table))
-			return badExpr()
-		}
-		return &dag.This{Kind: "This", Path: path}
+
 	default:
 		if _, _, err = function.New(a.zctx, nameLower, nargs); err != nil {
 			a.error(call, err)
@@ -635,6 +604,43 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 		Name: nameLower,
 		Args: exprs,
 	}
+}
+
+func (a *analyzer) semThisFunc(call *ast.Call) dag.Expr {
+	if len(call.Args) > 1 {
+		a.error(call, errors.New("this() takes a table name or no arguments"))
+		return badExpr()
+	}
+	sch := a.scope.schema
+	if sch == nil {
+		// In pipe context, treat this() and this the same.
+		return &dag.This{Kind: "This"}
+	}
+	var table string
+	var loc ast.Expr
+	if len(call.Args) == 0 {
+		table = sch.Name()
+		loc = call
+	} else {
+		id, ok := call.Args[0].(*ast.ID)
+		if !ok {
+			a.error(call.Args[0], errors.New("this() argument must be a table name"))
+			return badExpr()
+		}
+		table = id.Name
+		loc = call.Args[0]
+	}
+	sch, path, err := sch.resolveTable(table)
+	if err != nil {
+		a.error(loc, err)
+		return badExpr()
+	}
+	if sch == nil {
+		a.error(loc, fmt.Errorf("%q: no such table in scope", table))
+		return badExpr()
+	}
+	pretty.Println(path, sch)
+	return &dag.This{Kind: "This", Path: path}
 }
 
 func (a *analyzer) semExprs(in []ast.Expr) []dag.Expr {

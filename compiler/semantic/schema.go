@@ -15,7 +15,8 @@ type schema interface {
 	// deref adds logic to seq to yield out the value from a SQL-schema-contained
 	// value set and returns the resulting schema.  If name is non-zero, then a new
 	// schema is returned that represents the aliased table name that results.
-	deref(seq dag.Seq, name string) (dag.Seq, schema)
+	// XXX fix cmoment about name semantic
+	deref(name string) (dag.Expr, schema)
 	this(path []string) dag.Expr
 }
 
@@ -178,6 +179,7 @@ func (j *joinSchema) resolveColumn(col string) (field.Path, error) {
 			return nil, err
 		}
 		if chk != nil {
+			panic(".")
 			return nil, fmt.Errorf("%q: ambiguous column reference", col)
 		}
 		return append([]string{"left"}, out...), nil
@@ -192,25 +194,25 @@ func (j *joinSchema) resolveColumn(col string) (field.Path, error) {
 	return nil, nil
 }
 
-func (d *dynamicSchema) deref(seq dag.Seq, name string) (dag.Seq, schema) {
+func (d *dynamicSchema) deref(name string) (dag.Expr, schema) {
 	if name != "" {
 		d = &dynamicSchema{name: name}
 	}
-	return seq, d
+	return nil, d
 }
 
-func (s *staticSchema) deref(seq dag.Seq, name string) (dag.Seq, schema) {
+func (s *staticSchema) deref(name string) (dag.Expr, schema) {
 	if name != "" {
 		s = &staticSchema{name: name, columns: s.columns}
 	}
-	return seq, s
+	return nil, s
 }
 
-func (a *anonSchema) deref(seq dag.Seq, name string) (dag.Seq, schema) {
-	return seq, a
+func (a *anonSchema) deref(name string) (dag.Expr, schema) {
+	return nil, a
 }
 
-func (s *selectSchema) deref(seq dag.Seq, name string) (dag.Seq, schema) {
+func (s *selectSchema) deref(name string) (dag.Expr, schema) {
 	if name == "" {
 		// postgres and duckdb oddly do this
 		name = "unamed_subquery"
@@ -224,20 +226,14 @@ func (s *selectSchema) deref(seq dag.Seq, name string) (dag.Seq, schema) {
 		// This is a select value.
 		// XXX we should eventually have a way to propagate schema info here,
 		// e.g., record expression with fixed columns as an anonSchema.
-		outSchema = &dynamicSchema{}
+		outSchema = &dynamicSchema{name: name}
 	}
-	return append(seq, &dag.Yield{
-		Kind:  "Yield",
-		Exprs: []dag.Expr{pathOf("out")},
-	}), outSchema
+	return pathOf("out"), outSchema
 }
 
-func (j *joinSchema) deref(seq dag.Seq, name string) (dag.Seq, schema) {
+func (j *joinSchema) deref(name string) (dag.Expr, schema) {
 	// spread left/right join legs into "this"
-	return append(seq, &dag.Yield{
-		Kind:  "Yield",
-		Exprs: []dag.Expr{joinSpread(nil, nil)},
-	}), &dynamicSchema{name: name}
+	return joinSpread(nil, nil), &dynamicSchema{name: name}
 }
 
 func (d *dynamicSchema) this(path []string) dag.Expr {

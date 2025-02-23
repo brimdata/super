@@ -335,7 +335,11 @@ func (a *analyzer) genDistinct(e dag.Expr, seq dag.Seq) dag.Seq {
 func (a *analyzer) semSQLPipe(op *ast.SQLPipe, seq dag.Seq, alias string) (dag.Seq, schema) {
 	if len(op.Ops) == 1 && isSQLOp(op.Ops[0]) {
 		seq, sch := a.semSQLOp(op.Ops[0], seq)
-		return sch.deref(seq, alias)
+		e, dsch := sch.deref(alias)
+		if e != nil {
+			seq = yieldExpr(e, seq)
+		}
+		return seq, dsch
 	}
 	if len(seq) > 0 {
 		panic("semSQLOp: SQL pipes can't have parents")
@@ -573,7 +577,7 @@ func (a *analyzer) semAs(sch schema, as ast.AsExpr, funcs *aggfuncs) *column {
 	if as.ID != nil {
 		name = as.ID.Name
 	} else {
-		name = inferColumnName(e, as.Expr)
+		name = inferColumnName(as.Expr)
 	}
 	c, err := newColumn(name, as.Expr, e, funcs)
 	if err != nil {
@@ -595,12 +599,20 @@ func (a *analyzer) semExprSchema(s schema, e ast.Expr) dag.Expr {
 // Otherwise, we format the expression as text.  Pretty gross but
 // that's what SQL does!  And it seems different implementations format
 // expressions differently.  XXX we need to check ANSI SQL spec here
-func inferColumnName(e dag.Expr, ae ast.Expr) string {
-	path, err := deriveLHSPath(e)
-	if err != nil {
-		return zfmt.ASTExpr(ae)
+func inferColumnName(e ast.Expr) string {
+	if path := dotted(e); path != "" {
+		return path
 	}
-	return field.Path(path).Leaf()
+	return zfmt.ASTExpr(e)
+}
+
+func dotted(e ast.Expr) string {
+	if e, ok := e.(*ast.BinaryExpr); ok {
+		if e.Op == "." {
+			return dotted(e.RHS)
+		}
+	}
+	return ""
 }
 
 func yieldExpr(e dag.Expr, seq dag.Seq) dag.Seq {
