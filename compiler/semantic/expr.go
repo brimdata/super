@@ -589,8 +589,8 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 			Inner: inner,
 		}
 	case nameLower == "this": //XXX move this
-		if nargs != 0 {
-			a.error(call, errors.New("this() takes no arguments"))
+		if nargs > 1 {
+			a.error(call, errors.New("this() takes a table name or no arguments"))
 			return badExpr()
 		}
 		sch := a.scope.schema
@@ -598,7 +598,22 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 			// In pipe context, treat this() and this the same.
 			return &dag.This{Kind: "This"}
 		}
-		return sch.this(nil)
+		var table string
+		if nargs == 0 {
+			table = sch.Name()
+		} else {
+			this, ok := exprs[0].(*dag.This)
+			if !ok || len(this.Path) != 1 {
+				a.error(call.Args[0], errors.New("this() argument must be a table name"))
+			}
+			table = this.Path[0]
+		}
+		path, err := sch.resolveTable(table, "")
+		if err != nil {
+			a.error(call.Args[0], err)
+			return badExpr()
+		}
+		return &dag.This{Kind: "This", Path: path}
 	default:
 		if _, _, err = function.New(a.zctx, nameLower, nargs); err != nil {
 			a.error(call, err)

@@ -112,6 +112,10 @@ func (s *Scope) nvars() int {
 // when there are multiple tables (i.e., from joins).
 // An unqualified field reference is valid only in dynamic schemas.
 func (s *Scope) resolve(path field.Path) (dag.Expr, error) {
+	// If there's no schema, we're not in a SQL context so we just
+	// return the path unmodified.  Otherwise, we apply SQL scoping
+	// rules to transform the abstract path to the dataflow path
+	// implied by the schema.
 	sch := s.schema
 	if sch == nil {
 		return &dag.This{Kind: "This", Path: path}, nil
@@ -124,10 +128,7 @@ func (s *Scope) resolve(path field.Path) (dag.Expr, error) {
 }
 
 func resolvePath(sch schema, path field.Path) (field.Path, error) {
-	// If there's no schema, we're not in a SQL context so we just
-	// return the path unmodified.  Otherwise, we apply SQL scoping
-	// rules to transform the abstract path to the dataflow path
-	// implied by the schema.
+
 	if len(path) == 1 {
 		return sch.resolveColumn(path[0])
 	}
