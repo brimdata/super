@@ -12,10 +12,6 @@ type schema interface {
 	Name() string
 	resolveColumn(col string) (field.Path, error)
 	resolveTable(table string) (schema, field.Path, error)
-	// deref adds logic to seq to yield out the value from a SQL-schema-contained
-	// value set and returns the resulting schema.  If name is non-zero, then a new
-	// schema is returned that represents the aliased table name that results.
-	// XXX fix cmoment about name semantic
 	deref(name string) (dag.Expr, schema)
 }
 
