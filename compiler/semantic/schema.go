@@ -227,22 +227,9 @@ func (s *selectSchema) deref(seq dag.Seq, name string) (dag.Seq, schema) {
 
 func (j *joinSchema) deref(seq dag.Seq, name string) (dag.Seq, schema) {
 	// spread left/right join legs into "this"
-	e := &dag.RecordExpr{
-		Kind: "RecordExpr",
-		Elems: []dag.RecordElem{
-			&dag.Spread{
-				Kind: "Spread",
-				Expr: &dag.This{Kind: "This", Path: []string{"left"}},
-			},
-			&dag.Spread{
-				Kind: "Spread",
-				Expr: &dag.This{Kind: "This", Path: []string{"right"}},
-			},
-		},
-	}
 	return append(seq, &dag.Yield{
 		Kind:  "Yield",
-		Exprs: []dag.Expr{e},
+		Exprs: []dag.Expr{joinSpread(nil, nil)},
 	}), &dynamicSchema{name: name}
 }
 

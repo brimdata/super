@@ -1,0 +1,37 @@
+script: |
+  super -z -c "select this() as x from a.jsup"
+  echo ===
+  super -z -c "select this(a) as x from a.jsup a"
+  echo ===
+  super -z -c "select this(a) as x from a.jsup"
+  echo ===  
+  cat a.jsup | super -z -c "select this() as x" -
+  echo ===
+  cat a.jsup | super -z -c "select x from (select this() as x) where this()={x:2}" -
+  echo ==
+  super -z -c "select * from a.jsup join b.jsup on this(a)=this(b)"
+
+inputs:
+  - name: a.jsup
+    data: |
+      1
+      2
+      3
+  - name: b.jsup
+    data: |
+      2
+      3
+      4
+
+outputs:
+  - name: stdout
+    data: |
+      {x:1}
+      {x:2}
+      {x:3}
+      ===
+      {x:1}
+      {x:2}
+      {x:3}
+      ===
+      {x:2}

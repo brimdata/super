@@ -599,7 +599,6 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 			return &dag.This{Kind: "This"}
 		}
 		return sch.this(nil)
-
 	default:
 		if _, _, err = function.New(a.zctx, nameLower, nargs); err != nil {
 			a.error(call, err)
