@@ -128,16 +128,25 @@ func (s *Scope) resolve(path field.Path) (dag.Expr, error) {
 }
 
 func resolvePath(sch schema, path field.Path) (field.Path, error) {
-
 	if len(path) == 1 {
 		return sch.resolveColumn(path[0])
 	}
-	if out, err := sch.resolveTable(path[0], path[1]); out != nil || err != nil {
-		if len(path) > 2 {
-			out = append(out, path[2:]...)
+	table, tablePath, err := sch.resolveTable(path[0])
+	if err != nil {
+		return nil, err
+	}
+	if table != nil {
+		columnPath, err := table.resolveColumn(path[1])
+		if err != nil {
+			return nil, err
 		}
-		return out, err
-
+		if columnPath != nil {
+			out := append(tablePath, columnPath...)
+			if len(path) > 2 {
+				out = append(out, path[2:]...)
+			}
+			return out, nil
+		}
 	}
 	out, err := sch.resolveColumn(path[0])
 	if out == nil && err == nil {

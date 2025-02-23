@@ -599,18 +599,26 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 			return &dag.This{Kind: "This"}
 		}
 		var table string
+		var loc ast.Expr
 		if nargs == 0 {
 			table = sch.Name()
+			loc = call
 		} else {
 			this, ok := exprs[0].(*dag.This)
 			if !ok || len(this.Path) != 1 {
 				a.error(call.Args[0], errors.New("this() argument must be a table name"))
+				return badExpr()
 			}
 			table = this.Path[0]
+			loc = call.Args[0]
 		}
-		path, err := sch.resolveTable(table, "")
+		sch, path, err := sch.resolveTable(table)
 		if err != nil {
-			a.error(call.Args[0], err)
+			a.error(loc, err)
+			return badExpr()
+		}
+		if sch == nil {
+			a.error(loc, fmt.Errorf("%q: no such table in scope", table))
 			return badExpr()
 		}
 		return &dag.This{Kind: "This", Path: path}

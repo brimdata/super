@@ -11,7 +11,7 @@ import (
 type schema interface {
 	Name() string
 	resolveColumn(col string) (field.Path, error)
-	resolveTable(table, col string) (field.Path, error)
+	resolveTable(table string) (schema, field.Path, error)
 	// deref adds logic to seq to yield out the value from a SQL-schema-contained
 	// value set and returns the resulting schema.  If name is non-zero, then a new
 	// schema is returned that represents the aliased table name that results.
@@ -52,67 +52,64 @@ func badSchema() schema {
 	return &dynamicSchema{}
 }
 
-func (d *dynamicSchema) resolveTable(table, col string) (field.Path, error) {
+func (d *dynamicSchema) resolveTable(table string) (schema, field.Path, error) {
 	if strings.EqualFold(d.name, table) {
-		return field.Path{col}, nil
+		return d, nil, nil
 	}
-	return nil, nil
+	return nil, nil, nil
 }
 
-func (*anonSchema) resolveTable(table, col string) (field.Path, error) {
-	return nil, nil
+func (*anonSchema) resolveTable(table string) (schema, field.Path, error) {
+	return nil, nil, nil
 }
 
-func (s *staticSchema) resolveTable(table, col string) (field.Path, error) {
+func (s *staticSchema) resolveTable(table string) (schema, field.Path, error) {
 	if strings.EqualFold(s.name, table) {
-		if col == "" {
-			return []string{}, nil
-		}
-		return s.resolveColumn(col)
+		return s, nil, nil
 	}
-	return nil, nil
+	return nil, nil, nil
 }
 
-func (s *selectSchema) resolveTable(table, col string) (field.Path, error) {
+func (s *selectSchema) resolveTable(table string) (schema, field.Path, error) {
 	if s.out != nil {
-		path, err := s.out.resolveTable(table, col)
+		sch, path, err := s.out.resolveTable(table)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		if path != nil {
-			return append([]string{"out"}, path...), nil
+		if sch != nil {
+			return sch, append([]string{"out"}, path...), nil
 		}
 	}
-	path, err := s.in.resolveTable(table, col)
+	sch, path, err := s.in.resolveTable(table)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	if path != nil {
-		return append([]string{"in"}, path...), nil
+	if sch != nil {
+		return sch, append([]string{"in"}, path...), nil
 	}
-	return nil, nil
+	return nil, nil, nil
 }
 
-func (j *joinSchema) resolveTable(table, col string) (field.Path, error) {
-	path, err := j.left.resolveTable(table, col)
+func (j *joinSchema) resolveTable(table string) (schema, field.Path, error) {
+	sch, path, err := j.left.resolveTable(table)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	if path != nil {
-		chk, err := j.right.resolveTable(table, col)
+	if sch != nil {
+		chk, _, err := j.right.resolveTable(table)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		if chk != nil {
-			return nil, fmt.Errorf("%q: ambiguous table reference", table)
+			return nil, nil, fmt.Errorf("%q: ambiguous table reference", table)
 		}
-		return append([]string{"left"}, path...), nil
+		return sch, append([]string{"left"}, path...), nil
 	}
-	path, err = j.right.resolveTable(table, col)
-	if path == nil || err != nil {
-		return nil, err
+	sch, path, err = j.right.resolveTable(table)
+	if sch == nil || err != nil {
+		return nil, nil, err
 	}
-	return append([]string{"right"}, path...), nil
+	return sch, append([]string{"right"}, path...), nil
 }
 
 func (*dynamicSchema) resolveColumn(col string) (field.Path, error) {
