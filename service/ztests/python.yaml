@@ -3,7 +3,7 @@ script: |
   . v/bin/activate
 
   mkdir superdb
-  mv pyproject.toml superdb.py README.md superdb
+  mv pyproject.toml superdb.py superdb
   # -qq supresses warnings about availability of newer pip versions.
   pip install -qq ./superdb
 
@@ -134,15 +134,11 @@ inputs:
       {
         enum: %bar (enum(foo,bar,baz))
       }
-
   - name: service.sh
-    source: service.sh
   - name: pyproject.toml
     source: ../../python/superdb/pyproject.toml
   - name: superdb.py
     source: ../../python/superdb/superdb.py
-  - name: README.md
-    source: ../../python/superdb/README.md
 
 outputs:
   - name: stdout
