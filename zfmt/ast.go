@@ -122,6 +122,12 @@ func (c *canon) expr(e ast.Expr, parent string) {
 		c.write("%s(", e.Name.Name)
 		c.exprs(e.Args)
 		c.write(")")
+	case *ast.CallExtract:
+		c.write("EXTRACT(")
+		c.expr(e.Part, "")
+		c.write(" FROM ")
+		c.expr(e.Expr, "")
+		c.write(")")
 	case *ast.Cast:
 		c.expr(e.Type, "")
 		c.write("(")
