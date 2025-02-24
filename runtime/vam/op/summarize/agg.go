@@ -200,7 +200,9 @@ func (c *countByString) countDict(vec *vector.String, counts []uint32, nulls *ve
 	offs := vec.Offsets
 	bytes := vec.Bytes
 	for k := range vec.Len() {
-		c.table[string(bytes[offs[k]:offs[k+1]])] = uint64(counts[k])
+		if counts[k] > 0 {
+			c.table[string(bytes[offs[k]:offs[k+1]])] += uint64(counts[k])
+		}
 	}
 	if nulls != nil {
 		for k := range nulls.Len() {
