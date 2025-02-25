@@ -77,7 +77,7 @@
 * Prevent the creation of multi-key pools in Zed lakes (support for this will be added later) (#4903)
 * Zed CLI help can now be invoked via `--help` and is printed to stdout instead of stderr (#4907)
 * Symbols (e.g., `const` and `type`) may no longer be redefined within the same scope (#4930)
-* [Set types](docs/formats/zed.md#23-set) can now be [sliced](docs/language/expressions.md#slices) (#4939)
+* [Set types](docs/formats/data-model.md#23-set) can now be [sliced](docs/language/expressions.md#slices) (#4939)
 * Canceled client requests to the Zed lake API are now logged at `info` level without stack traces (#4947)
 * Add support for [TSV](https://en.wikipedia.org/wiki/Tab-separated_values) input/output (useful for spreadsheet data) (#4891, #4913, #4912)
 * Add a [`grok()` function](docs/language/functions/grok.md) for parsing text lines (such as logs) into records (#4827)
@@ -100,7 +100,7 @@
 * Fix an issue where `null` values could cause [`join`](docs/language/operators/join.md) to produce incorrect output (#4801)
 * Fix a `zq` where a call to a [user-defined operator](docs/language/statements.md#operator-statements) included via `-I` could fail (#4808)
 * Fix an issue where running `zed` commands on a system with many CPU cores caused an internal error (#4826)
-* Fix an encoding issue that caused different [map values](docs/formats/zed.md#24-map) to be rendered the same in Zui (#4853)
+* Fix an encoding issue that caused different [map values](docs/formats/data-model.md#24-map) to be rendered the same in Zui (#4853)
 
 ## v1.10.0
 * Sorting is now performed automatically on [`join`](docs/language/operators/join.md) inputs when needed (explicit [`sort`](docs/language/operators/sort.md) no longer required) (#4770)
@@ -145,7 +145,7 @@
 * Add a [`load` operator](docs/language/operators/load.md) that can be invoked in a Zed pipeline to commit data to a pool (#4471)
 * Fix an issue where certain ZNG files could not be read and caused a `control` error (#4579)
 * Fix an issue where `zed serve` would exit if it tried to write to a closed socket (#4587)
-* Improve JSON output for Zed [maps](docs/formats/zed.md#24-map) (#4589)
+* Improve JSON output for Zed [maps](docs/formats/data-model.md#24-map) (#4589)
 * Add the [`zed vacuum`](docs/commands/super-db.md#vacuum) command (#4577, #4598, #4600)
 
 ## v1.7.0
@@ -171,7 +171,7 @@
 * Branch-level [meta-queries](docs/commands/super-db.md#meta-queries) on the `main` branch no longer require an explicit `@main` reference (#4377, #4394)
 * Add `-defaultfmt` flag to `zed serve` to specify the lake API's default response format (#4379, #4396)
 * Zed queries now appear in the lake log when `zed serve` is run at `-log.level debug` (#4385)
-* Fix an issue where elements of complex [named types](docs/formats/zed.md#3-named-type) could not be accessed (#4391)
+* Fix an issue where elements of complex [named types](docs/formats/data-model.md#3-named-type) could not be accessed (#4391)
 * Add docs for the [`pass` operator](docs/language/operators/pass.md) and an example of [`join` on more than two inputs](docs/tutorials/join.md#joining-more-than-two-inputs) (#4403)
 * When the result of [`summarize`](docs/language/operators/summarize.md) is a single value and there is no field name specified, the output is now that single value rather than a single-field record containing that value (#4420)
 
@@ -207,7 +207,7 @@
 * Add [`regexp()`](docs/language/functions/regexp.md) function for regular expression searches and capture groups (#4145, #4158)
 * Add [`coalesce()`](docs/language/functions/coalesce.md) function for locating non-null/non-error values (#4172)
 * Add `line` format for sourcing newline-delimited input as strings (#4175)
-* Add [`collect_map()` aggregation function](docs/language/aggregates/collect_map.md) for constructing [maps](docs/formats/zed.md#24-map) #4173
+* Add [`collect_map()` aggregation function](docs/language/aggregates/collect_map.md) for constructing [maps](docs/formats/data-model.md#24-map) #4173
 
 ## v1.2.0
 * Compress index values (#3974)

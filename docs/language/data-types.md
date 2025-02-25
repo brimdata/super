@@ -4,7 +4,7 @@ title: Data Types
 ---
 
 The SuperPipe language includes most data types of a typical programming language
-as defined in the [super data model](../formats/zed.md).
+as defined in the [super data model](../formats/data-model.md).
 
 The syntax of individual literal values generally follows
 the [Super JSON syntax](../formats/jsup.md) with the exception that
@@ -25,7 +25,7 @@ As in the super data model, the SuperPipe language has first-class types:
 any type may be used as a value.
 
 The primitive types are listed in the
-[data model specification](../formats/zed.md#1-primitive-types)
+[data model specification](../formats/data-model.md#1-primitive-types)
 and have the same syntax in SuperPipe.  Complex types also follow
 the Super JSON syntax.  Note that the type of a type value is simply `type`.
 
@@ -220,7 +220,7 @@ to work.
 ## First-class Errors
 
 As with types, errors in SuperPipe are first-class: any value can be transformed
-into an error by wrapping it in an [`error` type](../formats/zed.md#27-error).
+into an error by wrapping it in an [`error` type](../formats/data-model.md#27-error).
 
 In general, expressions and functions that result in errors simply return
 a value of type `error` as a result.  This encourages a powerful flow-style

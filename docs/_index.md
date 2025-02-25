@@ -31,7 +31,7 @@ our [community Slack](https://www.brimdata.io/join-slack/).
 {{% /tip %}}
 
 Compared to putting JSON data in a relational column, the
-[super-structured data model](formats/zed.md) makes it really easy to
+[super-structured data model](formats/data-model.md) makes it really easy to
 mash up JSON with your relational tables.  The `super` command is a little
 like [DuckDB](https://duckdb.org/) and a little like
 [`jq`](https://stedolan.github.io/jq/) but super-structured data ties the
@@ -51,7 +51,7 @@ While `super` and its accompanying data formats are production quality for some 
 
 "Super" is an umbrella term that describes
 a number of different elements of the system:
-* The [super data model](formats/zed.md) is the abstract definition of the data types and semantics
+* The [super data model](formats/data-model.md) is the abstract definition of the data types and semantics
 that underlie the super-structured data formats.
 * The [super-structured data formats](formats/_index.md) are a family of
 [human-readable (Super JSON, JSUP)](formats/jsup.md),

@@ -162,7 +162,7 @@ sort lower(this)
 A common SuperPipe use case is to process sequences of record-oriented data
 (e.g., arising from formats like JSON or Avro) in the form of events
 or structured logs.  In this case, the input values to the operators
-are [records](../formats/zed.md#21-record) and the fields of a record are referenced with the dot operator.
+are [records](../formats/data-model.md#21-record) and the fields of a record are referenced with the dot operator.
 
 For example, if the input above were a sequence of records instead of strings
 and perhaps contained a second field, then we could refer to the field `s`

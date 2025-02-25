@@ -6,7 +6,7 @@ weight: 5
 > **TL;DR** The super data model defines a new and easy way to manage, store,
 > and process data utilizing an emerging concept called
 [super-structured data](#2-a-super-structured-pattern).
-> The [data model specification](zed.md) defines the high-level model that is realized
+> The [data model specification](data-model.md) defines the high-level model that is realized
 > in a [family of interoperable serialization formats](#3-the-data-model-and-formats),
 > providing a unified approach to row, columnar, and human-readable formats. Together these
 > represent a superset of both the dataframe/table model of relational systems and the
@@ -264,7 +264,7 @@ can be debugged by observing the location of errors in the output results.
 ## 3. The Data Model and Formats
 
 The concept of super-structured data and first-class types and errors
-is solidified in the [data model specification](zed.md),
+is solidified in the [data model specification](data-model.md),
 which defines the model but not the serialization formats.
 
 A set of companion documents define a family of tightly integrated

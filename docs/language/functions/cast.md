@@ -11,8 +11,8 @@ cast(val: any, name: string) -> any
 
 ### Description
 
-The _cast_ function performs type casts but handles both [primitive types](../../formats/zed.md#1-primitive-types) and
-[complex types](../../formats/zed.md#2-complex-types).  If the input type `t` is a primitive type, then the result
+The _cast_ function performs type casts but handles both [primitive types](../../formats/data-model.md#1-primitive-types) and
+[complex types](../../formats/data-model.md#2-complex-types).  If the input type `t` is a primitive type, then the result
 is equivalent to
 ```
 t(val)

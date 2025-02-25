@@ -17,7 +17,7 @@ However, in Zed, the entities that transform data are called
 "[operators](operators/_index.md)" instead of "commands" and unlike Unix pipelines,
 the streams of data in a Zed query
 are typed data sequences that adhere to the
-[Zed data model](../formats/zed.md).
+[Zed data model](../formats/data-model.md).
 Moreover, Zed sequences can be forked and joined:
 ```
 operator

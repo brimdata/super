@@ -34,7 +34,7 @@ Enhanced scalability with self-tuning configuration is under development.
 A SuperDB data lake is a cloud-native arrangement of data, optimized for search,
 analytics, ETL, data discovery, and data preparation
 at scale based on data represented in accordance
-with the [super data model](../formats/zed.md).
+with the [super data model](../formats/data-model.md).
 
 A lake is organized into a collection of data pools forming a single
 administrative domain.  The current implementation supports
@@ -267,7 +267,7 @@ which is the sort key for all data stored in the lake.  Different data pools
 can have different pool keys but all of the data in a pool must have the same
 pool key.
 
-As pool data is often comprised of [records](../formats/zed.md#21-record) (analogous to JSON objects),
+As pool data is often comprised of [records](../formats/data-model.md#21-record) (analogous to JSON objects),
 the pool key is typically a field of the stored records.
 When pool data is not structured as records/objects (e.g., scalar or arrays or other
 non-record types), then the pool key would typically be configured

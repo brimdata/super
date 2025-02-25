@@ -72,7 +72,7 @@ and therefore such records typically need no adjustment to their data types
 once they've been read in as is. The
 [Zed/Zeek Data Type Compatibility](data-type-compatibility.md) document
 provides further detail on how the rich data types in Zeek TSV map to the
-equivalent [rich types in Zed](../../formats/zed.md#1-primitive-types).
+equivalent [rich types in Zed](../../formats/data-model.md#1-primitive-types).
 
 ## Zeek JSON
 

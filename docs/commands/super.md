@@ -44,7 +44,7 @@ check out the [`super db`](super-db.md) set of commands.
 By invoking the `-c` option, a query expressed in the [SuperSQL language](../language/_index.md)
 may be specified and applied to the input stream.
 
-The [super data model](../formats/zed.md) is based on [super-structured data](../formats/_index.md#2-a-super-structured-pattern), meaning that all data
+The [super data model](../formats/data-model.md) is based on [super-structured data](../formats/_index.md#2-a-super-structured-pattern), meaning that all data
 is both strongly _and_ dynamically typed and need not conform to a homogeneous
 schema.  The type structure is self-describing so it's easy to daisy-chain
 queries and inspect data at any point in a complex query or data pipeline.
@@ -447,8 +447,8 @@ world
 ```
 
 In `text` output, minimal formatting is applied, e.g., strings are shown
-without quotes and brackets are dropped from [arrays](../formats/zed.md#22-array)
-and [sets](../formats/zed.md#23-set). [Records](../formats/zed.md#21-record)
+without quotes and brackets are dropped from [arrays](../formats/data-model.md#22-array)
+and [sets](../formats/data-model.md#23-set). [Records](../formats/data-model.md#21-record)
 are printed as tab-separated field values without their corresponding field
 names. For example:
 

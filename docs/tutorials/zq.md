@@ -25,7 +25,7 @@ as well as [`jq`](https://stedolan.github.io/jq/).
 
 ## But JSON
 
-While `super` is based on a new type of [data model](../formats/zed.md),
+While `super` is based on a new type of [data model](../formats/data-model.md),
 Zed just so happens to be a superset of JSON.
 
 So if all you ever use `zq` for is manipulating JSON data,
@@ -210,7 +210,7 @@ produces
 
 ## Comprehensive Types
 
-ZSON also has a [comprehensive type system](../formats/zed.md).
+ZSON also has a [comprehensive type system](../formats/data-model.md).
 
 For example, here is ZSON "record" with a taste of different types
 of values as record fields:
