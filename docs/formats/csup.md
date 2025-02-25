@@ -5,7 +5,7 @@ heading: Super Columnar Specification
 ---
 
 Super Columnar is a file format based on
-the [super data model](zed.md) where data is stacked to form columns.
+the [super data model](data-model.md) where data is stacked to form columns.
 Its purpose is to provide for efficient analytics and search over
 bounded-length sequences of [super-structured data](./_index.md#2-a-super-structured-pattern) that is stored in columnar form.
 
@@ -78,7 +78,7 @@ merging them together (or even leaving the Super Columnar entity as separate fil
 The data section contains raw data values organized into _segments_,
 where a segment is a seek offset and byte length relative to the
 data section.  Each segment contains a sequence of
-[primitive-type values](zed.md#1-primitive-types),
+[primitive-type values](data-model.md#1-primitive-types),
 encoded as counted-length byte sequences where the counted-length is
 variable-length encoded as in the [Super Binary specification](bsup.md).
 Segments may be compressed.

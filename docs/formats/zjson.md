@@ -6,7 +6,7 @@ heading: ZJSON Specification
 
 ## 1. Introduction
 
-The [super data model](zed.md)
+The [super data model](data-model.md)
 is based on richly typed records with a deterministic field order,
 as is implemented by the [Super JSON](jsup.md), [Super Binary](bsup.md), and [Super Columnar](csup.md) formats.
 Given the ubiquity of JSON, it is desirable to also be able to serialize
@@ -92,7 +92,7 @@ The type and value fields are encoded as defined below.
 
 ### 2.1 Type Encoding
 
-The type encoding for a primitive type is simply its [type name](zed.md#1-primitive-types)
+The type encoding for a primitive type is simply its [type name](data-model.md#1-primitive-types)
 e.g., "int32" or "string".
 
 Complex types are encoded with small-integer identifiers.

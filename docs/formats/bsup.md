@@ -7,7 +7,7 @@ heading: Super Binary Specification
 ## 1. Introduction
 
 Super Binary is an efficient, sequence-oriented serialization format for any data
-conforming to the [super data model](zed.md).
+conforming to the [super data model](data-model.md).
 
 Super Binary is "row oriented" and
 analogous to [Apache Avro](https://avro.apache.org) but does not
@@ -313,7 +313,7 @@ existing type ID `<type-id>`.  `<type-id>` is encoded as a `uvarint` and `<name>
 is encoded as a `uvarint` representing the length of the name in bytes,
 followed by that many bytes of UTF-8 string.
 
-As indicated in the [data model](zed.md),
+As indicated in the [data model](data-model.md),
 it is an error to define a type name that has the same name as a primitive type,
 and it is permissible to redefine a previously defined type name with a
 type that differs from the previous definition.
