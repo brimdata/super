@@ -3,7 +3,7 @@ weight: 1
 title: Data Model
 ---
 
-Zed data is defined as an ordered sequence of one or more typed data values.
+Super-structured data is defined as an ordered sequence of one or more typed data values.
 Each value's type is either a "primitive type", a "complex type", the "type type",
 a "named type", or the "null type".
 
@@ -45,29 +45,33 @@ There are 30 types of primitive values with syntax defined as follows:
 | `string`   | a UTF-8 string |
 | `ip`       | an IPv4 or IPv6 address |
 | `net`      | an IPv4 or IPv6 address and net mask |
-| `type`     | a Zed type value |
+| `type`     | a type value |
 | `null`     | the null type |
 
-The _type_ type  provides for first-class types and even though a type value can
+The _type_ type  provides for first-class types. Even though a type value can
 represent a complex type, the value itself is a singleton.
 
 Two type values are equivalent if their underlying types are equal.  Since
-every type in the Zed type system is uniquely defined, type values are equal
+every type in the type system is uniquely defined, type values are equal
 if and only if their corresponding types are uniquely equal.
 
 The _null_ type is a primitive type representing only a `null` value.
 A `null` value can have any type.
 
-> Note that `time` values correspond to 64-bit epoch nanoseconds and thus
-> not every valid RFC 3339 date and time string represents a valid Zed time.
-> In addition, nanosecond epoch times overflow on April 11, 2262.
-> For the world of 2262, a new epoch can be created well in advance
-> and the old time epoch and new time epoch can live side by side with
-> the old using a named type for the new epoch time referring to the old `time`.
-> An app that wants more than 64 bits of timestamp precision can always use
-> a named type of a `bytes` type and do its own conversions to and from the
-> corresponding bytes values.  A time with a local time zone can be represented
-> as a Zed record of a time field and a zone field
+{{% tip "Note" %}}
+
+`time` values correspond to 64-bit epoch nanoseconds and thus
+not every valid RFC 3339 date and time string represents a valid time.
+In addition, nanosecond epoch times overflow on April 11, 2262.
+For the world of 2262, a new epoch can be created well in advance
+and the old time epoch and new time epoch can live side by side with
+the old using a [named type](#3-named-type) for the new epoch time referring to the old `time`.
+An app that wants more than 64 bits of timestamp precision can always use
+a named type of a `bytes` type and do its own conversions to and from the
+corresponding bytes values.  A time with a local time zone can be represented
+as a record of a `time` field and a zone field.
+
+{{% /tip %}}
 
 ## 2. Complex Types
 
@@ -98,9 +102,9 @@ is distinct from type `{b:string,a:string}`.
 
 A field name is any UTF-8 string.
 
-A field value is any Zed value.
+A field value is any value of any type.
 
-In contrast to many schema-oriented data formats, Zed has no way to specify
+In contrast to many schema-oriented data formats, the super data model has no way to specify
 a field as "optional" since any field value can be a null value.
 
 If an instance of a record value omits a value
@@ -117,8 +121,8 @@ The type order of two records is as follows:
 
 ### 2.2 Array
 
-An array is an ordered sequence of zero or more Zed values called "elements"
-all conforming to the same Zed type.
+An array is an ordered sequence of zero or more values called "elements"
+all conforming to the same type.
 
 An array value may be empty.  An empty array may have element type `null`.
 
@@ -127,18 +131,18 @@ An array type is uniquely defined by its single element type.
 The type order of two arrays is defined as the type order of the
 two array element types.
 
-> Note that mixed-type JSON arrays are representable as a Zed array with
-> elements of type union.
+An array of mixed-type values (such a mixed-type JSON array) is representable
+as an array with elements of type `union`.
 
 ### 2.3 Set
 
-A set is an unordered sequence of zero or more Zed values called "elements"
-all conforming to the same Zed type.
+A set is an unordered sequence of zero or more values called "elements"
+all conforming to the same type.
 
 A set may be empty.  An empty set may have element type `null`.
 
-A set of mixed-type values is representable as a Zed set with
-elements of type union.
+A set of mixed-type values is representable as a set with
+elements of type `union`.
 
 A set type is uniquely defined by its single element type.
 
@@ -148,7 +152,7 @@ two set element types.
 ### 2.4 Map
 
 A map represents a list of zero or more key-value pairs, where the keys
-have a common Zed type and the values have a common Zed type.
+have a common type and the values have a common type.
 
 Each key across an instance of a map value must be a unique value.
 
@@ -163,10 +167,10 @@ The type order of two map types is as follows:
 ### 2.5 Union
 
 A union represents a value that may be any one of a specific enumeration
-of two or more unique Zed types that comprise its "union type".
+of two or more unique data types that comprise its "union type".
 
 A union type is uniquely defined by an ordered set of unique types (which may be
-other union types) where the order corresponds to the Zed type system's total order.
+other union types) where the order corresponds to the type system's total order.
 
 Union values are tagged in that
 any instance of a union value explicitly conforms to exactly one of the union's types.
@@ -200,7 +204,7 @@ The type order of an error is the type order of the type of its contained value.
 
 ## 3. Named Type
 
-A _named type_ is a name for a specific Zed type.
+A _named type_ is a name for a specific data type.
 Any value can have a named type and the named type is a distinct type
 from the underlying type.  A named type can refer to another named type.
 
@@ -218,21 +222,25 @@ exceptions:
 * A named type is ordered after its underlying type.
 * Named types sharing an underlying type are ordered lexicographically by name.
 
-> While the Zed data model does not include explicit support for schema versioning,
-> named types provide a flexible mechanism to implement versioning
-> on top of the Zed serialization formats.  For example, a Zed-based system
-> could define a naming convention of the form `<type>.<version>`
-> where `<type>` is the type name of a record representing the schema
-> and `<version>` is a decimal string indicating the version of that schema.
-> Since types need only be parsed once per stream
-> in the Zed binary serialization formats, a Zed type implementation could
-> efficiently support schema versioning using such a convention.
+{{% tip "Note" %}}
+
+While the data model does not include explicit support for schema versioning,
+named types provide a flexible mechanism to implement versioning
+on top of the super-structured serialization formats.  For example, a system
+could define a naming convention of the form `<type>.<version>`
+where `<type>` is the type name of a record representing the schema
+and `<version>` is a decimal string indicating the version of that schema.
+Since types need only be parsed once per stream
+in the serialization formats, a super-structured type implementation could
+efficiently support schema versioning using such a convention.
+
+{{% /tip %}}
 
 ## 4. Null Values
 
-All Zed types have a null representation.  It is up to an
+All data types have a null representation.  It is up to an
 implementation to decide how external data structures map into and
 out of values with nulls.  Typically, a null value is either the
 zero value or, in the case of record fields, an optional field whose
 value is not present, though these semantics are not explicitly
-defined by the Zed data model.
+defined by the super data model.
