@@ -102,7 +102,7 @@ is distinct from type `{b:string,a:string}`.
 
 A field name is any UTF-8 string.
 
-A field value is any value of any type.
+A field value is a value of any type.
 
 In contrast to many schema-oriented data formats, the super data model has no way to specify
 a field as "optional" since any field value can be a null value.
