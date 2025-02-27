@@ -12,7 +12,7 @@ require (
 	github.com/axiomhq/hyperloglog v0.0.0-20191112132149-a4c4c47bc57f
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/golang-jwt/jwt/v4 v4.4.3
-	github.com/golang/mock v1.5.0
+	github.com/golang/mock v1.6.0
 	github.com/gorilla/mux v1.7.5-0.20200711200521-98cb6bf42e08
 	github.com/gosuri/uilive v0.0.4
 	github.com/hashicorp/golang-lru/arc/v2 v2.0.7
@@ -83,3 +83,5 @@ require (
 	google.golang.org/grpc v1.69.2 // indirect
 	google.golang.org/protobuf v1.36.1 // indirect
 )
+
+tool github.com/golang/mock/mockgen
