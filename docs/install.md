@@ -52,7 +52,7 @@ Once installed, run a [quick test](#quick-tests).
 {{% tip "Note" %}}
 
 If you don't have Go installed, download and install it from the
-[Go install page](https://golang.org/doc/install). Go 1.23 or later is
+[Go install page](https://golang.org/doc/install). Go 1.24 or later is
 required.
 
 {{% /tip %}}
