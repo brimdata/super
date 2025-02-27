@@ -74,6 +74,11 @@ func (b *Bool) TrueCount() uint32 {
 	for _, bs := range b.Bits {
 		n += uint32(bits.OnesCount64(bs))
 	}
+	if numTailBits := b.Len() % 64; numTailBits > 0 {
+		mask := ^uint64(0) << numTailBits
+		unusedBits := b.Bits[len(b.Bits)-1] & mask
+		n -= uint32(bits.OnesCount64(unusedBits))
+	}
 	return n
 }
 
