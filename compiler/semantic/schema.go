@@ -131,7 +131,7 @@ func (s *staticSchema) resolveColumn(col string) (field.Path, error) {
 			return field.Path{col}, nil
 		}
 	}
-	return nil, nil
+	return nil, fmt.Errorf("%q: column does not exist", col)
 }
 
 func (a *anonSchema) resolveColumn(col string) (field.Path, error) {

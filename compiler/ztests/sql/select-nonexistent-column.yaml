@@ -1,0 +1,7 @@
+zed: |
+  SELECT x FROM (SELECT 1)
+
+error: |
+  "x": column does not exist at line 1, column 8:
+  SELECT x FROM (SELECT 1)
+         ~
