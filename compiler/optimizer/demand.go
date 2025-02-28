@@ -146,8 +146,6 @@ func demandForExpr(expr dag.Expr) demand.Demand {
 			d = demand.Union(d, demandForExpr(a))
 		}
 		return d
-	case *dag.CallDatePart:
-		return demandForExpr(expr.Expr)
 	case *dag.Conditional:
 		return demand.Union(demandForExpr(expr.Cond),
 			demand.Union(demandForExpr(expr.Then), demandForExpr(expr.Else)))

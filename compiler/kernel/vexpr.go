@@ -48,12 +48,6 @@ func (b *Builder) compileVamExpr(e dag.Expr) (vamexpr.Evaluator, error) {
 		return b.compileVamConditional(*e)
 	case *dag.Call:
 		return b.compileVamCall(e)
-	case *dag.CallDatePart:
-		expr, err := b.compileVamExpr(e.Expr)
-		if err != nil {
-			return nil, err
-		}
-		return vamexpr.NewDatePartExpr(b.zctx(), e.Part, expr)
 	case *dag.RegexpMatch:
 		return b.compileVamRegexpMatch(e)
 	case *dag.RegexpSearch:

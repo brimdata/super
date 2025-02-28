@@ -138,7 +138,7 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 	case *ast.Call:
 		return a.semCall(e)
 	case *ast.CallExtract:
-		return a.semCallDatePart(e.Part, e.Expr)
+		return a.semCallExtract(e.Part, e.Expr)
 	case *ast.Cast:
 		expr := a.semExpr(e.Expr)
 		typ := a.semExpr(e.Type)
@@ -570,12 +570,6 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 		if nargs == 1 {
 			exprs = append([]dag.Expr{&dag.This{Kind: "This"}}, exprs...)
 		}
-	case nameLower == "date_part":
-		if err := function.CheckArgCount(nargs, 2, 2); err != nil {
-			a.error(call, err)
-			return badExpr()
-		}
-		return a.semCallDatePart(call.Args[0], call.Args[1])
 	case nameLower == "map":
 		if err := function.CheckArgCount(nargs, 2, 2); err != nil {
 			a.error(call, err)
@@ -609,30 +603,29 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 	}
 }
 
-func (a *analyzer) semCallDatePart(partExpr, argExpr ast.Expr) dag.Expr {
-	var part string
+func (a *analyzer) semCallExtract(partExpr, argExpr ast.Expr) dag.Expr {
+	var partstr string
 	switch p := partExpr.(type) {
 	case *ast.ID:
-		part = p.Name
+		partstr = p.Name
 	case *ast.Primitive:
 		if p.Type != "string" {
 			a.error(partExpr, fmt.Errorf("part must be an identifier or string"))
 			return badExpr()
 		} else {
-			part = p.Text
+			partstr = p.Text
 		}
 	default:
 		a.error(partExpr, fmt.Errorf("part must be an identifier or string"))
 		return badExpr()
 	}
-	part = strings.ToLower(part)
-	if _, err := expr.NewCallDatePart(nil, part, nil); err != nil {
-		a.error(partExpr, err)
-	}
-	return &dag.CallDatePart{
-		Kind: "CallDatePart",
-		Part: part,
-		Expr: a.semExpr(argExpr),
+	return &dag.Call{
+		Kind: "Call",
+		Name: "date_part",
+		Args: []dag.Expr{
+			&dag.Literal{Kind: "Literal", Value: zson.QuotedString([]byte(strings.ToLower(partstr)))},
+			a.semExpr(argExpr),
+		},
 	}
 }
 

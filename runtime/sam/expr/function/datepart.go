@@ -1,29 +1,33 @@
-package expr
+package function
 
 import (
-	"fmt"
-
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/nano"
 )
 
-type datePartEval func(nano.Ts) int64
-
-type datePartCall struct {
+type DatePart struct {
 	zctx *super.Context
-	fn   datePartEval
-	eval Evaluator
 }
 
-func NewCallDatePart(zctx *super.Context, part string, e Evaluator) (Evaluator, error) {
-	fn := lookupDatePartEval(part)
-	if fn == nil {
-		return nil, fmt.Errorf("unknown date part %q", part)
+func NewDatePart(zctx *super.Context) *DatePart {
+	return &DatePart{zctx}
+}
+
+func (d *DatePart) Call(_ super.Allocator, args []super.Value) super.Value {
+	if args[0].Type().ID() != super.IDString {
+		return d.zctx.WrapError("date_part: string value required for part argument", args[0])
 	}
-	return &datePartCall{zctx, fn, e}, nil
+	if args[1].Type().ID() != super.IDTime {
+		return d.zctx.WrapError("date_part: time value required for time argument", args[1])
+	}
+	fn := lookupDatePartEval(args[0].AsString())
+	if fn == nil {
+		return d.zctx.WrapError("date_part: unsupported part name", args[0])
+	}
+	return super.NewInt64(fn(args[1].AsTime()))
 }
 
-func lookupDatePartEval(part string) datePartEval {
+func lookupDatePartEval(part string) func(nano.Ts) int64 {
 	switch part {
 	case "day":
 		return func(ts nano.Ts) int64 {
@@ -64,12 +68,4 @@ func lookupDatePartEval(part string) datePartEval {
 	default:
 		return nil
 	}
-}
-
-func (d *datePartCall) Eval(ectx Context, this super.Value) super.Value {
-	val := d.eval.Eval(ectx, this)
-	if val.Type().ID() != super.IDTime {
-		return d.zctx.WrapError("date_part: time value expected", val)
-	}
-	return super.NewInt64(d.fn(val.AsTime()))
 }

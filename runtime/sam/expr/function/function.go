@@ -43,6 +43,10 @@ func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path,
 		argmin = 2
 		argmax = 3
 		f = NewCompare(zctx)
+	case "date_part":
+		argmin = 2
+		argmax = 2
+		f = &DatePart{zctx}
 	case "error":
 		f = &Error{zctx: zctx}
 	case "every":

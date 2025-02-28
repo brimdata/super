@@ -43,11 +43,6 @@ type (
 		Name string `json:"name"`
 		Args []Expr `json:"args"`
 	}
-	CallDatePart struct {
-		Kind string `json:"kind" unpack:""`
-		Part string `json:"part"`
-		Expr Expr   `json:"expr"`
-	}
 	Conditional struct {
 		Kind string `json:"kind" unpack:""`
 		Cond Expr   `json:"cond"`
@@ -148,7 +143,6 @@ func (*ArrayExpr) ExprDAG()    {}
 func (*BadExpr) ExprDAG()      {}
 func (*BinaryExpr) ExprDAG()   {}
 func (*Call) ExprDAG()         {}
-func (*CallDatePart) ExprDAG() {}
 func (*Conditional) ExprDAG()  {}
 func (*Dot) ExprDAG()          {}
 func (*Func) ExprDAG()         {}

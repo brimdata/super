@@ -105,10 +105,6 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 		c.write("%s(", e.Name)
 		c.exprs(e.Args)
 		c.write(")")
-	case *dag.CallDatePart:
-		c.write("date_part(%q, ", e.Part)
-		c.expr(e.Expr, "")
-		c.write(")")
 	case *dag.IndexExpr:
 		c.expr(e.Expr, "")
 		c.write("[")

@@ -73,8 +73,6 @@ func (b *Builder) compileExpr(e dag.Expr) (expr.Evaluator, error) {
 		return b.compileConditional(*e)
 	case *dag.Call:
 		return b.compileCall(*e)
-	case *dag.CallDatePart:
-		return b.compileCallDatePart(e)
 	case *dag.IndexExpr:
 		return b.compileIndexExpr(e)
 	case *dag.IsNullExpr:
@@ -358,14 +356,6 @@ func (b *Builder) compileUDFCall(name string, body dag.Expr) (expr.Function, err
 	}
 	delete(b.compiledUDFs, name)
 	return fn, nil
-}
-
-func (b *Builder) compileCallDatePart(call *dag.CallDatePart) (expr.Evaluator, error) {
-	e, err := b.compileExpr(call.Expr)
-	if err != nil {
-		return nil, err
-	}
-	return expr.NewCallDatePart(b.zctx(), call.Part, e)
 }
 
 func (b *Builder) compileMapCall(a *dag.MapCall) (expr.Evaluator, error) {

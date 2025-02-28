@@ -14,7 +14,6 @@ var unpacker = unpack.New(
 	BadExpr{},
 	BinaryExpr{},
 	Call{},
-	CallDatePart{},
 	Combine{},
 	CommitMetaScan{},
 	Conditional{},
