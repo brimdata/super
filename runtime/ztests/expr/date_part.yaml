@@ -1,0 +1,28 @@
+zed: |
+  yield date_part("day", this),
+    date_part("dow", this),
+    date_part("dayofweek", this),
+    date_part("hour", this),
+    date_part("microseconds", this),
+    date_part("milliseconds", this),
+    date_part("minute", this),
+    date_part("month", this),
+    date_part("second", this),
+    date_part("year", this)
+
+vector: true
+
+input: |
+  2001-09-09T01:46:40.491021Z
+
+output: |
+  9
+  0
+  0
+  1
+  40491021
+  40491
+  46
+  9
+  40
+  2001

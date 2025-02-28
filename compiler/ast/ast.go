@@ -119,6 +119,13 @@ type Call struct {
 	Loc   `json:"loc"`
 }
 
+type CallExtract struct {
+	Kind string `json:"kind" unpack:""`
+	Part Expr   `json:"part"`
+	Expr Expr   `json:"expr"`
+	Loc  `json:"loc"`
+}
+
 type Cast struct {
 	Kind string `json:"kind" unpack:""`
 	Expr Expr   `json:"expr"`
@@ -318,6 +325,7 @@ func (*BinaryExpr) ExprAST()  {}
 func (*Between) ExprAST()     {}
 func (*Conditional) ExprAST() {}
 func (*Call) ExprAST()        {}
+func (*CallExtract) ExprAST() {}
 func (*CaseExpr) ExprAST()    {}
 func (*Cast) ExprAST()        {}
 func (*ID) ExprAST()          {}

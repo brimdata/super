@@ -137,6 +137,8 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 		}
 	case *ast.Call:
 		return a.semCall(e)
+	case *ast.CallExtract:
+		return a.semCallExtract(e.Part, e.Expr)
 	case *ast.Cast:
 		expr := a.semExpr(e.Expr)
 		typ := a.semExpr(e.Type)
@@ -598,6 +600,32 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 		Kind: "Call",
 		Name: nameLower,
 		Args: exprs,
+	}
+}
+
+func (a *analyzer) semCallExtract(partExpr, argExpr ast.Expr) dag.Expr {
+	var partstr string
+	switch p := partExpr.(type) {
+	case *ast.ID:
+		partstr = p.Name
+	case *ast.Primitive:
+		if p.Type != "string" {
+			a.error(partExpr, fmt.Errorf("part must be an identifier or string"))
+			return badExpr()
+		} else {
+			partstr = p.Text
+		}
+	default:
+		a.error(partExpr, fmt.Errorf("part must be an identifier or string"))
+		return badExpr()
+	}
+	return &dag.Call{
+		Kind: "Call",
+		Name: "date_part",
+		Args: []dag.Expr{
+			&dag.Literal{Kind: "Literal", Value: zson.QuotedString([]byte(strings.ToLower(partstr)))},
+			a.semExpr(argExpr),
+		},
 	}
 }
 

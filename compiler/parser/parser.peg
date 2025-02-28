@@ -1082,6 +1082,14 @@ Function
       id := &ast.ID{Kind: "ID", Name: "regexp_replace", Loc: ast.NewLoc(c.pos.offset, c.pos.offset+14)}
       return newCall(c, id, []any{arg0, arg1, arg2}, where), nil
     }
+  / !FuncGuard EXTRACT __ "(" __ part:Expr _ FROM _ e:Expr __ ")" where:WhereClause? {
+      return &ast.CallExtract{
+        Kind: "CallExtract",
+        Part: part.(ast.Expr),
+        Expr: e.(ast.Expr), 
+        Loc: loc(c),
+      }, nil
+    }
   / !FuncGuard fn:Identifier __ "(" __ args:FunctionArgs __ ")" where:WhereClause? {
       return newCall(c, fn, args, where), nil
     }
@@ -2246,6 +2254,7 @@ END        = "END"i             !IdentifierRest
 ERROR      = "ERROR"i           !IdentifierRest
 EVAL       = "EVAL"i            !IdentifierRest
 EXPLODE    = "EXPLODE"i         !IdentifierRest
+EXTRACT    = "EXTRACT"i         !IdentifierRest
 FALSE      = "FALSE"i           !IdentifierRest
 FIRST      = "FIRST"i           !IdentifierRest
 FORK       = "FORK"i            !IdentifierRest
