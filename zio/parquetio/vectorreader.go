@@ -53,7 +53,7 @@ func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, fiel
 		ctx:          ctx,
 		zctx:         zctx,
 		fr:           fr,
-		colIndexes:   columnIndexes(fr.Manifest, fields),
+		colIndexes:   columnIndexes(pr.MetaData().Schema, fields),
 		nextRowGroup: &atomic.Int64{},
 		vb:           vectorBuilder{zctx, map[arrow.DataType]super.Type{}},
 	}, nil
