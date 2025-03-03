@@ -7,7 +7,7 @@ import (
 	"github.com/brimdata/super/zcode"
 )
 
-//go:generate go run gendatepart.go
+//go:generate go run gendatepartfuncs.go
 
 type DatePart struct {
 	zctx *super.Context
