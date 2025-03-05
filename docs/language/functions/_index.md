@@ -22,6 +22,7 @@ Zed's [primitive types](../../formats/data-model.md#1-primitive-types), e.g.,
 * [compare](compare.md) - return an int comparing two values
 * [coalesce](coalesce.md) - return first value that is not null, a "missing" error, or a "quiet" error
 * [crop](crop.md) - remove fields from a value that are missing in a specified type
+* [date_part](date_part.md) - return a specified part of a time value
 * [error](error.md) - wrap a value as an error
 * [every](every.md) - bucket `ts` using a duration
 * [fields](fields.md) - return the flattened path names of a record
