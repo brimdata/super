@@ -953,6 +953,7 @@ BetweenExpr
         Expr: expr.(ast.Expr),
         Lower: lower.(ast.Expr),
         Upper: upper.(ast.Expr),
+        Loc: loc(c),
       }, nil
     }
   / ComparisonExpr
@@ -2061,12 +2062,14 @@ JoinExpr
         return &ast.JoinOnExpr{
             Kind: "JoinOnExpr", 
             Expr: e.(ast.Expr),
+            Loc: loc(c),
         }, nil
     }
   / _ USING __ "(" __ fields:Lvals __ ")" {
         return &ast.JoinUsingExpr{
             Kind: "JoinUsingExpr",
             Fields: sliceOf[ast.Expr](fields),
+            Loc: loc(c),
         }, nil
     }
 
