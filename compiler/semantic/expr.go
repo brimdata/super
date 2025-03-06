@@ -6,10 +6,12 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/araddon/dateparse"
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/compiler/kernel"
+	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/pkg/reglob"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/expr/agg"
@@ -309,6 +311,21 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 			Kind:    "MapExpr",
 			Entries: entries,
 		}
+	case *ast.SQLTimeValue:
+		if e.Value.Type != "string" {
+			a.error(e.Value, errors.New("value must be a string literal"))
+			return badExpr()
+		}
+		t, err := dateparse.ParseAny(e.Value.Text)
+		if err != nil {
+			a.error(e.Value, err)
+			return badExpr()
+		}
+		ts := nano.TimeToTs(t)
+		if e.Type == "date" {
+			ts = ts.Trunc(nano.Day)
+		}
+		return &dag.Literal{Kind: "Literal", Value: zson.FormatValue(super.NewTime(ts))}
 	case *ast.TupleExpr:
 		elems := make([]dag.RecordElem, 0, len(e.Elems))
 		for colno, elem := range e.Elems {

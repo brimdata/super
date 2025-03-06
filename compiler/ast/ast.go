@@ -317,6 +317,13 @@ type FStringExpr struct {
 	Loc  `json:"loc"`
 }
 
+type SQLTimeValue struct {
+	Kind  string     `json:"kind" unpack:""`
+	Type  string     `json:"type"`
+	Value *Primitive `json:"value"`
+	Loc   `json:"loc"`
+}
+
 func (*FStringText) FStringElem() {}
 func (*FStringExpr) FStringElem() {}
 
@@ -340,13 +347,14 @@ func (*Glob) ExprAST()       {}
 func (*Regexp) ExprAST()     {}
 func (*Term) ExprAST()       {}
 
-func (*RecordExpr) ExprAST() {}
-func (*ArrayExpr) ExprAST()  {}
-func (*SetExpr) ExprAST()    {}
-func (*MapExpr) ExprAST()    {}
-func (*TupleExpr) ExprAST()  {}
-func (*OverExpr) ExprAST()   {}
-func (*FString) ExprAST()    {}
+func (*RecordExpr) ExprAST()   {}
+func (*ArrayExpr) ExprAST()    {}
+func (*SetExpr) ExprAST()      {}
+func (*MapExpr) ExprAST()      {}
+func (*TupleExpr) ExprAST()    {}
+func (*SQLTimeValue) ExprAST() {}
+func (*OverExpr) ExprAST()     {}
+func (*FString) ExprAST()      {}
 
 type ConstDecl struct {
 	Kind string `json:"kind" unpack:""`
