@@ -195,6 +195,10 @@ func (c *canon) expr(e ast.Expr, parent string) {
 			}
 		}
 		c.write("}")
+	case *ast.SQLCast:
+		c.write("CAST(")
+		c.expr(e.Expr, "")
+		c.write(" AS %s)", e.Type.Name)
 	case *ast.ArrayExpr:
 		c.write("[")
 		c.vectorElems(e.Elems)

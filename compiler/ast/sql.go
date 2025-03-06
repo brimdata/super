@@ -122,3 +122,12 @@ type AsExpr struct {
 }
 
 func (*AsExpr) ExprAST() {}
+
+type SQLCast struct {
+	Kind string `json:"kind" unpack:""`
+	Expr Expr   `json:"expr"`
+	Type *ID    `json:"type"`
+	Loc  `json:"loc"`
+}
+
+func (*SQLCast) ExprAST() {}

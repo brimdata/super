@@ -1091,6 +1091,14 @@ Function
         Loc: loc(c),
       }, nil
     }
+  / !FuncGuard CAST __ "(" __ e:Expr _ AS _ typ:Identifier __ ")" {
+      return &ast.SQLCast{
+        Kind: "SQLCast",
+        Expr: e.(ast.Expr),
+        Type: typ.(*ast.ID),
+        Loc: loc(c),
+      }, nil
+    }
   / !FuncGuard fn:Identifier __ "(" __ args:FunctionArgs __ ")" where:WhereClause? {
       return newCall(c, fn, args, where), nil
     }
@@ -2243,6 +2251,7 @@ BETWEEN    = "BETWEEN"i         !IdentifierRest
 BODY       = "BODY"i            !IdentifierRest
 BY         = "BY"i              !IdentifierRest
 CASE       = "CASE"i            !IdentifierRest
+CAST       = "CAST"i            !IdentifierRest
 CONST      = "CONST"i           !IdentifierRest
 COUNT      = "COUNT"i           !IdentifierRest
 CROSS      = "CROSS"i           !IdentifierRest
