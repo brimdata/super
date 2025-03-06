@@ -1,5 +1,6 @@
 script: |
-  SUPER_VAM=1 super compile -C -O 'file test.csup | x in ["foo","bar"]'
+  export SUPER_VAM=1
+  super compile -C -O 'file test.csup | x in ["foo","bar"]'
 
 outputs:
   - name: stdout
