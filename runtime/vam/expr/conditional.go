@@ -102,23 +102,18 @@ func boolMaskRidx(ridx []uint32, bools, errs *roaring.Bitmap, vec vector.Any) {
 			}
 		}
 	case *vector.Bool:
+		trues := vec
+		if vec.Nulls != nil {
+			// if null and true set to false
+			trues = vector.And(trues, vector.Not(vec.Nulls))
+		}
 		if ridx != nil {
-			trues := vec
-			if vec.Nulls != nil {
-				// if null and true set to false
-				trues = vector.And(trues, vector.Not(vec.Nulls))
-			}
 			for i, idx := range ridx {
 				if trues.Value(uint32(i)) {
 					bools.Add(idx)
 				}
 			}
 		} else {
-			trues := vec
-			if vec.Nulls != nil {
-				// if null and true set to false
-				trues = vector.And(trues, vector.Not(vec.Nulls))
-			}
 			bools.Or(roaring.FromDense(trues.Bits, true))
 		}
 	case *vector.Error:
