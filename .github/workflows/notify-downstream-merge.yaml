@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        repo: [brimcap, zui]
+        repo: [zui]
     steps:
     - name: Populate "merged" variable
       run: |
@@ -29,19 +29,16 @@ jobs:
         merged=$(jq .pull_request.merged "${GITHUB_EVENT_PATH}")
         echo "merged=$merged" >> $GITHUB_OUTPUT
       id: vars
-    # During the "Super" renaming we've temporarily disabled the triggering of
-    # downstream Brimcap/Zui CI because we know they will break while things
-    # are in flux.
-    #- name: Post PR closed event, if the close was a merge
-    #  if: steps.vars.outputs.merged == 'true' && ! contains(github.event.pull_request.labels.*.name, 'skip-notify-downstream')
-    #  run: |
-    #    jq '.' "${GITHUB_EVENT_PATH}"
-    #    # Get what we want from the pull request event, craft a
-    #    # repository dispatch event, and send it.
-    #    # https://help.github.com/en/actions/reference/events-that-trigger-workflows#external-events-repository_dispatch
-    #    # https://developer.github.com/v3/repos/#create-a-repository-dispatch-event
-    #    jq '.pull_request | { "event_type": "zed-pr-merged", "client_payload": {body, "branch": .head.ref, merge_commit_sha, number, title, "url": .html_url, "user": .user.login}}' "${GITHUB_EVENT_PATH}" > payload.json
-    #    curl -XPOST -u "${{ secrets.PAT_USERNAME }}:${{ secrets.PAT_TOKEN }}" -H "Accept: application/vnd.github.v3+json"  -H "Content-Type: application/json" https://api.github.com/repos/brimdata/${{ matrix.repo }}/dispatches --data @payload.json
+    - name: Post PR closed event, if the close was a merge
+      if: steps.vars.outputs.merged == 'true' && ! contains(github.event.pull_request.labels.*.name, 'skip-notify-downstream')
+      run: |
+        jq '.' "${GITHUB_EVENT_PATH}"
+        # Get what we want from the pull request event, craft a
+        # repository dispatch event, and send it.
+        # https://help.github.com/en/actions/reference/events-that-trigger-workflows#external-events-repository_dispatch
+        # https://developer.github.com/v3/repos/#create-a-repository-dispatch-event
+        jq '.pull_request | { "event_type": "super-pr-merged", "client_payload": {body, "branch": .head.ref, merge_commit_sha, number, title, "url": .html_url, "user": .user.login}}' "${GITHUB_EVENT_PATH}" > payload.json
+        curl -XPOST -u "${{ secrets.PAT_USERNAME }}:${{ secrets.PAT_TOKEN }}" -H "Accept: application/vnd.github.v3+json"  -H "Content-Type: application/json" https://api.github.com/repos/brimdata/${{ matrix.repo }}/dispatches --data @payload.json
     - name: Queue merged commits for an Autoperf run
       if: steps.vars.outputs.merged == 'true' && ! contains(github.event.pull_request.labels.*.name, 'skip-autoperf')
       run: |
