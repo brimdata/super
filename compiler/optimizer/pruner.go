@@ -1,9 +1,13 @@
 package optimizer
 
 import (
+	"regexp"
+	"unicode/utf8"
+
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
+	"github.com/brimdata/super/zson"
 )
 
 func maybeNewRangePruner(pred dag.Expr, sortKeys order.SortKeys) dag.Expr {
@@ -145,10 +149,40 @@ func reverseComparator(op string) string {
 }
 
 func newMetadataPruner(pred dag.Expr) dag.Expr {
-	e, ok := pred.(*dag.BinaryExpr)
-	if !ok {
+	switch e := pred.(type) {
+	case *dag.BinaryExpr:
+		return metaPrunerBinaryExpr(e)
+	case *dag.RegexpSearch:
+		this, ok := e.Expr.(*dag.This)
+		if !ok {
+			return nil
+		}
+		re, err := regexp.Compile(e.Pattern)
+		if err != nil {
+			panic(err)
+		}
+		prefix, complete := re.LiteralPrefix()
+		if complete {
+			literal := &dag.Literal{Kind: "Literal", Value: zson.QuotedString([]byte(prefix))}
+			return metadataPrunerPred("==", this, literal)
+		}
+		start := &dag.Literal{Kind: "Literal", Value: zson.QuotedString([]byte(prefix))}
+		end := &dag.Literal{Kind: "Literal", Value: zson.QuotedString([]byte(incrementLastRune(prefix)))}
+		return dag.NewBinaryExpr("and",
+			compare("<", start, &dag.This{Kind: "This", Path: append(this.Path, "min")}),
+			compare(">=", end, &dag.This{Kind: "This", Path: append(this.Path, "max")}))
+	default:
 		return nil
 	}
+}
+
+func incrementLastRune(s string) string {
+	b := []byte(s)
+	r, size := utf8.DecodeLastRune(b)
+	return string(utf8.AppendRune(b[:len(b)-size], r+1))
+}
+
+func metaPrunerBinaryExpr(e *dag.BinaryExpr) dag.Expr {
 	switch e.Op {
 	case "and":
 		lhs := newMetadataPruner(e.LHS)

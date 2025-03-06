@@ -1,5 +1,10 @@
 script: |
-  SUPER_VAM=1 super compile -C -O 'file test.csup | x in ["foo","bar"]'
+  export SUPER_VAM=1
+  # Test in on array of literals.
+  super compile -C -O 'file test.csup | x in ["foo","bar"]'
+  echo // ===
+  # Test regexp with eligible prefix.
+  super compile -C -O 'file test.csup | where x LIKE "cslab%"'
 
 outputs:
   - name: stdout
@@ -9,4 +14,11 @@ outputs:
           compare("foo", x.min, true)>=0 and compare("foo", x.max, true)<=0 or compare("bar", x.min, true)>=0 and compare("bar", x.max, true)<=0
         )
       | where x in ["foo","bar"]
+      | output main
+      // ===
+      file test.csup format csup
+         pruner (
+          compare("cslab", x.min, true)<0 and compare("cslac", x.max, true)>=0
+        )
+      | where regexp_search(/(?s)^cslab.*?$/, x)
       | output main
