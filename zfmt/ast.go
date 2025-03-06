@@ -251,6 +251,9 @@ func (c *canon) expr(e ast.Expr, parent string) {
 		c.write(" and ")
 		c.expr(e.Upper, "")
 		c.write(")")
+	case *ast.SQLTimestamp:
+		c.write("TIMESTAMP ")
+		c.write(e.Value, "")
 	default:
 		c.write("(unknown expr %T)", e)
 	}

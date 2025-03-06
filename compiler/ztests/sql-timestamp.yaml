@@ -1,0 +1,10 @@
+zed: "where this > TIMESTAMP '2012-10-02 00:00:00'"
+
+vector: true
+
+input: |
+  2012-10-01T00:00:00Z
+  2012-10-03T00:00:00Z
+
+output: |
+  2012-10-03T00:00:00Z
