@@ -155,6 +155,13 @@ type SliceExpr struct {
 	Loc  `json:"loc"`
 }
 
+type SQLCast struct {
+	Kind string `json:"kind" unpack:""`
+	Expr Expr   `json:"expr"`
+	Type *ID    `json:"type"`
+	Loc  `json:"loc"`
+}
+
 type Grep struct {
 	Kind    string `json:"kind" unpack:""`
 	Pattern Expr   `json:"pattern"`
@@ -332,6 +339,7 @@ func (*ID) ExprAST()          {}
 func (*IndexExpr) ExprAST()   {}
 func (*IsNullExpr) ExprAST()  {}
 func (*SliceExpr) ExprAST()   {}
+func (*SQLCast) ExprAST()     {}
 
 func (*Assignment) ExprAST() {}
 func (*Agg) ExprAST()        {}

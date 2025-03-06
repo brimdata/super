@@ -106,6 +106,7 @@ var unpacker = unpack.New(
 	Select{},
 	Ordinality{},
 	CrossJoin{},
+	SQLCast{},
 	SQLJoin{},
 	Union{},
 	OrderBy{},
