@@ -1131,6 +1131,7 @@ Primary
   / Array
   / Set
   / Map
+  / SQLTimestamp
   / Literal
   / !PipeKeyword id:Identifier { return id, nil }
   / Tuple
@@ -1291,6 +1292,15 @@ Tuple
         Elems: sliceOf[ast.Expr](prepend(first, rest)),
         Loc: loc(c),
       }, nil
+    }
+
+SQLTimestamp
+  = TIMESTAMP _ s:StringLiteral {
+        return &ast.SQLTimestamp {
+          Kind: "SQLTimestamp",
+          Value: s.(*ast.Primitive),
+          Loc: loc(c),
+        }, nil
     }
 
 /// === Literals ===
@@ -2314,6 +2324,7 @@ SWITCH     = "SWITCH"i          !IdentifierRest
 TAIL       = "TAIL"i            !IdentifierRest 
 TAP        = "TAP"i             !IdentifierRest
 THEN       = "THEN"i            !IdentifierRest
+TIMESTAMP  = "TIMESTAMP"i       !IdentifierRest
 TOP        = "TOP"i             !IdentifierRest
 TRUE       = "TRUE"i            !IdentifierRest
 TYPE       = "TYPE"i            !IdentifierRest
