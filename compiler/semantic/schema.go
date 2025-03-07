@@ -166,7 +166,7 @@ func (j *joinSchema) resolveColumn(col string) (field.Path, error) {
 	}
 	if lerr == nil {
 		// This shouldn't happen because the resolve return values should
-		// always be nil/err or val/err.
+		// always be nil/err or val/nil.
 		panic("issue encountered in SQL name resolution")
 	}
 	right, rerr := j.right.resolveColumn(col)
