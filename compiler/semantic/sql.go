@@ -426,7 +426,10 @@ func (a *analyzer) semSQLJoin(join *ast.SQLJoin, seq dag.Seq) (dag.Seq, schema) 
 	sch := &joinSchema{left: leftSchema, right: rightSchema}
 	leftKey, rightKey, err := a.semSQLJoinCond(join.Cond, sch)
 	if err != nil {
-		a.error(join.Cond, errors.New("SQL joins currently limited to equijoin on fields"))
+		// Join expression errors are already logged so suppress further notice.
+		if err != badJoinCond {
+			a.error(join.Cond, err)
+		}
 		return append(seq, badOp()), badSchema()
 	}
 	assignment := dag.Assignment{
@@ -450,6 +453,8 @@ func (a *analyzer) semSQLJoin(join *ast.SQLJoin, seq dag.Seq) (dag.Seq, schema) 
 	return append(append(leftSeq, par), dagJoin), sch
 }
 
+var badJoinCond = errors.New("bad join condition")
+
 func (a *analyzer) semSQLJoinCond(cond ast.JoinExpr, sch *joinSchema) (*dag.This, *dag.This, error) {
 	//XXX we currently require field expressions for SQL joins and will need them
 	// to resolve names to join side when we add scope tracking
@@ -462,15 +467,29 @@ func (a *analyzer) semSQLJoinCond(cond ast.JoinExpr, sch *joinSchema) (*dag.This
 	if err != nil {
 		return nil, nil, err
 	}
-	left, ok := l.(*dag.This)
-	if !ok {
-		return nil, nil, errors.New("join keys must be field references")
+	left, err := joinFieldAsThis("left", l)
+	if err != nil {
+		return nil, nil, err
 	}
-	right, ok := r.(*dag.This)
-	if !ok {
-		return nil, nil, errors.New("join keys must be field references")
+	right, err := joinFieldAsThis("right", r)
+	return left, right, err
+}
+
+func joinFieldAsThis(which string, e dag.Expr) (*dag.This, error) {
+	if _, ok := e.(*dag.BadExpr); ok {
+		return nil, badJoinCond
 	}
-	return left, right, nil
+	this, ok := e.(*dag.This)
+	if !ok {
+		return nil, errors.New("join condition must be equijoin on fields")
+	}
+	if len(this.Path) == 0 {
+		return nil, errors.New("join expression cannot refer to 'this'")
+	}
+	if this.Path[0] != which {
+		return nil, fmt.Errorf("%s-hand side of join condition must refer to %s-hand table", which, which)
+	}
+	return this, nil
 }
 
 func (a *analyzer) semJoinCond(cond ast.JoinExpr) (dag.Expr, dag.Expr, error) {

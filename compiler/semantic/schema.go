@@ -131,7 +131,7 @@ func (s *staticSchema) resolveColumn(col string) (field.Path, error) {
 			return field.Path{col}, nil
 		}
 	}
-	return nil, fmt.Errorf("%q: column does not exist", col)
+	return nil, fmt.Errorf("column %q: does not exist", col)
 }
 
 func (a *anonSchema) resolveColumn(col string) (field.Path, error) {
@@ -140,52 +140,38 @@ func (a *anonSchema) resolveColumn(col string) (field.Path, error) {
 			return field.Path{col}, nil
 		}
 	}
-	return nil, nil
+	return nil, fmt.Errorf("column %q: does not exist", col)
 }
 
 func (s *selectSchema) resolveColumn(col string) (field.Path, error) {
 	if s.out != nil {
-		resolved, err := s.out.resolveColumn(col)
-		if err != nil {
-			return nil, err
-		}
-		if resolved != nil {
+		if resolved, _ := s.out.resolveColumn(col); resolved != nil {
 			return append([]string{"out"}, resolved...), nil
 		}
 	}
 	resolved, err := s.in.resolveColumn(col)
-	if err != nil {
-		return nil, err
-	}
 	if resolved != nil {
 		return append([]string{"in"}, resolved...), nil
 	}
-	return nil, nil
+	return nil, err
 }
 
 func (j *joinSchema) resolveColumn(col string) (field.Path, error) {
-	out, err := j.left.resolveColumn(col)
-	if err != nil {
-		return nil, err
-	}
-	if out != nil {
-		chk, err := j.right.resolveColumn(col)
-		if err != nil {
-			return nil, err
-		}
-		if chk != nil {
+	left, lerr := j.left.resolveColumn(col)
+	if left != nil {
+		if chk, _ := j.right.resolveColumn(col); chk != nil {
 			return nil, fmt.Errorf("%q: ambiguous column reference", col)
 		}
-		return append([]string{"left"}, out...), nil
+		return append([]string{"left"}, left...), nil
 	}
-	out, err = j.right.resolveColumn(col)
-	if err != nil {
-		return nil, err
+	if lerr == nil {
+		panic("TBD") //XXX new contract is that nil result requires err
 	}
-	if out != nil {
-		return append([]string{"right"}, out...), nil
+	right, rerr := j.right.resolveColumn(col)
+	if right != nil {
+		return append([]string{"right"}, right...), nil
 	}
-	return nil, nil
+	return nil, fmt.Errorf("%q: not found (%w, %w)", col, lerr, rerr)
 }
 
 func (d *dynamicSchema) deref(name string) (dag.Expr, schema) {

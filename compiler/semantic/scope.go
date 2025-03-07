@@ -142,7 +142,7 @@ func resolvePath(sch schema, path field.Path) (field.Path, error) {
 	if table != nil {
 		columnPath, err := table.resolveColumn(path[1])
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("table %q: %w", path[0], err)
 		}
 		if columnPath != nil {
 			out := append(tablePath, columnPath...)

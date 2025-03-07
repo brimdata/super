@@ -1,0 +1,13 @@
+script: |
+  super -z -c "select * from (select 1 as a) join (select 1 as b) on a=b"
+  super -z -c "select * from (select 1 as a) t1 join (select 1 as b) on t1.a=b"
+  super -z -c "select * from (select 1 as a) join (select 1 as b) t2 on a=t2.b"
+  super -z -c "select * from (select 1 as a) t1 join (select 1 as a) t2 on t1.a=t2.a"
+
+outputs:
+  - name: stdout
+    data: |
+      {a:1,b:1}
+      {a:1,b:1}
+      {a:1,b:1}
+      {a:1}
