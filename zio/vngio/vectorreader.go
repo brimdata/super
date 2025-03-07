@@ -24,6 +24,7 @@ type VectorReader struct {
 	objects       []*vng.Object
 	projection    vcache.Path
 	readerAt      io.ReaderAt
+	hasClosed     bool
 }
 
 func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, fields []field.Path, pruner expr.Evaluator) (*VectorReader, error) {
@@ -48,7 +49,15 @@ func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, fiel
 
 func (v *VectorReader) NewConcurrentPuller() vector.Puller {
 	v.activeReaders.Add(1)
-	return v
+	return &VectorReader{
+		ctx:           v.ctx,
+		zctx:          v.zctx,
+		activeReaders: v.activeReaders,
+		nextObject:    v.nextObject,
+		objects:       v.objects,
+		projection:    v.projection,
+		readerAt:      v.readerAt,
+	}
 }
 
 func (v *VectorReader) Pull(done bool) (vector.Any, error) {
@@ -86,7 +95,8 @@ func pruneObject(zctx *super.Context, pruner expr.Evaluator, m vng.Metadata) boo
 }
 
 func (v *VectorReader) close() error {
-	if v.activeReaders.Add(-1) <= 0 {
+	if !v.hasClosed && v.activeReaders.Add(-1) <= 0 {
+		v.hasClosed = true
 		if closer, ok := v.readerAt.(io.Closer); ok {
 			return closer.Close() // coffee is for closers
 		}
