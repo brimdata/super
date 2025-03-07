@@ -165,7 +165,9 @@ func (j *joinSchema) resolveColumn(col string) (field.Path, error) {
 		return append([]string{"left"}, left...), nil
 	}
 	if lerr == nil {
-		panic("TBD") //XXX new contract is that nil result requires err
+		// This shouldn't happen because the resolve return values should
+		// always be nil/err or val/err.
+		panic("issue encountered in SQL name resolution")
 	}
 	right, rerr := j.right.resolveColumn(col)
 	if right != nil {
