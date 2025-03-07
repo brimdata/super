@@ -147,6 +147,32 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 			Name: "cast",
 			Args: []dag.Expr{expr, typ},
 		}
+	case *ast.SQLCast:
+		expr := a.semExpr(e.Expr)
+		typstr := strings.ToLower(e.Type.Name)
+		if typstr == "date" {
+			// cast to time then bucket by 1d as a workaround for not currently
+			// supporting a "date" type.
+			cast := &dag.Call{
+				Kind: "Call",
+				Name: "cast",
+				Args: []dag.Expr{expr, &dag.Literal{Kind: "Literal", Value: "<time>"}},
+			}
+			return &dag.Call{
+				Kind: "Call",
+				Name: "bucket",
+				Args: []dag.Expr{cast, &dag.Literal{Kind: "Literal", Value: "1d"}},
+			}
+		}
+		if super.LookupPrimitive(typstr) == nil {
+			a.error(e.Type, fmt.Errorf("type %q does not exist", typstr))
+			return badExpr()
+		}
+		return &dag.Call{
+			Kind: "Call",
+			Name: "cast",
+			Args: []dag.Expr{expr, &dag.Literal{Kind: "Literal", Value: "<" + typstr + ">"}},
+		}
 	case *ast.IndexExpr:
 		expr := a.semExpr(e.Expr)
 		index := a.semExpr(e.Index)
