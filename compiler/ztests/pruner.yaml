@@ -7,6 +7,6 @@ outputs:
       file test.csup format csup
          pruner (
           compare("foo", x.min, true)>=0 and compare("foo", x.max, true)<=0 or compare("bar", x.min, true)>=0 and compare("bar", x.max, true)<=0
-        )
+        ) filter (x in ["foo","bar"])
       | where x in ["foo","bar"]
       | output main
