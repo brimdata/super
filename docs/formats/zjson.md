@@ -64,7 +64,7 @@ sufficient for the [super-structured data model](./_index.md#2-a-super-structure
 That said, JSON can be used as an encoding format for super data with another layer
 of encoding on top of a JSON-based protocol.  This allows clients like web apps or
 Electron apps to receive and understand Super JSON and, with the help of client
-libraries like [zed-js](https://github.com/brimdata/zui/tree/main/packages/zed-js),
+libraries like [superdb-types](https://github.com/brimdata/zui/tree/main/packages/superdb-types),
 to manipulate the rich, structured Super JSON types that are implemented on top of
 the basic JavaScript types.
 

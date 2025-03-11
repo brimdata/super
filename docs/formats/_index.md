@@ -280,7 +280,7 @@ values.
 embodies the super data model for heterogeneous and self-describing schemas.
 * [Super JSON over JSON](zjson.md) defines a format for encapsulating Super JSON
 inside plain JSON for easy decoding by JSON-based clients, e.g.,
-the [JavaScript library used by SuperDB Desktop](https://github.com/brimdata/zui/tree/main/packages/zed-js)
+the [JavaScript library used by SuperDB Desktop](https://github.com/brimdata/zui/tree/main/packages/superdb-types)
 and the [SuperDB Python library](../libraries/python.md).
 
 Because all of the formats conform to the same super data model, conversions between
