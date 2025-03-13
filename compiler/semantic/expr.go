@@ -415,7 +415,7 @@ func (a *analyzer) semGrep(grep *ast.Grep) dag.Expr {
 		return &dag.Search{
 			Kind:  "Search",
 			Text:  s,
-			Value: zson.QuotedString([]byte(s)),
+			Value: zson.QuotedString(s),
 			Expr:  e,
 		}
 	}
@@ -666,7 +666,7 @@ func (a *analyzer) semCallExtract(partExpr, argExpr ast.Expr) dag.Expr {
 		Kind: "Call",
 		Name: "date_part",
 		Args: []dag.Expr{
-			&dag.Literal{Kind: "Literal", Value: zson.QuotedString([]byte(strings.ToLower(partstr)))},
+			&dag.Literal{Kind: "Literal", Value: zson.QuotedString(strings.ToLower(partstr))},
 			a.semExpr(argExpr),
 		},
 	}
@@ -883,7 +883,7 @@ func (a *analyzer) semFString(f *ast.FString) dag.Expr {
 				Args: []dag.Expr{e, &dag.Literal{Kind: "Literal", Value: "<string>"}},
 			}
 		case *ast.FStringText:
-			e = &dag.Literal{Kind: "Literal", Value: zson.QuotedString([]byte(elem.Text))}
+			e = &dag.Literal{Kind: "Literal", Value: zson.QuotedString(elem.Text)}
 		default:
 			panic(fmt.Errorf("internal error: unsupported f-string elem %T", elem))
 		}

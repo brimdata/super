@@ -7,14 +7,14 @@ import (
 
 func QuotedName(name string) string {
 	if !IsIdentifier(name) {
-		name = QuotedString([]byte(name))
+		name = QuotedString(name)
 	}
 	return name
 }
 
 func QuotedTypeName(name string) string {
 	if !IsTypeName(name) {
-		name = QuotedString([]byte(name))
+		name = QuotedString(name)
 	}
 	return name
 }
@@ -24,7 +24,7 @@ const hexdigits = "0123456789abcdef"
 // QuotedString quotes and escapes a ZSON string for serialization in accordance
 // with the ZSON spec.  It was copied and modified [with attribution](https://github.com/brimdata/super/blob/main/acknowledgments.txt)
 // from the encoding/json package in the Go source code.
-func QuotedString(s []byte) string {
+func QuotedString(s string) string {
 	var b strings.Builder
 	b.WriteByte('"')
 	for k := 0; k < len(s); {
@@ -57,7 +57,7 @@ func QuotedString(s []byte) string {
 			k++
 			continue
 		}
-		r, size := utf8.DecodeRune(s[k:])
+		r, size := utf8.DecodeRuneInString(s[k:])
 		if r == utf8.RuneError && size == 1 {
 			// XXX return an error.  See issue #3455.
 			b.WriteString(`\ufffd`)

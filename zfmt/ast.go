@@ -508,7 +508,7 @@ func (c *canon) op(p ast.Op) {
 		}
 	case *ast.Load:
 		c.next()
-		c.write("load %s", zson.QuotedString([]byte(p.Pool.Text)))
+		c.write("load %s", zson.QuotedString(p.Pool.Text))
 		if p.Branch != nil {
 			c.write("@%s", p.Branch.Text)
 		}

@@ -924,7 +924,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 								&dag.Field{
 									Kind:  "Field",
 									Name:  "expr",
-									Value: &dag.Literal{Kind: "Literal", Value: zson.QuotedString([]byte(o.Text))},
+									Value: &dag.Literal{Kind: "Literal", Value: zson.QuotedString(o.Text)},
 								},
 								&dag.Field{
 									Kind:  "Field",
