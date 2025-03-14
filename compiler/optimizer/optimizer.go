@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
+	"slices"
 
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/compiler/optimizer/demand"
@@ -145,6 +147,7 @@ func walkEntries(seq dag.Seq, post func(dag.Seq) (dag.Seq, error)) (dag.Seq, err
 // TBD: we need to do pushdown for search/cut to optimize columnar extraction.
 func (o *Optimizer) Optimize(seq dag.Seq) (dag.Seq, error) {
 	seq = mergeFilters(seq)
+	seq = mergeYieldOps(seq)
 	seq = removePassOps(seq)
 	o.optimizeParallels(seq)
 	seq = mergeFilters(seq)
@@ -473,4 +476,94 @@ func matchFilter(seq dag.Seq) (dag.Expr, dag.Seq) {
 		return nil, seq
 	}
 	return filter.Expr, seq[1:]
+}
+
+func mergeYieldOps(seq dag.Seq) dag.Seq {
+	return walk(seq, true, func(seq dag.Seq) dag.Seq {
+		for i := 0; i+1 < len(seq); i++ {
+			y1, ok1 := seq[i].(*dag.Yield)
+			y2, ok2 := seq[i+1].(*dag.Yield)
+			if !ok1 || !ok2 || len(y1.Exprs) != 1 || hasThisWithEmptyPath(y2) {
+				continue
+			}
+			re1, ok := y1.Exprs[0].(*dag.RecordExpr)
+			if !ok {
+				continue
+			}
+			y1TopLevelFields := map[string]dag.Expr{}
+			var y1TopLevelSpread dag.Expr
+			for _, e := range re1.Elems {
+				switch e := e.(type) {
+				case *dag.Field:
+					y1TopLevelFields[e.Name] = e.Value
+				case *dag.Spread:
+					y1TopLevelSpread = e.Expr
+				default:
+					panic(e)
+				}
+			}
+			walkT(reflect.ValueOf(y2), func(e2 dag.Expr) dag.Expr {
+				this2, ok := e2.(*dag.This)
+				if !ok {
+					return e2
+				}
+				e1, ok := y1TopLevelFields[this2.Path[0]]
+				if !ok {
+					if y1TopLevelSpread != nil {
+						return addPathToExpr(y1TopLevelSpread, this2.Path)
+					}
+					return e2
+				}
+				return addPathToExpr(e1, this2.Path[1:])
+			})
+			seq.Delete(i, i+1)
+			i--
+		}
+		return seq
+	})
+}
+
+func hasThisWithEmptyPath(v any) bool {
+	var found bool
+	walkT(reflect.ValueOf(v), func(this *dag.This) *dag.This {
+		if len(this.Path) < 1 {
+			found = true
+		}
+		return this
+	})
+	return found
+}
+
+func addPathToExpr(e dag.Expr, path []string) dag.Expr {
+	if len(path) == 0 {
+		return e
+	}
+	if this, ok := e.(*dag.This); ok {
+		return &dag.This{Kind: "This", Path: slices.Concat(this.Path, path)}
+	}
+	dot := &dag.Dot{Kind: "Dot", LHS: e, RHS: path[0]}
+	for _, s := range path[1:] {
+		dot = &dag.Dot{Kind: "Dot", LHS: dot, RHS: s}
+	}
+	return dot
+}
+
+func walkT[T any](v reflect.Value, post func(T) T) {
+	switch v.Kind() {
+	case reflect.Array, reflect.Slice:
+		for i := range v.Len() {
+			walkT(v.Index(i), post)
+		}
+	case reflect.Interface, reflect.Pointer:
+		walkT(v.Elem(), post)
+	case reflect.Struct:
+		for i := range v.NumField() {
+			walkT(v.Field(i), post)
+		}
+	}
+	if v.CanSet() {
+		if t, ok := v.Interface().(T); ok {
+			v.Set(reflect.ValueOf(post(t)))
+		}
+	}
 }

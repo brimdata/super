@@ -1,0 +1,15 @@
+script: |
+  super compile -C -O 'yield {a:1} | yield a, {b:a}'
+  echo ===
+  super compile -C -O 'yield {...a} | yield {...b.c} | yield d, {e}'
+
+outputs:
+  - name: stdout
+    data: |
+      null
+      | yield 1, {b:1}
+      | output main
+      ===
+      null
+      | yield a.b.c.d, {e:a.b.c.e}
+      | output main
