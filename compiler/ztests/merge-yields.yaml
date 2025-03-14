@@ -2,6 +2,8 @@ script: |
   super compile -C -O 'yield {a:1} | yield a, {b:a}'
   echo ===
   super compile -C -O 'yield {...a} | yield {...b.c} | yield d, {e}'
+  echo ===
+  super compile -C -O 'yield {a:{b:1}} | yield {a:{...a,c:2}} | yield {a:{...a,d:3}}'
 
 outputs:
   - name: stdout
@@ -12,4 +14,8 @@ outputs:
       ===
       null
       | yield a.b.c.d, {e:a.b.c.e}
+      | output main
+      ===
+      null
+      | yield {a:{b:1,c:2,d:3}}
       | output main

@@ -148,6 +148,7 @@ func walkEntries(seq dag.Seq, post func(dag.Seq) (dag.Seq, error)) (dag.Seq, err
 func (o *Optimizer) Optimize(seq dag.Seq) (dag.Seq, error) {
 	seq = mergeFilters(seq)
 	seq = mergeYieldOps(seq)
+	seq = inlineRecordExprSpreads(seq)
 	seq = removePassOps(seq)
 	o.optimizeParallels(seq)
 	seq = mergeFilters(seq)
@@ -476,6 +477,25 @@ func matchFilter(seq dag.Seq) (dag.Expr, dag.Seq) {
 		return nil, seq
 	}
 	return filter.Expr, seq[1:]
+}
+
+// inlineRecordExprSpreads transforms "{...{a}}" to "{a}".
+func inlineRecordExprSpreads(seq dag.Seq) dag.Seq {
+	walkT(reflect.ValueOf(seq), func(r *dag.RecordExpr) *dag.RecordExpr {
+		for i := 0; i < len(r.Elems); i++ {
+			s, ok := r.Elems[i].(*dag.Spread)
+			if !ok {
+				continue
+			}
+			r2, ok := s.Expr.(*dag.RecordExpr)
+			if !ok {
+				continue
+			}
+			r.Elems = slices.Concat(r.Elems[:i], r2.Elems, r.Elems[i+1:])
+		}
+		return r
+	})
+	return seq
 }
 
 func mergeYieldOps(seq dag.Seq) dag.Seq {
