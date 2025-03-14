@@ -16,14 +16,16 @@ import (
 	"github.com/apache/arrow-go/v18/parquet/file"
 	"github.com/apache/arrow-go/v18/parquet/pqarrow"
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/zio/arrowio"
 )
 
 type VectorReader struct {
-	ctx  context.Context
-	zctx *super.Context
+	ctx    context.Context
+	zctx   *super.Context
+	filter dag.Expr
 
 	fr           *pqarrow.FileReader
 	colIndexes   []int
@@ -32,7 +34,7 @@ type VectorReader struct {
 	vb           vectorBuilder
 }
 
-func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, fields []field.Path) (*VectorReader, error) {
+func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, fields []field.Path, filter dag.Expr) (*VectorReader, error) {
 	ras, ok := r.(parquet.ReaderAtSeeker)
 	if !ok {
 		return nil, errors.New("reader cannot seek")
@@ -52,6 +54,7 @@ func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, fiel
 	return &VectorReader{
 		ctx:          ctx,
 		zctx:         zctx,
+		filter:       filter,
 		fr:           fr,
 		colIndexes:   columnIndexes(pr.MetaData().Schema, fields),
 		nextRowGroup: &atomic.Int64{},
@@ -62,6 +65,8 @@ func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, fiel
 func (p *VectorReader) NewConcurrentPuller() vector.Puller {
 	return &VectorReader{
 		ctx:          p.ctx,
+		zctx:         p.zctx,
+		filter:       p.filter,
 		fr:           p.fr,
 		colIndexes:   p.colIndexes,
 		nextRowGroup: p.nextRowGroup,
@@ -80,6 +85,13 @@ func (p *VectorReader) Pull(done bool) (vector.Any, error) {
 			rowGroup := int(p.nextRowGroup.Add(1) - 1)
 			if rowGroup >= p.fr.ParquetReader().NumRowGroups() {
 				return nil, nil
+			}
+			if p.filter != nil {
+				md := p.fr.ParquetReader().MetaData()
+				rgf := rowGroupFilter{md.RowGroup(rowGroup), md.Schema, p.zctx}
+				if match, ok := rgf.evalFilter(p.filter); !match && ok {
+					continue
+				}
 			}
 			rr, err := p.fr.GetRecordReader(p.ctx, p.colIndexes, []int{rowGroup})
 			if err != nil {

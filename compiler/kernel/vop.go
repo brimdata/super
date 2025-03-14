@@ -240,7 +240,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 				return nil, err
 			}
 		}
-		return b.env.VectorOpen(b.rctx, b.zctx(), o.Path, o.Format, o.Fields, pruner)
+		return b.env.VectorOpen(b.rctx, b.zctx(), o.Path, o.Format, o.Fields, o.Filter, pruner)
 	case *dag.Filter:
 		e, err := b.compileVamExpr(o.Expr)
 		if err != nil {
