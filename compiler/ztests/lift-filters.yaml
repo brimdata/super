@@ -1,0 +1,24 @@
+script: |
+  super compile -C -O 'yield {a:b} | where a==1'
+  echo ===
+  super compile -C -O 'yield {...a} | where b==1'
+  echo ===
+  super compile -C -O 'yield {a:{b:c}} | where a.b==1'
+
+outputs:
+  - name: stdout
+    data: |
+      null
+      | where b==1
+      | yield {a:b}
+      | output main
+      ===
+      null
+      | where a.b==1
+      | yield {...a}
+      | output main
+      ===
+      null
+      | where {b:c}[b]==1
+      | yield {a:{b:c}}
+      | output main
