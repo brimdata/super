@@ -19,6 +19,6 @@ outputs:
       | output main
       ===
       null
-      | where {b:c}[b]==1
+      | where c==1
       | yield {a:{b:c}}
       | output main

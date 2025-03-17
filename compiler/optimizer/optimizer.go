@@ -588,14 +588,32 @@ func addPathToExpr(e dag.Expr, path []string) dag.Expr {
 	if len(path) == 0 {
 		return e
 	}
-	if this, ok := e.(*dag.This); ok {
-		return &dag.This{Kind: "This", Path: slices.Concat(this.Path, path)}
+	switch e := e.(type) {
+	case *dag.RecordExpr:
+		var field, spread dag.Expr
+		for _, elem := range e.Elems {
+			switch elem := elem.(type) {
+			case *dag.Field:
+				if elem.Name == path[0] {
+					field = elem.Value
+				}
+			case *dag.Spread:
+				spread = elem.Expr
+			default:
+				panic(elem)
+			}
+		}
+		if field != nil {
+			return addPathToExpr(field, path[1:])
+		}
+		if spread != nil {
+			return addPathToExpr(spread, path)
+		}
+	case *dag.This:
+		return &dag.This{Kind: "This", Path: slices.Concat(e.Path, path)}
 	}
 	dot := &dag.Dot{Kind: "Dot", LHS: e, RHS: path[0]}
-	for _, s := range path[1:] {
-		dot = &dag.Dot{Kind: "Dot", LHS: dot, RHS: s}
-	}
-	return dot
+	return addPathToExpr(dot, path[1:])
 }
 
 func recordElemsFieldsAndSpread(elems []dag.RecordElem) (map[string]dag.Expr, dag.Expr, bool) {
