@@ -146,10 +146,10 @@ func walkEntries(seq dag.Seq, post func(dag.Seq) (dag.Seq, error)) (dag.Seq, err
 // source's pushdown predicate.  This should be called before ParallelizeScan().
 // TBD: we need to do pushdown for search/cut to optimize columnar extraction.
 func (o *Optimizer) Optimize(seq dag.Seq) (dag.Seq, error) {
+	seq = liftFilterOps(seq)
 	seq = mergeFilters(seq)
 	seq = mergeYieldOps(seq)
 	seq = inlineRecordExprSpreads(seq)
-	seq = liftFilterOps(seq)
 	seq = removePassOps(seq)
 	o.optimizeParallels(seq)
 	seq = mergeFilters(seq)
