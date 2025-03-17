@@ -500,6 +500,7 @@ func inlineRecordExprSpreads(seq dag.Seq) dag.Seq {
 
 func mergeYieldOps(seq dag.Seq) dag.Seq {
 	return walk(seq, true, func(seq dag.Seq) dag.Seq {
+	Loop:
 		for i := 0; i+1 < len(seq); i++ {
 			y1, ok1 := seq[i].(*dag.Yield)
 			y2, ok2 := seq[i+1].(*dag.Yield)
@@ -512,11 +513,14 @@ func mergeYieldOps(seq dag.Seq) dag.Seq {
 			}
 			y1TopLevelFields := map[string]dag.Expr{}
 			var y1TopLevelSpread dag.Expr
-			for _, e := range re1.Elems {
+			for i, e := range re1.Elems {
 				switch e := e.(type) {
 				case *dag.Field:
 					y1TopLevelFields[e.Name] = e.Value
 				case *dag.Spread:
+					if i > 0 {
+						continue Loop
+					}
 					y1TopLevelSpread = e.Expr
 				default:
 					panic(e)
