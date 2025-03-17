@@ -511,7 +511,10 @@ func liftFilterOps(seq dag.Seq) dag.Seq {
 			if !ok1 || !ok2 || hasThisWithEmptyPath(f) {
 				continue
 			}
-			fields, spread := recordElemsFieldsAndSpread(re.Elems)
+			fields, spread, ok := recordElemsFieldsAndSpread(re.Elems)
+			if !ok {
+				continue
+			}
 			walkT(reflect.ValueOf(f), func(e dag.Expr) dag.Expr {
 				this, ok := e.(*dag.This)
 				if !ok {
@@ -545,7 +548,10 @@ func mergeYieldOps(seq dag.Seq) dag.Seq {
 			if !ok {
 				continue
 			}
-			y1TopLevelFields, y1TopLevelSpread := recordElemsFieldsAndSpread(re1.Elems)
+			y1TopLevelFields, y1TopLevelSpread, ok := recordElemsFieldsAndSpread(re1.Elems)
+			if !ok {
+				continue
+			}
 			walkT(reflect.ValueOf(y2), func(e2 dag.Expr) dag.Expr {
 				this2, ok := e2.(*dag.This)
 				if !ok {
@@ -592,20 +598,23 @@ func addPathToExpr(e dag.Expr, path []string) dag.Expr {
 	return dot
 }
 
-func recordElemsFieldsAndSpread(elems []dag.RecordElem) (map[string]dag.Expr, dag.Expr) {
+func recordElemsFieldsAndSpread(elems []dag.RecordElem) (map[string]dag.Expr, dag.Expr, bool) {
 	fields := map[string]dag.Expr{}
 	var spread dag.Expr
-	for _, e := range elems {
+	for i, e := range elems {
 		switch e := e.(type) {
 		case *dag.Field:
 			fields[e.Name] = e.Value
 		case *dag.Spread:
+			if i > 0 {
+				return nil, nil, false
+			}
 			spread = e.Expr
 		default:
 			panic(e)
 		}
 	}
-	return fields, spread
+	return fields, spread, true
 }
 
 func walkT[T any](v reflect.Value, post func(T) T) {
