@@ -3,3 +3,5 @@ dirs:
 useGitIgnore: true
 excludedDirs:
   - node_modules
+ignorePatterns:
+  - pattern: '^https://specifications.freedesktop.org.*$'
