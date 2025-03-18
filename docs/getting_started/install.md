@@ -12,12 +12,12 @@ Multiple options for installing `super` are available:
 * [Build from source](#building-from-source).
 
 To install the SuperDB Python client, see the
-[Python library documentation](libraries/python.md).
+[Python library documentation](../libraries/python.md).
 
 {{% tip "Note" %}}
 
 Once you've installed `super` we recommend focusing first on the functionality
-shown in the [`super` command doc](commands/super.md). Feel free to explore
+shown in the [`super` command doc](../commands/super.md). Feel free to explore
 other docs and try things out, but please don't be shocked if you hit
 speedbumps in the near term, particularly in areas like performance and full
 SQL coverage. We're working on it! 😉

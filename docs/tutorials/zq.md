@@ -20,7 +20,7 @@ Then, toward the end of the tour, we'll experiment with some real-world GitHub d
 pulled from the GitHub API.
 
 If you want to follow along on the command line,
-just make sure the `super` command [is installed](../install.md)
+just make sure the `super` command [is installed](../getting_started/install.md)
 as well as [`jq`](https://stedolan.github.io/jq/).
 
 ## But JSON
