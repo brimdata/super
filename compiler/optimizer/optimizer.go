@@ -261,11 +261,12 @@ func (o *Optimizer) optimizeSourcePaths(seq dag.Seq) (dag.Seq, error) {
 			})
 			seq = append(seq, chain...)
 		case *dag.FileScan:
-			op.Filter = filter
 			if o.env.UseVAM() {
+				// Vector file readers don't support filter pushdown yet.
 				op.MetadataPruner = newMetadataPruner(filter)
 				return seq, nil
 			}
+			op.Filter = filter
 			seq = append(dag.Seq{op}, chain...)
 		case *dag.CommitMetaScan:
 			if op.Tap {
