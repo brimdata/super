@@ -2,6 +2,7 @@ package optimizer
 
 import (
 	"regexp/syntax"
+	"slices"
 	"unicode/utf8"
 
 	"github.com/brimdata/super/compiler/dag"
@@ -165,8 +166,8 @@ func newMetadataPruner(pred dag.Expr) dag.Expr {
 		min := &dag.Literal{Kind: "Literal", Value: zson.QuotedString(prefix)}
 		max := &dag.Literal{Kind: "Literal", Value: zson.QuotedString(maxPrefix)}
 		return dag.NewBinaryExpr("and",
-			compare("<", min, &dag.This{Kind: "This", Path: append(this.Path, "min")}),
-			compare(">=", max, &dag.This{Kind: "This", Path: append(this.Path, "max")}))
+			compare("<", min, &dag.This{Kind: "This", Path: append(slices.Clone(this.Path), "min")}),
+			compare(">=", max, &dag.This{Kind: "This", Path: append(slices.Clone(this.Path), "max")}))
 	default:
 		return nil
 	}
