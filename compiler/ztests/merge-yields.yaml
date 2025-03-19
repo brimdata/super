@@ -1,5 +1,5 @@
 script: |
-  super compile -C -O 'yield {a:1} | yield a, {b:a}'
+  super compile -C -O 'yield {a:1} | yield a, {b:a}, {c:this}'
   echo ===
   super compile -C -O 'yield {...a} | yield {...b.c} | yield d, {e}'
   echo ===
@@ -13,7 +13,7 @@ outputs:
   - name: stdout
     data: |
       null
-      | yield 1, {b:1}
+      | yield 1, {b:1}, {c:{a:1}}
       | output main
       ===
       null
