@@ -1,0 +1,10 @@
+zed: yield TIMESTAMP '2012-10-02 12:01:01', DATE '2012-10-02 12:01:01'
+
+vector: true
+
+input: |
+  null
+
+output: |
+  2012-10-02T12:01:01Z
+  2012-10-02T00:00:00Z

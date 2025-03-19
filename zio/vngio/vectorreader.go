@@ -95,8 +95,11 @@ func pruneObject(zctx *super.Context, pruner expr.Evaluator, m vng.Metadata) boo
 }
 
 func (v *VectorReader) close() error {
-	if !v.hasClosed && v.activeReaders.Add(-1) <= 0 {
-		v.hasClosed = true
+	if v.hasClosed {
+		return nil
+	}
+	v.hasClosed = true
+	if v.activeReaders.Add(-1) <= 0 {
 		if closer, ok := v.readerAt.(io.Closer); ok {
 			return closer.Close() // coffee is for closers
 		}

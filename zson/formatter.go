@@ -817,7 +817,7 @@ func formatPrimitive(b *strings.Builder, typ super.Type, bytes zcode.Bytes) {
 		b.WriteString("0x")
 		b.WriteString(hex.EncodeToString(bytes))
 	case *super.TypeOfString:
-		b.WriteString(QuotedString(bytes))
+		b.WriteString(QuotedString(string(bytes)))
 	case *super.TypeOfIP:
 		b.WriteString(super.DecodeIP(bytes).String())
 	case *super.TypeOfNet:

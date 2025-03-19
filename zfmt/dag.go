@@ -82,6 +82,9 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 			c.write(" where ")
 			c.expr(e.Where, "")
 		}
+	case *dag.Dot:
+		c.expr(e.LHS, "")
+		c.write("[%s]", e.RHS)
 	case *ast.Primitive:
 		c.literal(*e)
 	case *dag.UnaryExpr:
@@ -112,7 +115,7 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 		c.write("]")
 	case *dag.IsNullExpr:
 		c.expr(e.Expr, "")
-		c.write("IS NULL")
+		c.write(" IS NULL")
 	case *dag.SliceExpr:
 		c.expr(e.Expr, "")
 		c.write("[")

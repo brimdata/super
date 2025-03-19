@@ -6,10 +6,12 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/araddon/dateparse"
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/compiler/kernel"
+	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/pkg/reglob"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/expr/agg"
@@ -309,6 +311,21 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 			Kind:    "MapExpr",
 			Entries: entries,
 		}
+	case *ast.SQLTimeValue:
+		if e.Value.Type != "string" {
+			a.error(e.Value, errors.New("value must be a string literal"))
+			return badExpr()
+		}
+		t, err := dateparse.ParseAny(e.Value.Text)
+		if err != nil {
+			a.error(e.Value, err)
+			return badExpr()
+		}
+		ts := nano.TimeToTs(t)
+		if e.Type == "date" {
+			ts = ts.Trunc(nano.Day)
+		}
+		return &dag.Literal{Kind: "Literal", Value: zson.FormatValue(super.NewTime(ts))}
 	case *ast.TupleExpr:
 		elems := make([]dag.RecordElem, 0, len(e.Elems))
 		for colno, elem := range e.Elems {
@@ -398,7 +415,7 @@ func (a *analyzer) semGrep(grep *ast.Grep) dag.Expr {
 		return &dag.Search{
 			Kind:  "Search",
 			Text:  s,
-			Value: zson.QuotedString([]byte(s)),
+			Value: zson.QuotedString(s),
 			Expr:  e,
 		}
 	}
@@ -649,7 +666,7 @@ func (a *analyzer) semCallExtract(partExpr, argExpr ast.Expr) dag.Expr {
 		Kind: "Call",
 		Name: "date_part",
 		Args: []dag.Expr{
-			&dag.Literal{Kind: "Literal", Value: zson.QuotedString([]byte(strings.ToLower(partstr)))},
+			&dag.Literal{Kind: "Literal", Value: zson.QuotedString(strings.ToLower(partstr))},
 			a.semExpr(argExpr),
 		},
 	}
@@ -866,7 +883,7 @@ func (a *analyzer) semFString(f *ast.FString) dag.Expr {
 				Args: []dag.Expr{e, &dag.Literal{Kind: "Literal", Value: "<string>"}},
 			}
 		case *ast.FStringText:
-			e = &dag.Literal{Kind: "Literal", Value: zson.QuotedString([]byte(elem.Text))}
+			e = &dag.Literal{Kind: "Literal", Value: zson.QuotedString(elem.Text)}
 		default:
 			panic(fmt.Errorf("internal error: unsupported f-string elem %T", elem))
 		}

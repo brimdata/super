@@ -108,6 +108,7 @@ var unpacker = unpack.New(
 	CrossJoin{},
 	SQLCast{},
 	SQLJoin{},
+	SQLTimeValue{},
 	Union{},
 	OrderBy{},
 	Limit{},
