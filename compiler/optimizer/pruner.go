@@ -234,26 +234,30 @@ func metaPrunerBinaryExpr(e *dag.BinaryExpr) dag.Expr {
 		if !ok {
 			return nil
 		}
-		var elems []dag.VectorElem
+		var literals []*dag.Literal
 		switch e := e.RHS.(type) {
 		case *dag.ArrayExpr:
-			elems = e.Elems
+			literals = literalsInArrayOrSet(e.Elems)
 		case *dag.SetExpr:
-			elems = e.Elems
+			literals = literalsInArrayOrSet(e.Elems)
+		case *dag.RecordExpr:
+			for _, elem := range e.Elems {
+				f, ok := elem.(*dag.Field)
+				if !ok {
+					return nil
+				}
+				l, ok := f.Value.(*dag.Literal)
+				if !ok {
+					return nil
+				}
+				literals = append(literals, l)
+			}
 		default:
 			return nil
 		}
 		var ret *dag.BinaryExpr
-		for _, elem := range elems {
-			valexpr, ok := elem.(*dag.VectorValue)
-			if !ok {
-				return nil
-			}
-			literal, ok := valexpr.Expr.(*dag.Literal)
-			if !ok {
-				return nil
-			}
-			b := metadataPrunerPred("==", this, literal)
+		for _, l := range literals {
+			b := metadataPrunerPred("==", this, l)
 			if ret == nil {
 				ret = b
 			} else {
@@ -264,6 +268,22 @@ func metaPrunerBinaryExpr(e *dag.BinaryExpr) dag.Expr {
 	default:
 		return nil
 	}
+}
+
+func literalsInArrayOrSet(elems []dag.VectorElem) []*dag.Literal {
+	var literals []*dag.Literal
+	for _, elem := range elems {
+		val, ok := elem.(*dag.VectorValue)
+		if !ok {
+			return nil
+		}
+		l, ok := val.Expr.(*dag.Literal)
+		if !ok {
+			return nil
+		}
+		literals = append(literals, l)
+	}
+	return literals
 }
 
 func metadataPrunerPred(op string, this *dag.This, literal *dag.Literal) *dag.BinaryExpr {
