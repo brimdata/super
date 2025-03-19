@@ -541,7 +541,7 @@ func mergeYieldOps(seq dag.Seq) dag.Seq {
 		for i := 0; i+1 < len(seq); i++ {
 			y1, ok1 := seq[i].(*dag.Yield)
 			y2, ok2 := seq[i+1].(*dag.Yield)
-			if !ok1 || !ok2 || len(y1.Exprs) != 1 || hasThisWithEmptyPath(y2) {
+			if !ok1 || !ok2 || len(y1.Exprs) != 1 {
 				continue
 			}
 			re1, ok := y1.Exprs[0].(*dag.RecordExpr)
@@ -556,6 +556,9 @@ func mergeYieldOps(seq dag.Seq) dag.Seq {
 				this2, ok := e2.(*dag.This)
 				if !ok {
 					return e2
+				}
+				if len(this2.Path) == 0 {
+					return re1
 				}
 				e1, ok := y1TopLevelFields[this2.Path[0]]
 				if !ok {
