@@ -1,6 +1,8 @@
 script: |
   super compile -C -O 'yield {a:1} | yield a, {b:a}'
   echo ===
+  super compile -C -O 'yield {a,b} | summarize count(a) by b'
+  echo ===
   super compile -C -O 'yield {...a} | yield {...b.c} | yield d, {e}'
   echo ===
   super compile -C -O 'yield {a:{b:1}} | yield {a:{...a,c:2}} | yield {a:{...a,d:3}}'
@@ -14,6 +16,11 @@ outputs:
     data: |
       null
       | yield 1, {b:1}
+      | output main
+      ===
+      null
+      | summarize
+          count:=count(a) by b:=b
       | output main
       ===
       null

@@ -539,9 +539,8 @@ func liftFilterOps(seq dag.Seq) dag.Seq {
 func mergeYieldOps(seq dag.Seq) dag.Seq {
 	return walk(seq, true, func(seq dag.Seq) dag.Seq {
 		for i := 0; i+1 < len(seq); i++ {
-			y1, ok1 := seq[i].(*dag.Yield)
-			y2, ok2 := seq[i+1].(*dag.Yield)
-			if !ok1 || !ok2 || len(y1.Exprs) != 1 || hasThisWithEmptyPath(y2) {
+			y1, ok := seq[i].(*dag.Yield)
+			if !ok || len(y1.Exprs) != 1 || hasThisWithEmptyPath(seq[i+1]) {
 				continue
 			}
 			re1, ok := y1.Exprs[0].(*dag.RecordExpr)
@@ -552,7 +551,12 @@ func mergeYieldOps(seq dag.Seq) dag.Seq {
 			if !ok {
 				continue
 			}
-			walkT(reflect.ValueOf(y2), func(e2 dag.Expr) dag.Expr {
+			switch seq[i+1].(type) {
+			case *dag.Summarize, *dag.Yield:
+			default:
+				continue
+			}
+			walkT(reflect.ValueOf(seq[i+1]), func(e2 dag.Expr) dag.Expr {
 				this2, ok := e2.(*dag.This)
 				if !ok {
 					return e2
