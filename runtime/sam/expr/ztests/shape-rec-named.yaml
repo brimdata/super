@@ -1,9 +1,0 @@
-zed: |
-  type person = {name:string,likes:string,age:int64}
-  yield cast(this,<person>)
-
-input: |
-  {name:"steve",likes:"spicy",age:"52"}
-
-output: |
-  {name:"steve",likes:"spicy",age:52}(=person)

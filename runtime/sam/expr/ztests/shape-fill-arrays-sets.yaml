@@ -1,8 +1,0 @@
-zed: |
-  yield fill(<{arr:[{b:string,a:string}],set:|[{b:string,a:string}]|}>)
-
-input: |
-  {arr:[{a:"one"},{a:"three"}],set:|[{a:"one"},{a:"three"}]|}
-
-output: |
-  {arr:[{a:"one",b:null(string)},{a:"three",b:null(string)}],set:|[{a:"one",b:null(string)},{a:"three",b:null(string)}]|}

@@ -1,0 +1,18 @@
+zed: |
+  yield cast(<{a:|[ip]|,b:|[{b:ip}]|}>)
+
+vector: true
+
+input: |
+  {a:null([string]),b:null([{b:string}])}
+  {a:[]([string]),b:[]([{b:string}])}
+  {a:["1.1.1.1","2.2.2.2","2.2.2.2"],b:[{b:"1.1.1.1"},{b:"2.2.2.2"},{b:"2.2.2.2"}]}
+  {a:[null(string),"1.1.1.1"],b:[null({b:string}),{b:null(string)},{b:"2.2.2.2"}]}
+  {a:[null,"1.1.1.1","2"],b:[{b:null},{b:"1.1.1.1"},{b:"2"}]}
+
+output: |
+  {a:null(|[ip]|),b:null(|[{b:ip}]|)}
+  {a:|[]|(|[ip]|),b:|[]|(|[{b:ip}]|)}
+  {a:|[1.1.1.1,2.2.2.2]|,b:|[{b:1.1.1.1},{b:2.2.2.2}]|}
+  {a:|[null(ip),1.1.1.1]|,b:|[null({b:ip}),{b:null(ip)},{b:2.2.2.2}]|}
+  {a:|[null,1.1.1.1,error({message:"cannot cast to ip",on:"2"})]|,b:|[{b:null(ip)},{b:1.1.1.1},{b:error({message:"cannot cast to ip",on:"2"})}]|}

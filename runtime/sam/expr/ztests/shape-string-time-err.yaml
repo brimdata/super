@@ -1,8 +1,0 @@
-zed: |
-  yield shape(<{a:time}>)
-
-input: |
-  {a:"a",b:"b"}
-
-output: |
-  {a:error({message:"cannot cast to time",on:"a"}),b:"b"}

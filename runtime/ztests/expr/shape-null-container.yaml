@@ -1,0 +1,20 @@
+# issues #2853 #2879
+
+zed: |
+  yield shape(<{
+    array:[string],
+    record:{c1:int64,c2:string,c3:time}
+  }>)
+
+vector: true
+
+input: |
+  {array:null,record:null}
+
+output-flags: -pretty=2
+
+output: |
+  {
+    array: null ([string]),
+    record: null ({c1:int64,c2:string,c3:time})
+  }
