@@ -44,7 +44,7 @@ func (d *dcount) ConsumeAsPartial(partial vector.Any) {
 	if partial.Type() != super.TypeBytes || partial.Len() != 1 {
 		panic("dcount: invalid partial")
 	}
-	b, _ := vector.BytesValue(partial, 1)
+	b, _ := vector.BytesValue(partial, 0)
 	var s hyperloglog.Sketch
 	if err := s.UnmarshalBinary(b); err != nil {
 		panic(fmt.Errorf("dcount: unmarshaling partial: %w", err))
