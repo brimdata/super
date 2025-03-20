@@ -47,9 +47,9 @@ Each operator is identified by name and performs a specific operation
 on a stream of records.
 
 Some operators, like
-[`summarize`](operators/summarize.md) or [`sort`](operators/sort.md),
+[`aggregate`](operators/aggregate.md) or [`sort`](operators/sort.md),
 read all of their input before producing output, though
-`summarize` can produce incremental results when the group-by key is
+`aggregate` can produce incremental results when the group-by key is
 aligned with the order of the input.
 
 For large queries that process all of their input, time may pass before
@@ -212,7 +212,7 @@ put x:=y+1
 ```
 or
 ```
-summarize salary:=sum(income) by address:=lower(address)
+aggregate salary:=sum(income) by address:=lower(address)
 ```
 This style of "assignment" to a record value is distinguished from the `=`
 token which binds a locally scoped name to a value that can be referenced
@@ -233,9 +233,9 @@ experience, SuperPipe has a canonical, long form that can be abbreviated
 using syntax that supports an agile, interactive query workflow.
 To this end, SuperPipe allows certain operator names to be optionally omitted when
 they can be inferred from context.  For example, the expression following
-the [`summarize` operator](operators/summarize.md)
+the [`aggregate` operator](operators/aggregate.md)
 ```
-summarize count() by id
+aggregate count() by id
 ```
 is unambiguously an aggregation and can be shortened to
 ```
@@ -288,7 +288,7 @@ from the operator-less source text, in the order given, as follows:
 * If the text can be interpreted as a search expression, then the operator is `search`.
 * If the text can be interpreted as a boolean expression, then the operator is `where`.
 * If the text can be interpreted as one or more field assignments, then the operator is `put`.
-* If the text can be interpreted as an aggregation, then the operator is `summarize`.
+* If the text can be interpreted as an aggregation, then the operator is `aggregate`.
 * If the text can be interpreted as an expression, then the operator is `yield`.
 * Otherwise, the text causes a compile-time error.
 
@@ -305,7 +305,7 @@ produces
 ```mdtest-output
 search foo
 where is(<foo>)
-summarize
+aggregate
     count()
 yield {a:x+1,b:y-1}
 put a:=x+1,b:=y-1

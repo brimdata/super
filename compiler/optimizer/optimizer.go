@@ -348,7 +348,7 @@ func (o *Optimizer) propagateSortKeyOp(op dag.Op, parents []order.SortKeys) ([]o
 		}
 	}
 	switch op := op.(type) {
-	case *dag.Summarize:
+	case *dag.Aggregate:
 		if parent.IsNil() {
 			return []order.SortKeys{nil}, nil
 		}
@@ -552,7 +552,7 @@ func mergeYieldOps(seq dag.Seq) dag.Seq {
 				continue
 			}
 			switch seq[i+1].(type) {
-			case *dag.Summarize, *dag.Yield:
+			case *dag.Aggregate, *dag.Yield:
 			default:
 				continue
 			}

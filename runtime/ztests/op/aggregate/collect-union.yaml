@@ -1,4 +1,4 @@
-zed: summarize collect(this)
+zed: aggregate collect(this)
 
 vector: true
 

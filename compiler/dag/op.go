@@ -26,6 +26,15 @@ type Seq []Op
 // Ops
 
 type (
+	Aggregate struct {
+		Kind         string       `json:"kind" unpack:""`
+		Limit        int          `json:"limit"`
+		Keys         []Assignment `json:"keys"`
+		Aggs         []Assignment `json:"aggs"`
+		InputSortDir int          `json:"input_sort_dir,omitempty"`
+		PartialsIn   bool         `json:"partials_in,omitempty"`
+		PartialsOut  bool         `json:"partials_out,omitempty"`
+	}
 	// A BadOp node is a placeholder for an expression containing semantic
 	// errors.
 	BadOp struct {
@@ -134,15 +143,6 @@ type (
 		Args       []SortExpr `json:"args"`
 		NullsFirst bool       `json:"nullsfirst"`
 		Reverse    bool       `json:"reverse"`
-	}
-	Summarize struct {
-		Kind         string       `json:"kind" unpack:""`
-		Limit        int          `json:"limit"`
-		Keys         []Assignment `json:"keys"`
-		Aggs         []Assignment `json:"aggs"`
-		InputSortDir int          `json:"input_sort_dir,omitempty"`
-		PartialsIn   bool         `json:"partials_in,omitempty"`
-		PartialsOut  bool         `json:"partials_out,omitempty"`
 	}
 	Switch struct {
 		Kind  string `json:"kind" unpack:""`
@@ -314,6 +314,7 @@ type (
 	}
 )
 
+func (*Aggregate) OpNode() {}
 func (*BadOp) OpNode()     {}
 func (*Fork) OpNode()      {}
 func (*Scatter) OpNode()   {}
@@ -327,7 +328,6 @@ func (*Tail) OpNode()      {}
 func (*Pass) OpNode()      {}
 func (*Filter) OpNode()    {}
 func (*Uniq) OpNode()      {}
-func (*Summarize) OpNode() {}
 func (*Top) OpNode()       {}
 func (*Put) OpNode()       {}
 func (*Rename) OpNode()    {}

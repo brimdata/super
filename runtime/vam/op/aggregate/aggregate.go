@@ -1,4 +1,4 @@
-package summarize
+package aggregate
 
 import (
 	"github.com/brimdata/super"
@@ -7,7 +7,7 @@ import (
 	"github.com/brimdata/super/vector"
 )
 
-type Summarize struct {
+type Aggregate struct {
 	parent vector.Puller
 	zctx   *super.Context
 	// XX Abstract this runtime into a generic table computation.
@@ -25,12 +25,12 @@ type Summarize struct {
 	results []aggTable
 }
 
-func New(parent vector.Puller, zctx *super.Context, aggNames []field.Path, aggExprs []expr.Evaluator, aggs []*expr.Aggregator, keyNames []field.Path, keyExprs []expr.Evaluator, partialsIn, partialsOut bool) (*Summarize, error) {
+func New(parent vector.Puller, zctx *super.Context, aggNames []field.Path, aggExprs []expr.Evaluator, aggs []*expr.Aggregator, keyNames []field.Path, keyExprs []expr.Evaluator, partialsIn, partialsOut bool) (*Aggregate, error) {
 	builder, err := vector.NewRecordBuilder(zctx, append(keyNames, aggNames...))
 	if err != nil {
 		return nil, err
 	}
-	return &Summarize{
+	return &Aggregate{
 		parent:      parent,
 		zctx:        zctx,
 		aggs:        aggs,
@@ -45,42 +45,42 @@ func New(parent vector.Puller, zctx *super.Context, aggNames []field.Path, aggEx
 	}, nil
 }
 
-func (s *Summarize) Pull(done bool) (vector.Any, error) {
+func (a *Aggregate) Pull(done bool) (vector.Any, error) {
 	if done {
-		_, err := s.parent.Pull(done)
+		_, err := a.parent.Pull(done)
 		return nil, err
 	}
-	if s.results != nil {
-		return s.next(), nil
+	if a.results != nil {
+		return a.next(), nil
 	}
 	for {
 		//XXX check context Done
-		vec, err := s.parent.Pull(false)
+		vec, err := a.parent.Pull(false)
 		if err != nil {
 			return nil, err
 		}
 		if vec == nil {
-			for _, t := range s.tables {
-				s.results = append(s.results, t)
+			for _, t := range a.tables {
+				a.results = append(a.results, t)
 			}
-			clear(s.tables)
-			return s.next(), nil
+			clear(a.tables)
+			return a.next(), nil
 		}
 		var keys, vals []vector.Any
-		for _, e := range s.keyExprs {
+		for _, e := range a.keyExprs {
 			keys = append(keys, e.Eval(vec))
 		}
-		if s.partialsIn {
-			for _, e := range s.aggExprs {
+		if a.partialsIn {
+			for _, e := range a.aggExprs {
 				vals = append(vals, e.Eval(vec))
 			}
 		} else {
-			for _, e := range s.aggs {
+			for _, e := range a.aggs {
 				vals = append(vals, e.Eval(vec))
 			}
 		}
 		vector.Apply(false, func(args ...vector.Any) vector.Any {
-			s.consume(args[:len(keys)], args[len(keys):])
+			a.consume(args[:len(keys)], args[len(keys):])
 			// XXX Perhaps there should be a "consume" version of Apply where
 			// no return value is expected.
 			return vector.NewConst(super.Null, args[0].Len(), nil)
@@ -88,47 +88,47 @@ func (s *Summarize) Pull(done bool) (vector.Any, error) {
 	}
 }
 
-func (s *Summarize) consume(keys []vector.Any, vals []vector.Any) {
+func (a *Aggregate) consume(keys []vector.Any, vals []vector.Any) {
 	var keyTypes []super.Type
 	for _, k := range keys {
 		keyTypes = append(keyTypes, k.Type())
 	}
-	tableID := s.typeTable.Lookup(keyTypes)
-	table, ok := s.tables[tableID]
+	tableID := a.typeTable.Lookup(keyTypes)
+	table, ok := a.tables[tableID]
 	if !ok {
-		table = s.newAggTable(keyTypes)
-		s.tables[tableID] = table
+		table = a.newAggTable(keyTypes)
+		a.tables[tableID] = table
 	}
 	table.update(keys, vals)
 }
 
-func (s *Summarize) newAggTable(keyTypes []super.Type) aggTable {
+func (a *Aggregate) newAggTable(keyTypes []super.Type) aggTable {
 	// Check if we can us an optimized table, else go slow path.
-	if s.isCountByString(keyTypes) && len(s.aggs) == 1 && s.aggs[0].Where == nil {
+	if a.isCountByString(keyTypes) && len(a.aggs) == 1 && a.aggs[0].Where == nil {
 		// countByString.update does not handle nulls in its vals param.
-		return newCountByString(s.builder, s.partialsIn)
+		return newCountByString(a.builder, a.partialsIn)
 	}
 	return &superTable{
-		aggs:        s.aggs,
-		builder:     s.builder,
-		partialsIn:  s.partialsIn,
-		partialsOut: s.partialsOut,
+		aggs:        a.aggs,
+		builder:     a.builder,
+		partialsIn:  a.partialsIn,
+		partialsOut: a.partialsOut,
 		table:       make(map[string]int),
-		zctx:        s.zctx,
+		zctx:        a.zctx,
 	}
 }
 
-func (s *Summarize) isCountByString(keyTypes []super.Type) bool {
-	return len(s.aggs) == 1 && len(keyTypes) == 1 && s.aggs[0].Name == "count" &&
+func (a *Aggregate) isCountByString(keyTypes []super.Type) bool {
+	return len(a.aggs) == 1 && len(keyTypes) == 1 && a.aggs[0].Name == "count" &&
 		keyTypes[0].ID() == super.IDString
 }
 
-func (s *Summarize) next() vector.Any {
-	if len(s.results) == 0 {
-		s.results = nil
+func (a *Aggregate) next() vector.Any {
+	if len(a.results) == 0 {
+		a.results = nil
 		return nil
 	}
-	t := s.results[0]
-	s.results = s.results[1:]
+	t := a.results[0]
+	a.results = a.results[1:]
 	return t.materialize()
 }

@@ -8,10 +8,10 @@ outputs:
       | where search("foo")
       | fork (
         =>
-          summarize
+          aggregate
               count:=count() by x:=.["@foo"]
         =>
-          summarize
+          aggregate
               sum:=sum(x)
           | yield sum
         =>

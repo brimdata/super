@@ -75,7 +75,7 @@ func matchSource(seq dag.Seq) (*dag.Lister, *dag.Slicer, dag.Seq) {
 }
 
 func (o *Optimizer) parallelizeFileScan(seq dag.Seq, replicas int) (dag.Seq, error) {
-	// Prepend a pass so we can parallelize a sort or summarize with no
+	// Prepend a pass so we can parallelize an aggregate or sort with no
 	// preceding op.
 	seq = append(dag.Seq{dag.PassOp}, seq...)
 	n, outputKeys, _, err := o.concurrentPath(seq, nil)
@@ -84,7 +84,7 @@ func (o *Optimizer) parallelizeFileScan(seq dag.Seq, replicas int) (dag.Seq, err
 	}
 	if n < len(seq) {
 		switch seq[n].(type) {
-		case *dag.Sort, *dag.Summarize:
+		case *dag.Aggregate, *dag.Sort:
 			return parallelizeHead(seq, n, outputKeys, replicas), nil
 		}
 	}
@@ -183,17 +183,17 @@ func (o *Optimizer) liftIntoParPaths(seq dag.Seq) {
 		return
 	}
 	switch op := seq[egress].(type) {
-	case *dag.Summarize:
+	case *dag.Aggregate:
 		// To decompose the groupby, we split the flowgraph into branches that run up to and including a groupby,
 		// followed by a post-merge groupby that composes the results.
 		// Copy the aggregator into the tail of the trunk and arrange
 		// for partials to flow between them.
 		if op.PartialsIn || op.PartialsOut {
-			// Need an unmodified summarize to split into its parials pieces.
+			// Need an unmodified aggregate to split into its parials pieces.
 			return
 		}
 		for k := range paths {
-			partial := copyOp(op).(*dag.Summarize)
+			partial := copyOp(op).(*dag.Aggregate)
 			partial.PartialsOut = true
 			paths[k].Append(partial)
 		}
@@ -295,11 +295,11 @@ func (o *Optimizer) concurrentPath(seq dag.Seq, sortKeys order.SortKeys) (length
 		// function can be parallelized... need to think through
 		// what the meaning is here exactly.  This is all still a bit
 		// of a heuristic.  See #2660 and #2661.
-		case *dag.Summarize:
+		case *dag.Aggregate:
 			// We want input sorted when we are preserving order into
 			// group-by so we can release values incrementally which is really
 			// important when doing a head on the group-by results
-			if isKeyOfSummarize(op, sortKeys) {
+			if isKeyOfAggregate(op, sortKeys) {
 				// Keep the input ordered so we can incrementally release
 				// results from the groupby as a streaming operation.
 				return k, sortKeys, true, nil

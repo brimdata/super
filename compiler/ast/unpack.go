@@ -8,6 +8,7 @@ import (
 )
 
 var unpacker = unpack.New(
+	Aggregate{},
 	Array{},
 	ArrayExpr{},
 	Assert{},
@@ -39,7 +40,6 @@ var unpacker = unpack.New(
 	FStringText{},
 	FuncDecl{},
 	Fuse{},
-	Summarize{},
 	Grep{},
 	Head{},
 	HTTPArgs{},

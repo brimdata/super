@@ -13,15 +13,15 @@ outputs:
       | scatter (
         =>
           seqscan ...
-          | summarize partials-out
+          | aggregate partials-out
               count:=count() by y:=y
         =>
           seqscan ...
-          | summarize partials-out
+          | aggregate partials-out
               count:=count() by y:=y
       )
       | combine
-      | summarize partials-in
+      | aggregate partials-in
           count:=count() by y:=y
       | output main
       ===
@@ -29,15 +29,15 @@ outputs:
       | scatter (
         =>
           seqscan ...
-          | summarize partials-out
+          | aggregate partials-out
               count:=count()
         =>
           seqscan ...
-          | summarize partials-out
+          | aggregate partials-out
               count:=count()
       )
       | combine
-      | summarize partials-in
+      | aggregate partials-in
           count:=count()
       | yield count
       | output main

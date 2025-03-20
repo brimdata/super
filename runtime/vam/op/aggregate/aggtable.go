@@ -1,4 +1,4 @@
-package summarize
+package aggregate
 
 import (
 	"fmt"

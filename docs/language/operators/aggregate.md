@@ -1,29 +1,29 @@
 ### Operator
 
-&emsp; **summarize** &mdash; perform aggregations
+&emsp; **aggregate** &mdash; perform aggregations
 
 ### Synopsis
 
 ```
-[summarize] [<field>:=]<agg>
-[summarize] [<field>:=]<agg> [where <expr>][, [<field>:=]<agg> [where <expr>] ...]
-[summarize] [<field>:=]<agg> [by [<field>][:=<expr>][, [<field>][:=<expr>]] ...]
-[summarize] [<field>:=]<agg> [where <expr>][, [<field>:=]<agg> [where <expr>] ...] [by [<field>][:=<expr>][, [<field>][:=<expr>]] ...]
-[summarize] by [<field>][:=<expr>][, [<field>][:=<expr>] ...]
+[aggregate] [<field>:=]<agg>
+[aggregate] [<field>:=]<agg> [where <expr>][, [<field>:=]<agg> [where <expr>] ...]
+[aggregate] [<field>:=]<agg> [by [<field>][:=<expr>][, [<field>][:=<expr>]] ...]
+[aggregate] [<field>:=]<agg> [where <expr>][, [<field>:=]<agg> [where <expr>] ...] [by [<field>][:=<expr>][, [<field>][:=<expr>]] ...]
+[aggregate] by [<field>][:=<expr>][, [<field>][:=<expr>] ...]
 ```
 ### Description
 
-In the first four forms, the `summarize` operator consumes all of its input,
+In the first four forms, the `aggregate` operator consumes all of its input,
 applies an [aggregate function](../aggregates/_index.md) to each input value
 optionally filtered by a `where` clause and/or organized with the group-by
 keys specified after the `by` keyword, and at the end of input produces one
 or more aggregations for each unique set of group-by key values.
 
-In the final form, `summarize` consumes all of its input, then outputs each
+In the final form, `aggregate` consumes all of its input, then outputs each
 unique combination of values of the group-by keys specified after the `by`
 keyword.
 
-The `summarize` keyword is optional since it is an
+The `aggregate` keyword is optional since it is an
 [implied operator](../pipeline-model.md#implied-operators).
 
 Each aggregate function may be optionally followed by a `where` clause, which
@@ -39,7 +39,7 @@ A key may be either an expression or a field.  If the key field is omitted,
 it is inferred from the expression, e.g., the field name for `by lower(s)`
 is `lower`.
 
-When the result of `summarize` is a single value (e.g., a single aggregate
+When the result of `aggregate` is a single value (e.g., a single aggregate
 function without group-by keys) and there is no field name specified, then
 the output is that single value rather than a single-field record
 containing that value.
@@ -55,7 +55,7 @@ to a cluster of workers in an adaptive shuffle, though this is not yet implement
 Average the input sequence:
 ```mdtest-spq
 # spq
-summarize avg(this)
+aggregate avg(this)
 # input
 1
 2
@@ -69,7 +69,7 @@ To format the output of a single-valued aggregation into a record, simply specif
 an explicit field for the output:
 ```mdtest-spq
 # spq
-summarize mean:=avg(this)
+aggregate mean:=avg(this)
 # input
 1
 2
@@ -83,7 +83,7 @@ When multiple aggregate functions are specified, even without explicit field nam
 a record result is generated with field names implied by the functions:
 ```mdtest-spq
 # spq
-summarize avg(this),sum(this),count()
+aggregate avg(this),sum(this),count()
 # input
 1
 2
@@ -93,7 +93,7 @@ summarize avg(this),sum(this),count()
 {avg:2.5,sum:10,count:4(uint64)}
 ```
 
-Sum the input sequence, leaving out the `summarize` keyword:
+Sum the input sequence, leaving out the `aggregate` keyword:
 ```mdtest-spq
 # spq
 sum(this)
@@ -155,7 +155,7 @@ set:=union(v) where v > 1,
 ```
 
 Results are included for `by` groupings that generate null results when `where`
-clauses are used inside `summarize`:
+clauses are used inside `aggregate`:
 ```mdtest-spq
 # spq
 sum(v) where k=="bar" by key:=k | sort
@@ -170,7 +170,7 @@ sum(v) where k=="bar" by key:=k | sort
 {key:"foo",sum:null}
 ```
 
-To avoid null results for `by` groupings as just shown, filter before `summarize`:
+To avoid null results for `by` groupings as just shown, filter before `aggregate`:
 ```mdtest-spq
 # spq
 k=="bar" | sum(v) by key:=k | sort

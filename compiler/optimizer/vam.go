@@ -62,7 +62,7 @@ func vectorize(seq dag.Seq, n int) dag.Seq {
 // IsCountByString returns whether o represents "count() by <top-level field>"
 // along with the field name.
 func IsCountByString(o dag.Op) (string, bool) {
-	s, ok := o.(*dag.Summarize)
+	s, ok := o.(*dag.Aggregate)
 	if ok && len(s.Aggs) == 1 && len(s.Keys) == 1 && isCount(s.Aggs[0]) {
 		return isSingleField(s.Keys[0])
 	}
@@ -72,7 +72,7 @@ func IsCountByString(o dag.Op) (string, bool) {
 // IsSum return whether o represents "sum(<top-level field>)" along with the
 // field name.
 func IsSum(o dag.Op) (string, bool) {
-	s, ok := o.(*dag.Summarize)
+	s, ok := o.(*dag.Aggregate)
 	if ok && len(s.Aggs) == 1 && len(s.Keys) == 0 {
 		if path, ok := isSum(s.Aggs[0]); ok && len(path) == 1 {
 			return path[0], true

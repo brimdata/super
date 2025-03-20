@@ -14,7 +14,7 @@ outputs:
   - name: stdout
     data: |
       === aggregation and locals
-      summarize
+      aggregate
           collect((
             over a with b=c
             | search d

@@ -12,7 +12,7 @@ import (
 	"github.com/brimdata/super/runtime/vam"
 	vamexpr "github.com/brimdata/super/runtime/vam/expr"
 	vamop "github.com/brimdata/super/runtime/vam/op"
-	"github.com/brimdata/super/runtime/vam/op/summarize"
+	"github.com/brimdata/super/runtime/vam/op/aggregate"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/zbuf"
 )
@@ -207,6 +207,8 @@ func (b *Builder) compileVamScope(scope *dag.Scope, parents []vector.Puller) ([]
 
 func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller, error) {
 	switch o := o.(type) {
+	case *dag.Aggregate:
+		return b.compileVamAggregate(o, parent)
 	case *dag.Cut:
 		e, err := b.compileVamAssignmentsToRecordExpression(nil, o.Args)
 		if err != nil {
@@ -286,8 +288,6 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 			sortExprs = append(sortExprs, expr.NewSortEvaluator(k, s.Order))
 		}
 		return vamop.NewSort(b.rctx, parent, sortExprs, o.NullsFirst, o.Reverse, b.resetters), nil
-	case *dag.Summarize:
-		return b.compileVamSummarize(o, parent)
 	case *dag.Tail:
 		return vamop.NewTail(parent, o.Count), nil
 	case *dag.Yield:
@@ -365,7 +365,7 @@ func (b *Builder) compileVamSeq(seq dag.Seq, parents []vector.Puller) ([]vector.
 	return parents, nil
 }
 
-func (b *Builder) compileVamSummarize(s *dag.Summarize, parent vector.Puller) (vector.Puller, error) {
+func (b *Builder) compileVamAggregate(s *dag.Aggregate, parent vector.Puller) (vector.Puller, error) {
 	// compile aggs
 	var aggNames []field.Path
 	var aggExprs []vamexpr.Evaluator
@@ -398,7 +398,7 @@ func (b *Builder) compileVamSummarize(s *dag.Summarize, parent vector.Puller) (v
 		keyNames = append(keyNames, lhs.Path)
 		keyExprs = append(keyExprs, rhs)
 	}
-	return summarize.New(parent, b.zctx(), aggNames, aggExprs, aggs, keyNames, keyExprs, s.PartialsIn, s.PartialsOut)
+	return aggregate.New(parent, b.zctx(), aggNames, aggExprs, aggs, keyNames, keyExprs, s.PartialsIn, s.PartialsOut)
 }
 
 func (b *Builder) compileVamAgg(agg *dag.Agg) (*vamexpr.Aggregator, error) {

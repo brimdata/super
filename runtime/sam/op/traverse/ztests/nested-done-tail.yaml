@@ -4,7 +4,7 @@ zed: |
       fork (
         => tail 1 | a:=collect(this)
         => tail 2 | a:=collect(this)
-        => summarize a:=collect(this)
+        => aggregate a:=collect(this)
       )
       | sort this
       | tail 2

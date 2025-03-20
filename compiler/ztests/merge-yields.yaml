@@ -1,7 +1,7 @@
 script: |
   super compile -C -O 'yield {a:1} | yield a, {b:a}'
   echo ===
-  super compile -C -O 'yield {a,b} | summarize count(a) by b'
+  super compile -C -O 'yield {a,b} | aggregate count(a) by b'
   echo ===
   super compile -C -O 'yield {...a} | yield {...b.c} | yield d, {e}'
   echo ===
@@ -19,7 +19,7 @@ outputs:
       | output main
       ===
       null
-      | summarize
+      | aggregate
           count:=count(a) by b:=b
       | output main
       ===

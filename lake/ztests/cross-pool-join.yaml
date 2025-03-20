@@ -28,7 +28,7 @@ inputs:
         pool person => cut p:=this
       )
       | join on f.flavor=p.likes p:=p
-      | summarize likes:=union(f.name) by name:=p.name | sort name
+      | aggregate likes:=union(f.name) by name:=p.name | sort name
 
 outputs:
   - name: stdout

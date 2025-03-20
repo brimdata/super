@@ -10,6 +10,6 @@ outputs:
       lister ...
       | slicer
       | seqscan ...
-      | summarize sort-dir 1
+      | aggregate sort-dir 1
           count:=count() by ts:=every(1h)
       | output main
