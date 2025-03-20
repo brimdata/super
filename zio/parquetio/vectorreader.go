@@ -44,6 +44,12 @@ func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, fiel
 	if err != nil {
 		return nil, err
 	}
+	colIndexes := columnIndexes(pr.MetaData().Schema, fields)
+	if len(colIndexes) == 0 {
+		for i := range pr.MetaData().NumColumns() {
+			colIndexes = append(colIndexes, i)
+		}
+	}
 	pqprops := pqarrow.ArrowReadProperties{
 		Parallel:  true,
 		BatchSize: 16184,
@@ -61,7 +67,7 @@ func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, fiel
 		zctx:         zctx,
 		pruner:       pruner,
 		fr:           fr,
-		colIndexes:   columnIndexes(pr.MetaData().Schema, fields),
+		colIndexes:   colIndexes,
 		nextRowGroup: &atomic.Int64{},
 		schema:       schema,
 		vb:           vectorBuilder{zctx, map[arrow.DataType]super.Type{}},
@@ -94,7 +100,7 @@ func (p *VectorReader) Pull(done bool) (vector.Any, error) {
 			if rowGroup >= pr.NumRowGroups() {
 				return nil, nil
 			}
-			if p.pruner != nil && len(p.colIndexes) > 0 {
+			if p.pruner != nil {
 				rgMetadata := pr.MetaData().RowGroup(rowGroup)
 				val := buildPrunerValue(p.zctx, rgMetadata, p.schema, p.colIndexes)
 				if !p.pruner.Eval(nil, val).Ptr().AsBool() {
