@@ -184,8 +184,9 @@ func (o *Optimizer) liftIntoParPaths(seq dag.Seq) {
 	}
 	switch op := seq[egress].(type) {
 	case *dag.Aggregate:
-		// To decompose the groupby, we split the flowgraph into branches that run up to and including a groupby,
-		// followed by a post-merge groupby that composes the results.
+		// To decompose the aggregate, we split the flowgraph into
+		// branches that run up to and including an aggregate,
+		// followed by a post-merge aggregate that composes the results.
 		// Copy the aggregator into the tail of the trunk and arrange
 		// for partials to flow between them.
 		if op.PartialsIn || op.PartialsOut {
@@ -297,11 +298,11 @@ func (o *Optimizer) concurrentPath(seq dag.Seq, sortKeys order.SortKeys) (length
 		// of a heuristic.  See #2660 and #2661.
 		case *dag.Aggregate:
 			// We want input sorted when we are preserving order into
-			// group-by so we can release values incrementally which is really
-			// important when doing a head on the group-by results
+			// aggregate so we can release values incrementally which is really
+			// important when doing a head on the aggregate results
 			if isKeyOfAggregate(op, sortKeys) {
 				// Keep the input ordered so we can incrementally release
-				// results from the groupby as a streaming operation.
+				// results from the aggregate as a streaming operation.
 				return k, sortKeys, true, nil
 			}
 			return k, nil, false, nil

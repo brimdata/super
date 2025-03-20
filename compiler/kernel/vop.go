@@ -389,7 +389,7 @@ func (b *Builder) compileVamAggregate(s *dag.Aggregate, parent vector.Puller) (v
 	for _, assignment := range s.Keys {
 		lhs, ok := assignment.LHS.(*dag.This)
 		if !ok {
-			return nil, errors.New("invalid lval in groupby key")
+			return nil, errors.New("invalid lval in grouping key")
 		}
 		rhs, err := b.compileVamExpr(assignment.RHS)
 		if err != nil {

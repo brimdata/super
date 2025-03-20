@@ -546,9 +546,9 @@ func (a *analyzer) semDebugOp(o *ast.Debug, mainAst ast.Seq, in dag.Seq) dag.Seq
 
 // semOp does a semantic analysis on a flowgraph to an
 // intermediate representation that can be compiled into the runtime
-// object.  Currently, it only replaces the group-by duration with
+// object.  Currently, it only replaces the aggregate duration with
 // a bucket call on the ts and replaces FunctionCalls in op context
-// with either a group-by or filter op based on the function's name.
+// with either an aggregate or filter op based on the function's name.
 func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 	switch o := o.(type) {
 	case *ast.Select, *ast.Limit, *ast.OrderBy, *ast.SQLPipe:

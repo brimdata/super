@@ -355,12 +355,12 @@ func (o *Optimizer) propagateSortKeyOp(op dag.Op, parents []order.SortKeys) ([]o
 		//XXX handle only primary sortKey for now
 		sortKey := parent.Primary()
 		for _, k := range op.Keys {
-			if groupByKey := fieldOf(k.LHS); groupByKey.Equal(sortKey.Key) {
+			if groupingKey := fieldOf(k.LHS); groupingKey.Equal(sortKey.Key) {
 				rhsExpr := k.RHS
 				rhs := fieldOf(rhsExpr)
-				if rhs.Equal(sortKey.Key) || orderPreservingCall(rhsExpr, groupByKey) {
+				if rhs.Equal(sortKey.Key) || orderPreservingCall(rhsExpr, groupingKey) {
 					op.InputSortDir = int(sortKey.Order.Direction())
-					// Currently, the groupby operator will sort its
+					// Currently, the aggregate operator will sort its
 					// output according to the primary key, but we
 					// should relax this and do an analysis here as
 					// to whether the sort is necessary for the
@@ -369,8 +369,8 @@ func (o *Optimizer) propagateSortKeyOp(op dag.Op, parents []order.SortKeys) ([]o
 				}
 			}
 		}
-		// We'll live this as unknown for now even though the groupby
-		// and not try to optimize downstream of the first groupby
+		// We'll leave this as unknown for now in spite of the aggregate
+		// and not try to optimize downstream of the first aggregate
 		// unless there is an excplicit sort encountered.
 		return []order.SortKeys{nil}, nil
 	case *dag.Fork:

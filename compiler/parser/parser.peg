@@ -174,7 +174,7 @@ Regexp
 /// === Aggregations ===
 
 Aggregation
-  = Aggregate? keys:GroupByKeys limit:LimitArg {
+  = Aggregate? keys:AggregateKeys limit:LimitArg {
       return &ast.Aggregate{
         Kind: "Aggregate",
         Keys: sliceOf[ast.Assignment](keys),
@@ -182,7 +182,7 @@ Aggregation
         Loc: loc(c),
       }, nil
     }
-  / Aggregate? aggs:AggAssignments keys:(_ GroupByKeys)? limit:LimitArg {
+  / Aggregate? aggs:AggAssignments keys:(_ AggregateKeys)? limit:LimitArg {
       s := &ast.Aggregate {
         Kind: "Aggregate",
         Aggs: sliceOf[ast.Assignment](aggs),
@@ -197,7 +197,7 @@ Aggregation
 
 Aggregate = (AGGREGATE / SUMMARIZE) _
 
-GroupByKeys
+AggregateKeys
   = (GROUP _)? BY _ columns:FlexAssignments { return columns, nil }
 
 LimitArg

@@ -10,7 +10,7 @@ import (
 	"github.com/brimdata/super/zcode"
 )
 
-// XXX use super.Value for slow path stuff, e.g., when the group-by key is
+// XXX use super.Value for slow path stuff, e.g., when the grouping key is
 // a complex type.  when we improve the super.Value impl this will get better.
 
 // one aggTable per fixed set of types of aggs and keys.

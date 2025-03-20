@@ -40,7 +40,7 @@ import (
 // This is intended to minimize the garbage collection needs of the inner loop
 // by not allocating memory on a per-Eval basis.  For uses like filtering and
 // aggregations, where the results are immediately used, this is desirable and
-// efficient but for use cases like storing the results as groupby keys, the
+// efficient but for use cases like storing the results as grouping keys, the
 // resulting super.Value should be copied (e.g., via super.Value.Copy()).
 //
 // TBD: string values and net.IP address do not need to be copied because they

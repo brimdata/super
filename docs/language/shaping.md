@@ -516,8 +516,8 @@ fuse(this)
 ```
 
 Since the `fuse` here is an aggregate function, it can also be used with
-group-by keys.  Supposing we want to divide records into categories and fuse
-the records in each category, we can use a group-by.  In this simple example, we
+grouping keys.  Supposing we want to divide records into categories and fuse
+the records in each category, we can use an aggregation.  In this simple example, we
 will fuse records based on their number of fields using the
 [`len` function:](functions/len.md)
 ```mdtest-spq {data-layout="stacked"}

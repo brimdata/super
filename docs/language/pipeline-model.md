@@ -49,7 +49,7 @@ on a stream of records.
 Some operators, like
 [`aggregate`](operators/aggregate.md) or [`sort`](operators/sort.md),
 read all of their input before producing output, though
-`aggregate` can produce incremental results when the group-by key is
+`aggregate` can produce incremental results when the grouping key is
 aligned with the order of the input.
 
 For large queries that process all of their input, time may pass before
@@ -202,7 +202,7 @@ sort s
 A typical operation in records involves
 adding or changing the fields of a record using the [`put` operator](operators/put.md)
 or extracting a subset of fields using the [`cut` operator](operators/cut.md).
-Also, when aggregating data using group-by keys, the group-by assignments
+Also, when aggregating data using grouping keys, the aggregation assignments
 create new named record fields.
 
 In all of these cases, the SuperPipe language uses the token `:=` to denote
