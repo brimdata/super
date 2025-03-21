@@ -8,7 +8,6 @@ import (
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
-	samexpr "github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/vam"
 	vamexpr "github.com/brimdata/super/runtime/vam/expr"
 	vamop "github.com/brimdata/super/runtime/vam/op"
@@ -235,7 +234,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		dropper := vamexpr.NewDropper(b.zctx(), fields)
 		return vamop.NewYield(b.zctx(), parent, []vamexpr.Evaluator{dropper}), nil
 	case *dag.FileScan:
-		var pruner samexpr.Evaluator
+		var pruner expr.Evaluator
 		if o.MetadataPruner != nil {
 			var err error
 			if pruner, err = b.compileExpr(o.MetadataPruner); err != nil {
