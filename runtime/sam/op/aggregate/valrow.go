@@ -1,4 +1,4 @@
-package groupby
+package aggregate
 
 import (
 	"fmt"

@@ -30,7 +30,7 @@ yield {ts,val:0},{ts:ts+1s},{ts:ts+2h2s}
 2021-02-01T14:00:00Z
 ```
 
-Use as a group-by key:
+Use as a grouping key:
 ```mdtest-spq
 # spq
 yield {ts,val:1},{ts:ts+1s,val:2},{ts:ts+2h2s,val:5}

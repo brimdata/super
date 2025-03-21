@@ -8,11 +8,11 @@ import (
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/runtime/sam/op/groupby"
+	"github.com/brimdata/super/runtime/sam/op/aggregate"
 	"github.com/brimdata/super/zbuf"
 )
 
-func (b *Builder) compileGroupBy(parent zbuf.Puller, a *dag.Aggregate) (*groupby.Op, error) {
+func (b *Builder) compileAggregate(parent zbuf.Puller, a *dag.Aggregate) (*aggregate.Op, error) {
 	b.resetResetters()
 	keys, err := b.compileAssignments(a.Keys)
 	if err != nil {
@@ -23,7 +23,7 @@ func (b *Builder) compileGroupBy(parent zbuf.Puller, a *dag.Aggregate) (*groupby
 		return nil, err
 	}
 	dir := order.Direction(a.InputSortDir)
-	return groupby.New(b.rctx, parent, keys, names, reducers, a.Limit, dir, a.PartialsIn, a.PartialsOut, b.resetters)
+	return aggregate.New(b.rctx, parent, keys, names, reducers, a.Limit, dir, a.PartialsIn, a.PartialsOut, b.resetters)
 }
 
 func (b *Builder) compileAggAssignments(assignments []dag.Assignment) (field.List, []*expr.Aggregator, error) {

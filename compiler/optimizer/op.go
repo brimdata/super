@@ -14,7 +14,7 @@ import (
 // on the semantics of the operator.  Note that an order can go from unknown
 // to known (e.g., sort) or from known to unknown (e.g., conflicting parallel paths).
 // Also, when op is an Aggregate operator, its input direction (where the
-// order key is presumed to be the primary group-by key) is set based
+// order key is presumed to be the primary grouping key) is set based
 // on the in sort key.  This is clumsy and needs to change.
 // See issue #2658.
 func (o *Optimizer) analyzeSortKeys(op dag.Op, in order.SortKeys) (order.SortKeys, error) {
@@ -99,7 +99,7 @@ func sortKeyOfExpr(e dag.Expr, o order.Which) (order.SortKey, bool) {
 	return order.NewSortKey(o, key), true
 }
 
-// isKeyOfAggregate returns true iff its any of the groupby keys is the
+// isKeyOfAggregate returns true iff any of a's grouping keys is the
 // same as the given primary-key sort order or an order-preserving function
 // thereof.
 func isKeyOfAggregate(a *dag.Aggregate, in order.SortKeys) bool {
@@ -108,11 +108,11 @@ func isKeyOfAggregate(a *dag.Aggregate, in order.SortKeys) bool {
 	}
 	key := in[0].Key
 	for _, outputKeyExpr := range a.Keys {
-		groupByKey := fieldOf(outputKeyExpr.LHS)
-		if groupByKey.Equal(key) {
+		groupingKey := fieldOf(outputKeyExpr.LHS)
+		if groupingKey.Equal(key) {
 			rhsExpr := outputKeyExpr.RHS
 			rhs := fieldOf(rhsExpr)
-			if rhs.Equal(key) || orderPreservingCall(rhsExpr, groupByKey) {
+			if rhs.Equal(key) || orderPreservingCall(rhsExpr, groupingKey) {
 				return true
 			}
 		}

@@ -226,7 +226,7 @@ object is just as performant as a traditional schema-based columnar format like 
 
 With [first-class types](../language/data-types.md#first-class-types), any type can also be a value, which means that in
 a properly designed query and analytics system based on the super data model, a type can appear
-anywhere that a value can appear.  In particular, types can be aggregation keys.
+anywhere that a value can appear.  In particular, types can be grouping keys.
 
 This is very powerful for data discovery and introspection.  For example,
 to count the different shapes of data, you might have a SuperSQL query,

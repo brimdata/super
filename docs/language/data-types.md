@@ -48,7 +48,7 @@ The [`typeof` function](functions/typeof.md) returns a value's type as
 a value, e.g., `typeof(1)` is `<int64>` and `typeof(<int64>)` is `<type>`.
 
 First-class types are quite powerful because types can
-serve as group-by keys or be used in ["data shaping"](shaping.md) logic.
+serve as grouping keys or be used in ["data shaping"](shaping.md) logic.
 A common workflow for data introspection is to first perform a search of
 exploratory data and then count the shapes of each type of data as follows:
 ```
@@ -169,7 +169,7 @@ count() by typeof(this) | sort this
 {typeof:<foo=string>,count:1(uint64)}
 ```
 
-Here, the two versions of type "foo" were retained in the group-by results.
+Here, the two versions of type "foo" were retained in the aggregation results.
 
 In general, it is bad practice to define multiple versions of a single named type,
 though the SuperDB system and super data model accommodate such dynamic bindings.

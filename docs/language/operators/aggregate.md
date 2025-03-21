@@ -15,12 +15,12 @@
 
 In the first four forms, the `aggregate` operator consumes all of its input,
 applies an [aggregate function](../aggregates/_index.md) to each input value
-optionally filtered by a `where` clause and/or organized with the group-by
+optionally filtered by a `where` clause and/or organized with the grouping
 keys specified after the `by` keyword, and at the end of input produces one
-or more aggregations for each unique set of group-by key values.
+or more aggregations for each unique set of grouping key values.
 
 In the final form, `aggregate` consumes all of its input, then outputs each
-unique combination of values of the group-by keys specified after the `by`
+unique combination of values of the grouping keys specified after the `by`
 keyword.
 
 The `aggregate` keyword is optional since it is an
@@ -40,11 +40,11 @@ it is inferred from the expression, e.g., the field name for `by lower(s)`
 is `lower`.
 
 When the result of `aggregate` is a single value (e.g., a single aggregate
-function without group-by keys) and there is no field name specified, then
+function without grouping keys) and there is no field name specified, then
 the output is that single value rather than a single-field record
 containing that value.
 
-If the cardinality of group-by keys causes the memory footprint to exceed
+If the cardinality of grouping keys causes the memory footprint to exceed
 a limit, then each aggregate's partial results are spilled to temporary storage
 and the results merged into final results using an external merge sort.
 The same mechanism that spills to storage can also spill across the network

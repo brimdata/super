@@ -182,7 +182,7 @@ func VectorFilterCompile(rctx *runtime.Context, query string, env *exec.Environm
 	return kernel.NewBuilder(rctx, env).BuildVamToSeqFilter(f.Expr, poolID, commitID)
 }
 
-// XXX currently used only by group-by test, need to deprecate
+// XXX currently used only by aggregate test, need to deprecate
 func CompileWithSortKey(rctx *runtime.Context, ast *parser.AST, r zio.Reader, sortKey order.SortKey) (*exec.Query, error) {
 	env := exec.NewEnvironment(nil, nil)
 	seq, err := Analyze(rctx, ast, env, true)

@@ -1,4 +1,4 @@
-# This test exercises the partials paths in the reducers by doing a group-by
+# This test exercises the partials paths in the reducers by doing an aggregate
 # with a single-row limit.  We also make sure the partials consumer can handle
 # an empty input by including a record for key "a" with no value field.
 script: |

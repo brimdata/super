@@ -39,7 +39,7 @@ func TestQueryEmptyPool(t *testing.T) {
 	assert.Equal(t, "", conn.TestQuery("from test"))
 }
 
-func TestQueryGroupByReverse(t *testing.T) {
+func TestQueryAggregateReverse(t *testing.T) {
 	src := `
 {ts:1970-01-01T00:00:01Z,uid:"A"}
 {ts:1970-01-01T00:00:01Z,uid:"B"}

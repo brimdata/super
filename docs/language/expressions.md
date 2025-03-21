@@ -260,8 +260,8 @@ Zed also allows you to create [user-defined functions](statements.md#func-statem
 ## Aggregate Function Calls
 
 [Aggregate functions](aggregates/_index.md) may be called within an expression.
-Unlike the aggregation context provided by a [summarizing group-by](operators/aggregate.md), such calls
-in expression context yield an output value for each input value.
+Unlike the aggregation context provided by the [`aggregate` operator](operators/aggregate.md),
+such calls in expression context yield an output value for each input value.
 
 Note that because aggregate functions carry state which is typically
 dependent on the order of input values, their use can prevent the runtime

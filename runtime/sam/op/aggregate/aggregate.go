@@ -1,4 +1,4 @@
-package groupby
+package aggregate
 
 import (
 	"context"
@@ -34,7 +34,7 @@ type Op struct {
 
 // Aggregator performs the core aggregation computation for a
 // list of reducer generators. It handles both regular and time-binned
-// ("every") group-by operations.  Records are generated in a
+// ("every") aggregate operations.  Records are generated in a
 // deterministic but undefined total order.
 type Aggregator struct {
 	ctx  context.Context
@@ -122,7 +122,7 @@ func New(rctx *runtime.Context, parent zbuf.Puller, keys []expr.Assignment, aggN
 	for _, e := range keys {
 		p, ok := e.LHS.Path()
 		if !ok {
-			return nil, errors.New("invalid lval in groupby key")
+			return nil, errors.New("invalid lval in grouping key")
 		}
 		names = append(names, p)
 	}
@@ -522,7 +522,7 @@ func (a *Aggregator) nextResultFromSpills(ectx expr.Context) (*super.Value, erro
 	return super.NewValue(typ, bytes).Ptr(), nil
 }
 
-// readTable returns a slice of records from the in-memory groupby
+// readTable returns a slice of records from the in-memory aggregate
 // table. If flush is true, the entire table is returned. If flush is
 // false and input is sorted only completed keys are returned.
 // If partialsOut is true, it returns partial aggregation results as

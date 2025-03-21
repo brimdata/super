@@ -446,7 +446,7 @@ produces
 3
 ```
 But more powerfully, types can be used anywhere a value can be used and
-in particular, they can be group-by keys, e.g.,
+in particular, they can be grouping keys, e.g.,
 ```mdtest-command
 echo '{x:1,y:2}{s:"foo"}{x:3,y:4}' |
   super -f table -c "count() by \`shape\`:=typeof(this) | sort count" -
@@ -1074,7 +1074,7 @@ which gives us
 ...
 ```
 The final step is to simply aggregate the "reviewer sets" with the `user` field
-as the group-by key:
+as the grouping key:
 ```mdtest-command dir=docs/tutorials
 super -Z -c '
   over requested_reviewers with user=user.login => (
