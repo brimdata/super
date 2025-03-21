@@ -8,6 +8,7 @@ import (
 
 var unpacker = unpack.New(
 	Agg{},
+	Aggregate{},
 	ArrayExpr{},
 	Assignment{},
 	BadOp{},
@@ -65,7 +66,6 @@ var unpacker = unpack.New(
 	Slicer{},
 	Sort{},
 	Spread{},
-	Summarize{},
 	Switch{},
 	Tail{},
 	This{},

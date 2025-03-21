@@ -1,9 +1,14 @@
 package optimizer
 
 import (
+	"regexp/syntax"
+	"slices"
+	"unicode/utf8"
+
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
+	"github.com/brimdata/super/zson"
 )
 
 func maybeNewRangePruner(pred dag.Expr, sortKeys order.SortKeys) dag.Expr {
@@ -145,10 +150,61 @@ func reverseComparator(op string) string {
 }
 
 func newMetadataPruner(pred dag.Expr) dag.Expr {
-	e, ok := pred.(*dag.BinaryExpr)
-	if !ok {
+	switch e := pred.(type) {
+	case *dag.BinaryExpr:
+		return metaPrunerBinaryExpr(e)
+	case *dag.RegexpSearch:
+		this, ok := e.Expr.(*dag.This)
+		if !ok {
+			return nil
+		}
+		prefix := regexpPrefix(e.Pattern)
+		maxPrefix := regexpMaxPrefix(prefix)
+		if prefix == "" || maxPrefix == "" {
+			return nil
+		}
+		min := &dag.Literal{Kind: "Literal", Value: zson.QuotedString(prefix)}
+		max := &dag.Literal{Kind: "Literal", Value: zson.QuotedString(maxPrefix)}
+		return dag.NewBinaryExpr("and",
+			compare("<", min, &dag.This{Kind: "This", Path: append(slices.Clone(this.Path), "min")}),
+			compare(">=", max, &dag.This{Kind: "This", Path: append(slices.Clone(this.Path), "max")}))
+	default:
 		return nil
 	}
+}
+
+// regexpPrefix returns the prefix of the provided regular expression (if one
+// exists) only if the regular expression matches the beginning of a string.
+func regexpPrefix(s string) string {
+	re, err := syntax.Parse(s, syntax.Perl)
+	if err != nil {
+		return ""
+	}
+	re = re.Simplify()
+	if re.Op == syntax.OpConcat &&
+		len(re.Sub) >= 2 &&
+		re.Sub[0].Op == syntax.OpBeginText &&
+		re.Sub[1].Op == syntax.OpLiteral {
+		return string(re.Sub[1].Rune)
+	}
+	return ""
+}
+
+func regexpMaxPrefix(s string) string {
+	b := []byte(s)
+	for len(b) > 0 {
+		r, size := utf8.DecodeLastRune(b)
+		if r == utf8.MaxRune {
+			// remove last character and do this again
+			b = b[:len(b)-size]
+		} else {
+			return string(utf8.AppendRune(b[:len(b)-size], r+1))
+		}
+	}
+	return ""
+}
+
+func metaPrunerBinaryExpr(e *dag.BinaryExpr) dag.Expr {
 	switch e.Op {
 	case "and":
 		lhs := newMetadataPruner(e.LHS)
@@ -178,26 +234,30 @@ func newMetadataPruner(pred dag.Expr) dag.Expr {
 		if !ok {
 			return nil
 		}
-		var elems []dag.VectorElem
+		var literals []*dag.Literal
 		switch e := e.RHS.(type) {
 		case *dag.ArrayExpr:
-			elems = e.Elems
+			literals = literalsInArrayOrSet(e.Elems)
 		case *dag.SetExpr:
-			elems = e.Elems
+			literals = literalsInArrayOrSet(e.Elems)
+		case *dag.RecordExpr:
+			for _, elem := range e.Elems {
+				f, ok := elem.(*dag.Field)
+				if !ok {
+					return nil
+				}
+				l, ok := f.Value.(*dag.Literal)
+				if !ok {
+					return nil
+				}
+				literals = append(literals, l)
+			}
 		default:
 			return nil
 		}
 		var ret *dag.BinaryExpr
-		for _, elem := range elems {
-			valexpr, ok := elem.(*dag.VectorValue)
-			if !ok {
-				return nil
-			}
-			literal, ok := valexpr.Expr.(*dag.Literal)
-			if !ok {
-				return nil
-			}
-			b := metadataPrunerPred("==", this, literal)
+		for _, l := range literals {
+			b := metadataPrunerPred("==", this, l)
 			if ret == nil {
 				ret = b
 			} else {
@@ -208,6 +268,22 @@ func newMetadataPruner(pred dag.Expr) dag.Expr {
 	default:
 		return nil
 	}
+}
+
+func literalsInArrayOrSet(elems []dag.VectorElem) []*dag.Literal {
+	var literals []*dag.Literal
+	for _, elem := range elems {
+		val, ok := elem.(*dag.VectorValue)
+		if !ok {
+			return nil
+		}
+		l, ok := val.Expr.(*dag.Literal)
+		if !ok {
+			return nil
+		}
+		literals = append(literals, l)
+	}
+	return literals
 }
 
 func metadataPrunerPred(op string, this *dag.This, literal *dag.Literal) *dag.BinaryExpr {

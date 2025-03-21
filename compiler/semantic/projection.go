@@ -86,7 +86,7 @@ func (a *aggfuncs) subst(e dag.Expr) (dag.Expr, error) {
 		// swap in a temp column for each agg function found, which
 		// will then be referred to by the containing expression.
 		// The agg function is computed into the tmp value with
-		// the generated summarize operator.
+		// the generated aggregate operator.
 		tmp := a.tmp()
 		*a = append(*a, namedAgg{name: tmp, agg: e})
 		return &dag.This{Kind: "This", Path: []string{"in", tmp}}, nil

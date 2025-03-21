@@ -1,0 +1,10 @@
+zed: |
+  yield crop(<{set:|[{b:string}]|,arr:[{a:string}]}>)
+
+vector: true
+
+input: |
+  {arr:[{a:"one",b:"two"},{a:"three",b:"four"}],set:|[{a:"one",b:"two"},{a:"three",b:"four"}]|}
+
+output: |
+  {arr:[{a:"one"},{a:"three"}],set:|[{b:"two"},{b:"four"}]|}

@@ -257,6 +257,7 @@ func newUnionBuilder(typ *super.TypeUnion) Builder {
 func (u *unionBuilder) Write(bytes zcode.Bytes) {
 	if bytes == nil {
 		u.tags = append(u.tags, 0)
+		u.values[0].Write(nil)
 		return
 	}
 	var typ super.Type

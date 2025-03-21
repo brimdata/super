@@ -312,7 +312,7 @@ func (b *Builder) compileAssignment(node *dag.Assignment) (expr.Assignment, erro
 
 func (b *Builder) compileCall(call dag.Call) (expr.Evaluator, error) {
 	if tf := expr.NewShaperTransform(call.Name); tf != 0 {
-		return b.compileShaper(call, tf)
+		return b.compileShaper(call.Args, tf)
 	}
 	var path field.Path
 	// First check if call is to a user defined function, otherwise check for
@@ -370,8 +370,7 @@ func (b *Builder) compileMapCall(a *dag.MapCall) (expr.Evaluator, error) {
 	return expr.NewMapCall(b.zctx(), e, inner), nil
 }
 
-func (b *Builder) compileShaper(node dag.Call, tf expr.ShaperTransform) (expr.Evaluator, error) {
-	args := node.Args
+func (b *Builder) compileShaper(args []dag.Expr, tf expr.ShaperTransform) (expr.Evaluator, error) {
 	field, err := b.compileExpr(args[0])
 	if err != nil {
 		return nil, err

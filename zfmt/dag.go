@@ -115,7 +115,7 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 		c.write("]")
 	case *dag.IsNullExpr:
 		c.expr(e.Expr, "")
-		c.write("IS NULL")
+		c.write(" IS NULL")
 	case *dag.SliceExpr:
 		c.expr(e.Expr, "")
 		c.write("[")
@@ -375,9 +375,9 @@ func (c *canonDAG) op(p dag.Op) {
 		c.write("merge ")
 		c.expr(p.Expr, "")
 		c.write(":" + p.Order.String())
-	case *dag.Summarize:
+	case *dag.Aggregate:
 		c.next()
-		c.open("summarize")
+		c.open("aggregate")
 		if p.PartialsIn {
 			c.write(" partials-in")
 		}

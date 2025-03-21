@@ -1,0 +1,12 @@
+zed: yield crop(<{f:null}>)
+
+vector: true
+
+input: &input |
+  {f:1(=int64_named)}(=int64_record_named)
+  {f:[1(=int64_named)](=array_named)}(=array_record_named)
+  {f:{g:1(=int64_named)}(=record_named)}(=record_record_named)
+  {f:|[1(=int64_named)]|(=set_named)}(=set_record_named)
+  {f:1(=int64_named)(union_named=(int64,int64_named))}(=union_record_named)
+
+output: *input

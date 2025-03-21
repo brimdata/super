@@ -1,0 +1,14 @@
+zed: |
+  cut x := shape(<{a:{a:float64,b:float64}}>)
+
+vector: true
+
+input: |
+  {"a": {"a": 1}}
+  {"a": {"b": 1}}
+  {"a": {"c": 1, "b": 1}}
+
+output: |
+  {x:{a:{a:1.,b:null(float64)}}}
+  {x:{a:{a:null(float64),b:1.}}}
+  {x:{a:{a:null(float64),b:1.,c:1}}}

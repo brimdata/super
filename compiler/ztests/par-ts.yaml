@@ -77,15 +77,15 @@ outputs:
       | scatter (
         =>
           seqscan ...
-          | summarize partials-out sort-dir 1
+          | aggregate partials-out sort-dir 1
               count:=count() by y:=y,ts:=every(1h)
         =>
           seqscan ...
-          | summarize partials-out sort-dir 1
+          | aggregate partials-out sort-dir 1
               count:=count() by y:=y,ts:=every(1h)
       )
       | merge ts:asc
-      | summarize partials-in sort-dir 1
+      | aggregate partials-in sort-dir 1
           count:=count() by y:=y,ts:=ts
       | output main
       <PUT COUNTDISTINCT UNIQ>
@@ -94,16 +94,16 @@ outputs:
         =>
           seqscan ...
           | put x:=y
-          | summarize partials-out
+          | aggregate partials-out
               countdistinct:=countdistinct(x) by y:=y
         =>
           seqscan ...
           | put x:=y
-          | summarize partials-out
+          | aggregate partials-out
               countdistinct:=countdistinct(x) by y:=y
       )
       | combine
-      | summarize partials-in
+      | aggregate partials-in
           countdistinct:=countdistinct(x) by y:=y
       | uniq
       | output main

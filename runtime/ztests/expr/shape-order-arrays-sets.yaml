@@ -1,0 +1,10 @@
+zed: |
+  yield order(<{set:|[{b:string,a:string}]|,arr:[{b:string,a:string}]}>)
+
+vector: true
+
+input: |
+  {arr:[{a:"one",b:"two"},{a:"three",b:"four"}],set:|[{a:"one",b:"two"},{a:"three",b:"four"}]|}
+
+output: |
+  {set:|[{b:"two",a:"one"},{b:"four",a:"three"}]|,arr:[{b:"two",a:"one"},{b:"four",a:"three"}]}

@@ -563,7 +563,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 			panic("analyzer.SemOp: delete scan cannot have parent in AST")
 		}
 		return dag.Seq{a.semDelete(o)}
-	case *ast.Summarize:
+	case *ast.Aggregate:
 		keys := a.semAssignments(o.Keys)
 		a.checkStaticAssignment(o.Keys, keys)
 		if len(keys) == 0 && len(o.Aggs) == 1 {
@@ -582,8 +582,8 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 		// so this code path isn't hit yet, but it uses this same entry point
 		// and it will soon do other stuff so we need to put in place the
 		// separation... see issue #2163.
-		return append(seq, &dag.Summarize{
-			Kind:  "Summarize",
+		return append(seq, &dag.Aggregate{
+			Kind:  "Aggregate",
 			Limit: o.Limit,
 			Keys:  keys,
 			Aggs:  aggs,
@@ -877,8 +877,8 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 		if o.Expr != nil {
 			e = a.semExpr(o.Expr)
 		}
-		seq = append(seq, &dag.Summarize{
-			Kind: "Summarize",
+		seq = append(seq, &dag.Aggregate{
+			Kind: "Aggregate",
 			Aggs: []dag.Assignment{
 				{
 					Kind: "Assignment",
@@ -989,8 +989,8 @@ func (a *analyzer) singletonAgg(agg ast.Assignment, seq dag.Seq) dag.Seq {
 		return nil
 	}
 	return append(seq,
-		&dag.Summarize{
-			Kind: "Summarize",
+		&dag.Aggregate{
+			Kind: "Aggregate",
 			Aggs: []dag.Assignment{out},
 		},
 		&dag.Yield{
@@ -1139,8 +1139,8 @@ func (a *analyzer) semOpAssignment(p *ast.OpAssignment) dag.Op {
 			Args: puts,
 		}
 	}
-	return &dag.Summarize{
-		Kind: "Summarize",
+	return &dag.Aggregate{
+		Kind: "Aggregate",
 		Aggs: aggs,
 	}
 }
@@ -1219,8 +1219,8 @@ func (a *analyzer) semCallOp(call *ast.Call, seq dag.Seq) dag.Seq {
 	}
 	name := call.Name.Name
 	if agg := a.maybeConvertAgg(call); agg != nil {
-		summarize := &dag.Summarize{
-			Kind: "Summarize",
+		aggregate := &dag.Aggregate{
+			Kind: "Aggregate",
 			Aggs: []dag.Assignment{
 				{
 					Kind: "Assignment",
@@ -1233,7 +1233,7 @@ func (a *analyzer) semCallOp(call *ast.Call, seq dag.Seq) dag.Seq {
 			Kind:  "Yield",
 			Exprs: []dag.Expr{&dag.This{Kind: "This", Path: field.Path{name}}},
 		}
-		return append(append(seq, summarize), yield)
+		return append(append(seq, aggregate), yield)
 	}
 	if !function.HasBoolResult(strings.ToLower(name)) {
 		return nil

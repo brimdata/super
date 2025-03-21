@@ -11,14 +11,14 @@ outputs:
       | scatter (
         =>
           seqscan ...
-          | summarize partials-out
+          | aggregate partials-out
               union:=union(s) by n:=len(s)
         =>
           seqscan ...
-          | summarize partials-out
+          | aggregate partials-out
               union:=union(s) by n:=len(s)
       )
       | combine
-      | summarize partials-in
+      | aggregate partials-in
           union:=union(s) by n:=n
       | output main
