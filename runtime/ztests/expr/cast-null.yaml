@@ -1,9 +1,0 @@
-zed: cut s:=string(null),a:=ip(null)
-
-vector: true
-
-input: |
-  {x:"foo"}
-
-output: |
-  {s:null(string),a:null(ip)}

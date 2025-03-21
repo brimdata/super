@@ -6,6 +6,7 @@ input: |
   {s:"a,b,c",sep:","((int64,string))}
   {s:"abc",sep:""}
   {s:"a",sep:","}
+  {s:"",sep:","}
   {s:null(string),sep:","}
   {s:"a,b,c",sep:null(string)}
   {s:1.,sep:""}
@@ -15,6 +16,7 @@ output: |
   ["a","b","c"]
   ["a","b","c"]
   ["a"]
+  [""]
   null([string])
   null([string])
   error({message:"split: string arg required",on:1.})

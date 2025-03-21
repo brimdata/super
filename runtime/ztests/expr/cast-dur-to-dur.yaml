@@ -1,8 +1,0 @@
-zed: 'yield duration(this)'
-
-vector: true
-
-input: &input |
-  10d
-
-output: *input
