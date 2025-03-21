@@ -1,0 +1,11 @@
+zed: yield a
+
+vector: true
+
+input: |
+  {a:{b:null(int32)}}
+  {a:{b:1(int32)}}
+
+output: |
+  {b:null(int32)}
+  {b:1(int32)}

@@ -1,7 +1,0 @@
-zed: 'put s:=string(b)'
-
-input: |
-  {b:0x303132}
-
-output: |
-  {b:0x303132,s:"012"}

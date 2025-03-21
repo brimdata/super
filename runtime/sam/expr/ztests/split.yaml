@@ -1,8 +1,0 @@
-zed: |
-  cut a1:=split(s1,"."),a2:=split(s2,"."),a3:=split(s3,"."),a4:=split(s4,"."),oo:=split(s1,"oo")
-
-input: |
-  {s1:"foo.bar.com",s2:"foo",s3:null(string),s4:""}
-
-output: |
-  {a1:["foo","bar","com"],a2:["foo"],a3:null([string]),a4:[""],oo:["f",".bar.com"]}

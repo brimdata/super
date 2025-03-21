@@ -1,0 +1,8 @@
+zed: 'yield net(this)'
+
+vector: true
+
+input: &input |
+  10.0.0.0/8
+
+output: *input

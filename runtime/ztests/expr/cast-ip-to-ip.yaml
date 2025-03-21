@@ -1,0 +1,9 @@
+zed: 'a:=ip(a)'
+
+vector: true
+
+input: |
+  {a:1.1.1.1}
+
+output: |
+  {a:1.1.1.1}

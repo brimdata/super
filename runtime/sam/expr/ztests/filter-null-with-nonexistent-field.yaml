@@ -1,9 +1,0 @@
-zed: not has(t)
-
-input: &input |
-  {s:"A=B"}
-  {s:"A=*"}
-  {s:null(string)}
-  {s:""}
-
-output: *input

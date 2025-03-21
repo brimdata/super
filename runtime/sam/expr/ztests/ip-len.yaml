@@ -1,9 +1,0 @@
-zed: cut n1:=len(addr),n2:=len(n)
-
-input: |
-  {addr:10.0.0.1,n:10.0.0.0/8}
-  {addr:fe80::215:17ff:fe84:c13f,n:2001:db8::/32}
-
-output: |
-  {n1:4,n2:8}
-  {n1:16,n2:32}

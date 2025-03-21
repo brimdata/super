@@ -1,7 +1,0 @@
-zed: yield {...unflatten(this),c:2}
-
-input: |
-  [{key:["a","b"],value:0}]
-
-output: |
-  {a:{b:0},c:2}

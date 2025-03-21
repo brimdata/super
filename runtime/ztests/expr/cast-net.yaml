@@ -1,0 +1,9 @@
+zed: put n:=net(n)
+
+vector: true
+
+input: |
+  {n:"74.53.140.153/32"}
+
+output: |
+  {n:74.53.140.153/32}
