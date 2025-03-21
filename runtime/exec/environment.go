@@ -14,7 +14,6 @@ import (
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/vam"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/zbuf"
@@ -126,7 +125,7 @@ func (c *closePuller) Pull(done bool) (zbuf.Batch, error) {
 	return batch, err
 }
 
-func (e *Environment) VectorOpen(ctx context.Context, zctx *super.Context, path, format string, fields []field.Path, pruner expr.Evaluator) (vector.Puller, error) {
+func (e *Environment) VectorOpen(ctx context.Context, zctx *super.Context, path, format string, fields []field.Path, pruner zbuf.Filter) (vector.Puller, error) {
 	if path == "-" {
 		path = "stdio:stdin"
 	}

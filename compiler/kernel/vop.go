@@ -132,8 +132,12 @@ func (b *Builder) compileVamScatter(scatter *dag.Scatter, parents []vector.Pulle
 	var ops []vector.Puller
 	for _, seq := range scatter.Paths {
 		parent := parents[0]
-		if p, ok := parent.(interface{ NewConcurrentPuller() vector.Puller }); ok {
-			parent = p.NewConcurrentPuller()
+		if p, ok := parent.(interface{ NewConcurrentPuller() (vector.Puller, error) }); ok {
+			p, err := p.NewConcurrentPuller()
+			if err != nil {
+				return nil, err
+			}
+			parent = p
 		}
 		op, err := b.compileVamSeq(seq, []vector.Puller{parent})
 		if err != nil {
@@ -234,12 +238,9 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		dropper := vamexpr.NewDropper(b.zctx(), fields)
 		return vamop.NewYield(b.zctx(), parent, []vamexpr.Evaluator{dropper}), nil
 	case *dag.FileScan:
-		var pruner expr.Evaluator
+		var pruner zbuf.Filter
 		if o.MetadataPruner != nil {
-			var err error
-			if pruner, err = b.compileExpr(o.MetadataPruner); err != nil {
-				return nil, err
-			}
+			pruner = &Filter{o.MetadataPruner, b}
 		}
 		return b.env.VectorOpen(b.rctx, b.zctx(), o.Path, o.Format, o.Fields, pruner)
 	case *dag.Filter:
