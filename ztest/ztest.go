@@ -142,7 +142,6 @@ import (
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/anyio"
-	"github.com/brimdata/super/zio/zsonio"
 	"github.com/pmezard/go-difflib/difflib"
 	"gopkg.in/yaml.v3"
 )
@@ -357,10 +356,7 @@ func (z *ZTest) RunInternal() error {
 	outputFlags := append([]string{"-f", "jsup", "-pretty=0"}, strings.Fields(z.OutputFlags)...)
 	inputFlags := strings.Fields(z.InputFlags)
 	if z.Vector {
-		if z.InputFlags != "" {
-			return errors.New("input-flags cannot be specified if vector test is enabled")
-		}
-		verr := z.diffInternal(runvec(z.Zed, z.Input, outputFlags))
+		verr := z.diffInternal(runvec(z.Zed, z.Input, outputFlags, inputFlags))
 		if verr != nil {
 			verr = fmt.Errorf("=== vector ===\n%w", verr)
 		}
@@ -478,24 +474,14 @@ func runzq(zedProgram, input string, outputFlags []string, inputFlags []string) 
 	if err != nil {
 		return "", err
 	}
-	var inflags inputflags.Flags
-	var flags flag.FlagSet
-	inflags.SetFlags(&flags, true)
-	if err := flags.Parse(inputFlags); err != nil {
-		return "", err
-	}
-	r, err := anyio.GzipReader(strings.NewReader(input))
-	if err != nil {
-		return "", err
-	}
 	zctx := super.NewContext()
-	zrc, err := anyio.NewReaderWithOpts(zctx, r, inflags.Options())
+	zrc, err := newInputReader(zctx, input, inputFlags)
 	if err != nil {
 		return "", err
 	}
 	defer zrc.Close()
 	var outflags outputflags.Flags
-	flags = flag.FlagSet{}
+	var flags flag.FlagSet
 	outflags.SetFlags(&flags)
 	if err := flags.Parse(outputFlags); err != nil {
 		return "", err
@@ -521,7 +507,7 @@ func runzq(zedProgram, input string, outputFlags []string, inputFlags []string) 
 	return outbuf.String(), err
 }
 
-func runvec(zedProgram string, input string, outputFlags []string) (string, error) {
+func runvec(zedProgram string, input string, outputFlags, inputFlags []string) (string, error) {
 	var flags flag.FlagSet
 	var outflags outputflags.Flags
 	outflags.SetFlags(&flags)
@@ -532,9 +518,12 @@ func runvec(zedProgram string, input string, outputFlags []string) (string, erro
 		return "", err
 	}
 	zctx := super.NewContext()
+	zrc, err := newInputReader(zctx, input, inputFlags)
+	if err != nil {
+		return "", err
+	}
+	d := vam.NewDematerializer(zbuf.NewPuller(zrc))
 	rctx := runtime.NewContext(context.Background(), zctx)
-	r := zsonio.NewReader(zctx, strings.NewReader(input))
-	d := vam.NewDematerializer(zbuf.NewPuller(r))
 	puller, err := compiler.VectorCompile(rctx, zedProgram, d)
 	if err != nil {
 		return "", err
@@ -549,4 +538,18 @@ func runvec(zedProgram string, input string, outputFlags []string) (string, erro
 		err = err2
 	}
 	return outbuf.String(), err
+}
+
+func newInputReader(zctx *super.Context, input string, flags []string) (zio.ReadCloser, error) {
+	var inflags inputflags.Flags
+	var fs flag.FlagSet
+	inflags.SetFlags(&fs, true)
+	if err := fs.Parse(flags); err != nil {
+		return nil, err
+	}
+	r, err := anyio.GzipReader(strings.NewReader(input))
+	if err != nil {
+		return nil, err
+	}
+	return anyio.NewReaderWithOpts(zctx, r, inflags.Options())
 }
