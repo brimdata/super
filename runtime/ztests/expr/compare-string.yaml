@@ -1,5 +1,7 @@
 zed: yield a>=b,a<=b,a<=c,a>=c,a>c,a<c
 
+vector: true
+
 input: |
   {a:"x",b:"y",c:"x"}
 

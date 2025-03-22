@@ -1,5 +1,7 @@
 zed: put s1:=this["yodawg"],s2:=this[yodawg],k:=this["..."]+1
 
+vector: true
+
 input: |
   {foo:"yodawg",bar:"a","...":1(int32),yodawg:"foo"}
   {foo:"yodawg",bar:"b","...":2(int32),yodawg:"bar"}

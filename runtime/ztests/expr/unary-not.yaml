@@ -1,5 +1,6 @@
-zed: |
-  yield [!this, not this]
+zed:  yield [!this, not this]
+
+vector: true
 
 input: |
   false

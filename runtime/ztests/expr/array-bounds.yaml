@@ -1,5 +1,7 @@
 zed: put b:=missing(a[2])
 
+vector: true
+
 input: |
   {a:[1,2,3]}
   {a:[1,2]}

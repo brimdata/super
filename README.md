@@ -90,7 +90,7 @@ Our areas of active development include:
 ## Try It
 
 As SuperDB is still under construction, GA releases are not yet available.
-However, you can [install](https://superdb.org/docs/install) a build of the
+However, you can [install]https://superdb.org/docs/getting_started/install) a build of the
 [`super`](https://superdb.org/docs/commands/super) command-line tool based on
 code that's under active development to start tinkering. Detailed documentation
 for the SuperDB system and its piped SQL syntax is available on the

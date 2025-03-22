@@ -1,4 +1,6 @@
-zed: "cut res := a % b"
+zed: cut res := a % b
+
+vector: true
 
 input: |
   {a:5,b:2}

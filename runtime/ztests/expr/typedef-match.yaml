@@ -1,5 +1,7 @@
 zed: typeof(this)==<bar>
 
+vector: true
+
 input: &input |
   {x:{a:1}(=foo),y:{a:2}(foo)}(=bar)
   {x:{a:3}(=foo),y:{a:4}(foo)}(=bar)

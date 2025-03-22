@@ -1,5 +1,7 @@
 zed: not has(t)
 
+vector: true
+
 input: &input |
   {s:"A=B"}
   {s:"A=*"}

@@ -1,4 +1,6 @@
-zed: 'cut a:=r[0].a,b:=r[1].b'
+zed: cut a:=r[0].a,b:=r[1].b
+
+vector: true
 
 input: |
   {r:[{a:1},{b:1.5}]}

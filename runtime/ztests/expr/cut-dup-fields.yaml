@@ -4,6 +4,8 @@ script: |
   ! super -z -c "cut rec.sub,rec.sub.sub" in.jsup
   ! super -z -c "cut rec.sub.sub,rec.sub" in.jsup
 
+vector: true
+
 inputs:
   - name: in.jsup
     data: |

@@ -5,6 +5,8 @@ zed: |
         uint64(this),
         float64(this)
 
+vector: true
+
 input: |
   2022-02-12T15:48:36.761595Z
 

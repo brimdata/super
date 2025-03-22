@@ -1,6 +1,0 @@
-zed: 'yield time(this)'
-
-input: &input |
-  2022-02-12T15:48:36.761595Z
-
-output: *input

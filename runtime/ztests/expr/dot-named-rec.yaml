@@ -1,5 +1,7 @@
 zed: cut v:=a.f
 
+vector: true
+
 input: |
   {a:{f:1(int8)}(=foo)}
 

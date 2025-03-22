@@ -1,4 +1,6 @@
-zed: 'yield a'
+zed: yield a
+
+vector: true
 
 input: |
   {a:{b:null(int32)}}

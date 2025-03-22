@@ -1,5 +1,7 @@
 zed: 'put x:=this'
 
+vector: true
+
 input: |
   {a:null({b:int32})}
   {a:{b:null(int32)}}
