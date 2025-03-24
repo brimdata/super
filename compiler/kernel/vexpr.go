@@ -193,6 +193,9 @@ func (b *Builder) compileVamCall(call *dag.Call) (vamexpr.Evaluator, error) {
 	if call.Name == "cast" {
 		return b.compileVamCast(call.Args)
 	}
+	if tf := expr.NewShaperTransform(call.Name); tf != 0 {
+		return b.compileVamShaper(call.Args, tf)
+	}
 	fn, path, err := vamfunction.New(b.zctx(), call.Name, len(call.Args))
 	if err != nil {
 		return nil, err
@@ -217,11 +220,20 @@ func (b *Builder) compileVamCast(args []dag.Expr) (vamexpr.Evaluator, error) {
 	if err != nil {
 		return nil, err
 	}
-	literal, ok := exprs[1].(*vamexpr.Literal)
-	if !ok {
-		return nil, errors.New("cast: vector runtime only supports casts on constant values at this time")
+	if literal, ok := exprs[1].(*vamexpr.Literal); ok {
+		if cast, err := vamexpr.NewLiteralCast(b.zctx(), exprs[0], literal); err == nil {
+			return cast, nil
+		}
 	}
-	return vamexpr.NewLiteralCast(b.zctx(), exprs[0], literal)
+	return b.compileVamShaper(args, expr.Cast)
+}
+
+func (b *Builder) compileVamShaper(args []dag.Expr, tf expr.ShaperTransform) (vamexpr.Evaluator, error) {
+	shaper, err := b.compileShaper(args, tf)
+	if err != nil {
+		return nil, err
+	}
+	return vamexpr.NewSamExpr(shaper), nil
 }
 
 func (b *Builder) compileVamRecordExpr(e *dag.RecordExpr) (vamexpr.Evaluator, error) {

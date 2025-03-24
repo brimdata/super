@@ -13,6 +13,7 @@ import (
 	"github.com/brimdata/super/runtime/vcache"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vng"
+	"github.com/brimdata/super/zbuf"
 )
 
 type VectorReader struct {
@@ -27,7 +28,7 @@ type VectorReader struct {
 	hasClosed     bool
 }
 
-func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, fields []field.Path, pruner expr.Evaluator) (*VectorReader, error) {
+func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, fields []field.Path, pruner zbuf.Filter) (*VectorReader, error) {
 	ra, ok := r.(io.ReaderAt)
 	if !ok {
 		return nil, errors.New("Super Columnar requires a seekable input")
@@ -36,18 +37,25 @@ func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, fiel
 	if err != nil {
 		return nil, err
 	}
+	var evaluator expr.Evaluator
+	if pruner != nil {
+		evaluator, err = pruner.AsEvaluator()
+		if err != nil {
+			return nil, err
+		}
+	}
 	return &VectorReader{
 		ctx:           ctx,
 		zctx:          zctx,
 		activeReaders: &atomic.Int64{},
 		nextObject:    &atomic.Int64{},
-		objects:       filterObjects(zctx, pruner, objects),
+		objects:       filterObjects(zctx, evaluator, objects),
 		projection:    vcache.NewProjection(fields),
 		readerAt:      ra,
 	}, nil
 }
 
-func (v *VectorReader) NewConcurrentPuller() vector.Puller {
+func (v *VectorReader) NewConcurrentPuller() (vector.Puller, error) {
 	v.activeReaders.Add(1)
 	return &VectorReader{
 		ctx:           v.ctx,
@@ -57,7 +65,7 @@ func (v *VectorReader) NewConcurrentPuller() vector.Puller {
 		objects:       v.objects,
 		projection:    v.projection,
 		readerAt:      v.readerAt,
-	}
+	}, nil
 }
 
 func (v *VectorReader) Pull(done bool) (vector.Any, error) {

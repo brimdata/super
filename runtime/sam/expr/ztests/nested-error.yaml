@@ -1,7 +1,0 @@
-zed: yield {x:'a'+(1+'b')}
-
-input: |
-  {}
-
-output: |
-  {x:error("incompatible types")}

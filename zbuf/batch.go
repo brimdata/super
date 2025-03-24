@@ -208,7 +208,7 @@ func (r *pullerReader) Read() (*super.Value, error) {
 // do we carry the var frame through... protocol needs to be that any new
 // batch created by a proc needs to preserve the var frame... we don't
 // do that right now and ref counting needs to account for the dependencies.
-// procs like summarize and sort that unref their input batches merely need
+// procs like aggregate and sort that unref their input batches merely need
 // to copy the first frame (of each batch) and the contract is that the
 // frame will not change between multiple batches within a single-EOS event.
 

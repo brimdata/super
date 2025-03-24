@@ -4,12 +4,16 @@ vector: true
 
 input: |
   "<int64>"
+  <ip>
   "<{x:string}>"
   "{x:\"foo\"}"
   "<int>"
+  1
 
 output: |
   <int64>
+  <ip>
   <{x:string}>
   error({message:"cannot cast to type",on:"{x:\"foo\"}"})
   error({message:"cannot cast to type",on:"<int>"})
+  error({message:"cannot cast to type",on:1})

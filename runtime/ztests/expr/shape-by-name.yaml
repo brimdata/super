@@ -1,0 +1,11 @@
+zed: cast(this, s)
+
+vector: true
+
+input: |
+  {s:"foo",x:1}
+  {s:"bar",x:2,y:3}
+
+output: |
+  {s:"foo",x:1}(=foo)
+  {s:"bar",x:2,y:3}(=bar)

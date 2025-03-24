@@ -1,0 +1,34 @@
+zed: |
+  yield cast(this["from"], to)
+
+vector: true
+
+input: |
+  {from:null((int64,string)),to:<string>}
+  {from:null(int64)((int64,string)),to:<string>}
+  {from:null(int64_named=int64)(union_named=(int64_named,string)),to:<string>}
+  {from:1((int64,string)),to:<string>}
+  {from:1(int64_named=int64)(union_named=(int64_named,string)),to:<string>}
+  {from:1(int8)((int8,string)),to:<(int64,string)>}
+  {from:1((int64,string)),to:<(int8,string)>}
+  {from:"one"((int64,string)),to:<string>}
+  {from:[1,"one"],to:<[string]>}
+  {from:[1,"one"],to:<[(int8,string)]>}
+  {from:[1,"one"],to:<[(int8,int16)]>}
+  {from:{a:[1,"one"]},to:<{a:[string]}>}
+  {from:{a:[1,"one"]},to:<{a:[(int8,string)]}>}
+
+output: |
+  null(string)
+  null(string)
+  null(string)
+  "1"
+  "1"
+  error("createStep: incompatible types (int8,string) and (int64,string)")
+  error("createStep: incompatible types (int64,string) and (int8,string)")
+  "one"
+  ["1","one"]
+  error("createStep: incompatible types (int64,string) and (int8,string)")
+  error("createStep: incompatible types (int64,string) and (int8,int16)")
+  {a:["1","one"]}
+  error("createStep: incompatible types (int64,string) and (int8,string)")

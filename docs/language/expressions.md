@@ -260,7 +260,7 @@ Zed also allows you to create [user-defined functions](statements.md#func-statem
 ## Aggregate Function Calls
 
 [Aggregate functions](aggregates/_index.md) may be called within an expression.
-Unlike the aggregation context provided by a [summarizing group-by](operators/summarize.md), such calls
+Unlike the aggregation context provided by a [summarizing group-by](operators/aggregate.md), such calls
 in expression context yield an output value for each input value.
 
 Note that because aggregate functions carry state which is typically
@@ -282,11 +282,11 @@ yield {id:count(),value:this}
 {id:3(uint64),value:"baz"}
 ```
 
-In contrast, calling aggregate functions within the [`summarize` operator](operators/summarize.md)
+In contrast, calling aggregate functions within the [`aggregate` operator](operators/aggregate.md)
 produces just one output value.
 ```mdtest-spq {data-layout="stacked"}
 # spq
-summarize count(),union(this)
+aggregate count(),union(this)
 # input
 "foo"
 "bar"

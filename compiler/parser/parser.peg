@@ -80,7 +80,7 @@ TypeDecl
 
 // A LeanOp is a pipeline operator along with various forms of 
 // "lean-forward" shortcuts: a scope with other LeanOps, a shortcut assignment 
-// for "put", a short-cut "summarize", or an expression that is either 
+// for "put", a shortcut "aggregate", or an expression that is either
 // implied yield (non-boolean) or implied where (boolean).
 LeanOp
   = Operator
@@ -174,17 +174,17 @@ Regexp
 /// === Aggregations ===
 
 Aggregation
-  = Summarize keys:GroupByKeys limit:LimitArg {
-      return &ast.Summarize{
-        Kind: "Summarize",
+  = Aggregate? keys:GroupByKeys limit:LimitArg {
+      return &ast.Aggregate{
+        Kind: "Aggregate",
         Keys: sliceOf[ast.Assignment](keys),
         Limit: limit.(int),
         Loc: loc(c),
       }, nil
     }
-  / Summarize aggs:AggAssignments keys:(_ GroupByKeys)? limit:LimitArg {
-      s := &ast.Summarize{
-        Kind: "Summarize",
+  / Aggregate? aggs:AggAssignments keys:(_ GroupByKeys)? limit:LimitArg {
+      s := &ast.Aggregate {
+        Kind: "Aggregate",
         Aggs: sliceOf[ast.Assignment](aggs),
         Limit: limit.(int),
         Loc: loc(c),
@@ -195,7 +195,7 @@ Aggregation
       return s, nil
     }
 
-Summarize = AGGREGATE _ / (SUMMARIZE _)?
+Aggregate = (AGGREGATE / SUMMARIZE) _
 
 GroupByKeys
   = (GROUP _)? BY _ columns:FlexAssignments { return columns, nil }
@@ -309,7 +309,7 @@ PipeKeyword
   = SELECT / FORK / SWITCH / FROM / SEARCH / ASSERT / SORT / TOP/ CUT / DROP
   / HEAD / TAIL / WHERE / UNIQ / PUT / RENAME / FUSE / SHAPE / JOIN / SAMPLE
   / FROM / PASS / EXPLODE / MERGE / OVER / YIELD / LOAD / OUTPUT / DEBUG
-  / SUMMARIZE
+  / AGGREGATE / SUMMARIZE
 
  ForkOp =
    FORK __ "(" paths:Path+ __ ")" {
@@ -594,7 +594,7 @@ SampleOp
 
 // OpAssignment is a top level operator that contains a list of assignment
 // expressions. It is in an ambiguous state and could either be:
-//   1) A summarize operator.
+//   1) An aggregate operator.
 //   2) A put operator.
 //  The semantic pass is responsible for converting it to one of the two.
 OpAssignment

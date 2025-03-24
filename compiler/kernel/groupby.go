@@ -12,18 +12,18 @@ import (
 	"github.com/brimdata/super/zbuf"
 )
 
-func (b *Builder) compileGroupBy(parent zbuf.Puller, summarize *dag.Summarize) (*groupby.Op, error) {
+func (b *Builder) compileGroupBy(parent zbuf.Puller, a *dag.Aggregate) (*groupby.Op, error) {
 	b.resetResetters()
-	keys, err := b.compileAssignments(summarize.Keys)
+	keys, err := b.compileAssignments(a.Keys)
 	if err != nil {
 		return nil, err
 	}
-	names, reducers, err := b.compileAggAssignments(summarize.Aggs)
+	names, reducers, err := b.compileAggAssignments(a.Aggs)
 	if err != nil {
 		return nil, err
 	}
-	dir := order.Direction(summarize.InputSortDir)
-	return groupby.New(b.rctx, parent, keys, names, reducers, summarize.Limit, dir, summarize.PartialsIn, summarize.PartialsOut, b.resetters)
+	dir := order.Direction(a.InputSortDir)
+	return groupby.New(b.rctx, parent, keys, names, reducers, a.Limit, dir, a.PartialsIn, a.PartialsOut, b.resetters)
 }
 
 func (b *Builder) compileAggAssignments(assignments []dag.Assignment) (field.List, []*expr.Aggregator, error) {

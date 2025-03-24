@@ -32,7 +32,7 @@ to make this tutorial relevant to `jq` users, we'll lean heavily on SuperSQL's
 use of pipes and shortcuts.
 
 If you want to follow along on the command line,
-just make sure the `super` command [is installed](../install.md)
+just make sure the `super` command [is installed](../getting_started/install.md)
 as well as [`jq`](https://jqlang.org/download/).
 
 ## But JSON

@@ -3,7 +3,7 @@ weight: 3
 title: Aggregate Functions
 ---
 
-Aggregate functions appear in either [summarization](../operators/summarize.md)
+Aggregate functions appear in either [aggregate](../operators/aggregate.md)
 or [expression](../expressions.md#aggregate-function-calls) context and produce an aggregate
 value for a sequence of input values.
 

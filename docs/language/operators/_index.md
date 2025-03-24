@@ -8,6 +8,7 @@ and appear as the components of a [pipeline](../pipeline-model.md). In addition 
 operators listed below, Zed also allows for the creation of
 [user-defined operators](../statements.md#operator-statements).
 
+* [aggregate](aggregate.md) -  perform aggregations
 * [assert](assert.md) - evaluate an assertion
 * [combine](combine.md) - combine parallel pipeline branches into a single output
 * [cut](cut.md) - extract subsets of record fields into new records
@@ -28,7 +29,6 @@ operators listed below, Zed also allows for the creation of
 * [sample](sample.md) - select one value of each shape
 * [search](search.md) - select values based on a search expression
 * [sort](sort.md) - sort values
-* [summarize](summarize.md) -  perform aggregations
 * [switch](switch.md) -  route values based on cases
 * [tail](tail.md) - copy trailing values of input sequence
 * [top](top.md) - get top N sorted values of input sequence

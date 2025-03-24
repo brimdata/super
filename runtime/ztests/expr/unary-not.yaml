@@ -1,0 +1,11 @@
+zed:  yield [!this, not this]
+
+vector: true
+
+input: |
+  false
+  true
+
+output: |
+  [true,true]
+  [false,false]

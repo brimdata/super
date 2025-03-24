@@ -1,6 +1,0 @@
-zed: 'yield duration(this)'
-
-input: '""'
-
-output: |
-  error({message:"cannot cast to duration",on:""})

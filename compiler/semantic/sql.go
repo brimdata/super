@@ -52,7 +52,7 @@ func (a *analyzer) semSelect(sel *ast.Select, seq dag.Seq) (dag.Seq, schema) {
 	// on whether its an aggregation or a selection of scalar expressions.
 	seq = yieldExpr(wrapThis("in"), seq)
 	if len(funcs) != 0 || len(keyExprs) != 0 {
-		seq = a.genSummarize(sel.Loc, proj, where, keyExprs, funcs, having, seq)
+		seq = a.genAggregate(sel.Loc, proj, where, keyExprs, funcs, having, seq)
 		return seq, sch.out
 	}
 	if having != nil {
@@ -150,7 +150,7 @@ func unravel(schema schema, prefix field.Path) []field.Path {
 	}
 }
 
-func (a *analyzer) genSummarize(loc ast.Loc, proj projection, where dag.Expr, keyExprs []exprloc, funcs aggfuncs, having dag.Expr, seq dag.Seq) dag.Seq {
+func (a *analyzer) genAggregate(loc ast.Loc, proj projection, where dag.Expr, keyExprs []exprloc, funcs aggfuncs, having dag.Expr, seq dag.Seq) dag.Seq {
 	if proj.hasStar() {
 		// XXX take this out and figure out to incorporate this especially if we know the input schema
 		a.error(loc, errors.New("aggregate mixed with *-selector not yet supported"))
@@ -181,20 +181,20 @@ func (a *analyzer) genSummarize(loc ast.Loc, proj projection, where dag.Expr, ke
 			RHS:  e.expr,
 		})
 	}
-	seq = append(seq, &dag.Summarize{
-		Kind: "Summarize",
+	seq = append(seq, &dag.Aggregate{
+		Kind: "Aggregate",
 		Aggs: aggCols,
 		Keys: keyCols,
 	})
 	seq = yieldExpr(wrapThis("in"), seq)
-	seq = a.genSummarizeOutput(proj, keyExprs, seq)
+	seq = a.genAggregateOutput(proj, keyExprs, seq)
 	if having != nil {
 		seq = append(seq, dag.NewFilter(having))
 	}
 	return yieldExpr(pathOf("out"), seq)
 }
 
-func (a *analyzer) genSummarizeOutput(proj projection, keyExprs []exprloc, seq dag.Seq) dag.Seq {
+func (a *analyzer) genAggregateOutput(proj projection, keyExprs []exprloc, seq dag.Seq) dag.Seq {
 	notFirst := false
 	for _, col := range proj {
 		if col.isStar() {

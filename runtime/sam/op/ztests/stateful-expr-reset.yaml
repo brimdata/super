@@ -21,7 +21,7 @@ script: |
   super -z -c 'yield [1], [1] | over this => (
     over this with count = count() => ( yield count )
   )'
-  echo // summarize
+  echo // aggregate
   super -z -c 'yield [1], [1] | over this => ( sum(this) by c := count() )'
 
 outputs:
@@ -45,6 +45,6 @@ outputs:
       // over with
       1(uint64)
       1(uint64)
-      // summarize
+      // aggregate
       {c:1(uint64),sum:1}
       {c:1(uint64),sum:1}

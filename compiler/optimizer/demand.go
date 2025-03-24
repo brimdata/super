@@ -14,6 +14,15 @@ func DemandForSeq(seq dag.Seq, downstream demand.Demand) demand.Demand {
 
 func demandForOp(op dag.Op, downstream demand.Demand) demand.Demand {
 	switch op := op.(type) {
+	case *dag.Aggregate:
+		d := demand.None()
+		for _, assignment := range op.Keys {
+			d = demand.Union(d, demandForExpr(assignment.RHS))
+		}
+		for _, assignment := range op.Aggs {
+			d = demand.Union(d, demandForExpr(assignment.RHS))
+		}
+		return d
 	case *dag.Combine:
 		return downstream
 	case *dag.Cut:
@@ -79,15 +88,6 @@ func demandForOp(op dag.Op, downstream demand.Demand) demand.Demand {
 		return DemandForSeq(op.Body, downstream)
 	case *dag.Shape, *dag.Sort:
 		return downstream
-	case *dag.Summarize:
-		d := demand.None()
-		for _, assignment := range op.Keys {
-			d = demand.Union(d, demandForExpr(assignment.RHS))
-		}
-		for _, assignment := range op.Aggs {
-			d = demand.Union(d, demandForExpr(assignment.RHS))
-		}
-		return d
 	case *dag.Switch:
 		d := demandForExpr(op.Expr)
 		for _, c := range op.Cases {

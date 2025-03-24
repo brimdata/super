@@ -1,0 +1,13 @@
+zed: rename s2:=s | count() by s2 | sort s2
+
+vector: true
+
+# This test previously failed only for binary zng.
+# {s:"a"}
+# {s:"b"}
+# {s:"a"}
+input: !!binary BQAAAQFzGRwAHgMCYR4DAmIeAwJh/w==
+
+output: |
+  {s2:"a",count:2(uint64)}
+  {s2:"b",count:1(uint64)}

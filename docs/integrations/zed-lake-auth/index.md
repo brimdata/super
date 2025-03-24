@@ -100,7 +100,7 @@ checkbox to enable the **Device Code** grant type.
 
 ## Zed Lake Service Configuration
 
-1. Login to our Linux VM and [install](../../install.md#building-from-source)
+1. Login to our Linux VM and [install](../../getting_started/install.md#building-from-source)
 the most recent Zed tools from source.
 
    ```

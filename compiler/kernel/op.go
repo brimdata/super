@@ -151,7 +151,7 @@ func (b *Builder) resetResetters() {
 
 func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error) {
 	switch v := o.(type) {
-	case *dag.Summarize:
+	case *dag.Aggregate:
 		return b.compileGroupBy(parent, v)
 	case *dag.Cut:
 		b.resetResetters()

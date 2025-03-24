@@ -3,13 +3,19 @@ zed: duration(this)
 vector: true
 
 input: |
+  10d
   "1d"
   "1.5e9"
+  ""
   -1.5e12
+  1
   1e+19
 
 output: |
+  10d
   1d
   1.5s
+  error({message:"cannot cast to duration",on:""})
   -25m
+  1ns
   error({message:"cannot cast to duration",on:1e+19})

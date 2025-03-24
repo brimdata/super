@@ -82,7 +82,7 @@ written as follows:
 ```
 search "example.com" AND "urgent"
 | where message_length > 100
-| summarize kinds:=union(type) by net:=network_of(srcip)
+| aggregate kinds:=union(type) by net:=network_of(srcip)
 ```
 which computes an aggregation table of different message types (e.g.,
 from a hypothetical field called `type`) into a new, aggregated field
@@ -104,7 +104,7 @@ beginning with `//` may appear in Zed.
 
 search "example.com" AND "urgent"
 | where message_length > 100       // We only care about long messages
-| summarize kinds:=union(type) by net:=network_of(srcip)
+| aggregate kinds:=union(type) by net:=network_of(srcip)
 ```
 
 ## What's Next?

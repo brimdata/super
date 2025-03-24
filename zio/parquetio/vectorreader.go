@@ -17,22 +17,27 @@ import (
 	"github.com/apache/arrow-go/v18/parquet/pqarrow"
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
+	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio/arrowio"
 )
 
 type VectorReader struct {
-	ctx  context.Context
-	zctx *super.Context
+	ctx    context.Context
+	zctx   *super.Context
+	pruner zbuf.Filter
 
-	fr           *pqarrow.FileReader
-	colIndexes   []int
-	nextRowGroup *atomic.Int64
-	rr           pqarrow.RecordReader
-	vb           vectorBuilder
+	fr              *pqarrow.FileReader
+	colIndexes      []int
+	nextRowGroup    *atomic.Int64
+	prunerEvaluator expr.Evaluator
+	rr              pqarrow.RecordReader
+	schema          *arrow.Schema
+	vb              vectorBuilder
 }
 
-func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, fields []field.Path) (*VectorReader, error) {
+func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, fields []field.Path, pruner zbuf.Filter) (*VectorReader, error) {
 	ras, ok := r.(parquet.ReaderAtSeeker)
 	if !ok {
 		return nil, errors.New("reader cannot seek")
@@ -41,32 +46,63 @@ func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, fiel
 	if err != nil {
 		return nil, err
 	}
+	colIndexes := columnIndexes(pr.MetaData().Schema, fields)
+	if len(colIndexes) == 0 {
+		for i := range pr.MetaData().NumColumns() {
+			colIndexes = append(colIndexes, i)
+		}
+	}
 	pqprops := pqarrow.ArrowReadProperties{
 		Parallel:  true,
 		BatchSize: 16184,
 	}
 	fr, err := pqarrow.NewFileReader(pr, pqprops, memory.NewGoAllocator())
 	if err != nil {
-
+		return nil, err
+	}
+	schema, err := fr.Schema()
+	if err != nil {
+		return nil, err
+	}
+	var evaluator expr.Evaluator
+	if pruner != nil {
+		evaluator, err = pruner.AsEvaluator()
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &VectorReader{
-		ctx:          ctx,
-		zctx:         zctx,
-		fr:           fr,
-		colIndexes:   columnIndexes(pr.MetaData().Schema, fields),
-		nextRowGroup: &atomic.Int64{},
-		vb:           vectorBuilder{zctx, map[arrow.DataType]super.Type{}},
+		ctx:             ctx,
+		zctx:            zctx,
+		pruner:          pruner,
+		fr:              fr,
+		colIndexes:      colIndexes,
+		nextRowGroup:    &atomic.Int64{},
+		prunerEvaluator: evaluator,
+		schema:          schema,
+		vb:              vectorBuilder{zctx, map[arrow.DataType]super.Type{}},
 	}, nil
 }
 
-func (p *VectorReader) NewConcurrentPuller() vector.Puller {
-	return &VectorReader{
-		ctx:          p.ctx,
-		fr:           p.fr,
-		colIndexes:   p.colIndexes,
-		nextRowGroup: p.nextRowGroup,
-		vb:           vectorBuilder{p.zctx, map[arrow.DataType]super.Type{}},
+func (p *VectorReader) NewConcurrentPuller() (vector.Puller, error) {
+	var evaluator expr.Evaluator
+	if p.pruner != nil {
+		var err error
+		evaluator, err = p.pruner.AsEvaluator()
+		if err != nil {
+			return nil, err
+		}
 	}
+	return &VectorReader{
+		ctx:             p.ctx,
+		zctx:            p.zctx,
+		fr:              p.fr,
+		colIndexes:      p.colIndexes,
+		nextRowGroup:    p.nextRowGroup,
+		prunerEvaluator: evaluator,
+		schema:          p.schema,
+		vb:              vectorBuilder{p.zctx, map[arrow.DataType]super.Type{}},
+	}, nil
 }
 func (p *VectorReader) Pull(done bool) (vector.Any, error) {
 	if done {
@@ -77,9 +113,17 @@ func (p *VectorReader) Pull(done bool) (vector.Any, error) {
 			return nil, err
 		}
 		if p.rr == nil {
+			pr := p.fr.ParquetReader()
 			rowGroup := int(p.nextRowGroup.Add(1) - 1)
-			if rowGroup >= p.fr.ParquetReader().NumRowGroups() {
+			if rowGroup >= pr.NumRowGroups() {
 				return nil, nil
+			}
+			if p.prunerEvaluator != nil {
+				rgMetadata := pr.MetaData().RowGroup(rowGroup)
+				val := buildPrunerValue(p.zctx, rgMetadata, p.schema, p.colIndexes)
+				if !p.prunerEvaluator.Eval(nil, val).Ptr().AsBool() {
+					continue
+				}
 			}
 			rr, err := p.fr.GetRecordReader(p.ctx, p.colIndexes, []int{rowGroup})
 			if err != nil {

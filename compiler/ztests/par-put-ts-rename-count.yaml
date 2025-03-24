@@ -9,13 +9,13 @@ outputs:
         G2eDzBUfU6IEmUSGCa5kHyXMhoO =>
           put ts:=foo
           | rename foo:=boo
-          | summarize partials-out
+          | aggregate partials-out
               count:=count();
         G2eDzBUfU6IEmUSGCa5kHyXMhoO =>
           put ts:=foo
           | rename foo:=boo
-          | summarize partials-out
+          | aggregate partials-out
               count:=count();
       )
-      | summarize partials-in
+      | aggregate partials-in
           count:=count()

@@ -460,9 +460,9 @@ func (c *canon) op(p ast.Op) {
 		c.next()
 		c.write("from ")
 		c.fromElems(p.Elems)
-	case *ast.Summarize:
+	case *ast.Aggregate:
 		c.next()
-		c.open("summarize")
+		c.open("aggregate")
 		c.ret()
 		c.open()
 		c.assignments(p.Aggs)
@@ -627,7 +627,7 @@ func (c *canon) op(p ast.Op) {
 		c.next()
 		which := "put "
 		if isAggAssignments(p.Assignments) {
-			which = "summarize "
+			which = "aggregate "
 		}
 		c.open(which)
 		c.assignments(p.Assignments)
@@ -760,7 +760,7 @@ func (c *canon) pattern(p ast.FromEntity) {
 	}
 }
 
-func isAggFunc(e ast.Expr) *ast.Summarize {
+func isAggFunc(e ast.Expr) *ast.Aggregate {
 	call, ok := e.(*ast.Call)
 	if !ok {
 		return nil
@@ -768,8 +768,8 @@ func isAggFunc(e ast.Expr) *ast.Summarize {
 	if _, err := agg.NewPattern(call.Name.Name, true); err != nil {
 		return nil
 	}
-	return &ast.Summarize{
-		Kind: "Summarize",
+	return &ast.Aggregate{
+		Kind: "aggregate",
 		Aggs: []ast.Assignment{{
 			Kind: "Assignment",
 			RHS:  call,

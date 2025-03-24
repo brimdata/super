@@ -484,7 +484,7 @@ type (
 		Cflag bool   `json:"cflag"`
 		Loc   `json:"loc"`
 	}
-	Summarize struct {
+	Aggregate struct {
 		Kind  string      `json:"kind" unpack:""`
 		Limit int         `json:"limit"`
 		Keys  Assignments `json:"keys"`
@@ -531,7 +531,7 @@ type (
 		Loc   `json:"loc"`
 	}
 	// An OpAssignment is a list of assignments whose parent operator
-	// is unknown: It could be a Summarize or Put operator. This will be
+	// is unknown: It could be a Aggregate or Put operator. This will be
 	// determined in the semantic phase.
 	OpAssignment struct {
 		Kind        string      `json:"kind" unpack:""`
@@ -701,7 +701,7 @@ func (*Head) OpAST()         {}
 func (*Tail) OpAST()         {}
 func (*Pass) OpAST()         {}
 func (*Uniq) OpAST()         {}
-func (*Summarize) OpAST()    {}
+func (*Aggregate) OpAST()    {}
 func (*Top) OpAST()          {}
 func (*Put) OpAST()          {}
 func (*OpAssignment) OpAST() {}

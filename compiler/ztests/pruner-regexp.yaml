@@ -1,0 +1,28 @@
+script: |
+  export SUPER_VAM=1
+  super compile -C -O 'file test.csup | where x LIKE "cslab%"'
+  echo // ===
+  super compile -C -O 'file test.csup | where grep(/^csla[bB].*/, x)'
+  echo // ===
+  super compile -C -O 'file test.csup | where grep(/csla[bB].*/, x)'
+
+outputs:
+  - name: stdout
+    data: |
+      file test.csup format csup
+         pruner (
+          compare("cslab", x.min, true)<0 and compare("cslac", x.max, true)>=0
+        )
+      | where regexp_search(/(?s)^cslab.*?$/, x)
+      | output main
+      // ===
+      file test.csup format csup
+         pruner (
+          compare("csla", x.min, true)<0 and compare("cslb", x.max, true)>=0
+        )
+      | where regexp_search(/^csla[bB].*/, x)
+      | output main
+      // ===
+      file test.csup format csup
+      | where regexp_search(/csla[bB].*/, x)
+      | output main

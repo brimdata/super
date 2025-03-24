@@ -174,7 +174,7 @@ func describeOpAggs(op dag.Op, parents []field.List) []field.List {
 	case *dag.Mirror:
 		aggs := describeAggs(op.Main, []field.List{nil})
 		return append(aggs, describeAggs(op.Mirror, []field.List{nil})...)
-	case *dag.Summarize:
+	case *dag.Aggregate:
 		// The field list for aggregation with no keys is an empty slice and
 		// not nil.
 		keys := field.List{}

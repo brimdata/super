@@ -1,7 +1,0 @@
-zed: cut s:=string(null),a:=ip(null)
-
-input: |
-  {x:"foo"}
-
-output: |
-  {s:null(string),a:null(ip)}
