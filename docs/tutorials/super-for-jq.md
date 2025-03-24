@@ -3,8 +3,8 @@ weight: 1
 title: For jq Users
 ---
 
-SuperSQL’s pipeline extensions and shortcuts provide a flexible and powerful way for SQL
-lovers to query their JSON data while leveraging their existing skills.
+SuperSQL’s pipes and shortcuts provide a flexible and powerful way for SQL
+users to query their JSON data while leveraging their existing skills.
 However, users who've traditionally wrangled their JSON with other tools such
 as [`jq`](https://stedolan.github.io/jq/) will find `super` equally powerful
 even if they don't know SQL or just prefer to work primarily in shortcuts. This tour
