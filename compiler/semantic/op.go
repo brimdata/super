@@ -898,6 +898,19 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 			Kind:  "Yield",
 			Exprs: []dag.Expr{&dag.This{Kind: "This", Path: field.Path{"sample"}}},
 		})
+	case *ast.Union:
+		if o.Distinct {
+			a.error(o, errors.New("UNION DISTINCT not currently supported"))
+			return append(seq, badOp())
+		}
+		left, leftSch := a.semSQLOp(o.Left, seq)
+		left, _ = derefSchema(leftSch, "", left)
+		right, rightSch := a.semSQLOp(o.Right, seq)
+		right, _ = derefSchema(rightSch, "", right)
+		return dag.Seq{
+			&dag.Fork{Kind: "Fork", Paths: []dag.Seq{left, right}},
+			&dag.Combine{Kind: "Combine"},
+		}
 	case *ast.Assert:
 		cond := a.semExpr(o.Expr)
 		// 'assert EXPR' is equivalent to

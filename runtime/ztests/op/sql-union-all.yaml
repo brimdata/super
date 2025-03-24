@@ -1,0 +1,20 @@
+script: |
+  super -z -c 'SELECT * FROM a.jsup UNION ALL SELECT * FROM b.jsup |> sort'
+
+vector: true
+
+inputs:
+  - name: a.jsup
+    data: |
+      {x:1,y:2}
+  - name: b.jsup
+    data: |
+      {x:1,y:2}
+      {y:3,x:4}
+
+outputs:
+  - name: stdout
+    data: |
+      {x:1,y:2}
+      {x:1,y:2}
+      {y:3,x:4}

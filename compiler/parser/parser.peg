@@ -2234,8 +2234,7 @@ SetOperation
 
 SetOp 
   = _ UNION _ ALL       { return false, nil }
-  / _ UNION _ DISTINCT  { return true, nil }
-  / ""                      { return true, nil}
+  / _ UNION (_ DISTINCT)?  { return true, nil }
 
 // XXX incomplete
 SQLGuard =
