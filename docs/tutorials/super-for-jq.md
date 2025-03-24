@@ -3,7 +3,7 @@ weight: 1
 title: For jq Users
 ---
 
-SuperSQL’s pipes and shortcuts provide a flexible and powerful way for SQL
+[SuperSQL](../language/_index.md)’s pipes and shortcuts provide a flexible and powerful way for SQL
 users to query their JSON data while leveraging their existing skills.
 However, users who've traditionally wrangled their JSON with other tools such
 as [`jq`](https://stedolan.github.io/jq/) will find `super` equally powerful
