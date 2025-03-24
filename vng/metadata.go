@@ -294,10 +294,20 @@ func metadataValue(zctx *super.Context, b *zcode.Builder, m Metadata) super.Type
 		}
 		b.EndContainer()
 		return zctx.MustLookupTypeRecord(fields)
+	case *Named:
+		return metadataValue(zctx, b, m.Values)
 	case *Array:
+		b.Append(nil)
+		return super.TypeNull
 	case *Set:
+		b.Append(nil)
+		return super.TypeNull
 	case *Map:
+		b.Append(nil)
+		return super.TypeNull
 	case *Union:
+		b.Append(nil)
+		return super.TypeNull
 	case *Primitive:
 		min, max := super.NewValue(m.Typ, nil), super.NewValue(m.Typ, nil)
 		if m.Min != nil {
