@@ -1,0 +1,29 @@
+zed: |
+  select
+      key,
+      and(distinct b),
+      any(distinct n),
+      avg(distinct n),
+      collect(distinct key),
+      count(distinct n),
+      dcount(distinct n),
+      max(distinct n),
+      min(distinct n),
+      or(distinct b),
+      sum(distinct n),
+      union(distinct n)
+  group by key
+  order by key
+
+vector: true
+
+input: |
+  {key:"a",n:1,b:true}
+  {key:"a",n:2,b:false}
+  {key:"b",n:1,b:true}
+  {key:"b",n:0,b:true}
+  {key:"a",n:1,b:false}
+
+output: |
+  {key:"a",and:false,any:1,avg:1.5,collect:["a"],count:2(uint64),dcount:2(uint64),max:2,min:1,or:true,sum:3,union:|[1,2]|}
+  {key:"b",and:true,any:1,avg:0.5,collect:["b"],count:2(uint64),dcount:2(uint64),max:1,min:0,or:true,sum:1,union:|[0,1]|}

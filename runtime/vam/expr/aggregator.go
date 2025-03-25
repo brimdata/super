@@ -13,8 +13,8 @@ type Aggregator struct {
 	Where   Evaluator
 }
 
-func NewAggregator(name string, expr Evaluator, where Evaluator) (*Aggregator, error) {
-	pattern, err := agg.NewPattern(name, expr != nil)
+func NewAggregator(name string, distinct bool, expr Evaluator, where Evaluator) (*Aggregator, error) {
+	pattern, err := agg.NewPattern(name, distinct, expr != nil)
 	if err != nil {
 		return nil, err
 	}

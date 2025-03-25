@@ -240,10 +240,11 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 		}
 		where := a.semExprNullable(e.Where)
 		return &dag.Agg{
-			Kind:  "Agg",
-			Name:  nameLower,
-			Expr:  expr,
-			Where: where,
+			Kind:     "Agg",
+			Name:     nameLower,
+			Distinct: e.Distinct,
+			Expr:     expr,
+			Where:    where,
 		}
 	case *ast.RecordExpr:
 		fields := map[string]struct{}{}
@@ -777,7 +778,7 @@ func (a *analyzer) semField(f ast.Expr) dag.Expr {
 func (a *analyzer) maybeConvertAgg(call *ast.Call) dag.Expr {
 	name := call.Name.Name
 	nameLower := strings.ToLower(name)
-	if _, err := agg.NewPattern(nameLower, true); err != nil {
+	if _, err := agg.NewPattern(nameLower, false, true); err != nil {
 		return nil
 	}
 	var e dag.Expr

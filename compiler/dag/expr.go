@@ -18,10 +18,11 @@ type (
 
 type (
 	Agg struct {
-		Kind  string `json:"kind" unpack:""`
-		Name  string `json:"name"`
-		Expr  Expr   `json:"expr"`
-		Where Expr   `json:"where"`
+		Kind     string `json:"kind" unpack:""`
+		Name     string `json:"name"`
+		Distinct bool   `json:"distinct"`
+		Expr     Expr   `json:"expr"`
+		Where    Expr   `json:"where"`
 	}
 	ArrayExpr struct {
 		Kind  string       `json:"kind" unpack:""`

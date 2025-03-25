@@ -225,10 +225,18 @@ AggAssignment
     }
 
 Agg
-  = !FuncGuard op:AggName __ "(" __ expr:(OverExpr / Expr)? __ ")" !(__ ".") where:WhereClause? {
+  = !FuncGuard aggDistinct:AggDistinct !(__ ".") where:WhereClause? {
+      agg := aggDistinct.(*ast.Agg)
+      agg.Loc = loc(c)
+      if where != nil {
+        agg.Where = where.(ast.Expr)
+      }
+      return agg, nil
+    }
+  / !FuncGuard name:AggName __ "(" __ expr:(OverExpr / Expr)? __ ")" !(__ ".") where:WhereClause? {
       agg := &ast.Agg{
           Kind: "Agg",
-          Name: op.(string),
+          Name: name.(string),
           Loc: loc(c),
       }
       if expr != nil {
@@ -244,6 +252,17 @@ Agg
           Kind: "Agg",
           Name: "count",
           Loc: cs.(*ast.Call).Loc,
+      }, nil
+    }
+
+AggDistinct
+  = !FuncGuard name:AggName __ "(" __ DISTINCT _ expr:(OverExpr / Expr) __ ")" {
+      return &ast.Agg{
+          Kind: "Agg",
+          Name: name.(string),
+          Distinct: true,
+          Expr: expr.(ast.Expr),
+          Loc: loc(c),
       }, nil
     }
 
@@ -2121,10 +2140,10 @@ Selection
 
 //XXX need to add *, id.*, except, replace
 SelectElem 
-  = e:Expr as:OptAsClause {
+  = expr:(AggDistinct / Expr) as:OptAsClause {
       elem := ast.AsExpr{
         Kind: "AsExpr",
-        Expr: e.(ast.Expr),
+        Expr: expr.(ast.Expr),
         Loc: loc(c),
       }
       if as != nil {

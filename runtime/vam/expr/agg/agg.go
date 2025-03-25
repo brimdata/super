@@ -16,7 +16,7 @@ type Func interface {
 
 type Pattern func() Func
 
-func NewPattern(op string, hasarg bool) (Pattern, error) {
+func NewPattern(op string, distinct, hasarg bool) (Pattern, error) {
 	needarg := true
 	var pattern Pattern
 	switch op {
@@ -74,6 +74,13 @@ func NewPattern(op string, hasarg bool) (Pattern, error) {
 	}
 	if needarg && !hasarg {
 		return nil, fmt.Errorf("%s: argument required", op)
+	}
+	if distinct {
+		switch op {
+		case "avg", "collect", "count", "sum":
+			// Distinct affects only these functions.
+			return func() Func { return newDistinct(pattern()) }, nil
+		}
 	}
 	return pattern, nil
 }

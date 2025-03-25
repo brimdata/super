@@ -70,5 +70,5 @@ func (b *Builder) compileAgg(agg *dag.Agg) (*expr.Aggregator, error) {
 			return nil, err
 		}
 	}
-	return expr.NewAggregator(name, arg, where)
+	return expr.NewAggregator(name, agg.Distinct, arg, where)
 }
