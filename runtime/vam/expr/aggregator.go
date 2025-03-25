@@ -1,19 +1,23 @@
 package expr
 
 import (
+	"encoding/binary"
+
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr/agg"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/zcode"
 )
 
 type Aggregator struct {
-	Pattern agg.Pattern
-	Name    string
-	Expr    Evaluator
-	Where   Evaluator
+	pattern  agg.Pattern
+	Name     string
+	distinct bool
+	Expr     Evaluator
+	Where    Evaluator
 }
 
-func NewAggregator(name string, expr Evaluator, where Evaluator) (*Aggregator, error) {
+func NewAggregator(name string, distinct bool, expr Evaluator, where Evaluator) (*Aggregator, error) {
 	pattern, err := agg.NewPattern(name, expr != nil)
 	if err != nil {
 		return nil, err
@@ -24,10 +28,11 @@ func NewAggregator(name string, expr Evaluator, where Evaluator) (*Aggregator, e
 		expr = NewLiteral(super.True)
 	}
 	return &Aggregator{
-		Pattern: pattern,
-		Name:    name,
-		Expr:    expr,
-		Where:   where,
+		pattern:  pattern,
+		Name:     name,
+		distinct: distinct,
+		Expr:     expr,
+		Where:    where,
 	}, nil
 }
 
@@ -56,4 +61,38 @@ func (a *Aggregator) apply(args ...vector.Any) vector.Any {
 		vec = vector.CopyAndSetNulls(vec, nulls)
 	}
 	return vec
+}
+
+func (a *Aggregator) NewFunction() agg.Func {
+	f := a.pattern()
+	if a.distinct {
+		f = &distinct{f, map[string]struct{}{}}
+	}
+	return f
+}
+
+type distinct struct {
+	agg.Func
+	seen map[string]struct{}
+}
+
+func (d *distinct) Consume(vec vector.Any) {
+	id := vec.Type().ID()
+	var index []uint32
+	var b zcode.Builder
+	for i := range vec.Len() {
+		b.Truncate()
+		vec.Serialize(&b, i)
+		buf := binary.AppendVarint(b.Bytes(), int64(id))
+		if _, ok := d.seen[string(buf)]; ok {
+			continue
+		}
+		d.seen[string(buf)] = struct{}{}
+		index = append(index, i)
+	}
+	if len(index) < int(vec.Len()) {
+		vec = vector.NewView(vec, index)
+	}
+	d.Func.Consume(vec)
+
 }

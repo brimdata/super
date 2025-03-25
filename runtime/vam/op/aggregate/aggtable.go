@@ -75,7 +75,7 @@ func (s *superTable) update(keys []vector.Any, args []vector.Any) {
 func (s *superTable) newRow(keys []vector.Any, index []uint32) aggRow {
 	var row aggRow
 	for _, agg := range s.aggs {
-		row.funcs = append(row.funcs, agg.Pattern())
+		row.funcs = append(row.funcs, agg.NewFunction())
 	}
 	var b zcode.Builder
 	for _, key := range keys {

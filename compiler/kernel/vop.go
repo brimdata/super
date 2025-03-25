@@ -418,5 +418,5 @@ func (b *Builder) compileVamAgg(agg *dag.Agg) (*vamexpr.Aggregator, error) {
 			return nil, err
 		}
 	}
-	return vamexpr.NewAggregator(name, arg, where)
+	return vamexpr.NewAggregator(name, agg.Distinct, arg, where)
 }

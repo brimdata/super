@@ -73,7 +73,11 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 	case nil:
 		c.write("null")
 	case *dag.Agg:
-		c.write("%s(", e.Name)
+		var distinct string
+		if e.Distinct {
+			distinct = "distinct "
+		}
+		c.write("%s(%s", e.Name, distinct)
 		if e.Expr != nil {
 			c.expr(e.Expr, "")
 		}
