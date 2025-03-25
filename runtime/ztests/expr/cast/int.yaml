@@ -10,6 +10,7 @@ input: |
   1(uint64)
   10000000000000000000(uint64)
   -1.
+  1.5(=named)
   1e8
 
 
@@ -38,6 +39,10 @@ output: |
   -1(int16)
   -1(int32)
   -1
+  1(int8)
+  1(int16)
+  1(int32)
+  1
   error({message:"cannot cast to int8",on:100000000.})
   error({message:"cannot cast to int16",on:100000000.})
   100000000(int32)

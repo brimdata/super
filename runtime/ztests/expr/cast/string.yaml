@@ -5,6 +5,7 @@ vector: true
 input: |
   1
   2
+  3(=named)
   null(int64)
   1(uint32)
   2(uint32)
@@ -29,6 +30,7 @@ input: |
 output: |
   "1"
   "2"
+  "3"
   null(string)
   "1"
   "2"

@@ -11,7 +11,7 @@ input: |
   1.5
   0.
   null(float64)
-  "T"
+  "T"(=named)
   "true"
   "F"
   "false"

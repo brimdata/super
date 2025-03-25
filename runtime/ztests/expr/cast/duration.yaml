@@ -8,7 +8,7 @@ input: |
   "1.5e9"
   ""
   -1.5e12
-  1
+  1(=named)
   1e+19
 
 output: |

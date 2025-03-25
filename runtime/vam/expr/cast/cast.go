@@ -8,6 +8,7 @@ import (
 )
 
 func To(zctx *super.Context, vec vector.Any, typ super.Type) vector.Any {
+	vec = vector.Under(vec)
 	var c caster
 	id := typ.ID()
 	if super.IsNumber(id) {
