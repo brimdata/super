@@ -105,7 +105,7 @@ type When struct {
 }
 
 // A Call represents different things dependending on its context.
-// As a operator, it is either an aggregate with no grouping keys and no duration,
+// As an operator, it is either an aggregate with no grouping keys and no duration,
 // or a filter with a function that is boolean valued.  This is determined
 // by the compiler rather than the syntax tree based on the specific functions
 // and aggregators that are defined at compile time.  In expression context,

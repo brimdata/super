@@ -11,11 +11,11 @@ import (
 // Column of a select statement.  We bookkeep here whether
 // a column is a scalar expression or an aggregation by looking up the function
 // name and seeing if it's an aggregator or not.  We also infer the column
-// names so we can do SQL error checking relating the selections to the group-by keys,
+// names so we can do SQL error checking relating the selections to the grouping keys,
 // and statically compute the resulting schema from the selection.
 // When the column is an agg function expression,
 // the expression is composed of agg functions and
-// fixed references relative to the agg (like group-by keys)
+// fixed references relative to the agg (like grouping keys)
 // as well as alias from selected columns to the left of the
 // agg expression.  e.g., select max(x) m, (sum(a) + sum(b)) / m as q
 // would be two aggs where sum(a) and sum(b) are

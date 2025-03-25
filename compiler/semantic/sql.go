@@ -158,7 +158,7 @@ func (a *analyzer) genAggregate(loc ast.Loc, proj projection, where dag.Expr, ke
 	}
 	if len(proj) != len(proj.aggCols()) {
 		// Yield expressions for potentially left-to-right-dependent
-		// column expressions of the group-by expression components.
+		// column expressions of the grouping expression components.
 		seq = a.genYield(proj, nil, nil, seq)
 	}
 	if where != nil {
@@ -198,7 +198,7 @@ func (a *analyzer) genAggregateOutput(proj projection, keyExprs []exprloc, seq d
 	notFirst := false
 	for _, col := range proj {
 		if col.isStar() {
-			// XXX this turns into group-by keys (this)
+			// XXX this turns into grouping keys (this)
 			panic("TBD")
 		}
 		var elems []dag.RecordElem
@@ -217,18 +217,18 @@ func (a *analyzer) genAggregateOutput(proj projection, keyExprs []exprloc, seq d
 				Value: col.expr,
 			})
 		} else {
-			// First, try to match the column expression to one of the group
-			// by expressions.  If that doesn't work, see if the aliased column
-			// name is one of the group-by expressions.
+			// First, try to match the column expression to one of the grouping
+			// expressions.  If that doesn't work, see if the aliased column
+			// name is one of the grouping expressions.
 			which := exprMatch(col.expr, keyExprs)
 			if which < 0 {
 				// Look for an exact-match of a column alias which would
 				// convert to path out.<id> in the name resolution of the
-				// group-by expression.
+				// grouping expression.
 				alias := &dag.This{Kind: "This", Path: []string{"out", col.name}}
 				which = exprMatch(alias, keyExprs)
 				if which < 0 {
-					a.error(col.loc, fmt.Errorf("no corresponding group-by element for non-aggregate %q", col.name))
+					a.error(col.loc, fmt.Errorf("no corresponding grouping element for non-aggregate %q", col.name))
 				}
 			}
 			elems = append(elems, &dag.Field{
@@ -556,7 +556,7 @@ func (a *analyzer) semGroupBy(sch *selectSchema, in []ast.Expr) []exprloc {
 	var funcs aggfuncs
 	for k, expr := range in {
 		e := a.semExprSchema(sch, expr)
-		// Group-by expressions can't have agg funcs so we parse as a column
+		// Grouping expressions can't have agg funcs so we parse as a column
 		// and see if any agg functions were found.
 		c, _ := newColumn("", in[k], e, &funcs)
 		if c != nil && c.isAgg {

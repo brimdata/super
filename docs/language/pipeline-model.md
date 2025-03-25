@@ -199,11 +199,11 @@ sort s
 
 ## Field Assignments
 
-A typical operation in records involves
+A typical operation on records involves
 adding or changing the fields of a record using the [`put` operator](operators/put.md)
 or extracting a subset of fields using the [`cut` operator](operators/cut.md).
-Also, when aggregating data using grouping keys, the aggregation assignments
-create new named record fields.
+Also, when aggregating data using the [`aggregate` operator](operators/aggregate.md)
+with grouping keys, the aggregate expressions create new named record fields.
 
 In all of these cases, the SuperPipe language uses the token `:=` to denote
 field assignment.  For example,

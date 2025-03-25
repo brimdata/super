@@ -30,6 +30,6 @@ outputs:
       {d:16,collect:[2]}
   - name: err1
     data: |
-      no corresponding group-by element for non-aggregate "c+a" at line 1, column 8:
+      no corresponding grouping element for non-aggregate "c+a" at line 1, column 8:
       select c+a,collect(c) from a.jsup group by a+c
              ~~~

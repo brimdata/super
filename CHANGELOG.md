@@ -386,7 +386,7 @@ questions.
 * Add a `shape` operator, which is useful for cleaning up CSV inputs (#2327)
 * Fix an issue where querying a Zed lake index for a named field could cause a panic (#2319)
 * Make casting to `time` and `duration` types more flexible (#2334, #2442)
-* Fix an issue where `null` values were not output consistently in an aggregation (#2363)
+* Fix an issue where `null` values were not output consistently in a grouped aggregation (#2363)
 * Fix an issue where the confirmation messages from adding an index were sometimes incomplete (#2361)
 * Finalize ZSON `duration` format to be an extension of [durations in Prometheus](https://prometheus.io/docs/prometheus/latest/querying/basics/#time-durations) (#2358, #2371, #2381, #2396, #2405)
 * Add functions `missing()`, `has()`, and `nameof()` (#2393, #2708)
@@ -765,7 +765,7 @@ questions.
 
 ## v0.17.0
 * zq: Fix an issue where the inferred JSON reader crashed on multiple nested fields (#948)
-* zq: Introduce spill-to-disk for very large aggregations (#932, #963)
+* zq: Introduce spill-to-disk for very large grouped aggregations (#932, #963)
 * zql: Use syntax `c=count()` instead of `count() as c` for naming the field that holds the value returned by an aggregate function (#950)
 * zql: Fix an issue where attempts to `tail` too much caused a panic (#958)
 * zng: Readability improvements in the [ZNG specification](docs/formats/bsup.md) (#935)
@@ -777,7 +777,7 @@ questions.
 ## v0.16.0
 * zng: Readability improvements in the [ZNG specification](docs/formats/bsup.md) (#897, #910, #917)
 * zq: Support directory output to S3 (#898)
-* zql: Aggregation no longer emits records in "deterministic but undefined" order (#914)
+* zql: Grouped aggregation no longer emits records in "deterministic but undefined" order (#914)
 * zqd: Revise constraints on Space names (#853, #926, #944, #945)
 * zqd: Fix an issue where a file replacement race could cause an "access is denied" error in Brim during pcap import (#925)
 * zng: Revise [Zeek compatibility](docs/integrations/zeek/data-type-compatibility.md) doc (#919)
@@ -822,7 +822,7 @@ questions.
 * zqd: Enable time indexing to provide faster query response in narrower time ranges (#647)
 * zql: Make ipv4 subnet bases contain 4 octets to remove ambiguity between fractions & CIDR (#670)
 * zq: Use an external sort for large inputs (removes the 10-million line `sort` limit) (#527)
-* zq: Fix an issue where duplicate field names could be produced by aggregate functions & aggregation (#676)
+* zq: Fix an issue where duplicate field names could be produced by grouped aggregation (#676)
 * zar: Introduce an experimental prototype for working with archived logs (#700)
 * zq: Support recursive record nesting in Zeek reader/writer (#715)
 * zqd: Zeek log import support needed for Brim (#616, #517, #608, #592, #592, #582, #709)

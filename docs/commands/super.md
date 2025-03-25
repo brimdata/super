@@ -984,7 +984,7 @@ Because the assignees can appear in either a list of strings
 or within a single string field, the relational model requires that two different
 subqueries run for the two cases and the result unioned together; then,
 this intermediary table can be counted using the unnested
-assignee as the group-by key.
+assignee as the grouping key.
 This query is:
 ```sql
 WITH assignees AS (
