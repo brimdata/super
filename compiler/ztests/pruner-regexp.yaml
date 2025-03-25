@@ -5,20 +5,26 @@ script: |
   super compile -C -O 'file test.csup | where grep(/^csla[bB].*/, x)'
   echo // ===
   super compile -C -O 'file test.csup | where grep(/csla[bB].*/, x)'
+  echo // ===
+  echo '{x:"a"}' | super -f csup -o x.csup -
+  super -z -c "SELECT x FROM x.csup WHERE x LIKE 'a%'"
+  echo // ===
+  echo '{x:"a"}' | super -f parquet -o x.parquet -
+  super -z -c "SELECT x FROM x.parquet WHERE x LIKE 'a%'"
 
 outputs:
   - name: stdout
     data: |
       file test.csup format csup
          pruner (
-          compare("cslab", x.min, true)<0 and compare("cslac", x.max, true)>=0
+          compare("cslab", x.max, true)<=0 and compare("cslac", x.min, true)>0
         )
       | where regexp_search(/(?s)^cslab.*?$/, x)
       | output main
       // ===
       file test.csup format csup
          pruner (
-          compare("csla", x.min, true)<0 and compare("cslb", x.max, true)>=0
+          compare("csla", x.max, true)<=0 and compare("cslb", x.min, true)>0
         )
       | where regexp_search(/^csla[bB].*/, x)
       | output main
@@ -26,3 +32,7 @@ outputs:
       file test.csup format csup
       | where regexp_search(/csla[bB].*/, x)
       | output main
+      // ===
+      {x:"a"}
+      // ===
+      {x:"a"}

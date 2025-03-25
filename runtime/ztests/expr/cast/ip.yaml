@@ -8,6 +8,7 @@ input: |
   "2001:0000:130F:0000:0000:09C0:876A:130B"
   null(string)
   1.1.1.1
+  1.1.1.2(=named)
   34
   35
 
@@ -17,5 +18,6 @@ output: |
   2001:0:130f::9c0:876a:130b
   null(ip)
   1.1.1.1
+  1.1.1.2
   error({message:"cannot cast to ip",on:34})
   error({message:"cannot cast to ip",on:35})

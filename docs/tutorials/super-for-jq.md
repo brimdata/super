@@ -1,46 +1,59 @@
 ---
 weight: 1
-title: super
-heading: super Tutorial
+title: For jq Users
 ---
 
-This tour provides new users of `super` an overview of the tool and
-the [SuperPipe language](../language/_index.md)
-by walking through a number of examples on the command-line.
-This should get you started without having to read through all the gory details
-of the [SuperPipe language](../language/_index.md) or [`super` command-line usage](../commands/super.md).
+[SuperSQL](../language/_index.md)’s pipes and shortcuts provide a flexible and powerful way for SQL
+users to query their JSON data while leveraging their existing skills.
+However, users who've traditionally wrangled their JSON with other tools such
+as [`jq`](https://stedolan.github.io/jq/) will find `super` equally powerful
+even if they don't know SQL or just prefer to work primarily in shortcuts. This tour
+walks through a number of examples using [`super`](../commands/super.md) at
+the command line with `jq` as a
+reference point.
 
-We'll start with some simple one-liners on the command line where we feed
-some data to `super` with `echo` and specify `-` for `super` input to indicate
-that standard input should be used, e.g.,
+We'll start with some simple one-liners where we feed some data to `super`
+with `echo` and specify `-` as input to indicate that standard input
+should be used, e.g.,
 ```
 echo '"hello, world"' | super -
 ```
 Then, toward the end of the tour, we'll experiment with some real-world GitHub data
 pulled from the GitHub API.
 
+Of course, if SQL is your preference, you can write many of the examples shown
+using the SQL equivalent, e.g.,
+```
+super -c "SELECT VALUE 'hello, world'"
+```
+
+or a mix of SQL and pipeline extensions as suits your preferences. However,
+to make this tutorial relevant to `jq` users, we'll lean heavily on SuperSQL's
+use of pipes and shortcuts.
+
 If you want to follow along on the command line,
 just make sure the `super` command [is installed](../getting_started/install.md)
-as well as [`jq`](https://stedolan.github.io/jq/).
+as well as [`jq`](https://jqlang.org/download/).
 
 ## But JSON
 
 While `super` is based on a new type of [data model](../formats/data-model.md),
-Zed just so happens to be a superset of JSON.
+its human-readable format [Super JSON (JSUP)](../formats/jsup.md) just so
+happens to be a superset of JSON.
 
-So if all you ever use `zq` for is manipulating JSON data,
-it can serve you well as a handy, go-to tool.  In this way, `zq` is kind of
+So if all you ever use `super` for is manipulating JSON data,
+it can serve you well as a handy, go-to tool.  In this way, `super` is kind of
 like `jq`.  As you probably know, `jq`
 is a popular command-line tool for taking a sequence of JSON values as input,
 doing interesting things on that input, and emitting results, of course, as JSON.
 
 `jq` is awesome and powerful, but its syntax and computational model can
-sometimes be daunting and difficult.  We tried to make `zq` really easy and intuitive,
-and it is usually faster, sometimes [much faster](../commands/super.md#performance),
+sometimes be daunting and difficult.  We tried to make `super` really easy and intuitive,
+and it is usually faster, sometimes [much faster](https://github.com/brimdata/super/tree/main/performance),
 than `jq`.
 
 To this end, if you want full JSON compatibility without having to delve into the
-details of Zed, just use the `-j` option with `zq` and this will tell `zq` to
+details of JSUP, just use the `-j` option with `super` and this will tell it to
 expect JSON values as input and produce JSON values as output, much like `jq`.
 
 {{% tip "Tip" %}}
@@ -64,7 +77,7 @@ and you get
 3
 4
 ```
-With `zq`, the mysterious `jq` value `.` is instead called
+With `super`, the mysterious `jq` value `.` is instead called
 the almost-as-mysterious value
 [`this`](../language/pipeline-model.md#the-special-value-this) and you say:
 ```mdtest-command
@@ -76,19 +89,24 @@ which also gives
 3
 4
 ```
-> Note that we are using the `-z` option with `zq` in all of the examples,
-> which causes `zq` to format the output as [ZSON](../formats/jsup.md).
-> When running `zq` on the terminal, you do not need `-z` as it is the default,
-> but we include it here for clarity and because all of these examples are
-> run through automated testing, which is not attached to a terminal.
+
+{{% tip "Note" %}}
+
+We are using the `-z` option with `super` in all of the examples,
+which formats the output as [JSUP](../formats/jsup.md).
+When running `super` on the terminal, you do not need `-z` as it is the default,
+but we include it here for clarity and because all of these examples are
+run through automated testing, which is not attached to a terminal.
+
+{{% /tip %}}
 
 ## Search vs Transformation
 
-Unlike `jq`, which leads with _transformation_, `zq` leads with _search_ but
+Generally, `jq` leads with _transformation_. By comparison, `super` leads with _search_, but
 transformation is also pretty easy.  Let's show what we mean here with an
 example.
 
-If we run this `jq` command,
+Let's start from a minimal example.  If we run this `jq` command,
 ```
 echo '1 2 3' | jq 2
 ```
@@ -102,8 +120,8 @@ Hmm, that's a little odd, but it did what we told it to do.  In `jq`, the
 expression `2` is evaluated for each input value, and the value `2`
 is produced each time, so three copies of `2` are emitted.
 
-In `zq` however, `2` by itself is interpreted as a search and is
-[shorthand for](../language/pipeline-model.md#implied-operators) `search 2` so the command
+In `super`, a lonely `2` all by itself is not a valid query, but adding a
+leading `?` (shorthand for the [`search` operator](../language/operators/search.md))
 ```mdtest-command
 echo '1 2 3' | super -z -c '? 2' -
 ```
@@ -117,7 +135,7 @@ input:
 echo '1 2 [1,2,3] [4,5,6] {r:{x:1,y:2}} {r:{x:3,y:4}} "hello" "Number 2"' |
   super -z -c '? 2' -
 ```
-we naturally find all the 2's whether as a value, inside a value, or inside a string:
+we naturally find all the places `2` appears whether as a value, inside a value, or inside a string:
 ```mdtest-output
 2
 [1,2,3]
@@ -137,7 +155,7 @@ produces
 Doing searches like this in `jq` would be hard.
 
 That said, we can emulate the `jq` transformation stance by explicitly
-indicating that we want to [yield](../language/operators/yield.md)
+indicating that we want to [`yield`](../language/operators/yield.md)
 the result of the expression evaluated for each input value, e.g.,
 ```mdtest-command
 echo '1 2 3' | super -z -c 'yield 2' -
@@ -151,28 +169,27 @@ now gives the same answer as `jq`:
 Cool, but doesn't it seem like search is a better disposition for
 shorthand syntax?  What do you think?
 
-## On to ZSON
+## On to JSUP
 
 JSON is super easy and ubiquitous, but it can be limiting and frustrating when
 trying to do high-precision stuff with data.
 
-When using `zq`, it's handy to operate in the
-domain of Zed data and only output to JSON when needed.
+When using `super`, it's handy to operate in the
+domain of [super-structured data](../formats/_index.md#2-a-super-structured-pattern) and only output to
+JSON when needed. Providing human-readability without losing detail is what
+[Super JSON (JSUP)](../formats/jsup.md) is all about.
 
-The human-readable format of Zed is called [ZSON](../formats/jsup.md)
-(and yes, that's a play on the acronym JSON).
-
-ZSON is nice because it has a comprehensive type system and you can
-go from ZSON to an efficient binary row format ([Super Binary](../formats/bsup.md))
-and columnar ([Super Columnar](../formats/csup.md)) --- and vice versa ---
+JSUP is nice because it has a comprehensive type system and you can
+go from JSUP to an efficient binary row format ([Super Binary, BSUP)](../formats/bsup.md)
+and columnar ([Super Columnar, CSUP)](../formats/csup.md) --- and vice versa ---
 with complete fidelity and no loss of information.  In this tour,
-we'll stick to ZSON (though for large data sets,
-[Super Binary is much faster](../commands/super.md#performance)).
+we'll stick to JSUP, though for large data sets
+[Super Binary is much faster](https://github.com/brimdata/super/tree/main/performance).
 
-The first thing you'll notice about ZSON is that you don't need
+The first thing you'll notice about JSUP is that you don't need
 quotations around field names.  We can see this by taking some JSON
-as input (the JSON format is auto-detected by `zq`) and formatting
-it as pretty-printed ZSON with `-Z`:
+as input (the JSON format is auto-detected by `super`) and formatting
+it as pretty-printed JSUP with `-Z`:
 ```mdtest-command
 echo '{"s":"hello","val":1,"a":[1,2],"b":true}' | super -Z -
 ```
@@ -189,7 +206,7 @@ which gives
 }
 ```
 `s`, `val`, `a`, and `b` all appear as unquoted identifiers here.
-Of course if you have funny characters in a field name, ZSON can handle
+Of course if you have funny characters in a field name, JSUP can handle
 it with quotes just like JSON:
 ```mdtest-command
 echo '{"funny@name":1}' | super -z -
@@ -198,7 +215,7 @@ produces
 ```mdtest-output
 {"funny@name":1}
 ```
-Moreover, ZSON is fully compatible with all of JSON's corner cases like empty string
+Moreover, JSUP is fully compatible with all of JSON's corner cases like empty string
 as a field name and empty object as a value, e.g.,
 ```mdtest-command
 echo '{"":{}}' | super -z -
@@ -210,9 +227,9 @@ produces
 
 ## Comprehensive Types
 
-ZSON also has a [comprehensive type system](../formats/data-model.md).
+JSUP also has a [comprehensive type system](../formats/data-model.md).
 
-For example, here is ZSON "record" with a taste of different types
+For example, here is a JSUP "record" with a taste of different types
 of values as record fields:
 ```
 {
@@ -246,40 +263,43 @@ of values as record fields:
     }
 }
 ```
+The first seven values are all [primitive types](../formats/data-model.md#1-primitive-types)
+in the [super data model](../formats/data-model.md).
+
 Here, `v1` is a 64-bit IEEE floating-point value just like JSON.
 
 Unlike JSON, `v2` is a 64-bit integer.  And there are other integer
 types as with `v3`,
-which utilizes a [ZSON type decorator](../formats/jsup.md#22-type-decorators),
+which utilizes a [JSUP type decorator](../formats/jsup.md#22-type-decorators),
 in this case,
 to clarify its specific type of integer as unsigned 8 bits.
-a
+
 `v4` has type `time` and `v5` type `duration`.
 
 `v6` is type `ip` and `v7` type `net`.
 
-`v8` is an array of elements of type `int64`, which in Zed, is a type
-written as `[int64]`.
+`v8` is an [array](../formats/data-model.md#22-array) of elements of type `int64`,
+which is a type written as `[int64]`.
 
-`v9` is a "set of strings", which is written like an array but with the
+`v9` is a "[set](../formats/data-model.md#23-set) of strings", which is written like an array but with the
 enclosing syntax `|[` and `]|`.
 
-`v10` is a "map" type, which in other languages is often called a "table"
-or a "dictionary".  In Zed, a value of any type can be used for the key or the
-value though all of the keys and all of the values must have the same type.
+`v10` is a "[map](../formats/data-model.md#24-map)" type, which in other languages is often called a "table"
+or a "dictionary".  In the super data model, a value of any type can be used for key or
+value in a map though all of the keys and all of the values must have the same type.
 
-Finally, `v11` is a Zed "record", which is similar to a JSON "object", but the
-keys are called "fields", the order of the fields is significant and
+Finally, `v11` is a "[record](../formats/data-model.md#21-record)", which is similar to a JSON "object", but the
+keys are called "fields" and the order of the fields is significant and
 is always preserved.
 
 ## Records
 
 As is often the case with semi-structured systems, you deal with
 nested values all the time: in JSON, data is nested with objects and arrays,
-while in Zed, data is nested with "records" and arrays (as well as other complex types).
+while in super-structured data, data is nested with "records" and arrays (as well as other complex types).
 
 [Record expressions](../language/expressions.md#record-expressions)
-are rather flexible with `zq` and look a bit like JavaScript
+are rather flexible with `super` and look a bit like JavaScript
 or `jq` syntax, e.g.,
 ```mdtest-command
 echo '1 2 3' | super -z -c 'yield {kind:"counter",val:this}' -
@@ -290,8 +310,9 @@ produces
 {kind:"counter",val:2}
 {kind:"counter",val:3}
 ```
-Note that like the search shortcut, you can also drop the yield keyword
-here because the record literal implies the yield operator, e.g.,
+Note that like the search shortcut, you can also drop the `yield` keyword
+here because the record literal [implies](../language/pipeline-model.md#implied-operators)
+the [`yield` operator](../language/operators/yield.md), e.g.,
 ```mdtest-command
 echo '1 2 3' | super -z -c '{kind:"counter",val:this}' -
 ```
@@ -301,7 +322,7 @@ also produces
 {kind:"counter",val:2}
 {kind:"counter",val:3}
 ```
-`zq` can also use a spread operator like JavaScript, e.g.,
+`super` can also use a spread operator like JavaScript, e.g.,
 ```mdtest-command
 echo '{a:{s:"foo", val:1}}{b:{s:"bar"}}' | super -z -c '{...a,s:"baz"}' -
 ```
@@ -324,7 +345,7 @@ produces
 
 Sometimes you just want to extract or mutate certain fields of records.
 
-Similar to the Unix `cut` command, the Zed [cut operator](../language/operators/cut.md)
+Similar to the Unix `cut` command, the [`cut` operator](../language/operators/cut.md)
 extracts fields, e.g.,
 ```mdtest-command
 echo '{s:"foo", val:1}{s:"bar"}' | super -z -c 'cut s' -
@@ -334,7 +355,7 @@ produces
 {s:"foo"}
 {s:"bar"}
 ```
-while the [put operator](../language/operators/put.md) mutates existing fields
+while the [`put` operator](../language/operators/put.md) mutates existing fields
 or adds new fields, e.g.,
 ```mdtest-command
 echo '{s:"foo", val:1}{s:"bar"}' | super -z -c 'put val:=123,pi:=3.14' -
@@ -353,7 +374,7 @@ produces the very same output:
 {s:"foo",val:123,pi:3.14}
 {s:"bar",val:123,pi:3.14}
 ```
-Finally, it's worth mentioning that errors in Zed are
+Finally, it's worth mentioning that errors in the super data model are
 [first class](https://en.wikipedia.org/wiki/First-class_citizen).
 This means they can just show up in the data as values.  In particular,
 a common error is `error("missing")` which occurs most often when referencing
@@ -366,9 +387,9 @@ produces
 {val:1}
 {val:error("missing")}
 ```
-Sometimes you expect missing errors to occur sporadically and just want
+Sometimes you expect "missing" errors to occur sporadically and just want
 to ignore them, which can you easily do with the
-[quiet function](../language/functions/quiet.md), e.g.,
+[`quiet` function](../language/functions/quiet.md), e.g.,
 ```mdtest-command
 echo '{s:"foo", val:1}{s:"bar"}' | super -z -c 'cut quiet(val)' -
 ```
@@ -379,11 +400,11 @@ produces
 
 ## Union Types
 
-One of the tricks `zq` uses to represent JSON data in its structured type system
+One of the tricks `super` uses to represent JSON data in its structured type system
 is [union types](../language/expressions.md#union-values).
 Most of the time, you don't need to worry about unions
 but they show up from time to time.  Even when
-they show up, Zed just tries to "do the right thing" so you usually
+they show up, `super` just tries to "do the right thing" so you usually
 don't have to worry about them even when they show up.
 
 For example, this query is perfectly happy to operate on the union values
@@ -397,7 +418,7 @@ produces
 "foo"
 ```
 but under the covers, the elements of the array have a union type of
-`int64` and `string`, which is written `(int64,string)`, e.g,.
+`int64` and `string`, which is written `(int64,string)`, e.g.,
 ```mdtest-command
 echo '[1, "foo", 2, "bar"]' | super -z -c 'yield typeof(this)' -
 ```
@@ -407,22 +428,22 @@ produces
 ```
 which is a type value representing an array of union values.
 
-As you learn more about Zed and want to use `zq` to do data discovery and
+As you learn more about super-structured data and want to use `super` to do data discovery and
 preparation, union types are really quite powerful.  They allow records
 with fields of different types or mixed-type arrays to be easily expressed
 while also having a very precise type definition.  This is the essence
-of Zed's new
+of the new
 [super-structured data model](../formats/_index.md#2-a-super-structured-pattern).
 
 ## First-class Types
 
 Note that in the type value above, the type is wrapped in angle brackets.
-This is how ZSON represents types when expressed as values.
-In other words, Zed has
+This is how JSUP represents types when expressed as values.
+In other words, the super data model has
 [first-class](https://en.wikipedia.org/wiki/First-class_citizen) types.
 
-The type of any value in `zq` can be accessed via the
-[typeof function](../language/functions/typeof.md), e.g.,
+The type of any value in `super` can be accessed via the
+[`typeof` function](../language/functions/typeof.md), e.g.,
 ```mdtest-command
 echo '1 "foo" 10.0.0.1' | super -z -c 'yield typeof(this)' -
 ```
@@ -436,7 +457,7 @@ What's the big deal here?  We can print out the type of something.  Yawn.
 
 Au contraire, this is really quite powerful because we can
 use types as values to functions, e.g., as a dynamic argument to
-the [cast function](../language/functions/cast.md):
+the [`cast` function](../language/functions/cast.md):
 ```mdtest-command
 echo '{a:0,b:"2"}{a:0,b:"3"}' | super -z -c 'yield cast(b, typeof(a))' -
 ```
@@ -449,7 +470,7 @@ But more powerfully, types can be used anywhere a value can be used and
 in particular, they can be grouping keys, e.g.,
 ```mdtest-command
 echo '{x:1,y:2}{s:"foo"}{x:3,y:4}' |
-  super -f table -c "count() by \`shape\`:=typeof(this) | sort count" -
+  super -f table -c "count() by this['shape']:=typeof(this) | sort count" -
 ```
 produces
 ```mdtest-output
@@ -463,7 +484,7 @@ data discovery.
 
 It's worth mentioning `jq` also has a type operator, but it produces a
 simple string instead of first-class types, and arrays and objects have
-no detail about their structure, e,g.,
+no detail about their structure, e.g.,
 ```
 echo '1 true [1,2,3] {"s":"foo"}' | jq type
 ```
@@ -484,7 +505,7 @@ true
 ```
 i.e., they match even though their underlying shape is different.
 
-With `zq` of course, these are different super-structured types so
+With `super` of course, these are different super-structured types so
 the result is false, e.g.,
 ```mdtest-command
 echo '{"a":{"s":"foo"},"b":{"x":1,"y":2}}' |
@@ -498,8 +519,8 @@ false
 ## Sample
 
 Sometimes you'd like to see a sample value of each shape, not its type.
-This is easy to do with the [any aggregate function](../language/aggregates/any.md),
-e.g,
+This is easy to do with the [`any` aggregate function](../language/aggregates/any.md),
+e.g.,
 ```mdtest-command
 echo '{x:1,y:2}{s:"foo"}{x:3,y:4}' |
   super -z -c 'val:=any(this) by typeof(this) | sort val | yield val' -
@@ -509,7 +530,7 @@ produces
 {s:"foo"}
 {x:1,y:2}
 ```
-We like this pattern so much there is a shortcut [sample operator](../language/operators/sample.md), e.g.,
+We like this pattern so much there is a shortcut [`sample` operator](../language/operators/sample.md), e.g.,
 ```mdtest-command
 echo '{x:1,y:2}{s:"foo"}{x:3,y:4}' | super -z -c 'sample this | sort this' -
 ```
@@ -531,15 +552,15 @@ like this in isolation:
 you have no idea what the expected data type of `b` will be.  Maybe it's another
 number?  Or maybe a string?  Or maybe an array or an embedded object?
 
-`zq` and ZSON don't have this problem because every value (even `null`) is
-comprehensively typed.  However, `zq` in fact must deal with this thorny problem
-when reading JSON and converting it to Zed's super-structure.
+`super` and JSUP don't have this problem because every value (even `null`) is
+comprehensively typed.  However, `super` in fact must deal with this thorny problem
+when reading JSON and converting it to super-structured data.
 
 This is where you might have to spend a little bit of time coding up
-the right `zq` logic to disentangle a JSON mess. But once the data is cleaned up,
-you can leave it in a Zed format and not worry again.
+the right query logic to disentangle a JSON mess. But once the data is cleaned up,
+you can leave it in a super-structured format and not worry again.
 
-To do so, the [fuse operator](../language/operators/fuse.md) comes in handy.
+To do so, the [`fuse` operator](../language/operators/fuse.md) comes in handy.
 Let's say you have this sequence of data:
 ```
 {a:1,b:null}
@@ -552,7 +573,7 @@ sense, e.g.,
 ```mdtest-command
 echo '{a:1,b:null}{a:null,b:[2,3,4]}' | super -z -c fuse -
 ```
-produces this transformed and comprehensively-typed ZSON output:
+produces this transformed and comprehensively-typed JSUP output:
 ```mdtest-output
 {a:1,b:null([int64])}
 {a:null(int64),b:[2,3,4]}
@@ -579,20 +600,34 @@ To appreciate all this, let's have a look next at some real-world data...
 
 ## Real-world GitHub Data
 
-Now that we've covered the basics of `zq` and the Zed language, let's
+Now that we've covered the basics of `super` and its query language, let's
 use the query patterns from above to explore some GitHub data.
 
 First, we need to grab the data.  You can use `curl` for this or you can
-just use `zq` as `zq` can take URLs in addition to file name arguments.
+just use `super` as it can take URLs in addition to file name arguments.
 This command will grab descriptions of first 30 PRs created in the
-public `zed` repository and place it in a file called `prs.json`:
+public `super` repository and place it in a file called `prs.json`:
 ```
 super -f json \
   https://api.github.com/repos/brimdata/super/pulls\?state\=all\&sort\=desc\&per_page=30 \
   > prs.json
 ```
+
+{{% tip "Note" %}}
+
+As we get into the exercise below, we'll reach a step where we encounter some
+unexpected empty objects in the original data. It seems the GitHub API
+must have been having a bad day when we first ran this exercise, as these
+empty records no longer appear if the download is repeated today using the same
+URL shown above. But taming glitchy data is a big part of data discovery, so to
+relive the magic of our original experience, you can download
+[this archived copy](https://superdb.org/docs/tutorials/prs.json) of the
+`prs.json` we originally saw.
+
+{{% /tip %}}
+
 Now that you have this JSON file on your local file system, how would you query it
-with `zq`?
+with `super`?
 
 ### Data Discovery
 
@@ -617,7 +652,7 @@ produces
 1
 ```
 Hmm, there's just one value.  It's probably a big JSON array but let's check with
-the [kind function](../language/functions/kind.md), and as expected:
+the [`kind` function](../language/functions/kind.md), and as expected:
 ```mdtest-command dir=docs/tutorials
 super -z -c 'kind(this)' prs.json
 ```
@@ -638,7 +673,7 @@ pull-request objects as elements of one array representing a single JSON value.
 
 Let's see what sorts of things are in this array.  Here, we need to enumerate
 the items from the array and do something with them.  So how about we use
-the [over operator](../language/operators/over.md)
+the [`over` operator](../language/operators/over.md)
 to traverse the array and count the array items by their "kind",
 ```mdtest-command dir=docs/tutorials
 super -z -c 'over this | count() by kind(this)' prs.json
@@ -649,17 +684,22 @@ produces
 ```
 Ok, they're all records.  Good, this should be easy!
 
-The Zed records were all originally JSON objects.
+The records were all originally JSON objects.
 Maybe we can just use "sample" to have a deeper look...
 ```
 super -Z -c 'over this | sample' prs.json
 ```
-> Here we are using `-Z`, which is like `-z`, but instead of formatting each
-> ZSON value on its own line, it pretty-prints the ZSON with vertical
-> formatting like `jq` does for JSON.
+
+{{% tip "Tip" %}}
+
+Here we are using `-Z`, which is like `-z`, but instead of formatting each
+JSUP value on its own line, it pretty-prints with vertical
+formatting like `jq` does for JSON.
+
+{{% /tip %}}
 
 Ugh, that output is still pretty big.  It's not 10k lines but it's still
-more than 700 lines of pretty-printed ZSON.
+more than 700 lines of pretty-printed JSUP.
 
 Ok, maybe it's not so bad.  Let's check how many shapes there are with `sample`...
 ```mdtest-command dir=docs/tutorials
@@ -672,7 +712,7 @@ produces
 All that data across the samples and only three shapes.
 They must each be really big.  Let's check that out.
 
-We can use the [len function](../language/functions/len.md) on the records to
+We can use the [`len` function](../language/functions/len.md) on the records to
 see the size of each of the four records:
 ```mdtest-command dir=docs/tutorials
 super -z -c 'over this | sample | len(this) | sort this' prs.json
@@ -767,7 +807,7 @@ auto_merge          primitive
 active_lock_reason  primitive
 ```
 With this list of top-level fields, we can easily explore the different
-pieces of their structure with sample.  Let's have a look at a few of the
+pieces of their structure with `sample`.  Let's have a look at a few of the
 record fields by giving these one-liners each a try and looking at the output:
 ```
 super -Z -c 'over this | sample head' prs.json
@@ -776,11 +816,11 @@ super -Z -c 'over this | sample _links' prs.json
 ```
 While these fields have some useful information, we'll decide to drop them here
 and focus on other top-level fields.  To do this, we can use the
-[drop operator](../language/operators/drop.md) to whittle down the data:
+[`drop` operator](../language/operators/drop.md) to whittle down the data:
 ```
 super -Z -c 'over this | fuse | drop head,base,_link | sample' prs.json
 ```
-Ok, this looks more reasonable and is now only 120 lines of pretty-printed ZSON.
+Ok, this looks more reasonable and is now only 120 lines of pretty-printed JSUP.
 
 One more annoying detail here about JSON: time values are stored as strings,
 in this case, in ISO format, e.g., we can pull this value out with
@@ -792,7 +832,7 @@ which produces this string:
 ```mdtest-output
 "2019-11-11T19:50:46Z"
 ```
-Since Zed has a native `time` type and we might want to do native date comparisons
+Since the super data model has a native `time` type and we might want to do native date comparisons
 on these time fields, we can easily translate the string to a time with a cast, e.g.,
 ```mdtest-command dir=docs/tutorials
 super -z -c 'over this | head 1 | yield time(created_at)' prs.json
@@ -813,16 +853,16 @@ produces the native time value:
 ### Cleaning up the Messy JSON
 
 Okay, now that we've explored the data, we have a sense of it and can
-"clean it up" with some Zed logic.  We'll do this one step at a time,
+"clean it up" with some transformative queries.  We'll do this one step at a time,
 then put it all together.
 
 First, let's get rid of the outer array and generate elements of an array
-as a sequence of Zed records that have been fused and let's filter out
+as a sequence of records that have been fused and let's filter out
 the empty records:
 ```
 super -c 'over this | len(this) != 0 | fuse' prs.json > prs1.bsup
 ```
-We can check that worked with count:
+We can check that worked with `count`:
 ```
 super -z -c 'count()' prs1.bsup
 super -z -c 'sample | count()' prs1.bsup
@@ -840,7 +880,7 @@ Now, let's drop the fields we aren't interested in:
 super -c 'drop head,base,_links' prs1.bsup > prs2.bsup
 ```
 Finally, let's clean up those dates.  To track down all the candidates,
-we can run this Zed to group field names by their type and limit the output
+we can run this query to group field names by their type and limit the output
 to primitive types:
 ```
 super -z -c '
@@ -856,8 +896,13 @@ which gives
 {type:<bool>,fields:|["draft","locked"]|}
 {type:<null>,fields:|["assignee","milestone","auto_merge","active_lock_reason"]|}
 ```
-> Note that this use of `over` traverses each record and generates a key-value pair
-> for each field in each record.
+
+{{% tip "Note" %}}
+
+This use of `over` traverses each record and generates a key-value pair
+for each field in each record.
+
+{{% /tip %}}
 
 Looking through the fields that are strings, the candidates for ISO dates appear
 to be
@@ -865,6 +910,7 @@ to be
 * `merged_at`,
 * `created_at`, and
 * `updated_at`.
+
 You can do a quick check of the theory by running...
 ```
 super -z -c '{closed_at,merged_at,created_at,updated_at}' prs2.bsup
@@ -876,8 +922,8 @@ and you will get strings that are all ISO dates:
 ...
 ```
 To fix those strings, we simply transform the fields in place using the
-(implied) [put operator](../language/operators/put.md) and redirect the final
-output the ZNG file `prs.bsup`:
+(implied) [`put` operator](../language/operators/put.md) and redirect the final
+output as BSUP to the file `prs.bsup`:
 ```
 super -c '
   closed_at:=time(closed_at),
@@ -905,15 +951,19 @@ which now gives:
 ```
 and we can see that the date fields are correctly typed as type `time`!
 
-> Note that we sorted the output values here using the [sort operator](../language/operators/sort.md)
-> to produce a consistent output order since aggregations can be run in parallel
-> to achieve scale and do not guarantee their output order.
+{{% tip "Note" %}}
+
+We sorted the output values here using the [`sort` operator](../language/operators/sort.md)
+to produce a consistent output order since aggregations can be run in parallel
+to achieve scale and do not guarantee their output order.
+
+{{% /tip %}}
 
 ## Putting It All Together
 
 Instead of running each step above into a temporary file, we can
 put all the transformations together in a single
-Zed pipeline, where the Zed source text might look like this:
+pipeline, where the full query text might look like this:
 ```
 over this                      // traverse the array of objects
 | len(this) != 0               // skip empty objects
@@ -924,20 +974,25 @@ over this                      // traverse the array of objects
   created_at:=time(created_at),
   updated_at:=time(updated_at)
 ```
-> Note that the `//` syntax indicates a single-line comment.
 
-We can then put this in a file, called say `transform.zed`, and use the `-I`
+{{% tip "Note" %}}
+
+The `//` syntax indicates a single-line comment.
+
+{{% /tip %}}
+
+We can then put this in a file, called say `transform.spq`, and use the `-I`
 argument to run all the transformations in one fell swoop:
 ```
-super -I transform.zed prs.json > prs.bsup
+super -I transform.spq prs.json > prs.bsup
 ```
 
 ## Running Analytics
 
 Now that we've cleaned up our data, we can reliably and easily run analytics
-on the finalized ZNG file `prs.bsup`.
+on the finalized BSUP file `prs.bsup`.
 
-Zed gives us the best of both worlds of JSON and relational tables: we have
+Super-structured data gives us the best of both worlds of JSON and relational tables: we have
 the structure and clarity of the relational model while retaining the flexibility
 of JSON's document model.  No need to create tables then issue SQL insert commands
 to put your clean data into all the right places.
@@ -961,7 +1016,7 @@ Note that we used a [formatted string literal](../language/expressions.md#format
 to convert the field `number` into a string and format it with surrounding text.
 
 Instead of old PRs, we can get the latest list of PRs using the
-[tail operator](../language/operators/tail.md) since we know the data is sorted
+[`tail` operator](../language/operators/tail.md) since we know the data is sorted
 chronologically. This command retrieves the last five PRs in the dataset:
 ```mdtest-command dir=docs/tutorials
 super -f table -c '
@@ -999,17 +1054,17 @@ the login field from each record:
 super -z -c 'over requested_reviewers | collect(login)' prs.bsup
 ```
 Oops, this gives us an array of the reviewer logins
-with repetitions since [collect](../language/aggregates/collect.md)
+with repetitions since [`collect`](../language/aggregates/collect.md)
 collects each item that it encounters into an array:
 ```mdtest-output
 ["mccanne","nwt","henridf","mccanne","nwt","mccanne","mattnibs","henridf","mccanne","mattnibs","henridf","mccanne","mattnibs","henridf","mccanne","nwt","aswan","henridf","mccanne","nwt","aswan","philrz","mccanne","mccanne","aswan","henridf","aswan","mccanne","nwt","aswan","mikesbrown","henridf","aswan","mattnibs","henridf","mccanne","aswan","nwt","henridf","mattnibs","aswan","aswan","mattnibs","aswan","henridf","aswan","henridf","mccanne","aswan","aswan","mccanne","nwt","aswan","henridf","aswan"]
 ```
 What we'd prefer is a set of reviewers where each reviewer appears only once.  This
-is easily done with the [union](../language/aggregates/union.md) aggregate function
+is easily done with the [`union`](../language/aggregates/union.md) aggregate function
 (not to be confused with union types) which
-computes the set-wise union of its input and produces a Zed `set` type as its
+computes the set-wise union of its input and produces a `set` type as its
 output.  In this case, the output is a set of strings, written `|[string]|`
-in the Zed language.  For example:
+in the query language.  For example:
 ```mdtest-command dir=docs/tutorials
 super -z -c 'over requested_reviewers | reviewers:=union(login)' prs.bsup
 ```
@@ -1026,7 +1081,7 @@ in the graph and each set of reviewers is another node.
 
 So as a first step, let's figure out how to create each edge, where an edge
 is a relation between the requesting user and the set of reviewers.  We can
-create this in Zed with a ["lateral subquery"](../language/lateral-subqueries.md).
+create this with a ["lateral subquery"](../language/lateral-subqueries.md).
 Instead of computing a set-union over all the reviewers across all PRs,
 we instead want to compute the set-union over the reviewers in each PR.
 We can do this as follows:
@@ -1042,7 +1097,7 @@ which produces an output like this:
 {reviewers:|["henridf","mccanne","mattnibs"]|}
 ...
 ```
-Note that the syntax `=> ( ... )` defines a [lateral scope](../language/lateral-subqueries.md#lateral-scope) where any Zed subquery can
+Note that the syntax `=> ( ... )` defines a [lateral scope](../language/lateral-subqueries.md#lateral-scope) where any subquery can
 run in isolation over the input values created from the sequence of values
 traversed by the outer `over`.
 
@@ -1193,7 +1248,7 @@ and we get
 ```
 After a quick glance here, you can tell that `mccanne` looks for
 very targeted reviews while `mattnibs` casts a wide net, at least
-for the PRs from the beginning of the `zed` repo.
+for the PRs from the beginning of the repo.
 
 To quantify this concept, we can easily modify this query to compute
 the average number of reviewers requested instead of the set of groups
@@ -1219,7 +1274,7 @@ which produces
 ```
 
 Of course, if you'd like the query output in JSON, you can just say `-j` and
-`zq` will happily format the Zed sets as JSON arrays, e.g.,
+`super` will happily format the sets as JSON arrays, e.g.,
 ```mdtest-command dir=docs/tutorials
 super -j -c '
   over requested_reviewers with user=user.login => (
@@ -1241,18 +1296,18 @@ produces
 
 ## Key Takeaways
 
-So to summarize, we gave you a tour here of `zq` and how the Zed data model
+So to summarize, we gave you a tour here of how `super` the super data model
 provide a powerful way do search, transformation, and analytics in a structured-like
 way on data that begins its life as semi-structured JSON and is transformed
 into the powerful super-structured format without having to create relational
 tables and schemas.
 
-As you can see, `zq` is a general-purpose tool that you can add to your bag
+As you can see, `super` is a general-purpose tool that you can add to your bag
 of tricks to:
 * explore messy and confusing JSON data using shaping and sampling,
 * transform JSON data in ad hoc ways, and
 * develop transform logic for hitting APIs like the GitHub API to produce
-clean data for analysis by `zq` or even export into other systems or for testing.
+clean data for analysis by `super` or even export into other systems or for testing.
 
 If you'd like to learn more, feel free to read through the
 [language docs](../language/_index.md) in depth
