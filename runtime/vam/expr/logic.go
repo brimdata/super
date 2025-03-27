@@ -285,10 +285,11 @@ func (p *PredicateWalk) evalForList(lhs, rhs vector.Any, offsets, index []uint32
 	out := vector.NewBoolEmpty(lhs.Len(), nil)
 	var lhsIndex, rhsIndex []uint32
 	for j := range lhs.Len() {
+		idx := j
 		if index != nil {
-			j = index[j]
+			idx = index[j]
 		}
-		start, end := offsets[j], offsets[j+1]
+		start, end := offsets[idx], offsets[idx+1]
 		if start == end {
 			continue
 		}
