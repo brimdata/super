@@ -3,6 +3,7 @@ package kernel
 import (
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/dag"
@@ -302,27 +303,31 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 }
 
 func (b *Builder) compileVamAssignmentsToRecordExpression(initial []dag.RecordElem, assignments []dag.Assignment) (vamexpr.Evaluator, error) {
-	elems := initial
+	rec := &dag.RecordExpr{Kind: "RecordExpr", Elems: initial}
 	for _, a := range assignments {
 		lhs, ok := a.LHS.(*dag.This)
 		if !ok {
 			return nil, fmt.Errorf("internal error: dynamic field name not supported in vector runtime: %#v", a.LHS)
 		}
-		elems = append(elems, newDagRecordExprForPath(lhs.Path, a.RHS).Elems...)
+		addPathToRecordExpr(rec, lhs.Path, a.RHS)
 	}
-	return b.compileVamRecordExpr(&dag.RecordExpr{Kind: "RecordExpr", Elems: elems})
+	return b.compileVamRecordExpr(rec)
 }
 
-func newDagRecordExprForPath(path []string, expr dag.Expr) *dag.RecordExpr {
-	if len(path) > 1 {
-		expr = newDagRecordExprForPath(path[1:], expr)
+func addPathToRecordExpr(rec *dag.RecordExpr, path []string, expr dag.Expr) {
+	if len(path) == 1 {
+		rec.Elems = append(rec.Elems, &dag.Field{Kind: "Field", Name: path[0], Value: expr})
+		return
 	}
-	return &dag.RecordExpr{
-		Kind: "RecordExpr",
-		Elems: []dag.RecordElem{
-			&dag.Field{Kind: "Field", Name: path[0], Value: expr},
-		},
+	i := slices.IndexFunc(rec.Elems, func(elem dag.RecordElem) bool {
+		f, ok := elem.(*dag.Field)
+		return ok && f.Name == path[0]
+	})
+	if i == -1 {
+		i = len(rec.Elems)
+		rec.Elems = append(rec.Elems, &dag.Field{Kind: "Field", Name: path[0], Value: &dag.RecordExpr{Kind: "RecordExpr"}})
 	}
+	addPathToRecordExpr(rec.Elems[i].(*dag.Field).Value.(*dag.RecordExpr), path[1:], expr)
 }
 
 func (b *Builder) compileVamOver(over *dag.Over, parent vector.Puller) (vector.Puller, error) {
