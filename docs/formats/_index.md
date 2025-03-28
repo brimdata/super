@@ -123,7 +123,7 @@ then such a collection of records looks precisely like a relational table.
 Here, the record type
 of such a collection corresponds to a well-defined schema consisting
 of field names (i.e., column names) where each field has a specific type.
-[Named types](data-model#3-named-type) are also available, so by simply naming a particular record type
+[Named types](data-model.md#3-named-type) are also available, so by simply naming a particular record type
 (i.e., a schema), a relational table can be projected from a pool of data
 with a simple query for that named type.
 
