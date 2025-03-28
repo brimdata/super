@@ -101,7 +101,7 @@ or more simply, _"the hybrid pattern"_.
 
 ## 2. A Super-structured Pattern
 
-The super data model removes the tabular and schema concepts from
+The [super data model](data-model.md) removes the tabular and schema concepts from
 the underlying data model altogether and replaces them with a granular and
 modern type system inspired by general-purpose programming languages.
 Instead of defining a single, composite schema to
@@ -111,7 +111,7 @@ express its type in accordance with the type system.
 In this approach, data in SuperDB is neither tabular nor semi-structured but
 instead "super-structured".
 
-In particular, SuperDB's record type looks like a schema but when values are
+In particular, SuperDB's [record type](data-model.md#21-record) looks like a schema but when values are
 serialized, the model is very different.  A sequence of values need not
 comprise a record-type declaration followed by a sequence of
 homogeneously-typed record values, but instead,
@@ -122,8 +122,8 @@ Yet when a sequence of values _in fact conforms to a uniform record type_,
 then such a collection of records looks precisely like a relational table.
 Here, the record type
 of such a collection corresponds to a well-defined schema consisting
-of field names (i.e, column names) where each field has a specific type.
-[Named types](../language/data-types.md#named-types) are also available, so by simply naming a particular record type
+of field names (i.e., column names) where each field has a specific type.
+[Named types](data-model.md#3-named-type) are also available, so by simply naming a particular record type
 (i.e., a schema), a relational table can be projected from a pool of data
 with a simple query for that named type.
 
@@ -143,7 +143,7 @@ defines its entire structure, i.e., its super-structure.  There is
 no need to traverse each hierarchical value --- as with JSON, BSON, or Ion ---
 to discover each value's structure.
 
-And because SuperDB derives it design from the vast landscape
+And because SuperDB derives its design from the vast landscape
 of existing formats and data models, it was deliberately designed to be
 a superset of --- and thus interoperable with --- a broad range of formats
 including JSON, BSON, Ion, Avro, ORC, Parquet, CSV, JSON Schema, and XML.
@@ -242,9 +242,9 @@ Likewise, you could select a sample value of each shape like this:
     SELECT any(this) AS sample, typeof(this) AS shape GROUP BY shape,sample
   )
 ```
-The SuperPipe language provides shortcuts that express such operations in ways
+The SuperSQL language provides shortcuts that express such operations in ways
 that more directly leverage the nature of super-structured data. For example,
-the above two SuperSQL queries could be written as:
+the above two queries could be written as:
 ```
   count() by shape:=typeof(this)
   any(this) by typeof(this) | cut any

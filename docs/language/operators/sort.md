@@ -18,7 +18,7 @@ default, the sort order is ascending, from lowest value to highest. If
 `desc` is specified in a sort expression, the sort order for that key is
 descending.
 
-SuperPipe follows the SQL convention that, by default, `null` values appear last
+SuperSQL follows the SQL convention that, by default, `null` values appear last
 in either case of ascending or descending sort.  This can be overridden
 by specifying `-nulls first`.
 
@@ -42,7 +42,7 @@ output is desired.
 If not all data fits in memory, values are spilled to temporary storage
 and sorted with an external merge sort.
 
-SuperPipe's `sort` is [stable](https://en.wikipedia.org/wiki/Sorting_algorithm#Stability)
+SuperSQL's `sort` is [stable](https://en.wikipedia.org/wiki/Sorting_algorithm#Stability)
 such that values with identical sort keys always have the same relative order
 in the output as they had in the input, such as provided by the `-s` option in
 Unix's "sort" command-line utility.

@@ -12,7 +12,7 @@ The `over` operator traverses complex values to create a new sequence
 of derived values (e.g., the elements of an array) and either
 (in the first form) sends the new values directly to its output or
 (in the second form) sends the values to a scoped computation as indicated
-by `<lateral>`, which may represent any SuperPipe [subquery](../lateral-subqueries.md) operating on the
+by `<lateral>`, which may represent any SuperSQL [subquery](../lateral-subqueries.md) operating on the
 derived sequence of values as [`this`](../pipeline-model.md#the-special-value-this).
 
 Each expression `<expr>` is evaluated in left-to-right order and derived sequences are
@@ -22,8 +22,8 @@ generated from each such result depending on its types:
 entry in the map, and
 * all other values generate a single value equal to itself.
 
-Records can be converted to maps with the [`flatten` function](../functions/flatten.md)
-resulting in a map that can be traversed,
+A record can be converted with the [`flatten` function](../functions/flatten.md) to
+an array that can be traversed,
 e.g., if `this` is a record, it can be traversed with `over flatten(this)`.
 
 The nested subquery depicted as `<lateral>` is called a [lateral subquery](../lateral-subqueries.md).

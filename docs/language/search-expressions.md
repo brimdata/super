@@ -153,7 +153,7 @@ using Boolean logic to form search expressions.
 When processing [Super Binary](../formats/bsup.md) data, the SuperDB runtime performs a multi-threaded
 Boyer-Moore scan over decompressed data buffers before parsing any data.
 This allows large buffers of data to be efficiently discarded and skipped when
-searching for rarely occurring values.  For a [SuperDB data lake](../lake/format.md),
+searching for rarely occurring values.  For a [SuperDB data lake](../commands/super-db.md),
 a planned feature will use [Super Columnar](../formats/csup.md) files to further accelerate searches.
 
 {{% /tip %}}
@@ -230,7 +230,7 @@ where grep("foo", this)
 ```
 
 Note that the "search" keyword may be omitted.
-For example, the simplest SuperPipe query is perhaps a single keyword search, e.g.,
+For example, the simplest SuperSQL query is perhaps a single keyword search, e.g.,
 ```
 ? foo
 ```
@@ -257,7 +257,7 @@ where grep("foo", this)
 
 This equivalency between keyword search terms and grep semantics
 will change in the near future when we add support for full-text search.
-In this case, grep will still support substring match but keyword search
+In this case, `grep` will still support substring match but keyword search
 will match segmented words from string fields.
 
 {{% /tip %}}
@@ -296,7 +296,7 @@ where (123 in this or grep("123", this))
 ```
 
 Complex values are not supported as search terms but may be queried with
-the "in" operator, e.g.,
+the ["in" operator](expressions.md#containment), e.g.,
 ```
 {s:"foo"} in this
 ```

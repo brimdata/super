@@ -65,10 +65,7 @@ The `in` operator has the form
 ```
 and is true if the `<item-expr>` expression results in a value that
 appears somewhere in the `<container-expr>` as an exact match of the item.
-The right-hand side value can be any Zed value and complex values are
-recursively traversed to determine if the item is present anywhere within them.
-
-For example,
+The right-hand side value can be any value. For example,
 ```mdtest-spq
 # spq
 1 in this
@@ -79,6 +76,22 @@ For example,
 # expected output
 {a:[1,2]}
 {d:{e:1}}
+```
+
+Complex values are recursively traversed to determine if the item is present
+anywhere within them:
+```mdtest-spq
+# spq
+{s:"foo"} in this
+# input
+{s:"foo"}
+{s:"foo",t:"bar"}
+{a:{s:"foo"}}
+[1,{s:"foo"},2]
+# expected output
+{s:"foo"}
+{a:{s:"foo"}}
+[1,{s:"foo"},2]
 ```
 
 You can also use this operator with a static array:

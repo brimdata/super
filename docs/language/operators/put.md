@@ -10,11 +10,11 @@
 
 The `put` operator modifies its input with
 one or more [field assignments](../pipeline-model.md#field-assignments).
-Each expression is evaluated based on the input record
+Each [expression](../expressions.md) `<expr>` is evaluated based on the input record
 and the result is either assigned to a new field of the input record if it does not
 exist, or the existing field is modified in its original location with the result.
 
-New fields are append in left-to-right order to the right of existing record fields
+New fields are appended in left-to-right order to the right of existing record fields
 while modified fields are mutated in place.
 
 If multiple fields are written in a single `put`, all the new field values are
@@ -29,12 +29,12 @@ Each `<field>` expression must be a field reference expressed as a dotted path o
 constant index operations on `this`, e.g., `a.b`, `this["a"]["b"]`,
 etc.
 
-Each right-hand side `<expr>` can be any SuperPipe expression.
+Each right-hand side `<expr>` can be any SuperSQL expression.
 
 For any input value that is not a record, an error is emitted.
 
 Note that when the field references are all top level,
-`put` is a special case of a `yield` with a
+`put` is a special case of a [`yield`](yield.md) with a
 [record literal](../expressions.md#record-expressions)
 using a spread operator of the form:
 ```
