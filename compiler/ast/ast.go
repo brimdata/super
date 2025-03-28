@@ -732,9 +732,10 @@ func (*Delete) OpAST()       {}
 // upon a function of the record, e.g., count() counts up records without
 // looking into them.
 type Agg struct {
-	Kind  string `json:"kind" unpack:""`
-	Name  string `json:"name"`
-	Expr  Expr   `json:"expr"`
-	Where Expr   `json:"where"`
-	Loc   `json:"loc"`
+	Kind     string `json:"kind" unpack:""`
+	Name     string `json:"name"`
+	Distinct bool   `json:"distinct"`
+	Expr     Expr   `json:"expr"`
+	Where    Expr   `json:"where"`
+	Loc      `json:"loc"`
 }

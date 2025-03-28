@@ -240,10 +240,11 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 		}
 		where := a.semExprNullable(e.Where)
 		return &dag.Agg{
-			Kind:  "Agg",
-			Name:  nameLower,
-			Expr:  expr,
-			Where: where,
+			Kind:     "Agg",
+			Name:     nameLower,
+			Distinct: e.Distinct,
+			Expr:     expr,
+			Where:    where,
 		}
 	case *ast.RecordExpr:
 		fields := map[string]struct{}{}

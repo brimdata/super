@@ -1,17 +1,20 @@
 package expr
 
 import (
+	"encoding/binary"
+
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr/agg"
 )
 
 type Aggregator struct {
-	pattern agg.Pattern
-	expr    Evaluator
-	where   Evaluator
+	pattern  agg.Pattern
+	distinct bool
+	expr     Evaluator
+	where    Evaluator
 }
 
-func NewAggregator(op string, expr Evaluator, where Evaluator) (*Aggregator, error) {
+func NewAggregator(op string, distinct bool, expr Evaluator, where Evaluator) (*Aggregator, error) {
 	pattern, err := agg.NewPattern(op, expr != nil)
 	if err != nil {
 		return nil, err
@@ -22,14 +25,35 @@ func NewAggregator(op string, expr Evaluator, where Evaluator) (*Aggregator, err
 		expr = &Literal{super.True}
 	}
 	return &Aggregator{
-		pattern: pattern,
-		expr:    expr,
-		where:   where,
+		pattern:  pattern,
+		distinct: distinct,
+		expr:     expr,
+		where:    where,
 	}, nil
 }
 
 func (a *Aggregator) NewFunction() agg.Function {
-	return a.pattern()
+	f := a.pattern()
+	if a.distinct {
+		f = &distinct{f, nil, map[string]struct{}{}}
+	}
+	return f
+}
+
+type distinct struct {
+	agg.Function
+	buf  []byte
+	seen map[string]struct{}
+}
+
+func (d *distinct) Consume(val super.Value) {
+	d.buf = append(d.buf[:0], val.Bytes()...)
+	d.buf = binary.AppendVarint(d.buf, int64(val.Type().ID()))
+	if _, ok := d.seen[string(d.buf)]; ok {
+		return
+	}
+	d.seen[string(d.buf)] = struct{}{}
+	d.Function.Consume(val)
 }
 
 func (a *Aggregator) Apply(zctx *super.Context, ectx Context, f agg.Function, this super.Value) {

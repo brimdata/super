@@ -225,25 +225,27 @@ AggAssignment
     }
 
 Agg
-  = !FuncGuard op:AggName __ "(" __ expr:(OverExpr / Expr)? __ ")" !(__ ".") where:WhereClause? {
+  = !FuncGuard op:AggName __ "(" __ arg:AggArg? __ ")" !(__ ".") where:WhereClause? {
       agg := &ast.Agg{
           Kind: "Agg",
           Name: op.(string),
           Loc: loc(c),
       }
-      if expr != nil {
-        agg.Expr = expr.(ast.Expr)
+      if arg != nil {
+        arg := arg.([]any)
+        agg.Distinct = arg[0] != nil
+        agg.Expr = arg[1].(ast.Expr)
       }
       if where != nil {
         agg.Where = where.(ast.Expr)
       }
       return agg, nil
     }
-  / cs:CountStar {
+  / COUNT __ "(" __ "*" __ ")" {
       return &ast.Agg{
           Kind: "Agg",
           Name: "count",
-          Loc: cs.(*ast.Call).Loc,
+          Loc: loc(c),
       }, nil
     }
 
@@ -251,6 +253,11 @@ AggName
   = IdentifierName
   / AND
   / OR
+
+AggArg
+  = distinct:(DISTINCT _)? expr:(OverExpr / Expr) {
+      return []any{distinct, expr}, nil
+    }
 
 WhereClause = _ WHERE _ expr:LogicalOrExpr { return expr, nil }
 
@@ -262,14 +269,6 @@ AggAssignments
       }
       return result, nil
     }
-
-CountStar = COUNT __ "(" __ "*" __ ")" {
-    return &ast.Call{
-		Kind: "Call",
-		Name: &ast.ID{Kind:"ID", Name:"count", Loc: ast.NewLoc(c.pos.offset, c.pos.offset+5)},
-        Loc:  loc(c),
-    }, nil
-  }
 
 /// === Operators ===
 
@@ -1102,7 +1101,7 @@ Function
   / !FuncGuard fn:Identifier __ "(" __ args:FunctionArgs __ ")" where:WhereClause? {
       return newCall(c, fn, args, where), nil
     }
-  / CountStar
+  / Agg
 
 RegexpPrimitive
   = pat:RegexpPattern { return newPrimitive(c, "string", pat.(string)), nil }
