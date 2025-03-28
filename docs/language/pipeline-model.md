@@ -3,14 +3,14 @@ weight: 2
 title: Pipeline Model
 ---
 
-In SuperPipe, each operator takes its input from the output of its upstream operator beginning
+When using pipes in SuperSQL, each operator takes its input from the output of its upstream operator beginning
 either with a data source or with an implied source.
 
 All available operators are listed on the [reference page](operators/_index.md).
 
 ## Pipeline Sources
 
-In addition to the data sources specified as files on the `zq` command line,
+In addition to the data sources specified as files on the [`super`](../commands/super.md) command line,
 a source may also be specified with the [`from` operator](operators/from.md).
 
 When running on the command-line, `from` may refer to a file, an HTTP
@@ -19,11 +19,11 @@ refers to a collection of data called a "data pool" and is referenced using
 the pool's name much as SQL references database tables by their name.
 
 For more detail, see the reference page of the [`from` operator](operators/from.md),
-but as an example, you might use the `get` form of `from` to fetch data from an
+but as an example, you might use its `get` form to fetch data from an
 HTTP endpoint and process it with `super`, in this case, to extract the description
 and license of a GitHub repository:
 ```
-super -f text -c 'get https://api.github.com/repos/brimdata/super
+super -f line -c 'get https://api.github.com/repos/brimdata/super
                   | yield description,license.name'
 ```
 When a query is run on the command-line with `super`, the `from` source is
@@ -36,7 +36,7 @@ Many examples throughout the language documentation use this "echo pattern"
 to standard input of `super -`.
 Note that in these examples, the input values are expressed as a sequence of values serialized
 in the [Super JSON format](../formats/jsup.md)
-with query text is expressed as the `-c` argument of the `super` command
+with query text expressed as the `-c` argument of the `super` command
 in the syntax of the SuperSQL language described here. Some examples are
 instead presented in an interactive form as described in the
 [`super` command doc](../commands/super.md#examples).
@@ -58,7 +58,7 @@ seeing any output.
 On the other hand, most operators produce incremental output by operating
 on values as they are produced.  For example, a long running query that
 produces incremental output will stream results as they are produced, i.e.,
-running `zq` to standard output will display results incrementally.
+running `super` to standard output will display results incrementally.
 
 The [`search`](operators/search.md) and [`where`](operators/where.md)
 operators "find" values in their input and drop
@@ -114,7 +114,7 @@ forwarded from the switch to the downstream operator in an undefined order.
 
 ## The Special Value `this`
 
-In SuperPipe, there are no looping constructs and variables are limited to binding
+In SuperSQL, there are no looping constructs and variables are limited to binding
 values between [lateral scopes](lateral-subqueries.md#lateral-scope).
 Instead, the input sequence
 to an operator is produced continuously and any output values are derived
@@ -159,7 +159,7 @@ sort lower(this)
 
 ## Implied Field References
 
-A common SuperPipe use case is to process sequences of record-oriented data
+A common SuperSQL use case is to process sequences of record-oriented data
 (e.g., arising from formats like JSON or Avro) in the form of events
 or structured logs.  In this case, the input values to the operators
 are [records](../formats/data-model.md#21-record) and the fields of a record are referenced with the dot operator.
@@ -205,7 +205,7 @@ or extracting a subset of fields using the [`cut` operator](operators/cut.md).
 Also, when aggregating data using the [`aggregate` operator](operators/aggregate.md)
 with grouping keys, the aggregate expressions create new named record fields.
 
-In all of these cases, the SuperPipe language uses the token `:=` to denote
+In all of these cases, the SuperSQL language uses the token `:=` to denote
 field assignment.  For example,
 ```
 put x:=y+1
@@ -220,18 +220,17 @@ in later expressions.
 
 ## Implied Operators
 
-When SuperPipe is utilized in an application like [SuperDB Desktop](https://zui.brimdata.io),
+When SuperSQL is utilized in an application like [SuperDB Desktop](https://zui.brimdata.io),
 queries are often composed interactively in a "search bar" experience.
 The language design here attempts to support both this "lean forward" pattern of usage
 along with a "coding style" of query writing where the queries might be large
 and complex, e.g., to perform transformations in a data pipeline, where
-the SuperPipe queries are stored under source-code control perhaps in GitHub or
-in Zui's query library.
+the SuperSQL queries are stored under source-code control perhaps in GitHub.
 
 To facilitate both a programming-like model as well as an ad hoc search
-experience, SuperPipe has a canonical, long form that can be abbreviated
+experience, SuperSQL has a canonical, long form that can be abbreviated
 using syntax that supports an agile, interactive query workflow.
-To this end, SuperPipe allows certain operator names to be optionally omitted when
+To this end, SuperSQL allows certain operator names to be optionally omitted when
 they can be inferred from context.  For example, the expression following
 the [`aggregate` operator](operators/aggregate.md)
 ```
@@ -241,14 +240,14 @@ is unambiguously an aggregation and can be shortened to
 ```
 count() by id
 ```
-Likewise, a very common lean-forward use pattern is "searching" so by default,
-expressions are interpreted as keyword searches, e.g.,
+Likewise, a very common lean-forward use pattern is "searching", so with the
+use of leading `?` shorthand, expressions are interpreted as keyword searches, e.g.,
 ```
 search foo bar or x > 100
 ```
 is abbreviated
 ```
-foo bar or x > 100
+? foo bar or x > 100
 ```
 Furthermore, if an operator-free expression is not valid syntax for
 a search expression but is a valid [expression](expressions.md),
@@ -260,12 +259,6 @@ is shorthand for
 ```
 yield {s:lower(s)}
 ```
-When operator names are omitted, `search` has precedence over `yield`, so
-```
-foo
-```
-is interpreted as a search for the string "foo" rather than a yield of
-the implied record field named `foo`.
 
 Another common query pattern involves adding or mutating fields of records
 where the input is presumed to be a sequence of records.
@@ -285,7 +278,7 @@ it is best practice to include all operator names in the source text.
 
 In summary, if no operator name is given, the implied operator is determined
 from the operator-less source text, in the order given, as follows:
-* If the text can be interpreted as a search expression, then the operator is `search`.
+* If the text can be interpreted as a search expression and leading `?` shorthand is used, then the operator is `search`.
 * If the text can be interpreted as a boolean expression, then the operator is `where`.
 * If the text can be interpreted as one or more field assignments, then the operator is `put`.
 * If the text can be interpreted as an aggregation, then the operator is `aggregate`.
@@ -293,7 +286,7 @@ from the operator-less source text, in the order given, as follows:
 * Otherwise, the text causes a compile-time error.
 
 When in doubt, you can always check what the compiler is doing under the hood
-by running `zq` with the `-C` flag to print the parsed query in "canonical form", e.g.,
+by running `super` with the `-C` flag to print the parsed query in "canonical form", e.g.,
 ```mdtest-command
 super -C -c '? foo'
 super -C -c 'is(<foo>)'

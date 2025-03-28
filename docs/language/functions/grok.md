@@ -36,7 +36,7 @@ that can be referenced in any pattern. The included named patterns can be seen
 
 Although Grok functionality appears in many open source tools, it lacks a
 formal specification. As a result, example parsing configurations found via
-web searches may not all plug seamlessly into SuperPipe's `grok` function without
+web searches may not all plug seamlessly into SuperSQL's `grok` function without
 modification.
 
 [Logstash](https://www.elastic.co/logstash) was the first tool to widely
@@ -49,7 +49,7 @@ the use of the `grok` function, review the tips below.
 
 {{% tip "Note" %}}
 
-As these represent areas of possible future SuperPipe enhancement, links to open
+As these represent areas of possible future SuperSQL enhancement, links to open
 issues are provided. If you find a functional gap significantly impacts your
 ability to use the `grok` function, please add a comment to the relevant
 issue describing your use case.
@@ -61,24 +61,24 @@ issue describing your use case.
    ```
    %{NUMBER:num:int}
    ```
-  to store `num` as an integer type instead of as a
-  string. SuperPipe currently accepts this trailing `:type` syntax but effectively
-  ignores it and stores all parsed values as strings. Downstream use of the
-  [`cast` function](cast.md) can be used instead for data type conversion.
-  ([super/4928](https://github.com/brimdata/super/issues/4928))
-
+   to store `num` as an integer type instead of as a
+   string. SuperSQL currently accepts this trailing `:type` syntax but effectively
+   ignores it and stores all parsed values as strings. Downstream use of the
+   [`cast` function](cast.md) can be used instead for data type conversion.
+   ([super/4928](https://github.com/brimdata/super/issues/4928))
+<br><br>
 2. Some Logstash Grok examples use an optional square bracket syntax for
    storing a parsed value in a nested field, e.g.,
    ```
    %{GREEDYDATA:[nested][field]}
    ```
-   to store a value into `{"nested": {"field": ... }}`. In SuperPipe the more common
+   to store a value into `{"nested": {"field": ... }}`. In SuperSQL the more common
    dot-separated field naming convention `nested.field` can be combined
    with the downstream use of the [`nest_dotted` function](nest_dotted.md) to
    store values in nested fields.
    ([super/4929](https://github.com/brimdata/super/issues/4929))
-
-3. SuperPipe's regular expressions syntax does not currently support the
+<br><br>
+3. SuperSQL's regular expressions syntax does not currently support the
    "named capture" syntax shown in the
    [Logstash docs](https://www.elastic.co/guide/en/logstash/current/plugins-filters-grok.html#_custom_patterns).
    ([super/4899](https://github.com/brimdata/super/issues/4899))
@@ -96,10 +96,11 @@ issue describing your use case.
    # expected output
    {timestamp:"Jan  1 06:25:43",logsource:"mailserver14",program:"postfix/cleanup",pid:"21403",queue_id:"BEF25A72965",syslog_message:"message-id=<20130101142543.5828399CCAF@mailserver14.example.com>"}
    ```
+<br><br>
 
 4. The Grok implementation for Logstash uses the
    [Oniguruma](https://github.com/kkos/oniguruma) regular expressions library
-   while SuperPipe's `grok` uses Go's [regexp](https://pkg.go.dev/regexp) and
+   while SuperSQL's `grok` uses Go's [regexp](https://pkg.go.dev/regexp) and
    [RE2 syntax](https://github.com/google/re2/wiki/Syntax). These
    implementations share the same basic syntax which should suffice for most
    parsing needs. But per a detailed
@@ -112,10 +113,10 @@ issue describing your use case.
 {{% tip "Note" %}}
 
 If you absolutely require features of Logstash's Grok that are not currently
-present in SuperPipe, you can create a Logstash-based preprocessing
+present in SuperSQL, you can create a Logstash-based preprocessing
 pipeline that uses its
 [Grok filter plugin](https://www.elastic.co/guide/en/logstash/current/plugins-filters-grok.html)
-and send its output as JSON to SuperPipe. Issue
+and send its output as JSON to SuperSQL. Issue
 [super/3151](https://github.com/brimdata/super/issues/3151) provides some tips for
 getting started. If you pursue this approach, please add a comment to the
 issue describing your use case or come talk to us on
@@ -139,7 +140,7 @@ To aid in this workflow, you may find an
 that these have their own
 [differences and limitations](https://github.com/cjslack/grok-debugger).
 If you devise a working Grok config in such a tool be sure to incrementally
-test it with SuperPipe's `grok`. Be mindful of necessary adjustments such as those
+test it with SuperSQL's `grok`. Be mindful of necessary adjustments such as those
 described [above](#comparison-to-other-implementations) and in the [examples](#examples).
 
 ### Need Help?

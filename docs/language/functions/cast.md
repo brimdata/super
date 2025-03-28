@@ -22,7 +22,7 @@ In the second form, where the `name` argument is a string, cast creates
 a new [named type](../data-types.md#named-types) where the name for the type is given by `name` and its
 type is given by `typeof(val)`.  This provides a convenient mechanism
 to create new named types from the input data itself without having to
-hard code the type in the SuperPipe query.
+hard code the type in the SuperSQL query.
 
 For complex types, the cast function visits each leaf value in `val` and
 casts that value to the corresponding type in `t`.
@@ -30,7 +30,7 @@ When a complex value has multiple levels of nesting,
 casting is applied recursively down the tree.  For example, cast is recursively
 applied to each element in an array of records and recursively applied to each record.
 
-If `val` is a record (or if any of its nested value is a record):
+If `val` is a record (or if any of its nested values is a record):
 * absent fields are ignored and omitted from the result,
 * extra input fields are passed through unmodified to the result, and
 * fields are matched by name and are order independent and the _input_ order is retained.

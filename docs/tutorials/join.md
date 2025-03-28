@@ -4,7 +4,7 @@ title: Join
 heading: Join Overview
 ---
 
-This is a brief primer on the SuperPipe [`join` operator](../language/operators/join.md).
+This is a brief primer on the SuperSQL [`join` operator](../language/operators/join.md).
 
 Currently, `join` is limited in that only equi-join (i.e., a join predicate
 containing `=`) is supported.
@@ -42,7 +42,7 @@ the joined results.
 Because we're performing an inner join (the default), the
 explicit `inner` is not strictly necessary, but including it clarifies our intention.
 
-The SuperPipe query `inner-join.spq`:
+The query `inner-join.spq`:
 ```mdtest-input inner-join.spq
 file fruit.json
 | inner join (
@@ -167,8 +167,8 @@ produces
 
 In the examples above, we used the
 [`file` operator](../language/operators/file.md) to read our respective inputs
-from named file sources.  However, if the inputs are stored in pools in a SuperDB
-data lake, we would instead specify the sources as data pools using the
+from named file sources.  However, if the inputs are stored in pools in a [SuperDB data lake](../commands/super-db.md),
+we would instead specify the sources as data pools using the
 [`from` operator](../language/operators/from.md).
 
 Here we'll load our input data to pools in a temporary data lake, then execute
@@ -208,9 +208,9 @@ produces
 
 In addition to the syntax shown so far, `join` supports an alternate syntax in
 which left and right inputs are specified by the two branches of a preceding
-[`fork` operator](../language/operators/fork.md),
-[`from` operator](../language/operators/from.md), or
-[`switch` operator](../language/operators/switch.md).
+[`fork`](../language/operators/fork.md),
+[`from`](../language/operators/from.md), or
+[`switch`](../language/operators/switch.md) operator.
 
 Here we'll use the alternate syntax to perform the same inner join shown earlier
 in the [Inner Join section](#inner-join).
@@ -240,10 +240,10 @@ produces
 ## Self Joins
 
 In addition to the named files and pools like we've used in the prior examples,
-SuperPipe also works on a single sequence of data that is split and
+SuperSQL also works on a single sequence of data that is split and
 joined to itself.  Here we'll combine our file sources into a stream that we'll
 pipe into `super` via stdin.  Because `join` requires two separate inputs, here
-we'll use the `has()` function inside a `switch` operator to identify the
+we'll use the `has()` function inside a `switch` operation to identify the
 records in the stream that will be treated as the left and right sides.  Then
 we'll use the [alternate syntax for `join`](#alternate-syntax) to read those two
 inputs.

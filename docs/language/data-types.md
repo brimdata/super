@@ -3,7 +3,7 @@ weight: 3
 title: Data Types
 ---
 
-The SuperPipe language includes most data types of a typical programming language
+The SuperSQL language includes most data types of a typical programming language
 as defined in the [super data model](../formats/data-model.md).
 
 The syntax of individual literal values generally follows
@@ -21,19 +21,19 @@ constant values like Super JSON and can be composed from [literal expressions](e
 
 ## First-class Types
 
-As in the super data model, the SuperPipe language has first-class types:
+As in the super data model, the SuperSQL language has first-class types:
 any type may be used as a value.
 
 The primitive types are listed in the
 [data model specification](../formats/data-model.md#1-primitive-types)
-and have the same syntax in SuperPipe.  Complex types also follow
+and have the same syntax in SuperSQL.  Complex types also follow
 the Super JSON syntax.  Note that the type of a type value is simply `type`.
 
 As in Super JSON, _when types are used as values_, e.g., in an expression,
 they must be referenced within angle brackets.  That is, the integer type
 `int64` is expressed as a type value using the syntax `<int64>`.
 
-Complex types in the SuperPipe language follow the Super JSON syntax as well.  Here are
+Complex types in the SuperSQL language follow the Super JSON syntax as well.  Here are
 a few examples:
 * a simple record type - `{x:int64,y:int64}`
 * an array of integers - `[int64]`
@@ -108,7 +108,7 @@ type socket = {addr:ip,port:port=uint16}
 defines a named type `socket` that is a record with field `addr` of type `ip`
 and field `port` of type "port", where type "port" is a named type for type `uint16` .
 
-Named types may also be defined by the input data itself, as super data is
+Named types may also be defined by the input data itself, as super-structured data is
 comprehensively self describing.
 When named types are defined in the input data, there is no need to declare their
 type in a query.
@@ -175,13 +175,13 @@ In general, it is bad practice to define multiple versions of a single named typ
 though the SuperDB system and super data model accommodate such dynamic bindings.
 Managing and enforcing the relationship between type names and their type definitions
 on a global basis (e.g., across many different data pools in a data lake) is outside
-the scope of the Zed data model and language.  That said, Zed provides flexible
+the scope of the super data model and SuperSQL language.  That said, SuperDB provides flexible
 building blocks so systems can define their own schema versioning and schema
-management policies on top of these Zed primitives.
+management policies on top of these primitives.
 
 The [super-structured data model](../formats/_index.md#2-a-super-structured-pattern)
 is a superset of relational tables and
-SuperPipe's type system can easily make this connection.
+SuperSQL's type system can easily make this connection.
 As an example, consider this type definition for "employee":
 ```
 type employee = {id:int64,first:string,last:string,job:string,salary:float64}
@@ -193,7 +193,7 @@ FROM employee
 ORDER BY salary
 LIMIT 5
 ```
-In SuperPipe, you would say
+Using pipes in SuperSQL, you could say
 ```
 from anywhere
 | typeof(this)==<employee>
@@ -210,7 +210,7 @@ from anywhere
 | sort salary
 | head 5
 ```
-The power of SuperPipe is that you can interpret data on the fly as belonging to
+The power of SuperSQL is that you can interpret data on the fly as belonging to
 a certain schema, in this case "employee", and those records can be intermixed
 with other relevant data.  There is no need to create a table called "employee"
 and put the data into the table before that data can be queried as an "employee".
@@ -219,7 +219,7 @@ to work.
 
 ## First-class Errors
 
-As with types, errors in SuperPipe are first-class: any value can be transformed
+As with types, errors in SuperSQL are first-class: any value can be transformed
 into an error by wrapping it in an [`error` type](../formats/data-model.md#27-error).
 
 In general, expressions and functions that result in errors simply return
@@ -269,11 +269,11 @@ typeof(1/this)
 ```
 
 First-class errors are particularly useful for creating structured errors.
-When a SuperPipe query encounters a problematic condition,
+When a SuperSQL query encounters a problematic condition,
 instead of silently dropping the problematic error
 and logging an error obscurely into some hard-to-find system log as so many
-ETL pipelines do, the Zed logic can
-preferably wrap the offending value as an error and propagate it to its output.
+ETL pipelines do, the offending value can be wrapped as an error and
+propagated to its output.
 
 For example, suppose a bad value shows up:
 ```
@@ -306,7 +306,7 @@ landing at the final output stage.
 Errors will unfortunately and inevitably occur even in production,
 but having a first-class data type to manage them all while allowing them to
 peacefully coexist with valid production data is a novel and
-useful approach that Zed enables.
+useful approach that SuperSQL enables.
 
 ### Missing and Quiet
 
@@ -338,7 +338,7 @@ To solve this problem, the `MISSING` value was proposed to represent the value t
 results from accessing a field that is not present.  Thus, `x==NULL` and
 `x==MISSING` could disambiguate the two cases above.
 
-SuperPipe, instead, recognizes that the SQL value `MISSING` is a paradox:
+SuperSQL, instead, recognizes that the SQL value `MISSING` is a paradox:
 I'm here but I'm not.
 
 In reality, a `MISSING` value is not a value.  It's an error condition
@@ -347,7 +347,7 @@ that resulted from trying to reference something that didn't exist.
 So why should we pretend that this is a bona fide value?  SQL adopted this
 approach because it lacks first-class errors.
 
-But SuperPipe has first-class errors so
+But SuperSQL has first-class errors so
 a reference to something that does not exist is an error of type
 `error(string)` whose value is `error("missing")`.  For example,
 ```mdtest-spq
