@@ -10,16 +10,21 @@ import (
 
 func TestTypeValue(t *testing.T) {
 	const s = "{A:{B:int64},C:int32}"
-	typ, err := zson.ParseType(super.NewContext(), s)
+	sctx := super.NewContext()
+	typ, err := zson.ParseType(sctx, s)
 	require.NoError(t, err)
-	tv := super.NewContext().LookupTypeValue(typ)
+	tv := sctx.LookupTypeValue(typ)
 	require.Exactly(t, s, zson.FormatTypeValue(tv.Bytes()))
 }
 
 func TestTypeValueCrossContext(t *testing.T) {
 	const s = "{A:{B:int64},C:int32}"
-	typ, err := zson.ParseType(super.NewContext(), s)
+	sctx := super.NewContext()
+	typ, err := zson.ParseType(sctx, s)
 	require.NoError(t, err)
-	tv := super.NewContext().LookupTypeValue(typ)
+	other := super.NewContext()
+	otherType, err := other.TranslateType(typ)
+	require.NoError(t, err)
+	tv := other.LookupTypeValue(otherType)
 	require.Exactly(t, s, zson.FormatTypeValue(tv.Bytes()))
 }

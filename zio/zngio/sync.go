@@ -70,7 +70,7 @@ again:
 		}
 		frame.zbuf.free()
 	}
-	b, err := s.worker.scanBatch(frame.ubuf, s.parser.types.local)
+	b, err := s.worker.scanBatch(frame.ubuf, s.parser.types)
 	if b == nil && err == nil {
 		goto again
 	}

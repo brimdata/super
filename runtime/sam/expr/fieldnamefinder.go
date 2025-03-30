@@ -26,7 +26,7 @@ func NewFieldNameFinder(pattern string) *FieldNameFinder {
 // Find returns true if buf, which holds a sequence of ZNG value messages, might
 // contain a record with a field whose fully-qualified name (e.g., a.b.c)
 // matches the pattern.  Find also returns true if it encounters an error.
-func (f *FieldNameFinder) Find(zctx *super.Context, buf []byte) bool {
+func (f *FieldNameFinder) Find(types super.TypeFetcher, buf []byte) bool {
 	f.checkedIDs.SetInt64(0)
 	clear(f.fnm.checkedIDs)
 	for len(buf) > 0 {
@@ -40,7 +40,7 @@ func (f *FieldNameFinder) Find(zctx *super.Context, buf []byte) bool {
 			continue
 		}
 		f.checkedIDs.SetBit(&f.checkedIDs, int(id), 1)
-		t, err := zctx.LookupType(int(id))
+		t, err := types.LookupType(int(id))
 		if err != nil {
 			return true
 		}

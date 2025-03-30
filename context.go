@@ -19,30 +19,38 @@ const (
 	MaxUnionTypes   = 100_000
 )
 
-// A Context implements the "type context" in the Zed model.  For a
+type TypeFetcher interface {
+	LookupType(id int) (Type, error)
+}
+
+// A Context implements the "type context" in the super data model.  For a
 // given set of related Values, each Value has a type from a shared Context.
 // The Context manages the transitive closure of Types so that each unique
-// type corresponds to exactly one Type pointer allowing type equivlance
+// type corresponds to exactly one Type pointer allowing type equivalence
 // to be determined by pointer comparison.  (Type pointers from distinct
-// Contexts obviously do not have this property.)  A Context also provides
-// an efficient means to translate type values (represented as serialized ZNG)
-// to Types.  This provides an efficient means to translate Type pointers
-// from one context to another.
+// Contexts obviously do not have this property.)
 type Context struct {
 	mu        sync.RWMutex
 	byID      []Type
-	toType    map[string]Type
-	toValue   map[Type]zcode.Bytes
 	typedefs  map[string]*TypeNamed
 	stringErr atomic.Pointer[TypeError]
+	recs      map[string]*TypeRecord
+	arrays    map[Type]*TypeArray
+	sets      map[Type]*TypeSet
+	maps      map[string]*TypeMap
+	unions    map[string]*TypeUnion
+	enums     map[string]*TypeEnum
+	nameds    map[string]*TypeNamed
+	errors    map[Type]*TypeError
+	toValue   map[Type]zcode.Bytes
+	toType    map[string]Type
 }
+
+var _ TypeFetcher = (*Context)(nil)
 
 func NewContext() *Context {
 	return &Context{
-		byID:     make([]Type, IDTypeComplex, 2*IDTypeComplex),
-		toType:   make(map[string]Type),
-		toValue:  make(map[Type]zcode.Bytes),
-		typedefs: make(map[string]*TypeNamed),
+		byID: make([]Type, IDTypeComplex, 2*IDTypeComplex),
 	}
 }
 
@@ -50,9 +58,17 @@ func (c *Context) Reset() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.byID = c.byID[:IDTypeComplex]
-	c.toType = make(map[string]Type)
-	c.toValue = make(map[Type]zcode.Bytes)
-	c.typedefs = make(map[string]*TypeNamed)
+	c.toValue = nil
+	c.toType = nil
+	c.recs = nil
+	c.arrays = nil
+	c.sets = nil
+	c.maps = nil
+	c.unions = nil
+	c.enums = nil
+	c.nameds = nil
+	c.errors = nil
+	c.typedefs = nil
 }
 
 func (c *Context) nextIDWithLock() int {
@@ -77,7 +93,7 @@ func (c *Context) LookupType(id int) (Type, error) {
 	return nil, fmt.Errorf("no type found for type id %d", id)
 }
 
-var tvPool = sync.Pool{
+var keyPool = sync.Pool{
 	New: func() interface{} {
 		// Return a pointer to avoid allocation on conversion to
 		// interface.
@@ -101,19 +117,29 @@ func (d *DuplicateFieldError) Error() string {
 // this type context.  If you want to use fields from a different type context,
 // use TranslateTypeRecord.
 func (c *Context) LookupTypeRecord(fields []Field) (*TypeRecord, error) {
-	tv := tvPool.Get().(*[]byte)
-	*tv = AppendTypeValue((*tv)[:0], &TypeRecord{Fields: fields})
+	key := keyPool.Get().(*[]byte)
+	bytes := (*key)[:0]
+	for _, field := range fields {
+		bytes = binary.LittleEndian.AppendUint32(bytes, uint32(len(field.Name)))
+		bytes = append(bytes, []byte(field.Name)...)
+		bytes = binary.LittleEndian.AppendUint32(bytes, uint32(TypeID(field.Type)))
+	}
+	*key = bytes
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if typ, ok := c.toType[string(*tv)]; ok {
-		tvPool.Put(tv)
-		return typ.(*TypeRecord), nil
+	if c.recs == nil {
+		c.recs = make(map[string]*TypeRecord)
+	}
+	if typ, ok := c.recs[string(bytes)]; ok {
+		keyPool.Put(key)
+		return typ, nil
 	}
 	if name, ok := duplicateField(fields); ok {
 		return nil, &DuplicateFieldError{name}
 	}
 	typ := NewTypeRecord(c.nextIDWithLock(), slices.Clone(fields))
-	c.enterWithLock(*tv, typ)
+	c.recs[string(bytes)] = typ
+	c.enterWithLock(typ)
 	return typ, nil
 }
 
@@ -155,45 +181,54 @@ func (c *Context) MustLookupTypeRecord(fields []Field) *TypeRecord {
 	return r
 }
 
-func (c *Context) LookupTypeSet(inner Type) *TypeSet {
-	tv := tvPool.Get().(*[]byte)
-	*tv = AppendTypeValue((*tv)[:0], &TypeSet{Type: inner})
+func (c *Context) LookupTypeArray(inner Type) *TypeArray {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if typ, ok := c.toType[string(*tv)]; ok {
-		tvPool.Put(tv)
-		return typ.(*TypeSet)
+	if c.arrays == nil {
+		c.arrays = make(map[Type]*TypeArray)
+	}
+	if typ, ok := c.arrays[inner]; ok {
+		return typ
+	}
+	typ := NewTypeArray(c.nextIDWithLock(), inner)
+	c.enterWithLock(typ)
+	c.arrays[inner] = typ
+	return typ
+}
+
+func (c *Context) LookupTypeSet(inner Type) *TypeSet {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.sets == nil {
+		c.sets = make(map[Type]*TypeSet)
+	}
+	if typ, ok := c.sets[inner]; ok {
+		return typ
 	}
 	typ := NewTypeSet(c.nextIDWithLock(), inner)
-	c.enterWithLock(*tv, typ)
+	c.enterWithLock(typ)
+	c.sets[inner] = typ
 	return typ
 }
 
 func (c *Context) LookupTypeMap(keyType, valType Type) *TypeMap {
-	tv := tvPool.Get().(*[]byte)
-	*tv = AppendTypeValue((*tv)[:0], &TypeMap{KeyType: keyType, ValType: valType})
+	key := keyPool.Get().(*[]byte)
+	bytes := (*key)[:0]
+	bytes = binary.LittleEndian.AppendUint32(bytes, uint32(TypeID(keyType)))
+	bytes = binary.LittleEndian.AppendUint32(bytes, uint32(TypeID(valType)))
+	*key = bytes
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if typ, ok := c.toType[string(*tv)]; ok {
-		tvPool.Put(tv)
-		return typ.(*TypeMap)
+	if c.maps == nil {
+		c.maps = make(map[string]*TypeMap)
+	}
+	if typ, ok := c.maps[string(bytes)]; ok {
+		keyPool.Put(key)
+		return typ
 	}
 	typ := NewTypeMap(c.nextIDWithLock(), keyType, valType)
-	c.enterWithLock(*tv, typ)
-	return typ
-}
-
-func (c *Context) LookupTypeArray(inner Type) *TypeArray {
-	tv := tvPool.Get().(*[]byte)
-	*tv = AppendTypeValue((*tv)[:0], &TypeArray{Type: inner})
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	if typ, ok := c.toType[string(*tv)]; ok {
-		tvPool.Put(tv)
-		return typ.(*TypeArray)
-	}
-	typ := NewTypeArray(c.nextIDWithLock(), inner)
-	c.enterWithLock(*tv, typ)
+	c.enterWithLock(typ)
+	c.maps[string(bytes)] = typ
 	return typ
 }
 
@@ -201,30 +236,47 @@ func (c *Context) LookupTypeUnion(types []Type) *TypeUnion {
 	sort.SliceStable(types, func(i, j int) bool {
 		return CompareTypes(types[i], types[j]) < 0
 	})
-	tv := tvPool.Get().(*[]byte)
-	*tv = AppendTypeValue((*tv)[:0], &TypeUnion{Types: types})
+	key := keyPool.Get().(*[]byte)
+	bytes := (*key)[:0]
+	for _, typ := range types {
+		bytes = binary.LittleEndian.AppendUint32(bytes, uint32(TypeID(typ)))
+	}
+	*key = bytes
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if typ, ok := c.toType[string(*tv)]; ok {
-		tvPool.Put(tv)
-		return typ.(*TypeUnion)
+	if c.unions == nil {
+		c.unions = make(map[string]*TypeUnion)
+	}
+	if typ, ok := c.unions[string(bytes)]; ok {
+		keyPool.Put(key)
+		return typ
 	}
 	typ := NewTypeUnion(c.nextIDWithLock(), slices.Clone(types))
-	c.enterWithLock(*tv, typ)
+	c.enterWithLock(typ)
+	c.unions[string(bytes)] = typ
 	return typ
 }
 
 func (c *Context) LookupTypeEnum(symbols []string) *TypeEnum {
-	tv := tvPool.Get().(*[]byte)
-	*tv = AppendTypeValue((*tv)[:0], &TypeEnum{Symbols: symbols})
+	key := keyPool.Get().(*[]byte)
+	bytes := (*key)[:0]
+	for _, symbol := range symbols {
+		bytes = binary.LittleEndian.AppendUint32(bytes, uint32(len(symbol)))
+		bytes = append(bytes, []byte(symbol)...)
+	}
+	*key = bytes
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if typ, ok := c.toType[string(*tv)]; ok {
-		tvPool.Put(tv)
-		return typ.(*TypeEnum)
+	if c.enums == nil {
+		c.enums = make(map[string]*TypeEnum)
+	}
+	if typ, ok := c.enums[string(bytes)]; ok {
+		keyPool.Put(key)
+		return typ
 	}
 	typ := NewTypeEnum(c.nextIDWithLock(), slices.Clone(symbols))
-	c.enterWithLock(*tv, typ)
+	c.enterWithLock(typ)
+	c.enums[string(bytes)] = typ
 	return typ
 }
 
@@ -233,6 +285,9 @@ func (c *Context) LookupTypeEnum(symbols []string) *TypeEnum {
 func (c *Context) LookupTypeDef(name string) *TypeNamed {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	if c.typedefs == nil {
+		return nil
+	}
 	return c.typedefs[name]
 }
 
@@ -246,32 +301,42 @@ func (c *Context) LookupTypeNamed(name string, inner Type) (*TypeNamed, error) {
 	if LookupPrimitive(name) != nil {
 		return nil, fmt.Errorf("bad type name %q: primitive type name", name)
 	}
-	tv := tvPool.Get().(*[]byte)
-	*tv = AppendTypeValue((*tv)[:0], &TypeNamed{Name: name, Type: inner})
+	key := keyPool.Get().(*[]byte)
+	bytes := (*key)[:0]
+	bytes = binary.LittleEndian.AppendUint32(bytes, uint32(len(name)))
+	bytes = append(bytes, []byte(name)...)
+	bytes = binary.LittleEndian.AppendUint32(bytes, uint32(TypeID(inner)))
+	*key = bytes
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if typ, ok := c.toType[string(*tv)]; ok {
-		tvPool.Put(tv)
-		c.typedefs[name] = typ.(*TypeNamed)
-		return typ.(*TypeNamed), nil
+	if c.nameds == nil {
+		c.nameds = make(map[string]*TypeNamed)
+		c.typedefs = make(map[string]*TypeNamed)
+	}
+	if typ, ok := c.nameds[string(bytes)]; ok {
+		keyPool.Put(key)
+		c.typedefs[name] = typ
+		return typ, nil
 	}
 	typ := NewTypeNamed(c.nextIDWithLock(), name, inner)
 	c.typedefs[name] = typ
-	c.enterWithLock(*tv, typ)
+	c.enterWithLock(typ)
+	c.nameds[string(bytes)] = typ
 	return typ, nil
 }
 
 func (c *Context) LookupTypeError(inner Type) *TypeError {
-	tv := tvPool.Get().(*[]byte)
-	*tv = AppendTypeValue((*tv)[:0], &TypeError{Type: inner})
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if typ, ok := c.toType[string(*tv)]; ok {
-		tvPool.Put(tv)
-		return typ.(*TypeError)
+	if c.errors == nil {
+		c.errors = make(map[Type]*TypeError)
+	}
+	if typ, ok := c.errors[inner]; ok {
+		return typ
 	}
 	typ := NewTypeError(c.nextIDWithLock(), inner)
-	c.enterWithLock(*tv, typ)
+	c.enterWithLock(typ)
+	c.errors[inner] = typ
 	if inner == TypeString {
 		c.stringErr.Store(typ)
 	}
@@ -284,6 +349,10 @@ func (c *Context) LookupTypeError(inner Type) *TypeError {
 func (c *Context) LookupByValue(tv zcode.Bytes) (Type, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	if c.toType == nil {
+		c.toType = make(map[string]Type)
+		c.toValue = make(map[Type]zcode.Bytes)
+	}
 	typ, ok := c.toType[string(tv)]
 	if ok {
 		return typ, nil
@@ -305,23 +374,20 @@ func (c *Context) TranslateType(ext Type) (Type, error) {
 	return c.LookupByValue(EncodeTypeValue(ext))
 }
 
-func (c *Context) enterWithLock(tv zcode.Bytes, typ Type) {
-	c.toValue[typ] = tv
-	c.toType[string(tv)] = typ
+func (c *Context) enterWithLock(typ Type) {
 	c.byID = append(c.byID, typ)
 }
 
 func (c *Context) LookupTypeValue(typ Type) Value {
 	c.mu.Lock()
-	bytes, ok := c.toValue[typ]
-	c.mu.Unlock()
-	if ok {
-		return NewValue(TypeType, bytes)
+	if c.toValue != nil {
+		bytes, ok := c.toValue[typ]
+		if ok {
+			c.mu.Unlock()
+			return NewValue(TypeType, bytes)
+		}
 	}
-	// In general, this shouldn't happen except for a foreign
-	// type that wasn't initially created in this context.
-	// In this case, we round-trip through the context-independent
-	// type value to populate this context with the needed type state.
+	c.mu.Unlock()
 	tv := EncodeTypeValue(typ)
 	typ, err := c.LookupByValue(tv)
 	if err != nil {
@@ -526,4 +592,37 @@ func (c *Context) WrapError(msg string, val Value) Value {
 	b.Append(EncodeString(msg))
 	b.Append(val.Bytes())
 	return NewValue(errType, b.Bytes())
+}
+
+// TypeCache wraps a TypeFetcher with an unsynchronized cache for its LookupType
+// method.  Cache hits incur none of the synchronization overhead of
+// the underlying shared type context.
+type TypeCache struct {
+	cache   []Type
+	fetcher TypeFetcher
+}
+
+var _ TypeFetcher = (*TypeCache)(nil)
+
+func (t *TypeCache) Reset(fetcher TypeFetcher) {
+	clear(t.cache)
+	t.cache = t.cache[:0]
+	t.fetcher = fetcher
+}
+
+func (t *TypeCache) LookupType(id int) (Type, error) {
+	if id < len(t.cache) {
+		if typ := t.cache[id]; typ != nil {
+			return typ, nil
+		}
+	}
+	typ, err := t.fetcher.LookupType(id)
+	if err != nil {
+		return nil, err
+	}
+	if id >= len(t.cache) {
+		t.cache = slices.Grow(t.cache[:0], id+1)[:id+1]
+	}
+	t.cache[id] = typ
+	return typ, nil
 }

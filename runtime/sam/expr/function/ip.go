@@ -39,7 +39,7 @@ func (n *NetworkOf) Call(_ super.Allocator, args []super.Value) super.Value {
 		case id == super.IDIP:
 			mask := super.DecodeIP(body)
 			if mask.BitLen() != ip.BitLen() {
-				return n.zctx.WrapError("network_of: address and mask have different lengths", addressAndMask(args[0], args[1]))
+				return n.zctx.WrapError("network_of: address and mask have different lengths", addressAndMask(n.zctx, args[0], args[1]))
 			}
 			bits = super.LeadingOnes(mask.AsSlice())
 			if netip.PrefixFrom(mask, bits).Masked().Addr() != mask {
@@ -52,7 +52,7 @@ func (n *NetworkOf) Call(_ super.Allocator, args []super.Value) super.Value {
 				bits = int(args[1].Uint())
 			}
 			if bits > 128 || bits > 32 && ip.Is4() {
-				return n.zctx.WrapError("network_of: CIDR bit count out of range", addressAndMask(args[0], args[1]))
+				return n.zctx.WrapError("network_of: CIDR bit count out of range", addressAndMask(n.zctx, args[0], args[1]))
 			}
 		default:
 			return n.zctx.WrapError("network_of: bad arg for CIDR mask", args[1])
@@ -63,8 +63,8 @@ func (n *NetworkOf) Call(_ super.Allocator, args []super.Value) super.Value {
 	return super.NewNet(prefix)
 }
 
-func addressAndMask(address, mask super.Value) super.Value {
-	val, err := zson.MarshalZNG(struct {
+func addressAndMask(sctx *super.Context, address, mask super.Value) super.Value {
+	val, err := zson.NewZNGMarshalerWithContext(sctx).Marshal(struct {
 		Address super.Value `zed:"address"`
 		Mask    super.Value `zed:"mask"`
 	}{address, mask})

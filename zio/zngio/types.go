@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/brimdata/super"
 )
@@ -202,34 +203,20 @@ func (e *Encoder) encodeTypeError(ext *super.TypeError) (*super.TypeError, error
 	return typ, nil
 }
 
-type localctx struct {
-	// internal context implied by ZNG file
-	zctx *super.Context
-	// mapper to map internal to shared type contexts
-	mapper *super.Mapper
-}
-
-// Called at end-of-stream... XXX elaborate
-func (l *localctx) reset(shared *super.Context) {
-	l.zctx = super.NewContext()
-	l.mapper = super.NewMapper(shared)
-}
-
 type Decoder struct {
 	// shared/output context
-	zctx *super.Context
-	// local context and mapper from local to shared
-	local localctx
+	sctx *super.Context
+	// Local type IDs are mapped to the shared-context types with the types array.
+	// The types slice is protected with mutex as the slice can be expanded while
+	// worker threads are scanning earlier batches.
+	mu    sync.RWMutex
+	types []super.Type
 }
 
-func NewDecoder(zctx *super.Context) *Decoder {
-	d := &Decoder{zctx: zctx}
-	d.reset()
-	return d
-}
+var _ super.TypeFetcher = (*Decoder)(nil)
 
-func (d *Decoder) reset() {
-	d.local.reset(d.zctx)
+func NewDecoder(sctx *super.Context) *Decoder {
+	return &Decoder{sctx: sctx}
 }
 
 func (d *Decoder) decode(b *buffer) error {
@@ -278,12 +265,12 @@ func (d *Decoder) readTypeRecord(b *buffer) error {
 		}
 		fields = append(fields, f)
 	}
-	typ, err := d.local.zctx.LookupTypeRecord(fields)
+	typ, err := d.sctx.LookupTypeRecord(fields)
 	if err != nil {
 		return err
 	}
-	_, err = d.local.mapper.Enter(typ)
-	return err
+	d.enter(typ)
+	return nil
 }
 
 func (d *Decoder) readField(b *buffer) (super.Field, error) {
@@ -291,11 +278,7 @@ func (d *Decoder) readField(b *buffer) (super.Field, error) {
 	if err != nil {
 		return super.Field{}, err
 	}
-	id, err := readUvarintAsInt(b)
-	if err != nil {
-		return super.Field{}, errBadFormat
-	}
-	typ, err := d.local.zctx.LookupType(id)
+	typ, err := d.readType(b)
 	if err != nil {
 		return super.Field{}, err
 	}
@@ -303,52 +286,33 @@ func (d *Decoder) readField(b *buffer) (super.Field, error) {
 }
 
 func (d *Decoder) readTypeArray(b *buffer) error {
-	id, err := readUvarintAsInt(b)
-	if err != nil {
-		return errBadFormat
-	}
-	inner, err := d.local.zctx.LookupType(id)
+	inner, err := d.readType(b)
 	if err != nil {
 		return err
 	}
-	typ := d.local.zctx.LookupTypeArray(inner)
-	_, err = d.local.mapper.Enter(typ)
-	return err
+	d.enter(d.sctx.LookupTypeArray(inner))
+	return nil
 }
 
 func (d *Decoder) readTypeSet(b *buffer) error {
-	id, err := readUvarintAsInt(b)
-	if err != nil {
-		return errBadFormat
-	}
-	innerType, err := d.local.zctx.LookupType(id)
+	inner, err := d.readType(b)
 	if err != nil {
 		return err
 	}
-	typ := d.local.zctx.LookupTypeSet(innerType)
-	_, err = d.local.mapper.Enter(typ)
-	return err
+	d.enter(d.sctx.LookupTypeSet(inner))
+	return nil
 }
 
 func (d *Decoder) readTypeMap(b *buffer) error {
-	id, err := readUvarintAsInt(b)
-	if err != nil {
-		return errBadFormat
-	}
-	keyType, err := d.local.zctx.LookupType(id)
+	keyType, err := d.readType(b)
 	if err != nil {
 		return err
 	}
-	id, err = readUvarintAsInt(b)
-	if err != nil {
-		return errBadFormat
-	}
-	valType, err := d.local.zctx.LookupType(id)
+	valType, err := d.readType(b)
 	if err != nil {
 		return err
 	}
-	typ := d.local.zctx.LookupTypeMap(keyType, valType)
-	_, err = d.local.mapper.Enter(typ)
+	d.enter(d.sctx.LookupTypeMap(keyType, valType))
 	return err
 }
 
@@ -360,21 +324,20 @@ func (d *Decoder) readTypeUnion(b *buffer) error {
 	if ntyp == 0 {
 		return errors.New("type union: zero types not allowed")
 	}
-	var types []super.Type
-	for k := 0; k < ntyp; k++ {
-		id, err := readUvarintAsInt(b)
-		if err != nil {
-			return errBadFormat
-		}
-		typ, err := d.local.zctx.LookupType(id)
+	if ntyp > super.MaxUnionTypes {
+		return fmt.Errorf("type union: too many types (%d)", ntyp)
+
+	}
+	types := make([]super.Type, 0, ntyp)
+	for range ntyp {
+		typ, err := d.readType(b)
 		if err != nil {
 			return err
 		}
 		types = append(types, typ)
 	}
-	typ := d.local.zctx.LookupTypeUnion(types)
-	_, err = d.local.mapper.Enter(typ)
-	return err
+	d.enter(d.sctx.LookupTypeUnion(types))
+	return nil
 }
 
 func (d *Decoder) readTypeEnum(b *buffer) error {
@@ -382,17 +345,19 @@ func (d *Decoder) readTypeEnum(b *buffer) error {
 	if err != nil {
 		return errBadFormat
 	}
+	if nsym > super.MaxEnumSymbols {
+		return fmt.Errorf("too many enum symbols encountered (%d)", nsym)
+	}
 	var symbols []string
-	for k := 0; k < nsym; k++ {
+	for range nsym {
 		s, err := d.readCountedString(b)
 		if err != nil {
 			return err
 		}
 		symbols = append(symbols, s)
 	}
-	typ := d.local.zctx.LookupTypeEnum(symbols)
-	_, err = d.local.mapper.Enter(typ)
-	return err
+	d.enter(d.sctx.LookupTypeEnum(symbols))
+	return nil
 }
 
 func (d *Decoder) readCountedString(b *buffer) (string, error) {
@@ -413,32 +378,54 @@ func (d *Decoder) readTypeName(b *buffer) error {
 	if err != nil {
 		return err
 	}
-	id, err := readUvarintAsInt(b)
-	if err != nil {
-		return errBadFormat
-	}
-	inner, err := d.local.zctx.LookupType(id)
+	inner, err := d.readType(b)
 	if err != nil {
 		return err
 	}
-	typ, err := d.local.zctx.LookupTypeNamed(name, inner)
+	typ, err := d.sctx.LookupTypeNamed(name, inner)
 	if err != nil {
 		return err
 	}
-	_, err = d.local.mapper.Enter(typ)
-	return err
+	d.enter(typ)
+	return nil
 }
 
 func (d *Decoder) readTypeError(b *buffer) error {
-	id, err := readUvarintAsInt(b)
-	if err != nil {
-		return errBadFormat
-	}
-	inner, err := d.local.zctx.LookupType(id)
+	inner, err := d.readType(b)
 	if err != nil {
 		return err
 	}
-	typ := d.local.zctx.LookupTypeError(inner)
-	_, err = d.local.mapper.Enter(typ)
-	return err
+	d.enter(d.sctx.LookupTypeError(inner))
+	return nil
+}
+
+func (d *Decoder) readType(b *buffer) (super.Type, error) {
+	id, err := readUvarintAsInt(b)
+	if err != nil {
+		return nil, errBadFormat
+	}
+	return d.LookupType(id)
+}
+
+func (d *Decoder) LookupType(id int) (super.Type, error) {
+	if id < super.IDTypeComplex {
+		return super.LookupPrimitiveByID(id)
+	}
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+	off := id - super.IDTypeComplex
+	if off < len(d.types) {
+		return d.types[off], nil
+	}
+	return nil, fmt.Errorf("no type found for type id %d", id)
+}
+
+func (d *Decoder) enter(typ super.Type) {
+	// Even though type decoding is single threaded, workers processing a
+	// previous batch can be accessing the types map (via LookupType) while
+	// the single thread is extending it so these accesses are protected
+	// with the mutex.
+	d.mu.Lock()
+	d.types = append(d.types, typ)
+	d.mu.Unlock()
 }

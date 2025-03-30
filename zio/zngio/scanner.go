@@ -133,7 +133,7 @@ func (s *scanner) start() {
 			select {
 			case worker := <-s.workerCh:
 				w := work{
-					local:    s.parser.types.local,
+					types:    s.parser.types,
 					frame:    frame,
 					resultCh: make(chan op.Result, 1),
 				}
@@ -184,14 +184,14 @@ type worker struct {
 	ectx         expr.Context
 	validate     bool
 
-	mapperLookupCache super.MapperLookupCache
+	typeCache super.TypeCache
 }
 
 type work struct {
 	// Workers need the local context's mapper to map deserialized type IDs
 	// into shared-context types and bufferfilter needs its local zctx to
 	// interpret serialized type IDs in the raw value message block.
-	local    localctx
+	types    super.TypeFetcher
 	frame    frame
 	resultCh chan op.Result
 }
@@ -240,7 +240,7 @@ func (w *worker) run(ctx context.Context, workerCh chan<- *worker) {
 			// has been freed above so no need to free work.blk.
 			// If the batch survives, the work.blk.ubuf will go with it
 			// and will get freed when the batch's Unref count hits 0.
-			batch, err := w.scanBatch(work.frame.ubuf, work.local)
+			batch, err := w.scanBatch(work.frame.ubuf, work.types)
 			if batch != nil || err != nil {
 				work.resultCh <- op.Result{Batch: batch, Err: err}
 			}
@@ -251,22 +251,17 @@ func (w *worker) run(ctx context.Context, workerCh chan<- *worker) {
 	}
 }
 
-func (w *worker) scanBatch(buf *buffer, local localctx) (zbuf.Batch, error) {
+func (w *worker) scanBatch(buf *buffer, types super.TypeFetcher) (zbuf.Batch, error) {
 	// If w.bufferFilter evaluates to false, we know buf cannot contain
 	// records matching w.filter.
-	if w.bufferFilter != nil && !w.bufferFilter.Eval(local.zctx, buf.Bytes()) {
+	if w.bufferFilter != nil && !w.bufferFilter.Eval(types, buf.Bytes()) {
 		atomic.AddInt64(&w.progress.BytesRead, int64(buf.length()))
 		buf.free()
 		return nil, nil
 	}
 	// Otherwise, build a batch by reading all records in the buffer.
 
-	// XXX PR question:
-	// we could include the count of records in the values message header...
-	// might make allocation work out better; at some point we can have
-	// pools of buffers based on size?
-
-	w.mapperLookupCache.Reset(local.mapper)
+	w.typeCache.Reset(types)
 	batch := newBatch(buf)
 	var progress zbuf.Progress
 	// We extend the batch one past its end and decode into the next
@@ -316,9 +311,9 @@ func (w *worker) decodeVal(buf *buffer, valRef *super.Value) error {
 			return errBadFormat
 		}
 	}
-	typ := w.mapperLookupCache.Lookup(id)
-	if typ == nil {
-		return fmt.Errorf("zngio: type ID %d not in context", id)
+	typ, err := w.typeCache.LookupType(id)
+	if err != nil {
+		return fmt.Errorf("zngio: %w", err)
 	}
 	*valRef = super.NewValue(typ, b)
 	if w.validate {

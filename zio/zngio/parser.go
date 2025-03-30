@@ -34,7 +34,7 @@ func (p *parser) read() (frame, error) {
 			// and the old mapper and context will continue on just fine as
 			// everything gets properly mappped to the shared context
 			// under concurrent locking within super.Context.
-			p.types.reset()
+			p.types = NewDecoder(p.types.sctx)
 			continue
 		}
 		if (code & 0x80) != 0 {

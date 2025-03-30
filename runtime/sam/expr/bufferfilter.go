@@ -66,14 +66,14 @@ func NewBufferFilterForStringCase(pattern string) *BufferFilter {
 }
 
 // Eval returns true if buf matches the receiver and false otherwise.
-func (b *BufferFilter) Eval(zctx *super.Context, buf []byte) bool {
+func (b *BufferFilter) Eval(types super.TypeFetcher, buf []byte) bool {
 	switch b.op {
 	case opAnd:
-		return b.left.Eval(zctx, buf) && b.right.Eval(zctx, buf)
+		return b.left.Eval(types, buf) && b.right.Eval(types, buf)
 	case opOr:
-		return b.left.Eval(zctx, buf) || b.right.Eval(zctx, buf)
+		return b.left.Eval(types, buf) || b.right.Eval(types, buf)
 	case opFieldNameFinder:
-		return b.fnf.Find(zctx, buf)
+		return b.fnf.Find(types, buf)
 	case opStringCaseFinder:
 		return b.cf.Next(byteconv.UnsafeString(buf)) > -1
 	case opStringFinder:
