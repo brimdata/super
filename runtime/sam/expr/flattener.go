@@ -8,8 +8,8 @@ import (
 )
 
 type Flattener struct {
-	zctx   *super.Context
-	mapper *super.Mapper
+	zctx *super.Context
+	flat map[super.Type]super.Type
 }
 
 // NewFlattener returns a flattener that transforms nested records to flattened
@@ -19,10 +19,7 @@ type Flattener struct {
 func NewFlattener(zctx *super.Context) *Flattener {
 	return &Flattener{
 		zctx: zctx,
-		// This mapper maps types back into the same context and gives
-		// us a convenient way to track type-ID to type-ID for types that
-		// need to be flattened.
-		mapper: super.NewMapper(zctx),
+		flat: make(map[super.Type]super.Type),
 	}
 }
 
@@ -61,11 +58,11 @@ func recode(dst zcode.Bytes, typ *super.TypeRecord, in zcode.Bytes) (zcode.Bytes
 }
 
 func (f *Flattener) Flatten(r super.Value) (super.Value, error) {
-	id := r.Type().ID()
-	flatType := f.mapper.Lookup(id)
-	if flatType == nil {
+	typ := r.Type()
+	flatType, ok := f.flat[typ]
+	if !ok {
 		flatType = f.zctx.MustLookupTypeRecord(FlattenFields(r.Fields()))
-		f.mapper.EnterType(id, flatType)
+		f.flat[typ] = flatType
 	}
 	// Since we are mapping the input context to itself we can do a
 	// pointer comparison to see if the types are the same and there
