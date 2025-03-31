@@ -13,8 +13,8 @@ import (
 
 var errBadFormat = errors.New("malformed bsup record")
 
-// parser decodes the framing protocol for ZNG updating and resetting its
-// Zed type context in conformance with ZNG frames.
+// parser decodes the framing protocol for BSON updating and resetting its
+// super context in conformance with BSON framing.
 type parser struct {
 	peeker  *peeker.Reader
 	types   *Decoder
@@ -50,7 +50,7 @@ func (p *parser) read() (frame, error) {
 		case ControlFrame:
 			return frame{}, p.decodeControl(code)
 		default:
-			return frame{}, fmt.Errorf("unknown ZNG message frame type: %d", typ)
+			return frame{}, fmt.Errorf("unknown BSON message frame type: %d", typ)
 		}
 	}
 }
@@ -91,9 +91,6 @@ func (p *parser) decodeValues(code byte) (frame, error) {
 		// Compressed
 		return p.readCompressedFrame(code)
 	}
-	// b points into the peaker buffer so we copy it into
-	// a buffer and leave the zbuf nil so the worker knows
-	// this chunk is already uncompressed.
 	bytes, err := p.readFrame(code)
 	if err != nil {
 		return frame{}, err

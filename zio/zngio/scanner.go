@@ -107,13 +107,14 @@ func (s *scanner) start() {
 		// from the input.  Types and control messages are decoded
 		// in this thread and data blocks are distributed to the workers
 		// with the property that all types for a given data block will
-		// exist in the type context before the worker is given the buffer
+		// exist in the decoder types state (which in turn points to the
+		// shared query context) before the worker is given the buffer
 		// to (optionally) uncompress, filter, and decode when matched.
-		// When we hit end-of-stream, a new type context and mapper are
+		// When we hit end-of-stream, a new type context and types slice are
 		// created for the new data batches.  Since all data is mapped to
 		// the shared context and each worker maps its values independently,
 		// the decode pipeline continues to operate concurrenlty without
-		// any problem even when faced with changing type contexts.
+		// any problem even when faced with changing localized type state.
 		for {
 			frame, err := s.parser.read()
 			if err != nil {
@@ -253,14 +254,13 @@ func (w *worker) run(ctx context.Context, workerCh chan<- *worker) {
 
 func (w *worker) scanBatch(buf *buffer, types super.TypeFetcher) (zbuf.Batch, error) {
 	// If w.bufferFilter evaluates to false, we know buf cannot contain
-	// records matching w.filter.
+	// values matching w.filter.
 	if w.bufferFilter != nil && !w.bufferFilter.Eval(types, buf.Bytes()) {
 		atomic.AddInt64(&w.progress.BytesRead, int64(buf.length()))
 		buf.free()
 		return nil, nil
 	}
-	// Otherwise, build a batch by reading all records in the buffer.
-
+	// Otherwise, build a batch by reading all values in the buffer.
 	w.typeCache.Reset(types)
 	batch := newBatch(buf)
 	var progress zbuf.Progress
@@ -329,8 +329,8 @@ func (w *worker) wantValue(val super.Value, progress *zbuf.Progress) bool {
 	progress.RecordsRead++
 	// It's tempting to call w.bufferFilter.Eval on rec.Bytes here, but that
 	// might call FieldNameFinder.Find, which could explode or return false
-	// negatives because it expects a buffer of ZNG value messages, and
-	// rec.Bytes is just a ZNG value.  (A ZNG value message is a header
+	// negatives because it expects a buffer of BSON value messages, and
+	// rec.Bytes is just a BSON value.  (A BSON value message is a header
 	// indicating a type ID followed by a value of that type.)
 	if w.filter == nil || check(w.ectx, val, w.filter) {
 		progress.BytesMatched += int64(len(val.Bytes()))

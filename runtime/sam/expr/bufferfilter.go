@@ -17,7 +17,7 @@ const (
 	opStringFinder
 )
 
-// BufferFilter is a filter for byte slices containing ZNG values.
+// BufferFilter is a filter for byte slices containing BSON-serialized values.
 type BufferFilter struct {
 	op    int
 	left  *BufferFilter
