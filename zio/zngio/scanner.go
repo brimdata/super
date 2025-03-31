@@ -129,7 +129,7 @@ func (s *scanner) start() {
 				return
 			}
 			// Grab a free worker and give it this values message frame to work on
-			// along with the present local type context and mapper.
+			// along with the present Decoder's local-to-shared type state.
 			// We queue up the worker's resultCh so batches are delivered in order.
 			select {
 			case worker := <-s.workerCh:
@@ -189,9 +189,10 @@ type worker struct {
 }
 
 type work struct {
-	// Workers need the local context's mapper to map deserialized type IDs
-	// into shared-context types and bufferfilter needs its local zctx to
-	// interpret serialized type IDs in the raw value message block.
+	// Workers need access to the local Decoder types slice to map deserialized
+	// type IDs into shared-context types and bufferfilter needs to map local IDs
+	// to field names and we accomplish both goals using the Decoder's implementation
+	// of the super.TypeFetcher interface.
 	types    super.TypeFetcher
 	frame    frame
 	resultCh chan op.Result

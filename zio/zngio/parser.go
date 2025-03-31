@@ -28,12 +28,12 @@ func (p *parser) read() (frame, error) {
 			return frame{}, err
 		}
 		if code == EOS {
-			// At EOS, we create a new local context and mapper to the
-			// shared context.  Any data batches concurrently being
-			// decoded by a worker will still point to the old context
-			// and the old mapper and context will continue on just fine as
+			// At EOS, we create a new Decoder which clears out the types slice
+			// mapping the local type IDs to the shared-context types.  Any data
+			// batches concurrently being decoded by a worker will still point
+			// to the old types slice so all continues on just fine as
 			// everything gets properly mappped to the shared context
-			// under concurrent locking within super.Context.
+			// under concurrent locking in the target super.Context.
 			p.types = NewDecoder(p.types.sctx)
 			continue
 		}
