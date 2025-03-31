@@ -121,7 +121,7 @@ func (c *Context) LookupTypeRecord(fields []Field) (*TypeRecord, error) {
 	bytes := (*key)[:0]
 	for _, field := range fields {
 		bytes = binary.LittleEndian.AppendUint32(bytes, uint32(len(field.Name)))
-		bytes = append(bytes, []byte(field.Name)...)
+		bytes = append(bytes, field.Name...)
 		bytes = binary.LittleEndian.AppendUint32(bytes, uint32(TypeID(field.Type)))
 	}
 	*key = bytes
@@ -262,7 +262,7 @@ func (c *Context) LookupTypeEnum(symbols []string) *TypeEnum {
 	bytes := (*key)[:0]
 	for _, symbol := range symbols {
 		bytes = binary.LittleEndian.AppendUint32(bytes, uint32(len(symbol)))
-		bytes = append(bytes, []byte(symbol)...)
+		bytes = append(bytes, symbol...)
 	}
 	*key = bytes
 	c.mu.Lock()
@@ -304,7 +304,7 @@ func (c *Context) LookupTypeNamed(name string, inner Type) (*TypeNamed, error) {
 	key := keyPool.Get().(*[]byte)
 	bytes := (*key)[:0]
 	bytes = binary.LittleEndian.AppendUint32(bytes, uint32(len(name)))
-	bytes = append(bytes, []byte(name)...)
+	bytes = append(bytes, name...)
 	bytes = binary.LittleEndian.AppendUint32(bytes, uint32(TypeID(inner)))
 	*key = bytes
 	c.mu.Lock()
@@ -381,8 +381,7 @@ func (c *Context) enterWithLock(typ Type) {
 func (c *Context) LookupTypeValue(typ Type) Value {
 	c.mu.Lock()
 	if c.toValue != nil {
-		bytes, ok := c.toValue[typ]
-		if ok {
+		if bytes, ok := c.toValue[typ]; ok {
 			c.mu.Unlock()
 			return NewValue(TypeType, bytes)
 		}
