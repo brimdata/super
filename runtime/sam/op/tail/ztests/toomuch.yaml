@@ -1,7 +1,0 @@
-zed: tail 2
-
-input: |
-  {x:"first"}
-
-output: |
-  {x:"first"}

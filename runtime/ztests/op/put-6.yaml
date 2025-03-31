@@ -1,6 +1,8 @@
 # Tests integer division by zero error
 zed: put y := x / 0
 
+vector: true
+
 input: |
   {x:1(int32)}
 

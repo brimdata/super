@@ -1,5 +1,7 @@
 zed: count() by key1 | sort key1
 
+vector: true
+
 input: |
   {key1:null(string),key2:null(string),n:3(int32)}
   {key1:null(string),key2:null(string),n:4(int32)}

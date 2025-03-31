@@ -1,5 +1,7 @@
 zed: avg(x), count(x), dcount(x), any(x), max(x), min(x), sum(x)
 
+vector: true
+
 input: |
   {x:null(uint64)}
   {x:null(float64)}

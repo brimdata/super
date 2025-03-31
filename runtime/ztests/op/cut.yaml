@@ -1,5 +1,7 @@
 zed: cut foo
 
+vector: true
+
 input: |
   #separator \x09
   #set_separator	,

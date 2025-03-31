@@ -20,6 +20,8 @@ script: |
   echo === reverse-sorted-null ===
   super -z -c "count() by every(1s) | sort this" in-rev.jsup
 
+vector: true
+
 inputs:
   - name: in.jsup
     data: |

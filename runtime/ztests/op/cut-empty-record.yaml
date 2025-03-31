@@ -1,5 +1,7 @@
 zed: cut a, b
 
+vector: true
+
 input: |
   {}
   {a:{}}

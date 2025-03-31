@@ -2,6 +2,8 @@
 # type correctly
 zed: 'put y := x > 0 ? "string" : x'
 
+vector: true
+
 input: |
   {x:0(int32)}
   {x:1(int32)}

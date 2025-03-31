@@ -1,5 +1,7 @@
 zed: any(n), sum(n), avg(n), min(n), max(n) by key1 | sort key1
 
+vector: true
+
 input: |
   {key1:"a",key2:"x",n:1(int32)}
   {key1:"a",key2:"y",n:2(int32)}
