@@ -11,6 +11,15 @@
 [aggregate] [<field>:=]<agg> [where <expr>][, [<field>:=]<agg> [where <expr>] ...] [by [<field>][:=<expr>][, [<field>][:=<expr>]] ...]
 [aggregate] by [<field>][:=<expr>][, [<field>][:=<expr>] ...]
 ```
+
+{{% tip "Note" %}}
+
+The operator name `summarize` that was used previously for performing
+aggregations is now is deprecated and will be removed from the language in the
+future.
+
+{{% /tip %}}
+
 ### Description
 
 In the first four forms, the `aggregate` operator consumes all of its input,
@@ -32,7 +41,7 @@ whether to deliver it to that aggregate. (`where` clauses are analogous
 to the [`where` operator](where.md).)
 
 The output field names for each aggregate and each key are optional.  If omitted,
-a field name is inferred from each right-hand side, e.g, the output field for the
+a field name is inferred from each right-hand side, e.g., the output field for the
 [`count` aggregate function](../aggregates/count.md) is simply `count`.
 
 A key may be either an expression or a field.  If the key field is omitted,
