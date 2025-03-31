@@ -214,7 +214,11 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 	case *dag.Aggregate:
 		return b.compileVamAggregate(o, parent)
 	case *dag.Cut:
-		e, err := b.compileVamAssignmentsToRecordExpression(nil, o.Args)
+		rec, err := vamNewRecordExprFromAssignments(o.Args)
+		if err != nil {
+			return nil, err
+		}
+		e, err := b.compileVamRecordExpr(rec)
 		if err != nil {
 			return nil, err
 		}
@@ -263,10 +267,12 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 	case *dag.Pass:
 		return parent, nil
 	case *dag.Put:
-		initial := []dag.RecordElem{
-			&dag.Spread{Kind: "Spread", Expr: &dag.This{Kind: "This"}},
+		rec, err := vamNewRecordExprFromAssignments(o.Args)
+		if err != nil {
+			return nil, err
 		}
-		e, err := b.compileVamAssignmentsToRecordExpression(initial, o.Args)
+		mergeRecordExprWithPath(rec, nil)
+		e, err := b.compileVamRecordExpr(rec)
 		if err != nil {
 			return nil, err
 		}
@@ -302,8 +308,8 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 	}
 }
 
-func (b *Builder) compileVamAssignmentsToRecordExpression(initial []dag.RecordElem, assignments []dag.Assignment) (vamexpr.Evaluator, error) {
-	rec := &dag.RecordExpr{Kind: "RecordExpr", Elems: initial}
+func vamNewRecordExprFromAssignments(assignments []dag.Assignment) (*dag.RecordExpr, error) {
+	rec := &dag.RecordExpr{Kind: "RecordExpr"}
 	for _, a := range assignments {
 		lhs, ok := a.LHS.(*dag.This)
 		if !ok {
@@ -311,7 +317,7 @@ func (b *Builder) compileVamAssignmentsToRecordExpression(initial []dag.RecordEl
 		}
 		addPathToRecordExpr(rec, lhs.Path, a.RHS)
 	}
-	return b.compileVamRecordExpr(rec)
+	return rec, nil
 }
 
 func addPathToRecordExpr(rec *dag.RecordExpr, path []string, expr dag.Expr) {
@@ -328,6 +334,18 @@ func addPathToRecordExpr(rec *dag.RecordExpr, path []string, expr dag.Expr) {
 		rec.Elems = append(rec.Elems, &dag.Field{Kind: "Field", Name: path[0], Value: &dag.RecordExpr{Kind: "RecordExpr"}})
 	}
 	addPathToRecordExpr(rec.Elems[i].(*dag.Field).Value.(*dag.RecordExpr), path[1:], expr)
+}
+
+func mergeRecordExprWithPath(rec *dag.RecordExpr, path []string) {
+	spread := &dag.Spread{Kind: "Spread", Expr: &dag.This{Kind: "This", Path: path}}
+	rec.Elems = append([]dag.RecordElem{spread}, rec.Elems...)
+	for _, elem := range rec.Elems {
+		if field, ok := elem.(*dag.Field); ok {
+			if childrec, ok := field.Value.(*dag.RecordExpr); ok {
+				mergeRecordExprWithPath(childrec, append(path, field.Name))
+			}
+		}
+	}
 }
 
 func (b *Builder) compileVamOver(over *dag.Over, parent vector.Puller) (vector.Puller, error) {
