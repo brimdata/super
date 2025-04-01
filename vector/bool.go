@@ -334,11 +334,7 @@ func CopyAndSetNulls(v Any, nulls *Bool) Any {
 			Nulls:  nulls,
 		}
 	case *Union:
-		return &Union{
-			Dynamic: v.Dynamic,
-			Typ:     v.Typ,
-			Nulls:   nulls,
-		}
+		return NewUnion(v.Typ, v.Tags, v.Values, nulls)
 	default:
 		panic(v)
 	}
