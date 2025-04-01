@@ -1,13 +1,15 @@
-zed: yield this[0], this[1]
+zed: yield this[0], this[1], this[2]
 
 vector: true
 
 input: |
-  [0((int64,string)),"hi"((int64,string))]
-  |[0((int64,string)),"hi"((int64,string))]|
+  [0((int64,string)),"hi"((int64,string)),null]
+  |[0((int64,string)),"hi"((int64,string)),null]|
 
 output: |
   0
   "hi"
+  null((int64,string))
+  null((int64,string))
   0
   "hi"

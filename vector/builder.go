@@ -65,7 +65,7 @@ func NewBuilder(typ super.Type) Builder {
 	case *super.TypeMap:
 		b = newMapBuilder(typ)
 	case *super.TypeUnion:
-		b = newUnionBuilder(typ)
+		return newUnionBuilder(typ)
 	case *super.TypeEnum:
 		b = &enumBuilder{typ, nil}
 	default:
@@ -244,6 +244,7 @@ type unionBuilder struct {
 	typ    *super.TypeUnion
 	values []Builder
 	tags   []uint32
+	nulls  []uint32
 }
 
 func newUnionBuilder(typ *super.TypeUnion) Builder {
@@ -256,8 +257,8 @@ func newUnionBuilder(typ *super.TypeUnion) Builder {
 
 func (u *unionBuilder) Write(bytes zcode.Bytes) {
 	if bytes == nil {
+		u.nulls = append(u.nulls, uint32(len(u.tags)))
 		u.tags = append(u.tags, 0)
-		u.values[0].Write(nil)
 		return
 	}
 	var typ super.Type
@@ -272,7 +273,14 @@ func (u *unionBuilder) Build() Any {
 	for _, v := range u.values {
 		vecs = append(vecs, v.Build())
 	}
-	return NewUnion(u.typ, u.tags, vecs, nil)
+	if len(u.nulls) > 0 {
+		nullTag := uint32(len(vecs))
+		for _, tag := range u.nulls {
+			u.tags[tag] = nullTag
+		}
+		vecs = append(vecs, NewConst(super.NewValue(u.typ, nil), uint32(len(u.nulls)), nil))
+	}
+	return NewUnion(u.typ, u.tags, vecs)
 }
 
 type enumBuilder struct {

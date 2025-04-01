@@ -94,7 +94,7 @@ func (a *ArrayExpr) eval(in ...vector.Any) vector.Any {
 			innerVec = mergeSameTypeVecs(typ, tags, vecs)
 		} else {
 			typ = a.zctx.LookupTypeUnion(types)
-			innerVec = vector.NewUnion(typ.(*super.TypeUnion), tags, vecs, nil)
+			innerVec = vector.NewUnion(typ.(*super.TypeUnion), tags, vecs)
 		}
 	}
 	return vector.NewArray(a.zctx.LookupTypeArray(typ), offsets, innerVec, nil)

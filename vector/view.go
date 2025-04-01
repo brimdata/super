@@ -43,7 +43,7 @@ func NewView(val Any, index []uint32) Any {
 		return NewError(val.Typ, NewView(val.Vals, index), NewBoolView(val.Nulls, index))
 	case *Union:
 		tags, values := viewForUnionOrDynamic(index, val.Tags, val.TagMap.Forward, val.Values)
-		return NewUnion(val.Typ, tags, values, NewBoolView(val.Nulls, index))
+		return NewUnion(val.Typ, tags, values)
 	case *Dynamic:
 		return NewDynamic(viewForUnionOrDynamic(index, val.Tags, val.TagMap.Forward, val.Values))
 	case *View:

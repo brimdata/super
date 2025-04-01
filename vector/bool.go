@@ -214,7 +214,7 @@ func NullsOf(v Any) *Bool {
 	case *Uint:
 		return v.Nulls
 	case *Union:
-		return v.Nulls
+		return v.Nulls()
 	case *View:
 		return NewBoolView(NullsOf(v.Any), v.Index)
 	}
@@ -334,11 +334,7 @@ func CopyAndSetNulls(v Any, nulls *Bool) Any {
 			Nulls:  nulls,
 		}
 	case *Union:
-		return &Union{
-			Dynamic: v.Dynamic,
-			Typ:     v.Typ,
-			Nulls:   nulls,
-		}
+		return addNullsToUnion(v, nulls)
 	default:
 		panic(v)
 	}

@@ -160,5 +160,5 @@ func projectUnion(zctx *super.Context, paths Path, s *union) vector.Any {
 		tags = newtags
 		vals = append(vals, vector.NewConst(super.NewValue(utyp, nil), nullcount, nil))
 	}
-	return vector.NewUnion(utyp, tags, vals, nulls)
+	return vector.NewUnion(utyp, tags, vals)
 }
