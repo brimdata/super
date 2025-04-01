@@ -916,7 +916,7 @@ WHERE
 
 In SuperSQL, `grep` allows for a much shorter query.
 ```sql
-SELLECT count()
+SELECT count()
 FROM 'gha.bsup'
 WHERE grep('in case you have any feedback 😊')
 ```
