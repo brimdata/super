@@ -1,4 +1,4 @@
-package vngio
+package csupio
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/vcache"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vng"
+	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/zbuf"
 )
 
@@ -22,7 +22,7 @@ type VectorReader struct {
 
 	activeReaders *atomic.Int64
 	nextObject    *atomic.Int64
-	objects       []*vng.Object
+	objects       []*csup.Object
 	projection    vcache.Path
 	readerAt      io.ReaderAt
 	hasClosed     bool
@@ -84,17 +84,17 @@ func (v *VectorReader) Pull(done bool) (vector.Any, error) {
 	return vcache.NewObjectFromVNG(o).Fetch(v.zctx, v.projection)
 }
 
-func filterObjects(zctx *super.Context, pruner expr.Evaluator, objects []*vng.Object) []*vng.Object {
+func filterObjects(zctx *super.Context, pruner expr.Evaluator, objects []*csup.Object) []*csup.Object {
 	if pruner == nil {
 		return objects
 	}
-	return slices.DeleteFunc(objects, func(o *vng.Object) bool {
+	return slices.DeleteFunc(objects, func(o *csup.Object) bool {
 		return pruneObject(zctx, pruner, o.Metadata())
 	})
 }
 
-func pruneObject(zctx *super.Context, pruner expr.Evaluator, m vng.Metadata) bool {
-	for _, val := range vng.MetadataValues(zctx, m) {
+func pruneObject(zctx *super.Context, pruner expr.Evaluator, m csup.Metadata) bool {
+	for _, val := range csup.MetadataValues(zctx, m) {
 		if pruner.Eval(nil, val).Ptr().AsBool() {
 			return false
 		}

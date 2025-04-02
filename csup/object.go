@@ -1,4 +1,4 @@
-// Package vng implements the reading and writing of VNG serialization objects.
+// Package csup implements the reading and writing of VNG serialization objects.
 // The VNG format is described at https://github.com/brimdata/super/blob/main/docs/formats/csup.md.
 //
 // A VNG object is created by allocating an Encoder for any top-level Zed type
@@ -22,7 +22,7 @@
 // Once the metadata is assembled in memory, the recontructed Zed sequence data can be
 // read from the vector segments by calling the Build method on the top-level
 // Builder and passing in a zcode.Builder to reconstruct the Zed value.
-package vng
+package csup
 
 import (
 	"errors"

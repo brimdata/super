@@ -1,4 +1,4 @@
-package vngio
+package csupio
 
 import (
 	"bytes"
@@ -10,14 +10,14 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/vcache"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vng"
+	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/zcode"
 	"github.com/brimdata/super/zio"
 )
 
 type reader struct {
 	zctx       *super.Context
-	objects    []*vng.Object
+	objects    []*csup.Object
 	projection vcache.Path
 	readerAt   io.ReaderAt
 	vals       []super.Value
@@ -87,13 +87,13 @@ func (r *reader) Close() error {
 	return nil
 }
 
-func readObjects(r io.ReaderAt) ([]*vng.Object, error) {
-	var objects []*vng.Object
+func readObjects(r io.ReaderAt) ([]*csup.Object, error) {
+	var objects []*csup.Object
 	var start int64
 	for {
 		// NewObject puts the right end to the passed in SectionReader and since
 		// the end is unkown just pass MaxInt64.
-		o, err := vng.NewObject(io.NewSectionReader(r, start, math.MaxInt64))
+		o, err := csup.NewObject(io.NewSectionReader(r, start, math.MaxInt64))
 		if err != nil {
 			if err == io.EOF && len(objects) > 0 {
 				return objects, nil

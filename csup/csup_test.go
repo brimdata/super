@@ -1,4 +1,4 @@
-package vng_test
+package csup_test
 
 import (
 	"bytes"

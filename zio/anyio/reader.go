@@ -15,7 +15,7 @@ import (
 	"github.com/brimdata/super/zio/csvio"
 	"github.com/brimdata/super/zio/jsonio"
 	"github.com/brimdata/super/zio/parquetio"
-	"github.com/brimdata/super/zio/vngio"
+	"github.com/brimdata/super/zio/csupio"
 	"github.com/brimdata/super/zio/zeekio"
 	"github.com/brimdata/super/zio/zjsonio"
 	"github.com/brimdata/super/zio/zngio"
@@ -38,7 +38,7 @@ func NewReaderWithOpts(zctx *super.Context, r io.Reader, opts ReaderOpts) (zio.R
 		return lookupReader(zctx, r, opts)
 	}
 
-	var parquetErr, vngErr error
+	var parquetErr, csupErr error
 	if rs, ok := r.(io.ReadSeeker); ok {
 		if n, err := rs.Seek(0, io.SeekCurrent); err == nil {
 			var zr zio.Reader
@@ -49,8 +49,8 @@ func NewReaderWithOpts(zctx *super.Context, r io.Reader, opts ReaderOpts) (zio.R
 			if _, err := rs.Seek(n, io.SeekStart); err != nil {
 				return nil, err
 			}
-			zr, vngErr = vngio.NewReader(zctx, rs, opts.Fields)
-			if vngErr == nil {
+			zr, csupErr = csupio.NewReader(zctx, rs, opts.Fields)
+			if csupErr == nil {
 				return zio.NopReadCloser(zr), nil
 			}
 			if _, err := rs.Seek(n, io.SeekStart); err != nil {
@@ -58,13 +58,13 @@ func NewReaderWithOpts(zctx *super.Context, r io.Reader, opts ReaderOpts) (zio.R
 			}
 		} else {
 			parquetErr = err
-			vngErr = err
+			csupErr = err
 		}
 		parquetErr = fmt.Errorf("parquet: %w", parquetErr)
-		vngErr = fmt.Errorf("csup: %w", vngErr)
+		csupErr = fmt.Errorf("csup: %w", csupErr)
 	} else {
 		parquetErr = errors.New("parquet: auto-detection requires seekable input")
-		vngErr = errors.New("csup: auto-detection requires seekable input")
+		csupErr = errors.New("csup: auto-detection requires seekable input")
 	}
 
 	track := NewTrack(r)
@@ -138,7 +138,7 @@ func NewReaderWithOpts(zctx *super.Context, r io.Reader, opts ReaderOpts) (zio.R
 		lineErr,
 		parquetErr,
 		tsvErr,
-		vngErr,
+		csupErr,
 		zeekErr,
 		zjsonErr,
 		zngErr,

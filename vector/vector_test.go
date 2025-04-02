@@ -8,7 +8,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/fuzz"
-	"github.com/brimdata/super/vng"
+	"github.com/brimdata/super/csup"
 )
 
 func FuzzQuery(f *testing.F) {
@@ -33,9 +33,9 @@ func FuzzQuery(f *testing.F) {
 		fuzz.WriteZNG(t, values, &zngBuf)
 		resultZNG := fuzz.RunQueryZNG(t, &zngBuf, querySource)
 
-		var vngBuf bytes.Buffer
-		fuzz.WriteVNG(t, values, &vngBuf)
-		resultVNG := fuzz.RunQueryVNG(t, &vngBuf, querySource)
+		var csupBuf bytes.Buffer
+		fuzz.WriteVNG(t, values, &csupBuf)
+		resultVNG := fuzz.RunQueryVNG(t, &csupBuf, querySource)
 
 		fuzz.CompareValues(t, resultZNG, resultVNG)
 	})
@@ -76,7 +76,7 @@ func BenchmarkReadVng(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		bytesReader := bytes.NewReader(bs)
-		object, err := vng.NewObject(bytesReader)
+		object, err := csup.NewObject(bytesReader)
 		if err != nil {
 			panic(err)
 		}

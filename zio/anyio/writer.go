@@ -14,7 +14,7 @@ import (
 	"github.com/brimdata/super/zio/parquetio"
 	"github.com/brimdata/super/zio/tableio"
 	"github.com/brimdata/super/zio/textio"
-	"github.com/brimdata/super/zio/vngio"
+	"github.com/brimdata/super/zio/csupio"
 	"github.com/brimdata/super/zio/zeekio"
 	"github.com/brimdata/super/zio/zjsonio"
 	"github.com/brimdata/super/zio/zngio"
@@ -40,7 +40,7 @@ func NewWriter(w io.WriteCloser, opts WriterOpts) (zio.WriteCloser, error) {
 		}
 		return zngio.NewWriterWithOpts(w, *opts.ZNG), nil
 	case "csup":
-		return vngio.NewWriter(w), nil
+		return csupio.NewWriter(w), nil
 	case "csv":
 		return csvio.NewWriter(w, opts.CSV), nil
 	case "jsup", "":

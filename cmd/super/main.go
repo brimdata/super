@@ -32,7 +32,7 @@ import (
 	_ "github.com/brimdata/super/cmd/super/dev/vector/copy"
 	_ "github.com/brimdata/super/cmd/super/dev/vector/project"
 	_ "github.com/brimdata/super/cmd/super/dev/vector/search"
-	_ "github.com/brimdata/super/cmd/super/dev/vng"
+	_ "github.com/brimdata/super/cmd/super/dev/csup"
 	"github.com/brimdata/super/cmd/super/root"
 )
 

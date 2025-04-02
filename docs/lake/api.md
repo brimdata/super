@@ -546,13 +546,13 @@ The following table shows the supported MIME types and where they can be used.
 | Format           | Request   | Response | MIME Type                             |
 | ---------------- | --------- | -------- | ------------------------------------- |
 | Arrow IPC Stream | yes       | yes      | `application/vnd.apache.arrow.stream` |
+| CSUP             | yes       | yes      | `application/x-csup`                   |
 | CSV              | yes       | yes      | `text/csv`                            |
 | JSON             | yes       | yes      | `application/json`                    |
 | Line             | yes       | yes      | `application/x-line`                  |
 | NDJSON           | no        | yes      | `application/x-ndjson`                |
 | Parquet          | yes       | yes      | `application/x-parquet`               |
 | TSV              | yes       | yes      | `text/tab-separated-values`           |
-| VNG              | yes       | yes      | `application/x-vng`                   |
 | Zeek             | yes       | yes      | `application/x-zeek`                  |
 | ZJSON            | yes       | yes      | `application/x-zjson`                 |
 | ZSON             | yes       | yes      | `application/x-zson`                  |

@@ -25,7 +25,7 @@ import (
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zcode"
 	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/vngio"
+	"github.com/brimdata/super/zio/csupio"
 	"github.com/brimdata/super/zio/zngio"
 	"github.com/brimdata/super/zson"
 	"github.com/golang/mock/gomock"
@@ -49,7 +49,7 @@ func ReadZNG(bs []byte) ([]super.Value, error) {
 func ReadVNG(bs []byte, fields []field.Path) ([]super.Value, error) {
 	bytesReader := bytes.NewReader(bs)
 	context := super.NewContext()
-	reader, err := vngio.NewReader(context, bytesReader, fields)
+	reader, err := csupio.NewReader(context, bytesReader, fields)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func WriteZNG(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
 }
 
 func WriteVNG(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
-	writer := vngio.NewWriter(zio.NopCloser(buf))
+	writer := csupio.NewWriter(zio.NopCloser(buf))
 	require.NoError(t, zio.Copy(writer, zbuf.NewArray(valuesIn)))
 	require.NoError(t, writer.Close())
 }
@@ -82,7 +82,7 @@ func RunQueryZNG(t testing.TB, buf *bytes.Buffer, querySource string) []super.Va
 
 func RunQueryVNG(t testing.TB, buf *bytes.Buffer, querySource string) []super.Value {
 	zctx := super.NewContext()
-	reader, err := vngio.NewReader(zctx, bytes.NewReader(buf.Bytes()), nil)
+	reader, err := csupio.NewReader(zctx, bytes.NewReader(buf.Bytes()), nil)
 	require.NoError(t, err)
 	readers := []zio.Reader{reader}
 	defer zio.CloseReaders(readers)
@@ -349,8 +349,8 @@ func GenType(b *bytes.Reader, context *super.Context, depth int) super.Type {
 		case 4:
 			types := GenTypes(b, context, depth)
 			// TODO There are some weird corners around unions that contain null or duplicate types eg
-			// vng_test.go:107: comparing: in[0]=null((null,null)) vs out[0]=null((null,null))
-			// vng_test.go:112: values have different zng bytes: [1 0] vs [2 2 0]
+			// csup_test.go:107: comparing: in[0]=null((null,null)) vs out[0]=null((null,null))
+			// csup_test.go:112: values have different zng bytes: [1 0] vs [2 2 0]
 			var unionTypes []super.Type
 			for _, typ := range types {
 				skip := false

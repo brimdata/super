@@ -1,4 +1,4 @@
-package vng
+package csup
 
 import (
 	"bufio"
@@ -13,7 +13,7 @@ import (
 
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/vng"
+	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/zngio"
 	"github.com/brimdata/super/zson"
@@ -21,10 +21,10 @@ import (
 
 var spec = &charm.Spec{
 	Name:  "csup",
-	Usage: "vng uri",
+	Usage: "csup uri",
 	Short: "dump VNG metadata",
 	Long: `
-vng decodes an input uri and emits the metadata sections in the format desired.`,
+csup decodes an input uri and emits the metadata sections in the format desired.`,
 	New: New,
 }
 
@@ -120,18 +120,18 @@ func (r *reader) Read() (*super.Value, error) {
 	}
 }
 
-func (r *reader) readHeader() (vng.Header, error) {
-	var bytes [vng.HeaderSize]byte
+func (r *reader) readHeader() (csup.Header, error) {
+	var bytes [csup.HeaderSize]byte
 	cc, err := r.reader.Read(bytes[:])
 	if err != nil {
-		return vng.Header{}, err
+		return csup.Header{}, err
 	}
-	if cc != vng.HeaderSize {
-		return vng.Header{}, fmt.Errorf("truncated VNG file: %d bytes of %d read", cc, vng.HeaderSize)
+	if cc != csup.HeaderSize {
+		return csup.Header{}, fmt.Errorf("truncated VNG file: %d bytes of %d read", cc, csup.HeaderSize)
 	}
-	var h vng.Header
+	var h csup.Header
 	if err := h.Deserialize(bytes[:]); err != nil {
-		return vng.Header{}, err
+		return csup.Header{}, err
 	}
 	return h, nil
 }

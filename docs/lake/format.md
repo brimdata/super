@@ -81,7 +81,7 @@ with respect to a given object.
 A data object is composed of the primary data object stored as one or two objects
 (for sequence and/or vector layout) and an optional seek index.
 
-Data objects may be either in sequence form (i.e., ZNG) or vector form (i.e., VNG),
+Data objects may be either in sequence form (i.e., ZNG) or vector form (i.e., CSUP),
 or both forms may be present as a query optimizer may choose to use whatever
 representation is more efficient.
 When both sequence and vector data objects are present, they must contain the same
@@ -97,12 +97,12 @@ Immutable objects are named as follows:
 
 `<id>` is the KSUID of the data object.
 
-The seek index maps pool key values to seek offsets in the ZNG file thereby
-allowing a scan to do a byte-range retrieval of the ZNG object when
+The seek index maps pool key values to seek offsets in the BSUP file thereby
+allowing a scan to do a byte-range retrieval of the BSUP object when
 processing only a subset of data.
 
-> Note the VNG format allows individual vector segments to be read in isolation
-> and the in-memory VNG representation supports random access so there is
+> Note the CSUP format allows individual vector segments to be read in isolation
+> and the in-memory CSUP representation supports random access so there is
 > no need to have a seek index for the vector object.
 
 #### Commit History
@@ -156,7 +156,7 @@ the pool by changing branch name to commit object mappings.  Note that
 adding a commit object to a pool changes nothing until a branch pointer
 is mutated to point at that object.
 
-Each atomic journal commit object is a ZNG file numbered 1 to the end of journal (HEAD),
+Each atomic journal commit object is a BSUP file numbered 1 to the end of journal (HEAD),
 e.g., `1.bsup`, `2.bsup`, etc., each number corresponding to a journal ID.
 The 0 value is reserved as the null journal ID.
 The journal's TAIL begins at 1 and is increased as journal entries are purged.
@@ -267,8 +267,8 @@ do not overlap.  This is just the basic LSM algorithm at work.
       <id2>.bsup
       ...
     data/
-      <id1>.{zng,vng}
-      <id2>.{zng,vng}
+      <id1>.{bsup,csup}
+      <id2>.{bsup,csup}
       ...
   <pool-id-2>/
   ...

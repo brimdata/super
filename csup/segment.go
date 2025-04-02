@@ -1,4 +1,4 @@
-package vng
+package csup
 
 import (
 	"fmt"
@@ -31,7 +31,7 @@ var zbufPool = sync.Pool{
 // Read returns [io.ErrShortBuffer].
 func (s *Segment) Read(r io.ReaderAt, b []byte) error {
 	if len(b) < int(s.MemLength) {
-		return fmt.Errorf("vng: segment read: %w", io.ErrShortBuffer)
+		return fmt.Errorf("csup: segment read: %w", io.ErrShortBuffer)
 	}
 	b = b[:s.MemLength]
 	switch s.CompressionFormat {
@@ -50,11 +50,11 @@ func (s *Segment) Read(r io.ReaderAt, b []byte) error {
 			return err
 		}
 		if n != int(s.MemLength) {
-			return fmt.Errorf("vng: got %d uncompressed bytes, expected %d", n, s.MemLength)
+			return fmt.Errorf("csup: got %d uncompressed bytes, expected %d", n, s.MemLength)
 		}
 		return nil
 	default:
-		return fmt.Errorf("vng: unknown compression format 0x%x", s.CompressionFormat)
+		return fmt.Errorf("csup: unknown compression format 0x%x", s.CompressionFormat)
 	}
 }
 

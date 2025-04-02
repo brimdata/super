@@ -9,7 +9,7 @@ import (
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/zio/vngio"
+	"github.com/brimdata/super/zio/csupio"
 	"github.com/brimdata/super/zson"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -31,7 +31,7 @@ func TestDataReaderWriterVector(t *testing.T) {
 	// Read back the VNG file and make sure it's the same.
 	get, err := engine.Get(ctx, object.VectorURI(tmp))
 	require.NoError(t, err)
-	reader, err := vngio.NewReader(super.NewContext(), get, nil)
+	reader, err := csupio.NewReader(super.NewContext(), get, nil)
 	require.NoError(t, err)
 	v, err := reader.Read()
 	require.NoError(t, err)

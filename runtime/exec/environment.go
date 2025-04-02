@@ -19,7 +19,7 @@ import (
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio/anyio"
 	"github.com/brimdata/super/zio/parquetio"
-	"github.com/brimdata/super/zio/vngio"
+	"github.com/brimdata/super/zio/csupio"
 	"github.com/segmentio/ksuid"
 )
 
@@ -140,7 +140,7 @@ func (e *Environment) VectorOpen(ctx context.Context, zctx *super.Context, path,
 	var puller vector.Puller
 	switch format {
 	case "csup":
-		puller, err = vngio.NewVectorReader(ctx, zctx, r, fields, pruner)
+		puller, err = csupio.NewVectorReader(ctx, zctx, r, fields, pruner)
 	case "parquet":
 		puller, err = parquetio.NewVectorReader(ctx, zctx, r, fields, pruner)
 	default:

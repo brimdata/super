@@ -5,13 +5,13 @@ import (
 	"sync"
 
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vng"
+	"github.com/brimdata/super/csup"
 	"golang.org/x/sync/errgroup"
 )
 
 type nulls struct {
 	mu    sync.Mutex
-	meta  *vng.Nulls
+	meta  *csup.Nulls
 	local *vector.Bool
 	flat  *vector.Bool
 }
@@ -34,7 +34,7 @@ func (n *nulls) fetch(g *errgroup.Group, reader io.ReaderAt) {
 		}
 		length := n.meta.Count + n.meta.Values.Len()
 		n.local = vector.NewBoolEmpty(length, nil)
-		runlens, err := vng.ReadUint32s(n.meta.Runs, reader)
+		runlens, err := csup.ReadUint32s(n.meta.Runs, reader)
 		if err != nil {
 			return err
 		}

@@ -9,9 +9,9 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/bufwriter"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/vng"
+	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/vngio"
+	"github.com/brimdata/super/zio/csupio"
 	"github.com/brimdata/super/zio/zngio"
 	"github.com/segmentio/ksuid"
 )
@@ -51,7 +51,7 @@ func CreateVector(ctx context.Context, engine storage.Engine, path *storage.URI,
 }
 
 type VectorWriter struct {
-	*vng.Writer
+	*csup.Writer
 	delete func()
 }
 
@@ -68,7 +68,7 @@ func NewVectorWriter(ctx context.Context, engine storage.Engine, path *storage.U
 		DeleteVector(context.Background(), engine, path, id)
 	}
 	return &VectorWriter{
-		Writer: vngio.NewWriter(bufwriter.New(put)),
+		Writer: csupio.NewWriter(bufwriter.New(put)),
 		delete: delete,
 	}, nil
 }

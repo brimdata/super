@@ -6,7 +6,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vng"
+	"github.com/brimdata/super/csup"
 )
 
 // Object is the interface to load a given VNG object from storage into
@@ -16,7 +16,7 @@ import (
 // multiple callers of Cache and the super.Context in use is passed in for
 // each vector constructed from its in-memory shadow.
 type Object struct {
-	object *vng.Object
+	object *csup.Object
 	root   shadow
 }
 
@@ -35,14 +35,14 @@ func NewObject(ctx context.Context, engine storage.Engine, uri *storage.URI) (*O
 	if err != nil {
 		return nil, err
 	}
-	object, err := vng.NewObject(reader)
+	object, err := csup.NewObject(reader)
 	if err != nil {
 		return nil, err
 	}
 	return NewObjectFromVNG(object), nil
 }
 
-func NewObjectFromVNG(object *vng.Object) *Object {
+func NewObjectFromVNG(object *csup.Object) *Object {
 	return &Object{
 		object: object,
 		root:   newShadow(object.Metadata(), nil, 0),

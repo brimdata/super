@@ -10,7 +10,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/byteconv"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vng"
+	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/zcode"
 	"github.com/brimdata/super/zson"
 	"github.com/ronanh/intcomp"
@@ -155,13 +155,13 @@ func (l *loader) loadInt(g *errgroup.Group, s *int_) {
 		if s.vec != nil {
 			return nil
 		}
-		bytes := make([]byte, s.vng.Location.MemLength)
-		if err := s.vng.Location.Read(l.r, bytes); err != nil {
+		bytes := make([]byte, s.csup.Location.MemLength)
+		if err := s.csup.Location.Read(l.r, bytes); err != nil {
 			return err
 		}
 		vals := intcomp.UncompressInt64(byteconv.ReinterpretSlice[uint64](bytes), nil)
 		vals = extendForNulls(vals, s.nulls.flat, s.count)
-		s.vec = vector.NewInt(s.vng.Type(l.zctx), vals, s.nulls.flat)
+		s.vec = vector.NewInt(s.csup.Type(l.zctx), vals, s.nulls.flat)
 		return nil
 	})
 }
@@ -179,13 +179,13 @@ func (l *loader) loadUint(g *errgroup.Group, s *uint_) {
 		if s.vec != nil {
 			return nil
 		}
-		bytes := make([]byte, s.vng.Location.MemLength)
-		if err := s.vng.Location.Read(l.r, bytes); err != nil {
+		bytes := make([]byte, s.csup.Location.MemLength)
+		if err := s.csup.Location.Read(l.r, bytes); err != nil {
 			return err
 		}
 		vals := intcomp.UncompressUint64(byteconv.ReinterpretSlice[uint64](bytes), nil)
 		vals = extendForNulls(vals, s.nulls.flat, s.count)
-		s.vec = vector.NewUint(s.vng.Type(l.zctx), vals, s.nulls.flat)
+		s.vec = vector.NewUint(s.csup.Type(l.zctx), vals, s.nulls.flat)
 		return nil
 	})
 }
@@ -203,7 +203,7 @@ func (l *loader) loadPrimitive(g *errgroup.Group, paths Path, s *primitive) {
 		if s.vec != nil {
 			return nil
 		}
-		typ := s.vng.Type(l.zctx)
+		typ := s.csup.Type(l.zctx)
 		vec, err := l.loadVals(typ, s, s.nulls.flat)
 		if err != nil {
 			return err
@@ -214,11 +214,11 @@ func (l *loader) loadPrimitive(g *errgroup.Group, paths Path, s *primitive) {
 }
 
 func (l *loader) loadVals(typ super.Type, s *primitive, nulls *vector.Bool) (vector.Any, error) {
-	if s.vng.Count == 0 {
+	if s.csup.Count == 0 {
 		return empty(typ, s.length(), nulls), nil
 	}
-	bytes := make([]byte, s.vng.Location.MemLength)
-	if err := s.vng.Location.Read(l.r, bytes); err != nil {
+	bytes := make([]byte, s.csup.Location.MemLength)
+	if err := s.csup.Location.Read(l.r, bytes); err != nil {
 		return nil, err
 	}
 	length := s.length()
@@ -335,15 +335,15 @@ func (l *loader) loadVals(typ super.Type, s *primitive, nulls *vector.Bool) (vec
 }
 
 func (l *loader) loadDict(g *errgroup.Group, paths Path, s *dict) {
-	if s.vng.Length == 0 {
+	if s.csup.Length == 0 {
 		panic("empty dict") // empty dictionaries should not happen!
 	}
 	l.loadVector(g, paths, s.vals)
-	l.loadUint32(g, &s.mu, &s.counts, s.vng.Counts)
+	l.loadUint32(g, &s.mu, &s.counts, s.csup.Counts)
 	g.Go(func() error {
 		s.mu.Lock()
 		defer s.mu.Unlock()
-		loc := s.vng.Index
+		loc := s.csup.Index
 		s.index = make([]byte, loc.MemLength)
 		if err := loc.Read(l.r, s.index); err != nil {
 			return err
@@ -397,7 +397,7 @@ func empty(typ super.Type, length uint32, nulls *vector.Bool) vector.Any {
 	}
 }
 
-func (l *loader) loadUint32(g *errgroup.Group, mu *sync.Mutex, slice *[]uint32, loc vng.Segment) {
+func (l *loader) loadUint32(g *errgroup.Group, mu *sync.Mutex, slice *[]uint32, loc csup.Segment) {
 	mu.Lock()
 	if *slice != nil {
 		mu.Unlock()
@@ -410,7 +410,7 @@ func (l *loader) loadUint32(g *errgroup.Group, mu *sync.Mutex, slice *[]uint32, 
 		if *slice != nil {
 			return nil
 		}
-		v, err := vng.ReadUint32s(loc, l.r)
+		v, err := csup.ReadUint32s(loc, l.r)
 		if err != nil {
 			return err
 		}
@@ -419,7 +419,7 @@ func (l *loader) loadUint32(g *errgroup.Group, mu *sync.Mutex, slice *[]uint32, 
 	})
 }
 
-func (l *loader) loadOffsets(g *errgroup.Group, mu *sync.Mutex, slice *[]uint32, loc vng.Segment, length uint32, nulls *vector.Bool) {
+func (l *loader) loadOffsets(g *errgroup.Group, mu *sync.Mutex, slice *[]uint32, loc csup.Segment, length uint32, nulls *vector.Bool) {
 	mu.Lock()
 	if *slice != nil {
 		mu.Unlock()
@@ -432,7 +432,7 @@ func (l *loader) loadOffsets(g *errgroup.Group, mu *sync.Mutex, slice *[]uint32,
 		if *slice != nil {
 			return nil
 		}
-		v, err := vng.ReadUint32s(loc, l.r)
+		v, err := csup.ReadUint32s(loc, l.r)
 		if err != nil {
 			return err
 		}

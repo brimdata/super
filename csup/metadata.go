@@ -1,4 +1,4 @@
-package vng
+package csup
 
 import (
 	"github.com/brimdata/super"

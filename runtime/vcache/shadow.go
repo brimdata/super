@@ -6,7 +6,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vng"
+	"github.com/brimdata/super/csup"
 )
 
 // The shadow type mirrors the vector.Any implementations here with locks and
@@ -25,7 +25,7 @@ type dynamic struct {
 	mu   sync.Mutex
 	len  uint32
 	tags []uint32 // need not be loaded for unordered dynamics
-	loc  vng.Segment
+	loc  csup.Segment
 	vals []shadow
 }
 
@@ -47,7 +47,7 @@ type field_ struct {
 type array struct {
 	mu sync.Mutex
 	count
-	loc   vng.Segment
+	loc   csup.Segment
 	offs  []uint32
 	vals  shadow
 	nulls nulls
@@ -56,7 +56,7 @@ type array struct {
 type set struct {
 	mu sync.Mutex
 	count
-	loc   vng.Segment
+	loc   csup.Segment
 	offs  []uint32
 	vals  shadow
 	nulls nulls
@@ -67,7 +67,7 @@ type union struct {
 	count
 	// XXX we should store TagMap here so it doesn't have to be recomputed
 	tags  []uint32
-	loc   vng.Segment
+	loc   csup.Segment
 	vals  []shadow
 	nulls nulls
 }
@@ -76,7 +76,7 @@ type map_ struct {
 	mu sync.Mutex
 	count
 	offs  []uint32
-	loc   vng.Segment
+	loc   csup.Segment
 	keys  shadow
 	vals  shadow
 	nulls nulls
@@ -85,7 +85,7 @@ type map_ struct {
 type primitive struct {
 	mu sync.Mutex
 	count
-	vng   *vng.Primitive
+	csup   *csup.Primitive
 	vec   vector.Any
 	nulls nulls
 }
@@ -93,7 +93,7 @@ type primitive struct {
 type int_ struct {
 	mu sync.Mutex
 	count
-	vng   *vng.Int
+	csup   *csup.Int
 	vec   vector.Any
 	nulls nulls
 }
@@ -101,7 +101,7 @@ type int_ struct {
 type uint_ struct {
 	mu sync.Mutex
 	count
-	vng   *vng.Uint
+	csup   *csup.Uint
 	vec   vector.Any
 	nulls nulls
 }
@@ -118,7 +118,7 @@ type const_ struct {
 type dict struct {
 	mu sync.Mutex
 	count
-	vng    *vng.Dict
+	csup    *csup.Dict
 	nulls  nulls
 	vals   shadow
 	counts []uint32
@@ -157,9 +157,9 @@ func (c count) length() uint32 {
 // so that all leaves of a given type have the same number of slots.  The vcache
 // is then responsible for loading leaf vectors on demand as they are required
 // by the runtime.
-func newShadow(m vng.Metadata, n *vng.Nulls, nullsCnt uint32) shadow {
+func newShadow(m csup.Metadata, n *csup.Nulls, nullsCnt uint32) shadow {
 	switch m := m.(type) {
-	case *vng.Dynamic:
+	case *csup.Dynamic:
 		vals := make([]shadow, 0, len(m.Values))
 		for _, val := range m.Values {
 			vals = append(vals, newShadow(val, nil, 0))
@@ -169,17 +169,17 @@ func newShadow(m vng.Metadata, n *vng.Nulls, nullsCnt uint32) shadow {
 			len:  m.Len(),
 			loc:  m.Tags,
 		}
-	case *vng.Nulls:
+	case *csup.Nulls:
 		if n != nil {
 			panic("can't wrap nulls inside of nulls")
 		}
 		nullsCnt += m.Count
 		return newShadow(m.Values, m, nullsCnt)
-	case *vng.Error:
+	case *csup.Error:
 		return &error_{newShadow(m.Values, n, nullsCnt), nulls{meta: n}}
-	case *vng.Named:
+	case *csup.Named:
 		return &named{m.Name, newShadow(m.Values, n, nullsCnt)}
-	case *vng.Record:
+	case *csup.Record:
 		fields := make([]field_, 0, len(m.Fields))
 		for _, f := range m.Fields {
 			fields = append(fields, field_{f.Name, newShadow(f.Values, nil, nullsCnt)})
@@ -189,21 +189,21 @@ func newShadow(m vng.Metadata, n *vng.Nulls, nullsCnt uint32) shadow {
 			fields: fields,
 			nulls:  nulls{meta: n},
 		}
-	case *vng.Array:
+	case *csup.Array:
 		return &array{
 			count: count{m.Len(), nullsCnt},
 			loc:   m.Lengths,
 			vals:  newShadow(m.Values, nil, 0),
 			nulls: nulls{meta: n},
 		}
-	case *vng.Set:
+	case *csup.Set:
 		return &set{
 			count: count{m.Len(), nullsCnt},
 			loc:   m.Lengths,
 			vals:  newShadow(m.Values, nil, 0),
 			nulls: nulls{meta: n},
 		}
-	case *vng.Map:
+	case *csup.Map:
 		return &map_{
 			count: count{m.Len(), nullsCnt},
 			loc:   m.Lengths,
@@ -211,7 +211,7 @@ func newShadow(m vng.Metadata, n *vng.Nulls, nullsCnt uint32) shadow {
 			vals:  newShadow(m.Values, nil, 0),
 			nulls: nulls{meta: n},
 		}
-	case *vng.Union:
+	case *csup.Union:
 		vals := make([]shadow, 0, len(m.Values))
 		for k := range m.Values {
 			vals = append(vals, newShadow(m.Values[k], nil, 0))
@@ -222,35 +222,35 @@ func newShadow(m vng.Metadata, n *vng.Nulls, nullsCnt uint32) shadow {
 			vals:  vals,
 			nulls: nulls{meta: n},
 		}
-	case *vng.Int:
+	case *csup.Int:
 		return &int_{
 			count: count{m.Len(), nullsCnt},
-			vng:   m,
+			csup:   m,
 			nulls: nulls{meta: n},
 		}
-	case *vng.Uint:
+	case *csup.Uint:
 		return &uint_{
 			count: count{m.Len(), nullsCnt},
-			vng:   m,
+			csup:   m,
 			nulls: nulls{meta: n},
 		}
-	case *vng.Primitive:
+	case *csup.Primitive:
 		return &primitive{
 			count: count{m.Len(), nullsCnt},
-			vng:   m,
+			csup:   m,
 			nulls: nulls{meta: n},
 		}
-	case *vng.Const:
+	case *csup.Const:
 		return &const_{
 			count: count{m.Len(), nullsCnt},
 			val:   m.Value,
 			nulls: nulls{meta: n},
 		}
-	case *vng.Dict:
+	case *csup.Dict:
 		return &dict{
 			vals:  newShadow(m.Values, nil, 0),
 			count: count{m.Len(), nullsCnt},
-			vng:   m,
+			csup:   m,
 			nulls: nulls{meta: n},
 		}
 	default:
