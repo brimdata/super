@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/fuzz"
 	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/fuzz"
 )
 
 func FuzzQuery(f *testing.F) {

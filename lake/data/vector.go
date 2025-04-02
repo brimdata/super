@@ -7,9 +7,9 @@ import (
 	"io/fs"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/bufwriter"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/csupio"
 	"github.com/brimdata/super/zio/zngio"

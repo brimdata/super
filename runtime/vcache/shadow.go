@@ -5,8 +5,8 @@ import (
 	"sync"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/vector"
 )
 
 // The shadow type mirrors the vector.Any implementations here with locks and
@@ -85,7 +85,7 @@ type map_ struct {
 type primitive struct {
 	mu sync.Mutex
 	count
-	csup   *csup.Primitive
+	csup  *csup.Primitive
 	vec   vector.Any
 	nulls nulls
 }
@@ -93,7 +93,7 @@ type primitive struct {
 type int_ struct {
 	mu sync.Mutex
 	count
-	csup   *csup.Int
+	csup  *csup.Int
 	vec   vector.Any
 	nulls nulls
 }
@@ -101,7 +101,7 @@ type int_ struct {
 type uint_ struct {
 	mu sync.Mutex
 	count
-	csup   *csup.Uint
+	csup  *csup.Uint
 	vec   vector.Any
 	nulls nulls
 }
@@ -118,7 +118,7 @@ type const_ struct {
 type dict struct {
 	mu sync.Mutex
 	count
-	csup    *csup.Dict
+	csup   *csup.Dict
 	nulls  nulls
 	vals   shadow
 	counts []uint32
@@ -225,19 +225,19 @@ func newShadow(m csup.Metadata, n *csup.Nulls, nullsCnt uint32) shadow {
 	case *csup.Int:
 		return &int_{
 			count: count{m.Len(), nullsCnt},
-			csup:   m,
+			csup:  m,
 			nulls: nulls{meta: n},
 		}
 	case *csup.Uint:
 		return &uint_{
 			count: count{m.Len(), nullsCnt},
-			csup:   m,
+			csup:  m,
 			nulls: nulls{meta: n},
 		}
 	case *csup.Primitive:
 		return &primitive{
 			count: count{m.Len(), nullsCnt},
-			csup:   m,
+			csup:  m,
 			nulls: nulls{meta: n},
 		}
 	case *csup.Const:
@@ -250,7 +250,7 @@ func newShadow(m csup.Metadata, n *csup.Nulls, nullsCnt uint32) shadow {
 		return &dict{
 			vals:  newShadow(m.Values, nil, 0),
 			count: count{m.Len(), nullsCnt},
-			csup:   m,
+			csup:  m,
 			nulls: nulls{meta: n},
 		}
 	default:

@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/csup"
 )
 
 // Object is the interface to load a given VNG object from storage into

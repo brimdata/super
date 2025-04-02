@@ -27,12 +27,12 @@ import (
 	_ "github.com/brimdata/super/cmd/super/db/vacuum"
 	_ "github.com/brimdata/super/cmd/super/db/vector"
 	_ "github.com/brimdata/super/cmd/super/dev"
+	_ "github.com/brimdata/super/cmd/super/dev/csup"
 	_ "github.com/brimdata/super/cmd/super/dev/dig/frames"
 	_ "github.com/brimdata/super/cmd/super/dev/dig/slice"
 	_ "github.com/brimdata/super/cmd/super/dev/vector/copy"
 	_ "github.com/brimdata/super/cmd/super/dev/vector/project"
 	_ "github.com/brimdata/super/cmd/super/dev/vector/search"
-	_ "github.com/brimdata/super/cmd/super/dev/csup"
 	"github.com/brimdata/super/cmd/super/root"
 )
 

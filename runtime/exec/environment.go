@@ -18,8 +18,8 @@ import (
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio/anyio"
-	"github.com/brimdata/super/zio/parquetio"
 	"github.com/brimdata/super/zio/csupio"
+	"github.com/brimdata/super/zio/parquetio"
 	"github.com/segmentio/ksuid"
 )
 

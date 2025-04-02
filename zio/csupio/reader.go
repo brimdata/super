@@ -7,10 +7,10 @@ import (
 	"math"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/vcache"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/zcode"
 	"github.com/brimdata/super/zio"
 )

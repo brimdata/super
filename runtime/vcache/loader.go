@@ -8,9 +8,9 @@ import (
 	"sync"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/byteconv"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/zcode"
 	"github.com/brimdata/super/zson"
 	"github.com/ronanh/intcomp"

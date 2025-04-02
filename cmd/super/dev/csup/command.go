@@ -11,9 +11,9 @@ import (
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/cmd/super/dev"
 
+	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/zngio"
 	"github.com/brimdata/super/zson"
