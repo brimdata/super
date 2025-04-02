@@ -19,7 +19,7 @@ import (
 
 // loader handles loading vector data on demand for only the fields needed
 // as specified in the projection.  Each load is executed with a multiphase
-// process: first, we build a mirror of the VNG metadata where each node has a
+// process: first, we build a mirror of the CSUP metadata where each node has a
 // lock and places to store the bulk data so that it may be reused across
 // projections.  This is called the shadow object.  Then, we fill in the shadow
 // with data vectors dynamically and create runtime vectors as follows:

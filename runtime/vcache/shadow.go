@@ -152,7 +152,7 @@ func (c count) length() uint32 {
 	return c.nulls + c.vals
 }
 
-// newShadow converts the VNG metadata structure to a complete vector.Any
+// newShadow converts the CSUP metadata structure to a complete vector.Any
 // without loading any leaf columns.  Nulls are read from storage and unwrapped
 // so that all leaves of a given type have the same number of slots.  The vcache
 // is then responsible for loading leaf vectors on demand as they are required

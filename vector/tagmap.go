@@ -35,7 +35,7 @@ func NewTagMapFromLens(tags []uint32, lens []uint32) *TagMap {
 		//XXX this can happen for corrupt tags arrays... need to sanity
 		// check them when we load.
 		//XXX make this more reasonable (check when tags are read in vcache)
-		panic("bad VNG tagmap")
+		panic("bad CSUP tagmap")
 	}
 	counts := make([]uint32, len(lens))
 	for slot, tag := range tags {

@@ -26,7 +26,7 @@ func NewDynamicEncoder() *DynamicEncoder {
 // The dynamic encoder self-organizes around the types that are
 // written to it.  No need to define the schema up front!
 // We track the types seen first-come, first-served and the
-// VNG metadata structure follows accordingly.
+// CSUP metadata structure follows accordingly.
 func (d *DynamicEncoder) Write(val super.Value) error {
 	typ := val.Type()
 	tag, ok := d.which[typ]

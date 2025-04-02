@@ -114,7 +114,7 @@ func bundleOutputs(rctx *runtime.Context, outputs map[string]zbuf.Puller) zbuf.P
 	}
 }
 
-// VectorCompile is used for testing queries over single VNG object scans
+// VectorCompile is used for testing queries over single CSUP object scans
 // where the entire query is vectorizable.  It does not call optimize
 // nor does it compute the demand of the query to prune the projection
 // from the vcache.

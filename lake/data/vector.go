@@ -16,7 +16,7 @@ import (
 	"github.com/segmentio/ksuid"
 )
 
-// CreateVector writes the vectorized form of an existing Object in the VNG format.
+// CreateVector writes the vectorized form of an existing Object in the CSUP format.
 func CreateVector(ctx context.Context, engine storage.Engine, path *storage.URI, id ksuid.KSUID) error {
 	get, err := engine.Get(ctx, SequenceURI(path, id))
 	if err != nil {

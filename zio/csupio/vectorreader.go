@@ -81,7 +81,7 @@ func (v *VectorReader) Pull(done bool) (vector.Any, error) {
 		return nil, v.close()
 	}
 	o := v.objects[n]
-	return vcache.NewObjectFromVNG(o).Fetch(v.zctx, v.projection)
+	return vcache.NewObjectFromCSUP(o).Fetch(v.zctx, v.projection)
 }
 
 func filterObjects(zctx *super.Context, pruner expr.Evaluator, objects []*csup.Object) []*csup.Object {

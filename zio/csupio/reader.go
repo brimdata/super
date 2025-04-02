@@ -48,7 +48,7 @@ again:
 		}
 		o := r.objects[0]
 		r.objects = r.objects[1:]
-		vec, err := vcache.NewObjectFromVNG(o).Fetch(r.zctx, r.projection)
+		vec, err := vcache.NewObjectFromCSUP(o).Fetch(r.zctx, r.projection)
 		if err != nil {
 			return nil, err
 		}

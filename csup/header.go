@@ -33,19 +33,19 @@ func (h Header) Serialize() []byte {
 
 func (h *Header) Deserialize(bytes []byte) error {
 	if len(bytes) != HeaderSize || bytes[0] != 'V' || bytes[1] != 'N' || bytes[2] != 'G' || bytes[3] != 0 {
-		return errors.New("invalid VNG header")
+		return errors.New("invalid CSUP header")
 	}
 	h.Version = binary.LittleEndian.Uint32(bytes[4:])
 	h.MetaSize = binary.LittleEndian.Uint64(bytes[8:])
 	h.DataSize = binary.LittleEndian.Uint64(bytes[16:])
 	if h.Version != Version {
-		return fmt.Errorf("unsupport VNG version %d: expected version %d", h.Version, Version)
+		return fmt.Errorf("unsupport CSUP version %d: expected version %d", h.Version, Version)
 	}
 	if h.MetaSize > MaxMetaSize {
-		return fmt.Errorf("VNG metadata section too big: %d bytes", h.MetaSize)
+		return fmt.Errorf("CSUP metadata section too big: %d bytes", h.MetaSize)
 	}
 	if h.MetaSize > MaxDataSize {
-		return fmt.Errorf("VNG data section too big: %d bytes", h.DataSize)
+		return fmt.Errorf("CSUP data section too big: %d bytes", h.DataSize)
 	}
 	return nil
 }
@@ -57,7 +57,7 @@ func ReadHeader(r io.Reader) (Header, error) {
 		return Header{}, err
 	}
 	if cc < HeaderSize {
-		return Header{}, fmt.Errorf("short VNG file: %d bytes read", cc)
+		return Header{}, fmt.Errorf("short CSUP file: %d bytes read", cc)
 	}
 	var h Header
 	if err := h.Deserialize(bytes[:]); err != nil {

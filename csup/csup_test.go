@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func FuzzVngRoundtripGen(f *testing.F) {
+func FuzzCSUPRoundtripGen(f *testing.F) {
 	f.Fuzz(func(t *testing.T, b []byte) {
 		bytesReader := bytes.NewReader(b)
 		context := super.NewContext()
@@ -19,7 +19,7 @@ func FuzzVngRoundtripGen(f *testing.F) {
 	})
 }
 
-func FuzzVngRoundtripBytes(f *testing.F) {
+func FuzzCSUPRoundtripBytes(f *testing.F) {
 	f.Fuzz(func(t *testing.T, b []byte) {
 		values, err := fuzz.ReadZNG(b)
 		if err != nil {
@@ -31,8 +31,8 @@ func FuzzVngRoundtripBytes(f *testing.F) {
 
 func roundtrip(t *testing.T, valuesIn []super.Value) {
 	var buf bytes.Buffer
-	fuzz.WriteVNG(t, valuesIn, &buf)
-	valuesOut, err := fuzz.ReadVNG(buf.Bytes(), nil)
+	fuzz.WriteCSUP(t, valuesIn, &buf)
+	valuesOut, err := fuzz.ReadCSUP(buf.Bytes(), nil)
 	require.NoError(t, err)
 	fuzz.CompareValues(t, valuesIn, valuesOut)
 }

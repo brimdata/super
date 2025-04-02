@@ -34,10 +34,10 @@ func FuzzQuery(f *testing.F) {
 		resultZNG := fuzz.RunQueryZNG(t, &zngBuf, querySource)
 
 		var csupBuf bytes.Buffer
-		fuzz.WriteVNG(t, values, &csupBuf)
-		resultVNG := fuzz.RunQueryVNG(t, &csupBuf, querySource)
+		fuzz.WriteCSUP(t, values, &csupBuf)
+		resultCSUP := fuzz.RunQueryCSUP(t, &csupBuf, querySource)
 
-		fuzz.CompareValues(t, resultZNG, resultVNG)
+		fuzz.CompareValues(t, resultZNG, resultCSUP)
 	})
 }
 
@@ -64,14 +64,14 @@ func BenchmarkReadZng(b *testing.B) {
 	}
 }
 
-func BenchmarkReadVng(b *testing.B) {
+func BenchmarkReadCSUP(b *testing.B) {
 	rand := rand.New(rand.NewSource(42))
 	valuesIn := make([]super.Value, N)
 	for i := range valuesIn {
 		valuesIn[i] = super.NewValue(super.TypeInt64, super.EncodeInt(int64(rand.Intn(N))))
 	}
 	var buf bytes.Buffer
-	fuzz.WriteVNG(b, valuesIn, &buf)
+	fuzz.WriteCSUP(b, valuesIn, &buf)
 	bs := buf.Bytes()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

@@ -231,7 +231,7 @@ func (o *Optimizer) optimizeSourcePaths(seq dag.Seq) (dag.Seq, error) {
 		case *dag.PoolScan:
 			// Here we transform a PoolScan into a Lister followed by one or more chains
 			// of slicers and sequence scanners.  We'll eventually choose other configurations
-			// here based on metadata and availability of VNG.
+			// here based on metadata and availability of CSUP.
 			lister := &dag.Lister{
 				Kind:   "Lister",
 				Pool:   op.ID,

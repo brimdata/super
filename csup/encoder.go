@@ -16,13 +16,13 @@ type Encoder interface {
 	// Vectors may be encoded concurrently and errgroup.Group is used to sync
 	// and return errors.
 	Encode(*errgroup.Group)
-	// Metadata returns the data structure conforming to the VNG specification
+	// Metadata returns the data structure conforming to the CSUP specification
 	// describing the layout of vectors.  This is called after all data is
 	// written and encoded by the Encode with the result marshaled to build
-	// the header section of the VNG object.  An offset is passed down into
+	// the header section of the CSUP object.  An offset is passed down into
 	// the traversal representing where in the data section the vector data
 	// will land.  This is called in a sequential fashion (no parallelism) so
-	// that the metadata can be computed and the VNG header written before the
+	// that the metadata can be computed and the CSUP header written before the
 	// vector data is written via Emit.
 	Metadata(uint64) (uint64, Metadata)
 	Emit(w io.Writer) error
@@ -50,7 +50,7 @@ func NewEncoder(typ super.Type) Encoder {
 		return NewNullsEncoder(NewPrimitiveEncoder(typ))
 	default:
 		if !super.IsPrimitiveType(typ) {
-			panic(fmt.Sprintf("unsupported type in VNG file: %T", typ))
+			panic(fmt.Sprintf("unsupported type in CSUP file: %T", typ))
 		}
 		var enc Encoder
 		switch id := typ.ID(); {

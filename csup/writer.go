@@ -14,7 +14,7 @@ import (
 var maxObjectSize uint32 = 120_000
 
 // Writer implements the zio.Writer interface. A Writer creates a vector
-// VNG object from a stream of super.Records.
+// CSUP object from a stream of super.Records.
 type Writer struct {
 	zctx    *super.Context
 	writer  io.WriteCloser
@@ -52,7 +52,7 @@ func (w *Writer) Write(val super.Value) error {
 func (w *Writer) finalizeObject() error {
 	meta, dataSize, err := w.dynamic.Encode()
 	if err != nil {
-		return fmt.Errorf("system error: could not encode VNG metadata: %w", err)
+		return fmt.Errorf("system error: could not encode CSUP metadata: %w", err)
 	}
 	// At this point all the vector data has been written out
 	// to the underlying spiller, so we start writing zng at this point.
@@ -63,24 +63,24 @@ func (w *Writer) finalizeObject() error {
 	m.Decorate(zson.StyleSimple)
 	val, err := m.Marshal(meta)
 	if err != nil {
-		return fmt.Errorf("system error: could not marshal VNG metadata: %w", err)
+		return fmt.Errorf("system error: could not marshal CSUP metadata: %w", err)
 	}
 	if err := zw.Write(val); err != nil {
-		return fmt.Errorf("system error: could not serialize VNG metadata: %w", err)
+		return fmt.Errorf("system error: could not serialize CSUP metadata: %w", err)
 	}
 	zw.EndStream()
 	metaSize := zw.Position()
 	// Header
 	if _, err := w.writer.Write(Header{Version, uint64(metaSize), dataSize}.Serialize()); err != nil {
-		return fmt.Errorf("system error: could not write VNG header: %w", err)
+		return fmt.Errorf("system error: could not write CSUP header: %w", err)
 	}
 	// Metadata section
 	if _, err := w.writer.Write(metaBuf.Bytes()); err != nil {
-		return fmt.Errorf("system error: could not write VNG metadata section: %w", err)
+		return fmt.Errorf("system error: could not write CSUP metadata section: %w", err)
 	}
 	// Data section
 	if err := w.dynamic.Emit(w.writer); err != nil {
-		return fmt.Errorf("system error: could not write VNG data section: %w", err)
+		return fmt.Errorf("system error: could not write CSUP data section: %w", err)
 	}
 	// Set new dynamic so we can write the next section.
 	w.dynamic = NewDynamicEncoder()

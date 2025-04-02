@@ -28,7 +28,7 @@ func TestDataReaderWriterVector(t *testing.T) {
 	require.NoError(t, w.Write(zson.MustParseValue(zctx, "{a:3,b:6}")))
 	require.NoError(t, w.Close(ctx))
 	require.NoError(t, data.CreateVector(ctx, engine, tmp, object.ID))
-	// Read back the VNG file and make sure it's the same.
+	// Read back the CSUP file and make sure it's the same.
 	get, err := engine.Get(ctx, object.VectorURI(tmp))
 	require.NoError(t, err)
 	reader, err := csupio.NewReader(super.NewContext(), get, nil)

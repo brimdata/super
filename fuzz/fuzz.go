@@ -46,7 +46,7 @@ func ReadZNG(bs []byte) ([]super.Value, error) {
 	return a.Values(), nil
 }
 
-func ReadVNG(bs []byte, fields []field.Path) ([]super.Value, error) {
+func ReadCSUP(bs []byte, fields []field.Path) ([]super.Value, error) {
 	bytesReader := bytes.NewReader(bs)
 	context := super.NewContext()
 	reader, err := csupio.NewReader(context, bytesReader, fields)
@@ -67,7 +67,7 @@ func WriteZNG(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
 	require.NoError(t, writer.Close())
 }
 
-func WriteVNG(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
+func WriteCSUP(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
 	writer := csupio.NewWriter(zio.NopCloser(buf))
 	require.NoError(t, zio.Copy(writer, zbuf.NewArray(valuesIn)))
 	require.NoError(t, writer.Close())
@@ -80,7 +80,7 @@ func RunQueryZNG(t testing.TB, buf *bytes.Buffer, querySource string) []super.Va
 	return RunQuery(t, zctx, readers, querySource, func(_ demand.Demand) {})
 }
 
-func RunQueryVNG(t testing.TB, buf *bytes.Buffer, querySource string) []super.Value {
+func RunQueryCSUP(t testing.TB, buf *bytes.Buffer, querySource string) []super.Value {
 	zctx := super.NewContext()
 	reader, err := csupio.NewReader(zctx, bytes.NewReader(buf.Bytes()), nil)
 	require.NoError(t, err)

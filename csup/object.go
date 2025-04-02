@@ -1,7 +1,7 @@
-// Package csup implements the reading and writing of VNG serialization objects.
-// The VNG format is described at https://github.com/brimdata/super/blob/main/docs/formats/csup.md.
+// Package csup implements the reading and writing of CSUP serialization objects.
+// The CSUP format is described at https://github.com/brimdata/super/blob/main/docs/formats/csup.md.
 //
-// A VNG object is created by allocating an Encoder for any top-level Zed type
+// A CSUP object is created by allocating an Encoder for any top-level Zed type
 // via NewEncoder, which recursively descends into the Zed type, allocating an Encoder
 // for each node in the type tree.  The top-level ZNG body is written via a call
 // to Write.  Each vector buffers its data in memory until the object is encoded.
@@ -14,7 +14,7 @@
 // which run-length encodes alternating sequences of nulls and values.  If no nulls
 // are encountered, then the Nulls object is omitted from the metadata.
 //
-// Data is read from a VNG object by reading the metadata and creating vector Builders
+// Data is read from a CSUP object by reading the metadata and creating vector Builders
 // for each Zed type by calling NewBuilder with the metadata, which recusirvely creates
 // Builders.  An io.ReaderAt is passed to NewBuilder so each vector reader can access
 // the underlying storage object and read its vector data effciently in large vector segments.
@@ -91,7 +91,7 @@ func readMetadata(r io.Reader) (Metadata, error) {
 	}
 	// Read another val to make sure there is no extra stuff after the metadata.
 	if extra, _ := zr.Read(); extra != nil {
-		return nil, errors.New("corrupt VNG: metadata section has more than one Zed value")
+		return nil, errors.New("corrupt CSUP: metadata section has more than one Zed value")
 	}
 	return meta, nil
 }

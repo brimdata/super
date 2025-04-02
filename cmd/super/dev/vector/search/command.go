@@ -20,7 +20,7 @@ import (
 var spec = &charm.Spec{
 	Name:  "search",
 	Usage: "search [flags] filter_expr",
-	Short: "run a VNG optimized search on a lake",
+	Short: "run a CSUP optimized search on a lake",
 	New:   newCommand,
 }
 

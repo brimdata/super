@@ -25,9 +25,9 @@ import (
 // various type checks and coercions that determine different computational
 // outcomes based on type.  There is nothing here that optimizes analytics
 // for native machine types; these optimizations (will) happen in the pushdown
-// predicate processing engine in the VNG columnar scanner.
+// predicate processing engine in the CSUP columnar scanner.
 //
-// Eventually, we will optimize this VNG "fast path" by dynamically
+// Eventually, we will optimize this CSUP "fast path" by dynamically
 // generating byte codes (which can in turn be JIT assembled into machine code)
 // for each zng TypeRecord encountered.  Once you know the TypeRecord,
 // you can generate code using strong typing just as an OLAP system does

@@ -1,4 +1,4 @@
-# This test simply converts some ZSON to VNG then runs it through 
+# This test simply converts some SUP to CSUP then runs it through 
 # the vector cache to exercise the logic that builds values from 
 # cached vectors.
 script: |

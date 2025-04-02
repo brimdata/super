@@ -22,7 +22,7 @@ import (
 var spec = &charm.Spec{
 	Name:  "csup",
 	Usage: "csup uri",
-	Short: "dump VNG metadata",
+	Short: "dump CSUP metadata",
 	Long: `
 csup decodes an input uri and emits the metadata sections in the format desired.`,
 	New: New,
@@ -127,7 +127,7 @@ func (r *reader) readHeader() (csup.Header, error) {
 		return csup.Header{}, err
 	}
 	if cc != csup.HeaderSize {
-		return csup.Header{}, fmt.Errorf("truncated VNG file: %d bytes of %d read", cc, csup.HeaderSize)
+		return csup.Header{}, fmt.Errorf("truncated CSUP file: %d bytes of %d read", cc, csup.HeaderSize)
 	}
 	var h csup.Header
 	if err := h.Deserialize(bytes[:]); err != nil {
@@ -139,7 +139,7 @@ func (r *reader) readHeader() (csup.Header, error) {
 func (r *reader) skip(n int) error {
 	got, err := r.reader.Discard(n)
 	if n != got {
-		return fmt.Errorf("truncated VNG data: data section %d but read only %d", n, got)
+		return fmt.Errorf("truncated CSUP data: data section %d but read only %d", n, got)
 	}
 	return err
 }
