@@ -10,7 +10,7 @@ import (
 )
 
 type distinct struct {
-	Func
+	fun      Func
 	buf      []byte
 	seen     map[string]struct{}
 	size     int
@@ -18,7 +18,7 @@ type distinct struct {
 }
 
 func newDistinct(f Func) Func {
-	return &distinct{Func: f, seen: map[string]struct{}{}}
+	return &distinct{fun: f, seen: map[string]struct{}{}}
 }
 
 func (d *distinct) Consume(vec vector.Any) {
@@ -41,7 +41,8 @@ func (d *distinct) ConsumeAsPartial(vec vector.Any) {
 	if vec.Type() != super.TypeBytes || vec.Len() != 1 {
 		panic("distinct: invalid partial")
 	}
-	d.partials = append(d.partials, vec.(*vector.Bytes).Value(0))
+	bytes, _ := vector.BytesValue(vec, 0)
+	d.partials = append(d.partials, bytes)
 }
 
 func (d *distinct) Result(zctx *super.Context) super.Value {
@@ -73,16 +74,16 @@ func (d *distinct) Result(zctx *super.Context) super.Value {
 		b.Write(super.NewValue(typ, bytes))
 		count++
 		if count == 1024 {
-			d.Func.Consume(b.Build())
+			d.fun.Consume(b.Build())
 			b = vector.NewDynamicBuilder()
 			count = 0
 		}
 		delete(d.seen, key)
 	}
 	if count > 0 {
-		d.Func.Consume(b.Build())
+		d.fun.Consume(b.Build())
 	}
-	return d.Func.Result(zctx)
+	return d.fun.Result(zctx)
 }
 
 func (d *distinct) ResultAsPartial(*super.Context) super.Value {

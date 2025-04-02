@@ -79,7 +79,9 @@ func NewPattern(op string, distinct, hasarg bool) (Pattern, error) {
 		switch op {
 		case "avg", "collect", "count", "sum":
 			// Distinct affects only these functions.
-			return func() Func { return newDistinct(pattern()) }, nil
+			return func() Func {
+				return newDistinct(pattern())
+			}, nil
 		}
 	}
 	return pattern, nil

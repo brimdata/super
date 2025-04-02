@@ -8,7 +8,7 @@ import (
 )
 
 type distinct struct {
-	Function
+	fun      Function
 	buf      []byte
 	seen     map[string]struct{}
 	size     int
@@ -16,7 +16,7 @@ type distinct struct {
 }
 
 func newDistinct(f Function) Function {
-	return &distinct{Function: f, seen: map[string]struct{}{}}
+	return &distinct{fun: f, seen: map[string]struct{}{}}
 }
 
 func (d *distinct) Consume(val super.Value) {
@@ -60,10 +60,10 @@ func (d *distinct) Result(zctx *super.Context) super.Value {
 		if err != nil {
 			panic(err)
 		}
-		d.Function.Consume(super.NewValue(typ, bytes))
+		d.fun.Consume(super.NewValue(typ, bytes))
 		delete(d.seen, key)
 	}
-	return d.Function.Result(zctx)
+	return d.fun.Result(zctx)
 }
 
 func (d *distinct) ResultAsPartial(zctx *super.Context) super.Value {
