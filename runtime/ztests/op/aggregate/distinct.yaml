@@ -1,16 +1,16 @@
 zed: |
   aggregate
-      and(distinct b),
-      any(distinct n),
-      avg(distinct n),
-      collect(distinct key),
-      count(distinct n),
-      dcount(distinct n),
-      max(distinct n),
-      min(distinct n),
-      or(distinct b),
-      sum(distinct n),
-      union(distinct n) by key
+    and(distinct b),
+    any(distinct n),
+    avg(distinct n),
+    collect(distinct key),
+    count(distinct n),
+    dcount(distinct n),
+    max(distinct n),
+    min(distinct n),
+    or(distinct b),
+    sum(distinct n),
+    union(distinct n) by key
   | sort key
 
 vector: true
