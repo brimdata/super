@@ -1,0 +1,21 @@
+# This test exercises the partials paths in the reduducers by doing an aggregate
+# with a single-row limit.  We also make sure the partials consumer can handle
+# an empty input by inncluding a record for key "a" with no value field.
+zed: |
+  aggregate
+    avg(distinct n),
+    collect(distinct key),
+    count(distinct n),
+    sum(distinct n) by key
+  | sort key
+
+input: |
+  {key:"a",n:1}
+  {key:"a",n:2}
+  {key:"b",n:1}
+  {key:"b",n:0}
+  {key:"a",n:1}
+
+output: |
+  {key:"a",avg:1.5,collect:["a"],count:2(uint64),sum:3}
+  {key:"b",avg:0.5,collect:["b"],count:2(uint64),sum:1}
