@@ -15,14 +15,14 @@ import (
 )
 
 type reader struct {
-	zctx       *super.Context
+	sctx       *super.Context
 	stream     *stream
 	projection field.Projection
 	readerAt   io.ReaderAt
 	vals       []super.Value
 }
 
-func NewReader(zctx *super.Context, r io.Reader, fields []field.Path) (zio.Reader, error) {
+func NewReader(sctx *super.Context, r io.Reader, fields []field.Path) (zio.Reader, error) {
 	ra, ok := r.(io.ReaderAt)
 	if !ok {
 		return nil, errors.New("Super Columnar requires a seekable input")
@@ -32,7 +32,7 @@ func NewReader(zctx *super.Context, r io.Reader, fields []field.Path) (zio.Reade
 		return nil, err
 	}
 	return &reader{
-		zctx:       zctx,
+		sctx:       sctx,
 		stream:     &stream{r: ra},
 		projection: field.NewProjection(fields),
 		readerAt:   ra,
@@ -46,7 +46,7 @@ again:
 		if o == nil || err != nil {
 			return nil, err
 		}
-		vec, err := vcache.NewObjectFromCSUP(o).Fetch(r.zctx, r.projection)
+		vec, err := vcache.NewObjectFromCSUP(o).Fetch(r.sctx, r.projection)
 		if err != nil {
 			return nil, err
 		}

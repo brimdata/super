@@ -44,16 +44,16 @@ func (m *MapEncoder) Emit(w io.Writer) error {
 	return m.values.Emit(w)
 }
 
-func (m *MapEncoder) Metadata(off uint64) (uint64, Metadata) {
+func (m *MapEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
 	off, lens := m.lengths.Segment(off)
-	off, keys := m.keys.Metadata(off)
-	off, vals := m.values.Metadata(off)
-	return off, &Map{
+	off, keys := m.keys.Metadata(cctx, off)
+	off, vals := m.values.Metadata(cctx, off)
+	return off, cctx.enter(&Map{
 		Lengths: lens,
 		Keys:    keys,
 		Values:  vals,
 		Length:  m.count,
-	}
+	})
 }
 
 func (m *MapEncoder) Encode(group *errgroup.Group) {

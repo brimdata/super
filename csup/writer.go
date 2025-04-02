@@ -16,7 +16,6 @@ var maxObjectSize uint32 = 120_000
 // Writer implements the zio.Writer interface. A Writer creates a vector
 // CSUP object from a stream of super.Records.
 type Writer struct {
-	zctx    *super.Context
 	writer  io.WriteCloser
 	dynamic *DynamicEncoder
 }
@@ -25,7 +24,6 @@ var _ zio.Writer = (*Writer)(nil)
 
 func NewWriter(w io.WriteCloser) *Writer {
 	return &Writer{
-		zctx:    super.NewContext(),
 		writer:  w,
 		dynamic: NewDynamicEncoder(),
 	}
@@ -50,7 +48,7 @@ func (w *Writer) Write(val super.Value) error {
 }
 
 func (w *Writer) finalizeObject() error {
-	meta, dataSize, err := w.dynamic.Encode()
+	root, dataSize, err := w.dynamic.Encode()
 	if err != nil {
 		return fmt.Errorf("system error: could not encode CSUP metadata: %w", err)
 	}
@@ -59,19 +57,22 @@ func (w *Writer) finalizeObject() error {
 	var metaBuf bytes.Buffer
 	zw := bsupio.NewWriter(zio.NopCloser(&metaBuf))
 	// First, we write the root segmap of the vector of integer type IDs.
-	m := sup.NewBSUPMarshalerWithContext(w.zctx)
+	cctx := w.dynamic.cctx
+	m := sup.NewBSUPMarshalerWithContext(cctx.local)
 	m.Decorate(sup.StyleSimple)
-	val, err := m.Marshal(meta)
-	if err != nil {
-		return fmt.Errorf("system error: could not marshal CSUP metadata: %w", err)
-	}
-	if err := zw.Write(val); err != nil {
-		return fmt.Errorf("system error: could not serialize CSUP metadata: %w", err)
+	for id := range len(cctx.metas) {
+		val, err := m.Marshal(cctx.Lookup(ID(id)))
+		if err != nil {
+			return fmt.Errorf("could not marshal CSUP metadata: %w", err)
+		}
+		if err := zw.Write(val); err != nil {
+			return fmt.Errorf("could not write CSUP metadata: %w", err)
+		}
 	}
 	zw.EndStream()
 	metaSize := zw.Position()
 	// Header
-	if _, err := w.writer.Write(Header{Version, uint64(metaSize), dataSize}.Serialize()); err != nil {
+	if _, err := w.writer.Write(Header{Version, uint64(metaSize), dataSize, uint32(root)}.Serialize()); err != nil {
 		return fmt.Errorf("system error: could not write CSUP header: %w", err)
 	}
 	// Metadata section
@@ -82,8 +83,7 @@ func (w *Writer) finalizeObject() error {
 	if err := w.dynamic.Emit(w.writer); err != nil {
 		return fmt.Errorf("system error: could not write CSUP data section: %w", err)
 	}
-	// Set new dynamic so we can write the next section.
+	// Set new dynamic so we can write the next object.
 	w.dynamic = NewDynamicEncoder()
-	w.zctx.Reset()
 	return nil
 }

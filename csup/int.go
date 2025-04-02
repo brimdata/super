@@ -46,7 +46,7 @@ func (i *IntEncoder) reset() {
 	i.vals, i.min, i.max = nil, 0, 0
 }
 
-func (i *IntEncoder) Metadata(off uint64) (uint64, Metadata) {
+func (i *IntEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
 	loc := Segment{
 		Offset:            off,
 		MemLength:         uint64(len(i.out)),
@@ -54,13 +54,13 @@ func (i *IntEncoder) Metadata(off uint64) (uint64, Metadata) {
 		CompressionFormat: CompressionFormatNone,
 	}
 	off += loc.MemLength
-	return off, &Int{
+	return off, cctx.enter(&Int{
 		Typ:      i.typ,
 		Location: loc,
 		Min:      i.min,
 		Max:      i.max,
 		Count:    uint32(len(i.vals)),
-	}
+	})
 }
 
 func (i *IntEncoder) Emit(w io.Writer) error {
@@ -105,7 +105,7 @@ func (i *UintEncoder) reset() {
 	i.vals, i.min, i.max = nil, 0, 0
 }
 
-func (u *UintEncoder) Metadata(off uint64) (uint64, Metadata) {
+func (u *UintEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
 	loc := Segment{
 		Offset:            off,
 		MemLength:         uint64(len(u.out)),
@@ -113,13 +113,13 @@ func (u *UintEncoder) Metadata(off uint64) (uint64, Metadata) {
 		CompressionFormat: CompressionFormatNone,
 	}
 	off += loc.MemLength
-	return off, &Uint{
+	return off, cctx.enter(&Uint{
 		Typ:      u.typ,
 		Location: loc,
 		Min:      u.min,
 		Max:      u.max,
 		Count:    uint32(len(u.vals)),
-	}
+	})
 }
 
 func (u *UintEncoder) Emit(w io.Writer) error {

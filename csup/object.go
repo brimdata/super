@@ -25,33 +25,36 @@
 package csup
 
 import (
-	"errors"
+	"fmt"
 	"io"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zio/bsupio"
+	"github.com/brimdata/super/pkg/field"
+	"github.com/brimdata/super/zcode"
 )
 
 type Object struct {
+	cctx     *Context
 	readerAt io.ReaderAt
 	header   Header
-	meta     Metadata
 }
 
 func NewObject(r io.ReaderAt) (*Object, error) {
-	hdr, err := ReadHeader(io.NewSectionReader(r, 0, HeaderSize))
+	hdr, err := ReadHeader(r)
 	if err != nil {
 		return nil, err
 	}
-	meta, err := readMetadata(io.NewSectionReader(r, HeaderSize, int64(hdr.MetaSize)))
-	if err != nil {
+	cctx := NewContext()
+	if err := cctx.readMeta(io.NewSectionReader(r, HeaderSize, int64(hdr.MetaSize))); err != nil {
 		return nil, err
+	}
+	if hdr.Root >= uint32(len(cctx.values)) {
+		return nil, fmt.Errorf("CSUP root ID %d larger than values table (len %d)", hdr.Root, len(cctx.values))
 	}
 	return &Object{
+		cctx:     cctx,
 		readerAt: io.NewSectionReader(r, int64(HeaderSize+hdr.MetaSize), int64(hdr.DataSize)),
 		header:   hdr,
-		meta:     meta,
 	}, nil
 }
 
@@ -62,8 +65,12 @@ func (o *Object) Close() error {
 	return nil
 }
 
-func (o *Object) Metadata() Metadata {
-	return o.meta
+func (o *Object) Context() *Context {
+	return o.cctx
+}
+
+func (o *Object) Root() ID {
+	return ID(o.header.Root)
 }
 
 func (o *Object) DataReader() io.ReaderAt {
@@ -74,24 +81,19 @@ func (o *Object) Size() uint64 {
 	return HeaderSize + o.header.MetaSize + o.header.DataSize
 }
 
-func readMetadata(r io.Reader) (Metadata, error) {
-	zctx := super.NewContext()
-	zr := bsupio.NewReader(zctx, r)
-	defer zr.Close()
-	val, err := zr.Read()
-	if err != nil {
-		return nil, err
+func (o *Object) ProjectMetadata(sctx *super.Context, projection field.Projection) []super.Value {
+	var b zcode.Builder
+	var values []super.Value
+	root := o.cctx.Lookup(o.Root())
+	if root, ok := root.(*Dynamic); ok {
+		for _, id := range root.Values {
+			b.Reset()
+			typ := metadataValue(o.cctx, sctx, &b, id, projection)
+			values = append(values, super.NewValue(typ, b.Bytes().Body()))
+		}
+	} else {
+		typ := metadataValue(o.cctx, sctx, &b, o.Root(), projection)
+		values = append(values, super.NewValue(typ, b.Bytes().Body()))
 	}
-	u := sup.NewBSUPUnmarshaler()
-	u.SetContext(zctx)
-	u.Bind(Template...)
-	var meta Metadata
-	if err := u.Unmarshal(*val, &meta); err != nil {
-		return nil, err
-	}
-	// Read another val to make sure there is no extra stuff after the metadata.
-	if extra, _ := zr.Read(); extra != nil {
-		return nil, errors.New("corrupt CSUP: metadata section has more than one Zed value")
-	}
-	return meta, nil
+	return values
 }

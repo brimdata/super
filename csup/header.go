@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	Version     = 8
-	HeaderSize  = 24
+	Version     = 9
+	HeaderSize  = 28
 	MaxMetaSize = 100 * 1024 * 1024
 	MaxDataSize = 2 * 1024 * 1024 * 1024
 )
@@ -18,6 +18,7 @@ type Header struct {
 	Version  uint32
 	MetaSize uint64
 	DataSize uint64
+	Root     uint32
 }
 
 func (h Header) Serialize() []byte {
@@ -28,6 +29,7 @@ func (h Header) Serialize() []byte {
 	binary.LittleEndian.PutUint32(bytes[4:], h.Version)
 	binary.LittleEndian.PutUint64(bytes[8:], h.MetaSize)
 	binary.LittleEndian.PutUint64(bytes[16:], h.DataSize)
+	binary.LittleEndian.PutUint32(bytes[24:], h.Root)
 	return bytes[:]
 }
 
@@ -38,6 +40,7 @@ func (h *Header) Deserialize(bytes []byte) error {
 	h.Version = binary.LittleEndian.Uint32(bytes[4:])
 	h.MetaSize = binary.LittleEndian.Uint64(bytes[8:])
 	h.DataSize = binary.LittleEndian.Uint64(bytes[16:])
+	h.Root = binary.LittleEndian.Uint32(bytes[24:])
 	if h.Version != Version {
 		return fmt.Errorf("unsupport CSUP version %d: expected version %d", h.Version, Version)
 	}

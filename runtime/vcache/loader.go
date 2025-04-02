@@ -20,9 +20,10 @@ import (
 
 // loader handles loading vector data on demand for only the fields needed
 // as specified in the projection.  Each load is executed with a multiphase
-// process: first, we build a mirror of the CSUP metadata where each node has a
+// process: first, unmarshal builds a mirror of the CSUP metadata where each node has a
 // lock and places to store the bulk data so that it may be reused across
-// projections.  This is called the shadow object.  Then, we fill in the shadow
+// projections.  This is called the shadow object.  The shadow elements are also
+// restricted to just the pieces needed for the projection. Then, we fill in the shadow
 // with data vectors dynamically and create runtime vectors as follows:
 //
 //	(1) create a mirror data structure (shadow)
@@ -31,12 +32,13 @@ import (
 //	(4) load all data that is projected using the nulls to flatten any unloaded data (fetchVals)
 //	(5) form a projection from the fully loaded data nodes (project)
 //
-// The zctx passed into the loader is dynamic and comes from each query context that
-// uses the vcache.  No zctx types are stored in the shadow (except for primitive types
+// The sctx passed into the loader is dynamic and comes from each query context that
+// uses the vcache.  No sctx types are stored in the shadow (except for primitive types
 // in shadowed vector.Any primitives that are shared).  We otherwise allocate all
-// vector.Any super.Types using the passed-in zctx.
+// vector.Any super.Types using the passed-in sctx.
 type loader struct {
-	zctx *super.Context
+	cctx *csup.Context
+	sctx *super.Context
 	r    io.ReaderAt
 }
 
@@ -45,7 +47,8 @@ type loader struct {
 // concurrently on the same shadow and fine-grained locking insures that any given
 // data vector is loaded just once and such loads may be executed concurrently (even
 // when only one thread is calling load).  If paths is nil, then the entire value
-// is loaded.
+// is loaded.  All of the projected paths in the shadow must have been properly
+// unmarshaled before calling.
 func (l *loader) load(projection field.Projection, s shadow) (vector.Any, error) {
 	var group errgroup.Group
 	l.fetchNulls(&group, projection, s)
@@ -57,29 +60,31 @@ func (l *loader) load(projection field.Projection, s shadow) (vector.Any, error)
 	if err := group.Wait(); err != nil {
 		return nil, err
 	}
-	return project(l.zctx, projection, s), nil
+	return project(l.sctx, projection, s), nil
 }
 
 func (l *loader) loadVector(g *errgroup.Group, projection field.Projection, s shadow) {
 	switch s := s.(type) {
 	case *dynamic:
 		//XXX we need an ordered option to load tags only when needed
-		l.loadUint32(g, &s.mu, &s.tags, s.loc)
-		for _, m := range s.vals {
-			l.loadVector(g, projection, m)
+		l.loadUint32(g, &s.mu, &s.tags, s.meta.Tags)
+		for _, m := range s.values {
+			if m != nil {
+				l.loadVector(g, projection, m)
+			}
 		}
 	case *record:
 		l.loadRecord(g, projection, s)
 	case *array:
-		l.loadOffsets(g, &s.mu, &s.offs, s.loc, s.length(), s.nulls.flat)
-		l.loadVector(g, projection, s.vals)
+		l.loadOffsets(g, &s.mu, &s.offs, s.meta.Lengths, s.length(), s.nulls.flat)
+		l.loadVector(g, projection, s.values)
 	case *set:
-		l.loadOffsets(g, &s.mu, &s.offs, s.loc, s.length(), s.nulls.flat)
-		l.loadVector(g, projection, s.vals)
+		l.loadOffsets(g, &s.mu, &s.offs, s.meta.Lengths, s.length(), s.nulls.flat)
+		l.loadVector(g, projection, s.values)
 	case *map_:
-		l.loadOffsets(g, &s.mu, &s.offs, s.loc, s.length(), s.nulls.flat)
+		l.loadOffsets(g, &s.mu, &s.offs, s.meta.Lengths, s.length(), s.nulls.flat)
 		l.loadVector(g, projection, s.keys)
-		l.loadVector(g, projection, s.vals)
+		l.loadVector(g, projection, s.values)
 	case *union:
 		l.loadUnion(g, projection, s)
 	case *int_:
@@ -92,16 +97,23 @@ func (l *loader) loadVector(g *errgroup.Group, projection field.Projection, s sh
 		s.mu.Lock()
 		vec := s.vec
 		if vec == nil {
-			vec = vector.NewConst(s.val, s.length(), s.nulls.flat)
+			// Map the const super.Value in the csup's type context to
+			// a new one in the query type context.
+			val := s.meta.Value
+			typ, err := l.sctx.TranslateType(val.Type())
+			if err != nil {
+				panic(err)
+			}
+			vec = vector.NewConst(super.NewValue(typ, val.Bytes()), s.length(), s.nulls.flat)
 			s.vec = vec
 		}
 		s.mu.Unlock()
 	case *dict:
 		l.loadDict(g, projection, s)
 	case *error_:
-		l.loadVector(g, projection, s.vals)
+		l.loadVector(g, projection, s.values)
 	case *named:
-		l.loadVector(g, projection, s.vals)
+		l.loadVector(g, projection, s.values)
 	default:
 		panic(fmt.Sprintf("vector cache: shadow type %T not supported", s))
 	}
@@ -112,22 +124,24 @@ func (l *loader) loadRecord(g *errgroup.Group, projection field.Projection, s *r
 		// Load the whole record.  We're either loading all on demand (nil paths)
 		// or loading this record because it's referenced at the end of a projected path.
 		for _, f := range s.fields {
-			l.loadVector(g, nil, f.val)
+			if f != nil {
+				l.loadVector(g, nil, f)
+			}
 		}
 		return
 	}
 	switch elem := projection[0].(type) {
 	case string:
-		if k := indexOfField(elem, s.fields); k >= 0 {
-			l.loadVector(g, projection[1:], s.fields[k].val)
+		if k := indexOfField(elem, s.meta); k >= 0 {
+			l.loadVector(g, projection[1:], s.fields[k])
 		}
 	case field.Fork:
 		// Multiple fields at this level are being projected.
 		for _, path := range elem {
 			// records require a field name path element (i.e., string)
 			if name, ok := path[0].(string); ok {
-				if k := indexOfField(name, s.fields); k >= 0 {
-					l.loadVector(g, projection[1:], s.fields[k].val)
+				if k := indexOfField(name, s.meta); k >= 0 {
+					l.loadVector(g, projection[1:], s.fields[k])
 				}
 			}
 		}
@@ -137,8 +151,8 @@ func (l *loader) loadRecord(g *errgroup.Group, projection field.Projection, s *r
 }
 
 func (l *loader) loadUnion(g *errgroup.Group, projection field.Projection, s *union) {
-	l.loadUint32(g, &s.mu, &s.tags, s.loc)
-	for _, val := range s.vals {
+	l.loadUint32(g, &s.mu, &s.tags, s.meta.Tags)
+	for _, val := range s.values {
 		l.loadVector(g, projection, val)
 	}
 }
@@ -156,13 +170,17 @@ func (l *loader) loadInt(g *errgroup.Group, s *int_) {
 		if s.vec != nil {
 			return nil
 		}
-		bytes := make([]byte, s.csup.Location.MemLength)
-		if err := s.csup.Location.Read(l.r, bytes); err != nil {
+		bytes := make([]byte, s.meta.Location.MemLength)
+		if err := s.meta.Location.Read(l.r, bytes); err != nil {
 			return err
 		}
 		vals := intcomp.UncompressInt64(byteconv.ReinterpretSlice[uint64](bytes), nil)
 		vals = extendForNulls(vals, s.nulls.flat, s.count)
-		s.vec = vector.NewInt(s.csup.Type(l.zctx), vals, s.nulls.flat)
+		typ, err := l.sctx.TranslateType(s.meta.Typ)
+		if err != nil {
+			panic(err)
+		}
+		s.vec = vector.NewInt(typ, vals, s.nulls.flat)
 		return nil
 	})
 }
@@ -180,13 +198,17 @@ func (l *loader) loadUint(g *errgroup.Group, s *uint_) {
 		if s.vec != nil {
 			return nil
 		}
-		bytes := make([]byte, s.csup.Location.MemLength)
-		if err := s.csup.Location.Read(l.r, bytes); err != nil {
+		bytes := make([]byte, s.meta.Location.MemLength)
+		if err := s.meta.Location.Read(l.r, bytes); err != nil {
 			return err
 		}
 		vals := intcomp.UncompressUint64(byteconv.ReinterpretSlice[uint64](bytes), nil)
 		vals = extendForNulls(vals, s.nulls.flat, s.count)
-		s.vec = vector.NewUint(s.csup.Type(l.zctx), vals, s.nulls.flat)
+		typ, err := l.sctx.TranslateType(s.meta.Typ)
+		if err != nil {
+			panic(err)
+		}
+		s.vec = vector.NewUint(typ, vals, s.nulls.flat)
 		return nil
 	})
 }
@@ -204,7 +226,10 @@ func (l *loader) loadPrimitive(g *errgroup.Group, s *primitive) {
 		if s.vec != nil {
 			return nil
 		}
-		typ := s.csup.Type(l.zctx)
+		typ, err := l.sctx.TranslateType(s.meta.Typ)
+		if err != nil {
+			panic(err)
+		}
 		vec, err := l.loadVals(typ, s, s.nulls.flat)
 		if err != nil {
 			return err
@@ -215,11 +240,12 @@ func (l *loader) loadPrimitive(g *errgroup.Group, s *primitive) {
 }
 
 func (l *loader) loadVals(typ super.Type, s *primitive, nulls *vector.Bool) (vector.Any, error) {
-	if s.csup.Count == 0 {
+	if s.count.vals == 0 {
+		// no vals, just nulls
 		return empty(typ, s.length(), nulls), nil
 	}
-	bytes := make([]byte, s.csup.Location.MemLength)
-	if err := s.csup.Location.Read(l.r, bytes); err != nil {
+	bytes := make([]byte, s.meta.Location.MemLength)
+	if err := s.meta.Location.Read(l.r, bytes); err != nil {
 		return nil, err
 	}
 	length := s.length()
@@ -336,17 +362,16 @@ func (l *loader) loadVals(typ super.Type, s *primitive, nulls *vector.Bool) (vec
 }
 
 func (l *loader) loadDict(g *errgroup.Group, projection field.Projection, s *dict) {
-	if s.csup.Length == 0 {
+	if s.count.vals == 0 {
 		panic("empty dict") // empty dictionaries should not happen!
 	}
-	l.loadVector(g, projection, s.vals)
-	l.loadUint32(g, &s.mu, &s.counts, s.csup.Counts)
+	l.loadVector(g, projection, s.values)
+	l.loadUint32(g, &s.mu, &s.counts, s.meta.Counts)
 	g.Go(func() error {
 		s.mu.Lock()
 		defer s.mu.Unlock()
-		loc := s.csup.Index
-		s.index = make([]byte, loc.MemLength)
-		if err := loc.Read(l.r, s.index); err != nil {
+		s.index = make([]byte, s.meta.Index.MemLength)
+		if err := s.meta.Index.Read(l.r, s.index); err != nil {
 			return err
 		}
 		s.index = extendForNulls(s.index, s.nulls.flat, s.count)
@@ -455,61 +480,61 @@ func (l *loader) loadOffsets(g *errgroup.Group, mu *sync.Mutex, slice *[]uint32,
 func (l *loader) fetchNulls(g *errgroup.Group, projection field.Projection, s shadow) {
 	switch s := s.(type) {
 	case *dynamic:
-		for _, m := range s.vals {
+		for _, m := range s.values {
 			l.fetchNulls(g, projection, m)
 		}
 	case *record:
-		s.nulls.fetch(g, l.r)
+		s.nulls.fetch(g, l.cctx, l.r)
 		if len(projection) == 0 {
 			for _, f := range s.fields {
-				l.fetchNulls(g, nil, f.val)
+				l.fetchNulls(g, nil, f)
 			}
 			return
 		}
 		switch elem := projection[0].(type) {
 		case string:
-			if k := indexOfField(elem, s.fields); k >= 0 {
-				l.fetchNulls(g, projection[1:], s.fields[k].val)
+			if k := indexOfField(elem, s.meta); k >= 0 {
+				l.fetchNulls(g, projection[1:], s.fields[k])
 			}
 		case field.Fork:
 			for _, path := range elem {
 				if name, ok := path[0].(string); ok {
-					if k := indexOfField(name, s.fields); k >= 0 {
-						l.fetchNulls(g, projection[1:], s.fields[k].val)
+					if k := indexOfField(name, s.meta); k >= 0 {
+						l.fetchNulls(g, projection[1:], s.fields[k])
 					}
 				}
 			}
 		}
 	case *array:
-		s.nulls.fetch(g, l.r)
-		l.fetchNulls(g, projection, s.vals)
+		s.nulls.fetch(g, l.cctx, l.r)
+		l.fetchNulls(g, projection, s.values)
 	case *set:
-		s.nulls.fetch(g, l.r)
-		l.fetchNulls(g, projection, s.vals)
+		s.nulls.fetch(g, l.cctx, l.r)
+		l.fetchNulls(g, projection, s.values)
 	case *map_:
-		s.nulls.fetch(g, l.r)
+		s.nulls.fetch(g, l.cctx, l.r)
 		l.fetchNulls(g, projection, s.keys)
-		l.fetchNulls(g, projection, s.vals)
+		l.fetchNulls(g, projection, s.values)
 	case *union:
-		s.nulls.fetch(g, l.r)
-		for _, val := range s.vals {
+		s.nulls.fetch(g, l.cctx, l.r)
+		for _, val := range s.values {
 			l.fetchNulls(g, projection, val)
 		}
 	case *int_:
-		s.nulls.fetch(g, l.r)
+		s.nulls.fetch(g, l.cctx, l.r)
 	case *uint_:
-		s.nulls.fetch(g, l.r)
+		s.nulls.fetch(g, l.cctx, l.r)
 	case *primitive:
-		s.nulls.fetch(g, l.r)
+		s.nulls.fetch(g, l.cctx, l.r)
 	case *const_:
-		s.nulls.fetch(g, l.r)
+		s.nulls.fetch(g, l.cctx, l.r)
 	case *dict:
-		s.nulls.fetch(g, l.r)
+		s.nulls.fetch(g, l.cctx, l.r)
 	case *error_:
-		s.nulls.fetch(g, l.r)
-		l.fetchNulls(g, projection, s.vals)
+		s.nulls.fetch(g, l.cctx, l.r)
+		l.fetchNulls(g, projection, s.values)
 	case *named:
-		l.fetchNulls(g, projection, s.vals)
+		l.fetchNulls(g, projection, s.values)
 	default:
 		panic(fmt.Sprintf("vector cache: type %T not supported", s))
 	}
@@ -518,44 +543,44 @@ func (l *loader) fetchNulls(g *errgroup.Group, projection field.Projection, s sh
 func flattenNulls(projection field.Projection, s shadow, parent *vector.Bool) {
 	switch s := s.(type) {
 	case *dynamic:
-		for _, m := range s.vals {
+		for _, m := range s.values {
 			flattenNulls(projection, m, nil)
 		}
 	case *record:
 		nulls := s.nulls.flatten(parent)
 		if len(projection) == 0 {
 			for _, f := range s.fields {
-				flattenNulls(nil, f.val, nulls)
+				flattenNulls(nil, f, nulls)
 			}
 			return
 		}
 		switch elem := projection[0].(type) {
 		case string:
-			if k := indexOfField(elem, s.fields); k >= 0 {
-				flattenNulls(projection[1:], s.fields[k].val, nulls)
+			if k := indexOfField(elem, s.meta); k >= 0 {
+				flattenNulls(projection[1:], s.fields[k], nulls)
 			}
 		case field.Fork:
 			for _, path := range elem {
 				if name, ok := path[0].(string); ok {
-					if k := indexOfField(name, s.fields); k >= 0 {
-						flattenNulls(projection[1:], s.fields[k].val, nulls)
+					if k := indexOfField(name, s.meta); k >= 0 {
+						flattenNulls(projection[1:], s.fields[k], nulls)
 					}
 				}
 			}
 		}
 	case *array:
 		s.nulls.flatten(parent)
-		flattenNulls(projection, s.vals, nil)
+		flattenNulls(projection, s.values, nil)
 	case *set:
 		s.nulls.flatten(parent)
-		flattenNulls(projection, s.vals, nil)
+		flattenNulls(projection, s.values, nil)
 	case *map_:
 		s.nulls.flatten(parent)
 		flattenNulls(nil, s.keys, nil)
-		flattenNulls(nil, s.vals, nil)
+		flattenNulls(nil, s.values, nil)
 	case *union:
 		s.nulls.flatten(parent)
-		for _, val := range s.vals {
+		for _, val := range s.values {
 			flattenNulls(projection, val, nil)
 		}
 	case *int_:
@@ -570,16 +595,16 @@ func flattenNulls(projection field.Projection, s shadow, parent *vector.Bool) {
 		s.nulls.flatten(parent)
 	case *error_:
 		s.nulls.flatten(parent)
-		flattenNulls(projection, s.vals, nil)
+		flattenNulls(projection, s.values, nil)
 	case *named:
-		flattenNulls(projection, s.vals, parent)
+		flattenNulls(projection, s.values, parent)
 	default:
 		panic(fmt.Sprintf("vector cache: type %T not supported", s))
 	}
 }
 
-func indexOfField(name string, fields []field_) int {
-	return slices.IndexFunc(fields, func(f field_) bool {
-		return f.name == name
+func indexOfField(name string, r *csup.Record) int {
+	return slices.IndexFunc(r.Fields, func(f csup.Field) bool {
+		return f.Name == name
 	})
 }

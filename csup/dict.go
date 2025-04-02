@@ -66,7 +66,7 @@ func (d *DictEncoder) Const() *Const {
 }
 
 func (d *DictEncoder) isValid() bool {
-	return d.tags != nil && len(d.tags) >= 1 && len(d.index) > len(d.tags)
+	return len(d.tags) >= 1 && len(d.index) > len(d.tags)
 }
 
 func (d *DictEncoder) Encode(group *errgroup.Group) {
@@ -103,15 +103,15 @@ func (d *DictEncoder) encodeCounts(group *errgroup.Group) {
 	d.counts.Encode(group)
 }
 
-func (d *DictEncoder) Metadata(off uint64) (uint64, Metadata) {
+func (d *DictEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
 	if !d.isValid() {
-		return d.values.Metadata(off)
+		return d.values.Metadata(cctx, off)
 	}
 	if c := d.Const(); c != nil {
-		return off, c
+		return off, cctx.enter(c)
 	}
 	meta := &Dict{Length: uint32(len(d.index))}
-	off, meta.Values = d.values.Metadata(off)
+	off, meta.Values = d.values.Metadata(cctx, off)
 	off, meta.Counts = d.counts.Segment(off)
 	len := uint64(len(d.index))
 	meta.Index = Segment{
@@ -119,7 +119,7 @@ func (d *DictEncoder) Metadata(off uint64) (uint64, Metadata) {
 		Length:    len,
 		MemLength: len,
 	}
-	return off + len, meta
+	return off + len, cctx.enter(meta)
 }
 
 func (d *DictEncoder) Emit(w io.Writer) error {

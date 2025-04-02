@@ -18,7 +18,7 @@ import (
 
 type VectorReader struct {
 	ctx  context.Context
-	zctx *super.Context
+	sctx *super.Context
 
 	activeReaders *atomic.Int64
 	stream        *stream
@@ -33,7 +33,7 @@ type metafilter struct {
 	projection field.Projection
 }
 
-func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, pushdown zbuf.Pushdown) (*VectorReader, error) {
+func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, pushdown zbuf.Pushdown) (*VectorReader, error) {
 	ra, ok := r.(io.ReaderAt)
 	if !ok {
 		return nil, errors.New("Super Columnar requires a seekable input")
@@ -58,7 +58,7 @@ func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, push
 	}
 	return &VectorReader{
 		ctx:           ctx,
-		zctx:          zctx,
+		sctx:          sctx,
 		activeReaders: &atomic.Int64{},
 		stream:        &stream{r: ra},
 		metaFilters:   mfPool,
@@ -71,7 +71,7 @@ func (v *VectorReader) NewConcurrentPuller() (vector.Puller, error) {
 	v.activeReaders.Add(1)
 	return &VectorReader{
 		ctx:           v.ctx,
-		zctx:          v.zctx,
+		sctx:          v.sctx,
 		activeReaders: v.activeReaders,
 		metaFilters:   v.metaFilters,
 		stream:        v.stream,
@@ -97,16 +97,16 @@ func (v *VectorReader) Pull(done bool) (vector.Any, error) {
 		// pollutes the type context.  We should use the csup local context for
 		// this filtering but this will require a little compiler refactoring to be
 		// able to build runtime expressions that use different type contexts.
-		if v.metaFilters == nil || !pruneObject(v.zctx, v.metaFilters, o.Metadata()) {
-			return vcache.NewObjectFromCSUP(o).Fetch(v.zctx, v.projection)
+		if v.metaFilters == nil || !pruneObject(v.sctx, v.metaFilters, o) {
+			return vcache.NewObjectFromCSUP(o).Fetch(v.sctx, v.projection)
 		}
 	}
 }
 
-func pruneObject(zctx *super.Context, metaFilters *sync.Pool, m csup.Metadata) bool {
+func pruneObject(sctx *super.Context, metaFilters *sync.Pool, o *csup.Object) bool {
 	mf := metaFilters.Get().(*metafilter)
 	defer metaFilters.Put(mf)
-	vals := csup.ProjectMetadata(zctx, m, mf.projection)
+	vals := o.ProjectMetadata(sctx, mf.projection)
 	for _, val := range vals {
 		if mf.filter.Eval(nil, val).Ptr().AsBool() {
 			return false

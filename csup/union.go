@@ -55,17 +55,17 @@ func (u *UnionEncoder) Encode(group *errgroup.Group) {
 	}
 }
 
-func (u *UnionEncoder) Metadata(off uint64) (uint64, Metadata) {
+func (u *UnionEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
 	off, tags := u.tags.Segment(off)
-	values := make([]Metadata, 0, len(u.values))
+	values := make([]ID, 0, len(u.values))
 	for _, val := range u.values {
-		var meta Metadata
-		off, meta = val.Metadata(off)
-		values = append(values, meta)
+		var id ID
+		off, id = val.Metadata(cctx, off)
+		values = append(values, id)
 	}
-	return off, &Union{
+	return off, cctx.enter(&Union{
 		Tags:   tags,
 		Values: values,
 		Length: u.count,
-	}
+	})
 }

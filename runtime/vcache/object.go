@@ -46,7 +46,7 @@ func NewObject(ctx context.Context, engine storage.Engine, uri *storage.URI) (*O
 func NewObjectFromCSUP(object *csup.Object) *Object {
 	return &Object{
 		object: object,
-		root:   newShadow(object.Metadata(), nil, 0),
+		root:   nil,
 	}
 }
 
@@ -57,8 +57,10 @@ func (o *Object) Close() error {
 // Fetch returns the indicated projection of data in this CSUP object.
 // If any required data is not memory resident, it will be fetched from
 // storage and cached in memory so that subsequent calls run from memory.
-// The vectors returned will have types from the provided zctx.  Multiple
+// The vectors returned will have types from the provided sctx.  Multiple
 // Fetch calls to the same object may run concurrently.
-func (o *Object) Fetch(zctx *super.Context, projection field.Projection) (vector.Any, error) {
-	return (&loader{zctx, o.object.DataReader()}).load(projection, o.root)
+func (o *Object) Fetch(sctx *super.Context, projection field.Projection) (vector.Any, error) {
+	cctx := o.object.Context()
+	o.root = unmarshal(cctx, o.object.Root(), o.root, projection, nil, 0)
+	return (&loader{cctx, sctx, o.object.DataReader()}).load(projection, o.root)
 }

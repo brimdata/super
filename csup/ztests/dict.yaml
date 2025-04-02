@@ -1,6 +1,6 @@
 script: |
   super -f csup -o out.csup -
-  super dev csup out.csup | super -Z -c 'over Fields | yield nameof(Values)' -
+  super dev csup out.csup | super -z -c "nameof(this)=='Dict' | count()" -
   
 
 inputs:
@@ -14,5 +14,4 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      "Dict"
-      "Dict"
+      2(uint64)

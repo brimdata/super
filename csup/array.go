@@ -47,14 +47,14 @@ func (a *ArrayEncoder) Emit(w io.Writer) error {
 	return a.values.Emit(w)
 }
 
-func (a *ArrayEncoder) Metadata(off uint64) (uint64, Metadata) {
+func (a *ArrayEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
 	off, lens := a.lengths.Segment(off)
-	off, vals := a.values.Metadata(off)
-	return off, &Array{
+	off, vals := a.values.Metadata(cctx, off)
+	return off, cctx.enter(&Array{
 		Length:  a.count,
 		Lengths: lens,
 		Values:  vals,
-	}
+	})
 }
 
 type SetEncoder struct {
@@ -70,12 +70,12 @@ func NewSetEncoder(typ *super.TypeSet) *SetEncoder {
 	}
 }
 
-func (s *SetEncoder) Metadata(off uint64) (uint64, Metadata) {
-	off, meta := s.ArrayEncoder.Metadata(off)
-	array := meta.(*Array)
-	return off, &Set{
+func (s *SetEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
+	off, id := s.ArrayEncoder.Metadata(cctx, off)
+	array := cctx.Lookup(id).(*Array) // XXX this leaves a dummy node in the table
+	return off, cctx.enter(&Set{
 		Length:  array.Length,
 		Lengths: array.Lengths,
 		Values:  array.Values,
-	}
+	})
 }

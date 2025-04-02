@@ -8,60 +8,60 @@ import (
 	"github.com/brimdata/super/vector"
 )
 
-func project(zctx *super.Context, projection field.Projection, s shadow) vector.Any {
+func project(sctx *super.Context, projection field.Projection, s shadow) vector.Any {
 	switch s := s.(type) {
 	case *dynamic:
-		return projectDynamic(zctx, projection, s)
+		return projectDynamic(sctx, projection, s)
 	case *record:
-		return projectRecord(zctx, projection, s)
+		return projectRecord(sctx, projection, s)
 	case *array:
-		vals := project(zctx, nil, s.vals)
-		typ := zctx.LookupTypeArray(vals.Type())
+		vals := project(sctx, nil, s.values)
+		typ := sctx.LookupTypeArray(vals.Type())
 		return vector.NewArray(typ, s.offs, vals, s.nulls.flat)
 	case *set:
-		vals := project(zctx, nil, s.vals)
-		typ := zctx.LookupTypeSet(vals.Type())
+		vals := project(sctx, nil, s.values)
+		typ := sctx.LookupTypeSet(vals.Type())
 		return vector.NewSet(typ, s.offs, vals, s.nulls.flat)
 	case *map_:
-		keys := project(zctx, nil, s.keys)
-		vals := project(zctx, nil, s.vals)
-		typ := zctx.LookupTypeMap(keys.Type(), vals.Type())
+		keys := project(sctx, nil, s.keys)
+		vals := project(sctx, nil, s.values)
+		typ := sctx.LookupTypeMap(keys.Type(), vals.Type())
 		return vector.NewMap(typ, s.offs, keys, vals, s.nulls.flat)
 	case *union:
-		return projectUnion(zctx, nil, s)
+		return projectUnion(sctx, nil, s)
 	case *int_:
 		if len(projection) > 0 {
-			return vector.NewMissing(zctx, s.length())
+			return vector.NewMissing(sctx, s.length())
 		}
 		return s.vec
 	case *uint_:
 		if len(projection) > 0 {
-			return vector.NewMissing(zctx, s.length())
+			return vector.NewMissing(sctx, s.length())
 		}
 		return s.vec
 	case *primitive:
 		if len(projection) > 0 {
-			return vector.NewMissing(zctx, s.length())
+			return vector.NewMissing(sctx, s.length())
 		}
 		return s.vec
 	case *const_:
 		if len(projection) > 0 {
-			return vector.NewMissing(zctx, s.length())
+			return vector.NewMissing(sctx, s.length())
 		}
 		return s.vec
 	case *dict:
 		if len(projection) > 0 {
-			return vector.NewMissing(zctx, s.length())
+			return vector.NewMissing(sctx, s.length())
 		}
-		vals := project(zctx, projection, s.vals)
+		vals := project(sctx, projection, s.values)
 		return vector.NewDict(vals, s.index, s.counts, s.nulls.flat)
 	case *error_:
-		v := project(zctx, projection, s.vals)
-		typ := zctx.LookupTypeError(v.Type())
+		v := project(sctx, projection, s.values)
+		typ := sctx.LookupTypeError(v.Type())
 		return vector.NewError(typ, v, s.nulls.flat)
 	case *named:
-		v := project(zctx, projection, s.vals)
-		typ, err := zctx.LookupTypeNamed(s.name, v.Type())
+		v := project(sctx, projection, s.values)
+		typ, err := sctx.LookupTypeNamed(s.meta.Name, v.Type())
 		if err != nil {
 			panic(err)
 		}
@@ -71,39 +71,39 @@ func project(zctx *super.Context, projection field.Projection, s shadow) vector.
 	}
 }
 
-func projectDynamic(zctx *super.Context, projection field.Projection, s *dynamic) vector.Any {
-	vals := make([]vector.Any, 0, len(s.vals))
-	for _, m := range s.vals {
-		vals = append(vals, project(zctx, projection, m))
+func projectDynamic(sctx *super.Context, projection field.Projection, s *dynamic) vector.Any {
+	vals := make([]vector.Any, 0, len(s.values))
+	for _, m := range s.values {
+		vals = append(vals, project(sctx, projection, m))
 	}
 	return vector.NewDynamic(s.tags, vals)
 }
 
-func projectRecord(zctx *super.Context, projection field.Projection, s *record) vector.Any {
+func projectRecord(sctx *super.Context, projection field.Projection, s *record) vector.Any {
 	if len(projection) == 0 {
 		// Build the whole record.  We're either loading all on demand (nil paths)
 		// or loading this record because it's referenced at the end of a projected path.
 		vals := make([]vector.Any, 0, len(s.fields))
 		types := make([]super.Field, 0, len(s.fields))
-		for _, f := range s.fields {
-			val := project(zctx, nil, f.val)
+		for k, f := range s.fields {
+			val := project(sctx, nil, f)
 			vals = append(vals, val)
-			types = append(types, super.Field{Name: f.name, Type: val.Type()})
+			types = append(types, super.Field{Name: s.meta.Fields[k].Name, Type: val.Type()})
 		}
-		return vector.NewRecord(zctx.MustLookupTypeRecord(types), vals, s.length(), s.nulls.flat)
+		return vector.NewRecord(sctx.MustLookupTypeRecord(types), vals, s.length(), s.nulls.flat)
 	}
 	switch elem := projection[0].(type) {
 	case string:
 		// A single path into this vector is projected.
 		var val vector.Any
-		if k := indexOfField(elem, s.fields); k >= 0 {
-			val = project(zctx, projection[1:], s.fields[k].val)
+		if k := indexOfField(elem, s.meta); k >= 0 {
+			val = project(sctx, projection[1:], s.fields[k])
 		} else {
 			// Field not here.
-			val = vector.NewMissing(zctx, s.length())
+			val = vector.NewMissing(sctx, s.length())
 		}
 		fields := []super.Field{{Name: elem}}
-		return newRecord(zctx, s.length(), fields, []vector.Any{val}, s.nulls.flat)
+		return newRecord(sctx, s.length(), fields, []vector.Any{val}, s.nulls.flat)
 	case field.Fork:
 		// Multiple paths into this record is projected.  Try to construct
 		// each one and slice together the children indicated in the projection.
@@ -114,34 +114,34 @@ func projectRecord(zctx *super.Context, projection field.Projection, s *record) 
 			// where a path key is always explicit at the head of a forked path
 			name := path[0].(string) // panic if not a string as first elem of fork
 			fields = append(fields, super.Field{Name: name})
-			if k := indexOfField(name, s.fields); k >= 0 {
-				vals = append(vals, project(zctx, path[1:], s.fields[k].val))
+			if k := indexOfField(name, s.meta); k >= 0 {
+				vals = append(vals, project(sctx, path[1:], s.fields[k]))
 			} else {
-				vals = append(vals, vector.NewMissing(zctx, s.length()))
+				vals = append(vals, vector.NewMissing(sctx, s.length()))
 			}
 		}
-		return newRecord(zctx, s.length(), fields, vals, s.nulls.flat)
+		return newRecord(sctx, s.length(), fields, vals, s.nulls.flat)
 	default:
 		panic(fmt.Sprintf("bad path in vcache createRecord: %T", elem))
 	}
 }
 
-func newRecord(zctx *super.Context, length uint32, fields []super.Field, vals []vector.Any, nulls *vector.Bool) vector.Any {
+func newRecord(sctx *super.Context, length uint32, fields []super.Field, vals []vector.Any, nulls *vector.Bool) vector.Any {
 	for k, val := range vals {
 		fields[k].Type = val.Type()
 	}
-	return vector.NewRecord(zctx.MustLookupTypeRecord(fields), vals, length, nulls)
+	return vector.NewRecord(sctx.MustLookupTypeRecord(fields), vals, length, nulls)
 }
 
-func projectUnion(zctx *super.Context, projection field.Projection, s *union) vector.Any {
-	vals := make([]vector.Any, 0, len(s.vals))
-	types := make([]super.Type, 0, len(s.vals))
-	for _, val := range s.vals {
-		val := project(zctx, projection, val)
+func projectUnion(sctx *super.Context, projection field.Projection, s *union) vector.Any {
+	vals := make([]vector.Any, 0, len(s.values))
+	types := make([]super.Type, 0, len(s.values))
+	for _, val := range s.values {
+		val := project(sctx, projection, val)
 		vals = append(vals, val)
 		types = append(types, val.Type())
 	}
-	utyp := zctx.LookupTypeUnion(types)
+	utyp := sctx.LookupTypeUnion(types)
 	tags := s.tags
 	nulls := s.nulls.flat
 	// If there are nulls add a null vector and rebuild tags.

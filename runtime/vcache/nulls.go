@@ -16,7 +16,11 @@ type nulls struct {
 	flat  *vector.Bool
 }
 
-func (n *nulls) fetch(g *errgroup.Group, reader io.ReaderAt) {
+func (n *nulls) length() uint32 {
+	panic("vcacne.nulls.length shouldn't be called")
+}
+
+func (n *nulls) fetch(g *errgroup.Group, cctx *csup.Context, reader io.ReaderAt) {
 	if n == nil {
 		return
 	}
@@ -32,8 +36,7 @@ func (n *nulls) fetch(g *errgroup.Group, reader io.ReaderAt) {
 		if n.meta == nil {
 			return nil
 		}
-		length := n.meta.Count + n.meta.Values.Len()
-		n.local = vector.NewBoolEmpty(length, nil)
+		n.local = vector.NewBoolEmpty(n.meta.Len(cctx), nil)
 		runlens, err := csup.ReadUint32s(n.meta.Runs, reader)
 		if err != nil {
 			return err
