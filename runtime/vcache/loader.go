@@ -17,6 +17,24 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+//XXX
+// Old model:
+// unmarshal entire csup metadata into vng.MetaData
+// build entire shadow tree from vng.MetaData
+// for any projection, loader loads any missing leaf vectors from shadow
+//   (along with unraveling null vectors into leaves) and returns
+//   a vector.Any while computing any needed shared-context types
+//
+// New model:
+//  csup metadata is read as a single super value
+//  the meta value is parsed on the fly according to the metadata definitions
+//    and only the portions of the type that are needed for any projection
+//    are parsed.  The shadow is updated in place and nulls are left behind for
+//    pieces that are not yet parsed.
+//  when the entire value is needed, the shadow is built in its entirety by the
+//    same code path a bit more efficiently because we're not using reflect and unmarshal
+//XXX
+
 // loader handles loading vector data on demand for only the fields needed
 // as specified in the projection.  Each load is executed with a multiphase
 // process: first, we build a mirror of the CSUP metadata where each node has a
@@ -61,22 +79,26 @@ func (l *loader) load(paths Path, s shadow) (vector.Any, error) {
 
 func (l *loader) loadVector(g *errgroup.Group, paths Path, s shadow) {
 	switch s := s.(type) {
+	case *nulls:
+		l.loadVector(g, paths, s.vals)
 	case *dynamic:
 		//XXX we need an ordered option to load tags only when needed
 		l.loadUint32(g, &s.mu, &s.tags, s.loc)
 		for _, m := range s.vals {
-			l.loadVector(g, paths, m)
+			if m != nil {
+				l.loadVector(g, paths, m)
+			}
 		}
 	case *record:
 		l.loadRecord(g, paths, s)
 	case *array:
-		l.loadOffsets(g, &s.mu, &s.offs, s.loc, s.length(), s.nulls.flat)
+		l.loadOffsets(g, &s.mu, &s.offs, s.loc, s.length(), s.nulls.flattened())
 		l.loadVector(g, paths, s.vals)
 	case *set:
-		l.loadOffsets(g, &s.mu, &s.offs, s.loc, s.length(), s.nulls.flat)
+		l.loadOffsets(g, &s.mu, &s.offs, s.loc, s.length(), s.nulls.flattened())
 		l.loadVector(g, paths, s.vals)
 	case *map_:
-		l.loadOffsets(g, &s.mu, &s.offs, s.loc, s.length(), s.nulls.flat)
+		l.loadOffsets(g, &s.mu, &s.offs, s.loc, s.length(), s.nulls.flattened())
 		l.loadVector(g, paths, s.keys)
 		l.loadVector(g, paths, s.vals)
 	case *union:
@@ -91,7 +113,7 @@ func (l *loader) loadVector(g *errgroup.Group, paths Path, s shadow) {
 		s.mu.Lock()
 		vec := s.vec
 		if vec == nil {
-			vec = vector.NewConst(s.val, s.length(), s.nulls.flat)
+			vec = vector.NewConst(s.val, s.length(), s.nulls.flattened())
 			s.vec = vec
 		}
 		s.mu.Unlock()
@@ -111,7 +133,9 @@ func (l *loader) loadRecord(g *errgroup.Group, paths Path, s *record) {
 		// Load the whole record.  We're either loading all on demand (nil paths)
 		// or loading this record because it's referenced at the end of a projected path.
 		for _, f := range s.fields {
-			l.loadVector(g, nil, f.val)
+			if f.val != nil {
+				l.loadVector(g, nil, f.val)
+			}
 		}
 		return
 	}
@@ -155,13 +179,13 @@ func (l *loader) loadInt(g *errgroup.Group, s *int_) {
 		if s.vec != nil {
 			return nil
 		}
-		bytes := make([]byte, s.csup.Location.MemLength)
-		if err := s.csup.Location.Read(l.r, bytes); err != nil {
+		bytes := make([]byte, s.loc.MemLength)
+		if err := s.loc.Read(l.r, bytes); err != nil {
 			return err
 		}
 		vals := intcomp.UncompressInt64(byteconv.ReinterpretSlice[uint64](bytes), nil)
-		vals = extendForNulls(vals, s.nulls.flat, s.count)
-		s.vec = vector.NewInt(s.csup.Type(l.zctx), vals, s.nulls.flat)
+		vals = extendForNulls(vals, s.nulls.flattened(), s.count)
+		s.vec = vector.NewInt(s.typ, vals, s.nulls.flattened())
 		return nil
 	})
 }
@@ -179,18 +203,18 @@ func (l *loader) loadUint(g *errgroup.Group, s *uint_) {
 		if s.vec != nil {
 			return nil
 		}
-		bytes := make([]byte, s.csup.Location.MemLength)
-		if err := s.csup.Location.Read(l.r, bytes); err != nil {
+		bytes := make([]byte, s.loc.MemLength)
+		if err := s.loc.Read(l.r, bytes); err != nil {
 			return err
 		}
 		vals := intcomp.UncompressUint64(byteconv.ReinterpretSlice[uint64](bytes), nil)
-		vals = extendForNulls(vals, s.nulls.flat, s.count)
-		s.vec = vector.NewUint(s.csup.Type(l.zctx), vals, s.nulls.flat)
+		vals = extendForNulls(vals, s.nulls.flattened(), s.count)
+		s.vec = vector.NewUint(s.typ, vals, s.nulls.flattened())
 		return nil
 	})
 }
 
-func (l *loader) loadPrimitive(g *errgroup.Group, paths Path, s *primitive) {
+func (l *loader) loadPrimitive(g *errgroup.Group, _ Path, s *primitive) {
 	s.mu.Lock()
 	if s.vec != nil {
 		s.mu.Unlock()
@@ -203,8 +227,7 @@ func (l *loader) loadPrimitive(g *errgroup.Group, paths Path, s *primitive) {
 		if s.vec != nil {
 			return nil
 		}
-		typ := s.csup.Type(l.zctx)
-		vec, err := l.loadVals(typ, s, s.nulls.flat)
+		vec, err := l.loadVals(s.typ, s, s.nulls.flattened())
 		if err != nil {
 			return err
 		}
@@ -214,11 +237,12 @@ func (l *loader) loadPrimitive(g *errgroup.Group, paths Path, s *primitive) {
 }
 
 func (l *loader) loadVals(typ super.Type, s *primitive, nulls *vector.Bool) (vector.Any, error) {
-	if s.csup.Count == 0 {
+	if s.count.vals == 0 {
+		// no vals, just nulls
 		return empty(typ, s.length(), nulls), nil
 	}
-	bytes := make([]byte, s.csup.Location.MemLength)
-	if err := s.csup.Location.Read(l.r, bytes); err != nil {
+	bytes := make([]byte, s.loc.MemLength)
+	if err := s.loc.Read(l.r, bytes); err != nil {
 		return nil, err
 	}
 	length := s.length()
@@ -335,20 +359,20 @@ func (l *loader) loadVals(typ super.Type, s *primitive, nulls *vector.Bool) (vec
 }
 
 func (l *loader) loadDict(g *errgroup.Group, paths Path, s *dict) {
-	if s.csup.Length == 0 {
+	if s.count.vals == 0 {
 		panic("empty dict") // empty dictionaries should not happen!
 	}
 	l.loadVector(g, paths, s.vals)
-	l.loadUint32(g, &s.mu, &s.counts, s.csup.Counts)
+	l.loadUint32(g, &s.mu, &s.counts, s.cloc)
 	g.Go(func() error {
 		s.mu.Lock()
 		defer s.mu.Unlock()
-		loc := s.csup.Index
+		loc := s.iloc
 		s.index = make([]byte, loc.MemLength)
 		if err := loc.Read(l.r, s.index); err != nil {
 			return err
 		}
-		s.index = extendForNulls(s.index, s.nulls.flat, s.count)
+		s.index = extendForNulls(s.index, s.nulls.flattened(), s.count)
 		return nil
 	})
 
@@ -453,6 +477,8 @@ func (l *loader) loadOffsets(g *errgroup.Group, mu *sync.Mutex, slice *[]uint32,
 
 func (l *loader) fetchNulls(g *errgroup.Group, paths Path, s shadow) {
 	switch s := s.(type) {
+	case *nulls:
+		l.fetchNulls(g, paths, s.vals)
 	case *dynamic:
 		for _, m := range s.vals {
 			l.fetchNulls(g, paths, m)
@@ -516,6 +542,8 @@ func (l *loader) fetchNulls(g *errgroup.Group, paths Path, s shadow) {
 
 func flattenNulls(paths Path, s shadow, parent *vector.Bool) {
 	switch s := s.(type) {
+	case *nulls:
+		flattenNulls(paths, s.vals, parent)
 	case *dynamic:
 		for _, m := range s.vals {
 			flattenNulls(paths, m, nil)
