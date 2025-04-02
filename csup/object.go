@@ -1,13 +1,13 @@
 // Package csup implements the reading and writing of CSUP serialization objects.
 // The CSUP format is described at https://github.com/brimdata/super/blob/main/docs/formats/csup.md.
 //
-// A CSUP object is created by allocating an Encoder for any top-level Zed type
-// via NewEncoder, which recursively descends into the Zed type, allocating an Encoder
-// for each node in the type tree.  The top-level ZNG body is written via a call
+// A CSUP object is created by allocating an Encoder for any top-level type
+// via NewEncoder, which recursively descends into the type, allocating an Encoder
+// for each node in the type tree.  The top-level BSUP body is written via a call
 // to Write.  Each vector buffers its data in memory until the object is encoded.
 //
-// After all of the Zed data is written, a metadata section is written consisting
-// of a single Zed value describing the layout of all the vector data obtained by
+// After all of the data is written, a metadata section is written consisting
+// of a single super value describing the layout of all the vector data obtained by
 // calling the Metadata method on the Encoder interface.
 //
 // Nulls are encoded by a special Nulls object.  Each type is wrapped by a NullsEncoder,
@@ -15,13 +15,13 @@
 // are encountered, then the Nulls object is omitted from the metadata.
 //
 // Data is read from a CSUP object by reading the metadata and creating vector Builders
-// for each Zed type by calling NewBuilder with the metadata, which recusirvely creates
+// for each type by calling NewBuilder with the metadata, which recusirvely creates
 // Builders.  An io.ReaderAt is passed to NewBuilder so each vector reader can access
 // the underlying storage object and read its vector data effciently in large vector segments.
 //
-// Once the metadata is assembled in memory, the recontructed Zed sequence data can be
+// Once the metadata is assembled in memory, the recontructed sequence data can be
 // read from the vector segments by calling the Build method on the top-level
-// Builder and passing in a zcode.Builder to reconstruct the Zed value.
+// Builder and passing in a zcode.Builder to reconstruct the super value.
 package csup
 
 import (
