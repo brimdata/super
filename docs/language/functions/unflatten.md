@@ -30,7 +30,7 @@ Flatten to unflatten:
 ```mdtest-spq
 # spq
 over flatten(this) => (
-  key[0] != "rm"
+  key[1] != "rm"
   | yield collect(this)
 )
 | yield unflatten(this)

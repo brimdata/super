@@ -476,13 +476,13 @@ func TestArithmetic(t *testing.T) {
 }
 
 func TestArrayIndex(t *testing.T) {
-	const record = `{x:[1,2,3],i:1 (uint16)} (=0)`
+	const record = `{x:[1,2,3],i:2 (uint16)} (=0)`
 
-	testSuccessful(t, "x[0]", record, "1")
-	testSuccessful(t, "x[1]", record, "2")
-	testSuccessful(t, "x[2]", record, "3")
+	testSuccessful(t, "x[1]", record, "1")
+	testSuccessful(t, "x[2]", record, "2")
+	testSuccessful(t, "x[3]", record, "3")
 	testSuccessful(t, "x[i]", record, "2")
-	testSuccessful(t, "i+1", record, "2")
+	testSuccessful(t, "i+1", record, "3")
 	testSuccessful(t, "x[i+1]", record, "3")
 }
 

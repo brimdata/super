@@ -133,7 +133,7 @@ over a with s => (sum(this) | yield {s,sum:this})
 _Traverse a record by flattening it_
 ```mdtest-spq
 # spq
-over flatten(r) with s => (yield {s,key:key[0],value})
+over flatten(r) with s => (yield {s,key:key[1],value})
 # input
 {s:"foo",r:{a:1,b:2}}
 {s:"bar",r:{a:3,b:4}}

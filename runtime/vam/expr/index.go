@@ -56,18 +56,20 @@ func indexArrayOrSet(zctx *super.Context, vec, indexVec vector.Any) vector.Any {
 			idx = index[i]
 		}
 		idxVal, isnull := vector.IntValue(indexVec, uint32(i))
-		if !nulls.Value(idx) && !isnull {
+		if !nulls.Value(idx) && !isnull && idxVal != 0 {
 			start := offsets[idx]
 			len := int64(offsets[idx+1]) - int64(start)
 			if idxVal < 0 {
 				idxVal = len + idxVal
+			} else {
+				idxVal -= 1
 			}
 			if idxVal >= 0 && idxVal < len {
 				viewIndexes = append(viewIndexes, start+uint32(idxVal))
 				continue
 			}
 		}
-		errs = append(errs, uint32(i))
+		errs = append(errs, i)
 	}
 	out := vector.Deunion(vector.NewView(vals, viewIndexes))
 	if len(errs) > 0 {

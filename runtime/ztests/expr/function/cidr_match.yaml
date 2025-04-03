@@ -1,5 +1,5 @@
 zed: |
-  yield cidr_match(this[0], this[1])
+  yield cidr_match(this[1], this[2])
 
 vector: true
 

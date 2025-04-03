@@ -1,5 +1,5 @@
 zed: |
-  by a:=a[0], b:=b.c | sort this
+  by a:=a[1], b:=b.c | sort this
 
 vector: true
 

@@ -5,18 +5,18 @@ vector: true
 input: |
   // array
   {val:[1,2,3,"foo"],idx:-1}
-  {val:[1,2,3,"bar"],idx:1(uint8)}
+  {val:[1,2,3,"bar"],idx:2(uint8)}
   {val:[1,2,3,"foo"],idx:-4}
-  {val:[1,2,3,null],idx:3}
+  {val:[1,2,3,null],idx:4}
   {val:[1,2,3,"foo"],idx:-5}
   {val:null([(int64,string)]),idx:-5}
   {val:[1,2,3,"foo"],idx:null(int64)}
   {val:[1,2,3,"foo"],idx:"hi"}
   // set
   {val:|[1,2,3,"foo"]|,idx:-1}
-  {val:|[1,2,3,"bar"]|,idx:1}
+  {val:|[1,2,3,"bar"]|,idx:2}
   {val:|[1,2,3,"foo"]|,idx:-4}
-  {val:[1,2,3,null],idx:3}
+  {val:[1,2,3,null],idx:4}
   {val:|[1,2,3,"foo"]|,idx:-5}
   {val:|[1,2,3,"foo"]|,idx:"hi"}
   // record

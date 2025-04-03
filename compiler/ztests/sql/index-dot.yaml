@@ -1,6 +1,6 @@
 
 script: |
-  super -z -c "select value val[1].r from demo.json where kind='list'"
+  super -z -c "select value val[2].r from demo.json where kind='list'"
 
 inputs:
   - name: demo.json

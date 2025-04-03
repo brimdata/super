@@ -1,9 +1,9 @@
-zed: yield this[1],this["x"]
+zed: yield this[2],this["x"]
 
 input: |
   [1,2,3](=foo)
   |[4,5,6]|(=bar)
-  |{1:"foo"}|(=baz)
+  |{2:"foo"}|(=baz)
   {"x":123}(=bap)
   
 output: |
@@ -13,5 +13,5 @@ output: |
   error("missing")
   "foo"
   error("missing")
-  error({message:"record index is not a string",on:1})
+  error({message:"record index is not a string",on:2})
   123

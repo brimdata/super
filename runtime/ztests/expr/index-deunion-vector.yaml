@@ -1,4 +1,4 @@
-zed: yield this[0], this[1], this[2]
+zed: yield this[1], this[2], this[3]
 
 vector: true
 

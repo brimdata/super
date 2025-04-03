@@ -410,7 +410,7 @@ don't have to worry about them even when they show up.
 For example, this query is perfectly happy to operate on the union values
 that are implied by a mixed-type array:
 ```mdtest-command
-echo '[1, "foo", 2, "bar"]' | super -z -c 'yield this[2],this[1]' -
+echo '[1, "foo", 2, "bar"]' | super -z -c 'yield this[3],this[2]' -
 ```
 produces
 ```mdtest-output
@@ -763,7 +763,7 @@ super -f table -c '
   | fuse
   | sample
   | over this
-  | {field:key[0],kind:kind(value)}
+  | {field:key[1],kind:kind(value)}
 ' prs.json
 ```
 produces
@@ -937,7 +937,7 @@ We can check the result with our type analysis:
 super -z -c '
   over this
   | kind(value)=="primitive"
-  | fields:=union(key[0]) by type:=typeof(value)
+  | fields:=union(key[1]) by type:=typeof(value)
   | sort type
 ' prs.bsup
 ```

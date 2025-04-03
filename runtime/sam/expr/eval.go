@@ -657,7 +657,7 @@ func (i *Index) Eval(ectx Context, this super.Value) super.Value {
 	index := i.index.Eval(ectx, this)
 	switch typ := super.TypeUnder(container.Type()).(type) {
 	case *super.TypeArray, *super.TypeSet:
-		return indexVector(i.zctx, ectx, super.InnerType(typ), container.Bytes(), index)
+		return indexArrayOrSet(i.zctx, ectx, super.InnerType(typ), container.Bytes(), index)
 	case *super.TypeRecord:
 		return indexRecord(i.zctx, ectx, typ, container.Bytes(), index)
 	case *super.TypeMap:
@@ -667,7 +667,7 @@ func (i *Index) Eval(ectx Context, this super.Value) super.Value {
 	}
 }
 
-func indexVector(zctx *super.Context, ectx Context, inner super.Type, vector zcode.Bytes, index super.Value) super.Value {
+func indexArrayOrSet(zctx *super.Context, ectx Context, inner super.Type, vector zcode.Bytes, index super.Value) super.Value {
 	id := index.Type().ID()
 	if !super.IsInteger(id) {
 		return zctx.WrapError("index is not an integer", index)
@@ -680,6 +680,12 @@ func indexVector(zctx *super.Context, ectx Context, inner super.Type, vector zco
 		idx = int(index.Int())
 	} else {
 		idx = int(index.Uint())
+	}
+	if idx == 0 {
+		return zctx.Missing()
+	}
+	if idx > 0 {
+		idx -= 1
 	}
 	bytes, ok := getNthFromContainer(vector, idx)
 	if !ok {

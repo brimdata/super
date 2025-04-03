@@ -5,7 +5,7 @@ zed: |
     div0:=has(s/0),
     add1:=has(s+1),
     s:=has(s),
-    array:=has(array[0]),
+    array:=has(array[1]),
     arraynot:=has(array[4])
 
 vector: true

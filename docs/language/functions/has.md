@@ -41,7 +41,7 @@ yield {yes:has(foo),no:has(bar)}
 
 ```mdtest-spq
 # spq
-yield {yes: has(foo[0]),no:has(foo[3])}
+yield {yes: has(foo[1]),no:has(foo[4])}
 # input
 {foo:[1,2,3]}
 # expected output
