@@ -512,16 +512,7 @@ func (c *canon) op(p ast.Op) {
 		if p.NullsFirst {
 			c.write(" -nulls first")
 		}
-		for k, s := range p.Args {
-			if k > 0 {
-				c.write(",")
-			}
-			c.space()
-			c.expr(s.Expr, "")
-			if s.Order != nil {
-				c.write(" %s", s.Order.Name)
-			}
-		}
+		c.sortExprs(p.Args)
 	case *ast.Load:
 		c.next()
 		c.write("load %s", sup.QuotedString(p.Pool.Text))
@@ -599,8 +590,18 @@ func (c *canon) op(p ast.Op) {
 		c.close()
 	case *ast.Top:
 		c.next()
-		c.write("top limit=%d flush=%t ", p.Limit, p.Flush)
-		c.exprs(p.Args)
+		c.write("top")
+		if p.NullsFirst {
+			c.write(" -nulls first")
+		}
+		if p.Reverse {
+			c.write(" -r")
+		}
+		if p.Limit != nil {
+			c.write(" ")
+			c.expr(p.Limit, "")
+		}
+		c.sortExprs(p.Exprs)
 	case *ast.Put:
 		c.next()
 		c.write("put ")
@@ -748,6 +749,19 @@ func (c *canon) scope(s *ast.Scope, parens bool) {
 		c.ret()
 		c.flush()
 		c.write(")")
+	}
+}
+
+func (c *canon) sortExprs(sortExprs []ast.SortExpr) {
+	for i, s := range sortExprs {
+		if i > 0 {
+			c.write(",")
+		}
+		c.space()
+		c.expr(s.Expr, "")
+		if s.Order != nil {
+			c.write(" %s", s.Order.Name)
+		}
 	}
 }
 

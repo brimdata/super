@@ -1,0 +1,23 @@
+script: |
+  super compile -C 'top'
+  echo ===
+  super compile -dag -C 'top'
+  echo ===
+  super compile -C 'top -nulls first -r 10 a, b desc, c asc'
+  echo ===
+  super compile -dag -C 'top -nulls first -r 10 a, b desc, c asc'
+
+outputs:
+  - name: stdout
+    data: |
+      top
+      ===
+      null
+      | top 1
+      | output main
+      ===
+      top -nulls first -r 10 a, b desc, c asc
+      ===
+      null
+      | top -nulls first -r 10 a asc, b desc, c asc
+      | output main

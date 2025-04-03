@@ -1,28 +1,31 @@
 ### Operator
 
-&emsp; **top** &mdash; get top N sorted values of input sequence
+&emsp; **top** &mdash; get first N sorted values of input sequence
 
 ### Synopsis
 
 ```
-top <const-expr> <expr> [, <expr> ...]
+top [-nulls first|last] [-r] [<const-expr> [<expr> [asc|desc] [, <expr> [asc|desc] ...]]]
 ```
 ### Description
 
-The `top` operator returns the top N values from a sequence sorted in descending
-order by one or more expressions. N is given by `<const-expr>`, a compile-time
-constant expression that evaluates to a positive integer.
+The `top` operator returns the first N values from a sequence sorted according
+to the provided sort expressions. N is given by `<const-expr>`, a compile-time
+constant expression that evaluates to a positive integer. If `<const-expr>` is
+not provided, N defaults to `1`. Sort expressions and arguments behave as they
+do for [`sort`](sort.md). If no sort expression is provided, a sort key is
+selected using same heuristic as [`sort`](sort.md).
 
 `top` is functionally similar to [`sort`](sort.md) but is less resource
-intensive because only the top N values are stored in memory (i.e., values
-less than the minimum are discarded).
+intensive because only the first N values are stored in memory (i.e., subsequent
+values are discarded).
 
 ### Examples
 
-_Grab the top two values from a sequence of integers_
+_Grab the smallest two values from a sequence of integers_
 ```mdtest-spq
 # spq
-top 2 this
+top 2
 # input
 1
 5
@@ -31,14 +34,14 @@ top 2 this
 23
 7
 # expected output
-23
-9
+1
+3
 ```
 
 _Find the two names most frequently referenced in a sequence of records_
 ```mdtest-spq
 # spq
-count() by name | top 2 count
+count() by name | top -r 2 count
 # input
 {name:"joe", age:22}
 {name:"bob", age:37}

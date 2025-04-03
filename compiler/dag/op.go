@@ -154,10 +154,11 @@ type (
 		Count int    `json:"count"`
 	}
 	Top struct {
-		Kind  string `json:"kind" unpack:""`
-		Limit int    `json:"limit"`
-		Args  []Expr `json:"args"`
-		Flush bool   `json:"flush"`
+		Kind       string     `json:"kind" unpack:""`
+		Limit      int        `json:"limit"`
+		Exprs      []SortExpr `json:"exprs"`
+		NullsFirst bool       `json:"nullsfirst"`
+		Reverse    bool       `json:"reverse"`
 	}
 	Uniq struct {
 		Kind  string `json:"kind" unpack:""`

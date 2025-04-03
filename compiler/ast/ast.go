@@ -492,11 +492,12 @@ type (
 		Loc   `json:"loc"`
 	}
 	Top struct {
-		Kind  string `json:"kind" unpack:""`
-		Limit Expr   `json:"limit"`
-		Args  []Expr `json:"args"`
-		Flush bool   `json:"flush"`
-		Loc   `json:"loc"`
+		Kind       string     `json:"kind" unpack:""`
+		Limit      Expr       `json:"limit"`
+		Exprs      []SortExpr `json:"expr"`
+		NullsFirst bool       `json:"nullsfirst"`
+		Reverse    bool       `json:"reverse"`
+		Loc        `json:"loc"`
 	}
 	Put struct {
 		Kind string      `json:"kind" unpack:""`

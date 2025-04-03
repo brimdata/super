@@ -1,6 +1,7 @@
 package sort
 
 import (
+	"slices"
 	"sync"
 
 	"github.com/brimdata/super"
@@ -120,7 +121,7 @@ func (o *Op) run() {
 		var delta int
 		out, delta = o.append(out, batch)
 		if o.comparator == nil && len(out) > 0 {
-			o.setComparator(out[0])
+			o.comparator = NewComparator(o.rctx.Sctx, o.fieldResolvers, o.nullsFirst, o.reverse, out[0])
 		}
 		nbytes += delta
 		if nbytes < MemMaxBytes {
@@ -196,23 +197,23 @@ func (o *Op) append(out []super.Value, batch zbuf.Batch) ([]super.Value, int) {
 	return out, nbytes
 }
 
-func (o *Op) setComparator(r super.Value) {
-	resolvers := o.fieldResolvers
-	if resolvers == nil {
-		fld := GuessSortKey(r)
-		resolver := expr.NewSortEvaluator(expr.NewDottedExpr(o.rctx.Sctx, fld), order.Asc)
-		resolvers = []expr.SortEvaluator{resolver}
+func NewComparator(sctx *super.Context, exprs []expr.SortEvaluator, nullsFirst, reverse bool, val super.Value) *expr.Comparator {
+	if exprs == nil {
+		fld := GuessSortKey(val)
+		e := expr.NewSortEvaluator(expr.NewDottedExpr(sctx, fld), order.Asc)
+		exprs = []expr.SortEvaluator{e}
 	}
-	nullsMax := !o.nullsFirst
-	if o.reverse {
-		for k := range resolvers {
-			resolvers[k].Order = !resolvers[k].Order
+	nullsMax := !nullsFirst
+	if reverse {
+		exprs = slices.Clone(exprs)
+		for k := range exprs {
+			exprs[k].Order = !exprs[k].Order
 		}
 	}
-	if resolvers[0].Order == order.Desc {
+	if exprs[0].Order == order.Desc {
 		nullsMax = !nullsMax
 	}
-	o.comparator = expr.NewComparator(nullsMax, resolvers...).WithMissingAsNull()
+	return expr.NewComparator(nullsMax, exprs...).WithMissingAsNull()
 }
 
 func GuessSortKey(val super.Value) field.Path {

@@ -727,10 +727,6 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 		e := a.semExpr(o.Expr)
 		return append(seq, dag.NewFilter(e))
 	case *ast.Top:
-		args := a.semExprs(o.Args)
-		if len(args) == 0 {
-			a.error(o, errors.New("no arguments given"))
-		}
 		limit := 1
 		if o.Limit != nil {
 			l := a.semExpr(o.Limit)
@@ -748,11 +744,16 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 				return append(seq, badOp())
 			}
 		}
+		var exprs []dag.SortExpr
+		for _, e := range o.Exprs {
+			exprs = append(exprs, a.semSortExpr(nil, e))
+		}
 		return append(seq, &dag.Top{
-			Kind:  "Top",
-			Args:  args,
-			Flush: o.Flush,
-			Limit: limit,
+			Kind:       "Top",
+			Limit:      limit,
+			Exprs:      exprs,
+			NullsFirst: o.NullsFirst,
+			Reverse:    o.Reverse,
 		})
 	case *ast.Put:
 		assignments := a.semAssignments(o.Args)

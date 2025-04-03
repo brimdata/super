@@ -9,19 +9,14 @@ import (
 	"github.com/brimdata/super/zbuf"
 )
 
-const defaultTopLimit = 100
-
-// Top is similar to op.Sort with a view key differences:
-// - It only sorts in descending order.
-// - It utilizes a MaxHeap, immediately discarding records that are not in
-// the top N of the sort.
-// - It has a hidden option (FlushEvery) to sort and emit on every batch.
+// Top produces the first N values that sort would produce with the same arguments.
 type Op struct {
-	parent     zbuf.Puller
 	sctx       *super.Context
+	parent     zbuf.Puller
 	limit      int
-	fields     []expr.Evaluator
-	flushEvery bool
+	exprs      []expr.SortEvaluator
+	nullsFirst bool
+	reverse    bool
 	resetter   expr.Resetter
 
 	eos     bool
@@ -29,15 +24,15 @@ type Op struct {
 	compare expr.CompareFn
 }
 
-func New(sctx *super.Context, parent zbuf.Puller, limit int, fields []expr.Evaluator, flushEvery bool, resetter expr.Resetter) *Op {
-	if limit == 0 {
-		limit = defaultTopLimit
-	}
+// New returns an operator that produces the first limit
+func New(sctx *super.Context, parent zbuf.Puller, limit int, exprs []expr.SortEvaluator, nullsFirst, reverse bool, resetter expr.Resetter) *Op {
 	return &Op{
+		sctx:       sctx,
 		parent:     parent,
 		limit:      limit,
-		fields:     fields,
-		flushEvery: flushEvery,
+		exprs:      exprs,
+		nullsFirst: nullsFirst,
+		reverse:    reverse,
 		resetter:   resetter,
 	}
 }
@@ -65,20 +60,13 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 			o.consume(vals[i])
 		}
 		batch.Unref()
-		if o.flushEvery {
-			return o.sorted(), nil
-		}
 	}
 }
 
 func (o *Op) consume(rec super.Value) {
-	if o.fields == nil {
-		fld := sort.GuessSortKey(rec)
-		accessor := expr.NewDottedExpr(o.sctx, fld)
-		o.fields = []expr.Evaluator{accessor}
-	}
 	if o.records == nil {
-		o.compare = expr.NewCompareFn(false, o.fields...)
+		// Package heap implements a min-heap.  Invert o.nullsFirst and o.reverse to get a max-heap.
+		o.compare = sort.NewComparator(o.sctx, o.exprs, !o.nullsFirst, !o.reverse, rec).Compare
 		o.records = expr.NewRecordSlice(o.compare)
 		heap.Init(o.records)
 	}

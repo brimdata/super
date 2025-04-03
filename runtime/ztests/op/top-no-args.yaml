@@ -1,4 +1,4 @@
-spq: top 3 foo
+spq: top
 
 vector: true
 
@@ -12,5 +12,3 @@ input: |
 
 output: |
   {foo:1}
-  {foo:2}
-  {foo:3}

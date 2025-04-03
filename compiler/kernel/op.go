@@ -212,11 +212,15 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 		return op.NewApplier(b.rctx, parent, expr.NewFilterApplier(b.sctx(), f), b.resetters), nil
 	case *dag.Top:
 		b.resetResetters()
-		fields, err := b.compileExprs(v.Args)
-		if err != nil {
-			return nil, fmt.Errorf("compiling top: %w", err)
+		var sortExprs []expr.SortEvaluator
+		for _, dagSortExpr := range v.Exprs {
+			e, err := b.compileExpr(dagSortExpr.Key)
+			if err != nil {
+				return nil, err
+			}
+			sortExprs = append(sortExprs, expr.NewSortEvaluator(e, dagSortExpr.Order))
 		}
-		return top.New(b.sctx(), parent, v.Limit, fields, v.Flush, b.resetters), nil
+		return top.New(b.sctx(), parent, v.Limit, sortExprs, v.NullsFirst, v.Reverse, b.resetters), nil
 	case *dag.Put:
 		b.resetResetters()
 		clauses, err := b.compileAssignments(v.Args)

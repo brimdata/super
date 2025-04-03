@@ -427,14 +427,7 @@ func (c *canonDAG) op(p dag.Op) {
 		if p.NullsFirst {
 			c.write(" -nulls first")
 		}
-		for i, s := range p.Args {
-			if i > 0 {
-				c.write(",")
-			}
-			c.space()
-			c.expr(s.Key, "")
-			c.write(" %s", s.Order)
-		}
+		c.sortExprs(p.Args)
 	case *dag.Load:
 		c.next()
 		c.write("load %s", p.Pool)
@@ -473,8 +466,15 @@ func (c *canonDAG) op(p dag.Op) {
 		c.close()
 	case *dag.Top:
 		c.next()
-		c.write("top limit=%d flush=%t ", p.Limit, p.Flush)
-		c.exprs(p.Args)
+		c.write("top")
+		if p.NullsFirst {
+			c.write(" -nulls first")
+		}
+		if p.Reverse {
+			c.write(" -r")
+		}
+		c.write(" %d", p.Limit)
+		c.sortExprs(p.Exprs)
 	case *dag.Put:
 		c.next()
 		c.write("put ")
@@ -693,6 +693,17 @@ func (c *canonDAG) scope(s *dag.Scope) {
 		c.ret()
 		c.flush()
 		c.write(")")
+	}
+}
+
+func (c *canonDAG) sortExprs(sortExprs []dag.SortExpr) {
+	for i, s := range sortExprs {
+		if i > 0 {
+			c.write(",")
+		}
+		c.space()
+		c.expr(s.Key, "")
+		c.write(" %s", s.Order)
 	}
 }
 

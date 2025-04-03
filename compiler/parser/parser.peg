@@ -446,7 +446,7 @@ SortArg
       }
 
 TopOp
-  = TOP &EOKW limit:(_ e:Expr { return e, nil })? flush:(_ "-flush")? fields:(_ f:Lvals { return f, nil })? {
+  = TOP &EOKW args:SortArgs limit:(_ e:Expr { return e, nil })? exprs:(_ e:OrderByList { return e, nil })? {
       op := &ast.Top{
         Kind: "Top",
         Loc: loc(c),
@@ -454,11 +454,15 @@ TopOp
       if limit != nil {
         op.Limit = limit.(ast.Expr)
       }
-      if fields != nil {
-        op.Args = sliceOf[ast.Expr](fields)
+      if exprs != nil {
+        op.Exprs = exprs.([]ast.SortExpr)
       }
-      if flush != nil {
-        op.Flush = true
+      argm := args.(map[string]any)
+      if n, ok := argm["nulls"]; ok && n == "first" {
+        op.NullsFirst = true
+      }
+      if _, ok := argm["r"]; ok {
+        op.Reverse = true
       }
       return op, nil
     }
