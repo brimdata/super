@@ -448,7 +448,7 @@ func (v Value) under() Value {
 	for {
 		typ = TypeUnder(typ)
 		union, ok := typ.(*TypeUnion)
-		if !ok {
+		if !ok || bytes == nil {
 			return NewValue(typ, bytes)
 		}
 		typ, bytes = union.Untag(bytes)
