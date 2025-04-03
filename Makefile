@@ -82,12 +82,10 @@ install:
 installdev:
 	@go install -ldflags='$(LDFLAGS)' ./cmd/...
 
-compiler/parser/parser.go: compiler/parser/Makefile compiler/parser/support.go compiler/parser/parser.peg
-	$(MAKE) -C compiler/parser
+compiler/parser/parser.go: compiler/parser/parser.peg go.mod
+	go tool pigeon -support-left-recursion -o $@ $<
+	go tool goimports -w $@
 
-# This rule is best for edit-compile-debug cycle of peg development.  It should
-# properly trigger rebuilds of peg-generated code, but best to run
-# "make -C compiler/parser" when changing versions of pigeon.
 .PHONY: peg
 peg: compiler/parser/parser.go
 

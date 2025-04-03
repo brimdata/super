@@ -67,6 +67,7 @@ require (
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/minio/asm2plan9s v0.0.0-20200509001527-cdd76441f9d8 // indirect
 	github.com/minio/c2goasm v0.0.0-20190812172519-36a3d3bbc4f3 // indirect
+	github.com/mna/pigeon v1.2.1 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/common v0.37.0 // indirect
@@ -84,4 +85,8 @@ require (
 	google.golang.org/protobuf v1.36.1 // indirect
 )
 
-tool github.com/golang/mock/mockgen
+tool (
+	github.com/golang/mock/mockgen
+	github.com/mna/pigeon
+	golang.org/x/tools/cmd/goimports
+)
