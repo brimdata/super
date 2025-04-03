@@ -685,7 +685,7 @@ func indexArrayOrSet(zctx *super.Context, ectx Context, inner super.Type, vector
 		return zctx.Missing()
 	}
 	if idx > 0 {
-		idx -= 1
+		idx--
 	}
 	bytes, ok := getNthFromContainer(vector, idx)
 	if !ok {

@@ -62,7 +62,7 @@ func indexArrayOrSet(zctx *super.Context, vec, indexVec vector.Any) vector.Any {
 			if idxVal < 0 {
 				idxVal = len + idxVal
 			} else {
-				idxVal -= 1
+				idxVal--
 			}
 			if idxVal >= 0 && idxVal < len {
 				viewIndexes = append(viewIndexes, start+uint32(idxVal))
