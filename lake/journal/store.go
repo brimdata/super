@@ -11,9 +11,9 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/storage"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zio/zngio"
 	"github.com/brimdata/super/zngbytes"
-	"github.com/brimdata/super/zson"
 	"go.uber.org/zap"
 )
 
@@ -92,7 +92,7 @@ func (s *Store) load(ctx context.Context) error {
 	if head == current {
 		return nil
 	}
-	unmarshaler := zson.NewZNGUnmarshaler()
+	unmarshaler := sup.NewZNGUnmarshaler()
 	unmarshaler.Bind(s.keyTypes...)
 	at, table, err := s.getSnapshot(ctx, unmarshaler)
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
@@ -145,7 +145,7 @@ func (s *Store) load(ctx context.Context) error {
 	}
 }
 
-func (s *Store) getSnapshot(ctx context.Context, unmarshaler *zson.UnmarshalZNGContext) (ID, map[string]Entry, error) {
+func (s *Store) getSnapshot(ctx context.Context, unmarshaler *sup.UnmarshalZNGContext) (ID, map[string]Entry, error) {
 	table := make(map[string]Entry)
 	r, err := s.journal.engine.Get(ctx, s.snapshotURI())
 	if err != nil {
@@ -186,8 +186,8 @@ func (s *Store) putSnapshot(ctx context.Context, at ID, table map[string]Entry) 
 	if err := zw.Write(super.NewUint64(uint64(at))); err != nil {
 		return err
 	}
-	marshaler := zson.NewZNGMarshaler()
-	marshaler.Decorate(zson.StylePackage)
+	marshaler := sup.NewZNGMarshaler()
+	marshaler.Decorate(sup.StylePackage)
 	for _, entry := range table {
 		val, err := marshaler.Marshal(entry)
 		if err != nil {
@@ -326,7 +326,7 @@ func (s *Store) commitWithConstraint(ctx context.Context, key string, c Constrai
 
 func (s *Store) commit(ctx context.Context, fn func() error, entries ...Entry) error {
 	serializer := zngbytes.NewSerializer()
-	serializer.Decorate(zson.StylePackage)
+	serializer.Decorate(sup.StylePackage)
 	for _, e := range entries {
 		if err := serializer.Write(e); err != nil {
 			return err

@@ -16,10 +16,10 @@ import (
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/vcache"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio/zngio"
 	"github.com/brimdata/super/zngbytes"
-	"github.com/brimdata/super/zson"
 	arc "github.com/hashicorp/golang-lru/arc/v2"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
@@ -133,7 +133,7 @@ func (r *Root) writeLakeMagic(ctx context.Context) error {
 		Version: Version,
 	}
 	serializer := zngbytes.NewSerializer()
-	serializer.Decorate(zson.StylePackage)
+	serializer.Decorate(sup.StylePackage)
 	if err := serializer.Write(magic); err != nil {
 		return err
 	}
@@ -167,10 +167,10 @@ func (r *Root) readLakeMagic(ctx context.Context) error {
 		return err
 	}
 	if last != nil {
-		return fmt.Errorf("corrupt lake version file: more than one Zed value at %s", zson.String(last))
+		return fmt.Errorf("corrupt lake version file: more than one Zed value at %s", sup.String(last))
 	}
 	var magic LakeMagic
-	if err := zson.UnmarshalZNG(*val, &magic); err != nil {
+	if err := sup.UnmarshalZNG(*val, &magic); err != nil {
 		return fmt.Errorf("corrupt lake version file: %w", err)
 	}
 	if magic.Magic != LakeMagicString {
@@ -183,8 +183,8 @@ func (r *Root) readLakeMagic(ctx context.Context) error {
 }
 
 func (r *Root) BatchifyPools(ctx context.Context, zctx *super.Context, f expr.Evaluator) ([]super.Value, error) {
-	m := zson.NewZNGMarshalerWithContext(zctx)
-	m.Decorate(zson.StylePackage)
+	m := sup.NewZNGMarshalerWithContext(zctx)
+	m.Decorate(sup.StylePackage)
 	pools, err := r.ListPools(ctx)
 	if err != nil {
 		return nil, err
@@ -204,8 +204,8 @@ func (r *Root) BatchifyPools(ctx context.Context, zctx *super.Context, f expr.Ev
 }
 
 func (r *Root) BatchifyBranches(ctx context.Context, zctx *super.Context, f expr.Evaluator) ([]super.Value, error) {
-	m := zson.NewZNGMarshalerWithContext(zctx)
-	m.Decorate(zson.StylePackage)
+	m := sup.NewZNGMarshalerWithContext(zctx)
+	m.Decorate(sup.StylePackage)
 	poolRefs, err := r.ListPools(ctx)
 	if err != nil {
 		return nil, err

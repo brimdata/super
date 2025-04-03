@@ -11,7 +11,7 @@ import (
 	storagemock "github.com/brimdata/super/pkg/storage/mock"
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/anyio"
-	"github.com/brimdata/super/zio/zsonio"
+	"github.com/brimdata/super/zio/supio"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )
@@ -33,7 +33,7 @@ func TestDirS3Source(t *testing.T) {
 	engine.EXPECT().Put(context.Background(), uri.JoinPath("http.sup")).
 		Return(zio.NopCloser(bytes.NewBuffer(nil)), nil)
 
-	r := zsonio.NewReader(super.NewContext(), strings.NewReader(input))
+	r := supio.NewReader(super.NewContext(), strings.NewReader(input))
 	require.NoError(t, err)
 	w, err := NewSplit(context.Background(), engine, uri, "", false, anyio.WriterOpts{Format: "sup"})
 	require.NoError(t, err)

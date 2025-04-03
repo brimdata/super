@@ -1,4 +1,4 @@
-package zson_test
+package sup_test
 
 import (
 	"bytes"
@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/zngio"
-	"github.com/brimdata/super/zson"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -32,26 +32,26 @@ type Animal struct {
 func (a *Animal) Color() string { return a.MyColor }
 
 func TestInterfaceMarshal(t *testing.T) {
-	m := zson.NewMarshaler()
-	m.Decorate(zson.StyleSimple)
+	m := sup.NewMarshaler()
+	m.Decorate(sup.StyleSimple)
 
-	zsonRose, err := m.Marshal(Thing(&Plant{"red"}))
+	supRose, err := m.Marshal(Thing(&Plant{"red"}))
 	require.NoError(t, err)
-	assert.Equal(t, `{MyColor:"red"}(=Plant)`, zsonRose)
+	assert.Equal(t, `{MyColor:"red"}(=Plant)`, supRose)
 
-	zsonFlamingo, err := m.Marshal(Thing(&Animal{"pink"}))
+	supFlamingo, err := m.Marshal(Thing(&Animal{"pink"}))
 	require.NoError(t, err)
-	assert.Equal(t, `{MyColor:"pink"}(=Animal)`, zsonFlamingo)
+	assert.Equal(t, `{MyColor:"pink"}(=Animal)`, supFlamingo)
 
-	u := zson.NewUnmarshaler()
+	u := sup.NewUnmarshaler()
 	u.Bind(Plant{}, Animal{})
 	var thing Thing
 
-	err = u.Unmarshal(zsonRose, &thing)
+	err = u.Unmarshal(supRose, &thing)
 	require.NoError(t, err)
 	assert.Equal(t, "red", thing.Color())
 
-	err = u.Unmarshal(zsonFlamingo, &thing)
+	err = u.Unmarshal(supFlamingo, &thing)
 	require.NoError(t, err)
 	assert.Equal(t, "pink", thing.Color())
 }
@@ -59,24 +59,24 @@ func TestInterfaceMarshal(t *testing.T) {
 type Roll bool
 
 func TestMarshal(t *testing.T) {
-	z, err := zson.Marshal("hello, world")
+	z, err := sup.Marshal("hello, world")
 	require.NoError(t, err)
 	assert.Equal(t, `"hello, world"`, z)
 
 	aIn := []int8{1, 2, 3}
-	z, err = zson.Marshal(aIn)
+	z, err = sup.Marshal(aIn)
 	require.NoError(t, err)
 	assert.Equal(t, `[1(int8),2(int8),3(int8)]`, z)
 
 	var v interface{}
-	err = zson.Unmarshal(z, &v)
+	err = sup.Unmarshal(z, &v)
 	require.NoError(t, err)
 	aOut, ok := v.([]int8)
 	assert.Equal(t, ok, true)
 	assert.Equal(t, aIn, aOut)
 
-	m := zson.NewMarshaler()
-	m.Decorate(zson.StyleSimple)
+	m := sup.NewMarshaler()
+	m.Decorate(sup.StyleSimple)
 	z, err = m.Marshal(Roll(true))
 	require.NoError(t, err)
 	assert.Equal(t, `true(=Roll)`, z)
@@ -104,45 +104,45 @@ type SliceRecord struct {
 }
 
 func TestBytes(t *testing.T) {
-	m := zson.NewZNGMarshaler()
+	m := sup.NewZNGMarshaler()
 	rec, err := m.Marshal(BytesRecord{B: []byte{1, 2, 3}})
 	require.NoError(t, err)
 	require.NotNil(t, rec)
-	assert.Equal(t, "{B:0x010203}", zson.FormatValue(rec))
+	assert.Equal(t, "{B:0x010203}", sup.FormatValue(rec))
 
 	rec, err = m.Marshal(BytesArrayRecord{A: [3]byte{4, 5, 6}})
 	require.NoError(t, err)
 	require.NotNil(t, rec)
-	assert.Equal(t, "{A:0x040506}", zson.FormatValue(rec))
+	assert.Equal(t, "{A:0x040506}", sup.FormatValue(rec))
 
 	id := IDRecord{A: ID{0, 1, 2, 3}, B: ID{4, 5, 6, 7}}
-	m = zson.NewZNGMarshaler()
-	m.Decorate(zson.StyleSimple)
+	m = sup.NewZNGMarshaler()
+	m.Decorate(sup.StyleSimple)
 	rec, err = m.Marshal(id)
 	require.NoError(t, err)
 	require.NotNil(t, rec)
-	assert.Equal(t, "{A:0x00010203(=ID),B:0x04050607(ID)}(=IDRecord)", zson.FormatValue(rec))
+	assert.Equal(t, "{A:0x00010203(=ID),B:0x04050607(ID)}(=IDRecord)", sup.FormatValue(rec))
 
 	var id2 IDRecord
-	u := zson.NewZNGUnmarshaler()
+	u := sup.NewZNGUnmarshaler()
 	u.Bind(IDRecord{}, ID{})
-	err = zson.UnmarshalZNG(rec, &id2)
+	err = sup.UnmarshalZNG(rec, &id2)
 	require.NoError(t, err)
 	assert.Equal(t, id, id2)
 
 	b2 := BytesRecord{B: nil}
-	m = zson.NewZNGMarshaler()
+	m = sup.NewZNGMarshaler()
 	rec, err = m.Marshal(b2)
 	require.NoError(t, err)
 	require.NotNil(t, rec)
-	assert.Equal(t, "{B:null(bytes)}", zson.FormatValue(rec))
+	assert.Equal(t, "{B:null(bytes)}", sup.FormatValue(rec))
 
 	s := SliceRecord{S: nil}
-	m = zson.NewZNGMarshaler()
+	m = sup.NewZNGMarshaler()
 	rec, err = m.Marshal(s)
 	require.NoError(t, err)
 	require.NotNil(t, rec)
-	assert.Equal(t, "{S:null([bytes])}", zson.FormatValue(rec))
+	assert.Equal(t, "{S:null([bytes])}", sup.FormatValue(rec))
 }
 
 type RecordWithInterfaceSlice struct {
@@ -159,8 +159,8 @@ func TestMixedTypeArrayInsideRecord(t *testing.T) {
 			&Animal{"blue"},
 		},
 	}
-	m := zson.NewZNGMarshaler()
-	m.Decorate(zson.StyleSimple)
+	m := sup.NewZNGMarshaler()
+	m.Decorate(sup.StyleSimple)
 
 	zv, err := m.Marshal(x)
 	require.NoError(t, err)
@@ -174,13 +174,13 @@ func TestMixedTypeArrayInsideRecord(t *testing.T) {
 	reader := zngio.NewReader(super.NewContext(), &buffer)
 	defer reader.Close()
 	recActual, err := reader.Read()
-	exp := zson.FormatValue(recExpected)
-	actual := zson.FormatValue(*recActual)
+	exp := sup.FormatValue(recExpected)
+	actual := sup.FormatValue(*recActual)
 	assert.Equal(t, exp, actual)
 	// Double check that all the proper typing made it into the implied union.
 	assert.Equal(t, `{X:"hello",S:[[{MyColor:"red"}(=Plant),{MyColor:"blue"}(=Animal)]]}(=RecordWithInterfaceSlice)`, actual)
 
-	u := zson.NewUnmarshaler()
+	u := sup.NewUnmarshaler()
 	u.Bind(Animal{}, Plant{}, RecordWithInterfaceSlice{})
 	var out RecordWithInterfaceSlice
 	err = u.Unmarshal(actual, &out)
@@ -193,7 +193,7 @@ type ArrayOfThings struct {
 }
 
 func TestMixedTypeUnmarshal(t *testing.T) {
-	u := zson.NewUnmarshaler()
+	u := sup.NewUnmarshaler()
 	u.Bind(Animal{}, Plant{}, ArrayOfThings{})
 	var out ArrayOfThings
 	err := u.Unmarshal(`{S:[{MyColor:"red"}(=Plant),{MyColor:"blue"}(=Animal)]}`, &out)
@@ -218,8 +218,8 @@ func TestMixedTypeArrayOfStructWithInterface(t *testing.T) {
 			Thing:   &Animal{"blue"},
 		},
 	}
-	m := zson.NewZNGMarshaler()
-	m.Decorate(zson.StyleSimple)
+	m := sup.NewZNGMarshaler()
+	m.Decorate(sup.StyleSimple)
 
 	zv, err := m.Marshal(input)
 	require.NoError(t, err)
@@ -234,13 +234,13 @@ func TestMixedTypeArrayOfStructWithInterface(t *testing.T) {
 	defer reader.Close()
 	recActual, err := reader.Read()
 	require.NoError(t, err)
-	exp := zson.FormatValue(recExpected)
-	actual := zson.FormatValue(*recActual)
+	exp := sup.FormatValue(recExpected)
+	actual := sup.FormatValue(*recActual)
 	assert.Equal(t, exp, actual)
 	// Double check that all the proper typing made it into the implied union.
 	assert.Equal(t, `[{Message:"hello",Thing:{MyColor:"red"}(=Plant)}(=MessageThing),{Message:"world",Thing:{MyColor:"blue"}(=Animal)}(=MessageThing)]`, actual)
 
-	u := zson.NewUnmarshaler()
+	u := sup.NewUnmarshaler()
 	u.Bind(Plant{}, Animal{}, MessageThing{})
 	var out RecordWithInterfaceSlice
 	err = u.Unmarshal(actual, &out)
@@ -255,7 +255,7 @@ type Foo struct {
 
 func TestUnexported(t *testing.T) {
 	f := &Foo{1, 2}
-	m := zson.NewZNGMarshaler()
+	m := sup.NewZNGMarshaler()
 	_, err := m.Marshal(f)
 	require.NoError(t, err)
 }
@@ -271,30 +271,30 @@ func TestZNGValueField(t *testing.T) {
 		Name:  "test1",
 		Field: super.NewInt64(123),
 	}
-	m := zson.NewZNGMarshaler()
-	m.Decorate(zson.StyleSimple)
+	m := sup.NewZNGMarshaler()
+	m.Decorate(sup.StyleSimple)
 	zv, err := m.Marshal(zngValueField)
 	require.NoError(t, err)
-	assert.Equal(t, `{Name:"test1",field:123}(=ZNGValueField)`, zson.FormatValue(zv))
-	u := zson.NewZNGUnmarshaler()
+	assert.Equal(t, `{Name:"test1",field:123}(=ZNGValueField)`, sup.FormatValue(zv))
+	u := sup.NewZNGUnmarshaler()
 	var out ZNGValueField
 	err = u.Unmarshal(zv, &out)
 	require.NoError(t, err)
 	assert.Equal(t, zngValueField.Name, out.Name)
 	assert.True(t, zngValueField.Field.Equal(out.Field))
 	// Include a Zed record inside a Go struct in a super.Value field.
-	zv2, err := zson.ParseValue(super.NewContext(), `{s:"foo",a:[1,2,3]}`)
+	zv2, err := sup.ParseValue(super.NewContext(), `{s:"foo",a:[1,2,3]}`)
 	require.NoError(t, err)
 	zngValueField2 := &ZNGValueField{
 		Name:  "test2",
 		Field: zv2,
 	}
-	m2 := zson.NewZNGMarshaler()
-	m2.Decorate(zson.StyleSimple)
+	m2 := sup.NewZNGMarshaler()
+	m2.Decorate(sup.StyleSimple)
 	zv3, err := m2.Marshal(zngValueField2)
 	require.NoError(t, err)
-	assert.Equal(t, `{Name:"test2",field:{s:"foo",a:[1,2,3]}}(=ZNGValueField)`, zson.FormatValue(zv3))
-	u2 := zson.NewZNGUnmarshaler()
+	assert.Equal(t, `{Name:"test2",field:{s:"foo",a:[1,2,3]}}(=ZNGValueField)`, sup.FormatValue(zv3))
+	u2 := sup.NewZNGUnmarshaler()
 	var out2 ZNGValueField
 	err = u2.Unmarshal(zv3, &out2)
 	require.NoError(t, err)
@@ -305,11 +305,11 @@ func TestJSONFieldTag(t *testing.T) {
 	type jsonTag struct {
 		Value string `json:"value"`
 	}
-	s, err := zson.Marshal(jsonTag{Value: "test"})
+	s, err := sup.Marshal(jsonTag{Value: "test"})
 	require.NoError(t, err)
 	assert.Equal(t, `{value:"test"}`, s)
 	var j jsonTag
-	require.NoError(t, zson.Unmarshal(s, &j))
+	require.NoError(t, sup.Unmarshal(s, &j))
 	assert.Equal(t, jsonTag{Value: "test"}, j)
 }
 
@@ -318,41 +318,41 @@ func TestIgnoreField(t *testing.T) {
 		Value  string       `zed:"value"`
 		Ignore func() error `zed:"-"`
 	}
-	b, err := zson.Marshal(s{Value: "test"})
+	b, err := sup.Marshal(s{Value: "test"})
 	require.NoError(t, err)
 	assert.Equal(t, `{value:"test"}`, b)
 	var v s
-	require.NoError(t, zson.Unmarshal(b, &v))
+	require.NoError(t, sup.Unmarshal(b, &v))
 	assert.Equal(t, s{Value: "test"}, v)
 }
 
 func TestMarshalNetIP(t *testing.T) {
 	before := net.ParseIP("10.0.0.1")
-	b, err := zson.Marshal(before)
+	b, err := sup.Marshal(before)
 	require.NoError(t, err)
 	assert.Equal(t, `10.0.0.1`, b)
 	var after net.IP
-	err = zson.Unmarshal(b, &after)
+	err = sup.Unmarshal(b, &after)
 	require.NoError(t, err)
 	assert.Equal(t, before, after)
 }
 
 func TestMarshalNetipAddr(t *testing.T) {
 	before := netip.MustParseAddr("10.0.0.1")
-	b, err := zson.Marshal(before)
+	b, err := sup.Marshal(before)
 	require.NoError(t, err)
 	assert.Equal(t, `10.0.0.1`, b)
 	var after netip.Addr
-	err = zson.Unmarshal(b, &after)
+	err = sup.Unmarshal(b, &after)
 	require.NoError(t, err)
 	assert.Equal(t, before, after)
 }
 
 func TestMarshalDecoratedIPs(t *testing.T) {
-	m := zson.NewMarshaler()
+	m := sup.NewMarshaler()
 	// Make sure IPs don't get decorated with Go type and just
 	// appear as native Zed IPs.
-	m.Decorate(zson.StyleSimple)
+	m.Decorate(sup.StyleSimple)
 	b, err := m.Marshal(net.ParseIP("142.250.72.142"))
 	require.NoError(t, err)
 	assert.Equal(t, `142.250.72.142`, b)
@@ -363,7 +363,7 @@ func TestMarshalDecoratedIPs(t *testing.T) {
 
 func TestMarshalGoTime(t *testing.T) {
 	tm, _ := time.Parse(time.RFC3339, "2006-01-02T15:04:05.123Z")
-	b, err := zson.Marshal(tm)
+	b, err := sup.Marshal(tm)
 	require.NoError(t, err)
 	assert.Equal(t, `2006-01-02T15:04:05.123Z`, b)
 }
@@ -420,11 +420,11 @@ func TestRecordWithMixedTypeNamedArrayElems(t *testing.T) {
 			},
 		},
 	}
-	m := zson.NewZNGMarshaler()
-	m.Decorate(zson.StyleSimple)
+	m := sup.NewZNGMarshaler()
+	m.Decorate(sup.StyleSimple)
 	val, err := m.Marshal(in)
 	require.NoError(t, err)
-	u := zson.NewZNGUnmarshaler()
+	u := sup.NewZNGUnmarshaler()
 	u.Bind(Record{}, Array{}, Primitive{})
 	var out Metadata
 	err = u.Unmarshal(val, &out)
@@ -433,7 +433,7 @@ func TestRecordWithMixedTypeNamedArrayElems(t *testing.T) {
 }
 
 func TestInterfaceWithConcreteEmptyValue(t *testing.T) {
-	u := zson.NewUnmarshaler()
+	u := sup.NewUnmarshaler()
 	// This case doesn't need a binding because we set the
 	// interface value to an empty underlying value.
 	out := Metadata(&Primitive{})
@@ -444,7 +444,7 @@ func TestInterfaceWithConcreteEmptyValue(t *testing.T) {
 
 func TestZedType(t *testing.T) {
 	zctx := super.NewContext()
-	u := zson.NewUnmarshaler()
+	u := sup.NewUnmarshaler()
 	var typ super.Type
 	err := u.Unmarshal(`<string>`, &typ)
 	assert.EqualError(t, err, `cannot unmarshal type value without type context`)
@@ -460,7 +460,7 @@ func TestZedType(t *testing.T) {
 func TestSimpleUnionUnmarshal(t *testing.T) {
 	t.Skip("see issue #4012")
 	var i int64
-	err := zson.Unmarshal(`1((int64,string))`, &i)
+	err := sup.Unmarshal(`1((int64,string))`, &i)
 	require.NoError(t, err)
 	assert.Equal(t, 1, i)
 }
@@ -469,7 +469,7 @@ func TestEmbeddedNilInterface(t *testing.T) {
 	in := &Record{
 		Fields: nil,
 	}
-	val, err := zson.Marshal(in)
+	val, err := sup.Marshal(in)
 	require.NoError(t, err)
 	assert.Equal(t, `{Fields:null([{Name:string,Values:null}])}`, val)
 }

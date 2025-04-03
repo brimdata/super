@@ -5,8 +5,8 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zson"
 )
 
 type consumer interface {
@@ -198,5 +198,5 @@ func (u *reduceUint64) consume(vec vector.Any) {
 func (f *reduceUint64) typ() super.Type { return super.TypeUint64 }
 
 func panicCoercionFail(to, from super.Type) {
-	panic(fmt.Sprintf("internal aggregation error: cannot coerce %s to %s", zson.String(from), zson.String(to)))
+	panic(fmt.Sprintf("internal aggregation error: cannot coerce %s to %s", sup.String(from), sup.String(to)))
 }

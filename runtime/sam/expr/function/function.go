@@ -121,10 +121,10 @@ func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path,
 		argmax = 0
 		argmin = 0
 		f = &Now{}
+	case "parse_sup":
+		f = newParseSUP(zctx)
 	case "parse_uri":
 		f = NewParseURI(zctx)
-	case "parse_zson":
-		f = newParseZSON(zctx)
 	case "pow":
 		argmin = 2
 		argmax = 2

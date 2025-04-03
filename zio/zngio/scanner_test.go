@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zson"
 	"github.com/stretchr/testify/require"
 )
 
@@ -27,7 +27,7 @@ func TestScannerContext(t *testing.T) {
 	for i := 0; i < count; i++ {
 		names = append(names, strconv.Itoa(i))
 		values = append(values, i)
-		rec, err := zson.NewZNGMarshaler().MarshalCustom(names, values)
+		rec, err := sup.NewZNGMarshaler().MarshalCustom(names, values)
 		require.NoError(t, err)
 		var buf bytes.Buffer
 		w := NewWriter(zio.NopCloser(&buf))

@@ -1,4 +1,4 @@
-package zson
+package sup
 
 import (
 	"bytes"
@@ -12,7 +12,7 @@ import (
 	"unicode/utf8"
 )
 
-var ErrBufferOverflow = errors.New("ZSON scanner buffer size exceeded")
+var ErrBufferOverflow = errors.New("SUP scanner buffer size exceeded")
 
 const primitiveRE = `^(true|false|null|NaN|nan|[-+][Ii]nf|[-+0-9Ee./]+|0x[[:xdigit:]]*|([[:xdigit:]]{0,4}(:[[:xdigit:]]{0,4}){2,}(/[0-9]+)?)|([-.0-9]+(ns|us|ms|s|m|h|d|w|y))+|([-.:T\d]+(Z|[-+]\d\d:\d\d)))`
 const indentationRE = `\n\s*`

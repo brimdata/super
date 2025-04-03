@@ -178,7 +178,7 @@ func TestSortExternal(t *testing.T) {
 		opsort.MemMaxBytes = saved
 	}()
 
-	makeZSON := func(ss []string) string {
+	makeSUP := func(ss []string) string {
 		var b strings.Builder
 		for _, s := range ss {
 			b.WriteString(fmt.Sprintf("{s:%q}\n", s))
@@ -194,8 +194,8 @@ func TestSortExternal(t *testing.T) {
 		n += len(s)
 		ss = append(ss, s)
 	}
-	input := makeZSON(ss)
+	input := makeSUP(ss)
 	sort.Strings(ss)
-	output := makeZSON(ss)
+	output := makeSUP(ss)
 	runTest(t, "sort s", input, output)
 }

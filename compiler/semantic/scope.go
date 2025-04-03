@@ -9,7 +9,7 @@ import (
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/compiler/kernel"
 	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/sup"
 )
 
 type Scope struct {
@@ -63,7 +63,7 @@ func (s *Scope) DefineConst(zctx *super.Context, name *ast.ID, def dag.Expr) err
 	}
 	literal := &dag.Literal{
 		Kind:  "Literal",
-		Value: zson.FormatValue(val),
+		Value: sup.FormatValue(val),
 	}
 	return s.DefineAs(name, literal)
 }

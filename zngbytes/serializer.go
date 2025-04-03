@@ -3,20 +3,20 @@ package zngbytes
 import (
 	"bytes"
 
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/zngio"
-	"github.com/brimdata/super/zson"
 )
 
 type Serializer struct {
-	marshaler *zson.MarshalZNGContext
+	marshaler *sup.MarshalZNGContext
 	buffer    bytes.Buffer
 	writer    *zngio.Writer
 }
 
 func NewSerializer() *Serializer {
-	m := zson.NewZNGMarshaler()
-	m.Decorate(zson.StyleSimple)
+	m := sup.NewZNGMarshaler()
+	m.Decorate(sup.StyleSimple)
 	s := &Serializer{
 		marshaler: m,
 	}
@@ -24,7 +24,7 @@ func NewSerializer() *Serializer {
 	return s
 }
 
-func (s *Serializer) Decorate(style zson.TypeStyle) {
+func (s *Serializer) Decorate(style sup.TypeStyle) {
 	s.marshaler.Decorate(style)
 }
 

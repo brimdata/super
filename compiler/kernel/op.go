@@ -41,10 +41,10 @@ import (
 	"github.com/brimdata/super/runtime/sam/op/yield"
 	"github.com/brimdata/super/runtime/vam"
 	vamop "github.com/brimdata/super/runtime/vam/op"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zson"
 	"github.com/segmentio/ksuid"
 )
 
@@ -242,7 +242,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 	case *dag.Merge:
 		return nil, errors.New("merge: multiple upstream paths required")
 	case *dag.Explode:
-		typ, err := zson.ParseType(b.zctx(), v.Type)
+		typ, err := sup.ParseType(b.zctx(), v.Type)
 		if err != nil {
 			return nil, err
 		}

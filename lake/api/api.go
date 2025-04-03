@@ -12,9 +12,9 @@ import (
 	"github.com/brimdata/super/lake"
 	"github.com/brimdata/super/lake/pools"
 	"github.com/brimdata/super/order"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zson"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 )
@@ -173,14 +173,14 @@ func idToHex(id ksuid.KSUID) string {
 }
 
 type buffer struct {
-	unmarshaler *zson.UnmarshalZNGContext
+	unmarshaler *sup.UnmarshalZNGContext
 	results     []interface{}
 }
 
 var _ zio.Writer = (*buffer)(nil)
 
 func newBuffer(types ...interface{}) *buffer {
-	u := zson.NewZNGUnmarshaler()
+	u := sup.NewZNGUnmarshaler()
 	u.Bind(types...)
 	return &buffer{unmarshaler: u}
 }

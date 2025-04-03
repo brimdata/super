@@ -1,4 +1,4 @@
-package zson
+package sup
 
 import (
 	"unicode"
@@ -22,7 +22,7 @@ func idChar(c rune) bool {
 	return unicode.IsLetter(c) || c == '_' || c == '$'
 }
 
-// IsTypeName returns true iff s is a valid, unquoted ZSON type name.
+// IsTypeName returns true iff s is a valid, unquoted SUP type name.
 func IsTypeName(s string) bool {
 	for k, c := range s {
 		if !typeChar(c) {

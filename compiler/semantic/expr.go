@@ -16,7 +16,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/expr/agg"
 	"github.com/brimdata/super/runtime/sam/expr/function"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/sup"
 	"github.com/shellyln/go-sql-like-expr/likeexpr"
 )
 
@@ -39,14 +39,14 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 	case *ast.Grep:
 		return a.semGrep(e)
 	case *ast.Primitive:
-		val, err := zson.ParsePrimitive(e.Type, e.Text)
+		val, err := sup.ParsePrimitive(e.Type, e.Text)
 		if err != nil {
 			a.error(e, err)
 			return badExpr()
 		}
 		return &dag.Literal{
 			Kind:  "Literal",
-			Value: zson.FormatValue(val),
+			Value: sup.FormatValue(val),
 		}
 	case *ast.ID:
 		id := a.semID(e)
@@ -65,12 +65,12 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 		var val string
 		switch t := e.Value.(type) {
 		case *ast.Primitive:
-			v, err := zson.ParsePrimitive(t.Type, t.Text)
+			v, err := sup.ParsePrimitive(t.Type, t.Text)
 			if err != nil {
 				a.error(e, err)
 				return badExpr()
 			}
-			val = zson.FormatValue(v)
+			val = sup.FormatValue(v)
 		case *ast.TypeValue:
 			tv, err := a.semType(t.Value)
 			if err != nil {
@@ -326,7 +326,7 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 		if e.Type == "date" {
 			ts = ts.Trunc(nano.Day)
 		}
-		return &dag.Literal{Kind: "Literal", Value: zson.FormatValue(super.NewTime(ts))}
+		return &dag.Literal{Kind: "Literal", Value: sup.FormatValue(super.NewTime(ts))}
 	case *ast.TupleExpr:
 		elems := make([]dag.RecordElem, 0, len(e.Elems))
 		for colno, elem := range e.Elems {
@@ -393,7 +393,7 @@ func dynamicTypeName(name string) *dag.Call {
 		Kind: "Call",
 		Name: "typename",
 		Args: []dag.Expr{
-			// ZSON string literal of type name
+			// SUP string literal of type name
 			&dag.Literal{
 				Kind:  "Literal",
 				Value: `"` + name + `"`,
@@ -416,7 +416,7 @@ func (a *analyzer) semGrep(grep *ast.Grep) dag.Expr {
 		return &dag.Search{
 			Kind:  "Search",
 			Text:  s,
-			Value: zson.QuotedString(s),
+			Value: sup.QuotedString(s),
 			Expr:  e,
 		}
 	}
@@ -667,7 +667,7 @@ func (a *analyzer) semCallExtract(partExpr, argExpr ast.Expr) dag.Expr {
 		Kind: "Call",
 		Name: "date_part",
 		Args: []dag.Expr{
-			&dag.Literal{Kind: "Literal", Value: zson.QuotedString(strings.ToLower(partstr))},
+			&dag.Literal{Kind: "Literal", Value: sup.QuotedString(strings.ToLower(partstr))},
 			a.semExpr(argExpr),
 		},
 	}
@@ -846,11 +846,11 @@ func pathOf(name string) *dag.This {
 }
 
 func (a *analyzer) semType(typ ast.Type) (string, error) {
-	ztype, err := zson.TranslateType(a.zctx, typ)
+	ztype, err := sup.TranslateType(a.zctx, typ)
 	if err != nil {
 		return "", err
 	}
-	return zson.FormatType(ztype), nil
+	return sup.FormatType(ztype), nil
 }
 
 func (a *analyzer) semVectorElems(elems []ast.VectorElem) []dag.VectorElem {
@@ -884,7 +884,7 @@ func (a *analyzer) semFString(f *ast.FString) dag.Expr {
 				Args: []dag.Expr{e, &dag.Literal{Kind: "Literal", Value: "<string>"}},
 			}
 		case *ast.FStringText:
-			e = &dag.Literal{Kind: "Literal", Value: zson.QuotedString(elem.Text)}
+			e = &dag.Literal{Kind: "Literal", Value: sup.QuotedString(elem.Text)}
 		default:
 			panic(fmt.Errorf("internal error: unsupported f-string elem %T", elem))
 		}

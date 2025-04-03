@@ -16,7 +16,7 @@ const (
 	EOS                 = 0xff
 	ControlFormatZNG    = 0
 	ControlFormatJSON   = 1
-	ControlFormatZSON   = 2
+	ControlFormatSUP    = 2
 	ControlFormatString = 3
 	ControlFormatBinary = 4
 )

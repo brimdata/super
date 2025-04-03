@@ -21,9 +21,9 @@ import (
 	"github.com/brimdata/super/lake/pools"
 	"github.com/brimdata/super/lakeparse"
 	"github.com/brimdata/super/service/srverr"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/anyio"
-	"github.com/brimdata/super/zson"
 	"github.com/gorilla/mux"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
@@ -37,8 +37,8 @@ type Request struct {
 func newRequest(w http.ResponseWriter, r *http.Request, c *Core) (*ResponseWriter, *Request, bool) {
 	req := &Request{Request: r}
 	req.Logger = c.logger.With(zap.String("request_id", req.ID()))
-	m := zson.NewZNGMarshaler()
-	m.Decorate(zson.StylePackage)
+	m := sup.NewZNGMarshaler()
+	m.Decorate(sup.StylePackage)
 	res := &ResponseWriter{
 		ResponseWriter: w,
 		Logger:         req.Logger,
@@ -187,7 +187,7 @@ func (r *Request) Unmarshal(w *ResponseWriter, body interface{}, templates ...in
 	if zv == nil {
 		return true
 	}
-	m := zson.NewZNGUnmarshaler()
+	m := sup.NewZNGUnmarshaler()
 	m.Bind(templates...)
 	if err := m.Unmarshal(*zv, body); err != nil {
 		w.Error(srverr.ErrInvalid(err))
@@ -217,7 +217,7 @@ type ResponseWriter struct {
 	Format    string
 	Logger    *zap.Logger
 	zw        zio.WriteCloser
-	marshaler *zson.MarshalZNGContext
+	marshaler *sup.MarshalZNGContext
 	request   *Request
 	written   int32
 }

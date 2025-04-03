@@ -13,7 +13,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/op/merge"
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/zsonio"
+	"github.com/brimdata/super/zio/supio"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -98,7 +98,7 @@ func TestParallelOrder(t *testing.T) {
 			zctx := super.NewContext()
 			var parents []zbuf.Puller
 			for _, input := range c.inputs {
-				r := zsonio.NewReader(zctx, strings.NewReader(input))
+				r := supio.NewReader(zctx, strings.NewReader(input))
 				parents = append(parents, zbuf.NewPuller(r))
 			}
 			sortKey := order.NewSortKey(c.order, field.Dotted(c.field))
@@ -106,7 +106,7 @@ func TestParallelOrder(t *testing.T) {
 			om := merge.New(context.Background(), parents, cmp, expr.Resetters{})
 
 			var sb strings.Builder
-			err := zbuf.CopyPuller(zsonio.NewWriter(zio.NopCloser(&sb), zsonio.WriterOpts{}), om)
+			err := zbuf.CopyPuller(supio.NewWriter(zio.NopCloser(&sb), supio.WriterOpts{}), om)
 			require.NoError(t, err)
 			assert.Equal(t, c.exp, "\n"+sb.String())
 		})

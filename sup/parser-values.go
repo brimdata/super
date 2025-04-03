@@ -1,4 +1,4 @@
-package zson
+package sup
 
 import (
 	"encoding/hex"
@@ -182,7 +182,7 @@ func (p *Parser) matchPrimitive() (*ast.Primitive, error) {
 		return nil, nil
 	}
 	// Try to parse the string different ways.  This is not intended
-	// to be performant.  ZNG provides performance for the ZSON data model.
+	// to be performant.  ZNG provides performance for the Super data model.
 	var typ string
 	if s == "true" || s == "false" {
 		typ = "bool"

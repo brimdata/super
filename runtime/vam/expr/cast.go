@@ -5,8 +5,8 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr/cast"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zson"
 )
 
 type literalCast struct {
@@ -24,7 +24,7 @@ func NewLiteralCast(zctx *super.Context, expr Evaluator, literal *Literal) (Eval
 			return nil, err
 		}
 		if typ.ID() >= super.IDTypeComplex {
-			return nil, fmt.Errorf("cast: casting to type %s not currently supported in vector runtime", zson.FormatType(typ))
+			return nil, fmt.Errorf("cast: casting to type %s not currently supported in vector runtime", sup.FormatType(typ))
 		}
 		c = &casterPrimitive{zctx, typ}
 	case super.IDString:
@@ -34,7 +34,7 @@ func NewLiteralCast(zctx *super.Context, expr Evaluator, literal *Literal) (Eval
 		}
 		c = &casterNamedType{zctx, name}
 	default:
-		return nil, fmt.Errorf("cast type argument is not a type: %s", zson.FormatValue(typeVal))
+		return nil, fmt.Errorf("cast type argument is not a type: %s", sup.FormatValue(typeVal))
 	}
 	return &literalCast{c, expr}, nil
 }

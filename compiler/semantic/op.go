@@ -20,7 +20,7 @@ import (
 	"github.com/brimdata/super/pkg/reglob"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/expr/function"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/sup"
 	"github.com/segmentio/ksuid"
 )
 
@@ -150,13 +150,13 @@ func (a *analyzer) semFromConstVal(val super.Value, entity *ast.ExprEntity, args
 	}
 	vals, err := val.Elements()
 	if err != nil {
-		a.error(entity.Expr, fmt.Errorf("from expression requires a string but encountered %s", zson.String(val)))
+		a.error(entity.Expr, fmt.Errorf("from expression requires a string but encountered %s", sup.String(val)))
 		return dag.Seq{badOp()}, ""
 	}
 	names := make([]string, 0, len(vals))
 	for _, val := range vals {
 		if super.TypeUnder(val.Type()) != super.TypeString {
-			a.error(entity.Expr, fmt.Errorf("from expression requires a string but encountered %s", zson.String(val)))
+			a.error(entity.Expr, fmt.Errorf("from expression requires a string but encountered %s", sup.String(val)))
 			return dag.Seq{badOp()}, ""
 		}
 		names = append(names, val.AsString())
@@ -679,7 +679,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 				return append(seq, badOp())
 			}
 			if !super.IsInteger(val.Type().ID()) {
-				a.error(o.Count, fmt.Errorf("expression value must be an integer value: %s", zson.FormatValue(val)))
+				a.error(o.Count, fmt.Errorf("expression value must be an integer value: %s", sup.FormatValue(val)))
 				return append(seq, badOp())
 			}
 		}
@@ -700,7 +700,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 				return append(seq, badOp())
 			}
 			if !super.IsInteger(val.Type().ID()) {
-				a.error(o.Count, fmt.Errorf("expression value must be an integer value: %s", zson.FormatValue(val)))
+				a.error(o.Count, fmt.Errorf("expression value must be an integer value: %s", sup.FormatValue(val)))
 				return append(seq, badOp())
 			}
 		}
@@ -937,7 +937,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 								&dag.Field{
 									Kind:  "Field",
 									Name:  "expr",
-									Value: &dag.Literal{Kind: "Literal", Value: zson.QuotedString(o.Text)},
+									Value: &dag.Literal{Kind: "Literal", Value: sup.QuotedString(o.Text)},
 								},
 								&dag.Field{
 									Kind:  "Field",
@@ -1053,7 +1053,7 @@ func (a *analyzer) semTypeDecl(d *ast.TypeDecl) dag.Def {
 	}
 	e := &dag.Literal{
 		Kind:  "Literal",
-		Value: fmt.Sprintf("<%s=%s>", zson.QuotedName(d.Name.Name), typ),
+		Value: fmt.Sprintf("<%s=%s>", sup.QuotedName(d.Name.Name), typ),
 	}
 	if err := a.scope.DefineConst(a.zctx, d.Name, e); err != nil {
 		a.error(d.Name, err)
@@ -1298,7 +1298,7 @@ func (a *analyzer) maybeConvertUserOp(call *ast.Call) dag.Seq {
 			}
 			e = &dag.Literal{
 				Kind:  "Literal",
-				Value: zson.FormatValue(val),
+				Value: sup.FormatValue(val),
 			}
 		}
 		exprs[i] = e

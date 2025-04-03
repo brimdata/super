@@ -1,4 +1,4 @@
-package zsonio_test
+package supio_test
 
 import (
 	"io"
@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zio/zsonio"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/zio/supio"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -24,7 +24,7 @@ func TestReadOneLineNoEOF(t *testing.T) {
 		// The test needs two records because with a single record the parser
 		// will stall waiting to see if the record has a decorator.
 		reader <- []byte(expected + "\n" + expected)
-		r := zsonio.NewReader(super.NewContext(), reader)
+		r := supio.NewReader(super.NewContext(), reader)
 		rec, err := r.Read()
 		done <- result{val: rec, err: err}
 	}()
@@ -35,7 +35,7 @@ func TestReadOneLineNoEOF(t *testing.T) {
 	case res := <-done:
 		require.NoError(t, res.err)
 		rec := res.val
-		assert.Equal(t, expected, zson.String(rec))
+		assert.Equal(t, expected, sup.String(rec))
 	}
 }
 

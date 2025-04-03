@@ -1,4 +1,4 @@
-package zson_test
+package sup_test
 
 import (
 	"encoding/json"
@@ -7,8 +7,8 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/pkg/fs"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zcode"
-	"github.com/brimdata/super/zson"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -18,12 +18,12 @@ func parse(path string) (ast.Value, error) {
 	if err != nil {
 		return nil, err
 	}
-	return zson.NewParser(file).ParseValue()
+	return sup.NewParser(file).ParseValue()
 }
 
 const testFile = "test.sup"
 
-func TestZSONParser(t *testing.T) {
+func TestSUPParser(t *testing.T) {
 	val, err := parse(testFile)
 	require.NoError(t, err)
 	s, err := json.MarshalIndent(val, "", "    ")
@@ -31,36 +31,36 @@ func TestZSONParser(t *testing.T) {
 	assert.NotEqual(t, s, "")
 }
 
-func analyze(zctx *super.Context, path string) (zson.Value, error) {
+func analyze(zctx *super.Context, path string) (sup.Value, error) {
 	val, err := parse(path)
 	if err != nil {
 		return nil, err
 	}
-	analyzer := zson.NewAnalyzer()
+	analyzer := sup.NewAnalyzer()
 	return analyzer.ConvertValue(zctx, val)
 }
 
-func TestZSONAnalyzer(t *testing.T) {
+func TestSUPAnalyzer(t *testing.T) {
 	zctx := super.NewContext()
 	val, err := analyze(zctx, testFile)
 	require.NoError(t, err)
 	assert.NotNil(t, val)
 }
 
-func TestZSONBuilder(t *testing.T) {
+func TestSUPBuilder(t *testing.T) {
 	zctx := super.NewContext()
 	val, err := analyze(zctx, testFile)
 	require.NoError(t, err)
 	b := zcode.NewBuilder()
-	zv, err := zson.Build(b, val)
+	zv, err := sup.Build(b, val)
 	require.NoError(t, err)
 	rec := super.NewValue(zv.Type().(*super.TypeRecord), zv.Bytes())
 	a := rec.Deref("a")
-	assert.Equal(t, `["1","2","3"]`, zson.String(a))
+	assert.Equal(t, `["1","2","3"]`, sup.String(a))
 }
 
 func TestFormatPrimitiveNull(t *testing.T) {
-	assert.Equal(t, "null", zson.FormatPrimitive(super.TypeString, nil))
+	assert.Equal(t, "null", sup.FormatPrimitive(super.TypeString, nil))
 }
 
 func TestParseValueStringEscapeSequences(t *testing.T) {
@@ -72,7 +72,7 @@ func TestParseValueStringEscapeSequences(t *testing.T) {
 		{` "\u0000\u000A\u000b" `, "\u0000\u000A\u000b"},
 	}
 	for _, c := range cases {
-		val, err := zson.ParseValue(super.NewContext(), c.in)
+		val, err := sup.ParseValue(super.NewContext(), c.in)
 		assert.NoError(t, err)
 		assert.Equal(t, super.NewString(c.expected), val, "in %q", c.in)
 	}
@@ -102,7 +102,7 @@ func TestParseValueErrors(t *testing.T) {
 		{` "\v" `, `parse error: string literal: illegal escape (\v)`},
 	}
 	for _, c := range cases {
-		_, err := zson.ParseValue(super.NewContext(), c.in)
+		_, err := sup.ParseValue(super.NewContext(), c.in)
 		assert.EqualError(t, err, c.expectedError, "in: %q", c.in)
 	}
 }

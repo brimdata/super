@@ -1,4 +1,4 @@
-package zson
+package sup
 
 import (
 	"strings"
@@ -21,8 +21,9 @@ func QuotedTypeName(name string) string {
 
 const hexdigits = "0123456789abcdef"
 
-// QuotedString quotes and escapes a ZSON string for serialization in accordance
-// with the ZSON spec.  It was copied and modified [with attribution](https://github.com/brimdata/super/blob/main/acknowledgments.txt)
+// QuotedString quotes and escapes a SUP string for serialization in accordance
+// with the SUP spec.  It was copied and modified
+// [with attribution](https://github.com/brimdata/super/blob/main/acknowledgments.txt)
 // from the encoding/json package in the Go source code.
 func QuotedString(s string) string {
 	var b strings.Builder

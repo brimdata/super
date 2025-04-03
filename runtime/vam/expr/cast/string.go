@@ -6,9 +6,9 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/nano"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/zcode"
-	"github.com/brimdata/super/zson"
 )
 
 func castToString(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
@@ -111,7 +111,7 @@ func castToString(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
 			b.Reset()
 			vec.Serialize(&b, idx)
 			v := super.NewValue(vec.Type(), b.Bytes().Body())
-			bytes = append(bytes, zson.FormatValue(v)...)
+			bytes = append(bytes, sup.FormatValue(v)...)
 			offs = append(offs, uint32(len(bytes)))
 		}
 	}

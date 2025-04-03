@@ -10,8 +10,8 @@ import (
 	"github.com/brimdata/super/compiler/kernel"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zfmt"
-	"github.com/brimdata/super/zson"
 )
 
 // Analyze a SQL select expression which may have arbitrary nested subqueries
@@ -393,7 +393,7 @@ func (a *analyzer) semSQLOp(op ast.Op, seq dag.Seq) (dag.Seq, schema) {
 			return append(seq, badOp()), badSchema()
 		}
 		if !super.IsInteger(val.Type().ID()) {
-			a.error(op.Count, fmt.Errorf("expression value must be an integer value: %s", zson.FormatValue(val)))
+			a.error(op.Count, fmt.Errorf("expression value must be an integer value: %s", sup.FormatValue(val)))
 			return append(seq, badOp()), badSchema()
 		}
 		limit := val.AsInt()

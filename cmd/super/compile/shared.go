@@ -16,10 +16,10 @@ import (
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zfmt"
 	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zson"
 )
 
 type Shared struct {
@@ -105,7 +105,7 @@ func (s *Shared) Run(ctx context.Context, args []string, lakeFlags *lakeflags.Fl
 }
 
 func (s *Shared) writeValue(ctx context.Context, v any) error {
-	val, err := zson.MarshalZNG(v)
+	val, err := sup.MarshalZNG(v)
 	if err != nil {
 		return err
 	}

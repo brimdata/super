@@ -12,9 +12,9 @@ import (
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/expr/extent"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zson"
 	"github.com/segmentio/ksuid"
 )
 
@@ -69,7 +69,7 @@ from %q@%q:objects
 type objectIterator struct {
 	reader      zio.Reader
 	puller      zbuf.Puller
-	unmarshaler *zson.UnmarshalZNGContext
+	unmarshaler *sup.UnmarshalZNGContext
 }
 
 func newObjectIterator(ctx context.Context, lake api.Interface, head *lakeparse.Commitish) (*objectIterator, error) {
@@ -81,7 +81,7 @@ func newObjectIterator(ctx context.Context, lake api.Interface, head *lakeparse.
 	return &objectIterator{
 		reader:      zbuf.PullerReader(q),
 		puller:      q,
-		unmarshaler: zson.NewZNGUnmarshaler(),
+		unmarshaler: sup.NewZNGUnmarshaler(),
 	}, nil
 }
 

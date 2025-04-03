@@ -1,4 +1,4 @@
-package zson
+package sup
 
 import (
 	"errors"
@@ -16,7 +16,7 @@ import (
 	"github.com/x448/float16"
 )
 
-//XXX handle new TypeError => marshal as a ZSON string?
+//XXX handle new TypeError => marshal as a SUP string?
 
 func Marshal(v interface{}) (string, error) {
 	return NewMarshaler().Marshal(v)
@@ -76,12 +76,12 @@ func NewUnmarshaler() *UnmarshalContext {
 	}
 }
 
-func Unmarshal(zson string, v interface{}) error {
-	return NewUnmarshaler().Unmarshal(zson, v)
+func Unmarshal(sup string, v interface{}) error {
+	return NewUnmarshaler().Unmarshal(sup, v)
 }
 
-func (u *UnmarshalContext) Unmarshal(zson string, v interface{}) error {
-	parser := NewParser(strings.NewReader(zson))
+func (u *UnmarshalContext) Unmarshal(sup string, v interface{}) error {
+	parser := NewParser(strings.NewReader(sup))
 	ast, err := parser.ParseValue()
 	if err != nil {
 		return err
@@ -215,7 +215,7 @@ const (
 // the corresponding name would be `Foo` for TypeSimple, `bar.Foo` for TypePackage,
 // and `github.com/acme/bar.Foo`for TypeFull.  This mechanism works in conjunction
 // with Bindings.  Typically you would want just one or the other, but if a binding
-// doesn't exist for a given Go type, then a ZSON type name will be created according
+// doesn't exist for a given Go type, then a SUP type name will be created according
 // to the decorator setting (which may be TypeNone).
 func (m *MarshalZNGContext) Decorate(style TypeStyle) {
 	switch style {
@@ -231,8 +231,8 @@ func (m *MarshalZNGContext) Decorate(style TypeStyle) {
 }
 
 // NamedBindings informs the Marshaler to encode the given types with the
-// corresponding ZSON type names.  For example, to serialize a `bar.Foo`
-// value decoroated with the ZSON type name "SpecialFoo", simply call
+// corresponding SUP type names.  For example, to serialize a `bar.Foo`
+// value decoroated with the SUP type name "SpecialFoo", simply call
 // NamedBindings with the value []Binding{{"SpecialFoo", &bar.Foo{}}.
 // Subsequent calls to NamedBindings
 // add additional such bindings leaving the existing bindings in place.
@@ -662,11 +662,11 @@ func (u *UnmarshalZNGContext) Unmarshal(val super.Value, v interface{}) error {
 	return u.decodeAny(val, reflect.ValueOf(v))
 }
 
-// Bindings informs the unmarshaler that ZSON values with a type name equal
+// Bindings informs the unmarshaler that SUP values with a type name equal
 // to any of the three variations of Go type mame (full path, package.Type,
-// or just Type) may be used to inform the deserialization of a ZSON value
+// or just Type) may be used to inform the deserialization of a SUP value
 // into a Go interface value.  If full path names are not used, it is up to
-// the entitity that marshaled the original ZSON to ensure that no type-name
+// the entitity that marshaled the original SUP to ensure that no type-name
 // conflicts arise, e.g., when using the TypeSimple decorator style, you cannot
 // have a type called bar.Foo and another type baz.Foo as the simple type
 // decorator will be "Foo" in both cases and thus create a name conflict.

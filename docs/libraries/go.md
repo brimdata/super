@@ -20,11 +20,11 @@ other Go projects straight from the GitHub repo.
 
 Some of the key packages are:
 
-* [zed](https://pkg.go.dev/github.com/brimdata/super) - core Zed values and types
-* [zson](https://pkg.go.dev/github.com/brimdata/super/zson) - ZSON support
+* [super](https://pkg.go.dev/github.com/brimdata/super) - core Zed values and types
+* [sup](https://pkg.go.dev/github.com/brimdata/super/sup) - SUP support
 * [zio](https://pkg.go.dev/github.com/brimdata/super/zio) - I/O interfaces for Zed following the Reader/Writer patterns
-* [zio/zsonio](https://pkg.go.dev/github.com/brimdata/super/zio/zsonio) - ZSON reader/writer
 * [zio/zngio](https://pkg.go.dev/github.com/brimdata/super/zio/zngio) - ZNG reader/writer
+* [zio/supio](https://pkg.go.dev/github.com/brimdata/super/zio/supio) - SUP reader/writer
 * [lake/api](https://pkg.go.dev/github.com/brimdata/super/lake/api) - interact with a Zed lake
 
 To install in your local Go project, simply run:
@@ -34,9 +34,9 @@ go get github.com/brimdata/super
 
 ## Examples
 
-### ZSON Reader
+### SUP Reader
 
-Read ZSON from stdin, dereference field `s`, and print results:
+Read SUP from stdin, dereference field `s`, and print results:
 ```mdtest-go-example
 package main
 
@@ -46,13 +46,13 @@ import (
 	"os"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zio/zsonio"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/zio/supio"
+	"github.com/brimdata/super/sup"
 )
 
 func main() {
 	zctx := super.NewContext()
-	reader := zsonio.NewReader(zctx, os.Stdin)
+	reader := supio.NewReader(zctx, os.Stdin)
 	for {
 		val, err := reader.Read()
 		if err != nil {
@@ -65,7 +65,7 @@ func main() {
 		if s == nil {
 			s = zctx.Missing().Ptr()
 		}
-		fmt.Println(zson.String(s))
+		fmt.Println(sup.String(s))
 	}
 }
 ```
@@ -115,8 +115,8 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/lake/api"
 	"github.com/brimdata/super/pkg/storage"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zson"
 )
 
 func main() {
@@ -151,7 +151,7 @@ func main() {
 		if s == nil {
 			s = zctx.Missing().Ptr()
 		}
-		fmt.Println(zson.String(s))
+		fmt.Println(sup.String(s))
 	}
 }
 ```

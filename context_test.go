@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/sup"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -44,11 +44,11 @@ func TestContextTranslateTypeNameConflictUnion(t *testing.T) {
 	// top level typedef in TranslateType so foo in the value below had
 	// two of the same union type instead of the two it should have had.
 	zctx := super.NewContext()
-	val := zson.MustParseValue(zctx, `[{x:{y:63}}(=foo),{x:{abcdef:{x:{y:127}}(foo)}}(=foo)]`)
+	val := sup.MustParseValue(zctx, `[{x:{y:63}}(=foo),{x:{abcdef:{x:{y:127}}(foo)}}(=foo)]`)
 	foreign := super.NewContext()
 	twin, err := foreign.TranslateType(val.Type())
 	require.NoError(t, err)
 	union := twin.(*super.TypeArray).Type.(*super.TypeUnion)
-	assert.Equal(t, `foo={x:{abcdef:foo={x:{y:int64}}}}`, zson.String(union.Types[0]))
-	assert.Equal(t, `foo={x:{y:int64}}`, zson.String(union.Types[1]))
+	assert.Equal(t, `foo={x:{abcdef:foo={x:{y:int64}}}}`, sup.String(union.Types[0]))
+	assert.Equal(t, `foo={x:{y:int64}}`, sup.String(union.Types[1]))
 }

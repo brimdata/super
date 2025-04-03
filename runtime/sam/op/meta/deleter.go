@@ -8,8 +8,8 @@ import (
 	"github.com/brimdata/super/lake"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/expr"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zson"
 	"github.com/segmentio/ksuid"
 )
 
@@ -21,7 +21,7 @@ type Deleter struct {
 	rctx        *runtime.Context
 	pool        *lake.Pool
 	progress    *zbuf.Progress
-	unmarshaler *zson.UnmarshalZNGContext
+	unmarshaler *sup.UnmarshalZNGContext
 	done        bool
 	err         error
 	deletes     *sync.Map
@@ -35,7 +35,7 @@ func NewDeleter(rctx *runtime.Context, parent zbuf.Puller, pool *lake.Pool, filt
 		rctx:        rctx,
 		pool:        pool,
 		progress:    progress,
-		unmarshaler: zson.NewZNGUnmarshaler(),
+		unmarshaler: sup.NewZNGUnmarshaler(),
 		deletes:     deletes,
 	}
 }

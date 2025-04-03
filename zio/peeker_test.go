@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zio/zsonio"
+	"github.com/brimdata/super/zio/supio"
 )
 
 func TestPeeker(t *testing.T) {
@@ -18,7 +18,7 @@ func TestPeeker(t *testing.T) {
 {key:"key5",value:"value5"}
 {key:"key6",value:"value6"}
 `
-	stream := zsonio.NewReader(super.NewContext(), strings.NewReader(input))
+	stream := supio.NewReader(super.NewContext(), strings.NewReader(input))
 	peeker := NewPeeker(stream)
 	rec1, err := peeker.Peek()
 	if err != nil {

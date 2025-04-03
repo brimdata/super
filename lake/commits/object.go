@@ -8,8 +8,8 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/lake/data"
 	"github.com/brimdata/super/pkg/nano"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zngbytes"
-	"github.com/brimdata/super/zson"
 	"github.com/segmentio/ksuid"
 )
 
@@ -93,7 +93,7 @@ func (o *Object) appendDeleteVector(id ksuid.KSUID) {
 
 func (o Object) Serialize() ([]byte, error) {
 	writer := zngbytes.NewSerializer()
-	writer.Decorate(zson.StylePackage)
+	writer.Decorate(sup.StylePackage)
 	for _, action := range o.Actions {
 		if err := writer.Write(action); err != nil {
 			writer.Close()

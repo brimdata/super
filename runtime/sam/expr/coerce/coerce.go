@@ -4,7 +4,7 @@ import (
 	"bytes"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/sup"
 	"golang.org/x/exp/constraints"
 )
 
@@ -52,5 +52,5 @@ func ToNumeric[T constraints.Integer | constraints.Float](val super.Value) T {
 	case super.IsFloat(id):
 		return T(val.Float())
 	}
-	panic(zson.FormatValue(val))
+	panic(sup.FormatValue(val))
 }

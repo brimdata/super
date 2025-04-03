@@ -5,16 +5,16 @@ import (
 	"io"
 
 	"github.com/brimdata/super/api"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/sup"
 )
 
 type EventsClient struct {
 	rc          io.ReadCloser
-	unmarshaler *zson.UnmarshalContext
+	unmarshaler *sup.UnmarshalContext
 }
 
 func newEventsClient(resp *Response) *EventsClient {
-	unmarshaler := zson.NewUnmarshaler()
+	unmarshaler := sup.NewUnmarshaler()
 	unmarshaler.Bind(
 		api.EventPool{},
 		api.EventBranch{},

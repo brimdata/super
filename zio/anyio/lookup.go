@@ -12,10 +12,10 @@ import (
 	"github.com/brimdata/super/zio/jsonio"
 	"github.com/brimdata/super/zio/lineio"
 	"github.com/brimdata/super/zio/parquetio"
+	"github.com/brimdata/super/zio/supio"
 	"github.com/brimdata/super/zio/zeekio"
 	"github.com/brimdata/super/zio/zjsonio"
 	"github.com/brimdata/super/zio/zngio"
-	"github.com/brimdata/super/zio/zsonio"
 )
 
 func lookupReader(zctx *super.Context, r io.Reader, opts ReaderOpts) (zio.ReadCloser, error) {
@@ -43,7 +43,7 @@ func lookupReader(zctx *super.Context, r io.Reader, opts ReaderOpts) (zio.ReadCl
 		}
 		return zio.NopReadCloser(zr), nil
 	case "sup":
-		return zio.NopReadCloser(zsonio.NewReader(zctx, r)), nil
+		return zio.NopReadCloser(supio.NewReader(zctx, r)), nil
 	case "tsv":
 		opts.CSV.Delim = '\t'
 		return zio.NopReadCloser(csvio.NewReader(zctx, r, opts.CSV)), nil

@@ -8,9 +8,9 @@ import (
 	"github.com/brimdata/super/lake/seekindex"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime/sam/expr"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/zio/zngio"
-	"github.com/brimdata/super/zson"
 )
 
 func LookupSeekRange(ctx context.Context, engine storage.Engine, path *storage.URI,
@@ -25,7 +25,7 @@ func LookupSeekRange(ctx context.Context, engine storage.Engine, path *storage.U
 	}
 	defer r.Close()
 	var ranges seekindex.Ranges
-	unmarshaler := zson.NewZNGUnmarshaler()
+	unmarshaler := sup.NewZNGUnmarshaler()
 	reader := zngio.NewReader(super.NewContext(), r)
 	defer reader.Close()
 	ectx := expr.NewContext()
@@ -40,7 +40,7 @@ func LookupSeekRange(ctx context.Context, engine storage.Engine, path *storage.U
 		}
 		var entry seekindex.Entry
 		if err := unmarshaler.Unmarshal(*val, &entry); err != nil {
-			return nil, fmt.Errorf("corrupt seek index entry for %q at value: %q (%w)", obj.ID.String(), zson.String(val), err)
+			return nil, fmt.Errorf("corrupt seek index entry for %q at value: %q (%w)", obj.ID.String(), sup.String(val), err)
 		}
 		ranges.Append(entry)
 	}
@@ -62,7 +62,7 @@ func readSeekIndex(ctx context.Context, engine storage.Engine, path *storage.URI
 	}
 	defer r.Close()
 	zr := zngio.NewReader(super.NewContext(), r)
-	u := zson.NewZNGUnmarshaler()
+	u := sup.NewZNGUnmarshaler()
 	var index seekindex.Index
 	for {
 		val, err := zr.Read()

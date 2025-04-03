@@ -8,7 +8,7 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/sup"
 	"github.com/segmentio/ksuid"
 )
 
@@ -68,12 +68,12 @@ type oldSortKey struct {
 	Keys  field.List  `json:"keys" zed:"keys"`
 }
 
-var hackedBindings = []zson.Binding{
+var hackedBindings = []sup.Binding{
 	{Name: "order.SortKey", Template: oldSortKey{}},
 	{Name: "pools.Config", Template: marshalConfig{}},
 }
 
-func (p Config) MarshalZNG(ctx *zson.MarshalZNGContext) (super.Type, error) {
+func (p Config) MarshalZNG(ctx *sup.MarshalZNGContext) (super.Type, error) {
 	ctx.NamedBindings(hackedBindings)
 	m := marshalConfig{
 		Ts:         p.Ts,
@@ -92,7 +92,7 @@ func (p Config) MarshalZNG(ctx *zson.MarshalZNGContext) (super.Type, error) {
 	return typ, err
 }
 
-func (p *Config) UnmarshalZNG(ctx *zson.UnmarshalZNGContext, val super.Value) error {
+func (p *Config) UnmarshalZNG(ctx *sup.UnmarshalZNGContext, val super.Value) error {
 	ctx.NamedBindings(hackedBindings)
 	var m marshalConfig
 	if err := ctx.Unmarshal(val, &m); err != nil {

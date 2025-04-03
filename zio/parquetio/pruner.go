@@ -9,14 +9,14 @@ import (
 	"github.com/apache/arrow-go/v18/parquet/metadata"
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/sup"
 	"github.com/x448/float16"
 )
 
 func buildPrunerValue(zctx *super.Context, rgmd *metadata.RowGroupMetaData, schema *arrow.Schema, colIndexes []int) super.Value {
 	var paths field.List
 	var vals []super.Value
-	m := zson.NewZNGMarshaler()
+	m := sup.NewZNGMarshaler()
 	for _, i := range colIndexes {
 		min, max, path, ok := columnChunkStats(rgmd, i, schema.Field(i).Type)
 		if !ok {

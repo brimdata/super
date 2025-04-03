@@ -2,14 +2,14 @@ package zfmt
 
 import (
 	"github.com/brimdata/super/compiler/ast"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/sup"
 )
 
 type canonZed struct {
 	formatter
 }
 
-// XXX this needs to change when we use the zson values from the ast
+// XXX this needs to change when we use the SUP values from the ast
 func (c *canonZed) literal(e ast.Primitive) {
 	switch e.Type {
 	case "string", "error":
@@ -29,7 +29,7 @@ func (c *canonZed) fieldpath(path []string) {
 		return
 	}
 	for k, s := range path {
-		if zson.IsIdentifier(s) {
+		if sup.IsIdentifier(s) {
 			if k != 0 {
 				c.write(".")
 			}
@@ -65,7 +65,7 @@ func (c *canonZed) typ(t ast.Type) {
 		c.write(")")
 	case *ast.TypeEnum:
 		//XXX need to figure out Zed syntax for enum literal which may
-		// be different than zson, requiring some ast adjustments.
+		// be different than SUP, requiring some ast adjustments.
 		c.write("TBD:ENUM")
 	case *ast.TypeMap:
 		c.write("|{")
@@ -93,7 +93,7 @@ func (c *canonZed) typeFields(fields []ast.TypeField) {
 		if k != 0 {
 			c.write(",")
 		}
-		c.write("%s:", zson.QuotedName(f.Name))
+		c.write("%s:", sup.QuotedName(f.Name))
 		c.typ(f.Type)
 	}
 }

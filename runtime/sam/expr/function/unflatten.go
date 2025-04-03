@@ -5,8 +5,8 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zcode"
-	"github.com/brimdata/super/zson"
 )
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#unflatten
@@ -97,7 +97,7 @@ func (u *Unflatten) parseElem(inner super.Type, vb zcode.Bytes) (field.Path, sup
 	if a, ok := super.TypeUnder(ktyp).(*super.TypeArray); ok && a.Type.ID() == super.IDString {
 		return u.decodeKey(kbytes), vtyp, vbytes, nil
 	}
-	return nil, nil, nil, fmt.Errorf("invalid key type %s: expected either string or [string]", zson.FormatType(ktyp))
+	return nil, nil, nil, fmt.Errorf("invalid key type %s: expected either string or [string]", sup.FormatType(ktyp))
 }
 
 func (u *Unflatten) decodeKey(b zcode.Bytes) field.Path {

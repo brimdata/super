@@ -81,13 +81,13 @@ func (f *Flags) SetFormatFlags(fs *flag.FlagSet) {
 }
 
 func (f *Flags) Init() error {
-	f.JSON.Pretty, f.ZSON.Pretty = f.pretty, f.pretty
+	f.JSON.Pretty, f.SUP.Pretty = f.pretty, f.pretty
 	if f.supPersist != "" {
 		re, err := regexp.Compile(f.supPersist)
 		if err != nil {
 			return err
 		}
-		f.ZSON.Persist = re
+		f.SUP.Persist = re
 	}
 	if f.jsonShortcut || f.jsonPretty {
 		if f.Format != f.DefaultFormat || f.supShortcut || f.supPretty {
@@ -103,7 +103,7 @@ func (f *Flags) Init() error {
 		}
 		f.Format = "sup"
 		if !f.supPretty {
-			f.ZSON.Pretty = 0
+			f.SUP.Pretty = 0
 		}
 	}
 	if f.outputFile == "-" {
@@ -112,7 +112,7 @@ func (f *Flags) Init() error {
 	if f.outputFile == "" && f.split == "" && f.Format == "bsup" && !f.forceBinary &&
 		terminal.IsTerminalFile(os.Stdout) {
 		f.Format = "sup"
-		f.ZSON.Pretty = 0
+		f.SUP.Pretty = 0
 	}
 	if f.unbuffered {
 		zbuf.PullerBatchValues = 1

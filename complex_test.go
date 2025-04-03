@@ -6,16 +6,16 @@ import (
 	"testing"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zcode"
-	"github.com/brimdata/super/zio/zsonio"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/zio/supio"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestRecordAccessNamed(t *testing.T) {
 	const input = `{foo:"hello" (=zfile),bar:true (=zbool)} (=0)`
-	rec := zson.MustParseValue(super.NewContext(), input)
+	rec := sup.MustParseValue(super.NewContext(), input)
 	s := rec.Deref("foo").AsString()
 	assert.Equal(t, s, "hello")
 	b := rec.Deref("bar").AsBool()
@@ -29,7 +29,7 @@ func TestNonRecordDeref(t *testing.T) {
 null
 [1,2,3]
 |[1,2,3]|`
-	reader := zsonio.NewReader(super.NewContext(), strings.NewReader(input))
+	reader := supio.NewReader(super.NewContext(), strings.NewReader(input))
 	for {
 		val, err := reader.Read()
 		if val == nil {
@@ -99,7 +99,7 @@ func TestDuplicates(t *testing.T) {
 		{"b", setType},
 	})
 	require.NoError(t, err)
-	typ2, err := zson.ParseType(ctx, "{a:string,b:|[int32]|}")
+	typ2, err := sup.ParseType(ctx, "{a:string,b:|[int32]|}")
 	require.NoError(t, err)
 	assert.EqualValues(t, typ1.ID(), typ2.ID())
 	assert.EqualValues(t, setType.ID(), typ2.(*super.TypeRecord).Fields[1].Type.ID())
@@ -111,9 +111,9 @@ func TestDuplicates(t *testing.T) {
 func TestTranslateNamed(t *testing.T) {
 	c1 := super.NewContext()
 	c2 := super.NewContext()
-	set1, err := zson.ParseType(c1, "|[int64]|")
+	set1, err := sup.ParseType(c1, "|[int64]|")
 	require.NoError(t, err)
-	set2, err := zson.ParseType(c2, "|[int64]|")
+	set2, err := sup.ParseType(c2, "|[int64]|")
 	require.NoError(t, err)
 	named1, err := c1.LookupTypeNamed("foo", set1)
 	require.NoError(t, err)

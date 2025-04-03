@@ -6,9 +6,9 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/zngio"
-	"github.com/brimdata/super/zson"
 )
 
 var maxObjectSize uint32 = 120_000
@@ -59,8 +59,8 @@ func (w *Writer) finalizeObject() error {
 	var metaBuf bytes.Buffer
 	zw := zngio.NewWriter(zio.NopCloser(&metaBuf))
 	// First, we write the root segmap of the vector of integer type IDs.
-	m := zson.NewZNGMarshalerWithContext(w.zctx)
-	m.Decorate(zson.StyleSimple)
+	m := sup.NewZNGMarshalerWithContext(w.zctx)
+	m.Decorate(sup.StyleSimple)
 	val, err := m.Marshal(meta)
 	if err != nil {
 		return fmt.Errorf("system error: could not marshal CSUP metadata: %w", err)

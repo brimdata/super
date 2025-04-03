@@ -10,7 +10,7 @@ import (
 	"github.com/brimdata/super/pkg/byteconv"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/sup"
 )
 
 func LookupPrimitiveCaster(zctx *super.Context, typ super.Type) Evaluator {
@@ -50,7 +50,7 @@ type casterIntN struct {
 func (c *casterIntN) Eval(ectx Context, val super.Value) super.Value {
 	v, ok := coerce.ToInt(val, c.typ)
 	if !ok {
-		return c.zctx.WrapError("cannot cast to "+zson.FormatType(c.typ), val)
+		return c.zctx.WrapError("cannot cast to "+sup.FormatType(c.typ), val)
 	}
 	return super.NewInt(c.typ, v)
 }
@@ -63,7 +63,7 @@ type casterUintN struct {
 func (c *casterUintN) Eval(ectx Context, val super.Value) super.Value {
 	v, ok := coerce.ToUint(val, c.typ)
 	if !ok {
-		return c.zctx.WrapError("cannot cast to "+zson.FormatType(c.typ), val)
+		return c.zctx.WrapError("cannot cast to "+sup.FormatType(c.typ), val)
 	}
 	return super.NewUint(c.typ, v)
 }
@@ -88,7 +88,7 @@ type casterFloat struct {
 func (c *casterFloat) Eval(ectx Context, val super.Value) super.Value {
 	f, ok := coerce.ToFloat(val, c.typ)
 	if !ok {
-		return c.zctx.WrapError("cannot cast to "+zson.FormatType(c.typ), val)
+		return c.zctx.WrapError("cannot cast to "+sup.FormatType(c.typ), val)
 	}
 	return super.NewFloat(c.typ, f)
 }
@@ -222,9 +222,9 @@ func (c *casterString) Eval(ectx Context, val super.Value) super.Value {
 		}
 		return super.NewString(symbol)
 	}
-	// Otherwise, we'll use a canonical ZSON value for the string rep
+	// Otherwise, we'll use a canonical SUP value for the string rep
 	// of an arbitrary value cast to a string.
-	return super.NewString(zson.FormatValue(val))
+	return super.NewString(sup.FormatValue(val))
 }
 
 type casterBytes struct{}
@@ -263,7 +263,7 @@ func (c *casterType) Eval(ectx Context, val super.Value) super.Value {
 	if id != super.IDString {
 		return c.zctx.WrapError("cannot cast to type", val)
 	}
-	typval, err := zson.ParseValue(c.zctx, val.AsString())
+	typval, err := sup.ParseValue(c.zctx, val.AsString())
 	if err != nil || typval.Type().ID() != super.IDType {
 		return c.zctx.WrapError("cannot cast to type", val)
 	}

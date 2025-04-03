@@ -14,10 +14,10 @@ import (
 	"github.com/brimdata/super/lake/branches"
 	"github.com/brimdata/super/lake/pools"
 	"github.com/brimdata/super/runtime/exec"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/zio/supio"
 	"github.com/brimdata/super/zio/zngio"
-	"github.com/brimdata/super/zio/zsonio"
-	"github.com/brimdata/super/zson"
 	"github.com/segmentio/ksuid"
 	"github.com/stretchr/testify/require"
 )
@@ -61,7 +61,7 @@ func (c *testClient) TestPoolList() []pools.Config {
 			return confs
 		}
 		var pool pools.Config
-		err = zson.UnmarshalZNG(*rec, &pool)
+		err = sup.UnmarshalZNG(*rec, &pool)
 		require.NoError(c, err)
 		confs = append(confs, pool)
 	}
@@ -86,7 +86,7 @@ func (c *testClient) TestQuery(query string) string {
 	zr := zngio.NewReader(super.NewContext(), r.Body)
 	defer zr.Close()
 	var buf bytes.Buffer
-	zw := zsonio.NewWriter(zio.NopCloser(&buf), zsonio.WriterOpts{})
+	zw := supio.NewWriter(zio.NopCloser(&buf), supio.WriterOpts{})
 	require.NoError(c, zio.Copy(zw, zr))
 	return buf.String()
 }

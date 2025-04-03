@@ -2,8 +2,8 @@ package cast
 
 import (
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zson"
 )
 
 func castToType(zctx *super.Context, vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
@@ -28,7 +28,7 @@ func castToType(zctx *super.Context, vec vector.Any, index []uint32) (vector.Any
 				continue
 			}
 			s := vec.Value(idx)
-			val, err := zson.ParseValue(zctx, s)
+			val, err := sup.ParseValue(zctx, s)
 			if err != nil || val.Type().ID() != super.IDType {
 				errs = append(errs, i)
 				continue

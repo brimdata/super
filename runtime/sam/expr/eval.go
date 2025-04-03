@@ -10,8 +10,8 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zcode"
-	"github.com/brimdata/super/zson"
 )
 
 type Evaluator interface {
@@ -448,7 +448,7 @@ func (a *Add) Eval(ectx Context, this super.Value) super.Value {
 		v1, v2 := super.DecodeString(lhsVal.Bytes()), super.DecodeString(rhsVal.Bytes())
 		return super.NewValue(typ, super.EncodeString(v1+v2))
 	}
-	return a.zctx.NewErrorf("type %s incompatible with '+' operator", zson.FormatType(typ))
+	return a.zctx.NewErrorf("type %s incompatible with '+' operator", sup.FormatType(typ))
 }
 
 func (s *Subtract) Eval(ectx Context, this super.Value) super.Value {
@@ -471,7 +471,7 @@ func (s *Subtract) Eval(ectx Context, this super.Value) super.Value {
 	case super.IsFloat(id):
 		return super.NewFloat(typ, toFloat(lhsVal)-toFloat(rhsVal))
 	}
-	return s.zctx.NewErrorf("type %s incompatible with '-' operator", zson.FormatType(typ))
+	return s.zctx.NewErrorf("type %s incompatible with '-' operator", sup.FormatType(typ))
 }
 
 func (m *Multiply) Eval(ectx Context, this super.Value) super.Value {
@@ -487,7 +487,7 @@ func (m *Multiply) Eval(ectx Context, this super.Value) super.Value {
 	case super.IsFloat(id):
 		return super.NewFloat(typ, toFloat(lhsVal)*toFloat(rhsVal))
 	}
-	return m.zctx.NewErrorf("type %s incompatible with '*' operator", zson.FormatType(typ))
+	return m.zctx.NewErrorf("type %s incompatible with '*' operator", sup.FormatType(typ))
 }
 
 func (d *Divide) Eval(ectx Context, this super.Value) super.Value {
@@ -515,7 +515,7 @@ func (d *Divide) Eval(ectx Context, this super.Value) super.Value {
 		}
 		return super.NewFloat(typ, toFloat(lhsVal)/v)
 	}
-	return d.zctx.NewErrorf("type %s incompatible with '/' operator", zson.FormatType(typ))
+	return d.zctx.NewErrorf("type %s incompatible with '/' operator", sup.FormatType(typ))
 }
 
 func (m *Modulo) Eval(ectx Context, this super.Value) super.Value {
@@ -537,7 +537,7 @@ func (m *Modulo) Eval(ectx Context, this super.Value) super.Value {
 		}
 		return super.NewInt(typ, toInt(lhsVal)%v)
 	}
-	return m.zctx.NewErrorf("type %s incompatible with '%%' operator", zson.FormatType(typ))
+	return m.zctx.NewErrorf("type %s incompatible with '%%' operator", sup.FormatType(typ))
 }
 
 type UnaryMinus struct {
@@ -568,7 +568,7 @@ func (u *UnaryMinus) Eval(ectx Context, this super.Value) super.Value {
 		}
 		v, ok := coerce.ToInt(val, typ)
 		if !ok {
-			return u.zctx.WrapError("cannot cast to "+zson.FormatType(typ), val)
+			return u.zctx.WrapError("cannot cast to "+sup.FormatType(typ), val)
 		}
 		if val.IsNull() {
 			return super.NewValue(typ, nil)

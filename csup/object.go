@@ -29,8 +29,8 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zio/zngio"
-	"github.com/brimdata/super/zson"
 )
 
 type Object struct {
@@ -82,7 +82,7 @@ func readMetadata(r io.Reader) (Metadata, error) {
 	if err != nil {
 		return nil, err
 	}
-	u := zson.NewZNGUnmarshaler()
+	u := sup.NewZNGUnmarshaler()
 	u.SetContext(zctx)
 	u.Bind(Template...)
 	var meta Metadata

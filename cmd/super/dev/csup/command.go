@@ -14,9 +14,9 @@ import (
 	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/zngio"
-	"github.com/brimdata/super/zson"
 )
 
 var spec = &charm.Spec{
@@ -78,7 +78,7 @@ type reader struct {
 	zctx      *super.Context
 	reader    *bufio.Reader
 	meta      *zngio.Reader
-	marshaler *zson.MarshalZNGContext
+	marshaler *sup.MarshalZNGContext
 	dataSize  int
 }
 
@@ -89,7 +89,7 @@ func newReader(r io.Reader) *reader {
 	return &reader{
 		zctx:      zctx,
 		reader:    bufio.NewReader(r),
-		marshaler: zson.NewZNGMarshalerWithContext(zctx),
+		marshaler: sup.NewZNGMarshalerWithContext(zctx),
 	}
 }
 

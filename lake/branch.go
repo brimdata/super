@@ -16,9 +16,9 @@ import (
 	"github.com/brimdata/super/pkg/plural"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zson"
 	"github.com/segmentio/ksuid"
 )
 
@@ -29,7 +29,7 @@ const (
 
 var (
 	ErrCommitFailed      = fmt.Errorf("exceeded max update attempts (%d) to branch tip: commit failed", maxCommitRetries)
-	ErrInvalidCommitMeta = errors.New("cannot parse ZSON string")
+	ErrInvalidCommitMeta = errors.New("cannot parse SUP string")
 )
 
 type Branch struct {
@@ -98,7 +98,7 @@ func loadMeta(zctx *super.Context, meta string) (super.Value, error) {
 	if meta == "" {
 		return super.Null, nil
 	}
-	val, err := zson.ParseValue(super.NewContext(), meta)
+	val, err := sup.ParseValue(super.NewContext(), meta)
 	if err != nil {
 		return zctx.Missing(), fmt.Errorf("%w %q: %s", ErrInvalidCommitMeta, meta, err)
 	}

@@ -17,7 +17,7 @@ import (
 	"github.com/brimdata/super/lake"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/sup"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
@@ -220,8 +220,8 @@ func (c *Core) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Core) publishEvent(w *ResponseWriter, name string, data interface{}) {
-	marshaler := zson.NewZNGMarshaler()
-	marshaler.Decorate(zson.StyleSimple)
+	marshaler := sup.NewZNGMarshaler()
+	marshaler.Decorate(sup.StyleSimple)
 	zv, err := marshaler.Marshal(data)
 	if err != nil {
 		w.Logger.Error("Error marshaling published event", zap.Error(err))

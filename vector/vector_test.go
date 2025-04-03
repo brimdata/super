@@ -26,7 +26,7 @@ func FuzzQuery(f *testing.F) {
 		// Debug
 		//for i := range values {
 		//    t.Logf("value: in[%v].Bytes()=%v", i, values[i].Bytes())
-		//    t.Logf("value: in[%v]=%v", i, zson.String(&values[i]))
+		//    t.Logf("value: in[%v]=%v", i, sup.String(&values[i]))
 		//}
 
 		var zngBuf bytes.Buffer

@@ -12,8 +12,8 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/runtime/sam/expr"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zcode"
-	"github.com/brimdata/super/zson"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -48,7 +48,7 @@ func runCasesHelper(t *testing.T, record string, cases []testcase, expectBufferF
 	t.Helper()
 
 	zctx := super.NewContext()
-	rec, err := zson.ParseValue(zctx, record)
+	rec, err := sup.ParseValue(zctx, record)
 	require.NoError(t, err, "record: %q", record)
 
 	for _, c := range cases {
@@ -71,7 +71,7 @@ func runCasesHelper(t *testing.T, record string, cases []testcase, expectBufferF
 			assert.NoError(t, err, "filter: %q", c.filter)
 			if f != nil {
 				assert.Equal(t, c.expected, filter(expr.NewContext(), rec, f),
-					"filter: %q\nrecord: %s", c.filter, zson.FormatValue(rec))
+					"filter: %q\nrecord: %s", c.filter, sup.FormatValue(rec))
 			}
 			bf, err := filterMaker.AsBufferFilter()
 			assert.NoError(t, err, "filter: %q", c.filter)
@@ -83,7 +83,7 @@ func runCasesHelper(t *testing.T, record string, cases []testcase, expectBufferF
 				buf := binary.AppendUvarint(nil, uint64(rec.Type().ID()))
 				buf = zcode.Append(buf, rec.Bytes())
 				assert.Equal(t, expected, bf.Eval(zctx, buf),
-					"filter: %q\nvalues:%s\nbuffer:\n%s", c.filter, zson.FormatValue(rec), hex.Dump(buf))
+					"filter: %q\nvalues:%s\nbuffer:\n%s", c.filter, sup.FormatValue(rec), hex.Dump(buf))
 			}
 		})
 	}

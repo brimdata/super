@@ -2,12 +2,12 @@ package seekindex
 
 import (
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zson"
 )
 
 type Writer struct {
-	marshal *zson.MarshalZNGContext
+	marshal *sup.MarshalZNGContext
 	writer  zio.WriteCloser
 	offset  uint64
 	valoff  uint64
@@ -15,7 +15,7 @@ type Writer struct {
 
 func NewWriter(w zio.WriteCloser) *Writer {
 	return &Writer{
-		marshal: zson.NewZNGMarshaler(),
+		marshal: sup.NewZNGMarshaler(),
 		writer:  w,
 	}
 }

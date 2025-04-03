@@ -8,7 +8,7 @@ import (
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/sup"
 )
 
 func maybeNewRangePruner(pred dag.Expr, sortKeys order.SortKeys) dag.Expr {
@@ -163,8 +163,8 @@ func newMetadataPruner(pred dag.Expr) dag.Expr {
 		if prefix == "" || maxPrefix == "" {
 			return nil
 		}
-		min := &dag.Literal{Kind: "Literal", Value: zson.QuotedString(prefix)}
-		max := &dag.Literal{Kind: "Literal", Value: zson.QuotedString(maxPrefix)}
+		min := &dag.Literal{Kind: "Literal", Value: sup.QuotedString(prefix)}
+		max := &dag.Literal{Kind: "Literal", Value: sup.QuotedString(maxPrefix)}
 		return dag.NewBinaryExpr("and",
 			compare("<=", min, &dag.This{Kind: "This", Path: append(slices.Clone(this.Path), "max")}),
 			compare(">", max, &dag.This{Kind: "This", Path: append(slices.Clone(this.Path), "min")}))

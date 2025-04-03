@@ -9,9 +9,9 @@ import (
 	"github.com/brimdata/super/lake/commits"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime/sam/expr"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zson"
 	"github.com/segmentio/ksuid"
 )
 
@@ -40,8 +40,8 @@ func NewPoolMetaScanner(ctx context.Context, zctx *super.Context, r *lake.Root, 
 	var vals []super.Value
 	switch meta {
 	case "branches":
-		m := zson.NewZNGMarshalerWithContext(zctx)
-		m.Decorate(zson.StylePackage)
+		m := sup.NewZNGMarshalerWithContext(zctx)
+		m.Decorate(sup.StylePackage)
 		vals, err = p.BatchifyBranches(ctx, zctx, nil, m, nil)
 		if err != nil {
 			return nil, err
@@ -113,8 +113,8 @@ func NewCommitMetaScanner(ctx context.Context, zctx *super.Context, r *lake.Root
 
 func objectReader(ctx context.Context, zctx *super.Context, snap commits.View, order order.Which) (zio.Reader, error) {
 	objects := snap.Select(nil, order)
-	m := zson.NewZNGMarshalerWithContext(zctx)
-	m.Decorate(zson.StylePackage)
+	m := sup.NewZNGMarshalerWithContext(zctx)
+	m.Decorate(sup.StylePackage)
 	return readerFunc(func() (*super.Value, error) {
 		if len(objects) == 0 {
 			return nil, nil

@@ -9,7 +9,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/zsonio"
+	"github.com/brimdata/super/zio/supio"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -75,7 +75,7 @@ ff
 	expected, err := hex.DecodeString(expectedHex)
 	require.NoError(t, err)
 
-	zr := zsonio.NewReader(super.NewContext(), strings.NewReader(input))
+	zr := supio.NewReader(super.NewContext(), strings.NewReader(input))
 	var buf bytes.Buffer
 	zw := NewWriterWithOpts(zio.NopCloser(&buf), WriterOpts{})
 	require.NoError(t, zio.Copy(zw, zr))

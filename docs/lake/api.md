@@ -408,7 +408,7 @@ POST /query
 
 ```
 curl -X POST \
-     -H 'Accept: application/x-zson' \
+     -H 'Accept: application/x-sup' \
      -H 'Content-Type: application/json' \
      http://localhost:9867/query -d '{"query":"from inventory@main | count() by warehouse"}'
 ```
@@ -520,7 +520,7 @@ formats.
 
 When sending request payloads, include the MIME type of the format in the
 request's Content-Type header. If the Content-Type header is not specified, the
-service will expect ZSON as the payload format.
+service will expect SUP as the payload format.
 
 An exception to this is when [loading data](#load-data) and Content-Type is not
 specified. In this case the service will attempt to introspect the data and may
@@ -532,7 +532,7 @@ formats may be successfully auto-detected.
 
 To receive successful (2xx) responses in a preferred format, include the MIME
 type of the format in the request's Accept HTTP header. If the Accept header is
-not specified, the service will return ZSON as the default response format. A
+not specified, the service will return SUP as the default response format. A
 different default response format can be specified by invoking the
 `-defaultfmt` option when running [`super db serve`](../commands/super-db.md#serve).
 
@@ -552,8 +552,8 @@ The following table shows the supported MIME types and where they can be used.
 | Line             | yes       | yes      | `application/x-line`                  |
 | NDJSON           | no        | yes      | `application/x-ndjson`                |
 | Parquet          | yes       | yes      | `application/x-parquet`               |
+| SUP              | yes       | yes      | `application/x-sup`                  |
 | TSV              | yes       | yes      | `text/tab-separated-values`           |
 | Zeek             | yes       | yes      | `application/x-zeek`                  |
 | ZJSON            | yes       | yes      | `application/x-zjson`                 |
-| ZSON             | yes       | yes      | `application/x-zson`                  |
 | ZNG              | yes       | yes      | `application/x-zng`                   |

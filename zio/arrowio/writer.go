@@ -19,8 +19,8 @@ import (
 	"github.com/apache/arrow-go/v18/arrow/memory"
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/nano"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zcode"
-	"github.com/brimdata/super/zson"
 )
 
 var (
@@ -79,7 +79,7 @@ const recordBatchSize = 1024
 func (w *Writer) Write(val super.Value) error {
 	recType, ok := super.TypeUnder(val.Type()).(*super.TypeRecord)
 	if !ok {
-		return fmt.Errorf("%w: %s", ErrNotRecord, zson.FormatValue(val))
+		return fmt.Errorf("%w: %s", ErrNotRecord, sup.FormatValue(val))
 	}
 	if w.typ == nil {
 		w.typ = recType
@@ -95,7 +95,7 @@ func (w *Writer) Write(val super.Value) error {
 			return err
 		}
 	} else if w.typ != recType {
-		return fmt.Errorf("%w: %s and %s", ErrMultipleTypes, zson.FormatType(w.typ), zson.FormatType(recType))
+		return fmt.Errorf("%w: %s and %s", ErrMultipleTypes, sup.FormatType(w.typ), sup.FormatType(recType))
 	}
 	it := val.Bytes().Iter()
 	for i, builder := range w.builder.Fields() {
@@ -296,7 +296,7 @@ func (w *Writer) newArrowDataType(typ super.Type) (arrow.DataType, error) {
 	case *super.TypeEnum, *super.TypeError:
 		return arrow.BinaryTypes.String, nil
 	default:
-		return nil, fmt.Errorf("%w: %s", ErrUnsupportedType, zson.FormatType(typ))
+		return nil, fmt.Errorf("%w: %s", ErrUnsupportedType, sup.FormatType(typ))
 	}
 }
 
@@ -347,17 +347,17 @@ func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes zcode.By
 		case *super.TypeOfNet:
 			b.Append(super.DecodeNet(bytes).String())
 		case *super.TypeOfType:
-			b.Append(zson.FormatTypeValue(bytes))
+			b.Append(sup.FormatTypeValue(bytes))
 		case *super.TypeEnum:
 			s, err := typ.Symbol(int(super.DecodeUint(bytes)))
 			if err != nil {
-				panic(fmt.Sprintf("decoding %s with bytes %s: %s", zson.FormatType(typ), hex.EncodeToString(bytes), err))
+				panic(fmt.Sprintf("decoding %s with bytes %s: %s", sup.FormatType(typ), hex.EncodeToString(bytes), err))
 			}
 			b.Append(s)
 		case *super.TypeError:
-			b.Append(zson.FormatValue(super.NewValue(typ, bytes)))
+			b.Append(sup.FormatValue(super.NewValue(typ, bytes)))
 		default:
-			panic(fmt.Sprintf("unexpected Zed type for StringBuilder: %s", zson.FormatType(typ)))
+			panic(fmt.Sprintf("unexpected Zed type for StringBuilder: %s", sup.FormatType(typ)))
 		}
 	case *array.BinaryBuilder:
 		b.Append(super.DecodeBytes(bytes))
@@ -386,7 +386,7 @@ func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes zcode.By
 		case "arrow_time32_ms":
 			ts /= nano.Ts(nano.Millisecond)
 		default:
-			panic(fmt.Sprintf("unexpected Zed type name for Time32Builder: %s", zson.FormatType(typ)))
+			panic(fmt.Sprintf("unexpected Zed type name for Time32Builder: %s", sup.FormatType(typ)))
 		}
 		b.Append(arrow.Time32(ts))
 	case *array.Time64Builder:

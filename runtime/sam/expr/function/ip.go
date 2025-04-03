@@ -5,8 +5,8 @@ import (
 	"net/netip"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zcode"
-	"github.com/brimdata/super/zson"
 )
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#network_of
@@ -64,7 +64,7 @@ func (n *NetworkOf) Call(_ super.Allocator, args []super.Value) super.Value {
 }
 
 func addressAndMask(sctx *super.Context, address, mask super.Value) super.Value {
-	val, err := zson.NewZNGMarshalerWithContext(sctx).Marshal(struct {
+	val, err := sup.NewZNGMarshalerWithContext(sctx).Marshal(struct {
 		Address super.Value `zed:"address"`
 		Mask    super.Value `zed:"mask"`
 	}{address, mask})

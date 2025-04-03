@@ -6,8 +6,8 @@ import (
 	"sort"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zcode"
-	"github.com/brimdata/super/zson"
 )
 
 // A ShaperTransform represents one of the different transforms that a
@@ -62,7 +62,7 @@ func NewShaper(zctx *super.Context, expr, typeExpr Evaluator, tf ShaperTransform
 			}
 			return &casterNamedType{zctx, expr, name}, nil
 		}
-		return nil, fmt.Errorf("shaper type argument is not a type: %s", zson.FormatValue(typeVal))
+		return nil, fmt.Errorf("shaper type argument is not a type: %s", sup.FormatValue(typeVal))
 	}
 	return &Shaper{
 		zctx:       zctx,
@@ -196,7 +196,7 @@ func shaperType(zctx *super.Context, tf ShaperTransform, in, out super.Type) (su
 		if super.IsPrimitiveType(inUnder) && super.IsPrimitiveType(outUnder) {
 			// Matching field is a primitive: output type is cast type.
 			if LookupPrimitiveCaster(zctx, outUnder) == nil {
-				return nil, fmt.Errorf("cast to %s not implemented", zson.FormatType(out))
+				return nil, fmt.Errorf("cast to %s not implemented", sup.FormatType(out))
 			}
 			return out, nil
 		}
@@ -204,7 +204,7 @@ func shaperType(zctx *super.Context, tf ShaperTransform, in, out super.Type) (su
 			for _, t := range in.Types {
 				if _, err := shaperType(zctx, tf, t, out); err != nil {
 					return nil, fmt.Errorf("cannot cast union %q to %q due to %q",
-						zson.FormatType(in), zson.FormatType(out), zson.FormatType(t))
+						sup.FormatType(in), sup.FormatType(out), sup.FormatType(t))
 				}
 			}
 			return out, nil
@@ -398,7 +398,7 @@ Switch:
 	if tag := bestUnionTag(in, out); tag != -1 {
 		return step{op: castToUnion, fromType: in, toTag: tag, toType: out}, nil
 	}
-	return step{}, fmt.Errorf("createStep: incompatible types %s and %s", zson.FormatType(in), zson.FormatType(out))
+	return step{}, fmt.Errorf("createStep: incompatible types %s and %s", sup.FormatType(in), sup.FormatType(out))
 }
 
 // newRecordStep returns a step that will build a record of type out from a

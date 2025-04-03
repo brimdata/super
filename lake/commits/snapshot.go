@@ -8,8 +8,8 @@ import (
 	"github.com/brimdata/super/lake/data"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime/sam/expr/extent"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zngbytes"
-	"github.com/brimdata/super/zson"
 	"github.com/segmentio/ksuid"
 )
 
@@ -139,7 +139,7 @@ func (s *Snapshot) Copy() *Snapshot {
 // sequence to meet the requirements of DeleteObject.
 func (s *Snapshot) serialize() ([]byte, error) {
 	zs := zngbytes.NewSerializer()
-	zs.Decorate(zson.StylePackage)
+	zs.Decorate(sup.StylePackage)
 	for _, o := range s.objects {
 		if err := zs.Write(&Add{Object: *o}); err != nil {
 			return nil, err

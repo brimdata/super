@@ -34,8 +34,8 @@ type describe struct {
 }
 
 func (w *ZJSONWriter) WriteControl(v interface{}) error {
-	// XXX Would rather use zson Marshal here instead of importing reflection
-	// into this package, but there's an issue with zson Marshaling nil
+	// XXX Would rather use sup.Marshal here instead of importing reflection
+	// into this package, but there's an issue with marshaling nil
 	// interfaces, which occurs frequently with zjsonio.Object.Types. For now
 	// just reflect here.
 	return w.encoder.Encode(describe{

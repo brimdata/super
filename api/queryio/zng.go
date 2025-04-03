@@ -4,22 +4,22 @@ import (
 	"bytes"
 	"io"
 
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/zio/supio"
 	"github.com/brimdata/super/zio/zngio"
-	"github.com/brimdata/super/zio/zsonio"
-	"github.com/brimdata/super/zson"
 )
 
 type ZNGWriter struct {
 	*zngio.Writer
-	marshaler *zson.MarshalZNGContext
+	marshaler *sup.MarshalZNGContext
 }
 
 var _ controlWriter = (*ZJSONWriter)(nil)
 
 func NewZNGWriter(w io.Writer) *ZNGWriter {
-	m := zson.NewZNGMarshaler()
-	m.Decorate(zson.StyleSimple)
+	m := sup.NewZNGMarshaler()
+	m.Decorate(sup.StyleSimple)
 	return &ZNGWriter{
 		Writer:    zngio.NewWriter(zio.NopCloser(w)),
 		marshaler: m,
@@ -32,9 +32,9 @@ func (w *ZNGWriter) WriteControl(v interface{}) error {
 		return err
 	}
 	var buf bytes.Buffer
-	err = zsonio.NewWriter(zio.NopCloser(&buf), zsonio.WriterOpts{}).Write(val)
+	err = supio.NewWriter(zio.NopCloser(&buf), supio.WriterOpts{}).Write(val)
 	if err != nil {
 		return err
 	}
-	return w.Writer.WriteControl(buf.Bytes(), zngio.ControlFormatZSON)
+	return w.Writer.WriteControl(buf.Bytes(), zngio.ControlFormatSUP)
 }

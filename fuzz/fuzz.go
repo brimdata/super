@@ -22,12 +22,12 @@ import (
 	"github.com/brimdata/super/pkg/storage/mock"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zcode"
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/csupio"
 	"github.com/brimdata/super/zio/zngio"
-	"github.com/brimdata/super/zson"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"github.com/x448/float16"
@@ -141,12 +141,12 @@ func CompareValues(t testing.TB, valuesExpected []super.Value, valuesActual []su
 	for i := range valuesExpected {
 		if i >= len(valuesActual) {
 			t.Errorf("missing value: expected[%v].Bytes()=%v", i, valuesExpected[i].Bytes())
-			t.Errorf("missing value: expected[%v]=%v", i, zson.String(&valuesExpected[i]))
+			t.Errorf("missing value: expected[%v]=%v", i, sup.String(&valuesExpected[i]))
 			continue
 		}
 		valueExpected := valuesExpected[i]
 		valueActual := valuesActual[i]
-		t.Logf("comparing: expected[%v]=%v vs actual[%v]=%v", i, zson.String(&valueExpected), i, zson.String(&valueActual))
+		t.Logf("comparing: expected[%v]=%v vs actual[%v]=%v", i, sup.String(&valueExpected), i, sup.String(&valueActual))
 		if !bytes.Equal(super.EncodeTypeValue(valueExpected.Type()), super.EncodeTypeValue(valueActual.Type())) {
 			t.Errorf("values have different types: %v vs %v", valueExpected.Type(), valueActual.Type())
 		}
@@ -156,7 +156,7 @@ func CompareValues(t testing.TB, valuesExpected []super.Value, valuesActual []su
 	}
 	for i := range valuesActual[len(valuesExpected):] {
 		t.Errorf("extra value: actual[%v].Bytes()=%v", i, valuesActual[i].Bytes())
-		t.Errorf("extra value: actual[%v]=%v", i, zson.String(&valuesActual[i]))
+		t.Errorf("extra value: actual[%v]=%v", i, sup.String(&valuesActual[i]))
 	}
 }
 

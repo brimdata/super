@@ -8,8 +8,8 @@ import (
 	"strconv"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zcode"
-	"github.com/brimdata/super/zson"
 )
 
 type Object struct {
@@ -195,5 +195,5 @@ func (w *Writer) encodePrimitive(zctx *super.Context, typ super.Type, v zcode.By
 	if typ.ID() == super.IDString {
 		return string(v), nil
 	}
-	return zson.FormatPrimitive(typ, v), nil
+	return sup.FormatPrimitive(typ, v), nil
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/brimdata/super/pkg/anymath"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/sup"
 )
 
 type consumer interface {
@@ -251,5 +251,5 @@ func (t *Time) consume(val super.Value) {
 func (f *Time) typ() super.Type { return super.TypeTime }
 
 func panicCoercionFail(to, from super.Type) {
-	panic(fmt.Sprintf("internal aggregation error: cannot coerce %s to %s", zson.String(from), zson.String(to)))
+	panic(fmt.Sprintf("internal aggregation error: cannot coerce %s to %s", sup.String(from), sup.String(to)))
 }

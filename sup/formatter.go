@@ -1,4 +1,4 @@
-package zson
+package sup
 
 import (
 	"encoding/hex"
@@ -70,7 +70,7 @@ func (f *Formatter) FormatRecord(rec super.Value) string {
 	// We reset tyepdefs so named types are emitted with their
 	// definition at first use in each record according to the
 	// left-to-right DFS order.  We could make this more efficient
-	// by putting a record number/nonce in the map but ZSON
+	// by putting a record number/nonce in the map but SUP
 	// is already intended to be the low performance path.
 	f.typedefs = make(map[string]*super.TypeNamed)
 	return f.Format(rec)
@@ -90,7 +90,7 @@ func String(p interface{}) string {
 	case super.Value:
 		return FormatValue(val)
 	default:
-		panic("zson.String takes a super.Type or *super.Value")
+		panic("sup.String takes a super.Type or *super.Value")
 	}
 }
 
@@ -827,7 +827,7 @@ func formatPrimitive(b *strings.Builder, typ super.Type, bytes zcode.Bytes) {
 		b.WriteString(FormatTypeValue(bytes))
 		b.WriteByte('>')
 	default:
-		b.WriteString(fmt.Sprintf("<ZSON unknown primitive: %T>", typ))
+		b.WriteString(fmt.Sprintf("<SUP unknown primitive: %T>", typ))
 	}
 }
 

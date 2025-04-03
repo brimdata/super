@@ -1,10 +1,10 @@
 zed: pass
 
-# Note the \x syntax is not valid in a ZSON string so there is not a way
+# Note the \x syntax is not valid in a SUP string so there is not a way
 # to get \x Zeek TSV escapes into th TSV output unless we add support
 # for bytes type to zeekio, in which case we can have support functions
 # to parse into and out of \x strings in zeek TSV.  We could also change
-# the ZSON spec to explicitly say \x is allowed and is ignored except for
+# the SUP spec to explicitly say \x is allowed and is ignored except for
 # functions that translate such a string to bytes.
 
 input: |

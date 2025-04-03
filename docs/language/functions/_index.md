@@ -51,7 +51,7 @@ Zed's [primitive types](../../formats/data-model.md#1-primitive-types), e.g.,
 * [now](now.md) - the current time
 * [order](order.md) - reorder record fields
 * [parse_uri](parse_uri.md) - parse a string URI into a structured record
-* [parse_zson](parse_zson.md) - parse ZSON text into a Zed value
+* [parse_sup](parse_sup.md) - parse SUP text into a Zed value
 * [pow](pow.md) - exponential function of any base
 * [quiet](quiet.md) - quiet "missing" errors
 * [regexp](regexp.md) - perform a regular expression search on a string

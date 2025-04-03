@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zson"
 )
 
 type Flags struct {
@@ -22,7 +22,7 @@ func (f *Flags) SetFlags(fs *flag.FlagSet) {
 
 func (f *Flags) PrintStats(stats zbuf.Progress) {
 	if f.Stats {
-		out, err := zson.Marshal(stats)
+		out, err := sup.Marshal(stats)
 		if err != nil {
 			out = fmt.Sprintf("error marshaling stats: %s", err)
 		}

@@ -50,10 +50,10 @@ client = zed.Client()
 
 client.create_pool('TestPool')
 
-# Load some ZSON records from a string.  A file-like object also works.
-# Data format is detected automatically and can be CSV, JSON, Zeek TSV,
-# ZJSON, ZNG, or ZSON.
-client.load('TestPool', '{s:"hello"} {s:"world"}')
+# Load some SUP records from a string.  A file-like object also works.
+# Data format is detected automatically and can be CSV, JSON, SUP, Zeek TSV,
+# ZJSON, or ZNG.
+.client.load('TestPool', '{s:"hello"} {s:"world"}')
 
 # Begin executing a Zed query for all values in TestPool.
 # This returns an iterator, not a container.

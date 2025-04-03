@@ -12,9 +12,9 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/vcache"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zson"
 )
 
 type Scanner struct {
@@ -123,13 +123,13 @@ type result struct {
 
 type objectPuller struct {
 	parent      zbuf.Puller
-	unmarshaler *zson.UnmarshalZNGContext
+	unmarshaler *sup.UnmarshalZNGContext
 }
 
 func newObjectPuller(parent zbuf.Puller) *objectPuller {
 	return &objectPuller{
 		parent:      parent,
-		unmarshaler: zson.NewZNGUnmarshaler(),
+		unmarshaler: sup.NewZNGUnmarshaler(),
 	}
 }
 
@@ -146,14 +146,14 @@ func (p *objectPuller) Pull(done bool) (*data.Object, error) {
 	}
 	named, ok := vals[0].Type().(*super.TypeNamed)
 	if !ok {
-		return nil, fmt.Errorf("system error: vam.objectPuller encountered unnamed object: %s", zson.String(vals[0]))
+		return nil, fmt.Errorf("system error: vam.objectPuller encountered unnamed object: %s", sup.String(vals[0]))
 	}
 	if named.Name != "data.Object" {
 		return nil, fmt.Errorf("system error: vam.objectPuller encountered unnamed object: %q", named.Name)
 	}
 	var meta data.Object
 	if err := p.unmarshaler.Unmarshal(vals[0], &meta); err != nil {
-		return nil, fmt.Errorf("system error: vam.objectPuller could not unmarshal value: %q", zson.String(vals[0]))
+		return nil, fmt.Errorf("system error: vam.objectPuller could not unmarshal value: %q", sup.String(vals[0]))
 	}
 	return &meta, nil
 }

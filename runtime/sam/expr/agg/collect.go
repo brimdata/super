@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zcode"
-	"github.com/brimdata/super/zson"
 )
 
 type Collect struct {
@@ -68,7 +68,7 @@ func (c *Collect) ConsumeAsPartial(val super.Value) {
 	}
 	arrayType, ok := val.Type().(*super.TypeArray)
 	if !ok {
-		panic(fmt.Errorf("collect partial: partial not an array type: %s", zson.FormatValue(val)))
+		panic(fmt.Errorf("collect partial: partial not an array type: %s", sup.FormatValue(val)))
 	}
 	typ := arrayType.Type
 	for it := val.Iter(); !it.Done(); {

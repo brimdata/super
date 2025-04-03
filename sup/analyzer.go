@@ -1,4 +1,4 @@
-package zson
+package sup
 
 import (
 	"errors"
@@ -88,9 +88,9 @@ func (e *Error) SetType(t super.Type)     { e.Type = t }
 // to a typed Value, where every component of a nested Value is explicitly typed.
 // This is done via a semantic analysis where type state flows both down a the
 // nested value hierarchy (via type decorators) and back up via fully typed value
-// whose types are then usable as typedefs.  The Analyzer tracks the ZSON typedef
+// whose types are then usable as typedefs.  The Analyzer tracks the SUP typedef
 // semantics by updating its table of name-to-type bindings in accordance with the
-// left-to-right, depth-first semantics of ZSON typedefs.
+// left-to-right, depth-first semantics of SUP typedefs.
 type Analyzer map[string]super.Type
 
 func NewAnalyzer() Analyzer {

@@ -11,7 +11,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr/function"
 	vamexpr "github.com/brimdata/super/runtime/vam/expr"
 	vamfunction "github.com/brimdata/super/runtime/vam/expr/function"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/sup"
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -23,7 +23,7 @@ func (b *Builder) compileVamExpr(e dag.Expr) (vamexpr.Evaluator, error) {
 	case *dag.ArrayExpr:
 		return b.compileVamArrayExpr(e)
 	case *dag.Literal:
-		val, err := zson.ParseValue(b.zctx(), e.Value)
+		val, err := sup.ParseValue(b.zctx(), e.Value)
 		if err != nil {
 			return nil, err
 		}
@@ -288,7 +288,7 @@ func (b *Builder) compileVamRegexpSearch(search *dag.RegexpSearch) (vamexpr.Eval
 }
 
 func (b *Builder) compileVamSearch(search *dag.Search) (vamexpr.Evaluator, error) {
-	val, err := zson.ParseValue(b.zctx(), search.Value)
+	val, err := sup.ParseValue(b.zctx(), search.Value)
 	if err != nil {
 		return nil, err
 	}

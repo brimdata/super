@@ -236,7 +236,7 @@ First we saved the contents of the shaper from
 <match shaped>
   @type http
   endpoint http://127.0.0.1:9867/pool/zeek-shaped/branch/main
-  content_type application/x-zson
+  content_type application/x-sup
   <format>
     @type single_value
   </format>

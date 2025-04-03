@@ -13,12 +13,12 @@ import (
 	"github.com/brimdata/super/zio/lakeio"
 	"github.com/brimdata/super/zio/lineio"
 	"github.com/brimdata/super/zio/parquetio"
+	"github.com/brimdata/super/zio/supio"
 	"github.com/brimdata/super/zio/tableio"
 	"github.com/brimdata/super/zio/textio"
 	"github.com/brimdata/super/zio/zeekio"
 	"github.com/brimdata/super/zio/zjsonio"
 	"github.com/brimdata/super/zio/zngio"
-	"github.com/brimdata/super/zio/zsonio"
 )
 
 type WriterOpts struct {
@@ -26,8 +26,8 @@ type WriterOpts struct {
 	Lake   lakeio.WriterOpts
 	CSV    csvio.WriterOpts
 	JSON   jsonio.WriterOpts
+	SUP    supio.WriterOpts
 	ZNG    *zngio.WriterOpts // Nil means use defaults via zngio.NewWriter.
-	ZSON   zsonio.WriterOpts
 }
 
 func NewWriter(w io.WriteCloser, opts WriterOpts) (zio.WriteCloser, error) {
@@ -54,7 +54,7 @@ func NewWriter(w io.WriteCloser, opts WriterOpts) (zio.WriteCloser, error) {
 	case "parquet":
 		return parquetio.NewWriter(w), nil
 	case "sup", "":
-		return zsonio.NewWriter(w, opts.ZSON), nil
+		return supio.NewWriter(w, opts.SUP), nil
 	case "table":
 		return tableio.NewWriter(w), nil
 	case "text":

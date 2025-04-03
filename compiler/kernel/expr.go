@@ -11,8 +11,8 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/runtime/sam/op/combine"
 	"github.com/brimdata/super/runtime/sam/op/traverse"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zson"
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -52,7 +52,7 @@ func (b *Builder) compileExpr(e dag.Expr) (expr.Evaluator, error) {
 	}
 	switch e := e.(type) {
 	case *dag.Literal:
-		val, err := zson.ParseValue(b.zctx(), e.Value)
+		val, err := sup.ParseValue(b.zctx(), e.Value)
 		if err != nil {
 			return nil, err
 		}
@@ -196,7 +196,7 @@ func (b *Builder) compileConstCompare(e *dag.BinaryExpr) (expr.Evaluator, error)
 }
 
 func (b *Builder) compileSearch(search *dag.Search) (expr.Evaluator, error) {
-	val, err := zson.ParseValue(b.zctx(), search.Value)
+	val, err := sup.ParseValue(b.zctx(), search.Value)
 	if err != nil {
 		return nil, err
 	}

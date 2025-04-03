@@ -4,13 +4,13 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zio/zngio"
-	"github.com/brimdata/super/zson"
 )
 
 type Deserializer struct {
 	reader      *zngio.Reader
-	unmarshaler *zson.UnmarshalZNGContext
+	unmarshaler *sup.UnmarshalZNGContext
 }
 
 func NewDeserializer(reader io.Reader, templates []interface{}) *Deserializer {
@@ -18,7 +18,7 @@ func NewDeserializer(reader io.Reader, templates []interface{}) *Deserializer {
 }
 
 func NewDeserializerWithContext(zctx *super.Context, reader io.Reader, templates []interface{}) *Deserializer {
-	u := zson.NewZNGUnmarshaler()
+	u := sup.NewZNGUnmarshaler()
 	u.Bind(templates...)
 	return &Deserializer{
 		reader:      zngio.NewReader(zctx, reader),

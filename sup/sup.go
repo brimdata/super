@@ -1,10 +1,10 @@
-// Package zson provides fundamental interfaces to the ZSON data format comprising
-// Reader, Writer, Parser, and so forth.  The ZSON format includes a type system
+// Package sup provides fundamental interfaces to the SUP data format comprising
+// Reader, Writer, Parser, and so forth.  The SUP format includes a type system
 // that requries a semantic analysis to parse an input to its structured data
-// representation.  To do so, Parser translats a ZSON input to an AST, Analyzer
+// representation.  To do so, Parser translats a SUP input to an AST, Analyzer
 // performs semantic type analysis to turn the AST into a Value, and Builder
 // constructs a super.Value from a Value.
-package zson
+package sup
 
 import (
 	"slices"
@@ -57,8 +57,8 @@ func SelfDescribing(typ super.Type) bool {
 	return false
 }
 
-func ParseType(zctx *super.Context, zson string) (super.Type, error) {
-	zp := NewParser(strings.NewReader(zson))
+func ParseType(zctx *super.Context, sup string) (super.Type, error) {
+	zp := NewParser(strings.NewReader(sup))
 	ast, err := zp.parseType()
 	if ast == nil || noEOF(err) != nil {
 		return nil, err
@@ -66,8 +66,8 @@ func ParseType(zctx *super.Context, zson string) (super.Type, error) {
 	return NewAnalyzer().convertType(zctx, ast)
 }
 
-func ParseValue(zctx *super.Context, zson string) (super.Value, error) {
-	zp := NewParser(strings.NewReader(zson))
+func ParseValue(zctx *super.Context, sup string) (super.Value, error) {
+	zp := NewParser(strings.NewReader(sup))
 	ast, err := zp.ParseValue()
 	if err != nil {
 		return super.Null, err
@@ -79,8 +79,8 @@ func ParseValue(zctx *super.Context, zson string) (super.Value, error) {
 	return Build(zcode.NewBuilder(), val)
 }
 
-func MustParseValue(zctx *super.Context, zson string) super.Value {
-	val, err := ParseValue(zctx, zson)
+func MustParseValue(zctx *super.Context, sup string) super.Value {
+	val, err := ParseValue(zctx, sup)
 	if err != nil {
 		panic(err)
 	}

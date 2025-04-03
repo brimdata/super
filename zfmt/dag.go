@@ -7,7 +7,7 @@ import (
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/sup"
 )
 
 func DAG(seq dag.Seq) string {
@@ -170,7 +170,7 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 			}
 			switch e := elem.(type) {
 			case *dag.Field:
-				c.write(zson.QuotedName(e.Name))
+				c.write(sup.QuotedName(e.Name))
 				c.write(":")
 				c.expr(e.Value, "")
 			case *dag.Spread:

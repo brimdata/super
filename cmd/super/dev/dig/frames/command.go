@@ -13,9 +13,9 @@ import (
 	"github.com/brimdata/super/cmd/super/dev/dig"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zcode"
 	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zson"
 )
 
 var Frames = &charm.Spec{
@@ -76,7 +76,7 @@ func (c *Command) Run(args []string) error {
 
 type metaReader struct {
 	reader    *reader
-	marshaler *zson.MarshalZNGContext
+	marshaler *sup.MarshalZNGContext
 }
 
 var _ zio.Reader = (*metaReader)(nil)
@@ -84,7 +84,7 @@ var _ zio.Reader = (*metaReader)(nil)
 func newMetaReader(r io.Reader) *metaReader {
 	return &metaReader{
 		reader:    &reader{reader: bufio.NewReader(r)},
-		marshaler: zson.NewZNGMarshaler(),
+		marshaler: sup.NewZNGMarshaler(),
 	}
 }
 

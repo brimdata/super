@@ -10,9 +10,9 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/byteconv"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/zcode"
-	"github.com/brimdata/super/zson"
 	"github.com/ronanh/intcomp"
 	"golang.org/x/sync/errgroup"
 )
@@ -223,7 +223,7 @@ func (l *loader) loadVals(typ super.Type, s *primitive, nulls *vector.Bool) (vec
 	}
 	length := s.length()
 	if nulls != nil && nulls.Len() != length {
-		panic(fmt.Sprintf("BAD NULLS LEN nulls %d %d (cnt.vals %d cnt.null %d) %s", nulls.Len(), length, s.count.vals, s.count.nulls, zson.String(typ)))
+		panic(fmt.Sprintf("BAD NULLS LEN nulls %d %d (cnt.vals %d cnt.null %d) %s", nulls.Len(), length, s.count.vals, s.count.nulls, sup.String(typ)))
 	}
 	it := zcode.Iter(bytes)
 	switch typ := typ.(type) {

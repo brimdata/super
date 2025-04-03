@@ -1,4 +1,4 @@
-# Add \a and \v when they can be be represented in a ZSON string
+# Add \a and \v when they can be be represented in a SUP string
 # (https://github.com/brimdata/super/issues/3041).
 zed: '? /\f\t\n\r\(\)\*\+\.\/\?\[\]\{\}/'
 

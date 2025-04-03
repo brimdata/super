@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/brimdata/super/api"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/zngio"
-	"github.com/brimdata/super/zson"
 )
 
 type Request struct {
@@ -93,8 +93,8 @@ func (r *Request) reader() (io.Reader, error) {
 	if b, ok := r.Body.(io.Reader); ok {
 		return b, nil
 	}
-	m := zson.NewZNGMarshaler()
-	m.Decorate(zson.StylePackage)
+	m := sup.NewZNGMarshaler()
+	m.Decorate(sup.StylePackage)
 	val, err := m.Marshal(r.Body)
 	if err != nil {
 		return nil, err

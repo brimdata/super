@@ -6,8 +6,8 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zcode"
-	"github.com/brimdata/super/zson"
 )
 
 type Avg struct {
@@ -45,14 +45,14 @@ func (a *Avg) ConsumeAsPartial(partial super.Value) {
 		panic(errors.New("avg: partial sum is missing"))
 	}
 	if sumVal.Type() != super.TypeFloat64 {
-		panic(fmt.Errorf("avg: partial sum has bad type: %s", zson.FormatValue(*sumVal)))
+		panic(fmt.Errorf("avg: partial sum has bad type: %s", sup.FormatValue(*sumVal)))
 	}
 	countVal := partial.Deref(countName)
 	if countVal == nil {
 		panic("avg: partial count is missing")
 	}
 	if countVal.Type() != super.TypeUint64 {
-		panic(fmt.Errorf("avg: partial count has bad type: %s", zson.FormatValue(*countVal)))
+		panic(fmt.Errorf("avg: partial count has bad type: %s", sup.FormatValue(*countVal)))
 	}
 	a.sum += sumVal.Float()
 	a.count += countVal.Uint()

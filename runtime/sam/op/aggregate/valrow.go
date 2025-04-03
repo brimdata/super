@@ -6,7 +6,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/expr/agg"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/sup"
 )
 
 type valRow []agg.Function
@@ -29,7 +29,7 @@ func (v valRow) consumeAsPartial(rec super.Value, exprs []expr.Evaluator, ectx e
 	for k, r := range v {
 		val := exprs[k].Eval(ectx, rec)
 		if val.IsError() {
-			panic(fmt.Errorf("consumeAsPartial: read a Zed error: %s", zson.FormatValue(val)))
+			panic(fmt.Errorf("consumeAsPartial: read a Zed error: %s", sup.FormatValue(val)))
 		}
 		//XXX should do soemthing with errors... they could come from
 		// a worker over the network?

@@ -19,7 +19,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/op/aggregate"
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/zsonio"
+	"github.com/brimdata/super/zio/supio"
 	"github.com/brimdata/super/ztest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -106,10 +106,10 @@ func TestAggregateStreamingSpill(t *testing.T) {
 		assert.NoError(t, err)
 
 		zctx := super.NewContext()
-		zr := zsonio.NewReader(zctx, strings.NewReader(strings.Join(data, "\n")))
+		zr := supio.NewReader(zctx, strings.NewReader(strings.Join(data, "\n")))
 		cr := &countReader{r: zr}
 		var outbuf bytes.Buffer
-		zw := zsonio.NewWriter(zio.NopCloser(&outbuf), zsonio.WriterOpts{})
+		zw := supio.NewWriter(zio.NopCloser(&outbuf), supio.WriterOpts{})
 		checker := &testAggregateWriter{
 			writer: zw,
 			cb: func(n int) {

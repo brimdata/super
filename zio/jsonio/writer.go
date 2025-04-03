@@ -12,8 +12,8 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/pkg/terminal/color"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zcode"
-	"github.com/brimdata/super/zson"
 )
 
 var (
@@ -84,7 +84,7 @@ func (w *Writer) writeAny(tab int, val super.Value) {
 	case *super.TypeError:
 		w.writeError(tab, typ, val.Bytes())
 	default:
-		panic(fmt.Sprintf("unsupported type: %s", zson.FormatType(typ)))
+		panic(fmt.Sprintf("unsupported type: %s", sup.FormatType(typ)))
 	}
 }
 
@@ -156,16 +156,16 @@ func mapKey(typ super.Type, b zcode.Bytes) string {
 			// Don't quote strings.
 			return val.AsString()
 		}
-		return zson.FormatPrimitive(val.Type(), val.Bytes())
+		return sup.FormatPrimitive(val.Type(), val.Bytes())
 	case super.UnionKind:
-		// Untagged, decorated ZSON so
+		// Untagged, decorated SUP so
 		// |{0:1,0(uint64):2,0(=t):3,"0":4}| gets unique keys.
 		typ, bytes := typ.(*super.TypeUnion).Untag(b)
-		return zson.FormatValue(super.NewValue(typ, bytes))
+		return sup.FormatValue(super.NewValue(typ, bytes))
 	case super.EnumKind:
 		return convertEnum(typ.(*super.TypeEnum), b)
 	default:
-		return zson.FormatValue(val)
+		return sup.FormatValue(val)
 	}
 }
 
@@ -225,7 +225,7 @@ func (w *Writer) writePrimitive(val super.Value) {
 	case id == super.IDNet:
 		v = super.DecodeNet(val.Bytes()).String()
 	case id == super.IDType:
-		v = zson.FormatValue(val)
+		v = sup.FormatValue(val)
 	default:
 		panic(fmt.Sprintf("unsupported id=%d", id))
 	}

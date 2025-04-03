@@ -4,14 +4,14 @@ import (
 	"context"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zson"
 	"github.com/segmentio/ksuid"
 )
 
 type LogReader struct {
 	ctx       context.Context
-	marshaler *zson.MarshalZNGContext
+	marshaler *sup.MarshalZNGContext
 	store     *Store
 	cursor    ksuid.KSUID
 	stop      ksuid.KSUID
@@ -20,8 +20,8 @@ type LogReader struct {
 var _ zio.Reader = (*LogReader)(nil)
 
 func newLogReader(ctx context.Context, zctx *super.Context, store *Store, leaf, stop ksuid.KSUID) *LogReader {
-	m := zson.NewZNGMarshalerWithContext(zctx)
-	m.Decorate(zson.StyleSimple)
+	m := sup.NewZNGMarshalerWithContext(zctx)
+	m.Decorate(sup.StyleSimple)
 	return &LogReader{
 		ctx:       ctx,
 		marshaler: m,

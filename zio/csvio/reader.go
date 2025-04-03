@@ -9,12 +9,12 @@ import (
 	"unicode"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/sup"
 )
 
 type Reader struct {
 	reader    *csv.Reader
-	marshaler *zson.MarshalZNGContext
+	marshaler *sup.MarshalZNGContext
 	strings   bool
 	valid     bool
 	hdr       []string
@@ -49,7 +49,7 @@ func NewReader(zctx *super.Context, r io.Reader, opts ReaderOpts) *Reader {
 	reader.ReuseRecord = true
 	return &Reader{
 		reader:    reader,
-		marshaler: zson.NewZNGMarshalerWithContext(zctx),
+		marshaler: sup.NewZNGMarshalerWithContext(zctx),
 	}
 }
 

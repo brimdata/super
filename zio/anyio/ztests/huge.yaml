@@ -12,13 +12,13 @@ outputs:
     data: |
       stdio:stdin: format detection error
       	arrows: schema message length exceeds 1 MiB
+      	csup: auto-detection requires seekable input
       	csv: line 1: delimiter ',' not found
       	json: buffer exceeded max size trying to infer input format
       	line: auto-detection not supported
       	parquet: auto-detection requires seekable input
+      	sup: buffer exceeded max size trying to infer input format
       	tsv: line 1: delimiter '\t' not found
-      	csup: auto-detection requires seekable input
       	zeek: line 1: bad types/fields definition in zeek header
       	zjson: line 1: malformed ZJSON: bad type object: "": unpacker error parsing JSON: unexpected end of JSON input
       	bsup: buffer exceeded max size trying to infer input format
-      	sup: buffer exceeded max size trying to infer input format

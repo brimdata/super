@@ -2,13 +2,13 @@ package queryio
 
 import (
 	"github.com/brimdata/super/api"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/sup"
 )
 
-var unmarshaler *zson.UnmarshalZNGContext
+var unmarshaler *sup.UnmarshalZNGContext
 
 func init() {
-	unmarshaler = zson.NewZNGUnmarshaler()
+	unmarshaler = sup.NewZNGUnmarshaler()
 	unmarshaler.Bind(
 		api.QueryChannelSet{},
 		api.QueryChannelEnd{},

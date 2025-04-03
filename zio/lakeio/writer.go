@@ -16,7 +16,7 @@ import (
 	"github.com/brimdata/super/pkg/terminal/color"
 	"github.com/brimdata/super/pkg/units"
 	"github.com/brimdata/super/runtime/sam/op/meta"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/sup"
 	"github.com/segmentio/ksuid"
 )
 
@@ -26,7 +26,7 @@ type WriterOpts struct {
 
 type Writer struct {
 	writer   io.WriteCloser
-	zson     *zson.Formatter
+	sup      *sup.Formatter
 	commits  table
 	branches map[ksuid.KSUID][]string
 	rulename string
@@ -39,7 +39,7 @@ type Writer struct {
 func NewWriter(w io.WriteCloser, opts WriterOpts) *Writer {
 	writer := &Writer{
 		writer:   w,
-		zson:     zson.NewFormatter(0, false, nil),
+		sup:      sup.NewFormatter(0, false, nil),
 		commits:  make(table),
 		branches: make(map[ksuid.KSUID][]string),
 		width:    80, //XXX
@@ -58,7 +58,7 @@ func NewWriter(w io.WriteCloser, opts WriterOpts) *Writer {
 func (w *Writer) Write(rec super.Value) error {
 	var v interface{}
 	if err := unmarshaler.Unmarshal(rec, &v); err != nil {
-		return w.WriteZSON(rec)
+		return w.WriteSUP(rec)
 	}
 	var b bytes.Buffer
 	w.formatValue(w.commits, &b, v, w.width, &w.colors)
@@ -70,8 +70,8 @@ func (w *Writer) Close() error {
 	return w.writer.Close()
 }
 
-func (w *Writer) WriteZSON(rec super.Value) error {
-	if _, err := io.WriteString(w.writer, w.zson.FormatRecord(rec)); err != nil {
+func (w *Writer) WriteSUP(rec super.Value) error {
+	if _, err := io.WriteString(w.writer, w.sup.FormatRecord(rec)); err != nil {
 		return err
 	}
 	_, err := io.WriteString(w.writer, "\n")
@@ -152,17 +152,17 @@ func formatDataObject(b *bytes.Buffer, object *data.Object, prefix string, inden
 	b.WriteString("\n  ")
 	tab(b, indent)
 	b.WriteString(" min ")
-	b.WriteString(zson.String(object.Min))
+	b.WriteString(sup.String(object.Min))
 	b.WriteString(" max ")
-	b.WriteString(zson.String(object.Max))
+	b.WriteString(sup.String(object.Max))
 	b.WriteByte('\n')
 }
 
 func formatPartition(b *bytes.Buffer, p meta.Partition) {
 	b.WriteString("min ")
-	b.WriteString(zson.String(p.Min))
+	b.WriteString(sup.String(p.Min))
 	b.WriteString(" max ")
-	b.WriteString(zson.String(p.Max))
+	b.WriteString(sup.String(p.Max))
 	b.WriteByte('\n')
 	for _, o := range p.Objects {
 		formatDataObject(b, o, "", 2)

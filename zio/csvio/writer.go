@@ -10,8 +10,8 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zcode"
-	"github.com/brimdata/super/zson"
 )
 
 var ErrNotDataFrame = errors.New("CSV output requires uniform records but multiple types encountered (consider 'fuse')")
@@ -54,7 +54,7 @@ func (w *Writer) Flush() error {
 
 func (w *Writer) Write(rec super.Value) error {
 	if rec.Type().Kind() != super.RecordKind {
-		return fmt.Errorf("CSV output encountered non-record value: %s", zson.FormatValue(rec))
+		return fmt.Errorf("CSV output encountered non-record value: %s", sup.FormatValue(rec))
 	}
 	rec, err := w.flattener.Flatten(rec)
 	if err != nil {
@@ -99,11 +99,11 @@ func (w *Writer) Write(rec super.Value) error {
 }
 
 func formatValue(typ super.Type, bytes zcode.Bytes) string {
-	// Avoid ZSON decoration.
+	// Avoid SUP decoration.
 	if typ.ID() < super.IDTypeComplex {
-		return zson.FormatPrimitive(super.TypeUnder(typ), bytes)
+		return sup.FormatPrimitive(super.TypeUnder(typ), bytes)
 	}
-	return zson.FormatValue(super.NewValue(typ, bytes))
+	return sup.FormatValue(super.NewValue(typ, bytes))
 }
 
 func fieldNamesEqual(a, b []super.Field) bool {

@@ -7,7 +7,7 @@ import (
 	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/zcode"
-	"github.com/brimdata/super/zio/zsonio"
+	"github.com/brimdata/super/zio/supio"
 )
 
 type ParseURI struct {
@@ -35,22 +35,22 @@ func (p *ParseURI) Call(args ...vector.Any) vector.Any {
 	return db.Build()
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#parse_zson
-type ParseZSON struct {
+// https://github.com/brimdata/super/blob/main/docs/language/functions.md#parse_sup
+type ParseSUP struct {
 	zctx *super.Context
 	sr   *strings.Reader
-	zr   *zsonio.Reader
+	zr   *supio.Reader
 }
 
-func newParseZSON(zctx *super.Context) *ParseZSON {
+func newParseSUP(zctx *super.Context) *ParseSUP {
 	var sr strings.Reader
-	return &ParseZSON{zctx, &sr, zsonio.NewReader(zctx, &sr)}
+	return &ParseSUP{zctx, &sr, supio.NewReader(zctx, &sr)}
 }
 
-func (p *ParseZSON) Call(args ...vector.Any) vector.Any {
+func (p *ParseSUP) Call(args ...vector.Any) vector.Any {
 	vec := vector.Under(args[0])
 	if vec.Type().ID() != super.IDString {
-		return vector.NewWrappedError(p.zctx, "parse_zson: string arg required", args[0])
+		return vector.NewWrappedError(p.zctx, "parse_sup: string arg required", args[0])
 	}
 	var errs []uint32
 	errMsgs := vector.NewStringEmpty(0, nil)
@@ -65,7 +65,7 @@ func (p *ParseZSON) Call(args ...vector.Any) vector.Any {
 		val, err := p.zr.Read()
 		if err != nil {
 			errs = append(errs, i)
-			errMsgs.Append("parse_zson: " + err.Error())
+			errMsgs.Append("parse_sup: " + err.Error())
 			continue
 		}
 		if val == nil {

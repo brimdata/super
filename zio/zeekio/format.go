@@ -11,8 +11,8 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/nano"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zcode"
-	"github.com/brimdata/super/zson"
 )
 
 func formatAny(val super.Value, inContainer bool) string {
@@ -55,14 +55,14 @@ func formatAny(val super.Value, inContainer bool) string {
 	case *super.TypeOfString:
 		return formatString(t, val.Bytes(), inContainer)
 	case *super.TypeOfType:
-		return zson.String(val)
+		return sup.String(val)
 	case *super.TypeUnion:
 		return formatUnion(t, val.Bytes())
 	case *super.TypeError:
 		if super.TypeUnder(t.Type) == super.TypeString {
 			return string(val.Bytes())
 		}
-		return zson.FormatValue(val)
+		return sup.FormatValue(val)
 	default:
 		return fmt.Sprintf("zeekio.StringOf(): unknown type: %T", t)
 	}

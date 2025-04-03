@@ -8,4 +8,4 @@ inputs:
 
 outputs:
   - name: stderr
-    regexp: 'csv:(.|\s)+json:(.|\s)+parquet:(.|\s)+csup:'
+    regexp: 'csup:(.|\s)+csv:(.|\s)+json:(.|\s)+parquet:'

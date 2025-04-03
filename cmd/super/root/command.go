@@ -19,7 +19,7 @@ import (
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zfmt"
 	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/zsonio"
+	"github.com/brimdata/super/zio/supio"
 )
 
 var Super = &charm.Spec{
@@ -162,7 +162,7 @@ func (c *Command) Run(args []string) error {
 	defer query.Pull(true)
 	out := map[string]zio.WriteCloser{
 		"main":  writer,
-		"debug": zsonio.NewWriter(zio.NopCloser(os.Stderr), zsonio.WriterOpts{}),
+		"debug": supio.NewWriter(zio.NopCloser(os.Stderr), supio.WriterOpts{}),
 	}
 	err = zbuf.CopyMux(out, query)
 	if closeErr := writer.Close(); err == nil {

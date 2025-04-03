@@ -8,9 +8,9 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/api"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio/zngio"
-	"github.com/brimdata/super/zson"
 )
 
 type scanner struct {
@@ -74,10 +74,10 @@ func marshalControl(zctrl *zbuf.Control) (any, error) {
 	if !ok {
 		return nil, fmt.Errorf("unknown control type: %T", zctrl.Message)
 	}
-	if ctrl.Format != zngio.ControlFormatZSON {
+	if ctrl.Format != zngio.ControlFormatSUP {
 		return nil, fmt.Errorf("unsupported app encoding: %v", ctrl.Format)
 	}
-	value, err := zson.ParseValue(super.NewContext(), string(ctrl.Bytes))
+	value, err := sup.ParseValue(super.NewContext(), string(ctrl.Bytes))
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse Zed control message: %w (%s)", err, ctrl.Bytes)
 	}

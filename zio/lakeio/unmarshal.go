@@ -7,13 +7,13 @@ import (
 	"github.com/brimdata/super/lake/pools"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/op/meta"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/sup"
 )
 
-var unmarshaler *zson.UnmarshalZNGContext
+var unmarshaler *sup.UnmarshalZNGContext
 
 func init() {
-	unmarshaler = zson.NewZNGUnmarshaler()
+	unmarshaler = sup.NewZNGUnmarshaler()
 	unmarshaler.Bind(
 		commits.Add{},
 		commits.Commit{},

@@ -4,13 +4,13 @@ import (
 	"testing"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/sup"
 	"github.com/stretchr/testify/require"
 )
 
 func TestFieldNameIter(t *testing.T) {
 	const typeString = "{r1:{r2:{s:string,r3:{t:time}},a:[int64],r4:{i:ip}},empty:{}}"
-	typ, err := zson.ParseType(super.NewContext(), typeString)
+	typ, err := sup.ParseType(super.NewContext(), typeString)
 	require.NoError(t, err)
 	var f FieldNameIter
 	f.Init(typ.(*super.TypeRecord))
@@ -28,7 +28,7 @@ func TestFieldNameIter(t *testing.T) {
 }
 
 func TestFieldNameIterEmptyTopLevelRecord(t *testing.T) {
-	typ, err := zson.ParseType(super.NewContext(), "{}")
+	typ, err := sup.ParseType(super.NewContext(), "{}")
 	require.NoError(t, err)
 	var f FieldNameIter
 	f.Init(typ.(*super.TypeRecord))

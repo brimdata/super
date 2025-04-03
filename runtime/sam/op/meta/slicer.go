@@ -10,8 +10,8 @@ import (
 	"github.com/brimdata/super/lake/data"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime/sam/expr"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zson"
 )
 
 // Slicer implements an op that pulls data objects and organizes
@@ -19,8 +19,8 @@ import (
 // non-overlapping Partitions.
 type Slicer struct {
 	parent      zbuf.Puller
-	marshaler   *zson.MarshalZNGContext
-	unmarshaler *zson.UnmarshalZNGContext
+	marshaler   *sup.MarshalZNGContext
+	unmarshaler *sup.UnmarshalZNGContext
 	objects     []*data.Object
 	cmp         expr.CompareFn
 	min         *super.Value
@@ -29,12 +29,12 @@ type Slicer struct {
 }
 
 func NewSlicer(parent zbuf.Puller, zctx *super.Context) *Slicer {
-	m := zson.NewZNGMarshalerWithContext(zctx)
-	m.Decorate(zson.StylePackage)
+	m := sup.NewZNGMarshalerWithContext(zctx)
+	m.Decorate(sup.StylePackage)
 	return &Slicer{
 		parent:      parent,
 		marshaler:   m,
-		unmarshaler: zson.NewZNGUnmarshaler(),
+		unmarshaler: sup.NewZNGUnmarshaler(),
 		//XXX check nullsmax is consistent for both dirs in lake ops
 		cmp: expr.NewValueCompareFn(order.Asc, true),
 	}
@@ -146,9 +146,9 @@ func (p Partition) IsZero() bool {
 
 func (p Partition) FormatRangeOf(index int) string {
 	o := p.Objects[index]
-	return fmt.Sprintf("[%s-%s,%s-%s]", zson.String(p.Min), zson.String(p.Max), zson.String(o.Min), zson.String(o.Max))
+	return fmt.Sprintf("[%s-%s,%s-%s]", sup.String(p.Min), sup.String(p.Max), sup.String(o.Min), sup.String(o.Max))
 }
 
 func (p Partition) FormatRange() string {
-	return fmt.Sprintf("[%s-%s]", zson.String(p.Min), zson.String(p.Max))
+	return fmt.Sprintf("[%s-%s]", sup.String(p.Min), sup.String(p.Max))
 }

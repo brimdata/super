@@ -7,7 +7,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/api"
 	"github.com/brimdata/super/api/queryio"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/sup"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -24,7 +24,7 @@ func TestZJSONWriter(t *testing.T) {
 	w := queryio.NewZJSONWriter(&buf)
 	err := w.WriteControl(api.QueryChannelSet{Channel: "main"})
 	require.NoError(t, err)
-	err = w.Write(zson.MustParseValue(super.NewContext(), record))
+	err = w.Write(sup.MustParseValue(super.NewContext(), record))
 	require.NoError(t, err)
 	err = w.WriteControl(api.QueryChannelEnd{Channel: "main"})
 	require.NoError(t, err)

@@ -4,7 +4,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/sup"
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -53,7 +53,7 @@ func CompileBufferFilter(zctx *super.Context, e dag.Expr) (*expr.BufferFilter, e
 		}
 		return nil, nil
 	case *dag.Search:
-		literal, err := zson.ParseValue(zctx, e.Value)
+		literal, err := sup.ParseValue(zctx, e.Value)
 		if err != nil {
 			return nil, err
 		}
@@ -83,7 +83,7 @@ func CompileBufferFilter(zctx *super.Context, e dag.Expr) (*expr.BufferFilter, e
 func isFieldEqualOrIn(zctx *super.Context, e *dag.BinaryExpr) (*super.Value, error) {
 	if _, ok := e.LHS.(*dag.This); ok && e.Op == "==" {
 		if literal, ok := e.RHS.(*dag.Literal); ok {
-			val, err := zson.ParseValue(zctx, literal.Value)
+			val, err := sup.ParseValue(zctx, literal.Value)
 			if err != nil {
 				return nil, err
 			}
@@ -91,7 +91,7 @@ func isFieldEqualOrIn(zctx *super.Context, e *dag.BinaryExpr) (*super.Value, err
 		}
 	} else if _, ok := e.RHS.(*dag.This); ok && e.Op == "in" {
 		if literal, ok := e.LHS.(*dag.Literal); ok {
-			val, err := zson.ParseValue(zctx, literal.Value)
+			val, err := sup.ParseValue(zctx, literal.Value)
 			if err != nil {
 				return nil, err
 			}

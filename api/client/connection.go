@@ -20,8 +20,8 @@ import (
 	"github.com/brimdata/super/lake"
 	"github.com/brimdata/super/lake/branches"
 	"github.com/brimdata/super/runtime/exec"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zio/zngio"
-	"github.com/brimdata/super/zson"
 	"github.com/segmentio/ksuid"
 )
 
@@ -145,7 +145,7 @@ func (c *Connection) doAndUnmarshal(req *Request, v interface{}, templates ...in
 	if err != nil || rec == nil {
 		return err
 	}
-	m := zson.NewZNGUnmarshaler()
+	m := sup.NewZNGUnmarshaler()
 	m.Bind(templates...)
 	return m.Unmarshal(*rec, v)
 }

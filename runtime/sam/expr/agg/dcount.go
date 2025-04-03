@@ -5,8 +5,8 @@ import (
 
 	"github.com/axiomhq/hyperloglog"
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zcode"
-	"github.com/brimdata/super/zson"
 )
 
 // DCount uses hyperloglog to approximate the count of unique values for
@@ -42,7 +42,7 @@ func (d *DCount) Result(*super.Context) super.Value {
 
 func (d *DCount) ConsumeAsPartial(partial super.Value) {
 	if partial.Type() != super.TypeBytes {
-		panic(fmt.Errorf("dcount: partial has bad type: %s", zson.FormatValue(partial)))
+		panic(fmt.Errorf("dcount: partial has bad type: %s", sup.FormatValue(partial)))
 	}
 	var s hyperloglog.Sketch
 	if err := s.UnmarshalBinary(partial.Bytes()); err != nil {

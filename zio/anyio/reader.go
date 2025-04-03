@@ -16,10 +16,10 @@ import (
 	"github.com/brimdata/super/zio/csvio"
 	"github.com/brimdata/super/zio/jsonio"
 	"github.com/brimdata/super/zio/parquetio"
+	"github.com/brimdata/super/zio/supio"
 	"github.com/brimdata/super/zio/zeekio"
 	"github.com/brimdata/super/zio/zjsonio"
 	"github.com/brimdata/super/zio/zngio"
-	"github.com/brimdata/super/zio/zsonio"
 )
 
 type ReaderOpts struct {
@@ -82,15 +82,15 @@ func NewReaderWithOpts(zctx *super.Context, r io.Reader, opts ReaderOpts) (zio.R
 	}
 	track.Reset()
 
-	// ZJSON must come before JSON and ZSON since it is a subset of both.
+	// ZJSON must come before JSON and SUP since it is a subset of both.
 	zjsonErr := match(zjsonio.NewReader(super.NewContext(), track), "zjson", 1)
 	if zjsonErr == nil {
 		return zio.NopReadCloser(zjsonio.NewReader(zctx, track.Reader())), nil
 	}
 	track.Reset()
 
-	// JSON comes before ZSON because the JSON reader is faster than the
-	// ZSON reader.  The number of values wanted is greater than one for the
+	// JSON comes before SUP because the JSON reader is faster than the
+	// SUP reader.  The number of values wanted is greater than one for the
 	// sake of tests.
 	jsonErr := match(jsonio.NewReader(super.NewContext(), track), "json", 10)
 	if jsonErr == nil {
@@ -98,9 +98,9 @@ func NewReaderWithOpts(zctx *super.Context, r io.Reader, opts ReaderOpts) (zio.R
 	}
 	track.Reset()
 
-	zsonErr := match(zsonio.NewReader(super.NewContext(), track), "sup", 1)
-	if zsonErr == nil {
-		return zio.NopReadCloser(zsonio.NewReader(zctx, track.Reader())), nil
+	supErr := match(supio.NewReader(super.NewContext(), track), "sup", 1)
+	if supErr == nil {
+		return zio.NopReadCloser(supio.NewReader(zctx, track.Reader())), nil
 	}
 	track.Reset()
 
@@ -133,16 +133,16 @@ func NewReaderWithOpts(zctx *super.Context, r io.Reader, opts ReaderOpts) (zio.R
 	lineErr := errors.New("line: auto-detection not supported")
 	return nil, joinErrs([]error{
 		arrowsErr,
+		csupErr,
 		csvErr,
 		jsonErr,
 		lineErr,
 		parquetErr,
+		supErr,
 		tsvErr,
-		csupErr,
 		zeekErr,
 		zjsonErr,
 		zngErr,
-		zsonErr,
 	})
 }
 

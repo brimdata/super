@@ -3,8 +3,8 @@ package cast
 import (
 	"github.com/brimdata/super"
 	samexpr "github.com/brimdata/super/runtime/sam/expr"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zson"
 )
 
 func To(zctx *super.Context, vec vector.Any, typ super.Type) vector.Any {
@@ -97,7 +97,7 @@ func castConst(zctx *super.Context, vec *vector.Const, typ super.Type) vector.An
 }
 
 func errCastFailed(zctx *super.Context, vec vector.Any, typ super.Type) vector.Any {
-	return vector.NewWrappedError(zctx, "cannot cast to "+zson.FormatType(typ), vec)
+	return vector.NewWrappedError(zctx, "cannot cast to "+sup.FormatType(typ), vec)
 }
 
 func lengthOf(vec vector.Any, index []uint32) uint32 {

@@ -8,8 +8,8 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/skim"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zcode"
-	"github.com/brimdata/super/zson"
 )
 
 const (
@@ -135,7 +135,7 @@ func (r *Reader) decodePrimitive(builder *zcode.Builder, typ super.Type, v inter
 	if !ok {
 		return errors.New("ZJSON primitive value is not a JSON string")
 	}
-	return zson.BuildPrimitive(builder, zson.Primitive{
+	return sup.BuildPrimitive(builder, sup.Primitive{
 		Type: typ,
 		Text: text,
 	})

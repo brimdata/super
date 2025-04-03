@@ -16,9 +16,9 @@ import (
 	"github.com/brimdata/super/lakeparse"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime/sam/expr"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/zngio"
-	"github.com/brimdata/super/zson"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
@@ -156,7 +156,7 @@ func (p *Pool) ResolveRevision(ctx context.Context, revision string) (ksuid.KSUI
 	return id, nil
 }
 
-func (p *Pool) BatchifyBranches(ctx context.Context, zctx *super.Context, recs []super.Value, m *zson.MarshalZNGContext, f expr.Evaluator) ([]super.Value, error) {
+func (p *Pool) BatchifyBranches(ctx context.Context, zctx *super.Context, recs []super.Value, m *sup.MarshalZNGContext, f expr.Evaluator) ([]super.Value, error) {
 	branches, err := p.ListBranches(ctx)
 	if err != nil {
 		return nil, err
@@ -192,8 +192,8 @@ func (p *Pool) BatchifyBranchTips(ctx context.Context, zctx *super.Context, f ex
 	if err != nil {
 		return nil, err
 	}
-	m := zson.NewZNGMarshalerWithContext(zctx)
-	m.Decorate(zson.StylePackage)
+	m := sup.NewZNGMarshalerWithContext(zctx)
+	m.Decorate(sup.StylePackage)
 	recs := make([]super.Value, 0, len(branches))
 	ectx := expr.NewContext()
 	for _, branchRef := range branches {

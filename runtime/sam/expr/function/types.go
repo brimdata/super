@@ -2,8 +2,8 @@ package function
 
 import (
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zcode"
-	"github.com/brimdata/super/zson"
 )
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#typeof
@@ -88,7 +88,7 @@ func (i *Is) Call(_ super.Allocator, args []super.Value) super.Value {
 	var typ super.Type
 	var err error
 	if zvTypeVal.IsString() {
-		typ, err = zson.ParseType(i.zctx, string(zvTypeVal.Bytes()))
+		typ, err = sup.ParseType(i.zctx, string(zvTypeVal.Bytes()))
 	} else {
 		typ, err = i.zctx.LookupByValue(zvTypeVal.Bytes())
 	}

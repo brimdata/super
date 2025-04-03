@@ -8,7 +8,7 @@ import (
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/runtime/sam/expr/agg"
 	"github.com/brimdata/super/runtime/sam/expr/function"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/sup"
 )
 
 func AST(p ast.Seq) string {
@@ -187,11 +187,11 @@ func (c *canon) expr(e ast.Expr, parent string) {
 			}
 			switch e := elem.(type) {
 			case *ast.FieldExpr:
-				c.write(zson.QuotedName(e.Name.Text))
+				c.write(sup.QuotedName(e.Name.Text))
 				c.write(":")
 				c.expr(e.Value, "")
 			case *ast.ID:
-				c.write(zson.QuotedName(e.Name))
+				c.write(sup.QuotedName(e.Name))
 			case *ast.Spread:
 				c.write("...")
 				c.expr(e.Expr, "")
@@ -400,7 +400,7 @@ func (c *canon) decl(d ast.Decl) {
 		c.write(")")
 		c.head, c.first = true, true
 	case *ast.TypeDecl:
-		c.write("type %s = ", zson.QuotedName(d.Name.Name))
+		c.write("type %s = ", sup.QuotedName(d.Name.Name))
 		c.typ(d.Type)
 	default:
 		c.open("unknown decl: %T", d)
@@ -512,7 +512,7 @@ func (c *canon) op(p ast.Op) {
 		}
 	case *ast.Load:
 		c.next()
-		c.write("load %s", zson.QuotedString(p.Pool.Text))
+		c.write("load %s", sup.QuotedString(p.Pool.Text))
 		if p.Branch != nil {
 			c.write("@%s", p.Branch.Text)
 		}
@@ -676,7 +676,7 @@ func (c *canon) fromElem(elem *ast.FromElem) {
 		c.fromArgs(elem.Args)
 	}
 	if elem.Alias != nil {
-		c.write(" %s", zson.QuotedName(elem.Alias.Text))
+		c.write(" %s", sup.QuotedName(elem.Alias.Text))
 	}
 }
 
@@ -689,7 +689,7 @@ func (c *canon) fromEntity(e ast.FromEntity) {
 	case *ast.Glob, *ast.Regexp:
 		c.pattern(e)
 	case *ast.Name:
-		c.write(zson.QuotedName(e.Text))
+		c.write(sup.QuotedName(e.Text))
 	case *ast.CrossJoin:
 		c.write("cross join XXX")
 	case *ast.SQLJoin:
@@ -841,14 +841,14 @@ func (c *canon) httpArgs(args *ast.HTTPArgs) {
 		c.write(" format %s", args.Format.Text)
 	}
 	if args.Method != nil {
-		c.write(" method %s", zson.QuotedName(args.Method.Text))
+		c.write(" method %s", sup.QuotedName(args.Method.Text))
 	}
 	if args.Headers != nil {
 		c.write(" headers ")
 		c.expr(args.Headers, "")
 	}
 	if args.Body != nil {
-		c.write(" body %s", zson.QuotedName(args.Body.Text))
+		c.write(" body %s", sup.QuotedName(args.Body.Text))
 	}
 }
 

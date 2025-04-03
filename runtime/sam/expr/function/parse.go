@@ -7,18 +7,18 @@ import (
 	"strings"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zio/zsonio"
-	"github.com/brimdata/super/zson"
+	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/zio/supio"
 )
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#parse_uri
 type ParseURI struct {
 	zctx      *super.Context
-	marshaler *zson.MarshalZNGContext
+	marshaler *sup.MarshalZNGContext
 }
 
 func NewParseURI(zctx *super.Context) *ParseURI {
-	return &ParseURI{zctx, zson.NewZNGMarshalerWithContext(zctx)}
+	return &ParseURI{zctx, sup.NewZNGMarshalerWithContext(zctx)}
 }
 
 func (p *ParseURI) Call(_ super.Allocator, args []super.Value) super.Value {
@@ -89,22 +89,22 @@ func (p *ParseURI) Call(_ super.Allocator, args []super.Value) super.Value {
 	return out
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#parse_zson
-type ParseZSON struct {
+// https://github.com/brimdata/super/blob/main/docs/language/functions.md#parse_sup
+type ParseSUP struct {
 	zctx *super.Context
 	sr   *strings.Reader
-	zr   *zsonio.Reader
+	zr   *supio.Reader
 }
 
-func newParseZSON(zctx *super.Context) *ParseZSON {
+func newParseSUP(zctx *super.Context) *ParseSUP {
 	var sr strings.Reader
-	return &ParseZSON{zctx, &sr, zsonio.NewReader(zctx, &sr)}
+	return &ParseSUP{zctx, &sr, supio.NewReader(zctx, &sr)}
 }
 
-func (p *ParseZSON) Call(_ super.Allocator, args []super.Value) super.Value {
+func (p *ParseSUP) Call(_ super.Allocator, args []super.Value) super.Value {
 	in := args[0].Under()
 	if !in.IsString() {
-		return p.zctx.WrapError("parse_zson: string arg required", args[0])
+		return p.zctx.WrapError("parse_sup: string arg required", args[0])
 	}
 	if in.IsNull() {
 		return super.Null
@@ -112,7 +112,7 @@ func (p *ParseZSON) Call(_ super.Allocator, args []super.Value) super.Value {
 	p.sr.Reset(super.DecodeString(in.Bytes()))
 	val, err := p.zr.Read()
 	if err != nil {
-		return p.zctx.WrapError("parse_zson: "+err.Error(), args[0])
+		return p.zctx.WrapError("parse_sup: "+err.Error(), args[0])
 	}
 	if val == nil {
 		return super.Null
