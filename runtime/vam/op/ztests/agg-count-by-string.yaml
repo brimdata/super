@@ -10,6 +10,7 @@ script: |
   export SUPER_VAM=1
   super -z -c 'from t.csup | count() by x'
   super -z -c 'from t.csup | count() by y | sort y'
+  super -z -c 'from t.csup | count(distinct x) by y | sort y'
   super -z -c 'from t.csup | count() by z | z == "257"'
   super -z -c 'from t.csup | count() where y=="1" by z | z == "257"'
 
@@ -19,5 +20,7 @@ outputs:
       {x:"0",count:514(uint64)}
       {y:"1",count:257(uint64)}
       {y:"2",count:257(uint64)}
+      {y:"1",count:1(uint64)}
+      {y:"2",count:1(uint64)}
       {z:"257",count:2(uint64)}
       {z:"257",count:1(uint64)}

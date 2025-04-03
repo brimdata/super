@@ -119,8 +119,8 @@ func (a *Aggregate) newAggTable(keyTypes []super.Type) aggTable {
 }
 
 func (a *Aggregate) isCountByString(keyTypes []super.Type) bool {
-	return len(a.aggs) == 1 && len(keyTypes) == 1 && a.aggs[0].Name == "count" &&
-		keyTypes[0].ID() == super.IDString
+	return len(a.aggs) == 1 && a.aggs[0].Name == "count" && !a.aggs[0].Distinct &&
+		len(keyTypes) == 1 && keyTypes[0].ID() == super.IDString
 }
 
 func (a *Aggregate) next() vector.Any {

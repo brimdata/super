@@ -7,10 +7,11 @@ import (
 )
 
 type Aggregator struct {
-	Pattern agg.Pattern
-	Name    string
-	Expr    Evaluator
-	Where   Evaluator
+	Pattern  agg.Pattern
+	Name     string
+	Distinct bool
+	Expr     Evaluator
+	Where    Evaluator
 }
 
 func NewAggregator(name string, distinct bool, expr Evaluator, where Evaluator) (*Aggregator, error) {
@@ -24,10 +25,11 @@ func NewAggregator(name string, distinct bool, expr Evaluator, where Evaluator) 
 		expr = NewLiteral(super.True)
 	}
 	return &Aggregator{
-		Pattern: pattern,
-		Name:    name,
-		Expr:    expr,
-		Where:   where,
+		Pattern:  pattern,
+		Name:     name,
+		Distinct: distinct,
+		Expr:     expr,
+		Where:    where,
 	}, nil
 }
 
