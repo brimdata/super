@@ -1,23 +1,23 @@
 script: |
-  super -z -c 'select a from "a.jsup" where a < 13 or c==4'
+  super -z -c 'select a from "a.sup" where a < 13 or c==4'
   echo ===
-  super -z -c 'select l.a,r.b from "a.jsup" l join "b.jsup" r on l.c==r.c where len(r.b) >= 3'
+  super -z -c 'select l.a,r.b from "a.sup" l join "b.sup" r on l.c==r.c where len(r.b) >= 3'
   echo ===
-  super -z -c 'select l.a,m.s from "a.jsup" l join "messy.jsup" m on l.c==m.s where m.s==4'
+  super -z -c 'select l.a,m.s from "a.sup" l join "messy.sup" m on l.c==m.s where m.s==4'
 
 inputs:
-  - name: a.jsup
+  - name: a.sup
     data: |
       {a:11,c:1}
       {a:12,c:2}
       {a:13,c:3}
       {a:14,c:4}
-  - name: b.jsup
+  - name: b.sup
     data: |
       {b:[1,2],c:2}
       {b:[3,4,5],c:3}
       {b:[6,7],c:5}
-  - name: messy.jsup
+  - name: messy.sup
     data: |
       {x:1,s:"foo"}
       {x:2,s:"bar"}

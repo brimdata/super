@@ -1,21 +1,21 @@
 script: |
-  super -z -c 'left join (file B.jsup) on s b | sort' A.jsup
+  super -z -c 'left join (file B.sup) on s b | sort' A.sup
   echo ===
-  super -z -c 'left join (file B.jsup) on s=(lower(s)) b | sort' A.jsup
+  super -z -c 'left join (file B.sup) on s=(lower(s)) b | sort' A.sup
   echo ===
-  super -z -c 'left join (file B.jsup) on (lower(s))=(lower(s)) b | sort' A.jsup
+  super -z -c 'left join (file B.sup) on (lower(s))=(lower(s)) b | sort' A.sup
   echo ===
-  super -z -c 'left join (file B.jsup) on s | sort' A.jsup
+  super -z -c 'left join (file B.sup) on s | sort' A.sup
 
 vector: true
 
 inputs:
-  - name: A.jsup
+  - name: A.sup
     data: |
       {a:1(int32),s:"a"}
       {a:2(int32),s:"B"}
       {a:3(int32),s:"c"}
-  - name: B.jsup
+  - name: B.sup
     data: |
       {b:4(int32),s:"A"}
       {b:5(int32),s:"b"}

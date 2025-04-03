@@ -1,8 +1,8 @@
 script: |
-  ! super -z -c 'join on a=b' A.jsup
+  ! super -z -c 'join on a=b' A.sup
 
 inputs:
-  - name: A.jsup
+  - name: A.sup
     data: |
       {a:1(int32)}
       {a:2(int32)}

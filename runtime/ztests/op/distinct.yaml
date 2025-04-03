@@ -1,27 +1,27 @@
 script: |
-  super -z -c 'from "1.jsup" | distinct x'
+  super -z -c 'from "1.sup" | distinct x'
   echo ===
-  super -z -c 'from "2.jsup" | distinct abs(this)'
+  super -z -c 'from "2.sup" | distinct abs(this)'
   echo ===
-  super -z -c 'from "3.jsup" | over this => (distinct this | count())'
+  super -z -c 'from "3.sup" | over this => (distinct this | count())'
 
 vector: true
 
 inputs:
-  - name: 1.jsup
+  - name: 1.sup
     data: |
       {x:1}
       {x:2}
       {x:2}
       {y:3}
       {y:3}(=named)
-  - name: 2.jsup
+  - name: 2.sup
     data: |
       1
       -2
       2
       3
-  - name: 3.jsup
+  - name: 3.sup
     data: |
       [1,2,2,3]
       [2,2,3]

@@ -499,7 +499,7 @@ For example, union and enum values must both appear in a context
 that defines their type.
 
 ```
-<jsup> = <jsup> <eos> <dec-value> | <jsup> <dec-value> | <dec-value>
+<sup> = <sup> <eos> <dec-value> | <sup> <dec-value> | <dec-value>
 
 <eos> = .
 

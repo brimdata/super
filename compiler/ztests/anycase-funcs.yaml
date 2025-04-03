@@ -1,17 +1,17 @@
 script: |
-  super -z -c 'c:=COUNT(),d:=Count(),Collect(LoweR(s)) by key | sort key' in.jsup
+  super -z -c 'c:=COUNT(),d:=Count(),Collect(LoweR(s)) by key | sort key' in.sup
   echo ===
-  super -z -c 'yield LOWER(s),Collect(LoweR(s))' in.jsup
+  super -z -c 'yield LOWER(s),Collect(LoweR(s))' in.sup
   echo ===
-  super -z -c 'Grep(G*)' in.jsup
+  super -z -c 'Grep(G*)' in.sup
   echo ===
-  super -z -c 'yield {s,match:RegEXP("(f|B).*", s)}' in.jsup
+  super -z -c 'yield {s,match:RegEXP("(f|B).*", s)}' in.sup
   echo ===
-  super -z -c 'yield {s,match:RegEXP_REPLACE(s, "(f|B).*", "smash")}' in.jsup
+  super -z -c 'yield {s,match:RegEXP_REPLACE(s, "(f|B).*", "smash")}' in.sup
 
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: |
       {s:"foo",key:1}
       {s:"Bar",key:2}

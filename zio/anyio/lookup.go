@@ -32,8 +32,6 @@ func lookupReader(zctx *super.Context, r io.Reader, opts ReaderOpts) (zio.ReadCl
 		return zio.NopReadCloser(zr), nil
 	case "csv":
 		return zio.NopReadCloser(csvio.NewReader(zctx, r, opts.CSV)), nil
-	case "jsup":
-		return zio.NopReadCloser(zsonio.NewReader(zctx, r)), nil
 	case "line":
 		return zio.NopReadCloser(lineio.NewReader(r)), nil
 	case "json":
@@ -44,6 +42,8 @@ func lookupReader(zctx *super.Context, r io.Reader, opts ReaderOpts) (zio.ReadCl
 			return nil, err
 		}
 		return zio.NopReadCloser(zr), nil
+	case "sup":
+		return zio.NopReadCloser(zsonio.NewReader(zctx, r)), nil
 	case "tsv":
 		opts.CSV.Delim = '\t'
 		return zio.NopReadCloser(csvio.NewReader(zctx, r, opts.CSV)), nil

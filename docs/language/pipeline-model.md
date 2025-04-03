@@ -35,7 +35,7 @@ echo '"hello, world"' | super -
 Many examples throughout the language documentation use this "echo pattern"
 to standard input of `super -`.
 Note that in these examples, the input values are expressed as a sequence of values serialized
-in the [Super JSON format](../formats/jsup.md)
+in the [Super JSON format](../formats/sup.md)
 with query text expressed as the `-c` argument of the `super` command
 in the syntax of the SuperSQL language described here. Some examples are
 instead presented in an interactive form as described in the

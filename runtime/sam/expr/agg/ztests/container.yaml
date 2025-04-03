@@ -1,9 +1,9 @@
 script: |
-  super -z -c "union(x)" in.jsup > union.jsup
-  super -z -c "collect(x)" in.jsup > collect.jsup
+  super -z -c "union(x)" in.sup > union.sup
+  super -z -c "collect(x)" in.sup > collect.sup
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: |
       {x:1(int32)}
       {x:-1(int32)}
@@ -13,9 +13,9 @@ inputs:
       {x:1(int32)}
 
 outputs:
-  - name: union.jsup
+  - name: union.sup
     data: |
       |[1(int32),-1(int32),2(int32),8(int32)]|
-  - name: collect.jsup
+  - name: collect.sup
     data: |
       [1(int32),-1(int32),2(int32),1(int32),8(int32),1(int32)]

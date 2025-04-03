@@ -689,7 +689,7 @@ func handleAuthMethodGet(c *Core, w *ResponseWriter, r *Request) {
 }
 
 func handleEvents(c *Core, w *ResponseWriter, r *Request) {
-	format, err := api.MediaTypeToFormat(r.Header.Get("Accept"), "jsup")
+	format, err := api.MediaTypeToFormat(r.Header.Get("Accept"), "sup")
 	if err != nil {
 		w.Error(srverr.ErrInvalid(err))
 	}

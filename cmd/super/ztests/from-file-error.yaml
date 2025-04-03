@@ -4,9 +4,9 @@ script: |
 inputs:
   - name: query.spq
     data: |
-      file a.jsup
+      file a.sup
 
 outputs:
   - name: stderr
     regexp: |
-      a.jsup: file does not exist.*
+      a.sup: file does not exist.*

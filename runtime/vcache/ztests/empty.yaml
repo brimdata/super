@@ -1,9 +1,9 @@
 script: |
-  super -f csup -o test.csup in.jsup
+  super -f csup -o test.csup in.sup
   super dev vector copy -z test.csup
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: &input |
       {}
       []

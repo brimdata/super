@@ -406,7 +406,7 @@ using the same tag within the union value.
 
 ### Hello, world
 
-Start with this [Super JSON](jsup.md) file `hello.jsup`:
+Start with this [Super JSON](sup.md) file `hello.sup`:
 ```
 {a:"hello",b:"world"}
 {a:"goodnight",b:"gracie"}
@@ -414,7 +414,7 @@ Start with this [Super JSON](jsup.md) file `hello.jsup`:
 
 To convert to Super Columnar format:
 ```
-super -f csup hello.jsup > hello.csup
+super -f csup hello.sup > hello.csup
 ```
 
 Segments in the Super Columnar format would be laid out like this:

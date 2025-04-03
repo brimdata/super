@@ -1,11 +1,11 @@
 script: |
-  super -z -c 'count()' in.jsup
+  super -z -c 'count()' in.sup
   for agg in and any collect dcount fuse min max or sum union; do
-    ! super -z -c "$agg()" in.jsup
+    ! super -z -c "$agg()" in.sup
   done
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: "{}"
 
 outputs:

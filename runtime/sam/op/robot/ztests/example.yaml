@@ -1,30 +1,30 @@
 skip: true
 
 script: |
-  super -z -c 'from files.jsup | from [f]'
+  super -z -c 'from files.sup | from [f]'
   echo ===
-  super -z -c 'from files.jsup | select value this from [f]'
+  super -z -c 'from files.sup | select value this from [f]'
 
 inputs:
-  - name: files.jsup
+  - name: files.sup
     data: |
-      {f:"a.jsup"}
-      {f:"b.jsup"}
-  - name: a.jsup
+      {f:"a.sup"}
+      {f:"b.sup"}
+  - name: a.sup
     data: |
       "hello"
-  - name: b.jsup
+  - name: b.sup
     data: |
       "world"
   - name: query.spq
     data: |
-      FROM gharchive.jsup
+      FROM gharchive.sup
       | SELECT union(repo.name) AS repo, actor.login AS user
         GROUP BY user
         ORDER BY len(repo) DESC
         LIMIT 5
       | FORK (
-        => FROM [f'{user}.jsup']
+        => FROM [f'{user}.sup']
           | SELECT VALUE {user:login,created_at:time(created_at)}
         => PASS
         )

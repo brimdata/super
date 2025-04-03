@@ -2,17 +2,17 @@ script: |
   export SUPER_DB_LAKE=test
   super db init -q
   super db create -use -q logs
-  super db load -q babble-split1.jsup
-  super db load -q babble-split2.jsup
+  super db load -q babble-split1.sup
+  super db load -q babble-split2.sup
   super db query -Z "from logs@main:objects | sort -r size | drop id"
 
 inputs:
-  - name: babble.jsup
-    source: ../../testdata/babble.jsup
-  - name: babble-split1.jsup
-    source: ../../testdata/babble-split1.jsup
-  - name: babble-split2.jsup
-    source: ../../testdata/babble-split2.jsup
+  - name: babble.sup
+    source: ../../testdata/babble.sup
+  - name: babble-split1.sup
+    source: ../../testdata/babble-split1.sup
+  - name: babble-split2.sup
+    source: ../../testdata/babble-split2.sup
 
 outputs:
   - name: stdout

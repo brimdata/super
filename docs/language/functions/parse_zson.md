@@ -10,7 +10,7 @@ parse_zson(s: string) -> any
 
 ### Description
 
-XXX change this to `parse_jsup()`
+XXX change this to `parse_sup()`
 
 The _parse_zson_ function parses the `s` argument that must be in the form
 of Super JSON or JSON into a value of any type.  This is analogous to JavaScript's

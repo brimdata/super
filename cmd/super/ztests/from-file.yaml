@@ -1,14 +1,14 @@
 script: |
-  super -z -c 'file a.jsup'
+  super -z -c 'file a.sup'
   super -z -I query.zed
 
 inputs:
-  - name: a.jsup
+  - name: a.sup
     data: |
       {a:1}
   - name: query.zed
     data: |
-      file a.jsup
+      file a.sup
 
 outputs:
   - name: stdout

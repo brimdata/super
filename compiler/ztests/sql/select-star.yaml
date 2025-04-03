@@ -1,10 +1,10 @@
 script: |
-  super -z -c 'select * from "a.jsup"'
+  super -z -c 'select * from "a.sup"'
   echo ===
-  super -z -c 'select *,c+a as x from "a.jsup"'
+  super -z -c 'select *,c+a as x from "a.sup"'
 
 inputs:
-  - name: a.jsup
+  - name: a.sup
     data: |
       {c:1,a:11}
       {c:2,a:12}

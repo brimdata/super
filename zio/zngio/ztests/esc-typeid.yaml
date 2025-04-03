@@ -1,7 +1,7 @@
-script: super in.jsup | super -z -
+script: super in.sup | super -z -
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: &input |
       {f0:0}
       {f1:1}

@@ -1,18 +1,18 @@
 script: |
-  super -z -c 'from which.jsup | select value s from eval(["a"+string(val)+".jsup","a"+string(val+1)+".jsup"])'
+  super -z -c 'from which.sup | select value s from eval(["a"+string(val)+".sup","a"+string(val+1)+".sup"])'
 
 inputs:
-  - name: which.jsup
+  - name: which.sup
     data: |
       {val:1}
       {val:2}
-  - name: a1.jsup
+  - name: a1.sup
     data: |
       {s:"hello"}
-  - name: a2.jsup
+  - name: a2.sup
     data: |
       {s:"world"}
-  - name: a3.jsup
+  - name: a3.sup
     data: |
       {s:"goodbye"}
 

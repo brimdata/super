@@ -1,25 +1,25 @@
 script: |
-  super -z -c 'file a.jsup | join (file b.jsup) on a=b | sort'
+  super -z -c 'file a.sup | join (file b.sup) on a=b | sort'
   echo '// ==='
-  super -z -c 'file a.jsup | join (file b.jsup | sort -r b) on a=b | sort'
+  super -z -c 'file a.sup | join (file b.sup | sort -r b) on a=b | sort'
   echo '// ==='
-  super -z -c 'file a.jsup | join (file b.jsup | sort b) on a=b | sort'
+  super -z -c 'file a.sup | join (file b.sup | sort b) on a=b | sort'
   echo '// ==='
-  super -z -c 'file a.jsup | sort a | join (file b.jsup | sort -r b) on a=b | sort'
+  super -z -c 'file a.sup | sort a | join (file b.sup | sort -r b) on a=b | sort'
   echo '// ==='
-  super -z -c 'file a.jsup | sort -r a | join (file b.jsup) on a=b | sort'
+  super -z -c 'file a.sup | sort -r a | join (file b.sup) on a=b | sort'
   echo '// ==='
-  super -z -c 'file a.jsup | sort -r a | join (file b.jsup | sort b) on a=b | sort'
+  super -z -c 'file a.sup | sort -r a | join (file b.sup | sort b) on a=b | sort'
 
 vector: true
 
 inputs:
-  - name: a.jsup
+  - name: a.sup
     data: |
       {a:null(int64)}
       {a:1}
       {a:2}
-  - name: b.jsup
+  - name: b.sup
     data: |
       {b:2}
       {b:1}

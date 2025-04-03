@@ -1,13 +1,13 @@
 script: |
-  ! super -z -c "cut rec,other,rec" in.jsup
-  ! super -z -c "cut rec.sub1,rec.sub1" in.jsup
-  ! super -z -c "cut rec.sub,rec.sub.sub" in.jsup
-  ! super -z -c "cut rec.sub.sub,rec.sub" in.jsup
+  ! super -z -c "cut rec,other,rec" in.sup
+  ! super -z -c "cut rec.sub1,rec.sub1" in.sup
+  ! super -z -c "cut rec.sub,rec.sub.sub" in.sup
+  ! super -z -c "cut rec.sub.sub,rec.sub" in.sup
 
 vector: true
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: |
       {}
 

@@ -3,12 +3,12 @@ script: |
   export SUPER_DB_LAKE=s3://bucket/lake_test
   super db init -q
   super db create -q logs
-  super db load -q -use logs babble.jsup
+  super db load -q -use logs babble.sup
   super db query -z "from logs | count()"
 
 inputs:
-  - name: babble.jsup
-    source: ../../../testdata/babble.jsup
+  - name: babble.sup
+    source: ../../../testdata/babble.sup
   - name: minio.sh
     source: ../../../testdata/minio.sh
 

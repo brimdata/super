@@ -5,15 +5,15 @@ inputs:
     data: |
       const A=1
       from (
-        file a.jsup => put x:=A+1
-        file b.jsup => put x:=A
+        file a.sup => put x:=A+1
+        file b.sup => put x:=A
       ) | sort x
 
-  - name: a.jsup
+  - name: a.sup
     data: |
       {a:1}
 
-  - name: b.jsup
+  - name: b.sup
     data: |
       {b:2}
 

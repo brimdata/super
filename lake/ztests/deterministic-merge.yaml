@@ -2,12 +2,12 @@ script: |
   export SUPER_DB_LAKE=test
   super db init -q
   super db create -q -S 32B -orderby ts:asc logs
-  super db load -q -use logs in.jsup
-  super db query -z "from logs" > 1.jsup
-  super db query -z "from logs" > 2.jsup
+  super db load -q -use logs in.sup
+  super db query -z "from logs" > 1.sup
+  super db query -z "from logs" > 2.sup
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: |
       {ts:1970-01-01T00:00:01Z,s:"Potamogalidae-precommissure",v:51}
       {ts:1970-01-01T00:00:02Z,s:"Galchic-unwheeled",v:51}
@@ -24,8 +24,8 @@ inputs:
       {ts:1970-01-01T00:00:13Z,s:"crosshaul-capersome",v:109}
 
 outputs:
-  - name: 1.jsup
-    data: &1_jsup |
+  - name: 1.sup
+    data: &1_sup |
       {ts:1970-01-01T00:00:01Z,s:"Potamogalidae-precommissure",v:51}
       {ts:1970-01-01T00:00:02Z,s:"Galchic-unwheeled",v:51}
       {ts:1970-01-01T00:00:03Z,s:"protohydrogen-plesiomorphism",v:320}
@@ -39,5 +39,5 @@ outputs:
       {ts:1970-01-01T00:00:11Z,s:"psalis-Guarnieri",v:456}
       {ts:1970-01-01T00:00:12Z,s:"subarea-preoffense",v:373}
       {ts:1970-01-01T00:00:13Z,s:"crosshaul-capersome",v:109}
-  - name: 2.jsup
-    data: *1_jsup
+  - name: 2.sup
+    data: *1_sup

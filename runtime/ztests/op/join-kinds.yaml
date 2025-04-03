@@ -1,17 +1,17 @@
 script: |
   echo === ANTI ===
-  super -z -c 'anti join (file B.jsup) on a=b | sort a' A.jsup
+  super -z -c 'anti join (file B.sup) on a=b | sort a' A.sup
   echo === LEFT ===
-  super -z -c 'left join (file B.jsup) on a=b hit:=sb | sort a' A.jsup
+  super -z -c 'left join (file B.sup) on a=b hit:=sb | sort a' A.sup
   echo === INNER ===
-  super -z -c 'inner join (file B.jsup) on a=b hit:=sb | sort a' A.jsup
+  super -z -c 'inner join (file B.sup) on a=b hit:=sb | sort a' A.sup
   echo === RIGHT ===
-  super -z -c 'right join (file C.jsup) on b=c hit:=sb | sort c' B.jsup
+  super -z -c 'right join (file C.sup) on b=c hit:=sb | sort c' B.sup
 
 vector: true
 
 inputs:
-  - name: A.jsup
+  - name: A.sup
     data: |
       {a:10,sa:"a0"}
       {a:15,sa:"a8"}
@@ -23,14 +23,14 @@ inputs:
       {a:45,sa:"a5"}
       {a:50,sa:"a4"}
       {anti_a:"Anti join output must not contain this record."}
-  - name: B.jsup
+  - name: B.sup
     data: |
       {b:20,sb:"b20.1"}
       {b:20,sb:"b20.2"}
       {b:40,sb:"b40"}
       {b:40,sb:"b40.2"}
       {b:60,sb:"b60"}
-  - name: C.jsup
+  - name: C.sup
     data: |
       {c:15,sc:"c8"}
       {c:20,sc:"c1"}

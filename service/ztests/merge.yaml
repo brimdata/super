@@ -1,19 +1,19 @@
 script: |
   source service.sh
   super db create -q POOL
-  super db load -q -use POOL a.jsup
+  super db load -q -use POOL a.sup
   super db branch -q -use POOL child
-  super db load -q -use POOL@child b.jsup
+  super db load -q -use POOL@child b.sup
   super db query -z "from POOL | sort this"
   echo ===
   super db merge -q -use POOL@child main
   super db query -z "from POOL | sort this"
 
 inputs:
-  - name: a.jsup
+  - name: a.sup
     data: |
       {a:1}
-  - name: b.jsup
+  - name: b.sup
     data: |
       {b:1}
   - name: service.sh

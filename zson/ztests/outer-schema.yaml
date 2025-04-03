@@ -1,8 +1,8 @@
 script: |
-  super -z in.jsup
+  super -z in.sup
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: |
       {city:"Berkeley",state:"CA",population:121643(uint32)}(=city_schema)
       {city:"Broad Cove",state:"ME",population:806(uint32)}(=city_schema)

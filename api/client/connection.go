@@ -405,7 +405,7 @@ func (c *Connection) doVector(ctx context.Context, pool, revision string, object
 
 func (c *Connection) SubscribeEvents(ctx context.Context) (*EventsClient, error) {
 	req := c.NewRequest(ctx, http.MethodGet, "/events", nil)
-	req.Header.Set("Accept", api.MediaTypeJSUP)
+	req.Header.Set("Accept", api.MediaTypeSUP)
 	resp, err := c.Do(req)
 	if err != nil {
 		return nil, err

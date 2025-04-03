@@ -1,8 +1,8 @@
 script: |
-  super -z in.jsup
+  super -z in.sup
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: |
       {a:"hello",b:[{a:"a",b:"b"},{a:"c",b:"d"},{a:"e",b:"f"}]}
       {a:"world",b:null([{a:string,b:string}])}

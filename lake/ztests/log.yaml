@@ -2,15 +2,15 @@ script: |
   export SUPER_DB_LAKE=test
   super db init -q
   super db create -use -q test
-  super db load -q -user testuser 1.jsup
-  super db load -q -user testuser 2.jsup
+  super db load -q -user testuser 1.sup
+  super db load -q -user testuser 2.sup
   super db log
 
 inputs:
-  - name: 1.jsup
+  - name: 1.sup
     data: |
       {x:1}
-  - name: 2.jsup
+  - name: 2.sup
     data: |
       {x:2}
 

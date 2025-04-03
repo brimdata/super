@@ -1,13 +1,13 @@
 script: |
-  super -z -c 'SELECT * FROM a.jsup UNION ALL SELECT * FROM b.jsup |> sort'
+  super -z -c 'SELECT * FROM a.sup UNION ALL SELECT * FROM b.sup |> sort'
 
 vector: true
 
 inputs:
-  - name: a.jsup
+  - name: a.sup
     data: |
       {x:1,y:2}
-  - name: b.jsup
+  - name: b.sup
     data: |
       {x:1,y:2}
       {y:3,x:4}

@@ -1,9 +1,9 @@
 script: |
-  super -aggmem 1B -z -c 'collect(this)' a.jsup
-  ! super -aggmem 0 a.jsup
+  super -aggmem 1B -z -c 'collect(this)' a.sup
+  ! super -aggmem 0 a.sup
 
 inputs:
-  - name: a.jsup
+  - name: a.sup
     data: |
       {a:1}
 

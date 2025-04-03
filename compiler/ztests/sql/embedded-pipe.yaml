@@ -6,19 +6,19 @@ inputs:
     data: |
       select *
       from (
-        select * from "a.jsup"
+        select * from "a.sup"
         | drop c
         | put a:=a-10
       ) l
-      join "b.jsup" r on l.a==r.c
+      join "b.sup" r on l.a==r.c
       order by l.a 
-  - name: a.jsup
+  - name: a.sup
     data: |
       {c:1,a:11}
       {c:2,a:12}
       {c:3,a:13}
       {c:4,a:14}
-  - name: b.jsup
+  - name: b.sup
     data: |
       {b:[1,2],c:2}
       {b:[3,4,5],c:3}

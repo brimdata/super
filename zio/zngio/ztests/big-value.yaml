@@ -1,5 +1,5 @@
 script: |
-  super -o out.bsup in.jsup
+  super -o out.bsup in.sup
   for i in {1..7}; do
     cat out.bsup out.bsup out.bsup out.bsup > out2.bsup
     mv out2.bsup out.bsup
@@ -8,7 +8,7 @@ script: |
   ! super  -i bsup -o /dev/null -bsup.readmax 10KB -c "count:=count()" bigrow.bsup
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: |
       {s:"big data"}
       {s:"too big"}

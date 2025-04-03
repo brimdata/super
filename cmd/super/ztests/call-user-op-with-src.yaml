@@ -5,9 +5,9 @@ inputs:
   - name: countfile.zed
     data: |
       op countfile(): (
-        file test.jsup | count()
+        file test.sup | count()
       )
-  - name: test.jsup
+  - name: test.sup
     data: '{} {} {} {}'
 
 outputs:

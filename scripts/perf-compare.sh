@@ -82,8 +82,8 @@ do
     echo -e "### $DESC\n" | tee "$MD"
     echo "|**<br>Tool**|**<br>Arguments**|**Input<br>Format**|**Output<br>Format**|**<br>Real**|**<br>User**|**<br>Sys**|" | tee -a "$MD"
     echo "|:----------:|:---------------:|:-----------------:|:------------------:|-----------:|-----------:|----------:|" | tee -a "$MD"
-    for INPUT in zeek bsup bsup-uncompressed jsup json ; do
-      for OUTPUT in zeek bsup bsup-uncompressed jsup json ; do
+    for INPUT in zeek bsup bsup-uncompressed json sup ; do
+      for OUTPUT in zeek bsup bsup-uncompressed json sup ; do
         spq=${SPQS[$n]}
         echo -n "|\`super\`|\`$spq\`|$INPUT|$OUTPUT|" | tee -a "$MD"
         case $INPUT in

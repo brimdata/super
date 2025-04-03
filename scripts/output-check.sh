@@ -23,7 +23,7 @@ echo
 scripts/check_md5sums.sh bsup-uncompressed
 ZNG_UNCOMPRESSED_SUCCESS="$?"
 echo
-scripts/check_md5sums.sh jsup
+scripts/check_md5sums.sh sup
 ZSON_SUCCESS="$?"
 echo
 

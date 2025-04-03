@@ -28,14 +28,14 @@ func TestDirS3Source(t *testing.T) {
 	defer ctrl.Finish()
 	engine := storagemock.NewMockEngine(ctrl)
 
-	engine.EXPECT().Put(context.Background(), uri.JoinPath("conn.jsup")).
+	engine.EXPECT().Put(context.Background(), uri.JoinPath("conn.sup")).
 		Return(zio.NopCloser(bytes.NewBuffer(nil)), nil)
-	engine.EXPECT().Put(context.Background(), uri.JoinPath("http.jsup")).
+	engine.EXPECT().Put(context.Background(), uri.JoinPath("http.sup")).
 		Return(zio.NopCloser(bytes.NewBuffer(nil)), nil)
 
 	r := zsonio.NewReader(super.NewContext(), strings.NewReader(input))
 	require.NoError(t, err)
-	w, err := NewSplit(context.Background(), engine, uri, "", false, anyio.WriterOpts{Format: "jsup"})
+	w, err := NewSplit(context.Background(), engine, uri, "", false, anyio.WriterOpts{Format: "sup"})
 	require.NoError(t, err)
 	require.NoError(t, zio.Copy(w, r))
 }

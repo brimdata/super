@@ -1,10 +1,10 @@
 script: |
   source service.sh
   super db create -q test
-  super db load -use test in.jsup
+  super db load -use test in.sup
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: |
       {x:1}
   - name: service.sh

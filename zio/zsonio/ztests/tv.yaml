@@ -1,6 +1,6 @@
 zed: "put t:=typeof(s) | put tt:=typeof(t)"
 
-output-flags: -f jsup -pretty=4
+output-flags: -f sup -pretty=4
 
 input: |
   {s:"hello",n:123(int32),a:[1(foo=uint8),2(foo),3(foo)]}

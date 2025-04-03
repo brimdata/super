@@ -2,11 +2,11 @@ script: |
   export SUPER_DB_LAKE=test
   super db init -q
   super db create -q -S 75B -orderby addr:asc logs
-  super db load -q -use logs in.jsup
+  super db load -q -use logs in.sup
   super db query -z 'from logs | cut addr'
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: |
       {ts:2018-03-24T17:16:15.624089Z,addr:10.128.0.241,uid:"CzJyWf4UbQbYGKPUKl"}
       {ts:2018-03-24T17:15:32.124366Z,addr:10.128.0.248,uid:"CzMQei2GoNVRxPPeGa"}

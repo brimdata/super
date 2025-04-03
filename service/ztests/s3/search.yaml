@@ -4,13 +4,13 @@ script: |
   source services.sh s3://bucket/lake
   super db new -S 20KiB test
   super db use test -q
-  super db post babble.jsup >/dev/null
+  super db post babble.sup >/dev/null
   echo ===
   super db get -z 's=="harefoot-raucous"'
 
 inputs:
-  - name: babble.jsup
-    source: ../../../testdata/babble.jsup
+  - name: babble.sup
+    source: ../../../testdata/babble.sup
   - name: services.sh
     source: ../services.sh
 

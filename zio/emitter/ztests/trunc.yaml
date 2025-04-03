@@ -1,13 +1,13 @@
 script: |
- super - | super -z -o out.jsup long.jsup
- super - | super -z -o out.jsup short.jsup
- super -z out.jsup
+ super - | super -z -o out.sup long.sup
+ super - | super -z -o out.sup short.sup
+ super -z out.sup
 
 inputs:
-  - name: short.jsup
+  - name: short.sup
     data: |
       {a:"hello"}
-  - name: long.jsup
+  - name: long.sup
     data: |
       {a:"hello"}
       {a:"there"}

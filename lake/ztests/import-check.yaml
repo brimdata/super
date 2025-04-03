@@ -2,10 +2,10 @@ script: |
   export SUPER_DB_LAKE=test
   super db init -q
   super db create -q logs
-  ! super db load -q -use logs missingfield.jsup
+  ! super db load -q -use logs missingfield.sup
 
 inputs:
-  - name: missingfield.jsup
+  - name: missingfield.sup
     data: |
       {a:"a",b:"b"} (=foo)
       {a:"a"} (foo)

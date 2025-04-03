@@ -8,12 +8,12 @@ heading: ZJSON Specification
 
 The [super data model](data-model.md)
 is based on richly typed records with a deterministic field order,
-as is implemented by the [Super JSON](jsup.md), [Super Binary](bsup.md), and [Super Columnar](csup.md) formats.
+as is implemented by the [Super JSON](sup.md), [Super Binary](bsup.md), and [Super Columnar](csup.md) formats.
 Given the ubiquity of JSON, it is desirable to also be able to serialize
 super data into the JSON format.   However, encoding super data values
 directly as JSON values would not work without loss of information.
 
-For example, consider this [Super JSON](jsup.md) data:
+For example, consider this [Super JSON](sup.md) data:
 ```
 {
     ts: 2018-03-24T17:15:21.926018012Z,
@@ -256,7 +256,7 @@ as described recursively herein,
 * a type value is encoded [as above](#21-type-encoding),
 * each primitive that is not a type value
 is encoded as a string conforming to its Super JSON representation, as described in the
-[corresponding section of the Super JSON specification](jsup.md#23-primitive-values).
+[corresponding section of the Super JSON specification](sup.md#23-primitive-values).
 
 For example, a record with three fields --- a string, an array of integers,
 and an array of union of string, and float64 --- might have a value that looks like this:
@@ -274,9 +274,9 @@ writes its ZJSON output as lines of NDJSON.
 ## 4. Example
 
 Here is an example that illustrates values of a repeated type,
-nesting, records, array, and union. Consider the file `input.jsup`:
+nesting, records, array, and union. Consider the file `input.sup`:
 
-```mdtest-input input.jsup
+```mdtest-input input.sup
 {s:"hello",r:{a:1,b:2}}
 {s:"world",r:{a:3,b:4}}
 {s:"hello",r:{a:[1,2,3]}}
@@ -287,7 +287,7 @@ nesting, records, array, and union. Consider the file `input.jsup`:
 This data is represented in ZJSON as follows:
 
 ```mdtest-command
-super -f zjson input.jsup | jq .
+super -f zjson input.sup | jq .
 ```
 
 ```mdtest-output

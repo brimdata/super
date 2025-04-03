@@ -1,11 +1,11 @@
 script: |
-  super -z -e=false good.jsup bad.jsup
+  super -z -e=false good.sup bad.sup
 
 inputs:
-  - name: good.jsup
+  - name: good.sup
     data: |
       {_path:"conn",ts:1970-01-01T00:00:01Z}
-  - name: bad.jsup
+  - name: bad.sup
     data: |
       This is not a detectable format.
 
@@ -15,4 +15,4 @@ outputs:
       {_path:"conn",ts:1970-01-01T00:00:01Z}
   - name: stderr
     regexp: |
-      bad.jsup: format detection error.*
+      bad.sup: format detection error.*

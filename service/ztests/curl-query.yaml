@@ -2,7 +2,7 @@ script: |
   source service.sh
   super db create -q test
   super db load -q -use test -
-  for accept in text/csv application/{json,x-ndjson,x-zeek,x-zjson,x-jsup} ""; do
+  for accept in text/csv application/{json,x-ndjson,x-sup,x-zeek,x-zjson} ""; do
     echo === $accept ===
     curl -H "Accept: $accept" -d '{"query":"from test"}' $SUPER_DB_LAKE/query\?ctrl=true |
       sed -E '/QueryStats/s/[0-9]{3,}/xxx/g' # for ZJSON
@@ -35,6 +35,9 @@ outputs:
       === application/x-ndjson ===
       {"a":"hello","b":{"c":"world","d":"goodbye"}}
       {"a":"one","b":{"c":"two","d":"three"}}
+      === application/x-sup ===
+      {a:"hello",b:{c:"world",d:"goodbye"}}
+      {a:"one",b:{c:"two",d:"three"}}
       === application/x-zeek ===
       #separator \x09
       #set_separator	,
@@ -50,9 +53,6 @@ outputs:
       {"type":{"kind":"ref","id":31},"value":["one",["two","three"]]}
       {"type":"QueryChannelEnd","value":{"channel":"main"}}
       {"type":"QueryStats","value":{"start_time":{"sec":xxx,"ns":xxx},"update_time":{"sec":xxx,"ns":xxx},"bytes_read":36,"bytes_matched":36,"records_read":2,"records_matched":2}}
-      === application/x-jsup ===
-      {a:"hello",b:{c:"world",d:"goodbye"}}
-      {a:"one",b:{c:"two",d:"three"}}
       === ===
       {a:"hello",b:{c:"world",d:"goodbye"}}
       {a:"one",b:{c:"two",d:"three"}}

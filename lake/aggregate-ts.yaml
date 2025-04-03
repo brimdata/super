@@ -1,11 +1,11 @@
 script: |
   export SUPER_DB_LAKE=test
   super db init -q
-  # aggregate-ts.jsup contains records over two days, mapping to two partitions, and
+  # aggregate-ts.sup contains records over two days, mapping to two partitions, and
   # the small target size here causes each partition to have several segments.
   super db create -q -S 256B logs
   # causes parition to have several chunk files.
-  super db load -q -use logs aggregate-ts.jsup
+  super db load -q -use logs aggregate-ts.sup
   echo ===
   super db query -z 'from logs | head 1'
   echo ===
@@ -18,8 +18,8 @@ script: |
   super db query -z 'from logs | count:=count() by every(3600s), g | sort ts, g'
 
 inputs:
-  - name: aggregate-ts.jsup
-    source: ../testdata/aggregate-ts.jsup
+  - name: aggregate-ts.sup
+    source: ../testdata/aggregate-ts.sup
 
 outputs:
   - name: stdout

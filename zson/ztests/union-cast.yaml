@@ -1,8 +1,8 @@
 script: |
-  super -z -c "by typeof(this) | sort this" in.jsup
+  super -z -c "by typeof(this) | sort this" in.sup
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: |
       {
           r: {

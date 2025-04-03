@@ -1,11 +1,11 @@
 script: |
   . http.bash
-  super -z -c 'count()' $http_base_url/babble.jsup
+  super -z -c 'count()' $http_base_url/babble.sup
 
 inputs:
   - name: http.bash
-  - name: babble.jsup
-    source: ../../../testdata/babble.jsup
+  - name: babble.sup
+    source: ../../../testdata/babble.sup
 
 outputs:
   - name: stdout

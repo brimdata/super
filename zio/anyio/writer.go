@@ -43,8 +43,6 @@ func NewWriter(w io.WriteCloser, opts WriterOpts) (zio.WriteCloser, error) {
 		return csupio.NewWriter(w), nil
 	case "csv":
 		return csvio.NewWriter(w, opts.CSV), nil
-	case "jsup", "":
-		return zsonio.NewWriter(w, opts.ZSON), nil
 	case "json":
 		return jsonio.NewWriter(w, opts.JSON), nil
 	case "lake":
@@ -55,6 +53,8 @@ func NewWriter(w io.WriteCloser, opts WriterOpts) (zio.WriteCloser, error) {
 		return &nullWriter{}, nil
 	case "parquet":
 		return parquetio.NewWriter(w), nil
+	case "sup", "":
+		return zsonio.NewWriter(w, opts.ZSON), nil
 	case "table":
 		return tableio.NewWriter(w), nil
 	case "text":

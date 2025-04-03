@@ -10,11 +10,11 @@ inputs:
       2
 
 outputs:
-  - name: dir/0.jsup
+  - name: dir/0.sup
     data: |
       1
       2
-  - name: dir/1.jsup
+  - name: dir/1.sup
     data: |
       {a:1}
       {a:2}

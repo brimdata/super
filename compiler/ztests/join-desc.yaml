@@ -1,21 +1,21 @@
 script: |
-  super -z -I file.zed > file.jsup
+  super -z -I file.zed > file.sup
   export SUPER_DB_LAKE=test
   super db init -q 
   super db create -q -use -orderby likes:desc people 
-  super db load -q people.jsup
+  super db load -q people.sup
   super db create -q -use -orderby flavor:desc fruits
-  super db load -q fruits.jsup
-  super db query -z -I pool.zed > pool.jsup
+  super db load -q fruits.sup
+  super db query -z -I pool.zed > pool.sup
 
 inputs:
-  - name: people.jsup
+  - name: people.sup
     data: |
       {"name":"morgan","age":61,"likes":"tart"}
       {"name":"quinn","age":14,"likes":"sweet","note":"many kids enjoy sweets"}
       {"name":"jessie","age":30,"likes":"plain"}
       {"name":"chris","age":47,"likes":"tart"}
-  - name: fruits.jsup
+  - name: fruits.sup
     data: |
       {"name":"apple","color":"red","flavor":"tart"}
       {"name":"banana","color":"yellow","flavor":"sweet"}
@@ -25,8 +25,8 @@ inputs:
       {"name":"figs","color":"brown","flavor":"plain"}
   - name: file.zed
     data: |
-      file fruits.jsup | sort -r flavor
-      | join (file people.jsup | sort -r likes) on flavor=likes eater:=name
+      file fruits.sup | sort -r flavor
+      | join (file people.sup | sort -r likes) on flavor=likes eater:=name
   - name: pool.zed
     data: |
       from fruits
@@ -35,7 +35,7 @@ inputs:
 outputs:
   - name: stdout
     data: ""
-  - name: file.jsup
+  - name: file.sup
     data: |
       {name:"apple",color:"red",flavor:"tart",eater:"morgan"}
       {name:"apple",color:"red",flavor:"tart",eater:"chris"}
@@ -43,7 +43,7 @@ outputs:
       {name:"strawberry",color:"red",flavor:"sweet",eater:"quinn"}
       {name:"dates",color:"brown",flavor:"sweet",note:"in season",eater:"quinn"}
       {name:"figs",color:"brown",flavor:"plain",eater:"jessie"}
-  - name: pool.jsup
+  - name: pool.sup
     data: |
       {name:"apple",color:"red",flavor:"tart",eater:"morgan"}
       {name:"apple",color:"red",flavor:"tart",eater:"chris"}

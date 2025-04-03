@@ -38,7 +38,7 @@ as well as [`jq`](https://jqlang.org/download/).
 ## But JSON
 
 While `super` is based on a new type of [data model](../formats/data-model.md),
-its human-readable format [Super JSON (JSUP)](../formats/jsup.md) just so
+its human-readable format [Super JSON (SUP)](../formats/sup.md) just so
 happens to be a superset of JSON.
 
 So if all you ever use `super` for is manipulating JSON data,
@@ -53,7 +53,7 @@ and it is usually faster, sometimes [much faster](https://github.com/brimdata/su
 than `jq`.
 
 To this end, if you want full JSON compatibility without having to delve into the
-details of JSUP, just use the `-j` option with `super` and this will tell it to
+details of SUP, just use the `-j` option with `super` and this will tell it to
 expect JSON values as input and produce JSON values as output, much like `jq`.
 
 {{% tip "Tip" %}}
@@ -93,7 +93,7 @@ which also gives
 {{% tip "Note" %}}
 
 We are using the `-z` option with `super` in all of the examples,
-which formats the output as [JSUP](../formats/jsup.md).
+which formats the output as [SUP](../formats/sup.md).
 When running `super` on the terminal, you do not need `-z` as it is the default,
 but we include it here for clarity and because all of these examples are
 run through automated testing, which is not attached to a terminal.
@@ -169,7 +169,7 @@ now gives the same answer as `jq`:
 Cool, but doesn't it seem like search is a better disposition for
 shorthand syntax?  What do you think?
 
-## On to JSUP
+## On to SUP
 
 JSON is super easy and ubiquitous, but it can be limiting and frustrating when
 trying to do high-precision stuff with data.
@@ -177,19 +177,19 @@ trying to do high-precision stuff with data.
 When using `super`, it's handy to operate in the
 domain of [super-structured data](../formats/_index.md#2-a-super-structured-pattern) and only output to
 JSON when needed. Providing human-readability without losing detail is what
-[Super JSON (JSUP)](../formats/jsup.md) is all about.
+[Super JSON (SUP)](../formats/sup.md) is all about.
 
-JSUP is nice because it has a comprehensive type system and you can
-go from JSUP to an efficient binary row format ([Super Binary, BSUP)](../formats/bsup.md)
+SUP is nice because it has a comprehensive type system and you can
+go from SUP to an efficient binary row format ([Super Binary, BSUP)](../formats/bsup.md)
 and columnar ([Super Columnar, CSUP)](../formats/csup.md) --- and vice versa ---
 with complete fidelity and no loss of information.  In this tour,
-we'll stick to JSUP, though for large data sets
+we'll stick to SUP, though for large data sets
 [Super Binary is much faster](https://github.com/brimdata/super/tree/main/performance).
 
-The first thing you'll notice about JSUP is that you don't need
+The first thing you'll notice about SUP is that you don't need
 quotations around field names.  We can see this by taking some JSON
 as input (the JSON format is auto-detected by `super`) and formatting
-it as pretty-printed JSUP with `-Z`:
+it as pretty-printed SUP with `-Z`:
 ```mdtest-command
 echo '{"s":"hello","val":1,"a":[1,2],"b":true}' | super -Z -
 ```
@@ -206,7 +206,7 @@ which gives
 }
 ```
 `s`, `val`, `a`, and `b` all appear as unquoted identifiers here.
-Of course if you have funny characters in a field name, JSUP can handle
+Of course if you have funny characters in a field name, SUP can handle
 it with quotes just like JSON:
 ```mdtest-command
 echo '{"funny@name":1}' | super -z -
@@ -215,7 +215,7 @@ produces
 ```mdtest-output
 {"funny@name":1}
 ```
-Moreover, JSUP is fully compatible with all of JSON's corner cases like empty string
+Moreover, SUP is fully compatible with all of JSON's corner cases like empty string
 as a field name and empty object as a value, e.g.,
 ```mdtest-command
 echo '{"":{}}' | super -z -
@@ -227,9 +227,9 @@ produces
 
 ## Comprehensive Types
 
-JSUP also has a [comprehensive type system](../formats/data-model.md).
+SUP also has a [comprehensive type system](../formats/data-model.md).
 
-For example, here is a JSUP "record" with a taste of different types
+For example, here is a SUP "record" with a taste of different types
 of values as record fields:
 ```
 {
@@ -270,7 +270,7 @@ Here, `v1` is a 64-bit IEEE floating-point value just like JSON.
 
 Unlike JSON, `v2` is a 64-bit integer.  And there are other integer
 types as with `v3`,
-which utilizes a [JSUP type decorator](../formats/jsup.md#22-type-decorators),
+which utilizes a [SUP type decorator](../formats/sup.md#22-type-decorators),
 in this case,
 to clarify its specific type of integer as unsigned 8 bits.
 
@@ -438,7 +438,7 @@ of the new
 ## First-class Types
 
 Note that in the type value above, the type is wrapped in angle brackets.
-This is how JSUP represents types when expressed as values.
+This is how SUP represents types when expressed as values.
 In other words, the super data model has
 [first-class](https://en.wikipedia.org/wiki/First-class_citizen) types.
 
@@ -552,7 +552,7 @@ like this in isolation:
 you have no idea what the expected data type of `b` will be.  Maybe it's another
 number?  Or maybe a string?  Or maybe an array or an embedded object?
 
-`super` and JSUP don't have this problem because every value (even `null`) is
+`super` and SUP don't have this problem because every value (even `null`) is
 comprehensively typed.  However, `super` in fact must deal with this thorny problem
 when reading JSON and converting it to super-structured data.
 
@@ -573,7 +573,7 @@ sense, e.g.,
 ```mdtest-command
 echo '{a:1,b:null}{a:null,b:[2,3,4]}' | super -z -c fuse -
 ```
-produces this transformed and comprehensively-typed JSUP output:
+produces this transformed and comprehensively-typed SUP output:
 ```mdtest-output
 {a:1,b:null([int64])}
 {a:null(int64),b:[2,3,4]}
@@ -693,13 +693,13 @@ super -Z -c 'over this | sample' prs.json
 {{% tip "Tip" %}}
 
 Here we are using `-Z`, which is like `-z`, but instead of formatting each
-JSUP value on its own line, it pretty-prints with vertical
+SUP value on its own line, it pretty-prints with vertical
 formatting like `jq` does for JSON.
 
 {{% /tip %}}
 
 Ugh, that output is still pretty big.  It's not 10k lines but it's still
-more than 700 lines of pretty-printed JSUP.
+more than 700 lines of pretty-printed SUP.
 
 Ok, maybe it's not so bad.  Let's check how many shapes there are with `sample`...
 ```mdtest-command dir=docs/tutorials
@@ -820,7 +820,7 @@ and focus on other top-level fields.  To do this, we can use the
 ```
 super -Z -c 'over this | fuse | drop head,base,_link | sample' prs.json
 ```
-Ok, this looks more reasonable and is now only 120 lines of pretty-printed JSUP.
+Ok, this looks more reasonable and is now only 120 lines of pretty-printed SUP.
 
 One more annoying detail here about JSON: time values are stored as strings,
 in this case, in ISO format, e.g., we can pull this value out with

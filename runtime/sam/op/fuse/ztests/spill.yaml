@@ -1,9 +1,9 @@
 # 13B is enough to buffer the first record in memory but not the second.
 script: |
-  super -z -fusemem 13B -c fuse in.jsup
+  super -z -fusemem 13B -c fuse in.sup
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: |
       {a:"hello",b:"world"}
       {b:"goodnight",c:"gracie"}

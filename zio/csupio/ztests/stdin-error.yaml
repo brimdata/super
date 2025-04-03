@@ -1,9 +1,9 @@
 script: |
-  super -f csup -o t.csup in.jsup
+  super -f csup -o t.csup in.sup
   ! cat t.csup | super -i csup -
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: |
       ["hello"(=bar),"world"(bar)]
       {a:["hello"(=bar),"world"(bar)]}

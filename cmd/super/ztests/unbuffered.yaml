@@ -1,14 +1,14 @@
 script: |
   mkfifo fifo
   # "-i json" avoids reader buffering.
-  super -i json -unbuffered -z fifo > out.jsup &
+  super -i json -unbuffered -z fifo > out.sup &
   # Prevent zq from seeing EOF on fifo and exiting before the shell exits.
   exec 10> fifo
   echo 1 > fifo
-  # Wait for out.jsup to have size greater than zero.
-  while [ ! -s out.jsup -a $((i++)) -lt 50 ]; do sleep 0.1; done
-  # Get out.jsup contents now, before zq exits.
-  cat out.jsup
+  # Wait for out.sup to have size greater than zero.
+  while [ ! -s out.sup -a $((i++)) -lt 50 ]; do sleep 0.1; done
+  # Get out.sup contents now, before zq exits.
+  cat out.sup
 
 outputs:
   - name: stdout

@@ -2,7 +2,7 @@ script: |
   export SUPER_DB_LAKE=test
   super db init -q
   super db create -use -q POOL
-  super db load -q in.jsup
+  super db load -q in.sup
   id=$(super db query -f text 'from POOL@main:objects | yield ksuid(id)')
   super db vector add -q $id
   super db query -Z 'from POOL@main:vectors | drop id'
@@ -12,7 +12,7 @@ script: |
   echo ===
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: |
       {x:1}
       {s:"hello",a:[1,2,3]}

@@ -1,13 +1,13 @@
 script: |
   . http.bash
-  super -z -c "sort ts" $http_base_url/log1.jsup $http_base_url/log2.jsup
+  super -z -c "sort ts" $http_base_url/log1.sup $http_base_url/log2.sup
 
 inputs:
   - name: http.bash
-  - name: log1.jsup
+  - name: log1.sup
     data: |
       {ts:2018-03-24T17:15:21.255387Z,uid:"C8Tful1TvM3Zf5x8fl"}
-  - name: log2.jsup
+  - name: log2.sup
     data: |
       {ts:2018-03-24T17:15:21.411148Z,uid:"CXWfTK3LRdiuQxBbM6"}
 

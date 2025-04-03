@@ -1,16 +1,16 @@
 script: |
   ! super -z -c "select 1|3" >& err1
-  super -z -c "select x | yield x+1" x.jsup
+  super -z -c "select x | yield x+1" x.sup
   echo ===
-  super -z -c "select x | x+1" x.jsup  
+  super -z -c "select x | x+1" x.sup  
   echo ===
-  super -z -c "select x |> x+1" x.jsup
+  super -z -c "select x |> x+1" x.sup
 
 inputs:
-  - name: n1.jsup
+  - name: n1.sup
     data: |
       null
-  - name: x.jsup
+  - name: x.sup
     data: |
       {x:2}
 

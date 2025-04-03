@@ -3,12 +3,12 @@ script: |
   super db init -q
   super db create -q fruit
   super db create -q person
-  super db load -q -use fruit fruit.jsup
-  super db load -q -use person person.jsup
+  super db load -q -use fruit fruit.sup
+  super db load -q -use person person.sup
   super db query -z -I join.zed
 
 inputs:
-  - name: fruit.jsup
+  - name: fruit.sup
     data: |
       {name:"apple",color:"red",flavor:"tart"}(=fruit)
       {name:"banana",color:"yellow",flavor:"sweet"}(=fruit)
@@ -16,7 +16,7 @@ inputs:
       {name:"dates",color:"brown",flavor:"sweet"}(=fruit)
       {name:"figs",color:"brown",flavor:"plain"}(=fruit)
       {name:"pomegranate",color:"red",flavor:"tart"}(=fruit)
-  - name: person.jsup
+  - name: person.sup
     data: |
       {name:"bob",likes:"tart",age:61}(=person)
       {name:"joe",likes:"sweet",age:14}(=person)

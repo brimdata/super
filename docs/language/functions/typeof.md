@@ -10,7 +10,7 @@ typeof(val: any) -> type
 
 ### Description
 
-The _typeof_ function returns the [type](../../formats/jsup.md#25-types) of
+The _typeof_ function returns the [type](../../formats/sup.md#25-types) of
 its argument `val`.  Types are first class so the returned type is
 also a value.  The type of a type is type `type`.
 

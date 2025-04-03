@@ -5,7 +5,7 @@ title: Zed/Zeek Data Type Compatibility
 
 As the [super data model](../../formats/data-model.md) was in many ways inspired by the
 [Zeek TSV log format](https://docs.zeek.org/en/master/log-formats.html#zeek-tsv-format-logs),
-SuperDB's rich storage formats ([Super JSON](../../formats/jsup.md),
+SuperDB's rich storage formats ([Super JSON](../../formats/sup.md),
 [Super Binary](../../formats/bsup.md), etc.) maintain comprehensive interoperability
 with Zeek. When Zeek is configured to output its logs in
 JSON format, much of the rich type information is lost in translation, but
@@ -89,7 +89,7 @@ T	123	456	123.4560	1592502151.123456	123.456	smile😁smile	\x09\x07\x04	80	127.
 #### Reading the TSV log, outputting as Super JSON, and saving a copy:
 
 ```mdtest-command
-super -Z zeek_types.log | tee zeek_types.jsup
+super -Z zeek_types.log | tee zeek_types.sup
 ```
 
 #### Output:
@@ -129,7 +129,7 @@ super -Z zeek_types.log | tee zeek_types.jsup
 #### Reading the saved Super JSON output and outputting as Zeek TSV:
 
 ```mdtest-command
-super -f zeek zeek_types.jsup
+super -f zeek zeek_types.sup
 ```
 
 #### Output:
@@ -152,7 +152,7 @@ out again in the Zeek TSV log format. Other implementations of the Zed storage
 formats (should they exist) may handle these differently.
 
 Multiple Zeek types discussed below are represented via a
-[type definition](../../formats/jsup.md#22-type-decorators) to one of Zed's
+[type definition](../../formats/sup.md#22-type-decorators) to one of Zed's
 [primitive types](../../formats/data-model.md#1-primitive-types). The Zed type
 definitions maintain the history of the field's original Zeek type name
 such that `zq` may restore it if the field is later output in
@@ -165,7 +165,7 @@ specific Zeek type, though no such operations are currently implemented in
 
 As they do not affect accuracy, "trailing zero" decimal digits on Zeek `double`
 values will _not_ be preserved when they are formatted into a string, such as
-via the `-f jsup|zeek|table` output options in `zq` (e.g., `123.4560` becomes
+via the `-f sup|zeek|table` output options in `zq` (e.g., `123.4560` becomes
 `123.456`).
 s
 ### `enum`
@@ -255,7 +255,7 @@ For instance, revisiting the data from our example, we can output all fields wit
 #### Command:
 
 ```mdtest-command
-super -f zeek -c 'cut my_record' zeek_types.jsup
+super -f zeek -c 'cut my_record' zeek_types.sup
 ```
 
 #### Output:

@@ -1,8 +1,8 @@
 script: |
-  super -z in.jsup
+  super -z in.sup
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: |
       [1,null(int64)]
       [null(int64),2]

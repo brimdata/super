@@ -1,10 +1,10 @@
 skip: XXX let's discuss this one
 
 script: |
-  super -c 'fork (=> from (file a.jsup) => pass)' a.jsup
+  super -c 'fork (=> from (file a.sup) => pass)' a.sup
 
 inputs:
-  - name: a.jsup
+  - name: a.sup
     data: |
       {a:1}
 

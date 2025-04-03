@@ -497,7 +497,7 @@ pools.
 
 For example, this command
 ```
-super db load sample1.json sample2.bsup sample3.jsup
+super db load sample1.json sample2.bsup sample3.sup
 ```
 loads files of varying formats in a single commit to the working branch.
 
@@ -550,7 +550,7 @@ The `date` field here is used by the lake system to do [time travel](#time-trave
 through the branch and pool history, allowing you to see the state of
 branches at any time in their commit history.
 
-Arbitrary metadata expressed as any [Super JSON value](../formats/jsup.md)
+Arbitrary metadata expressed as any [Super JSON value](../formats/sup.md)
 may be attached to a commit via the `-meta` flag.  This allows an application
 or user to transactionally commit metadata alongside committed data for any
 purpose.  This approach allows external applications to implement arbitrary
@@ -626,7 +626,7 @@ If the `-monitor` option is specified and the lake is [located](#locating-the-la
 via network connection, `super db manage` will run continuously and perform updates
 as needed.  By default a check is performed once per minute to determine if
 updates are necessary.  The `-interval` option may be used to specify an
-alternate check frequency in [duration format](../formats/jsup.md#23-primitive-values).
+alternate check frequency in [duration format](../formats/sup.md#23-primitive-values).
 
 If `-monitor` is not specified, a single maintenance pass is performed on the
 lake.

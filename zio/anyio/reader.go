@@ -98,7 +98,7 @@ func NewReaderWithOpts(zctx *super.Context, r io.Reader, opts ReaderOpts) (zio.R
 	}
 	track.Reset()
 
-	zsonErr := match(zsonio.NewReader(super.NewContext(), track), "jsup", 1)
+	zsonErr := match(zsonio.NewReader(super.NewContext(), track), "sup", 1)
 	if zsonErr == nil {
 		return zio.NopReadCloser(zsonio.NewReader(zctx, track.Reader())), nil
 	}

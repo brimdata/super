@@ -1,39 +1,39 @@
 script: |
-  super -z -split 2B -splitsize 2B in.jsup
-  super -z -split 4B -splitsize 4B in.jsup
-  super -z -split 6B -splitsize 6B in.jsup
-  super -z -split 6B-o -splitsize 6B -o prefix in.jsup
+  super -z -split 2B -splitsize 2B in.sup
+  super -z -split 4B -splitsize 4B in.sup
+  super -z -split 6B -splitsize 6B in.sup
+  super -z -split 6B-o -splitsize 6B -o prefix in.sup
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: |
       0
       1
       2
 
 outputs:
-  - name: 2B/0.jsup
+  - name: 2B/0.sup
     data: |
       0
-  - name: 2B/1.jsup
+  - name: 2B/1.sup
     data: |
       1
-  - name: 2B/2.jsup
+  - name: 2B/2.sup
     data: |
       2
-  - name: 4B/0.jsup
-    data: |
-      0
-      1
-  - name: 4B/1.jsup
-    data: |
-      2
-  - name: 6B/0.jsup
+  - name: 4B/0.sup
     data: |
       0
       1
+  - name: 4B/1.sup
+    data: |
       2
-  - name: 6B-o/prefix-0.jsup
+  - name: 6B/0.sup
+    data: |
+      0
+      1
+      2
+  - name: 6B-o/prefix-0.sup
     data: |
       0
       1

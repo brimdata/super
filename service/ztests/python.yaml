@@ -13,7 +13,7 @@ script: |
   import superdb
   c = superdb.Client('$SUPER_DB_LAKE')
   c.create_pool('test')
-  with open('in.jsup') as f:
+  with open('in.sup') as f:
     c.load('test', f)
   for rec in c.query('from test'):
     print(rec)
@@ -36,7 +36,7 @@ script: |
   EOF
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: |
       {
         u8: 0 (myuint8=uint8),

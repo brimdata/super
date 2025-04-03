@@ -1,12 +1,12 @@
 script: |
-  super -z -I count.zed in.jsup
+  super -z -I count.zed in.sup
 
 inputs:
   - name: count.zed
     data: |
       ?2 | c  := count() //,
           , sum(v) // moon
-  - name: in.jsup
+  - name: in.sup
     data: |
       {v:1}
       {v:2}

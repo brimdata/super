@@ -1,11 +1,11 @@
 
 script: |
-  super -z -c 'select val between lower and upper as x from in.jsup'
+  super -z -c 'select val between lower and upper as x from in.sup'
   echo ===
-  super -z -c 'yield  "Cat" BETWEEN upper(lower) And upper(upper)' in.jsup
+  super -z -c 'yield  "Cat" BETWEEN upper(lower) And upper(upper)' in.sup
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: |
       {val:1,lower:5,upper:10}
       {val:8,lower:5,upper:10}

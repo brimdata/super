@@ -1,10 +1,10 @@
 # If you change the test below after a change to make it pass, make sure the
 # input/output are still in sync with what's at zng/docs/zeek-compat.md.
 
-script: super -i jsup -f zeek -c "cut my_record" zeek_types.jsup
+script: super -i sup -f zeek -c "cut my_record" zeek_types.sup
 
 inputs:
-  - name: zeek_types.jsup
+  - name: zeek_types.sup
     data: |
       {
           my_bool: true,

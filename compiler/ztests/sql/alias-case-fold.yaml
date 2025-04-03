@@ -1,8 +1,8 @@
 script: |
-  super -z -c 'SELECT t.c FROM "a.jsup" T'
+  super -z -c 'SELECT t.c FROM "a.sup" T'
 
 inputs:
-  - name: a.jsup
+  - name: a.sup
     data: |
       {c:1,a:11}
       {c:2,a:12}

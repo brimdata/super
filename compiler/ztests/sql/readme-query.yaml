@@ -4,18 +4,18 @@ script: |
 inputs:
   - name: query.sql
     data: |
-      FROM gha.jsup
+      FROM gha.sup
       | SELECT union(repo.name) AS repos, actor.login AS user
         GROUP BY user
         ORDER BY len(repos) DESC
         LIMIT 2
       | FORK (
-        => FROM eval(f'{user}.jsup')
+        => FROM eval(f'{user}.sup')
         | SELECT VALUE {user:login,created_at:time(created_at)}
         => PASS
         )
       | JOIN USING (user) repos
-  - name: gha.jsup
+  - name: gha.sup
     data: |
       {repo:{name:"petroav/6.828"},actor:{login:"petroav"}}
       {repo:{name:"rspt/rspt-theme"},actor:{login:"rspt"}}
@@ -27,10 +27,10 @@ inputs:
       {repo:{name:"sundaymtn/waterline"},actor:{login:"sundaymtn"}}
       {repo:{name:"zhouzhi2015/temp"},actor:{login:"izuzero"}}
       {repo:{name:"petrkutalek/png2pos"},actor:{login:"petrkutalek"}}
-  - name: izuzero.jsup
+  - name: izuzero.sup
     data: |
       {login:"izuzero",created_at:"2024-11-13T02:13:58.281661Z"}
-  - name: rspt.jsup
+  - name: rspt.sup
     data: |
       {login:"rspt",created_at:"2024-11-13T02:14:27.813538Z"}
 

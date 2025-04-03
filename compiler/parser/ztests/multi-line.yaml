@@ -1,5 +1,5 @@
 script: |
-  super -z -I count.zed in.jsup
+  super -z -I count.zed in.sup
 
 inputs:
   - name: count.zed
@@ -7,7 +7,7 @@ inputs:
       c
         :=
           count()
-  - name: in.jsup
+  - name: in.sup
     data: |
       {s:"1"}
       {s:"2"}

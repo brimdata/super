@@ -10,11 +10,11 @@ inputs:
       2
 
 outputs:
-  - name: dir/prefix-0.jsup
+  - name: dir/prefix-0.sup
     data: |
       1
       2
-  - name: dir/prefix-1.jsup
+  - name: dir/prefix-1.sup
     data: |
       {a:1}
       {a:2}

@@ -1,17 +1,17 @@
 script: |
   source service.sh
   super db create -q test
-  super db load -q -use test 1.jsup
-  super db load -q -use test 2.jsup
+  super db load -q -use test 1.sup
+  super db load -q -use test 2.sup
   super db query -f lake "from test@main:objects"
 
 inputs:
   - name: service.sh
     source: service.sh
-  - name: 1.jsup
+  - name: 1.sup
     data: |
       {x:1}
-  - name: 2.jsup
+  - name: 2.sup
     data: |
       {x:2}
 

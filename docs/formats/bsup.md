@@ -215,7 +215,7 @@ string data.
 
 {{% tip "Note" %}}
 
-As defined by [Super JSON](jsup.md), a field name can be any valid UTF-8 string much like JSON
+As defined by [Super JSON](sup.md), a field name can be any valid UTF-8 string much like JSON
 objects can be indexed with arbitrary string keys (via index operator)
 even if the field names available to the dot operator are restricted
 by language syntax for identifiers.

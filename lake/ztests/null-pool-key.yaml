@@ -4,12 +4,12 @@ script: |
   for o in asc desc; do
     echo // $o
     super db create -q -orderby k:$o $o
-    super db load -q -use $o in.jsup
+    super db load -q -use $o in.sup
     super db query -z "from $o | k >= 1 and k <= 3"
   done
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: |
       {k:null(int64),v:"null"}
       {k:0,v:"zero"}

@@ -63,7 +63,7 @@ FROM 'https://data.gharchive.org/2015-01-01-15.json.gz'
 Super-structured data is strongly typed and "polymorphic": any value can take on any type
 and sequences of data need not all conform to a predefined schema.  To this end,
 SuperDB extends the JSON format to support super-structured data in a format called
-[Super JSON](https://superdb.org/docs/formats/jsup) where all JSON values
+[Super JSON](https://superdb.org/docs/formats/sup) where all JSON values
 are also Super JSON values.  Similarly,
 the [Super Binary](https://superdb.org/docs/formats/bsup) format is an efficient
 binary representation of Super JSON (a bit like Avro) and the

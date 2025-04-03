@@ -2,14 +2,14 @@ script: |
   export SUPER_DB_LAKE=test
   super db init -q
   super db create -q logs
-  super db load -q -use logs -meta '"original"' babble.jsup
-  super db load -q -use logs -meta '"normalized-v1"' babble.jsup
-  super db load -q -use logs -meta '"normalized-v2"' babble.jsup
+  super db load -q -use logs -meta '"original"' babble.sup
+  super db load -q -use logs -meta '"normalized-v1"' babble.sup
+  super db load -q -use logs -meta '"normalized-v2"' babble.sup
   super db query "from logs@main:log | grep(normalized*, meta) | sort date | cut meta" | super -z -
 
 inputs:
-  - name: babble.jsup
-    source: ../../testdata/babble.jsup
+  - name: babble.sup
+    source: ../../testdata/babble.sup
 
 outputs:
   - name: stdout

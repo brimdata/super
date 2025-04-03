@@ -1,13 +1,13 @@
 script: |
-  ! super -z -c "select c+a,collect(c) from a.jsup group by a+c" >& err1
-  super -z -c "select c+a,collect(c) from a.jsup group by c+a | sort this"
+  ! super -z -c "select c+a,collect(c) from a.sup group by a+c" >& err1
+  super -z -c "select c+a,collect(c) from a.sup group by c+a | sort this"
   echo ===
-  super -z -c "select c+a as d,collect(c) from a.jsup group by c+a | sort this"
+  super -z -c "select c+a as d,collect(c) from a.sup group by c+a | sort this"
   echo ===
-  super -z -c "select c+a as d,collect(c) from a.jsup group by d | sort this"
+  super -z -c "select c+a as d,collect(c) from a.sup group by d | sort this"
 
 inputs:
-  - name: a.jsup
+  - name: a.sup
     data: |
       {a:11,c:1}
       {a:12,c:2}
@@ -31,5 +31,5 @@ outputs:
   - name: err1
     data: |
       no corresponding grouping element for non-aggregate "c+a" at line 1, column 8:
-      select c+a,collect(c) from a.jsup group by a+c
+      select c+a,collect(c) from a.sup group by a+c
              ~~~

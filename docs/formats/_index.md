@@ -11,7 +11,7 @@ weight: 5
 > providing a unified approach to row, columnar, and human-readable formats. Together these
 > represent a superset of both the dataframe/table model of relational systems and the
 > semi-structured model that is used ubiquitously in development as JSON and by NoSQL
-> data stores.  The Super JSON spec has [a few examples](jsup.md#3-examples).
+> data stores.  The Super JSON spec has [a few examples](sup.md#3-examples).
 
 ## 1. Background
 
@@ -271,7 +271,7 @@ A set of companion documents define a family of tightly integrated
 serialization formats that all adhere to the same super data model,
 providing a unified approach to row, columnar, and human-readable formats:
 
-* [Super JSON](jsup.md) is a human-readable format for super-structured data.  All JSON
+* [Super JSON](sup.md) is a human-readable format for super-structured data.  All JSON
 documents are Super JSON values as the Super JSON format is a strict superset of the JSON syntax.
 * [Super Binary](bsup.md) is a row-based, binary representation somewhat like
 Avro but leveraging the super data model to represent a sequence of arbitrarily-typed

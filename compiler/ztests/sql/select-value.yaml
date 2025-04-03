@@ -1,28 +1,28 @@
 script: |
-  super -z -c 'select value {c,a} from "a.jsup"'
+  super -z -c 'select value {c,a} from "a.sup"'
   echo ===
-  super -z -c 'select value {x,s} from "messy.jsup"'
+  super -z -c 'select value {x,s} from "messy.sup"'
   echo ===
-  super -z -c 'select value {b,c} from "b.jsup"'
+  super -z -c 'select value {b,c} from "b.sup"'
   echo ===
-  super -z -c 'select value {c,a} from a.jsup order by c desc'
+  super -z -c 'select value {c,a} from a.sup order by c desc'
   echo ===
-  super -z -c 'select value {b,c} from b.jsup order by b desc limit 1'
+  super -z -c 'select value {b,c} from b.sup order by b desc limit 1'
 
 
 inputs:
-  - name: a.jsup
+  - name: a.sup
     data: |
       {c:1,a:11}
       {c:2,a:12}
       {c:3,a:13}
       {c:4,a:14}
-  - name: b.jsup
+  - name: b.sup
     data: |
       {b:[1,2],c:2}
       {b:[3,4,5],c:3}
       {b:[6,7],c:5}
-  - name: messy.jsup
+  - name: messy.sup
     data: |
       {x:1,s:"foo"}
       {x:2,s:"bar"}

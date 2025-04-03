@@ -183,7 +183,7 @@ The bulk of this Zed shaper consists of detailed per-field data type
 definitions for each record in the default set of JSON logs output by Zeek.
 These type definitions reference the types we defined above, such as `port`
 and `conn_id`. The syntax for defining primitive and complex types follows the
-relevant sections of the [Super JSON Format](../../formats/jsup.md#2-the-super-json-format)
+relevant sections of the [Super JSON Format](../../formats/sup.md#2-the-super-json-format)
 specification.
 
 ```

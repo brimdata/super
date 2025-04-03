@@ -1,6 +1,6 @@
 zed: pass
 
-output-flags: -f jsup -pretty=4
+output-flags: -f sup -pretty=4
 
 input: |
   {flip:%HEADS(enum(HEADS,TAILS))}

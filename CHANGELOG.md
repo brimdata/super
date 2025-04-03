@@ -118,7 +118,7 @@
 * The [Zed Language Overview docs](docs/language/overview.md) have been split into multiple sections (#4576)
 * Add support for [user-defined operators](docs/language/statements.md#operator-statements) (#4417, #4635, #4646, #4644, #4663, #4674, #4698, #4702, #4716)
 * Add experimental support to the [`get` operator](docs/language/operators/get.md) for customized methods, headers, and body (#4572)
-* Allow float decorators on integers in [ZSON](docs/formats/jsup.md) (#4654)
+* Allow float decorators on integers in [ZSON](docs/formats/sup.md) (#4654)
 * The [shaping docs](docs/language/shaping.md) have been expanded with a new section on [error handling](docs/language/shaping.md#error-handling) (#4686)
 * `zq` no longer attaches positional command line file inputs directly to [`join`](docs/language/operators/join.md) inputs (use [`file`](docs/language/operators/file.md) within a Zed program instead) (#4689)
 * [Zeek](https://zeek.org/)-related docs have been moved to the Integrations area of the [Zed docs site](https://zed.brimdata.io/docs) (#4694, #4696)
@@ -246,7 +246,7 @@
 * Revamped [`zed` command](docs/commands/super-db.md)
 * New Zed lake format (see #3634 for a migration script)
 * New version of the [ZNG format](docs/formats/bsup.md) (with read-only support for the previous version)
-* New version of the [ZSON format](docs/formats/jsup.md)
+* New version of the [ZSON format](docs/formats/sup.md)
 
 ## v0.33.0
 
@@ -587,7 +587,7 @@ questions.
 * zq: Fix an issue where returned errors could cause a panic due to type mismatches (#1720, #1727, #1728, #1740, #1773)
 * python: Fix an issue where the [Python client](https://medium.com/brim-securitys-knowledge-funnel/visualizing-ip-traffic-with-brim-zeek-and-networkx-3844a4c25a2f) did not generate an error when `zqd` was absent (#1711)
 * zql: Allow the `len()` function to work on `ip` and `net` types (#1725)
-* ZSON: Add a [draft specification](docs/formats/jsup.md) of the new ZSON format (#1715, #1735, #1741, #1765)
+* ZSON: Add a [draft specification](docs/formats/sup.md) of the new ZSON format (#1715, #1735, #1741, #1765)
 * zng: Add support for marshaling of `time` values (#1743)
 * zar: Fix an issue where a `couldn't read trailer` failure was observed during a `zar zq` query (#1748)
 * zar: Fix an issue where `zar import` of a 14 GB data set triggered a SEGV (#1766)

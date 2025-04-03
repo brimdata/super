@@ -28,7 +28,7 @@ import (
 // DefaultFormat is the default Zed format that the server will assume if the
 // value for a request's "Accept" or "Content-Type" headers are not set or set
 // to "*/*".
-const DefaultFormat = "jsup"
+const DefaultFormat = "sup"
 
 const indexPage = `
 <!DOCTYPE html>

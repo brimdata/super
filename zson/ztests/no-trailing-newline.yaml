@@ -1,8 +1,8 @@
 script: |
-  super -z -c "count()" in.jsup
+  super -z -c "count()" in.sup
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: | # |- means no newline at end
       {
           c: 23 (int32)

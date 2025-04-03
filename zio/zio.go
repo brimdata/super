@@ -18,10 +18,10 @@ func Extension(format string) string {
 		return ".csv"
 	case "json":
 		return ".json"
-	case "jsup":
-		return ".jsup"
 	case "parquet":
 		return ".parquet"
+	case "sup":
+		return ".sup"
 	case "table":
 		return ".tbl"
 	case "text":

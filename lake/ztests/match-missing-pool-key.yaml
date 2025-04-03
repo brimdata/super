@@ -4,11 +4,11 @@ script: |
   export SUPER_DB_LAKE=test
   super db init -q
   super db create -q -orderby k tmp
-  super db load -q -use tmp in.jsup
+  super db load -q -use tmp in.sup
   super db query -z "from tmp | !has(k)"
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: |
       {k:0,v:"zero"}
       {v:"this one missing"}

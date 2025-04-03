@@ -119,7 +119,7 @@ simply run `super` with no arguments.
 `super` supports a number of [input](#input-formats) and [output](#output-formats) formats, but the super formats
 ([Super Binary](../formats/bsup.md),
 [Super Columnar](../formats/csup.md),
-and [Super JSON](../formats/jsup.md)) tend to be the most versatile and
+and [Super JSON](../formats/sup.md)) tend to be the most versatile and
 easy to work with.
 
 `super` typically operates on binary-encoded data and when you want to inspect
@@ -143,9 +143,9 @@ in the order appearing on the command line forming the input stream.
 | `csup`    |  yes | [Super Columnar](../formats/csup.md) |
 | `csv`     |  yes | [Comma-Separated Values (RFC 4180)](https://www.rfc-editor.org/rfc/rfc4180.html) |
 | `json`    |  yes | [JSON (RFC 8259)](https://www.rfc-editor.org/rfc/rfc8259.html) |
-| `jsup`    |  yes | [Super JSON](../formats/jsup.md) |
 | `line`    |  no  | One string value per input line |
 | `parquet` |  yes | [Apache Parquet](https://github.com/apache/parquet-format) |
+| `sup`     |  yes | [Super JSON](../formats/sup.md) |
 | `tsv`     |  yes | [Tab-Separated Values](https://en.wikipedia.org/wiki/Tab-separated_values) |
 | `zeek`    |  yes | [Zeek Logs](https://docs.zeek.org/en/master/logs/index.html) |
 | `zjson`   |  yes | [Super JSON over JSON](../formats/zjson.md) |
@@ -190,9 +190,9 @@ would produce this output in the default Super JSON format
 
 #### JSON Auto-detection: Super vs. Plain
 
-Since [Super JSON](../formats/jsup.md) is a superset of plain JSON, `super` must be careful how it distinguishes the two cases when performing auto-inference.
+Since [Super JSON](../formats/sup.md) is a superset of plain JSON, `super` must be careful how it distinguishes the two cases when performing auto-inference.
 While you can always clarify your intent
-via `-i jsup` or `-i json`, `super` attempts to "just do the right thing"
+via `-i sup` or `-i json`, `super` attempts to "just do the right thing"
 when you run it with Super JSON vs. plain JSON.
 
 While `super` can parse any JSON using its built-in Super JSON parser this is typically
@@ -229,10 +229,10 @@ typically omit quotes around field names.
 | `csup`    | [Super Columnar](../formats/csup.md) |
 | `csv`     | [Comma-Separated Values (RFC 4180)](https://www.rfc-editor.org/rfc/rfc4180.html) |
 | `json`    | [JSON (RFC 8259)](https://www.rfc-editor.org/rfc/rfc8259.html) |
-| `jsup`    | [Super JSON](../formats/jsup.md) |
 | `lake`    | [SuperDB Data Lake Metadata Output](#superdb-data-lake-metadata-output) |
 | `line`    | (described [below](#simplified-text-outputs)) |
 | `parquet` | [Apache Parquet](https://github.com/apache/parquet-format) |
+| `sup`     | [Super JSON](../formats/sup.md) |
 | `table`   | (described [below](#simplified-text-outputs)) |
 | `text`    | (described [below](#simplified-text-outputs)) |
 | `tsv`     | [Tab-Separated Values](https://en.wikipedia.org/wiki/Tab-separated_values) |
@@ -243,7 +243,7 @@ The output format defaults to either Super JSON or Super Binary and may be speci
 with the `-f` option.
 
 Since Super JSON is a common format choice, the `-z` flag is a shortcut for
-`-f jsup`.  Also, `-Z` is a shortcut for `-f jsup` with `-pretty 4` as
+`-f sup`.  Also, `-Z` is a shortcut for `-f sup` with `-pretty 4` as
 [described below](#pretty-printing).
 
 And since plain JSON is another common format choice, the `-j` flag is a shortcut for
@@ -263,7 +263,7 @@ the much more efficient Super Binary format because the `-f bsup` had been mista
 omitted from some command.  The beauty of SuperDB is that all of this "just works"
 but it would otherwise perform poorly.
 * If the default format were Super Binary, then users would be endlessly annoyed by
-binary output to their terminal when forgetting to type `-f jsup`.
+binary output to their terminal when forgetting to type `-f sup`.
 
 In practice, we have found that the output defaults
 "just do the right thing" almost all of the time.
@@ -272,7 +272,7 @@ In practice, we have found that the output defaults
 
 Super JSON and plain JSON text may be "pretty printed" with the `-pretty` option, which takes
 the number of spaces to use for indentation.  As this is a common option,
-the `-Z` option is a shortcut for `-f jsup -pretty 4` and `-J` is a shortcut
+the `-Z` option is a shortcut for `-f sup -pretty 4` and `-J` is a shortcut
 for `-f json -pretty 4`.
 
 For example,
@@ -294,7 +294,7 @@ produces
 ```
 and
 ```mdtest-command
-echo '{a:{b:1,c:[1,2]},d:"foo"}' | super -f jsup -pretty 2 -
+echo '{a:{b:1,c:[1,2]},d:"foo"}' | super -f sup -pretty 2 -
 ```
 produces
 ```mdtest-output
@@ -431,7 +431,7 @@ formatting applied if any of the following escape sequences are present:
 | `\f`            | Form feed                               |
 | `\u`            | Unicode escape (e.g., `\u0041` for `A`) |
 
-Non-string values are formatted as [Super JSON](../formats/jsup.md).
+Non-string values are formatted as [Super JSON](../formats/sup.md).
 
 For example:
 
@@ -515,9 +515,9 @@ it's rare to request it explicitly via `-f`.  However, since it's possible for
 the `lake` format is useful to reverse this.
 
 For example, imagine you'd executed a [meta-query](super-db.md#meta-queries) via
-`super db query -Z "from :pools"` and saved the output in this file `pools.jsup`.
+`super db query -Z "from :pools"` and saved the output in this file `pools.sup`.
 
-```mdtest-input pools.jsup
+```mdtest-input pools.sup
 {
     ts: 2024-07-19T19:28:22.893089Z,
     name: "MyPool",
@@ -539,7 +539,7 @@ Using `super -f lake`, this can be rendered in the same pretty-printed form as i
 would have originally appeared in the output of `super db ls`, e.g.,
 
 ```mdtest-command
-super -f lake pools.jsup
+super -f lake pools.sup
 ```
 produces
 ```mdtest-output

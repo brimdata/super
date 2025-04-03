@@ -1,8 +1,8 @@
 script: |
-  super -z -c 'select -a as x from a.jsup where x>=-12 and a<12'
+  super -z -c 'select -a as x from a.sup where x>=-12 and a<12'
 
 inputs:
-  - name: a.jsup
+  - name: a.sup
     data: |
       {a:11,c:1}
       {a:12,c:2}

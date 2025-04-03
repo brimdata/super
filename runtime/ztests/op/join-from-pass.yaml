@@ -1,4 +1,4 @@
-script: super -z -I join.zed left.jsup
+script: super -z -I join.zed left.sup
 
 vector: true
 
@@ -7,14 +7,14 @@ inputs:
     data: |
       from (
         pass
-        file right.jsup
+        file right.sup
       ) | inner join on x=y matched:=true
-  - name: left.jsup
+  - name: left.sup
     data: |
       {x:1,s:"one"}
       {x:2,s:"two"}
       {x:3,s:"three"}
-  - name: right.jsup
+  - name: right.sup
     data: |
       {y:2,y:"y-two"}
 

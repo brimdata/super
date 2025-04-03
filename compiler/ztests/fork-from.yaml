@@ -5,13 +5,13 @@ inputs:
   - name: query.zed
     data: |
       fork (
-        => from (file a.jsup => pass)
-        => from (file b.jsup => pass)
+        => from (file a.sup => pass)
+        => from (file b.sup => pass)
       ) | sort a
-  - name: a.jsup
+  - name: a.sup
     data: |
       {a:1}
-  - name: b.jsup
+  - name: b.sup
     data: |
       {a:2}
 

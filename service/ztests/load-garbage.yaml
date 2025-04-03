@@ -23,6 +23,6 @@ outputs:
       	zeek: line 1: bad types/fields definition in zeek header
       	zjson: line 1: malformed ZJSON: bad type object: "This file contains no records.": unpacker error parsing JSON: invalid character 'T' looking for beginning of value
       	bsup: malformed bsup record
-      	jsup: Super JSON syntax error
+      	sup: Super JSON syntax error
       status code 400: no records in request
 

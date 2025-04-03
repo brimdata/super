@@ -1,17 +1,17 @@
 script: |
   source service.sh
   super db create -q test
-  super db load -q -use test a.jsup
-  super db load -q -use test b.jsup
+  super db load -q -use test a.sup
+  super db load -q -use test b.sup
   super db query -z "from test@main:objects | sort min | {min,max}"
 
 inputs:
   - name: service.sh
     source: service.sh
-  - name: a.jsup
+  - name: a.sup
     data: |
       {ts:1}
-  - name: b.jsup
+  - name: b.sup
     data: |
       {ts:2}
 

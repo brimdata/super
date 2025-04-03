@@ -2,12 +2,12 @@ script: |
   export SUPER_DB_LAKE=test
   super db init -q
   super db create -q -orderby s:asc data
-  head -2 in.jsup | super db load -q -use data -
-  tail -3 in.jsup | super db load -q -use data -
+  head -2 in.sup | super db load -q -use data -
+  tail -3 in.sup | super db load -q -use data -
   super db query -z 'from data | union(s) by len(s) | sort this'
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: |
       {s:"a"}
       {s:"ab"}

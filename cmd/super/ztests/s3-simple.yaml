@@ -1,11 +1,11 @@
 script: |
   source minio.sh
-  mv babble.jsup ./data/bucket
-  super -z -c "count()" s3://bucket/babble.jsup
+  mv babble.sup ./data/bucket
+  super -z -c "count()" s3://bucket/babble.sup
 
 inputs:
-  - name: babble.jsup
-    source: ../../../testdata/babble.jsup
+  - name: babble.sup
+    source: ../../../testdata/babble.sup
   - name: minio.sh
     source: ../../../testdata/minio.sh
 

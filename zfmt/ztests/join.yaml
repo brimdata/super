@@ -1,13 +1,13 @@
 script: |
-  super compile -C "join (file test.jsup) on x=x p:=a"
+  super compile -C "join (file test.sup) on x=x p:=a"
   echo ===
-  super compile -C -dag "join (file test.jsup) on x=x p:=a"
+  super compile -C -dag "join (file test.sup) on x=x p:=a"
 
 outputs:
   - name: stdout
     data: |
       join (
-        from "test.jsup"
+        from "test.sup"
       ) on x=x p:=a
       ===
       null
@@ -15,7 +15,7 @@ outputs:
         =>
           pass
         =>
-          file test.jsup
+          file test.sup
       )
       | join on x=x p:=a
       | output main

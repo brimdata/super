@@ -37,8 +37,8 @@ func TestZed(t *testing.T) {
 		require.NoError(t, err)
 		runAllBoomerangs(t, "arrows", data)
 		runAllBoomerangs(t, "csup", data)
-		runAllBoomerangs(t, "jsup", data)
 		runAllBoomerangs(t, "parquet", data)
+		runAllBoomerangs(t, "sup", data)
 		runAllBoomerangs(t, "zjson", data)
 	})
 

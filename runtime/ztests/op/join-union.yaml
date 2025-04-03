@@ -1,15 +1,15 @@
 script: |
-  super -z -c 'inner join (file b.jsup) on a=b | sort' a.jsup
+  super -z -c 'inner join (file b.sup) on a=b | sort' a.sup
 
 vector: true
 
 inputs:
-  - name: a.jsup
+  - name: a.sup
     data: |
       {a:1}(({a:int64},{a:string}))
       {a:2}(({a:int64},{a:string}))
       {a:"bar"}(({a:int64},{a:string}))
-  - name: b.jsup
+  - name: b.sup
     data: |
       {b:1}
       {b:3}

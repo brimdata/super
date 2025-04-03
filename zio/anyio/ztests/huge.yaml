@@ -1,8 +1,8 @@
 script: |
-  ! yes ' ' | head -c $((11 * 1024 * 1024)) > huge.jsup
-  echo 0 >> huge.jsup
-  super -z huge.jsup
-  ! cat huge.jsup | super -z -
+  ! yes ' ' | head -c $((11 * 1024 * 1024)) > huge.sup
+  echo 0 >> huge.sup
+  super -z huge.sup
+  ! cat huge.sup | super -z -
 
 outputs:
   - name: stdout
@@ -21,4 +21,4 @@ outputs:
       	zeek: line 1: bad types/fields definition in zeek header
       	zjson: line 1: malformed ZJSON: bad type object: "": unpacker error parsing JSON: unexpected end of JSON input
       	bsup: buffer exceeded max size trying to infer input format
-      	jsup: buffer exceeded max size trying to infer input format
+      	sup: buffer exceeded max size trying to infer input format

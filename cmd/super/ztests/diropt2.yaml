@@ -13,12 +13,12 @@ inputs:
       {_path:"dns",a:4}
 
 outputs:
-  - name: out/foo-conn.jsup
+  - name: out/foo-conn.sup
     data: |
       {_path:"conn",a:"foo"}
       {_path:"conn",a:"hello"}
       {_path:"conn",a:"world"}
-  - name: out/foo-dns.jsup
+  - name: out/foo-dns.sup
     data: |
       {_path:"dns",a:1}
       {_path:"dns",a:2}

@@ -26,13 +26,13 @@ type Flags struct {
 	forceBinary   bool
 	jsonPretty    bool
 	jsonShortcut  bool
-	jsupPersist   string
-	jsupPretty    bool
-	jsupShortcut  bool
 	outputFile    string
 	pretty        int
 	split         string
 	splitSize     auto.Bytes
+	supPersist    string
+	supPretty     bool
+	supShortcut   bool
 	unbuffered    bool
 }
 
@@ -46,7 +46,7 @@ func (f *Flags) setFlags(fs *flag.FlagSet) {
 	fs.IntVar(&f.ZNG.FrameThresh, "bsup.framethresh", zngio.DefaultFrameThresh,
 		"minimum Super Binary frame size in uncompressed bytes")
 	fs.BoolVar(&f.color, "color", true, "enable/disable color formatting for -Z and lake text output")
-	fs.StringVar(&f.jsupPersist, "persist", "",
+	fs.StringVar(&f.supPersist, "persist", "",
 		"regular expression to persist type definitions across the stream")
 	fs.IntVar(&f.pretty, "pretty", 4,
 		"tab size to pretty print JSON and Super JSON output (0 for newline-delimited output")
@@ -72,37 +72,37 @@ func (f *Flags) SetFormatFlags(fs *flag.FlagSet) {
 	if f.DefaultFormat == "" {
 		f.DefaultFormat = "bsup"
 	}
-	fs.StringVar(&f.Format, "f", f.DefaultFormat, "format for output data [arrows,bsup,csup,csv,json,jsup,lake,line,parquet,table,text,tsv,zeek,zjson]")
+	fs.StringVar(&f.Format, "f", f.DefaultFormat, "format for output data [arrows,bsup,csup,csv,json,lake,line,parquet,sup,table,text,tsv,zeek,zjson]")
 	fs.BoolVar(&f.forceBinary, "B", false, "allow Super Binary to be sent to a terminal output")
 	fs.BoolVar(&f.jsonPretty, "J", false, "use formatted JSON output independent of -f option")
 	fs.BoolVar(&f.jsonShortcut, "j", false, "use line-oriented JSON output independent of -f option")
-	fs.BoolVar(&f.jsupPretty, "Z", false, "use formatted Super JSON output independent of -f option")
-	fs.BoolVar(&f.jsupShortcut, "z", false, "use line-oriented Super JSON output independent of -f option")
+	fs.BoolVar(&f.supPretty, "Z", false, "use formatted Super JSON output independent of -f option")
+	fs.BoolVar(&f.supShortcut, "z", false, "use line-oriented Super JSON output independent of -f option")
 }
 
 func (f *Flags) Init() error {
 	f.JSON.Pretty, f.ZSON.Pretty = f.pretty, f.pretty
-	if f.jsupPersist != "" {
-		re, err := regexp.Compile(f.jsupPersist)
+	if f.supPersist != "" {
+		re, err := regexp.Compile(f.supPersist)
 		if err != nil {
 			return err
 		}
 		f.ZSON.Persist = re
 	}
 	if f.jsonShortcut || f.jsonPretty {
-		if f.Format != f.DefaultFormat || f.jsupShortcut || f.jsupPretty {
+		if f.Format != f.DefaultFormat || f.supShortcut || f.supPretty {
 			return errors.New("cannot use -j or -J with -f, -z, or -Z")
 		}
 		f.Format = "json"
 		if !f.jsonPretty {
 			f.JSON.Pretty = 0
 		}
-	} else if f.jsupShortcut || f.jsupPretty {
+	} else if f.supShortcut || f.supPretty {
 		if f.Format != f.DefaultFormat {
 			return errors.New("cannot use -z or -Z with -f")
 		}
-		f.Format = "jsup"
-		if !f.jsupPretty {
+		f.Format = "sup"
+		if !f.supPretty {
 			f.ZSON.Pretty = 0
 		}
 	}
@@ -111,7 +111,7 @@ func (f *Flags) Init() error {
 	}
 	if f.outputFile == "" && f.split == "" && f.Format == "bsup" && !f.forceBinary &&
 		terminal.IsTerminalFile(os.Stdout) {
-		f.Format = "jsup"
+		f.Format = "sup"
 		f.ZSON.Pretty = 0
 	}
 	if f.unbuffered {

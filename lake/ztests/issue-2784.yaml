@@ -2,15 +2,15 @@ script: |
   export SUPER_DB_LAKE=test
   super db init -q
   super db create -q test
-  super db load -q -use test a.jsup
-  super db load -q -use test b.jsup
+  super db load -q -use test a.sup
+  super db load -q -use test b.sup
   super db query -z "from test@main:objects | sort min | {min,max}"
 
 inputs:
-  - name: a.jsup
+  - name: a.sup
     data: |
       {ts:1}
-  - name: b.jsup
+  - name: b.sup
     data: |
       {ts:2}
 

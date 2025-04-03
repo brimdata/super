@@ -1,12 +1,12 @@
 script: |
-  super -bsup.compress=false -o uncomp.bsup in.jsup
-  super  -o comp.bsup in.jsup
+  super -bsup.compress=false -o uncomp.bsup in.sup
+  super  -o comp.bsup in.sup
   super -z uncomp.bsup
   echo ===
   super -z comp.bsup
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: |
       {_path:"ssl",ts:2017-03-24T19:59:23.053424Z,uid:"CfEBop2hbfJYpjG5Hd",id:{orig_h:10.10.7.90,orig_p:51913(port=uint16),resp_h:54.230.87.24,resp_p:443(port)},version:"TLSv12",cipher:"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",curve:null(string),server_name:"choices.truste.com",resumed:true,last_alert:null(string),next_protocol:"http/1.1",established:true,cert_chain_fuids:null([string]),client_cert_chain_fuids:null([string]),subject:null(string),issuer:null(string),client_subject:null(string),client_issuer:null(string),validation_status:null(string)}
 

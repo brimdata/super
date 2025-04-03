@@ -10,8 +10,8 @@ typename(name: string) -> type
 
 ### Description
 
-The _typename_ function returns the [type](../../formats/jsup.md#25-types) of the
-[named type](../../formats/jsup.md#258-named-type) given by `name` if it exists.  Otherwise, `error("missing")` is returned.
+The _typename_ function returns the [type](../../formats/sup.md#25-types) of the
+[named type](../../formats/sup.md#258-named-type) given by `name` if it exists.  Otherwise, `error("missing")` is returned.
 
 ### Examples
 

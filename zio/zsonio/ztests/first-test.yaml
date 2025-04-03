@@ -1,6 +1,6 @@
 zed: pass
 
-output-flags: -f jsup -pretty=4
+output-flags: -f sup -pretty=4
 
 input: |
   {_path:"conn",ts:2018-03-24T17:15:20.600725Z,id:{orig_h:10.47.1.152,orig_p:49562(port=uint16),resp_h:23.217.103.245,resp_port:80(port)}(=flow),proto:"tcp"(=zenum)}

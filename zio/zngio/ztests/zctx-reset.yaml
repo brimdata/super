@@ -1,12 +1,12 @@
 # Test that type contexts are properly reset and reusable after stream boundaries
 
 script: |
-  super in.jsup > s.bsup
-  super in.jsup >> s.bsup
+  super in.sup > s.bsup
+  super in.sup >> s.bsup
   super -z s.bsup
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: |
       {a:"hello"}
       {b:10}

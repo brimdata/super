@@ -1,16 +1,16 @@
 script: |
-  super -z -c 'left join (file C.jsup) on a=b hit:=sc | sort' A.jsup
+  super -z -c 'left join (file C.sup) on a=b hit:=sc | sort' A.sup
 
 vector: true
 
 inputs:
-  - name: A.jsup
+  - name: A.sup
     data: |
       {a:10(int32),sa:"a0"}
       {a:20(int32),sa:"a1"}
       {a:30(int32),sa:"a2"}
       {a:40(int32),sa:"a3"}
-  - name: C.jsup
+  - name: C.sup
     data: |
       {c:20(int32),sc:"b20"}
       {c:20(int32),sc:"b20v2"}

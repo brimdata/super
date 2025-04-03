@@ -1,8 +1,8 @@
 script: |
-  super -f zjson in.jsup | super -z -
+  super -f zjson in.sup | super -z -
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: &in |
       {m:|{"a":{a:1(int32),b:2(int32)},"b":{a:2(int32),b:3(int32)},"c":{a:3(int32),b:4(int32)}}|}
 

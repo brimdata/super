@@ -3,7 +3,7 @@ script: |
   for o in asc desc; do
     echo // $o | tee /dev/stderr
     super db create -use -seekstride 2KB -orderby ts:$o -q $o
-    super db load -q babble.jsup
+    super db load -q babble.sup
     source query.sh "from $o | ts >= 2020-04-21T23:59:26.063Z and ts <= 2020-04-21T23:59:38.069Z"
     source query.sh "from $o | ts == 2020-04-21T23:59:26.06326664Z"
     source query.sh "from $o | ts == 2020-04-21T23:59:26.06326664Z or foo == 'bar'"
@@ -11,8 +11,8 @@ script: |
 
 inputs:
   - name: service.sh
-  - name: babble.jsup
-    source: ../../testdata/babble.jsup
+  - name: babble.sup
+    source: ../../testdata/babble.sup
   - name: query.sh
     data: |
       echo // $1 | tee /dev/stderr

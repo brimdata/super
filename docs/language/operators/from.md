@@ -103,9 +103,9 @@ coinflips@trial
 numbers@main
 ```
 
-The following file `hello.jsup` is also used.
+The following file `hello.sup` is also used.
 
-```mdtest-input hello.jsup
+```mdtest-input hello.sup
 {greeting:"hello world!"}
 ```
 
@@ -114,7 +114,7 @@ The following file `hello.jsup` is also used.
 _Source structured data from a local file_
 
 ```mdtest-command
-super -z -c 'file hello.jsup | yield greeting'
+super -z -c 'file hello.sup | yield greeting'
 ```
 =>
 ```mdtest-output
@@ -123,7 +123,7 @@ super -z -c 'file hello.jsup | yield greeting'
 
 _Source data from a local file, but in line format_
 ```mdtest-command
-super -z -c 'file hello.jsup format line'
+super -z -c 'file hello.sup format line'
 ```
 =>
 ```mdtest-output

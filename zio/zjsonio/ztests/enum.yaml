@@ -1,8 +1,8 @@
 script: |
-  super -f zjson in.jsup | super -z -i zjson -
+  super -f zjson in.sup | super -z -i zjson -
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: |
       {e:%foo(enum(foo,bar,baz))}
       {e:%bar(enum(foo,bar,baz))}

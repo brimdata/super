@@ -1,12 +1,12 @@
 script: |
-  super -z -c "put x:=p1+1" in.jsup
+  super -z -c "put x:=p1+1" in.sup
   echo ===
-  super -z -c "put x:=p1>p2" in.jsup
+  super -z -c "put x:=p1>p2" in.sup
   echo ===
-  super -z -c "put x:=a+p1+p2" in.jsup
+  super -z -c "put x:=a+p1+p2" in.sup
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: |
       {a:1(int32),p1:100(port=uint16),p2:200(port)}
 

@@ -1,40 +1,40 @@
 script: |
-  super -z -c "avg(n)" in.jsup > avg.jsup
-  super -z -c "count()" in.jsup > count.jsup
-  super -z -c "dcount(n)" in.jsup in.jsup > dcount.jsup
+  super -z -c "avg(n)" in.sup > avg.sup
+  super -z -c "count()" in.sup > count.sup
+  super -z -c "dcount(n)" in.sup in.sup > dcount.sup
   # "with -limit 1" exercises the partials paths.
-  super -z -c "dcount(n) with -limit 1" in.jsup in.jsup > dcount-partials.jsup
-  super -z -c "any(n)" in.jsup > any.jsup
-  super -z -c "min(n)" in.jsup > min.jsup
-  super -z -c "max(n)" in.jsup > max.jsup
+  super -z -c "dcount(n) with -limit 1" in.sup in.sup > dcount-partials.sup
+  super -z -c "any(n)" in.sup > any.sup
+  super -z -c "min(n)" in.sup > min.sup
+  super -z -c "max(n)" in.sup > max.sup
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: |
       {n:0(int32)}
       {n:5(int32)}
       {n:10(int32)}
 
 outputs:
-  - name: avg.jsup
+  - name: avg.sup
     data: |
       5.
-  - name: count.jsup
+  - name: count.sup
     data: |
       3(uint64)
-  - name: dcount.jsup
+  - name: dcount.sup
     data: |
       3(uint64)
-  - name: dcount-partials.jsup
+  - name: dcount-partials.sup
     data: |
       3(uint64)
   # Note: min/max shouldn't be int64 (especially for uint)  Issue #1506.
-  - name: any.jsup
+  - name: any.sup
     data: |
       0(int32)
-  - name: min.jsup
+  - name: min.sup
     data: |
       0
-  - name: max.jsup
+  - name: max.sup
     data: |
       10

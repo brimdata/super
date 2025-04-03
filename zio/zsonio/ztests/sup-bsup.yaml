@@ -1,10 +1,10 @@
-# Send.jsup into zng and back out to make sure binary encoding of typevals works.
+# Send.sup into zng and back out to make sure binary encoding of typevals works.
 
 script: |
-  super -Z -c "put t:=typeof(this)" in.jsup
+  super -Z -c "put t:=typeof(this)" in.sup
 
 inputs:
-  - name: in.jsup
+  - name: in.sup
     data: |
       {a:"hello",b:"world",n:123(int32),f:[1(foo=uint8),2(foo),3(foo)]}
       {a:"goodbye",b:"world",n:456(int32),f:[4(foo=uint8),5(foo),6(foo)]}
