@@ -23,7 +23,7 @@ var Frames = &charm.Spec{
 	Usage: "frames file",
 	Short: "read BSUP file and output metadata",
 	Long: `
-The frames command takes one file arugmnet which must be a BSUP file,
+The frames command takes one file argument which must be a BSUP file,
 parses each low-level BSUP frame in the file, and outputs meta describing each frame
 in any Zed format.`,
 	New: New,
