@@ -267,9 +267,9 @@ steps.
    * The fields in the input record are ordered to match the order in which
      they appear in the type definition.
 
-## Invoking the Shaper From `zq`
+## Invoking the Shaper From `super`
 
-A shaper is typically invoked via the `-I` option of `zq`.
+A shaper is typically invoked via the `-I` option of `super`.
 
 For example, if we assume this input file `weird.json`
 

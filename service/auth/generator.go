@@ -30,7 +30,7 @@ func makeToken(keyID string, keyFile string, claims jwt.MapClaims) (string, erro
 }
 
 // GenerateAccessToken creates a JWT in string format with the expected audience,
-// issuer, and claims to pass zqd authentication checks.
+// issuer, and claims to pass authentication checks.
 func GenerateAccessToken(keyID string, privateKeyFile string, expiration time.Duration, audience, domain string, tenantID TenantID, userID UserID) (string, error) {
 	dstr, err := url.Parse(domain)
 	if err != nil {

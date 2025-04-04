@@ -3,7 +3,7 @@ script: |
 
 inputs:
   - name: stdin
-    # Generated with `bash -c 'zq -f csup -o f.csup - <<<"[1,2]" && base64 -b 70 f.csup'`.
+    # Generated with `bash -c 'super -f csup -o f.csup - <<<"[1,2]" && base64 -b 70 f.csup'`.
     data: !!binary |
       AgQCAgIEAQUFAAIGT2Zmc2V0CQZMZW5ndGgIBwdTZWdtZW50HgEfAAIEVHlwZRwGU2VnbW
       FwIAcJUHJpbWl0aXZlIQACB0xlbmd0aHMgBlZhbHVlcyIHBUFycmF5IxcBIAYFAgwCAiQP

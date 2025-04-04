@@ -65,7 +65,7 @@ was started with a specified storage path.
 ```
 wget https://github.com/brimdata/super/releases/download/v1.17.0/zed-v1.17.0.linux-amd64.tar.gz
 tar xzvf zed-v1.17.0.linux-amd64.tar.gz
-sudo mv zed zq /usr/local/bin
+sudo mv zed /usr/local/bin
 zed -lake $HOME/lake serve -manage 5m
 ```
 
@@ -220,7 +220,7 @@ First we saved the contents of the shaper from
 
 <match zeek>
   @type exec_filter
-  command zq -z -I shaper.zed -
+  command super -z -I shaper.zed -
   tag shaped
   <format>
     @type json

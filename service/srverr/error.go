@@ -1,4 +1,4 @@
-// Package zqe provides a mechanism to create or wrap errors with information
+// Package srverr provides a mechanism to create or wrap errors with information
 // that will aid in reporting them to users and returning them to api callers.
 package srverr
 
@@ -84,7 +84,7 @@ func (e *Error) Is(target error) bool {
 }
 
 // Message returns just the Err.Error() string, if present, or the Kind
-// string description. The intent is to allow zqe users a way to avoid
+// string description. The intent is to allow srverr users a way to avoid
 // embedding the Kind description as happens with Error().
 func (e *Error) Message() string {
 	if e.Err != nil {
@@ -124,7 +124,7 @@ func E(args ...interface{}) error {
 			return e
 		default:
 			_, file, line, _ := runtime.Caller(1)
-			return fmt.Errorf("unknown type %T value %v in zqe.E call at %v:%v", arg, arg, file, line)
+			return fmt.Errorf("unknown type %T value %v in srverr.E call at %v:%v", arg, arg, file, line)
 		}
 	}
 

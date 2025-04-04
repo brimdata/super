@@ -26,9 +26,9 @@ import (
 )
 
 const (
-	// DefaultPort zqd port to connect with.
+	// DefaultPort port to connect to.
 	DefaultPort      = 9867
-	DefaultUserAgent = "zqd-client-golang"
+	DefaultUserAgent = "super-client-golang"
 )
 
 var (

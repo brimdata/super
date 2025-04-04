@@ -4,9 +4,9 @@ title: zed
 heading: zed Tutorial
 ---
 
-`zq` is great, but what if we have a lot of data on which we want to perform search and
+`super` is great, but what if we have a lot of data on which we want to perform search and
 analytics? This is where the `zed` command comes in. `zed` builds on the type
-system and language found in `zq` and adds a high performance data lake on top.
+system and language found in `super` and adds a high performance data lake on top.
 
 > Note: `zed` is currently in alpha form. Check out its current status in the
 > [`super db` command](../../commands/super-db.md) documentation..
@@ -202,7 +202,7 @@ McCanne is once again in the lead but Henri is not far behind.
 The important thing demonstrated in the above query is the use of the `from`
 operator. The `from` operator specifies to query the `main` branch of the `prs` pool
 and also defines a time range for the query. The range part of the query is an
-important distinction from `zq`. Whereas `zq` would be required to
+important distinction from `super`. Whereas `super` would be required to
 scan the entire data set to execute this query, this Zed pool which stores data
 sorted by `created_at` can skip all data that doesn't fall within the range
 `2020-04-19T16:00:00Z to 2020-05-20T02:00:00Z`. This results in a much faster

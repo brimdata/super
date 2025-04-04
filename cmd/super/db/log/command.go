@@ -20,7 +20,7 @@ var spec = &charm.Spec{
 The log command outputs a commit history of any branch or unnamed commit object
 from a data pool in the format desired.
 By default, the output is in the human-readable "lake" format
-but BSUP can be used to easily be pipe a log to zq or other tooling for analysis.
+but BSUP can be used to easily be pipe a log to super or other tooling for analysis.
 `,
 	New: New,
 }

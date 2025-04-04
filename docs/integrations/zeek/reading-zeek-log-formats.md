@@ -14,7 +14,7 @@ is Zeek's default output format for logs. This format can be read automatically
 (i.e., no `-i` command line flag is necessary to indicate the input format)
 with the Zed tools such as [`super`](../../commands/super.md).
 
-The following example shows a TSV [`conn.log`](https://docs.zeek.org/en/master/logs/conn.html) being read via `zq` and
+The following example shows a TSV [`conn.log`](https://docs.zeek.org/en/master/logs/conn.html) being read via `super` and
 output as [Super JSON](../../formats/sup.md).
 
 #### conn.log
@@ -84,7 +84,7 @@ Zeek may instead generate logs in JSON format.
 2. Using the built-in [ASCII logger](https://docs.zeek.org/en/current/scripts/base/frameworks/logging/writers/ascii.zeek.html)
    configured with `redef LogAscii::use_json = T;`
 
-In both cases, Zed tools such as `zq` can read these logs automatically
+In both cases, Zed tools such as `super` can read these logs automatically
 as is, but with caveats.
 
 Let's revisit the same `conn` record we just examined from the Zeek TSV

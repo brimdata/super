@@ -1,6 +1,6 @@
 # Test that Zeek types that get special handling for compatibility with
 # the Super type system are handled correctly (i.e., that the Zeek types,
-# including those inside containers, are preserved on a pass through zq).
+# including those inside containers, are preserved on a pass through super).
 
 zed: pass
 

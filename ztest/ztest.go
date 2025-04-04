@@ -1,6 +1,5 @@
 // Package ztest runs formulaic tests ("ztests") that can be (1) run in-process
-// with the compiled-ini zq code base, (2) run as a sub-process using the zq
-// executable build artifact, or (3) run as a bash script running a sequence
+// with the compiled-in code base or (2) run as a bash script running a sequence
 // of arbitrary shell commands invoking any of the build artifacts.  The
 // first two cases comprise the "Zed test style" and the last case
 // comprises the "script test style".  Case (1) is easier to debug by
@@ -24,8 +23,8 @@
 //	  0:[2;]
 //
 // Input format is detected automatically and can be anything recognized by
-// "zq -i auto" (including optional gzip compression).  Output format defaults
-// to SUP but can be set to anything accepted by "zq -f".
+// "super -i auto" (including optional gzip compression).  Output format defaults
+// to SUP but can be set to anything accepted by "super -f".
 //
 //	zed: count()
 //
@@ -42,7 +41,7 @@
 //
 // Alternatively, tests can be configured to run as shell scripts.
 // In this style of test, arbitrary bash scripts can run chaining together
-// any of the tools in cmd/ in addition to zq.  Scripts are executed by "bash -e
+// any of the tools in cmd/ in addition to super.  Scripts are executed by "bash -e
 // -o pipefail", and a nonzero shell exit code causes a test failure, so any failed
 // command generally results in a test failure.  Here, the yaml sets up a collection
 // of input files and stdin, the script runs, and the test driver compares expected
@@ -64,8 +63,8 @@
 //
 // script: |
 //
-//	zq -o out.sup in1.sup -
-//	zq -o count.sup "count()" out.sup
+//	super -o out.sup in1.sup -
+//	super -o count.sup "count()" out.sup
 //
 // outputs:
 //   - name: out.sup
@@ -111,7 +110,7 @@
 // If the ZTEST_PATH environment variable is unset or empty and the test
 // is not a script test, Run runs ztests in the current process and skips
 // the script tests.  Otherwise, Run runs each ztest in a separate process
-// using the zq executable in the directories specified by ZTEST_PATH.
+// using the super executable in the directories specified by ZTEST_PATH.
 //
 // Tests of either style can be skipped by setting the skip field to a non-empty
 // string.  A message containing the string will be written to the test log.
@@ -360,13 +359,13 @@ func (z *ZTest) RunInternal() error {
 		if verr != nil {
 			verr = fmt.Errorf("=== vector ===\n%w", verr)
 		}
-		serr := z.diffInternal(runzq(z.Zed, z.Input, outputFlags, inputFlags))
+		serr := z.diffInternal(runseq(z.Zed, z.Input, outputFlags, inputFlags))
 		if serr != nil {
 			serr = fmt.Errorf("=== sequence ===\n%w", serr)
 		}
 		return errors.Join(verr, serr)
 	}
-	return z.diffInternal(runzq(z.Zed, z.Input, outputFlags, inputFlags))
+	return z.diffInternal(runseq(z.Zed, z.Input, outputFlags, inputFlags))
 }
 
 func (z *ZTest) diffInternal(out string, err error) error {
@@ -466,10 +465,10 @@ func runsh(path, testDir, tempDir string, zt *ZTest, extraEnv ...string) error {
 	return nil
 }
 
-// runzq runs zedProgram over input and returns the output.  input
-// may be in any format recognized by "zq -i auto" and may be gzip-compressed.
+// runseq runs zedProgram over input and returns the output.  input
+// may be in any format recognized by "super -i auto" and may be gzip-compressed.
 // outputFlags may contain any flags accepted by cli/outputflags.Flags.
-func runzq(zedProgram, input string, outputFlags []string, inputFlags []string) (string, error) {
+func runseq(zedProgram, input string, outputFlags []string, inputFlags []string) (string, error) {
 	ast, err := parser.ParseQuery(zedProgram)
 	if err != nil {
 		return "", err

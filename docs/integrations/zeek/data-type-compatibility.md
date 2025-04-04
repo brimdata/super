@@ -145,7 +145,7 @@ T	123	456	123.456	1592502151.123456	123.456000	smile😁smile	\x09\x07\x04	80	12
 
 ## Type-Specific Details
 
-As `zq` acts as a reference implementation for SuperDB storage formats such as
+As `super` acts as a reference implementation for SuperDB storage formats such as
 Super JSON and BSUP, it's helpful to understand how it reads the following Zeek data
 types into readable text equivalents in the Super JSON format, then writes them back
 out again in the Zeek TSV log format. Other implementations of the Zed storage
@@ -155,17 +155,17 @@ Multiple Zeek types discussed below are represented via a
 [type definition](../../formats/sup.md#22-type-decorators) to one of Zed's
 [primitive types](../../formats/data-model.md#1-primitive-types). The Zed type
 definitions maintain the history of the field's original Zeek type name
-such that `zq` may restore it if the field is later output in
+such that `super` may restore it if the field is later output in
 Zeek TSV format. Knowledge of its original Zeek type may also enable special
 operations in Zed that are unique to values known to have originated as a
 specific Zeek type, though no such operations are currently implemented in
-`zq`.
+`super`.
 
 ### `double`
 
 As they do not affect accuracy, "trailing zero" decimal digits on Zeek `double`
 values will _not_ be preserved when they are formatted into a string, such as
-via the `-f sup|zeek|table` output options in `zq` (e.g., `123.4560` becomes
+via the `-f sup|zeek|table` output options in `super` (e.g., `123.4560` becomes
 `123.456`).
 s
 ### `enum`
@@ -243,7 +243,7 @@ dot-separated field names. A common example in Zeek is the
 [`id`](https://docs.zeek.org/en/current/scripts/base/init-bare.zeek.html#type-conn_id)
 record, which captures the source and destination IP addresses and ports for a
 network connection as fields `id.orig_h`, `id.orig_p`, `id.resp_h`, and
-`id.resp_p`. When reading such fields into their Zed equivalent, `zq` restores
+`id.resp_p`. When reading such fields into their Zed equivalent, `super` restores
 the hierarchical nature of the record as it originally existed inside of Zeek
 itself before it was output by its logging system. This enables operations in
 Zed that refer to the record at a higher level but affect all values lower

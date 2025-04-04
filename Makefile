@@ -59,12 +59,6 @@ test-run: build bin/minio
 test-heavy: build
 	@PATH="$(CURDIR)/dist:$(PATH)" go test -tags=heavy ./mdtest
 
-.PHONY: test-services
-test-services: build
-	@ZTEST_PATH="$(CURDIR)/dist:$(CURDIR)/bin" \
-		ZTEST_TAG=services \
-		go test -run TestZed/ppl/zqd/ztests/redis .
-
 perf-compare: build $(SAMPLEDATA)
 	scripts/perf-compare.sh
 
