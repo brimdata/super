@@ -151,6 +151,7 @@ func (o *Optimizer) Optimize(seq dag.Seq) (dag.Seq, error) {
 	seq = mergeYieldOps(seq)
 	seq = inlineRecordExprSpreads(seq)
 	seq = removePassOps(seq)
+	seq = replaceSortAndHeadOrTailWithTop(seq)
 	o.optimizeParallels(seq)
 	seq = mergeFilters(seq)
 	seq, err := o.optimizeSourcePaths(seq)
@@ -645,6 +646,46 @@ func recordElemsFieldsAndSpread(elems []dag.RecordElem) (map[string]dag.Expr, da
 		}
 	}
 	return fields, spread, true
+}
+
+func replaceSortAndHeadOrTailWithTop(seq dag.Seq) dag.Seq {
+	walkT(reflect.ValueOf(&seq), func(seq dag.Seq) dag.Seq {
+		for i := 0; i+1 < len(seq); i++ {
+			sort, ok := seq[i].(*dag.Sort)
+			if !ok {
+				continue
+			}
+			var limit int
+			var nullsFirst, reverse bool
+			switch op := seq[i+1].(type) {
+			case *dag.Head:
+				limit = op.Count
+				nullsFirst = sort.NullsFirst
+				reverse = sort.Reverse
+			case *dag.Tail:
+				limit = op.Count
+				nullsFirst = !sort.NullsFirst
+				reverse = !sort.Reverse
+			default:
+				continue
+			}
+			if limit > 1048576 {
+				// Limit memory consumption since top doesn't
+				// spill to disk.
+				continue
+			}
+			seq[i] = &dag.Top{
+				Kind:       "Top",
+				Limit:      limit,
+				Exprs:      sort.Args,
+				NullsFirst: nullsFirst,
+				Reverse:    reverse,
+			}
+			seq.Delete(i+1, i+2)
+		}
+		return seq
+	})
+	return seq
 }
 
 func walkT[T any](v reflect.Value, post func(T) T) {

@@ -1,0 +1,41 @@
+script: |
+  super compile -C -O 'sort | head'
+  echo ===
+  super compile -C -O 'sort | tail'
+  echo ===
+  super compile -C -O 'sort -nulls first -r a, b asc, c desc | head 3'
+  echo ===
+  super compile -C -O 'sort -nulls first -r a, b asc, c desc | tail 3'
+  echo ===
+  super compile -C -O 'sort | head 1048577'
+  echo ===
+  super compile -C -O 'sort | tail 1048577'
+
+outputs:
+  - name: stdout
+    data: |
+      null
+      | top 1
+      | output main
+      ===
+      null
+      | top -nulls first -r 1
+      | output main
+      ===
+      null
+      | top -nulls first -r 3 a asc, b asc, c desc
+      | output main
+      ===
+      null
+      | top 3 a asc, b asc, c desc
+      | output main
+      ===
+      null
+      | sort
+      | head 1048577
+      | output main
+      ===
+      null
+      | sort
+      | tail 1048577
+      | output main
