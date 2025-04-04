@@ -42,15 +42,15 @@ type Entry interface {
 }
 
 type Add struct {
-	Entry `zed:"entry"`
+	Entry `super:"entry"`
 }
 
 type Update struct {
-	Entry `zed:"entry"`
+	Entry `super:"entry"`
 }
 
 type Delete struct {
-	EntryKey string `zed:"entry_key"`
+	EntryKey string `super:"entry_key"`
 }
 
 func (d *Delete) Key() string {

@@ -161,7 +161,7 @@ func (e *Error) Len() uint32 {
 }
 
 type Int struct {
-	Typ      super.Type `zed:"Type"`
+	Typ      super.Type `super:"Type"`
 	Location Segment
 	Min      int64
 	Max      int64
@@ -177,7 +177,7 @@ func (i *Int) Len() uint32 {
 }
 
 type Uint struct {
-	Typ      super.Type `zed:"Type"`
+	Typ      super.Type `super:"Type"`
 	Location Segment
 	Min      uint64
 	Max      uint64
@@ -193,7 +193,7 @@ func (u *Uint) Len() uint32 {
 }
 
 type Primitive struct {
-	Typ      super.Type `zed:"Type"`
+	Typ      super.Type `super:"Type"`
 	Location Segment
 	Min      *super.Value
 	Max      *super.Value

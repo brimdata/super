@@ -10,8 +10,8 @@ import (
 )
 
 type SortKey struct {
-	Order Which      `json:"order" zed:"order"`
-	Key   field.Path `json:"key" zed:"key"`
+	Order Which      `json:"order" super:"order"`
+	Key   field.Path `json:"key" super:"key"`
 }
 
 func NewSortKey(order Which, key field.Path) SortKey {

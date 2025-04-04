@@ -65,8 +65,8 @@ func (n *NetworkOf) Call(_ super.Allocator, args []super.Value) super.Value {
 
 func addressAndMask(sctx *super.Context, address, mask super.Value) super.Value {
 	val, err := sup.NewBSUPMarshalerWithContext(sctx).Marshal(struct {
-		Address super.Value `zed:"address"`
-		Mask    super.Value `zed:"mask"`
+		Address super.Value `super:"address"`
+		Mask    super.Value `super:"mask"`
 	}{address, mask})
 	if err != nil {
 		panic(err)

@@ -76,11 +76,11 @@ func FileMatch(s string) (kind FileKind, id ksuid.KSUID, ok bool) {
 // of values in the sequence and Size is total size in bytes of the Object as
 // persisted to storage (i.e., its compressed size).
 type Object struct {
-	ID    ksuid.KSUID `zed:"id"`
-	Min   super.Value `zed:"min"`
-	Max   super.Value `zed:"max"`
-	Count uint64      `zed:"count"`
-	Size  int64       `zed:"size"`
+	ID    ksuid.KSUID `super:"id"`
+	Min   super.Value `super:"min"`
+	Max   super.Value `super:"max"`
+	Count uint64      `super:"count"`
+	Size  int64       `super:"size"`
 }
 
 func (o Object) IsZero() bool {

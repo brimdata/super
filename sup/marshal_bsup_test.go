@@ -37,7 +37,7 @@ func boomerang(t *testing.T, in interface{}, out interface{}) {
 
 func TestMarshalBSUP(t *testing.T) {
 	type S2 struct {
-		Field2 string `zed:"f2"`
+		Field2 string `super:"f2"`
 		Field3 int
 	}
 	type S1 struct {
@@ -78,7 +78,7 @@ func TestMarshalMap(t *testing.T) {
 }
 
 type BSUPThing struct {
-	A string `zed:"a"`
+	A string `super:"a"`
 	B int
 }
 
@@ -172,7 +172,7 @@ func TestUnmarshalRecord(t *testing.T) {
 		T2f2 string
 	}
 	type T1 struct {
-		T1f1 *T2 `zed:"top"`
+		T1f1 *T2 `super:"top"`
 	}
 	v1 := T1{
 		T1f1: &T2{T2f1: T3{T3f1: 1, T3f2: 1.0}, T2f2: "t2f2-string1"},
@@ -191,7 +191,7 @@ func TestUnmarshalRecord(t *testing.T) {
 	require.Equal(t, v1, v2)
 
 	type T4 struct {
-		T4f1 *T2 `zed:"top"`
+		T4f1 *T2 `super:"top"`
 	}
 	var v3 *T4
 	err = sup.UnmarshalBSUP(rec, &v3)
@@ -242,7 +242,7 @@ func TestUnmarshalNull(t *testing.T) {
 			Val int
 		}
 		var obj struct {
-			Test *testobj `zed:"test"`
+			Test *testobj `super:"test"`
 		}
 		val := sup.MustParseValue(super.NewContext(), "{test:null({Val:int64})}")
 		require.NoError(t, sup.UnmarshalBSUP(val, &obj))
@@ -250,7 +250,7 @@ func TestUnmarshalNull(t *testing.T) {
 		val = sup.MustParseValue(super.NewContext(), "{test:null(ip)}")
 		require.EqualError(t, sup.UnmarshalBSUP(val, &obj), `cannot unmarshal Zed value "null(ip)" into Go struct`)
 		var slice struct {
-			Test []string `zed:"test"`
+			Test []string `super:"test"`
 		}
 		slice.Test = []string{"1"}
 		val = sup.MustParseValue(super.NewContext(), "{test:null}")
@@ -417,7 +417,7 @@ func TestCustomRecord(t *testing.T) {
 }
 
 type ThingTwo struct {
-	C string `zed:"c"`
+	C string `super:"c"`
 }
 
 type ThingaMaBob interface {
@@ -623,7 +623,7 @@ func TestZedValues(t *testing.T) {
 		})
 	}
 	var testptr struct {
-		Value *super.Value `zed:"value"`
+		Value *super.Value `super:"value"`
 	}
 	t.Run("pointer", func(t *testing.T) {
 		test(t, "string", "{value:\"foo\"}", &testptr)
@@ -632,7 +632,7 @@ func TestZedValues(t *testing.T) {
 		test(t, "record", "{value:{foo:1,bar:\"baz\"}}", &testptr)
 	})
 	var teststruct struct {
-		Value super.Value `zed:"value"`
+		Value super.Value `super:"value"`
 	}
 	t.Run("struct", func(t *testing.T) {
 		test(t, "string", "{value:\"foo\"}", &teststruct)

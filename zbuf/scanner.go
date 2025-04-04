@@ -34,10 +34,10 @@ type Scanner interface {
 
 // Progress represents progress statistics from a Scanner.
 type Progress struct {
-	BytesRead      int64 `zed:"bytes_read" json:"bytes_read"`
-	BytesMatched   int64 `zed:"bytes_matched" json:"bytes_matched"`
-	RecordsRead    int64 `zed:"records_read" json:"records_read"`
-	RecordsMatched int64 `zed:"records_matched" json:"records_matched"`
+	BytesRead      int64 `super:"bytes_read" json:"bytes_read"`
+	BytesMatched   int64 `super:"bytes_matched" json:"bytes_matched"`
+	RecordsRead    int64 `super:"records_read" json:"records_read"`
+	RecordsMatched int64 `super:"records_matched" json:"records_matched"`
 }
 
 var _ Meter = (*Progress)(nil)

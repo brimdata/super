@@ -7,8 +7,8 @@ import (
 )
 
 type Commitish struct {
-	Pool   string `zed:"pool"`
-	Branch string `zed:"branch"`
+	Pool   string `super:"pool"`
+	Branch string `super:"branch"`
 }
 
 func ParseCommitish(commitish string) (*Commitish, error) {

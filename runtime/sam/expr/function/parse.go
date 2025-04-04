@@ -23,15 +23,15 @@ func NewParseURI(zctx *super.Context) *ParseURI {
 
 func (p *ParseURI) Call(_ super.Allocator, args []super.Value) super.Value {
 	type uri struct {
-		Scheme   *string    `zed:"scheme"`
-		Opaque   *string    `zed:"opaque"`
-		User     *string    `zed:"user"`
-		Password *string    `zed:"password"`
-		Host     *string    `zed:"host"`
-		Port     *uint16    `zed:"port"`
-		Path     *string    `zed:"path"`
-		Query    url.Values `zed:"query"`
-		Fragment *string    `zed:"fragment"`
+		Scheme   *string    `super:"scheme"`
+		Opaque   *string    `super:"opaque"`
+		User     *string    `super:"user"`
+		Password *string    `super:"password"`
+		Host     *string    `super:"host"`
+		Port     *uint16    `super:"port"`
+		Path     *string    `super:"path"`
+		Query    url.Values `super:"query"`
+		Fragment *string    `super:"fragment"`
 	}
 	in := args[0]
 	if !in.IsString() {

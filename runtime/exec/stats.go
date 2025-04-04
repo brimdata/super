@@ -13,9 +13,9 @@ import (
 
 // XXX for backward compat keep this for now, and return branchstats for pool/main
 type PoolStats struct {
-	Size int64 `zed:"size"`
+	Size int64 `super:"size"`
 	// XXX (nibs) - This shouldn't be a span because keys don't have to be time.
-	Span *nano.Span `zed:"span"`
+	Span *nano.Span `super:"span"`
 }
 
 func GetPoolStats(ctx context.Context, p *lake.Pool, snap commits.View) (info PoolStats, err error) {
@@ -48,9 +48,9 @@ func GetPoolStats(ctx context.Context, p *lake.Pool, snap commits.View) (info Po
 }
 
 type BranchStats struct {
-	Size int64 `zed:"size"`
+	Size int64 `super:"size"`
 	// XXX (nibs) - This shouldn't be a span because keys don't have to be time.
-	Span *nano.Span `zed:"span"`
+	Span *nano.Span `super:"span"`
 }
 
 func GetBranchStats(ctx context.Context, b *lake.Branch, snap commits.View) (info BranchStats, err error) {

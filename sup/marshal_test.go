@@ -262,7 +262,7 @@ func TestUnexported(t *testing.T) {
 
 type BSUPValueField struct {
 	Name  string
-	Field super.Value `zed:"field"`
+	Field super.Value `super:"field"`
 }
 
 func TestBSUPValueField(t *testing.T) {
@@ -315,8 +315,8 @@ func TestJSONFieldTag(t *testing.T) {
 
 func TestIgnoreField(t *testing.T) {
 	type s struct {
-		Value  string       `zed:"value"`
-		Ignore func() error `zed:"-"`
+		Value  string       `super:"value"`
+		Ignore func() error `super:"-"`
 	}
 	b, err := sup.Marshal(s{Value: "test"})
 	require.NoError(t, err)
