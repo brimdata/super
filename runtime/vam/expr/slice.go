@@ -89,21 +89,23 @@ func (s *sliceExpr) evalArrayOrSlice(vec, fromVec, toVec vector.Any) vector.Any 
 			continue
 		}
 		off := offsets[idx]
-		size := int64(offsets[idx+1] - off)
-		start, end := int64(0), size
+		size := int(offsets[idx+1] - off)
+		start, end := 0, size
 		if fromVec != nil {
 			if slowPath {
-				from, _ = vector.IntValue(fromVec, i)
+				v, _ := vector.IntValue(fromVec, i)
+				from = int(v)
 			}
 			start = sliceIndex(from, size)
 		}
 		if toVec != nil {
 			if slowPath {
-				to, _ = vector.IntValue(toVec, i)
+				v, _ := vector.IntValue(toVec, i)
+				to = int(v)
 			}
 			end = sliceIndex(to, size)
 		}
-		start, end = fixSliceBounds(start, end, size)
+		start, end = expr.FixSliceBounds(start, end, size)
 		newOffsets = append(newOffsets, newOffsets[len(newOffsets)-1]+uint32(end-start))
 		for k := start; k < end; k++ {
 			innerIndex = append(innerIndex, off+uint32(k))
@@ -146,16 +148,16 @@ func (s *sliceExpr) evalStringOrBytes(vec, fromVec, toVec vector.Any) vector.Any
 			continue
 		}
 		size := lengthOfBytesOrString(id, slice)
-		start, end := int64(0), size
+		start, end := 0, size
 		if fromVec != nil {
 			from, _ := vector.IntValue(fromVec, i)
-			start = sliceIndex(from, size)
+			start = sliceIndex(int(from), size)
 		}
 		if toVec != nil {
 			to, _ := vector.IntValue(toVec, i)
-			end = sliceIndex(to, size)
+			end = sliceIndex(int(to), size)
 		}
-		start, end = fixSliceBounds(start, end, size)
+		start, end = expr.FixSliceBounds(start, end, size)
 		slice = sliceBytesOrString(slice, id, start, end)
 		newBytes = append(newBytes, slice...)
 		newOffsets = append(newOffsets, newOffsets[len(newOffsets)-1]+uint32(len(slice)))
@@ -168,20 +170,20 @@ func (s *sliceExpr) evalStringOrBytes(vec, fromVec, toVec vector.Any) vector.Any
 	return out
 }
 
-func (s *sliceExpr) evalStringOrBytesFast(vec vector.Any, from, to int64) (vector.Any, bool) {
+func (s *sliceExpr) evalStringOrBytesFast(vec vector.Any, from, to int) (vector.Any, bool) {
 	switch vec := vec.(type) {
 	case *vector.Const:
 		slice := vec.Value().Bytes()
 		id := vec.Type().ID()
 		size := lengthOfBytesOrString(id, slice)
-		start, end := int64(0), size
+		start, end := 0, size
 		if s.fromEval != nil {
 			start = sliceIndex(from, size)
 		}
 		if s.toEval != nil {
 			end = sliceIndex(to, size)
 		}
-		start, end = fixSliceBounds(start, end, size)
+		start, end = expr.FixSliceBounds(start, end, size)
 		slice = sliceBytesOrString(slice, id, start, end)
 		return vector.NewConst(super.NewValue(vec.Type(), slice), vec.Len(), vec.Nulls), true
 	case *vector.View:
@@ -204,14 +206,14 @@ func (s *sliceExpr) evalStringOrBytesFast(vec vector.Any, from, to int64) (vecto
 		for i := range vec.Len() {
 			slice := bytes[offsets[i]:offsets[i+1]]
 			size := lengthOfBytesOrString(id, slice)
-			start, end := int64(0), size
+			start, end := 0, size
 			if s.fromEval != nil {
 				start = sliceIndex(from, size)
 			}
 			if s.toEval != nil {
 				end = sliceIndex(to, size)
 			}
-			start, end = fixSliceBounds(start, end, size)
+			start, end = expr.FixSliceBounds(start, end, size)
 			slice = sliceBytesOrString(slice, id, start, end)
 			newBytes = append(newBytes, slice...)
 			newOffsets = append(newOffsets, newOffsets[len(newOffsets)-1]+uint32(len(slice)))
@@ -260,31 +262,24 @@ func (s *sliceExpr) bytesAt(val vector.Any, slot uint32) ([]byte, bool) {
 	panic(val)
 }
 
-func lengthOfBytesOrString(id int, slice []byte) int64 {
+func lengthOfBytesOrString(id int, slice []byte) int {
 	if id == super.IDString {
-		return int64(utf8.RuneCount(slice))
+		return utf8.RuneCount(slice)
 	}
-	return int64(len(slice))
+	return len(slice)
 }
 
-func fixSliceBounds(start, end, size int64) (int64, int64) {
-	if start > end || end < 0 {
-		return 0, 0
-	}
-	return max(start, 0), min(end, size)
-}
-
-func sliceIsConstIndex(vec vector.Any) (int64, bool) {
+func sliceIsConstIndex(vec vector.Any) (int, bool) {
 	if vec == nil {
 		return 0, true
 	}
 	if c, ok := vec.(*vector.Const); ok && c.Nulls == nil {
-		return c.Value().Int(), true
+		return int(c.Value().Int()), true
 	}
 	return 0, false
 }
 
-func sliceIndex(idx, size int64) int64 {
+func sliceIndex(idx, size int) int {
 	if idx > 0 {
 		idx--
 	}
@@ -294,10 +289,10 @@ func sliceIndex(idx, size int64) int64 {
 	return idx
 }
 
-func sliceBytesOrString(slice []byte, id int, start, end int64) []byte {
+func sliceBytesOrString(slice []byte, id int, start, end int) []byte {
 	if id == super.IDString {
-		slice = slice[expr.UTF8PrefixLen(slice, int(start)):]
-		return slice[:expr.UTF8PrefixLen(slice, int(end-start))]
+		slice = slice[expr.UTF8PrefixLen(slice, start):]
+		return slice[:expr.UTF8PrefixLen(slice, end-start)]
 	} else {
 		return slice[start:end]
 	}

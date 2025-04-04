@@ -62,7 +62,7 @@ func (s *Slice) Eval(ectx Context, this super.Value) super.Value {
 		}
 		to = length
 	}
-	from, to = fixSliceBounds(from, to, length)
+	from, to = FixSliceBounds(from, to, length)
 	bytes := elem.Bytes()
 	switch super.TypeUnder(elem.Type()).(type) {
 	case *super.TypeOfBytes:
@@ -105,7 +105,7 @@ func sliceIndex(ectx Context, this super.Value, slot Evaluator, length int) (int
 	return index, nil
 }
 
-func fixSliceBounds(start, end, size int) (int, int) {
+func FixSliceBounds(start, end, size int) (int, int) {
 	if start > end || end < 0 {
 		return 0, 0
 	}
