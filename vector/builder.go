@@ -356,7 +356,7 @@ type bytesStringTypeBuilder struct {
 }
 
 func newBytesStringTypeBuilder(typ super.Type) Builder {
-	return &bytesStringTypeBuilder{typ: typ, offs: []uint32{0}}
+	return &bytesStringTypeBuilder{typ: typ, bytes: []byte{}, offs: []uint32{0}}
 }
 
 func (b *bytesStringTypeBuilder) Write(bytes zcode.Bytes) {

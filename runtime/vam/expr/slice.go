@@ -73,7 +73,6 @@ func (s *sliceExpr) evalArrayOrSlice(vec, fromVec, toVec vector.Any) vector.Any 
 	}
 	offsets, inner, nullsIn := arrayOrSetContents(vec)
 	newOffsets := []uint32{0}
-	var errs []uint32
 	var innerIndex []uint32
 	var nullsOut *vector.Bool
 	for i := range n {
@@ -104,10 +103,7 @@ func (s *sliceExpr) evalArrayOrSlice(vec, fromVec, toVec vector.Any) vector.Any 
 			}
 			end = sliceIndex(to, size)
 		}
-		if invalidSlice(start, end, size) {
-			errs = append(errs, i)
-			continue
-		}
+		start, end = fixSliceBounds(start, end, size)
 		newOffsets = append(newOffsets, newOffsets[len(newOffsets)-1]+uint32(end-start))
 		for k := start; k < end; k++ {
 			innerIndex = append(innerIndex, off+uint32(k))
@@ -124,10 +120,6 @@ func (s *sliceExpr) evalArrayOrSlice(vec, fromVec, toVec vector.Any) vector.Any 
 	if nullsOut != nil {
 		nullsOut.SetLen(out.Len())
 	}
-	if len(errs) > 0 {
-		errOut := vector.NewStringError(s.zctx, "slice out of bounds", uint32(len(errs)))
-		return vector.Combine(out, errs, errOut)
-	}
 	return out
 }
 
@@ -139,7 +131,6 @@ func (s *sliceExpr) evalStringOrBytes(vec, fromVec, toVec vector.Any) vector.Any
 			return out
 		}
 	}
-	var errs []uint32
 	newOffsets := []uint32{0}
 	var newBytes []byte
 	var nullsOut *vector.Bool
@@ -164,10 +155,7 @@ func (s *sliceExpr) evalStringOrBytes(vec, fromVec, toVec vector.Any) vector.Any
 			to, _ := vector.IntValue(toVec, i)
 			end = sliceIndex(to, size)
 		}
-		if invalidSlice(start, end, size) {
-			errs = append(errs, i)
-			continue
-		}
+		start, end = fixSliceBounds(start, end, size)
 		slice = sliceBytesOrString(slice, id, start, end)
 		newBytes = append(newBytes, slice...)
 		newOffsets = append(newOffsets, newOffsets[len(newOffsets)-1]+uint32(len(slice)))
@@ -176,10 +164,6 @@ func (s *sliceExpr) evalStringOrBytes(vec, fromVec, toVec vector.Any) vector.Any
 	out := s.bytesOrStringVec(vec.Type(), newOffsets, newBytes, nullsOut)
 	if nullsOut != nil {
 		nullsOut.SetLen(out.Len())
-	}
-	if len(errs) > 0 {
-		errOut := vector.NewStringError(s.zctx, "slice out of bounds", uint32(len(errs)))
-		return vector.Combine(out, errs, errOut)
 	}
 	return out
 }
@@ -197,9 +181,7 @@ func (s *sliceExpr) evalStringOrBytesFast(vec vector.Any, from, to int64) (vecto
 		if s.toEval != nil {
 			end = sliceIndex(to, size)
 		}
-		if invalidSlice(start, end, size) {
-			return nil, false
-		}
+		start, end = fixSliceBounds(start, end, size)
 		slice = sliceBytesOrString(slice, id, start, end)
 		return vector.NewConst(super.NewValue(vec.Type(), slice), vec.Len(), vec.Nulls), true
 	case *vector.View:
@@ -217,7 +199,7 @@ func (s *sliceExpr) evalStringOrBytesFast(vec vector.Any, from, to int64) (vecto
 	default:
 		offsets, bytes, nullsIn := stringOrBytesContents(vec)
 		newOffsets := []uint32{0}
-		var newBytes []byte
+		newBytes := []byte{}
 		id := vec.Type().ID()
 		for i := range vec.Len() {
 			slice := bytes[offsets[i]:offsets[i+1]]
@@ -229,9 +211,7 @@ func (s *sliceExpr) evalStringOrBytesFast(vec vector.Any, from, to int64) (vecto
 			if s.toEval != nil {
 				end = sliceIndex(to, size)
 			}
-			if invalidSlice(start, end, size) {
-				return nil, false
-			}
+			start, end = fixSliceBounds(start, end, size)
 			slice = sliceBytesOrString(slice, id, start, end)
 			newBytes = append(newBytes, slice...)
 			newOffsets = append(newOffsets, newOffsets[len(newOffsets)-1]+uint32(len(slice)))
@@ -287,8 +267,11 @@ func lengthOfBytesOrString(id int, slice []byte) int64 {
 	return int64(len(slice))
 }
 
-func invalidSlice(start, end, size int64) bool {
-	return start > end || end > size || start < 0
+func fixSliceBounds(start, end, size int64) (int64, int64) {
+	if start > end || end < 0 {
+		return 0, 0
+	}
+	return max(start, 0), min(end, size)
 }
 
 func sliceIsConstIndex(vec vector.Any) (int64, bool) {
@@ -302,8 +285,11 @@ func sliceIsConstIndex(vec vector.Any) (int64, bool) {
 }
 
 func sliceIndex(idx, size int64) int64 {
+	if idx > 0 {
+		idx--
+	}
 	if idx < 0 {
-		idx += int64(size)
+		idx += size
 	}
 	return idx
 }

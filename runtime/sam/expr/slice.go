@@ -62,9 +62,7 @@ func (s *Slice) Eval(ectx Context, this super.Value) super.Value {
 		}
 		to = length
 	}
-	if from > to || to > length || from < 0 {
-		return s.zctx.NewErrorf("slice out of bounds")
-	}
+	from, to = fixSliceBounds(from, to, length)
 	bytes := elem.Bytes()
 	switch super.TypeUnder(elem.Type()).(type) {
 	case *super.TypeOfBytes:
@@ -98,10 +96,20 @@ func sliceIndex(ectx Context, this super.Value, slot Evaluator, length int) (int
 		return 0, ErrSliceIndex
 	}
 	index := int(v)
+	if index > 0 {
+		index--
+	}
 	if index < 0 {
 		index += length
 	}
 	return index, nil
+}
+
+func fixSliceBounds(start, end, size int) (int, int) {
+	if start > end || end < 0 {
+		return 0, 0
+	}
+	return max(start, 0), min(end, size)
 }
 
 // UTF8PrefixLen returns the length in bytes of the first runeCount runes in b.

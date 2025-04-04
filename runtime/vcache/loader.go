@@ -263,7 +263,7 @@ func (l *loader) loadVals(typ super.Type, s *primitive, nulls *vector.Bool) (vec
 		}
 		return b, nil
 	case *super.TypeOfBytes:
-		var bytes []byte
+		bytes := []byte{}
 		offs := make([]uint32, length+1)
 		var off uint32
 		for slot := uint32(0); slot < length; slot++ {

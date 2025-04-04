@@ -29,7 +29,7 @@ yield upper(this)
 ```mdtest-spq
 # spq
 func capitalize(str): (
-  upper(str[0:1]) + str[1:]
+  upper(str[1:2]) + str[2:]
 )
 yield capitalize(this)
 # input

@@ -1,4 +1,4 @@
-spq: "cut a1:=a[1:-1],a2:=a[1:],a3:=a[:1],a4:=a[:-1],a5:=a[:-100],a6:=a[-1:],a7:=a[-2:-1],a8:=(a IS NOT NULL and len(a)>0) ? a[:a[1]-8] : null"
+spq: "cut a1:=a[2:-1],a2:=a[2:],a3:=a[:2],a4:=a[:-1],a5:=a[:-100],a6:=a[-1:],a7:=a[-2:-1],a8:=(a IS NOT NULL and len(a)>0) ? a[:a[2]-8] : null"
 
 vector: true
 
@@ -22,12 +22,12 @@ output: |
   {a1:null(bytes),a2:null(bytes),a3:null(bytes),a4:null(bytes),a5:null(bytes),a6:null(bytes),a7:null(bytes),a8:null}
   {a1:null(string),a2:null(string),a3:null(string),a4:null(string),a5:null(string),a6:null(string),a7:null(string),a8:null}
   {a1:null([int32]),a2:null([int32]),a3:null([int32]),a4:null([int32]),a5:null([int32]),a6:null([int32]),a7:null([int32]),a8:null}
-  {a1:error("slice out of bounds"),a2:error("slice out of bounds"),a3:error("slice out of bounds"),a4:error("slice out of bounds"),a5:error("slice out of bounds"),a6:error("slice out of bounds"),a7:error("slice out of bounds"),a8:null}
-  {a1:error("slice out of bounds"),a2:error("slice out of bounds"),a3:error("slice out of bounds"),a4:error("slice out of bounds"),a5:error("slice out of bounds"),a6:error("slice out of bounds"),a7:error("slice out of bounds"),a8:null}
-  {a1:error("slice out of bounds"),a2:error("slice out of bounds"),a3:error("slice out of bounds"),a4:error("slice out of bounds"),a5:error("slice out of bounds"),a6:error("slice out of bounds"),a7:error("slice out of bounds"),a8:null}
-  {a1:0x1122,a2:0x112233,a3:0x00,a4:0x001122,a5:error("slice out of bounds"),a6:0x33,a7:0x22,a8:error("slice index is not a number")}
-  {a1:"12",a2:"123",a3:"0",a4:"012",a5:error("slice out of bounds"),a6:"3",a7:"2",a8:error("slice index is not a number")}
-  {a1:"ⁱ⁲",a2:"ⁱ⁲3",a3:"0",a4:"0ⁱ⁲",a5:error("slice out of bounds"),a6:"3",a7:"⁲",a8:error("slice index is not a number")}
-  {a1:"ⁱ⁲",a2:"ⁱ⁲⁳",a3:"⁰",a4:"⁰ⁱ⁲",a5:error("slice out of bounds"),a6:"⁳",a7:"⁲",a8:error("slice index is not a number")}
-  {a1:[11(int32),12(int32)],a2:[11(int32),12(int32),13(int32)],a3:[10(int32)],a4:[10(int32),11(int32),12(int32)],a5:error("slice out of bounds"),a6:[13(int32)],a7:[12(int32)],a8:[10(int32),11(int32)]}
-  {a1:|[11(int32),12(int32)]|,a2:|[11(int32),12(int32),13(int32)]|,a3:|[10(int32)]|,a4:|[10(int32),11(int32),12(int32)]|,a5:error("slice out of bounds"),a6:|[13(int32)]|,a7:|[12(int32)]|,a8:|[10(int32),11(int32)]|}
+  {a1:0x,a2:0x,a3:0x,a4:0x,a5:0x,a6:0x,a7:0x,a8:null}
+  {a1:"",a2:"",a3:"",a4:"",a5:"",a6:"",a7:"",a8:null}
+  {a1:[]([int32]),a2:[]([int32]),a3:[]([int32]),a4:[]([int32]),a5:[]([int32]),a6:[]([int32]),a7:[]([int32]),a8:null}
+  {a1:0x1122,a2:0x112233,a3:0x00,a4:0x001122,a5:0x,a6:0x33,a7:0x22,a8:error("slice index is not a number")}
+  {a1:"12",a2:"123",a3:"0",a4:"012",a5:"",a6:"3",a7:"2",a8:error("slice index is not a number")}
+  {a1:"ⁱ⁲",a2:"ⁱ⁲3",a3:"0",a4:"0ⁱ⁲",a5:"",a6:"3",a7:"⁲",a8:error("slice index is not a number")}
+  {a1:"ⁱ⁲",a2:"ⁱ⁲⁳",a3:"⁰",a4:"⁰ⁱ⁲",a5:"",a6:"⁳",a7:"⁲",a8:error("slice index is not a number")}
+  {a1:[11(int32),12(int32)],a2:[11(int32),12(int32),13(int32)],a3:[10(int32)],a4:[10(int32),11(int32),12(int32)],a5:[]([int32]),a6:[13(int32)],a7:[12(int32)],a8:[10(int32),11(int32)]}
+  {a1:|[11(int32),12(int32)]|,a2:|[11(int32),12(int32),13(int32)]|,a3:|[10(int32)]|,a4:|[10(int32),11(int32),12(int32)]|,a5:|[]|(|[int32]|),a6:|[13(int32)]|,a7:|[12(int32)]|,a8:|[10(int32),11(int32)]|}
