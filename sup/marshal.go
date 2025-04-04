@@ -169,7 +169,7 @@ func (m *MarshalBSUPContext) MarshalCustom(names []string, vals []interface{}) (
 }
 
 const (
-	tagName = "zed"
+	tagName = "super"
 	tagSep  = ","
 )
 

@@ -6,9 +6,9 @@ import (
 )
 
 type Config struct {
-	Ts     nano.Ts     `zed:"ts"`
-	Name   string      `zed:"name"`
-	Commit ksuid.KSUID `zed:"commit"`
+	Ts     nano.Ts     `super:"ts"`
+	Name   string      `super:"name"`
+	Commit ksuid.KSUID `super:"commit"`
 
 	// audit info
 }

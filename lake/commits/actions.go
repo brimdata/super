@@ -23,8 +23,8 @@ var ActionTypes = []interface{}{
 }
 
 type Add struct {
-	Commit ksuid.KSUID `zed:"commit"`
-	Object data.Object `zed:"object"`
+	Commit ksuid.KSUID `super:"commit"`
+	Object data.Object `super:"object"`
 }
 
 var _ Action = (*Add)(nil)
@@ -45,13 +45,13 @@ func (a *Add) String() string {
 // pessimistic locking mechanisms alongside the optimistic approach.
 
 type Commit struct {
-	ID      ksuid.KSUID `zed:"id"`
-	Parent  ksuid.KSUID `zed:"parent"`
-	Retries uint8       `zed:"retries"`
-	Author  string      `zed:"author"`
-	Date    nano.Ts     `zed:"date"`
-	Message string      `zed:"message"`
-	Meta    super.Value `zed:"meta"`
+	ID      ksuid.KSUID `super:"id"`
+	Parent  ksuid.KSUID `super:"parent"`
+	Retries uint8       `super:"retries"`
+	Author  string      `super:"author"`
+	Date    nano.Ts     `super:"date"`
+	Message string      `super:"message"`
+	Meta    super.Value `super:"meta"`
 }
 
 func (c *Commit) CommitID() ksuid.KSUID {
@@ -64,8 +64,8 @@ func (c *Commit) String() string {
 }
 
 type Delete struct {
-	Commit ksuid.KSUID `zed:"commit"`
-	ID     ksuid.KSUID `zed:"id"`
+	Commit ksuid.KSUID `super:"commit"`
+	ID     ksuid.KSUID `super:"id"`
 }
 
 func (d *Delete) CommitID() ksuid.KSUID {
@@ -77,8 +77,8 @@ func (d *Delete) String() string {
 }
 
 type AddVector struct {
-	Commit ksuid.KSUID `zed:"commit"`
-	ID     ksuid.KSUID `zed:"id"`
+	Commit ksuid.KSUID `super:"commit"`
+	ID     ksuid.KSUID `super:"id"`
 }
 
 func (a *AddVector) String() string {
@@ -90,8 +90,8 @@ func (a *AddVector) CommitID() ksuid.KSUID {
 }
 
 type DeleteVector struct {
-	Commit ksuid.KSUID `zed:"commit"`
-	ID     ksuid.KSUID `zed:"id"`
+	Commit ksuid.KSUID `super:"commit"`
+	ID     ksuid.KSUID `super:"id"`
 }
 
 func (d *DeleteVector) String() string {

@@ -43,8 +43,8 @@ type PoolPostRequest struct {
 }
 
 type SortKeys struct {
-	Order order.Which `json:"order" zed:"order"`
-	Keys  field.List  `json:"keys" zed:"keys"`
+	Order order.Which `json:"order" super:"order"`
+	Keys  field.List  `json:"keys" super:"keys"`
 }
 
 type PoolPutRequest struct {
@@ -61,39 +61,39 @@ type BranchMergeRequest struct {
 }
 
 type CompactRequest struct {
-	ObjectIDs []ksuid.KSUID `zed:"object_ids"`
+	ObjectIDs []ksuid.KSUID `super:"object_ids"`
 }
 
 type DeleteRequest struct {
-	ObjectIDs []string `zed:"object_ids"`
-	Where     string   `zed:"where"`
+	ObjectIDs []string `super:"object_ids"`
+	Where     string   `super:"where"`
 }
 
 type CommitMessage struct {
-	Author string `zed:"author"`
-	Body   string `zed:"body"`
-	Meta   string `zed:"meta"`
+	Author string `super:"author"`
+	Body   string `super:"body"`
+	Meta   string `super:"meta"`
 }
 
 type CommitResponse struct {
-	Commit   ksuid.KSUID `zed:"commit"`
-	Warnings []string    `zed:"warnings"`
+	Commit   ksuid.KSUID `super:"commit"`
+	Warnings []string    `super:"warnings"`
 }
 
 type EventBranchCommit struct {
-	CommitID ksuid.KSUID `zed:"commit_id"`
-	PoolID   ksuid.KSUID `zed:"pool_id"`
-	Branch   string      `zed:"branch"`
-	Parent   string      `zed:"parent"`
+	CommitID ksuid.KSUID `super:"commit_id"`
+	PoolID   ksuid.KSUID `super:"pool_id"`
+	Branch   string      `super:"branch"`
+	Parent   string      `super:"parent"`
 }
 
 type EventPool struct {
-	PoolID ksuid.KSUID `zed:"pool_id"`
+	PoolID ksuid.KSUID `super:"pool_id"`
 }
 
 type EventBranch struct {
-	PoolID ksuid.KSUID `zed:"pool_id"`
-	Branch string      `zed:"branch"`
+	PoolID ksuid.KSUID `super:"pool_id"`
+	Branch string      `super:"branch"`
 }
 
 type QueryRequest struct {
@@ -101,31 +101,31 @@ type QueryRequest struct {
 }
 
 type QueryChannelSet struct {
-	Channel string `json:"channel" zed:"channel"`
+	Channel string `json:"channel" super:"channel"`
 }
 
 type QueryChannelEnd struct {
-	Channel string `json:"channel" zed:"channel"`
+	Channel string `json:"channel" super:"channel"`
 }
 
 type QueryError struct {
-	Error string `json:"error" zed:"error"`
+	Error string `json:"error" super:"error"`
 }
 
 type QueryStats struct {
-	StartTime  nano.Ts `json:"start_time" zed:"start_time"`
-	UpdateTime nano.Ts `json:"update_time" zed:"update_time"`
+	StartTime  nano.Ts `json:"start_time" super:"start_time"`
+	UpdateTime nano.Ts `json:"update_time" super:"update_time"`
 	zbuf.Progress
 }
 
 type QueryWarning struct {
-	Warning string `json:"warning" zed:"warning"`
+	Warning string `json:"warning" super:"warning"`
 }
 
 type VacuumResponse struct {
-	ObjectIDs []ksuid.KSUID `zed:"object_ids"`
+	ObjectIDs []ksuid.KSUID `super:"object_ids"`
 }
 
 type VectorRequest struct {
-	ObjectIDs []ksuid.KSUID `zed:"object_ids"`
+	ObjectIDs []ksuid.KSUID `super:"object_ids"`
 }

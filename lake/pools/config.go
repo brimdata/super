@@ -13,12 +13,12 @@ import (
 )
 
 type Config struct {
-	Ts         nano.Ts        `zed:"ts"`
-	Name       string         `zed:"name"`
-	ID         ksuid.KSUID    `zed:"id"`
-	SortKeys   order.SortKeys `zed:"layout"`
-	SeekStride int            `zed:"seek_stride"`
-	Threshold  int64          `zed:"threshold"`
+	Ts         nano.Ts        `super:"ts"`
+	Name       string         `super:"name"`
+	ID         ksuid.KSUID    `super:"id"`
+	SortKeys   order.SortKeys `super:"layout"`
+	SeekStride int            `super:"seek_stride"`
+	Threshold  int64          `super:"threshold"`
 }
 
 var _ journal.Entry = (*Config)(nil)
@@ -55,17 +55,17 @@ func (p *Config) Path(root *storage.URI) *storage.URI {
 // previous versions. At some point we'll do a migration so we don't have to do
 // this.
 type marshalConfig struct {
-	Ts         nano.Ts     `zed:"ts"`
-	Name       string      `zed:"name"`
-	ID         ksuid.KSUID `zed:"id"`
-	SortKey    oldSortKey  `zed:"layout"`
-	SeekStride int         `zed:"seek_stride"`
-	Threshold  int64       `zed:"threshold"`
+	Ts         nano.Ts     `super:"ts"`
+	Name       string      `super:"name"`
+	ID         ksuid.KSUID `super:"id"`
+	SortKey    oldSortKey  `super:"layout"`
+	SeekStride int         `super:"seek_stride"`
+	Threshold  int64       `super:"threshold"`
 }
 
 type oldSortKey struct {
-	Order order.Which `json:"order" zed:"order"`
-	Keys  field.List  `json:"keys" zed:"keys"`
+	Order order.Which `json:"order" super:"order"`
+	Keys  field.List  `json:"keys" super:"keys"`
 }
 
 var hackedBindings = []sup.Binding{

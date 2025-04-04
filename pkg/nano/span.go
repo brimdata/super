@@ -11,8 +11,8 @@ var MaxSpan = Span{Ts: 0, Dur: math.MaxInt64}
 
 // Span represents a time span.  Spans are half-open: [Ts, Ts + Dur).
 type Span struct {
-	Ts  Ts       `json:"ts" zed:"ts"`
-	Dur Duration `json:"dur" zed:"dur"`
+	Ts  Ts       `json:"ts" super:"ts"`
+	Dur Duration `json:"dur" super:"dur"`
 }
 
 // NewSpanTs creates a Span from a Ts pair.  The Span is

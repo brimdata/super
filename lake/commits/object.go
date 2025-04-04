@@ -16,9 +16,9 @@ import (
 var ErrEmptyTransaction = errors.New("empty transaction")
 
 type Object struct {
-	Commit  ksuid.KSUID `zed:"commit"`
-	Parent  ksuid.KSUID `zed:"parent"`
-	Actions []Action    `zed:"actions"`
+	Commit  ksuid.KSUID `super:"commit"`
+	Parent  ksuid.KSUID `super:"parent"`
+	Actions []Action    `super:"actions"`
 }
 
 func NewObject(parent ksuid.KSUID, author, message string, meta super.Value, retries int) *Object {

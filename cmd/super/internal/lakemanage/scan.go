@@ -109,7 +109,7 @@ func (r *objectIterator) close() error {
 
 type object struct {
 	data.Object
-	Vector bool `zed:"vector"`
+	Vector bool `super:"vector"`
 }
 
 type runBuilder struct {

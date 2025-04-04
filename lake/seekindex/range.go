@@ -6,8 +6,8 @@ import (
 )
 
 type Range struct {
-	Offset int64 `zed:"offset"`
-	Length int64 `zed:"length"`
+	Offset int64 `super:"offset"`
+	Length int64 `super:"length"`
 }
 
 func (r Range) IsZero() bool {

@@ -89,26 +89,26 @@ func newMetaReader(r io.Reader) *metaReader {
 }
 
 type EOS struct {
-	Type   string `zed:"type"`
-	Offset int64  `zed:"offset"`
+	Type   string `super:"type"`
+	Offset int64  `super:"offset"`
 }
 
 type Frame struct {
-	Type   string      `zed:"type"`
-	Offset int64       `zed:"offset"`
-	Block  interface{} `zed:"block"`
+	Type   string      `super:"type"`
+	Offset int64       `super:"offset"`
+	Block  interface{} `super:"block"`
 }
 
 type UncompressedBlock struct {
-	Type   string `zed:"type"`
-	Length int64  `zed:"length"`
+	Type   string `super:"type"`
+	Length int64  `super:"length"`
 }
 
 type CompressedBlock struct {
-	Type   string `zed:"type"`
-	Length int64  `zed:"length"`
-	Format int8   `zed:"format"`
-	Size   int64  `zed:"size"`
+	Type   string `super:"type"`
+	Length int64  `super:"length"`
+	Format int8   `super:"format"`
+	Size   int64  `super:"size"`
 }
 
 func (m *metaReader) Read() (*super.Value, error) {

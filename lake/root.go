@@ -50,8 +50,8 @@ type Root struct {
 }
 
 type LakeMagic struct {
-	Magic   string `zed:"magic"`
-	Version int    `zed:"version"`
+	Magic   string `super:"magic"`
+	Version int    `super:"version"`
 }
 
 func newRoot(engine storage.Engine, logger *zap.Logger, path *storage.URI) *Root {
@@ -230,8 +230,8 @@ func (r *Root) BatchifyBranches(ctx context.Context, zctx *super.Context, f expr
 }
 
 type BranchMeta struct {
-	Pool   pools.Config    `zed:"pool"`
-	Branch branches.Config `zed:"branch"`
+	Pool   pools.Config    `super:"pool"`
+	Branch branches.Config `super:"branch"`
 }
 
 func (r *Root) ListPools(ctx context.Context) ([]pools.Config, error) {
