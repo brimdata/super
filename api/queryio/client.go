@@ -10,7 +10,7 @@ import (
 	"github.com/brimdata/super/api"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zio/zngio"
+	"github.com/brimdata/super/zio/bsupio"
 )
 
 type scanner struct {
@@ -21,7 +21,7 @@ type scanner struct {
 }
 
 func NewScanner(ctx context.Context, rc io.ReadCloser) (zbuf.Scanner, error) {
-	s, err := zngio.NewReader(super.NewContext(), rc).NewScanner(ctx, nil)
+	s, err := bsupio.NewReader(super.NewContext(), rc).NewScanner(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -70,11 +70,11 @@ again:
 }
 
 func marshalControl(zctrl *zbuf.Control) (any, error) {
-	ctrl, ok := zctrl.Message.(*zngio.Control)
+	ctrl, ok := zctrl.Message.(*bsupio.Control)
 	if !ok {
 		return nil, fmt.Errorf("unknown control type: %T", zctrl.Message)
 	}
-	if ctrl.Format != zngio.ControlFormatSUP {
+	if ctrl.Format != bsupio.ControlFormatSUP {
 		return nil, fmt.Errorf("unsupported app encoding: %v", ctrl.Format)
 	}
 	value, err := sup.ParseValue(super.NewContext(), string(ctrl.Bytes))

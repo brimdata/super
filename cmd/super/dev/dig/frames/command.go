@@ -21,10 +21,10 @@ import (
 var Frames = &charm.Spec{
 	Name:  "frames",
 	Usage: "frames file",
-	Short: "read ZNG file and output metadata",
+	Short: "read BSUP file and output metadata",
 	Long: `
-The frames command takes one file arugmnet which must be a ZNG file,
-parses each low-level ZNG frame in the file, and outputs meta describing each frame
+The frames command takes one file arugmnet which must be a BSUP file,
+parses each low-level BSUP frame in the file, and outputs meta describing each frame
 in any Zed format.`,
 	New: New,
 }
@@ -76,7 +76,7 @@ func (c *Command) Run(args []string) error {
 
 type metaReader struct {
 	reader    *reader
-	marshaler *sup.MarshalZNGContext
+	marshaler *sup.MarshalBSUPContext
 }
 
 var _ zio.Reader = (*metaReader)(nil)
@@ -84,7 +84,7 @@ var _ zio.Reader = (*metaReader)(nil)
 func newMetaReader(r io.Reader) *metaReader {
 	return &metaReader{
 		reader:    &reader{reader: bufio.NewReader(r)},
-		marshaler: sup.NewZNGMarshaler(),
+		marshaler: sup.NewBSUPMarshaler(),
 	}
 }
 
@@ -132,7 +132,7 @@ func (m *metaReader) nextFrame() (interface{}, error) {
 
 	}
 	if (code & 0x80) != 0 {
-		return nil, errors.New("encountered wrong version bit in ZNG framing")
+		return nil, errors.New("encountered wrong version bit in BSUP framing")
 	}
 	var block interface{}
 	if (code & 0x40) != 0 {

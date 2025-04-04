@@ -37,7 +37,7 @@ type Request struct {
 func newRequest(w http.ResponseWriter, r *http.Request, c *Core) (*ResponseWriter, *Request, bool) {
 	req := &Request{Request: r}
 	req.Logger = c.logger.With(zap.String("request_id", req.ID()))
-	m := sup.NewZNGMarshaler()
+	m := sup.NewBSUPMarshaler()
 	m.Decorate(sup.StylePackage)
 	res := &ResponseWriter{
 		ResponseWriter: w,
@@ -187,7 +187,7 @@ func (r *Request) Unmarshal(w *ResponseWriter, body interface{}, templates ...in
 	if zv == nil {
 		return true
 	}
-	m := sup.NewZNGUnmarshaler()
+	m := sup.NewBSUPUnmarshaler()
 	m.Bind(templates...)
 	if err := m.Unmarshal(*zv, body); err != nil {
 		w.Error(srverr.ErrInvalid(err))
@@ -217,7 +217,7 @@ type ResponseWriter struct {
 	Format    string
 	Logger    *zap.Logger
 	zw        zio.WriteCloser
-	marshaler *sup.MarshalZNGContext
+	marshaler *sup.MarshalBSUPContext
 	request   *Request
 	written   int32
 }

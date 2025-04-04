@@ -5,10 +5,10 @@ import (
 	"github.com/brimdata/super/sup"
 )
 
-var unmarshaler *sup.UnmarshalZNGContext
+var unmarshaler *sup.UnmarshalBSUPContext
 
 func init() {
-	unmarshaler = sup.NewZNGUnmarshaler()
+	unmarshaler = sup.NewBSUPUnmarshaler()
 	unmarshaler.Bind(
 		api.QueryChannelSet{},
 		api.QueryChannelEnd{},

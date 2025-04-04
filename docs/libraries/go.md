@@ -23,7 +23,7 @@ Some of the key packages are:
 * [super](https://pkg.go.dev/github.com/brimdata/super) - core Zed values and types
 * [sup](https://pkg.go.dev/github.com/brimdata/super/sup) - SUP support
 * [zio](https://pkg.go.dev/github.com/brimdata/super/zio) - I/O interfaces for Zed following the Reader/Writer patterns
-* [zio/zngio](https://pkg.go.dev/github.com/brimdata/super/zio/zngio) - ZNG reader/writer
+* [zio/bsupio](https://pkg.go.dev/github.com/brimdata/super/zio/bsupio) - BSUP reader/writer
 * [zio/supio](https://pkg.go.dev/github.com/brimdata/super/zio/supio) - SUP reader/writer
 * [lake/api](https://pkg.go.dev/github.com/brimdata/super/lake/api) - interact with a Zed lake
 

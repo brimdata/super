@@ -6,27 +6,27 @@ import (
 
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/zio/bsupio"
 	"github.com/brimdata/super/zio/supio"
-	"github.com/brimdata/super/zio/zngio"
 )
 
-type ZNGWriter struct {
-	*zngio.Writer
-	marshaler *sup.MarshalZNGContext
+type BSUPWriter struct {
+	*bsupio.Writer
+	marshaler *sup.MarshalBSUPContext
 }
 
 var _ controlWriter = (*ZJSONWriter)(nil)
 
-func NewZNGWriter(w io.Writer) *ZNGWriter {
-	m := sup.NewZNGMarshaler()
+func NewBSUPWriter(w io.Writer) *BSUPWriter {
+	m := sup.NewBSUPMarshaler()
 	m.Decorate(sup.StyleSimple)
-	return &ZNGWriter{
-		Writer:    zngio.NewWriter(zio.NopCloser(w)),
+	return &BSUPWriter{
+		Writer:    bsupio.NewWriter(zio.NopCloser(w)),
 		marshaler: m,
 	}
 }
 
-func (w *ZNGWriter) WriteControl(v interface{}) error {
+func (w *BSUPWriter) WriteControl(v interface{}) error {
 	val, err := w.marshaler.Marshal(v)
 	if err != nil {
 		return err
@@ -36,5 +36,5 @@ func (w *ZNGWriter) WriteControl(v interface{}) error {
 	if err != nil {
 		return err
 	}
-	return w.Writer.WriteControl(buf.Bytes(), zngio.ControlFormatSUP)
+	return w.Writer.WriteControl(buf.Bytes(), bsupio.ControlFormatSUP)
 }

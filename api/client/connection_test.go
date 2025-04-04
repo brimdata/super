@@ -12,7 +12,7 @@ import (
 
 	"github.com/brimdata/super/api"
 	"github.com/brimdata/super/api/client/auth0"
-	"github.com/brimdata/super/zngbytes"
+	"github.com/brimdata/super/bsupbytes"
 	"github.com/segmentio/ksuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,7 +23,7 @@ func TestClientRedirectReplay(t *testing.T) {
 	mux := http.NewServeMux()
 	ts := httptest.NewServer(mux)
 	mux.HandleFunc("/auth/method", func(w http.ResponseWriter, r *http.Request) {
-		s := zngbytes.NewSerializer()
+		s := bsupbytes.NewSerializer()
 		s.Write(api.AuthMethodResponse{
 			Kind: api.AuthMethodAuth0,
 			Auth0: &api.AuthMethodAuth0Details{

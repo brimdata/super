@@ -1,16 +1,16 @@
-package zngbytes
+package bsupbytes
 
 import (
 	"io"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zio/zngio"
+	"github.com/brimdata/super/zio/bsupio"
 )
 
 type Deserializer struct {
-	reader      *zngio.Reader
-	unmarshaler *sup.UnmarshalZNGContext
+	reader      *bsupio.Reader
+	unmarshaler *sup.UnmarshalBSUPContext
 }
 
 func NewDeserializer(reader io.Reader, templates []interface{}) *Deserializer {
@@ -18,10 +18,10 @@ func NewDeserializer(reader io.Reader, templates []interface{}) *Deserializer {
 }
 
 func NewDeserializerWithContext(zctx *super.Context, reader io.Reader, templates []interface{}) *Deserializer {
-	u := sup.NewZNGUnmarshaler()
+	u := sup.NewBSUPUnmarshaler()
 	u.Bind(templates...)
 	return &Deserializer{
-		reader:      zngio.NewReader(zctx, reader),
+		reader:      bsupio.NewReader(zctx, reader),
 		unmarshaler: u,
 	}
 }

@@ -10,9 +10,9 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/zio/bsupio"
 	"github.com/brimdata/super/zio/supio"
 	"github.com/brimdata/super/zio/zjsonio"
-	"github.com/brimdata/super/zio/zngio"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -25,20 +25,20 @@ func (o *Output) Close() error {
 	return nil
 }
 
-// Send logs to SUP reader -> ZNG writer -> ZNG reader -> SUP writer.
+// Send logs to SUP reader -> BSUP writer -> BSUP reader -> SUP writer.
 func boomerang(t *testing.T, logs string, compress bool) {
 	in := []byte(strings.TrimSpace(logs) + "\n")
 	supSrc := supio.NewReader(super.NewContext(), bytes.NewReader(in))
-	var rawzng Output
-	rawDst := zngio.NewWriterWithOpts(&rawzng, zngio.WriterOpts{
+	var rawBSUP Output
+	rawDst := bsupio.NewWriterWithOpts(&rawBSUP, bsupio.WriterOpts{
 		Compress:    compress,
-		FrameThresh: zngio.DefaultFrameThresh,
+		FrameThresh: bsupio.DefaultFrameThresh,
 	})
 	require.NoError(t, zio.Copy(rawDst, supSrc))
 	require.NoError(t, rawDst.Close())
 
 	var out Output
-	rawSrc := zngio.NewReader(super.NewContext(), &rawzng)
+	rawSrc := bsupio.NewReader(super.NewContext(), &rawBSUP)
 	defer rawSrc.Close()
 	supDst := supio.NewWriter(&out, supio.WriterOpts{})
 	err := zio.Copy(supDst, rawSrc)
@@ -147,7 +147,7 @@ func TestNamed(t *testing.T) {
 {foo:{host:127.0.0.2}(=myrec)}
 {foo:null(myrec={host:ip})}
 `
-	t.Run("ZNG", func(t *testing.T) {
+	t.Run("BSUP", func(t *testing.T) {
 		t.Run("simple", func(t *testing.T) {
 			boomerang(t, simple, true)
 		})

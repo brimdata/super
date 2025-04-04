@@ -14,7 +14,7 @@ import (
 
 type Reader struct {
 	reader    *csv.Reader
-	marshaler *sup.MarshalZNGContext
+	marshaler *sup.MarshalBSUPContext
 	strings   bool
 	valid     bool
 	hdr       []string
@@ -49,7 +49,7 @@ func NewReader(zctx *super.Context, r io.Reader, opts ReaderOpts) *Reader {
 	reader.ReuseRecord = true
 	return &Reader{
 		reader:    reader,
-		marshaler: sup.NewZNGMarshalerWithContext(zctx),
+		marshaler: sup.NewBSUPMarshalerWithContext(zctx),
 	}
 }
 

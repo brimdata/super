@@ -12,7 +12,7 @@ import (
 	"github.com/brimdata/super/api"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/zngio"
+	"github.com/brimdata/super/zio/bsupio"
 )
 
 type Request struct {
@@ -93,14 +93,14 @@ func (r *Request) reader() (io.Reader, error) {
 	if b, ok := r.Body.(io.Reader); ok {
 		return b, nil
 	}
-	m := sup.NewZNGMarshaler()
+	m := sup.NewBSUPMarshaler()
 	m.Decorate(sup.StylePackage)
 	val, err := m.Marshal(r.Body)
 	if err != nil {
 		return nil, err
 	}
 	var buf bytes.Buffer
-	zw := zngio.NewWriter(zio.NopCloser(&buf))
+	zw := bsupio.NewWriter(zio.NopCloser(&buf))
 	if err := zw.Write(val); err != nil {
 		return nil, err
 	}

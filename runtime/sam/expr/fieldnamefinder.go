@@ -23,7 +23,7 @@ func NewFieldNameFinder(pattern string) *FieldNameFinder {
 	return &FieldNameFinder{fnm: NewFieldNameMatcher(pred)}
 }
 
-// Find returns true if buf, which holds a sequence of ZNG value messages, might
+// Find returns true if buf, which holds a sequence of BSUP value messages, might
 // contain a record with a field whose fully-qualified name (e.g., a.b.c)
 // matches the pattern.  Find also returns true if it encounters an error.
 func (f *FieldNameFinder) Find(types super.TypeFetcher, buf []byte) bool {

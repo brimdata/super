@@ -1,5 +1,5 @@
 # This is similar to the basic read.yaml test, but it converts the data
-# to zng and then reads that, ensuring that zng type identifiers are
+# to BSUP and then reads that, ensuring that BSUP type identifiers are
 # properly handled.
 
 script: |

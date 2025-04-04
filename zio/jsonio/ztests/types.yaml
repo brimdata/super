@@ -1,4 +1,4 @@
-# This test covers serializing all the different ZNG types to JSON.
+# This test covers serializing all the different Super types to JSON.
 
 zed: pass
 

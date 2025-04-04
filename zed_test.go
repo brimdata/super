@@ -19,7 +19,7 @@ import (
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/anyio"
 	"github.com/brimdata/super/zio/arrowio"
-	"github.com/brimdata/super/zio/zngio"
+	"github.com/brimdata/super/zio/bsupio"
 	"github.com/brimdata/super/ztest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -169,7 +169,7 @@ func runOneBoomerang(t *testing.T, format, data string) {
 	// Create a reader for baseline.
 	baselineReader, err := anyio.NewReaderWithOpts(super.NewContext(), bytes.NewReader(baseline.Bytes()), anyio.ReaderOpts{
 		Format: format,
-		ZNG: zngio.ReaderOpts{
+		BSUP: bsupio.ReaderOpts{
 			Validate: true,
 		},
 	})

@@ -8,7 +8,7 @@ import (
 )
 
 func ParseID(s string) (ksuid.KSUID, error) {
-	// Check if this is a cut-and-paste from ZNG, which encodes
+	// Check if this is a cut-and-paste from BSUP, which encodes
 	// the 20-byte KSUID as a 40 character hex string with 0x prefix.
 	var id ksuid.KSUID
 	var err error

@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/bsupbytes"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zio/zngio"
-	"github.com/brimdata/super/zngbytes"
+	"github.com/brimdata/super/zio/bsupio"
 	"go.uber.org/zap"
 )
 
@@ -92,13 +92,13 @@ func (s *Store) load(ctx context.Context) error {
 	if head == current {
 		return nil
 	}
-	unmarshaler := sup.NewZNGUnmarshaler()
+	unmarshaler := sup.NewBSUPUnmarshaler()
 	unmarshaler.Bind(s.keyTypes...)
 	at, table, err := s.getSnapshot(ctx, unmarshaler)
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		s.logger.Error("Loading snapshot", zap.Error(err))
 	}
-	r, err := s.journal.OpenAsZNG(ctx, super.NewContext(), head, at)
+	r, err := s.journal.OpenAsBSUP(ctx, super.NewContext(), head, at)
 	if err != nil {
 		return err
 	}
@@ -145,14 +145,14 @@ func (s *Store) load(ctx context.Context) error {
 	}
 }
 
-func (s *Store) getSnapshot(ctx context.Context, unmarshaler *sup.UnmarshalZNGContext) (ID, map[string]Entry, error) {
+func (s *Store) getSnapshot(ctx context.Context, unmarshaler *sup.UnmarshalBSUPContext) (ID, map[string]Entry, error) {
 	table := make(map[string]Entry)
 	r, err := s.journal.engine.Get(ctx, s.snapshotURI())
 	if err != nil {
 		return Nil, table, err
 	}
 	defer r.Close()
-	zr := zngio.NewReader(super.NewContext(), r)
+	zr := bsupio.NewReader(super.NewContext(), r)
 	defer zr.Close()
 	val, err := zr.Read()
 	if val == nil || err != nil {
@@ -181,12 +181,12 @@ func (s *Store) putSnapshot(ctx context.Context, at ID, table map[string]Entry) 
 	if err != nil {
 		return err
 	}
-	zw := zngio.NewWriter(w)
+	zw := bsupio.NewWriter(w)
 	defer zw.Close()
 	if err := zw.Write(super.NewUint64(uint64(at))); err != nil {
 		return err
 	}
-	marshaler := sup.NewZNGMarshaler()
+	marshaler := sup.NewBSUPMarshaler()
 	marshaler.Decorate(sup.StylePackage)
 	for _, entry := range table {
 		val, err := marshaler.Marshal(entry)
@@ -325,7 +325,7 @@ func (s *Store) commitWithConstraint(ctx context.Context, key string, c Constrai
 }
 
 func (s *Store) commit(ctx context.Context, fn func() error, entries ...Entry) error {
-	serializer := zngbytes.NewSerializer()
+	serializer := bsupbytes.NewSerializer()
 	serializer.Decorate(sup.StylePackage)
 	for _, e := range entries {
 		if err := serializer.Write(e); err != nil {

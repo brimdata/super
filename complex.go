@@ -121,7 +121,7 @@ type keyval struct {
 }
 
 // NormalizeMap interprets zv as a map body and returns an equivalent map body
-// that is normalized according to the ZNG specification (i.e., the tag-counted
+// that is normalized according to the BSUP specification (i.e., the tag-counted
 // value of each entry's key is lexicographically greater than that of the
 // preceding entry).
 func NormalizeMap(zv zcode.Bytes) zcode.Bytes {
@@ -262,7 +262,7 @@ func (t *TypeSet) Kind() Kind {
 }
 
 // NormalizeSet interprets zv as a set body and returns an equivalent set body
-// that is normalized according to the ZNG specification (i.e., each element's
+// that is normalized according to the BSUP specification (i.e., each element's
 // tag-counted value is lexicographically greater than that of the preceding
 // element).
 func NormalizeSet(zv zcode.Bytes) zcode.Bytes {

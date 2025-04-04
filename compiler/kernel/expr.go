@@ -29,7 +29,7 @@ import (
 //
 // Eventually, we will optimize this CSUP "fast path" by dynamically
 // generating byte codes (which can in turn be JIT assembled into machine code)
-// for each zng TypeRecord encountered.  Once you know the TypeRecord,
+// for each BSUP TypeRecord encountered.  Once you know the TypeRecord,
 // you can generate code using strong typing just as an OLAP system does
 // due to its schemas defined up-front in its relational tables.  Here,
 // each record type is like a schema and as we encounter them, we can compile

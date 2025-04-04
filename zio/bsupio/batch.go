@@ -1,4 +1,4 @@
-package zngio
+package bsupio
 
 import (
 	"slices"
@@ -51,7 +51,7 @@ func (b *batch) Unref() {
 		}
 		batchPool.Put(b)
 	} else if refs < 0 {
-		panic("zngio: negative batch reference count")
+		panic("bsupio: negative batch reference count")
 	}
 }
 

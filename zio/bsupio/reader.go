@@ -1,4 +1,4 @@
-package zngio
+package bsupio
 
 import (
 	"context"
@@ -123,7 +123,7 @@ func (r *Reader) ReadPayload() (*super.Value, *Control, error) {
 		if zctrl, ok := err.(*zbuf.Control); ok {
 			ctrl, ok := zctrl.Message.(*Control)
 			if !ok {
-				return nil, nil, fmt.Errorf("zngio internal error: unknown control type: %T", zctrl.Message)
+				return nil, nil, fmt.Errorf("bsupio internal error: unknown control type: %T", zctrl.Message)
 			}
 			return nil, ctrl, nil
 		}

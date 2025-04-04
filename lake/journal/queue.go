@@ -13,7 +13,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/zio/zngio"
+	"github.com/brimdata/super/zio/bsupio"
 )
 
 const ext = "bsup"
@@ -103,7 +103,7 @@ func (q *Queue) Commit(ctx context.Context, b []byte) (ID, error) {
 	return head + 1, err
 }
 
-// CommitAt commits a new serialized ZNG sequence to the journal presuming
+// CommitAt commits a new serialized BSUP sequence to the journal presuming
 // the previous state conformed to the journal position "at".  The entry is
 // written at the next position in the log if possible.  Otherwise, a write
 // conflict occurs and an error is returned.
@@ -132,9 +132,9 @@ func (q *Queue) CommitAt(ctx context.Context, at ID, b []byte) error {
 	return q.writeHead(ctx, at+1)
 }
 
-// NewReader returns a zngio.Reader that concatenates the journal files
-// in sequence from tail to head.  Since ZNG is stored in the journal,
-// this produce a byte stream suitable for wrapper in a zngio.Reader.
+// NewReader returns a BSUP reader that concatenates the journal files
+// in sequence from tail to head.  Since BSUP is stored in the journal,
+// concatenation produce valid BSUP.
 func (q *Queue) NewReader(ctx context.Context, head, tail ID) *Reader {
 	return newReader(ctx, q, head, tail)
 }
@@ -172,12 +172,12 @@ func (q *Queue) Open(ctx context.Context, head, tail ID) (io.Reader, error) {
 	return q.NewReader(ctx, head, tail), nil
 }
 
-func (q *Queue) OpenAsZNG(ctx context.Context, zctx *super.Context, head, tail ID) (*zngio.Reader, error) {
+func (q *Queue) OpenAsBSUP(ctx context.Context, zctx *super.Context, head, tail ID) (*bsupio.Reader, error) {
 	r, err := q.Open(ctx, head, tail)
 	if err != nil {
 		return nil, err
 	}
-	return zngio.NewReader(zctx, r), nil
+	return bsupio.NewReader(zctx, r), nil
 }
 
 func writeID(ctx context.Context, engine storage.Engine, u *storage.URI, id ID) error {

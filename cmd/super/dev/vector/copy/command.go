@@ -21,7 +21,7 @@ var spec = &charm.Spec{
 	Long: `
 The copy command reads CSUP vectors from
 a CSUP storage objects (local files or s3 objects) and outputs
-the reconstructed ZNG row data by exercising the vector cache.
+the reconstructed BSUP row data by exercising the vector cache.
 
 This command is most useful for testing the CSUP vector cache.
 `,

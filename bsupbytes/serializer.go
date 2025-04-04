@@ -1,26 +1,26 @@
-package zngbytes
+package bsupbytes
 
 import (
 	"bytes"
 
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/zngio"
+	"github.com/brimdata/super/zio/bsupio"
 )
 
 type Serializer struct {
-	marshaler *sup.MarshalZNGContext
+	marshaler *sup.MarshalBSUPContext
 	buffer    bytes.Buffer
-	writer    *zngio.Writer
+	writer    *bsupio.Writer
 }
 
 func NewSerializer() *Serializer {
-	m := sup.NewZNGMarshaler()
+	m := sup.NewBSUPMarshaler()
 	m.Decorate(sup.StyleSimple)
 	s := &Serializer{
 		marshaler: m,
 	}
-	s.writer = zngio.NewWriter(zio.NopCloser(&s.buffer))
+	s.writer = bsupio.NewWriter(zio.NopCloser(&s.buffer))
 	return s
 }
 

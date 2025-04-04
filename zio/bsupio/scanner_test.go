@@ -1,4 +1,4 @@
-package zngio
+package bsupio
 
 import (
 	"bytes"
@@ -27,7 +27,7 @@ func TestScannerContext(t *testing.T) {
 	for i := 0; i < count; i++ {
 		names = append(names, strconv.Itoa(i))
 		values = append(values, i)
-		rec, err := sup.NewZNGMarshaler().MarshalCustom(names, values)
+		rec, err := sup.NewBSUPMarshaler().MarshalCustom(names, values)
 		require.NoError(t, err)
 		var buf bytes.Buffer
 		w := NewWriter(zio.NopCloser(&buf))

@@ -220,7 +220,7 @@ func (c *Core) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Core) publishEvent(w *ResponseWriter, name string, data interface{}) {
-	marshaler := sup.NewZNGMarshaler()
+	marshaler := sup.NewBSUPMarshaler()
 	marshaler.Decorate(sup.StyleSimple)
 	zv, err := marshaler.Marshal(data)
 	if err != nil {

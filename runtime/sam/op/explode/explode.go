@@ -8,7 +8,7 @@ import (
 )
 
 // A an explode Proc is a proc that, given an input record and a
-// zng type T, outputs one record for each field of the input record of
+// type T, outputs one record for each field of the input record of
 // type T. It is useful for type-based indexing.
 type Op struct {
 	parent   zbuf.Puller

@@ -28,7 +28,7 @@ type Lister struct {
 	snap      commits.View
 	pruner    *pruner
 	group     *errgroup.Group
-	marshaler *sup.MarshalZNGContext
+	marshaler *sup.MarshalBSUPContext
 	mu        sync.Mutex
 	objects   []*data.Object
 	err       error
@@ -53,7 +53,7 @@ func NewSortedListerByID(ctx context.Context, zctx *super.Context, r *lake.Root,
 }
 
 func NewSortedListerFromSnap(ctx context.Context, zctx *super.Context, pool *lake.Pool, snap commits.View, pruner expr.Evaluator) *Lister {
-	m := sup.NewZNGMarshalerWithContext(zctx)
+	m := sup.NewBSUPMarshalerWithContext(zctx)
 	m.Decorate(sup.StylePackage)
 	l := &Lister{
 		ctx:       ctx,

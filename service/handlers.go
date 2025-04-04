@@ -29,8 +29,8 @@ import (
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/anyio"
+	"github.com/brimdata/super/zio/bsupio"
 	"github.com/brimdata/super/zio/csvio"
-	"github.com/brimdata/super/zio/zngio"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 )
@@ -51,9 +51,9 @@ func handleQuery(c *Core, w *ResponseWriter, r *Request) {
 	// an HTTP status error and a JSON formatted error.  If the query
 	// begins running then we encounter an error, we return an HTTP
 	// status OK (triggered as we start to write to the HTTP response body)
-	// and return the error as an embedded ZNG control message.
+	// and return the error as an embedded BSUP control message.
 	// The client must look at the return code and interpret the result
-	// accordingly and when it sees a ZNG error after underway,
+	// accordingly and when it sees a BSUP error after underway,
 	// the error should be relay that to the caller/user.
 	ast, err := parser.ParseQuery(req.Query)
 	if err != nil {
@@ -71,7 +71,7 @@ func handleQuery(c *Core, w *ResponseWriter, r *Request) {
 		w.Error(srverr.ErrInvalid(err))
 		return
 	}
-	// Once we defer writer.Close() are going to write ZNG to the HTTP
+	// Once we defer writer.Close() are going to write BSUP to the HTTP
 	// response body and for errors after this point, we must call
 	// writer.WriterError() instead of w.Error().
 	defer writer.Close()
@@ -454,8 +454,8 @@ func handleBranchLoad(c *Core, w *ResponseWriter, r *Request) {
 	opts := anyio.ReaderOpts{
 		Format: format,
 		CSV:    csvio.ReaderOpts{Delim: csvDelim},
-		// Force validation of ZNG when loading into the lake.
-		ZNG: zngio.ReaderOpts{Validate: true},
+		// Force validation of BSUP when loading into the lake.
+		BSUP: bsupio.ReaderOpts{Validate: true},
 	}
 	zctx := super.NewContext()
 	zrc, err := anyio.NewReaderWithOpts(zctx, reader, opts)

@@ -34,7 +34,7 @@ func NewWriter(w io.WriteCloser, format string, flusher http.Flusher, ctrl bool)
 	var err error
 	switch format {
 	case "bsup":
-		d.writer = NewZNGWriter(w)
+		d.writer = NewBSUPWriter(w)
 	case "zjson":
 		d.writer = NewZJSONWriter(w)
 	case "json":

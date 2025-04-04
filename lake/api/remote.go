@@ -15,7 +15,7 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/zngio"
+	"github.com/brimdata/super/zio/bsupio"
 	"github.com/segmentio/ksuid"
 )
 
@@ -103,7 +103,7 @@ func (r *remote) RenamePool(ctx context.Context, pool ksuid.KSUID, name string) 
 func (r *remote) Load(ctx context.Context, _ *super.Context, poolID ksuid.KSUID, branchName string, reader zio.Reader, commit api.CommitMessage) (ksuid.KSUID, error) {
 	pr, pw := io.Pipe()
 	go func() {
-		w := zngio.NewWriter(zio.NopCloser(pw))
+		w := bsupio.NewWriter(zio.NopCloser(pw))
 		err := zio.CopyWithContext(ctx, w, reader)
 		if err2 := w.Close(); err == nil {
 			err = err2

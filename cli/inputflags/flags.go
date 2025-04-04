@@ -12,7 +12,7 @@ import (
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/anyio"
-	"github.com/brimdata/super/zio/zngio"
+	"github.com/brimdata/super/zio/bsupio"
 )
 
 type Flags struct {
@@ -37,22 +37,22 @@ func (f *Flags) SetFlags(fs *flag.FlagSet, validate bool) {
 		return nil
 
 	})
-	fs.BoolVar(&f.ZNG.Validate, "bsup.validate", validate, "validate format when reading Super Binary")
-	fs.IntVar(&f.ZNG.Threads, "bsup.threads", 0, "number of Super Binary read threads (0=GOMAXPROCS)")
-	f.ReadMax = auto.NewBytes(zngio.MaxSize)
+	fs.IntVar(&f.BSUP.Threads, "bsup.threads", 0, "number of Super Binary read threads (0=GOMAXPROCS)")
+	fs.BoolVar(&f.BSUP.Validate, "bsup.validate", validate, "validate format when reading Super Binary")
+	f.ReadMax = auto.NewBytes(bsupio.MaxSize)
 	fs.Var(&f.ReadMax, "bsup.readmax", "maximum Super Binary read buffer size in MiB, MB, etc.")
-	f.ReadSize = auto.NewBytes(zngio.ReadSize)
+	f.ReadSize = auto.NewBytes(bsupio.ReadSize)
 	fs.Var(&f.ReadSize, "bsup.readsize", "target Super Binary read buffer size in MiB, MB, etc.")
 }
 
 // Init is called after flags have been parsed.
 func (f *Flags) Init() error {
-	f.ZNG.Max = int(f.ReadMax.Bytes)
-	if f.ZNG.Max < 0 {
+	f.BSUP.Max = int(f.ReadMax.Bytes)
+	if f.BSUP.Max < 0 {
 		return errors.New("max read buffer size must be greater than zero")
 	}
-	f.ZNG.Size = int(f.ReadSize.Bytes)
-	if f.ZNG.Size < 0 {
+	f.BSUP.Size = int(f.ReadSize.Bytes)
+	if f.BSUP.Size < 0 {
 		return errors.New("target read buffer size must be greater than zero")
 	}
 	return nil

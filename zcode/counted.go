@@ -6,7 +6,7 @@ import (
 
 // These functions provide variable length encoding and decoding of
 // signed and unsigned integers when the length of the buffer is known,
-// e.g., when the encoding lies within the body of a ZNG counted-length
+// e.g., when the encoding lies within the body of a BSUP counted-length
 // value.
 
 func DecodeCountedUvarint(b []byte) uint64 {

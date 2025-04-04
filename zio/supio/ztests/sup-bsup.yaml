@@ -1,4 +1,4 @@
-# Send.sup into zng and back out to make sure binary encoding of typevals works.
+# Convert SUP to BSUP and back to make sure binary encoding of typevals works.
 
 script: |
   super -Z -c "put t:=typeof(this)" in.sup

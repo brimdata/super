@@ -14,17 +14,17 @@ import (
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/zngio"
+	"github.com/brimdata/super/zio/bsupio"
 )
 
 var spec = &charm.Spec{
 	Name:  "slice",
 	Usage: "slice from:to file",
-	Short: "extract a slice from a file and attempt to interpret it as ZNG",
+	Short: "extract a slice from a file and attempt to interpret it as BSUP",
 	Long: `
-The slice command takes a slice specified and a file argument (which must be a ZNG file),
+The slice command takes a slice specified and a file argument (which must be a BSUP file),
 extracts the requested slice of the file, and outputs the slice in any Zed format.
-The command will fail if the slice boundary does not fall on a valid ZNG boundary.`,
+The command will fail if the slice boundary does not fall on a valid BSUP boundary.`,
 	New: newCommand,
 }
 
@@ -76,7 +76,7 @@ func (c *Command) Run(args []string) error {
 	if from > to {
 		return errors.New("slice start cannot be after the end")
 	}
-	reader := zngio.NewReader(super.NewContext(), io.NewSectionReader(r, int64(from), int64(to-from)))
+	reader := bsupio.NewReader(super.NewContext(), io.NewSectionReader(r, int64(from), int64(to-from)))
 	defer reader.Close()
 	writer, err := c.outputFlags.Open(ctx, engine)
 	if err != nil {

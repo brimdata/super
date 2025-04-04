@@ -9,16 +9,16 @@ import (
 
 var ErrIncompatibleZeekType = errors.New("type cannot be represented in zeek format")
 
-func zngTypeToZeek(typ super.Type) (string, error) {
+func superTypeToZeek(typ super.Type) (string, error) {
 	switch typ := typ.(type) {
 	case *super.TypeArray:
-		inner, err := zngTypeToZeek(typ.Type)
+		inner, err := superTypeToZeek(typ.Type)
 		if err != nil {
 			return "", err
 		}
 		return fmt.Sprintf("vector[%s]", inner), nil
 	case *super.TypeSet:
-		inner, err := zngTypeToZeek(typ.Type)
+		inner, err := superTypeToZeek(typ.Type)
 		if err != nil {
 			return "", err
 		}
@@ -42,7 +42,7 @@ func zngTypeToZeek(typ super.Type) (string, error) {
 		if typ.Name == "port" {
 			return "port", nil
 		}
-		return zngTypeToZeek(typ.Type)
+		return superTypeToZeek(typ.Type)
 	case *super.TypeOfBool, *super.TypeOfString, *super.TypeOfTime:
 		return super.PrimitiveName(typ), nil
 	default:

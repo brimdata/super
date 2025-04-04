@@ -1,5 +1,5 @@
 # If you change the test below after a change to make it pass, make sure the
-# input/output are still in sync with what's at zng/docs/zeek-compat.md.
+# input/output are still in sync with what's at docs/integrations/zeek/data-type-compatibility.md.
 
 script: super -i sup -f zeek -c "cut my_record" zeek_types.sup
 

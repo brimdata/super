@@ -42,7 +42,7 @@ func TestValueValidate(t *testing.T) {
 		// Don't normalize.
 		b.EndContainer()
 		val := super.NewValue(recType, b.Bytes())
-		assert.EqualError(t, val.Validate(), "invalid ZNG: duplicate set element")
+		assert.EqualError(t, val.Validate(), "invalid BSUP: duplicate set element")
 	})
 	t.Run("set/error/unsorted-elements", func(t *testing.T) {
 		var b zcode.Builder
@@ -53,7 +53,7 @@ func TestValueValidate(t *testing.T) {
 		// Don't normalize.
 		b.EndContainer()
 		val := super.NewValue(recType, b.Bytes())
-		assert.EqualError(t, val.Validate(), "invalid ZNG: set elements not sorted")
+		assert.EqualError(t, val.Validate(), "invalid BSUP: set elements not sorted")
 	})
 	t.Run("set/primitive-elements", func(t *testing.T) {
 		var b zcode.Builder

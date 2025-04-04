@@ -51,8 +51,8 @@ client = zed.Client()
 client.create_pool('TestPool')
 
 # Load some SUP records from a string.  A file-like object also works.
-# Data format is detected automatically and can be CSV, JSON, SUP, Zeek TSV,
-# ZJSON, or ZNG.
+# Data format is detected automatically and can be BSUP, CSV, JSON, SUP,
+# Zeek TSV, or ZJSON.
 .client.load('TestPool', '{s:"hello"} {s:"world"}')
 
 # Begin executing a Zed query for all values in TestPool.

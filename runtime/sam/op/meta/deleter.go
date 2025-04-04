@@ -21,7 +21,7 @@ type Deleter struct {
 	rctx        *runtime.Context
 	pool        *lake.Pool
 	progress    *zbuf.Progress
-	unmarshaler *sup.UnmarshalZNGContext
+	unmarshaler *sup.UnmarshalBSUPContext
 	done        bool
 	err         error
 	deletes     *sync.Map
@@ -35,7 +35,7 @@ func NewDeleter(rctx *runtime.Context, parent zbuf.Puller, pool *lake.Pool, filt
 		rctx:        rctx,
 		pool:        pool,
 		progress:    progress,
-		unmarshaler: sup.NewZNGUnmarshaler(),
+		unmarshaler: sup.NewBSUPUnmarshaler(),
 		deletes:     deletes,
 	}
 }

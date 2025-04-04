@@ -400,7 +400,7 @@ POST /query
 | query | string | body | Zed query to execute. All data is returned if not specified. ||
 | head.pool | string | body | Pool to query against Not required if pool is specified in query. |
 | head.branch | string | body | Branch to query against. Defaults to "main". |
-| ctrl | string | query | Set to "T" to include control messages in ZNG or ZJSON responses. Defaults to "F". |
+| ctrl | string | query | Set to "T" to include control messages in BSUP or ZJSON responses. Defaults to "F". |
 | Content-Type | string | header | [MIME type](#mime-types) of the request payload. |
 | Accept | string | header | Preferred [MIME type](#mime-types) of the response. |
 
@@ -546,14 +546,14 @@ The following table shows the supported MIME types and where they can be used.
 | Format           | Request   | Response | MIME Type                             |
 | ---------------- | --------- | -------- | ------------------------------------- |
 | Arrow IPC Stream | yes       | yes      | `application/vnd.apache.arrow.stream` |
-| CSUP             | yes       | yes      | `application/x-csup`                   |
+| BSUP             | yes       | yes      | `application/x-bsup`                  |
+| CSUP             | yes       | yes      | `application/x-csup`                  |
 | CSV              | yes       | yes      | `text/csv`                            |
 | JSON             | yes       | yes      | `application/json`                    |
 | Line             | yes       | yes      | `application/x-line`                  |
 | NDJSON           | no        | yes      | `application/x-ndjson`                |
 | Parquet          | yes       | yes      | `application/x-parquet`               |
-| SUP              | yes       | yes      | `application/x-sup`                  |
+| SUP              | yes       | yes      | `application/x-sup`                   |
 | TSV              | yes       | yes      | `text/tab-separated-values`           |
 | Zeek             | yes       | yes      | `application/x-zeek`                  |
 | ZJSON            | yes       | yes      | `application/x-zjson`                 |
-| ZNG              | yes       | yes      | `application/x-zng`                   |

@@ -40,7 +40,7 @@ func NewPoolMetaScanner(ctx context.Context, zctx *super.Context, r *lake.Root, 
 	var vals []super.Value
 	switch meta {
 	case "branches":
-		m := sup.NewZNGMarshalerWithContext(zctx)
+		m := sup.NewBSUPMarshalerWithContext(zctx)
 		m.Decorate(sup.StylePackage)
 		vals, err = p.BatchifyBranches(ctx, zctx, nil, m, nil)
 		if err != nil {
@@ -90,7 +90,7 @@ func NewCommitMetaScanner(ctx context.Context, zctx *super.Context, r *lake.Root
 		}
 		return zbuf.MultiScanner(tipsScanner, logScanner), nil
 	case "rawlog":
-		reader, err := p.OpenCommitLogAsZNG(ctx, zctx, commit)
+		reader, err := p.OpenCommitLogAsBSUP(ctx, zctx, commit)
 		if err != nil {
 			return nil, err
 		}
@@ -113,7 +113,7 @@ func NewCommitMetaScanner(ctx context.Context, zctx *super.Context, r *lake.Root
 
 func objectReader(ctx context.Context, zctx *super.Context, snap commits.View, order order.Which) (zio.Reader, error) {
 	objects := snap.Select(nil, order)
-	m := sup.NewZNGMarshalerWithContext(zctx)
+	m := sup.NewBSUPMarshalerWithContext(zctx)
 	m.Decorate(sup.StylePackage)
 	return readerFunc(func() (*super.Value, error) {
 		if len(objects) == 0 {

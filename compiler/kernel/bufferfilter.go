@@ -9,7 +9,7 @@ import (
 )
 
 // CompileBufferFilter tries to return a BufferFilter for e such that the
-// BufferFilter's Eval method returns true for any byte slice containing the ZNG
+// BufferFilter's Eval method returns true for any byte slice containing the BSUP
 // encoding of a record matching e. (It may also return true for some byte
 // slices that do not match.) compileBufferFilter returns a nil pointer and nil
 // error if it cannot construct a useful filter.
@@ -110,7 +110,7 @@ func newBufferFilterForLiteral(val super.Value) (*expr.BufferFilter, error) {
 		// patterns: float, varint, and uvarint.
 		return nil, nil
 	}
-	// We're looking for a complete ZNG value, so we can lengthen the
+	// We're looking for a complete BSUP value, so we can lengthen the
 	// pattern by calling Encode to add a tag.
 	pattern := string(val.Encode(nil))
 	return expr.NewBufferFilterForString(pattern), nil

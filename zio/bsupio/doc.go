@@ -1,4 +1,4 @@
-// Package zngio provides an API for reading and writing super values and
+// Package bsupio provides an API for reading and writing super values and
 // types in binary BSON format.  Reader and Writer implement the
 // the zio.Reader and zio.Writer interfaces.  Since these methods
 // read and write only super.Values, but the BSON format includes additional
@@ -9,4 +9,4 @@
 // this super.Value are "machine format" as prescirbed by the BSON spec.
 // The vanilla zio.Reader and zio.Writer implementations ignore application-specific
 // payloads (e.g., channel encodings).
-package zngio
+package bsupio

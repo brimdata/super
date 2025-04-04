@@ -15,7 +15,7 @@ import (
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zio/zngio"
+	"github.com/brimdata/super/zio/bsupio"
 )
 
 // SequenceScanner implements an op that pulls metadata partitions to scan
@@ -28,7 +28,7 @@ type SequenceScanner struct {
 	rctx        *runtime.Context
 	pool        *lake.Pool
 	progress    *zbuf.Progress
-	unmarshaler *sup.UnmarshalZNGContext
+	unmarshaler *sup.UnmarshalBSUPContext
 	done        bool
 	err         error
 }
@@ -41,7 +41,7 @@ func NewSequenceScanner(rctx *runtime.Context, parent zbuf.Puller, pool *lake.Po
 		pruner:      pruner,
 		pool:        pool,
 		progress:    progress,
-		unmarshaler: sup.NewZNGUnmarshaler(),
+		unmarshaler: sup.NewBSUPUnmarshaler(),
 	}
 }
 
@@ -155,7 +155,7 @@ func (s *SearchScanner) Pull(done bool) (zbuf.Batch, error) {
 	}
 }
 
-func newScanner(ctx context.Context, zctx *super.Context, pool *lake.Pool, u *sup.UnmarshalZNGContext, pruner expr.Evaluator, filter zbuf.Filter, progress *zbuf.Progress, val super.Value) (zbuf.Puller, *data.Object, error) {
+func newScanner(ctx context.Context, zctx *super.Context, pool *lake.Pool, u *sup.UnmarshalBSUPContext, pruner expr.Evaluator, filter zbuf.Filter, progress *zbuf.Progress, val super.Value) (zbuf.Puller, *data.Object, error) {
 	named, ok := val.Type().(*super.TypeNamed)
 	if !ok {
 		return nil, nil, errors.New("system error: SequenceScanner encountered unnamed object")
@@ -208,7 +208,7 @@ func newObjectScanner(ctx context.Context, zctx *super.Context, pool *lake.Pool,
 	if err != nil {
 		return nil, err
 	}
-	scanner, err := zngio.NewReader(zctx, rc).NewScanner(ctx, filter)
+	scanner, err := bsupio.NewReader(zctx, rc).NewScanner(ctx, filter)
 	if err != nil {
 		rc.Close()
 		return nil, err

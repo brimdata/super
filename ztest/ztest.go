@@ -25,7 +25,7 @@
 //
 // Input format is detected automatically and can be anything recognized by
 // "zq -i auto" (including optional gzip compression).  Output format defaults
-// to tzng but can be set to anything accepted by "zq -f".
+// to SUP but can be set to anything accepted by "zq -f".
 //
 //	zed: count()
 //
@@ -53,7 +53,7 @@
 // defining the script, e.g.,
 //
 // inputs:
-//   - name: in1.tzng
+//   - name: in1.sup
 //     data: |
 //     #0:record[i:int64]
 //     0:[1;]
@@ -64,16 +64,16 @@
 //
 // script: |
 //
-//	zq -o out.tzng in1.tzng -
-//	zq -o count.tzng "count()" out.tzng
+//	zq -o out.sup in1.sup -
+//	zq -o count.sup "count()" out.sup
 //
 // outputs:
-//   - name: out.tzng
+//   - name: out.sup
 //     data: |
 //     #0:record[i:int64]
 //     0:[1;]
 //     0:[2;]
-//   - name: count.tzng
+//   - name: count.sup
 //     data: |
 //     #0:record[count:uint64]
 //     0:[2;]

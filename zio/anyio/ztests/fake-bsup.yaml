@@ -9,4 +9,4 @@ inputs:
 outputs:
   - name: stderr
     data: |
-      stdio:stdin: malformed bsup record
+      stdio:stdin: malformed BSUP value

@@ -73,7 +73,7 @@ var hackedBindings = []sup.Binding{
 	{Name: "pools.Config", Template: marshalConfig{}},
 }
 
-func (p Config) MarshalZNG(ctx *sup.MarshalZNGContext) (super.Type, error) {
+func (p Config) MarshalBSUP(ctx *sup.MarshalBSUPContext) (super.Type, error) {
 	ctx.NamedBindings(hackedBindings)
 	m := marshalConfig{
 		Ts:         p.Ts,
@@ -92,7 +92,7 @@ func (p Config) MarshalZNG(ctx *sup.MarshalZNGContext) (super.Type, error) {
 	return typ, err
 }
 
-func (p *Config) UnmarshalZNG(ctx *sup.UnmarshalZNGContext, val super.Value) error {
+func (p *Config) UnmarshalBSUP(ctx *sup.UnmarshalBSUPContext, val super.Value) error {
 	ctx.NamedBindings(hackedBindings)
 	var m marshalConfig
 	if err := ctx.Unmarshal(val, &m); err != nil {

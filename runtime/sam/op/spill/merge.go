@@ -12,7 +12,7 @@ import (
 	"github.com/brimdata/super/zio"
 )
 
-// MergeSort manages "runs" (files of sorted zng records) that are spilled to
+// MergeSort manages "runs" (files of sorted BSUP values) that are spilled to
 // disk a chunk at a time, then read back and merged in sorted order, effectively
 // implementing an external merge sort.
 type MergeSort struct {
@@ -35,7 +35,7 @@ func TempFile() (*os.File, error) {
 }
 
 // NewMergeSort returns a MergeSort to implement external merge sorts of a large
-// zng record stream.  It creates a temporary directory to hold the collection
+// BSUP stream.  It creates a temporary directory to hold the collection
 // of spilled chunks.  Call Cleanup to remove it.
 func NewMergeSort(comparator *expr.Comparator) (*MergeSort, error) {
 	tempDir, err := TempDir()

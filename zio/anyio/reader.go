@@ -12,6 +12,7 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/arrowio"
+	"github.com/brimdata/super/zio/bsupio"
 	"github.com/brimdata/super/zio/csupio"
 	"github.com/brimdata/super/zio/csvio"
 	"github.com/brimdata/super/zio/jsonio"
@@ -19,14 +20,13 @@ import (
 	"github.com/brimdata/super/zio/supio"
 	"github.com/brimdata/super/zio/zeekio"
 	"github.com/brimdata/super/zio/zjsonio"
-	"github.com/brimdata/super/zio/zngio"
 )
 
 type ReaderOpts struct {
 	Fields []field.Path
 	Format string
+	BSUP   bsupio.ReaderOpts
 	CSV    csvio.ReaderOpts
-	ZNG    zngio.ReaderOpts
 }
 
 func NewReader(zctx *super.Context, r io.Reader) (zio.ReadCloser, error) {
@@ -105,16 +105,16 @@ func NewReaderWithOpts(zctx *super.Context, r io.Reader, opts ReaderOpts) (zio.R
 	track.Reset()
 
 	// For the matching reader, force validation to true so we are extra
-	// careful about auto-matching ZNG.  Then, once matched, relaxed
+	// careful about auto-matching BSUP.  Then, once matched, relaxed
 	// validation to the user setting in the actual reader returned.
-	zngOpts := opts.ZNG
-	zngOpts.Validate = true
-	zngReader := zngio.NewReaderWithOpts(super.NewContext(), track, zngOpts)
-	zngErr := match(zngReader, "bsup", 1)
-	// Close zngReader to ensure that it does not continue to call track.Read.
-	zngReader.Close()
-	if zngErr == nil {
-		return zngio.NewReaderWithOpts(zctx, track.Reader(), opts.ZNG), nil
+	bsupOpts := opts.BSUP
+	bsupOpts.Validate = true
+	bsupReader := bsupio.NewReaderWithOpts(super.NewContext(), track, bsupOpts)
+	bsupErr := match(bsupReader, "bsup", 1)
+	// Close bsupReader to ensure that it does not continue to call track.Read.
+	bsupReader.Close()
+	if bsupErr == nil {
+		return bsupio.NewReaderWithOpts(zctx, track.Reader(), opts.BSUP), nil
 	}
 	track.Reset()
 
@@ -133,6 +133,7 @@ func NewReaderWithOpts(zctx *super.Context, r io.Reader, opts ReaderOpts) (zio.R
 	lineErr := errors.New("line: auto-detection not supported")
 	return nil, joinErrs([]error{
 		arrowsErr,
+		bsupErr,
 		csupErr,
 		csvErr,
 		jsonErr,
@@ -142,7 +143,6 @@ func NewReaderWithOpts(zctx *super.Context, r io.Reader, opts ReaderOpts) (zio.R
 		tsvErr,
 		zeekErr,
 		zjsonErr,
-		zngErr,
 	})
 }
 

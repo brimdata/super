@@ -21,7 +21,7 @@ import (
 	"github.com/brimdata/super/lake/branches"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zio/zngio"
+	"github.com/brimdata/super/zio/bsupio"
 	"github.com/segmentio/ksuid"
 )
 
@@ -139,13 +139,13 @@ func (c *Connection) doAndUnmarshal(req *Request, v interface{}, templates ...in
 		return err
 	}
 	defer res.Body.Close()
-	zr := zngio.NewReader(super.NewContext(), res.Body)
+	zr := bsupio.NewReader(super.NewContext(), res.Body)
 	defer zr.Close()
 	rec, err := zr.Read()
 	if err != nil || rec == nil {
 		return err
 	}
-	m := sup.NewZNGUnmarshaler()
+	m := sup.NewBSUPUnmarshaler()
 	m.Bind(templates...)
 	return m.Unmarshal(*rec, v)
 }

@@ -69,7 +69,7 @@ from %q@%q:objects
 type objectIterator struct {
 	reader      zio.Reader
 	puller      zbuf.Puller
-	unmarshaler *sup.UnmarshalZNGContext
+	unmarshaler *sup.UnmarshalBSUPContext
 }
 
 func newObjectIterator(ctx context.Context, lake api.Interface, head *lakeparse.Commitish) (*objectIterator, error) {
@@ -81,7 +81,7 @@ func newObjectIterator(ctx context.Context, lake api.Interface, head *lakeparse.
 	return &objectIterator{
 		reader:      zbuf.PullerReader(q),
 		puller:      q,
-		unmarshaler: sup.NewZNGUnmarshaler(),
+		unmarshaler: sup.NewBSUPUnmarshaler(),
 	}, nil
 }
 

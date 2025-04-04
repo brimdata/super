@@ -7,6 +7,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/arrowio"
+	"github.com/brimdata/super/zio/bsupio"
 	"github.com/brimdata/super/zio/csupio"
 	"github.com/brimdata/super/zio/csvio"
 	"github.com/brimdata/super/zio/jsonio"
@@ -18,16 +19,15 @@ import (
 	"github.com/brimdata/super/zio/textio"
 	"github.com/brimdata/super/zio/zeekio"
 	"github.com/brimdata/super/zio/zjsonio"
-	"github.com/brimdata/super/zio/zngio"
 )
 
 type WriterOpts struct {
 	Format string
-	Lake   lakeio.WriterOpts
+	BSUP   *bsupio.WriterOpts // Nil means use defaults via bsupio.NewWriter.
 	CSV    csvio.WriterOpts
 	JSON   jsonio.WriterOpts
+	Lake   lakeio.WriterOpts
 	SUP    supio.WriterOpts
-	ZNG    *zngio.WriterOpts // Nil means use defaults via zngio.NewWriter.
 }
 
 func NewWriter(w io.WriteCloser, opts WriterOpts) (zio.WriteCloser, error) {
@@ -35,10 +35,10 @@ func NewWriter(w io.WriteCloser, opts WriterOpts) (zio.WriteCloser, error) {
 	case "arrows":
 		return arrowio.NewWriter(w), nil
 	case "bsup":
-		if opts.ZNG == nil {
-			return zngio.NewWriter(w), nil
+		if opts.BSUP == nil {
+			return bsupio.NewWriter(w), nil
 		}
-		return zngio.NewWriterWithOpts(w, *opts.ZNG), nil
+		return bsupio.NewWriterWithOpts(w, *opts.BSUP), nil
 	case "csup":
 		return csupio.NewWriter(w), nil
 	case "csv":

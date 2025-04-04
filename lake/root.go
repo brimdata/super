@@ -8,6 +8,7 @@ import (
 	"io/fs"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/bsupbytes"
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/lake/branches"
 	"github.com/brimdata/super/lake/data"
@@ -18,8 +19,7 @@ import (
 	"github.com/brimdata/super/runtime/vcache"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zio/zngio"
-	"github.com/brimdata/super/zngbytes"
+	"github.com/brimdata/super/zio/bsupio"
 	arc "github.com/hashicorp/golang-lru/arc/v2"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
@@ -132,7 +132,7 @@ func (r *Root) writeLakeMagic(ctx context.Context) error {
 		Magic:   LakeMagicString,
 		Version: Version,
 	}
-	serializer := zngbytes.NewSerializer()
+	serializer := bsupbytes.NewSerializer()
 	serializer.Decorate(sup.StylePackage)
 	if err := serializer.Write(magic); err != nil {
 		return err
@@ -156,7 +156,7 @@ func (r *Root) readLakeMagic(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	zr := zngio.NewReader(super.NewContext(), reader)
+	zr := bsupio.NewReader(super.NewContext(), reader)
 	defer zr.Close()
 	val, err := zr.Read()
 	if err != nil {
@@ -170,7 +170,7 @@ func (r *Root) readLakeMagic(ctx context.Context) error {
 		return fmt.Errorf("corrupt lake version file: more than one Zed value at %s", sup.String(last))
 	}
 	var magic LakeMagic
-	if err := sup.UnmarshalZNG(*val, &magic); err != nil {
+	if err := sup.UnmarshalBSUP(*val, &magic); err != nil {
 		return fmt.Errorf("corrupt lake version file: %w", err)
 	}
 	if magic.Magic != LakeMagicString {
@@ -183,7 +183,7 @@ func (r *Root) readLakeMagic(ctx context.Context) error {
 }
 
 func (r *Root) BatchifyPools(ctx context.Context, zctx *super.Context, f expr.Evaluator) ([]super.Value, error) {
-	m := sup.NewZNGMarshalerWithContext(zctx)
+	m := sup.NewBSUPMarshalerWithContext(zctx)
 	m.Decorate(sup.StylePackage)
 	pools, err := r.ListPools(ctx)
 	if err != nil {
@@ -204,7 +204,7 @@ func (r *Root) BatchifyPools(ctx context.Context, zctx *super.Context, f expr.Ev
 }
 
 func (r *Root) BatchifyBranches(ctx context.Context, zctx *super.Context, f expr.Evaluator) ([]super.Value, error) {
-	m := sup.NewZNGMarshalerWithContext(zctx)
+	m := sup.NewBSUPMarshalerWithContext(zctx)
 	m.Decorate(sup.StylePackage)
 	poolRefs, err := r.ListPools(ctx)
 	if err != nil {

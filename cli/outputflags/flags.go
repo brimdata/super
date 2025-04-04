@@ -15,8 +15,8 @@ import (
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/anyio"
+	"github.com/brimdata/super/zio/bsupio"
 	"github.com/brimdata/super/zio/emitter"
-	"github.com/brimdata/super/zio/zngio"
 )
 
 type Flags struct {
@@ -41,9 +41,9 @@ func (f *Flags) Options() anyio.WriterOpts {
 }
 
 func (f *Flags) setFlags(fs *flag.FlagSet) {
-	f.ZNG = &zngio.WriterOpts{}
-	fs.BoolVar(&f.ZNG.Compress, "bsup.compress", true, "compress Super Binary frames")
-	fs.IntVar(&f.ZNG.FrameThresh, "bsup.framethresh", zngio.DefaultFrameThresh,
+	f.BSUP = &bsupio.WriterOpts{}
+	fs.BoolVar(&f.BSUP.Compress, "bsup.compress", true, "compress Super Binary frames")
+	fs.IntVar(&f.BSUP.FrameThresh, "bsup.framethresh", bsupio.DefaultFrameThresh,
 		"minimum Super Binary frame size in uncompressed bytes")
 	fs.BoolVar(&f.color, "color", true, "enable/disable color formatting for -Z and lake text output")
 	fs.StringVar(&f.supPersist, "persist", "",

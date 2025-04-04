@@ -16,7 +16,7 @@ import (
 func buildPrunerValue(zctx *super.Context, rgmd *metadata.RowGroupMetaData, schema *arrow.Schema, colIndexes []int) super.Value {
 	var paths field.List
 	var vals []super.Value
-	m := sup.NewZNGMarshaler()
+	m := sup.NewBSUPMarshaler()
 	for _, i := range colIndexes {
 		min, max, path, ok := columnChunkStats(rgmd, i, schema.Field(i).Type)
 		if !ok {

@@ -467,7 +467,7 @@ func (e *elemHelper) add(b zcode.Bytes) (super.Type, zcode.Bytes) {
 		return e.typ, b
 	}
 	if b == nil {
-		// The type returned from union.SplitZNG for a null value will
+		// The type returned from union.SplitBSUP for a null value will
 		// be the union type. While this is the correct type, for
 		// display purposes we do not want to see the decorator so just
 		// set the type to null.

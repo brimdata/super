@@ -11,7 +11,7 @@ import (
 
 type LogReader struct {
 	ctx       context.Context
-	marshaler *sup.MarshalZNGContext
+	marshaler *sup.MarshalBSUPContext
 	store     *Store
 	cursor    ksuid.KSUID
 	stop      ksuid.KSUID
@@ -20,7 +20,7 @@ type LogReader struct {
 var _ zio.Reader = (*LogReader)(nil)
 
 func newLogReader(ctx context.Context, zctx *super.Context, store *Store, leaf, stop ksuid.KSUID) *LogReader {
-	m := sup.NewZNGMarshalerWithContext(zctx)
+	m := sup.NewBSUPMarshalerWithContext(zctx)
 	m.Decorate(sup.StyleSimple)
 	return &LogReader{
 		ctx:       ctx,

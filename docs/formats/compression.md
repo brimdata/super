@@ -1,7 +1,7 @@
 ---
 weight: 6
 title: Compression
-heading: ZNG Compression Types
+heading: BSUP Compression Types
 ---
 
 This document specifies values for the `<format>` byte of a
@@ -9,7 +9,7 @@ This document specifies values for the `<format>` byte of a
 and the corresponding algorithms for the `<compressed payload>` byte sequence.
 
 As new compression algorithms are specified, they will be documented
-here without any need to change the ZNG specification.
+here without any need to change the BSUP specification.
 
 Of the 256 possible values for the `<format>` byte, only type `0` is currently
 defined and specifies that `<compressed payload>` contains an

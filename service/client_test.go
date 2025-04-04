@@ -16,8 +16,8 @@ import (
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/zio/bsupio"
 	"github.com/brimdata/super/zio/supio"
-	"github.com/brimdata/super/zio/zngio"
 	"github.com/segmentio/ksuid"
 	"github.com/stretchr/testify/require"
 )
@@ -52,7 +52,7 @@ func (c *testClient) TestPoolList() []pools.Config {
 	require.NoError(c, err)
 	defer r.Body.Close()
 	var confs []pools.Config
-	zr := zngio.NewReader(super.NewContext(), r.Body)
+	zr := bsupio.NewReader(super.NewContext(), r.Body)
 	defer zr.Close()
 	for {
 		rec, err := zr.Read()
@@ -61,7 +61,7 @@ func (c *testClient) TestPoolList() []pools.Config {
 			return confs
 		}
 		var pool pools.Config
-		err = sup.UnmarshalZNG(*rec, &pool)
+		err = sup.UnmarshalBSUP(*rec, &pool)
 		require.NoError(c, err)
 		confs = append(confs, pool)
 	}
@@ -83,7 +83,7 @@ func (c *testClient) TestQuery(query string) string {
 	r, err := c.Connection.Query(context.Background(), query)
 	require.NoError(c, err)
 	defer r.Body.Close()
-	zr := zngio.NewReader(super.NewContext(), r.Body)
+	zr := bsupio.NewReader(super.NewContext(), r.Body)
 	defer zr.Close()
 	var buf bytes.Buffer
 	zw := supio.NewWriter(zio.NopCloser(&buf), supio.WriterOpts{})

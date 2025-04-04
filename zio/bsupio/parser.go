@@ -1,4 +1,4 @@
-package zngio
+package bsupio
 
 import (
 	"errors"
@@ -11,7 +11,7 @@ import (
 	"github.com/brimdata/super/zcode"
 )
 
-var errBadFormat = errors.New("malformed bsup record")
+var errBadFormat = errors.New("malformed BSUP value")
 
 // parser decodes the framing protocol for BSON updating and resetting its
 // super context in conformance with BSON framing.
@@ -38,7 +38,7 @@ func (p *parser) read() (frame, error) {
 			continue
 		}
 		if (code & 0x80) != 0 {
-			return frame{}, errors.New("zngio: encountered wrong version bit in framing")
+			return frame{}, errors.New("bsupio: encountered wrong version bit in framing")
 		}
 		switch typ := (code >> 4) & 3; typ {
 		case TypesFrame:
@@ -144,7 +144,7 @@ func (p *parser) readFrame(code byte) ([]byte, error) {
 		return nil, err
 	}
 	if size > p.maxSize {
-		return nil, fmt.Errorf("zngio: frame length (%d) exceeds maximum allowed (%d)", size, p.maxSize)
+		return nil, fmt.Errorf("bsupio: frame length (%d) exceeds maximum allowed (%d)", size, p.maxSize)
 	}
 	b, err := p.peeker.Read(size)
 	if err == peeker.ErrBufferOverflow {
@@ -174,7 +174,7 @@ func (p *parser) readCompressedFrame(code byte) (frame, error) {
 		return frame{}, err
 	}
 	if size > p.maxSize {
-		return frame{}, fmt.Errorf("zngio: frame length (%d) exceeds maximum allowed (%d)", size, p.maxSize)
+		return frame{}, fmt.Errorf("bsupio: frame length (%d) exceeds maximum allowed (%d)", size, p.maxSize)
 	}
 	// The size of the compressed buffer needs to be adjusted by the
 	// byte for the format and the variable-length bytes to encode

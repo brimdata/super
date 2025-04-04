@@ -6,10 +6,10 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/bsupbytes"
 	"github.com/brimdata/super/lake/data"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zngbytes"
 	"github.com/segmentio/ksuid"
 )
 
@@ -92,7 +92,7 @@ func (o *Object) appendDeleteVector(id ksuid.KSUID) {
 }
 
 func (o Object) Serialize() ([]byte, error) {
-	writer := zngbytes.NewSerializer()
+	writer := bsupbytes.NewSerializer()
 	writer.Decorate(sup.StylePackage)
 	for _, action := range o.Actions {
 		if err := writer.Write(action); err != nil {
@@ -112,7 +112,7 @@ func (o Object) Serialize() ([]byte, error) {
 
 func DecodeObject(r io.Reader) (*Object, error) {
 	o := &Object{}
-	reader := zngbytes.NewDeserializer(r, ActionTypes)
+	reader := bsupbytes.NewDeserializer(r, ActionTypes)
 	defer reader.Close()
 	for {
 		entry, err := reader.Read()

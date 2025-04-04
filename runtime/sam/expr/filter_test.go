@@ -78,7 +78,7 @@ func runCasesHelper(t *testing.T, record string, cases []testcase, expectBufferF
 			if bf != nil {
 				expected := expectBufferFilterFalsePositives || c.expected
 				// For FieldNameFinder.Find coverage, we need to
-				// hand BufferFilter.Eval a ZNG values frame
+				// hand BufferFilter.Eval a BSUP values frame
 				// containing rec, assembled here.
 				buf := binary.AppendUvarint(nil, uint64(rec.Type().ID()))
 				buf = zcode.Append(buf, rec.Bytes())

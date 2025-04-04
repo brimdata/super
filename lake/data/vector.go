@@ -11,8 +11,8 @@ import (
 	"github.com/brimdata/super/pkg/bufwriter"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/zio/bsupio"
 	"github.com/brimdata/super/zio/csupio"
-	"github.com/brimdata/super/zio/zngio"
 	"github.com/segmentio/ksuid"
 )
 
@@ -33,7 +33,7 @@ func CreateVector(ctx context.Context, engine storage.Engine, path *storage.URI,
 	}
 	// Note here that writer.Close closes the Put but reader.Close does not
 	// close the Get.
-	reader := zngio.NewReader(super.NewContext(), get)
+	reader := bsupio.NewReader(super.NewContext(), get)
 	err = zio.Copy(w, reader)
 	if closeErr := w.Close(); err == nil {
 		err = closeErr

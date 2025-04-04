@@ -9,7 +9,7 @@ import (
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/bufwriter"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/zio/zngio"
+	"github.com/brimdata/super/zio/bsupio"
 )
 
 // Writer is a zio.Writer that writes a stream of sorted records into a
@@ -18,7 +18,7 @@ type Writer struct {
 	object           *Object
 	byteCounter      *writeCounter
 	count            uint64
-	writer           *zngio.Writer
+	writer           *bsupio.Writer
 	sortKey          order.SortKey
 	seekIndex        *seekindex.Writer
 	seekIndexStride  int
@@ -27,7 +27,7 @@ type Writer struct {
 	seekMin          *super.Value
 }
 
-// NewWriter returns a writer for writing the data of a zng-row storage object as
+// NewWriter returns a writer for writing the data of a BSUP object as
 // well as optionally creating a seek index for the row object when the
 // seekIndexStride is non-zero.  We assume all records are non-volatile until
 // Close as super.Values from the various record bodies are referenced across
@@ -41,7 +41,7 @@ func (o *Object) NewWriter(ctx context.Context, engine storage.Engine, path *sto
 	w := &Writer{
 		object:      o,
 		byteCounter: counter,
-		writer:      zngio.NewWriter(counter),
+		writer:      bsupio.NewWriter(counter),
 		sortKey:     sortKey,
 		first:       true,
 	}
@@ -53,7 +53,7 @@ func (o *Object) NewWriter(ctx context.Context, engine storage.Engine, path *sto
 	if err != nil {
 		return nil, err
 	}
-	w.seekIndex = seekindex.NewWriter(zngio.NewWriter(bufwriter.New(seekOut)))
+	w.seekIndex = seekindex.NewWriter(bsupio.NewWriter(bufwriter.New(seekOut)))
 	return w, nil
 }
 

@@ -10,11 +10,11 @@ import (
 	"sync"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/bsupbytes"
 	"github.com/brimdata/super/lake/data"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/zngio"
-	"github.com/brimdata/super/zngbytes"
+	"github.com/brimdata/super/zio/bsupio"
 	arc "github.com/hashicorp/golang-lru/arc/v2"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
@@ -228,7 +228,7 @@ func (s *Store) GetBytes(ctx context.Context, commit ksuid.KSUID) ([]byte, *Comm
 	if err != nil {
 		return nil, nil, err
 	}
-	reader := zngbytes.NewDeserializer(bytes.NewReader(b), ActionTypes)
+	reader := bsupbytes.NewDeserializer(bytes.NewReader(b), ActionTypes)
 	defer reader.Close()
 	entry, err := reader.Read()
 	if err != nil {
@@ -268,12 +268,12 @@ func (s *Store) Open(ctx context.Context, commit, stop ksuid.KSUID) (io.Reader, 
 	return bytes.NewReader(b), nil
 }
 
-func (s *Store) OpenAsZNG(ctx context.Context, zctx *super.Context, commit, stop ksuid.KSUID) (*zngio.Reader, error) {
+func (s *Store) OpenAsBSUP(ctx context.Context, zctx *super.Context, commit, stop ksuid.KSUID) (*bsupio.Reader, error) {
 	r, err := s.Open(ctx, commit, stop)
 	if err != nil {
 		return nil, err
 	}
-	return zngio.NewReader(zctx, r), nil
+	return bsupio.NewReader(zctx, r), nil
 }
 
 func (s *Store) OpenCommitLog(ctx context.Context, zctx *super.Context, commit, stop ksuid.KSUID) zio.Reader {

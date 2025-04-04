@@ -173,14 +173,14 @@ func idToHex(id ksuid.KSUID) string {
 }
 
 type buffer struct {
-	unmarshaler *sup.UnmarshalZNGContext
+	unmarshaler *sup.UnmarshalBSUPContext
 	results     []interface{}
 }
 
 var _ zio.Writer = (*buffer)(nil)
 
 func newBuffer(types ...interface{}) *buffer {
-	u := sup.NewZNGUnmarshaler()
+	u := sup.NewBSUPUnmarshaler()
 	u.Bind(types...)
 	return &buffer{unmarshaler: u}
 }

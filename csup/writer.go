@@ -8,7 +8,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/zngio"
+	"github.com/brimdata/super/zio/bsupio"
 )
 
 var maxObjectSize uint32 = 120_000
@@ -55,11 +55,11 @@ func (w *Writer) finalizeObject() error {
 		return fmt.Errorf("system error: could not encode CSUP metadata: %w", err)
 	}
 	// At this point all the vector data has been written out
-	// to the underlying spiller, so we start writing zng at this point.
+	// to the underlying spiller, so we start writing BSUP at this point.
 	var metaBuf bytes.Buffer
-	zw := zngio.NewWriter(zio.NopCloser(&metaBuf))
+	zw := bsupio.NewWriter(zio.NopCloser(&metaBuf))
 	// First, we write the root segmap of the vector of integer type IDs.
-	m := sup.NewZNGMarshalerWithContext(w.zctx)
+	m := sup.NewBSUPMarshalerWithContext(w.zctx)
 	m.Decorate(sup.StyleSimple)
 	val, err := m.Marshal(meta)
 	if err != nil {

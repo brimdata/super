@@ -105,7 +105,7 @@ func (s *Shared) Run(ctx context.Context, args []string, lakeFlags *lakeflags.Fl
 }
 
 func (s *Shared) writeValue(ctx context.Context, v any) error {
-	val, err := sup.MarshalZNG(v)
+	val, err := sup.MarshalBSUP(v)
 	if err != nil {
 		return err
 	}

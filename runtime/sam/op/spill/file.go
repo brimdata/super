@@ -8,17 +8,17 @@ import (
 	"github.com/brimdata/super/pkg/bufwriter"
 	"github.com/brimdata/super/pkg/fs"
 	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/zngio"
+	"github.com/brimdata/super/zio/bsupio"
 )
 
-// File provides a means to write a sequence of zng records to temporary
+// File provides a means to write a sequence of Super values to temporary
 // storage then read them back.  This is used for processing large batches of
 // data that do not fit in memory and/or cannot be shuffled to a peer worker,
 // but can be processed in multiple passes.  File implements zio.Reader and
 // zio.Writer.
 type File struct {
-	*zngio.Reader
-	*zngio.Writer
+	*bsupio.Reader
+	*bsupio.Writer
 	file *os.File
 }
 
@@ -27,9 +27,9 @@ type File struct {
 // records via the zio.Reader interface.
 func NewFile(f *os.File) *File {
 	return &File{
-		Writer: zngio.NewWriterWithOpts(bufwriter.New(zio.NopCloser(f)), zngio.WriterOpts{
+		Writer: bsupio.NewWriterWithOpts(bufwriter.New(zio.NopCloser(f)), bsupio.WriterOpts{
 			Compress:    false, // Compression reduces write throughput; see #3973.
-			FrameThresh: zngio.DefaultFrameThresh,
+			FrameThresh: bsupio.DefaultFrameThresh,
 		}),
 		file: f,
 	}
@@ -64,7 +64,7 @@ func (f *File) Rewind(zctx *super.Context) error {
 	if f.Reader != nil {
 		f.Reader.Close()
 	}
-	f.Reader = zngio.NewReader(zctx, bufio.NewReader(f.file))
+	f.Reader = bsupio.NewReader(zctx, bufio.NewReader(f.file))
 	return nil
 }
 

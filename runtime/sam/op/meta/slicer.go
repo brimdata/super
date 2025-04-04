@@ -19,8 +19,8 @@ import (
 // non-overlapping Partitions.
 type Slicer struct {
 	parent      zbuf.Puller
-	marshaler   *sup.MarshalZNGContext
-	unmarshaler *sup.UnmarshalZNGContext
+	marshaler   *sup.MarshalBSUPContext
+	unmarshaler *sup.UnmarshalBSUPContext
 	objects     []*data.Object
 	cmp         expr.CompareFn
 	min         *super.Value
@@ -29,12 +29,12 @@ type Slicer struct {
 }
 
 func NewSlicer(parent zbuf.Puller, zctx *super.Context) *Slicer {
-	m := sup.NewZNGMarshalerWithContext(zctx)
+	m := sup.NewBSUPMarshalerWithContext(zctx)
 	m.Decorate(sup.StylePackage)
 	return &Slicer{
 		parent:      parent,
 		marshaler:   m,
-		unmarshaler: sup.NewZNGUnmarshaler(),
+		unmarshaler: sup.NewBSUPUnmarshaler(),
 		//XXX check nullsmax is consistent for both dirs in lake ops
 		cmp: expr.NewValueCompareFn(order.Asc, true),
 	}

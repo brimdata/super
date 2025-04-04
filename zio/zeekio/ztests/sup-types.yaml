@@ -1,4 +1,4 @@
-# Test that ZNG types are mapped into proper equivalent Zeek types.
+# Test that SUP types are mapped into proper equivalent Zeek types.
 
 zed: pass
 

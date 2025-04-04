@@ -146,7 +146,7 @@ T	123	456	123.456	1592502151.123456	123.456000	smile😁smile	\x09\x07\x04	80	12
 ## Type-Specific Details
 
 As `zq` acts as a reference implementation for SuperDB storage formats such as
-Super JSON and ZNG, it's helpful to understand how it reads the following Zeek data
+Super JSON and BSUP, it's helpful to understand how it reads the following Zeek data
 types into readable text equivalents in the Super JSON format, then writes them back
 out again in the Zeek TSV log format. Other implementations of the Zed storage
 formats (should they exist) may handle these differently.

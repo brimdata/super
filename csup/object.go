@@ -30,7 +30,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zio/zngio"
+	"github.com/brimdata/super/zio/bsupio"
 )
 
 type Object struct {
@@ -76,13 +76,13 @@ func (o *Object) Size() uint64 {
 
 func readMetadata(r io.Reader) (Metadata, error) {
 	zctx := super.NewContext()
-	zr := zngio.NewReader(zctx, r)
+	zr := bsupio.NewReader(zctx, r)
 	defer zr.Close()
 	val, err := zr.Read()
 	if err != nil {
 		return nil, err
 	}
-	u := sup.NewZNGUnmarshaler()
+	u := sup.NewBSUPUnmarshaler()
 	u.SetContext(zctx)
 	u.Bind(Template...)
 	var meta Metadata

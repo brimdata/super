@@ -23,7 +23,7 @@ var spec = &charm.Spec{
 	Long: `
 The project command reads CSUP vectors from
 CSUP storage objects (local files or s3 objects) and outputs
-the reconstructed ZNG row data as a projection of zero or more fields.
+the reconstructed BSUP row data as a projection of zero or more fields.
 If no fields are specified, all the data is projected.
 
 This command is most useful for testing the CSUP vector cache.

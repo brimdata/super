@@ -7,6 +7,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/arrowio"
+	"github.com/brimdata/super/zio/bsupio"
 	"github.com/brimdata/super/zio/csupio"
 	"github.com/brimdata/super/zio/csvio"
 	"github.com/brimdata/super/zio/jsonio"
@@ -15,7 +16,6 @@ import (
 	"github.com/brimdata/super/zio/supio"
 	"github.com/brimdata/super/zio/zeekio"
 	"github.com/brimdata/super/zio/zjsonio"
-	"github.com/brimdata/super/zio/zngio"
 )
 
 func lookupReader(zctx *super.Context, r io.Reader, opts ReaderOpts) (zio.ReadCloser, error) {
@@ -23,7 +23,7 @@ func lookupReader(zctx *super.Context, r io.Reader, opts ReaderOpts) (zio.ReadCl
 	case "arrows":
 		return arrowio.NewReader(zctx, r)
 	case "bsup":
-		return zngio.NewReaderWithOpts(zctx, r, opts.ZNG), nil
+		return bsupio.NewReaderWithOpts(zctx, r, opts.BSUP), nil
 	case "csup":
 		zr, err := csupio.NewReader(zctx, r, opts.Fields)
 		if err != nil {

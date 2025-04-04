@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/brimdata/super/bsupbytes"
 	"github.com/brimdata/super/lake/data"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime/sam/expr/extent"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zngbytes"
 	"github.com/segmentio/ksuid"
 )
 
@@ -138,7 +138,7 @@ func (s *Snapshot) Copy() *Snapshot {
 // during deserialization.  Deleted entities are serialized as an add-delete
 // sequence to meet the requirements of DeleteObject.
 func (s *Snapshot) serialize() ([]byte, error) {
-	zs := zngbytes.NewSerializer()
+	zs := bsupbytes.NewSerializer()
 	zs.Decorate(sup.StylePackage)
 	for _, o := range s.objects {
 		if err := zs.Write(&Add{Object: *o}); err != nil {
@@ -158,7 +158,7 @@ func (s *Snapshot) serialize() ([]byte, error) {
 
 func decodeSnapshot(r io.Reader) (*Snapshot, error) {
 	s := NewSnapshot()
-	zd := zngbytes.NewDeserializer(r, ActionTypes)
+	zd := bsupbytes.NewDeserializer(r, ActionTypes)
 	defer zd.Close()
 	for {
 		entry, err := zd.Read()

@@ -26,17 +26,17 @@ import (
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zcode"
 	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/zio/bsupio"
 	"github.com/brimdata/super/zio/csupio"
-	"github.com/brimdata/super/zio/zngio"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"github.com/x448/float16"
 )
 
-func ReadZNG(bs []byte) ([]super.Value, error) {
+func ReadBSUP(bs []byte) ([]super.Value, error) {
 	bytesReader := bytes.NewReader(bs)
 	context := super.NewContext()
-	reader := zngio.NewReader(context, bytesReader)
+	reader := bsupio.NewReader(context, bytesReader)
 	defer reader.Close()
 	var a zbuf.Array
 	err := zio.Copy(&a, reader)
@@ -61,8 +61,8 @@ func ReadCSUP(bs []byte, fields []field.Path) ([]super.Value, error) {
 	return a.Values(), nil
 }
 
-func WriteZNG(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
-	writer := zngio.NewWriter(zio.NopCloser(buf))
+func WriteBSUP(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
+	writer := bsupio.NewWriter(zio.NopCloser(buf))
 	require.NoError(t, zio.Copy(writer, zbuf.NewArray(valuesIn)))
 	require.NoError(t, writer.Close())
 }
@@ -73,9 +73,9 @@ func WriteCSUP(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
 	require.NoError(t, writer.Close())
 }
 
-func RunQueryZNG(t testing.TB, buf *bytes.Buffer, querySource string) []super.Value {
+func RunQueryBSUP(t testing.TB, buf *bytes.Buffer, querySource string) []super.Value {
 	zctx := super.NewContext()
-	readers := []zio.Reader{zngio.NewReader(zctx, buf)}
+	readers := []zio.Reader{bsupio.NewReader(zctx, buf)}
 	defer zio.CloseReaders(readers)
 	return RunQuery(t, zctx, readers, querySource, func(_ demand.Demand) {})
 }
@@ -151,7 +151,7 @@ func CompareValues(t testing.TB, valuesExpected []super.Value, valuesActual []su
 			t.Errorf("values have different types: %v vs %v", valueExpected.Type(), valueActual.Type())
 		}
 		if !bytes.Equal(valueExpected.Bytes(), valueActual.Bytes()) {
-			t.Errorf("values have different zng bytes: %v vs %v", valueExpected.Bytes(), valueActual.Bytes())
+			t.Errorf("values have different BSUP bytes: %v vs %v", valueExpected.Bytes(), valueActual.Bytes())
 		}
 	}
 	for i := range valuesActual[len(valuesExpected):] {
@@ -350,7 +350,7 @@ func GenType(b *bytes.Reader, context *super.Context, depth int) super.Type {
 			types := GenTypes(b, context, depth)
 			// TODO There are some weird corners around unions that contain null or duplicate types eg
 			// csup_test.go:107: comparing: in[0]=null((null,null)) vs out[0]=null((null,null))
-			// csup_test.go:112: values have different zng bytes: [1 0] vs [2 2 0]
+			// csup_test.go:112: values have different BSUP bytes: [1 0] vs [2 2 0]
 			var unionTypes []super.Type
 			for _, typ := range types {
 				skip := false

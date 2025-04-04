@@ -123,13 +123,13 @@ type result struct {
 
 type objectPuller struct {
 	parent      zbuf.Puller
-	unmarshaler *sup.UnmarshalZNGContext
+	unmarshaler *sup.UnmarshalBSUPContext
 }
 
 func newObjectPuller(parent zbuf.Puller) *objectPuller {
 	return &objectPuller{
 		parent:      parent,
-		unmarshaler: sup.NewZNGUnmarshaler(),
+		unmarshaler: sup.NewBSUPUnmarshaler(),
 	}
 }
 

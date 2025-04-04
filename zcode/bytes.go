@@ -1,4 +1,4 @@
-// Package zcode implements serialization and deserialzation for ZNG values.
+// Package zcode implements serialization and deserialzation for BSUP values.
 //
 // Values of primitive type are represented by an unsigned integer tag and an
 // optional byte-sequence body.  A tag of zero indicates that the value is
@@ -22,7 +22,7 @@ import (
 
 var ErrNotSingleton = errors.New("value body has more than one encoded value")
 
-// Bytes is the serialized representation of a sequence of ZNG values.
+// Bytes is the serialized representation of a sequence of BSUP values.
 type Bytes []byte
 
 // Iter returns an Iter for the receiver.

@@ -100,7 +100,7 @@ func (w *Writer) writeHeader(r super.Value, path string) error {
 			if f.Name == "_path" {
 				continue
 			}
-			t, err := zngTypeToZeek(f.Type)
+			t, err := superTypeToZeek(f.Type)
 			if err != nil {
 				return err
 			}

@@ -81,7 +81,7 @@ with respect to a given object.
 A data object is composed of the primary data object stored as one or two objects
 (for sequence and/or vector layout) and an optional seek index.
 
-Data objects may be either in sequence form (i.e., ZNG) or vector form (i.e., CSUP),
+Data objects may be either in sequence form (i.e., BSUP) or vector form (i.e., CSUP),
 or both forms may be present as a query optimizer may choose to use whatever
 representation is more efficient.
 When both sequence and vector data objects are present, they must contain the same

@@ -53,7 +53,7 @@ func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 		Command:    parent.(*db.Command),
 		seekStride: units.Bytes(data.DefaultSeekStride),
 	}
-	f.Var(&c.seekStride, "seekstride", "size of seek-index unit for ZNG data, as '32KB', '1MB', etc.")
+	f.Var(&c.seekStride, "seekstride", "size of seek-index unit for BSUP data, as '32KB', '1MB', etc.")
 	c.thresh = data.DefaultThreshold
 	f.Var(&c.thresh, "S", "target size of pool data objects, as '10MB' or '4GiB', etc.")
 	f.BoolVar(&c.use, "use", false, "set created pool as the current pool")

@@ -50,7 +50,7 @@ type Allocator interface{}
 type Value struct {
 	typ Type
 	// If base == &nativeBase, len holds this Value's native representation.
-	// Otherwise, unsafe.Slice(base, len) holds its ZNG representation.
+	// Otherwise, unsafe.Slice(base, len) holds its BSUP representation.
 	base *byte
 	len  uint64
 }
@@ -156,7 +156,7 @@ func (v Value) Bool() bool {
 	return DecodeBool(v.bytes())
 }
 
-// Bytes returns v's ZNG representation.
+// Bytes returns v's BSUP representation.
 func (v Value) Bytes() zcode.Bytes {
 	if x, ok := v.native(); ok {
 		switch v.Type().ID() {
@@ -189,7 +189,7 @@ func (v Value) String() string {
 	return fmt.Sprintf("%s: %s", v.Type(), v.Encode(nil))
 }
 
-// Encode appends the ZNG representation of this value to the passed in
+// Encode appends the BSUP representation of this value to the passed in
 // argument and returns the resulting zcode.Bytes (which may or may not
 // be the same underlying buffer, as with append(), depending on its capacity)
 func (v Value) Encode(dst zcode.Bytes) zcode.Bytes {
@@ -315,7 +315,7 @@ func (v Value) IsQuiet() bool {
 	return false
 }
 
-// Equal reports whether p and v have the same type and the same ZNG
+// Equal reports whether p and v have the same type and the same BSUP
 // representation.
 func (v Value) Equal(p Value) bool {
 	if v.Type() != p.Type() {
@@ -492,9 +492,9 @@ func checkSet(typ *TypeSet, body zcode.Bytes) error {
 		if prev != nil {
 			switch bytes.Compare(prev, tagAndBody) {
 			case 0:
-				return errors.New("invalid ZNG: duplicate set element")
+				return errors.New("invalid BSUP: duplicate set element")
 			case 1:
-				return errors.New("invalid ZNG: set elements not sorted")
+				return errors.New("invalid BSUP: set elements not sorted")
 			}
 		}
 		prev = tagAndBody

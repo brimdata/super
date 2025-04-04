@@ -14,11 +14,11 @@ import (
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#parse_uri
 type ParseURI struct {
 	zctx      *super.Context
-	marshaler *sup.MarshalZNGContext
+	marshaler *sup.MarshalBSUPContext
 }
 
 func NewParseURI(zctx *super.Context) *ParseURI {
-	return &ParseURI{zctx, sup.NewZNGMarshalerWithContext(zctx)}
+	return &ParseURI{zctx, sup.NewBSUPMarshalerWithContext(zctx)}
 }
 
 func (p *ParseURI) Call(_ super.Allocator, args []super.Value) super.Value {

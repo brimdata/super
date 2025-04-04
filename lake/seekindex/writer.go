@@ -7,7 +7,7 @@ import (
 )
 
 type Writer struct {
-	marshal *sup.MarshalZNGContext
+	marshal *sup.MarshalBSUPContext
 	writer  zio.WriteCloser
 	offset  uint64
 	valoff  uint64
@@ -15,7 +15,7 @@ type Writer struct {
 
 func NewWriter(w zio.WriteCloser) *Writer {
 	return &Writer{
-		marshal: sup.NewZNGMarshaler(),
+		marshal: sup.NewBSUPMarshaler(),
 		writer:  w,
 	}
 }

@@ -98,7 +98,7 @@ code (like channels that carry proc.Result) to also carry the Frame.
 That said, there are also places in the code where we use batch to simply be
 an array of values without needing any context.  This makes me think we should
 separate these use cases into two interfaces: a dataflow batch and a vanilla value batch.
-Then, e.g., the zng reader can implement both interfaces and other places in the
+Then, e.g., the BSUP reader can implement both interfaces and other places in the
 code where we just need the vanilla batch, it can be a frameless array of values.
 
 ## other approaches

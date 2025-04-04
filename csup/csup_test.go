@@ -21,7 +21,7 @@ func FuzzCSUPRoundtripGen(f *testing.F) {
 
 func FuzzCSUPRoundtripBytes(f *testing.F) {
 	f.Fuzz(func(t *testing.T, b []byte) {
-		values, err := fuzz.ReadZNG(b)
+		values, err := fuzz.ReadBSUP(b)
 		if err != nil {
 			t.Skipf("%v", err)
 		}

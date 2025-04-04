@@ -10,7 +10,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/zngio"
+	"github.com/brimdata/super/zio/bsupio"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -104,7 +104,7 @@ type SliceRecord struct {
 }
 
 func TestBytes(t *testing.T) {
-	m := sup.NewZNGMarshaler()
+	m := sup.NewBSUPMarshaler()
 	rec, err := m.Marshal(BytesRecord{B: []byte{1, 2, 3}})
 	require.NoError(t, err)
 	require.NotNil(t, rec)
@@ -116,7 +116,7 @@ func TestBytes(t *testing.T) {
 	assert.Equal(t, "{A:0x040506}", sup.FormatValue(rec))
 
 	id := IDRecord{A: ID{0, 1, 2, 3}, B: ID{4, 5, 6, 7}}
-	m = sup.NewZNGMarshaler()
+	m = sup.NewBSUPMarshaler()
 	m.Decorate(sup.StyleSimple)
 	rec, err = m.Marshal(id)
 	require.NoError(t, err)
@@ -124,21 +124,21 @@ func TestBytes(t *testing.T) {
 	assert.Equal(t, "{A:0x00010203(=ID),B:0x04050607(ID)}(=IDRecord)", sup.FormatValue(rec))
 
 	var id2 IDRecord
-	u := sup.NewZNGUnmarshaler()
+	u := sup.NewBSUPUnmarshaler()
 	u.Bind(IDRecord{}, ID{})
-	err = sup.UnmarshalZNG(rec, &id2)
+	err = sup.UnmarshalBSUP(rec, &id2)
 	require.NoError(t, err)
 	assert.Equal(t, id, id2)
 
 	b2 := BytesRecord{B: nil}
-	m = sup.NewZNGMarshaler()
+	m = sup.NewBSUPMarshaler()
 	rec, err = m.Marshal(b2)
 	require.NoError(t, err)
 	require.NotNil(t, rec)
 	assert.Equal(t, "{B:null(bytes)}", sup.FormatValue(rec))
 
 	s := SliceRecord{S: nil}
-	m = sup.NewZNGMarshaler()
+	m = sup.NewBSUPMarshaler()
 	rec, err = m.Marshal(s)
 	require.NoError(t, err)
 	require.NotNil(t, rec)
@@ -159,19 +159,19 @@ func TestMixedTypeArrayInsideRecord(t *testing.T) {
 			&Animal{"blue"},
 		},
 	}
-	m := sup.NewZNGMarshaler()
+	m := sup.NewBSUPMarshaler()
 	m.Decorate(sup.StyleSimple)
 
 	zv, err := m.Marshal(x)
 	require.NoError(t, err)
 
 	var buffer bytes.Buffer
-	writer := zngio.NewWriter(zio.NopCloser(&buffer))
+	writer := bsupio.NewWriter(zio.NopCloser(&buffer))
 	recExpected := super.NewValue(zv.Type(), zv.Bytes())
 	writer.Write(recExpected)
 	writer.Close()
 
-	reader := zngio.NewReader(super.NewContext(), &buffer)
+	reader := bsupio.NewReader(super.NewContext(), &buffer)
 	defer reader.Close()
 	recActual, err := reader.Read()
 	exp := sup.FormatValue(recExpected)
@@ -218,19 +218,19 @@ func TestMixedTypeArrayOfStructWithInterface(t *testing.T) {
 			Thing:   &Animal{"blue"},
 		},
 	}
-	m := sup.NewZNGMarshaler()
+	m := sup.NewBSUPMarshaler()
 	m.Decorate(sup.StyleSimple)
 
 	zv, err := m.Marshal(input)
 	require.NoError(t, err)
 
 	var buffer bytes.Buffer
-	writer := zngio.NewWriter(zio.NopCloser(&buffer))
+	writer := bsupio.NewWriter(zio.NopCloser(&buffer))
 	recExpected := super.NewValue(zv.Type(), zv.Bytes())
 	writer.Write(recExpected)
 	writer.Close()
 
-	reader := zngio.NewReader(super.NewContext(), &buffer)
+	reader := bsupio.NewReader(super.NewContext(), &buffer)
 	defer reader.Close()
 	recActual, err := reader.Read()
 	require.NoError(t, err)
@@ -255,50 +255,50 @@ type Foo struct {
 
 func TestUnexported(t *testing.T) {
 	f := &Foo{1, 2}
-	m := sup.NewZNGMarshaler()
+	m := sup.NewBSUPMarshaler()
 	_, err := m.Marshal(f)
 	require.NoError(t, err)
 }
 
-type ZNGValueField struct {
+type BSUPValueField struct {
 	Name  string
 	Field super.Value `zed:"field"`
 }
 
-func TestZNGValueField(t *testing.T) {
+func TestBSUPValueField(t *testing.T) {
 	// Include a Zed int64 inside a Go struct as a super.Value field.
-	zngValueField := &ZNGValueField{
+	bsupValueField := &BSUPValueField{
 		Name:  "test1",
 		Field: super.NewInt64(123),
 	}
-	m := sup.NewZNGMarshaler()
+	m := sup.NewBSUPMarshaler()
 	m.Decorate(sup.StyleSimple)
-	zv, err := m.Marshal(zngValueField)
+	zv, err := m.Marshal(bsupValueField)
 	require.NoError(t, err)
-	assert.Equal(t, `{Name:"test1",field:123}(=ZNGValueField)`, sup.FormatValue(zv))
-	u := sup.NewZNGUnmarshaler()
-	var out ZNGValueField
+	assert.Equal(t, `{Name:"test1",field:123}(=BSUPValueField)`, sup.FormatValue(zv))
+	u := sup.NewBSUPUnmarshaler()
+	var out BSUPValueField
 	err = u.Unmarshal(zv, &out)
 	require.NoError(t, err)
-	assert.Equal(t, zngValueField.Name, out.Name)
-	assert.True(t, zngValueField.Field.Equal(out.Field))
+	assert.Equal(t, bsupValueField.Name, out.Name)
+	assert.True(t, bsupValueField.Field.Equal(out.Field))
 	// Include a Zed record inside a Go struct in a super.Value field.
 	zv2, err := sup.ParseValue(super.NewContext(), `{s:"foo",a:[1,2,3]}`)
 	require.NoError(t, err)
-	zngValueField2 := &ZNGValueField{
+	bsupValueField2 := &BSUPValueField{
 		Name:  "test2",
 		Field: zv2,
 	}
-	m2 := sup.NewZNGMarshaler()
+	m2 := sup.NewBSUPMarshaler()
 	m2.Decorate(sup.StyleSimple)
-	zv3, err := m2.Marshal(zngValueField2)
+	zv3, err := m2.Marshal(bsupValueField2)
 	require.NoError(t, err)
-	assert.Equal(t, `{Name:"test2",field:{s:"foo",a:[1,2,3]}}(=ZNGValueField)`, sup.FormatValue(zv3))
-	u2 := sup.NewZNGUnmarshaler()
-	var out2 ZNGValueField
+	assert.Equal(t, `{Name:"test2",field:{s:"foo",a:[1,2,3]}}(=BSUPValueField)`, sup.FormatValue(zv3))
+	u2 := sup.NewBSUPUnmarshaler()
+	var out2 BSUPValueField
 	err = u2.Unmarshal(zv3, &out2)
 	require.NoError(t, err)
-	assert.Equal(t, *zngValueField2, out2)
+	assert.Equal(t, *bsupValueField2, out2)
 }
 
 func TestJSONFieldTag(t *testing.T) {
@@ -420,11 +420,11 @@ func TestRecordWithMixedTypeNamedArrayElems(t *testing.T) {
 			},
 		},
 	}
-	m := sup.NewZNGMarshaler()
+	m := sup.NewBSUPMarshaler()
 	m.Decorate(sup.StyleSimple)
 	val, err := m.Marshal(in)
 	require.NoError(t, err)
-	u := sup.NewZNGUnmarshaler()
+	u := sup.NewBSUPUnmarshaler()
 	u.Bind(Record{}, Array{}, Primitive{})
 	var out Metadata
 	err = u.Unmarshal(val, &out)

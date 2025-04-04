@@ -10,7 +10,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zio/zngio"
+	"github.com/brimdata/super/zio/bsupio"
 )
 
 func LookupSeekRange(ctx context.Context, engine storage.Engine, path *storage.URI,
@@ -25,8 +25,8 @@ func LookupSeekRange(ctx context.Context, engine storage.Engine, path *storage.U
 	}
 	defer r.Close()
 	var ranges seekindex.Ranges
-	unmarshaler := sup.NewZNGUnmarshaler()
-	reader := zngio.NewReader(super.NewContext(), r)
+	unmarshaler := sup.NewBSUPUnmarshaler()
+	reader := bsupio.NewReader(super.NewContext(), r)
 	defer reader.Close()
 	ectx := expr.NewContext()
 	for {
@@ -61,8 +61,8 @@ func readSeekIndex(ctx context.Context, engine storage.Engine, path *storage.URI
 		return nil, err
 	}
 	defer r.Close()
-	zr := zngio.NewReader(super.NewContext(), r)
-	u := sup.NewZNGUnmarshaler()
+	zr := bsupio.NewReader(super.NewContext(), r)
+	u := sup.NewBSUPUnmarshaler()
 	var index seekindex.Index
 	for {
 		val, err := zr.Read()

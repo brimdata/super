@@ -69,6 +69,6 @@ func (u *URI) UnmarshalText(b []byte) error {
 	return nil
 }
 
-func (u *URI) MarshalZNG(mc *sup.MarshalZNGContext) (super.Type, error) {
+func (u *URI) MarshalBSUP(mc *sup.MarshalBSUPContext) (super.Type, error) {
 	return mc.MarshalValue(u.String())
 }

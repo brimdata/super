@@ -29,32 +29,32 @@ func FuzzQuery(f *testing.F) {
 		//    t.Logf("value: in[%v]=%v", i, sup.String(&values[i]))
 		//}
 
-		var zngBuf bytes.Buffer
-		fuzz.WriteZNG(t, values, &zngBuf)
-		resultZNG := fuzz.RunQueryZNG(t, &zngBuf, querySource)
+		var bsupBuf bytes.Buffer
+		fuzz.WriteBSUP(t, values, &bsupBuf)
+		resultBSUP := fuzz.RunQueryBSUP(t, &bsupBuf, querySource)
 
 		var csupBuf bytes.Buffer
 		fuzz.WriteCSUP(t, values, &csupBuf)
 		resultCSUP := fuzz.RunQueryCSUP(t, &csupBuf, querySource)
 
-		fuzz.CompareValues(t, resultZNG, resultCSUP)
+		fuzz.CompareValues(t, resultBSUP, resultCSUP)
 	})
 }
 
 const N = 10000000
 
-func BenchmarkReadZng(b *testing.B) {
+func BenchmarkReadBSUP(b *testing.B) {
 	rand := rand.New(rand.NewSource(42))
 	valuesIn := make([]super.Value, N)
 	for i := range valuesIn {
 		valuesIn[i] = super.NewInt64(rand.Int63n(N))
 	}
 	var buf bytes.Buffer
-	fuzz.WriteZNG(b, valuesIn, &buf)
+	fuzz.WriteBSUP(b, valuesIn, &buf)
 	bs := buf.Bytes()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		valuesOut, err := fuzz.ReadZNG(bs)
+		valuesOut, err := fuzz.ReadBSUP(bs)
 		if err != nil {
 			panic(err)
 		}

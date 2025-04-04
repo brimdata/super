@@ -1,4 +1,4 @@
-// Package zng implements a data typing system based on the zeek type system.
+// Package bsup implements a data typing system based on the zeek type system.
 // All zeek types are defined here and implement the Type interface while instances
 // of values implement the Value interface.  All values conform to exactly one type.
 // The package provides a fast-path for comparing a value to a byte slice
@@ -152,12 +152,12 @@ const (
 	TypeValueMax     = TypeValueNameRef
 )
 
-// True iff the type id is encoded as a zng signed or unsigened integer zcode.Bytes.
+// True iff the type id is encoded as a BSUP signed or unsigened integer zcode.Bytes.
 func IsInteger(id int) bool {
 	return id <= IDInt256
 }
 
-// True iff the type id is encoded as a zng signed or unsigned integer zcode.Bytes,
+// True iff the type id is encoded as a BSUP signed or unsigned integer zcode.Bytes,
 // float16 zcode.Bytes, float32 zcode.Bytes, or float64 zcode.Bytes.
 func IsNumber(id int) bool {
 	return id <= IDDecimal256

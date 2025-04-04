@@ -16,4 +16,4 @@ inputs:
 outputs:
   - name: stderr
     data: |
-      bigrow.bsup: zngio: frame length (278535) exceeds maximum allowed (10000)
+      bigrow.bsup: bsupio: frame length (278535) exceeds maximum allowed (10000)

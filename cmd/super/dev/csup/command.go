@@ -16,7 +16,7 @@ import (
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/zngio"
+	"github.com/brimdata/super/zio/bsupio"
 )
 
 var spec = &charm.Spec{
@@ -77,8 +77,8 @@ func (c *Command) Run(args []string) error {
 type reader struct {
 	zctx      *super.Context
 	reader    *bufio.Reader
-	meta      *zngio.Reader
-	marshaler *sup.MarshalZNGContext
+	meta      *bsupio.Reader
+	marshaler *sup.MarshalBSUPContext
 	dataSize  int
 }
 
@@ -89,7 +89,7 @@ func newReader(r io.Reader) *reader {
 	return &reader{
 		zctx:      zctx,
 		reader:    bufio.NewReader(r),
-		marshaler: sup.NewZNGMarshalerWithContext(zctx),
+		marshaler: sup.NewBSUPMarshalerWithContext(zctx),
 	}
 }
 
@@ -103,7 +103,7 @@ func (r *reader) Read() (*super.Value, error) {
 				}
 				return nil, err
 			}
-			r.meta = zngio.NewReader(r.zctx, io.LimitReader(r.reader, int64(hdr.MetaSize)))
+			r.meta = bsupio.NewReader(r.zctx, io.LimitReader(r.reader, int64(hdr.MetaSize)))
 			r.dataSize = int(hdr.DataSize)
 			val, err := r.marshaler.Marshal(hdr)
 			return val.Ptr(), err

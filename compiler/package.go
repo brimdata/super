@@ -32,7 +32,7 @@ func Analyze(ctx context.Context, ast *parser.AST, env *exec.Environment, extInp
 
 func Optimize(ctx context.Context, seq dag.Seq, env *exec.Environment, parallel int) (dag.Seq, error) {
 	// Call optimize to possible push down a filter predicate into the
-	// kernel.Reader so that the zng scanner can do boyer-moore.
+	// kernel.Reader so that the BSUP scanner can do Boyer-Moore.
 	o := optimizer.New(ctx, env)
 	seq, err := o.Optimize(seq)
 	if err != nil {

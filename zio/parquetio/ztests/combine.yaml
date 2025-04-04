@@ -1,5 +1,5 @@
 # This test instantiates two Parquet readers on files with different
-# schemas, ensuring that they properly share a ZNG type context.
+# schemas, ensuring that they properly share a Super type context.
 
 script: |
   super conn.parquet dns.parquet | super - | super -z -

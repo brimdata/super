@@ -5,7 +5,7 @@ import (
 	"slices"
 )
 
-// Builder provides an efficient API for constructing nested ZNG values.
+// Builder provides an efficient API for constructing nested BSUP values.
 type Builder struct {
 	bytes      Bytes
 	containers []int // Stack of open containers (as body offsets within bytes).

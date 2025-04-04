@@ -2,7 +2,7 @@ zed: rename s2:=s | count() by s2 | sort s2
 
 vector: true
 
-# This test previously failed only for binary zng.
+# This test previously failed only for BSUP.
 # {s:"a"}
 # {s:"b"}
 # {s:"a"}
