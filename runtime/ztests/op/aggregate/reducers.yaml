@@ -1,4 +1,4 @@
-zed: any(n), sum(n), avg(n), min(n), max(n) by key1 | sort key1
+spq: any(n), sum(n), avg(n), min(n), max(n) by key1 | sort key1
 
 vector: true
 

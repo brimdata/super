@@ -1,4 +1,4 @@
-zed: |
+spq: |
   aggregate
     and(distinct b),
     any(distinct n),

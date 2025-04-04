@@ -1,4 +1,4 @@
-zed: |
+spq: |
   over a => (
     fork (
       => head 1

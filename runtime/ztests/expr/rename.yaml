@@ -1,4 +1,4 @@
-zed: rename s2:=s | count() by s2 | sort s2
+spq: rename s2:=s | count() by s2 | sort s2
 
 vector: true
 

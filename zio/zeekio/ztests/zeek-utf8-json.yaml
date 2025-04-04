@@ -1,4 +1,4 @@
-zed: pass
+spq: pass
 
 # These test inputs are from src/util.cc in the Zeek source code as of Jan 2022.
 # See https://github.com/zeek/zeek/blob/3d9d6e953be5ae8b72336031b6e6659222f52cea/src/util.cc#L2521

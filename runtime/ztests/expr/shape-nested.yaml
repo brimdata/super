@@ -1,4 +1,4 @@
-zed: |
+spq: |
   cut x := shape(<{a:{a:float64,b:float64}}>)
 
 vector: true

@@ -1,4 +1,4 @@
-zed: 'x := "I love \u{1F32E}s"'
+spq: 'x := "I love \u{1F32E}s"'
 
 input: '{}'
 

@@ -1,4 +1,4 @@
-zed: |
+spq: |
   const a = 1
   switch this.a (
     case 1 => (

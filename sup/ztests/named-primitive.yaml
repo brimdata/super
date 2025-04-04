@@ -1,4 +1,4 @@
-zed: pass
+spq: pass
 
 input: &input |
   0 (myuint8=uint8)

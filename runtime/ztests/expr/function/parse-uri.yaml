@@ -1,4 +1,4 @@
-zed: uri := parse_uri(s)
+spq: uri := parse_uri(s)
 
 vector: true
 

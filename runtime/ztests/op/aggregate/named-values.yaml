@@ -1,4 +1,4 @@
-zed: count(), sum(this), min(this), max(this), avg(this), collect(this), any(this), dcount(this)
+spq: count(), sum(this), min(this), max(this), avg(this), collect(this), any(this), dcount(this)
 
 vector: true
 

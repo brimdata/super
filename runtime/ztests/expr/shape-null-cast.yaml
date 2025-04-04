@@ -1,4 +1,4 @@
-zed: |
+spq: |
   yield shape(<{a:string,b:string}>)
 
 vector: true

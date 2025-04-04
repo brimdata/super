@@ -1,4 +1,4 @@
-zed: 'x := "Sacr\u00e9 bleu!"'
+spq: 'x := "Sacr\u00e9 bleu!"'
 
 input: '{}'
 

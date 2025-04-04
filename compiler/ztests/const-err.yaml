@@ -1,4 +1,4 @@
-zed: const t=a put x:=t
+spq: const t=a put x:=t
 
 input: |
   {a:1}

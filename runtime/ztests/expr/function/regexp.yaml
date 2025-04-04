@@ -1,4 +1,4 @@
-zed: "yield regexp(re, in)"
+spq: "yield regexp(re, in)"
 
 vector: true
 

@@ -1,4 +1,4 @@
-zed: 'put x:=r[".bar@"]+3'
+spq: 'put x:=r[".bar@"]+3'
 
 input: |
   {r:{".bar@":123(int32),x:"hello"}}

@@ -1,4 +1,4 @@
-zed: |
+spq: |
   ? a is(s2,'string')
 
 input: |

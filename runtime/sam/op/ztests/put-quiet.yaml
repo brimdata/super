@@ -1,4 +1,4 @@
-zed: x := quiet(y)
+spq: x := quiet(y)
 
 input: |
   {}

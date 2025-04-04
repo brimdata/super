@@ -1,4 +1,4 @@
-zed: aggregate collect(this)
+spq: aggregate collect(this)
 
 vector: true
 

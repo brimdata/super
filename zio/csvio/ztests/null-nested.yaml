@@ -1,4 +1,4 @@
-zed: fuse
+spq: fuse
 
 input: |
   {a:null({b:{a1:[string],a2:[string]}})}

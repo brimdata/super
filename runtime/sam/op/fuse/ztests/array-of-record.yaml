@@ -1,4 +1,4 @@
-zed: fuse
+spq: fuse
 
 input: |
   [{a:1}]

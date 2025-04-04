@@ -1,4 +1,4 @@
-zed: avg(x), count(x), dcount(x), any(x), max(x), min(x), sum(x)
+spq: avg(x), count(x), dcount(x), any(x), max(x), min(x), sum(x)
 
 vector: true
 

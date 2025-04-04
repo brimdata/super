@@ -1,4 +1,4 @@
-zed: yield this[2],this["x"]
+spq: yield this[2],this["x"]
 
 input: |
   [1,2,3](=foo)

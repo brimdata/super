@@ -1,5 +1,5 @@
 # Tests a simple expression written into an existing field
-zed: put x := x + 1
+spq: put x := x + 1
 
 vector: true
 

@@ -1,4 +1,4 @@
-zed: yield grok(pattern, input, defs)
+spq: yield grok(pattern, input, defs)
 
 vector: true
 

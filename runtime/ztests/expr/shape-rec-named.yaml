@@ -1,4 +1,4 @@
-zed: |
+spq: |
   type person = {name:string,likes:string,age:int64}
   yield cast(this,<person>)
 

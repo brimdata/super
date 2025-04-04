@@ -1,4 +1,4 @@
-zed: 'count()'
+spq: 'count()'
 
 # This is the concatenation of two identical BSON streams generated with
 # `bash -c '(super - | super -z -<<<{a:1}; super - | super -z -<<<{a:1}) | base64'`.

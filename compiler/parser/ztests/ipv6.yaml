@@ -1,4 +1,4 @@
-zed: '? fe80::58d2:2d09:e8cb:a8ad OR ::58d2:2d09:e8cb:a8ad OR 2d09:e8cb:a8ad:: OR ::'
+spq: '? fe80::58d2:2d09:e8cb:a8ad OR ::58d2:2d09:e8cb:a8ad OR 2d09:e8cb:a8ad:: OR ::'
 
 vector: true
 

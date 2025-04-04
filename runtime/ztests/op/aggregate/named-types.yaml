@@ -1,4 +1,4 @@
-zed: count() by host | sort host
+spq: count() by host | sort host
 
 vector: true
 

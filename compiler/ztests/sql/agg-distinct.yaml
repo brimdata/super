@@ -1,4 +1,4 @@
-zed: |
+spq: |
   select
       key,
       and(distinct b),

@@ -1,4 +1,4 @@
-zed: |
+spq: |
   where a==1 | yield b
 
 vector: true

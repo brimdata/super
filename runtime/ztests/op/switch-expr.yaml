@@ -1,4 +1,4 @@
-zed: |
+spq: |
   switch a (
      case 2 => put v:='two'
      case 1 => put v:='one'

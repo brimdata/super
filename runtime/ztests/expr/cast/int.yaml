@@ -1,4 +1,4 @@
-zed: |
+spq: |
   yield int8(this), int16(this), int32(this), int64(this)
 
 vector: true

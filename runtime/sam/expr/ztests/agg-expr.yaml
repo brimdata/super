@@ -1,4 +1,4 @@
-zed: |
+spq: |
   cut count := count() - uint64(1),
       dcount := dcount(this),
       sum := sum(this), 

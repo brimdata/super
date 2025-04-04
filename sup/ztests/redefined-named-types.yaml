@@ -1,4 +1,4 @@
-zed: typeof(this)
+spq: typeof(this)
 
 input: |
   [{x:{y:63}}(=foo),{x:{abcdef:{x:{y:127}}(foo)}}(=foo)]

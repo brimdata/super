@@ -1,4 +1,4 @@
-zed: |
+spq: |
   switch this (
     case 0 => pass
     case 1 => yield 2

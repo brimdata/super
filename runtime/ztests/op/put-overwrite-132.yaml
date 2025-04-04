@@ -2,7 +2,7 @@
 # Note that the expression logic coerces int32 to int64.
 # When we revist the expression design this will probably change
 # and this test will need to be updated.
-zed: put c:=1,a:=3,b:=2
+spq: put c:=1,a:=3,b:=2
 
 vector: true
 

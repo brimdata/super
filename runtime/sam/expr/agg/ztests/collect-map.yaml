@@ -1,4 +1,4 @@
-zed: "collect_map(|{stock: price}|)"
+spq: "collect_map(|{stock: price}|)"
 
 output-flags: -pretty 2
 

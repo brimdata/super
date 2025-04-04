@@ -1,4 +1,4 @@
-zed: sort len(this)
+spq: sort len(this)
 
 vector: true
 

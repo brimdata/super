@@ -1,4 +1,4 @@
-zed: yield m[1], m["foo"]
+spq: yield m[1], m["foo"]
 
 input: |
   {m:|{1:"a","foo":"bar"}|}

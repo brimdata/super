@@ -1,4 +1,4 @@
-zed: |
+spq: |
   over this => (
     tail 2 | head 1
   )

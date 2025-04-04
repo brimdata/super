@@ -1,4 +1,4 @@
-zed: yield ksuid(this)
+spq: yield ksuid(this)
 
 input: |
   "24eT188EIisOiwVWwmej1h9t4Ms"

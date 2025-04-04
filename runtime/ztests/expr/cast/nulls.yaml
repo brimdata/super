@@ -1,4 +1,4 @@
-zed: |
+spq: |
   yield uint64(this), int64(this), float64(this), bool(this), bytes(this),
         string(this), ip(this), net(this), type(null)
 

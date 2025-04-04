@@ -1,4 +1,4 @@
-zed: "uniq -c"
+spq: "uniq -c"
 
 input: |
   1

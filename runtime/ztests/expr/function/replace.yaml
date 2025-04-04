@@ -1,4 +1,4 @@
-zed: replace(s, old, new)
+spq: replace(s, old, new)
 
 vector: true
 

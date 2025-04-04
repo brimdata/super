@@ -1,4 +1,4 @@
-zed: yield bytes(this)
+spq: yield bytes(this)
 
 input-flags: -i json
 

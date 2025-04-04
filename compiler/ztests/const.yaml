@@ -1,4 +1,4 @@
-zed: const t = <{a:string}> put x := t
+spq: const t = <{a:string}> put x := t
 
 input: |
   {a:1}

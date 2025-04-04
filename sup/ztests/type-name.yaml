@@ -1,4 +1,4 @@
-zed: pass
+spq: pass
 
 input: |
   {s:"hello, world"}(="github.com/acme/foo.Bar")

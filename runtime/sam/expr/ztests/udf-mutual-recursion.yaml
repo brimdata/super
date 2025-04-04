@@ -1,4 +1,4 @@
-zed: |
+spq: |
   func is_even(n): (
     n == 0 ? true : is_odd(n-1)
   )

@@ -1,4 +1,4 @@
-zed: yield unflatten(this)
+spq: yield unflatten(this)
 
 vector: true
 

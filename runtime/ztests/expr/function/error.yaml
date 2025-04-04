@@ -1,4 +1,4 @@
-zed: yield error(this)
+spq: yield error(this)
 
 vector: true
 

@@ -1,4 +1,4 @@
-zed: sum(val) by key | sort
+spq: sum(val) by key | sort
 
 vector: true
 

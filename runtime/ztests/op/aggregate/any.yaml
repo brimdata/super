@@ -1,4 +1,4 @@
-zed: any(v) by k | sort k
+spq: any(v) by k | sort k
 
 vector: true
 

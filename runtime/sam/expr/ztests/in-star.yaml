@@ -1,6 +1,6 @@
 skip: disabled until we add "over/into"-style predicates
 
-zed: 2 in *
+spq: 2 in *
 
 input: |
   {a:[1(uint32),2(uint32)]}

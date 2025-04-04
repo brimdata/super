@@ -1,4 +1,4 @@
-zed: "collect_map(|{k:v}|)"
+spq: "collect_map(|{k:v}|)"
 
 output-flags: -pretty 2
 

@@ -1,4 +1,4 @@
-zed: |
+spq: |
   over this => (
     over this => (
       where this > 2

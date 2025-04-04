@@ -1,4 +1,4 @@
-zed: |
+spq: |
   SELECT x FROM (SELECT 1)
 
 error: |

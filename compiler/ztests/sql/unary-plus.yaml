@@ -1,4 +1,4 @@
-zed: select value - + 34 + + - 26 + - 34 + - 34 + + COALESCE ( 93, COUNT (  ) + + 44 - 16, - AVG ( + 86 ) + 12 ) / 86 * + 55 * + 46;
+spq: select value - + 34 + + - 26 + - 34 + - 34 + + COALESCE ( 93, COUNT (  ) + + 44 - 16, - AVG ( + 86 ) + 12 ) / 86 * + 55 * + 46;
 
 input: |
   null

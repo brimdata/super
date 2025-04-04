@@ -1,5 +1,5 @@
 # Test overwriting multiple fields in-order
-zed: put a:=b, b:=a
+spq: put a:=b, b:=a
 
 vector: true
 

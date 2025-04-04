@@ -1,4 +1,4 @@
-zed: pass
+spq: pass
 
 # 1e-45 and 5e-324 are the smallest nonzero float32 and float64.
 # 3.4028235e+38 and 1.7976931348623157e+308 are the maximum float32 and

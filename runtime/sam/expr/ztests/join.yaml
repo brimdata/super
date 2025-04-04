@@ -1,4 +1,4 @@
-zed: |
+spq: |
   cut s1:=join(a1,"."),s2:=join(a1,"."),s3:=join(a3,"."),s4:=join(a4,"."),s5:=join(oo)
 
 input: |

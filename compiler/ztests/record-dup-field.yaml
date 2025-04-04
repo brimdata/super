@@ -1,4 +1,4 @@
-zed: yield {x:1,x:2}
+spq: yield {x:1,x:2}
 
 error: |
   record expression: duplicate field: "x" at line 1, column 12:

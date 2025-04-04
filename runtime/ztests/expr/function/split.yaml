@@ -1,4 +1,4 @@
-zed: split(s, sep)
+spq: split(s, sep)
 
 vector: true
 

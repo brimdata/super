@@ -1,4 +1,4 @@
-zed: 'put this["x.y"]:=lower(this["x.y"])'
+spq: 'put this["x.y"]:=lower(this["x.y"])'
 
 input: |
   {"x.y":"Hello, World"}

@@ -1,4 +1,4 @@
-zed: sort -nulls last s
+spq: sort -nulls last s
 
 vector: true
 

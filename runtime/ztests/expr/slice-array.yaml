@@ -1,4 +1,4 @@
-zed: "yield c[start:end]"
+spq: "yield c[start:end]"
 
 vector: true
 

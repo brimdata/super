@@ -1,4 +1,4 @@
-zed: all:=fuse(this),r:=fuse(r)
+spq: all:=fuse(this),r:=fuse(r)
 
 input: |
   {a:"hello",r:{x:1(int32),y:2(int32)}}

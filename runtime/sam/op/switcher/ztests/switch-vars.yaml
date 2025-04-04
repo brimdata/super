@@ -1,4 +1,4 @@
-zed: |
+spq: |
   over this with foo = {foo:"bar"} => (
     switch (
       case x % 2 == 0 => yield {x, ...foo}

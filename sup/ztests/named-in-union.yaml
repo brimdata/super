@@ -1,4 +1,4 @@
-zed: pass
+spq: pass
 
 input: &input |
   ""(=string_named)(union_named=(int64,string_named))

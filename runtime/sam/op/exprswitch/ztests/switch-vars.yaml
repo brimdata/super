@@ -1,4 +1,4 @@
-zed: |
+spq: |
   over this with var="foo" => (
     switch this (
       case 2 => yield var

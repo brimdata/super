@@ -1,4 +1,4 @@
-zed: over this => (fork (=> head 1))
+spq: over this => (fork (=> head 1))
 
 vector: true
 

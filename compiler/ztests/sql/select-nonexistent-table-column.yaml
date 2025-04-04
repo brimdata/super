@@ -1,4 +1,4 @@
-zed: |
+spq: |
   SELECT t.x FROM (SELECT 1 as y) t
 
 error: |

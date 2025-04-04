@@ -1,4 +1,4 @@
-zed: |
+spq: |
   yield cast(<{a:[ip],b:[{b:ip}]}>)
 
 vector: true

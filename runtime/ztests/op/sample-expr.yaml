@@ -1,4 +1,4 @@
-zed: sample s2 | sort
+spq: sample s2 | sort
 
 vector: true
 

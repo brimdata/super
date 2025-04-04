@@ -1,4 +1,4 @@
-zed: pass
+spq: pass
 
 input: |
   {_path:"conn",ts:2015-03-05T14:25:14.419939Z,ts2:1970-01-01T00:00:01Z}

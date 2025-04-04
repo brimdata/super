@@ -1,4 +1,4 @@
-zed: is(<foo>)
+spq: is(<foo>)
 
 input: |
   {x:1}

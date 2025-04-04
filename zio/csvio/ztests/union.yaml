@@ -1,4 +1,4 @@
-zed: pass
+spq: pass
 
 input: |
   {a:1((int64,string))}

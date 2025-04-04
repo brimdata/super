@@ -1,4 +1,4 @@
-zed: |
+spq: |
   yield cast(this["from"], to)
 
 vector: true

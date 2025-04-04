@@ -1,4 +1,4 @@
-zed: cut foo:=quiet(foo), bar:=quiet(bar)
+spq: cut foo:=quiet(foo), bar:=quiet(bar)
 
 input: |
   {foo:"foo0"}

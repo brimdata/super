@@ -1,4 +1,4 @@
-zed: |
+spq: |
   cut sum := sum(this) where this % 2 == 0
 
 input: "1 2 3 4 5"

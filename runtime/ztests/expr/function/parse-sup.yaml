@@ -1,4 +1,4 @@
-zed: |
+spq: |
   yield parse_sup(this)
 
 vector: true

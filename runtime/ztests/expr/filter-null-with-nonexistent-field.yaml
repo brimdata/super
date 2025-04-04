@@ -1,4 +1,4 @@
-zed: not has(t)
+spq: not has(t)
 
 vector: true
 

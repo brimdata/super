@@ -1,4 +1,4 @@
-zed: top 3 foo
+spq: top 3 foo
 
 input: |
   {foo:null(int64)}

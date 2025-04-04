@@ -1,4 +1,4 @@
-zed: |
+spq: |
   yield duration(this),
         duration(this+2h-this),
         int64(this),

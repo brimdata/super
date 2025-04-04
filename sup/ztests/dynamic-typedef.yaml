@@ -1,4 +1,4 @@
-zed: pass
+spq: pass
 
 input: &input |
   {x:1}(=foo)

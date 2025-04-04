@@ -1,4 +1,4 @@
-zed: is(a,'string')
+spq: is(a,'string')
 
 input: |
   {a:1(int32),b:"foo"}

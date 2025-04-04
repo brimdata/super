@@ -1,4 +1,4 @@
-zed: dcount:=dcount(this)
+spq: dcount:=dcount(this)
 
 vector: true
 

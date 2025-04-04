@@ -1,4 +1,4 @@
-zed: |
+spq: |
   over this => (
     func addbar(a): ( a + " bar" )
     yield addbar(this)

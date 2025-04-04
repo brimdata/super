@@ -1,4 +1,4 @@
-zed: count() by key1,newkey:=key2 | sort key1, newkey
+spq: count() by key1,newkey:=key2 | sort key1, newkey
 
 vector: true
 

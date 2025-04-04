@@ -1,4 +1,4 @@
-zed: cut quiet(a.b)
+spq: cut quiet(a.b)
 
 input: |
   {a:1}

@@ -1,4 +1,4 @@
-zed: sort foo asc, bar desc, baz asc
+spq: sort foo asc, bar desc, baz asc
 
 vector: true
 

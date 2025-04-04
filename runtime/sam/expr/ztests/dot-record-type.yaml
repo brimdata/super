@@ -1,4 +1,4 @@
-zed: yield foo, foo.bar
+spq: yield foo, foo.bar
 
 input: |
   <{foo:{bar:int64}}>

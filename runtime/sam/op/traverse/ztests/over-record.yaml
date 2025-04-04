@@ -1,4 +1,4 @@
-zed: |
+spq: |
   over this with d=date => (
     key[1] != 'date'
     | yield {date: d, sym: key[1], price: value}

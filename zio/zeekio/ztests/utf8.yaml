@@ -1,4 +1,4 @@
-zed: pass
+spq: pass
 
 # Note the \x syntax is not valid in a SUP string so there is not a way
 # to get \x Zeek TSV escapes into th TSV output unless we add support

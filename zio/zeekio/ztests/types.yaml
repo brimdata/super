@@ -2,7 +2,7 @@
 # the Super type system are handled correctly (i.e., that the Zeek types,
 # including those inside containers, are preserved on a pass through super).
 
-zed: pass
+spq: pass
 
 input: &input |
   #separator \x09

@@ -1,4 +1,4 @@
-zed: 'cut typeof(this)'
+spq: 'cut typeof(this)'
 
 input: |
   {a:1}

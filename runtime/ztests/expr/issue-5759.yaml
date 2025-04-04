@@ -1,5 +1,5 @@
 # Tests bug where use of under in sequential runtime would cause an infinite loop
-zed: over this | collect(this)
+spq: over this | collect(this)
 
 vector: true
 

@@ -1,4 +1,4 @@
-zed: yield this, "==="
+spq: yield this, "==="
 
 input: |
   <({foo:int64},{bar:string},uint64)>

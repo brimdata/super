@@ -1,4 +1,4 @@
-zed: 'x:=upper(x), y:=lower(x)'
+spq: 'x:=upper(x), y:=lower(x)'
 
 vector: true
 

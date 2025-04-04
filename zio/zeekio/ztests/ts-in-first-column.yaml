@@ -1,4 +1,4 @@
-zed: count() by every(24h)
+spq: count() by every(24h)
 
 # This log is path-less in order to make "ts" the first column and
 # that verify we handle this case correctly.

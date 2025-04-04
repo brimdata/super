@@ -1,4 +1,4 @@
-zed: |
+spq: |
   yield { x: 2 in a, y: b In a[1:], z: '1' IN <[string]>(a)}
 
 input: |

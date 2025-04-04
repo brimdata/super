@@ -1,4 +1,4 @@
-zed: |
+spq: |
   op keys(r): (
     func k(e): (e.key)
     op flatten_array(a): (over this | over this | collect(this))

@@ -1,4 +1,4 @@
-zed: aggregate count() where _path == 'conn'
+spq: aggregate count() where _path == 'conn'
 
 input: |
   {_path:"conn"}

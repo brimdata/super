@@ -1,6 +1,6 @@
 # issues #2853 #2879
 
-zed: |
+spq: |
   yield shape(<{
     array:[string],
     record:{c1:int64,c2:string,c3:time}

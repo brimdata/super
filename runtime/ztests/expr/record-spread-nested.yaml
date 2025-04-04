@@ -1,4 +1,4 @@
-zed: yield {...{...r,a:1},b:2}
+spq: yield {...{...r,a:1},b:2}
 
 vector: true
 

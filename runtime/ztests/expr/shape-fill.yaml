@@ -1,4 +1,4 @@
-zed: yield fill(<{a:{b:{c:string}}}>)
+spq: yield fill(<{a:{b:{c:string}}}>)
 
 vector: true
 

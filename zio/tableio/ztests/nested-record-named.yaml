@@ -1,4 +1,4 @@
-zed: pass
+spq: pass
 
 input: |
   {a:{b:1}(=record_named)}

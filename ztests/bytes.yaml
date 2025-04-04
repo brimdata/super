@@ -1,4 +1,4 @@
-zed: c:=string(b),d:=base64(b) | e:=string(base64(d))
+spq: c:=string(b),d:=base64(b) | e:=string(base64(d))
 
 input: |
   {b:0x68692c20776f726c64}

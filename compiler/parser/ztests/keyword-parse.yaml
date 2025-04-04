@@ -1,6 +1,6 @@
 # Check that op keywords do not cause a parse error when appearing as prefix
 
-zed: sorted:=x, topped:=x, fused:=x, shaped:=x, sampled:=x, passed:=x
+spq: sorted:=x, topped:=x, fused:=x, shaped:=x, sampled:=x, passed:=x
 
 input: |
   {x:1}

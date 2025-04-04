@@ -1,4 +1,4 @@
-zed: sum(this), max(this), min(this), avg(this)
+spq: sum(this), max(this), min(this), avg(this)
 
 vector: true
 

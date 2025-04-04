@@ -1,4 +1,4 @@
-zed: |
+spq: |
   const m = |{"a": 1, "b": 2}|
   cut b1:=x in m,b2:="a" in a
 

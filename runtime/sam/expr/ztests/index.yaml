@@ -1,4 +1,4 @@
-zed: |
+spq: |
   func returnArray(): ([1])
   yield returnArray()[1],
     cast(["1"],<[int64]>)[1],

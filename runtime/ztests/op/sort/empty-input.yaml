@@ -1,5 +1,5 @@
 # Sort with empty input should produce no output or warning.
-zed: sort foo
+spq: sort foo
 
 vector: true
 

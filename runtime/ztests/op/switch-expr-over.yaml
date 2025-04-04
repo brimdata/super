@@ -1,4 +1,4 @@
-zed: |
+spq: |
   switch len(a) (
     case 3 => over a => (sum:=sum(this))
     default => over a | yield {b:this}

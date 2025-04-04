@@ -1,4 +1,4 @@
-zed: 'cut x:=network_of(addr)'
+spq: 'cut x:=network_of(addr)'
 
 vector: true
 

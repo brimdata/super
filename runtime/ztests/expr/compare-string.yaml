@@ -1,4 +1,4 @@
-zed: yield a>=b,a<=b,a<=c,a>=c,a>c,a<c
+spq: yield a>=b,a<=b,a<=c,a>=c,a>c,a<c
 
 vector: true
 

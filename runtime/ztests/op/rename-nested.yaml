@@ -1,4 +1,4 @@
-zed: rename id.dst:=id.resp_h, id.src:=id.orig_h, net:=id
+spq: rename id.dst:=id.resp_h, id.src:=id.orig_h, net:=id
 
 vector: true
 

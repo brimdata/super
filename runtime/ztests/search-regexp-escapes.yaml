@@ -1,6 +1,6 @@
 # Add \a and \v when they can be be represented in a SUP string
 # (https://github.com/brimdata/super/issues/3041).
-zed: '? /\f\t\n\r\(\)\*\+\.\/\?\[\]\{\}/'
+spq: '? /\f\t\n\r\(\)\*\+\.\/\?\[\]\{\}/'
 
 vector: true
 

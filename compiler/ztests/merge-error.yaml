@@ -1,6 +1,6 @@
 skip: issue 3681
 
-zed: '? foo | merge x'
+spq: '? foo | merge x'
 
 input: null
 

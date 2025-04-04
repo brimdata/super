@@ -1,4 +1,4 @@
-zed: |
+spq: |
   yield crop(<{set:|[{b:string}]|,arr:[{a:string}]}>)
 
 vector: true

@@ -1,4 +1,4 @@
-zed: "lg:=sum(x) where x>=5, sm:=sum(x) where x<8"
+spq: "lg:=sum(x) where x>=5, sm:=sum(x) where x<8"
 
 input: |
   {x:1(int32)}

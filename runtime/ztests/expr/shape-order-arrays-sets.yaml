@@ -1,4 +1,4 @@
-zed: |
+spq: |
   yield order(<{set:|[{b:string,a:string}]|,arr:[{b:string,a:string}]}>)
 
 vector: true

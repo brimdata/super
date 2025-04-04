@@ -1,4 +1,4 @@
-zed: cast(this, "named")
+spq: cast(this, "named")
 
 vector: true
 

@@ -1,4 +1,4 @@
-zed: |
+spq: |
   over b with w=a => (
     yield {x:w,y:this}
   )

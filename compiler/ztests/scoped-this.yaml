@@ -1,4 +1,4 @@
-zed: |
+spq: |
   over ids with name => (
     ids:=collect(string(this))
     | yield {name,ids:join(ids,',')}

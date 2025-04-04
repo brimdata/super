@@ -1,4 +1,4 @@
-zed: |
+spq: |
   type port=uint16
   type rec={p:port}
   is(r,<rec>)

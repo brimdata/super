@@ -1,4 +1,4 @@
-zed: count() by s:=lower(s), ij:=i+j
+spq: count() by s:=lower(s), ij:=i+j
 
 vector: true
 

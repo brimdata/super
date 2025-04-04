@@ -1,4 +1,4 @@
-zed: over a | head 2
+spq: over a | head 2
 
 input: |
   {a:[7,6,1]}

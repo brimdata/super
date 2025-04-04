@@ -1,4 +1,4 @@
-zed: pass
+spq: pass
 
 input: |
   {a:{b:1(=my_int64)}(=my_inner_record)}(=my_outer_record)

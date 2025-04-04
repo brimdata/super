@@ -1,4 +1,4 @@
-zed: yield this ~ /^foo.*bar$/
+spq: yield this ~ /^foo.*bar$/
 
 vector: true
 

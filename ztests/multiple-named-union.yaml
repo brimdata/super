@@ -1,4 +1,4 @@
-zed: yield this
+spq: yield this
 
 input: |
   1(foo=int64)((foo=int64,foo=string))

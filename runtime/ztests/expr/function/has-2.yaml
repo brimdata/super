@@ -1,4 +1,4 @@
-zed: |
+spq: |
   cut r:=has(r),
     rb:=has(r.b),
     both:=has(r,r.b),

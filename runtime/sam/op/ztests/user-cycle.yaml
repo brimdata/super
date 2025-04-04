@@ -1,4 +1,4 @@
-zed: |
+spq: |
   op callA(): (callB())
   op callB(): (callC())
   op callC(): (callA())

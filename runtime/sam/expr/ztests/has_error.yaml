@@ -1,4 +1,4 @@
-zed: "yield has_error(this)"
+spq: "yield has_error(this)"
 
 input: |
   null

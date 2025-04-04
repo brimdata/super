@@ -1,6 +1,6 @@
 # Tests that warnings are propagated and that we only warn once
 # for a given error.
-zed: put y := sqrt(x)
+spq: put y := sqrt(x)
 
 vector: true
 

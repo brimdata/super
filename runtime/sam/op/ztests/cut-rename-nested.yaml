@@ -1,4 +1,4 @@
-zed: cut ports:=id, resp_p:=quiet(id.resp_p)
+spq: cut ports:=id, resp_p:=quiet(id.resp_p)
 
 input: |
   {id:{orig_p:1(port=uint16),resp_p:2(port)}}

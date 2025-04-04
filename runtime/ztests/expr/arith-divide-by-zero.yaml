@@ -1,4 +1,4 @@
-zed: yield a/b, a%b
+spq: yield a/b, a%b
 
 vector: true
 

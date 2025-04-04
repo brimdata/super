@@ -1,4 +1,4 @@
-zed: yield 1 <> 2, 'foo' <> 'foo'
+spq: yield 1 <> 2, 'foo' <> 'foo'
 
 input: |
   null

@@ -1,4 +1,4 @@
-zed: |
+spq: |
   over outer with TOP=this["top"] => (
     yield {msg:"OUTER", top:`TOP`, inner:inner, b:b}
     | over inner with BOTTOM=b => (

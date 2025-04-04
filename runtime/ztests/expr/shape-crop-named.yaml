@@ -1,4 +1,4 @@
-zed: |
+spq: |
   type port=int64
   type prec={p:port}
   type parr=[prec]

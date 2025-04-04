@@ -1,4 +1,4 @@
-zed: '? grep("a") grep("b")'
+spq: '? grep("a") grep("b")'
 
 vector: true
 

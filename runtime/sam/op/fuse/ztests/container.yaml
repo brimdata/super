@@ -1,4 +1,4 @@
-zed: fuse
+spq: fuse
 
 input: |
   {a:"hello",r:{x:1(int32),y:2(int32)}}

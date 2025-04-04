@@ -1,4 +1,4 @@
-zed: by x:=network_of(addr) | sort this
+spq: by x:=network_of(addr) | sort this
 
 vector: true
 

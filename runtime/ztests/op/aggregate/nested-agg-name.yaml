@@ -1,4 +1,4 @@
-zed: "result.count:=count() by result.animal:=animal | sort this"
+spq: "result.count:=count() by result.animal:=animal | sort this"
 
 vector: true
 

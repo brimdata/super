@@ -1,4 +1,4 @@
-zed: |
+spq: |
   op noparams(): (
     yield "hello"
   )

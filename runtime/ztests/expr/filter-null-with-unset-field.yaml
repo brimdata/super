@@ -1,4 +1,4 @@
-zed: s IS NULL
+spq: s IS NULL
 
 vector: true
 

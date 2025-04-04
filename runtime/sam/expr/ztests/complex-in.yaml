@@ -1,4 +1,4 @@
-zed: a in [1,2,3]
+spq: a in [1,2,3]
 
 input: |
   {a:2}

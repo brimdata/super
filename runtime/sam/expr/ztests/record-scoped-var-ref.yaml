@@ -1,4 +1,4 @@
-zed: |
+spq: |
   over a with b => ( yield {a:this+10,b} )
 
 input: |

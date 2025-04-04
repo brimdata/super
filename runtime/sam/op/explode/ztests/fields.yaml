@@ -1,4 +1,4 @@
-zed: explode a,b by int64
+spq: explode a,b by int64
 
 input: |
   {a:1,b:[10,11],c:["a","b"]}

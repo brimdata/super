@@ -1,4 +1,4 @@
-zed: 'c == a+b'
+spq: 'c == a+b'
 
 input: |
   {a:1(int32),b:2(int32),c:3(int32)}

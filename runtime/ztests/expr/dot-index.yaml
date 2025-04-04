@@ -1,4 +1,4 @@
-zed: put s1:=this["yodawg"],s2:=this[yodawg],k:=this["..."]+1
+spq: put s1:=this["yodawg"],s2:=this[yodawg],k:=this["..."]+1
 
 vector: true
 

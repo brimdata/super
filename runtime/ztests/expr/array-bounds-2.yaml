@@ -1,4 +1,4 @@
-zed: cut m1:=missing(a[-1]),m2:=missing(a[4])
+spq: cut m1:=missing(a[-1]),m2:=missing(a[4])
 
 vector: true
 

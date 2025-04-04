@@ -1,4 +1,4 @@
-zed: pass
+spq: pass
 
 input: |
   {a:"hello",b:{c:"world",d:"goodbye"}}

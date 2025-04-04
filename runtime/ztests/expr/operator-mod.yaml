@@ -1,4 +1,4 @@
-zed: cut res := a % b
+spq: cut res := a % b
 
 vector: true
 

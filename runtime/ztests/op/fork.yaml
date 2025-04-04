@@ -1,4 +1,4 @@
-zed: fork (=> pass => pass)
+spq: fork (=> pass => pass)
 
 vector: true
 

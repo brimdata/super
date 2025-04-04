@@ -1,4 +1,4 @@
-zed: |
+spq: |
   type conn = {_path:string, id:{src:ip,dst:ip}, etc:string}
   type dns = {_path:string, id:{src:ip,dst:ip}, query:string, query_size:uint64}
   const schemas = |{

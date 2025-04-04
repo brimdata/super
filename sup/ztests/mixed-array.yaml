@@ -1,4 +1,4 @@
-zed: pass
+spq: pass
 
 input: |
   [1((int64,string)),"b"((int64,string)),2((int64,string))]

@@ -1,6 +1,6 @@
 # not for vam needs does not properly handle Const bools and errors. Re-enable 
 # the IS NOT NULL test once this works.
-zed: yield this IS NULL #, this IS NOT NULL
+spq: yield this IS NULL #, this IS NOT NULL
 
 vector: true
 

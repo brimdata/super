@@ -1,4 +1,4 @@
-zed: 'fe80::58d2:2d09:e8cb:a8ad in a OR ::58d2:2d09:e8cb:a8ad in a OR 2d09:e8cb:a8ad:: in a OR :: in a'
+spq: 'fe80::58d2:2d09:e8cb:a8ad in a OR ::58d2:2d09:e8cb:a8ad in a OR 2d09:e8cb:a8ad:: in a OR :: in a'
 
 input: &input |
   {a:[fe80::58d2:2d09:e8cb:a8ad]}

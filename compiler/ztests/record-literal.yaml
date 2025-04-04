@@ -1,4 +1,4 @@
-zed: put x:={b:a}
+spq: put x:={b:a}
 
 input: |
   {a:1}

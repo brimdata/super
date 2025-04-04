@@ -1,4 +1,4 @@
-zed: max(val) by key | sort
+spq: max(val) by key | sort
 
 vector: true
 

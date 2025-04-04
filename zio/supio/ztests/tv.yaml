@@ -1,4 +1,4 @@
-zed: "put t:=typeof(s) | put tt:=typeof(t)"
+spq: "put t:=typeof(s) | put tt:=typeof(t)"
 
 output-flags: -f sup -pretty=4
 

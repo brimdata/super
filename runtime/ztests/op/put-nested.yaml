@@ -1,4 +1,4 @@
-zed: put pre:="pre", a.a:=1, a.b:=2, a.c.a:=3, a.d:=4, b:=5, post:="post"
+spq: put pre:="pre", a.a:=1, a.b:=2, a.c.a:=3, a.d:=4, b:=5, post:="post"
 
 vector: true
 

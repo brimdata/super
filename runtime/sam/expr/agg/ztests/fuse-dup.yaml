@@ -1,4 +1,4 @@
-zed: fuse(this)
+spq: fuse(this)
 
 input: |
   {a:"hello",b:"world"}

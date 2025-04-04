@@ -2,7 +2,7 @@
 # arg is not a glob, regular expression, or resolvable to a string at compile
 # time.
 
-zed: |
+spq: |
   [grep(pattern),grep(pattern,input)]
 
 vector: true

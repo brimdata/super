@@ -1,4 +1,4 @@
-zed: put b:=missing(a[3])
+spq: put b:=missing(a[3])
 
 vector: true
 

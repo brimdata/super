@@ -1,4 +1,4 @@
-zed: yield cast(this, <(int64,string)>)
+spq: yield cast(this, <(int64,string)>)
 
 input: |
   null

@@ -1,4 +1,4 @@
-zed: t:=fuse(r) by a
+spq: t:=fuse(r) by a
 
 input: |
   {a:1,r:{a:1}}

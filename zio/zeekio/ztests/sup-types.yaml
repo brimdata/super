@@ -1,6 +1,6 @@
 # Test that SUP types are mapped into proper equivalent Zeek types.
 
-zed: pass
+spq: pass
 
 input: |
   {b:0(uint8),i16:0(int16),u16:0(uint16),i32:0(int32),u32:0(uint32),i64:0,u64:0(uint64),a:10.1.2.3,n:10.0.0.0/8,d:16m40s}

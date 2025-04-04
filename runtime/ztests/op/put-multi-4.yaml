@@ -1,6 +1,6 @@
 # Tests one expression that overwrites an existing field, another that
 # creates a new field
-zed: put new:=1, x:=x+1
+spq: put new:=1, x:=x+1
 
 vector: true
 

@@ -1,4 +1,4 @@
-zed: |
+spq: |
   yield
     f"hello {this}",
     f'hello {hex(bytes(this))}',

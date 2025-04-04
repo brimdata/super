@@ -1,4 +1,4 @@
-zed: |
+spq: |
   yield <"@foo"={x:int64}>
 
 input: |

@@ -1,4 +1,4 @@
-zed: pass
+spq: pass
 
 # The last input line should end with a tab character.
 input: "#separator \\x09\n#set_separator\t,\n#empty_field\t(empty)\n#unset_field\t-\n#path\tunknown_mime_type_discovery\n#open\t2020-04-10-18-15-32\n#fields\tts\tfid\tbof\n#types\ttime\tstring\tstring\n1425634708.454143\tFTBt2P3wJBdHGKpZwc\t \n"

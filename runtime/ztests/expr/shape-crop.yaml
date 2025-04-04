@@ -1,4 +1,4 @@
-zed: |
+spq: |
   put
   // crop to type with same field order
   id:=crop(id, <{orig_h:ip,orig_p:port=uint16}>),

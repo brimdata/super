@@ -1,4 +1,4 @@
-zed: yield (over a | over this | collect(string(this)))
+spq: yield (over a | over this | collect(string(this)))
 
 input: |
   {a:[1,2]}

@@ -1,4 +1,4 @@
-zed: pass
+spq: pass
 
 input: |
   {dns:["google.com"],uri:[]([string]),email:|[]|(|[string]|),ip:null([ip])}

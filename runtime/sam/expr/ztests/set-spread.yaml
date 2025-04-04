@@ -1,4 +1,4 @@
-zed: yield |[...a,...b]|
+spq: yield |[...a,...b]|
 
 input: |
   {a:|[2,3]|,b:[0,1],c:"hi"}

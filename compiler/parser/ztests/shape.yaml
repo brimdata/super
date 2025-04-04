@@ -1,4 +1,4 @@
-zed: shape(this,<{s:string}>)
+spq: shape(this,<{s:string}>)
 
 input: |
   {s:1}

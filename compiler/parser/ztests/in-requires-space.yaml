@@ -1,6 +1,6 @@
 # This was previously getting parsed as an 'in' comparator. Test that we are no
 # longer doing this
-zed: '? x==1 inaction'
+spq: '? x==1 inaction'
 
 vector: true
 

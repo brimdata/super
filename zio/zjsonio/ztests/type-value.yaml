@@ -1,4 +1,4 @@
-zed: count() by typeof(this)
+spq: count() by typeof(this)
 
 input: |
   {a:100}(=myrecord)

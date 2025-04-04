@@ -1,4 +1,4 @@
-zed: |
+spq: |
   over this with foo="bar" => (sort this | yield {num: this, foo})
 
 input: "[4,2,6,1]"

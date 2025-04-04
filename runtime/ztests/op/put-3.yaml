@@ -1,5 +1,5 @@
 # Tests writing a new record
-zed: put r2 := r
+spq: put r2 := r
 
 vector: true
 

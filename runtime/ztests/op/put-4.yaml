@@ -1,5 +1,5 @@
 # Tests overwriting a primitive value with a record
-zed: put x := r
+spq: put x := r
 
 vector: true
 

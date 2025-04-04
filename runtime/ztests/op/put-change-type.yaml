@@ -1,4 +1,4 @@
-zed: put x:=network_of(addr)
+spq: put x:=network_of(addr)
 
 vector: true
 

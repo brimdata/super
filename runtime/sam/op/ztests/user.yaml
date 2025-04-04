@@ -1,4 +1,4 @@
-zed: |
+spq: |
   op stamper(assignee, foo): ( 
       yield {...this, assignee, foo}
   )

@@ -1,4 +1,4 @@
-zed: yield compare(a, b, true), compare(a, b, false), compare(a, b, "error")
+spq: yield compare(a, b, true), compare(a, b, false), compare(a, b, "error")
 
 input: |
   {a: null, b: 2}

@@ -1,4 +1,4 @@
-zed: type foo = {x:int64}  yield cast(this, <foo>)
+spq: type foo = {x:int64}  yield cast(this, <foo>)
 
 input: |
   null

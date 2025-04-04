@@ -258,7 +258,7 @@ type ZTest struct {
 	Tag  string `yaml:"tag,omitempty"`
 
 	// For Zed-style tests.
-	Zed         string `yaml:"zed,omitempty"`
+	Zed         string `yaml:"spq,omitempty"`
 	Input       string `yaml:"input,omitempty"`
 	InputFlags  string `yaml:"input-flags,omitempty"`
 	Output      string `yaml:"output,omitempty"`

@@ -1,4 +1,4 @@
-zed: 'put x:=m["b"]'
+spq: 'put x:=m["b"]'
 
 input: |
   {m:|{"a":1(int32),"b":2(int32),"c":3(int32)}|}

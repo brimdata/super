@@ -1,4 +1,4 @@
-zed: 'const x="y" put this[x]:=lower(this[x])'
+spq: 'const x="y" put this[x]:=lower(this[x])'
 
 input: |
   {y:"Hello, World"}

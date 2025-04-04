@@ -1,4 +1,4 @@
-zed: SELECT LENGTH('W3Schools.com');
+spq: SELECT LENGTH('W3Schools.com');
 
 vector: true
 

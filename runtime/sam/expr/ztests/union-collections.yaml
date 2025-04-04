@@ -1,4 +1,4 @@
-zed: "yield [v], |[v]|, |{k:v}|"
+spq: "yield [v], |[v]|, |{k:v}|"
 
 input: |
   {k:1,v:"foo"((int64,string))}

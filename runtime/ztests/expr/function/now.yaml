@@ -1,4 +1,4 @@
-zed: |
+spq: |
   const t1 = now()
   yield t1, now()
   | yield string(this) ~ /[0-9TZ:\-\.]+/

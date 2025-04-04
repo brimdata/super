@@ -1,4 +1,4 @@
-zed: put eq := (a == b), ne := (a != b)
+spq: put eq := (a == b), ne := (a != b)
 
 vector: true
 

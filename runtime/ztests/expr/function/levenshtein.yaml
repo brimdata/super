@@ -1,4 +1,4 @@
-zed: yield levenshtein(a, b)
+spq: yield levenshtein(a, b)
 
 vector: true
 

@@ -1,4 +1,4 @@
-zed: fuse(this) by key with -limit 1
+spq: fuse(this) by key with -limit 1
 
 input: |
   {a:"hello",r:{x:1(int32),y:2(int32)},key:"a"}

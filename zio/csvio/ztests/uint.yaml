@@ -1,4 +1,4 @@
-zed: pass
+spq: pass
 
 input: |
   {uint8:null(uint8),uint16:null(uint16),uint32:null(uint32),uint64:null(uint64)}

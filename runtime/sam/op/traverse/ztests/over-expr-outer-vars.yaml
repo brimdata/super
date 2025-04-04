@@ -1,4 +1,4 @@
-zed: |
+spq: |
   func sumvals(vals): (
     (over vals | sum(this))
   )

@@ -1,4 +1,4 @@
-zed: yield {x:a+1,y:2*a}
+spq: yield {x:a+1,y:2*a}
 
 vector: true
 

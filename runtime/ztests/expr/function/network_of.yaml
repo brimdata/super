@@ -1,4 +1,4 @@
-zed: |
+spq: |
   yield
     network_of(this, 24),
     network_of(this, 48),

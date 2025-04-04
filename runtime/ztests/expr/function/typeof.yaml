@@ -1,4 +1,4 @@
-zed: yield typeof(this)
+spq: yield typeof(this)
 
 vector: true
 

@@ -1,6 +1,6 @@
 # Tests that put handles different output types for the same input
 # type correctly
-zed: 'put y := x > 0 ? "string" : x'
+spq: 'put y := x > 0 ? "string" : x'
 
 vector: true
 

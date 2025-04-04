@@ -1,4 +1,4 @@
-zed: pass
+spq: pass
 
 input: |
   {"type":{"kind":"record","id":31,"fields":[{"name":"a","type":{"kind":"union","id":30,"types":[{"kind":"primitive","name":"int32"},{"kind":"primitive","name":"string"}]}}]},"value":[["1","asdfasdf"]]}

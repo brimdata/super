@@ -1,4 +1,4 @@
-zed: count() by key1 | sort key1
+spq: count() by key1 | sort key1
 
 vector: true
 

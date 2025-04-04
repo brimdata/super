@@ -1,4 +1,4 @@
-zed: 'put s:=string(b)'
+spq: 'put s:=string(b)'
 
 input: |
   {b:0xc328}

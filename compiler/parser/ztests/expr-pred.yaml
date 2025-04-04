@@ -1,4 +1,4 @@
-zed: 'a+b>=2'
+spq: 'a+b>=2'
 
 input: |
   {a:1(int32),b:2(int32)}

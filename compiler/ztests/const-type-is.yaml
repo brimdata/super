@@ -1,4 +1,4 @@
-zed: const t = <{a:string}> is(t)
+spq: const t = <{a:string}> is(t)
 
 input: |
   {a:"hello"}
