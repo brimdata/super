@@ -227,12 +227,16 @@ func (n *Nulls) Len(cctx *Context) uint32 {
 }
 
 type Const struct {
-	Value super.Value //XXX this needs to be translated?  what context does this value live in
+	Value super.Value // this value lives in local context and needs to be translated by shadow
 	Count uint32
 }
 
-func (c *Const) Type(cctx *Context, sctx *super.Context) super.Type {
-	return cctx.Lookup(c.Value).Type(cctx, sctx)
+func (c *Const) Type(_ *Context, sctx *super.Context) super.Type {
+	typ, err := sctx.TranslateType(c.Value.Type())
+	if err != nil {
+		panic(err)
+	}
+	return typ
 }
 
 func (c *Const) Len(*Const) uint32 {
