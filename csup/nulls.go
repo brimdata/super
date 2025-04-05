@@ -64,17 +64,17 @@ func (n *NullsEncoder) Encode(group *errgroup.Group) {
 	}
 }
 
-func (n *NullsEncoder) Metadata(off uint64) (uint64, Metadata) {
-	off, values := n.values.Metadata(off)
+func (n *NullsEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
+	off, values := n.values.Metadata(cctx, off)
 	if n.count == 0 {
 		return off, values
 	}
 	off, runs := n.runs.Segment(off)
-	return off, &Nulls{
+	return off, cctx.enter(&Nulls{
 		Runs:   runs,
 		Values: values,
 		Count:  n.count,
-	}
+	})
 }
 
 func (n *NullsEncoder) Emit(w io.Writer) error {

@@ -16,11 +16,11 @@ func (f *FieldEncoder) write(body zcode.Bytes) {
 	f.values.Write(body)
 }
 
-func (f *FieldEncoder) Metadata(off uint64) (uint64, Field) {
-	off, meta := f.values.Metadata(off)
+func (f *FieldEncoder) Metadata(cctx *Context, off uint64) (uint64, Field) {
+	off, id := f.values.Metadata(cctx, off)
 	return off, Field{
 		Name:   f.name,
-		Values: meta,
+		Values: id,
 	}
 }
 

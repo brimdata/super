@@ -70,7 +70,7 @@ func (p *PrimitiveEncoder) Encode(group *errgroup.Group) {
 	})
 }
 
-func (p *PrimitiveEncoder) Metadata(off uint64) (uint64, Metadata) {
+func (p *PrimitiveEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
 	loc := Segment{
 		Offset:            off,
 		Length:            uint64(len(p.out)),
@@ -78,13 +78,13 @@ func (p *PrimitiveEncoder) Metadata(off uint64) (uint64, Metadata) {
 		CompressionFormat: p.format,
 	}
 	off += uint64(len(p.out))
-	return off, &Primitive{
+	return off, cctx.enter(&Primitive{
 		Typ:      p.typ,
 		Location: loc,
 		Count:    p.count,
 		Min:      p.min,
 		Max:      p.max,
-	}
+	})
 }
 
 func (p *PrimitiveEncoder) Emit(w io.Writer) error {

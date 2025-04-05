@@ -41,7 +41,7 @@ func (d *DynamicEncoder) Write(val super.Value) error {
 	return nil
 }
 
-func (d *DynamicEncoder) Encode() (Metadata, uint64, error) {
+func (d *DynamicEncoder) Encode(cctx *Context) (ID, uint64, error) {
 	var group errgroup.Group
 	if len(d.values) > 1 {
 		d.tags.Encode(&group)
@@ -50,24 +50,24 @@ func (d *DynamicEncoder) Encode() (Metadata, uint64, error) {
 		val.Encode(&group)
 	}
 	if err := group.Wait(); err != nil {
-		return nil, 0, err
+		return 0, 0, err
 	}
 	if len(d.values) == 1 {
-		off, meta := d.values[0].Metadata(0)
-		return meta, off, nil
+		off, id := d.values[0].Metadata(cctx, 0)
+		return id, off, nil
 	}
-	values := make([]Metadata, 0, len(d.values))
+	values := make([]ID, 0, len(d.values))
 	off, tags := d.tags.Segment(0)
 	for _, val := range d.values {
-		var meta Metadata
-		off, meta = val.Metadata(off)
-		values = append(values, meta)
+		var id ID
+		off, id = val.Metadata(cctx, off)
+		values = append(values, id)
 	}
-	return &Dynamic{
+	return cctx.enter(&Dynamic{
 		Tags:   tags,
 		Values: values,
 		Length: d.len,
-	}, off, nil
+	}), off, nil
 }
 
 func (d *DynamicEncoder) Emit(w io.Writer) error {

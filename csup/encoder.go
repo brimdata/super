@@ -24,7 +24,7 @@ type Encoder interface {
 	// will land.  This is called in a sequential fashion (no parallelism) so
 	// that the metadata can be computed and the CSUP header written before the
 	// vector data is written via Emit.
-	Metadata(uint64) (uint64, Metadata)
+	Metadata(*Context, uint64) (uint64, ID)
 	Emit(w io.Writer) error
 }
 
@@ -74,16 +74,16 @@ type NamedEncoder struct {
 	name string
 }
 
-func (n *NamedEncoder) Metadata(off uint64) (uint64, Metadata) {
-	off, meta := n.Encoder.Metadata(off)
-	return off, &Named{n.name, meta}
+func (n *NamedEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
+	off, id := n.Encoder.Metadata(cctx, off)
+	return off, cctx.enter(&Named{n.name, id})
 }
 
 type ErrorEncoder struct {
 	Encoder
 }
 
-func (e *ErrorEncoder) Metadata(off uint64) (uint64, Metadata) {
-	off, meta := e.Encoder.Metadata(off)
-	return off, &Error{meta}
+func (e *ErrorEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
+	off, id := e.Encoder.Metadata(cctx, off)
+	return off, cctx.enter(&Error{id})
 }

@@ -16,7 +16,7 @@ var maxObjectSize uint32 = 120_000
 // Writer implements the zio.Writer interface. A Writer creates a vector
 // CSUP object from a stream of super.Records.
 type Writer struct {
-	zctx    *super.Context
+	cctx    *Context
 	writer  io.WriteCloser
 	dynamic *DynamicEncoder
 }
@@ -25,7 +25,7 @@ var _ zio.Writer = (*Writer)(nil)
 
 func NewWriter(w io.WriteCloser) *Writer {
 	return &Writer{
-		zctx:    super.NewContext(),
+		cctx:    NewContext(),
 		writer:  w,
 		dynamic: NewDynamicEncoder(),
 	}
@@ -59,7 +59,7 @@ func (w *Writer) finalizeObject() error {
 	var metaBuf bytes.Buffer
 	zw := bsupio.NewWriter(zio.NopCloser(&metaBuf))
 	// First, we write the root segmap of the vector of integer type IDs.
-	m := sup.NewBSUPMarshalerWithContext(w.zctx)
+	m := sup.NewBSUPMarshalerWithContext(w.cctx.local)
 	m.Decorate(sup.StyleSimple)
 	val, err := m.Marshal(meta)
 	if err != nil {

@@ -86,7 +86,7 @@ func (a *Array) Type(cctx *Context, sctx *super.Context) super.Type {
 	return sctx.LookupTypeArray(cctx.Lookup(a.Values).Type(cctx, sctx))
 }
 
-func (a *Array) Len() uint32 {
+func (a *Array) Len(*Context) uint32 {
 	return a.Length
 }
 
@@ -239,7 +239,7 @@ func (c *Const) Type(_ *Context, sctx *super.Context) super.Type {
 	return typ
 }
 
-func (c *Const) Len(*Const) uint32 {
+func (c *Const) Len(*Context) uint32 {
 	return c.Count
 }
 

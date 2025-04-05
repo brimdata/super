@@ -40,14 +40,14 @@ func (r *RecordEncoder) Encode(group *errgroup.Group) {
 	}
 }
 
-func (r *RecordEncoder) Metadata(off uint64) (uint64, Metadata) {
+func (r *RecordEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
 	fields := make([]Field, 0, len(r.fields))
 	for _, field := range r.fields {
-		next, m := field.Metadata(off)
+		next, m := field.Metadata(cctx, off)
 		fields = append(fields, m)
 		off = next
 	}
-	return off, &Record{Length: r.count, Fields: fields}
+	return off, cctx.enter(&Record{Length: r.count, Fields: fields})
 }
 
 func (r *RecordEncoder) Emit(w io.Writer) error {
