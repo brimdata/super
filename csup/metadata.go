@@ -3,12 +3,13 @@ package csup
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/zcode"
 )
 
+//XXX get id of Type method in Metadata?  Maybe compute types from shadow only?
+
 type Metadata interface {
-	Type(*super.Context) super.Type
-	Len() uint32
+	Type(*Context, *super.Context) super.Type
+	Len(*Context) uint32
 }
 
 type Record struct {
@@ -16,16 +17,16 @@ type Record struct {
 	Fields []Field
 }
 
-func (r *Record) Type(zctx *super.Context) super.Type {
+func (r *Record) Type(cctx *Context, sctx *super.Context) super.Type {
 	fields := make([]super.Field, 0, len(r.Fields))
 	for _, field := range r.Fields {
-		typ := field.Values.Type(zctx)
+		typ := cctx.Lookup(field.Values).Type(cctx, sctx)
 		fields = append(fields, super.Field{Name: field.Name, Type: typ})
 	}
-	return zctx.MustLookupTypeRecord(fields)
+	return sctx.MustLookupTypeRecord(fields)
 }
 
-func (r *Record) Len() uint32 {
+func (r *Record) Len(*Context) uint32 {
 	return r.Length
 }
 
@@ -38,14 +39,17 @@ func (r *Record) LookupField(name string) *Field {
 	return nil
 }
 
-func (r *Record) Lookup(path field.Path) *Field {
+// XXX what's this for?  we shouldn't be doing lookup by path here.
+// any lookups should be done on the shadow where everything
+// has been deserialized by path already
+func (r *Record) Lookup(cctx *Context, path field.Path) *Field {
 	var f *Field
 	for _, name := range path {
 		f = r.LookupField(name)
 		if f == nil {
 			return nil
 		}
-		if next, ok := Under(f.Values).(*Record); ok {
+		if next, ok := Under(cctx, cctx.Lookup(f.Values)).(*Record); ok {
 			r = next
 		} else {
 			break
@@ -54,13 +58,13 @@ func (r *Record) Lookup(path field.Path) *Field {
 	return f
 }
 
-func Under(meta Metadata) Metadata {
+func Under(cctx *Context, meta Metadata) Metadata {
 	for {
 		switch inner := meta.(type) {
 		case *Named:
-			meta = inner.Values
+			meta = cctx.Lookup(inner.Values)
 		case *Nulls:
-			meta = inner.Values
+			meta = cctx.Lookup(inner.Values)
 		default:
 			return meta
 		}
@@ -69,17 +73,17 @@ func Under(meta Metadata) Metadata {
 
 type Field struct {
 	Name   string
-	Values Metadata
+	Values ID
 }
 
 type Array struct {
 	Length  uint32
 	Lengths Segment
-	Values  Metadata
+	Values  ID
 }
 
-func (a *Array) Type(zctx *super.Context) super.Type {
-	return zctx.LookupTypeArray(a.Values.Type(zctx))
+func (a *Array) Type(cctx *Context, sctx *super.Context) super.Type {
+	return sctx.LookupTypeArray(cctx.Lookup(a.Values).Type(cctx, sctx))
 }
 
 func (a *Array) Len() uint32 {
@@ -88,76 +92,76 @@ func (a *Array) Len() uint32 {
 
 type Set Array
 
-func (s *Set) Type(zctx *super.Context) super.Type {
-	return zctx.LookupTypeSet(s.Values.Type(zctx))
+func (s *Set) Type(cctx *Context, sctx *super.Context) super.Type {
+	return sctx.LookupTypeSet(cctx.Lookup(s.Values).Type(cctx, sctx))
 }
 
-func (s *Set) Len() uint32 {
+func (s *Set) Len(*Context) uint32 {
 	return s.Length
 }
 
 type Map struct {
 	Length  uint32
 	Lengths Segment
-	Keys    Metadata
-	Values  Metadata
+	Keys    ID
+	Values  ID
 }
 
-func (m *Map) Type(zctx *super.Context) super.Type {
-	keyType := m.Keys.Type(zctx)
-	valType := m.Values.Type(zctx)
-	return zctx.LookupTypeMap(keyType, valType)
+func (m *Map) Type(cctx *Context, sctx *super.Context) super.Type {
+	keyType := cctx.Lookup(m.Keys).Type(cctx, sctx)
+	valType := cctx.Lookup(m.Values).Type(cctx, sctx)
+	return sctx.LookupTypeMap(keyType, valType)
 }
 
-func (m *Map) Len() uint32 {
+func (m *Map) Len(*Context) uint32 {
 	return m.Length
 }
 
 type Union struct {
 	Length uint32
 	Tags   Segment
-	Values []Metadata
+	Values []ID
 }
 
-func (u *Union) Type(zctx *super.Context) super.Type {
+func (u *Union) Type(cctx *Context, sctx *super.Context) super.Type {
 	types := make([]super.Type, 0, len(u.Values))
 	for _, value := range u.Values {
-		types = append(types, value.Type(zctx))
+		types = append(types, cctx.Lookup(value).Type(cctx, sctx))
 	}
-	return zctx.LookupTypeUnion(types)
+	return sctx.LookupTypeUnion(types)
 }
 
-func (u *Union) Len() uint32 {
+func (u *Union) Len(*Context) uint32 {
 	return u.Length
 }
 
 type Named struct {
 	Name   string
-	Values Metadata
+	Values ID
 }
 
-func (n *Named) Type(zctx *super.Context) super.Type {
-	t, err := zctx.LookupTypeNamed(n.Name, n.Values.Type(zctx))
+func (n *Named) Type(cctx *Context, sctx *super.Context) super.Type {
+	t, err := sctx.LookupTypeNamed(n.Name, cctx.Lookup(n.Values).Type(cctx, sctx))
 	if err != nil {
-		panic(err) //XXX
+		panic(err)
 	}
 	return t
 }
 
-func (n *Named) Len() uint32 {
-	return n.Values.Len()
+func (n *Named) Len(cctx *Context) uint32 {
+	return cctx.Lookup(n.Values).Len(cctx)
 }
 
 type Error struct {
-	Values Metadata
+	Values ID
 }
 
-func (e *Error) Type(zctx *super.Context) super.Type {
-	return zctx.LookupTypeError(e.Values.Type(zctx))
+func (e *Error) Type(cctx *Context, sctx *super.Context) super.Type {
+	return sctx.LookupTypeError(cctx.Lookup(e.Values).Type(cctx, sctx))
 }
 
-func (e *Error) Len() uint32 {
-	return e.Values.Len()
+func (e *Error) Len(cctx *Context) uint32 {
+	return cctx.Lookup(e.Values).Len(cctx)
 }
 
 type Int struct {
@@ -168,11 +172,11 @@ type Int struct {
 	Count    uint32
 }
 
-func (i *Int) Type(*super.Context) super.Type {
+func (i *Int) Type(*Context, *super.Context) super.Type {
 	return i.Typ
 }
 
-func (i *Int) Len() uint32 {
+func (i *Int) Len(*Context) uint32 {
 	return i.Count
 }
 
@@ -184,11 +188,11 @@ type Uint struct {
 	Count    uint32
 }
 
-func (u *Uint) Type(*super.Context) super.Type {
+func (u *Uint) Type(*Context, *super.Context) super.Type {
 	return u.Typ
 }
 
-func (u *Uint) Len() uint32 {
+func (u *Uint) Len(*Context) uint32 {
 	return u.Count
 }
 
@@ -200,72 +204,73 @@ type Primitive struct {
 	Count    uint32
 }
 
-func (p *Primitive) Type(zctx *super.Context) super.Type {
+func (p *Primitive) Type(*Context, *super.Context) super.Type {
 	return p.Typ
 }
 
-func (p *Primitive) Len() uint32 {
+func (p *Primitive) Len(*Context) uint32 {
 	return p.Count
 }
 
 type Nulls struct {
 	Runs   Segment
-	Values Metadata
+	Values ID
 	Count  uint32 // Count of nulls
 }
 
-func (n *Nulls) Type(zctx *super.Context) super.Type {
-	return n.Values.Type(zctx)
+func (n *Nulls) Type(cctx *Context, sctx *super.Context) super.Type {
+	return cctx.Lookup(n.Values).Type(cctx, sctx)
 }
 
-func (n *Nulls) Len() uint32 {
-	return n.Count + n.Values.Len()
+func (n *Nulls) Len(cctx *Context) uint32 {
+	return n.Count + cctx.Lookup(n.Values).Len(cctx)
 }
 
 type Const struct {
-	Value super.Value
+	Value super.Value //XXX this needs to be translated?  what context does this value live in
 	Count uint32
 }
 
-func (c *Const) Type(zctx *super.Context) super.Type {
-	return c.Value.Type()
+func (c *Const) Type(cctx *Context, sctx *super.Context) super.Type {
+	return cctx.Lookup(c.Value).Type(cctx, sctx)
 }
 
-func (c *Const) Len() uint32 {
+func (c *Const) Len(*Const) uint32 {
 	return c.Count
 }
 
 type Dict struct {
-	Values Metadata
+	Values ID
 	Counts Segment
 	Index  Segment
 	Length uint32
 }
 
-func (d *Dict) Type(zctx *super.Context) super.Type {
-	return d.Values.Type(zctx)
+func (d *Dict) Type(cctx *Context, sctx *super.Context) super.Type {
+	return cctx.Lookup(d.Values).Type(cctx, sctx)
 }
 
-func (d *Dict) Len() uint32 {
+func (d *Dict) Len(*Context) uint32 {
 	return d.Length
 }
 
 type Dynamic struct {
 	Tags   Segment
-	Values []Metadata
+	Values []ID
 	Length uint32
 }
 
 var _ Metadata = (*Dynamic)(nil)
 
-func (*Dynamic) Type(zctx *super.Context) super.Type {
+func (*Dynamic) Type(*Context, *super.Context) super.Type {
 	panic("Type should not be called on Dynamic")
 }
 
-func (d *Dynamic) Len() uint32 {
+func (d *Dynamic) Len(*Context) uint32 {
 	return d.Length
 }
 
+/*
 func MetadataValues(zctx *super.Context, m Metadata) []super.Value {
 	var b zcode.Builder
 	var values []super.Value
@@ -325,6 +330,7 @@ func metadataLeaf(zctx *super.Context, b *zcode.Builder, min, max super.Value) s
 		{Name: "max", Type: max.Type()},
 	})
 }
+*/
 
 var Template = []interface{}{
 	Record{},
