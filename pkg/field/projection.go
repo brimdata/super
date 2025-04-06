@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-// A Projection is an array of string or Forks
+// A Projection is a slice of string or Forks
 type Projection []any //XXX clean this up later
 type Fork []Projection
 
