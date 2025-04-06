@@ -109,8 +109,16 @@ func demandForOp(op dag.Op, downstream demand.Demand) demand.Demand {
 	case *dag.CommitMetaScan, *dag.DefaultScan, *dag.Deleter, *dag.DeleteScan, *dag.LakeMetaScan:
 		return demand.None()
 	case *dag.FileScan:
-		d := demand.Union(downstream, demandForExpr(op.Filter))
-		op.Fields = demand.Fields(d)
+		d := downstream
+		if mf := op.Pushdown.MetaFilter; mf != nil {
+			filterDemand := demandForExpr(mf.Expr)
+			mf.Projection = demand.Fields(filterDemand)
+			d = demand.Union(d, filterDemand)
+		}
+		if df := op.Pushdown.DataFilter; df != nil {
+			d = demand.Union(d, demandForExpr(df.Expr))
+		}
+		op.Pushdown.Projection = demand.Fields(d)
 		return demand.None()
 	case *dag.HTTPScan, *dag.Lister, *dag.NullScan, *dag.PoolMetaScan, *dag.PoolScan:
 		return demand.None()

@@ -72,9 +72,15 @@ func (e *Environment) SortKeys(ctx context.Context, src dag.Op) order.SortKeys {
 	return nil
 }
 
-func (e *Environment) Open(ctx context.Context, zctx *super.Context, path, format string, fields []field.Path, pushdown zbuf.Filter) (zbuf.Puller, error) {
+func (e *Environment) Open(ctx context.Context, zctx *super.Context, path, format string, pushdown zbuf.Pushdown) (zbuf.Puller, error) {
 	if path == "-" {
 		path = "stdio:stdin"
+	}
+	var fields []field.Path
+	if pushdown != nil {
+		if proj := pushdown.Projection(); proj != nil {
+			fields = proj.Paths()
+		}
 	}
 	file, err := anyio.Open(ctx, zctx, e.engine, path, anyio.ReaderOpts{Fields: fields, Format: format})
 	if err != nil {
@@ -125,7 +131,7 @@ func (c *closePuller) Pull(done bool) (zbuf.Batch, error) {
 	return batch, err
 }
 
-func (e *Environment) VectorOpen(ctx context.Context, zctx *super.Context, path, format string, fields []field.Path, pruner zbuf.Filter) (vector.Puller, error) {
+func (e *Environment) VectorOpen(ctx context.Context, zctx *super.Context, path, format string, pushdown zbuf.Pushdown) (vector.Puller, error) {
 	if path == "-" {
 		path = "stdio:stdin"
 	}
@@ -140,12 +146,12 @@ func (e *Environment) VectorOpen(ctx context.Context, zctx *super.Context, path,
 	var puller vector.Puller
 	switch format {
 	case "csup":
-		puller, err = csupio.NewVectorReader(ctx, zctx, r, fields, pruner)
+		puller, err = csupio.NewVectorReader(ctx, zctx, r, pushdown)
 	case "parquet":
-		puller, err = parquetio.NewVectorReader(ctx, zctx, r, fields, pruner)
+		puller, err = parquetio.NewVectorReader(ctx, zctx, r, pushdown)
 	default:
 		var zbufPuller zbuf.Puller
-		zbufPuller, err = e.Open(ctx, zctx, path, format, fields, nil)
+		zbufPuller, err = e.Open(ctx, zctx, path, format, nil)
 		puller = vam.NewDematerializer(zbufPuller)
 	}
 	if err != nil {

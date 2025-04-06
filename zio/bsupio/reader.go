@@ -64,7 +64,7 @@ func NewReaderWithOpts(zctx *super.Context, reader io.Reader, opts ReaderOpts) *
 	}
 }
 
-func (r *Reader) NewScanner(ctx context.Context, filter zbuf.Filter) (zbuf.Scanner, error) {
+func (r *Reader) NewScanner(ctx context.Context, filter zbuf.Pushdown) (zbuf.Scanner, error) {
 	if r.opts.Threads == 1 {
 		return newScannerSync(ctx, r.zctx, r.reader, filter, r.opts)
 	}

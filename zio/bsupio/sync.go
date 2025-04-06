@@ -20,7 +20,7 @@ type scannerSync struct {
 	eof      bool
 }
 
-func newScannerSync(ctx context.Context, zctx *super.Context, r io.Reader, filter zbuf.Filter, opts ReaderOpts) (*scannerSync, error) {
+func newScannerSync(ctx context.Context, zctx *super.Context, r io.Reader, filter zbuf.Pushdown, opts ReaderOpts) (*scannerSync, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	s := &scannerSync{
 		ctx:    ctx,
@@ -35,11 +35,11 @@ func newScannerSync(ctx context.Context, zctx *super.Context, r io.Reader, filte
 	var f expr.Evaluator
 	if filter != nil {
 		var err error
-		bf, err = filter.AsBufferFilter()
+		bf, err = filter.BSUPFilter()
 		if err != nil {
 			return nil, err
 		}
-		f, err = filter.AsEvaluator()
+		f, err = filter.DataFilter()
 		if err != nil {
 			return nil, err
 		}

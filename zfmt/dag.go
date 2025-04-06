@@ -552,24 +552,37 @@ func (c *canonDAG) op(p dag.Op) {
 		if p.Format != "" {
 			c.write(" format %s", p.Format)
 		}
-		if len(p.Fields) > 0 {
-			c.fields(p.Fields)
+		if len(p.Pushdown.Projection) > 0 {
+			c.fields(p.Pushdown.Projection)
 		}
-		if p.MetadataPruner != nil {
-			c.ret()
-			c.open()
-			c.open(" pruner (")
-			c.ret()
-			c.expr(p.MetadataPruner, "")
-			c.ret()
-			c.close()
-			c.write(")")
-			c.close()
+		if df := p.Pushdown.DataFilter; df != nil {
+			if len(df.Projection) > 0 {
+				c.fields(df.Projection)
+			}
+			if df.Expr != nil {
+				c.write(" filter (")
+				c.expr(df.Expr, "")
+				c.write(")")
+			}
 		}
-		if p.Filter != nil {
-			c.write(" filter (")
-			c.expr(p.Filter, "")
-			c.write(")")
+		if mf := p.Pushdown.MetaFilter; mf != nil {
+			if mf.Expr != nil {
+				c.ret()
+				c.open()
+				c.open(" pruner (")
+				c.ret()
+				c.write("expr: ")
+				c.expr(mf.Expr, "")
+				c.ret()
+				if len(mf.Projection) > 0 {
+					c.write("proj:")
+					c.fields(mf.Projection)
+				}
+				c.close()
+				c.ret()
+				c.write(")")
+				c.close()
+			}
 		}
 	case *dag.HTTPScan:
 		c.next()

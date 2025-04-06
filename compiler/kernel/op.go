@@ -130,7 +130,7 @@ func (b *Builder) BuildVamToSeqFilter(filter dag.Expr, poolID, commitID ksuid.KS
 	if err != nil {
 		return nil, err
 	}
-	return meta.NewSearchScanner(b.rctx, search, pool, b.PushdownOf(filter), b.progress), nil
+	return meta.NewSearchScanner(b.rctx, search, pool, b.NewPushdown(filter, nil), b.progress), nil
 }
 
 func (b *Builder) zctx() *super.Context {
@@ -285,15 +285,19 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 		body := strings.NewReader(v.Body)
 		return b.env.OpenHTTP(b.rctx.Context, b.zctx(), v.URL, v.Format, v.Method, v.Headers, body, nil)
 	case *dag.FileScan:
-		return b.env.Open(b.rctx.Context, b.zctx(), v.Path, v.Format, v.Fields, b.PushdownOf(v.Filter))
+		var dataFilter dag.Expr
+		if v.Pushdown.DataFilter != nil {
+			dataFilter = v.Pushdown.DataFilter.Expr
+		}
+		return b.env.Open(b.rctx.Context, b.zctx(), v.Path, v.Format, b.NewPushdown(dataFilter, v.Pushdown.Projection))
 	case *dag.RobotScan:
 		e, err := compileExpr(v.Expr)
 		if err != nil {
 			return nil, err
 		}
-		return robot.New(b.rctx, b.env, parent, e, v.Format, nil, b.PushdownOf(v.Filter)), nil
+		return robot.New(b.rctx, b.env, parent, e, v.Format, b.NewPushdown(v.Filter, nil)), nil
 	case *dag.DefaultScan:
-		pushdown := b.PushdownOf(v.Filter)
+		pushdown := b.NewPushdown(v.Filter, nil)
 		if len(b.readers) == 1 {
 			return zbuf.NewScanner(b.rctx.Context, b.readers[0], pushdown)
 		}
@@ -339,7 +343,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 				return nil, err
 			}
 		}
-		return meta.NewSequenceScanner(b.rctx, parent, pool, b.PushdownOf(v.Filter), pruner, b.progress), nil
+		return meta.NewSequenceScanner(b.rctx, parent, pool, b.NewPushdown(v.Filter, nil), pruner, b.progress), nil
 	case *dag.Deleter:
 		pool, err := b.lookupPool(v.Pool)
 		if err != nil {
@@ -355,9 +359,9 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 		if b.deletes == nil {
 			b.deletes = &sync.Map{}
 		}
-		var filter *DeleteFilter
-		if f := b.PushdownOf(v.Where); f != nil {
-			filter = &DeleteFilter{f}
+		var filter *deleter
+		if f := b.NewPushdown(v.Where, nil); f != nil {
+			filter = &deleter{*f}
 		}
 		return meta.NewDeleter(b.rctx, parent, pool, filter, pruner, b.progress, b.deletes), nil
 	case *dag.Load:
@@ -713,11 +717,24 @@ func (b *Builder) compilePoolScan(scan *dag.PoolScan) (zbuf.Puller, error) {
 	return meta.NewSequenceScanner(b.rctx, slicer, pool, nil, nil, b.progress), nil
 }
 
-func (b *Builder) PushdownOf(e dag.Expr) *Filter {
-	if e == nil {
+func (b *Builder) NewPushdown(e dag.Expr, projection []field.Path) *pushdown {
+	if e == nil && projection == nil {
 		return nil
 	}
-	return &Filter{e, b}
+	return &pushdown{
+		dataFilter: e,
+		builder:    b,
+		projection: field.NewProjection(projection),
+	}
+}
+
+func (b *Builder) newMetaPushdown(e dag.Expr, projection, metaProjection []field.Path) *pushdown {
+	return &pushdown{
+		metaFilter:     e,
+		builder:        b,
+		projection:     field.NewProjection(projection),
+		metaProjection: field.NewProjection(metaProjection),
+	}
 }
 
 func (b *Builder) lookupPool(id ksuid.KSUID) (*lake.Pool, error) {

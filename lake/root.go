@@ -406,7 +406,7 @@ func (r *Root) Revert(ctx context.Context, poolID ksuid.KSUID, branchName string
 	return branch.Revert(ctx, commitID, author, message)
 }
 
-func (r *Root) Open(context.Context, *super.Context, string, string, zbuf.Filter) (zbuf.Puller, error) {
+func (r *Root) Open(context.Context, *super.Context, string, string, zbuf.Pushdown) (zbuf.Puller, error) {
 	return nil, errors.New("cannot use 'file' or 'http' source in a lake query")
 }
 

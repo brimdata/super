@@ -1,6 +1,8 @@
 package csup
 
 import (
+	"slices"
+
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/zcode"
@@ -266,34 +268,64 @@ func (d *Dynamic) Len() uint32 {
 	return d.Length
 }
 
-func MetadataValues(zctx *super.Context, m Metadata) []super.Value {
+func ProjectMetadata(zctx *super.Context, m Metadata, projection field.Projection) []super.Value {
 	var b zcode.Builder
 	var values []super.Value
 	if dynamic, ok := m.(*Dynamic); ok {
 		for _, m := range dynamic.Values {
 			b.Reset()
-			typ := metadataValue(zctx, &b, m)
+			typ := metadataValue(zctx, &b, m, projection)
 			values = append(values, super.NewValue(typ, b.Bytes().Body()))
 		}
 	} else {
-		typ := metadataValue(zctx, &b, m)
+		typ := metadataValue(zctx, &b, m, projection)
 		values = append(values, super.NewValue(typ, b.Bytes().Body()))
 	}
 	return values
 }
 
-func metadataValue(zctx *super.Context, b *zcode.Builder, m Metadata) super.Type {
+func metadataValue(zctx *super.Context, b *zcode.Builder, m Metadata, projection field.Projection) super.Type {
 	switch m := Under(m).(type) {
 	case *Dict:
-		return metadataValue(zctx, b, m.Values)
+		return metadataValue(zctx, b, m.Values, projection)
 	case *Record:
-		var fields []super.Field
-		b.BeginContainer()
-		for _, f := range m.Fields {
-			fields = append(fields, super.Field{Name: f.Name, Type: metadataValue(zctx, b, f.Values)})
+		if len(projection) == 0 {
+			var fields []super.Field
+			b.BeginContainer()
+			for _, f := range m.Fields {
+				fields = append(fields, super.Field{Name: f.Name, Type: metadataValue(zctx, b, f.Values, nil)})
+			}
+			b.EndContainer()
+			return zctx.MustLookupTypeRecord(fields)
 		}
-		b.EndContainer()
-		return zctx.MustLookupTypeRecord(fields)
+		switch elem := projection[0].(type) {
+		case string:
+			var fields []super.Field
+			// If the field isn't here, we emit an empty record, which will cause
+			// the metadata filter expression to properly evaluate the missing
+			// value as error missing.
+			b.BeginContainer()
+			if k := indexOfField(elem, m.Fields); k >= 0 {
+				fields = []super.Field{{Name: elem, Type: metadataValue(zctx, b, m.Fields[k].Values, projection[1:])}}
+			}
+			b.EndContainer()
+			return zctx.MustLookupTypeRecord(fields)
+		case field.Fork:
+			var fields []super.Field
+			b.BeginContainer()
+			for _, path := range elem {
+				if name, ok := path[0].(string); ok {
+					if k := indexOfField(name, m.Fields); k >= 0 {
+						f := m.Fields[k]
+						fields = append(fields, super.Field{Name: f.Name, Type: metadataValue(zctx, b, f.Values, projection[1:])})
+					}
+				}
+			}
+			b.EndContainer()
+			return zctx.MustLookupTypeRecord(fields)
+		default:
+			panic("bad projection")
+		}
 	case *Primitive:
 		min, max := super.NewValue(m.Typ, nil), super.NewValue(m.Typ, nil)
 		if m.Min != nil {
@@ -323,6 +355,12 @@ func metadataLeaf(zctx *super.Context, b *zcode.Builder, min, max super.Value) s
 	return zctx.MustLookupTypeRecord([]super.Field{
 		{Name: "min", Type: min.Type()},
 		{Name: "max", Type: max.Type()},
+	})
+}
+
+func indexOfField(name string, fields []Field) int {
+	return slices.IndexFunc(fields, func(f Field) bool {
+		return f.Name == name
 	})
 }
 

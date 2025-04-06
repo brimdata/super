@@ -28,7 +28,7 @@ type VectorReader struct {
 	hasClosed     bool
 }
 
-func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, fields []field.Path, pruner zbuf.Filter) (*VectorReader, error) {
+func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, pushdown zbuf.Pushdown) (*VectorReader, error) {
 	ra, ok := r.(io.ReaderAt)
 	if !ok {
 		return nil, errors.New("Super Columnar requires a seekable input")
@@ -37,9 +37,10 @@ func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, fiel
 	if err != nil {
 		return nil, err
 	}
-	var evaluator expr.Evaluator
-	if pruner != nil {
-		evaluator, err = pruner.AsEvaluator()
+	var metaFilter expr.Evaluator
+	var metaProjection field.Projection
+	if pushdown != nil {
+		metaFilter, metaProjection, err = pushdown.MetaFilter()
 		if err != nil {
 			return nil, err
 		}
@@ -49,8 +50,8 @@ func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, fiel
 		zctx:          zctx,
 		activeReaders: &atomic.Int64{},
 		nextObject:    &atomic.Int64{},
-		objects:       filterObjects(zctx, evaluator, objects),
-		projection:    field.NewProjection(fields),
+		objects:       filterObjects(zctx, metaFilter, objects, metaProjection),
+		projection:    pushdown.Projection(),
 		readerAt:      ra,
 	}, nil
 }
@@ -84,17 +85,18 @@ func (v *VectorReader) Pull(done bool) (vector.Any, error) {
 	return vcache.NewObjectFromCSUP(o).Fetch(v.zctx, v.projection)
 }
 
-func filterObjects(zctx *super.Context, pruner expr.Evaluator, objects []*csup.Object) []*csup.Object {
+func filterObjects(zctx *super.Context, pruner expr.Evaluator, objects []*csup.Object, projection field.Projection) []*csup.Object {
 	if pruner == nil {
 		return objects
 	}
 	return slices.DeleteFunc(objects, func(o *csup.Object) bool {
-		return pruneObject(zctx, pruner, o.Metadata())
+		return pruneObject(zctx, pruner, o.Metadata(), projection)
 	})
 }
 
-func pruneObject(zctx *super.Context, pruner expr.Evaluator, m csup.Metadata) bool {
-	for _, val := range csup.MetadataValues(zctx, m) {
+func pruneObject(zctx *super.Context, pruner expr.Evaluator, m csup.Metadata, projection field.Projection) bool {
+	vals := csup.ProjectMetadata(zctx, m, projection)
+	for _, val := range vals {
 		if pruner.Eval(nil, val).Ptr().AsBool() {
 			return false
 		}

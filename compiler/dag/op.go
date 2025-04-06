@@ -210,12 +210,19 @@ type (
 		SortKeys order.SortKeys `json:"sort_keys"`
 	}
 	FileScan struct {
-		Kind           string       `json:"kind"  unpack:""`
-		Path           string       `json:"path"`
-		Format         string       `json:"format"`
-		Fields         []field.Path `json:"fields"`
-		Filter         Expr         `json:"filter"`
-		MetadataPruner Expr         `json:"metadata_pruner"`
+		Kind     string   `json:"kind"  unpack:""`
+		Path     string   `json:"path"`
+		Format   string   `json:"format"`
+		Pushdown Pushdown `json:"pushdown"`
+	}
+	Pushdown struct {
+		Projection []field.Path `json:"projection"`
+		DataFilter *ScanFilter  `json:"data_filter"`
+		MetaFilter *ScanFilter  `json:"meta_filter"`
+	}
+	ScanFilter struct {
+		Projection []field.Path `json:"projection"`
+		Expr       Expr         `json:"expr"`
 	}
 	HTTPScan struct {
 		Kind    string              `json:"kind" unpack:""`

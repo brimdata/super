@@ -16,6 +16,31 @@ func NewProjection(paths []Path) Projection {
 	return out
 }
 
+// this is N*N
+func (p Projection) Paths() []Path {
+	var paths []Path
+	for _, elem := range p {
+		switch elem := elem.(type) {
+		case string:
+			paths = append(paths, Path{elem})
+		case Fork:
+			for _, path := range elem {
+				head := path[0].(string)
+				if len(path) == 1 {
+					paths = append(paths, Path{head})
+				} else {
+					for _, tail := range path[1:].Paths() {
+						paths = append(paths, append(Path{head}, tail...))
+					}
+				}
+			}
+		default:
+			panic("bad projection")
+		}
+	}
+	return paths
+}
+
 // XXX this is N*N in path lengths... fix?
 func insertPath(existing Projection, addition Path) Projection {
 	if len(addition) == 0 {

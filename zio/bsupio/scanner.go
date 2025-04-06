@@ -29,7 +29,7 @@ type scanner struct {
 	eof        bool
 }
 
-func newScanner(ctx context.Context, zctx *super.Context, r io.Reader, filter zbuf.Filter, opts ReaderOpts) (zbuf.Scanner, error) {
+func newScanner(ctx context.Context, zctx *super.Context, r io.Reader, pushdown zbuf.Pushdown, opts ReaderOpts) (zbuf.Scanner, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	s := &scanner{
 		ctx:    ctx,
@@ -46,13 +46,13 @@ func newScanner(ctx context.Context, zctx *super.Context, r io.Reader, filter zb
 	for i := 0; i < opts.Threads; i++ {
 		var bf *expr.BufferFilter
 		var f expr.Evaluator
-		if filter != nil {
+		if pushdown != nil {
 			var err error
-			bf, err = filter.AsBufferFilter()
+			bf, err = pushdown.BSUPFilter()
 			if err != nil {
 				return nil, err
 			}
-			f, err = filter.AsEvaluator()
+			f, err = pushdown.DataFilter()
 			if err != nil {
 				return nil, err
 			}

@@ -16,7 +16,6 @@ import (
 	"github.com/apache/arrow-go/v18/parquet/file"
 	"github.com/apache/arrow-go/v18/parquet/pqarrow"
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/zbuf"
@@ -24,9 +23,9 @@ import (
 )
 
 type VectorReader struct {
-	ctx    context.Context
-	zctx   *super.Context
-	pruner zbuf.Filter
+	ctx      context.Context
+	zctx     *super.Context
+	pushdown zbuf.Pushdown
 
 	fr              *pqarrow.FileReader
 	colIndexes      []int
@@ -37,7 +36,7 @@ type VectorReader struct {
 	vb              vectorBuilder
 }
 
-func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, fields []field.Path, pruner zbuf.Filter) (*VectorReader, error) {
+func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, pushdown zbuf.Pushdown) (*VectorReader, error) {
 	ras, ok := r.(parquet.ReaderAtSeeker)
 	if !ok {
 		return nil, errors.New("reader cannot seek")
@@ -46,7 +45,7 @@ func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, fiel
 	if err != nil {
 		return nil, err
 	}
-	colIndexes := columnIndexes(pr.MetaData().Schema, fields)
+	colIndexes := columnIndexes(pr.MetaData().Schema, pushdown.Projection().Paths())
 	if len(colIndexes) == 0 {
 		for i := range pr.MetaData().NumColumns() {
 			colIndexes = append(colIndexes, i)
@@ -65,8 +64,8 @@ func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, fiel
 		return nil, err
 	}
 	var evaluator expr.Evaluator
-	if pruner != nil {
-		evaluator, err = pruner.AsEvaluator()
+	if pushdown != nil {
+		evaluator, _, err = pushdown.MetaFilter()
 		if err != nil {
 			return nil, err
 		}
@@ -74,7 +73,7 @@ func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, fiel
 	return &VectorReader{
 		ctx:             ctx,
 		zctx:            zctx,
-		pruner:          pruner,
+		pushdown:        pushdown,
 		fr:              fr,
 		colIndexes:      colIndexes,
 		nextRowGroup:    &atomic.Int64{},
@@ -86,9 +85,9 @@ func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, fiel
 
 func (p *VectorReader) NewConcurrentPuller() (vector.Puller, error) {
 	var evaluator expr.Evaluator
-	if p.pruner != nil {
+	if p.pushdown != nil {
 		var err error
-		evaluator, err = p.pruner.AsEvaluator()
+		evaluator, _, err = p.pushdown.MetaFilter()
 		if err != nil {
 			return nil, err
 		}
@@ -104,6 +103,7 @@ func (p *VectorReader) NewConcurrentPuller() (vector.Puller, error) {
 		vb:              vectorBuilder{p.zctx, map[arrow.DataType]super.Type{}},
 	}, nil
 }
+
 func (p *VectorReader) Pull(done bool) (vector.Any, error) {
 	if done {
 		return nil, nil

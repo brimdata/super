@@ -10,14 +10,16 @@ outputs:
     data: |
       file test.csup format csup
          pruner (
-          compare("foo", x.min, true)>=0 and compare("foo", x.max, true)<=0 or compare("bar", x.min, true)>=0 and compare("bar", x.max, true)<=0
+          expr: compare("foo", x.min, true)>=0 and compare("foo", x.max, true)<=0 or compare("bar", x.min, true)>=0 and compare("bar", x.max, true)<=0
+          proj: fields x.max,x.min
         )
       | where x in ["foo","bar"]
       | output main
       // ===
       file test.csup format csup
          pruner (
-          compare("foo", x.min, true)>=0 and compare("foo", x.max, true)<=0 or compare("bar", x.min, true)>=0 and compare("bar", x.max, true)<=0
+          expr: compare("foo", x.min, true)>=0 and compare("foo", x.max, true)<=0 or compare("bar", x.min, true)>=0 and compare("bar", x.max, true)<=0
+          proj: fields x.max,x.min
         )
       | where x in {c0:"foo",c1:"bar"}
       | output main

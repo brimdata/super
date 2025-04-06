@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
@@ -15,28 +14,26 @@ import (
 )
 
 type Op struct {
-	parent  zbuf.Puller
-	rctx    *runtime.Context
-	env     *exec.Environment
-	expr    expr.Evaluator
-	fields  []field.Path
-	filter  zbuf.Filter
-	format  string
-	batch   zbuf.Batch
-	off     int
-	src     zbuf.Puller
-	targets []super.Value
+	parent   zbuf.Puller
+	rctx     *runtime.Context
+	env      *exec.Environment
+	expr     expr.Evaluator
+	pushdown zbuf.Pushdown
+	format   string
+	batch    zbuf.Batch
+	off      int
+	src      zbuf.Puller
+	targets  []super.Value
 }
 
-func New(rctx *runtime.Context, env *exec.Environment, parent zbuf.Puller, e expr.Evaluator, format string, fields []field.Path, f zbuf.Filter) *Op {
+func New(rctx *runtime.Context, env *exec.Environment, parent zbuf.Puller, e expr.Evaluator, format string, p zbuf.Pushdown) *Op {
 	return &Op{
-		parent: parent,
-		rctx:   rctx,
-		env:    env,
-		expr:   e,
-		fields: fields,
-		filter: f,
-		format: format,
+		parent:   parent,
+		rctx:     rctx,
+		env:      env,
+		expr:     e,
+		pushdown: p,
+		format:   format,
 	}
 }
 
@@ -200,5 +197,5 @@ func (o *Op) open(path string) (zbuf.Puller, error) {
 	if o.env.IsLake() {
 		return nil, fmt.Errorf("%s: cannot open in a data lake environment", path)
 	}
-	return o.env.Open(o.rctx.Context, o.rctx.Zctx, path, o.format, o.fields, o.filter)
+	return o.env.Open(o.rctx.Context, o.rctx.Zctx, path, o.format, o.pushdown)
 }

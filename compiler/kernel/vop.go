@@ -243,11 +243,14 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		dropper := vamexpr.NewDropper(b.zctx(), fields)
 		return vamop.NewYield(b.zctx(), parent, []vamexpr.Evaluator{dropper}), nil
 	case *dag.FileScan:
-		var pruner zbuf.Filter
-		if o.MetadataPruner != nil {
-			pruner = &Filter{o.MetadataPruner, b}
+		var metaProjection []field.Path
+		var metaFilter dag.Expr
+		if mf := o.Pushdown.MetaFilter; mf != nil {
+			metaFilter = mf.Expr
+			metaProjection = mf.Projection
 		}
-		return b.env.VectorOpen(b.rctx, b.zctx(), o.Path, o.Format, o.Fields, pruner)
+		pushdown := b.newMetaPushdown(metaFilter, o.Pushdown.Projection, metaProjection)
+		return b.env.VectorOpen(b.rctx, b.zctx(), o.Path, o.Format, pushdown)
 	case *dag.Filter:
 		e, err := b.compileVamExpr(o.Expr)
 		if err != nil {

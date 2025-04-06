@@ -262,11 +262,19 @@ func (o *Optimizer) optimizeSourcePaths(seq dag.Seq) (dag.Seq, error) {
 			seq = append(seq, chain...)
 		case *dag.FileScan:
 			if o.env.UseVAM() {
-				// Vector file readers don't support filter pushdown yet.
-				op.MetadataPruner = newMetadataPruner(filter)
+				// Here, we install the filter without a projection.
+				// The demand pass comes subsequently and will add
+				// the projection.
+				op.Pushdown.MetaFilter = newMetaFilter(filter)
+				// Vector file readers don't support DataFilter pushdown yet so no need
+				// to install the filter here.  But we will eventually and this is
+				// where it should be set.
 				return seq, nil
 			}
-			op.Filter = filter
+			if filter != nil {
+				// Filter without projection.  Projection added later.
+				op.Pushdown.DataFilter = &dag.ScanFilter{Expr: filter}
+			}
 			seq = append(dag.Seq{op}, chain...)
 		case *dag.CommitMetaScan:
 			if op.Tap {

@@ -6,19 +6,22 @@ import (
 	"sync/atomic"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/zio"
 )
 
-type Filter interface {
-	AsEvaluator() (expr.Evaluator, error)
-	AsBufferFilter() (*expr.BufferFilter, error)
+type Pushdown interface {
+	Projection() field.Projection
+	DataFilter() (expr.Evaluator, error)
+	BSUPFilter() (*expr.BufferFilter, error)
+	MetaFilter() (expr.Evaluator, field.Projection, error)
 }
 
 // ScannerAble is implemented by Readers that provide an optimized
 // implementation of the Scanner interface.
 type ScannerAble interface {
-	NewScanner(ctx context.Context, filterExpr Filter) (Scanner, error)
+	NewScanner(context.Context, Pushdown) (Scanner, error)
 }
 
 // A Meter provides Progress statistics.
@@ -71,7 +74,7 @@ func (p *Progress) Progress() Progress {
 // NewScanner returns a Scanner for r that filters records by filterExpr and s.
 // If r implements fmt.Stringer, the scanner reports errors using a prefix of the
 // string returned by its String method.
-func NewScanner(ctx context.Context, r zio.Reader, filterExpr Filter) (Scanner, error) {
+func NewScanner(ctx context.Context, r zio.Reader, filterExpr Pushdown) (Scanner, error) {
 	s, err := newScanner(ctx, r, filterExpr)
 	if err != nil {
 		return nil, err
@@ -82,7 +85,7 @@ func NewScanner(ctx context.Context, r zio.Reader, filterExpr Filter) (Scanner, 
 	return s, nil
 }
 
-func newScanner(ctx context.Context, r zio.Reader, filterExpr Filter) (Scanner, error) {
+func newScanner(ctx context.Context, r zio.Reader, filterExpr Pushdown) (Scanner, error) {
 	var sa ScannerAble
 	if zf, ok := r.(*File); ok {
 		sa, _ = zf.Reader.(ScannerAble)
@@ -95,7 +98,7 @@ func newScanner(ctx context.Context, r zio.Reader, filterExpr Filter) (Scanner, 
 	var f expr.Evaluator
 	if filterExpr != nil {
 		var err error
-		if f, err = filterExpr.AsEvaluator(); err != nil {
+		if f, err = filterExpr.DataFilter(); err != nil {
 			return nil, err
 		}
 	}

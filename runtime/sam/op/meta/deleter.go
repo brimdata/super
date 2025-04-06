@@ -16,7 +16,7 @@ import (
 type Deleter struct {
 	parent      zbuf.Puller
 	scanner     zbuf.Puller
-	filter      zbuf.Filter
+	pushdown    zbuf.Pushdown
 	pruner      expr.Evaluator
 	rctx        *runtime.Context
 	pool        *lake.Pool
@@ -27,10 +27,10 @@ type Deleter struct {
 	deletes     *sync.Map
 }
 
-func NewDeleter(rctx *runtime.Context, parent zbuf.Puller, pool *lake.Pool, filter zbuf.Filter, pruner expr.Evaluator, progress *zbuf.Progress, deletes *sync.Map) *Deleter {
+func NewDeleter(rctx *runtime.Context, parent zbuf.Puller, pool *lake.Pool, pushdown zbuf.Pushdown, pruner expr.Evaluator, progress *zbuf.Progress, deletes *sync.Map) *Deleter {
 	return &Deleter{
 		parent:      parent,
-		filter:      filter,
+		pushdown:    pushdown,
 		pruner:      pruner,
 		rctx:        rctx,
 		pool:        pool,
@@ -94,7 +94,7 @@ func (d *Deleter) nextDeletion() (zbuf.Puller, error) {
 		}
 		// Use a no-op progress so stats are not inflated.
 		var progress zbuf.Progress
-		scanner, object, err := newScanner(d.rctx.Context, d.rctx.Zctx, d.pool, d.unmarshaler, d.pruner, d.filter, &progress, vals[0])
+		scanner, object, err := newScanner(d.rctx.Context, d.rctx.Zctx, d.pool, d.unmarshaler, d.pruner, d.pushdown, &progress, vals[0])
 		if err != nil {
 			return nil, err
 		}
@@ -104,7 +104,7 @@ func (d *Deleter) nextDeletion() (zbuf.Puller, error) {
 }
 
 func (d *Deleter) hasDeletes(val super.Value) (bool, error) {
-	scanner, object, err := newScanner(d.rctx.Context, d.rctx.Zctx, d.pool, d.unmarshaler, d.pruner, d.filter, d.progress, val)
+	scanner, object, err := newScanner(d.rctx.Context, d.rctx.Zctx, d.pool, d.unmarshaler, d.pruner, d.pushdown, d.progress, val)
 	if err != nil {
 		return false, err
 	}

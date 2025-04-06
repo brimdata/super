@@ -149,6 +149,16 @@ func reverseComparator(op string) string {
 	panic("unknown op")
 }
 
+// Create a metafilter without the projection.  The projection will be
+// added later when the demand is computed.
+func newMetaFilter(pred dag.Expr) *dag.ScanFilter {
+	e := newMetadataPruner(pred)
+	if e == nil {
+		return nil
+	}
+	return &dag.ScanFilter{Expr: e}
+}
+
 func newMetadataPruner(pred dag.Expr) dag.Expr {
 	switch e := pred.(type) {
 	case *dag.BinaryExpr:
