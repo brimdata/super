@@ -23,7 +23,7 @@ type VectorReader struct {
 	activeReaders *atomic.Int64
 	nextObject    *atomic.Int64
 	objects       []*csup.Object
-	projection    vcache.Path
+	projection    field.Projection
 	readerAt      io.ReaderAt
 	hasClosed     bool
 }
@@ -50,7 +50,7 @@ func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, fiel
 		activeReaders: &atomic.Int64{},
 		nextObject:    &atomic.Int64{},
 		objects:       filterObjects(zctx, evaluator, objects),
-		projection:    vcache.NewProjection(fields),
+		projection:    field.NewProjection(fields),
 		readerAt:      ra,
 	}, nil
 }

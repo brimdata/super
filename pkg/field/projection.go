@@ -1,17 +1,15 @@
-package vcache
+package field
 
 import (
 	"fmt"
-
-	"github.com/brimdata/super/pkg/field"
 )
 
-// A path is an array of string or Forks
-type Path []any //XXX clean this up later
-type Fork []Path
+// A Projection is an array of string or Forks
+type Projection []any //XXX clean this up later
+type Fork []Projection
 
-func NewProjection(paths []field.Path) Path {
-	var out Path
+func NewProjection(paths []Path) Projection {
+	var out Projection
 	for _, path := range paths {
 		out = insertPath(out, path)
 	}
@@ -19,7 +17,7 @@ func NewProjection(paths []field.Path) Path {
 }
 
 // XXX this is N*N in path lengths... fix?
-func insertPath(existing Path, addition field.Path) Path {
+func insertPath(existing Projection, addition Path) Projection {
 	if len(addition) == 0 {
 		return existing
 	}
@@ -29,17 +27,17 @@ func insertPath(existing Path, addition field.Path) Path {
 	switch elem := existing[0].(type) {
 	case string:
 		if elem == addition[0] {
-			return append(Path{elem}, insertPath(existing[1:], addition[1:])...)
+			return append(Projection{elem}, insertPath(existing[1:], addition[1:])...)
 		}
-		return Path{Fork{existing, convertFieldPath(addition)}}
+		return Projection{Fork{existing, convertFieldPath(addition)}}
 	case Fork:
-		return Path{addToFork(elem, addition)}
+		return Projection{addToFork(elem, addition)}
 	default:
 		panic(fmt.Sprintf("bad type encounted in insertPath: %T", elem))
 	}
 }
 
-func addToFork(fork Fork, addition field.Path) Fork {
+func addToFork(fork Fork, addition Path) Fork {
 	// The first element of each path in a fork must be the key distinguishing
 	// the different paths (so no embedded Fork as the first element of a fork)
 	for k, path := range fork {
@@ -52,7 +50,7 @@ func addToFork(fork Fork, addition field.Path) Fork {
 	return append(fork, convertFieldPath(addition))
 }
 
-func convertFieldPath(path field.Path) Path {
+func convertFieldPath(path Path) Projection {
 	var out []any
 	for _, s := range path {
 		out = append(out, s)

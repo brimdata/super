@@ -18,7 +18,7 @@ import (
 type reader struct {
 	zctx       *super.Context
 	objects    []*csup.Object
-	projection vcache.Path
+	projection field.Projection
 	readerAt   io.ReaderAt
 	vals       []super.Value
 }
@@ -35,7 +35,7 @@ func NewReader(zctx *super.Context, r io.Reader, fields []field.Path) (zio.Reade
 	return &reader{
 		zctx:       zctx,
 		objects:    objects,
-		projection: vcache.NewProjection(fields),
+		projection: field.NewProjection(fields),
 		readerAt:   ra,
 	}, nil
 }

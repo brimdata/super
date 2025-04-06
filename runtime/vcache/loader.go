@@ -10,6 +10,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/byteconv"
+	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/zcode"
@@ -45,48 +46,48 @@ type loader struct {
 // data vector is loaded just once and such loads may be executed concurrently (even
 // when only one thread is calling load).  If paths is nil, then the entire value
 // is loaded.
-func (l *loader) load(paths Path, s shadow) (vector.Any, error) {
+func (l *loader) load(projection field.Projection, s shadow) (vector.Any, error) {
 	var group errgroup.Group
-	l.fetchNulls(&group, paths, s)
+	l.fetchNulls(&group, projection, s)
 	if err := group.Wait(); err != nil {
 		return nil, err
 	}
-	flattenNulls(paths, s, nil)
-	l.loadVector(&group, paths, s)
+	flattenNulls(projection, s, nil)
+	l.loadVector(&group, projection, s)
 	if err := group.Wait(); err != nil {
 		return nil, err
 	}
-	return project(l.zctx, paths, s), nil
+	return project(l.zctx, projection, s), nil
 }
 
-func (l *loader) loadVector(g *errgroup.Group, paths Path, s shadow) {
+func (l *loader) loadVector(g *errgroup.Group, projection field.Projection, s shadow) {
 	switch s := s.(type) {
 	case *dynamic:
 		//XXX we need an ordered option to load tags only when needed
 		l.loadUint32(g, &s.mu, &s.tags, s.loc)
 		for _, m := range s.vals {
-			l.loadVector(g, paths, m)
+			l.loadVector(g, projection, m)
 		}
 	case *record:
-		l.loadRecord(g, paths, s)
+		l.loadRecord(g, projection, s)
 	case *array:
 		l.loadOffsets(g, &s.mu, &s.offs, s.loc, s.length(), s.nulls.flat)
-		l.loadVector(g, paths, s.vals)
+		l.loadVector(g, projection, s.vals)
 	case *set:
 		l.loadOffsets(g, &s.mu, &s.offs, s.loc, s.length(), s.nulls.flat)
-		l.loadVector(g, paths, s.vals)
+		l.loadVector(g, projection, s.vals)
 	case *map_:
 		l.loadOffsets(g, &s.mu, &s.offs, s.loc, s.length(), s.nulls.flat)
-		l.loadVector(g, paths, s.keys)
-		l.loadVector(g, paths, s.vals)
+		l.loadVector(g, projection, s.keys)
+		l.loadVector(g, projection, s.vals)
 	case *union:
-		l.loadUnion(g, paths, s)
+		l.loadUnion(g, projection, s)
 	case *int_:
 		l.loadInt(g, s)
 	case *uint_:
 		l.loadUint(g, s)
 	case *primitive:
-		l.loadPrimitive(g, paths, s)
+		l.loadPrimitive(g, s)
 	case *const_:
 		s.mu.Lock()
 		vec := s.vec
@@ -96,18 +97,18 @@ func (l *loader) loadVector(g *errgroup.Group, paths Path, s shadow) {
 		}
 		s.mu.Unlock()
 	case *dict:
-		l.loadDict(g, paths, s)
+		l.loadDict(g, projection, s)
 	case *error_:
-		l.loadVector(g, paths, s.vals)
+		l.loadVector(g, projection, s.vals)
 	case *named:
-		l.loadVector(g, paths, s.vals)
+		l.loadVector(g, projection, s.vals)
 	default:
 		panic(fmt.Sprintf("vector cache: shadow type %T not supported", s))
 	}
 }
 
-func (l *loader) loadRecord(g *errgroup.Group, paths Path, s *record) {
-	if len(paths) == 0 {
+func (l *loader) loadRecord(g *errgroup.Group, projection field.Projection, s *record) {
+	if len(projection) == 0 {
 		// Load the whole record.  We're either loading all on demand (nil paths)
 		// or loading this record because it's referenced at the end of a projected path.
 		for _, f := range s.fields {
@@ -115,18 +116,18 @@ func (l *loader) loadRecord(g *errgroup.Group, paths Path, s *record) {
 		}
 		return
 	}
-	switch elem := paths[0].(type) {
+	switch elem := projection[0].(type) {
 	case string:
 		if k := indexOfField(elem, s.fields); k >= 0 {
-			l.loadVector(g, paths[1:], s.fields[k].val)
+			l.loadVector(g, projection[1:], s.fields[k].val)
 		}
-	case Fork:
+	case field.Fork:
 		// Multiple fields at this level are being projected.
 		for _, path := range elem {
 			// records require a field name path element (i.e., string)
 			if name, ok := path[0].(string); ok {
 				if k := indexOfField(name, s.fields); k >= 0 {
-					l.loadVector(g, paths[1:], s.fields[k].val)
+					l.loadVector(g, projection[1:], s.fields[k].val)
 				}
 			}
 		}
@@ -135,10 +136,10 @@ func (l *loader) loadRecord(g *errgroup.Group, paths Path, s *record) {
 	}
 }
 
-func (l *loader) loadUnion(g *errgroup.Group, paths Path, s *union) {
+func (l *loader) loadUnion(g *errgroup.Group, projection field.Projection, s *union) {
 	l.loadUint32(g, &s.mu, &s.tags, s.loc)
 	for _, val := range s.vals {
-		l.loadVector(g, paths, val)
+		l.loadVector(g, projection, val)
 	}
 }
 
@@ -190,7 +191,7 @@ func (l *loader) loadUint(g *errgroup.Group, s *uint_) {
 	})
 }
 
-func (l *loader) loadPrimitive(g *errgroup.Group, paths Path, s *primitive) {
+func (l *loader) loadPrimitive(g *errgroup.Group, s *primitive) {
 	s.mu.Lock()
 	if s.vec != nil {
 		s.mu.Unlock()
@@ -334,11 +335,11 @@ func (l *loader) loadVals(typ super.Type, s *primitive, nulls *vector.Bool) (vec
 	return nil, fmt.Errorf("internal error: vcache.loadPrimitive got unknown type %#v", typ)
 }
 
-func (l *loader) loadDict(g *errgroup.Group, paths Path, s *dict) {
+func (l *loader) loadDict(g *errgroup.Group, projection field.Projection, s *dict) {
 	if s.csup.Length == 0 {
 		panic("empty dict") // empty dictionaries should not happen!
 	}
-	l.loadVector(g, paths, s.vals)
+	l.loadVector(g, projection, s.vals)
 	l.loadUint32(g, &s.mu, &s.counts, s.csup.Counts)
 	g.Go(func() error {
 		s.mu.Lock()
@@ -451,48 +452,48 @@ func (l *loader) loadOffsets(g *errgroup.Group, mu *sync.Mutex, slice *[]uint32,
 	})
 }
 
-func (l *loader) fetchNulls(g *errgroup.Group, paths Path, s shadow) {
+func (l *loader) fetchNulls(g *errgroup.Group, projection field.Projection, s shadow) {
 	switch s := s.(type) {
 	case *dynamic:
 		for _, m := range s.vals {
-			l.fetchNulls(g, paths, m)
+			l.fetchNulls(g, projection, m)
 		}
 	case *record:
 		s.nulls.fetch(g, l.r)
-		if len(paths) == 0 {
+		if len(projection) == 0 {
 			for _, f := range s.fields {
 				l.fetchNulls(g, nil, f.val)
 			}
 			return
 		}
-		switch elem := paths[0].(type) {
+		switch elem := projection[0].(type) {
 		case string:
 			if k := indexOfField(elem, s.fields); k >= 0 {
-				l.fetchNulls(g, paths[1:], s.fields[k].val)
+				l.fetchNulls(g, projection[1:], s.fields[k].val)
 			}
-		case Fork:
+		case field.Fork:
 			for _, path := range elem {
 				if name, ok := path[0].(string); ok {
 					if k := indexOfField(name, s.fields); k >= 0 {
-						l.fetchNulls(g, paths[1:], s.fields[k].val)
+						l.fetchNulls(g, projection[1:], s.fields[k].val)
 					}
 				}
 			}
 		}
 	case *array:
 		s.nulls.fetch(g, l.r)
-		l.fetchNulls(g, paths, s.vals)
+		l.fetchNulls(g, projection, s.vals)
 	case *set:
 		s.nulls.fetch(g, l.r)
-		l.fetchNulls(g, paths, s.vals)
+		l.fetchNulls(g, projection, s.vals)
 	case *map_:
 		s.nulls.fetch(g, l.r)
-		l.fetchNulls(g, paths, s.keys)
-		l.fetchNulls(g, paths, s.vals)
+		l.fetchNulls(g, projection, s.keys)
+		l.fetchNulls(g, projection, s.vals)
 	case *union:
 		s.nulls.fetch(g, l.r)
 		for _, val := range s.vals {
-			l.fetchNulls(g, paths, val)
+			l.fetchNulls(g, projection, val)
 		}
 	case *int_:
 		s.nulls.fetch(g, l.r)
@@ -506,48 +507,48 @@ func (l *loader) fetchNulls(g *errgroup.Group, paths Path, s shadow) {
 		s.nulls.fetch(g, l.r)
 	case *error_:
 		s.nulls.fetch(g, l.r)
-		l.fetchNulls(g, paths, s.vals)
+		l.fetchNulls(g, projection, s.vals)
 	case *named:
-		l.fetchNulls(g, paths, s.vals)
+		l.fetchNulls(g, projection, s.vals)
 	default:
 		panic(fmt.Sprintf("vector cache: type %T not supported", s))
 	}
 }
 
-func flattenNulls(paths Path, s shadow, parent *vector.Bool) {
+func flattenNulls(projection field.Projection, s shadow, parent *vector.Bool) {
 	switch s := s.(type) {
 	case *dynamic:
 		for _, m := range s.vals {
-			flattenNulls(paths, m, nil)
+			flattenNulls(projection, m, nil)
 		}
 	case *record:
 		nulls := s.nulls.flatten(parent)
-		if len(paths) == 0 {
+		if len(projection) == 0 {
 			for _, f := range s.fields {
 				flattenNulls(nil, f.val, nulls)
 			}
 			return
 		}
-		switch elem := paths[0].(type) {
+		switch elem := projection[0].(type) {
 		case string:
 			if k := indexOfField(elem, s.fields); k >= 0 {
-				flattenNulls(paths[1:], s.fields[k].val, nulls)
+				flattenNulls(projection[1:], s.fields[k].val, nulls)
 			}
-		case Fork:
+		case field.Fork:
 			for _, path := range elem {
 				if name, ok := path[0].(string); ok {
 					if k := indexOfField(name, s.fields); k >= 0 {
-						flattenNulls(paths[1:], s.fields[k].val, nulls)
+						flattenNulls(projection[1:], s.fields[k].val, nulls)
 					}
 				}
 			}
 		}
 	case *array:
 		s.nulls.flatten(parent)
-		flattenNulls(paths, s.vals, nil)
+		flattenNulls(projection, s.vals, nil)
 	case *set:
 		s.nulls.flatten(parent)
-		flattenNulls(paths, s.vals, nil)
+		flattenNulls(projection, s.vals, nil)
 	case *map_:
 		s.nulls.flatten(parent)
 		flattenNulls(nil, s.keys, nil)
@@ -555,7 +556,7 @@ func flattenNulls(paths Path, s shadow, parent *vector.Bool) {
 	case *union:
 		s.nulls.flatten(parent)
 		for _, val := range s.vals {
-			flattenNulls(paths, val, nil)
+			flattenNulls(projection, val, nil)
 		}
 	case *int_:
 		s.nulls.flatten(parent)
@@ -569,9 +570,9 @@ func flattenNulls(paths Path, s shadow, parent *vector.Bool) {
 		s.nulls.flatten(parent)
 	case *error_:
 		s.nulls.flatten(parent)
-		flattenNulls(paths, s.vals, nil)
+		flattenNulls(projection, s.vals, nil)
 	case *named:
-		flattenNulls(paths, s.vals, parent)
+		flattenNulls(projection, s.vals, parent)
 	default:
 		panic(fmt.Sprintf("vector cache: type %T not supported", s))
 	}

@@ -20,7 +20,7 @@ type Searcher struct {
 	once       sync.Once
 	parent     *objectPuller
 	pool       *lake.Pool
-	projection vcache.Path
+	projection field.Projection
 	rctx       *runtime.Context
 	resultCh   chan searchResult
 	doneCh     chan struct{}
@@ -32,7 +32,7 @@ func NewSearcher(rctx *runtime.Context, cache *vcache.Cache, parent zbuf.Puller,
 		filter:     filter,
 		parent:     newObjectPuller(parent),
 		pool:       pool,
-		projection: vcache.NewProjection(project),
+		projection: field.NewProjection(project),
 		rctx:       rctx,
 		resultCh:   make(chan searchResult),
 		doneCh:     make(chan struct{}),

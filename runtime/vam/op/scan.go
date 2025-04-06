@@ -23,7 +23,7 @@ type Scanner struct {
 	rctx       *runtime.Context
 	pool       *lake.Pool
 	once       sync.Once
-	projection vcache.Path
+	projection field.Projection
 	cache      *vcache.Cache
 	progress   *zbuf.Progress
 	resultCh   chan result
@@ -39,7 +39,7 @@ func NewScanner(rctx *runtime.Context, cache *vcache.Cache, parent zbuf.Puller, 
 		parent:     newObjectPuller(parent),
 		pruner:     pruner,
 		pool:       pool,
-		projection: vcache.NewProjection(paths),
+		projection: field.NewProjection(paths),
 		progress:   progress,
 		doneCh:     make(chan struct{}),
 		resultCh:   make(chan result),

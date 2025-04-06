@@ -5,6 +5,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/csup"
+	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/vector"
 )
@@ -58,6 +59,6 @@ func (o *Object) Close() error {
 // storage and cached in memory so that subsequent calls run from memory.
 // The vectors returned will have types from the provided zctx.  Multiple
 // Fetch calls to the same object may run concurrently.
-func (o *Object) Fetch(zctx *super.Context, projection Path) (vector.Any, error) {
+func (o *Object) Fetch(zctx *super.Context, projection field.Projection) (vector.Any, error) {
 	return (&loader{zctx, o.object.DataReader()}).load(projection, o.root)
 }
