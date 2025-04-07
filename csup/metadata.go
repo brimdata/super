@@ -22,7 +22,7 @@ func (r *Record) Type(zctx *super.Context) super.Type {
 	fields := make([]super.Field, 0, len(r.Fields))
 	for _, field := range r.Fields {
 		typ := field.Values.Type(zctx)
-		fields = append(fields, super.Field{Name: field.Name, Type: typ})
+		fields = append(fields, super.NewField(field.Name, typ))
 	}
 	return zctx.MustLookupTypeRecord(fields)
 }
@@ -293,7 +293,7 @@ func metadataValue(zctx *super.Context, b *zcode.Builder, m Metadata, projection
 			var fields []super.Field
 			b.BeginContainer()
 			for _, f := range m.Fields {
-				fields = append(fields, super.Field{Name: f.Name, Type: metadataValue(zctx, b, f.Values, nil)})
+				fields = append(fields, super.NewField(f.Name, metadataValue(zctx, b, f.Values, nil)))
 			}
 			b.EndContainer()
 			return zctx.MustLookupTypeRecord(fields)
@@ -306,7 +306,7 @@ func metadataValue(zctx *super.Context, b *zcode.Builder, m Metadata, projection
 			// value as error missing.
 			b.BeginContainer()
 			if k := indexOfField(elem, m.Fields); k >= 0 {
-				fields = []super.Field{{Name: elem, Type: metadataValue(zctx, b, m.Fields[k].Values, projection[1:])}}
+				fields = []super.Field{super.NewField(elem, metadataValue(zctx, b, m.Fields[k].Values, projection[1:]))}
 			}
 			b.EndContainer()
 			return zctx.MustLookupTypeRecord(fields)
@@ -317,7 +317,7 @@ func metadataValue(zctx *super.Context, b *zcode.Builder, m Metadata, projection
 				if name, ok := path[0].(string); ok {
 					if k := indexOfField(name, m.Fields); k >= 0 {
 						f := m.Fields[k]
-						fields = append(fields, super.Field{Name: f.Name, Type: metadataValue(zctx, b, f.Values, projection[1:])})
+						fields = append(fields, super.NewField(f.Name, metadataValue(zctx, b, f.Values, projection[1:])))
 					}
 				}
 			}
