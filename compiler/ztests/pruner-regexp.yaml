@@ -17,16 +17,16 @@ outputs:
     data: |
       file test.csup format csup
          pruner (
-          expr: compare("cslab", x.max, true)<=0 and compare("cslac", x.min, true)>0
-          proj: fields x.max,x.min
+           expr compare("cslab", x.max, true)<=0 and compare("cslac", x.min, true)>0
+           fields x.max,x.min
         )
       | where regexp_search(/(?s)^cslab.*?$/, x)
       | output main
       // ===
       file test.csup format csup
          pruner (
-          expr: compare("csla", x.max, true)<=0 and compare("cslb", x.min, true)>0
-          proj: fields x.max,x.min
+           expr compare("csla", x.max, true)<=0 and compare("cslb", x.min, true)>0
+           fields x.max,x.min
         )
       | where regexp_search(/^csla[bB].*/, x)
       | output main

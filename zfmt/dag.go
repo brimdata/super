@@ -571,11 +571,10 @@ func (c *canonDAG) op(p dag.Op) {
 				c.open()
 				c.open(" pruner (")
 				c.ret()
-				c.write("expr: ")
+				c.write(" expr ")
 				c.expr(mf.Expr, "")
 				c.ret()
 				if len(mf.Projection) > 0 {
-					c.write("proj:")
 					c.fields(mf.Projection)
 				}
 				c.close()
