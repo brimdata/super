@@ -45,7 +45,7 @@ func (v *VectorReader) NewConcurrentPuller() (vector.Puller, error) {
 	v.activeReaders.Add(1)
 	return &VectorReader{
 		ctx:           v.ctx,
-		zctx:          v.zctx, //XXX use csup object ctx?
+		zctx:          v.zctx,
 		activeReaders: v.activeReaders,
 		pushdown:      v.pushdown,
 		stream:        v.stream,
