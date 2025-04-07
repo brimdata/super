@@ -105,6 +105,7 @@ func (v *VectorReader) Pull(done bool) (vector.Any, error) {
 
 func pruneObject(zctx *super.Context, metaFilters *sync.Pool, m csup.Metadata) bool {
 	mf := metaFilters.Get().(*metafilter)
+	defer metaFilters.Put(mf)
 	vals := csup.ProjectMetadata(zctx, m, mf.projection)
 	for _, val := range vals {
 		if mf.filter.Eval(nil, val).Ptr().AsBool() {
