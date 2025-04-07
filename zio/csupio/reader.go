@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	"math"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/csup"
@@ -17,7 +16,7 @@ import (
 
 type reader struct {
 	zctx       *super.Context
-	objects    []*csup.Object
+	stream     *stream
 	projection field.Projection
 	readerAt   io.ReaderAt
 	vals       []super.Value
@@ -28,13 +27,13 @@ func NewReader(zctx *super.Context, r io.Reader, fields []field.Path) (zio.Reade
 	if !ok {
 		return nil, errors.New("Super Columnar requires a seekable input")
 	}
-	objects, err := readObjects(ra)
-	if err != nil {
+	// CSUP autodetection requires that we return error on open if invalid format.
+	if _, err := csup.ReadHeader(ra); err != nil {
 		return nil, err
 	}
 	return &reader{
 		zctx:       zctx,
-		objects:    objects,
+		stream:     &stream{r: ra},
 		projection: field.NewProjection(fields),
 		readerAt:   ra,
 	}, nil
@@ -43,11 +42,10 @@ func NewReader(zctx *super.Context, r io.Reader, fields []field.Path) (zio.Reade
 func (r *reader) Read() (*super.Value, error) {
 again:
 	if len(r.vals) == 0 {
-		if len(r.objects) == 0 {
-			return nil, nil
+		o, err := r.stream.next()
+		if o == nil || err != nil {
+			return nil, err
 		}
-		o := r.objects[0]
-		r.objects = r.objects[1:]
 		vec, err := vcache.NewObjectFromCSUP(o).Fetch(r.zctx, r.projection)
 		if err != nil {
 			return nil, err
@@ -85,22 +83,4 @@ func (r *reader) Close() error {
 		return closer.Close()
 	}
 	return nil
-}
-
-func readObjects(r io.ReaderAt) ([]*csup.Object, error) {
-	var objects []*csup.Object
-	var start int64
-	for {
-		// NewObject puts the right end to the passed in SectionReader and since
-		// the end is unkown just pass MaxInt64.
-		o, err := csup.NewObject(io.NewSectionReader(r, start, math.MaxInt64))
-		if err != nil {
-			if err == io.EOF && len(objects) > 0 {
-				return objects, nil
-			}
-			return nil, err
-		}
-		objects = append(objects, o)
-		start += int64(o.Size())
-	}
 }

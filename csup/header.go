@@ -50,9 +50,9 @@ func (h *Header) Deserialize(bytes []byte) error {
 	return nil
 }
 
-func ReadHeader(r io.Reader) (Header, error) {
+func ReadHeader(r io.ReaderAt) (Header, error) {
 	var bytes [HeaderSize]byte
-	cc, err := r.Read(bytes[:])
+	cc, err := r.ReadAt(bytes[:], 0)
 	if err != nil {
 		return Header{}, err
 	}
