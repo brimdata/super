@@ -36,6 +36,7 @@ func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, push
 		zctx:          zctx,
 		activeReaders: &atomic.Int64{},
 		stream:        &stream{r: ra},
+		pushdown:      pushdown,
 		projection:    pushdown.Projection(),
 		readerAt:      ra,
 	}, nil

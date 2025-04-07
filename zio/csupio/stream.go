@@ -15,10 +15,12 @@ type stream struct {
 }
 
 func (s *stream) next() (*csup.Object, error) {
-	// NewObject puts the right end to the passed in SectionReader and since
-	// the end is unkown just pass MaxInt64.
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	// We read the next object by creating a section reader that starts
+	// at the end of the previous object without an upper bound.  The csup
+	// package won't read off the end of the object so this is not a problem.
 	o, err := csup.NewObject(io.NewSectionReader(s.r, s.off, math.MaxInt64))
 	if err != nil {
 		if err == io.EOF {
