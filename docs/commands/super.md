@@ -6,7 +6,7 @@ title: super
 > **TL;DR** `super` is a command-line tool that uses [SuperSQL](../language/_index.md)
 > to query a variety of data formats in files, over HTTP, or in [S3](../integrations/amazon-s3.md)
 > storage. Best performance is achieved when operating on data in binary formats such as
-> [Super Binary](../formats/bsup.md), [Super Columnar](../formats/csup.md),
+> [Super Binary (BSUP)](../formats/bsup.md), [Super Columnar (CSUP)](../formats/csup.md),
 > [Parquet](https://github.com/apache/parquet-format), or
 > [Arrow](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format).
 
@@ -116,15 +116,15 @@ simply run `super` with no arguments.
 
 ## Data Formats
 
-`super` supports a number of [input](#input-formats) and [output](#output-formats) formats, but the super formats
-([Super Binary](../formats/bsup.md),
-[Super Columnar](../formats/csup.md),
-and [Super JSON](../formats/sup.md)) tend to be the most versatile and
+`super` supports a number of [input](#input-formats) and [output](#output-formats) formats, but the
+[Super (SUP)](../formats/sup.md),
+[Super Binary (BSUP)](../formats/bsup.md), and
+[Super Columnar (CSUP)](../formats/csup.md) formats tend to be the most versatile and
 easy to work with.
 
 `super` typically operates on binary-encoded data and when you want to inspect
-human-readable bits of output, you merely format it as Super JSON, which is the
-default format when output is directed to the terminal.  Super Binary is the default
+human-readable bits of output, you merely format it as SUP, which is the
+default format when output is directed to the terminal.  BSUP is the default
 when redirecting to a non-terminal output like a file or pipe.
 
 Unless the `-i` option specifies a specific input format,
@@ -139,16 +139,16 @@ in the order appearing on the command line forming the input stream.
 |  Option   | Auto | Specification                            |
 |-----------|------|------------------------------------------|
 | `arrows`  |  yes | [Arrow IPC Stream Format](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format) |
-| `bsup`    |  yes | [Super Binary](../formats/bsup.md) |
-| `csup`    |  yes | [Super Columnar](../formats/csup.md) |
+| `bsup`    |  yes | [BSUP](../formats/bsup.md) |
+| `csup`    |  yes | [CSUP](../formats/csup.md) |
 | `csv`     |  yes | [Comma-Separated Values (RFC 4180)](https://www.rfc-editor.org/rfc/rfc4180.html) |
 | `json`    |  yes | [JSON (RFC 8259)](https://www.rfc-editor.org/rfc/rfc8259.html) |
 | `line`    |  no  | One string value per input line |
 | `parquet` |  yes | [Apache Parquet](https://github.com/apache/parquet-format) |
-| `sup`     |  yes | [Super JSON](../formats/sup.md) |
+| `sup`     |  yes | [SUP](../formats/sup.md) |
 | `tsv`     |  yes | [Tab-Separated Values](https://en.wikipedia.org/wiki/Tab-separated_values) |
 | `zeek`    |  yes | [Zeek Logs](https://docs.zeek.org/en/master/logs/index.html) |
-| `zjson`   |  yes | [Super JSON over JSON](../formats/zjson.md) |
+| `zjson`   |  yes | [Super over JSON (JSUP)](../formats/zjson.md) |
 
 The input format is typically [detected automatically](#auto-detection) and the formats for which
 "Auto" is "yes" in the table above support _auto-detection_.
@@ -181,7 +181,7 @@ then the command
 ```mdtest-command
 super -z sample.csv sample.json
 ```
-would produce this output in the default Super JSON format
+would produce this output in the default SUP format
 ```mdtest-output
 {a:1.,b:"foo"}
 {a:2.,b:"bar"}
@@ -190,32 +190,32 @@ would produce this output in the default Super JSON format
 
 #### JSON Auto-detection: Super vs. Plain
 
-Since [Super JSON](../formats/sup.md) is a superset of plain JSON, `super` must be careful how it distinguishes the two cases when performing auto-inference.
+Since [SUP](../formats/sup.md) is a superset of plain JSON, `super` must be careful how it distinguishes the two cases when performing auto-inference.
 While you can always clarify your intent
 via `-i sup` or `-i json`, `super` attempts to "just do the right thing"
-when you run it with Super JSON vs. plain JSON.
+when you run it with SUP vs. plain JSON.
 
-While `super` can parse any JSON using its built-in Super JSON parser this is typically
-not desirable because (1) the Super JSON parser is not particularly performant and
-(2) all JSON numbers are floating point but the Super JSON parser will parse as
+While `super` can parse any JSON using its built-in SUP parser this is typically
+not desirable because (1) the SUP parser is not particularly performant and
+(2) all JSON numbers are floating point but the SUP parser will parse as
 JSON any number that appears without a decimal point as an integer type.
 
 {{% tip "Note" %}}
 
-The reason `super` is not particularly performant for Super JSON is that the [Super Binary](../formats/bsup.md) or
-[Super Columnar](../formats/csup.md) formats are semantically equivalent to Super JSON but much more efficient and
+The reason `super` is not particularly performant for SUP is that the [BSUP](../formats/bsup.md) or
+[CSUP](../formats/csup.md) formats are semantically equivalent to SUP but much more efficient and
 the design intent is that these efficient binary formats should be used in
-use cases where performance matters.  Super JSON is typically used only when
+use cases where performance matters.  SUP is typically used only when
 data needs to be human-readable in interactive settings or in automated tests.
 
 {{% /tip %}}
 
-To this end, `super` uses a heuristic to select between Super JSON and plain JSON when the
+To this end, `super` uses a heuristic to select between SUP and plain JSON when the
 `-i` option is not specified. Specifically, plain JSON is selected when the first values
 of the input are parsable as valid JSON and includes a JSON object either
 as an outer object or as a value nested somewhere within a JSON array.
 
-This heuristic almost always works in practice because Super JSON records
+This heuristic almost always works in practice because SUP records
 typically omit quotes around field names.
 
 ### Output Formats
@@ -225,24 +225,24 @@ typically omit quotes around field names.
 |  Option   | Specification                            |
 |-----------|------------------------------------------|
 | `arrows`  | [Arrow IPC Stream Format](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format) |
-| `bsup`    | [Super Binary](../formats/bsup.md) |
-| `csup`    | [Super Columnar](../formats/csup.md) |
+| `bsup`    | [BSUP](../formats/bsup.md) |
+| `csup`    | [CSUP](../formats/csup.md) |
 | `csv`     | [Comma-Separated Values (RFC 4180)](https://www.rfc-editor.org/rfc/rfc4180.html) |
 | `json`    | [JSON (RFC 8259)](https://www.rfc-editor.org/rfc/rfc8259.html) |
 | `lake`    | [SuperDB Data Lake Metadata Output](#superdb-data-lake-metadata-output) |
 | `line`    | (described [below](#simplified-text-outputs)) |
 | `parquet` | [Apache Parquet](https://github.com/apache/parquet-format) |
-| `sup`     | [Super JSON](../formats/sup.md) |
+| `sup`     | [SUP](../formats/sup.md) |
 | `table`   | (described [below](#simplified-text-outputs)) |
 | `text`    | (described [below](#simplified-text-outputs)) |
 | `tsv`     | [Tab-Separated Values](https://en.wikipedia.org/wiki/Tab-separated_values) |
 | `zeek`    | [Zeek Logs](https://docs.zeek.org/en/master/logs/index.html) |
-| `zjson`   | [Super JSON over JSON](../formats/zjson.md) |
+| `zjson`   | [SUP over JSON (JSUP)](../formats/zjson.md) |
 
-The output format defaults to either Super JSON or Super Binary and may be specified
+The output format defaults to either SUP or BSUP and may be specified
 with the `-f` option.
 
-Since Super JSON is a common format choice, the `-z` flag is a shortcut for
+Since SUP is a common format choice, the `-z` flag is a shortcut for
 `-f sup`.  Also, `-Z` is a shortcut for `-f sup` with `-pretty 4` as
 [described below](#pretty-printing).
 
@@ -251,18 +251,18 @@ And since plain JSON is another common format choice, the `-j` flag is a shortcu
 
 #### Output Format Selection
 
-When the format is not specified with `-f`, it defaults to Super JSON if the output
-is a terminal and to Super Binary otherwise.
+When the format is not specified with `-f`, it defaults to SUP if the output
+is a terminal and to BSUP otherwise.
 
 While this can cause an occasional surprise (e.g., forgetting `-f` or `-z`
 in a scripted test that works fine on the command line but fails in CI),
 we felt that the design of having a uniform default had worse consequences:
-* If the default format were Super JSON, it would be very easy to create pipelines
-and deploy to production systems that were accidentally using Super JSON instead of
-the much more efficient Super Binary format because the `-f bsup` had been mistakenly
+* If the default format were SUP, it would be very easy to create pipelines
+and deploy to production systems that were accidentally using SUP instead of
+the much more efficient BSUP format because the `-f bsup` had been mistakenly
 omitted from some command.  The beauty of SuperDB is that all of this "just works"
 but it would otherwise perform poorly.
-* If the default format were Super Binary, then users would be endlessly annoyed by
+* If the default format were BSUP, then users would be endlessly annoyed by
 binary output to their terminal when forgetting to type `-f sup`.
 
 In practice, we have found that the output defaults
@@ -270,7 +270,7 @@ In practice, we have found that the output defaults
 
 #### Pretty Printing
 
-Super JSON and plain JSON text may be "pretty printed" with the `-pretty` option, which takes
+SUP and plain JSON text may be "pretty printed" with the `-pretty` option, which takes
 the number of spaces to use for indentation.  As this is a common option,
 the `-Z` option is a shortcut for `-f sup -pretty 4` and `-J` is a shortcut
 for `-f json -pretty 4`.
@@ -313,17 +313,17 @@ produces
 When pretty printing, colorization is enabled by default when writing to a terminal,
 and can be disabled with `-color false`.
 
-#### Pipeline-friendly Super Binary
+#### Pipeline-friendly BSUP
 
-Though it's a compressed format, Super Binary data is self-describing and stream-oriented
+Though it's a compressed format, BSUP data is self-describing and stream-oriented
 and thus is pipeline friendly.
 
-Since data is self-describing you can simply take Super Binary output
+Since data is self-describing you can simply take BSUP output
 of one command and pipe it to the input of another.  It doesn't matter if the value
 sequence is scalars, complex types, or records.  There is no need to declare
 or register schemas or "protos" with the downstream entities.
 
-In particular, Super Binary data can simply be concatenated together, e.g.,
+In particular, BSUP data can simply be concatenated together, e.g.,
 ```mdtest-command
 super -f bsup -c 'select value 1, [1,2,3]' > a.bsup
 super -f bsup -c 'select value {s:"hello"}, {s:"world"}' > b.bsup
@@ -336,7 +336,7 @@ produces
 {s:"hello"}
 {s:"world"}
 ```
-And while this Super JSON output is human readable, the Super Binary files are binary, e.g.,
+And while this SUP output is human readable, the BSUP files are binary, e.g.,
 ```mdtest-command
 super -f bsup -c 'select value 1,[ 1,2,3]' > a.bsup
 hexdump -C a.bsup
@@ -431,7 +431,7 @@ formatting applied if any of the following escape sequences are present:
 | `\f`            | Form feed                               |
 | `\u`            | Unicode escape (e.g., `\u0041` for `A`) |
 
-Non-string values are formatted as [Super JSON](../formats/sup.md).
+Non-string values are formatted as [SUP](../formats/sup.md).
 
 For example:
 
@@ -663,7 +663,7 @@ _Hello, world_
 ```mdtest-command
 super -z -c "SELECT VALUE 'hello, world'"
 ```
-produces this Super JSON output
+produces this SUP output
 ```mdtest-output
 "hello, world"
 ```
@@ -738,7 +738,7 @@ a:=int64(a)
 {a:2,b:"bar"}
 ```
 
-_Make a schema-rigid Parquet file using fuse, then output the Parquet file as Super JSON_
+_Make a schema-rigid Parquet file using fuse, then output the Parquet file as SUP_
 ```mdtest-command
 echo '{a:1}{a:2}{b:3}' | super -f parquet -o tmp.parquet -c fuse -
 super -z tmp.parquet
@@ -766,7 +766,7 @@ measurements among SuperDB,
 We'll use the Parquet format to compare apples to apples
 and also report results for the custom columnar database format of DuckDB,
 the [new beta JSON type](https://clickhouse.com/blog/a-new-powerful-json-data-type-for-clickhouse) of ClickHouse,
-and the [Super Binary](../formats/bsup.md) format used by `super`.
+and the [BSUP](../formats/bsup.md) format used by `super`.
 
 The detailed steps shown [below](#appendix-2-running-the-tests) can be reproduced via
 [automated scripts](https://github.com/brimdata/super/blob/main/scripts/super-cmd-perf).
@@ -823,7 +823,7 @@ clickhouse-client --query "
 ```
 To create a super-structed file for the `super` command, there is no need to
 [`fuse`](../language/operators/fuse.md) the data into a single schema (though `super` can still work with the fused
-schema in the Parquet file), and we simply ran this command to create a Super Binary
+schema in the Parquet file), and we simply ran this command to create a BSUP
 file:
 ```
 super gharchive_gz/*.json.gz > gha.bsup
@@ -1081,7 +1081,7 @@ Since DuckDB with its native format could successfully run all queries with
 decent performance, we used it as the baseline for all of the speed-up factors.
 
 To summarize,
-`super` with Super Binary is substantially faster than multiple relational systems for
+`super` with BSUP is substantially faster than multiple relational systems for
 the search use cases, and with Parquet performs on par with the others for traditional OLAP queries,
 except for the _union_ query, where the super-structured data model trounces the relational
 model (by over 60x!) for stitching together disparate data types for analysis in an aggregation.
@@ -1156,7 +1156,7 @@ We now have the DuckDB database file for our GitHub Archive data called `gha.db`
 containing a single table called `gha` embedded in that database.
 What about the super-structured
 format for the `super` command?  There is no need to futz with sample sizes,
-schema inference, or union by name. Just run this to create a Super Binary file:
+schema inference, or union by name. Just run this to create a BSUP file:
 ```
 super gharchive_gz/*.json.gz > gha.bsup
 ```

@@ -395,10 +395,10 @@ options. Varying these may impact how quickly events appear in the pool and
 the size of the commit objects to which they're initially stored.
 
 2. **BSUP format** - In the [shaping example](#shaping-example) shown above, we
-used the [Super JSON format](../formats/sup.md) format for the shaped data output from
+used the [Super (SUP) format](../formats/sup.md) format for the shaped data output from
 [`super`](../commands/super.md). This text format is typically used in contexts
 where human readability is required. Due to its compact nature,
-[Super Binary](../formats/bsup.md) format would have been preferred, but in our research
+[Super Binary (BSUP)](../formats/bsup.md) format would have been preferred, but in our research
 we found Fluentd consistently steered us toward using only text formats.
 However, someone more proficient with Fluentd may be able to employ BSUP
 instead.

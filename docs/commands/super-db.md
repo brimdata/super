@@ -117,8 +117,8 @@ replication easy to support and deploy.
 
 The cloud objects that comprise a lake, e.g., data objects,
 commit history, transaction journals, partial aggregations, etc.,
-are stored as super-structured data, i.e., either as [row-based Super Binary](../formats/bsup.md)
-or [Super Columnar](../formats/csup.md).
+are stored as super-structured data, i.e., either as [row-based Super Binary (BSUP)](../formats/bsup.md)
+or [Super Columnar (CSUP)](../formats/csup.md).
 This makes introspection of the lake structure straightforward as many key
 lake data structures can be queried with metadata queries and presented
 to a client for further processing by downstream tooling.
@@ -527,7 +527,7 @@ the collection of objects is generally not sorted.
 Each load operation creates a single [commit object](#commit-objects), which includes:
 * an author and message string,
 * a timestamp computed by the server, and
-* an optional metadata field of any type expressed as a Super JSON value.
+* an optional metadata field of any type expressed as a Super (SUP) value.
 This data has the type signature:
 ```
 {
@@ -550,7 +550,7 @@ The `date` field here is used by the lake system to do [time travel](#time-trave
 through the branch and pool history, allowing you to see the state of
 branches at any time in their commit history.
 
-Arbitrary metadata expressed as any [Super JSON value](../formats/sup.md)
+Arbitrary metadata expressed as any [SUP value](../formats/sup.md)
 may be attached to a commit via the `-meta` flag.  This allows an application
 or user to transactionally commit metadata alongside committed data for any
 purpose.  This approach allows external applications to implement arbitrary
@@ -558,7 +558,7 @@ data provenance and audit capabilities by embedding custom metadata in the
 commit history.
 
 Since commit objects are stored as super-structured data, the metadata can easily be
-queried by running the `log -f bsup` to retrieve the log in Super Binary format,
+queried by running the `log -f bsup` to retrieve the log in BSUP format,
 for example, and using [`super`](super.md) to pull the metadata out
 as in:
 ```
@@ -677,8 +677,8 @@ indicating the pool and branch to use as input.
 
 The pool/branch names are specified with `from` in the query.
 
-As with [`super`](super.md), the default output format is Super JSON for
-terminals and Super Binary otherwise, though this can be overridden with
+As with [`super`](super.md), the default output format is SUP for
+terminals and BSUP otherwise, though this can be overridden with
 `-f` to specify one of the various supported output formats.
 
 If a pool name is provided to `from` without a branch name, then branch
@@ -699,7 +699,7 @@ Filters on pool keys are efficiently implemented as the data is laid out
 according to the pool key and seek indexes keyed by the pool key
 are computed for each data object.
 
-When querying data to the [Super Binary](../formats/bsup.md) output format,
+When querying data to the [BSUP](../formats/bsup.md) output format,
 output from a pool can be easily piped to other commands like `super`, e.g.,
 ```
 super db query -f bsup 'from logs' | super -f table -c 'count() by field' -
@@ -741,7 +741,7 @@ There are three types of meta-queries:
 sources vary based on level.
 
 For example, a list of pools with configuration data can be obtained
-in the Super JSON format as follows:
+in the SUP format as follows:
 ```
 super db query -Z "from :pools"
 ```

@@ -33,7 +33,7 @@ For a non-technical user, SuperDB is as easy to use as web search
 while for a technical user, SuperDB exposes its technical underpinnings
 in a gradual slope, providing as much detail as desired,
 packaged up in the easy-to-understand
-[Super JSON data format](../formats/sup.md) and
+[Super (SUP) data format](../formats/sup.md) and
 [SuperSQL language](../language/_index.md).
 
 While `super` and its accompanying data formats are production quality for some use cases, the project's
@@ -46,7 +46,7 @@ a number of different elements of the system:
 * The [super data model](../formats/data-model.md) is the abstract definition of the data types and semantics
 that underlie the super-structured data formats.
 * The [super-structured data formats](../formats/_index.md) are a family of
-[human-readable (Super JSON, SUP)](../formats/sup.md),
+[human-readable (Super, SUP)](../formats/sup.md),
 [sequential (Super Binary, BSUP)](../formats/bsup.md), and
 [columnar (Super Columnar, CSUP)](../formats/csup.md) formats that all adhere to the
 same abstract super data model.

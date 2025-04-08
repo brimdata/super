@@ -38,7 +38,7 @@ as well as [`jq`](https://jqlang.org/download/).
 ## But JSON
 
 While `super` is based on a new type of [data model](../formats/data-model.md),
-its human-readable format [Super JSON (SUP)](../formats/sup.md) just so
+its human-readable format [Super (SUP)](../formats/sup.md) just so
 happens to be a superset of JSON.
 
 So if all you ever use `super` for is manipulating JSON data,
@@ -177,14 +177,14 @@ trying to do high-precision stuff with data.
 When using `super`, it's handy to operate in the
 domain of [super-structured data](../formats/_index.md#2-a-super-structured-pattern) and only output to
 JSON when needed. Providing human-readability without losing detail is what
-[Super JSON (SUP)](../formats/sup.md) is all about.
+[SUP](../formats/sup.md) is all about.
 
 SUP is nice because it has a comprehensive type system and you can
-go from SUP to an efficient binary row format ([Super Binary, BSUP)](../formats/bsup.md)
-and columnar ([Super Columnar, CSUP)](../formats/csup.md) --- and vice versa ---
+go from SUP to an efficient binary row format ([Super Binary, BSUP](../formats/bsup.md))
+and columnar ([Super Columnar, CSUP](../formats/csup.md)) --- and vice versa ---
 with complete fidelity and no loss of information.  In this tour,
 we'll stick to SUP, though for large data sets
-[Super Binary is much faster](https://github.com/brimdata/super/tree/main/performance).
+[BSUP is much faster](https://github.com/brimdata/super/tree/main/performance).
 
 The first thing you'll notice about SUP is that you don't need
 quotations around field names.  We can see this by taking some JSON

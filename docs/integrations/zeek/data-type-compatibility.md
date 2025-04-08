@@ -5,8 +5,8 @@ title: Zed/Zeek Data Type Compatibility
 
 As the [super data model](../../formats/data-model.md) was in many ways inspired by the
 [Zeek TSV log format](https://docs.zeek.org/en/master/log-formats.html#zeek-tsv-format-logs),
-SuperDB's rich storage formats ([Super JSON](../../formats/sup.md),
-[Super Binary](../../formats/bsup.md), etc.) maintain comprehensive interoperability
+SuperDB's rich storage formats ([Super (SUP)](../../formats/sup.md),
+[Super Binary (BSUP)](../../formats/bsup.md), etc.) maintain comprehensive interoperability
 with Zeek. When Zeek is configured to output its logs in
 JSON format, much of the rich type information is lost in translation, but
 this can be restored by following the guidance for [shaping Zeek JSON](shaping-zeek-json.md).
@@ -21,7 +21,7 @@ representation of any Zeek data that is read or imported. Therefore, knowing
 the equivalent types will prove useful when performing operations in the
 [Zed language](../../language/_index.md) such as
 [type casting](../../language/shaping.md#cast) or looking at the data
-when output as Super JSON.
+when output as SUP.
 
 ## Equivalent Types
 
@@ -64,7 +64,7 @@ there is no authoritative specification of the Zeek TSV log format.
 ## Example
 
 The following example shows a TSV log that includes each Zeek data type, how
-it's output as Super JSON by [`super`](../../commands/super.md), and then how it's written back out again as a Zeek
+it's output as SUP by [`super`](../../commands/super.md), and then how it's written back out again as a Zeek
 log. You may find it helpful to refer to this example when reading the
 [type-specific details](#type-specific-details).
 
@@ -86,7 +86,7 @@ cat zeek_types.log
 T	123	456	123.4560	1592502151.123456	123.456	smile😁smile	\x09\x07\x04	80	127.0.0.1	10.0.0.0/8	tcp	things,in,a,set	order,is,important	Jeanne	122
 ```
 
-#### Reading the TSV log, outputting as Super JSON, and saving a copy:
+#### Reading the TSV log, outputting as SUP, and saving a copy:
 
 ```mdtest-command
 super -Z zeek_types.log | tee zeek_types.sup
@@ -126,7 +126,7 @@ super -Z zeek_types.log | tee zeek_types.sup
 }
 ```
 
-#### Reading the saved Super JSON output and outputting as Zeek TSV:
+#### Reading the saved SUP output and outputting as Zeek TSV:
 
 ```mdtest-command
 super -f zeek zeek_types.sup
@@ -146,8 +146,8 @@ T	123	456	123.456	1592502151.123456	123.456000	smile😁smile	\x09\x07\x04	80	12
 ## Type-Specific Details
 
 As `super` acts as a reference implementation for SuperDB storage formats such as
-Super JSON and BSUP, it's helpful to understand how it reads the following Zeek data
-types into readable text equivalents in the Super JSON format, then writes them back
+SUP and BSUP, it's helpful to understand how it reads the following Zeek data
+types into readable text equivalents in the SUP format, then writes them back
 out again in the Zeek TSV log format. Other implementations of the Zed storage
 formats (should they exist) may handle these differently.
 

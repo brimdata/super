@@ -150,11 +150,11 @@ using Boolean logic to form search expressions.
 
 {{% tip "Note" %}}
 
-When processing [Super Binary](../formats/bsup.md) data, the SuperDB runtime performs a multi-threaded
+When processing [Super Binary (BSUP)](../formats/bsup.md) data, the SuperDB runtime performs a multi-threaded
 Boyer-Moore scan over decompressed data buffers before parsing any data.
 This allows large buffers of data to be efficiently discarded and skipped when
 searching for rarely occurring values.  For a [SuperDB data lake](../commands/super-db.md),
-a planned feature will use [Super Columnar](../formats/csup.md) files to further accelerate searches.
+a planned feature will use [Super Columnar (CSUP)](../formats/csup.md) files to further accelerate searches.
 
 {{% /tip %}}
 

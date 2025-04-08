@@ -1,38 +1,38 @@
 ---
 weight: 4
-title: Super Columnar
-heading: Super Columnar Specification
+title: CSUP (Super Columnar)
+heading: Super Columnar (CSUP) Format Specification
 ---
 
-Super Columnar is a file format based on
+Super Columnar (CSUP) is a file format based on
 the [super data model](data-model.md) where data is stacked to form columns.
 Its purpose is to provide for efficient analytics and search over
 bounded-length sequences of [super-structured data](./_index.md#2-a-super-structured-pattern) that is stored in columnar form.
 
 Like [Parquet](https://github.com/apache/parquet-format),
-Super Columnar provides an efficient representation for semi-structured data,
-but unlike Parquet, Super Columnar is not based on schemas and does not require
+CSUP provides an efficient representation for semi-structured data,
+but unlike Parquet, CSUP is not based on schemas and does not require
 a schema to be declared when writing data to a file.  Instead,
 it exploits the nature of super-structured data: columns of data
 self-organize around their type structure.
 
-## Super Columnar Files
+## CSUP Files
 
-A Super Columnar file encodes a bounded, ordered sequence of values.
-To provide for efficient access to subsets of Super Columnar-encoded data (e.g., columns),
+A CSUP file encodes a bounded, ordered sequence of values.
+To provide for efficient access to subsets of CSUP-encoded data (e.g., columns),
 the file is presumed to be accessible via random access
 (e.g., range requests to a cloud object store or seeks in a Unix file system)
 and is therefore not intended as a streaming or communication format.
 
-A Super Columnar file can be stored entirely as one storage object
+A CSUP file can be stored entirely as one storage object
 or split across separate objects that are treated
-together as a single Super Columnar entity.  While the format provides much flexibility
+together as a single CSUP entity.  While the format provides much flexibility
 for how data is laid out, it is left to an implementation to lay out data
 in intelligent ways for efficient sequential read accesses of related data.
 
 ## Column Streams
 
-The Super Columnar data abstraction is built around a collection of _column streams_.
+The CSUP data abstraction is built around a collection of _column streams_.
 
 There is one column stream for each top-level type encountered in the input where
 each column stream is encoded according to its type.  For top-level complex types,
@@ -51,7 +51,7 @@ the reconstruction process is recursive (as described below).
 
 ## The Physical Layout
 
-The overall layout of a Super Columnar file is comprised of the following sections,
+The overall layout of a CSUP file is comprised of the following sections,
 in this order:
 * the data section,
 * the reassembly section, and
@@ -61,7 +61,7 @@ This layout allows an implementation to buffer metadata in
 memory while writing column data in a natural order to the
 data section (based on the volume statistics of each column),
 then write the metadata into the reassembly section along with the trailer
-at the end.  This allows a stream to be converted to a Super Columnar file
+at the end.  This allows a stream to be converted to a CSUP file
 in a single pass.
 
 {{% tip "Note" %}}
@@ -69,7 +69,7 @@ in a single pass.
 That said, the layout is
 flexible enough that an implementation may optimize the data layout with
 additional passes or by writing the output to multiple files then
-merging them together (or even leaving the Super Columnar entity as separate files).
+merging them together (or even leaving the CSUP entity as separate files).
 
 {{% /tip %}}
 
@@ -80,12 +80,12 @@ where a segment is a seek offset and byte length relative to the
 data section.  Each segment contains a sequence of
 [primitive-type values](data-model.md#1-primitive-types),
 encoded as counted-length byte sequences where the counted-length is
-variable-length encoded as in the [Super Binary specification](bsup.md).
+variable-length encoded as in the [Super Binary (BSUP) specification](bsup.md).
 Segments may be compressed.
 
 There is no information in the data section for how segments relate
 to one another or how they are reconstructed into columns.  They are just
-blobs of Super Binary data.
+blobs of BSUP data.
 
 {{% tip "Note" %}}
 
@@ -128,26 +128,26 @@ from column streams, i.e., to map columns back to composite values.
 Of course, the reassembly section also provides the ability to extract just subsets of columns
 to be read and searched efficiently without ever needing to reconstruct
 the original rows.  How well this performs is up to any particular
-Super Columnar implementation.
+CSUP implementation.
 
 Also, the reassembly section is in general vastly smaller than the data section
 so the goal here isn't to express information in cute and obscure compact forms
 but rather to represent data in an easy-to-digest, programmer-friendly form that
-leverages Super Binary.
+leverages BSUP.
 
 {{% /tip %}}
 
-The reassembly section is a Super Binary stream.  Unlike Parquet,
+The reassembly section is a BSUP stream.  Unlike Parquet,
 which uses an externally described schema
 (via [Thrift](https://thrift.apache.org/)) to describe
-analogous data structures, we simply reuse Super Binary here.
+analogous data structures, we simply reuse BSUP here.
 
 #### The Super Types
 
 This reassembly stream encodes 2*N+1 values, where N is equal to the number
 of top-level types that are present in the encoded input.
 To simplify terminology, we call a top-level type a "super type",
-e.g., there are N unique super types encoded in the Super Columnar file.
+e.g., there are N unique super types encoded in the CSUP file.
 
 These N super types are defined by the first N values of the reassembly stream
 and are encoded as a null value of the indicated super type.
@@ -198,11 +198,11 @@ the reconstructed value.
 The sequence of super types is defined by each type's super ID (as defined above),
 0 to N-1, within the set of N super types.
 
-The super column stream is encoded as a sequence of Super Binary-encoded `int32` primitive values.
+The super column stream is encoded as a sequence of BSUP-encoded `int32` primitive values.
 While there are a large number of entries in the super column (one for each original row),
 the cardinality of super IDs is small in practice so this column
 will compress very significantly, e.g., in the special case that all the
-values in the Super Columnar file have the same super ID,
+values in the CSUP file have the same super ID,
 the super column will compress trivially.
 
 The reassembly map appears as the next value in the reassembly section
@@ -216,7 +216,7 @@ Each reassembly record is a record of type `<any_column>`, as defined below,
 where each reassembly record appears in the same sequence as the original N schemas.
 Note that there is no "any" type in the super data model, but rather this terminology is used
 here to refer to any of the concrete type structures that would appear
-in a given Super Columnar file.
+in a given CSUP file.
 
 In other words, the reassembly record of the super column
 combined with the N reassembly records collectively define the original sequence
@@ -264,7 +264,7 @@ where
 * `<fld1>` through `<fldn>` are the names of the top-level fields of the
 original row record,
 * the `column` fields are column stream definitions for each field, and
-* the [`presence` columns](#presence-columns) are `int32` Super Binary column streams comprised of a
+* the [`presence` columns](#presence-columns) are `int32` BSUP column streams comprised of a
 run-length encoding of the locations of column values in their respective rows,
 when there are null values.
 
@@ -339,26 +339,26 @@ compression based on segment compression).
 
 ### The Trailer
 
-After the reassembly section is a Super Binary stream with a single record defining
-the "trailer" of the Super Columnar file.  The trailer provides a magic field
+After the reassembly section is a BSUP stream with a single record defining
+the "trailer" of the CSUP file.  The trailer provides a magic field
 indicating the file format, a version number,
 the size of the segment threshold for decomposing segments into frames,
 the size of the skew threshold for flushing all segments to storage when
 the memory footprint roughly exceeds this threshold,
-and an array of sizes in bytes of the sections of the Super Columnar file.
+and an array of sizes in bytes of the sections of the CSUP file.
 
 This type of this record has the format
 ```
 {magic:string,type:string,version:int64,sections:[int64],meta:{skew_thresh:int64,segment_thresh:int64}}
 ```
 The trailer can be efficiently found by scanning backward from the end of the
-Super Columnar file to find a valid Super Binary stream containing a single record value
+CSUP file to find a valid BSUP stream containing a single record value
 conforming to the above type.
 
 ## Decoding
 
-To decode an entire Super Columnar file into rows, the trailer is read to find the sizes
-of the sections, then the Super Binary stream of the reassembly section is read,
+To decode an entire CSUP file into rows, the trailer is read to find the sizes
+of the sections, then the BSUP stream of the reassembly section is read,
 typically in its entirety.
 
 Since this data structure is relatively small compared to all of the columnar
@@ -373,7 +373,7 @@ reassembly records to figure out which segments will be needed, then construct
 an intelligent plan for reading the needed segments and attempt to read them
 in mostly sequential order, which could serve as
 an optimizing intermediary between any underlying storage API and the
-Super Columnar decoding logic.
+CSUP decoding logic.
 
 {{% /tip %}}
 
@@ -387,7 +387,7 @@ The top-level reassembly fetches column values as a `<record_column>`.
 
 For any `<record_column>`, a value from each field is read from each field's column,
 accounting for the presence column indicating null,
-and the results are encoded into the corresponding Super Binary record value using
+and the results are encoded into the corresponding BSUP record value using
 type information from the corresponding schema.
 
 For a `<primitive_column>` a value is determined by reading the next
@@ -395,29 +395,29 @@ value from its segmap.
 
 For an `<array_column>`, a length is read from its `lengths` segmap as an `int32`
 and that many values are read from its the `values` sub-column,
-encoding the result as a Super Binary array value.
+encoding the result as a BSUP array value.
 
 For a `<union_column>`, a value is read from its `tags` segmap
 and that value is used to select the corresponding column stream
-`c0`, `c1`, etc.  The value read is then encoded as a Super Binary union value
+`c0`, `c1`, etc.  The value read is then encoded as a BSUP union value
 using the same tag within the union value.
 
 ## Examples
 
 ### Hello, world
 
-Start with this [Super JSON](sup.md) file `hello.sup`:
+Start with this [Super (SUP)](sup.md) file `hello.sup`:
 ```
 {a:"hello",b:"world"}
 {a:"goodnight",b:"gracie"}
 ```
 
-To convert to Super Columnar format:
+To convert to CSUP format:
 ```
 super -f csup hello.sup > hello.csup
 ```
 
-Segments in the Super Columnar format would be laid out like this:
+Segments in the CSUP format would be laid out like this:
 ```
 === column for a
 hello

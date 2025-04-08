@@ -7,17 +7,17 @@ The SuperSQL language includes most data types of a typical programming language
 as defined in the [super data model](../formats/data-model.md).
 
 The syntax of individual literal values generally follows
-the [Super JSON syntax](../formats/sup.md) with the exception that
+the [Super (SUP) syntax](../formats/sup.md) with the exception that
 [type decorators](../formats/sup.md#22-type-decorators)
 are not included in the language.  Instead, a
 [type cast](expressions.md#casts) may be used in any expression for explicit
 type conversion.
 
 In particular, the syntax of primitive types follows the
-[primitive-value definitions](../formats/sup.md#23-primitive-values) in Super JSON
+[primitive-value definitions](../formats/sup.md#23-primitive-values) in SUP
 as well as the various [complex value definitions](../formats/sup.md#24-complex-values)
 like records, arrays, sets, and so forth.  However, complex values are not limited to
-constant values like Super JSON and can be composed from [literal expressions](expressions.md#literals).
+constant values like SUP and can be composed from [literal expressions](expressions.md#literals).
 
 ## First-class Types
 
@@ -27,13 +27,13 @@ any type may be used as a value.
 The primitive types are listed in the
 [data model specification](../formats/data-model.md#1-primitive-types)
 and have the same syntax in SuperSQL.  Complex types also follow
-the Super JSON syntax.  Note that the type of a type value is simply `type`.
+the SUP syntax.  Note that the type of a type value is simply `type`.
 
-As in Super JSON, _when types are used as values_, e.g., in an expression,
+As in SUP, _when types are used as values_, e.g., in an expression,
 they must be referenced within angle brackets.  That is, the integer type
 `int64` is expressed as a type value using the syntax `<int64>`.
 
-Complex types in the SuperSQL language follow the Super JSON syntax as well.  Here are
+Complex types in the SuperSQL language follow the SUP syntax as well.  Here are
 a few examples:
 * a simple record type - `{x:int64,y:int64}`
 * an array of integers - `[int64]`

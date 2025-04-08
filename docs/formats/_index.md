@@ -11,7 +11,7 @@ weight: 5
 > providing a unified approach to row, columnar, and human-readable formats. Together these
 > represent a superset of both the dataframe/table model of relational systems and the
 > semi-structured model that is used ubiquitously in development as JSON and by NoSQL
-> data stores.  The Super JSON spec has [a few examples](sup.md#3-examples).
+> data stores.  The Super (SUP) format spec has [a few examples](sup.md#3-examples).
 
 ## 1. Background
 
@@ -156,7 +156,7 @@ say the JSON value
 is of type object and the value of key `a` is type array.
 In SuperDB, however, this value's type is type `record` with field `a`
 of type `array` of type `union` of `int64` and `string`,
-expressed succinctly in Super JSON as
+expressed succinctly in Super (SUP) format as
 ```
 {a:[(int64,string)]}
 ```
@@ -271,14 +271,14 @@ A set of companion documents define a family of tightly integrated
 serialization formats that all adhere to the same super data model,
 providing a unified approach to row, columnar, and human-readable formats:
 
-* [Super JSON](sup.md) is a human-readable format for super-structured data.  All JSON
-documents are Super JSON values as the Super JSON format is a strict superset of the JSON syntax.
-* [Super Binary](bsup.md) is a row-based, binary representation somewhat like
+* [Super (SUP)](sup.md) is a human-readable format for super-structured data.  All JSON
+documents are SUP values as the SUP format is a strict superset of the JSON syntax.
+* [Super Binary (BSUP)](bsup.md) is a row-based, binary representation somewhat like
 Avro but leveraging the super data model to represent a sequence of arbitrarily-typed
 values.
-* [Super Columnar](csup.md) is columnar like Parquet or ORC but also
+* [Super Columnar (CSUP)](csup.md) is columnar like Parquet or ORC but also
 embodies the super data model for heterogeneous and self-describing schemas.
-* [Super JSON over JSON](zjson.md) defines a format for encapsulating Super JSON
+* [SUP over JSON](zjson.md) defines a format for encapsulating SUP
 inside plain JSON for easy decoding by JSON-based clients, e.g.,
 the [JavaScript library used by SuperDB Desktop](https://github.com/brimdata/zui/tree/main/packages/superdb-types)
 and the [SuperDB Python library](../libraries/python.md).

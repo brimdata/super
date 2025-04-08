@@ -19,9 +19,9 @@ to upper case and returns the result.
 # spq
 yield upper(this)
 # input
-"Super JSON"
+"Super format"
 # expected output
-"SUPER JSON"
+"SUPER FORMAT"
 ```
 
 [Slices](../expressions.md#slices) can be used to uppercase a subset of a string as well.
@@ -33,7 +33,7 @@ func capitalize(str): (
 )
 yield capitalize(this)
 # input
-"super JSON"
+"super format"
 # expected output
-"Super JSON"
+"Super format"
 ```
