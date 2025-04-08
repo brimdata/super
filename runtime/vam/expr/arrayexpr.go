@@ -41,8 +41,10 @@ func (a *ArrayExpr) eval(in ...vector.Any) vector.Any {
 		return vector.NewConst(super.Null, 0, nil)
 	}
 	var spreadOffs [][]uint32
+	unionTags := make([][]uint32, len(a.elems))
 	var viewIndexes [][]uint32
 	var vecs []vector.Any
+	var vecTags []uint32
 	for i, elem := range a.elems {
 		vec := in[i]
 		var offsets, index []uint32
@@ -53,7 +55,13 @@ func (a *ArrayExpr) eval(in ...vector.Any) vector.Any {
 				continue
 			}
 		}
-		vecs = append(vecs, vec)
+		vecTags = append(vecTags, uint32(len(vecs)))
+		if union, ok := vec.(*vector.Union); ok {
+			vecs = append(vecs, union.Values...)
+			unionTags[i] = union.Tags
+		} else {
+			vecs = append(vecs, vec)
+		}
 		spreadOffs = append(spreadOffs, offsets)
 		viewIndexes = append(viewIndexes, index)
 	}
@@ -61,17 +69,26 @@ func (a *ArrayExpr) eval(in ...vector.Any) vector.Any {
 	var tags []uint32
 	for i := range n {
 		var size uint32
-		for tag, spreadOff := range spreadOffs {
+		for k, spreadOff := range spreadOffs {
+			tag := vecTags[k]
+			utags := unionTags[k]
 			if len(spreadOff) == 0 {
-				tags = append(tags, uint32(tag))
+				if utags != nil {
+					tag += utags[i]
+				}
+				tags = append(tags, tag)
 				size++
 			} else {
-				if index := viewIndexes[tag]; index != nil {
+				if index := viewIndexes[k]; index != nil {
 					i = index[i]
 				}
 				off := spreadOff[i]
 				for end := spreadOff[i+1]; off < end; off++ {
-					tags = append(tags, uint32(tag))
+					if utags != nil {
+						tags = append(tags, tag+utags[off])
+					} else {
+						tags = append(tags, tag)
+					}
 					size++
 				}
 			}
