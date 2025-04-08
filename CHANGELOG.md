@@ -745,7 +745,7 @@ questions.
 * zqd: Fix an issue with excess characters in Space names after upgrade (#1112)
 
 ## v0.19.0
-* zq: ZNG output is now LZ4-compressed by default (#1050, #1064, #1063, [ZNG spec](docs/formats/bsup.md#2-the-super-binary-format))
+* zq: ZNG output is now LZ4-compressed by default (#1050, #1064, #1063, [ZNG spec](docs/formats/bsup.md#2-the-bsup-format))
 * zar: Adjust import size threshold to account for compression (#1082)
 * zqd: Support starting `zqd` with datapath set to an S3 path (#1072)
 * zq: Fix an issue with panics during pcap import (#1090)
