@@ -72,7 +72,7 @@ func (m *mathReducer) Consume(vec vector.Any) {
 			return
 		}
 	}
-	if isNull(vec) {
+	if vec = trimNulls(vec); vec.Len() == 0 {
 		return
 	}
 	m.hasval = true
@@ -87,22 +87,28 @@ func (m *mathReducer) ResultAsPartial(*super.Context) super.Value {
 	return m.Result(nil)
 }
 
-func isNull(vec vector.Any) bool {
+func trimNulls(vec vector.Any) vector.Any {
 	if c, ok := vec.(*vector.Const); ok && c.Value().IsNull() {
-		return true
+		return vector.NewConst(super.Null, 0, nil)
 	}
-	if nulls := vector.NullsOf(vec); nulls != nil {
-		// XXX There's probably a faster way of doing this check. Like check if
-		// each uint64 is MaxUint64 but you run across the problem when the len
-		// truncates a uint64.
-		for i := range vec.Len() {
-			if !nulls.Value(i) {
-				return false
-			}
+	nulls := vector.NullsOf(vec)
+	if nulls == nil {
+		return vec
+	}
+	var index []uint32
+	for i := range nulls.Len() {
+		if nulls.Value(i) {
+			index = append(index, i)
 		}
-		return true
 	}
-	return false
+	switch uint32(len(index)) {
+	case vec.Len():
+		return vector.NewConst(super.Null, 0, nil)
+	case 0:
+		return vec
+	default:
+		return vector.NewInverseView(vec, index)
+	}
 }
 
 type reduceFloat64 struct {

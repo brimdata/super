@@ -29,7 +29,7 @@ func TestAggregateZtestsSpill(t *testing.T) {
 	saved := aggregate.DefaultLimit
 	t.Cleanup(func() { aggregate.DefaultLimit = saved })
 	aggregate.DefaultLimit = 1
-	ztest.Run(t, "ztests")
+	ztest.Run(t, "../../../ztests/op/aggregate")
 }
 
 type countReader struct {

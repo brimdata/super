@@ -1,4 +1,6 @@
-spq: "lg:=sum(x) where x>=5, sm:=sum(x) where x<8"
+spq: a:=min(x) where x>=5, b:=min(x) where x>10
+
+vector: true
 
 input: |
   {x:1(int32)}
@@ -9,4 +11,4 @@ input: |
   {x:12(int32)}
 
 output: |
-  {lg:33,sm:11}
+  {a:5,b:12}
