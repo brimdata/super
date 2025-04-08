@@ -18,9 +18,9 @@ import (
 // vectors are mutated under locks here as needed.
 //
 // Shadows are created incrementally so that a sequence of projections will do the
-// minimal work unmarshaling the csup metadata as needed.  When processing a sequence
-// of csup files with a single projection, the incremental capability is not important
-// but when caching csup objects (e.g., in local from S3), multiple threads operating
+// minimal work unmarshaling the CSUP metadata as needed.  When processing a sequence
+// of CSUP files with a single projection, the incremental capability is not important
+// but when caching CSUP objects (e.g., in local from S3), multiple threads operating
 // concurrently on a single object benefit from incremental unmarshaling.  This is especially
 // important when processing thin projections over objects with lots of heteregenous types.
 //
@@ -164,7 +164,7 @@ func (c count) length() uint32 {
 }
 
 // unmarshal decodes the CSUP metadata structure to a (partial) shadow according
-// to the procided projection.  No vector data is actually loaded.
+// to the provided projection.  No vector data is actually loaded.
 // Nulls are read from storage and unwrapped
 // so that all leaves of a given type have the same number of slots.  The vcache
 // is then responsible for loading leaf vectors on demand as they are required

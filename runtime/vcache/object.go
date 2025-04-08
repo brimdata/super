@@ -44,10 +44,7 @@ func NewObject(ctx context.Context, engine storage.Engine, uri *storage.URI) (*O
 }
 
 func NewObjectFromCSUP(object *csup.Object) *Object {
-	return &Object{
-		object: object,
-		root:   nil,
-	}
+	return &Object{object: object}
 }
 
 func (o *Object) Close() error {
