@@ -11,7 +11,7 @@ import (
 // fields and types.  Fuser then transforms those records to the unified schema
 // as they are read back from it.
 type Fuser struct {
-	zctx        *super.Context
+	sctx        *super.Context
 	memMaxBytes int
 
 	nbytes  int
@@ -27,12 +27,12 @@ type Fuser struct {
 // NewFuser returns a new Fuser.  The Fuser buffers records in memory until
 // their cumulative size (measured in zcode.Bytes length) exceeds memMaxBytes,
 // at which point it buffers them in a temporary file.
-func NewFuser(zctx *super.Context, memMaxBytes int) *Fuser {
+func NewFuser(sctx *super.Context, memMaxBytes int) *Fuser {
 	return &Fuser{
-		zctx:        zctx,
+		sctx:        sctx,
 		memMaxBytes: memMaxBytes,
 		types:       make(map[super.Type]struct{}),
-		uberSchema:  agg.NewSchema(zctx),
+		uberSchema:  agg.NewSchema(sctx),
 		ectx:        expr.NewContext(),
 	}
 }
@@ -85,9 +85,9 @@ func (f *Fuser) stash(rec super.Value) error {
 func (f *Fuser) Read() (*super.Value, error) {
 	if f.shaper == nil {
 		t := f.uberSchema.Type()
-		f.shaper = expr.NewConstShaper(f.zctx, &expr.This{}, t, expr.Cast|expr.Fill|expr.Order)
+		f.shaper = expr.NewConstShaper(f.sctx, &expr.This{}, t, expr.Cast|expr.Fill|expr.Order)
 		if f.spiller != nil {
-			if err := f.spiller.Rewind(f.zctx); err != nil {
+			if err := f.spiller.Rewind(f.sctx); err != nil {
 				return nil, err
 			}
 		}

@@ -140,11 +140,11 @@ func (c *Command) Run(args []string) error {
 		fmt.Println(zfmt.AST(ast.Parsed()))
 		return nil
 	}
-	zctx := super.NewContext()
+	sctx := super.NewContext()
 	local := storage.NewLocalEngine()
 	var readers []zio.Reader
 	if len(args) > 0 {
-		readers, err = c.inputFlags.Open(ctx, zctx, local, args, c.stopErr)
+		readers, err = c.inputFlags.Open(ctx, sctx, local, args, c.stopErr)
 		if err != nil {
 			return err
 		}
@@ -155,7 +155,7 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	comp := compiler.NewCompiler(local)
-	query, err := runtime.CompileQuery(ctx, zctx, comp, ast, readers)
+	query, err := runtime.CompileQuery(ctx, sctx, comp, ast, readers)
 	if err != nil {
 		return err
 	}

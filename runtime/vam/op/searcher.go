@@ -67,7 +67,7 @@ func (s *Searcher) run() {
 			s.sendResult(nil, nil, err)
 			return
 		}
-		vec, err := object.Fetch(s.rctx.Zctx, s.projection)
+		vec, err := object.Fetch(s.rctx.Sctx, s.projection)
 		if err != nil {
 			s.sendResult(nil, nil, err)
 			return

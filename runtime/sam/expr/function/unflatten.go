@@ -11,7 +11,7 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#unflatten
 type Unflatten struct {
-	zctx *super.Context
+	sctx *super.Context
 
 	builder     zcode.Builder
 	recordCache recordCache
@@ -22,9 +22,9 @@ type Unflatten struct {
 	values []zcode.Bytes
 }
 
-func NewUnflatten(zctx *super.Context) *Unflatten {
+func NewUnflatten(sctx *super.Context) *Unflatten {
 	return &Unflatten{
-		zctx: zctx,
+		sctx: sctx,
 	}
 }
 
@@ -42,7 +42,7 @@ func (u *Unflatten) Call(_ super.Allocator, args []super.Value) super.Value {
 		bytes := it.Next()
 		path, typ, vb, err := u.parseElem(array.Type, bytes)
 		if err != nil {
-			return u.zctx.WrapError(err.Error(), super.NewValue(array.Type, bytes))
+			return u.sctx.WrapError(err.Error(), super.NewValue(array.Type, bytes))
 		}
 		if typ == nil {
 			continue
@@ -56,13 +56,13 @@ func (u *Unflatten) Call(_ super.Allocator, args []super.Value) super.Value {
 	}
 	u.builder.Reset()
 	types, values := u.types, u.values
-	typ, err := root.build(u.zctx, &u.builder, func() (super.Type, zcode.Bytes) {
+	typ, err := root.build(u.sctx, &u.builder, func() (super.Type, zcode.Bytes) {
 		typ, value := types[0], values[0]
 		types, values = types[1:], values[1:]
 		return typ, value
 	})
 	if err != nil {
-		return u.zctx.WrapError(err.Error(), val)
+		return u.sctx.WrapError(err.Error(), val)
 	}
 	return super.NewValue(typ, u.builder.Bytes())
 }
@@ -170,7 +170,7 @@ func (r *record) countLeaves() int {
 	return count
 }
 
-func (r *record) build(zctx *super.Context, b *zcode.Builder, next func() (super.Type, zcode.Bytes)) (super.Type, error) {
+func (r *record) build(sctx *super.Context, b *zcode.Builder, next func() (super.Type, zcode.Bytes)) (super.Type, error) {
 	for i, rec := range r.records {
 		if rec == nil {
 			typ, value := next()
@@ -180,11 +180,11 @@ func (r *record) build(zctx *super.Context, b *zcode.Builder, next func() (super
 		}
 		b.BeginContainer()
 		var err error
-		r.fields[i].Type, err = rec.build(zctx, b, next)
+		r.fields[i].Type, err = rec.build(sctx, b, next)
 		if err != nil {
 			return nil, err
 		}
 		b.EndContainer()
 	}
-	return zctx.LookupTypeRecord(r.fields)
+	return sctx.LookupTypeRecord(r.fields)
 }

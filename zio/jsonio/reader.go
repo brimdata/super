@@ -18,9 +18,9 @@ type Reader struct {
 	buf     []byte
 }
 
-func NewReader(zctx *super.Context, r io.Reader) *Reader {
+func NewReader(sctx *super.Context, r io.Reader) *Reader {
 	return &Reader{
-		builder: builder{zctx: zctx},
+		builder: builder{sctx: sctx},
 		// 64 KB gave the best performance when this was written.
 		lexer: jsonlexer.New(bufio.NewReaderSize(r, 64*1024)),
 		// Ensure handleToken never passes a nil buf to

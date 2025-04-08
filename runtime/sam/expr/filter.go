@@ -204,21 +204,21 @@ func (f *filter) Eval(ectx Context, this super.Value) super.Value {
 }
 
 type filterApplier struct {
-	zctx *super.Context
+	sctx *super.Context
 	expr Evaluator
 }
 
-func NewFilterApplier(zctx *super.Context, e Evaluator) Evaluator {
-	return &filterApplier{zctx, e}
+func NewFilterApplier(sctx *super.Context, e Evaluator) Evaluator {
+	return &filterApplier{sctx, e}
 }
 
 func (f *filterApplier) Eval(ectx Context, this super.Value) super.Value {
-	val := EvalBool(f.zctx, ectx, this, f.expr)
+	val := EvalBool(f.sctx, ectx, this, f.expr)
 	if val.Type().ID() == super.IDBool {
 		if val.Bool() {
 			return this
 		}
-		return f.zctx.Missing()
+		return f.sctx.Missing()
 	}
 	return val
 }

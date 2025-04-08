@@ -9,13 +9,13 @@ import (
 )
 
 type sliceExpr struct {
-	zctx                            *super.Context
+	sctx                            *super.Context
 	containerEval, fromEval, toEval Evaluator
 }
 
-func NewSliceExpr(zctx *super.Context, container, from, to Evaluator) Evaluator {
+func NewSliceExpr(sctx *super.Context, container, from, to Evaluator) Evaluator {
 	return &sliceExpr{
-		zctx:          zctx,
+		sctx:          sctx,
 		containerEval: container,
 		fromEval:      from,
 		toEval:        to,
@@ -40,14 +40,14 @@ func (s *sliceExpr) eval(vecs ...vector.Any) vector.Any {
 	if s.fromEval != nil {
 		from = vecs[0]
 		if !super.IsSigned(from.Type().ID()) {
-			return vector.NewStringError(s.zctx, "slice index is not a number", from.Len())
+			return vector.NewStringError(s.sctx, "slice index is not a number", from.Len())
 		}
 		vecs = vecs[1:]
 	}
 	if s.toEval != nil {
 		to = vecs[0]
 		if !super.IsSigned(to.Type().ID()) {
-			return vector.NewStringError(s.zctx, "slice index is not a number", to.Len())
+			return vector.NewStringError(s.sctx, "slice index is not a number", to.Len())
 		}
 	}
 	switch vector.KindOf(container) {
@@ -58,7 +58,7 @@ func (s *sliceExpr) eval(vecs ...vector.Any) vector.Any {
 	case vector.KindError:
 		return container
 	default:
-		return vector.NewWrappedError(s.zctx, "sliced value is not array, set, bytes, or string", container)
+		return vector.NewWrappedError(s.sctx, "sliced value is not array, set, bytes, or string", container)
 	}
 }
 

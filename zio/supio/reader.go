@@ -10,17 +10,17 @@ import (
 
 type Reader struct {
 	reader   io.Reader
-	zctx     *super.Context
+	sctx     *super.Context
 	parser   *sup.Parser
 	analyzer sup.Analyzer
 	builder  *zcode.Builder
 	val      super.Value
 }
 
-func NewReader(zctx *super.Context, r io.Reader) *Reader {
+func NewReader(sctx *super.Context, r io.Reader) *Reader {
 	return &Reader{
 		reader:   r,
-		zctx:     zctx,
+		sctx:     sctx,
 		analyzer: sup.NewAnalyzer(),
 		builder:  zcode.NewBuilder(),
 	}
@@ -34,7 +34,7 @@ func (r *Reader) Read() (*super.Value, error) {
 	if ast == nil || err != nil {
 		return nil, err
 	}
-	val, err := r.analyzer.ConvertValue(r.zctx, ast)
+	val, err := r.analyzer.ConvertValue(r.sctx, ast)
 	if err != nil {
 		return nil, err
 	}

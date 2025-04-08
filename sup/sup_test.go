@@ -31,25 +31,25 @@ func TestSUPParser(t *testing.T) {
 	assert.NotEqual(t, s, "")
 }
 
-func analyze(zctx *super.Context, path string) (sup.Value, error) {
+func analyze(sctx *super.Context, path string) (sup.Value, error) {
 	val, err := parse(path)
 	if err != nil {
 		return nil, err
 	}
 	analyzer := sup.NewAnalyzer()
-	return analyzer.ConvertValue(zctx, val)
+	return analyzer.ConvertValue(sctx, val)
 }
 
 func TestSUPAnalyzer(t *testing.T) {
-	zctx := super.NewContext()
-	val, err := analyze(zctx, testFile)
+	sctx := super.NewContext()
+	val, err := analyze(sctx, testFile)
 	require.NoError(t, err)
 	assert.NotNil(t, val)
 }
 
 func TestSUPBuilder(t *testing.T) {
-	zctx := super.NewContext()
-	val, err := analyze(zctx, testFile)
+	sctx := super.NewContext()
+	val, err := analyze(sctx, testFile)
 	require.NoError(t, err)
 	b := zcode.NewBuilder()
 	zv, err := sup.Build(b, val)

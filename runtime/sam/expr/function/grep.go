@@ -9,13 +9,13 @@ import (
 type Grep struct {
 	grep    expr.Evaluator
 	pattern string
-	zctx    *super.Context
+	sctx    *super.Context
 }
 
 func (g *Grep) Call(_ super.Allocator, vals []super.Value) super.Value {
 	patternVal, inputVal := vals[0], vals[1]
 	if super.TypeUnder(patternVal.Type()) != super.TypeString {
-		return g.zctx.WrapError("grep: pattern argument must be a string", patternVal)
+		return g.sctx.WrapError("grep: pattern argument must be a string", patternVal)
 	}
 	if patternVal.IsNull() {
 		return super.NullBool

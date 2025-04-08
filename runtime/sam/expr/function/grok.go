@@ -9,16 +9,16 @@ import (
 )
 
 type Grok struct {
-	zctx    *super.Context
+	sctx    *super.Context
 	builder zcode.Builder
 	hosts   map[string]*host
 	// fields is used as a scratch space to avoid allocating a new slice.
 	fields []super.Field
 }
 
-func newGrok(zctx *super.Context) *Grok {
+func newGrok(sctx *super.Context) *Grok {
 	return &Grok{
-		zctx:  zctx,
+		sctx:  sctx,
 		hosts: make(map[string]*host),
 	}
 }
@@ -41,7 +41,7 @@ func (g *Grok) Call(_ super.Allocator, args []super.Value) super.Value {
 		return g.error(err.Error(), defArg)
 	}
 	if patternArg.IsNull() || inputArg.IsNull() {
-		return super.NewValue(g.zctx.MustLookupTypeRecord(nil), nil)
+		return super.NewValue(g.sctx.MustLookupTypeRecord(nil), nil)
 	}
 	p, err := h.getPattern(patternArg.AsString())
 	if err != nil {
@@ -55,7 +55,7 @@ func (g *Grok) Call(_ super.Allocator, args []super.Value) super.Value {
 	for _, key := range keys {
 		g.fields = append(g.fields, super.NewField(key, super.TypeString))
 	}
-	typ := g.zctx.MustLookupTypeRecord(g.fields)
+	typ := g.sctx.MustLookupTypeRecord(g.fields)
 	g.builder.Reset()
 	if len(vals) == 0 {
 		// If we have a match but no key/vals return empty record.
@@ -69,7 +69,7 @@ func (g *Grok) Call(_ super.Allocator, args []super.Value) super.Value {
 }
 
 func (g *Grok) error(msg string, val super.Value) super.Value {
-	return g.zctx.WrapError("grok(): "+msg, val)
+	return g.sctx.WrapError("grok(): "+msg, val)
 }
 
 func (g *Grok) getHost(defs string) (*host, error) {

@@ -48,8 +48,8 @@ func filter(ectx expr.Context, this super.Value, e expr.Evaluator) bool {
 func runCasesHelper(t *testing.T, record string, cases []testcase, expectBufferFilterFalsePositives bool) {
 	t.Helper()
 
-	zctx := super.NewContext()
-	rec, err := sup.ParseValue(zctx, record)
+	sctx := super.NewContext()
+	rec, err := sup.ParseValue(sctx, record)
 	require.NoError(t, err, "record: %q", record)
 
 	for _, c := range cases {
@@ -83,7 +83,7 @@ func runCasesHelper(t *testing.T, record string, cases []testcase, expectBufferF
 				// containing rec, assembled here.
 				buf := binary.AppendUvarint(nil, uint64(rec.Type().ID()))
 				buf = zcode.Append(buf, rec.Bytes())
-				assert.Equal(t, expected, bf.Eval(zctx, buf),
+				assert.Equal(t, expected, bf.Eval(sctx, buf),
 					"filter: %q\nvalues:%s\nbuffer:\n%s", c.filter, sup.FormatValue(rec), hex.Dump(buf))
 			}
 		})

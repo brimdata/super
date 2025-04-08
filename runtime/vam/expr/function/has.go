@@ -12,8 +12,8 @@ type Has struct {
 	not     *expr.Not
 }
 
-func newHas(zctx *super.Context) *Has {
-	return &Has{not: expr.NewLogicalNot(zctx, &expr.This{})}
+func newHas(sctx *super.Context) *Has {
+	return &Has{not: expr.NewLogicalNot(sctx, &expr.This{})}
 }
 
 func (h *Has) Call(args ...vector.Any) vector.Any {

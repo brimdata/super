@@ -21,14 +21,14 @@ const (
 )
 
 type Encoder struct {
-	zctx    *super.Context
+	sctx    *super.Context
 	encoded map[super.Type]super.Type
 	bytes   []byte
 }
 
 func NewEncoder() *Encoder {
 	return &Encoder{
-		zctx:    super.NewContext(),
+		sctx:    super.NewContext(),
 		encoded: make(map[super.Type]super.Type),
 	}
 }
@@ -36,7 +36,7 @@ func NewEncoder() *Encoder {
 func (e *Encoder) Reset() {
 	e.bytes = e.bytes[:0]
 	e.encoded = make(map[super.Type]super.Type)
-	e.zctx.Reset()
+	e.sctx.Reset()
 }
 
 func (e *Encoder) Flush() {
@@ -94,7 +94,7 @@ func (e *Encoder) encodeTypeRecord(ext *super.TypeRecord) (super.Type, error) {
 		}
 		fields = append(fields, super.NewField(f.Name, child))
 	}
-	typ, err := e.zctx.LookupTypeRecord(fields)
+	typ, err := e.sctx.LookupTypeRecord(fields)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func (e *Encoder) encodeTypeUnion(ext *super.TypeUnion) (super.Type, error) {
 		}
 		types = append(types, t)
 	}
-	typ := e.zctx.LookupTypeUnion(types)
+	typ := e.sctx.LookupTypeUnion(types)
 	e.bytes = append(e.bytes, TypeDefUnion)
 	e.bytes = binary.AppendUvarint(e.bytes, uint64(len(types)))
 	for _, t := range types {
@@ -131,7 +131,7 @@ func (e *Encoder) encodeTypeSet(ext *super.TypeSet) (*super.TypeSet, error) {
 	if err != nil {
 		return nil, err
 	}
-	typ := e.zctx.LookupTypeSet(inner)
+	typ := e.sctx.LookupTypeSet(inner)
 	e.bytes = append(e.bytes, TypeDefSet)
 	e.bytes = binary.AppendUvarint(e.bytes, uint64(super.TypeID(inner)))
 	return typ, nil
@@ -142,7 +142,7 @@ func (e *Encoder) encodeTypeArray(ext *super.TypeArray) (*super.TypeArray, error
 	if err != nil {
 		return nil, err
 	}
-	typ := e.zctx.LookupTypeArray(inner)
+	typ := e.sctx.LookupTypeArray(inner)
 	e.bytes = append(e.bytes, TypeDefArray)
 	e.bytes = binary.AppendUvarint(e.bytes, uint64(super.TypeID(inner)))
 	return typ, nil
@@ -150,7 +150,7 @@ func (e *Encoder) encodeTypeArray(ext *super.TypeArray) (*super.TypeArray, error
 
 func (e *Encoder) encodeTypeEnum(ext *super.TypeEnum) (*super.TypeEnum, error) {
 	symbols := ext.Symbols
-	typ := e.zctx.LookupTypeEnum(symbols)
+	typ := e.sctx.LookupTypeEnum(symbols)
 	e.bytes = append(e.bytes, TypeDefEnum)
 	e.bytes = binary.AppendUvarint(e.bytes, uint64(len(symbols)))
 	for _, s := range symbols {
@@ -169,7 +169,7 @@ func (e *Encoder) encodeTypeMap(ext *super.TypeMap) (*super.TypeMap, error) {
 	if err != nil {
 		return nil, err
 	}
-	typ := e.zctx.LookupTypeMap(keyType, valType)
+	typ := e.sctx.LookupTypeMap(keyType, valType)
 	e.bytes = append(e.bytes, TypeDefMap)
 	e.bytes = binary.AppendUvarint(e.bytes, uint64(super.TypeID(keyType)))
 	e.bytes = binary.AppendUvarint(e.bytes, uint64(super.TypeID(valType)))
@@ -181,7 +181,7 @@ func (e *Encoder) encodeTypeName(ext *super.TypeNamed) (*super.TypeNamed, error)
 	if err != nil {
 		return nil, err
 	}
-	typ, err := e.zctx.LookupTypeNamed(ext.Name, inner)
+	typ, err := e.sctx.LookupTypeNamed(ext.Name, inner)
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +197,7 @@ func (e *Encoder) encodeTypeError(ext *super.TypeError) (*super.TypeError, error
 	if err != nil {
 		return nil, err
 	}
-	typ := e.zctx.LookupTypeError(inner)
+	typ := e.sctx.LookupTypeError(inner)
 	e.bytes = append(e.bytes, TypeDefError)
 	e.bytes = binary.AppendUvarint(e.bytes, uint64(super.TypeID(typ.Type)))
 	return typ, nil

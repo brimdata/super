@@ -11,7 +11,7 @@ const maxStackDepth = 10_000
 type UDF struct {
 	Body Evaluator
 	Name string
-	Zctx *super.Context
+	Sctx *super.Context
 }
 
 func (u *UDF) Call(ectx super.Allocator, args []super.Value) super.Value {
@@ -20,7 +20,7 @@ func (u *UDF) Call(ectx super.Allocator, args []super.Value) super.Value {
 		stack += f.stack
 	}
 	if stack > maxStackDepth {
-		return u.Zctx.NewErrorf("stack overflow in function %q", u.Name)
+		return u.Sctx.NewErrorf("stack overflow in function %q", u.Name)
 	}
 	// args must be cloned otherwise the values will be overwritten in
 	// recursive calls.

@@ -23,7 +23,7 @@ func New(rctx *runtime.Context, parent zbuf.Puller) (*Op, error) {
 	return &Op{
 		rctx:     rctx,
 		parent:   parent,
-		fuser:    NewFuser(rctx.Zctx, MemMaxBytes),
+		fuser:    NewFuser(rctx.Sctx, MemMaxBytes),
 		resultCh: make(chan op.Result),
 	}, nil
 }

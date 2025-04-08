@@ -11,8 +11,8 @@ type flatten struct {
 	fn *samfunc.Flatten
 }
 
-func newFlatten(zctx *super.Context) *flatten {
-	return &flatten{samfunc.NewFlatten(zctx)}
+func newFlatten(sctx *super.Context) *flatten {
+	return &flatten{samfunc.NewFlatten(sctx)}
 }
 
 func (f *flatten) Call(args ...vector.Any) vector.Any {
@@ -36,8 +36,8 @@ type unflatten struct {
 	fn *samfunc.Unflatten
 }
 
-func newUnflatten(zctx *super.Context) *unflatten {
-	return &unflatten{samfunc.NewUnflatten(zctx)}
+func newUnflatten(sctx *super.Context) *unflatten {
+	return &unflatten{samfunc.NewUnflatten(sctx)}
 }
 
 func (u *unflatten) Call(args ...vector.Any) vector.Any {

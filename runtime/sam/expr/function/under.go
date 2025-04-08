@@ -6,7 +6,7 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#under
 type Under struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (u *Under) Call(_ super.Allocator, args []super.Value) super.Value {
@@ -19,11 +19,11 @@ func (u *Under) Call(_ super.Allocator, args []super.Value) super.Value {
 	case *super.TypeUnion:
 		return super.NewValue(typ.Untag(val.Bytes()))
 	case *super.TypeOfType:
-		t, err := u.zctx.LookupByValue(val.Bytes())
+		t, err := u.sctx.LookupByValue(val.Bytes())
 		if err != nil {
-			return u.zctx.NewError(err)
+			return u.sctx.NewError(err)
 		}
-		return u.zctx.LookupTypeValue(super.TypeUnder(t))
+		return u.sctx.LookupTypeValue(super.TypeUnder(t))
 	default:
 		return val
 	}

@@ -9,7 +9,7 @@ type mapCall struct {
 	builder zcode.Builder
 	eval    Evaluator
 	inner   Evaluator
-	zctx    *super.Context
+	sctx    *super.Context
 
 	// vals is used to reduce allocations
 	vals []super.Value
@@ -17,8 +17,8 @@ type mapCall struct {
 	types []super.Type
 }
 
-func NewMapCall(zctx *super.Context, e, inner Evaluator) Evaluator {
-	return &mapCall{eval: e, inner: inner, zctx: zctx}
+func NewMapCall(sctx *super.Context, e, inner Evaluator) Evaluator {
+	return &mapCall{eval: e, inner: inner, sctx: sctx}
 }
 
 func (a *mapCall) Eval(ectx Context, in super.Value) super.Value {
@@ -28,7 +28,7 @@ func (a *mapCall) Eval(ectx Context, in super.Value) super.Value {
 	}
 	elems, err := val.Elements()
 	if err != nil {
-		return a.zctx.WrapError(err.Error(), in)
+		return a.sctx.WrapError(err.Error(), in)
 	}
 	if len(elems) == 0 {
 		return val
@@ -43,9 +43,9 @@ func (a *mapCall) Eval(ectx Context, in super.Value) super.Value {
 	inner := a.innerType(a.types)
 	bytes := a.buildVal(inner, a.vals)
 	if _, ok := super.TypeUnder(val.Type()).(*super.TypeSet); ok {
-		return super.NewValue(a.zctx.LookupTypeSet(inner), super.NormalizeSet(bytes))
+		return super.NewValue(a.sctx.LookupTypeSet(inner), super.NormalizeSet(bytes))
 	}
-	return super.NewValue(a.zctx.LookupTypeArray(inner), bytes)
+	return super.NewValue(a.sctx.LookupTypeArray(inner), bytes)
 }
 
 func (a *mapCall) buildVal(inner super.Type, vals []super.Value) []byte {
@@ -67,5 +67,5 @@ func (a *mapCall) innerType(types []super.Type) super.Type {
 	if len(types) == 1 {
 		return types[0]
 	}
-	return a.zctx.LookupTypeUnion(types)
+	return a.sctx.LookupTypeUnion(types)
 }

@@ -26,8 +26,8 @@ func boomerang(t *testing.T, in interface{}, out interface{}) {
 	err = zw.Write(rec)
 	require.NoError(t, err)
 	require.NoError(t, zw.Close())
-	zctx := super.NewContext()
-	zr := bsupio.NewReader(zctx, &buf)
+	sctx := super.NewContext()
+	zr := bsupio.NewReader(sctx, &buf)
 	defer zr.Close()
 	val, err := zr.Read()
 	require.NoError(t, err)
@@ -149,8 +149,8 @@ type TestIP struct {
 
 func TestIPType(t *testing.T) {
 	s := TestIP{Addr: netip.MustParseAddr("192.168.1.1")}
-	zctx := super.NewContext()
-	m := sup.NewBSUPMarshalerWithContext(zctx)
+	sctx := super.NewContext()
+	m := sup.NewBSUPMarshalerWithContext(sctx)
 	rec, err := m.Marshal(s)
 	require.NoError(t, err)
 	require.NotNil(t, rec)
@@ -266,8 +266,8 @@ func TestUnmarshalSlice(t *testing.T) {
 	v1 := T1{
 		T1f1: []bool{true, false, true},
 	}
-	zctx := super.NewContext()
-	rec, err := sup.NewBSUPMarshalerWithContext(zctx).Marshal(v1)
+	sctx := super.NewContext()
+	rec, err := sup.NewBSUPMarshalerWithContext(sctx).Marshal(v1)
 	require.NoError(t, err)
 	require.NotNil(t, rec)
 
@@ -283,8 +283,8 @@ func TestUnmarshalSlice(t *testing.T) {
 	v3 := T2{
 		Field1: []*int{intp(1), intp(2)},
 	}
-	zctx = super.NewContext()
-	rec, err = sup.NewBSUPMarshalerWithContext(zctx).Marshal(v3)
+	sctx = super.NewContext()
+	rec, err = sup.NewBSUPMarshalerWithContext(sctx).Marshal(v3)
 	require.NoError(t, err)
 	require.NotNil(t, rec)
 

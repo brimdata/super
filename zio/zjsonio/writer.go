@@ -27,7 +27,7 @@ func unmarshal(b []byte) (*Object, error) {
 
 type Writer struct {
 	writer  io.WriteCloser
-	zctx    *super.Context
+	sctx    *super.Context
 	types   map[super.Type]super.Type
 	encoder encoder
 }
@@ -35,7 +35,7 @@ type Writer struct {
 func NewWriter(w io.WriteCloser) *Writer {
 	return &Writer{
 		writer:  w,
-		zctx:    super.NewContext(),
+		sctx:    super.NewContext(),
 		types:   make(map[super.Type]super.Type),
 		encoder: make(encoder),
 	}
@@ -70,7 +70,7 @@ func (w *Writer) Transform(r *super.Value) (Object, error) {
 	local, ok := w.types[r.Type()]
 	if !ok {
 		var err error
-		local, err = w.zctx.TranslateType(r.Type())
+		local, err = w.sctx.TranslateType(r.Type())
 		if err != nil {
 			return Object{}, err
 		}
@@ -79,7 +79,7 @@ func (w *Writer) Transform(r *super.Value) (Object, error) {
 	// Encode type before encoding value in case there are type values
 	// in the value.  We want to keep the order consistent.
 	typ := w.encoder.encodeType(local)
-	v, err := w.encodeValue(w.zctx, local, r.Bytes())
+	v, err := w.encodeValue(w.sctx, local, r.Bytes())
 	if err != nil {
 		return Object{}, err
 	}
@@ -89,44 +89,44 @@ func (w *Writer) Transform(r *super.Value) (Object, error) {
 	}, nil
 }
 
-func (w *Writer) encodeValue(zctx *super.Context, typ super.Type, val zcode.Bytes) (interface{}, error) {
+func (w *Writer) encodeValue(sctx *super.Context, typ super.Type, val zcode.Bytes) (interface{}, error) {
 	if val == nil {
 		return nil, nil
 	}
 	switch typ := typ.(type) {
 	case *super.TypeRecord:
-		return w.encodeRecord(zctx, typ, val)
+		return w.encodeRecord(sctx, typ, val)
 	case *super.TypeArray:
-		return w.encodeContainer(zctx, typ.Type, val)
+		return w.encodeContainer(sctx, typ.Type, val)
 	case *super.TypeSet:
-		return w.encodeContainer(zctx, typ.Type, val)
+		return w.encodeContainer(sctx, typ.Type, val)
 	case *super.TypeMap:
-		return w.encodeMap(zctx, typ, val)
+		return w.encodeMap(sctx, typ, val)
 	case *super.TypeUnion:
-		return w.encodeUnion(zctx, typ, val)
+		return w.encodeUnion(sctx, typ, val)
 	case *super.TypeEnum:
-		return w.encodePrimitive(zctx, super.TypeUint64, val)
+		return w.encodePrimitive(sctx, super.TypeUint64, val)
 	case *super.TypeError:
-		return w.encodeValue(zctx, typ.Type, val)
+		return w.encodeValue(sctx, typ.Type, val)
 	case *super.TypeNamed:
-		return w.encodeValue(zctx, typ.Type, val)
+		return w.encodeValue(sctx, typ.Type, val)
 	case *super.TypeOfType:
-		inner, err := w.zctx.LookupByValue(val)
+		inner, err := w.sctx.LookupByValue(val)
 		if err != nil {
 			return nil, err
 		}
 		return w.encoder.encodeType(inner), nil
 	default:
-		return w.encodePrimitive(zctx, typ, val)
+		return w.encodePrimitive(sctx, typ, val)
 	}
 }
 
-func (w *Writer) encodeRecord(zctx *super.Context, typ *super.TypeRecord, val zcode.Bytes) (interface{}, error) {
+func (w *Writer) encodeRecord(sctx *super.Context, typ *super.TypeRecord, val zcode.Bytes) (interface{}, error) {
 	// We start out with a slice that contains nothing instead of nil
 	// so that an empty container encodes as a JSON empty array [].
 	out := []interface{}{}
 	for k, it := 0, val.Iter(); !it.Done(); k++ {
-		v, err := w.encodeValue(zctx, typ.Fields[k].Type, it.Next())
+		v, err := w.encodeValue(sctx, typ.Fields[k].Type, it.Next())
 		if err != nil {
 			return nil, err
 		}
@@ -135,12 +135,12 @@ func (w *Writer) encodeRecord(zctx *super.Context, typ *super.TypeRecord, val zc
 	return out, nil
 }
 
-func (w *Writer) encodeContainer(zctx *super.Context, typ super.Type, bytes zcode.Bytes) (interface{}, error) {
+func (w *Writer) encodeContainer(sctx *super.Context, typ super.Type, bytes zcode.Bytes) (interface{}, error) {
 	// We start out with a slice that contains nothing instead of nil
 	// so that an empty container encodes as a JSON empty array [].
 	out := []interface{}{}
 	for it := bytes.Iter(); !it.Done(); {
-		v, err := w.encodeValue(zctx, typ, it.Next())
+		v, err := w.encodeValue(sctx, typ, it.Next())
 		if err != nil {
 			return nil, err
 		}
@@ -149,18 +149,18 @@ func (w *Writer) encodeContainer(zctx *super.Context, typ super.Type, bytes zcod
 	return out, nil
 }
 
-func (w *Writer) encodeMap(zctx *super.Context, typ *super.TypeMap, v zcode.Bytes) (interface{}, error) {
+func (w *Writer) encodeMap(sctx *super.Context, typ *super.TypeMap, v zcode.Bytes) (interface{}, error) {
 	// We start out with a slice that contains nothing instead of nil
 	// so that an empty map encodes as a JSON empty array [].
 	out := []interface{}{}
 	for it := v.Iter(); !it.Done(); {
 		pair := make([]interface{}, 2)
 		var err error
-		pair[0], err = w.encodeValue(zctx, typ.KeyType, it.Next())
+		pair[0], err = w.encodeValue(sctx, typ.KeyType, it.Next())
 		if err != nil {
 			return nil, err
 		}
-		pair[1], err = w.encodeValue(zctx, typ.ValType, it.Next())
+		pair[1], err = w.encodeValue(sctx, typ.ValType, it.Next())
 		if err != nil {
 			return nil, err
 		}
@@ -169,18 +169,18 @@ func (w *Writer) encodeMap(zctx *super.Context, typ *super.TypeMap, v zcode.Byte
 	return out, nil
 }
 
-func (w *Writer) encodeUnion(zctx *super.Context, union *super.TypeUnion, bytes zcode.Bytes) (interface{}, error) {
+func (w *Writer) encodeUnion(sctx *super.Context, union *super.TypeUnion, bytes zcode.Bytes) (interface{}, error) {
 	inner, b := union.Untag(bytes)
-	val, err := w.encodeValue(zctx, inner, b)
+	val, err := w.encodeValue(sctx, inner, b)
 	if err != nil {
 		return nil, err
 	}
 	return []interface{}{strconv.Itoa(union.TagOf(inner)), val}, nil
 }
 
-func (w *Writer) encodePrimitive(zctx *super.Context, typ super.Type, v zcode.Bytes) (interface{}, error) {
+func (w *Writer) encodePrimitive(sctx *super.Context, typ super.Type, v zcode.Bytes) (interface{}, error) {
 	if typ == super.TypeType {
-		typ, err := zctx.LookupByValue(v)
+		typ, err := sctx.LookupByValue(v)
 		if err != nil {
 			return nil, err
 		}

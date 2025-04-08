@@ -62,7 +62,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 	if err != nil {
 		return nil, err
 	}
-	commitID, err := branch.Load(o.rctx.Context, o.rctx.Zctx, reader, o.author, o.message, o.meta)
+	commitID, err := branch.Load(o.rctx.Context, o.rctx.Sctx, reader, o.author, o.message, o.meta)
 	if err != nil {
 		return nil, err
 	}

@@ -11,20 +11,20 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#network_of
 type NetworkOf struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (n *NetworkOf) Call(_ super.Allocator, args []super.Value) super.Value {
 	id := args[0].Type().ID()
 	if id != super.IDIP {
-		return n.zctx.WrapError("network_of: not an IP", args[0])
+		return n.sctx.WrapError("network_of: not an IP", args[0])
 	}
 	ip := super.DecodeIP(args[0].Bytes())
 	var bits int
 	if len(args) == 1 {
 		switch {
 		case !ip.Is4():
-			return n.zctx.WrapError("network_of: not an IPv4 address", args[0])
+			return n.sctx.WrapError("network_of: not an IPv4 address", args[0])
 		case ip.As4()[0] < 0x80:
 			bits = 8
 		case ip.As4()[0] < 0xc0:
@@ -39,11 +39,11 @@ func (n *NetworkOf) Call(_ super.Allocator, args []super.Value) super.Value {
 		case id == super.IDIP:
 			mask := super.DecodeIP(body)
 			if mask.BitLen() != ip.BitLen() {
-				return n.zctx.WrapError("network_of: address and mask have different lengths", addressAndMask(n.zctx, args[0], args[1]))
+				return n.sctx.WrapError("network_of: address and mask have different lengths", addressAndMask(n.sctx, args[0], args[1]))
 			}
 			bits = super.LeadingOnes(mask.AsSlice())
 			if netip.PrefixFrom(mask, bits).Masked().Addr() != mask {
-				return n.zctx.WrapError("network_of: mask is non-contiguous", args[1])
+				return n.sctx.WrapError("network_of: mask is non-contiguous", args[1])
 			}
 		case super.IsInteger(id):
 			if super.IsSigned(id) {
@@ -52,10 +52,10 @@ func (n *NetworkOf) Call(_ super.Allocator, args []super.Value) super.Value {
 				bits = int(args[1].Uint())
 			}
 			if bits > 128 || bits > 32 && ip.Is4() {
-				return n.zctx.WrapError("network_of: CIDR bit count out of range", addressAndMask(n.zctx, args[0], args[1]))
+				return n.sctx.WrapError("network_of: CIDR bit count out of range", addressAndMask(n.sctx, args[0], args[1]))
 			}
 		default:
-			return n.zctx.WrapError("network_of: bad arg for CIDR mask", args[1])
+			return n.sctx.WrapError("network_of: bad arg for CIDR mask", args[1])
 		}
 	}
 	// Mask for canonical form.
@@ -76,7 +76,7 @@ func addressAndMask(sctx *super.Context, address, mask super.Value) super.Value 
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#cidr_match
 type CIDRMatch struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 var errMatch = errors.New("match")
@@ -84,7 +84,7 @@ var errMatch = errors.New("match")
 func (c *CIDRMatch) Call(_ super.Allocator, args []super.Value) super.Value {
 	maskVal := args[0]
 	if id := maskVal.Type().ID(); id != super.IDNet && id != super.IDNull {
-		val := c.zctx.WrapError("cidr_match: not a net", maskVal)
+		val := c.sctx.WrapError("cidr_match: not a net", maskVal)
 		if maskVal.IsNull() {
 			val = super.NewValue(val.Type(), nil)
 		}

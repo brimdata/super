@@ -61,10 +61,10 @@ type ExprLvalElem struct {
 	eval   Evaluator
 }
 
-func NewExprLvalElem(zctx *super.Context, e Evaluator) *ExprLvalElem {
+func NewExprLvalElem(sctx *super.Context, e Evaluator) *ExprLvalElem {
 	return &ExprLvalElem{
 		eval:   e,
-		caster: LookupPrimitiveCaster(zctx, super.TypeString),
+		caster: LookupPrimitiveCaster(sctx, super.TypeString),
 	}
 }
 

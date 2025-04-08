@@ -10,15 +10,15 @@ import (
 //go:generate go run gendatepartfuncs.go
 
 type DatePart struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (d *DatePart) Call(args ...vector.Any) vector.Any {
 	if args[0].Type().ID() != super.IDString {
-		return vector.NewWrappedError(d.zctx, "date_part: string value required for part argument", args[0])
+		return vector.NewWrappedError(d.sctx, "date_part: string value required for part argument", args[0])
 	}
 	if args[1].Type().ID() != super.IDTime {
-		return vector.NewWrappedError(d.zctx, "date_part: time value required for time argument", args[1])
+		return vector.NewWrappedError(d.sctx, "date_part: time value required for time argument", args[1])
 	}
 	partArg, timeArg := vector.Under(args[0]), vector.Under(args[1])
 	c, ok := partArg.(*vector.Const)
@@ -27,13 +27,13 @@ func (d *DatePart) Call(args ...vector.Any) vector.Any {
 	}
 	fn := datePartFuncs[c.Value().Ptr().AsString()]
 	if fn == nil {
-		return vector.NewWrappedError(d.zctx, "date_part: unknown part name", args[0])
+		return vector.NewWrappedError(d.sctx, "date_part: unknown part name", args[0])
 	}
 	return fn(timeArg)
 }
 
 func (d *DatePart) slow(partArg, timeArg vector.Any) vector.Any {
-	fn := samfunc.NewDatePart(d.zctx)
+	fn := samfunc.NewDatePart(d.sctx)
 	var b zcode.Builder
 	vb := vector.NewDynamicBuilder()
 	for i := range partArg.Len() {

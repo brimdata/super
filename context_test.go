@@ -10,31 +10,31 @@ import (
 )
 
 func TestContextLookupTypeNamedErrors(t *testing.T) {
-	zctx := super.NewContext()
+	sctx := super.NewContext()
 
-	_, err := zctx.LookupTypeNamed("\xff", super.TypeNull)
+	_, err := sctx.LookupTypeNamed("\xff", super.TypeNull)
 	assert.EqualError(t, err, `bad type name "\xff": invalid UTF-8`)
 
-	_, err = zctx.LookupTypeNamed("null", super.TypeNull)
+	_, err = sctx.LookupTypeNamed("null", super.TypeNull)
 	assert.EqualError(t, err, `bad type name "null": primitive type name`)
 }
 
 func TestContextLookupTypeNamedAndLookupTypeDef(t *testing.T) {
-	zctx := super.NewContext()
+	sctx := super.NewContext()
 
-	assert.Nil(t, zctx.LookupTypeDef("x"))
+	assert.Nil(t, sctx.LookupTypeDef("x"))
 
-	named1, err := zctx.LookupTypeNamed("x", super.TypeNull)
+	named1, err := sctx.LookupTypeNamed("x", super.TypeNull)
 	require.NoError(t, err)
-	assert.Same(t, named1, zctx.LookupTypeDef("x"))
+	assert.Same(t, named1, sctx.LookupTypeDef("x"))
 
-	named2, err := zctx.LookupTypeNamed("x", super.TypeInt8)
+	named2, err := sctx.LookupTypeNamed("x", super.TypeInt8)
 	require.NoError(t, err)
-	assert.Same(t, named2, zctx.LookupTypeDef("x"))
+	assert.Same(t, named2, sctx.LookupTypeDef("x"))
 
-	named3, err := zctx.LookupTypeNamed("x", super.TypeNull)
+	named3, err := sctx.LookupTypeNamed("x", super.TypeNull)
 	require.NoError(t, err)
-	assert.Same(t, named3, zctx.LookupTypeDef("x"))
+	assert.Same(t, named3, sctx.LookupTypeDef("x"))
 	assert.Same(t, named3, named1)
 }
 
@@ -43,8 +43,8 @@ func TestContextTranslateTypeNameConflictUnion(t *testing.T) {
 	// decoded.  There was a bug where child typedefs would override the
 	// top level typedef in TranslateType so foo in the value below had
 	// two of the same union type instead of the two it should have had.
-	zctx := super.NewContext()
-	val := sup.MustParseValue(zctx, `[{x:{y:63}}(=foo),{x:{abcdef:{x:{y:127}}(foo)}}(=foo)]`)
+	sctx := super.NewContext()
+	val := sup.MustParseValue(sctx, `[{x:{y:63}}(=foo),{x:{abcdef:{x:{y:127}}(foo)}}(=foo)]`)
 	foreign := super.NewContext()
 	twin, err := foreign.TranslateType(val.Type())
 	require.NoError(t, err)

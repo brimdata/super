@@ -10,15 +10,15 @@ import (
 )
 
 type Slice struct {
-	zctx *super.Context
+	sctx *super.Context
 	elem Evaluator
 	from Evaluator
 	to   Evaluator
 }
 
-func NewSlice(zctx *super.Context, elem, from, to Evaluator) *Slice {
+func NewSlice(sctx *super.Context, elem, from, to Evaluator) *Slice {
 	return &Slice{
-		zctx: zctx,
+		sctx: sctx,
 		elem: elem,
 		from: from,
 		to:   to,
@@ -46,19 +46,19 @@ func (s *Slice) Eval(ectx Context, this super.Value) super.Value {
 		}
 		length = n
 	default:
-		return s.zctx.WrapError("sliced value is not array, set, bytes, or string", elem)
+		return s.sctx.WrapError("sliced value is not array, set, bytes, or string", elem)
 	}
 	if elem.IsNull() {
 		return elem
 	}
 	from, err := sliceIndex(ectx, this, s.from, length)
 	if err != nil && err != ErrSliceIndexEmpty {
-		return s.zctx.NewError(err)
+		return s.sctx.NewError(err)
 	}
 	to, err := sliceIndex(ectx, this, s.to, length)
 	if err != nil {
 		if err != ErrSliceIndexEmpty {
-			return s.zctx.NewError(err)
+			return s.sctx.NewError(err)
 		}
 		to = length
 	}

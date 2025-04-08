@@ -18,7 +18,7 @@ type Over struct {
 	outer []super.Value
 	batch zbuf.Batch
 	enter *Enter
-	zctx  *super.Context
+	sctx  *super.Context
 }
 
 func NewOver(rctx *runtime.Context, parent zbuf.Puller, exprs []expr.Evaluator, resetter expr.Resetter) *Over {
@@ -26,7 +26,7 @@ func NewOver(rctx *runtime.Context, parent zbuf.Puller, exprs []expr.Evaluator, 
 		parent:   parent,
 		exprs:    exprs,
 		resetter: resetter,
-		zctx:     rctx.Zctx,
+		sctx:     rctx.Sctx,
 	}
 }
 
@@ -77,7 +77,7 @@ func (o *Over) over(batch zbuf.Batch, this super.Value) zbuf.Batch {
 		val := e.Eval(batch, this)
 		// Propagate errors but skip missing values.
 		if !val.IsMissing() {
-			vals = appendOver(o.zctx, vals, val)
+			vals = appendOver(o.sctx, vals, val)
 		}
 	}
 	if len(vals) == 0 {
@@ -86,7 +86,7 @@ func (o *Over) over(batch zbuf.Batch, this super.Value) zbuf.Batch {
 	return zbuf.NewBatch(batch, vals)
 }
 
-func appendOver(zctx *super.Context, vals []super.Value, val super.Value) []super.Value {
+func appendOver(sctx *super.Context, vals []super.Value, val super.Value) []super.Value {
 	val = val.Under()
 	switch typ := super.TypeUnder(val.Type()).(type) {
 	case *super.TypeArray, *super.TypeSet:
@@ -100,7 +100,7 @@ func appendOver(zctx *super.Context, vals []super.Value, val super.Value) []supe
 		}
 		return vals
 	case *super.TypeMap:
-		rtyp := zctx.MustLookupTypeRecord([]super.Field{
+		rtyp := sctx.MustLookupTypeRecord([]super.Field{
 			super.NewField("key", typ.KeyType),
 			super.NewField("value", typ.ValType),
 		})
@@ -114,8 +114,8 @@ func appendOver(zctx *super.Context, vals []super.Value, val super.Value) []supe
 		for i, it := 0, val.Bytes().Iter(); !it.Done(); i++ {
 			builder.Reset()
 			field := typ.Fields[i]
-			typ := zctx.MustLookupTypeRecord([]super.Field{
-				{Name: "key", Type: zctx.LookupTypeArray(super.TypeString)},
+			typ := sctx.MustLookupTypeRecord([]super.Field{
+				{Name: "key", Type: sctx.LookupTypeArray(super.TypeString)},
 				{Name: "value", Type: field.Type},
 			})
 			builder.BeginContainer()

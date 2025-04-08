@@ -473,8 +473,8 @@ func runseq(zedProgram, input string, outputFlags []string, inputFlags []string)
 	if err != nil {
 		return "", err
 	}
-	zctx := super.NewContext()
-	zrc, err := newInputReader(zctx, input, inputFlags)
+	sctx := super.NewContext()
+	zrc, err := newInputReader(sctx, input, inputFlags)
 	if err != nil {
 		return "", err
 	}
@@ -493,7 +493,7 @@ func runseq(zedProgram, input string, outputFlags []string, inputFlags []string)
 	if err != nil {
 		return "", err
 	}
-	q, err := runtime.CompileQuery(context.Background(), zctx, compiler.NewCompiler(nil), ast, []zio.Reader{zrc})
+	q, err := runtime.CompileQuery(context.Background(), sctx, compiler.NewCompiler(nil), ast, []zio.Reader{zrc})
 	if err != nil {
 		zw.Close()
 		return "", err
@@ -516,13 +516,13 @@ func runvec(zedProgram string, input string, outputFlags, inputFlags []string) (
 	if err := outflags.Init(); err != nil {
 		return "", err
 	}
-	zctx := super.NewContext()
-	zrc, err := newInputReader(zctx, input, inputFlags)
+	sctx := super.NewContext()
+	zrc, err := newInputReader(sctx, input, inputFlags)
 	if err != nil {
 		return "", err
 	}
 	d := vam.NewDematerializer(zbuf.NewPuller(zrc))
-	rctx := runtime.NewContext(context.Background(), zctx)
+	rctx := runtime.NewContext(context.Background(), sctx)
 	puller, err := compiler.VectorCompile(rctx, zedProgram, d)
 	if err != nil {
 		return "", err
@@ -539,7 +539,7 @@ func runvec(zedProgram string, input string, outputFlags, inputFlags []string) (
 	return outbuf.String(), err
 }
 
-func newInputReader(zctx *super.Context, input string, flags []string) (zio.ReadCloser, error) {
+func newInputReader(sctx *super.Context, input string, flags []string) (zio.ReadCloser, error) {
 	var inflags inputflags.Flags
 	var fs flag.FlagSet
 	inflags.SetFlags(&fs, true)
@@ -550,5 +550,5 @@ func newInputReader(zctx *super.Context, input string, flags []string) (zio.Read
 	if err != nil {
 		return nil, err
 	}
-	return anyio.NewReaderWithOpts(zctx, r, inflags.Options())
+	return anyio.NewReaderWithOpts(sctx, r, inflags.Options())
 }

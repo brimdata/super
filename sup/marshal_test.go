@@ -443,12 +443,12 @@ func TestInterfaceWithConcreteEmptyValue(t *testing.T) {
 }
 
 func TestZedType(t *testing.T) {
-	zctx := super.NewContext()
+	sctx := super.NewContext()
 	u := sup.NewUnmarshaler()
 	var typ super.Type
 	err := u.Unmarshal(`<string>`, &typ)
 	assert.EqualError(t, err, `cannot unmarshal type value without type context`)
-	u.SetContext(zctx)
+	u.SetContext(sctx)
 	err = u.Unmarshal(`<string>`, &typ)
 	require.NoError(t, err)
 	assert.Equal(t, super.TypeString, typ)

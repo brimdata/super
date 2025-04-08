@@ -15,7 +15,7 @@ import (
 	"github.com/brimdata/super/zio/arrowio"
 )
 
-func NewReader(zctx *super.Context, r io.Reader, fields []field.Path) (*arrowio.Reader, error) {
+func NewReader(sctx *super.Context, r io.Reader, fields []field.Path) (*arrowio.Reader, error) {
 	ras, ok := r.(parquet.ReaderAtSeeker)
 	if !ok {
 		return nil, errors.New("reader cannot seek")
@@ -39,7 +39,7 @@ func NewReader(zctx *super.Context, r io.Reader, fields []field.Path) (*arrowio.
 		pr.Close()
 		return nil, err
 	}
-	ar, err := arrowio.NewReaderFromRecordReader(zctx, rr)
+	ar, err := arrowio.NewReaderFromRecordReader(sctx, rr)
 	if err != nil {
 		pr.Close()
 		return nil, err

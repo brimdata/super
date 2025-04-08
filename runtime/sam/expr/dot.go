@@ -16,24 +16,24 @@ func (*This) Eval(_ Context, this super.Value) super.Value {
 }
 
 type DotExpr struct {
-	zctx         *super.Context
+	sctx         *super.Context
 	record       Evaluator
 	field        string
 	fieldIndices []int
 }
 
-func NewDotExpr(zctx *super.Context, record Evaluator, field string) *DotExpr {
+func NewDotExpr(sctx *super.Context, record Evaluator, field string) *DotExpr {
 	return &DotExpr{
-		zctx:   zctx,
+		sctx:   sctx,
 		record: record,
 		field:  field,
 	}
 }
 
-func NewDottedExpr(zctx *super.Context, f field.Path) Evaluator {
+func NewDottedExpr(sctx *super.Context, f field.Path) Evaluator {
 	ret := Evaluator(&This{})
 	for _, name := range f {
-		ret = NewDotExpr(zctx, ret, name)
+		ret = NewDotExpr(sctx, ret, name)
 	}
 	return ret
 }
@@ -45,19 +45,19 @@ func (d *DotExpr) Eval(ectx Context, this super.Value) super.Value {
 	case *super.TypeRecord:
 		i, ok := d.fieldIndex(typ)
 		if !ok {
-			return d.zctx.Missing()
+			return d.sctx.Missing()
 		}
 		bytes, ok := getNthFromContainer(val.Bytes(), i)
 		if !ok {
-			return d.zctx.Missing()
+			return d.sctx.Missing()
 		}
 		return super.NewValue(typ.Fields[i].Type, bytes)
 	case *super.TypeMap:
-		return indexMap(d.zctx, ectx, typ, val.Bytes(), super.NewString(d.field))
+		return indexMap(d.sctx, ectx, typ, val.Bytes(), super.NewString(d.field))
 	case *super.TypeOfType:
 		return d.evalTypeOfType(ectx, val.Bytes())
 	}
-	return d.zctx.Missing()
+	return d.sctx.Missing()
 }
 
 func (d *DotExpr) fieldIndex(typ *super.TypeRecord) (int, bool) {
@@ -80,13 +80,13 @@ func (d *DotExpr) fieldIndex(typ *super.TypeRecord) (int, bool) {
 }
 
 func (d *DotExpr) evalTypeOfType(ectx Context, b zcode.Bytes) super.Value {
-	typ, _ := d.zctx.DecodeTypeValue(b)
+	typ, _ := d.sctx.DecodeTypeValue(b)
 	if typ, ok := super.TypeUnder(typ).(*super.TypeRecord); ok {
 		if typ, ok := typ.TypeOfField(d.field); ok {
-			return d.zctx.LookupTypeValue(typ)
+			return d.sctx.LookupTypeValue(typ)
 		}
 	}
-	return d.zctx.Missing()
+	return d.sctx.Missing()
 }
 
 // DotExprToString returns Zed for the Evaluator assuming it's a field expr.

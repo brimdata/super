@@ -20,14 +20,14 @@ type scannerSync struct {
 	eof      bool
 }
 
-func newScannerSync(ctx context.Context, zctx *super.Context, r io.Reader, filter zbuf.Pushdown, opts ReaderOpts) (*scannerSync, error) {
+func newScannerSync(ctx context.Context, sctx *super.Context, r io.Reader, filter zbuf.Pushdown, opts ReaderOpts) (*scannerSync, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	s := &scannerSync{
 		ctx:    ctx,
 		cancel: cancel,
 		parser: parser{
 			peeker:  peeker.NewReader(r, opts.Size, opts.Max),
-			types:   NewDecoder(zctx),
+			types:   NewDecoder(sctx),
 			maxSize: opts.Max,
 		},
 	}

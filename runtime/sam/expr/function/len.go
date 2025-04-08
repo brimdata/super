@@ -6,7 +6,7 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#len
 type LenFn struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (l *LenFn) Call(_ super.Allocator, args []super.Value) super.Value {
@@ -25,15 +25,15 @@ func (l *LenFn) Call(_ super.Allocator, args []super.Value) super.Value {
 	case *super.TypeOfBytes, *super.TypeOfString, *super.TypeOfIP, *super.TypeOfNet:
 		length = len(val.Bytes())
 	case *super.TypeError:
-		return l.zctx.WrapError("len()", val)
+		return l.sctx.WrapError("len()", val)
 	case *super.TypeOfType:
-		t, err := l.zctx.LookupByValue(val.Bytes())
+		t, err := l.sctx.LookupByValue(val.Bytes())
 		if err != nil {
-			return l.zctx.NewError(err)
+			return l.sctx.NewError(err)
 		}
 		length = TypeLength(t)
 	default:
-		return l.zctx.WrapError("len: bad type", val)
+		return l.sctx.WrapError("len: bad type", val)
 	}
 	return super.NewInt64(int64(length))
 }

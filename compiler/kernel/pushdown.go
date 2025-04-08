@@ -28,7 +28,7 @@ func (p *pushdown) BSUPFilter() (*expr.BufferFilter, error) {
 	if p == nil || p.dataFilter == nil {
 		return nil, nil
 	}
-	return CompileBufferFilter(p.builder.zctx(), p.dataFilter)
+	return CompileBufferFilter(p.builder.sctx(), p.dataFilter)
 }
 
 func (p *pushdown) MetaFilter() (expr.Evaluator, field.Projection, error) {

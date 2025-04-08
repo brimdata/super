@@ -7,7 +7,7 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#under
 type Under struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (u *Under) Call(args ...vector.Any) vector.Any {
@@ -30,11 +30,11 @@ func (u *Under) Call(args ...vector.Any) vector.Any {
 			if vec.Nulls.Value(i) {
 				typs.Append(nil)
 			}
-			t, err := u.zctx.LookupByValue(vec.Value(i))
+			t, err := u.sctx.LookupByValue(vec.Value(i))
 			if err != nil {
 				panic(err)
 			}
-			v := u.zctx.LookupTypeValue(super.TypeUnder(t))
+			v := u.sctx.LookupTypeValue(super.TypeUnder(t))
 			typs.Append(v.Bytes())
 		}
 		out = typs

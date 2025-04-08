@@ -10,7 +10,7 @@ import (
 )
 
 type builder struct {
-	zctx *super.Context
+	sctx *super.Context
 
 	containers []int  // Stack of open containers (as indexes into items).
 	items      []item // Stack of items.
@@ -89,18 +89,18 @@ func (b *builder) endArray() {
 	container.zb.BeginContainer()
 	switch len(b.types) {
 	case 0:
-		container.typ = b.zctx.LookupTypeArray(super.TypeNull)
+		container.typ = b.sctx.LookupTypeArray(super.TypeNull)
 		for range items {
 			container.zb.Append(nil)
 		}
 	case 1:
-		container.typ = b.zctx.LookupTypeArray(b.types[0])
+		container.typ = b.sctx.LookupTypeArray(b.types[0])
 		for i := range items {
 			container.zb.Append(items[i].zb.Bytes().Body())
 		}
 	default:
-		union := b.zctx.LookupTypeUnion(b.types)
-		container.typ = b.zctx.LookupTypeArray(union)
+		union := b.sctx.LookupTypeUnion(b.types)
+		container.typ = b.sctx.LookupTypeArray(union)
 		for i := range items {
 			if bytes := items[i].zb.Bytes().Body(); bytes == nil {
 				container.zb.Append(nil)
@@ -126,7 +126,7 @@ func (b *builder) endRecord() {
 			b.fields = append(b.fields, super.NewField(item.fieldName, item.typ))
 		}
 		var err error
-		container.typ, err = b.zctx.LookupTypeRecord(b.fields)
+		container.typ, err = b.sctx.LookupTypeRecord(b.fields)
 		if err == nil {
 			break
 		}

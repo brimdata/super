@@ -9,14 +9,14 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#network_of
 type NetworkOf struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (n *NetworkOf) Call(args ...vector.Any) vector.Any {
 	args = underAll(args)
 	ipvec := args[0]
 	if ipvec.Type().ID() != super.IDIP {
-		return vector.NewWrappedError(n.zctx, "network_of: not an IP", ipvec)
+		return vector.NewWrappedError(n.sctx, "network_of: not an IP", ipvec)
 	}
 	if len(args) == 1 {
 		return n.singleIP(ipvec)
@@ -28,7 +28,7 @@ func (n *NetworkOf) Call(args ...vector.Any) vector.Any {
 	case super.IsInteger(id):
 		return n.intMask(ipvec, maskvec)
 	default:
-		return vector.NewWrappedError(n.zctx, "network_of: bad arg for CIDR mask", maskvec)
+		return vector.NewWrappedError(n.sctx, "network_of: bad arg for CIDR mask", maskvec)
 	}
 }
 
@@ -36,7 +36,7 @@ func (n *NetworkOf) singleIP(vec vector.Any) vector.Any {
 	if c, ok := vec.(*vector.Const); ok {
 		ip, _ := vector.IPValue(vec, 0)
 		if !ip.Is4() {
-			return errNotIP4(n.zctx, vec)
+			return errNotIP4(n.sctx, vec)
 		}
 		net := netip.PrefixFrom(ip, bitsFromIP(ip.As4())).Masked()
 		return vector.NewConst(super.NewNet(net), c.Len(), c.Nulls)
@@ -57,7 +57,7 @@ func (n *NetworkOf) singleIP(vec vector.Any) vector.Any {
 		nets = vector.NewDict(netVals, index, counts, nulls)
 	}
 	if len(errs) > 0 {
-		return vector.Combine(nets, errs, errNotIP4(n.zctx, vector.NewView(vec, errs)))
+		return vector.Combine(nets, errs, errNotIP4(n.sctx, vector.NewView(vec, errs)))
 	}
 	return nets
 }
@@ -110,9 +110,9 @@ func (n *NetworkOf) ipMask(ipvec, maskvec vector.Any) vector.Any {
 		nets = append(nets, netip.PrefixFrom(ip, bits).Masked())
 	}
 	b := vector.NewCombiner(vector.NewNet(nets, nil))
-	m := addressAndMask(n.zctx, ipvec, maskvec)
-	b.WrappedError(n.zctx, errsLen, "network_of: address and mask have different lengths", m)
-	b.WrappedError(n.zctx, errsCont, "network_of: mask is non-contiguous", maskvec)
+	m := addressAndMask(n.sctx, ipvec, maskvec)
+	b.WrappedError(n.sctx, errsLen, "network_of: address and mask have different lengths", m)
+	b.WrappedError(n.sctx, errsCont, "network_of: mask is non-contiguous", maskvec)
 	return b.Result()
 }
 
@@ -125,7 +125,7 @@ func (n *NetworkOf) intMask(ipvec, maskvec vector.Any) vector.Any {
 			ip, _ := vector.IPValue(ipvec, 0)
 			net := netip.PrefixFrom(ip, int(bits))
 			if net.Bits() < 0 {
-				return errCIDRRange(n.zctx, ipvec, maskvec)
+				return errCIDRRange(n.sctx, ipvec, maskvec)
 			}
 			return vector.NewConst(super.NewNet(net.Masked()), ipvec.Len(), nil)
 		}
@@ -153,8 +153,8 @@ func (n *NetworkOf) intMask(ipvec, maskvec vector.Any) vector.Any {
 		out = vector.NewNet(nets, nil)
 	}
 	if len(errs) > 0 {
-		m := vector.NewView(addressAndMask(n.zctx, ipvec, maskvec), errs)
-		err := vector.NewWrappedError(n.zctx, "network_of: CIDR bit count out of range", m)
+		m := vector.NewView(addressAndMask(n.sctx, ipvec, maskvec), errs)
+		err := vector.NewWrappedError(n.sctx, "network_of: CIDR bit count out of range", m)
 		return vector.Combine(out, errs, err)
 	}
 	return out
@@ -198,17 +198,17 @@ func (n *NetworkOf) intMaskFastLoop(vec *vector.IP, index []uint32, bits int) (v
 	return vector.NewNet(nets, nil), errs
 }
 
-func errCIDRRange(zctx *super.Context, ipvec, maskvec vector.Any) vector.Any {
-	vec := addressAndMask(zctx, ipvec, maskvec)
-	return vector.NewWrappedError(zctx, "network_of: CIDR bit count out of range", vec)
+func errCIDRRange(sctx *super.Context, ipvec, maskvec vector.Any) vector.Any {
+	vec := addressAndMask(sctx, ipvec, maskvec)
+	return vector.NewWrappedError(sctx, "network_of: CIDR bit count out of range", vec)
 }
 
-func errNotIP4(zctx *super.Context, vec vector.Any) vector.Any {
-	return vector.NewWrappedError(zctx, "network_of: not an IPv4 address", vec)
+func errNotIP4(sctx *super.Context, vec vector.Any) vector.Any {
+	return vector.NewWrappedError(sctx, "network_of: not an IPv4 address", vec)
 }
 
-func addressAndMask(zctx *super.Context, address, mask vector.Any) vector.Any {
-	typ := zctx.MustLookupTypeRecord([]super.Field{
+func addressAndMask(sctx *super.Context, address, mask vector.Any) vector.Any {
+	typ := sctx.MustLookupTypeRecord([]super.Field{
 		{Name: "address", Type: address.Type()},
 		{Name: "mask", Type: mask.Type()},
 	})

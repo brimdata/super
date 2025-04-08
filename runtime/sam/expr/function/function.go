@@ -16,156 +16,156 @@ var (
 	ErrTooManyArgs    = errors.New("too many arguments")
 )
 
-func New(zctx *super.Context, name string, narg int) (expr.Function, field.Path, error) {
+func New(sctx *super.Context, name string, narg int) (expr.Function, field.Path, error) {
 	argmin := 1
 	argmax := 1
 	var path field.Path
 	var f expr.Function
 	switch name {
 	case "abs":
-		f = &Abs{zctx: zctx}
+		f = &Abs{sctx: sctx}
 	case "base64":
-		f = &Base64{zctx: zctx}
+		f = &Base64{sctx: sctx}
 	case "bucket":
 		argmin = 2
 		argmax = 2
-		f = &Bucket{zctx: zctx, name: name}
+		f = &Bucket{sctx: sctx, name: name}
 	case "ceil":
-		f = &Ceil{zctx: zctx}
+		f = &Ceil{sctx: sctx}
 	case "cidr_match":
 		argmin = 2
 		argmax = 2
-		f = &CIDRMatch{zctx: zctx}
+		f = &CIDRMatch{sctx: sctx}
 	case "coalesce":
 		argmax = -1
 		f = &Coalesce{}
 	case "compare":
 		argmin = 2
 		argmax = 3
-		f = NewCompare(zctx)
+		f = NewCompare(sctx)
 	case "date_part":
 		argmin = 2
 		argmax = 2
-		f = &DatePart{zctx}
+		f = &DatePart{sctx}
 	case "error":
-		f = &Error{zctx: zctx}
+		f = &Error{sctx: sctx}
 	case "every":
 		path = field.Path{"ts"}
 		f = &Bucket{
-			zctx: zctx,
+			sctx: sctx,
 			name: "every",
 		}
 	case "fields":
-		f = NewFields(zctx)
+		f = NewFields(sctx)
 	case "flatten":
-		f = NewFlatten(zctx)
+		f = NewFlatten(sctx)
 	case "floor":
-		f = &Floor{zctx: zctx}
+		f = &Floor{sctx: sctx}
 	case "grep":
 		argmax = 2
-		f = &Grep{zctx: zctx}
+		f = &Grep{sctx: sctx}
 	case "grok":
 		argmin, argmax = 2, 3
-		f = newGrok(zctx)
+		f = newGrok(sctx)
 	case "has":
 		argmax = -1
 		f = &Has{}
 	case "has_error":
 		f = NewHasError()
 	case "hex":
-		f = &Hex{zctx: zctx}
+		f = &Hex{sctx: sctx}
 	case "is":
 		argmin = 1
 		argmax = 2
 		path = field.Path{}
-		f = &Is{zctx: zctx}
+		f = &Is{sctx: sctx}
 	case "is_error":
 		f = &IsErr{}
 	case "join":
 		argmax = 2
-		f = &Join{zctx: zctx}
+		f = &Join{sctx: sctx}
 	case "kind":
-		f = &Kind{zctx: zctx}
+		f = &Kind{sctx: sctx}
 	case "ksuid":
 		argmin = 0
-		f = &KSUIDToString{zctx: zctx}
+		f = &KSUIDToString{sctx: sctx}
 	case "len", "length":
-		f = &LenFn{zctx: zctx}
+		f = &LenFn{sctx: sctx}
 	case "levenshtein":
 		argmin = 2
 		argmax = 2
-		f = &Levenshtein{zctx: zctx}
+		f = &Levenshtein{sctx: sctx}
 	case "log":
-		f = &Log{zctx: zctx}
+		f = &Log{sctx: sctx}
 	case "lower":
-		f = &ToLower{zctx: zctx}
+		f = &ToLower{sctx: sctx}
 	case "max":
 		argmax = -1
-		f = &reducer{zctx: zctx, fn: anymath.Max, name: name}
+		f = &reducer{sctx: sctx, fn: anymath.Max, name: name}
 	case "min":
 		argmax = -1
-		f = &reducer{zctx: zctx, fn: anymath.Min, name: name}
+		f = &reducer{sctx: sctx, fn: anymath.Min, name: name}
 	case "missing":
 		argmax = -1
 		f = &Missing{}
 	case "nameof":
-		f = &NameOf{zctx: zctx}
+		f = &NameOf{sctx: sctx}
 	case "nest_dotted":
 		path = field.Path{}
 		argmin = 0
-		f = NewNestDotted(zctx)
+		f = NewNestDotted(sctx)
 	case "network_of":
 		argmax = 2
-		f = &NetworkOf{zctx: zctx}
+		f = &NetworkOf{sctx: sctx}
 	case "now":
 		argmax = 0
 		argmin = 0
 		f = &Now{}
 	case "parse_sup":
-		f = newParseSUP(zctx)
+		f = newParseSUP(sctx)
 	case "parse_uri":
-		f = NewParseURI(zctx)
+		f = NewParseURI(sctx)
 	case "pow":
 		argmin = 2
 		argmax = 2
-		f = &Pow{zctx: zctx}
+		f = &Pow{sctx: sctx}
 	case "quiet":
-		f = &Quiet{zctx: zctx}
+		f = &Quiet{sctx: sctx}
 	case "regexp":
 		argmin, argmax = 2, 2
-		f = &Regexp{zctx: zctx}
+		f = &Regexp{sctx: sctx}
 	case "regexp_replace":
 		argmin, argmax = 3, 3
-		f = &RegexpReplace{zctx: zctx}
+		f = &RegexpReplace{sctx: sctx}
 	case "replace":
 		argmin = 3
 		argmax = 3
-		f = &Replace{zctx: zctx}
+		f = &Replace{sctx: sctx}
 	case "round":
-		f = &Round{zctx: zctx}
+		f = &Round{sctx: sctx}
 	case "rune_len":
-		f = &RuneLen{zctx: zctx}
+		f = &RuneLen{sctx: sctx}
 	case "split":
 		argmin = 2
 		argmax = 2
-		f = newSplit(zctx)
+		f = newSplit(sctx)
 	case "sqrt":
-		f = &Sqrt{zctx: zctx}
+		f = &Sqrt{sctx: sctx}
 	case "strftime":
 		argmin, argmax = 2, 2
-		f = &Strftime{zctx: zctx}
+		f = &Strftime{sctx: sctx}
 	case "trim":
-		f = &Trim{zctx: zctx}
+		f = &Trim{sctx: sctx}
 	case "typename":
-		f = &typeName{zctx: zctx}
+		f = &typeName{sctx: sctx}
 	case "typeof":
-		f = &TypeOf{zctx: zctx}
+		f = &TypeOf{sctx: sctx}
 	case "under":
-		f = &Under{zctx: zctx}
+		f = &Under{sctx: sctx}
 	case "unflatten":
-		f = NewUnflatten(zctx)
+		f = NewUnflatten(sctx)
 	case "upper":
-		f = &ToUpper{zctx: zctx}
+		f = &ToUpper{sctx: sctx}
 	default:
 		return nil, nil, ErrNoSuchFunction
 	}

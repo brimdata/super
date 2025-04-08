@@ -94,7 +94,7 @@ func (d *Deleter) nextDeletion() (zbuf.Puller, error) {
 		}
 		// Use a no-op progress so stats are not inflated.
 		var progress zbuf.Progress
-		scanner, object, err := newScanner(d.rctx.Context, d.rctx.Zctx, d.pool, d.unmarshaler, d.pruner, d.pushdown, &progress, vals[0])
+		scanner, object, err := newScanner(d.rctx.Context, d.rctx.Sctx, d.pool, d.unmarshaler, d.pruner, d.pushdown, &progress, vals[0])
 		if err != nil {
 			return nil, err
 		}
@@ -104,7 +104,7 @@ func (d *Deleter) nextDeletion() (zbuf.Puller, error) {
 }
 
 func (d *Deleter) hasDeletes(val super.Value) (bool, error) {
-	scanner, object, err := newScanner(d.rctx.Context, d.rctx.Zctx, d.pool, d.unmarshaler, d.pruner, d.pushdown, d.progress, val)
+	scanner, object, err := newScanner(d.rctx.Context, d.rctx.Sctx, d.pool, d.unmarshaler, d.pruner, d.pushdown, d.progress, val)
 	if err != nil {
 		return false, err
 	}

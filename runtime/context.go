@@ -14,16 +14,16 @@ type Context struct {
 	// WaitGroup is used to ensure that goroutines complete cleanup work
 	// (e.g., removing temporary files) before Cancel returns.
 	WaitGroup sync.WaitGroup
-	Zctx      *super.Context
+	Sctx      *super.Context
 	cancel    context.CancelFunc
 }
 
-func NewContext(ctx context.Context, zctx *super.Context) *Context {
+func NewContext(ctx context.Context, sctx *super.Context) *Context {
 	ctx, cancel := context.WithCancel(ctx)
 	return &Context{
 		Context: ctx,
 		cancel:  cancel,
-		Zctx:    zctx,
+		Sctx:    sctx,
 	}
 }
 

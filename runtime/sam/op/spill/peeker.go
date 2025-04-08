@@ -13,7 +13,7 @@ type peeker struct {
 	ordinal    int
 }
 
-func newPeeker(ctx context.Context, zctx *super.Context, filename string, ordinal int, zr zio.Reader) (*peeker, error) {
+func newPeeker(ctx context.Context, sctx *super.Context, filename string, ordinal int, zr zio.Reader) (*peeker, error) {
 	f, err := NewFileWithPath(filename)
 	if err != nil {
 		return nil, err
@@ -22,7 +22,7 @@ func newPeeker(ctx context.Context, zctx *super.Context, filename string, ordina
 		f.CloseAndRemove()
 		return nil, err
 	}
-	if err := f.Rewind(zctx); err != nil {
+	if err := f.Rewind(sctx); err != nil {
 		f.CloseAndRemove()
 		return nil, err
 	}

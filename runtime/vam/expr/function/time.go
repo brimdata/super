@@ -11,7 +11,7 @@ import (
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#bucket
 type Bucket struct {
 	name string
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (b *Bucket) Call(args ...vector.Any) vector.Any {
@@ -19,10 +19,10 @@ func (b *Bucket) Call(args ...vector.Any) vector.Any {
 	tsArg, binArg := args[0], args[1]
 	tsID, binID := tsArg.Type().ID(), binArg.Type().ID()
 	if tsID != super.IDDuration && tsID != super.IDTime {
-		return vector.NewWrappedError(b.zctx, b.name+": first argument is not a time or duration", tsArg)
+		return vector.NewWrappedError(b.sctx, b.name+": first argument is not a time or duration", tsArg)
 	}
 	if binID != super.IDDuration {
-		return vector.NewWrappedError(b.zctx, b.name+": second argument is not a duration", binArg)
+		return vector.NewWrappedError(b.sctx, b.name+": second argument is not a duration", binArg)
 	}
 	return vector.Apply(false, b.call, tsArg, binArg)
 }
@@ -56,7 +56,7 @@ func (b *Bucket) call(args ...vector.Any) vector.Any {
 
 func (b *Bucket) constBin(tsVec vector.Any, bin nano.Duration) vector.Any {
 	if bin == 0 {
-		return cast.To(b.zctx, tsVec, b.resultType(tsVec))
+		return cast.To(b.sctx, tsVec, b.resultType(tsVec))
 	}
 	switch tsVec := tsVec.(type) {
 	case *vector.Const:
@@ -101,17 +101,17 @@ func (n *Now) Call(args ...vector.Any) vector.Any {
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#strftime
 type Strftime struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (s *Strftime) Call(args ...vector.Any) vector.Any {
 	args = underAll(args)
 	formatVec, timeVec := args[0], args[1]
 	if formatVec.Type().ID() != super.IDString {
-		return vector.NewWrappedError(s.zctx, "strftime: string value required for format arg", formatVec)
+		return vector.NewWrappedError(s.sctx, "strftime: string value required for format arg", formatVec)
 	}
 	if timeVec.Type().ID() != super.IDTime {
-		return vector.NewWrappedError(s.zctx, "strftime: time value required for time arg", args[1])
+		return vector.NewWrappedError(s.sctx, "strftime: time value required for time arg", args[1])
 	}
 	if cnst, ok := formatVec.(*vector.Const); ok {
 		return s.fastPath(cnst, timeVec)
@@ -123,7 +123,7 @@ func (s *Strftime) fastPath(fvec *vector.Const, tvec vector.Any) vector.Any {
 	format, _ := fvec.AsString()
 	f, err := strftime.New(format)
 	if err != nil {
-		return vector.NewWrappedError(s.zctx, "strftime: "+err.Error(), fvec)
+		return vector.NewWrappedError(s.sctx, "strftime: "+err.Error(), fvec)
 	}
 	switch tvec := tvec.(type) {
 	case *vector.Int:
@@ -184,7 +184,7 @@ func (s *Strftime) slowPath(fvec vector.Any, tvec vector.Any) vector.Any {
 		out.Append(f.FormatString(nano.Ts(t).Time()))
 	}
 	if len(errIndex) > 0 {
-		errVec := vector.NewVecWrappedError(s.zctx, errMsgs, vector.NewView(fvec, errIndex))
+		errVec := vector.NewVecWrappedError(s.sctx, errMsgs, vector.NewView(fvec, errIndex))
 		return vector.Combine(out, errIndex, errVec)
 	}
 	return out

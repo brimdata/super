@@ -15,14 +15,14 @@ import (
 	"github.com/segmentio/ksuid"
 )
 
-func NewLakeMetaScanner(ctx context.Context, zctx *super.Context, r *lake.Root, meta string) (zbuf.Scanner, error) {
+func NewLakeMetaScanner(ctx context.Context, sctx *super.Context, r *lake.Root, meta string) (zbuf.Scanner, error) {
 	var vals []super.Value
 	var err error
 	switch meta {
 	case "pools":
-		vals, err = r.BatchifyPools(ctx, zctx, nil)
+		vals, err = r.BatchifyPools(ctx, sctx, nil)
 	case "branches":
-		vals, err = r.BatchifyBranches(ctx, zctx, nil)
+		vals, err = r.BatchifyBranches(ctx, sctx, nil)
 	default:
 		return nil, fmt.Errorf("unknown lake metadata type: %q", meta)
 	}
@@ -32,7 +32,7 @@ func NewLakeMetaScanner(ctx context.Context, zctx *super.Context, r *lake.Root, 
 	return zbuf.NewScanner(ctx, zbuf.NewArray(vals), nil)
 }
 
-func NewPoolMetaScanner(ctx context.Context, zctx *super.Context, r *lake.Root, poolID ksuid.KSUID, meta string) (zbuf.Scanner, error) {
+func NewPoolMetaScanner(ctx context.Context, sctx *super.Context, r *lake.Root, poolID ksuid.KSUID, meta string) (zbuf.Scanner, error) {
 	p, err := r.OpenPool(ctx, poolID)
 	if err != nil {
 		return nil, err
@@ -40,9 +40,9 @@ func NewPoolMetaScanner(ctx context.Context, zctx *super.Context, r *lake.Root, 
 	var vals []super.Value
 	switch meta {
 	case "branches":
-		m := sup.NewBSUPMarshalerWithContext(zctx)
+		m := sup.NewBSUPMarshalerWithContext(sctx)
 		m.Decorate(sup.StylePackage)
-		vals, err = p.BatchifyBranches(ctx, zctx, nil, m, nil)
+		vals, err = p.BatchifyBranches(ctx, sctx, nil, m, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -52,30 +52,30 @@ func NewPoolMetaScanner(ctx context.Context, zctx *super.Context, r *lake.Root, 
 	return zbuf.NewScanner(ctx, zbuf.NewArray(vals), nil)
 }
 
-func NewCommitMetaScanner(ctx context.Context, zctx *super.Context, r *lake.Root, poolID, commit ksuid.KSUID, meta string, pruner expr.Evaluator) (zbuf.Puller, error) {
+func NewCommitMetaScanner(ctx context.Context, sctx *super.Context, r *lake.Root, poolID, commit ksuid.KSUID, meta string, pruner expr.Evaluator) (zbuf.Puller, error) {
 	p, err := r.OpenPool(ctx, poolID)
 	if err != nil {
 		return nil, err
 	}
 	switch meta {
 	case "objects":
-		lister, err := NewSortedLister(ctx, zctx, p, commit, pruner)
+		lister, err := NewSortedLister(ctx, sctx, p, commit, pruner)
 		if err != nil {
 			return nil, err
 		}
 		return zbuf.NewScanner(ctx, zbuf.PullerReader(lister), nil)
 	case "partitions":
-		lister, err := NewSortedLister(ctx, zctx, p, commit, pruner)
+		lister, err := NewSortedLister(ctx, sctx, p, commit, pruner)
 		if err != nil {
 			return nil, err
 		}
-		slicer, err := NewSlicer(lister, zctx), nil
+		slicer, err := NewSlicer(lister, sctx), nil
 		if err != nil {
 			return nil, err
 		}
 		return zbuf.NewScanner(ctx, zbuf.PullerReader(slicer), nil)
 	case "log":
-		tips, err := p.BatchifyBranchTips(ctx, zctx, nil)
+		tips, err := p.BatchifyBranchTips(ctx, sctx, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -83,14 +83,14 @@ func NewCommitMetaScanner(ctx context.Context, zctx *super.Context, r *lake.Root
 		if err != nil {
 			return nil, err
 		}
-		log := p.OpenCommitLog(ctx, zctx, commit)
+		log := p.OpenCommitLog(ctx, sctx, commit)
 		logScanner, err := zbuf.NewScanner(ctx, log, nil)
 		if err != nil {
 			return nil, err
 		}
 		return zbuf.MultiScanner(tipsScanner, logScanner), nil
 	case "rawlog":
-		reader, err := p.OpenCommitLogAsBSUP(ctx, zctx, commit)
+		reader, err := p.OpenCommitLogAsBSUP(ctx, sctx, commit)
 		if err != nil {
 			return nil, err
 		}
@@ -101,7 +101,7 @@ func NewCommitMetaScanner(ctx context.Context, zctx *super.Context, r *lake.Root
 			return nil, err
 		}
 		vectors := commits.Vectors(snap)
-		reader, err := objectReader(ctx, zctx, vectors, p.SortKeys.Primary().Order)
+		reader, err := objectReader(ctx, sctx, vectors, p.SortKeys.Primary().Order)
 		if err != nil {
 			return nil, err
 		}
@@ -111,9 +111,9 @@ func NewCommitMetaScanner(ctx context.Context, zctx *super.Context, r *lake.Root
 	}
 }
 
-func objectReader(ctx context.Context, zctx *super.Context, snap commits.View, order order.Which) (zio.Reader, error) {
+func objectReader(ctx context.Context, sctx *super.Context, snap commits.View, order order.Which) (zio.Reader, error) {
 	objects := snap.Select(nil, order)
-	m := sup.NewBSUPMarshalerWithContext(zctx)
+	m := sup.NewBSUPMarshalerWithContext(sctx)
 	m.Decorate(sup.StylePackage)
 	return readerFunc(func() (*super.Value, error) {
 		if len(objects) == 0 {

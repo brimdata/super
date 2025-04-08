@@ -48,7 +48,7 @@ func (c *CollectMap) ConsumeAsPartial(val super.Value) {
 	c.Consume(val)
 }
 
-func (c *CollectMap) Result(zctx *super.Context) super.Value {
+func (c *CollectMap) Result(sctx *super.Context) super.Value {
 	if len(c.entries) == 0 {
 		return super.Null
 	}
@@ -60,20 +60,20 @@ func (c *CollectMap) Result(zctx *super.Context) super.Value {
 	// Keep track of number of unique types in collection. If there is only one
 	// unique type we don't build a union for each value (though the base type could
 	// be a union itself).
-	ktyp, kuniq := unionOf(zctx, ktypes)
-	vtyp, vuniq := unionOf(zctx, vtypes)
+	ktyp, kuniq := unionOf(sctx, ktypes)
+	vtyp, vuniq := unionOf(sctx, vtypes)
 	var builder zcode.Builder
 	for _, e := range c.entries {
 		appendMapVal(&builder, ktyp, e.key, kuniq)
 		appendMapVal(&builder, vtyp, e.val, vuniq)
 	}
-	typ := zctx.LookupTypeMap(ktyp, vtyp)
+	typ := sctx.LookupTypeMap(ktyp, vtyp)
 	b := super.NormalizeMap(builder.Bytes())
 	return super.NewValue(typ, b)
 }
 
-func (c *CollectMap) ResultAsPartial(zctx *super.Context) super.Value {
-	return c.Result(zctx)
+func (c *CollectMap) ResultAsPartial(sctx *super.Context) super.Value {
+	return c.Result(sctx)
 }
 
 func appendMapVal(b *zcode.Builder, typ super.Type, val super.Value, uniq int) {
@@ -85,12 +85,12 @@ func appendMapVal(b *zcode.Builder, typ super.Type, val super.Value, uniq int) {
 	}
 }
 
-func unionOf(zctx *super.Context, types []super.Type) (super.Type, int) {
+func unionOf(sctx *super.Context, types []super.Type) (super.Type, int) {
 	types = super.UniqueTypes(types)
 	if len(types) == 1 {
 		return types[0], 1
 	}
-	return zctx.LookupTypeUnion(types), len(types)
+	return sctx.LookupTypeUnion(types), len(types)
 }
 
 // valueUnder is like super.(*Value).Under but it preserves non-union named types.

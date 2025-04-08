@@ -113,7 +113,7 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.Name, args as
 
 func (a *analyzer) semFromExpr(entity *ast.ExprEntity, args ast.FromArgs, seq dag.Seq) (dag.Seq, string) {
 	expr := a.semExpr(entity.Expr)
-	val, err := kernel.EvalAtCompileTime(a.zctx, expr)
+	val, err := kernel.EvalAtCompileTime(a.sctx, expr)
 	if err == nil && !hasError(val) {
 		if bad := a.hasFromParent(entity, seq); bad != nil {
 			return bad, ""
@@ -306,7 +306,7 @@ func (a *analyzer) evalHTTPArgs(args ast.FromArgs) (string, string, map[string][
 		var headers map[string][]string
 		if args.Headers != nil {
 			expr := a.semExpr(args.Headers)
-			val, err := kernel.EvalAtCompileTime(a.zctx, expr)
+			val, err := kernel.EvalAtCompileTime(a.sctx, expr)
 			if err != nil {
 				a.error(args.Headers, err)
 			} else {
@@ -636,7 +636,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 				fields = append(fields, this.Path)
 			}
 		}
-		if _, err := super.NewRecordBuilder(a.zctx, fields); err != nil {
+		if _, err := super.NewRecordBuilder(a.sctx, fields); err != nil {
 			a.error(o.Args, err)
 			return append(seq, badOp())
 		}
@@ -674,7 +674,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 		if o.Count != nil {
 			expr := a.semExpr(o.Count)
 			var err error
-			if val, err = kernel.EvalAtCompileTime(a.zctx, expr); err != nil {
+			if val, err = kernel.EvalAtCompileTime(a.sctx, expr); err != nil {
 				a.error(o.Count, err)
 				return append(seq, badOp())
 			}
@@ -695,7 +695,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 		if o.Count != nil {
 			expr := a.semExpr(o.Count)
 			var err error
-			if val, err = kernel.EvalAtCompileTime(a.zctx, expr); err != nil {
+			if val, err = kernel.EvalAtCompileTime(a.sctx, expr); err != nil {
 				a.error(o.Count, err)
 				return append(seq, badOp())
 			}
@@ -734,7 +734,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 		limit := 1
 		if o.Limit != nil {
 			l := a.semExpr(o.Limit)
-			val, err := kernel.EvalAtCompileTime(a.zctx, l)
+			val, err := kernel.EvalAtCompileTime(a.sctx, l)
 			if err != nil {
 				a.error(o.Limit, err)
 				return append(seq, badOp())
@@ -1036,7 +1036,7 @@ func (a *analyzer) semDecls(decls []ast.Decl) ([]dag.Def, []*dag.Func) {
 
 func (a *analyzer) semConstDecl(c *ast.ConstDecl) dag.Def {
 	e := a.semExpr(c.Expr)
-	if err := a.scope.DefineConst(a.zctx, c.Name, e); err != nil {
+	if err := a.scope.DefineConst(a.sctx, c.Name, e); err != nil {
 		a.error(c, err)
 	}
 	return dag.Def{
@@ -1055,7 +1055,7 @@ func (a *analyzer) semTypeDecl(d *ast.TypeDecl) dag.Def {
 		Kind:  "Literal",
 		Value: fmt.Sprintf("<%s=%s>", sup.QuotedName(d.Name.Name), typ),
 	}
-	if err := a.scope.DefineConst(a.zctx, d.Name, e); err != nil {
+	if err := a.scope.DefineConst(a.sctx, d.Name, e); err != nil {
 		a.error(d.Name, err)
 	}
 	return dag.Def{Name: d.Name.Name, Expr: e}
@@ -1283,7 +1283,7 @@ func (a *analyzer) maybeConvertUserOp(call *ast.Call) dag.Seq {
 		e := a.semExpr(arg)
 		// Transform non-path arguments into literals.
 		if _, ok := e.(*dag.This); !ok {
-			val, err := kernel.EvalAtCompileTime(a.zctx, e)
+			val, err := kernel.EvalAtCompileTime(a.sctx, e)
 			if err != nil {
 				a.error(arg, err)
 				exprs[i] = badExpr()

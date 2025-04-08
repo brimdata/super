@@ -19,7 +19,7 @@ const (
 )
 
 type Reader struct {
-	zctx    *super.Context
+	sctx    *super.Context
 	reader  io.Reader
 	opts    ReaderOpts
 	scanner zbuf.Scanner
@@ -44,7 +44,7 @@ func NewReader(sctx *super.Context, reader io.Reader) *Reader {
 	return NewReaderWithOpts(sctx, reader, ReaderOpts{})
 }
 
-func NewReaderWithOpts(zctx *super.Context, reader io.Reader, opts ReaderOpts) *Reader {
+func NewReaderWithOpts(sctx *super.Context, reader io.Reader, opts ReaderOpts) *Reader {
 	if opts.Size == 0 {
 		opts.Size = ReadSize
 	}
@@ -58,7 +58,7 @@ func NewReaderWithOpts(zctx *super.Context, reader io.Reader, opts ReaderOpts) *
 		opts.Threads = runtime.GOMAXPROCS(0)
 	}
 	return &Reader{
-		zctx:   zctx,
+		sctx:   sctx,
 		reader: reader,
 		opts:   opts,
 	}
@@ -66,9 +66,9 @@ func NewReaderWithOpts(zctx *super.Context, reader io.Reader, opts ReaderOpts) *
 
 func (r *Reader) NewScanner(ctx context.Context, filter zbuf.Pushdown) (zbuf.Scanner, error) {
 	if r.opts.Threads == 1 {
-		return newScannerSync(ctx, r.zctx, r.reader, filter, r.opts)
+		return newScannerSync(ctx, r.sctx, r.reader, filter, r.opts)
 	}
-	return newScanner(ctx, r.zctx, r.reader, filter, r.opts)
+	return newScanner(ctx, r.sctx, r.reader, filter, r.opts)
 }
 
 // Close guarantees that the underlying io.Reader is not read after it returns.

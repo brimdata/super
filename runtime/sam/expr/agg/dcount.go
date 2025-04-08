@@ -51,7 +51,7 @@ func (d *DCount) ConsumeAsPartial(partial super.Value) {
 	d.sketch.Merge(&s)
 }
 
-func (d *DCount) ResultAsPartial(zctx *super.Context) super.Value {
+func (d *DCount) ResultAsPartial(sctx *super.Context) super.Value {
 	b, err := d.sketch.MarshalBinary()
 	if err != nil {
 		panic(fmt.Errorf("dcount: marshaling partial: %w", err))

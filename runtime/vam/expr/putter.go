@@ -9,12 +9,12 @@ import (
 // match that of the put operator, which emits an error when an input value is
 // not a record.
 type Putter struct {
-	zctx       *super.Context
+	sctx       *super.Context
 	recordExpr Evaluator
 }
 
-func NewPutter(zctx *super.Context, recordExpr Evaluator) *Putter {
-	return &Putter{zctx, recordExpr}
+func NewPutter(sctx *super.Context, recordExpr Evaluator) *Putter {
+	return &Putter{sctx, recordExpr}
 }
 
 func (p *Putter) Eval(vec vector.Any) vector.Any {
@@ -27,7 +27,7 @@ func (p *Putter) eval(vecs ...vector.Any) vector.Any {
 		if k == super.ErrorKind {
 			return vec
 		}
-		return vector.NewWrappedError(p.zctx, "put: not a record", vec)
+		return vector.NewWrappedError(p.sctx, "put: not a record", vec)
 	}
 	return p.recordExpr.Eval(vec)
 }

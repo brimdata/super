@@ -8,16 +8,16 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#typeof
 type TypeOf struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (t *TypeOf) Call(_ super.Allocator, args []super.Value) super.Value {
-	return t.zctx.LookupTypeValue(args[0].Type())
+	return t.sctx.LookupTypeValue(args[0].Type())
 }
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#nameof
 type NameOf struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (n *NameOf) Call(_ super.Allocator, args []super.Value) super.Value {
@@ -30,40 +30,40 @@ func (n *NameOf) Call(_ super.Allocator, args []super.Value) super.Value {
 			return super.NullString
 		}
 		var err error
-		if typ, err = n.zctx.LookupByValue(args[0].Bytes()); err != nil {
+		if typ, err = n.sctx.LookupByValue(args[0].Bytes()); err != nil {
 			panic(err)
 		}
 		if named, ok := typ.(*super.TypeNamed); ok {
 			return super.NewString(named.Name)
 		}
 	}
-	return n.zctx.Missing()
+	return n.sctx.Missing()
 }
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#typename
 type typeName struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (t *typeName) Call(_ super.Allocator, args []super.Value) super.Value {
 	if super.TypeUnder(args[0].Type()) != super.TypeString {
-		return t.zctx.WrapError("typename: argument must be a string", args[0])
+		return t.sctx.WrapError("typename: argument must be a string", args[0])
 	}
 	name := string(args[0].Bytes())
-	typ := t.zctx.LookupTypeDef(name)
+	typ := t.sctx.LookupTypeDef(name)
 	if typ == nil {
-		return t.zctx.Missing()
+		return t.sctx.Missing()
 	}
-	return t.zctx.LookupTypeValue(typ)
+	return t.sctx.LookupTypeValue(typ)
 }
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#error
 type Error struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (e *Error) Call(_ super.Allocator, args []super.Value) super.Value {
-	return super.NewValue(e.zctx.LookupTypeError(args[0].Type()), args[0].Bytes())
+	return super.NewValue(e.sctx.LookupTypeError(args[0].Type()), args[0].Bytes())
 }
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#iserr
@@ -75,7 +75,7 @@ func (*IsErr) Call(_ super.Allocator, args []super.Value) super.Value {
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#is
 type Is struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (i *Is) Call(_ super.Allocator, args []super.Value) super.Value {
@@ -88,9 +88,9 @@ func (i *Is) Call(_ super.Allocator, args []super.Value) super.Value {
 	var typ super.Type
 	var err error
 	if zvTypeVal.IsString() {
-		typ, err = sup.ParseType(i.zctx, string(zvTypeVal.Bytes()))
+		typ, err = sup.ParseType(i.sctx, string(zvTypeVal.Bytes()))
 	} else {
-		typ, err = i.zctx.LookupByValue(zvTypeVal.Bytes())
+		typ, err = i.sctx.LookupByValue(zvTypeVal.Bytes())
 	}
 	return super.NewBool(err == nil && typ == zvSubject.Type())
 }
@@ -171,20 +171,20 @@ func (h *HasError) hasError(t super.Type, b zcode.Bytes) (bool, bool) {
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#quiet
 type Quiet struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (q *Quiet) Call(_ super.Allocator, args []super.Value) super.Value {
 	val := args[0]
 	if val.IsMissing() {
-		return q.zctx.Quiet()
+		return q.sctx.Quiet()
 	}
 	return val
 }
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#kind
 type Kind struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (k *Kind) Call(_ super.Allocator, args []super.Value) super.Value {
@@ -192,7 +192,7 @@ func (k *Kind) Call(_ super.Allocator, args []super.Value) super.Value {
 	var typ super.Type
 	if _, ok := super.TypeUnder(val.Type()).(*super.TypeOfType); ok {
 		var err error
-		typ, err = k.zctx.LookupByValue(val.Bytes())
+		typ, err = k.sctx.LookupByValue(val.Bytes())
 		if err != nil {
 			panic(err)
 		}

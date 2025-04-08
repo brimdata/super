@@ -23,18 +23,18 @@ type Function interface {
 }
 
 type Not struct {
-	zctx *super.Context
+	sctx *super.Context
 	expr Evaluator
 }
 
 var _ Evaluator = (*Not)(nil)
 
-func NewLogicalNot(zctx *super.Context, e Evaluator) *Not {
-	return &Not{zctx, e}
+func NewLogicalNot(sctx *super.Context, e Evaluator) *Not {
+	return &Not{sctx, e}
 }
 
 func (n *Not) Eval(ectx Context, this super.Value) super.Value {
-	val := EvalBool(n.zctx, ectx, this, n.expr)
+	val := EvalBool(n.sctx, ectx, this, n.expr)
 	if val.IsError() || val.IsNull() {
 		return val
 	}
@@ -42,38 +42,38 @@ func (n *Not) Eval(ectx Context, this super.Value) super.Value {
 }
 
 type And struct {
-	zctx *super.Context
+	sctx *super.Context
 	lhs  Evaluator
 	rhs  Evaluator
 }
 
-func NewLogicalAnd(zctx *super.Context, lhs, rhs Evaluator) *And {
-	return &And{zctx, lhs, rhs}
+func NewLogicalAnd(sctx *super.Context, lhs, rhs Evaluator) *And {
+	return &And{sctx, lhs, rhs}
 }
 
 type Or struct {
-	zctx *super.Context
+	sctx *super.Context
 	lhs  Evaluator
 	rhs  Evaluator
 }
 
-func NewLogicalOr(zctx *super.Context, lhs, rhs Evaluator) *Or {
-	return &Or{zctx, lhs, rhs}
+func NewLogicalOr(sctx *super.Context, lhs, rhs Evaluator) *Or {
+	return &Or{sctx, lhs, rhs}
 }
 
 // EvalBool evaluates e with this and returns the result if it is a bool or error.
 // Otherwise, EvalBool returns an error.
-func EvalBool(zctx *super.Context, ectx Context, this super.Value, e Evaluator) super.Value {
+func EvalBool(sctx *super.Context, ectx Context, this super.Value, e Evaluator) super.Value {
 	val := e.Eval(ectx, this)
 	if super.TypeUnder(val.Type()) == super.TypeBool || val.IsError() {
 		return val
 	}
-	return zctx.WrapError("not type bool", val)
+	return sctx.WrapError("not type bool", val)
 }
 
 func (a *And) Eval(ectx Context, this super.Value) super.Value {
-	lhs := EvalBool(a.zctx, ectx, this, a.lhs)
-	rhs := EvalBool(a.zctx, ectx, this, a.rhs)
+	lhs := EvalBool(a.sctx, ectx, this, a.lhs)
+	rhs := EvalBool(a.sctx, ectx, this, a.rhs)
 	if isfalse(lhs) || isfalse(rhs) {
 		// anything AND FALSE = FALSE
 		return super.False
@@ -98,8 +98,8 @@ func isfalse(val super.Value) bool {
 }
 
 func (o *Or) Eval(ectx Context, this super.Value) super.Value {
-	lhs := EvalBool(o.zctx, ectx, this, o.lhs)
-	rhs := EvalBool(o.zctx, ectx, this, o.rhs)
+	lhs := EvalBool(o.sctx, ectx, this, o.lhs)
+	rhs := EvalBool(o.sctx, ectx, this, o.rhs)
 	if lhs.AsBool() || rhs.AsBool() {
 		// anything OR TRUE = TRUE
 		return super.True
@@ -120,14 +120,14 @@ func (o *Or) Eval(ectx Context, this super.Value) super.Value {
 }
 
 type In struct {
-	zctx      *super.Context
+	sctx      *super.Context
 	elem      Evaluator
 	container Evaluator
 }
 
-func NewIn(zctx *super.Context, elem, container Evaluator) *In {
+func NewIn(sctx *super.Context, elem, container Evaluator) *In {
 	return &In{
-		zctx:      zctx,
+		sctx:      sctx,
 		elem:      elem,
 		container: container,
 	}
@@ -154,7 +154,7 @@ func (i *In) Eval(ectx Context, this super.Value) super.Value {
 	case nil:
 		return super.False
 	default:
-		return i.zctx.NewError(err)
+		return i.sctx.NewError(err)
 	}
 }
 
@@ -163,8 +163,8 @@ type Equal struct {
 	equality bool
 }
 
-func NewCompareEquality(zctx *super.Context, lhs, rhs Evaluator, operator string) (*Equal, error) {
-	e := &Equal{numeric: newNumeric(zctx, lhs, rhs)} //XXX
+func NewCompareEquality(sctx *super.Context, lhs, rhs Evaluator, operator string) (*Equal, error) {
+	e := &Equal{numeric: newNumeric(sctx, lhs, rhs)} //XXX
 	switch operator {
 	case "==":
 		e.equality = true
@@ -219,14 +219,14 @@ func (r *RegexpMatch) Eval(ectx Context, this super.Value) super.Value {
 }
 
 type numeric struct {
-	zctx *super.Context
+	sctx *super.Context
 	lhs  Evaluator
 	rhs  Evaluator
 }
 
-func newNumeric(zctx *super.Context, lhs, rhs Evaluator) numeric {
+func newNumeric(sctx *super.Context, lhs, rhs Evaluator) numeric {
 	return numeric{
-		zctx: zctx,
+		sctx: sctx,
 		lhs:  lhs,
 		rhs:  rhs,
 	}
@@ -239,11 +239,11 @@ func (n *numeric) evalAndPromote(ectx Context, this super.Value) (super.Value, s
 	}
 	id, err := coerce.Promote(lhsVal, rhsVal)
 	if err != nil {
-		return super.Null, super.Null, nil, n.zctx.NewError(err).Ptr()
+		return super.Null, super.Null, nil, n.sctx.NewError(err).Ptr()
 	}
-	typ, err := n.zctx.LookupType(id)
+	typ, err := n.sctx.LookupType(id)
 	if err != nil {
-		return super.Null, super.Null, nil, n.zctx.NewError(err).Ptr()
+		return super.Null, super.Null, nil, n.sctx.NewError(err).Ptr()
 	}
 	if lhsVal.IsNull() || rhsVal.IsNull() {
 		return super.Null, super.Null, nil, super.NewValue(typ, nil).Ptr()
@@ -272,13 +272,13 @@ func enumToIndex(ectx Context, val super.Value) super.Value {
 }
 
 type Compare struct {
-	zctx *super.Context
+	sctx *super.Context
 	numeric
 	convert func(int) bool
 }
 
-func NewCompareRelative(zctx *super.Context, lhs, rhs Evaluator, operator string) (*Compare, error) {
-	c := &Compare{zctx: zctx, numeric: newNumeric(zctx, lhs, rhs)}
+func NewCompareRelative(sctx *super.Context, lhs, rhs Evaluator, operator string) (*Compare, error) {
+	c := &Compare{sctx: sctx, numeric: newNumeric(sctx, lhs, rhs)}
 	switch operator {
 	case "<":
 		c.convert = func(v int) bool { return v < 0 }
@@ -387,27 +387,27 @@ func toInt(val super.Value) int64     { return coerce.ToNumeric[int64](val) }
 func toUint(val super.Value) uint64   { return coerce.ToNumeric[uint64](val) }
 
 type Add struct {
-	zctx     *super.Context
+	sctx     *super.Context
 	operands numeric
 }
 
 type Subtract struct {
-	zctx     *super.Context
+	sctx     *super.Context
 	operands numeric
 }
 
 type Multiply struct {
-	zctx     *super.Context
+	sctx     *super.Context
 	operands numeric
 }
 
 type Divide struct {
-	zctx     *super.Context
+	sctx     *super.Context
 	operands numeric
 }
 
 type Modulo struct {
-	zctx     *super.Context
+	sctx     *super.Context
 	operands numeric
 }
 
@@ -415,19 +415,19 @@ var DivideByZero = errors.New("divide by zero")
 
 // NewArithmetic compiles an expression of the form "expr1 op expr2"
 // for the arithmetic operators +, -, *, /
-func NewArithmetic(zctx *super.Context, lhs, rhs Evaluator, op string) (Evaluator, error) {
-	n := newNumeric(zctx, lhs, rhs)
+func NewArithmetic(sctx *super.Context, lhs, rhs Evaluator, op string) (Evaluator, error) {
+	n := newNumeric(sctx, lhs, rhs)
 	switch op {
 	case "+":
-		return &Add{zctx: zctx, operands: n}, nil
+		return &Add{sctx: sctx, operands: n}, nil
 	case "-":
-		return &Subtract{zctx: zctx, operands: n}, nil
+		return &Subtract{sctx: sctx, operands: n}, nil
 	case "*":
-		return &Multiply{zctx: zctx, operands: n}, nil
+		return &Multiply{sctx: sctx, operands: n}, nil
 	case "/":
-		return &Divide{zctx: zctx, operands: n}, nil
+		return &Divide{sctx: sctx, operands: n}, nil
 	case "%":
-		return &Modulo{zctx: zctx, operands: n}, nil
+		return &Modulo{sctx: sctx, operands: n}, nil
 	}
 	return nil, fmt.Errorf("unknown arithmetic operator: %s", op)
 }
@@ -448,7 +448,7 @@ func (a *Add) Eval(ectx Context, this super.Value) super.Value {
 		v1, v2 := super.DecodeString(lhsVal.Bytes()), super.DecodeString(rhsVal.Bytes())
 		return super.NewValue(typ, super.EncodeString(v1+v2))
 	}
-	return a.zctx.NewErrorf("type %s incompatible with '+' operator", sup.FormatType(typ))
+	return a.sctx.NewErrorf("type %s incompatible with '+' operator", sup.FormatType(typ))
 }
 
 func (s *Subtract) Eval(ectx Context, this super.Value) super.Value {
@@ -471,7 +471,7 @@ func (s *Subtract) Eval(ectx Context, this super.Value) super.Value {
 	case super.IsFloat(id):
 		return super.NewFloat(typ, toFloat(lhsVal)-toFloat(rhsVal))
 	}
-	return s.zctx.NewErrorf("type %s incompatible with '-' operator", sup.FormatType(typ))
+	return s.sctx.NewErrorf("type %s incompatible with '-' operator", sup.FormatType(typ))
 }
 
 func (m *Multiply) Eval(ectx Context, this super.Value) super.Value {
@@ -487,7 +487,7 @@ func (m *Multiply) Eval(ectx Context, this super.Value) super.Value {
 	case super.IsFloat(id):
 		return super.NewFloat(typ, toFloat(lhsVal)*toFloat(rhsVal))
 	}
-	return m.zctx.NewErrorf("type %s incompatible with '*' operator", sup.FormatType(typ))
+	return m.sctx.NewErrorf("type %s incompatible with '*' operator", sup.FormatType(typ))
 }
 
 func (d *Divide) Eval(ectx Context, this super.Value) super.Value {
@@ -499,23 +499,23 @@ func (d *Divide) Eval(ectx Context, this super.Value) super.Value {
 	case super.IsUnsigned(id):
 		v := toUint(rhsVal)
 		if v == 0 {
-			return d.zctx.NewError(DivideByZero)
+			return d.sctx.NewError(DivideByZero)
 		}
 		return super.NewUint(typ, toUint(lhsVal)/v)
 	case super.IsSigned(id):
 		v := toInt(rhsVal)
 		if v == 0 {
-			return d.zctx.NewError(DivideByZero)
+			return d.sctx.NewError(DivideByZero)
 		}
 		return super.NewInt(typ, toInt(lhsVal)/v)
 	case super.IsFloat(id):
 		v := toFloat(rhsVal)
 		if v == 0 {
-			return d.zctx.NewError(DivideByZero)
+			return d.sctx.NewError(DivideByZero)
 		}
 		return super.NewFloat(typ, toFloat(lhsVal)/v)
 	}
-	return d.zctx.NewErrorf("type %s incompatible with '/' operator", sup.FormatType(typ))
+	return d.sctx.NewErrorf("type %s incompatible with '/' operator", sup.FormatType(typ))
 }
 
 func (m *Modulo) Eval(ectx Context, this super.Value) super.Value {
@@ -527,27 +527,27 @@ func (m *Modulo) Eval(ectx Context, this super.Value) super.Value {
 	case super.IsUnsigned(id):
 		v := toUint(rhsVal)
 		if v == 0 {
-			return m.zctx.NewError(DivideByZero)
+			return m.sctx.NewError(DivideByZero)
 		}
 		return super.NewUint(typ, lhsVal.Uint()%v)
 	case super.IsSigned(id):
 		v := toInt(rhsVal)
 		if v == 0 {
-			return m.zctx.NewError(DivideByZero)
+			return m.sctx.NewError(DivideByZero)
 		}
 		return super.NewInt(typ, toInt(lhsVal)%v)
 	}
-	return m.zctx.NewErrorf("type %s incompatible with '%%' operator", sup.FormatType(typ))
+	return m.sctx.NewErrorf("type %s incompatible with '%%' operator", sup.FormatType(typ))
 }
 
 type UnaryMinus struct {
-	zctx *super.Context
+	sctx *super.Context
 	expr Evaluator
 }
 
-func NewUnaryMinus(zctx *super.Context, e Evaluator) *UnaryMinus {
+func NewUnaryMinus(sctx *super.Context, e Evaluator) *UnaryMinus {
 	return &UnaryMinus{
-		zctx: zctx,
+		sctx: sctx,
 		expr: e,
 	}
 }
@@ -568,7 +568,7 @@ func (u *UnaryMinus) Eval(ectx Context, this super.Value) super.Value {
 		}
 		v, ok := coerce.ToInt(val, typ)
 		if !ok {
-			return u.zctx.WrapError("cannot cast to "+sup.FormatType(typ), val)
+			return u.sctx.WrapError("cannot cast to "+sup.FormatType(typ), val)
 		}
 		if val.IsNull() {
 			return super.NewValue(typ, nil)
@@ -584,29 +584,29 @@ func (u *UnaryMinus) Eval(ectx Context, this super.Value) super.Value {
 	case super.IDInt8:
 		v := val.Int()
 		if v == math.MinInt8 {
-			return u.zctx.WrapError("unary '-' underflow", val)
+			return u.sctx.WrapError("unary '-' underflow", val)
 		}
 		return super.NewInt8(int8(-v))
 	case super.IDInt16:
 		v := val.Int()
 		if v == math.MinInt16 {
-			return u.zctx.WrapError("unary '-' underflow", val)
+			return u.sctx.WrapError("unary '-' underflow", val)
 		}
 		return super.NewInt16(int16(-v))
 	case super.IDInt32:
 		v := val.Int()
 		if v == math.MinInt32 {
-			return u.zctx.WrapError("unary '-' underflow", val)
+			return u.sctx.WrapError("unary '-' underflow", val)
 		}
 		return super.NewInt32(int32(-v))
 	case super.IDInt64:
 		v := val.Int()
 		if v == math.MinInt64 {
-			return u.zctx.WrapError("unary '-' underflow", val)
+			return u.sctx.WrapError("unary '-' underflow", val)
 		}
 		return super.NewInt64(-v)
 	}
-	return u.zctx.WrapError("type incompatible with unary '-' operator", val)
+	return u.sctx.WrapError("type incompatible with unary '-' operator", val)
 }
 
 func getNthFromContainer(container zcode.Bytes, idx int) (zcode.Bytes, bool) {
@@ -643,13 +643,13 @@ func lookupKey(mapBytes, target zcode.Bytes) (zcode.Bytes, bool) {
 // Index represents an index operator "container[index]" where container is
 // either an array (with index type integer) or a record (with index type string).
 type Index struct {
-	zctx      *super.Context
+	sctx      *super.Context
 	container Evaluator
 	index     Evaluator
 }
 
-func NewIndexExpr(zctx *super.Context, container, index Evaluator) Evaluator {
-	return &Index{zctx, container, index}
+func NewIndexExpr(sctx *super.Context, container, index Evaluator) Evaluator {
+	return &Index{sctx, container, index}
 }
 
 func (i *Index) Eval(ectx Context, this super.Value) super.Value {
@@ -657,23 +657,23 @@ func (i *Index) Eval(ectx Context, this super.Value) super.Value {
 	index := i.index.Eval(ectx, this)
 	switch typ := super.TypeUnder(container.Type()).(type) {
 	case *super.TypeArray, *super.TypeSet:
-		return indexArrayOrSet(i.zctx, ectx, super.InnerType(typ), container.Bytes(), index)
+		return indexArrayOrSet(i.sctx, ectx, super.InnerType(typ), container.Bytes(), index)
 	case *super.TypeRecord:
-		return indexRecord(i.zctx, ectx, typ, container.Bytes(), index)
+		return indexRecord(i.sctx, ectx, typ, container.Bytes(), index)
 	case *super.TypeMap:
-		return indexMap(i.zctx, ectx, typ, container.Bytes(), index)
+		return indexMap(i.sctx, ectx, typ, container.Bytes(), index)
 	default:
-		return i.zctx.Missing()
+		return i.sctx.Missing()
 	}
 }
 
-func indexArrayOrSet(zctx *super.Context, ectx Context, inner super.Type, vector zcode.Bytes, index super.Value) super.Value {
+func indexArrayOrSet(sctx *super.Context, ectx Context, inner super.Type, vector zcode.Bytes, index super.Value) super.Value {
 	id := index.Type().ID()
 	if !super.IsInteger(id) {
-		return zctx.WrapError("index is not an integer", index)
+		return sctx.WrapError("index is not an integer", index)
 	}
 	if index.IsNull() {
-		return zctx.Missing()
+		return sctx.Missing()
 	}
 	var idx int
 	if super.IsSigned(id) {
@@ -682,34 +682,34 @@ func indexArrayOrSet(zctx *super.Context, ectx Context, inner super.Type, vector
 		idx = int(index.Uint())
 	}
 	if idx == 0 {
-		return zctx.Missing()
+		return sctx.Missing()
 	}
 	if idx > 0 {
 		idx--
 	}
 	bytes, ok := getNthFromContainer(vector, idx)
 	if !ok {
-		return zctx.Missing()
+		return sctx.Missing()
 	}
 	return deunion(ectx, inner, bytes)
 }
 
-func indexRecord(zctx *super.Context, ectx Context, typ *super.TypeRecord, record zcode.Bytes, index super.Value) super.Value {
+func indexRecord(sctx *super.Context, ectx Context, typ *super.TypeRecord, record zcode.Bytes, index super.Value) super.Value {
 	id := index.Type().ID()
 	if id != super.IDString {
-		return zctx.WrapError("record index is not a string", index)
+		return sctx.WrapError("record index is not a string", index)
 	}
 	field := super.DecodeString(index.Bytes())
 	val := super.NewValue(typ, record).Ptr().Deref(field)
 	if val == nil {
-		return zctx.Missing()
+		return sctx.Missing()
 	}
 	return *val
 }
 
-func indexMap(zctx *super.Context, ectx Context, typ *super.TypeMap, mapBytes zcode.Bytes, key super.Value) super.Value {
+func indexMap(sctx *super.Context, ectx Context, typ *super.TypeMap, mapBytes zcode.Bytes, key super.Value) super.Value {
 	if key.IsMissing() {
-		return zctx.Missing()
+		return sctx.Missing()
 	}
 	if key.Type() != typ.KeyType {
 		if union, ok := super.TypeUnder(typ.KeyType).(*super.TypeUnion); ok {
@@ -721,12 +721,12 @@ func indexMap(zctx *super.Context, ectx Context, typ *super.TypeMap, mapBytes zc
 				}
 			}
 		}
-		return zctx.Missing()
+		return sctx.Missing()
 	}
 	if valBytes, ok := lookupKey(mapBytes, key.Bytes()); ok {
 		return deunion(ectx, typ.ValType, valBytes)
 	}
-	return zctx.Missing()
+	return sctx.Missing()
 }
 
 func deunion(ectx Context, typ super.Type, b zcode.Bytes) super.Value {
@@ -737,15 +737,15 @@ func deunion(ectx Context, typ super.Type, b zcode.Bytes) super.Value {
 }
 
 type Conditional struct {
-	zctx      *super.Context
+	sctx      *super.Context
 	predicate Evaluator
 	thenExpr  Evaluator
 	elseExpr  Evaluator
 }
 
-func NewConditional(zctx *super.Context, predicate, thenExpr, elseExpr Evaluator) *Conditional {
+func NewConditional(sctx *super.Context, predicate, thenExpr, elseExpr Evaluator) *Conditional {
 	return &Conditional{
-		zctx:      zctx,
+		sctx:      sctx,
 		predicate: predicate,
 		thenExpr:  thenExpr,
 		elseExpr:  elseExpr,
@@ -755,7 +755,7 @@ func NewConditional(zctx *super.Context, predicate, thenExpr, elseExpr Evaluator
 func (c *Conditional) Eval(ectx Context, this super.Value) super.Value {
 	val := c.predicate.Eval(ectx, this)
 	if val.Type().ID() != super.IDBool {
-		return c.zctx.WrapError("?-operator: bool predicate required", val)
+		return c.sctx.WrapError("?-operator: bool predicate required", val)
 	}
 	if val.Bool() {
 		return c.thenExpr.Eval(ectx, this)

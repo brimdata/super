@@ -13,16 +13,16 @@ import (
 // fields of a nested record, the nested record is dropped.  Dropper does not
 // modify non-records.
 type Dropper struct {
-	zctx *super.Context
+	sctx *super.Context
 	fm   fieldsMap
 }
 
-func NewDropper(zctx *super.Context, fields field.List) *Dropper {
+func NewDropper(sctx *super.Context, fields field.List) *Dropper {
 	fm := fieldsMap{}
 	for _, f := range fields {
 		fm.Add(f)
 	}
-	return &Dropper{zctx, fm}
+	return &Dropper{sctx, fm}
 }
 
 func (d *Dropper) Eval(vec vector.Any) vector.Any {
@@ -37,7 +37,7 @@ func (d *Dropper) eval(vecs ...vector.Any) vector.Any {
 	if vec2, ok := d.drop(vec, d.fm); ok {
 		if vec2 == nil {
 			// Dropped all fields.
-			return vector.NewStringError(d.zctx, "quiet", vec.Len())
+			return vector.NewStringError(d.sctx, "quiet", vec.Len())
 		}
 		return vec2
 	}
@@ -94,7 +94,7 @@ func (d *Dropper) drop(vec vector.Any, fm fieldsMap) (vector.Any, bool) {
 		if len(newFields) == 0 {
 			return nil, true
 		}
-		newRecType := d.zctx.MustLookupTypeRecord(newFields)
+		newRecType := d.sctx.MustLookupTypeRecord(newFields)
 		return vector.NewRecord(newRecType, newVecs, vec.Len(), vec.Nulls), true
 	case *vector.Dict:
 		if newVec, ok := d.drop(vec.Any, fm); ok {

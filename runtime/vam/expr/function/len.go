@@ -8,7 +8,7 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#len
 type Len struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (l *Len) Call(args ...vector.Any) vector.Any {
@@ -54,7 +54,7 @@ func (l *Len) Call(args ...vector.Any) vector.Any {
 			out.Append(int64(len(super.AppendNet(nil, n))))
 		}
 	case *super.TypeError:
-		return vector.NewWrappedError(l.zctx, "len()", val)
+		return vector.NewWrappedError(l.sctx, "len()", val)
 	case *super.TypeOfType:
 		for i := uint32(0); i < val.Len(); i++ {
 			v, null := vector.TypeValueValue(val, i)
@@ -62,14 +62,14 @@ func (l *Len) Call(args ...vector.Any) vector.Any {
 				out.Append(0)
 				continue
 			}
-			t, err := l.zctx.LookupByValue(v)
+			t, err := l.sctx.LookupByValue(v)
 			if err != nil {
 				panic(err)
 			}
 			out.Append(int64(function.TypeLength(t)))
 		}
 	default:
-		return vector.NewWrappedError(l.zctx, "len: bad type", val)
+		return vector.NewWrappedError(l.sctx, "len: bad type", val)
 	}
 	return out
 }

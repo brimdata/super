@@ -47,8 +47,8 @@ func OpenBranch(ctx context.Context, config *branches.Config, engine storage.Eng
 	}, nil
 }
 
-func (b *Branch) Load(ctx context.Context, zctx *super.Context, r zio.Reader, author, message, meta string) (ksuid.KSUID, error) {
-	w, err := NewWriter(ctx, zctx, b.pool)
+func (b *Branch) Load(ctx context.Context, sctx *super.Context, r zio.Reader, author, message, meta string) (ksuid.KSUID, error) {
+	w, err := NewWriter(ctx, sctx, b.pool)
 	if err != nil {
 		return ksuid.Nil, err
 	}
@@ -66,7 +66,7 @@ func (b *Branch) Load(ctx context.Context, zctx *super.Context, r zio.Reader, au
 	if message == "" {
 		message = loadMessage(objects)
 	}
-	appMeta, err := loadMeta(zctx, meta)
+	appMeta, err := loadMeta(sctx, meta)
 	if err != nil {
 		return ksuid.Nil, err
 	}
@@ -94,13 +94,13 @@ func loadMessage(objects []data.Object) string {
 	return b.String()
 }
 
-func loadMeta(zctx *super.Context, meta string) (super.Value, error) {
+func loadMeta(sctx *super.Context, meta string) (super.Value, error) {
 	if meta == "" {
 		return super.Null, nil
 	}
 	val, err := sup.ParseValue(super.NewContext(), meta)
 	if err != nil {
-		return zctx.Missing(), fmt.Errorf("%w %q: %s", ErrInvalidCommitMeta, meta, err)
+		return sctx.Missing(), fmt.Errorf("%w %q: %s", ErrInvalidCommitMeta, meta, err)
 	}
 	return val, nil
 }
@@ -130,13 +130,13 @@ func (b *Branch) Delete(ctx context.Context, ids []ksuid.KSUID, author, message 
 }
 
 func (b *Branch) DeleteWhere(ctx context.Context, c runtime.Compiler, ast *parser.AST, author, message, meta string) (ksuid.KSUID, error) {
-	zctx := super.NewContext()
-	appMeta, err := loadMeta(zctx, meta)
+	sctx := super.NewContext()
+	appMeta, err := loadMeta(sctx, meta)
 	if err != nil {
 		return ksuid.Nil, err
 	}
 	return b.commit(ctx, func(parent *branches.Config, retries int) (*commits.Object, error) {
-		rctx := runtime.NewContext(ctx, zctx)
+		rctx := runtime.NewContext(ctx, sctx)
 		defer rctx.Cancel()
 		// XXX It would be great to not do this since and just pass the snapshot
 		// into c.NewLakeDeleteQuery since we have to load the snapshot later
@@ -151,7 +151,7 @@ func (b *Branch) DeleteWhere(ctx context.Context, c runtime.Compiler, ast *parse
 			return nil, err
 		}
 		defer query.Pull(true)
-		w, err := NewWriter(ctx, zctx, b.pool)
+		w, err := NewWriter(ctx, sctx, b.pool)
 		if err != nil {
 			return nil, err
 		}
@@ -240,8 +240,8 @@ func (b *Branch) CommitCompact(ctx context.Context, src, rollup []*data.Object, 
 	if len(rollup) < 1 {
 		return ksuid.Nil, errors.New("compact: one or more rollup objects required")
 	}
-	zctx := super.NewContext()
-	appMeta, err := loadMeta(zctx, meta)
+	sctx := super.NewContext()
+	appMeta, err := loadMeta(sctx, meta)
 	if err != nil {
 		return ksuid.Nil, err
 	}

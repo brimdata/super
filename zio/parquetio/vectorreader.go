@@ -24,7 +24,7 @@ import (
 
 type VectorReader struct {
 	ctx      context.Context
-	zctx     *super.Context
+	sctx     *super.Context
 	pushdown zbuf.Pushdown
 
 	fr              *pqarrow.FileReader
@@ -36,7 +36,7 @@ type VectorReader struct {
 	vb              vectorBuilder
 }
 
-func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, pushdown zbuf.Pushdown) (*VectorReader, error) {
+func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, pushdown zbuf.Pushdown) (*VectorReader, error) {
 	ras, ok := r.(parquet.ReaderAtSeeker)
 	if !ok {
 		return nil, errors.New("reader cannot seek")
@@ -72,14 +72,14 @@ func NewVectorReader(ctx context.Context, zctx *super.Context, r io.Reader, push
 	}
 	return &VectorReader{
 		ctx:             ctx,
-		zctx:            zctx,
+		sctx:            sctx,
 		pushdown:        pushdown,
 		fr:              fr,
 		colIndexes:      colIndexes,
 		nextRowGroup:    &atomic.Int64{},
 		prunerEvaluator: evaluator,
 		schema:          schema,
-		vb:              vectorBuilder{zctx, map[arrow.DataType]super.Type{}},
+		vb:              vectorBuilder{sctx, map[arrow.DataType]super.Type{}},
 	}, nil
 }
 
@@ -94,13 +94,13 @@ func (p *VectorReader) NewConcurrentPuller() (vector.Puller, error) {
 	}
 	return &VectorReader{
 		ctx:             p.ctx,
-		zctx:            p.zctx,
+		sctx:            p.sctx,
 		fr:              p.fr,
 		colIndexes:      p.colIndexes,
 		nextRowGroup:    p.nextRowGroup,
 		prunerEvaluator: evaluator,
 		schema:          p.schema,
-		vb:              vectorBuilder{p.zctx, map[arrow.DataType]super.Type{}},
+		vb:              vectorBuilder{p.sctx, map[arrow.DataType]super.Type{}},
 	}, nil
 }
 
@@ -120,7 +120,7 @@ func (p *VectorReader) Pull(done bool) (vector.Any, error) {
 			}
 			if p.prunerEvaluator != nil {
 				rgMetadata := pr.MetaData().RowGroup(rowGroup)
-				val := buildPrunerValue(p.zctx, rgMetadata, p.schema, p.colIndexes)
+				val := buildPrunerValue(p.sctx, rgMetadata, p.schema, p.colIndexes)
 				if !p.prunerEvaluator.Eval(nil, val).Ptr().AsBool() {
 					continue
 				}
@@ -144,7 +144,7 @@ func (p *VectorReader) Pull(done bool) (vector.Any, error) {
 }
 
 type vectorBuilder struct {
-	zctx  *super.Context
+	sctx  *super.Context
 	types map[arrow.DataType]super.Type
 }
 
@@ -258,7 +258,7 @@ func (v *vectorBuilder) build(a arrow.Array) (vector.Any, error) {
 			d := dt.(arrow.DecimalType)
 			name := fmt.Sprintf("deciaml_%d_%d", d.GetScale(), d.GetPrecision())
 			var err error
-			typ, err = v.zctx.LookupTypeNamed(name, super.TypeFloat64)
+			typ, err = v.sctx.LookupTypeNamed(name, super.TypeFloat64)
 			if err != nil {
 				return nil, err
 			}
@@ -276,7 +276,7 @@ func (v *vectorBuilder) build(a arrow.Array) (vector.Any, error) {
 			d := dt.(arrow.DecimalType)
 			name := fmt.Sprintf("deciaml_%d_%d", d.GetScale(), d.GetPrecision())
 			var err error
-			typ, err = v.zctx.LookupTypeNamed(name, super.TypeFloat64)
+			typ, err = v.sctx.LookupTypeNamed(name, super.TypeFloat64)
 			if err != nil {
 				return nil, err
 			}
@@ -297,7 +297,7 @@ func (v *vectorBuilder) build(a arrow.Array) (vector.Any, error) {
 		offsets := reinterpretSlice[uint32](arr.Offsets())
 		typ, ok := v.types[dt]
 		if !ok {
-			typ = v.zctx.LookupTypeArray(values.Type())
+			typ = v.sctx.LookupTypeArray(values.Type())
 			v.types[dt] = typ
 		}
 		return vector.NewArray(typ.(*super.TypeArray), offsets, values, makeNulls(a)), nil
@@ -319,7 +319,7 @@ func (v *vectorBuilder) build(a arrow.Array) (vector.Any, error) {
 			}
 			arrowio.UniquifyFieldNames(fields)
 			var err error
-			typ, err = v.zctx.LookupTypeRecord(fields)
+			typ, err = v.sctx.LookupTypeRecord(fields)
 			if err != nil {
 				return nil, err
 			}
@@ -340,7 +340,7 @@ func (v *vectorBuilder) build(a arrow.Array) (vector.Any, error) {
 		}
 		typ, ok := v.types[dt]
 		if !ok {
-			typ = v.zctx.LookupTypeArray(values.Type())
+			typ = v.sctx.LookupTypeArray(values.Type())
 			v.types[dt] = typ
 		}
 		return vector.NewArray(typ.(*super.TypeArray), offsets, values, makeNulls(a)), nil

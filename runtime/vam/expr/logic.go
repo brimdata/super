@@ -8,18 +8,18 @@ import (
 )
 
 type Not struct {
-	zctx *super.Context
+	sctx *super.Context
 	expr Evaluator
 }
 
 var _ Evaluator = (*Not)(nil)
 
-func NewLogicalNot(zctx *super.Context, e Evaluator) *Not {
-	return &Not{zctx, e}
+func NewLogicalNot(sctx *super.Context, e Evaluator) *Not {
+	return &Not{sctx, e}
 }
 
 func (n *Not) Eval(val vector.Any) vector.Any {
-	return evalBool(n.zctx, n.eval, n.expr.Eval(val))
+	return evalBool(n.sctx, n.eval, n.expr.Eval(val))
 }
 
 func (n *Not) eval(vecs ...vector.Any) vector.Any {
@@ -40,27 +40,27 @@ func (n *Not) eval(vecs ...vector.Any) vector.Any {
 }
 
 type And struct {
-	zctx *super.Context
+	sctx *super.Context
 	lhs  Evaluator
 	rhs  Evaluator
 }
 
-func NewLogicalAnd(zctx *super.Context, lhs, rhs Evaluator) *And {
-	return &And{zctx, lhs, rhs}
+func NewLogicalAnd(sctx *super.Context, lhs, rhs Evaluator) *And {
+	return &And{sctx, lhs, rhs}
 }
 
 type Or struct {
-	zctx *super.Context
+	sctx *super.Context
 	lhs  Evaluator
 	rhs  Evaluator
 }
 
-func NewLogicalOr(zctx *super.Context, lhs, rhs Evaluator) *Or {
-	return &Or{zctx, lhs, rhs}
+func NewLogicalOr(sctx *super.Context, lhs, rhs Evaluator) *Or {
+	return &Or{sctx, lhs, rhs}
 }
 
 func (a *And) Eval(val vector.Any) vector.Any {
-	return evalBool(a.zctx, a.eval, a.lhs.Eval(val), a.rhs.Eval(val))
+	return evalBool(a.sctx, a.eval, a.lhs.Eval(val), a.rhs.Eval(val))
 }
 
 func (a *And) eval(vecs ...vector.Any) vector.Any {
@@ -107,7 +107,7 @@ func (a *And) andError(err vector.Any, vec vector.Any) vector.Any {
 }
 
 func (o *Or) Eval(val vector.Any) vector.Any {
-	return evalBool(o.zctx, o.eval, o.lhs.Eval(val), o.rhs.Eval(val))
+	return evalBool(o.sctx, o.eval, o.lhs.Eval(val), o.rhs.Eval(val))
 }
 
 func (o *Or) eval(vecs ...vector.Any) vector.Any {
@@ -155,13 +155,13 @@ func (o *Or) orError(err, vec vector.Any) vector.Any {
 // of the result that are not boolean, an error is calculated for each non-bool
 // slot and they are returned as an error.  If all of the value slots are errors,
 // then the return value is nil.
-func evalBool(zctx *super.Context, fn func(...vector.Any) vector.Any, vecs ...vector.Any) vector.Any {
+func evalBool(sctx *super.Context, fn func(...vector.Any) vector.Any, vecs ...vector.Any) vector.Any {
 	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
 		for i, vec := range vecs {
 			if vec := vector.Under(vec); vec.Type() == super.TypeBool || vector.KindOf(vec) == vector.KindError {
 				vecs[i] = vec
 			} else {
-				vecs[i] = vector.NewWrappedError(zctx, "not type bool", vec)
+				vecs[i] = vector.NewWrappedError(sctx, "not type bool", vec)
 			}
 		}
 		return fn(vecs...)
@@ -207,14 +207,14 @@ func trueBool(n uint32) *vector.Bool {
 }
 
 type In struct {
-	zctx *super.Context
+	sctx *super.Context
 	lhs  Evaluator
 	rhs  Evaluator
 	pw   *PredicateWalk
 }
 
-func NewIn(zctx *super.Context, lhs, rhs Evaluator) *In {
-	return &In{zctx, lhs, rhs, NewPredicateWalk(NewCompare(zctx, nil, nil, "==").eval)}
+func NewIn(sctx *super.Context, lhs, rhs Evaluator) *In {
+	return &In{sctx, lhs, rhs, NewPredicateWalk(NewCompare(sctx, nil, nil, "==").eval)}
 }
 
 func (i *In) Eval(this vector.Any) vector.Any {

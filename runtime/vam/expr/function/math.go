@@ -10,7 +10,7 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#abs.md
 type Abs struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (a *Abs) Call(args ...vector.Any) vector.Any {
@@ -21,7 +21,7 @@ func (a *Abs) Call(args ...vector.Any) vector.Any {
 	case super.IsSigned(id) || super.IsFloat(id):
 		return a.abs(vec)
 	}
-	return vector.NewWrappedError(a.zctx, "abs: not a number", vec)
+	return vector.NewWrappedError(a.sctx, "abs: not a number", vec)
 }
 
 func (a *Abs) abs(vec vector.Any) vector.Any {
@@ -64,7 +64,7 @@ func (a *Abs) abs(vec vector.Any) vector.Any {
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#ceil
 type Ceil struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (c *Ceil) Call(args ...vector.Any) vector.Any {
@@ -75,7 +75,7 @@ func (c *Ceil) Call(args ...vector.Any) vector.Any {
 	case super.IsNumber(id):
 		return vec
 	}
-	return vector.NewWrappedError(c.zctx, "ceil: not a number", vec)
+	return vector.NewWrappedError(c.sctx, "ceil: not a number", vec)
 }
 
 func (c *Ceil) ceil(vec vector.Any) vector.Any {
@@ -100,7 +100,7 @@ func (c *Ceil) ceil(vec vector.Any) vector.Any {
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#floor
 type Floor struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (f *Floor) Call(args ...vector.Any) vector.Any {
@@ -111,7 +111,7 @@ func (f *Floor) Call(args ...vector.Any) vector.Any {
 	case super.IsNumber(id):
 		return vec
 	}
-	return vector.NewWrappedError(f.zctx, "floor: not a number", vec)
+	return vector.NewWrappedError(f.sctx, "floor: not a number", vec)
 }
 
 func (f *Floor) floor(vec vector.Any) vector.Any {
@@ -136,7 +136,7 @@ func (f *Floor) floor(vec vector.Any) vector.Any {
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#log
 type Log struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (l *Log) Call(args ...vector.Any) vector.Any {
@@ -145,10 +145,10 @@ func (l *Log) Call(args ...vector.Any) vector.Any {
 		if vector.KindOf(arg) == vector.KindError {
 			return arg
 		}
-		return vector.NewWrappedError(l.zctx, "log: not a number", arg)
+		return vector.NewWrappedError(l.sctx, "log: not a number", arg)
 	}
 	// No error casting number to float so no need to Apply.
-	vec := cast.To(l.zctx, arg, super.TypeFloat64)
+	vec := cast.To(l.sctx, arg, super.TypeFloat64)
 	var errs []uint32
 	var floats []float64
 	var nulls *vector.Bool
@@ -173,7 +173,7 @@ func (l *Log) Call(args ...vector.Any) vector.Any {
 		nulls.SetLen(out.Len())
 	}
 	if len(errs) > 0 {
-		err := vector.NewWrappedError(l.zctx, "log: illegal argument", vector.NewView(arg, errs))
+		err := vector.NewWrappedError(l.sctx, "log: illegal argument", vector.NewView(arg, errs))
 		return vector.Combine(out, errs, err)
 	}
 	return out
@@ -181,19 +181,19 @@ func (l *Log) Call(args ...vector.Any) vector.Any {
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#pow
 type Pow struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (p *Pow) Call(args ...vector.Any) vector.Any {
 	a, b := vector.Under(args[0]), vector.Under(args[1])
 	if !super.IsNumber(a.Type().ID()) {
-		return vector.NewWrappedError(p.zctx, "pow: not a number", args[0])
+		return vector.NewWrappedError(p.sctx, "pow: not a number", args[0])
 	}
 	if !super.IsNumber(b.Type().ID()) {
-		return vector.NewWrappedError(p.zctx, "pow: not a number", args[1])
+		return vector.NewWrappedError(p.sctx, "pow: not a number", args[1])
 	}
-	a = cast.To(p.zctx, a, super.TypeFloat64)
-	b = cast.To(p.zctx, b, super.TypeFloat64)
+	a = cast.To(p.sctx, a, super.TypeFloat64)
+	b = cast.To(p.sctx, b, super.TypeFloat64)
 	nulls := vector.Or(vector.NullsOf(a), vector.NullsOf(b))
 	vals := make([]float64, a.Len())
 	for i := range a.Len() {
@@ -212,7 +212,7 @@ func (p *Pow) Call(args ...vector.Any) vector.Any {
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#round
 type Round struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (r *Round) Call(args ...vector.Any) vector.Any {
@@ -230,12 +230,12 @@ func (r *Round) Call(args ...vector.Any) vector.Any {
 		}
 		return vector.NewFloat(vec.Type(), vals, vector.NullsOf(vec))
 	}
-	return vector.NewWrappedError(r.zctx, "round: not a number", vec)
+	return vector.NewWrappedError(r.sctx, "round: not a number", vec)
 }
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#sqrt
 type Sqrt struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (s *Sqrt) Call(args ...vector.Any) vector.Any {
@@ -243,9 +243,9 @@ func (s *Sqrt) Call(args ...vector.Any) vector.Any {
 	if id := vec.Type().ID(); id == super.IDNull {
 		return vec
 	} else if !super.IsNumber(id) {
-		return vector.NewWrappedError(s.zctx, "sqrt: number argument required", vec)
+		return vector.NewWrappedError(s.sctx, "sqrt: number argument required", vec)
 	}
-	vec = cast.To(s.zctx, vec, super.TypeFloat64)
+	vec = cast.To(s.sctx, vec, super.TypeFloat64)
 	vals := make([]float64, vec.Len())
 	for i := range vec.Len() {
 		v, isnull := vector.FloatValue(vec, i)

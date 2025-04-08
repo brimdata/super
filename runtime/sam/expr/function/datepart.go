@@ -6,23 +6,23 @@ import (
 )
 
 type DatePart struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
-func NewDatePart(zctx *super.Context) *DatePart {
-	return &DatePart{zctx}
+func NewDatePart(sctx *super.Context) *DatePart {
+	return &DatePart{sctx}
 }
 
 func (d *DatePart) Call(_ super.Allocator, args []super.Value) super.Value {
 	if args[0].Type().ID() != super.IDString {
-		return d.zctx.WrapError("date_part: string value required for part argument", args[0])
+		return d.sctx.WrapError("date_part: string value required for part argument", args[0])
 	}
 	if args[1].Type().ID() != super.IDTime {
-		return d.zctx.WrapError("date_part: time value required for time argument", args[1])
+		return d.sctx.WrapError("date_part: time value required for time argument", args[1])
 	}
 	fn := lookupDatePartEval(args[0].AsString())
 	if fn == nil {
-		return d.zctx.WrapError("date_part: unsupported part name", args[0])
+		return d.sctx.WrapError("date_part: unsupported part name", args[0])
 	}
 	return super.NewInt64(fn(args[1].AsTime()))
 }

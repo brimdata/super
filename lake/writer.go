@@ -23,7 +23,7 @@ type Writer struct {
 	objects     []data.Object
 	inputSorted bool
 	ctx         context.Context
-	zctx        *super.Context
+	sctx        *super.Context
 	errgroup    *errgroup.Group
 	vals        []super.Value
 	// XXX this is a simple double buffering model so the cloud-object
@@ -49,17 +49,17 @@ type Writer struct {
 // XXX we should make another writer that takes sorted input and is a bit
 // more efficient.  This other writer could have different commit triggers
 // to do useful things like paritioning given the context is a rollup.
-func NewWriter(ctx context.Context, zctx *super.Context, pool *Pool) (*Writer, error) {
+func NewWriter(ctx context.Context, sctx *super.Context, pool *Pool) (*Writer, error) {
 	g, ctx := errgroup.WithContext(ctx)
 	ch := make(chan []super.Value, 1)
 	ch <- nil
 	return &Writer{
 		pool:       pool,
 		ctx:        ctx,
-		zctx:       zctx,
+		sctx:       sctx,
 		errgroup:   g,
 		buffer:     ch,
-		comparator: ImportComparator(zctx, pool),
+		comparator: ImportComparator(sctx, pool),
 	}, nil
 }
 
@@ -173,9 +173,9 @@ type SortedWriter struct {
 	objects       []*data.Object
 }
 
-func NewSortedWriter(ctx context.Context, zctx *super.Context, pool *Pool, vectorEnabled bool) *SortedWriter {
+func NewSortedWriter(ctx context.Context, sctx *super.Context, pool *Pool, vectorEnabled bool) *SortedWriter {
 	return &SortedWriter{
-		comparator:    ImportComparator(zctx, pool),
+		comparator:    ImportComparator(sctx, pool),
 		ctx:           ctx,
 		sortKey:       pool.SortKeys.Primary(),
 		pool:          pool,
@@ -295,6 +295,6 @@ func (s *ImportStats) Copy() ImportStats {
 	}
 }
 
-func ImportComparator(zctx *super.Context, pool *Pool) *expr.Comparator {
-	return zbuf.NewComparatorNullsMax(zctx, pool.SortKeys)
+func ImportComparator(sctx *super.Context, pool *Pool) *expr.Comparator {
+	return zbuf.NewComparatorNullsMax(sctx, pool.SortKeys)
 }

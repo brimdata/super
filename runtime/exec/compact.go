@@ -33,12 +33,12 @@ func Compact(ctx context.Context, lk *lake.Root, pool *lake.Pool, branchName str
 		}
 		compact.AddDataObject(o)
 	}
-	zctx := super.NewContext()
+	sctx := super.NewContext()
 	lister := meta.NewSortedListerFromSnap(ctx, super.NewContext(), pool, compact, nil)
-	rctx := runtime.NewContext(ctx, zctx)
-	slicer := meta.NewSlicer(lister, zctx)
+	rctx := runtime.NewContext(ctx, sctx)
+	slicer := meta.NewSlicer(lister, sctx)
 	puller := meta.NewSequenceScanner(rctx, slicer, pool, nil, nil, nil)
-	w := lake.NewSortedWriter(ctx, zctx, pool, writeVectors)
+	w := lake.NewSortedWriter(ctx, sctx, pool, writeVectors)
 	if err := zbuf.CopyPuller(w, puller); err != nil {
 		puller.Pull(true)
 		w.Abort()

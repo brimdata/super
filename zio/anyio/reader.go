@@ -29,27 +29,27 @@ type ReaderOpts struct {
 	CSV    csvio.ReaderOpts
 }
 
-func NewReader(zctx *super.Context, r io.Reader) (zio.ReadCloser, error) {
-	return NewReaderWithOpts(zctx, r, ReaderOpts{})
+func NewReader(sctx *super.Context, r io.Reader) (zio.ReadCloser, error) {
+	return NewReaderWithOpts(sctx, r, ReaderOpts{})
 }
 
-func NewReaderWithOpts(zctx *super.Context, r io.Reader, opts ReaderOpts) (zio.ReadCloser, error) {
+func NewReaderWithOpts(sctx *super.Context, r io.Reader, opts ReaderOpts) (zio.ReadCloser, error) {
 	if opts.Format != "" && opts.Format != "auto" {
-		return lookupReader(zctx, r, opts)
+		return lookupReader(sctx, r, opts)
 	}
 
 	var parquetErr, csupErr error
 	if rs, ok := r.(io.ReadSeeker); ok {
 		if n, err := rs.Seek(0, io.SeekCurrent); err == nil {
 			var zr zio.Reader
-			zr, parquetErr = parquetio.NewReader(zctx, rs, opts.Fields)
+			zr, parquetErr = parquetio.NewReader(sctx, rs, opts.Fields)
 			if parquetErr == nil {
 				return zio.NopReadCloser(zr), nil
 			}
 			if _, err := rs.Seek(n, io.SeekStart); err != nil {
 				return nil, err
 			}
-			zr, csupErr = csupio.NewReader(zctx, rs, opts.Fields)
+			zr, csupErr = csupio.NewReader(sctx, rs, opts.Fields)
 			if csupErr == nil {
 				return zio.NopReadCloser(zr), nil
 			}
@@ -71,21 +71,21 @@ func NewReaderWithOpts(zctx *super.Context, r io.Reader, opts ReaderOpts) (zio.R
 
 	arrowsErr := isArrowStream(track)
 	if arrowsErr == nil {
-		return arrowio.NewReader(zctx, track.Reader())
+		return arrowio.NewReader(sctx, track.Reader())
 	}
 	arrowsErr = fmt.Errorf("arrows: %w", arrowsErr)
 	track.Reset()
 
 	zeekErr := match(zeekio.NewReader(super.NewContext(), track), "zeek", 1)
 	if zeekErr == nil {
-		return zio.NopReadCloser(zeekio.NewReader(zctx, track.Reader())), nil
+		return zio.NopReadCloser(zeekio.NewReader(sctx, track.Reader())), nil
 	}
 	track.Reset()
 
 	// ZJSON must come before JSON and SUP since it is a subset of both.
 	zjsonErr := match(zjsonio.NewReader(super.NewContext(), track), "zjson", 1)
 	if zjsonErr == nil {
-		return zio.NopReadCloser(zjsonio.NewReader(zctx, track.Reader())), nil
+		return zio.NopReadCloser(zjsonio.NewReader(sctx, track.Reader())), nil
 	}
 	track.Reset()
 
@@ -94,13 +94,13 @@ func NewReaderWithOpts(zctx *super.Context, r io.Reader, opts ReaderOpts) (zio.R
 	// sake of tests.
 	jsonErr := match(jsonio.NewReader(super.NewContext(), track), "json", 10)
 	if jsonErr == nil {
-		return zio.NopReadCloser(jsonio.NewReader(zctx, track.Reader())), nil
+		return zio.NopReadCloser(jsonio.NewReader(sctx, track.Reader())), nil
 	}
 	track.Reset()
 
 	supErr := match(supio.NewReader(super.NewContext(), track), "sup", 1)
 	if supErr == nil {
-		return zio.NopReadCloser(supio.NewReader(zctx, track.Reader())), nil
+		return zio.NopReadCloser(supio.NewReader(sctx, track.Reader())), nil
 	}
 	track.Reset()
 
@@ -114,19 +114,19 @@ func NewReaderWithOpts(zctx *super.Context, r io.Reader, opts ReaderOpts) (zio.R
 	// Close bsupReader to ensure that it does not continue to call track.Read.
 	bsupReader.Close()
 	if bsupErr == nil {
-		return bsupio.NewReaderWithOpts(zctx, track.Reader(), opts.BSUP), nil
+		return bsupio.NewReaderWithOpts(sctx, track.Reader(), opts.BSUP), nil
 	}
 	track.Reset()
 
 	csvErr := isCSVStream(track, ',', "csv")
 	if csvErr == nil {
-		return zio.NopReadCloser(csvio.NewReader(zctx, track.Reader(), csvio.ReaderOpts{Delim: ','})), nil
+		return zio.NopReadCloser(csvio.NewReader(sctx, track.Reader(), csvio.ReaderOpts{Delim: ','})), nil
 	}
 	track.Reset()
 
 	tsvErr := isCSVStream(track, '\t', "tsv")
 	if tsvErr == nil {
-		return zio.NopReadCloser(csvio.NewReader(zctx, track.Reader(), csvio.ReaderOpts{Delim: '\t'})), nil
+		return zio.NopReadCloser(csvio.NewReader(sctx, track.Reader(), csvio.ReaderOpts{Delim: '\t'})), nil
 	}
 	track.Reset()
 

@@ -268,16 +268,16 @@ func (s *Store) Open(ctx context.Context, commit, stop ksuid.KSUID) (io.Reader, 
 	return bytes.NewReader(b), nil
 }
 
-func (s *Store) OpenAsBSUP(ctx context.Context, zctx *super.Context, commit, stop ksuid.KSUID) (*bsupio.Reader, error) {
+func (s *Store) OpenAsBSUP(ctx context.Context, sctx *super.Context, commit, stop ksuid.KSUID) (*bsupio.Reader, error) {
 	r, err := s.Open(ctx, commit, stop)
 	if err != nil {
 		return nil, err
 	}
-	return bsupio.NewReader(zctx, r), nil
+	return bsupio.NewReader(sctx, r), nil
 }
 
-func (s *Store) OpenCommitLog(ctx context.Context, zctx *super.Context, commit, stop ksuid.KSUID) zio.Reader {
-	return newLogReader(ctx, zctx, s, commit, stop)
+func (s *Store) OpenCommitLog(ctx context.Context, sctx *super.Context, commit, stop ksuid.KSUID) zio.Reader {
+	return newLogReader(ctx, sctx, s, commit, stop)
 }
 
 // PatchOfCommit computes the snapshot at the parent of the indicated commit

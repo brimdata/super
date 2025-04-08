@@ -7,16 +7,16 @@ import (
 )
 
 type Yield struct {
-	zctx   *super.Context
+	sctx   *super.Context
 	parent vector.Puller
 	exprs  []expr.Evaluator
 }
 
 var _ vector.Puller = (*Yield)(nil)
 
-func NewYield(zctx *super.Context, parent vector.Puller, exprs []expr.Evaluator) *Yield {
+func NewYield(sctx *super.Context, parent vector.Puller, exprs []expr.Evaluator) *Yield {
 	return &Yield{
-		zctx:   zctx,
+		sctx:   sctx,
 		parent: parent,
 		exprs:  exprs,
 	}

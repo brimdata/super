@@ -8,23 +8,23 @@ import (
 )
 
 type recordExpr struct {
-	zctx    *super.Context
+	sctx    *super.Context
 	typ     *super.TypeRecord
 	builder *zcode.Builder
 	fields  []super.Field
 	exprs   []Evaluator
 }
 
-func NewRecordExpr(zctx *super.Context, elems []RecordElem) (Evaluator, error) {
+func NewRecordExpr(sctx *super.Context, elems []RecordElem) (Evaluator, error) {
 	for _, e := range elems {
 		if e.Spread != nil {
-			return newRecordSpreadExpr(zctx, elems)
+			return newRecordSpreadExpr(sctx, elems)
 		}
 	}
-	return newRecordExpr(zctx, elems), nil
+	return newRecordExpr(sctx, elems), nil
 }
 
-func newRecordExpr(zctx *super.Context, elems []RecordElem) *recordExpr {
+func newRecordExpr(sctx *super.Context, elems []RecordElem) *recordExpr {
 	fields := make([]super.Field, 0, len(elems))
 	exprs := make([]Evaluator, 0, len(elems))
 	for _, elem := range elems {
@@ -33,10 +33,10 @@ func newRecordExpr(zctx *super.Context, elems []RecordElem) *recordExpr {
 	}
 	var typ *super.TypeRecord
 	if len(exprs) == 0 {
-		typ = zctx.MustLookupTypeRecord([]super.Field{})
+		typ = sctx.MustLookupTypeRecord([]super.Field{})
 	}
 	return &recordExpr{
-		zctx:    zctx,
+		sctx:    sctx,
 		typ:     typ,
 		builder: zcode.NewBuilder(),
 		fields:  fields,
@@ -57,7 +57,7 @@ func (r *recordExpr) Eval(ectx Context, this super.Value) super.Value {
 		b.Append(val.Bytes())
 	}
 	if changed {
-		r.typ = r.zctx.MustLookupTypeRecord(r.fields)
+		r.typ = r.sctx.MustLookupTypeRecord(r.fields)
 	}
 	bytes := b.Bytes()
 	if bytes == nil {
@@ -74,7 +74,7 @@ type RecordElem struct {
 }
 
 type recordSpreadExpr struct {
-	zctx    *super.Context
+	sctx    *super.Context
 	elems   []RecordElem
 	builder zcode.Builder
 	fields  []super.Field
@@ -82,9 +82,9 @@ type recordSpreadExpr struct {
 	cache   *super.TypeRecord
 }
 
-func newRecordSpreadExpr(zctx *super.Context, elems []RecordElem) (*recordSpreadExpr, error) {
+func newRecordSpreadExpr(sctx *super.Context, elems []RecordElem) (*recordSpreadExpr, error) {
 	return &recordSpreadExpr{
-		zctx:  zctx,
+		sctx:  sctx,
 		elems: elems,
 	}, nil
 }
@@ -128,7 +128,7 @@ func (r *recordSpreadExpr) Eval(ectx Context, this super.Value) super.Value {
 		}
 	}
 	if len(object) == 0 {
-		return super.NewValue(r.zctx.MustLookupTypeRecord([]super.Field{}), []byte{})
+		return super.NewValue(r.sctx.MustLookupTypeRecord([]super.Field{}), []byte{})
 	}
 	r.update(object)
 	b := r.builder
@@ -164,7 +164,7 @@ func (r *recordSpreadExpr) invalidate(object map[string]fieldValue) {
 		r.fields[field.index] = super.NewField(name, field.value.Type())
 		r.bytes[field.index] = field.value.Bytes()
 	}
-	r.cache = r.zctx.MustLookupTypeRecord(r.fields)
+	r.cache = r.sctx.MustLookupTypeRecord(r.fields)
 }
 
 type VectorElem struct {
@@ -174,16 +174,16 @@ type VectorElem struct {
 
 type ArrayExpr struct {
 	elems []VectorElem
-	zctx  *super.Context
+	sctx  *super.Context
 
 	builder    zcode.Builder
 	collection collectionBuilder
 }
 
-func NewArrayExpr(zctx *super.Context, elems []VectorElem) *ArrayExpr {
+func NewArrayExpr(sctx *super.Context, elems []VectorElem) *ArrayExpr {
 	return &ArrayExpr{
 		elems: elems,
-		zctx:  zctx,
+		sctx:  sctx,
 	}
 }
 
@@ -204,26 +204,26 @@ func (a *ArrayExpr) Eval(ectx Context, this super.Value) super.Value {
 		a.collection.appendSpread(inner, val.Bytes())
 	}
 	if len(a.collection.types) == 0 {
-		return super.NewValue(a.zctx.LookupTypeArray(super.TypeNull), []byte{})
+		return super.NewValue(a.sctx.LookupTypeArray(super.TypeNull), []byte{})
 	}
-	it := a.collection.iter(a.zctx)
+	it := a.collection.iter(a.sctx)
 	for !it.done() {
 		it.appendNext(&a.builder)
 	}
-	return super.NewValue(a.zctx.LookupTypeArray(it.typ), a.builder.Bytes())
+	return super.NewValue(a.sctx.LookupTypeArray(it.typ), a.builder.Bytes())
 }
 
 type SetExpr struct {
 	builder    zcode.Builder
 	collection collectionBuilder
 	elems      []VectorElem
-	zctx       *super.Context
+	sctx       *super.Context
 }
 
-func NewSetExpr(zctx *super.Context, elems []VectorElem) *SetExpr {
+func NewSetExpr(sctx *super.Context, elems []VectorElem) *SetExpr {
 	return &SetExpr{
 		elems: elems,
-		zctx:  zctx,
+		sctx:  sctx,
 	}
 }
 
@@ -244,13 +244,13 @@ func (a *SetExpr) Eval(ectx Context, this super.Value) super.Value {
 		a.collection.appendSpread(inner, val.Bytes())
 	}
 	if len(a.collection.types) == 0 {
-		return super.NewValue(a.zctx.LookupTypeSet(super.TypeNull), []byte{})
+		return super.NewValue(a.sctx.LookupTypeSet(super.TypeNull), []byte{})
 	}
-	it := a.collection.iter(a.zctx)
+	it := a.collection.iter(a.sctx)
 	for !it.done() {
 		it.appendNext(&a.builder)
 	}
-	return super.NewValue(a.zctx.LookupTypeSet(it.typ), super.NormalizeSet(a.builder.Bytes()))
+	return super.NewValue(a.sctx.LookupTypeSet(it.typ), super.NormalizeSet(a.builder.Bytes()))
 }
 
 type Entry struct {
@@ -263,13 +263,13 @@ type MapExpr struct {
 	entries []Entry
 	keys    collectionBuilder
 	vals    collectionBuilder
-	zctx    *super.Context
+	sctx    *super.Context
 }
 
-func NewMapExpr(zctx *super.Context, entries []Entry) *MapExpr {
+func NewMapExpr(sctx *super.Context, entries []Entry) *MapExpr {
 	return &MapExpr{
 		entries: entries,
-		zctx:    zctx,
+		sctx:    sctx,
 	}
 }
 
@@ -281,17 +281,17 @@ func (m *MapExpr) Eval(ectx Context, this super.Value) super.Value {
 		m.vals.append(e.Val.Eval(ectx, this))
 	}
 	if len(m.keys.types) == 0 {
-		typ := m.zctx.LookupTypeMap(super.TypeNull, super.TypeNull)
+		typ := m.sctx.LookupTypeMap(super.TypeNull, super.TypeNull)
 		return super.NewValue(typ, []byte{})
 	}
 	m.builder.Reset()
-	kIter, vIter := m.keys.iter(m.zctx), m.vals.iter(m.zctx)
+	kIter, vIter := m.keys.iter(m.sctx), m.vals.iter(m.sctx)
 	for !kIter.done() {
 		kIter.appendNext(&m.builder)
 		vIter.appendNext(&m.builder)
 	}
 	bytes := m.builder.Bytes()
-	typ := m.zctx.LookupTypeMap(kIter.typ, vIter.typ)
+	typ := m.sctx.LookupTypeMap(kIter.typ, vIter.typ)
 	return super.NewValue(typ, super.NormalizeMap(bytes))
 }
 
@@ -325,12 +325,12 @@ func (c *collectionBuilder) appendSpread(inner super.Type, b zcode.Bytes) {
 	}
 }
 
-func (c *collectionBuilder) iter(zctx *super.Context) collectionIter {
+func (c *collectionBuilder) iter(sctx *super.Context) collectionIter {
 	// uniqueTypes must be copied since super.UniqueTypes operates on the type
 	// array in place and thus we'll lose order.
 	c.uniqueTypes = append(c.uniqueTypes[:0], c.types...)
 	return collectionIter{
-		typ:   unionOf(zctx, c.uniqueTypes),
+		typ:   unionOf(sctx, c.uniqueTypes),
 		bytes: c.bytes,
 		types: c.types,
 		uniq:  len(c.uniqueTypes),
@@ -358,7 +358,7 @@ func (c *collectionIter) done() bool {
 	return len(c.types) == 0
 }
 
-func unionOf(zctx *super.Context, types []super.Type) super.Type {
+func unionOf(sctx *super.Context, types []super.Type) super.Type {
 	unique := types[:0]
 	for _, t := range super.UniqueTypes(types) {
 		if t != super.TypeNull {
@@ -371,5 +371,5 @@ func unionOf(zctx *super.Context, types []super.Type) super.Type {
 	if len(unique) == 1 {
 		return unique[0]
 	}
-	return zctx.LookupTypeUnion(unique)
+	return sctx.LookupTypeUnion(unique)
 }

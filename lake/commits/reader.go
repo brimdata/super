@@ -19,8 +19,8 @@ type LogReader struct {
 
 var _ zio.Reader = (*LogReader)(nil)
 
-func newLogReader(ctx context.Context, zctx *super.Context, store *Store, leaf, stop ksuid.KSUID) *LogReader {
-	m := sup.NewBSUPMarshalerWithContext(zctx)
+func newLogReader(ctx context.Context, sctx *super.Context, store *Store, leaf, stop ksuid.KSUID) *LogReader {
+	m := sup.NewBSUPMarshalerWithContext(sctx)
 	m.Decorate(sup.StyleSimple)
 	return &LogReader{
 		ctx:       ctx,

@@ -13,7 +13,7 @@ import (
 	"github.com/x448/float16"
 )
 
-func buildPrunerValue(zctx *super.Context, rgmd *metadata.RowGroupMetaData, schema *arrow.Schema, colIndexes []int) super.Value {
+func buildPrunerValue(sctx *super.Context, rgmd *metadata.RowGroupMetaData, schema *arrow.Schema, colIndexes []int) super.Value {
 	var paths field.List
 	var vals []super.Value
 	m := sup.NewBSUPMarshaler()
@@ -35,7 +35,7 @@ func buildPrunerValue(zctx *super.Context, rgmd *metadata.RowGroupMetaData, sche
 		paths = append(paths, minPath, maxPath)
 		vals = append(vals, minVal, maxVal)
 	}
-	b, err := super.NewRecordBuilder(zctx, paths)
+	b, err := super.NewRecordBuilder(sctx, paths)
 	if err != nil {
 		panic(err)
 	}

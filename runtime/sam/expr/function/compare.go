@@ -9,14 +9,14 @@ import (
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#compare
 type Compare struct {
 	nullsMax, nullsMin expr.CompareFn
-	zctx               *super.Context
+	sctx               *super.Context
 }
 
-func NewCompare(zctx *super.Context) *Compare {
+func NewCompare(sctx *super.Context) *Compare {
 	return &Compare{
 		nullsMax: expr.NewValueCompareFn(order.Asc, true),
 		nullsMin: expr.NewValueCompareFn(order.Asc, false),
-		zctx:     zctx,
+		sctx:     sctx,
 	}
 }
 
@@ -24,7 +24,7 @@ func (e *Compare) Call(_ super.Allocator, args []super.Value) super.Value {
 	nullsMax := true
 	if len(args) == 3 {
 		if super.TypeUnder(args[2].Type()) != super.TypeBool {
-			return e.zctx.WrapError("compare: nullsMax arg is not bool", args[2])
+			return e.sctx.WrapError("compare: nullsMax arg is not bool", args[2])
 		}
 		nullsMax = args[2].Bool()
 	}

@@ -7,14 +7,14 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#fields
 type Fields struct {
-	zctx *super.Context
+	sctx *super.Context
 	typ  super.Type
 }
 
-func NewFields(zctx *super.Context) *Fields {
+func NewFields(sctx *super.Context) *Fields {
 	return &Fields{
-		zctx: zctx,
-		typ:  zctx.LookupTypeArray(zctx.LookupTypeArray(super.TypeString)),
+		sctx: sctx,
+		typ:  sctx.LookupTypeArray(sctx.LookupTypeArray(super.TypeString)),
 	}
 }
 
@@ -37,7 +37,7 @@ func (f *Fields) Call(_ super.Allocator, args []super.Value) super.Value {
 	subjectVal := args[0].Under()
 	typ := f.recordType(subjectVal)
 	if typ == nil {
-		return f.zctx.Missing()
+		return f.sctx.Missing()
 	}
 	var b zcode.Builder
 	buildPath(typ, &b, nil)
@@ -49,7 +49,7 @@ func (f *Fields) recordType(val super.Value) *super.TypeRecord {
 		return typ
 	}
 	if val.Type() == super.TypeType {
-		typ, err := f.zctx.LookupByValue(val.Bytes())
+		typ, err := f.sctx.LookupByValue(val.Bytes())
 		if err != nil {
 			return nil
 		}

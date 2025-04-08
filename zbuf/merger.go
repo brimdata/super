@@ -6,10 +6,10 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 )
 
-func NewComparator(zctx *super.Context, sortKeys []order.SortKey) *expr.Comparator {
+func NewComparator(sctx *super.Context, sortKeys []order.SortKey) *expr.Comparator {
 	exprs := make([]expr.SortEvaluator, len(sortKeys))
 	for i, k := range sortKeys {
-		exprs[i] = expr.NewSortEvaluator(expr.NewDottedExpr(zctx, k.Key), k.Order)
+		exprs[i] = expr.NewSortEvaluator(expr.NewDottedExpr(sctx, k.Key), k.Order)
 	}
 	// valueAsBytes establishes a total order.
 	exprs = append(exprs, expr.NewSortEvaluator(&valueAsBytes{}, order.Asc))
@@ -17,10 +17,10 @@ func NewComparator(zctx *super.Context, sortKeys []order.SortKey) *expr.Comparat
 	return expr.NewComparator(nullsMax, exprs...).WithMissingAsNull()
 }
 
-func NewComparatorNullsMax(zctx *super.Context, sortKeys order.SortKeys) *expr.Comparator {
+func NewComparatorNullsMax(sctx *super.Context, sortKeys order.SortKeys) *expr.Comparator {
 	exprs := make([]expr.SortEvaluator, len(sortKeys))
 	for i, k := range sortKeys {
-		exprs[i] = expr.NewSortEvaluator(expr.NewDottedExpr(zctx, k.Key), k.Order)
+		exprs[i] = expr.NewSortEvaluator(expr.NewDottedExpr(sctx, k.Key), k.Order)
 	}
 	var o order.Which
 	if !sortKeys.IsNil() {

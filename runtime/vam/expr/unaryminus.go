@@ -9,12 +9,12 @@ import (
 )
 
 type unaryMinus struct {
-	zctx *super.Context
+	sctx *super.Context
 	expr Evaluator
 }
 
-func NewUnaryMinus(zctx *super.Context, eval Evaluator) Evaluator {
-	return &unaryMinus{zctx, eval}
+func NewUnaryMinus(sctx *super.Context, eval Evaluator) Evaluator {
+	return &unaryMinus{sctx, eval}
 }
 
 func (u *unaryMinus) Eval(this vector.Any) vector.Any {
@@ -31,7 +31,7 @@ func (u *unaryMinus) eval(vecs ...vector.Any) vector.Any {
 	}
 	id := vec.Type().ID()
 	if !super.IsNumber(vec.Type().ID()) {
-		return vector.NewWrappedError(u.zctx, "type incompatible with unary '-' operator", vecs[0])
+		return vector.NewWrappedError(u.sctx, "type incompatible with unary '-' operator", vecs[0])
 	}
 	if super.IsUnsigned(id) {
 		var typ super.Type
@@ -45,7 +45,7 @@ func (u *unaryMinus) eval(vecs ...vector.Any) vector.Any {
 		default:
 			typ = super.TypeInt64
 		}
-		return u.eval(cast.To(u.zctx, vec, typ))
+		return u.eval(cast.To(u.sctx, vec, typ))
 	}
 	out, ok := u.convert(vec)
 	if !ok {
@@ -132,7 +132,7 @@ func (u *unaryMinus) slowPath(vec vector.Any) vector.Any {
 		nulls.SetLen(uint32(len(ints)))
 	}
 	out := vector.NewInt(vec.Type(), ints, nulls)
-	err := vector.NewWrappedError(u.zctx, "unary '-' underflow", vector.NewView(vec, errs))
+	err := vector.NewWrappedError(u.sctx, "unary '-' underflow", vector.NewView(vec, errs))
 	return vector.Combine(out, errs, err)
 }
 

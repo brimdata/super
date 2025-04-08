@@ -18,39 +18,39 @@ import (
 	"github.com/brimdata/super/zio/zjsonio"
 )
 
-func lookupReader(zctx *super.Context, r io.Reader, opts ReaderOpts) (zio.ReadCloser, error) {
+func lookupReader(sctx *super.Context, r io.Reader, opts ReaderOpts) (zio.ReadCloser, error) {
 	switch opts.Format {
 	case "arrows":
-		return arrowio.NewReader(zctx, r)
+		return arrowio.NewReader(sctx, r)
 	case "bsup":
-		return bsupio.NewReaderWithOpts(zctx, r, opts.BSUP), nil
+		return bsupio.NewReaderWithOpts(sctx, r, opts.BSUP), nil
 	case "csup":
-		zr, err := csupio.NewReader(zctx, r, opts.Fields)
+		zr, err := csupio.NewReader(sctx, r, opts.Fields)
 		if err != nil {
 			return nil, err
 		}
 		return zio.NopReadCloser(zr), nil
 	case "csv":
-		return zio.NopReadCloser(csvio.NewReader(zctx, r, opts.CSV)), nil
+		return zio.NopReadCloser(csvio.NewReader(sctx, r, opts.CSV)), nil
 	case "line":
 		return zio.NopReadCloser(lineio.NewReader(r)), nil
 	case "json":
-		return zio.NopReadCloser(jsonio.NewReader(zctx, r)), nil
+		return zio.NopReadCloser(jsonio.NewReader(sctx, r)), nil
 	case "parquet":
-		zr, err := parquetio.NewReader(zctx, r, opts.Fields)
+		zr, err := parquetio.NewReader(sctx, r, opts.Fields)
 		if err != nil {
 			return nil, err
 		}
 		return zio.NopReadCloser(zr), nil
 	case "sup":
-		return zio.NopReadCloser(supio.NewReader(zctx, r)), nil
+		return zio.NopReadCloser(supio.NewReader(sctx, r)), nil
 	case "tsv":
 		opts.CSV.Delim = '\t'
-		return zio.NopReadCloser(csvio.NewReader(zctx, r, opts.CSV)), nil
+		return zio.NopReadCloser(csvio.NewReader(sctx, r, opts.CSV)), nil
 	case "zeek":
-		return zio.NopReadCloser(zeekio.NewReader(zctx, r)), nil
+		return zio.NopReadCloser(zeekio.NewReader(sctx, r)), nil
 	case "zjson":
-		return zio.NopReadCloser(zjsonio.NewReader(zctx, r)), nil
+		return zio.NopReadCloser(zjsonio.NewReader(sctx, r)), nil
 	}
 	return nil, fmt.Errorf("no such format: \"%s\"", opts.Format)
 }

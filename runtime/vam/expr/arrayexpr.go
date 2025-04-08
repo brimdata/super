@@ -13,13 +13,13 @@ type ListElem struct {
 
 type ArrayExpr struct {
 	elems []ListElem
-	zctx  *super.Context
+	sctx  *super.Context
 }
 
-func NewArrayExpr(zctx *super.Context, elems []ListElem) *ArrayExpr {
+func NewArrayExpr(sctx *super.Context, elems []ListElem) *ArrayExpr {
 	return &ArrayExpr{
 		elems: elems,
-		zctx:  zctx,
+		sctx:  sctx,
 	}
 }
 
@@ -93,11 +93,11 @@ func (a *ArrayExpr) eval(in ...vector.Any) vector.Any {
 			typ = types[0]
 			innerVec = mergeSameTypeVecs(typ, tags, vecs)
 		} else {
-			typ = a.zctx.LookupTypeUnion(types)
+			typ = a.sctx.LookupTypeUnion(types)
 			innerVec = vector.NewUnion(typ.(*super.TypeUnion), tags, vecs, nil)
 		}
 	}
-	return vector.NewArray(a.zctx.LookupTypeArray(typ), offsets, innerVec, nil)
+	return vector.NewArray(a.sctx.LookupTypeArray(typ), offsets, innerVec, nil)
 }
 
 func (a *ArrayExpr) unwrapSpread(vec vector.Any) (vector.Any, []uint32, []uint32) {

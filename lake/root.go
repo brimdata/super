@@ -182,8 +182,8 @@ func (r *Root) readLakeMagic(ctx context.Context) error {
 	return nil
 }
 
-func (r *Root) BatchifyPools(ctx context.Context, zctx *super.Context, f expr.Evaluator) ([]super.Value, error) {
-	m := sup.NewBSUPMarshalerWithContext(zctx)
+func (r *Root) BatchifyPools(ctx context.Context, sctx *super.Context, f expr.Evaluator) ([]super.Value, error) {
+	m := sup.NewBSUPMarshalerWithContext(sctx)
 	m.Decorate(sup.StylePackage)
 	pools, err := r.ListPools(ctx)
 	if err != nil {
@@ -196,15 +196,15 @@ func (r *Root) BatchifyPools(ctx context.Context, zctx *super.Context, f expr.Ev
 		if err != nil {
 			return nil, err
 		}
-		if filter(zctx, ectx, rec, f) {
+		if filter(sctx, ectx, rec, f) {
 			vals = append(vals, rec)
 		}
 	}
 	return vals, nil
 }
 
-func (r *Root) BatchifyBranches(ctx context.Context, zctx *super.Context, f expr.Evaluator) ([]super.Value, error) {
-	m := sup.NewBSUPMarshalerWithContext(zctx)
+func (r *Root) BatchifyBranches(ctx context.Context, sctx *super.Context, f expr.Evaluator) ([]super.Value, error) {
+	m := sup.NewBSUPMarshalerWithContext(sctx)
 	m.Decorate(sup.StylePackage)
 	poolRefs, err := r.ListPools(ctx)
 	if err != nil {
@@ -221,7 +221,7 @@ func (r *Root) BatchifyBranches(ctx context.Context, zctx *super.Context, f expr
 			}
 			return nil, err
 		}
-		vals, err = pool.BatchifyBranches(ctx, zctx, vals, m, f)
+		vals, err = pool.BatchifyBranches(ctx, sctx, vals, m, f)
 		if err != nil {
 			return nil, err
 		}

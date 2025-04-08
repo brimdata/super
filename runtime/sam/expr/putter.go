@@ -16,7 +16,7 @@ import (
 // values appear as new fields in the order that the clause appears
 // in the put expression.
 type Putter struct {
-	zctx    *super.Context
+	sctx    *super.Context
 	builder zcode.Builder
 	clauses []Assignment
 	rules   map[int]map[string]putRule
@@ -38,9 +38,9 @@ type putRule struct {
 	step        putStep
 }
 
-func NewPutter(zctx *super.Context, clauses []Assignment) *Putter {
+func NewPutter(sctx *super.Context, clauses []Assignment) *Putter {
 	return &Putter{
-		zctx:    zctx,
+		sctx:    sctx,
 		clauses: clauses,
 		vals:    make([]super.Value, len(clauses)),
 		rules:   make(map[int]map[string]putRule),
@@ -248,7 +248,7 @@ func (p *Putter) deriveRecordSteps(parentPath field.Path, inFields []super.Field
 			}
 		}
 	}
-	typ, err := p.zctx.LookupTypeRecord(fields)
+	typ, err := p.sctx.LookupTypeRecord(fields)
 	if err != nil {
 		panic(err)
 	}
@@ -318,18 +318,18 @@ func (p *Putter) Eval(ectx Context, this super.Value) super.Value {
 			// propagate errors
 			return this
 		}
-		return p.zctx.WrapError("put: not a record", this)
+		return p.sctx.WrapError("put: not a record", this)
 	}
 	vals, paths, err := p.eval(ectx, this)
 	if err != nil {
-		return p.zctx.WrapError(fmt.Sprintf("put: %s", err), this)
+		return p.sctx.WrapError(fmt.Sprintf("put: %s", err), this)
 	}
 	if len(vals) == 0 {
 		return this
 	}
 	rule, err := p.lookupRule(recType, vals, paths)
 	if err != nil {
-		return p.zctx.WrapError(err.Error(), this)
+		return p.sctx.WrapError(err.Error(), this)
 	}
 	bytes := rule.step.build(this.Bytes(), &p.builder, vals)
 	return super.NewValue(rule.typ, bytes)

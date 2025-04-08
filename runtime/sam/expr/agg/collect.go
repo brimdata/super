@@ -30,13 +30,13 @@ func (c *Collect) Consume(val super.Value) {
 	}
 }
 
-func (c *Collect) Result(zctx *super.Context) super.Value {
+func (c *Collect) Result(sctx *super.Context) super.Value {
 	if len(c.values) == 0 {
 		// no values found
 		return super.Null
 	}
 	var b zcode.Builder
-	inner := innerType(zctx, c.values)
+	inner := innerType(sctx, c.values)
 	if union, ok := inner.(*super.TypeUnion); ok {
 		for _, val := range c.values {
 			super.BuildUnion(&b, union.TagOf(val.Type()), val.Bytes())
@@ -46,10 +46,10 @@ func (c *Collect) Result(zctx *super.Context) super.Value {
 			b.Append(val.Bytes())
 		}
 	}
-	return super.NewValue(zctx.LookupTypeArray(inner), b.Bytes())
+	return super.NewValue(sctx.LookupTypeArray(inner), b.Bytes())
 }
 
-func innerType(zctx *super.Context, vals []super.Value) super.Type {
+func innerType(sctx *super.Context, vals []super.Value) super.Type {
 	var types []super.Type
 	for _, val := range vals {
 		types = append(types, val.Type())
@@ -58,7 +58,7 @@ func innerType(zctx *super.Context, vals []super.Value) super.Type {
 	if len(types) == 1 {
 		return types[0]
 	}
-	return zctx.LookupTypeUnion(types)
+	return sctx.LookupTypeUnion(types)
 }
 
 func (c *Collect) ConsumeAsPartial(val super.Value) {
@@ -76,6 +76,6 @@ func (c *Collect) ConsumeAsPartial(val super.Value) {
 	}
 }
 
-func (c *Collect) ResultAsPartial(zctx *super.Context) super.Value {
-	return c.Result(zctx)
+func (c *Collect) ResultAsPartial(sctx *super.Context) super.Value {
+	return c.Result(sctx)
 }

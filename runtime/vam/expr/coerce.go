@@ -15,7 +15,7 @@ import (
 // vectors are returned, not changed in place).  When errors are
 // encountered an error vector is returned and the coerced values
 // are abandoned.
-func coerceVals(zctx *super.Context, a, b vector.Any) (vector.Any, vector.Any, vector.Any) {
+func coerceVals(sctx *super.Context, a, b vector.Any) (vector.Any, vector.Any, vector.Any) {
 	aid := a.Type().ID()
 	bid := b.Type().ID()
 	if aid == bid {
@@ -33,7 +33,7 @@ func coerceVals(zctx *super.Context, a, b vector.Any) (vector.Any, vector.Any, v
 		return a, b, nil //XXX
 	}
 	if !super.IsNumber(aid) || !super.IsNumber(bid) {
-		return nil, nil, vector.NewStringError(zctx, coerce.ErrIncompatibleTypes.Error(), a.Len())
+		return nil, nil, vector.NewStringError(sctx, coerce.ErrIncompatibleTypes.Error(), a.Len())
 	}
 	// Both a and b are numbers.  We need to promote to a common
 	// type based on Zed's coercion rules.

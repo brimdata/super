@@ -7,17 +7,17 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#fields
 type Fields struct {
-	zctx     *super.Context
+	sctx     *super.Context
 	innerTyp *super.TypeArray
 	outerTyp *super.TypeArray
 }
 
-func NewFields(zctx *super.Context) *Fields {
-	inner := zctx.LookupTypeArray(super.TypeString)
+func NewFields(sctx *super.Context) *Fields {
+	inner := sctx.LookupTypeArray(super.TypeString)
 	return &Fields{
-		zctx:     zctx,
+		sctx:     sctx,
 		innerTyp: inner,
-		outerTyp: zctx.LookupTypeArray(inner),
+		outerTyp: sctx.LookupTypeArray(inner),
 	}
 }
 
@@ -49,16 +49,16 @@ func (f *Fields) Call(args ...vector.Any) vector.Any {
 		inner := vector.NewArray(f.innerTyp, inOffs, s, nil)
 		out := vector.NewArray(f.outerTyp, outOffs, inner, nil)
 		if len(errs) > 0 {
-			return vector.Combine(out, errs, vector.NewStringError(f.zctx, "missing", uint32(len(errs))))
+			return vector.Combine(out, errs, vector.NewStringError(f.sctx, "missing", uint32(len(errs))))
 		}
 		return out
 	default:
-		return vector.NewStringError(f.zctx, "missing", val.Len())
+		return vector.NewStringError(f.sctx, "missing", val.Len())
 	}
 }
 
 func (f *Fields) recordType(b []byte) *super.TypeRecord {
-	typ, err := f.zctx.LookupByValue(b)
+	typ, err := f.sctx.LookupByValue(b)
 	if err != nil {
 		return nil
 	}

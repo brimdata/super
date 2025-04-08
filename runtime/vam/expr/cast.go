@@ -14,25 +14,25 @@ type literalCast struct {
 	expr   Evaluator
 }
 
-func NewLiteralCast(zctx *super.Context, expr Evaluator, literal *Literal) (Evaluator, error) {
+func NewLiteralCast(sctx *super.Context, expr Evaluator, literal *Literal) (Evaluator, error) {
 	var c Evaluator
 	typeVal := literal.val
 	switch typeVal.Type().ID() {
 	case super.IDType:
-		typ, err := zctx.LookupByValue(typeVal.Bytes())
+		typ, err := sctx.LookupByValue(typeVal.Bytes())
 		if err != nil {
 			return nil, err
 		}
 		if typ.ID() >= super.IDTypeComplex {
 			return nil, fmt.Errorf("cast: casting to type %s not currently supported in vector runtime", sup.FormatType(typ))
 		}
-		c = &casterPrimitive{zctx, typ}
+		c = &casterPrimitive{sctx, typ}
 	case super.IDString:
 		name := super.DecodeString(typeVal.Bytes())
 		if _, err := super.NewContext().LookupTypeNamed(name, super.TypeNull); err != nil {
 			return nil, err
 		}
-		c = &casterNamedType{zctx, name}
+		c = &casterNamedType{sctx, name}
 	default:
 		return nil, fmt.Errorf("cast type argument is not a type: %s", sup.FormatValue(typeVal))
 	}
@@ -46,16 +46,16 @@ func (p *literalCast) Eval(vec vector.Any) vector.Any {
 }
 
 type casterPrimitive struct {
-	zctx *super.Context
+	sctx *super.Context
 	typ  super.Type
 }
 
 func (c *casterPrimitive) Eval(this vector.Any) vector.Any {
-	return cast.To(c.zctx, this, c.typ)
+	return cast.To(c.sctx, this, c.typ)
 }
 
 type casterNamedType struct {
-	zctx *super.Context
+	sctx *super.Context
 	name string
 }
 
@@ -65,9 +65,9 @@ func (c *casterNamedType) Eval(this vector.Any) vector.Any {
 	if typ.Kind() == super.ErrorKind {
 		return this
 	}
-	named, err := c.zctx.LookupTypeNamed(c.name, typ)
+	named, err := c.sctx.LookupTypeNamed(c.name, typ)
 	if err != nil {
-		return vector.NewStringError(c.zctx, err.Error(), this.Len())
+		return vector.NewStringError(c.sctx, err.Error(), this.Len())
 	}
 	return vector.NewNamed(named, this)
 }

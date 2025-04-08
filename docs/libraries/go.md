@@ -51,8 +51,8 @@ import (
 )
 
 func main() {
-	zctx := super.NewContext()
-	reader := supio.NewReader(zctx, os.Stdin)
+	sctx := super.NewContext()
+	reader := supio.NewReader(sctx, os.Stdin)
 	for {
 		val, err := reader.Read()
 		if err != nil {
@@ -63,7 +63,7 @@ func main() {
 		}
 		s := val.Deref("s")
 		if s == nil {
-			s = zctx.Missing().Ptr()
+			s = sctx.Missing().Ptr()
 		}
 		fmt.Println(sup.String(s))
 	}
@@ -138,7 +138,7 @@ func main() {
 	}
 	defer q.Pull(true)
 	reader := zbuf.PullerReader(q)
-	zctx := super.NewContext()
+	sctx := super.NewContext()
 	for {
 		val, err := reader.Read()
 		if err != nil {
@@ -149,7 +149,7 @@ func main() {
 		}
 		s := val.Deref("s")
 		if s == nil {
-			s = zctx.Missing().Ptr()
+			s = sctx.Missing().Ptr()
 		}
 		fmt.Println(sup.String(s))
 	}

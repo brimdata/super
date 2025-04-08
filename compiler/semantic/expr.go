@@ -412,7 +412,7 @@ func (a *analyzer) semGrep(grep *ast.Grep) dag.Expr {
 		s.Expr = e
 		return s
 	}
-	if s, ok := isStringConst(a.zctx, p); ok {
+	if s, ok := isStringConst(a.sctx, p); ok {
 		return &dag.Search{
 			Kind:  "Search",
 			Text:  s,
@@ -484,7 +484,7 @@ func (a *analyzer) semBinary(e *ast.BinaryExpr) dag.Expr {
 	lhs := a.semExpr(e.LHS)
 	rhs := a.semExpr(e.RHS)
 	if op == "like" {
-		s, ok := isStringConst(a.zctx, rhs)
+		s, ok := isStringConst(a.sctx, rhs)
 		if !ok {
 			a.error(e.RHS, errors.New("non-constant pattern for LIKE not supported"))
 			return badExpr()
@@ -514,7 +514,7 @@ func (a *analyzer) semBinary(e *ast.BinaryExpr) dag.Expr {
 
 func (a *analyzer) isIndexOfThis(lhs, rhs dag.Expr) *dag.This {
 	if this, ok := lhs.(*dag.This); ok {
-		if s, ok := isStringConst(a.zctx, rhs); ok {
+		if s, ok := isStringConst(a.sctx, rhs); ok {
 			this.Path = append(this.Path, s)
 			return this
 		}
@@ -522,8 +522,8 @@ func (a *analyzer) isIndexOfThis(lhs, rhs dag.Expr) *dag.This {
 	return nil
 }
 
-func isStringConst(zctx *super.Context, e dag.Expr) (field string, ok bool) {
-	val, err := kernel.EvalAtCompileTime(zctx, e)
+func isStringConst(sctx *super.Context, e dag.Expr) (field string, ok bool) {
+	val, err := kernel.EvalAtCompileTime(sctx, e)
 	if err == nil && !val.IsError() && super.TypeUnder(val.Type()) == super.TypeString {
 		return string(val.Bytes()), true
 	}
@@ -635,7 +635,7 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 			Inner: inner,
 		}
 	default:
-		if _, _, err = function.New(a.zctx, nameLower, nargs); err != nil {
+		if _, _, err = function.New(a.sctx, nameLower, nargs); err != nil {
 			a.error(call, err)
 			return badExpr()
 		}
@@ -846,7 +846,7 @@ func pathOf(name string) *dag.This {
 }
 
 func (a *analyzer) semType(typ ast.Type) (string, error) {
-	ztype, err := sup.TranslateType(a.zctx, typ)
+	ztype, err := sup.TranslateType(a.sctx, typ)
 	if err != nil {
 		return "", err
 	}

@@ -457,15 +457,15 @@ func handleBranchLoad(c *Core, w *ResponseWriter, r *Request) {
 		// Force validation of BSUP when loading into the lake.
 		BSUP: bsupio.ReaderOpts{Validate: true},
 	}
-	zctx := super.NewContext()
-	zrc, err := anyio.NewReaderWithOpts(zctx, reader, opts)
+	sctx := super.NewContext()
+	zrc, err := anyio.NewReaderWithOpts(sctx, reader, opts)
 	if err != nil {
 		w.Error(srverr.ErrInvalid(err))
 		return
 	}
 	defer zrc.Close()
 	wr := &warningsReader{zrc, []string{}}
-	kommit, err := branch.Load(r.Context(), zctx, wr, message.Author, message.Body, message.Meta)
+	kommit, err := branch.Load(r.Context(), sctx, wr, message.Author, message.Body, message.Meta)
 	if err != nil {
 		if errors.Is(err, commits.ErrEmptyTransaction) {
 			err = srverr.ErrInvalid("no records in request")

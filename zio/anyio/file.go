@@ -11,7 +11,7 @@ import (
 
 // Open uses engine to open path for reading.  path is a local file path or a
 // URI whose scheme is understood by engine.
-func Open(ctx context.Context, zctx *super.Context, engine storage.Engine, path string, opts ReaderOpts) (*zbuf.File, error) {
+func Open(ctx context.Context, sctx *super.Context, engine storage.Engine, path string, opts ReaderOpts) (*zbuf.File, error) {
 	uri, err := storage.ParseURI(path)
 	if err != nil {
 		return nil, err
@@ -27,7 +27,7 @@ func Open(ctx context.Context, zctx *super.Context, engine storage.Engine, path 
 			return
 		}
 		// NewFile reads from sr, which might block.
-		zf, err = NewFile(zctx, sr, path, opts)
+		zf, err = NewFile(sctx, sr, path, opts)
 		if err != nil {
 			sr.Close()
 		}
@@ -40,12 +40,12 @@ func Open(ctx context.Context, zctx *super.Context, engine storage.Engine, path 
 	}
 }
 
-func NewFile(zctx *super.Context, rc io.ReadCloser, path string, opts ReaderOpts) (*zbuf.File, error) {
+func NewFile(sctx *super.Context, rc io.ReadCloser, path string, opts ReaderOpts) (*zbuf.File, error) {
 	r, err := GzipReader(rc)
 	if err != nil {
 		return nil, err
 	}
-	zr, err := NewReaderWithOpts(zctx, r, opts)
+	zr, err := NewReaderWithOpts(sctx, r, opts)
 	if err != nil {
 		return nil, err
 	}

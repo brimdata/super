@@ -387,7 +387,7 @@ func (a *analyzer) semSQLOp(op ast.Op, seq dag.Seq) (dag.Seq, schema) {
 	case *ast.Limit:
 		e := a.semExpr(op.Count)
 		var err error
-		val, err := kernel.EvalAtCompileTime(a.zctx, e)
+		val, err := kernel.EvalAtCompileTime(a.sctx, e)
 		if err != nil {
 			a.error(op.Count, err)
 			return append(seq, badOp()), badSchema()

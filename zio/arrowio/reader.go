@@ -18,7 +18,7 @@ import (
 
 // Reader is a zio.Reader for the Arrow IPC stream format.
 type Reader struct {
-	zctx *super.Context
+	sctx *super.Context
 	rr   pqarrow.RecordReader
 
 	typ              super.Type
@@ -31,12 +31,12 @@ type Reader struct {
 	val     super.Value
 }
 
-func NewReader(zctx *super.Context, r io.Reader) (*Reader, error) {
+func NewReader(sctx *super.Context, r io.Reader) (*Reader, error) {
 	ipcReader, err := ipc.NewReader(r)
 	if err != nil {
 		return nil, err
 	}
-	ar, err := NewReaderFromRecordReader(zctx, ipcReader)
+	ar, err := NewReaderFromRecordReader(sctx, ipcReader)
 	if err != nil {
 		ipcReader.Release()
 		return nil, err
@@ -44,9 +44,9 @@ func NewReader(zctx *super.Context, r io.Reader) (*Reader, error) {
 	return ar, nil
 }
 
-func NewReaderFromRecordReader(zctx *super.Context, rr pqarrow.RecordReader) (*Reader, error) {
+func NewReaderFromRecordReader(sctx *super.Context, rr pqarrow.RecordReader) (*Reader, error) {
 	r := &Reader{
-		zctx:             zctx,
+		sctx:             sctx,
 		rr:               rr,
 		unionTagMappings: map[string][]int{},
 	}
@@ -160,44 +160,44 @@ func (r *Reader) newZedType(dt arrow.DataType) (super.Type, error) {
 		return super.TypeBytes, nil
 	case arrow.FIXED_SIZE_BINARY:
 		width := strconv.Itoa(dt.(*arrow.FixedSizeBinaryType).ByteWidth)
-		return r.zctx.LookupTypeNamed("arrow_fixed_size_binary_"+width, super.TypeBytes)
+		return r.sctx.LookupTypeNamed("arrow_fixed_size_binary_"+width, super.TypeBytes)
 	case arrow.DATE32:
-		return r.zctx.LookupTypeNamed("arrow_date32", super.TypeTime)
+		return r.sctx.LookupTypeNamed("arrow_date32", super.TypeTime)
 	case arrow.DATE64:
-		return r.zctx.LookupTypeNamed("arrow_date64", super.TypeTime)
+		return r.sctx.LookupTypeNamed("arrow_date64", super.TypeTime)
 	case arrow.TIMESTAMP:
 		if unit := dt.(*arrow.TimestampType).Unit; unit != arrow.Nanosecond {
-			return r.zctx.LookupTypeNamed("arrow_timestamp_"+unit.String(), super.TypeTime)
+			return r.sctx.LookupTypeNamed("arrow_timestamp_"+unit.String(), super.TypeTime)
 		}
 		return super.TypeTime, nil
 	case arrow.TIME32:
 		unit := dt.(*arrow.Time32Type).Unit.String()
-		return r.zctx.LookupTypeNamed("arrow_time32_"+unit, super.TypeTime)
+		return r.sctx.LookupTypeNamed("arrow_time32_"+unit, super.TypeTime)
 	case arrow.TIME64:
 		unit := dt.(*arrow.Time64Type).Unit.String()
-		return r.zctx.LookupTypeNamed("arrow_time64_"+unit, super.TypeTime)
+		return r.sctx.LookupTypeNamed("arrow_time64_"+unit, super.TypeTime)
 	case arrow.INTERVAL_MONTHS:
-		return r.zctx.LookupTypeNamed("arrow_month_interval", super.TypeInt32)
+		return r.sctx.LookupTypeNamed("arrow_month_interval", super.TypeInt32)
 	case arrow.INTERVAL_DAY_TIME:
-		typ, err := r.zctx.LookupTypeRecord(dayTimeIntervalFields)
+		typ, err := r.sctx.LookupTypeRecord(dayTimeIntervalFields)
 		if err != nil {
 			return nil, err
 		}
-		return r.zctx.LookupTypeNamed("arrow_day_time_interval", typ)
+		return r.sctx.LookupTypeNamed("arrow_day_time_interval", typ)
 	case arrow.DECIMAL128:
-		typ, err := r.zctx.LookupTypeRecord(decimal128Fields)
+		typ, err := r.sctx.LookupTypeRecord(decimal128Fields)
 		if err != nil {
 			return nil, err
 		}
-		return r.zctx.LookupTypeNamed("arrow_decimal128", typ)
+		return r.sctx.LookupTypeNamed("arrow_decimal128", typ)
 	case arrow.DECIMAL256:
-		return r.zctx.LookupTypeNamed("arrow_decimal256", r.zctx.LookupTypeArray(super.TypeUint64))
+		return r.sctx.LookupTypeNamed("arrow_decimal256", r.sctx.LookupTypeArray(super.TypeUint64))
 	case arrow.LIST:
 		typ, err := r.newZedType(dt.(*arrow.ListType).Elem())
 		if err != nil {
 			return nil, err
 		}
-		return r.zctx.LookupTypeArray(typ), nil
+		return r.sctx.LookupTypeArray(typ), nil
 	case arrow.STRUCT:
 		var fields []super.Field
 		for _, f := range dt.(*arrow.StructType).Fields() {
@@ -208,7 +208,7 @@ func (r *Reader) newZedType(dt arrow.DataType) (super.Type, error) {
 			fields = append(fields, super.NewField(f.Name, typ))
 		}
 		UniquifyFieldNames(fields)
-		return r.zctx.LookupTypeRecord(fields)
+		return r.sctx.LookupTypeRecord(fields)
 	case arrow.SPARSE_UNION, arrow.DENSE_UNION:
 		return r.newZedUnionType(dt.(arrow.UnionType), dt.Fingerprint())
 	case arrow.DICTIONARY:
@@ -222,35 +222,35 @@ func (r *Reader) newZedType(dt arrow.DataType) (super.Type, error) {
 		if err != nil {
 			return nil, err
 		}
-		return r.zctx.LookupTypeMap(keyType, itemType), nil
+		return r.sctx.LookupTypeMap(keyType, itemType), nil
 	case arrow.FIXED_SIZE_LIST:
 		typ, err := r.newZedType(dt.(*arrow.FixedSizeListType).Elem())
 		if err != nil {
 			return nil, err
 		}
 		size := strconv.Itoa(int(dt.(*arrow.FixedSizeListType).Len()))
-		return r.zctx.LookupTypeNamed("arrow_fixed_size_list_"+size, r.zctx.LookupTypeArray(typ))
+		return r.sctx.LookupTypeNamed("arrow_fixed_size_list_"+size, r.sctx.LookupTypeArray(typ))
 	case arrow.DURATION:
 		if unit := dt.(*arrow.DurationType).Unit; unit != arrow.Nanosecond {
-			return r.zctx.LookupTypeNamed("arrow_duration_"+unit.String(), super.TypeDuration)
+			return r.sctx.LookupTypeNamed("arrow_duration_"+unit.String(), super.TypeDuration)
 		}
 		return super.TypeDuration, nil
 	case arrow.LARGE_STRING:
-		return r.zctx.LookupTypeNamed("arrow_large_string", super.TypeString)
+		return r.sctx.LookupTypeNamed("arrow_large_string", super.TypeString)
 	case arrow.LARGE_BINARY:
-		return r.zctx.LookupTypeNamed("arrow_large_binary", super.TypeBytes)
+		return r.sctx.LookupTypeNamed("arrow_large_binary", super.TypeBytes)
 	case arrow.LARGE_LIST:
 		typ, err := r.newZedType(dt.(*arrow.LargeListType).Elem())
 		if err != nil {
 			return nil, err
 		}
-		return r.zctx.LookupTypeNamed("arrow_large_list", r.zctx.LookupTypeArray(typ))
+		return r.sctx.LookupTypeNamed("arrow_large_list", r.sctx.LookupTypeArray(typ))
 	case arrow.INTERVAL_MONTH_DAY_NANO:
-		typ, err := r.zctx.LookupTypeRecord(monthDayNanoIntervalFields)
+		typ, err := r.sctx.LookupTypeRecord(monthDayNanoIntervalFields)
 		if err != nil {
 			return nil, err
 		}
-		return r.zctx.LookupTypeNamed("arrow_month_day_nano_interval", typ)
+		return r.sctx.LookupTypeNamed("arrow_month_day_nano_interval", typ)
 	default:
 		return nil, fmt.Errorf("unimplemented Arrow type: %s", dt.Name())
 	}
@@ -277,7 +277,7 @@ Loop:
 		}
 	}
 	r.unionTagMappings[fingerprint] = x
-	return r.zctx.LookupTypeUnion(uniqueTypes), nil
+	return r.sctx.LookupTypeUnion(uniqueTypes), nil
 }
 
 func (r *Reader) buildZcode(a arrow.Array, i int) error {

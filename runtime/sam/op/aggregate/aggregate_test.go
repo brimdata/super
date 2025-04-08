@@ -105,8 +105,8 @@ func TestAggregateStreamingSpill(t *testing.T) {
 		ast, err := parser.ParseQuery("count() by every(1s), ip")
 		assert.NoError(t, err)
 
-		zctx := super.NewContext()
-		zr := supio.NewReader(zctx, strings.NewReader(strings.Join(data, "\n")))
+		sctx := super.NewContext()
+		zr := supio.NewReader(sctx, strings.NewReader(strings.Join(data, "\n")))
 		cr := &countReader{r: zr}
 		var outbuf bytes.Buffer
 		zw := supio.NewWriter(zio.NopCloser(&outbuf), supio.WriterOpts{})
@@ -121,7 +121,7 @@ func TestAggregateStreamingSpill(t *testing.T) {
 			},
 		}
 		sortKey := order.NewSortKey(order.Asc, field.Path{inputSortKey})
-		query, err := newQueryOnOrderedReader(context.Background(), zctx, ast, cr, sortKey)
+		query, err := newQueryOnOrderedReader(context.Background(), sctx, ast, cr, sortKey)
 		require.NoError(t, err)
 		defer query.Pull(true)
 		err = zbuf.CopyPuller(checker, query)
@@ -136,8 +136,8 @@ func TestAggregateStreamingSpill(t *testing.T) {
 	require.Equal(t, res, resStreaming)
 }
 
-func newQueryOnOrderedReader(ctx context.Context, zctx *super.Context, ast *parser.AST, reader zio.Reader, sortKey order.SortKey) (runtime.Query, error) {
-	rctx := runtime.NewContext(ctx, zctx)
+func newQueryOnOrderedReader(ctx context.Context, sctx *super.Context, ast *parser.AST, reader zio.Reader, sortKey order.SortKey) (runtime.Query, error) {
+	rctx := runtime.NewContext(ctx, sctx)
 	q, err := compiler.CompileWithSortKey(rctx, ast, reader, sortKey)
 	if err != nil {
 		rctx.Cancel()

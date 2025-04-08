@@ -10,7 +10,7 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#base64
 type Base64 struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (b *Base64) Call(args ...vector.Any) vector.Any {
@@ -29,7 +29,7 @@ func (b *Base64) Call(args ...vector.Any) vector.Any {
 			}
 			out.Append(base64.StdEncoding.EncodeToString(bytes))
 		}
-		err := vector.NewStringError(b.zctx, "base64: illegal null argument", errcnt)
+		err := vector.NewStringError(b.sctx, "base64: illegal null argument", errcnt)
 		return vector.NewDynamic(tags, []vector.Any{out, err})
 	case super.IDString:
 		errvals := vector.NewStringEmpty(0, nil)
@@ -48,16 +48,16 @@ func (b *Base64) Call(args ...vector.Any) vector.Any {
 			}
 			out.Append(bytes)
 		}
-		err := vector.NewWrappedError(b.zctx, "base64: string argument is not base64", errvals)
+		err := vector.NewWrappedError(b.sctx, "base64: string argument is not base64", errvals)
 		return vector.NewDynamic(tags, []vector.Any{out, err})
 	default:
-		return vector.NewWrappedError(b.zctx, "base64: argument must a bytes or string type", val)
+		return vector.NewWrappedError(b.sctx, "base64: argument must a bytes or string type", val)
 	}
 }
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#hex
 type Hex struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (h *Hex) Call(args ...vector.Any) vector.Any {
@@ -76,7 +76,7 @@ func (h *Hex) Call(args ...vector.Any) vector.Any {
 			}
 			out.Append(hex.EncodeToString(bytes))
 		}
-		err := vector.NewStringError(h.zctx, "hex: illegal null argument", errcnt)
+		err := vector.NewStringError(h.sctx, "hex: illegal null argument", errcnt)
 		return vector.NewDynamic(tags, []vector.Any{out, err})
 	case super.IDString:
 		errvals := vector.NewStringEmpty(0, nil)
@@ -95,9 +95,9 @@ func (h *Hex) Call(args ...vector.Any) vector.Any {
 			}
 			out.Append(bytes)
 		}
-		err := vector.NewWrappedError(h.zctx, "hex: string argument is not hexidecimal", errvals)
+		err := vector.NewWrappedError(h.sctx, "hex: string argument is not hexidecimal", errvals)
 		return vector.NewDynamic(tags, []vector.Any{out, err})
 	default:
-		return vector.NewWrappedError(h.zctx, "hex: argument must a bytes or string type", val)
+		return vector.NewWrappedError(h.sctx, "hex: argument must a bytes or string type", val)
 	}
 }

@@ -11,17 +11,17 @@ type Flatten struct {
 	zcode.Builder
 	keyType    super.Type
 	entryTypes map[super.Type]super.Type
-	zctx       *super.Context
+	sctx       *super.Context
 
 	// This exists only to reduce memory allocations.
 	types []super.Type
 }
 
-func NewFlatten(zctx *super.Context) *Flatten {
+func NewFlatten(sctx *super.Context) *Flatten {
 	return &Flatten{
 		entryTypes: make(map[super.Type]super.Type),
-		keyType:    zctx.LookupTypeArray(super.TypeString),
-		zctx:       zctx,
+		keyType:    sctx.LookupTypeArray(super.TypeString),
+		sctx:       sctx,
 	}
 }
 
@@ -34,7 +34,7 @@ func (n *Flatten) Call(_ super.Allocator, args []super.Value) super.Value {
 	inner := n.innerTypeOf(val.Bytes(), typ.Fields)
 	n.Reset()
 	n.encode(typ.Fields, inner, field.Path{}, val.Bytes())
-	return super.NewValue(n.zctx.LookupTypeArray(inner), n.Bytes())
+	return super.NewValue(n.sctx.LookupTypeArray(inner), n.Bytes())
 }
 
 func (n *Flatten) innerTypeOf(b zcode.Bytes, fields []super.Field) super.Type {
@@ -43,7 +43,7 @@ func (n *Flatten) innerTypeOf(b zcode.Bytes, fields []super.Field) super.Type {
 	if len(unique) == 1 {
 		return unique[0]
 	}
-	return n.zctx.LookupTypeUnion(unique)
+	return n.sctx.LookupTypeUnion(unique)
 }
 
 func (n *Flatten) appendTypes(types []super.Type, b zcode.Bytes, fields []super.Field) []super.Type {
@@ -56,7 +56,7 @@ func (n *Flatten) appendTypes(types []super.Type, b zcode.Bytes, fields []super.
 		}
 		typ, ok := n.entryTypes[f.Type]
 		if !ok {
-			typ = n.zctx.MustLookupTypeRecord([]super.Field{
+			typ = n.sctx.MustLookupTypeRecord([]super.Field{
 				super.NewField("key", n.keyType),
 				super.NewField("value", f.Type),
 			})

@@ -10,7 +10,7 @@ import (
 )
 
 type Shaper struct {
-	zctx        *super.Context
+	sctx        *super.Context
 	memMaxBytes int
 
 	nbytes     int
@@ -113,9 +113,9 @@ func (a *anchor) needRecode() []super.Field {
 	return nil
 }
 
-func NewShaper(zctx *super.Context, memMaxBytes int) *Shaper {
+func NewShaper(sctx *super.Context, memMaxBytes int) *Shaper {
 	return &Shaper{
-		zctx:        zctx,
+		sctx:        sctx,
 		memMaxBytes: memMaxBytes,
 		anchors:     make(map[uint64]*anchor),
 		typeAnchor:  make(map[super.Type]*anchor),
@@ -189,7 +189,7 @@ func (s *Shaper) needRecode(typ super.Type) (*super.TypeRecord, error) {
 		fields := a.needRecode()
 		if fields != nil {
 			var err error
-			target, err = s.zctx.LookupTypeRecord(fields)
+			target, err = s.sctx.LookupTypeRecord(fields)
 			if err != nil {
 				return nil, err
 			}
@@ -207,7 +207,7 @@ func (s *Shaper) lookupType(in super.Type) (*super.TypeRecord, error) {
 	typ := a.typ
 	if typ == nil {
 		var err error
-		typ, err = s.zctx.LookupTypeRecord(a.fields)
+		typ, err = s.sctx.LookupTypeRecord(a.fields)
 		if err != nil {
 			return nil, err
 		}

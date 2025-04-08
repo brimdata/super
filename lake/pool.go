@@ -110,12 +110,12 @@ func (p *Pool) Snapshot(ctx context.Context, commit ksuid.KSUID) (commits.View, 
 	return p.commits.Snapshot(ctx, commit)
 }
 
-func (p *Pool) OpenCommitLog(ctx context.Context, zctx *super.Context, commit ksuid.KSUID) zio.Reader {
-	return p.commits.OpenCommitLog(ctx, zctx, commit, ksuid.Nil)
+func (p *Pool) OpenCommitLog(ctx context.Context, sctx *super.Context, commit ksuid.KSUID) zio.Reader {
+	return p.commits.OpenCommitLog(ctx, sctx, commit, ksuid.Nil)
 }
 
-func (p *Pool) OpenCommitLogAsBSUP(ctx context.Context, zctx *super.Context, commit ksuid.KSUID) (*bsupio.Reader, error) {
-	return p.commits.OpenAsBSUP(ctx, zctx, commit, ksuid.Nil)
+func (p *Pool) OpenCommitLogAsBSUP(ctx context.Context, sctx *super.Context, commit ksuid.KSUID) (*bsupio.Reader, error) {
+	return p.commits.OpenAsBSUP(ctx, sctx, commit, ksuid.Nil)
 }
 
 func (p *Pool) Storage() storage.Engine {
@@ -156,7 +156,7 @@ func (p *Pool) ResolveRevision(ctx context.Context, revision string) (ksuid.KSUI
 	return id, nil
 }
 
-func (p *Pool) BatchifyBranches(ctx context.Context, zctx *super.Context, recs []super.Value, m *sup.MarshalBSUPContext, f expr.Evaluator) ([]super.Value, error) {
+func (p *Pool) BatchifyBranches(ctx context.Context, sctx *super.Context, recs []super.Value, m *sup.MarshalBSUPContext, f expr.Evaluator) ([]super.Value, error) {
 	branches, err := p.ListBranches(ctx)
 	if err != nil {
 		return nil, err
@@ -168,18 +168,18 @@ func (p *Pool) BatchifyBranches(ctx context.Context, zctx *super.Context, recs [
 		if err != nil {
 			return nil, err
 		}
-		if filter(zctx, ectx, rec, f) {
+		if filter(sctx, ectx, rec, f) {
 			recs = append(recs, rec)
 		}
 	}
 	return recs, nil
 }
 
-func filter(zctx *super.Context, ectx expr.Context, this super.Value, e expr.Evaluator) bool {
+func filter(sctx *super.Context, ectx expr.Context, this super.Value, e expr.Evaluator) bool {
 	if e == nil {
 		return true
 	}
-	return expr.EvalBool(zctx, ectx, this, e).Ptr().AsBool()
+	return expr.EvalBool(sctx, ectx, this, e).Ptr().AsBool()
 }
 
 type BranchTip struct {
@@ -187,12 +187,12 @@ type BranchTip struct {
 	Commit ksuid.KSUID
 }
 
-func (p *Pool) BatchifyBranchTips(ctx context.Context, zctx *super.Context, f expr.Evaluator) ([]super.Value, error) {
+func (p *Pool) BatchifyBranchTips(ctx context.Context, sctx *super.Context, f expr.Evaluator) ([]super.Value, error) {
 	branches, err := p.ListBranches(ctx)
 	if err != nil {
 		return nil, err
 	}
-	m := sup.NewBSUPMarshalerWithContext(zctx)
+	m := sup.NewBSUPMarshalerWithContext(sctx)
 	m.Decorate(sup.StylePackage)
 	recs := make([]super.Value, 0, len(branches))
 	ectx := expr.NewContext()
@@ -201,7 +201,7 @@ func (p *Pool) BatchifyBranchTips(ctx context.Context, zctx *super.Context, f ex
 		if err != nil {
 			return nil, err
 		}
-		if filter(zctx, ectx, rec, f) {
+		if filter(sctx, ectx, rec, f) {
 			recs = append(recs, rec)
 		}
 	}

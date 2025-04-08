@@ -28,7 +28,7 @@ func newMathReducer(f *anymath.Function) *mathReducer {
 	return &mathReducer{function: f}
 }
 
-func (m *mathReducer) Result(zctx *super.Context) super.Value {
+func (m *mathReducer) Result(sctx *super.Context) super.Value {
 	if !m.hasval {
 		if m.math == nil {
 			return super.Null

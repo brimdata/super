@@ -64,8 +64,8 @@ func New(rctx *runtime.Context, anti, inner bool, left, right zbuf.Puller, leftK
 		right:       zio.NewPeeker(newPuller(right, ctx)),
 		resetter:    resetter,
 		compare:     expr.NewValueCompareFn(o, true),
-		cutter:      expr.NewCutter(rctx.Zctx, lhs, rhs),
-		splicer:     NewRecordSplicer(rctx.Zctx),
+		cutter:      expr.NewCutter(rctx.Sctx, lhs, rhs),
+		splicer:     NewRecordSplicer(rctx.Sctx),
 	}
 }
 
@@ -203,12 +203,12 @@ func (o *Op) readJoinSet(joinKey *super.Value) ([]super.Value, error) {
 }
 
 type RecordSplicer struct {
-	zctx  *super.Context
+	sctx  *super.Context
 	types map[int]map[int]*super.TypeRecord
 }
 
-func NewRecordSplicer(zctx *super.Context) *RecordSplicer {
-	return &RecordSplicer{zctx, map[int]map[int]*super.TypeRecord{}}
+func NewRecordSplicer(sctx *super.Context) *RecordSplicer {
+	return &RecordSplicer{sctx, map[int]map[int]*super.TypeRecord{}}
 }
 
 func (o *RecordSplicer) lookupType(left, right *super.TypeRecord) *super.TypeRecord {
@@ -238,7 +238,7 @@ func (o *RecordSplicer) buildType(left, right *super.TypeRecord) (*super.TypeRec
 		}
 		fields = append(fields, super.NewField(name, f.Type))
 	}
-	return o.zctx.LookupTypeRecord(fields)
+	return o.sctx.LookupTypeRecord(fields)
 }
 
 func (o *RecordSplicer) combinedType(left, right *super.TypeRecord) (*super.TypeRecord, error) {

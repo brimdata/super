@@ -9,10 +9,10 @@ import (
 )
 
 func TestNewReaderUsesContextParameter(t *testing.T) {
-	zctx := super.NewContext()
-	rec, err := NewReader(zctx, strings.NewReader("f\n1\n"), ReaderOpts{}).Read()
+	sctx := super.NewContext()
+	rec, err := NewReader(sctx, strings.NewReader("f\n1\n"), ReaderOpts{}).Read()
 	require.NoError(t, err)
-	typ, err := zctx.LookupType(rec.Type().ID())
+	typ, err := sctx.LookupType(rec.Type().ID())
 	require.NoError(t, err)
 	require.Exactly(t, rec.Type(), typ)
 }

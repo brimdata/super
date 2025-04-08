@@ -9,13 +9,13 @@ import (
 // either an array or set (with index type integer), or a record
 // (with index type string), or a map (with any index type).
 type Index struct {
-	zctx      *super.Context
+	sctx      *super.Context
 	container Evaluator
 	index     Evaluator
 }
 
-func NewIndexExpr(zctx *super.Context, container, index Evaluator) Evaluator {
-	return &Index{zctx, container, index}
+func NewIndexExpr(sctx *super.Context, container, index Evaluator) Evaluator {
+	return &Index{sctx, container, index}
 }
 
 func (i *Index) Eval(this vector.Any) vector.Any {
@@ -28,19 +28,19 @@ func (i *Index) eval(args ...vector.Any) vector.Any {
 	index := i.index.Eval(this)
 	switch vector.KindOf(vector.Under(container)) {
 	case vector.KindArray, vector.KindSet:
-		return indexArrayOrSet(i.zctx, container, index)
+		return indexArrayOrSet(i.sctx, container, index)
 	case vector.KindRecord:
-		return indexRecord(i.zctx, container, index)
+		return indexRecord(i.sctx, container, index)
 	case vector.KindMap:
 		panic("vector index operations on maps not supported")
 	default:
-		return vector.NewMissing(i.zctx, this.Len())
+		return vector.NewMissing(i.sctx, this.Len())
 	}
 }
 
-func indexArrayOrSet(zctx *super.Context, vec, indexVec vector.Any) vector.Any {
+func indexArrayOrSet(sctx *super.Context, vec, indexVec vector.Any) vector.Any {
 	if !super.IsInteger(indexVec.Type().ID()) {
-		return vector.NewWrappedError(zctx, "index is not an integer", indexVec)
+		return vector.NewWrappedError(sctx, "index is not an integer", indexVec)
 	}
 	var index []uint32
 	if view, ok := vec.(*vector.View); ok {
@@ -73,14 +73,14 @@ func indexArrayOrSet(zctx *super.Context, vec, indexVec vector.Any) vector.Any {
 	}
 	out := vector.Deunion(vector.NewView(vals, viewIndexes))
 	if len(errs) > 0 {
-		return vector.Combine(out, errs, vector.NewMissing(zctx, uint32(len(errs))))
+		return vector.Combine(out, errs, vector.NewMissing(sctx, uint32(len(errs))))
 	}
 	return out
 }
 
-func indexRecord(zctx *super.Context, vec, indexVec vector.Any) vector.Any {
+func indexRecord(sctx *super.Context, vec, indexVec vector.Any) vector.Any {
 	if indexVec.Type().ID() != super.IDString {
-		return vector.NewWrappedError(zctx, "record index is not a string", indexVec)
+		return vector.NewWrappedError(sctx, "record index is not a string", indexVec)
 	}
 	var rec *vector.Record
 	var index []uint32
@@ -112,7 +112,7 @@ func indexRecord(zctx *super.Context, vec, indexVec vector.Any) vector.Any {
 		viewIndexes[k] = append(viewIndexes[k], idx)
 	}
 	out := make([]vector.Any, n+1)
-	out[n] = vector.NewMissing(zctx, errcnt)
+	out[n] = vector.NewMissing(sctx, errcnt)
 	for i, field := range rec.Fields {
 		out[i] = vector.NewView(field, viewIndexes[i])
 	}

@@ -51,7 +51,7 @@ func NewFileWithPath(path string) (*File, error) {
 	return NewFile(f), nil
 }
 
-func (f *File) Rewind(zctx *super.Context) error {
+func (f *File) Rewind(sctx *super.Context) error {
 	// Close the writer to flush any pending output but since we
 	// wrapped the file in a zio.NopCloser, the file will stay open.
 	if err := f.Writer.Close(); err != nil {
@@ -64,7 +64,7 @@ func (f *File) Rewind(zctx *super.Context) error {
 	if f.Reader != nil {
 		f.Reader.Close()
 	}
-	f.Reader = bsupio.NewReader(zctx, bufio.NewReader(f.file))
+	f.Reader = bsupio.NewReader(sctx, bufio.NewReader(f.file))
 	return nil
 }
 

@@ -78,8 +78,8 @@ func (c *Command) Run(args []string) error {
 	}
 	paths := args
 	c.engine = &engineWrap{Engine: storage.NewLocalEngine()}
-	zctx := super.NewContext()
-	readers, err := c.inputFlags.Open(ctx, zctx, c.engine, paths, false)
+	sctx := super.NewContext()
+	readers, err := c.inputFlags.Open(ctx, sctx, c.engine, paths, false)
 	if err != nil {
 		return err
 	}
@@ -103,7 +103,7 @@ func (c *Command) Run(args []string) error {
 		go d.Run()
 	}
 	message := c.commitFlags.CommitMessage()
-	commitID, err := lake.Load(ctx, zctx, poolID, head.Branch, zio.ConcatReader(readers...), message)
+	commitID, err := lake.Load(ctx, sctx, poolID, head.Branch, zio.ConcatReader(readers...), message)
 	if d != nil {
 		d.Close()
 	}

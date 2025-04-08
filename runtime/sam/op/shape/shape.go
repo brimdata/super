@@ -23,7 +23,7 @@ func New(rctx *runtime.Context, parent zbuf.Puller) (*Op, error) {
 	return &Op{
 		rctx:     rctx,
 		parent:   parent,
-		shaper:   NewShaper(rctx.Zctx, MemMaxBytes),
+		shaper:   NewShaper(rctx.Sctx, MemMaxBytes),
 		resultCh: make(chan op.Result),
 	}, nil
 }

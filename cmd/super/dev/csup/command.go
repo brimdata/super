@@ -75,7 +75,7 @@ func (c *Command) Run(args []string) error {
 }
 
 type reader struct {
-	zctx      *super.Context
+	sctx      *super.Context
 	reader    *bufio.Reader
 	meta      *bsupio.Reader
 	marshaler *sup.MarshalBSUPContext
@@ -85,11 +85,11 @@ type reader struct {
 var _ zio.Reader = (*reader)(nil)
 
 func newReader(r io.Reader) *reader {
-	zctx := super.NewContext()
+	sctx := super.NewContext()
 	return &reader{
-		zctx:      zctx,
+		sctx:      sctx,
 		reader:    bufio.NewReader(r),
-		marshaler: sup.NewBSUPMarshalerWithContext(zctx),
+		marshaler: sup.NewBSUPMarshalerWithContext(sctx),
 	}
 }
 
@@ -103,7 +103,7 @@ func (r *reader) Read() (*super.Value, error) {
 				}
 				return nil, err
 			}
-			r.meta = bsupio.NewReader(r.zctx, io.LimitReader(r.reader, int64(hdr.MetaSize)))
+			r.meta = bsupio.NewReader(r.sctx, io.LimitReader(r.reader, int64(hdr.MetaSize)))
 			r.dataSize = int(hdr.DataSize)
 			val, err := r.marshaler.Marshal(hdr)
 			return val.Ptr(), err

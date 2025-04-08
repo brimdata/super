@@ -28,8 +28,8 @@ type Slicer struct {
 	mu          sync.Mutex
 }
 
-func NewSlicer(parent zbuf.Puller, zctx *super.Context) *Slicer {
-	m := sup.NewBSUPMarshalerWithContext(zctx)
+func NewSlicer(parent zbuf.Puller, sctx *super.Context) *Slicer {
+	m := sup.NewBSUPMarshalerWithContext(sctx)
 	m.Decorate(sup.StylePackage)
 	return &Slicer{
 		parent:      parent,

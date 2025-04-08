@@ -45,27 +45,27 @@ func NewShaperTransform(s string) ShaperTransform {
 
 // NewShaper returns a shaper that will shape the result of expr
 // to the type returned by typeExpr according to tf.
-func NewShaper(zctx *super.Context, expr, typeExpr Evaluator, tf ShaperTransform) (Evaluator, error) {
+func NewShaper(sctx *super.Context, expr, typeExpr Evaluator, tf ShaperTransform) (Evaluator, error) {
 	if l, ok := typeExpr.(*Literal); ok {
 		typeVal := l.val
 		switch id := typeVal.Type().ID(); {
 		case id == super.IDType:
-			typ, err := zctx.LookupByValue(typeVal.Bytes())
+			typ, err := sctx.LookupByValue(typeVal.Bytes())
 			if err != nil {
 				return nil, err
 			}
-			return NewConstShaper(zctx, expr, typ, tf), nil
+			return NewConstShaper(sctx, expr, typ, tf), nil
 		case id == super.IDString && tf == Cast:
 			name := super.DecodeString(typeVal.Bytes())
 			if _, err := super.NewContext().LookupTypeNamed(name, super.TypeNull); err != nil {
 				return nil, err
 			}
-			return &casterNamedType{zctx, expr, name}, nil
+			return &casterNamedType{sctx, expr, name}, nil
 		}
 		return nil, fmt.Errorf("shaper type argument is not a type: %s", sup.FormatValue(typeVal))
 	}
 	return &Shaper{
-		zctx:       zctx,
+		sctx:       sctx,
 		expr:       expr,
 		typeExpr:   typeExpr,
 		transforms: tf,
@@ -74,7 +74,7 @@ func NewShaper(zctx *super.Context, expr, typeExpr Evaluator, tf ShaperTransform
 }
 
 type Shaper struct {
-	zctx       *super.Context
+	sctx       *super.Context
 	expr       Evaluator
 	typeExpr   Evaluator
 	transforms ShaperTransform
@@ -86,25 +86,25 @@ func (s *Shaper) Eval(ectx Context, this super.Value) super.Value {
 	typeVal := s.typeExpr.Eval(ectx, this)
 	switch id := typeVal.Type().ID(); {
 	case id == super.IDType:
-		typ, err := s.zctx.LookupByValue(typeVal.Bytes())
+		typ, err := s.sctx.LookupByValue(typeVal.Bytes())
 		if err != nil {
-			return s.zctx.NewError(err)
+			return s.sctx.NewError(err)
 		}
 		shaper, ok := s.shapers[typ]
 		if !ok {
-			shaper = NewConstShaper(s.zctx, s.expr, typ, s.transforms)
+			shaper = NewConstShaper(s.sctx, s.expr, typ, s.transforms)
 			s.shapers[typ] = shaper
 		}
 		return shaper.Eval(ectx, this)
 	case id == super.IDString && s.transforms == Cast:
 		name := super.DecodeString(typeVal.Bytes())
-		return (&casterNamedType{s.zctx, s.expr, name}).Eval(ectx, this)
+		return (&casterNamedType{s.sctx, s.expr, name}).Eval(ectx, this)
 	}
-	return s.zctx.WrapError("shaper type argument is not a type", typeVal)
+	return s.sctx.WrapError("shaper type argument is not a type", typeVal)
 }
 
 type ConstShaper struct {
-	zctx       *super.Context
+	sctx       *super.Context
 	expr       Evaluator
 	shapeTo    super.Type
 	transforms ShaperTransform
@@ -116,14 +116,14 @@ type ConstShaper struct {
 
 // NewConstShaper returns a shaper that will shape the result of expr
 // to the provided shapeTo type.
-func NewConstShaper(zctx *super.Context, expr Evaluator, shapeTo super.Type, tf ShaperTransform) *ConstShaper {
+func NewConstShaper(sctx *super.Context, expr Evaluator, shapeTo super.Type, tf ShaperTransform) *ConstShaper {
 	var caster Evaluator
 	if tf == Cast {
 		// Use a caster since it's faster.
-		caster = LookupPrimitiveCaster(zctx, super.TypeUnder(shapeTo))
+		caster = LookupPrimitiveCaster(sctx, super.TypeUnder(shapeTo))
 	}
 	return &ConstShaper{
-		zctx:       zctx,
+		sctx:       sctx,
 		expr:       expr,
 		shapeTo:    shapeTo,
 		transforms: tf,
@@ -157,14 +157,14 @@ func (c *ConstShaper) Eval(ectx Context, this super.Value) super.Value {
 	s, ok := c.shapers[id]
 	if !ok {
 		var err error
-		s, err = newShaper(c.zctx, c.transforms, val.Type(), c.shapeTo)
+		s, err = newShaper(c.sctx, c.transforms, val.Type(), c.shapeTo)
 		if err != nil {
-			return c.zctx.NewError(err)
+			return c.sctx.NewError(err)
 		}
 		c.shapers[id] = s
 	}
 	c.b.Reset()
-	typ := s.step.build(c.zctx, ectx, val.Bytes(), &c.b)
+	typ := s.step.build(c.sctx, ectx, val.Bytes(), &c.b)
 	return super.NewValue(typ, c.b.Bytes().Body())
 }
 
@@ -175,16 +175,16 @@ type shaper struct {
 	step step
 }
 
-func newShaper(zctx *super.Context, tf ShaperTransform, in, out super.Type) (*shaper, error) {
-	typ, err := shaperType(zctx, tf, in, out)
+func newShaper(sctx *super.Context, tf ShaperTransform, in, out super.Type) (*shaper, error) {
+	typ, err := shaperType(sctx, tf, in, out)
 	if err != nil {
 		return nil, err
 	}
-	step, err := newStep(zctx, in, typ)
+	step, err := newStep(sctx, in, typ)
 	return &shaper{typ, step}, err
 }
 
-func shaperType(zctx *super.Context, tf ShaperTransform, in, out super.Type) (super.Type, error) {
+func shaperType(sctx *super.Context, tf ShaperTransform, in, out super.Type) (super.Type, error) {
 	inUnder, outUnder := super.TypeUnder(in), super.TypeUnder(out)
 	if tf&Cast != 0 {
 		if inUnder == outUnder || inUnder == super.TypeNull {
@@ -195,14 +195,14 @@ func shaperType(zctx *super.Context, tf ShaperTransform, in, out super.Type) (su
 		}
 		if super.IsPrimitiveType(inUnder) && super.IsPrimitiveType(outUnder) {
 			// Matching field is a primitive: output type is cast type.
-			if LookupPrimitiveCaster(zctx, outUnder) == nil {
+			if LookupPrimitiveCaster(sctx, outUnder) == nil {
 				return nil, fmt.Errorf("cast to %s not implemented", sup.FormatType(out))
 			}
 			return out, nil
 		}
 		if in, ok := inUnder.(*super.TypeUnion); ok {
 			for _, t := range in.Types {
-				if _, err := shaperType(zctx, tf, t, out); err != nil {
+				if _, err := shaperType(sctx, tf, t, out); err != nil {
 					return nil, fmt.Errorf("cannot cast union %q to %q due to %q",
 						sup.FormatType(in), sup.FormatType(out), sup.FormatType(t))
 				}
@@ -217,7 +217,7 @@ func shaperType(zctx *super.Context, tf ShaperTransform, in, out super.Type) (su
 	}
 	if inRec, ok := inUnder.(*super.TypeRecord); ok {
 		if outRec, ok := outUnder.(*super.TypeRecord); ok {
-			fields, err := shaperFields(zctx, tf, inRec, outRec)
+			fields, err := shaperFields(sctx, tf, inRec, outRec)
 			if err != nil {
 				return nil, err
 			}
@@ -228,12 +228,12 @@ func shaperType(zctx *super.Context, tf ShaperTransform, in, out super.Type) (su
 			} else if slices.Equal(fields, inRec.Fields) {
 				return in, nil
 			}
-			return zctx.LookupTypeRecord(fields)
+			return sctx.LookupTypeRecord(fields)
 		}
 	}
 	inInner, outInner := super.InnerType(inUnder), super.InnerType(outUnder)
 	if inInner != nil && outInner != nil && (tf&Cast != 0 || isArray(inUnder) == isArray(outUnder)) {
-		t, err := shaperType(zctx, tf, inInner, outInner)
+		t, err := shaperType(sctx, tf, inInner, outInner)
 		if err != nil {
 			return nil, err
 		}
@@ -245,14 +245,14 @@ func shaperType(zctx *super.Context, tf ShaperTransform, in, out super.Type) (su
 			return in, nil
 		}
 		if isArray(outUnder) {
-			return zctx.LookupTypeArray(t), nil
+			return sctx.LookupTypeArray(t), nil
 		}
-		return zctx.LookupTypeSet(t), nil
+		return sctx.LookupTypeSet(t), nil
 	}
 	return in, nil
 }
 
-func shaperFields(zctx *super.Context, tf ShaperTransform, in, out *super.TypeRecord) ([]super.Field, error) {
+func shaperFields(sctx *super.Context, tf ShaperTransform, in, out *super.TypeRecord) ([]super.Field, error) {
 	crop, fill := tf&Crop != 0, tf&Fill != 0
 	if tf&Order == 0 {
 		crop, fill = !fill, !crop
@@ -266,7 +266,7 @@ func shaperFields(zctx *super.Context, tf ShaperTransform, in, out *super.TypeRe
 				// Counteract the swap of in and out above.
 				outFieldType, inFieldType = inFieldType, outFieldType
 			}
-			t, err := shaperType(zctx, tf, inFieldType, outFieldType)
+			t, err := shaperType(sctx, tf, inFieldType, outFieldType)
 			if err != nil {
 				return nil, err
 			}
@@ -366,7 +366,7 @@ type step struct {
 	uniqueTypes []super.Type
 }
 
-func newStep(zctx *super.Context, in, out super.Type) (step, error) {
+func newStep(sctx *super.Context, in, out super.Type) (step, error) {
 Switch:
 	switch {
 	case in.ID() == super.IDNull:
@@ -374,20 +374,20 @@ Switch:
 	case in.ID() == out.ID():
 		return step{op: copyOp, toType: out}, nil
 	case super.IsRecordType(in) && super.IsRecordType(out):
-		return newRecordStep(zctx, super.TypeRecordOf(in), out)
+		return newRecordStep(sctx, super.TypeRecordOf(in), out)
 	case super.IsPrimitiveType(in) && super.IsPrimitiveType(out):
-		caster := LookupPrimitiveCaster(zctx, super.TypeUnder(out))
+		caster := LookupPrimitiveCaster(sctx, super.TypeUnder(out))
 		return step{op: castPrimitive, caster: caster, fromType: in, toType: out}, nil
 	case super.InnerType(in) != nil:
 		if k := out.Kind(); k == super.ArrayKind {
-			return newArrayOrSetStep(zctx, array, super.InnerType(in), out)
+			return newArrayOrSetStep(sctx, array, super.InnerType(in), out)
 		} else if k == super.SetKind {
-			return newArrayOrSetStep(zctx, set, super.InnerType(in), out)
+			return newArrayOrSetStep(sctx, set, super.InnerType(in), out)
 		}
 	case super.IsUnionType(in):
 		var steps []step
 		for _, t := range super.TypeUnder(in).(*super.TypeUnion).Types {
-			s, err := newStep(zctx, t, out)
+			s, err := newStep(sctx, t, out)
 			if err != nil {
 				break Switch
 			}
@@ -408,7 +408,7 @@ Switch:
 // [a b] and the input type has fields [b a] that is ok). It is also
 // ok for leaf primitive types to be different; if they are a casting
 // step is inserted.
-func newRecordStep(zctx *super.Context, in *super.TypeRecord, out super.Type) (step, error) {
+func newRecordStep(sctx *super.Context, in *super.TypeRecord, out super.Type) (step, error) {
 	var children []step
 	for _, outField := range super.TypeRecordOf(out).Fields {
 		ind, ok := in.IndexOfField(outField.Name)
@@ -416,7 +416,7 @@ func newRecordStep(zctx *super.Context, in *super.TypeRecord, out super.Type) (s
 			children = append(children, step{op: null, toType: outField.Type})
 			continue
 		}
-		child, err := newStep(zctx, in.Fields[ind].Type, outField.Type)
+		child, err := newStep(sctx, in.Fields[ind].Type, outField.Type)
 		if err != nil {
 			return step{}, err
 		}
@@ -426,8 +426,8 @@ func newRecordStep(zctx *super.Context, in *super.TypeRecord, out super.Type) (s
 	return step{op: record, toType: out, children: children}, nil
 }
 
-func newArrayOrSetStep(zctx *super.Context, op op, inInner, out super.Type) (step, error) {
-	innerStep, err := newStep(zctx, inInner, super.InnerType(out))
+func newArrayOrSetStep(sctx *super.Context, op op, inInner, out super.Type) (step, error) {
+	innerStep, err := newStep(sctx, inInner, super.InnerType(out))
 	if err != nil {
 		return step{}, err
 	}
@@ -437,7 +437,7 @@ func newArrayOrSetStep(zctx *super.Context, op op, inInner, out super.Type) (ste
 // build applies the operation described by s to in, appends the resulting bytes
 // to b, and returns the resulting type.  The type is usually s.toType but can
 // differ if a primitive cast fails.
-func (s *step) build(zctx *super.Context, ectx Context, in zcode.Bytes, b *zcode.Builder) super.Type {
+func (s *step) build(sctx *super.Context, ectx Context, in zcode.Bytes, b *zcode.Builder) super.Type {
 	if in == nil || s.op == copyOp {
 		b.Append(in)
 		return s.toType
@@ -456,25 +456,25 @@ func (s *step) build(zctx *super.Context, ectx Context, in zcode.Bytes, b *zcode
 	case castFromUnion:
 		it := in.Iter()
 		tag := int(super.DecodeInt(it.Next()))
-		return s.children[tag].build(zctx, ectx, it.Next(), b)
+		return s.children[tag].build(sctx, ectx, it.Next(), b)
 	case castToUnion:
 		super.BuildUnion(b, s.toTag, in)
 		return s.toType
 	case array, set:
-		return s.buildArrayOrSet(zctx, ectx, s.op, in, b)
+		return s.buildArrayOrSet(sctx, ectx, s.op, in, b)
 	case record:
-		return s.buildRecord(zctx, ectx, in, b)
+		return s.buildRecord(sctx, ectx, in, b)
 	default:
 		panic(fmt.Sprintf("unknown step.op %v", s.op))
 	}
 }
 
-func (s *step) buildArrayOrSet(zctx *super.Context, ectx Context, op op, in zcode.Bytes, b *zcode.Builder) super.Type {
+func (s *step) buildArrayOrSet(sctx *super.Context, ectx Context, op op, in zcode.Bytes, b *zcode.Builder) super.Type {
 	b.BeginContainer()
 	defer b.EndContainer()
 	s.types = s.types[:0]
 	for it := in.Iter(); !it.Done(); {
-		typ := s.children[0].build(zctx, ectx, it.Next(), b)
+		typ := s.children[0].build(sctx, ectx, it.Next(), b)
 		s.types = append(s.types, typ)
 	}
 	s.uniqueTypes = append(s.uniqueTypes[:0], s.types...)
@@ -486,7 +486,7 @@ func (s *step) buildArrayOrSet(zctx *super.Context, ectx Context, op op, in zcod
 	case 1:
 		inner = s.uniqueTypes[0]
 	default:
-		union := zctx.LookupTypeUnion(s.uniqueTypes)
+		union := sctx.LookupTypeUnion(s.uniqueTypes)
 		// Convert each container element to the union type.
 		b.TransformContainer(func(bytes zcode.Bytes) zcode.Bytes {
 			var b2 zcode.Builder
@@ -505,12 +505,12 @@ func (s *step) buildArrayOrSet(zctx *super.Context, ectx Context, op op, in zcod
 		return s.toType
 	}
 	if op == set {
-		return zctx.LookupTypeSet(inner)
+		return sctx.LookupTypeSet(inner)
 	}
-	return zctx.LookupTypeArray(inner)
+	return sctx.LookupTypeArray(inner)
 }
 
-func (s *step) buildRecord(zctx *super.Context, ectx Context, in zcode.Bytes, b *zcode.Builder) super.Type {
+func (s *step) buildRecord(sctx *super.Context, ectx Context, in zcode.Bytes, b *zcode.Builder) super.Type {
 	b.BeginContainer()
 	defer b.EndContainer()
 	s.types = s.types[:0]
@@ -528,7 +528,7 @@ func (s *step) buildRecord(zctx *super.Context, ectx Context, in zcode.Bytes, b 
 		// zcode.Iter along with keeping track of our
 		// position.
 		bytes, _ := getNthFromContainer(in, child.fromIndex)
-		typ := child.build(zctx, ectx, bytes, b)
+		typ := child.build(sctx, ectx, bytes, b)
 		if super.TypeUnder(typ) == super.TypeUnder(child.toType) {
 			// Prefer child.toType in case it's a named type.
 			typ = child.toType
@@ -545,7 +545,7 @@ func (s *step) buildRecord(zctx *super.Context, ectx Context, in zcode.Bytes, b 
 		for i, t := range s.types {
 			fields[i].Type = t
 		}
-		return zctx.MustLookupTypeRecord(fields)
+		return sctx.MustLookupTypeRecord(fields)
 	}
 	return s.toType
 }

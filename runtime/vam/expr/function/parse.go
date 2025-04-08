@@ -11,18 +11,18 @@ import (
 )
 
 type ParseURI struct {
-	zctx  *super.Context
+	sctx  *super.Context
 	samfn *samfunc.ParseURI
 }
 
-func newParseURI(zctx *super.Context) *ParseURI {
-	return &ParseURI{zctx, samfunc.NewParseURI(zctx)}
+func newParseURI(sctx *super.Context) *ParseURI {
+	return &ParseURI{sctx, samfunc.NewParseURI(sctx)}
 }
 
 func (p *ParseURI) Call(args ...vector.Any) vector.Any {
 	vec := vector.Under(args[0])
 	if vec.Type().ID() != super.IDString {
-		return vector.NewWrappedError(p.zctx, "parse_uri: string arg required", args[0])
+		return vector.NewWrappedError(p.sctx, "parse_uri: string arg required", args[0])
 	}
 	var b zcode.Builder
 	db := vector.NewDynamicBuilder()
@@ -37,20 +37,20 @@ func (p *ParseURI) Call(args ...vector.Any) vector.Any {
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#parse_sup
 type ParseSUP struct {
-	zctx *super.Context
+	sctx *super.Context
 	sr   *strings.Reader
 	zr   *supio.Reader
 }
 
-func newParseSUP(zctx *super.Context) *ParseSUP {
+func newParseSUP(sctx *super.Context) *ParseSUP {
 	var sr strings.Reader
-	return &ParseSUP{zctx, &sr, supio.NewReader(zctx, &sr)}
+	return &ParseSUP{sctx, &sr, supio.NewReader(sctx, &sr)}
 }
 
 func (p *ParseSUP) Call(args ...vector.Any) vector.Any {
 	vec := vector.Under(args[0])
 	if vec.Type().ID() != super.IDString {
-		return vector.NewWrappedError(p.zctx, "parse_sup: string arg required", args[0])
+		return vector.NewWrappedError(p.sctx, "parse_sup: string arg required", args[0])
 	}
 	var errs []uint32
 	errMsgs := vector.NewStringEmpty(0, nil)
@@ -76,7 +76,7 @@ func (p *ParseSUP) Call(args ...vector.Any) vector.Any {
 	}
 	out := builder.Build()
 	if len(errs) > 0 {
-		return vector.Combine(out, errs, vector.NewVecWrappedError(p.zctx, errMsgs, vector.NewView(args[0], errs)))
+		return vector.Combine(out, errs, vector.NewVecWrappedError(p.sctx, errMsgs, vector.NewView(args[0], errs)))
 	}
 	return out
 }

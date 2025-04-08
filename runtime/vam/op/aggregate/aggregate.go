@@ -9,7 +9,7 @@ import (
 
 type Aggregate struct {
 	parent vector.Puller
-	zctx   *super.Context
+	sctx   *super.Context
 	// XX Abstract this runtime into a generic table computation.
 	// Then the generic interface can execute fast paths for simple scenarios.
 	aggs        []*expr.Aggregator
@@ -25,14 +25,14 @@ type Aggregate struct {
 	results []aggTable
 }
 
-func New(parent vector.Puller, zctx *super.Context, aggNames []field.Path, aggExprs []expr.Evaluator, aggs []*expr.Aggregator, keyNames []field.Path, keyExprs []expr.Evaluator, partialsIn, partialsOut bool) (*Aggregate, error) {
-	builder, err := vector.NewRecordBuilder(zctx, append(keyNames, aggNames...))
+func New(parent vector.Puller, sctx *super.Context, aggNames []field.Path, aggExprs []expr.Evaluator, aggs []*expr.Aggregator, keyNames []field.Path, keyExprs []expr.Evaluator, partialsIn, partialsOut bool) (*Aggregate, error) {
+	builder, err := vector.NewRecordBuilder(sctx, append(keyNames, aggNames...))
 	if err != nil {
 		return nil, err
 	}
 	return &Aggregate{
 		parent:      parent,
-		zctx:        zctx,
+		sctx:        sctx,
 		aggs:        aggs,
 		aggExprs:    aggExprs,
 		keyExprs:    keyExprs,
@@ -114,7 +114,7 @@ func (a *Aggregate) newAggTable(keyTypes []super.Type) aggTable {
 		partialsIn:  a.partialsIn,
 		partialsOut: a.partialsOut,
 		table:       make(map[string]int),
-		zctx:        a.zctx,
+		sctx:        a.sctx,
 	}
 }
 

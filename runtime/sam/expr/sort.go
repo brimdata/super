@@ -203,11 +203,11 @@ func compareValues(a, b super.Value, nullsMax bool) int {
 	case aid == super.IDIP:
 		return super.DecodeIP(a.Bytes()).Compare(super.DecodeIP(b.Bytes()))
 	case aid == super.IDType:
-		zctx := super.NewContext() // XXX This is expensive.
+		sctx := super.NewContext() // XXX This is expensive.
 		// XXX This isn't cheap eventually we should add
 		// super.CompareTypeValues(a, b zcode.Bytes).
-		av, _ := zctx.DecodeTypeValue(a.Bytes())
-		bv, _ := zctx.DecodeTypeValue(b.Bytes())
+		av, _ := sctx.DecodeTypeValue(a.Bytes())
+		bv, _ := sctx.DecodeTypeValue(b.Bytes())
 		return super.CompareTypes(av, bv)
 	}
 	// XXX record support easy to add here if we moved the creation of the

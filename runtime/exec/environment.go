@@ -72,7 +72,7 @@ func (e *Environment) SortKeys(ctx context.Context, src dag.Op) order.SortKeys {
 	return nil
 }
 
-func (e *Environment) Open(ctx context.Context, zctx *super.Context, path, format string, pushdown zbuf.Pushdown) (zbuf.Puller, error) {
+func (e *Environment) Open(ctx context.Context, sctx *super.Context, path, format string, pushdown zbuf.Pushdown) (zbuf.Puller, error) {
 	if path == "-" {
 		path = "stdio:stdin"
 	}
@@ -82,7 +82,7 @@ func (e *Environment) Open(ctx context.Context, zctx *super.Context, path, forma
 			fields = proj.Paths()
 		}
 	}
-	file, err := anyio.Open(ctx, zctx, e.engine, path, anyio.ReaderOpts{Fields: fields, Format: format})
+	file, err := anyio.Open(ctx, sctx, e.engine, path, anyio.ReaderOpts{Fields: fields, Format: format})
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", path, err)
 	}
@@ -95,7 +95,7 @@ func (e *Environment) Open(ctx context.Context, zctx *super.Context, path, forma
 	return &closePuller{sn, file}, nil
 }
 
-func (*Environment) OpenHTTP(ctx context.Context, zctx *super.Context, url, format, method string, headers http.Header, body io.Reader, fields []field.Path) (zbuf.Puller, error) {
+func (*Environment) OpenHTTP(ctx context.Context, sctx *super.Context, url, format, method string, headers http.Header, body io.Reader, fields []field.Path) (zbuf.Puller, error) {
 	req, err := http.NewRequestWithContext(ctx, method, url, body)
 	if err != nil {
 		return nil, err
@@ -105,7 +105,7 @@ func (*Environment) OpenHTTP(ctx context.Context, zctx *super.Context, url, form
 	if err != nil {
 		return nil, err
 	}
-	file, err := anyio.NewFile(zctx, resp.Body, url, anyio.ReaderOpts{Fields: fields, Format: format})
+	file, err := anyio.NewFile(sctx, resp.Body, url, anyio.ReaderOpts{Fields: fields, Format: format})
 	if err != nil {
 		resp.Body.Close()
 		return nil, fmt.Errorf("%s: %w", url, err)
@@ -131,7 +131,7 @@ func (c *closePuller) Pull(done bool) (zbuf.Batch, error) {
 	return batch, err
 }
 
-func (e *Environment) VectorOpen(ctx context.Context, zctx *super.Context, path, format string, pushdown zbuf.Pushdown) (vector.Puller, error) {
+func (e *Environment) VectorOpen(ctx context.Context, sctx *super.Context, path, format string, pushdown zbuf.Pushdown) (vector.Puller, error) {
 	if path == "-" {
 		path = "stdio:stdin"
 	}
@@ -146,12 +146,12 @@ func (e *Environment) VectorOpen(ctx context.Context, zctx *super.Context, path,
 	var puller vector.Puller
 	switch format {
 	case "csup":
-		puller, err = csupio.NewVectorReader(ctx, zctx, r, pushdown)
+		puller, err = csupio.NewVectorReader(ctx, sctx, r, pushdown)
 	case "parquet":
-		puller, err = parquetio.NewVectorReader(ctx, zctx, r, pushdown)
+		puller, err = parquetio.NewVectorReader(ctx, sctx, r, pushdown)
 	default:
 		var zbufPuller zbuf.Puller
-		zbufPuller, err = e.Open(ctx, zctx, path, format, nil)
+		zbufPuller, err = e.Open(ctx, sctx, path, format, nil)
 		puller = vam.NewDematerializer(zbufPuller)
 	}
 	if err != nil {

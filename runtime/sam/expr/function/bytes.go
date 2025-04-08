@@ -9,7 +9,7 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#base64
 type Base64 struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (b *Base64) Call(_ super.Allocator, args []super.Value) super.Value {
@@ -17,7 +17,7 @@ func (b *Base64) Call(_ super.Allocator, args []super.Value) super.Value {
 	switch val.Type().ID() {
 	case super.IDBytes:
 		if val.IsNull() {
-			return b.zctx.NewErrorf("base64: illegal null argument")
+			return b.sctx.NewErrorf("base64: illegal null argument")
 		}
 		return super.NewString(base64.StdEncoding.EncodeToString(val.Bytes()))
 	case super.IDString:
@@ -26,17 +26,17 @@ func (b *Base64) Call(_ super.Allocator, args []super.Value) super.Value {
 		}
 		bytes, err := base64.StdEncoding.DecodeString(super.DecodeString(val.Bytes()))
 		if err != nil {
-			return b.zctx.WrapError("base64: string argument is not base64", val)
+			return b.sctx.WrapError("base64: string argument is not base64", val)
 		}
 		return super.NewBytes(bytes)
 	default:
-		return b.zctx.WrapError("base64: argument must a bytes or string type", val)
+		return b.sctx.WrapError("base64: argument must a bytes or string type", val)
 	}
 }
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#hex
 type Hex struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (h *Hex) Call(_ super.Allocator, args []super.Value) super.Value {
@@ -44,7 +44,7 @@ func (h *Hex) Call(_ super.Allocator, args []super.Value) super.Value {
 	switch val.Type().ID() {
 	case super.IDBytes:
 		if val.IsNull() {
-			return h.zctx.NewErrorf("hex: illegal null argument")
+			return h.sctx.NewErrorf("hex: illegal null argument")
 		}
 		return super.NewString(hex.EncodeToString(val.Bytes()))
 	case super.IDString:
@@ -53,10 +53,10 @@ func (h *Hex) Call(_ super.Allocator, args []super.Value) super.Value {
 		}
 		b, err := hex.DecodeString(super.DecodeString(val.Bytes()))
 		if err != nil {
-			return h.zctx.WrapError("hex: string argument is not hexidecimal", val)
+			return h.sctx.WrapError("hex: string argument is not hexidecimal", val)
 		}
 		return super.NewBytes(b)
 	default:
-		return h.zctx.WrapError("base64: argument must a bytes or string type", val)
+		return h.sctx.WrapError("base64: argument must a bytes or string type", val)
 	}
 }

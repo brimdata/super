@@ -26,7 +26,7 @@ type superTable struct {
 	partialsOut bool
 	table       map[string]int
 	rows        []aggRow
-	zctx        *super.Context
+	sctx        *super.Context
 }
 
 var _ aggTable = (*superTable)(nil)
@@ -115,9 +115,9 @@ func (s *superTable) materializeAgg(i int) vector.Any {
 	b := vector.NewDynamicBuilder()
 	for _, row := range s.rows {
 		if s.partialsOut {
-			b.Write(row.funcs[i].ResultAsPartial(s.zctx))
+			b.Write(row.funcs[i].ResultAsPartial(s.sctx))
 		} else {
-			b.Write(row.funcs[i].Result(s.zctx))
+			b.Write(row.funcs[i].Result(s.sctx))
 		}
 	}
 	return b.Build()

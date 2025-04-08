@@ -8,7 +8,7 @@ import (
 )
 
 type Grep struct {
-	zctx    *super.Context
+	sctx    *super.Context
 	grep    expr.Evaluator
 	pattern string
 }
@@ -16,7 +16,7 @@ type Grep struct {
 func (g *Grep) Call(args ...vector.Any) vector.Any {
 	patternVec, inputVec := args[0], args[1]
 	if patternVec.Type().ID() != super.IDString {
-		return vector.NewWrappedError(g.zctx, "grep: pattern argument must be a string", patternVec)
+		return vector.NewWrappedError(g.sctx, "grep: pattern argument must be a string", patternVec)
 	}
 	if inputVec.Len() == 0 {
 		return vector.NewBoolEmpty(0, nil)

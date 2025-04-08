@@ -20,10 +20,10 @@ type Op struct {
 
 // New creates a exploder for type typ, where the
 // output records' single field is named name.
-func New(zctx *super.Context, parent zbuf.Puller, args []expr.Evaluator, typ super.Type, name string, resetter expr.Resetter) (zbuf.Puller, error) {
+func New(sctx *super.Context, parent zbuf.Puller, args []expr.Evaluator, typ super.Type, name string, resetter expr.Resetter) (zbuf.Puller, error) {
 	return &Op{
 		parent:   parent,
-		outType:  zctx.MustLookupTypeRecord([]super.Field{{Name: name, Type: typ}}),
+		outType:  sctx.MustLookupTypeRecord([]super.Field{{Name: name, Type: typ}}),
 		typ:      typ,
 		args:     args,
 		resetter: resetter,

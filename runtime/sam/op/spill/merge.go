@@ -21,7 +21,7 @@ type MergeSort struct {
 	runs       []*peeker
 	tempDir    string
 	spillSize  int64
-	zctx       *super.Context
+	sctx       *super.Context
 }
 
 const TempPrefix = "zed-spill-"
@@ -45,7 +45,7 @@ func NewMergeSort(comparator *expr.Comparator) (*MergeSort, error) {
 	return &MergeSort{
 		comparator: comparator,
 		tempDir:    tempDir,
-		zctx:       super.NewContext(),
+		sctx:       super.NewContext(),
 	}, nil
 }
 
@@ -69,7 +69,7 @@ func (r *MergeSort) Spill(ctx context.Context, vals []super.Value) error {
 		return err
 	}
 	filename := filepath.Join(r.tempDir, strconv.Itoa(r.nspill))
-	runFile, err := newPeeker(ctx, r.zctx, filename, r.nspill, zr)
+	runFile, err := newPeeker(ctx, r.sctx, filename, r.nspill, zr)
 	if err != nil {
 		return err
 	}

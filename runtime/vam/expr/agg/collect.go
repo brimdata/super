@@ -29,8 +29,8 @@ func (c *collect) Consume(vec vector.Any) {
 	}
 }
 
-func (c *collect) Result(zctx *super.Context) super.Value {
-	return c.samcollect.Result(zctx)
+func (c *collect) Result(sctx *super.Context) super.Value {
+	return c.samcollect.Result(sctx)
 }
 
 func (c *collect) ConsumeAsPartial(partial vector.Any) {
@@ -52,6 +52,6 @@ func (c *collect) ConsumeAsPartial(partial vector.Any) {
 	}
 }
 
-func (c *collect) ResultAsPartial(zctx *super.Context) super.Value {
-	return c.samcollect.ResultAsPartial(zctx)
+func (c *collect) ResultAsPartial(sctx *super.Context) super.Value {
+	return c.samcollect.ResultAsPartial(sctx)
 }

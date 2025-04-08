@@ -14,7 +14,7 @@ import (
 // to id.src, but it cannot be renamed to src. Renames are applied
 // left to right; each rename observes the effect of all.
 type Renamer struct {
-	zctx *super.Context
+	sctx *super.Context
 	// For the dst field name, we just store the leaf name since the
 	// src path and the dst path are the same and only differ in the leaf name.
 	srcs    []*Lval
@@ -24,14 +24,14 @@ type Renamer struct {
 	fieldsStr []byte
 }
 
-func NewRenamer(zctx *super.Context, srcs, dsts []*Lval) *Renamer {
-	return &Renamer{zctx, srcs, dsts, make(map[int]map[string]*super.TypeRecord), nil}
+func NewRenamer(sctx *super.Context, srcs, dsts []*Lval) *Renamer {
+	return &Renamer{sctx, srcs, dsts, make(map[int]map[string]*super.TypeRecord), nil}
 }
 
 func (r *Renamer) Eval(ectx Context, this super.Value) super.Value {
 	val, err := r.EvalToValAndError(ectx, this)
 	if err != nil {
-		return r.zctx.WrapError(err.Error(), this)
+		return r.sctx.WrapError(err.Error(), this)
 	}
 	return val
 }
@@ -127,7 +127,7 @@ func (r *Renamer) dstType(typ *super.TypeRecord, src, dst field.Path) (*super.Ty
 	}
 	fields := slices.Clone(typ.Fields)
 	fields[i] = super.NewField(dst[0], innerType)
-	typ, err := r.zctx.LookupTypeRecord(fields)
+	typ, err := r.sctx.LookupTypeRecord(fields)
 	if err != nil {
 		var dferr *super.DuplicateFieldError
 		if errors.As(err, &dferr) {

@@ -10,16 +10,16 @@ import (
 )
 
 type Grok struct {
-	zctx    *super.Context
+	sctx    *super.Context
 	builder zcode.Builder
 	hosts   map[string]*host
 	// fields is used as a scratch space to avoid allocating a new slice.
 	fields []super.Field
 }
 
-func newGrok(zctx *super.Context) *Grok {
+func newGrok(sctx *super.Context) *Grok {
 	return &Grok{
-		zctx:  zctx,
+		sctx:  sctx,
 		hosts: make(map[string]*host),
 	}
 }
@@ -51,7 +51,7 @@ func (g *Grok) Call(args ...vector.Any) vector.Any {
 		}
 		pat, isnull := vector.StringValue(patternArg, i)
 		if isnull {
-			builder.Write(super.NewValue(g.zctx.MustLookupTypeRecord(nil), nil))
+			builder.Write(super.NewValue(g.sctx.MustLookupTypeRecord(nil), nil))
 			continue
 		}
 		p, err := h.getPattern(pat)
@@ -62,7 +62,7 @@ func (g *Grok) Call(args ...vector.Any) vector.Any {
 		}
 		in, isnull := vector.StringValue(inputArg, i)
 		if isnull {
-			builder.Write(super.NewValue(g.zctx.MustLookupTypeRecord(nil), nil))
+			builder.Write(super.NewValue(g.sctx.MustLookupTypeRecord(nil), nil))
 			continue
 		}
 		keys, vals, match := p.ParseKeyValues(in)
@@ -74,7 +74,7 @@ func (g *Grok) Call(args ...vector.Any) vector.Any {
 		for _, key := range keys {
 			g.fields = append(g.fields, super.NewField(key, super.TypeString))
 		}
-		typ := g.zctx.MustLookupTypeRecord(g.fields)
+		typ := g.sctx.MustLookupTypeRecord(g.fields)
 		g.builder.Reset()
 		if len(vals) == 0 {
 			// If we have a match but no key/vals return empty record.
@@ -104,11 +104,11 @@ func (g *Grok) errorVec(msgs []string, index []uint32, vec vector.Any) vector.An
 	for _, m := range msgs {
 		s.Append("grok(): " + m)
 	}
-	return vector.NewVecWrappedError(g.zctx, s, vector.NewView(vec, index))
+	return vector.NewVecWrappedError(g.sctx, s, vector.NewView(vec, index))
 }
 
 func (g *Grok) error(msg string, vec vector.Any) vector.Any {
-	return vector.NewWrappedError(g.zctx, "grok(): "+msg, vec)
+	return vector.NewWrappedError(g.sctx, "grok(): "+msg, vec)
 }
 
 func (g *Grok) getHost(defs string) (*host, error) {

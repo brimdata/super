@@ -132,8 +132,8 @@ func runAllBoomerangs(t *testing.T, format string, data map[string]string) {
 
 func runOneBoomerang(t *testing.T, format, data string) {
 	// Create an auto-detecting reader for data.
-	zctx := super.NewContext()
-	dataReadCloser, err := anyio.NewReader(zctx, strings.NewReader(data))
+	sctx := super.NewContext()
+	dataReadCloser, err := anyio.NewReader(sctx, strings.NewReader(data))
 	require.NoError(t, err)
 	defer dataReadCloser.Close()
 
@@ -142,7 +142,7 @@ func runOneBoomerang(t *testing.T, format, data string) {
 		// Fuse for formats that require uniform values.
 		ast, err := parser.ParseQuery("fuse")
 		require.NoError(t, err)
-		rctx := runtime.NewContext(context.Background(), zctx)
+		rctx := runtime.NewContext(context.Background(), sctx)
 		q, err := compiler.NewCompiler(nil).NewQuery(rctx, ast, []zio.Reader{dataReadCloser}, 0)
 		require.NoError(t, err)
 		defer q.Pull(true)

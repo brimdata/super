@@ -9,7 +9,7 @@ import (
 )
 
 type Cutter struct {
-	zctx       *super.Context
+	sctx       *super.Context
 	fieldRefs  field.List
 	fieldExprs []Evaluator
 	lvals      []*Lval
@@ -26,10 +26,10 @@ type Cutter struct {
 // the Cutter copies fields that are not in fieldnames. If complement
 // is false, the Cutter copies any fields in fieldnames, where targets
 // specifies the copied field names.
-func NewCutter(zctx *super.Context, fieldRefs []*Lval, fieldExprs []Evaluator) *Cutter {
+func NewCutter(sctx *super.Context, fieldRefs []*Lval, fieldExprs []Evaluator) *Cutter {
 	n := len(fieldRefs)
 	return &Cutter{
-		zctx:         zctx,
+		sctx:         sctx,
 		builders:     make(map[string]*recordBuilderCachedTypes),
 		fieldRefs:    make(field.List, n),
 		fieldExprs:   fieldExprs,
@@ -51,7 +51,7 @@ func (c *Cutter) FoundCut() bool {
 func (c *Cutter) Eval(ectx Context, in super.Value) super.Value {
 	rb, paths, err := c.lookupBuilder(ectx, in)
 	if err != nil {
-		return c.zctx.WrapError(fmt.Sprintf("cut: %s", err), in)
+		return c.sctx.WrapError(fmt.Sprintf("cut: %s", err), in)
 	}
 	types := c.typeCache
 	rb.Reset()
@@ -62,7 +62,7 @@ func (c *Cutter) Eval(ectx Context, in super.Value) super.Value {
 			// ignore this field
 			pathID := paths[k].String()
 			if c.droppers[pathID] == nil {
-				c.droppers[pathID] = NewDropper(c.zctx, field.List{paths[k]})
+				c.droppers[pathID] = NewDropper(c.sctx, field.List{paths[k]})
 			}
 			droppers = append(droppers, c.droppers[pathID])
 			rb.Append(val.Bytes())
@@ -101,7 +101,7 @@ func (c *Cutter) lookupBuilder(ectx Context, in super.Value) (*recordBuilderCach
 	builder, ok := c.builders[paths.String()]
 	if !ok {
 		var err error
-		if builder, err = newRecordBuilderCachedTypes(c.zctx, paths); err != nil {
+		if builder, err = newRecordBuilderCachedTypes(c.sctx, paths); err != nil {
 			return nil, nil, err
 		}
 		c.builders[paths.String()] = builder
@@ -114,8 +114,8 @@ type recordBuilderCachedTypes struct {
 	recordTypes map[int]*super.TypeRecord
 }
 
-func newRecordBuilderCachedTypes(zctx *super.Context, paths field.List) (*recordBuilderCachedTypes, error) {
-	b, err := super.NewRecordBuilder(zctx, paths)
+func newRecordBuilderCachedTypes(sctx *super.Context, paths field.List) (*recordBuilderCachedTypes, error) {
+	b, err := super.NewRecordBuilder(sctx, paths)
 	if err != nil {
 		return nil, err
 	}

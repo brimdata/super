@@ -200,7 +200,7 @@ func (o *Op) setComparator(r super.Value) {
 	resolvers := o.fieldResolvers
 	if resolvers == nil {
 		fld := GuessSortKey(r)
-		resolver := expr.NewSortEvaluator(expr.NewDottedExpr(o.rctx.Zctx, fld), order.Asc)
+		resolver := expr.NewSortEvaluator(expr.NewDottedExpr(o.rctx.Sctx, fld), order.Asc)
 		resolvers = []expr.SortEvaluator{resolver}
 	}
 	nullsMax := !o.nullsFirst

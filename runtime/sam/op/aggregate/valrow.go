@@ -19,9 +19,9 @@ func newValRow(aggs []*expr.Aggregator) valRow {
 	return row
 }
 
-func (v valRow) apply(zctx *super.Context, ectx expr.Context, aggs []*expr.Aggregator, this super.Value) {
+func (v valRow) apply(sctx *super.Context, ectx expr.Context, aggs []*expr.Aggregator, this super.Value) {
 	for k, a := range aggs {
-		a.Apply(zctx, ectx, v[k], this)
+		a.Apply(sctx, ectx, v[k], this)
 	}
 }
 

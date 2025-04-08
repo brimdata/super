@@ -47,7 +47,7 @@ type fieldInfo struct {
 type RecordBuilder struct {
 	fields   []fieldInfo
 	builder  *zcode.Builder
-	zctx     *Context
+	sctx     *Context
 	curField int
 }
 
@@ -56,7 +56,7 @@ type RecordBuilder struct {
 // Append should be called to enter field values in the left to right order
 // of the provided fields and Encode is called to retrieve the nested zcode.Bytes
 // value.  Reset should be called before encoding the next record.
-func NewRecordBuilder(zctx *Context, fields field.List) (*RecordBuilder, error) {
+func NewRecordBuilder(sctx *Context, fields field.List) (*RecordBuilder, error) {
 	seenRecords := make(map[string]bool)
 	fieldInfos := make([]fieldInfo, 0, len(fields))
 	var currentRecord []string
@@ -121,7 +121,7 @@ func NewRecordBuilder(zctx *Context, fields field.List) (*RecordBuilder, error) 
 	return &RecordBuilder{
 		fields:  fieldInfos,
 		builder: zcode.NewBuilder(),
-		zctx:    zctx,
+		sctx:    sctx,
 	}, nil
 }
 
@@ -195,7 +195,7 @@ func (r *RecordBuilder) Type(types []Type) *TypeRecord {
 		current.fields = append(current.fields, Field{fi.field.Leaf(), types[i]})
 
 		for j := 0; j < fi.containerEnds; j++ {
-			recType := r.zctx.MustLookupTypeRecord(current.fields)
+			recType := r.sctx.MustLookupTypeRecord(current.fields)
 			slen := len(stack)
 			stack = stack[:slen-1]
 			cur := stack[slen-2]
@@ -206,5 +206,5 @@ func (r *RecordBuilder) Type(types []Type) *TypeRecord {
 	if len(stack) != 1 {
 		panic("Mismatched container begin/end")
 	}
-	return r.zctx.MustLookupTypeRecord(stack[0].fields)
+	return r.sctx.MustLookupTypeRecord(stack[0].fields)
 }

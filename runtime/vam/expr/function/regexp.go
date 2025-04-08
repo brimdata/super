@@ -17,22 +17,22 @@ type Regexp struct {
 	restr   string
 	typ     super.Type
 	err     error
-	zctx    *super.Context
+	sctx    *super.Context
 }
 
 func (r *Regexp) Call(args ...vector.Any) vector.Any {
 	args = underAll(args)
 	regVec, inputVec := args[0], args[1]
 	if regVec.Type().ID() != super.IDString {
-		return vector.NewWrappedError(r.zctx, "regexp: string required for first arg", args[0])
+		return vector.NewWrappedError(r.sctx, "regexp: string required for first arg", args[0])
 	}
 	if inputVec.Type().ID() != super.IDString {
-		return vector.NewWrappedError(r.zctx, "regexp: string required for second arg", args[1])
+		return vector.NewWrappedError(r.sctx, "regexp: string required for second arg", args[1])
 	}
 	errMsg := vector.NewStringEmpty(0, nil)
 	var errs []uint32
 	inner := vector.NewStringEmpty(0, nil)
-	out := vector.NewArray(r.zctx.LookupTypeArray(super.TypeString), []uint32{0}, inner, nil)
+	out := vector.NewArray(r.sctx.LookupTypeArray(super.TypeString), []uint32{0}, inner, nil)
 	for i := range regVec.Len() {
 		re, _ := vector.StringValue(regVec, i)
 		if r.restr != re {
@@ -61,14 +61,14 @@ func (r *Regexp) Call(args ...vector.Any) vector.Any {
 	}
 	out.Nulls.SetLen(out.Len())
 	if len(errs) > 0 {
-		return vector.Combine(out, errs, vector.NewVecWrappedError(r.zctx, errMsg, vector.NewView(regVec, errs)))
+		return vector.Combine(out, errs, vector.NewVecWrappedError(r.sctx, errMsg, vector.NewView(regVec, errs)))
 	}
 	return out
 }
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#regexp_replace
 type RegexpReplace struct {
-	zctx  *super.Context
+	sctx  *super.Context
 	re    *regexp.Regexp
 	restr string
 	err   error
@@ -78,7 +78,7 @@ func (r *RegexpReplace) Call(args ...vector.Any) vector.Any {
 	args = underAll(args)
 	for i := range args {
 		if args[i].Type().ID() != super.IDString {
-			return vector.NewWrappedError(r.zctx, "regexp_replace: string arg required", args[i])
+			return vector.NewWrappedError(r.sctx, "regexp_replace: string arg required", args[i])
 		}
 	}
 	sVec := args[0]
@@ -117,7 +117,7 @@ func (r *RegexpReplace) Call(args ...vector.Any) vector.Any {
 	}
 	if len(errs) > 0 {
 		out.Nulls = vector.NewInverseView(out.Nulls, errs).(*vector.Bool)
-		return vector.Combine(out, errs, vector.NewVecWrappedError(r.zctx, errMsg, vector.NewView(args[1], errs)))
+		return vector.Combine(out, errs, vector.NewVecWrappedError(r.sctx, errMsg, vector.NewView(args[1], errs)))
 	}
 	return out
 }

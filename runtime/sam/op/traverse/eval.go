@@ -18,7 +18,7 @@ import (
 // then they are returned in an array (with union elements if the type varies).
 type Expr struct {
 	ctx     context.Context
-	zctx    *super.Context
+	sctx    *super.Context
 	batchCh chan zbuf.Batch
 	eos     bool
 
@@ -29,10 +29,10 @@ type Expr struct {
 var _ expr.Evaluator = (*Expr)(nil)
 var _ zbuf.Puller = (*Expr)(nil)
 
-func NewExpr(ctx context.Context, zctx *super.Context) *Expr {
+func NewExpr(ctx context.Context, sctx *super.Context) *Expr {
 	return &Expr{
 		ctx:     ctx,
-		zctx:    zctx,
+		sctx:    sctx,
 		batchCh: make(chan zbuf.Batch, 1),
 	}
 }
@@ -47,7 +47,7 @@ func (e *Expr) Eval(ectx expr.Context, this super.Value) super.Value {
 	select {
 	case e.batchCh <- b:
 	case <-e.ctx.Done():
-		return e.zctx.NewError(e.ctx.Err())
+		return e.sctx.NewError(e.ctx.Err())
 	}
 	out := e.out[:0]
 	for {
@@ -95,7 +95,7 @@ func (e *Expr) makeArray(ectx expr.Context, vals []super.Value) super.Value {
 	for _, val := range vals {
 		b.Append(val.Bytes())
 	}
-	return super.NewValue(e.zctx.LookupTypeArray(typ), b.Bytes())
+	return super.NewValue(e.sctx.LookupTypeArray(typ), b.Bytes())
 }
 
 func (e *Expr) makeUnionArray(ectx expr.Context, vals []super.Value) super.Value {
@@ -107,12 +107,12 @@ func (e *Expr) makeUnionArray(ectx expr.Context, vals []super.Value) super.Value
 	for typ := range types {
 		utypes = append(utypes, typ)
 	}
-	union := e.zctx.LookupTypeUnion(utypes)
+	union := e.sctx.LookupTypeUnion(utypes)
 	var b zcode.Builder
 	for _, val := range vals {
 		super.BuildUnion(&b, union.TagOf(val.Type()), val.Bytes())
 	}
-	return super.NewValue(e.zctx.LookupTypeArray(union), b.Bytes())
+	return super.NewValue(e.sctx.LookupTypeArray(union), b.Bytes())
 }
 
 func (e *Expr) Pull(done bool) (zbuf.Batch, error) {

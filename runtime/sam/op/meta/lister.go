@@ -36,24 +36,24 @@ type Lister struct {
 
 var _ zbuf.Puller = (*Lister)(nil)
 
-func NewSortedLister(ctx context.Context, zctx *super.Context, pool *lake.Pool, commit ksuid.KSUID, pruner expr.Evaluator) (*Lister, error) {
+func NewSortedLister(ctx context.Context, sctx *super.Context, pool *lake.Pool, commit ksuid.KSUID, pruner expr.Evaluator) (*Lister, error) {
 	snap, err := pool.Snapshot(ctx, commit)
 	if err != nil {
 		return nil, err
 	}
-	return NewSortedListerFromSnap(ctx, zctx, pool, snap, pruner), nil
+	return NewSortedListerFromSnap(ctx, sctx, pool, snap, pruner), nil
 }
 
-func NewSortedListerByID(ctx context.Context, zctx *super.Context, r *lake.Root, poolID, commit ksuid.KSUID, pruner expr.Evaluator) (*Lister, error) {
+func NewSortedListerByID(ctx context.Context, sctx *super.Context, r *lake.Root, poolID, commit ksuid.KSUID, pruner expr.Evaluator) (*Lister, error) {
 	pool, err := r.OpenPool(ctx, poolID)
 	if err != nil {
 		return nil, err
 	}
-	return NewSortedLister(ctx, zctx, pool, commit, pruner)
+	return NewSortedLister(ctx, sctx, pool, commit, pruner)
 }
 
-func NewSortedListerFromSnap(ctx context.Context, zctx *super.Context, pool *lake.Pool, snap commits.View, pruner expr.Evaluator) *Lister {
-	m := sup.NewBSUPMarshalerWithContext(zctx)
+func NewSortedListerFromSnap(ctx context.Context, sctx *super.Context, pool *lake.Pool, snap commits.View, pruner expr.Evaluator) *Lister {
+	m := sup.NewBSUPMarshalerWithContext(sctx)
 	m.Decorate(sup.StylePackage)
 	l := &Lister{
 		ctx:       ctx,

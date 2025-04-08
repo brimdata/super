@@ -36,25 +36,25 @@ func (e *Error) Serialize(b *zcode.Builder, slot uint32) {
 
 }
 
-func NewStringError(zctx *super.Context, msg string, len uint32) *Error {
+func NewStringError(sctx *super.Context, msg string, len uint32) *Error {
 	vals := NewConst(super.NewString(msg), len, nil)
-	return &Error{Typ: zctx.LookupTypeError(super.TypeString), Vals: vals}
+	return &Error{Typ: sctx.LookupTypeError(super.TypeString), Vals: vals}
 }
 
-func NewMissing(zctx *super.Context, len uint32) *Error {
-	return NewStringError(zctx, "missing", len)
+func NewMissing(sctx *super.Context, len uint32) *Error {
+	return NewStringError(sctx, "missing", len)
 }
 
-func NewWrappedError(zctx *super.Context, msg string, val Any) *Error {
+func NewWrappedError(sctx *super.Context, msg string, val Any) *Error {
 	msgVec := NewConst(super.NewString(msg), val.Len(), nil)
-	return NewVecWrappedError(zctx, msgVec, val)
+	return NewVecWrappedError(sctx, msgVec, val)
 }
 
-func NewVecWrappedError(zctx *super.Context, msg Any, val Any) *Error {
-	recType := zctx.MustLookupTypeRecord([]super.Field{
+func NewVecWrappedError(sctx *super.Context, msg Any, val Any) *Error {
+	recType := sctx.MustLookupTypeRecord([]super.Field{
 		{Name: "message", Type: msg.Type()},
 		{Name: "on", Type: val.Type()},
 	})
 	rval := NewRecord(recType, []Any{msg, val}, val.Len(), nil)
-	return &Error{Typ: zctx.LookupTypeError(recType), Vals: rval}
+	return &Error{Typ: sctx.LookupTypeError(recType), Vals: rval}
 }

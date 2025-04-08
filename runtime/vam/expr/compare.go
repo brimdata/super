@@ -11,14 +11,14 @@ import (
 )
 
 type Compare struct {
-	zctx   *super.Context
+	sctx   *super.Context
 	opCode int
 	lhs    Evaluator
 	rhs    Evaluator
 }
 
-func NewCompare(zctx *super.Context, lhs, rhs Evaluator, op string) *Compare {
-	return &Compare{zctx, vector.CompareOpFromString(op), lhs, rhs}
+func NewCompare(sctx *super.Context, lhs, rhs Evaluator, op string) *Compare {
+	return &Compare{sctx, vector.CompareOpFromString(op), lhs, rhs}
 }
 
 func (c *Compare) Eval(val vector.Any) vector.Any {
@@ -35,7 +35,7 @@ func (c *Compare) eval(vecs ...vector.Any) vector.Any {
 		return vecs[1]
 	}
 	nulls := vector.Or(vector.NullsOf(lhs), vector.NullsOf(rhs))
-	lhs, rhs, errVal := coerceVals(c.zctx, lhs, rhs)
+	lhs, rhs, errVal := coerceVals(c.sctx, lhs, rhs)
 	if errVal != nil {
 		// if incompatible types return false
 		return vector.NewConst(super.False, vecs[0].Len(), nulls)
@@ -53,11 +53,11 @@ func (c *Compare) eval(vecs ...vector.Any) vector.Any {
 	}
 	lform, ok := vector.FormOf(lhs)
 	if !ok {
-		return vector.NewStringError(c.zctx, coerce.ErrIncompatibleTypes.Error(), lhs.Len())
+		return vector.NewStringError(c.sctx, coerce.ErrIncompatibleTypes.Error(), lhs.Len())
 	}
 	rform, ok := vector.FormOf(rhs)
 	if !ok {
-		return vector.NewStringError(c.zctx, coerce.ErrIncompatibleTypes.Error(), lhs.Len())
+		return vector.NewStringError(c.sctx, coerce.ErrIncompatibleTypes.Error(), lhs.Len())
 	}
 	f, ok := compareFuncs[vector.FuncCode(c.opCode, kind, lform, rform)]
 	if !ok {

@@ -31,20 +31,20 @@ func (d *dropper) drop(ectx Context, in super.Value) super.Value {
 }
 
 type Dropper struct {
-	zctx     *super.Context
+	sctx     *super.Context
 	fields   field.List
 	droppers map[int]*dropper
 }
 
-func NewDropper(zctx *super.Context, fields field.List) *Dropper {
+func NewDropper(sctx *super.Context, fields field.List) *Dropper {
 	return &Dropper{
-		zctx:     zctx,
+		sctx:     sctx,
 		fields:   fields,
 		droppers: make(map[int]*dropper),
 	}
 }
 
-func (d *Dropper) newDropper(zctx *super.Context, r super.Value) *dropper {
+func (d *Dropper) newDropper(sctx *super.Context, r super.Value) *dropper {
 	fields, fieldTypes, match := complementFields(d.fields, nil, super.TypeRecordOf(r.Type()))
 	if !match {
 		// r.Type contains no fields matching d.fields, so we set
@@ -60,9 +60,9 @@ func (d *Dropper) newDropper(zctx *super.Context, r super.Value) *dropper {
 	}
 	var fieldRefs []Evaluator
 	for _, f := range fields {
-		fieldRefs = append(fieldRefs, NewDottedExpr(zctx, f))
+		fieldRefs = append(fieldRefs, NewDottedExpr(sctx, f))
 	}
-	builder, err := super.NewRecordBuilder(d.zctx, fields)
+	builder, err := super.NewRecordBuilder(d.sctx, fields)
 	if err != nil {
 		panic(err)
 	}
@@ -104,11 +104,11 @@ func (d *Dropper) Eval(ectx Context, in super.Value) super.Value {
 	id := in.Type().ID()
 	dropper, ok := d.droppers[id]
 	if !ok {
-		dropper = d.newDropper(d.zctx, in)
+		dropper = d.newDropper(d.sctx, in)
 		d.droppers[id] = dropper
 	}
 	if dropper == nil {
-		return d.zctx.Quiet()
+		return d.sctx.Quiet()
 	}
 	return dropper.drop(ectx, in)
 }

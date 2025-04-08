@@ -9,22 +9,22 @@ import (
 )
 
 type Projection struct {
-	zctx       *super.Context
+	sctx       *super.Context
 	object     *vcache.Object
 	projection field.Projection
 }
 
-func NewProjection(zctx *super.Context, o *vcache.Object, paths []field.Path) zbuf.Puller {
+func NewProjection(sctx *super.Context, o *vcache.Object, paths []field.Path) zbuf.Puller {
 	return NewMaterializer(&Projection{
-		zctx:       zctx,
+		sctx:       sctx,
 		object:     o,
 		projection: field.NewProjection(paths),
 	})
 }
 
-func NewVectorProjection(zctx *super.Context, o *vcache.Object, paths []field.Path) vector.Puller {
+func NewVectorProjection(sctx *super.Context, o *vcache.Object, paths []field.Path) vector.Puller {
 	return &Projection{
-		zctx:       zctx,
+		sctx:       sctx,
 		object:     o,
 		projection: field.NewProjection(paths),
 	}
@@ -33,7 +33,7 @@ func NewVectorProjection(zctx *super.Context, o *vcache.Object, paths []field.Pa
 func (p *Projection) Pull(bool) (vector.Any, error) {
 	if o := p.object; o != nil {
 		p.object = nil
-		return o.Fetch(p.zctx, p.projection)
+		return o.Fetch(p.sctx, p.projection)
 	}
 	return nil, nil
 }

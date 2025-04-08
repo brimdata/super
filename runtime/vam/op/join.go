@@ -12,7 +12,7 @@ import (
 )
 
 type Join struct {
-	zctx     *super.Context
+	sctx     *super.Context
 	anti     bool
 	inner    bool
 	left     vector.Puller
@@ -25,17 +25,17 @@ type Join struct {
 	table   map[string][]super.Value
 }
 
-func NewJoin(zctx *super.Context, anti, inner bool, left, right vector.Puller, leftKey, rightKey expr.Evaluator, lhs []*samexpr.Lval, rhs []samexpr.Evaluator) *Join {
+func NewJoin(sctx *super.Context, anti, inner bool, left, right vector.Puller, leftKey, rightKey expr.Evaluator, lhs []*samexpr.Lval, rhs []samexpr.Evaluator) *Join {
 	return &Join{
-		zctx:     zctx,
+		sctx:     sctx,
 		anti:     anti,
 		inner:    inner,
 		left:     left,
 		right:    right,
 		leftKey:  leftKey,
 		rightKey: rightKey,
-		cutter:   samexpr.NewCutter(zctx, lhs, rhs),
-		splicer:  join.NewRecordSplicer(zctx),
+		cutter:   samexpr.NewCutter(sctx, lhs, rhs),
+		splicer:  join.NewRecordSplicer(sctx),
 	}
 }
 

@@ -6,7 +6,7 @@ import (
 	"github.com/brimdata/super/vector"
 )
 
-func castToType(zctx *super.Context, vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
+func castToType(sctx *super.Context, vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
 	switch vec := vec.(type) {
 	case *vector.TypeValue:
 		return vec, nil, true
@@ -28,7 +28,7 @@ func castToType(zctx *super.Context, vec vector.Any, index []uint32) (vector.Any
 				continue
 			}
 			s := vec.Value(idx)
-			val, err := sup.ParseValue(zctx, s)
+			val, err := sup.ParseValue(sctx, s)
 			if err != nil || val.Type().ID() != super.IDType {
 				errs = append(errs, i)
 				continue

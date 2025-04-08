@@ -8,17 +8,17 @@ import (
 )
 
 type Flattener struct {
-	zctx *super.Context
+	sctx *super.Context
 	flat map[super.Type]super.Type
 }
 
 // NewFlattener returns a flattener that transforms nested records to flattened
 // records where the type context of the received records must match the
-// zctx parameter provided here.  Any new type descriptors that are created
-// to flatten types also use zctx.
-func NewFlattener(zctx *super.Context) *Flattener {
+// sctx parameter provided here.  Any new type descriptors that are created
+// to flatten types also use sctx.
+func NewFlattener(sctx *super.Context) *Flattener {
 	return &Flattener{
-		zctx: zctx,
+		sctx: sctx,
 		flat: make(map[super.Type]super.Type),
 	}
 }
@@ -61,7 +61,7 @@ func (f *Flattener) Flatten(r super.Value) (super.Value, error) {
 	typ := r.Type()
 	flatType, ok := f.flat[typ]
 	if !ok {
-		flatType = f.zctx.MustLookupTypeRecord(FlattenFields(r.Fields()))
+		flatType = f.sctx.MustLookupTypeRecord(FlattenFields(r.Fields()))
 		f.flat[typ] = flatType
 	}
 	// Since we are mapping the input context to itself we can do a

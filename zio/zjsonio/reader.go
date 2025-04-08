@@ -19,17 +19,17 @@ const (
 
 type Reader struct {
 	scanner *skim.Scanner
-	zctx    *super.Context
+	sctx    *super.Context
 	decoder decoder
 	builder *zcode.Builder
 	val     super.Value
 }
 
-func NewReader(zctx *super.Context, reader io.Reader) *Reader {
+func NewReader(sctx *super.Context, reader io.Reader) *Reader {
 	buffer := make([]byte, ReadSize)
 	return &Reader{
 		scanner: skim.NewScanner(reader, buffer, MaxLineSize),
-		zctx:    zctx,
+		sctx:    sctx,
 		decoder: make(decoder),
 		builder: zcode.NewBuilder(),
 	}
@@ -51,7 +51,7 @@ func (r *Reader) Read() (*super.Value, error) {
 	if err != nil {
 		return nil, e(err)
 	}
-	typ, err := r.decoder.decodeType(r.zctx, object.Type)
+	typ, err := r.decoder.decodeType(r.sctx, object.Type)
 	if err != nil {
 		return nil, err
 	}
@@ -94,11 +94,11 @@ func (r *Reader) decodeValue(b *zcode.Builder, typ super.Type, body interface{})
 		if err := unpacker.UnmarshalObject(body, &t); err != nil {
 			return fmt.Errorf("type value is not a valid ZJSON type: %w", err)
 		}
-		local, err := r.decoder.decodeType(r.zctx, t)
+		local, err := r.decoder.decodeType(r.sctx, t)
 		if err != nil {
 			return err
 		}
-		tv := r.zctx.LookupTypeValue(local)
+		tv := r.sctx.LookupTypeValue(local)
 		b.Append(tv.Bytes())
 		return nil
 	default:

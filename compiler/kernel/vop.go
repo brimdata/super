@@ -56,7 +56,7 @@ func (b *Builder) compileVam(o dag.Op, parents []vector.Puller) ([]vector.Puller
 		default:
 			return nil, fmt.Errorf("unknown kind of join: '%s'", o.Style)
 		}
-		join := vamop.NewJoin(b.rctx.Zctx, anti, inner, leftParent, rightParent, leftKey, rightKey, lhs, rhs)
+		join := vamop.NewJoin(b.rctx.Sctx, anti, inner, leftParent, rightParent, leftKey, rightKey, lhs, rhs)
 		return []vector.Puller{join}, nil
 	case *dag.Merge:
 		b.resetResetters()
@@ -222,7 +222,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		if err != nil {
 			return nil, err
 		}
-		return vamop.NewYield(b.zctx(), parent, []vamexpr.Evaluator{e}), nil
+		return vamop.NewYield(b.sctx(), parent, []vamexpr.Evaluator{e}), nil
 	case *dag.DefaultScan:
 		zbufPuller, err := b.compileLeaf(o, nil)
 		if err != nil {
@@ -240,8 +240,8 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		for _, e := range o.Args {
 			fields = append(fields, e.(*dag.This).Path)
 		}
-		dropper := vamexpr.NewDropper(b.zctx(), fields)
-		return vamop.NewYield(b.zctx(), parent, []vamexpr.Evaluator{dropper}), nil
+		dropper := vamexpr.NewDropper(b.sctx(), fields)
+		return vamop.NewYield(b.sctx(), parent, []vamexpr.Evaluator{dropper}), nil
 	case *dag.FileScan:
 		var metaProjection []field.Path
 		var metaFilter dag.Expr
@@ -250,13 +250,13 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 			metaProjection = mf.Projection
 		}
 		pushdown := b.newMetaPushdown(metaFilter, o.Pushdown.Projection, metaProjection)
-		return b.env.VectorOpen(b.rctx, b.zctx(), o.Path, o.Format, pushdown)
+		return b.env.VectorOpen(b.rctx, b.sctx(), o.Path, o.Format, pushdown)
 	case *dag.Filter:
 		e, err := b.compileVamExpr(o.Expr)
 		if err != nil {
 			return nil, err
 		}
-		return vamop.NewFilter(b.zctx(), parent, e), nil
+		return vamop.NewFilter(b.sctx(), parent, e), nil
 	case *dag.Head:
 		return vamop.NewHead(parent, o.Count), nil
 	case *dag.NullScan:
@@ -279,14 +279,14 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		if err != nil {
 			return nil, err
 		}
-		return vamop.NewYield(b.zctx(), parent, []vamexpr.Evaluator{vamexpr.NewPutter(b.zctx(), e)}), nil
+		return vamop.NewYield(b.sctx(), parent, []vamexpr.Evaluator{vamexpr.NewPutter(b.sctx(), e)}), nil
 	case *dag.Rename:
 		srcs, dsts, err := b.compileAssignmentsToLvals(o.Args)
 		if err != nil {
 			return nil, err
 		}
-		renamer := vamexpr.NewRenamer(b.zctx(), srcs, dsts)
-		return vamop.NewYield(b.zctx(), parent, []vamexpr.Evaluator{renamer}), nil
+		renamer := vamexpr.NewRenamer(b.sctx(), srcs, dsts)
+		return vamop.NewYield(b.sctx(), parent, []vamexpr.Evaluator{renamer}), nil
 	case *dag.Sort:
 		b.resetResetters()
 		var sortExprs []expr.SortEvaluator
@@ -305,7 +305,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		if err != nil {
 			return nil, err
 		}
-		return vamop.NewYield(b.zctx(), parent, exprs), nil
+		return vamop.NewYield(b.sctx(), parent, exprs), nil
 	default:
 		return nil, fmt.Errorf("internal error: unknown dag.Op while compiling for vector runtime: %#v", o)
 	}
@@ -360,7 +360,7 @@ func (b *Builder) compileVamOver(over *dag.Over, parent vector.Puller) (vector.P
 	if err != nil {
 		return nil, err
 	}
-	o := vamop.NewOver(b.zctx(), parent, exprs)
+	o := vamop.NewOver(b.sctx(), parent, exprs)
 	if over.Body == nil {
 		return o, nil
 	}
@@ -424,7 +424,7 @@ func (b *Builder) compileVamAggregate(s *dag.Aggregate, parent vector.Puller) (v
 		keyNames = append(keyNames, lhs.Path)
 		keyExprs = append(keyExprs, rhs)
 	}
-	return aggregate.New(parent, b.zctx(), aggNames, aggExprs, aggs, keyNames, keyExprs, s.PartialsIn, s.PartialsOut)
+	return aggregate.New(parent, b.sctx(), aggNames, aggExprs, aggs, keyNames, keyExprs, s.PartialsIn, s.PartialsOut)
 }
 
 func (b *Builder) compileVamAgg(agg *dag.Agg) (*vamexpr.Aggregator, error) {

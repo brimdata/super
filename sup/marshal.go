@@ -38,9 +38,9 @@ func NewMarshalerIndent(indent int) *MarshalContext {
 	}
 }
 
-func NewMarshalerWithContext(zctx *super.Context) *MarshalContext {
+func NewMarshalerWithContext(sctx *super.Context) *MarshalContext {
 	return &MarshalContext{
-		MarshalBSUPContext: NewBSUPMarshalerWithContext(zctx),
+		MarshalBSUPContext: NewBSUPMarshalerWithContext(sctx),
 	}
 }
 
@@ -62,7 +62,7 @@ func (m *MarshalContext) MarshalCustom(names []string, fields []interface{}) (st
 
 type UnmarshalContext struct {
 	*UnmarshalBSUPContext
-	zctx     *super.Context
+	sctx     *super.Context
 	analyzer Analyzer
 	builder  *zcode.Builder
 }
@@ -70,7 +70,7 @@ type UnmarshalContext struct {
 func NewUnmarshaler() *UnmarshalContext {
 	return &UnmarshalContext{
 		UnmarshalBSUPContext: NewBSUPUnmarshaler(),
-		zctx:                 super.NewContext(),
+		sctx:                 super.NewContext(),
 		analyzer:             NewAnalyzer(),
 		builder:              zcode.NewBuilder(),
 	}
@@ -86,7 +86,7 @@ func (u *UnmarshalContext) Unmarshal(sup string, v interface{}) error {
 	if err != nil {
 		return err
 	}
-	val, err := u.analyzer.ConvertValue(u.zctx, ast)
+	val, err := u.analyzer.ConvertValue(u.sctx, ast)
 	if err != nil {
 		return err
 	}
@@ -116,9 +116,9 @@ func NewBSUPMarshaler() *MarshalBSUPContext {
 	return NewBSUPMarshalerWithContext(super.NewContext())
 }
 
-func NewBSUPMarshalerWithContext(zctx *super.Context) *MarshalBSUPContext {
+func NewBSUPMarshalerWithContext(sctx *super.Context) *MarshalBSUPContext {
 	return &MarshalBSUPContext{
-		Context: zctx,
+		Context: sctx,
 	}
 }
 
@@ -636,7 +636,7 @@ type BSUPUnmarshaler interface {
 }
 
 type UnmarshalBSUPContext struct {
-	zctx   *super.Context
+	sctx   *super.Context
 	binder binder
 }
 
@@ -654,8 +654,8 @@ func incompatTypeError(zt super.Type, v reflect.Value) error {
 
 // SetContext provides an optional type context to the unmarshaler.  This is
 // needed only when unmarshaling Zed type values into Go super.Type interface values.
-func (u *UnmarshalBSUPContext) SetContext(zctx *super.Context) {
-	u.zctx = zctx
+func (u *UnmarshalBSUPContext) SetContext(sctx *super.Context) {
+	u.sctx = sctx
 }
 
 func (u *UnmarshalBSUPContext) Unmarshal(val super.Value, v interface{}) error {
@@ -744,10 +744,10 @@ func (u *UnmarshalBSUPContext) decodeAny(val super.Value, v reflect.Value) (x er
 		return u.decodeRecord(val, v)
 	case reflect.Interface:
 		if super.TypeUnder(val.Type()) == super.TypeType {
-			if u.zctx == nil {
+			if u.sctx == nil {
 				return errors.New("cannot unmarshal type value without type context")
 			}
-			typ, err := u.zctx.LookupByValue(val.Bytes())
+			typ, err := u.sctx.LookupByValue(val.Bytes())
 			if err != nil {
 				return err
 			}

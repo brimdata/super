@@ -133,8 +133,8 @@ func (b *Builder) BuildVamToSeqFilter(filter dag.Expr, poolID, commitID ksuid.KS
 	return meta.NewSearchScanner(b.rctx, search, pool, b.newPushdown(filter, nil), b.progress), nil
 }
 
-func (b *Builder) zctx() *super.Context {
-	return b.rctx.Zctx
+func (b *Builder) sctx() *super.Context {
+	return b.rctx.Sctx
 }
 
 func (b *Builder) Meter() zbuf.Meter {
@@ -160,14 +160,14 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 			return nil, err
 		}
 		lhs, rhs := splitAssignments(assignments)
-		cutter := expr.NewCutter(b.zctx(), lhs, rhs)
+		cutter := expr.NewCutter(b.sctx(), lhs, rhs)
 		return op.NewApplier(b.rctx, parent, cutter, b.resetters), nil
 	case *dag.Drop:
 		fields := make(field.List, 0, len(v.Args))
 		for _, e := range v.Args {
 			fields = append(fields, e.(*dag.This).Path)
 		}
-		dropper := expr.NewDropper(b.zctx(), fields)
+		dropper := expr.NewDropper(b.sctx(), fields)
 		return op.NewApplier(b.rctx, parent, dropper, expr.Resetters{}), nil
 	case *dag.Distinct:
 		b.resetResetters()
@@ -209,21 +209,21 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 		if err != nil {
 			return nil, fmt.Errorf("compiling filter: %w", err)
 		}
-		return op.NewApplier(b.rctx, parent, expr.NewFilterApplier(b.zctx(), f), b.resetters), nil
+		return op.NewApplier(b.rctx, parent, expr.NewFilterApplier(b.sctx(), f), b.resetters), nil
 	case *dag.Top:
 		b.resetResetters()
 		fields, err := b.compileExprs(v.Args)
 		if err != nil {
 			return nil, fmt.Errorf("compiling top: %w", err)
 		}
-		return top.New(b.zctx(), parent, v.Limit, fields, v.Flush, b.resetters), nil
+		return top.New(b.sctx(), parent, v.Limit, fields, v.Flush, b.resetters), nil
 	case *dag.Put:
 		b.resetResetters()
 		clauses, err := b.compileAssignments(v.Args)
 		if err != nil {
 			return nil, err
 		}
-		putter := expr.NewPutter(b.zctx(), clauses)
+		putter := expr.NewPutter(b.sctx(), clauses)
 		return op.NewApplier(b.rctx, parent, putter, b.resetters), nil
 	case *dag.Rename:
 		b.resetResetters()
@@ -231,7 +231,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 		if err != nil {
 			return nil, err
 		}
-		renamer := expr.NewRenamer(b.zctx(), srcs, dsts)
+		renamer := expr.NewRenamer(b.sctx(), srcs, dsts)
 		return op.NewApplier(b.rctx, parent, renamer, b.resetters), nil
 	case *dag.Fuse:
 		return fuse.New(b.rctx, parent)
@@ -242,7 +242,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 	case *dag.Merge:
 		return nil, errors.New("merge: multiple upstream paths required")
 	case *dag.Explode:
-		typ, err := sup.ParseType(b.zctx(), v.Type)
+		typ, err := sup.ParseType(b.sctx(), v.Type)
 		if err != nil {
 			return nil, err
 		}
@@ -251,7 +251,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 		if err != nil {
 			return nil, err
 		}
-		return explode.New(b.zctx(), parent, args, typ, v.As, b.resetters)
+		return explode.New(b.sctx(), parent, args, typ, v.As, b.resetters)
 	case *dag.Over:
 		return b.compileOver(parent, v)
 	case *dag.Yield:
@@ -268,7 +268,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 		}
 		return b.compilePoolScan(v)
 	case *dag.PoolMetaScan:
-		return meta.NewPoolMetaScanner(b.rctx.Context, b.zctx(), b.env.Lake(), v.ID, v.Meta)
+		return meta.NewPoolMetaScanner(b.rctx.Context, b.sctx(), b.env.Lake(), v.ID, v.Meta)
 	case *dag.CommitMetaScan:
 		var pruner expr.Evaluator
 		if v.Tap && v.KeyPruner != nil {
@@ -278,18 +278,18 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 				return nil, err
 			}
 		}
-		return meta.NewCommitMetaScanner(b.rctx.Context, b.zctx(), b.env.Lake(), v.Pool, v.Commit, v.Meta, pruner)
+		return meta.NewCommitMetaScanner(b.rctx.Context, b.sctx(), b.env.Lake(), v.Pool, v.Commit, v.Meta, pruner)
 	case *dag.LakeMetaScan:
-		return meta.NewLakeMetaScanner(b.rctx.Context, b.zctx(), b.env.Lake(), v.Meta)
+		return meta.NewLakeMetaScanner(b.rctx.Context, b.sctx(), b.env.Lake(), v.Meta)
 	case *dag.HTTPScan:
 		body := strings.NewReader(v.Body)
-		return b.env.OpenHTTP(b.rctx.Context, b.zctx(), v.URL, v.Format, v.Method, v.Headers, body, nil)
+		return b.env.OpenHTTP(b.rctx.Context, b.sctx(), v.URL, v.Format, v.Method, v.Headers, body, nil)
 	case *dag.FileScan:
 		var dataFilter dag.Expr
 		if v.Pushdown.DataFilter != nil {
 			dataFilter = v.Pushdown.DataFilter.Expr
 		}
-		return b.env.Open(b.rctx.Context, b.zctx(), v.Path, v.Format, b.newPushdown(dataFilter, v.Pushdown.Projection))
+		return b.env.Open(b.rctx.Context, b.sctx(), v.Path, v.Format, b.newPushdown(dataFilter, v.Pushdown.Projection))
 	case *dag.RobotScan:
 		e, err := compileExpr(v.Expr)
 		if err != nil {
@@ -762,10 +762,10 @@ func (b *Builder) evalAtCompileTime(in dag.Expr) (val super.Value, err error) {
 	// reference to a var not in scope, a field access null this, etc.
 	defer func() {
 		if recover() != nil {
-			val = b.zctx().Missing()
+			val = b.sctx().Missing()
 		}
 	}()
-	return e.Eval(expr.NewContext(), b.zctx().Missing()), nil
+	return e.Eval(expr.NewContext(), b.sctx().Missing()), nil
 }
 
 func compileExpr(in dag.Expr) (expr.Evaluator, error) {
@@ -773,10 +773,10 @@ func compileExpr(in dag.Expr) (expr.Evaluator, error) {
 	return b.compileExpr(in)
 }
 
-func EvalAtCompileTime(zctx *super.Context, in dag.Expr) (val super.Value, err error) {
+func EvalAtCompileTime(sctx *super.Context, in dag.Expr) (val super.Value, err error) {
 	// We pass in a nil adaptor, which causes a panic for anything adaptor
 	// related, which is not currently allowed in an expression sub-query.
-	b := NewBuilder(runtime.NewContext(context.Background(), zctx), nil)
+	b := NewBuilder(runtime.NewContext(context.Background(), sctx), nil)
 	return b.evalAtCompileTime(in)
 }
 

@@ -29,8 +29,8 @@ type DeleteQuery interface {
 	DeletionSet() []ksuid.KSUID
 }
 
-func CompileQuery(ctx context.Context, zctx *super.Context, c Compiler, ast *parser.AST, readers []zio.Reader) (Query, error) {
-	rctx := NewContext(ctx, zctx)
+func CompileQuery(ctx context.Context, sctx *super.Context, c Compiler, ast *parser.AST, readers []zio.Reader) (Query, error) {
+	rctx := NewContext(ctx, sctx)
 	q, err := c.NewQuery(rctx, ast, readers, 0)
 	if err != nil {
 		rctx.Cancel()
@@ -39,8 +39,8 @@ func CompileQuery(ctx context.Context, zctx *super.Context, c Compiler, ast *par
 	return q, nil
 }
 
-func CompileLakeQuery(ctx context.Context, zctx *super.Context, c Compiler, ast *parser.AST) (Query, error) {
-	rctx := NewContext(ctx, zctx)
+func CompileLakeQuery(ctx context.Context, sctx *super.Context, c Compiler, ast *parser.AST) (Query, error) {
+	rctx := NewContext(ctx, sctx)
 	q, err := c.NewQuery(rctx, ast, nil, 0)
 	if err != nil {
 		rctx.Cancel()

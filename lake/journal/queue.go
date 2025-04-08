@@ -172,12 +172,12 @@ func (q *Queue) Open(ctx context.Context, head, tail ID) (io.Reader, error) {
 	return q.NewReader(ctx, head, tail), nil
 }
 
-func (q *Queue) OpenAsBSUP(ctx context.Context, zctx *super.Context, head, tail ID) (*bsupio.Reader, error) {
+func (q *Queue) OpenAsBSUP(ctx context.Context, sctx *super.Context, head, tail ID) (*bsupio.Reader, error) {
 	r, err := q.Open(ctx, head, tail)
 	if err != nil {
 		return nil, err
 	}
-	return bsupio.NewReader(zctx, r), nil
+	return bsupio.NewReader(sctx, r), nil
 }
 
 func writeID(ctx context.Context, engine storage.Engine, u *storage.URI, id ID) error {

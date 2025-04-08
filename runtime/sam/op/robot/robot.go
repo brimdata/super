@@ -154,7 +154,7 @@ func (o *Op) openNext() (zbuf.Puller, error) {
 }
 
 func (o *Op) errOnVal(val super.Value) zbuf.Puller {
-	errVal := o.rctx.Zctx.WrapError("from encountered non-string input", val)
+	errVal := o.rctx.Sctx.WrapError("from encountered non-string input", val)
 	return zbuf.NewPuller(zbuf.NewArray([]super.Value{errVal}))
 }
 
@@ -187,7 +187,7 @@ func (o *Op) open(path string) (zbuf.Puller, error) {
 		var method string
 		var body io.Reader
 		var headers http.Header
-		f, err := o.env.OpenHTTP(o.rctx.Context, o.rctx.Zctx, u.String(), o.format, method, headers, body, nil)
+		f, err := o.env.OpenHTTP(o.rctx.Context, o.rctx.Sctx, u.String(), o.format, method, headers, body, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -197,5 +197,5 @@ func (o *Op) open(path string) (zbuf.Puller, error) {
 	if o.env.IsLake() {
 		return nil, fmt.Errorf("%s: cannot open in a data lake environment", path)
 	}
-	return o.env.Open(o.rctx.Context, o.rctx.Zctx, path, o.format, o.pushdown)
+	return o.env.Open(o.rctx.Context, o.rctx.Sctx, path, o.format, o.pushdown)
 }

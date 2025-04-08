@@ -7,15 +7,15 @@ import (
 )
 
 type conditional struct {
-	zctx      *super.Context
+	sctx      *super.Context
 	predicate Evaluator
 	thenExpr  Evaluator
 	elseExpr  Evaluator
 }
 
-func NewConditional(zctx *super.Context, predicate, thenExpr, elseExpr Evaluator) Evaluator {
+func NewConditional(sctx *super.Context, predicate, thenExpr, elseExpr Evaluator) Evaluator {
 	return &conditional{
-		zctx:      zctx,
+		sctx:      sctx,
 		predicate: predicate,
 		thenExpr:  thenExpr,
 		elseExpr:  elseExpr,
@@ -57,7 +57,7 @@ func (c *conditional) Eval(this vector.Any) vector.Any {
 
 func (c *conditional) predicateError(vec vector.Any) vector.Any {
 	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
-		return vector.NewWrappedError(c.zctx, "?-operator: bool predicate required", vecs[0])
+		return vector.NewWrappedError(c.sctx, "?-operator: bool predicate required", vecs[0])
 	}, vec)
 }
 

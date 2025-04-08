@@ -29,14 +29,14 @@ type scanner struct {
 	eof        bool
 }
 
-func newScanner(ctx context.Context, zctx *super.Context, r io.Reader, pushdown zbuf.Pushdown, opts ReaderOpts) (zbuf.Scanner, error) {
+func newScanner(ctx context.Context, sctx *super.Context, r io.Reader, pushdown zbuf.Pushdown, opts ReaderOpts) (zbuf.Scanner, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	s := &scanner{
 		ctx:    ctx,
 		cancel: cancel,
 		parser: parser{
 			peeker:  peeker.NewReader(r, opts.Size, opts.Max),
-			types:   NewDecoder(zctx),
+			types:   NewDecoder(sctx),
 			maxSize: opts.Max,
 		},
 		validate:   opts.Validate,

@@ -52,7 +52,7 @@ func (b *Builder) compileExpr(e dag.Expr) (expr.Evaluator, error) {
 	}
 	switch e := e.(type) {
 	case *dag.Literal:
-		val, err := sup.ParseValue(b.zctx(), e.Value)
+		val, err := sup.ParseValue(b.sctx(), e.Value)
 		if err != nil {
 			return nil, err
 		}
@@ -62,7 +62,7 @@ func (b *Builder) compileExpr(e dag.Expr) (expr.Evaluator, error) {
 	case *dag.Search:
 		return b.compileSearch(e)
 	case *dag.This:
-		return expr.NewDottedExpr(b.zctx(), field.Path(e.Path)), nil
+		return expr.NewDottedExpr(b.sctx(), field.Path(e.Path)), nil
 	case *dag.Dot:
 		return b.compileDotExpr(e)
 	case *dag.UnaryExpr:
@@ -98,7 +98,7 @@ func (b *Builder) compileExpr(e dag.Expr) (expr.Evaluator, error) {
 		if err != nil {
 			return nil, err
 		}
-		aggexpr := expr.NewAggregatorExpr(b.zctx(), agg)
+		aggexpr := expr.NewAggregatorExpr(b.sctx(), agg)
 		b.resetters = append(b.resetters, aggexpr)
 		return aggexpr, nil
 	case *dag.OverExpr:
@@ -135,17 +135,17 @@ func (b *Builder) compileBinary(e *dag.BinaryExpr) (expr.Evaluator, error) {
 	}
 	switch op := e.Op; op {
 	case "and":
-		return expr.NewLogicalAnd(b.zctx(), lhs, rhs), nil
+		return expr.NewLogicalAnd(b.sctx(), lhs, rhs), nil
 	case "or":
-		return expr.NewLogicalOr(b.zctx(), lhs, rhs), nil
+		return expr.NewLogicalOr(b.sctx(), lhs, rhs), nil
 	case "in":
-		return expr.NewIn(b.zctx(), lhs, rhs), nil
+		return expr.NewIn(b.sctx(), lhs, rhs), nil
 	case "==", "!=":
-		return expr.NewCompareEquality(b.zctx(), lhs, rhs, op)
+		return expr.NewCompareEquality(b.sctx(), lhs, rhs, op)
 	case "<", "<=", ">", ">=":
-		return expr.NewCompareRelative(b.zctx(), lhs, rhs, op)
+		return expr.NewCompareRelative(b.sctx(), lhs, rhs, op)
 	case "+", "-", "*", "/", "%":
-		return expr.NewArithmetic(b.zctx(), lhs, rhs, op)
+		return expr.NewArithmetic(b.sctx(), lhs, rhs, op)
 	default:
 		return nil, fmt.Errorf("invalid binary operator %s", op)
 	}
@@ -196,7 +196,7 @@ func (b *Builder) compileConstCompare(e *dag.BinaryExpr) (expr.Evaluator, error)
 }
 
 func (b *Builder) compileSearch(search *dag.Search) (expr.Evaluator, error) {
-	val, err := sup.ParseValue(b.zctx(), search.Value)
+	val, err := sup.ParseValue(b.sctx(), search.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -226,7 +226,7 @@ func (b *Builder) compileSliceExpr(slice *dag.SliceExpr) (expr.Evaluator, error)
 	if err != nil {
 		return nil, err
 	}
-	return expr.NewSlice(b.zctx(), e, from, to), nil
+	return expr.NewSlice(b.sctx(), e, from, to), nil
 }
 
 func (b *Builder) compileUnary(unary dag.UnaryExpr) (expr.Evaluator, error) {
@@ -236,9 +236,9 @@ func (b *Builder) compileUnary(unary dag.UnaryExpr) (expr.Evaluator, error) {
 	}
 	switch unary.Op {
 	case "-":
-		return expr.NewUnaryMinus(b.zctx(), e), nil
+		return expr.NewUnaryMinus(b.sctx(), e), nil
 	case "!":
-		return expr.NewLogicalNot(b.zctx(), e), nil
+		return expr.NewLogicalNot(b.sctx(), e), nil
 	default:
 		return nil, fmt.Errorf("unknown unary operator %s", unary.Op)
 	}
@@ -257,7 +257,7 @@ func (b *Builder) compileConditional(node dag.Conditional) (expr.Evaluator, erro
 	if err != nil {
 		return nil, err
 	}
-	return expr.NewConditional(b.zctx(), predicate, thenExpr, elseExpr), nil
+	return expr.NewConditional(b.sctx(), predicate, thenExpr, elseExpr), nil
 }
 
 func (b *Builder) compileDotExpr(dot *dag.Dot) (expr.Evaluator, error) {
@@ -265,7 +265,7 @@ func (b *Builder) compileDotExpr(dot *dag.Dot) (expr.Evaluator, error) {
 	if err != nil {
 		return nil, err
 	}
-	return expr.NewDotExpr(b.zctx(), record, dot.RHS), nil
+	return expr.NewDotExpr(b.sctx(), record, dot.RHS), nil
 }
 
 func (b *Builder) compileLval(e dag.Expr) (*expr.Lval, error) {
@@ -279,7 +279,7 @@ func (b *Builder) compileLval(e dag.Expr) (*expr.Lval, error) {
 		if err != nil {
 			return nil, err
 		}
-		container.Elems = append(container.Elems, expr.NewExprLvalElem(b.zctx(), index))
+		container.Elems = append(container.Elems, expr.NewExprLvalElem(b.sctx(), index))
 		return container, nil
 	case *dag.Dot:
 		lhs, err := b.compileLval(e.LHS)
@@ -325,7 +325,7 @@ func (b *Builder) compileCall(call dag.Call) (expr.Evaluator, error) {
 		}
 	} else {
 		var err error
-		fn, path, err = function.New(b.zctx(), call.Name, len(call.Args))
+		fn, path, err = function.New(b.sctx(), call.Name, len(call.Args))
 		if err != nil {
 			return nil, fmt.Errorf("%s(): %w", call.Name, err)
 		}
@@ -346,7 +346,7 @@ func (b *Builder) compileUDFCall(name string, body dag.Expr) (expr.Function, err
 	if fn, ok := b.compiledUDFs[name]; ok {
 		return fn, nil
 	}
-	fn := &expr.UDF{Name: name, Zctx: b.zctx()}
+	fn := &expr.UDF{Name: name, Sctx: b.sctx()}
 	// We store compiled UDF calls here so as to avoid stack overflows on
 	// recursive calls.
 	b.compiledUDFs[name] = fn
@@ -367,7 +367,7 @@ func (b *Builder) compileMapCall(a *dag.MapCall) (expr.Evaluator, error) {
 	if err != nil {
 		return nil, err
 	}
-	return expr.NewMapCall(b.zctx(), e, inner), nil
+	return expr.NewMapCall(b.sctx(), e, inner), nil
 }
 
 func (b *Builder) compileShaper(args []dag.Expr, tf expr.ShaperTransform) (expr.Evaluator, error) {
@@ -379,7 +379,7 @@ func (b *Builder) compileShaper(args []dag.Expr, tf expr.ShaperTransform) (expr.
 	if err != nil {
 		return nil, err
 	}
-	return expr.NewShaper(b.zctx(), field, typExpr, tf)
+	return expr.NewShaper(b.sctx(), field, typExpr, tf)
 }
 
 func (b *Builder) compileExprs(in []dag.Expr) ([]expr.Evaluator, error) {
@@ -403,7 +403,7 @@ func (b *Builder) compileIndexExpr(e *dag.IndexExpr) (expr.Evaluator, error) {
 	if err != nil {
 		return nil, err
 	}
-	return expr.NewIndexExpr(b.zctx(), container, index), nil
+	return expr.NewIndexExpr(b.sctx(), container, index), nil
 }
 
 func (b *Builder) compileIsNullExpr(e *dag.IsNullExpr) (expr.Evaluator, error) {
@@ -460,7 +460,7 @@ func (b *Builder) compileRecordExpr(record *dag.RecordExpr) (expr.Evaluator, err
 			elems = append(elems, expr.RecordElem{Spread: e})
 		}
 	}
-	return expr.NewRecordExpr(b.zctx(), elems)
+	return expr.NewRecordExpr(b.sctx(), elems)
 }
 
 func (b *Builder) compileArrayExpr(array *dag.ArrayExpr) (expr.Evaluator, error) {
@@ -468,7 +468,7 @@ func (b *Builder) compileArrayExpr(array *dag.ArrayExpr) (expr.Evaluator, error)
 	if err != nil {
 		return nil, err
 	}
-	return expr.NewArrayExpr(b.zctx(), elems), nil
+	return expr.NewArrayExpr(b.sctx(), elems), nil
 }
 
 func (b *Builder) compileSetExpr(set *dag.SetExpr) (expr.Evaluator, error) {
@@ -476,7 +476,7 @@ func (b *Builder) compileSetExpr(set *dag.SetExpr) (expr.Evaluator, error) {
 	if err != nil {
 		return nil, err
 	}
-	return expr.NewSetExpr(b.zctx(), elems), nil
+	return expr.NewSetExpr(b.sctx(), elems), nil
 }
 
 func (b *Builder) compileVectorElems(elems []dag.VectorElem) ([]expr.VectorElem, error) {
@@ -513,7 +513,7 @@ func (b *Builder) compileMapExpr(m *dag.MapExpr) (expr.Evaluator, error) {
 		}
 		entries = append(entries, expr.Entry{Key: key, Val: val})
 	}
-	return expr.NewMapExpr(b.zctx(), entries), nil
+	return expr.NewMapExpr(b.sctx(), entries), nil
 }
 
 func (b *Builder) compileOverExpr(over *dag.OverExpr) (expr.Evaluator, error) {
@@ -525,7 +525,7 @@ func (b *Builder) compileOverExpr(over *dag.OverExpr) (expr.Evaluator, error) {
 	if err != nil {
 		return nil, err
 	}
-	parent := traverse.NewExpr(b.rctx.Context, b.zctx())
+	parent := traverse.NewExpr(b.rctx.Context, b.sctx())
 	enter := traverse.NewOver(b.rctx, parent, exprs, expr.Resetters{})
 	scope := enter.AddScope(b.rctx.Context, names, lets)
 	exits, err := b.compileSeq(over.Body, []zbuf.Puller{scope})

@@ -34,7 +34,7 @@ type ReaderOpts struct {
 //	StringsOnly bool
 //}
 
-func NewReader(zctx *super.Context, r io.Reader, opts ReaderOpts) *Reader {
+func NewReader(sctx *super.Context, r io.Reader, opts ReaderOpts) *Reader {
 	preprocess := newPreprocess(r, opts.Delim)
 	reader := csv.NewReader(preprocess)
 	if opts.Delim != 0 {
@@ -49,7 +49,7 @@ func NewReader(zctx *super.Context, r io.Reader, opts ReaderOpts) *Reader {
 	reader.ReuseRecord = true
 	return &Reader{
 		reader:    reader,
-		marshaler: sup.NewBSUPMarshalerWithContext(zctx),
+		marshaler: sup.NewBSUPMarshalerWithContext(sctx),
 	}
 }
 

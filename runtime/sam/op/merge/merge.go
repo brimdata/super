@@ -20,7 +20,7 @@ import (
 // Merger is waiting on the upstream puller.
 type Op struct {
 	ctx      context.Context
-	zctx     *super.Context
+	sctx     *super.Context
 	cmp      expr.CompareFn
 	resetter expr.Resetter
 

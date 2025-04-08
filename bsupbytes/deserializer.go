@@ -17,11 +17,11 @@ func NewDeserializer(reader io.Reader, templates []interface{}) *Deserializer {
 	return NewDeserializerWithContext(super.NewContext(), reader, templates)
 }
 
-func NewDeserializerWithContext(zctx *super.Context, reader io.Reader, templates []interface{}) *Deserializer {
+func NewDeserializerWithContext(sctx *super.Context, reader io.Reader, templates []interface{}) *Deserializer {
 	u := sup.NewBSUPUnmarshaler()
 	u.Bind(templates...)
 	return &Deserializer{
-		reader:      bsupio.NewReader(zctx, reader),
+		reader:      bsupio.NewReader(sctx, reader),
 		unmarshaler: u,
 	}
 }

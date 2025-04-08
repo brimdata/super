@@ -8,23 +8,23 @@ import (
 )
 
 type RecordBuilder struct {
-	zctx   *super.Context
+	sctx   *super.Context
 	fields field.List
 	base   *rec
 }
 
-func NewRecordBuilder(zctx *super.Context, fields field.List) (*RecordBuilder, error) {
+func NewRecordBuilder(sctx *super.Context, fields field.List) (*RecordBuilder, error) {
 	base := &rec{}
 	for _, path := range fields {
 		if err := addPath(base, path); err != nil {
 			return nil, err
 		}
 	}
-	return &RecordBuilder{zctx: zctx, base: base}, nil
+	return &RecordBuilder{sctx: sctx, base: base}, nil
 }
 
 func (r *RecordBuilder) New(vecs []Any, nulls *Bool) *Record {
-	rec, _ := r.base.build(r.zctx, vecs)
+	rec, _ := r.base.build(r.sctx, vecs)
 	rec.Nulls = nulls
 	return rec
 }
@@ -58,19 +58,19 @@ func addPath(r *rec, path field.Path) error {
 	return nil
 }
 
-func (r *rec) build(zctx *super.Context, leafs []Any) (*Record, []Any) {
+func (r *rec) build(sctx *super.Context, leafs []Any) (*Record, []Any) {
 	var fields []super.Field
 	var out []Any
 	for i, name := range r.paths {
 		var vec Any
 		if r.recs[i] != nil {
-			vec, leafs = r.recs[i].build(zctx, leafs)
+			vec, leafs = r.recs[i].build(sctx, leafs)
 		} else {
 			vec, leafs = leafs[0], leafs[1:]
 		}
 		fields = append(fields, super.NewField(name, vec.Type()))
 		out = append(out, vec)
 	}
-	typ := zctx.MustLookupTypeRecord(fields)
+	typ := sctx.MustLookupTypeRecord(fields)
 	return NewRecord(typ, out, out[0].Len(), nil), leafs
 }

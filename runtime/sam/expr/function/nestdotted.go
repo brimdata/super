@@ -7,7 +7,7 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#nest_dotted.md
 type NestDotted struct {
-	zctx        *super.Context
+	sctx        *super.Context
 	builders    map[int]*super.RecordBuilder
 	recordTypes map[int]*super.TypeRecord
 }
@@ -19,9 +19,9 @@ type NestDotted struct {
 // to arbitrary-depth dotted names, it is not applied to dotted names
 // that start at lower levels (for example {a:{"a.a":1}} is
 // unchanged).
-func NewNestDotted(zctx *super.Context) *NestDotted {
+func NewNestDotted(sctx *super.Context) *NestDotted {
 	return &NestDotted{
-		zctx:        zctx,
+		sctx:        sctx,
 		builders:    make(map[int]*super.RecordBuilder),
 		recordTypes: make(map[int]*super.TypeRecord),
 	}
@@ -45,7 +45,7 @@ func (n *NestDotted) lookupBuilderAndType(in *super.TypeRecord) (*super.RecordBu
 	if !foundDotted {
 		return nil, nil, nil
 	}
-	b, err := super.NewRecordBuilder(n.zctx, fields)
+	b, err := super.NewRecordBuilder(n.sctx, fields)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -62,11 +62,11 @@ func (n *NestDotted) Call(_ super.Allocator, args []super.Value) super.Value {
 	}
 	rtyp := super.TypeRecordOf(val.Type())
 	if rtyp == nil {
-		return n.zctx.WrapError("nest_dotted: non-record value", val)
+		return n.sctx.WrapError("nest_dotted: non-record value", val)
 	}
 	b, typ, err := n.lookupBuilderAndType(rtyp)
 	if err != nil {
-		return n.zctx.WrapError("nest_dotted: "+err.Error(), val)
+		return n.sctx.WrapError("nest_dotted: "+err.Error(), val)
 	}
 	if b == nil {
 		return val

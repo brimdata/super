@@ -45,7 +45,7 @@ func (d *distinct) ConsumeAsPartial(vec vector.Any) {
 	d.partials = append(d.partials, bytes)
 }
 
-func (d *distinct) Result(zctx *super.Context) super.Value {
+func (d *distinct) Result(sctx *super.Context) super.Value {
 	for i, partial := range d.partials {
 		for len(partial) > 0 {
 			length, n := binary.Uvarint(partial)
@@ -67,7 +67,7 @@ func (d *distinct) Result(zctx *super.Context) super.Value {
 			panic(fmt.Sprintf("bad varint: %d", n))
 		}
 		bytes = bytes[n:]
-		typ, err := zctx.LookupType(int(id))
+		typ, err := sctx.LookupType(int(id))
 		if err != nil {
 			panic(err)
 		}
@@ -83,7 +83,7 @@ func (d *distinct) Result(zctx *super.Context) super.Value {
 	if count > 0 {
 		d.fun.Consume(b.Build())
 	}
-	return d.fun.Result(zctx)
+	return d.fun.Result(sctx)
 }
 
 func (d *distinct) ResultAsPartial(*super.Context) super.Value {

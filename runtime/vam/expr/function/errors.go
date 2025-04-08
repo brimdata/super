@@ -7,7 +7,7 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#quiet
 type Quiet struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (q *Quiet) Call(args ...vector.Any) vector.Any {
@@ -21,7 +21,7 @@ func (q *Quiet) Call(args ...vector.Any) vector.Any {
 	if c, ok := arg.Vals.(*vector.Const); ok {
 		// Fast path
 		if s, _ := c.AsString(); s == "missing" {
-			return vector.NewStringError(q.zctx, "quiet", c.Len())
+			return vector.NewStringError(q.sctx, "quiet", c.Len())
 		}
 		return args[0]
 	}

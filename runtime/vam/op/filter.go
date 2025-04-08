@@ -7,13 +7,13 @@ import (
 )
 
 type Filter struct {
-	zctx   *super.Context
+	sctx   *super.Context
 	parent vector.Puller
 	expr   expr.Evaluator
 }
 
-func NewFilter(zctx *super.Context, parent vector.Puller, expr expr.Evaluator) *Filter {
-	return &Filter{zctx, parent, expr}
+func NewFilter(sctx *super.Context, parent vector.Puller, expr expr.Evaluator) *Filter {
+	return &Filter{sctx, parent, expr}
 }
 
 func (f *Filter) Pull(done bool) (vector.Any, error) {

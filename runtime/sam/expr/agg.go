@@ -32,9 +32,9 @@ func (a *Aggregator) NewFunction() agg.Function {
 	return a.pattern()
 }
 
-func (a *Aggregator) Apply(zctx *super.Context, ectx Context, f agg.Function, this super.Value) {
+func (a *Aggregator) Apply(sctx *super.Context, ectx Context, f agg.Function, this super.Value) {
 	if a.where != nil {
-		if val := EvalBool(zctx, ectx, this, a.where); !val.AsBool() {
+		if val := EvalBool(sctx, ectx, this, a.where); !val.AsBool() {
 			// XXX Issue #3401: do something with "where" errors.
 			return
 		}
@@ -48,14 +48,14 @@ func (a *Aggregator) Apply(zctx *super.Context, ectx Context, f agg.Function, th
 // NewAggregatorExpr returns an Evaluator from agg. The returned Evaluator
 // retains the same functionality of the aggregation only it returns it's
 // current state every time a new value is consumed.
-func NewAggregatorExpr(zctx *super.Context, agg *Aggregator) *AggregatorExpr {
-	return &AggregatorExpr{agg: agg, zctx: zctx}
+func NewAggregatorExpr(sctx *super.Context, agg *Aggregator) *AggregatorExpr {
+	return &AggregatorExpr{agg: agg, sctx: sctx}
 }
 
 type AggregatorExpr struct {
 	agg  *Aggregator
 	fn   agg.Function
-	zctx *super.Context
+	sctx *super.Context
 }
 
 var _ Evaluator = (*AggregatorExpr)(nil)
@@ -65,8 +65,8 @@ func (s *AggregatorExpr) Eval(ectx Context, val super.Value) super.Value {
 	if s.fn == nil {
 		s.fn = s.agg.NewFunction()
 	}
-	s.agg.Apply(s.zctx, ectx, s.fn, val)
-	return s.fn.Result(s.zctx)
+	s.agg.Apply(s.sctx, ectx, s.fn, val)
+	return s.fn.Result(s.sctx)
 }
 
 func (s *AggregatorExpr) Reset() {

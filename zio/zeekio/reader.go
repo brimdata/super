@@ -19,11 +19,11 @@ type Reader struct {
 	parser  *Parser
 }
 
-func NewReader(zctx *super.Context, reader io.Reader) *Reader {
+func NewReader(sctx *super.Context, reader io.Reader) *Reader {
 	buffer := make([]byte, ReadSize)
 	return &Reader{
 		scanner: skim.NewScanner(reader, buffer, MaxLineSize),
-		parser:  NewParser(zctx),
+		parser:  NewParser(sctx),
 	}
 }
 

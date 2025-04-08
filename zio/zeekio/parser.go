@@ -21,7 +21,7 @@ type header struct {
 
 type Parser struct {
 	header
-	zctx       *super.Context
+	sctx       *super.Context
 	unknown    int // Count of unknown directives
 	needfields bool
 	needtypes  bool
@@ -38,7 +38,7 @@ var ErrBadRecordDef = errors.New("bad types/fields definition in zeek header")
 func NewParser(r *super.Context) *Parser {
 	return &Parser{
 		header: header{separator: " "},
-		zctx:   r,
+		sctx:   r,
 	}
 }
 
@@ -98,10 +98,10 @@ func (p *Parser) parseType(in string) (super.Type, error) {
 	if words := strings.SplitN(in, "[", 2); len(words) == 2 && strings.HasSuffix(words[1], "]") {
 		if typ, err := p.parsePrimitiveType(strings.TrimSuffix(words[1], "]")); err == nil {
 			if words[0] == "set" {
-				return p.zctx.LookupTypeSet(typ), nil
+				return p.sctx.LookupTypeSet(typ), nil
 			}
 			if words[0] == "vector" {
-				return p.zctx.LookupTypeArray(typ), nil
+				return p.sctx.LookupTypeArray(typ), nil
 			}
 		}
 	}
@@ -120,13 +120,13 @@ func (p *Parser) parsePrimitiveType(in string) (super.Type, error) {
 	case "double":
 		return super.TypeFloat64, nil
 	case "enum":
-		return p.zctx.LookupTypeNamed("zenum", super.TypeString)
+		return p.sctx.LookupTypeNamed("zenum", super.TypeString)
 	case "int":
 		return super.TypeInt64, nil
 	case "interval":
 		return super.TypeDuration, nil
 	case "port":
-		return p.zctx.LookupTypeNamed("port", super.TypeUint16)
+		return p.sctx.LookupTypeNamed("port", super.TypeUint16)
 	case "string":
 		return super.TypeString, nil
 	case "subnet":
@@ -222,7 +222,7 @@ func (p *Parser) ParseDirective(line []byte) error {
 // bool indicating if a _path field was added.
 // Note that according to the Zed spec, all the fields for a nested
 // record must be adjacent which simplifies the logic here.
-func Unflatten(zctx *super.Context, fields []super.Field, addPath bool) ([]super.Field, bool, error) {
+func Unflatten(sctx *super.Context, fields []super.Field, addPath bool) ([]super.Field, bool, error) {
 	hasPath := false
 	for _, f := range fields {
 		// XXX could validate field names here...
@@ -230,7 +230,7 @@ func Unflatten(zctx *super.Context, fields []super.Field, addPath bool) ([]super
 			hasPath = true
 		}
 	}
-	out, err := unflattenRecord(zctx, fields)
+	out, err := unflattenRecord(sctx, fields)
 	if err != nil {
 		return nil, false, err
 	}
@@ -243,7 +243,7 @@ func Unflatten(zctx *super.Context, fields []super.Field, addPath bool) ([]super
 	return out, needpath, nil
 }
 
-func unflattenRecord(zctx *super.Context, fields []super.Field) ([]super.Field, error) {
+func unflattenRecord(sctx *super.Context, fields []super.Field) ([]super.Field, error) {
 	// Extract a []super.Field consisting of all the leading fields
 	// from the input that belong to the same record, with the
 	// common prefix removed from their name.
@@ -274,11 +274,11 @@ func unflattenRecord(zctx *super.Context, fields []super.Field) ([]super.Field, 
 			continue
 		}
 		prefix, nestedFields := recFields(fields[i:])
-		recFields, err := unflattenRecord(zctx, nestedFields)
+		recFields, err := unflattenRecord(sctx, nestedFields)
 		if err != nil {
 			return nil, err
 		}
-		recType, err := zctx.LookupTypeRecord(recFields)
+		recType, err := sctx.LookupTypeRecord(recFields)
 		if err != nil {
 			return nil, err
 		}
@@ -293,11 +293,11 @@ func (p *Parser) setDescriptor() error {
 		return ErrBadRecordDef
 	}
 	fields, sourceFields := coalesceRecordFields(p.fields)
-	fields, addpath, err := Unflatten(p.zctx, fields, p.Path != "")
+	fields, addpath, err := Unflatten(p.sctx, fields, p.Path != "")
 	if err != nil {
 		return err
 	}
-	p.descriptor, err = p.zctx.LookupTypeRecord(fields)
+	p.descriptor, err = p.sctx.LookupTypeRecord(fields)
 	if err != nil {
 		return err
 	}

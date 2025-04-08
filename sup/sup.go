@@ -57,44 +57,44 @@ func SelfDescribing(typ super.Type) bool {
 	return false
 }
 
-func ParseType(zctx *super.Context, sup string) (super.Type, error) {
+func ParseType(sctx *super.Context, sup string) (super.Type, error) {
 	zp := NewParser(strings.NewReader(sup))
 	ast, err := zp.parseType()
 	if ast == nil || noEOF(err) != nil {
 		return nil, err
 	}
-	return NewAnalyzer().convertType(zctx, ast)
+	return NewAnalyzer().convertType(sctx, ast)
 }
 
-func ParseValue(zctx *super.Context, sup string) (super.Value, error) {
+func ParseValue(sctx *super.Context, sup string) (super.Value, error) {
 	zp := NewParser(strings.NewReader(sup))
 	ast, err := zp.ParseValue()
 	if err != nil {
 		return super.Null, err
 	}
-	val, err := NewAnalyzer().ConvertValue(zctx, ast)
+	val, err := NewAnalyzer().ConvertValue(sctx, ast)
 	if err != nil {
 		return super.Null, err
 	}
 	return Build(zcode.NewBuilder(), val)
 }
 
-func MustParseValue(zctx *super.Context, sup string) super.Value {
-	val, err := ParseValue(zctx, sup)
+func MustParseValue(sctx *super.Context, sup string) super.Value {
+	val, err := ParseValue(sctx, sup)
 	if err != nil {
 		panic(err)
 	}
 	return val
 }
 
-func ParseValueFromAST(zctx *super.Context, ast ast.Value) (super.Value, error) {
-	val, err := NewAnalyzer().ConvertValue(zctx, ast)
+func ParseValueFromAST(sctx *super.Context, ast ast.Value) (super.Value, error) {
+	val, err := NewAnalyzer().ConvertValue(sctx, ast)
 	if err != nil {
 		return super.Null, err
 	}
 	return Build(zcode.NewBuilder(), val)
 }
 
-func TranslateType(zctx *super.Context, astType ast.Type) (super.Type, error) {
-	return NewAnalyzer().convertType(zctx, astType)
+func TranslateType(sctx *super.Context, astType ast.Type) (super.Type, error) {
+	return NewAnalyzer().convertType(sctx, astType)
 }

@@ -58,11 +58,11 @@ func (a *Avg) ConsumeAsPartial(partial super.Value) {
 	a.count += countVal.Uint()
 }
 
-func (a *Avg) ResultAsPartial(zctx *super.Context) super.Value {
+func (a *Avg) ResultAsPartial(sctx *super.Context) super.Value {
 	var zv zcode.Bytes
 	zv = super.NewFloat64(a.sum).Encode(zv)
 	zv = super.NewUint64(a.count).Encode(zv)
-	typ := zctx.MustLookupTypeRecord([]super.Field{
+	typ := sctx.MustLookupTypeRecord([]super.Field{
 		super.NewField(sumName, super.TypeFloat64),
 		super.NewField(countName, super.TypeUint64),
 	})

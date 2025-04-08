@@ -10,21 +10,21 @@ import (
 
 func TestBestUnionTag(t *testing.T) {
 	u8 := super.TypeUint8
-	zctx := super.NewContext()
-	u8named1, err := zctx.LookupTypeNamed("u8named1", u8)
+	sctx := super.NewContext()
+	u8named1, err := sctx.LookupTypeNamed("u8named1", u8)
 	require.NoError(t, err)
-	u8named2, err := zctx.LookupTypeNamed("u8named2", u8)
+	u8named2, err := sctx.LookupTypeNamed("u8named2", u8)
 	require.NoError(t, err)
-	u8named3, err := zctx.LookupTypeNamed("u8named3", u8)
+	u8named3, err := sctx.LookupTypeNamed("u8named3", u8)
 	require.NoError(t, err)
 
 	assert.Equal(t, -1, bestUnionTag(u8, nil))
 	assert.Equal(t, -1, bestUnionTag(u8, u8))
-	assert.Equal(t, -1, bestUnionTag(super.TypeUint16, zctx.LookupTypeUnion([]super.Type{u8})))
+	assert.Equal(t, -1, bestUnionTag(super.TypeUint16, sctx.LookupTypeUnion([]super.Type{u8})))
 
 	test := func(expected, needle super.Type, haystack []super.Type) {
 		t.Helper()
-		union := zctx.LookupTypeUnion(haystack)
+		union := sctx.LookupTypeUnion(haystack)
 		typ, err := union.Type(bestUnionTag(needle, union))
 		if assert.NoError(t, err) {
 			assert.Equal(t, expected, typ)

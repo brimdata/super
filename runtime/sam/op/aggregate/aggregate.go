@@ -38,7 +38,7 @@ type Op struct {
 // deterministic but undefined total order.
 type Aggregator struct {
 	ctx  context.Context
-	zctx *super.Context
+	sctx *super.Context
 	// The keyTypes and outTypes tables map a vector of types resulting
 	// from evaluating the key and reducer expressions to a small int,
 	// such that the same vector of types maps to the same small int.
@@ -73,7 +73,7 @@ type Row struct {
 	reducers valRow
 }
 
-func NewAggregator(ctx context.Context, zctx *super.Context, keyRefs, keyExprs, aggRefs []expr.Evaluator, aggs []*expr.Aggregator, builder *super.RecordBuilder, limit int, inputDir order.Direction, partialsIn, partialsOut bool) (*Aggregator, error) {
+func NewAggregator(ctx context.Context, sctx *super.Context, keyRefs, keyExprs, aggRefs []expr.Evaluator, aggs []*expr.Aggregator, builder *super.RecordBuilder, limit int, inputDir order.Direction, partialsIn, partialsOut bool) (*Aggregator, error) {
 	if limit == 0 {
 		limit = DefaultLimit
 	}
@@ -95,7 +95,7 @@ func NewAggregator(ctx context.Context, zctx *super.Context, keyRefs, keyExprs, 
 	}
 	return &Aggregator{
 		ctx:            ctx,
-		zctx:           zctx,
+		sctx:           sctx,
 		inputDir:       inputDir,
 		limit:          limit,
 		keyTypes:       super.NewTypeVectorTable(),
@@ -127,21 +127,21 @@ func New(rctx *runtime.Context, parent zbuf.Puller, keys []expr.Assignment, aggN
 		names = append(names, p)
 	}
 	names = append(names, aggNames...)
-	builder, err := super.NewRecordBuilder(rctx.Zctx, names)
+	builder, err := super.NewRecordBuilder(rctx.Sctx, names)
 	if err != nil {
 		return nil, err
 	}
 	valRefs := make([]expr.Evaluator, 0, len(aggNames))
 	for _, fieldName := range aggNames {
-		valRefs = append(valRefs, expr.NewDottedExpr(rctx.Zctx, fieldName))
+		valRefs = append(valRefs, expr.NewDottedExpr(rctx.Sctx, fieldName))
 	}
 	keyRefs := make([]expr.Evaluator, 0, len(keys))
 	keyExprs := make([]expr.Evaluator, 0, len(keys))
 	for i := range keys {
-		keyRefs = append(keyRefs, expr.NewDottedExpr(rctx.Zctx, names[i]))
+		keyRefs = append(keyRefs, expr.NewDottedExpr(rctx.Sctx, names[i]))
 		keyExprs = append(keyExprs, keys[i].RHS)
 	}
-	agg, err := NewAggregator(rctx.Context, rctx.Zctx, keyRefs, keyExprs, valRefs, aggs, builder, limit, inputSortDir, partialsIn, partialsOut)
+	agg, err := NewAggregator(rctx.Context, rctx.Sctx, keyRefs, keyExprs, valRefs, aggs, builder, limit, inputSortDir, partialsIn, partialsOut)
 	if err != nil {
 		return nil, err
 	}
@@ -367,7 +367,7 @@ func (a *Aggregator) Consume(batch zbuf.Batch, this super.Value) error {
 	if a.partialsIn {
 		row.reducers.consumeAsPartial(this, a.aggRefs, batch)
 	} else {
-		row.reducers.apply(a.zctx, batch, a.aggs, this)
+		row.reducers.apply(a.sctx, batch, a.aggs, this)
 	}
 	return nil
 }
@@ -507,9 +507,9 @@ func (a *Aggregator) nextResultFromSpills(ectx expr.Context) (*super.Value, erro
 	for _, f := range row {
 		var v super.Value
 		if a.partialsOut {
-			v = f.ResultAsPartial(a.zctx)
+			v = f.ResultAsPartial(a.sctx)
 		} else {
-			v = f.Result(a.zctx)
+			v = f.Result(a.sctx)
 		}
 		types = append(types, v.Type())
 		a.builder.Append(v.Bytes())
@@ -556,9 +556,9 @@ func (a *Aggregator) readTable(flush, partialsOut bool, batch zbuf.Batch) (zbuf.
 		for _, f := range row.reducers {
 			var v super.Value
 			if partialsOut {
-				v = f.ResultAsPartial(a.zctx)
+				v = f.ResultAsPartial(a.sctx)
 			} else {
-				v = f.Result(a.zctx)
+				v = f.Result(a.sctx)
 			}
 			types = append(types, v.Type())
 			a.builder.Append(v.Bytes())

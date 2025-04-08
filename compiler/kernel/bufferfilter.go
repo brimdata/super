@@ -13,10 +13,10 @@ import (
 // encoding of a record matching e. (It may also return true for some byte
 // slices that do not match.) compileBufferFilter returns a nil pointer and nil
 // error if it cannot construct a useful filter.
-func CompileBufferFilter(zctx *super.Context, e dag.Expr) (*expr.BufferFilter, error) {
+func CompileBufferFilter(sctx *super.Context, e dag.Expr) (*expr.BufferFilter, error) {
 	switch e := e.(type) {
 	case *dag.BinaryExpr:
-		literal, err := isFieldEqualOrIn(zctx, e)
+		literal, err := isFieldEqualOrIn(sctx, e)
 		if err != nil {
 			return nil, err
 		}
@@ -24,11 +24,11 @@ func CompileBufferFilter(zctx *super.Context, e dag.Expr) (*expr.BufferFilter, e
 			return newBufferFilterForLiteral(*literal)
 		}
 		if e.Op == "and" {
-			left, err := CompileBufferFilter(zctx, e.LHS)
+			left, err := CompileBufferFilter(sctx, e.LHS)
 			if err != nil {
 				return nil, err
 			}
-			right, err := CompileBufferFilter(zctx, e.RHS)
+			right, err := CompileBufferFilter(sctx, e.RHS)
 			if err != nil {
 				return nil, err
 			}
@@ -41,11 +41,11 @@ func CompileBufferFilter(zctx *super.Context, e dag.Expr) (*expr.BufferFilter, e
 			return expr.NewAndBufferFilter(left, right), nil
 		}
 		if e.Op == "or" {
-			left, err := CompileBufferFilter(zctx, e.LHS)
+			left, err := CompileBufferFilter(sctx, e.LHS)
 			if err != nil {
 				return nil, err
 			}
-			right, err := CompileBufferFilter(zctx, e.RHS)
+			right, err := CompileBufferFilter(sctx, e.RHS)
 			if left == nil || right == nil || err != nil {
 				return nil, err
 			}
@@ -53,7 +53,7 @@ func CompileBufferFilter(zctx *super.Context, e dag.Expr) (*expr.BufferFilter, e
 		}
 		return nil, nil
 	case *dag.Search:
-		literal, err := sup.ParseValue(zctx, e.Value)
+		literal, err := sup.ParseValue(sctx, e.Value)
 		if err != nil {
 			return nil, err
 		}
@@ -80,10 +80,10 @@ func CompileBufferFilter(zctx *super.Context, e dag.Expr) (*expr.BufferFilter, e
 	}
 }
 
-func isFieldEqualOrIn(zctx *super.Context, e *dag.BinaryExpr) (*super.Value, error) {
+func isFieldEqualOrIn(sctx *super.Context, e *dag.BinaryExpr) (*super.Value, error) {
 	if _, ok := e.LHS.(*dag.This); ok && e.Op == "==" {
 		if literal, ok := e.RHS.(*dag.Literal); ok {
-			val, err := sup.ParseValue(zctx, literal.Value)
+			val, err := sup.ParseValue(sctx, literal.Value)
 			if err != nil {
 				return nil, err
 			}
@@ -91,7 +91,7 @@ func isFieldEqualOrIn(zctx *super.Context, e *dag.BinaryExpr) (*super.Value, err
 		}
 	} else if _, ok := e.RHS.(*dag.This); ok && e.Op == "in" {
 		if literal, ok := e.LHS.(*dag.Literal); ok {
-			val, err := sup.ParseValue(zctx, literal.Value)
+			val, err := sup.ParseValue(sctx, literal.Value)
 			if err != nil {
 				return nil, err
 			}

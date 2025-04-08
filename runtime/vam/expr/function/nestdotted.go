@@ -7,7 +7,7 @@ import (
 )
 
 type NestDotted struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (n *NestDotted) Call(args ...vector.Any) vector.Any {
@@ -21,11 +21,11 @@ func (n *NestDotted) Call(args ...vector.Any) vector.Any {
 	}
 	record, ok := vec.(*vector.Record)
 	if !ok {
-		return vector.NewWrappedError(n.zctx, "nest_dotted: non-record value", args[len(args)-1])
+		return vector.NewWrappedError(n.sctx, "nest_dotted: non-record value", args[len(args)-1])
 	}
 	b, err := n.getBuilder(record.Typ)
 	if err != nil {
-		return vector.NewWrappedError(n.zctx, "nest_dotted: "+err.Error(), args[len(args)-1])
+		return vector.NewWrappedError(n.sctx, "nest_dotted: "+err.Error(), args[len(args)-1])
 	}
 	if b == nil {
 		return args[len(args)-1]
@@ -50,5 +50,5 @@ func (n *NestDotted) getBuilder(in *super.TypeRecord) (*vector.RecordBuilder, er
 	if !foundDotted {
 		return nil, nil
 	}
-	return vector.NewRecordBuilder(n.zctx, fields)
+	return vector.NewRecordBuilder(n.sctx, fields)
 }

@@ -56,7 +56,7 @@ func (u *Union) deleteOne() {
 	}
 }
 
-func (u *Union) Result(zctx *super.Context) super.Value {
+func (u *Union) Result(sctx *super.Context) super.Value {
 	if len(u.types) == 0 {
 		return super.Null
 	}
@@ -67,7 +67,7 @@ func (u *Union) Result(zctx *super.Context) super.Value {
 	var inner super.Type
 	var b zcode.Builder
 	if len(types) > 1 {
-		union := zctx.LookupTypeUnion(types)
+		union := sctx.LookupTypeUnion(types)
 		inner = union
 		for typ, m := range u.types {
 			for v := range m {
@@ -80,7 +80,7 @@ func (u *Union) Result(zctx *super.Context) super.Value {
 			b.Append([]byte(v))
 		}
 	}
-	return super.NewValue(zctx.LookupTypeSet(inner), super.NormalizeSet(b.Bytes()))
+	return super.NewValue(sctx.LookupTypeSet(inner), super.NormalizeSet(b.Bytes()))
 }
 
 func (u *Union) ConsumeAsPartial(val super.Value) {
@@ -101,6 +101,6 @@ func (u *Union) ConsumeAsPartial(val super.Value) {
 	}
 }
 
-func (u *Union) ResultAsPartial(zctx *super.Context) super.Value {
-	return u.Result(zctx)
+func (u *Union) ResultAsPartial(sctx *super.Context) super.Value {
+	return u.Result(sctx)
 }

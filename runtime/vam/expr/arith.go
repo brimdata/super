@@ -12,14 +12,14 @@ import (
 )
 
 type Arith struct {
-	zctx   *super.Context
+	sctx   *super.Context
 	opCode int
 	lhs    Evaluator
 	rhs    Evaluator
 }
 
-func NewArith(zctx *super.Context, lhs, rhs Evaluator, op string) *Arith {
-	return &Arith{zctx, vector.ArithOpFromString(op), lhs, rhs}
+func NewArith(sctx *super.Context, lhs, rhs Evaluator, op string) *Arith {
+	return &Arith{sctx, vector.ArithOpFromString(op), lhs, rhs}
 }
 
 func (a *Arith) Eval(val vector.Any) vector.Any {
@@ -35,7 +35,7 @@ func (a *Arith) eval(vecs ...vector.Any) (out vector.Any) {
 	if vector.KindOf(rhs) == vector.KindError {
 		return rhs
 	}
-	lhs, rhs, errVal := coerceVals(a.zctx, lhs, rhs)
+	lhs, rhs, errVal := coerceVals(a.sctx, lhs, rhs)
 	if errVal != nil {
 		return errVal
 	}
@@ -44,19 +44,19 @@ func (a *Arith) eval(vecs ...vector.Any) (out vector.Any) {
 		panic(fmt.Sprintf("vector kind mismatch after coerce (%#v and %#v)", lhs, rhs))
 	}
 	if kind == vector.KindFloat && a.opCode == vector.ArithMod {
-		return vector.NewStringError(a.zctx, "type float64 incompatible with '%' operator", lhs.Len())
+		return vector.NewStringError(a.sctx, "type float64 incompatible with '%' operator", lhs.Len())
 	}
 	lform, ok := vector.FormOf(lhs)
 	if !ok {
-		return vector.NewStringError(a.zctx, coerce.ErrIncompatibleTypes.Error(), lhs.Len())
+		return vector.NewStringError(a.sctx, coerce.ErrIncompatibleTypes.Error(), lhs.Len())
 	}
 	rform, ok := vector.FormOf(rhs)
 	if !ok {
-		return vector.NewStringError(a.zctx, coerce.ErrIncompatibleTypes.Error(), lhs.Len())
+		return vector.NewStringError(a.sctx, coerce.ErrIncompatibleTypes.Error(), lhs.Len())
 	}
 	f, ok := arithFuncs[vector.FuncCode(a.opCode, kind, lform, rform)]
 	if !ok {
-		return vector.NewStringError(a.zctx, coerce.ErrIncompatibleTypes.Error(), lhs.Len())
+		return vector.NewStringError(a.sctx, coerce.ErrIncompatibleTypes.Error(), lhs.Len())
 	}
 	if a.opCode == vector.ArithDiv || a.opCode == vector.ArithMod {
 		defer func() {
@@ -137,7 +137,7 @@ func (a *Arith) evalDivideByZero(kind vector.Kind, lhs, rhs vector.Any) vector.A
 		panic(kind)
 	}
 	if len(errs) > 0 {
-		return vector.Combine(out, errs, vector.NewStringError(a.zctx, "divide by zero", uint32(len(errs))))
+		return vector.Combine(out, errs, vector.NewStringError(a.sctx, "divide by zero", uint32(len(errs))))
 	}
 	return out
 }

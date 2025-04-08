@@ -7,7 +7,7 @@ import (
 	"github.com/brimdata/super/vector"
 )
 
-func To(zctx *super.Context, vec vector.Any, typ super.Type) vector.Any {
+func To(sctx *super.Context, vec vector.Any, typ super.Type) vector.Any {
 	vec = vector.Under(vec)
 	var c caster
 	id := typ.ID()
@@ -29,24 +29,24 @@ func To(zctx *super.Context, vec vector.Any, typ super.Type) vector.Any {
 			c = castToNet
 		case super.IDType:
 			c = func(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
-				return castToType(zctx, vec, index)
+				return castToType(sctx, vec, index)
 			}
 		default:
-			return errCastFailed(zctx, vec, typ)
+			return errCastFailed(sctx, vec, typ)
 		}
 	}
-	return assemble(zctx, vec, typ, c)
+	return assemble(sctx, vec, typ, c)
 }
 
 type caster func(vector.Any, []uint32) (vector.Any, []uint32, bool)
 
-func assemble(zctx *super.Context, vec vector.Any, typ super.Type, fn caster) vector.Any {
+func assemble(sctx *super.Context, vec vector.Any, typ super.Type, fn caster) vector.Any {
 	var out vector.Any
 	var errs []uint32
 	var ok bool
 	switch vec := vec.(type) {
 	case *vector.Const:
-		return castConst(zctx, vec, typ)
+		return castConst(sctx, vec, typ)
 	case *vector.View:
 		out, errs, ok = fn(vec.Any, vec.Index)
 	case *vector.Dict:
@@ -64,19 +64,19 @@ func assemble(zctx *super.Context, vec vector.Any, typ super.Type, fn caster) ve
 		out, errs, ok = fn(vec, nil)
 	}
 	if !ok {
-		return errCastFailed(zctx, vec, typ)
+		return errCastFailed(sctx, vec, typ)
 	}
 	if len(errs) > 0 {
-		return vector.Combine(out, errs, errCastFailed(zctx, vector.NewView(vec, errs), typ))
+		return vector.Combine(out, errs, errCastFailed(sctx, vector.NewView(vec, errs), typ))
 	}
 	return out
 }
 
-func castConst(zctx *super.Context, vec *vector.Const, typ super.Type) vector.Any {
+func castConst(sctx *super.Context, vec *vector.Const, typ super.Type) vector.Any {
 	if vec.Type().ID() == super.IDNull {
 		return vector.NewConst(super.NewValue(typ, nil), vec.Len(), nil)
 	}
-	val := samexpr.LookupPrimitiveCaster(zctx, typ).Eval(samexpr.NewContext(), vec.Value())
+	val := samexpr.LookupPrimitiveCaster(sctx, typ).Eval(samexpr.NewContext(), vec.Value())
 	if val.IsError() {
 		if vec.Nulls != nil {
 			var trueCount uint32
@@ -87,17 +87,17 @@ func castConst(zctx *super.Context, vec *vector.Const, typ super.Type) vector.An
 					trueCount++
 				}
 			}
-			err := errCastFailed(zctx, vector.NewConst(vec.Value(), vec.Len()-trueCount, nil), typ)
+			err := errCastFailed(sctx, vector.NewConst(vec.Value(), vec.Len()-trueCount, nil), typ)
 			nulls := vector.NewConst(super.NewValue(typ, nil), trueCount, nil)
 			return vector.NewDynamic(index, []vector.Any{err, nulls})
 		}
-		return errCastFailed(zctx, vec, typ)
+		return errCastFailed(sctx, vec, typ)
 	}
 	return vector.NewConst(val, vec.Len(), vec.Nulls)
 }
 
-func errCastFailed(zctx *super.Context, vec vector.Any, typ super.Type) vector.Any {
-	return vector.NewWrappedError(zctx, "cannot cast to "+sup.FormatType(typ), vec)
+func errCastFailed(sctx *super.Context, vec vector.Any, typ super.Type) vector.Any {
+	return vector.NewWrappedError(sctx, "cannot cast to "+sup.FormatType(typ), vec)
 }
 
 func lengthOf(vec vector.Any, index []uint32) uint32 {

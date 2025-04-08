@@ -10,16 +10,16 @@ type RecordElem struct {
 	Expr Evaluator
 }
 
-func NewRecordExpr(zctx *super.Context, elems []RecordElem) Evaluator {
+func NewRecordExpr(sctx *super.Context, elems []RecordElem) Evaluator {
 	return &recordExpr{
-		zctx:         zctx,
+		sctx:         sctx,
 		elems:        elems,
 		fieldIndexes: map[string]int{},
 	}
 }
 
 type recordExpr struct {
-	zctx  *super.Context
+	sctx  *super.Context
 	elems []RecordElem
 
 	elemVecs     []vector.Any
@@ -30,7 +30,7 @@ type recordExpr struct {
 
 func (r *recordExpr) Eval(this vector.Any) vector.Any {
 	if len(r.elems) == 0 {
-		typ := r.zctx.MustLookupTypeRecord(nil)
+		typ := r.sctx.MustLookupTypeRecord(nil)
 		return vector.NewRecord(typ, nil, this.Len(), nil)
 	}
 	r.elemVecs = r.elemVecs[:0]
@@ -51,7 +51,7 @@ func (r *recordExpr) eval(vecs ...vector.Any) vector.Any {
 			r.spread(vec)
 		}
 	}
-	typ := r.zctx.MustLookupTypeRecord(r.fields)
+	typ := r.sctx.MustLookupTypeRecord(r.fields)
 	return vector.NewRecord(typ, r.fieldVecs, r.fieldVecs[0].Len(), nil)
 }
 

@@ -13,23 +13,23 @@ func (*This) Eval(val vector.Any) vector.Any {
 }
 
 type DotExpr struct {
-	zctx   *super.Context
+	sctx   *super.Context
 	record Evaluator
 	field  string
 }
 
-func NewDotExpr(zctx *super.Context, record Evaluator, field string) *DotExpr {
+func NewDotExpr(sctx *super.Context, record Evaluator, field string) *DotExpr {
 	return &DotExpr{
-		zctx:   zctx,
+		sctx:   sctx,
 		record: record,
 		field:  field,
 	}
 }
 
-func NewDottedExpr(zctx *super.Context, f field.Path) Evaluator {
+func NewDottedExpr(sctx *super.Context, f field.Path) Evaluator {
 	ret := Evaluator(&This{})
 	for _, name := range f {
-		ret = NewDotExpr(zctx, ret, name)
+		ret = NewDotExpr(sctx, ret, name)
 	}
 	return ret
 }
@@ -43,7 +43,7 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 	case *vector.Record:
 		i, ok := val.Typ.IndexOfField(d.field)
 		if !ok {
-			return vector.NewMissing(d.zctx, val.Len())
+			return vector.NewMissing(d.sctx, val.Len())
 		}
 		return val.Fields[i]
 	case *vector.TypeValue:
@@ -53,6 +53,6 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 	case *vector.View:
 		return vector.NewView(d.eval(val.Any), val.Index)
 	default:
-		return vector.NewMissing(d.zctx, val.Len())
+		return vector.NewMissing(d.sctx, val.Len())
 	}
 }

@@ -40,8 +40,8 @@ func (u *union) Consume(vec vector.Any) {
 	}
 }
 
-func (u *union) Result(zctx *super.Context) super.Value {
-	return u.samunion.Result(zctx)
+func (u *union) Result(sctx *super.Context) super.Value {
+	return u.samunion.Result(sctx)
 }
 
 func (u *union) ConsumeAsPartial(partial vector.Any) {
@@ -69,6 +69,6 @@ func (u *union) ConsumeAsPartial(partial vector.Any) {
 	}
 }
 
-func (u *union) ResultAsPartial(zctx *super.Context) super.Value {
-	return u.samunion.ResultAsPartial(zctx)
+func (u *union) ResultAsPartial(sctx *super.Context) super.Value {
+	return u.samunion.ResultAsPartial(sctx)
 }

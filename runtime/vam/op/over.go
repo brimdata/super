@@ -7,7 +7,7 @@ import (
 )
 
 type Over struct {
-	zctx   *super.Context
+	sctx   *super.Context
 	parent vector.Puller
 	exprs  []expr.Evaluator
 
@@ -15,9 +15,9 @@ type Over struct {
 	idx  uint32
 }
 
-func NewOver(zctx *super.Context, parent vector.Puller, exprs []expr.Evaluator) *Over {
+func NewOver(sctx *super.Context, parent vector.Puller, exprs []expr.Evaluator) *Over {
 	return &Over{
-		zctx:   zctx,
+		sctx:   sctx,
 		parent: parent,
 		exprs:  exprs,
 	}
@@ -81,13 +81,13 @@ func (o *Over) flatten(vec vector.Any, slot uint32) vector.Any {
 		if len(vec.Fields) == 0 || vec.Nulls.Value(slot) {
 			return nil
 		}
-		keyType := o.zctx.LookupTypeArray(super.TypeString)
+		keyType := o.sctx.LookupTypeArray(super.TypeString)
 		keyOffsets := []uint32{0, 1}
 		var tags []uint32
 		var vecs []vector.Any
 		for i, f := range super.TypeRecordOf(vec.Type()).Fields {
 			tags = append(tags, uint32(i))
-			typ := o.zctx.MustLookupTypeRecord([]super.Field{
+			typ := o.sctx.MustLookupTypeRecord([]super.Field{
 				{Name: "key", Type: keyType},
 				{Name: "value", Type: f.Type},
 			})

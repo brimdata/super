@@ -74,22 +74,22 @@ func WriteCSUP(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
 }
 
 func RunQueryBSUP(t testing.TB, buf *bytes.Buffer, querySource string) []super.Value {
-	zctx := super.NewContext()
-	readers := []zio.Reader{bsupio.NewReader(zctx, buf)}
+	sctx := super.NewContext()
+	readers := []zio.Reader{bsupio.NewReader(sctx, buf)}
 	defer zio.CloseReaders(readers)
-	return RunQuery(t, zctx, readers, querySource, func(_ demand.Demand) {})
+	return RunQuery(t, sctx, readers, querySource, func(_ demand.Demand) {})
 }
 
 func RunQueryCSUP(t testing.TB, buf *bytes.Buffer, querySource string) []super.Value {
-	zctx := super.NewContext()
-	reader, err := csupio.NewReader(zctx, bytes.NewReader(buf.Bytes()), nil)
+	sctx := super.NewContext()
+	reader, err := csupio.NewReader(sctx, bytes.NewReader(buf.Bytes()), nil)
 	require.NoError(t, err)
 	readers := []zio.Reader{reader}
 	defer zio.CloseReaders(readers)
-	return RunQuery(t, zctx, readers, querySource, func(_ demand.Demand) {})
+	return RunQuery(t, sctx, readers, querySource, func(_ demand.Demand) {})
 }
 
-func RunQuery(t testing.TB, zctx *super.Context, readers []zio.Reader, querySource string, useDemand func(demandIn demand.Demand)) []super.Value {
+func RunQuery(t testing.TB, sctx *super.Context, readers []zio.Reader, querySource string, useDemand func(demandIn demand.Demand)) []super.Value {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -101,7 +101,7 @@ func RunQuery(t testing.TB, zctx *super.Context, readers []zio.Reader, querySour
 	if err != nil {
 		t.Skipf("%v", err)
 	}
-	query, err := runtime.CompileQuery(ctx, zctx, comp, ast, readers)
+	query, err := runtime.CompileQuery(ctx, sctx, comp, ast, readers)
 	if err != nil {
 		t.Skipf("%v", err)
 	}

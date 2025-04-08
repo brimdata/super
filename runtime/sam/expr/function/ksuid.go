@@ -7,7 +7,7 @@ import (
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#ksuid
 type KSUIDToString struct {
-	zctx *super.Context
+	sctx *super.Context
 }
 
 func (k *KSUIDToString) Call(_ super.Allocator, args []super.Value) super.Value {
@@ -18,7 +18,7 @@ func (k *KSUIDToString) Call(_ super.Allocator, args []super.Value) super.Value 
 	switch val.Type().ID() {
 	case super.IDBytes:
 		if val.IsNull() {
-			return k.zctx.NewErrorf("ksuid: illegal null argument")
+			return k.sctx.NewErrorf("ksuid: illegal null argument")
 		}
 		// XXX GC
 		id, err := ksuid.FromBytes(val.Bytes())
@@ -30,10 +30,10 @@ func (k *KSUIDToString) Call(_ super.Allocator, args []super.Value) super.Value 
 		// XXX GC
 		id, err := ksuid.Parse(string(val.Bytes()))
 		if err != nil {
-			return k.zctx.WrapError("ksuid: "+err.Error(), val)
+			return k.sctx.WrapError("ksuid: "+err.Error(), val)
 		}
 		return super.NewBytes(id.Bytes())
 	default:
-		return k.zctx.WrapError("ksuid: argument must a bytes or string type", val)
+		return k.sctx.WrapError("ksuid: argument must a bytes or string type", val)
 	}
 }

@@ -44,7 +44,7 @@ type analyzer struct {
 	outputs map[*dag.Output]ast.Node
 	env     *exec.Environment
 	scope   *Scope
-	zctx    *super.Context
+	sctx    *super.Context
 }
 
 func newAnalyzer(ctx context.Context, files *srcfiles.List, env *exec.Environment) *analyzer {
@@ -54,7 +54,7 @@ func newAnalyzer(ctx context.Context, files *srcfiles.List, env *exec.Environmen
 		outputs: make(map[*dag.Output]ast.Node),
 		env:     env,
 		scope:   NewScope(nil),
-		zctx:    super.NewContext(),
+		sctx:    super.NewContext(),
 	}
 }
 

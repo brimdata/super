@@ -172,54 +172,54 @@ func (e encoder) newType(typ super.Type) zType {
 
 type decoder map[int]super.Type
 
-func (d decoder) decodeType(zctx *super.Context, t zType) (super.Type, error) {
+func (d decoder) decodeType(sctx *super.Context, t zType) (super.Type, error) {
 	switch t := t.(type) {
 	case *zRecord:
-		typ, err := d.decodeTypeRecord(zctx, t)
+		typ, err := d.decodeTypeRecord(sctx, t)
 		d[t.ID] = typ
 		return typ, err
 	case *zArray:
-		inner, err := d.decodeType(zctx, t.Type)
+		inner, err := d.decodeType(sctx, t.Type)
 		if err != nil {
 			return nil, err
 		}
-		typ := zctx.LookupTypeArray(inner)
+		typ := sctx.LookupTypeArray(inner)
 		d[t.ID] = typ
 		return typ, nil
 	case *zSet:
-		inner, err := d.decodeType(zctx, t.Type)
+		inner, err := d.decodeType(sctx, t.Type)
 		if err != nil {
 			return nil, err
 		}
-		typ := zctx.LookupTypeSet(inner)
+		typ := sctx.LookupTypeSet(inner)
 		d[t.ID] = typ
 		return typ, nil
 	case *zUnion:
-		typ, err := d.decodeTypeUnion(zctx, t)
+		typ, err := d.decodeTypeUnion(sctx, t)
 		d[t.ID] = typ
 		return typ, err
 	case *zEnum:
-		typ, err := d.decodeTypeEnum(zctx, t)
+		typ, err := d.decodeTypeEnum(sctx, t)
 		d[t.ID] = typ
 		return typ, err
 	case *zMap:
-		typ, err := d.decodeTypeMap(zctx, t)
+		typ, err := d.decodeTypeMap(sctx, t)
 		d[t.ID] = typ
 		return typ, err
 	case *zNamed:
-		inner, err := d.decodeType(zctx, t.Type)
+		inner, err := d.decodeType(sctx, t.Type)
 		if err != nil {
 			return nil, err
 		}
-		typ, err := zctx.LookupTypeNamed(t.Name, inner)
+		typ, err := sctx.LookupTypeNamed(t.Name, inner)
 		d[t.ID] = typ
 		return typ, err
 	case *zError:
-		inner, err := d.decodeType(zctx, t.Type)
+		inner, err := d.decodeType(sctx, t.Type)
 		if err != nil {
 			return nil, err
 		}
-		typ := zctx.LookupTypeError(inner)
+		typ := sctx.LookupTypeError(inner)
 		d[t.ID] = typ
 		return typ, nil
 	case *zPrimitive:
@@ -238,42 +238,42 @@ func (d decoder) decodeType(zctx *super.Context, t zType) (super.Type, error) {
 	return nil, fmt.Errorf("ZJSON unknown type: %T", t)
 }
 
-func (d decoder) decodeTypeRecord(zctx *super.Context, typ *zRecord) (*super.TypeRecord, error) {
+func (d decoder) decodeTypeRecord(sctx *super.Context, typ *zRecord) (*super.TypeRecord, error) {
 	fields := make([]super.Field, 0, len(typ.Fields))
 	for _, field := range typ.Fields {
-		typ, err := d.decodeType(zctx, field.Type)
+		typ, err := d.decodeType(sctx, field.Type)
 		if err != nil {
 			return nil, err
 		}
 		fields = append(fields, super.NewField(field.Name, typ))
 	}
-	return zctx.LookupTypeRecord(fields)
+	return sctx.LookupTypeRecord(fields)
 }
 
-func (d decoder) decodeTypeUnion(zctx *super.Context, union *zUnion) (*super.TypeUnion, error) {
+func (d decoder) decodeTypeUnion(sctx *super.Context, union *zUnion) (*super.TypeUnion, error) {
 	var types []super.Type
 	for _, t := range union.Types {
-		typ, err := d.decodeType(zctx, t)
+		typ, err := d.decodeType(sctx, t)
 		if err != nil {
 			return nil, err
 		}
 		types = append(types, typ)
 	}
-	return zctx.LookupTypeUnion(types), nil
+	return sctx.LookupTypeUnion(types), nil
 }
 
-func (d decoder) decodeTypeMap(zctx *super.Context, m *zMap) (*super.TypeMap, error) {
-	keyType, err := d.decodeType(zctx, m.KeyType)
+func (d decoder) decodeTypeMap(sctx *super.Context, m *zMap) (*super.TypeMap, error) {
+	keyType, err := d.decodeType(sctx, m.KeyType)
 	if err != nil {
 		return nil, err
 	}
-	valType, err := d.decodeType(zctx, m.ValType)
+	valType, err := d.decodeType(sctx, m.ValType)
 	if err != nil {
 		return nil, err
 	}
-	return zctx.LookupTypeMap(keyType, valType), nil
+	return sctx.LookupTypeMap(keyType, valType), nil
 }
 
-func (d decoder) decodeTypeEnum(zctx *super.Context, enum *zEnum) (*super.TypeEnum, error) {
-	return zctx.LookupTypeEnum(enum.Symbols), nil
+func (d decoder) decodeTypeEnum(sctx *super.Context, enum *zEnum) (*super.TypeEnum, error) {
+	return sctx.LookupTypeEnum(enum.Symbols), nil
 }
