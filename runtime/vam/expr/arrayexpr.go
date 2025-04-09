@@ -36,20 +36,22 @@ func (a *ArrayExpr) Eval(this vector.Any) vector.Any {
 }
 
 func (a *ArrayExpr) eval(in ...vector.Any) vector.Any {
+	offsets, inner := buildList(a.sctx, a.elems, in)
+	return vector.NewArray(a.sctx.LookupTypeArray(inner.Type()), offsets, inner, nil)
+}
+
+func buildList(sctx *super.Context, elems []ListElem, in []vector.Any) ([]uint32, vector.Any) {
 	n := in[0].Len()
-	if n == 0 {
-		return vector.NewConst(super.Null, 0, nil)
-	}
 	var spreadOffs [][]uint32
-	unionTags := make([][]uint32, len(a.elems))
+	unionTags := make([][]uint32, len(elems))
 	var viewIndexes [][]uint32
 	var vecs []vector.Any
 	var vecTags []uint32
-	for i, elem := range a.elems {
+	for i, elem := range elems {
 		vec := in[i]
 		var offsets, index []uint32
 		if elem.Spread != nil {
-			vec, offsets, index = a.unwrapSpread(in[i])
+			vec, offsets, index = unwrapSpread(in[i])
 			if vec == nil {
 				// drop unspreadable elements.
 				continue
@@ -95,36 +97,28 @@ func (a *ArrayExpr) eval(in ...vector.Any) vector.Any {
 		}
 		offsets = append(offsets, offsets[i]+size)
 	}
-	var typ super.Type
-	var innerVec vector.Any
 	if len(vecs) == 1 {
-		typ = vecs[0].Type()
-		innerVec = vecs[0]
-	} else {
-		var all []super.Type
-		for _, vec := range vecs {
-			all = append(all, vec.Type())
-		}
-		types := super.UniqueTypes(all)
-		if len(types) == 1 {
-			typ = types[0]
-			innerVec = mergeSameTypeVecs(typ, tags, vecs)
-		} else {
-			typ = a.sctx.LookupTypeUnion(types)
-			innerVec = vector.NewUnion(typ.(*super.TypeUnion), tags, vecs, nil)
-		}
+		return offsets, vecs[0]
 	}
-	return vector.NewArray(a.sctx.LookupTypeArray(typ), offsets, innerVec, nil)
+	var all []super.Type
+	for _, vec := range vecs {
+		all = append(all, vec.Type())
+	}
+	types := super.UniqueTypes(all)
+	if len(types) == 1 {
+		return offsets, mergeSameTypeVecs(types[0], tags, vecs)
+	}
+	return offsets, vector.NewUnion(sctx.LookupTypeUnion(types), tags, vecs, nil)
 }
 
-func (a *ArrayExpr) unwrapSpread(vec vector.Any) (vector.Any, []uint32, []uint32) {
+func unwrapSpread(vec vector.Any) (vector.Any, []uint32, []uint32) {
 	switch vec := vec.(type) {
 	case *vector.Array:
 		return vec.Values, vec.Offsets, nil
 	case *vector.Set:
 		return vec.Values, vec.Offsets, nil
 	case *vector.View:
-		vals, offsets, _ := a.unwrapSpread(vec.Any)
+		vals, offsets, _ := unwrapSpread(vec.Any)
 		return vals, offsets, vec.Index
 	}
 	return nil, nil, nil

@@ -1,5 +1,7 @@
 spq: a in |[1,2,3]|
 
+vector: true
+
 input: |
   {a:2}
   {a:4}
