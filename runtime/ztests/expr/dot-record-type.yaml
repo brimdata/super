@@ -1,0 +1,19 @@
+spq: yield foo, foo.bar
+
+vector: true
+
+input: |
+  <{foo:{bar:int64}}>
+  <int64>
+  <{foo:ip}>
+  null(type)
+
+output: |
+  <{bar:int64}>
+  <int64>
+  error("missing")
+  error("missing")
+  <ip>
+  error("missing")
+  null(type)
+  null(type)

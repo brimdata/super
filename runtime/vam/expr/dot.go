@@ -47,7 +47,35 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 		}
 		return val.Fields[i]
 	case *vector.TypeValue:
-		panic("vam.DotExpr TypeValue TBD")
+		var errs []uint32
+		typvals := vector.NewTypeValueEmpty(0, nil)
+		var nulls *vector.Bool
+		for i := range val.Len() {
+			if val.Nulls.Value(i) {
+				if nulls == nil {
+					nulls = vector.NewBoolEmpty(val.Len(), nil)
+				}
+				nulls.Set(typvals.Len())
+				typvals.Append(nil)
+				continue
+			}
+			typ, _ := d.sctx.DecodeTypeValue(val.Value(i))
+			if typ, ok := super.TypeUnder(typ).(*super.TypeRecord); ok {
+				if typ, ok := typ.TypeOfField(d.field); ok {
+					typvals.Append(super.EncodeTypeValue(typ))
+					continue
+				}
+			}
+			errs = append(errs, i)
+		}
+		if nulls != nil {
+			nulls.SetLen(typvals.Len())
+			typvals = vector.CopyAndSetNulls(typvals, nulls).(*vector.TypeValue)
+		}
+		if len(errs) > 0 {
+			return vector.Combine(typvals, errs, vector.NewMissing(d.sctx, uint32(len(errs))))
+		}
+		return typvals
 	case *vector.Map:
 		panic("vam.DotExpr Map TBD")
 	case *vector.View:

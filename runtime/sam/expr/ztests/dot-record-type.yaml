@@ -1,8 +1,0 @@
-spq: yield foo, foo.bar
-
-input: |
-  <{foo:{bar:int64}}>
-
-output: |
-  <{bar:int64}>
-  <int64>

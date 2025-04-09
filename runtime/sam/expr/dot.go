@@ -80,6 +80,9 @@ func (d *DotExpr) fieldIndex(typ *super.TypeRecord) (int, bool) {
 }
 
 func (d *DotExpr) evalTypeOfType(ectx Context, b zcode.Bytes) super.Value {
+	if b == nil {
+		return super.NewValue(super.TypeType, nil)
+	}
 	typ, _ := d.sctx.DecodeTypeValue(b)
 	if typ, ok := super.TypeUnder(typ).(*super.TypeRecord); ok {
 		if typ, ok := typ.TypeOfField(d.field); ok {
