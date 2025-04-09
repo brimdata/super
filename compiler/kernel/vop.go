@@ -306,6 +306,12 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		return vamop.NewSort(b.rctx, parent, sortExprs, o.NullsFirst, o.Reverse, b.resetters), nil
 	case *dag.Tail:
 		return vamop.NewTail(parent, o.Count), nil
+	case *dag.Uniq:
+		zbufPuller, err := b.compileLeaf(o, vam.NewMaterializer(parent))
+		if err != nil {
+			return nil, err
+		}
+		return vam.NewDematerializer(zbufPuller), nil
 	case *dag.Yield:
 		exprs, err := b.compileVamExprs(o.Exprs)
 		if err != nil {
