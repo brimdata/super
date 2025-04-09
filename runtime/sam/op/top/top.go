@@ -23,8 +23,10 @@ type Op struct {
 	fields     []expr.Evaluator
 	flushEvery bool
 	resetter   expr.Resetter
-	records    *expr.RecordSlice
-	compare    expr.CompareFn
+
+	eos     bool
+	records *expr.RecordSlice
+	compare expr.CompareFn
 }
 
 func New(sctx *super.Context, parent zbuf.Puller, limit int, fields []expr.Evaluator, flushEvery bool, resetter expr.Resetter) *Op {
@@ -41,12 +43,17 @@ func New(sctx *super.Context, parent zbuf.Puller, limit int, fields []expr.Evalu
 }
 
 func (o *Op) Pull(done bool) (zbuf.Batch, error) {
+	if o.eos {
+		o.eos = false
+		return nil, nil
+	}
 	for {
 		batch, err := o.parent.Pull(done)
 		if err != nil {
 			return nil, err
 		}
 		if batch == nil {
+			o.eos = true
 			defer o.resetter.Reset()
 			return o.sorted(), nil
 		}

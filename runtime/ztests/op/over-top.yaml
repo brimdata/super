@@ -1,0 +1,16 @@
+spq: over a => (top 2 this)
+
+vector: true
+
+input: |
+  {a:[10,9,11]}
+  {a:[3,2,1]}
+  {a:|[6,9]|}
+
+output: |
+  11
+  10
+  3
+  2
+  9
+  6
