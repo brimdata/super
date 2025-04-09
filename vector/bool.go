@@ -224,115 +224,79 @@ func NullsOf(v Any) *Bool {
 func CopyAndSetNulls(v Any, nulls *Bool) Any {
 	switch v := v.(type) {
 	case *Array:
-		return &Array{
-			Typ:     v.Typ,
-			Offsets: v.Offsets,
-			Values:  v.Values,
-			Nulls:   nulls,
-		}
+		copy := *v
+		copy.Nulls = nulls
+		return &copy
 	case *Bytes:
-		return &Bytes{
-			Offs:  v.Offs,
-			Bytes: v.Bytes,
-			Nulls: nulls,
-		}
+		copy := *v
+		copy.Nulls = nulls
+		return &copy
 	case *Bool:
-		return &Bool{
-			len:   v.len,
-			Bits:  v.Bits,
-			Nulls: nulls,
-		}
+		copy := *v
+		copy.Nulls = nulls
+		return &copy
 	case *Const:
-		return &Const{
-			val:   v.val,
-			len:   v.len,
-			Nulls: nulls,
-		}
+		copy := *v
+		copy.Nulls = nulls
+		return &copy
 	case *Dict:
-		return &Dict{
-			Any:    v.Any,
-			Index:  v.Index,
-			Counts: v.Counts,
-			Nulls:  nulls,
-		}
+		copy := *v
+		copy.Nulls = nulls
+		return &copy
 	case *Enum:
 		return &Enum{
 			Typ:  v.Typ,
 			Uint: CopyAndSetNulls(v.Uint, nulls).(*Uint),
 		}
 	case *Error:
-		return &Error{
-			Typ:   v.Typ,
-			Vals:  v.Vals,
-			Nulls: nulls,
-		}
+		copy := *v
+		copy.Nulls = nulls
+		return &copy
 	case *Float:
-		return &Float{
-			Typ:    v.Typ,
-			Values: v.Values,
-			Nulls:  nulls,
-		}
+		copy := *v
+		copy.Nulls = nulls
+		return &copy
 	case *Int:
-		return &Int{
-			Typ:    v.Typ,
-			Values: v.Values,
-			Nulls:  nulls,
-		}
+		copy := *v
+		copy.Nulls = nulls
+		return &copy
 	case *IP:
-		return &IP{
-			Values: v.Values,
-			Nulls:  nulls,
-		}
+		copy := *v
+		copy.Nulls = nulls
+		return &copy
 	case *Map:
-		return &Map{
-			Typ:     v.Typ,
-			Offsets: v.Offsets,
-			Keys:    v.Keys,
-			Values:  v.Values,
-			Nulls:   nulls,
-		}
+		copy := *v
+		copy.Nulls = nulls
+		return &copy
 	case *Named:
 		return &Named{
 			Typ: v.Typ,
 			Any: CopyAndSetNulls(v.Any, nulls),
 		}
 	case *Net:
-		return &Net{
-			Values: v.Values,
-			Nulls:  nulls,
-		}
+		copy := *v
+		copy.Nulls = nulls
+		return &copy
 	case *Record:
-		return &Record{
-			Typ:    v.Typ,
-			Fields: v.Fields,
-			len:    v.len,
-			Nulls:  nulls,
-		}
+		copy := *v
+		copy.Nulls = nulls
+		return &copy
 	case *Set:
-		return &Set{
-			Typ:     v.Typ,
-			Offsets: v.Offsets,
-			Values:  v.Values,
-			Nulls:   nulls,
-		}
+		copy := *v
+		copy.Nulls = nulls
+		return &copy
 	case *String:
-		return &String{
-			Offsets: v.Offsets,
-			Bytes:   v.Bytes,
-			Nulls:   nulls,
-		}
+		copy := *v
+		copy.Nulls = nulls
+		return &copy
 	case *TypeValue:
-		return &TypeValue{
-			Offsets: v.Offsets,
-			Bytes:   v.Bytes,
-			Nulls:   nulls,
-		}
+		copy := *v
+		copy.Nulls = nulls
+		return &copy
 	case *Uint:
-		return &Uint{
-			Typ:    v.Typ,
-			Values: v.Values,
-			Nulls:  nulls,
-		}
+		copy := *v
+		copy.Nulls = nulls
+		return &copy
 	case *Union:
 		return NewUnion(v.Typ, v.Tags, v.Values, nulls)
 	default:
