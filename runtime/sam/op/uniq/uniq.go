@@ -16,6 +16,7 @@ type Op struct {
 	cflag   bool
 	count   uint64
 	last    *super.Value
+	eos     bool
 }
 
 func New(rctx *runtime.Context, parent zbuf.Puller, cflag bool) *Op {
@@ -58,6 +59,10 @@ func (o *Op) appendUniq(out []super.Value, t *super.Value) []super.Value {
 // uniq is a little bit complicated because we have to check uniqueness
 // across records between calls to Pull.
 func (o *Op) Pull(done bool) (zbuf.Batch, error) {
+	if o.eos {
+		o.eos = false
+		return nil, nil
+	}
 	for {
 		batch, err := o.parent.Pull(done)
 		if err != nil {
@@ -67,6 +72,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 			if o.last == nil {
 				return nil, nil
 			}
+			o.eos = true
 			t := o.wrap(o.last)
 			o.last = nil
 			return zbuf.NewArray([]super.Value{t}), nil
