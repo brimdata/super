@@ -1,5 +1,7 @@
 spq: top 3 foo
 
+vector: true
+
 input: |
   {foo:null(int64)}
   {foo:1}

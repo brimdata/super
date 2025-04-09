@@ -287,6 +287,12 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		}
 		renamer := vamexpr.NewRenamer(b.sctx(), srcs, dsts)
 		return vamop.NewYield(b.sctx(), parent, []vamexpr.Evaluator{renamer}), nil
+	case *dag.Top:
+		zbufPuller, err := b.compileLeaf(o, vam.NewMaterializer(parent))
+		if err != nil {
+			return nil, err
+		}
+		return vam.NewDematerializer(zbufPuller), nil
 	case *dag.Sort:
 		b.resetResetters()
 		var sortExprs []expr.SortEvaluator
