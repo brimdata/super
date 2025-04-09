@@ -1,8 +1,0 @@
-spq: over a | sum(this)
-
-input: |
-  {a:[6,5,4]}
-  {a:[3,2,1]}
-
-output: |
-  21
