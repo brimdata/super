@@ -159,7 +159,7 @@ func (l *Log) Call(args ...vector.Any) vector.Any {
 			if nulls.IsZero() {
 				nulls = bitvec.NewFalse(vec.Len())
 			}
-			nulls.Set(uint32(len(floats))) //XXX
+			nulls.Set(uint32(len(floats)))
 			floats = append(floats, 0)
 			continue
 		}
