@@ -1,4 +1,6 @@
-spq: is('{a:int32,b:string}')
+spq: is(<{a:int32,b:string}>)
+
+vector: true
 
 input: |
   {a:1(int32),b:"foo"}

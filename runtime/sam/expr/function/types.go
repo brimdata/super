@@ -2,7 +2,6 @@ package function
 
 import (
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zcode"
 )
 
@@ -87,11 +86,10 @@ func (i *Is) Call(_ super.Allocator, args []super.Value) super.Value {
 	}
 	var typ super.Type
 	var err error
-	if zvTypeVal.IsString() {
-		typ, err = sup.ParseType(i.sctx, string(zvTypeVal.Bytes()))
-	} else {
-		typ, err = i.sctx.LookupByValue(zvTypeVal.Bytes())
+	if zvTypeVal.Type().ID() != super.IDType {
+		return i.sctx.WrapError("is: type value argument expected", zvTypeVal)
 	}
+	typ, err = i.sctx.LookupByValue(zvTypeVal.Bytes())
 	return super.NewBool(err == nil && typ == zvSubject.Type())
 }
 

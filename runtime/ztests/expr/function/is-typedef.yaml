@@ -3,6 +3,8 @@ spq: |
   const PI=3.14
   is(src,<socket>) | put pi:=PI
 
+vector: true
+
 input: |
   {
       info: "Connection Example",

@@ -59,6 +59,11 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, field.Path,
 		f = newHas(sctx)
 	case "hex":
 		f = &Hex{sctx}
+	case "is":
+		argmin = 1
+		argmax = 2
+		path = field.Path{}
+		f = &Is{sctx: sctx}
 	case "join":
 		argmax = 2
 		f = &Join{sctx: sctx}

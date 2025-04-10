@@ -1,5 +1,7 @@
 spq: cut isRecType:=is(r, <{a:int32}>), isString:=is(s, <string>)
 
+vector: true
+
 input: |
   {r:{a:1(int32)},s:123(int32)}
   {r:{a:1(int8)},s:"a"}

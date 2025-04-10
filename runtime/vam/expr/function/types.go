@@ -5,6 +5,37 @@ import (
 	"github.com/brimdata/super/vector"
 )
 
+// https://github.com/brimdata/super/blob/main/docs/language/functions.md#is
+type Is struct {
+	sctx *super.Context
+}
+
+func (i *Is) Call(args ...vector.Any) vector.Any {
+	vec := args[0]
+	typeVal := args[1]
+	if len(args) == 3 {
+		vec = args[1]
+		typeVal = args[2]
+	}
+	if typeVal.Type().ID() != super.IDType {
+		return vector.NewWrappedError(i.sctx, "is: type value argument expected", typeVal)
+	}
+	if c, ok := typeVal.(*vector.Const); ok {
+		typ, err := i.sctx.LookupByValue(c.Value().Bytes())
+		return vector.NewConst(super.NewBool(err == nil && typ == vec.Type()), vec.Len(), nil)
+	}
+	inTyp := vec.Type()
+	out := vector.NewBoolEmpty(vec.Len(), nil)
+	for k := range vec.Len() {
+		b, _ := vector.TypeValueValue(typeVal, k)
+		typ, err := i.sctx.LookupByValue(b)
+		if err == nil && typ == inTyp {
+			out.Set(k)
+		}
+	}
+	return out
+}
+
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#nameof
 type NameOf struct {
 	sctx *super.Context

@@ -1,5 +1,7 @@
 spq: |
-  ? a is(s2,'string')
+  ? a is(s2,<string>)
+
+vector: true
 
 input: |
   {s1:"a",s2:"b"}
