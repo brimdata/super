@@ -1,0 +1,15 @@
+spq: yield SUBSTRING(this FROM 4 FOR 2), SUBSTRING(this FROM 4), SUBSTRING(this FOR 3)
+
+vector: true
+
+input: |
+  "foobar"
+  [1,2]
+
+output: |
+  "ba"
+  "bar"
+  "foo"
+  error({message:"SUBSTRING: string value required",value:[1,2]})
+  error({message:"SUBSTRING: string value required",value:[1,2]})
+  error({message:"SUBSTRING: string value required",value:[1,2]})

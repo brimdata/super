@@ -175,6 +175,40 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 			Name: "cast",
 			Args: []dag.Expr{expr, &dag.Literal{Kind: "Literal", Value: "<" + typstr + ">"}},
 		}
+	case *ast.SQLSubstring:
+		expr := a.semExpr(e.Expr)
+		if e.From == nil && e.For == nil {
+			a.error(e, errors.New("FROM or FOR must be set"))
+			return badExpr()
+		}
+		is := &dag.Call{
+			Kind: "Call",
+			Name: "is",
+			Args: []dag.Expr{expr, &dag.Literal{Kind: "Literal", Value: "<string>"}},
+		}
+		slice := &dag.SliceExpr{Kind: "SliceExpr", Expr: expr, From: a.semExprNullable(e.From)}
+		if e.For != nil {
+			to := a.semExpr(e.For)
+			if slice.From != nil {
+				slice.To = dag.NewBinaryExpr("+", slice.From, to)
+			} else {
+				slice.To = dag.NewBinaryExpr("+", to, &dag.Literal{Kind: "Literal", Value: "1"})
+			}
+		}
+		return &dag.Conditional{
+			Kind: "Conditional",
+			Cond: is,
+			Then: slice,
+			Else: &dag.Call{Kind: "Call", Name: "error", Args: []dag.Expr{
+				&dag.RecordExpr{
+					Kind: "RecordExpr",
+					Elems: []dag.RecordElem{
+						&dag.Field{Kind: "Field", Name: "message", Value: &dag.Literal{Kind: "Literal", Value: `"SUBSTRING: string value required"`}},
+						&dag.Field{Kind: "Field", Name: "value", Value: expr},
+					},
+				},
+			}},
+		}
 	case *ast.IndexExpr:
 		expr := a.semExpr(e.Expr)
 		index := a.semExpr(e.Index)

@@ -130,4 +130,13 @@ type SQLCast struct {
 	Loc  `json:"loc"`
 }
 
-func (*SQLCast) ExprAST() {}
+type SQLSubstring struct {
+	Kind string `json:"kind" unpack:""`
+	Expr Expr   `json:"expr"`
+	From Expr   `json:"from"`
+	For  Expr   `json:"for"`
+	Loc  `json:"loc"`
+}
+
+func (*SQLCast) ExprAST()      {}
+func (*SQLSubstring) ExprAST() {}

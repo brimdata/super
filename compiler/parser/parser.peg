@@ -1118,6 +1118,20 @@ Function
         Loc: loc(c),
       }, nil
     }
+  / !FuncGuard SUBSTRING __ "(" __ expr:Expr from:(_ FROM _ e:Expr { return e, nil })? for_:(_ FOR _ e:Expr { return e, nil })? ")" {
+      s := &ast.SQLSubstring{
+        Kind: "SQLSubstring",
+        Expr: expr.(ast.Expr),
+        Loc: loc(c),
+      }
+      if from != nil {
+        s.From = from.(ast.Expr)
+      }
+      if for_ != nil {
+        s.For = for_.(ast.Expr)
+      }
+      return s, nil
+    }
   / !FuncGuard fn:Identifier __ "(" __ args:FunctionArgs __ ")" where:WhereClause? {
       return newCall(c, fn, args, where), nil
     }
@@ -2299,6 +2313,7 @@ EXPLODE    = "EXPLODE"i         !IdentifierRest
 EXTRACT    = "EXTRACT"i         !IdentifierRest
 FALSE      = "FALSE"i           !IdentifierRest
 FIRST      = "FIRST"i           !IdentifierRest
+FOR        = "FOR"i             !IdentifierRest
 FORK       = "FORK"i            !IdentifierRest
 FORMAT     = "FORMAT"i          !IdentifierRest
 FROM       = "FROM"i            !IdentifierRest
@@ -2348,6 +2363,7 @@ SEARCH     = "SEARCH"i          !IdentifierRest
 SELECT     = "SELECT"i          !IdentifierRest
 SHAPE      = "SHAPE"i           !IdentifierRest
 SORT       = "SORT"i            !IdentifierRest
+SUBSTRING  = "SUBSTRING"i       !IdentifierRest
 SUMMARIZE  = "SUMMARIZE"i       !IdentifierRest
 SWITCH     = "SWITCH"i          !IdentifierRest
 TAIL       = "TAIL"i            !IdentifierRest 

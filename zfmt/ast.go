@@ -204,6 +204,18 @@ func (c *canon) expr(e ast.Expr, parent string) {
 		c.write("CAST(")
 		c.expr(e.Expr, "")
 		c.write(" AS %s)", e.Type.Name)
+	case *ast.SQLSubstring:
+		c.write("SUBSTRING(")
+		c.expr(e.Expr, "")
+		if e.From != nil {
+			c.write(" FROM ")
+			c.expr(e.From, "")
+		}
+		if e.For != nil {
+			c.write(" FOR ")
+			c.expr(e.For, "")
+		}
+		c.write(")")
 	case *ast.ArrayExpr:
 		c.write("[")
 		c.vectorElems(e.Elems)
