@@ -22,8 +22,7 @@ func NewStringEmpty(cap uint32, nulls bitvec.Bits) *String {
 }
 
 func (s *String) Append(v string) {
-	s.table.bytes = append(s.table.bytes, v...)
-	s.table.offsets = append(s.table.offsets, uint32(len(s.table.bytes)))
+	s.table.Append([]byte(v))
 }
 
 func (s *String) Type() super.Type {
@@ -35,7 +34,7 @@ func (s *String) Len() uint32 {
 }
 
 func (s *String) Value(slot uint32) string {
-	return s.Table().String(slot)
+	return s.table.String(slot)
 }
 
 func (s *String) Table() BytesTable {
