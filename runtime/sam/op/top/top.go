@@ -53,6 +53,9 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 			return nil, err
 		}
 		if batch == nil {
+			if o.records == nil {
+				return nil, nil
+			}
 			o.eos = true
 			defer o.resetter.Reset()
 			return o.sorted(), nil
@@ -88,9 +91,6 @@ func (o *Op) consume(rec super.Value) {
 }
 
 func (o *Op) sorted() zbuf.Batch {
-	if o.records == nil {
-		return nil
-	}
 	out := make([]super.Value, o.records.Len())
 	for i := o.records.Len() - 1; i >= 0; i-- {
 		out[i] = heap.Pop(o.records).(super.Value)
