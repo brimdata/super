@@ -106,7 +106,7 @@ func (b Bits) String() string {
 		return "empty"
 	}
 	var s strings.Builder
-	for k := uint32(0); k < b.Len(); k++ {
+	for k := range b.Len() {
 		if b.IsSet(k) {
 			s.WriteByte('1')
 		} else {
