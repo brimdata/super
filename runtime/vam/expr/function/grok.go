@@ -103,13 +103,13 @@ func (g *Grok) Call(args ...vector.Any) vector.Any {
 func (g *Grok) errorVec(msgs []string, index []uint32, vec vector.Any) vector.Any {
 	s := vector.NewStringEmpty(0, bitvec.Zero)
 	for _, m := range msgs {
-		s.Append("grok(): " + m)
+		s.Append("grok: " + m)
 	}
 	return vector.NewVecWrappedError(g.sctx, s, vector.Pick(vec, index))
 }
 
 func (g *Grok) error(msg string, vec vector.Any) vector.Any {
-	return vector.NewWrappedError(g.sctx, "grok(): "+msg, vec)
+	return vector.NewWrappedError(g.sctx, "grok: "+msg, vec)
 }
 
 func (g *Grok) getHost(defs string) (*host, error) {

@@ -42,7 +42,7 @@ func (r *Router) Enable(scheme Scheme) {
 	case S3Scheme:
 		engine = NewS3()
 	default:
-		panic(fmt.Sprintf("storage.Router.Enable(): unknown scheme: %q", scheme))
+		panic(fmt.Sprintf("storage.Router.Enable: unknown scheme: %q", scheme))
 	}
 	r.engines[scheme] = engine
 }

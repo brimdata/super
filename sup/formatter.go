@@ -618,7 +618,7 @@ func (f *Formatter) formatTypeBody(typ super.Type) {
 	case *super.TypeOfType:
 		formatType(&f.builder, make(map[string]*super.TypeNamed), typ)
 	default:
-		panic("unknown case in formatTypeBody(): " + String(typ))
+		panic("unknown case in formatTypeBody: " + String(typ))
 	}
 }
 

@@ -212,7 +212,7 @@ grok("%{EMAILADDRESS:email}", this)
 # input
 "www.example.com"
 # expected output
-error({message:"grok(): value does not match pattern",on:"www.example.com"})
+error({message:"grok: value does not match pattern",on:"www.example.com"})
 ```
 
 Failure to parse due to mismatch outside of Grok patterns:
@@ -223,7 +223,7 @@ grok("%{WORD:one}     %{WORD:two}", this)
 # input
 "hello world"
 # expected output
-error({message:"grok(): value does not match pattern",on:"hello world"})
+error({message:"grok: value does not match pattern",on:"hello world"})
 ```
 
 Using a regular expression to match outside of Grok patterns:

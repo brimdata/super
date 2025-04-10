@@ -64,7 +64,7 @@ func formatAny(val super.Value, inContainer bool) string {
 		}
 		return sup.FormatValue(val)
 	default:
-		return fmt.Sprintf("zeekio.StringOf(): unknown type: %T", t)
+		return fmt.Sprintf("zeekio.StringOf: unknown type: %T", t)
 	}
 }
 

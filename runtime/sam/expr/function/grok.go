@@ -69,7 +69,7 @@ func (g *Grok) Call(_ super.Allocator, args []super.Value) super.Value {
 }
 
 func (g *Grok) error(msg string, val super.Value) super.Value {
-	return g.sctx.WrapError("grok(): "+msg, val)
+	return g.sctx.WrapError("grok: "+msg, val)
 }
 
 func (g *Grok) getHost(defs string) (*host, error) {

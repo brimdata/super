@@ -327,7 +327,7 @@ func (b *Builder) compileCall(call dag.Call) (expr.Evaluator, error) {
 		var err error
 		fn, path, err = function.New(b.sctx(), call.Name, len(call.Args))
 		if err != nil {
-			return nil, fmt.Errorf("%s(): %w", call.Name, err)
+			return nil, fmt.Errorf("%s: %w", call.Name, err)
 		}
 	}
 	args := call.Args
@@ -337,7 +337,7 @@ func (b *Builder) compileCall(call dag.Call) (expr.Evaluator, error) {
 	}
 	exprs, err := b.compileExprs(args)
 	if err != nil {
-		return nil, fmt.Errorf("%s(): bad argument: %w", call.Name, err)
+		return nil, fmt.Errorf("%s: bad argument: %w", call.Name, err)
 	}
 	return expr.NewCall(fn, exprs), nil
 }

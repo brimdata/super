@@ -60,11 +60,11 @@ output: |
   {int:"0"}
   {one:"2"}
   {}
-  error({message:"grok(): value does not match pattern",on:"foo"})
+  error({message:"grok: value does not match pattern",on:"foo"})
   null({})
   null({})
-  error({message:"grok(): value does not match pattern",on:"string value"})
-  error({message:"grok(): the 'DOESNOTEXIST' pattern doesn't exist",on:"%{DOESNOTEXIST:dne}"})
-  error({message:"grok(): pattern argument must be a string",on:1})
-  error({message:"grok(): input argument must be a string",on:1})
-  error({message:"grok(): definitions argument must be a string",on:1})
+  error({message:"grok: value does not match pattern",on:"string value"})
+  error({message:"grok: the 'DOESNOTEXIST' pattern doesn't exist",on:"%{DOESNOTEXIST:dne}"})
+  error({message:"grok: pattern argument must be a string",on:1})
+  error({message:"grok: input argument must be a string",on:1})
+  error({message:"grok: definitions argument must be a string",on:1})

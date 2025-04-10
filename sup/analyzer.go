@@ -226,7 +226,7 @@ func (a Analyzer) convertAny(sctx *super.Context, val ast.Any, cast super.Type) 
 	case *ast.Error:
 		return a.convertError(sctx, val, cast)
 	}
-	return nil, fmt.Errorf("internal error: unknown ast type in Analyzer.convertAny(): %T", val)
+	return nil, fmt.Errorf("internal error: unknown ast type in Analyzer.convertAny: %T", val)
 }
 
 func (a Analyzer) convertPrimitive(sctx *super.Context, val *ast.Primitive, cast super.Type) (Value, error) {
