@@ -209,11 +209,11 @@ func (v *vectorBuilder) build(a arrow.Array) (vector.Any, error) {
 	case arrow.STRING:
 		arr := a.(*array.String)
 		offsets := reinterpretSlice[uint32](arr.ValueOffsets())
-		return vector.NewString(offsets, arr.ValueBytes(), makeNulls(a)), nil
+		return vector.NewString(vector.NewBytesTable(offsets, arr.ValueBytes()), makeNulls(a)), nil
 	case arrow.BINARY:
 		arr := a.(*array.Binary)
 		offsets := reinterpretSlice[uint32](arr.ValueOffsets())
-		return vector.NewBytes(offsets, arr.ValueBytes(), makeNulls(a)), nil
+		return vector.NewBytes(vector.NewBytesTable(offsets, arr.ValueBytes()), makeNulls(a)), nil
 	case arrow.FIXED_SIZE_BINARY:
 		value0 := a.(*array.FixedSizeBinary).Value(0)
 		bytes := value0[:int(length)*len(value0)]
@@ -221,7 +221,7 @@ func (v *vectorBuilder) build(a arrow.Array) (vector.Any, error) {
 		for i := range offsets {
 			offsets[i] = uint32(i * len(value0))
 		}
-		return vector.NewBytes(offsets, bytes, makeNulls(a)), nil
+		return vector.NewBytes(vector.NewBytesTable(offsets, bytes), makeNulls(a)), nil
 	case arrow.DATE32:
 		values := make([]int64, length)
 		for i, v := range a.(*array.Date32).Date32Values() {
@@ -353,7 +353,7 @@ func (v *vectorBuilder) build(a arrow.Array) (vector.Any, error) {
 				return nil, fmt.Errorf("string offset exceeds uint32 range")
 			}
 		}
-		return vector.NewString(offsets, arr.ValueBytes(), makeNulls(a)), nil
+		return vector.NewString(vector.NewBytesTable(offsets, arr.ValueBytes()), makeNulls(a)), nil
 
 	}
 	return nil, fmt.Errorf("unimplemented Parquet type %q", dt.Name())

@@ -180,8 +180,7 @@ func (c *countByString) updatePartial(keyvec, valvec vector.Any) {
 }
 
 func (c *countByString) count(vec *vector.String) {
-	offs := vec.Offsets
-	bytes := vec.Bytes
+	offs, bytes := vec.Table().Slices()
 	if vec.Nulls.IsZero() {
 		for k := range vec.Len() {
 			c.table[string(bytes[offs[k]:offs[k+1]])]++
@@ -198,8 +197,7 @@ func (c *countByString) count(vec *vector.String) {
 }
 
 func (c *countByString) countDict(vec *vector.String, counts []uint32, nulls bitvec.Bits) {
-	offs := vec.Offsets
-	bytes := vec.Bytes
+	offs, bytes := vec.Table().Slices()
 	for k := range vec.Len() {
 		if counts[k] > 0 {
 			c.table[string(bytes[offs[k]:offs[k+1]])] += uint64(counts[k])
@@ -258,7 +256,7 @@ func (c *countByString) materialize() vector.Any {
 		nulls = bitvec.NewFalse(uint32(length))
 		nulls.Set(uint32(length - 1))
 	}
-	keyVec := vector.NewString(offs, bytes, nulls)
+	keyVec := vector.NewString(vector.NewBytesTable(offs, bytes), nulls)
 	countVec := vector.NewUint(super.TypeUint64, counts, bitvec.Zero)
 	return c.builder.New([]vector.Any{keyVec, countVec}, bitvec.Zero)
 }

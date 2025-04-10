@@ -7,24 +7,23 @@ import (
 )
 
 type String struct {
-	Offsets []uint32
-	Bytes   []byte
-	Nulls   bitvec.Bits
+	table BytesTable
+	Nulls bitvec.Bits
 }
 
 var _ Any = (*String)(nil)
 
-func NewString(offsets []uint32, bytes []byte, nulls bitvec.Bits) *String {
-	return &String{Offsets: offsets, Bytes: bytes, Nulls: nulls}
+func NewString(table BytesTable, nulls bitvec.Bits) *String {
+	return &String{table: table, Nulls: nulls}
 }
 
-func NewStringEmpty(length uint32, nulls bitvec.Bits) *String {
-	return NewString(make([]uint32, 1, length+1), nil, nulls)
+func NewStringEmpty(cap uint32, nulls bitvec.Bits) *String {
+	return NewString(NewBytesTableEmpty(cap), nulls)
 }
 
 func (s *String) Append(v string) {
-	s.Bytes = append(s.Bytes, v...)
-	s.Offsets = append(s.Offsets, uint32(len(s.Bytes)))
+	s.table.bytes = append(s.table.bytes, v...)
+	s.table.offsets = append(s.table.offsets, uint32(len(s.table.bytes)))
 }
 
 func (s *String) Type() super.Type {
@@ -32,11 +31,15 @@ func (s *String) Type() super.Type {
 }
 
 func (s *String) Len() uint32 {
-	return uint32(len(s.Offsets) - 1)
+	return s.table.Len()
 }
 
 func (s *String) Value(slot uint32) string {
-	return string(s.Bytes[s.Offsets[slot]:s.Offsets[slot+1]])
+	return s.Table().String(slot)
+}
+
+func (s *String) Table() BytesTable {
+	return s.table
 }
 
 func (s *String) Serialize(b *zcode.Builder, slot uint32) {

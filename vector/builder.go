@@ -368,11 +368,11 @@ func (b *bytesStringTypeBuilder) Write(bytes zcode.Bytes) {
 func (b *bytesStringTypeBuilder) Build() Any {
 	switch b.typ.ID() {
 	case super.IDString:
-		return NewString(b.offs, b.bytes, bitvec.Zero)
+		return NewString(NewBytesTable(b.offs, b.bytes), bitvec.Zero)
 	case super.IDBytes:
-		return NewBytes(b.offs, b.bytes, bitvec.Zero)
+		return NewBytes(NewBytesTable(b.offs, b.bytes), bitvec.Zero)
 	default:
-		return NewTypeValue(b.offs, b.bytes, bitvec.Zero)
+		return NewTypeValue(NewBytesTable(b.offs, b.bytes), bitvec.Zero)
 	}
 }
 

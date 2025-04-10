@@ -30,7 +30,7 @@ func castToIP(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
 				ips = append(ips, netip.Addr{})
 				continue
 			}
-			ip, err := byteconv.ParseIP(vec.Bytes[vec.Offsets[idx]:vec.Offsets[idx+1]])
+			ip, err := byteconv.ParseIP(vec.Table().Bytes(idx))
 			if err != nil {
 				errs = append(errs, i)
 				continue

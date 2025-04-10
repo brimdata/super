@@ -115,7 +115,7 @@ func castToString(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
 			offs = append(offs, uint32(len(bytes)))
 		}
 	}
-	return vector.NewString(offs, bytes, nulls), nil, true
+	return vector.NewString(vector.NewBytesTable(offs, bytes), nulls), nil, true
 }
 
 func timeToString(vec *vector.Int, index []uint32, n uint32) ([]uint32, []byte) {

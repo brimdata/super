@@ -159,7 +159,7 @@ func stringToInt(vec *vector.String, typ super.Type, index []uint32) (vector.Any
 			ints = append(ints, 0)
 			continue
 		}
-		v, err := strconv.ParseInt(byteconv.UnsafeString(vec.Bytes[vec.Offsets[idx]:vec.Offsets[idx+1]]), 10, bits)
+		v, err := strconv.ParseInt(vec.Table().UnsafeString(idx), 10, bits)
 		if err != nil {
 			errs = append(errs, i)
 			continue
@@ -189,7 +189,7 @@ func stringToDuration(vec *vector.String, index []uint32) (vector.Any, []uint32)
 			durs = append(durs, 0)
 			continue
 		}
-		b := vec.Bytes[vec.Offsets[idx]:vec.Offsets[idx+1]]
+		b := vec.Table().Bytes(idx)
 		d, err := nano.ParseDuration(byteconv.UnsafeString(b))
 		if err != nil {
 			f, ferr := byteconv.ParseFloat64(b)
@@ -224,7 +224,7 @@ func stringToTime(vec *vector.String, index []uint32) (vector.Any, []uint32) {
 			ts = append(ts, 0)
 			continue
 		}
-		b := vec.Bytes[vec.Offsets[idx]:vec.Offsets[idx+1]]
+		b := vec.Table().Bytes(idx)
 		if gotime, err := dateparse.ParseAny(byteconv.UnsafeString(b)); err != nil {
 			f, ferr := byteconv.ParseFloat64(b)
 			if ferr != nil {
@@ -260,7 +260,7 @@ func stringToUint(vec *vector.String, typ super.Type, index []uint32) (vector.An
 			ints = append(ints, 0)
 			continue
 		}
-		v, err := strconv.ParseUint(byteconv.UnsafeString(vec.Bytes[vec.Offsets[idx]:vec.Offsets[idx+1]]), 10, bits)
+		v, err := strconv.ParseUint(vec.Table().UnsafeString(idx), 10, bits)
 		if err != nil {
 			errs = append(errs, i)
 			continue
@@ -290,7 +290,7 @@ func stringToFloat(vec *vector.String, typ super.Type, index []uint32) (vector.A
 			floats = append(floats, 0)
 			continue
 		}
-		v, err := byteconv.ParseFloat64(vec.Bytes[vec.Offsets[idx]:vec.Offsets[idx+1]])
+		v, err := byteconv.ParseFloat64(vec.Table().Bytes(idx))
 		if err != nil {
 			errs = append(errs, i)
 			continue

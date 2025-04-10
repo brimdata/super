@@ -66,8 +66,7 @@ func stringToBool(vec *vector.String, index []uint32) (vector.Any, []uint32) {
 			boollen++
 			continue
 		}
-		bytes := vec.Bytes[vec.Offsets[idx]:vec.Offsets[idx+1]]
-		b, err := byteconv.ParseBool(bytes)
+		b, err := byteconv.ParseBool(vec.Table().Bytes(idx))
 		if err != nil {
 			errs = append(errs, i)
 			continue
