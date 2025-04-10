@@ -42,7 +42,7 @@ func (b *Bytes) Value(slot uint32) []byte {
 	if b.Nulls.IsSet(slot) {
 		return nil
 	}
-	return b.Table().Bytes(slot)
+	return b.table.Bytes(slot)
 }
 
 func (b *Bytes) Table() BytesTable {
