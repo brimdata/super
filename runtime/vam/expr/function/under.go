@@ -42,7 +42,7 @@ func (u *Under) Call(args ...vector.Any) vector.Any {
 		return args[0]
 	}
 	if index != nil {
-		return vector.NewView(out, index)
+		return vector.Pick(out, index)
 	}
 	return out
 }

@@ -79,7 +79,7 @@ func addNullsToUnionDynamic(typ *super.TypeUnion, d *Dynamic, nulls *Bool) *Dyna
 	if rebuild {
 		for i, delIndex := range delIndexes {
 			if len(delIndex) > 0 {
-				vals[i] = NewInverseView(vals[i], delIndex)
+				vals[i] = ReversePick(vals[i], delIndex)
 			}
 		}
 		return NewDynamic(tags, vals)

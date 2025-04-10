@@ -19,7 +19,7 @@ func NewCombiner(base Any) *Combiner {
 }
 
 func (c *Combiner) WrappedError(sctx *super.Context, index []uint32, msg string, inner Any) {
-	c.Add(index, NewWrappedError(sctx, msg, NewView(inner, index)))
+	c.Add(index, NewWrappedError(sctx, msg, Pick(inner, index)))
 }
 
 func (c *Combiner) Add(index []uint32, vec Any) {

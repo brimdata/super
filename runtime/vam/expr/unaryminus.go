@@ -132,7 +132,7 @@ func (u *unaryMinus) slowPath(vec vector.Any) vector.Any {
 		nulls.SetLen(uint32(len(ints)))
 	}
 	out := vector.NewInt(vec.Type(), ints, nulls)
-	err := vector.NewWrappedError(u.sctx, "unary '-' underflow", vector.NewView(vec, errs))
+	err := vector.NewWrappedError(u.sctx, "unary '-' underflow", vector.Pick(vec, errs))
 	return vector.Combine(out, errs, err)
 }
 

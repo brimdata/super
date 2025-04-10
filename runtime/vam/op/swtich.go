@@ -47,9 +47,9 @@ func (s *Switch) forward(vec vector.Any) bool {
 			if boolMap.IsEmpty() {
 				continue
 			}
-			vec2 = vector.NewView(vec, boolMap.ToArray())
+			vec2 = vector.Pick(vec, boolMap.ToArray())
 		} else if boolMap.IsEmpty() {
-			vec2 = vector.NewView(maskVec, errMap.ToArray())
+			vec2 = vector.Pick(maskVec, errMap.ToArray())
 		} else {
 			valIndex := boolMap.ToArray()
 			errIndex := errMap.ToArray()
@@ -65,8 +65,8 @@ func (s *Switch) forward(vec vector.Any) bool {
 			}
 			tags = append(tags, valIndex...)
 			tags = append(tags, errIndex...)
-			valVec := vector.NewView(vec, valIndex)
-			errVec := vector.NewView(maskVec, errIndex)
+			valVec := vector.Pick(vec, valIndex)
+			errVec := vector.Pick(maskVec, errIndex)
 			vec2 = vector.NewDynamic(tags, []vector.Any{valVec, errVec})
 		}
 		if !s.router.routes[i].send(vec2, nil) {

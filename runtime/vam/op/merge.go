@@ -129,7 +129,7 @@ func (m *Merge) createViews() []vector.Any {
 			}
 		}
 		index := m.index[p.lastOff:p.off]
-		views[i] = vector.NewView(p.vec, index)
+		views[i] = vector.Pick(p.vec, index)
 		p.lastOff = p.off
 	}
 	return views

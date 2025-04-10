@@ -61,7 +61,7 @@ func (r *Regexp) Call(args ...vector.Any) vector.Any {
 	}
 	out.Nulls.SetLen(out.Len())
 	if len(errs) > 0 {
-		return vector.Combine(out, errs, vector.NewVecWrappedError(r.sctx, errMsg, vector.NewView(regVec, errs)))
+		return vector.Combine(out, errs, vector.NewVecWrappedError(r.sctx, errMsg, vector.Pick(regVec, errs)))
 	}
 	return out
 }
@@ -116,8 +116,8 @@ func (r *RegexpReplace) Call(args ...vector.Any) vector.Any {
 		out.Append(r.re.ReplaceAllString(s, replace))
 	}
 	if len(errs) > 0 {
-		out.Nulls = vector.NewInverseView(out.Nulls, errs).(*vector.Bool)
-		return vector.Combine(out, errs, vector.NewVecWrappedError(r.sctx, errMsg, vector.NewView(args[1], errs)))
+		out.Nulls = vector.ReversePick(out.Nulls, errs).(*vector.Bool)
+		return vector.Combine(out, errs, vector.NewVecWrappedError(r.sctx, errMsg, vector.Pick(args[1], errs)))
 	}
 	return out
 }

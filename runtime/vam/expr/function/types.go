@@ -39,7 +39,7 @@ func (n *NameOf) Call(args ...vector.Any) vector.Any {
 		}
 	}
 	if len(errs) > 0 {
-		out.Nulls = vector.NewInverseView(out.Nulls, errs).(*vector.Bool)
+		out.Nulls = vector.ReversePick(out.Nulls, errs).(*vector.Bool)
 		return vector.Combine(out, errs, vector.NewMissing(n.sctx, uint32(len(errs))))
 	}
 	return out

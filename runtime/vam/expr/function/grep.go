@@ -41,8 +41,7 @@ func (g *Grep) Call(args ...vector.Any) vector.Any {
 		pattern = norm.NFC.String(pattern)
 		search := expr.NewSearchString(pattern, &expr.This{})
 		index[0] = i
-		view := vector.NewView(inputVec, index[:])
-		if match, _ := vector.BoolValue(search.Eval(view), 0); match {
+		if match, _ := vector.BoolValue(search.Eval(vector.Pick(inputVec, index[:])), 0); match {
 			out.Set(i)
 		}
 	}

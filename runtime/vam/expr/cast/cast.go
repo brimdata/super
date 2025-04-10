@@ -67,7 +67,7 @@ func assemble(sctx *super.Context, vec vector.Any, typ super.Type, fn caster) ve
 		return errCastFailed(sctx, vec, typ)
 	}
 	if len(errs) > 0 {
-		return vector.Combine(out, errs, errCastFailed(sctx, vector.NewView(vec, errs), typ))
+		return vector.Combine(out, errs, errCastFailed(sctx, vector.Pick(vec, errs), typ))
 	}
 	return out
 }

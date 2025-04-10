@@ -72,7 +72,7 @@ func (b *Bucket) constBin(tsVec vector.Any, bin nano.Duration) vector.Any {
 	}
 }
 
-func (b *Bucket) constBinFlat(tsVecFlat vector.Any, bin nano.Duration) vector.Any {
+func (b *Bucket) constBinFlat(tsVecFlat vector.Any, bin nano.Duration) *vector.Int {
 	tsVec := tsVecFlat.(*vector.Int)
 	ints := make([]int64, tsVec.Len())
 	for i := range tsVec.Len() {
@@ -184,7 +184,7 @@ func (s *Strftime) slowPath(fvec vector.Any, tvec vector.Any) vector.Any {
 		out.Append(f.FormatString(nano.Ts(t).Time()))
 	}
 	if len(errIndex) > 0 {
-		errVec := vector.NewVecWrappedError(s.sctx, errMsgs, vector.NewView(fvec, errIndex))
+		errVec := vector.NewVecWrappedError(s.sctx, errMsgs, vector.Pick(fvec, errIndex))
 		return vector.Combine(out, errIndex, errVec)
 	}
 	return out

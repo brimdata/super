@@ -42,7 +42,7 @@ func (c *Coalesce) Call(vecs ...vector.Any) vector.Any {
 	}
 	out := make([]vector.Any, n)
 	for i := range n {
-		out[i] = vector.NewView(vecs[i], c.viewIndexes[i])
+		out[i] = vector.Pick(vecs[i], c.viewIndexes[i])
 	}
 	if nullcnt > 0 {
 		out = append(out, vector.NewConst(super.Null, nullcnt, nil))

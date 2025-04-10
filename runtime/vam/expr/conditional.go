@@ -34,12 +34,12 @@ func (c *conditional) Eval(this vector.Any) vector.Any {
 	if boolsMap.IsEmpty() && errsMap.IsEmpty() {
 		return c.elseExpr.Eval(this)
 	}
-	thenVec := c.thenExpr.Eval(vector.NewView(this, boolsMap.ToArray()))
+	thenVec := c.thenExpr.Eval(vector.Pick(this, boolsMap.ToArray()))
 	// elseMap is the difference between boolsMap or errsMap
 	elseMap := roaring.Or(boolsMap, errsMap)
 	elseMap.Flip(0, uint64(this.Len()))
 	elseIndex := elseMap.ToArray()
-	elseVec := c.elseExpr.Eval(vector.NewView(this, elseIndex))
+	elseVec := c.elseExpr.Eval(vector.Pick(this, elseIndex))
 	tags := make([]uint32, this.Len())
 	for _, idx := range elseIndex {
 		tags[idx] = 1
@@ -50,7 +50,7 @@ func (c *conditional) Eval(this vector.Any) vector.Any {
 		for _, idx := range errsIndex {
 			tags[idx] = 2
 		}
-		vecs = append(vecs, c.predicateError(vector.NewView(predVec, errsIndex)))
+		vecs = append(vecs, c.predicateError(vector.Pick(predVec, errsIndex)))
 	}
 	return vector.NewDynamic(tags, vecs)
 }

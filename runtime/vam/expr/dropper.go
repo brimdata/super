@@ -102,7 +102,7 @@ func (d *Dropper) drop(vec vector.Any, fm fieldsMap) (vector.Any, bool) {
 		}
 	case *vector.View:
 		if newVec, ok := d.drop(vec.Any, fm); ok {
-			return vector.NewView(newVec, vec.Index), true
+			return vector.Pick(newVec, vec.Index), true
 		}
 	}
 	return vec, false

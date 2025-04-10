@@ -50,8 +50,7 @@ func (s *ExprSwitch) forward(vec vector.Any) bool {
 		}
 	}
 	for route, index := range s.caseIndexes {
-		view := vector.NewView(vec, index)
-		if !route.send(view, nil) {
+		if !route.send(vector.Pick(vec, index), nil) {
 			return false
 		}
 	}

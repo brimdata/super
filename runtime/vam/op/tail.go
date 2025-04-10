@@ -77,7 +77,7 @@ func (t *Tail) tail() ([]vector.Any, error) {
 		for i := range int(vecs[0].Len()) - extra {
 			index = append(index, uint32(extra+i))
 		}
-		vecs[0] = vector.NewView(vecs[0], index)
+		vecs[0] = vector.Pick(vecs[0], index)
 	}
 	return vecs, nil
 }

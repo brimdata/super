@@ -45,7 +45,7 @@ func rip(vecs []Any, d *Dynamic) [][]Any {
 				if vec == d {
 					newVecs = append(newVecs, d.Values[j])
 				} else {
-					newVecs = append(newVecs, NewView(vec, rev))
+					newVecs = append(newVecs, Pick(vec, rev))
 				}
 			}
 		}

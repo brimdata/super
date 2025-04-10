@@ -100,8 +100,8 @@ func (a *And) andError(err vector.Any, vec vector.Any) vector.Any {
 		}
 	}
 	if len(index) > 0 {
-		base := vector.NewInverseView(vec, index)
-		return vector.Combine(base, index, vector.NewView(err, index))
+		base := vector.ReversePick(vec, index)
+		return vector.Combine(base, index, vector.Pick(err, index))
 	}
 	return vec
 }
@@ -145,8 +145,8 @@ func (o *Or) orError(err, vec vector.Any) vector.Any {
 		}
 	}
 	if len(index) > 0 {
-		base := vector.NewInverseView(vec, index)
-		return vector.Combine(base, index, vector.NewView(err, index))
+		base := vector.ReversePick(vec, index)
+		return vector.Combine(base, index, vector.Pick(err, index))
 	}
 	return vec
 }
@@ -254,7 +254,7 @@ func (p *PredicateWalk) Eval(vecs ...vector.Any) vector.Any {
 		out := vector.NewBoolEmpty(lhs.Len(), nil)
 		for _, f := range rhs.Fields {
 			if index != nil {
-				f = vector.NewView(f, index)
+				f = vector.Pick(f, index)
 			}
 			out = vector.Or(out, toBool(p.Eval(lhs, f)))
 		}
@@ -300,8 +300,8 @@ func (p *PredicateWalk) evalForList(lhs, rhs vector.Any, offsets, index []uint32
 			lhsIndex[k] = j
 			rhsIndex[k] = k + start
 		}
-		lhsView := vector.NewView(lhs, lhsIndex)
-		rhsView := vector.NewView(rhs, rhsIndex)
+		lhsView := vector.Pick(lhs, lhsIndex)
+		rhsView := vector.Pick(rhs, rhsIndex)
 		if toBool(p.Eval(lhsView, rhsView)).TrueCount() > 0 {
 			out.Set(j)
 		}

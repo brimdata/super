@@ -39,7 +39,7 @@ func (a *Abs) abs(vec vector.Any) vector.Any {
 		}
 		return vector.NewConst(val, vec.Len(), vec.Nulls)
 	case *vector.View:
-		return vector.NewView(a.abs(vec.Any), vec.Index)
+		return vector.Pick(a.abs(vec.Any), vec.Index)
 	case *vector.Dict:
 		return vector.NewDict(a.abs(vec.Any), vec.Index, vec.Counts, vec.Nulls)
 	case *vector.Int:
@@ -84,7 +84,7 @@ func (c *Ceil) ceil(vec vector.Any) vector.Any {
 		val := super.NewFloat(vec.Type(), math.Ceil(vec.Value().Float()))
 		return vector.NewConst(val, vec.Len(), vec.Nulls)
 	case *vector.View:
-		return vector.NewView(c.ceil(vec.Any), vec.Index)
+		return vector.Pick(c.ceil(vec.Any), vec.Index)
 	case *vector.Dict:
 		return vector.NewDict(c.ceil(vec.Any), vec.Index, vec.Counts, vec.Nulls)
 	case *vector.Float:
@@ -120,7 +120,7 @@ func (f *Floor) floor(vec vector.Any) vector.Any {
 		val := super.NewFloat(vec.Type(), math.Floor(vec.Value().Float()))
 		return vector.NewConst(val, vec.Len(), vec.Nulls)
 	case *vector.View:
-		return vector.NewView(f.floor(vec.Any), vec.Index)
+		return vector.Pick(f.floor(vec.Any), vec.Index)
 	case *vector.Dict:
 		return vector.NewDict(f.floor(vec.Any), vec.Index, vec.Counts, vec.Nulls)
 	case *vector.Float:
@@ -173,7 +173,7 @@ func (l *Log) Call(args ...vector.Any) vector.Any {
 		nulls.SetLen(out.Len())
 	}
 	if len(errs) > 0 {
-		err := vector.NewWrappedError(l.sctx, "log: illegal argument", vector.NewView(arg, errs))
+		err := vector.NewWrappedError(l.sctx, "log: illegal argument", vector.Pick(arg, errs))
 		return vector.Combine(out, errs, err)
 	}
 	return out

@@ -113,7 +113,7 @@ func (s *sliceExpr) evalArrayOrSlice(vec, fromVec, toVec vector.Any) vector.Any 
 
 	}
 	var out vector.Any
-	inner = vector.NewView(inner, innerIndex)
+	inner = vector.Pick(inner, innerIndex)
 	if vector.KindOf(vec) == vector.KindArray {
 		out = vector.NewArray(vec.Type().(*super.TypeArray), newOffsets, inner, nullsOut)
 	} else {

@@ -71,7 +71,7 @@ func indexArrayOrSet(sctx *super.Context, vec, indexVec vector.Any) vector.Any {
 		}
 		errs = append(errs, i)
 	}
-	out := vector.Deunion(vector.NewView(vals, viewIndexes))
+	out := vector.Deunion(vector.Pick(vals, viewIndexes))
 	if len(errs) > 0 {
 		return vector.Combine(out, errs, vector.NewMissing(sctx, uint32(len(errs))))
 	}
@@ -114,7 +114,7 @@ func indexRecord(sctx *super.Context, vec, indexVec vector.Any) vector.Any {
 	out := make([]vector.Any, n+1)
 	out[n] = vector.NewMissing(sctx, errcnt)
 	for i, field := range rec.Fields {
-		out[i] = vector.NewView(field, viewIndexes[i])
+		out[i] = vector.Pick(field, viewIndexes[i])
 	}
 	return vector.NewDynamic(tags, out)
 }

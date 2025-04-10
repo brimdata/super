@@ -41,7 +41,7 @@ func (d *Distinct) Pull(done bool) (vector.Any, error) {
 			}
 		}
 		if len(index) > 0 {
-			return vector.NewView(vec, index), nil
+			return vector.Pick(vec, index), nil
 		}
 	}
 }

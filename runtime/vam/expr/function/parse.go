@@ -76,7 +76,7 @@ func (p *ParseSUP) Call(args ...vector.Any) vector.Any {
 	}
 	out := builder.Build()
 	if len(errs) > 0 {
-		return vector.Combine(out, errs, vector.NewVecWrappedError(p.sctx, errMsgs, vector.NewView(args[0], errs)))
+		return vector.Combine(out, errs, vector.NewVecWrappedError(p.sctx, errMsgs, vector.Pick(args[0], errs)))
 	}
 	return out
 }

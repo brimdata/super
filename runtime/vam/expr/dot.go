@@ -79,7 +79,7 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 	case *vector.Map:
 		panic("vam.DotExpr Map TBD")
 	case *vector.View:
-		return vector.NewView(d.eval(val.Any), val.Index)
+		return vector.Pick(d.eval(val.Any), val.Index)
 	default:
 		return vector.NewMissing(d.sctx, val.Len())
 	}

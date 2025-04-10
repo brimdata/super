@@ -61,7 +61,7 @@ func (s *superTable) update(keys []vector.Any, args []vector.Any) {
 		row := s.rows[id]
 		for i, arg := range args {
 			if len(m) > 1 {
-				arg = vector.NewView(arg, index)
+				arg = vector.Pick(arg, index)
 			}
 			if s.partialsIn {
 				row.funcs[i].ConsumeAsPartial(arg)

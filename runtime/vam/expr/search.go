@@ -77,7 +77,7 @@ func (s *search) eval(vecs ...vector.Any) vector.Any {
 		out := vector.NewBoolEmpty(n, nil)
 		for _, f := range vec.Fields {
 			if index != nil {
-				f = vector.NewView(f, index)
+				f = vector.Pick(f, index)
 			}
 			out = vector.Or(out, toBool(s.eval(f)))
 		}
@@ -113,7 +113,7 @@ func (s *search) evalForList(vec vector.Any, offsets, index []uint32, length uin
 		for k := range n {
 			index2[k] = k + start
 		}
-		view := vector.NewView(vec, index2)
+		view := vector.Pick(vec, index2)
 		if toBool(s.eval(view)).TrueCount() > 0 {
 			out.Set(j)
 		}

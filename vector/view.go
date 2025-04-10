@@ -11,7 +11,13 @@ type View struct {
 
 var _ Any = (*View)(nil)
 
-func NewView(val Any, index []uint32) Any {
+func NewView(vec Any, index []uint32) *View {
+	return &View{vec, index}
+}
+
+// Pick takes any vector vec and an index and returns a new vector consisting of the
+// elements in the index.
+func Pick(val Any, index []uint32) Any {
 	switch val := val.(type) {
 	case *Bool:
 		return NewBoolView(val, index)
@@ -40,7 +46,7 @@ func NewView(val Any, index []uint32) Any {
 		}
 		return NewDict(val.Any, index2, counts, nulls)
 	case *Error:
-		return NewError(val.Typ, NewView(val.Vals, index), NewBoolView(val.Nulls, index))
+		return NewError(val.Typ, Pick(val.Vals, index), NewBoolView(val.Nulls, index))
 	case *Union:
 		tags, values := viewForUnionOrDynamic(index, val.Tags, val.TagMap.Forward, val.Values)
 		return NewUnion(val.Typ, tags, values, NewBoolView(val.Nulls, index))
@@ -51,15 +57,17 @@ func NewView(val Any, index []uint32) Any {
 		for k, idx := range index {
 			index2[k] = uint32(val.Index[idx])
 		}
-		return &View{val.Any, index2}
+		return NewView(val.Any, index2)
 	case *Named:
 		// Wrapped View under Named so vector.Under still works.
-		return &Named{val.Typ, NewView(val.Any, index)}
+		return &Named{val.Typ, Pick(val.Any, index)}
 	}
 	return &View{val, index}
 }
 
-func NewInverseView(vec Any, index []uint32) Any {
+// ReversePick is like Pick but it builds the vector from the elements
+// that are not in the index maintaining the element order of vec.
+func ReversePick(vec Any, index []uint32) Any {
 	var inverse []uint32
 	for i := range vec.Len() {
 		if len(index) > 0 && index[0] == i {
@@ -68,7 +76,7 @@ func NewInverseView(vec Any, index []uint32) Any {
 		}
 		inverse = append(inverse, i)
 	}
-	return NewView(vec, inverse)
+	return Pick(vec, inverse)
 }
 
 func NewBoolView(vec *Bool, index []uint32) *Bool {
@@ -97,7 +105,7 @@ func viewForUnionOrDynamic(index, tags, forward []uint32, values []Any) ([]uint3
 	}
 	results := make([]Any, len(values))
 	for k := range results {
-		results[k] = NewView(values[k], indexes[k])
+		results[k] = Pick(values[k], indexes[k])
 	}
 	return resultTags, results
 }

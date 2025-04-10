@@ -32,7 +32,7 @@ func (n *NestDotted) Call(args ...vector.Any) vector.Any {
 	}
 	out := vector.Any(b.New(record.Fields, record.Nulls))
 	if view != nil {
-		out = vector.NewView(out, view.Index)
+		out = vector.Pick(out, view.Index)
 	}
 	return out
 }

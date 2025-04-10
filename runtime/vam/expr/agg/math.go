@@ -107,7 +107,7 @@ func trimNulls(vec vector.Any) vector.Any {
 	case 0:
 		return vec
 	default:
-		return vector.NewInverseView(vec, index)
+		return vector.ReversePick(vec, index)
 	}
 }
 

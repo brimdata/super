@@ -92,12 +92,12 @@ func (o *Over) flatten(vec vector.Any, slot uint32) vector.Any {
 				{Name: "value", Type: f.Type},
 			})
 			keyVec := vector.NewArray(keyType, keyOffsets, vector.NewConst(super.NewString(f.Name), 1, nil), nil)
-			valVec := vector.NewView(vec.Fields[i], []uint32{slot})
+			valVec := vector.Pick(vec.Fields[i], []uint32{slot})
 			vecs = append(vecs, vector.NewRecord(typ, []vector.Any{keyVec, valVec}, keyVec.Len(), nil))
 		}
 		return vector.NewDynamic(tags, vecs)
 	}
-	return vector.NewView(vec, []uint32{slot})
+	return vector.Pick(vec, []uint32{slot})
 }
 
 func flattenArrayOrSet(vec vector.Any, offsets []uint32, slot uint32) vector.Any {
@@ -108,7 +108,7 @@ func flattenArrayOrSet(vec vector.Any, offsets []uint32, slot uint32) vector.Any
 	if len(index) == 0 {
 		return nil
 	}
-	return vector.NewView(vector.Deunion(vec), index)
+	return vector.Pick(vector.Deunion(vec), index)
 }
 
 type Scope struct {

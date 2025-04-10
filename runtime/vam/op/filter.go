@@ -39,5 +39,5 @@ func applyMask(vec, mask vector.Any) (vector.Any, bool) {
 	if b.GetCardinality() == uint64(mask.Len()) {
 		return vec, true
 	}
-	return vector.NewView(vec, b.ToArray()), true
+	return vector.Pick(vec, b.ToArray()), true
 }

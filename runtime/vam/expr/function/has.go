@@ -42,9 +42,9 @@ func (m *Missing) Call(args ...vector.Any) vector.Any {
 			errIndex := roaring.Flip(b, 0, uint64(n)).ToArray()
 			trueVec := vector.NewConst(super.True, uint32(len(index)), nil)
 			if !nbm.IsEmpty() {
-				trueVec.Nulls = vector.NewView(bitmapToBool(&nbm, n), index).(*vector.Bool)
+				trueVec.Nulls = vector.Pick(bitmapToBool(&nbm, n), index).(*vector.Bool)
 			}
-			return vector.Combine(trueVec, errIndex, vector.NewView(err, errIndex))
+			return vector.Combine(trueVec, errIndex, vector.Pick(err, errIndex))
 		}
 	}
 	return vector.NewConst(super.False, args[0].Len(), bitmapToBool(&nbm, n))

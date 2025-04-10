@@ -77,7 +77,7 @@ func enumToIndex(vec vector.Any) vector.Any {
 	switch vec := vec.(type) {
 	case *vector.View:
 		if enum, ok := vec.Any.(*vector.Enum); ok {
-			return vector.NewView(enum.Uint, vec.Index)
+			return vector.Pick(enum.Uint, vec.Index)
 		}
 	case *vector.Enum:
 		return vec.Uint

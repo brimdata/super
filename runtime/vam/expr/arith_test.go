@@ -13,12 +13,12 @@ func TestArithOpsAndForms(t *testing.T) {
 	// These are all [0, 1, 2].
 	lhsFlat := vector.NewInt(super.TypeInt64, []int64{0, 1, 2}, nil)
 	lhsDict := vector.NewDict(lhsFlat, []byte{0, 1, 2}, nil, nil)
-	lhsView := vector.NewView(lhsFlat, []uint32{0, 1, 2})
+	lhsView := vector.Pick(lhsFlat, []uint32{0, 1, 2})
 
 	// These are all [1, 1, 1].
 	rhsFlat := vector.NewInt(super.TypeInt64, []int64{1, 1, 1}, nil)
 	rhsDict := vector.NewDict(rhsFlat, []byte{0, 0, 0}, nil, nil)
-	rhsView := vector.NewView(rhsFlat, []uint32{0, 1, 2})
+	rhsView := vector.Pick(rhsFlat, []uint32{0, 1, 2})
 	Const := vector.NewConst(super.NewInt64(1), 3, nil)
 
 	cases := []struct {
