@@ -3,6 +3,7 @@ package function
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 )
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#coalesce
@@ -19,7 +20,7 @@ func (c *Coalesce) Call(vecs ...vector.Any) vector.Any {
 	args := underAll(vecs)
 	c.tags = make([]uint32, args[0].Len())
 	c.viewIndexes = make([][]uint32, len(args))
-	c.setslots = vector.NewBoolEmpty(args[0].Len(), nil)
+	c.setslots = vector.NewFalse(args[0].Len())
 	c.setcnt = 0
 	size := args[0].Len()
 	for i, arg := range args {
@@ -34,7 +35,7 @@ func (c *Coalesce) Call(vecs ...vector.Any) vector.Any {
 	if c.setcnt < size {
 		// Set the nulls for all rows where nothing was set.
 		for i := range c.setslots.Len() {
-			if !c.setslots.Value(i) {
+			if !c.setslots.IsSet(i) {
 				c.tags[i] = uint32(n)
 				nullcnt++
 			}
@@ -45,7 +46,7 @@ func (c *Coalesce) Call(vecs ...vector.Any) vector.Any {
 		out[i] = vector.Pick(vecs[i], c.viewIndexes[i])
 	}
 	if nullcnt > 0 {
-		out = append(out, vector.NewConst(super.Null, nullcnt, nil))
+		out = append(out, vector.NewConst(super.Null, nullcnt, bitvec.Zero))
 	}
 	return vector.NewDynamic(c.tags, out)
 }
@@ -61,9 +62,9 @@ func (c *Coalesce) arg(vec vector.Any, tag uint32) {
 func (c *Coalesce) checkNulls(vec vector.Any, tag uint32) {
 	switch vec := vec.(type) {
 	case *vector.View:
-		if nulls := vector.NullsOf(vec.Any); nulls != nil {
+		if nulls := vector.NullsOf(vec.Any); !nulls.IsZero() {
 			for i := range vec.Len() {
-				if !nulls.Value(vec.Index[i]) {
+				if !nulls.IsSetDirect(vec.Index[i]) {
 					c.setTag(i, tag)
 				}
 			}
@@ -93,10 +94,10 @@ func (c *Coalesce) errString(tag uint32, vec *vector.Error) {
 	}
 }
 
-func (c *Coalesce) setAll(nulls *vector.Bool, tag uint32) {
-	if nulls != nil {
+func (c *Coalesce) setAll(nulls bitvec.Bits, tag uint32) {
+	if !nulls.IsZero() {
 		for i := range nulls.Len() {
-			if !nulls.Value(i) {
+			if !nulls.IsSetDirect(i) {
 				c.setTag(i, tag)
 			}
 		}
@@ -109,7 +110,7 @@ func (c *Coalesce) setAll(nulls *vector.Bool, tag uint32) {
 
 // inline
 func (c *Coalesce) setTag(slot, tag uint32) {
-	if !c.setslots.Value(slot) {
+	if !c.setslots.IsSet(slot) {
 		c.tags[slot] = tag
 		c.viewIndexes[tag] = append(c.viewIndexes[tag], slot)
 		c.setslots.Set(slot)

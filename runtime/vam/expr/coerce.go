@@ -7,6 +7,7 @@ import (
 	"github.com/brimdata/super/pkg/byteconv"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 )
 
 // coerceVals checks if a and b are type compatible for comparison
@@ -25,11 +26,11 @@ func coerceVals(sctx *super.Context, a, b vector.Any) (vector.Any, vector.Any, v
 		return a, b, nil
 	}
 	if aid == super.IDNull {
-		a = vector.NewConst(super.NewValue(b.Type(), nil), b.Len(), nil)
+		a = vector.NewConst(super.NewValue(b.Type(), nil), b.Len(), bitvec.Zero)
 		return a, b, nil //XXX
 	}
 	if bid == super.IDNull {
-		b = vector.NewConst(super.NewValue(a.Type(), nil), a.Len(), nil)
+		b = vector.NewConst(super.NewValue(a.Type(), nil), a.Len(), bitvec.Zero)
 		return a, b, nil //XXX
 	}
 	if !super.IsNumber(aid) || !super.IsNumber(bid) {

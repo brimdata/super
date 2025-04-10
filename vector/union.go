@@ -4,18 +4,19 @@ import (
 	"slices"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/vector/bitvec"
 	"github.com/brimdata/super/zcode"
 )
 
 type Union struct {
 	*Dynamic
 	Typ   *super.TypeUnion
-	Nulls *Bool
+	Nulls bitvec.Bits
 }
 
 var _ Any = (*Union)(nil)
 
-func NewUnion(typ *super.TypeUnion, tags []uint32, vals []Any, nulls *Bool) *Union {
+func NewUnion(typ *super.TypeUnion, tags []uint32, vals []Any, nulls bitvec.Bits) *Union {
 	d := addNullsToUnionDynamic(typ, NewDynamic(tags, vals), nulls)
 	return &Union{d, typ, nulls}
 }
@@ -48,8 +49,8 @@ func isUnionNullsVec(typ *super.TypeUnion, vec Any) bool {
 	return ok && c.val.IsNull() && c.val.Type() == typ
 }
 
-func addNullsToUnionDynamic(typ *super.TypeUnion, d *Dynamic, nulls *Bool) *Dynamic {
-	if nulls == nil {
+func addNullsToUnionDynamic(typ *super.TypeUnion, d *Dynamic, nulls bitvec.Bits) *Dynamic {
+	if nulls.IsZero() {
 		return d
 	}
 	nullTag := slices.IndexFunc(d.Values, func(vec Any) bool {
@@ -58,14 +59,14 @@ func addNullsToUnionDynamic(typ *super.TypeUnion, d *Dynamic, nulls *Bool) *Dyna
 	vals := slices.Clone(d.Values)
 	if nullTag == -1 {
 		nullTag = len(vals)
-		vals = append(vals, NewConst(super.NewValue(typ, nil), 0, nil))
+		vals = append(vals, NewConst(super.NewValue(typ, nil), 0, bitvec.Zero))
 	}
 	var rebuild bool
 	var count uint32
 	delIndexes := make([][]uint32, len(vals))
 	tags := slices.Clone(d.Tags)
 	for i := range nulls.Len() {
-		if nulls.Value(i) {
+		if nulls.IsSetDirect(i) {
 			if tags[i] != uint32(nullTag) {
 				rebuild = true
 				// If value was not previously null delete value from vector.

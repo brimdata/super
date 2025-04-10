@@ -2,6 +2,7 @@ package vector
 
 import (
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/vector/bitvec"
 	"github.com/brimdata/super/zcode"
 )
 
@@ -9,12 +10,12 @@ type Set struct {
 	Typ     *super.TypeSet
 	Offsets []uint32
 	Values  Any
-	Nulls   *Bool
+	Nulls   bitvec.Bits
 }
 
 var _ Any = (*Set)(nil)
 
-func NewSet(typ *super.TypeSet, offsets []uint32, values Any, nulls *Bool) *Set {
+func NewSet(typ *super.TypeSet, offsets []uint32, values Any, nulls bitvec.Bits) *Set {
 	return &Set{Typ: typ, Offsets: offsets, Values: values, Nulls: nulls}
 }
 
@@ -27,7 +28,7 @@ func (s *Set) Len() uint32 {
 }
 
 func (s *Set) Serialize(b *zcode.Builder, slot uint32) {
-	if s.Nulls.Value(slot) {
+	if s.Nulls.IsSet(slot) {
 		b.Append(nil)
 		return
 	}

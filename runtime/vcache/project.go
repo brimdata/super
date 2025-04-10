@@ -6,6 +6,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 )
 
 func project(sctx *super.Context, projection field.Projection, s shadow) vector.Any {
@@ -126,7 +127,7 @@ func projectRecord(sctx *super.Context, projection field.Projection, s *record) 
 	}
 }
 
-func newRecord(sctx *super.Context, length uint32, fields []super.Field, vals []vector.Any, nulls *vector.Bool) vector.Any {
+func newRecord(sctx *super.Context, length uint32, fields []super.Field, vals []vector.Any, nulls bitvec.Bits) vector.Any {
 	for k, val := range vals {
 		fields[k].Type = val.Type()
 	}
@@ -145,12 +146,12 @@ func projectUnion(sctx *super.Context, projection field.Projection, s *union) ve
 	tags := s.tags
 	nulls := s.nulls.flat
 	// If there are nulls add a null vector and rebuild tags.
-	if nulls != nil {
+	if !nulls.IsZero() {
 		var newtags []uint32
 		n := uint32(len(vals))
 		var nullcount uint32
 		for i := range nulls.Len() {
-			if nulls.Value(i) {
+			if nulls.IsSet(i) {
 				newtags = append(newtags, n)
 				nullcount++
 			} else {
@@ -159,7 +160,7 @@ func projectUnion(sctx *super.Context, projection field.Projection, s *union) ve
 			}
 		}
 		tags = newtags
-		vals = append(vals, vector.NewConst(super.NewValue(utyp, nil), nullcount, nil))
+		vals = append(vals, vector.NewConst(super.NewValue(utyp, nil), nullcount, bitvec.Zero))
 	}
 	return vector.NewUnion(utyp, tags, vals, nulls)
 }

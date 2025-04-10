@@ -6,6 +6,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 )
 
 type sliceExpr struct {
@@ -74,16 +75,16 @@ func (s *sliceExpr) evalArrayOrSlice(vec, fromVec, toVec vector.Any) vector.Any 
 	offsets, inner, nullsIn := arrayOrSetContents(vec)
 	newOffsets := []uint32{0}
 	var innerIndex []uint32
-	var nullsOut *vector.Bool
+	var nullsOut bitvec.Bits
 	for i := range n {
 		idx := i
 		if index != nil {
 			idx = index[i]
 		}
-		if nullsIn.Value(idx) {
+		if nullsIn.IsSet(idx) {
 			newOffsets = append(newOffsets, newOffsets[len(newOffsets)-1])
-			if nullsOut == nil {
-				nullsOut = vector.NewBoolEmpty(vec.Len(), nil)
+			if nullsOut.IsZero() {
+				nullsOut = bitvec.NewFalse(vec.Len())
 			}
 			nullsOut.Set(i)
 			continue
@@ -110,7 +111,6 @@ func (s *sliceExpr) evalArrayOrSlice(vec, fromVec, toVec vector.Any) vector.Any 
 		for k := start; k < end; k++ {
 			innerIndex = append(innerIndex, off+uint32(k))
 		}
-
 	}
 	var out vector.Any
 	inner = vector.Pick(inner, innerIndex)
@@ -119,8 +119,8 @@ func (s *sliceExpr) evalArrayOrSlice(vec, fromVec, toVec vector.Any) vector.Any 
 	} else {
 		out = vector.NewSet(vec.Type().(*super.TypeSet), newOffsets, inner, nullsOut)
 	}
-	if nullsOut != nil {
-		nullsOut.SetLen(out.Len())
+	if !nullsOut.IsZero() {
+		nullsOut.Shorten(out.Len())
 	}
 	return out
 }
@@ -135,14 +135,14 @@ func (s *sliceExpr) evalStringOrBytes(vec, fromVec, toVec vector.Any) vector.Any
 	}
 	newOffsets := []uint32{0}
 	var newBytes []byte
-	var nullsOut *vector.Bool
+	var nullsOut bitvec.Bits
 	id := vec.Type().ID()
 	for i := range vec.Len() {
 		slice, isnull := s.bytesAt(vec, i)
 		if isnull {
 			newOffsets = append(newOffsets, newOffsets[len(newOffsets)-1])
-			if nullsOut == nil {
-				nullsOut = vector.NewBoolEmpty(vec.Len(), nil)
+			if !nullsOut.IsZero() {
+				nullsOut = bitvec.NewFalse(vec.Len())
 			}
 			nullsOut.Set(i)
 			continue
@@ -164,8 +164,8 @@ func (s *sliceExpr) evalStringOrBytes(vec, fromVec, toVec vector.Any) vector.Any
 
 	}
 	out := s.bytesOrStringVec(vec.Type(), newOffsets, newBytes, nullsOut)
-	if nullsOut != nil {
-		nullsOut.SetLen(out.Len())
+	if !nullsOut.IsZero() {
+		nullsOut.Shorten(out.Len())
 	}
 	return out
 }
@@ -222,7 +222,7 @@ func (s *sliceExpr) evalStringOrBytesFast(vec vector.Any, from, to int) (vector.
 	}
 }
 
-func (s *sliceExpr) bytesOrStringVec(typ super.Type, offsets []uint32, bytes []byte, nulls *vector.Bool) vector.Any {
+func (s *sliceExpr) bytesOrStringVec(typ super.Type, offsets []uint32, bytes []byte, nulls bitvec.Bits) vector.Any {
 	switch typ.ID() {
 	case super.IDBytes:
 		return vector.NewBytes(offsets, bytes, nulls)
@@ -236,23 +236,23 @@ func (s *sliceExpr) bytesOrStringVec(typ super.Type, offsets []uint32, bytes []b
 func (s *sliceExpr) bytesAt(val vector.Any, slot uint32) ([]byte, bool) {
 	switch val := val.(type) {
 	case *vector.String:
-		if val.Nulls.Value(slot) {
+		if val.Nulls.IsSet(slot) {
 			return nil, true
 		}
 		return val.Bytes[val.Offsets[slot]:val.Offsets[slot+1]], false
 	case *vector.Bytes:
-		if val.Nulls.Value(slot) {
+		if val.Nulls.IsSet(slot) {
 			return nil, true
 		}
 		return val.Value(slot), false
 	case *vector.Const:
-		if val.Nulls.Value(slot) {
+		if val.Nulls.IsSet(slot) {
 			return nil, true
 		}
 		s, _ := val.AsBytes()
 		return s, false
 	case *vector.Dict:
-		if val.Nulls.Value(slot) {
+		if val.Nulls.IsSet(slot) {
 			return nil, true
 		}
 		return s.bytesAt(val.Any, uint32(val.Index[slot]))
@@ -273,7 +273,7 @@ func sliceIsConstIndex(vec vector.Any) (int, bool) {
 	if vec == nil {
 		return 0, true
 	}
-	if c, ok := vec.(*vector.Const); ok && c.Nulls == nil {
+	if c, ok := vec.(*vector.Const); ok && c.Nulls.IsZero() {
 		return int(c.Value().Int()), true
 	}
 	return 0, false
@@ -298,7 +298,7 @@ func sliceBytesOrString(slice []byte, id int, start, end int) []byte {
 	}
 }
 
-func stringOrBytesContents(vec vector.Any) ([]uint32, []byte, *vector.Bool) {
+func stringOrBytesContents(vec vector.Any) ([]uint32, []byte, bitvec.Bits) {
 	switch vec := vec.(type) {
 	case *vector.String:
 		return vec.Offsets, vec.Bytes, vec.Nulls
@@ -309,7 +309,7 @@ func stringOrBytesContents(vec vector.Any) ([]uint32, []byte, *vector.Bool) {
 	}
 }
 
-func arrayOrSetContents(vec vector.Any) ([]uint32, vector.Any, *vector.Bool) {
+func arrayOrSetContents(vec vector.Any) ([]uint32, vector.Any, bitvec.Bits) {
 	switch vec := vec.(type) {
 	case *vector.Array:
 		return vec.Offsets, vec.Values, vec.Nulls

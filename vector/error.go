@@ -2,20 +2,21 @@ package vector
 
 import (
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/vector/bitvec"
 	"github.com/brimdata/super/zcode"
 )
 
 type Error struct {
 	Typ   *super.TypeError
 	Vals  Any
-	Nulls *Bool
+	Nulls bitvec.Bits
 }
 
 var _ Any = (*Error)(nil)
 
 // XXX we shouldn't create empty fields... this was the old design, now
 // we create the entire vector structure and page in leaves, offsets, etc on demand
-func NewError(typ *super.TypeError, vals Any, nulls *Bool) *Error {
+func NewError(typ *super.TypeError, vals Any, nulls bitvec.Bits) *Error {
 	return &Error{Typ: typ, Vals: vals, Nulls: nulls}
 }
 
@@ -28,7 +29,7 @@ func (e *Error) Len() uint32 {
 }
 
 func (e *Error) Serialize(b *zcode.Builder, slot uint32) {
-	if e.Nulls.Value(slot) {
+	if e.Nulls.IsSet(slot) {
 		b.Append(nil)
 		return
 	}
@@ -37,7 +38,7 @@ func (e *Error) Serialize(b *zcode.Builder, slot uint32) {
 }
 
 func NewStringError(sctx *super.Context, msg string, len uint32) *Error {
-	vals := NewConst(super.NewString(msg), len, nil)
+	vals := NewConst(super.NewString(msg), len, bitvec.Zero)
 	return &Error{Typ: sctx.LookupTypeError(super.TypeString), Vals: vals}
 }
 
@@ -46,7 +47,7 @@ func NewMissing(sctx *super.Context, len uint32) *Error {
 }
 
 func NewWrappedError(sctx *super.Context, msg string, val Any) *Error {
-	msgVec := NewConst(super.NewString(msg), val.Len(), nil)
+	msgVec := NewConst(super.NewString(msg), val.Len(), bitvec.Zero)
 	return NewVecWrappedError(sctx, msgVec, val)
 }
 
@@ -55,6 +56,6 @@ func NewVecWrappedError(sctx *super.Context, msg Any, val Any) *Error {
 		{Name: "message", Type: msg.Type()},
 		{Name: "on", Type: val.Type()},
 	})
-	rval := NewRecord(recType, []Any{msg, val}, val.Len(), nil)
+	rval := NewRecord(recType, []Any{msg, val}, val.Len(), bitvec.Zero)
 	return &Error{Typ: sctx.LookupTypeError(recType), Vals: rval}
 }

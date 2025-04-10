@@ -5,21 +5,22 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 	"github.com/stretchr/testify/assert"
 )
 
 // Test that Arith.Eval handles all ops for all vector forms.
 func TestArithOpsAndForms(t *testing.T) {
 	// These are all [0, 1, 2].
-	lhsFlat := vector.NewInt(super.TypeInt64, []int64{0, 1, 2}, nil)
-	lhsDict := vector.NewDict(lhsFlat, []byte{0, 1, 2}, nil, nil)
+	lhsFlat := vector.NewInt(super.TypeInt64, []int64{0, 1, 2}, bitvec.Zero)
+	lhsDict := vector.NewDict(lhsFlat, []byte{0, 1, 2}, nil, bitvec.Zero)
 	lhsView := vector.Pick(lhsFlat, []uint32{0, 1, 2})
 
 	// These are all [1, 1, 1].
-	rhsFlat := vector.NewInt(super.TypeInt64, []int64{1, 1, 1}, nil)
-	rhsDict := vector.NewDict(rhsFlat, []byte{0, 0, 0}, nil, nil)
+	rhsFlat := vector.NewInt(super.TypeInt64, []int64{1, 1, 1}, bitvec.Zero)
+	rhsDict := vector.NewDict(rhsFlat, []byte{0, 0, 0}, nil, bitvec.Zero)
 	rhsView := vector.Pick(rhsFlat, []uint32{0, 1, 2})
-	Const := vector.NewConst(super.NewInt64(1), 3, nil)
+	Const := vector.NewConst(super.NewInt64(1), 3, bitvec.Zero)
 
 	cases := []struct {
 		op                            string

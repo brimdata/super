@@ -4,6 +4,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Over struct {
@@ -78,7 +79,7 @@ func (o *Over) flatten(vec vector.Any, slot uint32) vector.Any {
 	case *vector.Map:
 		panic("unimplemented")
 	case *vector.Record:
-		if len(vec.Fields) == 0 || vec.Nulls.Value(slot) {
+		if len(vec.Fields) == 0 || vec.Nulls.IsSet(slot) {
 			return nil
 		}
 		keyType := o.sctx.LookupTypeArray(super.TypeString)
@@ -91,9 +92,9 @@ func (o *Over) flatten(vec vector.Any, slot uint32) vector.Any {
 				{Name: "key", Type: keyType},
 				{Name: "value", Type: f.Type},
 			})
-			keyVec := vector.NewArray(keyType, keyOffsets, vector.NewConst(super.NewString(f.Name), 1, nil), nil)
+			keyVec := vector.NewArray(keyType, keyOffsets, vector.NewConst(super.NewString(f.Name), 1, bitvec.Zero), bitvec.Zero)
 			valVec := vector.Pick(vec.Fields[i], []uint32{slot})
-			vecs = append(vecs, vector.NewRecord(typ, []vector.Any{keyVec, valVec}, keyVec.Len(), nil))
+			vecs = append(vecs, vector.NewRecord(typ, []vector.Any{keyVec, valVec}, keyVec.Len(), bitvec.Zero))
 		}
 		return vector.NewDynamic(tags, vecs)
 	}

@@ -6,6 +6,7 @@ import (
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/vector/bitvec"
 	"github.com/brimdata/super/zcode"
 )
 
@@ -134,7 +135,7 @@ func (n *nullsBuilder) Build() Any {
 	if !n.nulls.IsEmpty() {
 		bits := make([]uint64, (n.n+63)/64)
 		n.nulls.WriteDenseTo(bits)
-		vec = CopyAndSetNulls(vec, NewBool(bits, n.n, nil))
+		vec = CopyAndSetNulls(vec, bitvec.New(bits, n.n))
 	}
 	return vec
 }
@@ -172,7 +173,7 @@ func (r *recordBuilder) Build() Any {
 	for _, v := range r.values {
 		vecs = append(vecs, v.Build())
 	}
-	return NewRecord(r.typ, vecs, r.len, nil)
+	return NewRecord(r.typ, vecs, r.len, bitvec.Zero)
 }
 
 type errorBuilder struct {
@@ -181,7 +182,7 @@ type errorBuilder struct {
 }
 
 func (e *errorBuilder) Build() Any {
-	return NewError(e.typ, e.Builder.Build(), nil)
+	return NewError(e.typ, e.Builder.Build(), bitvec.Zero)
 }
 
 type arraySetBuilder struct {
@@ -205,9 +206,9 @@ func (a *arraySetBuilder) Write(bytes zcode.Bytes) {
 
 func (a *arraySetBuilder) Build() Any {
 	if typ, ok := a.typ.(*super.TypeArray); ok {
-		return NewArray(typ, a.offsets, a.values.Build(), nil)
+		return NewArray(typ, a.offsets, a.values.Build(), bitvec.Zero)
 	}
-	return NewSet(a.typ.(*super.TypeSet), a.offsets, a.values.Build(), nil)
+	return NewSet(a.typ.(*super.TypeSet), a.offsets, a.values.Build(), bitvec.Zero)
 }
 
 type mapBuilder struct {
@@ -237,7 +238,7 @@ func (m *mapBuilder) Write(bytes zcode.Bytes) {
 }
 
 func (m *mapBuilder) Build() Any {
-	return NewMap(m.typ, m.offsets, m.keys.Build(), m.values.Build(), nil)
+	return NewMap(m.typ, m.offsets, m.keys.Build(), m.values.Build(), bitvec.Zero)
 }
 
 type unionBuilder struct {
@@ -272,7 +273,7 @@ func (u *unionBuilder) Build() Any {
 	for _, v := range u.values {
 		vecs = append(vecs, v.Build())
 	}
-	return NewUnion(u.typ, u.tags, vecs, nil)
+	return NewUnion(u.typ, u.tags, vecs, bitvec.Zero)
 }
 
 type enumBuilder struct {
@@ -285,7 +286,7 @@ func (e *enumBuilder) Write(bytes zcode.Bytes) {
 }
 
 func (e *enumBuilder) Build() Any {
-	return NewEnum(e.typ, e.values, nil)
+	return NewEnum(e.typ, e.values, bitvec.Zero)
 }
 
 type intBuilder struct {
@@ -298,7 +299,7 @@ func (i *intBuilder) Write(bytes zcode.Bytes) {
 }
 
 func (i *intBuilder) Build() Any {
-	return NewInt(i.typ, i.values, nil)
+	return NewInt(i.typ, i.values, bitvec.Zero)
 }
 
 type uintBuilder struct {
@@ -311,7 +312,7 @@ func (u *uintBuilder) Write(bytes zcode.Bytes) {
 }
 
 func (u *uintBuilder) Build() Any {
-	return NewUint(u.typ, u.values, nil)
+	return NewUint(u.typ, u.values, bitvec.Zero)
 }
 
 type floatBuilder struct {
@@ -324,7 +325,7 @@ func (f *floatBuilder) Write(bytes zcode.Bytes) {
 }
 
 func (f *floatBuilder) Build() Any {
-	return NewFloat(f.typ, f.values, nil)
+	return NewFloat(f.typ, f.values, bitvec.Zero)
 }
 
 type boolBuilder struct {
@@ -346,7 +347,7 @@ func (b *boolBuilder) Write(bytes zcode.Bytes) {
 func (b *boolBuilder) Build() Any {
 	bits := make([]uint64, (b.n+63)/64)
 	b.values.WriteDenseTo(bits)
-	return NewBool(bits, b.n, nil)
+	return NewBool(bitvec.New(bits, b.n), bitvec.Zero)
 }
 
 type bytesStringTypeBuilder struct {
@@ -367,11 +368,11 @@ func (b *bytesStringTypeBuilder) Write(bytes zcode.Bytes) {
 func (b *bytesStringTypeBuilder) Build() Any {
 	switch b.typ.ID() {
 	case super.IDString:
-		return NewString(b.offs, b.bytes, nil)
+		return NewString(b.offs, b.bytes, bitvec.Zero)
 	case super.IDBytes:
-		return NewBytes(b.offs, b.bytes, nil)
+		return NewBytes(b.offs, b.bytes, bitvec.Zero)
 	default:
-		return NewTypeValue(b.offs, b.bytes, nil)
+		return NewTypeValue(b.offs, b.bytes, bitvec.Zero)
 	}
 }
 
@@ -384,7 +385,7 @@ func (i *ipBuilder) Write(bytes zcode.Bytes) {
 }
 
 func (i *ipBuilder) Build() Any {
-	return NewIP(i.values, nil)
+	return NewIP(i.values, bitvec.Zero)
 }
 
 type netBuilder struct {
@@ -396,7 +397,7 @@ func (n *netBuilder) Write(bytes zcode.Bytes) {
 }
 
 func (n *netBuilder) Build() Any {
-	return NewNet(n.values, nil)
+	return NewNet(n.values, bitvec.Zero)
 }
 
 type constNullBuilder struct {
@@ -408,5 +409,5 @@ func (c *constNullBuilder) Write(bytes zcode.Bytes) {
 }
 
 func (c *constNullBuilder) Build() Any {
-	return NewConst(super.Null, c.n, nil)
+	return NewConst(super.Null, c.n, bitvec.Zero)
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Compare struct {
@@ -34,7 +35,7 @@ func (c *Compare) eval(vecs ...vector.Any) vector.Any {
 	if _, ok := rhs.(*vector.Error); ok {
 		return vecs[1]
 	}
-	nulls := vector.Or(vector.NullsOf(lhs), vector.NullsOf(rhs))
+	nulls := bitvec.Or(vector.NullsOf(lhs), vector.NullsOf(rhs))
 	lhs, rhs, errVal := coerceVals(c.sctx, lhs, rhs)
 	if errVal != nil {
 		// if incompatible types return false
@@ -67,7 +68,7 @@ func (c *Compare) eval(vecs ...vector.Any) vector.Any {
 	return vector.CopyAndSetNulls(out, nulls)
 }
 
-func (c *Compare) compareIPs(lhs, rhs vector.Any, nulls *vector.Bool) vector.Any {
+func (c *Compare) compareIPs(lhs, rhs vector.Any, nulls bitvec.Bits) vector.Any {
 	out := vector.NewBoolEmpty(lhs.Len(), nulls)
 	for i := range lhs.Len() {
 		l, null := vector.IPValue(lhs, i)
@@ -105,9 +106,9 @@ func isCompareOpSatisfied(opCode, i int) bool {
 
 func (c *Compare) compareTypeVals(lhs, rhs vector.Any) vector.Any {
 	if c.opCode == vector.CompLT || c.opCode == vector.CompGT {
-		return vector.NewConst(super.False, lhs.Len(), nil)
+		return vector.NewConst(super.False, lhs.Len(), bitvec.Zero)
 	}
-	out := vector.NewBoolEmpty(lhs.Len(), nil)
+	out := vector.NewFalse(lhs.Len())
 	for i := range lhs.Len() {
 		l, _ := vector.TypeValueValue(lhs, i)
 		r, _ := vector.TypeValueValue(rhs, i)
@@ -140,10 +141,10 @@ func (i *isNull) eval(vecs ...vector.Any) vector.Any {
 		return vec
 	}
 	if c, ok := vec.(*vector.Const); ok && c.Value().IsNull() {
-		return vector.NewConst(super.True, vec.Len(), nil)
+		return vector.NewConst(super.True, vec.Len(), bitvec.Zero)
 	}
-	if nulls := vector.NullsOf(vec); nulls != nil {
-		return nulls
+	if nulls := vector.NullsOf(vec); !nulls.IsZero() {
+		return vector.NewBool(nulls, bitvec.Zero)
 	}
-	return vector.NewConst(super.False, vec.Len(), nil)
+	return vector.NewConst(super.False, vec.Len(), bitvec.Zero)
 }

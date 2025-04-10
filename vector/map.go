@@ -2,6 +2,7 @@ package vector
 
 import (
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/vector/bitvec"
 	"github.com/brimdata/super/zcode"
 )
 
@@ -10,12 +11,12 @@ type Map struct {
 	Offsets []uint32
 	Keys    Any
 	Values  Any
-	Nulls   *Bool
+	Nulls   bitvec.Bits
 }
 
 var _ Any = (*Map)(nil)
 
-func NewMap(typ *super.TypeMap, offsets []uint32, keys Any, values Any, nulls *Bool) *Map {
+func NewMap(typ *super.TypeMap, offsets []uint32, keys Any, values Any, nulls bitvec.Bits) *Map {
 	return &Map{Typ: typ, Offsets: offsets, Keys: keys, Values: values, Nulls: nulls}
 }
 
@@ -28,7 +29,7 @@ func (m *Map) Len() uint32 {
 }
 
 func (m *Map) Serialize(b *zcode.Builder, slot uint32) {
-	if m.Nulls.Value(slot) {
+	if m.Nulls.IsSet(slot) {
 		b.Append(nil)
 		return
 	}

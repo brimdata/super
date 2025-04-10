@@ -6,6 +6,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr/cast"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 )
 
 type unaryMinus struct {
@@ -108,15 +109,15 @@ func (u *unaryMinus) convert(vec vector.Any) (vector.Any, bool) {
 }
 
 func (u *unaryMinus) slowPath(vec vector.Any) vector.Any {
-	var nulls *vector.Bool
+	var nulls bitvec.Bits
 	var ints []int64
 	var errs []uint32
 	minval := minInt(vec.Type())
 	for i := range vec.Len() {
 		v, isnull := vector.IntValue(vec, i)
 		if isnull {
-			if nulls == nil {
-				nulls = vector.NewBoolEmpty(vec.Len(), nil)
+			if nulls.IsZero() {
+				nulls = bitvec.NewFalse(vec.Len())
 			}
 			nulls.Set(uint32(len(ints)))
 			ints = append(ints, 0)
@@ -128,8 +129,8 @@ func (u *unaryMinus) slowPath(vec vector.Any) vector.Any {
 			ints = append(ints, -v)
 		}
 	}
-	if nulls != nil {
-		nulls.SetLen(uint32(len(ints)))
+	if !nulls.IsZero() {
+		nulls.Shorten(uint32(len(ints)))
 	}
 	out := vector.NewInt(vec.Type(), ints, nulls)
 	err := vector.NewWrappedError(u.sctx, "unary '-' underflow", vector.Pick(vec, errs))

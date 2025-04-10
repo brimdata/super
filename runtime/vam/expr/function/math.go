@@ -6,6 +6,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr/cast"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 )
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#abs.md
@@ -151,14 +152,14 @@ func (l *Log) Call(args ...vector.Any) vector.Any {
 	vec := cast.To(l.sctx, arg, super.TypeFloat64)
 	var errs []uint32
 	var floats []float64
-	var nulls *vector.Bool
+	var nulls bitvec.Bits
 	for i := range vec.Len() {
 		v, isnull := vector.FloatValue(vec, i)
 		if isnull {
-			if nulls == nil {
-				nulls = vector.NewBoolEmpty(vec.Len(), nil)
+			if nulls.IsZero() {
+				nulls = bitvec.NewFalse(vec.Len())
 			}
-			nulls.Set(uint32(len(floats)))
+			nulls.Set(uint32(len(floats))) //XXX
 			floats = append(floats, 0)
 			continue
 		}
@@ -169,8 +170,8 @@ func (l *Log) Call(args ...vector.Any) vector.Any {
 		floats = append(floats, math.Log(v))
 	}
 	out := vector.NewFloat(super.TypeFloat64, floats, nulls)
-	if nulls != nil {
-		nulls.SetLen(out.Len())
+	if !nulls.IsZero() {
+		nulls.Shorten(out.Len())
 	}
 	if len(errs) > 0 {
 		err := vector.NewWrappedError(l.sctx, "log: illegal argument", vector.Pick(arg, errs))
@@ -194,7 +195,7 @@ func (p *Pow) Call(args ...vector.Any) vector.Any {
 	}
 	a = cast.To(p.sctx, a, super.TypeFloat64)
 	b = cast.To(p.sctx, b, super.TypeFloat64)
-	nulls := vector.Or(vector.NullsOf(a), vector.NullsOf(b))
+	nulls := bitvec.Or(vector.NullsOf(a), vector.NullsOf(b))
 	vals := make([]float64, a.Len())
 	for i := range a.Len() {
 		x, null := vector.FloatValue(a, i)

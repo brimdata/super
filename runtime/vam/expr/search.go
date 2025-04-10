@@ -9,6 +9,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 )
 
 type search struct {
@@ -29,7 +30,7 @@ func NewSearch(s string, val super.Value, e Evaluator) Evaluator {
 	eq := NewCompare(super.NewContext() /* XXX */, nil, nil, "==")
 	vectorPred := func(vec vector.Any) vector.Any {
 		if net.IsValid() && vector.KindOf(vec) == vector.KindIP {
-			out := vector.NewBoolEmpty(vec.Len(), nil)
+			out := vector.NewFalse(vec.Len())
 			for i := range vec.Len() {
 				if ip, null := vector.IPValue(vec, i); !null && net.Contains(ip) {
 					out.Set(i)
@@ -37,7 +38,7 @@ func NewSearch(s string, val super.Value, e Evaluator) Evaluator {
 			}
 			return out
 		}
-		return eq.eval(vec, vector.NewConst(val, vec.Len(), nil))
+		return eq.eval(vec, vector.NewConst(val, vec.Len(), bitvec.Zero))
 	}
 	return &search{e, vectorPred, stringPred, nil}
 }
@@ -61,7 +62,7 @@ func (s *search) eval(vecs ...vector.Any) vector.Any {
 	vec := vector.Under(vecs[0])
 	typ := vec.Type()
 	if s.fnm != nil && s.fnm.Match(typ) {
-		return vector.NewConst(super.True, vec.Len(), nil)
+		return vector.NewConst(super.True, vec.Len(), bitvec.Zero)
 	}
 	if typ.Kind() == super.PrimitiveKind {
 		return s.match(vec)
@@ -74,7 +75,7 @@ func (s *search) eval(vecs ...vector.Any) vector.Any {
 	}
 	switch vec := vec.(type) {
 	case *vector.Record:
-		out := vector.NewBoolEmpty(n, nil)
+		out := vector.NewFalse(n)
 		for _, f := range vec.Fields {
 			if index != nil {
 				f = vector.Pick(f, index)
@@ -98,7 +99,7 @@ func (s *search) eval(vecs ...vector.Any) vector.Any {
 }
 
 func (s *search) evalForList(vec vector.Any, offsets, index []uint32, length uint32) *vector.Bool {
-	out := vector.NewBoolEmpty(length, nil)
+	out := vector.NewFalse(length)
 	var index2 []uint32
 	for j := range length {
 		if index != nil {
@@ -114,7 +115,7 @@ func (s *search) evalForList(vec vector.Any, offsets, index []uint32, length uin
 			index2[k] = k + start
 		}
 		view := vector.Pick(vec, index2)
-		if toBool(s.eval(view)).TrueCount() > 0 {
+		if toBool(s.eval(view)).Bits.TrueCount() > 0 {
 			out.Set(j)
 		}
 	}
@@ -123,7 +124,7 @@ func (s *search) evalForList(vec vector.Any, offsets, index []uint32, length uin
 
 func (s *search) match(vec vector.Any) vector.Any {
 	if vec.Type().ID() == super.IDString {
-		out := vector.NewBoolEmpty(vec.Len(), nil)
+		out := vector.NewFalse(vec.Len())
 		for i := range vec.Len() {
 			str, null := vector.StringValue(vec, i)
 			// Prevent compiler from copying str, which it thinks
@@ -138,7 +139,7 @@ func (s *search) match(vec vector.Any) vector.Any {
 	if s.vectorPred != nil {
 		return s.vectorPred(vec)
 	}
-	return vector.NewConst(super.False, vec.Len(), nil)
+	return vector.NewConst(super.False, vec.Len(), bitvec.Zero)
 }
 
 type regexpMatch struct {
@@ -157,17 +158,17 @@ func (r *regexpMatch) Eval(this vector.Any) vector.Any {
 func (r *regexpMatch) eval(vecs ...vector.Any) vector.Any {
 	vec := vector.Under(vecs[0])
 	if c, ok := vec.(*vector.Const); ok && c.Value().Type().ID() == super.IDNull {
-		return vector.NewConst(super.NullBool, vec.Len(), nil)
+		return vector.NewConst(super.NullBool, vec.Len(), bitvec.Zero)
 	}
 	if vec.Type().ID() != super.IDString {
-		return vector.NewConst(super.False, vec.Len(), nil)
+		return vector.NewConst(super.False, vec.Len(), bitvec.Zero)
 	}
-	out := vector.NewBoolEmpty(vec.Len(), nil)
+	out := vector.NewFalse(vec.Len())
 	for i := range vec.Len() {
 		s, isnull := vector.StringValue(vec, i)
 		if isnull {
-			if out.Nulls == nil {
-				out.Nulls = vector.NewBoolEmpty(vec.Len(), nil)
+			if out.Nulls.IsZero() {
+				out.Nulls = bitvec.NewFalse(vec.Len())
 			}
 			out.Nulls.Set(i)
 			continue

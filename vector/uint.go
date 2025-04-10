@@ -2,23 +2,24 @@ package vector
 
 import (
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/vector/bitvec"
 	"github.com/brimdata/super/zcode"
 )
 
 type Uint struct {
 	Typ    super.Type
 	Values []uint64
-	Nulls  *Bool
+	Nulls  bitvec.Bits
 }
 
 var _ Any = (*Uint)(nil)
 var _ Promotable = (*Uint)(nil)
 
-func NewUint(typ super.Type, values []uint64, nulls *Bool) *Uint {
+func NewUint(typ super.Type, values []uint64, nulls bitvec.Bits) *Uint {
 	return &Uint{Typ: typ, Values: values, Nulls: nulls}
 }
 
-func NewUintEmpty(typ super.Type, length uint32, nulls *Bool) *Uint {
+func NewUintEmpty(typ super.Type, length uint32, nulls bitvec.Bits) *Uint {
 	return NewUint(typ, make([]uint64, 0, length), nulls)
 }
 
@@ -39,7 +40,7 @@ func (u *Uint) Value(slot uint32) uint64 {
 }
 
 func (u *Uint) Serialize(b *zcode.Builder, slot uint32) {
-	if u.Nulls.Value(slot) {
+	if u.Nulls.IsSet(slot) {
 		b.Append(nil)
 	} else {
 		b.Append(super.EncodeUint(u.Values[slot]))
@@ -53,11 +54,11 @@ func (u *Uint) Promote(typ super.Type) Promotable {
 func UintValue(vec Any, slot uint32) (uint64, bool) {
 	switch vec := Under(vec).(type) {
 	case *Uint:
-		return vec.Value(slot), vec.Nulls.Value(slot)
+		return vec.Value(slot), vec.Nulls.IsSet(slot)
 	case *Const:
-		return vec.Value().Ptr().Uint(), vec.Nulls.Value(slot)
+		return vec.Value().Ptr().Uint(), vec.Nulls.IsSet(slot)
 	case *Dict:
-		if vec.Nulls.Value(slot) {
+		if vec.Nulls.IsSet(slot) {
 			return 0, true
 		}
 		return UintValue(vec.Any, uint32(vec.Index[slot]))

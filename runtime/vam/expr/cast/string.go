@@ -14,7 +14,7 @@ import (
 func castToString(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
 	nulls := vector.NullsOf(vec)
 	if index != nil {
-		nulls = vector.NewBoolView(nulls, index)
+		nulls = nulls.Pick(index)
 	}
 	n := lengthOf(vec, index)
 	var bytes []byte
@@ -95,7 +95,7 @@ func castToString(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
 			if index != nil {
 				idx = index[i]
 			}
-			if !nulls.Value(i) {
+			if !nulls.IsSet(i) {
 				val := vec.Uint.Values[idx]
 				bytes = append(bytes, vec.Typ.Symbols[val]...)
 			}

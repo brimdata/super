@@ -2,22 +2,23 @@ package vector
 
 import (
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/vector/bitvec"
 	"github.com/brimdata/super/zcode"
 )
 
 type TypeValue struct {
 	Offsets []uint32
 	Bytes   []byte
-	Nulls   *Bool
+	Nulls   bitvec.Bits
 }
 
 var _ Any = (*TypeValue)(nil)
 
-func NewTypeValue(offs []uint32, bytes []byte, nulls *Bool) *TypeValue {
+func NewTypeValue(offs []uint32, bytes []byte, nulls bitvec.Bits) *TypeValue {
 	return &TypeValue{Offsets: offs, Bytes: bytes, Nulls: nulls}
 }
 
-func NewTypeValueEmpty(length uint32, nulls *Bool) *TypeValue {
+func NewTypeValueEmpty(length uint32, nulls bitvec.Bits) *TypeValue {
 	return NewTypeValue(make([]uint32, 1, length+1), nil, nulls)
 }
 
@@ -39,7 +40,7 @@ func (t *TypeValue) Value(slot uint32) []byte {
 }
 
 func (t *TypeValue) Serialize(b *zcode.Builder, slot uint32) {
-	if t.Nulls.Value(slot) {
+	if t.Nulls.IsSet(slot) {
 		b.Append(nil)
 	} else {
 		b.Append(t.Value(slot))
@@ -49,15 +50,15 @@ func (t *TypeValue) Serialize(b *zcode.Builder, slot uint32) {
 func TypeValueValue(val Any, slot uint32) ([]byte, bool) {
 	switch val := val.(type) {
 	case *TypeValue:
-		return val.Value(slot), val.Nulls.Value(slot)
+		return val.Value(slot), val.Nulls.IsSet(slot)
 	case *Const:
-		if val.Nulls.Value(slot) {
+		if val.Nulls.IsSet(slot) {
 			return nil, true
 		}
 		s, _ := val.AsBytes()
 		return s, false
 	case *Dict:
-		if val.Nulls.Value(slot) {
+		if val.Nulls.IsSet(slot) {
 			return nil, true
 		}
 		slot = uint32(val.Index[slot])

@@ -3,6 +3,7 @@ package function
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 )
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#is
@@ -45,7 +46,7 @@ func (n *NameOf) Call(args ...vector.Any) vector.Any {
 	vec := args[0]
 	typ := vec.Type()
 	if named, ok := typ.(*super.TypeNamed); ok {
-		return vector.NewConst(super.NewString(named.Name), vec.Len(), nil)
+		return vector.NewConst(super.NewString(named.Name), vec.Len(), bitvec.Zero)
 	}
 	if typ.ID() != super.IDType {
 		return vector.NewMissing(n.sctx, vec.Len())
@@ -70,7 +71,7 @@ func (n *NameOf) Call(args ...vector.Any) vector.Any {
 		}
 	}
 	if len(errs) > 0 {
-		out.Nulls = vector.ReversePick(out.Nulls, errs).(*vector.Bool)
+		out.Nulls = out.Nulls.ReversePick(errs)
 		return vector.Combine(out, errs, vector.NewMissing(n.sctx, uint32(len(errs))))
 	}
 	return out
@@ -83,7 +84,7 @@ type TypeOf struct {
 
 func (t *TypeOf) Call(args ...vector.Any) vector.Any {
 	val := t.sctx.LookupTypeValue(args[0].Type())
-	return vector.NewConst(val, args[0].Len(), nil)
+	return vector.NewConst(val, args[0].Len(), bitvec.Zero)
 }
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#typename
@@ -97,12 +98,12 @@ func (t *TypeName) Call(args ...vector.Any) vector.Any {
 		return vector.NewWrappedError(t.sctx, "typename: argument must be a string", args[0])
 	}
 	var errs []uint32
-	out := vector.NewTypeValueEmpty(0, nil)
+	out := vector.NewTypeValueEmpty(0, bitvec.Zero)
 	for i := range vec.Len() {
 		s, isnull := vector.StringValue(vec, i)
 		if isnull {
-			if out.Nulls == nil {
-				out.Nulls = vector.NewBoolEmpty(vec.Len(), nil)
+			if out.Nulls.IsZero() {
+				out.Nulls = bitvec.NewFalse(vec.Len())
 			}
 			out.Nulls.Set(out.Len())
 			out.Append(nil)
@@ -115,7 +116,6 @@ func (t *TypeName) Call(args ...vector.Any) vector.Any {
 			out.Append(t.sctx.LookupTypeValue(typ).Bytes())
 		}
 	}
-	out.Nulls.SetLen(out.Len())
 	if len(errs) > 0 {
 		return vector.Combine(out, errs, vector.NewMissing(t.sctx, uint32(len(errs))))
 	}
@@ -129,7 +129,7 @@ type Error struct {
 
 func (e *Error) Call(args ...vector.Any) vector.Any {
 	vec := args[0]
-	return vector.NewError(e.sctx.LookupTypeError(vec.Type()), vec, nil)
+	return vector.NewError(e.sctx.LookupTypeError(vec.Type()), vec, bitvec.Zero)
 }
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#kind
@@ -145,9 +145,9 @@ func (k *Kind) Call(args ...vector.Any) vector.Any {
 	vec := vector.Under(args[0])
 	if typ := vec.Type(); typ.ID() != super.IDType {
 		s := typ.Kind().String()
-		return vector.NewConst(super.NewString(s), vec.Len(), nil)
+		return vector.NewConst(super.NewString(s), vec.Len(), bitvec.Zero)
 	}
-	out := vector.NewStringEmpty(vec.Len(), nil)
+	out := vector.NewStringEmpty(vec.Len(), bitvec.Zero)
 	for i, n := uint32(0), vec.Len(); i < n; i++ {
 		var s string
 		if bytes, null := vector.TypeValueValue(vec, i); !null {

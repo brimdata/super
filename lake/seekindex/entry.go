@@ -27,7 +27,7 @@ func (i Index) Filter(b *vector.Bool) Ranges {
 	var ranges Ranges
 	for _, e := range i {
 		for off := e.ValOff; off < uint64(b.Len()) && off < e.ValOff+e.ValCnt; off++ {
-			if b.Value(uint32(off)) {
+			if b.IsSet(uint32(off)) {
 				ranges.Append(e)
 				break
 			}

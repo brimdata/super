@@ -6,6 +6,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 )
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#base64
@@ -19,7 +20,7 @@ func (b *Base64) Call(args ...vector.Any) vector.Any {
 	case super.IDBytes:
 		var errcnt uint32
 		tags := make([]uint32, val.Len())
-		out := vector.NewStringEmpty(0, nil)
+		out := vector.NewStringEmpty(0, bitvec.Zero)
 		for i := uint32(0); i < val.Len(); i++ {
 			bytes, null := vector.BytesValue(val, i)
 			if null {
@@ -32,9 +33,9 @@ func (b *Base64) Call(args ...vector.Any) vector.Any {
 		err := vector.NewStringError(b.sctx, "base64: illegal null argument", errcnt)
 		return vector.NewDynamic(tags, []vector.Any{out, err})
 	case super.IDString:
-		errvals := vector.NewStringEmpty(0, nil)
+		errvals := vector.NewStringEmpty(0, bitvec.Zero)
 		tags := make([]uint32, val.Len())
-		out := vector.NewBytesEmpty(0, vector.NewBoolEmpty(val.Len(), nil))
+		out := vector.NewBytesEmpty(0, bitvec.NewFalse(val.Len()))
 		for i := uint32(0); i < val.Len(); i++ {
 			s, null := vector.StringValue(val, i)
 			if null {
@@ -66,7 +67,7 @@ func (h *Hex) Call(args ...vector.Any) vector.Any {
 	case super.IDBytes:
 		var errcnt uint32
 		tags := make([]uint32, val.Len())
-		out := vector.NewStringEmpty(val.Len(), nil)
+		out := vector.NewStringEmpty(val.Len(), bitvec.Zero)
 		for i := uint32(0); i < val.Len(); i++ {
 			bytes, null := vector.BytesValue(val, i)
 			if null {
@@ -79,9 +80,9 @@ func (h *Hex) Call(args ...vector.Any) vector.Any {
 		err := vector.NewStringError(h.sctx, "hex: illegal null argument", errcnt)
 		return vector.NewDynamic(tags, []vector.Any{out, err})
 	case super.IDString:
-		errvals := vector.NewStringEmpty(0, nil)
+		errvals := vector.NewStringEmpty(0, bitvec.Zero)
 		tags := make([]uint32, val.Len())
-		out := vector.NewBytesEmpty(0, vector.NewBoolEmpty(val.Len(), nil))
+		out := vector.NewBytesEmpty(0, bitvec.NewFalse(val.Len()))
 		for i := uint32(0); i < val.Len(); i++ {
 			s, null := vector.StringValue(val, i)
 			if null {

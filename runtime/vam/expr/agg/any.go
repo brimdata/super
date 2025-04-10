@@ -21,7 +21,7 @@ func (a *Any) Consume(vec vector.Any) {
 	}
 	nulls := vector.NullsOf(vec)
 	for i := range vec.Len() {
-		if a.val == super.Null || (isnull && !nulls.Value(i)) {
+		if a.val == super.Null || (isnull && !nulls.IsSet(i)) {
 			var b zcode.Builder
 			vec.Serialize(&b, i)
 			a.val = super.NewValue(vec.Type(), b.Bytes().Body())

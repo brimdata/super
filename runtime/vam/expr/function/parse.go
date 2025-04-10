@@ -6,6 +6,7 @@ import (
 	"github.com/brimdata/super"
 	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 	"github.com/brimdata/super/zcode"
 	"github.com/brimdata/super/zio/supio"
 )
@@ -53,7 +54,7 @@ func (p *ParseSUP) Call(args ...vector.Any) vector.Any {
 		return vector.NewWrappedError(p.sctx, "parse_sup: string arg required", args[0])
 	}
 	var errs []uint32
-	errMsgs := vector.NewStringEmpty(0, nil)
+	errMsgs := vector.NewStringEmpty(0, bitvec.Zero)
 	builder := vector.NewDynamicBuilder()
 	for i := range vec.Len() {
 		s, null := vector.StringValue(vec, i)
