@@ -1,6 +1,6 @@
 ---
 weight: 2
-title: SUP (Super)
+title: Super (SUP)
 heading: Super (SUP) Format Specification
 ---
 

@@ -1,6 +1,6 @@
 ---
 weight: 4
-title: CSUP (Super Columnar)
+title: Super Columnar (CSUP)
 heading: Super Columnar (CSUP) Format Specification
 ---
 

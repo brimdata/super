@@ -1,6 +1,6 @@
 ---
 weight: 3
-title: BSUP (Super Binary)
+title: Super Binary (BSUP)
 heading: Super Binary (BSUP) Format Specification
 ---
 
