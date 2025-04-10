@@ -34,7 +34,7 @@ case *vector.View:
 		v := inner.Values[idx]
 		out[i] = %s
 	}
-	return vector.NewInt(super.TypeInt64, out, vector.NewBoolView(inner.Nulls, index))
+	return vector.NewInt(super.TypeInt64, out, inner.Nulls.Pick(index))
 case *vector.Dict:
     out := %s(vec.Any).(*vector.Int)
 	return vector.NewDict(out, vec.Index, vec.Counts, vec.Nulls)
