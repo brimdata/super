@@ -9,6 +9,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Arith struct {
@@ -70,7 +71,7 @@ func (a *Arith) eval(vecs ...vector.Any) (out vector.Any) {
 		}()
 	}
 	out = f(lhs, rhs)
-	return vector.CopyAndSetNulls(out, vector.Or(vector.NullsOf(lhs), vector.NullsOf(rhs)))
+	return vector.CopyAndSetNulls(out, bitvec.Or(vector.NullsOf(lhs), vector.NullsOf(rhs)))
 }
 
 func enumToIndex(vec vector.Any) vector.Any {
@@ -91,7 +92,7 @@ func (a *Arith) evalDivideByZero(kind vector.Kind, lhs, rhs vector.Any) vector.A
 	switch kind {
 	case vector.KindInt:
 		var ints []int64
-		nulls := vector.NewBoolEmpty(lhs.Len(), nil)
+		nulls := bitvec.NewFalse(lhs.Len())
 		for i := range lhs.Len() {
 			l, lnull := vector.IntValue(lhs, i)
 			r, rnull := vector.IntValue(rhs, i)
@@ -113,7 +114,7 @@ func (a *Arith) evalDivideByZero(kind vector.Kind, lhs, rhs vector.Any) vector.A
 		out = vector.NewInt(super.TypeInt64, ints, nulls)
 	case vector.KindUint:
 		var uints []uint64
-		nulls := vector.NewBoolEmpty(lhs.Len(), nil)
+		nulls := bitvec.NewFalse(lhs.Len())
 		for i := range lhs.Len() {
 			l, lnull := vector.UintValue(lhs, i)
 			r, rnull := vector.UintValue(rhs, i)

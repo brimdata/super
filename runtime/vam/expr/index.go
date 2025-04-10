@@ -56,7 +56,7 @@ func indexArrayOrSet(sctx *super.Context, vec, indexVec vector.Any) vector.Any {
 			idx = index[i]
 		}
 		idxVal, isnull := vector.IntValue(indexVec, uint32(i))
-		if !nulls.Value(idx) && !isnull && idxVal != 0 {
+		if !nulls.IsSet(idx) && !isnull && idxVal != 0 {
 			start := offsets[idx]
 			len := int64(offsets[idx+1]) - int64(start)
 			if idxVal < 0 {

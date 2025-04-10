@@ -5,6 +5,7 @@ import (
 	samexpr "github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 )
 
 func To(sctx *super.Context, vec vector.Any, typ super.Type) vector.Any {
@@ -74,21 +75,21 @@ func assemble(sctx *super.Context, vec vector.Any, typ super.Type, fn caster) ve
 
 func castConst(sctx *super.Context, vec *vector.Const, typ super.Type) vector.Any {
 	if vec.Type().ID() == super.IDNull {
-		return vector.NewConst(super.NewValue(typ, nil), vec.Len(), nil)
+		return vector.NewConst(super.NewValue(typ, nil), vec.Len(), bitvec.Zero)
 	}
 	val := samexpr.LookupPrimitiveCaster(sctx, typ).Eval(samexpr.NewContext(), vec.Value())
 	if val.IsError() {
-		if vec.Nulls != nil {
+		if !vec.Nulls.IsZero() {
 			var trueCount uint32
 			index := make([]uint32, vec.Nulls.Len())
 			for i := range vec.Len() {
-				if vec.Nulls.Value(i) {
+				if vec.Nulls.IsSet(i) {
 					index[i] = 1
 					trueCount++
 				}
 			}
-			err := errCastFailed(sctx, vector.NewConst(vec.Value(), vec.Len()-trueCount, nil), typ)
-			nulls := vector.NewConst(super.NewValue(typ, nil), trueCount, nil)
+			err := errCastFailed(sctx, vector.NewConst(vec.Value(), vec.Len()-trueCount, bitvec.Zero), typ)
+			nulls := vector.NewConst(super.NewValue(typ, nil), trueCount, bitvec.Zero)
 			return vector.NewDynamic(index, []vector.Any{err, nulls})
 		}
 		return errCastFailed(sctx, vec, typ)

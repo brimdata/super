@@ -3,18 +3,19 @@ package vector
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
+	"github.com/brimdata/super/vector/bitvec"
 	"github.com/brimdata/super/zcode"
 )
 
 type Const struct {
 	val   super.Value
 	len   uint32
-	Nulls *Bool
+	Nulls bitvec.Bits
 }
 
 var _ Any = (*Const)(nil)
 
-func NewConst(val super.Value, len uint32, nulls *Bool) *Const {
+func NewConst(val super.Value, len uint32, nulls bitvec.Bits) *Const {
 	return &Const{val: val, len: len, Nulls: nulls}
 }
 
@@ -38,7 +39,7 @@ func (c *Const) Value() super.Value {
 }
 
 func (c *Const) Serialize(b *zcode.Builder, slot uint32) {
-	if c.Nulls.Value(slot) {
+	if c.Nulls.IsSet(slot) {
 		b.Append(nil)
 	} else {
 		b.Append(c.val.Bytes())

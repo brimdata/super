@@ -27,8 +27,9 @@ func main() {
 	fmt.Fprintln(&buf)
 	fmt.Fprintln(&buf, "package expr")
 	fmt.Fprintln(&buf, "import (")
-	fmt.Fprintln(&buf, `"github.com/brimdata/super/vector"`)
 	fmt.Fprintln(&buf, `"github.com/brimdata/super"`)
+	fmt.Fprintln(&buf, `"github.com/brimdata/super/vector"`)
+	fmt.Fprintln(&buf, `"github.com/brimdata/super/vector/bitvec"`)
 	fmt.Fprintln(&buf, ")")
 
 	var ents strings.Builder
@@ -77,13 +78,13 @@ func genFunc(name, op, typ string, lhs, rhs vector.Form) string {
 		} else {
 			s += fmt.Sprintf("val := super.New%s64(lconst %s rconst)\n", typ, op)
 		}
-		s += "return vector.NewConst(val, lhs.Len(), nil)\n"
+		s += "return vector.NewConst(val, lhs.Len(), bitvec.Zero)\n"
 	} else {
 		s += "n := lhs.Len()\n"
 		if typ == "String" {
-			s += "out := vector.NewStringEmpty(n, nil)\n"
+			s += "out := vector.NewStringEmpty(n, bitvec.Zero)\n"
 		} else {
-			s += fmt.Sprintf("out := vector.New%sEmpty(super.Type%s64, n, nil)\n", typ, typ)
+			s += fmt.Sprintf("out := vector.New%sEmpty(super.Type%s64, n, bitvec.Zero)\n", typ, typ)
 		}
 		s += genLoop(op, typ, lhs, rhs)
 		s += "return out\n"

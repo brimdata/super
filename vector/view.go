@@ -1,6 +1,7 @@
 package vector
 
 import (
+	"github.com/brimdata/super/vector/bitvec"
 	"github.com/brimdata/super/zcode"
 )
 
@@ -20,17 +21,17 @@ func NewView(vec Any, index []uint32) *View {
 func Pick(val Any, index []uint32) Any {
 	switch val := val.(type) {
 	case *Bool:
-		return NewBoolView(val, index)
+		return NewBool(val.Bits.Pick(index), val.Nulls.Pick(index))
 	case *Const:
-		return NewConst(val.val, uint32(len(index)), NewBoolView(val.Nulls, index))
+		return NewConst(val.val, uint32(len(index)), val.Nulls.Pick(index))
 	case *Dict:
 		index2 := make([]byte, len(index))
 		counts := make([]uint32, val.Any.Len())
-		var nulls *Bool
-		if val.Nulls != nil {
-			nulls = NewBoolEmpty(uint32(len(index)), nil)
+		var nulls bitvec.Bits
+		if !val.Nulls.IsZero() {
+			nulls = bitvec.NewFalse(uint32(len(index)))
 			for k, idx := range index {
-				if val.Nulls.Value(idx) {
+				if val.Nulls.IsSet(idx) {
 					nulls.Set(uint32(k))
 				}
 				v := val.Index[idx]
@@ -46,10 +47,10 @@ func Pick(val Any, index []uint32) Any {
 		}
 		return NewDict(val.Any, index2, counts, nulls)
 	case *Error:
-		return NewError(val.Typ, Pick(val.Vals, index), NewBoolView(val.Nulls, index))
+		return NewError(val.Typ, Pick(val.Vals, index), val.Nulls.Pick(index))
 	case *Union:
 		tags, values := viewForUnionOrDynamic(index, val.Tags, val.TagMap.Forward, val.Values)
-		return NewUnion(val.Typ, tags, values, NewBoolView(val.Nulls, index))
+		return NewUnion(val.Typ, tags, values, val.Nulls.Pick(index))
 	case *Dynamic:
 		return NewDynamic(viewForUnionOrDynamic(index, val.Tags, val.TagMap.Forward, val.Values))
 	case *View:
@@ -68,31 +69,7 @@ func Pick(val Any, index []uint32) Any {
 // ReversePick is like Pick but it builds the vector from the elements
 // that are not in the index maintaining the element order of vec.
 func ReversePick(vec Any, index []uint32) Any {
-	var inverse []uint32
-	for i := range vec.Len() {
-		if len(index) > 0 && index[0] == i {
-			index = index[1:]
-			continue
-		}
-		inverse = append(inverse, i)
-	}
-	return Pick(vec, inverse)
-}
-
-func NewBoolView(vec *Bool, index []uint32) *Bool {
-	if vec == nil {
-		return nil
-	}
-	out := NewBoolEmpty(uint32(len(index)), nil)
-	for k, slot := range index {
-		if vec.Value(slot) {
-			out.Set(uint32(k))
-		}
-	}
-	if vec.Nulls != nil {
-		out.Nulls = NewBoolView(vec.Nulls, index)
-	}
-	return out
+	return Pick(vec, bitvec.ReverseIndex(index, vec.Len()))
 }
 
 func viewForUnionOrDynamic(index, tags, forward []uint32, values []Any) ([]uint32, []Any) {

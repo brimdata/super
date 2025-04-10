@@ -20,7 +20,7 @@ func (c *collect) Consume(vec vector.Any) {
 	nulls := vector.NullsOf(vec)
 	var b zcode.Builder
 	for i := range vec.Len() {
-		if nulls.Value(i) {
+		if nulls.IsSet(i) {
 			continue
 		}
 		b.Truncate()

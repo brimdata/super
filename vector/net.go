@@ -4,17 +4,18 @@ import (
 	"net/netip"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/vector/bitvec"
 	"github.com/brimdata/super/zcode"
 )
 
 type Net struct {
 	Values []netip.Prefix
-	Nulls  *Bool
+	Nulls  bitvec.Bits
 }
 
 var _ Any = (*Net)(nil)
 
-func NewNet(values []netip.Prefix, nulls *Bool) *Net {
+func NewNet(values []netip.Prefix, nulls bitvec.Bits) *Net {
 	return &Net{Values: values, Nulls: nulls}
 }
 
@@ -27,7 +28,7 @@ func (n *Net) Len() uint32 {
 }
 
 func (n *Net) Serialize(b *zcode.Builder, slot uint32) {
-	if n.Nulls.Value(slot) {
+	if n.Nulls.IsSet(slot) {
 		b.Append(nil)
 	} else {
 		b.Append(super.EncodeNet(n.Values[slot]))
@@ -37,15 +38,15 @@ func (n *Net) Serialize(b *zcode.Builder, slot uint32) {
 func NetValue(val Any, slot uint32) (netip.Prefix, bool) {
 	switch val := val.(type) {
 	case *Net:
-		return val.Values[slot], val.Nulls.Value(slot)
+		return val.Values[slot], val.Nulls.IsSet(slot)
 	case *Const:
-		if val.Nulls.Value(slot) {
+		if val.Nulls.IsSet(slot) {
 			return netip.Prefix{}, true
 		}
 		s, _ := val.AsBytes()
 		return super.DecodeNet(s), false
 	case *Dict:
-		if val.Nulls.Value(slot) {
+		if val.Nulls.IsSet(slot) {
 			return netip.Prefix{}, true
 		}
 		slot = uint32(val.Index[slot])

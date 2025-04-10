@@ -5,6 +5,7 @@ import (
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/runtime/vam/expr/cast"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 	"github.com/lestrrat-go/strftime"
 )
 
@@ -50,7 +51,7 @@ func (b *Bucket) call(args ...vector.Any) vector.Any {
 			ints = append(ints, int64(nano.Ts(dur).Trunc(nano.Duration(bin))))
 		}
 	}
-	nulls := vector.Or(vector.NullsOf(tsArg), vector.NullsOf(binArg))
+	nulls := bitvec.Or(vector.NullsOf(tsArg), vector.NullsOf(binArg))
 	return vector.NewInt(b.resultType(tsArg), ints, nulls)
 }
 
@@ -96,7 +97,7 @@ func (b *Bucket) resultType(tsVec vector.Any) super.Type {
 type Now struct{}
 
 func (n *Now) Call(args ...vector.Any) vector.Any {
-	return vector.NewConst(super.NewTime(nano.Now()), args[0].Len(), nil)
+	return vector.NewConst(super.NewTime(nano.Now()), args[0].Len(), bitvec.Zero)
 }
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#strftime
@@ -144,7 +145,7 @@ func (s *Strftime) fastPath(fvec *vector.Const, tvec vector.Any) vector.Any {
 
 func (s *Strftime) fastPathLoop(f *strftime.Strftime, vec *vector.Int, index []uint32) *vector.String {
 	if index != nil {
-		out := vector.NewStringEmpty(uint32(len(index)), vector.NewBoolView(vec.Nulls, index))
+		out := vector.NewStringEmpty(uint32(len(index)), vec.Nulls.Pick(index))
 		for _, i := range index {
 			s := f.FormatString(nano.Ts(vec.Values[i]).Time())
 			out.Append(s)
@@ -162,8 +163,8 @@ func (s *Strftime) fastPathLoop(f *strftime.Strftime, vec *vector.Int, index []u
 func (s *Strftime) slowPath(fvec vector.Any, tvec vector.Any) vector.Any {
 	var f *strftime.Strftime
 	var errIndex []uint32
-	errMsgs := vector.NewStringEmpty(0, nil)
-	out := vector.NewStringEmpty(0, vector.NewBoolEmpty(tvec.Len(), nil))
+	errMsgs := vector.NewStringEmpty(0, bitvec.Zero)
+	out := vector.NewStringEmpty(0, bitvec.NewFalse(tvec.Len()))
 	for i := range fvec.Len() {
 		format, _ := vector.StringValue(fvec, i)
 		if f == nil || f.Pattern() != format {

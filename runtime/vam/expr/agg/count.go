@@ -16,15 +16,7 @@ func (a *count) Consume(vec vector.Any) {
 	if _, ok := vector.Under(vec).Type().(*super.TypeError); ok {
 		return
 	}
-	if nulls := vector.NullsOf(vec); nulls != nil {
-		for i := range vec.Len() {
-			if !nulls.Value(i) {
-				a.count++
-			}
-		}
-	} else {
-		a.count += uint64(vec.Len())
-	}
+	a.count += uint64((vec.Len()) - vector.NullsOf(vec).TrueCount())
 }
 
 func (a *count) Result(*super.Context) super.Value {

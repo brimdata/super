@@ -7,6 +7,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 	"github.com/brimdata/super/zcode"
 )
 
@@ -29,10 +30,10 @@ func (r *Regexp) Call(args ...vector.Any) vector.Any {
 	if inputVec.Type().ID() != super.IDString {
 		return vector.NewWrappedError(r.sctx, "regexp: string required for second arg", args[1])
 	}
-	errMsg := vector.NewStringEmpty(0, nil)
+	errMsg := vector.NewStringEmpty(0, bitvec.Zero)
 	var errs []uint32
-	inner := vector.NewStringEmpty(0, nil)
-	out := vector.NewArray(r.sctx.LookupTypeArray(super.TypeString), []uint32{0}, inner, nil)
+	inner := vector.NewStringEmpty(0, bitvec.Zero)
+	out := vector.NewArray(r.sctx.LookupTypeArray(super.TypeString), []uint32{0}, inner, bitvec.Zero)
 	for i := range regVec.Len() {
 		re, _ := vector.StringValue(regVec, i)
 		if r.restr != re {
@@ -47,8 +48,8 @@ func (r *Regexp) Call(args ...vector.Any) vector.Any {
 		s, _ := vector.StringValue(inputVec, i)
 		match := r.re.FindStringSubmatch(s)
 		if match == nil {
-			if out.Nulls == nil {
-				out.Nulls = vector.NewBoolEmpty(regVec.Len(), nil)
+			if out.Nulls.IsZero() {
+				out.Nulls = bitvec.NewFalse(regVec.Len())
 			}
 			out.Nulls.Set(out.Len())
 			out.Offsets = append(out.Offsets, inner.Len())
@@ -59,7 +60,7 @@ func (r *Regexp) Call(args ...vector.Any) vector.Any {
 		}
 		out.Offsets = append(out.Offsets, inner.Len())
 	}
-	out.Nulls.SetLen(out.Len())
+	out.Nulls.Shorten(out.Len())
 	if len(errs) > 0 {
 		return vector.Combine(out, errs, vector.NewVecWrappedError(r.sctx, errMsg, vector.Pick(regVec, errs)))
 	}
@@ -84,9 +85,9 @@ func (r *RegexpReplace) Call(args ...vector.Any) vector.Any {
 	sVec := args[0]
 	reVec := args[1]
 	replaceVec := args[2]
-	errMsg := vector.NewStringEmpty(0, nil)
+	errMsg := vector.NewStringEmpty(0, bitvec.Zero)
 	var errs []uint32
-	nulls := vector.Or(vector.Or(vector.NullsOf(sVec), vector.NullsOf(reVec)), vector.NullsOf(replaceVec))
+	nulls := bitvec.Or(bitvec.Or(vector.NullsOf(sVec), vector.NullsOf(reVec)), vector.NullsOf(replaceVec))
 	out := vector.NewStringEmpty(0, nulls)
 	for i := range sVec.Len() {
 		s, null := vector.StringValue(sVec, i)
@@ -116,7 +117,7 @@ func (r *RegexpReplace) Call(args ...vector.Any) vector.Any {
 		out.Append(r.re.ReplaceAllString(s, replace))
 	}
 	if len(errs) > 0 {
-		out.Nulls = vector.ReversePick(out.Nulls, errs).(*vector.Bool)
+		out.Nulls = out.Nulls.ReversePick(errs)
 		return vector.Combine(out, errs, vector.NewVecWrappedError(r.sctx, errMsg, vector.Pick(args[1], errs)))
 	}
 	return out

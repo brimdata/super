@@ -5,6 +5,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Not struct {
@@ -25,11 +26,7 @@ func (n *Not) Eval(val vector.Any) vector.Any {
 func (n *Not) eval(vecs ...vector.Any) vector.Any {
 	switch vec := vecs[0].(type) {
 	case *vector.Bool:
-		bits := make([]uint64, len(vec.Bits))
-		for k := range bits {
-			bits[k] = ^vec.Bits[k]
-		}
-		return vec.CopyWithBits(bits)
+		return vector.NewBool(bitvec.Not(vec.Bits), vec.Nulls)
 	case *vector.Const:
 		return vector.NewConst(super.NewBool(!vec.Value().Bool()), vec.Len(), vec.Nulls)
 	case *vector.Error:
@@ -75,15 +72,15 @@ func (a *And) eval(vecs ...vector.Any) vector.Any {
 		return a.andError(rhs, lhs)
 	}
 	blhs, brhs := toBool(lhs), toBool(rhs)
-	out := vector.And(blhs, brhs)
-	if blhs.Nulls == nil && brhs.Nulls == nil {
-		return out
+	and := bitvec.And(blhs.Bits, brhs.Bits)
+	if blhs.Nulls.IsZero() && brhs.Nulls.IsZero() {
+		return vector.NewBool(and, bitvec.Zero)
 	}
 	// any and false = false
 	// null and true = null
-	notfalse := vector.And(vector.Or(blhs, blhs.Nulls), vector.Or(brhs, brhs.Nulls))
-	out.Nulls = vector.And(notfalse, vector.Or(blhs.Nulls, brhs.Nulls))
-	return out
+	notfalse := bitvec.And(bitvec.Or(blhs.Bits, blhs.Nulls), bitvec.Or(brhs.Bits, brhs.Nulls))
+	nulls := bitvec.And(notfalse, bitvec.Or(blhs.Nulls, brhs.Nulls))
+	return vector.NewBool(and, nulls)
 }
 
 func (a *And) andError(err vector.Any, vec vector.Any) vector.Any {
@@ -92,10 +89,10 @@ func (a *And) andError(err vector.Any, vec vector.Any) vector.Any {
 	}
 	b := toBool(vec)
 	// anything and FALSE = FALSE
-	isError := vector.Or(b, b.Nulls)
+	isError := bitvec.Or(b.Bits, b.Nulls)
 	var index []uint32
 	for i := range err.Len() {
-		if isError.Value(i) {
+		if isError.IsSetDirect(i) {
 			index = append(index, i)
 		}
 	}
@@ -122,13 +119,14 @@ func (o *Or) eval(vecs ...vector.Any) vector.Any {
 		return o.orError(rhs, lhs)
 	}
 	blhs, brhs := toBool(lhs), toBool(rhs)
-	out := vector.Or(blhs, brhs)
-	if blhs.Nulls == nil && brhs.Nulls == nil {
-		return out
+	bits := bitvec.Or(blhs.Bits, brhs.Bits)
+	if blhs.Nulls.IsZero() && brhs.Nulls.IsZero() {
+		// Fast path involves no nulls.
+		return vector.NewBool(bits, bitvec.Zero)
 	}
-	nulls := vector.Or(blhs.Nulls, brhs.Nulls)
-	out.Nulls = vector.And(vector.Not(out), nulls)
-	return out
+	nulls := bitvec.Or(blhs.Nulls, brhs.Nulls)
+	nulls = bitvec.And(bitvec.Not(bits), nulls)
+	return vector.NewBool(bits, nulls)
 }
 
 func (o *Or) orError(err, vec vector.Any) vector.Any {
@@ -137,10 +135,10 @@ func (o *Or) orError(err, vec vector.Any) vector.Any {
 	}
 	b := toBool(vec)
 	// not error if true or null
-	notError := vector.Or(b, b.Nulls)
+	notError := bitvec.Or(b.Bits, b.Nulls)
 	var index []uint32
 	for i := range b.Len() {
-		if !notError.Value(i) {
+		if !notError.IsSetDirect(i) {
 			index = append(index, i)
 		}
 	}
@@ -173,14 +171,14 @@ func toBool(vec vector.Any) *vector.Bool {
 	case *vector.Const:
 		val := vec.Value()
 		if val.Bool() {
-			out := trueBool(vec.Len())
+			out := vector.NewTrue(vec.Len())
 			out.Nulls = vec.Nulls
 			return out
 		} else {
 			return vector.NewBoolEmpty(vec.Len(), vec.Nulls)
 		}
 	case *vector.Dynamic:
-		nulls := vector.NewBoolEmpty(vec.Len(), nil)
+		nulls := bitvec.NewFalse(vec.Len())
 		out := vector.NewBoolEmpty(vec.Len(), nulls)
 		for i := range vec.Len() {
 			v, null := vector.BoolValue(vec, i)
@@ -196,14 +194,6 @@ func toBool(vec vector.Any) *vector.Bool {
 	default:
 		panic(vec)
 	}
-}
-
-func trueBool(n uint32) *vector.Bool {
-	vec := vector.NewBoolEmpty(n, nil)
-	for i := range vec.Bits {
-		vec.Bits[i] = ^uint64(0)
-	}
-	return vec
 }
 
 type In struct {
@@ -251,7 +241,7 @@ func (p *PredicateWalk) Eval(vecs ...vector.Any) vector.Any {
 	}
 	switch rhs := rhs.(type) {
 	case *vector.Record:
-		out := vector.NewBoolEmpty(lhs.Len(), nil)
+		out := vector.NewFalse(lhs.Len())
 		for _, f := range rhs.Fields {
 			if index != nil {
 				f = vector.Pick(f, index)
@@ -282,7 +272,7 @@ func (p *PredicateWalk) Eval(vecs ...vector.Any) vector.Any {
 }
 
 func (p *PredicateWalk) evalForList(lhs, rhs vector.Any, offsets, index []uint32) *vector.Bool {
-	out := vector.NewBoolEmpty(lhs.Len(), nil)
+	out := vector.NewFalse(lhs.Len())
 	var lhsIndex, rhsIndex []uint32
 	for j := range lhs.Len() {
 		idx := j
@@ -302,7 +292,7 @@ func (p *PredicateWalk) evalForList(lhs, rhs vector.Any, offsets, index []uint32
 		}
 		lhsView := vector.Pick(lhs, lhsIndex)
 		rhsView := vector.Pick(rhs, rhsIndex)
-		if toBool(p.Eval(lhsView, rhsView)).TrueCount() > 0 {
+		if toBool(p.Eval(lhsView, rhsView)).Bits.TrueCount() > 0 {
 			out.Set(j)
 		}
 	}

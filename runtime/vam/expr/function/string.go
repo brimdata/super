@@ -7,6 +7,7 @@ import (
 	"github.com/agnivade/levenshtein"
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 )
 
 // // https://github.com/brimdata/super/blob/main/docs/language/functions.md#join
@@ -28,7 +29,7 @@ func (j *Join) Call(args ...vector.Any) vector.Any {
 			return vector.NewWrappedError(j.sctx, "join: separator must be string", sepVal)
 		}
 	}
-	out := vector.NewStringEmpty(0, vector.NewBoolEmpty(splitsVal.Len(), nil))
+	out := vector.NewStringEmpty(0, bitvec.NewFalse(splitsVal.Len()))
 	inner := vector.Inner(splitsVal)
 	for i := uint32(0); i < splitsVal.Len(); i++ {
 		var seperator string
@@ -65,7 +66,7 @@ func (l *Levenshtein) Call(args ...vector.Any) vector.Any {
 		}
 	}
 	a, b := args[0], args[1]
-	out := vector.NewIntEmpty(super.TypeInt64, a.Len(), nil)
+	out := vector.NewIntEmpty(super.TypeInt64, a.Len(), bitvec.Zero)
 	for i := uint32(0); i < a.Len(); i++ {
 		as, _ := vector.StringValue(a, i)
 		bs, _ := vector.StringValue(b, i)
@@ -89,7 +90,7 @@ func (r *Replace) Call(args ...vector.Any) vector.Any {
 	var errcnt uint32
 	sVal := args[0]
 	tags := make([]uint32, sVal.Len())
-	out := vector.NewStringEmpty(0, vector.NewBoolEmpty(sVal.Len(), nil))
+	out := vector.NewStringEmpty(0, bitvec.NewFalse(sVal.Len()))
 	for i := uint32(0); i < sVal.Len(); i++ {
 		s, snull := vector.StringValue(sVal, i)
 		old, oldnull := vector.StringValue(args[1], i)
@@ -118,7 +119,7 @@ func (r *RuneLen) Call(args ...vector.Any) vector.Any {
 	if val.Type() != super.TypeString {
 		return vector.NewWrappedError(r.sctx, "rune_len: string arg required", val)
 	}
-	out := vector.NewIntEmpty(super.TypeInt64, val.Len(), vector.NewBoolEmpty(val.Len(), nil))
+	out := vector.NewIntEmpty(super.TypeInt64, val.Len(), bitvec.NewFalse(val.Len()))
 	for i := uint32(0); i < val.Len(); i++ {
 		s, null := vector.StringValue(val, i)
 		if null {
@@ -143,8 +144,8 @@ func (s *Split) Call(args ...vector.Any) vector.Any {
 	}
 	sVal, sepVal := args[0], args[1]
 	var offsets []uint32
-	values := vector.NewStringEmpty(0, nil)
-	nulls := vector.NewBoolEmpty(sVal.Len(), nil)
+	values := vector.NewStringEmpty(0, bitvec.Zero)
+	nulls := bitvec.NewFalse(sVal.Len())
 	var off uint32
 	for i := uint32(0); i < sVal.Len(); i++ {
 		ss, snull := vector.StringValue(sVal, i)
@@ -175,7 +176,7 @@ func (t *ToLower) Call(args ...vector.Any) vector.Any {
 	if v.Type() != super.TypeString {
 		return vector.NewWrappedError(t.sctx, "lower: string arg required", v)
 	}
-	out := vector.NewStringEmpty(v.Len(), vector.NewBoolEmpty(v.Len(), nil))
+	out := vector.NewStringEmpty(v.Len(), bitvec.NewFalse(v.Len()))
 	for i := uint32(0); i < v.Len(); i++ {
 		s, null := vector.StringValue(v, i)
 		if null {
@@ -196,7 +197,7 @@ func (t *ToUpper) Call(args ...vector.Any) vector.Any {
 	if v.Type() != super.TypeString {
 		return vector.NewWrappedError(t.sctx, "upper: string arg required", v)
 	}
-	out := vector.NewStringEmpty(v.Len(), vector.NewBoolEmpty(v.Len(), nil))
+	out := vector.NewStringEmpty(v.Len(), bitvec.NewFalse(v.Len()))
 	for i := uint32(0); i < v.Len(); i++ {
 		s, null := vector.StringValue(v, i)
 		if null {
@@ -217,7 +218,7 @@ func (t *Trim) Call(args ...vector.Any) vector.Any {
 	if val.Type() != super.TypeString {
 		return vector.NewWrappedError(t.sctx, "trim: string arg required", val)
 	}
-	out := vector.NewStringEmpty(val.Len(), vector.NewBoolEmpty(val.Len(), nil))
+	out := vector.NewStringEmpty(val.Len(), bitvec.NewFalse(val.Len()))
 	for i := uint32(0); i < val.Len(); i++ {
 		s, null := vector.StringValue(val, i)
 		if null {

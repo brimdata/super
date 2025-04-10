@@ -4,6 +4,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 )
 
 type This struct{}
@@ -48,12 +49,12 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 		return val.Fields[i]
 	case *vector.TypeValue:
 		var errs []uint32
-		typvals := vector.NewTypeValueEmpty(0, nil)
+		typvals := vector.NewTypeValueEmpty(0, bitvec.Zero)
 		var nulls *vector.Bool
 		for i := range val.Len() {
-			if val.Nulls.Value(i) {
+			if val.Nulls.IsSet(i) {
 				if nulls == nil {
-					nulls = vector.NewBoolEmpty(val.Len(), nil)
+					nulls = vector.NewBoolEmpty(val.Len(), bitvec.Zero)
 				}
 				nulls.Set(typvals.Len())
 				typvals.Append(nil)
@@ -69,8 +70,8 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 			errs = append(errs, i)
 		}
 		if nulls != nil {
-			nulls.SetLen(typvals.Len())
-			typvals = vector.CopyAndSetNulls(typvals, nulls).(*vector.TypeValue)
+			nulls.Bits.Shorten(typvals.Len())
+			typvals = vector.CopyAndSetNulls(typvals, nulls.Bits).(*vector.TypeValue)
 		}
 		if len(errs) > 0 {
 			return vector.Combine(typvals, errs, vector.NewMissing(d.sctx, uint32(len(errs))))

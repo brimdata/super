@@ -5,6 +5,7 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Aggregate struct {
@@ -83,7 +84,7 @@ func (a *Aggregate) Pull(done bool) (vector.Any, error) {
 			a.consume(args[:len(keys)], args[len(keys):])
 			// XXX Perhaps there should be a "consume" version of Apply where
 			// no return value is expected.
-			return vector.NewConst(super.Null, args[0].Len(), nil)
+			return vector.NewConst(super.Null, args[0].Len(), bitvec.Zero)
 		}, append(keys, vals...)...)
 	}
 }

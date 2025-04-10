@@ -18,7 +18,7 @@ func date_time_dayofweek(vec vector.Any) vector.Any {
 			v := inner.Values[idx]
 			out[i] = int64(nano.Ts(v).Time().Weekday())
 		}
-		return vector.NewInt(super.TypeInt64, out, vector.NewBoolView(inner.Nulls, index))
+		return vector.NewInt(super.TypeInt64, out, inner.Nulls.Pick(index))
 	case *vector.Dict:
 		out := date_time_dayofweek(vec.Any).(*vector.Int)
 		return vector.NewDict(out, vec.Index, vec.Counts, vec.Nulls)
@@ -43,7 +43,7 @@ func date_time_day(vec vector.Any) vector.Any {
 			v := inner.Values[idx]
 			out[i] = int64(nano.Ts(v).Time().Day())
 		}
-		return vector.NewInt(super.TypeInt64, out, vector.NewBoolView(inner.Nulls, index))
+		return vector.NewInt(super.TypeInt64, out, inner.Nulls.Pick(index))
 	case *vector.Dict:
 		out := date_time_day(vec.Any).(*vector.Int)
 		return vector.NewDict(out, vec.Index, vec.Counts, vec.Nulls)
@@ -68,7 +68,7 @@ func date_time_dow(vec vector.Any) vector.Any {
 			v := inner.Values[idx]
 			out[i] = int64(nano.Ts(v).Time().Weekday())
 		}
-		return vector.NewInt(super.TypeInt64, out, vector.NewBoolView(inner.Nulls, index))
+		return vector.NewInt(super.TypeInt64, out, inner.Nulls.Pick(index))
 	case *vector.Dict:
 		out := date_time_dow(vec.Any).(*vector.Int)
 		return vector.NewDict(out, vec.Index, vec.Counts, vec.Nulls)
@@ -93,7 +93,7 @@ func date_time_hour(vec vector.Any) vector.Any {
 			v := inner.Values[idx]
 			out[i] = int64(nano.Ts(v).Time().Hour())
 		}
-		return vector.NewInt(super.TypeInt64, out, vector.NewBoolView(inner.Nulls, index))
+		return vector.NewInt(super.TypeInt64, out, inner.Nulls.Pick(index))
 	case *vector.Dict:
 		out := date_time_hour(vec.Any).(*vector.Int)
 		return vector.NewDict(out, vec.Index, vec.Counts, vec.Nulls)
@@ -118,7 +118,7 @@ func date_time_microseconds(vec vector.Any) vector.Any {
 			v := inner.Values[idx]
 			out[i] = int64(nano.Ts(v).Time().Second()*1e6 + nano.Ts(v).Time().Nanosecond()/1e3)
 		}
-		return vector.NewInt(super.TypeInt64, out, vector.NewBoolView(inner.Nulls, index))
+		return vector.NewInt(super.TypeInt64, out, inner.Nulls.Pick(index))
 	case *vector.Dict:
 		out := date_time_microseconds(vec.Any).(*vector.Int)
 		return vector.NewDict(out, vec.Index, vec.Counts, vec.Nulls)
@@ -143,7 +143,7 @@ func date_time_milliseconds(vec vector.Any) vector.Any {
 			v := inner.Values[idx]
 			out[i] = int64(nano.Ts(v).Time().Second()*1e3 + nano.Ts(v).Time().Nanosecond()/1e6)
 		}
-		return vector.NewInt(super.TypeInt64, out, vector.NewBoolView(inner.Nulls, index))
+		return vector.NewInt(super.TypeInt64, out, inner.Nulls.Pick(index))
 	case *vector.Dict:
 		out := date_time_milliseconds(vec.Any).(*vector.Int)
 		return vector.NewDict(out, vec.Index, vec.Counts, vec.Nulls)
@@ -168,7 +168,7 @@ func date_time_minute(vec vector.Any) vector.Any {
 			v := inner.Values[idx]
 			out[i] = int64(nano.Ts(v).Time().Minute())
 		}
-		return vector.NewInt(super.TypeInt64, out, vector.NewBoolView(inner.Nulls, index))
+		return vector.NewInt(super.TypeInt64, out, inner.Nulls.Pick(index))
 	case *vector.Dict:
 		out := date_time_minute(vec.Any).(*vector.Int)
 		return vector.NewDict(out, vec.Index, vec.Counts, vec.Nulls)
@@ -193,7 +193,7 @@ func date_time_month(vec vector.Any) vector.Any {
 			v := inner.Values[idx]
 			out[i] = int64(nano.Ts(v).Time().Month())
 		}
-		return vector.NewInt(super.TypeInt64, out, vector.NewBoolView(inner.Nulls, index))
+		return vector.NewInt(super.TypeInt64, out, inner.Nulls.Pick(index))
 	case *vector.Dict:
 		out := date_time_month(vec.Any).(*vector.Int)
 		return vector.NewDict(out, vec.Index, vec.Counts, vec.Nulls)
@@ -218,7 +218,7 @@ func date_time_second(vec vector.Any) vector.Any {
 			v := inner.Values[idx]
 			out[i] = int64(nano.Ts(v).Time().Second())
 		}
-		return vector.NewInt(super.TypeInt64, out, vector.NewBoolView(inner.Nulls, index))
+		return vector.NewInt(super.TypeInt64, out, inner.Nulls.Pick(index))
 	case *vector.Dict:
 		out := date_time_second(vec.Any).(*vector.Int)
 		return vector.NewDict(out, vec.Index, vec.Counts, vec.Nulls)
@@ -243,7 +243,7 @@ func date_time_year(vec vector.Any) vector.Any {
 			v := inner.Values[idx]
 			out[i] = int64(nano.Ts(v).Time().Year())
 		}
-		return vector.NewInt(super.TypeInt64, out, vector.NewBoolView(inner.Nulls, index))
+		return vector.NewInt(super.TypeInt64, out, inner.Nulls.Pick(index))
 	case *vector.Dict:
 		out := date_time_year(vec.Any).(*vector.Int)
 		return vector.NewDict(out, vec.Index, vec.Counts, vec.Nulls)

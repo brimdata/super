@@ -5,6 +5,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
+	"github.com/brimdata/super/vector/bitvec"
 )
 
 type RecordBuilder struct {
@@ -23,7 +24,7 @@ func NewRecordBuilder(sctx *super.Context, fields field.List) (*RecordBuilder, e
 	return &RecordBuilder{sctx: sctx, base: base}, nil
 }
 
-func (r *RecordBuilder) New(vecs []Any, nulls *Bool) *Record {
+func (r *RecordBuilder) New(vecs []Any, nulls bitvec.Bits) *Record {
 	rec, _ := r.base.build(r.sctx, vecs)
 	rec.Nulls = nulls
 	return rec
@@ -72,5 +73,5 @@ func (r *rec) build(sctx *super.Context, leafs []Any) (*Record, []Any) {
 		out = append(out, vec)
 	}
 	typ := sctx.MustLookupTypeRecord(fields)
-	return NewRecord(typ, out, out[0].Len(), nil), leafs
+	return NewRecord(typ, out, out[0].Len(), bitvec.Zero), leafs
 }

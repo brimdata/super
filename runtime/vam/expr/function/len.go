@@ -4,6 +4,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 )
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#len
@@ -13,13 +14,13 @@ type Len struct {
 
 func (l *Len) Call(args ...vector.Any) vector.Any {
 	val := vector.Under(args[0])
-	out := vector.NewIntEmpty(super.TypeInt64, val.Len(), nil)
+	out := vector.NewIntEmpty(super.TypeInt64, val.Len(), bitvec.Zero)
 	switch typ := val.Type().(type) {
 	case *super.TypeOfNull:
-		return vector.NewConst(super.NewInt64(0), val.Len(), nil)
+		return vector.NewConst(super.NewInt64(0), val.Len(), bitvec.Zero)
 	case *super.TypeRecord:
 		length := int64(len(typ.Fields))
-		return vector.NewConst(super.NewInt64(length), val.Len(), nil)
+		return vector.NewConst(super.NewInt64(length), val.Len(), bitvec.Zero)
 	case *super.TypeArray, *super.TypeSet, *super.TypeMap:
 		for i := uint32(0); i < val.Len(); i++ {
 			start, end, _ := vector.ContainerOffset(val, i)

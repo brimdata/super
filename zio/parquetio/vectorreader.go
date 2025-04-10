@@ -18,6 +18,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio/arrowio"
 )
@@ -158,7 +159,7 @@ func (v *vectorBuilder) build(a arrow.Array) (vector.Any, error) {
 		for i := range bits {
 			bits[i] = ^uint64(0)
 		}
-		nulls := vector.NewBool(bits, length, nil)
+		nulls := bitvec.New(bits, length)
 		return vector.NewConst(super.Null, length, nulls), nil
 	case arrow.BOOL:
 		vec := vector.NewBoolEmpty(length, makeNulls(a))
@@ -358,10 +359,10 @@ func (v *vectorBuilder) build(a arrow.Array) (vector.Any, error) {
 	return nil, fmt.Errorf("unimplemented Parquet type %q", dt.Name())
 }
 
-func makeNulls(a arrow.Array) *vector.Bool {
+func makeNulls(a arrow.Array) bitvec.Bits {
 	bytes := a.NullBitmapBytes()
 	if len(bytes) == 0 {
-		return nil
+		return bitvec.Zero
 	}
 	n := a.Len()
 	bits := make([]uint64, (n+63)/64)
@@ -371,7 +372,7 @@ func makeNulls(a arrow.Array) *vector.Bool {
 		// Flip bits
 		bits[i] ^= ^uint64(0)
 	}
-	return vector.NewBool(bits, uint32(n), nil)
+	return bitvec.New(bits, uint32(n))
 }
 
 func convertSlice[Out, In uint8 | uint16 | uint32 | uint64 | int8 | int16 | int32 | int64 | float32 | float64](in []In) []Out {

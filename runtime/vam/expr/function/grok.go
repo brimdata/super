@@ -6,6 +6,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/grok"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 	"github.com/brimdata/super/zcode"
 )
 
@@ -26,7 +27,7 @@ func newGrok(sctx *super.Context) *Grok {
 
 func (g *Grok) Call(args ...vector.Any) vector.Any {
 	patternArg, inputArg := args[0], args[1]
-	defArg := vector.Any(vector.NewConst(super.NullString, args[0].Len(), nil))
+	defArg := vector.Any(vector.NewConst(super.NullString, args[0].Len(), bitvec.Zero))
 	if len(args) == 3 {
 		defArg = args[2]
 	}
@@ -100,7 +101,7 @@ func (g *Grok) Call(args ...vector.Any) vector.Any {
 }
 
 func (g *Grok) errorVec(msgs []string, index []uint32, vec vector.Any) vector.Any {
-	s := vector.NewStringEmpty(0, nil)
+	s := vector.NewStringEmpty(0, bitvec.Zero)
 	for _, m := range msgs {
 		s.Append("grok(): " + m)
 	}

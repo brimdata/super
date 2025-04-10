@@ -7,6 +7,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 )
 
 type consumer interface {
@@ -89,21 +90,21 @@ func (m *mathReducer) ResultAsPartial(*super.Context) super.Value {
 
 func trimNulls(vec vector.Any) vector.Any {
 	if c, ok := vec.(*vector.Const); ok && c.Value().IsNull() {
-		return vector.NewConst(super.Null, 0, nil)
+		return vector.NewConst(super.Null, 0, bitvec.Zero)
 	}
 	nulls := vector.NullsOf(vec)
-	if nulls == nil {
+	if nulls.IsZero() {
 		return vec
 	}
 	var index []uint32
 	for i := range nulls.Len() {
-		if nulls.Value(i) {
+		if nulls.IsSet(i) {
 			index = append(index, i)
 		}
 	}
 	switch uint32(len(index)) {
 	case vec.Len():
-		return vector.NewConst(super.Null, 0, nil)
+		return vector.NewConst(super.Null, 0, bitvec.Zero)
 	case 0:
 		return vec
 	default:

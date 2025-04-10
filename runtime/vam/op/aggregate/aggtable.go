@@ -7,6 +7,7 @@ import (
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/runtime/vam/expr/agg"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 	"github.com/brimdata/super/zcode"
 )
 
@@ -88,7 +89,7 @@ func (s *superTable) newRow(keys []vector.Any, index []uint32) aggRow {
 
 func (s *superTable) materialize() vector.Any {
 	if len(s.rows) == 0 {
-		return vector.NewConst(super.Null, 0, nil)
+		return vector.NewConst(super.Null, 0, bitvec.Zero)
 	}
 	var vecs []vector.Any
 	for i := range s.rows[0].keys {
@@ -99,7 +100,7 @@ func (s *superTable) materialize() vector.Any {
 	}
 	// Since aggs can return dynamic values need to do apply to create record.
 	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
-		return s.builder.New(vecs, nil)
+		return s.builder.New(vecs, bitvec.Zero)
 	}, vecs...)
 }
 
@@ -163,9 +164,9 @@ func (c *countByString) updatePartial(keyvec, valvec vector.Any) {
 	if !ok1 || !ok2 {
 		panic("count by string: invalid partials in")
 	}
-	if key.Nulls != nil {
+	if !key.Nulls.IsZero() {
 		for i := range key.Len() {
-			if key.Nulls.Value(i) {
+			if key.Nulls.IsSet(i) {
 				c.nulls += val.Values[i]
 			} else {
 				c.table[key.Value(i)] += val.Values[i]
@@ -181,13 +182,13 @@ func (c *countByString) updatePartial(keyvec, valvec vector.Any) {
 func (c *countByString) count(vec *vector.String) {
 	offs := vec.Offsets
 	bytes := vec.Bytes
-	if vec.Nulls == nil {
+	if vec.Nulls.IsZero() {
 		for k := range vec.Len() {
 			c.table[string(bytes[offs[k]:offs[k+1]])]++
 		}
 	} else {
 		for k := range vec.Len() {
-			if vec.Nulls.Value(k) {
+			if vec.Nulls.IsSet(k) {
 				c.nulls++
 			} else {
 				c.table[string(bytes[offs[k]:offs[k+1]])]++
@@ -196,7 +197,7 @@ func (c *countByString) count(vec *vector.String) {
 	}
 }
 
-func (c *countByString) countDict(vec *vector.String, counts []uint32, nulls *vector.Bool) {
+func (c *countByString) countDict(vec *vector.String, counts []uint32, nulls bitvec.Bits) {
 	offs := vec.Offsets
 	bytes := vec.Bytes
 	for k := range vec.Len() {
@@ -204,28 +205,15 @@ func (c *countByString) countDict(vec *vector.String, counts []uint32, nulls *ve
 			c.table[string(bytes[offs[k]:offs[k+1]])] += uint64(counts[k])
 		}
 	}
-	if nulls != nil {
-		for k := range nulls.Len() {
-			if nulls.Value(k) {
-				c.nulls++
-			}
-		}
-	}
+	c.nulls += uint64(nulls.TrueCount())
 }
 
 func (c *countByString) countFixed(vec *vector.Const) {
 	val := vec.Value()
 	switch val.Type().ID() {
 	case super.IDString:
-		var nullCnt uint64
-		if vec.Nulls != nil {
-			for k := range vec.Len() {
-				if vec.Nulls.Value(k) {
-					nullCnt++
-				}
-			}
-			c.nulls += nullCnt
-		}
+		nullCnt := uint64(vec.Nulls.TrueCount())
+		c.nulls += nullCnt
 		c.table[super.DecodeString(val.Bytes())] += uint64(vec.Len()) - nullCnt
 	case super.IDNull:
 		c.nulls += uint64(vec.Len())
@@ -234,13 +222,13 @@ func (c *countByString) countFixed(vec *vector.Const) {
 
 func (c *countByString) countView(vec *vector.View) {
 	strVec := vec.Any.(*vector.String)
-	if strVec.Nulls == nil {
+	if strVec.Nulls.IsZero() {
 		for _, slot := range vec.Index {
 			c.table[strVec.Value(slot)]++
 		}
 	} else {
 		for _, slot := range vec.Index {
-			if strVec.Nulls.Value(slot) {
+			if strVec.Nulls.IsSet(slot) {
 				c.nulls++
 			} else {
 				c.table[strVec.Value(slot)]++
@@ -262,15 +250,15 @@ func (c *countByString) materialize() vector.Any {
 		k++
 	}
 	offs[k] = uint32(len(bytes))
-	var nulls *vector.Bool
+	var nulls bitvec.Bits
 	if c.nulls > 0 {
 		length++
 		counts = append(counts, c.nulls)
 		offs = append(offs, uint32(len(bytes)))
-		nulls = vector.NewBoolEmpty(uint32(length), nil)
+		nulls = bitvec.NewFalse(uint32(length))
 		nulls.Set(uint32(length - 1))
 	}
 	keyVec := vector.NewString(offs, bytes, nulls)
-	countVec := vector.NewUint(super.TypeUint64, counts, nil)
-	return c.builder.New([]vector.Any{keyVec, countVec}, nil)
+	countVec := vector.NewUint(super.TypeUint64, counts, bitvec.Zero)
+	return c.builder.New([]vector.Any{keyVec, countVec}, bitvec.Zero)
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 )
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#network_of
@@ -77,7 +78,7 @@ func (n *NetworkOf) singleIPLoop(vec *vector.IP, index []uint32) (*vector.Net, [
 		}
 		nets = append(nets, netip.PrefixFrom(ip, bitsFromIP(ip.As4())).Masked())
 	}
-	return vector.NewNet(nets, nil), errs
+	return vector.NewNet(nets, bitvec.Zero), errs
 }
 
 // inlined
@@ -109,7 +110,7 @@ func (n *NetworkOf) ipMask(ipvec, maskvec vector.Any) vector.Any {
 		}
 		nets = append(nets, netip.PrefixFrom(ip, bits).Masked())
 	}
-	b := vector.NewCombiner(vector.NewNet(nets, nil))
+	b := vector.NewCombiner(vector.NewNet(nets, bitvec.Zero))
 	m := addressAndMask(n.sctx, ipvec, maskvec)
 	b.WrappedError(n.sctx, errsLen, "network_of: address and mask have different lengths", m)
 	b.WrappedError(n.sctx, errsCont, "network_of: mask is non-contiguous", maskvec)
@@ -127,7 +128,7 @@ func (n *NetworkOf) intMask(ipvec, maskvec vector.Any) vector.Any {
 			if net.Bits() < 0 {
 				return errCIDRRange(n.sctx, ipvec, maskvec)
 			}
-			return vector.NewConst(super.NewNet(net.Masked()), ipvec.Len(), nil)
+			return vector.NewConst(super.NewNet(net.Masked()), ipvec.Len(), bitvec.Zero)
 		}
 		out, errs = n.intMaskFast(ipvec, int(bits))
 	} else {
@@ -150,7 +151,7 @@ func (n *NetworkOf) intMask(ipvec, maskvec vector.Any) vector.Any {
 			}
 			nets = append(nets, netip.PrefixFrom(ip, bits).Masked())
 		}
-		out = vector.NewNet(nets, nil)
+		out = vector.NewNet(nets, bitvec.Zero)
 	}
 	if len(errs) > 0 {
 		m := vector.Pick(addressAndMask(n.sctx, ipvec, maskvec), errs)
@@ -195,7 +196,7 @@ func (n *NetworkOf) intMaskFastLoop(vec *vector.IP, index []uint32, bits int) (v
 		}
 		nets = append(nets, net.Masked())
 	}
-	return vector.NewNet(nets, nil), errs
+	return vector.NewNet(nets, bitvec.Zero), errs
 }
 
 func errCIDRRange(sctx *super.Context, ipvec, maskvec vector.Any) vector.Any {
@@ -212,5 +213,5 @@ func addressAndMask(sctx *super.Context, address, mask vector.Any) vector.Any {
 		{Name: "address", Type: address.Type()},
 		{Name: "mask", Type: mask.Type()},
 	})
-	return vector.NewRecord(typ, []vector.Any{address, mask}, address.Len(), nil)
+	return vector.NewRecord(typ, []vector.Any{address, mask}, address.Len(), bitvec.Zero)
 }

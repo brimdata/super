@@ -4,6 +4,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Yield struct {
@@ -76,19 +77,19 @@ func filterQuiet(vec vector.Any) vector.Any {
 func quietMask(vec vector.Any) (vector.Any, bool) {
 	errvec, ok := vec.(*vector.Error)
 	if !ok {
-		return vector.NewConst(super.True, vec.Len(), nil), false
+		return vector.NewConst(super.True, vec.Len(), bitvec.Zero), false
 	}
 	if _, ok := errvec.Vals.Type().(*super.TypeOfString); !ok {
-		return vector.NewConst(super.True, vec.Len(), nil), false
+		return vector.NewConst(super.True, vec.Len(), bitvec.Zero), false
 	}
 	if c, ok := errvec.Vals.(*vector.Const); ok {
 		if s, _ := c.AsString(); s == "quiet" {
-			return vector.NewConst(super.False, vec.Len(), nil), true
+			return vector.NewConst(super.False, vec.Len(), bitvec.Zero), true
 		}
-		return vector.NewConst(super.True, vec.Len(), nil), false
+		return vector.NewConst(super.True, vec.Len(), bitvec.Zero), false
 	}
 	n := vec.Len()
-	mask := vector.NewBoolEmpty(n, nil)
+	mask := vector.NewFalse(n)
 	switch vec := vec.(type) {
 	case *vector.Error:
 		for i := uint32(0); i < n; i++ {

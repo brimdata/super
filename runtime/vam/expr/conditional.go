@@ -4,6 +4,7 @@ import (
 	"github.com/RoaringBitmap/roaring"
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 )
 
 type conditional struct {
@@ -80,16 +81,16 @@ func boolMaskRidx(ridx []uint32, bools, errs *roaring.Bitmap, vec vector.Any) {
 		if !vec.Value().Ptr().AsBool() {
 			return
 		}
-		if vec.Nulls != nil {
+		if !vec.Nulls.IsZero() {
 			if ridx != nil {
 				for i, idx := range ridx {
-					if !vec.Nulls.Value(uint32(i)) {
+					if !vec.Nulls.IsSet(uint32(i)) {
 						bools.Add(idx)
 					}
 				}
 			} else {
 				for i := range vec.Len() {
-					if !vec.Nulls.Value(i) {
+					if !vec.Nulls.IsSet(i) {
 						bools.Add(i)
 					}
 				}
@@ -102,19 +103,19 @@ func boolMaskRidx(ridx []uint32, bools, errs *roaring.Bitmap, vec vector.Any) {
 			}
 		}
 	case *vector.Bool:
-		trues := vec
-		if vec.Nulls != nil {
+		trues := vec.Bits
+		if !vec.Nulls.IsZero() {
 			// if null and true set to false
-			trues = vector.And(trues, vector.Not(vec.Nulls))
+			trues = bitvec.And(trues, bitvec.Not(vec.Nulls))
 		}
 		if ridx != nil {
 			for i, idx := range ridx {
-				if trues.Value(uint32(i)) {
+				if trues.IsSetDirect(uint32(i)) {
 					bools.Add(idx)
 				}
 			}
 		} else {
-			bools.Or(roaring.FromDense(trues.Bits, true))
+			bools.Or(roaring.FromDense(trues.GetBits(), true))
 		}
 	case *vector.Error:
 		if ridx != nil {

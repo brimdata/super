@@ -30,7 +30,7 @@ func (u *union) Consume(vec vector.Any) {
 		typ := vec.Type()
 		var b zcode.Builder
 		for i := range vec.Len() {
-			if nulls.Value(i) {
+			if nulls.IsSet(i) {
 				continue
 			}
 			b.Truncate()

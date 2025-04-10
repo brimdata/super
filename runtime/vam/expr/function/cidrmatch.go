@@ -4,6 +4,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 )
 
 type CIDRMatch struct {
@@ -18,7 +19,7 @@ func NewCIDRMatch(sctx *super.Context) *CIDRMatch {
 func (c *CIDRMatch) Call(args ...vector.Any) vector.Any {
 	if id := args[0].Type().ID(); id != super.IDNet && id != super.IDNull {
 		out := vector.NewWrappedError(c.sctx, "cidr_match: not a net", args[0])
-		out.Nulls = vector.Or(vector.NullsOf(args[0]), vector.NullsOf(args[1]))
+		out.Nulls = bitvec.Or(vector.NullsOf(args[0]), vector.NullsOf(args[1]))
 		return out
 	}
 	return c.pw.Eval(args...)
@@ -26,7 +27,7 @@ func (c *CIDRMatch) Call(args ...vector.Any) vector.Any {
 
 func cidrMatch(vec ...vector.Any) vector.Any {
 	netVec, valVec := vec[0], vec[1]
-	nulls := vector.Or(vector.NullsOf(netVec), vector.NullsOf(valVec))
+	nulls := bitvec.Or(vector.NullsOf(netVec), vector.NullsOf(valVec))
 	if id := valVec.Type().ID(); id != super.IDIP {
 		return vector.NewConst(super.False, valVec.Len(), nulls)
 	}

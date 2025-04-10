@@ -3,6 +3,7 @@ package expr
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 	"github.com/brimdata/super/zcode"
 )
 
@@ -37,7 +38,7 @@ func (a *ArrayExpr) Eval(this vector.Any) vector.Any {
 
 func (a *ArrayExpr) eval(in ...vector.Any) vector.Any {
 	offsets, inner := buildList(a.sctx, a.elems, in)
-	return vector.NewArray(a.sctx.LookupTypeArray(inner.Type()), offsets, inner, nil)
+	return vector.NewArray(a.sctx.LookupTypeArray(inner.Type()), offsets, inner, bitvec.Zero)
 }
 
 func buildList(sctx *super.Context, elems []ListElem, in []vector.Any) ([]uint32, vector.Any) {
@@ -108,7 +109,7 @@ func buildList(sctx *super.Context, elems []ListElem, in []vector.Any) ([]uint32
 	if len(types) == 1 {
 		return offsets, mergeSameTypeVecs(types[0], tags, vecs)
 	}
-	return offsets, vector.NewUnion(sctx.LookupTypeUnion(types), tags, vecs, nil)
+	return offsets, vector.NewUnion(sctx.LookupTypeUnion(types), tags, vecs, bitvec.Zero)
 }
 
 func unwrapSpread(vec vector.Any) (vector.Any, []uint32, []uint32) {

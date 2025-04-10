@@ -22,7 +22,7 @@ func (d *DatePart) Call(args ...vector.Any) vector.Any {
 	}
 	partArg, timeArg := vector.Under(args[0]), vector.Under(args[1])
 	c, ok := partArg.(*vector.Const)
-	if !ok || c.Nulls != nil {
+	if !ok || !c.Nulls.IsZero() {
 		return d.slow(partArg, timeArg)
 	}
 	fn := datePartFuncs[c.Value().Ptr().AsString()]

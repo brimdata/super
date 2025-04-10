@@ -1,146 +1,61 @@
 package vector
 
 import (
-	"math/bits"
-	"slices"
-	"strings"
-
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/vector/bitvec"
 	"github.com/brimdata/super/zcode"
 )
 
 type Bool struct {
-	len   uint32
-	Bits  []uint64
-	Nulls *Bool
+	bitvec.Bits
+	Nulls bitvec.Bits
 }
 
 var _ Any = (*Bool)(nil)
 
-func NewBool(bits []uint64, len uint32, nulls *Bool) *Bool {
-	return &Bool{len: len, Bits: bits, Nulls: nulls}
+func NewBool(bits bitvec.Bits, nulls bitvec.Bits) *Bool {
+	return &Bool{Bits: bits, Nulls: nulls}
 }
 
-func NewBoolEmpty(length uint32, nulls *Bool) *Bool {
-	return &Bool{len: length, Bits: make([]uint64, (length+63)/64), Nulls: nulls}
+func NewBoolEmpty(length uint32, nulls bitvec.Bits) *Bool {
+	return &Bool{Bits: bitvec.NewFalse(length), Nulls: nulls}
+}
+
+func NewBoolEmpty3(length uint32, nulls bitvec.Bits) *Bool {
+	return &Bool{Bits: bitvec.NewFalse(length), Nulls: nulls}
+}
+
+func NewFalse(length uint32) *Bool {
+	return NewBoolEmpty(length, bitvec.Zero)
+}
+
+func NewTrue(length uint32) *Bool {
+	return NewBool(bitvec.NewTrue(length), bitvec.Zero)
 }
 
 func (b *Bool) Type() super.Type {
 	return super.TypeBool
 }
 
-func (b *Bool) Value(slot uint32) bool {
-	// Because Bool is used to store nulls for many vectors and it is often
-	// nil check to see if receiver is nil and return false.
-	return b != nil && (b.Bits[slot>>6]&(1<<(slot&0x3f))) != 0
-}
-
-func (b *Bool) Set(slot uint32) {
-	b.Bits[slot>>6] |= (1 << (slot & 0x3f))
-}
-
-func (b *Bool) SetLen(len uint32) {
-	if b != nil {
-		b.len = len
-	}
-}
-
-func (b *Bool) Len() uint32 {
-	if b == nil {
-		return 0
-	}
-	return b.len
-}
-
-func (b *Bool) CopyWithBits(bits []uint64) *Bool {
+func (b *Bool) CopyWithBits(bits bitvec.Bits) *Bool {
 	out := *b
 	out.Bits = bits
 	return &out
 }
 
 func (b *Bool) Serialize(builder *zcode.Builder, slot uint32) {
-	if b != nil && b.Nulls.Value(slot) {
+	if b.Nulls.IsSet(slot) {
 		builder.Append(nil)
 	} else {
-		builder.Append(super.EncodeBool(b.Value(slot)))
+		builder.Append(super.EncodeBool(b.IsSet(slot)))
 	}
 }
 
-func (b *Bool) TrueCount() uint32 {
-	if b == nil {
-		return 0
-	}
-	var n uint32
-	for _, bs := range b.Bits {
-		n += uint32(bits.OnesCount64(bs))
-	}
-	if numTailBits := b.Len() % 64; numTailBits > 0 {
-		mask := ^uint64(0) << numTailBits
-		unusedBits := b.Bits[len(b.Bits)-1] & mask
-		n -= uint32(bits.OnesCount64(unusedBits))
-	}
-	return n
-}
-
-// helpful to have around for debugging
-func (b *Bool) String() string {
-	var s strings.Builder
-	if b == nil || b.Len() == 0 {
-		return "empty"
-	}
-	for k := uint32(0); k < b.Len(); k++ {
-		if b.Value(k) {
-			s.WriteByte('1')
-		} else {
-			s.WriteByte('0')
-		}
-	}
-	return s.String()
-}
-
-func Not(a *Bool) *Bool {
-	if a == nil {
-		panic("not: nil bool")
-	}
-	bits := slices.Clone(a.Bits)
-	for i := range bits {
-		bits[i] = ^a.Bits[i]
-	}
-	return a.CopyWithBits(bits)
-}
-
+// Or is a simple case of logical-or where we don't care about nulls in
+// the input (presuming the corresponding bits to be false) and we return
+// the or'd result as a boolean vector without nulls.
 func Or(a, b *Bool) *Bool {
-	if b == nil {
-		return a
-	}
-	if a == nil {
-		return b
-	}
-	if a.Len() != b.Len() {
-		panic("or'ing two different length bool vectors")
-	}
-	out := NewBoolEmpty(a.Len(), nil)
-	for i := range len(a.Bits) {
-		out.Bits[i] = a.Bits[i] | b.Bits[i]
-	}
-	return out
-}
-
-func And(a, b *Bool) *Bool {
-	if b == nil {
-		return nil
-	}
-	if a == nil {
-		return nil
-	}
-	if a.Len() != b.Len() {
-		panic("and'ing two different length bool vectors")
-	}
-	out := NewBoolEmpty(a.Len(), nil)
-	for i := range len(a.Bits) {
-		out.Bits[i] = a.Bits[i] & b.Bits[i]
-	}
-	return out
+	return NewBool(bitvec.Or(a.Bits, b.Bits), bitvec.Zero)
 }
 
 // BoolValue returns the value of slot in vec if the value is a Boolean.  It
@@ -148,11 +63,11 @@ func And(a, b *Bool) *Bool {
 func BoolValue(vec Any, slot uint32) (bool, bool) {
 	switch vec := Under(vec).(type) {
 	case *Bool:
-		return vec.Value(slot), vec.Nulls.Value(slot)
+		return vec.Bits.IsSet(slot), vec.Nulls.IsSet(slot)
 	case *Const:
-		return vec.Value().Ptr().AsBool(), vec.Nulls.Value(slot)
+		return vec.Value().Ptr().AsBool(), vec.Nulls.IsSet(slot)
 	case *Dict:
-		if vec.Nulls.Value(slot) {
+		if vec.Nulls.IsSet(slot) {
 			return false, true
 		}
 		return BoolValue(vec.Any, uint32(vec.Index[slot]))
@@ -165,24 +80,17 @@ func BoolValue(vec Any, slot uint32) (bool, bool) {
 	panic(vec)
 }
 
-func NullsOf(v Any) *Bool {
+func NullsOf(v Any) bitvec.Bits {
 	switch v := v.(type) {
 	case *Array:
 		return v.Nulls
 	case *Bytes:
 		return v.Nulls
 	case *Bool:
-		if v != nil {
-			return v.Nulls
-		}
-		return nil
+		return v.Nulls
 	case *Const:
 		if v.Value().IsNull() {
-			out := NewBoolEmpty(v.Len(), nil)
-			for i := range out.Bits {
-				out.Bits[i] = ^uint64(0)
-			}
-			return out
+			return bitvec.NewTrue(v.Len())
 		}
 		return v.Nulls
 	case *Dict:
@@ -190,7 +98,7 @@ func NullsOf(v Any) *Bool {
 	case *Enum:
 		return v.Nulls
 	case *Error:
-		return Or(v.Nulls, NullsOf(v.Vals))
+		return bitvec.Or(v.Nulls, NullsOf(v.Vals))
 	case *Float:
 		return v.Nulls
 	case *Int:
@@ -216,12 +124,12 @@ func NullsOf(v Any) *Bool {
 	case *Union:
 		return v.Nulls
 	case *View:
-		return NewBoolView(NullsOf(v.Any), v.Index)
+		return NullsOf(v.Any).Pick(v.Index)
 	}
 	panic(v)
 }
 
-func CopyAndSetNulls(v Any, nulls *Bool) Any {
+func CopyAndSetNulls(v Any, nulls bitvec.Bits) Any {
 	switch v := v.(type) {
 	case *Array:
 		copy := *v

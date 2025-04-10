@@ -5,15 +5,15 @@ import (
 	"sync"
 
 	"github.com/brimdata/super/csup"
-	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 	"golang.org/x/sync/errgroup"
 )
 
 type nulls struct {
 	mu    sync.Mutex
 	meta  *csup.Nulls
-	local *vector.Bool
-	flat  *vector.Bool
+	local bitvec.Bits
+	flat  bitvec.Bits
 }
 
 func (n *nulls) length() uint32 {
@@ -36,7 +36,7 @@ func (n *nulls) fetch(g *errgroup.Group, cctx *csup.Context, reader io.ReaderAt)
 		if n.meta == nil {
 			return nil
 		}
-		n.local = vector.NewBoolEmpty(n.meta.Len(cctx), nil)
+		n.local = bitvec.NewFalse(n.meta.Len(cctx))
 		runlens, err := csup.ReadUint32s(n.meta.Runs, reader)
 		if err != nil {
 			return err
@@ -58,41 +58,41 @@ func (n *nulls) fetch(g *errgroup.Group, cctx *csup.Context, reader io.ReaderAt)
 	})
 }
 
-func (n *nulls) flatten(parent *vector.Bool) *vector.Bool {
+func (n *nulls) flatten(parent bitvec.Bits) bitvec.Bits {
 	if n == nil {
 		return parent
 	}
 	n.mu.Lock()
 	defer n.mu.Unlock()
-	if n.flat != nil {
+	if !n.flat.IsZero() {
 		return n.flat
 	}
-	var flat *vector.Bool
-	if parent == nil {
+	var flat bitvec.Bits
+	if parent.IsZero() {
 		flat = n.local
-	} else if n.local != nil {
+	} else if !n.local.IsZero() {
 		flat = convolve(parent, n.local)
 	} else {
 		flat = parent
 	}
 	n.flat = flat
-	n.local = nil
+	n.local = bitvec.Zero
 	return flat
 }
 
-func convolve(parent, child *vector.Bool) *vector.Bool {
+func convolve(parent, child bitvec.Bits) bitvec.Bits {
 	// convolve mixes the parent nulls boolean with a child to compute
 	// a new boolean representing the overall sets of nulls by expanding
 	// the child to be the same size as the parent and returning that results.
 	//XXX this can go faster, but lets make it correct first
 	n := parent.Len()
-	out := vector.NewBoolEmpty(n, nil)
+	out := bitvec.NewFalse(n)
 	var childSlot uint32
 	for slot := uint32(0); slot < n; slot++ {
-		if parent.Value(slot) {
+		if parent.IsSet(slot) {
 			out.Set(slot)
 		} else {
-			if child.Value(childSlot) {
+			if child.IsSet(childSlot) {
 				out.Set(slot)
 			}
 			childSlot++

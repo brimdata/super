@@ -27,7 +27,7 @@ func (u *Under) Call(args ...vector.Any) vector.Any {
 	case *vector.TypeValue:
 		typs := vector.NewTypeValueEmpty(0, vec.Nulls)
 		for i := range vec.Len() {
-			if vec.Nulls.Value(i) {
+			if vec.Nulls.IsSet(i) {
 				typs.Append(nil)
 			}
 			t, err := u.sctx.LookupByValue(vec.Value(i))

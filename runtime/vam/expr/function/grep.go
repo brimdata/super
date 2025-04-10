@@ -4,6 +4,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -19,7 +20,7 @@ func (g *Grep) Call(args ...vector.Any) vector.Any {
 		return vector.NewWrappedError(g.sctx, "grep: pattern argument must be a string", patternVec)
 	}
 	if inputVec.Len() == 0 {
-		return vector.NewBoolEmpty(0, nil)
+		return vector.NewFalse(0)
 	}
 	if c, ok := vector.Under(patternVec).(*vector.Const); ok {
 		pattern, _ := c.AsString()
@@ -31,10 +32,10 @@ func (g *Grep) Call(args ...vector.Any) vector.Any {
 		return g.grep.Eval(inputVec)
 	}
 	var index [1]uint32
-	nulls := vector.Or(vector.NullsOf(patternVec), vector.NullsOf(inputVec))
+	nulls := bitvec.Or(vector.NullsOf(patternVec), vector.NullsOf(inputVec))
 	out := vector.NewBoolEmpty(patternVec.Len(), nulls)
 	for i := range patternVec.Len() {
-		if nulls.Value(i) {
+		if nulls.IsSet(i) {
 			continue
 		}
 		pattern, _ := vector.StringValue(patternVec, i)
