@@ -36,13 +36,13 @@ func Pick(val Any, index []uint32) Any {
 				}
 				v := val.Index[idx]
 				index2[k] = v
-				counts[v]++ //XXX this looks wrong
+				counts[v]++
 			}
 		} else {
 			for k, idx := range index {
 				v := val.Index[idx]
 				index2[k] = v
-				counts[v]++ //XXX this looks wrong
+				counts[v]++
 			}
 		}
 		return NewDict(val.Any, index2, counts, nulls)
