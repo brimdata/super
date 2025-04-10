@@ -23,10 +23,10 @@ func (i *Is) Call(args ...vector.Any) vector.Any {
 	}
 	if c, ok := typeVal.(*vector.Const); ok {
 		typ, err := i.sctx.LookupByValue(c.Value().Bytes())
-		return vector.NewConst(super.NewBool(err == nil && typ == vec.Type()), vec.Len(), nil)
+		return vector.NewConst(super.NewBool(err == nil && typ == vec.Type()), vec.Len(), bitvec.Zero)
 	}
 	inTyp := vec.Type()
-	out := vector.NewBoolEmpty(vec.Len(), nil)
+	out := vector.NewBoolEmpty(vec.Len(), bitvec.Zero)
 	for k := range vec.Len() {
 		b, _ := vector.TypeValueValue(typeVal, k)
 		typ, err := i.sctx.LookupByValue(b)
