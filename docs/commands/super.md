@@ -3,12 +3,14 @@ weight: 1
 title: super
 ---
 
-> **TL;DR** `super` is a command-line tool that uses [SuperSQL](../language/_index.md)
-> to query a variety of data formats in files, over HTTP, or in [S3](../integrations/amazon-s3.md)
-> storage. Best performance is achieved when operating on data in binary formats such as
-> [Super Binary (BSUP)](../formats/bsup.md), [Super Columnar (CSUP)](../formats/csup.md),
-> [Parquet](https://github.com/apache/parquet-format), or
-> [Arrow](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format).
+## Synopsis
+
+`super` is a command-line tool that uses [SuperSQL](../language/_index.md)
+to query a variety of data formats in files, over HTTP, or in [S3](../integrations/amazon-s3.md)
+storage. Best performance is achieved when operating on data in binary formats such as
+[Super Binary (BSUP)](../formats/bsup.md), [Super Columnar (CSUP)](../formats/csup.md),
+[Parquet](https://github.com/apache/parquet-format), or
+[Arrow](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format).
 
 {{% tip "Note" %}}
 
@@ -117,9 +119,9 @@ simply run `super` with no arguments.
 ## Data Formats
 
 `super` supports a number of [input](#input-formats) and [output](#output-formats) formats, but the
-[Super (SUP)](../formats/sup.md),
-[Super Binary (BSUP)](../formats/bsup.md), and
-[Super Columnar (CSUP)](../formats/csup.md) formats tend to be the most versatile and
+[SUP](../formats/sup.md),
+[BSUP](../formats/bsup.md), and
+[CSUP](../formats/csup.md) formats tend to be the most versatile and
 easy to work with.
 
 `super` typically operates on binary-encoded data and when you want to inspect
