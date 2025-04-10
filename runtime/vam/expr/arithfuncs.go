@@ -12,7 +12,7 @@ func arithAddIntFlatFlat(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Int)
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) + r.Value(k))
 	}
@@ -25,7 +25,7 @@ func arithAddIntFlatDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) + r.Value(uint32(rx[k])))
 	}
@@ -38,7 +38,7 @@ func arithAddIntFlatView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) + r.Value(uint32(rx[k])))
 	}
@@ -50,7 +50,7 @@ func arithAddIntFlatConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsInt()
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) + rconst)
 	}
@@ -63,7 +63,7 @@ func arithAddIntDictFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) + r.Value(k))
 	}
@@ -78,7 +78,7 @@ func arithAddIntDictDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) + r.Value(uint32(rx[k])))
 	}
@@ -93,7 +93,7 @@ func arithAddIntDictView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) + r.Value(uint32(rx[k])))
 	}
@@ -107,7 +107,7 @@ func arithAddIntDictConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsInt()
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) + rconst)
 	}
@@ -120,7 +120,7 @@ func arithAddIntViewFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) + r.Value(k))
 	}
@@ -135,7 +135,7 @@ func arithAddIntViewDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) + r.Value(uint32(rx[k])))
 	}
@@ -150,7 +150,7 @@ func arithAddIntViewView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) + r.Value(uint32(rx[k])))
 	}
@@ -164,7 +164,7 @@ func arithAddIntViewConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsInt()
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) + rconst)
 	}
@@ -176,7 +176,7 @@ func arithAddIntConstFlat(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsInt()
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst + r.Value(k))
 	}
@@ -190,7 +190,7 @@ func arithAddIntConstDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst + r.Value(uint32(rx[k])))
 	}
@@ -204,7 +204,7 @@ func arithAddIntConstView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst + r.Value(uint32(rx[k])))
 	}
@@ -216,7 +216,7 @@ func arithAddIntConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsInt()
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsInt()
-	val := super.NewInt64(lconst + rconst)
+	val := super.NewInt(lhs.Type(), lconst+rconst)
 	return vector.NewConst(val, lhs.Len(), bitvec.Zero)
 }
 
@@ -224,7 +224,7 @@ func arithAddUintFlatFlat(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Uint)
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) + r.Value(k))
 	}
@@ -237,7 +237,7 @@ func arithAddUintFlatDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) + r.Value(uint32(rx[k])))
 	}
@@ -250,7 +250,7 @@ func arithAddUintFlatView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) + r.Value(uint32(rx[k])))
 	}
@@ -262,7 +262,7 @@ func arithAddUintFlatConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsUint()
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) + rconst)
 	}
@@ -275,7 +275,7 @@ func arithAddUintDictFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) + r.Value(k))
 	}
@@ -290,7 +290,7 @@ func arithAddUintDictDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) + r.Value(uint32(rx[k])))
 	}
@@ -305,7 +305,7 @@ func arithAddUintDictView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) + r.Value(uint32(rx[k])))
 	}
@@ -319,7 +319,7 @@ func arithAddUintDictConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsUint()
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) + rconst)
 	}
@@ -332,7 +332,7 @@ func arithAddUintViewFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) + r.Value(k))
 	}
@@ -347,7 +347,7 @@ func arithAddUintViewDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) + r.Value(uint32(rx[k])))
 	}
@@ -362,7 +362,7 @@ func arithAddUintViewView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) + r.Value(uint32(rx[k])))
 	}
@@ -376,7 +376,7 @@ func arithAddUintViewConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsUint()
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) + rconst)
 	}
@@ -388,7 +388,7 @@ func arithAddUintConstFlat(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsUint()
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst + r.Value(k))
 	}
@@ -402,7 +402,7 @@ func arithAddUintConstDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst + r.Value(uint32(rx[k])))
 	}
@@ -416,7 +416,7 @@ func arithAddUintConstView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst + r.Value(uint32(rx[k])))
 	}
@@ -428,7 +428,7 @@ func arithAddUintConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsUint()
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsUint()
-	val := super.NewUint64(lconst + rconst)
+	val := super.NewUint(lhs.Type(), lconst+rconst)
 	return vector.NewConst(val, lhs.Len(), bitvec.Zero)
 }
 
@@ -436,7 +436,7 @@ func arithAddFloatFlatFlat(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Float)
 	r := rhs.(*vector.Float)
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) + r.Value(k))
 	}
@@ -449,7 +449,7 @@ func arithAddFloatFlatDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) + r.Value(uint32(rx[k])))
 	}
@@ -462,7 +462,7 @@ func arithAddFloatFlatView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) + r.Value(uint32(rx[k])))
 	}
@@ -474,7 +474,7 @@ func arithAddFloatFlatConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsFloat()
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) + rconst)
 	}
@@ -487,7 +487,7 @@ func arithAddFloatDictFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Float)
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) + r.Value(k))
 	}
@@ -502,7 +502,7 @@ func arithAddFloatDictDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) + r.Value(uint32(rx[k])))
 	}
@@ -517,7 +517,7 @@ func arithAddFloatDictView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) + r.Value(uint32(rx[k])))
 	}
@@ -531,7 +531,7 @@ func arithAddFloatDictConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsFloat()
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) + rconst)
 	}
@@ -544,7 +544,7 @@ func arithAddFloatViewFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Float)
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) + r.Value(k))
 	}
@@ -559,7 +559,7 @@ func arithAddFloatViewDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) + r.Value(uint32(rx[k])))
 	}
@@ -574,7 +574,7 @@ func arithAddFloatViewView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) + r.Value(uint32(rx[k])))
 	}
@@ -588,7 +588,7 @@ func arithAddFloatViewConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsFloat()
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) + rconst)
 	}
@@ -600,7 +600,7 @@ func arithAddFloatConstFlat(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsFloat()
 	r := rhs.(*vector.Float)
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst + r.Value(k))
 	}
@@ -614,7 +614,7 @@ func arithAddFloatConstDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst + r.Value(uint32(rx[k])))
 	}
@@ -628,7 +628,7 @@ func arithAddFloatConstView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst + r.Value(uint32(rx[k])))
 	}
@@ -640,7 +640,7 @@ func arithAddFloatConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsFloat()
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsFloat()
-	val := super.NewFloat64(lconst + rconst)
+	val := super.NewFloat(lhs.Type(), lconst+rconst)
 	return vector.NewConst(val, lhs.Len(), bitvec.Zero)
 }
 
@@ -860,7 +860,7 @@ func arithSubIntFlatFlat(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Int)
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) - r.Value(k))
 	}
@@ -873,7 +873,7 @@ func arithSubIntFlatDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) - r.Value(uint32(rx[k])))
 	}
@@ -886,7 +886,7 @@ func arithSubIntFlatView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) - r.Value(uint32(rx[k])))
 	}
@@ -898,7 +898,7 @@ func arithSubIntFlatConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsInt()
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) - rconst)
 	}
@@ -911,7 +911,7 @@ func arithSubIntDictFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) - r.Value(k))
 	}
@@ -926,7 +926,7 @@ func arithSubIntDictDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) - r.Value(uint32(rx[k])))
 	}
@@ -941,7 +941,7 @@ func arithSubIntDictView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) - r.Value(uint32(rx[k])))
 	}
@@ -955,7 +955,7 @@ func arithSubIntDictConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsInt()
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) - rconst)
 	}
@@ -968,7 +968,7 @@ func arithSubIntViewFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) - r.Value(k))
 	}
@@ -983,7 +983,7 @@ func arithSubIntViewDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) - r.Value(uint32(rx[k])))
 	}
@@ -998,7 +998,7 @@ func arithSubIntViewView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) - r.Value(uint32(rx[k])))
 	}
@@ -1012,7 +1012,7 @@ func arithSubIntViewConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsInt()
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) - rconst)
 	}
@@ -1024,7 +1024,7 @@ func arithSubIntConstFlat(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsInt()
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst - r.Value(k))
 	}
@@ -1038,7 +1038,7 @@ func arithSubIntConstDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst - r.Value(uint32(rx[k])))
 	}
@@ -1052,7 +1052,7 @@ func arithSubIntConstView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst - r.Value(uint32(rx[k])))
 	}
@@ -1064,7 +1064,7 @@ func arithSubIntConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsInt()
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsInt()
-	val := super.NewInt64(lconst - rconst)
+	val := super.NewInt(lhs.Type(), lconst-rconst)
 	return vector.NewConst(val, lhs.Len(), bitvec.Zero)
 }
 
@@ -1072,7 +1072,7 @@ func arithSubUintFlatFlat(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Uint)
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) - r.Value(k))
 	}
@@ -1085,7 +1085,7 @@ func arithSubUintFlatDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) - r.Value(uint32(rx[k])))
 	}
@@ -1098,7 +1098,7 @@ func arithSubUintFlatView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) - r.Value(uint32(rx[k])))
 	}
@@ -1110,7 +1110,7 @@ func arithSubUintFlatConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsUint()
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) - rconst)
 	}
@@ -1123,7 +1123,7 @@ func arithSubUintDictFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) - r.Value(k))
 	}
@@ -1138,7 +1138,7 @@ func arithSubUintDictDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) - r.Value(uint32(rx[k])))
 	}
@@ -1153,7 +1153,7 @@ func arithSubUintDictView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) - r.Value(uint32(rx[k])))
 	}
@@ -1167,7 +1167,7 @@ func arithSubUintDictConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsUint()
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) - rconst)
 	}
@@ -1180,7 +1180,7 @@ func arithSubUintViewFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) - r.Value(k))
 	}
@@ -1195,7 +1195,7 @@ func arithSubUintViewDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) - r.Value(uint32(rx[k])))
 	}
@@ -1210,7 +1210,7 @@ func arithSubUintViewView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) - r.Value(uint32(rx[k])))
 	}
@@ -1224,7 +1224,7 @@ func arithSubUintViewConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsUint()
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) - rconst)
 	}
@@ -1236,7 +1236,7 @@ func arithSubUintConstFlat(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsUint()
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst - r.Value(k))
 	}
@@ -1250,7 +1250,7 @@ func arithSubUintConstDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst - r.Value(uint32(rx[k])))
 	}
@@ -1264,7 +1264,7 @@ func arithSubUintConstView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst - r.Value(uint32(rx[k])))
 	}
@@ -1276,7 +1276,7 @@ func arithSubUintConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsUint()
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsUint()
-	val := super.NewUint64(lconst - rconst)
+	val := super.NewUint(lhs.Type(), lconst-rconst)
 	return vector.NewConst(val, lhs.Len(), bitvec.Zero)
 }
 
@@ -1284,7 +1284,7 @@ func arithSubFloatFlatFlat(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Float)
 	r := rhs.(*vector.Float)
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) - r.Value(k))
 	}
@@ -1297,7 +1297,7 @@ func arithSubFloatFlatDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) - r.Value(uint32(rx[k])))
 	}
@@ -1310,7 +1310,7 @@ func arithSubFloatFlatView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) - r.Value(uint32(rx[k])))
 	}
@@ -1322,7 +1322,7 @@ func arithSubFloatFlatConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsFloat()
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) - rconst)
 	}
@@ -1335,7 +1335,7 @@ func arithSubFloatDictFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Float)
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) - r.Value(k))
 	}
@@ -1350,7 +1350,7 @@ func arithSubFloatDictDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) - r.Value(uint32(rx[k])))
 	}
@@ -1365,7 +1365,7 @@ func arithSubFloatDictView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) - r.Value(uint32(rx[k])))
 	}
@@ -1379,7 +1379,7 @@ func arithSubFloatDictConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsFloat()
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) - rconst)
 	}
@@ -1392,7 +1392,7 @@ func arithSubFloatViewFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Float)
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) - r.Value(k))
 	}
@@ -1407,7 +1407,7 @@ func arithSubFloatViewDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) - r.Value(uint32(rx[k])))
 	}
@@ -1422,7 +1422,7 @@ func arithSubFloatViewView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) - r.Value(uint32(rx[k])))
 	}
@@ -1436,7 +1436,7 @@ func arithSubFloatViewConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsFloat()
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) - rconst)
 	}
@@ -1448,7 +1448,7 @@ func arithSubFloatConstFlat(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsFloat()
 	r := rhs.(*vector.Float)
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst - r.Value(k))
 	}
@@ -1462,7 +1462,7 @@ func arithSubFloatConstDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst - r.Value(uint32(rx[k])))
 	}
@@ -1476,7 +1476,7 @@ func arithSubFloatConstView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst - r.Value(uint32(rx[k])))
 	}
@@ -1488,7 +1488,7 @@ func arithSubFloatConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsFloat()
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsFloat()
-	val := super.NewFloat64(lconst - rconst)
+	val := super.NewFloat(lhs.Type(), lconst-rconst)
 	return vector.NewConst(val, lhs.Len(), bitvec.Zero)
 }
 
@@ -1496,7 +1496,7 @@ func arithMulIntFlatFlat(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Int)
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) * r.Value(k))
 	}
@@ -1509,7 +1509,7 @@ func arithMulIntFlatDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) * r.Value(uint32(rx[k])))
 	}
@@ -1522,7 +1522,7 @@ func arithMulIntFlatView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) * r.Value(uint32(rx[k])))
 	}
@@ -1534,7 +1534,7 @@ func arithMulIntFlatConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsInt()
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) * rconst)
 	}
@@ -1547,7 +1547,7 @@ func arithMulIntDictFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) * r.Value(k))
 	}
@@ -1562,7 +1562,7 @@ func arithMulIntDictDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) * r.Value(uint32(rx[k])))
 	}
@@ -1577,7 +1577,7 @@ func arithMulIntDictView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) * r.Value(uint32(rx[k])))
 	}
@@ -1591,7 +1591,7 @@ func arithMulIntDictConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsInt()
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) * rconst)
 	}
@@ -1604,7 +1604,7 @@ func arithMulIntViewFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) * r.Value(k))
 	}
@@ -1619,7 +1619,7 @@ func arithMulIntViewDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) * r.Value(uint32(rx[k])))
 	}
@@ -1634,7 +1634,7 @@ func arithMulIntViewView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) * r.Value(uint32(rx[k])))
 	}
@@ -1648,7 +1648,7 @@ func arithMulIntViewConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsInt()
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) * rconst)
 	}
@@ -1660,7 +1660,7 @@ func arithMulIntConstFlat(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsInt()
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst * r.Value(k))
 	}
@@ -1674,7 +1674,7 @@ func arithMulIntConstDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst * r.Value(uint32(rx[k])))
 	}
@@ -1688,7 +1688,7 @@ func arithMulIntConstView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst * r.Value(uint32(rx[k])))
 	}
@@ -1700,7 +1700,7 @@ func arithMulIntConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsInt()
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsInt()
-	val := super.NewInt64(lconst * rconst)
+	val := super.NewInt(lhs.Type(), lconst*rconst)
 	return vector.NewConst(val, lhs.Len(), bitvec.Zero)
 }
 
@@ -1708,7 +1708,7 @@ func arithMulUintFlatFlat(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Uint)
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) * r.Value(k))
 	}
@@ -1721,7 +1721,7 @@ func arithMulUintFlatDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) * r.Value(uint32(rx[k])))
 	}
@@ -1734,7 +1734,7 @@ func arithMulUintFlatView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) * r.Value(uint32(rx[k])))
 	}
@@ -1746,7 +1746,7 @@ func arithMulUintFlatConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsUint()
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) * rconst)
 	}
@@ -1759,7 +1759,7 @@ func arithMulUintDictFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) * r.Value(k))
 	}
@@ -1774,7 +1774,7 @@ func arithMulUintDictDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) * r.Value(uint32(rx[k])))
 	}
@@ -1789,7 +1789,7 @@ func arithMulUintDictView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) * r.Value(uint32(rx[k])))
 	}
@@ -1803,7 +1803,7 @@ func arithMulUintDictConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsUint()
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) * rconst)
 	}
@@ -1816,7 +1816,7 @@ func arithMulUintViewFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) * r.Value(k))
 	}
@@ -1831,7 +1831,7 @@ func arithMulUintViewDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) * r.Value(uint32(rx[k])))
 	}
@@ -1846,7 +1846,7 @@ func arithMulUintViewView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) * r.Value(uint32(rx[k])))
 	}
@@ -1860,7 +1860,7 @@ func arithMulUintViewConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsUint()
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) * rconst)
 	}
@@ -1872,7 +1872,7 @@ func arithMulUintConstFlat(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsUint()
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst * r.Value(k))
 	}
@@ -1886,7 +1886,7 @@ func arithMulUintConstDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst * r.Value(uint32(rx[k])))
 	}
@@ -1900,7 +1900,7 @@ func arithMulUintConstView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst * r.Value(uint32(rx[k])))
 	}
@@ -1912,7 +1912,7 @@ func arithMulUintConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsUint()
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsUint()
-	val := super.NewUint64(lconst * rconst)
+	val := super.NewUint(lhs.Type(), lconst*rconst)
 	return vector.NewConst(val, lhs.Len(), bitvec.Zero)
 }
 
@@ -1920,7 +1920,7 @@ func arithMulFloatFlatFlat(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Float)
 	r := rhs.(*vector.Float)
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) * r.Value(k))
 	}
@@ -1933,7 +1933,7 @@ func arithMulFloatFlatDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) * r.Value(uint32(rx[k])))
 	}
@@ -1946,7 +1946,7 @@ func arithMulFloatFlatView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) * r.Value(uint32(rx[k])))
 	}
@@ -1958,7 +1958,7 @@ func arithMulFloatFlatConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsFloat()
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) * rconst)
 	}
@@ -1971,7 +1971,7 @@ func arithMulFloatDictFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Float)
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) * r.Value(k))
 	}
@@ -1986,7 +1986,7 @@ func arithMulFloatDictDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) * r.Value(uint32(rx[k])))
 	}
@@ -2001,7 +2001,7 @@ func arithMulFloatDictView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) * r.Value(uint32(rx[k])))
 	}
@@ -2015,7 +2015,7 @@ func arithMulFloatDictConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsFloat()
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) * rconst)
 	}
@@ -2028,7 +2028,7 @@ func arithMulFloatViewFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Float)
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) * r.Value(k))
 	}
@@ -2043,7 +2043,7 @@ func arithMulFloatViewDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) * r.Value(uint32(rx[k])))
 	}
@@ -2058,7 +2058,7 @@ func arithMulFloatViewView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) * r.Value(uint32(rx[k])))
 	}
@@ -2072,7 +2072,7 @@ func arithMulFloatViewConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsFloat()
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) * rconst)
 	}
@@ -2084,7 +2084,7 @@ func arithMulFloatConstFlat(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsFloat()
 	r := rhs.(*vector.Float)
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst * r.Value(k))
 	}
@@ -2098,7 +2098,7 @@ func arithMulFloatConstDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst * r.Value(uint32(rx[k])))
 	}
@@ -2112,7 +2112,7 @@ func arithMulFloatConstView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst * r.Value(uint32(rx[k])))
 	}
@@ -2124,7 +2124,7 @@ func arithMulFloatConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsFloat()
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsFloat()
-	val := super.NewFloat64(lconst * rconst)
+	val := super.NewFloat(lhs.Type(), lconst*rconst)
 	return vector.NewConst(val, lhs.Len(), bitvec.Zero)
 }
 
@@ -2132,7 +2132,7 @@ func arithDivIntFlatFlat(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Int)
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) / r.Value(k))
 	}
@@ -2145,7 +2145,7 @@ func arithDivIntFlatDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) / r.Value(uint32(rx[k])))
 	}
@@ -2158,7 +2158,7 @@ func arithDivIntFlatView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) / r.Value(uint32(rx[k])))
 	}
@@ -2170,7 +2170,7 @@ func arithDivIntFlatConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsInt()
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) / rconst)
 	}
@@ -2183,7 +2183,7 @@ func arithDivIntDictFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) / r.Value(k))
 	}
@@ -2198,7 +2198,7 @@ func arithDivIntDictDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) / r.Value(uint32(rx[k])))
 	}
@@ -2213,7 +2213,7 @@ func arithDivIntDictView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) / r.Value(uint32(rx[k])))
 	}
@@ -2227,7 +2227,7 @@ func arithDivIntDictConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsInt()
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) / rconst)
 	}
@@ -2240,7 +2240,7 @@ func arithDivIntViewFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) / r.Value(k))
 	}
@@ -2255,7 +2255,7 @@ func arithDivIntViewDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) / r.Value(uint32(rx[k])))
 	}
@@ -2270,7 +2270,7 @@ func arithDivIntViewView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) / r.Value(uint32(rx[k])))
 	}
@@ -2284,7 +2284,7 @@ func arithDivIntViewConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsInt()
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) / rconst)
 	}
@@ -2296,7 +2296,7 @@ func arithDivIntConstFlat(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsInt()
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst / r.Value(k))
 	}
@@ -2310,7 +2310,7 @@ func arithDivIntConstDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst / r.Value(uint32(rx[k])))
 	}
@@ -2324,7 +2324,7 @@ func arithDivIntConstView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst / r.Value(uint32(rx[k])))
 	}
@@ -2336,7 +2336,7 @@ func arithDivIntConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsInt()
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsInt()
-	val := super.NewInt64(lconst / rconst)
+	val := super.NewInt(lhs.Type(), lconst/rconst)
 	return vector.NewConst(val, lhs.Len(), bitvec.Zero)
 }
 
@@ -2344,7 +2344,7 @@ func arithDivUintFlatFlat(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Uint)
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) / r.Value(k))
 	}
@@ -2357,7 +2357,7 @@ func arithDivUintFlatDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) / r.Value(uint32(rx[k])))
 	}
@@ -2370,7 +2370,7 @@ func arithDivUintFlatView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) / r.Value(uint32(rx[k])))
 	}
@@ -2382,7 +2382,7 @@ func arithDivUintFlatConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsUint()
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) / rconst)
 	}
@@ -2395,7 +2395,7 @@ func arithDivUintDictFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) / r.Value(k))
 	}
@@ -2410,7 +2410,7 @@ func arithDivUintDictDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) / r.Value(uint32(rx[k])))
 	}
@@ -2425,7 +2425,7 @@ func arithDivUintDictView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) / r.Value(uint32(rx[k])))
 	}
@@ -2439,7 +2439,7 @@ func arithDivUintDictConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsUint()
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) / rconst)
 	}
@@ -2452,7 +2452,7 @@ func arithDivUintViewFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) / r.Value(k))
 	}
@@ -2467,7 +2467,7 @@ func arithDivUintViewDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) / r.Value(uint32(rx[k])))
 	}
@@ -2482,7 +2482,7 @@ func arithDivUintViewView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) / r.Value(uint32(rx[k])))
 	}
@@ -2496,7 +2496,7 @@ func arithDivUintViewConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsUint()
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) / rconst)
 	}
@@ -2508,7 +2508,7 @@ func arithDivUintConstFlat(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsUint()
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst / r.Value(k))
 	}
@@ -2522,7 +2522,7 @@ func arithDivUintConstDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst / r.Value(uint32(rx[k])))
 	}
@@ -2536,7 +2536,7 @@ func arithDivUintConstView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst / r.Value(uint32(rx[k])))
 	}
@@ -2548,7 +2548,7 @@ func arithDivUintConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsUint()
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsUint()
-	val := super.NewUint64(lconst / rconst)
+	val := super.NewUint(lhs.Type(), lconst/rconst)
 	return vector.NewConst(val, lhs.Len(), bitvec.Zero)
 }
 
@@ -2556,7 +2556,7 @@ func arithDivFloatFlatFlat(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Float)
 	r := rhs.(*vector.Float)
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) / r.Value(k))
 	}
@@ -2569,7 +2569,7 @@ func arithDivFloatFlatDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) / r.Value(uint32(rx[k])))
 	}
@@ -2582,7 +2582,7 @@ func arithDivFloatFlatView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) / r.Value(uint32(rx[k])))
 	}
@@ -2594,7 +2594,7 @@ func arithDivFloatFlatConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsFloat()
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) / rconst)
 	}
@@ -2607,7 +2607,7 @@ func arithDivFloatDictFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Float)
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) / r.Value(k))
 	}
@@ -2622,7 +2622,7 @@ func arithDivFloatDictDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) / r.Value(uint32(rx[k])))
 	}
@@ -2637,7 +2637,7 @@ func arithDivFloatDictView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) / r.Value(uint32(rx[k])))
 	}
@@ -2651,7 +2651,7 @@ func arithDivFloatDictConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsFloat()
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) / rconst)
 	}
@@ -2664,7 +2664,7 @@ func arithDivFloatViewFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Float)
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) / r.Value(k))
 	}
@@ -2679,7 +2679,7 @@ func arithDivFloatViewDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) / r.Value(uint32(rx[k])))
 	}
@@ -2694,7 +2694,7 @@ func arithDivFloatViewView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) / r.Value(uint32(rx[k])))
 	}
@@ -2708,7 +2708,7 @@ func arithDivFloatViewConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsFloat()
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) / rconst)
 	}
@@ -2720,7 +2720,7 @@ func arithDivFloatConstFlat(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsFloat()
 	r := rhs.(*vector.Float)
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst / r.Value(k))
 	}
@@ -2734,7 +2734,7 @@ func arithDivFloatConstDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst / r.Value(uint32(rx[k])))
 	}
@@ -2748,7 +2748,7 @@ func arithDivFloatConstView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewFloatEmpty(super.TypeFloat64, n, bitvec.Zero)
+	out := vector.NewFloatEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst / r.Value(uint32(rx[k])))
 	}
@@ -2760,7 +2760,7 @@ func arithDivFloatConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsFloat()
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsFloat()
-	val := super.NewFloat64(lconst / rconst)
+	val := super.NewFloat(lhs.Type(), lconst/rconst)
 	return vector.NewConst(val, lhs.Len(), bitvec.Zero)
 }
 
@@ -2768,7 +2768,7 @@ func arithModIntFlatFlat(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Int)
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) % r.Value(k))
 	}
@@ -2781,7 +2781,7 @@ func arithModIntFlatDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) % r.Value(uint32(rx[k])))
 	}
@@ -2794,7 +2794,7 @@ func arithModIntFlatView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) % r.Value(uint32(rx[k])))
 	}
@@ -2806,7 +2806,7 @@ func arithModIntFlatConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsInt()
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) % rconst)
 	}
@@ -2819,7 +2819,7 @@ func arithModIntDictFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) % r.Value(k))
 	}
@@ -2834,7 +2834,7 @@ func arithModIntDictDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) % r.Value(uint32(rx[k])))
 	}
@@ -2849,7 +2849,7 @@ func arithModIntDictView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) % r.Value(uint32(rx[k])))
 	}
@@ -2863,7 +2863,7 @@ func arithModIntDictConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsInt()
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) % rconst)
 	}
@@ -2876,7 +2876,7 @@ func arithModIntViewFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) % r.Value(k))
 	}
@@ -2891,7 +2891,7 @@ func arithModIntViewDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) % r.Value(uint32(rx[k])))
 	}
@@ -2906,7 +2906,7 @@ func arithModIntViewView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) % r.Value(uint32(rx[k])))
 	}
@@ -2920,7 +2920,7 @@ func arithModIntViewConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsInt()
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) % rconst)
 	}
@@ -2932,7 +2932,7 @@ func arithModIntConstFlat(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsInt()
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst % r.Value(k))
 	}
@@ -2946,7 +2946,7 @@ func arithModIntConstDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst % r.Value(uint32(rx[k])))
 	}
@@ -2960,7 +2960,7 @@ func arithModIntConstView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewIntEmpty(super.TypeInt64, n, bitvec.Zero)
+	out := vector.NewIntEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst % r.Value(uint32(rx[k])))
 	}
@@ -2972,7 +2972,7 @@ func arithModIntConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsInt()
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsInt()
-	val := super.NewInt64(lconst % rconst)
+	val := super.NewInt(lhs.Type(), lconst%rconst)
 	return vector.NewConst(val, lhs.Len(), bitvec.Zero)
 }
 
@@ -2980,7 +2980,7 @@ func arithModUintFlatFlat(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Uint)
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) % r.Value(k))
 	}
@@ -2993,7 +2993,7 @@ func arithModUintFlatDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) % r.Value(uint32(rx[k])))
 	}
@@ -3006,7 +3006,7 @@ func arithModUintFlatView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) % r.Value(uint32(rx[k])))
 	}
@@ -3018,7 +3018,7 @@ func arithModUintFlatConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsUint()
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(k) % rconst)
 	}
@@ -3031,7 +3031,7 @@ func arithModUintDictFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) % r.Value(k))
 	}
@@ -3046,7 +3046,7 @@ func arithModUintDictDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) % r.Value(uint32(rx[k])))
 	}
@@ -3061,7 +3061,7 @@ func arithModUintDictView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) % r.Value(uint32(rx[k])))
 	}
@@ -3075,7 +3075,7 @@ func arithModUintDictConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsUint()
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) % rconst)
 	}
@@ -3088,7 +3088,7 @@ func arithModUintViewFlat(lhs, rhs vector.Any) vector.Any {
 	lx := ld.Index
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) % r.Value(k))
 	}
@@ -3103,7 +3103,7 @@ func arithModUintViewDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) % r.Value(uint32(rx[k])))
 	}
@@ -3118,7 +3118,7 @@ func arithModUintViewView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) % r.Value(uint32(rx[k])))
 	}
@@ -3132,7 +3132,7 @@ func arithModUintViewConst(lhs, rhs vector.Any) vector.Any {
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsUint()
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(l.Value(uint32(lx[k])) % rconst)
 	}
@@ -3144,7 +3144,7 @@ func arithModUintConstFlat(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsUint()
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst % r.Value(k))
 	}
@@ -3158,7 +3158,7 @@ func arithModUintConstDict(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst % r.Value(uint32(rx[k])))
 	}
@@ -3172,7 +3172,7 @@ func arithModUintConstView(lhs, rhs vector.Any) vector.Any {
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
 	n := lhs.Len()
-	out := vector.NewUintEmpty(super.TypeUint64, n, bitvec.Zero)
+	out := vector.NewUintEmpty(lhs.Type(), n, bitvec.Zero)
 	for k := uint32(0); k < n; k++ {
 		out.Append(lconst % r.Value(uint32(rx[k])))
 	}
@@ -3184,7 +3184,7 @@ func arithModUintConstConst(lhs, rhs vector.Any) vector.Any {
 	lconst, _ := l.AsUint()
 	r := rhs.(*vector.Const)
 	rconst, _ := r.AsUint()
-	val := super.NewUint64(lconst % rconst)
+	val := super.NewUint(lhs.Type(), lconst%rconst)
 	return vector.NewConst(val, lhs.Len(), bitvec.Zero)
 }
 

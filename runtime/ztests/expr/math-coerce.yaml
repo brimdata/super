@@ -6,6 +6,8 @@ script: |
     done
   done
 
+vector: true
+
 inputs:
   - name: types.txt
     data: |

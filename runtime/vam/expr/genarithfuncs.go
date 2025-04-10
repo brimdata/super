@@ -76,7 +76,7 @@ func genFunc(name, op, typ string, lhs, rhs vector.Form) string {
 		if typ == "String" {
 			s += fmt.Sprintf("val := super.NewString(lconst %s rconst)\n", op)
 		} else {
-			s += fmt.Sprintf("val := super.New%s64(lconst %s rconst)\n", typ, op)
+			s += fmt.Sprintf("val := super.New%s(lhs.Type(), lconst %s rconst)\n", typ, op)
 		}
 		s += "return vector.NewConst(val, lhs.Len(), bitvec.Zero)\n"
 	} else {
@@ -84,7 +84,7 @@ func genFunc(name, op, typ string, lhs, rhs vector.Form) string {
 		if typ == "String" {
 			s += "out := vector.NewStringEmpty(n, bitvec.Zero)\n"
 		} else {
-			s += fmt.Sprintf("out := vector.New%sEmpty(super.Type%s64, n, bitvec.Zero)\n", typ, typ)
+			s += fmt.Sprintf("out := vector.New%sEmpty(lhs.Type(), n, bitvec.Zero)\n", typ)
 		}
 		s += genLoop(op, typ, lhs, rhs)
 		s += "return out\n"

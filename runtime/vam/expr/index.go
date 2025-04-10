@@ -2,6 +2,7 @@ package expr
 
 import (
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/runtime/vam/expr/cast"
 	"github.com/brimdata/super/vector"
 )
 
@@ -39,7 +40,14 @@ func (i *Index) eval(args ...vector.Any) vector.Any {
 }
 
 func indexArrayOrSet(sctx *super.Context, vec, indexVec vector.Any) vector.Any {
-	if !super.IsInteger(indexVec.Type().ID()) {
+	if _, ok := indexVec.(*vector.Error); ok {
+		return indexVec
+	}
+	if id := indexVec.Type().ID(); super.IsUnsigned(id) {
+		return vector.Apply(true, func(args ...vector.Any) vector.Any {
+			return indexArrayOrSet(sctx, args[0], args[1])
+		}, vec, cast.To(sctx, indexVec, super.TypeInt64))
+	} else if !super.IsInteger(id) {
 		return vector.NewWrappedError(sctx, "index is not an integer", indexVec)
 	}
 	var index []uint32
@@ -47,7 +55,6 @@ func indexArrayOrSet(sctx *super.Context, vec, indexVec vector.Any) vector.Any {
 		vec, index = view.Any, view.Index
 	}
 	offsets, vals, nulls := arrayOrSetContents(vec)
-	indexVec = promoteToSigned(indexVec)
 	var errs []uint32
 	var viewIndexes []uint32
 	for i := range indexVec.Len() {

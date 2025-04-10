@@ -669,7 +669,14 @@ func (i *Index) Eval(ectx Context, this super.Value) super.Value {
 
 func indexArrayOrSet(sctx *super.Context, ectx Context, inner super.Type, vector zcode.Bytes, index super.Value) super.Value {
 	id := index.Type().ID()
+	if super.IsUnsigned(id) {
+		index = LookupPrimitiveCaster(sctx, super.TypeInt64).Eval(ectx, index)
+		id = index.Type().ID()
+	}
 	if !super.IsInteger(id) {
+		if index.IsError() {
+			return index
+		}
 		return sctx.WrapError("index is not an integer", index)
 	}
 	if index.IsNull() {

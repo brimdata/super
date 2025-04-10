@@ -12,6 +12,7 @@ input: |
   {val:null([(int64,string)]),idx:-5}
   {val:[1,2,3,"foo"],idx:null(int64)}
   {val:[1,2,3,"foo"],idx:"hi"}
+  {val:[1,2,3,"foo"],idx:9223372036854775808(uint64)}
   // set
   {val:|[1,2,3,"foo"]|,idx:-1}
   {val:|[1,2,3,"bar"]|,idx:2}
@@ -35,6 +36,7 @@ output: |
   error("missing")
   error("missing")
   error({message:"index is not an integer",on:"hi"})
+  error({message:"cannot cast to int64",on:9223372036854775808(uint64)})(error({message:string,on:uint64}))
   "foo"
   2
   1
