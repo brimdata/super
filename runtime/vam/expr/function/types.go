@@ -116,6 +116,9 @@ func (t *TypeName) Call(args ...vector.Any) vector.Any {
 			out.Append(t.sctx.LookupTypeValue(typ).Bytes())
 		}
 	}
+	if !out.Nulls.IsZero() {
+		out.Nulls.Shorten(out.Len())
+	}
 	if len(errs) > 0 {
 		return vector.Combine(out, errs, vector.NewMissing(t.sctx, uint32(len(errs))))
 	}
