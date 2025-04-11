@@ -314,7 +314,7 @@ func stringOrBytesContents(vec vector.Any) ([]uint32, []byte, bitvec.Bits) {
 func arrayOrSetContents(vec vector.Any) ([]uint32, vector.Any, bitvec.Bits) {
 	switch vec := vec.(type) {
 	case *vector.Array:
-		return vec.Offsets(), vec.Values, vec.Nulls
+		return vec.Offsets(), vec.Values, vec.Nulls()
 	case *vector.Set:
 		return vec.Offsets(), vec.Values, vec.Nulls
 	default:

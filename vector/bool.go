@@ -116,7 +116,7 @@ func BoolValue(vec Any, slot uint32) (bool, bool) {
 func NullsOf(v Any) bitvec.Bits {
 	switch v := v.(type) {
 	case *Array:
-		return v.Nulls
+		return v.Nulls()
 	case *Bytes:
 		return v.Nulls
 	case *Bool:
@@ -166,7 +166,7 @@ func CopyAndSetNulls(v Any, nulls bitvec.Bits) Any {
 	switch v := v.(type) {
 	case *Array:
 		copy := *v
-		copy.Nulls = nulls
+		copy.SetNulls(nulls)
 		return &copy
 	case *Bytes:
 		copy := *v

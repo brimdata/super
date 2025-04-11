@@ -11,14 +11,14 @@ type Array struct {
 	Typ     *super.TypeArray
 	offsets []uint32
 	Values  Any
-	Nulls   bitvec.Bits
+	nulls   bitvec.Bits
 	length  uint32
 }
 
 var _ Any = (*Array)(nil)
 
 func NewArray(typ *super.TypeArray, offsets []uint32, values Any, nulls bitvec.Bits) *Array {
-	return &Array{Typ: typ, offsets: offsets, Values: values, Nulls: nulls, length: uint32(len(offsets) - 1)}
+	return &Array{Typ: typ, offsets: offsets, Values: values, nulls: nulls, length: uint32(len(offsets) - 1)}
 }
 
 func (a *Array) Type() super.Type {
@@ -31,13 +31,24 @@ func (a *Array) Len() uint32 {
 
 func (a *Array) Offsets() []uint32 {
 	if a.offsets == nil {
-		a.offsets, a.Nulls = a.loader.Load()
+		a.offsets, a.nulls = a.loader.Load()
 	}
 	return a.offsets
 }
 
+func (a *Array) Nulls() bitvec.Bits {
+	if a.offsets == nil {
+		a.offsets, a.nulls = a.loader.Load()
+	}
+	return a.nulls
+}
+
+func (a *Array) SetNulls(nulls bitvec.Bits) {
+	a.nulls = nulls
+}
+
 func (a *Array) Serialize(b *zcode.Builder, slot uint32) {
-	if a.Nulls.IsSet(slot) {
+	if a.Nulls().IsSet(slot) {
 		b.Append(nil)
 		return
 	}
@@ -54,7 +65,7 @@ func ContainerOffset(val Any, slot uint32) (uint32, uint32, bool) {
 	switch val := val.(type) {
 	case *Array:
 		offs := val.Offsets()
-		return offs[slot], offs[slot+1], val.Nulls.IsSet(slot)
+		return offs[slot], offs[slot+1], val.Nulls().IsSet(slot)
 	case *Set:
 		offs := val.Offsets()
 		return offs[slot], offs[slot+1], val.Nulls.IsSet(slot)
