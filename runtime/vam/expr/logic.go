@@ -28,7 +28,7 @@ func (n *Not) eval(vecs ...vector.Any) vector.Any {
 	case *vector.Bool:
 		return vector.NewBool(bitvec.Not(vec.Bits()), vec.Nulls())
 	case *vector.Const:
-		return vector.NewConst(super.NewBool(!vec.Value().Bool()), vec.Len(), vec.Nulls)
+		return vector.NewConst(super.NewBool(!vec.Value().Bool()), vec.Len(), vec.Nulls())
 	case *vector.Error:
 		return vec
 	default:
@@ -172,10 +172,10 @@ func toBool(vec vector.Any) *vector.Bool {
 		val := vec.Value()
 		if val.Bool() {
 			out := vector.NewTrue(vec.Len())
-			out.SetNulls(vec.Nulls)
+			out.SetNulls(vec.Nulls())
 			return out
 		} else {
-			return vector.NewBoolEmpty(vec.Len(), vec.Nulls)
+			return vector.NewBoolEmpty(vec.Len(), vec.Nulls())
 		}
 	case *vector.Dynamic:
 		nulls := bitvec.NewFalse(vec.Len())

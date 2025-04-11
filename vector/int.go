@@ -75,7 +75,7 @@ func IntValue(vec Any, slot uint32) (int64, bool) {
 	case *Int:
 		return vec.Value(slot), vec.Nulls.IsSet(slot)
 	case *Const:
-		return vec.val.Int(), vec.Nulls.IsSet(slot)
+		return vec.val.Int(), vec.Nulls().IsSet(slot)
 	case *Dict:
 		if vec.Nulls.IsSet(slot) {
 			return 0, true

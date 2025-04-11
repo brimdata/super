@@ -18,6 +18,9 @@ type (
 	MapLoader interface {
 		Load() (*Map, bitvec.Bits)
 	}
+	NullsLoader interface {
+		Load() bitvec.Bits
+	}
 	RecordLoader interface {
 		Load() ([]Any, bitvec.Bits)
 	}

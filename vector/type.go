@@ -54,7 +54,7 @@ func TypeValueValue(val Any, slot uint32) ([]byte, bool) {
 	case *TypeValue:
 		return val.Value(slot), val.Nulls.IsSet(slot)
 	case *Const:
-		if val.Nulls.IsSet(slot) {
+		if val.Nulls().IsSet(slot) {
 			return nil, true
 		}
 		s, _ := val.AsBytes()

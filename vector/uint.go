@@ -72,7 +72,7 @@ func UintValue(vec Any, slot uint32) (uint64, bool) {
 	case *Uint:
 		return vec.Value(slot), vec.Nulls.IsSet(slot)
 	case *Const:
-		return vec.Value().Ptr().Uint(), vec.Nulls.IsSet(slot)
+		return vec.Value().Ptr().Uint(), vec.Nulls().IsSet(slot)
 	case *Dict:
 		if vec.Nulls.IsSet(slot) {
 			return 0, true

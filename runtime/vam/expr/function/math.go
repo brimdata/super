@@ -38,7 +38,7 @@ func (a *Abs) abs(vec vector.Any) vector.Any {
 			}
 			val = super.NewInt(vec.Type(), v)
 		}
-		return vector.NewConst(val, vec.Len(), vec.Nulls)
+		return vector.NewConst(val, vec.Len(), vec.Nulls())
 	case *vector.View:
 		return vector.Pick(a.abs(vec.Any), vec.Index)
 	case *vector.Dict:
@@ -83,7 +83,7 @@ func (c *Ceil) ceil(vec vector.Any) vector.Any {
 	switch vec := vec.(type) {
 	case *vector.Const:
 		val := super.NewFloat(vec.Type(), math.Ceil(vec.Value().Float()))
-		return vector.NewConst(val, vec.Len(), vec.Nulls)
+		return vector.NewConst(val, vec.Len(), vec.Nulls())
 	case *vector.View:
 		return vector.Pick(c.ceil(vec.Any), vec.Index)
 	case *vector.Dict:
@@ -119,7 +119,7 @@ func (f *Floor) floor(vec vector.Any) vector.Any {
 	switch vec := vec.(type) {
 	case *vector.Const:
 		val := super.NewFloat(vec.Type(), math.Floor(vec.Value().Float()))
-		return vector.NewConst(val, vec.Len(), vec.Nulls)
+		return vector.NewConst(val, vec.Len(), vec.Nulls())
 	case *vector.View:
 		return vector.Pick(f.floor(vec.Any), vec.Index)
 	case *vector.Dict:

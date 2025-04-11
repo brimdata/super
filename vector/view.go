@@ -23,7 +23,7 @@ func Pick(val Any, index []uint32) Any {
 	case *Bool:
 		return NewBool(val.Bits().Pick(index), val.Nulls().Pick(index))
 	case *Const:
-		return NewConst(val.val, uint32(len(index)), val.Nulls.Pick(index))
+		return NewConst(val.val, uint32(len(index)), val.Nulls().Pick(index))
 	case *Dict:
 		index2 := make([]byte, len(index))
 		counts := make([]uint32, val.Any.Len())

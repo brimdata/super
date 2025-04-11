@@ -8,15 +8,17 @@ import (
 )
 
 type Const struct {
-	val   super.Value
-	len   uint32
-	Nulls bitvec.Bits
+	loader NullsLoader
+	val    super.Value
+	len    uint32
+	nulls  bitvec.Bits
+	loaded bool
 }
 
 var _ Any = (*Const)(nil)
 
 func NewConst(val super.Value, len uint32, nulls bitvec.Bits) *Const {
-	return &Const{val: val, len: len, Nulls: nulls}
+	return &Const{val: val, len: len, nulls: nulls}
 }
 
 func (c *Const) Type() super.Type {
@@ -38,8 +40,20 @@ func (c *Const) Value() super.Value {
 	return c.val
 }
 
+func (c *Const) Nulls() bitvec.Bits {
+	if !c.loaded {
+		c.nulls = c.loader.Load()
+		c.loaded = true
+	}
+	return c.nulls
+}
+
+func (c *Const) SetNulls(nulls bitvec.Bits) {
+	c.nulls = nulls
+}
+
 func (c *Const) Serialize(b *zcode.Builder, slot uint32) {
-	if c.Nulls.IsSet(slot) {
+	if c.Nulls().IsSet(slot) {
 		b.Append(nil)
 	} else {
 		b.Append(c.val.Bytes())

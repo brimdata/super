@@ -213,7 +213,7 @@ func (c *countByString) countFixed(vec *vector.Const) {
 	val := vec.Value()
 	switch val.Type().ID() {
 	case super.IDString:
-		nullCnt := uint64(vec.Nulls.TrueCount())
+		nullCnt := uint64(vec.Nulls().TrueCount())
 		c.nulls += nullCnt
 		c.table[super.DecodeString(val.Bytes())] += uint64(vec.Len()) - nullCnt
 	case super.IDNull:

@@ -47,7 +47,7 @@ func sum[T numeric](state T, vec vector.Any) T {
 	switch vec := vec.(type) {
 	case *vector.Const:
 		v := constToNumeric[T](vec)
-		return state + v*T(vec.Len()-vec.Nulls.TrueCount())
+		return state + v*T(vec.Len()-vec.Nulls().TrueCount())
 	case *vector.Dict:
 		return sumFlat(state, vec.Any, nil, vec.Counts)
 	case *vector.View:

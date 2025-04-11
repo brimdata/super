@@ -185,7 +185,7 @@ func (s *sliceExpr) evalStringOrBytesFast(vec vector.Any, from, to int) (vector.
 		}
 		start, end = expr.FixSliceBounds(start, end, size)
 		slice = sliceBytesOrString(slice, id, start, end)
-		return vector.NewConst(super.NewValue(vec.Type(), slice), vec.Len(), vec.Nulls), true
+		return vector.NewConst(super.NewValue(vec.Type(), slice), vec.Len(), vec.Nulls()), true
 	case *vector.View:
 		out, ok := s.evalStringOrBytesFast(vec.Any, from, to)
 		if !ok {
@@ -246,7 +246,7 @@ func (s *sliceExpr) bytesAt(val vector.Any, slot uint32) ([]byte, bool) {
 		}
 		return val.Value(slot), false
 	case *vector.Const:
-		if val.Nulls.IsSet(slot) {
+		if val.Nulls().IsSet(slot) {
 			return nil, true
 		}
 		s, _ := val.AsBytes()
@@ -273,7 +273,7 @@ func sliceIsConstIndex(vec vector.Any) (int, bool) {
 	if vec == nil {
 		return 0, true
 	}
-	if c, ok := vec.(*vector.Const); ok && c.Nulls.IsZero() {
+	if c, ok := vec.(*vector.Const); ok && c.Nulls().IsZero() {
 		return int(c.Value().Int()), true
 	}
 	return 0, false

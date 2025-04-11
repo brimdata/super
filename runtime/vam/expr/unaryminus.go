@@ -69,7 +69,7 @@ func (u *unaryMinus) convert(vec vector.Any) (vector.Any, bool) {
 			}
 			val = super.NewInt(vec.Type(), -vec.Value().Int())
 		}
-		return vector.NewConst(val, vec.Len(), vec.Nulls), true
+		return vector.NewConst(val, vec.Len(), vec.Nulls()), true
 	case *vector.Dict:
 		out, ok := u.convert(vec.Any)
 		if !ok {

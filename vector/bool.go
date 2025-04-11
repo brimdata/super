@@ -98,7 +98,7 @@ func BoolValue(vec Any, slot uint32) (bool, bool) {
 	case *Bool:
 		return vec.Bits().IsSet(slot), vec.Nulls().IsSet(slot)
 	case *Const:
-		return vec.Value().Ptr().AsBool(), vec.Nulls.IsSet(slot)
+		return vec.Value().Ptr().AsBool(), vec.Nulls().IsSet(slot)
 	case *Dict:
 		if vec.Nulls.IsSet(slot) {
 			return false, true
@@ -125,7 +125,7 @@ func NullsOf(v Any) bitvec.Bits {
 		if v.Value().IsNull() {
 			return bitvec.NewTrue(v.Len())
 		}
-		return v.Nulls
+		return v.Nulls()
 	case *Dict:
 		return v.Nulls
 	case *Enum:
@@ -178,7 +178,7 @@ func CopyAndSetNulls(v Any, nulls bitvec.Bits) Any {
 		return &copy
 	case *Const:
 		copy := *v
-		copy.Nulls = nulls
+		copy.SetNulls(nulls)
 		return &copy
 	case *Dict:
 		copy := *v

@@ -40,7 +40,7 @@ func IPValue(val Any, slot uint32) (netip.Addr, bool) {
 	case *IP:
 		return val.Values[slot], val.Nulls.IsSet(slot)
 	case *Const:
-		if val.Nulls.IsSet(slot) {
+		if val.Nulls().IsSet(slot) {
 			return netip.Addr{}, true
 		}
 		b, _ := val.AsBytes()

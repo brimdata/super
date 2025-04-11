@@ -40,7 +40,7 @@ func NetValue(val Any, slot uint32) (netip.Prefix, bool) {
 	case *Net:
 		return val.Values[slot], val.Nulls.IsSet(slot)
 	case *Const:
-		if val.Nulls.IsSet(slot) {
+		if val.Nulls().IsSet(slot) {
 			return netip.Prefix{}, true
 		}
 		s, _ := val.AsBytes()

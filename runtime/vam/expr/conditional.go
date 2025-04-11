@@ -81,16 +81,17 @@ func boolMaskRidx(ridx []uint32, bools, errs *roaring.Bitmap, vec vector.Any) {
 		if !vec.Value().Ptr().AsBool() {
 			return
 		}
-		if !vec.Nulls.IsZero() {
+		nulls := vec.Nulls()
+		if !nulls.IsZero() {
 			if ridx != nil {
 				for i, idx := range ridx {
-					if !vec.Nulls.IsSet(uint32(i)) {
+					if !nulls.IsSet(uint32(i)) {
 						bools.Add(idx)
 					}
 				}
 			} else {
 				for i := range vec.Len() {
-					if !vec.Nulls.IsSet(i) {
+					if !nulls.IsSet(i) {
 						bools.Add(i)
 					}
 				}

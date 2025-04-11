@@ -63,7 +63,7 @@ func (b *Bucket) constBin(tsVec vector.Any, bin nano.Duration) vector.Any {
 	case *vector.Const:
 		ts, _ := tsVec.AsInt()
 		val := super.NewInt(b.resultType(tsVec), int64(nano.Ts(ts).Trunc(bin)))
-		return vector.NewConst(val, tsVec.Len(), tsVec.Nulls)
+		return vector.NewConst(val, tsVec.Len(), tsVec.Nulls())
 	case *vector.View:
 		return vector.NewView(b.constBinFlat(tsVec.Any, bin), tsVec.Index)
 	case *vector.Dict:
@@ -138,7 +138,7 @@ func (s *Strftime) fastPath(fvec *vector.Const, tvec vector.Any) vector.Any {
 	case *vector.Const:
 		t, _ := tvec.AsInt()
 		s := f.FormatString(nano.Ts(t).Time())
-		return vector.NewConst(super.NewString(s), tvec.Len(), tvec.Nulls)
+		return vector.NewConst(super.NewString(s), tvec.Len(), tvec.Nulls())
 	default:
 		panic(tvec)
 	}

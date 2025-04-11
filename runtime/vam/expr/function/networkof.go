@@ -40,7 +40,7 @@ func (n *NetworkOf) singleIP(vec vector.Any) vector.Any {
 			return errNotIP4(n.sctx, vec)
 		}
 		net := netip.PrefixFrom(ip, bitsFromIP(ip.As4())).Masked()
-		return vector.NewConst(super.NewNet(net), c.Len(), c.Nulls)
+		return vector.NewConst(super.NewNet(net), c.Len(), c.Nulls())
 	}
 	var errs []uint32
 	var nets vector.Any

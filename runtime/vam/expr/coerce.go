@@ -111,7 +111,7 @@ func promoteWider(id int, val vector.Any) vector.Any {
 		} else {
 			zedVal = super.NewUint(typ, val.Value().Uint())
 		}
-		return vector.NewConst(zedVal, val.Len(), val.Nulls)
+		return vector.NewConst(zedVal, val.Len(), val.Nulls())
 	case *vector.Dict:
 		promoted := val.Any.(vector.Promotable).Promote(typ)
 		return vector.NewDict(promoted, val.Index, val.Counts, val.Nulls)
@@ -139,7 +139,7 @@ func promoteToSigned(val vector.Any) vector.Any {
 		if !ok {
 			panic("ToInt failed")
 		}
-		return vector.NewConst(super.NewInt64(v), val.Len(), val.Nulls)
+		return vector.NewConst(super.NewInt64(v), val.Len(), val.Nulls())
 	case *vector.Dict:
 		promoted := promoteToSigned(val.Any)
 		return vector.NewDict(promoted, val.Index, val.Counts, val.Nulls)
@@ -243,7 +243,7 @@ func intToFloat(val vector.Any) vector.Any {
 		if !ok {
 			panic("ToFloat failed")
 		}
-		return vector.NewConst(super.NewFloat64(f), val.Len(), val.Nulls)
+		return vector.NewConst(super.NewFloat64(f), val.Len(), val.Nulls())
 	case *vector.Dict:
 		return vector.NewDict(intToFloat(val.Any), val.Index, val.Counts, val.Nulls)
 	case *vector.View:

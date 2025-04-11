@@ -77,7 +77,7 @@ func StringValue(val Any, slot uint32) (string, bool) {
 		}
 		return val.Value(slot), false
 	case *Const:
-		if val.Nulls.IsSet(slot) {
+		if val.Nulls().IsSet(slot) {
 			return "", true
 		}
 		s, _ := val.AsString()
