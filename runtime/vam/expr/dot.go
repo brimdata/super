@@ -46,7 +46,7 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 		if !ok {
 			return vector.NewMissing(d.sctx, val.Len())
 		}
-		return val.Fields[i]
+		return val.Fields()[i]
 	case *vector.TypeValue:
 		var errs []uint32
 		typvals := vector.NewTypeValueEmpty(0, bitvec.Zero)

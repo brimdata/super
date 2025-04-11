@@ -26,7 +26,7 @@ func NewRecordBuilder(sctx *super.Context, fields field.List) (*RecordBuilder, e
 
 func (r *RecordBuilder) New(vecs []Any, nulls bitvec.Bits) *Record {
 	rec, _ := r.base.build(r.sctx, vecs)
-	rec.Nulls = nulls
+	rec.SetNulls(nulls)
 	return rec
 }
 

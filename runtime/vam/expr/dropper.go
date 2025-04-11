@@ -60,16 +60,16 @@ func (d *Dropper) drop(vec vector.Any, fm fieldsMap) (vector.Any, bool) {
 					// Drop field.
 					if !changed {
 						newFields = slices.Clone(fields[:i])
-						newVecs = slices.Clone(vec.Fields[:i])
+						newVecs = slices.Clone(vec.Fields()[:i])
 						changed = true
 					}
 					continue
 				}
-				if vec2, ok := d.drop(vec.Fields[i], ff); ok {
+				if vec2, ok := d.drop(vec.Fields()[i], ff); ok {
 					// Field changed.
 					if !changed {
 						newFields = slices.Clone(fields[:i])
-						newVecs = slices.Clone(vec.Fields[:i])
+						newVecs = slices.Clone(vec.Fields()[:i])
 						changed = true
 					}
 					if vec2 == nil {
@@ -85,7 +85,7 @@ func (d *Dropper) drop(vec vector.Any, fm fieldsMap) (vector.Any, bool) {
 			// Keep field.
 			if changed {
 				newFields = append(newFields, f)
-				newVecs = append(newVecs, vec.Fields[i])
+				newVecs = append(newVecs, vec.Fields()[i])
 			}
 		}
 		if !changed {
@@ -95,7 +95,7 @@ func (d *Dropper) drop(vec vector.Any, fm fieldsMap) (vector.Any, bool) {
 			return nil, true
 		}
 		newRecType := d.sctx.MustLookupTypeRecord(newFields)
-		return vector.NewRecord(newRecType, newVecs, vec.Len(), vec.Nulls), true
+		return vector.NewRecord(newRecType, newVecs, vec.Len(), vec.Nulls()), true
 	case *vector.Dict:
 		if newVec, ok := d.drop(vec.Any, fm); ok {
 			return vector.NewDict(newVec, vec.Index, vec.Counts, vec.Nulls), true

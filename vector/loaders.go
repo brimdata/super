@@ -19,7 +19,7 @@ type (
 		Load() (*Map, bitvec.Bits)
 	}
 	RecordLoader interface {
-		Load() (*Record, bitvec.Bits)
+		Load() ([]Any, bitvec.Bits)
 	}
 	IntLoader interface {
 		Load() ([]int64, bitvec.Bits)

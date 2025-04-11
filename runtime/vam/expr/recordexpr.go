@@ -72,12 +72,12 @@ func (r *recordExpr) spread(vec vector.Any) {
 	switch vec := vector.Under(vec).(type) {
 	case *vector.Record:
 		for k, f := range super.TypeRecordOf(vec.Type()).Fields {
-			r.addOrUpdateField(f.Name, vec.Fields[k])
+			r.addOrUpdateField(f.Name, vec.Fields()[k])
 		}
 	case *vector.View:
 		if rec, ok := vec.Any.(*vector.Record); ok {
 			for k, f := range super.TypeRecordOf(rec.Type()).Fields {
-				r.addOrUpdateField(f.Name, vector.Pick(rec.Fields[k], vec.Index))
+				r.addOrUpdateField(f.Name, vector.Pick(rec.Fields()[k], vec.Index))
 			}
 		}
 	}

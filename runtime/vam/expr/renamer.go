@@ -31,5 +31,5 @@ func (r *Renamer) eval(vecs ...vector.Any) vector.Any {
 	if err != nil {
 		return vector.NewWrappedError(r.sctx, err.Error(), vec)
 	}
-	return vector.NewRecord(val.Type().(*super.TypeRecord), recVec.Fields, recVec.Len(), recVec.Nulls)
+	return vector.NewRecord(val.Type().(*super.TypeRecord), recVec.Fields(), recVec.Len(), recVec.Nulls())
 }
