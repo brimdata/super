@@ -1,6 +1,8 @@
 script: |
   super compile -C -O "from file | a==1 or e==2 | yield c, b, d"
   echo ===
+  super compile -C -O "from file1 | join (from file2) on a | yield b"
+  echo ===
   export SUPER_DB_LAKE=test
   super db init -q
   super db create -q -orderby ts pool-ts
@@ -21,6 +23,17 @@ outputs:
     data: |
       file file fields a,b,c,d,e filter (a==1 or e==2)
       | yield c, b, d
+      | output main
+      ===
+      file file1
+      | fork (
+        =>
+          pass
+        =>
+          file file2
+      )
+      | join on a=a
+      | yield b
       | output main
       ===
       lister

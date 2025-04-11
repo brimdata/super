@@ -50,10 +50,7 @@ func demandForOp(op dag.Op, downstream demand.Demand) demand.Demand {
 	case *dag.Head:
 		return downstream
 	case *dag.Join:
-		d := downstream
-		d = demand.Union(d, demandForExpr(op.LeftKey))
-		d = demand.Union(d, demandForExpr(op.RightKey))
-		return demandForAssignments(op.Args, d)
+		return demand.All()
 	case *dag.Load:
 		return demand.All()
 	case *dag.Merge:
