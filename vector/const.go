@@ -10,15 +10,20 @@ import (
 type Const struct {
 	loader NullsLoader
 	val    super.Value
-	len    uint32
+	length uint32
 	nulls  bitvec.Bits
 	loaded bool
 }
 
 var _ Any = (*Const)(nil)
 
-func NewConst(val super.Value, len uint32, nulls bitvec.Bits) *Const {
-	return &Const{val: val, len: len, nulls: nulls}
+func NewConst(val super.Value, length uint32, nulls bitvec.Bits) *Const {
+	return &Const{val: val, length: length, nulls: nulls, loaded: true}
+}
+
+// XXX realizing we can pass in no-nulls when we know it from metadata
+func NewConstWithLoader(val super.Value, loader NullsLoader, length uint32) *Const {
+	return &Const{val: val, loader: loader, length: length}
 }
 
 func (c *Const) Type() super.Type {
@@ -26,15 +31,11 @@ func (c *Const) Type() super.Type {
 }
 
 func (c *Const) Len() uint32 {
-	return c.len
+	return c.length
 }
 
 func (*Const) Ref()   {}
 func (*Const) Unref() {}
-
-func (c *Const) Length() int {
-	return int(c.len)
-}
 
 func (c *Const) Value() super.Value {
 	return c.val

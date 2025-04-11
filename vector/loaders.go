@@ -12,6 +12,9 @@ type (
 	BitsLoader interface {
 		Load() (bitvec.Bits, bitvec.Bits)
 	}
+	DictLoader interface {
+		Load() ([]byte, []uint32, bitvec.Bits)
+	}
 	FloatLoader interface {
 		Load() ([]float64, bitvec.Bits)
 	}

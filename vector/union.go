@@ -76,7 +76,7 @@ func addNullsToUnionDynamic(typ *super.TypeUnion, d *Dynamic, nulls bitvec.Bits)
 			count++
 		}
 	}
-	vals[nullTag].(*Const).len = count
+	vals[nullTag].(*Const).length = count
 	if rebuild {
 		for i, delIndex := range delIndexes {
 			if len(delIndex) > 0 {

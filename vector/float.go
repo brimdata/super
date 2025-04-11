@@ -76,15 +76,15 @@ func FloatValue(vec Any, slot uint32) (float64, bool) {
 	case *Const:
 		return vec.Value().Ptr().Float(), vec.Nulls().IsSet(slot)
 	case *Dict:
-		if vec.Nulls.IsSet(slot) {
+		if vec.Nulls().IsSet(slot) {
 			return 0, true
 		}
-		return FloatValue(vec.Any, uint32(vec.Index[slot]))
+		return FloatValue(vec.Any, uint32(vec.Index()[slot]))
 	case *Dynamic:
 		tag := vec.Tags[slot]
 		return FloatValue(vec.Values[tag], vec.TagMap.Forward[slot])
 	case *View:
-		return FloatValue(vec.Any, vec.Index[slot])
+		return FloatValue(vec.Any, vec.Index()[slot])
 	}
 	panic(vec)
 }

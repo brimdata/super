@@ -100,15 +100,15 @@ func BoolValue(vec Any, slot uint32) (bool, bool) {
 	case *Const:
 		return vec.Value().Ptr().AsBool(), vec.Nulls().IsSet(slot)
 	case *Dict:
-		if vec.Nulls.IsSet(slot) {
+		if vec.Nulls().IsSet(slot) {
 			return false, true
 		}
-		return BoolValue(vec.Any, uint32(vec.Index[slot]))
+		return BoolValue(vec.Any, uint32(vec.Index()[slot]))
 	case *Dynamic:
 		tag := vec.Tags[slot]
 		return BoolValue(vec.Values[tag], vec.TagMap.Forward[slot])
 	case *View:
-		return BoolValue(vec.Any, vec.Index[slot])
+		return BoolValue(vec.Any, vec.Index()[slot])
 	}
 	panic(vec)
 }
@@ -127,7 +127,7 @@ func NullsOf(v Any) bitvec.Bits {
 		}
 		return v.Nulls()
 	case *Dict:
-		return v.Nulls
+		return v.Nulls()
 	case *Enum:
 		return v.Nulls
 	case *Error:
@@ -157,7 +157,7 @@ func NullsOf(v Any) bitvec.Bits {
 	case *Union:
 		return v.Nulls
 	case *View:
-		return NullsOf(v.Any).Pick(v.Index)
+		return NullsOf(v.Any).Pick(v.Index())
 	}
 	panic(v)
 }
@@ -182,7 +182,7 @@ func CopyAndSetNulls(v Any, nulls bitvec.Bits) Any {
 		return &copy
 	case *Dict:
 		copy := *v
-		copy.Nulls = nulls
+		copy.SetNulls(nulls)
 		return &copy
 	case *Enum:
 		return &Enum{

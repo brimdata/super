@@ -60,13 +60,13 @@ func TypeValueValue(val Any, slot uint32) ([]byte, bool) {
 		s, _ := val.AsBytes()
 		return s, false
 	case *Dict:
-		if val.Nulls.IsSet(slot) {
+		if val.Nulls().IsSet(slot) {
 			return nil, true
 		}
-		slot = uint32(val.Index[slot])
+		slot = uint32(val.Index()[slot])
 		return val.Any.(*TypeValue).Value(slot), false
 	case *View:
-		slot = val.Index[slot]
+		slot = val.Index()[slot]
 		return TypeValueValue(val.Any, slot)
 	}
 	panic(val)

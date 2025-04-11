@@ -46,13 +46,13 @@ func IPValue(val Any, slot uint32) (netip.Addr, bool) {
 		b, _ := val.AsBytes()
 		return super.DecodeIP(b), false
 	case *Dict:
-		if val.Nulls.IsSet(slot) {
+		if val.Nulls().IsSet(slot) {
 			return netip.Addr{}, true
 		}
-		slot = uint32(val.Index[slot])
+		slot = uint32(val.Index()[slot])
 		return val.Any.(*IP).Values[slot], false
 	case *View:
-		slot = val.Index[slot]
+		slot = val.Index()[slot]
 		return IPValue(val.Any, slot)
 	}
 	panic(val)

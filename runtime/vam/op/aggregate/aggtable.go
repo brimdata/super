@@ -148,7 +148,7 @@ func (c *countByString) update(keys, vals []vector.Any) {
 	case *vector.String:
 		c.count(val)
 	case *vector.Dict:
-		c.countDict(val.Any.(*vector.String), val.Counts, val.Nulls)
+		c.countDict(val.Any.(*vector.String), val.Counts(), val.Nulls())
 	case *vector.Const:
 		c.countFixed(val)
 	case *vector.View:
@@ -225,11 +225,11 @@ func (c *countByString) countView(vec *vector.View) {
 	strVec := vec.Any.(*vector.String)
 	nulls := strVec.Nulls()
 	if nulls.IsZero() {
-		for _, slot := range vec.Index {
+		for _, slot := range vec.Index() {
 			c.table[strVec.Value(slot)]++
 		}
 	} else {
-		for _, slot := range vec.Index {
+		for _, slot := range vec.Index() {
 			if nulls.IsSet(slot) {
 				c.nulls++
 			} else {

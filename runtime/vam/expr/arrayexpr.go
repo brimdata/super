@@ -120,7 +120,7 @@ func unwrapSpread(vec vector.Any) (vector.Any, []uint32, []uint32) {
 		return vec.Values, vec.Offsets(), nil
 	case *vector.View:
 		vals, offsets, _ := unwrapSpread(vec.Any)
-		return vals, offsets, vec.Index
+		return vals, offsets, vec.Index()
 	}
 	return nil, nil, nil
 }

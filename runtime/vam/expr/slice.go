@@ -70,7 +70,7 @@ func (s *sliceExpr) evalArrayOrSlice(vec, fromVec, toVec vector.Any) vector.Any 
 	var index []uint32
 	n := vec.Len()
 	if view, ok := vec.(*vector.View); ok {
-		vec, index = view.Any, view.Index
+		vec, index = view.Any, view.Index()
 	}
 	offsets, inner, nullsIn := arrayOrSetContents(vec)
 	newOffsets := []uint32{0}
@@ -191,13 +191,13 @@ func (s *sliceExpr) evalStringOrBytesFast(vec vector.Any, from, to int) (vector.
 		if !ok {
 			return nil, false
 		}
-		return vector.NewView(out, vec.Index), true
+		return vector.NewView(out, vec.Index()), true
 	case *vector.Dict:
 		out, ok := s.evalStringOrBytesFast(vec.Any, from, to)
 		if !ok {
 			return nil, false
 		}
-		return vector.NewDict(out, vec.Index, vec.Counts, vec.Nulls), true
+		return vector.NewDict(out, vec.Index(), vec.Counts(), vec.Nulls()), true
 	default:
 		offsets, bytes, nullsIn := stringOrBytesContents(vec)
 		newOffsets := []uint32{0}
@@ -252,12 +252,12 @@ func (s *sliceExpr) bytesAt(val vector.Any, slot uint32) ([]byte, bool) {
 		s, _ := val.AsBytes()
 		return s, false
 	case *vector.Dict:
-		if val.Nulls.IsSet(slot) {
+		if val.Nulls().IsSet(slot) {
 			return nil, true
 		}
-		return s.bytesAt(val.Any, uint32(val.Index[slot]))
+		return s.bytesAt(val.Any, uint32(val.Index()[slot]))
 	case *vector.View:
-		return s.bytesAt(val.Any, val.Index[slot])
+		return s.bytesAt(val.Any, val.Index()[slot])
 	}
 	panic(val)
 }

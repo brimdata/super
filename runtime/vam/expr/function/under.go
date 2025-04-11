@@ -14,7 +14,7 @@ func (u *Under) Call(args ...vector.Any) vector.Any {
 	vec := args[0]
 	var index []uint32
 	if view, ok := vec.(*vector.View); ok {
-		vec, index = view.Any, view.Index
+		vec, index = view.Any, view.Index()
 	}
 	var out vector.Any
 	switch vec := vec.(type) {

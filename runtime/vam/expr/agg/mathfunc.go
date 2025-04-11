@@ -49,9 +49,9 @@ func sum[T numeric](state T, vec vector.Any) T {
 		v := constToNumeric[T](vec)
 		return state + v*T(vec.Len()-vec.Nulls().TrueCount())
 	case *vector.Dict:
-		return sumFlat(state, vec.Any, nil, vec.Counts)
+		return sumFlat(state, vec.Any, nil, vec.Counts())
 	case *vector.View:
-		return sumFlat(state, vec.Any, vec.Index, nil)
+		return sumFlat(state, vec.Any, vec.Index(), nil)
 	default:
 		return sumFlat(state, vec, nil, nil)
 	}
@@ -99,7 +99,7 @@ func min[T numeric](state T, vec vector.Any) T {
 	case *vector.Dict:
 		return minFlat(state, vec.Any, nil)
 	case *vector.View:
-		return minFlat(state, vec.Any, vec.Index)
+		return minFlat(state, vec.Any, vec.Index())
 	default:
 		return minFlat(state, vec, nil)
 	}
@@ -145,7 +145,7 @@ func max[T numeric](state T, vec vector.Any) T {
 	case *vector.Dict:
 		return maxFlat(state, vec.Any, nil)
 	case *vector.View:
-		return maxFlat(state, vec.Any, vec.Index)
+		return maxFlat(state, vec.Any, vec.Index())
 	default:
 		return maxFlat(state, vec, nil)
 	}

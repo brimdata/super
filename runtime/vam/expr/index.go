@@ -44,7 +44,7 @@ func indexArrayOrSet(sctx *super.Context, vec, indexVec vector.Any) vector.Any {
 	}
 	var index []uint32
 	if view, ok := vec.(*vector.View); ok {
-		vec, index = view.Any, view.Index
+		vec, index = view.Any, view.Index()
 	}
 	offsets, vals, nulls := arrayOrSetContents(vec)
 	indexVec = promoteToSigned(indexVec)
@@ -88,7 +88,7 @@ func indexRecord(sctx *super.Context, vec, indexVec vector.Any) vector.Any {
 	case *vector.Record:
 		rec = vec
 	case *vector.View:
-		rec, index = vec.Any.(*vector.Record), vec.Index
+		rec, index = vec.Any.(*vector.Record), vec.Index()
 	default:
 		panic(vec)
 	}

@@ -49,7 +49,7 @@ func assemble(sctx *super.Context, vec vector.Any, typ super.Type, fn caster) ve
 	case *vector.Const:
 		return castConst(sctx, vec, typ)
 	case *vector.View:
-		out, errs, ok = fn(vec.Any, vec.Index)
+		out, errs, ok = fn(vec.Any, vec.Index())
 	case *vector.Dict:
 		out, errs, ok = fn(vec.Any, nil)
 		if ok {
@@ -58,7 +58,7 @@ func assemble(sctx *super.Context, vec vector.Any, typ super.Type, fn caster) ve
 				errs = nerrs
 				out = vector.NewDict(out, index, counts, nulls)
 			} else {
-				out = vector.NewDict(out, vec.Index, vec.Counts, vec.Nulls)
+				out = vector.NewDict(out, vec.Index(), vec.Counts(), vec.Nulls())
 			}
 		}
 	default:

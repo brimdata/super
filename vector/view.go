@@ -5,15 +5,29 @@ import (
 	"github.com/brimdata/super/zcode"
 )
 
+// XXX take this loader back out... a view is always constructed in the runtime and never loaded
 type View struct {
+	loader Uint32Loader
 	Any
-	Index []uint32
+	index  []uint32
+	length uint32
 }
 
 var _ Any = (*View)(nil)
 
 func NewView(vec Any, index []uint32) *View {
-	return &View{vec, index}
+	return &View{Any: vec, index: index, length: vec.Len()}
+}
+
+func NewViewWithLoader(vec Any, loader Uint32Loader, length uint32) *View {
+	return &View{Any: vec, loader: loader, length: length}
+}
+
+func (v *View) Index() []uint32 {
+	if v.index == nil {
+		v.index, _ = v.loader.Load()
+	}
+	return v.index
 }
 
 // Pick takes any vector vec and an index and returns a new vector consisting of the
@@ -28,19 +42,20 @@ func Pick(val Any, index []uint32) Any {
 		index2 := make([]byte, len(index))
 		counts := make([]uint32, val.Any.Len())
 		var nulls bitvec.Bits
-		if !val.Nulls.IsZero() {
+		if !val.Nulls().IsZero() {
 			nulls = bitvec.NewFalse(uint32(len(index)))
 			for k, idx := range index {
-				if val.Nulls.IsSet(idx) {
+				if val.Nulls().IsSet(idx) {
 					nulls.Set(uint32(k))
 				}
-				v := val.Index[idx]
+				v := val.Index()[idx]
 				index2[k] = v
 				counts[v]++
 			}
 		} else {
+			vals := val.Index()
 			for k, idx := range index {
-				v := val.Index[idx]
+				v := vals[idx]
 				index2[k] = v
 				counts[v]++
 			}
@@ -55,15 +70,16 @@ func Pick(val Any, index []uint32) Any {
 		return NewDynamic(viewForUnionOrDynamic(index, val.Tags, val.TagMap.Forward, val.Values))
 	case *View:
 		index2 := make([]uint32, len(index))
+		vals := val.Index()
 		for k, idx := range index {
-			index2[k] = uint32(val.Index[idx])
+			index2[k] = uint32(vals[idx])
 		}
 		return NewView(val.Any, index2)
 	case *Named:
 		// Wrapped View under Named so vector.Under still works.
 		return &Named{val.Typ, Pick(val.Any, index)}
 	}
-	return &View{val, index}
+	return NewView(val, index)
 }
 
 // ReversePick is like Pick but it builds the vector from the elements
@@ -88,9 +104,9 @@ func viewForUnionOrDynamic(index, tags, forward []uint32, values []Any) ([]uint3
 }
 
 func (v *View) Len() uint32 {
-	return uint32(len(v.Index))
+	return v.length
 }
 
 func (v *View) Serialize(b *zcode.Builder, slot uint32) {
-	v.Any.Serialize(b, v.Index[slot])
+	v.Any.Serialize(b, v.Index()[slot])
 }

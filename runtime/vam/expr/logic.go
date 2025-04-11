@@ -237,7 +237,7 @@ func (p *PredicateWalk) Eval(vecs ...vector.Any) vector.Any {
 	var index []uint32
 	if view, ok := rhs.(*vector.View); ok {
 		rhs = view.Any
-		index = view.Index
+		index = view.Index()
 	}
 	switch rhs := rhs.(type) {
 	case *vector.Record:

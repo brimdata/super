@@ -94,7 +94,7 @@ func genVarInit(which, typ string, form vector.Form) string {
 	case vector.FormDict, vector.FormView:
 		s := fmt.Sprintf("%sd := %shs.(*vector.%s)\n", which, which, form)
 		s += fmt.Sprintf("%s := %sd.Any.(*vector.%s)\n", which, which, typ)
-		s += fmt.Sprintf("%sx := %sd.Index\n", which, which)
+		s += fmt.Sprintf("%sx := %sd.Index()\n", which, which)
 		return s
 	case vector.FormConst:
 		return fmt.Sprintf("%sconst, _ := %shs.(*vector.Const).As%s()\n", which, which, typ)

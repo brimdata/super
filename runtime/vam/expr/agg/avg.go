@@ -43,7 +43,7 @@ func (a *avg) ConsumeAsPartial(partial vector.Any) {
 	}
 	idx := uint32(0)
 	if view, ok := partial.(*vector.View); ok {
-		idx = view.Index[0]
+		idx = view.Index()[0]
 		partial = view.Any
 	}
 	rec, ok := partial.(*vector.Record)

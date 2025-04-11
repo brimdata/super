@@ -46,13 +46,13 @@ func NetValue(val Any, slot uint32) (netip.Prefix, bool) {
 		s, _ := val.AsBytes()
 		return super.DecodeNet(s), false
 	case *Dict:
-		if val.Nulls.IsSet(slot) {
+		if val.Nulls().IsSet(slot) {
 			return netip.Prefix{}, true
 		}
-		slot = uint32(val.Index[slot])
+		slot = uint32(val.Index()[slot])
 		return val.Any.(*Net).Values[slot], false
 	case *View:
-		slot = val.Index[slot]
+		slot = val.Index()[slot]
 		return NetValue(val.Any, slot)
 	}
 	panic(val)

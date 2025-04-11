@@ -77,7 +77,7 @@ func ContainerOffset(val Any, slot uint32) (uint32, uint32, bool) {
 		offs := val.Offsets()
 		return offs[slot], offs[slot+1], val.Nulls.IsSet(slot)
 	case *View:
-		slot = val.Index[slot]
+		slot = val.Index()[slot]
 		return ContainerOffset(val.Any, slot)
 	}
 	panic(val)

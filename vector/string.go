@@ -83,12 +83,12 @@ func StringValue(val Any, slot uint32) (string, bool) {
 		s, _ := val.AsString()
 		return s, false
 	case *Dict:
-		if val.Nulls.IsSet(slot) {
+		if val.Nulls().IsSet(slot) {
 			return "", true
 		}
-		return StringValue(val.Any, uint32(val.Index[slot]))
+		return StringValue(val.Any, uint32(val.Index()[slot]))
 	case *View:
-		return StringValue(val.Any, val.Index[slot])
+		return StringValue(val.Any, val.Index()[slot])
 	}
 	panic(val)
 }

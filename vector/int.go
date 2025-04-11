@@ -77,15 +77,15 @@ func IntValue(vec Any, slot uint32) (int64, bool) {
 	case *Const:
 		return vec.val.Int(), vec.Nulls().IsSet(slot)
 	case *Dict:
-		if vec.Nulls.IsSet(slot) {
+		if vec.Nulls().IsSet(slot) {
 			return 0, true
 		}
-		return IntValue(vec.Any, uint32(vec.Index[slot]))
+		return IntValue(vec.Any, uint32(vec.Index()[slot]))
 	case *Dynamic:
 		tag := vec.Tags[slot]
 		return IntValue(vec.Values[tag], vec.TagMap.Forward[slot])
 	case *View:
-		return IntValue(vec.Any, vec.Index[slot])
+		return IntValue(vec.Any, vec.Index()[slot])
 	}
 	panic(vec)
 }

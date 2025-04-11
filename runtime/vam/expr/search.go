@@ -71,7 +71,7 @@ func (s *search) eval(vecs ...vector.Any) vector.Any {
 	var index []uint32
 	if view, ok := vec.(*vector.View); ok {
 		vec = view.Any
-		index = view.Index
+		index = view.Index()
 	}
 	switch vec := vec.(type) {
 	case *vector.Record:

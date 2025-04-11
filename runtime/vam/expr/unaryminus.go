@@ -75,18 +75,13 @@ func (u *unaryMinus) convert(vec vector.Any) (vector.Any, bool) {
 		if !ok {
 			return nil, false
 		}
-		return &vector.Dict{
-			Any:    out,
-			Index:  vec.Index,
-			Counts: vec.Counts,
-			Nulls:  vec.Nulls,
-		}, true
+		return vector.NewDict(out, vec.Index(), vec.Counts(), vec.Nulls()), true
 	case *vector.View:
 		out, ok := u.convert(vec.Any)
 		if !ok {
 			return nil, false
 		}
-		return &vector.View{Any: out, Index: vec.Index}, true
+		return vector.NewView(out, vec.Index()), true
 	case *vector.Int:
 		min := minInt(vec.Type())
 		out := make([]int64, vec.Len())
