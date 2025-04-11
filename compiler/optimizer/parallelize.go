@@ -75,8 +75,7 @@ func matchSource(seq dag.Seq) (*dag.Lister, *dag.Slicer, dag.Seq) {
 }
 
 func (o *Optimizer) parallelizeFileScan(seq dag.Seq, replicas int) (dag.Seq, error) {
-	// Prepend a pass so we can parallelize an aggregate or sort with no
-	// preceding op.
+	// Prepend a pass so we can parallelize seq[0].
 	seq = append(dag.Seq{dag.PassOp}, seq...)
 	n, outputKeys, _, err := o.concurrentPath(seq, nil)
 	if err != nil {
@@ -84,7 +83,7 @@ func (o *Optimizer) parallelizeFileScan(seq dag.Seq, replicas int) (dag.Seq, err
 	}
 	if n < len(seq) {
 		switch seq[n].(type) {
-		case *dag.Aggregate, *dag.Sort:
+		case *dag.Aggregate, *dag.Sort, *dag.Top:
 			return parallelizeHead(seq, n, outputKeys, replicas), nil
 		}
 	}
@@ -206,41 +205,29 @@ func (o *Optimizer) liftIntoParPaths(seq dag.Seq) {
 			op.Keys[k].RHS = op.Keys[k].LHS
 		}
 	case *dag.Sort:
-		if len(op.Args) != 1 {
+		merge, ok := canLiftSortOrTopIntoParPaths(merge, op.Args, op.Reverse)
+		if !ok {
 			return
 		}
-		if merge != nil {
-			mergeKey, ok := sortKeyOfExpr(merge.Expr, merge.Order)
-			if !ok {
-				// If the merge expression isn't a field, don't try to pull it up.
-				// XXX We could generalize this to test for equal expressions by
-				// doing an expression comparison. See issue #4524.
-				return
-			}
-			sortKey := sortKeysOfSort(op)
-			if !sortKey.Equal(order.SortKeys{mergeKey}) {
-				return
-			}
+		seq[1] = merge
+		if egress > 1 {
+			seq[2] = dag.PassOp
 		}
 		for k := range paths {
 			paths[k].Append(copyOp(op))
 		}
-		if merge == nil {
-			merge = &dag.Merge{
-				Kind:  "Merge",
-				Expr:  op.Args[0].Key,
-				Order: op.Args[0].Order,
-			}
-			if egress == 2 {
-				seq[1] = merge
-				seq[2] = dag.PassOp
-			} else {
-				seq[egress] = merge
-			}
-		} else {
-			// There already was an appropriate merge.
-			// Smash the sort into a nop.
-			seq[egress] = dag.PassOp
+	case *dag.Top:
+		merge, ok := canLiftSortOrTopIntoParPaths(merge, op.Exprs, op.Reverse)
+		if !ok || egress < 2 {
+			return
+		}
+		seq[1] = merge
+		seq[2] = &dag.Head{
+			Kind:  "Head",
+			Count: op.Limit,
+		}
+		for k := range paths {
+			paths[k].Append(copyOp(op))
 		}
 	case *dag.Head, *dag.Tail:
 		// Copy the head or tail into the parallel path and leave the original in
@@ -281,6 +268,28 @@ func parallelPaths(op dag.Op) ([]dag.Seq, bool) {
 	return nil, false
 }
 
+func canLiftSortOrTopIntoParPaths(merge *dag.Merge, sortExprs []dag.SortExpr, reverse bool) (*dag.Merge, bool) {
+	if len(sortExprs) != 1 {
+		return nil, false
+	}
+	if merge == nil {
+		return &dag.Merge{
+			Kind:  "Merge",
+			Expr:  sortExprs[0].Key,
+			Order: sortExprs[0].Order,
+		}, true
+	}
+	mergeKey, ok := sortKeyOfExpr(merge.Expr, merge.Order)
+	if !ok {
+		// If the merge expression isn't a field, don't try to pull it up.
+		// XXX We could generalize this to test for equal expressions by
+		// doing an expression comparison. See issue #4524.
+		return nil, false
+	}
+	sortKey := sortKeysOfSortExprs(sortExprs, reverse)
+	return merge, sortKey.Equal(order.SortKeys{mergeKey})
+}
+
 // concurrentPath returns the largest path within seq from front to end that can
 // be parallelized and run concurrently while preserving its semantics where
 // the input to seq is known to have an order defined by sortKey (or order.Nil
@@ -307,11 +316,19 @@ func (o *Optimizer) concurrentPath(seq dag.Seq, sortKeys order.SortKeys) (length
 			}
 			return k, nil, false, nil
 		case *dag.Sort:
-			newKeys := sortKeysOfSort(op)
+			newKeys := sortKeysOfSortExprs(op.Args, op.Reverse)
 			if newKeys.IsNil() {
 				// No analysis for sort without expression since we can't
 				// parallelize the heuristic.  We should revisit these semantics
 				// and define a global order across Zed type.
+				return 0, nil, false, nil
+			}
+			return k, newKeys, false, nil
+		case *dag.Top:
+			newKeys := sortKeysOfSortExprs(op.Exprs, op.Reverse)
+			if newKeys.IsNil() {
+				// No analysis for top without expression since we can't
+				// parallelize the heuristic.
 				return 0, nil, false, nil
 			}
 			return k, newKeys, false, nil

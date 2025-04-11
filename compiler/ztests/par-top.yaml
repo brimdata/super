@@ -1,0 +1,49 @@
+script: |
+  export SUPER_DB_LAKE=test
+  super db init -q
+  super db create -q -orderby a test
+  super db compile -C -P 2 'from test | top' | sed -e 's/pool .*/.../'
+  echo ===
+  super db compile -C -P 2 'from test | top 3 a' | sed -e 's/pool .*/.../'
+  echo ===
+  super db compile -C -P 2 'from test | top 3 b desc' | sed -e 's/pool .*/.../'
+
+outputs:
+  - name: stdout
+    data: |
+      lister ...
+      | scatter (
+        =>
+          seqscan ...
+        =>
+          seqscan ...
+      )
+      | combine
+      | top 1
+      | output main
+      ===
+      lister ...
+      | scatter (
+        =>
+          seqscan ...
+          | top 3 a asc
+        =>
+          seqscan ...
+          | top 3 a asc
+      )
+      | merge a:asc
+      | head 3
+      | output main
+      ===
+      lister ...
+      | scatter (
+        =>
+          seqscan ...
+          | top 3 b desc
+        =>
+          seqscan ...
+          | top 3 b desc
+      )
+      | merge b:desc
+      | head 3
+      | output main
