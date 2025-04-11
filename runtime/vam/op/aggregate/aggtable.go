@@ -165,9 +165,10 @@ func (c *countByString) updatePartial(keyvec, valvec vector.Any) {
 		panic("count by string: invalid partials in")
 	}
 	vals := val.Values()
-	if !key.Nulls.IsZero() {
+	keyNulls := key.Nulls()
+	if !keyNulls.IsZero() {
 		for i := range key.Len() {
-			if key.Nulls.IsSet(i) {
+			if keyNulls.IsSet(i) {
 				c.nulls += vals[i]
 			} else {
 				c.table[key.Value(i)] += vals[i]
@@ -182,13 +183,14 @@ func (c *countByString) updatePartial(keyvec, valvec vector.Any) {
 
 func (c *countByString) count(vec *vector.String) {
 	offs, bytes := vec.Table().Slices()
-	if vec.Nulls.IsZero() {
+	nulls := vec.Nulls()
+	if nulls.IsZero() {
 		for k := range vec.Len() {
 			c.table[string(bytes[offs[k]:offs[k+1]])]++
 		}
 	} else {
 		for k := range vec.Len() {
-			if vec.Nulls.IsSet(k) {
+			if nulls.IsSet(k) {
 				c.nulls++
 			} else {
 				c.table[string(bytes[offs[k]:offs[k+1]])]++
@@ -221,13 +223,14 @@ func (c *countByString) countFixed(vec *vector.Const) {
 
 func (c *countByString) countView(vec *vector.View) {
 	strVec := vec.Any.(*vector.String)
-	if strVec.Nulls.IsZero() {
+	nulls := strVec.Nulls()
+	if nulls.IsZero() {
 		for _, slot := range vec.Index {
 			c.table[strVec.Value(slot)]++
 		}
 	} else {
 		for _, slot := range vec.Index {
-			if strVec.Nulls.IsSet(slot) {
+			if nulls.IsSet(slot) {
 				c.nulls++
 			} else {
 				c.table[strVec.Value(slot)]++

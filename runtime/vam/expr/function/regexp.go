@@ -122,7 +122,7 @@ func (r *RegexpReplace) Call(args ...vector.Any) vector.Any {
 		out.Append(r.re.ReplaceAllString(s, replace))
 	}
 	if len(errs) > 0 {
-		out.Nulls = out.Nulls.ReversePick(errs)
+		out.SetNulls(out.Nulls().ReversePick(errs))
 		return vector.Combine(out, errs, vector.NewVecWrappedError(r.sctx, errMsg, vector.Pick(args[1], errs)))
 	}
 	return out

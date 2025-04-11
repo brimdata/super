@@ -236,12 +236,12 @@ func (s *sliceExpr) bytesOrStringVec(typ super.Type, offsets []uint32, bytes []b
 func (s *sliceExpr) bytesAt(val vector.Any, slot uint32) ([]byte, bool) {
 	switch val := val.(type) {
 	case *vector.String:
-		if val.Nulls.IsSet(slot) {
+		if val.Nulls().IsSet(slot) {
 			return nil, true
 		}
 		return val.Table().Bytes(slot), false
 	case *vector.Bytes:
-		if val.Nulls.IsSet(slot) {
+		if val.Nulls().IsSet(slot) {
 			return nil, true
 		}
 		return val.Value(slot), false
@@ -302,10 +302,10 @@ func stringOrBytesContents(vec vector.Any) ([]uint32, []byte, bitvec.Bits) {
 	switch vec := vec.(type) {
 	case *vector.String:
 		offsets, bytes := vec.Table().Slices()
-		return offsets, bytes, vec.Nulls
+		return offsets, bytes, vec.Nulls()
 	case *vector.Bytes:
 		offsets, bytes := vec.Table().Slices()
-		return offsets, bytes, vec.Nulls
+		return offsets, bytes, vec.Nulls()
 	default:
 		panic(vec)
 	}

@@ -22,7 +22,7 @@ func castToIP(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
 			if index != nil {
 				idx = index[i]
 			}
-			if vec.Nulls.IsSet(idx) {
+			if vec.Nulls().IsSet(idx) {
 				if nulls.IsZero() {
 					nulls = bitvec.NewFalse(n)
 				}
@@ -57,7 +57,7 @@ func castToNet(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
 			if index != nil {
 				idx = index[i]
 			}
-			if vec.Nulls.IsSet(idx) {
+			if vec.Nulls().IsSet(idx) {
 				if nulls.IsZero() {
 					nulls = bitvec.NewFalse(n)
 				}

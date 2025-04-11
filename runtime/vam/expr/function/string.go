@@ -38,7 +38,7 @@ func (j *Join) Call(args ...vector.Any) vector.Any {
 		}
 		off, end, null := vector.ContainerOffset(splitsVal, i)
 		if null {
-			out.Nulls.Set(i)
+			out.Nulls().Set(i)
 		}
 		j.builder.Reset()
 		var sep string
@@ -101,7 +101,7 @@ func (r *Replace) Call(args ...vector.Any) vector.Any {
 			continue
 		}
 		if snull {
-			out.Nulls.Set(out.Len())
+			out.Nulls().Set(out.Len())
 		}
 		out.Append(strings.ReplaceAll(s, old, new))
 	}
@@ -180,7 +180,7 @@ func (t *ToLower) Call(args ...vector.Any) vector.Any {
 	for i := uint32(0); i < v.Len(); i++ {
 		s, null := vector.StringValue(v, i)
 		if null {
-			out.Nulls.Set(i)
+			out.Nulls().Set(i)
 		}
 		out.Append(strings.ToLower(s))
 	}
@@ -201,7 +201,7 @@ func (t *ToUpper) Call(args ...vector.Any) vector.Any {
 	for i := uint32(0); i < v.Len(); i++ {
 		s, null := vector.StringValue(v, i)
 		if null {
-			out.Nulls.Set(i)
+			out.Nulls().Set(i)
 		}
 		out.Append(strings.ToUpper(s))
 	}
@@ -222,7 +222,7 @@ func (t *Trim) Call(args ...vector.Any) vector.Any {
 	for i := uint32(0); i < val.Len(); i++ {
 		s, null := vector.StringValue(val, i)
 		if null {
-			out.Nulls.Set(i)
+			out.Nulls().Set(i)
 		}
 		out.Append(strings.TrimSpace(s))
 	}

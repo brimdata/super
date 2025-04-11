@@ -52,17 +52,18 @@ func stringToBool(vec *vector.String, index []uint32) (vector.Any, []uint32) {
 	n := lengthOf(vec, index)
 	bits := bitvec.NewFalse(n)
 	var nulls bitvec.Bits
-	if !vec.Nulls.IsZero() {
+	if !vec.Nulls().IsZero() {
 		nulls = bitvec.NewFalse(n)
 	}
 	var errs []uint32
 	var boollen uint32
+	nullsIn := vec.Nulls()
 	for i := range n {
 		idx := i
 		if index != nil {
 			idx = index[i]
 		}
-		if vec.Nulls.IsSet(idx) {
+		if nullsIn.IsSet(idx) {
 			nulls.Set(boollen)
 			boollen++
 			continue

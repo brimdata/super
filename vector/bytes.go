@@ -8,22 +8,29 @@ import (
 )
 
 type Bytes struct {
-	table BytesTable
-	Nulls bitvec.Bits
+	loader BytesLoader
+	table  BytesTable
+	nulls  bitvec.Bits
+	length uint32
 }
 
 var _ Any = (*Bytes)(nil)
 
 func NewBytes(table BytesTable, nulls bitvec.Bits) *Bytes {
-	return &Bytes{table: table, Nulls: nulls}
+	return &Bytes{table: table, nulls: nulls}
 }
 
 func NewBytesEmpty(cap uint32, nulls bitvec.Bits) *Bytes {
 	return NewBytes(NewBytesTableEmpty(cap), nulls)
 }
 
+func NewBytesWithLoader(table BytesTable, loader BytesLoader, length uint32) *Bytes {
+	return &Bytes{table: table, loader: loader, length: length}
+}
+
 func (b *Bytes) Append(v []byte) {
 	b.table.Append(v)
+	b.length = b.table.Len()
 }
 
 func (b *Bytes) Type() super.Type {
@@ -31,7 +38,25 @@ func (b *Bytes) Type() super.Type {
 }
 
 func (b *Bytes) Len() uint32 {
-	return b.table.Len()
+	return b.length
+}
+
+func (b *Bytes) Table() BytesTable {
+	if b.table.IsZero() {
+		b.table, b.nulls = b.loader.Load()
+	}
+	return b.table
+}
+
+func (b *Bytes) Nulls() bitvec.Bits {
+	if b.table.IsZero() {
+		b.table, b.nulls = b.loader.Load()
+	}
+	return b.nulls
+}
+
+func (b *Bytes) SetNulls(nulls bitvec.Bits) {
+	b.nulls = nulls
 }
 
 func (b *Bytes) Serialize(builder *zcode.Builder, slot uint32) {
@@ -39,20 +64,16 @@ func (b *Bytes) Serialize(builder *zcode.Builder, slot uint32) {
 }
 
 func (b *Bytes) Value(slot uint32) []byte {
-	if b.Nulls.IsSet(slot) {
+	if b.Nulls().IsSet(slot) {
 		return nil
 	}
 	return b.table.Bytes(slot)
 }
 
-func (b *Bytes) Table() BytesTable {
-	return b.table
-}
-
 func BytesValue(val Any, slot uint32) ([]byte, bool) {
 	switch val := val.(type) {
 	case *Bytes:
-		return val.Value(slot), val.Nulls.IsSet(slot)
+		return val.Value(slot), val.Nulls().IsSet(slot)
 	case *Const:
 		if val.Nulls.IsSet(slot) {
 			return nil, true
@@ -83,6 +104,10 @@ func NewBytesTable(offsets []uint32, bytes []byte) BytesTable {
 
 func NewBytesTableEmpty(cap uint32) BytesTable {
 	return BytesTable{make([]uint32, 1, cap+1), nil}
+}
+
+func (b BytesTable) IsZero() bool {
+	return b.offsets == nil
 }
 
 func (b BytesTable) Bytes(slot uint32) []byte {

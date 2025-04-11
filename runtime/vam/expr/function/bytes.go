@@ -39,7 +39,7 @@ func (b *Base64) Call(args ...vector.Any) vector.Any {
 		for i := uint32(0); i < val.Len(); i++ {
 			s, null := vector.StringValue(val, i)
 			if null {
-				out.Nulls.Set(i)
+				out.Nulls().Set(i)
 			}
 			bytes, err := base64.StdEncoding.DecodeString(s)
 			if err != nil {
@@ -86,7 +86,7 @@ func (h *Hex) Call(args ...vector.Any) vector.Any {
 		for i := uint32(0); i < val.Len(); i++ {
 			s, null := vector.StringValue(val, i)
 			if null {
-				out.Nulls.Set(i)
+				out.Nulls().Set(i)
 			}
 			bytes, err := hex.DecodeString(s)
 			if err != nil {

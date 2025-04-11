@@ -118,7 +118,7 @@ func NullsOf(v Any) bitvec.Bits {
 	case *Array:
 		return v.Nulls()
 	case *Bytes:
-		return v.Nulls
+		return v.Nulls()
 	case *Bool:
 		return v.Nulls()
 	case *Const:
@@ -149,7 +149,7 @@ func NullsOf(v Any) bitvec.Bits {
 	case *Set:
 		return v.Nulls
 	case *String:
-		return v.Nulls
+		return v.Nulls()
 	case *TypeValue:
 		return v.Nulls
 	case *Uint:
@@ -170,7 +170,7 @@ func CopyAndSetNulls(v Any, nulls bitvec.Bits) Any {
 		return &copy
 	case *Bytes:
 		copy := *v
-		copy.Nulls = nulls
+		copy.SetNulls(nulls)
 		return &copy
 	case *Bool:
 		copy := *v
@@ -228,7 +228,7 @@ func CopyAndSetNulls(v Any, nulls bitvec.Bits) Any {
 		return &copy
 	case *String:
 		copy := *v
-		copy.Nulls = nulls
+		copy.SetNulls(nulls)
 		return &copy
 	case *TypeValue:
 		copy := *v

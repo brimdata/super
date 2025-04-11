@@ -71,7 +71,7 @@ func (n *NameOf) Call(args ...vector.Any) vector.Any {
 		}
 	}
 	if len(errs) > 0 {
-		out.Nulls = out.Nulls.ReversePick(errs)
+		out.SetNulls(out.Nulls().ReversePick(errs))
 		return vector.Combine(out, errs, vector.NewMissing(n.sctx, uint32(len(errs))))
 	}
 	return out

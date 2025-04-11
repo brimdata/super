@@ -21,6 +21,10 @@ func NewArray(typ *super.TypeArray, offsets []uint32, values Any, nulls bitvec.B
 	return &Array{Typ: typ, offsets: offsets, Values: values, nulls: nulls, length: uint32(len(offsets) - 1)}
 }
 
+func NewArrayWithLoader(typ *super.TypeArray, loader Uint32Loader, length uint32, values Any) *Array {
+	return &Array{Typ: typ, loader: loader, Values: values, length: length}
+}
+
 func (a *Array) Type() super.Type {
 	return a.Typ
 }

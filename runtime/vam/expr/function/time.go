@@ -180,7 +180,7 @@ func (s *Strftime) slowPath(fvec vector.Any, tvec vector.Any) vector.Any {
 		}
 		t, isnull := vector.IntValue(tvec, i)
 		if isnull {
-			out.Nulls.Set(out.Len())
+			out.Nulls().Set(out.Len())
 			out.Append("")
 			continue
 		}

@@ -151,7 +151,7 @@ func stringToInt(vec *vector.String, typ super.Type, index []uint32) (vector.Any
 		if index != nil {
 			idx = index[i]
 		}
-		if vec.Nulls.IsSet(idx) {
+		if vec.Nulls().IsSet(idx) {
 			if nulls.IsZero() {
 				nulls = bitvec.NewFalse(n)
 			}
@@ -181,7 +181,7 @@ func stringToDuration(vec *vector.String, index []uint32) (vector.Any, []uint32)
 		if index != nil {
 			idx = index[i]
 		}
-		if vec.Nulls.IsSet(idx) {
+		if vec.Nulls().IsSet(idx) {
 			if nulls.IsZero() {
 				nulls = bitvec.NewFalse(vec.Len())
 			}
@@ -216,7 +216,7 @@ func stringToTime(vec *vector.String, index []uint32) (vector.Any, []uint32) {
 		if index != nil {
 			idx = index[i]
 		}
-		if vec.Nulls.IsSet(idx) {
+		if vec.Nulls().IsSet(idx) {
 			if nulls.IsZero() {
 				nulls = bitvec.NewFalse(vec.Len())
 			}
@@ -252,7 +252,7 @@ func stringToUint(vec *vector.String, typ super.Type, index []uint32) (vector.An
 		if index != nil {
 			idx = index[i]
 		}
-		if vec.Nulls.IsSet(idx) {
+		if vec.Nulls().IsSet(idx) {
 			if nulls.IsZero() {
 				nulls = bitvec.NewFalse(vec.Len())
 			}
@@ -282,7 +282,7 @@ func stringToFloat(vec *vector.String, typ super.Type, index []uint32) (vector.A
 		if index != nil {
 			idx = index[i]
 		}
-		if vec.Nulls.IsSet(idx) {
+		if vec.Nulls().IsSet(idx) {
 			if nulls.IsZero() {
 				nulls = bitvec.NewFalse(vec.Len())
 			}
