@@ -45,7 +45,7 @@ func (a *Abs) abs(vec vector.Any) vector.Any {
 		return vector.NewDict(a.abs(vec.Any), vec.Index, vec.Counts, vec.Nulls)
 	case *vector.Int:
 		var ints []int64
-		for _, v := range vec.Values {
+		for _, v := range vec.Values() {
 			if v < 0 {
 				v = -v
 			}
@@ -54,7 +54,7 @@ func (a *Abs) abs(vec vector.Any) vector.Any {
 		return vector.NewInt(vec.Type(), ints, vec.Nulls)
 	case *vector.Float:
 		var floats []float64
-		for _, v := range vec.Values {
+		for _, v := range vec.Values() {
 			floats = append(floats, math.Abs(v))
 		}
 		return vector.NewFloat(vec.Type(), floats, vec.Nulls)
@@ -90,7 +90,7 @@ func (c *Ceil) ceil(vec vector.Any) vector.Any {
 		return vector.NewDict(c.ceil(vec.Any), vec.Index, vec.Counts, vec.Nulls)
 	case *vector.Float:
 		var floats []float64
-		for _, v := range vec.Values {
+		for _, v := range vec.Values() {
 			floats = append(floats, math.Ceil(v))
 		}
 		return vector.NewFloat(vec.Type(), floats, vec.Nulls)
@@ -126,7 +126,7 @@ func (f *Floor) floor(vec vector.Any) vector.Any {
 		return vector.NewDict(f.floor(vec.Any), vec.Index, vec.Counts, vec.Nulls)
 	case *vector.Float:
 		var floats []float64
-		for _, v := range vec.Values {
+		for _, v := range vec.Values() {
 			floats = append(floats, math.Floor(v))
 		}
 		return vector.NewFloat(vec.Type(), floats, vec.Nulls)

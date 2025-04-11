@@ -164,17 +164,18 @@ func (c *countByString) updatePartial(keyvec, valvec vector.Any) {
 	if !ok1 || !ok2 {
 		panic("count by string: invalid partials in")
 	}
+	vals := val.Values()
 	if !key.Nulls.IsZero() {
 		for i := range key.Len() {
 			if key.Nulls.IsSet(i) {
-				c.nulls += val.Values[i]
+				c.nulls += vals[i]
 			} else {
-				c.table[key.Value(i)] += val.Values[i]
+				c.table[key.Value(i)] += vals[i]
 			}
 		}
 	} else {
 		for i := range key.Len() {
-			c.table[key.Value(i)] += val.Values[i]
+			c.table[key.Value(i)] += vals[i]
 		}
 	}
 }

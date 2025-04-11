@@ -73,9 +73,9 @@ func (o *Over) flatten(vec vector.Any, slot uint32) vector.Any {
 	case *vector.View:
 		return o.flatten(vec.Any, vec.Index[slot])
 	case *vector.Array:
-		return flattenArrayOrSet(vec.Values, vec.Offsets, slot)
+		return flattenArrayOrSet(vec.Values, vec.Offsets(), slot)
 	case *vector.Set:
-		return flattenArrayOrSet(vec.Values, vec.Offsets, slot)
+		return flattenArrayOrSet(vec.Values, vec.Offsets(), slot)
 	case *vector.Map:
 		panic("unimplemented")
 	case *vector.Record:

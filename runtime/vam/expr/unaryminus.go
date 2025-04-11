@@ -90,17 +90,19 @@ func (u *unaryMinus) convert(vec vector.Any) (vector.Any, bool) {
 	case *vector.Int:
 		min := minInt(vec.Type())
 		out := make([]int64, vec.Len())
+		vals := vec.Values()
 		for i := range vec.Len() {
-			if vec.Values[i] == min {
+			if vals[i] == min {
 				return nil, false
 			}
-			out[i] = -vec.Values[i]
+			out[i] = -vals[i]
 		}
 		return vector.NewInt(vec.Typ, out, vec.Nulls), true
 	case *vector.Float:
 		out := make([]float64, vec.Len())
+		vals := vec.Values()
 		for i := range vec.Len() {
-			out[i] = -vec.Values[i]
+			out[i] = -vals[i]
 		}
 		return vector.NewFloat(vec.Typ, out, vec.Nulls), true
 	default:

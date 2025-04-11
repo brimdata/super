@@ -84,12 +84,12 @@ func (s *search) eval(vecs ...vector.Any) vector.Any {
 		}
 		return out
 	case *vector.Array:
-		return s.evalForList(vec.Values, vec.Offsets, index, n)
+		return s.evalForList(vec.Values, vec.Offsets(), index, n)
 	case *vector.Set:
-		return s.evalForList(vec.Values, vec.Offsets, index, n)
+		return s.evalForList(vec.Values, vec.Offsets(), index, n)
 	case *vector.Map:
-		return vector.Or(s.evalForList(vec.Keys, vec.Offsets, index, n),
-			s.evalForList(vec.Values, vec.Offsets, index, n))
+		return vector.Or(s.evalForList(vec.Keys, vec.Offsets(), index, n),
+			s.evalForList(vec.Values, vec.Offsets(), index, n))
 	case *vector.Union:
 		return vector.Apply(true, s.eval, vec)
 	case *vector.Error:

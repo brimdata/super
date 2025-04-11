@@ -250,12 +250,12 @@ func (p *PredicateWalk) Eval(vecs ...vector.Any) vector.Any {
 		}
 		return out
 	case *vector.Array:
-		return p.evalForList(lhs, rhs.Values, rhs.Offsets, index)
+		return p.evalForList(lhs, rhs.Values, rhs.Offsets(), index)
 	case *vector.Set:
-		return p.evalForList(lhs, rhs.Values, rhs.Offsets, index)
+		return p.evalForList(lhs, rhs.Values, rhs.Offsets(), index)
 	case *vector.Map:
-		return vector.Or(p.evalForList(lhs, rhs.Keys, rhs.Offsets, index),
-			p.evalForList(lhs, rhs.Values, rhs.Offsets, index))
+		return vector.Or(p.evalForList(lhs, rhs.Keys, rhs.Offsets(), index),
+			p.evalForList(lhs, rhs.Values, rhs.Offsets(), index))
 	case *vector.Union:
 		if index != nil {
 			panic("vector.Union unexpected in vector.View")
