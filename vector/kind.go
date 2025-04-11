@@ -207,7 +207,23 @@ func ArithOpFromString(op string) int {
 	panic(op)
 }
 
+func ArithOpToString(op int) string {
+	switch op {
+	case ArithAdd:
+		return "+"
+	case ArithSub:
+		return "-"
+	case ArithMul:
+		return "*"
+	case ArithDiv:
+		return "/"
+	case ArithMod:
+		return "%"
+	}
+	panic(op)
+}
+
 func FuncCode(op int, kind Kind, lform, rform Form) int {
-	// op:3, kind:3, left:2, right:2
-	return int(lform) | int(rform)<<2 | int(kind)<<4 | op<<7
+	// op:4, kind:3, left:2, right:2
+	return int(lform) | int(rform)<<2 | int(kind)<<4 | op<<8
 }

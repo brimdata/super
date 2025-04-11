@@ -1,6 +1,8 @@
 spq: |
   yield a+b, a-b, a*b, a/b, a%b
 
+vector: true
+
 input: |
   {a:[1,2],b:[3,4]}
   {a:|[1,2]|,b:|[3,4]|}
