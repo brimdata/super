@@ -115,7 +115,7 @@ func (s *search) evalForList(vec vector.Any, offsets, index []uint32, length uin
 			index2[k] = k + start
 		}
 		view := vector.Pick(vec, index2)
-		if toBool(s.eval(view)).Bits.TrueCount() > 0 {
+		if toBool(s.eval(view)).Bits().TrueCount() > 0 {
 			out.Set(j)
 		}
 	}
@@ -164,18 +164,20 @@ func (r *regexpMatch) eval(vecs ...vector.Any) vector.Any {
 		return vector.NewConst(super.False, vec.Len(), bitvec.Zero)
 	}
 	out := vector.NewFalse(vec.Len())
+	var nulls bitvec.Bits
 	for i := range vec.Len() {
 		s, isnull := vector.StringValue(vec, i)
 		if isnull {
-			if out.Nulls.IsZero() {
-				out.Nulls = bitvec.NewFalse(vec.Len())
+			if nulls.IsZero() {
+				nulls = bitvec.NewFalse(vec.Len())
 			}
-			out.Nulls.Set(i)
+			nulls.Set(i)
 			continue
 		}
 		if r.re.MatchString(s) {
 			out.Set(i)
 		}
 	}
+	out.SetNulls(nulls)
 	return out
 }

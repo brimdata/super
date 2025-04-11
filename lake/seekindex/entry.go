@@ -24,10 +24,11 @@ func (e Entry) Range() Range {
 type Index []Entry
 
 func (i Index) Filter(b *vector.Bool) Ranges {
+	bits := b.Bits()
 	var ranges Ranges
 	for _, e := range i {
 		for off := e.ValOff; off < uint64(b.Len()) && off < e.ValOff+e.ValCnt; off++ {
-			if b.IsSet(uint32(off)) {
+			if bits.IsSet(uint32(off)) {
 				ranges.Append(e)
 				break
 			}

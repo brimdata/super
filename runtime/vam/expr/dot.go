@@ -70,8 +70,8 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 			errs = append(errs, i)
 		}
 		if nulls != nil {
-			nulls.Bits.Shorten(typvals.Len())
-			typvals = vector.CopyAndSetNulls(typvals, nulls.Bits).(*vector.TypeValue)
+			nulls.Shorten(typvals.Len())
+			typvals = vector.CopyAndSetNulls(typvals, nulls.Bits()).(*vector.TypeValue)
 		}
 		if len(errs) > 0 {
 			return vector.Combine(typvals, errs, vector.NewMissing(d.sctx, uint32(len(errs))))

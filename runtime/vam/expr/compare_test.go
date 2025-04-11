@@ -44,7 +44,7 @@ func TestCompareOpsAndForms(t *testing.T) {
 		f := func(expected string, lhs, rhs vector.Any) {
 			t.Helper()
 			cmp := NewCompare(super.NewContext(), &testEval{lhs}, &testEval{rhs}, c.op)
-			assert.Equal(t, expected, cmp.Eval(nil).(*vector.Bool).Bits.String(), "op: %s", c.op)
+			assert.Equal(t, expected, cmp.Eval(nil).(*vector.Bool).Bits().String(), "op: %s", c.op)
 		}
 
 		f(c.expected, lhsFlat, rhsFlat)

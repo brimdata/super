@@ -29,7 +29,7 @@ func NewTrue(n uint32) Bits {
 }
 
 func (b Bits) IsZero() bool {
-	return b.length == 0
+	return b.bits == nil
 }
 
 func (b Bits) GetBits() []uint64 {
