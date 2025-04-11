@@ -37,14 +37,23 @@ func (c *collect) ConsumeAsPartial(partial vector.Any) {
 	if c, ok := partial.(*vector.Const); ok && c.Value().IsNull() {
 		return
 	}
+	n := partial.Len()
+	var index []uint32
+	if view, ok := partial.(*vector.View); ok {
+		partial, index = view.Any, view.Index
+	}
 	array, ok := partial.(*vector.Array)
 	if !ok {
 		panic("collection: partial not an array type")
 	}
 	var b zcode.Builder
 	typ := array.Values.Type()
-	for i := range array.Len() {
-		for k := array.Offsets[i]; k < array.Offsets[i+1]; k++ {
+	for i := range n {
+		idx := i
+		if index != nil {
+			idx = index[i]
+		}
+		for k := array.Offsets[idx]; k < array.Offsets[idx+1]; k++ {
 			b.Truncate()
 			array.Values.Serialize(&b, k)
 			c.samcollect.Consume(super.NewValue(typ, b.Bytes().Body()))

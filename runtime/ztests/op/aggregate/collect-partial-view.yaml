@@ -1,0 +1,18 @@
+# Tests that collect correctly handles partial array values that are wrapped
+# in a view.
+script: |
+  super -z -c 'from "test.sup" | collect(a) by b | sort b'
+
+vector: true
+
+inputs:
+  - name: test.sup
+    data: |
+      {a:1,b:"one"}
+      {a:2,b:"two"}
+
+outputs:
+  - name: stdout
+    data: |
+      {b:"one",collect:[1]}
+      {b:"two",collect:[2]}
