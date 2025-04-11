@@ -27,31 +27,34 @@ func castToString(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
 		case super.IDTime:
 			offs, bytes = timeToString(vec, index, n)
 		default:
+			vals := vec.Values()
 			for i := range n {
 				idx := i
 				if index != nil {
 					idx = index[i]
 				}
-				bytes = strconv.AppendInt(bytes, vec.Values[idx], 10)
+				bytes = strconv.AppendInt(bytes, vals[idx], 10)
 				offs = append(offs, uint32(len(bytes)))
 			}
 		}
 	case *vector.Uint:
+		vals := vec.Values()
 		for i := range n {
 			idx := i
 			if index != nil {
 				idx = index[i]
 			}
-			bytes = strconv.AppendUint(bytes, vec.Values[idx], 10)
+			bytes = strconv.AppendUint(bytes, vals[idx], 10)
 			offs = append(offs, uint32(len(bytes)))
 		}
 	case *vector.Float:
+		vals := vec.Values()
 		for i := range n {
 			idx := i
 			if index != nil {
 				idx = index[i]
 			}
-			bytes = strconv.AppendFloat(bytes, vec.Values[idx], 'g', -1, 64)
+			bytes = strconv.AppendFloat(bytes, vals[idx], 'g', -1, 64)
 			offs = append(offs, uint32(len(bytes)))
 		}
 	case *vector.String:
@@ -90,13 +93,14 @@ func castToString(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
 			offs = append(offs, uint32(len(bytes)))
 		}
 	case *vector.Enum:
+		vals := vec.Uint.Values()
 		for i := range n {
 			idx := i
 			if index != nil {
 				idx = index[i]
 			}
 			if !nulls.IsSet(i) {
-				val := vec.Uint.Values[idx]
+				val := vals[idx]
 				bytes = append(bytes, vec.Typ.Symbols[val]...)
 			}
 			offs = append(offs, uint32(len(bytes)))
@@ -121,12 +125,13 @@ func castToString(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
 func timeToString(vec *vector.Int, index []uint32, n uint32) ([]uint32, []byte) {
 	var bytes []byte
 	offs := []uint32{0}
+	vals := vec.Values()
 	for i := range n {
 		idx := i
 		if index != nil {
 			idx = index[i]
 		}
-		s := nano.Ts(vec.Values[idx]).Time().Format(time.RFC3339Nano)
+		s := nano.Ts(vals[idx]).Time().Format(time.RFC3339Nano)
 		bytes = append(bytes, s...)
 		offs = append(offs, uint32(len(bytes)))
 	}
@@ -136,12 +141,13 @@ func timeToString(vec *vector.Int, index []uint32, n uint32) ([]uint32, []byte) 
 func durToString(vec *vector.Int, index []uint32, n uint32) ([]uint32, []byte) {
 	var bytes []byte
 	offs := []uint32{0}
+	vals := vec.Values()
 	for i := range n {
 		idx := i
 		if index != nil {
 			idx = index[i]
 		}
-		bytes = append(bytes, nano.Duration(vec.Values[idx]).String()...)
+		bytes = append(bytes, nano.Duration(vals[idx]).String()...)
 		offs = append(offs, uint32(len(bytes)))
 	}
 	return offs, bytes

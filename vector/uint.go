@@ -7,24 +7,31 @@ import (
 )
 
 type Uint struct {
+	loader UintLoader
 	Typ    super.Type
-	Values []uint64
 	Nulls  bitvec.Bits
+	length uint32
+	values []uint64
 }
 
 var _ Any = (*Uint)(nil)
 var _ Promotable = (*Uint)(nil)
 
 func NewUint(typ super.Type, values []uint64, nulls bitvec.Bits) *Uint {
-	return &Uint{Typ: typ, Values: values, Nulls: nulls}
+	return &Uint{Typ: typ, values: values, Nulls: nulls, length: uint32(len(values))}
 }
 
 func NewUintEmpty(typ super.Type, length uint32, nulls bitvec.Bits) *Uint {
 	return NewUint(typ, make([]uint64, 0, length), nulls)
 }
 
+func NewUintWithLoader(typ super.Type, length uint32, loader UintLoader) *Uint {
+	return &Uint{Typ: typ, length: length, loader: loader}
+}
+
 func (u *Uint) Append(v uint64) {
-	u.Values = append(u.Values, v)
+	u.values = append(u.values, v)
+	u.length = uint32(len(u.values))
 }
 
 func (u *Uint) Type() super.Type {
@@ -32,23 +39,32 @@ func (u *Uint) Type() super.Type {
 }
 
 func (u *Uint) Len() uint32 {
-	return uint32(len(u.Values))
+	return u.length
 }
 
 func (u *Uint) Value(slot uint32) uint64 {
-	return u.Values[slot]
+	return u.Values()[slot]
+}
+
+func (u *Uint) Values() []uint64 {
+	if u.values == nil {
+		u.values, u.Nulls = u.loader.Load()
+	}
+	return u.values
 }
 
 func (u *Uint) Serialize(b *zcode.Builder, slot uint32) {
 	if u.Nulls.IsSet(slot) {
 		b.Append(nil)
 	} else {
-		b.Append(super.EncodeUint(u.Values[slot]))
+		b.Append(super.EncodeUint(u.Values()[slot]))
 	}
 }
 
 func (u *Uint) Promote(typ super.Type) Promotable {
-	return &Uint{typ, u.Values, u.Nulls}
+	copy := *u
+	copy.Typ = typ
+	return &copy
 }
 
 func UintValue(vec Any, slot uint32) (uint64, bool) {

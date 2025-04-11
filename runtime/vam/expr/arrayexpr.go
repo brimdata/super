@@ -115,9 +115,9 @@ func buildList(sctx *super.Context, elems []ListElem, in []vector.Any) ([]uint32
 func unwrapSpread(vec vector.Any) (vector.Any, []uint32, []uint32) {
 	switch vec := vec.(type) {
 	case *vector.Array:
-		return vec.Values, vec.Offsets, nil
+		return vec.Values, vec.Offsets(), nil
 	case *vector.Set:
-		return vec.Values, vec.Offsets, nil
+		return vec.Values, vec.Offsets(), nil
 	case *vector.View:
 		vals, offsets, _ := unwrapSpread(vec.Any)
 		return vals, offsets, vec.Index

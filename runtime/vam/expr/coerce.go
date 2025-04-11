@@ -223,7 +223,7 @@ func ToBool(val super.Value) (bool, bool) {
 func intToFloat(val vector.Any) vector.Any {
 	switch val := val.(type) {
 	case *vector.Int:
-		vals := val.Values
+		vals := val.Values()
 		n := int(val.Len())
 		f := make([]float64, n)
 		for k := 0; k < n; k++ {
@@ -231,7 +231,7 @@ func intToFloat(val vector.Any) vector.Any {
 		}
 		return vector.NewFloat(super.TypeFloat64, f, val.Nulls)
 	case *vector.Uint:
-		vals := val.Values
+		vals := val.Values()
 		n := int(len(vals))
 		f := make([]float64, n)
 		for k := 0; k < n; k++ {
@@ -257,7 +257,7 @@ func intToFloat(val vector.Any) vector.Any {
 func uintToInt(val vector.Any) vector.Any {
 	switch val := val.(type) {
 	case *vector.Uint:
-		vals := val.Values
+		vals := val.Values()
 		n := int(len(vals))
 		out := make([]int64, n)
 		for k := 0; k < n; k++ {

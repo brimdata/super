@@ -44,7 +44,8 @@ func (c *collect) ConsumeAsPartial(partial vector.Any) {
 	var b zcode.Builder
 	typ := array.Values.Type()
 	for i := range array.Len() {
-		for k := array.Offsets[i]; k < array.Offsets[i+1]; k++ {
+		offs := array.Offsets()
+		for k := offs[i]; k < offs[i+1]; k++ {
 			b.Truncate()
 			array.Values.Serialize(&b, k)
 			c.samcollect.Consume(super.NewValue(typ, b.Bytes().Body()))

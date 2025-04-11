@@ -7,17 +7,19 @@ import (
 )
 
 type Map struct {
+	loader  Uint32Loader
 	Typ     *super.TypeMap
-	Offsets []uint32
 	Keys    Any
 	Values  Any
 	Nulls   bitvec.Bits
+	offsets []uint32
+	length  uint32
 }
 
 var _ Any = (*Map)(nil)
 
 func NewMap(typ *super.TypeMap, offsets []uint32, keys Any, values Any, nulls bitvec.Bits) *Map {
-	return &Map{Typ: typ, Offsets: offsets, Keys: keys, Values: values, Nulls: nulls}
+	return &Map{Typ: typ, offsets: offsets, Keys: keys, Values: values, Nulls: nulls, length: uint32(len(offsets) - 1)}
 }
 
 func (m *Map) Type() super.Type {
@@ -25,7 +27,14 @@ func (m *Map) Type() super.Type {
 }
 
 func (m *Map) Len() uint32 {
-	return uint32(len(m.Offsets) - 1)
+	return m.length
+}
+
+func (m *Map) Offsets() []uint32 {
+	if m.offsets == nil {
+		m.offsets, m.Nulls = m.loader.Load()
+	}
+	return m.offsets
 }
 
 func (m *Map) Serialize(b *zcode.Builder, slot uint32) {
@@ -33,9 +42,10 @@ func (m *Map) Serialize(b *zcode.Builder, slot uint32) {
 		b.Append(nil)
 		return
 	}
-	off := m.Offsets[slot]
+	offs := m.Offsets()
+	off := offs[slot]
 	b.BeginContainer()
-	for end := m.Offsets[slot+1]; off < end; off++ {
+	for end := offs[slot+1]; off < end; off++ {
 		m.Keys.Serialize(b, off)
 		m.Values.Serialize(b, off)
 	}

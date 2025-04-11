@@ -56,8 +56,9 @@ func (u *union) ConsumeAsPartial(partial vector.Any) {
 	typ := inner.Type()
 	union, _ := typ.(*super.TypeUnion)
 	var b zcode.Builder
+	offs := set.Offsets()
 	for i := range set.Len() {
-		for k := set.Offsets[i]; k < set.Offsets[i+1]; k++ {
+		for k := offs[i]; k < offs[i+1]; k++ {
 			b.Truncate()
 			inner.Serialize(&b, k)
 			bytes := b.Bytes().Body()

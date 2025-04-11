@@ -7,16 +7,18 @@ import (
 )
 
 type Array struct {
+	loader  Uint32Loader
 	Typ     *super.TypeArray
-	Offsets []uint32
+	offsets []uint32
 	Values  Any
 	Nulls   bitvec.Bits
+	length  uint32
 }
 
 var _ Any = (*Array)(nil)
 
 func NewArray(typ *super.TypeArray, offsets []uint32, values Any, nulls bitvec.Bits) *Array {
-	return &Array{Typ: typ, Offsets: offsets, Values: values, Nulls: nulls}
+	return &Array{Typ: typ, offsets: offsets, Values: values, Nulls: nulls, length: uint32(len(offsets) - 1)}
 }
 
 func (a *Array) Type() super.Type {
@@ -24,7 +26,14 @@ func (a *Array) Type() super.Type {
 }
 
 func (a *Array) Len() uint32 {
-	return uint32(len(a.Offsets) - 1)
+	return a.length
+}
+
+func (a *Array) Offsets() []uint32 {
+	if a.offsets == nil {
+		a.offsets, a.Nulls = a.loader.Load()
+	}
+	return a.offsets
 }
 
 func (a *Array) Serialize(b *zcode.Builder, slot uint32) {
@@ -32,9 +41,10 @@ func (a *Array) Serialize(b *zcode.Builder, slot uint32) {
 		b.Append(nil)
 		return
 	}
-	off := a.Offsets[slot]
+	offs := a.Offsets()
+	off := offs[slot]
 	b.BeginContainer()
-	for end := a.Offsets[slot+1]; off < end; off++ {
+	for end := offs[slot+1]; off < end; off++ {
 		a.Values.Serialize(b, off)
 	}
 	b.EndContainer()
@@ -43,11 +53,14 @@ func (a *Array) Serialize(b *zcode.Builder, slot uint32) {
 func ContainerOffset(val Any, slot uint32) (uint32, uint32, bool) {
 	switch val := val.(type) {
 	case *Array:
-		return val.Offsets[slot], val.Offsets[slot+1], val.Nulls.IsSet(slot)
+		offs := val.Offsets()
+		return offs[slot], offs[slot+1], val.Nulls.IsSet(slot)
 	case *Set:
-		return val.Offsets[slot], val.Offsets[slot+1], val.Nulls.IsSet(slot)
+		offs := val.Offsets()
+		return offs[slot], offs[slot+1], val.Nulls.IsSet(slot)
 	case *Map:
-		return val.Offsets[slot], val.Offsets[slot+1], val.Nulls.IsSet(slot)
+		offs := val.Offsets()
+		return offs[slot], offs[slot+1], val.Nulls.IsSet(slot)
 	case *View:
 		slot = val.Index[slot]
 		return ContainerOffset(val.Any, slot)
