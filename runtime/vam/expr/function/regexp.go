@@ -33,7 +33,9 @@ func (r *Regexp) Call(args ...vector.Any) vector.Any {
 	errMsg := vector.NewStringEmpty(0, bitvec.Zero)
 	var errs []uint32
 	inner := vector.NewStringEmpty(0, bitvec.Zero)
-	out := vector.NewArray(r.sctx.LookupTypeArray(super.TypeString), []uint32{0}, inner, bitvec.Zero)
+	upperBound := regVec.Len()
+	offsets := make([]uint32, 1, upperBound+1)
+	var nulls bitvec.Bits
 	for i := range regVec.Len() {
 		re, _ := vector.StringValue(regVec, i)
 		if r.restr != re {
@@ -48,19 +50,22 @@ func (r *Regexp) Call(args ...vector.Any) vector.Any {
 		s, _ := vector.StringValue(inputVec, i)
 		match := r.re.FindStringSubmatch(s)
 		if match == nil {
-			if out.Nulls.IsZero() {
-				out.Nulls = bitvec.NewFalse(regVec.Len())
+			if nulls.IsZero() {
+				nulls = bitvec.NewFalse(upperBound)
 			}
-			out.Nulls.Set(out.Len())
-			out.Offsets = append(out.Offsets, inner.Len())
+			nulls.Set(uint32(len(offsets) - 1))
+			offsets = append(offsets, inner.Len())
 			continue
 		}
 		for _, b := range match {
 			inner.Append(b)
 		}
-		out.Offsets = append(out.Offsets, inner.Len())
+		offsets = append(offsets, inner.Len())
 	}
-	out.Nulls.Shorten(out.Len())
+	if !nulls.IsZero() {
+		nulls.Shorten(uint32(len(offsets) - 1))
+	}
+	out := vector.NewArray(r.sctx.LookupTypeArray(super.TypeString), offsets, inner, nulls)
 	if len(errs) > 0 {
 		return vector.Combine(out, errs, vector.NewVecWrappedError(r.sctx, errMsg, vector.Pick(regVec, errs)))
 	}
