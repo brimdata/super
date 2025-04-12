@@ -39,7 +39,7 @@ func NewTokenValidator(audience, domain, jwksPath string) (*TokenValidator, erro
 	// Auth0 issuer is always the domain URL with trailing "/".
 	// https://auth0.com/docs/tokens/access-tokens/get-access-tokens#custom-domains-and-the-management-api
 	expectedIssuer := domainURL.String() + "/"
-	keyGetter := func(token *jwt.Token) (interface{}, error) {
+	keyGetter := func(token *jwt.Token) (any, error) {
 		tokenKeyID, _ := token.Header["kid"].(string)
 		key, ok := keys[tokenKeyID]
 		if !ok {

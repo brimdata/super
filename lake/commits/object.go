@@ -141,6 +141,6 @@ func DecodeObject(r io.Reader) (*Object, error) {
 	return o, nil
 }
 
-func badObject(entry interface{}) error {
+func badObject(entry any) error {
 	return fmt.Errorf("internal error: corrupt commit object has unknown entry type %T", entry)
 }

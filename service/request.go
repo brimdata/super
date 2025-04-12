@@ -168,7 +168,7 @@ func (r *Request) BoolFromQuery(w *ResponseWriter, param string) (bool, bool) {
 	return b, true
 }
 
-func (r *Request) Unmarshal(w *ResponseWriter, body interface{}, templates ...interface{}) bool {
+func (r *Request) Unmarshal(w *ResponseWriter, body any, templates ...any) bool {
 	format, ok := r.format(w, DefaultFormat)
 	if !ok {
 		return false
@@ -254,7 +254,7 @@ func (w *ResponseWriter) Write(b []byte) (int, error) {
 	return w.ResponseWriter.Write(b)
 }
 
-func (w *ResponseWriter) Respond(status int, body interface{}) bool {
+func (w *ResponseWriter) Respond(status int, body any) bool {
 	w.WriteHeader(status)
 	return w.Marshal(body)
 }
@@ -279,7 +279,7 @@ func (w *ResponseWriter) Error(err error) {
 	}
 }
 
-func (w *ResponseWriter) Marshal(body interface{}) bool {
+func (w *ResponseWriter) Marshal(body any) bool {
 	rec, err := w.marshaler.Marshal(body)
 	if err != nil {
 		// XXX If status header has not been sent this should send error.

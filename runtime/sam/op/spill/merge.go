@@ -148,9 +148,9 @@ func (r *MergeSort) Less(i, j int) bool {
 
 func (r *MergeSort) Swap(i, j int) { r.runs[i], r.runs[j] = r.runs[j], r.runs[i] }
 
-func (r *MergeSort) Push(x interface{}) { r.runs = append(r.runs, x.(*peeker)) }
+func (r *MergeSort) Push(x any) { r.runs = append(r.runs, x.(*peeker)) }
 
-func (r *MergeSort) Pop() interface{} {
+func (r *MergeSort) Pop() any {
 	x := r.runs[len(r.runs)-1]
 	r.runs = r.runs[:len(r.runs)-1]
 	return x

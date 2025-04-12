@@ -56,7 +56,7 @@ func NewWriter(w io.WriteCloser, opts WriterOpts) *Writer {
 }
 
 func (w *Writer) Write(rec super.Value) error {
-	var v interface{}
+	var v any
 	if err := unmarshaler.Unmarshal(rec, &v); err != nil {
 		return w.WriteSUP(rec)
 	}
@@ -78,7 +78,7 @@ func (w *Writer) WriteSUP(rec super.Value) error {
 	return err
 }
 
-func (w *Writer) formatValue(t table, b *bytes.Buffer, v interface{}, width int, colors *color.Stack) {
+func (w *Writer) formatValue(t table, b *bytes.Buffer, v any, width int, colors *color.Stack) {
 	switch v := v.(type) {
 	case *pools.Config:
 		formatPoolConfig(b, v)

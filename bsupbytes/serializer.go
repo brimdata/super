@@ -28,7 +28,7 @@ func (s *Serializer) Decorate(style sup.TypeStyle) {
 	s.marshaler.Decorate(style)
 }
 
-func (s *Serializer) Write(v interface{}) error {
+func (s *Serializer) Write(v any) error {
 	rec, err := s.marshaler.Marshal(v)
 	if err != nil {
 		return err

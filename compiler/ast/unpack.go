@@ -134,7 +134,7 @@ func unmarshalSeq(buf []byte) (Seq, error) {
 	return seq, nil
 }
 
-func UnmarshalObject(anon interface{}) (Seq, error) {
+func UnmarshalObject(anon any) (Seq, error) {
 	b, err := json.Marshal(anon)
 	if err != nil {
 		return nil, fmt.Errorf("internal error: ast.UnmarshalObject: %w", err)

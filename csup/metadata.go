@@ -337,7 +337,7 @@ func indexOfField(name string, fields []Field) int {
 	})
 }
 
-var Template = []interface{}{
+var Template = []any{
 	Record{},
 	Array{},
 	Set{},

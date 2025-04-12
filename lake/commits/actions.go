@@ -14,7 +14,7 @@ type Action interface {
 	fmt.Stringer
 }
 
-var ActionTypes = []interface{}{
+var ActionTypes = []any{
 	Add{},
 	AddVector{},
 	Delete{},

@@ -94,9 +94,9 @@ type EOS struct {
 }
 
 type Frame struct {
-	Type   string      `super:"type"`
-	Offset int64       `super:"offset"`
-	Block  interface{} `super:"block"`
+	Type   string `super:"type"`
+	Offset int64  `super:"offset"`
+	Block  any    `super:"block"`
 }
 
 type UncompressedBlock struct {
@@ -120,7 +120,7 @@ func (m *metaReader) Read() (*super.Value, error) {
 	return &val, err
 }
 
-func (m *metaReader) nextFrame() (interface{}, error) {
+func (m *metaReader) nextFrame() (any, error) {
 	r := m.reader
 	pos := r.pos
 	code, err := r.ReadByte()
@@ -134,7 +134,7 @@ func (m *metaReader) nextFrame() (interface{}, error) {
 	if (code & 0x80) != 0 {
 		return nil, errors.New("encountered wrong version bit in BSUP framing")
 	}
-	var block interface{}
+	var block any
 	if (code & 0x40) != 0 {
 		block, err = r.readComp(code)
 		if err != nil {
@@ -172,7 +172,7 @@ func (r *reader) ReadByte() (byte, error) {
 	return code, nil
 }
 
-func (r *reader) readUncomp(code byte) (interface{}, error) {
+func (r *reader) readUncomp(code byte) (any, error) {
 	size, err := r.readLength(code)
 	if err != nil {
 		return 0, err
@@ -183,7 +183,7 @@ func (r *reader) readUncomp(code byte) (interface{}, error) {
 	}, r.skip(size)
 }
 
-func (r *reader) readComp(code byte) (interface{}, error) {
+func (r *reader) readComp(code byte) (any, error) {
 	zlen, err := r.readLength(code)
 	if err != nil {
 		return nil, err

@@ -80,7 +80,7 @@ func FormatValue(val super.Value) string {
 	return NewFormatter(0, true, nil).Format(val)
 }
 
-func String(p interface{}) string {
+func String(p any) string {
 	if typ, ok := p.(super.Type); ok {
 		return FormatType(typ)
 	}
@@ -547,7 +547,7 @@ func (f *Formatter) build(s string) {
 	f.builder.WriteString(s)
 }
 
-func (f *Formatter) buildf(s string, args ...interface{}) {
+func (f *Formatter) buildf(s string, args ...any) {
 	f.builder.WriteString(fmt.Sprintf(s, args...))
 }
 

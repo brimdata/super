@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type Expr interface{}
+type Expr any
 
 type BinaryExpr struct {
 	Op  string `json:"op" unpack:""`
@@ -373,11 +373,11 @@ type BinaryExpr3 struct {
 	RHS Expr   `json:"rhs"`
 }
 
-var skipExpected = map[string]interface{}{
-	"lhs": map[string]interface{}{
+var skipExpected = map[string]any{
+	"lhs": map[string]any{
 		"body": "foo", "op": "Terminal"},
 	"op": "BinaryExpr",
-	"rhs": map[string]interface{}{
+	"rhs": map[string]any{
 		"body": "bar",
 		"op":   "Terminal"}}
 
@@ -386,7 +386,7 @@ func TestUnpackSkip(t *testing.T) {
 		BinaryExpr3{},
 		Terminal{},
 	)
-	var actual interface{}
+	var actual any
 	err := reflector.Unmarshal([]byte(skipJSON), &actual)
 	require.NoError(t, err)
 	assert.Equal(t, skipExpected, actual)
@@ -405,7 +405,7 @@ func TestValueNotAssignableToInterfaceError(t *testing.T) {
 	}
 
 	reflector := unpack.New(S{}, NotAny{})
-	var dummy interface{}
+	var dummy any
 	err := reflector.Unmarshal([]byte(`{"kind": "S", "value": {"kind": "NotAny"}}`), &dummy)
 	require.EqualError(t, err,
 		`JSON field "value" in Go struct type "unpack_test.S": value of type "*unpack_test.NotAny" not assignable to type "unpack_test.Any"`)
@@ -476,10 +476,10 @@ func TestUnpackSliceList(t *testing.T) {
 
 func TestEmptyObject(t *testing.T) {
 	reflector := unpack.New()
-	var actual map[string]interface{}
+	var actual map[string]any
 	err := reflector.Unmarshal([]byte("{}"), &actual)
 	require.NoError(t, err)
-	assert.Equal(t, map[string]interface{}{}, actual)
+	assert.Equal(t, map[string]any{}, actual)
 }
 
 const outerPairSlice = `

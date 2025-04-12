@@ -38,7 +38,7 @@ type canonDAG struct {
 	first bool
 }
 
-func (c *canonDAG) open(args ...interface{}) {
+func (c *canonDAG) open(args ...any) {
 	c.formatter.open(args...)
 }
 

@@ -292,12 +292,12 @@ func (r *RecordSlice) Less(i, j int) bool {
 }
 
 // Push adds x as element Len(). Implements heap.Interface.
-func (r *RecordSlice) Push(rec interface{}) {
+func (r *RecordSlice) Push(rec any) {
 	r.vals = append(r.vals, rec.(super.Value))
 }
 
 // Pop removes the first element in the array. Implements heap.Interface.
-func (r *RecordSlice) Pop() interface{} {
+func (r *RecordSlice) Pop() any {
 	rec := r.vals[len(r.vals)-1]
 	r.vals = r.vals[:len(r.vals)-1]
 	return rec

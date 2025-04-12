@@ -22,7 +22,7 @@ type jsonTs struct {
 	Ns  int64 `json:"ns"`
 }
 
-func access(m map[string]interface{}, field string) (int64, bool) {
+func access(m map[string]any, field string) (int64, bool) {
 	if v, ok := m[field]; ok {
 		f, ok := v.(float64)
 		if ok {
@@ -33,7 +33,7 @@ func access(m map[string]interface{}, field string) (int64, bool) {
 }
 
 func (t *Ts) UnmarshalJSON(in []byte) error {
-	var v interface{}
+	var v any
 	if err := json.Unmarshal(in, &v); err != nil {
 		return err
 	}
@@ -48,7 +48,7 @@ func (t *Ts) UnmarshalJSON(in []byte) error {
 	case float64:
 		*t = Ts(v)
 		return nil
-	case map[string]interface{}:
+	case map[string]any:
 		sec, ok := access(v, "sec")
 		if ok {
 			ns, ok := access(v, "ns")

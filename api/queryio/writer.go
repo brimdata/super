@@ -14,7 +14,7 @@ import (
 
 type controlWriter interface {
 	zio.WriteCloser
-	WriteControl(interface{}) error
+	WriteControl(any) error
 }
 
 type Writer struct {
@@ -78,7 +78,7 @@ func (w *Writer) WriteError(err error) {
 	w.WriteControl(api.QueryError{Error: err.Error()})
 }
 
-func (w *Writer) WriteControl(value interface{}) error {
+func (w *Writer) WriteControl(value any) error {
 	if !w.ctrl {
 		return nil
 	}

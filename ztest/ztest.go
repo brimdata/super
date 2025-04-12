@@ -309,7 +309,7 @@ func FromYAMLFile(filename string) (*ZTest, error) {
 	if err := d.Decode(&z); err != nil {
 		return nil, err
 	}
-	var v interface{}
+	var v any
 	if d.Decode(&v) != io.EOF {
 		return nil, errors.New("found multiple YAML documents or garbage after first document")
 	}

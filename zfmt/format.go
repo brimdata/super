@@ -28,7 +28,7 @@ func (f *formatter) writeTab() {
 	f.needTab = false
 }
 
-func (f *formatter) write(args ...interface{}) {
+func (f *formatter) write(args ...any) {
 	f.flush()
 	if f.needTab {
 		f.writeTab()
@@ -43,7 +43,7 @@ func (f *formatter) write(args ...interface{}) {
 	f.WriteString(s)
 }
 
-func (f *formatter) open(args ...interface{}) {
+func (f *formatter) open(args ...any) {
 	if len(args) > 0 {
 		f.write(args...)
 	}

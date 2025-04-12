@@ -221,7 +221,7 @@ func newCoreWithConfig(t *testing.T, conf service.Config) (*service.Core, *testC
 	}
 }
 
-func promCounterValue(g prometheus.Gatherer, name string) interface{} {
+func promCounterValue(g prometheus.Gatherer, name string) any {
 	metricFamilies, err := g.Gather()
 	if err != nil {
 		return err

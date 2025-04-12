@@ -133,7 +133,7 @@ func (c *Connection) Do(req *Request) (*Response, error) {
 	}
 }
 
-func (c *Connection) doAndUnmarshal(req *Request, v interface{}, templates ...interface{}) error {
+func (c *Connection) doAndUnmarshal(req *Request, v any, templates ...any) error {
 	res, err := c.Do(req)
 	if err != nil {
 		return err
@@ -175,7 +175,7 @@ func errIsStatus(err error, code int) bool {
 	return errors.As(err, &errRes) && errRes.StatusCode == code
 }
 
-func (c *Connection) NewRequest(ctx context.Context, method, path string, body interface{}) *Request {
+func (c *Connection) NewRequest(ctx context.Context, method, path string, body any) *Request {
 	req := newRequest(ctx, c.hostURL, c.defaultHeader.Clone())
 	req.Method = method
 	req.Path = path

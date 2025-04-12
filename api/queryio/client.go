@@ -81,7 +81,7 @@ func marshalControl(zctrl *zbuf.Control) (any, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse Zed control message: %w (%s)", err, ctrl.Bytes)
 	}
-	var v interface{}
+	var v any
 	if err := unmarshaler.Unmarshal(value, &v); err != nil {
 		return nil, fmt.Errorf("unable to unmarshal Zed control message: %w (%s)", err, ctrl.Bytes)
 	}

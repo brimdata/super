@@ -68,7 +68,7 @@ func TestMarshal(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, `[1(int8),2(int8),3(int8)]`, z)
 
-	var v interface{}
+	var v any
 	err = sup.Unmarshal(z, &v)
 	require.NoError(t, err)
 	aOut, ok := v.([]int8)

@@ -13,11 +13,11 @@ type Deserializer struct {
 	unmarshaler *sup.UnmarshalBSUPContext
 }
 
-func NewDeserializer(reader io.Reader, templates []interface{}) *Deserializer {
+func NewDeserializer(reader io.Reader, templates []any) *Deserializer {
 	return NewDeserializerWithContext(super.NewContext(), reader, templates)
 }
 
-func NewDeserializerWithContext(sctx *super.Context, reader io.Reader, templates []interface{}) *Deserializer {
+func NewDeserializerWithContext(sctx *super.Context, reader io.Reader, templates []any) *Deserializer {
 	u := sup.NewBSUPUnmarshaler()
 	u.Bind(templates...)
 	return &Deserializer{
@@ -28,12 +28,12 @@ func NewDeserializerWithContext(sctx *super.Context, reader io.Reader, templates
 
 func (d *Deserializer) Close() error { return d.reader.Close() }
 
-func (d *Deserializer) Read() (interface{}, error) {
+func (d *Deserializer) Read() (any, error) {
 	rec, err := d.reader.Read()
 	if err != nil || rec == nil {
 		return nil, err
 	}
-	var action interface{}
+	var action any
 	if err := d.unmarshaler.Unmarshal(*rec, &action); err != nil {
 		return nil, err
 	}

@@ -44,10 +44,10 @@ func makeBinaryExprChain(first, rest any, c *current) any {
 	return ret
 }
 
-func makeArgMap(args interface{}) (interface{}, error) {
-	m := make(map[string]interface{})
-	for _, a := range args.([]interface{}) {
-		arg := a.(map[string]interface{})
+func makeArgMap(args any) (any, error) {
+	m := make(map[string]any)
+	for _, a := range args.([]any) {
+		arg := a.(map[string]any)
 		name := arg["name"].(string)
 		if _, ok := m[name]; ok {
 			return nil, fmt.Errorf("Duplicate argument -%s", name)
@@ -92,9 +92,9 @@ func prepend(first, rest any) []any {
 	return append([]any{first}, rest.([]any)...)
 }
 
-func joinChars(in interface{}) string {
+func joinChars(in any) string {
 	str := bytes.Buffer{}
-	for _, i := range in.([]interface{}) {
+	for _, i := range in.([]any) {
 		// handle joining bytes or strings
 		if s, ok := i.([]byte); ok {
 			str.Write(s)
@@ -105,7 +105,7 @@ func joinChars(in interface{}) string {
 	return str.String()
 }
 
-func parseInt(v interface{}) interface{} {
+func parseInt(v any) any {
 	num := v.(string)
 	i, err := strconv.Atoi(num)
 	if err != nil {
@@ -121,9 +121,9 @@ func nullableName(v any) *ast.Name {
 	return v.(*ast.Name)
 }
 
-func makeUnicodeChar(chars interface{}) string {
+func makeUnicodeChar(chars any) string {
 	var r rune
-	for _, char := range chars.([]interface{}) {
+	for _, char := range chars.([]any) {
 		if char != nil {
 			var v byte
 			ch := char.([]byte)[0]

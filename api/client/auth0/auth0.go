@@ -145,7 +145,7 @@ func (c *Client) RefreshToken(ctx context.Context, refreshToken string) (Tokens,
 	}, nil
 }
 
-func (c *Client) post(ctx context.Context, path string, body, out interface{}) error {
+func (c *Client) post(ctx context.Context, path string, body, out any) error {
 	b, err := json.Marshal(body)
 	if err != nil {
 		return err

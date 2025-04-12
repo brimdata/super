@@ -26,7 +26,7 @@ func NewBSUPWriter(w io.Writer) *BSUPWriter {
 	}
 }
 
-func (w *BSUPWriter) WriteControl(v interface{}) error {
+func (w *BSUPWriter) WriteControl(v any) error {
 	val, err := w.marshaler.Marshal(v)
 	if err != nil {
 		return err

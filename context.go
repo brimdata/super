@@ -94,7 +94,7 @@ func (c *Context) LookupType(id int) (Type, error) {
 }
 
 var keyPool = sync.Pool{
-	New: func() interface{} {
+	New: func() any {
 		// Return a pointer to avoid allocation on conversion to
 		// interface.
 		buf := make([]byte, 64)
@@ -144,7 +144,7 @@ func (c *Context) LookupTypeRecord(fields []Field) (*TypeRecord, error) {
 }
 
 var namesPool = sync.Pool{
-	New: func() interface{} {
+	New: func() any {
 		// Return a pointer to avoid allocation on conversion to
 		// interface.
 		names := make([]string, 8)
@@ -566,7 +566,7 @@ func (c *Context) Quiet() Value {
 
 // batch/allocator should handle these?
 
-func (c *Context) NewErrorf(format string, args ...interface{}) Value {
+func (c *Context) NewErrorf(format string, args ...any) Value {
 	return NewValue(c.StringTypeError(), fmt.Appendf(nil, format, args...))
 }
 

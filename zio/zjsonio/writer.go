@@ -13,8 +13,8 @@ import (
 )
 
 type Object struct {
-	Type  zType       `json:"type"`
-	Value interface{} `json:"value"`
+	Type  zType `json:"type"`
+	Value any   `json:"value"`
 }
 
 func unmarshal(b []byte) (*Object, error) {
@@ -89,7 +89,7 @@ func (w *Writer) Transform(r *super.Value) (Object, error) {
 	}, nil
 }
 
-func (w *Writer) encodeValue(sctx *super.Context, typ super.Type, val zcode.Bytes) (interface{}, error) {
+func (w *Writer) encodeValue(sctx *super.Context, typ super.Type, val zcode.Bytes) (any, error) {
 	if val == nil {
 		return nil, nil
 	}
@@ -121,10 +121,10 @@ func (w *Writer) encodeValue(sctx *super.Context, typ super.Type, val zcode.Byte
 	}
 }
 
-func (w *Writer) encodeRecord(sctx *super.Context, typ *super.TypeRecord, val zcode.Bytes) (interface{}, error) {
+func (w *Writer) encodeRecord(sctx *super.Context, typ *super.TypeRecord, val zcode.Bytes) (any, error) {
 	// We start out with a slice that contains nothing instead of nil
 	// so that an empty container encodes as a JSON empty array [].
-	out := []interface{}{}
+	out := []any{}
 	for k, it := 0, val.Iter(); !it.Done(); k++ {
 		v, err := w.encodeValue(sctx, typ.Fields[k].Type, it.Next())
 		if err != nil {
@@ -135,10 +135,10 @@ func (w *Writer) encodeRecord(sctx *super.Context, typ *super.TypeRecord, val zc
 	return out, nil
 }
 
-func (w *Writer) encodeContainer(sctx *super.Context, typ super.Type, bytes zcode.Bytes) (interface{}, error) {
+func (w *Writer) encodeContainer(sctx *super.Context, typ super.Type, bytes zcode.Bytes) (any, error) {
 	// We start out with a slice that contains nothing instead of nil
 	// so that an empty container encodes as a JSON empty array [].
-	out := []interface{}{}
+	out := []any{}
 	for it := bytes.Iter(); !it.Done(); {
 		v, err := w.encodeValue(sctx, typ, it.Next())
 		if err != nil {
@@ -149,12 +149,12 @@ func (w *Writer) encodeContainer(sctx *super.Context, typ super.Type, bytes zcod
 	return out, nil
 }
 
-func (w *Writer) encodeMap(sctx *super.Context, typ *super.TypeMap, v zcode.Bytes) (interface{}, error) {
+func (w *Writer) encodeMap(sctx *super.Context, typ *super.TypeMap, v zcode.Bytes) (any, error) {
 	// We start out with a slice that contains nothing instead of nil
 	// so that an empty map encodes as a JSON empty array [].
-	out := []interface{}{}
+	out := []any{}
 	for it := v.Iter(); !it.Done(); {
-		pair := make([]interface{}, 2)
+		pair := make([]any, 2)
 		var err error
 		pair[0], err = w.encodeValue(sctx, typ.KeyType, it.Next())
 		if err != nil {
@@ -169,16 +169,16 @@ func (w *Writer) encodeMap(sctx *super.Context, typ *super.TypeMap, v zcode.Byte
 	return out, nil
 }
 
-func (w *Writer) encodeUnion(sctx *super.Context, union *super.TypeUnion, bytes zcode.Bytes) (interface{}, error) {
+func (w *Writer) encodeUnion(sctx *super.Context, union *super.TypeUnion, bytes zcode.Bytes) (any, error) {
 	inner, b := union.Untag(bytes)
 	val, err := w.encodeValue(sctx, inner, b)
 	if err != nil {
 		return nil, err
 	}
-	return []interface{}{strconv.Itoa(union.TagOf(inner)), val}, nil
+	return []any{strconv.Itoa(union.TagOf(inner)), val}, nil
 }
 
-func (w *Writer) encodePrimitive(sctx *super.Context, typ super.Type, v zcode.Bytes) (interface{}, error) {
+func (w *Writer) encodePrimitive(sctx *super.Context, typ super.Type, v zcode.Bytes) (any, error) {
 	if typ == super.TypeType {
 		typ, err := sctx.LookupByValue(v)
 		if err != nil {

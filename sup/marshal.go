@@ -18,7 +18,7 @@ import (
 
 //XXX handle new TypeError => marshal as a SUP string?
 
-func Marshal(v interface{}) (string, error) {
+func Marshal(v any) (string, error) {
 	return NewMarshaler().Marshal(v)
 }
 
@@ -44,7 +44,7 @@ func NewMarshalerWithContext(sctx *super.Context) *MarshalContext {
 	}
 }
 
-func (m *MarshalContext) Marshal(v interface{}) (string, error) {
+func (m *MarshalContext) Marshal(v any) (string, error) {
 	val, err := m.MarshalBSUPContext.Marshal(v)
 	if err != nil {
 		return "", err
@@ -52,7 +52,7 @@ func (m *MarshalContext) Marshal(v interface{}) (string, error) {
 	return m.formatter.Format(val), nil
 }
 
-func (m *MarshalContext) MarshalCustom(names []string, fields []interface{}) (string, error) {
+func (m *MarshalContext) MarshalCustom(names []string, fields []any) (string, error) {
 	rec, err := m.MarshalBSUPContext.MarshalCustom(names, fields)
 	if err != nil {
 		return "", err
@@ -76,11 +76,11 @@ func NewUnmarshaler() *UnmarshalContext {
 	}
 }
 
-func Unmarshal(sup string, v interface{}) error {
+func Unmarshal(sup string, v any) error {
 	return NewUnmarshaler().Unmarshal(sup, v)
 }
 
-func (u *UnmarshalContext) Unmarshal(sup string, v interface{}) error {
+func (u *UnmarshalContext) Unmarshal(sup string, v any) error {
 	parser := NewParser(strings.NewReader(sup))
 	ast, err := parser.ParseValue()
 	if err != nil {
@@ -101,7 +101,7 @@ type BSUPMarshaler interface {
 	MarshalBSUP(*MarshalBSUPContext) (super.Type, error)
 }
 
-func MarshalBSUP(v interface{}) (super.Value, error) {
+func MarshalBSUP(v any) (super.Value, error) {
 	return NewBSUPMarshaler().Marshal(v)
 }
 
@@ -124,11 +124,11 @@ func NewBSUPMarshalerWithContext(sctx *super.Context) *MarshalBSUPContext {
 
 // MarshalValue marshals v into the value that is being built and is
 // typically called by a custom marshaler.
-func (m *MarshalBSUPContext) MarshalValue(v interface{}) (super.Type, error) {
+func (m *MarshalBSUPContext) MarshalValue(v any) (super.Type, error) {
 	return m.encodeValue(reflect.ValueOf(v))
 }
 
-func (m *MarshalBSUPContext) Marshal(v interface{}) (super.Value, error) {
+func (m *MarshalBSUPContext) Marshal(v any) (super.Value, error) {
 	m.Builder.Reset()
 	typ, err := m.encodeValue(reflect.ValueOf(v))
 	if err != nil {
@@ -142,7 +142,7 @@ func (m *MarshalBSUPContext) Marshal(v interface{}) (super.Value, error) {
 	return super.NewValue(typ, it.Next()), nil
 }
 
-func (m *MarshalBSUPContext) MarshalCustom(names []string, vals []interface{}) (super.Value, error) {
+func (m *MarshalBSUPContext) MarshalCustom(names []string, vals []any) (super.Value, error) {
 	if len(names) != len(vals) {
 		return super.Null, errors.New("names and vals have different lengths")
 	}
@@ -644,7 +644,7 @@ func NewBSUPUnmarshaler() *UnmarshalBSUPContext {
 	return &UnmarshalBSUPContext{}
 }
 
-func UnmarshalBSUP(val super.Value, v interface{}) error {
+func UnmarshalBSUP(val super.Value, v any) error {
 	return NewBSUPUnmarshaler().decodeAny(val, reflect.ValueOf(v))
 }
 
@@ -658,7 +658,7 @@ func (u *UnmarshalBSUPContext) SetContext(sctx *super.Context) {
 	u.sctx = sctx
 }
 
-func (u *UnmarshalBSUPContext) Unmarshal(val super.Value, v interface{}) error {
+func (u *UnmarshalBSUPContext) Unmarshal(val super.Value, v any) error {
 	return u.decodeAny(val, reflect.ValueOf(v))
 }
 
@@ -670,7 +670,7 @@ func (u *UnmarshalBSUPContext) Unmarshal(val super.Value, v interface{}) error {
 // conflicts arise, e.g., when using the TypeSimple decorator style, you cannot
 // have a type called bar.Foo and another type baz.Foo as the simple type
 // decorator will be "Foo" in both cases and thus create a name conflict.
-func (u *UnmarshalBSUPContext) Bind(templates ...interface{}) error {
+func (u *UnmarshalBSUPContext) Bind(templates ...any) error {
 	for _, t := range templates {
 		if err := u.binder.enterTemplate(t); err != nil {
 			return err
@@ -1026,8 +1026,8 @@ func (u *UnmarshalBSUPContext) decodeArrayBytes(val super.Value, arrayVal reflec
 }
 
 type Binding struct {
-	Name     string      // user-defined name
-	Template interface{} // zero-valued entity used as template for new such objects
+	Name     string // user-defined name
+	Template any    // zero-valued entity used as template for new such objects
 }
 
 type binding struct {
@@ -1062,7 +1062,7 @@ func (b *binder) enter(key string, typ reflect.Type) error {
 	return nil
 }
 
-func (b *binder) enterTemplate(template interface{}) error {
+func (b *binder) enterTemplate(template any) error {
 	typ, err := typeOfTemplate(template)
 	if err != nil {
 		return err
@@ -1095,7 +1095,7 @@ func (b *binder) enterBinding(binding Binding) error {
 	return b.enter(binding.Name, typ)
 }
 
-func typeOfTemplate(template interface{}) (reflect.Type, error) {
+func typeOfTemplate(template any) (reflect.Type, error) {
 	v := reflect.ValueOf(template)
 	if !v.IsValid() {
 		return nil, errors.New("invalid template")
@@ -1106,7 +1106,7 @@ func typeOfTemplate(template interface{}) (reflect.Type, error) {
 	return v.Type(), nil
 }
 
-func typeNameOfValue(value interface{}) (string, error) {
+func typeNameOfValue(value any) (string, error) {
 	typ, err := typeOfTemplate(value)
 	if err != nil {
 		return "", err
@@ -1205,7 +1205,7 @@ func (u *UnmarshalBSUPContext) lookupGoType(typ super.Type, bytes zcode.Bytes) (
 }
 
 func (u *UnmarshalBSUPContext) lookupPrimitiveType(typ super.Type) (reflect.Type, error) {
-	var v interface{}
+	var v any
 	switch typ := typ.(type) {
 	// XXX We should have counterparts for error and type type.
 	// See issue #1853.

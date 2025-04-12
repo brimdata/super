@@ -18,7 +18,7 @@ type Reader struct {
 	strings   bool
 	valid     bool
 	hdr       []string
-	vals      []interface{}
+	vals      []any
 }
 
 type ReaderOpts struct {
@@ -81,7 +81,7 @@ func (r *Reader) Read() (*super.Value, error) {
 
 func (r *Reader) init(hdr []string) {
 	r.hdr = slices.Clone(hdr)
-	r.vals = make([]interface{}, len(hdr))
+	r.vals = make([]any, len(hdr))
 }
 
 func (r *Reader) translate(fields []string) (super.Value, error) {
@@ -101,7 +101,7 @@ func (r *Reader) translate(fields []string) (super.Value, error) {
 	return r.marshaler.MarshalCustom(r.hdr, vals)
 }
 
-func convertString(s string) interface{} {
+func convertString(s string) any {
 	if s == "" {
 		return nil
 	}

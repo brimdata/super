@@ -39,7 +39,7 @@ type canon struct {
 	first bool
 }
 
-func (c *canon) open(args ...interface{}) {
+func (c *canon) open(args ...any) {
 	c.formatter.open(args...)
 }
 

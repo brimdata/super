@@ -45,7 +45,7 @@ var (
 	True  = NewBool(true)
 )
 
-type Allocator interface{}
+type Allocator any
 
 type Value struct {
 	typ Type

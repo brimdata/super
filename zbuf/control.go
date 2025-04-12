@@ -1,7 +1,7 @@
 package zbuf
 
 type Control struct {
-	Message interface{}
+	Message any
 }
 
 var _ error = (*Control)(nil)

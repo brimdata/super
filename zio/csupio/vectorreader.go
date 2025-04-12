@@ -43,7 +43,7 @@ func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, push
 		filter, _, _ := pushdown.MetaFilter()
 		if filter != nil {
 			mfPool = &sync.Pool{
-				New: func() interface{} {
+				New: func() any {
 					filter, projection, err := pushdown.MetaFilter()
 					if err != nil {
 						panic(err)

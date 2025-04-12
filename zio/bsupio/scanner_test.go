@@ -20,7 +20,7 @@ func TestScannerContext(t *testing.T) {
 	count := runtime.GOMAXPROCS(0) + 1
 	var bufs [][]byte
 	var names []string
-	var values []interface{}
+	var values []any
 	// Add some BSON streams to bufs.  The records in each stream have a type
 	// unique to that stream so that they'll only validate if read with the
 	// correct context.

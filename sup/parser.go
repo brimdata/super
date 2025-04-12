@@ -13,7 +13,7 @@ func NewParser(r io.Reader) *Parser {
 	return &Parser{NewLexer(r)}
 }
 
-func (p *Parser) errorf(msg string, args ...interface{}) error {
+func (p *Parser) errorf(msg string, args ...any) error {
 	return p.error(fmt.Sprintf(msg, args...))
 }
 

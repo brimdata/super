@@ -219,7 +219,7 @@ func (c *Core) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.routerAPI.ServeHTTP(w, r)
 }
 
-func (c *Core) publishEvent(w *ResponseWriter, name string, data interface{}) {
+func (c *Core) publishEvent(w *ResponseWriter, name string, data any) {
 	marshaler := sup.NewBSUPMarshaler()
 	marshaler.Decorate(sup.StyleSimple)
 	zv, err := marshaler.Marshal(data)

@@ -19,7 +19,7 @@ type Request struct {
 	Header http.Header
 	Method string
 	Path   string
-	Body   interface{}
+	Body   any
 
 	host     string
 	ctx      context.Context

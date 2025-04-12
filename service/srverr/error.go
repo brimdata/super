@@ -103,7 +103,7 @@ func (e *Error) Message() string {
 //     for the `%w` verb).
 //
 // The string & format verbs must be last in the arguments, if present.
-func E(args ...interface{}) error {
+func E(args ...any) error {
 	if len(args) == 0 {
 		panic("no args to errors.E")
 	}
@@ -146,19 +146,19 @@ func IsNoCredentials(err error) bool { return IsKind(err, NoCredentials) }
 func IsNotFound(err error) bool      { return IsKind(err, NotFound) }
 func IsOther(err error) bool         { return IsKind(err, Other) }
 
-func ErrConflict(args ...interface{}) error      { return errKind(Conflict, args) }
-func ErrExists(args ...interface{}) error        { return errKind(Exists, args) }
-func ErrForbidden(args ...interface{}) error     { return errKind(Forbidden, args) }
-func ErrInvalid(args ...interface{}) error       { return errKind(Invalid, args) }
-func ErrNoCredentials(args ...interface{}) error { return errKind(NoCredentials, args) }
-func ErrNotFound(args ...interface{}) error      { return errKind(NotFound, args) }
-func ErrOther(args ...interface{}) error         { return errKind(Other, args) }
+func ErrConflict(args ...any) error      { return errKind(Conflict, args) }
+func ErrExists(args ...any) error        { return errKind(Exists, args) }
+func ErrForbidden(args ...any) error     { return errKind(Forbidden, args) }
+func ErrInvalid(args ...any) error       { return errKind(Invalid, args) }
+func ErrNoCredentials(args ...any) error { return errKind(NoCredentials, args) }
+func ErrNotFound(args ...any) error      { return errKind(NotFound, args) }
+func ErrOther(args ...any) error         { return errKind(Other, args) }
 
-func errKind(k Kind, args []interface{}) error {
-	args = append([]interface{}{k}, args...)
+func errKind(k Kind, args []any) error {
+	args = append([]any{k}, args...)
 	return E(args...)
 }
 
-func RecoverError(r interface{}) error {
+func RecoverError(r any) error {
 	return E("panic: %+v\n%s\n", r, string(debug.Stack()))
 }

@@ -29,11 +29,11 @@ func (w *ZJSONWriter) Write(rec super.Value) error {
 }
 
 type describe struct {
-	Type  string      `json:"type"`
-	Value interface{} `json:"value"`
+	Type  string `json:"type"`
+	Value any    `json:"value"`
 }
 
-func (w *ZJSONWriter) WriteControl(v interface{}) error {
+func (w *ZJSONWriter) WriteControl(v any) error {
 	// XXX Would rather use sup.Marshal here instead of importing reflection
 	// into this package, but there's an issue with marshaling nil
 	// interfaces, which occurs frequently with zjsonio.Object.Types. For now

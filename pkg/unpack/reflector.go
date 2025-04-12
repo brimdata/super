@@ -17,7 +17,7 @@ var zero reflect.Value
 
 type Reflector map[string]map[string]reflect.Type
 
-func New(templates ...interface{}) Reflector {
+func New(templates ...any) Reflector {
 	r := make(Reflector)
 	for _, t := range templates {
 		r.Add(t)
@@ -32,13 +32,13 @@ func (r Reflector) mixIn(other Reflector) Reflector {
 	return r
 }
 
-func (r Reflector) Add(template interface{}) Reflector {
+func (r Reflector) Add(template any) Reflector {
 	return r.AddAs(template, "")
 }
 
 // AddAs is like Add but as overrides any name stored under the "unpack" key in
 // template's field tags.
-func (r Reflector) AddAs(template interface{}, as string) Reflector {
+func (r Reflector) AddAs(template any, as string) Reflector {
 	if another, ok := template.(Reflector); ok {
 		return r.mixIn(another)
 	}
@@ -69,8 +69,8 @@ func (r Reflector) AddAs(template interface{}, as string) Reflector {
 	return r
 }
 
-func (r Reflector) Unmarshal(b []byte, result interface{}) error {
-	var from interface{}
+func (r Reflector) Unmarshal(b []byte, result any) error {
+	var from any
 	if err := json.Unmarshal(b, &from); err != nil {
 		return fmt.Errorf("unpacker error parsing JSON: %w", err)
 	}
@@ -94,7 +94,7 @@ func (r Reflector) Unmarshal(b []byte, result interface{}) error {
 	return json.Unmarshal(b, &result)
 }
 
-func (r Reflector) UnmarshalObject(object interface{}, result interface{}) error {
+func (r Reflector) UnmarshalObject(object any, result any) error {
 	b, err := json.Marshal(object)
 	if err != nil {
 		return err
@@ -102,7 +102,7 @@ func (r Reflector) UnmarshalObject(object interface{}, result interface{}) error
 	return r.Unmarshal(b, result)
 }
 
-func (r Reflector) lookup(object map[string]interface{}) (reflect.Value, error) {
+func (r Reflector) lookup(object map[string]any) (reflect.Value, error) {
 	var hits int
 	for key, val := range object {
 		types := r[key]
@@ -130,7 +130,7 @@ func (r Reflector) lookup(object map[string]interface{}) (reflect.Value, error) 
 	return zero, nil
 }
 
-func stringify(val interface{}) string {
+func stringify(val any) string {
 	b, err := json.Marshal(val)
 	if err != nil {
 		return err.Error()
@@ -138,8 +138,8 @@ func stringify(val interface{}) string {
 	return string(b)
 }
 
-func (r Reflector) unpack(from interface{}) (interface{}, error) {
-	object, ok := from.(map[string]interface{})
+func (r Reflector) unpack(from any) (any, error) {
+	object, ok := from.(map[string]any)
 	if !ok {
 		return nil, nil
 	}
@@ -155,7 +155,7 @@ func (r Reflector) unpack(from interface{}) (interface{}, error) {
 
 var textUnmarshalerType = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
 
-func (r Reflector) unpackVal(toVal reflect.Value, from interface{}) error {
+func (r Reflector) unpackVal(toVal reflect.Value, from any) error {
 	if from == nil {
 		return nil
 	}
@@ -197,7 +197,7 @@ func (r Reflector) unpackVal(toVal reflect.Value, from interface{}) error {
 		}
 		return r.unpackVal(elem, from)
 	case reflect.Struct:
-		if object, ok := from.(map[string]interface{}); ok {
+		if object, ok := from.(map[string]any); ok {
 			return r.unpackStruct(toVal, object)
 		}
 		return typeErr(toVal, from)
@@ -206,14 +206,14 @@ func (r Reflector) unpackVal(toVal reflect.Value, from interface{}) error {
 	// to be handled.  If not and everything is static, this doesn't hurt as
 	// package json would have done the same work anyway.
 	case reflect.Slice:
-		elems, ok := from.([]interface{})
+		elems, ok := from.([]any)
 		if !ok {
 			return typeErr(toVal, elems)
 		}
 		toVal.Set(reflect.MakeSlice(toVal.Type(), len(elems), len(elems)))
 		return r.unpackElems(toVal, elems)
 	case reflect.Array:
-		elems, ok := from.([]interface{})
+		elems, ok := from.([]any)
 		if !ok {
 			return typeErr(toVal, from)
 		}
@@ -223,7 +223,7 @@ func (r Reflector) unpackVal(toVal reflect.Value, from interface{}) error {
 	return nil
 }
 
-func (r Reflector) unpackElems(toVal reflect.Value, from []interface{}) error {
+func (r Reflector) unpackElems(toVal reflect.Value, from []any) error {
 	for k, elem := range from {
 		if err := r.unpackVal(toVal.Index(k), elem); err != nil {
 			return err
@@ -232,7 +232,7 @@ func (r Reflector) unpackElems(toVal reflect.Value, from []interface{}) error {
 	return nil
 }
 
-func (r Reflector) unpackStruct(toVal reflect.Value, from map[string]interface{}) error {
+func (r Reflector) unpackStruct(toVal reflect.Value, from map[string]any) error {
 	// Create a struct of the desired concrete type then for each field of
 	// the interface type, copy the object from the map input argment.
 	// The final pass of the JSON decoder will fill in everything else since
@@ -259,12 +259,12 @@ func (r Reflector) unpackStruct(toVal reflect.Value, from map[string]interface{}
 	return nil
 }
 
-func walk(val interface{}, pre func(interface{}) (interface{}, error)) (interface{}, error) {
+func walk(val any, pre func(any) (any, error)) (any, error) {
 	if done, err := pre(val); done != nil || err != nil {
 		return done, err
 	}
 	switch val := val.(type) {
-	case map[string]interface{}:
+	case map[string]any:
 		for k, v := range val {
 			child, err := walk(v, pre)
 			if err != nil {
@@ -272,7 +272,7 @@ func walk(val interface{}, pre func(interface{}) (interface{}, error)) (interfac
 			}
 			val[k] = child
 		}
-	case []interface{}:
+	case []any:
 		for k, v := range val {
 			child, err := walk(v, pre)
 			if err != nil {
@@ -292,6 +292,6 @@ func assign(dst reflect.Value, src reflect.Value) error {
 	return nil
 }
 
-func typeErr(toVal reflect.Value, from interface{}) error {
+func typeErr(toVal reflect.Value, from any) error {
 	return fmt.Errorf("unpacking into type %s: incompatible JSON: %s", toVal.Type(), stringify(from))
 }

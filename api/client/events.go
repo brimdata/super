@@ -26,13 +26,13 @@ func newEventsClient(resp *Response) *EventsClient {
 	}
 }
 
-func (l *EventsClient) Recv() (string, interface{}, error) {
+func (l *EventsClient) Recv() (string, any, error) {
 	var kind, data string
 	_, err := fmt.Fscanf(l.rc, "event: %s\ndata: %s\n\n\n", &kind, &data)
 	if err != nil {
 		return "", nil, err
 	}
-	var v interface{}
+	var v any
 	if err := l.unmarshaler.Unmarshal(data, &v); err != nil {
 		return "", nil, err
 	}

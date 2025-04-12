@@ -179,9 +179,9 @@ func (o *Op) Less(i, j int) bool {
 
 func (o *Op) Swap(i, j int) { o.hol[i], o.hol[j] = o.hol[j], o.hol[i] }
 
-func (o *Op) Push(x interface{}) { o.hol = append(o.hol, x.(*puller)) }
+func (o *Op) Push(x any) { o.hol = append(o.hol, x.(*puller)) }
 
-func (o *Op) Pop() interface{} {
+func (o *Op) Pop() any {
 	x := o.hol[len(o.hol)-1]
 	o.hol = o.hol[:len(o.hol)-1]
 	return x

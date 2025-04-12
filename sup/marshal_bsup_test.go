@@ -18,7 +18,7 @@ import (
 	"github.com/x448/float16"
 )
 
-func boomerang(t *testing.T, in interface{}, out interface{}) {
+func boomerang(t *testing.T, in any, out any) {
 	rec, err := sup.NewBSUPMarshaler().Marshal(in)
 	require.NoError(t, err)
 	var buf bytes.Buffer
@@ -398,7 +398,7 @@ func TestNumbers(t *testing.T) {
 }
 
 func TestCustomRecord(t *testing.T) {
-	vals := []interface{}{
+	vals := []any{
 		BSUPThing{"hello", 123},
 		99,
 	}
@@ -407,7 +407,7 @@ func TestCustomRecord(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, `{foo:{a:"hello",B:123},bar:99}`, sup.FormatValue(rec))
 
-	vals = []interface{}{
+	vals = []any{
 		BSUPThing{"hello", 123},
 		nil,
 	}
@@ -480,7 +480,7 @@ func TestInterfaceUnmarshal(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "It's a thing one", thing.Who())
 
-	var thingI interface{}
+	var thingI any
 	err = u.Unmarshal(zv, &thingI)
 	require.NoError(t, err, sup.String(zv))
 	actualThing, ok := thingI.(*BSUPThing)
@@ -488,7 +488,7 @@ func TestInterfaceUnmarshal(t *testing.T) {
 	assert.Equal(t, t1, actualThing)
 
 	u2 := sup.NewBSUPUnmarshaler()
-	var genericThing interface{}
+	var genericThing any
 	err = u2.Unmarshal(zv, &genericThing)
 	require.Error(t, err)
 	assert.Equal(t, `unmarshaling records into interface value requires type binding`, err.Error())
@@ -522,7 +522,7 @@ func TestEmptyInterface(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "int8", sup.String(zv.Type()))
 
-	var v interface{}
+	var v any
 	err = sup.UnmarshalBSUP(zv, &v)
 	require.NoError(t, err)
 	i, ok := v.(int8)
@@ -553,7 +553,7 @@ func TestNamedNormal(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, t1, actual)
 
-	var actualI interface{}
+	var actualI any
 	err = u.Unmarshal(zv, &actualI)
 	require.NoError(t, err)
 	cast, ok := actualI.(CustomInt8)
@@ -566,7 +566,7 @@ type EmbeddedA struct {
 }
 
 type EmbeddedB struct {
-	A interface{}
+	A any
 }
 
 func TestEmbeddedInterface(t *testing.T) {
@@ -612,7 +612,7 @@ func TestMultipleZedValues(t *testing.T) {
 }
 
 func TestZedValues(t *testing.T) {
-	test := func(t *testing.T, name, s string, v interface{}) {
+	test := func(t *testing.T, name, s string, v any) {
 		t.Run(name, func(t *testing.T) {
 			val := sup.MustParseValue(super.NewContext(), s)
 			err := sup.UnmarshalBSUP(val, v)

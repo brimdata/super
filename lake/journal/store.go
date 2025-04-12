@@ -29,7 +29,7 @@ var (
 type Store struct {
 	journal  *Queue
 	logger   *zap.Logger
-	keyTypes []interface{}
+	keyTypes []any
 
 	mu       sync.RWMutex // Protects everything below.
 	table    map[string]Entry
@@ -57,7 +57,7 @@ func (d *Delete) Key() string {
 	return d.EntryKey
 }
 
-func CreateStore(ctx context.Context, engine storage.Engine, logger *zap.Logger, path *storage.URI, keyTypes ...interface{}) (*Store, error) {
+func CreateStore(ctx context.Context, engine storage.Engine, logger *zap.Logger, path *storage.URI, keyTypes ...any) (*Store, error) {
 	journal, err := Create(ctx, engine, path, Nil)
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func CreateStore(ctx context.Context, engine storage.Engine, logger *zap.Logger,
 	return newStore(journal, logger, keyTypes...), nil
 }
 
-func OpenStore(ctx context.Context, engine storage.Engine, logger *zap.Logger, path *storage.URI, keyTypes ...interface{}) (*Store, error) {
+func OpenStore(ctx context.Context, engine storage.Engine, logger *zap.Logger, path *storage.URI, keyTypes ...any) (*Store, error) {
 	journal, err := Open(ctx, engine, path)
 	if err != nil {
 		return nil, err
@@ -73,11 +73,11 @@ func OpenStore(ctx context.Context, engine storage.Engine, logger *zap.Logger, p
 	return newStore(journal, logger, keyTypes...), nil
 }
 
-func newStore(journal *Queue, logger *zap.Logger, keyTypes ...interface{}) *Store {
+func newStore(journal *Queue, logger *zap.Logger, keyTypes ...any) *Store {
 	return &Store{
 		journal:  journal,
 		logger:   logger.Named("journal"),
-		keyTypes: append([]interface{}{Add{}, Delete{}, Update{}}, keyTypes...),
+		keyTypes: append([]any{Add{}, Delete{}, Update{}}, keyTypes...),
 	}
 }
 
@@ -224,12 +224,12 @@ func (s *Store) Keys(ctx context.Context, key string) ([]string, error) {
 	return keys, nil
 }
 
-func (s *Store) Values(ctx context.Context) ([]interface{}, error) {
+func (s *Store) Values(ctx context.Context) ([]any, error) {
 	if err := s.load(ctx); err != nil {
 		return nil, err
 	}
 	s.mu.RLock()
-	vals := make([]interface{}, 0, len(s.table))
+	vals := make([]any, 0, len(s.table))
 	for _, val := range s.table {
 		vals = append(vals, val)
 	}

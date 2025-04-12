@@ -63,7 +63,7 @@ func (r *Reader) Read() (*super.Value, error) {
 	return &r.val, nil
 }
 
-func (r *Reader) decodeValue(b *zcode.Builder, typ super.Type, body interface{}) error {
+func (r *Reader) decodeValue(b *zcode.Builder, typ super.Type, body any) error {
 	if body == nil {
 		b.Append(nil)
 		return nil
@@ -106,8 +106,8 @@ func (r *Reader) decodeValue(b *zcode.Builder, typ super.Type, body interface{})
 	}
 }
 
-func (r *Reader) decodeRecord(b *zcode.Builder, typ *super.TypeRecord, v interface{}) error {
-	values, ok := v.([]interface{})
+func (r *Reader) decodeRecord(b *zcode.Builder, typ *super.TypeRecord, v any) error {
+	values, ok := v.([]any)
 	if !ok {
 		return errors.New("ZJSON record value must be a JSON array")
 	}
@@ -127,7 +127,7 @@ func (r *Reader) decodeRecord(b *zcode.Builder, typ *super.TypeRecord, v interfa
 	return nil
 }
 
-func (r *Reader) decodePrimitive(builder *zcode.Builder, typ super.Type, v interface{}) error {
+func (r *Reader) decodePrimitive(builder *zcode.Builder, typ super.Type, v any) error {
 	if super.IsContainerType(typ) && !super.IsUnionType(typ) {
 		return errors.New("expected primitive type, got container")
 	}
@@ -141,8 +141,8 @@ func (r *Reader) decodePrimitive(builder *zcode.Builder, typ super.Type, v inter
 	})
 }
 
-func (r *Reader) decodeContainerBody(b *zcode.Builder, typ super.Type, body interface{}, which string) error {
-	items, ok := body.([]interface{})
+func (r *Reader) decodeContainerBody(b *zcode.Builder, typ super.Type, body any, which string) error {
+	items, ok := body.([]any)
 	if !ok {
 		return fmt.Errorf("bad JSON for ZJSON %s value", which)
 	}
@@ -154,15 +154,15 @@ func (r *Reader) decodeContainerBody(b *zcode.Builder, typ super.Type, body inte
 	return nil
 }
 
-func (r *Reader) decodeContainer(b *zcode.Builder, typ super.Type, body interface{}, which string) error {
+func (r *Reader) decodeContainer(b *zcode.Builder, typ super.Type, body any, which string) error {
 	b.BeginContainer()
 	err := r.decodeContainerBody(b, typ, body, which)
 	b.EndContainer()
 	return err
 }
 
-func (r *Reader) decodeUnion(builder *zcode.Builder, typ *super.TypeUnion, body interface{}) error {
-	tuple, ok := body.([]interface{})
+func (r *Reader) decodeUnion(builder *zcode.Builder, typ *super.TypeUnion, body any) error {
+	tuple, ok := body.([]any)
 	if !ok {
 		return errors.New("bad JSON for ZJSON union value")
 	}
@@ -190,14 +190,14 @@ func (r *Reader) decodeUnion(builder *zcode.Builder, typ *super.TypeUnion, body 
 	return nil
 }
 
-func (r *Reader) decodeMap(b *zcode.Builder, typ *super.TypeMap, body interface{}) error {
-	items, ok := body.([]interface{})
+func (r *Reader) decodeMap(b *zcode.Builder, typ *super.TypeMap, body any) error {
+	items, ok := body.([]any)
 	if !ok {
 		return errors.New("bad JSON for ZJSON union value")
 	}
 	b.BeginContainer()
 	for _, item := range items {
-		pair, ok := item.([]interface{})
+		pair, ok := item.([]any)
 		if !ok || len(pair) != 2 {
 			return errors.New("ZJSON map value must be an array of two-element arrays")
 		}
@@ -212,7 +212,7 @@ func (r *Reader) decodeMap(b *zcode.Builder, typ *super.TypeMap, body interface{
 	return nil
 }
 
-func (r *Reader) decodeEnum(b *zcode.Builder, typ *super.TypeEnum, body interface{}) error {
+func (r *Reader) decodeEnum(b *zcode.Builder, typ *super.TypeEnum, body any) error {
 	s, ok := body.(string)
 	if !ok {
 		return errors.New("ZJSON enum index value is not a JSON string")
