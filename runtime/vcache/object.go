@@ -58,6 +58,8 @@ func (o *Object) Close() error {
 // Fetch calls to the same object may run concurrently.
 func (o *Object) Fetch(sctx *super.Context, projection field.Projection) (vector.Any, error) {
 	cctx := o.object.Context()
-	o.root = unmarshal(cctx, o.object.Root(), o.root, projection, nil, 0)
-	return (&loader{cctx, sctx, o.object.DataReader()}).load(projection, o.root)
+	loader := &loader{cctx, sctx, o.object.DataReader()}
+	o.root = newShadow(cctx, o.object.Root(), nil)
+	o.root.unmarshal(cctx, projection)
+	return loader.load(projection, o.root)
 }

@@ -1,83 +1,81 @@
 package vcache
 
 import (
-	"io"
 	"sync"
 
 	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/vector/bitvec"
-	"golang.org/x/sync/errgroup"
 )
 
 type nulls struct {
-	mu    sync.Mutex
-	meta  *csup.Nulls
-	local bitvec.Bits
-	flat  bitvec.Bits
+	mu     sync.Mutex
+	meta   *csup.Nulls
+	flat   bitvec.Bits
+	cnt    uint32
+	parent *nulls
+	loaded bool
 }
 
-func (n *nulls) length() uint32 {
-	panic("vcacne.nulls.length shouldn't be called")
+func newNulls(meta *csup.Nulls, parent *nulls) *nulls {
+	return &nulls{
+		meta:   meta,
+		parent: parent,
+		cnt:    meta.Count + parent.count(),
+	}
 }
 
-func (n *nulls) fetch(g *errgroup.Group, cctx *csup.Context, reader io.ReaderAt) {
+func (n *nulls) count() uint32 {
 	if n == nil {
-		return
+		return 0
+	}
+	return n.cnt
+}
+
+func (n *nulls) loadWithLock(loader *loader) error {
+	local := bitvec.NewFalse(n.meta.Len(loader.cctx))
+	runlens, err := csup.ReadUint32s(n.meta.Runs, loader.r)
+	if err != nil {
+		return err
+	}
+	var null bool
+	var off uint32
+	for _, run := range runlens {
+		if null {
+			for i := range run {
+				slot := off + i
+				local.Set(slot)
+			}
+		}
+		off += run
+		null = !null
+	}
+	n.flat = flatten(local, n.parent.get(loader))
+	n.loaded = true
+	return nil
+}
+
+func (n *nulls) get(loader *loader) bitvec.Bits {
+	if n == nil {
+		return bitvec.Zero
 	}
 	n.mu.Lock()
-	if n.meta == nil {
-		n.mu.Unlock()
-		return
+	if !n.loaded {
+		if err := n.loadWithLock(loader); err != nil {
+			panic(err)
+		}
 	}
 	n.mu.Unlock()
-	g.Go(func() error {
-		n.mu.Lock()
-		defer n.mu.Unlock()
-		if n.meta == nil {
-			return nil
-		}
-		n.local = bitvec.NewFalse(n.meta.Len(cctx))
-		runlens, err := csup.ReadUint32s(n.meta.Runs, reader)
-		if err != nil {
-			return err
-		}
-		var null bool
-		var off uint32
-		b := n.local
-		for _, run := range runlens {
-			if null {
-				for i := range run {
-					slot := off + i
-					b.Set(slot)
-				}
-			}
-			off += run
-			null = !null
-		}
-		return nil
-	})
+	return n.flat
 }
 
-func (n *nulls) flatten(parent bitvec.Bits) bitvec.Bits {
-	if n == nil {
+func flatten(local, parent bitvec.Bits) bitvec.Bits {
+	if parent.IsZero() {
+		return local
+	}
+	if local.IsZero() {
 		return parent
 	}
-	n.mu.Lock()
-	defer n.mu.Unlock()
-	if !n.flat.IsZero() {
-		return n.flat
-	}
-	var flat bitvec.Bits
-	if parent.IsZero() {
-		flat = n.local
-	} else if !n.local.IsZero() {
-		flat = convolve(parent, n.local)
-	} else {
-		flat = parent
-	}
-	n.flat = flat
-	n.local = bitvec.Zero
-	return flat
+	return convolve(parent, local)
 }
 
 func convolve(parent, child bitvec.Bits) bitvec.Bits {
