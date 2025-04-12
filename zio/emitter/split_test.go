@@ -12,8 +12,8 @@ import (
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/anyio"
 	"github.com/brimdata/super/zio/supio"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
 func TestDirS3Source(t *testing.T) {

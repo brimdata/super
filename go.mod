@@ -12,7 +12,6 @@ require (
 	github.com/axiomhq/hyperloglog v0.0.0-20191112132149-a4c4c47bc57f
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/golang-jwt/jwt/v4 v4.4.3
-	github.com/golang/mock v1.6.0
 	github.com/gorilla/mux v1.7.5-0.20200711200521-98cb6bf42e08
 	github.com/gosuri/uilive v0.0.4
 	github.com/hashicorp/golang-lru/arc/v2 v2.0.7
@@ -33,6 +32,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/x448/float16 v0.8.4
 	github.com/yuin/goldmark v1.4.13
+	go.uber.org/mock v0.5.1
 	go.uber.org/zap v1.23.0
 	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0
 	golang.org/x/sync v0.10.0
@@ -86,7 +86,7 @@ require (
 )
 
 tool (
-	github.com/golang/mock/mockgen
 	github.com/mna/pigeon
+	go.uber.org/mock/mockgen
 	golang.org/x/tools/cmd/goimports
 )

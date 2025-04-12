@@ -28,9 +28,9 @@ import (
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/bsupio"
 	"github.com/brimdata/super/zio/csupio"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"github.com/x448/float16"
+	"go.uber.org/mock/gomock"
 )
 
 func ReadBSUP(bs []byte) ([]super.Value, error) {
