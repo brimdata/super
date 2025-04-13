@@ -194,8 +194,6 @@ func (p *primitive) newVector(loader *loader) vector.Any {
 	case *super.TypeEnum:
 		return vector.NewEnum(typ, p.load(loader).([]uint64), nulls)
 	case *super.TypeOfNull:
-		//XXX do we want true for nulls or is code smart enough to understand type null nullness?
-		// old code uses bitvec.Zero?!
 		return vector.NewConst(super.Null, p.length(), bitvec.Zero)
 	}
 	panic(fmt.Errorf("internal error: vcache.loadPrimitive got unknown type %#v", p.meta.Typ))
