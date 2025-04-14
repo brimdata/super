@@ -50,10 +50,13 @@ func (m *map_) load(loader *loader) ([]uint32, bitvec.Bits) {
 	nulls := m.nulls.get(loader)
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	if m.offs != nil {
-		return m.offs, nulls
+	if m.offs == nil {
+		offs, err := loadOffsets(loader.r, m.meta.Lengths, m.length(), nulls)
+		if err != nil {
+			panic(err)
+		}
+		m.offs = offs
 	}
-	loadOffsets(loader.r, &m.offs, m.meta.Lengths, m.length(), nulls)
 	return m.offs, nulls
 }
 

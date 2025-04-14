@@ -11,7 +11,7 @@ type nulls struct {
 	mu     sync.Mutex
 	meta   *csup.Nulls
 	flat   bitvec.Bits
-	cnt    uint32
+	count_ uint32
 	parent *nulls
 	loaded bool
 }
@@ -20,7 +20,7 @@ func newNulls(meta *csup.Nulls, parent *nulls) *nulls {
 	return &nulls{
 		meta:   meta,
 		parent: parent,
-		cnt:    meta.Count + parent.count(),
+		count_: meta.Count + parent.count(),
 	}
 }
 
@@ -28,7 +28,7 @@ func (n *nulls) count() uint32 {
 	if n == nil {
 		return 0
 	}
-	return n.cnt
+	return n.count_
 }
 
 func (n *nulls) loadWithLock(loader *loader) error {

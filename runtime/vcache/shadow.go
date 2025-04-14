@@ -27,10 +27,10 @@ import (
 //
 // Shadows are created with unmarshal and only the portion of the shadow tree is
 // created for the passed-in projection.  Any shadow object may be updated
-// incrementally and concurrently by calling the unmarshal to unfurl additional
+// incrementally and concurrently by calling the unmarshal method to unfurl additional
 // legs of a value (e.g., via subsequent calls with different projections).
 // The project method creates a vector.Any from the umarshaled shadow, which
-// should have coverage the passed in projection.
+// should cover the passed in projection.
 //
 // The shadow locking also supports incremental expansion and loading from the
 // vector runtime via the *Loader implementations of the various vector loader
@@ -54,20 +54,16 @@ func (c count) length() uint32 {
 // It also unfurls null metadata and links together parent pointers so that nulls
 // can be properly flattened but only as needed on demand.
 // No vector data or null data is actually loaded here.
-func newShadow(cctx *csup.Context, id csup.ID, parent *nulls) shadow {
-	return newShadowUnravel(cctx, id, parent)
-}
-
-func newShadowUnravel(cctx *csup.Context, id csup.ID, nulls *nulls) shadow {
+func newShadow(cctx *csup.Context, id csup.ID, nulls *nulls) shadow {
 	switch meta := cctx.Lookup(id).(type) {
 	case *csup.Dynamic:
 		return newDynamic(meta)
 	case *csup.Nulls:
-		return newShadowUnravel(cctx, meta.Values, newNulls(meta, nulls))
+		return newShadow(cctx, meta.Values, newNulls(meta, nulls))
 	case *csup.Error:
 		return newError(cctx, meta, nulls)
 	case *csup.Named:
-		return newNamed(meta, newShadowUnravel(cctx, meta.Values, nulls))
+		return newNamed(meta, newShadow(cctx, meta.Values, nulls))
 	case *csup.Record:
 		return newRecord(cctx, meta, nulls)
 	case *csup.Array:

@@ -12,7 +12,7 @@ import (
 
 // loader handles loading vector data on demand for only the fields needed
 // as specified in the projection.  The load operation is implemented simply
-// by colling the project method on a shadow.  All data (and nulls) for that shadow
+// by calling the project method on a shadow.  All data (and nulls) for that shadow
 // will be loaded from this point in the value hierarchy possibly pruned by the
 // projection argument (nil projection implies load the whole value).
 //
@@ -37,14 +37,14 @@ func (l *loader) load(projection field.Projection, s shadow) (vector.Any, error)
 	return s.project(l, projection), nil
 }
 
-func loadOffsets(r io.ReaderAt, slice *[]uint32, loc csup.Segment, length uint32, nulls bitvec.Bits) error {
+func loadOffsets(r io.ReaderAt, loc csup.Segment, length uint32, nulls bitvec.Bits) ([]uint32, error) {
 	v, err := csup.ReadUint32s(loc, r)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	offs := make([]uint32, length+1)
 	var off, child uint32
-	for k := uint32(0); k < length; k++ {
+	for k := range length {
 		offs[k] = off
 		if !nulls.IsSet(k) {
 			off += v[child]
@@ -52,6 +52,5 @@ func loadOffsets(r io.ReaderAt, slice *[]uint32, loc csup.Segment, length uint32
 		}
 	}
 	offs[length] = off
-	*slice = offs
-	return nil
+	return offs, nil
 }

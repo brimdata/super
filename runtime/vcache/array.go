@@ -46,10 +46,13 @@ func (a *array) load(loader *loader) ([]uint32, bitvec.Bits) {
 	nulls := a.nulls.get(loader)
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	if a.offs != nil {
-		return a.offs, nulls
+	if a.offs == nil {
+		offs, err := loadOffsets(loader.r, a.meta.Lengths, a.length(), nulls)
+		if err != nil {
+			panic(err)
+		}
+		a.offs = offs
 	}
-	loadOffsets(loader.r, &a.offs, a.meta.Lengths, a.length(), nulls)
 	return a.offs, nulls
 }
 
