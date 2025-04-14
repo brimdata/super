@@ -3,6 +3,7 @@ package sup
 import (
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
@@ -468,13 +469,11 @@ func (a Analyzer) convertEnum(sctx *super.Context, val *ast.Enum, cast super.Typ
 	if !ok {
 		return nil, fmt.Errorf("identifier %q is enum and incompatible with type %q", val.Name, FormatType(cast))
 	}
-	for _, s := range enum.Symbols {
-		if s == val.Name {
-			return &Enum{
-				Name: val.Name,
-				Type: cast,
-			}, nil
-		}
+	if slices.Contains(enum.Symbols, val.Name) {
+		return &Enum{
+			Name: val.Name,
+			Type: cast,
+		}, nil
 	}
 	return nil, fmt.Errorf("symbol %q not a member of type %q", val.Name, FormatType(enum))
 }

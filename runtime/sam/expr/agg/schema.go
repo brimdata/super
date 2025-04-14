@@ -100,10 +100,8 @@ func merge(sctx *super.Context, a, b super.Type) super.Type {
 }
 
 func appendIfAbsent(types []super.Type, typ super.Type) []super.Type {
-	for _, t := range types {
-		if t == typ {
-			return types
-		}
+	if slices.Contains(types, typ) {
+		return types
 	}
 	return append(types, typ)
 }

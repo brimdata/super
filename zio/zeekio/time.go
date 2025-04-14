@@ -3,6 +3,7 @@ package zeekio
 import (
 	"fmt"
 	"math"
+	"slices"
 	"strconv"
 
 	"github.com/brimdata/super/pkg/byteconv"
@@ -46,7 +47,7 @@ func formatTime(ts nano.Ts) string {
 		// Remove the first '0'.  This is a little hacky but the alternative
 		// is implementing this ourselves.  Something to avoid given
 		// https://golang.org/src/math/big/ftoa.go?s=2522:2583#L53.
-		dst = append(dst[:n], dst[n+1:]...)
+		dst = slices.Delete(dst, n, n+1)
 	}
 	return string(dst)
 }

@@ -2,6 +2,7 @@ package semantic
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/brimdata/super/compiler/dag"
@@ -126,19 +127,15 @@ func (*dynamicSchema) resolveColumn(col string) (field.Path, error) {
 }
 
 func (s *staticSchema) resolveColumn(col string) (field.Path, error) {
-	for _, c := range s.columns {
-		if c == col {
-			return field.Path{col}, nil
-		}
+	if slices.Contains(s.columns, col) {
+		return field.Path{col}, nil
 	}
 	return nil, fmt.Errorf("column %q: does not exist", col)
 }
 
 func (a *anonSchema) resolveColumn(col string) (field.Path, error) {
-	for _, c := range a.columns {
-		if c == col {
-			return field.Path{col}, nil
-		}
+	if slices.Contains(a.columns, col) {
+		return field.Path{col}, nil
 	}
 	return nil, fmt.Errorf("column %q: does not exist", col)
 }
