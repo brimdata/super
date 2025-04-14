@@ -104,11 +104,8 @@ func Union(a Demand, b Demand) Demand {
 
 	{
 		a, b := a.(keys), b.(keys)
-
 		demand := make(keys, len(a)+len(b))
-		for k, v := range a {
-			demand[k] = v
-		}
+		maps.Copy(demand, a)
 		for k, v := range b {
 			if v2, ok := a[k]; ok {
 				demand[k] = Union(v, v2)

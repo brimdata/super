@@ -10,6 +10,7 @@ import (
 	"encoding"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"reflect"
 )
 
@@ -25,13 +26,6 @@ func New(templates ...any) Reflector {
 	return r
 }
 
-func (r Reflector) mixIn(other Reflector) Reflector {
-	for k, v := range other {
-		r[k] = v
-	}
-	return r
-}
-
 func (r Reflector) Add(template any) Reflector {
 	return r.AddAs(template, "")
 }
@@ -40,7 +34,8 @@ func (r Reflector) Add(template any) Reflector {
 // template's field tags.
 func (r Reflector) AddAs(template any, as string) Reflector {
 	if another, ok := template.(Reflector); ok {
-		return r.mixIn(another)
+		maps.Copy(r, another)
+		return r
 	}
 	typ := reflect.TypeOf(template)
 	unpackKey, unpackVal, skip, err := structToUnpackRule(typ)

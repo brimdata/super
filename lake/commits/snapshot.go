@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 
 	"github.com/brimdata/super/bsupbytes"
 	"github.com/brimdata/super/lake/data"
@@ -124,9 +125,7 @@ func (s *Snapshot) SelectAll() DataObjects {
 
 func (s *Snapshot) Copy() *Snapshot {
 	out := NewSnapshot()
-	for key, val := range s.objects {
-		out.objects[key] = val
-	}
+	maps.Copy(out.objects, s.objects)
 	for key := range s.vectors {
 		out.vectors[key] = struct{}{}
 	}
