@@ -1,0 +1,29 @@
+script: |
+  super compile -C -O 'from file1 | top'
+  echo ===
+  super compile -C -O 'from file1 | top | yield a'
+  echo ===
+  super compile -C -O 'from file1 | top 2 a'
+  echo ===
+  super compile -C -O 'from file1 | top 2 a | yield b'
+
+outputs:
+  - name: stdout
+    data: |
+      file file1
+      | top 1
+      | output main
+      ===
+      file file1
+      | top 1
+      | yield a
+      | output main
+      ===
+      file file1
+      | top 2 a asc
+      | output main
+      ===
+      file file1 fields a,b
+      | top 2 a asc
+      | yield b
+      | output main

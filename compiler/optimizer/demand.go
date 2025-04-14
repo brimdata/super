@@ -83,8 +83,10 @@ func demandForOp(op dag.Op, downstream demand.Demand) demand.Demand {
 		return d
 	case *dag.Scope:
 		return DemandForSeq(op.Body, downstream)
-	case *dag.Shape, *dag.Sort:
+	case *dag.Shape:
 		return downstream
+	case *dag.Sort:
+		return demandForSortExprs(op.Args, downstream)
 	case *dag.Switch:
 		d := demandForExpr(op.Expr)
 		for _, c := range op.Cases {
@@ -92,7 +94,11 @@ func demandForOp(op dag.Op, downstream demand.Demand) demand.Demand {
 			d = demand.Union(d, DemandForSeq(c.Path, downstream))
 		}
 		return d
-	case *dag.Tail, *dag.Top, *dag.Uniq:
+	case *dag.Tail:
+		return downstream
+	case *dag.Top:
+		return demandForSortExprs(op.Exprs, downstream)
+	case *dag.Uniq:
 		return downstream
 	case *dag.Vectorize:
 		return DemandForSeq(op.Body, downstream)
@@ -244,6 +250,18 @@ func demandForAssignments(assignments []dag.Assignment, downstream demand.Demand
 			d = demand.Union(d, demandForExpr(a.LHS))
 		}
 		d = demand.Union(d, demandForExpr(a.RHS))
+	}
+	return d
+}
+
+func demandForSortExprs(sortExprs []dag.SortExpr, downstream demand.Demand) demand.Demand {
+	if len(sortExprs) == 0 {
+		// Need all fields to guess sort key.
+		return demand.All()
+	}
+	d := downstream
+	for _, s := range sortExprs {
+		d = demand.Union(d, demandForExpr(s.Key))
 	}
 	return d
 }

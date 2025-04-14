@@ -1,0 +1,29 @@
+script: |
+  super compile -C -O 'from file1 | sort'
+  echo ===
+  super compile -C -O 'from file1 | sort | yield a'
+  echo ===
+  super compile -C -O 'from file1 | sort a'
+  echo ===
+  super compile -C -O 'from file1 | sort a | yield b'
+
+outputs:
+  - name: stdout
+    data: |
+      file file1
+      | sort
+      | output main
+      ===
+      file file1
+      | sort
+      | yield a
+      | output main
+      ===
+      file file1
+      | sort a asc
+      | output main
+      ===
+      file file1 fields a,b
+      | sort a asc
+      | yield b
+      | output main
