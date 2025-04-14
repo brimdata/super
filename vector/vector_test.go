@@ -52,8 +52,8 @@ func BenchmarkReadBSUP(b *testing.B) {
 	var buf bytes.Buffer
 	fuzz.WriteBSUP(b, valuesIn, &buf)
 	bs := buf.Bytes()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+
+	for b.Loop() {
 		valuesOut, err := fuzz.ReadBSUP(bs)
 		if err != nil {
 			panic(err)
@@ -73,8 +73,8 @@ func BenchmarkReadCSUP(b *testing.B) {
 	var buf bytes.Buffer
 	fuzz.WriteCSUP(b, valuesIn, &buf)
 	bs := buf.Bytes()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+
+	for b.Loop() {
 		bytesReader := bytes.NewReader(bs)
 		object, err := csup.NewObject(bytesReader)
 		if err != nil {
@@ -98,8 +98,8 @@ func BenchmarkReadVarint(b *testing.B) {
 	for _, int := range intsIn {
 		bs = binary.AppendVarint(bs, int)
 	}
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+
+	for b.Loop() {
 		bs := bs
 		intsOut := make([]int64, N)
 		for i := range intsOut {

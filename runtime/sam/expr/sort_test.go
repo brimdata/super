@@ -25,7 +25,7 @@ func BenchmarkSort(b *testing.B) {
 		b.Run(sup.FormatType(c.typ), func(b *testing.B) {
 			cmp := NewComparator(false, SortEvaluator{&This{}, order.Asc})
 			vals := make([]super.Value, 1048576)
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
 				b.StopTimer()
 				for i := range vals {
 					vals[i] = super.NewValue(c.typ, c.bytes())

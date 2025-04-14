@@ -16,7 +16,7 @@ func BenchmarkValueUnder(b *testing.B) {
 	b.Run("primitive", func(b *testing.B) {
 		val := super.Null
 		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			val.Under()
 		}
 	})
@@ -24,7 +24,7 @@ func BenchmarkValueUnder(b *testing.B) {
 		typ, _ := super.NewContext().LookupTypeNamed("name", super.TypeNull)
 		val := super.NewValue(typ, nil)
 		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			val.Under()
 		}
 	})
