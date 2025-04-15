@@ -99,6 +99,9 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, field.Path,
 		f = newParseSUP(sctx)
 	case "parse_uri":
 		f = newParseURI(sctx)
+	case "position":
+		argmin, argmax = 2, 2
+		f = &Position{sctx}
 	case "pow":
 		argmin = 2
 		argmax = 2

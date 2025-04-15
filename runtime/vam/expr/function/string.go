@@ -75,6 +75,28 @@ func (l *Levenshtein) Call(args ...vector.Any) vector.Any {
 	return out
 }
 
+type Position struct {
+	sctx *super.Context
+}
+
+func (p *Position) Call(args ...vector.Any) vector.Any {
+	args = underAll(args)
+	vec, subVec := args[0], args[1]
+	if vec.Type().ID() != super.IDString {
+		return vector.NewWrappedError(p.sctx, "position: string arguments required", vec)
+	}
+	if subVec.Type().ID() != super.IDString {
+		return vector.NewWrappedError(p.sctx, "position: string arguments required", subVec)
+	}
+	vals := make([]int64, vec.Len())
+	for i := range vec.Len() {
+		s, _ := vector.StringValue(vec, i)
+		sub, _ := vector.StringValue(subVec, i)
+		vals[i] = int64(strings.Index(s, sub) + 1)
+	}
+	return vector.NewInt(super.TypeInt64, vals, bitvec.Or(vector.NullsOf(vec), vector.NullsOf(subVec)))
+}
+
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#replace
 type Replace struct {
 	sctx *super.Context

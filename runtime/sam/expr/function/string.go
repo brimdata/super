@@ -9,6 +9,25 @@ import (
 	"github.com/brimdata/super/zcode"
 )
 
+type Position struct {
+	sctx *super.Context
+}
+
+func (p *Position) Call(_ super.Allocator, args []super.Value) super.Value {
+	val, subVal := args[0], args[1]
+	if !val.IsString() {
+		return p.sctx.WrapError("position: string arguments required", val)
+	}
+	if !subVal.IsString() {
+		return p.sctx.WrapError("position: string arguments required", subVal)
+	}
+	if val.IsNull() || subVal.IsNull() {
+		return super.NullInt64
+	}
+	i := strings.Index(val.AsString(), subVal.AsString())
+	return super.NewInt64(int64(i + 1))
+}
+
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#replace
 type Replace struct {
 	sctx *super.Context

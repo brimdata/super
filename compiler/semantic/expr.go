@@ -668,6 +668,14 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 			Expr:  exprs[0],
 			Inner: inner,
 		}
+	case nameLower == "position" && nargs == 1:
+		b, ok := exprs[0].(*dag.BinaryExpr)
+		if ok && strings.ToLower(b.Op) == "in" {
+			// Support for SQL style position function call.
+			exprs = []dag.Expr{b.RHS, b.LHS}
+			nargs = 2
+		}
+		fallthrough
 	default:
 		if _, _, err = function.New(a.sctx, nameLower, nargs); err != nil {
 			a.error(call, err)
