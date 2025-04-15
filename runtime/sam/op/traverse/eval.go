@@ -57,28 +57,28 @@ func (e *Expr) Eval(ectx expr.Context, this super.Value) super.Value {
 		}
 		if b == nil {
 			e.out = out
-			return e.combine(ectx, out)
+			return e.combine(out)
 		}
 		out = append(out, b)
 	}
 }
 
-func (e *Expr) combine(ectx expr.Context, batches []zbuf.Batch) super.Value {
+func (e *Expr) combine(batches []zbuf.Batch) super.Value {
 	switch len(batches) {
 	case 0:
 		return super.Null
 	case 1:
-		return e.makeArray(ectx, batches[0].Values())
+		return e.makeArray(batches[0].Values())
 	default:
 		var vals []super.Value
 		for _, batch := range batches {
 			vals = append(vals, batch.Values()...)
 		}
-		return e.makeArray(ectx, vals)
+		return e.makeArray(vals)
 	}
 }
 
-func (e *Expr) makeArray(ectx expr.Context, vals []super.Value) super.Value {
+func (e *Expr) makeArray(vals []super.Value) super.Value {
 	if len(vals) == 0 {
 		return super.Null
 	}
@@ -88,7 +88,7 @@ func (e *Expr) makeArray(ectx expr.Context, vals []super.Value) super.Value {
 	typ := vals[0].Type()
 	for _, val := range vals[1:] {
 		if typ != val.Type() {
-			return e.makeUnionArray(ectx, vals)
+			return e.makeUnionArray(vals)
 		}
 	}
 	var b zcode.Builder
@@ -98,7 +98,7 @@ func (e *Expr) makeArray(ectx expr.Context, vals []super.Value) super.Value {
 	return super.NewValue(e.sctx.LookupTypeArray(typ), b.Bytes())
 }
 
-func (e *Expr) makeUnionArray(ectx expr.Context, vals []super.Value) super.Value {
+func (e *Expr) makeUnionArray(vals []super.Value) super.Value {
 	types := make(map[super.Type]struct{})
 	for _, val := range vals {
 		types[val.Type()] = struct{}{}

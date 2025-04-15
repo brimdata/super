@@ -83,7 +83,7 @@ func (w *Writer) formatValue(t table, b *bytes.Buffer, v any, width int, colors 
 	case *pools.Config:
 		formatPoolConfig(b, v)
 	case *lake.BranchMeta:
-		formatBranchMeta(b, v, width, w.headID, w.headName, colors)
+		formatBranchMeta(b, v, w.headID, w.headName, colors)
 	case data.Object:
 		formatDataObject(b, &v, "", 0)
 	case *data.Object:
@@ -115,7 +115,7 @@ func formatPoolConfig(b *bytes.Buffer, p *pools.Config) {
 	b.WriteByte('\n')
 }
 
-func formatBranchMeta(b *bytes.Buffer, p *lake.BranchMeta, width int, headID ksuid.KSUID, headName string, colors *color.Stack) {
+func formatBranchMeta(b *bytes.Buffer, p *lake.BranchMeta, headID ksuid.KSUID, headName string, colors *color.Stack) {
 	b.WriteString(p.Pool.Name)
 	b.WriteByte('@')
 	b.WriteString(p.Branch.Name)

@@ -57,7 +57,7 @@ func OpenFile(path string, mode FileMode) (zapcore.WriteSyncer, error) {
 	}
 	switch mode {
 	case FileModeRotate:
-		return logrotate(path, mode)
+		return logrotate(path)
 	case FileModeTruncate:
 		return fs.OpenFile(path, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
 	default: // FileModeAppend
@@ -65,7 +65,7 @@ func OpenFile(path string, mode FileMode) (zapcore.WriteSyncer, error) {
 	}
 }
 
-func logrotate(path string, mode FileMode) (zapcore.WriteSyncer, error) {
+func logrotate(path string) (zapcore.WriteSyncer, error) {
 	// Make sure directory exists
 	if _, err := os.Stat(filepath.Dir(path)); err != nil {
 		return nil, err

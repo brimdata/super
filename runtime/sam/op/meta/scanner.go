@@ -101,7 +101,7 @@ func NewCommitMetaScanner(ctx context.Context, sctx *super.Context, r *lake.Root
 			return nil, err
 		}
 		vectors := commits.Vectors(snap)
-		reader, err := objectReader(ctx, sctx, vectors, p.SortKeys.Primary().Order)
+		reader, err := objectReader(sctx, vectors, p.SortKeys.Primary().Order)
 		if err != nil {
 			return nil, err
 		}
@@ -111,7 +111,7 @@ func NewCommitMetaScanner(ctx context.Context, sctx *super.Context, r *lake.Root
 	}
 }
 
-func objectReader(ctx context.Context, sctx *super.Context, snap commits.View, order order.Which) (zio.Reader, error) {
+func objectReader(sctx *super.Context, snap commits.View, order order.Which) (zio.Reader, error) {
 	objects := snap.Select(nil, order)
 	m := sup.NewBSUPMarshalerWithContext(sctx)
 	m.Decorate(sup.StylePackage)

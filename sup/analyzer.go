@@ -145,7 +145,7 @@ func (a Analyzer) convertValue(sctx *super.Context, val ast.Value, parent super.
 			if err != nil {
 				return nil, err
 			}
-			v, err = a.convertUnion(sctx, v, union, cast)
+			v, err = a.convertUnion(v, union, cast)
 		} else {
 			v, err = a.convertValue(sctx, val.Of, cast)
 		}
@@ -153,7 +153,7 @@ func (a Analyzer) convertValue(sctx *super.Context, val ast.Value, parent super.
 			return nil, err
 		}
 		if union, ok := super.TypeUnder(parent).(*super.TypeUnion); ok {
-			v, err = a.convertUnion(sctx, v, union, parent)
+			v, err = a.convertUnion(v, union, parent)
 		}
 		return v, err
 	}
@@ -207,11 +207,11 @@ func (a Analyzer) convertAny(sctx *super.Context, val ast.Any, cast super.Type) 
 		if err != nil {
 			return nil, err
 		}
-		return a.convertUnion(sctx, v, union, cast)
+		return a.convertUnion(v, union, cast)
 	}
 	switch val := val.(type) {
 	case *ast.Primitive:
-		return a.convertPrimitive(sctx, val, cast)
+		return a.convertPrimitive(val, cast)
 	case *ast.Record:
 		return a.convertRecord(sctx, val, cast)
 	case *ast.Array:
@@ -219,7 +219,7 @@ func (a Analyzer) convertAny(sctx *super.Context, val ast.Any, cast super.Type) 
 	case *ast.Set:
 		return a.convertSet(sctx, val, cast)
 	case *ast.Enum:
-		return a.convertEnum(sctx, val, cast)
+		return a.convertEnum(val, cast)
 	case *ast.Map:
 		return a.convertMap(sctx, val, cast)
 	case *ast.TypeValue:
@@ -230,7 +230,7 @@ func (a Analyzer) convertAny(sctx *super.Context, val ast.Any, cast super.Type) 
 	return nil, fmt.Errorf("internal error: unknown ast type in Analyzer.convertAny: %T", val)
 }
 
-func (a Analyzer) convertPrimitive(sctx *super.Context, val *ast.Primitive, cast super.Type) (Value, error) {
+func (a Analyzer) convertPrimitive(val *ast.Primitive, cast super.Type) (Value, error) {
 	typ := super.LookupPrimitive(val.Type)
 	if typ == nil {
 		return nil, fmt.Errorf("no such primitive type: %q", val.Type)
@@ -394,7 +394,7 @@ func (a Analyzer) normalizeElems(sctx *super.Context, vals []Value) ([]Value, su
 	union := sctx.LookupTypeUnion(unique)
 	var unions []Value
 	for _, v := range vals {
-		union, err := a.convertUnion(sctx, v, union, union)
+		union, err := a.convertUnion(v, union, union)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -439,7 +439,7 @@ func (a Analyzer) convertSet(sctx *super.Context, set *ast.Set, cast super.Type)
 	}, nil
 }
 
-func (a Analyzer) convertUnion(sctx *super.Context, v Value, union *super.TypeUnion, cast super.Type) (Value, error) {
+func (a Analyzer) convertUnion(v Value, union *super.TypeUnion, cast super.Type) (Value, error) {
 	valType := v.TypeOf()
 	if valType == super.TypeNull {
 		// Set tag to -1 to signal to the builder to encode a null.
@@ -461,7 +461,7 @@ func (a Analyzer) convertUnion(sctx *super.Context, v Value, union *super.TypeUn
 	return nil, fmt.Errorf("type %q is not in union type %q", FormatType(valType), FormatType(union))
 }
 
-func (a Analyzer) convertEnum(sctx *super.Context, val *ast.Enum, cast super.Type) (Value, error) {
+func (a Analyzer) convertEnum(val *ast.Enum, cast super.Type) (Value, error) {
 	if cast == nil {
 		return nil, fmt.Errorf("identifier %q must be enum and requires decorator", val.Name)
 	}

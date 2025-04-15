@@ -99,7 +99,7 @@ func (s *scanner) Pull(done bool) (zbuf.Batch, error) {
 
 func (s *scanner) start() {
 	for _, w := range s.workers {
-		go w.run(s.ctx, s.workerCh)
+		go w.run(s.workerCh)
 	}
 	go func() {
 		defer close(s.resultChCh)
@@ -210,7 +210,7 @@ func newWorker(ctx context.Context, p *zbuf.Progress, bf *expr.BufferFilter, f e
 	}
 }
 
-func (w *worker) run(ctx context.Context, workerCh chan<- *worker) {
+func (w *worker) run(workerCh chan<- *worker) {
 	for {
 		// Tell the scanner we're ready for work.
 		select {

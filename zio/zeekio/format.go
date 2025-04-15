@@ -53,7 +53,7 @@ func formatAny(val super.Value, inContainer bool) string {
 	case *super.TypeSet:
 		return formatSet(t, val.Bytes())
 	case *super.TypeOfString:
-		return formatString(t, val.Bytes(), inContainer)
+		return formatString(val.Bytes(), inContainer)
 	case *super.TypeOfType:
 		return sup.String(val)
 	case *super.TypeUnion:
@@ -144,7 +144,7 @@ func formatSet(t *super.TypeSet, zv zcode.Bytes) string {
 	return b.String()
 }
 
-func formatString(t *super.TypeOfString, zv zcode.Bytes, inContainer bool) string {
+func formatString(zv zcode.Bytes, inContainer bool) string {
 	if bytes.Equal(zv, []byte{'-'}) {
 		return "\\x2d"
 	}

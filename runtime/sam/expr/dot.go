@@ -53,9 +53,9 @@ func (d *DotExpr) Eval(ectx Context, this super.Value) super.Value {
 		}
 		return super.NewValue(typ.Fields[i].Type, bytes)
 	case *super.TypeMap:
-		return indexMap(d.sctx, ectx, typ, val.Bytes(), super.NewString(d.field))
+		return indexMap(d.sctx, typ, val.Bytes(), super.NewString(d.field))
 	case *super.TypeOfType:
-		return d.evalTypeOfType(ectx, val.Bytes())
+		return d.evalTypeOfType(val.Bytes())
 	}
 	return d.sctx.Missing()
 }
@@ -79,7 +79,7 @@ func (d *DotExpr) fieldIndex(typ *super.TypeRecord) (int, bool) {
 	return i, ok
 }
 
-func (d *DotExpr) evalTypeOfType(ectx Context, b zcode.Bytes) super.Value {
+func (d *DotExpr) evalTypeOfType(b zcode.Bytes) super.Value {
 	if b == nil {
 		return super.NewValue(super.TypeType, nil)
 	}

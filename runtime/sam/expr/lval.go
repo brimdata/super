@@ -71,7 +71,7 @@ func NewExprLvalElem(sctx *super.Context, e Evaluator) *ExprLvalElem {
 func (l *ExprLvalElem) Eval(ectx Context, this super.Value) (string, error) {
 	val := l.eval.Eval(ectx, this)
 	if val.IsError() {
-		return "", lvalErr(ectx, val)
+		return "", lvalErr(val)
 	}
 	if !val.IsString() {
 		if val = l.caster.Eval(ectx, val); val.IsError() {
@@ -81,7 +81,7 @@ func (l *ExprLvalElem) Eval(ectx Context, this super.Value) (string, error) {
 	return val.AsString(), nil
 }
 
-func lvalErr(ectx Context, errVal super.Value) error {
+func lvalErr(errVal super.Value) error {
 	val := super.NewValue(errVal.Type().(*super.TypeError).Type, errVal.Bytes())
 	if val.IsString() {
 		return errors.New(val.AsString())

@@ -41,14 +41,14 @@ func (a *mapCall) Eval(ectx Context, in super.Value) super.Value {
 		a.types = append(a.types, val.Type())
 	}
 	inner := a.innerType(a.types)
-	bytes := a.buildVal(inner, a.vals)
+	bytes := a.buildVal(inner)
 	if _, ok := super.TypeUnder(val.Type()).(*super.TypeSet); ok {
 		return super.NewValue(a.sctx.LookupTypeSet(inner), super.NormalizeSet(bytes))
 	}
 	return super.NewValue(a.sctx.LookupTypeArray(inner), bytes)
 }
 
-func (a *mapCall) buildVal(inner super.Type, vals []super.Value) []byte {
+func (a *mapCall) buildVal(inner super.Type) []byte {
 	a.builder.Reset()
 	if union, ok := inner.(*super.TypeUnion); ok {
 		for _, val := range a.vals {

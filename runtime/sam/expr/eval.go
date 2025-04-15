@@ -260,11 +260,11 @@ func (n *numeric) eval(ectx Context, this super.Value) (super.Value, super.Value
 	if rhs.IsError() {
 		return super.Null, super.Null, &rhs
 	}
-	return enumToIndex(ectx, lhs), enumToIndex(ectx, rhs), nil
+	return enumToIndex(lhs), enumToIndex(rhs), nil
 }
 
 // enumToIndex converts an enum to its index value.
-func enumToIndex(ectx Context, val super.Value) super.Value {
+func enumToIndex(val super.Value) super.Value {
 	if _, ok := val.Type().(*super.TypeEnum); ok {
 		return super.NewValue(super.TypeUint64, val.Bytes())
 	}
@@ -659,9 +659,9 @@ func (i *Index) Eval(ectx Context, this super.Value) super.Value {
 	case *super.TypeArray, *super.TypeSet:
 		return indexArrayOrSet(i.sctx, ectx, super.InnerType(typ), container.Bytes(), index)
 	case *super.TypeRecord:
-		return indexRecord(i.sctx, ectx, typ, container.Bytes(), index)
+		return indexRecord(i.sctx, typ, container.Bytes(), index)
 	case *super.TypeMap:
-		return indexMap(i.sctx, ectx, typ, container.Bytes(), index)
+		return indexMap(i.sctx, typ, container.Bytes(), index)
 	default:
 		return i.sctx.Missing()
 	}
@@ -698,10 +698,10 @@ func indexArrayOrSet(sctx *super.Context, ectx Context, inner super.Type, vector
 	if !ok {
 		return sctx.Missing()
 	}
-	return deunion(ectx, inner, bytes)
+	return deunion(inner, bytes)
 }
 
-func indexRecord(sctx *super.Context, ectx Context, typ *super.TypeRecord, record zcode.Bytes, index super.Value) super.Value {
+func indexRecord(sctx *super.Context, typ *super.TypeRecord, record zcode.Bytes, index super.Value) super.Value {
 	id := index.Type().ID()
 	if id != super.IDString {
 		return sctx.WrapError("record index is not a string", index)
@@ -714,7 +714,7 @@ func indexRecord(sctx *super.Context, ectx Context, typ *super.TypeRecord, recor
 	return *val
 }
 
-func indexMap(sctx *super.Context, ectx Context, typ *super.TypeMap, mapBytes zcode.Bytes, key super.Value) super.Value {
+func indexMap(sctx *super.Context, typ *super.TypeMap, mapBytes zcode.Bytes, key super.Value) super.Value {
 	if key.IsMissing() {
 		return sctx.Missing()
 	}
@@ -724,19 +724,19 @@ func indexMap(sctx *super.Context, ectx Context, typ *super.TypeMap, mapBytes zc
 				var b zcode.Builder
 				super.BuildUnion(&b, union.TagOf(key.Type()), key.Bytes())
 				if valBytes, ok := lookupKey(mapBytes, b.Bytes().Body()); ok {
-					return deunion(ectx, typ.ValType, valBytes)
+					return deunion(typ.ValType, valBytes)
 				}
 			}
 		}
 		return sctx.Missing()
 	}
 	if valBytes, ok := lookupKey(mapBytes, key.Bytes()); ok {
-		return deunion(ectx, typ.ValType, valBytes)
+		return deunion(typ.ValType, valBytes)
 	}
 	return sctx.Missing()
 }
 
-func deunion(ectx Context, typ super.Type, b zcode.Bytes) super.Value {
+func deunion(typ super.Type, b zcode.Bytes) super.Value {
 	if union, ok := typ.(*super.TypeUnion); ok {
 		typ, b = union.Untag(b)
 	}

@@ -284,7 +284,7 @@ func (b *Branch) mergeInto(ctx context.Context, parent *Branch, author, message 
 		return ksuid.Nil, errors.New("cannot merge branch into itself")
 	}
 	return parent.commit(ctx, func(head *branches.Config, retries int) (*commits.Object, error) {
-		return b.buildMergeObject(ctx, head, retries, author, message, parent.Name)
+		return b.buildMergeObject(ctx, head, retries, author, message)
 	})
 	//XXX we should follow parent commit with a child rebase... do this
 	// next... we want to fast forward the child to any pending commits
@@ -293,7 +293,7 @@ func (b *Branch) mergeInto(ctx context.Context, parent *Branch, author, message 
 	// it's ok if new commits are arriving past the parent graft on point...
 }
 
-func (b *Branch) buildMergeObject(ctx context.Context, parent *branches.Config, retries int, author, message, parentName string) (*commits.Object, error) {
+func (b *Branch) buildMergeObject(ctx context.Context, parent *branches.Config, retries int, author, message string) (*commits.Object, error) {
 	childPath, err := b.pool.commits.Path(ctx, b.Commit)
 	if err != nil {
 		return nil, err

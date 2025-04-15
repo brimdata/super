@@ -465,8 +465,8 @@ func (v Value) Validate() (err error) {
 		}
 	}()
 	return v.Walk(func(typ Type, body zcode.Bytes) error {
-		if typset, ok := typ.(*TypeSet); ok {
-			if err := checkSet(typset, body); err != nil {
+		if _, ok := typ.(*TypeSet); ok {
+			if err := checkSet(body); err != nil {
 				return err
 			}
 			return SkipContainer
@@ -481,7 +481,7 @@ func (v Value) Validate() (err error) {
 	})
 }
 
-func checkSet(typ *TypeSet, body zcode.Bytes) error {
+func checkSet(body zcode.Bytes) error {
 	if body == nil {
 		return nil
 	}
