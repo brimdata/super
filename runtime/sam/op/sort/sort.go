@@ -248,9 +248,3 @@ func firstMatchingField(typ *super.TypeRecord, pred func(id int) bool) field.Pat
 	}
 	return nil
 }
-
-func unrefBatches(batches []zbuf.Batch) {
-	for _, b := range batches {
-		b.Unref()
-	}
-}

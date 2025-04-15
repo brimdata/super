@@ -9,9 +9,8 @@ import (
 )
 
 type RecordBuilder struct {
-	sctx   *super.Context
-	fields field.List
-	base   *rec
+	sctx *super.Context
+	base *rec
 }
 
 func NewRecordBuilder(sctx *super.Context, fields field.List) (*RecordBuilder, error) {

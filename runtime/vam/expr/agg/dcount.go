@@ -12,8 +12,7 @@ import (
 // dcount uses hyperloglog to approximate the count of unique values for
 // a field.
 type dcount struct {
-	scratch zcode.Bytes
-	sketch  *hyperloglog.Sketch
+	sketch *hyperloglog.Sketch
 }
 
 func newDCount() *dcount {

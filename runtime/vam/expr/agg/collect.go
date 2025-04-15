@@ -11,10 +11,6 @@ type collect struct {
 	samcollect samagg.Collect
 }
 
-func newCollect() *collect {
-	return &collect{}
-}
-
 func (c *collect) Consume(vec vector.Any) {
 	typ := vec.Type()
 	nulls := vector.NullsOf(vec)

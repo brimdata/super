@@ -8,17 +8,14 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/bitvec"
-	"github.com/brimdata/super/zcode"
 )
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#regexp
 type Regexp struct {
-	builder zcode.Builder
-	re      *regexp.Regexp
-	restr   string
-	typ     super.Type
-	err     error
-	sctx    *super.Context
+	re    *regexp.Regexp
+	restr string
+	err   error
+	sctx  *super.Context
 }
 
 func (r *Regexp) Call(args ...vector.Any) vector.Any {

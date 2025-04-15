@@ -30,7 +30,6 @@ func (u *UDF) Call(ectx super.Allocator, args []super.Value) super.Value {
 }
 
 type frame struct {
-	allocator
 	stack int
 	vars  []super.Value
 }

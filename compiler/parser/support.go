@@ -57,20 +57,6 @@ func makeArgMap(args any) (any, error) {
 	return m, nil
 }
 
-func makeTemplateExprChain(in any) any {
-	rest := in.([]any)
-	ret := rest[0].(ast.Expr)
-	for _, part := range rest[1:] {
-		ret = &ast.BinaryExpr{
-			Kind: "BinaryExpr",
-			Op:   "+",
-			LHS:  ret,
-			RHS:  part.(ast.Expr),
-		}
-	}
-	return ret
-}
-
 func newCall(c *current, name, args, where any) ast.Expr {
 	call := &ast.Call{
 		Kind: "Call",
