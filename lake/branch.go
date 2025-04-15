@@ -367,7 +367,7 @@ func (b *Branch) commit(ctx context.Context, create constructor) (ksuid.KSUID, e
 	// only succeeds when the presumed parent is atomically consistent
 	// with the branch update.  If the contraint, fails will loop a number
 	// of times till it succeeds, or we give up.
-	for retries := 0; retries < maxCommitRetries; retries++ {
+	for retries := range maxCommitRetries {
 		config, err := b.pool.branches.LookupByName(ctx, b.Name)
 		if err != nil {
 			return ksuid.Nil, err

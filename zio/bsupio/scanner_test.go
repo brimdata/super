@@ -24,14 +24,14 @@ func TestScannerContext(t *testing.T) {
 	// Add some BSON streams to bufs.  The records in each stream have a type
 	// unique to that stream so that they'll only validate if read with the
 	// correct context.
-	for i := 0; i < count; i++ {
+	for i := range count {
 		names = append(names, strconv.Itoa(i))
 		values = append(values, i)
 		rec, err := sup.NewBSUPMarshaler().MarshalCustom(names, values)
 		require.NoError(t, err)
 		var buf bytes.Buffer
 		w := NewWriter(zio.NopCloser(&buf))
-		for j := 0; j < 100; j++ {
+		for range 100 {
 			require.NoError(t, w.Write(rec))
 		}
 		require.NoError(t, w.EndStream())
@@ -40,8 +40,8 @@ func TestScannerContext(t *testing.T) {
 	}
 	// Create a validating BSON reader that repeatedly reads the streams in bufs.
 	var readers []io.Reader
-	for i := 0; i < 20; i++ {
-		for j := 0; j < count; j++ {
+	for range 20 {
+		for j := range count {
 			readers = append(readers, bytes.NewReader(bufs[j]))
 		}
 	}

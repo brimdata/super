@@ -32,7 +32,7 @@ func (a *setExpr) eval(in ...vector.Any) vector.Any {
 	// Dedupe list elems
 	vb := vector.NewBuilder(a.sctx.LookupTypeSet(inner.Type()))
 	var b zcode.Builder
-	for i := 0; i < len(offsets)-1; i++ {
+	for i := range len(offsets) - 1 {
 		b.Truncate()
 		for off := offsets[i]; off < offsets[i+1]; off++ {
 			inner.Serialize(&b, off)

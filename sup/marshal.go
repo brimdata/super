@@ -422,7 +422,7 @@ func (m *MarshalBSUPContext) encodeRecord(sval reflect.Value) (super.Type, error
 	m.Builder.BeginContainer()
 	var fields []super.Field
 	stype := sval.Type()
-	for i := 0; i < stype.NumField(); i++ {
+	for i := range stype.NumField() {
 		sf := stype.Field(i)
 		isUnexported := sf.PkgPath != ""
 		if sf.Anonymous {
@@ -464,7 +464,7 @@ func (m *MarshalBSUPContext) encodeSliceBytes(sliceVal reflect.Value) (super.Typ
 func (m *MarshalBSUPContext) encodeArrayBytes(arrayVal reflect.Value) (super.Type, error) {
 	n := arrayVal.Len()
 	bytes := make([]byte, 0, n)
-	for k := 0; k < n; k++ {
+	for k := range n {
 		v := arrayVal.Index(k)
 		bytes = append(bytes, v.Interface().(uint8))
 	}
@@ -476,7 +476,7 @@ func (m *MarshalBSUPContext) encodeArray(arrayVal reflect.Value) (super.Type, er
 	m.Builder.BeginContainer()
 	arrayLen := arrayVal.Len()
 	types := make([]super.Type, 0, arrayLen)
-	for i := 0; i < arrayLen; i++ {
+	for i := range arrayLen {
 		item := arrayVal.Index(i)
 		typ, err := m.encodeValue(item)
 		if err != nil {
@@ -582,7 +582,7 @@ func (m *MarshalBSUPContext) lookupType(t reflect.Type) (super.Type, error) {
 
 func (m *MarshalBSUPContext) lookupTypeRecord(structType reflect.Type) (super.Type, error) {
 	var fields []super.Field
-	for i := 0; i < structType.NumField(); i++ {
+	for i := range structType.NumField() {
 		field := structType.Field(i)
 		name := fieldName(field)
 		fieldType, err := m.lookupType(field.Type)
@@ -943,7 +943,7 @@ func (u *UnmarshalBSUPContext) decodeRecord(val super.Value, sval reflect.Value)
 	}
 	nameToField := make(map[string]int)
 	stype := sval.Type()
-	for i := 0; i < stype.NumField(); i++ {
+	for i := range stype.NumField() {
 		field := stype.Field(i)
 		name := fieldName(field)
 		nameToField[name] = i

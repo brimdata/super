@@ -161,7 +161,7 @@ func (r *RecordBuilder) Append(leaf []byte) {
 		r.builder.BeginContainer()
 	}
 	r.builder.Append(leaf)
-	for i := 0; i < field.containerEnds; i++ {
+	for range field.containerEnds {
 		r.builder.EndContainer()
 	}
 }
@@ -194,7 +194,7 @@ func (r *RecordBuilder) Type(types []Type) *TypeRecord {
 
 		current.fields = append(current.fields, Field{fi.field.Leaf(), types[i]})
 
-		for j := 0; j < fi.containerEnds; j++ {
+		for range fi.containerEnds {
 			recType := r.sctx.MustLookupTypeRecord(current.fields)
 			slen := len(stack)
 			stack = stack[:slen-1]

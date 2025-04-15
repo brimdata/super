@@ -43,7 +43,7 @@ func newScanner(ctx context.Context, sctx *super.Context, r io.Reader, pushdown 
 		workerCh:   make(chan *worker, opts.Threads+1),
 		resultChCh: make(chan chan op.Result, opts.Threads+1),
 	}
-	for i := 0; i < opts.Threads; i++ {
+	for range opts.Threads {
 		var bf *expr.BufferFilter
 		var f expr.Evaluator
 		if pushdown != nil {

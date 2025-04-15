@@ -196,7 +196,7 @@ func (o *Optimizer) OptimizeDeleter(seq dag.Seq, replicas int) (dag.Seq, error) 
 	}
 	lister.KeyPruner = maybeNewRangePruner(filter.Expr, sortKeys)
 	scatter := &dag.Scatter{Kind: "Scatter"}
-	for k := 0; k < replicas; k++ {
+	for range replicas {
 		scatter.Paths = append(scatter.Paths, copySeq(dag.Seq{deleter}))
 	}
 	var merge dag.Op
@@ -492,7 +492,7 @@ func matchFilter(seq dag.Seq) (dag.Expr, dag.Seq) {
 // inlineRecordExprSpreads transforms "{...{a}}" to "{a}".
 func inlineRecordExprSpreads(seq dag.Seq) dag.Seq {
 	walkT(reflect.ValueOf(seq), func(r *dag.RecordExpr) *dag.RecordExpr {
-		for i := 0; i < len(r.Elems); i++ {
+		for i := range r.Elems {
 			s, ok := r.Elems[i].(*dag.Spread)
 			if !ok {
 				continue

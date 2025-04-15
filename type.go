@@ -426,13 +426,13 @@ func CompareTypes(a, b Type) int {
 			return cmp
 		}
 		// Second compare field names.
-		for i := 0; i < len(ra.Fields); i++ {
+		for i := range ra.Fields {
 			if cmp := strings.Compare(ra.Fields[i].Name, rb.Fields[i].Name); cmp != 0 {
 				return cmp
 			}
 		}
 		// Lastly compare field types.
-		for i := 0; i < len(ra.Fields); i++ {
+		for i := range ra.Fields {
 			if cmp := CompareTypes(ra.Fields[i].Type, rb.Fields[i].Type); cmp != 0 {
 				return cmp
 			}
@@ -452,7 +452,7 @@ func CompareTypes(a, b Type) int {
 		if cmp := cmp.Compare(len(ua.Types), len(ub.Types)); cmp != 0 {
 			return cmp
 		}
-		for i := 0; i < len(ua.Types); i++ {
+		for i := range ua.Types {
 			if cmp := CompareTypes(ua.Types[i], ub.Types[i]); cmp != 0 {
 				return cmp
 			}
@@ -463,7 +463,7 @@ func CompareTypes(a, b Type) int {
 		if cmp := cmp.Compare(len(ea.Symbols), len(eb.Symbols)); cmp != 0 {
 			return cmp
 		}
-		for i := 0; i < len(ea.Symbols); i++ {
+		for i := range ea.Symbols {
 			if cmp := strings.Compare(ea.Symbols[i], eb.Symbols[i]); cmp != 0 {
 				return cmp
 			}

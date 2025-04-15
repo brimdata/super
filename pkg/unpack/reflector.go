@@ -233,7 +233,7 @@ func (r Reflector) unpackStruct(toVal reflect.Value, from map[string]any) error 
 	// The final pass of the JSON decoder will fill in everything else since
 	// all we can about is getting the interfaces right.
 	structType := toVal.Type()
-	for i := 0; i < structType.NumField(); i++ {
+	for i := range structType.NumField() {
 		fieldName, ok := jsonFieldName(structType.Field(i))
 		if !ok {
 			// No JSON tag on this field.

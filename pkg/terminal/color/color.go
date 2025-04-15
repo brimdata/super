@@ -61,8 +61,8 @@ func Gray(level int) Code {
 
 func Palette() string {
 	var out string
-	for i := 0; i < 16; i++ {
-		for j := 0; j < 16; j++ {
+	for i := range 16 {
+		for j := range 16 {
 			code := i*16 + j
 			out += Code(code).String()
 			out += fmt.Sprintf(" %d", code)

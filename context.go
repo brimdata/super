@@ -434,7 +434,7 @@ func (c *Context) DecodeTypeValue(tv zcode.Bytes) (Type, zcode.Bytes) {
 			return nil, nil
 		}
 		fields := make([]Field, 0, n)
-		for k := 0; k < n; k++ {
+		for range n {
 			var name string
 			name, tv = DecodeName(tv)
 			if tv == nil {
@@ -492,7 +492,7 @@ func (c *Context) DecodeTypeValue(tv zcode.Bytes) (Type, zcode.Bytes) {
 			return nil, nil
 		}
 		types := make([]Type, 0, n)
-		for k := 0; k < n; k++ {
+		for range n {
 			var typ Type
 			typ, tv = c.DecodeTypeValue(tv)
 			types = append(types, typ)
@@ -508,7 +508,7 @@ func (c *Context) DecodeTypeValue(tv zcode.Bytes) (Type, zcode.Bytes) {
 			return nil, nil
 		}
 		var symbols []string
-		for k := 0; k < n; k++ {
+		for range n {
 			var symbol string
 			symbol, tv = DecodeName(tv)
 			if tv == nil {

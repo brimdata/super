@@ -96,7 +96,7 @@ func TestAggregateStreamingSpill(t *testing.T) {
 	const uniqueIpsPerTs = 3
 
 	var data []string
-	for i := 0; i < totRecs; i++ {
+	for i := range totRecs {
 		t := i / recsPerTs
 		data = append(data, fmt.Sprintf("{ts:%s,ip:1.1.1.%d}", nano.Unix(int64(t), 0), i%uniqueIpsPerTs))
 	}

@@ -258,7 +258,7 @@ func (d *Decoder) readTypeRecord(b *buffer) error {
 		return errBadFormat
 	}
 	var fields []super.Field
-	for k := 0; k < nfields; k++ {
+	for range nfields {
 		f, err := d.readField(b)
 		if err != nil {
 			return err

@@ -248,7 +248,7 @@ func (f *Formatter) formatTypeValue(indent int, tv zcode.Bytes) zcode.Bytes {
 		}
 		sep := f.newline
 		indent += f.tab
-		for k := 0; k < n; k++ {
+		for range n {
 			f.build(sep)
 			var name string
 			name, tv = super.DecodeName(tv)
@@ -306,7 +306,7 @@ func (f *Formatter) formatTypeValue(indent int, tv zcode.Bytes) zcode.Bytes {
 		}
 		sep := f.newline
 		indent += f.tab
-		for k := 0; k < n; k++ {
+		for range n {
 			f.build(sep)
 			f.indent(indent, "")
 			tv = f.formatTypeValue(indent, tv)
@@ -322,7 +322,7 @@ func (f *Formatter) formatTypeValue(indent int, tv zcode.Bytes) zcode.Bytes {
 			f.truncTypeValueErr()
 			return nil
 		}
-		for k := 0; k < n; k++ {
+		for k := range n {
 			if k > 0 {
 				f.build(",")
 			}
@@ -537,7 +537,7 @@ func (f *Formatter) formatMap(indent int, typ *super.TypeMap, bytes zcode.Bytes,
 }
 
 func (f *Formatter) indent(tab int, s string) {
-	for k := 0; k < tab; k++ {
+	for range tab {
 		f.builder.WriteByte(' ')
 	}
 	f.build(s)

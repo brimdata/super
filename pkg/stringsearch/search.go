@@ -71,7 +71,7 @@ func NewFinder(pattern string) *Finder {
 	// The loop condition is < instead of <= so that the last byte does not
 	// have a zero distance to itself. Finding this byte out of place implies
 	// that it is not in the last position.
-	for i := 0; i < last; i++ {
+	for i := range last {
 		f.badCharSkip[pattern[i]] = last - i
 	}
 
@@ -87,7 +87,7 @@ func NewFinder(pattern string) *Finder {
 		f.goodSuffixSkip[i] = lastPrefix + last - i
 	}
 	// Second pass: find repeats of pattern's suffix starting from the front.
-	for i := 0; i < last; i++ {
+	for i := range last {
 		lenSuffix := longestCommonSuffix(pattern, pattern[1:i+1])
 		if pattern[i-lenSuffix] != pattern[last-lenSuffix] {
 			// (last-i) is the shift, and lenSuffix is len(suffix).

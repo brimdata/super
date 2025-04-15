@@ -25,7 +25,7 @@ func uniqueDir(parent, name string, tries int) (dir string, err error) {
 		ext = name[n:]
 	}
 	base := strings.TrimSuffix(name, ext)
-	for i := 0; i < tries; i++ {
+	for i := range tries {
 		if i != 0 {
 			name = fmt.Sprintf("%s_%02d%s", base, i, ext)
 		}

@@ -13,7 +13,7 @@ func TestSubSpan(t *testing.T) {
 	s := nano.Span{Ts: 0, Dur: 5*n + 1}
 
 	var ss []nano.Span
-	for i := 0; i < n; i++ {
+	for i := range n {
 		ss = append(ss, s.SubSpan(i, n))
 	}
 

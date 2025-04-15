@@ -335,7 +335,7 @@ func (s *Store) commit(ctx context.Context, fn func() error, entries ...Entry) e
 	if err := serializer.Close(); err != nil {
 		return err
 	}
-	for attempts := 0; attempts < maxRetries; attempts++ {
+	for range maxRetries {
 		if err := s.load(ctx); err != nil {
 			return err
 		}

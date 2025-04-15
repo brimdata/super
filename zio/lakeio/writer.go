@@ -135,7 +135,7 @@ func formatBranchMeta(b *bytes.Buffer, p *lake.BranchMeta, width int, headID ksu
 }
 
 func tab(b *bytes.Buffer, indent int) {
-	for k := 0; k < indent; k++ {
+	for range indent {
 		b.WriteByte(' ')
 	}
 }

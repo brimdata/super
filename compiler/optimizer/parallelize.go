@@ -126,7 +126,7 @@ func parallelizeHead(seq dag.Seq, n int, outputKeys order.SortKeys, replicas int
 		Kind:  "Scatter",
 		Paths: make([]dag.Seq, replicas),
 	}
-	for k := 0; k < replicas; k++ {
+	for k := range replicas {
 		scatter.Paths[k] = copySeq(head)
 	}
 	var merge dag.Op

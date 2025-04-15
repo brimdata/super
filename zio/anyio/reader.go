@@ -195,7 +195,7 @@ func joinErrs(errs []error) error {
 }
 
 func match(r zio.Reader, name string, want int) error {
-	for i := 0; i < want; i++ {
+	for range want {
 		val, err := r.Read()
 		if err != nil {
 			return fmt.Errorf("%s: %w", name, err)

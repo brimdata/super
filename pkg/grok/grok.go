@@ -81,7 +81,7 @@ func (h Host) compileExternal(expr string) (*Pattern, error) {
 	msi := make(map[string]int)
 	order := 1 // semantic order
 	var res string
-	for i := 0; i < len(spl)-1; i++ {
+	for i := range len(spl) - 1 {
 		splPart := spl[i]
 		order += capCount(splPart)
 		sub := subs[i]
@@ -187,7 +187,7 @@ func (p *Pattern) ParseKeyValues(input string) ([]string, []string, bool) {
 	}
 	p.valCache = p.valCache[:0]
 	p.keyCache = p.keyCache[:0]
-	for i := 0; i < len(a)/2; i++ {
+	for i := range len(a) / 2 {
 		if _, ok := p.order[i]; !ok {
 			continue
 		}

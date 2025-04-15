@@ -73,7 +73,7 @@ func formatSpanError(b *strings.Builder, line string, start, end Position) {
 
 func formatPointError(b *strings.Builder, start Position) {
 	col := start.Column - 1
-	for k := 0; k < col; k++ {
+	for k := range col {
 		if k >= col-4 && k != col-1 {
 			b.WriteByte('=')
 		} else {

@@ -23,7 +23,7 @@ func colwidth(in []string, pad int) (longest int) {
 
 func makePadding(n int, padchar byte) []byte {
 	b := make([]byte, n)
-	for k := 0; k < n; k++ {
+	for k := range n {
 		b[k] = padchar
 	}
 	return b

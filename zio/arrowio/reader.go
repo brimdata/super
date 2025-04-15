@@ -364,7 +364,7 @@ func (r *Reader) buildZcode(a arrow.Array, i int) error {
 	case arrow.STRUCT:
 		v := array.NewStructData(data)
 		b.BeginContainer()
-		for j := 0; j < v.NumField(); j++ {
+		for j := range v.NumField() {
 			if err := r.buildZcode(v.Field(j), i); err != nil {
 				return err
 			}

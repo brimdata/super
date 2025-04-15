@@ -22,7 +22,7 @@ func (f *formatter) flush() {
 
 func (f *formatter) writeTab() {
 	f.flush()
-	for k := 0; k < f.indent; k++ {
+	for range f.indent {
 		f.WriteByte(' ')
 	}
 	f.needTab = false

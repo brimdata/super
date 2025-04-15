@@ -72,7 +72,7 @@ func TestNormalizeSet(t *testing.T) {
 		b.Append(big)
 		b.BeginContainer()
 		// Append duplicate elements in reverse of set-normal order.
-		for i := 0; i < 3; i++ {
+		for range 3 {
 			b.Append(big)
 			b.Append(big)
 			b.Append(small)

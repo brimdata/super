@@ -23,7 +23,7 @@ func TestJournalConcurrent(t *testing.T) {
 	q := newQueue(ctx, t)
 	const N = 50
 	ch := make(chan error)
-	for i := 0; i < N; i++ {
+	for i := range N {
 		go func(which int) {
 			for {
 				_, err := q.Commit(ctx, []byte("hello, world"))
@@ -42,7 +42,7 @@ func TestJournalConcurrent(t *testing.T) {
 			}
 		}(i)
 	}
-	for i := 0; i < N; i++ {
+	for range N {
 		require.NoError(t, <-ch)
 	}
 }
