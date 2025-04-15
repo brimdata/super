@@ -17,8 +17,7 @@ type Union struct {
 var _ Any = (*Union)(nil)
 
 func NewUnion(typ *super.TypeUnion, tags []uint32, vals []Any, nulls bitvec.Bits) *Union {
-	d := addNullsToUnionDynamic(typ, NewDynamic(tags, vals), nulls)
-	return &Union{d, typ, nulls}
+	return &Union{NewDynamic(tags, vals), typ, nulls}
 }
 
 func (u *Union) Type() super.Type {
@@ -26,7 +25,7 @@ func (u *Union) Type() super.Type {
 }
 
 func (u *Union) Serialize(b *zcode.Builder, slot uint32) {
-	if vec := u.Values[u.Dynamic.Tags[slot]]; isUnionNullsVec(u.Typ, vec) {
+	if u.Nulls.IsSet(slot) {
 		b.Append(nil)
 		return
 	}
@@ -38,8 +37,8 @@ func (u *Union) Serialize(b *zcode.Builder, slot uint32) {
 }
 
 func Deunion(vec Any) Any {
-	if union, ok := vec.(*Union); ok {
-		return union.Dynamic
+	if u, ok := vec.(*Union); ok {
+		return addNullsToUnionDynamic(u.Typ, NewDynamic(u.Tags, u.Values), u.Nulls)
 	}
 	return vec
 }
