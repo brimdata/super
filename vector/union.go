@@ -38,7 +38,7 @@ func (u *Union) Serialize(b *zcode.Builder, slot uint32) {
 
 func Deunion(vec Any) Any {
 	if u, ok := vec.(*Union); ok {
-		return addNullsToUnionDynamic(u.Typ, NewDynamic(u.Tags, u.Values), u.Nulls)
+		return addUnionNullsToDynamic(u.Typ, NewDynamic(u.Tags, u.Values), u.Nulls)
 	}
 	return vec
 }
@@ -48,7 +48,7 @@ func isUnionNullsVec(typ *super.TypeUnion, vec Any) bool {
 	return ok && c.val.IsNull() && c.val.Type() == typ
 }
 
-func addNullsToUnionDynamic(typ *super.TypeUnion, d *Dynamic, nulls bitvec.Bits) *Dynamic {
+func addUnionNullsToDynamic(typ *super.TypeUnion, d *Dynamic, nulls bitvec.Bits) *Dynamic {
 	if nulls.IsZero() {
 		return d
 	}
