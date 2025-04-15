@@ -4,6 +4,7 @@ package expr
 
 import (
 	"bytes"
+	"fmt"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
@@ -49,6 +50,8 @@ func (c *Compare) eval(vecs ...vector.Any) vector.Any {
 	switch kind {
 	case vector.KindIP:
 		return c.compareIPs(lhs, rhs, nulls)
+	case vector.KindNet:
+		return c.compareNets(lhs, rhs, nulls)
 	case vector.KindType:
 		return c.compareTypeVals(lhs, rhs)
 	}
@@ -80,6 +83,28 @@ func (c *Compare) compareIPs(lhs, rhs vector.Any, nulls bitvec.Bits) vector.Any 
 			continue
 		}
 		if isCompareOpSatisfied(c.opCode, l.Compare(r)) {
+			out.Set(i)
+		}
+	}
+	return out
+}
+
+func (c *Compare) compareNets(lhs, rhs vector.Any, nulls bitvec.Bits) vector.Any {
+	if c.opCode != vector.CompEQ && c.opCode != vector.CompNE {
+		s := fmt.Sprintf("type net incompatible with '%s' operator", vector.CompareOpToString(c.opCode))
+		return vector.NewStringError(c.sctx, s, lhs.Len())
+	}
+	out := vector.NewBoolEmpty(lhs.Len(), nulls)
+	for i := range lhs.Len() {
+		l, null := vector.NetValue(lhs, i)
+		if null {
+			continue
+		}
+		r, null := vector.NetValue(rhs, i)
+		if null {
+			continue
+		}
+		if isCompareOpSatisfied(c.opCode, coerce.NetCompare(l, r)) {
 			out.Set(i)
 		}
 	}

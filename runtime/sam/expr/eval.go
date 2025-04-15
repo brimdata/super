@@ -274,11 +274,12 @@ func enumToIndex(ectx Context, val super.Value) super.Value {
 type Compare struct {
 	sctx *super.Context
 	numeric
-	convert func(int) bool
+	operator string
+	convert  func(int) bool
 }
 
 func NewCompareRelative(sctx *super.Context, lhs, rhs Evaluator, operator string) (*Compare, error) {
-	c := &Compare{sctx: sctx, numeric: newNumeric(sctx, lhs, rhs)}
+	c := &Compare{sctx: sctx, numeric: newNumeric(sctx, lhs, rhs), operator: operator}
 	switch operator {
 	case "<":
 		c.convert = func(v int) bool { return v < 0 }
@@ -329,6 +330,8 @@ func (c *Compare) Eval(ectx Context, this super.Value) super.Value {
 		return c.result(cmp.Compare(super.DecodeString(lhs.Bytes()), super.DecodeString(rhs.Bytes())))
 	case lid == super.IDIP:
 		return c.result(super.DecodeIP(lhs.Bytes()).Compare(super.DecodeIP(rhs.Bytes())))
+	case lid == super.IDNet:
+		return c.sctx.NewErrorf("type net incompatible with '%s' operator", c.operator)
 	default:
 		if bytes.Equal(lhs.Bytes(), rhs.Bytes()) {
 			return c.result(0)

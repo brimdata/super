@@ -17,12 +17,13 @@ const (
 	KindString  = 4
 	KindBytes   = 5
 	KindIP      = 6
-	KindType    = 7
-	KindError   = 8
-	KindArray   = 9
-	KindSet     = 10
-	KindMap     = 11
-	KindRecord  = 12
+	KindNet     = 7
+	KindType    = 8
+	KindError   = 9
+	KindArray   = 10
+	KindSet     = 11
+	KindMap     = 12
+	KindRecord  = 13
 )
 
 const (
@@ -52,6 +53,8 @@ func KindOf(v Any) Kind {
 		return KindError
 	case *IP:
 		return KindIP
+	case *Net:
+		return KindNet
 	case *TypeValue:
 		return KindType
 	case *Map:
@@ -112,6 +115,8 @@ func KindOfType(typ super.Type) Kind {
 		return KindBytes
 	case *super.TypeOfIP:
 		return KindIP
+	case *super.TypeOfNet:
+		return KindNet
 	case *super.TypeOfType:
 		return KindType
 	case *super.TypeArray:
@@ -181,6 +186,24 @@ func CompareOpFromString(op string) int {
 		return CompNE
 	}
 	panic("CompareOpFromString")
+}
+
+func CompareOpToString(op int) string {
+	switch op {
+	case CompLT:
+		return "<"
+	case CompLE:
+		return "<="
+	case CompGT:
+		return ">"
+	case CompGE:
+		return ">="
+	case CompEQ:
+		return "=="
+	case CompNE:
+		return "!="
+	}
+	panic("CompareOpToString")
 }
 
 const (
