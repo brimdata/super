@@ -104,7 +104,11 @@ func (c *Compare) compareNets(lhs, rhs vector.Any, nulls bitvec.Bits) vector.Any
 		if null {
 			continue
 		}
-		if isCompareOpSatisfied(c.opCode, coerce.NetCompare(l, r)) {
+		set := l == r
+		if c.opCode == vector.CompNE {
+			set = !set
+		}
+		if set {
 			out.Set(i)
 		}
 	}

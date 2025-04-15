@@ -2,8 +2,6 @@ package coerce
 
 import (
 	"bytes"
-	"cmp"
-	"net/netip"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/sup"
@@ -19,11 +17,11 @@ func Equal(a, b super.Value) bool {
 	}
 	switch aid, bid := a.Type().ID(), b.Type().ID(); {
 	case !super.IsNumber(aid) || !super.IsNumber(bid):
-		if aid != aid {
+		if aid != bid {
 			return false
 		}
 		if aid == super.IDNet {
-			return NetCompare(super.DecodeNet(a.Bytes()), super.DecodeNet(b.Bytes())) == 0
+			return super.DecodeNet(a.Bytes()) == super.DecodeNet(b.Bytes())
 		}
 		return bytes.Equal(a.Bytes(), b.Bytes())
 	case super.IsFloat(aid):
@@ -61,14 +59,4 @@ func ToNumeric[T constraints.Integer | constraints.Float](val super.Value) T {
 		return T(val.Float())
 	}
 	panic(sup.FormatValue(val))
-}
-
-func NetCompare(l, r netip.Prefix) int {
-	if c := cmp.Compare(l.Addr().BitLen(), l.Addr().BitLen()); c != 0 {
-		return c
-	}
-	if c := cmp.Compare(l.Bits(), r.Bits()); c != 0 {
-		return c
-	}
-	return l.Addr().Compare(r.Addr())
 }
