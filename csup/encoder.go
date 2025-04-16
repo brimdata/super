@@ -58,6 +58,8 @@ func NewEncoder(typ super.Type) Encoder {
 			enc = NewIntEncoder(typ)
 		case super.IsUnsigned(id):
 			enc = NewUintEncoder(typ)
+		case super.IsFloat(id):
+			enc = NewFloatEncoder(typ)
 		default:
 			enc = NewPrimitiveEncoder(typ)
 		}
