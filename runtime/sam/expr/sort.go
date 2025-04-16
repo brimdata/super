@@ -90,20 +90,6 @@ func (c *Comparator) sortStableIndices(vals []super.Value) []uint32 {
 
 type CompareFn func(a, b super.Value) int
 
-// NewCompareFn creates a function that compares two values a and b according to
-// nullsMax and exprs.  To compare a and b, it iterates over the elements e of
-// exprs, stopping when e(a)!=e(b).  The handling of missing and null
-// (collectively refered to as "null") values is governed by nullsMax.  If
-// nullsMax is true, a null value is considered larger than any non-null value,
-// and vice versa.
-func NewCompareFn(nullsMax bool, exprs ...Evaluator) CompareFn {
-	var sortExprs []SortEvaluator
-	for _, e := range exprs {
-		sortExprs = append(sortExprs, SortEvaluator{e, order.Asc})
-	}
-	return NewComparator(nullsMax, sortExprs...).WithMissingAsNull().Compare
-}
-
 func NewValueCompareFn(o order.Which, nullsMax bool) CompareFn {
 	e := SortEvaluator{&This{}, o}
 	return NewComparator(nullsMax, e).Compare
