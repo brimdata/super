@@ -137,5 +137,5 @@ func mergeSameTypeVecs(typ super.Type, tags []uint32, vecs []vector.Any) vector.
 		vb.Write(b.Bytes().Body())
 		counts[tag]++
 	}
-	return vb.Build()
+	return vb.Build(bitvec.Zero)
 }

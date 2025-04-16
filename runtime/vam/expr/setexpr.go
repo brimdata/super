@@ -3,6 +3,7 @@ package expr
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/bitvec"
 	"github.com/brimdata/super/zcode"
 )
 
@@ -39,5 +40,5 @@ func (a *setExpr) eval(in ...vector.Any) vector.Any {
 		}
 		vb.Write(super.NormalizeSet(b.Bytes()))
 	}
-	return vb.Build()
+	return vb.Build(bitvec.Zero)
 }

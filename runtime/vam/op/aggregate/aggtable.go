@@ -109,7 +109,7 @@ func (s *superTable) materializeKey(i int) vector.Any {
 	for _, row := range s.rows {
 		b.Write(row.keys[i].Bytes())
 	}
-	return b.Build()
+	return b.Build(bitvec.Zero)
 }
 
 func (s *superTable) materializeAgg(i int) vector.Any {
