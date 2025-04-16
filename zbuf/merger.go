@@ -6,17 +6,6 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 )
 
-func NewComparator(sctx *super.Context, sortKeys []order.SortKey) *expr.Comparator {
-	exprs := make([]expr.SortEvaluator, len(sortKeys))
-	for i, k := range sortKeys {
-		exprs[i] = expr.NewSortEvaluator(expr.NewDottedExpr(sctx, k.Key), k.Order)
-	}
-	// valueAsBytes establishes a total order.
-	exprs = append(exprs, expr.NewSortEvaluator(&valueAsBytes{}, order.Asc))
-	nullsMax := sortKeys[0].Order == order.Asc
-	return expr.NewComparator(nullsMax, exprs...).WithMissingAsNull()
-}
-
 func NewComparatorNullsMax(sctx *super.Context, sortKeys order.SortKeys) *expr.Comparator {
 	exprs := make([]expr.SortEvaluator, len(sortKeys))
 	for i, k := range sortKeys {
