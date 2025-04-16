@@ -67,7 +67,7 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	meta := newReader(r)
-	err = zio.Copy(writer, meta)
+	err = zio.CopyWithContext(ctx, writer, meta)
 	if err2 := writer.Close(); err == nil {
 		err = err2
 	}
