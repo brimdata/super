@@ -296,5 +296,21 @@ func (s *ImportStats) Copy() ImportStats {
 }
 
 func ImportComparator(sctx *super.Context, pool *Pool) *expr.Comparator {
-	return zbuf.NewComparatorNullsMax(sctx, pool.SortKeys)
+	var exprs []expr.SortEvaluator
+	for _, s := range pool.SortKeys {
+		exprs = append(exprs, expr.NewSortEvaluator(expr.NewDottedExpr(sctx, s.Key), s.Order))
+	}
+	var o order.Which
+	if !pool.SortKeys.IsNil() {
+		o = pool.SortKeys.Primary().Order
+	}
+	// valueAsBytes establishes a total order.
+	exprs = append(exprs, expr.NewSortEvaluator(&valueAsBytes{}, o))
+	return expr.NewComparator(true, exprs...).WithMissingAsNull()
+}
+
+type valueAsBytes struct{}
+
+func (v *valueAsBytes) Eval(ectx expr.Context, val super.Value) super.Value {
+	return super.NewBytes(val.Bytes())
 }
