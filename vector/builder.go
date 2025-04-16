@@ -93,7 +93,6 @@ func NewBuilder(typ super.Type) Builder {
 			case super.IDNull:
 				return &constNullBuilder{}
 			default:
-				// TypeNull?
 				panic(fmt.Sprintf("unsupported type: %T", typ))
 			}
 		}
@@ -131,11 +130,16 @@ func (n *namedBuilder) Build(nulls bitvec.Bits) Any {
 	return NewNamed(n.typ, n.Builder.Build(nulls))
 }
 
-func (n *nullsBuilder) Build(nulls bitvec.Bits) Any {
+func (n *nullsBuilder) Build(_ bitvec.Bits) Any {
+	// All nulls are propagated down the hierarchy at
+	// the builder's write time so there is no need to mix the local
+	// nulls here with the parent nulls.  We just send down
+	// the local nulls if it exists.
+	var nulls bitvec.Bits
 	if !n.nulls.IsEmpty() {
 		bits := make([]uint64, (n.n+63)/64)
 		n.nulls.WriteDenseTo(bits)
-		nulls = bitvec.Or(nulls, bitvec.New(bits, n.n)) //XXX
+		nulls = bitvec.New(bits, n.n)
 	}
 	return n.values.Build(nulls)
 }
