@@ -25,14 +25,14 @@ type Op struct {
 	resetter   expr.Resetter
 	reverse    bool
 
-	fieldResolvers []expr.SortEvaluator
+	fieldResolvers []expr.SortExpr
 	lastBatch      zbuf.Batch
 	once           sync.Once
 	resultCh       chan op.Result
 	comparator     *expr.Comparator
 }
 
-func New(rctx *runtime.Context, parent zbuf.Puller, fields []expr.SortEvaluator, nullsFirst, reverse bool, resetter expr.Resetter) *Op {
+func New(rctx *runtime.Context, parent zbuf.Puller, fields []expr.SortExpr, nullsFirst, reverse bool, resetter expr.Resetter) *Op {
 	return &Op{
 		rctx:           rctx,
 		parent:         parent,
@@ -197,11 +197,11 @@ func (o *Op) append(out []super.Value, batch zbuf.Batch) ([]super.Value, int) {
 	return out, nbytes
 }
 
-func NewComparator(sctx *super.Context, exprs []expr.SortEvaluator, nullsFirst, reverse bool, val super.Value) *expr.Comparator {
+func NewComparator(sctx *super.Context, exprs []expr.SortExpr, nullsFirst, reverse bool, val super.Value) *expr.Comparator {
 	if exprs == nil {
 		fld := GuessSortKey(val)
-		e := expr.NewSortEvaluator(expr.NewDottedExpr(sctx, fld), order.Asc)
-		exprs = []expr.SortEvaluator{e}
+		e := expr.NewSortExpr(expr.NewDottedExpr(sctx, fld), order.Asc)
+		exprs = []expr.SortExpr{e}
 	}
 	nullsMax := !nullsFirst
 	if reverse {

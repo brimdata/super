@@ -13,13 +13,13 @@ import (
 	"github.com/brimdata/super/zio"
 )
 
-type SortEvaluator struct {
+type SortExpr struct {
 	Evaluator
 	Order order.Which
 }
 
-func NewSortEvaluator(eval Evaluator, o order.Which) SortEvaluator {
-	return SortEvaluator{eval, o}
+func NewSortExpr(eval Evaluator, o order.Which) SortExpr {
+	return SortExpr{eval, o}
 }
 
 func (c *Comparator) sortStableIndices(vals []super.Value) []uint32 {
@@ -91,13 +91,13 @@ func (c *Comparator) sortStableIndices(vals []super.Value) []uint32 {
 type CompareFn func(a, b super.Value) int
 
 func NewValueCompareFn(o order.Which, nullsMax bool) CompareFn {
-	e := SortEvaluator{&This{}, o}
+	e := SortExpr{&This{}, o}
 	return NewComparator(nullsMax, e).Compare
 }
 
 type Comparator struct {
 	ectx     Context
-	exprs    []SortEvaluator
+	exprs    []SortExpr
 	nullsMax bool
 }
 
@@ -106,7 +106,7 @@ type Comparator struct {
 // exprs, stopping when e(a)!=e(b).  nullsMax determines whether a null value
 // compares larger (if true) or smaller (if false) than a non-null value.
 // reverse reverses the sense of comparisons.
-func NewComparator(nullsMax bool, exprs ...SortEvaluator) *Comparator {
+func NewComparator(nullsMax bool, exprs ...SortExpr) *Comparator {
 	return &Comparator{
 		ectx:     NewContext(),
 		exprs:    slices.Clone(exprs),

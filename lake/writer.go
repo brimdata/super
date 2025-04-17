@@ -296,16 +296,16 @@ func (s *ImportStats) Copy() ImportStats {
 }
 
 func ImportComparator(sctx *super.Context, pool *Pool) *expr.Comparator {
-	var exprs []expr.SortEvaluator
+	var exprs []expr.SortExpr
 	for _, s := range pool.SortKeys {
-		exprs = append(exprs, expr.NewSortEvaluator(expr.NewDottedExpr(sctx, s.Key), s.Order))
+		exprs = append(exprs, expr.NewSortExpr(expr.NewDottedExpr(sctx, s.Key), s.Order))
 	}
 	var o order.Which
 	if !pool.SortKeys.IsNil() {
 		o = pool.SortKeys.Primary().Order
 	}
 	// valueAsBytes establishes a total order.
-	exprs = append(exprs, expr.NewSortEvaluator(&valueAsBytes{}, o))
+	exprs = append(exprs, expr.NewSortExpr(&valueAsBytes{}, o))
 	return expr.NewComparator(true, exprs...).WithMissingAsNull()
 }
 

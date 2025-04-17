@@ -64,7 +64,7 @@ func (b *Builder) compileVam(o dag.Op, parents []vector.Puller) ([]vector.Puller
 		if err != nil {
 			return nil, err
 		}
-		cmp := expr.NewComparator(true, expr.NewSortEvaluator(e, o.Order)).WithMissingAsNull()
+		cmp := expr.NewComparator(true, expr.NewSortExpr(e, o.Order)).WithMissingAsNull()
 		return []vector.Puller{vamop.NewMerge(b.rctx, parents, cmp.Compare)}, nil
 	case *dag.Scatter:
 		return b.compileVamScatter(o, parents)
@@ -295,13 +295,13 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		return vam.NewDematerializer(zbufPuller), nil
 	case *dag.Sort:
 		b.resetResetters()
-		var sortExprs []expr.SortEvaluator
+		var sortExprs []expr.SortExpr
 		for _, s := range o.Args {
 			k, err := b.compileExpr(s.Key)
 			if err != nil {
 				return nil, err
 			}
-			sortExprs = append(sortExprs, expr.NewSortEvaluator(k, s.Order))
+			sortExprs = append(sortExprs, expr.NewSortExpr(k, s.Order))
 		}
 		return vamop.NewSort(b.rctx, parent, sortExprs, o.NullsFirst, o.Reverse, b.resetters), nil
 	case *dag.Tail:

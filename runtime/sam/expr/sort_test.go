@@ -23,7 +23,7 @@ func BenchmarkSort(b *testing.B) {
 	}
 	for _, c := range cases {
 		b.Run(sup.FormatType(c.typ), func(b *testing.B) {
-			cmp := NewComparator(false, SortEvaluator{&This{}, order.Asc})
+			cmp := NewComparator(false, SortExpr{&This{}, order.Asc})
 			vals := make([]super.Value, 1048576)
 			for b.Loop() {
 				b.StopTimer()

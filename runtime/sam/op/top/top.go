@@ -14,7 +14,7 @@ type Op struct {
 	sctx       *super.Context
 	parent     zbuf.Puller
 	limit      int
-	exprs      []expr.SortEvaluator
+	exprs      []expr.SortExpr
 	nullsFirst bool
 	reverse    bool
 	resetter   expr.Resetter
@@ -25,7 +25,7 @@ type Op struct {
 }
 
 // New returns an operator that produces the first limit
-func New(sctx *super.Context, parent zbuf.Puller, limit int, exprs []expr.SortEvaluator, nullsFirst, reverse bool, resetter expr.Resetter) *Op {
+func New(sctx *super.Context, parent zbuf.Puller, limit int, exprs []expr.SortExpr, nullsFirst, reverse bool, resetter expr.Resetter) *Op {
 	return &Op{
 		sctx:       sctx,
 		parent:     parent,

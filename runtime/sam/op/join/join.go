@@ -44,12 +44,12 @@ func New(rctx *runtime.Context, anti, inner bool, left, right zbuf.Puller, leftK
 	}
 	// Add sorts if needed.
 	if !leftDir.HasOrder(o) {
-		s := expr.NewSortEvaluator(leftKey, o)
-		left = sort.New(rctx, left, []expr.SortEvaluator{s}, false, false, resetter)
+		s := expr.NewSortExpr(leftKey, o)
+		left = sort.New(rctx, left, []expr.SortExpr{s}, false, false, resetter)
 	}
 	if !rightDir.HasOrder(o) {
-		s := expr.NewSortEvaluator(rightKey, o)
-		right = sort.New(rctx, right, []expr.SortEvaluator{s}, false, false, resetter)
+		s := expr.NewSortExpr(rightKey, o)
+		right = sort.New(rctx, right, []expr.SortExpr{s}, false, false, resetter)
 	}
 	ctx, cancel := context.WithCancel(rctx.Context)
 	return &Op{
