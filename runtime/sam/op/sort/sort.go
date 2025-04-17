@@ -201,7 +201,7 @@ func NewComparator(sctx *super.Context, exprs []expr.SortExpr, nullsFirst, rever
 	exprs = slices.Clone(exprs)
 	if exprs == nil {
 		fld := GuessSortKey(val)
-		e := expr.NewSortExpr(expr.NewDottedExpr(sctx, fld), order.Asc)
+		e := expr.NewSortExpr(expr.NewDottedExpr(sctx, fld), order.Asc, order.NullsLast)
 		exprs = []expr.SortExpr{e}
 	}
 	if reverse {

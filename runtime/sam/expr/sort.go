@@ -19,8 +19,8 @@ type SortExpr struct {
 	Nulls order.Nulls
 }
 
-func NewSortExpr(eval Evaluator, o order.Which) SortExpr {
-	return SortExpr{eval, o, o.NullsMax(true)}
+func NewSortExpr(eval Evaluator, o order.Which, n order.Nulls) SortExpr {
+	return SortExpr{eval, o, n}
 }
 
 // nullsMax reports whether s treats null as the maximum value.

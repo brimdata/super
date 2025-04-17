@@ -7,6 +7,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/dag"
+	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/vam"
@@ -64,7 +65,7 @@ func (b *Builder) compileVam(o dag.Op, parents []vector.Puller) ([]vector.Puller
 		if err != nil {
 			return nil, err
 		}
-		cmp := expr.NewComparator(expr.NewSortExpr(e, o.Order)).WithMissingAsNull()
+		cmp := expr.NewComparator(expr.NewSortExpr(e, o.Order, o.Order.NullsMax(true))).WithMissingAsNull()
 		return []vector.Puller{vamop.NewMerge(b.rctx, parents, cmp.Compare)}, nil
 	case *dag.Scatter:
 		return b.compileVamScatter(o, parents)
@@ -301,7 +302,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 			if err != nil {
 				return nil, err
 			}
-			sortExprs = append(sortExprs, expr.NewSortExpr(k, s.Order))
+			sortExprs = append(sortExprs, expr.NewSortExpr(k, s.Order, order.NullsLast))
 		}
 		return vamop.NewSort(b.rctx, parent, sortExprs, o.NullsFirst, o.Reverse, b.resetters), nil
 	case *dag.Tail:

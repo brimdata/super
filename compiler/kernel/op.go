@@ -13,6 +13,7 @@ import (
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/compiler/optimizer"
 	"github.com/brimdata/super/lake"
+	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
@@ -184,7 +185,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 			if err != nil {
 				return nil, err
 			}
-			sortExprs = append(sortExprs, expr.NewSortExpr(k, s.Order))
+			sortExprs = append(sortExprs, expr.NewSortExpr(k, s.Order, order.NullsLast))
 		}
 		return sort.New(b.rctx, parent, sortExprs, v.NullsFirst, v.Reverse, b.resetters), nil
 	case *dag.Head:
@@ -218,7 +219,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 			if err != nil {
 				return nil, err
 			}
-			sortExprs = append(sortExprs, expr.NewSortExpr(e, dagSortExpr.Order))
+			sortExprs = append(sortExprs, expr.NewSortExpr(e, dagSortExpr.Order, order.NullsLast))
 		}
 		return top.New(b.sctx(), parent, v.Limit, sortExprs, v.NullsFirst, v.Reverse, b.resetters), nil
 	case *dag.Put:
@@ -686,7 +687,7 @@ func (b *Builder) compile(o dag.Op, parents []zbuf.Puller) ([]zbuf.Puller, error
 		if err != nil {
 			return nil, err
 		}
-		cmp := expr.NewComparator(expr.NewSortExpr(e, o.Order)).WithMissingAsNull()
+		cmp := expr.NewComparator(expr.NewSortExpr(e, o.Order, o.Order.NullsMax(true))).WithMissingAsNull()
 		return []zbuf.Puller{merge.New(b.rctx, parents, cmp.Compare, b.resetters)}, nil
 	case *dag.Combine:
 		return []zbuf.Puller{combine.New(b.rctx, parents)}, nil

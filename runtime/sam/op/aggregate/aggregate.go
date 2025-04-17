@@ -81,13 +81,13 @@ func NewAggregator(ctx context.Context, sctx *super.Context, keyRefs, keyExprs, 
 	nkeys := len(keyExprs)
 	o := order.Which(inputDir < 0)
 	if nkeys > 0 && inputDir != 0 {
-		keySortExpr := expr.NewSortExpr(keyRefs[0], o)
+		keySortExpr := expr.NewSortExpr(keyRefs[0], o, o.NullsMax(true))
 		keyCompare = expr.NewComparator(keySortExpr).WithMissingAsNull().Compare
 		valueCompare = expr.NewValueCompareFn(o, true)
 	}
 	var sortExprs []expr.SortExpr
 	for _, e := range keyRefs {
-		sortExprs = append(sortExprs, expr.NewSortExpr(e, o))
+		sortExprs = append(sortExprs, expr.NewSortExpr(e, o, o.NullsMax(true)))
 	}
 	return &Aggregator{
 		ctx:            ctx,
