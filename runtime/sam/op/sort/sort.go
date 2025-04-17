@@ -198,22 +198,25 @@ func (o *Op) append(out []super.Value, batch zbuf.Batch) ([]super.Value, int) {
 }
 
 func NewComparator(sctx *super.Context, exprs []expr.SortExpr, nullsFirst, reverse bool, val super.Value) *expr.Comparator {
+	exprs = slices.Clone(exprs)
 	if exprs == nil {
 		fld := GuessSortKey(val)
 		e := expr.NewSortExpr(expr.NewDottedExpr(sctx, fld), order.Asc)
 		exprs = []expr.SortExpr{e}
 	}
-	nullsMax := !nullsFirst
 	if reverse {
-		exprs = slices.Clone(exprs)
 		for k := range exprs {
 			exprs[k].Order = !exprs[k].Order
 		}
 	}
-	if exprs[0].Order == order.Desc {
-		nullsMax = !nullsMax
+	n := order.NullsLast
+	if nullsFirst {
+		n = order.NullsFirst
 	}
-	return expr.NewComparator(nullsMax, exprs...).WithMissingAsNull()
+	for i := range exprs {
+		exprs[i].Nulls = n
+	}
+	return expr.NewComparator(exprs...).WithMissingAsNull()
 }
 
 func GuessSortKey(val super.Value) field.Path {

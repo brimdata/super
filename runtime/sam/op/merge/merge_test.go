@@ -102,7 +102,7 @@ func TestParallelOrder(t *testing.T) {
 				parents = append(parents, zbuf.NewPuller(r))
 			}
 			sortExpr := expr.NewSortExpr(expr.NewDottedExpr(sctx, field.Path{c.field}), c.order)
-			cmp := expr.NewComparator(c.order == order.Asc, sortExpr).Compare
+			cmp := expr.NewComparator(sortExpr).Compare
 			om := merge.New(context.Background(), parents, cmp, expr.Resetters{})
 
 			var sb strings.Builder

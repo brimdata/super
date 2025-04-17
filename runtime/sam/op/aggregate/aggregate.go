@@ -82,7 +82,7 @@ func NewAggregator(ctx context.Context, sctx *super.Context, keyRefs, keyExprs, 
 	o := order.Which(inputDir < 0)
 	if nkeys > 0 && inputDir != 0 {
 		keySortExpr := expr.NewSortExpr(keyRefs[0], o)
-		keyCompare = expr.NewComparator(true, keySortExpr).WithMissingAsNull().Compare
+		keyCompare = expr.NewComparator(keySortExpr).WithMissingAsNull().Compare
 		valueCompare = expr.NewValueCompareFn(o, true)
 	}
 	var sortExprs []expr.SortExpr
@@ -106,7 +106,7 @@ func NewAggregator(ctx context.Context, sctx *super.Context, keyRefs, keyExprs, 
 		table:          make(map[string]*Row),
 		recordTypes:    make(map[int]*super.TypeRecord),
 		keyCompare:     keyCompare,
-		keysComparator: expr.NewComparator(true, sortExprs...).WithMissingAsNull(),
+		keysComparator: expr.NewComparator(sortExprs...).WithMissingAsNull(),
 		valueCompare:   valueCompare,
 		partialsIn:     partialsIn,
 		partialsOut:    partialsOut,
