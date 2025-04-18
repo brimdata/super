@@ -178,9 +178,13 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 		return distinct.New(parent, e), nil
 	case *dag.Sort:
 		b.resetResetters()
-		sortExprs, err := b.compileSortExprs(v.Args, v.Reverse)
-		if err != nil {
-			return nil, err
+		var sortExprs []expr.SortExpr
+		for _, s := range v.Args {
+			k, err := b.compileExpr(s.Key)
+			if err != nil {
+				return nil, err
+			}
+			sortExprs = append(sortExprs, expr.NewSortExpr(k, s.Order))
 		}
 		return sort.New(b.rctx, parent, sortExprs, v.NullsFirst, v.Reverse, b.resetters), nil
 	case *dag.Head:
@@ -208,9 +212,13 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 		return op.NewApplier(b.rctx, parent, expr.NewFilterApplier(b.sctx(), f), b.resetters), nil
 	case *dag.Top:
 		b.resetResetters()
-		sortExprs, err := b.compileSortExprs(v.Exprs, v.Reverse)
-		if err != nil {
-			return nil, err
+		var sortExprs []expr.SortExpr
+		for _, dagSortExpr := range v.Exprs {
+			e, err := b.compileExpr(dagSortExpr.Key)
+			if err != nil {
+				return nil, err
+			}
+			sortExprs = append(sortExprs, expr.NewSortExpr(e, dagSortExpr.Order))
 		}
 		return top.New(b.sctx(), parent, v.Limit, sortExprs, v.NullsFirst, v.Reverse, b.resetters), nil
 	case *dag.Put:
