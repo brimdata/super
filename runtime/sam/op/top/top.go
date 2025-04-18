@@ -65,8 +65,10 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 
 func (o *Op) consume(rec super.Value) {
 	if o.records == nil {
-		// Package heap implements a min-heap.  Invert o.nullsFirst and o.reverse to get a max-heap.
-		o.compare = sort.NewComparator(o.sctx, o.exprs, !o.nullsFirst, !o.reverse, rec).Compare
+		if o.compare == nil {
+			// Package heap implements a min-heap.  Invert o.nullsFirst and o.reverse to get a max-heap.
+			o.compare = sort.NewComparator(o.sctx, o.exprs, !o.nullsFirst, !o.reverse, rec).Compare
+		}
 		o.records = expr.NewRecordSlice(o.compare)
 		heap.Init(o.records)
 	}
