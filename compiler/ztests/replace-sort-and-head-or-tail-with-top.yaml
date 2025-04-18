@@ -23,7 +23,7 @@ outputs:
       | output main
       ===
       null
-      | top -nulls first -r 3 a asc, b asc, c desc
+      | top -nulls first 3 a desc, b desc, c asc
       | output main
       ===
       null

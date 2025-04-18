@@ -421,7 +421,7 @@ func (c *canonDAG) op(p dag.Op) {
 	case *dag.Sort:
 		c.next()
 		c.write("sort")
-		if p.Reverse {
+		if p.Reverse && len(p.Args) == 0 {
 			c.write(" -r")
 		}
 		if p.NullsFirst {
@@ -470,7 +470,7 @@ func (c *canonDAG) op(p dag.Op) {
 		if p.NullsFirst {
 			c.write(" -nulls first")
 		}
-		if p.Reverse {
+		if p.Reverse && len(p.Exprs) == 0 {
 			c.write(" -r")
 		}
 		c.write(" %d", p.Limit)

@@ -19,5 +19,5 @@ outputs:
       top -nulls first -r 10 a, b desc, c asc
       ===
       null
-      | top -nulls first -r 10 a asc, b desc, c asc
+      | top -nulls first 10 a desc, b asc, c desc
       | output main

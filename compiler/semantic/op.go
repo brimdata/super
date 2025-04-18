@@ -369,7 +369,7 @@ func (a *analyzer) semPoolFromRegexp(patternLoc ast.Node, re, orig, which string
 	}}
 }
 
-func (a *analyzer) semSortExpr(sch schema, s ast.SortExpr) dag.SortExpr {
+func (a *analyzer) semSortExpr(sch schema, s ast.SortExpr, reverse bool) dag.SortExpr {
 	var e dag.Expr
 	if sch != nil {
 		e = a.semExprSchema(sch, s.Expr)
@@ -382,6 +382,9 @@ func (a *analyzer) semSortExpr(sch schema, s ast.SortExpr) dag.SortExpr {
 		if o, err = order.Parse(s.Order.Name); err != nil {
 			a.error(s.Order, err)
 		}
+	}
+	if reverse {
+		o = !o
 	}
 	return dag.SortExpr{Key: e, Order: o}
 }
@@ -661,13 +664,13 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 	case *ast.Sort:
 		var sortExprs []dag.SortExpr
 		for _, arg := range o.Args {
-			sortExprs = append(sortExprs, a.semSortExpr(nil, arg))
+			sortExprs = append(sortExprs, a.semSortExpr(nil, arg, o.Reverse))
 		}
 		return append(seq, &dag.Sort{
 			Kind:       "Sort",
 			Args:       sortExprs,
 			NullsFirst: o.NullsFirst,
-			Reverse:    o.Reverse,
+			Reverse:    o.Reverse && len(sortExprs) == 0,
 		})
 	case *ast.Head:
 		val := super.NewInt64(1)
@@ -746,14 +749,14 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 		}
 		var exprs []dag.SortExpr
 		for _, e := range o.Exprs {
-			exprs = append(exprs, a.semSortExpr(nil, e))
+			exprs = append(exprs, a.semSortExpr(nil, e, o.Reverse))
 		}
 		return append(seq, &dag.Top{
 			Kind:       "Top",
 			Limit:      limit,
 			Exprs:      exprs,
 			NullsFirst: o.NullsFirst,
-			Reverse:    o.Reverse,
+			Reverse:    o.Reverse && len(exprs) == 0,
 		})
 	case *ast.Put:
 		assignments := a.semAssignments(o.Args)

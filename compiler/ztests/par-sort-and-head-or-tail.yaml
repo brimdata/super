@@ -39,10 +39,10 @@ outputs:
       | scatter (
         =>
           seqscan ...
-          | top -r 3 b asc
+          | top 3 b desc
         =>
           seqscan ...
-          | top -r 3 b asc
+          | top 3 b desc
       )
       | merge b:desc
       | head 3
