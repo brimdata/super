@@ -19,7 +19,7 @@ outputs:
       | output main
       ===
       null
-      | top -nulls first -r 1
+      | top -r 1
       | output main
       ===
       null
@@ -27,7 +27,7 @@ outputs:
       | output main
       ===
       null
-      | top 3 a asc, b asc, c desc
+      | top -nulls first 3 a asc, b asc, c desc
       | output main
       ===
       null
