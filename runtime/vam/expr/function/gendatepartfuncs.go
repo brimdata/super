@@ -32,16 +32,20 @@ case *vector.View:
 	out := make([]int64, len(index))
 	for i, idx := range index {
 		v := inner.Values[idx]
-		out[i] = %s
+		out[i] = %[1]s
 	}
 	return vector.NewInt(super.TypeInt64, out, inner.Nulls.Pick(index))
+case *vector.Const:
+	v := vec.Value().Int()
+	val := super.NewInt64(%[1]s)
+	return vector.NewConst(val, vec.Len(), vec.Nulls)
 case *vector.Dict:
-    out := %s(vec.Any).(*vector.Int)
+	out := %[2]s(vec.Any).(*vector.Int)
 	return vector.NewDict(out, vec.Index, vec.Counts, vec.Nulls)
 case *vector.Int:
 	out := make([]int64, vec.Len())
 	for i, v := range vec.Values {
-		out[i] = %s
+		out[i] = %[1]s
 	}
 	return vector.NewInt(super.TypeInt64, out, vec.Nulls)
 default:
@@ -61,7 +65,7 @@ func main() {
 	fmt.Fprintln(&buf, ")")
 	for _, fn := range funcs {
 		fmt.Fprintf(&buf, "func %s(vec vector.Any) vector.Any {\n", funcName(fn.name))
-		fmt.Fprintf(&buf, datePartSwitch, fn.expr, funcName(fn.name), fn.expr)
+		fmt.Fprintf(&buf, datePartSwitch, fn.expr, funcName(fn.name))
 		fmt.Fprintf(&buf, "}\n\n")
 	}
 	buf.WriteString("var datePartFuncs = map[string]func(vector.Any)vector.Any {\n")
