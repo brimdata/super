@@ -209,12 +209,8 @@ func NewComparator(sctx *super.Context, exprs []expr.SortExpr, nullsFirst, rever
 			exprs[k].Order = !exprs[k].Order
 		}
 	}
-	n := order.NullsLast
-	if nullsFirst {
-		n = order.NullsFirst
-	}
 	for i := range exprs {
-		exprs[i].Nulls = n
+		exprs[i].Nulls = order.Nulls(nullsFirst)
 	}
 	return expr.NewComparator(exprs...).WithMissingAsNull()
 }
