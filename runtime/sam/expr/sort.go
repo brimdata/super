@@ -16,10 +16,17 @@ import (
 type SortExpr struct {
 	Evaluator
 	Order order.Which
+	Nulls order.Nulls
 }
 
-func NewSortExpr(eval Evaluator, o order.Which) SortExpr {
-	return SortExpr{eval, o}
+func NewSortExpr(eval Evaluator, o order.Which, n order.Nulls) SortExpr {
+	return SortExpr{eval, o, n}
+}
+
+// nullsMax reports whether s treats null as the maximum value.
+func (s *SortExpr) nullsMax() bool {
+	return s.Order == order.Asc && s.Nulls == order.NullsLast ||
+		s.Order == order.Desc && s.Nulls == order.NullsFirst
 }
 
 func (c *Comparator) sortStableIndices(vals []super.Value) []uint32 {
@@ -35,13 +42,14 @@ func (c *Comparator) sortStableIndices(vals []super.Value) []uint32 {
 	val0s := make([]super.Value, n)
 	ectx := NewContext()
 	native := true
+	nullsMax0 := c.exprs[0].nullsMax()
 	for i := range indices {
 		indices[i] = uint32(i)
 		val := c.exprs[0].Eval(ectx, vals[i])
 		val0s[i] = val
 		if id := val.Type().ID(); id <= super.IDTime {
 			if val.IsNull() {
-				if c.nullsMax {
+				if nullsMax0 {
 					i64s[i] = math.MaxInt64
 				} else {
 					i64s[i] = math.MinInt64
@@ -79,7 +87,7 @@ func (c *Comparator) sortStableIndices(vals []super.Value) []uint32 {
 				ival = expr.Eval(ectx, vals[iidx])
 				jval = expr.Eval(ectx, vals[jidx])
 			}
-			if v := compareValues(ival, jval, c.nullsMax); v != 0 {
+			if v := compareValues(ival, jval, expr.nullsMax()); v != 0 {
 				return v < 0
 			}
 		}
@@ -91,27 +99,18 @@ func (c *Comparator) sortStableIndices(vals []super.Value) []uint32 {
 type CompareFn func(a, b super.Value) int
 
 func NewValueCompareFn(o order.Which, nullsMax bool) CompareFn {
-	e := SortExpr{&This{}, o}
-	return NewComparator(nullsMax, e).Compare
+	return NewComparator(SortExpr{&This{}, o, o.NullsMax(nullsMax)}).Compare
 }
 
 type Comparator struct {
-	ectx     Context
-	exprs    []SortExpr
-	nullsMax bool
+	ectx  Context
+	exprs []SortExpr
 }
 
-// NewComparator returns a super.Value comparator for exprs according to nullsMax
-// and reverse.  To compare values a and b, it iterates over the elements e of
-// exprs, stopping when e(a)!=e(b).  nullsMax determines whether a null value
-// compares larger (if true) or smaller (if false) than a non-null value.
-// reverse reverses the sense of comparisons.
-func NewComparator(nullsMax bool, exprs ...SortExpr) *Comparator {
-	return &Comparator{
-		ectx:     NewContext(),
-		exprs:    slices.Clone(exprs),
-		nullsMax: nullsMax,
-	}
+// NewComparator returns a super.Value comparator for exprs.  To compare values
+// a and b, it iterates over the elements e of exprs, stopping when e(a)!=e(b).
+func NewComparator(exprs ...SortExpr) *Comparator {
+	return &Comparator{NewContext(), slices.Clone(exprs)}
 }
 
 // WithMissingAsNull returns the receiver after modifying it to treat missing
@@ -142,7 +141,7 @@ func (c *Comparator) Compare(a, b super.Value) int {
 		if k.Order == order.Desc {
 			aval, bval = bval, aval
 		}
-		if v := compareValues(aval, bval, c.nullsMax); v != 0 {
+		if v := compareValues(aval, bval, k.nullsMax()); v != 0 {
 			return v
 		}
 	}

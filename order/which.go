@@ -41,6 +41,14 @@ func (w Which) Direction() Direction {
 	return Up
 }
 
+// NullsMax returns the Nulls value corresponding to w and nullsMax.
+func (w Which) NullsMax(nullsMax bool) Nulls {
+	if w == Asc && nullsMax || w == Desc && !nullsMax {
+		return NullsLast
+	}
+	return NullsFirst
+}
+
 func (w Which) MarshalJSON() ([]byte, error) {
 	return json.Marshal(w.String())
 }

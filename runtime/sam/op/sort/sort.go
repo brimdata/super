@@ -203,10 +203,12 @@ func NewComparator(sctx *super.Context, exprs []expr.SortExpr, nullsFirst bool, 
 		if guessReverse {
 			o = order.Desc
 		}
-		exprs = []expr.SortExpr{expr.NewSortExpr(e, o)}
+		exprs = []expr.SortExpr{expr.NewSortExpr(e, o, order.NullsLast)}
 	}
-	nullsMax := exprs[0].Order == order.Asc && !nullsFirst || exprs[0].Order == order.Desc && nullsFirst
-	return expr.NewComparator(nullsMax, exprs...).WithMissingAsNull()
+	for i := range exprs {
+		exprs[i].Nulls = order.Nulls(nullsFirst)
+	}
+	return expr.NewComparator(exprs...).WithMissingAsNull()
 }
 
 func GuessSortKey(val super.Value) field.Path {
