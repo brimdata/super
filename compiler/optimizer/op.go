@@ -27,9 +27,9 @@ func (o *Optimizer) analyzeSortKeys(op dag.Op, in order.SortKeys) (order.SortKey
 		}
 		return pool.SortKeys, nil
 	case *dag.Sort:
-		return sortKeysOfSortExprs(op.Args, op.Reverse), nil
+		return sortKeysOfSortExprs(op.Args), nil
 	case *dag.Top:
-		return sortKeysOfSortExprs(op.Exprs, op.Reverse), nil
+		return sortKeysOfSortExprs(op.Exprs), nil
 	}
 	// We should handle secondary keys at some point.
 	// See issue #2657.
@@ -78,7 +78,7 @@ func (o *Optimizer) analyzeSortKeys(op dag.Op, in order.SortKeys) (order.SortKey
 	}
 }
 
-func sortKeysOfSortExprs(exprs []dag.SortExpr, reverse bool) order.SortKeys {
+func sortKeysOfSortExprs(exprs []dag.SortExpr) order.SortKeys {
 	// XXX Only single sort keys.  See issue #2657.
 	if len(exprs) != 1 {
 		return nil
@@ -86,9 +86,6 @@ func sortKeysOfSortExprs(exprs []dag.SortExpr, reverse bool) order.SortKeys {
 	key, ok := sortKeyOfExpr(exprs[0].Key, exprs[0].Order)
 	if !ok {
 		return nil
-	}
-	if reverse {
-		key.Order = !key.Order
 	}
 	return order.SortKeys{key}
 }

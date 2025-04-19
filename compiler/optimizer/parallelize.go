@@ -205,7 +205,7 @@ func (o *Optimizer) liftIntoParPaths(seq dag.Seq) {
 			op.Keys[k].RHS = op.Keys[k].LHS
 		}
 	case *dag.Sort:
-		merge, ok := canLiftSortOrTopIntoParPaths(merge, op.Args, op.Reverse)
+		merge, ok := canLiftSortOrTopIntoParPaths(merge, op.Args)
 		if !ok {
 			return
 		}
@@ -217,7 +217,7 @@ func (o *Optimizer) liftIntoParPaths(seq dag.Seq) {
 			paths[k].Append(copyOp(op))
 		}
 	case *dag.Top:
-		merge, ok := canLiftSortOrTopIntoParPaths(merge, op.Exprs, op.Reverse)
+		merge, ok := canLiftSortOrTopIntoParPaths(merge, op.Exprs)
 		if !ok || egress < 2 {
 			return
 		}
@@ -268,7 +268,7 @@ func parallelPaths(op dag.Op) ([]dag.Seq, bool) {
 	return nil, false
 }
 
-func canLiftSortOrTopIntoParPaths(merge *dag.Merge, sortExprs []dag.SortExpr, reverse bool) (*dag.Merge, bool) {
+func canLiftSortOrTopIntoParPaths(merge *dag.Merge, sortExprs []dag.SortExpr) (*dag.Merge, bool) {
 	if len(sortExprs) != 1 {
 		return nil, false
 	}
@@ -286,7 +286,7 @@ func canLiftSortOrTopIntoParPaths(merge *dag.Merge, sortExprs []dag.SortExpr, re
 		// doing an expression comparison. See issue #4524.
 		return nil, false
 	}
-	sortKey := sortKeysOfSortExprs(sortExprs, reverse)
+	sortKey := sortKeysOfSortExprs(sortExprs)
 	return merge, sortKey.Equal(order.SortKeys{mergeKey})
 }
 
@@ -316,7 +316,7 @@ func (o *Optimizer) concurrentPath(seq dag.Seq, sortKeys order.SortKeys) (length
 			}
 			return k, nil, false, nil
 		case *dag.Sort:
-			newKeys := sortKeysOfSortExprs(op.Args, op.Reverse)
+			newKeys := sortKeysOfSortExprs(op.Args)
 			if newKeys.IsNil() {
 				// No analysis for sort without expression since we can't
 				// parallelize the heuristic.  We should revisit these semantics
@@ -325,7 +325,7 @@ func (o *Optimizer) concurrentPath(seq dag.Seq, sortKeys order.SortKeys) (length
 			}
 			return k, newKeys, false, nil
 		case *dag.Top:
-			newKeys := sortKeysOfSortExprs(op.Exprs, op.Reverse)
+			newKeys := sortKeysOfSortExprs(op.Exprs)
 			if newKeys.IsNil() {
 				// No analysis for top without expression since we can't
 				// parallelize the heuristic.

@@ -376,7 +376,7 @@ func (a *analyzer) semSQLOp(op ast.Op, seq dag.Seq) (dag.Seq, schema) {
 		out, schema := a.semSQLOp(op.Op, seq)
 		var exprs []dag.SortExpr
 		for _, e := range op.Exprs {
-			exprs = append(exprs, a.semSortExpr(schema, e))
+			exprs = append(exprs, a.semSortExpr(schema, e, false))
 		}
 		return append(out, &dag.Sort{
 			Kind:       "Sort",

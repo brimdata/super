@@ -9,22 +9,12 @@ import (
 )
 
 type Metadata interface {
-	Type(*Context, *super.Context) super.Type
 	Len(*Context) uint32
 }
 
 type Record struct {
 	Length uint32
 	Fields []Field
-}
-
-func (r *Record) Type(cctx *Context, sctx *super.Context) super.Type {
-	fields := make([]super.Field, 0, len(r.Fields))
-	for _, field := range r.Fields {
-		typ := cctx.Lookup(field.Values).Type(cctx, sctx)
-		fields = append(fields, super.NewField(field.Name, typ))
-	}
-	return sctx.MustLookupTypeRecord(fields)
 }
 
 func (r *Record) Len(*Context) uint32 {
@@ -64,19 +54,11 @@ type Array struct {
 	Values  ID
 }
 
-func (a *Array) Type(cctx *Context, sctx *super.Context) super.Type {
-	return sctx.LookupTypeArray(cctx.Lookup(a.Values).Type(cctx, sctx))
-}
-
 func (a *Array) Len(*Context) uint32 {
 	return a.Length
 }
 
 type Set Array
-
-func (s *Set) Type(cctx *Context, sctx *super.Context) super.Type {
-	return sctx.LookupTypeSet(cctx.Lookup(s.Values).Type(cctx, sctx))
-}
 
 func (s *Set) Len(*Context) uint32 {
 	return s.Length
@@ -89,12 +71,6 @@ type Map struct {
 	Values  ID
 }
 
-func (m *Map) Type(cctx *Context, sctx *super.Context) super.Type {
-	keyType := cctx.Lookup(m.Keys).Type(cctx, sctx)
-	valType := cctx.Lookup(m.Values).Type(cctx, sctx)
-	return sctx.LookupTypeMap(keyType, valType)
-}
-
 func (m *Map) Len(*Context) uint32 {
 	return m.Length
 }
@@ -103,14 +79,6 @@ type Union struct {
 	Length uint32
 	Tags   Segment
 	Values []ID
-}
-
-func (u *Union) Type(cctx *Context, sctx *super.Context) super.Type {
-	types := make([]super.Type, 0, len(u.Values))
-	for _, value := range u.Values {
-		types = append(types, cctx.Lookup(value).Type(cctx, sctx))
-	}
-	return sctx.LookupTypeUnion(types)
 }
 
 func (u *Union) Len(*Context) uint32 {
@@ -122,24 +90,12 @@ type Named struct {
 	Values ID
 }
 
-func (n *Named) Type(cctx *Context, sctx *super.Context) super.Type {
-	t, err := sctx.LookupTypeNamed(n.Name, cctx.Lookup(n.Values).Type(cctx, sctx))
-	if err != nil {
-		panic(err)
-	}
-	return t
-}
-
 func (n *Named) Len(cctx *Context) uint32 {
 	return cctx.Lookup(n.Values).Len(cctx)
 }
 
 type Error struct {
 	Values ID
-}
-
-func (e *Error) Type(cctx *Context, sctx *super.Context) super.Type {
-	return sctx.LookupTypeError(cctx.Lookup(e.Values).Type(cctx, sctx))
 }
 
 func (e *Error) Len(cctx *Context) uint32 {
@@ -216,10 +172,6 @@ type Nulls struct {
 	Count  uint32 // Count of nulls
 }
 
-func (n *Nulls) Type(cctx *Context, sctx *super.Context) super.Type {
-	return cctx.Lookup(n.Values).Type(cctx, sctx)
-}
-
 func (n *Nulls) Len(cctx *Context) uint32 {
 	return n.Count + cctx.Lookup(n.Values).Len(cctx)
 }
@@ -246,10 +198,6 @@ type Dict struct {
 	Counts Segment
 	Index  Segment
 	Length uint32
-}
-
-func (d *Dict) Type(cctx *Context, sctx *super.Context) super.Type {
-	return cctx.Lookup(d.Values).Type(cctx, sctx)
 }
 
 func (d *Dict) Len(*Context) uint32 {

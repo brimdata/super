@@ -1,7 +1,6 @@
 package sort
 
 import (
-	"slices"
 	"sync"
 
 	"github.com/brimdata/super"
@@ -19,11 +18,11 @@ import (
 var MemMaxBytes = 128 * 1024 * 1024
 
 type Op struct {
-	rctx       *runtime.Context
-	parent     zbuf.Puller
-	nullsFirst bool
-	resetter   expr.Resetter
-	reverse    bool
+	rctx         *runtime.Context
+	parent       zbuf.Puller
+	nullsFirst   bool
+	resetter     expr.Resetter
+	guessReverse bool
 
 	fieldResolvers []expr.SortExpr
 	lastBatch      zbuf.Batch
@@ -32,13 +31,13 @@ type Op struct {
 	comparator     *expr.Comparator
 }
 
-func New(rctx *runtime.Context, parent zbuf.Puller, fields []expr.SortExpr, nullsFirst, reverse bool, resetter expr.Resetter) *Op {
+func New(rctx *runtime.Context, parent zbuf.Puller, fields []expr.SortExpr, nullsFirst, guessReverse bool, resetter expr.Resetter) *Op {
 	return &Op{
 		rctx:           rctx,
 		parent:         parent,
 		nullsFirst:     nullsFirst,
 		resetter:       resetter,
-		reverse:        reverse,
+		guessReverse:   guessReverse,
 		fieldResolvers: fields,
 		resultCh:       make(chan op.Result),
 	}
@@ -121,7 +120,7 @@ func (o *Op) run() {
 		var delta int
 		out, delta = o.append(out, batch)
 		if o.comparator == nil && len(out) > 0 {
-			o.comparator = NewComparator(o.rctx.Sctx, o.fieldResolvers, o.nullsFirst, o.reverse, out[0])
+			o.comparator = NewComparator(o.rctx.Sctx, o.fieldResolvers, o.nullsFirst, out[0], o.guessReverse)
 		}
 		nbytes += delta
 		if nbytes < MemMaxBytes {
@@ -197,17 +196,14 @@ func (o *Op) append(out []super.Value, batch zbuf.Batch) ([]super.Value, int) {
 	return out, nbytes
 }
 
-func NewComparator(sctx *super.Context, exprs []expr.SortExpr, nullsFirst, reverse bool, val super.Value) *expr.Comparator {
-	exprs = slices.Clone(exprs)
-	if exprs == nil {
-		fld := GuessSortKey(val)
-		e := expr.NewSortExpr(expr.NewDottedExpr(sctx, fld), order.Asc, order.NullsLast)
-		exprs = []expr.SortExpr{e}
-	}
-	if reverse {
-		for k := range exprs {
-			exprs[k].Order = !exprs[k].Order
+func NewComparator(sctx *super.Context, exprs []expr.SortExpr, nullsFirst bool, guessVal super.Value, guessReverse bool) *expr.Comparator {
+	if len(exprs) == 0 {
+		e := expr.NewDottedExpr(sctx, GuessSortKey(guessVal))
+		o := order.Asc
+		if guessReverse {
+			o = order.Desc
 		}
+		exprs = []expr.SortExpr{expr.NewSortExpr(e, o, order.NullsLast)}
 	}
 	for i := range exprs {
 		exprs[i].Nulls = order.Nulls(nullsFirst)

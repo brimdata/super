@@ -1,0 +1,13 @@
+spq: over this => (top 2)
+
+vector: true
+
+input: |
+  [{a:1},{a:2}]
+  [{b:22,a:1},{b:11,a:2}]
+
+output: |
+  {a:1}
+  {a:2}
+  {b:22,a:1}
+  {b:11,a:2}

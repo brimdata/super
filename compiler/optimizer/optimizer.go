@@ -656,16 +656,17 @@ func replaceSortAndHeadOrTailWithTop(seq dag.Seq) dag.Seq {
 				continue
 			}
 			var limit int
-			var nullsFirst, reverse bool
+			exprs := sort.Args
+			reverse := sort.Reverse
 			switch op := seq[i+1].(type) {
 			case *dag.Head:
 				limit = op.Count
-				nullsFirst = sort.NullsFirst
-				reverse = sort.Reverse
 			case *dag.Tail:
 				limit = op.Count
-				nullsFirst = !sort.NullsFirst
-				reverse = !sort.Reverse
+				for i, e := range exprs {
+					exprs[i].Order = !e.Order
+				}
+				reverse = !reverse
 			default:
 				continue
 			}
@@ -677,9 +678,9 @@ func replaceSortAndHeadOrTailWithTop(seq dag.Seq) dag.Seq {
 			seq[i] = &dag.Top{
 				Kind:       "Top",
 				Limit:      limit,
-				Exprs:      sort.Args,
-				NullsFirst: nullsFirst,
-				Reverse:    reverse,
+				Exprs:      exprs,
+				NullsFirst: sort.NullsFirst,
+				Reverse:    reverse && len(exprs) == 0,
 			}
 			seq.Delete(i+1, i+2)
 		}
