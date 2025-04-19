@@ -48,12 +48,14 @@ func (i *IntEncoder) reset() {
 
 func (i *IntEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
 	loc := Segment{
-		Offset:            off,
+		Offset: off,
+		Length: uint64(len(i.out)),
+		// MemLength is the same as Length since we don't use generalized
+		// compression here.
 		MemLength:         uint64(len(i.out)),
-		Length:            uint64(len(i.vals)) * 8,
 		CompressionFormat: CompressionFormatNone,
 	}
-	off += loc.MemLength
+	off += loc.Length
 	return off, cctx.enter(&Int{
 		Typ:      i.typ,
 		Location: loc,
@@ -107,12 +109,14 @@ func (i *UintEncoder) reset() {
 
 func (u *UintEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
 	loc := Segment{
-		Offset:            off,
+		Offset: off,
+		Length: uint64(len(u.out)),
+		// MemLength is the same as Length since we don't use generalized
+		// compression here.
 		MemLength:         uint64(len(u.out)),
-		Length:            uint64(len(u.vals)) * 8,
 		CompressionFormat: CompressionFormatNone,
 	}
-	off += loc.MemLength
+	off += loc.Length
 	return off, cctx.enter(&Uint{
 		Typ:      u.typ,
 		Location: loc,
