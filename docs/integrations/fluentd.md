@@ -22,7 +22,7 @@ Linux 24.04. At the time this article was written, the following versions
 were used for the referenced software:
 
 * [Fluentd v1.17.0](https://github.com/fluent/fluentd/releases/tag/v1.17.0)
-* [Zed v1.17.0](https://github.com/brimdata/super/releases/tag/v1.17.0)
+* [Zed v1.17.0](https://github.com/brimdata/super/commit/c81efd6a868a855ed6b7de983491b5f3a5832d19)
 * [Zeek v6.2.1](https://github.com/zeek/zeek/releases/tag/v6.2.1)
 
 ### Zeek
@@ -57,7 +57,7 @@ After making these changes, Zeek was started by running
 
 ### Zed
 
-A binary [release package](https://github.com/brimdata/super/releases) of Zed
+A binary [release package](https://github.com/brimdata/zed-archive/releases) of Zed
 executables compatible with our instance was downloaded and unpacked to a
 directory in our `$PATH`, then the [lake service](../commands/super-db.md#serve)
 was started with a specified storage path.
