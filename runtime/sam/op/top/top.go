@@ -11,13 +11,13 @@ import (
 
 // Top produces the first N values that sort would produce with the same arguments.
 type Op struct {
-	sctx         *super.Context
-	parent       zbuf.Puller
-	limit        int
-	exprs        []expr.SortExpr
-	nullsFirst   bool
-	guessReverse bool
-	resetter     expr.Resetter
+	sctx            *super.Context
+	parent          zbuf.Puller
+	limit           int
+	exprs           []expr.SortExpr
+	guessNullsFirst bool
+	guessReverse    bool
+	resetter        expr.Resetter
 
 	eos     bool
 	records *expr.RecordSlice
@@ -25,15 +25,15 @@ type Op struct {
 }
 
 // New returns an operator that produces the first limit
-func New(sctx *super.Context, parent zbuf.Puller, limit int, exprs []expr.SortExpr, nullsFirst, guessReverse bool, resetter expr.Resetter) *Op {
+func New(sctx *super.Context, parent zbuf.Puller, limit int, exprs []expr.SortExpr, guessNullsFirst, guessReverse bool, resetter expr.Resetter) *Op {
 	return &Op{
-		sctx:         sctx,
-		parent:       parent,
-		limit:        limit,
-		exprs:        exprs,
-		nullsFirst:   nullsFirst,
-		guessReverse: guessReverse,
-		resetter:     resetter,
+		sctx:            sctx,
+		parent:          parent,
+		limit:           limit,
+		exprs:           exprs,
+		guessNullsFirst: guessNullsFirst,
+		guessReverse:    guessReverse,
+		resetter:        resetter,
 	}
 }
 
@@ -66,7 +66,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 func (o *Op) consume(rec super.Value) {
 	if o.records == nil {
 		if o.compare == nil {
-			comparator := sort.NewComparator(o.sctx, o.exprs, o.nullsFirst, rec, o.guessReverse)
+			comparator := sort.NewComparator(o.sctx, o.exprs, rec, o.guessNullsFirst, o.guessReverse)
 			// package heap implements a min-heap.  Invert the comparison result to get a max-heap.
 			o.compare = func(a, b super.Value) int { return comparator.Compare(a, b) * -1 }
 		}
