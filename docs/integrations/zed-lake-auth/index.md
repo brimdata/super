@@ -151,7 +151,7 @@ Now that we've configured both Auth0 and the Zed lake service, we can test the
 authenticated login flow with our Zed clients. The video below shows this
 using [Zui v1.0.0](https://github.com/brimdata/zui/releases/tag/v1.0.0)
 and the Zed CLI tooling and Zed Python client
-[v1.6.0](https://github.com/brimdata/super/releases/tag/v1.6.0).
+[v1.6.0](https://github.com/brimdata/super/commit/6e15e99971b2c3f5ebb447457c18a7cad4ebe09a).
 
 ### Summary:
 
