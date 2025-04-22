@@ -185,9 +185,9 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 			if err != nil {
 				return nil, err
 			}
-			sortExprs = append(sortExprs, expr.NewSortExpr(k, s.Order, order.Nulls(v.GuessNullsFirst)))
+			sortExprs = append(sortExprs, expr.NewSortExpr(k, s.Order, order.Nulls(v.NullsFirst)))
 		}
-		return sort.New(b.rctx, parent, sortExprs, v.GuessNullsFirst, v.GuessReverse, b.resetters), nil
+		return sort.New(b.rctx, parent, sortExprs, v.NullsFirst, v.Reverse, b.resetters), nil
 	case *dag.Head:
 		limit := v.Count
 		if limit == 0 {
@@ -219,9 +219,9 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 			if err != nil {
 				return nil, err
 			}
-			sortExprs = append(sortExprs, expr.NewSortExpr(e, dagSortExpr.Order, order.Nulls(v.GuessNullsFirst)))
+			sortExprs = append(sortExprs, expr.NewSortExpr(e, dagSortExpr.Order, order.Nulls(v.NullsFirst)))
 		}
-		return top.New(b.sctx(), parent, v.Limit, sortExprs, v.GuessNullsFirst, v.GuessReverse, b.resetters), nil
+		return top.New(b.sctx(), parent, v.Limit, sortExprs, v.NullsFirst, v.Reverse, b.resetters), nil
 	case *dag.Put:
 		b.resetResetters()
 		clauses, err := b.compileAssignments(v.Args)

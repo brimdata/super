@@ -139,10 +139,10 @@ type (
 		Kind string `json:"kind" unpack:""`
 	}
 	Sort struct {
-		Kind            string     `json:"kind" unpack:""`
-		Args            []SortExpr `json:"args"`
-		GuessNullsFirst bool       `json:"guess_nullsfirst"`
-		GuessReverse    bool       `json:"guess_reverse"`
+		Kind       string     `json:"kind" unpack:""`
+		Args       []SortExpr `json:"args"`
+		NullsFirst bool       `json:"nullsfirst"`
+		Reverse    bool       `json:"reverse"` // Always false if len(Args)>0.
 	}
 	Switch struct {
 		Kind  string `json:"kind" unpack:""`
@@ -154,11 +154,11 @@ type (
 		Count int    `json:"count"`
 	}
 	Top struct {
-		Kind            string     `json:"kind" unpack:""`
-		Limit           int        `json:"limit"`
-		Exprs           []SortExpr `json:"exprs"`
-		GuessNullsFirst bool       `json:"guess_nullsfirst"`
-		GuessReverse    bool       `json:"guess_reverse"`
+		Kind       string     `json:"kind" unpack:""`
+		Limit      int        `json:"limit"`
+		Exprs      []SortExpr `json:"exprs"`
+		NullsFirst bool       `json:"nullsfirst"`
+		Reverse    bool       `json:"reverse"` // Always false if len(Exprs)>0.
 	}
 	Uniq struct {
 		Kind  string `json:"kind" unpack:""`

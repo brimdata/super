@@ -657,7 +657,7 @@ func replaceSortAndHeadOrTailWithTop(seq dag.Seq) dag.Seq {
 			}
 			var limit int
 			exprs := sort.Args
-			reverse := sort.GuessReverse
+			reverse := sort.Reverse
 			switch op := seq[i+1].(type) {
 			case *dag.Head:
 				limit = op.Count
@@ -676,11 +676,11 @@ func replaceSortAndHeadOrTailWithTop(seq dag.Seq) dag.Seq {
 				continue
 			}
 			seq[i] = &dag.Top{
-				Kind:            "Top",
-				Limit:           limit,
-				Exprs:           exprs,
-				GuessNullsFirst: sort.GuessNullsFirst,
-				GuessReverse:    reverse && len(exprs) == 0,
+				Kind:       "Top",
+				Limit:      limit,
+				Exprs:      exprs,
+				NullsFirst: sort.NullsFirst,
+				Reverse:    reverse && len(exprs) == 0,
 			}
 			seq.Delete(i+1, i+2)
 		}
