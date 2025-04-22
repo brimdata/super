@@ -421,10 +421,10 @@ func (c *canonDAG) op(p dag.Op) {
 	case *dag.Sort:
 		c.next()
 		c.write("sort")
-		if p.Reverse {
+		if p.GuessReverse {
 			c.write(" -r")
 		}
-		if p.NullsFirst {
+		if p.GuessNullsFirst {
 			c.write(" -nulls first")
 		}
 		c.sortExprs(p.Args)
@@ -467,10 +467,10 @@ func (c *canonDAG) op(p dag.Op) {
 	case *dag.Top:
 		c.next()
 		c.write("top")
-		if p.NullsFirst {
+		if p.GuessNullsFirst {
 			c.write(" -nulls first")
 		}
-		if p.Reverse {
+		if p.GuessReverse {
 			c.write(" -r")
 		}
 		c.write(" %d", p.Limit)

@@ -379,10 +379,10 @@ func (a *analyzer) semSQLOp(op ast.Op, seq dag.Seq) (dag.Seq, schema) {
 			exprs = append(exprs, a.semSortExpr(schema, e, false))
 		}
 		return append(out, &dag.Sort{
-			Kind:       "Sort",
-			Args:       exprs,
-			NullsFirst: nullsFirst,
-			Reverse:    false, //XXX this should go away
+			Kind:            "Sort",
+			Args:            exprs,
+			GuessNullsFirst: nullsFirst,
+			GuessReverse:    false, //XXX this should go away
 		}), schema
 	case *ast.Limit:
 		e := a.semExpr(op.Count)
