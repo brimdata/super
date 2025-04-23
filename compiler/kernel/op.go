@@ -185,7 +185,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 			if err != nil {
 				return nil, err
 			}
-			sortExprs = append(sortExprs, expr.NewSortExpr(k, s.Order, order.Nulls(v.NullsFirst)))
+			sortExprs = append(sortExprs, expr.NewSortExpr(k, s.Order, order.NullsLast))
 		}
 		return sort.New(b.rctx, parent, sortExprs, v.NullsFirst, v.Reverse, b.resetters), nil
 	case *dag.Head:
@@ -219,7 +219,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 			if err != nil {
 				return nil, err
 			}
-			sortExprs = append(sortExprs, expr.NewSortExpr(e, dagSortExpr.Order, order.Nulls(v.NullsFirst)))
+			sortExprs = append(sortExprs, expr.NewSortExpr(e, dagSortExpr.Order, order.NullsLast))
 		}
 		return top.New(b.sctx(), parent, v.Limit, sortExprs, v.NullsFirst, v.Reverse, b.resetters), nil
 	case *dag.Put:

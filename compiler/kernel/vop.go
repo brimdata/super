@@ -302,7 +302,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 			if err != nil {
 				return nil, err
 			}
-			sortExprs = append(sortExprs, expr.NewSortExpr(k, s.Order, order.Nulls(o.NullsFirst)))
+			sortExprs = append(sortExprs, expr.NewSortExpr(k, s.Order, order.NullsLast))
 		}
 		return vamop.NewSort(b.rctx, parent, sortExprs, o.NullsFirst, o.Reverse, b.resetters), nil
 	case *dag.Tail:
