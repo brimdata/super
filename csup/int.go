@@ -42,10 +42,6 @@ func (i *IntEncoder) Encode(group *errgroup.Group) {
 	})
 }
 
-func (i *IntEncoder) reset() {
-	i.vals, i.min, i.max = nil, 0, 0
-}
-
 func (i *IntEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
 	loc := Segment{
 		Offset:            off,
@@ -99,10 +95,6 @@ func (u *UintEncoder) Encode(group *errgroup.Group) {
 		u.out = byteconv.ReinterpretSlice[byte](compressed)
 		return nil
 	})
-}
-
-func (i *UintEncoder) reset() {
-	i.vals, i.min, i.max = nil, 0, 0
 }
 
 func (u *UintEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {

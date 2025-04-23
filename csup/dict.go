@@ -18,9 +18,6 @@ type DictEncoder struct {
 }
 
 func NewDictEncoder(typ super.Type, values Encoder) *DictEncoder {
-	if _, ok := values.(resetter); !ok {
-		panic("Dict values encoder must be resettable")
-	}
 	var tags map[string]byte
 	if id := typ.ID(); id != super.IDUint8 && id != super.IDInt8 && id != super.IDBool {
 		// Don't bother using a dictionary (which takes 8-bit tags) to encode
@@ -87,7 +84,7 @@ func (d *DictEncoder) encodeValues(group *errgroup.Group) {
 	for key, tag := range d.tags {
 		byteSlices[tag] = zcode.Bytes(key)
 	}
-	d.values.(resetter).reset()
+	d.values = newPrimitiveEncoder(d.typ)
 	for _, v := range byteSlices {
 		d.values.Write(v)
 	}

@@ -33,10 +33,6 @@ func NewPrimitiveEncoder(typ super.Type) *PrimitiveEncoder {
 	}
 }
 
-func (p *PrimitiveEncoder) reset() {
-	p.bytes, p.min, p.max, p.count = nil, nil, nil, 0
-}
-
 func (p *PrimitiveEncoder) Write(body zcode.Bytes) {
 	p.update(body)
 	p.bytes = zcode.Append(p.bytes, body)

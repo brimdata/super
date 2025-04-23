@@ -42,10 +42,6 @@ func (f *FloatEncoder) Encode(group *errgroup.Group) {
 	})
 }
 
-func (f *FloatEncoder) reset() {
-	f.vals, f.min, f.max = nil, 0, 0
-}
-
 func (u *FloatEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
 	loc := Segment{
 		Offset:            off,

@@ -52,23 +52,21 @@ func NewEncoder(typ super.Type) Encoder {
 		if !super.IsPrimitiveType(typ) {
 			panic(fmt.Sprintf("unsupported type in CSUP file: %T", typ))
 		}
-		var enc Encoder
-		switch id := typ.ID(); {
-		case super.IsSigned(id):
-			enc = NewIntEncoder(typ)
-		case super.IsUnsigned(id):
-			enc = NewUintEncoder(typ)
-		case super.IsFloat(id):
-			enc = NewFloatEncoder(typ)
-		default:
-			enc = NewPrimitiveEncoder(typ)
-		}
-		return NewNullsEncoder(NewDictEncoder(typ, enc))
+		return NewNullsEncoder(NewDictEncoder(typ, newPrimitiveEncoder(typ)))
 	}
 }
 
-type resetter interface {
-	reset()
+func newPrimitiveEncoder(typ super.Type) Encoder {
+	switch id := typ.ID(); {
+	case super.IsSigned(id):
+		return NewIntEncoder(typ)
+	case super.IsUnsigned(id):
+		return NewUintEncoder(typ)
+	case super.IsFloat(id):
+		return NewFloatEncoder(typ)
+	default:
+		return NewPrimitiveEncoder(typ)
+	}
 }
 
 type NamedEncoder struct {
