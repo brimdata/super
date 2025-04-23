@@ -676,11 +676,10 @@ func replaceSortAndHeadOrTailWithTop(seq dag.Seq) dag.Seq {
 				continue
 			}
 			seq[i] = &dag.Top{
-				Kind:       "Top",
-				Limit:      limit,
-				Exprs:      exprs,
-				NullsFirst: sort.NullsFirst,
-				Reverse:    reverse && len(exprs) == 0,
+				Kind:    "Top",
+				Limit:   limit,
+				Exprs:   exprs,
+				Reverse: reverse && len(exprs) == 0,
 			}
 			seq.Delete(i+1, i+2)
 		}

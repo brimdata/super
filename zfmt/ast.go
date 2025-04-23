@@ -509,9 +509,6 @@ func (c *canon) op(p ast.Op) {
 		if p.Reverse {
 			c.write(" -r")
 		}
-		if p.NullsFirst {
-			c.write(" -nulls first")
-		}
 		c.sortExprs(p.Args)
 	case *ast.Load:
 		c.next()
@@ -591,9 +588,6 @@ func (c *canon) op(p ast.Op) {
 	case *ast.Top:
 		c.next()
 		c.write("top")
-		if p.NullsFirst {
-			c.write(" -nulls first")
-		}
 		if p.Reverse {
 			c.write(" -r")
 		}
@@ -761,6 +755,9 @@ func (c *canon) sortExprs(sortExprs []ast.SortExpr) {
 		c.expr(s.Expr, "")
 		if s.Order != nil {
 			c.write(" %s", s.Order.Name)
+		}
+		if s.Nulls != nil {
+			c.write(" nulls %s", s.Nulls.Name)
 		}
 	}
 }

@@ -424,9 +424,6 @@ func (c *canonDAG) op(p dag.Op) {
 		if p.Reverse {
 			c.write(" -r")
 		}
-		if p.NullsFirst {
-			c.write(" -nulls first")
-		}
 		c.sortExprs(p.Args)
 	case *dag.Load:
 		c.next()
@@ -467,9 +464,6 @@ func (c *canonDAG) op(p dag.Op) {
 	case *dag.Top:
 		c.next()
 		c.write("top")
-		if p.NullsFirst {
-			c.write(" -nulls first")
-		}
 		if p.Reverse {
 			c.write(" -r")
 		}
@@ -703,7 +697,7 @@ func (c *canonDAG) sortExprs(sortExprs []dag.SortExpr) {
 		}
 		c.space()
 		c.expr(s.Key, "")
-		c.write(" %s", s.Order)
+		c.write(" %s nulls %s", s.Order, s.Nulls)
 	}
 }
 

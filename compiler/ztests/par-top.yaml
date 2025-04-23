@@ -26,10 +26,10 @@ outputs:
       | scatter (
         =>
           seqscan ...
-          | top 3 a asc
+          | top 3 a asc nulls last
         =>
           seqscan ...
-          | top 3 a asc
+          | top 3 a asc nulls last
       )
       | merge a:asc
       | head 3
@@ -39,10 +39,10 @@ outputs:
       | scatter (
         =>
           seqscan ...
-          | top 3 b desc
+          | top 3 b desc nulls last
         =>
           seqscan ...
-          | top 3 b desc
+          | top 3 b desc nulls last
       )
       | merge b:desc
       | head 3

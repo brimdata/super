@@ -441,11 +441,10 @@ type (
 		Loc   `json:"loc"`
 	}
 	Sort struct {
-		Kind       string     `json:"kind" unpack:""`
-		Reverse    bool       `json:"reverse"`
-		NullsFirst bool       `json:"nullsfirst"`
-		Args       []SortExpr `json:"args"`
-		Loc        `json:"loc"`
+		Kind    string     `json:"kind" unpack:""`
+		Reverse bool       `json:"reverse"`
+		Args    []SortExpr `json:"args"`
+		Loc     `json:"loc"`
 	}
 	Cut struct {
 		Kind string      `json:"kind" unpack:""`
@@ -492,12 +491,11 @@ type (
 		Loc   `json:"loc"`
 	}
 	Top struct {
-		Kind       string     `json:"kind" unpack:""`
-		Limit      Expr       `json:"limit"`
-		Exprs      []SortExpr `json:"expr"`
-		NullsFirst bool       `json:"nullsfirst"`
-		Reverse    bool       `json:"reverse"`
-		Loc        `json:"loc"`
+		Kind    string     `json:"kind" unpack:""`
+		Limit   Expr       `json:"limit"`
+		Exprs   []SortExpr `json:"expr"`
+		Reverse bool       `json:"reverse"`
+		Loc     `json:"loc"`
 	}
 	Put struct {
 		Kind string      `json:"kind" unpack:""`

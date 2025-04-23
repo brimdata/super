@@ -431,9 +431,6 @@ SortOp
       if _, ok := argm["r"]; ok {
         o.Reverse = true
       }
-      if n, ok := argm["nulls"]; ok && n == "first" {
-        o.NullsFirst = true
-      }
       return o, nil
     }
 
@@ -441,9 +438,6 @@ SortArgs = args:(_ a:SortArg { return a, nil })* { return makeArgMap(args) }
 
 SortArg
   = "-r" { return map[string]any{"name": "r", "value": nil}, nil }
-  / "-nulls" _ where:(("first" / "last") { return string(c.text), nil }) {
-        return map[string]any{"name": "nulls", "value": where}, nil
-      }
 
 TopOp
   = TOP &EOKW args:SortArgs limit:(_ e:Expr { return e, nil })? exprs:(_ e:OrderByList { return e, nil })? {
@@ -458,9 +452,6 @@ TopOp
         op.Exprs = exprs.([]ast.SortExpr)
       }
       argm := args.(map[string]any)
-      if n, ok := argm["nulls"]; ok && n == "first" {
-        op.NullsFirst = true
-      }
       if _, ok := argm["r"]; ok {
         op.Reverse = true
       }

@@ -45,11 +45,11 @@ func New(rctx *runtime.Context, anti, inner bool, left, right zbuf.Puller, leftK
 	// Add sorts if needed.
 	if !leftDir.HasOrder(o) {
 		s := expr.NewSortExpr(leftKey, o, order.NullsLast)
-		left = sort.New(rctx, left, []expr.SortExpr{s}, false, false, resetter)
+		left = sort.New(rctx, left, []expr.SortExpr{s}, false, resetter)
 	}
 	if !rightDir.HasOrder(o) {
 		s := expr.NewSortExpr(rightKey, o, order.NullsLast)
-		right = sort.New(rctx, right, []expr.SortExpr{s}, false, false, resetter)
+		right = sort.New(rctx, right, []expr.SortExpr{s}, false, resetter)
 	}
 	ctx, cancel := context.WithCancel(rctx.Context)
 	return &Op{

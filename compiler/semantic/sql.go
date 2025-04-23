@@ -368,22 +368,12 @@ func (a *analyzer) semSQLOp(op ast.Op, seq dag.Seq) (dag.Seq, schema) {
 	case *ast.SQLJoin:
 		return a.semSQLJoin(op, seq)
 	case *ast.OrderBy:
-		nullsFirst, ok := nullsFirst(op.Exprs)
-		if !ok {
-			a.error(op, errors.New("differring nulls first/last clauses not yet supported"))
-			return append(seq, badOp()), badSchema()
-		}
 		out, schema := a.semSQLOp(op.Op, seq)
 		var exprs []dag.SortExpr
 		for _, e := range op.Exprs {
 			exprs = append(exprs, a.semSortExpr(schema, e, false))
 		}
-		return append(out, &dag.Sort{
-			Kind:       "Sort",
-			Args:       exprs,
-			NullsFirst: nullsFirst,
-			Reverse:    false, //XXX this should go away
-		}), schema
+		return append(out, &dag.Sort{Kind: "Sort", Args: exprs}), schema
 	case *ast.Limit:
 		e := a.semExpr(op.Count)
 		var err error
@@ -517,33 +507,6 @@ func (a *analyzer) semJoinCond(cond ast.JoinExpr) (dag.Expr, dag.Expr, error) {
 	default:
 		panic(fmt.Sprintf("semJoinCond: unknown type: %T", cond))
 	}
-}
-
-func nullsFirst(exprs []ast.SortExpr) (bool, bool) {
-	if len(exprs) == 0 {
-		panic("nullsFirst()")
-	}
-	if !hasNullsFirst(exprs) {
-		return false, true
-	}
-	// If the nulls firsts are all the same, then we can use
-	// nullsfirst; otherwise, if they differ, the runtime currently
-	// can't support it.
-	for _, e := range exprs {
-		if e.Nulls == nil || e.Nulls.Name != "first" {
-			return false, false
-		}
-	}
-	return true, true
-}
-
-func hasNullsFirst(exprs []ast.SortExpr) bool {
-	for _, e := range exprs {
-		if e.Nulls != nil && e.Nulls.Name == "first" {
-			return true
-		}
-	}
-	return false
 }
 
 type exprloc struct {

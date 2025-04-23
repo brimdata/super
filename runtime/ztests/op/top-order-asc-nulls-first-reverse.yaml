@@ -1,0 +1,15 @@
+spq: top -r 3 s asc nulls first
+
+vector: true
+
+input: |
+  {s:"b"}
+  {s:null}
+  {s:"c"}
+  {}
+  {s:"a"}
+
+output: |
+  {s:null}
+  {}
+  {s:"c"}

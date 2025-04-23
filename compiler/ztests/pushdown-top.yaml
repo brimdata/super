@@ -20,10 +20,10 @@ outputs:
       | output main
       ===
       file file1
-      | top 2 a asc
+      | top 2 a asc nulls last
       | output main
       ===
       file file1 fields a,b
-      | top 2 a asc
+      | top 2 a asc nulls last
       | yield b
       | output main

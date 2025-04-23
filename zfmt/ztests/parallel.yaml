@@ -18,5 +18,5 @@ outputs:
           put a:=b*c
       )
       | cut cake:=cake
-      | sort x desc
+      | sort x desc nulls last
       | output main

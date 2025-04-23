@@ -5,7 +5,7 @@
 ### Synopsis
 
 ```
-sort [-r] [-nulls first|last] [<expr> [asc|desc] [, <expr> [asc|desc] ...]]
+sort [-r] [<expr> [asc|desc] [nulls {first|last}] [, <expr> [asc|desc] [nulls {first|last}] ...]]
 ```
 ### Description
 
@@ -20,7 +20,7 @@ descending.
 
 SuperSQL follows the SQL convention that, by default, `null` values appear last
 in either case of ascending or descending sort.  This can be overridden
-by specifying `-nulls first`.
+by specifying `nulls first` in a sort expression.
 
 If no sort expression is provided, a sort key is guessed based on heuristics applied
 to the values present.
@@ -33,7 +33,8 @@ may vary even when the same query is executed repeatedly against the same data.
 If you require a query to show deterministic output on repeated execution,
 explicit sort expressions must be provided.
 
-If `-r` is specified, the sort order for each key is reversed. For clarity
+If `-r` is specified, the sort order for each key is reversed without altering
+the position of nulls. For clarity
 when sorting by named fields, specifying `desc` is recommended instead of `-r`,
 particularly when multiple sort expressions are present. However, `sort -r`
 provides a shorthand if the heuristics described above suffice but reversed
@@ -90,7 +91,7 @@ null
 _The "nulls last" default may be overridden_
 ```mdtest-spq
 # spq
-sort -nulls first
+sort this nulls first
 # input
 2
 null

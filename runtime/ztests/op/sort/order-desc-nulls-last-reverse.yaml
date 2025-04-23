@@ -1,0 +1,17 @@
+spq: sort -r s desc nulls last
+
+vector: true
+
+input: |
+  {s:"b"}
+  {s:null}
+  {s:"c"}
+  {}
+  {s:"a"}
+
+output: |
+  {s:"a"}
+  {s:"b"}
+  {s:"c"}
+  {s:null}
+  {}

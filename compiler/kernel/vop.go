@@ -7,7 +7,6 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/vam"
@@ -302,9 +301,9 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 			if err != nil {
 				return nil, err
 			}
-			sortExprs = append(sortExprs, expr.NewSortExpr(k, s.Order, order.NullsLast))
+			sortExprs = append(sortExprs, expr.NewSortExpr(k, s.Order, s.Nulls))
 		}
-		return vamop.NewSort(b.rctx, parent, sortExprs, o.NullsFirst, o.Reverse, b.resetters), nil
+		return vamop.NewSort(b.rctx, parent, sortExprs, o.Reverse, b.resetters), nil
 	case *dag.Tail:
 		return vamop.NewTail(parent, o.Count), nil
 	case *dag.Uniq:

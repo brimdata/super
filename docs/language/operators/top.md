@@ -5,7 +5,7 @@
 ### Synopsis
 
 ```
-top [-nulls first|last] [-r] [<const-expr> [<expr> [asc|desc] [, <expr> [asc|desc] ...]]]
+top [-r] [<const-expr> [<expr> [asc|desc] [nulls {first|last}] [, <expr> [asc|desc] [nulls {first|last}] ...]]]
 ```
 ### Description
 

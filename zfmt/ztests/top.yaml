@@ -3,9 +3,9 @@ script: |
   echo ===
   super compile -dag -C 'top'
   echo ===
-  super compile -C 'top -nulls first -r 10 a, b desc, c asc'
+  super compile -C 'top -r 10 a, b desc, c nulls first'
   echo ===
-  super compile -dag -C 'top -nulls first -r 10 a, b desc, c asc'
+  super compile -dag -C 'top -r 10 a, b desc, c nulls first'
 
 outputs:
   - name: stdout
@@ -16,8 +16,8 @@ outputs:
       | top 1
       | output main
       ===
-      top -nulls first -r 10 a, b desc, c asc
+      top -r 10 a, b desc, c nulls first
       ===
       null
-      | top -nulls first 10 a desc, b asc, c desc
+      | top 10 a desc nulls last, b asc nulls last, c desc nulls first
       | output main

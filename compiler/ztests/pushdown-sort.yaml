@@ -20,10 +20,10 @@ outputs:
       | output main
       ===
       file file1
-      | sort a asc
+      | sort a asc nulls last
       | output main
       ===
       file file1 fields a,b
-      | sort a asc
+      | sort a asc nulls last
       | yield b
       | output main

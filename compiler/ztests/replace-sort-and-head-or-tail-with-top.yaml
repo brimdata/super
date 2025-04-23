@@ -3,9 +3,9 @@ script: |
   echo ===
   super compile -C -O 'sort | tail'
   echo ===
-  super compile -C -O 'sort -nulls first -r a, b asc, c desc | head 3'
+  super compile -C -O 'sort -r a, b desc, c nulls first | head 3'
   echo ===
-  super compile -C -O 'sort -nulls first -r a, b asc, c desc | tail 3'
+  super compile -C -O 'sort -r a, b desc, c nulls first | tail 3'
   echo ===
   super compile -C -O 'sort | head 1048577'
   echo ===
@@ -23,11 +23,11 @@ outputs:
       | output main
       ===
       null
-      | top -nulls first 3 a desc, b desc, c asc
+      | top 3 a desc nulls last, b asc nulls last, c desc nulls first
       | output main
       ===
       null
-      | top -nulls first 3 a asc, b asc, c desc
+      | top 3 a asc nulls last, b desc nulls last, c asc nulls first
       | output main
       ===
       null

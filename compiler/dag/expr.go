@@ -122,6 +122,7 @@ type (
 	SortExpr struct {
 		Key   Expr        `json:"key"`
 		Order order.Which `json:"order"`
+		Nulls order.Nulls `json:"nulls"`
 	}
 	This struct {
 		Kind string   `json:"kind" unpack:""`
