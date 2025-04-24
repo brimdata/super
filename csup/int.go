@@ -159,6 +159,20 @@ func (u *Uint32Encoder) Segment(off uint64) (uint64, Segment) {
 	}
 }
 
+type offsetsEncoder struct {
+	Uint32Encoder
+}
+
+func newOffsetsEncoder() *offsetsEncoder {
+	return &offsetsEncoder{
+		Uint32Encoder{vals: []uint32{0}},
+	}
+}
+
+func (o *offsetsEncoder) writeLen(size uint32) {
+	o.vals = append(o.vals, o.vals[len(o.vals)-1]+size)
+}
+
 func ReadUint32s(loc Segment, r io.ReaderAt) ([]uint32, error) {
 	buf := make([]byte, loc.MemLength)
 	if err := loc.Read(r, buf); err != nil {

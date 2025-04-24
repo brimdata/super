@@ -11,7 +11,7 @@ import (
 type ArrayEncoder struct {
 	typ     super.Type
 	values  Encoder
-	lengths Uint32Encoder
+	offsets *offsetsEncoder
 	count   uint32
 }
 
@@ -19,8 +19,9 @@ var _ Encoder = (*ArrayEncoder)(nil)
 
 func NewArrayEncoder(typ *super.TypeArray) *ArrayEncoder {
 	return &ArrayEncoder{
-		typ:    typ.Type,
-		values: NewEncoder(typ.Type),
+		typ:     typ.Type,
+		values:  NewEncoder(typ.Type),
+		offsets: newOffsetsEncoder(),
 	}
 }
 
@@ -32,23 +33,23 @@ func (a *ArrayEncoder) Write(body zcode.Bytes) {
 		a.values.Write(it.Next())
 		len++
 	}
-	a.lengths.Write(len)
+	a.offsets.writeLen(len)
 }
 
 func (a *ArrayEncoder) Encode(group *errgroup.Group) {
-	a.lengths.Encode(group)
+	a.offsets.Encode(group)
 	a.values.Encode(group)
 }
 
 func (a *ArrayEncoder) Emit(w io.Writer) error {
-	if err := a.lengths.Emit(w); err != nil {
+	if err := a.offsets.Emit(w); err != nil {
 		return err
 	}
 	return a.values.Emit(w)
 }
 
 func (a *ArrayEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
-	off, lens := a.lengths.Segment(off)
+	off, lens := a.offsets.Segment(off)
 	off, vals := a.values.Metadata(cctx, off)
 	return off, cctx.enter(&Array{
 		Length:  a.count,
@@ -64,8 +65,9 @@ type SetEncoder struct {
 func NewSetEncoder(typ *super.TypeSet) *SetEncoder {
 	return &SetEncoder{
 		ArrayEncoder{
-			typ:    typ.Type,
-			values: NewEncoder(typ.Type),
+			typ:     typ.Type,
+			values:  NewEncoder(typ.Type),
+			offsets: newOffsetsEncoder(),
 		},
 	}
 }

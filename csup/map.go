@@ -11,14 +11,15 @@ import (
 type MapEncoder struct {
 	keys    Encoder
 	values  Encoder
-	lengths Uint32Encoder
+	offsets *offsetsEncoder
 	count   uint32
 }
 
 func NewMapEncoder(typ *super.TypeMap) *MapEncoder {
 	return &MapEncoder{
-		keys:   NewEncoder(typ.KeyType),
-		values: NewEncoder(typ.ValType),
+		keys:    NewEncoder(typ.KeyType),
+		values:  NewEncoder(typ.ValType),
+		offsets: newOffsetsEncoder(),
 	}
 }
 
@@ -31,11 +32,11 @@ func (m *MapEncoder) Write(body zcode.Bytes) {
 		m.values.Write(it.Next())
 		len++
 	}
-	m.lengths.Write(len)
+	m.offsets.writeLen(len)
 }
 
 func (m *MapEncoder) Emit(w io.Writer) error {
-	if err := m.lengths.Emit(w); err != nil {
+	if err := m.offsets.Emit(w); err != nil {
 		return err
 	}
 	if err := m.keys.Emit(w); err != nil {
@@ -45,7 +46,7 @@ func (m *MapEncoder) Emit(w io.Writer) error {
 }
 
 func (m *MapEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
-	off, lens := m.lengths.Segment(off)
+	off, lens := m.offsets.Segment(off)
 	off, keys := m.keys.Metadata(cctx, off)
 	off, vals := m.values.Metadata(cctx, off)
 	return off, cctx.enter(&Map{
@@ -57,7 +58,7 @@ func (m *MapEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
 }
 
 func (m *MapEncoder) Encode(group *errgroup.Group) {
-	m.lengths.Encode(group)
+	m.offsets.Encode(group)
 	m.keys.Encode(group)
 	m.values.Encode(group)
 }
