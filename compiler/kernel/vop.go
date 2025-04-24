@@ -249,7 +249,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 			metaFilter = mf.Expr
 			metaProjection = mf.Projection
 		}
-		pushdown := b.newMetaPushdown(metaFilter, o.Pushdown.Projection, metaProjection)
+		pushdown := b.newMetaPushdown(metaFilter, o.Pushdown.Projection, metaProjection, o.Pushdown.Unordered)
 		return b.env.VectorOpen(b.rctx, b.sctx(), o.Path, o.Format, pushdown)
 	case *dag.Filter:
 		e, err := b.compileVamExpr(o.Expr)

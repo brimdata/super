@@ -7,6 +7,8 @@ script: |
   super db compile -C -P 2 'from test | top 3 a' | sed -e 's/pool .*/.../'
   echo ===
   super db compile -C -P 2 'from test | top 3 b desc' | sed -e 's/pool .*/.../'
+  echo ===
+  SUPER_VAM=1 super compile -C -P 2 'from test.csup | top 3 a | yield b'
 
 outputs:
   - name: stdout
@@ -46,4 +48,16 @@ outputs:
       )
       | merge b desc nulls last
       | head 3
+      | output main
+      ===
+      file test.csup format csup fields a,b unordered
+      | scatter (
+        =>
+          top 3 a asc nulls last
+        =>
+          top 3 a asc nulls last
+      )
+      | merge a asc nulls last
+      | head 3
+      | yield b
       | output main

@@ -3,6 +3,8 @@ script: |
   super db init -q
   super db create -q -orderby s:asc test
   super db compile -P 2 -C "from test | union(s) by n:=len(s)" | sed -e 's/pool .*/.../'
+  echo ===
+  SUPER_VAM=1 super compile -C -P 2 'from test.csup | summarize count(a) by b'
 
 outputs:
   - name: stdout
@@ -21,4 +23,18 @@ outputs:
       | combine
       | aggregate partials-in
           union:=union(s) by n:=n
+      | output main
+      ===
+      file test.csup format csup fields a,b unordered
+      | scatter (
+        =>
+          aggregate partials-out
+              count:=count(a) by b:=b
+        =>
+          aggregate partials-out
+              count:=count(a) by b:=b
+      )
+      | combine
+      | aggregate partials-in
+          count:=count(a) by b:=b
       | output main

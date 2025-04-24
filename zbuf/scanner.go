@@ -16,6 +16,8 @@ type Pushdown interface {
 	DataFilter() (expr.Evaluator, error)
 	BSUPFilter() (*expr.BufferFilter, error)
 	MetaFilter() (expr.Evaluator, field.Projection, error)
+	// Undordered reports whether a reader may return values in arbirary order.
+	Unordered() bool
 }
 
 // ScannerAble is implemented by Readers that provide an optimized

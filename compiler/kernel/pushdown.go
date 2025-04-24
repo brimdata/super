@@ -13,6 +13,7 @@ type pushdown struct {
 	builder        *Builder
 	projection     field.Projection
 	metaProjection field.Projection
+	unordred       bool
 }
 
 var _ zbuf.Pushdown = (*pushdown)(nil)
@@ -47,6 +48,10 @@ func (p *pushdown) Projection() field.Projection {
 		return p.projection
 	}
 	return nil
+}
+
+func (p *pushdown) Unordered() bool {
+	return p.unordred
 }
 
 type deleter struct {

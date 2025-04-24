@@ -737,12 +737,13 @@ func (b *Builder) newPushdown(e dag.Expr, projection []field.Path) *pushdown {
 	}
 }
 
-func (b *Builder) newMetaPushdown(e dag.Expr, projection, metaProjection []field.Path) *pushdown {
+func (b *Builder) newMetaPushdown(e dag.Expr, projection, metaProjection []field.Path, unordered bool) *pushdown {
 	return &pushdown{
 		metaFilter:     e,
 		builder:        b,
 		projection:     field.NewProjection(projection),
 		metaProjection: field.NewProjection(metaProjection),
+		unordred:       unordered,
 	}
 }
 
