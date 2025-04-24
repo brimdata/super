@@ -1,0 +1,22 @@
+spq: fork (=> pass => pass) | merge s desc nulls last
+
+vector: true
+
+input: |
+  {s:"c"}
+  {s:"b"}
+  {s:"a"}
+  {s:null}
+  {}
+
+output: |
+  {s:"c"}
+  {s:"c"}
+  {s:"b"}
+  {s:"b"}
+  {s:"a"}
+  {s:"a"}
+  {s:null}
+  {}
+  {s:null}
+  {}

@@ -20,7 +20,7 @@ outputs:
           seqscan ...
           | cut x:=ts,ts:=1
       )
-      | merge x:asc
+      | merge x asc nulls last
       | output main
       ===
       lister ...
@@ -33,5 +33,5 @@ outputs:
           seqscan ...
           | cut x:=ts,ts:=1
       )
-      | merge x:desc
+      | merge x desc nulls first
       | output main

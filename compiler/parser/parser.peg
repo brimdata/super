@@ -831,10 +831,10 @@ ExplodeOp
     }
 
 MergeOp
-  = MERGE _ expr:Expr {
+  = MERGE _ exprs:OrderByList {
       return &ast.Merge{
         Kind: "Merge",
-        Expr: expr.(ast.Expr),
+        Exprs: exprs.([]ast.SortExpr),
         Loc: loc(c),
       }, nil
     }

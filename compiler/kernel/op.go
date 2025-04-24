@@ -682,11 +682,11 @@ func (b *Builder) compile(o dag.Op, parents []zbuf.Puller) ([]zbuf.Puller, error
 		return []zbuf.Puller{join}, nil
 	case *dag.Merge:
 		b.resetResetters()
-		e, err := b.compileExpr(o.Expr)
+		exprs, err := b.compileSortExprs(o.Exprs)
 		if err != nil {
 			return nil, err
 		}
-		cmp := expr.NewComparator(expr.NewSortExpr(e, o.Order, o.Order.NullsMax(true))).WithMissingAsNull()
+		cmp := expr.NewComparator(exprs...).WithMissingAsNull()
 		return []zbuf.Puller{merge.New(b.rctx, parents, cmp.Compare, b.resetters)}, nil
 	case *dag.Combine:
 		return []zbuf.Puller{combine.New(b.rctx, parents)}, nil

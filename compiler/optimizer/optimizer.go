@@ -203,10 +203,14 @@ func (o *Optimizer) OptimizeDeleter(seq dag.Seq, replicas int) (dag.Seq, error) 
 	if sortKeys.IsNil() {
 		merge = &dag.Combine{Kind: "Combine"}
 	} else {
+		sortKey := sortKeys.Primary()
 		merge = &dag.Merge{
-			Kind:  "Merge",
-			Expr:  &dag.This{Kind: "This", Path: sortKeys.Primary().Key},
-			Order: sortKeys.Primary().Order,
+			Kind: "Merge",
+			Exprs: []dag.SortExpr{{
+				Key:   &dag.This{Kind: "This", Path: sortKey.Key},
+				Order: sortKey.Order,
+				Nulls: sortKey.Order.NullsMax(true),
+			}},
 		}
 	}
 	return dag.Seq{lister, scatter, merge, output}, nil
@@ -414,8 +418,9 @@ func (o *Optimizer) propagateSortKeyOp(op dag.Op, parents []order.SortKeys) ([]o
 		return keys, nil
 	case *dag.Merge:
 		var sortKeys order.SortKeys
-		if this, ok := op.Expr.(*dag.This); ok {
-			sortKeys = append(sortKeys, order.NewSortKey(op.Order, this.Path))
+		sortExpr := op.Exprs[0]
+		if this, ok := sortExpr.Key.(*dag.This); ok {
+			sortKeys = append(sortKeys, order.NewSortKey(sortExpr.Order, this.Path))
 		}
 		if !sortKeys.Equal(parent) {
 			sortKeys = nil

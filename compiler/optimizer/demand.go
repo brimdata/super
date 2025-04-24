@@ -54,7 +54,7 @@ func demandForOp(op dag.Op, downstream demand.Demand) demand.Demand {
 	case *dag.Load:
 		return demand.All()
 	case *dag.Merge:
-		return demand.Union(downstream, demandForExpr(op.Expr))
+		return demandForSortExprs(op.Exprs, downstream)
 	case *dag.Mirror:
 		return demand.Union(DemandForSeq(op.Main, demand.All()),
 			DemandForSeq(op.Mirror, demand.All()))

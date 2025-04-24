@@ -503,9 +503,9 @@ type (
 		Loc  `json:"loc"`
 	}
 	Merge struct {
-		Kind string `json:"kind" unpack:""`
-		Expr Expr   `json:"expr"`
-		Loc  `json:"loc"`
+		Kind  string     `json:"kind" unpack:""`
+		Exprs []SortExpr `json:"exprs"`
+		Loc   `json:"loc"`
 	}
 	Over struct {
 		Kind   string `json:"kind" unpack:""`

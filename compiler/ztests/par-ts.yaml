@@ -41,7 +41,7 @@ outputs:
           | put x:=y
           | rename y:=z
       )
-      | merge ts:asc
+      | merge ts asc nulls last
       | output main
       <CUT UNIQ>
       lister ...
@@ -54,7 +54,7 @@ outputs:
           seqscan ...
           | cut ts:=ts,foo:=x
       )
-      | merge ts:asc
+      | merge ts asc nulls last
       | uniq
       | output main
       <DROP UNIQ>
@@ -68,7 +68,7 @@ outputs:
           seqscan ...
           | drop x
       )
-      | merge ts:asc
+      | merge ts asc nulls last
       | uniq
       | output main
       <EVERY COUNT>
@@ -84,7 +84,7 @@ outputs:
           | aggregate partials-out sort-dir 1
               count:=count() by y:=y,ts:=every(1h)
       )
-      | merge ts:asc
+      | merge ts asc nulls last
       | aggregate partials-in sort-dir 1
           count:=count() by y:=y,ts:=ts
       | output main
@@ -120,7 +120,7 @@ outputs:
           | put x:=foo
           | rename foo:=boo
       )
-      | merge ts:asc
+      | merge ts asc nulls last
       | uniq
       | output main
       <PUT TAIL>
@@ -136,7 +136,7 @@ outputs:
           | put a:=1
           | tail 1
       )
-      | merge ts:asc
+      | merge ts asc nulls last
       | tail 1
       | output main
       <SORT UNIQ>
@@ -161,7 +161,7 @@ outputs:
           seqscan ...
           | sort x asc nulls last
       )
-      | merge x:asc
+      | merge x asc nulls last
       | uniq
       | output main
       <UNIQ>
@@ -173,6 +173,6 @@ outputs:
         =>
           seqscan ...
       )
-      | merge ts:asc
+      | merge ts asc nulls last
       | uniq
       | output main

@@ -645,8 +645,8 @@ func (c *canon) op(p ast.Op) {
 		c.close()
 	case *ast.Merge:
 		c.next()
-		c.write("merge ")
-		c.expr(p.Expr, "")
+		c.write("merge")
+		c.sortExprs(p.Exprs)
 	case *ast.Over:
 		c.over(p)
 	case *ast.Yield:

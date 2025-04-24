@@ -857,11 +857,11 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 			As:   as,
 		})
 	case *ast.Merge:
-		return append(seq, &dag.Merge{
-			Kind:  "Merge",
-			Expr:  a.semExpr(o.Expr),
-			Order: order.Asc, //XXX
-		})
+		var exprs []dag.SortExpr
+		for _, e := range o.Exprs {
+			exprs = append(exprs, a.semSortExpr(nil, e, false))
+		}
+		return append(seq, &dag.Merge{Kind: "Merge", Exprs: exprs})
 	case *ast.Over:
 		if len(o.Locals) != 0 && o.Body == nil {
 			a.error(o, errors.New("cannot have a with clause without a lateral query"))

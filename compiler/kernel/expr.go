@@ -543,3 +543,15 @@ func (b *Builder) compileOverExpr(over *dag.OverExpr) (expr.Evaluator, error) {
 	parent.SetExit(scope.NewExit(exit))
 	return parent, nil
 }
+
+func (b *Builder) compileSortExprs(sortExprs []dag.SortExpr) ([]expr.SortExpr, error) {
+	var out []expr.SortExpr
+	for _, se := range sortExprs {
+		e, err := b.compileExpr(se.Key)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, expr.NewSortExpr(e, se.Order, se.Nulls))
+	}
+	return out, nil
+}

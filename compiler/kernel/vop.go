@@ -60,11 +60,11 @@ func (b *Builder) compileVam(o dag.Op, parents []vector.Puller) ([]vector.Puller
 		return []vector.Puller{join}, nil
 	case *dag.Merge:
 		b.resetResetters()
-		e, err := b.compileExpr(o.Expr)
+		exprs, err := b.compileSortExprs(o.Exprs)
 		if err != nil {
 			return nil, err
 		}
-		cmp := expr.NewComparator(expr.NewSortExpr(e, o.Order, o.Order.NullsMax(true))).WithMissingAsNull()
+		cmp := expr.NewComparator(exprs...).WithMissingAsNull()
 		return []vector.Puller{vamop.NewMerge(b.rctx, parents, cmp.Compare)}, nil
 	case *dag.Scatter:
 		return b.compileVamScatter(o, parents)

@@ -5,7 +5,7 @@
 ### Synopsis
 
 ```
-( => ... => ...) | merge <expr> [, <expr>, ...]
+( => ... => ...) | merge <expr> [asc|desc] [nulls {first|last}] [, <expr> [asc|desc] [nulls {first|last}] ...]]
 ```
 ### Description
 

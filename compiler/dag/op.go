@@ -94,9 +94,8 @@ type (
 		Meta    string      `json:"meta"`
 	}
 	Merge struct {
-		Kind  string      `json:"kind" unpack:""`
-		Expr  Expr        `json:"expr"`
-		Order order.Which `json:"order"`
+		Kind  string     `json:"kind" unpack:""`
+		Exprs []SortExpr `json:"exprs"`
 	}
 	Mirror struct {
 		Kind   string `json:"kind" unpack:""`

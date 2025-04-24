@@ -138,9 +138,12 @@ func parallelizeHead(seq dag.Seq, n int, outputKeys order.SortKeys, replicas int
 		// the parallel branches to enhance concurrency.
 		sortKey := outputKeys.Primary()
 		merge = &dag.Merge{
-			Kind:  "Merge",
-			Expr:  &dag.This{Kind: "This", Path: sortKey.Key},
-			Order: sortKey.Order,
+			Kind: "Merge",
+			Exprs: []dag.SortExpr{{
+				Key:   &dag.This{Kind: "This", Path: sortKey.Key},
+				Order: sortKey.Order,
+				Nulls: sortKey.Order.NullsMax(true),
+			}},
 		}
 	} else {
 		merge = &dag.Combine{Kind: "Combine"}
@@ -273,21 +276,19 @@ func canLiftSortOrTopIntoParPaths(merge *dag.Merge, sortExprs []dag.SortExpr) (*
 		return nil, false
 	}
 	if merge == nil {
-		return &dag.Merge{
-			Kind:  "Merge",
-			Expr:  sortExprs[0].Key,
-			Order: sortExprs[0].Order,
-		}, true
+		return &dag.Merge{Kind: "Merge", Exprs: sortExprs}, true
 	}
-	mergeKey, ok := sortKeyOfExpr(merge.Expr, merge.Order)
+	mergeKey, ok := sortKeyOfExpr(merge.Exprs[0].Key, merge.Exprs[0].Order)
 	if !ok {
 		// If the merge expression isn't a field, don't try to pull it up.
 		// XXX We could generalize this to test for equal expressions by
 		// doing an expression comparison. See issue #4524.
 		return nil, false
 	}
-	sortKey := sortKeysOfSortExprs(sortExprs)
-	return merge, sortKey.Equal(order.SortKeys{mergeKey})
+	if !sortKeysOfSortExprs(sortExprs).Equal(order.SortKeys{mergeKey}) {
+		return nil, false
+	}
+	return &dag.Merge{Kind: "Merge", Exprs: sortExprs}, true
 }
 
 // concurrentPath returns the largest path within seq from front to end that can

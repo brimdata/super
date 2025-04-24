@@ -9,6 +9,6 @@ outputs:
         G2eDzBUfU6IEmUSGCa5kHyXMhoO;
         G2eDzBUfU6IEmUSGCa5kHyXMhoO;
       )
-      | merge ts:asc
+      | merge ts asc nulls last
       | put ts:=foo
       | rename foo:=boo

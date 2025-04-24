@@ -31,7 +31,7 @@ outputs:
           seqscan ...
           | top 3 a asc nulls last
       )
-      | merge a:asc
+      | merge a asc nulls last
       | head 3
       | output main
       ===
@@ -44,6 +44,6 @@ outputs:
           seqscan ...
           | top 3 b desc nulls last
       )
-      | merge b:desc
+      | merge b desc nulls last
       | head 3
       | output main

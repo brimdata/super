@@ -376,9 +376,8 @@ func (c *canonDAG) op(p dag.Op) {
 		c.write(")")
 	case *dag.Merge:
 		c.next()
-		c.write("merge ")
-		c.expr(p.Expr, "")
-		c.write(":" + p.Order.String())
+		c.write("merge")
+		c.sortExprs(p.Exprs)
 	case *dag.Aggregate:
 		c.next()
 		c.open("aggregate")

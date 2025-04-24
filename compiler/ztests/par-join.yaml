@@ -17,7 +17,7 @@ outputs:
         =>
           seqscan ...
       )
-      | merge ts:asc
+      | merge ts asc nulls last
       | fork (
         =>
           pass
@@ -30,7 +30,7 @@ outputs:
             =>
               seqscan ...
           )
-          | merge ts:asc
+          | merge ts asc nulls last
       )
       | join on a=b
       | output main
