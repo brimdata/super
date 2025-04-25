@@ -82,6 +82,8 @@ func newShadow(cctx *csup.Context, id csup.ID, nulls *nulls) shadow {
 		return newUint(cctx, meta, nulls)
 	case *csup.Float:
 		return newFloat(cctx, meta, nulls)
+	case *csup.Bytes:
+		return newBytes(cctx, meta, nulls)
 	case *csup.Primitive:
 		return newPrimitive(cctx, meta, nulls)
 	case *csup.Const:
