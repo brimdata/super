@@ -1,6 +1,8 @@
 package optimizer
 
 import (
+	"reflect"
+
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/order"
 )
@@ -77,14 +79,14 @@ func matchSource(seq dag.Seq) (*dag.Lister, *dag.Slicer, dag.Seq) {
 func (o *Optimizer) parallelizeFileScan(seq dag.Seq, replicas int) (dag.Seq, error) {
 	// Prepend a pass so we can parallelize seq[0].
 	seq = append(dag.Seq{dag.PassOp}, seq...)
-	n, outputKeys, _, err := o.concurrentPath(seq, nil)
+	n, sortExprs, _, err := o.concurrentPath(seq, nil)
 	if err != nil {
 		return nil, err
 	}
 	if n < len(seq) {
 		switch seq[n].(type) {
 		case *dag.Aggregate, *dag.Sort, *dag.Top:
-			return parallelizeHead(seq, n, outputKeys, replicas), nil
+			return parallelizeHead(seq, n, sortExprs, replicas), nil
 		}
 	}
 	return nil, nil
@@ -108,18 +110,14 @@ func (o *Optimizer) parallelizeSeqScan(seq dag.Seq, replicas int) (dag.Seq, erro
 	}
 	// concurrentPath will check that the path consisting of the original source
 	// sequence and any lifted sequence is still parallelizable.
-	n, outputKeys, _, err := o.concurrentPath(seq[1:], srcSortKeys)
+	n, sortExprs, _, err := o.concurrentPath(seq[1:], srcSortKeys)
 	if err != nil {
 		return nil, err
 	}
-	return parallelizeHead(seq, n+1, outputKeys, replicas), nil
+	return parallelizeHead(seq, n+1, sortExprs, replicas), nil
 }
 
-func parallelizeHead(seq dag.Seq, n int, outputKeys order.SortKeys, replicas int) dag.Seq {
-	// XXX Fix this to handle multi-key merge. See Issue #2657.
-	if len(outputKeys) > 1 {
-		return nil
-	}
+func parallelizeHead(seq dag.Seq, n int, sortExprs []dag.SortExpr, replicas int) dag.Seq {
 	head := seq[:n]
 	tail := seq[n:]
 	scatter := &dag.Scatter{
@@ -130,21 +128,13 @@ func parallelizeHead(seq dag.Seq, n int, outputKeys order.SortKeys, replicas int
 		scatter.Paths[k] = copySeq(head)
 	}
 	var merge dag.Op
-	if len(outputKeys) > 0 {
+	if len(sortExprs) > 0 {
 		// At this point, we always insert a merge as we don't know if the
 		// downstream DAG requires the sort order.  A later step will look at
 		// the fanin from this parallel structure and see if the merge can be
 		// removed while also pushing additional ops from the output segment up into
 		// the parallel branches to enhance concurrency.
-		sortKey := outputKeys.Primary()
-		merge = &dag.Merge{
-			Kind: "Merge",
-			Exprs: []dag.SortExpr{{
-				Key:   &dag.This{Kind: "This", Path: sortKey.Key},
-				Order: sortKey.Order,
-				Nulls: sortKey.Order.NullsMax(true),
-			}},
-		}
+		merge = &dag.Merge{Kind: "Merge", Exprs: sortExprs}
 	} else {
 		merge = &dag.Combine{Kind: "Combine"}
 	}
@@ -272,23 +262,13 @@ func parallelPaths(op dag.Op) ([]dag.Seq, bool) {
 }
 
 func canLiftSortOrTopIntoParPaths(merge *dag.Merge, sortExprs []dag.SortExpr) (*dag.Merge, bool) {
-	if len(sortExprs) != 1 {
+	if len(sortExprs) == 0 {
 		return nil, false
 	}
 	if merge == nil {
 		return &dag.Merge{Kind: "Merge", Exprs: sortExprs}, true
 	}
-	mergeKey, ok := sortKeyOfExpr(merge.Exprs[0].Key, merge.Exprs[0].Order)
-	if !ok {
-		// If the merge expression isn't a field, don't try to pull it up.
-		// XXX We could generalize this to test for equal expressions by
-		// doing an expression comparison. See issue #4524.
-		return nil, false
-	}
-	if !sortKeysOfSortExprs(sortExprs).Equal(order.SortKeys{mergeKey}) {
-		return nil, false
-	}
-	return &dag.Merge{Kind: "Merge", Exprs: sortExprs}, true
+	return merge, reflect.DeepEqual(merge.Exprs, sortExprs)
 }
 
 // concurrentPath returns the largest path within seq from front to end that can
@@ -299,7 +279,7 @@ func canLiftSortOrTopIntoParPaths(merge *dag.Merge, sortExprs []dag.SortExpr) (*
 // exit from that path is returned.  If sortKey is zero, then the
 // concurrent path is allowed to include operators that do not guarantee
 // an output order.
-func (o *Optimizer) concurrentPath(seq dag.Seq, sortKeys order.SortKeys) (length int, outputKeys order.SortKeys, orderRequired bool, err error) {
+func (o *Optimizer) concurrentPath(seq dag.Seq, sortKeys order.SortKeys) (length int, outputSortExprs []dag.SortExpr, orderRequired bool, err error) {
 	for k := range seq {
 		switch op := seq[k].(type) {
 		// This should be a boolean in op.go that defines whether
@@ -313,43 +293,53 @@ func (o *Optimizer) concurrentPath(seq dag.Seq, sortKeys order.SortKeys) (length
 			if isKeyOfAggregate(op, sortKeys) {
 				// Keep the input ordered so we can incrementally release
 				// results from the aggregate as a streaming operation.
-				return k, sortKeys, true, nil
+				return k, sortExprsForSortKeys(sortKeys), true, nil
 			}
 			return k, nil, false, nil
 		case *dag.Sort:
-			newKeys := sortKeysOfSortExprs(op.Args)
-			if newKeys.IsNil() {
+			if len(op.Args) == 0 {
 				// No analysis for sort without expression since we can't
 				// parallelize the heuristic.  We should revisit these semantics
 				// and define a global order across Zed type.
 				return 0, nil, false, nil
 			}
-			return k, newKeys, false, nil
+			return k, op.Args, false, nil
 		case *dag.Top:
-			newKeys := sortKeysOfSortExprs(op.Exprs)
-			if newKeys.IsNil() {
+			if len(op.Exprs) == 0 {
 				// No analysis for top without expression since we can't
 				// parallelize the heuristic.
 				return 0, nil, false, nil
 			}
-			return k, newKeys, false, nil
+			return k, op.Exprs, false, nil
 		case *dag.Load:
 			// XXX At some point Load should have an optimization where if the
 			// upstream sort is the same as the Load destination sort we
 			// request a merge and set the Load operator to do a sorted write.
 			return k, nil, false, nil
 		case *dag.Fork, *dag.Scatter, *dag.Mirror, *dag.Head, *dag.Tail, *dag.Uniq, *dag.Fuse, *dag.Join, *dag.Output:
-			return k, sortKeys, true, nil
+			return k, sortExprsForSortKeys(sortKeys), true, nil
 		default:
 			next, err := o.analyzeSortKeys(op, sortKeys)
 			if err != nil {
 				return 0, nil, false, err
 			}
 			if !sortKeys.IsNil() && next.IsNil() {
-				return k, sortKeys, true, nil
+				return k, sortExprsForSortKeys(sortKeys), true, nil
 			}
 			sortKeys = next
 		}
 	}
-	return len(seq), sortKeys, true, nil
+	return len(seq), sortExprsForSortKeys(sortKeys), true, nil
+}
+
+func sortExprsForSortKeys(keys order.SortKeys) []dag.SortExpr {
+	var exprs []dag.SortExpr
+	for _, k := range keys {
+		exprs = append(exprs, dag.SortExpr{
+			Key:   &dag.This{Kind: "This", Path: k.Key},
+			Order: k.Order,
+			Nulls: k.Order.NullsMax(true)},
+		)
+	}
+	return exprs
 }
