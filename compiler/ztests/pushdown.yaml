@@ -25,12 +25,12 @@ outputs:
       | yield c, b, d
       | output main
       ===
-      file file1
+      file file1 unordered
       | fork (
         =>
           pass
         =>
-          file file2
+          file file2 unordered
       )
       | join on a=a
       | yield b

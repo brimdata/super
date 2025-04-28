@@ -545,11 +545,11 @@ func (c *canonDAG) op(p dag.Op) {
 		if p.Format != "" {
 			c.write(" format %s", p.Format)
 		}
-		if len(p.Pushdown.Projection) > 0 {
-			c.fields(p.Pushdown.Projection)
-		}
 		if p.Pushdown.Unordered {
 			c.write(" unordered")
+		}
+		if len(p.Pushdown.Projection) > 0 {
+			c.fields(p.Pushdown.Projection)
 		}
 		if df := p.Pushdown.DataFilter; df != nil {
 			if len(df.Projection) > 0 {

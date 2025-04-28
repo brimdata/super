@@ -160,6 +160,7 @@ func (o *Optimizer) Optimize(seq dag.Seq) (dag.Seq, error) {
 	}
 	seq = removePassOps(seq)
 	DemandForSeq(seq, demand.All())
+	setPushdownUnordered(seq, false)
 	return seq, nil
 }
 
@@ -711,4 +712,44 @@ func walkT[T any](v reflect.Value, post func(T) T) {
 			v.Set(reflect.ValueOf(post(t)))
 		}
 	}
+}
+
+// setPushdownUnordered walks seq, setting dag.Pushdown.Unordered to reflect
+// whether the containing scan can be unordered (i.e., need not preserve the
+// order of values in the underlying data source).  setPushdownUnordered returns
+// whether seq's input can be unordered.
+func setPushdownUnordered(seq dag.Seq, unordered bool) bool {
+	for i := len(seq) - 1; i >= 0; i-- {
+		switch op := seq[i].(type) {
+		case *dag.Aggregate, *dag.Combine, *dag.Distinct, *dag.Join, *dag.Sort, *dag.Top,
+			*dag.DefaultScan, *dag.HTTPScan, *dag.PoolScan,
+			*dag.CommitMetaScan, *dag.LakeMetaScan, *dag.PoolMetaScan:
+			unordered = true
+		case *dag.FileScan:
+			op.Pushdown.Unordered = unordered
+			unordered = true
+		case *dag.Fork:
+			for _, p := range op.Paths {
+				setPushdownUnordered(p, true)
+			}
+			unordered = true
+		case *dag.Merge:
+			unordered = false
+		case *dag.Mirror:
+			unordered = setPushdownUnordered(op.Main, unordered)
+		case *dag.Scatter:
+			for _, p := range op.Paths {
+				setPushdownUnordered(p, true)
+			}
+			unordered = true
+		case *dag.Scope:
+			unordered = setPushdownUnordered(op.Body, unordered)
+		case *dag.Switch:
+			for _, c := range op.Cases {
+				setPushdownUnordered(c.Path, true)
+			}
+			unordered = true
+		}
+	}
+	return unordered
 }

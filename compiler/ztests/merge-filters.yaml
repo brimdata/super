@@ -15,9 +15,9 @@ outputs:
       ===
       fork (
         =>
-          file a filter (b and c and g)
+          file a unordered filter (b and c and g)
         =>
-          file d filter (e and f and g)
+          file d unordered filter (e and f and g)
       )
       | output main
       ===

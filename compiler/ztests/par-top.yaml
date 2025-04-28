@@ -50,7 +50,7 @@ outputs:
       | head 3
       | output main
       ===
-      file test.csup format csup fields a,b,c unordered
+      file test.csup format csup unordered fields a,b,c
       | scatter (
         =>
           top 3 a asc nulls last, b desc nulls last

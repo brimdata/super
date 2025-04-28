@@ -42,9 +42,6 @@ func (o *Optimizer) Parallelize(seq dag.Seq, n int) (dag.Seq, error) {
 			}
 			front.Append(scan)
 			parallel, err = o.parallelizeFileScan(seq[1:], n)
-			// If we can parallelize, then parallel[0] is a
-			// dag.Scatter, for which input order doesn't matter.
-			scan.Pushdown.Unordered = len(parallel) > 0
 		}
 		if err != nil {
 			return nil, err

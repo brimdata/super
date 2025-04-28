@@ -25,7 +25,7 @@ outputs:
           union:=union(s) by n:=n
       | output main
       ===
-      file test.csup format csup fields a,b unordered
+      file test.csup format csup unordered fields a,b
       | scatter (
         =>
           aggregate partials-out

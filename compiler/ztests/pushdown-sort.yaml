@@ -10,20 +10,20 @@ script: |
 outputs:
   - name: stdout
     data: |
-      file file1
+      file file1 unordered
       | sort
       | output main
       ===
-      file file1
+      file file1 unordered
       | sort
       | yield a
       | output main
       ===
-      file file1
+      file file1 unordered
       | sort a asc nulls last
       | output main
       ===
-      file file1 fields a,b
+      file file1 unordered fields a,b
       | sort a asc nulls last
       | yield b
       | output main

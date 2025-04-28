@@ -4,7 +4,7 @@ script: |
 outputs:
   - name: stdout
     data: |
-      file test.csup format csup fields a,b,c unordered
+      file test.csup format csup unordered fields a,b,c
       | scatter (
         =>
           sort a asc nulls last, b desc nulls last
