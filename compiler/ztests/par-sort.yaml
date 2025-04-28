@@ -1,16 +1,16 @@
 script: |
-  SUPER_VAM=1 super compile -C -P 2 'from test.csup | sort a | yield b'
+  SUPER_VAM=1 super compile -C -P 2 'from test.csup | sort a, b desc nulls last | yield c'
 
 outputs:
   - name: stdout
     data: |
-      file test.csup format csup fields a,b unordered
+      file test.csup format csup fields a,b,c unordered
       | scatter (
         =>
-          sort a asc nulls last
+          sort a asc nulls last, b desc nulls last
         =>
-          sort a asc nulls last
+          sort a asc nulls last, b desc nulls last
       )
-      | merge a asc nulls last
-      | yield b
+      | merge a asc nulls last, b desc nulls last
+      | yield c
       | output main

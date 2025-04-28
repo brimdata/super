@@ -150,6 +150,23 @@ func (f *Float) Len(*Context) uint32 {
 	return f.Count
 }
 
+type Bytes struct {
+	Typ     super.Type `super:"Type"`
+	Bytes   Segment
+	Offsets Segment
+	Min     []byte
+	Max     []byte
+	Count   uint32
+}
+
+func (b *Bytes) Type(*Context, *super.Context) super.Type {
+	return b.Typ
+}
+
+func (b *Bytes) Len(*Context) uint32 {
+	return b.Count
+}
+
 type Primitive struct {
 	Typ      super.Type `super:"Type"`
 	Location Segment
@@ -278,6 +295,8 @@ func metadataValue(cctx *Context, sctx *super.Context, b *zcode.Builder, id ID, 
 		return metadataLeaf(sctx, b, super.NewUint(m.Typ, m.Min), super.NewUint(m.Typ, m.Max))
 	case *Float:
 		return metadataLeaf(sctx, b, super.NewFloat(m.Typ, m.Min), super.NewFloat(m.Typ, m.Max))
+	case *Bytes:
+		return metadataLeaf(sctx, b, super.NewValue(m.Typ, m.Min), super.NewValue(m.Typ, m.Max))
 	case *Const:
 		return metadataLeaf(sctx, b, m.Value, m.Value)
 	default:
@@ -312,6 +331,7 @@ var Template = []any{
 	Int{},
 	Uint{},
 	Float{},
+	Bytes{},
 	Primitive{},
 	Named{},
 	Error{},

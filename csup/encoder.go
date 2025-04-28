@@ -64,6 +64,8 @@ func newPrimitiveEncoder(typ super.Type) Encoder {
 		return NewUintEncoder(typ)
 	case super.IsFloat(id):
 		return NewFloatEncoder(typ)
+	case id == super.IDBytes || id == super.IDString || id == super.IDType:
+		return NewBytesEncoder(typ)
 	default:
 		return NewPrimitiveEncoder(typ)
 	}

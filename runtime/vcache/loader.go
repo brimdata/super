@@ -37,20 +37,20 @@ func (l *loader) load(projection field.Projection, s shadow) (vector.Any, error)
 	return s.project(l, projection), nil
 }
 
-func loadOffsets(r io.ReaderAt, loc csup.Segment, length uint32, nulls bitvec.Bits) ([]uint32, error) {
+func loadOffsets(r io.ReaderAt, loc csup.Segment, count count, nulls bitvec.Bits) ([]uint32, error) {
 	v, err := csup.ReadUint32s(loc, r)
-	if err != nil {
-		return nil, err
+	if count.nulls == 0 || err != nil {
+		return v, err
 	}
+	length := count.length()
 	offs := make([]uint32, length+1)
 	var off, child uint32
 	for k := range length {
-		offs[k] = off
 		if !nulls.IsSet(k) {
-			off += v[child]
+			off = v[child+1]
 			child++
 		}
+		offs[k+1] = off
 	}
-	offs[length] = off
 	return offs, nil
 }
