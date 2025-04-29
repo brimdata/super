@@ -1070,21 +1070,17 @@ func (b *binder) enterTemplate(template any) error {
 	pkgPath := typ.PkgPath()
 	path := strings.Split(pkgPath, "/")
 	pkgName := path[len(path)-1]
-
 	// e.g., Foo
 	typeName := typ.Name()
-	// e.g., bar.Foo
-	dottedName := fmt.Sprintf("%s.%s", pkgName, typeName)
-	// e.g., github.com/acme/pkg/bar.Foo
-	fullName := fmt.Sprintf("%s.%s", pkgPath, typeName)
-
 	if err := b.enter(typeName, typ); err != nil {
 		return err
 	}
-	if err := b.enter(dottedName, typ); err != nil {
+	// e.g., bar.Foo
+	if err := b.enter(pkgName+"."+typeName, typ); err != nil {
 		return err
 	}
-	return b.enter(fullName, typ)
+	// e.g., github.com/acme/pkg/bar.Foo
+	return b.enter(pkgPath+"."+typeName, typ)
 }
 
 func (b *binder) enterBinding(binding Binding) error {
