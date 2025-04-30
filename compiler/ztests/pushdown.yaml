@@ -1,7 +1,14 @@
 script: |
+  echo === debug
+  super compile -C -O 'from file | debug a | yield b'
+  echo === fork-join
+  super compile -C -O 'fork (=> from file1 => from file2) | join on a b | yield c'
+  echo === join
+  super compile -C -O "from file1 | join (from file2) on a b | yield c"
+  echo === switch-join
+  super compile -C -O 'from file | switch a (case b => put x:=c case d => put x:=e ) | join on f g | yield h'
+  echo === where
   super compile -C -O "from file | a==1 or e==2 | yield c, b, d"
-  echo ===
-  super compile -C -O "from file1 | join (from file2) on a | yield b"
   echo ===
   export SUPER_DB_LAKE=test
   super db init -q
@@ -21,19 +28,51 @@ script: |
 outputs:
   - name: stdout
     data: |
-      file file fields a,b,c,d,e filter (a==1 or e==2)
-      | yield c, b, d
+      === debug
+      file file fields a,b
+      | mirror (
+        =>
+          yield a
+          | output debug
+        =>
+          yield b
+          | output main
+      )
+      === fork-join
+      fork (
+        =>
+          file file1 unordered fields a,c
+        =>
+          file file2 unordered fields a,b
+      )
+      | join on a=a b:=b
+      | yield c
       | output main
-      ===
-      file file1 unordered
+      === join
+      file file1 unordered fields a,c
       | fork (
         =>
           pass
         =>
-          file file2 unordered
+          file file2 unordered fields a,b
       )
-      | join on a=a
-      | yield b
+      | join on a=a b:=b
+      | yield c
+      | output main
+      === switch-join
+      file file unordered fields a,b,c,d,e,f,g,h
+      | switch a (
+          case b =>
+            put x:=c
+          case d =>
+            put x:=e
+        )
+        | join on f=f g:=g
+        | yield h
+        | output main
+      === where
+      file file fields a,b,c,d,e filter (a==1 or e==2)
+      | yield c, b, d
       | output main
       ===
       lister

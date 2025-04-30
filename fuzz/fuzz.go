@@ -115,7 +115,7 @@ func RunQuery(t testing.TB, sctx *super.Context, readers []zio.Reader, querySour
 		t.Skipf("%v", err)
 	}
 	if len(dag) > 0 {
-		demand := optimizer.DemandForSeq(dag, demand.All())
+		demand := demand.Union(optimizer.DemandForSeq(dag, demand.All())...)
 		useDemand(demand)
 	}
 

@@ -1,18 +1,69 @@
 package optimizer
 
 import (
+	"slices"
+
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/compiler/optimizer/demand"
 )
 
-func DemandForSeq(seq dag.Seq, downstream demand.Demand) demand.Demand {
+func DemandForSeq(seq dag.Seq, downstreams ...demand.Demand) []demand.Demand {
 	for i := len(seq) - 1; i >= 0; i-- {
-		downstream = demandForOp(seq[i], downstream)
+		downstreams = demandForOp(seq[i], downstreams)
 	}
-	return downstream
+	return downstreams
 }
 
-func demandForOp(op dag.Op, downstream demand.Demand) demand.Demand {
+func demandForOp(op dag.Op, downstreams []demand.Demand) []demand.Demand {
+	switch op := op.(type) {
+	case *dag.Fork:
+		var out []demand.Demand
+		for i, p := range op.Paths {
+			i := min(i, len(downstreams)-1)
+			out = append(out, demand.Union(DemandForSeq(p, downstreams[i])...))
+		}
+		return out
+	case *dag.Join:
+		left := downstreams[0]
+		for _, a := range op.Args {
+			if _, ok := a.LHS.(*dag.This); ok {
+				// Assignment clobbers a static field.
+				left = demand.Delete(left, demandForExpr(a.LHS))
+			}
+		}
+		left = demand.Union(left, demandForExpr(op.LeftKey))
+		right := demandForAssignments(op.Args, demand.None())
+		right = demand.Union(right, demandForExpr(op.RightKey))
+		return []demand.Demand{left, right}
+	case *dag.Mirror:
+		main := DemandForSeq(op.Main, downstreams...)
+		mirror := DemandForSeq(op.Mirror, demand.All())
+		return []demand.Demand{demand.Union(slices.Concat(main, mirror)...)}
+	case *dag.Scatter:
+		d := demand.None()
+		for i, p := range op.Paths {
+			i := min(i, len(downstreams)-1)
+			d = demand.Union(d, demand.Union(DemandForSeq(p, downstreams[i])...))
+		}
+		return []demand.Demand{d}
+	case *dag.Scope:
+		return DemandForSeq(op.Body, downstreams...)
+	case *dag.Switch:
+		d := demandForExpr(op.Expr)
+		for i, c := range op.Cases {
+			d = demand.Union(d, demandForExpr(c.Expr))
+			i := min(i, len(downstreams)-1)
+			d = demand.Union(d, demand.Union(DemandForSeq(c.Path, downstreams[i])...))
+		}
+		return []demand.Demand{d}
+	case *dag.Vectorize:
+		return DemandForSeq(op.Body, downstreams...)
+	default:
+		return []demand.Demand{demandForSimpleOp(op, demand.Union(downstreams...))}
+	}
+}
+
+func demandForSimpleOp(op dag.Op, downstream demand.Demand) demand.Demand {
 	switch op := op.(type) {
 	case *dag.Aggregate:
 		d := demand.None()
@@ -39,25 +90,14 @@ func demandForOp(op dag.Op, downstream demand.Demand) demand.Demand {
 		return d
 	case *dag.Filter:
 		return demand.Union(downstream, demandForExpr(op.Expr))
-	case *dag.Fork:
-		d := demand.None()
-		for _, p := range op.Paths {
-			d = demand.Union(d, DemandForSeq(p, downstream))
-		}
-		return d
 	case *dag.Fuse:
 		return demand.All()
 	case *dag.Head:
 		return downstream
-	case *dag.Join:
-		return demand.All()
 	case *dag.Load:
 		return demand.All()
 	case *dag.Merge:
 		return demandForSortExprs(op.Exprs, downstream)
-	case *dag.Mirror:
-		return demand.Union(DemandForSeq(op.Main, demand.All()),
-			DemandForSeq(op.Mirror, demand.All()))
 	case *dag.Output:
 		return demand.All()
 	case *dag.Over:
@@ -75,33 +115,16 @@ func demandForOp(op dag.Op, downstream demand.Demand) demand.Demand {
 		return demandForAssignments(op.Args, downstream)
 	case *dag.Rename:
 		return demandForAssignments(op.Args, downstream)
-	case *dag.Scatter:
-		d := demand.None()
-		for _, p := range op.Paths {
-			d = demand.Union(d, DemandForSeq(p, downstream))
-		}
-		return d
-	case *dag.Scope:
-		return DemandForSeq(op.Body, downstream)
 	case *dag.Shape:
 		return downstream
 	case *dag.Sort:
 		return demandForSortExprs(op.Args, downstream)
-	case *dag.Switch:
-		d := demandForExpr(op.Expr)
-		for _, c := range op.Cases {
-			d = demand.Union(d, demandForExpr(c.Expr))
-			d = demand.Union(d, DemandForSeq(c.Path, downstream))
-		}
-		return d
 	case *dag.Tail:
 		return downstream
 	case *dag.Top:
 		return demandForSortExprs(op.Exprs, downstream)
 	case *dag.Uniq:
 		return downstream
-	case *dag.Vectorize:
-		return DemandForSeq(op.Body, downstream)
 	case *dag.Yield:
 		d := demand.None()
 		for _, e := range op.Exprs {

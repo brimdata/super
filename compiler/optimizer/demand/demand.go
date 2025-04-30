@@ -94,27 +94,25 @@ func Delete(a, b Demand) Demand {
 	return aa
 }
 
-func Union(a Demand, b Demand) Demand {
-	if _, ok := a.(all); ok {
-		return a
-	}
-	if _, ok := b.(all); ok {
-		return b
-	}
-
-	{
-		a, b := a.(keys), b.(keys)
-		demand := make(keys, len(a)+len(b))
-		maps.Copy(demand, a)
-		for k, v := range b {
-			if v2, ok := a[k]; ok {
-				demand[k] = Union(v, v2)
-			} else {
-				demand[k] = v
+func Union(demands ...Demand) Demand {
+	out := None().(keys)
+	for _, d := range demands {
+		switch d := d.(type) {
+		case all:
+			return All()
+		case keys:
+			for k, v := range d {
+				if v2, ok := out[k]; ok {
+					out[k] = Union(v, v2)
+				} else {
+					out[k] = v
+				}
 			}
+		default:
+			panic("Unreachable")
 		}
-		return demand
 	}
+	return out
 }
 
 func GetKey(demand Demand, key string) Demand {
