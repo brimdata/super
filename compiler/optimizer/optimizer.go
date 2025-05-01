@@ -149,7 +149,7 @@ func (o *Optimizer) Optimize(seq dag.Seq) (dag.Seq, error) {
 	seq = liftFilterOps(seq)
 	seq = mergeFilters(seq)
 	seq = mergeYieldOps(seq)
-	seq = inlineRecordExprSpreads(seq)
+	inlineRecordExprSpreads(seq)
 	seq = removePassOps(seq)
 	seq = replaceSortAndHeadOrTailWithTop(seq)
 	o.optimizeParallels(seq)
@@ -496,8 +496,8 @@ func matchFilter(seq dag.Seq) (dag.Expr, dag.Seq) {
 }
 
 // inlineRecordExprSpreads transforms "{...{a}}" to "{a}".
-func inlineRecordExprSpreads(seq dag.Seq) dag.Seq {
-	walkT(reflect.ValueOf(seq), func(r *dag.RecordExpr) *dag.RecordExpr {
+func inlineRecordExprSpreads(v any) {
+	walkT(reflect.ValueOf(v), func(r *dag.RecordExpr) *dag.RecordExpr {
 		for i := range r.Elems {
 			s, ok := r.Elems[i].(*dag.Spread)
 			if !ok {
@@ -511,7 +511,6 @@ func inlineRecordExprSpreads(seq dag.Seq) dag.Seq {
 		}
 		return r
 	})
-	return seq
 }
 
 func liftFilterOps(seq dag.Seq) dag.Seq {
@@ -566,25 +565,34 @@ func mergeYieldOps(seq dag.Seq) dag.Seq {
 			if !ok {
 				continue
 			}
-			switch seq[i+1].(type) {
-			case *dag.Aggregate, *dag.Yield:
+			propagateY1Fields := func(e dag.Expr) dag.Expr {
+				this, ok := e.(*dag.This)
+				if !ok {
+					return e
+				}
+				y1Expr, ok := y1TopLevelFields[this.Path[0]]
+				if !ok {
+					if y1TopLevelSpread != nil {
+						return addPathToExpr(y1TopLevelSpread, this.Path)
+					}
+					return e
+				}
+				return addPathToExpr(y1Expr, this.Path[1:])
+			}
+			switch op := seq[i+1].(type) {
+			case *dag.Aggregate:
+				for i := range op.Keys {
+					walkT(reflect.ValueOf(&op.Keys[i].RHS), propagateY1Fields)
+				}
+				for i := range op.Aggs {
+					walkT(reflect.ValueOf(&op.Aggs[i].RHS), propagateY1Fields)
+				}
+			case *dag.Yield:
+				walkT(reflect.ValueOf(op.Exprs), propagateY1Fields)
 			default:
 				continue
 			}
-			walkT(reflect.ValueOf(seq[i+1]), func(e2 dag.Expr) dag.Expr {
-				this2, ok := e2.(*dag.This)
-				if !ok {
-					return e2
-				}
-				e1, ok := y1TopLevelFields[this2.Path[0]]
-				if !ok {
-					if y1TopLevelSpread != nil {
-						return addPathToExpr(y1TopLevelSpread, this2.Path)
-					}
-					return e2
-				}
-				return addPathToExpr(e1, this2.Path[1:])
-			})
+			inlineRecordExprSpreads(seq[i+1])
 			seq.Delete(i, i+1)
 			i--
 		}

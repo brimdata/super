@@ -10,6 +10,8 @@ script: |
   super compile -C -O '{...a,...b} | yield {c}'
   echo ===
   super compile -C -O '{a,...b} | yield {a}'
+  echo ===
+  super compile -C -O 'select a, max(b) as c group by a | aggregate min(c) by a'
 
 outputs:
   - name: stdout
@@ -39,4 +41,11 @@ outputs:
       null
       | yield {a:a,...b}
       | yield {a:a}
+      | output main
+      ===
+      null
+      | aggregate
+          t0:=max(b) by k0:=a
+      | aggregate
+          min:=min(t0) by a:=k0
       | output main
