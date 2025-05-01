@@ -2,6 +2,7 @@ package csup
 
 import (
 	"io"
+	"math"
 	"slices"
 
 	"github.com/brimdata/super"
@@ -65,4 +66,43 @@ func (u *FloatEncoder) Emit(w io.Writer) error {
 		_, err = w.Write(u.out)
 	}
 	return err
+}
+
+func comparableDict[T comparable](in []T) ([]T, []byte, []uint32) {
+	m := make(map[T]byte)
+	var counts []uint32
+	index := make([]byte, len(in))
+	var vals []T
+	for k, v := range in {
+		tag, ok := m[v]
+		if !ok {
+			tag = byte(len(counts))
+			m[v] = tag
+			counts = append(counts, 0)
+			vals = append(vals, v)
+			if len(counts) > math.MaxUint8 {
+				return nil, nil, nil
+			}
+		}
+		index[k] = tag
+		counts[tag]++
+	}
+	return vals, index, counts
+}
+
+func (f *FloatEncoder) Dict() (PrimitiveEncoder, []byte, []uint32) {
+	vals, index, count := comparableDict(f.vals)
+	if vals == nil {
+		return nil, nil, nil
+	}
+	return &FloatEncoder{
+		typ:  f.typ,
+		vals: vals,
+		min:  f.min,
+		max:  f.max,
+	}, index, count
+}
+
+func (f *FloatEncoder) ConstValue() super.Value {
+	return super.NewFloat(f.typ, f.vals[0])
 }

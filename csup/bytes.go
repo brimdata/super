@@ -3,6 +3,7 @@ package csup
 import (
 	"bytes"
 	"io"
+	"math"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/zcode"
@@ -80,4 +81,35 @@ func (b *BytesEncoder) Emit(w io.Writer) error {
 		}
 	}
 	return b.offsets.Emit(w)
+}
+
+func (b *BytesEncoder) value(slot uint32) []byte {
+	return b.bytes[b.offsets.vals[slot]:b.offsets.vals[slot+1]]
+}
+
+func (b *BytesEncoder) Dict() (PrimitiveEncoder, []byte, []uint32) {
+	m := make(map[string]byte)
+	var counts []uint32
+	index := make([]byte, len(b.offsets.vals)-1)
+	entries := NewBytesEncoder(b.typ)
+	for k := range uint32(len(index)) {
+		tag, ok := m[string(b.value(k))]
+		if !ok {
+			tag = byte(len(counts))
+			v := b.value(k)
+			m[string(v)] = tag
+			entries.Write(v)
+			counts = append(counts, 0)
+			if len(counts) > math.MaxUint8 {
+				return nil, nil, nil
+			}
+		}
+		index[k] = tag
+		counts[tag]++
+	}
+	return entries, index, counts
+}
+
+func (b *BytesEncoder) ConstValue() super.Value {
+	return super.NewValue(b.typ, b.value(0))
 }

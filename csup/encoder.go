@@ -28,6 +28,12 @@ type Encoder interface {
 	Emit(w io.Writer) error
 }
 
+type PrimitiveEncoder interface {
+	Encoder
+	Dict() (PrimitiveEncoder, []byte, []uint32)
+	ConstValue() super.Value
+}
+
 func NewEncoder(typ super.Type) Encoder {
 	switch typ := typ.(type) {
 	case *super.TypeNamed:
@@ -52,11 +58,11 @@ func NewEncoder(typ super.Type) Encoder {
 		if !super.IsPrimitiveType(typ) {
 			panic(fmt.Sprintf("unsupported type in CSUP file: %T", typ))
 		}
-		return NewNullsEncoder(NewDictEncoder(typ, newPrimitiveEncoder(typ)))
+		return NewNullsEncoder(NewDictEncoder(typ, NewPrimitiveEncoder(typ)))
 	}
 }
 
-func newPrimitiveEncoder(typ super.Type) Encoder {
+func NewPrimitiveEncoder(typ super.Type) PrimitiveEncoder {
 	switch id := typ.ID(); {
 	case super.IsSigned(id):
 		return NewIntEncoder(typ)
@@ -67,7 +73,7 @@ func newPrimitiveEncoder(typ super.Type) Encoder {
 	case id == super.IDBytes || id == super.IDString || id == super.IDType:
 		return NewBytesEncoder(typ)
 	default:
-		return NewPrimitiveEncoder(typ)
+		return NewZcodeEncoder(typ)
 	}
 }
 

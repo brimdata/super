@@ -67,6 +67,23 @@ func (i *IntEncoder) Emit(w io.Writer) error {
 	return err
 }
 
+func (i *IntEncoder) Dict() (PrimitiveEncoder, []byte, []uint32) {
+	entries, index, counts := comparableDict(i.vals)
+	if entries == nil {
+		return nil, nil, nil
+	}
+	return &IntEncoder{
+		typ:  i.typ,
+		vals: entries,
+		min:  i.min,
+		max:  i.max,
+	}, index, counts
+}
+
+func (i *IntEncoder) ConstValue() super.Value {
+	return super.NewInt(i.typ, i.vals[0])
+}
+
 type UintEncoder struct {
 	typ      super.Type
 	vals     []uint64
@@ -120,6 +137,23 @@ func (u *UintEncoder) Emit(w io.Writer) error {
 		_, err = w.Write(u.out)
 	}
 	return err
+}
+
+func (u *UintEncoder) Dict() (PrimitiveEncoder, []byte, []uint32) {
+	entries, index, counts := comparableDict(u.vals)
+	if entries == nil {
+		return nil, nil, nil
+	}
+	return &UintEncoder{
+		typ:  u.typ,
+		vals: entries,
+		min:  u.min,
+		max:  u.max,
+	}, index, counts
+}
+
+func (u *UintEncoder) ConstValue() super.Value {
+	return super.NewUint(u.typ, u.vals[0])
 }
 
 type Uint32Encoder struct {
