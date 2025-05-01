@@ -30,6 +30,9 @@ var zbufPool = sync.Pool{
 // first s.MemLength bytes of b. If the length of b is less than s.MemLength,
 // Read returns [io.ErrShortBuffer].
 func (s *Segment) Read(r io.ReaderAt, b []byte) error {
+	if s.Length == 0 {
+		return nil
+	}
 	if len(b) < int(s.MemLength) {
 		return fmt.Errorf("csup: segment read: %w", io.ErrShortBuffer)
 	}
