@@ -22,7 +22,11 @@ type BytesEncoder struct {
 }
 
 func NewBytesEncoder(typ super.Type) *BytesEncoder {
-	return &BytesEncoder{typ: typ, offsets: Uint32Encoder{vals: []uint32{0}}}
+	return &BytesEncoder{
+		typ:     typ,
+		bytes:   zcode.Bytes{},
+		offsets: Uint32Encoder{vals: []uint32{0}},
+	}
 }
 
 func (b *BytesEncoder) Write(vb zcode.Bytes) {
