@@ -517,18 +517,26 @@ func (a *analyzer) semBinary(e *ast.BinaryExpr) dag.Expr {
 	}
 	lhs := a.semExpr(e.LHS)
 	rhs := a.semExpr(e.RHS)
-	if op == "like" {
+	if op == "like" || op == "not like" {
 		s, ok := isStringConst(a.sctx, rhs)
 		if !ok {
 			a.error(e.RHS, errors.New("non-constant pattern for LIKE not supported"))
 			return badExpr()
 		}
 		pattern := likeexpr.ToRegexp(s, '\\', false)
-		return &dag.RegexpSearch{
+		expr := &dag.RegexpSearch{
 			Kind:    "RegexpSearch",
 			Pattern: "(?s)" + pattern,
 			Expr:    lhs,
 		}
+		if op == "not like" {
+			return &dag.UnaryExpr{
+				Kind:    "UnaryExpr",
+				Op:      "!",
+				Operand: expr,
+			}
+		}
+		return expr
 	}
 	switch op {
 	case "=":

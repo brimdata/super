@@ -96,7 +96,9 @@ Pipe = "|>" / "|"
 
 ExprGuard = __ ((!"=>" Comparator) / AdditiveOperator / MultiplicativeOperator / ":" / "(" / "[" / "~")
 
-Comparator = ("==" / "=" / "!=" / "<>" / IN / LIKE / "<=" / "<" / ">=" / ">") { return string(c.text), nil }
+Comparator
+  = ("==" / "=" / "!=" / "<>" / IN / LIKE / "<=" / "<" / ">=" / ">") { return string(c.text), nil }
+  / NOT _ LIKE { return "not like", nil }
 
 SearchBoolean
   = first:SearchAnd rest:SearchOrTerm* {
