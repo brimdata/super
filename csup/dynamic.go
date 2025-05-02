@@ -4,7 +4,6 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zio"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -15,8 +14,6 @@ type DynamicEncoder struct {
 	which  map[super.Type]uint32
 	len    uint32
 }
-
-var _ zio.Writer = (*DynamicEncoder)(nil)
 
 func NewDynamicEncoder() *DynamicEncoder {
 	return &DynamicEncoder{
@@ -29,7 +26,7 @@ func NewDynamicEncoder() *DynamicEncoder {
 // written to it.  No need to define the schema up front!
 // We track the types seen first-come, first-served and the
 // CSUP metadata structure follows accordingly.
-func (d *DynamicEncoder) Write(val super.Value) error {
+func (d *DynamicEncoder) Write(val super.Value) {
 	typ := val.Type()
 	tag, ok := d.which[typ]
 	if !ok {
@@ -40,7 +37,6 @@ func (d *DynamicEncoder) Write(val super.Value) error {
 	d.tags.Write(tag)
 	d.len++
 	d.values[tag].Write(val.Bytes())
-	return nil
 }
 
 func (d *DynamicEncoder) Encode() (ID, uint64, error) {

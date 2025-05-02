@@ -38,9 +38,7 @@ func (w *Writer) Close() error {
 }
 
 func (w *Writer) Write(val super.Value) error {
-	if err := w.dynamic.Write(val); err != nil {
-		return err
-	}
+	w.dynamic.Write(val)
 	if w.dynamic.len >= maxObjectSize {
 		return w.finalizeObject()
 	}
