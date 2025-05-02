@@ -267,6 +267,9 @@ func (c *canon) expr(e ast.Expr, parent string) {
 	case *ast.Between:
 		c.write("(")
 		c.expr(e.Expr, "")
+		if e.Not {
+			c.write(" not")
+		}
 		c.write(" between ")
 		c.expr(e.Lower, "")
 		c.write(" and ")

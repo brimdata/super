@@ -75,6 +75,7 @@ type BinaryExpr struct {
 
 type Between struct {
 	Kind  string `json:"kind" unpack:""`
+	Not   bool   `json:"not"`
 	Expr  Expr   `json:"expr"`
 	Lower Expr   `json:"lower"`
 	Upper Expr   `json:"upper"`
