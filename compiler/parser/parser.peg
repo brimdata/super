@@ -961,14 +961,23 @@ NotExpr
   / BetweenExpr
   
 BetweenExpr
-  = expr:ComparisonExpr _ BETWEEN _ lower:BetweenExpr _ AND _ upper:BetweenExpr {
-      return &ast.Between{
+  = expr:ComparisonExpr _ not:(NOT _)? BETWEEN _ lower:BetweenExpr _ AND _ upper:BetweenExpr {
+      e := ast.Expr(&ast.Between{
         Kind: "Between",
         Expr: expr.(ast.Expr),
         Lower: lower.(ast.Expr),
         Upper: upper.(ast.Expr),
         Loc: loc(c),
-      }, nil
+      })
+      if not != nil {
+        e = &ast.UnaryExpr{
+          Kind: "UnaryExpr",
+          Op: "!",
+          Operand: e,
+          Loc: loc(c),
+        }
+      }
+      return e, nil
     }
   / ComparisonExpr
 
