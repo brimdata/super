@@ -2,7 +2,11 @@
 script: |
   super -z -c 'select val between lower and upper as x from in.sup'
   echo ===
+  super -z -c 'select val not between lower and upper as x from in.sup'
+  echo ===
   super -z -c 'yield  "Cat" BETWEEN upper(lower) And upper(upper)' in.sup
+  echo ===
+  super -z -c 'yield  "Cat" NOT BETWEEN upper(lower) And upper(upper)' in.sup
 
 inputs:
   - name: in.sup
@@ -22,8 +26,20 @@ outputs:
       {x:false}
       {x:true}
       ===
+      {x:true}
+      {x:false}
+      {x:true}
+      {x:true}
+      {x:false}
+      ===
       error({message:"upper: string arg required",on:5})
       error({message:"upper: string arg required",on:5})
       error({message:"upper: string arg required",on:5})
       true
       true
+      ===
+      error({message:"upper: string arg required",on:5})
+      error({message:"upper: string arg required",on:5})
+      error({message:"upper: string arg required",on:5})
+      false
+      false
