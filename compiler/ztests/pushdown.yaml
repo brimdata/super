@@ -1,6 +1,8 @@
 script: |
   echo === debug
   super compile -C -O 'from file | debug a | yield b'
+  echo === distinct
+  super compile -C -O 'from file | distinct a | yield b'
   echo === fork-join
   super compile -C -O 'fork (=> from file1 => from file2) | join on a b | yield c'
   echo === join
@@ -38,6 +40,11 @@ outputs:
           yield b
           | output main
       )
+      === distinct
+      file file unordered fields a,b
+      | distinct a
+      | yield b
+      | output main
       === fork-join
       fork (
         =>

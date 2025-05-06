@@ -79,7 +79,7 @@ func demandForSimpleOp(op dag.Op, downstream demand.Demand) demand.Demand {
 	case *dag.Cut:
 		return demandForAssignments(op.Args, demand.None())
 	case *dag.Distinct:
-		return demand.All()
+		return demand.Union(downstream, demandForExpr(op.Expr))
 	case *dag.Drop:
 		return downstream
 	case *dag.Explode:
