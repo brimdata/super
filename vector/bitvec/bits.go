@@ -32,7 +32,14 @@ func (b Bits) IsZero() bool {
 	return b.length == 0
 }
 
+// GetBits returns b's underlying storage with used bits cleared.
+// GetBits may modify the underlying storage.
 func (b Bits) GetBits() []uint64 {
+	if unusedBits := 64 - (b.length % 64); unusedBits < 64 {
+		// Clear unused bits.
+		mask := ^uint64(0) >> unusedBits
+		b.bits[len(b.bits)-1] &= mask
+	}
 	return b.bits
 }
 

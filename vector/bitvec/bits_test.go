@@ -6,6 +6,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestBitsGetBits(t *testing.T) {
+	assert.Equal(t, []uint64{0x0f}, New([]uint64{0xff}, 4).GetBits())
+}
+
 func TestBitsTrueCount(t *testing.T) {
 	assert.EqualValues(t, 0, Zero.TrueCount())
 	bits := []uint64{0xff}
