@@ -23,6 +23,9 @@ func castToNumber(vec vector.Any, typ super.Type, index []uint32) (vector.Any, [
 		return out, errs, true
 	}
 	nulls := vector.NullsOf(vec)
+	if index != nil {
+		nulls = nulls.Pick(index)
+	}
 	switch id := typ.ID(); {
 	case super.IsSigned(id):
 		vals, errs := toNumeric[int64](vec, typ, index)
