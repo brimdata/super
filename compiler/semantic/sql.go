@@ -543,8 +543,13 @@ func (a *analyzer) semProjection(sch *selectSchema, args []ast.AsExpr, funcs *ag
 		col := a.semAs(sch, as, funcs)
 		//XXX check for conflict for now, but we're getting rid of this soon
 		if _, ok := conflict[col.name]; ok {
-			a.error(as.ID, fmt.Errorf("%q: conflicting name in projection; try an AS clause", col.name))
+			n := ast.Node(as.Expr)
+			if as.ID != nil {
+				n = as.ID
+			}
+			a.error(n, fmt.Errorf("%q: conflicting name in projection; try an AS clause", col.name))
 		}
+		conflict[col.name] = struct{}{}
 		proj = append(proj, *col)
 		out.columns = append(out.columns, col.name)
 	}

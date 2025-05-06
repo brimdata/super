@@ -1,0 +1,9 @@
+script: |
+  ! super -c 'SELECT 1 as foo, 2 as foo'
+
+outputs:
+  - name: stderr
+    data: |
+      "foo": conflicting name in projection; try an AS clause at line 1, column 23:
+      SELECT 1 as foo, 2 as foo
+                            ~~~
