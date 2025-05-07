@@ -7,7 +7,6 @@ import (
 	"io"
 	"sync/atomic"
 	"time"
-	"unsafe"
 
 	"github.com/apache/arrow-go/v18/arrow"
 	"github.com/apache/arrow-go/v18/arrow/array"
@@ -16,6 +15,7 @@ import (
 	"github.com/apache/arrow-go/v18/parquet/file"
 	"github.com/apache/arrow-go/v18/parquet/pqarrow"
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/pkg/byteconv"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/bitvec"
@@ -208,11 +208,11 @@ func (v *vectorBuilder) build(a arrow.Array) (vector.Any, error) {
 		return vector.NewFloat(super.TypeFloat64, values, makeNulls(a)), nil
 	case arrow.STRING:
 		arr := a.(*array.String)
-		offsets := reinterpretSlice[uint32](arr.ValueOffsets())
+		offsets := byteconv.ReinterpretSlice[uint32](arr.ValueOffsets())
 		return vector.NewString(vector.NewBytesTable(offsets, arr.ValueBytes()), makeNulls(a)), nil
 	case arrow.BINARY:
 		arr := a.(*array.Binary)
-		offsets := reinterpretSlice[uint32](arr.ValueOffsets())
+		offsets := byteconv.ReinterpretSlice[uint32](arr.ValueOffsets())
 		return vector.NewBytes(vector.NewBytesTable(offsets, arr.ValueBytes()), makeNulls(a)), nil
 	case arrow.FIXED_SIZE_BINARY:
 		value0 := a.(*array.FixedSizeBinary).Value(0)
@@ -230,7 +230,7 @@ func (v *vectorBuilder) build(a arrow.Array) (vector.Any, error) {
 		return vector.NewInt(super.TypeTime, values, makeNulls(a)), nil
 	case arrow.TIMESTAMP:
 		multiplier := dt.(*arrow.TimestampType).TimeUnit().Multiplier()
-		values := reinterpretSlice[int64](a.(*array.Timestamp).TimestampValues())
+		values := byteconv.ReinterpretSlice[int64](a.(*array.Timestamp).TimestampValues())
 		if multiplier > 1 {
 			for i := range values {
 				values[i] *= int64(multiplier)
@@ -246,7 +246,7 @@ func (v *vectorBuilder) build(a arrow.Array) (vector.Any, error) {
 		return vector.NewInt(super.TypeTime, values, makeNulls(a)), nil
 	case arrow.TIME64:
 		multiplier := dt.(*arrow.Time64Type).TimeUnit().Multiplier()
-		values := reinterpretSlice[int64](a.(*array.Time64).Time64Values())
+		values := byteconv.ReinterpretSlice[int64](a.(*array.Time64).Time64Values())
 		if multiplier > 1 {
 			for i := range values {
 				values[i] *= int64(multiplier)
@@ -295,7 +295,7 @@ func (v *vectorBuilder) build(a arrow.Array) (vector.Any, error) {
 		if err != nil {
 			return nil, err
 		}
-		offsets := reinterpretSlice[uint32](arr.Offsets())
+		offsets := byteconv.ReinterpretSlice[uint32](arr.Offsets())
 		typ, ok := v.types[dt]
 		if !ok {
 			typ = v.sctx.LookupTypeArray(values.Type())
@@ -366,7 +366,7 @@ func makeNulls(a arrow.Array) bitvec.Bits {
 	}
 	n := a.Len()
 	bits := make([]uint64, (n+63)/64)
-	bitsAsBytes := reinterpretSlice[byte](bits)
+	bitsAsBytes := byteconv.ReinterpretSlice[byte](bits)
 	copy(bitsAsBytes, bytes)
 	for i := range bits {
 		// Flip bits
@@ -381,11 +381,4 @@ func convertSlice[Out, In uint8 | uint16 | uint32 | uint64 | int8 | int16 | int3
 		out[i] = Out(v)
 	}
 	return out
-}
-
-func reinterpretSlice[Out, In any](in []In) []Out {
-	outData := (*Out)(unsafe.Pointer(unsafe.SliceData(in)))
-	outLen := len(in) * int(unsafe.Sizeof(in[0])) / int(unsafe.Sizeof(*outData))
-	outCap := cap(in) * int(unsafe.Sizeof(in[0])) / int(unsafe.Sizeof(*outData))
-	return unsafe.Slice(outData, outCap)[:outLen]
 }
