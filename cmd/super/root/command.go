@@ -26,7 +26,7 @@ var Super = &charm.Spec{
 	Name:        "super",
 	Usage:       "super [options] <command> | super [ options ] [ -c query ] [ file ... ]",
 	Short:       "process data with SuperSQL queries",
-	HiddenFlags: "cpuprofile,memprofile,pathregexp",
+	HiddenFlags: "cpuprofile,memprofile,trace",
 	Long: `
 The "super" command provides a way to process data in diverse input formats,
 providing search, analytics, and extensive transformations using
