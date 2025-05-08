@@ -21,6 +21,7 @@ import (
 	"github.com/brimdata/super/vector/bitvec"
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio/arrowio"
+	"golang.org/x/exp/constraints"
 )
 
 type VectorReader struct {
@@ -394,11 +395,7 @@ func makeNulls(a arrow.Array) bitvec.Bits {
 	return bitvec.New(bits, uint32(n))
 }
 
-type numeric interface {
-	uint8 | uint16 | uint32 | uint64 | int8 | int16 | int32 | int64 | float32 | float64
-}
-
-func convertSlice[Out, In numeric](in []In, nulls bitvec.Bits) []Out {
+func convertSlice[Out, In constraints.Float | constraints.Integer](in []In, nulls bitvec.Bits) []Out {
 	out := make([]Out, len(in))
 	for i, v := range in {
 		if !nulls.IsSet(uint32(i)) {
