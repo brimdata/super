@@ -857,6 +857,16 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 			As:   as,
 		})
 	case *ast.Merge:
+		var ok bool
+		if len(seq) > 0 {
+			switch seq[len(seq)-1].(type) {
+			case *dag.Fork, *dag.Switch:
+				ok = true
+			}
+		}
+		if !ok {
+			a.error(o, errors.New("merge operator must follow fork or switch"))
+		}
 		var exprs []dag.SortExpr
 		for _, e := range o.Exprs {
 			exprs = append(exprs, a.semSortExpr(nil, e, false))
