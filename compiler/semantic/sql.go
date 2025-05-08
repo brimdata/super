@@ -533,7 +533,7 @@ func (a *analyzer) semGroupBy(sch *selectSchema, in []ast.Expr) []exprloc {
 func (a *analyzer) semProjection(sch *selectSchema, args []ast.AsExpr, funcs *aggfuncs) projection {
 	out := &anonSchema{}
 	sch.out = out
-	conflict := make(map[string]struct{})
+	aliases := make(map[string]struct{})
 	var proj projection
 	for _, as := range args {
 		if isStar(as) {
@@ -541,19 +541,42 @@ func (a *analyzer) semProjection(sch *selectSchema, args []ast.AsExpr, funcs *ag
 			continue
 		}
 		col := a.semAs(sch, as, funcs)
-		//XXX check for conflict for now, but we're getting rid of this soon
-		if _, ok := conflict[col.name]; ok {
-			n := ast.Node(as.Expr)
-			if as.ID != nil {
-				n = as.ID
+		if as.ID != nil {
+			if _, ok := aliases[col.name]; ok {
+				a.error(as.ID, fmt.Errorf("duplicate column label %q", col.name))
+				continue
 			}
-			a.error(n, fmt.Errorf("%q: conflicting name in projection; try an AS clause", col.name))
+			aliases[col.name] = struct{}{}
 		}
-		conflict[col.name] = struct{}{}
 		proj = append(proj, *col)
+	}
+	// Do we have duplicates for inferred columns? If an alias and an
+	// inferred column collide the inferred name should be changed.
+	for i := range proj {
+		col := &proj[i]
+		if col.isStar() {
+			continue
+		}
+		if args[i].ID == nil {
+			col.name = dedupeColname(aliases, col.name)
+		}
+		aliases[col.name] = struct{}{}
 		out.columns = append(out.columns, col.name)
 	}
+
 	return proj
+}
+
+func dedupeColname(m map[string]struct{}, name string) string {
+	for i := 0; ; i++ {
+		s := name
+		if i > 0 {
+			s += fmt.Sprintf("_%d", i)
+		}
+		if _, ok := m[s]; !ok {
+			return s
+		}
+	}
 }
 
 func isStar(a ast.AsExpr) bool {
@@ -591,11 +614,14 @@ func (a *analyzer) semExprSchema(s schema, e ast.Expr) dag.Expr {
 // that's what SQL does!  And it seems different implementations format
 // expressions differently.  XXX we need to check ANSI SQL spec here
 func inferColumnName(e dag.Expr, ae ast.Expr) string {
-	path, err := deriveLHSPath(e)
-	if err != nil {
+	switch e := e.(type) {
+	case *dag.This:
+		return field.Path(e.Path).Leaf()
+	case *dag.Var:
+		return e.Name
+	default:
 		return zfmt.ASTExpr(ae)
 	}
-	return field.Path(path).Leaf()
 }
 
 func yieldExpr(e dag.Expr, seq dag.Seq) dag.Seq {

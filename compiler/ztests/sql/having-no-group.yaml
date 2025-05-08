@@ -12,4 +12,4 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {sum:6}
+      {"sum(b)":6}
