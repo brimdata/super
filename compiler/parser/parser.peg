@@ -2159,7 +2159,7 @@ SelectElem
         Loc: loc(c),
       }
       if as != nil {
-          elem.ID = as.(*ast.ID)
+          elem.Label = as.(ast.Expr)
       }
       return elem, nil
     }
@@ -2169,8 +2169,8 @@ SelectElem
     }
 
 OptAsClause 
-  = _ AS _ id:Identifier { return id, nil }
-  / _ !SQLGuard id:Identifier { return id, nil }
+  = _ AS _ label:(Identifier / StringLiteral) { return label, nil }
+  / _ !SQLGuard label:(Identifier / StringLiteral) { return label, nil }
   / ""  { return nil, nil }
 
 OptOrderByClause 

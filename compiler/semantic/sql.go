@@ -307,7 +307,7 @@ func (a *analyzer) semSelectValue(sel *ast.Select, sch schema, seq dag.Seq) (dag
 	}
 	exprs := make([]dag.Expr, 0, len(sel.Selection.Args))
 	for _, as := range sel.Selection.Args {
-		if as.ID != nil {
+		if as.Label != nil {
 			a.error(sel, errors.New("SELECT VALUE cannot have AS clause in selection"))
 		}
 		exprs = append(exprs, a.semExprSchema(sch, as.Expr))
@@ -533,7 +533,7 @@ func (a *analyzer) semGroupBy(sch *selectSchema, in []ast.Expr) []exprloc {
 func (a *analyzer) semProjection(sch *selectSchema, args []ast.AsExpr, funcs *aggfuncs) projection {
 	out := &anonSchema{}
 	sch.out = out
-	aliases := make(map[string]struct{})
+	labels := make(map[string]struct{})
 	var proj projection
 	for _, as := range args {
 		if isStar(as) {
@@ -541,12 +541,12 @@ func (a *analyzer) semProjection(sch *selectSchema, args []ast.AsExpr, funcs *ag
 			continue
 		}
 		col := a.semAs(sch, as, funcs)
-		if as.ID != nil {
-			if _, ok := aliases[col.name]; ok {
-				a.error(as.ID, fmt.Errorf("duplicate column label %q", col.name))
+		if as.Label != nil {
+			if _, ok := labels[col.name]; ok {
+				a.error(as.Label, fmt.Errorf("duplicate column label %q", col.name))
 				continue
 			}
-			aliases[col.name] = struct{}{}
+			labels[col.name] = struct{}{}
 		}
 		proj = append(proj, *col)
 	}
@@ -557,10 +557,10 @@ func (a *analyzer) semProjection(sch *selectSchema, args []ast.AsExpr, funcs *ag
 		if col.isStar() {
 			continue
 		}
-		if args[i].ID == nil {
-			col.name = dedupeColname(aliases, col.name)
+		if args[i].Label == nil {
+			col.name = dedupeColname(labels, col.name)
 		}
-		aliases[col.name] = struct{}{}
+		labels[col.name] = struct{}{}
 		out.columns = append(out.columns, col.name)
 	}
 
@@ -580,16 +580,28 @@ func dedupeColname(m map[string]struct{}, name string) string {
 }
 
 func isStar(a ast.AsExpr) bool {
-	return a.Expr == nil && a.ID == nil
+	return a.Expr == nil && a.Label == nil
 }
 
 func (a *analyzer) semAs(sch schema, as ast.AsExpr, funcs *aggfuncs) *column {
 	e := a.semExprSchema(sch, as.Expr)
-	// If we have a name from an AS clause, use it.  Otherwise,
-	// infer a name.
+	// If we have a name from an AS clause, use it. Otherwise, infer a name.
 	var name string
-	if as.ID != nil {
-		name = as.ID.Name
+	if as.Label != nil {
+		var valid bool
+		switch label := as.Label.(type) {
+		case *ast.Primitive:
+			valid = label.Type == "string"
+			name = label.Text
+		case *ast.ID:
+			valid = true
+			name = label.Name
+		}
+		if !valid {
+			a.error(as.Label, errors.New("unexpected label type"))
+		} else if name == "" {
+			a.error(as.Label, errors.New("label cannot be an empty string"))
+		}
 	} else {
 		name = inferColumnName(e, as.Expr)
 	}

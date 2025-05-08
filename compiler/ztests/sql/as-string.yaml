@@ -1,0 +1,15 @@
+script: |
+  super compile -O -C 'SELECT 1 as "foo()"'
+  ! super compile -O -C 'SELECT 1 as ""'
+
+outputs:
+  - name: stdout
+    data: |
+      null
+      | yield {"foo()":1}
+      | output main
+  - name: stderr
+    data: |
+      label cannot be an empty string at line 1, column 13:
+      SELECT 1 as ""
+                  ~~

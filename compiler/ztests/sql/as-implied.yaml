@@ -4,6 +4,10 @@ script: |
   super -z -c "select a x, a as y, b z from t.json"
   echo ===
   super compile -C -O 'select n+1, n+2, n+1, n+3, n+1'
+  echo ===
+  # Test that if a label and inferred label conflict the inferred label is
+  # changed.
+  super compile -C -O 'select n+1, n+1 as "n+1"'
 
 inputs:
   - name: t.json
@@ -28,4 +32,8 @@ outputs:
       ===
       null
       | yield {"n+1":n+1,"n+2":n+2,"n+1_1":n+1,"n+3":n+3,"n+1_2":n+1}
+      | output main
+      ===
+      null
+      | yield {"n+1_1":n+1,"n+1":n+1}
       | output main

@@ -115,10 +115,10 @@ func (*Limit) OpAST()     {}
 func (*With) OpAST()      {}
 
 type AsExpr struct {
-	Kind string `json:"kind" unpack:""`
-	ID   *ID    `json:"id"`
-	Expr Expr   `json:"expr"`
-	Loc  `json:"loc"`
+	Kind  string `json:"kind" unpack:""`
+	Label Expr   `json:"label"`
+	Expr  Expr   `json:"expr"`
+	Loc   `json:"loc"`
 }
 
 func (*AsExpr) ExprAST() {}
