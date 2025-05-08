@@ -11,4 +11,4 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {count:3(uint64),sum:6}
+      {"count(a)":3(uint64),"sum(a)":6}

@@ -12,4 +12,4 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {count:4(uint64),sum:10}
+      {"COUNT()":4(uint64),"Sum(c)":10}
