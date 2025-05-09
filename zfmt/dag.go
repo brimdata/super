@@ -423,7 +423,7 @@ func (c *canonDAG) op(p dag.Op) {
 		if p.Reverse {
 			c.write(" -r")
 		}
-		c.sortExprs(p.Args)
+		c.sortExprs(p.Exprs)
 	case *dag.Load:
 		c.next()
 		c.write("load %s", p.Pool)

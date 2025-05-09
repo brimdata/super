@@ -198,7 +198,7 @@ func (o *Optimizer) liftIntoParPaths(seq dag.Seq) {
 			op.Keys[k].RHS = op.Keys[k].LHS
 		}
 	case *dag.Sort:
-		merge, ok := canLiftSortOrTopIntoParPaths(merge, op.Args)
+		merge, ok := canLiftSortOrTopIntoParPaths(merge, op.Exprs)
 		if !ok {
 			return
 		}
@@ -297,13 +297,13 @@ func (o *Optimizer) concurrentPath(seq dag.Seq, sortKeys order.SortKeys) (length
 			}
 			return k, nil, false, nil
 		case *dag.Sort:
-			if len(op.Args) == 0 {
+			if len(op.Exprs) == 0 {
 				// No analysis for sort without expression since we can't
 				// parallelize the heuristic.  We should revisit these semantics
 				// and define a global order across Zed type.
 				return 0, nil, false, nil
 			}
-			return k, op.Args, false, nil
+			return k, op.Exprs, false, nil
 		case *dag.Top:
 			if len(op.Exprs) == 0 {
 				// No analysis for top without expression since we can't

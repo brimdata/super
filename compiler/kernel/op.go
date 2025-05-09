@@ -179,12 +179,12 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 	case *dag.Sort:
 		b.resetResetters()
 		var sortExprs []expr.SortExpr
-		for _, s := range v.Args {
-			k, err := b.compileExpr(s.Key)
+		for _, e := range v.Exprs {
+			k, err := b.compileExpr(e.Key)
 			if err != nil {
 				return nil, err
 			}
-			sortExprs = append(sortExprs, expr.NewSortExpr(k, s.Order, s.Nulls))
+			sortExprs = append(sortExprs, expr.NewSortExpr(k, e.Order, e.Nulls))
 		}
 		return sort.New(b.rctx, parent, sortExprs, v.Reverse, b.resetters), nil
 	case *dag.Head:

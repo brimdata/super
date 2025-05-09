@@ -512,7 +512,7 @@ func (c *canon) op(p ast.Op) {
 		if p.Reverse {
 			c.write(" -r")
 		}
-		c.sortExprs(p.Args)
+		c.sortExprs(p.Exprs)
 	case *ast.Load:
 		c.next()
 		c.write("load %s", sup.QuotedString(p.Pool.Text))

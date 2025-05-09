@@ -669,12 +669,12 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 		})
 	case *ast.Sort:
 		var sortExprs []dag.SortExpr
-		for _, arg := range o.Args {
-			sortExprs = append(sortExprs, a.semSortExpr(nil, arg, o.Reverse))
+		for _, e := range o.Exprs {
+			sortExprs = append(sortExprs, a.semSortExpr(nil, e, o.Reverse))
 		}
 		return append(seq, &dag.Sort{
 			Kind:    "Sort",
-			Args:    sortExprs,
+			Exprs:   sortExprs,
 			Reverse: o.Reverse && len(sortExprs) == 0,
 		})
 	case *ast.Head:

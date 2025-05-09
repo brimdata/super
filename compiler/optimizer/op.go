@@ -27,7 +27,7 @@ func (o *Optimizer) analyzeSortKeys(op dag.Op, in order.SortKeys) (order.SortKey
 		}
 		return pool.SortKeys, nil
 	case *dag.Sort:
-		return sortKeysOfSortExprs(op.Args), nil
+		return sortKeysOfSortExprs(op.Exprs), nil
 	case *dag.Top:
 		return sortKeysOfSortExprs(op.Exprs), nil
 	}

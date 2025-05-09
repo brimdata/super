@@ -296,12 +296,12 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 	case *dag.Sort:
 		b.resetResetters()
 		var sortExprs []expr.SortExpr
-		for _, s := range o.Args {
-			k, err := b.compileExpr(s.Key)
+		for _, e := range o.Exprs {
+			k, err := b.compileExpr(e.Key)
 			if err != nil {
 				return nil, err
 			}
-			sortExprs = append(sortExprs, expr.NewSortExpr(k, s.Order, s.Nulls))
+			sortExprs = append(sortExprs, expr.NewSortExpr(k, e.Order, e.Nulls))
 		}
 		return vamop.NewSort(b.rctx, parent, sortExprs, o.Reverse, b.resetters), nil
 	case *dag.Tail:

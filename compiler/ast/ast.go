@@ -443,8 +443,8 @@ type (
 	}
 	Sort struct {
 		Kind    string     `json:"kind" unpack:""`
+		Exprs   []SortExpr `json:"exprs"`
 		Reverse bool       `json:"reverse"`
-		Args    []SortExpr `json:"args"`
 		Loc     `json:"loc"`
 	}
 	Cut struct {

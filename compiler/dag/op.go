@@ -139,7 +139,7 @@ type (
 	}
 	Sort struct {
 		Kind    string     `json:"kind" unpack:""`
-		Args    []SortExpr `json:"args"`
+		Exprs   []SortExpr `json:"exprs"`
 		Reverse bool       `json:"reverse"` // Always false if len(Args)>0.
 	}
 	Switch struct {

@@ -118,7 +118,7 @@ func demandForSimpleOp(op dag.Op, downstream demand.Demand) demand.Demand {
 	case *dag.Shape:
 		return downstream
 	case *dag.Sort:
-		return demandForSortExprs(op.Args, downstream)
+		return demandForSortExprs(op.Exprs, downstream)
 	case *dag.Tail:
 		return downstream
 	case *dag.Top:

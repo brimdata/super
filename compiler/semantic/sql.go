@@ -373,7 +373,7 @@ func (a *analyzer) semSQLOp(op ast.Op, seq dag.Seq) (dag.Seq, schema) {
 		for _, e := range op.Exprs {
 			exprs = append(exprs, a.semSortExpr(schema, e, false))
 		}
-		return append(out, &dag.Sort{Kind: "Sort", Args: exprs}), schema
+		return append(out, &dag.Sort{Kind: "Sort", Exprs: exprs}), schema
 	case *ast.Limit:
 		e := a.semExpr(op.Count)
 		var err error

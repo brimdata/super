@@ -427,7 +427,7 @@ SortOp
         Loc: loc(c),
       }
       if exprs != nil {
-        o.Args = exprs.([]ast.SortExpr)
+        o.Exprs = exprs.([]ast.SortExpr)
       }
       argm := args.(map[string]any)
       if _, ok := argm["r"]; ok {

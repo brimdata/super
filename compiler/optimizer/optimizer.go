@@ -670,7 +670,7 @@ func replaceSortAndHeadOrTailWithTop(seq dag.Seq) dag.Seq {
 				continue
 			}
 			var limit int
-			exprs := sort.Args
+			exprs := sort.Exprs
 			reverse := sort.Reverse
 			switch op := seq[i+1].(type) {
 			case *dag.Head:
