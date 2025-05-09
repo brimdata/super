@@ -3,3 +3,7 @@ dirs:
 useGitIgnore: true
 excludedDirs:
   - node_modules
+
+# Currently not crawling links matching the following pattern due to HTTP 429 errors
+ignorePatterns:
+  - pattern: '^https://github.com/brimdata/super/blob/main/scripts/super-cmd-perf.*$'
