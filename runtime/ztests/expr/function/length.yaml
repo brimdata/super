@@ -6,4 +6,4 @@ input: |
   null
 
 output: |
-  {length:13}
+  {"LENGTH(\"W3Schools.com\")":13}

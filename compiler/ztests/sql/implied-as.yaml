@@ -2,6 +2,8 @@ script: |
   super -z -c "select a x from t.json"
   echo ===
   super -z -c "select a x, a as y, b z from t.json"
+  echo ===
+  super compile -C -O 'select n+1, n+2, n+1, n+3, n+1'
 
 inputs:
   - name: t.json
@@ -23,3 +25,7 @@ outputs:
       {x:2,y:2,z:1}
       {x:3,y:3,z:2}
       {x:4,y:4,z:2}
+      ===
+      null
+      | yield {"n+1":n+1,"n+2":n+2,"n+1_1":n+1,"n+3":n+3,"n+1_2":n+1}
+      | output main
