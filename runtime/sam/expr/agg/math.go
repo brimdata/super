@@ -17,9 +17,10 @@ type consumer interface {
 }
 
 type mathReducer struct {
-	function *anymath.Function
-	hasval   bool
-	math     consumer
+	function  *anymath.Function
+	hasval    bool
+	math      consumer
+	stringErr bool
 }
 
 var _ Function = (*mathReducer)(nil)
@@ -29,6 +30,9 @@ func newMathReducer(f *anymath.Function) *mathReducer {
 }
 
 func (m *mathReducer) Result(sctx *super.Context) super.Value {
+	if m.stringErr {
+		return sctx.NewErrorf("mixture of string and numeric values")
+	}
 	if !m.hasval {
 		if m.math == nil {
 			return super.Null
@@ -43,6 +47,10 @@ func (m *mathReducer) Consume(val super.Value) {
 }
 
 func (m *mathReducer) consumeVal(val super.Value) {
+	if val.IsString() || (m.math != nil && m.math.typ() == super.TypeString) {
+		m.consumeString(val)
+		return
+	}
 	var id int
 	if m.math != nil {
 		var err error
@@ -80,6 +88,23 @@ func (m *mathReducer) consumeVal(val super.Value) {
 	}
 	m.hasval = true
 	m.math.consume(val)
+}
+
+func (m *mathReducer) consumeString(val super.Value) {
+	if m.math == nil {
+		m.math = NewString(m.function)
+	}
+	aid := val.Type().ID()
+	bid := m.math.typ().ID()
+	if aid == super.IDString && bid == super.IDString {
+		if val.IsNull() {
+			return
+		}
+		m.hasval = true
+		m.math.consume(val)
+	} else if super.IsNumber(aid) || super.IsNumber(bid) {
+		m.stringErr = true
+	}
 }
 
 func (m *mathReducer) ResultAsPartial(*super.Context) super.Value {
@@ -249,6 +274,37 @@ func (t *Time) consume(val super.Value) {
 }
 
 func (f *Time) typ() super.Type { return super.TypeTime }
+
+type String struct {
+	state    string
+	hasval   bool
+	function anymath.String
+}
+
+func NewString(f *anymath.Function) *String {
+	return &String{function: f.String}
+}
+
+func (s *String) result() super.Value {
+	if s.function == nil {
+		return super.Null
+	}
+	return super.NewString(s.state)
+}
+
+func (s *String) consume(val super.Value) {
+	if s.function == nil {
+		return
+	}
+	v := val.AsString()
+	if !s.hasval {
+		s.hasval = true
+		s.state = v
+	}
+	s.state = s.function(s.state, v)
+}
+
+func (s *String) typ() super.Type { return super.TypeString }
 
 func panicCoercionFail(to, from super.Type) {
 	panic(fmt.Sprintf("internal aggregation error: cannot coerce %s to %s", sup.String(from), sup.String(to)))

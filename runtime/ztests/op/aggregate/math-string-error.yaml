@@ -1,0 +1,11 @@
+spq: min(this), max(this), sum(this), avg(this)
+
+vector: true
+
+input: |
+  "foo"
+  "bar"
+  1
+
+output: |
+  {min:error("mixture of string and numeric values"),max:error("mixture of string and numeric values"),sum:error("mixture of string and numeric values"),avg:1.}

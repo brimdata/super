@@ -48,7 +48,7 @@ max(this)
 2
 3
 4
-"foo"
+127.0.0.1
 # expected output
 4
 ```
