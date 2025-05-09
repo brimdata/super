@@ -16,27 +16,31 @@ var mathSum = &mathFunc{
 
 var mathMin = &mathFunc{
 	Init:        anymath.Min.Init,
-	funcFloat64: min[float64],
-	funcInt64:   min[int64],
-	funcUint64:  min[uint64],
+	funcFloat64: minNumeric[float64],
+	funcInt64:   minNumeric[int64],
+	funcUint64:  minNumeric[uint64],
+	funcString:  minString,
 }
 
 var mathMax = &mathFunc{
 	Init:        anymath.Max.Init,
-	funcFloat64: max[float64],
-	funcInt64:   max[int64],
-	funcUint64:  max[uint64],
+	funcFloat64: maxNumeric[float64],
+	funcInt64:   maxNumeric[int64],
+	funcUint64:  maxNumeric[uint64],
+	funcString:  maxString,
 }
 
 type funcFloat64 func(float64, vector.Any) float64
 type funcInt64 func(int64, vector.Any) int64
 type funcUint64 func(uint64, vector.Any) uint64
+type funcString func(string, vector.Any) string
 
 type mathFunc struct {
 	anymath.Init
 	funcFloat64
 	funcInt64
 	funcUint64
+	funcString
 }
 
 type numeric interface {
@@ -89,7 +93,7 @@ func sumOf[T numeric, E numeric](state T, vals []E, index []uint32, counts []uin
 	return state
 }
 
-func min[T numeric](state T, vec vector.Any) T {
+func minNumeric[T numeric](state T, vec vector.Any) T {
 	switch vec := vec.(type) {
 	case *vector.Const:
 		if v := constToNumeric[T](vec); v < state {
@@ -135,7 +139,7 @@ func minOf[T numeric, E numeric](state T, vals []E, index []uint32) T {
 	return state
 }
 
-func max[T numeric](state T, vec vector.Any) T {
+func maxNumeric[T numeric](state T, vec vector.Any) T {
 	switch vec := vec.(type) {
 	case *vector.Const:
 		if v := constToNumeric[T](vec); v > state {
@@ -190,5 +194,29 @@ func constToNumeric[T numeric](vec *vector.Const) T {
 		return T(val.Int())
 	default:
 		return T(val.Float())
+	}
+}
+
+func minString(state string, vec vector.Any) string {
+	if vec, ok := vec.(*vector.Const); ok {
+		return min(state, vec.Value().Ptr().AsString())
+	}
+	for i := range vec.Len() {
+		v, _ := vector.StringValue(vec, i)
+		state = min(state, v)
+	}
+	return state
+}
+
+func maxString(state string, vec vector.Any) string {
+	switch vec := vec.(type) {
+	case *vector.Const:
+		return max(state, vec.Value().Ptr().AsString())
+	default:
+		for i := range vec.Len() {
+			v, _ := vector.StringValue(vec, i)
+			state = max(state, v)
+		}
+		return state
 	}
 }

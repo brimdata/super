@@ -1,0 +1,12 @@
+spq: min(this), max(this), sum(this), avg(this)
+
+vector: true
+
+input: |
+  "foo"
+  "aardvark"
+  "bar"
+  "lobster"
+
+output: |
+  {min:"aardvark",max:"lobster",sum:null,avg:null(float64)}
