@@ -297,8 +297,8 @@ func literalsInArrayOrSet(elems []dag.VectorElem) []*dag.Literal {
 }
 
 func metadataPrunerPred(op string, this *dag.This, literal *dag.Literal) *dag.BinaryExpr {
-	min := &dag.This{Kind: "This", Path: append(this.Path, "min")}
-	max := &dag.This{Kind: "This", Path: append(this.Path, "max")}
+	min := &dag.This{Kind: "This", Path: append(slices.Clone(this.Path), "min")}
+	max := &dag.This{Kind: "This", Path: append(slices.Clone(this.Path), "max")}
 	switch op {
 	case "<":
 		return compare("<", min, literal)
