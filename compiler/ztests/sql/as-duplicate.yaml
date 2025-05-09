@@ -4,6 +4,6 @@ script: |
 outputs:
   - name: stderr
     data: |
-      duplicate alias "foo" at line 1, column 23:
+      duplicate label "foo" at line 1, column 23:
       SELECT 1 as foo, 2 as foo
                             ~~~
