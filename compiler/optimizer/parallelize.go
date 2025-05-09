@@ -1,8 +1,6 @@
 package optimizer
 
 import (
-	"reflect"
-
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/order"
 )
@@ -198,11 +196,10 @@ func (o *Optimizer) liftIntoParPaths(seq dag.Seq) {
 			op.Keys[k].RHS = op.Keys[k].LHS
 		}
 	case *dag.Sort:
-		merge, ok := canLiftSortOrTopIntoParPaths(merge, op.Args)
-		if !ok {
+		if len(op.Args) == 0 {
 			return
 		}
-		seq[1] = merge
+		seq[1] = &dag.Merge{Kind: "Merge", Exprs: op.Args}
 		if egress > 1 {
 			seq[2] = dag.PassOp
 		}
@@ -210,15 +207,11 @@ func (o *Optimizer) liftIntoParPaths(seq dag.Seq) {
 			paths[k].Append(copyOp(op))
 		}
 	case *dag.Top:
-		merge, ok := canLiftSortOrTopIntoParPaths(merge, op.Exprs)
-		if !ok || egress < 2 {
+		if len(op.Exprs) == 0 {
 			return
 		}
-		seq[1] = merge
-		seq[2] = &dag.Head{
-			Kind:  "Head",
-			Count: op.Limit,
-		}
+		seq[1] = &dag.Merge{Kind: "Merge", Exprs: op.Exprs}
+		seq[2] = &dag.Head{Kind: "Head", Count: op.Limit}
 		for k := range paths {
 			paths[k].Append(copyOp(op))
 		}
@@ -259,16 +252,6 @@ func parallelPaths(op dag.Op) ([]dag.Seq, bool) {
 		return f.Paths, true
 	}
 	return nil, false
-}
-
-func canLiftSortOrTopIntoParPaths(merge *dag.Merge, sortExprs []dag.SortExpr) (*dag.Merge, bool) {
-	if len(sortExprs) == 0 {
-		return nil, false
-	}
-	if merge == nil {
-		return &dag.Merge{Kind: "Merge", Exprs: sortExprs}, true
-	}
-	return merge, reflect.DeepEqual(merge.Exprs, sortExprs)
 }
 
 // concurrentPath returns the largest path within seq from front to end that can
