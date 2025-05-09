@@ -5,5 +5,6 @@ excludedDirs:
   - node_modules
 
 # Currently not crawling links matching the following pattern due to HTTP 429 errors
+# See https://github.com/brimdata/super/pull/5887
 ignorePatterns:
   - pattern: '^https://github.com/brimdata/super/blob/main/scripts/super-cmd-perf.*$'
