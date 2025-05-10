@@ -19,6 +19,7 @@ var mathMin = &mathFunc{
 	funcFloat64: min[float64],
 	funcInt64:   min[int64],
 	funcUint64:  min[uint64],
+	funcString:  minString,
 }
 
 var mathMax = &mathFunc{
@@ -26,17 +27,20 @@ var mathMax = &mathFunc{
 	funcFloat64: max[float64],
 	funcInt64:   max[int64],
 	funcUint64:  max[uint64],
+	funcString:  maxString,
 }
 
 type funcFloat64 func(float64, vector.Any) float64
 type funcInt64 func(int64, vector.Any) int64
 type funcUint64 func(uint64, vector.Any) uint64
+type funcString func(string, vector.Any) string
 
 type mathFunc struct {
 	anymath.Init
 	funcFloat64
 	funcInt64
 	funcUint64
+	funcString
 }
 
 type numeric interface {
@@ -190,5 +194,41 @@ func constToNumeric[T numeric](vec *vector.Const) T {
 		return T(val.Int())
 	default:
 		return T(val.Float())
+	}
+}
+
+func minString(state string, vec vector.Any) string {
+	switch vec := vec.(type) {
+	case *vector.Const:
+		if v, _ := vec.AsString(); v < state {
+			return v
+		}
+		return state
+	default:
+		for i := range vec.Len() {
+			v, _ := vector.StringValue(vec, i)
+			if v < state {
+				state = v
+			}
+		}
+		return state
+	}
+}
+
+func maxString(state string, vec vector.Any) string {
+	switch vec := vec.(type) {
+	case *vector.Const:
+		if v, _ := vec.AsString(); v > state {
+			return v
+		}
+		return state
+	default:
+		for i := range vec.Len() {
+			v, _ := vector.StringValue(vec, i)
+			if v > state {
+				state = v
+			}
+		}
+		return state
 	}
 }

@@ -5,12 +5,14 @@ import "math"
 type Float64 func(float64, float64) float64
 type Int64 func(int64, int64) int64
 type Uint64 func(uint64, uint64) uint64
+type String func(string, string) string
 
 type Function struct {
 	Init
 	Float64
 	Int64
 	Uint64
+	String
 }
 
 type Init struct {
@@ -39,6 +41,12 @@ var Min = &Function{
 		}
 		return b
 	},
+	String: func(a, b string) string {
+		if a < b {
+			return a
+		}
+		return b
+	},
 }
 
 var Max = &Function{
@@ -56,6 +64,12 @@ var Max = &Function{
 		return b
 	},
 	Uint64: func(a, b uint64) uint64 {
+		if a > b {
+			return a
+		}
+		return b
+	},
+	String: func(a, b string) string {
 		if a > b {
 			return a
 		}
