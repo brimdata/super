@@ -7,14 +7,14 @@ import (
 
 // Parallelize tries to parallelize the DAG by splitting each source
 // path as much as possible of the sequence into n parallel branches.
-func (o *Optimizer) Parallelize(seq dag.Seq, n int) (dag.Seq, error) {
+func (o *Optimizer) Parallelize(seq dag.Seq, concurrency int) (dag.Seq, error) {
 	// Compute the number of parallel paths across all input sources to
 	// achieve the desired level of concurrency.  At some point, we should
 	// use a semaphore here and let each possible path use the max concurrency.
 	if o.nent == 0 {
 		return seq, nil
 	}
-	concurrency := n / o.nent
+	concurrency = concurrency / o.nent
 	if concurrency < 2 {
 		concurrency = 2
 	}
@@ -32,14 +32,14 @@ func (o *Optimizer) Parallelize(seq dag.Seq, n int) (dag.Seq, error) {
 			if slicer != nil {
 				front.Append(slicer)
 			}
-			parallel, err = o.parallelizeSeqScan(rest, n)
+			parallel, err = o.parallelizeSeqScan(rest, concurrency)
 		} else if scan, ok := seq[0].(*dag.FileScan); ok {
 			if !o.env.UseVAM() {
 				// Sequence runtime file scan doesn't support parallelism.
 				return seq, nil
 			}
 			front.Append(scan)
-			parallel, err = o.parallelizeFileScan(seq[1:], n)
+			parallel, err = o.parallelizeFileScan(seq[1:], concurrency)
 		}
 		if err != nil {
 			return nil, err

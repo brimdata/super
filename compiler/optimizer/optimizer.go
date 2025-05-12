@@ -222,7 +222,6 @@ func (o *Optimizer) optimizeSourcePaths(seq dag.Seq) (dag.Seq, error) {
 		if len(seq) == 0 {
 			return nil, errors.New("internal error: optimizer encountered empty sequential operator")
 		}
-		o.nent++
 		chain := seq[1:]
 		if len(chain) == 0 {
 			// Nothing to push down.
@@ -235,6 +234,7 @@ func (o *Optimizer) optimizeSourcePaths(seq dag.Seq) (dag.Seq, error) {
 		filter, chain := matchFilter(chain)
 		switch op := seq[0].(type) {
 		case *dag.PoolScan:
+			o.nent++
 			// Here we transform a PoolScan into a Lister followed by one or more chains
 			// of slicers and sequence scanners.  We'll eventually choose other configurations
 			// here based on metadata and availability of CSUP.
@@ -267,6 +267,7 @@ func (o *Optimizer) optimizeSourcePaths(seq dag.Seq) (dag.Seq, error) {
 			})
 			seq = append(seq, chain...)
 		case *dag.FileScan:
+			o.nent++
 			if o.env.UseVAM() {
 				// Here, we install the filter without a projection.
 				// The demand pass comes subsequently and will add
@@ -283,6 +284,7 @@ func (o *Optimizer) optimizeSourcePaths(seq dag.Seq) (dag.Seq, error) {
 			}
 			seq = append(dag.Seq{op}, chain...)
 		case *dag.CommitMetaScan:
+			o.nent++
 			if op.Tap {
 				sortKeys, err := o.sortKeysOfSource(op)
 				if err != nil {
@@ -299,6 +301,7 @@ func (o *Optimizer) optimizeSourcePaths(seq dag.Seq) (dag.Seq, error) {
 				seq = dag.Seq{op, o}
 			}
 		case *dag.DefaultScan:
+			o.nent++
 			op.Filter = filter
 			seq = append(dag.Seq{op}, chain...)
 		}
