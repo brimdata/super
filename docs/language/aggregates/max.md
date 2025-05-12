@@ -4,7 +4,7 @@
 
 ### Synopsis
 ```
-max(number) -> number
+max(number|string) -> number|string
 ```
 
 ### Description
@@ -13,17 +13,20 @@ The _max_ aggregate function computes the maximum value of its input.
 
 ### Examples
 
-Maximum value of simple sequence:
+Maximum value of simple numeric sequence:
 ```mdtest-spq
 # spq
 max(this)
 # input
-1 2 3 4
+1
+2
+3
+4
 # expected output
 4
 ```
 
-Continuous maximum of simple sequence:
+Continuous maximum of simple numeric sequence:
 ```mdtest-spq
 # spq
 yield max(this)
@@ -39,7 +42,31 @@ yield max(this)
 4
 ```
 
-Unrecognized types are ignored:
+Maximum of several string values:
+```mdtest-spq
+# spq
+max(this)
+# input
+"bar"
+"foo"
+"baz"
+# expected output
+"foo"
+```
+
+Determining a maximum among mixed numeric and string inputs is not yet possible:
+```mdtest-spq
+# spq
+max(this)
+# input
+1
+"foo"
+2
+# expected output
+error("mixture of string and numeric values")
+```
+
+Other unrecognized types in mixed input are ignored:
 ```mdtest-spq
 # spq
 max(this)
