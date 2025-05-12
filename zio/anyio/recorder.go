@@ -27,12 +27,7 @@ func NewRecorder(r io.Reader) *Recorder {
 func (r *Recorder) ReadAt(off int, b []byte) (int, error) {
 	for {
 		if off < len(r.buffer) {
-			window := r.buffer[off:]
-			n := len(window)
-			if n > len(b) {
-				n = len(b)
-			}
-			copy(b, window[:n])
+			n := copy(b, r.buffer[off:])
 			return n, nil
 		}
 		if r.eof {
@@ -73,11 +68,7 @@ func (r *Recorder) Read(b []byte) (int, error) {
 	if r.buffer == nil {
 		return r.Reader.Read(b)
 	}
-	n := len(r.buffer)
-	if n > len(b) {
-		n = len(b)
-	}
-	copy(b, r.buffer[:n])
+	n := copy(b, r.buffer)
 	r.buffer = r.buffer[n:]
 	if len(r.buffer) == 0 {
 		// no longer needed, return to GC
