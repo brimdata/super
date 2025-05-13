@@ -1,6 +1,8 @@
 package function
 
 import (
+	"unicode/utf8"
+
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/vector"
@@ -29,7 +31,7 @@ func (l *Len) Call(args ...vector.Any) vector.Any {
 	case *super.TypeOfString:
 		for i := uint32(0); i < val.Len(); i++ {
 			s, _ := vector.StringValue(val, i)
-			out.Append(int64(len(s)))
+			out.Append(int64(utf8.RuneCountInString(s)))
 		}
 	case *super.TypeOfBytes:
 		for i := uint32(0); i < val.Len(); i++ {

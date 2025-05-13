@@ -1,9 +1,11 @@
-spq: SELECT LENGTH('W3Schools.com');
+spq: SELECT LENGTH(s);
 
 vector: true
 
 input: |
-  null
+  {s:"W3Schools.com"}
+  {s:"emoji👀"}
 
 output: |
-  {"LENGTH(\"W3Schools.com\")":13}
+  {"LENGTH(s)":13}
+  {"LENGTH(s)":6}

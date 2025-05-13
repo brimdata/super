@@ -1,6 +1,8 @@
 package function
 
 import (
+	"unicode/utf8"
+
 	"github.com/brimdata/super"
 )
 
@@ -22,7 +24,9 @@ func (l *LenFn) Call(_ super.Allocator, args []super.Value) super.Value {
 		if err != nil {
 			panic(err)
 		}
-	case *super.TypeOfBytes, *super.TypeOfString, *super.TypeOfIP, *super.TypeOfNet:
+	case *super.TypeOfString:
+		length = utf8.RuneCount(val.Bytes())
+	case *super.TypeOfBytes, *super.TypeOfIP, *super.TypeOfNet:
 		length = len(val.Bytes())
 	case *super.TypeError:
 		return l.sctx.WrapError("len()", val)

@@ -132,7 +132,7 @@ func TestLen(t *testing.T) {
 	record = `{s:"🍺",bs:0xf09f8dba}`
 
 	testSuccessful(t, `len("foo")`, record, "3")
-	testSuccessful(t, `len(s)`, record, "4")
+	testSuccessful(t, `len(s)`, record, "1")
 	testSuccessful(t, `len(bs)`, record, "4")
 
 	testSuccessful(t, `rune_len("foo")`, record, "3")
