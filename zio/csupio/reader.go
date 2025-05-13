@@ -2,8 +2,10 @@ package csupio
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
+	"math"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/csup"
@@ -20,6 +22,7 @@ type reader struct {
 	projection field.Projection
 	readerAt   io.ReaderAt
 	vals       []super.Value
+	cancel     context.CancelFunc
 }
 
 func NewReader(sctx *super.Context, r io.Reader, fields []field.Path) (zio.Reader, error) {
@@ -31,19 +34,25 @@ func NewReader(sctx *super.Context, r io.Reader, fields []field.Path) (zio.Reade
 	if _, err := csup.ReadHeader(ra); err != nil {
 		return nil, err
 	}
+	ctx, cancel := context.WithCancel(context.Background())
 	return &reader{
 		sctx:       sctx,
-		stream:     &stream{r: ra},
+		stream:     &stream{ctx: ctx, r: ra},
 		projection: field.NewProjection(fields),
 		readerAt:   ra,
+		cancel:     cancel,
 	}, nil
 }
 
 func (r *reader) Read() (*super.Value, error) {
 again:
 	if len(r.vals) == 0 {
-		o, err := r.stream.next()
-		if o == nil || err != nil {
+		hdr, off, err := r.stream.next()
+		if hdr == nil || err != nil {
+			return nil, err
+		}
+		o, err := csup.NewObjectFromHeader(io.NewSectionReader(r.readerAt, off, math.MaxInt64), *hdr)
+		if err != nil {
 			return nil, err
 		}
 		vec, err := vcache.NewObjectFromCSUP(o).Fetch(r.sctx, r.projection)
@@ -79,6 +88,7 @@ func (r *reader) materializeVector(vec vector.Any) {
 }
 
 func (r *reader) Close() error {
+	r.cancel()
 	if closer, ok := r.readerAt.(io.Closer); ok {
 		return closer.Close()
 	}

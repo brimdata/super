@@ -44,6 +44,10 @@ func NewObject(r io.ReaderAt) (*Object, error) {
 	if err != nil {
 		return nil, err
 	}
+	return NewObjectFromHeader(r, hdr)
+}
+
+func NewObjectFromHeader(r io.ReaderAt, hdr Header) (*Object, error) {
 	cctx := NewContext()
 	if err := cctx.readMeta(io.NewSectionReader(r, HeaderSize, int64(hdr.MetaSize))); err != nil {
 		return nil, err
@@ -78,7 +82,7 @@ func (o *Object) DataReader() io.ReaderAt {
 }
 
 func (o *Object) Size() uint64 {
-	return HeaderSize + o.header.MetaSize + o.header.DataSize
+	return o.header.ObjectSize()
 }
 
 func (o *Object) ProjectMetadata(sctx *super.Context, projection field.Projection) []super.Value {

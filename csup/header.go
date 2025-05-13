@@ -53,6 +53,10 @@ func (h *Header) Deserialize(bytes []byte) error {
 	return nil
 }
 
+func (h *Header) ObjectSize() uint64 {
+	return HeaderSize + h.MetaSize + h.DataSize
+}
+
 func ReadHeader(r io.ReaderAt) (Header, error) {
 	var bytes [HeaderSize]byte
 	cc, err := r.ReadAt(bytes[:], 0)

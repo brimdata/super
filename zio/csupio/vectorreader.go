@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"math"
 	"sync/atomic"
 
 	"github.com/brimdata/super"
@@ -36,7 +37,7 @@ func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, push
 		ctx:           ctx,
 		sctx:          sctx,
 		activeReaders: &atomic.Int64{},
-		stream:        &stream{r: ra},
+		stream:        &stream{ctx: ctx, r: ra},
 		pushdown:      pushdown,
 		metaFilter:    newMetaFilter(pushdown),
 		readerAt:      ra,
@@ -86,8 +87,12 @@ func (v *VectorReader) Pull(done bool) (vector.Any, error) {
 		return nil, err
 	}
 	for {
-		o, err := v.stream.next()
-		if o == nil || err != nil {
+		hdr, off, err := v.stream.next()
+		if hdr == nil || err != nil {
+			return nil, err
+		}
+		o, err := csup.NewObjectFromHeader(io.NewSectionReader(v.readerAt, off, math.MaxInt64), *hdr)
+		if err != nil {
 			return nil, err
 		}
 		// XXX using the query context for the metadata filter unnecessarily
