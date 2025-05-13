@@ -54,7 +54,8 @@ max(this)
 "foo"
 ```
 
-Determining a maximum among mixed numeric and string inputs is not yet possible:
+A mix of string and numeric input values results in an error:
+
 ```mdtest-spq
 # spq
 max(this)
