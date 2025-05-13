@@ -14,10 +14,7 @@ func (o *Optimizer) Parallelize(seq dag.Seq, concurrency int) (dag.Seq, error) {
 	if o.nent == 0 {
 		return seq, nil
 	}
-	concurrency = concurrency / o.nent
-	if concurrency < 2 {
-		concurrency = 2
-	}
+	concurrency = max(concurrency/o.nent, 2)
 	seq, err := walkEntries(seq, func(seq dag.Seq) (dag.Seq, error) {
 		if len(seq) == 0 {
 			return seq, nil

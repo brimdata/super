@@ -57,10 +57,7 @@ func (c *Comparator) sortStableIndices(vals []super.Value) []uint32 {
 			} else if super.IsSigned(id) {
 				i64s[i] = val.Int()
 			} else {
-				v := val.Uint()
-				if v > math.MaxInt64 {
-					v = math.MaxInt64
-				}
+				v := min(val.Uint(), math.MaxInt64)
 				i64s[i] = int64(v)
 			}
 		} else {

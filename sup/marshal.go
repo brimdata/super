@@ -991,10 +991,7 @@ func (u *UnmarshalBSUPContext) decodeArray(val super.Value, arrVal reflect.Value
 	for it := val.Iter(); !it.Done(); i++ {
 		itzv := it.Next()
 		if i >= arrVal.Cap() {
-			newcap := arrVal.Cap() + arrVal.Cap()/2
-			if newcap < 4 {
-				newcap = 4
-			}
+			newcap := max(arrVal.Cap()+arrVal.Cap()/2, 4)
 			newArr := reflect.MakeSlice(arrVal.Type(), arrVal.Len(), newcap)
 			reflect.Copy(newArr, arrVal)
 			arrVal.Set(newArr)

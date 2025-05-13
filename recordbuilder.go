@@ -76,10 +76,7 @@ func NewRecordBuilder(sctx *Context, fields field.List) (*RecordBuilder, error) 
 			// is currently working on, record is the nested
 			// record for the current field.  First figure out
 			// what (if any) common parents are shared.
-			l := len(currentRecord)
-			if len(record) < l {
-				l = len(record)
-			}
+			l := min(len(currentRecord), len(record))
 			pos := 0
 			for pos < l {
 				if record[pos] != currentRecord[pos] {

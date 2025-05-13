@@ -422,10 +422,7 @@ func TestArithmetic(t *testing.T) {
 		if sign1 == sign2 {
 			sign = sign1
 		}
-		w := width(id1)
-		if w2 := width(id2); w2 > w {
-			w = w2
-		}
+		w := max(width(id1), width(id2))
 		if sign {
 			if w == 64 {
 				return ""

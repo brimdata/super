@@ -96,10 +96,7 @@ func sumOf[T numeric, E numeric](state T, vals []E, index []uint32, counts []uin
 func minNumeric[T numeric](state T, vec vector.Any) T {
 	switch vec := vec.(type) {
 	case *vector.Const:
-		if v := constToNumeric[T](vec); v < state {
-			return v
-		}
-		return state
+		return min(state, constToNumeric[T](vec))
 	case *vector.Dict:
 		return minFlat(state, vec.Any, nil)
 	case *vector.View:
@@ -125,16 +122,12 @@ func minFlat[T numeric](state T, vec vector.Any, index []uint32) T {
 func minOf[T numeric, E numeric](state T, vals []E, index []uint32) T {
 	if index != nil {
 		for _, idx := range index {
-			if v := T(vals[idx]); v < state {
-				state = v
-			}
+			state = min(state, T(vals[idx]))
 		}
 		return state
 	}
 	for _, v := range vals {
-		if v := T(v); v < state {
-			state = v
-		}
+		state = min(state, T(v))
 	}
 	return state
 }
@@ -142,10 +135,7 @@ func minOf[T numeric, E numeric](state T, vals []E, index []uint32) T {
 func maxNumeric[T numeric](state T, vec vector.Any) T {
 	switch vec := vec.(type) {
 	case *vector.Const:
-		if v := constToNumeric[T](vec); v > state {
-			return v
-		}
-		return state
+		return max(state, constToNumeric[T](vec))
 	case *vector.Dict:
 		return maxFlat(state, vec.Any, nil)
 	case *vector.View:
@@ -171,16 +161,12 @@ func maxFlat[T numeric](state T, vec vector.Any, index []uint32) T {
 func maxOf[T numeric, E numeric](state T, vals []E, index []uint32) T {
 	if index != nil {
 		for _, idx := range index {
-			if v := T(vals[idx]); v > state {
-				state = v
-			}
+			state = max(state, T(vals[idx]))
 		}
 		return state
 	}
 	for _, v := range vals {
-		if v := T(v); v > state {
-			state = v
-		}
+		state = max(state, T(v))
 	}
 	return state
 }

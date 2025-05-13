@@ -120,10 +120,7 @@ type recordReader struct {
 func (r *recordReader) Read(b []byte) (int, error) {
 	n, err := r.Reader.Read(b)
 	if remaining := r.limit - r.buf.Len(); remaining > 0 {
-		cc := n
-		if n > remaining {
-			cc = remaining
-		}
+		cc := min(n, remaining)
 		r.buf.Write(b[:cc])
 	} else {
 		// Set noreplay to true so we know that replay has exceeded the buffer

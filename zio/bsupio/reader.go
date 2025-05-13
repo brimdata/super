@@ -51,9 +51,7 @@ func NewReaderWithOpts(sctx *super.Context, reader io.Reader, opts ReaderOpts) *
 	if opts.Max == 0 {
 		opts.Max = MaxSize
 	}
-	if opts.Size > opts.Max {
-		opts.Size = opts.Max
-	}
+	opts.Size = min(opts.Size, opts.Max)
 	if opts.Threads == 0 {
 		opts.Threads = runtime.GOMAXPROCS(0)
 	}

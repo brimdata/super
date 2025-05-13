@@ -22,59 +22,19 @@ type Init struct {
 }
 
 var Min = &Function{
-	Init: Init{math.MaxFloat64, math.MaxInt64, math.MaxUint64},
-	Float64: func(a, b float64) float64 {
-		if a < b {
-			return a
-		}
-		return b
-	},
-	Int64: func(a, b int64) int64 {
-		if a < b {
-			return a
-		}
-		return b
-	},
-	Uint64: func(a, b uint64) uint64 {
-		if a < b {
-			return a
-		}
-		return b
-	},
-	String: func(a, b string) string {
-		if a < b {
-			return a
-		}
-		return b
-	},
+	Init:    Init{math.MaxFloat64, math.MaxInt64, math.MaxUint64},
+	Float64: func(a, b float64) float64 { return min(a, b) },
+	Int64:   func(a, b int64) int64 { return min(a, b) },
+	Uint64:  func(a, b uint64) uint64 { return min(a, b) },
+	String:  func(a, b string) string { return min(a, b) },
 }
 
 var Max = &Function{
-	Init: Init{-math.MaxFloat64, math.MinInt64, 0},
-	Float64: func(a, b float64) float64 {
-		if a > b {
-			return a
-		}
-		return b
-	},
-	Int64: func(a, b int64) int64 {
-		if a > b {
-			return a
-		}
-		return b
-	},
-	Uint64: func(a, b uint64) uint64 {
-		if a > b {
-			return a
-		}
-		return b
-	},
-	String: func(a, b string) string {
-		if a > b {
-			return a
-		}
-		return b
-	},
+	Init:    Init{-math.MaxFloat64, math.MinInt64, 0},
+	Float64: func(a, b float64) float64 { return max(a, b) },
+	Int64:   func(a, b int64) int64 { return max(a, b) },
+	Uint64:  func(a, b uint64) uint64 { return max(a, b) },
+	String:  func(a, b string) string { return max(a, b) },
 }
 
 var Add = &Function{

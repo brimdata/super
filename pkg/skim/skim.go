@@ -42,10 +42,7 @@ func (s *Scanner) grow() bool {
 	if n >= s.limit {
 		return false
 	}
-	newsize := n * 2
-	if newsize > s.limit {
-		newsize = s.limit
-	}
+	newsize := min(n*2, s.limit)
 	s.buffer = make([]byte, newsize)
 	s.window = append(s.buffer[:0], s.window...)
 	return true

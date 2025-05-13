@@ -282,9 +282,7 @@ var _ zbuf.Batch = (*exitScope)(nil)
 
 func newExitScope(batch zbuf.Batch, nvar int) *exitScope {
 	vars := batch.Vars()
-	if nvar > len(vars) {
-		nvar = len(vars)
-	}
+	nvar = min(nvar, len(vars))
 	vars = vars[:len(vars)-nvar]
 	return &exitScope{
 		Batch: batch,

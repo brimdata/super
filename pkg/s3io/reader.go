@@ -114,10 +114,7 @@ func (r *Reader) ReadAt(p []byte, off int64) (int, error) {
 	if off >= r.size {
 		return 0, io.EOF
 	}
-	count := int64(len(p))
-	if off+count >= r.size {
-		count = r.size - off
-	}
+	count := min(int64(len(p)), r.size-off)
 	b, err := r.makeRequest(off, count)
 	if err != nil {
 		return 0, err

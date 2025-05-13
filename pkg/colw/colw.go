@@ -14,9 +14,7 @@ var ErrDoesNotFit = errors.New("items do not fit")
 
 func colwidth(in []string, pad int) (longest int) {
 	for _, s := range in {
-		if l := len(s) + pad; l > longest {
-			longest = l
-		}
+		longest = max(longest, len(s)+pad)
 	}
 	return
 }
