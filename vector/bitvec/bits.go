@@ -67,10 +67,7 @@ func (b *Bits) Shorten(length uint32) {
 	b.length = length
 }
 
-func (b *Bits) Len() uint32 {
-	if b == nil { //XXX do we need nil check?
-		return 0
-	}
+func (b Bits) Len() uint32 {
 	return b.length
 }
 
