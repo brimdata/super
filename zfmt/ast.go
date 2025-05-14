@@ -39,14 +39,6 @@ type canon struct {
 	first bool
 }
 
-func (c *canon) open(args ...any) {
-	c.formatter.open(args...)
-}
-
-func (c *canon) close() {
-	c.formatter.close()
-}
-
 func (c *canon) assignments(assignments []ast.Assignment) {
 	for k, a := range assignments {
 		if k > 0 {

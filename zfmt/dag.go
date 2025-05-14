@@ -4,7 +4,6 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/sup"
@@ -36,14 +35,6 @@ type canonDAG struct {
 	canonZed
 	head  bool
 	first bool
-}
-
-func (c *canonDAG) open(args ...any) {
-	c.formatter.open(args...)
-}
-
-func (c *canonDAG) close() {
-	c.formatter.close()
 }
 
 func (c *canonDAG) assignments(assignments []dag.Assignment) {
@@ -89,8 +80,6 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 	case *dag.Dot:
 		c.expr(e.LHS, "")
 		c.write("[%s]", e.RHS)
-	case *ast.Primitive:
-		c.literal(*e)
 	case *dag.UnaryExpr:
 		if isnull, ok := e.Operand.(*dag.IsNullExpr); ok && e.Op == "!" {
 			c.expr(isnull.Expr, "")
@@ -158,10 +147,6 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 		c.write("%s", e.Name)
 	case *dag.Literal:
 		c.write("%s", e.Value)
-	case *ast.TypeValue:
-		c.write("type<")
-		c.typ(e.Value)
-		c.write(">")
 	case *dag.RecordExpr:
 		c.write("{")
 		for k, elem := range e.Elems {
@@ -454,11 +439,7 @@ func (c *canonDAG) op(p dag.Op) {
 	case *dag.Filter:
 		c.next()
 		c.open("where ")
-		if isDAGTrue(p.Expr) {
-			c.write("*")
-		} else {
-			c.expr(p.Expr, "")
-		}
+		c.expr(p.Expr, "")
 		c.close()
 	case *dag.Top:
 		c.next()
@@ -701,11 +682,4 @@ func (c *canonDAG) sortExprs(sortExprs []dag.SortExpr) {
 		c.expr(s.Key, "")
 		c.write(" %s nulls %s", s.Order, s.Nulls)
 	}
-}
-
-func isDAGTrue(e dag.Expr) bool {
-	if p, ok := e.(*ast.Primitive); ok {
-		return p.Type == "bool" && p.Text == "true"
-	}
-	return false
 }
