@@ -32,6 +32,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/op/mirror"
 	"github.com/brimdata/super/runtime/sam/op/robot"
 	"github.com/brimdata/super/runtime/sam/op/shape"
+	"github.com/brimdata/super/runtime/sam/op/skip"
 	"github.com/brimdata/super/runtime/sam/op/sort"
 	"github.com/brimdata/super/runtime/sam/op/switcher"
 	"github.com/brimdata/super/runtime/sam/op/tail"
@@ -199,6 +200,8 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 			limit = 1
 		}
 		return tail.New(parent, limit), nil
+	case *dag.Skip:
+		return skip.New(parent, v.Count), nil
 	case *dag.Uniq:
 		return uniq.New(b.rctx, parent, v.Cflag), nil
 	case *dag.Pass:

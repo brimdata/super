@@ -475,6 +475,11 @@ type (
 		Count Expr   `json:"count"`
 		Loc   `json:"loc"`
 	}
+	Skip struct {
+		Kind  string `json:"kind" unpack:""`
+		Count Expr   `json:"count"`
+		Loc   `json:"loc"`
+	}
 	Pass struct {
 		Kind string `json:"kind" unpack:""`
 		Loc  `json:"loc"`
@@ -699,6 +704,7 @@ func (*Cut) OpAST()          {}
 func (*Drop) OpAST()         {}
 func (*Head) OpAST()         {}
 func (*Tail) OpAST()         {}
+func (*Skip) OpAST()         {}
 func (*Pass) OpAST()         {}
 func (*Uniq) OpAST()         {}
 func (*Aggregate) OpAST()    {}

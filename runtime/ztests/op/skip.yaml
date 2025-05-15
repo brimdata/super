@@ -1,0 +1,17 @@
+script: |
+  seq 10 | super -z -c 'skip 1 | head 1' -
+  seq 1000 | super -z -c 'skip 900 | head 1' -
+  ! super -c 'skip "hello"'
+
+vector: true
+
+outputs:
+  - name: stdout
+    data: |
+      2
+      901
+  - name: stderr
+    data: |
+      expression value must be an integer value: "hello" at line 1, column 6:
+      skip "hello"
+           ~~~~~~~

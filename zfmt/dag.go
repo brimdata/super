@@ -430,6 +430,9 @@ func (c *canonDAG) op(p dag.Op) {
 	case *dag.Tail:
 		c.next()
 		c.write("tail %d", p.Count)
+	case *dag.Skip:
+		c.next()
+		c.write("skip %d", p.Count)
 	case *dag.Uniq:
 		c.next()
 		c.write("uniq")

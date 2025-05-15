@@ -678,46 +678,27 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 			Reverse: o.Reverse && len(sortExprs) == 0,
 		})
 	case *ast.Head:
-		val := super.NewInt64(1)
+		count := 1
 		if o.Count != nil {
-			expr := a.semExpr(o.Count)
-			var err error
-			if val, err = kernel.EvalAtCompileTime(a.sctx, expr); err != nil {
-				a.error(o.Count, err)
-				return append(seq, badOp())
-			}
-			if !super.IsInteger(val.Type().ID()) {
-				a.error(o.Count, fmt.Errorf("expression value must be an integer value: %s", sup.FormatValue(val)))
-				return append(seq, badOp())
-			}
-		}
-		if val.AsInt() < 1 {
-			a.error(o.Count, errors.New("expression value must be a positive integer"))
+			count = a.evalPositiveInteger(o.Count)
 		}
 		return append(seq, &dag.Head{
 			Kind:  "Head",
-			Count: int(val.AsInt()),
+			Count: count,
 		})
 	case *ast.Tail:
-		val := super.NewInt64(1)
+		count := 1
 		if o.Count != nil {
-			expr := a.semExpr(o.Count)
-			var err error
-			if val, err = kernel.EvalAtCompileTime(a.sctx, expr); err != nil {
-				a.error(o.Count, err)
-				return append(seq, badOp())
-			}
-			if !super.IsInteger(val.Type().ID()) {
-				a.error(o.Count, fmt.Errorf("expression value must be an integer value: %s", sup.FormatValue(val)))
-				return append(seq, badOp())
-			}
-		}
-		if val.AsInt() < 1 {
-			a.error(o.Count, errors.New("expression value must be a positive integer"))
+			count = a.evalPositiveInteger(o.Count)
 		}
 		return append(seq, &dag.Tail{
 			Kind:  "Tail",
-			Count: int(val.AsInt()),
+			Count: count,
+		})
+	case *ast.Skip:
+		return append(seq, &dag.Skip{
+			Kind:  "Skip",
+			Count: a.evalPositiveInteger(o.Count),
 		})
 	case *ast.Uniq:
 		return append(seq, &dag.Uniq{
