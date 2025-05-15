@@ -45,7 +45,7 @@ func (s *String) Serialize(b *zcode.Builder, slot uint32) {
 	if s.Nulls.IsSet(slot) {
 		b.Append(nil)
 	} else {
-		b.Append(super.EncodeString(s.Value(slot)))
+		b.Append(s.table.Bytes(slot))
 	}
 }
 
