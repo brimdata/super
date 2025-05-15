@@ -308,6 +308,7 @@ Operator
   / DropOp
   / HeadOp
   / TailOp
+  / SkipOp
   / WhereOp
   / UniqOp
   / PutOp
@@ -513,6 +514,15 @@ TailOp
   / TAIL !(__ "(") &EOKW {
       return &ast.Tail{
         Kind: "Tail",
+        Loc: loc(c),
+      }, nil
+    }
+
+SkipOp
+  = SKIP _ count:Expr {
+      return &ast.Skip{
+        Kind: "Skip",
+        Count: count.(ast.Expr),
         Loc: loc(c),
       }, nil
     }
@@ -2360,6 +2370,7 @@ SAMPLE     = "SAMPLE"i          !IdentifierRest
 SEARCH     = "SEARCH"i          !IdentifierRest
 SELECT     = "SELECT"i          !IdentifierRest
 SHAPE      = "SHAPE"i           !IdentifierRest
+SKIP       = "SKIP"i            !IdentifierRest
 SORT       = "SORT"i            !IdentifierRest
 SUBSTRING  = "SUBSTRING"i       !IdentifierRest
 SUMMARIZE  = "SUMMARIZE"i       !IdentifierRest

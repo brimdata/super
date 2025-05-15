@@ -954,3 +954,21 @@ func (a *analyzer) semFString(f *ast.FString) dag.Expr {
 	}
 	return out
 }
+
+func (a *analyzer) evalPositiveInteger(e ast.Expr) int {
+	expr := a.semExpr(e)
+	val, err := kernel.EvalAtCompileTime(a.sctx, expr)
+	if err != nil {
+		a.error(e, err)
+		return -1
+	}
+	if !super.IsInteger(val.Type().ID()) || val.IsNull() {
+		a.error(e, fmt.Errorf("expression value must be an integer value: %s", sup.FormatValue(val)))
+		return -1
+	}
+	v := int(val.AsInt())
+	if v < 0 {
+		a.error(e, errors.New("expression value must be a positive integer"))
+	}
+	return v
+}

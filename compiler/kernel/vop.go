@@ -261,7 +261,6 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		return vamop.NewHead(parent, o.Count), nil
 	case *dag.NullScan:
 		return vam.NewDematerializer(zbuf.NewPuller(zbuf.NewArray([]super.Value{super.Null}))), nil
-
 	case *dag.Output:
 		b.channels[o.Name] = append(b.channels[o.Name], vam.NewMaterializer(parent))
 		return parent, nil
@@ -287,6 +286,8 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		}
 		renamer := vamexpr.NewRenamer(b.sctx(), srcs, dsts)
 		return vamop.NewYield(b.sctx(), parent, []vamexpr.Evaluator{renamer}), nil
+	case *dag.Skip:
+		return vamop.NewSkip(parent, o.Count), nil
 	case *dag.Top:
 		zbufPuller, err := b.compileLeaf(o, vam.NewMaterializer(parent))
 		if err != nil {

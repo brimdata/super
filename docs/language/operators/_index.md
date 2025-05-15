@@ -28,6 +28,7 @@ operators listed below, Zed also allows for the creation of
 * [rename](rename.md) - change the name of record fields
 * [sample](sample.md) - select one value of each shape
 * [search](search.md) - select values based on a search expression
+* [skip](skip.md) - skip leading values of input sequence
 * [sort](sort.md) - sort values
 * [switch](switch.md) -  route values based on cases
 * [tail](tail.md) - copy trailing values of input sequence

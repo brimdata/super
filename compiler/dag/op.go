@@ -137,6 +137,10 @@ type (
 	Shape struct {
 		Kind string `json:"kind" unpack:""`
 	}
+	Skip struct {
+		Kind  string `json:"kind" unpack:""`
+		Count int    `json:"count"`
+	}
 	Sort struct {
 		Kind    string     `json:"kind" unpack:""`
 		Exprs   []SortExpr `json:"exprs"`
@@ -331,6 +335,7 @@ func (*Distinct) OpNode()  {}
 func (*Drop) OpNode()      {}
 func (*Head) OpNode()      {}
 func (*Tail) OpNode()      {}
+func (*Skip) OpNode()      {}
 func (*Pass) OpNode()      {}
 func (*Filter) OpNode()    {}
 func (*Uniq) OpNode()      {}
