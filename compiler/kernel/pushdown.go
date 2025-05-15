@@ -19,21 +19,21 @@ type pushdown struct {
 var _ zbuf.Pushdown = (*pushdown)(nil)
 
 func (p *pushdown) DataFilter() (expr.Evaluator, error) {
-	if p == nil || p.dataFilter == nil {
+	if p.dataFilter == nil {
 		return nil, nil
 	}
 	return p.builder.compileExpr(p.dataFilter)
 }
 
 func (p *pushdown) BSUPFilter() (*expr.BufferFilter, error) {
-	if p == nil || p.dataFilter == nil {
+	if p.dataFilter == nil {
 		return nil, nil
 	}
 	return CompileBufferFilter(p.builder.sctx(), p.dataFilter)
 }
 
 func (p *pushdown) MetaFilter() (expr.Evaluator, field.Projection, error) {
-	if p == nil || p.metaFilter == nil {
+	if p.metaFilter == nil {
 		return nil, nil, nil
 	}
 	e, err := p.builder.compileExpr(p.metaFilter)
@@ -44,10 +44,7 @@ func (p *pushdown) MetaFilter() (expr.Evaluator, field.Projection, error) {
 }
 
 func (p *pushdown) Projection() field.Projection {
-	if p != nil {
-		return p.projection
-	}
-	return nil
+	return p.projection
 }
 
 func (p *pushdown) Unordered() bool {
@@ -55,13 +52,12 @@ func (p *pushdown) Unordered() bool {
 }
 
 type deleter struct {
-	pushdown
+	zbuf.Pushdown
+	builder    *Builder
+	dataFilter dag.Expr
 }
 
 func (d *deleter) DataFilter() (expr.Evaluator, error) {
-	if d == nil {
-		return nil, nil
-	}
 	// For a DeleteFilter Evaluator the pushdown gets wrapped in a unary !
 	// expression so we get all values that don't match. We also add an error
 	// and null check because we want to keep these values around.

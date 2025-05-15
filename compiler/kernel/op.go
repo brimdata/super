@@ -363,11 +363,11 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 		if b.deletes == nil {
 			b.deletes = &sync.Map{}
 		}
-		var filter *deleter
-		if f := b.newPushdown(v.Where, nil); f != nil {
-			filter = &deleter{*f}
+		pushdown := b.newPushdown(v.Where, nil)
+		if pushdown != nil {
+			pushdown = &deleter{pushdown, b, v.Where}
 		}
-		return meta.NewDeleter(b.rctx, parent, pool, filter, pruner, b.progress, b.deletes), nil
+		return meta.NewDeleter(b.rctx, parent, pool, pushdown, pruner, b.progress, b.deletes), nil
 	case *dag.Load:
 		return load.New(b.rctx, b.env.Lake(), parent, v.Pool, v.Branch, v.Author, v.Message, v.Meta), nil
 	case *dag.Vectorize:
@@ -725,8 +725,7 @@ func (b *Builder) compilePoolScan(scan *dag.PoolScan) (zbuf.Puller, error) {
 func NewPushdown(b *Builder, e dag.Expr) zbuf.Pushdown {
 	return b.newPushdown(e, nil)
 }
-
-func (b *Builder) newPushdown(e dag.Expr, projection []field.Path) *pushdown {
+func (b *Builder) newPushdown(e dag.Expr, projection []field.Path) zbuf.Pushdown {
 	if e == nil && projection == nil {
 		return nil
 	}
