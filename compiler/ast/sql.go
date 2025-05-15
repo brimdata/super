@@ -26,10 +26,10 @@ type SQLPipe struct {
 	Loc  `json:"loc"`
 }
 
-type Limit struct {
+type SQLLimitOffset struct {
 	Kind   string `json:"kind" unpack:""`
 	Op     Op     `json:"op"`
-	Count  Expr   `json:"count"`
+	Limit  Expr   `json:"limit"`
 	Offset Expr   `json:"offset"`
 	Loc    `json:"loc"`
 }
@@ -105,14 +105,14 @@ type JoinUsingExpr struct {
 
 func (*JoinUsingExpr) joinExpr() {}
 
-func (*SQLPipe) OpAST()   {}
-func (*Select) OpAST()    {}
-func (*CrossJoin) OpAST() {}
-func (*SQLJoin) OpAST()   {}
-func (*Union) OpAST()     {}
-func (*OrderBy) OpAST()   {}
-func (*Limit) OpAST()     {}
-func (*With) OpAST()      {}
+func (*SQLPipe) OpAST()        {}
+func (*Select) OpAST()         {}
+func (*CrossJoin) OpAST()      {}
+func (*SQLJoin) OpAST()        {}
+func (*Union) OpAST()          {}
+func (*OrderBy) OpAST()        {}
+func (*SQLLimitOffset) OpAST() {}
+func (*With) OpAST()           {}
 
 type AsExpr struct {
 	Kind  string `json:"kind" unpack:""`

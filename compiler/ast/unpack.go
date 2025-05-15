@@ -104,6 +104,7 @@ var unpacker = unpack.New(
 	LakeMeta{},
 	// SuperSQL
 	SQLPipe{},
+	SQLLimitOffset{},
 	Select{},
 	Ordinality{},
 	CrossJoin{},
@@ -112,7 +113,6 @@ var unpacker = unpack.New(
 	SQLTimeValue{},
 	Union{},
 	OrderBy{},
-	Limit{},
 	With{},
 	JoinOnExpr{},
 	JoinUsingExpr{},

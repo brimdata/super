@@ -1941,7 +1941,7 @@ SelectExpr
       / "(" __ s:SQLPipe __")"      { return s, nil }
     )
     orderby:OptOrderByClause
-    limit:OptLimitClause {
+    loff:OptSQLLimitOffset {
       op := body.(ast.Op)
       if with != nil {
           w := with.(*ast.With)
@@ -1953,10 +1953,10 @@ SelectExpr
           o.Op = op
           op = o
       }
-      if limit != nil {
-          l := limit.(*ast.Limit)
-          l.Op = op
-          op = l
+      if loff != nil {
+          o := loff.(*ast.SQLLimitOffset)
+          o.Op = op
+          op = o
       }
       return op, nil
     }
@@ -2220,25 +2220,34 @@ OptNullsOrder
   / _ NULLS _ LAST    { return &ast.ID{Kind: "ID", Name: "last", Loc: loc(c)}, nil }
   / ""                      { return nil, nil }
 
-SelectLimit
+OptSQLLimitOffset
+  = _ op:SQLLimitOffset { return op, nil } 
+  / ""                  { return nil, nil }
+
+SQLLimitOffset
   = l:LimitClause o:OptOffsetClause {
-      limit := l.(*ast.Limit)
-      if o != nil {
-        limit.Offset = o.(ast.Expr)
+      op := &ast.SQLLimitOffset{
+        Kind: "SQLLimitOffset",
+        Loc: loc(c),
       }
-      return limit, nil
+      if l != nil {
+        op.Limit = l.(ast.Expr)
+      }
+      if o != nil {
+        op.Offset = o.(ast.Expr)
+      }
+      return op, nil
     }
   / o:OffsetClause l:OptLimitClause {
-      if l == nil {
-          return &ast.Limit{
-            Kind: "Limit",
-            Offset: o.(ast.Expr),
-            Loc: loc(c),
-          }, nil
+      op := &ast.SQLLimitOffset{
+        Kind: "SQLLimitOffset",
+        Offset: o.(ast.Expr),
+        Loc: loc(c),
       }
-      limit := l.(*ast.Limit)
-      limit.Offset = o.(ast.Expr)
-      return limit, nil
+      if l != nil {
+        op.Limit = l.(ast.Expr)
+      }
+      return op, nil
     }
 
 OptLimitClause 
@@ -2246,14 +2255,8 @@ OptLimitClause
   / ""              { return nil, nil }
 
 LimitClause 
-  = LIMIT _ ALL { return &ast.Limit{Kind:"Limit", Loc: loc(c)}, nil }
-  / LIMIT _ e:Expr {
-      return &ast.Limit{
-        Kind: "Limit",
-        Count: e.(ast.Expr),
-        Loc: loc(c),
-      }, nil
-    }
+  = LIMIT _ ALL { return nil, nil }
+  / LIMIT _ e:Expr { return e, nil }
 
 OptOffsetClause 
   = _ o:OffsetClause  { return o, nil }
@@ -2283,6 +2286,7 @@ SQLGuard =
   / INNER / LEFT / RIGHT / OUTER / CROSS / JOIN
   / UNION
   / ORDER
+  / OFFSET
   / LIMIT
   / WHERE 
   / WITH

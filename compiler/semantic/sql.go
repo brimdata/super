@@ -4,13 +4,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/compiler/kernel"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zfmt"
 )
 
@@ -353,7 +350,7 @@ func derefSchema(sch schema, alias string, seq dag.Seq) (dag.Seq, schema) {
 
 func isSQLOp(op ast.Op) bool {
 	switch op.(type) {
-	case *ast.Select, *ast.Limit, *ast.OrderBy, *ast.SQLPipe, *ast.SQLJoin:
+	case *ast.Select, *ast.SQLLimitOffset, *ast.OrderBy, *ast.SQLPipe, *ast.SQLJoin:
 		return true
 	}
 	return false
@@ -374,28 +371,15 @@ func (a *analyzer) semSQLOp(op ast.Op, seq dag.Seq) (dag.Seq, schema) {
 			exprs = append(exprs, a.semSortExpr(schema, e, false))
 		}
 		return append(out, &dag.Sort{Kind: "Sort", Exprs: exprs}), schema
-	case *ast.Limit:
-		e := a.semExpr(op.Count)
-		var err error
-		val, err := kernel.EvalAtCompileTime(a.sctx, e)
-		if err != nil {
-			a.error(op.Count, err)
-			return append(seq, badOp()), badSchema()
-		}
-		if !super.IsInteger(val.Type().ID()) {
-			a.error(op.Count, fmt.Errorf("expression value must be an integer value: %s", sup.FormatValue(val)))
-			return append(seq, badOp()), badSchema()
-		}
-		limit := val.AsInt()
-		if limit < 1 {
-			a.error(op.Count, errors.New("expression value must be a positive integer"))
-		}
-		head := &dag.Head{
-			Kind:  "Head",
-			Count: int(limit),
-		}
+	case *ast.SQLLimitOffset:
 		out, schema := a.semSQLOp(op.Op, seq)
-		return append(out, head), schema
+		if op.Offset != nil {
+			out = append(out, &dag.Skip{Kind: "Skip", Count: a.evalPositiveInteger(op.Offset)})
+		}
+		if op.Limit != nil {
+			out = append(out, &dag.Head{Kind: "Head", Count: a.evalPositiveInteger(op.Limit)})
+		}
+		return out, schema
 	default:
 		panic(fmt.Sprintf("semSQLOp: unknown op: %#v", op))
 	}

@@ -560,7 +560,7 @@ func (a *analyzer) semDebugOp(o *ast.Debug, mainAst ast.Seq, in dag.Seq) dag.Seq
 // with either an aggregate or filter op based on the function's name.
 func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 	switch o := o.(type) {
-	case *ast.Select, *ast.Limit, *ast.OrderBy, *ast.SQLPipe:
+	case *ast.Select, *ast.SQLLimitOffset, *ast.OrderBy, *ast.SQLPipe:
 		seq, sch := a.semSQLOp(o, seq)
 		seq, _ = derefSchema(sch, "", seq)
 		return seq
