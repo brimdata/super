@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"sync"
+	"sync/atomic"
 	"testing"
 
 	"github.com/brimdata/super"
@@ -33,25 +33,32 @@ func TestAggregateZtestsSpill(t *testing.T) {
 }
 
 type countReader struct {
-	mu sync.Mutex
-	n  int
-	r  zio.Reader
+	r zio.Reader
+	n atomic.Int64
 }
 
-func (cr *countReader) records() int {
-	cr.mu.Lock()
-	defer cr.mu.Unlock()
-	return cr.n
+var _ zbuf.ScannerAble = (*countReader)(nil)
+
+func (c *countReader) NewScanner(context.Context, zbuf.Pushdown) (zbuf.Scanner, error) {
+	return c, nil
 }
 
-func (cr *countReader) Read() (*super.Value, error) {
-	rec, err := cr.r.Read()
-	if rec != nil {
-		cr.mu.Lock()
-		cr.n++
-		cr.mu.Unlock()
+func (*countReader) Progress() zbuf.Progress {
+	panic("unused")
+}
+
+func (c *countReader) Pull(bool) (zbuf.Batch, error) {
+	val, err := c.r.Read()
+	if val == nil || err != nil {
+		return nil, err
 	}
-	return rec, err
+	// Feed values to the caller one at a time.
+	c.n.Add(1)
+	return zbuf.NewArray([]super.Value{val.Copy()}), nil
+}
+
+func (*countReader) Read() (*super.Value, error) {
+	panic("unused")
 }
 
 type testAggregateWriter struct {
@@ -115,7 +122,7 @@ func TestAggregateStreamingSpill(t *testing.T) {
 			cb: func(n int) {
 				if inputSortKey != "" {
 					if n == uniqueIpsPerTs {
-						require.Less(t, cr.records(), totRecs)
+						require.Less(t, cr.n.Load(), int64(totRecs))
 					}
 				}
 			},
