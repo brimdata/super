@@ -3,12 +3,14 @@ weight: 5
 title: Expressions
 ---
 
-Zed expressions follow the typical patterns in programming languages.
-Expressions are typically used within pipeline operators
+Expressions follow the typical patterns in programming languages.
+Expressions are often used within [operators](operators/_index.md)
 to perform computations on input values and are typically evaluated once per each
 input value [`this`](pipeline-model.md#the-special-value-this).
 
-For example, `yield`, `where`, `cut`, `put`, `sort` and so forth all take
+For example, [`yield`](operators/yield.md), [`where`](operators/where.md),
+[`cut`](operators/cut.md), [`put`](operators/put.md),
+[`sort`](operators/sort.md) and so forth all take
 various expressions as part of their operation.
 
 ## Arithmetic
@@ -33,9 +35,9 @@ error("divide by zero")
 ## Comparisons
 
 Comparison operations (`<`, `<=`, `==`, `!=`, `>`, `>=`) follow customary syntax
-and semantics and result in a truth value of type `bool` or an error.
-A comparison expression is any valid Zed expression compared to any other
-valid Zed expression using a comparison operator.
+and semantics and result in a truth value of type `bool` or an [error](data-types.md#first-class-errors).
+A comparison expression is any valid expression compared to any other
+valid expression using a comparison operator.
 
 When the operands are coercible to like types, the result is the truth value
 of the comparison.  Otherwise, the result is `false`.
@@ -148,7 +150,7 @@ value in the array of that index.
 
 If the `<value>` expression is a set, then the `<index>` operand
 must be coercible to an integer and the result is the
-value in the set of that index ordered by total order of Zed values.
+value in the set of that index ordered by total order of values.
 
 If the `<value>` expression is a map, then the `<index>` operand
 is presumed to be a key and the corresponding value for that key is
@@ -180,7 +182,7 @@ If the `<value>` expression is an array, then the result is an array of
 elements comprising the indicated range.
 
 If the `<value>` expression is a set, then the result is a set of
-elements comprising the indicated range ordered by total order of Zed values.
+elements comprising the indicated range ordered by total order of values.
 
 If the `<value>` expression is a string, then the result is a substring
 consisting of unicode code points comprising the given range.
@@ -265,10 +267,10 @@ null
 <int64>
 ```
 
-Zed includes many [built-in functions](functions/_index.md), some of which take
-a variable number of arguments.
+Some [built-in functions](functions/_index.md) take a variable number of
+arguments.
 
-Zed also allows you to create [user-defined functions](statements.md#func-statements).
+[User-defined functions](statements.md#func-statements) may also be created.
 
 ## Aggregate Function Calls
 
@@ -341,10 +343,6 @@ yield f"pi is approximately {numerator / denominator}"
 
 If any expression results in an error, then the value of the f-string is the
 first error encountered in left-to-right order.
-
-> TBD: we could improve an error result here by creating a structured error
-> containing the string template text along with a list of values/errors of
-> the expressions.
 
 F-strings may be nested, where a child `<expr>` may contain f-strings.
 
@@ -548,7 +546,7 @@ yield under(this)
 Union values are powerful because they provide a mechanism to precisely
 describe the type of any nested, semi-structured value composed of elements
 of different types.  For example, the type of the value `[1,"foo"]` in JavaScript
-is simply a generic JavaScript "object".  But in Zed, the type of this
+is simply a generic JavaScript "object".  But in SuperSQL, the type of this
 value is an array of union of string and integer, e.g.,
 ```mdtest-spq
 # spq
@@ -567,7 +565,7 @@ Casts for primitive types have a function-style syntax of the form
 ```
 <type> ( <expr> )
 ```
-where `<type>` is a [Zed type](data-types.md#first-class-types) and `<expr>` is any Zed expression.
+where `<type>` is a [type](data-types.md#first-class-types) and `<expr>` is any expression.
 In the case of primitive types, the type-value angle brackets
 may be omitted, e.g., `<string>(1)` is equivalent to `string(1)`.
 If the result of `<expr>` cannot be converted
@@ -625,7 +623,7 @@ yield <port>(this)
 ```
 
 Casts may be used with complex types as well.  As long as the target type can
-accommodate the value, the case will be recursively applied to the components
+accommodate the value, the cast will be recursively applied to the components
 of a nested value.  For example,
 ```mdtest-spq
 # spq
