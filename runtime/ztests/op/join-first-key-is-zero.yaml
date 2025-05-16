@@ -4,6 +4,8 @@ spq: |
     => pass
   ) | join on a=a
 
+vector: true
+
 input: &input |
   {a:0}
 

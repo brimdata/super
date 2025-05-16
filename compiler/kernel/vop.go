@@ -56,7 +56,7 @@ func (b *Builder) compileVam(o dag.Op, parents []vector.Puller) ([]vector.Puller
 		default:
 			return nil, fmt.Errorf("unknown kind of join: '%s'", o.Style)
 		}
-		join := vamop.NewJoin(b.rctx.Sctx, anti, inner, leftParent, rightParent, leftKey, rightKey, lhs, rhs)
+		join := vamop.NewJoin(b.rctx, anti, inner, leftParent, rightParent, leftKey, rightKey, lhs, rhs)
 		return []vector.Puller{join}, nil
 	case *dag.Merge:
 		b.resetResetters()
