@@ -1,0 +1,54 @@
+script: |
+  super compile -C -O 'select * from test limit 1'
+  echo // ===
+  super compile -C -O 'select * from test limit all'
+  echo // ===
+  super compile -C -O 'select * from test offset 1'
+  echo // ===
+  super compile -C -O 'select * from test limit 1 offset 1'
+  echo // ===
+  super compile -C -O 'select * from test offset 1 limit 1'
+  echo // ===
+  ! super compile -C -O 'select * from test offset -1 limit "foo"'
+
+outputs:
+  - name: stdout
+    data: |
+      file test
+      | yield {in:this,out:{...this}}
+      | head 1
+      | yield out
+      | output main
+      // ===
+      file test
+      | yield {...this}
+      | output main
+      // ===
+      file test
+      | yield {in:this,out:{...this}}
+      | skip 1
+      | yield out
+      | output main
+      // ===
+      file test
+      | yield {in:this,out:{...this}}
+      | skip 1
+      | head 1
+      | yield out
+      | output main
+      // ===
+      file test
+      | yield {in:this,out:{...this}}
+      | skip 1
+      | head 1
+      | yield out
+      | output main
+      // ===
+  - name: stderr
+    data: |
+      expression value must be a positive integer at line 1, column 27:
+      select * from test offset -1 limit "foo"
+                                ~~
+      expression value must be an integer value: "foo" at line 1, column 36:
+      select * from test offset -1 limit "foo"
+                                         ~~~~~
