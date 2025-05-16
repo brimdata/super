@@ -62,6 +62,7 @@ var unpacker = unpack.New(
 	SeqScan{},
 	SetExpr{},
 	Shape{},
+	Skip{},
 	SliceExpr{},
 	Slicer{},
 	Sort{},

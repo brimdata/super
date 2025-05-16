@@ -50,6 +50,7 @@ var unpacker = unpack.New(
 	Join{},
 	Load{},
 	Merge{},
+	Skip{},
 	Output{},
 	Over{},
 	Map{},
