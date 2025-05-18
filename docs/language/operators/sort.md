@@ -48,6 +48,11 @@ such that values with identical sort keys always have the same relative order
 in the output as they had in the input, such as provided by the `-s` option in
 Unix's "sort" command-line utility.
 
+During sorting, values are compared via byte order.  Between values of type
+`string`, this is equivalent to
+[C/POSIX collation](https://www.postgresql.org/docs/current/collation.html#COLLATION-MANAGING-STANDARD)
+as found in other SQL databases such as Postgres.
+
 Note that a total order is defined over the space of all values even
 between values of different types so sort order is always well-defined even
 when comparing heterogeneously typed values.

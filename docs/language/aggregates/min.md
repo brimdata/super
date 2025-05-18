@@ -11,6 +11,11 @@ min(number|string) -> number|string
 
 The _min_ aggregate function computes the minimum value of its input.
 
+When determining the _min_ of string inputs, values are compared via byte
+order. This is equivalent to
+[C/POSIX collation](https://www.postgresql.org/docs/current/collation.html#COLLATION-MANAGING-STANDARD)
+as found in other SQL databases such as Postgres.
+
 ### Examples
 
 Minimum value of simple numeric sequence:
