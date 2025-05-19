@@ -217,13 +217,20 @@ type FromElem struct {
 	Entity     FromEntity  `json:"entity"`
 	Args       FromArgs    `json:"args"`
 	Ordinality *Ordinality `json:"ordinality"`
-	Alias      *Name       `json:"alias"`
+	Alias      *TableAlias `json:"alias"`
 	Loc        `json:"loc"`
 }
 
 type Ordinality struct {
 	Kind string `json:"kind" unpack:""`
 	Loc  `json:"loc"`
+}
+
+type TableAlias struct {
+	Kind    string `json:"kind" unpack:""`
+	Name    string `json:"name"`
+	Columns []*ID  `json:"columns"`
+	Loc     `json:"loc"`
 }
 
 type RecordExpr struct {

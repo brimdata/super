@@ -58,14 +58,17 @@ func (a *analyzer) semFromElem(elem *ast.FromElem, seq dag.Seq) (dag.Seq, schema
 	return seq, sch
 }
 
-func (a *analyzer) fromSchema(alias *ast.Name, name string) schema {
+func (a *analyzer) fromSchema(alias *ast.TableAlias, name string) schema {
 	if alias != nil {
-		name = alias.Text
+		name = alias.Name
+		if len(alias.Columns) != 0 {
+			a.error(alias, errors.New("cannot apply aliased columns to dynamically typed data"))
+		}
 	}
 	return &dynamicSchema{name: name}
 }
 
-func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.Name, args ast.FromArgs, seq dag.Seq) (dag.Seq, schema) {
+func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.TableAlias, args ast.FromArgs, seq dag.Seq) (dag.Seq, schema) {
 	switch entity := entity.(type) {
 	case *ast.Glob:
 		if bad := a.hasFromParent(entity, seq); bad != nil {
@@ -99,11 +102,7 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.Name, args as
 		}
 		return dag.Seq{a.semLakeMeta(entity)}, &dynamicSchema{}
 	case *ast.SQLPipe:
-		var name string
-		if alias != nil {
-			name = alias.Text
-		}
-		return a.semSQLPipe(entity, seq, name)
+		return a.semSQLPipe(entity, seq, alias)
 	case *ast.SQLJoin:
 		return a.semSQLJoin(entity, seq)
 	default:
@@ -560,9 +559,9 @@ func (a *analyzer) semDebugOp(o *ast.Debug, mainAst ast.Seq, in dag.Seq) dag.Seq
 // with either an aggregate or filter op based on the function's name.
 func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 	switch o := o.(type) {
-	case *ast.Select, *ast.SQLLimitOffset, *ast.OrderBy, *ast.SQLPipe:
+	case *ast.Select, *ast.SQLLimitOffset, *ast.OrderBy, *ast.SQLPipe, *ast.Values:
 		seq, sch := a.semSQLOp(o, seq)
-		seq, _ = derefSchema(sch, "", seq)
+		seq, _ = derefSchema(sch, seq)
 		return seq
 	case *ast.From:
 		seq, _ := a.semFrom(o, seq)
@@ -903,9 +902,9 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 			return append(seq, badOp())
 		}
 		left, leftSch := a.semSQLOp(o.Left, seq)
-		left, _ = derefSchema(leftSch, "", left)
+		left, _ = derefSchema(leftSch, left)
 		right, rightSch := a.semSQLOp(o.Right, seq)
-		right, _ = derefSchema(rightSch, "", right)
+		right, _ = derefSchema(rightSch, right)
 		return dag.Seq{
 			&dag.Fork{Kind: "Fork", Paths: []dag.Seq{left, right}},
 			&dag.Combine{Kind: "Combine"},
