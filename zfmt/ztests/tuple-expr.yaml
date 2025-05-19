@@ -1,0 +1,7 @@
+script: |
+  super compile -C 'yield (1, "foo")'
+
+outputs:
+  - name: stdout
+    data: |
+      yield (1, "foo")

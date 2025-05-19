@@ -269,6 +269,10 @@ func (c *canon) expr(e ast.Expr, parent string) {
 		c.write(")")
 	case *ast.SQLTimeValue:
 		c.write("%s %s", strings.ToUpper(e.Type), e.Value.Text)
+	case *ast.TupleExpr:
+		c.write("(")
+		c.exprs(e.Elems)
+		c.write(")")
 	default:
 		c.write("(unknown expr %T)", e)
 	}
