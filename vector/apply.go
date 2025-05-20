@@ -16,13 +16,11 @@ func Apply(ripUnions bool, eval func(...Any) Any, vecs ...Any) Any {
 	if !ok {
 		return eval(vecs...)
 	}
-	var results []Any
-	for _, ripped := range rip(vecs, d) {
-		var result Any
+	results := make([]Any, len(d.Values))
+	for i, ripped := range rip(vecs, d) {
 		if len(ripped) > 0 {
-			result = Apply(ripUnions, eval, ripped...)
+			results[i] = Apply(ripUnions, eval, ripped...)
 		}
-		results = append(results, result)
 	}
 	return stitch(d.Tags, results)
 }
