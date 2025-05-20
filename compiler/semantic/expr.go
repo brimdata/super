@@ -24,6 +24,8 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 	switch e := e.(type) {
 	case nil:
 		panic("semantic analysis: illegal null value encountered in AST")
+	case *ast.DoubleQuote:
+		return a.semDoubleQuote(e)
 	case *ast.Regexp:
 		return &dag.RegexpSearch{
 			Kind:    "RegexpSearch",
@@ -71,6 +73,13 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 				return badExpr()
 			}
 			val = sup.FormatValue(v)
+		case *ast.DoubleQuote:
+			v, err := sup.ParsePrimitive("string", t.Text)
+			if err != nil {
+				a.error(e, err)
+				return badExpr()
+			}
+			val = sup.FormatValue(v)
 		case *ast.TypeValue:
 			tv, err := a.semType(t.Value)
 			if err != nil {
@@ -79,7 +88,7 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 			}
 			val = "<" + tv + ">"
 		default:
-			panic(fmt.Errorf("unexpected term value: %s", e.Kind))
+			panic(fmt.Errorf("unexpected term value: %s (%T)", e.Kind, e))
 		}
 		return &dag.Search{
 			Kind:  "Search",
@@ -421,6 +430,21 @@ func (a *analyzer) semID(id *ast.ID) dag.Expr {
 		return ref
 	}
 	return pathOf(id.Name)
+}
+
+func (a *analyzer) semDoubleQuote(d *ast.DoubleQuote) dag.Expr {
+	// Check if there's a SQL scope and treat a double-quoted string
+	// as an identifier.  XXX we'll need to do something a bit more
+	// sophisticated to handle pipes inside SQL subqueries.
+	if a.scope.schema != nil {
+		return a.semID(&ast.ID{Kind: "ID", Name: d.Text, Loc: d.Loc})
+	}
+	return a.semExpr(&ast.Primitive{
+		Kind: "Primitive",
+		Type: "string",
+		Text: d.Text,
+		Loc:  d.Loc,
+	})
 }
 
 func semDynamicType(tv ast.Type) *dag.Call {

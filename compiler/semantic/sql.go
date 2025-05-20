@@ -572,18 +572,8 @@ func (a *analyzer) semAs(sch schema, as ast.AsExpr, funcs *aggfuncs) *column {
 	// If we have a name from an AS clause, use it. Otherwise, infer a name.
 	var name string
 	if as.Label != nil {
-		var valid bool
-		switch label := as.Label.(type) {
-		case *ast.Primitive:
-			valid = label.Type == "string"
-			name = label.Text
-		case *ast.ID:
-			valid = true
-			name = label.Name
-		}
-		if !valid {
-			a.error(as.Label, errors.New("unexpected label type"))
-		} else if name == "" {
+		name = as.Label.Name
+		if name == "" {
 			a.error(as.Label, errors.New("label cannot be an empty string"))
 		}
 	} else {

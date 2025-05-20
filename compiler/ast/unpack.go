@@ -26,6 +26,7 @@ var unpacker = unpack.New(
 	Cut{},
 	Debug{},
 	DefValue{},
+	DoubleQuote{},
 	Drop{},
 	Explode{},
 	Enum{},

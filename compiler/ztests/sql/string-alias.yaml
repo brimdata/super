@@ -1,0 +1,9 @@
+script: |
+  ! super -z -c "select 1 as 'x'"
+
+outputs:
+  - name: stderr
+    data: |
+      parse error at line 1, column 13:
+      select 1 as 'x'
+              === ^ ===

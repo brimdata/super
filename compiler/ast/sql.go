@@ -116,7 +116,7 @@ func (*With) OpAST()           {}
 
 type AsExpr struct {
 	Kind  string `json:"kind" unpack:""`
-	Label Expr   `json:"label"`
+	Label *ID    `json:"label"`
 	Expr  Expr   `json:"expr"`
 	Loc   `json:"loc"`
 }

@@ -48,6 +48,16 @@ type ID struct {
 	Loc  `json:"loc"`
 }
 
+// DoubleQuote is specialized from the other primitive types because
+// these values can be interpreted either as a string value or an identifier based
+// on SQL vs pipe context.  The semantic pass needs to know the string was
+// originally double quoted to perform this analysis.
+type DoubleQuote struct {
+	Kind string `json:"kind" unpack:""`
+	Text string `json:"name"`
+	Loc  `json:"loc"`
+}
+
 type Term struct {
 	Kind  string `json:"kind" unpack:""`
 	Text  string `json:"text"`
@@ -336,6 +346,7 @@ func (*Call) ExprAST()        {}
 func (*CallExtract) ExprAST() {}
 func (*CaseExpr) ExprAST()    {}
 func (*Cast) ExprAST()        {}
+func (*DoubleQuote) ExprAST() {}
 func (*ID) ExprAST()          {}
 func (*IndexExpr) ExprAST()   {}
 func (*IsNullExpr) ExprAST()  {}

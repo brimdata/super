@@ -328,7 +328,7 @@ or register schemas or "protos" with the downstream entities.
 In particular, BSUP data can simply be concatenated together, e.g.,
 ```mdtest-command
 super -f bsup -c 'select value 1, [1,2,3]' > a.bsup
-super -f bsup -c 'select value {s:"hello"}, {s:"world"}' > b.bsup
+super -f bsup -c "select value {s:'hello'}, {s:'world'}" > b.bsup
 cat a.bsup b.bsup | super -z -
 ```
 produces

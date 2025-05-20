@@ -1,0 +1,21 @@
+script: |
+  super -z -c 'select "x y" from (select 1 as "x y")'
+  super -z -c 'select "x y" as a from (select 1 as "x y")'
+  super -z -c 'select "x y" as "b c" from (select 1 as "x y")'
+  super -z -c "select 'x y'"' from (select 1 as "x y")'
+  super -z -c 'select `x y` from (select 1 as "x y")'
+  super -z -c 'select "x y" from (yield {"x y":1})'
+  super -z -c 'select "x"."y z" from (yield {x:{"y z":1}})'
+  echo '{x:{y:1}}' | super -z -c 'yield `x`.`y`' -
+
+outputs:
+  - name: stdout
+    data: |
+      {"x y":1}
+      {a:1}
+      {"b c":1}
+      {"\"x y\"":"x y"}
+      {"x y":1}
+      {"x y":1}
+      {"y z":1}
+      1

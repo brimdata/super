@@ -80,14 +80,15 @@ type (
 	}
 )
 
-func (*Primitive) anyNode() {}
-func (*Record) anyNode()    {}
-func (*Array) anyNode()     {}
-func (*Set) anyNode()       {}
-func (*Enum) anyNode()      {}
-func (*Map) anyNode()       {}
-func (*TypeValue) anyNode() {}
-func (*Error) anyNode()     {}
+func (*Primitive) anyNode()   {}
+func (*Record) anyNode()      {}
+func (*Array) anyNode()       {}
+func (*Set) anyNode()         {}
+func (*Enum) anyNode()        {}
+func (*Map) anyNode()         {}
+func (*TypeValue) anyNode()   {}
+func (*Error) anyNode()       {}
+func (*DoubleQuote) anyNode() {}
 
 func (*Primitive) ExprAST() {}
 func (*TypeValue) ExprAST() {}
