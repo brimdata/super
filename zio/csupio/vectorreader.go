@@ -50,19 +50,17 @@ type metafilter struct {
 }
 
 func newMetaFilter(pushdown zbuf.Pushdown) *metafilter {
-	if pushdown != nil {
-		filter, projection, err := pushdown.MetaFilter()
-		if err != nil {
-			panic(err)
-		}
-		if filter != nil {
-			return &metafilter{
-				filter:     filter,
-				projection: projection,
-			}
-		}
+	if pushdown == nil {
+		return nil
 	}
-	return nil
+	filter, projection, err := pushdown.MetaFilter()
+	if err != nil {
+		panic(err)
+	}
+	if filter == nil {
+		return nil
+	}
+	return &metafilter{filter, projection}
 }
 
 func (v *VectorReader) NewConcurrentPuller() (vector.Puller, error) {
