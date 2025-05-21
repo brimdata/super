@@ -7,18 +7,19 @@ import (
 
 	"github.com/apache/arrow-go/v18/arrow"
 	"github.com/apache/arrow-go/v18/parquet/metadata"
+	"github.com/apache/arrow-go/v18/parquet/pqarrow"
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/sup"
 	"github.com/x448/float16"
 )
 
-func buildPrunerValue(sctx *super.Context, rgmd *metadata.RowGroupMetaData, schema *arrow.Schema, colIndexes []int) super.Value {
+func buildPrunerValue(sctx *super.Context, rgmd *metadata.RowGroupMetaData, colIndexes []int, colIndexToField map[int]*pqarrow.SchemaField) super.Value {
 	var paths field.List
 	var vals []super.Value
 	m := sup.NewBSUPMarshaler()
 	for _, i := range colIndexes {
-		min, max, path, ok := columnChunkStats(rgmd, i, schema.Field(i).Type)
+		min, max, path, ok := columnChunkStats(rgmd, i, colIndexToField[i].Field.Type)
 		if !ok {
 			continue
 		}

@@ -31,10 +31,10 @@ type VectorReader struct {
 
 	fr              *pqarrow.FileReader
 	colIndexes      []int
+	colIndexToField map[int]*pqarrow.SchemaField
 	nextRowGroup    *atomic.Int64
 	prunerEvaluator expr.Evaluator
 	rr              pqarrow.RecordReader
-	schema          *arrow.Schema
 	vb              vectorBuilder
 }
 
@@ -47,9 +47,10 @@ func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, push
 	if err != nil {
 		return nil, err
 	}
-	colIndexes := columnIndexes(pr.MetaData().Schema, pushdown.Projection().Paths())
+	prmd := pr.MetaData()
+	colIndexes := columnIndexes(prmd.Schema, pushdown.Projection().Paths())
 	if len(colIndexes) == 0 {
-		for i := range pr.MetaData().NumColumns() {
+		for i := range prmd.NumColumns() {
 			colIndexes = append(colIndexes, i)
 		}
 	}
@@ -57,11 +58,11 @@ func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, push
 		Parallel:  true,
 		BatchSize: 16184,
 	}
-	fr, err := pqarrow.NewFileReader(pr, pqprops, memory.NewGoAllocator())
+	schemaManifest, err := pqarrow.NewSchemaManifest(prmd.Schema, prmd.KeyValueMetadata(), &pqprops)
 	if err != nil {
 		return nil, err
 	}
-	schema, err := fr.Schema()
+	fr, err := pqarrow.NewFileReader(pr, pqprops, memory.NewGoAllocator())
 	if err != nil {
 		return nil, err
 	}
@@ -78,9 +79,9 @@ func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, push
 		pushdown:        pushdown,
 		fr:              fr,
 		colIndexes:      colIndexes,
+		colIndexToField: schemaManifest.ColIndexToField,
 		nextRowGroup:    &atomic.Int64{},
 		prunerEvaluator: evaluator,
-		schema:          schema,
 		vb:              vectorBuilder{sctx, map[arrow.DataType]super.Type{}},
 	}, nil
 }
@@ -99,9 +100,9 @@ func (p *VectorReader) NewConcurrentPuller() (vector.Puller, error) {
 		sctx:            p.sctx,
 		fr:              p.fr,
 		colIndexes:      p.colIndexes,
+		colIndexToField: p.colIndexToField,
 		nextRowGroup:    p.nextRowGroup,
 		prunerEvaluator: evaluator,
-		schema:          p.schema,
 		vb:              vectorBuilder{p.sctx, map[arrow.DataType]super.Type{}},
 	}, nil
 }
@@ -122,7 +123,7 @@ func (p *VectorReader) Pull(done bool) (vector.Any, error) {
 			}
 			if p.prunerEvaluator != nil {
 				rgMetadata := pr.MetaData().RowGroup(rowGroup)
-				val := buildPrunerValue(p.sctx, rgMetadata, p.schema, p.colIndexes)
+				val := buildPrunerValue(p.sctx, rgMetadata, p.colIndexes, p.colIndexToField)
 				if !p.prunerEvaluator.Eval(nil, val).Ptr().AsBool() {
 					continue
 				}
