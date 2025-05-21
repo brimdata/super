@@ -113,7 +113,7 @@ func (*JoinUsingExpr) joinExpr() {}
 
 func (*SQLPipe) OpAST()        {}
 func (*Select) OpAST()         {}
-func (*Values) OpAST()    {}
+func (*Values) OpAST()         {}
 func (*CrossJoin) OpAST()      {}
 func (*SQLJoin) OpAST()        {}
 func (*Union) OpAST()          {}
