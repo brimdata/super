@@ -3,9 +3,12 @@ package semantic
 import (
 	"errors"
 	"fmt"
+	"slices"
 
+	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/dag"
+	"github.com/brimdata/super/compiler/kernel"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/zfmt"
@@ -322,6 +325,50 @@ func (a *analyzer) semSelectValue(sel *ast.Select, sch schema, seq dag.Seq) (dag
 	return seq, &dynamicSchema{}
 }
 
+func (a *analyzer) semValues(values *ast.Values, seq dag.Seq) (dag.Seq, schema) {
+	var schema *super.TypeRecord
+	exprs := make([]dag.Expr, 0, len(values.Exprs))
+	sctx := super.NewContext()
+	for _, astExpr := range values.Exprs {
+		e := a.semExpr(astExpr)
+		val, err := kernel.EvalAtCompileTime(sctx, e)
+		if err != nil {
+			a.error(astExpr, errors.New("expressions in values clause must be constant"))
+			return seq, badSchema()
+		}
+		recType, ok := super.TypeUnder(val.Type()).(*super.TypeRecord)
+		if !ok {
+			// Turn non record values into single column tuple
+			f := &dag.Field{Kind: "Field", Name: "c0", Value: e}
+			e = &dag.RecordExpr{Kind: "RecordExpr", Elems: []dag.RecordElem{f}}
+			val, err := kernel.EvalAtCompileTime(sctx, e)
+			if err != nil {
+				panic(err)
+			}
+			recType = super.TypeUnder(val.Type()).(*super.TypeRecord)
+		}
+		if schema == nil {
+			schema = recType
+		} else if schema != recType {
+			a.error(astExpr, errors.New("values clause must contain uniformly typed values"))
+		}
+		exprs = append(exprs, e)
+	}
+	if schema == nil {
+		a.error(values, errors.New("values clause must contain uniformly typed values"))
+		return seq, badSchema()
+	}
+	columns := make([]string, 0, len(schema.Fields))
+	for _, f := range schema.Fields {
+		columns = append(columns, f.Name)
+	}
+	seq = append(seq, &dag.Yield{
+		Kind:  "Yield",
+		Exprs: exprs,
+	})
+	return seq, &anonSchema{columns}
+}
+
 func (a *analyzer) genDistinct(e dag.Expr, seq dag.Seq) dag.Seq {
 	return append(seq, &dag.Distinct{
 		Kind: "Distinct",
@@ -329,28 +376,93 @@ func (a *analyzer) genDistinct(e dag.Expr, seq dag.Seq) dag.Seq {
 	})
 }
 
-func (a *analyzer) semSQLPipe(op *ast.SQLPipe, seq dag.Seq, alias string) (dag.Seq, schema) {
+func (a *analyzer) semSQLPipe(op *ast.SQLPipe, seq dag.Seq, alias *ast.TableAlias) (dag.Seq, schema) {
 	if len(op.Ops) == 1 && isSQLOp(op.Ops[0]) {
 		seq, sch := a.semSQLOp(op.Ops[0], seq)
-		return derefSchema(sch, alias, seq)
+		outSeq, outSch, err := derefSchemaWithAlias(sch, alias, seq)
+		if err != nil {
+			a.error(op.Ops[0], err)
+		}
+		return outSeq, outSch
 	}
 	if len(seq) > 0 {
 		panic("semSQLOp: SQL pipes can't have parents")
 	}
-	return a.semSeq(op.Ops), &dynamicSchema{name: alias}
+	var name string
+	if alias != nil {
+		name = alias.Name
+		if len(alias.Columns) != 0 {
+			a.error(alias, errors.New("cannot apply column aliases to dynamically typed data"))
+		}
+	}
+	return a.semSeq(op.Ops), &dynamicSchema{name: name}
 }
 
-func derefSchema(sch schema, alias string, seq dag.Seq) (dag.Seq, schema) {
-	e, sch := sch.deref(alias)
+func derefSchemaAs(sch schema, table string, seq dag.Seq) (dag.Seq, schema) {
+	e, sch := sch.deref(table)
 	if e != nil {
 		seq = yieldExpr(e, seq)
 	}
 	return seq, sch
 }
 
+func derefSchema(sch schema, seq dag.Seq) (dag.Seq, schema) {
+	return derefSchemaAs(sch, "", seq)
+}
+
+func derefSchemaWithAlias(insch schema, alias *ast.TableAlias, inseq dag.Seq) (dag.Seq, schema, error) {
+	var table string
+	if alias != nil {
+		table = alias.Name
+	}
+	seq, sch := derefSchemaAs(insch, table, inseq)
+	if alias == nil || len(alias.Columns) == 0 {
+		return seq, sch, nil
+	}
+	switch sch := sch.(type) {
+	case *anonSchema:
+		return mapColumns(sch.columns, alias, seq)
+	case *staticSchema:
+		return mapColumns(sch.columns, alias, seq)
+	default:
+		return seq, sch, errors.New("cannot apply column aliases to dynamically typed data")
+	}
+}
+
+func mapColumns(in []string, alias *ast.TableAlias, seq dag.Seq) (dag.Seq, schema, error) {
+	if len(alias.Columns) > len(in) {
+		return nil, nil, fmt.Errorf("cannot apply %d column aliases in table alias %q to table with %d columns", len(alias.Columns), alias.Name, len(in))
+	}
+	out := idsToStrings(alias.Columns)
+	if !slices.Equal(in, out) {
+		// Make a record expression...
+		elems := make([]dag.RecordElem, 0, len(in))
+		for k := range out {
+			elems = append(elems, &dag.Field{
+				Kind:  "Field",
+				Name:  out[k],
+				Value: &dag.This{Kind: "This", Path: []string{in[k]}},
+			})
+		}
+		seq = yieldExpr(&dag.RecordExpr{
+			Kind:  "RecordExpr",
+			Elems: elems,
+		}, seq)
+	}
+	return seq, &staticSchema{alias.Name, out}, nil
+}
+
+func idsToStrings(ids []*ast.ID) []string {
+	out := make([]string, 0, len(ids))
+	for _, id := range ids {
+		out = append(out, id.Name)
+	}
+	return out
+}
+
 func isSQLOp(op ast.Op) bool {
 	switch op.(type) {
-	case *ast.Select, *ast.SQLLimitOffset, *ast.OrderBy, *ast.SQLPipe, *ast.SQLJoin:
+	case *ast.Select, *ast.SQLLimitOffset, *ast.OrderBy, *ast.SQLPipe, *ast.SQLJoin, *ast.Values:
 		return true
 	}
 	return false
@@ -359,9 +471,11 @@ func isSQLOp(op ast.Op) bool {
 func (a *analyzer) semSQLOp(op ast.Op, seq dag.Seq) (dag.Seq, schema) {
 	switch op := op.(type) {
 	case *ast.SQLPipe:
-		return a.semSQLPipe(op, seq, "") //XXX empty string for alias?
+		return a.semSQLPipe(op, seq, nil) //XXX should alias hang off SQLPipe?
 	case *ast.Select:
 		return a.semSelect(op, seq)
+	case *ast.Values:
+		return a.semValues(op, seq)
 	case *ast.SQLJoin:
 		return a.semSQLJoin(op, seq)
 	case *ast.OrderBy:

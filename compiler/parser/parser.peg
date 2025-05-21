@@ -712,7 +712,7 @@ FromElem
         elem.Ordinality = o.(*ast.Ordinality)
       }      
       if alias != nil {
-        elem.Alias = alias.(*ast.Name)
+        elem.Alias = alias.(*ast.TableAlias)
       }
       return elem, nil
     }
@@ -1951,6 +1951,7 @@ SelectExpr
     body:(
         SetOperation
       / Select
+      / Values
       / "(" __ s:SQLPipe __")"      { return s, nil }
     )
     orderby:OptOrderByClause
@@ -2010,6 +2011,15 @@ Select
       return sel, nil
     }
 
+Values
+  = VALUES _ exprs:Exprs {
+      return &ast.Values{
+          Kind: "Values",
+          Exprs: sliceOf[ast.Expr](exprs),
+          Loc: loc(c),
+      }, nil
+    }
+
 OptDistinct
   = _ ALL        { return false, nil }
   / _ DISTINCT   { return true, nil }
@@ -2045,7 +2055,7 @@ CteList = first:Cte rest:( __ "," __ cte:Cte { return cte, nil} )* {
 Cte
   = name:SQLIdentifier _ AS m:OptMaterialized __ "(" __ s:SQLPipe __ ")" {
         return ast.CTE{
-            Name: name.(string),
+            Name: name.(*ast.ID).Name,
             Materialized: m.(*bool),
             Op: s.(ast.Op),
             Loc: loc(c),
@@ -2157,9 +2167,18 @@ OptAlias
   = _ a:AliasClause { return a, nil }
   / ""              { return nil, nil }
 
-AliasClause 
-  = (AS _)? !(SQLGuard / DeprecatedFroms) name:IdentifierName { // optional column defs no types
-      return &ast.Name{Kind: "Name", Text: name.(string), Loc: loc(c)}, nil
+AliasClause
+ = (AS _)? !(SQLGuard / DeprecatedFroms) name:IdentifierName cols:Columns? {
+      alias := &ast.TableAlias{Kind: "TableAlias", Name: name.(string), Loc: loc(c)}
+      if cols != nil {
+        alias.Columns = cols.([]*ast.ID)
+      }
+      return alias, nil
+    }
+
+Columns
+  = __ "(" __ first:SQLIdentifier rest:( __ "," __ s:SQLIdentifier{ return s, nil })* __ ")" {
+        return sliceOf[*ast.ID](prepend(first,rest)), nil 
     }
 
 Selection
@@ -2402,6 +2421,7 @@ UNIQ       = "UNIQ"i            !IdentifierRest
 UNNEST     = "UNNEST"i          !IdentifierRest
 USING      = "USING"i           !IdentifierRest
 VALUE      = "VALUE"i           !IdentifierRest
+VALUES     = "VALUES"i          !IdentifierRest
 WHEN       = "WHEN"i            !IdentifierRest
 WHERE      = "WHERE"i           !IdentifierRest
 WITH       = "WITH"i            !IdentifierRest

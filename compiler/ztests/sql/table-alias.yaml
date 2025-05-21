@@ -1,0 +1,29 @@
+script: |
+  super -z -c "select T.a,b x from (values (1,'foo'),(3,'bar')) as T(a, b)"
+  echo ===
+  super -z -c "values {x:1},{x:2}"
+  echo ===
+  super -z -c "select * from (select T.a,b x from (values (1,'foo'),(3,'bar')) as T(a, b)) as T2(c,d)"
+  echo ===
+  super -z -c "select * from (select T.a,b x from (values (1,'foo'),(3,'bar')) as T ( a, b)) as T2(d)"
+  echo ===
+  super -z -c "from (values 1,2,3)"
+
+outputs:
+  - name: stdout
+    data: |
+      {a:1,x:"foo"}
+      {a:3,x:"bar"}
+      ===
+      {x:1}
+      {x:2}
+      ===
+      {c:1,d:"foo"}
+      {c:3,d:"bar"}
+      ===
+      {d:1}
+      {d:3}
+      ===
+      {c0:1}
+      {c0:2}
+      {c0:3}

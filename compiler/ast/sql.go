@@ -18,6 +18,12 @@ type Selection struct {
 	Loc  `json:"loc"`
 }
 
+type Values struct {
+	Kind  string `json:"kind" unpack:""`
+	Exprs []Expr `json:"exprs"`
+	Loc   `json:"loc"`
+}
+
 // SQLPipe turns a Seq into an Op.  We need this to put pipes inside
 // of SQL expressions.
 type SQLPipe struct {
@@ -107,6 +113,7 @@ func (*JoinUsingExpr) joinExpr() {}
 
 func (*SQLPipe) OpAST()        {}
 func (*Select) OpAST()         {}
+func (*Values) OpAST()         {}
 func (*CrossJoin) OpAST()      {}
 func (*SQLJoin) OpAST()        {}
 func (*Union) OpAST()          {}
