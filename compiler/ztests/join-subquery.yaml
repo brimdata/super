@@ -18,5 +18,5 @@ outputs:
           =>
             file b
         )
-        | join on c=c
+        | inner join on c=c
         | output main

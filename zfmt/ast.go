@@ -610,6 +610,9 @@ func (c *canon) op(p ast.Op) {
 		c.write("fuse")
 	case *ast.Join:
 		c.next()
+		if p.Style != "" {
+			c.write("%s ", p.Style)
+		}
 		c.write("join ")
 		if p.RightInput != nil {
 			c.open("(")

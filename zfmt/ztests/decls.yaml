@@ -40,7 +40,7 @@ outputs:
       )
       op joinTest(left_file, right_file, left_key, right_key, left_dest, right_source): (
         from eval(left_file)
-        | join (
+        | inner join (
           from eval(right_file)
         ) on left_key=right_key left_dest:=right_source
       )
@@ -64,7 +64,7 @@ outputs:
           =>
             file people.json
         )
-        | join on flavor=likes eater:=name
+        | inner join on flavor=likes eater:=name
         | yield {...this,assignee:"bob",ts:now()}
         | output main
       )

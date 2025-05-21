@@ -599,7 +599,7 @@ JoinStyle
   / INNER _ { return "inner", nil }
   / LEFT  _ { return "left", nil }
   / RIGHT _ { return "right", nil }
-  / ""        { return "inner", nil }
+  / ""      { return "", nil }
 
 JoinRightInput
   = __ "(" __ s:Seq __ ")" { return s, nil }

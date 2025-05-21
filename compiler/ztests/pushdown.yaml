@@ -52,7 +52,7 @@ outputs:
         =>
           file file2 unordered fields a,b
       )
-      | join on a=a b:=b
+      | inner join on a=a b:=b
       | yield c
       | output main
       === join
@@ -63,7 +63,7 @@ outputs:
         =>
           file file2 unordered fields a,b
       )
-      | join on a=a b:=b
+      | inner join on a=a b:=b
       | yield c
       | output main
       === switch-join
@@ -74,7 +74,7 @@ outputs:
           case d =>
             put x:=e
         )
-        | join on f=f g:=g
+        | inner join on f=f g:=g
         | yield h
         | output main
       === where

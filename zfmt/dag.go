@@ -465,7 +465,11 @@ func (c *canonDAG) op(p dag.Op) {
 		c.write("fuse")
 	case *dag.Join:
 		c.next()
-		c.open("join on ")
+		c.open()
+		if p.Style != "" {
+			c.write("%s ", p.Style)
+		}
+		c.write("join on ")
 		c.expr(p.LeftKey, "")
 		c.write("=")
 		c.expr(p.RightKey, "")

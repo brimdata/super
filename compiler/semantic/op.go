@@ -791,9 +791,13 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 			a.error(o.Cond, err)
 			return append(seq, badOp())
 		}
+		style := o.Style
+		if style == "" {
+			style = "inner"
+		}
 		join := &dag.Join{
 			Kind:     "Join",
-			Style:    o.Style,
+			Style:    style,
 			LeftDir:  order.Unknown,
 			LeftKey:  leftKey,
 			RightDir: order.Unknown,
