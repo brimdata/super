@@ -54,7 +54,7 @@ type ID struct {
 // originally double quoted to perform this analysis.
 type DoubleQuote struct {
 	Kind string `json:"kind" unpack:""`
-	Text string `json:"name"`
+	Text string `json:"text"`
 	Loc  `json:"loc"`
 }
 
