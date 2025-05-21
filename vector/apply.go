@@ -59,32 +59,41 @@ func rip(vecs []Any, d *Dynamic) iter.Seq2[int, []Any] {
 // stitch returns a Dynamic for tags and vecs.  If vecs contains any Dynamics,
 // stitch flattens them and returns a value containing no nested Dynamics.
 func stitch(tags []uint32, vecs []Any) Any {
-	if _, ok := findDynamic(vecs); !ok {
+	var foundDynamic bool
+	var newVecsLen int
+	for _, vec := range vecs {
+		if d, ok := vec.(*Dynamic); ok {
+			foundDynamic = true
+			newVecsLen += len(d.Values)
+		} else {
+			newVecsLen++
+		}
+	}
+	if !foundDynamic {
 		return NewDynamic(tags, vecs)
 	}
-	var nestedTags [][]uint32 // tags from nested Dynamics (nil for non-Dynamics)
-	var newVecs []Any         // vecs but with nested Dynamics replaced by their values
-	var shifts []uint32       // tag + shift[tag] translates tag to newVecs
+	newVecs := make([]Any, 0, newVecsLen)     // vecs but with nested Dynamics replaced by their values
+	nestedTags := make([][]uint32, len(vecs)) // tags from nested Dynamics (nil for non-Dynamics)
+	shifts := make([]uint32, len(vecs))       // tag + shift[tag] translates tag to newVecs
 	var lastShift uint32
-	for _, vec := range vecs {
-		shifts = append(shifts, lastShift)
+	for i, vec := range vecs {
+		shifts[i] = lastShift
 		if d, ok := vec.(*Dynamic); ok {
-			nestedTags = append(nestedTags, d.Tags)
 			newVecs = append(newVecs, d.Values...)
+			nestedTags[i] = d.Tags
 			lastShift += uint32(len(d.Values)) - 1
 		} else {
-			nestedTags = append(nestedTags, nil)
 			newVecs = append(newVecs, vec)
 		}
 	}
-	var newTags []uint32
-	for _, t := range tags {
+	newTags := make([]uint32, len(tags))
+	for i, t := range tags {
 		newTag := t + shifts[t]
 		if nested := nestedTags[t]; len(nested) > 0 {
 			newTag += nested[0]
 			nestedTags[t] = nested[1:]
 		}
-		newTags = append(newTags, newTag)
+		newTags[i] = newTag
 	}
 	return NewDynamic(newTags, newVecs)
 }
