@@ -683,21 +683,21 @@ func (c *canon) fromElem(elem *ast.FromElem) {
 	if elem.Args != nil {
 		c.fromArgs(elem.Args)
 	}
-	c.tableAlias(elem.Alias)
+	if elem.Alias != nil {
+		c.tableAlias(elem.Alias)
+	}
 }
 
 func (c *canon) tableAlias(alias *ast.TableAlias) {
-	if alias != nil {
-		c.write("as %s", sup.QuotedName(alias.Name))
-		if len(alias.Columns) != 0 {
-			c.write(" (")
-			var comma string
-			for _, col := range alias.Columns {
-				c.write("%s%s", comma, sup.QuotedName(col.Name))
-				comma = ", "
-			}
-			c.write(")")
+	c.write("as %s", sup.QuotedName(alias.Name))
+	if len(alias.Columns) != 0 {
+		c.write(" (")
+		var comma string
+		for _, col := range alias.Columns {
+			c.write("%s%s", comma, sup.QuotedName(col.Name))
+			comma = ", "
 		}
+		c.write(")")
 	}
 }
 

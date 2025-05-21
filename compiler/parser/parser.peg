@@ -2167,8 +2167,8 @@ OptAlias
   = _ a:AliasClause { return a, nil }
   / ""              { return nil, nil }
 
-AliasClause 
-  = (AS _)? !(SQLGuard / DeprecatedFroms) name:IdentifierName cols:OptColumns { 
+AliasClause
+ = (AS _)? !(SQLGuard / DeprecatedFroms) name:IdentifierName cols:Columns? {
       alias := &ast.TableAlias{Kind: "TableAlias", Name: name.(string), Loc: loc(c)}
       if cols != nil {
         alias.Columns = cols.([]*ast.ID)
@@ -2176,11 +2176,10 @@ AliasClause
       return alias, nil
     }
 
-OptColumns 
-  = "(" __ first:SQLIdentifier rest:( __ "," __ s:SQLIdentifier{ return s, nil })* __ ")" {
+Columns
+  = __ "(" __ first:SQLIdentifier rest:( __ "," __ s:SQLIdentifier{ return s, nil })* __ ")" {
         return sliceOf[*ast.ID](prepend(first,rest)), nil 
     }
-  / "" { return nil, nil }
 
 Selection
   = first:SelectElem rest:( __ "," __ s:SelectElem{ return s, nil })* {

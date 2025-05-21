@@ -341,7 +341,10 @@ func (a *analyzer) semValues(values *ast.Values, seq dag.Seq) (dag.Seq, schema) 
 			// Turn non record values into single column tuple
 			f := &dag.Field{Kind: "Field", Name: "c0", Value: e}
 			e = &dag.RecordExpr{Kind: "RecordExpr", Elems: []dag.RecordElem{f}}
-			val, _ := kernel.EvalAtCompileTime(sctx, e)
+			val, err := kernel.EvalAtCompileTime(sctx, e)
+			if err != nil {
+				panic(err)
+			}
 			recType = super.TypeUnder(val.Type()).(*super.TypeRecord)
 		}
 		if schema == nil {
@@ -389,7 +392,7 @@ func (a *analyzer) semSQLPipe(op *ast.SQLPipe, seq dag.Seq, alias *ast.TableAlia
 	if alias != nil {
 		name = alias.Name
 		if len(alias.Columns) != 0 {
-			a.error(alias, errors.New("cannot apply aliased columns to dynamically typed data"))
+			a.error(alias, errors.New("cannot apply column aliases to dynamically typed data"))
 		}
 	}
 	return a.semSeq(op.Ops), &dynamicSchema{name: name}
@@ -428,7 +431,7 @@ func derefSchemaWithAlias(insch schema, alias *ast.TableAlias, inseq dag.Seq) (d
 
 func mapColumns(in []string, alias *ast.TableAlias, seq dag.Seq) (dag.Seq, schema, error) {
 	if len(alias.Columns) > len(in) {
-		return nil, nil, fmt.Errorf("cannot apply %d aliased columns in alias %q to table with %d columns", len(alias.Columns), alias.Name, len(in))
+		return nil, nil, fmt.Errorf("cannot apply %d column aliases in table alias %q to table with %d columns", len(alias.Columns), alias.Name, len(in))
 	}
 	out := idsToStrings(alias.Columns)
 	if !slices.Equal(in, out) {
