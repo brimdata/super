@@ -1,5 +1,7 @@
 package vector
 
+import "iter"
+
 // Apply applies eval to vecs. If any element of vecs is a Dynamic, Apply rips
 // vecs accordingly, applies eval to the ripped vectors, and stitches the
 // results together into a Dynamic. If ripUnions is true, Apply also rips
@@ -34,22 +36,24 @@ func findDynamic(vecs []Any) (*Dynamic, bool) {
 	return nil, false
 }
 
-func rip(vecs []Any, d *Dynamic) [][]Any {
-	var ripped [][]Any
-	for j, rev := range d.TagMap.Reverse {
-		var newVecs []Any
-		if len(rev) > 0 {
-			for _, vec := range vecs {
-				if vec == d {
-					newVecs = append(newVecs, d.Values[j])
-				} else {
-					newVecs = append(newVecs, Pick(vec, rev))
+func rip(vecs []Any, d *Dynamic) iter.Seq2[int, []Any] {
+	return func(yield func(int, []Any) bool) {
+		for i, rev := range d.TagMap.Reverse {
+			var newVecs []Any
+			if len(rev) > 0 {
+				for _, vec := range vecs {
+					if vec == d {
+						newVecs = append(newVecs, d.Values[i])
+					} else {
+						newVecs = append(newVecs, Pick(vec, rev))
+					}
 				}
 			}
+			if !yield(i, newVecs) {
+				return
+			}
 		}
-		ripped = append(ripped, newVecs)
 	}
-	return ripped
 }
 
 // stitch returns a Dynamic for tags and vecs.  If vecs contains any Dynamics,
