@@ -14,7 +14,7 @@ import (
 	"github.com/x448/float16"
 )
 
-func buildPrunerValue(sctx *super.Context, rgmd *metadata.RowGroupMetaData, colIndexes []int, colIndexToField map[int]*pqarrow.SchemaField) super.Value {
+func buildMetadataValue(sctx *super.Context, rgmd *metadata.RowGroupMetaData, colIndexes []int, colIndexToField map[int]*pqarrow.SchemaField) super.Value {
 	var paths field.List
 	var vals []super.Value
 	m := sup.NewBSUPMarshaler()
