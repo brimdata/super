@@ -243,43 +243,23 @@ func metadataValue(cctx *Context, sctx *super.Context, b *zcode.Builder, id ID, 
 	case *Dict:
 		return metadataValue(cctx, sctx, b, m.Values, projection)
 	case *Record:
+		var fields []super.Field
+		b.BeginContainer()
 		if len(projection) == 0 {
-			var fields []super.Field
-			b.BeginContainer()
 			for _, f := range m.Fields {
-				fields = append(fields, super.NewField(f.Name, metadataValue(cctx, sctx, b, f.Values, nil)))
+				typ := metadataValue(cctx, sctx, b, f.Values, nil)
+				fields = append(fields, super.NewField(f.Name, typ))
 			}
-			b.EndContainer()
-			return sctx.MustLookupTypeRecord(fields)
-		}
-		switch elem := projection[0].(type) {
-		case string:
-			var fields []super.Field
-			// If the field isn't here, we emit an empty record, which will cause
-			// the metadata filter expression to properly evaluate the missing
-			// value as error missing.
-			b.BeginContainer()
-			if k := indexOfField(elem, m.Fields); k >= 0 {
-				fields = []super.Field{super.NewField(elem, metadataValue(cctx, sctx, b, m.Fields[k].Values, projection[1:]))}
-			}
-			b.EndContainer()
-			return sctx.MustLookupTypeRecord(fields)
-		case field.Fork:
-			var fields []super.Field
-			b.BeginContainer()
-			for _, path := range elem {
-				if name, ok := path[0].(string); ok {
-					if k := indexOfField(name, m.Fields); k >= 0 {
-						f := m.Fields[k]
-						fields = append(fields, super.NewField(f.Name, metadataValue(cctx, sctx, b, f.Values, projection[1:])))
-					}
+		} else {
+			for _, node := range projection {
+				if k := indexOfField(node.Name, m.Fields); k >= 0 {
+					typ := metadataValue(cctx, sctx, b, m.Fields[k].Values, node.Proj)
+					fields = append(fields, super.NewField(node.Name, typ))
 				}
 			}
-			b.EndContainer()
-			return sctx.MustLookupTypeRecord(fields)
-		default:
-			panic("bad projection")
 		}
+		b.EndContainer()
+		return sctx.MustLookupTypeRecord(fields)
 	case *Primitive:
 		min, max := super.NewValue(m.Typ, nil), super.NewValue(m.Typ, nil)
 		if m.Min != nil {

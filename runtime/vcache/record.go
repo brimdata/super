@@ -1,7 +1,6 @@
 package vcache
 
 import (
-	"fmt"
 	"slices"
 	"sync"
 
@@ -43,78 +42,44 @@ func (r *record) unmarshal(cctx *csup.Context, projection field.Projection) {
 		}
 		return
 	}
-	switch elem := projection[0].(type) {
-	case string:
-		if k := indexOfField(elem, r.meta); k >= 0 {
+	for _, node := range projection {
+		if k := indexOfField(node.Name, r.meta); k >= 0 {
 			if r.fields[k] == nil {
 				r.fields[k] = newShadow(cctx, r.meta.Fields[k].Values, r.nulls)
 			}
-			r.fields[k].unmarshal(cctx, projection[1:])
-		}
-	case field.Fork:
-		// Multiple fields at this level are being projected.
-		for _, path := range elem {
-			// records require a field name path element (i.e., string)
-			if name, ok := path[0].(string); ok {
-				if k := indexOfField(name, r.meta); k >= 0 {
-					if r.fields[k] == nil {
-						r.fields[k] = newShadow(cctx, r.meta.Fields[k].Values, r.nulls)
-					}
-					r.fields[k].unmarshal(cctx, projection[1:])
-				}
-			}
+			r.fields[k].unmarshal(cctx, node.Proj)
 		}
 	}
 }
 
 func (r *record) project(loader *loader, projection field.Projection) vector.Any {
 	nulls := r.load(loader)
+	vecs := make([]vector.Any, 0, len(r.fields))
+	types := make([]super.Field, 0, len(r.fields))
 	if len(projection) == 0 {
 		// Build the whole record.  We're either loading all on demand (nil paths)
 		// or loading this record because it's referenced at the end of a projected path.
-		vecs := make([]vector.Any, 0, len(r.fields))
-		types := make([]super.Field, 0, len(r.fields))
 		for k, f := range r.fields {
 			if f != nil {
 				vec := f.project(loader, nil)
 				vecs = append(vecs, vec)
-				types = append(types, super.Field{Name: r.meta.Fields[k].Name, Type: vec.Type()})
+				types = append(types, super.NewField(r.meta.Fields[k].Name, vec.Type()))
 			}
 		}
 		return vector.NewRecord(loader.sctx.MustLookupTypeRecord(types), vecs, r.length(), nulls)
 	}
-	switch elem := projection[0].(type) {
-	case string:
-		// A single path into this vector is projected.
+	fields := make([]super.Field, 0, len(r.fields))
+	for _, node := range projection {
 		var vec vector.Any
-		if k := indexOfField(elem, r.meta); k >= 0 && r.fields[k] != nil {
-			vec = r.fields[k].project(loader, projection[1:])
+		if k := indexOfField(node.Name, r.meta); k >= 0 && r.fields[k] != nil {
+			vec = r.fields[k].project(loader, node.Proj)
 		} else {
-			// Field not here.
 			vec = vector.NewMissing(loader.sctx, r.length())
 		}
-		fields := []super.Field{{Type: vec.Type(), Name: elem}}
-		return vector.NewRecord(loader.sctx.MustLookupTypeRecord(fields), []vector.Any{vec}, r.length(), nulls)
-	case field.Fork:
-		// Multiple paths into this record is projected.  Try to construct
-		// each one and slice together the children indicated in the projection.
-		vecs := make([]vector.Any, 0, len(r.fields))
-		fields := make([]super.Field, 0, len(r.fields))
-		for _, path := range elem {
-			name := path[0].(string)
-			var vec vector.Any
-			if k := indexOfField(name, r.meta); k >= 0 && r.fields[k] != nil {
-				vec = r.fields[k].project(loader, path[1:])
-			} else {
-				vec = vector.NewMissing(loader.sctx, r.length())
-			}
-			vecs = append(vecs, vec)
-			fields = append(fields, super.Field{Type: vec.Type(), Name: name})
-		}
-		return vector.NewRecord(loader.sctx.MustLookupTypeRecord(fields), vecs, r.length(), nulls)
-	default:
-		panic(fmt.Sprintf("bad path in vcache createRecord: %T", elem))
+		vecs = append(vecs, vec)
+		fields = append(fields, super.NewField(node.Name, vec.Type()))
 	}
+	return vector.NewRecord(loader.sctx.MustLookupTypeRecord(fields), vecs, r.length(), nulls)
 }
 
 func (r *record) load(loader *loader) bitvec.Bits {

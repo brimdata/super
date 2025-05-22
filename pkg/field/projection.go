@@ -1,84 +1,48 @@
 package field
 
-import (
-	"fmt"
-)
+import "slices"
 
-// A Projection is a slice of string or Forks
-type Projection []any //XXX clean this up later
-type Fork []Projection
+type Projection []ProjectionNode
 
-func NewProjection(paths []Path) Projection {
-	var out Projection
-	for _, path := range paths {
-		out = insertPath(out, path)
-	}
-	return out
+type ProjectionNode struct {
+	Name string
+	Proj Projection
 }
 
-// this is N*N
+func NewProjection(paths []Path) Projection {
+	var p Projection
+	for _, path := range paths {
+		p = p.insertPath(path)
+	}
+	return p
+}
+
+func (p Projection) insertPath(path Path) Projection {
+	if len(path) == 0 {
+		return nil
+	}
+	i := slices.IndexFunc(p, func(n ProjectionNode) bool {
+		return n.Name == path[0]
+	})
+	if i < 0 {
+		i = len(p)
+		p = append(p, ProjectionNode{Name: path[0]})
+	}
+	p[i].Proj = p[i].Proj.insertPath(path[1:])
+	return p
+}
+
 func (p Projection) Paths() []Path {
 	var paths []Path
-	for _, elem := range p {
-		switch elem := elem.(type) {
-		case string:
-			paths = append(paths, Path{elem})
-		case Fork:
-			for _, path := range elem {
-				head := path[0].(string)
-				if len(path) == 1 {
-					paths = append(paths, Path{head})
-				} else {
-					for _, tail := range path[1:].Paths() {
-						paths = append(paths, append(Path{head}, tail...))
-					}
-				}
+	for _, node := range p {
+		name := node.Name
+		if len(node.Proj) > 0 {
+			for _, path := range node.Proj.Paths() {
+				paths = append(paths, append(Path{name}, path...))
 			}
-		default:
-			panic("bad projection")
+		} else {
+			paths = append(paths, Path{name})
 		}
 	}
 	return paths
-}
-
-// XXX this is N*N in path lengths... fix?
-func insertPath(existing Projection, addition Path) Projection {
-	if len(addition) == 0 {
-		return existing
-	}
-	if len(existing) == 0 {
-		return convertFieldPath(addition)
-	}
-	switch elem := existing[0].(type) {
-	case string:
-		if elem == addition[0] {
-			return append(Projection{elem}, insertPath(existing[1:], addition[1:])...)
-		}
-		return Projection{Fork{existing, convertFieldPath(addition)}}
-	case Fork:
-		return Projection{addToFork(elem, addition)}
-	default:
-		panic(fmt.Sprintf("bad type encounted in insertPath: %T", elem))
-	}
-}
-
-func addToFork(fork Fork, addition Path) Fork {
-	// The first element of each path in a fork must be the key distinguishing
-	// the different paths (so no embedded Fork as the first element of a fork)
-	for k, path := range fork {
-		if path[0].(string) == addition[0] {
-			fork[k] = insertPath(path, addition)
-			return fork
-		}
-	}
-	// No common prefix so add the addition to the fork.
-	return append(fork, convertFieldPath(addition))
-}
-
-func convertFieldPath(path Path) Projection {
-	var out []any
-	for _, s := range path {
-		out = append(out, s)
-	}
-	return out
 }
