@@ -1,0 +1,10 @@
+spq: select value * from (yield 1,2)
+
+vector: true
+
+input: |
+  null
+
+output: |
+  1
+  2

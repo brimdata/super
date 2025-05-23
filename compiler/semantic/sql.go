@@ -310,7 +310,13 @@ func (a *analyzer) semSelectValue(sel *ast.Select, sch schema, seq dag.Seq) (dag
 		if as.Label != nil {
 			a.error(sel, errors.New("SELECT VALUE cannot have AS clause in selection"))
 		}
-		exprs = append(exprs, a.semExprSchema(sch, as.Expr))
+		var e dag.Expr
+		if as.Expr == nil {
+			e = &dag.This{Kind: "This"}
+		} else {
+			e = a.semExprSchema(sch, as.Expr)
+		}
+		exprs = append(exprs, e)
 	}
 	if sel.Where != nil {
 		seq = append(seq, dag.NewFilter(a.semExprSchema(sch, sel.Where)))
