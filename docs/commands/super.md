@@ -315,6 +315,41 @@ produces
 When pretty printing, colorization is enabled by default when writing to a terminal,
 and can be disabled with `-color false`.
 
+#### Canonical Value Presentation
+
+Values are stored internally based on their types as defined in the
+[data model](../formats/data-model.md), and values that are output in
+human-readable formats such SUP reflect a canonical presentation based on
+type. Therefore the output presentation of a value may not match the format
+in which it was originally expressed in a human-readable input stream or
+as a literal in a query.
+
+For example, reading this input with types `float64`, `duration`, `time`, and `string`
+
+```mdtest-command
+echo '6.00 300s 2024-08-14T12:12:51-07:00 "\u0041pple"' | super -z -
+```
+produces the output
+```mdtest-output
+6.
+5m
+2024-08-14T19:12:51Z
+"Apple"
+```
+
+When non-canonical presentation is desired, functions may be used to convert
+values to the desired presentation as a string, e.g., using the
+[`strftime` function](https://superdb.org/docs/language/functions/strftime/)
+to print a `time` value in the locale's representation
+
+```mdtest-command
+super -z -c 'yield strftime("%c", 2024-08-14T19:12:51Z)'
+```
+produces
+```mdtest-output
+"Wed Aug 14 19:12:51 2024"
+```
+
 #### Pipeline-friendly BSUP
 
 Though it's a compressed format, BSUP data is self-describing and stream-oriented
