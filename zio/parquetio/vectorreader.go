@@ -32,8 +32,8 @@ type VectorReader struct {
 	fr              *pqarrow.FileReader
 	colIndexes      []int
 	colIndexToField map[int]*pqarrow.SchemaField
+	metadataFilter  expr.Evaluator
 	nextRowGroup    *atomic.Int64
-	prunerEvaluator expr.Evaluator
 	rr              pqarrow.RecordReader
 	vb              vectorBuilder
 }
@@ -66,9 +66,9 @@ func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, push
 	if err != nil {
 		return nil, err
 	}
-	var evaluator expr.Evaluator
+	var metadataFilter expr.Evaluator
 	if pushdown != nil {
-		evaluator, _, err = pushdown.MetaFilter()
+		metadataFilter, _, err = pushdown.MetaFilter()
 		if err != nil {
 			return nil, err
 		}
@@ -80,17 +80,17 @@ func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, push
 		fr:              fr,
 		colIndexes:      colIndexes,
 		colIndexToField: schemaManifest.ColIndexToField,
+		metadataFilter:  metadataFilter,
 		nextRowGroup:    &atomic.Int64{},
-		prunerEvaluator: evaluator,
 		vb:              vectorBuilder{sctx, map[arrow.DataType]super.Type{}},
 	}, nil
 }
 
 func (p *VectorReader) NewConcurrentPuller() (vector.Puller, error) {
-	var evaluator expr.Evaluator
+	var metadataFilter expr.Evaluator
 	if p.pushdown != nil {
 		var err error
-		evaluator, _, err = p.pushdown.MetaFilter()
+		metadataFilter, _, err = p.pushdown.MetaFilter()
 		if err != nil {
 			return nil, err
 		}
@@ -101,8 +101,8 @@ func (p *VectorReader) NewConcurrentPuller() (vector.Puller, error) {
 		fr:              p.fr,
 		colIndexes:      p.colIndexes,
 		colIndexToField: p.colIndexToField,
+		metadataFilter:  metadataFilter,
 		nextRowGroup:    p.nextRowGroup,
-		prunerEvaluator: evaluator,
 		vb:              vectorBuilder{p.sctx, map[arrow.DataType]super.Type{}},
 	}, nil
 }
@@ -121,10 +121,10 @@ func (p *VectorReader) Pull(done bool) (vector.Any, error) {
 			if rowGroup >= pr.NumRowGroups() {
 				return nil, nil
 			}
-			if p.prunerEvaluator != nil {
+			if p.metadataFilter != nil {
 				rgMetadata := pr.MetaData().RowGroup(rowGroup)
-				val := buildPrunerValue(p.sctx, rgMetadata, p.colIndexes, p.colIndexToField)
-				if !p.prunerEvaluator.Eval(nil, val).Ptr().AsBool() {
+				val := buildMetadataValue(p.sctx, rgMetadata, p.colIndexes, p.colIndexToField)
+				if !p.metadataFilter.Eval(nil, val).Ptr().AsBool() {
 					continue
 				}
 			}
