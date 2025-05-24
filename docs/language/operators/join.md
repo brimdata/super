@@ -26,7 +26,7 @@ removed at some point.
 
 ### Description
 
-The `join` operator combines values from two inputs according to the boolean-valued
+The `join` operator combines values from two inputs according to the Boolean-valued
 `<predicate>`.  Logically, a cross product of all values is formed by taking each
 value `L` from `<left-input>` and forming records with all of the values `R` from
 the `<right-input>` of the form `{<left-name>:L,<right-name>:R}`.  The result
@@ -44,11 +44,11 @@ The available join types are:
 * _inner_ - as described above
 * _left_ - the inner join plus a set of single-field records of the form
 `{<left-name>:L}` for each value `L` in `<left-input>` absent from the inner join
-* _left_ - the inner join plus a set of single-field records of the form
+* _right_ - the inner join plus a set of single-field records of the form
 `{<right-name>:R}` for each value `R` in `<right-input>` absent from the inner join
-* _anti_ - the cross-product records for which `<predicate>` is false
-
-For anti join, the `<right-expr>` is undefined and thus cannot be specified.
+* _anti_ - the set of records of the form `{<left-name>:L}` for which there is no value
+`R` in `<right-input>` where the combined record `{<left-name>:L,<right-name>:R}`
+satisfies `<predicate>`
 
 ### Examples
 
@@ -91,6 +91,18 @@ join as {b,a} (from (yield {id:"apple"},{id:"chair"},{id:"car"})) on grep("a", a
 {b:{key:"bar",value:2},a:{id:"car"}}
 {b:{key:"baz",value:3},a:{id:"apple"}}
 {b:{key:"baz",value:3},a:{id:"car"}}
+```
+
+_Anti-join some numbers_
+```mdtest-spq-notyet
+# spq
+anti join (from (yield 1,3)) on left=right | sort
+# input
+1
+2
+3
+# expected output
+{left:2,right:2}
 ```
 
 The [join tutorial](../../tutorials/join.md) includes several more examples.
