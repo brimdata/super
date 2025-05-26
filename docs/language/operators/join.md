@@ -71,7 +71,7 @@ join (from (yield 1,3)) on left=right | sort
 _Join some records with scalar keys_
 ```mdtest-spq-notyet
 # spq
-join as {recs,key} (from (yield "foo","baz")) on key=recs.key | yield value | sort
+join as {recs,key} (from (yield "foo","baz")) on key=recs.key | yield recs.value | sort
 # input
 {key:"foo",value:1}
 {key:"bar",value:2}
