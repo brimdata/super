@@ -1,7 +1,7 @@
 # Convert SUP to BSUP and back to make sure binary encoding of typevals works.
 
 script: |
-  super -Z -c "put t:=typeof(this)" in.sup
+  super -S -c "put t:=typeof(this)" in.sup
 
 inputs:
   - name: in.sup

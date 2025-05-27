@@ -1,8 +1,8 @@
 script: |
-  super -z -split 2B -splitsize 2B in.sup
-  super -z -split 4B -splitsize 4B in.sup
-  super -z -split 6B -splitsize 6B in.sup
-  super -z -split 6B-o -splitsize 6B -o prefix in.sup
+  super -s -split 2B -splitsize 2B in.sup
+  super -s -split 4B -splitsize 4B in.sup
+  super -s -split 6B -splitsize 6B in.sup
+  super -s -split 6B-o -splitsize 6B -o prefix in.sup
 
 inputs:
   - name: in.sup

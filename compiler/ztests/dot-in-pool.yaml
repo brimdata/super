@@ -4,7 +4,7 @@ script: |
   super db create -q foo.bar
   super db use -q foo.bar
   echo '{a:1}' | super db load -q -
-  super db query -z "from foo.bar"
+  super db query -s "from foo.bar"
 
 outputs:
   - name: stdout

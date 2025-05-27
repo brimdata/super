@@ -1,5 +1,5 @@
 script: |
-  super -z a.log b.bsup
+  super -s a.log b.bsup
 
 inputs:
   - name: a.log

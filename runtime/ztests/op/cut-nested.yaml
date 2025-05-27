@@ -1,9 +1,9 @@
 script: |
-  super -z -c "cut rec.foo" nested1.sup
+  super -s -c "cut rec.foo" nested1.sup
   echo ===
-  super -z -c "cut rec.foo,rec['bar']" nested1.sup
+  super -s -c "cut rec.foo,rec['bar']" nested1.sup
   echo ===
-  super -z -c "cut rec1.sub1.foo,rec1['sub2']['bar'],rec2.foo,foo" nested2.sup
+  super -s -c "cut rec1.sub1.foo,rec1['sub2']['bar'],rec2.foo,foo" nested2.sup
 
 vector: true
 

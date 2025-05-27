@@ -1,4 +1,4 @@
-script: super in.sup | super -z -
+script: super in.sup | super -s -
 
 inputs:
   - name: in.sup

@@ -1,4 +1,4 @@
-script: super -z -I src.zed
+script: super -s -I src.zed
 
 inputs:
   - name: src.zed

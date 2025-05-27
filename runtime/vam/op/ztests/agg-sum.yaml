@@ -8,8 +8,8 @@ script: |
     seq -f '{x: 1, y: %.0f}' 257
   } | super -o t.csup -f csup -
   export SUPER_VAM=1
-  super -z -c 'from t.csup | sum(x)'
-  super -z -c 'from t.csup | sum(y)'
+  super -s -c 'from t.csup | sum(x)'
+  super -s -c 'from t.csup | sum(y)'
 
 outputs:
   - name: stdout

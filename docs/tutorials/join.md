@@ -52,7 +52,7 @@ file fruit.json
 
 Executing the query:
 ```mdtest-command
-super -z -I inner-join.spq
+super -s -I inner-join.spq
 ```
 produces
 ```mdtest-output
@@ -90,7 +90,7 @@ file fruit.json
 Executing the query:
 
 ```mdtest-command
-super -z -I left-join.spq
+super -s -I left-join.spq
 ```
 produces
 ```mdtest-output
@@ -123,7 +123,7 @@ file fruit.json
 ```
 Executing the query:
 ```mdtest-command
-super -z -I right-join.spq
+super -s -I right-join.spq
 ```
 produces
 ```mdtest-output
@@ -156,7 +156,7 @@ file fruit.json
 ```
 Executing the query:
 ```mdtest-command
-super -z -I anti-join.spq
+super -s -I anti-join.spq
 ```
 produces
 ```mdtest-output
@@ -192,7 +192,7 @@ super db create -q -orderby flavor:asc fruit
 super db create -q -orderby likes:asc people
 super db load -q -use fruit fruit.json
 super db load -q -use people people.json
-super db query -z -I inner-join-pools.spq
+super db query -s -I inner-join-pools.spq
 ```
 produces
 ```mdtest-output
@@ -225,7 +225,7 @@ from (
 
 Executing the query:
 ```mdtest-command
-super -z -I inner-join-alternate.spq
+super -s -I inner-join-alternate.spq
 ```
 produces
 ```mdtest-output
@@ -259,7 +259,7 @@ switch (
 
 Executing the query:
 ```mdtest-command
-cat fruit.json people.json | super -z -I inner-join-streamed.spq -
+cat fruit.json people.json | super -s -I inner-join-streamed.spq -
 ```
 produces
 ```mdtest-output
@@ -305,7 +305,7 @@ file fruit.json | put fruitkey:={name,color}
 
 Executing the query:
 ```mdtest-command
-super -z -I multi-value-join.spq
+super -s -I multi-value-join.spq
 ```
 produces
 ```mdtest-output
@@ -346,7 +346,7 @@ file fruit.json
 Executing the query:
 
 ```mdtest-command
-super -z -I three-way-join.spq
+super -s -I three-way-join.spq
 ```
 
 produces
@@ -384,7 +384,7 @@ file fruit.json
 Executing the query:
 
 ```mdtest-command
-super -z -I embed-opposite.spq
+super -s -I embed-opposite.spq
 ```
 produces
 ```mdtest-output
@@ -417,7 +417,7 @@ file fruit.json
 Executing the query:
 
 ```mdtest-command
-super -z -I merge-opposite.spq
+super -s -I merge-opposite.spq
 ```
 
 produces

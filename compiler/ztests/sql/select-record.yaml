@@ -1,7 +1,7 @@
 script: |
-  super -z -c 'select {x:T.a,y:c,c} as outer from "a.sup" T'
+  super -s -c 'select {x:T.a,y:c,c} as outer from "a.sup" T'
   echo ===
-  super -z -c 'select value {x:T.a,y:T.c} from "a.sup" T'
+  super -s -c 'select value {x:T.a,y:T.c} from "a.sup" T'
 
 inputs:
   - name: a.sup

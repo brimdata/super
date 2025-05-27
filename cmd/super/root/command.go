@@ -70,7 +70,7 @@ provides the prefix for the file path, e.g.,
 
 When writing to stdout and stdout is a terminal, the default output format is Super JSON.
 Otherwise, the default format is Super Binary.  In either case, the default
-may be overridden with -f, -z, or -Z.
+may be overridden with -f, -s, or -S.
 
 The query text may include source files using -I, which is particularly
 convenient when a large, complex query spans multiple lines.  In this case,

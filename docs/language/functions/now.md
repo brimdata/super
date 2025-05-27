@@ -24,7 +24,7 @@ switch (
 ### Examples
 
 ```
-super -z -c 'yield now()'
+super -s -c 'yield now()'
 ```
 =>
 ```

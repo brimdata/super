@@ -3,7 +3,7 @@ script: |
   super db create -q test
   super db load -q -use test a.sup
   super db load -q -use test b.sup
-  super db query -z "from test@main:objects | sort min | {min,max}"
+  super db query -s "from test@main:objects | sort min | {min,max}"
 
 inputs:
   - name: service.sh

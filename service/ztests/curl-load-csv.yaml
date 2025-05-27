@@ -2,11 +2,11 @@ script: |
   source service.sh
   super db create -q -orderby a test
   curl -H Content-Type:text/csv --data-binary @in.csv \
-    --fail $SUPER_DB_LAKE/pool/test/branch/main | super -z -c commit:=0 -
+    --fail $SUPER_DB_LAKE/pool/test/branch/main | super -s -c commit:=0 -
   curl -H Content-Type:text/csv --data-binary @in-dot.csv \
-    --fail $SUPER_DB_LAKE/pool/test/branch/main?csv.delim=. | super -z -c commit:=0 -
+    --fail $SUPER_DB_LAKE/pool/test/branch/main?csv.delim=. | super -s -c commit:=0 -
   echo //
-  super db query -z 'from test'
+  super db query -s 'from test'
 
 inputs:
   - name: in.csv

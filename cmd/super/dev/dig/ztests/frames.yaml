@@ -1,7 +1,7 @@
 script: |
   super a.sup > c.bsup
   super b.sup >> c.bsup
-  super dev dig frames -z c.bsup
+  super dev dig frames -s c.bsup
 
 inputs:
   - name: a.sup

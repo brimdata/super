@@ -1,4 +1,4 @@
-script: super -i csv -z -
+script: super -i csv -s -
 
 inputs:
   - name: stdin

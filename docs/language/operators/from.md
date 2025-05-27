@@ -114,7 +114,7 @@ The following file `hello.sup` is also used.
 _Source structured data from a local file_
 
 ```mdtest-command
-super -z -c 'file hello.sup | yield greeting'
+super -s -c 'file hello.sup | yield greeting'
 ```
 =>
 ```mdtest-output
@@ -123,7 +123,7 @@ super -z -c 'file hello.sup | yield greeting'
 
 _Source data from a local file, but in line format_
 ```mdtest-command
-super -z -c 'file hello.sup format line'
+super -s -c 'file hello.sup format line'
 ```
 =>
 ```mdtest-output
@@ -132,7 +132,7 @@ super -z -c 'file hello.sup format line'
 
 _Source structured data from a URI_
 ```
-super -z -c 'get https://raw.githubusercontent.com/brimdata/zui-insiders/main/package.json
+super -s -c 'get https://raw.githubusercontent.com/brimdata/zui-insiders/main/package.json
        | yield productName'
 ```
 =>
@@ -142,7 +142,7 @@ super -z -c 'get https://raw.githubusercontent.com/brimdata/zui-insiders/main/pa
 
 _Source data from the `main` branch of a pool_
 ```mdtest-command
-super db -lake example query -z 'from coinflips'
+super db -lake example query -s 'from coinflips'
 ```
 =>
 ```mdtest-output
@@ -152,7 +152,7 @@ super db -lake example query -z 'from coinflips'
 
 _Source data from a specific branch of a pool_
 ```mdtest-command
-super db -lake example query -z 'from coinflips@trial'
+super db -lake example query -s 'from coinflips@trial'
 ```
 =>
 ```mdtest-output
@@ -171,7 +171,7 @@ super db -lake example query -f text 'from * | count()'
 ```
 _Join the data from multiple pools_
 ```mdtest-command
-super db -lake example query -z '
+super db -lake example query -s '
   from coinflips | sort flip
   | join (
     from numbers | sort number
@@ -185,7 +185,7 @@ super db -lake example query -z '
 
 _Use `pass` to combine our join output with data from yet another source_
 ```mdtest-command
-super db -lake example query -z '
+super db -lake example query -s '
   from coinflips | sort flip
   | join (
     from numbers | sort number

@@ -1,10 +1,10 @@
 script: |
-  ! super -z -c "select c+a,collect(c) from a.sup group by a+c" >& err1
-  super -z -c "select c+a,collect(c) from a.sup group by c+a | sort this"
+  ! super -s -c "select c+a,collect(c) from a.sup group by a+c" >& err1
+  super -s -c "select c+a,collect(c) from a.sup group by c+a | sort this"
   echo ===
-  super -z -c "select c+a as d,collect(c) from a.sup group by c+a | sort this"
+  super -s -c "select c+a as d,collect(c) from a.sup group by c+a | sort this"
   echo ===
-  super -z -c "select c+a as d,collect(c) from a.sup group by d | sort this"
+  super -s -c "select c+a as d,collect(c) from a.sup group by d | sort this"
 
 inputs:
   - name: a.sup

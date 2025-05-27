@@ -150,7 +150,7 @@ nslookup example.com
 To see the event was been stored in our pool, we executed the following query:
 
 ```
-zed query -Z 'from zeek | _path=="dns" query=="example.com"'
+zed query -S 'from zeek | _path=="dns" query=="example.com"'
 ```
 
 With the Fluentd configuration shown here, it took about a minute for the
@@ -220,7 +220,7 @@ First we saved the contents of the shaper from
 
 <match zeek>
   @type exec_filter
-  command super -z -I shaper.zed -
+  command super -s -I shaper.zed -
   tag shaped
   <format>
     @type json
@@ -263,7 +263,7 @@ After a delay, we executed the following query to see the event in its shaped
 form:
 
 ```
-zed query -Z 'from "zeek-shaped" | _path=="dns" query=="example.org"'
+zed query -S 'from "zeek-shaped" | _path=="dns" query=="example.org"'
 ```
 
 Example output:

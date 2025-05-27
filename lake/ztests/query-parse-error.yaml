@@ -2,21 +2,21 @@ script: |
   export SUPER_DB_LAKE=test
   super db init -q
   echo =1= >&2
-  ! super db query -z "$(cat bad-single-line.spq)"
+  ! super db query -s "$(cat bad-single-line.spq)"
   echo =2= >&2
-  ! super db query -z "$(cat bad-multiple-lines.spq)"
+  ! super db query -s "$(cat bad-multiple-lines.spq)"
   echo =3= >&2
-  ! super db query -z -I good.spq "$(cat bad-single-line.spq)"
+  ! super db query -s -I good.spq "$(cat bad-single-line.spq)"
   echo =4= >&2
-  ! super db query -z -I good.spq "$(cat bad-multiple-lines.spq)"
+  ! super db query -s -I good.spq "$(cat bad-multiple-lines.spq)"
   echo =5= >&2
-  ! super db query -z -I bad-single-line.spq
+  ! super db query -s -I bad-single-line.spq
   echo =6= >&2
-  ! super db query -z -I bad-multiple-lines.spq
+  ! super db query -s -I bad-multiple-lines.spq
   echo =7= >&2
-  ! super db query -z -I good.spq -I bad-single-line.spq
+  ! super db query -s -I good.spq -I bad-single-line.spq
   echo =8= >&2
-  ! super db query -z -I good.spq -I bad-multiple-lines.spq
+  ! super db query -s -I good.spq -I bad-multiple-lines.spq
 
 inputs:
   - name: bad-single-line.spq

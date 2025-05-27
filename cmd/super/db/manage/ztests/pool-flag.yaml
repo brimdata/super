@@ -6,7 +6,7 @@ script: |
   super db create -q test3
   super db create -q test4
   super db manage -pool test2 -pool test4 -log.path=manage.log
-  super -z -c 'msg == "updating pool" | yield name' manage.log
+  super -s -c 'msg == "updating pool" | yield name' manage.log
 
 outputs:
   - name: stdout

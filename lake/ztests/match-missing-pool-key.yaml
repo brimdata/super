@@ -5,7 +5,7 @@ script: |
   super db init -q
   super db create -q -orderby k tmp
   super db load -q -use tmp in.sup
-  super db query -z "from tmp | !has(k)"
+  super db query -s "from tmp | !has(k)"
 
 inputs:
   - name: in.sup

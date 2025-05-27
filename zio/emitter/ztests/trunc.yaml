@@ -1,7 +1,7 @@
 script: |
- super - | super -z -o out.sup long.sup
- super - | super -z -o out.sup short.sup
- super -z out.sup
+ super - | super -s -o out.sup long.sup
+ super - | super -s -o out.sup short.sup
+ super -s out.sup
 
 inputs:
   - name: short.sup

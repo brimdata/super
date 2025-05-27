@@ -1,5 +1,5 @@
 script: |
-  super -z -I query.sql
+  super -s -I query.sql
 
 inputs:
   - name: query.sql

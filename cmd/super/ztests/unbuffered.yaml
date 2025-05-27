@@ -1,7 +1,7 @@
 script: |
   mkfifo fifo
   # "-i json" avoids reader buffering.
-  super -i json -unbuffered -z fifo > out.sup &
+  super -i json -unbuffered -s fifo > out.sup &
   # Prevent super from seeing EOF on fifo and exiting before the shell exits.
   exec 10> fifo
   echo 1 > fifo

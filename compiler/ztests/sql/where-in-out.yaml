@@ -1,5 +1,5 @@
 script: |
-  super -z -c 'select -a as x from a.sup where x>=-12 and a<12'
+  super -s -c 'select -a as x from a.sup where x>=-12 and a<12'
 
 inputs:
   - name: a.sup

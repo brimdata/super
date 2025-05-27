@@ -1,5 +1,5 @@
 script: |
-  super -z -e=false good.sup bad.sup
+  super -s -e=false good.sup bad.sup
 
 inputs:
   - name: good.sup

@@ -1,20 +1,20 @@
 script: |
-  echo '{a:"hi",b:"hello"}' | super -z -c 'this[a][b] := "world" | drop a, b' -
+  echo '{a:"hi",b:"hello"}' | super -s -c 'this[a][b] := "world" | drop a, b' -
   echo "// ==="
-  echo '{a:{b:"hello"}}' | super -z -c 'this[a.b]:="world" | drop a' -
+  echo '{a:{b:"hello"}}' | super -s -c 'this[a.b]:="world" | drop a' -
   echo "// ==="
-  echo '{a:"hello"}' | super -z -c 'this[this["a"]] := "world" | drop a' -
+  echo '{a:"hello"}' | super -s -c 'this[this["a"]] := "world" | drop a' -
   echo "// ==="
-  echo '{a:{},b:"hello"}' | super -z -c 'a[b] := "world" | drop b' -
+  echo '{a:{},b:"hello"}' | super -s -c 'a[b] := "world" | drop b' -
   echo "// ==="
-  echo '{a:"foo"}' | super -z -c 'this[a]["bar"] := "baz" | cut foo' -
+  echo '{a:"foo"}' | super -s -c 'this[a]["bar"] := "baz" | cut foo' -
   echo "// ==="
   # runtime error cases
-  echo '{a:"hello",b:"hello"}' | super -z -c 'this[a] := "world1", this[b] := "world2"' -
+  echo '{a:"hello",b:"hello"}' | super -s -c 'this[a] := "world1", this[b] := "world2"' -
   echo "// ==="
-  echo '{a:"foo",b:"bar"}' | super -z -c 'this[a][b] := "world", this[a] := "world"' -
+  echo '{a:"foo",b:"bar"}' | super -s -c 'this[a][b] := "world", this[a] := "world"' -
   echo "// ==="
-  echo {} | super -z -c 'this[doesnotexist] := "world"' - 
+  echo {} | super -s -c 'this[doesnotexist] := "world"' - 
   # semantic error cases
   ! super compile -dag 'op foo(): ( yield "error" ) put this[foo] := "hello world"'
 

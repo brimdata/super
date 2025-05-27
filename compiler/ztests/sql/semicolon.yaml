@@ -1,5 +1,5 @@
 script: |
-  super -z -c 'select count(a),sum(a) from "a.sup";'
+  super -s -c 'select count(a),sum(a) from "a.sup";'
 
 inputs:
   - name: a.sup

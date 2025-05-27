@@ -2,7 +2,7 @@ script: |
   source service.sh
   curl -X POST -d '{"name":"test"}' $SUPER_DB_LAKE/pool > pool.json
   poolID=$(super -f text -c "yield ksuid(pool.id)" pool.json)
-  curl -X POST --data-binary @- $SUPER_DB_LAKE/pool/$poolID/branch/main | super -z -c "commit:=0" -
+  curl -X POST --data-binary @- $SUPER_DB_LAKE/pool/$poolID/branch/main | super -s -c "commit:=0" -
 
 inputs:
   - name: stdin

@@ -1,5 +1,5 @@
 script: |
-  super -z -c "select sum(a) as s, b, max(a+1) as m from t.json group by b having float64(max(a))/m > 0.7"
+  super -s -c "select sum(a) as s, b, max(a+1) as m from t.json group by b having float64(max(a))/m > 0.7"
 
 inputs:
   - name: t.json

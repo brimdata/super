@@ -1,7 +1,7 @@
 # Exercise the logic that builds values from cached constant vectors.
 script: |
   super -f csup -o test.csup -
-  super dev vector copy -z test.csup
+  super dev vector copy -s test.csup
 
 inputs:
   - name: stdin

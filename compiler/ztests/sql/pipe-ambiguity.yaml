@@ -1,10 +1,10 @@
 script: |
-  ! super -z -c "select 1|3" >& err1
-  super -z -c "select x | yield x+1" x.sup
+  ! super -s -c "select 1|3" >& err1
+  super -s -c "select x | yield x+1" x.sup
   echo ===
-  super -z -c "select x | x+1" x.sup  
+  super -s -c "select x | x+1" x.sup
   echo ===
-  super -z -c "select x |> x+1" x.sup
+  super -s -c "select x |> x+1" x.sup
 
 inputs:
   - name: n1.sup

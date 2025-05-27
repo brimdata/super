@@ -1,7 +1,7 @@
 script: |
-  super -z -c "grep(a*b,s)" in.sup
+  super -s -c "grep(a*b,s)" in.sup
   echo ===
-  super -z -c "s==a*b+1" in.sup
+  super -s -c "s==a*b+1" in.sup
 
 inputs:
   - name: in.sup

@@ -1,5 +1,5 @@
 script: |
-  super -z -c 'left join (file C.sup) on a=b hit:=sc | sort' A.sup
+  super -s -c 'left join (file C.sup) on a=b hit:=sc | sort' A.sup
 
 vector: true
 

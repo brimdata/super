@@ -1,6 +1,6 @@
 script: |
   . http.bash
-  super -z -c "sort ts" $http_base_url/log1.sup $http_base_url/log2.sup
+  super -s -c "sort ts" $http_base_url/log1.sup $http_base_url/log2.sup
 
 inputs:
   - name: http.bash

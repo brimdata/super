@@ -1,5 +1,5 @@
 script: |
-  super -z -c "count()" in.sup
+  super -s -c "count()" in.sup
 
 inputs:
   - name: in.sup

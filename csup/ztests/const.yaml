@@ -1,6 +1,6 @@
 script: |
   super -f csup -o out.csup -
-  super dev csup -z out.csup
+  super dev csup -s out.csup
 
 inputs:
   - name: stdin

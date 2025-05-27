@@ -5,7 +5,7 @@ script: |
   super db load -q -use logs -meta '"original"' babble.sup
   super db load -q -use logs -meta '"normalized-v1"' babble.sup
   super db load -q -use logs -meta '"normalized-v2"' babble.sup
-  super db query "from logs@main:log | grep(normalized*, meta) | sort date | cut meta" | super -z -
+  super db query "from logs@main:log | grep(normalized*, meta) | sort date | cut meta" | super -s -
 
 inputs:
   - name: babble.sup

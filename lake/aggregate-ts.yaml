@@ -7,15 +7,15 @@ script: |
   # causes parition to have several chunk files.
   super db load -q -use logs aggregate-ts.sup
   echo ===
-  super db query -z 'from logs | head 1'
+  super db query -s 'from logs | head 1'
   echo ===
-  super db query -z 'from logs | tail 1'
+  super db query -s 'from logs | tail 1'
   echo ===
-  super db query -z 'from logs | avg:=avg(g)'
+  super db query -s 'from logs | avg:=avg(g)'
   echo ===
-  super db query -z 'from logs | count:=count() by g | sort g'
+  super db query -s 'from logs | count:=count() by g | sort g'
   echo ===
-  super db query -z 'from logs | count:=count() by every(3600s), g | sort ts, g'
+  super db query -s 'from logs | count:=count() by every(3600s), g | sort ts, g'
 
 inputs:
   - name: aggregate-ts.sup

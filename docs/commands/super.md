@@ -95,7 +95,7 @@ input of a single empty row of an unnamed table.
 This provides a convenient means to explore examples or run in a
 "calculator mode", e.g.,
 ```mdtest-command
-super -z -c '1+1'
+super -s -c '1+1'
 ```
 emits
 ```mdtest-output
@@ -181,7 +181,7 @@ and this content is in `sample.json`
 ```
 then the command
 ```mdtest-command
-super -z sample.csv sample.json
+super -s sample.csv sample.json
 ```
 would produce this output in the default SUP format
 ```mdtest-output
@@ -244,8 +244,8 @@ typically omit quotes around field names.
 The output format defaults to either SUP or BSUP and may be specified
 with the `-f` option.
 
-Since SUP is a common format choice, the `-z` flag is a shortcut for
-`-f sup`.  Also, `-Z` is a shortcut for `-f sup` with `-pretty 4` as
+Since SUP is a common format choice, the `-s` flag is a shortcut for
+`-f sup`.  Also, `-S` is a shortcut for `-f sup` with `-pretty 4` as
 [described below](#pretty-printing).
 
 And since plain JSON is another common format choice, the `-j` flag is a shortcut for
@@ -256,7 +256,7 @@ And since plain JSON is another common format choice, the `-j` flag is a shortcu
 When the format is not specified with `-f`, it defaults to SUP if the output
 is a terminal and to BSUP otherwise.
 
-While this can cause an occasional surprise (e.g., forgetting `-f` or `-z`
+While this can cause an occasional surprise (e.g., forgetting `-f` or `-s`
 in a scripted test that works fine on the command line but fails in CI),
 we felt that the design of having a uniform default had worse consequences:
 * If the default format were SUP, it would be very easy to create pipelines
@@ -274,12 +274,12 @@ In practice, we have found that the output defaults
 
 SUP and plain JSON text may be "pretty printed" with the `-pretty` option, which takes
 the number of spaces to use for indentation.  As this is a common option,
-the `-Z` option is a shortcut for `-f sup -pretty 4` and `-J` is a shortcut
+the `-S` option is a shortcut for `-f sup -pretty 4` and `-J` is a shortcut
 for `-f json -pretty 4`.
 
 For example,
 ```mdtest-command
-echo '{a:{b:1,c:[1,2]},d:"foo"}' | super -Z -
+echo '{a:{b:1,c:[1,2]},d:"foo"}' | super -S -
 ```
 produces
 ```mdtest-output
@@ -329,7 +329,7 @@ In particular, BSUP data can simply be concatenated together, e.g.,
 ```mdtest-command
 super -f bsup -c 'select value 1, [1,2,3]' > a.bsup
 super -f bsup -c "select value {s:'hello'}, {s:'world'}" > b.bsup
-cat a.bsup b.bsup | super -z -
+cat a.bsup b.bsup | super -s -
 ```
 produces
 ```mdtest-output
@@ -377,7 +377,7 @@ As suggested by the error above, the [`fuse` operator](../language/operators/fus
 types into a blended type, e.g., here we create the file and read it back:
 ```mdtest-command
 echo '{x:1}{s:"hello"}' | super -o out.parquet -f parquet -c fuse -
-super -z out.parquet
+super -s out.parquet
 ```
 but the data was necessarily changed (by inserting nulls):
 ```mdtest-output
@@ -402,7 +402,7 @@ For example, the example above would produce two output files,
 which can then be read separately to reproduce the original data, e.g.,
 ```mdtest-command
 echo '{x:1}{s:"hello"}' | super -o out -split . -f parquet -
-super -z out-*.parquet
+super -s out-*.parquet
 ```
 produces the original data
 ```mdtest-output
@@ -517,7 +517,7 @@ it's rare to request it explicitly via `-f`.  However, since it's possible for
 the `lake` format is useful to reverse this.
 
 For example, imagine you'd executed a [meta-query](super-db.md#meta-queries) via
-`super db query -Z "from :pools"` and saved the output in this file `pools.sup`.
+`super db query -S "from :pools"` and saved the output in this file `pools.sup`.
 
 ```mdtest-input pools.sup
 {
@@ -596,7 +596,7 @@ or trying to debug a halted query with a vague error message.
 
 For example, this query
 ```mdtest-command
-echo '1 2 0 3' | super -z -c '10.0/this' -
+echo '1 2 0 3' | super -s -c '10.0/this' -
 ```
 produces
 ```mdtest-output
@@ -607,7 +607,7 @@ error("divide by zero")
 ```
 and
 ```mdtest-command
-echo '1 2 0 3' | super -c '10.0/this' - | super -z -c 'is_error(this)' -
+echo '1 2 0 3' | super -c '10.0/this' - | super -s -c 'is_error(this)' -
 ```
 produces just
 ```mdtest-output
@@ -663,7 +663,7 @@ have many examples, but here are a few more simple `super` use cases.
 
 _Hello, world_
 ```mdtest-command
-super -z -c "SELECT VALUE 'hello, world'"
+super -s -c "SELECT VALUE 'hello, world'"
 ```
 produces this SUP output
 ```mdtest-output
@@ -743,7 +743,7 @@ a:=int64(a)
 _Make a schema-rigid Parquet file using fuse, then output the Parquet file as SUP_
 ```mdtest-command
 echo '{a:1}{a:2}{b:3}' | super -f parquet -o tmp.parquet -c fuse -
-super -z tmp.parquet
+super -s tmp.parquet
 ```
 produces
 ```mdtest-output
@@ -1267,7 +1267,7 @@ Benchmark 1: duckdb < /mnt/tmpdir/tmp.hPiKS1Qi1A
 
 About to execute
 ================
-super -z -I /mnt/tmpdir/tmp.pDeSZCTa2V
+super -s -I /mnt/tmpdir/tmp.pDeSZCTa2V
 
 With query
 ==========
@@ -1275,14 +1275,14 @@ SELECT count()
 FROM '/mnt/gha.bsup'
 WHERE grep('in case you have any feedback 😊', payload.pull_request.body)
 
-+ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'super -z -I /mnt/tmpdir/tmp.pDeSZCTa2V'
-Benchmark 1: super -z -I /mnt/tmpdir/tmp.pDeSZCTa2V
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'super -s -I /mnt/tmpdir/tmp.pDeSZCTa2V'
+Benchmark 1: super -s -I /mnt/tmpdir/tmp.pDeSZCTa2V
 {count:2(uint64)}
   Time (abs ≡):         6.371 s               [User: 23.178 s, System: 1.700 s]
 
 About to execute
 ================
-SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.AYZIh6yi2s
+SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.AYZIh6yi2s
 
 With query
 ==========
@@ -1290,8 +1290,8 @@ SELECT count()
 FROM '/mnt/gha.parquet'
 WHERE grep('in case you have any feedback 😊', payload.pull_request.body)
 
-+ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.AYZIh6yi2s'
-Benchmark 1: SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.AYZIh6yi2s
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.AYZIh6yi2s'
+Benchmark 1: SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.AYZIh6yi2s
 {count:2(uint64)}
   Time (abs ≡):        40.838 s               [User: 292.674 s, System: 18.797 s]
 ```
@@ -1413,7 +1413,7 @@ Benchmark 1: duckdb < /mnt/tmpdir/tmp.k6yVjzT4cu
 
 About to execute
 ================
-super -z -I /mnt/tmpdir/tmp.jJSibCjp8r
+super -s -I /mnt/tmpdir/tmp.jJSibCjp8r
 
 With query
 ==========
@@ -1421,14 +1421,14 @@ SELECT count()
 FROM '/mnt/gha.bsup'
 WHERE grep('in case you have any feedback 😊')
 
-+ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'super -z -I /mnt/tmpdir/tmp.jJSibCjp8r'
-Benchmark 1: super -z -I /mnt/tmpdir/tmp.jJSibCjp8r
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'super -s -I /mnt/tmpdir/tmp.jJSibCjp8r'
+Benchmark 1: super -s -I /mnt/tmpdir/tmp.jJSibCjp8r
 {count:3(uint64)}
   Time (abs ≡):        12.492 s               [User: 88.901 s, System: 1.672 s]
 
 About to execute
 ================
-SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.evXq1mxkI0
+SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.evXq1mxkI0
 
 With query
 ==========
@@ -1436,8 +1436,8 @@ SELECT count()
 FROM '/mnt/gha.parquet'
 WHERE grep('in case you have any feedback 😊')
 
-+ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.evXq1mxkI0'
-Benchmark 1: SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.evXq1mxkI0
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.evXq1mxkI0'
+Benchmark 1: SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.evXq1mxkI0
 {count:3(uint64)}
   Time (abs ≡):        55.081 s               [User: 408.337 s, System: 18.597 s]
 ```
@@ -1540,7 +1540,7 @@ Benchmark 1: duckdb < /mnt/tmpdir/tmp.rjFqrZFUtF
 
 About to execute
 ================
-super -z -I /mnt/tmpdir/tmp.AbeKpBbYW8
+super -s -I /mnt/tmpdir/tmp.AbeKpBbYW8
 
 With query
 ==========
@@ -1548,14 +1548,14 @@ SELECT count()
 FROM '/mnt/gha.bsup'
 WHERE actor.login='johnbieren'
 
-+ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'super -z -I /mnt/tmpdir/tmp.AbeKpBbYW8'
-Benchmark 1: super -z -I /mnt/tmpdir/tmp.AbeKpBbYW8
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'super -s -I /mnt/tmpdir/tmp.AbeKpBbYW8'
+Benchmark 1: super -s -I /mnt/tmpdir/tmp.AbeKpBbYW8
 {count:879(uint64)}
   Time (abs ≡):         5.786 s               [User: 17.405 s, System: 1.637 s]
 
 About to execute
 ================
-SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.5xTnB02WgG
+SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.5xTnB02WgG
 
 With query
 ==========
@@ -1563,8 +1563,8 @@ SELECT count()
 FROM '/mnt/gha.parquet'
 WHERE actor.login='johnbieren'
 
-+ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.5xTnB02WgG'
-Benchmark 1: SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.5xTnB02WgG
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.5xTnB02WgG'
+Benchmark 1: SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.5xTnB02WgG
 {count:879(uint64)}
   Time (abs ≡):         0.303 s               [User: 0.792 s, System: 0.240 s]
 ```
@@ -1708,7 +1708,7 @@ Benchmark 1: duckdb < /mnt/tmpdir/tmp.cC0xpHh2ee
 
 About to execute
 ================
-super -z -I /mnt/tmpdir/tmp.QMhaBvUi2y
+super -s -I /mnt/tmpdir/tmp.QMhaBvUi2y
 
 With query
 ==========
@@ -1717,8 +1717,8 @@ FROM '/mnt/gha.bsup'
 WHERE repo.name='duckdb/duckdb'
 GROUP BY type
 
-+ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'super -z -I /mnt/tmpdir/tmp.QMhaBvUi2y'
-Benchmark 1: super -z -I /mnt/tmpdir/tmp.QMhaBvUi2y
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'super -s -I /mnt/tmpdir/tmp.QMhaBvUi2y'
+Benchmark 1: super -s -I /mnt/tmpdir/tmp.QMhaBvUi2y
 {type:"PullRequestReviewCommentEvent",count:7(uint64)}
 {type:"PullRequestReviewEvent",count:14(uint64)}
 {type:"IssueCommentEvent",count:30(uint64)}
@@ -1731,7 +1731,7 @@ Benchmark 1: super -z -I /mnt/tmpdir/tmp.QMhaBvUi2y
 
 About to execute
 ================
-SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.yfAdMeskPR
+SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.yfAdMeskPR
 
 With query
 ==========
@@ -1740,8 +1740,8 @@ FROM '/mnt/gha.parquet'
 WHERE repo.name='duckdb/duckdb'
 GROUP BY type
 
-+ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.yfAdMeskPR'
-Benchmark 1: SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.yfAdMeskPR
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.yfAdMeskPR'
+Benchmark 1: SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.yfAdMeskPR
 {type:"PushEvent",count:15(uint64)}
 {type:"IssuesEvent",count:9(uint64)}
 {type:"WatchEvent",count:29(uint64)}
@@ -1894,7 +1894,7 @@ Benchmark 1: duckdb < /mnt/tmpdir/tmp.VQYM2LCNeB
 
 About to execute
 ================
-super -z -I /mnt/tmpdir/tmp.JzRx6IABuv
+super -s -I /mnt/tmpdir/tmp.JzRx6IABuv
 
 With query
 ==========
@@ -1905,8 +1905,8 @@ FROM '/mnt/gha.bsup'
 | ORDER BY count DESC
 | LIMIT 5
 
-+ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'super -z -I /mnt/tmpdir/tmp.JzRx6IABuv'
-Benchmark 1: super -z -I /mnt/tmpdir/tmp.JzRx6IABuv
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'super -s -I /mnt/tmpdir/tmp.JzRx6IABuv'
+Benchmark 1: super -s -I /mnt/tmpdir/tmp.JzRx6IABuv
 {assignee:"poad",count:1966(uint64)}
 {assignee:"vinayakkulkarni",count:508(uint64)}
 {assignee:"tmtmtmtm",count:356(uint64)}
@@ -1916,7 +1916,7 @@ Benchmark 1: super -z -I /mnt/tmpdir/tmp.JzRx6IABuv
 
 About to execute
 ================
-SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.djiUKncZ0T
+SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.djiUKncZ0T
 
 With query
 ==========
@@ -1927,8 +1927,8 @@ FROM '/mnt/gha.parquet'
 | ORDER BY count DESC
 | LIMIT 5
 
-+ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.djiUKncZ0T'
-Benchmark 1: SUPER_VAM=1 super -z -I /mnt/tmpdir/tmp.djiUKncZ0T
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.djiUKncZ0T'
+Benchmark 1: SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.djiUKncZ0T
 {assignee:"poad",count:1966(uint64)}
 {assignee:"vinayakkulkarni",count:508(uint64)}
 {assignee:"tmtmtmtm",count:356(uint64)}

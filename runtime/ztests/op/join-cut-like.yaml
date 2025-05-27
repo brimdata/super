@@ -1,5 +1,5 @@
 script: |
-  super -z -I test.zed
+  super -s -I test.zed
 
 vector: true
 

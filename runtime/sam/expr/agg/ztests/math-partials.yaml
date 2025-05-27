@@ -2,10 +2,10 @@
 # with a single-row limit.  We also make sure the partials consumer can handle
 # an empty input by inncluding a record for key "a" with no value field.
 script: |
-  super -z -c "avg(n) by key with -limit 1" in.sup > avg.sup
-  super -z -c "count() by key with -limit 1" in.sup > count.sup
-  super -z -c "min(n) by key with -limit 1" in.sup > min.sup
-  super -z -c "max(n) by key with -limit 1" in.sup > max.sup
+  super -s -c "avg(n) by key with -limit 1" in.sup > avg.sup
+  super -s -c "count() by key with -limit 1" in.sup > count.sup
+  super -s -c "min(n) by key with -limit 1" in.sup > min.sup
+  super -s -c "max(n) by key with -limit 1" in.sup > max.sup
 
 inputs:
   - name: in.sup

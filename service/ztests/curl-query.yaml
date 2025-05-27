@@ -9,11 +9,11 @@ script: |
   done
   echo === application/vnd.apache.arrow.stream ===
   curl -H 'Accept: application/vnd.apache.arrow.stream' -d '{"query":"from test"}' $SUPER_DB_LAKE/query |
-    super -z -i arrows -
+    super -s -i arrows -
   for format in parquet csup; do
     echo === application/x-$format ===
     curl -H "Accept: application/x-$format" -d '{"query":"from test"}' -o out.$format $SUPER_DB_LAKE/query
-    super -z out.$format
+    super -s out.$format
   done
 
 inputs:

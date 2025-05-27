@@ -2,7 +2,7 @@ script: |
   for type1 in $(cat types.txt); do
     for type2 in $(cat types.txt); do
       echo -n "$type1 $type2: "
-      echo "{num1: 5($type1), num2: 4($type2)}" | super -z -c "yield num1 - num2" -
+      echo "{num1: 5($type1), num2: 4($type2)}" | super -s -c "yield num1 - num2" -
     done
   done
 

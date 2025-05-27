@@ -1,6 +1,6 @@
 # 13B is enough to buffer the first record in memory but not the second.
 script: |
-  super -z -fusemem 13B -c fuse in.sup
+  super -s -fusemem 13B -c fuse in.sup
 
 inputs:
   - name: in.sup

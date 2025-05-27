@@ -59,7 +59,7 @@ yield dcount(this)
 
 The estimated result may become less accurate with more unique input values:
 ```mdtest-command
-seq 10000 | super -z -c 'dcount(this)' -
+seq 10000 | super -s -c 'dcount(this)' -
 ```
 =>
 ```mdtest-output

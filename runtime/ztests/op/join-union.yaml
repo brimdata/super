@@ -1,5 +1,5 @@
 script: |
-  super -z -c 'inner join (file b.sup) on a=b | sort' a.sup
+  super -s -c 'inner join (file b.sup) on a=b | sort' a.sup
 
 vector: true
 

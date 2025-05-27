@@ -45,7 +45,7 @@ func (f *Flags) setFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&f.BSUP.Compress, "bsup.compress", true, "compress Super Binary frames")
 	fs.IntVar(&f.BSUP.FrameThresh, "bsup.framethresh", bsupio.DefaultFrameThresh,
 		"minimum Super Binary frame size in uncompressed bytes")
-	fs.BoolVar(&f.color, "color", true, "enable/disable color formatting for -Z and lake text output")
+	fs.BoolVar(&f.color, "color", true, "enable/disable color formatting for -S and lake text output")
 	fs.StringVar(&f.supPersist, "persist", "",
 		"regular expression to persist type definitions across the stream")
 	fs.IntVar(&f.pretty, "pretty", 4,
@@ -76,8 +76,8 @@ func (f *Flags) SetFormatFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&f.forceBinary, "B", false, "allow Super Binary to be sent to a terminal output")
 	fs.BoolVar(&f.jsonPretty, "J", false, "use formatted JSON output independent of -f option")
 	fs.BoolVar(&f.jsonShortcut, "j", false, "use line-oriented JSON output independent of -f option")
-	fs.BoolVar(&f.supPretty, "Z", false, "use formatted Super JSON output independent of -f option")
-	fs.BoolVar(&f.supShortcut, "z", false, "use line-oriented Super JSON output independent of -f option")
+	fs.BoolVar(&f.supPretty, "S", false, "use formatted Super JSON output independent of -f option")
+	fs.BoolVar(&f.supShortcut, "s", false, "use line-oriented Super JSON output independent of -f option")
 }
 
 func (f *Flags) Init() error {
@@ -91,7 +91,7 @@ func (f *Flags) Init() error {
 	}
 	if f.jsonShortcut || f.jsonPretty {
 		if f.Format != f.DefaultFormat || f.supShortcut || f.supPretty {
-			return errors.New("cannot use -j or -J with -f, -z, or -Z")
+			return errors.New("cannot use -j or -J with -f, -s, or -S")
 		}
 		f.Format = "json"
 		if !f.jsonPretty {
@@ -99,7 +99,7 @@ func (f *Flags) Init() error {
 		}
 	} else if f.supShortcut || f.supPretty {
 		if f.Format != f.DefaultFormat {
-			return errors.New("cannot use -z or -Z with -f")
+			return errors.New("cannot use -s or -S with -f")
 		}
 		f.Format = "sup"
 		if !f.supPretty {

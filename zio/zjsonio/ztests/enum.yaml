@@ -1,5 +1,5 @@
 script: |
-  super -f zjson in.sup | super -z -i zjson -
+  super -f zjson in.sup | super -s -i zjson -
 
 inputs:
   - name: in.sup

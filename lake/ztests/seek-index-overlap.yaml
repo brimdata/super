@@ -6,12 +6,12 @@ script: |
   super db use -q asc
   super -c "tail 900" babble.sup | super db load -q -
   super -c "head 250" babble.sup | super db load -q -
-  super db query -z -s "from asc | count:=count()"
+  super db query -s -stats "from asc | count:=count()"
   echo === | tee /dev/stderr
   super db use -q desc
   super -c "tail 900" babble.sup | super db load -q -
   super -c "head 250" babble.sup | super db load -q -
-  super db query -z -s "from desc | count:=count()"
+  super db query -s -stats "from desc | count:=count()"
 
 inputs:
   - name: babble.sup

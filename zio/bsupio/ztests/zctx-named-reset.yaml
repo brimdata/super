@@ -3,7 +3,7 @@
 script: |
   super -c "head 1" in.sup > t1.bsup
   super -c "tail 2" in.sup > t2.bsup
-  cat t1.bsup t2.bsup |super - | super -z -
+  cat t1.bsup t2.bsup |super - | super -s -
 
 inputs:
   - name: in.sup

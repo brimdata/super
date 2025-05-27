@@ -3,7 +3,7 @@
 script: |
   super in.sup > s.bsup
   super in.sup >> s.bsup
-  super -z s.bsup
+  super -s s.bsup
 
 inputs:
   - name: in.sup

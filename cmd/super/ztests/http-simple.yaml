@@ -1,6 +1,6 @@
 script: |
   . http.bash
-  super -z -c 'count()' $http_base_url/babble.sup
+  super -s -c 'count()' $http_base_url/babble.sup
 
 inputs:
   - name: http.bash

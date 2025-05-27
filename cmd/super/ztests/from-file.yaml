@@ -1,6 +1,6 @@
 script: |
-  super -z -c 'file a.sup'
-  super -z -I query.zed
+  super -s -c 'file a.sup'
+  super -s -I query.zed
 
 inputs:
   - name: a.sup

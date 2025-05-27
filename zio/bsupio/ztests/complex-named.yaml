@@ -1,6 +1,6 @@
 # Do a round-trip into serialized BSON to make sure named types are encoded properly.
 
-script: super - | super -z -
+script: super - | super -s -
 
 inputs:
   - name: stdin

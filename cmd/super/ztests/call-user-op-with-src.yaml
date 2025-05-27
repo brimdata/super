@@ -1,5 +1,5 @@
 script: |
-  super -z -I countfile.zed -c 'countfile()'
+  super -s -I countfile.zed -c 'countfile()'
 
 inputs:
   - name: countfile.zed

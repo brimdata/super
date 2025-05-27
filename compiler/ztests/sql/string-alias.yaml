@@ -1,5 +1,5 @@
 script: |
-  ! super -z -c "select 1 as 'x'"
+  ! super -s -c "select 1 as 'x'"
 
 outputs:
   - name: stderr

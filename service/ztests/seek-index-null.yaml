@@ -4,7 +4,7 @@ script: |
     echo // $o | tee /dev/stderr
     super db create -q -seekstride=2KB -orderby ts:$o $o
     super db load -q -use $o babble.sup null.sup
-    super db query -z -s "from $o | ts >= 2020-04-21T23:59:26.063Z and ts <= 2020-04-21T23:59:38.069Z"
+    super db query -s -stats "from $o | ts >= 2020-04-21T23:59:26.063Z and ts <= 2020-04-21T23:59:38.069Z"
   done
 
 inputs:

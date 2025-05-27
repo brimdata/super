@@ -1,4 +1,4 @@
-script: super -sortmem 1MiB -z -
+script: super -sortmem 1MiB -s -
 
 inputs:
   - name: stdin

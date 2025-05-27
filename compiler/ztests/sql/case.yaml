@@ -1,5 +1,5 @@
 script: |
-  super -z -c 'Select * FROM "a.sup" | droP c'
+  super -s -c 'Select * FROM "a.sup" | droP c'
 
 inputs:
   - name: a.sup

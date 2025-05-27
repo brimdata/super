@@ -1,9 +1,9 @@
 script: |
-  super -z -c 'select * from "a.sup" | drop c'
+  super -s -c 'select * from "a.sup" | drop c'
   echo ===
-  super -z -c 'select * from "messy.sup" | drop s,t'
+  super -s -c 'select * from "messy.sup" | drop s,t'
   echo ===
-  super -z -c 'select * from "b.sup" | drop b'
+  super -s -c 'select * from "b.sup" | drop b'
 
 inputs:
   - name: a.sup

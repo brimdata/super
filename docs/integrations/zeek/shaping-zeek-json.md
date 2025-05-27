@@ -292,7 +292,7 @@ For example, if we assume this input file `weird.json`
 applying the reference shaper via
 
 ```mdtest-command
-super -Z -I shaper.zed weird.json
+super -S -I shaper.zed weird.json
 ```
 
 produces
@@ -335,7 +335,7 @@ For example, to see a SUP representation of just the errors that may have
 come from attempting to shape all the logs in the current directory:
 
 ```
-super -Z -I shaper.zed -c '| has_error(this)' *.log
+super -S -I shaper.zed -c '| has_error(this)' *.log
 ```
 
 ## Importing Shaped Data Into Zui

@@ -66,7 +66,7 @@ super db -lake example query '
   | load bigflips
 ' > /dev/null
 
-super db -lake example query -z 'from bigflips'
+super db -lake example query -s 'from bigflips'
 ```
 =>
 ```mdtest-output
@@ -85,7 +85,7 @@ super db -lake example query '
       meta "\"Additional metadata\""
 ' > /dev/null
 
-super db -lake example query -z 'from coinflips@onlytails'
+super db -lake example query -s 'from coinflips@onlytails'
 ```
 =>
 ```mdtest-output

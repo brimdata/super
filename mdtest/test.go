@@ -33,7 +33,7 @@ func (t *Test) Run() error {
 	}
 	var c *exec.Cmd
 	if t.SPQ != "" {
-		c = exec.Command("super", "-z", "-c", t.SPQ, "-")
+		c = exec.Command("super", "-s", "-c", t.SPQ, "-")
 		c.Stdin = strings.NewReader(t.Input)
 	} else {
 		c = exec.Command("bash", "-e", "-o", "pipefail")

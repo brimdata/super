@@ -5,10 +5,10 @@ script: |
   super db load -q 1.sup
   id=$(super db query -f text "from test@main:objects | cut id:=ksuid(id) | tail 1")
   super db load -q 2.sup
-  super db query -z "from test"
+  super db query -s "from test"
   echo === | tee /dev/stderr
   super db delete -q $id
-  super db query -z "from test"
+  super db query -s "from test"
   echo === | tee /dev/stderr
   ! super db delete -q 27aaaaaaaaaaaaaaaaaaaaaaaaa
 

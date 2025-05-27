@@ -8,7 +8,7 @@ script: |
   echo ===
   super db info | egrep -v 'id'
   echo ===
-  super db get -z 's=="harefoot-raucous"'
+  super db get -s 's=="harefoot-raucous"'
 
 inputs:
   - name: babble.sup

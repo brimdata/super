@@ -1,5 +1,5 @@
 script: |
-  super -z -c "by typeof(this) | sort this" in.sup
+  super -s -c "by typeof(this) | sort this" in.sup
 
 inputs:
   - name: in.sup

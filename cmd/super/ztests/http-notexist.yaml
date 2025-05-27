@@ -1,6 +1,6 @@
 script: |
   . http.bash
-  ! super -z $http_base_url/does/not/exist
+  ! super -s $http_base_url/does/not/exist
 
 inputs:
   - name: http.bash

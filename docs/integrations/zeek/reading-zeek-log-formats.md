@@ -34,7 +34,7 @@ output as [Super (SUP)](../../formats/sup.md).
 #### Example
 
 ```mdtest-command
-super -Z -c 'head 1' conn.log
+super -S -c 'head 1' conn.log
 ```
 
 #### Output
@@ -99,7 +99,7 @@ log, but now as generated using the JSON Streaming Logs package.
 #### Example
 
 ```mdtest-command
-super -Z -c 'head 1' conn.json
+super -S -c 'head 1' conn.json
 ```
 
 #### Output

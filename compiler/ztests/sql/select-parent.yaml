@@ -1,7 +1,7 @@
 script: |
-  super -z -c 'const pi=3.14 select 1,sqrt(2)/pi,2+3 as five' 
+  super -s -c 'const pi=3.14 select 1,sqrt(2)/pi,2+3 as five' 
   echo ===
-  echo "null null" | super -z -c 'select 1,2,2+3 as five' -
+  echo "null null" | super -s -c 'select 1,2,2+3 as five' -
 
 outputs:
   - name: stdout

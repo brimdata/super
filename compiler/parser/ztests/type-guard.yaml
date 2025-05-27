@@ -1,5 +1,5 @@
 script: |
-  super -I bug.zed -z -
+  super -I bug.zed -s -
 
 inputs:
   - name: stdin

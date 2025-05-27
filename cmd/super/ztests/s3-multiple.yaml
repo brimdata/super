@@ -1,7 +1,7 @@
 script: |
   source minio.sh
   mv *.sup data/bucket
-  super -z -c "sort ts" s3://bucket/log1.sup s3://bucket/log2.sup
+  super -s -c "sort ts" s3://bucket/log1.sup s3://bucket/log2.sup
 
 inputs:
   - name: minio.sh

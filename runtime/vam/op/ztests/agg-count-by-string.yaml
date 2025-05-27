@@ -8,11 +8,11 @@ script: |
     seq -f '{x: "0", y: "2", z: "%.0f"}' 257
   } | super -o t.csup -f csup -
   export SUPER_VAM=1
-  super -z -c 'from t.csup | count() by x'
-  super -z -c 'from t.csup | count() by y | sort y'
-  super -z -c 'from t.csup | count(distinct x) by y | sort y'
-  super -z -c 'from t.csup | count() by z | z == "257"'
-  super -z -c 'from t.csup | count() where y=="1" by z | z == "257"'
+  super -s -c 'from t.csup | count() by x'
+  super -s -c 'from t.csup | count() by y | sort y'
+  super -s -c 'from t.csup | count(distinct x) by y | sort y'
+  super -s -c 'from t.csup | count() by z | z == "257"'
+  super -s -c 'from t.csup | count() where y=="1" by z | z == "257"'
 
 outputs:
   - name: stdout

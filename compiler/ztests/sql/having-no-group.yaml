@@ -1,5 +1,5 @@
 script: |
-  super -z -c "select sum(b) from t.json having sum(a) >= 3"
+  super -s -c "select sum(b) from t.json having sum(a) >= 3"
 
 inputs:
   - name: t.json

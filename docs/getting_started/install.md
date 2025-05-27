@@ -66,7 +66,7 @@ command-line tool and requires no external dependencies.
 
 To test `super`, simply run this command in your shell:
 ```mdtest-command
-echo '"hello, world"' | super -z -
+echo '"hello, world"' | super -s -
 ```
 which should produce
 ```mdtest-output

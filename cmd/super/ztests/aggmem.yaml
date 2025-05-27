@@ -1,5 +1,5 @@
 script: |
-  super -aggmem 1B -z -c 'collect(this)' a.sup
+  super -aggmem 1B -s -c 'collect(this)' a.sup
   ! super -aggmem 0 a.sup
 
 inputs:

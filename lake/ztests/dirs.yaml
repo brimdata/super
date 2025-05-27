@@ -3,7 +3,7 @@ script: |
   super db init -q
   super db create -q logs
   super db load -q -use logs babble.sup
-  super db query "from logs@main:objects" | super -z -c "{min,max}" -
+  super db query "from logs@main:objects" | super -s -c "{min,max}" -
   super db drop -q -f logs
   ! super db query "from logs@main:objects"
 

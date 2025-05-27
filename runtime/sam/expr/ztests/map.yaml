@@ -1,8 +1,8 @@
 script: |
-  echo '{a:["foo","bar","baz"]}' | super -z -c 'a := map(a,upper)' -
-  echo '{a:|["foo","bar","baz"]|}' | super -z -c 'a := map(a,upper)' -
-  echo '["1","2","3"]' | super -z -c 'yield map(this,int64)' -
-  echo '[1,2,3]' |super - | super -z -I udf.zed -
+  echo '{a:["foo","bar","baz"]}' | super -s -c 'a := map(a,upper)' -
+  echo '{a:|["foo","bar","baz"]|}' | super -s -c 'a := map(a,upper)' -
+  echo '["1","2","3"]' | super -s -c 'yield map(this,int64)' -
+  echo '[1,2,3]' |super - | super -s -I udf.zed -
 
 inputs:
   - name: udf.zed

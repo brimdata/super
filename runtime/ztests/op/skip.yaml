@@ -1,6 +1,6 @@
 script: |
-  seq 10 | super -z -c 'skip 1 | head 1' -
-  seq 1000 | super -z -c 'skip 900 | head 1' -
+  seq 10 | super -s -c 'skip 1 | head 1' -
+  seq 1000 | super -s -c 'skip 900 | head 1' -
   ! super -c 'skip "hello"'
 
 vector: true

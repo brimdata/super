@@ -1,5 +1,5 @@
 script: |
-  super -z -c 'from (file in.sup file in.sup ) | fork (=> count() => count())'
+  super -s -c 'from (file in.sup file in.sup ) | fork (=> count() => count())'
 
 inputs:
   - name: in.sup

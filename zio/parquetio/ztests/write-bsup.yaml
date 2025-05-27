@@ -3,7 +3,7 @@
 # properly handled.
 
 script: |
-  super conn.parquet | super - | super -z -
+  super conn.parquet | super - | super -s -
 
 inputs:
   - name: conn.parquet

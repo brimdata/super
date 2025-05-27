@@ -745,22 +745,22 @@ sources vary based on level.
 For example, a list of pools with configuration data can be obtained
 in the SUP format as follows:
 ```
-super db query -Z "from :pools"
+super db query -S "from :pools"
 ```
 This meta-query produces a list of branches in a pool called `logs`:
 ```
-super db query -Z "from logs:branches"
+super db query -S "from logs:branches"
 ```
 You can filter the results just like any query,
 e.g., to look for particular branch:
 ```
-super db query -Z "from logs:branches | branch.name=='main'"
+super db query -S "from logs:branches | branch.name=='main'"
 ```
 
 This meta-query produces a list of the data objects in the `live` branch
 of pool `logs`:
 ```
-super db query -Z "from logs@live:objects"
+super db query -S "from logs@live:objects"
 ```
 
 You can also pretty-print in human-readable form most of the metadata records

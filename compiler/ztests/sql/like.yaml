@@ -1,11 +1,11 @@
 script: |
-  super -z -c "select a from s.json where a||b like '%os%'"
+  super -s -c "select a from s.json where a||b like '%os%'"
   echo ===
-  super -z -c "select a from s.json where a||b not like '%os%'"
+  super -s -c "select a from s.json where a||b not like '%os%'"
   echo ===
-  super -z -c "from s.json | yield a LIKE 'f%'"
+  super -s -c "from s.json | yield a LIKE 'f%'"
   echo ===
-  super -z -c "from s.json | yield a NOT LIKE 'f%'"
+  super -s -c "from s.json | yield a NOT LIKE 'f%'"
 
 inputs:
   - name: s.json

@@ -1,5 +1,5 @@
 script: |
-  super -z -c 'from which.sup | select value s from eval(["a"+string(val)+".sup","a"+string(val+1)+".sup"])'
+  super -s -c 'from which.sup | select value s from eval(["a"+string(val)+".sup","a"+string(val+1)+".sup"])'
 
 inputs:
   - name: which.sup

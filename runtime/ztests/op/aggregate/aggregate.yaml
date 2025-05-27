@@ -1,24 +1,24 @@
 script: |
   echo === forward-sorted ===
-  super -z -c "count() by ts | sort this" in.sup
+  super -s -c "count() by ts | sort this" in.sup
   echo === forward-sorted-with-null ===
-  super -z -c "count() by ts | sort this" in-with-null.sup
+  super -s -c "count() by ts | sort this" in-with-null.sup
   echo === forward-sorted-every ===
-  super -z -c "count() by every(1s) | sort this" in.sup
+  super -s -c "count() by every(1s) | sort this" in.sup
   echo === forward-sorted-every-null ===
-  super -z -c "count() by every(1s) | sort this" in-with-null.sup
+  super -s -c "count() by every(1s) | sort this" in-with-null.sup
   echo === forward-sorted-record-key ===
-  super -z -c "count() by foo | sort this" in-record-key.sup
+  super -s -c "count() by foo | sort this" in-record-key.sup
   echo === forward-sorted-nested-key ===
-  super -z -c "count() by foo.a | sort this" in-record-key.sup
+  super -s -c "count() by foo.a | sort this" in-record-key.sup
   echo === forward-sorted-record-key-null ===
-  super -z -c "count() by foo | sort this" in-record-key-null.sup
+  super -s -c "count() by foo | sort this" in-record-key-null.sup
   echo === forward-sorted-nested-key-null ===
-  super -z -c "count() by foo | sort this" in-record-key-null.sup
+  super -s -c "count() by foo | sort this" in-record-key-null.sup
   echo === reverse-sorted ===
-  super -z -c "count() by ts | sort this" in-rev.sup
+  super -s -c "count() by ts | sort this" in-rev.sup
   echo === reverse-sorted-null ===
-  super -z -c "count() by every(1s) | sort this" in-rev.sup
+  super -s -c "count() by every(1s) | sort this" in-rev.sup
 
 vector: true
 

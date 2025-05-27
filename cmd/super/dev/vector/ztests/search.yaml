@@ -4,9 +4,9 @@ script: |
   super db create -q -use test
   seq -f '{ts:%g,y:3.14,z:"foo"}' 50000 | super db load -q -
   super db manage -log.path=/dev/null -q -vectors
-  super dev vector search -z "ts == 50000"
+  super dev vector search -s "ts == 50000"
   echo "// ==="
-  super dev vector search -z "ts == 20000 or ts == 40000"
+  super dev vector search -s "ts == 20000 or ts == 40000"
 
 outputs:
   - name: stdout

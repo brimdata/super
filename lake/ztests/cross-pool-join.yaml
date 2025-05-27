@@ -5,7 +5,7 @@ script: |
   super db create -q person
   super db load -q -use fruit fruit.sup
   super db load -q -use person person.sup
-  super db query -z -I join.zed
+  super db query -s -I join.zed
 
 inputs:
   - name: fruit.sup

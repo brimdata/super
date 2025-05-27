@@ -7,10 +7,10 @@ script: |
   super compile -C -O 'file test.csup | where grep(/csla[bB].*/, x)'
   echo // ===
   echo '{x:"a"}' | super -f csup -o x.csup -
-  super -z -c "SELECT x FROM x.csup WHERE x LIKE 'a%'"
+  super -s -c "SELECT x FROM x.csup WHERE x LIKE 'a%'"
   echo // ===
   echo '{x:"a"}' | super -f parquet -o x.parquet -
-  super -z -c "SELECT x FROM x.parquet WHERE x LIKE 'a%'"
+  super -s -c "SELECT x FROM x.parquet WHERE x LIKE 'a%'"
 
 outputs:
   - name: stdout

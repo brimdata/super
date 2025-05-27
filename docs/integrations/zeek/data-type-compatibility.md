@@ -89,7 +89,7 @@ T	123	456	123.4560	1592502151.123456	123.456	smile😁smile	\x09\x07\x04	80	127.
 #### Reading the TSV log, outputting as SUP, and saving a copy:
 
 ```mdtest-command
-super -Z zeek_types.log | tee zeek_types.sup
+super -S zeek_types.log | tee zeek_types.sup
 ```
 
 #### Output:

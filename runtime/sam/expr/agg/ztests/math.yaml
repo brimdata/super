@@ -1,12 +1,12 @@
 script: |
-  super -z -c "avg(n)" in.sup > avg.sup
-  super -z -c "count()" in.sup > count.sup
-  super -z -c "dcount(n)" in.sup in.sup > dcount.sup
+  super -s -c "avg(n)" in.sup > avg.sup
+  super -s -c "count()" in.sup > count.sup
+  super -s -c "dcount(n)" in.sup in.sup > dcount.sup
   # "with -limit 1" exercises the partials paths.
-  super -z -c "dcount(n) with -limit 1" in.sup in.sup > dcount-partials.sup
-  super -z -c "any(n)" in.sup > any.sup
-  super -z -c "min(n)" in.sup > min.sup
-  super -z -c "max(n)" in.sup > max.sup
+  super -s -c "dcount(n) with -limit 1" in.sup in.sup > dcount-partials.sup
+  super -s -c "any(n)" in.sup > any.sup
+  super -s -c "min(n)" in.sup > min.sup
+  super -s -c "max(n)" in.sup > max.sup
 
 inputs:
   - name: in.sup

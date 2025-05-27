@@ -2,8 +2,8 @@
 # with a single-row limit.  We also make sure the partials consumer can handle
 # an empty input by including a record for key "a" with no value field.
 script: |
-  super -z -c "union(x) by key with -limit 1" in.sup > union.sup
-  super -z -c "collect(x) by key with -limit 1" in.sup > collect.sup
+  super -s -c "union(x) by key with -limit 1" in.sup > union.sup
+  super -s -c "collect(x) by key with -limit 1" in.sup > collect.sup
 
 inputs:
   - name: in.sup

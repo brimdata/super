@@ -1,12 +1,12 @@
 script: |
-  super -z -I file.zed > file.sup
+  super -s -I file.zed > file.sup
   export SUPER_DB_LAKE=test
   super db init -q 
   super db create -q -use -orderby likes:desc people 
   super db load -q people.sup
   super db create -q -use -orderby flavor:desc fruits
   super db load -q fruits.sup
-  super db query -z -I pool.zed > pool.sup
+  super db query -s -I pool.zed > pool.sup
 
 inputs:
   - name: people.sup

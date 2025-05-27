@@ -1,6 +1,6 @@
 script: |
-  super -z -c "union(x)" in.sup > union.sup
-  super -z -c "collect(x)" in.sup > collect.sup
+  super -s -c "union(x)" in.sup > union.sup
+  super -s -c "collect(x)" in.sup > collect.sup
 
 inputs:
   - name: in.sup

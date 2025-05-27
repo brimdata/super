@@ -1,4 +1,4 @@
-script: super - | super -z -|super - | super -z -
+script: super - | super -s -|super - | super -s -
 
 inputs:
   - name: stdin

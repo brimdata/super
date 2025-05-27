@@ -1,5 +1,5 @@
 script: |
-  super -z -c 'SELECT * FROM a.sup UNION ALL SELECT * FROM b.sup |> sort'
+  super -s -c 'SELECT * FROM a.sup UNION ALL SELECT * FROM b.sup |> sort'
 
 vector: true
 

@@ -3,7 +3,7 @@
 # cached vectors.
 script: |
   super -f csup -o test.csup -
-  super dev vector copy -z test.csup
+  super dev vector copy -s test.csup
 
 inputs:
   - name: stdin

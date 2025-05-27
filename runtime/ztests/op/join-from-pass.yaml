@@ -1,4 +1,4 @@
-script: super -z -I join.zed left.sup
+script: super -s -I join.zed left.sup
 
 vector: true
 

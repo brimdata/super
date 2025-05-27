@@ -1,22 +1,22 @@
 script: |
-  echo '{a:"hi",b:"hello"}' | super -z -c 'cut this[a][b] := "world"' -
+  echo '{a:"hi",b:"hello"}' | super -s -c 'cut this[a][b] := "world"' -
   echo "// ==="
-  echo '{a:{b:"hello"}}' | super -z -c 'cut this[a.b]:="world"' -
+  echo '{a:{b:"hello"}}' | super -s -c 'cut this[a.b]:="world"' -
   echo "// ==="
-  echo '{a:"hello"}' | super -z -c 'cut this[this["a"]] := "world"' -
+  echo '{a:"hello"}' | super -s -c 'cut this[this["a"]] := "world"' -
   echo "// ==="
-  echo '{a:{},b:"hello"}' | super -z -c 'cut a[b] := "world"' -
+  echo '{a:{},b:"hello"}' | super -s -c 'cut a[b] := "world"' -
   echo "// ==="
-  echo '{a:"foo"}' | super -z -c 'cut this[a]["bar"] := "baz"' -
+  echo '{a:"foo"}' | super -s -c 'cut this[a]["bar"] := "baz"' -
   echo "// ==="
-  echo '{key:"foo",v1:1,v2:2} {key:"bar",v1:2,v2:3}' | super -z -c 'cut this[key] := [v1,v2]' -
+  echo '{key:"foo",v1:1,v2:2} {key:"bar",v1:2,v2:3}' | super -s -c 'cut this[key] := [v1,v2]' -
   echo "// ==="
   # runtime error cases
-  echo '{a:"hello",b:"hello"}' | super -z -c 'cut this[a] := "world1", this[b] := "world2"' -
+  echo '{a:"hello",b:"hello"}' | super -s -c 'cut this[a] := "world1", this[b] := "world2"' -
   echo "// ==="
-  echo '{a:"foo",b:"bar"}' | super -z -c 'cut this[a][b] := "world", this[a] := "world"' -
+  echo '{a:"foo",b:"bar"}' | super -s -c 'cut this[a][b] := "world", this[a] := "world"' -
   echo "// ==="
-  echo {} | super -z -c 'cut this[doesnotexist] := "world"' - 
+  echo {} | super -s -c 'cut this[doesnotexist] := "world"' - 
   # semantic error cases
   ! super compile -dag 'op foo(): ( yield "error" ) cut this[foo] := "hello world"'
 

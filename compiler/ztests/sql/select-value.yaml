@@ -1,13 +1,13 @@
 script: |
-  super -z -c 'select value {c,a} from "a.sup"'
+  super -s -c 'select value {c,a} from "a.sup"'
   echo ===
-  super -z -c 'select value {x,s} from "messy.sup"'
+  super -s -c 'select value {x,s} from "messy.sup"'
   echo ===
-  super -z -c 'select value {b,c} from "b.sup"'
+  super -s -c 'select value {b,c} from "b.sup"'
   echo ===
-  super -z -c 'select value {c,a} from a.sup order by c desc'
+  super -s -c 'select value {c,a} from a.sup order by c desc'
   echo ===
-  super -z -c 'select value {b,c} from b.sup order by b desc limit 1'
+  super -s -c 'select value {b,c} from b.sup order by b desc limit 1'
 
 
 inputs:

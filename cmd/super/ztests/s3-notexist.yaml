@@ -1,6 +1,6 @@
 script: |
   source minio.sh
-  ! super -z s3://bucket/does/not/exist
+  ! super -s s3://bucket/does/not/exist
 
 inputs:
   - name: minio.sh

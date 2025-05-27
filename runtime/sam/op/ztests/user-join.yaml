@@ -5,7 +5,7 @@ script: |
   super db create -q -orderby likes:asc people
   super db load -q -use fruit fruit.sup
   super db load -q -use people people.sup
-  super db query -z -I test.spq
+  super db query -s -I test.spq
 
 inputs:
   - name: test.spq

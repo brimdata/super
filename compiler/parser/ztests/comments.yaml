@@ -1,5 +1,5 @@
 script: |
-  super -z -I count.zed in.sup
+  super -s -I count.zed in.sup
 
 inputs:
   - name: count.zed

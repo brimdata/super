@@ -1,5 +1,5 @@
 script: |
-  super -f arrows - | super -z -
+  super -f arrows - | super -s -
 
 inputs:
   - name: stdin

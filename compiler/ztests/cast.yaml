@@ -1,7 +1,7 @@
 script: |
-  super -z -c 'type port = uint16 yield <port>(80)'
-  super -z -c '<(uint16,string)>("foo")'
-  super -z -c '<{x:uint16}>({x:1})'
+  super -s -c 'type port = uint16 yield <port>(80)'
+  super -s -c '<(uint16,string)>("foo")'
+  super -s -c '<{x:uint16}>({x:1})'
 
 outputs:
   - name: stdout

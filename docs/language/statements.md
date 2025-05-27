@@ -202,7 +202,7 @@ so that when we prepare and query the pool via
 super db -q -lake test init
 super db -q -lake test create -use example
 echo '{greeting: "hello"}' | super db -q -lake test load -
-super db -lake test query -z -I count-pool.spq
+super db -lake test query -s -I count-pool.spq
 ```
 
 it produces the output

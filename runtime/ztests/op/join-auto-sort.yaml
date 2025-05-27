@@ -1,15 +1,15 @@
 script: |
-  super -z -c 'file a.sup | join (file b.sup) on a=b | sort'
+  super -s -c 'file a.sup | join (file b.sup) on a=b | sort'
   echo '// ==='
-  super -z -c 'file a.sup | join (file b.sup | sort -r b) on a=b | sort'
+  super -s -c 'file a.sup | join (file b.sup | sort -r b) on a=b | sort'
   echo '// ==='
-  super -z -c 'file a.sup | join (file b.sup | sort b) on a=b | sort'
+  super -s -c 'file a.sup | join (file b.sup | sort b) on a=b | sort'
   echo '// ==='
-  super -z -c 'file a.sup | sort a | join (file b.sup | sort -r b) on a=b | sort'
+  super -s -c 'file a.sup | sort a | join (file b.sup | sort -r b) on a=b | sort'
   echo '// ==='
-  super -z -c 'file a.sup | sort -r a | join (file b.sup) on a=b | sort'
+  super -s -c 'file a.sup | sort -r a | join (file b.sup) on a=b | sort'
   echo '// ==='
-  super -z -c 'file a.sup | sort -r a | join (file b.sup | sort b) on a=b | sort'
+  super -s -c 'file a.sup | sort -r a | join (file b.sup | sort b) on a=b | sort'
 
 vector: true
 

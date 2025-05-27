@@ -1,11 +1,11 @@
 script: |
-  super -z -c 'left join (file B.sup) on s b | sort' A.sup
+  super -s -c 'left join (file B.sup) on s b | sort' A.sup
   echo ===
-  super -z -c 'left join (file B.sup) on s=(lower(s)) b | sort' A.sup
+  super -s -c 'left join (file B.sup) on s=(lower(s)) b | sort' A.sup
   echo ===
-  super -z -c 'left join (file B.sup) on (lower(s))=(lower(s)) b | sort' A.sup
+  super -s -c 'left join (file B.sup) on (lower(s))=(lower(s)) b | sort' A.sup
   echo ===
-  super -z -c 'left join (file B.sup) on s | sort' A.sup
+  super -s -c 'left join (file B.sup) on s | sort' A.sup
 
 vector: true
 

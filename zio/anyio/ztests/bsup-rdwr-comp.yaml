@@ -1,9 +1,9 @@
 script: |
   super -bsup.compress=false -o uncomp.bsup in.sup
   super  -o comp.bsup in.sup
-  super -z uncomp.bsup
+  super -s uncomp.bsup
   echo ===
-  super -z comp.bsup
+  super -s comp.bsup
 
 inputs:
   - name: in.sup

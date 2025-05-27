@@ -6,7 +6,7 @@ script: |
   super db use test -q
   super db post babble.sup >/dev/null
   echo ===
-  super db get -z 's=="harefoot-raucous"'
+  super db get -s 's=="harefoot-raucous"'
 
 inputs:
   - name: babble.sup

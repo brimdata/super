@@ -1,9 +1,9 @@
 script: |
-  super -z -c 'from "1.sup" | distinct x'
+  super -s -c 'from "1.sup" | distinct x'
   echo ===
-  super -z -c 'from "2.sup" | distinct abs(this)'
+  super -s -c 'from "2.sup" | distinct abs(this)'
   echo ===
-  super -z -c 'from "3.sup" | over this => (distinct this | count())'
+  super -s -c 'from "3.sup" | over this => (distinct this | count())'
 
 vector: true
 

@@ -1,8 +1,8 @@
 script: |
-  ! super -z -c "cut rec,other,rec" in.sup
-  ! super -z -c "cut rec.sub1,rec.sub1" in.sup
-  ! super -z -c "cut rec.sub,rec.sub.sub" in.sup
-  ! super -z -c "cut rec.sub.sub,rec.sub" in.sup
+  ! super -s -c "cut rec,other,rec" in.sup
+  ! super -s -c "cut rec.sub1,rec.sub1" in.sup
+  ! super -s -c "cut rec.sub,rec.sub.sub" in.sup
+  ! super -s -c "cut rec.sub.sub,rec.sub" in.sup
 
 vector: true
 

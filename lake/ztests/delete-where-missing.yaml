@@ -4,9 +4,9 @@ script: |
   super db create -use -q test
   super db load -q in.sup
   ! super db delete -q -where 'uid==C3UeSqaSOFRReHD68'
-  super db query -z 'from test | count:=count()'
+  super db query -s 'from test | count:=count()'
   super db delete -q -where 'uid=="C3UeSqaSOFRReHD68"'
-  super db query -z 'from test | count:=count()'
+  super db query -s 'from test | count:=count()'
 
 inputs:
   - name: in.sup

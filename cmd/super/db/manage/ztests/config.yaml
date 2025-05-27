@@ -6,7 +6,7 @@ script: |
   super db create -q test3
   super db branch -use test2 -q live
   super db manage -config=inherit.yaml -log.path=inherit.log
-  super -Z -c 'msg == "updating pool" | cut name, branch | sort name' inherit.log > inherit.sup
+  super -S -c 'msg == "updating pool" | cut name, branch | sort name' inherit.log > inherit.sup
 
 inputs:
   - name: inherit.yaml

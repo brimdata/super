@@ -1,7 +1,7 @@
 script: |
   source minio.sh
   mv dns.parquet data/bucket
-  super -z -c "count()" s3://bucket/dns.parquet
+  super -s -c "count()" s3://bucket/dns.parquet
 
 inputs:
   - name: minio.sh

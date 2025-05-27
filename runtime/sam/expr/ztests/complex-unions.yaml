@@ -1,7 +1,7 @@
 script: |
-  echo null | super -z -c 'yield |{1:"foo","bar":"baz"}|' -
-  echo null | super -z -c 'yield |[null,127.0.0.1]|' -
-  echo null | super -z -c 'yield ["foo",1.1,10.98]' -
+  echo null | super -s -c 'yield |{1:"foo","bar":"baz"}|' -
+  echo null | super -s -c 'yield |[null,127.0.0.1]|' -
+  echo null | super -s -c 'yield ["foo",1.1,10.98]' -
 
 outputs:
   - name: stdout

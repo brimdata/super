@@ -1,5 +1,5 @@
 script: |
- super - | super -z -I test.zed
+ super - | super -s -I test.zed
 
 inputs:
   - name: test.zed

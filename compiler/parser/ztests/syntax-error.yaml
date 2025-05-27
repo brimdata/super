@@ -1,5 +1,5 @@
 script: |
-  ! super -z -c 'count() by ,x,y' -
+  ! super -s -c 'count() by ,x,y' -
 
 inputs:
   - name: stdin

@@ -1,6 +1,6 @@
 script: |
   super -f parquet -o f.parquet -
-  super -Z f.parquet
+  super -S f.parquet
 
 inputs:
   - name: stdin

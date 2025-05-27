@@ -124,7 +124,7 @@ A productive few weeks for McCanne!
 We can use the `min` and `max` aggregations to see the time range of our data set:
 
 ```bash
-$ zed query -Z 'min(created_at), max(created_at)'
+$ zed query -S 'min(created_at), max(created_at)'
 ```
 =>
 ```
@@ -149,7 +149,7 @@ Running our `min(created_at), max(created_at)` query, we'll see that we now have
 almost two years of pull requests:
 
 ```bash
-$ zed query -Z 'min(created_at), max(created_at)'
+$ zed query -S 'min(created_at), max(created_at)'
 ```
 =>
 ```
@@ -301,7 +301,7 @@ run the full set of `zed` commands against this service:
 
 ```
 $ export ZED_LAKE=http://localhost:9867
-$ zed query -Z 'min(created_at), max(created_at)'
+$ zed query -S 'min(created_at), max(created_at)'
 ```
 =>
 ```

@@ -3,7 +3,7 @@ script: |
   super db init -q
   super db create -orderby a POOL
   super db load -q -use POOL in.sup
-  super db query -z "from POOL@main:rawlog"
+  super db query -s "from POOL@main:rawlog"
   super db log -use POOL
 
 inputs:

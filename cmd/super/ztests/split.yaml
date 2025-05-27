@@ -1,5 +1,5 @@
 script: |
-  super -z -split dir -
+  super -s -split dir -
 
 inputs:
   - name: stdin

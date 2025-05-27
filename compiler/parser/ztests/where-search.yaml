@@ -1,7 +1,7 @@
 script: |
-  super -z -c 'count() where grep("foo")' in.sup
+  super -s -c 'count() where grep("foo")' in.sup
   echo ===
-  super -z -c "?foo | count()" in.sup
+  super -s -c "?foo | count()" in.sup
 
 inputs:
   - name: in.sup

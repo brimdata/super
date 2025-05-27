@@ -1,6 +1,6 @@
 script: |
   super -f csup -o bluesky.csup -
-  super -z -c "
+  super -s -c "
     from 'bluesky.csup'
     | where kind=='commit' and commit.operation=='create'
     | count()

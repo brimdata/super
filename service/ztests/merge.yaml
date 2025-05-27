@@ -4,10 +4,10 @@ script: |
   super db load -q -use POOL a.sup
   super db branch -q -use POOL child
   super db load -q -use POOL@child b.sup
-  super db query -z "from POOL | sort this"
+  super db query -s "from POOL | sort this"
   echo ===
   super db merge -q -use POOL@child main
-  super db query -z "from POOL | sort this"
+  super db query -s "from POOL | sort this"
 
 inputs:
   - name: a.sup

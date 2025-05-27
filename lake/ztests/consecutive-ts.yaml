@@ -3,7 +3,7 @@ script: |
   super db init -q
   super db create -q -seekstride 11B -orderby ts:desc logs
   super db load -use logs -q in.sup
-  super -z test/*/data/*-seek.bsup
+  super -s test/*/data/*-seek.bsup
 
 inputs:
   - name: in.sup

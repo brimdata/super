@@ -1,7 +1,7 @@
 # Tests that collect correctly handles partial array values that are wrapped
 # in a view.
 script: |
-  super -z -c 'from "test.sup" | collect(a) by b | sort b'
+  super -s -c 'from "test.sup" | collect(a) by b | sort b'
 
 vector: true
 

@@ -1,12 +1,12 @@
 script: |
-  super -z -c 'select "x y" from (select 1 as "x y")'
-  super -z -c 'select "x y" as a from (select 1 as "x y")'
-  super -z -c 'select "x y" as "b c" from (select 1 as "x y")'
-  super -z -c "select 'x y'"' from (select 1 as "x y")'
-  super -z -c 'select `x y` from (select 1 as "x y")'
-  super -z -c 'select "x y" from (yield {"x y":1})'
-  super -z -c 'select "x"."y z" from (yield {x:{"y z":1}})'
-  echo '{x:{y:1}}' | super -z -c 'yield `x`.`y`' -
+  super -s -c 'select "x y" from (select 1 as "x y")'
+  super -s -c 'select "x y" as a from (select 1 as "x y")'
+  super -s -c 'select "x y" as "b c" from (select 1 as "x y")'
+  super -s -c "select 'x y'"' from (select 1 as "x y")'
+  super -s -c 'select `x y` from (select 1 as "x y")'
+  super -s -c 'select "x y" from (yield {"x y":1})'
+  super -s -c 'select "x"."y z" from (yield {x:{"y z":1}})'
+  echo '{x:{y:1}}' | super -s -c 'yield `x`.`y`' -
 
 outputs:
   - name: stdout

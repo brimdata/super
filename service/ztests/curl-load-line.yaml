@@ -5,7 +5,7 @@ script: |
     -H 'Content-Type: application/x-line' \
     --data-binary @f $SUPER_DB_LAKE/pool/test/branch/main |
     sed -E 's/0x[0-9a-f]{40}/xxx/'
-  super db query -z 'from test'
+  super db query -s 'from test'
 
 inputs:
   - name: f

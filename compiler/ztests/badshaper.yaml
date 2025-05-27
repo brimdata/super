@@ -1,5 +1,5 @@
 script: |
-  ! super -z -I badshaper.zed -
+  ! super -s -I badshaper.zed -
 
 inputs:
   - name: stdin

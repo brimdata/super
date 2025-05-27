@@ -1,14 +1,14 @@
 script: |
   super -f csup -o test.csup -
-  super dev vector project -z test.csup x y z
+  super dev vector project -s test.csup x y z
   echo ===
-  super dev vector project -z test.csup s
+  super dev vector project -s test.csup s
   echo ===
-  super dev vector project -z test.csup x s
+  super dev vector project -s test.csup x s
   echo ===
-  super dev vector project -z test.csup s x
+  super dev vector project -s test.csup s x
   echo ===
-  super dev vector project -z test.csup y w.y
+  super dev vector project -s test.csup y w.y
 inputs:
   - name: stdin
     data: |

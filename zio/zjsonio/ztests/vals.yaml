@@ -1,5 +1,5 @@
 script: |
-  super -f zjson - | super -z -i zjson -
+  super -f zjson - | super -s -i zjson -
 
 inputs:
   - name: stdin

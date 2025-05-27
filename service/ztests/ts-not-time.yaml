@@ -2,7 +2,7 @@ script: |
   source service.sh
   super db create -q test
   super db load -q -use test -
-  super db query -z 'from test'
+  super db query -s 'from test'
 
 inputs:
   - name: service.sh

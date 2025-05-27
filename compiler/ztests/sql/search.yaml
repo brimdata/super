@@ -1,9 +1,9 @@
 script: |
-  super -z -c 'select * from "a.sup" | search 13'
+  super -s -c 'select * from "a.sup" | search 13'
   echo ===
-  super -z -c 'select * from "messy.sup" | search bar or s==4'
+  super -s -c 'select * from "messy.sup" | search bar or s==4'
   echo ===
-  super -z -c 'select * from "b.sup" | search len(b) >= 3'
+  super -s -c 'select * from "b.sup" | search len(b) >= 3'
 
 inputs:
   - name: a.sup

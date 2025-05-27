@@ -1,9 +1,9 @@
 skip: true
 
 script: |
-  super -z -c 'from files.sup | from [f]'
+  super -s -c 'from files.sup | from [f]'
   echo ===
-  super -z -c 'from files.sup | select value this from [f]'
+  super -s -c 'from files.sup | select value this from [f]'
 
 inputs:
   - name: files.sup

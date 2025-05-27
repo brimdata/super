@@ -47,7 +47,7 @@ function run_query {
     if [ "$source" == "gha.parquet" ] || [ "$source" == "gha.csup" ]; then
       cmd="SUPER_VAM=1 super"
     fi
-    cmd="$cmd -z -I $final_query"
+    cmd="$cmd -s -I $final_query"
   elif [ "$cmd" == "duckdb" ]; then
     if [ "$source" == "gha" ]; then
       cmd="duckdb ${storage}gha.db"

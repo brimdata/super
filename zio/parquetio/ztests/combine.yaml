@@ -2,7 +2,7 @@
 # schemas, ensuring that they properly share a Super type context.
 
 script: |
-  super conn.parquet dns.parquet | super - | super -z -
+  super conn.parquet dns.parquet | super - | super -s -
 
 inputs:
   - name: conn.parquet

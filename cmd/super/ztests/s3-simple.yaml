@@ -1,7 +1,7 @@
 script: |
   source minio.sh
   mv babble.sup ./data/bucket
-  super -z -c "count()" s3://bucket/babble.sup
+  super -s -c "count()" s3://bucket/babble.sup
 
 inputs:
   - name: babble.sup

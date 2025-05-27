@@ -3,7 +3,7 @@ script: |
   super db create -use -q test
   echo '{}' | super db load -q -
   curl -o /dev/null -H 'Accept: application/x-parquet' -d '{"query":"from test"}' $SUPER_DB_LAKE/query 
-  super -Z -c 'cut level, msg, error' service.log
+  super -S -c 'cut level, msg, error' service.log
 
 inputs:
   - name: service.sh

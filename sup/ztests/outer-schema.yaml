@@ -1,5 +1,5 @@
 script: |
-  super -z in.sup
+  super -s in.sup
 
 inputs:
   - name: in.sup

@@ -1,7 +1,7 @@
 script: |
-  super -z -c "select a x from t.json"
+  super -s -c "select a x from t.json"
   echo ===
-  super -z -c "select a x, a as y, b z from t.json"
+  super -s -c "select a x, a as y, b z from t.json"
   echo ===
   super compile -C -O 'select n+1, n+2, n+1, n+3, n+1'
   echo ===

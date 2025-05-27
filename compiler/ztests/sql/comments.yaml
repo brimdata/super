@@ -1,5 +1,5 @@
 script: |
-  echo null | super -z -I yield.spq -
+  echo null | super -s -I yield.spq -
 
 inputs:
   - name: yield.spq

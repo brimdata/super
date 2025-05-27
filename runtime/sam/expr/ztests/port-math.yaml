@@ -1,9 +1,9 @@
 script: |
-  super -z -c "put x:=p1+1" in.sup
+  super -s -c "put x:=p1+1" in.sup
   echo ===
-  super -z -c "put x:=p1>p2" in.sup
+  super -s -c "put x:=p1>p2" in.sup
   echo ===
-  super -z -c "put x:=a+p1+p2" in.sup
+  super -s -c "put x:=a+p1+p2" in.sup
 
 inputs:
   - name: in.sup

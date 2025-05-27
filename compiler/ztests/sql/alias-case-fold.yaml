@@ -1,5 +1,5 @@
 script: |
-  super -z -c 'SELECT t.c FROM "a.sup" T'
+  super -s -c 'SELECT t.c FROM "a.sup" T'
 
 inputs:
   - name: a.sup

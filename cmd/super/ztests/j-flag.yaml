@@ -1,8 +1,8 @@
 script: |
   super -j in.sup
   ! super -j -f sup in.sup
-  ! super -j -z in.sup
-  ! super -j -Z in.sup
+  ! super -j -s in.sup
+  ! super -j -S in.sup
 
 inputs:
   - name: in.sup
@@ -15,6 +15,6 @@ outputs:
       {"a":1}
   - name: stderr
     data: |
-      cannot use -j or -J with -f, -z, or -Z
-      cannot use -j or -J with -f, -z, or -Z
-      cannot use -j or -J with -f, -z, or -Z
+      cannot use -j or -J with -f, -s, or -S
+      cannot use -j or -J with -f, -s, or -S
+      cannot use -j or -J with -f, -s, or -S
