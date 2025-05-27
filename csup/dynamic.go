@@ -1,9 +1,12 @@
 package csup
 
 import (
+	"bytes"
 	"io"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/zio/bsupio"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -13,12 +16,18 @@ type DynamicEncoder struct {
 	values []Encoder
 	which  map[super.Type]uint32
 	len    uint32
+
+	bsupBuf    *bytes.Buffer
+	bsupWriter *bsupio.Writer
 }
 
 func NewDynamicEncoder() *DynamicEncoder {
+	var buf bytes.Buffer
 	return &DynamicEncoder{
-		cctx:  NewContext(),
-		which: make(map[super.Type]uint32),
+		cctx:       NewContext(),
+		which:      make(map[super.Type]uint32),
+		bsupBuf:    &buf,
+		bsupWriter: bsupio.NewWriter(zio.NopCloser(&buf)),
 	}
 }
 
@@ -31,7 +40,7 @@ func (d *DynamicEncoder) Write(val super.Value) {
 	tag, ok := d.which[typ]
 	if !ok {
 		tag = uint32(len(d.values))
-		d.values = append(d.values, NewEncoder(typ))
+		d.values = append(d.values, newBSUPEncoder(typ, d.bsupWriter))
 		d.which[typ] = tag
 	}
 	d.tags.Write(tag)
@@ -39,7 +48,7 @@ func (d *DynamicEncoder) Write(val super.Value) {
 	d.values[tag].Write(val.Bytes())
 }
 
-func (d *DynamicEncoder) Encode() (ID, uint64, error) {
+func (d *DynamicEncoder) Encode() (ID, uint64, uint64, error) {
 	var group errgroup.Group
 	if len(d.values) > 1 {
 		d.tags.Encode(&group)
@@ -47,12 +56,18 @@ func (d *DynamicEncoder) Encode() (ID, uint64, error) {
 	for _, val := range d.values {
 		val.Encode(&group)
 	}
+	group.Go(d.bsupWriter.Close)
 	if err := group.Wait(); err != nil {
-		return 0, 0, err
+		return 0, 0, 0, err
 	}
+	if bytes.Equal(d.bsupBuf.Bytes(), []byte{bsupio.EOS}) {
+		// No values so reset to empty.
+		d.bsupBuf.Reset()
+	}
+	bsupSize := uint64(d.bsupBuf.Len())
 	if len(d.values) == 1 {
 		off, id := d.values[0].Metadata(d.cctx, 0)
-		return id, off, nil
+		return id, off, bsupSize, nil
 	}
 	values := make([]ID, 0, len(d.values))
 	off, tags := d.tags.Segment(0)
@@ -65,7 +80,7 @@ func (d *DynamicEncoder) Encode() (ID, uint64, error) {
 		Tags:   tags,
 		Values: values,
 		Length: d.len,
-	}), off, nil
+	}), off, bsupSize, nil
 }
 
 func (d *DynamicEncoder) Emit(w io.Writer) error {
@@ -79,5 +94,6 @@ func (d *DynamicEncoder) Emit(w io.Writer) error {
 			return err
 		}
 	}
-	return nil
+	_, err := w.Write(d.bsupBuf.Bytes())
+	return err
 }

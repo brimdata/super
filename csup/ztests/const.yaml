@@ -1,16 +1,9 @@
 script: |
-  super -f csup -o out.csup -
+  jot -b 1 257 | super -f csup -o out.csup -
   super dev csup -s out.csup
-
-inputs:
-  - name: stdin
-    data: |
-      1
-      1
-      1
 
 outputs:
   - name: stdout
     data: |
-      {Version:12(uint32),MetaSize:35(uint64),DataSize:0(uint64),Root:0(uint32)}
-      {Value:1,Count:3(uint32)}(=Const)
+      {Version:13(uint32),MetaSize:36(uint64),DataSize:0(uint64),BSUPSize:0(uint64),Root:0(uint32)}
+      {Value:1,Count:257(uint32)}(=Const)

@@ -55,11 +55,7 @@ func NewObjectFromHeader(r io.ReaderAt, hdr Header) (*Object, error) {
 	if hdr.Root >= uint32(len(cctx.values)) {
 		return nil, fmt.Errorf("CSUP root ID %d larger than values table (len %d)", hdr.Root, len(cctx.values))
 	}
-	return &Object{
-		cctx:     cctx,
-		readerAt: io.NewSectionReader(r, int64(HeaderSize+hdr.MetaSize), int64(hdr.DataSize)),
-		header:   hdr,
-	}, nil
+	return &Object{cctx, r, hdr}, nil
 }
 
 func (o *Object) Close() error {
@@ -78,7 +74,13 @@ func (o *Object) Root() ID {
 }
 
 func (o *Object) DataReader() io.ReaderAt {
-	return o.readerAt
+	h := o.header
+	return io.NewSectionReader(o.readerAt, int64(HeaderSize+h.MetaSize), int64(h.DataSize))
+}
+
+func (o *Object) BSUPReader() io.Reader {
+	h := o.header
+	return io.NewSectionReader(o.readerAt, int64(HeaderSize+h.MetaSize+h.DataSize), int64(h.BSUPSize))
 }
 
 func (o *Object) Size() uint64 {
@@ -86,6 +88,10 @@ func (o *Object) Size() uint64 {
 }
 
 func (o *Object) ProjectMetadata(sctx *super.Context, projection field.Projection) []super.Value {
+	if o.header.BSUPSize > 0 {
+		// XXX Don't have metadata for BSUP-encoded values.
+		return nil
+	}
 	var b zcode.Builder
 	var values []super.Value
 	root := o.cctx.Lookup(o.Root())

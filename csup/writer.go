@@ -46,7 +46,7 @@ func (w *Writer) Write(val super.Value) error {
 }
 
 func (w *Writer) finalizeObject() error {
-	root, dataSize, err := w.dynamic.Encode()
+	root, dataSize, bsupSize, err := w.dynamic.Encode()
 	if err != nil {
 		return fmt.Errorf("system error: could not encode CSUP metadata: %w", err)
 	}
@@ -70,7 +70,8 @@ func (w *Writer) finalizeObject() error {
 	zw.EndStream()
 	metaSize := zw.Position()
 	// Header
-	if _, err := w.writer.Write(Header{Version, uint64(metaSize), dataSize, uint32(root)}.Serialize()); err != nil {
+	h := Header{Version, uint64(metaSize), dataSize, bsupSize, uint32(root)}
+	if _, err := w.writer.Write(h.Serialize()); err != nil {
 		return fmt.Errorf("system error: could not write CSUP header: %w", err)
 	}
 	// Metadata section

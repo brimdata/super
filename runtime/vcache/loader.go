@@ -21,9 +21,11 @@ import (
 // in shadowed vector.Any primitives that are shared).  We otherwise allocate all
 // vector.Any super.Types using the passed-in sctx.
 type loader struct {
-	cctx *csup.Context
-	sctx *super.Context
-	r    io.ReaderAt
+	cctx          *csup.Context
+	sctx          *super.Context
+	r             io.ReaderAt
+	bsupReader    io.Reader
+	nextBSUPValue func() (*super.Value, error, bool)
 }
 
 // Load all vector data into the in-memory shadow that is needed and not yet loaded

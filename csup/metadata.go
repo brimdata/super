@@ -237,6 +237,14 @@ func (d *Dynamic) Len(*Context) uint32 {
 	return d.Length
 }
 
+type BSUP struct {
+	Count uint32
+}
+
+func (*BSUP) Len(*Context) uint32 {
+	panic("BSUP.Len should not be called")
+}
+
 func metadataValue(cctx *Context, sctx *super.Context, b *zcode.Builder, id ID, projection field.Projection) super.Type {
 	m := cctx.Lookup(id)
 	switch m := under(cctx, m).(type) {
@@ -319,4 +327,5 @@ var Template = []any{
 	Const{},
 	Dict{},
 	Dynamic{},
+	BSUP{},
 }

@@ -1,14 +1,7 @@
 script: |
-  super -f csup -o out.csup -
+  jot -b '{a:"hello",b:1} {a:"world",b:2}' 257 |
+    super -f csup -o out.csup -
   super dev csup out.csup | super -s -c "nameof(this)=='Dict' | count()" -
-
-inputs:
-  - name: stdin
-    data: |
-      {a:"hello",b:1}
-      {a:"world",b:2}
-      {a:"hello",b:1}
-      {a:"world",b:2}
 
 outputs:
   - name: stdout

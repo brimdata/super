@@ -104,7 +104,7 @@ func (r *reader) Read() (*super.Value, error) {
 				return nil, err
 			}
 			r.meta = bsupio.NewReader(r.sctx, io.LimitReader(r.reader, int64(hdr.MetaSize)))
-			r.dataSize = int(hdr.DataSize)
+			r.dataSize = int(hdr.DataSize) + int(hdr.BSUPSize)
 			val, err := r.marshaler.Marshal(hdr)
 			return val.Ptr(), err
 		}

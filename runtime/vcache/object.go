@@ -2,6 +2,7 @@ package vcache
 
 import (
 	"context"
+	"iter"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/csup"
@@ -58,9 +59,11 @@ func (o *Object) Close() error {
 // Fetch calls to the same object may run concurrently.
 func (o *Object) Fetch(sctx *super.Context, projection field.Projection) (vector.Any, error) {
 	cctx := o.object.Context()
-	loader := &loader{cctx, sctx, o.object.DataReader()}
 	o.root = newShadow(cctx, o.object.Root(), nil)
 	o.root.unmarshal(cctx, projection)
+	next, stop := iter.Pull2(readBSUPAndProjectAndTranslateType(sctx, o.object.BSUPReader(), projection))
+	defer stop()
+	loader := &loader{cctx: cctx, sctx: sctx, r: o.object.DataReader(), nextBSUPValue: next}
 	return loader.load(projection, o.root)
 }
 
@@ -71,9 +74,9 @@ func (o *Object) FetchUnordered(vecs []vector.Any, sctx *super.Context, projecti
 	cctx := o.object.Context()
 	o.root = newShadow(cctx, o.object.Root(), nil)
 	o.root.unmarshal(cctx, projection)
-	loader := &loader{cctx: cctx, sctx: sctx, r: o.object.DataReader()}
+	loader := &loader{cctx: cctx, sctx: sctx, r: o.object.DataReader(), bsupReader: o.object.BSUPReader()}
 	if d, ok := o.root.(*dynamic); ok {
-		return d.projectUnordered(vecs, loader, projection), nil
+		return d.projectUnordered(vecs, loader, projection)
 	}
 	vec, err := loader.load(projection, o.root)
 	if err != nil {

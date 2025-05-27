@@ -88,6 +88,8 @@ func newShadow(cctx *csup.Context, id csup.ID, nulls *nulls) shadow {
 		return newPrimitive(cctx, meta, nulls)
 	case *csup.Const:
 		return newConst(cctx, meta, nulls)
+	case *csup.BSUP:
+		return newBSUP(cctx, meta, nulls)
 	default:
 		panic(fmt.Sprintf("vector cache: type %T not supported", meta))
 	}
