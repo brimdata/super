@@ -515,7 +515,7 @@ func (a *analyzer) semRegexp(b *ast.BinaryExpr) dag.Expr {
 }
 
 func (a *analyzer) semBinary(e *ast.BinaryExpr) dag.Expr {
-	if path := a.semDotted(e); path != nil {
+	if path, bad := a.semDotted(e); path != nil {
 		if a.scope.schema != nil {
 			out, err := a.scope.resolve(path)
 			if err != nil {
@@ -525,6 +525,8 @@ func (a *analyzer) semBinary(e *ast.BinaryExpr) dag.Expr {
 			return out
 		}
 		return &dag.This{Kind: "This", Path: path}
+	} else if bad != nil {
+		return bad
 	}
 	if e := a.semRegexp(e); e != nil {
 		return e
@@ -611,29 +613,32 @@ func (a *analyzer) semExprNullable(e ast.Expr) dag.Expr {
 	return a.semExpr(e)
 }
 
-func (a *analyzer) semDotted(e *ast.BinaryExpr) []string {
+func (a *analyzer) semDotted(e *ast.BinaryExpr) ([]string, dag.Expr) {
 	if e.Op != "." {
-		return nil
+		return nil, nil
 	}
 	rhs, ok := e.RHS.(*ast.ID)
 	if !ok {
-		return nil
+		return nil, nil
 	}
 	switch lhs := e.LHS.(type) {
 	case *ast.ID:
-		id := a.semID(lhs)
-		if this, ok := id.(*dag.This); ok {
-			return append(slices.Clone(this.Path), rhs.Name)
+		switch e := a.semID(lhs).(type) {
+		case *dag.This:
+			return append(slices.Clone(e.Path), rhs.Name), nil
+		case *dag.BadExpr:
+			return nil, e
+		default:
+			return nil, nil
 		}
-		return nil
 	case *ast.BinaryExpr:
-		this := a.semDotted(lhs)
+		this, bad := a.semDotted(lhs)
 		if this == nil {
-			return nil
+			return nil, bad
 		}
-		return append(this, rhs.Name)
+		return append(this, rhs.Name), nil
 	}
-	return nil
+	return nil, nil
 }
 
 func (a *analyzer) semCall(call *ast.Call) dag.Expr {
