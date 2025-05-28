@@ -42,14 +42,3 @@ func (c *const_) project(loader *loader, projection field.Projection) vector.Any
 func (c *const_) load(loader *loader) bitvec.Bits {
 	return c.nulls.get(loader)
 }
-
-type constLoader struct {
-	loader *loader
-	shadow *const_
-}
-
-var _ vector.NullsLoader = (*constLoader)(nil)
-
-func (c *constLoader) Load() bitvec.Bits {
-	return c.shadow.load(c.loader)
-}

@@ -86,17 +86,6 @@ func (r *record) load(loader *loader) bitvec.Bits {
 	return r.nulls.get(loader)
 }
 
-type recordLoader struct {
-	loader *loader
-	shadow *record
-}
-
-var _ vector.NullsLoader = (*recordLoader)(nil)
-
-func (r *recordLoader) Load() bitvec.Bits {
-	return r.shadow.load(r.loader)
-}
-
 func indexOfField(name string, r *csup.Record) int {
 	return slices.IndexFunc(r.Fields, func(f csup.Field) bool {
 		return f.Name == name

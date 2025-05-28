@@ -55,14 +55,3 @@ func (a *array) load(loader *loader) ([]uint32, bitvec.Bits) {
 	}
 	return a.offs, nulls
 }
-
-type arrayLoader struct {
-	loader *loader
-	shadow *array
-}
-
-var _ vector.Uint32Loader = (*arrayLoader)(nil)
-
-func (a *arrayLoader) Load() ([]uint32, bitvec.Bits) {
-	return a.shadow.load(a.loader)
-}

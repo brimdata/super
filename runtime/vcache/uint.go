@@ -53,14 +53,3 @@ func (u *uint_) load(loader *loader) ([]uint64, bitvec.Bits) {
 	u.vals = vals
 	return u.vals, nulls
 }
-
-type uintLoader struct {
-	loader *loader
-	shadow *uint_
-}
-
-var _ vector.UintLoader = (*uintLoader)(nil)
-
-func (u *uintLoader) Load() ([]uint64, bitvec.Bits) {
-	return u.shadow.load(u.loader)
-}

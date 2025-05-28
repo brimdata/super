@@ -199,17 +199,6 @@ func (p *primitive) newVector(loader *loader) vector.Any {
 	panic(fmt.Errorf("internal error: vcache.loadPrimitive got unknown type %#v", p.meta.Typ))
 }
 
-type primitiveLoader struct {
-	loader *loader
-	shadow *int_
-}
-
-var _ vector.PrimitiveLoader = (*primitiveLoader)(nil)
-
-func (i *primitiveLoader) Load() (any, bitvec.Bits) {
-	return i.shadow.load(i.loader)
-}
-
 func empty(typ super.Type, length uint32) any {
 	switch typ := typ.(type) {
 	case *super.TypeOfUint8, *super.TypeOfUint16, *super.TypeOfUint32, *super.TypeOfUint64:

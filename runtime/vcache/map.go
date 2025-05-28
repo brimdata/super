@@ -59,14 +59,3 @@ func (m *map_) load(loader *loader) ([]uint32, bitvec.Bits) {
 	}
 	return m.offs, nulls
 }
-
-type mapLoader struct {
-	loader *loader
-	shadow *map_
-}
-
-var _ vector.Uint32Loader = (*mapLoader)(nil)
-
-func (m *mapLoader) Load() ([]uint32, bitvec.Bits) {
-	return m.shadow.load(m.loader)
-}

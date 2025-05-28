@@ -58,14 +58,3 @@ func (d *dynamic) load(r io.ReaderAt) ([]uint32, bitvec.Bits) {
 	d.tags = tags
 	return tags, bitvec.Zero
 }
-
-type dynamicLoader struct {
-	loader *loader
-	shadow *dynamic
-}
-
-func (d *dynamicLoader) Load() ([]uint32, bitvec.Bits) {
-	return d.shadow.load(d.loader.r)
-}
-
-var _ vector.Uint32Loader = (*dynamicLoader)(nil)

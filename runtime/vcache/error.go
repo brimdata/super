@@ -44,14 +44,3 @@ func (e *error_) project(loader *loader, projection field.Projection) vector.Any
 func (e *error_) load(loader *loader) bitvec.Bits {
 	return e.nulls.get(loader)
 }
-
-type errorLoader struct {
-	loader *loader
-	shadow *error_
-}
-
-var _ vector.NullsLoader = (*errorLoader)(nil)
-
-func (e *errorLoader) Load() bitvec.Bits {
-	return e.shadow.load(e.loader)
-}

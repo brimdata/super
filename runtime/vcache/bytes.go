@@ -64,14 +64,3 @@ func (b *bytes) load(loader *loader) (vector.BytesTable, bitvec.Bits) {
 	b.table = &table
 	return table, nulls
 }
-
-type bytesLoader struct {
-	loader *loader
-	shadow *bytes
-}
-
-var _ vector.BytesLoader = (*bytesLoader)(nil)
-
-func (b *bytesLoader) Load() (vector.BytesTable, bitvec.Bits) {
-	return b.shadow.load(b.loader)
-}

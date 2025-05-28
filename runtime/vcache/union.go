@@ -84,14 +84,3 @@ func (u *union) project(loader *loader, projection field.Projection) vector.Any 
 	}
 	return vector.NewUnion(utyp, tags, vecs, nulls)
 }
-
-type unionLoader struct {
-	loader *loader
-	shadow *union
-}
-
-var _ vector.Uint32Loader = (*unionLoader)(nil)
-
-func (u *unionLoader) Load() ([]uint32, bitvec.Bits) {
-	return u.shadow.load(u.loader)
-}

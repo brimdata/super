@@ -55,14 +55,3 @@ func (s *set) load(loader *loader) ([]uint32, bitvec.Bits) {
 	}
 	return s.offs, nulls
 }
-
-type setLoader struct {
-	loader *loader
-	shadow *set
-}
-
-var _ vector.Uint32Loader = (*setLoader)(nil)
-
-func (s *setLoader) Load() ([]uint32, bitvec.Bits) {
-	return s.shadow.load(s.loader)
-}

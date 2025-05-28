@@ -51,14 +51,3 @@ func (i *float) load(loader *loader) ([]float64, bitvec.Bits) {
 	i.vals = extendForNulls(vals, nulls, i.count)
 	return i.vals, nulls
 }
-
-type floatLoader struct {
-	loader *loader
-	shadow *float
-}
-
-var _ vector.FloatLoader = (*floatLoader)(nil)
-
-func (i *floatLoader) Load() ([]float64, bitvec.Bits) {
-	return i.shadow.load(i.loader)
-}

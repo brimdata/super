@@ -60,14 +60,3 @@ func (d *dict) load(loader *loader) ([]byte, []uint32, bitvec.Bits) {
 	d.counts = v
 	return d.index, d.counts, nulls
 }
-
-type dictLoader struct {
-	loader *loader
-	shadow *dict
-}
-
-var _ vector.DictLoader = (*dictLoader)(nil)
-
-func (d *dictLoader) Load() ([]byte, []uint32, bitvec.Bits) {
-	return d.shadow.load(d.loader)
-}
