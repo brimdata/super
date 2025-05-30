@@ -16,16 +16,22 @@ type Scope struct {
 	parent  *Scope
 	nvar    int
 	symbols map[string]*entry
+	ctes    map[string]*cte
 	schema  schema
 }
 
 func NewScope(parent *Scope) *Scope {
-	return &Scope{parent: parent, symbols: make(map[string]*entry)}
+	return &Scope{parent: parent, symbols: make(map[string]*entry), ctes: make(map[string]*cte)}
 }
 
 type entry struct {
 	ref   any
 	order int
+}
+
+type cte struct {
+	body   dag.Seq
+	schema schema
 }
 
 func (s *Scope) DefineVar(name *ast.ID) error {

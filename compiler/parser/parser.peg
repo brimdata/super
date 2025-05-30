@@ -2065,11 +2065,11 @@ OptSelectValue
   / ""                  { return false, nil }
 
 OptWithClause 
-  = WithClause 
+  = WithClause
   / ""          { return nil, nil }
 
 WithClause 
-  = _ WITH r:OptRecursive _ ctes:CteList {
+  = WITH r:OptRecursive _ ctes:CteList __ {
         return &ast.With{
             Kind: "With",
             Recursive: r.(bool), 
@@ -2089,9 +2089,9 @@ CteList = first:Cte rest:( __ "," __ cte:Cte { return cte, nil} )* {
 Cte
   = name:SQLIdentifier _ AS m:OptMaterialized __ "(" __ s:SQLPipe __ ")" {
         return ast.CTE{
-            Name: name.(*ast.ID).Name,
-            Materialized: m.(*bool),
-            Op: s.(ast.Op),
+            Name: name.(*ast.ID),
+            Materialized: m.(bool),
+            Body: s.(*ast.SQLPipe),
             Loc: loc(c),
         }, nil
     }

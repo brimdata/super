@@ -8,6 +8,7 @@ package dag
 // license that can be found in the LICENSE file.
 
 import (
+	"encoding/json"
 	"slices"
 
 	"github.com/brimdata/super/order"
@@ -403,4 +404,27 @@ func FanIn(seq Seq) int {
 
 func (t *This) String() string {
 	return field.Path(t.Path).String()
+}
+
+func CopySeq(seq Seq) Seq {
+	var copies Seq
+	for _, o := range seq {
+		copies = append(copies, CopyOp(o))
+	}
+	return copies
+}
+
+func CopyOp(o Op) Op {
+	if o == nil {
+		panic("CopyOp nil")
+	}
+	b, err := json.Marshal(o)
+	if err != nil {
+		panic(err)
+	}
+	copy, err := UnmarshalOp(b)
+	if err != nil {
+		panic(err)
+	}
+	return copy
 }

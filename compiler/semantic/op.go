@@ -91,6 +91,13 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.TableAlias, a
 		if bad := a.hasFromParent(entity, seq); bad != nil {
 			return bad, badSchema()
 		}
+		if c, ok := a.scope.ctes[strings.ToLower(entity.Text)]; ok {
+			seq, schema, err := derefSchemaWithAlias(c.schema, alias, dag.CopySeq(c.body))
+			if err != nil {
+				a.error(alias, err)
+			}
+			return seq, schema
+		}
 		op, def := a.semFromName(entity, entity.Text, args)
 		return dag.Seq{op}, a.fromSchema(alias, def)
 	case *ast.ExprEntity:
@@ -559,7 +566,7 @@ func (a *analyzer) semDebugOp(o *ast.Debug, mainAst ast.Seq, in dag.Seq) dag.Seq
 // with either an aggregate or filter op based on the function's name.
 func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 	switch o := o.(type) {
-	case *ast.Select, *ast.SQLLimitOffset, *ast.OrderBy, *ast.SQLPipe, *ast.Values:
+	case *ast.Select, *ast.SQLLimitOffset, *ast.OrderBy, *ast.SQLPipe, *ast.With, *ast.Values:
 		seq, sch := a.semSQLOp(o, seq)
 		seq, _ = derefSchema(sch, seq)
 		return seq

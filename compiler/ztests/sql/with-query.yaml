@@ -1,0 +1,61 @@
+script: |
+  super -s -I sales.spq
+  echo // ===
+  super -s -c 'with x as ( select 1 as y ) select z.y from x as z'
+  ! super -c 'with x as ( select 1 as y ), x as ( select 2 as y ) select * from x'
+
+
+inputs:
+  - name: sales.spq
+    data: |
+      WITH regional_sales AS (
+          SELECT region, SUM(amount) AS total_sales
+          FROM orders.sup
+          GROUP BY region
+      ), top_regions AS (
+          SELECT region
+          FROM regional_sales
+          ORDER BY total_sales DESC
+          LIMIT 2
+      )
+      SELECT o.order_id,
+          o.amount,
+          o.quantity,
+          top_regions.region
+      FROM orders.sup o
+      INNER JOIN top_regions ON o.region = top_regions.region
+  - name: orders.sup
+    data: |
+      {order_id:1001,amount:245.5,quantity:3,region:"North America"}
+      {order_id:1002,amount:89.99,quantity:1,region:"Europe"}
+      {order_id:1003,amount:567.25,quantity:8,region:"Asia Pacific"}
+      {order_id:1004,amount:134.75,quantity:2,region:"North America"}
+      {order_id:1005,amount:899.,quantity:12,region:"Europe"}
+      {order_id:1006,amount:45.3,quantity:1,region:"South America"}
+      {order_id:1007,amount:378.9,quantity:5,region:"Asia Pacific"}
+      {order_id:1008,amount:156.8,quantity:2,region:"Africa"}
+      {order_id:1009,amount:723.45,quantity:9,region:"North America"}
+      {order_id:1010,amount:92.15,quantity:1,region:"Europe"}
+      {order_id:1011,amount:445.6,quantity:6,region:"Asia Pacific"}
+      {order_id:1012,amount:298.35,quantity:4,region:"South America"}
+      {order_id:1013,amount:67.2,quantity:1,region:"Africa"}
+      {order_id:1014,amount:512.8,quantity:7,region:"Europe"}
+      {order_id:1015,amount:189.95,quantity:3,region:"North America"}
+
+outputs:
+  - name: stdout
+    data: |
+      {order_id:1003,amount:567.25,quantity:8,region:"Asia Pacific"}
+      {order_id:1007,amount:378.9,quantity:5,region:"Asia Pacific"}
+      {order_id:1011,amount:445.6,quantity:6,region:"Asia Pacific"}
+      {order_id:1002,amount:89.99,quantity:1,region:"Europe"}
+      {order_id:1005,amount:899.,quantity:12,region:"Europe"}
+      {order_id:1010,amount:92.15,quantity:1,region:"Europe"}
+      {order_id:1014,amount:512.8,quantity:7,region:"Europe"}
+      // ===
+      {y:1}
+  - name: stderr
+    data: |
+      duplicate WITH clause name at line 1, column 30:
+      with x as ( select 1 as y ), x as ( select 2 as y ) select * from x
+                                   ~

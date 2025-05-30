@@ -49,9 +49,9 @@ type With struct {
 }
 
 type CTE struct {
-	Name         string `json:"name"`
-	Materialized *bool  `json:"materialized"`
-	Op           Op     `json:"op"`
+	Name         *ID      `json:"name"`
+	Materialized bool     `json:"materialized"`
+	Body         *SQLPipe `json:"body"`
 	Loc          `json:"loc"`
 }
 
