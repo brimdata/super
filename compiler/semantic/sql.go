@@ -3,6 +3,7 @@ package semantic
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"slices"
 
 	"github.com/brimdata/super"
@@ -500,6 +501,19 @@ func (a *analyzer) semSQLOp(op ast.Op, seq dag.Seq) (dag.Seq, schema) {
 			out = append(out, &dag.Head{Kind: "Head", Count: a.evalPositiveInteger(op.Limit)})
 		}
 		return out, schema
+	case *ast.With:
+		if op.Recursive {
+			a.error(op, errors.New("recursive WITH queries not currently supported"))
+		}
+		old := a.scope.ctes
+		a.scope.ctes = maps.Clone(a.scope.ctes)
+		defer func() { a.scope.ctes = old }()
+		for _, c := range op.CTEs {
+			// XXX Materialized option not currently supported.
+			seq, schema := a.semSQLPipe(c.Body, nil, &ast.TableAlias{Name: c.Name})
+			a.scope.ctes[c.Name] = &cte{seq, schema}
+		}
+		return a.semSQLOp(op.Body, seq)
 	default:
 		panic(fmt.Sprintf("semSQLOp: unknown op: %#v", op))
 	}

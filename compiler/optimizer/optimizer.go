@@ -198,7 +198,7 @@ func (o *Optimizer) OptimizeDeleter(seq dag.Seq, replicas int) (dag.Seq, error) 
 	lister.KeyPruner = maybeNewRangePruner(filter.Expr, sortKeys)
 	scatter := &dag.Scatter{Kind: "Scatter"}
 	for range replicas {
-		scatter.Paths = append(scatter.Paths, copySeq(dag.Seq{deleter}))
+		scatter.Paths = append(scatter.Paths, dag.CopySeq(dag.Seq{deleter}))
 	}
 	var merge dag.Op
 	if sortKeys.IsNil() {
@@ -310,7 +310,7 @@ func (o *Optimizer) optimizeSourcePaths(seq dag.Seq) (dag.Seq, error) {
 }
 
 func (o *Optimizer) SortKeys(seq dag.Seq) ([]order.SortKeys, error) {
-	return o.propagateSortKey(copySeq(seq), []order.SortKeys{nil})
+	return o.propagateSortKey(dag.CopySeq(seq), []order.SortKeys{nil})
 }
 
 // propagateSortKey analyzes a Seq and attempts to push the scan order of the data source

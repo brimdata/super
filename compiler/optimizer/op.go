@@ -1,7 +1,6 @@
 package optimizer
 
 import (
-	"encoding/json"
 	"errors"
 	"strings"
 
@@ -218,29 +217,6 @@ func fieldOf(e dag.Expr) field.Path {
 		return this.Path
 	}
 	return nil
-}
-
-func copySeq(seq dag.Seq) dag.Seq {
-	var copies dag.Seq
-	for _, o := range seq {
-		copies = append(copies, copyOp(o))
-	}
-	return copies
-}
-
-func copyOp(o dag.Op) dag.Op {
-	if o == nil {
-		panic("copyOp nil")
-	}
-	b, err := json.Marshal(o)
-	if err != nil {
-		panic(err)
-	}
-	copy, err := dag.UnmarshalOp(b)
-	if err != nil {
-		panic(err)
-	}
-	return copy
 }
 
 func FieldsOf(e dag.Expr) (field.List, bool) {

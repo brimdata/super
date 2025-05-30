@@ -120,7 +120,7 @@ func parallelizeHead(seq dag.Seq, n int, sortExprs []dag.SortExpr, replicas int)
 		Paths: make([]dag.Seq, replicas),
 	}
 	for k := range replicas {
-		scatter.Paths[k] = copySeq(head)
+		scatter.Paths[k] = dag.CopySeq(head)
 	}
 	var merge dag.Op
 	if len(sortExprs) > 0 {
@@ -181,7 +181,7 @@ func (o *Optimizer) liftIntoParPaths(seq dag.Seq) {
 			return
 		}
 		for k := range paths {
-			partial := copyOp(op).(*dag.Aggregate)
+			partial := dag.CopyOp(op).(*dag.Aggregate)
 			partial.PartialsOut = true
 			paths[k].Append(partial)
 		}
@@ -201,7 +201,7 @@ func (o *Optimizer) liftIntoParPaths(seq dag.Seq) {
 			seq[2] = dag.PassOp
 		}
 		for k := range paths {
-			paths[k].Append(copyOp(op))
+			paths[k].Append(dag.CopyOp(op))
 		}
 	case *dag.Top:
 		if len(op.Exprs) == 0 {
@@ -210,13 +210,13 @@ func (o *Optimizer) liftIntoParPaths(seq dag.Seq) {
 		seq[1] = &dag.Merge{Kind: "Merge", Exprs: op.Exprs}
 		seq[2] = &dag.Head{Kind: "Head", Count: op.Limit}
 		for k := range paths {
-			paths[k].Append(copyOp(op))
+			paths[k].Append(dag.CopyOp(op))
 		}
 	case *dag.Head, *dag.Tail:
 		// Copy the head or tail into the parallel path and leave the original in
 		// place which will apply another head or tail after the merge.
 		for k := range paths {
-			paths[k].Append(copyOp(op))
+			paths[k].Append(dag.CopyOp(op))
 		}
 	case *dag.Cut, *dag.Drop, *dag.Put, *dag.Rename, *dag.Filter:
 		if merge != nil {
@@ -234,7 +234,7 @@ func (o *Optimizer) liftIntoParPaths(seq dag.Seq) {
 			}
 		}
 		for k := range paths {
-			paths[k].Append(copyOp(op))
+			paths[k].Append(dag.CopyOp(op))
 		}
 		// this will get removed later
 		seq[egress] = dag.PassOp
