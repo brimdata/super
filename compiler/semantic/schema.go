@@ -14,6 +14,7 @@ type schema interface {
 	resolveColumn(col string) (field.Path, error)
 	resolveTable(table string) (schema, field.Path, error)
 	deref(name string) (dag.Expr, schema)
+	String() string
 }
 
 type staticSchema struct {
@@ -236,4 +237,24 @@ func joinSpread(left, right dag.Expr) *dag.RecordExpr {
 			},
 		},
 	}
+}
+
+func (s *staticSchema) String() string {
+	return fmt.Sprintf("static <%s>: %s", s.name, strings.Join(s.columns, ", "))
+}
+
+func (d *dynamicSchema) String() string {
+	return fmt.Sprintf("dynamic <%s>", d.name)
+}
+
+func (a *anonSchema) String() string {
+	return fmt.Sprintf("anon: %s", strings.Join(a.columns, ", "))
+}
+
+func (s *selectSchema) String() string {
+	return fmt.Sprintf("select:\n  in: %s\n  out: %s", s.in, s.out)
+}
+
+func (s *joinSchema) String() string {
+	return fmt.Sprintf("join:\n  left: %s\n  right: %s", s.left, s.right)
 }
