@@ -188,7 +188,7 @@ func (s *staticSchema) deref(name string) (dag.Expr, schema) {
 }
 
 func (a *anonSchema) deref(name string) (dag.Expr, schema) {
-	return nil, a
+	return nil, &staticSchema{name: name, columns: a.columns}
 }
 
 func (s *selectSchema) deref(name string) (dag.Expr, schema) {
