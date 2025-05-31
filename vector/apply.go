@@ -38,7 +38,7 @@ func findDynamic(vecs []Any) (*Dynamic, bool) {
 
 func rip(vecs []Any, d *Dynamic) iter.Seq2[int, []Any] {
 	return func(yield func(int, []Any) bool) {
-		for i, rev := range d.TagMap.Reverse {
+		for i, rev := range d.TagMap().Reverse {
 			var newVecs []Any
 			if len(rev) > 0 {
 				for _, vec := range vecs {

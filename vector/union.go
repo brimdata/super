@@ -69,7 +69,7 @@ func addUnionNullsToDynamic(typ *super.TypeUnion, d *Dynamic, nulls bitvec.Bits)
 			if tags[i] != uint32(nullTag) {
 				rebuild = true
 				// If value was not previously null delete value from vector.
-				delIndexes[tags[i]] = append(delIndexes[tags[i]], d.TagMap.Forward[i])
+				delIndexes[tags[i]] = append(delIndexes[tags[i]], d.TagMap().Forward[i])
 			}
 			tags[i] = uint32(nullTag)
 			count++
