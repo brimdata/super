@@ -1,0 +1,19 @@
+script: |
+  super -s -c "from a.sup select c"
+  echo ===
+  super -s -c "select * from (from a.sup select c)"
+
+inputs:
+  - name: a.sup
+    data: |
+      {a:11,c:1}
+      {a:12,c:2}
+
+outputs:
+  - name: stdout
+    data: |
+      {c:1}
+      {c:2}
+      ===
+      {c:1}
+      {c:2}

@@ -1951,6 +1951,7 @@ SelectExpr
     body:(
         SetOperation
       / Select
+      / FromSelect
       / Values
       / "(" __ s:SQLPipe __")"      { return s, nil }
     )
@@ -1998,6 +1999,39 @@ Select
       }
       if from != nil {
         sel.From = from.(*ast.From)
+      }
+      if where != nil {
+        sel.Where = where.(ast.Expr)
+      }
+      if group != nil {
+        sel.GroupBy = sliceOf[ast.Expr](group)
+      }
+      if having != nil {
+        sel.Having = having.(ast.Expr)
+      }
+      return sel, nil
+    }
+
+FromSelect
+  = from:FromOp _ SELECT 
+    distinct:OptDistinct
+    value:OptSelectValue
+    //XXX for whitespace in front of target need it only if it begins with 
+    // an identifier, e.g., select(1); is ok
+    _ selection:Selection
+    where:OptWhereClause
+    group:OptGroupClause
+    having:OptHavingClause
+    // XXX NOTYET OptQualifyClause
+    // XXX NOTYET OptWindowClause
+    {
+      sel := &ast.Select{
+          Kind: "Select",
+          Distinct: distinct.(bool),
+          Value: value.(bool),
+          Selection: selection.(ast.Selection),
+          From: from.(*ast.From),
+          Loc: loc(c),
       }
       if where != nil {
         sel.Where = where.(ast.Expr)
