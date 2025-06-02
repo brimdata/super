@@ -372,7 +372,7 @@ func (a *analyzer) semValues(values *ast.Values, seq dag.Seq) (dag.Seq, schema) 
 		Kind:  "Yield",
 		Exprs: exprs,
 	})
-	return seq, &anonSchema{columns}
+	return seq, &staticSchema{columns: columns}
 }
 
 func (a *analyzer) genDistinct(e dag.Expr, seq dag.Seq) dag.Seq {
@@ -425,14 +425,10 @@ func derefSchemaWithAlias(insch schema, alias *ast.TableAlias, inseq dag.Seq) (d
 	if alias == nil || len(alias.Columns) == 0 {
 		return seq, sch, nil
 	}
-	switch sch := sch.(type) {
-	case *anonSchema:
+	if sch, ok := sch.(*staticSchema); ok {
 		return mapColumns(sch.columns, alias, seq)
-	case *staticSchema:
-		return mapColumns(sch.columns, alias, seq)
-	default:
-		return seq, sch, errors.New("cannot apply column aliases to dynamically typed data")
 	}
+	return seq, sch, errors.New("cannot apply column aliases to dynamically typed data")
 }
 
 func mapColumns(in []string, alias *ast.TableAlias, seq dag.Seq) (dag.Seq, schema, error) {
@@ -635,7 +631,7 @@ func (a *analyzer) semGroupBy(sch *selectSchema, in []ast.Expr) []exprloc {
 }
 
 func (a *analyzer) semProjection(sch *selectSchema, args []ast.AsExpr, funcs *aggfuncs) projection {
-	out := &anonSchema{}
+	out := &staticSchema{}
 	sch.out = out
 	labels := make(map[string]struct{})
 	var proj projection
