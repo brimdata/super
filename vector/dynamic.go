@@ -21,16 +21,6 @@ func NewDynamic(tags []uint32, values []Any) *Dynamic {
 	return &Dynamic{Tags: tags, Values: values}
 }
 
-func (d *Dynamic) TagMap() *TagMap {
-	if t := d.tagMap.Load(); t != nil {
-		return t
-	}
-	if t := NewTagMap(d.Tags, d.Values); d.tagMap.CompareAndSwap(nil, t) {
-		return t
-	}
-	return d.tagMap.Load()
-}
-
 func (*Dynamic) Type() super.Type {
 	panic("can't call Type() on a vector.Dynamic")
 }
@@ -56,4 +46,14 @@ func (d *Dynamic) Len() uint32 {
 
 func (d *Dynamic) Serialize(b *zcode.Builder, slot uint32) {
 	d.Values[d.Tags[slot]].Serialize(b, d.TagMap().Forward[slot])
+}
+
+func (d *Dynamic) TagMap() *TagMap {
+	if t := d.tagMap.Load(); t != nil {
+		return t
+	}
+	if t := NewTagMap(d.Tags, d.Values); d.tagMap.CompareAndSwap(nil, t) {
+		return t
+	}
+	return d.tagMap.Load()
 }

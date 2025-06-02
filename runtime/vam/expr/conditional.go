@@ -66,8 +66,9 @@ func BoolMask(mask vector.Any) (*roaring.Bitmap, *roaring.Bitmap) {
 	bools := roaring.New()
 	errs := roaring.New()
 	if dynamic, ok := mask.(*vector.Dynamic); ok {
+		reverse := dynamic.TagMap().Reverse
 		for i, val := range dynamic.Values {
-			boolMaskRidx(dynamic.TagMap().Reverse[i], bools, errs, val)
+			boolMaskRidx(reverse[i], bools, errs, val)
 		}
 	} else {
 		boolMaskRidx(nil, bools, errs, mask)

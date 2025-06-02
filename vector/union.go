@@ -64,12 +64,13 @@ func addUnionNullsToDynamic(typ *super.TypeUnion, d *Dynamic, nulls bitvec.Bits)
 	var count uint32
 	delIndexes := make([][]uint32, len(vals))
 	tags := slices.Clone(d.Tags)
+	forward := d.TagMap().Forward
 	for i := range nulls.Len() {
 		if nulls.IsSetDirect(i) {
 			if tags[i] != uint32(nullTag) {
 				rebuild = true
 				// If value was not previously null delete value from vector.
-				delIndexes[tags[i]] = append(delIndexes[tags[i]], d.TagMap().Forward[i])
+				delIndexes[tags[i]] = append(delIndexes[tags[i]], forward[i])
 			}
 			tags[i] = uint32(nullTag)
 			count++
