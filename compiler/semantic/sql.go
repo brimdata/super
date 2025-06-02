@@ -13,6 +13,7 @@ import (
 	"github.com/brimdata/super/compiler/kernel"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
+	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zfmt"
 )
 
@@ -638,6 +639,13 @@ func (a *analyzer) semGroupBy(sch *selectSchema, in []ast.Expr) []exprloc {
 	var funcs aggfuncs
 	for k, expr := range in {
 		e := a.semExprSchema(sch, expr)
+		if a.isOrdinal(e) {
+			e = &dag.IndexExpr{
+				Kind:  "IndexExpr",
+				Expr:  &dag.This{Kind: "This", Path: []string{"in"}},
+				Index: e,
+			}
+		}
 		// Grouping expressions can't have agg funcs so we parse as a column
 		// and see if any agg functions were found.
 		c, _ := newColumn("", in[k], e, &funcs)
@@ -647,6 +655,14 @@ func (a *analyzer) semGroupBy(sch *selectSchema, in []ast.Expr) []exprloc {
 		out = append(out, exprloc{e, expr})
 	}
 	return out
+}
+
+func (a *analyzer) isOrdinal(e dag.Expr) bool {
+	if literal, ok := e.(*dag.Literal); ok {
+		v := sup.MustParseValue(a.sctx, literal.Value)
+		return super.IsInteger(v.Type().ID())
+	}
+	return false
 }
 
 func (a *analyzer) semProjection(sch *selectSchema, args []ast.AsExpr, funcs *aggfuncs) projection {

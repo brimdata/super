@@ -1,0 +1,12 @@
+spq: select count() as c group by 2 order by c
+
+vector: true
+
+input: |
+  {a:1,b:"foo"}
+  {a:1,b:"foo"}
+  {a:1,b:"bar"}
+
+output: |
+  {c:1(uint64)}
+  {c:2(uint64)}
