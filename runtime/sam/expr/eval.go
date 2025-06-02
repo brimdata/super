@@ -612,7 +612,7 @@ func (u *UnaryMinus) Eval(ectx Context, this super.Value) super.Value {
 	return u.sctx.WrapError("type incompatible with unary '-' operator", val)
 }
 
-func getNthFromContainer(container zcode.Bytes, idx int) (zcode.Bytes, bool) {
+func getNthFromContainer(container zcode.Bytes, idx int) (zcode.Bytes, int) {
 	if idx < 0 {
 		var length int
 		for it := container.Iter(); !it.Done(); it.Next() {
@@ -620,16 +620,16 @@ func getNthFromContainer(container zcode.Bytes, idx int) (zcode.Bytes, bool) {
 		}
 		idx = length + idx
 		if idx < 0 || idx >= length {
-			return nil, false
+			return nil, -1
 		}
 	}
 	for i, it := 0, container.Iter(); !it.Done(); i++ {
 		zv := it.Next()
 		if i == idx {
-			return zv, true
+			return zv, idx
 		}
 	}
-	return nil, false
+	return nil, -1
 }
 
 func lookupKey(mapBytes, target zcode.Bytes) (zcode.Bytes, bool) {
@@ -685,20 +685,15 @@ func indexArrayOrSet(sctx *super.Context, ectx Context, inner super.Type, vector
 	if index.IsNull() {
 		return sctx.Missing()
 	}
-	var idx int
-	if super.IsSigned(id) {
-		idx = int(index.Int())
-	} else {
-		idx = int(index.Uint())
-	}
+	idx := int(index.AsInt())
 	if idx == 0 {
 		return sctx.Missing()
 	}
 	if idx > 0 {
 		idx--
 	}
-	bytes, ok := getNthFromContainer(vector, idx)
-	if !ok {
+	bytes, idx := getNthFromContainer(vector, idx)
+	if idx < 0 {
 		return sctx.Missing()
 	}
 	return deunion(inner, bytes)
@@ -706,8 +701,22 @@ func indexArrayOrSet(sctx *super.Context, ectx Context, inner super.Type, vector
 
 func indexRecord(sctx *super.Context, typ *super.TypeRecord, record zcode.Bytes, index super.Value) super.Value {
 	id := index.Type().ID()
+	if super.IsInteger(id) {
+		idx := int(index.AsInt())
+		if idx == 0 {
+			return sctx.Missing()
+		}
+		if idx > 0 {
+			idx--
+		}
+		bytes, idx := getNthFromContainer(record, idx)
+		if idx < 0 {
+			return sctx.Missing()
+		}
+		return super.NewValue(typ.Fields[idx].Type, bytes)
+	}
 	if id != super.IDString {
-		return sctx.WrapError("record index is not a string", index)
+		return sctx.WrapError("invalid value for record index", index)
 	}
 	field := super.DecodeString(index.Bytes())
 	val := super.NewValue(typ, record).Ptr().Deref(field)

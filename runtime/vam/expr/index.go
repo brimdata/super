@@ -86,8 +86,20 @@ func indexArrayOrSet(sctx *super.Context, vec, indexVec vector.Any) vector.Any {
 }
 
 func indexRecord(sctx *super.Context, vec, indexVec vector.Any) vector.Any {
-	if indexVec.Type().ID() != super.IDString {
-		return vector.NewWrappedError(sctx, "record index is not a string", indexVec)
+	var isint bool
+	switch id := indexVec.Type().ID(); {
+	case super.IsUnsigned(id):
+		return vector.Apply(true, func(args ...vector.Any) vector.Any {
+			return indexRecord(sctx, args[0], args[1])
+		}, vec, cast.To(sctx, indexVec, super.TypeInt64))
+	case super.IsSigned(id):
+		isint = true
+	case id == super.IDString:
+	default:
+		if indexVec.Type().Kind() == super.ErrorKind {
+			return indexVec
+		}
+		return vector.NewWrappedError(sctx, "invalid value for record index", indexVec)
 	}
 	var rec *vector.Record
 	var index []uint32
@@ -104,9 +116,23 @@ func indexRecord(sctx *super.Context, vec, indexVec vector.Any) vector.Any {
 	n := len(rec.Typ.Fields)
 	viewIndexes := make([][]uint32, n)
 	for i := range vec.Len() {
-		field, _ := vector.StringValue(indexVec, i)
-		k, ok := rec.Typ.IndexOfField(field)
-		if !ok {
+		var k int
+		if isint {
+			idx, _ := vector.IntValue(indexVec, i)
+			k = int(idx)
+			if k < 0 {
+				k = n + k
+			} else {
+				k--
+			}
+		} else {
+			field, _ := vector.StringValue(indexVec, i)
+			var ok bool
+			if k, ok = rec.Typ.IndexOfField(field); !ok {
+				k = -1
+			}
+		}
+		if k < 0 || k >= n {
 			tags[i] = uint32(n)
 			errcnt++
 			continue

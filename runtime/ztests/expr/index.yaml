@@ -24,6 +24,8 @@ input: |
   {val:{a:"foo",b:"bar"},idx:"a"}
   {val:{a:"bar",b:"baz"},idx:"b"}
   {val:{a:"bar",b:null},idx:"b"}
+  {val:{a:"foo",b:"bar"},idx:1}
+  {val:{a:"foo",b:"bar"},idx:-1}
   {val:{a:"foo",b:"bar"},idx:1.}
   {val:{a:"bar",b:"baz"},idx:"doesnotexist"}
 
@@ -46,5 +48,7 @@ output: |
   "foo"
   "baz"
   null
-  error({message:"record index is not a string",on:1.})
+  "foo"
+  "bar"
+  error({message:"invalid value for record index",on:1.})
   error("missing")

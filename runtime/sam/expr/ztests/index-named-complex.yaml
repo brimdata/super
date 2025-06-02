@@ -13,5 +13,5 @@ output: |
   error("missing")
   "foo"
   error("missing")
-  error({message:"record index is not a string",on:2})
+  error("missing")
   123
