@@ -64,7 +64,7 @@ func IntValue(vec Any, slot uint32) (int64, bool) {
 		return IntValue(vec.Any, uint32(vec.Index[slot]))
 	case *Dynamic:
 		tag := vec.Tags[slot]
-		return IntValue(vec.Values[tag], vec.TagMap().Forward[slot])
+		return IntValue(vec.Values[tag], vec.ForwardTagMap()[slot])
 	case *View:
 		return IntValue(vec.Any, vec.Index[slot])
 	}

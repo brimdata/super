@@ -80,7 +80,7 @@ func isErrorMissing(vec vector.Any, i uint32) bool {
 	vec = vector.Under(vec)
 	if dynVec, ok := vec.(*vector.Dynamic); ok {
 		vec = dynVec.Values[dynVec.Tags[i]]
-		i = dynVec.TagMap().Forward[i]
+		i = dynVec.ForwardTagMap()[i]
 	}
 	errVec, ok := vec.(*vector.Error)
 	if !ok {

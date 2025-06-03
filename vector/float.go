@@ -68,7 +68,7 @@ func FloatValue(vec Any, slot uint32) (float64, bool) {
 		return FloatValue(vec.Any, uint32(vec.Index[slot]))
 	case *Dynamic:
 		tag := vec.Tags[slot]
-		return FloatValue(vec.Values[tag], vec.TagMap().Forward[slot])
+		return FloatValue(vec.Values[tag], vec.ForwardTagMap()[slot])
 	case *View:
 		return FloatValue(vec.Any, vec.Index[slot])
 	}

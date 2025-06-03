@@ -12,7 +12,15 @@ import (
 type Dynamic struct {
 	Tags   []uint32
 	Values []Any
-	tagMap atomic.Pointer[TagMap]
+
+	// Tag maps are used to map slots between a Dynamic and its values
+	// vectors in both the forward and reverse directions.  We need this
+	// because vectors are stored in a dense format where different types
+	// hold only the values needed for that type.  If we stored vectors in a
+	// sparse format, the overhead would increase substantially for
+	// heterogeneously-typed data.
+	forwardTagMap atomic.Pointer[[]uint32]
+	reverseTagMap atomic.Pointer[[][]uint32]
 }
 
 var _ Any = (*Dynamic)(nil)
@@ -28,7 +36,7 @@ func (*Dynamic) Type() super.Type {
 func (d *Dynamic) TypeOf(slot uint32) super.Type {
 	vals := d.Values[d.Tags[slot]]
 	if v2, ok := vals.(*Dynamic); ok {
-		return v2.TypeOf(d.TagMap().Forward[slot])
+		return v2.TypeOf(d.ForwardTagMap()[slot])
 	}
 	return vals.Type()
 }
@@ -45,15 +53,56 @@ func (d *Dynamic) Len() uint32 {
 }
 
 func (d *Dynamic) Serialize(b *zcode.Builder, slot uint32) {
-	d.Values[d.Tags[slot]].Serialize(b, d.TagMap().Forward[slot])
+	d.Values[d.Tags[slot]].Serialize(b, d.ForwardTagMap()[slot])
 }
 
-func (d *Dynamic) TagMap() *TagMap {
-	if t := d.tagMap.Load(); t != nil {
+func (d *Dynamic) ForwardTagMap() []uint32 {
+	if t := d.forwardTagMap.Load(); t != nil {
+		return *t
+	}
+	if t := d.newForwardTagMap(); d.forwardTagMap.CompareAndSwap(nil, &t) {
 		return t
 	}
-	if t := NewTagMap(d.Tags, d.Values); d.tagMap.CompareAndSwap(nil, t) {
+	return *d.forwardTagMap.Load()
+}
+
+func (d *Dynamic) newForwardTagMap() []uint32 {
+	counts := make([]uint32, len(d.Values))
+	forward := make([]uint32, len(d.Tags))
+	for slot, tag := range d.Tags {
+		forward[slot] = counts[tag]
+		counts[tag]++
+	}
+	return forward
+}
+
+func (d *Dynamic) ReverseTagMap() [][]uint32 {
+	if t := d.reverseTagMap.Load(); t != nil {
+		return *t
+	}
+	if t := d.newReverseTagMap(); d.reverseTagMap.CompareAndSwap(nil, &t) {
 		return t
 	}
-	return d.tagMap.Load()
+	return *d.reverseTagMap.Load()
+}
+
+func (d *Dynamic) newReverseTagMap() [][]uint32 {
+	reverse := make([][]uint32, len(d.Values))
+	space := make([]uint32, len(d.Tags))
+	var off uint32
+	for tag, vec := range d.Values {
+		var n uint32
+		if vec != nil {
+			n = vec.Len()
+		}
+		reverse[tag] = space[off : off+n]
+		off += n
+	}
+	counts := make([]uint32, len(d.Values))
+	for slot, tag := range d.Tags {
+		childSlot := counts[tag]
+		reverse[tag][childSlot] = uint32(slot)
+		counts[tag]++
+	}
+	return reverse
 }
