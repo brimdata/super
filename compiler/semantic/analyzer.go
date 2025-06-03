@@ -3,6 +3,7 @@ package semantic
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
@@ -10,6 +11,7 @@ import (
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/compiler/srcfiles"
 	"github.com/brimdata/super/runtime/exec"
+	"github.com/kr/pretty"
 )
 
 // Analyze performs a semantic analysis of the AST, translating it from AST
@@ -20,6 +22,7 @@ func Analyze(ctx context.Context, ast *parser.AST, env *exec.Environment, extInp
 	a := newAnalyzer(ctx, files, env)
 	seq := a.semSeq(ast.Parsed())
 	if !HasSource(seq) {
+		fmt.Println("NO HAS SOURCE")
 		if a.env.IsLake() {
 			if len(seq) == 0 {
 				return nil, errors.New("query text is missing")
@@ -62,6 +65,7 @@ func HasSource(seq dag.Seq) bool {
 	if len(seq) == 0 {
 		return false
 	}
+	pretty.Println("HAS SOURCE", seq)
 	switch op := seq[0].(type) {
 	case *dag.FileScan, *dag.HTTPScan, *dag.PoolScan, *dag.LakeMetaScan, *dag.PoolMetaScan, *dag.CommitMetaScan, *dag.DeleteScan, *dag.NullScan:
 		return true
