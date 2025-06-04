@@ -1,5 +1,5 @@
-import {AriaTabs} from './aria-tabs';
-import {SuperPlayground} from './super-playground'
+import { AriaTabs } from './aria-tabs';
+import { SuperPlayground } from './super-playground'
 
 const preNodes = document.querySelectorAll('pre:has(> code.language-mdtest-spq)');
 for (const [i, pre] of preNodes.entries()) {
@@ -60,8 +60,8 @@ for (const [i, pre] of preNodes.entries()) {
   const node = div.children[0];
   pre.replaceWith(node);
 
-  const tablist = node.querySelector('[role="tablist"]');
-  AriaTabs.setup(tablist);
+    const tablist = node.querySelector('[role="tablist"]');
+    AriaTabs.setup(tablist);
 
   // Matches one or more "#"-prefixed lines.
   const sectionSeparatorRE = /(?m:^#.*\n)+/;
@@ -82,6 +82,6 @@ for (const [i, pre] of preNodes.entries()) {
     commandCode.textContent = `echo '${input}' \\\n| super -s -c '${query}' -`
   });
 
-  // Prevent keydown from bubbling up to book.js listeners.
-  node.addEventListener('keydown', (e) => e.stopPropagation());
+    // Prevent keydown from bubbling up to book.js listeners.
+    node.addEventListener('keydown', (e) => e.stopPropagation());
 }
