@@ -1,0 +1,13 @@
+{
+  "name": "book",
+  "version": "0.0.0",
+  "dependencies": {
+    "@codemirror/lang-sql": "^6.8.0",
+    "@codemirror/theme-one-dark": "^6.1.2",
+    "@codemirror/view": "^6.35.3",
+    "codemirror": "^6.0.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.5"
+  }
+}

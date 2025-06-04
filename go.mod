@@ -30,6 +30,7 @@ require (
 	github.com/segmentio/ksuid v1.0.2
 	github.com/shellyln/go-sql-like-expr v0.0.1
 	github.com/stretchr/testify v1.10.0
+	github.com/teamortix/golang-wasm/wasm v0.0.0-20230719150929-5d000994c833
 	github.com/x448/float16 v0.8.4
 	github.com/yuin/goldmark v1.4.13
 	go.uber.org/mock v0.5.1

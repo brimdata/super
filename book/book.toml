@@ -1,0 +1,20 @@
+[book]
+authors = ["Steven McCanne",  "Matthew Nibecker", "Phil Rzewski", "Noah Treuhaft"]
+language = "en"
+src = "src"
+title = "SuperDB"
+
+[output.html.fold]
+enable = true
+
+[output.html]
+additional-css = ["super-example/super-example.css", "copy-button/copy-button.css"]
+additional-js = ["super-example.bundle.js", "copy-button/copy-button.js"]
+# This directive embeds content hashes in the certain asset file names 
+# to work around a problem where cached files cause the sidebar not to reflect
+# changes to SUMMARY.md.  See https://github.com/rust-lang/mdBook/issues/2547
+hash-files = true
+
+[output.html.playground]
+# Suppress mdBook's copy button since we add our own.
+copyable = false
