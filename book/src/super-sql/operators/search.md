@@ -159,7 +159,7 @@ the ["in"](../expressions.md#containment) operator, e.g.,
 
 Any Boolean-valued [function](../functions/intro.md) like
 [`is`](../functions/types/is.md),
-[`has`](../functions/records/has.md),
+[`has`](../functions/generics/has.md),
 [`grep`](../functions/strings/grep.md),
 etc. and any [comparison expression](../expressions.md#comparisons)
 may be used as a search term and mixed into a search expression.
