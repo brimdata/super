@@ -95,8 +95,8 @@ func (c *Comparator) sortStableIndices(vals []super.Value) []uint32 {
 
 type CompareFn func(a, b super.Value) int
 
-func NewValueCompareFn(o order.Which, nullsMax bool) CompareFn {
-	return NewComparator(SortExpr{&This{}, o, o.NullsMax(nullsMax)}).Compare
+func NewValueCompareFn(o order.Which, n order.Nulls) CompareFn {
+	return NewComparator(SortExpr{&This{}, o, n}).Compare
 }
 
 type Comparator struct {

@@ -120,7 +120,7 @@ type runBuilder struct {
 }
 
 func newRunBuilder() *runBuilder {
-	return &runBuilder{cmp: expr.NewValueCompareFn(order.Asc, true)}
+	return &runBuilder{cmp: expr.NewValueCompareFn(order.Asc, order.NullsLast)}
 }
 
 func (r *runBuilder) overlaps(first, last super.Value) bool {

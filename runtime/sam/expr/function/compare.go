@@ -14,8 +14,8 @@ type Compare struct {
 
 func NewCompare(sctx *super.Context) *Compare {
 	return &Compare{
-		nullsMax: expr.NewValueCompareFn(order.Asc, true),
-		nullsMin: expr.NewValueCompareFn(order.Asc, false),
+		nullsMax: expr.NewValueCompareFn(order.Asc, order.NullsLast),
+		nullsMin: expr.NewValueCompareFn(order.Asc, order.NullsFirst),
 		sctx:     sctx,
 	}
 }

@@ -63,7 +63,7 @@ func New(rctx *runtime.Context, anti, inner bool, left, right zbuf.Puller, leftK
 		left:        newPuller(left, ctx),
 		right:       zio.NewPeeker(newPuller(right, ctx)),
 		resetter:    resetter,
-		compare:     expr.NewValueCompareFn(o, true),
+		compare:     expr.NewValueCompareFn(o, o.NullsMax(true)),
 		cutter:      expr.NewCutter(rctx.Sctx, lhs, rhs),
 		splicer:     NewRecordSplicer(rctx.Sctx),
 	}

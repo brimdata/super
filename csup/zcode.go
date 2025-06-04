@@ -30,7 +30,7 @@ type ZcodeEncoder struct {
 func NewZcodeEncoder(typ super.Type) *ZcodeEncoder {
 	return &ZcodeEncoder{
 		typ: typ,
-		cmp: expr.NewValueCompareFn(order.Asc, false),
+		cmp: expr.NewValueCompareFn(order.Asc, order.NullsFirst),
 	}
 }
 

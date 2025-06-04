@@ -49,7 +49,7 @@ func NewGeneric(lower, upper super.Value, cmp expr.CompareFn) *Generic {
 }
 
 func NewGenericFromOrder(first, last super.Value, o order.Which) *Generic {
-	return NewGeneric(first, last, expr.NewValueCompareFn(o, o == order.Asc))
+	return NewGeneric(first, last, expr.NewValueCompareFn(o, o.NullsMax(true)))
 }
 
 func (g *Generic) In(val super.Value) bool {

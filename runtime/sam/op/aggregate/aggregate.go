@@ -83,7 +83,7 @@ func NewAggregator(ctx context.Context, sctx *super.Context, keyRefs, keyExprs, 
 	if nkeys > 0 && inputDir != 0 {
 		keySortExpr := expr.NewSortExpr(keyRefs[0], o, o.NullsMax(true))
 		keyCompare = expr.NewComparator(keySortExpr).WithMissingAsNull().Compare
-		valueCompare = expr.NewValueCompareFn(o, true)
+		valueCompare = expr.NewValueCompareFn(o, o.NullsMax(true))
 	}
 	var sortExprs []expr.SortExpr
 	for _, e := range keyRefs {

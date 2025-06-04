@@ -104,7 +104,7 @@ func initObjectScan(snap commits.View, sortKey order.SortKey) []*data.Object {
 }
 
 func sortObjects(objects []*data.Object, o order.Which) {
-	cmp := expr.NewValueCompareFn(o, true)
+	cmp := expr.NewValueCompareFn(o, o.NullsMax(true))
 	lessFunc := func(a, b *data.Object) bool {
 		aFrom, aTo, bFrom, bTo := a.Min, a.Max, b.Min, b.Max
 		if o == order.Desc {
