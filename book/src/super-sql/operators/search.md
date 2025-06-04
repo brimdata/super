@@ -15,7 +15,7 @@ to `false` or to an error.
 
 The `search` keyword can be abbreviated as `?`. 
 
-### Examples
+# Examples
 
 _A simple keyword search for "world"_
 ```mdtest-spq
