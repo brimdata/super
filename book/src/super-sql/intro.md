@@ -1,4 +1,4 @@
-## SuperSQL
+# SuperSQL
 
 SuperSQL is a
 [Pipe SQL](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/)
@@ -19,7 +19,7 @@ and the SuperSQL compiler often optimizes a query into an implementation
 different from the dataflow implied by the pipeline to achieve the
 same semantics with better performance.
 
-### Interactive UX
+## Interactive UX
 
 To support an interactive pattern of usage, SuperSQL includes
 [search](operators/search.md) syntax
@@ -44,7 +44,7 @@ from source
 searches for the strings "example.com" and "urgent" in all of the string values in
 the input and also includes a numeric comparison regarding the field `message_length`.
 
-### SQL Compatibility
+## SQL Compatibility
 
 SuperSQL is [backward compatible](../intro.md#supersql)
 with relational SQL in that any SQL query is also a SuperSQL query.
@@ -61,7 +61,7 @@ SELECT * FROM f1.json JOIN f2.json ON f1.id=f2.id
 SELECT watchers FROM https://api.github.com/repos/brimdata/super
 ```
 
-### Pipe Queries
+## Pipe Queries
 
 The entities that transform data within a SuperSQL pipeline are called
 [pipe operators](operators/intro.md)
@@ -108,7 +108,7 @@ fork
 | ...
 ```
 
-### Pipe Sources
+## Pipe Sources
 
 Like SQL, input data for a query is typically sourced with the
 [`from`](operators/from.md) operator.
@@ -169,7 +169,7 @@ from https://api.github.com/repos/brimdata/super
 "
 ```
 
-### Relational Scoping
+## Relational Scoping
 
 In SQL queries, data from tables is generally referenced with expressions that
 specify a table name and a column name within that table,
@@ -194,7 +194,7 @@ and columns does not reach across pipe operators.  Likewise, a pipe query
 embedded inside of a nested SQL query cannot access tables and columns in
 the containing SQL scope.
 
-### Pipe Scoping
+## Pipe Scoping
 
 For pipe queries, SuperSQL takes a different approach to scoping
 called _pipe scoping_.
@@ -243,7 +243,7 @@ which collects each input value into an array and emits the array resulting in
 [{x:1},{x:2},{x:3}]
 ```
 
-#### Combining Piped Data
+### Combining Piped Data
 
 If all data for all operators were always presented as a single input sequence
 called `this`, then there would be no way to combine data from different entities,
@@ -254,7 +254,7 @@ To remedy this, SuperSQL extends pipe scoping to
 [_subqueries_](#subquery-scoping)
 where multiple entities can be combined into the common value `this`.
 
-##### Join Scoping
+#### Join Scoping
 
 To combine joined entities into `this` via pipe scoping, the
 [`join`](operators/join.md) operator
@@ -318,7 +318,7 @@ produces the same result:
 SELECT f1.x, f2.y FROM f1.json as f1 CROSS JOIN f2.json as f2
 ```
 
-##### Subquery Scoping
+#### Subquery Scoping
 
 A subquery embedded in an expression can also combine data entities
 via pipe scoping as in
@@ -365,7 +365,7 @@ giving the same result
 {s:21}
 ```
 
-### Strong Typing
+## Strong Typing
 
 Data in SuperSQL is always strongly typed.
 
@@ -433,7 +433,7 @@ $ super -c "from input.json | values typeof(this)"
 <{b:int64,c:int64}>
 ```
 
-### Data Order
+## Data Order
 
 Data sequences from sources may have a natural order.  For example,
 the values in a file being read are presumed to have the order they

@@ -5,7 +5,7 @@
 Super (SUP) is the human-readable, text-based serialization format for
 [super-structured data](model.md).
 
-SUP builds upon the elegant simplicity of JSON with "type decorators".
+SUP builds upon the elegant simplicity of JSON with [type decorators](#22-type-decorators)
 Where the type of a value is not implied by its syntax, a type decorator
 is appended to the value interposed with double colons
 to establish a concrete type for every value expressed in source text.
