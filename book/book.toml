@@ -1,0 +1,8 @@
+[book]
+authors = ["Steven McCanne"]
+language = "en"
+src = "src"
+title = "SuperDB"
+
+[output.html.fold]
+enable = true
