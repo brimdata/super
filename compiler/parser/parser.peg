@@ -1561,7 +1561,7 @@ SQLIdentifier
 IdentifierName
   = !(IDGuard !IdentifierRest) IdentifierStart IdentifierRest* { return string(c.text), nil }
   / "$" { return string(c.text), nil }
-  / "\\" id:IDGuard { return id, nil }
+  / "\\" id:IDGuard { return id, nil } //XXX get rid of this
   // "type" is a search guard but should not be an id guard
   / "type" { return string(c.text), nil }
   / BacktickString 
