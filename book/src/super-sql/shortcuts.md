@@ -1,1 +1,1 @@
-# SQL Shortcuts
+# SuperSQL Shortcuts
