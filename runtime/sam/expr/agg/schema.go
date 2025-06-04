@@ -6,6 +6,14 @@ import (
 	"github.com/brimdata/super"
 )
 
+//XXX if we merged records in a way that inserted new singleton fields in
+// lexicographic fashion, then I think we would get commutativity
+// e.g., {d:int64} merge {a:int64} would insert a to the left of d since
+// a hasn't been encountered, but merging {c:int64,a:int64} would keep a
+// to the right of c (this doesn't quite work because then it is order
+// depending on how groupings are found).... we could save all the ambiguous
+// groupings and do a canonical merge at the end.
+
 // Schema constructs a fused type for types passed to Mixin.  Values of any
 // mixed-in type can be shaped to the fused type without loss of information.
 type Schema struct {

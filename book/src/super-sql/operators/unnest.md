@@ -13,7 +13,7 @@ unnest <expr> [ into ( <subquery> ) ]
 The `unnest` operator transforms the given expression
 `<expr>` into a new ordered sequence of derived values.
 
-When the optional [`<subquery>`](../subqueries.md) is present,
+When the optional [`<subquery>`](intro.md#operator-subqueries) is present,
 each unnested sequence of values is processed as a unit by that subquery.
 
 For example,
@@ -57,14 +57,14 @@ can be unnested.
 
 For example, if `this` is a record, it can be unnested with `unnest flatten(this)`.
 
-> Support for map types in `flatten` is not yet implemented.
+> _Support for map types in `flatten` is not yet implemented._
 
 ### Errors
 
 If a value encountered by `unnest` does not have either of the forms defined
 above, then an error results as follows:
 ```
-errror({message:"unnest: encountered non-array value",on:<value>})
+error({message:"unnest: encountered non-array value",on:<value>})
 ```
 where `<value>` is the offending value.
 
