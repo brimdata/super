@@ -7,15 +7,13 @@ complex problems with modern data stacks become easier to tackle
 because relational tables and eclectic JSON data are treated in a uniform way
 from the ground up.
 
-Compared to putting JSON data in a relational column,
-super-structured data makes it really easy to
-mash up JSON with your relational tables.
+Data is self-describing so it's easy to daisy-chain queries and inspect data at any point in a complex query or data pipeline. For example, there's no need for a set of Parquet input files to all be schema-compatible and it's easy to mix and match Parquet with JSON across queries.
 
 SuperDB is implemented with the standalone,
 dependency-free [`super`](command/super.md) command.
 `super` is a little like [DuckDB](https://duckdb.org/) and a little like
 [`jq`](https://stedolan.github.io/jq/) but super-structured data ties these
-two command styles together with strong typing of dynamic values.
+two command styles together with strong typing of dynamic data.
 
 For a non-technical user, SuperDB is as easy to use as web search
 while for a technical user, SuperDB exposes its technical underpinnings

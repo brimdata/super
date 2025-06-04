@@ -1,4 +1,4 @@
-# Super-structured Formats
+# Formats
 
 This section contains the [data model definition](model.md) for super-structured data
 along with a set of concrete formats that all implement this same data model,
