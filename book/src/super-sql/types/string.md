@@ -9,6 +9,7 @@ quotation marks whereby the following escape sequences allowed:
 | Sequence | Unicode Character      |
 |----------|------------------------|
 | `\"`     | quotation mark  U+0022 |
+| `\'`     | apostrophe      U+0008 |
 | `\\`     | reverse solidus U+005C |
 | `\/`     | solidus         U+002F |
 | `\b`     | backspace       U+0008 |

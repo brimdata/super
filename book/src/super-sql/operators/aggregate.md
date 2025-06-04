@@ -41,7 +41,7 @@ unique combination of values of the grouping expressions specified after the `by
 keyword without applying any aggregate functions.
 
 The `aggregate` keyword is optional since it can be used as a
-[shortcut](../shortcuts.md).
+[shortcut](intro.md#shortcuts).
 
 Each aggregate function `<agg-func>` may be optionally followed by a `where` clause,
 which applies a Boolean expression `<expr>` that indicates, for each input value,

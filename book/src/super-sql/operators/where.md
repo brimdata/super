@@ -12,7 +12,7 @@ The `where` operator filters its input by applying a Boolean [expression](../exp
 to each input value and dropping each value for which the expression evaluates
 to `false` or to an error.
 
-The `where` keyword is optional since it is a [shortcut](../shortcuts.md).
+The `where` keyword is optional since it is a [shortcut](intro.md#shortcuts).
 
 When SuperSQL queries are run interactively, it is highly convenient to be able to omit
 the "where" keyword, but when `where` filters appear in query source files,

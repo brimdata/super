@@ -216,7 +216,7 @@ adapted for super-structured data called
 
 SuperSQL is particularly well suited for data-wrangling use cases like
 ETL and data exploration and discovery.
-[Syntactic shortcuts](super-sql/shortcuts.md),
+[Syntactic shortcuts](super-sql/operators/intro.md#shortcuts),
 [keyword search](super-sql/operators/search.md), and the
 [pipe syntax](super-sql/intro.md)
 make interactively querying data a breeze.

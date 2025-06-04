@@ -17,8 +17,9 @@ The `from` operator identifies one or more sources of data as input to
 a query and transmits that data to its output.
 
 It has two forms:
-* a `from` pipe operator with dataflow scoping as described here, or
-* a SQL [`FROM`](../sql/from.md) clause with relational scoping.
+* a `from` pipe operator with [pipe scoping](../intro.md#pipe-scoping) as described here, or
+* a SQL [`FROM`](../sql/from.md) clause with
+  [relational scoping](../intro.md#relational-scoping).
 
 As a pipe operator,
 `from` preserves the order of the data within a file,

@@ -1,7 +1,6 @@
 ### Function
 
-&emsp; **nest_dotted** &mdash; transform fields in a record with dotted names
-to nested records
+&emsp; **nest_dotted** &mdash; transform fields in a record with dotted names to nested records
 
 ### Synopsis
 
