@@ -63,3 +63,21 @@ func (o *Object) Fetch(sctx *super.Context, projection field.Projection) (vector
 	o.root.unmarshal(cctx, projection)
 	return loader.load(projection, o.root)
 }
+
+// FetchUnordered is like Fetch, but if o's root vector is dynamic,
+// FetchUnordered returns the underlying values vectors instead of a
+// vector.Dynamic.
+func (o *Object) FetchUnordered(vecs []vector.Any, sctx *super.Context, projection field.Projection) ([]vector.Any, error) {
+	cctx := o.object.Context()
+	o.root = newShadow(cctx, o.object.Root(), nil)
+	o.root.unmarshal(cctx, projection)
+	loader := &loader{cctx: cctx, sctx: sctx, r: o.object.DataReader()}
+	if d, ok := o.root.(*dynamic); ok {
+		return d.projectUnordered(vecs, loader, projection), nil
+	}
+	vec, err := loader.load(projection, o.root)
+	if err != nil {
+		return nil, err
+	}
+	return append(vecs, vec), nil
+}

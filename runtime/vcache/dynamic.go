@@ -58,3 +58,10 @@ func (d *dynamic) load(r io.ReaderAt) ([]uint32, bitvec.Bits) {
 	d.tags = tags
 	return tags, bitvec.Zero
 }
+
+func (d *dynamic) projectUnordered(vecs []vector.Any, loader *loader, projection field.Projection) []vector.Any {
+	for _, shadow := range d.values {
+		vecs = append(vecs, shadow.project(loader, projection))
+	}
+	return vecs
+}

@@ -26,6 +26,7 @@ type VectorReader struct {
 	metaFilter    *metafilter
 	readerAt      io.ReaderAt
 	hasClosed     bool
+	vecs          []vector.Any
 }
 
 func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, pushdown zbuf.Pushdown) (*VectorReader, error) {
@@ -85,6 +86,12 @@ func (v *VectorReader) Pull(done bool) (vector.Any, error) {
 		return nil, err
 	}
 	for {
+		if n := len(v.vecs); n > 0 {
+			// Return these last first so v.vecs gets resued.
+			vec := v.vecs[n-1]
+			v.vecs = v.vecs[:n-1]
+			return vec, nil
+		}
 		hdr, off, err := v.stream.next()
 		if hdr == nil || err != nil {
 			return nil, err
@@ -98,7 +105,19 @@ func (v *VectorReader) Pull(done bool) (vector.Any, error) {
 		// this filtering but this will require a little compiler refactoring to be
 		// able to build runtime expressions that use different type contexts.
 		if v.metaFilter == nil || !pruneObject(v.sctx, v.metaFilter, o) {
-			return vcache.NewObjectFromCSUP(o).Fetch(v.sctx, v.pushdown.Projection())
+			vo := vcache.NewObjectFromCSUP(o)
+			if v.pushdown.Unordered() {
+				v.vecs, err = vo.FetchUnordered(v.vecs[:0], v.sctx, v.pushdown.Projection())
+				if err != nil {
+					return nil, err
+				}
+			} else {
+				vec, err := vo.Fetch(v.sctx, v.pushdown.Projection())
+				if err != nil {
+					return nil, err
+				}
+				v.vecs = append(v.vecs, vec)
+			}
 		}
 	}
 }
