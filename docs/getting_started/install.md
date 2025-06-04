@@ -78,7 +78,7 @@ which should produce
 To test `super db`, we'll make a SuperDB data lake in `./scratch`, load data, and query it
 as follows:
 ```
-export SUPER_DB_LAKE=./scratch
+export SUPER_DB=./scratch
 super db init
 super db create Demo
 echo '{s:"hello, world"}' | super db load -use Demo -
