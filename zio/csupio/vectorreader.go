@@ -87,7 +87,7 @@ func (v *VectorReader) Pull(done bool) (vector.Any, error) {
 	}
 	for {
 		if n := len(v.vecs); n > 0 {
-			// Return these last first so v.vecs gets resued.
+			// Return these last to first so v.vecs gets resued.
 			vec := v.vecs[n-1]
 			v.vecs = v.vecs[:n-1]
 			return vec, nil
