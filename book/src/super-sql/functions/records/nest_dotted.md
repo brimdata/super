@@ -1,7 +1,11 @@
 ### Function
 
 &emsp; **nest_dotted** &mdash; transform fields in a record with dotted names
+<<<<<<< HEAD
 to nested records
+=======
+to nested records.
+>>>>>>> 5c89084a6 ([book])
 
 ### Synopsis
 
