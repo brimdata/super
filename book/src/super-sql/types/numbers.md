@@ -65,6 +65,7 @@ are defined as follows:
 * `FLOAT` maps to `float64`
 * `DOUBLE PRECISION` maps to `float64`
 
+
 > _The `FLOAT(n)` SQL types are not yet implemented by SuperSQL._
 
 #### Decimal
