@@ -453,13 +453,13 @@ might look like this:
 ```
 {
     info: "Connection Example",
-    src: { addr: 10.1.1.2, port: 80 (uint16) }::=socket,
-    dst: { addr: 10.0.1.2, port: 20130 (uint16) }::socket
+    src: { addr: 10.1.1.2, port: 80::uint16 }::=socket,
+    dst: { addr: 10.0.1.2, port: 20130::uint16 }::socket
 } (=conn)
 {
     info: "Connection Example 2",
-    src: { addr: 10.1.1.8, port: 80 (uint16) }::=socket,
-    dst: { addr: 10.1.2.88, port: 19801 (uint16) }::socket
+    src: { addr: 10.1.1.8, port: 80::uint16 }::=socket,
+    dst: { addr: 10.1.2.88, port: 19801::uint16 }::socket
 } (=conn)
 {
     info: "Access List Example",

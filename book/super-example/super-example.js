@@ -1,25 +1,25 @@
-import {AriaTabs} from './aria-tabs';
-import {SuperPlayground} from './super-playground'
+import { AriaTabs } from './aria-tabs';
+import { SuperPlayground } from './super-playground'
 
 const preNodes = document.querySelectorAll('pre:has(> code.language-mdtest-spq)');
 for (const [i, pre] of preNodes.entries()) {
-  const codeNode = pre.querySelector('code')
+    const codeNode = pre.querySelector('code')
 
-  const codeText = codeNode.innerText;
-  const matches = Array.from(codeText.matchAll(/(?:#[^\n]*\n)+((?:[^#][^\n]*\n)+)/gm));
-  if (matches.length != 3) {
-    continue;
-  }
-  const spq = matches[0][1].trim();
-  const input = matches[1][1].trim();
-  const expected = matches[2][1].trim();
+    const codeText = codeNode.innerText;
+    const matches = Array.from(codeText.matchAll(/(?:#[^\n]*\n)+((?:[^#][^\n]*\n)+)/gm));
+    if (matches.length != 3) {
+        continue;
+    }
+    const spq = matches[0][1].trim();
+    const input = matches[1][1].trim();
+    const expected = matches[2][1].trim();
 
-  const attributes = Array.from(codeNode.classList)
+    const attributes = Array.from(codeNode.classList)
         .filter((c) => c.match(/^{.*}$/))
         .map((c) => c.slice(1, -1))
         .join(' ')
 
-  const html = `
+    const html = `
   <article class="super-example">
     <nav role="tablist">
       <button
@@ -72,19 +72,19 @@ for (const [i, pre] of preNodes.entries()) {
   </article>
 `;
 
-  const div = document.createElement('div');
-  div.innerHTML = html;
-  const node = div.children[0]
-  pre.replaceWith(node);
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    const node = div.children[0]
+    pre.replaceWith(node);
 
-  const tablist = node.querySelector('[role="tablist"]');
-  AriaTabs.setup(tablist);
+    const tablist = node.querySelector('[role="tablist"]');
+    AriaTabs.setup(tablist);
 
-  const commandCode = node.querySelector('.super-command code')
-  SuperPlayground.setup(node, (query, input) => {
-    commandCode.textContent = `echo '${input}' \\\n| super -s -c '${query}' -`
-  });
+    const commandCode = node.querySelector('.super-command code')
+    SuperPlayground.setup(node, (query, input) => {
+        commandCode.textContent = `echo '${input}' \\\n| super -s -c '${query}' -`
+    });
 
-  // Prevent keydown from bubbling up to book.js listeners.
-  node.addEventListener('keydown', (e) => e.stopPropagation());
+    // Prevent keydown from bubbling up to book.js listeners.
+    node.addEventListener('keydown', (e) => e.stopPropagation());
 }
