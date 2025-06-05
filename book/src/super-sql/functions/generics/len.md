@@ -1,14 +1,14 @@
-# Function
+### Function
 
 &emsp; **len** &mdash; the type-dependent length of a value
 
-# Synopsis
+### Synopsis
 
 ```
 len(v: record|array|set|map|type|bytes|string|ip|net|error) -> int64
 ```
 
-# Description
+### Description
 
 The _len_ function returns the length of its argument `val`.
 The semantics of this length depend on the value's type.
@@ -25,7 +25,7 @@ Supported types include:
 - net
 - type
 
-# Example
+### Example
 
 Take the length of various types:
 

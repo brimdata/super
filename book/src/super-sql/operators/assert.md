@@ -1,19 +1,19 @@
-# Operator
+### Operator
 
 &emsp; **assert** &mdash; evaluate an assertion
 
-# Synopsis
+### Synopsis
 
 ```
 assert <expr>
 ```
-# Description
+### Description
 
 The `assert` operator evaluates the Boolean expression `<expr>` for each
 input value, yielding its input value if `<expr>` evaluates to true or a
 structured error if it does not.
 
-# Examples
+### Examples
 
 ```mdtest-spq
 # spq

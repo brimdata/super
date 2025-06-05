@@ -1,19 +1,19 @@
-# Function
+### Function
 
 &emsp; **abs** &mdash; absolute value of a number
 
-# Synopsis
+### Synopsis
 
 ```
 abs(n: number) -> number
 ```
 
-# Description
+### Description
 
 The _abs_ function returns the absolute value of its argument `n`, which
 must be a numeric type.
 
-# Examples
+### Examples
 
 Absolute value of various numbers:
 ```mdtest-spq {data-layout="stacked"}

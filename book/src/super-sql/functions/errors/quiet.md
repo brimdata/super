@@ -1,14 +1,14 @@
-# Function
+### Function
 
 &emsp; **quiet** &mdash; quiet "missing" errors
 
-# Synopsis
+### Synopsis
 
 ```
 quiet(val: any) -> any
 ```
 
-# Description
+### Description
 
 The _quiet_ function returns its argument `val` unless `val` is
 `error("missing")`, in which case it returns `error("quiet")`.
@@ -16,7 +16,7 @@ Various operators and functions treat quiet errors differently than
 missing errors, in particular, dropping them instead of propagating them.
 Quiet errors are ignored by operators `aggregate`, `cut`, and `yield`.
 
-# Examples
+### Examples
 
 Yield processes a quiet error and thus no output:
 ```mdtest-spq

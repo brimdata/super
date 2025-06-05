@@ -1,19 +1,19 @@
-# Function
+### Function
 
 &emsp; **upper** &mdash; convert a string to upper case
 
-# Synopsis
+### Synopsis
 
 ```
 upper(s: string) -> string
 ```
 
-# Description
+### Description
 
 The _upper_ function converts all lower case Unicode characters in `s`
 to upper case and returns the result.
 
-# Examples
+### Examples
 
 ```mdtest-spq
 # spq

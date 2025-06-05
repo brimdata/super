@@ -1,8 +1,8 @@
-# Operator
+### Operator
 
 &emsp; **switch** &mdash; route values based on cases
 
-# Synopsis
+### Synopsis
 
 ```
 switch <expr> (
@@ -19,7 +19,7 @@ switch (
   [ default => <branch> ]
 )
 ```
-# Description
+### Description
 
 The `switch` operator routes input values to multiple, parallel branches of
 the pipeline based on case matching.
@@ -44,7 +44,7 @@ The output of a switch consists of multiple branches that must be merged.
 If the downstream operator expects a single input, then the output branches are
 merged with an automatically inserted [`combine` operator](combine.md).
 
-# Examples
+### Examples
 
 _Split input into evens and odds_
 ```mdtest-spq

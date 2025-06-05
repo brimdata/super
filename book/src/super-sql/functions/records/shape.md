@@ -1,14 +1,14 @@
-# Function
+### Function
 
 &emsp; **shape** &mdash;  apply cast, fill, and order
 
-# Synopsis
+### Synopsis
 
 ```
 shape(val: any, t: type) -> any
 ```
 
-# Description
+### Description
 
 The _shape_ function applies the
 [`cast`](cast.md),
@@ -19,7 +19,7 @@ overall [data shaping](../shaping.md) operation.
 Note that `shape` does not perform a [`crop` function](./crop.md) so
 extra fields in the input are propagated to the output.
 
-# Examples
+### Examples
 
 _Shape input records_
 ```mdtest-spq

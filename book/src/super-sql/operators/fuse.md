@@ -1,13 +1,13 @@
-# Operator
+### Operator
 
 &emsp; **fuse** &mdash; coerce all input values into a merged type
 
-# Synopsis
+### Synopsis
 
 ```
 fuse
 ```
-# Description
+### Description
 
 The `fuse` operator reads all of its input, computes an "intelligent merge"
 of varied types in the input, then adjusts each output value
@@ -41,7 +41,7 @@ defines slots for all possible input values where the columns are
 sparsely populated by each row value as the missing columns are set to null.
 Super data is super-structured, and fortunately, does not require such a structure.
 
-# Examples
+### Examples
 
 _Fuse two records_
 ```mdtest-spq

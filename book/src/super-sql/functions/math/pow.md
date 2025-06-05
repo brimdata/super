@@ -1,19 +1,19 @@
-# Function
+### Function
 
 &emsp; **pow** &mdash; exponential function of any base
 
-# Synopsis
+### Synopsis
 
 ```
 pow(x: number, y: number) -> float64
 ```
 
-# Description
+### Description
 
 The _pow_ function returns the value `x` raised to the power of `y`.
 The return value is a float64 or an error.
 
-# Examples
+### Examples
 
 ```mdtest-spq
 # spq

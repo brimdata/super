@@ -1,13 +1,13 @@
-# Operator
+### Operator
 
 &emsp; **sort** &mdash; sort values
 
-# Synopsis
+### Synopsis
 
 ```
 sort [-r] [<expr> [asc|desc] [nulls {first|last}] [, <expr> [asc|desc] [nulls {first|last}] ...]]
 ```
-# Description
+### Description
 
 The `sort` operator sorts its input by reading all values until the end of input,
 sorting the values according to the provided sort expression(s), and emitting
@@ -59,7 +59,7 @@ when comparing heterogeneously typed values.
 
 > TBD: document the definition of the total order
 
-# Examples
+### Examples
 
 _A simple sort with a null_
 ```mdtest-spq

@@ -1,14 +1,14 @@
-# Function
+### Function
 
 &emsp; **crop** &mdash; remove fields from input value that are missing in a specified type
 
-# Synopsis
+### Synopsis
 
 ```
 crop(val: any, t: type) -> any
 ```
 
-# Description
+### Description
 
 The _crop_ function operates on record values (or records within a nested value)
 and returns a result such that any fields that are present in `val` but not in
@@ -22,7 +22,7 @@ If `val` is a record (or if any of its nested values is a record):
 
 If `val` is not a record, it is returned unmodified.
 
-# Examples
+### Examples
 
 _Crop a record_
 ```mdtest-spq

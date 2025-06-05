@@ -1,14 +1,14 @@
-# Function
+### Function
 
 &emsp; **flatten** &mdash; transform a record into a flattened array.
 
-# Synopsis
+### Synopsis
 
 ```
 flatten(val: record) -> [{key:[string],value:<any>}]
 ```
 
-# Description
+### Description
 
 The _flatten_ function returns an array of records `[{key:[string],value:<any>}]`
 where `key` is a string array of the path of each record field of `val` and
@@ -16,7 +16,7 @@ where `key` is a string array of the path of each record field of `val` and
 If there are multiple types for the leaf values in `val`, then the array value
 inner type is a union of the record types present.
 
-# Examples
+### Examples
 
 ```mdtest-spq {data-layout="stacked"}
 # spq

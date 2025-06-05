@@ -1,15 +1,15 @@
-# Operator
+### Operator
 
 &emsp; **rename** &mdash; change the name of record fields
 
-# Synopsis
+### Synopsis
 ```
 rename <newfield>:=<oldfield> [, <newfield>:=<oldfield> ...]
 rename <oldfield> as <newfield> [, <oldfield> as <newfield>...]
 ```
 XXX second form not implemented yet
 
-# Description
+### Description
 
 The `rename` operator changes the names of one or more fields
 in the input records from the right-hand side name to the left-hand side name
@@ -28,7 +28,7 @@ If a rename operation conflicts with an existing field name, then the
 offending record is wrapped in a structured error along with an error message
 and the error is emitted.
 
-# Examples
+### Examples
 
 _A simple rename_
 ```mdtest-spq

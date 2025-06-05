@@ -1,8 +1,8 @@
-# Operator
+### Operator
 
 &emsp; **over** &mdash; traverse nested values as a lateral query
 
-# Synopsis
+### Synopsis
 
 ```
 over <expr> [, <expr>...]
@@ -28,7 +28,7 @@ e.g., if `this` is a record, it can be traversed with `over flatten(this)`.
 
 The nested subquery depicted as `<lateral>` is called a [lateral subquery](../lateral-subqueries.md).
 
-# Examples
+### Examples
 
 _Over evaluates each expression and emits it_
 ```mdtest-spq

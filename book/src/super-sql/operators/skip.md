@@ -1,19 +1,19 @@
-# Operator
+### Operator
 
 &emsp; **skip** &mdash; skip leading values of input sequence
 
-# Synopsis
+### Synopsis
 
 ```
 skip <const-expr>
 ```
-# Description
+### Description
 
 The `skip` operator skips the first N values from its input. N is given by
 `<const-expr>`, a compile-time constant expression that evaluates to a positive
 integer.
 
-# Examples
+### Examples
 
 _Skip the first two values of an arbitrary sequence_
 ```mdtest-spq

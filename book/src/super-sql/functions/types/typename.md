@@ -1,19 +1,19 @@
-# Function
+### Function
 
 &emsp; **typename** &mdash; look up and return a named type
 
-# Synopsis
+### Synopsis
 
 ```
 typename(name: string) -> type
 ```
 
-# Description
+### Description
 
 The _typename_ function returns the [type](../../formats/sup.md#25-types) of the
 [named type](../../formats/sup.md#258-named-type) given by `name` if it exists.  Otherwise, `error("missing")` is returned.
 
-# Examples
+### Examples
 
 Return a simple named type with a string constant argument:
 ```mdtest-spq

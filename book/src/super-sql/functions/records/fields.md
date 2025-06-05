@@ -1,14 +1,14 @@
-# Function
+### Function
 
 &emsp; **fields** &mdash; return the flattened path names of a record
 
-# Synopsis
+### Synopsis
 
 ```
 fields(r: record) -> [[string]]
 ```
 
-# Description
+### Description
 
 The _fields_ function returns an array of string arrays of all the field names in record `r`.
 A field's path name is representing by an array of strings since the dot
@@ -17,7 +17,7 @@ can appear in a field name.
 
 `error("missing")` is returned if `r` is not a record.
 
-# Examples
+### Examples
 
 Extract the fields of a nested record:
 ```mdtest-spq

@@ -1,19 +1,19 @@
-# Function
+### Function
 
 &emsp; **log** &mdash; natural logarithm
 
-# Synopsis
+### Synopsis
 
 ```
 log(val: number) -> float64
 ```
 
-# Description
+### Description
 
 The _log_ function returns the natural logarithm of its argument `val`, which
 must be numeric.  The return value is a float64 or an error.
 
-# Examples
+### Examples
 
 The logarithm of various numbers:
 ```mdtest-spq {data-layout="stacked"}

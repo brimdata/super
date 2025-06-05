@@ -1,19 +1,19 @@
-# Operator
+### Operator
 
 &emsp; **pass** &mdash; copy input values to output
 
-# Synopsis
+### Synopsis
 
 ```
 pass
 ```
-# Description
+### Description
 
 The `pass` operator outputs a copy of each input value. It is typically used
 with operators that handle multiple branches of the pipeline such as
 [`fork`](fork.md) and [`join`](join.md).
 
-# Examples
+### Examples
 
 _Copy input to output_
 ```mdtest-spq

@@ -1,21 +1,21 @@
-# Function
+### Function
 
 &emsp; **base64** &mdash; encode/decode Base64 strings
 
-# Synopsis
+### Synopsis
 
 ```
 base64(b: bytes) -> string
 base64(s: string) -> bytes
 ```
 
-# Description
+### Description
 
 The _base64_ function encodes a bytes value `b` as a
 a [Base64](https://en.wikipedia.org/wiki/Base64) string,
 or decodes a Base64 string `s` into a bytes value.
 
-# Examples
+### Examples
 
 Encode byte sequence `0x010203` into its Base64 string:
 ```mdtest-spq

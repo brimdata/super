@@ -1,20 +1,20 @@
-# Operator
+### Operator
 
 &emsp; **head** &mdash; copy leading values of input sequence
 
-# Synopsis
+### Synopsis
 
 ```
 head [ <const-expr> ]
 ```
-# Description
+### Description
 
 The `head` operator copies the first N values from its input to its output and ends
 the sequence thereafter. N is given by `<const-expr>`, a compile-time
 constant expression that evaluates to a positive integer. If `<const-expr>`
 is not provided, the value of N defaults to `1`.
 
-# Examples
+### Examples
 
 _Grab first two values of arbitrary sequence_
 ```mdtest-spq

@@ -1,20 +1,20 @@
-# Function
+### Function
 
 &emsp; **every** &mdash; bucket `ts` using a duration
 
-# Synopsis
+### Synopsis
 
 ```
 every(d: duration) -> time
 ```
 
-# Description
+### Description
 
 The _every_ function is a shortcut for `bucket(ts, d)`.
 This provides a convenient binning function for aggregations
 when analyzing time-series data like logs that have a `ts` field.
 
-# Examples
+### Examples
 
 Operate on a sequence of times:
 ```mdtest-spq

@@ -1,19 +1,19 @@
-# Function
+### Function
 
 &emsp; **join** &mdash; concatenate array of strings with a separator
 
-# Synopsis
+### Synopsis
 
 ```
 join(val: [string], sep: string) -> string
 ```
 
-# Description
+### Description
 
 The _join_ function concatenates the elements of string array `val` to create a single
 string. The string `sep` is placed between each value in the resulting string.
 
-# Examples
+### Examples
 
 Join a symbol array of strings:
 ```mdtest-spq

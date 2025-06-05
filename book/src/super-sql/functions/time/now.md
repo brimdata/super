@@ -1,14 +1,14 @@
-# Function
+### Function
 
 &emsp; **now** &mdash; the current time
 
-# Synopsis
+### Synopsis
 
 ```
 now() -> time
 ```
 
-# Description
+### Description
 
 The _now_ function takes no arguments and returns the current UTC time as a value of type `time`.
 
@@ -21,7 +21,7 @@ switch (
 )
 ```
 
-# Examples
+### Examples
 
 ```
 super -s -c 'yield now()'

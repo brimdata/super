@@ -1,14 +1,14 @@
-# Function
+### Function
 
 &emsp; **fill** &mdash; add null values for missing record fields
 
-# Synopsis
+### Synopsis
 
 ```
 fill(val: any, t: type) -> any
 ```
 
-# Description
+### Description
 
 The _fill_ function adds to the input record `val` any fields that are
 present in the output type `t` but not in the input.  Such fields are added
@@ -24,7 +24,7 @@ If `val` is not a record, it is returned unmodified.
 > [`shape` function](./shape.md) which applies the `fill`, [`cast`](./cast.md),
 > and [`order`](./order.md) functions simultaneously on a record.
 
-# Examples
+### Examples
 
 _Fill a record_
 ```mdtest-spq

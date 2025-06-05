@@ -1,13 +1,13 @@
-# Function
+### Function
 
 &emsp; **strftime** &mdash; format time values
 
-# Synopsis
+### Synopsis
 ```
 strftime(format: string, t: time) -> string
 ```
 
-# Description
+### Description
 The _strftime_ function returns a string representation of time `t`
 as specified by the provided string `format`. `format` is a string
 containing format directives that dictate how the time string is
@@ -55,7 +55,7 @@ These directives are supported:
 | %z | +hhmm or -hhmm numeric timezone (that is, the hour and minute offset from UTC) | +0000 |
 | %% | A literal '%' character | % |
 
-# Examples
+### Examples
 
 Print the year number as a string
 ```mdtest-spq

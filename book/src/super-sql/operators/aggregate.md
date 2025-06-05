@@ -1,8 +1,8 @@
-# Operator
+### Operator
 
 &emsp; **aggregate** &mdash; perform aggregations
 
-# Synopsis
+### Synopsis
 
 ```
 [aggregate] [<field>:=]<agg>
@@ -15,7 +15,7 @@
 > Note: `aggregate` was previously known as `summarize`, which is now deprecated
 > and will be removed from the language in the future.
 
-# Description
+### Description
 
 In the first four forms, the `aggregate` operator consumes all of its input,
 applies an [aggregate function](../aggregates/_index.md) to each input value
@@ -54,7 +54,7 @@ and the results merged into final results using an external merge sort.
 The same mechanism that spills to storage can also spill across the network
 to a cluster of workers in an adaptive shuffle, though this is not yet implemented.
 
-# Examples
+### Examples
 
 Average the input sequence:
 ```mdtest-spq

@@ -1,21 +1,21 @@
-# Function
+### Function
 
 &emsp; **nest_dotted** &mdash; transform fields in a record with dotted names
 to nested records.
 
-# Synopsis
+### Synopsis
 
 ```
 nest_dotted(val: record) -> record
 ```
 
-# Description
+### Description
 
 The _nest_dotted_ function returns a copy of `val` with all dotted field names
 converted into nested records. If no argument is supplied to `nest_dotted`,
 `nest_dotted` operates on `this`.
 
-# Examples
+### Examples
 
 ```mdtest-spq
 # spq

@@ -1,19 +1,19 @@
-# Function
+### Function
 
 &emsp; **ceil** &mdash; ceiling of a number
 
-# Synopsis
+### Synopsis
 
 ```
 ceil(n: number) -> number
 ```
 
-# Description
+### Description
 
 The _ceil_ function returns the smallest integer greater than or equal to its argument `n`,
 which must be a numeric type.  The return type retains the type of the argument.
 
-# Examples
+### Examples
 
 The ceiling of various numbers:
 ```mdtest-spq

@@ -1,13 +1,13 @@
-# Operator
+### Operator
 
 &emsp; **top** &mdash; get first N sorted values of input sequence
 
-# Synopsis
+### Synopsis
 
 ```
 top [-r] [<const-expr> [<expr> [asc|desc] [nulls {first|last}] [, <expr> [asc|desc] [nulls {first|last}] ...]]]
 ```
-# Description
+### Description
 
 The `top` operator returns the first N values from a sequence sorted according
 to the provided sort expressions. N is given by `<const-expr>`, a compile-time
@@ -20,7 +20,7 @@ selected using same heuristic as [`sort`](sort.md).
 intensive because only the first N values are stored in memory (i.e., subsequent
 values are discarded).
 
-# Examples
+### Examples
 
 _Grab the smallest two values from a sequence of integers_
 ```mdtest-spq

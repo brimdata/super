@@ -1,15 +1,15 @@
-# Function
+### Function
 
 &emsp; **cast** &mdash; coerce a value to a different type
 
-# Synopsis
+### Synopsis
 
 ```
 cast(val: any, t: type) -> any
 cast(val: any, name: string) -> any
 ```
 
-# Description
+### Description
 
 The _cast_ function performs type casts but handles both [primitive types](../../formats/data-model.md#1-primitive-types) and
 [complex types](../../formats/data-model.md#2-complex-types).  If the input type `t` is a primitive type, then the result
@@ -45,7 +45,7 @@ and the input value is returned when casting to complex types.
 > [`shape` function](./shape.md) which applies the `cast`, [`fill`](./fill.md),
 > and [`order`](./order.md) functions simultaneously.
 
-# Examples
+### Examples
 
 _Cast primitives to type `ip`_
 ```mdtest-spq {data-layout="stacked"}

@@ -1,13 +1,13 @@
-# Operator
+### Operator
 
 &emsp; **yield** &mdash; emit values from expressions
 
-# Synopsis
+### Synopsis
 
 ```
 [yield] <expr> [, <expr>...]
 ```
-# Description
+### Description
 
 The `yield` operator produces output values by evaluating one or more
 expressions on each input value and sending each result to the output
@@ -17,7 +17,7 @@ in left-to-right order.  Each `<expr>` may be any valid
 The `yield` keyword is optional since it can be used as a
 [shortcut](../shortcuts.md).
 
-# Examples
+### Examples
 
 _Hello, world_
 ```mdtest-spq

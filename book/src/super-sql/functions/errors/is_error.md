@@ -1,19 +1,19 @@
-# Function
+### Function
 
 &emsp; **is_error** &mdash; test if a value is an error
 
-# Synopsis
+### Synopsis
 
 ```
 is_error(val: any) -> bool
 ```
 
-# Description
+### Description
 
 The _is_error_ function returns true if its argument's type is error.
 `is_error(v)` is shorthand for `kind(v)=="error"`,
 
-# Examples
+### Examples
 
 A simple value is not an error:
 ```mdtest-spq

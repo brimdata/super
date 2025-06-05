@@ -1,20 +1,20 @@
-# Function
+### Function
 
 &emsp; **map** &mdash; apply a function to each element of an array or set
 
-# Synopsis
+### Synopsis
 
 ```
 map(v: array|set, f: function) -> array|set
 ```
 
-# Description
+### Description
 
 The _map_ function applies function `f` to every element in array or set `v` and
 returns an array or set of the results. Function `f` must be a function that takes
 only one argument. `f` may be a [user-defined function](../statements.md#func-statements).
 
-# Examples
+### Examples
 
 Upper case each element of an array:
 ```mdtest-spq

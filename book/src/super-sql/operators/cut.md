@@ -1,13 +1,13 @@
-# Operator
+### Operator
 
 &emsp; **cut** &mdash; extract subsets of record fields into new records
 
-# Synopsis
+### Synopsis
 
 ```
 cut <field>[:=<expr>] [, <field>[:=<expr>] ...]
 ```
-# Description
+### Description
 
 The `cut` operator extracts values from each input record in the
 form of one or more [field assignments](../pipeline-model.md#field-assignments),
@@ -39,7 +39,7 @@ Note that when the field references are all top level,
 yield {<field>:<expr> [, <field>:<expr>...]}
 ```
 
-# Examples
+### Examples
 
 _A simple Unix-like cut_
 ```mdtest-spq

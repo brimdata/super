@@ -1,12 +1,12 @@
-# Operator
+### Operator
 
 &emsp; **put** &mdash; add or modify fields of records
 
-# Synopsis
+### Synopsis
 ```
 [put] <field>:=<expr> [, <field>:=<expr> ...]
 ```
-# Description
+### Description
 
 The `put` operator modifies its input with
 one or more [field assignments](../pipeline-model.md#field-assignments).
@@ -40,7 +40,7 @@ using a spread operator of the form:
 yield {...this, <field>:<expr> [, <field>:<expr>...]}
 ```
 
-# Examples
+### Examples
 
 _A simple put_
 ```mdtest-spq

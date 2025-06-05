@@ -1,14 +1,14 @@
-# Function
+### Function
 
 &emsp; **missing** &mdash; test for the "missing" error
 
-# Synopsis
+### Synopsis
 
 ```
 missing(val: any) -> bool
 ```
 
-# Description
+### Description
 
 The _missing_ function returns true if its argument is `error("missing")`
 and false otherwise.
@@ -27,7 +27,7 @@ switch (
 )
 ```
 
-# Examples
+### Examples
 
 ```mdtest-spq
 # spq

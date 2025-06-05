@@ -1,15 +1,15 @@
-# Function
+### Function
 
 &emsp; **grok** &mdash; parse a string using Grok patterns
 
-# Synopsis
+### Synopsis
 
 ```
 grok(p: string, s: string) -> record
 grok(p: string, s: string, definitions: string) -> record
 ```
 
-# Description
+### Description
 
 The _grok_ function parses a string `s` using patterns in string `p` and
 returns a record containing parsed fields.
@@ -26,13 +26,13 @@ When provided with three arguments, `definitions` is a string
 of named patterns in the format `PATTERN_NAME PATTERN` each separated by
 newlines (`\n`). The named patterns can then be referenced in argument `p`.
 
-## Included Patterns
+#### Included Patterns
 
 The `grok` function by default includes a set of built-in named patterns
 that can be referenced in any pattern. The included named patterns can be seen
 [here](https://raw.githubusercontent.com/brimdata/super/main/pkg/grok/base.go).
 
-## Comparison to Other Implementations
+#### Comparison to Other Implementations
 
 Although Grok functionality appears in many open source tools, it lacks a
 formal specification. As a result, example parsing configurations found via
@@ -116,7 +116,7 @@ the use of the `grok` function, review the tips below.
 > issue describing your use case or come talk to us on
 > [community Slack](https://www.brimdata.io/join-slack/).
 
-## Debugging
+#### Debugging
 
 Much like creating complex regular expressions, building sophisticated Grok
 configurations can be frustrating because single-character mistakes can make
@@ -135,12 +135,12 @@ If you devise a working Grok config in such a tool be sure to incrementally
 test it with SuperSQL's `grok`. Be mindful of necessary adjustments such as those
 described [above](#comparison-to-other-implementations) and in the [examples](#examples).
 
-## Need Help?
+#### Need Help?
 
 If you have difficulty with your Grok configurations, please come talk to us
 on the [community Slack](https://www.brimdata.io/join-slack/).
 
-# Examples
+### Examples
 
 Parsing a simple log line using the built-in named patterns:
 ```mdtest-spq {data-layout="stacked"}

@@ -1,13 +1,13 @@
-# Operator
+### Operator
 
 &emsp; **combine** &mdash; combine parallel pipeline branches into a single output
 
-# Synopsis
+### Synopsis
 
 ```
 ( => ... => ...) | ...
 ```
-# Description
+### Description
 
 The implied `combine` operator merges inputs from multiple upstream branches of
 the pipeline into a single output.  The order of values in the combined

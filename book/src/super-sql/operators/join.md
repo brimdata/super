@@ -1,8 +1,8 @@
-# Operator
+### Operator
 
 &emsp; **join** &mdash; combine data from two inputs using a join predicate
 
-# Synopsis
+### Synopsis
 
 ```
 <left-input>
@@ -23,7 +23,7 @@ DEPRECATED
 > The first syntax should be used as support for the syntax marked DEPRECATED will be
 > removed at some point.
 
-# Description
+### Description
 
 The `join` operator combines values from two inputs according to the Boolean-valued
 `<predicate>`.  Logically, a cross product of all values is formed by taking each
@@ -49,7 +49,7 @@ The available join types are:
 `R` in `<right-input>` where the combined record `{<left-name>:L,<right-name>:R}`
 satisfies `<predicate>`
 
-# Examples
+### Examples
 
 _Join some numbers_
 ```mdtest-spq-notyet

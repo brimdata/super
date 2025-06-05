@@ -1,8 +1,8 @@
-# Operator
+### Operator
 
 &emsp; **from** &mdash; source data from pools, files, or URIs
 
-# Synopsis
+### Synopsis
 
 ```
 from <pool>[@<commitish>]
@@ -18,7 +18,7 @@ from (
    ...
 )
 ```
-# Description
+### Description
 
 The `from` operator identifies one or more data sources and transmits
 their data to its output.  A data source can be
@@ -70,7 +70,7 @@ from ... | switch color (
 ) | ...
 ```
 
-# Input Data
+### Input Data
 
 Examples below below assume the existence of the SuperDB lake created and populated
 by the following commands:
@@ -106,7 +106,7 @@ The following file `hello.sup` is also used.
 {greeting:"hello world!"}
 ```
 
-# Examples
+### Examples
 
 _Source structured data from a local file_
 

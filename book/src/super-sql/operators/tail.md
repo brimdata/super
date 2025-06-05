@@ -1,20 +1,20 @@
-# Operator
+### Operator
 
 &emsp; **tail** &mdash; copy trailing values of input sequence
 
-# Synopsis
+### Synopsis
 
 ```
 tail [ <const-expr> ]
 ```
-# Description
+### Description
 
 The `tail` operator copies the last N from its input to its output and ends
 the sequence thereafter. N is given by `<const-expr>`, a compile-time
 constant expression that evaluates to a positive integer. If `<const-expr>`
 is not provided, the value of N defaults to `1`.
 
-# Examples
+### Examples
 
 _Grab last two values of arbitrary sequence_
 ```mdtest-spq

@@ -1,19 +1,19 @@
-# Function
+### Function
 
 &emsp; **is** &mdash; test a value's type
 
-# Synopsis
+### Synopsis
 ```
 is(t: type) -> bool
 is(val: any, t: type) -> bool
 ```
 
-# Description
+### Description
 
 The _is_ function returns true if the argument `val` is of type `t`. If `val`
 is omitted, it defaults to `this`.  The _is_ function is shorthand for `typeof(val)==t`.
 
-# Examples
+### Examples
 
 Test simple types:
 ```mdtest-spq

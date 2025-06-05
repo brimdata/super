@@ -1,13 +1,13 @@
-# Operator
+### Operator
 
 &emsp; **uniq** &mdash; deduplicate adjacent values
 
-# Synopsis
+### Synopsis
 
 ```
 uniq [-c]
 ```
-# Description
+### Description
 
 Inspired by the traditional Unix shell command of the same name,
 the `uniq` operator copies its input to its output but removes duplicate values
@@ -21,7 +21,7 @@ type signature `{value:any,count:uint64}`, where the `value` field contains the
 unique value and the `count` field indicates the number of consecutive duplicates
 that occurred in the input for that output value.
 
-# Examples
+### Examples
 
 _Simple deduplication_
 ```mdtest-spq

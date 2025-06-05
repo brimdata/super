@@ -1,14 +1,14 @@
-# Function
+### Function
 
 &emsp; **regexp_replace** &mdash; replace regular expression matches in a string
 
-# Synopsis
+### Synopsis
 
 ```
 regexp_replace(s: string, re: string|regexp, new: string) -> string
 ```
 
-# Description
+### Description
 
 The _regexp_replace_ function substitutes all characters matching the
 [regular expression](../search-expressions.md#regular-expressions) `re` in string `s` with
@@ -27,7 +27,7 @@ In the `$name` form, `name` is taken to be as long as possible: `$1x` is equival
 
 To insert a literal `$` in the output, use `$$` in the template.
 
-# Examples
+### Examples
 
 Replace regular expression matches with a letter:
 

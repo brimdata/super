@@ -1,20 +1,20 @@
-# Function
+### Function
 
 &emsp; **coalesce** &mdash; return first value that is not null, a "missing" error, or a "quiet" error
 
-# Synopsis
+### Synopsis
 
 ```
 coalesce(val: any [, ... val: any]) -> bool
 ```
 
-# Description
+### Description
 
 The _coalesce_ function returns the first of its arguments that is not null,
 `error("missing")`, or `error("quiet")`.  It returns null if all its arguments
 are null, `error("missing")`, or `error("quiet")`.
 
-# Examples
+### Examples
 
 ```mdtest-spq
 # spq

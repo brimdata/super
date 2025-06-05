@@ -1,20 +1,20 @@
-# Function
+### Function
 
 &emsp; **error** &mdash; wrap a value as an error
 
-# Synopsis
+### Synopsis
 
 ```
 error(val: any) -> error
 ```
 
-# Description
+### Description
 
 The _error_ function returns an error version of any value.
 It wraps the value `val` to turn it into an error type providing
 a means to create structured and stacked errors.
 
-# Examples
+### Examples
 
 Wrap a record as a structured error:
 ```mdtest-spq {data-layout="stacked"}

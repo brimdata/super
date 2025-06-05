@@ -1,14 +1,14 @@
-# Function
+### Function
 
 &emsp; **compare** &mdash; return a specified part of a time value
 
-# Synopsis
+### Synopsis
 
 ```
 date_part(part: string, ts: time) -> int64
 ```
 
-# Description
+### Description
 
 The _date_part_ function accepts a string `part` argument and a time value `ts` and
 returns an int64 representing the part of the date requested.
@@ -25,7 +25,7 @@ Valid values for `part` are:
 - "second": The seconds field (0-59).
 - "year": The year field.
 
-# Examples
+### Examples
 
 _Extract the year, month, and day of the month from a time value_
 ```mdtest-spq
