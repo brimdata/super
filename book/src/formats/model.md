@@ -55,20 +55,17 @@ if and only if their corresponding types are uniquely equal.
 The _null_ type is a primitive type representing only a `null` value.
 A `null` value can have any type.
 
-{{% tip "Note" %}}
-
-`time` values correspond to 64-bit epoch nanoseconds and thus
-not every valid RFC 3339 date and time string represents a valid time.
-In addition, nanosecond epoch times overflow on April 11, 2262.
-For the world of 2262, a new epoch can be created well in advance
-and the old time epoch and new time epoch can live side by side with
-the old using a [named type](#3-named-type) for the new epoch time referring to the old `time`.
-An app that wants more than 64 bits of timestamp precision can always use
-a named type of a `bytes` type and do its own conversions to and from the
-corresponding bytes values.  A time with a local time zone can be represented
-as a record of a `time` field and a zone field.
-
-{{% /tip %}}
+> `time` values correspond to 64-bit epoch nanoseconds and thus
+> not every valid RFC 3339 date and time string represents a valid time.
+> In addition, nanosecond epoch times overflow on April 11, 2262.
+> For the world of 2262, a new epoch can be created well in advance
+> and the old time epoch and new time epoch can live side by side with
+> the old using a [named type](#3-named-type) for the new epoch time referring to the old `time`.
+>
+> An app that wants more than 64 bits of timestamp precision can always use
+> a named type of a `bytes` type and do its own conversions to and from the
+> corresponding bytes values.  A time with a local time zone can be represented
+> as a record of a `time` field and a zone field.
 
 ### 2. Complex Types
 
