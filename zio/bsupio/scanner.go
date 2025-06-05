@@ -186,6 +186,7 @@ type worker struct {
 	validate     bool
 
 	typeCache super.TypeCache
+	vals      []super.Value
 }
 
 type work struct {
@@ -263,32 +264,24 @@ func (w *worker) scanBatch(buf *buffer, types super.TypeFetcher) (zbuf.Batch, er
 	}
 	// Otherwise, build a batch by reading all values in the buffer.
 	w.typeCache.Reset(types)
-	batch := newBatch(buf)
+	w.vals = w.vals[:0]
 	var progress zbuf.Progress
-	// We extend the batch one past its end and decode into the next
-	// potential slot and only advance the batch when we decide we want to
-	// keep the value.  Since we overshoot by one slot on every pass,
-	// we delete the overshoot with batch.unextend() on exit from the loop.
-	// I think this is what I drew on the Lawton basement whiteboard
-	// in 2018 but my previous attempts implementing that picture were
-	// horrible.  This attempts isn't so bad.
-	valRef := batch.extend()
 	for buf.length() > 0 {
-		if err := w.decodeVal(buf, valRef); err != nil {
+		var val super.Value
+		if err := w.decodeVal(buf, &val); err != nil {
 			buf.free()
 			return nil, err
 		}
-		if w.wantValue(*valRef, &progress) {
-			valRef = batch.extend()
+		if w.wantValue(val, &progress) {
+			w.vals = append(w.vals, val)
 		}
 	}
-	batch.unextend()
 	w.progress.Add(progress)
-	if len(batch.Values()) == 0 {
-		batch.Unref()
+	if len(w.vals) == 0 {
+		buf.free()
 		return nil, nil
 	}
-	return batch, nil
+	return newBatch(buf, w.vals), nil
 }
 
 func (w *worker) decodeVal(buf *buffer, valRef *super.Value) error {

@@ -1,7 +1,6 @@
 package bsupio
 
 import (
-	"slices"
 	"sync"
 	"sync/atomic"
 
@@ -19,26 +18,16 @@ var _ zbuf.Batch = (*batch)(nil)
 
 var batchPool sync.Pool
 
-func newBatch(buf *buffer) *batch {
+// newBatch takes ownership of buf but not vals.
+func newBatch(buf *buffer, vals []super.Value) *batch {
 	b, ok := batchPool.Get().(*batch)
 	if !ok {
-		b = &batch{vals: make([]super.Value, 200)}
+		b = &batch{}
 	}
 	b.buf = buf
 	b.refs = 1
-	b.vals = b.vals[:0]
+	b.vals = append(b.vals[:0], vals...)
 	return b
-}
-
-func (b *batch) extend() *super.Value {
-	n := len(b.vals)
-	b.vals = slices.Grow(b.vals, 1)[:n+1]
-	return &b.vals[n]
-}
-
-// unextend undoes what extend did.
-func (b *batch) unextend() {
-	b.vals = b.vals[:len(b.vals)-1]
 }
 
 func (b *batch) Ref() { atomic.AddInt32(&b.refs, 1) }
