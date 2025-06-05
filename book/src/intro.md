@@ -1,5 +1,7 @@
 # Introduction
 
+BOOKDO: WRITE THIS SECTION
+
 SuperDB is a new analytics database that unifies the organization of relational tables
 and JSON data with its super-structured data model.
 
@@ -10,4 +12,6 @@ but that may come...
 
 XXX In a block quote:
 XXX ref PRQL, Against SQL, Google Pipes paper, sane QL paper, SQL++
+
+XXX discuss types scaling
 
