@@ -1,14 +1,14 @@
-# Function
+### Function
 
 &emsp; **order** &mdash; reorder record fields
 
-# Synopsis
+### Synopsis
 
 ```
 order(val: any, t: type) -> any
 ```
 
-# Description
+### Description
 
 The _order_ function changes the order of fields in the input value `val`
 to match the order of records in type `t`. Ordering is useful when the
@@ -34,7 +34,7 @@ order(val, <{}>)
 > [Record expressions](../expressions.md#record-expressions) can also be used to
 > reorder fields without specifying types ([example](../shaping.md#order)).
 
-# Examples
+### Examples
 
 _Order a record_
 ```mdtest-spq
