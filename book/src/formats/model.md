@@ -1,5 +1,7 @@
 ## Data Model
 
+BOOKDO: collection of strongly typed values instead of ordered sequence.
+
 Super-structured data is defined as an ordered sequence of one or more typed data values.
 Each value's type is either a "primitive type", a "complex type", the "type type",
 a "named type", or the "null type".

@@ -1,5 +1,7 @@
 # Fluentd
 
+BOOKDO: update Zed -> Super
+
 The [Fluentd](https://www.fluentd.org/) open source data collector can be used
 to push log data to a [SuperDB lakehouse](../tutorials/lakehouse.md) in a continuous manner.
 This allows for querying near-"live" event data to enable use cases such as
@@ -78,15 +80,11 @@ The default settings when running `zed create` set the
 field and sort the stored data in descending order by that key. This
 configuration is ideal for Zeek log data.
 
-{{% tip "Note" %}}
-
-The [Zui](https://zui.brimdata.io/) desktop application automatically starts a
-Zed lake service when it launches. Therefore if you are using Zui you can
-skip the first set of commands shown above. The pool can be created from Zui
-by clicking **+**, selecting **New Pool**, then entering `ts` for the
-[pool key](../commands/super-db.md#pool-key).
-
-{{% /tip %}}
+> The [Zui](https://zui.brimdata.io/) desktop application automatically starts a
+> Zed lake service when it launches. Therefore if you are using Zui you can
+> skip the first set of commands shown above. The pool can be created from Zui
+> by clicking **+**, selecting **New Pool**, then entering `ts` for the
+> [pool key](../commands/super-db.md#pool-key).
 
 ### Fluentd
 

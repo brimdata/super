@@ -2,7 +2,8 @@
 # Summary
 
 - [Introduction](intro.md)
-- [Quick Start](quick-start.md)
+- [Getting Started](getting-started/intro.md)
+    - [Installation](getting-started/install.md)
 - [Command Usage](command.md)
 - [SuperSQL](super-sql/intro.md)
     - [Conventions](super-sql/conventions.md)
@@ -14,7 +15,9 @@
         - [map](super-sql/types/map.md)
         - [union](super-sql/types/union.md)
         - [enum](super-sql/types/enum.md)
-    - [Comment Syntax](super-sql/comments.md)
+    - [Syntax](super-sql/syntax/intro.md)
+        - [Comments](super-sql/syntax/comments.md)
+        - [Pipe Symbol](super-sql/syntax/pipe-symbol.md)
     - [Pipe Operators](super-sql/operators/intro.md)
         - [aggregate](super-sql/operators/aggregate.md)
         - [assert](super-sql/operators/assert.md)
