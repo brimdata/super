@@ -1,12 +1,14 @@
 package csup
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"sync"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio/bsupio"
 )
 
@@ -57,14 +59,27 @@ func (c *Context) unmarshal(id ID) error {
 }
 
 func (c *Context) readMeta(r io.Reader) error {
-	zr := bsupio.NewReader(c.local, r)
-	defer zr.Close()
+	scanner, err := bsupio.NewReader(c.local, r).NewScanner(context.TODO(), nil)
+	if err != nil {
+		return err
+	}
+	defer scanner.Pull(true)
+	var batches []zbuf.Batch
+	var numValues int
 	for {
-		val, err := zr.Read()
-		if val == nil || err != nil {
-			c.metas = make([]Metadata, len(c.values))
+		batch, err := scanner.Pull(false)
+		if err != nil {
 			return err
 		}
-		c.values = append(c.values, val.Copy())
+		if batch == nil {
+			c.metas = make([]Metadata, numValues)
+			c.values = make([]super.Value, 0, numValues)
+			for _, b := range batches {
+				c.values = append(c.values, b.Values()...)
+			}
+			return nil
+		}
+		batches = append(batches, batch)
+		numValues += len(batch.Values())
 	}
 }
