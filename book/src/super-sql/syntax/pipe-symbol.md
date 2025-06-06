@@ -1,5 +1,14 @@
 ## Pipe Symbol
 
+TODO: fix this.  "extend" is not a reserved keyword and to provide full backward 
+compat with SQL expressions the pipe operator names must be usable in expressions
+without having to escape them...
+this isn't a problem because keywords are allowed as identifiers and the PEG 
+parser disambiguites with | char because we don't have bitwise or.
+if you want to use a bitwise OR at the end of a pipe, just use the |> character 
+when you get to the next pipeline operator.
+So reposition as Google analysis is legit but maybe there's a simpler solution?
+
 In SuperSQL, you can use one of two symbols to separate pipeline operators: `|` or `|>`.
 
 It's usually better to have just one way of doing things, especially when it comes
