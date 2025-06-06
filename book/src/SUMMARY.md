@@ -18,6 +18,7 @@
     - [Syntax](super-sql/syntax/intro.md)
         - [Comments](super-sql/syntax/comments.md)
         - [Pipe Symbol](super-sql/syntax/pipe-symbol.md)
+        - [NEW](super-sql/syntax/x.md)
     - [Pipe Operators](super-sql/operators/intro.md)
         - [aggregate](super-sql/operators/aggregate.md)
         - [assert](super-sql/operators/assert.md)
