@@ -1,6 +1,6 @@
 # Introduction
 
-BOOKDO: WRITE THIS SECTION
+TODO: WRITE THIS SECTION
 
 SuperDB is a new analytics database that unifies the organization of relational tables
 and JSON data with its super-structured data model.

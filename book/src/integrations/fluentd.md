@@ -1,6 +1,6 @@
 # Fluentd
 
-BOOKDO: update Zed -> Super
+TODO: update Zed -> Super
 
 The [Fluentd](https://www.fluentd.org/) open source data collector can be used
 to push log data to a [SuperDB lakehouse](../tutorials/lakehouse.md) in a continuous manner.

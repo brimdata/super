@@ -1,6 +1,6 @@
 # Command Usage
 
-BOOKDO: REWORK THIS FOCUSING ON A SIMPLER EXPLANATION OF THE COMMAND-LINE TOOLING 
+TODO: REWORK THIS FOCUSING ON A SIMPLER EXPLANATION OF THE COMMAND-LINE TOOLING 
 AND BREAK OUT TUTORIALISH TEXT AND PERF STUFF INTO SEPARATE SECTIONS
 
 
@@ -308,7 +308,7 @@ produces
 When pretty printing, colorization is enabled by default when writing to a terminal,
 and can be disabled with `-color false`.
 
-BOOKDO: MOVE THIS STUFF INTO TOP INTRO... SELF-DESCRIBING FORMATS
+TODO: MOVE THIS STUFF INTO TOP INTRO... SELF-DESCRIBING FORMATS
 
 #### Pipeline-friendly BSUP
 
@@ -748,7 +748,7 @@ produces
 ```
 
 
-BOOKDO: MERGE THE SUPER DB SECTION WITH ABOVE.  FOCUS ON HOW TO USE THE COMMANDS 
+TODO: MERGE THE SUPER DB SECTION WITH ABOVE.  FOCUS ON HOW TO USE THE COMMANDS 
 NOT TEACHING THE USER ABOUT SUPERSQL.
 
 
@@ -790,7 +790,7 @@ ACID append and delete semantics at the commit level while
 we have plans to support CRUD updates at the primary-key level
 in the near future.
 
-BOOKDO: back off on github metaphor?
+TODO: back off on github metaphor?
 
 The semantics of a SuperDB lakehouse loosely follows the nomenclature and
 design patterns of [`git`](https://git-scm.com/).  In this approach,

@@ -23,7 +23,7 @@ Parquet files, Avro files, JSON, CSV, XML, and so forth are all subsets of the
 SuperDB's super-structured type system, a data lake based on SuperDB holds the promise
 to provide a universal data representation for all of these different approaches to data.
 
-BOOKDO: update this to emphasize tables are just a special case... not that they 
+TODO: update this to emphasize tables are just a special case... not that they 
 aren't present in the lakehouse
 
 Also, while we are not currently focused on building a SQL engine for the Super lakehouse,
@@ -48,7 +48,7 @@ around a primary data object.  Each data object is composed of one or more immut
 all of which share a common, globally unique identifier,
 which is referred to below generically as `<id>` below.
 
-BOOKDO: change text to foreshadow KSUID swap out
+TODO: change text to foreshadow KSUID swap out
 
 These identifiers are [KSUIDs](https://github.com/segmentio/ksuid).
 The KSUID allocation scheme

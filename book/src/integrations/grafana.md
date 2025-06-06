@@ -1,6 +1,6 @@
 # Grafana
 
-BOOKDO: rename grafana-zed-datasource
+TODO: rename grafana-zed-datasource
 
 A [data source plugin](https://grafana.com/grafana/plugins/?type=datasource)
 for [Grafana](https://grafana.com/) is available that enables plotting of

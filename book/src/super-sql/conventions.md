@@ -1,7 +1,7 @@
 ## Conventions
 
-BOOKDO: clean this up.  explain it in terms of polymorphic operators 
-but strongly typed data
+TODO: clean this up.  explain "any" in terms of polymorphic operators 
+on strongly typed data.
 
 [Function](functions/_index.md) arguments and [operator](operators/_index.md) input values are all dynamically typed,
 yet certain functions expect certain specific [data types](data-types.md)
