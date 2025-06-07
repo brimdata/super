@@ -2,6 +2,9 @@
 
 TODO: WRITE THIS SECTION
 
+TODO: motivate with wrangling use case (need other systems generally or JSON columns)
+then why not use the same for analytics as wrangling?
+
 SuperDB is a new analytics database that unifies structured and semi-structured data
 into a superset of these disparate data models called super-structured data.
 This makes dealing with modern eclectic data easier because relational data and JSON data

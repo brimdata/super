@@ -102,19 +102,6 @@ The short-hand query from above might be typed into a search box while the
 latter query might be composed in a query editor or in Zed source files
 maintained in GitHub.  Both forms are valid Zed queries.
 
-## Comments
-
-To further ease the maintenance and readability of source files, comments
-beginning with `//` may appear in Zed.
-
-```
-// This includes a search with boolean logic, an expression, and an aggregation.
-
-search "example.com" AND "urgent"
-| where message_length > 100       // We only care about long messages
-| aggregate kinds:=union(type) by net:=network_of(srcip)
-```
-
 ## What's Next?
 
 The following sections continue describing the Zed language.
