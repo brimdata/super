@@ -4,6 +4,7 @@
 - [Introduction](intro.md)
 - [Getting Started](getting-started/intro.md)
     - [Installation](getting-started/install.md)
+    - [TLDR](getting-started/tldr.md)
 - [Command Usage](command.md)
 - [SuperSQL](super-sql/intro.md)
     - [Conventions](super-sql/conventions.md)
