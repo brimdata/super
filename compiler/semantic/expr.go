@@ -849,17 +849,19 @@ func (a *analyzer) semFields(exprs []ast.Expr) []dag.Expr {
 // semField analyzes the expression f and makes sure that it's
 // a field reference returning an error if not.
 func (a *analyzer) semField(f ast.Expr) dag.Expr {
-	e := a.semExpr(f)
-	field, ok := e.(*dag.This)
-	if !ok {
+	switch e := a.semExpr(f).(type) {
+	case *dag.This:
+		if len(e.Path) == 0 {
+			a.error(f, errors.New("cannot use 'this' as a field reference"))
+			return badExpr()
+		}
+		return e
+	case *dag.BadExpr:
+		return e
+	default:
 		a.error(f, errors.New("invalid expression used as a field"))
 		return badExpr()
 	}
-	if len(field.Path) == 0 {
-		a.error(f, errors.New("cannot use 'this' as a field reference"))
-		return badExpr()
-	}
-	return field
 }
 
 func (a *analyzer) maybeConvertAgg(call *ast.Call) dag.Expr {
