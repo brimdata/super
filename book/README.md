@@ -15,7 +15,7 @@ and point your browser at its embedded web server, e.g.,
 cd book
 mdbook serve
 ```
-Then connect to (localhost:3000)[http://localhost:3000].
+Then connect to [localhost:3000](http://localhost:3000).
 
 To add or remove sections of the book edit `src/SUMMARY.md`.
 
