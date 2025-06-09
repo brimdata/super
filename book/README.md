@@ -22,7 +22,6 @@ To add or remove sections of the book edit `src/SUMMARY.md`.
 When editing `SUMMARY.md` it can be useful to kill the mdbook service 
 and build the book manually like this:
 ```
-cd book
 mdbook build
 ```
 This was the service doesn't do things like recreating a file that you have 
