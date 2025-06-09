@@ -578,7 +578,7 @@ ShapeOp
     }
 
 JoinOp
-  = style:JoinStyle JOIN rightInput:JoinRightInput e:JoinExpr optArgs:(_ FlexAssignments)? {
+  = style:JoinStyle JOIN rightInput:JoinRightInput _ e:JoinExpr optArgs:(_ FlexAssignments)? {
       o := &ast.Join{
         Kind: "Join",
         Style: style.(string),
@@ -2155,7 +2155,7 @@ CrossJoinOp
   / _ CROSS _ JOIN _ 
 
 ConditionJoin
-  = left:FromElem style:SQLJoinStyle _ right:FromElem e:JoinExpr {
+  = left:FromElem style:SQLJoinStyle _ right:FromElem _ e:JoinExpr {
         return &ast.SQLJoin{
             Kind: "SQLJoin",
             Style: style.(string),
@@ -2173,14 +2173,14 @@ SQLJoinStyle
   / _ RIGHT (_ OUTER)? _ JOIN   { return "right", nil }
 
 JoinExpr 
-  = _ ON _ e:Expr { 
+  = ON _ e:Expr { 
         return &ast.JoinOnExpr{
             Kind: "JoinOnExpr", 
             Expr: e.(ast.Expr),
             Loc: loc(c),
         }, nil
     }
-  / _ USING __ "(" __ fields:Lvals __ ")" {
+  / USING __ "(" __ fields:Lvals __ ")" {
         return &ast.JoinUsingExpr{
             Kind: "JoinUsingExpr",
             Fields: sliceOf[ast.Expr](fields),
