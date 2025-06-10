@@ -199,24 +199,3 @@ func NewBinaryExpr(op string, lhs, rhs Expr) *BinaryExpr {
 		RHS:  rhs,
 	}
 }
-
-func IsThis(e Expr) bool {
-	if p, ok := e.(*This); ok {
-		return len(p.Path) == 0
-	}
-	return false
-}
-
-func IsTopLevelField(e Expr) bool {
-	_, ok := TopLevelField(e)
-	return ok
-}
-
-func TopLevelField(e Expr) (string, bool) {
-	if b, ok := e.(*This); ok {
-		if len(b.Path) == 1 {
-			return b.Path[0], true
-		}
-	}
-	return "", false
-}
