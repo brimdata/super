@@ -36,6 +36,10 @@ type joinSchema struct {
 	right schema
 }
 
+type joinUsingSchema struct {
+	*joinSchema
+}
+
 func (s *staticSchema) Name() string  { return s.name }
 func (d *dynamicSchema) Name() string { return d.name }
 func (*selectSchema) Name() string    { return "" }
@@ -111,6 +115,10 @@ func (j *joinSchema) resolveTable(table string) (schema, field.Path, error) {
 	return sch, append([]string{"right"}, path...), nil
 }
 
+func (j *joinUsingSchema) resolveTable(string) (schema, field.Path, error) {
+	return nil, nil, fmt.Errorf("table selection in USING clause not allowed")
+}
+
 func (*dynamicSchema) resolveColumn(col string) (field.Path, error) {
 	return field.Path{col}, nil
 }
@@ -153,6 +161,16 @@ func (j *joinSchema) resolveColumn(col string) (field.Path, error) {
 		return append([]string{"right"}, right...), nil
 	}
 	return nil, fmt.Errorf("%q: not found (%w, %w)", col, lerr, rerr)
+}
+
+func (j *joinUsingSchema) resolveColumn(col string) (field.Path, error) {
+	if _, err := j.left.resolveColumn(col); err != nil {
+		return nil, fmt.Errorf("column %q in USING clause does not exist in left table", col)
+	}
+	if _, err := j.right.resolveColumn(col); err != nil {
+		return nil, fmt.Errorf("column %q in USING clause does not exist in right table", col)
+	}
+	return field.Path{col}, nil
 }
 
 func (d *dynamicSchema) deref(name string) (dag.Expr, schema) {

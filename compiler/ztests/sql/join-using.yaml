@@ -1,0 +1,31 @@
+script: |
+  # XXX The result of the first query is incorrect because of yields in forks
+  super -s -I cte.spq -c 'select * from A A(x,y) join B B(x,y) using (y)'
+  ! super -s -I cte.spq -c 'select * from A A(x,y) join B B(x,y) using (A.y)'
+  ! super -s -I cte.spq -c 'select * from A A(x,y) join B B(x,z) using (y)'
+
+inputs:
+  - name: cte.spq
+    data: |
+      with A as (
+        values (1,'a'), (2,'b')
+      ),
+      B as (
+        values (3,'a'), (4,'b')
+      )
+
+outputs:
+  - name: stdout
+    data: |
+      {x:3,y:"a"}
+      {x:3,y:"a"}
+      {x:4,y:"b"}
+      {x:4,y:"b"}
+  - name: stderr
+    data: |
+      table selection in USING clause not allowed at line 1, column 45:
+      select * from A A(x,y) join B B(x,y) using (A.y)
+                                                  ~~~
+      column "y" in USING clause does not exist in right table at line 1, column 45:
+      select * from A A(x,y) join B B(x,z) using (y)
+                                                  ~

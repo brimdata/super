@@ -619,11 +619,22 @@ func (a *analyzer) semJoinCond(cond ast.JoinExpr) (dag.Expr, dag.Expr, error) {
 		if len(cond.Fields) > 1 {
 			return nil, nil, errors.New("join using currently limited to a single field")
 		}
-		key, ok := a.semField(cond.Fields[0]).(*dag.This)
-		if !ok {
-			return nil, nil, errors.New("join using key must be a field reference")
+		if a.scope.schema != nil {
+			sch := a.scope.schema.(*joinSchema)
+			a.scope.schema = &joinUsingSchema{sch}
+			defer func() { a.scope.schema = sch }()
 		}
-		return key, key, nil
+		e := a.semField(cond.Fields[0])
+		key, ok := e.(*dag.This)
+		if !ok {
+			return e, e, nil
+		}
+		leftKey, rightKey := key, key
+		if a.scope.schema != nil {
+			leftKey = &dag.This{Kind: "This", Path: append([]string{"left"}, key.Path...)}
+			rightKey = &dag.This{Kind: "This", Path: append([]string{"right"}, key.Path...)}
+		}
+		return leftKey, rightKey, nil
 	default:
 		panic(fmt.Sprintf("semJoinCond: unknown type: %T", cond))
 	}
