@@ -1,7 +1,7 @@
 # Introduction
 
 SuperDB is a new analytics database that fuses structured and semi-structured data
-in a new, unified data model called _super-structured data_.
+into a new, unified data model called _super-structured data_.
 With super-structured data,
 complex problems with modern data stacks become easier to tackle
 because relational tables and eclectic JSON data are treated in uniform way
@@ -72,22 +72,75 @@ For example, suppose this single line of JSON data is in a file called `example.
 ```json
 {"a":[1,"foo"]}
 ```
-This simple JSON causes schema inference to fail with errors for the common
-SQL implementations in DuckDB, ClickHouse, and DataFusion:
 
+> The simple literal `[1,"foo"]` is a contrived example
+> but imagine the common design pattern
+> of an API returning an array of JSON objects with varying shape
+> and you end up with the same mixed-type challenge.
+
+This simple JSON results in unpredictable schema inference.
+Clickhouse converts the JSON number `1` to a string:
+```sh
+$ clickhouse -q "SELECT * FROM 'example.json'"
+['1','foo']
+```
+DuckDB does not do schema infererence at all for the contents 
+of the array leaving the elements as type JSON:
+```sh
+$ duckdb -c "SELECT * FROM 'example.json'"
+┌──────────────┐
+│      a       │
+│    json[]    │
+├──────────────┤
+│ [1, '"foo"'] │
+└──────────────┘
+```
+And Datafusion simply fails with an error:
+```sh
+$ datafusion-cli -c "SELECT * FROM 'example.json'" 
+DataFusion CLI v46.0.1
+Error: Arrow error: Json error: whilst decoding field 'a': expected string got 1
+```
+It turns out there's no easy way to represent this straightforward
+literal array value `[1,'foo']` in these SQLs, e.g., simply including this
+value in a SQL expression results in errors:
+```sh
+$ clickhouse -q "SELECT [1,'foo']"
+Code: 386. DB::Exception: There is no supertype for types UInt8, String because some of them are String/FixedString/Enum and some of them are not. (NO_COMMON_TYPE)
+$ duckdb -c "SELECT [1,'foo']"
+Conversion Error:
+Could not convert string 'foo' to INT32
+
+LINE 1: SELECT [1,'foo']
+                  ^
+$ datafusion-cli -c "SELECT [1,'foo']" 
+DataFusion CLI v46.0.1
+Error: Arrow error: Cast error: Cannot cast string 'foo' to value of Int64 type
+```
 
 The more recent innovation of an open
 ["variant type"](https://github.com/apache/spark/blob/master/common/variant/README.md)
-is more general than JSON but 
-suffers from similar problems.  In both these cases, the JSON type and the variant 
-type are not individual types but rather entire types systems that differ 
+is more general than JSON but suffers from similar problems.
+In both these cases, the JSON type and the variant
+type are not individual types but rather entire type systems that differ 
 from the base relational type sysetem and so are shoehorned into the relational model
-as a specialized type to make it work.
+as a parallel type system masquerading as specialized type to make it all work.
 
-This kind of approach is known by programmers as a _hack_...
-a useful hack nonetheless, but maybe there is a better way?
+Maybe there is a better way?
 
 ## Enter Algebraic Types
+
+What's missing here is an easy and native way to represent mixed-type entities.
+In modern programming languages, such entities are enabled with a
+[sum type or tagged union](https://en.wikipedia.org/wiki/Tagged_union).
+
+While the original conception of the relational data model anticipated 
+"product types" --- in fact, describing a relation's schema in terms of
+a product type --- it unfortunately did not anticipate sum types.
+
+
+polymorphic sets...
+polymorphic algebra instead of relational algebra
 
 The JSON or variant concepts add dynamic typing inside of the relational model...
 
@@ -156,12 +209,12 @@ Error: Arrow error: Cast error: Cannot cast string 'foo' to value of Int64 type
 Array elements of types {INT64, STRING} do not have a common supertype
 ```
 
-> The example `[1,"foo"]` is contrived but imagine the common design pattern
-> of an API returning an array of JSON objects with varying shape
-> and you end up with the same mixed-type challenge.
+
 
 
 ## SuperSQL
+
+XXX Challenge of all this is then designing a query language
 
 These two very data styles are treated in the same way with a
 unified type system, unified query operators, and unfified storage formats.
