@@ -303,16 +303,18 @@ a modern pipe sytax suited for arbitrarily typed collections of data.
 
 In other words,
 SuperDB does not attempt to replace the relational model but rather leverages it
-in a more general approaach based on the super-structured data model:
+in a more general approaach based on the super-structured data model were:
 
-* SuperSQL is a superset of SQL
-* super-structured data model is a superset of the relational model
-* JSON easily and automatically represented with strong typing
-* a polymorphic algebra generalizes the relational algebra
-* it all has an efficient vectorized implementation
+* SuperSQL is a superset of SQL,
+* the super-structured data model is a superset of the relational model,
+* JSON easily and automatically represented with strong typing,
+* a polymorphic algebra generalizes the relational algebra, and
+* it all has an efficient vectorized implementation.
 
-If this has piqued you're interest at all, feel free to dive in deeper by
-* exploring the [SuperSQL](super-sql/intro.md) query language,
-* learning about the super-structured data model and formats underlyng SuperDB, or
-* browsing the tutorials.
+If this has piqued you're interest at all, feel free to dive in deeper:
+* explore the [SuperSQL](super-sql/intro.md) query language,
+* learn about the
+[super-structured data model](formats/model.md) and
+[formats](formats/intro.md) underlyng SuperDB, or
+* browse the [tutorials](tutorials/intro.md).
 

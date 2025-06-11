@@ -1,4 +1,4 @@
-## Data Model
+## Super-structured Data Model
 
 TODO: collection of strongly typed values instead of ordered sequence.
 
@@ -229,6 +229,8 @@ exceptions:
 > efficiently support schema versioning using such a convention.
 
 ### 4. Null Values
+
+TODO: this isn't right
 
 All data types have a null representation.  It is up to an
 implementation to decide how external data structures map into and
