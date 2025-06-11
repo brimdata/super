@@ -4,7 +4,7 @@ SuperDB is a new analytics database that fuses structured and semi-structured da
 into a unified data model called _super-structured data_.
 With super-structured data,
 complex problems with modern data stacks become easier to tackle
-because relational tables and eclectic JSON data are treated in uniform way
+because relational tables and eclectic JSON data are treated in a uniform way
 from the ground up.
 
 ## Super-structured Data
@@ -25,18 +25,28 @@ Thus, data in SuperDB is
 
 Self-describing data makes data easier: when transmitting data from one entity 
 to another there is no need for the two sides to agree up front what the schemas
-must be in order to communicate and land the data.
+must be in order to communicate and land the data.  Likewise, when extracting and
+serializing data from a query, there is never any loss of information as the 
+[super-structured formats](formats/intro.md)
+capture all aspects of the strongly-typed data whether in 
+[human-readable form](formats/sup.md),
+[binary row-like form](formats/bsup.md),
+or 
+[columnar-like form](formats/csup.md).
 
 ## The `super` Command
 
-SuperDB is implemented in a single, standalone executable called `super`.
+SuperDB is implemented in a single, standalone executable called
+[`super`](command.md).
 There are no external dependencies to futz with.
 Just [install the binary](getting-started/install.md) and you're off and running.
 
 SuperDB separates compute and storage and is decomposed into
-a runtime system that may be run directly
-on any data inputs like files, streams, or APIs,
-and a separate storage layer that rhymes in design with the emergent
+a runtime system that
+* runs directly on any data inputs like files, streams, or APIs, or 
+* manipulates and queries data in a persistant 
+storage layer &mdash; the
+[SuperDB lakehouse](lakehouse/intro.md) &mdash; that rhymes in design with the emergent
 [lakehouse pattern](https://www.cidrdb.org/cidr2021/papers/cidr2021_paper17.pdf)
 but is based on super-structured data.
 
@@ -138,7 +148,7 @@ In modern programming languages, such entities are enabled with a
 
 While the original conception of the relational data model anticipated 
 "product types" --- in fact, describing a relation's schema in terms of
-a product type --- it unfortunately did not anticipate sum types.
+a product type --- it unfortunately did not anticipate sum types:
 
 > While it didn't use the terminology of programming language types,
 > Codd's original paper on the relational model has a footnote that
