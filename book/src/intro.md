@@ -69,17 +69,17 @@ operators and behaviors that diverge from core SQL semantics, or
 rely upon schema inference to convert JSON into relational tables,
 which unfornately does not always work.
 
-For example, suppose this single line of JSON data is in a file called `example.json`:
+To understand the difficulty of schema inference,
+super this simple line of JSON data is in a file called `example.json`:
 ```json
 {"a":[1,"foo"]}
 ```
 
-> The simple literal `[1,"foo"]` is a contrived example
-> but imagine the common pattern
-> of an API returning an array of JSON objects with varying shape
-> and you end up with the same mixed-type challenge.
+> The literal `[1,"foo"]` is a contrived example but adequatedly 
+> represents the challenge of mixed-type JSON values, e.g.,
+> an API returning an array of JSON objects with varying shape.
 
-Surprisingly, this simple JSON results in unpredictable schema inference
+Surprisingly, this simple JSON input causes unpredictable schema inference
 across different SQL systems.
 Clickhouse converts the JSON number `1` to a string:
 ```sh
@@ -139,6 +139,14 @@ In modern programming languages, such entities are enabled with a
 While the original conception of the relational data model anticipated 
 "product types" --- in fact, describing a relation's schema in terms of
 a product type --- it unfortunately did not anticipate sum types.
+
+> While it didn't use the terminology of programming language types,
+> Codd's original paper on the relational model has a footnote that
+> essentially describes as a product type.
+>
+> ![Codd's footnote number 1](codd-footnote.png)
+>
+> But sum types were notably absent.
 
 Armed with both sum and product types, super-structured data provides a 
 comprehensive algebraic type system that can represent any
@@ -249,11 +257,11 @@ error({msg:"unknown shape",on:{kind:"square",side:1.5}})
 So what's going on here?  The data model here is acting both 
 as a strongly typed representation of JSON-like sequences as well as a 
 means to represent relational tables.  And SuperSQL is behaving like SQL
-when applied to table-like data, but at the same time is a  
+when applied to table-like data, but at the same time is a
 pipe-syntax language for arbitrarilty typed data.
-THe super-structured data model ties it all together.
+The super-structured data model ties it all together.
 
-Moreover, the runtime must handle arbitrarily typed data.  Hence, every 
+To make this all work, the runtime must handle arbitrarily typed data.  Hence, every 
 operator in the SuperSQL has defined behavior for every possible input type.
 This is the key point of departure for super-structured data: instead of the unit of processing being a relational table, which requires a staticly defined schema, the unit of processing is a collection of arbitrarily typed values.
 In a sense, SuperDB generalizes Codd's relational algebra to polymorphic operators.
@@ -278,85 +286,23 @@ these lessons step by step
 
 ## Summary and Next Steps
 
-Polymorphic algebra...
+To summarize, SuperDB provides a unified approach to analytics for eclectic JSON data
+and uniformly typed relational tables.  It does so in a SQL compatible fashion when 
+data looks like relational tables while offering 
+a modern pipe sytax suited for arbitrarily typed collections of data.
+
+In other words,
+SuperDB does not attempt to replace the relational model but rather leverages it
+in a more general approaach based on the super-structured data model:
 
 * SuperSQL is a superset of SQL
 * super-structured data model is a superset of the relational model
 * JSON easily and automatically represented with strong typing
+* a polymorphic algebra generalizes the relational algebra
+* it all has an efficient vectorized implementation
 
-Embodied in an efficient runtime
-
-Next steps
-* explore the SuperSQL query language,
-* learn about the super-structured data model and formats underlyng SuperDB, or
-* browse the tutorials.
-
-Static analysis is really important and valuable and a big part of the s
-success of the relational model.
-How do we turn the dynamic problem into a static problem?
-
-Problems:
-* cast
-* sql requires static analysis and casts of JSON values
-* schema inference 
-
-SuperDB does not propose to replace the RM...
-
-XXX JSON or a variant type...
-require casts
-
-SECTION ON POLYMORPHIC
-
-The SuperDB foundations are built on the idea that the databade industry has 
-the model inside out.  Instead of putting eclectic data like JSON inside the
-static world of a relational column, then inventing all sorts of new functionality
-inside of 
-
-DBT jobs taking forever to finish only to discover an error.
-SQL++ doesn't have strong types so can't solve the problem.
-
-XXX The pivot
-
-There should be one way of doing things but people love their SQL.
-So we solve the GOes-around problem with SuperSQL scoping model:
-a separation of SQL operators and pipe operators.
-
-Codd footnote missing sum types
-
-strong typing...
-new set of formats with proper sum types
-se
-
-XXX clarify db vs super, connect to an instance vs operate directly on inputs
-
-XXX currently no support for connecting to relational systems and open Lake formats,
-but that may come...
-
-XXX In a block quote:
-XXX ref PRQL, Against SQL, Google Pipes paper, sane QL paper, SQL++
-
-XXX discuss types scaling
-
-## SuperSQL
-
-XXX Challenge of all this is then designing a query language
-
-These two very data styles are treated in the same way with a
-unified type system, unified query operators, and unfified storage formats.
-There's not a "relational way of doings things" and a different "JSON way of
-doing things".
-
-SuperDB is also good for analytics as a vectorized query runtime built natively
-upon on the super-structured data model lies at its foundation.
-
-* x thumbnail about super-structured data
-* command... back off on lakehouse
-* data model
-* supersql
-* lakehouse
-
-Build up to super-structured collections
-... order
-... etc
-put somewhere else
+If this has piqued you're interest at all, feel free to dive in deeper by
+* exploring the [SuperSQL](super-sql/intro.md) query language,
+* learning about the super-structured data model and formats underlyng SuperDB, or
+* browsing the tutorials.
 
