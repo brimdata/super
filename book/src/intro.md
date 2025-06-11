@@ -15,7 +15,7 @@ as they can be modeled as super-structured types.
 
 More specifically, a _relational table_  is simply a collection of tuples
 defined by a statically typed record,
-while a collection of dynamic but strongly-typed
+whereas a collection of dynamic but strongly-typed
 data can model any sequence of JSON values, e.g., observability data,
 application events, system logs, and so forth.
 
@@ -187,16 +187,18 @@ representing the type array of elements of a sum type of `int64` and `string`.
 
 Since super-structured data is a superset of the relational model, it turns out that
 a query language for super-structured data can be devised that is a superset of SQL.
-The SuperDB query language is a Pipe SQL adapted for super-structured data
-scalled _SuperSQL_.
+The SuperDB query language is a
+[Pipe SQL](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/)
+adapted for super-structured data scalled
+[_SuperSQL_](super-sql/intro.md).
 
 SuperSQL is particularly well suited for data-wrangling use cases like
 ETL and data exploration and discovery.  Syntactic shortcuts, keyword search,
 and SuperDB Desktop make interactively querying data a breeze.
 
 Instead of operating upon staticly typed relational tables as SQL does,
-SuperSQL operates on collections of arbitrarily typed data.
-When such data happens to look like a table, the SuperSQL can work just 
+SuperSQL operates super-structured data.
+When such data happens to look like a table, then SuperSQL can work just 
 like SQL:
 ```sh
 $ super -c '''
@@ -208,15 +210,15 @@ SELECT a+b AS x, a-b AS y FROM (
 {x:3,y:3}
 ```
 But when data does not conform to the relational model, SuperSQL can 
-still handle it with its polymorphic runtime:
+still handle it with its super-structured runtime:
 ```sh
 $ super -c """
 SELECT avg(radius) as R, avg(width) as W FROM (
-    yield
-      {kind:'circle',radius:1.5},
-      {kind:'rect',width:2.0,height:1.0},
-      {kind:'circle',radius:2},
-      {kind:'rect',width:1.0,height:3.5}
+  yield
+    {kind:'circle',radius:1.5},
+    {kind:'rect',width:2.0,height:1.0},
+    {kind:'circle',radius:2},
+    {kind:'rect',width:1.0,height:3.5}
 )
 """
 {R:1.75,W:1.5}
@@ -280,30 +282,30 @@ the polymorphic algebra of super-structured data implemented by SuperDB.
 
 ## Performance
 
-A challenge of super-structured data model is that it is inherently more complex
+The super-structured data model is inherently more complex
 than the relational model and thus poses performance challenges.
 
-That said, the relational model is a special case of the super-structured model
-so the myriad of optimization techniques developed for SQL and the relational 
-model apply when super-structured data is homogeneously typed.  Moreover, it turns 
+But since the relational model is a special case of the super-structured model,
+the myriad of optimization techniques developed for SQL and the relational 
+model can apply when super-structured data is homogeneously typed.  Moreover, it turns 
 out that you can implement a vectorized runtime for super-structured data by 
 organizing the data into vectorized units based on types instead of relational columns.
 
-While SuperDB is not setting speed records for relational queries, it's performance
+While SuperDB is not yet setting speed records for relational queries, it's performance
 for an early system is decent and will continue to improve.
 SQL and the RM have had 55 years to mature and improve and SuperDB is applying 
-these lessons step by step 
+these lessons step by step.
 
-## Summary and Next Steps
+## Summary
 
 To summarize, SuperDB provides a unified approach to analytics for eclectic JSON data
 and uniformly typed relational tables.  It does so in a SQL compatible fashion when 
 data looks like relational tables while offering 
-a modern pipe sytax suited for arbitrarily typed collections of data.
+a modern pipe syntax suited for arbitrarily typed collections of data.
 
 In other words,
 SuperDB does not attempt to replace the relational model but rather leverages it
-in a more general approaach based on the super-structured data model were:
+in a more general approaach based on the super-structured data model where:
 
 * SuperSQL is a superset of SQL,
 * the super-structured data model is a superset of the relational model,
@@ -311,7 +313,10 @@ in a more general approaach based on the super-structured data model were:
 * a polymorphic algebra generalizes the relational algebra, and
 * it all has an efficient vectorized implementation.
 
-If this has piqued you're interest at all, feel free to dive in deeper:
+## Next Steps
+
+If SuperDB or super-structured data has piqued you're interest at all,
+feel free to dive in deeper:
 * explore the [SuperSQL](super-sql/intro.md) query language,
 * learn about the
 [super-structured data model](formats/model.md) and
