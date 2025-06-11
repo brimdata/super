@@ -13,6 +13,7 @@ The easiest way to work on docs is to run an mdbook service in this directory
 and point your browser at its embedded web server, e.g., 
 ```
 cd book
+make
 mdbook serve
 ```
 Then connect to [localhost:3000](http://localhost:3000).

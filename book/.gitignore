@@ -1,1 +1,9 @@
 book
+
+bin
+node_modules
+package-lock.json
+pkg
+src/superdb.wasm
+super-playground-bundle.js
+wasm_exec.js
