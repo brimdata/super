@@ -1,8 +1,6 @@
 # Getting Started
 
-TODO: rework this section x
-
-
+TODO: rework this section
 
 Trying out SuperDB is easy: just [install](install.md) the command-line tool
 [`super`](../commands.md) and run through its [usage documentation](../commands.md).
