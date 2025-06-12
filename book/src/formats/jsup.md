@@ -1,4 +1,4 @@
-## Super JSON (JSUP) Format Specification
+## Super JSON (JSUP) Format
 
 ### 1. Introduction
 

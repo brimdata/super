@@ -149,6 +149,7 @@
     - [Syntax](super-sql/syntax.md)
     - [Pipe Symbol](super-sql/pipe-symbol.md)
 - [Tutorials](tutorials/intro.md)
+    - [Super-structured Data](tutorials/super-structured.md)
     - [Pipe Joins](tutorials/join.md)
     - [Shaping](tutorials/shaping.md)
     - [Lakehouse](tutorials/lakehouse.md)

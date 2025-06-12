@@ -1,4 +1,4 @@
-## Super Column (CSUP) Format Specification
+## Super Column (CSUP) Format
 
 Super Columnar (CSUP) is a file format based on
 the [super data model](data-model.md) where data is stacked to form columns.

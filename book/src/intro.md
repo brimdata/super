@@ -1,7 +1,7 @@
 # Introduction
 
 SuperDB is a new analytics database that fuses structured and semi-structured data
-into a unified data model called _super-structured data_.
+into a unified data model called [_super-structured data_](formats/model.md).
 With super-structured data,
 complex problems with modern data stacks become easier to tackle
 because relational tables and eclectic JSON data are treated in a uniform way
@@ -147,8 +147,8 @@ In modern programming languages, such entities are enabled with a
 [sum type or tagged union](https://en.wikipedia.org/wiki/Tagged_union).
 
 While the original conception of the relational data model anticipated 
-"product types" --- in fact, describing a relation's schema in terms of
-a product type --- it unfortunately did not anticipate sum types:
+"product types" &mdash; in fact, describing a relation's schema in terms of
+a product type &mdash; it unfortunately did not anticipate sum types:
 
 > While it didn't use the terminology of programming language types,
 > Codd's original paper on the relational model has a footnote that
@@ -196,7 +196,7 @@ SuperSQL is particularly well suited for data-wrangling use cases like
 ETL and data exploration and discovery.  Syntactic shortcuts, keyword search,
 and SuperDB Desktop make interactively querying data a breeze.
 
-Instead of operating upon staticly typed relational tables as SQL does,
+Instead of operating upon statically typed relational tables as SQL does,
 SuperSQL operates super-structured data.
 When such data happens to look like a table, then SuperSQL can work just 
 like SQL:
@@ -236,34 +236,17 @@ yield
   {kind:'circle',radius:2},
   {kind:'rect',width:1.0,height:3.5}
 | switch kind (
-    case 'circle' => R:=avg(radius)
-    case 'rect' => width:=width*2
-    default => yield error({msg:'unknown shape',on:this})
-  )
+    case 'circle' (
+        R:=avg(radius)
+    )
+    case 'rect' (
+        width:=width*2
+    )
+  )  
 """
 {R:1.75}
 {kind:"rect",width:4.,height:1.}
 {kind:"rect",width:2.,height:3.5}
-```
-Now if an unknown type shows up, here's what happens:
-```
-$ super -c """
-yield
-  {kind:'circle',radius:1.5},
-  {kind:'rect',width:2.0,height:1.0},
-  {kind:'circle',radius:2},
-  {kind:'rect',width:1.0,height:3.5},
-  {kind:'square',side:1.5}
-| switch kind (
-    case 'circle' => R:=avg(radius)
-    case 'rect' => width:=width*2
-    default => yield error({msg:'unknown shape',on:this})
-  )
-"""
-{R:1.75}
-{kind:"rect",width:4.,height:1.}
-{kind:"rect",width:2.,height:3.5}
-error({msg:"unknown shape",on:{kind:"square",side:1.5}})
 ```
 
 So what's going on here?  The data model here is acting both 
@@ -275,7 +258,7 @@ The super-structured data model ties it all together.
 
 To make this all work, the runtime must handle arbitrarily typed data.  Hence, every 
 operator in the SuperSQL has defined behavior for every possible input type.
-This is the key point of departure for super-structured data: instead of the unit of processing being a relational table, which requires a staticly defined schema, the unit of processing is a collection of arbitrarily typed values.
+This is the key point of departure for super-structured data: instead of the unit of processing being a relational table, which requires a statically defined schema, the unit of processing is a collection of arbitrarily typed values.
 In a sense, SuperDB generalizes Codd's relational algebra to polymorphic operators.
 All of Codd's relational operators can be recast in this fashion forming
 the polymorphic algebra of super-structured data implemented by SuperDB.

@@ -1,9 +1,9 @@
-## Super Binary (BSUP) Format Sepecficiation
+## Super Binary (BSUP) Format
 
 ### 1. Introduction
 
-Super Binary (BSUP) is an efficient, sequence-oriented serialization format for any data
-conforming to the [super data model](data-model.md).
+Super Binary (BSUP) is an efficient, sequence-oriented serialization format for
+[super-structured data](model.md).
 
 BSUP is "row oriented" and
 analogous to [Apache Avro](https://avro.apache.org) but does not

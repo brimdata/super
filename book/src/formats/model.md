@@ -1,8 +1,6 @@
 ## Super-structured Data Model
 
-TODO: collection of strongly typed values instead of ordered sequence.
-
-Super-structured data is defined as an ordered sequence of one or more typed data values.
+Super-structured data is a collection of one or more typed data values.
 Each value's type is either a "primitive type", a "complex type", the "type type",
 a "named type", or the "null type".
 
@@ -12,7 +10,7 @@ Primitive types include signed and unsigned integers, IEEE binary and decimal
 floating point, string, byte sequence, Boolean, IP address, IP network,
 null, and a first-class type _type_.
 
-There are 30 types of primitive values with syntax defined as follows:
+There are 30 types of primitive values defined as follows:
 
 | Name       | Definition                                      |
 |------------|-------------------------------------------------|
