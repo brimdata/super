@@ -11,10 +11,9 @@ outputs:
           from b
         ) on c
         ===
-        file a
-        | fork (
+        fork (
           =>
-            pass
+            file a
           =>
             file b
         )

@@ -56,10 +56,9 @@ outputs:
       | yield c
       | output main
       === join
-      file file1 unordered fields a,c
-      | fork (
+      fork (
         =>
-          pass
+          file file1 unordered fields a,c
         =>
           file file2 unordered fields a,b
       )

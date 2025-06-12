@@ -549,7 +549,7 @@ func (a *analyzer) semSQLJoin(join *ast.SQLJoin, seq dag.Seq) (dag.Seq, schema) 
 	}
 	par := &dag.Fork{
 		Kind:  "Fork",
-		Paths: []dag.Seq{{dag.PassOp}, rightSeq},
+		Paths: []dag.Seq{leftSeq, rightSeq},
 	}
 	dagJoin := &dag.Join{
 		Kind:     "Join",
@@ -560,7 +560,7 @@ func (a *analyzer) semSQLJoin(join *ast.SQLJoin, seq dag.Seq) (dag.Seq, schema) 
 		RightKey: rightKey,
 		Args:     []dag.Assignment{assignment},
 	}
-	return append(append(leftSeq, par), dagJoin), sch
+	return dag.Seq{par, dagJoin}, sch
 }
 
 var badJoinCond = errors.New("bad join condition")

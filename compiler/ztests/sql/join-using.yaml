@@ -1,5 +1,4 @@
 script: |
-  # XXX The result of the first query is incorrect because of yields in forks
   super -s -I cte.spq -c 'select * from A A(x,y) join B B(x,y) using (y)'
   ! super -s -I cte.spq -c 'select * from A A(x,y) join B B(x,y) using (A.y)'
   ! super -s -I cte.spq -c 'select * from A A(x,y) join B B(x,z) using (y)'
@@ -18,8 +17,6 @@ outputs:
   - name: stdout
     data: |
       {x:3,y:"a"}
-      {x:3,y:"a"}
-      {x:4,y:"b"}
       {x:4,y:"b"}
   - name: stderr
     data: |

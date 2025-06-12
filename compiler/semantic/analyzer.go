@@ -66,7 +66,12 @@ func HasSource(seq dag.Seq) bool {
 	case *dag.FileScan, *dag.HTTPScan, *dag.PoolScan, *dag.LakeMetaScan, *dag.PoolMetaScan, *dag.CommitMetaScan, *dag.DeleteScan, *dag.NullScan:
 		return true
 	case *dag.Fork:
-		return HasSource(op.Paths[0])
+		for _, path := range op.Paths {
+			if !HasSource(path) {
+				return false
+			}
+		}
+		return true
 	case *dag.Scope:
 		return HasSource(op.Body)
 	}

@@ -57,10 +57,9 @@ outputs:
           a+b
         )
         
-        file fruit.json
-        | fork (
+        fork (
           =>
-            pass
+            file fruit.json
           =>
             file people.json
         )

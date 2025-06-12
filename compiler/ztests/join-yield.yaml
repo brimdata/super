@@ -1,0 +1,15 @@
+script: |
+  super -s -c 'from input.sup
+               | join (yield {x:3,y:"a"}, {x:4,y:"b"}) on y'
+
+inputs:
+  - name: input.sup
+    data: |
+      {x:1,y:"a"}
+      {x:2,y:"b"}
+
+outputs:
+  - name: stdout
+    data: |
+      {x:1,y:"a"}
+      {x:2,y:"b"}

@@ -819,11 +819,13 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 			Args:     a.semAssignments(o.Args),
 		}
 		if rightInput != nil {
-			par := &dag.Fork{
-				Kind:  "Fork",
-				Paths: []dag.Seq{{dag.PassOp}, rightInput},
+			if len(seq) == 0 {
+				seq = dag.Seq{dag.PassOp}
 			}
-			seq = append(seq, par)
+			return dag.Seq{
+				&dag.Fork{Kind: "Fork", Paths: []dag.Seq{seq, rightInput}},
+				join,
+			}
 		}
 		return append(seq, join)
 	case *ast.Explode:
