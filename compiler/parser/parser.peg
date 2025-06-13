@@ -1944,7 +1944,7 @@ SQLPipe
         }, nil
     }
 
-SelectOp = !"(" op:SelectExpr { return op, nil}
+SelectOp = SelectExpr
 
 SelectExpr 
   = with:OptWithClause
