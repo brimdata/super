@@ -8,8 +8,8 @@ title = "SuperDB"
 enable = true
 
 [output.html]
-additional-css = ["super-playground.css"]
-additional-js = ["wasm_exec.js", "super-playground-bundle.js"]
+additional-css = ["super-playground/super-playground.css"]
+additional-js = ["super-playground/super-playground-bundle.js"]
 # This directive embeds content hashes in the certain asset file names 
 # to work around a problem where cached files cause the sidebar not to reflect
 # changes to SUMMARY.md.  See https://github.com/rust-lang/mdBook/issues/2547
