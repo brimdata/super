@@ -131,4 +131,7 @@ for (const [i, pre] of preNodes.entries()) {
   }
 
   SuperPlayground.setup(node);
+
+  // Prevent keydown from bubbling up to book.js listeners.
+  node.addEventListener('keydown', (e) => e.stopPropagation());
 }
