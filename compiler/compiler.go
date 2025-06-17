@@ -21,14 +21,18 @@ type compiler struct {
 }
 
 func NewCompiler(local storage.Engine) runtime.Compiler {
-	return &compiler{env: exec.NewEnvironment(local, nil)}
+	return NewCompilerWithEnv(exec.NewEnvironment(local, nil))
 }
 
 func NewLakeCompiler(lk *lake.Root) runtime.Compiler {
 	// We configure a remote storage engine into the lake compiler so that
 	// "from" operators that source http or s3 will work, but stdio and
 	// file system accesses will be rejected at open time.
-	return &compiler{env: exec.NewEnvironment(storage.NewRemoteEngine(), lk)}
+	return NewCompilerWithEnv(exec.NewEnvironment(storage.NewRemoteEngine(), lk))
+}
+
+func NewCompilerWithEnv(env *exec.Environment) runtime.Compiler {
+	return &compiler{env}
 }
 
 func (c *compiler) NewQuery(rctx *runtime.Context, ast *parser.AST, readers []zio.Reader, parallelism int) (runtime.Query, error) {

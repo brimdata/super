@@ -15,9 +15,6 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/runtime/sam/op"
-	"github.com/brimdata/super/runtime/vam"
-	vamop "github.com/brimdata/super/runtime/vam/op"
-	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio"
 )
@@ -112,37 +109,6 @@ func bundleOutputs(rctx *runtime.Context, outputs map[string]zbuf.Puller) zbuf.P
 	default:
 		return op.NewMux(rctx, outputs)
 	}
-}
-
-// VectorCompile is used for testing queries over single CSUP object scans
-// where the entire query is vectorizable.  It does not call optimize
-// nor does it compute the demand of the query to prune the projection
-// from the vcache.
-func VectorCompile(rctx *runtime.Context, query string, puller vector.Puller) (zbuf.Puller, error) {
-	ast, err := parser.ParseQuery(query)
-	if err != nil {
-		return nil, err
-	}
-	env := &exec.Environment{}
-	entry, err := semantic.Analyze(rctx.Context, ast, env, true)
-	if err != nil {
-		return nil, err
-	}
-	if _, ok := entry[0].(*dag.DefaultScan); !ok {
-		panic("DAG assumptions violated")
-	}
-	entry = entry[1:]
-	builder := kernel.NewBuilder(rctx, env)
-	outputs, err := builder.BuildWithPuller(entry, puller)
-	if err != nil {
-		return nil, err
-	}
-	if len(outputs) == 1 {
-		puller = outputs[0]
-	} else {
-		puller = vamop.NewCombine(rctx, outputs)
-	}
-	return vam.NewMaterializer(puller), nil
 }
 
 func VectorFilterCompile(rctx *runtime.Context, query string, env *exec.Environment, head *lakeparse.Commitish) (zbuf.Puller, error) {

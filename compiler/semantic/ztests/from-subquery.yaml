@@ -2,8 +2,5 @@ spq: select T.x from (select 1 as x, 2 as y) T
 
 vector: true
 
-input: |
-  null
-
 output: |
   {x:1}

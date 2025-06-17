@@ -25,6 +25,7 @@ var unpacker = unpack.New(
 	ConstDecl{},
 	Cut{},
 	Debug{},
+	DefaultScan{},
 	DefValue{},
 	DoubleQuote{},
 	Drop{},

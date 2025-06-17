@@ -15,18 +15,20 @@ import (
 // Analyze performs a semantic analysis of the AST, translating it from AST
 // to DAG form, resolving syntax ambiguities, and performing constant propagation.
 // After semantic analysis, the DAG is ready for either optimization or compilation.
-func Analyze(ctx context.Context, ast *parser.AST, env *exec.Environment, extInput bool) (dag.Seq, error) {
-	files := ast.Files()
+func Analyze(ctx context.Context, p *parser.AST, env *exec.Environment, extInput bool) (dag.Seq, error) {
+	files := p.Files()
 	a := newAnalyzer(ctx, files, env)
-	seq := a.semSeq(ast.Parsed())
+	astseq := p.Parsed()
+	if extInput {
+		astseq.Prepend(&ast.DefaultScan{Kind: "DefaultScan"})
+	}
+	seq := a.semSeq(astseq)
 	if !HasSource(seq) {
 		if a.env.IsLake() {
 			if len(seq) == 0 {
 				return nil, errors.New("query text is missing")
 			}
 			seq.Prepend(&dag.NullScan{Kind: "NullScan"})
-		} else if extInput {
-			seq.Prepend(&dag.DefaultScan{Kind: "DefaultScan"})
 		} else {
 			// This is a local query and there's no external input
 			// (i.e., no command-line file args)
@@ -63,7 +65,7 @@ func HasSource(seq dag.Seq) bool {
 		return false
 	}
 	switch op := seq[0].(type) {
-	case *dag.FileScan, *dag.HTTPScan, *dag.PoolScan, *dag.LakeMetaScan, *dag.PoolMetaScan, *dag.CommitMetaScan, *dag.DeleteScan, *dag.NullScan:
+	case *dag.FileScan, *dag.HTTPScan, *dag.PoolScan, *dag.LakeMetaScan, *dag.PoolMetaScan, *dag.CommitMetaScan, *dag.DeleteScan, *dag.NullScan, *dag.DefaultScan:
 		return true
 	case *dag.Fork:
 		for _, path := range op.Paths {

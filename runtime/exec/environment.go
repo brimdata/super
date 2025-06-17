@@ -41,6 +41,10 @@ func (e *Environment) UseVAM() bool {
 	return e.useVAM
 }
 
+func (e *Environment) SetUseVAM() {
+	e.useVAM = true
+}
+
 func (e *Environment) IsLake() bool {
 	return e.lake != nil
 }

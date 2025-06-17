@@ -640,6 +640,9 @@ type (
 		Meta    *Name  `json:"meta"`
 		Loc     `json:"loc"`
 	}
+	DefaultScan struct {
+		Kind string `json:"kind" unpack:""`
+	}
 	Delete struct {
 		Kind   string       `json:"kind" unpack:""`
 		Pool   string       `json:"pool"`
@@ -647,6 +650,9 @@ type (
 		Loc    `json:"loc"` // dummy field, not needed except to implement Node
 	}
 )
+
+func (d *DefaultScan) Pos() int { return -1 }
+func (d *DefaultScan) End() int { return -1 }
 
 type PoolArgs struct {
 	Kind   string `json:"kind" unpack:""`
@@ -735,6 +741,7 @@ func (*Fuse) OpAST()         {}
 func (*Join) OpAST()         {}
 func (*Shape) OpAST()        {}
 func (*From) OpAST()         {}
+func (*DefaultScan) OpAST()  {}
 func (*Explode) OpAST()      {}
 func (*Merge) OpAST()        {}
 func (*Over) OpAST()         {}

@@ -137,7 +137,7 @@ import (
 	"github.com/brimdata/super/compiler"
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/runtime/vam"
+	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/anyio"
@@ -258,13 +258,13 @@ type ZTest struct {
 	Tag  string `yaml:"tag,omitempty"`
 
 	// For Zed-style tests.
-	Zed         string `yaml:"spq,omitempty"`
-	Input       string `yaml:"input,omitempty"`
-	InputFlags  string `yaml:"input-flags,omitempty"`
-	Output      string `yaml:"output,omitempty"`
-	OutputFlags string `yaml:"output-flags,omitempty"`
-	Error       string `yaml:"error,omitempty"`
-	Vector      bool   `yaml:"vector"`
+	Zed         string  `yaml:"spq,omitempty"`
+	Input       *string `yaml:"input,omitempty"`
+	InputFlags  string  `yaml:"input-flags,omitempty"`
+	Output      string  `yaml:"output,omitempty"`
+	OutputFlags string  `yaml:"output-flags,omitempty"`
+	Error       string  `yaml:"error,omitempty"`
+	Vector      bool    `yaml:"vector"`
 
 	// For script-style tests.
 	Script  string   `yaml:"script,omitempty"`
@@ -468,17 +468,21 @@ func runsh(path, testDir, tempDir string, zt *ZTest, extraEnv ...string) error {
 // runseq runs zedProgram over input and returns the output.  input
 // may be in any format recognized by "super -i auto" and may be gzip-compressed.
 // outputFlags may contain any flags accepted by cli/outputflags.Flags.
-func runseq(zedProgram, input string, outputFlags []string, inputFlags []string) (string, error) {
+func runseq(zedProgram string, input *string, outputFlags []string, inputFlags []string) (string, error) {
 	ast, err := parser.ParseQuery(zedProgram)
 	if err != nil {
 		return "", err
 	}
 	sctx := super.NewContext()
-	zrc, err := newInputReader(sctx, input, inputFlags)
-	if err != nil {
-		return "", err
+	var readers []zio.Reader
+	if input != nil {
+		zrc, err := newInputReader(sctx, *input, inputFlags)
+		if err != nil {
+			return "", err
+		}
+		defer zrc.Close()
+		readers = []zio.Reader{zrc}
 	}
-	defer zrc.Close()
 	var outflags outputflags.Flags
 	var flags flag.FlagSet
 	outflags.SetFlags(&flags)
@@ -493,7 +497,7 @@ func runseq(zedProgram, input string, outputFlags []string, inputFlags []string)
 	if err != nil {
 		return "", err
 	}
-	q, err := runtime.CompileQuery(context.Background(), sctx, compiler.NewCompiler(nil), ast, []zio.Reader{zrc})
+	q, err := runtime.CompileQuery(context.Background(), sctx, compiler.NewCompiler(nil), ast, readers)
 	if err != nil {
 		zw.Close()
 		return "", err
@@ -506,7 +510,11 @@ func runseq(zedProgram, input string, outputFlags []string, inputFlags []string)
 	return outbuf.String(), err
 }
 
-func runvec(zedProgram string, input string, outputFlags, inputFlags []string) (string, error) {
+func runvec(zedProgram string, input *string, outputFlags, inputFlags []string) (string, error) {
+	ast, err := parser.ParseQuery(zedProgram)
+	if err != nil {
+		return "", err
+	}
 	var flags flag.FlagSet
 	var outflags outputflags.Flags
 	outflags.SetFlags(&flags)
@@ -517,22 +525,28 @@ func runvec(zedProgram string, input string, outputFlags, inputFlags []string) (
 		return "", err
 	}
 	sctx := super.NewContext()
-	zrc, err := newInputReader(sctx, input, inputFlags)
+	var readers []zio.Reader
+	if input != nil {
+		zrc, err := newInputReader(sctx, *input, inputFlags)
+		if err != nil {
+			return "", err
+		}
+		defer zrc.Close()
+		readers = []zio.Reader{zrc}
+	}
+	env := exec.NewEnvironment(nil, nil)
+	env.SetUseVAM()
+	q, err := runtime.CompileQuery(context.Background(), sctx, compiler.NewCompilerWithEnv(env), ast, readers)
 	if err != nil {
 		return "", err
 	}
-	d := vam.NewDematerializer(zbuf.NewPuller(zrc))
-	rctx := runtime.NewContext(context.Background(), sctx)
-	puller, err := compiler.VectorCompile(rctx, zedProgram, d)
-	if err != nil {
-		return "", err
-	}
+	defer q.Pull(true)
 	var outbuf bytes.Buffer
 	zw, err := anyio.NewWriter(zio.NopCloser(&outbuf), outflags.Options())
 	if err != nil {
 		return "", err
 	}
-	err = zbuf.CopyPuller(zw, puller)
+	err = zbuf.CopyPuller(zw, q)
 	if err2 := zw.Close(); err == nil {
 		err = err2
 	}

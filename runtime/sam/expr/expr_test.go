@@ -16,7 +16,7 @@ func testSuccessful(t *testing.T, e, input, expected string) {
 	}
 	zt := ztest.ZTest{
 		Zed:    fmt.Sprintf("yield %s", e),
-		Input:  input,
+		Input:  &input,
 		Output: expected + "\n",
 	}
 	if err := zt.RunInternal(); err != nil {

@@ -75,8 +75,8 @@ func loadZTestInputsAndOutputs(ztestDirs map[string]struct{}) (map[string]string
 			return nil, err
 		}
 		for _, b := range bundles {
-			if i := b.Test.Input; isValid(i) {
-				out[b.FileName+"/input"] = i
+			if i := b.Test.Input; i != nil && isValid(*i) {
+				out[b.FileName+"/input"] = *i
 			}
 			if o := b.Test.Output; isValid(o) {
 				out[b.FileName+"/output"] = o

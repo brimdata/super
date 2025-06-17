@@ -580,6 +580,8 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 	case *ast.From:
 		seq, _ := a.semFrom(o, seq)
 		return seq
+	case *ast.DefaultScan:
+		return append(seq, &dag.DefaultScan{Kind: "DefaultScan"})
 	case *ast.Delete:
 		if len(seq) > 0 {
 			panic("analyzer.SemOp: delete scan cannot have parent in AST")
