@@ -579,12 +579,16 @@ type (
 		Loc  `json:"loc"`
 	}
 	Join struct {
-		Kind       string      `json:"kind" unpack:""`
-		Style      string      `json:"style"`
-		RightInput Seq         `json:"right_input"`
-		Cond       JoinExpr    `json:"cond"`
-		Args       Assignments `json:"args"`
+		Kind       string     `json:"kind" unpack:""`
+		Style      string     `json:"style"`
+		RightInput Seq        `json:"right_input"`
+		Alias      *JoinAlias `json:"alias"`
+		Cond       JoinExpr   `json:"cond"`
 		Loc        `json:"loc"`
+	}
+	JoinAlias struct {
+		Left, Right *ID
+		Loc         `json:"loc"`
 	}
 	Sample struct {
 		Kind string `json:"kind" unpack:""`

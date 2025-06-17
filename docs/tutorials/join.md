@@ -47,7 +47,8 @@ The query `inner-join.spq`:
 file fruit.json
 | inner join (
   file people.json
-) on flavor=likes eater:=name
+) as {f,p} on f.flavor=p.likes
+| yield {...f, eater:p.name}
 ```
 
 Executing the query:
@@ -84,7 +85,9 @@ The query `left-join.spq`:
 file fruit.json
 | left join (
   file people.json
-) on flavor=likes eater:=name,age
+) as {f,p} on f.flavor=p.likes
+| f.eater := p.name, f.age := p.age
+| yield f
 ```
 
 Executing the query:
@@ -95,7 +98,7 @@ super -s -I left-join.spq
 produces
 ```mdtest-output
 {name:"figs",color:"brown",flavor:"plain",eater:"jessie",age:30}
-{name:"avocado",color:"green",flavor:"savory"}
+{name:"avocado",color:"green",flavor:"savory",eater:error("missing"),age:error("missing")}
 {name:"banana",color:"yellow",flavor:"sweet",eater:"quinn",age:14}
 {name:"strawberry",color:"red",flavor:"sweet",eater:"quinn",age:14}
 {name:"dates",color:"brown",flavor:"sweet",note:"in season",eater:"quinn",age:14}
@@ -119,7 +122,9 @@ The query `right-join.spq`:
 file fruit.json
 | right join (
   file people.json
-) on flavor=likes fruit:=name
+) as {f,p} on f.flavor=p.likes
+| p.fruit:=f.name
+| yield p
 ```
 Executing the query:
 ```mdtest-command
@@ -152,7 +157,8 @@ The query `anti-join.spq`:
 file fruit.json
 | anti join (
   file people.json
-) on flavor=likes
+) as {fruit,people} on fruit.flavor=people.likes
+| yield fruit
 ```
 Executing the query:
 ```mdtest-command
@@ -180,7 +186,8 @@ The query `inner-join-pools.spq`:
 from fruit
 | inner join (
   from people
-) on flavor=likes eater:=name
+) as {fruit,people} on fruit.flavor=people.likes
+| yield {...fruit, eater:people.name}
 ```
 
 Populating the pools, then executing the query:
@@ -220,7 +227,8 @@ The query `inner-join-alternate.spq`:
 from (
   file fruit.json
   file people.json
-) | inner join on flavor=likes eater:=name
+) | inner join as {fruit,people} on fruit.flavor=people.likes
+| yield {...fruit, eater:people.name}
 ```
 
 Executing the query:
@@ -254,7 +262,8 @@ The query `inner-join-streamed.spq`:
 switch (
   case has(color) => pass
   case has(age) => pass
-) | inner join on flavor=likes eater:=name
+) | inner join as {fruit,people} on fruit.flavor=people.likes
+| yield {...fruit, eater:people.name}
 ```
 
 Executing the query:
@@ -300,7 +309,8 @@ typically [`drop`](../language/operators/drop.md) it after the `join` in our pip
 file fruit.json | put fruitkey:={name,color}
 | inner join (
   file inventory.json | put invkey:={name,color}
-) on fruitkey=invkey quantity
+) on left.fruitkey=right.invkey
+| yield {...left, quantity:right.quantity}
 ```
 
 Executing the query:
@@ -337,10 +347,12 @@ against the price list.
 file fruit.json
 | inner join (
   file people.json
-) on flavor=likes eater:=name
+) as {fruit,people} on fruit.flavor=people.likes
+| yield {...fruit, eater:people.name}
 | inner join (
   file prices.json
-) on name=name price:=price
+) as {fruit,prices} on fruit.name=prices.name
+| yield {...fruit, price:prices.price}
 ```
 
 Executing the query:
@@ -378,7 +390,8 @@ The query `embed-opposite.spq`:
 file fruit.json
 | inner join (
   file people.json
-) on flavor=likes eaterinfo:=this
+) as {fruit,people} on fruit.flavor=people.likes
+| yield {...fruit, eaterinfo:people}
 ```
 
 Executing the query:
@@ -408,10 +421,9 @@ to produce `merge-opposite.spq`.
 file fruit.json
 | inner join (
   file people.json
-) on flavor=likes eaterinfo:=this
-| rename fruit:=name
-| yield {...this,...eaterinfo}
-| drop eaterinfo
+) as {fruit,people} on fruit.flavor=people.likes
+| rename fruit.fruit:=fruit.name
+| yield {...fruit,...people}
 ```
 
 Executing the query:

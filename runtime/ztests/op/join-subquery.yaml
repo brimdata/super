@@ -1,5 +1,5 @@
 script: |
-  super -s -c 'file a.sup | inner join (file b.sup) on a=b | sort'
+  super -s -c 'file a.sup | inner join (file b.sup) on left.a=right.b | yield left | sort'
 
 vector: true
 

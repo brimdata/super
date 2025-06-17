@@ -1,5 +1,5 @@
 script: |
-  super -s -c 'join (file B.sup) on a=b b:=b' -
+  super -s -c 'join (file B.sup) on left.a=right.b | yield {...left,b:right.b}' -
 
 vector: true
 

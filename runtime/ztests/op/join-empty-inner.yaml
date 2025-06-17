@@ -1,5 +1,5 @@
 script: |
-  super -s -c 'left join (file C.sup) on a=b hit:=sc | sort' A.sup
+  super -s -c 'left join (file C.sup) on left.a=right.a | yield {...left,hit:right.sc} | sort' A.sup
 
 vector: true
 
@@ -21,7 +21,7 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {a:10(int32),sa:"a0"}
-      {a:20(int32),sa:"a1"}
-      {a:30(int32),sa:"a2"}
-      {a:40(int32),sa:"a3"}
+      {a:10(int32),sa:"a0",hit:error("missing")}
+      {a:20(int32),sa:"a1",hit:error("missing")}
+      {a:30(int32),sa:"a2",hit:error("missing")}
+      {a:40(int32),sa:"a3",hit:error("missing")}

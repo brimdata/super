@@ -2,7 +2,8 @@ spq: |
   fork (
     => pass
     => pass
-  ) | join on a=a
+  ) | join on a
+  | yield left
 
 input: &input |
   {a:0}

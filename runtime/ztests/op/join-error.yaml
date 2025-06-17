@@ -1,5 +1,5 @@
 script: |
-  ! super -s -c 'join on a=b' A.sup
+  ! super -s -c 'join on left.a=right.b' A.sup
 
 inputs:
   - name: A.sup

@@ -578,7 +578,7 @@ ShapeOp
     }
 
 JoinOp
-  = style:JoinStyle JOIN rightInput:JoinRightInput _ e:JoinExpr optArgs:(_ FlexAssignments)? {
+  = style:JoinStyle JOIN rightInput:JoinRightInput alias:OptJoinAlias _ e:JoinExpr {
       o := &ast.Join{
         Kind: "Join",
         Style: style.(string),
@@ -588,8 +588,8 @@ JoinOp
       if rightInput != nil {
         o.RightInput = sliceOf[ast.Op](rightInput)
       }
-      if optArgs != nil {
-        o.Args = sliceOf[ast.Assignment](optArgs.([]any)[1])
+      if alias != nil {
+        o.Alias = alias.(*ast.JoinAlias)
       }
       return o, nil
     }
@@ -600,6 +600,19 @@ JoinStyle
   / LEFT  _ { return "left", nil }
   / RIGHT _ { return "right", nil }
   / ""      { return "", nil }
+
+OptJoinAlias
+  = _ AS _ a:JoinAlias { return a, nil }
+  / "" { return nil, nil }
+
+JoinAlias
+  = "{" __ left:Identifier __ "," __ right:Identifier __ "}" {
+      return &ast.JoinAlias{
+        Left: left.(*ast.ID),
+        Right: right.(*ast.ID),
+        Loc: loc(c),
+      }, nil
+    }
 
 JoinRightInput
   = __ "(" __ s:Seq __ ")" { return s, nil }

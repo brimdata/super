@@ -2,7 +2,6 @@ package join
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/brimdata/super"
@@ -11,6 +10,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/op/sort"
 	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/zcode"
 	"github.com/brimdata/super/zio"
 )
 
@@ -23,18 +23,19 @@ type Op struct {
 	once        sync.Once
 	left        *puller
 	right       *zio.Peeker
+	leftAlias   string
+	rightAlias  string
 	getLeftKey  expr.Evaluator
 	getRightKey expr.Evaluator
 	resetter    expr.Resetter
 	compare     expr.CompareFn
-	cutter      *expr.Cutter
 	joinKey     *super.Value
 	joinSet     []super.Value
-	splicer     *RecordSplicer
+	builder     zcode.Builder
 }
 
 func New(rctx *runtime.Context, anti, inner bool, left, right zbuf.Puller, leftKey, rightKey expr.Evaluator,
-	leftDir, rightDir order.Direction, lhs []*expr.Lval, rhs []expr.Evaluator, resetter expr.Resetter) *Op {
+	leftAlias, rightAlias string, leftDir, rightDir order.Direction, resetter expr.Resetter) *Op {
 	var o order.Which
 	switch {
 	case leftDir != order.Unknown:
@@ -58,14 +59,14 @@ func New(rctx *runtime.Context, anti, inner bool, left, right zbuf.Puller, leftK
 		inner:       inner,
 		ctx:         ctx,
 		cancel:      cancel,
+		leftAlias:   leftAlias,
+		rightAlias:  rightAlias,
 		getLeftKey:  leftKey,
 		getRightKey: rightKey,
 		left:        newPuller(left, ctx),
 		right:       zio.NewPeeker(newPuller(right, ctx)),
 		resetter:    resetter,
 		compare:     expr.NewValueCompareFn(o, o.NullsMax(true)),
-		cutter:      expr.NewCutter(rctx.Sctx, lhs, rhs),
-		splicer:     NewRecordSplicer(rctx.Sctx),
 	}
 }
 
@@ -107,7 +108,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 			// Nothing to add to the left join.
 			// Accumulate this record for an outer join.
 			if !o.inner {
-				out = append(out, leftRec.Copy())
+				out = append(out, o.wrap(leftRec, nil))
 			}
 			continue
 		}
@@ -124,12 +125,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 		// Batch and lives in a pool so the downstream user can
 		// release the batch with and bypass GC.
 		for _, rightRec := range rightRecs {
-			cutRec := o.cutter.Eval(ectx, rightRec)
-			rec, err := o.splicer.Splice(*leftRec, cutRec)
-			if err != nil {
-				return nil, err
-			}
-			out = append(out, rec)
+			out = append(out, o.wrap(leftRec, rightRec.Ptr()))
 		}
 	}
 }
@@ -202,67 +198,19 @@ func (o *Op) readJoinSet(joinKey *super.Value) ([]super.Value, error) {
 	}
 }
 
-type RecordSplicer struct {
-	sctx  *super.Context
-	types map[int]map[int]*super.TypeRecord
-}
-
-func NewRecordSplicer(sctx *super.Context) *RecordSplicer {
-	return &RecordSplicer{sctx, map[int]map[int]*super.TypeRecord{}}
-}
-
-func (o *RecordSplicer) lookupType(left, right *super.TypeRecord) *super.TypeRecord {
-	if table, ok := o.types[left.ID()]; ok {
-		return table[right.ID()]
+func (o *Op) wrap(l, r *super.Value) super.Value {
+	o.builder.Reset()
+	var fields []super.Field
+	if l != nil {
+		left := l.Under()
+		fields = append(fields, super.Field{Name: o.leftAlias, Type: left.Type()})
+		o.builder.Append(left.Bytes())
 	}
-	return nil
-}
+	if r != nil {
+		right := r.Under()
+		fields = append(fields, super.Field{Name: o.rightAlias, Type: right.Type()})
+		o.builder.Append(right.Bytes())
 
-func (o *RecordSplicer) enterType(combined, left, right *super.TypeRecord) {
-	id := left.ID()
-	table := o.types[id]
-	if table == nil {
-		table = make(map[int]*super.TypeRecord)
-		o.types[id] = table
 	}
-	table[right.ID()] = combined
-}
-
-func (o *RecordSplicer) buildType(left, right *super.TypeRecord) (*super.TypeRecord, error) {
-	fields := make([]super.Field, 0, len(left.Fields)+len(right.Fields))
-	fields = append(fields, left.Fields...)
-	for _, f := range right.Fields {
-		name := f.Name
-		for k := 2; left.HasField(name); k++ {
-			name = fmt.Sprintf("%s_%d", f.Name, k)
-		}
-		fields = append(fields, super.NewField(name, f.Type))
-	}
-	return o.sctx.LookupTypeRecord(fields)
-}
-
-func (o *RecordSplicer) combinedType(left, right *super.TypeRecord) (*super.TypeRecord, error) {
-	if typ := o.lookupType(left, right); typ != nil {
-		return typ, nil
-	}
-	typ, err := o.buildType(left, right)
-	if err != nil {
-		return nil, err
-	}
-	o.enterType(typ, left, right)
-	return typ, nil
-}
-
-func (o *RecordSplicer) Splice(left, right super.Value) (super.Value, error) {
-	left = left.Under()
-	right = right.Under()
-	typ, err := o.combinedType(super.TypeRecordOf(left.Type()), super.TypeRecordOf(right.Type()))
-	if err != nil {
-		return super.Null, err
-	}
-	n := len(left.Bytes())
-	bytes := make([]byte, n+len(right.Bytes()))
-	copy(bytes, left.Bytes())
-	copy(bytes[n:], right.Bytes())
-	return super.NewValue(typ, bytes), nil
+	return super.NewValue(o.rctx.Sctx.MustLookupTypeRecord(fields), o.builder.Bytes())
 }

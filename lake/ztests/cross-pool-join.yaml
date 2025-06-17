@@ -24,10 +24,10 @@ inputs:
   - name: join.zed
     data: |
       from (
-        pool fruit => cut f:=this
-        pool person => cut p:=this
+        pool fruit
+        pool person
       )
-      | join on f.flavor=p.likes p:=p
+      | join as {f,p} on f.flavor=p.likes
       | aggregate likes:=union(f.name) by name:=p.name | sort name
 
 outputs:

@@ -4,38 +4,38 @@ import (
 	"encoding/binary"
 
 	"github.com/brimdata/super"
-	samexpr "github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/runtime/sam/op/join"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/zcode"
 )
 
 type Join struct {
-	sctx     *super.Context
-	anti     bool
-	inner    bool
-	left     vector.Puller
-	right    vector.Puller
-	leftKey  expr.Evaluator
-	rightKey expr.Evaluator
+	sctx       *super.Context
+	anti       bool
+	inner      bool
+	left       vector.Puller
+	right      vector.Puller
+	leftKey    expr.Evaluator
+	rightKey   expr.Evaluator
+	leftAlias  string
+	rightAlias string
 
-	cutter  *samexpr.Cutter
-	splicer *join.RecordSplicer
+	builder zcode.Builder
 	table   map[string][]super.Value
 }
 
-func NewJoin(sctx *super.Context, anti, inner bool, left, right vector.Puller, leftKey, rightKey expr.Evaluator, lhs []*samexpr.Lval, rhs []samexpr.Evaluator) *Join {
+func NewJoin(sctx *super.Context, anti, inner bool, left, right vector.Puller,
+	leftKey, rightKey expr.Evaluator, leftAlias, rightAlias string) *Join {
 	return &Join{
-		sctx:     sctx,
-		anti:     anti,
-		inner:    inner,
-		left:     left,
-		right:    right,
-		leftKey:  leftKey,
-		rightKey: rightKey,
-		cutter:   samexpr.NewCutter(sctx, lhs, rhs),
-		splicer:  join.NewRecordSplicer(sctx),
+		sctx:       sctx,
+		anti:       anti,
+		inner:      inner,
+		left:       left,
+		right:      right,
+		leftKey:    leftKey,
+		rightKey:   rightKey,
+		leftAlias:  leftAlias,
+		rightAlias: rightAlias,
 	}
 }
 
@@ -98,7 +98,7 @@ func (j *Join) Pull(done bool) (vector.Any, error) {
 			rightVals, ok := j.table[key]
 			if !ok {
 				if !j.inner {
-					b.Write(leftVal)
+					b.Write(j.wrap(leftVal.Ptr(), nil))
 				}
 				continue
 			}
@@ -106,12 +106,7 @@ func (j *Join) Pull(done bool) (vector.Any, error) {
 				continue
 			}
 			for _, rightVal := range rightVals {
-				cutVal := j.cutter.Eval(nil, rightVal)
-				val, err := j.splicer.Splice(leftVal, cutVal)
-				if err != nil {
-					return nil, err
-				}
-				b.Write(val)
+				b.Write(j.wrap(leftVal.Ptr(), rightVal.Ptr()))
 			}
 		}
 		out := b.Build()
@@ -119,6 +114,23 @@ func (j *Join) Pull(done bool) (vector.Any, error) {
 			return out, nil
 		}
 	}
+}
+
+func (j *Join) wrap(l, r *super.Value) super.Value {
+	j.builder.Reset()
+	var fields []super.Field
+	if l != nil {
+		left := l.Under()
+		fields = append(fields, super.Field{Name: j.leftAlias, Type: left.Type()})
+		j.builder.Append(left.Bytes())
+	}
+	if r != nil {
+		right := r.Under()
+		fields = append(fields, super.Field{Name: j.rightAlias, Type: right.Type()})
+		j.builder.Append(right.Bytes())
+
+	}
+	return super.NewValue(j.sctx.MustLookupTypeRecord(fields), j.builder.Bytes())
 }
 
 func hashKey(val super.Value) string {

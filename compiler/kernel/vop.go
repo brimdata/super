@@ -29,11 +29,6 @@ func (b *Builder) compileVam(o dag.Op, parents []vector.Puller) ([]vector.Puller
 		if len(parents) != 2 {
 			return nil, ErrJoinParents
 		}
-		assignments, err := b.compileAssignments(o.Args)
-		if err != nil {
-			return nil, err
-		}
-		lhs, rhs := splitAssignments(assignments)
 		leftKey, err := b.compileVamExpr(o.LeftKey)
 		if err != nil {
 			return nil, err
@@ -42,6 +37,7 @@ func (b *Builder) compileVam(o dag.Op, parents []vector.Puller) ([]vector.Puller
 		if err != nil {
 			return nil, err
 		}
+		leftAlias, rightAlias := o.LeftAlias, o.RightAlias
 		leftParent, rightParent := parents[0], parents[1]
 		var anti, inner bool
 		switch o.Style {
@@ -51,12 +47,13 @@ func (b *Builder) compileVam(o dag.Op, parents []vector.Puller) ([]vector.Puller
 			inner = true
 		case "left":
 		case "right":
+			leftAlias, rightAlias = rightAlias, leftAlias
 			leftKey, rightKey = rightKey, leftKey
 			leftParent, rightParent = rightParent, leftParent
 		default:
 			return nil, fmt.Errorf("unknown kind of join: '%s'", o.Style)
 		}
-		join := vamop.NewJoin(b.rctx.Sctx, anti, inner, leftParent, rightParent, leftKey, rightKey, lhs, rhs)
+		join := vamop.NewJoin(b.rctx.Sctx, anti, inner, leftParent, rightParent, leftKey, rightKey, leftAlias, rightAlias)
 		return []vector.Puller{join}, nil
 	case *dag.Merge:
 		b.resetResetters()

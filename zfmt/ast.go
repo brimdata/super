@@ -623,6 +623,9 @@ func (c *canon) op(p ast.Op) {
 			c.flush()
 			c.write(") ")
 		}
+		if p.Alias != nil {
+			c.write("as {%s,%s} ", p.Alias.Left.Name, p.Alias.Right.Name)
+		}
 		switch cond := p.Cond.(type) {
 		case *ast.JoinOnExpr:
 			c.write("on ")
@@ -633,10 +636,6 @@ func (c *canon) op(p ast.Op) {
 			c.write(")")
 		default:
 			panic(cond)
-		}
-		if p.Args != nil {
-			c.write(" ")
-			c.assignments(p.Args)
 		}
 	case *ast.OpAssignment:
 		c.next()

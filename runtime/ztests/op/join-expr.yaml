@@ -1,11 +1,9 @@
 script: |
-  super -s -c 'left join (file B.sup) on s b | sort' A.sup
+  super -s -c 'left join (file B.sup) as {l,r} on s | yield {...l,...r} | sort' A.sup
   echo ===
-  super -s -c 'left join (file B.sup) on s=(lower(s)) b | sort' A.sup
+  super -s -c 'left join (file B.sup) as {l,r} on lower(r.s)=l.s | sort' A.sup
   echo ===
-  super -s -c 'left join (file B.sup) on (lower(s))=(lower(s)) b | sort' A.sup
-  echo ===
-  super -s -c 'left join (file B.sup) on s | sort' A.sup
+  super -s -c 'left join (file B.sup) on (lower(right.s))=(lower(left.s)) | yield {...left,b:right.b } | sort' A.sup
 
 vector: true
 
@@ -28,14 +26,10 @@ outputs:
       {a:2(int32),s:"B"}
       {a:3(int32),s:"c",b:6(int32)}
       ===
-      {a:1(int32),s:"a",b:4(int32)}
-      {a:2(int32),s:"B"}
-      {a:3(int32),s:"c",b:6(int32)}
+      {l:{a:1(int32),s:"a"},r:{b:4(int32),s:"A"}}
+      {l:{a:2(int32),s:"B"}}
+      {l:{a:3(int32),s:"c"},r:{b:6(int32),s:"c"}}
       ===
       {a:1(int32),s:"a",b:4(int32)}
       {a:2(int32),s:"B",b:5(int32)}
       {a:3(int32),s:"c",b:6(int32)}
-      ===
-      {a:1(int32),s:"a"}
-      {a:2(int32),s:"B"}
-      {a:3(int32),s:"c"}

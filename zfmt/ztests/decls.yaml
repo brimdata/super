@@ -16,7 +16,8 @@ inputs:
         from eval(left_file)
         | inner join (
           from eval(right_file)
-        ) on left_key = right_key left_dest := right_source
+        ) on left.left_key = right.right_key 
+        | yield {...left,left_dest:right.right_source}
       )
       joinTest("fruit.json", "people.json", flavor, likes, eater, name)
       | stamp("bob")
@@ -42,7 +43,8 @@ outputs:
         from eval(left_file)
         | inner join (
           from eval(right_file)
-        ) on left_key=right_key left_dest:=right_source
+        ) on left.left_key=right.right_key
+        | yield {...left,left_dest:right.right_source}
       )
       joinTest("fruit.json", "people.json", flavor, likes, eater, name)
       | stamp("bob")
@@ -63,7 +65,8 @@ outputs:
           =>
             file people.json
         )
-        | inner join on flavor=likes eater:=name
+        | inner join as {left,right} on left_key=right_key
+        | yield {...left,left_dest:right.right_source}
         | yield {...this,assignee:"bob",ts:now()}
         | output main
       )

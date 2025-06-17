@@ -801,8 +801,16 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 	case *ast.Fuse:
 		return append(seq, &dag.Fuse{Kind: "Fuse"})
 	case *ast.Join:
-		rightInput := a.semSeq(o.RightInput)
-		leftKey, rightKey, err := a.semJoinCond(o.Cond)
+		leftAlias, rightAlias := "left", "right"
+		if o.Alias != nil {
+			leftAlias = o.Alias.Left.Name
+			rightAlias = o.Alias.Right.Name
+		}
+		if leftAlias == rightAlias {
+			a.error(o.Alias, errors.New("left and right join aliases cannot be the same"))
+			return append(seq, badOp())
+		}
+		leftKey, rightKey, err := a.semJoinCond(o.Cond, leftAlias, rightAlias)
 		if err != nil {
 			a.error(o.Cond, err)
 			return append(seq, badOp())
@@ -812,24 +820,29 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 			style = "inner"
 		}
 		join := &dag.Join{
-			Kind:     "Join",
-			Style:    style,
-			LeftDir:  order.Unknown,
-			LeftKey:  leftKey,
-			RightDir: order.Unknown,
-			RightKey: rightKey,
-			Args:     a.semAssignments(o.Args),
+			Kind:       "Join",
+			Style:      style,
+			LeftAlias:  leftAlias,
+			LeftDir:    order.Unknown,
+			LeftKey:    leftKey,
+			RightAlias: rightAlias,
+			RightDir:   order.Unknown,
+			RightKey:   rightKey,
 		}
-		if rightInput != nil {
-			if len(seq) == 0 {
-				seq = dag.Seq{dag.PassOp}
-			}
-			return dag.Seq{
-				&dag.Fork{Kind: "Fork", Paths: []dag.Seq{seq, rightInput}},
-				join,
-			}
+		if o.RightInput == nil {
+			return append(seq, join)
 		}
-		return append(seq, join)
+		if len(seq) == 0 {
+			seq = append(seq, dag.PassOp)
+		}
+		fork := &dag.Fork{
+			Kind: "Fork",
+			Paths: []dag.Seq{
+				seq,
+				a.semSeq(o.RightInput),
+			},
+		}
+		return dag.Seq{fork, join}
 	case *ast.Explode:
 		typ, err := a.semType(o.Type)
 		if err != nil {

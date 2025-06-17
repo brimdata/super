@@ -1,12 +1,12 @@
 script: |
   echo === ANTI ===
-  super -s -c 'anti join (file B.sup) on a=b | sort a' A.sup
+  super -s -c 'anti join (file B.sup) on left.a=right.b | yield left | sort a' A.sup
   echo === LEFT ===
-  super -s -c 'left join (file B.sup) on a=b hit:=sb | sort a' A.sup
+  super -s -c 'left join (file B.sup) on left.a=right.b | yield {...left,hit:right.sb} | sort a' A.sup
   echo === INNER ===
-  super -s -c 'inner join (file B.sup) on a=b hit:=sb | sort a' A.sup
+  super -s -c 'inner join (file B.sup) on left.a=right.b | yield {...left,hit:right.sb} | sort a' A.sup
   echo === RIGHT ===
-  super -s -c 'right join (file C.sup) on b=c hit:=sb | sort c' B.sup
+  super -s -c 'right join (file C.sup) on right.c=left.b | yield {...right,hit:left.sb} | sort c' B.sup
 
 vector: true
 
@@ -51,28 +51,28 @@ outputs:
       {a:45,sa:"a5"}
       {a:50,sa:"a4"}
       === LEFT ===
-      {a:10,sa:"a0"}
-      {a:15,sa:"a8"}
+      {a:10,sa:"a0",hit:error("missing")}
+      {a:15,sa:"a8",hit:error("missing")}
       {a:20,sa:"a1",hit:"b20.1"}
       {a:20,sa:"a1",hit:"b20.2"}
-      {a:25,sa:"a7"}
-      {a:30,sa:"a2"}
-      {a:35,sa:"a6"}
+      {a:25,sa:"a7",hit:error("missing")}
+      {a:30,sa:"a2",hit:error("missing")}
+      {a:35,sa:"a6",hit:error("missing")}
       {a:40,sa:"a3",hit:"b40"}
       {a:40,sa:"a3",hit:"b40.2"}
-      {a:45,sa:"a5"}
-      {a:50,sa:"a4"}
+      {a:45,sa:"a5",hit:error("missing")}
+      {a:50,sa:"a4",hit:error("missing")}
       === INNER ===
       {a:20,sa:"a1",hit:"b20.1"}
       {a:20,sa:"a1",hit:"b20.2"}
       {a:40,sa:"a3",hit:"b40"}
       {a:40,sa:"a3",hit:"b40.2"}
       === RIGHT ===
-      {c:15,sc:"c8"}
+      {c:15,sc:"c8",hit:error("missing")}
       {c:20,sc:"c1",hit:"b20.1"}
       {c:20,sc:"c1",hit:"b20.2"}
-      {c:25,sc:"c7"}
-      {c:30,sc:"c2"}
-      {c:35,sc:"c6"}
+      {c:25,sc:"c7",hit:error("missing")}
+      {c:30,sc:"c2",hit:error("missing")}
+      {c:35,sc:"c6",hit:error("missing")}
       {c:40,sc:"c3",hit:"b40"}
       {c:40,sc:"c3",hit:"b40.2"}

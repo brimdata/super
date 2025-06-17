@@ -1,6 +1,7 @@
 script: |
   super -s -c 'from input.sup
-               | join (yield {x:3,y:"a"}, {x:4,y:"b"}) on y'
+               | join (yield {x:3,y:"a"}, {x:4,y:"b"}) on y
+               | yield left'
 
 inputs:
   - name: input.sup

@@ -1,0 +1,53 @@
+script: |
+  super compile -dag -C 'join as {j,k} on k.kkey=j.jkey'
+  ! super compile -dag -C 'join as {j,j} on key'
+  echo // === >&2
+  ! super compile -dag -C 'join on left.key>right.key'
+  echo // === >&2
+  ! super compile -dag -C 'join using (a,b)'
+  echo // === >&2
+  ! super compile -dag -C 'join on left.key=left.key'
+  echo // === >&2
+  ! super compile -dag -C 'join on foo.key=left.key'
+  echo // === >&2
+  ! super compile -dag -C 'join on right.key+foo.key=left.key'
+  echo // === >&2
+  ! super compile -dag -C 'join on left.key=1+2'
+
+
+outputs:
+  - name: stdout
+    data: |
+      null
+      | inner join as {j,k} on jkey=kkey
+      | output main
+  - name: stderr
+    data: |
+      left and right join aliases cannot be the same at line 1, column 9:
+      join as {j,j} on key
+              ~~~~~
+      // ===
+      only equijoins currently supported at line 1, column 6:
+      join on left.key>right.key
+           ~~~~~~~~~~~~~~~~~~~~~
+      // ===
+      join using currently limited to a single field at line 1, column 6:
+      join using (a,b)
+           ~~~~~~~~~~~
+      // ===
+      self joins not currently supported at line 1, column 9:
+      join on left.key=left.key
+              ~~~~~~~~~~~~~~~~~
+      // ===
+      ambiguous field name "foo" at line 1, column 9:
+      join on foo.key=left.key
+              ~~~~~~~
+      // ===
+      more than one alias referenced in one side of equi-join at line 1, column 9:
+      join on right.key+foo.key=left.key
+              ~~~~~~~~~~~~~~~~~
+      // ===
+      no field references in join expression at line 1, column 18:
+      join on left.key=1+2
+                       ~~~
+

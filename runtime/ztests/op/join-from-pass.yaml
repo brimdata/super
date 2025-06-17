@@ -8,7 +8,8 @@ inputs:
       from (
         pass
         file right.sup
-      ) | inner join on x=y matched:=true
+      ) | inner join on left.x=right.y 
+      | yield {...left,matched:true}
   - name: left.sup
     data: |
       {x:1,s:"one"}

@@ -6,9 +6,9 @@
 
 ```
 <left-input>
-| [anti|inner|left|right] join [as { <left-name>,<right-name> }] (
+| [anti|inner|left|right] join (
   <right-input>
-) [on <predicate>]
+) [as { <left-name>,<right-name> }] [on <predicate>]
 
 ( => <left-input> => <right-input> )
 | [anti|inner|left|right] join [as { <left-name>,<right-name> }] [on <predicate>]
@@ -56,7 +56,7 @@ satisfies `<predicate>`
 ### Examples
 
 _Join some numbers_
-```mdtest-spq-notyet
+```mdtest-spq
 # spq
 join (from (yield 1,3)) on left=right | sort
 # input
@@ -69,9 +69,9 @@ join (from (yield 1,3)) on left=right | sort
 ```
 
 _Join some records with scalar keys_
-```mdtest-spq-notyet
+```mdtest-spq
 # spq
-join as {recs,key} (from (yield "foo","baz")) on key=recs.key | yield recs.value | sort
+join (from (yield "foo","baz")) as {recs,key} on key=recs.key | yield recs.value | sort
 # input
 {key:"foo",value:1}
 {key:"bar",value:2}
@@ -84,7 +84,7 @@ join as {recs,key} (from (yield "foo","baz")) on key=recs.key | yield recs.value
 _Join some records requiring a cross-product calculation_
 ```mdtest-spq-notyet
 # spq
-join as {b,a} (from (yield {id:"apple"},{id:"chair"},{id:"car"})) on grep("a", a.id) and grep("b", b.key) | sort
+join (from (yield {id:"apple"},{id:"chair"},{id:"car"})) as {b,a} on grep("a", a.id) and grep("b", b.key) | sort
 # input
 {key:"foo",value:1}
 {key:"bar",value:2}
@@ -97,7 +97,7 @@ join as {b,a} (from (yield {id:"apple"},{id:"chair"},{id:"car"})) on grep("a", a
 ```
 
 _Anti-join some numbers_
-```mdtest-spq-notyet
+```mdtest-spq
 # spq
 anti join (from (yield 1,3)) on left=right | sort
 # input
@@ -105,7 +105,7 @@ anti join (from (yield 1,3)) on left=right | sort
 2
 3
 # expected output
-{left:2,right:2}
+{left:2}
 ```
 
 The [join tutorial](../../tutorials/join.md) includes several more examples.

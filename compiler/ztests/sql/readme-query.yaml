@@ -14,7 +14,8 @@ inputs:
         | SELECT VALUE {user:login,created_at:time(created_at)}
         => PASS
         )
-      | JOIN USING (user) repos
+      | JOIN USING (user)
+      | yield {...left,repos:right.repos}
   - name: gha.sup
     data: |
       {repo:{name:"petroav/6.828"},actor:{login:"petroav"}}

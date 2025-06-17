@@ -9,6 +9,7 @@ package dag
 
 import (
 	"encoding/json"
+	"reflect"
 	"slices"
 
 	"github.com/brimdata/super/order"
@@ -78,13 +79,14 @@ type (
 		Count int    `json:"count"`
 	}
 	Join struct {
-		Kind     string          `json:"kind" unpack:""`
-		Style    string          `json:"style"`
-		LeftKey  Expr            `json:"left_key"`
-		LeftDir  order.Direction `json:"left_dir"`
-		RightKey Expr            `json:"right_key"`
-		RightDir order.Direction `json:"right_dir"`
-		Args     []Assignment    `json:"args"`
+		Kind       string          `json:"kind" unpack:""`
+		Style      string          `json:"style"`
+		LeftAlias  string          `json:"left_alias"`
+		LeftKey    Expr            `json:"left_key"`
+		LeftDir    order.Direction `json:"left_dir"`
+		RightAlias string          `json:"right_alias"`
+		RightKey   Expr            `json:"right_key"`
+		RightDir   order.Direction `json:"right_dir"`
 	}
 	Load struct {
 		Kind    string      `json:"kind" unpack:""`
@@ -427,4 +429,24 @@ func CopyOp(o Op) Op {
 		panic(err)
 	}
 	return copy
+}
+
+func WalkT[T any](v reflect.Value, post func(T) T) {
+	switch v.Kind() {
+	case reflect.Array, reflect.Slice:
+		for i := range v.Len() {
+			WalkT(v.Index(i), post)
+		}
+	case reflect.Interface, reflect.Pointer:
+		WalkT(v.Elem(), post)
+	case reflect.Struct:
+		for i := range v.NumField() {
+			WalkT(v.Field(i), post)
+		}
+	}
+	if v.CanSet() {
+		if t, ok := v.Interface().(T); ok {
+			v.Set(reflect.ValueOf(post(t)))
+		}
+	}
 }

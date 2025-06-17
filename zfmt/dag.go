@@ -469,14 +469,10 @@ func (c *canonDAG) op(p dag.Op) {
 		if p.Style != "" {
 			c.write("%s ", p.Style)
 		}
-		c.write("join on ")
+		c.write("join as {%s,%s} on ", p.LeftAlias, p.RightAlias)
 		c.expr(p.LeftKey, "")
 		c.write("=")
 		c.expr(p.RightKey, "")
-		if len(p.Args) != 0 {
-			c.write(" ")
-			c.assignments(p.Args)
-		}
 		c.close()
 	case *dag.Lister:
 		c.next()

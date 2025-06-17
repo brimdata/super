@@ -24,15 +24,10 @@ func demandForOp(op dag.Op, downstreams []demand.Demand) []demand.Demand {
 		}
 		return out
 	case *dag.Join:
-		left := downstreams[0]
-		for _, a := range op.Args {
-			if _, ok := a.LHS.(*dag.This); ok {
-				// Assignment clobbers a static field.
-				left = demand.Delete(left, demandForExpr(a.LHS))
-			}
-		}
+		downstream := downstreams[0]
+		left := demand.GetKey(downstream, op.LeftAlias)
 		left = demand.Union(left, demandForExpr(op.LeftKey))
-		right := demandForAssignments(op.Args, demand.None())
+		right := demand.GetKey(downstream, op.RightAlias)
 		right = demand.Union(right, demandForExpr(op.RightKey))
 		return []demand.Demand{left, right}
 	case *dag.Mirror:

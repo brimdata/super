@@ -175,7 +175,8 @@ super db -lake example query -s '
   from coinflips | sort flip
   | join (
     from numbers | sort number
-  ) on flip=number word'
+  ) on left.flip=right.number
+  | yield {...left, word:right.word}'
 ```
 =>
 ```mdtest-output
@@ -189,7 +190,8 @@ super db -lake example query -s '
   from coinflips | sort flip
   | join (
     from numbers | sort number
-  ) on flip=number word
+  ) on left.flip=right.number
+  | yield {...left, word:right.word}
   | from (
     pass
     pool coinflips@trial =>
