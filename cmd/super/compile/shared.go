@@ -28,7 +28,6 @@ type Shared struct {
 	optimize    bool
 	parallel    int
 	query       bool
-	sql         bool
 	OutputFlags outputflags.Flags
 }
 
@@ -38,7 +37,6 @@ func (s *Shared) SetFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&s.optimize, "O", false, "display optimized DAG")
 	fs.IntVar(&s.parallel, "P", 0, "display parallelized DAG")
 	fs.BoolVar(&s.query, "C", false, "display DAG or AST as query text")
-	fs.BoolVar(&s.sql, "sql", false, "force a strict SQL intepretation of the query text")
 	s.OutputFlags.SetFlags(fs)
 }
 
