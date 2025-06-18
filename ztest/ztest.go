@@ -355,17 +355,17 @@ func (z *ZTest) RunInternal() error {
 	outputFlags := append([]string{"-f=sup", "-pretty=0"}, strings.Fields(z.OutputFlags)...)
 	inputFlags := strings.Fields(z.InputFlags)
 	if z.Vector {
-		verr := z.diffInternal(runvec(z.Zed, z.Input, outputFlags, inputFlags))
+		verr := z.diffInternal(runInternal(z.Zed, z.Input, outputFlags, inputFlags, true))
 		if verr != nil {
 			verr = fmt.Errorf("=== vector ===\n%w", verr)
 		}
-		serr := z.diffInternal(runseq(z.Zed, z.Input, outputFlags, inputFlags))
+		serr := z.diffInternal(runInternal(z.Zed, z.Input, outputFlags, inputFlags, false))
 		if serr != nil {
 			serr = fmt.Errorf("=== sequence ===\n%w", serr)
 		}
 		return errors.Join(verr, serr)
 	}
-	return z.diffInternal(runseq(z.Zed, z.Input, outputFlags, inputFlags))
+	return z.diffInternal(runInternal(z.Zed, z.Input, outputFlags, inputFlags, false))
 }
 
 func (z *ZTest) diffInternal(out string, err error) error {
@@ -465,10 +465,10 @@ func runsh(path, testDir, tempDir string, zt *ZTest, extraEnv ...string) error {
 	return nil
 }
 
-// runseq runs zedProgram over input and returns the output.  input
+// runInternal runs zedProgram over input and returns the output.  input
 // may be in any format recognized by "super -i auto" and may be gzip-compressed.
 // outputFlags may contain any flags accepted by cli/outputflags.Flags.
-func runseq(zedProgram string, input *string, outputFlags []string, inputFlags []string) (string, error) {
+func runInternal(zedProgram string, input *string, outputFlags, inputFlags []string, vector bool) (string, error) {
 	ast, err := parser.ParseQuery(zedProgram)
 	if err != nil {
 		return "", err
@@ -483,59 +483,19 @@ func runseq(zedProgram string, input *string, outputFlags []string, inputFlags [
 		defer zrc.Close()
 		readers = []zio.Reader{zrc}
 	}
+	var fs flag.FlagSet
 	var outflags outputflags.Flags
-	var flags flag.FlagSet
-	outflags.SetFlags(&flags)
-	if err := flags.Parse(outputFlags); err != nil {
+	outflags.SetFlags(&fs)
+	if err := fs.Parse(outputFlags); err != nil {
 		return "", err
 	}
 	if err := outflags.Init(); err != nil {
 		return "", err
-	}
-	var outbuf bytes.Buffer
-	zw, err := anyio.NewWriter(zio.NopCloser(&outbuf), outflags.Options())
-	if err != nil {
-		return "", err
-	}
-	q, err := runtime.CompileQuery(context.Background(), sctx, compiler.NewCompiler(nil), ast, readers)
-	if err != nil {
-		zw.Close()
-		return "", err
-	}
-	defer q.Pull(true)
-	err = zbuf.CopyPuller(zw, q)
-	if err2 := zw.Close(); err == nil {
-		err = err2
-	}
-	return outbuf.String(), err
-}
-
-func runvec(zedProgram string, input *string, outputFlags, inputFlags []string) (string, error) {
-	ast, err := parser.ParseQuery(zedProgram)
-	if err != nil {
-		return "", err
-	}
-	var flags flag.FlagSet
-	var outflags outputflags.Flags
-	outflags.SetFlags(&flags)
-	if err := flags.Parse(outputFlags); err != nil {
-		return "", err
-	}
-	if err := outflags.Init(); err != nil {
-		return "", err
-	}
-	sctx := super.NewContext()
-	var readers []zio.Reader
-	if input != nil {
-		zrc, err := newInputReader(sctx, *input, inputFlags)
-		if err != nil {
-			return "", err
-		}
-		defer zrc.Close()
-		readers = []zio.Reader{zrc}
 	}
 	env := exec.NewEnvironment(nil, nil)
-	env.SetUseVAM()
+	if vector {
+		env.SetUseVAM()
+	}
 	q, err := runtime.CompileQuery(context.Background(), sctx, compiler.NewCompilerWithEnv(env), ast, readers)
 	if err != nil {
 		return "", err
