@@ -73,7 +73,7 @@ is the best way to learn about the SuperDB data lake.
 All of its examples use `super db` commands run on the command line.
 Run `super db -h` or `-h` with any subcommand for a list of command options
 and online help.  The same language query that works for `super` operating
-on local files or streams also works for `super db ` operating on a lake.
+on local files or streams also works for `super db` operating on a lake.
 
 ## Design Philosophy
 
