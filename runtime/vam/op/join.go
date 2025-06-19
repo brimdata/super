@@ -11,8 +11,7 @@ import (
 
 type Join struct {
 	sctx       *super.Context
-	anti       bool
-	inner      bool
+	style      string
 	left       vector.Puller
 	right      vector.Puller
 	leftKey    expr.Evaluator
@@ -24,12 +23,15 @@ type Join struct {
 	table   map[string][]super.Value
 }
 
-func NewJoin(sctx *super.Context, anti, inner bool, left, right vector.Puller,
+func NewJoin(sctx *super.Context, style string, left, right vector.Puller,
 	leftKey, rightKey expr.Evaluator, leftAlias, rightAlias string) *Join {
+	if style == "right" {
+		leftKey, rightKey = rightKey, leftKey
+		left, right = right, left
+	}
 	return &Join{
 		sctx:       sctx,
-		anti:       anti,
-		inner:      inner,
+		style:      style,
 		left:       left,
 		right:      right,
 		leftKey:    leftKey,
@@ -97,12 +99,12 @@ func (j *Join) Pull(done bool) (vector.Any, error) {
 			leftVal := vectorValue(&valBuilder, leftVec, i)
 			rightVals, ok := j.table[key]
 			if !ok {
-				if !j.inner {
+				if j.style != "inner" {
 					b.Write(j.wrap(leftVal.Ptr(), nil))
 				}
 				continue
 			}
-			if j.anti {
+			if j.style == "anti" {
 				continue
 			}
 			for _, rightVal := range rightVals {
@@ -117,6 +119,9 @@ func (j *Join) Pull(done bool) (vector.Any, error) {
 }
 
 func (j *Join) wrap(l, r *super.Value) super.Value {
+	if j.style == "right" {
+		l, r = r, l
+	}
 	j.builder.Reset()
 	var fields []super.Field
 	if l != nil {

@@ -660,25 +660,7 @@ func (b *Builder) compile(o dag.Op, parents []zbuf.Puller) ([]zbuf.Puller, error
 		if err != nil {
 			return nil, err
 		}
-		leftAlias, rightAlias := o.LeftAlias, o.RightAlias
-		leftParent, rightParent := parents[0], parents[1]
-		leftDir, rightDir := o.LeftDir, o.RightDir
-		var anti, inner bool
-		switch o.Style {
-		case "anti":
-			anti = true
-		case "inner":
-			inner = true
-		case "left":
-		case "right":
-			leftAlias, rightAlias = rightAlias, leftAlias
-			leftKey, rightKey = rightKey, leftKey
-			leftParent, rightParent = rightParent, leftParent
-			leftDir, rightDir = rightDir, leftDir
-		default:
-			return nil, fmt.Errorf("unknown kind of join: '%s'", o.Style)
-		}
-		join := join.New(b.rctx, anti, inner, leftParent, rightParent, leftKey, rightKey, leftAlias, rightAlias, leftDir, rightDir, b.resetters)
+		join := join.New(b.rctx, o.Style, parents[0], parents[1], leftKey, rightKey, o.LeftAlias, o.RightAlias, o.LeftDir, o.RightDir, b.resetters)
 		return []zbuf.Puller{join}, nil
 	case *dag.Merge:
 		b.resetResetters()

@@ -16,8 +16,7 @@ import (
 
 type Op struct {
 	rctx        *runtime.Context
-	anti        bool
-	inner       bool
+	style       string
 	ctx         context.Context
 	cancel      context.CancelFunc
 	once        sync.Once
@@ -34,8 +33,13 @@ type Op struct {
 	builder     zcode.Builder
 }
 
-func New(rctx *runtime.Context, anti, inner bool, left, right zbuf.Puller, leftKey, rightKey expr.Evaluator,
+func New(rctx *runtime.Context, style string, left, right zbuf.Puller, leftKey, rightKey expr.Evaluator,
 	leftAlias, rightAlias string, leftDir, rightDir order.Direction, resetter expr.Resetter) *Op {
+	if style == "right" {
+		leftKey, rightKey = rightKey, leftKey
+		left, right = right, left
+		leftDir, rightDir = rightDir, leftDir
+	}
 	var o order.Which
 	switch {
 	case leftDir != order.Unknown:
@@ -55,8 +59,7 @@ func New(rctx *runtime.Context, anti, inner bool, left, right zbuf.Puller, leftK
 	ctx, cancel := context.WithCancel(rctx.Context)
 	return &Op{
 		rctx:        rctx,
-		anti:        anti,
-		inner:       inner,
+		style:       style,
 		ctx:         ctx,
 		cancel:      cancel,
 		leftAlias:   leftAlias,
@@ -107,12 +110,12 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 		if rightRecs == nil {
 			// Nothing to add to the left join.
 			// Accumulate this record for an outer join.
-			if !o.inner {
+			if o.style != "inner" {
 				out = append(out, o.wrap(leftRec, nil))
 			}
 			continue
 		}
-		if o.anti {
+		if o.style == "anti" {
 			continue
 		}
 		// For every record on the right with a key matching
@@ -199,6 +202,9 @@ func (o *Op) readJoinSet(joinKey *super.Value) ([]super.Value, error) {
 }
 
 func (o *Op) wrap(l, r *super.Value) super.Value {
+	if o.style == "right" {
+		l, r = r, l
+	}
 	o.builder.Reset()
 	var fields []super.Field
 	if l != nil {

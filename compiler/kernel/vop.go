@@ -37,23 +37,7 @@ func (b *Builder) compileVam(o dag.Op, parents []vector.Puller) ([]vector.Puller
 		if err != nil {
 			return nil, err
 		}
-		leftAlias, rightAlias := o.LeftAlias, o.RightAlias
-		leftParent, rightParent := parents[0], parents[1]
-		var anti, inner bool
-		switch o.Style {
-		case "anti":
-			anti = true
-		case "inner":
-			inner = true
-		case "left":
-		case "right":
-			leftAlias, rightAlias = rightAlias, leftAlias
-			leftKey, rightKey = rightKey, leftKey
-			leftParent, rightParent = rightParent, leftParent
-		default:
-			return nil, fmt.Errorf("unknown kind of join: '%s'", o.Style)
-		}
-		join := vamop.NewJoin(b.rctx.Sctx, anti, inner, leftParent, rightParent, leftKey, rightKey, leftAlias, rightAlias)
+		join := vamop.NewJoin(b.rctx.Sctx, o.Style, parents[0], parents[1], leftKey, rightKey, o.LeftAlias, o.RightAlias)
 		return []vector.Puller{join}, nil
 	case *dag.Merge:
 		b.resetResetters()
