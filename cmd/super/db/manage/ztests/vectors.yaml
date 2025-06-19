@@ -7,12 +7,12 @@ script: |
   seq 1 10 | super -c '{ts:this}' - | super db load -q -
   seq 1 10 | super -c '{ts:this}' - | super db load -q -
   super db manage -log.level=warn -q -vectors
-  super db query -s 'from test1@main:vectors | drop id'
+  super db -s -c 'from test1@main:vectors | drop id'
   echo '// Test create vector on single object.'
   super db create -use -q test2
   seq 1 10 | super -c '{ts:this}' - | super db load -q -
   super db manage -log.level=warn -q -vectors
-  super db query -s 'from test2@main:vectors | drop id'
+  super db -s -c 'from test2@main:vectors | drop id'
 
 outputs:
   - name: stdout

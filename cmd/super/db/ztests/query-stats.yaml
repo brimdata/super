@@ -3,7 +3,7 @@ script: |
   super db init -q
   super db create -q test
   super db load -q -use test babble.sup
-  super db query -s -stats "from test | count()"
+  super db -s -stats -c "from test | count()"
 
 inputs:
   - name: babble.sup

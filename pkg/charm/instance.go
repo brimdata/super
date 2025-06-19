@@ -48,7 +48,7 @@ func (i *instance) options(showHidden bool) []string {
 	return body
 }
 
-func parse(spec *Spec, args []string, parent Command, interiorLeaf bool) (path, []string, bool, error) {
+func parse(spec *Spec, args []string, parent Command, interiorLeaf int) (path, []string, bool, error) {
 	var path path
 	var help, hidden, usage bool
 	flags := flag.NewFlagSet(spec.Name, flag.ContinueOnError)
@@ -64,9 +64,12 @@ func parse(spec *Spec, args []string, parent Command, interiorLeaf bool) (path, 
 			return nil, nil, false, err
 		}
 		var haveLeaf bool
-		if interiorLeaf && spec.InternalLeaf {
-			cmd.(InternalLeaf).SetLeafFlags(flags)
-			haveLeaf = true
+		if interiorLeaf > 0 && spec.InternalLeaf {
+			interiorLeaf--
+			if interiorLeaf == 0 {
+				cmd.(InternalLeaf).SetLeafFlags(flags)
+				haveLeaf = true
+			}
 		}
 		component := &instance{
 			spec:    spec,

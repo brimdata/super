@@ -7,10 +7,10 @@ script: |
   curl -s -d '{where:"x <= 4"}' $SUPER_DB_LAKE/pool/test/branch/main/delete |
     sed -E 's/0x[0-9a-f]{40}/xxx/'
   echo ===
-  super db query -s 'from test'
+  super db -s -c 'from test'
   echo ===
   curl -w 'code %{response_code}\n' -d '{where:"x <= 4"}' $SUPER_DB_LAKE/pool/test/branch/main/delete
-  super db query -s 'from test'
+  super db -s -c 'from test'
 
 inputs:
   - name: service.sh

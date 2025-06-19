@@ -7,23 +7,23 @@ script: |
   super db use -q @child
   super db load -q -message "initial load of b.sup into child" b.sup
   echo === main ===
-  super db query -s "from POOL"
+  super db -s -c "from POOL"
   echo === child ===
-  super db query -s "from POOL@child"
+  super db -s -c "from POOL@child"
   echo === child after merge ===
   super db merge -q main
-  super db query -s "from POOL@child"
+  super db -s -c "from POOL@child"
   echo === main after merge ===
-  super db query -s "from POOL"
+  super db -s -c "from POOL"
   echo === main after load c ===
   super db load -q -use POOL c.sup
-  super db query -s "from POOL"
+  super db -s -c "from POOL"
   echo === child after main load c ===
-  super db query -s "from POOL@child"
+  super db -s -c "from POOL@child"
   echo === main after child load a and merge ===
   super db load -q a.sup
   super db merge -q main
-  super db query -s "from POOL"
+  super db -s -c "from POOL"
 
 inputs:
   - name: a.sup

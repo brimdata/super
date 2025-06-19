@@ -517,7 +517,7 @@ it's rare to request it explicitly via `-f`.  However, since it's possible for
 the `lake` format is useful to reverse this.
 
 For example, imagine you'd executed a [meta-query](super-db.md#meta-queries) via
-`super db query -S "from :pools"` and saved the output in this file `pools.sup`.
+`super db -S -c "from :pools"` and saved the output in this file `pools.sup`.
 
 ```mdtest-input pools.sup
 {

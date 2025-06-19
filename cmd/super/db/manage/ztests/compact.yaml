@@ -7,7 +7,7 @@ script: |
     seq 200 | super -c '{ts:this}' - | super db load -q -
   done
   super db manage -q
-  super db query -s 'from test@main:objects | drop id'
+  super db -s -c 'from test@main:objects | drop id'
 
 outputs:
   - name: stdout

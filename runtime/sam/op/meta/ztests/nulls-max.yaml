@@ -9,9 +9,9 @@ script: |
     super db create -q -use -orderby ts:$o $o
     echo '{ts:150} {ts:null}' | super db load -q -
     echo '{ts:1}' | super db load -q -
-    super db query -s "from $o:objects | drop id, size"
+    super db -s -c "from $o:objects | drop id, size"
     echo "// ==="
-    super db query -s "from $o | head 1"
+    super db -s -c "from $o | head 1"
   done
 
 outputs:

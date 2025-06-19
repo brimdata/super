@@ -2,10 +2,10 @@ script: |
   source service.sh
   super db create -q test
   super db log -use test
-  super db query 'from test@main:objects'
-  super db query 'from test@main:partitions'
-  super db query 'from test@main:rawlog'
-  super db query 'from test@main:vectors'
+  super db -c 'from test@main:objects'
+  super db -c 'from test@main:partitions'
+  super db -c 'from test@main:rawlog'
+  super db -c 'from test@main:vectors'
 
 inputs:
   - name: service.sh

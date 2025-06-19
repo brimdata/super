@@ -178,7 +178,7 @@ we would instead specify the sources as data pools using the
 [`from` operator](../language/operators/from.md).
 
 Here we'll load our input data to pools in a temporary data lake, then execute
-our inner join using `super db query`.
+our inner join using `super db`.
 
 The query `inner-join-pools.spq`:
 
@@ -199,7 +199,7 @@ super db create -q -orderby flavor:asc fruit
 super db create -q -orderby likes:asc people
 super db load -q -use fruit fruit.json
 super db load -q -use people people.json
-super db query -s -I inner-join-pools.spq
+super db -s -I inner-join-pools.spq
 ```
 produces
 ```mdtest-output

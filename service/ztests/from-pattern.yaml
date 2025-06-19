@@ -4,13 +4,13 @@ script: |
     super db create -q $pool
     echo "\"$pool\"" | super db load -q -use $pool -
   done
-  super db query -s 'from * | sort this'
+  super db -s -c 'from * | sort this'
   echo ===
-  super db query -s 'from /.*/ | sort this'
+  super db -s -c 'from /.*/ | sort this'
   echo ===
-  super db query -s 'from match* | sort this'
+  super db -s -c 'from match* | sort this'
   echo ===
-  super db query -s 'from /match/ | sort this'
+  super db -s -c 'from /match/ | sort this'
 
 inputs:
   - name: service.sh

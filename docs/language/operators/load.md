@@ -42,7 +42,7 @@ super db branch -q -use coinflips onlytails
 echo '{flip:1,result:"heads"} {flip:2,result:"tails"}' |
   super db load -q -use coinflips -
 super db -q create -orderby flip:asc bigflips
-super db query -f text '
+super db -f text -c '
   from :branches
   | yield pool.name + "@" + branch.name
   | sort'
@@ -60,13 +60,13 @@ coinflips@onlytails
 
 _Modify some values, load them into the `main` branch of our empty `bigflips` pool, and see what was loaded_
 ```mdtest-command
-super db -lake example query '
+super db -lake example -c '
   from coinflips
   | result:=upper(result)
   | load bigflips
 ' > /dev/null
 
-super db -lake example query -s 'from bigflips'
+super db -lake example -s -c 'from bigflips'
 ```
 =>
 ```mdtest-output
@@ -76,7 +76,7 @@ super db -lake example query -s 'from bigflips'
 
 _Add a filtered subset of records to our `onlytails` branch, while also adding metadata_
 ```mdtest-command
-super db -lake example query '
+super db -lake example -c '
   from coinflips
   | result=="tails"
   | load coinflips@onlytails
@@ -85,7 +85,7 @@ super db -lake example query '
       meta "\"Additional metadata\""
 ' > /dev/null
 
-super db -lake example query -s 'from coinflips@onlytails'
+super db -lake example -s -c 'from coinflips@onlytails'
 ```
 =>
 ```mdtest-output

@@ -4,7 +4,7 @@ script: |
   super db init -q
   super db create -q logs
   super db load -q -use logs babble.sup
-  super db query -S "from logs@main:objects | drop id"
+  super db -S -c "from logs@main:objects | drop id"
 
 inputs:
   - name: babble.sup

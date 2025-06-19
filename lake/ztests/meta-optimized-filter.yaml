@@ -4,9 +4,9 @@ script: |
   super db create -use -q test
   seq 20 | super -c 'yield {ts: this}' - | super db load -q -
   seq 21 40 | super -c 'yield {ts: this}' - | super db load -q -
-  super db query -s 'from test:objects | max > 20 | cut min, max'
+  super db -s -c 'from test:objects | max > 20 | cut min, max'
   echo ===
-  super db query -s 'from test:partitions | max > 20 | cut min, max'
+  super db -s -c 'from test:partitions | max > 20 | cut min, max'
 
 outputs:
   - name: stdout

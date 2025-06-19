@@ -63,9 +63,12 @@ func (c *Spec) lookupSub(name string) *Spec {
 }
 
 func (s *Spec) Exec(args []string) error {
-	path, rest, showHidden, err := parse(s, args, nil, true)
+	path, rest, showHidden, err := parse(s, args, nil, 1)
 	if err == ErrNotLeaf {
-		path, rest, showHidden, err = parse(s, args, nil, false)
+		path, rest, showHidden, err = parse(s, args, nil, 2)
+		if err == ErrNotLeaf {
+			path, rest, showHidden, err = parse(s, args, nil, 0)
+		}
 	}
 	if err == nil {
 		err = path.run(rest)

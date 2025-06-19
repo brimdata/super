@@ -5,7 +5,7 @@ script: |
     curl -H Content-Type:application/x-parquet --data-binary @- \
     --fail $SUPER_DB_LAKE/pool/test/branch/main | super -s -c commit:=0 -
   echo //
-  super db query -s 'from test'
+  super db -s -c 'from test'
 
 inputs:
   - name: in.sup

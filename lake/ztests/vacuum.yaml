@@ -8,7 +8,7 @@ script: |
   super db vacuum -dryrun
   super db vacuum -f
   super db revert -q $r
-  ! super db query -s 'from test'
+  ! super db -s -c 'from test'
 
 outputs:
   - name: stdout

@@ -5,12 +5,12 @@ script: |
   super db use -q asc
   super -c "tail 900" babble.sup | super db load -q -
   super -c "head 250" babble.sup | super db load -q -
-  super db query -s -stats "from asc | count()"
+  super db -s -stats -c "from asc | count()"
   echo === | tee /dev/stderr
   super db use -q desc
   super -c "tail 900" babble.sup | super db load -q -
   super -c "head 250" babble.sup | super db load -q -
-  super db query -s -stats "from desc | count()"
+  super db -s -stats -c "from desc | count()"
 
 inputs:
   - name: service.sh

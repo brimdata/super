@@ -2,7 +2,7 @@ script: |
   source service.sh
   super db create -q test
   super db load -q -use test -
-  ! super db query -f csv 'from test'
+  ! super db -f csv -c 'from test'
 
 inputs:
   - name: service.sh

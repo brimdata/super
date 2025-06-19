@@ -3,7 +3,7 @@ script: |
   source service.sh
   super db create 2WwyVrZdEITo5WkKu1YsJC4dMjU
   super db use 2WwyVrZdEITo5WkKu1YsJC4dMjU
-  super db query 'from "2WwyVrZdEITo5WkKu1YsJC4dMjU"'
+  super db -c 'from "2WwyVrZdEITo5WkKu1YsJC4dMjU"'
 
 inputs:
   - name: service.sh

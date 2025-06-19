@@ -1,9 +1,8 @@
 script: |
   source service.sh
-  ! super db query ''
-  ! super db query 'from HEAD'
-  ! super db query 'from :unknownmeta'
-  ! super db query 'from doesnotexist'
+  ! super db -c 'from HEAD'
+  ! super db -c 'from :unknownmeta'
+  ! super db -c 'from doesnotexist'
 
 inputs:
   - name: service.sh
@@ -12,7 +11,6 @@ inputs:
 outputs:
   - name: stderr
     data: |
-      status code 400: query text is missing
       HEAD: pool not found at line 1, column 6:
       from HEAD
            ~~~~

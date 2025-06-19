@@ -2,12 +2,12 @@ script: |
   source service.sh
   super db create -use -q -orderby x:desc test
   super db load -q 1.sup
-  id=$(super db query -f text "from test@main:objects | cut id:=ksuid(id) | tail 1")
+  id=$(super db -f text -c "from test@main:objects | cut id:=ksuid(id) | tail 1")
   super db load -q 2.sup
-  super db query -s "from test"
+  super db -s -c "from test"
   echo === | tee /dev/stderr
   super db delete -q $id
-  super db query -s "from test"
+  super db -s -c "from test"
   echo === | tee /dev/stderr
   ! super db delete -q 27aaaaaaaaaaaaaaaaaaaaaaaaa
 

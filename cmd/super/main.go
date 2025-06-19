@@ -18,7 +18,6 @@ import (
 	_ "github.com/brimdata/super/cmd/super/db/ls"
 	_ "github.com/brimdata/super/cmd/super/db/manage"
 	_ "github.com/brimdata/super/cmd/super/db/merge"
-	_ "github.com/brimdata/super/cmd/super/db/query"
 	_ "github.com/brimdata/super/cmd/super/db/rename"
 	_ "github.com/brimdata/super/cmd/super/db/revert"
 	_ "github.com/brimdata/super/cmd/super/db/serve"

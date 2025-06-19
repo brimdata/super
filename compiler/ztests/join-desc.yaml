@@ -6,7 +6,7 @@ script: |
   super db load -q people.sup
   super db create -q -use -orderby flavor:desc fruits
   super db load -q fruits.sup
-  super db query -s -I pool.zed > pool.sup
+  super db -s -I pool.zed > pool.sup
 
 inputs:
   - name: people.sup

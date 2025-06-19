@@ -89,7 +89,7 @@ echo '{flip:3,result:"heads"}' | super db load -q -use coinflips@trial -
 super db -q create numbers
 echo '{number:1,word:"one"} {number:2,word:"two"} {number:3,word:"three"}' |
   super db load -q -use numbers -
-super db query -f text '
+super db -f text -c '
   from :branches
   | yield pool.name + "@" + branch.name
   | sort'
@@ -142,7 +142,7 @@ super -s -c 'get https://raw.githubusercontent.com/brimdata/zui-insiders/main/pa
 
 _Source data from the `main` branch of a pool_
 ```mdtest-command
-super db -lake example query -s 'from coinflips'
+super db -lake example -s -c 'from coinflips'
 ```
 =>
 ```mdtest-output
@@ -152,7 +152,7 @@ super db -lake example query -s 'from coinflips'
 
 _Source data from a specific branch of a pool_
 ```mdtest-command
-super db -lake example query -s 'from coinflips@trial'
+super db -lake example -s -c 'from coinflips@trial'
 ```
 =>
 ```mdtest-output
@@ -163,7 +163,7 @@ super db -lake example query -s 'from coinflips@trial'
 
 _Count the number of values in the `main` branch of all pools_
 ```mdtest-command
-super db -lake example query -f text 'from * | count()'
+super db -lake example -f text -c 'from * | count()'
 ```
 =>
 ```mdtest-output
@@ -171,7 +171,7 @@ super db -lake example query -f text 'from * | count()'
 ```
 _Join the data from multiple pools_
 ```mdtest-command
-super db -lake example query -s '
+super db -lake example -s -c '
   from coinflips | sort flip
   | join (
     from numbers | sort number
@@ -186,7 +186,7 @@ super db -lake example query -s '
 
 _Use `pass` to combine our join output with data from yet another source_
 ```mdtest-command
-super db -lake example query -s '
+super db -lake example -s -c '
   from coinflips | sort flip
   | join (
     from numbers | sort number

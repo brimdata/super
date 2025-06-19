@@ -2,12 +2,12 @@ script: |
   source service.sh
   super db create -use -q POOL
   super db load -q in.sup
-  id=$(super db query -f text 'from POOL@main:objects | yield ksuid(id)')
+  id=$(super db -f text -c 'from POOL@main:objects | yield ksuid(id)')
   super db vector add -q $id
-  super db query -S 'from POOL@main:vectors | drop id'
+  super db -S -c 'from POOL@main:vectors | drop id'
   echo ===
   super db vector delete -q $id
-  super db query -S 'from POOL@main:vectors | drop id'
+  super db -S -c 'from POOL@main:vectors | drop id'
   echo ===
 
 inputs:

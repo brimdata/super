@@ -1,7 +1,7 @@
 script: |
   source service.sh
   super db create -q test
-  super db query -s 'from test'
+  super db -s -c 'from test'
 
 inputs:
   - name: service.sh

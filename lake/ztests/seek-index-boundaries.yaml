@@ -15,7 +15,7 @@ inputs:
   - name: query.sh
     data: |
       echo // $1 | tee /dev/stderr
-      super db query -s -stats "$1"
+      super db -s -stats -c "$1"
 outputs:
   - name: stdout
     data: |

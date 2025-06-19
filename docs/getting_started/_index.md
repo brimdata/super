@@ -73,7 +73,7 @@ is the best way to learn about the SuperDB data lake.
 All of its examples use `super db` commands run on the command line.
 Run `super db -h` or `-h` with any subcommand for a list of command options
 and online help.  The same language query that works for `super` operating
-on local files or streams also works for `super db query` operating on a lake.
+on local files or streams also works for `super db ` operating on a lake.
 
 ## Design Philosophy
 
@@ -85,7 +85,7 @@ Since super-structured data is self-describing, this approach makes stream compo
 very easy.  Data from a query can trivially be piped to a local
 instance of `super` by feeding the resulting output stream to stdin of `super`, for example,
 ```
-super db query "from pool | ...remote query..." | super -c "...local query..." -
+super db -c "from pool | ...remote query..." | super -c "...local query..." -
 ```
 There is no need to configure the SuperDB entities with schema information
 like [protobuf configs](https://developers.google.com/protocol-buffers/docs/proto3)

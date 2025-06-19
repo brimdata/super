@@ -308,7 +308,7 @@ commit history.  In fact, the [`from` operator](../language/operators/from.md)
 allows a commit object to be specified with the `@` suffix to a
 pool reference, e.g.,
 ```
-super db query 'from logs@1tRxi7zjT7oKxCBwwZ0rbaiLRxb | ...'
+super db -c 'from logs@1tRxi7zjT7oKxCBwwZ0rbaiLRxb | ...'
 ```
 In this way, a query can time-travel through the commit history.  As long as the
 underlying data has not been deleted, arbitrarily old snapshots of the
@@ -671,7 +671,7 @@ according to configured policies and logic.
 
 ### Query
 ```
-super db query [options] <query>
+super db [options] <query>
 ```
 The `query` command runs a [SuperSQL](../language/_index.md) query with data from a lake as input.
 A query typically begins with a [`from` operator](../language/operators/from.md)
@@ -690,12 +690,12 @@ This example reads every record from the full key range of the `logs` pool
 and sends the results to stdout.
 
 ```
-super db query 'from logs'
+super db -c 'from logs'
 ```
 
 We can narrow the span of the query by specifying a filter on the [pool key](#pool-key):
 ```
-super db query 'from logs | ts >= 2018-03-24T17:36:30.090766Z and ts <= 2018-03-24T17:36:30.090758Z'
+super db -c 'from logs | ts >= 2018-03-24T17:36:30.090766Z and ts <= 2018-03-24T17:36:30.090758Z'
 ```
 Filters on pool keys are efficiently implemented as the data is laid out
 according to the pool key and seek indexes keyed by the pool key
@@ -704,12 +704,12 @@ are computed for each data object.
 When querying data to the [BSUP](../formats/bsup.md) output format,
 output from a pool can be easily piped to other commands like `super`, e.g.,
 ```
-super db query -f bsup 'from logs' | super -f table -c 'count() by field' -
+super db -f bsup -c 'from logs' | super -f table -c 'count() by field' -
 ```
 Of course, it's even more efficient to run the query inside of the pool traversal
 like this:
 ```
-super db query -f table 'from logs | count() by field'
+super db -f table -c 'from logs | count() by field'
 ```
 By default, the `query` command scans pool data in pool-key order though
 the query optimizer may, in general, reorder the scan to optimize searches,
@@ -745,35 +745,35 @@ sources vary based on level.
 For example, a list of pools with configuration data can be obtained
 in the SUP format as follows:
 ```
-super db query -S "from :pools"
+super db -S -c "from :pools"
 ```
 This meta-query produces a list of branches in a pool called `logs`:
 ```
-super db query -S "from logs:branches"
+super db -S -c "from logs:branches"
 ```
 You can filter the results just like any query,
 e.g., to look for particular branch:
 ```
-super db query -S "from logs:branches | branch.name=='main'"
+super db -S -c "from logs:branches | branch.name=='main'"
 ```
 
 This meta-query produces a list of the data objects in the `live` branch
 of pool `logs`:
 ```
-super db query -S "from logs@live:objects"
+super db -S -c "from logs@live:objects"
 ```
 
 You can also pretty-print in human-readable form most of the metadata records
 using the "lake" format, e.g.,
 ```
-super db query -f lake "from logs@live:objects"
+super db -f lake -c "from logs@live:objects"
 ```
 
 The `main` branch is queried by default if an explicit branch is not specified,
 e.g.,
 
 ```
-super db query -f lake "from logs:objects"
+super db -f lake -c "from logs:objects"
 ```
 
 ### Rename

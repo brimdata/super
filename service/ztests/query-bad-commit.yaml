@@ -1,7 +1,7 @@
 script: |
   source service.sh
   super db create test
-  ! super db query "from test@doesnotexist"
+  ! super db -c "from test@doesnotexist"
 
 inputs:
   - name: service.sh

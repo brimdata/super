@@ -4,16 +4,16 @@ script: |
   super db create -use -q POOL
   a=$(super db load a.sup | head -1 | awk '{print $1}')
   b=$(super db load b.sup | head -1 | awk '{print $1}')
-  super db query -s "from POOL | sort this"
+  super db -s -c "from POOL | sort this"
   echo === AT a
-  super db query -s "from POOL@$a | sort this"
+  super db -s -c "from POOL@$a | sort this"
   echo === AT b
-  super db query -s "from POOL@$b | sort this"
+  super db -s -c "from POOL@$b | sort this"
   super db revert -q $a
   echo === with A deleted
-  super db query -s "from POOL | sort this"
+  super db -s -c "from POOL | sort this"
   echo === at B before A deleted
-  super db query -s "from POOL@$b | sort this"
+  super db -s -c "from POOL@$b | sort this"
 
 inputs:
   - name: a.sup

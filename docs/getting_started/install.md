@@ -82,7 +82,7 @@ export SUPER_DB_LAKE=./scratch
 super db init
 super db create Demo
 echo '{s:"hello, world"}' | super db load -use Demo -
-super db query "from Demo"
+super db -c "from Demo"
 ```
 which should display
 ```
@@ -101,7 +101,7 @@ And in another shell, run the client:
 super db create Demo
 super db use Demo
 echo '{s:"hello, world"}' | super db load -
-super db query "from Demo"
+super db -c "from Demo"
 ```
 which should also display
 ```
