@@ -1,5 +1,5 @@
 script: |
-  export SUPER_DB_LAKE=test
+  export SUPER_DB=test
   super db init -q
   for o in asc desc; do
     super db create -use -seekstride 2KB -orderby ts:$o -q $o

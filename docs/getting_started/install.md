@@ -93,8 +93,8 @@ and hit the API.
 
 In one shell, run the server:
 ```
-super db init -lake scratch
-super db serve -lake scratch
+super db init -db scratch
+super db serve -db scratch
 ```
 And in another shell, run the client:
 ```

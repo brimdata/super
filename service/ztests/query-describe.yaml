@@ -5,7 +5,7 @@ script: |
   for file in multifrom.spq agg.spq agg-no-keys.spq two-channels.spq agg-sort.spq scope.spq auto-combined-channels.spq; do
     echo // === $file ===
     query="$(cat $file | jq -Rsa .)"
-    curl -H "Accept: application/json" -d "{\"query\":$query,\"head\":{\"pool\":\"test1\"}}" $SUPER_DB_LAKE/query/describe |
+    curl -H "Accept: application/json" -d "{\"query\":$query,\"head\":{\"pool\":\"test1\"}}" $SUPER_DB/query/describe |
       super -J -c 'sources := (over sources | id := "XXX")' -
   done
 

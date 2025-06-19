@@ -47,7 +47,7 @@ func main() {
 		"db",
 		"serve",
 		"-l=localhost:0",
-		"-lake=" + lakeroot,
+		"-db=" + lakeroot,
 		"-log.level=warn",
 		"-portfile=" + portfile,
 		fmt.Sprintf("-brimfd=%d", r.Fd()),

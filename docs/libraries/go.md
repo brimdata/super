@@ -98,9 +98,9 @@ as access via a service endpoint.
 
 First, we'll use `zed` to create a lake and load the example data:
 ```
-zed init -lake scratch
-zed create -lake scratch Demo
-echo '{s:"hello, world"}{x:1}{s:"good bye"}' | zed load -lake scratch -use Demo -
+zed init -db scratch
+zed create -db scratch Demo
+echo '{s:"hello, world"}{x:1}{s:"good bye"}' | zed load -db scratch -use Demo -
 ```
 Now replace `main.go` with this code:
 ```mdtest-go-example
@@ -178,7 +178,7 @@ give it the URI of the service, which by default is on port 9867.
 To try this out, first run a Zed service on the scratch lake we created
 above:
 ```
-zed serve -lake ./scratch
+zed serve -db ./scratch
 ```
 Finally, in another local shell, run the Go program and specify the service
 endpoint we just created:

@@ -2,7 +2,7 @@
 # even if the object is greater than pool threshold.
 
 script: |
-  export SUPER_DB_LAKE=test
+  export SUPER_DB=test
   super db init -q
   super db create -q -use -orderby x:asc -S 100B test
   for i in {1..5}; do

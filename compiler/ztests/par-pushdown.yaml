@@ -1,5 +1,5 @@
 script: |
-  export SUPER_DB_LAKE=test
+  export SUPER_DB=test
   super db init -q
   super db create -q -orderby ts test
   super db compile -P 3 "from test | x==1" | super -s -c 'over this | kind=="Scatter" | over paths | yield this[1].filter.kind' -

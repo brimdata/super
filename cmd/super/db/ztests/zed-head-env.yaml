@@ -1,5 +1,5 @@
 script: |
-  export SUPER_DB_LAKE=test
+  export SUPER_DB=test
   export ZED_HEAD_DIR=x
   mkdir x
   super db init -q
@@ -9,7 +9,7 @@ script: |
   export ZED_HEAD_DIR=.
   mkdir y
   cd y
-  super db use -lake ../test -q POOL
+  super db use -db ../test -q POOL
   cat .zed_head
 
 outputs:

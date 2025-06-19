@@ -2,10 +2,10 @@ script: |
   source service.sh
   super db create -q test
   # Undetectable format
-  curl -w 'code %{response_code}\n' -d @f $SUPER_DB_LAKE/pool/test/branch/main
+  curl -w 'code %{response_code}\n' -d @f $SUPER_DB/pool/test/branch/main
   # Unsupported Content-Type
   curl -w 'code %{response_code}\n' -d '' -H Content-Type:unsupported \
-    $SUPER_DB_LAKE/pool/test/branch/main
+    $SUPER_DB/pool/test/branch/main
 
 inputs:
   - name: f

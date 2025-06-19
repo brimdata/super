@@ -2,7 +2,7 @@
 # objects if their combined size is less than pool threshold.
 
 script: |
-  export SUPER_DB_LAKE=test
+  export SUPER_DB=test
   super db init -q
   super db create -q -use -orderby ts:asc -S 800B test
   seq 0 50 | super -c '{ts:this,x:1}' - | super db load -q -

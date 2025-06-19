@@ -3,15 +3,15 @@ script: |
   curl -X POST \
     -H "Accept: application/json" \
     -d '{"name": "test", "layout": { "order": "desc", "keys": [["ts"]] }}' \
-    $SUPER_DB_LAKE/pool > /dev/null
+    $SUPER_DB/pool > /dev/null
   curl -X PUT \
     -H "Accept: application/json" \
     -d '{"name":"new_test"}' \
-    $SUPER_DB_LAKE/pool/test
+    $SUPER_DB/pool/test
   curl -X POST \
     -H "Accept: application/json" \
     -d '{"query":"from :pools"}' \
-    $SUPER_DB_LAKE/query | super -S -c "yield this[1] | id:=0,ts:=0" -
+    $SUPER_DB/query | super -S -c "yield this[1] | id:=0,ts:=0" -
 
 inputs:
   - name: service.sh

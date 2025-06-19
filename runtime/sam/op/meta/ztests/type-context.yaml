@@ -1,7 +1,7 @@
 # This test makes sure the type context from metadata processing doesn't 
 # leak into the flowgraph, except for metaqueries, where it should.
 script: |
-  export SUPER_DB_LAKE=test
+  export SUPER_DB=test
   super db init -q
   super db create -q tmp
   echo '1 2' | super db load -q -use tmp -

@@ -1,5 +1,5 @@
 script: |
-  export SUPER_DB_LAKE=test
+  export SUPER_DB=test
   super db init -q
   super db create -q -use test
   seq -f '{ts:%g,y:3.14,z:"foo"}' 50000 | super db load -q -

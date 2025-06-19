@@ -11,7 +11,7 @@ script: |
 
   python <<EOF
   import superdb
-  c = superdb.Client('$SUPER_DB_LAKE')
+  c = superdb.Client('$SUPER_DB')
   c.create_pool('test')
   with open('in.sup') as f:
     c.load('test', f)

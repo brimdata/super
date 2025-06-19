@@ -1,5 +1,5 @@
 script: |
-  export SUPER_DB_LAKE=test
+  export SUPER_DB=test
   super db init -q
   echo '// Test create vectors on compaction.'
   super db create -use -q test1

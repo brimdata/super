@@ -1,5 +1,5 @@
 script: |
-  export SUPER_DB_LAKE=test
+  export SUPER_DB=test
   super db init -q
   super db create -q test
   super db compile -dag -C 'const POOL = "test" from eval(POOL)' | sed -e "s/[a-zA-Z0-9]\{27\}/XXX/"

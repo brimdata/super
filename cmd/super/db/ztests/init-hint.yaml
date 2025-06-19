@@ -1,5 +1,5 @@
 script: |
-  ! super db -lake=path/to/superdb ls
+  ! super db -db=path/to/superdb ls
 
 outputs:
   - name: stderr

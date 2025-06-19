@@ -286,7 +286,7 @@ that will allow multiple clients to query and add data to the same lake. In a
 separate console window run:
 
 ```
-$ zed serve -lake $HOME/.zedlake
+$ zed serve -db $HOME/.zedlake
 ```
 =>
 ```

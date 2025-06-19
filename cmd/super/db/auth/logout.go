@@ -37,7 +37,7 @@ func (c *LogoutCommand) Run(args []string) error {
 	if len(args) > 0 {
 		return errors.New("logout command takes no arguments")
 	}
-	if err := c.LakeFlags.AuthStore().RemoveTokens(c.LakeFlags.Lake); err != nil {
+	if err := c.LakeFlags.AuthStore().RemoveTokens(c.LakeFlags.DB); err != nil {
 		return fmt.Errorf("failed to save credentials file: %w", err)
 	}
 	return nil

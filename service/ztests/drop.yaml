@@ -8,7 +8,7 @@ script: |
   super db ls -f bsup | super -s -c "cut name | sort name" -
   echo === | tee /dev/stderr
   ! super db drop p3
-  ! super db drop -lake http://127.0.0.1:1 p3
+  ! super db drop -db http://127.0.0.1:1 p3
 
 inputs:
   - name: service.sh

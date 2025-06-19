@@ -2,7 +2,7 @@
 # ascending ordered pools.
 
 script: |
-  export SUPER_DB_LAKE=test
+  export SUPER_DB=test
   super db init -q
   for o in asc desc; do
     echo "// $o"

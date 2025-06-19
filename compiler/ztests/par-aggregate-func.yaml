@@ -1,5 +1,5 @@
 script: |
-  export SUPER_DB_LAKE=test
+  export SUPER_DB=test
   super db init -q
   super db create -q -orderby s:asc test
   super db compile -P 2 -C "from test | union(s) by n:=len(s)" | sed -e 's/pool .*/.../'

@@ -2,11 +2,11 @@ skip: "issue #2651"
 
 script: |
   source services.sh s3://bucket/lake
-  super db new -lake $SUPER_DB_LAKE test
+  super db new -db $SUPER_DB test
   echo ===
-  super db drop -lake $SUPER_DB_LAKE -p test
+  super db drop -db $SUPER_DB -p test
   echo ===
-  super db ls -lake $SUPER_DB_LAKE
+  super db ls -db $SUPER_DB
   echo ===
 
 inputs:

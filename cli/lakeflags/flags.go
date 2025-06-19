@@ -18,16 +18,16 @@ import (
 )
 
 var (
-	ErrNoHEAD    = errors.New("HEAD not specified: indicate with -use or run the \"use\" command")
-	ErrLocalLake = errors.New("cannot open connection on local lake")
+	ErrNoHEAD  = errors.New("HEAD not specified: indicate with -use or run the \"use\" command")
+	ErrLocalDB = errors.New("cannot open connection on local database")
 )
 
 type Flags struct {
 	ConfigDir string
-	Lake      string
+	DB        string
 	Quiet     bool
 
-	lakeSpecified bool
+	dbSpecified bool
 }
 
 func (l *Flags) SetFlags(fs *flag.FlagSet) {
@@ -37,11 +37,11 @@ func (l *Flags) SetFlags(fs *flag.FlagSet) {
 		dir = filepath.Join(dir, ".zed")
 	}
 	fs.StringVar(&l.ConfigDir, "configdir", dir, "configuration and credentials directory")
-	if s, ok := os.LookupEnv("SUPER_DB_LAKE"); ok {
-		l.Lake, l.lakeSpecified = s, true
+	if s, ok := os.LookupEnv("SUPER_DB"); ok {
+		l.DB, l.dbSpecified = s, true
 	}
-	fs.Func("lake", fmt.Sprintf("lake location (env SUPER_DB_LAKE) (default %s)", l.Lake), func(s string) error {
-		l.Lake, l.lakeSpecified = s, true
+	fs.Func("db", fmt.Sprintf("database location (env SUPER_DB) (default %s)", l.DB), func(s string) error {
+		l.DB, l.dbSpecified = s, true
 		return nil
 	})
 }
@@ -52,7 +52,7 @@ func (l *Flags) Connection() (*client.Connection, error) {
 		return nil, err
 	}
 	if !api.IsLakeService(uri.String()) {
-		return nil, ErrLocalLake
+		return nil, ErrLocalDB
 	}
 	conn := client.NewConnectionTo(uri.String())
 	if err := conn.SetAuthStore(l.AuthStore()); err != nil {
@@ -85,29 +85,29 @@ func (l *Flags) AuthStore() *auth0.Store {
 }
 
 func (l *Flags) URI() (*storage.URI, error) {
-	lk := strings.TrimRight(l.Lake, "/")
-	if !l.lakeSpecified {
-		lk = getDefaultDataDir()
+	db := strings.TrimRight(l.DB, "/")
+	if !l.dbSpecified {
+		db = getDefaultDataDir()
 	}
-	if lk == "" {
-		return nil, errors.New("lake location must be set (either with the -lake flag or SUPER_DB_LAKE environment variable)")
+	if db == "" {
+		return nil, errors.New("database location must be set (either with the -db flag or SUPER_DB environment variable)")
 	}
-	u, err := storage.ParseURI(lk)
+	u, err := storage.ParseURI(db)
 	if err != nil {
-		err = fmt.Errorf("error parsing lake location: %w", err)
+		err = fmt.Errorf("error parsing database location: %w", err)
 	}
 	return u, err
 }
 
-// ClientURI returns the URI of the lake to connect to. If the lake path is
-// the defaultDataDir, it first checks if a zed service is running on
-// localhost:9867 and if so uses http://localhost:9867 as the lake location.
+// ClientURI returns the URI of the database to connect to. If the database path is
+// the defaultDataDir, it first checks if a SuperDB service is running on
+// localhost:9867 and if so uses http://localhost:9867 as the database location.
 func (l *Flags) ClientURI() (*storage.URI, error) {
 	u, err := l.URI()
 	if err != nil {
 		return nil, err
 	}
-	if !l.lakeSpecified && localServer() {
+	if !l.dbSpecified && localServer() {
 		u = storage.MustParseURI("http://localhost:9867")
 	}
 	return u, nil

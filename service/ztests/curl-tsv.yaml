@@ -2,8 +2,8 @@ script: |
   source service.sh
   super db create -q -orderby a test
   curl -H Content-Type:text/tab-separated-values --data-binary @in.tsv \
-    --fail $SUPER_DB_LAKE/pool/test/branch/main > /dev/null
-  curl -H Accept:text/tab-separated-values -d '{"query":"from test"}' $SUPER_DB_LAKE/query
+    --fail $SUPER_DB/pool/test/branch/main > /dev/null
+  curl -H Accept:text/tab-separated-values -d '{"query":"from test"}' $SUPER_DB/query
 
 inputs:
   - name: in.tsv

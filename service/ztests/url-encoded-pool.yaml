@@ -1,8 +1,8 @@
 script: |
   source service.sh
   super db create -q test/new
-  curl -X DELETE $SUPER_DB_LAKE/pool/test%2Fnew
-  curl -X DELETE $SUPER_DB_LAKE/pool/test%2Fnew
+  curl -X DELETE $SUPER_DB/pool/test%2Fnew
+  curl -X DELETE $SUPER_DB/pool/test%2Fnew
 
 inputs:
   - name: service.sh

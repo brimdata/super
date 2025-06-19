@@ -1,5 +1,5 @@
 script: |
-  export SUPER_DB_LAKE=test
+  export SUPER_DB=test
   super db init -q
   super db create -q -orderby ts test
   # At the time of writing, the where operator is necessary because a pool scan

@@ -1,7 +1,7 @@
 script: |
   source service.sh
   super db create -q test
-  curl -H "Accept: application/json" -d '{"query":"from :pools | cut name"}' $SUPER_DB_LAKE/query
+  curl -H "Accept: application/json" -d '{"query":"from :pools | cut name"}' $SUPER_DB/query
 
 inputs:
   - name: service.sh

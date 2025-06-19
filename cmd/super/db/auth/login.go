@@ -50,9 +50,9 @@ func (c *LoginCommand) Run(args []string) error {
 	switch method.Kind {
 	case api.AuthMethodAuth0:
 	case api.AuthMethodNone:
-		return fmt.Errorf("Zed lake service at %s does not support authentication", c.LakeFlags.Lake)
+		return fmt.Errorf("SuperDB service at %s does not support authentication", c.LakeFlags.DB)
 	default:
-		return fmt.Errorf("Zed lake service at %s requires unknown authentication method %s", c.LakeFlags.Lake, method.Kind)
+		return fmt.Errorf("SuperDB service at %s requires unknown authentication method %s", c.LakeFlags.DB, method.Kind)
 	}
 	fmt.Println("method", method.Auth0.ClientID)
 	fmt.Println("domain", method.Auth0.Domain)
@@ -74,9 +74,9 @@ func (c *LoginCommand) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	if err := c.LakeFlags.AuthStore().SetTokens(c.LakeFlags.Lake, tokens); err != nil {
+	if err := c.LakeFlags.AuthStore().SetTokens(c.LakeFlags.DB, tokens); err != nil {
 		return fmt.Errorf("failed to save credentials file: %w", err)
 	}
-	fmt.Printf("Login successful, stored credentials for %s\n", c.LakeFlags.Lake)
+	fmt.Printf("Login successful, stored credentials for %s\n", c.LakeFlags.DB)
 	return nil
 }

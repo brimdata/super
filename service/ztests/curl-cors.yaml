@@ -6,28 +6,28 @@ script: |
     -H "Access-Control-Request-Method: POST" \
     -H "Access-Control-Request-Headers: content-type, authorization" \
     -H "Origin: http://a" \
-    $SUPER_DB_LAKE/query | grep Access-Control-Allow | tr -d '\015'
+    $SUPER_DB/query | grep Access-Control-Allow | tr -d '\015'
   echo === OPTIONS: not allowed ===
   ! curl -sD - \
     -X OPTIONS \
     -H "Access-Control-Request-Method: POST" \
     -H "Access-Control-Request-Headers: content-type, authorization" \
     -H "Origin: http://not-a" \
-    $SUPER_DB_LAKE/query | grep Access-Control-Allow
+    $SUPER_DB/query | grep Access-Control-Allow
   echo === POST: allowed ===
   curl -sD - \
     -X POST \
     -H "Origin: http://wildcard.b" \
     -H "Accept: application/json" \
     -d '{"query":"from :pools | *"}' \
-    $SUPER_DB_LAKE/query | grep Access-Control-Allow | tr -d '\015'
+    $SUPER_DB/query | grep Access-Control-Allow | tr -d '\015'
   echo === POST: not allowed ===
   ! curl -sD - \
     -X POST \
     -H "Origin: http://wildcard.not-b" \
     -H "Accept: application/json" \
     -d '{"query":"from :pools | *"}' \
-    $SUPER_DB_LAKE/query | grep Access-Control-Allow
+    $SUPER_DB/query | grep Access-Control-Allow
 
 inputs:
   - name: service.sh

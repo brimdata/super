@@ -2,7 +2,7 @@
 # into partitions.
 
 script: |
-  export SUPER_DB_LAKE=test
+  export SUPER_DB=test
   super db init -q
   super db create -q -orderby k:asc tmp
   super db use -q tmp

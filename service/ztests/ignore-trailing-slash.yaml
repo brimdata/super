@@ -1,7 +1,7 @@
 script: |
   source service.sh
   super db create -q test
-  export SUPER_DB_LAKE="$SUPER_DB_LAKE/"
+  export SUPER_DB="$SUPER_DB/"
   super db ls
 
 inputs:

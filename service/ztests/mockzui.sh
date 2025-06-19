@@ -40,7 +40,7 @@ mockzuipid=$!
 awaitfile $tempdir/port
 awaitfile $tempdir/pid
 
-export SUPER_DB_LAKE=http://localhost:$(cat $tempdir/port)
+export SUPER_DB=http://localhost:$(cat $tempdir/port)
 export LAKE_PID=$(cat $tempdir/pid)
 export MOCKZUI_PID=$mockzuipid
 

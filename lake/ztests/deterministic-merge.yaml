@@ -1,5 +1,5 @@
 script: |
-  export SUPER_DB_LAKE=test
+  export SUPER_DB=test
   super db init -q
   super db create -q -S 32B -orderby ts:asc logs
   super db load -q -use logs in.sup

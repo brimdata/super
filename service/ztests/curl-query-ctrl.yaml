@@ -3,12 +3,12 @@ script: |
   super db create -q test
   echo '{ts:0}' | super db load -use test -q - 
   echo // control messages enabled
-  curl -H "Accept: application/x-zjson" -d '{"query":"from test@main"}' $SUPER_DB_LAKE/query?ctrl=T \
+  curl -H "Accept: application/x-zjson" -d '{"query":"from test@main"}' $SUPER_DB/query?ctrl=T \
     | sed -E '/QueryStats/s/[0-9]{3,}/xxx/g' # for ZJSON
   echo // control messages disabled
-  curl -H "Accept: application/x-zjson" -d '{"query":"from test@main"}' $SUPER_DB_LAKE/query?ctrl=F
+  curl -H "Accept: application/x-zjson" -d '{"query":"from test@main"}' $SUPER_DB/query?ctrl=F
   echo // invalid ctrl value
-  curl -H "Accept: application/x-zjson" -d '{"query":"from test@main"}' $SUPER_DB_LAKE/query?ctrl=Foo
+  curl -H "Accept: application/x-zjson" -d '{"query":"from test@main"}' $SUPER_DB/query?ctrl=Foo
 
 inputs:
   - name: service.sh

@@ -97,8 +97,8 @@ func (c *Command) Run(args []string) error {
 	if c.monitor {
 		conn, err := c.LakeFlags.Connection()
 		if err != nil {
-			if errors.Is(err, lakeflags.ErrLocalLake) {
-				return errors.New("monitor on local lake not supported")
+			if errors.Is(err, lakeflags.ErrLocalDB) {
+				return errors.New("monitor on local database not supported")
 			}
 			return err
 		}

@@ -4,15 +4,15 @@ script: |
   super db load -q -use test -
   for accept in text/csv application/{json,x-ndjson,x-sup,x-zeek,x-zjson} ""; do
     echo === $accept ===
-    curl -H "Accept: $accept" -d '{"query":"from test"}' $SUPER_DB_LAKE/query\?ctrl=true |
+    curl -H "Accept: $accept" -d '{"query":"from test"}' $SUPER_DB/query\?ctrl=true |
       sed -E '/QueryStats/s/[0-9]{3,}/xxx/g' # for ZJSON
   done
   echo === application/vnd.apache.arrow.stream ===
-  curl -H 'Accept: application/vnd.apache.arrow.stream' -d '{"query":"from test"}' $SUPER_DB_LAKE/query |
+  curl -H 'Accept: application/vnd.apache.arrow.stream' -d '{"query":"from test"}' $SUPER_DB/query |
     super -s -i arrows -
   for format in parquet csup; do
     echo === application/x-$format ===
-    curl -H "Accept: application/x-$format" -d '{"query":"from test"}' -o out.$format $SUPER_DB_LAKE/query
+    curl -H "Accept: application/x-$format" -d '{"query":"from test"}' -o out.$format $SUPER_DB/query
     super -s out.$format
   done
 

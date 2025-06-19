@@ -1,6 +1,6 @@
 # Test that a pool can be given a ksuid name and everything still works.
 script: |
-  export SUPER_DB_LAKE=test
+  export SUPER_DB=test
   super db init -q
   super db create "2WwyVrZdEITo5WkKu1YsJC4dMjU"
   super db use "2WwyVrZdEITo5WkKu1YsJC4dMjU"

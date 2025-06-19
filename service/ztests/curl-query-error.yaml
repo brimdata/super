@@ -1,11 +1,11 @@
 script: |
   source service.sh
   super db create -q test
-  curl -w 'code %{response_code}\n' -d '' $SUPER_DB_LAKE/query
-  curl -w 'code %{response_code}\n' -d '{"query":""}' $SUPER_DB_LAKE/query
-  curl -w 'code %{response_code}\n' -d '{"query":"from HEAD"}' $SUPER_DB_LAKE/query
-  curl -w 'code %{response_code}\n' -d '{"query":"from :unknownmeta"}' $SUPER_DB_LAKE/query
-  curl -w 'code %{response_code}\n' -d '{"query":"from doesnotexist"}' $SUPER_DB_LAKE/query
+  curl -w 'code %{response_code}\n' -d '' $SUPER_DB/query
+  curl -w 'code %{response_code}\n' -d '{"query":""}' $SUPER_DB/query
+  curl -w 'code %{response_code}\n' -d '{"query":"from HEAD"}' $SUPER_DB/query
+  curl -w 'code %{response_code}\n' -d '{"query":"from :unknownmeta"}' $SUPER_DB/query
+  curl -w 'code %{response_code}\n' -d '{"query":"from doesnotexist"}' $SUPER_DB/query
 
 inputs:
   - name: service.sh

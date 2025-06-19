@@ -3,7 +3,7 @@ script: |
   source service.sh
   super db create -use -q test
   echo '{x: 1(uint64)}' | super db load -q -
-  curl -d '{"query": "from test"}' $SUPER_DB_LAKE/query
+  curl -d '{"query": "from test"}' $SUPER_DB/query
 
 inputs:
   - name: service.sh

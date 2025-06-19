@@ -1,5 +1,5 @@
 script: |
-  export SUPER_DB_LAKE=test
+  export SUPER_DB=test
   super db init -q
   echo =1= >&2
   ! super db -s -c "$(cat bad-single-line.spq)"

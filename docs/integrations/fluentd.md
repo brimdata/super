@@ -66,7 +66,7 @@ was started with a specified storage path.
 wget https://github.com/brimdata/super/releases/download/v1.17.0/zed-v1.17.0.linux-amd64.tar.gz
 tar xzvf zed-v1.17.0.linux-amd64.tar.gz
 sudo mv zed /usr/local/bin
-zed -lake $HOME/lake serve -manage 5m
+zed -db $HOME/lake serve -manage 5m
 ```
 
 Once the lake service was running, a pool was created to hold our Zeek data by

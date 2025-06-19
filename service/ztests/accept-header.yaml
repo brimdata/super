@@ -4,7 +4,7 @@ script: |
   echo '{ts:0}' | super db load -use test -q -
   for accept in "text/plain, application/json" "application/xml, text/css"; do
     echo // $accept
-    curl -H "Accept: $accept" -d '{"query":"from test@main"}' $SUPER_DB_LAKE/query
+    curl -H "Accept: $accept" -d '{"query":"from test@main"}' $SUPER_DB/query
   done
 
 inputs:

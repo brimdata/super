@@ -1,6 +1,6 @@
 script: |
   source service.sh
-  curl -d '{"query":"count("}' $SUPER_DB_LAKE/compile | super -s -c 'cut compilation_errors' -
+  curl -d '{"query":"count("}' $SUPER_DB/compile | super -s -c 'cut compilation_errors' -
 
 inputs:
   - name: service.sh

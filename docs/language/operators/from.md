@@ -142,7 +142,7 @@ super -s -c 'get https://raw.githubusercontent.com/brimdata/zui-insiders/main/pa
 
 _Source data from the `main` branch of a pool_
 ```mdtest-command
-super db -lake example -s -c 'from coinflips'
+super db -db example -s -c 'from coinflips'
 ```
 =>
 ```mdtest-output
@@ -152,7 +152,7 @@ super db -lake example -s -c 'from coinflips'
 
 _Source data from a specific branch of a pool_
 ```mdtest-command
-super db -lake example -s -c 'from coinflips@trial'
+super db -db example -s -c 'from coinflips@trial'
 ```
 =>
 ```mdtest-output
@@ -163,7 +163,7 @@ super db -lake example -s -c 'from coinflips@trial'
 
 _Count the number of values in the `main` branch of all pools_
 ```mdtest-command
-super db -lake example -f text -c 'from * | count()'
+super db -db example -f text -c 'from * | count()'
 ```
 =>
 ```mdtest-output
@@ -171,7 +171,7 @@ super db -lake example -f text -c 'from * | count()'
 ```
 _Join the data from multiple pools_
 ```mdtest-command
-super db -lake example -s -c '
+super db -db example -s -c '
   from coinflips | sort flip
   | join (
     from numbers | sort number
@@ -186,7 +186,7 @@ super db -lake example -s -c '
 
 _Use `pass` to combine our join output with data from yet another source_
 ```mdtest-command
-super db -lake example -s -c '
+super db -db example -s -c '
   from coinflips | sort flip
   | join (
     from numbers | sort number

@@ -138,7 +138,7 @@ authentication configuration along with a directory name for lake storage.
        -auth.domain=$auth0_domain \
        -auth.jwkspath=jwks.json \
        -auth.audience=$auth0_api_identifier \
-       -lake=lake
+       -db=lake
 
    {"level":"info","ts":1678909988.9797907,"logger":"core","msg":"Started"}
    {"level":"info","ts":1678909988.9804773,"logger":"httpd","msg":"Listening","addr":"[::]:9867"}

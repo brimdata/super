@@ -9,18 +9,18 @@ script: |
 
   LAKE_EXTRA_FLAGS='-auth.enabled=t -auth.audience=a -auth.clientid=c -auth.domain=d -auth.jwkspath=auth-public-jwks.json' source service.sh source service.sh
   token=$(gentoken -audience a -domain d -keyid testkey -privatekeyfile auth-private-key -tenantid t -userid u)
-  super db auth store -access $token -lake $SUPER_DB_LAKE
+  super db auth store -access $token -db $SUPER_DB
 
   python <<EOF
   import superdb
-  c = superdb.Client('$SUPER_DB_LAKE')
+  c = superdb.Client('$SUPER_DB')
   c.create_pool('test')
   c.load('test', '{a:1}')
   for v in c.query('from test'):
     print(v)
 
   print('===')
-  c = superdb.Client('$SUPER_DB_LAKE', config_dir='')
+  c = superdb.Client('$SUPER_DB', config_dir='')
   try:
     c.query('from test')
   except Exception as e:

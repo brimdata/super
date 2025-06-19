@@ -1,5 +1,5 @@
 script: |
-  export SUPER_DB_LAKE=test
+  export SUPER_DB=test
   super db init -q
   super db create -q -orderby a test
   super db compile -C -P 2 'from test | sort | head' | sed -e 's/pool .*/.../'

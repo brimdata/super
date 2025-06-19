@@ -1,9 +1,9 @@
 script: |
-  ! super db ls -lake ''
-  ! super db serve -lake ''
+  ! super db ls -db ''
+  ! super db serve -db ''
 
 outputs:
   - name: stderr
     data: |
-      lake location must be set (either with the -lake flag or SUPER_DB_LAKE environment variable)
-      lake location must be set (either with the -lake flag or SUPER_DB_LAKE environment variable)
+      database location must be set (either with the -db flag or SUPER_DB environment variable)
+      database location must be set (either with the -db flag or SUPER_DB environment variable)
