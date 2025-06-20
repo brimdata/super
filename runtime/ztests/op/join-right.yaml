@@ -1,5 +1,5 @@
 spq: |
-  right join (from (yield 2,4,6)) on right=left*2
+  right join (from (yield 2,4,6)) on right=left*2 | sort 
 
 vector: true
 
@@ -9,5 +9,5 @@ input: |
 
 output: |
   {left:1,right:2}
-  {right:4}
   {left:3,right:6}
+  {right:4}
