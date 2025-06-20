@@ -3,7 +3,9 @@ spq: |
   | join on a
   | yield left
 
+vector: true
+
 input: &input |
-  {a:0}
+  {a:null(int64)}
 
 output: *input
