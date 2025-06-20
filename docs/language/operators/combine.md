@@ -5,7 +5,7 @@
 ### Synopsis
 
 ```
-( => ... => ...) | ...
+( ... ) ( ... ) | ...
 ```
 ### Description
 
@@ -22,10 +22,9 @@ and its semantics of undefined merge order.
 _Copy input to two pipeline branches and combine with the implied operator_
 ```mdtest-spq
 # spq
-fork (
-  =>pass
-  =>pass
-)
+fork
+  ( pass )
+  ( pass )
 | sort this
 # input
 1 2

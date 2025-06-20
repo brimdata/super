@@ -1,9 +1,8 @@
 spq: |
-  over a => (
-    fork (
-      => head 1
-      => yield this+10
-    )
+  over a (
+    fork
+      ( head 1 )
+      ( yield this+10 )
     | sort this
   )
 

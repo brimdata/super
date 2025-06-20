@@ -12,38 +12,41 @@ outputs:
   - name: stdout
     data: |
       lister ...
-      | scatter (
-        =>
+      | scatter
+        (
           seqscan ...
-        =>
+        )
+        (
           seqscan ...
-      )
+        )
       | combine
       | top 1
       | output main
       ===
       lister ...
-      | scatter (
-        =>
+      | scatter
+        (
           seqscan ...
           | top 3 a asc nulls last
-        =>
+        )
+        (
           seqscan ...
           | top 3 a asc nulls last
-      )
+        )
       | merge a asc nulls last
       | head 3
       | output main
       ===
       lister ...
-      | scatter (
-        =>
+      | scatter
+        (
           seqscan ...
           | top 3 b desc nulls last
-        =>
+        )
+        (
           seqscan ...
           | top 3 b desc nulls last
-      )
+        )
       | merge b desc nulls last
       | head 3
       | output main

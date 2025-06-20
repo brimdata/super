@@ -15,8 +15,9 @@ inputs:
   - name: multifrom.spq
     data: |
       fork (
-        => from test1
-        => from test2
+        from test1
+      )(
+        from test2
       ) | put foo := "bar"
   - name: agg.spq
     data: |
@@ -27,8 +28,9 @@ inputs:
   - name: two-channels.spq
     data: |
       fork (
-      => from test1 | sum(y) by key1 | output main
-      => from test2 | put x := "foo" | output secondary
+        from test1 | sum(y) by key1 | output main
+      )(
+        from test2 | put x := "foo" | output secondary
       )
   - name: agg-sort.spq
     data: |
@@ -36,10 +38,10 @@ inputs:
   - name: scope.spq
     data: |
       type port = uint16
-      from test1 | fork (=> output main => yield "bar" | output secondary)
+      from test1 | fork ( output main ) ( yield "bar" | output secondary )
   - name: auto-combined-channels.spq
     data: |
-      from test1 | fork (=> pass => pass)
+      from test1 | fork ( pass ) ( pass )
 
 outputs:
   - name: stdout

@@ -5,7 +5,7 @@
 ### Synopsis
 
 ```
-( => ... => ...) | merge <expr> [asc|desc] [nulls {first|last}] [, <expr> [asc|desc] [nulls {first|last}] ...]]
+( ... ) ( ...) | merge <expr> [asc|desc] [nulls {first|last}] [, <expr> [asc|desc] [nulls {first|last}] ...]]
 ```
 ### Description
 
@@ -19,10 +19,9 @@ where the values from the upstream pipeline branches are forwarded based on thes
 _Copy input to two pipeline branches and merge_
 ```mdtest-spq
 # spq
-fork (
-  =>pass
-  =>pass
-)
+fork 
+  ( pass )
+  ( pass )
 | merge this
 # input
 1

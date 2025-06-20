@@ -5,7 +5,7 @@ inputs:
   - name: countfile.zed
     data: |
       op countfile(): (
-        file test.sup | count()
+        from test.sup | count()
       )
   - name: test.sup
     data: '{} {} {} {}'

@@ -4,7 +4,7 @@ script: |
   source service.sh
   super db create -q test
   super db load -q -use test -
-  curl --stderr ignore -H "Accept: application/x-zjson" -d '{"query":"from test | fork (=>output main =>output test)"}' $SUPER_DB/query\?ctrl=true |
+  curl --stderr ignore -H "Accept: application/x-zjson" -d '{"query":"from test | fork ( output main ) ( output test )"}' $SUPER_DB/query\?ctrl=true |
       super -s -c "? QueryChannelEnd | sort value.channel" -
 
 inputs:

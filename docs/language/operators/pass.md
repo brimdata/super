@@ -32,11 +32,10 @@ pass
 _Copy each input value to three parallel pipeline branches and leave the values unmodified on one of them_
 ```mdtest-spq
 # spq
-fork (
-  => pass
-  => upper(this)
-  => lower(this)
-)
+fork
+  ( pass )
+  ( upper(this) )
+  ( lower(this) )
 | sort
 # input
 "HeLlo, WoRlD!"

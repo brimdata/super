@@ -5,11 +5,10 @@
 ### Synopsis
 
 ```
-fork (
-  => <branch>
-  => <branch>
+fork 
+  ( <branch> )
+  ( <branch> )
   ...
-)
 ```
 ### Description
 
@@ -25,10 +24,9 @@ merged with an automatically inserted [combine operator](combine.md).
 _Copy input to two pipeline branches and merge_
 ```mdtest-spq
 # spq
-fork (
-  =>pass
-  =>pass
-)
+fork
+  ( pass )
+  ( pass )
 | sort this
 # input
 1

@@ -5,19 +5,19 @@
 ### Synopsis
 
 ```
-switch <expr> (
-  case <const> => <branch>
-  case <const> => <branch>
+switch <expr> 
+  case <const> ( <branch> )
+  case <const> ( <branch> )
   ...
-  [ default => <branch> ]
-)
+  [ default ( <branch> ) ]
 
-switch (
-  case <bool-expr> => <branch>
-  case <bool-expr> => <branch>
+
+switch
+  case <bool-expr> ( <branch> )
+  case <bool-expr> ( <branch> )
   ...
-  [ default => <branch> ]
-)
+  [ default ( <branch> ) ]
+
 ```
 ### Description
 
@@ -49,10 +49,9 @@ merged with an automatically inserted [`combine` operator](combine.md).
 _Split input into evens and odds_
 ```mdtest-spq
 # spq
-switch (
-  case this%2==0 => {even:this}
-  case this%2==1 => {odd:this}
-)
+switch
+  case this%2==0 ( {even:this} )
+  case this%2==1 ( {odd:this} )
 | sort odd,even
 # input
 1
@@ -69,10 +68,9 @@ switch (
 _Switch on `this` with a constant case_
 ```mdtest-spq
 # spq
-switch this (
-  case 1 => yield "1!"
-  default => yield string(this)
-)
+switch this
+  case 1 ( yield "1!" )
+  default ( yield string(this) )
 | sort
 # input
 1

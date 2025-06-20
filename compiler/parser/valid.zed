@@ -7,11 +7,11 @@ where x==1
 _path=='conn'
 _path=='conn' and id.resp_p==80
 count(), sum(foo)
-fork (=>count() by _path =>count() by addr)
-switch (case grep("foo") => count() by _path case field==1 => count() by addr)
+fork ( count() by _path ) ( count() by addr )
+switch case grep("foo") ( count() by _path ) case field==1 ( count() by addr )
 count() by _path | count() by addr
-fork (=>count() by _path =>sort) | fork (=>count() by addr)
-switch (case grep("foo") => count() by _path case field==1 => sort) | switch (default => count() by addr)
+fork ( count() by _path ) ( sort ) | fork ( count() by addr )
+switch case grep("foo") ( count() by _path ) case field==1 ( sort ) | switch default ( count() by addr )
 sort -r
 sort -r a, b, c
 sort -r a, b, c

@@ -44,9 +44,9 @@ explicit `inner` is not strictly necessary, but including it clarifies our inten
 
 The query `inner-join.spq`:
 ```mdtest-input inner-join.spq
-file fruit.json
+from fruit.json
 | inner join (
-  file people.json
+  from people.json
 ) as {f,p} on f.flavor=p.likes
 | yield {...f, eater:p.name}
 ```
@@ -82,9 +82,9 @@ original field name `age` is maintained in the results.
 
 The query `left-join.spq`:
 ```mdtest-input left-join.spq
-file fruit.json
+from fruit.json
 | left join (
-  file people.json
+  from people.json
 ) as {f,p} on f.flavor=p.likes
 | f.eater := p.name, f.age := p.age
 | yield f
@@ -119,9 +119,9 @@ the `note` field from the right-hand input to appear in the joined results.
 
 The query `right-join.spq`:
 ```mdtest-input right-join.spq
-file fruit.json
+from fruit.json
 | right join (
-  file people.json
+  from people.json
 ) as {f,p} on f.flavor=p.likes
 | p.fruit:=f.name
 | yield p
@@ -154,9 +154,9 @@ results.
 
 The query `anti-join.spq`:
 ```mdtest-input anti-join.spq
-file fruit.json
+from fruit.json
 | anti join (
-  file people.json
+  from people.json
 ) as {fruit,people} on fruit.flavor=people.likes
 | yield fruit
 ```
@@ -224,10 +224,10 @@ in the [Inner Join section](#inner-join).
 
 The query `inner-join-alternate.spq`:
 ```mdtest-input inner-join-alternate.spq
-from (
-  file fruit.json
-  file people.json
-) | inner join as {fruit,people} on fruit.flavor=people.likes
+fork
+  ( from fruit.json )
+  ( from people.json )
+| inner join as {fruit,people} on fruit.flavor=people.likes
 | yield {...fruit, eater:people.name}
 ```
 
@@ -259,10 +259,10 @@ inputs.
 The query `inner-join-streamed.spq`:
 
 ```mdtest-input inner-join-streamed.spq
-switch (
-  case has(color) => pass
-  case has(age) => pass
-) | inner join as {fruit,people} on fruit.flavor=people.likes
+switch
+  case has(color) ( pass )
+  case has(age) ( pass )
+| inner join as {fruit,people} on fruit.flavor=people.likes
 | yield {...fruit, eater:people.name}
 ```
 
@@ -306,9 +306,9 @@ they look like, but since it represents redundant data, in practice we'd
 typically [`drop`](../language/operators/drop.md) it after the `join` in our pipeline.
 
 ```mdtest-input multi-value-join.spq
-file fruit.json | put fruitkey:={name,color}
+from fruit.json | put fruitkey:={name,color}
 | inner join (
-  file inventory.json | put invkey:={name,color}
+  from inventory.json | put invkey:={name,color}
 ) on left.fruitkey=right.invkey
 | yield {...left, quantity:right.quantity}
 ```
@@ -344,13 +344,13 @@ previously for our inner join by piping its output to an additional join
 against the price list.
 
 ```mdtest-input three-way-join.spq
-file fruit.json
+from fruit.json
 | inner join (
-  file people.json
+  from people.json
 ) as {fruit,people} on fruit.flavor=people.likes
 | yield {...fruit, eater:people.name}
 | inner join (
-  file prices.json
+  from prices.json
 ) as {fruit,prices} on fruit.name=prices.name
 | yield {...fruit, price:prices.price}
 ```
@@ -387,9 +387,9 @@ in the result.
 The query `embed-opposite.spq`:
 
 ```mdtest-input embed-opposite.spq
-file fruit.json
+from fruit.json
 | inner join (
-  file people.json
+  from people.json
 ) as {fruit,people} on fruit.flavor=people.likes
 | yield {...fruit, eaterinfo:people}
 ```
@@ -418,9 +418,9 @@ left and right inputs. We'll demonstrate this by augmenting `embed-opposite.spq`
 to produce `merge-opposite.spq`.
 
 ```mdtest-input merge-opposite.spq
-file fruit.json
+from fruit.json
 | inner join (
-  file people.json
+  from people.json
 ) as {fruit,people} on fruit.flavor=people.likes
 | rename fruit.fruit:=fruit.name
 | yield {...fruit,...people}

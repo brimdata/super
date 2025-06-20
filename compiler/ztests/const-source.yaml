@@ -6,10 +6,10 @@ script: |
   echo "==="
   super compile -dag -C 'const FILE = "A.sup" from eval(FILE)'
   echo "==="
-  super db compile -dag -C 'const URL = "http://brimdata.io" get eval(URL)'
+  super db compile -dag -C 'const URL = "http://brimdata.io" from eval(URL)'
   ! super db compile -dag -C 'const POOL = 3.14 from eval(POOL)'
-  ! super db compile -dag -C 'const FILE = 127.0.0.1 file eval(FILE)'
-  ! super db compile -dag -C 'const URL = true get eval(URL)'
+  ! super db compile -dag -C 'const FILE = 127.0.0.1 from eval(FILE)'
+  ! super db compile -dag -C 'const URL = true from eval(URL)'
 
 outputs:
   - name: stdout
@@ -40,8 +40,8 @@ outputs:
       const POOL = 3.14 from eval(POOL)
                                   ~~~~
       from expression requires a string but encountered 127.0.0.1 at line 1, column 34:
-      const FILE = 127.0.0.1 file eval(FILE)
+      const FILE = 127.0.0.1 from eval(FILE)
                                        ~~~~
-      from expression requires a string but encountered true at line 1, column 27:
-      const URL = true get eval(URL)
-                                ~~~
+      from expression requires a string but encountered true at line 1, column 28:
+      const URL = true from eval(URL)
+                                 ~~~

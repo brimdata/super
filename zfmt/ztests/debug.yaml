@@ -8,11 +8,12 @@ outputs:
       debug f"debug: {this}"
       | head 1
       null
-      | mirror (
-        =>
+      | mirror
+        (
           yield "debug: "+cast(this, <string>)
           | output debug
-        =>
+        )
+        (
           head 1
           | output main
-      )
+        )

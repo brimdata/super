@@ -1,7 +1,5 @@
-skip: XXX let's discuss this one
-
 script: |
-  super -c 'fork (=> from (file a.sup) => pass)' a.sup
+  super -s -c 'fork (from a.sup) (pass)' a.sup
 
 inputs:
   - name: a.sup

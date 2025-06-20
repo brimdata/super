@@ -9,27 +9,30 @@ script: |
 outputs:
   - name: stdout
     data: |
-      fork (
-        =>
+      fork
+        (
           lister ...
           | slicer
-          | scatter (
-            =>
+          | scatter
+            (
               seqscan ...
-            =>
+            )
+            (
               seqscan ...
-          )
+            )
           | merge ts asc nulls last
-        =>
+        )
+        (
           lister ...
           | slicer
-          | scatter (
-            =>
+          | scatter
+            (
               seqscan ...
-            =>
+            )
+            (
               seqscan ...
-          )
+            )
           | merge ts asc nulls last
-      )
+        )
       | inner join as {left,right} on a=b
       | output main

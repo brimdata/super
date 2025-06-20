@@ -5,10 +5,10 @@ spq: |
     "conn": conn,
     "dns": dns
   }|
-  fork (
-    => !missing(schemas[_path]) | cut schema:=schemas[_path]
-    => missing(schemas[_path]) | put _UNCLASSIFIED:=true
-  ) | sort this
+  fork
+    ( !missing(schemas[_path]) | cut schema:=schemas[_path] )
+    ( missing(schemas[_path]) | put _UNCLASSIFIED:=true )
+  | sort this
 
 input: |
   {_path:"conn",id:{src:"192.168.1.1",dst:"192.168.1.2"},etc:"foo"}

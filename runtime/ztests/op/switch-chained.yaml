@@ -1,16 +1,13 @@
 spq: |
-  switch this (
-    case 0 => pass
-    case 1 => yield 2
-  )
-  | switch this (
-    case 0 => pass
-    case 2 => yield 3
-  )
-  | switch (
-    case this==0 => pass
-    case this==3 => yield 4
-  )
+  switch this
+    case 0 ( pass )
+    case 1 ( yield 2 )
+  | switch this 
+    case 0 ( pass )
+    case 2 ( yield 3 )
+  | switch
+    case this==0 ( pass )
+    case this==3 ( yield 4 )
 
 vector: true
 

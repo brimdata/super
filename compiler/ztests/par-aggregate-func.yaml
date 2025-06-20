@@ -10,30 +10,32 @@ outputs:
   - name: stdout
     data: |
       lister ...
-      | scatter (
-        =>
+      | scatter
+        (
           seqscan ...
           | aggregate partials-out
               union:=union(s) by n:=len(s)
-        =>
+        )
+        (
           seqscan ...
           | aggregate partials-out
               union:=union(s) by n:=len(s)
-      )
+        )
       | combine
       | aggregate partials-in
           union:=union(s) by n:=n
       | output main
       ===
       file test.csup format csup unordered fields a,b
-      | scatter (
-        =>
+      | scatter
+        (
           aggregate partials-out
               count:=count(a) by b:=b
-        =>
+        )
+        (
           aggregate partials-out
               count:=count(a) by b:=b
-      )
+        )
       | combine
       | aggregate partials-in
           count:=count(a) by b:=b

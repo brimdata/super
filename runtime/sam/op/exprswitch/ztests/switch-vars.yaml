@@ -1,9 +1,8 @@
 spq: |
-  over this with var="foo" => (
-    switch this (
-      case 2 => yield var
-      default => yield this
-    )
+  over this with var="foo" (
+    switch this
+      case 2 ( yield var )
+      default ( yield this )
   )
 
 input: '1 2'

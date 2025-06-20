@@ -5,12 +5,13 @@ outputs:
   - name: stdout
     data: |
       file test.csup format csup unordered fields a,b,c
-      | scatter (
-        =>
+      | scatter
+        (
           sort a asc nulls last, b desc nulls last
-        =>
+        )
+        (
           sort a asc nulls last, b desc nulls last
-      )
+        )
       | merge a asc nulls last, b desc nulls last
       | yield c
       | output main

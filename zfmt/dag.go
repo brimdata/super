@@ -289,58 +289,56 @@ func (c *canonDAG) op(p dag.Op) {
 		c.scope(p)
 	case *dag.Fork:
 		c.next()
-		c.open("fork (")
+		c.open("fork")
 		for _, seq := range p.Paths {
 			c.ret()
-			c.write("=>")
+			c.write("(")
 			c.open()
 			c.head = true
 			c.seq(seq)
 			c.close()
+			c.ret()
+			c.write(")")
 		}
 		c.close()
-		c.ret()
 		c.flush()
-		c.write(")")
 	case *dag.Scatter:
 		c.next()
-		c.open("scatter (")
+		c.open("scatter")
 		for _, seq := range p.Paths {
 			c.ret()
-			c.write("=>")
+			c.write("(")
 			c.open()
 			c.head = true
 			c.seq(seq)
 			c.close()
+			c.ret()
+			c.write(")")
 		}
 		c.close()
-		c.ret()
 		c.flush()
-		c.write(")")
 	case *dag.Mirror:
 		c.next()
-		c.open("mirror (")
-		c.ret()
+		c.open("mirror")
 		for _, seq := range []dag.Seq{p.Mirror, p.Main} {
 			c.ret()
-			c.write("=>")
+			c.write("(")
 			c.open()
 			c.head = true
 			c.seq(seq)
 			c.close()
+			c.ret()
+			c.write(")")
 		}
 		c.close()
-		c.ret()
 		c.flush()
-		c.write(")")
 	case *dag.Switch:
 		c.next()
-		c.open("switch ")
+		c.open("switch")
 		if p.Expr != nil {
-			c.expr(p.Expr, "")
 			c.write(" ")
+			c.expr(p.Expr, "")
 		}
-		c.open("(")
 		for _, k := range p.Cases {
 			c.ret()
 			if k.Expr != nil {
@@ -349,16 +347,16 @@ func (c *canonDAG) op(p dag.Op) {
 			} else {
 				c.write("default")
 			}
-			c.write(" =>")
+			c.write(" (")
 			c.open()
 			c.head = true
 			c.seq(k.Path)
 			c.close()
+			c.ret()
+			c.write(")")
 		}
 		c.close()
-		c.ret()
 		c.flush()
-		c.write(")")
 	case *dag.Merge:
 		c.next()
 		c.write("merge")
@@ -624,7 +622,7 @@ func (c *canonDAG) over(o *dag.Over) {
 		}
 	}
 	if o.Body != nil {
-		c.write(" => (")
+		c.write(" into (")
 		c.open()
 		c.head = true
 		c.seq(o.Body)

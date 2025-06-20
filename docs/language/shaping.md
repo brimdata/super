@@ -536,11 +536,10 @@ Now, we can turn around and write a "shaper" for data that has the patterns
 we "discovered" above, e.g.,
 ```mdtest-spq {data-layout="stacked"}
 # spq
-switch len(this) (
-    case 1 => pass
-    case 2 => yield shape(this, <{x:(int64,string),y:string}>)
-    default => yield error({kind:"unrecognized shape",value:this})
-)
+switch len(this)
+  case 1 ( pass )
+  case 2 ( yield shape(this, <{x:(int64,string),y:string}>) )
+  default ( yield error({kind:"unrecognized shape",value:this}) )
 | sort this desc
 # input
 {x:1}

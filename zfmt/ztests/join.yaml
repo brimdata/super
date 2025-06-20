@@ -1,11 +1,11 @@
 script: |
-  super compile -C "join (file test.sup) on left.x=right.x"
+  super compile -C "join (from test.sup) on left.x=right.x"
   echo ===
-  super compile -C -dag "join (file test.sup) on right.x=left.x"
+  super compile -C -dag "join (from test.sup) on right.x=left.x"
   echo ===
-  super compile -C "right join (file test.sup) as {l,r} on r.x=l.x"
+  super compile -C "right join (from test.sup) as {l,r} on r.x=l.x"
   echo ===
-  super compile -C -dag "right join (file test.sup) as {l,r} on r.x=l.x"
+  super compile -C -dag "right join (from test.sup) as {l,r} on r.x=l.x"
 
 outputs:
   - name: stdout
@@ -15,12 +15,13 @@ outputs:
       ) on left.x=right.x
       ===
       null
-      | fork (
-        =>
+      | fork
+        (
           pass
-        =>
+        )
+        (
           file test.sup
-      )
+        )
       | inner join as {left,right} on x=x
       | output main
       ===
@@ -29,11 +30,12 @@ outputs:
       ) as {l,r} on r.x=l.x
       ===
       null
-      | fork (
-        =>
+      | fork
+        (
           pass
-        =>
+        )
+        (
           file test.sup
-      )
+        )
       | right join as {l,r} on x=x
       | output main

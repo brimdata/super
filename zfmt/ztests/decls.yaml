@@ -59,12 +59,13 @@ outputs:
           a+b
         )
         
-        fork (
-          =>
+        fork
+          (
             file fruit.json
-          =>
+          )
+          (
             file people.json
-        )
+          )
         | inner join as {left,right} on left_key=right_key
         | yield {...left,left_dest:right.right_source}
         | yield {...this,assignee:"bob",ts:now()}

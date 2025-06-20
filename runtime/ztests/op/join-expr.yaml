@@ -1,9 +1,9 @@
 script: |
-  super -s -c 'left join (file B.sup) as {l,r} on s | yield {...l,...r} | sort' A.sup
+  super -s -c 'left join (from B.sup) as {l,r} on s | yield {...l,...r} | sort' A.sup
   echo ===
-  super -s -c 'left join (file B.sup) as {l,r} on lower(r.s)=l.s | sort' A.sup
+  super -s -c 'left join (from B.sup) as {l,r} on lower(r.s)=l.s | sort' A.sup
   echo ===
-  super -s -c 'left join (file B.sup) on (lower(right.s))=(lower(left.s)) | yield {...left,b:right.b } | sort' A.sup
+  super -s -c 'left join (from B.sup) on (lower(right.s))=(lower(left.s)) | yield {...left,b:right.b } | sort' A.sup
 
 vector: true
 

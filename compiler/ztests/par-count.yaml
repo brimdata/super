@@ -10,32 +10,34 @@ outputs:
   - name: stdout
     data: |
       lister ...
-      | scatter (
-        =>
+      | scatter
+        (
           seqscan ...
           | aggregate partials-out
               count:=count() by y:=y
-        =>
+        )
+        (
           seqscan ...
           | aggregate partials-out
               count:=count() by y:=y
-      )
+        )
       | combine
       | aggregate partials-in
           count:=count() by y:=y
       | output main
       ===
       lister ...
-      | scatter (
-        =>
+      | scatter
+        (
           seqscan ...
           | aggregate partials-out
               count:=count()
-        =>
+        )
+        (
           seqscan ...
           | aggregate partials-out
               count:=count()
-      )
+        )
       | combine
       | aggregate partials-in
           count:=count()

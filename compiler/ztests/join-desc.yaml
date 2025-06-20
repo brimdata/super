@@ -25,8 +25,8 @@ inputs:
       {"name":"figs","color":"brown","flavor":"plain"}
   - name: file.zed
     data: |
-      file fruits.sup | sort -r flavor
-      | join (file people.sup | sort -r likes) on left.flavor=right.likes 
+      from fruits.sup | sort -r flavor
+      | join (from people.sup | sort -r likes) on left.flavor=right.likes 
       | yield {...left,eater:right.name}
   - name: pool.zed
     data: |

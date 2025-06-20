@@ -5,10 +5,10 @@ vector: true
 inputs:
   - name: join.zed
     data: |
-      from (
-        pass
-        file right.sup
-      ) | inner join on left.x=right.y 
+      fork
+        ( pass )
+        ( from right.sup )
+      | inner join on left.x=right.y 
       | yield {...left,matched:true}
   - name: left.sup
     data: |

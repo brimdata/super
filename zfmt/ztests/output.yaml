@@ -1,25 +1,27 @@
 script: |
-  super compile -C -dag 'fork (=> output foo => pass)'
+  super compile -C -dag 'fork ( output foo ) ( pass )'
   echo '// ==='
-  super compile -C -dag 'switch x (case "foo" => output foo case "bar" => pass)'
+  super compile -C -dag 'switch x case "foo" ( output foo ) case "bar" ( pass )'
 
 outputs:
   - name: stdout
     data: |
       null
-      | fork (
-        =>
+      | fork
+        (
           output foo
-        =>
+        )
+        (
           pass
           | output main
-      )
+        )
       // ===
       null
-      | switch x (
-          case "foo" =>
-            output foo
-          case "bar" =>
-            pass
-            | output main
+      | switch x
+        case "foo" (
+          output foo
+        )
+        case "bar" (
+          pass
+          | output main
         )

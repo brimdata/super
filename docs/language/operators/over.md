@@ -6,7 +6,7 @@
 
 ```
 over <expr> [, <expr>...]
-over <expr> [, <expr>...] [with <var>=<expr> [, ... <var>[=<expr>]] => ( <lateral> )
+over <expr> [, <expr>...] [with <var>=<expr> [, ... <var>[=<expr>]] into ( <lateral> )
 ```
 The `over` operator traverses complex values to create a new sequence
 of derived values (e.g., the elements of an array) and either
@@ -109,7 +109,7 @@ over a | sum(this)
 _Aggregate the traversed values in a lateral query_
 ```mdtest-spq
 # spq
-over a => ( sum(this) )
+over a into ( sum(this) )
 # input
 {a:[1,2]}
 {a:[3,4,5]}
@@ -121,7 +121,7 @@ over a => ( sum(this) )
 _Access the outer values in a lateral query_
 ```mdtest-spq
 # spq
-over a with s => (sum(this) | yield {s,sum:this})
+over a with s into (sum(this) | yield {s,sum:this})
 # input
 {a:[1,2],s:"foo"}
 {a:[3,4,5],s:"bar"}
@@ -133,7 +133,7 @@ over a with s => (sum(this) | yield {s,sum:this})
 _Traverse a record by flattening it_
 ```mdtest-spq
 # spq
-over flatten(r) with s => (yield {s,key:key[1],value})
+over flatten(r) with s into (yield {s,key:key[1],value})
 # input
 {s:"foo",r:{a:1,b:2}}
 {s:"bar",r:{a:3,b:4}}

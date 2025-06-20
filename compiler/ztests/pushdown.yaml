@@ -4,11 +4,11 @@ script: |
   echo === distinct
   super compile -C -O 'from file | distinct a | yield b'
   echo === fork-join
-  super compile -C -O 'fork (=> from file1 => from file2) | join on right.a=left.b | yield left.c,right.d'
+  super compile -C -O 'fork ( from file1 ) ( from file2 ) | join on right.a=left.b | yield left.c,right.d'
   echo === join
   super compile -C -O "from file1 | join (from file2) on left.a=right.b | yield left.c,right.d"
   echo === switch-join
-  super compile -C -O 'from file | switch a (case b => put x:=c case d => put x:=e ) | join on left.f=right.g | yield left.h,right.i'
+  super compile -C -O 'from file | switch a case b ( put x:=c ) case d ( put x:=e ) | join on left.f=right.g | yield left.h,right.i'
   echo === where
   super compile -C -O "from file | a==1 or e==2 | yield c, b, d"
   echo ===
@@ -32,50 +32,54 @@ outputs:
     data: |
       === debug
       file file fields a,b
-      | mirror (
-        =>
+      | mirror
+        (
           yield a
           | output debug
-        =>
+        )
+        (
           yield b
           | output main
-      )
+        )
       === distinct
       file file unordered fields a,b
       | distinct a
       | yield b
       | output main
       === fork-join
-      fork (
-        =>
+      fork
+        (
           file file1 unordered fields b,c
-        =>
+        )
+        (
           file file2 unordered fields a,d
-      )
+        )
       | inner join as {left,right} on b=a
       | yield left.c, right.d
       | output main
       === join
-      fork (
-        =>
+      fork
+        (
           file file1 unordered fields a,c
-        =>
+        )
+        (
           file file2 unordered fields b,d
-      )
+        )
       | inner join as {left,right} on a=b
       | yield left.c, right.d
       | output main
       === switch-join
       file file unordered fields a,b,c,d,e,f,g,h,i
-      | switch a (
-          case b =>
-            put x:=c
-          case d =>
-            put x:=e
+      | switch a
+        case b (
+          put x:=c
         )
-        | inner join as {left,right} on f=g
-        | yield left.h, right.i
-        | output main
+        case d (
+          put x:=e
+        )
+      | inner join as {left,right} on f=g
+      | yield left.h, right.i
+      | output main
       === where
       file file fields a,b,c,d,e filter (a==1 or e==2)
       | yield c, b, d
