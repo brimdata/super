@@ -54,7 +54,7 @@ FuncDecl
     }
 
 OpDecl
-  = OP _ name:Identifier __ "(" __ params:Identifiers? __ ")" __ ":" __ "(" __ body:OpDeclBody __ ")" {
+  = OP _ name:Identifier __ "(" __ params:Identifiers? __ ")" __ ":" __ body:ScopeBody {
       return &ast.OpDecl{
         Kind: "OpDecl",
         Name: name.(*ast.ID),
@@ -64,9 +64,9 @@ OpDecl
       }, nil
     }
 
-OpDeclBody
-  = scope:Scope { return []any{scope}, nil }
-  / seq:Seq { return seq, nil }
+ScopeBody
+  = "(" __ scope:Scope __ ")"   { return []any{scope}, nil }
+  / "(" __ seq:Seq __ ")"       { return seq, nil }
 
 TypeDecl
   = TYPE _ name:Identifier __ "=" __ typ:Type {
@@ -91,10 +91,10 @@ LeanOp
       return &ast.OpExpr{Kind:"OpExpr",Expr:e.(ast.Expr),Loc:loc(c)}, nil
     }
 
-EndOfOp = __ (Pipe / SearchKeywordGuard / "=>" / ")" / ";" / EOF)
+EndOfOp = __ (Pipe / ")" / ";" / EOF)
 Pipe = "|>" / "|" 
 
-ExprGuard = __ ((!"=>" Comparator) / AdditiveOperator / MultiplicativeOperator / ":" / "(" / "[" / "~")
+ExprGuard = __ (Comparator / AdditiveOperator / MultiplicativeOperator / ":" / "(" / "[" / "~")
 
 Comparator
   = ("==" / "=" / "!=" / "<>" / IN / LIKE / "<=" / "<" / ">=" / ">") { return string(c.text), nil }
@@ -109,13 +109,9 @@ SearchOrTerm = _ OR _ t:SearchAnd { return []any{"or", t}, nil }
 
 SearchAnd
   = first:SearchFactor
-    rest:((_ AND)? _ !(OR / SearchKeywordGuard) expr:SearchFactor { return []any{"and", expr}, nil })* {
+    rest:((_ AND)? _ !OR expr:SearchFactor { return []any{"and", expr}, nil })* {
       return makeBinaryExprChain(first, rest, c), nil
     }
-
-SearchKeywordGuard
-  = FromSource __ "=>" __
-  / Case __
 
 SearchFactor
   = (NOT _ / "!" __) e:SearchFactor {
@@ -298,7 +294,6 @@ Operator
   = op:SelectOp &EndOfOp { return op, nil }
   / ForkOp
   / SwitchOp 
-  / FromForkOp
   / SearchOp
   / AssertOp
   / SortOp
@@ -334,7 +329,7 @@ PipeKeyword
   / AGGREGATE / SUMMARIZE
 
  ForkOp =
-   FORK __ "(" paths:Path+ __ ")" {
+   FORK paths:( __ path:ScopeBody { return path, nil })+ {
       var seqs []ast.Seq
       for _, p := range paths.([]any) {
         seqs = append(seqs, sliceOf[ast.Op](p))
@@ -346,10 +341,15 @@ PipeKeyword
       }, nil
     }
 
-Path = __ "=>" __ seq:Seq { return seq, nil }
-
 SwitchOp
-  = SWITCH _ expr:Expr _ "(" cases:SwitchPath+ __ ")" {
+  = SWITCH _ cases:SwitchPath+ {
+      return &ast.Switch{
+          Kind: "Switch",
+          Cases: sliceOf[ast.Case](cases),
+          Loc: loc(c),
+      }, nil
+    }
+  / SWITCH _ expr:Expr _ cases:SwitchPath+ {
       return &ast.Switch{
           Kind: "Switch",
           Expr: expr.(ast.Expr),
@@ -357,16 +357,9 @@ SwitchOp
           Loc: loc(c),
       }, nil
     }
-  / SWITCH __ "(" cases:SwitchPath+ __ ")" {
-      return &ast.Switch{
-          Kind: "Switch",
-          Cases: sliceOf[ast.Case](cases),
-          Loc: loc(c),
-      }, nil
-    }
 
 SwitchPath
-  = __ expr:Case path:Path {
+  = __ expr:Case __ path:ScopeBody {
       l := ast.Case{Path: sliceOf[ast.Op](path)}
       if expr != nil {
         l.Expr = expr.(ast.Expr)
@@ -377,34 +370,6 @@ SwitchPath
 Case
   = CASE _ expr:Expr { return expr, nil }
   / DEFAULT { return nil, nil }
-
-FromForkOp
-  = FROM __ "(" trunks:FromPath+ __ ")" {
-      return &ast.Parallel{
-          Kind: "Parallel",
-          Paths: sliceOf[ast.Seq](trunks),
-          Loc: loc(c),
-      }, nil
-    }
-
-FromPath
-  = __ source:FromSource seq:(__ "=>" __ s:Seq { return s, nil })? {
-      ops := []any{source}
-      if seq != nil {
-        ops = append(ops, seq.([]any)...)
-      }
-      return ast.Seq(sliceOf[ast.Op](ops)), nil
-    }
-
-FromSource
-  = FromKeyWord _ elem:FromElem {
-        return &ast.From{
-            Kind: "From",
-            Elems: []*ast.FromElem{elem.(*ast.FromElem)},
-            Loc: loc(c),
-        }, nil
-    }
-  / PassOp
 
 SearchOp
   = (SEARCH _ / "?" __) expr:SearchBoolean {
@@ -692,19 +657,13 @@ DebugOp
     }
 
 FromOp
-  = FromKeyWord _ elems:FromElems {
+  = FROM _ elems:FromElems {
       return &ast.From{
         Kind: "From",
         Elems: sliceOf[*ast.FromElem](elems),
         Loc: loc(c),
       }, nil
   }
-
-FromKeyWord
-  = FROM
-  / DeprecatedFroms
-
-DeprecatedFroms = "get" / "file" / "pool"
 
 FromElems
   = first:FromElem rest:( __ "," __ elem:FromElem { return elem, nil} )* {
@@ -865,7 +824,7 @@ MergeOp
     }
 
 OverOp
-  = (OVER / UNNEST) _ exprs:Exprs locals:Locals? body:Lateral? {
+   = (OVER / UNNEST) _ exprs:Exprs locals:Locals? (_ "into"i _)? __ body:ScopeBody? {
       o := &ast.Over{
         Kind: "Over",
         Exprs: sliceOf[ast.Expr](exprs),
@@ -873,19 +832,9 @@ OverOp
         Loc: loc(c),
       }
       if body != nil {
-        o.Body = sliceOf[ast.Op](body.([]any)[0])
+        o.Body = sliceOf[ast.Op](body)
       }
       return o, nil
-    }
-
-//XXX these locators in the any slice need to go
-
-Lateral
-  = __ "=>" __ "(" __ scope:Scope __ ")" {
-      return []any{[]any{scope.(*ast.Scope)}, loc(c).End()}, nil
-    }
-  / __ "=>" __ "(" __ seq:Seq __ ")" {
-      return []any{seq, loc(c).End()}, nil
     }
 
 Locals
@@ -2215,7 +2164,7 @@ OptAlias
   / ""              { return nil, nil }
 
 AliasClause
- = (AS _)? !(SQLGuard / DeprecatedFroms) name:IdentifierName cols:Columns? {
+ = (AS _)? !SQLGuard name:IdentifierName cols:Columns? {
       alias := &ast.TableAlias{Kind: "TableAlias", Name: name.(string), Loc: loc(c)}
       if cols != nil {
         alias.Columns = cols.([]*ast.ID)

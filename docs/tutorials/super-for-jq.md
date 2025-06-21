@@ -1086,7 +1086,7 @@ Instead of computing a set-union over all the reviewers across all PRs,
 we instead want to compute the set-union over the reviewers in each PR.
 We can do this as follows:
 ```mdtest-command dir=docs/tutorials
-super -s -c 'over requested_reviewers => ( reviewers:=union(login) )' prs.bsup
+super -s -c 'over requested_reviewers into ( reviewers:=union(login) )' prs.bsup
 ```
 which produces an output like this:
 ```mdtest-output head
@@ -1097,7 +1097,7 @@ which produces an output like this:
 {reviewers:|["henridf","mccanne","mattnibs"]|}
 ...
 ```
-Note that the syntax `=> ( ... )` defines a [lateral scope](../language/lateral-subqueries.md#lateral-scope) where any subquery can
+Note that the syntax `into ( ... )` defines a [lateral scope](../language/lateral-subqueries.md#lateral-scope) where any subquery can
 run in isolation over the input values created from the sequence of values
 traversed by the outer `over`.
 
@@ -1109,7 +1109,7 @@ bringing that value into the scope using a `with` clause appended to the
 [record literal](../language/expressions.md#record-expressions) with the desired value:
 ```mdtest-command dir=docs/tutorials
 super -s -c '
-  over requested_reviewers with user=user.login => (
+  over requested_reviewers with user=user.login into (
     reviewers:=union(login)
     | {user,reviewers}
   )
@@ -1132,7 +1132,7 @@ The final step is to simply aggregate the "reviewer sets" with the `user` field
 as the grouping key:
 ```mdtest-command dir=docs/tutorials
 super -S -c '
-  over requested_reviewers with user=user.login => (
+  over requested_reviewers with user=user.login into (
     reviewers:=union(login)
     | {user,reviewers}
   )
@@ -1256,7 +1256,7 @@ of reviewers.  To do this, we just average the reviewer set size
 with an aggregation:
 ```mdtest-command dir=docs/tutorials
 super -s -c '
-  over requested_reviewers with user=user.login => (
+  over requested_reviewers with user=user.login into (
     reviewers:=union(login)
     | {user,reviewers}
   )
@@ -1277,7 +1277,7 @@ Of course, if you'd like the query output in JSON, you can just say `-j` and
 `super` will happily format the sets as JSON arrays, e.g.,
 ```mdtest-command dir=docs/tutorials
 super -j -c '
-  over requested_reviewers with user=user.login => (
+  over requested_reviewers with user=user.login into (
     reviewers:=union(login)
     | {user,reviewers}
   )

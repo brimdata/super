@@ -1,8 +1,7 @@
 spq: |
-  fork (
-    => head 1
-    => head 2
-  )
+  fork
+    ( head 1 )
+    ( head 2 )
   | head 1
 
 vector: true

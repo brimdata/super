@@ -29,79 +29,84 @@ outputs:
       <CUT PUT RENAME>
       lister ...
       | slicer
-      | scatter (
-        =>
+      | scatter
+        (
           seqscan ...
           | cut ts:=ts,y:=y,z:=z
           | put x:=y
           | rename y:=z
-        =>
+        )
+        (
           seqscan ...
           | cut ts:=ts,y:=y,z:=z
           | put x:=y
           | rename y:=z
-      )
+        )
       | merge ts asc nulls last
       | output main
       <CUT UNIQ>
       lister ...
       | slicer
-      | scatter (
-        =>
+      | scatter
+        (
           seqscan ...
           | cut ts:=ts,foo:=x
-        =>
+        )
+        (
           seqscan ...
           | cut ts:=ts,foo:=x
-      )
+        )
       | merge ts asc nulls last
       | uniq
       | output main
       <DROP UNIQ>
       lister ...
       | slicer
-      | scatter (
-        =>
+      | scatter
+        (
           seqscan ...
           | drop x
-        =>
+        )
+        (
           seqscan ...
           | drop x
-      )
+        )
       | merge ts asc nulls last
       | uniq
       | output main
       <EVERY COUNT>
       lister ...
       | slicer
-      | scatter (
-        =>
+      | scatter
+        (
           seqscan ...
           | aggregate partials-out sort-dir 1
               count:=count() by y:=y,ts:=every(1h)
-        =>
+        )
+        (
           seqscan ...
           | aggregate partials-out sort-dir 1
               count:=count() by y:=y,ts:=every(1h)
-      )
+        )
       | merge ts asc nulls last
       | aggregate partials-in sort-dir 1
           count:=count() by y:=y,ts:=ts
       | output main
       <PUT COUNTDISTINCT UNIQ>
       lister ...
-      | scatter (
-        =>
+      | scatter
+        (
           seqscan ...
           | put x:=y
           | aggregate partials-out
               countdistinct:=countdistinct(x) by y:=y
-        =>
+        )
+        (
           seqscan ...
           | put x:=y
           | aggregate partials-out
               countdistinct:=countdistinct(x) by y:=y
-      )
+        )
       | combine
       | aggregate partials-in
           countdistinct:=countdistinct(x) by y:=y
@@ -110,69 +115,74 @@ outputs:
       <RENAME UNIQ>
       lister ...
       | slicer
-      | scatter (
-        =>
+      | scatter
+        (
           seqscan ...
           | put x:=foo
           | rename foo:=boo
-        =>
+        )
+        (
           seqscan ...
           | put x:=foo
           | rename foo:=boo
-      )
+        )
       | merge ts asc nulls last
       | uniq
       | output main
       <PUT TAIL>
       lister ...
       | slicer
-      | scatter (
-        =>
+      | scatter
+        (
           seqscan ...
           | put a:=1
           | tail 1
-        =>
+        )
+        (
           seqscan ...
           | put a:=1
           | tail 1
-      )
+        )
       | merge ts asc nulls last
       | tail 1
       | output main
       <SORT UNIQ>
       lister ...
-      | scatter (
-        =>
+      | scatter
+        (
           seqscan ...
-        =>
+        )
+        (
           seqscan ...
-      )
+        )
       | combine
       | sort
       | uniq
       | output main
       <SORT X UNIQ>
       lister ...
-      | scatter (
-        =>
+      | scatter
+        (
           seqscan ...
           | sort x asc nulls last
-        =>
+        )
+        (
           seqscan ...
           | sort x asc nulls last
-      )
+        )
       | merge x asc nulls last
       | uniq
       | output main
       <UNIQ>
       lister ...
       | slicer
-      | scatter (
-        =>
+      | scatter
+        (
           seqscan ...
-        =>
+        )
+        (
           seqscan ...
-      )
+        )
       | merge ts asc nulls last
       | uniq
       | output main

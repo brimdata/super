@@ -1,5 +1,5 @@
 script: |
-  super -s -c 'file a.sup'
+  super -s -c 'from a.sup'
   super -s -I query.zed
 
 inputs:
@@ -8,7 +8,7 @@ inputs:
       {a:1}
   - name: query.zed
     data: |
-      file a.sup
+      from a.sup
 
 outputs:
   - name: stdout

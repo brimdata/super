@@ -1,85 +1,96 @@
 script: |
   export SUPER_VAM=1
   echo === -P 2
-  super compile -C -P 2 'fork (=> from a.csup | sort b => from c.csup | sort d)'
+  super compile -C -P 2 'fork ( from a.csup | sort b ) ( from c.csup | sort d )'
   echo === -P 5
-  super compile -C -P 5 'fork (=> from a.csup | sort b => from c.csup | sort d)'
+  super compile -C -P 5 'fork ( from a.csup | sort b ) ( from c.csup | sort d )'
   echo === -P 6
-  super compile -C -P 6 'fork (=> from a.csup | sort b => from c.csup | sort d)'
+  super compile -C -P 6 'fork ( from a.csup | sort b ) ( from c.csup | sort d )'
 
 outputs:
   - name: stdout
     data: |
       === -P 2
-      fork (
-        =>
+      fork
+        (
           file a.csup format csup unordered
-          | scatter (
-            =>
+          | scatter
+            (
               sort b asc nulls last
-            =>
+            )
+            (
               sort b asc nulls last
-          )
+            )
           | merge b asc nulls last
           | output main
-        =>
+        )
+        (
           file c.csup format csup unordered
-          | scatter (
-            =>
+          | scatter
+            (
               sort d asc nulls last
-            =>
+            )
+            (
               sort d asc nulls last
-          )
+            )
           | merge d asc nulls last
           | output main
-      )
+        )
       === -P 5
-      fork (
-        =>
+      fork
+        (
           file a.csup format csup unordered
-          | scatter (
-            =>
+          | scatter
+            (
               sort b asc nulls last
-            =>
+            )
+            (
               sort b asc nulls last
-          )
+            )
           | merge b asc nulls last
           | output main
-        =>
+        )
+        (
           file c.csup format csup unordered
-          | scatter (
-            =>
+          | scatter
+            (
               sort d asc nulls last
-            =>
+            )
+            (
               sort d asc nulls last
-          )
+            )
           | merge d asc nulls last
           | output main
-      )
+        )
       === -P 6
-      fork (
-        =>
+      fork
+        (
           file a.csup format csup unordered
-          | scatter (
-            =>
+          | scatter
+            (
               sort b asc nulls last
-            =>
+            )
+            (
               sort b asc nulls last
-            =>
+            )
+            (
               sort b asc nulls last
-          )
+            )
           | merge b asc nulls last
           | output main
-        =>
+        )
+        (
           file c.csup format csup unordered
-          | scatter (
-            =>
+          | scatter
+            (
               sort d asc nulls last
-            =>
+            )
+            (
               sort d asc nulls last
-            =>
+            )
+            (
               sort d asc nulls last
-          )
+            )
           | merge d asc nulls last
           | output main
-      )
+        )

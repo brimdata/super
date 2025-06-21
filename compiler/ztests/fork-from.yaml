@@ -4,10 +4,10 @@ script: |
 inputs:
   - name: query.zed
     data: |
-      fork (
-        => from (file a.sup => pass)
-        => from (file b.sup => pass)
-      ) | sort a
+      fork
+        ( from a.sup )
+        ( from b.sup )
+      | sort a
   - name: a.sup
     data: |
       {a:1}

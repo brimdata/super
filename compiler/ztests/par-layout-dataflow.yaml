@@ -12,26 +12,28 @@ outputs:
     data: |
       lister ...
       | slicer
-      | scatter (
-        =>
+      | scatter
+        (
           seqscan ...
           | cut x:=ts,ts:=1
-        =>
+        )
+        (
           seqscan ...
           | cut x:=ts,ts:=1
-      )
+        )
       | merge x asc nulls last
       | output main
       ===
       lister ...
       | slicer
-      | scatter (
-        =>
+      | scatter
+        (
           seqscan ...
           | cut x:=ts,ts:=1
-        =>
+        )
+        (
           seqscan ...
           | cut x:=ts,ts:=1
-      )
+        )
       | merge x desc nulls first
       | output main

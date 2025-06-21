@@ -1,5 +1,5 @@
 script: |
-  super -s -c 'file in.csv format csv'
+  super -s -c 'from in.csv format csv'
 
 inputs:
   - name: in.csv

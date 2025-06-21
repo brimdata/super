@@ -23,10 +23,9 @@ inputs:
       {name:"jim",likes:"plain",age:30}(=person)
   - name: join.zed
     data: |
-      from (
-        pool fruit
-        pool person
-      )
+      fork
+        ( from fruit )
+        ( from person )
       | join as {f,p} on f.flavor=p.likes
       | aggregate likes:=union(f.name) by name:=p.name | sort name
 

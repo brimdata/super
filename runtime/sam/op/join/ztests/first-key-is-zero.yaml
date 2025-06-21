@@ -1,8 +1,6 @@
 spq: |
-  fork (
-    => pass
-    => pass
-  ) | join on a
+  fork ( pass ) ( pass )
+  | join on a
   | yield left
 
 input: &input |

@@ -94,10 +94,9 @@ cast(this, "foo")
 _Derive type names from the properties of data_
 ```mdtest-spq
 # spq
-switch (
-  case has(x) => cast(this, "point")
-  default => cast(this, "radius")
-)
+switch
+  case has(x) ( cast(this, "point") )
+  default ( cast(this, "radius") )
 | sort this
 # input
 {x:1,y:2}

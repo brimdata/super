@@ -1,12 +1,12 @@
 script: |
   echo === ANTI ===
-  super -s -c 'anti join (file B.sup) on left.a=right.b | yield left | sort a' A.sup
+  super -s -c 'anti join (from B.sup) on left.a=right.b | yield left | sort a' A.sup
   echo === LEFT ===
-  super -s -c 'left join (file B.sup) on left.a=right.b | yield {...left,hit:right.sb} | sort a' A.sup
+  super -s -c 'left join (from B.sup) on left.a=right.b | yield {...left,hit:right.sb} | sort a' A.sup
   echo === INNER ===
-  super -s -c 'inner join (file B.sup) on left.a=right.b | yield {...left,hit:right.sb} | sort a' A.sup
+  super -s -c 'inner join (from B.sup) on left.a=right.b | yield {...left,hit:right.sb} | sort a' A.sup
   echo === RIGHT ===
-  super -s -c 'right join (file C.sup) on right.c=left.b | yield {...right,hit:left.sb} | sort c' B.sup
+  super -s -c 'right join (from C.sup) on right.c=left.b | yield {...right,hit:left.sb} | sort c' B.sup
 
 vector: true
 

@@ -1,9 +1,9 @@
 spq: |
-  switch a (
-     case 2 => put v:='two'
-     case 1 => put v:='one'
-     case 3 => ? null
-  ) | sort a
+  switch a
+    case 2 ( put v:='two' )
+    case 1 ( put v:='one' )
+    case 3 ( ? null )
+  | sort a
 
 vector: true
 

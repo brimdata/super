@@ -1,11 +1,11 @@
 script: |
-  super compile -C 'file path'
+  super compile -C 'from path'
   echo ===
-  super compile -C 'file path format f'
+  super compile -C 'from path format f'
   echo ===
-  super compile -C 'get http://host/path'
+  super compile -C 'from http://host/path'
   echo ===
-  super compile -C 'get http://host/path format f'
+  super compile -C 'from http://host/path format f'
   echo ===
   super compile -C 'from foo'
   echo ===
@@ -13,13 +13,13 @@ script: |
   echo ===
   super compile -C 'from /foo/'
   echo ===
-  super compile -C 'from ( file path get http://host/path pool name )'
+  super compile -C 'fork ( from path ) ( from http://host/path ) ( from name )'
   echo ===
-  super compile -C 'from ( file path format f get http://host/path format g pool name )'
+  super compile -C 'fork ( from path format f ) ( from http://host/path format g ) ( from name )'
   echo ===
-  super compile -C 'from ( file path => head get http://host/path => head pool name => head )'
+  super compile -C 'fork ( from path | head ) ( from http://host/path | head ) ( from name | head )'
   echo ===
-  super compile -C 'from ( file path format f => head get http://host/path format g => head pool name => head )'
+  super compile -C 'fork ( from path format f | head ) ( from http://host/path format g | head ) ( from name | head )'
 
 outputs:
   - name: stdout
@@ -38,44 +38,52 @@ outputs:
       ===
       from /foo/
       ===
-      fork (
-        =>
+      fork
+        (
           from path
-        =>
+        )
+        (
           from "http://host/path"
-        =>
+        )
+        (
           from name
-      )
+        )
       ===
-      fork (
-        =>
+      fork
+        (
           from path format f
-        =>
+        )
+        (
           from "http://host/path" format g
-        =>
+        )
+        (
           from name
-      )
+        )
       ===
-      fork (
-        =>
+      fork
+        (
           from path
           | head
-        =>
+        )
+        (
           from "http://host/path"
           | head
-        =>
+        )
+        (
           from name
           | head
-      )
+        )
       ===
-      fork (
-        =>
+      fork
+        (
           from path format f
           | head
-        =>
+        )
+        (
           from "http://host/path" format g
           | head
-        =>
+        )
+        (
           from name
           | head
-      )
+        )

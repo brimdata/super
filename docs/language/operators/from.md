@@ -7,16 +7,6 @@
 ```
 from <pool>[@<commitish>]
 from <pattern>
-file <path> [format <format>]
-get <uri> [format <format>]
-from (
-   pool <pool>[@<commitish>] [ => <branch> ]
-   pool <pattern>
-   file <path> [format <format>] [ => <branch> ]
-   get <uri> [format <format>] [ => <branch> ]
-   pass
-   ...
-)
 ```
 ### Description
 
@@ -49,28 +39,28 @@ In the fifth form, multiple sources are accessed in parallel and may be
 
 A pipeline can be split with the [`fork` operator](fork.md) as in
 ```
-from PoolOne | fork (
-  => op1 | op2 | ...
-  => op1 | op2 | ...
-) | merge ts | ...
+from PoolOne | fork
+  ( op1 | op2 | ... )
+  ( op1 | op2 | ... )
+| merge ts | ...
 ```
 
 Or multiple pools can be accessed and, for example, joined:
 ```
-from (
-  pool PoolOne => op1 | op2 | ...
-  pool PoolTwo => op1 | op2 | ...
-) | join on key=key | ...
+fork
+  ( from PoolOne | op1 | op2 | ... )
+  ( from PoolTwo | op1 | op2 | ... )
+| join on key=key | ...
 ```
 
 Similarly, data can be routed to different pipeline branches with replication
 using the [`switch` operator](switch.md):
 ```
-from ... | switch color (
-  case "red" => op1 | op2 | ...
-  case "blue" => op1 | op2 | ...
-  default => op1 | op2 | ...
-) | ...
+from ... | switch color
+  case "red" ( op1 | op2 | ... )
+  case "blue" ( op1 | op2 | ... )
+  default ( op1 | op2 | ... )
+| ...
 ```
 
 ### Input Data
@@ -114,7 +104,7 @@ The following file `hello.sup` is also used.
 _Source structured data from a local file_
 
 ```mdtest-command
-super -s -c 'file hello.sup | yield greeting'
+super -s -c 'from hello.sup | yield greeting'
 ```
 =>
 ```mdtest-output
@@ -123,7 +113,7 @@ super -s -c 'file hello.sup | yield greeting'
 
 _Source data from a local file, but in line format_
 ```mdtest-command
-super -s -c 'file hello.sup format line'
+super -s -c 'from hello.sup format line'
 ```
 =>
 ```mdtest-output
@@ -192,12 +182,12 @@ super db -db example -s -c '
     from numbers | sort number
   ) on left.flip=right.number
   | yield {...left, word:right.word}
-  | from (
-    pass
-    pool coinflips@trial =>
-      c:=count()
-      | yield f"There were {int64(c)} flips"
-  ) | sort this'
+  | fork 
+    ( pass )
+    ( from coinflips@trial 
+      | c:=count()
+      | yield f"There were {int64(c)} flips" )
+  | sort this'
 ```
 =>
 ```mdtest-output

@@ -1,9 +1,9 @@
 spq: |
-  switch (
-     case a == 1 => put v:='one'
-     case a / 0 => put v:='xxx'
-     case a % 0 => put v:='yyy'
-     ) | sort this
+  switch
+    case a == 1 ( put v:='one' )
+    case a / 0 ( put v:='xxx' )
+    case a % 0 ( put v:='yyy' )
+  | sort this
 
 vector: true
 

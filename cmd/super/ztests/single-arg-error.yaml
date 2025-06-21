@@ -1,9 +1,9 @@
 script: |
-  ! super -c 'file sample.sup | count('
+  ! super -c 'from sample.sup | count('
 
 outputs:
   - name: stderr
     data: |
       parse error at line 1, column 25:
-      file sample.sup | count(
+      from sample.sup | count(
                           === ^ ===

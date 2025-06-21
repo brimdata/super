@@ -1,4 +1,4 @@
-spq: over a => (sum(this))
+spq: over a into ( sum(this) )
 
 vector: true
 

@@ -6,10 +6,10 @@ vector: true
 inputs:
   - name: test.zed
     data: |
-      from (
-        file people.json
-        file fruit.json
-      ) | left join on left.likes=right.flavor 
+      fork
+        ( from people.json )
+        ( from fruit.json )
+      | left join on left.likes=right.flavor 
       | yield {...left,fruit:right.name,note:right.note}
       | sort
   - name: people.json

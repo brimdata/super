@@ -1,8 +1,8 @@
 spq: |
-  fork (
-    => x <= 2
-    => x > 2
-  ) | merge x
+  fork
+    ( x <= 2 )
+    ( x > 2 )
+  | merge x
 
 vector: true
 

@@ -82,11 +82,10 @@ corresponding branch (or dropped) based on the switch clauses. For example:
 
 ```mdtest-spq
 # spq
-switch this (
-  case 1 => yield {val:this,message:"one"}
-  case 2 => yield {val:this,message:"two"}
-  default => yield {val:this,message:"many"}
-)
+switch this
+  case 1 ( yield {val:this,message:"one"} )
+  case 2 ( yield {val:this,message:"two"} )
+  default ( yield {val:this,message:"many"} )
 | merge val
 # input
 1

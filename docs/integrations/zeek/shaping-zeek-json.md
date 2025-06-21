@@ -116,29 +116,41 @@ const zeek_log_types = |{
 }|
 
 yield nest_dotted(this)
-| switch has(_path) (
-  case true => switch (_path in zeek_log_types) (
-    case true => yield {_original: this, _shaped: shape(zeek_log_types[_path])}
-      | switch has_error(_shaped) (
-          case true => yield error({msg: "shaper error(s): see inner error value(s) for details", _original, _shaped})
-          case false => yield {_original, _shaped}
-            | switch _crop_records (
-                case true => put _cropped := crop(_shaped, zeek_log_types[_shaped._path])
-                  | switch (_cropped == _shaped) (
-                      case true => yield _shaped
-                      case false => yield {_original, _shaped, _cropped}
-                      | switch _error_if_cropped (
-                          case true => yield error({msg: "shaper error: one or more fields were cropped", _original, _shaped, _cropped})
-                          case false => yield _cropped
-                        )
-                  )
-                case false => yield _shaped
+| switch has(_path)
+  case true (
+    switch (_path in zeek_log_types)
+    case true (
+      yield {_original: this, _shaped: shape(zeek_log_types[_path])}
+      | switch has_error(_shaped)
+        case true (
+          yield error({msg: "shaper error(s): see inner error value(s) for details", _original, _shaped})
+        )
+        case false (
+          yield {_original, _shaped}
+          | switch _crop_records
+            case true (
+              put _cropped := crop(_shaped, zeek_log_types[_shaped._path])
+              | switch (_cropped == _shaped)
+                case true ( yield _shaped )
+                case false (
+                  yield {_original, _shaped, _cropped}
+                  | switch _error_if_cropped
+                    case true (
+                      yield error({msg: "shaper error: one or more fields were cropped", _original, _shaped, _cropped})
+                    )
+                    case false ( yield _cropped )
+                )
             )
-      )
-    case false => yield error({msg: "shaper error: _path '" + _path + "' is not a known zeek log type in shaper config", _original: this})
+            case false ( yield _shaped )
+        )
+    )
+    case false ( 
+        yield error({msg: "shaper error: _path '" + _path + "' is not a known zeek log type in shaper config", _original: this})
+    )
   )
-  case false => yield error({msg: "shaper error: input record lacks _path field", _original: this})
-)
+  case false (
+    yield error({msg: "shaper error: input record lacks _path field", _original: this})
+  )
 ```
 
 ### Configurable Options
@@ -207,32 +219,44 @@ The Zed shaper ends with a pipeline that stitches together everything we've defi
 so far.
 
 ```
-yield nest_dotted(this)
-| switch has(_path) (
-  case true => switch (_path in zeek_log_types) (
-    case true => yield {_original: this, _shaped: shape(zeek_log_types[_path])}
-      | switch has_error(_shaped) (
-          case true => yield error({msg: "shaper error(s): see inner error value(s) for details", _original, _shaped})
-          case false => yield {_original, _shaped}
-            | switch _crop_records (
-                case true => put _cropped := crop(_shaped, zeek_log_types[_shaped._path])
-                  | switch (_cropped == _shaped) (
-                      case true => yield _shaped
-                      case false => yield {_original, _shaped, _cropped}
-                      | switch _error_if_cropped (
-                          case true => yield error({msg: "shaper error: one ore more fields were cropped", _original, _shaped, _cropped})
-                          case false => yield _cropped
-                        )
-                  )
-                case false => yield _shaped
-            )
-      )
-    case false => yield error({msg: "shaper error: _path '" + _path + "' is not a known zeek log type in shaper config", _original: this})
-  )
-  case false => yield error({msg: "shaper error: input record lacks _path field", _original: this})
-)
-```
 
+yield nest_dotted(this)
+| switch has(_path)
+  case true (
+    switch (_path in zeek_log_types)
+    case true (
+      yield {_original: this, _shaped: shape(zeek_log_types[_path])}
+      | switch has_error(_shaped)
+        case true (
+          yield error({msg: "shaper error(s): see inner error value(s) for details", _original, _shaped})
+        )
+        case false (
+          yield {_original, _shaped}
+          | switch _crop_records
+            case true (
+              put _cropped := crop(_shaped, zeek_log_types[_shaped._path])
+              | switch (_cropped == _shaped)
+                case true ( yield _shaped )
+                case false (
+                  yield {_original, _shaped, _cropped}
+                  | switch _error_if_cropped
+                    case true (
+                      yield error({msg: "shaper error: one or more fields were cropped", _original, _shaped, _cropped})
+                    )
+                    case false ( yield _cropped )
+                )
+            )
+            case false ( yield _shaped )
+        )
+    )
+    case false ( 
+        yield error({msg: "shaper error: _path '" + _path + "' is not a known zeek log type in shaper config", _original: this})
+    )
+  )
+  case false (
+    yield error({msg: "shaper error: input record lacks _path field", _original: this})
+  )
+```
 Picking this apart, it transforms each record as it's being read in several
 steps.
 

@@ -1,15 +1,15 @@
 script: |
-  super -s -c 'file a.sup | join (file b.sup) on left.a=right.b | yield left | sort'
+  super -s -c 'from a.sup | join (from b.sup) on left.a=right.b | yield left | sort'
   echo '// ==='
-  super -s -c 'file a.sup | join (file b.sup | sort -r b) on left.a=right.b | yield left | sort'
+  super -s -c 'from a.sup | join (from b.sup | sort -r b) on left.a=right.b | yield left | sort'
   echo '// ==='
-  super -s -c 'file a.sup | join (file b.sup | sort b) on left.a=right.b | yield left | sort'
+  super -s -c 'from a.sup | join (from b.sup | sort b) on left.a=right.b | yield left | sort'
   echo '// ==='
-  super -s -c 'file a.sup | sort a | join (file b.sup | sort -r b) on left.a=right.b | yield left | sort'
+  super -s -c 'from a.sup | sort a | join (from b.sup | sort -r b) on left.a=right.b | yield left | sort'
   echo '// ==='
-  super -s -c 'file a.sup | sort -r a | join (file b.sup) on left.a=right.b | yield left | sort'
+  super -s -c 'from a.sup | sort -r a | join (from b.sup) on left.a=right.b | yield left | sort'
   echo '// ==='
-  super -s -c 'file a.sup | sort -r a | join (file b.sup | sort b) on left.a=right.b | yield left | sort'
+  super -s -c 'from a.sup | sort -r a | join (from b.sup | sort b) on left.a=right.b | yield left | sort'
 
 vector: true
 

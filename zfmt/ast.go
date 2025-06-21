@@ -434,27 +434,26 @@ func (c *canon) op(p ast.Op) {
 		c.scope(p, true)
 	case *ast.Parallel:
 		c.next()
-		c.open("fork (")
+		c.open("fork")
 		for _, p := range p.Paths {
 			c.ret()
-			c.write("=>")
+			c.write("(")
 			c.open()
 			c.head = true
 			c.seq(p)
 			c.close()
+			c.ret()
+			c.write(")")
 		}
 		c.close()
-		c.ret()
 		c.flush()
-		c.write(")")
 	case *ast.Switch:
 		c.next()
-		c.write("switch ")
+		c.write("switch")
 		if p.Expr != nil {
-			c.expr(p.Expr, "")
 			c.write(" ")
+			c.expr(p.Expr, "")
 		}
-		c.open("(")
 		for _, k := range p.Cases {
 			c.ret()
 			if k.Expr != nil {
@@ -463,16 +462,16 @@ func (c *canon) op(p ast.Op) {
 			} else {
 				c.write("default")
 			}
-			c.write(" =>")
+			c.write(" (")
 			c.open()
 			c.head = true
 			c.seq(k.Path)
 			c.close()
+			c.ret()
+			c.write(")")
 		}
 		c.close()
-		c.ret()
 		c.flush()
-		c.write(")")
 	case *ast.From:
 		c.next()
 		c.write("from ")
@@ -731,7 +730,7 @@ func (c *canon) over(o *ast.Over) {
 		c.defs(o.Locals, ", ")
 	}
 	if o.Body != nil {
-		c.write(" => (")
+		c.write(" into (")
 		c.open()
 		c.head = true
 		c.seq(o.Body)

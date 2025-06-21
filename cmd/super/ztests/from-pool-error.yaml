@@ -1,5 +1,5 @@
 script: |
-  ! super -c 'from ( pool a )'
+  ! super -c 'from ( from a )'
 
 outputs:
   - name: stderr

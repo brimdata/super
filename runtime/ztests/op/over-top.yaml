@@ -1,4 +1,4 @@
-spq: over a => (top 2 this)
+spq: over a ( top 2 this )
 
 vector: true
 

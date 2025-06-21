@@ -1,11 +1,10 @@
 spq: |
-  over this => (
-    over this => (
-      fork (
-        => head 1 | a:=collect(this)
-        => head 2 | a:=collect(this)
-        => aggregate a:=collect(this)
-      )
+  over this (
+    over this (
+      fork
+        ( head 1 | a:=collect(this) )
+        ( head 2 | a:=collect(this) )
+        ( aggregate a:=collect(this) )
       | sort this
       | head 1
     )

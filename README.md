@@ -50,11 +50,10 @@ FROM 'https://data.gharchive.org/2015-01-01-15.json.gz'
   GROUP BY user
   ORDER BY len(repos) DESC
   LIMIT 5
-| FORK (
-  => FROM eval(f'https://api.github.com/users/{user}')
-   | SELECT VALUE {user:login,created_at:time(created_at)}
-  => PASS
-  )
+| FORK
+  ( FROM eval(f'https://api.github.com/users/{user}')
+    SELECT VALUE {user:login,created_at:time(created_at)} )
+  ( PASS )
 | JOIN USING (user)
 | YIELD {...left,repos:right.repos}
 ```

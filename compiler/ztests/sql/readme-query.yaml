@@ -9,11 +9,12 @@ inputs:
         GROUP BY user
         ORDER BY len(repos) DESC
         LIMIT 2
-      | FORK (
-        => FROM eval(f'{user}.sup')
-        | SELECT VALUE {user:login,created_at:time(created_at)}
-        => PASS
+      | FORK
+        (
+          FROM eval(f'{user}.sup')
+          | SELECT VALUE {user:login,created_at:time(created_at)}
         )
+        ( PASS )
       | JOIN USING (user)
       | yield {...left,repos:right.repos}
   - name: gha.sup

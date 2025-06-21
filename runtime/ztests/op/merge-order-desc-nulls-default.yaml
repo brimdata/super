@@ -1,4 +1,4 @@
-spq: fork (=> pass => pass) | merge s desc nulls last
+spq: fork ( pass ) ( pass ) | merge s desc nulls last
 
 vector: true
 

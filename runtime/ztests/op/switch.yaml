@@ -1,10 +1,10 @@
 spq: |
-  switch (
-     case a == 2 => put v:='two'
-     case a == 1 => put v:='one'
-     case a == 3 => ? null
-     case true => count:=count() | put a:=-1
-   ) | sort a
+  switch
+    case a == 2 ( put v:='two' )
+    case a == 1 ( put v:='one' )
+    case a == 3 ( ? null )
+    case true ( count:=count() | put a:=-1 )
+  | sort a
 
 vector: true
 

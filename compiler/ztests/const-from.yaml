@@ -4,10 +4,10 @@ inputs:
   - name: src.zed
     data: |
       const A=1
-      from (
-        file a.sup => put x:=A+1
-        file b.sup => put x:=A
-      ) | sort x
+      fork
+        ( from a.sup | put x:=A+1 )
+        ( from b.sup | put x:=A )
+      | sort x
 
   - name: a.sup
     data: |

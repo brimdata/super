@@ -1,18 +1,19 @@
 spq: |
   const a = 1
-  switch this.a (
-    case 1 => (
+  switch this.a
+    case 1 (
       const a = 10
       const b = 20
       yield {k:0,a:[101, a, b]}
     )
-    case 2 => (
+    case 2 (
       const b = 30
       yield {k:1,a:[102, a, b, this.a]}
     )
-    case 3 =>
+    case 3 (
       yield {k:2,a:[103, a, b]}
-  ) | sort k
+    )
+  | sort k
 
 input: |
   {a:1,b:1001}
