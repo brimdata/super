@@ -1,7 +1,5 @@
 # SuperSQL
 
-TODO: write this section
-
 XXX data order... goes in super-sql inrto
 
 XXX talk about sum types ... missing from Codd's footnote.  achilles heel of modern SQL systems.  even systems that have it make it cumberson with type discriminator or 
@@ -11,35 +9,45 @@ named subscripts
 
 TODO...
 
+SuperSQL is a Pipe SQL adapted for super-structured data.
+It is a superset of SQL and is thus a good fit for analytics use cases
+but also blends search-style pipeline shortcuts so it also works well
+for interactive data exploration, search, and data wrangling.
 
-The Zed language is a query language for search, analytics,
-and transformation inspired by the
-[pipeline pattern](https://en.wikipedia.org/wiki/Tacit_programming)
-of the traditional Unix shell.
 Like a Unix pipeline, a query is expressed as a data source followed
 by a number of commands:
 ```
-command | command | command | ...
+from source | command | command | ...
 ```
-However, in Zed, the entities that transform data are called
-[operators](operators/_index.md) instead of "commands" and unlike Unix pipelines,
-the streams of data in a Zed query
+The entities that transform data within a pipeline are called
+[operators](operators/_index.md) 
 are typed data sequences that adhere to the
 [Zed data model](../formats/data-model.md).
 Moreover, Zed sequences can be forked and joined:
 ```
-operator
+from source
 | operator
 | fork (
-  => operator | ...
-  => operator | ...
-)
+  ( operator | ... )
+  ( operator | ... )
 | join | ...
+| switch expr
+  case value ( operator | ... )
+  case value ( operator | ... )
+  default ( operator | ... )
+| ...
 ```
-Here, Zed programs can include multiple data sources and splitting operations
+Here, a SuperQL query can include multiple data sources and splitting operations
 where multiple pipeline branches run in parallel and branches can be combined (in an
 undefined order), merged (in a defined order) by one or more sort keys,
 or joined using relational-style join logic.
+
+Unlike SQL, SuperSQL pipelines define their computation in terms of dataflow
+through the directed graph of operators.  However, SuperSQL is a superset of SQL
+in that any operator can be a SQL query. In particular, a single operator defined
+as pure SQL is an acceptable SuperSQL query.
+
+> XXX cite areas of SQL that are TBD
 
 Generally speaking, a [flow graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph)
 defines a directed acyclic graph (DAG) composed
