@@ -1,5 +1,5 @@
 spq: |
-  over this with foo = {foo:"bar"} (
+  over this with foo = {foo:"bar"} into (
     switch
       case x % 2 == 0 ( yield {x, ...foo} )
   )

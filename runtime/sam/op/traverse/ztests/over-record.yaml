@@ -1,5 +1,5 @@
 spq: |
-  over this with d=date (
+  over this with d=date into (
     key[1] != 'date'
     | yield {date: d, sym: key[1], price: value}
   )

@@ -1,5 +1,5 @@
 spq: |
-  over b with w=a (
+  over b with w=a into (
     yield {x:w,y:this}
   )
 

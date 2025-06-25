@@ -1,6 +1,6 @@
 spq: |
-  over this (
-    over this (
+  over this into (
+    over this into (
       fork
         ( head 1 | a:=collect(this) )
         ( head 2 | a:=collect(this) )

@@ -12,9 +12,9 @@ inputs:
       | yield (over a, b with c=d, e=f | ?g)
       // Operators
       | over a
-      | over a ( ?b )
-      | over a with b=c ( ?d )
-      | over a, b with c=d, e=f ( ?g )
+      | over a into ( ?b )
+      | over a with b=c into ( ?d )
+      | over a, b with c=d, e=f into ( ?g )
 
 outputs:
   - name: stdout

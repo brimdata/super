@@ -1,5 +1,5 @@
 spq: |
-  over this with var="foo" (
+  over this with var="foo" into (
     switch this
       case 2 ( yield var )
       default ( yield this )

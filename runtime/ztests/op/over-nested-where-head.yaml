@@ -1,6 +1,6 @@
 spq: |
-  over this (
-    over this (
+  over this into (
+    over this into (
       where this > 2 | head 1
     )
   )

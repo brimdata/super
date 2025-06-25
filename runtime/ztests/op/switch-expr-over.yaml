@@ -1,6 +1,6 @@
 spq: |
   switch len(a)
-    case 3 ( over a ( sum:=sum(this) ) )
+    case 3 ( over a into ( sum:=sum(this) ) )
     default ( over a | yield {b:this} )
   | sort this
 

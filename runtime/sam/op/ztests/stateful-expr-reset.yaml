@@ -1,26 +1,26 @@
 script: |
   echo // yield
-  super -s -c 'yield null, null | over this ( yield count() )'
+  super -s -c 'yield null, null | over this into ( yield count() )'
   echo // filter
-  super -s -c 'yield [1,2,3,4], [5,6,7] | over this ( where count() % 3 == 0 )'
+  super -s -c 'yield [1,2,3,4], [5,6,7] | over this into ( where count() % 3 == 0 )'
   echo // switch
-  super -s -c 'yield [1], [1] | over this (
+  super -s -c 'yield [1], [1] | over this into (
     switch sum(this)
        case 1 ( yield "sum is 1" )
   )'
   echo // exprswitch
-  super -s -c 'yield [1], [1] | over this (
+  super -s -c 'yield [1], [1] | over this into (
     switch
       case sum(this) == 1 ( yield "sum is 1" )
   )'
   echo // over
-  super -s -c 'yield null, null | over this ( over count() )'
+  super -s -c 'yield null, null | over this into ( over count() )'
   echo // over with
-  super -s -c 'yield [1], [1] | over this (
-    over this with count = count() ( yield count )
+  super -s -c 'yield [1], [1] | over this into (
+    over this with count = count() into ( yield count )
   )'
   echo // aggregate
-  super -s -c 'yield [1], [1] | over this ( sum(this) by c := count() )'
+  super -s -c 'yield [1], [1] | over this into ( sum(this) by c := count() )'
 
 outputs:
   - name: stdout
