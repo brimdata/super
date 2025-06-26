@@ -33,7 +33,7 @@ The nested subquery depicted as `<lateral>` is called a [lateral subquery](../la
 _Over evaluates each expression and emits it_
 ```mdtest-spq
 # spq
-over 1,2,"foo"
+unnest 1,2,"foo"
 # input
 null
 # expected output
@@ -45,7 +45,7 @@ null
 _The over clause is evaluated once per each input value_
 ```mdtest-spq
 # spq
-over 1,2
+unnest 1,2
 # input
 null
 null
@@ -59,7 +59,7 @@ null
 _Array elements are enumerated_
 ```mdtest-spq
 # spq
-over [1,2],[3,4,5]
+unnest [1,2],[3,4,5]
 # input
 null
 # expected output
@@ -73,7 +73,7 @@ null
 _Over traversing an array_
 ```mdtest-spq
 # spq
-over a
+unnest a
 # input
 {a:[1,2,3]}
 # expected output
@@ -85,7 +85,7 @@ over a
 _Filter the traversed values_
 ```mdtest-spq
 # spq
-over a | this % 2 == 0
+unnest a | this % 2 == 0
 # input
 {a:[6,5,4]}
 {a:[3,2,1]}
@@ -98,7 +98,7 @@ over a | this % 2 == 0
 _Aggregate the traversed values_
 ```mdtest-spq
 # spq
-over a | sum(this)
+unnest a | sum(this)
 # input
 {a:[1,2]}
 {a:[3,4,5]}
@@ -109,7 +109,7 @@ over a | sum(this)
 _Aggregate the traversed values in a lateral query_
 ```mdtest-spq
 # spq
-over a into ( sum(this) )
+unnest a into ( sum(this) )
 # input
 {a:[1,2]}
 {a:[3,4,5]}
@@ -121,7 +121,7 @@ over a into ( sum(this) )
 _Access the outer values in a lateral query_
 ```mdtest-spq
 # spq
-over a with s into (sum(this) | yield {s,sum:this})
+unnest a with s into (sum(this) | yield {s,sum:this})
 # input
 {a:[1,2],s:"foo"}
 {a:[3,4,5],s:"bar"}
@@ -133,7 +133,7 @@ over a with s into (sum(this) | yield {s,sum:this})
 _Traverse a record by flattening it_
 ```mdtest-spq
 # spq
-over flatten(r) with s into (yield {s,key:key[1],value})
+unnest flatten(r) with s into (yield {s,key:key[1],value})
 # input
 {s:"foo",r:{a:1,b:2}}
 {s:"bar",r:{a:3,b:4}}

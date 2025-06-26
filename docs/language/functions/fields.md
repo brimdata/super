@@ -32,7 +32,7 @@ yield fields(this)
 Easily convert to dotted names if you prefer:
 ```mdtest-spq
 # spq
-over fields(this) | yield join(this,".")
+unnest fields(this) | yield join(this,".")
 # input
 {a:1,b:2,c:{d:3,e:4}}
 # expected output

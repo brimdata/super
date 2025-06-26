@@ -29,7 +29,7 @@ yield unflatten(this)
 Flatten to unflatten:
 ```mdtest-spq
 # spq
-over flatten(this) into (
+unnest flatten(this) into (
   key[1] != "rm"
   | yield collect(this)
 )

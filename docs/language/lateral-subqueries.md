@@ -24,7 +24,7 @@ scoping.
 For example,
 ```mdtest-spq
 # spq
-over a with name=s into (
+unnest a with name=s into (
   yield {name,elem:this}
 )
 # input
@@ -63,7 +63,7 @@ You can also import a parent-scope field reference into the inner scope by
 simply referring to its name without assignment, e.g.,
 ```mdtest-spq
 # spq
-over a with s into (
+unnest a with s into (
   yield {s,elem:this}
 )
 # input
@@ -117,7 +117,7 @@ reads all values of the subsequence, sorts them, emits them, then
 repeats the process for the next subsequence.  For example,
 ```mdtest-spq
 # spq
-over this into (
+unnest this into (
   sort this | collect(this)
 )
 # input
@@ -153,7 +153,7 @@ e.g.,
 ```mdtest-spq
 # spq
 yield (
-  over this | sum(this)
+  unnest this | sum(this)
 )
 # input
 [3,2,1]
@@ -170,8 +170,8 @@ e.g., we can embed multiple lateral expressions inside of a record literal
 and use the spread operator to tighten up the output:
 ```mdtest-spq
 # spq
-{...(over this | sort this | sorted:=collect(this)),
- ...(over this | sum:=sum(this))}
+{...(unnest this | sort this | sorted:=collect(this)),
+ ...(unnest this | sum:=sum(this))}
 # input
 [3,2,1]
 [4,1,7]
@@ -187,7 +187,7 @@ at the conclusion of the lateral pipeline, they are automatically wrapped in
 an array, e.g.,
 ```mdtest-spq
 # spq
-yield {s:(over x | yield this+1)}
+yield {s:(unnest x | yield this+1)}
 # input
 {x:1}
 {x:[2]}
@@ -203,7 +203,7 @@ always receives consistently packaged values by explicitly wrapping the result
 of the lateral scope, e.g.,
 ```mdtest-spq
 # spq
-yield {s:(over x | yield this+1 | collect(this))}
+yield {s:(unnest x | yield this+1 | collect(this))}
 # input
 {x:1}
 {x:[2]}
