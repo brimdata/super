@@ -232,7 +232,7 @@ func (c *canon) expr(e ast.Expr, parent string) {
 	case *ast.OverExpr:
 		c.open("(")
 		c.ret()
-		c.write("over ")
+		c.write("unnest ")
 		c.exprs(e.Exprs)
 		if len(e.Locals) > 0 {
 			c.write(" with ")
@@ -723,7 +723,7 @@ func (c *canon) fromEntity(e ast.FromEntity) {
 
 func (c *canon) over(o *ast.Over) {
 	c.next()
-	c.write("over ")
+	c.write("unnest ")
 	c.exprs(o.Exprs)
 	if len(o.Locals) > 0 {
 		c.write(" with ")

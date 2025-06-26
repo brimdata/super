@@ -818,7 +818,7 @@ MergeOp
     }
 
 OverOp
-   = (OVER / UNNEST) _ exprs:Exprs locals:Locals? body:(_ "into"i _ body:ScopeBody { return body, nil })? {
+   = UNNEST _ exprs:Exprs locals:Locals? body:(_ "into"i _ body:ScopeBody { return body, nil })? {
       o := &ast.Over{
         Kind: "Over",
         Exprs: sliceOf[ast.Expr](exprs),
@@ -1197,7 +1197,7 @@ When
     }
     
 OverExpr
-  = OVER _ exprs:Exprs locals:Locals? __ Pipe __ body:Seq {
+  = UNNEST _ exprs:Exprs locals:Locals? __ Pipe __ body:Seq {
       return &ast.OverExpr{
           Kind: "OverExpr",
           Locals: sliceOf[ast.Def](locals),

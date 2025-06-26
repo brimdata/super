@@ -1,14 +1,14 @@
 script: |
   echo === aggregation and locals
-  super compile -C 'collect(over a with b=c | ?d)'
+  super compile -C 'collect(unnest a with b=c | ?d)'
   echo === cast
-  super compile -C 'uint8(over a | ?b)'
+  super compile -C 'uint8(unnest a | ?b)'
   echo === expression
-  super compile -C 'yield (over a | ?b)'
+  super compile -C 'yield (unnest a | ?b)'
   echo === function
-  super compile -C 'quiet(over a | ?b)'
+  super compile -C 'quiet(unnest a | ?b)'
   echo === grep
-  super compile -C 'grep(/regexp/, over a | ?b)'
+  super compile -C 'grep(/regexp/, unnest a | ?b)'
 
 outputs:
   - name: stdout
@@ -16,26 +16,26 @@ outputs:
       === aggregation and locals
       aggregate
           collect((
-            over a with b=c
+            unnest a with b=c
             | search d
           ))
       === cast
       uint8((
-        over a
+        unnest a
         | search b
       ))
       === expression
       yield (
-        over a
+        unnest a
         | search b
       )
       === function
       quiet((
-        over a
+        unnest a
         | search b
       ))
       === grep
       where grep(/regexp/,(
-          over a
+          unnest a
           | search b
         ))

@@ -123,7 +123,7 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 	case *dag.OverExpr:
 		c.open("(")
 		c.ret()
-		c.write("over ")
+		c.write("unnest ")
 		c.exprs(e.Exprs)
 		if len(e.Defs) > 0 {
 			for i, d := range e.Defs {
@@ -609,7 +609,7 @@ func (c *canonDAG) fields(fields []field.Path) {
 
 func (c *canonDAG) over(o *dag.Over) {
 	c.next()
-	c.write("over ")
+	c.write("unnest ")
 	c.exprs(o.Exprs)
 	if len(o.Defs) > 0 {
 		c.write(" with ")
