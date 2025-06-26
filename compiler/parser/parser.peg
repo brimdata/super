@@ -322,12 +322,6 @@ Operator
   / OutputOp
   / DebugOp
 
-PipeKeyword
-  = SELECT / FORK / SWITCH / FROM / SEARCH / ASSERT / SORT / TOP/ CUT / DROP
-  / HEAD / TAIL / WHERE / UNIQ / PUT / RENAME / FUSE / SHAPE / JOIN / SAMPLE
-  / FROM / PASS / EXPLODE / MERGE / OVER / YIELD / LOAD / OUTPUT / DEBUG
-  / AGGREGATE / SUMMARIZE
-
  ForkOp =
    FORK paths:( __ path:ScopeBody { return path, nil })+ {
       var seqs []ast.Seq
@@ -1149,7 +1143,7 @@ Primary
   / Map
   / SQLTimeValue
   / Literal
-  / !PipeKeyword id:Identifier { return id, nil }
+  / Identifier
   / Tuple
   / "(" __ expr:OverExpr __ ")" { return expr, nil }
   / "(" __ expr:Expr __ ")" { return expr, nil }
