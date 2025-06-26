@@ -1,6 +1,6 @@
 spq: |
-  over this into (
-    over this into (
+  unnest this into (
+    unnest this into (
       top 2 this
     )
   )

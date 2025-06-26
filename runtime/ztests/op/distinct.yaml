@@ -3,7 +3,7 @@ script: |
   echo ===
   super -s -c 'from "2.sup" | distinct abs(this)'
   echo ===
-  super -s -c 'from "3.sup" | over this into (distinct this | count())'
+  super -s -c 'from "3.sup" | unnest this into (distinct this | count())'
 
 vector: true
 

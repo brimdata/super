@@ -1,4 +1,4 @@
-spq: over a into ( top 2 this )
+spq: unnest a into ( top 2 this )
 
 vector: true
 

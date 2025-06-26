@@ -1,4 +1,4 @@
-spq: over a into ( sum(this) )
+spq: unnest a into ( sum(this) )
 
 vector: true
 

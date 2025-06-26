@@ -1,26 +1,26 @@
 script: |
   echo // yield
-  super -s -c 'yield null, null | over this into ( yield count() )'
+  super -s -c 'yield null, null | unnest this into ( yield count() )'
   echo // filter
-  super -s -c 'yield [1,2,3,4], [5,6,7] | over this into ( where count() % 3 == 0 )'
+  super -s -c 'yield [1,2,3,4], [5,6,7] | unnest this into ( where count() % 3 == 0 )'
   echo // switch
-  super -s -c 'yield [1], [1] | over this into (
+  super -s -c 'yield [1], [1] | unnest this into (
     switch sum(this)
        case 1 ( yield "sum is 1" )
   )'
   echo // exprswitch
-  super -s -c 'yield [1], [1] | over this into (
+  super -s -c 'yield [1], [1] | unnest this into (
     switch
       case sum(this) == 1 ( yield "sum is 1" )
   )'
   echo // over
-  super -s -c 'yield null, null | over this into ( over count() )'
-  echo // over with
-  super -s -c 'yield [1], [1] | over this into (
-    over this with count = count() into ( yield count )
+  super -s -c 'yield null, null | unnest this into ( unnest count() )'
+  echo // unnest with
+  super -s -c 'yield [1], [1] | unnest this into (
+    unnest this with count = count() into ( yield count )
   )'
   echo // aggregate
-  super -s -c 'yield [1], [1] | over this into ( sum(this) by c := count() )'
+  super -s -c 'yield [1], [1] | unnest this into ( sum(this) by c := count() )'
 
 outputs:
   - name: stdout
@@ -40,7 +40,7 @@ outputs:
       // over
       1(uint64)
       1(uint64)
-      // over with
+      // unnest with
       1(uint64)
       1(uint64)
       // aggregate

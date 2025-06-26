@@ -1,7 +1,7 @@
 spq: |
   switch
-    case len(a)==3 ( over a into ( sum:=sum(this) ) )
-    default ( over a | yield {b:this} )
+    case len(a)==3 ( unnest a into ( sum:=sum(this) ) )
+    default ( unnest a | yield {b:this} )
   | sort this
 
 vector: true

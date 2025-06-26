@@ -6,7 +6,7 @@ script: |
     echo // === $file ===
     query="$(cat $file | jq -Rsa .)"
     curl -H "Accept: application/json" -d "{\"query\":$query,\"head\":{\"pool\":\"test1\"}}" $SUPER_DB/query/describe |
-      super -J -c 'sources := (over sources | id := "XXX")' -
+      super -J -c 'sources := (unnest sources | id := "XXX")' -
   done
 
 

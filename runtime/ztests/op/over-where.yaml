@@ -1,5 +1,5 @@
 spq: |
-  over this into ( where this > 1 )
+  unnest this into ( where this > 1 )
 
 vector: true
 

@@ -1,5 +1,5 @@
 spq: |
-  over this into (
+  unnest this into (
     tail 2 | head 1
   )
 

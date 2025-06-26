@@ -1,6 +1,6 @@
 spq: |
   func sumvals(vals): (
-    (over vals | sum(this))
+    (unnest vals | sum(this))
   )
   sum := sumvals(v)
 
