@@ -21,7 +21,7 @@ network is inferred from `val`, which in this case, must be an IPv4 address.
 Compute the network address of an IP using an `ip` mask argument:
 ```mdtest-spq
 # spq
-yield network_of(this, 255.255.255.128)
+values network_of(this, 255.255.255.128)
 # input
 10.1.2.129
 # expected output
@@ -31,7 +31,7 @@ yield network_of(this, 255.255.255.128)
 Compute the network address of an IP given an integer prefix argument:
 ```mdtest-spq
 # spq
-yield network_of(this, 25)
+values network_of(this, 25)
 # input
 10.1.2.129
 # expected output
@@ -41,7 +41,7 @@ yield network_of(this, 25)
 Compute the network address implied by IP classful addressing:
 ```mdtest-spq
 # spq
-yield network_of(this)
+values network_of(this)
 # input
 10.1.2.129
 # expected output
@@ -51,7 +51,7 @@ yield network_of(this)
 The network of a value that is not an IP is an error:
 ```mdtest-spq {data-layout="stacked"}
 # spq
-yield network_of(this)
+values network_of(this)
 # input
 1
 # expected output
@@ -61,7 +61,7 @@ error({message:"network_of: not an IP",on:1})
 Network masks must be contiguous:
 ```mdtest-spq {data-layout="stacked"}
 # spq
-yield network_of(this, 255.255.128.255)
+values network_of(this, 255.255.128.255)
 # input
 10.1.2.129
 # expected output

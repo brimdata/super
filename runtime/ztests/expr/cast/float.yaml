@@ -1,4 +1,4 @@
-spq: yield float16(this), float32(this), float64(this)
+spq: values float16(this), float32(this), float64(this)
 
 vector: true
 

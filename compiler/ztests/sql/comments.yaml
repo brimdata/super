@@ -1,12 +1,12 @@
 script: |
-  echo null | super -s -I yield.spq -
+  echo null | super -s -I values.spq -
 
 inputs:
-  - name: yield.spq
+  - name: values.spq
     data: |
-      yield 1
-      | yield this, 2, 3 -- , 4
-      -- | yield 5
+      values 1
+      | values this, 2, 3 -- , 4
+      -- | values 5
 
 outputs:
   - name: stdout

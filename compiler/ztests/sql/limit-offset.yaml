@@ -15,33 +15,33 @@ outputs:
   - name: stdout
     data: |
       file test
-      | yield {in:this,out:{...this}}
+      | values {in:this,out:{...this}}
       | head 1
-      | yield out
+      | values out
       | output main
       // ===
       file test
-      | yield {...this}
+      | values {...this}
       | output main
       // ===
       file test
-      | yield {in:this,out:{...this}}
+      | values {in:this,out:{...this}}
       | skip 1
-      | yield out
+      | values out
       | output main
       // ===
       file test
-      | yield {in:this,out:{...this}}
-      | skip 1
-      | head 1
-      | yield out
-      | output main
-      // ===
-      file test
-      | yield {in:this,out:{...this}}
+      | values {in:this,out:{...this}}
       | skip 1
       | head 1
-      | yield out
+      | values out
+      | output main
+      // ===
+      file test
+      | values {in:this,out:{...this}}
+      | skip 1
+      | head 1
+      | values out
       | output main
       // ===
   - name: stderr

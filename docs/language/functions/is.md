@@ -18,7 +18,7 @@ is omitted, it defaults to `this`.  The _is_ function is shorthand for `typeof(v
 Test simple types:
 ```mdtest-spq
 # spq
-yield {yes:is(<float64>),no:is(<int64>)}
+values {yes:is(<float64>),no:is(<int64>)}
 # input
 1.
 # expected output
@@ -28,7 +28,7 @@ yield {yes:is(<float64>),no:is(<int64>)}
 Test for a given input's record type or "shape":
 ```mdtest-spq
 # spq
-yield is(<{s:string}>)
+values is(<{s:string}>)
 # input
 {s:"hello"}
 # expected output
@@ -39,7 +39,7 @@ If you test a named type with its underlying type, the types are different,
 but if you use the type name or typeof and under functions, there is a match:
 ```mdtest-spq
 # spq
-yield is(<{s:string}>)
+values is(<{s:string}>)
 # input
 {s:"hello"}(=foo)
 # expected output
@@ -48,7 +48,7 @@ false
 
 ```mdtest-spq
 # spq
-yield is(<foo>)
+values is(<foo>)
 # input
 {s:"hello"}(=foo)
 # expected output
@@ -58,7 +58,7 @@ true
 To test the underlying type, just use `==`:
 ```mdtest-spq
 # spq
-yield under(typeof(this))==<{s:string}>
+values under(typeof(this))==<{s:string}>
 # input
 {s:"hello"}(=foo)
 # expected output

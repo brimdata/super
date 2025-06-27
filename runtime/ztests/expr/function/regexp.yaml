@@ -1,4 +1,4 @@
-spq: "yield regexp(re, in)"
+spq: regexp(re, in)
 
 vector: true
 

@@ -55,7 +55,7 @@ FROM 'https://data.gharchive.org/2015-01-01-15.json.gz'
     SELECT VALUE {user:login,created_at:time(created_at)} )
   ( PASS )
 | JOIN USING (user)
-| YIELD {...left,repos:right.repos}
+| VALUES {...left,repos:right.repos}
 ```
 
 ## Super (SUP) Format

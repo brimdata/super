@@ -1,7 +1,7 @@
 script: |
-  super compile -C 'yield f"hello {f"world"}"'
+  super compile -C 'values f"hello {f"world"}"'
 
 outputs:
   - name: stdout
     data: |
-      yield f"hello {f"world"}"
+      values f"hello {f"world"}"

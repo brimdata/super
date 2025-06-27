@@ -1,6 +1,6 @@
 spq: |
   type person = {name:string,likes:string,age:int64}
-  yield cast(this,<person>)
+  values cast(this,<person>)
 
 vector: true
 

@@ -18,7 +18,7 @@ type Selection struct {
 	Loc  `json:"loc"`
 }
 
-type Values struct {
+type SQLValues struct {
 	Kind  string `json:"kind" unpack:""`
 	Exprs []Expr `json:"exprs"`
 	Loc   `json:"loc"`
@@ -113,7 +113,7 @@ func (*JoinUsingExpr) joinExpr() {}
 
 func (*SQLPipe) OpAST()        {}
 func (*Select) OpAST()         {}
-func (*Values) OpAST()         {}
+func (*SQLValues) OpAST()      {}
 func (*CrossJoin) OpAST()      {}
 func (*SQLJoin) OpAST()        {}
 func (*Union) OpAST()          {}

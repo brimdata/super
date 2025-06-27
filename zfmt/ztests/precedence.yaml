@@ -6,8 +6,8 @@ script: |
 inputs:
   - name: inputs.spq
     data: &inputs |
-      yield (10+2)/8
-      yield 8/(10+2)
+      values (10+2)/8
+      values 8/(10+2)
       where (y==2 or x==4) and z==5
       where !(ts<=2)
 

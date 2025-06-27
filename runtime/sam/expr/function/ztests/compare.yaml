@@ -1,4 +1,4 @@
-spq: yield compare(a, b)
+spq: values compare(a, b)
 
 input: |
   {a: 2, b: 1}

@@ -1,4 +1,4 @@
-spq: "yield c[start:end]"
+spq: "values c[start:end]"
 
 vector: true
 

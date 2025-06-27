@@ -18,7 +18,7 @@ are null, `error("missing")`, or `error("quiet")`.
 
 ```mdtest-spq
 # spq
-yield coalesce(null, error("missing"), error("quiet"), this)
+values coalesce(null, error("missing"), error("quiet"), this)
 # input
 1
 # expected output
@@ -27,7 +27,7 @@ yield coalesce(null, error("missing"), error("quiet"), this)
 
 ```mdtest-spq
 # spq
-yield coalesce(null, error("missing"), this)
+values coalesce(null, error("missing"), this)
 # input
 error("quiet")
 # expected output

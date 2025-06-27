@@ -1,4 +1,4 @@
-spq: "yield has_error(this)"
+spq: "values has_error(this)"
 
 input: |
   null

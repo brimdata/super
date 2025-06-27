@@ -7,30 +7,30 @@ import (
 	"github.com/brimdata/super/vector/bitvec"
 )
 
-type Yield struct {
+type Values struct {
 	sctx   *super.Context
 	parent vector.Puller
 	exprs  []expr.Evaluator
 }
 
-var _ vector.Puller = (*Yield)(nil)
+var _ vector.Puller = (*Values)(nil)
 
-func NewYield(sctx *super.Context, parent vector.Puller, exprs []expr.Evaluator) *Yield {
-	return &Yield{
+func NewValues(sctx *super.Context, parent vector.Puller, exprs []expr.Evaluator) *Values {
+	return &Values{
 		sctx:   sctx,
 		parent: parent,
 		exprs:  exprs,
 	}
 }
 
-func (y *Yield) Pull(done bool) (vector.Any, error) {
+func (v *Values) Pull(done bool) (vector.Any, error) {
 	for {
-		val, err := y.parent.Pull(done)
+		val, err := v.parent.Pull(done)
 		if val == nil {
 			return nil, err
 		}
-		vals := make([]vector.Any, 0, len(y.exprs))
-		for _, e := range y.exprs {
+		vals := make([]vector.Any, 0, len(v.exprs))
+		for _, e := range v.exprs {
 			v := filterQuiet(e.Eval(val))
 			if v != nil {
 				vals = append(vals, v)

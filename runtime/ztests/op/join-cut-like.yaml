@@ -10,7 +10,7 @@ inputs:
         ( from people.json )
         ( from fruit.json )
       | left join on left.likes=right.flavor 
-      | yield {...left,fruit:right.name,note:right.note}
+      | values {...left,fruit:right.name,note:right.note}
       | sort
   - name: people.json
     data: |

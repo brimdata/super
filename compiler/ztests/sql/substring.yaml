@@ -1,4 +1,4 @@
-spq: yield SUBSTRING(this FROM 4 FOR 2), SUBSTRING(this FROM 4), SUBSTRING(this FOR 3)
+spq: values SUBSTRING(this FROM 4 FOR 2), SUBSTRING(this FROM 4), SUBSTRING(this FOR 3)
 
 vector: true
 

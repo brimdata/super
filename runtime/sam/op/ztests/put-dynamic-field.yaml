@@ -16,7 +16,7 @@ script: |
   echo "// ==="
   echo {} | super -s -c 'this[doesnotexist] := "world"' - 
   # semantic error cases
-  ! super compile -dag 'op foo(): ( yield "error" ) put this[foo] := "hello world"'
+  ! super compile -dag 'op foo(): ( values "error" ) put this[foo] := "hello world"'
 
 outputs:
   - name: stdout
@@ -38,6 +38,6 @@ outputs:
       error({message:"put: missing",on:{}})
   - name: stderr
     data: |
-      symbol "foo" is not bound to an expression at line 1, column 38:
-      op foo(): ( yield "error" ) put this[foo] := "hello world"
-                                           ~~~
+      symbol "foo" is not bound to an expression at line 1, column 39:
+      op foo(): ( values "error" ) put this[foo] := "hello world"
+                                            ~~~

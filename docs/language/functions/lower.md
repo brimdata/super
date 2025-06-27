@@ -17,7 +17,7 @@ to lower case and returns the result.
 
 ```mdtest-spq
 # spq
-yield lower(this)
+values lower(this)
 # input
 "SuperDB"
 # expected output

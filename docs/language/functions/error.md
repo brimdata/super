@@ -19,7 +19,7 @@ a means to create structured and stacked errors.
 Wrap a record as a structured error:
 ```mdtest-spq {data-layout="stacked"}
 # spq
-yield error({message:"bad value", value:this})
+values error({message:"bad value", value:this})
 # input
 {foo:"foo"}
 # expected output
@@ -29,7 +29,7 @@ error({message:"bad value",value:{foo:"foo"}})
 Wrap any value as an error:
 ```mdtest-spq
 # spq
-yield error(this)
+values error(this)
 # input
 1
 "foo"
@@ -43,7 +43,7 @@ error([1,2,3])
 Test if a value is an error and show its type "kind":
 ```mdtest-spq {data-layout="stacked"}
 # spq
-yield {this,err:is_error(this),kind:kind(this)}
+values {this,err:is_error(this),kind:kind(this)}
 # input
 error("exception")
 "exception"
@@ -57,7 +57,7 @@ are the same missing errors so as to not allow field comparisons of two
 missing fields to succeed:
 ```mdtest-spq
 # spq
-badfield:=x | yield badfield==error("missing")
+badfield:=x | values badfield==error("missing")
 # input
 {}
 # expected output

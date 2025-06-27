@@ -28,7 +28,7 @@ true
 Continuous OR of simple sequence:
 ```mdtest-spq
 # spq
-yield or(this)
+values or(this)
 # input
 false
 true
@@ -42,7 +42,7 @@ true
 Unrecognized types are ignored and not coerced for truthiness:
 ```mdtest-spq
 # spq
-yield or(this)
+values or(this)
 # input
 false
 "foo"

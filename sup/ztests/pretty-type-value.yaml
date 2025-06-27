@@ -1,4 +1,4 @@
-spq: yield this, "==="
+spq: values this, "==="
 
 input: |
   <({foo:int64},{bar:string},uint64)>

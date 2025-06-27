@@ -30,7 +30,7 @@ Valid values for `part` are:
 _Extract the year, month, and day of the month from a time value_
 ```mdtest-spq
 # spq
-yield date_part("year", this), date_part("month", this), date_part("day", this)
+values date_part("year", this), date_part("month", this), date_part("day", this)
 # input
 2001-09-09T01:46:40Z
 # expected output

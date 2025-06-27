@@ -38,7 +38,7 @@ inputs:
   - name: scope.spq
     data: |
       type port = uint16
-      from test1 | fork ( output main ) ( yield "bar" | output secondary )
+      from test1 | fork ( output main ) ( values "bar" | output secondary )
   - name: auto-combined-channels.spq
     data: |
       from test1 | fork ( pass ) ( pass )

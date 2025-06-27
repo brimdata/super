@@ -131,7 +131,7 @@ func (s *Scope) resolve(path field.Path) (dag.Expr, error) {
 		// XXX this should really treat this as a column in sql context but
 		// but this will cause dynamic stuff to silently fail so I think we
 		// should flag and maybe make it part of a strict mode (like bitwise |)
-		return nil, errors.New("cannot reference 'this' in relational context; consider the 'yield' operator")
+		return nil, errors.New("cannot reference 'this' in relational context; consider the 'values' operator")
 	}
 	path, err := resolvePath(sch, path)
 	return &dag.This{Kind: "This", Path: path}, err

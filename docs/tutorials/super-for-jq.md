@@ -155,10 +155,10 @@ produces
 Doing searches like this in `jq` would be hard.
 
 That said, we can emulate the `jq` transformation stance by explicitly
-indicating that we want to [`yield`](../language/operators/yield.md)
+indicating that we want to [`values`](../language/operators/values.md)
 the result of the expression evaluated for each input value, e.g.,
 ```mdtest-command
-echo '1 2 3' | super -s -c 'yield 2' -
+echo '1 2 3' | super -s -c 'values 2' -
 ```
 now gives the same answer as `jq`:
 ```mdtest-output
@@ -302,7 +302,7 @@ while in super-structured data, data is nested with "records" and arrays (as wel
 are rather flexible with `super` and look a bit like JavaScript
 or `jq` syntax, e.g.,
 ```mdtest-command
-echo '1 2 3' | super -s -c 'yield {kind:"counter",val:this}' -
+echo '1 2 3' | super -s -c 'values {kind:"counter",val:this}' -
 ```
 produces
 ```mdtest-output
@@ -310,9 +310,9 @@ produces
 {kind:"counter",val:2}
 {kind:"counter",val:3}
 ```
-Note that like the search shortcut, you can also drop the `yield` keyword
+Note that like the search shortcut, you can also drop the `values` keyword
 here because the record literal [implies](../language/pipeline-model.md#implied-operators)
-the [`yield` operator](../language/operators/yield.md), e.g.,
+the [`values` operator](../language/operators/values.md), e.g.,
 ```mdtest-command
 echo '1 2 3' | super -s -c '{kind:"counter",val:this}' -
 ```
@@ -410,7 +410,7 @@ don't have to worry about them even when they show up.
 For example, this query is perfectly happy to operate on the union values
 that are implied by a mixed-type array:
 ```mdtest-command
-echo '[1, "foo", 2, "bar"]' | super -s -c 'yield this[3],this[2]' -
+echo '[1, "foo", 2, "bar"]' | super -s -c 'values this[3],this[2]' -
 ```
 produces
 ```mdtest-output
@@ -420,7 +420,7 @@ produces
 but under the covers, the elements of the array have a union type of
 `int64` and `string`, which is written `(int64,string)`, e.g.,
 ```mdtest-command
-echo '[1, "foo", 2, "bar"]' | super -s -c 'yield typeof(this)' -
+echo '[1, "foo", 2, "bar"]' | super -s -c 'values typeof(this)' -
 ```
 produces
 ```mdtest-output
@@ -445,7 +445,7 @@ In other words, the super data model has
 The type of any value in `super` can be accessed via the
 [`typeof` function](../language/functions/typeof.md), e.g.,
 ```mdtest-command
-echo '1 "foo" 10.0.0.1' | super -s -c 'yield typeof(this)' -
+echo '1 "foo" 10.0.0.1' | super -s -c 'values typeof(this)' -
 ```
 produces
 ```mdtest-output
@@ -459,7 +459,7 @@ Au contraire, this is really quite powerful because we can
 use types as values to functions, e.g., as a dynamic argument to
 the [`cast` function](../language/functions/cast.md):
 ```mdtest-command
-echo '{a:0,b:"2"}{a:0,b:"3"}' | super -s -c 'yield cast(b, typeof(a))' -
+echo '{a:0,b:"2"}{a:0,b:"3"}' | super -s -c 'values cast(b, typeof(a))' -
 ```
 produces
 ```mdtest-output
@@ -509,7 +509,7 @@ With `super` of course, these are different super-structured types so
 the result is false, e.g.,
 ```mdtest-command
 echo '{"a":{"s":"foo"},"b":{"x":1,"y":2}}' |
-  super -s -c 'yield typeof(a)==typeof(b)' -
+  super -s -c 'values typeof(a)==typeof(b)' -
 ```
 produces
 ```mdtest-output
@@ -523,7 +523,7 @@ This is easy to do with the [`any` aggregate function](../language/aggregates/an
 e.g.,
 ```mdtest-command
 echo '{x:1,y:2}{s:"foo"}{x:3,y:4}' |
-  super -s -c 'val:=any(this) by typeof(this) | sort val | yield val' -
+  super -s -c 'val:=any(this) by typeof(this) | sort val | values val' -
 ```
 produces
 ```mdtest-output
@@ -826,7 +826,7 @@ One more annoying detail here about JSON: time values are stored as strings,
 in this case, in ISO format, e.g., we can pull this value out with
 this query:
 ```mdtest-command dir=docs/tutorials
-super -s -c 'over this | head 1 | yield created_at' prs.json
+super -s -c 'over this | head 1 | values created_at' prs.json
 ```
 which produces this string:
 ```mdtest-output
@@ -835,7 +835,7 @@ which produces this string:
 Since the super data model has a native `time` type and we might want to do native date comparisons
 on these time fields, we can easily translate the string to a time with a cast, e.g.,
 ```mdtest-command dir=docs/tutorials
-super -s -c 'over this | head 1 | yield time(created_at)' prs.json
+super -s -c 'over this | head 1 | values time(created_at)' prs.json
 ```
 produces the native time value:
 ```mdtest-output
@@ -843,7 +843,7 @@ produces the native time value:
 ```
 To be sure, you can check any value's type with the `typeof` function, e.g.,
 ```mdtest-command dir=docs/tutorials
-super -s -c 'over this | head 1 | yield time(created_at) | typeof(this)' prs.json
+super -s -c 'over this | head 1 | values time(created_at) | typeof(this)' prs.json
 ```
 produces the native time value:
 ```mdtest-output
@@ -1105,7 +1105,7 @@ But we need a "graph edge" between the requesting user and the reviewers.
 To do this, we need to reference the `user.login` from the top-level scope within the
 lateral scope.  This can be done by
 bringing that value into the scope using a `with` clause appended to the
-`over` expression and yielding a
+`over` expression and returning a
 [record literal](../language/expressions.md#record-expressions) with the desired value:
 ```mdtest-command dir=docs/tutorials
 super -s -c '

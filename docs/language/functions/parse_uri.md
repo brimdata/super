@@ -32,7 +32,7 @@ with the following type signature:
 
 ```mdtest-spq {data-layout="stacked"}
 # spq
-yield parse_uri(this)
+values parse_uri(this)
 # input
 "scheme://user:password@host:12345/path?a=1&a=2&b=3&c=#fragment"
 # expected output

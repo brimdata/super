@@ -1,6 +1,6 @@
 script: |
   super -o t.csup -f csup -
-  SUPER_VAM=1 super -s -c "from t.csup | yield a >= 1, a >= b, a >= 1 or a >= b"
+  SUPER_VAM=1 super -s -c "from t.csup | values a >= 1, a >= b, a >= 1 or a >= b"
 
 inputs:
   - name: stdin

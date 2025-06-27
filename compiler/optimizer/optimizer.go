@@ -148,7 +148,7 @@ func walkEntries(seq dag.Seq, post func(dag.Seq) (dag.Seq, error)) (dag.Seq, err
 func (o *Optimizer) Optimize(seq dag.Seq) (dag.Seq, error) {
 	seq = liftFilterOps(seq)
 	seq = mergeFilters(seq)
-	seq = mergeYieldOps(seq)
+	seq = mergeValuesOps(seq)
 	inlineRecordExprSpreads(seq)
 	seq = removePassOps(seq)
 	seq = replaceSortAndHeadOrTailWithTop(seq)
@@ -519,7 +519,7 @@ func inlineRecordExprSpreads(v any) {
 func liftFilterOps(seq dag.Seq) dag.Seq {
 	walkT(reflect.ValueOf(&seq), func(seq dag.Seq) dag.Seq {
 		for i := len(seq) - 2; i >= 0; i-- {
-			y, ok := seq[i].(*dag.Yield)
+			y, ok := seq[i].(*dag.Values)
 			if !ok || len(y.Exprs) != 1 {
 				continue
 			}
@@ -553,45 +553,45 @@ func liftFilterOps(seq dag.Seq) dag.Seq {
 	return seq
 }
 
-func mergeYieldOps(seq dag.Seq) dag.Seq {
+func mergeValuesOps(seq dag.Seq) dag.Seq {
 	return walk(seq, true, func(seq dag.Seq) dag.Seq {
 		for i := 0; i+1 < len(seq); i++ {
-			y1, ok := seq[i].(*dag.Yield)
-			if !ok || len(y1.Exprs) != 1 || hasThisWithEmptyPath(seq[i+1]) {
+			v1, ok := seq[i].(*dag.Values)
+			if !ok || len(v1.Exprs) != 1 || hasThisWithEmptyPath(seq[i+1]) {
 				continue
 			}
-			re1, ok := y1.Exprs[0].(*dag.RecordExpr)
+			re1, ok := v1.Exprs[0].(*dag.RecordExpr)
 			if !ok {
 				continue
 			}
-			y1TopLevelFields, y1TopLevelSpread, ok := recordElemsFieldsAndSpread(re1.Elems)
+			v1TopLevelFields, v1TopLevelSpread, ok := recordElemsFieldsAndSpread(re1.Elems)
 			if !ok {
 				continue
 			}
-			propagateY1Fields := func(e dag.Expr) dag.Expr {
+			propagateV1Fields := func(e dag.Expr) dag.Expr {
 				this, ok := e.(*dag.This)
 				if !ok {
 					return e
 				}
-				y1Expr, ok := y1TopLevelFields[this.Path[0]]
+				v1Expr, ok := v1TopLevelFields[this.Path[0]]
 				if !ok {
-					if y1TopLevelSpread != nil {
-						return addPathToExpr(y1TopLevelSpread, this.Path)
+					if v1TopLevelSpread != nil {
+						return addPathToExpr(v1TopLevelSpread, this.Path)
 					}
 					return e
 				}
-				return addPathToExpr(y1Expr, this.Path[1:])
+				return addPathToExpr(v1Expr, this.Path[1:])
 			}
 			switch op := seq[i+1].(type) {
 			case *dag.Aggregate:
 				for i := range op.Keys {
-					walkT(reflect.ValueOf(&op.Keys[i].RHS), propagateY1Fields)
+					walkT(reflect.ValueOf(&op.Keys[i].RHS), propagateV1Fields)
 				}
 				for i := range op.Aggs {
-					walkT(reflect.ValueOf(&op.Aggs[i].RHS), propagateY1Fields)
+					walkT(reflect.ValueOf(&op.Aggs[i].RHS), propagateV1Fields)
 				}
-			case *dag.Yield:
-				walkT(reflect.ValueOf(op.Exprs), propagateY1Fields)
+			case *dag.Values:
+				walkT(reflect.ValueOf(op.Exprs), propagateV1Fields)
 			default:
 				continue
 			}

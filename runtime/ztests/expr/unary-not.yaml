@@ -1,4 +1,4 @@
-spq:  yield [!this, not this]
+spq:  values [!this, not this]
 
 vector: true
 

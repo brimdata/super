@@ -18,7 +18,7 @@ The _typename_ function returns the [type](../../formats/sup.md#25-types) of the
 Return a simple named type with a string constant argument:
 ```mdtest-spq
 # spq
-yield typename("port")
+values typename("port")
 # input
 80(port=int16)
 # expected output
@@ -28,7 +28,7 @@ yield typename("port")
 Return a named type using an expression:
 ```mdtest-spq
 # spq
-yield typename(name)
+values typename(name)
 # input
 {name:"port",p:80(port=int16)}
 # expected output
@@ -38,7 +38,7 @@ yield typename(name)
 The result is `error("missing")` if the type name does not exist:
 ```mdtest-spq
 # spq
-yield typename("port")
+values typename("port")
 # input
 80
 # expected output

@@ -1,4 +1,4 @@
-spq: yield {...unflatten(this),c:2}
+spq: values {...unflatten(this),c:2}
 
 vector: true
 

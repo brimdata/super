@@ -1,12 +1,12 @@
 # Previously the semantic pass would return this invalid path error twice.
 # This test verifies a change the ensures this error is only returned once.
 spq: |
-  op test(): ( yield this )
-  yield test.that
+  op test(): ( values this )
+  values test.that
 
 vector: true
 
 error: |
-  symbol "test" is not bound to an expression at line 2, column 7:
-  yield test.that
-        ~~~~
+  symbol "test" is not bound to an expression at line 2, column 8:
+  values test.that
+         ~~~~

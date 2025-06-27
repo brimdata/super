@@ -1,4 +1,4 @@
-spq: "yield regexp_replace(in, re, new)"
+spq: regexp_replace(in, re, new)
 
 vector: true
 

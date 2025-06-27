@@ -17,7 +17,7 @@ to upper case and returns the result.
 
 ```mdtest-spq
 # spq
-yield upper(this)
+values upper(this)
 # input
 "Super format"
 # expected output
@@ -31,7 +31,7 @@ yield upper(this)
 func capitalize(str): (
   upper(str[1:2]) + str[2:]
 )
-yield capitalize(this)
+values capitalize(this)
 # input
 "super format"
 # expected output

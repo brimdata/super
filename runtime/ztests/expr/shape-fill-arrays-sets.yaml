@@ -1,5 +1,5 @@
 spq: |
-  yield fill(<{arr:[{b:string,a:string}],set:|[{b:string,a:string}]|}>)
+  values fill(<{arr:[{b:string,a:string}],set:|[{b:string,a:string}]|}>)
 
 vector: true
 

@@ -1,5 +1,5 @@
 spq: |
-  yield {x:{y:1}}.x.y, |{"a":1}|.a
+  values {x:{y:1}}.x.y, |{"a":1}|.a
 
 input: |
   null

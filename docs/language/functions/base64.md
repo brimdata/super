@@ -20,7 +20,7 @@ or decodes a Base64 string `s` into a bytes value.
 Encode byte sequence `0x010203` into its Base64 string:
 ```mdtest-spq
 # spq
-yield base64(this)
+values base64(this)
 # input
 0x010203
 # expected output
@@ -30,7 +30,7 @@ yield base64(this)
 Decode "AQID" into byte sequence `0x010203`:
 ```mdtest-spq
 # spq
-yield base64(this)
+values base64(this)
 # input
 "AQID"
 # expected output
@@ -40,7 +40,7 @@ yield base64(this)
 Encode ASCII string into Base64-encoded string:
 ```mdtest-spq
 # spq
-yield base64(bytes(this))
+values base64(bytes(this))
 # input
 "hello, world"
 # expected output
@@ -50,7 +50,7 @@ yield base64(bytes(this))
 Decode a Base64 string and cast the decoded bytes to a string:
 ```mdtest-spq
 # spq
-yield string(base64(this))
+values string(base64(this))
 # input
 "aGVsbG8gd29ybGQ="
 # expected output

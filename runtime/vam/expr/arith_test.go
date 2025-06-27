@@ -58,7 +58,7 @@ func TestArithOpsAndForms(t *testing.T) {
 		f(c.expectedForConstLHS, Const, rhsDict)
 		f(c.expectedForConstLHS, Const, rhsView)
 
-		// Arithmetic on two vector.Consts yields another vector.Const.
+		// Arithmetic on two vector.Consts returns another vector.Const.
 		cmp := NewArith(super.NewContext(), &testEval{Const}, &testEval{Const}, c.op)
 		val := cmp.Eval(nil).(*vector.Const)
 		assert.Equal(t, uint32(3), val.Len(), "op: %s", c.op)

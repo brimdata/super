@@ -1,4 +1,4 @@
-spq: name=='steve' | yield shape(this,<person>)
+spq: name=='steve' | values shape(this,<person>)
 
 vector: true
 

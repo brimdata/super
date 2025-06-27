@@ -131,7 +131,7 @@ and
 
 ```mdtest-spq
 # spq
-yield <foo>
+values <foo>
 # input
 1(=foo)
 # expected output
@@ -142,7 +142,7 @@ If the type name referred to in this way does not exist, then the type value
 reference results in `error("missing")`.  For example,
 ```mdtest-spq
 # spq
-yield <foo>
+values <foo>
 # input
 1
 # expected output
@@ -283,7 +283,7 @@ A [shaper](shaping.md) could catch the bad value (e.g., as a default
 case in a [`switch`](operators/switch.md) topology) and propagate it as
 an error using the expression:
 ```
-yield error({message:"unrecognized input",input:this})
+values error({message:"unrecognized input",input:this})
 ```
 then such errors could be detected and searched for downstream with the
 [`is_error` function](functions/is_error.md).
@@ -352,7 +352,7 @@ a reference to something that does not exist is an error of type
 `error(string)` whose value is `error("missing")`.  For example,
 ```mdtest-spq
 # spq
-yield x
+values x
 # input
 {x:1}
 {y:2}
@@ -364,10 +364,10 @@ error("missing")
 Sometimes you want missing errors to show up and sometimes you don't.
 The [`quiet` function](functions/quiet.md) transforms missing errors into
 "quiet errors".  A quiet error is the value `error("quiet")` and is ignored
-by most operators, in particular `yield`.  For example,
+by most operators, in particular `values`.  For example,
 ```mdtest-spq
 # spq
-yield quiet(x)
+values quiet(x)
 # input
 {x:1}
 {y:2}
@@ -380,7 +380,7 @@ And what if you want a default value instead of a "missing" error?  The
 null, `error("missing")`, or `error("quiet")`.  For example,
 ```mdtest-spq
 # spq
-yield coalesce(x, 0)
+values coalesce(x, 0)
 # input
 {x:1}
 {y:2}

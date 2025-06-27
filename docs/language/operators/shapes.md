@@ -10,7 +10,7 @@ shapes [<expr>]
 
 The `shapes` operator is a syntactic shortcut for
 ```
-val:=any(<expr>) by typeof(<expr>) | yield val
+val:=any(<expr>) by typeof(<expr>) | values val
 ```
 If `<expr>` is not provided, `this` is used.
 

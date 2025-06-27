@@ -1,4 +1,4 @@
-spq: yield crop(<{f:null}>)
+spq: values crop(<{f:null}>)
 
 vector: true
 

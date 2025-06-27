@@ -1,11 +1,11 @@
 script: |
   super compile -C -O 'from file1 | top'
   echo ===
-  super compile -C -O 'from file1 | top | yield a'
+  super compile -C -O 'from file1 | top | values a'
   echo ===
   super compile -C -O 'from file1 | top 2 a'
   echo ===
-  super compile -C -O 'from file1 | top 2 a | yield b'
+  super compile -C -O 'from file1 | top 2 a | values b'
 
 outputs:
   - name: stdout
@@ -16,7 +16,7 @@ outputs:
       ===
       file file1 unordered
       | top 1
-      | yield a
+      | values a
       | output main
       ===
       file file1 unordered
@@ -25,5 +25,5 @@ outputs:
       ===
       file file1 unordered fields a,b
       | top 2 a asc nulls last
-      | yield b
+      | values b
       | output main

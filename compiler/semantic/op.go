@@ -553,7 +553,7 @@ func (a *analyzer) semDebugOp(o *ast.Debug, mainAst ast.Seq, in dag.Seq) dag.Seq
 	if e == nil {
 		e = &dag.This{Kind: "This"}
 	}
-	y := &dag.Yield{Kind: "Yield", Exprs: []dag.Expr{e}}
+	y := &dag.Values{Kind: "Values", Exprs: []dag.Expr{e}}
 	main := a.semSeq(mainAst)
 	if len(main) == 0 {
 		main.Append(&dag.Pass{Kind: "Pass"})
@@ -572,7 +572,7 @@ func (a *analyzer) semDebugOp(o *ast.Debug, mainAst ast.Seq, in dag.Seq) dag.Seq
 // with either an aggregate or filter op based on the function's name.
 func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 	switch o := o.(type) {
-	case *ast.Select, *ast.SQLLimitOffset, *ast.OrderBy, *ast.SQLPipe, *ast.With, *ast.Values:
+	case *ast.Select, *ast.SQLLimitOffset, *ast.OrderBy, *ast.SQLPipe, *ast.With, *ast.SQLValues:
 		seq, sch := a.semSQLOp(o, seq)
 		seq, _ = derefSchema(sch, seq)
 		return seq
@@ -926,10 +926,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 				},
 			},
 		})
-		return append(seq, &dag.Yield{
-			Kind:  "Yield",
-			Exprs: []dag.Expr{&dag.This{Kind: "This", Path: field.Path{"sample"}}},
-		})
+		return append(seq, dag.NewValues(&dag.This{Kind: "This", Path: field.Path{"sample"}}))
 	case *ast.Union:
 		if o.Distinct {
 			a.error(o, errors.New("UNION DISTINCT not currently supported"))
@@ -946,48 +943,41 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 	case *ast.Assert:
 		cond := a.semExpr(o.Expr)
 		// 'assert EXPR' is equivalent to
-		// 'yield EXPR ? this : error({message: "assertion failed", "expr": EXPR_text, "on": this}'
+		// 'values EXPR ? this : error({message: "assertion failed", "expr": EXPR_text, "on": this}'
 		// where EXPR_text is the literal text of EXPR.
-		return append(seq, &dag.Yield{
-			Kind: "Yield",
-			Exprs: []dag.Expr{
-				&dag.Conditional{
-					Kind: "Conditional",
-					Cond: cond,
-					Then: &dag.This{Kind: "This"},
-					Else: &dag.Call{
-						Kind: "Call",
-						Name: "error",
-						Args: []dag.Expr{&dag.RecordExpr{
-							Kind: "RecordExpr",
-							Elems: []dag.RecordElem{
-								&dag.Field{
-									Kind:  "Field",
-									Name:  "message",
-									Value: &dag.Literal{Kind: "Literal", Value: `"assertion failed"`},
-								},
-								&dag.Field{
-									Kind:  "Field",
-									Name:  "expr",
-									Value: &dag.Literal{Kind: "Literal", Value: sup.QuotedString(o.Text)},
-								},
-								&dag.Field{
-									Kind:  "Field",
-									Name:  "on",
-									Value: &dag.This{Kind: "This"},
-								},
+		return append(seq, dag.NewValues(
+			&dag.Conditional{
+				Kind: "Conditional",
+				Cond: cond,
+				Then: &dag.This{Kind: "This"},
+				Else: &dag.Call{
+					Kind: "Call",
+					Name: "error",
+					Args: []dag.Expr{&dag.RecordExpr{
+						Kind: "RecordExpr",
+						Elems: []dag.RecordElem{
+							&dag.Field{
+								Kind:  "Field",
+								Name:  "message",
+								Value: &dag.Literal{Kind: "Literal", Value: `"assertion failed"`},
 							},
-						}},
-					},
+							&dag.Field{
+								Kind:  "Field",
+								Name:  "expr",
+								Value: &dag.Literal{Kind: "Literal", Value: sup.QuotedString(o.Text)},
+							},
+							&dag.Field{
+								Kind:  "Field",
+								Name:  "on",
+								Value: &dag.This{Kind: "This"},
+							},
+						},
+					}},
 				},
-			},
-		})
-	case *ast.Yield:
+			}))
+	case *ast.Values:
 		exprs := a.semExprs(o.Exprs)
-		return append(seq, &dag.Yield{
-			Kind:  "Yield",
-			Exprs: exprs,
-		})
+		return append(seq, dag.NewValues(exprs...))
 	case *ast.Load:
 		if !a.env.IsLake() {
 			a.error(o, errors.New("load operator cannot be used without a lake"))
@@ -1038,10 +1028,7 @@ func (a *analyzer) singletonAgg(agg ast.Assignment, seq dag.Seq) dag.Seq {
 			Kind: "Aggregate",
 			Aggs: []dag.Assignment{out},
 		},
-		&dag.Yield{
-			Kind:  "Yield",
-			Exprs: []dag.Expr{this},
-		},
+		dag.NewValues(this),
 	)
 }
 
@@ -1213,10 +1200,7 @@ func (a *analyzer) semOpExpr(e ast.Expr, seq dag.Seq) dag.Seq {
 	if a.isBool(out) {
 		return append(seq, dag.NewFilter(out))
 	}
-	return append(seq, &dag.Yield{
-		Kind:  "Yield",
-		Exprs: []dag.Expr{out},
-	})
+	return append(seq, dag.NewValues(out))
 }
 
 func (a *analyzer) isBool(e dag.Expr) bool {
@@ -1274,11 +1258,8 @@ func (a *analyzer) semCallOp(call *ast.Call, seq dag.Seq) dag.Seq {
 				},
 			},
 		}
-		yield := &dag.Yield{
-			Kind:  "Yield",
-			Exprs: []dag.Expr{&dag.This{Kind: "This", Path: field.Path{name}}},
-		}
-		return append(append(seq, aggregate), yield)
+		values := dag.NewValues(&dag.This{Kind: "This", Path: field.Path{name}})
+		return append(append(seq, aggregate), values)
 	}
 	if !function.HasBoolResult(strings.ToLower(name)) {
 		return nil

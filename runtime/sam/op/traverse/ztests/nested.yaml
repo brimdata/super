@@ -1,8 +1,8 @@
 spq: |
   over outer with TOP=this["top"] into (
-    yield {msg:"OUTER", top:`TOP`, inner:inner, b:b}
+    values {msg:"OUTER", top:`TOP`, inner:inner, b:b}
     | over inner with BOTTOM=b into (
-      yield {top:`TOP`, bottom:BOTTOM, elem:this}
+      values {top:`TOP`, bottom:BOTTOM, elem:this}
     )
   )
 

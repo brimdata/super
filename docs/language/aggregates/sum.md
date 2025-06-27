@@ -29,7 +29,7 @@ sum(this)
 Continuous sum of simple sequence:
 ```mdtest-spq
 # spq
-yield sum(this)
+values sum(this)
 # input
 1
 2

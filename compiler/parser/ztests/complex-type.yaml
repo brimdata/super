@@ -1,15 +1,15 @@
 script: |
-  super compile -C 'yield <{a:int64}>'
-  super compile -C 'yield <[int64]>'
-  super compile -C 'yield <|[int64]|>'
-  super compile -C 'yield <|{int64:string}|>'
-  super compile -C 'yield <error({msg:string})>'
+  super compile -C 'values <{a:int64}>'
+  super compile -C 'values <[int64]>'
+  super compile -C 'values <|[int64]|>'
+  super compile -C 'values <|{int64:string}|>'
+  super compile -C 'values <error({msg:string})>'
 
 outputs:
   - name: stdout
     data: |
-      yield <{a:int64}>
-      yield <[int64]>
-      yield <|[int64]|>
-      yield <|{int64:string}|>
-      yield <error({msg:string})>
+      values <{a:int64}>
+      values <[int64]>
+      values <|[int64]|>
+      values <|{int64:string}|>
+      values <error({msg:string})>

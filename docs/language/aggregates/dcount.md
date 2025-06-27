@@ -30,7 +30,7 @@ dcount(this)
 Continuous count of simple sequence:
 ```mdtest-spq
 # spq
-yield dcount(this)
+values dcount(this)
 # input
 1
 2
@@ -46,7 +46,7 @@ yield dcount(this)
 Mixed types are handled:
 ```mdtest-spq
 # spq
-yield dcount(this)
+values dcount(this)
 # input
 1
 "foo"

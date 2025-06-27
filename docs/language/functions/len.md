@@ -31,7 +31,7 @@ Take the length of various types:
 
 ```mdtest-spq {data-layout="stacked"}
 # spq
-yield {this,len:len(this)}
+values {this,len:len(this)}
 # input
 [1,2,3]
 |["hello"]|

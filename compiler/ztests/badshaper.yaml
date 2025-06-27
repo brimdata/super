@@ -8,7 +8,7 @@ inputs:
   - name: badshaper.zed
     data: |
       type foo={_path:string,testfield:"null"}
-      yield shape(foo)
+      values shape(foo)
 
 outputs:
   - name: stderr

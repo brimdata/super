@@ -18,7 +18,7 @@ distance](https://en.wikipedia.org/wiki/Levenshtein_distance) between strings
 
 ```mdtest-spq
 # spq
-yield levenshtein(a, b)
+values levenshtein(a, b)
 # input
 {a:"kitten",b:"sitting"}
 # expected output

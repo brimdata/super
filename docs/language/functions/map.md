@@ -19,7 +19,7 @@ only one argument. `f` may be a [user-defined function](../statements.md#func-st
 Upper case each element of an array:
 ```mdtest-spq
 # spq
-yield map(this, upper)
+values map(this, upper)
 # input
 ["foo","bar","baz"]
 # expected output
@@ -32,7 +32,7 @@ Using a user-defined function to convert epoch floats to time values:
 func floatToTime(x): (
   cast(x*1000000000, <time>)
 )
-yield map(this, floatToTime)
+values map(this, floatToTime)
 # input
 [1697151533.41415,1697151540.716529]
 # expected output

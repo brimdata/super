@@ -168,14 +168,14 @@ type (
 		Kind  string `json:"kind" unpack:""`
 		Cflag bool   `json:"cflag"`
 	}
+	Values struct {
+		Kind  string `json:"kind" unpack:""`
+		Exprs []Expr `json:"exprs"`
+	}
 	// Vectorize executes its body using the vector engine.
 	Vectorize struct {
 		Kind string `json:"kind" unpack:""`
 		Body Seq    `json:"body"`
-	}
-	Yield struct {
-		Kind  string `json:"kind" unpack:""`
-		Exprs []Expr `json:"exprs"`
 	}
 )
 
@@ -350,8 +350,8 @@ func (*Join) OpNode()      {}
 func (*Shape) OpNode()     {}
 func (*Explode) OpNode()   {}
 func (*Over) OpNode()      {}
+func (*Values) OpNode()    {}
 func (*Vectorize) OpNode() {}
-func (*Yield) OpNode()     {}
 func (*Merge) OpNode()     {}
 func (*Mirror) OpNode()    {}
 func (*Combine) OpNode()   {}

@@ -1,6 +1,6 @@
-spq: yield {x:1,x:2}
+spq: values {x:1,x:2}
 
 error: |
-  record expression: duplicate field: "x" at line 1, column 12:
-  yield {x:1,x:2}
-             ~~~
+  record expression: duplicate field: "x" at line 1, column 13:
+  values {x:1,x:2}
+              ~~~

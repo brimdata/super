@@ -28,7 +28,7 @@ false
 Continuous AND of simple sequence:
 ```mdtest-spq
 # spq
-yield and(this)
+values and(this)
 # input
 true
 false
@@ -42,7 +42,7 @@ false
 Unrecognized types are ignored and not coerced for truthiness:
 ```mdtest-spq
 # spq
-yield and(this)
+values and(this)
 # input
 true
 "foo"

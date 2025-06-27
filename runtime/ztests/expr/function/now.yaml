@@ -1,7 +1,7 @@
 spq: |
   const t1 = now()
-  yield t1, now()
-  | yield string(this) ~ /[0-9TZ:\-\.]+/
+  values t1, now()
+  | values string(this) ~ /[0-9TZ:\-\.]+/
 
 vector: true
 

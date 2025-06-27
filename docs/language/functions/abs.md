@@ -18,7 +18,7 @@ must be a numeric type.
 Absolute value of various numbers:
 ```mdtest-spq {data-layout="stacked"}
 # spq
-yield abs(this)
+values abs(this)
 # input
 1
 -1

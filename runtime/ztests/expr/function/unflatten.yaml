@@ -1,4 +1,4 @@
-spq: yield unflatten(this)
+spq: unflatten(this)
 
 vector: true
 

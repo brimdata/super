@@ -24,7 +24,7 @@ HTTP endpoint and process it with `super`, in this case, to extract the descript
 and license of a GitHub repository:
 ```
 super -f line -c 'get https://api.github.com/repos/brimdata/super
-                  | yield description,license.name'
+                  | values description,license.name'
 ```
 When a query is run on the command-line with `super`, the `from` source is
 typically omitted and implied instead by the command-line file arguments.
@@ -64,7 +64,7 @@ The [`search`](operators/search.md) and [`where`](operators/where.md)
 operators "find" values in their input and drop
 the ones that do not match what is being looked for.
 
-The [`yield` operator](operators/yield.md) emits one or more output values
+The [`values` operator](operators/values.md) emits one or more output values
 for each input value based on arbitrary [expressions](expressions.md),
 providing a convenient means to derive arbitrary output values as a function
 of each input value, much like the map concept in the MapReduce framework.
@@ -83,9 +83,9 @@ corresponding branch (or dropped) based on the switch clauses. For example:
 ```mdtest-spq
 # spq
 switch this
-  case 1 ( yield {val:this,message:"one"} )
-  case 2 ( yield {val:this,message:"two"} )
-  default ( yield {val:this,message:"many"} )
+  case 1 ( values {val:this,message:"one"} )
+  case 2 ( values {val:this,message:"two"} )
+  default ( values {val:this,message:"many"} )
 | merge val
 # input
 1
@@ -250,13 +250,13 @@ is abbreviated
 ```
 Furthermore, if an operator-free expression is not valid syntax for
 a search expression but is a valid [expression](expressions.md),
-then the abbreviation is treated as having an implied `yield` operator, e.g.,
+then the abbreviation is treated as having an implied `values` operator, e.g.,
 ```
 {s:lower(s)}
 ```
 is shorthand for
 ```
-yield {s:lower(s)}
+values {s:lower(s)}
 ```
 
 Another common query pattern involves adding or mutating fields of records
@@ -281,7 +281,7 @@ from the operator-less source text, in the order given, as follows:
 * If the text can be interpreted as a boolean expression, then the operator is `where`.
 * If the text can be interpreted as one or more field assignments, then the operator is `put`.
 * If the text can be interpreted as an aggregation, then the operator is `aggregate`.
-* If the text can be interpreted as an expression, then the operator is `yield`.
+* If the text can be interpreted as an expression, then the operator is `values`.
 * Otherwise, the text causes a compile-time error.
 
 When in doubt, you can always check what the compiler is doing under the hood
@@ -299,6 +299,6 @@ search foo
 where is(<foo>)
 aggregate
     count()
-yield {a:x+1,b:y-1}
+values {a:x+1,b:y-1}
 put a:=x+1,b:=y-1
 ```

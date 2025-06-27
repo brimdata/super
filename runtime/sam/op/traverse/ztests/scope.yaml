@@ -1,6 +1,6 @@
 spq: |
   over b with w=a into (
-    yield {x:w,y:this}
+    values {x:w,y:this}
   )
 
 input: |

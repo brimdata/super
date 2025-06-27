@@ -18,7 +18,7 @@ which must be a numeric type.  The return type retains the type of the argument.
 The floor of a various numbers:
 ```mdtest-spq
 # spq
-yield floor(this)
+values floor(this)
 # input
 1.5
 -1.5

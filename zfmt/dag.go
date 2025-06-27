@@ -506,9 +506,9 @@ func (c *canonDAG) op(p dag.Op) {
 		c.close()
 	case *dag.Over:
 		c.over(p)
-	case *dag.Yield:
+	case *dag.Values:
 		c.next()
-		c.write("yield ")
+		c.write("values ")
 		c.exprs(p.Exprs)
 	case *dag.DefaultScan:
 		c.next()

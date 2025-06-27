@@ -28,7 +28,7 @@ count()
 Continuous count of simple sequence:
 ```mdtest-spq
 # spq
-yield count()
+values count()
 # input
 1
 2
@@ -42,7 +42,7 @@ yield count()
 Mixed types are handled:
 ```mdtest-spq
 # spq
-yield count()
+values count()
 # input
 1
 "foo"

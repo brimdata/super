@@ -203,7 +203,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		if err != nil {
 			return nil, err
 		}
-		return vamop.NewYield(b.sctx(), parent, []vamexpr.Evaluator{e}), nil
+		return vamop.NewValues(b.sctx(), parent, []vamexpr.Evaluator{e}), nil
 	case *dag.DefaultScan:
 		zbufPuller, err := b.compileLeaf(o, nil)
 		if err != nil {
@@ -222,7 +222,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 			fields = append(fields, e.(*dag.This).Path)
 		}
 		dropper := vamexpr.NewDropper(b.sctx(), fields)
-		return vamop.NewYield(b.sctx(), parent, []vamexpr.Evaluator{dropper}), nil
+		return vamop.NewValues(b.sctx(), parent, []vamexpr.Evaluator{dropper}), nil
 	case *dag.FileScan:
 		var metaProjection []field.Path
 		var metaFilter dag.Expr
@@ -259,14 +259,14 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		if err != nil {
 			return nil, err
 		}
-		return vamop.NewYield(b.sctx(), parent, []vamexpr.Evaluator{vamexpr.NewPutter(b.sctx(), e)}), nil
+		return vamop.NewValues(b.sctx(), parent, []vamexpr.Evaluator{vamexpr.NewPutter(b.sctx(), e)}), nil
 	case *dag.Rename:
 		srcs, dsts, err := b.compileAssignmentsToLvals(o.Args)
 		if err != nil {
 			return nil, err
 		}
 		renamer := vamexpr.NewRenamer(b.sctx(), srcs, dsts)
-		return vamop.NewYield(b.sctx(), parent, []vamexpr.Evaluator{renamer}), nil
+		return vamop.NewValues(b.sctx(), parent, []vamexpr.Evaluator{renamer}), nil
 	case *dag.Skip:
 		return vamop.NewSkip(parent, o.Count), nil
 	case *dag.Top:
@@ -294,12 +294,12 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 			return nil, err
 		}
 		return vam.NewDematerializer(zbufPuller), nil
-	case *dag.Yield:
+	case *dag.Values:
 		exprs, err := b.compileVamExprs(o.Exprs)
 		if err != nil {
 			return nil, err
 		}
-		return vamop.NewYield(b.sctx(), parent, exprs), nil
+		return vamop.NewValues(b.sctx(), parent, exprs), nil
 	default:
 		return nil, fmt.Errorf("internal error: unknown dag.Op while compiling for vector runtime: %#v", o)
 	}

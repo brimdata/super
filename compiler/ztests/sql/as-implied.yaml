@@ -31,9 +31,9 @@ outputs:
       {x:4,y:4,z:2}
       ===
       null
-      | yield {"n+1":n+1,"n+2":n+2,"n+1_1":n+1,"n+3":n+3,"n+1_2":n+1}
+      | values {"n+1":n+1,"n+2":n+2,"n+1_1":n+1,"n+3":n+3,"n+1_2":n+1}
       | output main
       ===
       null
-      | yield {"n+1_1":n+1,"n+1":n+1}
+      | values {"n+1_1":n+1,"n+1":n+1}
       | output main

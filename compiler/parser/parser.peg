@@ -81,7 +81,7 @@ TypeDecl
 // A LeanOp is a pipeline operator along with various forms of 
 // "lean-forward" shortcuts: a scope with other LeanOps, a shortcut assignment 
 // for "put", a shortcut "aggregate", or an expression that is either
-// implied yield (non-boolean) or implied where (boolean).
+// implied values op (non-boolean) or implied where (boolean).
 LeanOp
   = Operator
   / "(" __ scope:Scope __ ")" { return scope, nil }
@@ -317,7 +317,7 @@ Operator
   / ExplodeOp
   / MergeOp
   / OverOp
-  / YieldOp
+  / ValuesOp
   / LoadOp
   / OutputOp
   / DebugOp
@@ -847,15 +847,6 @@ LocalsAssignment
         def.Expr = opt.([]any)[3].(ast.Expr)
       }
       return def, nil
-    }
-
-YieldOp
-  = YIELD _ exprs:Exprs {
-      return &ast.Yield{
-          Kind: "Yield",
-          Exprs: sliceOf[ast.Expr](exprs),
-          Loc: loc(c),
-      }, nil
     }
 
 TypeArg
@@ -1902,7 +1893,7 @@ SelectExpr
         SetOperation
       / Select
       / FromSelect
-      / Values
+      / SQLValues
       / "(" __ s:SQLPipe __")"      { return s, nil }
     )
     orderby:OptOrderByClause
@@ -1995,12 +1986,36 @@ FromSelect
       return sel, nil
     }
 
-Values
+SQLValues
+  = VALUES _ tuples:SQLTuples {
+      return &ast.SQLValues{
+          Kind: "SQLValues",
+          Exprs: sliceOf[ast.Expr](tuples),
+          Loc: loc(c),
+      }, nil
+    }
+
+ValuesOp
   = VALUES _ exprs:Exprs {
       return &ast.Values{
           Kind: "Values",
           Exprs: sliceOf[ast.Expr](exprs),
           Loc: loc(c),
+      }, nil
+    }
+
+
+SQLTuples
+  = first:SQLTuple rest:(__ "," __ t:SQLTuple { return t, nil })* {
+      return prepend(first, rest), nil
+    }
+
+SQLTuple 
+  = "(" __ exprs:Exprs __ ")" {
+      return &ast.TupleExpr{
+        Kind: "TupleExpr",
+        Elems: sliceOf[ast.Expr](exprs),
+        Loc: loc(c),
       }, nil
     }
 
@@ -2409,4 +2424,3 @@ VALUES     = "VALUES"i          !IdentifierRest
 WHEN       = "WHEN"i            !IdentifierRest
 WHERE      = "WHERE"i           !IdentifierRest
 WITH       = "WITH"i            !IdentifierRest
-YIELD      = "YIELD"i           !IdentifierRest

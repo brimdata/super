@@ -1,5 +1,5 @@
 script: |
-  super -s -c 'from a.sup | inner join (from b.sup) on left.a=right.b | yield left | sort'
+  super -s -c 'from a.sup | inner join (from b.sup) on left.a=right.b | values left | sort'
 
 vector: true
 

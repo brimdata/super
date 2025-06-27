@@ -1,4 +1,4 @@
-spq: 'yield 1.'
+spq: 'values 1.'
 
 input: '{}'
 

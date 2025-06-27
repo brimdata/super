@@ -22,7 +22,7 @@ can appear in a field name.
 Extract the fields of a nested record:
 ```mdtest-spq
 # spq
-yield fields(this)
+values fields(this)
 # input
 {a:1,b:2,c:{d:3,e:4}}
 # expected output
@@ -32,7 +32,7 @@ yield fields(this)
 Easily convert to dotted names if you prefer:
 ```mdtest-spq
 # spq
-over fields(this) | yield join(this,".")
+over fields(this) | values join(this,".")
 # input
 {a:1,b:2,c:{d:3,e:4}}
 # expected output
@@ -45,7 +45,7 @@ over fields(this) | yield join(this,".")
 A record is expected:
 ```mdtest-spq
 # spq
-yield {f:fields(this)}
+values {f:fields(this)}
 # input
 1
 # expected output

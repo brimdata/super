@@ -88,7 +88,7 @@ issue describing your use case.
 
    ```mdtest-spq {data-layout="stacked"}
    # spq
-   yield grok("%{SYSLOGBASE} %{POSTFIX_QUEUEID:queue_id}: %{GREEDYDATA:syslog_message}",
+   values grok("%{SYSLOGBASE} %{POSTFIX_QUEUEID:queue_id}: %{GREEDYDATA:syslog_message}",
               this,
               "POSTFIX_QUEUEID [0-9A-F]{10,11}")
    # input
@@ -153,7 +153,7 @@ on the [community Slack](https://www.brimdata.io/join-slack/).
 Parsing a simple log line using the built-in named patterns:
 ```mdtest-spq {data-layout="stacked"}
 # spq
-yield grok("%{TIMESTAMP_ISO8601:timestamp} %{LOGLEVEL:level} %{GREEDYDATA:message}",
+values grok("%{TIMESTAMP_ISO8601:timestamp} %{LOGLEVEL:level} %{GREEDYDATA:message}",
            this)
 # input
 "2020-09-16T04:20:42.45+01:00 DEBUG This is a sample debug log message"
@@ -164,7 +164,7 @@ yield grok("%{TIMESTAMP_ISO8601:timestamp} %{LOGLEVEL:level} %{GREEDYDATA:messag
 Parsing the log line using the same patterns but only capturing the log level:
 ```mdtest-spq {data-layout="stacked"}
 # spq
-yield grok("%{TIMESTAMP_ISO8601} %{LOGLEVEL:level} %{GREEDYDATA}",
+values grok("%{TIMESTAMP_ISO8601} %{LOGLEVEL:level} %{GREEDYDATA}",
            this)
 # input
 "2020-09-16T04:20:42.45+01:00 DEBUG This is a sample debug log message"
@@ -179,7 +179,7 @@ such as changing the `\d` to `\\d` if we repurpose the
 
 ```mdtest-spq
 # spq
-yield grok("%{MY_NUMTZ:tz}",
+values grok("%{MY_NUMTZ:tz}",
            this,
            "MY_NUMTZ [+-]\\d{4}")
 # input
@@ -194,7 +194,7 @@ readability.
 
 ```mdtest-spq {data-layout="stacked"}
 # spq
-yield grok("\\(%{PH_PREFIX:prefix}\\)-%{PH_LINE_NUM:line_number}",
+values grok("\\(%{PH_PREFIX:prefix}\\)-%{PH_LINE_NUM:line_number}",
            this,
           "PH_PREFIX \\d{3}\n" +
           "PH_LINE_NUM \\d{4}")

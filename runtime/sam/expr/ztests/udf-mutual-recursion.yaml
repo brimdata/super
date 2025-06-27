@@ -7,7 +7,7 @@ spq: |
     n == 0 ? false: is_even(n-1)
   )
 
-  yield is_even(this), is_odd(this)
+  values is_even(this), is_odd(this)
 
 input: |
   10

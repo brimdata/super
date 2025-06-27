@@ -54,7 +54,7 @@ func (a *analyzer) semSelect(sel *ast.Select, seq dag.Seq) (dag.Seq, schema) {
 	// Now that all the pieces have been converted to DAG fragments,
 	// we stitch together the fragments into pipeline operators depending
 	// on whether its an aggregation or a selection of scalar expressions.
-	seq = yieldExpr(wrapThis("in"), seq)
+	seq = valuesExpr(wrapThis("in"), seq)
 	if len(funcs) != 0 || len(keyExprs) != 0 {
 		seq = a.genAggregate(sel.Loc, proj, where, keyExprs, funcs, having, seq)
 		return seq, sch.out
@@ -62,7 +62,7 @@ func (a *analyzer) semSelect(sel *ast.Select, seq dag.Seq) (dag.Seq, schema) {
 	if having != nil {
 		a.error(sel.Having, errors.New("HAVING clause requires aggregations and/or a GROUP BY clause"))
 	}
-	seq = a.genYield(proj, where, sch, seq)
+	seq = a.genValues(proj, where, sch, seq)
 	if sel.Distinct {
 		seq = a.genDistinct(pathOf("out"), seq)
 	}
@@ -76,7 +76,7 @@ func (a *analyzer) semHaving(sch schema, e ast.Expr, funcs *aggfuncs) (dag.Expr,
 	return funcs.subst(a.semExprSchema(sch, e))
 }
 
-func (a *analyzer) genYield(proj projection, where dag.Expr, sch *selectSchema, seq dag.Seq) dag.Seq {
+func (a *analyzer) genValues(proj projection, where dag.Expr, sch *selectSchema, seq dag.Seq) dag.Seq {
 	if len(proj) == 0 {
 		return nil
 	}
@@ -134,10 +134,7 @@ func (a *analyzer) genColumns(proj projection, sch *selectSchema, seq dag.Seq) d
 				},
 			},
 		}
-		seq = append(seq, &dag.Yield{
-			Kind:  "Yield",
-			Exprs: []dag.Expr{e},
-		})
+		seq = append(seq, dag.NewValues(e))
 	}
 	return seq
 }
@@ -163,7 +160,7 @@ func (a *analyzer) genAggregate(loc ast.Loc, proj projection, where dag.Expr, ke
 	if len(proj) != len(proj.aggCols()) {
 		// Yield expressions for potentially left-to-right-dependent
 		// column expressions of the grouping expression components.
-		seq = a.genYield(proj, nil, nil, seq)
+		seq = a.genValues(proj, nil, nil, seq)
 	}
 	if where != nil {
 		seq = append(seq, dag.NewFilter(where))
@@ -190,12 +187,12 @@ func (a *analyzer) genAggregate(loc ast.Loc, proj projection, where dag.Expr, ke
 		Aggs: aggCols,
 		Keys: keyCols,
 	})
-	seq = yieldExpr(wrapThis("in"), seq)
+	seq = valuesExpr(wrapThis("in"), seq)
 	seq = a.genAggregateOutput(proj, keyExprs, seq)
 	if having != nil {
 		seq = append(seq, dag.NewFilter(having))
 	}
-	return yieldExpr(pathOf("out"), seq)
+	return valuesExpr(pathOf("out"), seq)
 }
 
 func (a *analyzer) genAggregateOutput(proj projection, keyExprs []exprloc, seq dag.Seq) dag.Seq {
@@ -262,10 +259,7 @@ func (a *analyzer) genAggregateOutput(proj projection, keyExprs []exprloc, seq d
 				},
 			},
 		}
-		seq = append(seq, &dag.Yield{
-			Kind:  "Yield",
-			Exprs: []dag.Expr{e},
-		})
+		seq = append(seq, dag.NewValues(e))
 	}
 	return seq
 }
@@ -328,17 +322,14 @@ func (a *analyzer) semSelectValue(sel *ast.Select, sch schema, seq dag.Seq) (dag
 	if sel.Where != nil {
 		seq = append(seq, dag.NewFilter(a.semExprSchema(sch, sel.Where)))
 	}
-	seq = append(seq, &dag.Yield{
-		Kind:  "Yield",
-		Exprs: exprs,
-	})
+	seq = append(seq, dag.NewValues(exprs...))
 	if sel.Distinct {
 		seq = a.genDistinct(pathOf("this"), seq)
 	}
 	return seq, &dynamicSchema{}
 }
 
-func (a *analyzer) semValues(values *ast.Values, seq dag.Seq) (dag.Seq, schema) {
+func (a *analyzer) semValues(values *ast.SQLValues, seq dag.Seq) (dag.Seq, schema) {
 	var schema *super.TypeRecord
 	exprs := make([]dag.Expr, 0, len(values.Exprs))
 	sctx := super.NewContext()
@@ -349,17 +340,9 @@ func (a *analyzer) semValues(values *ast.Values, seq dag.Seq) (dag.Seq, schema) 
 			a.error(astExpr, errors.New("expressions in values clause must be constant"))
 			return seq, badSchema()
 		}
-		recType, ok := super.TypeUnder(val.Type()).(*super.TypeRecord)
-		if !ok {
-			// Turn non record values into single column tuple
-			f := &dag.Field{Kind: "Field", Name: "c0", Value: e}
-			e = &dag.RecordExpr{Kind: "RecordExpr", Elems: []dag.RecordElem{f}}
-			val, err := kernel.EvalAtCompileTime(sctx, e)
-			if err != nil {
-				panic(err)
-			}
-			recType = super.TypeUnder(val.Type()).(*super.TypeRecord)
-		}
+		// Parser requires tuples in SQLValues expressions so these should
+		// always record values.
+		recType := super.TypeUnder(val.Type()).(*super.TypeRecord)
 		if schema == nil {
 			schema = recType
 		} else if schema != recType {
@@ -375,10 +358,7 @@ func (a *analyzer) semValues(values *ast.Values, seq dag.Seq) (dag.Seq, schema) 
 	for _, f := range schema.Fields {
 		columns = append(columns, f.Name)
 	}
-	seq = append(seq, &dag.Yield{
-		Kind:  "Yield",
-		Exprs: exprs,
-	})
+	seq = append(seq, dag.NewValues(exprs...))
 	return seq, &staticSchema{columns: columns}
 }
 
@@ -414,7 +394,7 @@ func (a *analyzer) semSQLPipe(op *ast.SQLPipe, seq dag.Seq, alias *ast.TableAlia
 func derefSchemaAs(sch schema, table string, seq dag.Seq) (dag.Seq, schema) {
 	e, sch := sch.deref(table)
 	if e != nil {
-		seq = yieldExpr(e, seq)
+		seq = valuesExpr(e, seq)
 	}
 	return seq, sch
 }
@@ -453,7 +433,7 @@ func mapColumns(in []string, alias *ast.TableAlias, seq dag.Seq) (dag.Seq, schem
 				Value: &dag.This{Kind: "This", Path: []string{in[k]}},
 			})
 		}
-		seq = yieldExpr(&dag.RecordExpr{
+		seq = valuesExpr(&dag.RecordExpr{
 			Kind:  "RecordExpr",
 			Elems: elems,
 		}, seq)
@@ -471,7 +451,7 @@ func idsToStrings(ids []*ast.ID) []string {
 
 func isSQLOp(op ast.Op) bool {
 	switch op.(type) {
-	case *ast.Select, *ast.SQLLimitOffset, *ast.OrderBy, *ast.SQLPipe, *ast.SQLJoin, *ast.Values:
+	case *ast.Select, *ast.SQLLimitOffset, *ast.OrderBy, *ast.SQLPipe, *ast.SQLJoin, *ast.SQLValues:
 		return true
 	}
 	return false
@@ -483,7 +463,7 @@ func (a *analyzer) semSQLOp(op ast.Op, seq dag.Seq) (dag.Seq, schema) {
 		return a.semSQLPipe(op, seq, nil) //XXX should alias hang off SQLPipe?
 	case *ast.Select:
 		return a.semSelect(op, seq)
-	case *ast.Values:
+	case *ast.SQLValues:
 		return a.semValues(op, seq)
 	case *ast.SQLJoin:
 		return a.semSQLJoin(op, seq)
@@ -836,11 +816,8 @@ func inferColumnName(e dag.Expr, ae ast.Expr) string {
 	}
 }
 
-func yieldExpr(e dag.Expr, seq dag.Seq) dag.Seq {
-	return append(seq, &dag.Yield{
-		Kind:  "Yield",
-		Exprs: []dag.Expr{e},
-	})
+func valuesExpr(e dag.Expr, seq dag.Seq) dag.Seq {
+	return append(seq, dag.NewValues(e))
 }
 
 func wrapThis(field string) *dag.RecordExpr {

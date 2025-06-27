@@ -2,7 +2,7 @@ spq: |
   func overflow(n): (
     overflow(n+1)
   )
-  yield overflow(this)
+  values overflow(this)
 
 input: |
   3

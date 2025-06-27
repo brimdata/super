@@ -1,4 +1,4 @@
-spq: 'yield case x when 1 then "foo" when 2 then "bar" else {y:12} end'
+spq: 'values case x when 1 then "foo" when 2 then "bar" else {y:12} end'
 
 input: |
   {x:1}
@@ -7,6 +7,6 @@ input: |
   1
 
 error: |
-  case matching-style expressions not yet supported at line 1, column 7:
-  yield case x when 1 then "foo" when 2 then "bar" else {y:12} end
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  case matching-style expressions not yet supported at line 1, column 8:
+  values case x when 1 then "foo" when 2 then "bar" else {y:12} end
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

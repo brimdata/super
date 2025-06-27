@@ -1,5 +1,4 @@
-spq: |
-  yield parse_sup(this)
+spq: parse_sup(this)
 
 vector: true
 

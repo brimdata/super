@@ -8,7 +8,7 @@ script: |
   echo ===
   super db compile -C -P 2 'from test | top 3 b desc' | sed -e 's/pool .*/.../'
   echo ===
-  SUPER_VAM=1 super compile -C -P 2 'from test.csup | top 3 a, b desc nulls last | yield c'
+  SUPER_VAM=1 super compile -C -P 2 'from test.csup | top 3 a, b desc nulls last | values c'
 
 outputs:
   - name: stdout
@@ -63,5 +63,5 @@ outputs:
         )
       | merge a asc nulls last, b desc nulls last
       | head 3
-      | yield c
+      | values c
       | output main

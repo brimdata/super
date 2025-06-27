@@ -1,4 +1,4 @@
-spq: yield foo, foo.bar
+spq: values foo, foo.bar
 
 vector: true
 

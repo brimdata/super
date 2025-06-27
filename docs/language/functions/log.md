@@ -18,7 +18,7 @@ must be numeric.  The return value is a float64 or an error.
 The logarithm of various numbers:
 ```mdtest-spq {data-layout="stacked"}
 # spq
-yield log(this)
+values log(this)
 # input
 4
 4.0
@@ -34,7 +34,7 @@ error({message:"log: illegal argument",on:-1})
 The largest power of 10 smaller than the input:
 ```mdtest-spq
 # spq
-yield int64(log(this)/log(10))
+values int64(log(this)/log(10))
 # input
 9
 10

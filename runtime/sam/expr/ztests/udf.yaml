@@ -2,7 +2,7 @@ spq: |
   func fib(n): (
     n <= 1 ? n : fib(n-1) + fib(n-2)
   )
-  yield fib(this)
+  values fib(this)
 
 input: |
   3

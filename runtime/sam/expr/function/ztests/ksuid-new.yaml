@@ -1,4 +1,4 @@
-spq: yield len(ksuid())
+spq: values len(ksuid())
 
 input: |
   null

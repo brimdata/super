@@ -1,7 +1,7 @@
 spq: |
   over this into (
     func addbar(a): ( a + " bar" )
-    yield addbar(this)
+    values addbar(this)
   )
 
 input: '["foo"]'

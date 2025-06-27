@@ -1,4 +1,4 @@
-spq: yield abs(this),ceil(this),floor(this),log(this),pow(this,this),round(this),sqrt(this)
+spq: values abs(this),ceil(this),floor(this),log(this),pow(this,this),round(this),sqrt(this)
 
 vector: true
 

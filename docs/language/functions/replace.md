@@ -17,7 +17,7 @@ that occur in string `s` with the string `new`.
 
 ```mdtest-spq
 # spq
-yield replace(this, "oink", "moo")
+values replace(this, "oink", "moo")
 # input
 "oink oink oink"
 # expected output

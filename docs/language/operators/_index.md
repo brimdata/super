@@ -35,4 +35,4 @@ operators listed below, Zed also allows for the creation of
 * [top](top.md) - get top N sorted values of input sequence
 * [uniq](uniq.md) - deduplicate adjacent values
 * [where](where.md) - select values based on a Boolean expression
-* [yield](yield.md) - emit values from expressions
+* [values](values.md) - emit values from expressions

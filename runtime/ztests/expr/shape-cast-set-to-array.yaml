@@ -1,5 +1,5 @@
 spq: |
-  yield cast(<{a:[ip],b:[{b:ip}]}>)
+  values cast(<{a:[ip],b:[{b:ip}]}>)
 
 vector: true
 

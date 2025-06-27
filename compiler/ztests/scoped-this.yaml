@@ -1,7 +1,7 @@
 spq: |
   over ids with name into (
     ids:=collect(string(this))
-    | yield {name,ids:join(ids,',')}
+    | values {name,ids:join(ids,',')}
   )
 
 input: |

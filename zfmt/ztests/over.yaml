@@ -7,9 +7,9 @@ inputs:
   - name: test.zed
     data: |
       -- Expressions
-      yield (over a | ?b)
-      | yield (over a with b=c | ?d)
-      | yield (over a, b with c=d, e=f | ?g)
+      values (over a | ?b)
+      | values (over a with b=c | ?d)
+      | values (over a, b with c=d, e=f | ?g)
       -- Operators
       | over a
       | over a into ( ?b )
@@ -19,15 +19,15 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      yield (
+      values (
         over a
         | search b
       )
-      | yield (
+      | values (
         over a with b=c
         | search d
       )
-      | yield (
+      | values (
         over a, b with c=d, e=f
         | search g
       )
@@ -43,15 +43,15 @@ outputs:
       )
       ===
       null
-      | yield (
+      | values (
         over a
         | where search("b")
       )
-      | yield (
+      | values (
         over ab=c
         | where search("d")
       )
-      | yield (
+      | values (
         over a, bc=d, e=f
         | where search("g")
       )

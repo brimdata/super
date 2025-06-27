@@ -8,15 +8,15 @@ inputs:
     data: |
       func dup(n): (n+1)
       func dup(n): (n+2)
-      yield dup(this)
+      values dup(this)
   - name: call-non-func.zed
     data: |
       const notAFunc = "foo"
-      yield notAFunc(this)
+      values notAFunc(this)
   - name: wrong-args.zed
     data: |
       func f(a,b): (a+b)
-      yield f(this)
+      values f(this)
 
 outputs:
   - name: stderr
@@ -24,9 +24,9 @@ outputs:
       symbol "dup" redefined in duplicate.zed at line 2, column 6:
       func dup(n): (n+2)
            ~~~
-      not a function in call-non-func.zed at line 2, column 7:
-      yield notAFunc(this)
-            ~~~~~~~~
-      call expects 2 argument(s) in wrong-args.zed at line 2, column 7:
-      yield f(this)
-            ~~~~~~~
+      not a function in call-non-func.zed at line 2, column 8:
+      values notAFunc(this)
+             ~~~~~~~~
+      call expects 2 argument(s) in wrong-args.zed at line 2, column 8:
+      values f(this)
+             ~~~~~~~

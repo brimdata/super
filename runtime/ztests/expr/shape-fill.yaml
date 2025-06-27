@@ -1,4 +1,4 @@
-spq: yield fill(<{a:{b:{c:string}}}>)
+spq: values fill(<{a:{b:{c:string}}}>)
 
 vector: true
 

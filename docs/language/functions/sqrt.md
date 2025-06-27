@@ -17,7 +17,7 @@ result in `NaN`.
 The logarithm of a various numbers:
 ```mdtest-spq
 # spq
-yield sqrt(this)
+values sqrt(this)
 # input
 4
 2.

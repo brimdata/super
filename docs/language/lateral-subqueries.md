@@ -25,7 +25,7 @@ For example,
 ```mdtest-spq
 # spq
 over a with name=s into (
-  yield {name,elem:this}
+  values {name,elem:this}
 )
 # input
 {s:"foo",a:[1,2]}
@@ -38,7 +38,7 @@ over a with name=s into (
 
 Here the [lateral scope](#lateral-scope), described below, creates a subquery
 ```
-yield {name,elem:this}
+values {name,elem:this}
 ```
 for each subsequence of values derived from each outer input value.
 In the example above, there are two input values:
@@ -64,7 +64,7 @@ simply referring to its name without assignment, e.g.,
 ```mdtest-spq
 # spq
 over a with s into (
-  yield {s,elem:this}
+  values {s,elem:this}
 )
 # input
 {s:"foo",a:[1,2]}
@@ -111,7 +111,7 @@ each subquery result as each inner sequence traversal completes.
 
 This structure is powerful because _any_ pipeline operator sequence (excluding
 [`from` operators](operators/from.md)) can appear in the body of
-the lateral scope.  In contrast to the [`yield`](operators/yield.md) example above, a [`sort`](operators/sort.md) could be
+the lateral scope.  In contrast to the [`values`](operators/values.md) example above, a [`sort`](operators/sort.md) could be
 applied to each subsequence in the subquery, where `sort`
 reads all values of the subsequence, sorts them, emits them, then
 repeats the process for the next subsequence.  For example,
@@ -152,7 +152,7 @@ lateral expression is evaluated, the lateral operators are run to completion,
 e.g.,
 ```mdtest-spq
 # spq
-yield (
+values (
   over this | sum(this)
 )
 # input
@@ -187,7 +187,7 @@ at the conclusion of the lateral pipeline, they are automatically wrapped in
 an array, e.g.,
 ```mdtest-spq
 # spq
-yield {s:(over x | yield this+1)}
+values {s:(over x | values this+1)}
 # input
 {x:1}
 {x:[2]}
@@ -203,7 +203,7 @@ always receives consistently packaged values by explicitly wrapping the result
 of the lateral scope, e.g.,
 ```mdtest-spq
 # spq
-yield {s:(over x | yield this+1 | collect(this))}
+values {s:(over x | values this+1 | collect(this))}
 # input
 {x:1}
 {x:[2]}

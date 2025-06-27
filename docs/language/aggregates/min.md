@@ -34,7 +34,7 @@ min(this)
 Continuous minimum of simple numeric sequence:
 ```mdtest-spq
 # spq
-yield min(this)
+values min(this)
 # input
 1
 2

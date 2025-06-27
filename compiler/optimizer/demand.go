@@ -122,7 +122,7 @@ func demandForSimpleOp(op dag.Op, downstream demand.Demand) demand.Demand {
 		return demandForSortExprs(op.Exprs, downstream)
 	case *dag.Uniq:
 		return downstream
-	case *dag.Yield:
+	case *dag.Values:
 		d := demand.None()
 		for _, e := range op.Exprs {
 			d = demand.Union(d, demandForExpr(e))

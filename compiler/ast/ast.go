@@ -543,15 +543,15 @@ type (
 		Expr Expr   `json:"expr"`
 		Loc  `json:"loc"`
 	}
+	Values struct {
+		Kind  string `json:"kind" unpack:""`
+		Exprs []Expr `json:"exprs"`
+		Loc   `json:"loc"`
+	}
 	Where struct {
 		Kind string `json:"kind" unpack:""`
 		Expr Expr   `json:"expr"`
 		Loc  `json:"loc"`
-	}
-	Yield struct {
-		Kind  string `json:"kind" unpack:""`
-		Exprs []Expr `json:"exprs"`
-		Loc   `json:"loc"`
 	}
 	// An OpAssignment is a list of assignments whose parent operator
 	// is unknown: It could be a Aggregate or Put operator. This will be
@@ -562,8 +562,8 @@ type (
 		Loc         `json:"loc"`
 	}
 	// An OpExpr operator is an expression that appears as an operator
-	// and requires semantic analysis to determine if it is a filter, a yield,
-	// or an aggregation.
+	// and requires semantic analysis to determine if it is a filter, a values
+	// op, or an aggregation.
 	OpExpr struct {
 		Kind string `json:"kind" unpack:""`
 		Expr Expr   `json:"expr"`
@@ -750,8 +750,8 @@ func (*Explode) OpAST()      {}
 func (*Merge) OpAST()        {}
 func (*Over) OpAST()         {}
 func (*Search) OpAST()       {}
+func (*Values) OpAST()       {}
 func (*Where) OpAST()        {}
-func (*Yield) OpAST()        {}
 func (*Shapes) OpAST()       {}
 func (*Load) OpAST()         {}
 func (*Assert) OpAST()       {}

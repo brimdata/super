@@ -30,7 +30,7 @@ any(this)
 Continuous any over a simple sequence:
 ```mdtest-spq
 # spq
-yield any(this)
+values any(this)
 # input
 1 2 3 4
 # expected output

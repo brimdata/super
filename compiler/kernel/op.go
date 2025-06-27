@@ -39,7 +39,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/op/top"
 	"github.com/brimdata/super/runtime/sam/op/traverse"
 	"github.com/brimdata/super/runtime/sam/op/uniq"
-	"github.com/brimdata/super/runtime/sam/op/yield"
+	"github.com/brimdata/super/runtime/sam/op/values"
 	"github.com/brimdata/super/runtime/vam"
 	vamop "github.com/brimdata/super/runtime/vam/op"
 	"github.com/brimdata/super/sup"
@@ -261,13 +261,13 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 		return explode.New(b.sctx(), parent, args, typ, v.As, b.resetters)
 	case *dag.Over:
 		return b.compileOver(parent, v)
-	case *dag.Yield:
+	case *dag.Values:
 		b.resetResetters()
 		exprs, err := b.compileExprs(v.Exprs)
 		if err != nil {
 			return nil, err
 		}
-		t := yield.New(parent, exprs, b.resetters)
+		t := values.New(parent, exprs, b.resetters)
 		return t, nil
 	case *dag.PoolScan:
 		if parent != nil {
