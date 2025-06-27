@@ -1,7 +1,7 @@
 spq: |
   fork ( pass ) ( pass )
   | join on a
-  | yield left
+  | values left
 
 vector: true
 

@@ -2,7 +2,7 @@ spq: |
   over a into (
     fork
       ( head 1 )
-      ( yield this+10 )
+      ( values this+10 )
   )
   | sort this
 

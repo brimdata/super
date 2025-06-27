@@ -1,7 +1,7 @@
 spq: |
   type string_named=string
   type union=(int64,string,string_named)
-  yield cast(<{a:union}>)
+  values cast(<{a:union}>)
 
 vector: true
 

@@ -1,4 +1,4 @@
-spq: yield {sql:position(sub IN s),call:position(s, sub)}
+spq: '{sql:position(sub IN s),call:position(s, sub)}'
 
 vector: true
 

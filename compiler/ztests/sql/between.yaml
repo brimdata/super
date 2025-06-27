@@ -4,9 +4,9 @@ script: |
   echo ===
   super -s -c 'select val not between lower and upper as x from in.sup'
   echo ===
-  super -s -c 'yield  "Cat" BETWEEN upper(lower) And upper(upper)' in.sup
+  super -s -c 'values  "Cat" BETWEEN upper(lower) And upper(upper)' in.sup
   echo ===
-  super -s -c 'yield  "Cat" NOT BETWEEN upper(lower) And upper(upper)' in.sup
+  super -s -c 'values  "Cat" NOT BETWEEN upper(lower) And upper(upper)' in.sup
 
 inputs:
   - name: in.sup

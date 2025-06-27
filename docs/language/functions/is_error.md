@@ -18,7 +18,7 @@ The _is_error_ function returns true if its argument's type is error.
 A simple value is not an error:
 ```mdtest-spq
 # spq
-yield is_error(this)
+values is_error(this)
 # input
 1
 # expected output
@@ -28,7 +28,7 @@ false
 An error value is an error:
 ```mdtest-spq
 # spq
-yield is_error(this)
+values is_error(this)
 # input
 error(1)
 # expected output
@@ -38,7 +38,7 @@ true
 Convert an error string into a record with an indicator and a message:
 ```mdtest-spq
 # spq
-yield {err:is_error(this),message:under(this)}
+values {err:is_error(this),message:under(this)}
 # input
 "not an error"
 error("an error")

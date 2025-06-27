@@ -69,8 +69,8 @@ _Switch on `this` with a constant case_
 ```mdtest-spq
 # spq
 switch this
-  case 1 ( yield "1!" )
-  default ( yield string(this) )
+  case 1 ( values "1!" )
+  default ( values string(this) )
 | sort
 # input
 1

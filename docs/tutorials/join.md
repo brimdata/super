@@ -48,7 +48,7 @@ from fruit.json
 | inner join (
   from people.json
 ) as {f,p} on f.flavor=p.likes
-| yield {...f, eater:p.name}
+| values {...f, eater:p.name}
 ```
 
 Executing the query:
@@ -87,7 +87,7 @@ from fruit.json
   from people.json
 ) as {f,p} on f.flavor=p.likes
 | f.eater := p.name, f.age := p.age
-| yield f
+| values f
 ```
 
 Executing the query:
@@ -124,7 +124,7 @@ from fruit.json
   from people.json
 ) as {f,p} on f.flavor=p.likes
 | p.fruit:=f.name
-| yield p
+| values p
 ```
 Executing the query:
 ```mdtest-command
@@ -158,7 +158,7 @@ from fruit.json
 | anti join (
   from people.json
 ) as {fruit,people} on fruit.flavor=people.likes
-| yield fruit
+| values fruit
 ```
 Executing the query:
 ```mdtest-command
@@ -187,7 +187,7 @@ from fruit
 | inner join (
   from people
 ) as {fruit,people} on fruit.flavor=people.likes
-| yield {...fruit, eater:people.name}
+| values {...fruit, eater:people.name}
 ```
 
 Populating the pools, then executing the query:
@@ -228,7 +228,7 @@ fork
   ( from fruit.json )
   ( from people.json )
 | inner join as {fruit,people} on fruit.flavor=people.likes
-| yield {...fruit, eater:people.name}
+| values {...fruit, eater:people.name}
 ```
 
 Executing the query:
@@ -263,7 +263,7 @@ switch
   case has(color) ( pass )
   case has(age) ( pass )
 | inner join as {fruit,people} on fruit.flavor=people.likes
-| yield {...fruit, eater:people.name}
+| values {...fruit, eater:people.name}
 ```
 
 Executing the query:
@@ -310,7 +310,7 @@ from fruit.json | put fruitkey:={name,color}
 | inner join (
   from inventory.json | put invkey:={name,color}
 ) on left.fruitkey=right.invkey
-| yield {...left, quantity:right.quantity}
+| values {...left, quantity:right.quantity}
 ```
 
 Executing the query:
@@ -348,11 +348,11 @@ from fruit.json
 | inner join (
   from people.json
 ) as {fruit,people} on fruit.flavor=people.likes
-| yield {...fruit, eater:people.name}
+| values {...fruit, eater:people.name}
 | inner join (
   from prices.json
 ) as {fruit,prices} on fruit.name=prices.name
-| yield {...fruit, price:prices.price}
+| values {...fruit, price:prices.price}
 ```
 
 Executing the query:
@@ -391,7 +391,7 @@ from fruit.json
 | inner join (
   from people.json
 ) as {fruit,people} on fruit.flavor=people.likes
-| yield {...fruit, eaterinfo:people}
+| values {...fruit, eaterinfo:people}
 ```
 
 Executing the query:
@@ -423,7 +423,7 @@ from fruit.json
   from people.json
 ) as {fruit,people} on fruit.flavor=people.likes
 | rename fruit.fruit:=fruit.name
-| yield {...fruit,...people}
+| values {...fruit,...people}
 ```
 
 Executing the query:

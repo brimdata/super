@@ -33,10 +33,10 @@ If an input value to cut is not a record, then the cut still operates as defined
 resulting in `error("missing")` for expressions that reference fields of `this`.
 
 Note that when the field references are all top level,
-`cut` is a special case of a yield with a
+`cut` is a special case of values with a
 [record literal](../expressions.md#record-expressions) having the form:
 ```
-yield {<field>:<expr> [, <field>:<expr>...]}
+values {<field>:<expr> [, <field>:<expr>...]}
 ```
 
 ### Examples

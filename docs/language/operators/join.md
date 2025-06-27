@@ -58,7 +58,7 @@ satisfies `<predicate>`
 _Join some numbers_
 ```mdtest-spq
 # spq
-join (from (yield 1,3)) on left=right | sort
+join (from (values 1,3)) on left=right | sort
 # input
 1
 2
@@ -71,7 +71,7 @@ join (from (yield 1,3)) on left=right | sort
 _Join some records with scalar keys_
 ```mdtest-spq
 # spq
-join (from (yield "foo","baz")) as {recs,key} on key=recs.key | yield recs.value | sort
+join (from (values "foo","baz")) as {recs,key} on key=recs.key | values recs.value | sort
 # input
 {key:"foo",value:1}
 {key:"bar",value:2}
@@ -84,7 +84,7 @@ join (from (yield "foo","baz")) as {recs,key} on key=recs.key | yield recs.value
 _Join some records requiring a cross-product calculation_
 ```mdtest-spq-notyet
 # spq
-join (from (yield {id:"apple"},{id:"chair"},{id:"car"})) as {b,a} on grep("a", a.id) and grep("b", b.key) | sort
+join (from (values {id:"apple"},{id:"chair"},{id:"car"})) as {b,a} on grep("a", a.id) and grep("b", b.key) | sort
 # input
 {key:"foo",value:1}
 {key:"bar",value:2}
@@ -99,7 +99,7 @@ join (from (yield {id:"apple"},{id:"chair"},{id:"car"})) as {b,a} on grep("a", a
 _Anti-join some numbers_
 ```mdtest-spq
 # spq
-anti join (from (yield 1,3)) on left=right | sort
+anti join (from (values 1,3)) on left=right | sort
 # input
 1
 2

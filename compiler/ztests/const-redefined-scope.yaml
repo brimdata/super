@@ -2,7 +2,7 @@ spq: |
   const a=1
   (
     const a=2
-    yield a
+    values a
   )
 
 input: 'null'

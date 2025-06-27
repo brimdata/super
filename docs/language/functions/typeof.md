@@ -20,7 +20,7 @@ The types of various values:
 
 ```mdtest-spq
 # spq
-yield typeof(this)
+values typeof(this)
 # input
 1
 "foo"
@@ -42,7 +42,7 @@ error("missing")
 The type of a type is type `type`:
 ```mdtest-spq
 # spq
-yield typeof(typeof(this))
+values typeof(typeof(this))
 # input
 null
 # expected output

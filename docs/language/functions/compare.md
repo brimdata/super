@@ -26,7 +26,7 @@ is treated as the minimum or maximum value.
 
 ```mdtest-spq
 # spq
-yield compare(a, b)
+compare(a, b)
 # input
 {a:2,b:"1"}
 # expected output

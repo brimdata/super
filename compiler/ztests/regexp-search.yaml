@@ -1,4 +1,4 @@
-spq: yield grep(*foo*)
+spq: values grep(*foo*)
 
 vector: true
 

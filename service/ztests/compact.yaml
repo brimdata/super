@@ -3,7 +3,7 @@ script: |
   super db create -use -q test
   seq 10 | super -c '{ts:this-1,s:f"val{this-1}"}' - | super db load -q -
   seq 10 | super -c '{ts:this-1,s:f"val{this-1}"}' - | super db load -q -
-  ids=$(super db -f text -c 'from test@main:objects | yield f"0x{hex(id)}"')
+  ids=$(super db -f text -c 'from test@main:objects | values f"0x{hex(id)}"')
   super db compact -q $ids
   super db -f lake -c 'from test@main:objects'
 

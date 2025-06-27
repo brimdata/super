@@ -17,14 +17,14 @@ when generating errors that are marked with their time of occurrence:
 ```
 switch (
   ...
-  default => yield error({ts:now(), ...})
+  default => values error({ts:now(), ...})
 )
 ```
 
 ### Examples
 
 ```
-super -s -c 'yield now()'
+super -s -c 'values now()'
 ```
 =>
 ```

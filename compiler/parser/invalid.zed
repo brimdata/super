@@ -2,4 +2,4 @@ count() by _path; count() by addr
 sort -r -r,-r,-r
 sort -r a a, b, c
 every 1h count() by _path with -limit 10
-yield cast(1, <(<int64>,string)>)
+values cast(1, <(<int64>,string)>)

@@ -1,4 +1,4 @@
-spq: yield typeof(this)
+spq: values typeof(this)
 
 input: |
   %heads(enum(heads,tails))

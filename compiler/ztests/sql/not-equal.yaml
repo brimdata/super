@@ -1,4 +1,4 @@
-spq: yield 1 <> 2, 'foo' <> 'foo'
+spq: values 1 <> 2, 'foo' <> 'foo'
 
 input: |
   null

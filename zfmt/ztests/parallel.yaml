@@ -14,7 +14,7 @@ outputs:
         (
           aggregate
               sum:=sum(x)
-          | yield sum
+          | values sum
         )
         (
           put a:=b*c

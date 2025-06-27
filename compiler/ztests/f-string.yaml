@@ -1,5 +1,5 @@
 spq: |
-  yield
+  values
     f"hello {this}",
     f'hello {hex(bytes(this))}',
     f"hello \{this}",

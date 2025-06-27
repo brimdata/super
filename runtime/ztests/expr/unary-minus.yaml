@@ -1,4 +1,4 @@
-spq: yield -this
+spq: values -this
 
 vector: true
 

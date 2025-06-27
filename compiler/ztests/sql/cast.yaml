@@ -1,21 +1,21 @@
 script: |
-  super compile -C -dag 'yield CAST(x AS INT64)'
+  super compile -C -dag 'values CAST(x AS INT64)'
   echo // ===
-  super compile -C -dag 'yield CAST(ts AS DATE)'
-  ! super compile -C -dag 'yield CAST(foo AS DOESNOTEXIST)'
+  super compile -C -dag 'values CAST(ts AS DATE)'
+  ! super compile -C -dag 'values CAST(foo AS DOESNOTEXIST)'
 
 outputs:
   - name: stdout
     data: |
       null
-      | yield cast(x, <int64>)
+      | values cast(x, <int64>)
       | output main
       // ===
       null
-      | yield bucket(cast(ts, <time>), 1d)
+      | values bucket(cast(ts, <time>), 1d)
       | output main
   - name: stderr
     data: |
-      type "doesnotexist" does not exist at line 1, column 19:
-      yield CAST(foo AS DOESNOTEXIST)
-                        ~~~~~~~~~~~~
+      type "doesnotexist" does not exist at line 1, column 20:
+      values CAST(foo AS DOESNOTEXIST)
+                         ~~~~~~~~~~~~

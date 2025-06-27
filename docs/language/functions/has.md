@@ -32,7 +32,7 @@ switch (
 
 ```mdtest-spq
 # spq
-yield {yes:has(foo),no:has(bar)}
+values {yes:has(foo),no:has(bar)}
 # input
 {foo:10}
 # expected output
@@ -41,7 +41,7 @@ yield {yes:has(foo),no:has(bar)}
 
 ```mdtest-spq
 # spq
-yield {yes: has(foo[1]),no:has(foo[4])}
+values {yes: has(foo[1]),no:has(foo[4])}
 # input
 {foo:[1,2,3]}
 # expected output
@@ -50,7 +50,7 @@ yield {yes: has(foo[1]),no:has(foo[4])}
 
 ```mdtest-spq
 # spq
-yield {yes:has(foo.bar),no:has(foo.baz)}
+values {yes:has(foo.bar),no:has(foo.baz)}
 # input
 {foo:{bar:"value"}}
 # expected output
@@ -59,7 +59,7 @@ yield {yes:has(foo.bar),no:has(foo.baz)}
 
 ```mdtest-spq
 # spq
-yield {yes:has(foo+1),no:has(bar+1)}
+values {yes:has(foo+1),no:has(bar+1)}
 # input
 {foo:10}
 # expected output
@@ -68,7 +68,7 @@ yield {yes:has(foo+1),no:has(bar+1)}
 
 ```mdtest-spq
 # spq
-yield has(bar)
+values has(bar)
 # input
 1
 # expected output
@@ -77,7 +77,7 @@ false
 
 ```mdtest-spq
 # spq
-yield has(x)
+values has(x)
 # input
 {x:error("missing")}
 # expected output

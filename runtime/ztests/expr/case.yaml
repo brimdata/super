@@ -1,4 +1,4 @@
-spq: 'yield case when x==1 then "foo" when x==2 then "bar" else {y:12} end'
+spq: 'values case when x==1 then "foo" when x==2 then "bar" else {y:12} end'
 
 vector: true
 

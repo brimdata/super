@@ -1,4 +1,4 @@
-spq: yield order(<{f:null}>)
+spq: values order(<{f:null}>)
 
 vector: true
 

@@ -30,7 +30,7 @@ collect_map(|{stock:price}|)
 Continuous collection over a simple sequence:
 ```mdtest-spq
 # spq
-yield collect_map(this)
+values collect_map(this)
 # input
 |{"APPL":145.03}|
 |{"GOOG":87.07}|

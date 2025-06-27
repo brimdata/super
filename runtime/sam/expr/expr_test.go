@@ -15,7 +15,7 @@ func testSuccessful(t *testing.T, e, input, expected string) {
 		input = "{}"
 	}
 	zt := ztest.ZTest{
-		Zed:    fmt.Sprintf("yield %s", e),
+		Zed:    fmt.Sprintf("values %s", e),
 		Input:  &input,
 		Output: expected + "\n",
 	}
@@ -27,7 +27,7 @@ func testSuccessful(t *testing.T, e, input, expected string) {
 func testError(t *testing.T, e string, expectErr error) {
 	t.Helper()
 	zt := ztest.ZTest{
-		Zed:   fmt.Sprintf("yield %s", e),
+		Zed:   fmt.Sprintf("values %s", e),
 		Error: expectErr.Error() + "\n",
 	}
 	if err := zt.RunInternal(); err != nil {
@@ -37,9 +37,9 @@ func testError(t *testing.T, e string, expectErr error) {
 
 func testCompilationError(t *testing.T, e string, expectErr error) {
 	t.Helper()
-	err := fmt.Errorf(`%s at line 1, column 7:
-yield %s
-      %s`,
+	err := fmt.Errorf(`%s at line 1, column 8:
+values %s
+       %s`,
 		expectErr, e, strings.Repeat("~", len(e)))
 	testError(t, e, err)
 }

@@ -18,7 +18,7 @@ converted into nested records. If no argument is supplied to `nest_dotted`,
 
 ```mdtest-spq
 # spq
-yield nest_dotted()
+values nest_dotted()
 # input
 {"a.b.c":"foo"}
 # expected output

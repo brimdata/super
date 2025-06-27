@@ -1,4 +1,4 @@
-spq: yield {val:this, kind:kind(this)}
+spq: '{val:this, kind:kind(this)}'
 
 vector: true
 

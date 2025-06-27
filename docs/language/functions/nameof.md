@@ -15,10 +15,10 @@ Otherwise, it returns `error("missing")`.
 
 ### Examples
 
-A named type yields its name and unnamed types yield a missing error:
+A named type returns its name and unnamed types return a missing error:
 ```mdtest-spq
 # spq
-yield nameof(this)
+values nameof(this)
 # input
 80(port=int16)
 80
@@ -30,7 +30,7 @@ error("missing")
 The missing value can be ignored with quiet:
 ```mdtest-spq
 # spq
-yield quiet(nameof(this))
+values quiet(nameof(this))
 # input
 80(port=int16)
 80

@@ -1,5 +1,5 @@
 spq: |
-  yield duration(this),
+  values duration(this),
         duration(this+2h-this),
         int64(this),
         uint64(this),

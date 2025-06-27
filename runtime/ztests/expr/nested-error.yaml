@@ -1,4 +1,4 @@
-spq: yield {x:'a'+(1+'b')}
+spq: values {x:'a'+(1+'b')}
 
 vector: true
 

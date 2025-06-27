@@ -1,5 +1,5 @@
 spq: |
-  yield
+  values 
     network_of(this, 24),
     network_of(this, 48),
     network_of(this),

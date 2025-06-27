@@ -6,7 +6,7 @@ outputs:
   - name: stdout
     data: |
       null
-      | yield {"foo()":1}
+      | values {"foo()":1}
       | output main
   - name: stderr
     data: |

@@ -18,7 +18,7 @@ into value's leaves to determine if there is an error in the value.
 
 ```mdtest-spq
 # spq
-yield has_error(this)
+values has_error(this)
 # input
 {a:{b:"foo"}}
 # expected output
@@ -27,7 +27,7 @@ false
 
 ```mdtest-spq
 # spq
-a.x := a.y + 1 | yield has_error(this)
+a.x := a.y + 1 | values has_error(this)
 # input
 {a:{b:"foo"}}
 # expected output

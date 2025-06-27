@@ -14,24 +14,24 @@ script: |
 outputs:
   - name: stdout
     data: |
-      yield {x:1,...y}
-      yield [1,2,3]
-      yield |["foo","bar"]|
-      yield |{"foo":1,"bar":2}|
-      yield <(int64,string)>(1)
+      values {x:1,...y}
+      values [1,2,3]
+      values |["foo","bar"]|
+      values |{"foo":1,"bar":2}|
+      values <(int64,string)>(1)
       ===
       null
-      | yield {x:1,...y}
+      | values {x:1,...y}
       | output main
       null
-      | yield [1,2,3]
+      | values [1,2,3]
       | output main
       null
-      | yield |["foo","bar"]|
+      | values |["foo","bar"]|
       | output main
       null
-      | yield |{"foo":1,"bar":2}|
+      | values |{"foo":1,"bar":2}|
       | output main
       null
-      | yield cast(1, <(int64,string)>)
+      | values cast(1, <(int64,string)>)
       | output main

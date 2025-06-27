@@ -1,5 +1,5 @@
 spq: |
-  where a==1 | yield b
+  where a==1 | values b
 
 vector: true
 

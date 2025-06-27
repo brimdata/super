@@ -1,9 +1,9 @@
 script: |
-  super compile -C -O 'yield {...{a}}, {...{...{b}}}'
+  super compile -C -O 'values {...{a}}, {...{...{b}}}'
 
 outputs:
   - name: stdout
     data: |
       null
-      | yield {a:a}, {b:b}
+      | values {a:a}, {b:b}
       | output main

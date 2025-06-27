@@ -1,4 +1,4 @@
-spq: yield cast(this, <[string]>)
+spq: values cast(this, <[string]>)
 
 vector: true
 

@@ -32,7 +32,7 @@ transformed and a [type value](data-types.md) for the target type.
 
 > Another type of transformation that's needed for shaping is renaming fields,
 > which is supported by the [`rename` operator](operators/rename.md).
-> Also, the [`yield` operator](operators/yield.md)
+> Also, the [`values` operator](operators/values.md)
 > is handy for simply emitting new, arbitrary record literals based on
 > input values and mixing in these shaping functions in an embedded record literal.
 > The [`fuse` aggregate function](aggregates/fuse.md) is also useful for fusing
@@ -221,7 +221,7 @@ type connection = {
     vlan: uint16
 }
 
-yield {kind,client,server,...this}
+values {kind,client,server,...this}
 # input
 {
   "kind": "dns",
@@ -361,8 +361,8 @@ type connection = {
     vlan: uint16
 }
 
-yield {original: this, shaped: shape(this, <connection>)}
-| yield has_error(shaped)
+values {original: this, shaped: shape(this, <connection>)}
+| values has_error(shaped)
   ? error({
       msg: "shaper error (see inner errors for details)",
       original,
@@ -401,8 +401,8 @@ type connection = {
     vlan: uint16
 }
 
-yield {original: this, cropped: crop(this, <connection>)}
-| yield original==cropped
+values {original: this, cropped: crop(this, <connection>)}
+| values original==cropped
   ? original
   : error({msg: "data was cropped", original, cropped})
 # input
@@ -538,8 +538,8 @@ we "discovered" above, e.g.,
 # spq
 switch len(this)
   case 1 ( pass )
-  case 2 ( yield shape(this, <{x:(int64,string),y:string}>) )
-  default ( yield error({kind:"unrecognized shape",value:this}) )
+  case 2 ( values shape(this, <{x:(int64,string),y:string}>) )
+  default ( values error({kind:"unrecognized shape",value:this}) )
 | sort this desc
 # input
 {x:1}

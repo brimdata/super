@@ -1,4 +1,4 @@
-spq: yield a == b, a != b
+spq: values a == b, a != b
 
 vector: true
 

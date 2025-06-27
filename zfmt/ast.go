@@ -563,7 +563,7 @@ func (c *canon) op(p ast.Op) {
 		} else if IsBool(e) {
 			which = "where "
 		} else if _, ok := e.(*ast.Call); !ok {
-			which = "yield "
+			which = "values "
 		}
 		// Since we can't determine whether the expression is a func call or
 		// an op call until the semantic pass, leave this ambiguous.
@@ -651,9 +651,13 @@ func (c *canon) op(p ast.Op) {
 		c.sortExprs(p.Exprs)
 	case *ast.Over:
 		c.over(p)
-	case *ast.Yield:
+	case *ast.Values:
 		c.next()
-		c.write("yield ")
+		c.write("values ")
+		c.exprs(p.Exprs)
+	case *ast.SQLValues:
+		c.next()
+		c.write("values ")
 		c.exprs(p.Exprs)
 	case *ast.Output:
 		c.next()

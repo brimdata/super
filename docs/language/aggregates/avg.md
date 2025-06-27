@@ -29,7 +29,7 @@ avg(this)
 Continuous average of simple sequence:
 ```mdtest-spq
 # spq
-yield avg(this)
+values avg(this)
 # input
 1
 2

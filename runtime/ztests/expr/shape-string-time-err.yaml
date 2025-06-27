@@ -1,5 +1,5 @@
 spq: |
-  yield shape(<{a:time}>)
+  values shape(<{a:time}>)
 
 vector: true
 

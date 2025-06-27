@@ -564,7 +564,7 @@ queried by running the `log -f bsup` to retrieve the log in BSUP format,
 for example, and using [`super`](super.md) to pull the metadata out
 as in:
 ```
-super db log -f bsup | super -c 'has(meta) | yield {id,meta}' -
+super db log -f bsup | super -c 'has(meta) | values {id,meta}' -
 ```
 
 ### Log

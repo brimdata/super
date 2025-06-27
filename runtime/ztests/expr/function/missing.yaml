@@ -1,4 +1,4 @@
-spq: yield missing(a,b)
+spq: values missing(a,b)
 
 vector: true
 

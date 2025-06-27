@@ -1,5 +1,5 @@
 spq: |
-  yield date_part("day", this),
+  values date_part("day", this),
     date_part("dow", this),
     date_part("dayofweek", this),
     date_part("hour", this),

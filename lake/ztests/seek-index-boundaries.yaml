@@ -3,7 +3,7 @@ script: |
   super db init -q
   for o in asc desc; do
     super db create -use -q -seekstride 1B -orderby ts:$o $o
-    seq 20 | super -c 'yield {ts:this}' - | super db load -q -
+    seq 20 | super -c 'values {ts:this}' - | super db load -q -
     source query.sh "from $o | ts == 5"
     source query.sh "from $o | ts < 2"
     source query.sh "from $o | ts <= 2"

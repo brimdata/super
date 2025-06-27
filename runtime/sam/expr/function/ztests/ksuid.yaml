@@ -1,4 +1,4 @@
-spq: yield ksuid(this)
+spq: values ksuid(this)
 
 input: |
   "24eT188EIisOiwVWwmej1h9t4Ms"

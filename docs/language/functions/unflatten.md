@@ -19,7 +19,7 @@ will produce a record identical to `r`.
 Simple:
 ```mdtest-spq {data-layout="stacked"}
 # spq
-yield unflatten(this)
+values unflatten(this)
 # input
 [{key:"a",value:1},{key:["b"],value:2}]
 # expected output
@@ -31,9 +31,9 @@ Flatten to unflatten:
 # spq
 over flatten(this) into (
   key[1] != "rm"
-  | yield collect(this)
+  | values collect(this)
 )
-| yield unflatten(this)
+| values unflatten(this)
 # input
 {a:1,rm:2}
 # expected output

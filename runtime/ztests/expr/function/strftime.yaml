@@ -1,4 +1,4 @@
-spq: 'strftime(f, v)'
+spq: strftime(f, v)
 
 vector: true
 

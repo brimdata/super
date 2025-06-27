@@ -1,4 +1,4 @@
-spq: yield [a,b,c]
+spq: values [a,b,c]
 
 vector: true
 
