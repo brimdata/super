@@ -1,1 +1,2 @@
-# map
+### Map Type
+

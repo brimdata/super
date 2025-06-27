@@ -16,3 +16,6 @@ in the Zed documentation include several type classes as follows:
 Note that there is no "any" type in SuperSQL as all super-structured data is
 strongly typed; "any" here simply refers to a value that is allowed
 to take on any type.
+
+XXX mention syntax blocks `<expr>` refers to expression, `<id>` to identifier, etc
+

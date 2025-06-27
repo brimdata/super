@@ -1,1 +1,3 @@
-# string
+# String Type
+
+

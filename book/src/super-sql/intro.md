@@ -76,11 +76,11 @@ When `from` is not present, the file arguments to the
 [`super`](../commands/super.md) command are used as input to the query
 as if there is an implied `from` operator, e.g., 
 ```
-super -c "pass" input.json
+super -c "op1 | op2 | ..." input.json
 ```
 is equivalent to 
 ```
-super -c "from input.json"
+super -c "from input.json | op1 | op2 | ..."
 ```
 When neither `from` nor file arguments are specified, a single `null` value 
 is provided as input to the query.

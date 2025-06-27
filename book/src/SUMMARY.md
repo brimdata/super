@@ -171,7 +171,7 @@
         - [sum](super-sql/aggregates/sum.md)
         - [union](super-sql/aggregates/union.md)
     - [Shortcuts](super-sql/shortcuts.md)
-    - [Errors](super-sql/errors.md)
+    - [Error Handling](super-sql/errors.md)
     - [Subqueries](super-sql/subqueries.md)
     - [Syntax](super-sql/syntax.md)
     - [Pipe Symbol](super-sql/pipe-symbol.md)
