@@ -1,8 +1,10 @@
 package semantic
 
 import (
+	"errors"
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/brimdata/super/compiler/dag"
@@ -12,6 +14,7 @@ import (
 type schema interface {
 	Name() string
 	resolveColumn(col string) (field.Path, error)
+	resolveOrdinal(colno int) (dag.Expr, error)
 	resolveTable(table string) (schema, field.Path, error)
 	deref(name string) (dag.Expr, schema)
 	String() string
@@ -171,6 +174,62 @@ func (j *joinUsingSchema) resolveColumn(col string) (field.Path, error) {
 		return nil, fmt.Errorf("column %q in USING clause does not exist in right table", col)
 	}
 	return field.Path{col}, nil
+}
+
+func (*dynamicSchema) resolveOrdinal(col int) (dag.Expr, error) {
+	if col <= 0 {
+		return nil, fmt.Errorf("position %d is not in select list", col)
+	}
+	return &dag.IndexExpr{
+		Kind:  "IndexExpr",
+		Expr:  &dag.This{Kind: "This"},
+		Index: &dag.Literal{Kind: "Literal", Value: strconv.Itoa(col)},
+	}, nil
+}
+
+func (s *staticSchema) resolveOrdinal(col int) (dag.Expr, error) {
+	if col <= 0 || col > len(s.columns) {
+		return nil, fmt.Errorf("position %d is not in select list", col)
+	}
+	return &dag.This{Kind: "This", Path: []string{s.columns[col-1]}}, nil
+}
+
+func (s *selectSchema) resolveOrdinal(col int) (dag.Expr, error) {
+	if s.out != nil {
+		if resolved, err := s.out.resolveOrdinal(col); resolved != nil {
+			return appendExprToPath("out", resolved), nil
+		} else if err != nil {
+			return nil, err
+		}
+	}
+	resolved, err := s.in.resolveOrdinal(col)
+	if resolved != nil {
+		return appendExprToPath("in", resolved), nil
+	}
+	return nil, err
+}
+
+func (j *joinSchema) resolveOrdinal(col int) (dag.Expr, error) {
+	return nil, errors.New("ordinal column selection in join not supported")
+}
+
+func (j *joinUsingSchema) resolveOrdinal(col int) (dag.Expr, error) {
+	return nil, errors.New("ordinal column selection in join not supported")
+}
+
+func appendExprToPath(path string, e dag.Expr) dag.Expr {
+	switch e := e.(type) {
+	case *dag.This:
+		return &dag.This{Kind: "This", Path: append([]string{path}, e.Path...)}
+	case *dag.IndexExpr:
+		return &dag.IndexExpr{
+			Kind:  "IndexExpr",
+			Expr:  appendExprToPath(path, e.Expr),
+			Index: e.Index,
+		}
+	default:
+		panic(e)
+	}
 }
 
 func (d *dynamicSchema) deref(name string) (dag.Expr, schema) {
