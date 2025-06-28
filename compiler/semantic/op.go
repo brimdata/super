@@ -379,11 +379,10 @@ func (a *analyzer) semSortExpr(sch schema, s ast.SortExpr, reverse bool) dag.Sor
 	var e dag.Expr
 	if sch != nil {
 		e = a.semExprSchema(sch, s.Expr)
-		if a.isOrdinal(e) {
-			e = &dag.IndexExpr{
-				Kind:  "IndexExpr",
-				Expr:  &dag.This{Kind: "This", Path: []string{"out"}},
-				Index: e,
+		if which, ok := isOrdinal(a.sctx, e); ok {
+			var err error
+			if e, err = sch.resolveOrdinal(which); err != nil {
+				a.error(s.Expr, err)
 			}
 		}
 	} else {

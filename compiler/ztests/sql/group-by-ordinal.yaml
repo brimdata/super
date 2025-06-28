@@ -1,11 +1,50 @@
-spq: select count() as c group by 2 order by c
+script: |
+  super -s -c 'select a from test.sup group by 1,1'
+  echo // ===
+  super -s -c 'select 1, b, count() as c from test.sup group by 1, b order by c desc'
+  ! super -s -c 'select a, b, c, d group by 5, 0'
+  echo // === >&2
+  ! super -s -c 'select count() as c, a group by 1,2'
 
-vector: true
 
-input: |
-  {a:1,b:"foo"}
-  {a:1,b:"foo"}
-  {a:1,b:"bar"}
+inputs:
+  - name: test.sup
+    data: |
+      {a:1,b:"foo"}
+      {a:1,b:"foo"}
+      {a:1,b:"bar"}
+
+outputs:
+  - name: stdout
+    data: |
+      {a:1}
+      // ===
+      {"1":1,b:"foo",c:2(uint64)}
+      {"1":1,b:"bar",c:1(uint64)}
+  - name: stderr
+    data: |
+      position 5 is not in select list at line 1, column 28:
+      select a, b, c, d group by 5, 0
+                                 ~
+      position 0 is not in select list at line 1, column 31:
+      select a, b, c, d group by 5, 0
+                                    ~
+      no corresponding grouping element for non-aggregate "a" at line 1, column 8:
+      select a, b, c, d group by 5, 0
+             ~
+      no corresponding grouping element for non-aggregate "b" at line 1, column 11:
+      select a, b, c, d group by 5, 0
+                ~
+      no corresponding grouping element for non-aggregate "c" at line 1, column 14:
+      select a, b, c, d group by 5, 0
+                   ~
+      no corresponding grouping element for non-aggregate "d" at line 1, column 17:
+      select a, b, c, d group by 5, 0
+                      ~
+      // ===
+      aggregate functions are not allowed in GROUP BY at line 1, column 33:
+      select count() as c, a group by 1,2
+                                      ~
 
 output: |
   {c:1(uint64)}

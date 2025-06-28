@@ -214,26 +214,29 @@ func (a *analyzer) genAggregateOutput(proj projection, keyExprs []exprloc, seq d
 		} else {
 			notFirst = true
 		}
+		// First, try to match the column expression to one of the grouping
+		// expressions.  If that doesn't work, see if the aliased column
+		// name is one of the grouping expressions.
+		which := exprMatch(col.expr, keyExprs)
+		if which < 0 {
+			// Look for an exact-match of a column alias which would
+			// convert to path out.<id> in the name resolution of the
+			// grouping expression.
+			alias := &dag.This{Kind: "This", Path: []string{"out", col.name}}
+			which = exprMatch(alias, keyExprs)
+		}
 		if col.isAgg {
+			if which >= 0 {
+				a.error(keyExprs[which].loc, fmt.Errorf("aggregate functions are not allowed in GROUP BY"))
+			}
 			elems = append(elems, &dag.Field{
 				Kind:  "Field",
 				Name:  col.name,
 				Value: col.expr,
 			})
 		} else {
-			// First, try to match the column expression to one of the grouping
-			// expressions.  If that doesn't work, see if the aliased column
-			// name is one of the grouping expressions.
-			which := exprMatch(col.expr, keyExprs)
 			if which < 0 {
-				// Look for an exact-match of a column alias which would
-				// convert to path out.<id> in the name resolution of the
-				// grouping expression.
-				alias := &dag.This{Kind: "This", Path: []string{"out", col.name}}
-				which = exprMatch(alias, keyExprs)
-				if which < 0 {
-					a.error(col.loc, fmt.Errorf("no corresponding grouping element for non-aggregate %q", col.name))
-				}
+				a.error(col.loc, fmt.Errorf("no corresponding grouping element for non-aggregate %q", col.name))
 			}
 			elems = append(elems, &dag.Field{
 				Kind:  "Field",
@@ -712,11 +715,10 @@ func (a *analyzer) semGroupBy(sch *selectSchema, in []ast.Expr) []exprloc {
 	var funcs aggfuncs
 	for k, expr := range in {
 		e := a.semExprSchema(sch, expr)
-		if a.isOrdinal(e) {
-			e = &dag.IndexExpr{
-				Kind:  "IndexExpr",
-				Expr:  &dag.This{Kind: "This", Path: []string{"in"}},
-				Index: e,
+		if which, ok := isOrdinal(a.sctx, e); ok {
+			var err error
+			if e, err = sch.resolveOrdinal(which); err != nil {
+				a.error(in[k], err)
 			}
 		}
 		// Grouping expressions can't have agg funcs so we parse as a column
@@ -730,12 +732,12 @@ func (a *analyzer) semGroupBy(sch *selectSchema, in []ast.Expr) []exprloc {
 	return out
 }
 
-func (a *analyzer) isOrdinal(e dag.Expr) bool {
+func isOrdinal(sctx *super.Context, e dag.Expr) (int, bool) {
 	if literal, ok := e.(*dag.Literal); ok {
-		v := sup.MustParseValue(a.sctx, literal.Value)
-		return super.IsInteger(v.Type().ID())
+		v := sup.MustParseValue(sctx, literal.Value)
+		return int(v.AsInt()), super.IsInteger(v.Type().ID())
 	}
-	return false
+	return -1, false
 }
 
 func (a *analyzer) semProjection(sch *selectSchema, args []ast.AsExpr, funcs *aggfuncs) projection {
