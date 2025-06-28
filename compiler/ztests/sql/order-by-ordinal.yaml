@@ -1,14 +1,24 @@
-spq: |
-  select a, b+1 order by 2
+script: |
+  echo '{i:1} {i:2} {i:3} {i:null(int64)}' | super -s -c 'SELECT i, SUM(i) GROUP BY i ORDER BY 1;' -
+  ! super -c 'SELECT a, b ORDER BY 3'
 
-input: |
-  {a:0,b:5}
-  {a:1,b:3}
-  {a:2,b:4}
-  {a:3,b:1}
-
-output: |
-  {a:3,"b+1":2}
-  {a:1,"b+1":4}
-  {a:2,"b+1":5}
-  {a:0,"b+1":6}
+inputs:
+  - name: stdin
+    data: |
+      {i:1}
+      {i:2}
+      {i:3}
+      {i:null(int64)}
+    
+outputs:
+  - name: stdout
+    data: |
+      {i:1,"SUM(i)":1}
+      {i:2,"SUM(i)":2}
+      {i:3,"SUM(i)":3}
+      {i:null(int64),"SUM(i)":null(int64)}
+  - name: stderr
+    data: |
+      position 3 is not in select list at line 1, column 22:
+      SELECT a, b ORDER BY 3
+                           ~
