@@ -48,6 +48,8 @@
         - [Union](super-sql/types/union.md)
         - [Enum](super-sql/types/enum.md)
         - [Null](super-sql/types/null.md)
+        - [Error](super-sql/types/error.md)
+        - [Named](super-sql/types/named.md)
     - [Expressions](super-sql/expressions.md)
     - [Statements](super-sql/statements.md)
     - [Search](super-sql/search.md)
