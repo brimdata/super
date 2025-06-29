@@ -6,11 +6,11 @@ script: |
 inputs:
   - name: test.zed
     data: |
-      // Expressions
+      -- Expressions
       yield (over a | ?b)
       | yield (over a with b=c | ?d)
       | yield (over a, b with c=d, e=f | ?g)
-      // Operators
+      -- Operators
       | over a
       | over a into ( ?b )
       | over a with b=c into ( ?d )
