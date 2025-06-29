@@ -965,11 +965,11 @@ Instead of running each step above into a temporary file, we can
 put all the transformations together in a single
 pipeline, where the full query text might look like this:
 ```
-over this                      // traverse the array of objects
-| len(this) != 0               // skip empty objects
-| fuse                         // fuse objects into records of a combined type
-| drop head,base,_links        // drop fields that we don't need
-| closed_at:=time(closed_at),  // transform string dates to type time
+over this                      -- traverse the array of objects
+| len(this) != 0               -- skip empty objects
+| fuse                         -- fuse objects into records of a combined type
+| drop head,base,_links        -- drop fields that we don't need
+| closed_at:=time(closed_at),  -- transform string dates to type time
   merged_at:=time(merged_at),
   created_at:=time(created_at),
   updated_at:=time(updated_at)
@@ -977,7 +977,7 @@ over this                      // traverse the array of objects
 
 {{% tip "Note" %}}
 
-The `//` syntax indicates a single-line comment.
+The `--` syntax indicates a single-line comment.
 
 {{% /tip %}}
 
