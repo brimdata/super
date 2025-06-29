@@ -38,6 +38,7 @@
     - [Data Types](super-sql/types/intro.md)
         - [Numbers](super-sql/types/numbers.md)
         - [String](super-sql/types/string.md)
+        - [Bytes](super-sql/types/bytes.md)
         - [Network](super-sql/types/network.md)
         - [Time](super-sql/types/time.md)
         - [Type](super-sql/types/type.md)

@@ -1,4 +1,4 @@
-# Data Types
+## Data Types
 
 TODO: update and break this into smaller chunks
 
