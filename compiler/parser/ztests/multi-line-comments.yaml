@@ -1,0 +1,23 @@
+script: |
+  super -s -I count.spq in.sup
+
+inputs:
+  - name: count.spq
+    data: |
+      ?2 | c /*
+       first 
+       multiline 
+       comment */ := count() /*,*/
+          , sum(v) /* moon
+             a multi-line comment -- //
+             */
+  - name: in.sup
+    data: |
+      {v:1}
+      {v:2}
+      {v:3}
+
+outputs:
+  - name: stdout
+    data: |
+      {c:1(uint64),sum:2}
