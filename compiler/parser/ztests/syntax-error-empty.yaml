@@ -1,0 +1,15 @@
+script: |
+  ! super compile -I query.sql -I empty.sql
+
+inputs:
+  - name: query.sql
+    data: "SELECT"
+  - name: empty.sql 
+    data: ""
+
+outputs:
+  - name: stderr
+    data: |
+      parse error in query.sql at line 1, column 7:
+      SELECT
+        === ^ ===

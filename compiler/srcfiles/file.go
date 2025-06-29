@@ -38,6 +38,9 @@ func (f File) Position(pos int) Position {
 	}
 	offset := pos - f.start
 	i := searchLine(f.lines, offset)
+	if i < 0 {
+		return Position{-1, -1, -1, -1}
+	}
 	return Position{
 		Pos:    pos,
 		Offset: offset,

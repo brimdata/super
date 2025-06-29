@@ -4,6 +4,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"unicode"
 )
 
 type List struct {
@@ -33,18 +34,28 @@ func (l *List) FileOf(pos int) File {
 func Concat(filenames []string, query string) (*List, error) {
 	var b strings.Builder
 	var files []File
+	var needSep bool
 	for _, f := range filenames {
 		bb, err := os.ReadFile(f)
 		if err != nil {
 			return nil, err
 		}
-		files = append(files, newFile(f, b.Len(), bb))
-		b.Write(bb)
-		b.WriteByte('\n')
+		// Skip over empty files.
+		if len(bb) > 0 {
+			files = append(files, newFile(f, b.Len(), bb))
+			// Separate file content with a newline but only when needed.
+			if needSep {
+				b.WriteByte('\n')
+			}
+			b.Write(bb)
+			needSep = !unicode.IsSpace(rune(bb[len(bb)-1]))
+		}
 	}
-	// Empty string is the unnamed query text while the included files all
-	// have names.
-	files = append(files, newFile("", b.Len(), []byte(query)))
-	b.WriteString(query)
+	if query != "" {
+		// Empty string is the unnamed query text while the included files all
+		// have names.
+		files = append(files, newFile("", b.Len(), []byte(query)))
+		b.WriteString(query)
+	}
 	return &List{Text: b.String(), Files: files}, nil
 }
