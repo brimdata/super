@@ -4,8 +4,8 @@ script: |
 inputs:
   - name: count.zed
     data: |
-      ?2 | c  := count() //,
-          , sum(v) // moon
+      ?2 | c  := count() --,
+          , sum(v) -- moon
   - name: in.sup
     data: |
       {v:1}
