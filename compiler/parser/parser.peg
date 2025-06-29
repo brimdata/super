@@ -1870,9 +1870,8 @@ LineTerminator
 // We will tackle this in the search-expr branch that is changing the grammar
 // to better mix together ad hoc keyword search with formal boolean expressions.
 Comment "comment"
-  // = MultiLineComment
-  // / SingleLineComment
-  = SingleLineComment
+  = MultiLineComment
+  / SingleLineComment
 
 MultiLineComment
   = "/*" (!"*/" SourceCharacter)* "*/"
