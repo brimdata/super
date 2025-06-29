@@ -1,8 +1,8 @@
 spq: |
   put
-  // crop to type with same field order
+  -- crop to type with same field order
   id:=crop(id, <{orig_h:ip,orig_p:port=uint16}>),
-  // crop to type with different field order, does not change output order
+  -- crop to type with different field order, does not change output order
   id2:=crop(id, <{orig_p:port=uint16,orig_h:ip}>)
 
 vector: true

@@ -38,10 +38,10 @@ The following reference `shaper.zed` may seem large, but ultimately it follows a
 fairly simple pattern that repeats across the many [Zeek log types](https://docs.zeek.org/en/master/script-reference/log-files.html).
 
 ```mdtest-input shaper.zed
-// This reference Zed shaper for Zeek JSON logs was most recently tested with
-// Zeek v7.0.0. The fields and data types reflect the default JSON
-// logs output by that Zeek version when using the JSON Streaming Logs package.
-// (https://github.com/corelight/json-streaming-logs).
+-- This reference Zed shaper for Zeek JSON logs was most recently tested with
+-- Zeek v7.0.0. The fields and data types reflect the default JSON
+-- logs output by that Zeek version when using the JSON Streaming Logs package.
+-- (https://github.com/corelight/json-streaming-logs).
 
 const _crop_records = true
 const _error_if_cropped = true

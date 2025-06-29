@@ -1,11 +1,11 @@
 script: |
-  super -s -I count.zed in.sup
+  super -s -I count.spq in.sup
 
 inputs:
-  - name: count.zed
+  - name: count.spq
     data: |
-      ?2 | c  := count() //,
-          , sum(v) // moon
+      ?2 | c  := count() --,
+          , sum(v) -- moon
   - name: in.sup
     data: |
       {v:1}
