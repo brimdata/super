@@ -17,7 +17,7 @@ The return value is a float64 or an error.
 
 ```mdtest-spq
 # spq
-yield pow(this, 5)
+values pow(this, 5)
 # input
 2
 # expected output

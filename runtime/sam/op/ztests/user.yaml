@@ -1,6 +1,6 @@
 spq: |
   op stamper(assignee, foo): ( 
-      yield {...this, assignee, foo}
+      values {...this, assignee, foo}
   )
   stamper("bob", "bar")
 

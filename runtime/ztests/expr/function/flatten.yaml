@@ -1,4 +1,4 @@
-spq: yield flatten(this)
+spq: flatten(this)
 
 vector: true
 

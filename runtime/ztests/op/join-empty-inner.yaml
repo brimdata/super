@@ -1,5 +1,5 @@
 script: |
-  super -s -c 'left join (from C.sup) on left.a=right.a | yield {...left,hit:right.sc} | sort' A.sup
+  super -s -c 'left join (from C.sup) on left.a=right.a | values {...left,hit:right.sc} | sort' A.sup
 
 vector: true
 

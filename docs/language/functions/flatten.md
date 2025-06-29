@@ -19,7 +19,7 @@ inner type is a union of the record types present.
 
 ```mdtest-spq {data-layout="stacked"}
 # spq
-yield flatten(this)
+values flatten(this)
 # input
 {a:1,b:{c:"foo"}}
 # expected output

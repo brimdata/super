@@ -3,9 +3,9 @@ script: |
   echo ===
   super -s -c "select a from s.json where a||b not like '%os%'"
   echo ===
-  super -s -c "from s.json | yield a LIKE 'f%'"
+  super -s -c "from s.json | values a LIKE 'f%'"
   echo ===
-  super -s -c "from s.json | yield a NOT LIKE 'f%'"
+  super -s -c "from s.json | values a NOT LIKE 'f%'"
 
 inputs:
   - name: s.json

@@ -1,6 +1,6 @@
 spq: |
   op noparams(): (
-    yield "hello"
+    values "hello"
   )
   noparams()
 

@@ -1,4 +1,4 @@
-spq: 'yield {yodawg:this,b:this==this}'
+spq: 'values {yodawg:this,b:this==this}'
 
 input: |
   {a:1}

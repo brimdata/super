@@ -1,5 +1,5 @@
 script: |
-  SUPER_VAM=1 super compile -C -P 2 'from test.csup | sort a, b desc nulls last | yield c'
+  SUPER_VAM=1 super compile -C -P 2 'from test.csup | sort a, b desc nulls last | values c'
 
 outputs:
   - name: stdout
@@ -13,5 +13,5 @@ outputs:
           sort a asc nulls last, b desc nulls last
         )
       | merge a asc nulls last, b desc nulls last
-      | yield c
+      | values c
       | output main

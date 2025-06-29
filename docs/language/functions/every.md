@@ -19,8 +19,8 @@ when analyzing time-series data like logs that have a `ts` field.
 Operate on a sequence of times:
 ```mdtest-spq
 # spq
-yield {ts,val:0},{ts:ts+1s},{ts:ts+2h2s}
-| yield every(1h)
+values {ts,val:0},{ts:ts+1s},{ts:ts+2h2s}
+| values every(1h)
 | sort
 # input
 {ts:2021-02-01T12:00:01Z}
@@ -33,7 +33,7 @@ yield {ts,val:0},{ts:ts+1s},{ts:ts+2h2s}
 Use as a grouping key:
 ```mdtest-spq
 # spq
-yield {ts,val:1},{ts:ts+1s,val:2},{ts:ts+2h2s,val:5}
+values {ts,val:1},{ts:ts+1s,val:2},{ts:ts+2h2s,val:5}
 | sum(val) by every(1h)
 | sort
 # input

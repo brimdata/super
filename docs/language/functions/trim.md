@@ -17,7 +17,7 @@ from string argument `s` and returns the result.
 
 ```mdtest-spq
 # spq
-yield trim(this)
+values trim(this)
 # input
 " = SuperDB = "
 # expected output

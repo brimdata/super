@@ -8,7 +8,7 @@ Expressions are often used within [operators](operators/_index.md)
 to perform computations on input values and are typically evaluated once per each
 input value [`this`](pipeline-model.md#the-special-value-this).
 
-For example, [`yield`](operators/yield.md), [`where`](operators/where.md),
+For example, [`values`](operators/values.md), [`where`](operators/where.md),
 [`cut`](operators/cut.md), [`put`](operators/put.md),
 [`sort`](operators/sort.md) and so forth all take
 various expressions as part of their operation.
@@ -22,7 +22,7 @@ precedence over addition and subtraction.  `%` is the modulo operator.
 For example,
 ```mdtest-spq
 # spq
-yield 2*3+1, 11%5, 1/0, "foo"+"bar"
+values 2*3+1, 11%5, 1/0, "foo"+"bar"
 # input
 null
 # expected output
@@ -53,7 +53,7 @@ is `error("missing")`, then the result is `error("missing")`.
 For example,
 ```mdtest-spq
 # spq
-yield 1 > 2, 1 < 2, "b" > "a", 1 > "a", 1 > x
+values 1 > 2, 1 < 2, "b" > "a", 1 > "a", 1 > x
 # input
 null
 # expected output
@@ -211,7 +211,7 @@ becomes the result.
 For example,
 ```mdtest-spq
 # spq
-yield (s=="foo") ? v : -v
+values (s=="foo") ? v : -v
 # input
 {s:"foo",v:1}
 {s:"bar",v:2}
@@ -226,7 +226,7 @@ Conditional expressions can be chained, providing behavior equivalent to
 For example,
 ```mdtest-spq
 # spq
-yield (s=="foo") ? v : (s=="bar") ? -v : v*v
+values (s=="foo") ? v : (s=="bar") ? -v : v*v
 # input
 {s:"foo",v:1}
 {s:"bar",v:2}
@@ -244,7 +244,7 @@ will be evaluated.
 For example,
 ```mdtest-spq
 # spq
-yield this=="foo" ? {foocount:count()} : {barcount:count()}
+values this=="foo" ? {foocount:count()} : {barcount:count()}
 # input
 "foo"
 "bar"
@@ -263,7 +263,7 @@ value and utilize call-by value semantics with positional and unnamed arguments.
 For example,
 ```mdtest-spq
 # spq
-yield pow(2,3), lower("ABC")+upper("def"), typeof(1)
+values pow(2,3), lower("ABC")+upper("def"), typeof(1)
 # input
 null
 # expected output
@@ -291,7 +291,7 @@ That said, aggregate function calls can be quite useful in a number of contexts.
 For example, a unique ID can be assigned to the input quite easily:
 ```mdtest-spq
 # spq
-yield {id:count(),value:this}
+values {id:count(),value:this}
 # input
 "foo"
 "bar"
@@ -339,7 +339,7 @@ a string, it is implicitly cast to a string.
 For example,
 ```mdtest-spq {data-layout="stacked"}
 # spq
-yield f"pi is approximately {numerator / denominator}"
+values f"pi is approximately {numerator / denominator}"
 # input
 {numerator:22.0, denominator:7.0}
 # expected output
@@ -354,7 +354,7 @@ F-strings may be nested, where a child `<expr>` may contain f-strings.
 For example,
 ```mdtest-spq {data-layout="stacked"}
 # spq
-yield f"oh {this[upper(f"{foo + bar}")]}"
+values f"oh {this[upper(f"{foo + bar}")]}"
 # input
 {foo:"hello", bar:"world", HELLOWORLD:"hi!"}
 # expected output
@@ -367,7 +367,7 @@ i.e., `\{`.
 For example,
 ```mdtest-spq
 # spq
-yield f"{this} look like: \{ }"
+values f"{this} look like: \{ }"
 # input
 "brackets"
 # expected output
@@ -402,7 +402,7 @@ field's value.
 For example,
 ```mdtest-spq
 # spq
-yield {a:0},{x}, {...r}, {a:0,...r,b:3}
+values {a:0},{x}, {...r}, {a:0,...r,b:3}
 # input
 {x:1,y:2,r:{a:1,b:2}}
 # expected output
@@ -435,7 +435,7 @@ type of the array is an array of type `union` of the types that appear.
 For example,
 ```mdtest-spq
 # spq
-yield [1,2,3],["hello","world"]
+values [1,2,3],["hello","world"]
 # input
 null
 # expected output
@@ -446,7 +446,7 @@ null
 Arrays can be concatenated using the spread operator,
 ```mdtest-spq
 # spq
-yield [...a,...b,5]
+values [...a,...b,5]
 # input
 {a:[1,2],b:[3,4]}
 # expected output
@@ -479,7 +479,7 @@ they appear in the set literal.
 For example,
 ```mdtest-spq
 # spq
-yield |[3,1,2]|,|["hello","world","hello"]|
+values |[3,1,2]|,|["hello","world","hello"]|
 # input
 null
 # expected output
@@ -490,7 +490,7 @@ null
 Arrays and sets can be concatenated using the spread operator,
 ```mdtest-spq
 # spq
-yield |[...a,...b,4]|
+values |[...a,...b,4]|
 # input
 {a:[1,2],b:|[2,3]|}
 # expected output
@@ -512,7 +512,7 @@ a union of the types that appear in each respective category.
 For example,
 ```mdtest-spq
 # spq
-yield |{"foo":1,"bar"+"baz":2+3}|
+values |{"foo":1,"bar"+"baz":2+3}|
 # input
 null
 # expected output
@@ -528,7 +528,7 @@ Since 1 is an `int64` and "foo" is a `string`, they both can be
 values of type `(int64,string)`, e.g.,
 ```mdtest-spq
 # spq
-yield cast(this,<(int64,string)>)
+values cast(this,<(int64,string)>)
 # input
 1
 "foo"
@@ -541,7 +541,7 @@ The value underlying a union-tagged value is accessed with the
 [`under` function](functions/under.md):
 ```mdtest-spq
 # spq
-yield under(this)
+values under(this)
 # input
 1((int64,string))
 # expected output
@@ -579,7 +579,7 @@ to the indicated type, then the cast's result is an error value.
 For example,
 ```mdtest-spq {data-layout="stacked"}
 # spq
-yield int8(this)
+values int8(this)
 # input
 1
 200
@@ -598,7 +598,7 @@ based on the [Go Date Parser library](https://github.com/araddon/dateparse).
 
 ```mdtest-spq
 # spq
-yield time(this)
+values time(this)
 # input
 "May 8, 2009 5:57:51 PM"
 "oct 7, 1970"
@@ -618,7 +618,7 @@ For example
 # spq
 type port = uint16
 
-yield <port>(this)
+values <port>(this)
 # input
 80
 8080

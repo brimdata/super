@@ -19,7 +19,7 @@ then the type category of the referenced type is returned.
 A primitive value's kind is "primitive":
 ```mdtest-spq
 # spq
-yield kind(this)
+values kind(this)
 # input
 1
 "a"
@@ -34,7 +34,7 @@ A complex value's kind is its complex type category.  Try it on
 these empty values of various complex types:
 ```mdtest-spq
 # spq
-yield kind(this)
+values kind(this)
 # input
 {}
 []
@@ -52,7 +52,7 @@ yield kind(this)
 An error has kind "error":
 ```mdtest-spq
 # spq
-yield kind(1/this)
+values kind(1/this)
 # input
 0
 # expected output
@@ -62,7 +62,7 @@ yield kind(1/this)
 A type's kind is the kind of the type:
 ```mdtest-spq
 # spq
-yield kind(this)
+values kind(this)
 # input
 <{s:string}>
 # expected output

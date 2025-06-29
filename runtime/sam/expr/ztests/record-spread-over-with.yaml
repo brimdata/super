@@ -1,7 +1,7 @@
 spq: |
   over tweet_ids with outer=this into (
     ids:=collect(string(this))
-    | yield {...outer,tweet_ids:join(ids,',')}
+    | values {...outer,tweet_ids:join(ids,',')}
   )
 
 input: |

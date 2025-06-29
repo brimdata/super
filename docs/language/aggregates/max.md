@@ -34,7 +34,7 @@ max(this)
 Continuous maximum of simple numeric sequence:
 ```mdtest-spq
 # spq
-yield max(this)
+values max(this)
 # input
 1
 2

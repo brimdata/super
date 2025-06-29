@@ -1,24 +1,24 @@
 script: |
-  super compile -C -O 'yield {a:b} | where a==1'
+  super compile -C -O 'values {a:b} | where a==1'
   echo ===
-  super compile -C -O 'yield {...a} | where b==1'
+  super compile -C -O 'values {...a} | where b==1'
   echo ===
-  super compile -C -O 'yield {a:{b:c}} | where a.b==1'
+  super compile -C -O 'values {a:{b:c}} | where a.b==1'
 
 outputs:
   - name: stdout
     data: |
       null
       | where b==1
-      | yield {a:b}
+      | values {a:b}
       | output main
       ===
       null
       | where a.b==1
-      | yield {...a}
+      | values {...a}
       | output main
       ===
       null
       | where c==1
-      | yield {a:{b:c}}
+      | values {a:{b:c}}
       | output main

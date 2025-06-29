@@ -18,7 +18,7 @@ string. The string `sep` is placed between each value in the resulting string.
 Join a symbol array of strings:
 ```mdtest-spq
 # spq
-yield join(this, ",")
+values join(this, ",")
 # input
 ["a","b","c"]
 # expected output
@@ -28,7 +28,7 @@ yield join(this, ",")
 Join non-string arrays by first casting:
 ```mdtest-spq
 # spq
-yield join(cast(this, <[string]>), "...")
+values join(cast(this, <[string]>), "...")
 # input
 [1,2,3]
 [10.0.0.1,10.0.0.2]

@@ -1,5 +1,5 @@
 spq: |
-  over this with foo="bar" into (sort this | yield {num: this, foo})
+  over this with foo="bar" into (sort this | values {num: this, foo})
 
 input: "[4,2,6,1]"
 

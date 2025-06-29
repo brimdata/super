@@ -1,5 +1,5 @@
 # This test is to test that overflows with const nulls are properly handled.
-spq: yield uint8(this), uint16(this), uint32(this), uint64(this)
+spq: values uint8(this), uint16(this), uint32(this), uint64(this)
 
 vector: true
 

@@ -2,7 +2,7 @@
 
 script: |
   super -o t.csup -f csup -
-  SUPER_VAM=1 super -s -c "from t.csup | yield this,a+a,a+b,b+a,b+b"
+  SUPER_VAM=1 super -s -c "from t.csup | values this,a+a,a+b,b+a,b+b"
 
 inputs:
   - name: stdin

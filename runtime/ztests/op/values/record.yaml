@@ -1,4 +1,4 @@
-spq: yield {x:a+1,y:2*a}
+spq: values {x:a+1,y:2*a}
 
 vector: true
 

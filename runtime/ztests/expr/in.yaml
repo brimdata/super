@@ -1,5 +1,5 @@
 spq: |
-  yield [1 in this, 9 in this]
+  values [1 in this, 9 in this]
 
 vector: true
 

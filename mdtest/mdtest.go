@@ -60,7 +60,7 @@
 //
 //	```mdtest-spq [fails]
 //	# spq
-//	yield a
+//	values a
 //	# input
 //	{a:1}
 //	# expected output

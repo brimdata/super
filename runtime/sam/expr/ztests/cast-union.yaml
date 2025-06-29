@@ -1,4 +1,4 @@
-spq: yield cast(this, <(int64,string)>)
+spq: cast(this, <(int64,string)>)
 
 input: |
   null

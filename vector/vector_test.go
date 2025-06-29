@@ -12,10 +12,10 @@ import (
 )
 
 func FuzzQuery(f *testing.F) {
-	f.Add([]byte("yield f1\x00"))
-	f.Add([]byte("yield f1, f2\x00"))
+	f.Add([]byte("values f1\x00"))
+	f.Add([]byte("values f1, f2\x00"))
 	f.Add([]byte("f1 == null\x00"))
-	f.Add([]byte("f1 == null | yield f2\x00"))
+	f.Add([]byte("f1 == null | values f2\x00"))
 	f.Fuzz(func(t *testing.T, b []byte) {
 		bytesReader := bytes.NewReader(b)
 		querySource := fuzz.GenAscii(bytesReader)

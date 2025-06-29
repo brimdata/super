@@ -41,5 +41,5 @@ outputs:
       | combine
       | aggregate partials-in
           count:=count()
-      | yield count
+      | values count
       | output main

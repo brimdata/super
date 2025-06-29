@@ -22,7 +22,7 @@ The _under_ function returns the value underlying the argument `val`:
 Unions are unwrapped:
 ```mdtest-spq
 # spq
-yield this
+values this
 # input
 1((int64,string))
 "foo"((int64,string))
@@ -33,7 +33,7 @@ yield this
 
 ```mdtest-spq
 # spq
-yield under(this)
+values under(this)
 # input
 1((int64,string))
 "foo"((int64,string))
@@ -45,7 +45,7 @@ yield under(this)
 Errors are unwrapped:
 ```mdtest-spq
 # spq
-yield this
+values this
 # input
 error("foo")
 error({err:"message"})
@@ -56,7 +56,7 @@ error({err:"message"})
 
 ```mdtest-spq
 # spq
-yield under(this)
+values under(this)
 # input
 error("foo")
 error({err:"message"})
@@ -68,7 +68,7 @@ error({err:"message"})
 Values of named types are unwrapped:
 ```mdtest-spq
 # spq
-yield this
+values this
 # input
 80(port=uint16)
 # expected output
@@ -77,7 +77,7 @@ yield this
 
 ```mdtest-spq
 # spq
-yield under(this)
+values under(this)
 # input
 80(port=uint16)
 # expected output
@@ -87,7 +87,7 @@ yield under(this)
 Values that are not wrapped are unmodified:
 ```mdtest-spq
 # spq
-yield under(this)
+values under(this)
 # input
 1
 "foo"

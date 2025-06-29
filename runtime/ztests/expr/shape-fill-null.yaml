@@ -1,4 +1,4 @@
-spq: yield fill(<{f:null}>)
+spq: values fill(<{f:null}>)
 
 vector: true
 

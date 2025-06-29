@@ -1,4 +1,4 @@
-spq: yield a.b
+spq: values a.b
 
 vector: true
 

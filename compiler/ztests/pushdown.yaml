@@ -1,21 +1,21 @@
 script: |
   echo === debug
-  super compile -C -O 'from file | debug a | yield b'
+  super compile -C -O 'from file | debug a | values b'
   echo === distinct
-  super compile -C -O 'from file | distinct a | yield b'
+  super compile -C -O 'from file | distinct a | values b'
   echo === fork-join
-  super compile -C -O 'fork ( from file1 ) ( from file2 ) | join on right.a=left.b | yield left.c,right.d'
+  super compile -C -O 'fork ( from file1 ) ( from file2 ) | join on right.a=left.b | values left.c,right.d'
   echo === join
-  super compile -C -O "from file1 | join (from file2) on left.a=right.b | yield left.c,right.d"
+  super compile -C -O "from file1 | join (from file2) on left.a=right.b | values left.c,right.d"
   echo === switch-join
-  super compile -C -O 'from file | switch a case b ( put x:=c ) case d ( put x:=e ) | join on left.f=right.g | yield left.h,right.i'
+  super compile -C -O 'from file | switch a case b ( put x:=c ) case d ( put x:=e ) | join on left.f=right.g | values left.h,right.i'
   echo === where
-  super compile -C -O "from file | a==1 or e==2 | yield c, b, d"
+  super compile -C -O "from file | a==1 or e==2 | values c, b, d"
   echo ===
   export SUPER_DB=test
   super db init -q
   super db create -q -orderby ts pool-ts
-  super db compile -C -O "from 'pool-ts' | x=='hello' or x==1.0 | yield a" | sed -e 's/lister .*/lister/' -e 's/seqscan .*field/seqscan field/'
+  super db compile -C -O "from 'pool-ts' | x=='hello' or x==1.0 | values a" | sed -e 's/lister .*/lister/' -e 's/seqscan .*field/seqscan field/'
   echo ===
   super db compile -C -O "from 'pool-ts' | x > 1 and y <= 1.0" | sed -e 's/lister .*/lister/' -e 's/seqscan .*filter/seqscan filter/'
   echo ===
@@ -34,17 +34,17 @@ outputs:
       file file fields a,b
       | mirror
         (
-          yield a
+          values a
           | output debug
         )
         (
-          yield b
+          values b
           | output main
         )
       === distinct
       file file unordered fields a,b
       | distinct a
-      | yield b
+      | values b
       | output main
       === fork-join
       fork
@@ -55,7 +55,7 @@ outputs:
           file file2 unordered fields a,d
         )
       | inner join as {left,right} on b=a
-      | yield left.c, right.d
+      | values left.c, right.d
       | output main
       === join
       fork
@@ -66,7 +66,7 @@ outputs:
           file file2 unordered fields b,d
         )
       | inner join as {left,right} on a=b
-      | yield left.c, right.d
+      | values left.c, right.d
       | output main
       === switch-join
       file file unordered fields a,b,c,d,e,f,g,h,i
@@ -78,17 +78,17 @@ outputs:
           put x:=e
         )
       | inner join as {left,right} on f=g
-      | yield left.h, right.i
+      | values left.h, right.i
       | output main
       === where
       file file fields a,b,c,d,e filter (a==1 or e==2)
-      | yield c, b, d
+      | values c, b, d
       | output main
       ===
       lister
       | slicer
       | seqscan fields a,x filter (x=="hello" or x==1.)
-      | yield a
+      | values a
       | output main
       ===
       lister

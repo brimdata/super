@@ -288,7 +288,7 @@ func (p *Putter) lookupRule(inType *super.TypeRecord, vals []super.Value, fields
 func CheckPutFields(fields field.List) error {
 	for i, f := range fields {
 		if f.IsEmpty() {
-			return fmt.Errorf("left-hand side cannot be 'this' (use 'yield' operator)")
+			return fmt.Errorf("left-hand side cannot be 'this' (use 'values' operator)")
 		}
 		for _, c := range fields[i+1:] {
 			if f.Equal(c) {

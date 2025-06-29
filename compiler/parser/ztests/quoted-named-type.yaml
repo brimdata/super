@@ -1,5 +1,5 @@
 spq: |
-  yield <"@foo"={x:int64}>
+  values <"@foo"={x:int64}>
 
 input: |
   null

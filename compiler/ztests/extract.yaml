@@ -5,5 +5,5 @@ outputs:
   - name: stdout
     data: |
       null
-      | yield date_part("microseconds", ts)
+      | values date_part("microseconds", ts)
       | output main

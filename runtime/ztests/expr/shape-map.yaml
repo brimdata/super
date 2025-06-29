@@ -5,7 +5,7 @@ spq: |
     "conn": <conn>,
     "dns": <dns>
   }|
-  yield cast(this,schemas[_path])
+  values cast(this,schemas[_path])
 
 vector: true
 

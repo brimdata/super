@@ -1,4 +1,4 @@
-spq: yield has(a,b)
+spq: values has(a,b)
 
 vector: true
 

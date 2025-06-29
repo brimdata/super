@@ -17,7 +17,7 @@ which must be a numeric type.  The return type retains the type of the argument.
 
 ```mdtest-spq
 # spq
-yield round(this)
+values round(this)
 # input
 3.14
 -1.5

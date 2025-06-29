@@ -19,7 +19,7 @@ spanning those separators.
 Split a semi-colon delimited list of fruits:
 ```mdtest-spq
 # spq
-yield split(this,";")
+values split(this,";")
 # input
 "apple;banana;pear;peach"
 # expected output
@@ -30,7 +30,7 @@ Split a comma-separated list of IPs and cast the array of strings to an
 array of IPs:
 ```mdtest-spq
 # spq
-yield cast(split(this,","),<[ip]>)
+values cast(split(this,","),<[ip]>)
 # input
 "10.0.0.1,10.0.0.2,10.0.0.3"
 # expected output

@@ -13,23 +13,23 @@ The _quiet_ function returns its argument `val` unless `val` is
 `error("missing")`, in which case it returns `error("quiet")`.
 Various operators and functions treat quiet errors differently than
 missing errors, in particular, dropping them instead of propagating them.
-Quiet errors are ignored by operators `aggregate`, `cut`, and `yield`.
+Quiet errors are ignored by operators `aggregate`, `cut`, and `values`.
 
 ### Examples
 
-Yield processes a quiet error and thus no output:
+Values processes a quiet error and thus no output:
 ```mdtest-spq
 # spq
-yield quiet(this)
+values quiet(this)
 # input
 error("missing")
 # expected output
 ```
 
-Without quiet, yield produces the missing error:
+Without quiet, values produces the missing error:
 ```mdtest-spq
 # spq
-yield this
+values this
 # input
 error("missing")
 # expected output

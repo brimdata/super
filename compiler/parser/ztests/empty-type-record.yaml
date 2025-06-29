@@ -1,4 +1,4 @@
-spq: yield <{}>
+spq: values <{}>
 
 input: |
   null

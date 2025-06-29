@@ -4,14 +4,14 @@ spq: |
     case 1 (
       const a = 10
       const b = 20
-      yield {k:0,a:[101, a, b]}
+      values {k:0,a:[101, a, b]}
     )
     case 2 (
       const b = 30
-      yield {k:1,a:[102, a, b, this.a]}
+      values {k:1,a:[102, a, b, this.a]}
     )
     case 3 (
-      yield {k:2,a:[103, a, b]}
+      values {k:2,a:[103, a, b]}
     )
   | sort k
 

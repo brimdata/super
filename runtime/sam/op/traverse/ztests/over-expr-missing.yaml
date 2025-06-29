@@ -1,4 +1,4 @@
-spq: yield (over a | sum(this))
+spq: values (over a | sum(this))
 
 input: |
   {a:[1,2]}

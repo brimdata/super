@@ -7,7 +7,7 @@ script: |
   echo ===
   super -s -c "select * from (select T.a,b x from (values (1,'foo'),(3,'bar')) as T ( a, b)) as T2(d)"
   echo ===
-  super -s -c "from (values 1,2,3)"
+  super -s -c "from (values (1),(2),(3))"
   echo ===
   super -s -c 'select V.s from (select sum(a) as s from (values (1),(2)) as T(a)) as V'
 

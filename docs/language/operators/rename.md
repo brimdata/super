@@ -62,7 +62,7 @@ rename w:=r.b
 _Record literals can be used instead of rename for mutation_
 ```mdtest-spq
 # spq
-yield {a,r:{c:r.c},w:r.b}
+values {a,r:{c:r.c},w:r.b}
 # input
 {a:1,r:{b:2,c:3}}
 # expected output
@@ -72,7 +72,7 @@ yield {a,r:{c:r.c},w:r.b}
 _Alternatively, mutations can be more generic and use drop_
 ```mdtest-spq
 # spq
-yield {a,r,w:r.b} | drop r.b
+values {a,r,w:r.b} | drop r.b
 # input
 {a:1,r:{b:2,c:3}}
 # expected output

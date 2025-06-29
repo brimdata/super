@@ -34,11 +34,11 @@ Each right-hand side `<expr>` can be any SuperSQL expression.
 For any input value that is not a record, an error is emitted.
 
 Note that when the field references are all top level,
-`put` is a special case of a [`yield`](yield.md) with a
+`put` is a special case of [`values`](values.md) with a
 [record literal](../expressions.md#record-expressions)
 using a spread operator of the form:
 ```
-yield {...this, <field>:<expr> [, <field>:<expr>...]}
+values {...this, <field>:<expr> [, <field>:<expr>...]}
 ```
 
 ### Examples
@@ -66,7 +66,7 @@ c:=3
 _A `put` operation can also be done with a record literal_
 ```mdtest-spq
 # spq
-yield {...this, c:3}
+values {...this, c:3}
 # input
 {a:1,b:2}
 # expected output

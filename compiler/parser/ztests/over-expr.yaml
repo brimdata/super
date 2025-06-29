@@ -4,7 +4,7 @@ script: |
   echo === cast
   super compile -C 'uint8(over a | ?b)'
   echo === expression
-  super compile -C 'yield (over a | ?b)'
+  super compile -C 'values (over a | ?b)'
   echo === function
   super compile -C 'quiet(over a | ?b)'
   echo === grep
@@ -25,7 +25,7 @@ outputs:
         | search b
       ))
       === expression
-      yield (
+      values (
         over a
         | search b
       )

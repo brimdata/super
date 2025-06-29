@@ -1,5 +1,5 @@
 spq: |
-  yield case when typeof(this) == <string>
+  values case when typeof(this) == <string>
     then this
     else a OR b
   end

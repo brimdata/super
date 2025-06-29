@@ -1,5 +1,5 @@
 spq: |
-  over a with b into ( yield {a:this+10,b} )
+  over a with b into ( values {a:this+10,b} )
 
 input: |
   {a:[1,2],b:3}

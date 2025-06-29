@@ -31,7 +31,7 @@ collect(this)
 Continuous collection over a simple sequence:
 ```mdtest-spq
 # spq
-yield collect(this)
+values collect(this)
 # input
 1
 2

@@ -1,5 +1,5 @@
 script: |
-  super -s -c 'yield a=11' d.json
+  super -s -c 'values a=11' d.json
   echo ===
   super -s -c 'select distinct a,c from "d.json" where c=1 | sort this'
 

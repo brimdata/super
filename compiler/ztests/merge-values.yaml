@@ -1,15 +1,15 @@
 script: |
-  super compile -C -O 'yield {a:1} | yield a, {b:a}'
+  super compile -C -O 'values {a:1} | values a, {b:a}'
   echo ===
-  super compile -C -O 'yield {a,b} | aggregate count(a) by b'
+  super compile -C -O 'values {a,b} | aggregate count(a) by b'
   echo ===
-  super compile -C -O 'yield {...a} | yield {...b.c} | yield d, {e}'
+  super compile -C -O 'values {...a} | values {...b.c} | values d, {e}'
   echo ===
-  super compile -C -O 'yield {a:{b:1}} | yield {a:{...a,c:2}} | yield {a:{...a,d:3}}'
+  super compile -C -O 'values {a:{b:1}} | values {a:{...a,c:2}} | values {a:{...a,d:3}}'
   echo ===
-  super compile -C -O '{...a,...b} | yield {c}'
+  super compile -C -O '{...a,...b} | values {c}'
   echo ===
-  super compile -C -O '{a,...b} | yield {a}'
+  super compile -C -O '{a,...b} | values {a}'
   echo ===
   super compile -C -O 'select a, max(b) as c group by a | aggregate min(c) by a'
 
@@ -17,7 +17,7 @@ outputs:
   - name: stdout
     data: |
       null
-      | yield 1, {b:1}
+      | values 1, {b:1}
       | output main
       ===
       null
@@ -26,21 +26,21 @@ outputs:
       | output main
       ===
       null
-      | yield a.b.c.d, {e:a.b.c.e}
+      | values a.b.c.d, {e:a.b.c.e}
       | output main
       ===
       null
-      | yield {a:{b:1,c:2,d:3}}
+      | values {a:{b:1,c:2,d:3}}
       | output main
       ===
       null
-      | yield {...a,...b}
-      | yield {c:c}
+      | values {...a,...b}
+      | values {c:c}
       | output main
       ===
       null
-      | yield {a:a,...b}
-      | yield {a:a}
+      | values {a:a,...b}
+      | values {a:a}
       | output main
       ===
       null
