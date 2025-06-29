@@ -1,2 +1,2 @@
-### Enum Type
+### Enum Types
 

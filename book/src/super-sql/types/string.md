@@ -1,3 +1,2 @@
-# String Type
-
+### String Type
 

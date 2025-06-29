@@ -1,2 +1,2 @@
-# Union Type
+### Union Types
 

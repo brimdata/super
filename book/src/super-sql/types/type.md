@@ -1,4 +1,4 @@
-## Type Type
+### Type Type
 
 As in the super data model, the SuperSQL language has first-class types:
 any type may be used as a value.

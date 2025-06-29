@@ -1,4 +1,2 @@
-### Array Type
-
-
+### Array Types
 

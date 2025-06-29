@@ -1,2 +1,2 @@
-### Record Type
+### Record Types
 
