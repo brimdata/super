@@ -1,4 +1,4 @@
-spq: sample s2 | sort
+spq: shapes | sort this
 
 vector: true
 
@@ -10,5 +10,5 @@ input: |
   {s1:"b",s2:"a"}
 
 output: |
-  0
-  "b"
+  {s1:"a",s2:0}
+  {s1:"a",s2:"b"}

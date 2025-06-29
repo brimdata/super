@@ -1,20 +1,20 @@
 ### Operator
 
-&emsp; **sample** &mdash; select one value of each shape
+&emsp; **shapes** &mdash; select one value of each shape
 
 ### Synopsis
 ```
-sample [<expr>]
+shapes [<expr>]
 ```
 ### Description
 
-The `sample` operator is a syntactic shortcut for
+The `shapes` operator is a syntactic shortcut for
 ```
 val:=any(<expr>) by typeof(<expr>) | yield val
 ```
 If `<expr>` is not provided, `this` is used.
 
-In other words, `sample` produces one value of each type in the input.
+In other words, `shapes` produces one value of each type in the input.
 This is useful for data exploration when you want to see the shapes
 of data and some sample data in a data set without having to sift
 through it all to slice and dice it.
@@ -24,7 +24,7 @@ through it all to slice and dice it.
 _A simple sample_
 ```mdtest-spq
 # spq
-sample | sort this
+shapes | sort this
 # input
 1
 2
@@ -42,7 +42,7 @@ sample | sort this
 _Sampling record shapes_
 ```mdtest-spq
 # spq
-sample | sort a
+shapes | sort a
 # input
 {a:1}
 {a:2}

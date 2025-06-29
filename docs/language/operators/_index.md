@@ -26,7 +26,7 @@ operators listed below, Zed also allows for the creation of
 * [pass](pass.md) - copy input values to output
 * [put](put.md) - add or modify fields of records
 * [rename](rename.md) - change the name of record fields
-* [sample](sample.md) - select one value of each shape
+* [shapes](shapes.md) - select one value of each shape
 * [search](search.md) - select values based on a search expression
 * [skip](skip.md) - skip leading values of input sequence
 * [sort](sort.md) - sort values

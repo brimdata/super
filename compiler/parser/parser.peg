@@ -311,7 +311,7 @@ Operator
   / FuseOp
   / ShapeOp
   / JoinOp
-  / SampleOp
+  / ShapesOp
   / FromOp
   / PassOp
   / ExplodeOp
@@ -581,9 +581,9 @@ JoinKey
   = Lval
   / "(" expr:Expr ")" { return expr, nil }
 
-SampleOp
-  = SAMPLE &EOKW expr:(_ e:Lval { return e, nil })? {
-      o := &ast.Sample{Kind: "Sample", Loc: loc(c)}
+ShapesOp
+  = SHAPES &EOKW expr:(_ e:Lval { return e, nil })? {
+      o := &ast.Shapes{Kind: "Shapes", Loc: loc(c)}
       if expr != nil {
         o.Expr = expr.(ast.Expr)
       }
@@ -2384,7 +2384,7 @@ REGEXP     = "REGEXP"i          !IdentifierRest
 REGEXP_REPLACE = "REGEXP_REPLACE"i !IdentifierRest
 RENAME     = "RENAME"i          !IdentifierRest
 RIGHT      = "RIGHT"i           !IdentifierRest
-SAMPLE     = "SAMPLE"i          !IdentifierRest
+SHAPES     = "SHAPES"i          !IdentifierRest
 SEARCH     = "SEARCH"i          !IdentifierRest
 SELECT     = "SELECT"i          !IdentifierRest
 SHAPE      = "SHAPE"i           !IdentifierRest

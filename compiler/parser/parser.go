@@ -2409,7 +2409,7 @@ var g = &grammar{
 					},
 					&ruleRefExpr{
 						pos:  position{line: 314, col: 5, offset: 7798},
-						name: "SampleOp",
+						name: "ShapesOp",
 					},
 					&ruleRefExpr{
 						pos:  position{line: 315, col: 5, offset: 7811},
@@ -3936,17 +3936,17 @@ var g = &grammar{
 			leftRecursive: false,
 		},
 		{
-			name: "SampleOp",
+			name: "ShapesOp",
 			pos:  position{line: 584, col: 1, offset: 13745},
 			expr: &actionExpr{
 				pos: position{line: 585, col: 5, offset: 13758},
-				run: (*parser).callonSampleOp1,
+				run: (*parser).callonShapesOp1,
 				expr: &seqExpr{
 					pos: position{line: 585, col: 5, offset: 13758},
 					exprs: []any{
 						&ruleRefExpr{
 							pos:  position{line: 585, col: 5, offset: 13758},
-							name: "SAMPLE",
+							name: "SHAPES",
 						},
 						&andExpr{
 							pos: position{line: 585, col: 12, offset: 13765},
@@ -3962,7 +3962,7 @@ var g = &grammar{
 								pos: position{line: 585, col: 23, offset: 13776},
 								expr: &actionExpr{
 									pos: position{line: 585, col: 24, offset: 13777},
-									run: (*parser).callonSampleOp8,
+									run: (*parser).callonShapesOp8,
 									expr: &seqExpr{
 										pos: position{line: 585, col: 24, offset: 13777},
 										exprs: []any{
@@ -17915,16 +17915,16 @@ var g = &grammar{
 			leftRecursive: false,
 		},
 		{
-			name: "SAMPLE",
+			name: "SHAPES",
 			pos:  position{line: 2387, col: 1, offset: 74014},
 			expr: &seqExpr{
 				pos: position{line: 2387, col: 14, offset: 74027},
 				exprs: []any{
 					&litMatcher{
 						pos:        position{line: 2387, col: 14, offset: 74027},
-						val:        "sample",
+						val:        "shapes",
 						ignoreCase: true,
-						want:       "\"SAMPLE\"i",
+						want:       "\"SHAPES\"i",
 					},
 					&notExpr{
 						pos: position{line: 2387, col: 33, offset: 74046},
@@ -19748,18 +19748,18 @@ func (p *parser) callonJoinKey3() (any, error) {
 	return p.cur.onJoinKey3(stack["expr"])
 }
 
-func (c *current) onSampleOp8(e any) (any, error) {
+func (c *current) onShapesOp8(e any) (any, error) {
 	return e, nil
 }
 
-func (p *parser) callonSampleOp8() (any, error) {
+func (p *parser) callonShapesOp8() (any, error) {
 	stack := p.vstack[len(p.vstack)-1]
 	_ = stack
-	return p.cur.onSampleOp8(stack["e"])
+	return p.cur.onShapesOp8(stack["e"])
 }
 
-func (c *current) onSampleOp1(expr any) (any, error) {
-	o := &ast.Sample{Kind: "Sample", Loc: loc(c)}
+func (c *current) onShapesOp1(expr any) (any, error) {
+	o := &ast.Shapes{Kind: "Shapes", Loc: loc(c)}
 	if expr != nil {
 		o.Expr = expr.(ast.Expr)
 	}
@@ -19767,10 +19767,10 @@ func (c *current) onSampleOp1(expr any) (any, error) {
 
 }
 
-func (p *parser) callonSampleOp1() (any, error) {
+func (p *parser) callonShapesOp1() (any, error) {
 	stack := p.vstack[len(p.vstack)-1]
 	_ = stack
-	return p.cur.onSampleOp1(stack["expr"])
+	return p.cur.onShapesOp1(stack["expr"])
 }
 
 func (c *current) onOpAssignment1(a any) (any, error) {

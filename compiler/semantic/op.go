@@ -904,7 +904,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 			Exprs: exprs,
 			Body:  body,
 		})
-	case *ast.Sample:
+	case *ast.Shapes:
 		e := dag.Expr(&dag.This{Kind: "This"})
 		if o.Expr != nil {
 			e = a.semExpr(o.Expr)
