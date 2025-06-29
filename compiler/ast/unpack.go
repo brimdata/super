@@ -101,7 +101,7 @@ var unpacker = unpack.New(
 	VectorValue{},
 	Where{},
 	Yield{},
-	Sample{},
+	Shapes{},
 	Delete{},
 	LakeMeta{},
 	// SuperSQL

@@ -590,7 +590,7 @@ type (
 		Left, Right *ID
 		Loc         `json:"loc"`
 	}
-	Sample struct {
+	Shapes struct {
 		Kind string `json:"kind" unpack:""`
 		Expr Expr   `json:"expr"`
 		Loc  `json:"loc"`
@@ -752,7 +752,7 @@ func (*Over) OpAST()         {}
 func (*Search) OpAST()       {}
 func (*Where) OpAST()        {}
 func (*Yield) OpAST()        {}
-func (*Sample) OpAST()       {}
+func (*Shapes) OpAST()       {}
 func (*Load) OpAST()         {}
 func (*Assert) OpAST()       {}
 func (*Output) OpAST()       {}
