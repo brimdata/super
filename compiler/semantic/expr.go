@@ -579,6 +579,9 @@ func (a *analyzer) semBinary(e *ast.BinaryExpr) dag.Expr {
 		op = "!="
 	case "||":
 		op = "+"
+	case "not in":
+		expr := &dag.BinaryExpr{Kind: "BinaryExpr", Op: "in", LHS: lhs, RHS: rhs}
+		return &dag.UnaryExpr{Kind: "UnaryExpr", Op: "!", Operand: expr}
 	}
 	return &dag.BinaryExpr{
 		Kind: "BinaryExpr",

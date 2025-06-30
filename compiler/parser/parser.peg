@@ -99,6 +99,7 @@ ExprGuard = __ (Comparator / AdditiveOperator / MultiplicativeOperator / ":" / "
 Comparator
   = ("==" / "=" / "!=" / "<>" / IN / LIKE / "<=" / "<" / ">=" / ">") { return string(c.text), nil }
   / NOT _ LIKE { return "not like", nil }
+  / NOT _ IN { return "not in", nil }
 
 SearchBoolean
   = first:SearchAnd rest:SearchOrTerm* {
