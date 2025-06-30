@@ -277,12 +277,12 @@ In a sense, SuperDB generalizes Codd's relational algebra to polymorphic operato
 All of Codd's relational operators can be recast in this fashion forming
 the polymorphic algebra of super-structured data implemented by SuperDB.
 
-## On Evolving SQL
+## Evolving SQL
 
 Despite SQL's enduring success,
 it is widely accepted that there are serious flaws in the language and
-a number of works argue that SQL should be replaced in its entirety.
-Among others, here are some noteworthy arguments:
+a number of authors argue that SQL should be replaced in its entirety.
+Among many such works, here are some noteworthy arguments:
 
 * [A Critique of the SQL Database Language](https://dl.acm.org/doi/pdf/10.1145/984549.984551)
 a 1983 paper by
@@ -294,19 +294,36 @@ Query Language](https://www.cidrdb.org/cidr2024/papers/p48-neumann.pdf)
 by [Neumann](https://db.in.tum.de/~neumann/)
 and [Leis](https://www.cs.cit.tum.de/dis/team/prof-dr-viktor-leis/).
 
-On the other hand, the paper
-[SQL Has Problems. We Can Fix Them: Pipe Syntax In SQL](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/)
-by [Jeff Shute](https://scholar.google.com/citations?user=ylqvw-sAAAAJ&hl=en) et al.,
-argues that except for compositional syntax, SQL is acceptable 
-and we should live with its anachronism (see Section 2.4).
-Thus, in their
-[Pipe SQL specification]()
-many of the SQL anachronisms are carried forward into their modern adaptation
-of pipes to SQL.
+But rather than replace SQL entirely, a very different approach is taken in 
+[SQL Has Problems. We Can Fix Them: Pipe Syntax In SQL](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/).
+Here the authors argue that except for compositional syntax, SQL is
+perfectly reasonable and we should live with its anachronisms (see Section 2.4).
+Thus, their
+[Pipe SQL specification](https://github.com/google/zetasql/blob/master/docs/pipe-syntax.md)
+carries forward SQL eccentricities into their modern adaptation
+of pipes for SQL.
 
-XXX SuperSQL follows the Pipe SQL pattern but takes the opportunity.
-Vision here is that old-style SQL syntax may eventually go away but a framework
-like that provided in SuperSQL provides a means for a multi-decade transition.
+SuperSQL follows the Pipe SQL pattern but seizes the opportunity to modernrize
+the ergonomics of the language.  The vision here is that comprehensive backward
+compatibility can reside in the SQL operators while an modernized syntax and
+and improved ergonomics can reside in the pipe operators, e.g.,
+
+* array indexing is one-based in SQL clauses but zero-based in pipe operators,
+* column names in SQL clauses are case insensitive while record field references 
+are case sensitive in pipe operators,
+* complex scoping rules for table aliases and column references are required in
+relational SQL while binding from names to data in pipe operators is managed
+in a uniform and simple way as derefenced paths on `this`,
+* the syntactic structure of SQL clauses means all data must conform to a table
+whereas pipe operators can emit any data type desired in a varying fashion.
+* sum types are integral to piped data allowing mix-typed data proceessing
+and results that need not fit in a uniform table,
+
+With this approach, SuperSQL can be adopted and used for existing use cases
+based on legacy SQL while incrementally expanding and embracing the 
+the pipe model tied to super-structured data.
+Perhaps this could enable a long-term and gradual transition away
+from relational SQL toward a modern and more ergonomic replacement.
 
 The jury is out as to whether Piped SQL for super-structured data is the
 right approach for curing SQL's ills, but it certainly provides a framework
