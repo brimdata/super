@@ -34,7 +34,7 @@ sequence has the form:
 where the first field is copied to each derived value and the second field is
 the unnested elements of the array `elem0`, `elem1`, etc.
 
-To explode the fields of records or the key-value paris of maps, use the flatten 
+To explode the fields of records or the key-value paris of maps, use the  
 [`flatten` function](../functions/records/flatten.md), which produces an array that
 can be unnested.
 
