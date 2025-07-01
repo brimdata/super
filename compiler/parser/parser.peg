@@ -992,7 +992,10 @@ UnaryPlusOrMinus
 PlusOrMinusOp = ("+" / "-") { return string(c.text), nil }
 
 DerefExpr
-  = expr:DerefExpr "[" __ from:AdditiveExpr __ ":" __ to:AdditiveExpr? __ "]" {
+  = expr:DerefExpr __ "::" __ typ:(TypeAsValue / TypeLiteral) {
+      return &ast.Cast{Kind: "Cast", Expr: expr.(ast.Expr), Type: typ.(ast.Expr), Loc: loc(c)}, nil
+    }
+  / expr:DerefExpr "[" __ from:AdditiveExpr __ ":" __ to:AdditiveExpr? __ "]" {
       e := &ast.SliceExpr{
         Kind: "SliceExpr",
         Expr: expr.(ast.Expr),
@@ -1331,7 +1334,7 @@ SubnetLiteral
     }
 
 AddressLiteral
-  = v:IP6 !IdentifierRest {
+  = v:IP6 !(IdentifierRest / TypeLiteral) {
       return newPrimitive(c, "ip", v.(string)), nil
     }
   / v:IP {
@@ -1365,6 +1368,15 @@ TypeLiteral
       return &ast.TypeValue{
         Kind:"TypeValue",
         Value: typ.(ast.Type),
+        Loc: loc(c),
+      }, nil
+    }
+
+TypeAsValue
+  = t:Type {
+      return &ast.TypeValue{
+        Kind:"TypeValue",
+        Value: t.(ast.Type),
         Loc: loc(c),
       }, nil
     }
