@@ -42,7 +42,7 @@ can be unnested.
 > m is a map.  (flatten should take type values too and do the right thing 
 > producing elemental type values from the a complex type value)
 
-e.g., if `this` is a record, it can be traversed with `over flatten(this)`.
+For example, if `this` is a record, it can be unnested with `unnest flatten(this)`.
 
 ### Errors
 
