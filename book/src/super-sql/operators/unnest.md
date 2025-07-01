@@ -14,7 +14,7 @@ unnest <expr> [ into ( <subquery> ) ]
 The `unnest` operator transforms a the given expression
 `<expr>` into a new ordered sequence of derived values.
 
-When the optional [<subquery>](../subqueries.md) is present,
+When the optional [`<subquery>`](../subqueries.md) is present,
 each unnested sequence of values is processed as a unit by that subquery.
 
 If `<expr>` is an array, then the elements of that array form the derived sequence.
