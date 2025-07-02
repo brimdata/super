@@ -4,12 +4,16 @@ script: |
   super -s -c "values {x:1,s:'foo'}::{x:string,s:string}"
   super -s -c "values 3.3.3.0/24::net, ::1/128::net, 2::/16::net"
   super -s -c "values 3.3.3.3::ip, ::::ip, 2::::ip, (::)::ip, (2::)::ip"
+  super -s -c "values 80::port=uint16"
+  super -s -c "values 123::uint16::(uint16,float64)"
   echo ===
   super -s -c "values 1::<uint8>, 2::<int32>, 3::<float64>, '2025-07-01T21:53:23.26504Z'::<time>"
   super -s -c "values [1,2,3]::<[string]>"
   super -s -c "values {x:1,s:'foo'}::<{x:string,s:string}>"
   super -s -c "values 3.3.3.0/24::<net>, ::1/128::<net>, 2::/16::<net>"
   super -s -c "values 3.3.3.3::<ip>, ::::<ip>, 2::::<ip>, (::)::<ip>, (2::)::<ip>"
+  super -s -c "values 80::<port=uint16>"
+  super -s -c "values 123::<uint16>::<(uint16,float64)>"
 
 outputs:
   - name: stdout
@@ -28,6 +32,8 @@ outputs:
       2::
       ::
       2::
+      80(port=uint16)
+      123(uint16)((uint16,float64))
       ===
       1(uint8)
       2(int32)
@@ -43,3 +49,5 @@ outputs:
       2::
       ::
       2::
+      80(port=uint16)
+      123(uint16)((uint16,float64))
