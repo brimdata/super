@@ -36,6 +36,11 @@ super -f parquet -o out.parquet -c fuse file.json
 ```
 super -c "1.+(1/2.)+(1/3.)+(1/4.)"
 ```
+### Search all values in a database pool called logs for keyword "alert" and level >= 2
+```
+super db -c "from logs | ? alert level >= 2"
+```
+
 ### Handle and wrap errors in a SuperSQL pipeline
 ```
 ... | super -c """
