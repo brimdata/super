@@ -12,8 +12,8 @@ input: |
   [1,2,3]
   [1,2,3](array=[int8])
   80(port=uint16)
-  "foo"((int64,string))
-  1((int64,string))
+  "foo"(int64|string)
+  1(int64|string)
   <int64>
   <{s:string}>
   |[1,2,3]|
@@ -30,8 +30,8 @@ output: |
   {val:[1,2,3],kind:"array"}
   {val:[1(int8),2(int8),3(int8)](=array),kind:"array"}
   {val:80(port=uint16),kind:"primitive"}
-  {val:"foo"((int64,string)),kind:"union"}
-  {val:1((int64,string)),kind:"union"}
+  {val:"foo"(int64|string),kind:"union"}
+  {val:1(int64|string),kind:"union"}
   {val:<int64>,kind:"primitive"}
   {val:<{s:string}>,kind:"record"}
   {val:|[1,2,3]|,kind:"set"}

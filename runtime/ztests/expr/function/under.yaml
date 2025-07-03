@@ -12,8 +12,8 @@ input: |
   [1,2,3]
   [1,2,3](array=[int8])
   80(port=uint16)
-  "foo"((int64,string))
-  1((int64,string))
+  "foo"(int64|string)
+  1(int64|string)
   <rec={s:string}>
 
 output: |

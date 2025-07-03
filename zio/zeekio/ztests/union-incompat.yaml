@@ -4,7 +4,7 @@ script: |
 inputs:
   - name: stdin
     data: |
-      {u:"foo"((string,int32))}
+      {u:"foo"(string|int32)}
 
 outputs:
   - name: stderr

@@ -7,7 +7,7 @@ input: |
   null(bytes)
   0x
   0x0123
-  0x0123((bytes,string))
+  0x0123(bytes|string)
   null(string)
   ""
   "string"
@@ -34,10 +34,10 @@ input: |
   <int64>
   <type>
   <{x:int64,y:int64}>
-  <(int64,string)>
+  <int64|string>
   <[int64]>
-  <[(int64,string)]>
-  <any=(int64,string)>
+  <[int64|string]>
+  <any=int64|string>
   error(null)
   error("")
   error("error")

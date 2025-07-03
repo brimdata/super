@@ -52,7 +52,7 @@ inputs:
           struct: {
               a: 0
           },
-          union: 1 ((int64,string)),
+          union: 1 (int64|string),
           map: |{
               1: "one"
           }|,

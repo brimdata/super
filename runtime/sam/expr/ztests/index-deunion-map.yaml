@@ -1,7 +1,7 @@
 spq: values a["one"], a["two"]
 
 input: |
-  {a:|{"one":1((int64,string)),"two":"hi"((int64,string))}|}
+  {a:|{"one":1(int64|string),"two":"hi"(int64|string)}|}
 
 output: |
   1

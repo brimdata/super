@@ -3,8 +3,8 @@ spq: collect(this)
 vector: true
 
 input: |
-  1((int64,string))
-  "foo"((time,string))
+  1(int64|string)
+  "foo"(time|string)
   0.5
 
 output: |

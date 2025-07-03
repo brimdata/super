@@ -698,7 +698,7 @@ SELECT VALUE typeof(in)
 # expected output
 <int64>
 <float64>
-<[(int64,string)]>
+<[int64|string]>
 <|[string]|>
 ```
 

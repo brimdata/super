@@ -4,7 +4,7 @@ vector: true
 
 input: |
   "hello"
-  "😎"((int64,string))
+  "😎"(int64|string)
   1.
 
 output: |

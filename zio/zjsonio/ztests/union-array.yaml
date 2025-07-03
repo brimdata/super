@@ -6,4 +6,4 @@ input: |
 
 output: |
   {a:["asdfasdf",null,100(int32)]}
-  {a:null([(int32,string)])}
+  {a:null([int32|string])}
