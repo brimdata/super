@@ -190,7 +190,7 @@ func (f *Formatter) formatValue(indent int, typ super.Type, bytes zcode.Bytes, p
 	case *super.TypeOfType:
 		f.startColor(color.Gray(200))
 		f.build("<")
-		f.formatTypeValue(indent, bytes)
+		f.formatTypeValue(indent, bytes, false)
 		f.build(">")
 		f.endColor()
 	}
@@ -199,7 +199,7 @@ func (f *Formatter) formatValue(indent int, typ super.Type, bytes zcode.Bytes, p
 	}
 }
 
-func (f *Formatter) formatTypeValue(indent int, tv zcode.Bytes) zcode.Bytes {
+func (f *Formatter) formatTypeValue(indent int, tv zcode.Bytes, unionParent bool) zcode.Bytes {
 	n, tv := super.DecodeLength(tv)
 	if tv == nil {
 		f.truncTypeValueErr()
@@ -225,7 +225,7 @@ func (f *Formatter) formatTypeValue(indent int, tv zcode.Bytes) zcode.Bytes {
 		}
 		f.build(QuotedName(name))
 		f.build("=")
-		tv = f.formatTypeValue(indent, tv)
+		tv = f.formatTypeValue(indent, tv, unionParent)
 	case super.TypeValueNameRef:
 		var name string
 		name, tv = super.DecodeName(tv)
@@ -261,7 +261,7 @@ func (f *Formatter) formatTypeValue(indent int, tv zcode.Bytes) zcode.Bytes {
 			if f.tab > 0 {
 				f.build(" ")
 			}
-			tv = f.formatTypeValue(indent, tv)
+			tv = f.formatTypeValue(indent, tv, false)
 			sep = "," + f.newline
 		}
 		f.build(f.newline)
@@ -284,12 +284,12 @@ func (f *Formatter) formatTypeValue(indent int, tv zcode.Bytes) zcode.Bytes {
 		}
 		f.build(newline)
 		f.indent(indent, "")
-		tv = f.formatTypeValue(indent, tv)
+		tv = f.formatTypeValue(indent, tv, false)
 		f.build(":")
 		if f.tab > 0 {
 			f.build(" ")
 		}
-		tv = f.formatTypeValue(indent, tv)
+		tv = f.formatTypeValue(indent, tv, false)
 		f.build(newline)
 		if newline != "" {
 			f.indent(indent-f.tab, "}|")
@@ -297,23 +297,33 @@ func (f *Formatter) formatTypeValue(indent int, tv zcode.Bytes) zcode.Bytes {
 			f.build("}|")
 		}
 	case super.TypeValueUnion:
-		f.build("(")
 		var n int
 		n, tv = super.DecodeLength(tv)
 		if tv == nil {
 			f.truncTypeValueErr()
 			return nil
 		}
-		sep := f.newline
 		indent += f.tab
-		for range n {
-			f.build(sep)
-			f.indent(indent, "")
-			tv = f.formatTypeValue(indent, tv)
-			sep = "," + f.newline
+		if unionParent {
+			f.build("(" + f.newline)
+		} else {
+			f.build(f.newline)
+		}
+		f.indent(indent, "")
+		for k := range n {
+			tv = f.formatTypeValue(indent, tv, true)
+			if k != n-1 {
+				f.build("|" + f.newline)
+				f.indent(indent, "")
+			}
 		}
 		f.build(f.newline)
-		f.indent(indent-f.tab, ")")
+		indent -= f.tab
+		if unionParent {
+			f.indent(indent, ")")
+		} else {
+			f.indent(indent, "")
+		}
 	case super.TypeValueEnum:
 		f.build("enum(")
 		var n int
@@ -340,7 +350,7 @@ func (f *Formatter) formatTypeValue(indent int, tv zcode.Bytes) zcode.Bytes {
 		f.build("error")
 		f.endColor()
 		f.build("(")
-		tv = f.formatTypeValue(indent, tv)
+		tv = f.formatTypeValue(indent, tv, false)
 		f.build(")")
 	}
 	return tv
@@ -349,14 +359,14 @@ func (f *Formatter) formatTypeValue(indent int, tv zcode.Bytes) zcode.Bytes {
 func (f *Formatter) formatVectorTypeValue(indent int, open, close string, tv zcode.Bytes) zcode.Bytes {
 	f.build(open)
 	if n, _ := super.DecodeLength(tv); n < super.IDTypeComplex {
-		tv = f.formatTypeValue(indent, tv)
+		tv = f.formatTypeValue(indent, tv, false)
 		f.build(close)
 		return tv
 	}
 	indent += f.tab
 	f.build(f.newline)
 	f.indent(indent, "")
-	tv = f.formatTypeValue(indent, tv)
+	tv = f.formatTypeValue(indent, tv, false)
 	f.build(f.newline)
 	f.indent(indent-f.tab, close)
 	return tv
@@ -390,7 +400,7 @@ func (f *Formatter) decorate(typ super.Type, known, null bool) {
 			f.build(" ")
 		}
 		f.build("(")
-		f.formatType(typ)
+		f.formatType(typ, false)
 		f.build(")")
 	}
 }
@@ -558,7 +568,7 @@ func (f *Formatter) buildf(s string, args ...any) {
 // Typedefs handled by decorators are handled in decorate().
 // The routine re-enters the type formatter with a fresh builder by
 // invoking push()/pop().
-func (f *Formatter) formatType(typ super.Type) {
+func (f *Formatter) formatType(typ super.Type, unionParent bool) {
 	if name := f.nameOf(typ); name != "" {
 		f.build(name)
 		return
@@ -567,7 +577,7 @@ func (f *Formatter) formatType(typ super.Type) {
 		f.saveType(named)
 		f.build(named.Name)
 		f.build("=")
-		f.formatType(named.Type)
+		f.formatType(named.Type, unionParent)
 		return
 	}
 	if typ.ID() < super.IDTypeComplex {
@@ -575,13 +585,13 @@ func (f *Formatter) formatType(typ super.Type) {
 		return
 	}
 	f.push()
-	f.formatTypeBody(typ)
+	f.formatTypeBody(typ, unionParent)
 	s := f.builder.String()
 	f.pop()
 	f.build(s)
 }
 
-func (f *Formatter) formatTypeBody(typ super.Type) {
+func (f *Formatter) formatTypeBody(typ super.Type, unionParent bool) {
 	if name := f.nameOf(typ); name != "" {
 		f.build(name)
 		return
@@ -595,28 +605,28 @@ func (f *Formatter) formatTypeBody(typ super.Type) {
 		f.formatTypeRecord(typ)
 	case *super.TypeArray:
 		f.build("[")
-		f.formatType(typ.Type)
+		f.formatType(typ.Type, false)
 		f.build("]")
 	case *super.TypeSet:
 		f.build("|[")
-		f.formatType(typ.Type)
+		f.formatType(typ.Type, false)
 		f.build("]|")
 	case *super.TypeMap:
 		f.build("|{")
-		f.formatType(typ.KeyType)
+		f.formatType(typ.KeyType, false)
 		f.build(":")
-		f.formatType(typ.ValType)
+		f.formatType(typ.ValType, false)
 		f.build("}|")
 	case *super.TypeUnion:
-		f.formatTypeUnion(typ)
+		f.formatTypeUnion(typ, unionParent)
 	case *super.TypeEnum:
 		f.formatTypeEnum(typ)
 	case *super.TypeError:
 		f.build("error(")
-		formatType(&f.builder, make(map[string]*super.TypeNamed), typ.Type)
+		formatType(&f.builder, make(map[string]*super.TypeNamed), typ.Type, false)
 		f.build(")")
 	case *super.TypeOfType:
-		formatType(&f.builder, make(map[string]*super.TypeNamed), typ)
+		formatType(&f.builder, make(map[string]*super.TypeNamed), typ, false)
 	default:
 		panic("unknown case in formatTypeBody: " + String(typ))
 	}
@@ -630,20 +640,24 @@ func (f *Formatter) formatTypeRecord(typ *super.TypeRecord) {
 		}
 		f.build(QuotedName(field.Name))
 		f.build(":")
-		f.formatType(field.Type)
+		f.formatType(field.Type, false)
 	}
 	f.build("}")
 }
 
-func (f *Formatter) formatTypeUnion(typ *super.TypeUnion) {
-	f.build("(")
+func (f *Formatter) formatTypeUnion(typ *super.TypeUnion, unionParent bool) {
+	if unionParent {
+		f.build("(")
+	}
 	for k, typ := range typ.Types {
 		if k > 0 {
-			f.build(",")
+			f.build("|")
 		}
-		f.formatType(typ)
+		f.formatType(typ, true)
 	}
-	f.build(")")
+	if unionParent {
+		f.build(")")
+	}
 }
 
 func (f *Formatter) formatTypeEnum(typ *super.TypeEnum) {
@@ -697,18 +711,18 @@ func (f *Formatter) isImplied(typ super.Type) bool {
 // as standalone entities.
 func FormatType(typ super.Type) string {
 	var b strings.Builder
-	formatType(&b, make(map[string]*super.TypeNamed), typ)
+	formatType(&b, make(map[string]*super.TypeNamed), typ, false)
 	return b.String()
 }
 
-func formatType(b *strings.Builder, typedefs map[string]*super.TypeNamed, typ super.Type) {
+func formatType(b *strings.Builder, typedefs map[string]*super.TypeNamed, typ super.Type, unionParent bool) {
 	switch t := typ.(type) {
 	case *super.TypeNamed:
 		name := t.Name
 		b.WriteString(QuotedTypeName(name))
 		if typedefs[t.Name] != t {
 			b.WriteByte('=')
-			formatType(b, typedefs, t.Type)
+			formatType(b, typedefs, t.Type, unionParent)
 			// Don't set typedef until after children are recursively
 			// traversed so that we adhere to the DFS order of
 			// type bindings.
@@ -722,32 +736,36 @@ func formatType(b *strings.Builder, typedefs map[string]*super.TypeNamed, typ su
 			}
 			b.WriteString(QuotedName(f.Name))
 			b.WriteString(":")
-			formatType(b, typedefs, f.Type)
+			formatType(b, typedefs, f.Type, false)
 		}
 		b.WriteByte('}')
 	case *super.TypeArray:
 		b.WriteByte('[')
-		formatType(b, typedefs, t.Type)
+		formatType(b, typedefs, t.Type, false)
 		b.WriteByte(']')
 	case *super.TypeSet:
 		b.WriteString("|[")
-		formatType(b, typedefs, t.Type)
+		formatType(b, typedefs, t.Type, false)
 		b.WriteString("]|")
 	case *super.TypeMap:
 		b.WriteString("|{")
-		formatType(b, typedefs, t.KeyType)
+		formatType(b, typedefs, t.KeyType, false)
 		b.WriteByte(':')
-		formatType(b, typedefs, t.ValType)
+		formatType(b, typedefs, t.ValType, false)
 		b.WriteString("}|")
 	case *super.TypeUnion:
-		b.WriteByte('(')
+		if unionParent {
+			b.WriteByte('(')
+		}
 		for k, typ := range t.Types {
 			if k > 0 {
-				b.WriteByte(',')
+				b.WriteByte('|')
 			}
-			formatType(b, typedefs, typ)
+			formatType(b, typedefs, typ, true)
 		}
-		b.WriteByte(')')
+		if unionParent {
+			b.WriteByte(')')
+		}
 	case *super.TypeEnum:
 		b.WriteString("enum(")
 		for k, s := range t.Symbols {
@@ -759,7 +777,7 @@ func formatType(b *strings.Builder, typedefs map[string]*super.TypeNamed, typ su
 		b.WriteByte(')')
 	case *super.TypeError:
 		b.WriteString("error(")
-		formatType(b, typedefs, t.Type)
+		formatType(b, typedefs, t.Type, false)
 		b.WriteByte(')')
 	default:
 		b.WriteString(super.PrimitiveName(typ))
@@ -833,6 +851,6 @@ func formatPrimitive(b *strings.Builder, typ super.Type, bytes zcode.Bytes) {
 
 func FormatTypeValue(tv zcode.Bytes) string {
 	f := NewFormatter(0, true, nil)
-	f.formatTypeValue(0, tv)
+	f.formatTypeValue(0, tv, false)
 	return f.builder.String()
 }

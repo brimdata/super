@@ -40,7 +40,7 @@ values kind(this)
 []
 |[]|
 |{}|
-1((int64,string))
+1(int64|string)
 # expected output
 "record"
 "array"

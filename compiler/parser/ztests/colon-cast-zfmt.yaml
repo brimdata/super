@@ -5,7 +5,7 @@ script: |
   super compile -C "values 3.3.3.0/24::net, ::1/128::net, 2::/16::net"
   super compile -C "values 3.3.3.3::ip, ::::ip, 2::::ip, (::)::ip, (2::)::ip"
   super compile -C "values 80::<port=uint16>"
-  super compile -C "values 123::uint16::(uint16,float64)"
+  super compile -C "values 123::uint16::(uint16|float64)"
   echo ===
   super compile -C "values 1::<uint8>, 2::<int32>, 3::<float64>, '2025-07-01T21:53:23.26504Z'::<time>"
   super compile -C "values [1,2,3]::<[string]>"
@@ -13,7 +13,7 @@ script: |
   super compile -C "values 3.3.3.0/24::<net>, ::1/128::<net>, 2::/16::<net>"
   super compile -C "values 3.3.3.3::<ip>, ::::<ip>, 2::::<ip>, (::)::<ip>, (2::)::<ip>"
   super compile -C "values 80::<port=uint16>"
-  super compile -C "values 123::<uint16>::<(uint16,float64)>"
+  super compile -C "values 123::<uint16>::<(uint16|float64)>"
   echo ===
   # IP6 addresses can collide with type names that happen to be hex strings 
   # but you can use the type literal syntax or put the value in parens
@@ -31,7 +31,7 @@ outputs:
       values 3.3.3.0/24::<net>, ::1/128::<net>, 2::/16::<net>
       values 3.3.3.3::<ip>, ::::<ip>, 2::::<ip>, ::::<ip>, 2::::<ip>
       values 80::<port=(uint16)>
-      values 123::<uint16>::<(uint16,float64)>
+      values 123::<uint16>::<(uint16|float64)>
       ===
       values 1::<uint8>, 2::<int32>, 3::<float64>, "2025-07-01T21:53:23.26504Z"::<time>
       values [1,2,3]::<[string]>
@@ -39,7 +39,7 @@ outputs:
       values 3.3.3.0/24::<net>, ::1/128::<net>, 2::/16::<net>
       values 3.3.3.3::<ip>, ::::<ip>, 2::::<ip>, ::::<ip>, 2::::<ip>
       values 80::<port=(uint16)>
-      values 123::<uint16>::<(uint16,float64)>
+      values 123::<uint16>::<(uint16|float64)>
       ===
       type ff = int64
       values 1::ff, 1::<ff>, 1::ff

@@ -1,11 +1,11 @@
 script: |
   super compile -C "? is(<foo>) bar"
-  super compile -dag -C "? is(<(uint16,ip)>) 80"
+  super compile -dag -C "? is(<uint16|ip>) 80"
 
 outputs:
   - name: stdout
     data: |
       search is(<foo>) and bar
       null
-      | where is(<(uint16,ip)>) and search(80)
+      | where is(<uint16|ip>) and search(80)
       | output main

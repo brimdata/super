@@ -438,11 +438,11 @@ Type fusion utilizes two key techniques.
 
 The first technique is to simply combine types with a type union.
 For example, an `int64` and a `string` can be merged into a common
-type of union `(int64,string)`, e.g., the value sequence `1 "foo"`
+type of union `int64|string`, e.g., the value sequence `1 "foo"`
 can be fused into the single-type sequence:
 ```
-1((int64,string))
-"foo"((int64,string))
+1(int64|string)
+"foo"(int64|string)
 ```
 The second technique is to merge fields of records, analogous to a spread
 expression.  Here, the value sequence `{a:1}{b:"foo"}` may be
@@ -456,8 +456,8 @@ Of course, these two techniques can be powerfully combined,
 e.g., where the value sequence `{a:1}{a:"foo",b:2}` may be
 fused into the single-type sequence:
 ```
-{a:1((int64,string)),b:null(int64)}
-{a:"foo"((int64,string)),b:2}
+{a:1(int64|string),b:null(int64)}
+{a:"foo"(int64|string),b:2}
 ```
 
 To perform fusion, Zed currently includes two key mechanisms
@@ -491,9 +491,9 @@ fuse
 {x:"foo",y:"foo"}
 {x:2,y:"bar"}
 # expected output
-{x:1((int64,string)),y:null(string)}
-{x:"foo"((int64,string)),y:"foo"}
-{x:2((int64,string)),y:"bar"}
+{x:1(int64|string),y:null(string)}
+{x:"foo"(int64|string),y:"foo"}
+{x:2(int64|string),y:"bar"}
 ```
 
 ### Fuse Aggregate Function
@@ -512,7 +512,7 @@ fuse(this)
 {x:"foo",y:"foo"}
 {x:2,y:"bar"}
 # expected output
-<{x:(int64,string),y:string}>
+<{x:int64|string,y:string}>
 ```
 
 Since the `fuse` here is an aggregate function, it can also be used with
@@ -529,7 +529,7 @@ fuse(this) by len(this) | sort len
 {x:2,y:"bar"}
 # expected output
 {len:1,fuse:<{x:int64}>}
-{len:2,fuse:<{x:(int64,string),y:string}>}
+{len:2,fuse:<{x:int64|string,y:string}>}
 ```
 
 Now, we can turn around and write a "shaper" for data that has the patterns
@@ -538,7 +538,7 @@ we "discovered" above, e.g.,
 # spq
 switch len(this)
   case 1 ( pass )
-  case 2 ( values shape(this, <{x:(int64,string),y:string}>) )
+  case 2 ( values shape(this, <{x:int64|string,y:string}>) )
   default ( values error({kind:"unrecognized shape",value:this}) )
 | sort this desc
 # input
@@ -548,7 +548,7 @@ switch len(this)
 {a:1,b:2,c:3}
 # expected output
 error({kind:"unrecognized shape",value:{a:1,b:2,c:3}})
-{x:"foo"((int64,string)),y:"foo"}
-{x:2((int64,string)),y:"bar"}
+{x:"foo"(int64|string),y:"foo"}
+{x:2(int64|string),y:"bar"}
 {x:1}
 ```

@@ -10,8 +10,8 @@ input: |
   {flows:[{orig_h:10.47.1.152,orig_p:49562(port=uint16),resp_h:23.217.103.245,resp_port:80(port)}(=flow),{orig_h:10.128.0.207,orig_p:13,resp_h:10.47.19.254,resp_port:14}(flow)]}
   {ips:|[10.0.0.1,192.168.1.1]|}
   {nums:|[1(uint64),2(uint64),3(uint64)]|}
-  {u:12(uint64)((uint64,string))}
-  {u:"foo"((uint64,string))}
+  {u:12(uint64)(uint64|string)}
+  {u:"foo"(uint64|string)}
   {m:|{"a":1(int32),"b":2(int32),"c":3(int32)}|}
   {m:|{"d":5(int32),"e":6(int32)}|}
 
@@ -89,10 +89,10 @@ output: |
       ]|
   }
   {
-      u: 12 (uint64) ((uint64,string))
+      u: 12 (uint64) (uint64|string)
   }
   {
-      u: "foo" ((uint64,string))
+      u: "foo" (uint64|string)
   }
   {
       m: |{

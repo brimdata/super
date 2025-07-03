@@ -11,10 +11,10 @@ inputs:
       {a:3,b:4.}
       {a:5,b:6}
       {a:7,b:8.}
-      {a:1,b:2((int64,float64))}
-      {a:3,b:4.((int64,float64))}
-      {a:5,b:6((int64,float64))}
-      {a:7,b:8.((int64,float64))}
+      {a:1,b:2(int64|float64)}
+      {a:3,b:4.(int64|float64)}
+      {a:5,b:6(int64|float64)}
+      {a:7,b:8.(int64|float64)}
 
 outputs:
   - name: stdout
@@ -39,22 +39,22 @@ outputs:
       15.
       15.
       16.
-      {a:1,b:2((int64,float64))}
+      {a:1,b:2(int64|float64)}
       2
       3
       3
       4
-      {a:3,b:4.((int64,float64))}
+      {a:3,b:4.(int64|float64)}
       6
       7.
       7.
       8.
-      {a:5,b:6((int64,float64))}
+      {a:5,b:6(int64|float64)}
       10
       11
       11
       12
-      {a:7,b:8.((int64,float64))}
+      {a:7,b:8.(int64|float64)}
       14
       15.
       15.

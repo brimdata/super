@@ -3,14 +3,14 @@ spq: coalesce(this[1], this[2], this[3])
 vector: true
 
 input: |
-  [null(string), error("quiet"), "foo"((uint64,string))]
-  ["bar"(string), error("quiet"), 1(uint64)((uint64,string))]
+  [null(string), error("quiet"), "foo"(uint64|string)]
+  ["bar"(string), error("quiet"), 1(uint64)(uint64|string)]
   [error("missing")(=missing), 2020(=port), null(string)]
   [null(string), error("missing"), error("quiet")]
   [null(error({x:string})), "gotme", "ted sando"]
 
 output: |
-  "foo"((uint64,string))
+  "foo"(uint64|string)
   "bar"
   2020(=port)
   null

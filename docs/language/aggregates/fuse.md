@@ -26,7 +26,7 @@ fuse(this)
 {a:1,b:2}
 {a:2,b:"foo"}
 # expected output
-<{a:int64,b:(int64,string)}>
+<{a:int64,b:int64|string}>
 ```
 
 Fuse records with a grouping key:

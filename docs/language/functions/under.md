@@ -24,19 +24,19 @@ Unions are unwrapped:
 # spq
 values this
 # input
-1((int64,string))
-"foo"((int64,string))
+1(int64|string)
+"foo"(int64|string)
 # expected output
-1((int64,string))
-"foo"((int64,string))
+1(int64|string)
+"foo"(int64|string)
 ```
 
 ```mdtest-spq
 # spq
 values under(this)
 # input
-1((int64,string))
-"foo"((int64,string))
+1(int64|string)
+"foo"(int64|string)
 # expected output
 1
 "foo"

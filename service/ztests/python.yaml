@@ -114,22 +114,22 @@ inputs:
         ]|
       }
       {
-        union: "hello" ((string,[int32],[string],(string,int32)))
+        union: "hello" (string|[int32]|[string]|(string|int32))
       }
       {
         union: [
           1 (int32),
           2 (int32)
-        ] ((string,[int32],[string],(string,int32)))
+        ] (string|[int32]|[string]|(string|int32))
       }
       {
         union: [
           "a",
           "b"
-        ] ((string,[int32],[string],(string,int32)))
+        ] (string|[int32]|[string]|(string|int32))
       }
       {
-        union: 123 (int32) ((string,int32)) ((string,[int32],[string],(string,int32)))
+        union: 123 (int32) (string|int32) (string|[int32]|[string]|(string|int32))
       }
       {
         enum: %bar (enum(foo,bar,baz))

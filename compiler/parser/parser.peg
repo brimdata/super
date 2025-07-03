@@ -1376,7 +1376,7 @@ TypeLiteral
     }
 
 TypeAsValue
-  = t:NonNamedTypes {
+  = t:EasyType {
       return &ast.TypeValue{
         Kind:"TypeValue",
         Value: t.(ast.Type),
@@ -1385,23 +1385,35 @@ TypeAsValue
     }
 
 Type
-  = NonNamedTypes
-  / NamedType
+  = TypeUnion
+  / ComponentType
 
-NonNamedTypes
-  = name:PrimitiveType !IdentifierRest { return name, nil }
+ComponentType
+  = EasyType
+  / name:Name opt:(__ '=' __ TypeDefTarget)? {
+      if opt != nil {
+        return &ast.TypeDef{
+            Kind: "TypeDef",
+            Name: name.(*ast.Name).Text,
+            Type: opt.([]any)[3].(ast.Type),
+            Loc: loc(c),
+        }, nil
+      }
+      return &ast.TypeName{Kind: "TypeName", Name: name.(*ast.Name).Text, Loc: loc(c)}, nil
+    }  
+
+TypeDefTarget
+  = "(" __ !TypeUnion typ:ComponentType __ ")" { return typ, nil }
+  / EasyType
+
+EasyType
+  = "(" __ typ:TypeUnion __ ")" { return typ, nil}
+  / name:PrimitiveType !IdentifierRest { return name, nil }
   / ERROR __ "(" __ t:Type __ ")" {
       return &ast.TypeError{
           Kind: "TypeError",
           Type: t.(ast.Type),
           Loc: loc(c),
-      }, nil
-    }
-  / "(" __ types:TypeList ")" {
-      return &ast.TypeUnion{
-        Kind: "TypeUnion",
-        Types: sliceOf[ast.Type](types),
-        Loc: loc(c),
       }, nil
     }
   / "{" __ fields:TypeFieldList __ "}" {
@@ -1434,26 +1446,21 @@ NonNamedTypes
       }, nil
     }
 
-NamedType
-  = name:Name opt:(__ '=' __ Type)? {
-      if opt != nil {
-        return &ast.TypeDef{
-            Kind: "TypeDef",
-            Name: name.(*ast.Name).Text,
-            Type: opt.([]any)[3].(ast.Type),
-            Loc: loc(c),
-        }, nil
-      }
-      return &ast.TypeName{Kind: "TypeName", Name: name.(*ast.Name).Text, Loc: loc(c)}, nil
-    }
-    
+TypeUnion
+  = types:TypeList {
+    return &ast.TypeUnion{
+      Kind: "TypeUnion",
+      Types: sliceOf[ast.Type](types),
+      Loc: loc(c),
+    }, nil
+  }
+
 TypeList
-  = first:Type rest:TypeListTail+ {
+  = first:ComponentType rest:TypeListTail+ {
     return prepend(first, rest), nil
   }
 
-TypeListTail = __ "," __ typ:Type { return typ, nil }
-
+TypeListTail = __ "|" __ typ:ComponentType { return typ, nil }
 
 StringLiteral
   = s:DoubleQuotedString { return &ast.DoubleQuote{Kind:"DoubleQuote", Text: s.(string), Loc: loc(c)}, nil }

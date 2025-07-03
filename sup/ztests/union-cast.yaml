@@ -6,17 +6,17 @@ inputs:
     data: |
       {
           r: {
-              u: "\"hello\"" (sint=(int32,string))
+              u: "\"hello\"" (sint=int32|string)
           }
       }
       {
           r: {
-              v: 123 (int32) (sint=(int32,string))
+              v: 123 (int32) (sint=int32|string)
           }
       }
 
 outputs:
   - name: stdout
     data: |
-      {typeof:<{r:{u:sint=(int32,string)}}>}
-      {typeof:<{r:{v:sint=(int32,string)}}>}
+      {typeof:<{r:{u:sint=int32|string}}>}
+      {typeof:<{r:{v:sint=int32|string}}>}

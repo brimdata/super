@@ -7,12 +7,12 @@ inputs:
       [1,null(int64)]
       [null(int64),2]
       [null,null]
-      [null((int64,string,null)),"foo"((int64,string,null)),3((int64,string,null))]
+      [null(int64|string|null),"foo"(int64|string|null),3(int64|string|null)]
       [null,null(string),null(int64)]
       {version:[1,null(int64)]}
       {version:[null(int64),2]}
       {version:[null,null]}
-      {version:[null((int64,string,null)),"foo"((int64,string,null)),3((int64,string,null))]}
+      {version:[null(int64|string|null),"foo"(int64|string|null),3(int64|string|null)]}
 
 outputs:
   - name: stdout
@@ -20,9 +20,9 @@ outputs:
       [1,null(int64)]
       [null(int64),2]
       [null,null]
-      [null,"foo",3]([(int64,string,null)])
+      [null,"foo",3]([int64|string|null])
       [null,null(string),null(int64)]
       {version:[1,null(int64)]}
       {version:[null(int64),2]}
       {version:[null,null]}
-      {version:[null,"foo",3]([(int64,string,null)])}
+      {version:[null,"foo",3]([int64|string|null])}

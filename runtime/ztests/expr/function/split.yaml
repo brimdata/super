@@ -3,7 +3,7 @@ spq: split(s, sep)
 vector: true
 
 input: |
-  {s:"a,b,c",sep:","((int64,string))}
+  {s:"a,b,c",sep:","(int64|string)}
   {s:"abc",sep:""}
   {s:"a",sep:","}
   {s:"",sep:","}

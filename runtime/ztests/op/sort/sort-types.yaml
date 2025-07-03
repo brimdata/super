@@ -7,9 +7,9 @@ input: |
   <error(enum(a,c,d))>
   <enum(b,c,d)>
   <enum(a,b,c)>
-  <({x:string},{x:int64})>
-  <({a:net},{x:int64})>
-  <({x:string},{x:int64,y:int64})>
+  <{x:string}|{x:int64}>
+  <{a:net}|{x:int64}>
+  <{x:string}|{x:int64,y:int64}>
   <|{bool:string}|>
   <|{float64:uint8}|>
   <|{float64:string}|>
@@ -76,9 +76,9 @@ output: |
   <|{float64:uint8}|>
   <|{float64:string}|>
   <|{bool:string}|>
-  <({a:net},{x:int64})>
-  <({x:int64},{x:string})>
-  <({x:string},{x:int64,y:int64})>
+  <{a:net}|{x:int64}>
+  <{x:int64}|{x:string}>
+  <{x:string}|{x:int64,y:int64}>
   <enum(a,b,c)>
   <enum(b,c,d)>
   <error(enum(a,c,d))>

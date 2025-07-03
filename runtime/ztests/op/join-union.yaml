@@ -6,9 +6,9 @@ script: |
 inputs:
   - name: a.sup
     data: |
-      {a:1}(({a:int64},{a:string}))
-      {a:2}(({a:int64},{a:string}))
-      {a:"bar"}(({a:int64},{a:string}))
+      {a:1}({a:int64}|{a:string})
+      {a:2}({a:int64}|{a:string})
+      {a:"bar"}({a:int64}|{a:string})
   - name: b.sup
     data: |
       {b:1}

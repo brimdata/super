@@ -61,7 +61,7 @@ func (c *canonZed) typ(t ast.Type) {
 		c.write("]|")
 	case *ast.TypeUnion:
 		c.write("(")
-		c.types(t.Types)
+		c.types(t.Types, "|")
 		c.write(")")
 	case *ast.TypeEnum:
 		//XXX need to figure out Zed syntax for enum literal which may
@@ -98,10 +98,10 @@ func (c *canonZed) typeFields(fields []ast.TypeField) {
 	}
 }
 
-func (c *canonZed) types(types []ast.Type) {
+func (c *canonZed) types(types []ast.Type, sep string) {
 	for k, t := range types {
 		if k != 0 {
-			c.write(",")
+			c.write(sep)
 		}
 		c.typ(t)
 	}

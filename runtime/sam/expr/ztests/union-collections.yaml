@@ -1,9 +1,9 @@
 spq: "values [v], |[v]|, |{k:v}|"
 
 input: |
-  {k:1,v:"foo"((int64,string))}
+  {k:1,v:"foo"(int64|string)}
 
 output: |
-  ["foo"]([(int64,string)])
-  |["foo"]|(|[(int64,string)]|)
-  |{1:"foo"}|(|{int64:(int64,string)}|)
+  ["foo"]([int64|string])
+  |["foo"]|(|[int64|string]|)
+  |{1:"foo"}|(|{int64:int64|string}|)

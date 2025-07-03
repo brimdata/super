@@ -3,9 +3,9 @@ script: super - | super -s -
 inputs:
   - name: stdin
     data: &stdin |
-      {a:"asdfasdf"((int64,string))}
-      {a:1((int64,string))}
-      {a:null((int64,string))}
+      {a:"asdfasdf"(int64|string)}
+      {a:1(int64|string)}
+      {a:null(int64|string)}
 
 outputs:
   - name: stdout

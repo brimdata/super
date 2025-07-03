@@ -236,7 +236,7 @@ func TestFilters(t *testing.T) {
 		{"array", `{a:[{i:123,s1:"456",s2:"hello"}]}`},
 		{"record", `{r:{r2:{i:123,s1:"456",s2:"hello"}}}`},
 		{"set", `{s:|[{i:123,s1:"456",s2:"hello"}]|}`},
-		{"union", `{u:{i:123,s1:"456",s2:"hello, world"}  ((int64,{i:int64,s1:string,s2:string}))}`},
+		{"union", `{u:{i:123,s1:"456",s2:"hello, world"}  (int64|{i:int64,s1:string,s2:string})}`},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			runCases(t, c.record, []testcase{

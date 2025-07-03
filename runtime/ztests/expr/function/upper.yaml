@@ -7,8 +7,8 @@ input: |
   127.0.0.1
   null(string)
   null(int64)
-  "BaR"((string,int64))
-  1((string,int64))
+  "BaR"(string|int64)
+  1(string|int64)
 
 output: |
   "FOO"
