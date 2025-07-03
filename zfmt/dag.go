@@ -79,7 +79,7 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 		}
 	case *dag.Dot:
 		c.expr(e.LHS, "")
-		c.write("[%s]", e.RHS)
+		c.write("[%q]", e.RHS)
 	case *dag.UnaryExpr:
 		if isnull, ok := e.Operand.(*dag.IsNullExpr); ok && e.Op == "!" {
 			c.expr(isnull.Expr, "")

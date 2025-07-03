@@ -1,0 +1,9 @@
+script: |
+  super compile -C -dag 'nested[1].field == 1'
+
+outputs:
+  - name: stdout
+    data: |
+      null
+      | where nested[1]["field"]==1
+      | output main
