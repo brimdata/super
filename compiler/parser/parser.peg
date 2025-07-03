@@ -1376,7 +1376,7 @@ TypeLiteral
     }
 
 TypeAsValue
-  = t:Type {
+  = t:NonNamedTypes {
       return &ast.TypeValue{
         Kind:"TypeValue",
         Value: t.(ast.Type),
@@ -1385,10 +1385,10 @@ TypeAsValue
     }
 
 Type
-  = AmbiguousType
-  / ComplexType
+  = NonNamedTypes
+  / NamedType
 
-AmbiguousType
+NonNamedTypes
   = name:PrimitiveType !IdentifierRest { return name, nil }
   / ERROR __ "(" __ t:Type __ ")" {
       return &ast.TypeError{
@@ -1397,17 +1397,6 @@ AmbiguousType
           Loc: loc(c),
       }, nil
     }
-  / name:Name opt:(__ '=' __ Type)? {
-      if opt != nil {
-        return &ast.TypeDef{
-            Kind: "TypeDef",
-            Name: name.(*ast.Name).Text,
-            Type: opt.([]any)[3].(ast.Type),
-            Loc: loc(c),
-        }, nil
-      }
-      return &ast.TypeName{Kind: "TypeName", Name: name.(*ast.Name).Text, Loc: loc(c)}, nil
-    }
   / "(" __ types:TypeList ")" {
       return &ast.TypeUnion{
         Kind: "TypeUnion",
@@ -1415,16 +1404,7 @@ AmbiguousType
         Loc: loc(c),
       }, nil
     }
-
-TypeList
-  = first:Type rest:TypeListTail+ {
-    return prepend(first, rest), nil
-  }
-
-TypeListTail = __ "," __ typ:Type { return typ, nil }
-
-ComplexType
-  = "{" __ fields:TypeFieldList __ "}" {
+  / "{" __ fields:TypeFieldList __ "}" {
       return &ast.TypeRecord{
           Kind: "TypeRecord",
           Fields: sliceOf[ast.TypeField](fields),
@@ -1453,6 +1433,27 @@ ComplexType
         Loc: loc(c),
       }, nil
     }
+
+NamedType
+  = name:Name opt:(__ '=' __ Type)? {
+      if opt != nil {
+        return &ast.TypeDef{
+            Kind: "TypeDef",
+            Name: name.(*ast.Name).Text,
+            Type: opt.([]any)[3].(ast.Type),
+            Loc: loc(c),
+        }, nil
+      }
+      return &ast.TypeName{Kind: "TypeName", Name: name.(*ast.Name).Text, Loc: loc(c)}, nil
+    }
+    
+TypeList
+  = first:Type rest:TypeListTail+ {
+    return prepend(first, rest), nil
+  }
+
+TypeListTail = __ "," __ typ:Type { return typ, nil }
+
 
 StringLiteral
   = s:DoubleQuotedString { return &ast.DoubleQuote{Kind:"DoubleQuote", Text: s.(string), Loc: loc(c)}, nil }
