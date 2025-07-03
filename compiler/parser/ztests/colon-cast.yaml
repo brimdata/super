@@ -14,6 +14,11 @@ script: |
   super -s -c "values 3.3.3.3::<ip>, ::::<ip>, 2::::<ip>, (::)::<ip>, (2::)::<ip>"
   super -s -c "values 80::<port=uint16>"
   super -s -c "values 123::<uint16>::<(uint16,float64)>"
+  echo ===
+  # IP6 addresses can collide with type names that happen to be hex strings 
+  # but you can use the type literal syntax or put the value in parens
+  # to disambiguate.  IP6 literal has precedence over the cast syntax.
+  super -s -c "type ff=int64 values 1::ff, 1::<ff>, (1)::ff"
 
 outputs:
   - name: stdout
@@ -51,3 +56,7 @@ outputs:
       2::
       80(port=uint16)
       123(uint16)((uint16,float64))
+      ===
+      1::ff
+      1(=ff)
+      1(=ff)

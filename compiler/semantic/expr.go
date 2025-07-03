@@ -582,6 +582,12 @@ func (a *analyzer) semBinary(e *ast.BinaryExpr) dag.Expr {
 	case "not in":
 		expr := &dag.BinaryExpr{Kind: "BinaryExpr", Op: "in", LHS: lhs, RHS: rhs}
 		return &dag.UnaryExpr{Kind: "UnaryExpr", Op: "!", Operand: expr}
+	case "::":
+		return &dag.Call{
+			Kind: "Call",
+			Name: "cast",
+			Args: []dag.Expr{lhs, rhs},
+		}
 	}
 	return &dag.BinaryExpr{
 		Kind: "BinaryExpr",

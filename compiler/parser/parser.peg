@@ -987,15 +987,18 @@ UnaryPlusOrMinus
           Loc: loc(c),
       }, nil
     }
-  / DerefExpr
+  / ColonCast
 
 PlusOrMinusOp = ("+" / "-") { return string(c.text), nil }
 
-DerefExpr
-  = expr:DerefExpr __ "::" __ typ:(TypeAsValue / TypeLiteral) {
-      return &ast.Cast{Kind: "Cast", Expr: expr.(ast.Expr), Type: typ.(ast.Expr), Loc: loc(c)}, nil
+ColonCast
+  = first:DerefExpr
+    rest:(__ "::" __ expr:(TypeAsValue / DerefExpr) { return []any{"::", expr}, nil })* {
+      return makeBinaryExprChain(first, rest, c), nil
     }
-  / expr:DerefExpr "[" __ from:AdditiveExpr __ ":" __ to:AdditiveExpr? __ "]" {
+
+DerefExpr
+  = expr:DerefExpr "[" __ from:AdditiveExpr __ ":" __ to:AdditiveExpr? __ "]" {
       e := &ast.SliceExpr{
         Kind: "SliceExpr",
         Expr: expr.(ast.Expr),
