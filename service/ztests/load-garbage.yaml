@@ -20,7 +20,7 @@ outputs:
       	json: invalid character 'T' looking for beginning of value
       	line: auto-detection not supported
       	parquet: auto-detection requires seekable input
-      	sup: Super JSON syntax error
+      	sup: SUP syntax error
       	tsv: line 1: delimiter '\t' not found
       	zeek: line 1: bad types/fields definition in zeek header
       	zjson: line 1: malformed ZJSON: bad type object: "This file contains no records.": unpacker error parsing JSON: invalid character 'T' looking for beginning of value

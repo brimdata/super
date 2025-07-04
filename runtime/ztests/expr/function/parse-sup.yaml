@@ -12,4 +12,4 @@ output: |
   {a:1}
   null
   error({message:"parse_sup: string arg required",on:{}})
-  error({message:"parse_sup: Super JSON syntax error",on:"!"})
+  error({message:"parse_sup: SUP syntax error",on:"!"})
