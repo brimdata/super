@@ -5,4 +5,4 @@ input: |
   {a:"goodnight",b:123(int32)}
 
 output: |
-  <{a:string,b:(int32,string)}>
+  <{a:string,b:int32|string}>

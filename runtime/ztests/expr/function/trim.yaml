@@ -4,7 +4,7 @@ vector: true
 
 input: |
   "   cushion   "
-  "foo   "((string,int64))
+  "foo   "(string|int64)
   1.
 
 output: |

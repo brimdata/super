@@ -280,8 +280,8 @@ nesting, records, array, and union. Consider the file `input.sup`:
 {s:"hello",r:{a:1,b:2}}
 {s:"world",r:{a:3,b:4}}
 {s:"hello",r:{a:[1,2,3]}}
-{s:"goodnight",r:{x:{u:"foo"((string,int64))}}}
-{s:"gracie",r:{x:{u:12((string,int64))}}}
+{s:"goodnight",r:{x:{u:"foo"(string|int64)}}}
+{s:"gracie",r:{x:{u:12(string|int64)}}}
 ```
 
 This data is represented in ZJSON as follows:

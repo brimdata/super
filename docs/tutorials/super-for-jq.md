@@ -418,13 +418,13 @@ produces
 "foo"
 ```
 but under the covers, the elements of the array have a union type of
-`int64` and `string`, which is written `(int64,string)`, e.g.,
+`int64` and `string`, which is written `int64|string`, e.g.,
 ```mdtest-command
 echo '[1, "foo", 2, "bar"]' | super -s -c 'values typeof(this)' -
 ```
 produces
 ```mdtest-output
-<[(int64,string)]>
+<[int64|string]>
 ```
 which is a type value representing an array of union values.
 

@@ -219,7 +219,7 @@ func TestCompareNumbers(t *testing.T) {
 	testSuccessful(t, "u >= f", rec2, "true")
 
 	// Test comparisons with unions.
-	const rec3 = "{l:1((int64,bytes)),r:2.((string,float64))}"
+	const rec3 = "{l:1(int64|bytes),r:2.(string|float64)}"
 	testSuccessful(t, "l == r", rec3, "false")
 	testSuccessful(t, "l != r", rec3, "true")
 	testSuccessful(t, "l < r", rec3, "true")
@@ -374,7 +374,7 @@ func TestArithmetic(t *testing.T) {
 	testSuccessful(t, "5.0 / f", record, "2.")
 
 	// Union values are dereferenced when doing arithmetic on them.
-	val := "10((int64,string))"
+	val := "10(int64|string)"
 	testSuccessful(t, "this + 1", val, "11")
 	testSuccessful(t, "this - 1", val, "9")
 	testSuccessful(t, "this * 2", val, "20")

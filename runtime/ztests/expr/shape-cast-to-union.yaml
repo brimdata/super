@@ -1,6 +1,6 @@
 spq: |
   type string_named=string
-  type union=(int64,string,string_named)
+  type union=int64|string|string_named
   values cast(<{a:union}>)
 
 vector: true
@@ -14,9 +14,9 @@ input: |
   {a:"goodbye"(=string_named)}
 
 output: |
-  {a:null(union=(int64,string,string_named=string))}
-  {a:null(union=(int64,string,string_named=string))}
-  {a:null(union=(int64,string,string_named=string))}
-  {a:1(union=(int64,string,string_named=string))}
-  {a:"hello"(union=(int64,string,string_named=string))}
-  {a:"goodbye"(=string_named)(union=(int64,string,string_named))}
+  {a:null(union=int64|string|string_named=string)}
+  {a:null(union=int64|string|string_named=string)}
+  {a:null(union=int64|string|string_named=string)}
+  {a:1(union=int64|string|string_named=string)}
+  {a:"hello"(union=int64|string|string_named=string)}
+  {a:"goodbye"(=string_named)(union=int64|string|string_named)}

@@ -6,7 +6,7 @@ inputs:
     data: |
       {a:"hello",b:[{a:"a",b:"b"},{a:"c",b:"d"},{a:"e",b:"f"}]}
       {a:"world",b:null([{a:string,b:string}])}
-      {a:"goodnight",b:[{a:"a",b:"b"}(({a:string,b:string},{a:string,b:null})),{a:"c",b:null}(({a:string,b:string},{a:string,b:null})),{a:"e",b:"f"}(({a:string,b:string},{a:string,b:null}))]}
+      {a:"goodnight",b:[{a:"a",b:"b"}({a:string,b:string}|{a:string,b:null}),{a:"c",b:null}({a:string,b:string}|{a:string,b:null}),{a:"e",b:"f"}({a:string,b:string}|{a:string,b:null})]}
 
 outputs:
   - name: stdout

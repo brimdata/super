@@ -63,8 +63,8 @@ fuse
 {a:1}
 {a:"foo"}
 # expected output
-{a:1((int64,string))}
-{a:"foo"((int64,string))}
+{a:1(int64|string)}
+{a:"foo"(int64|string)}
 ```
 
 _Fuse records with complex type variation_
@@ -75,8 +75,8 @@ fuse
 {a:[1,2]}
 {a:["foo","bar"],b:10.0.0.1}
 # expected output
-{a:[1,2]([(int64,string)]),b:null(ip)}
-{a:["foo","bar"]([(int64,string)]),b:10.0.0.1}
+{a:[1,2]([int64|string]),b:null(ip)}
+{a:["foo","bar"]([int64|string]),b:10.0.0.1}
 ```
 
 _The table format clarifies what fuse does_

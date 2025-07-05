@@ -522,19 +522,19 @@ null
 ### Union Values
 
 A union value can be created with a [cast](expressions.md#casts).  For example, a union of types `int64`
-and `string` is expressed as `(int64,string)` and any value that has a type
+and `string` is expressed as `int64|string` and any value that has a type
 that appears in the union type may be cast to that union type.
 Since 1 is an `int64` and "foo" is a `string`, they both can be
-values of type `(int64,string)`, e.g.,
+values of type `int64|string`, e.g.,
 ```mdtest-spq
 # spq
-values cast(this,<(int64,string)>)
+values cast(this,<int64|string>)
 # input
 1
 "foo"
 # expected output
-1((int64,string))
-"foo"((int64,string))
+1(int64|string)
+"foo"(int64|string)
 ```
 
 The value underlying a union-tagged value is accessed with the
@@ -543,7 +543,7 @@ The value underlying a union-tagged value is accessed with the
 # spq
 values under(this)
 # input
-1((int64,string))
+1(int64|string)
 # expected output
 1
 ```
@@ -559,7 +559,7 @@ typeof(this)
 # input
 [1,"foo"]
 # expected output
-<[(int64,string)]>
+<[int64|string]>
 ```
 
 ## Casts

@@ -9,7 +9,7 @@ input: |
   {val:[1,2,3,"foo"],idx:-4}
   {val:[1,2,3,null],idx:4}
   {val:[1,2,3,"foo"],idx:-5}
-  {val:null([(int64,string)]),idx:-5}
+  {val:null([int64|string]),idx:-5}
   {val:[1,2,3,"foo"],idx:null(int64)}
   {val:[1,2,3,"foo"],idx:"hi"}
   {val:[1,2,3,"foo"],idx:9223372036854775808(uint64)}
