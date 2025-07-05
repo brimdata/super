@@ -392,22 +392,23 @@ func (f *Formatter) decorate(typ super.Type, known, null bool) {
 		if f.tab > 0 {
 			f.build(" ")
 		}
-		f.buildf("(%s)", QuotedTypeName(name))
+		f.buildf("::%s", QuotedTypeName(name))
 	} else if SelfDescribing(typ) && !null {
 		if typ, ok := typ.(*super.TypeNamed); ok {
 			f.saveType(typ)
 			if f.tab > 0 {
 				f.build(" ")
 			}
-			f.buildf("(=%s)", QuotedTypeName(typ.Name))
+			// XXX add this to SuperSQL or expand the type?
+			// XXX Do we need the =?
+			f.buildf("::=%s", QuotedTypeName(typ.Name))
 		}
 	} else {
 		if f.tab > 0 {
 			f.build(" ")
 		}
-		f.build("(")
+		f.build("::")
 		f.formatType(typ, false)
-		f.build(")")
 	}
 }
 
