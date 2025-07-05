@@ -3,9 +3,9 @@ spq: sort
 vector: true
 
 input: |
-  {a:"1",b:2(=named)}
-  {a:"2",b:1(=named)}
+  {a:"1",b:2::=named}
+  {a:"2",b:1::=named}
 
 output: |
-  {a:"2",b:1(=named)}
-  {a:"1",b:2(=named)}
+  {a:"2",b:1::=named}
+  {a:"1",b:2::=named}

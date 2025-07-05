@@ -1,7 +1,7 @@
 spq: pass
 
 input: |
-  {a:1}(=custom)
+  {a:1}::=custom
   {b:2}
 
 output-flags: -f json

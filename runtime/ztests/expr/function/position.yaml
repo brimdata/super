@@ -5,15 +5,15 @@ vector: true
 input: |
   {sub:"bar",s:"foobar"}
   {sub:"baz",s:"foobar"}
-  {sub:null(string),s:"friend"}
-  {sub:"baz",s:null(string)}
-  {sub:1(int64),s:"foo"}
-  {sub:"bar",s:1(int64)}
+  {sub:null::string,s:"friend"}
+  {sub:"baz",s:null::string}
+  {sub:1::int64,s:"foo"}
+  {sub:"bar",s:1::int64}
 
 output: |
   {sql:4,call:4}
   {sql:0,call:0}
-  {sql:null(int64),call:null(int64)}
-  {sql:null(int64),call:null(int64)}
+  {sql:null::int64,call:null::int64}
+  {sql:null::int64,call:null::int64}
   {sql:error({message:"position: string arguments required",on:1}),call:error({message:"position: string arguments required",on:1})}
   {sql:error({message:"position: string arguments required",on:1}),call:error({message:"position: string arguments required",on:1})}

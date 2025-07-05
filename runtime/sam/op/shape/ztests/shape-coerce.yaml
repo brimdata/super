@@ -1,17 +1,17 @@
 spq: shape
 
 input: |
-  {a:10.,b:null,c:null(float64)}
-  {a:11.,b:null,c:null(float64)}
-  {a:null(float64),b:null,c:null(float64)}
+  {a:10.,b:null,c:null::float64}
+  {a:11.,b:null,c:null::float64}
+  {a:null::float64,b:null,c:null::float64}
   {a:null,b:11.,c:11.2}
   {a:null,b:12.,c:1.}
   {a:null,b:null,c:null}
 
 output: |
-  {a:10,b:null(int64),c:null(float64)}
-  {a:11,b:null(int64),c:null(float64)}
-  {a:null(int64),b:null(int64),c:null(float64)}
-  {a:null(int64),b:11,c:11.2}
-  {a:null(int64),b:12,c:1.}
-  {a:null(int64),b:null(int64),c:null(float64)}
+  {a:10,b:null::int64,c:null::float64}
+  {a:11,b:null::int64,c:null::float64}
+  {a:null::int64,b:null::int64,c:null::float64}
+  {a:null::int64,b:11,c:11.2}
+  {a:null::int64,b:12,c:1.}
+  {a:null::int64,b:null::int64,c:null::float64}

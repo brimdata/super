@@ -13,4 +13,4 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {size:33493,span:{ts:2020-04-21T22:40:30.06852324Z,dur:9789993714061(=nano.Duration)}(=nano.Span)}(=exec.PoolStats)
+      {size:33493,span:{ts:2020-04-21T22:40:30.06852324Z,dur:9789993714061::=nano.Duration}::=nano.Span}::=exec.PoolStats

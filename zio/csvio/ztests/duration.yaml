@@ -1,7 +1,7 @@
 spq: pass
 
 input: |
-  {duration:null(duration)}
+  {duration:null::duration}
   {duration:0s}
   {duration:-292y171d23h47m16.854775808s}
   {duration:292y171d23h47m16.854775807s}

@@ -4,8 +4,8 @@ script: |
 inputs:
   - name: stdin
     data: |
-      {a:1} (=0)
-      {b:2} (1)
+      {a:1}::=0
+      {b:2}::1
 
 outputs:
   - name: stderr

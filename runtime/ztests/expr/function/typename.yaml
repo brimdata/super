@@ -3,7 +3,7 @@ spq: typename(name)
 vector: true
 
 input: |
-  {name:"port",p:80(port=int16)}
+  {name:"port",p:80::(port=int16)}
   {name:"doesnotexit"}
   {name:1}
 

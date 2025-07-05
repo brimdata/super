@@ -3,11 +3,11 @@ spq: avg(x), count(x), dcount(x), any(x), max(x), min(x), sum(x)
 vector: true
 
 input: |
-  {x:null(uint64)}
-  {x:null(float64)}
-  {x:null(int64)}
-  {x:null(duration)}
-  {x:null(time)}
+  {x:null::uint64}
+  {x:null::float64}
+  {x:null::int64}
+  {x:null::duration}
+  {x:null::time}
 
 output: |
-  {avg:null(float64),count:0(uint64),dcount:0(uint64),any:null(uint64),max:null(float64),min:null(float64),sum:null(float64)}
+  {avg:null::float64,count:0::uint64,dcount:0::uint64,any:null::uint64,max:null::float64,min:null::float64,sum:null::float64}

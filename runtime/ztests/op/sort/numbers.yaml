@@ -3,14 +3,14 @@ spq: sort
 vector: true
 
 input: |
-  16(uint16)
-  32(uint32)
-  64(uint64)
-  -16(int16)
-  -32(int32)
+  16::uint16
+  32::uint32
+  64::uint64
+  -16::int16
+  -32::int32
   -64
-  -32.32(float32)
-  32.32(float32)
+  -32.32::float32
+  32.32::float32
   -64.64
   64.64
   -Inf
@@ -22,12 +22,12 @@ output: |
   -Inf
   -64.64
   -64
-  -32.32(float32)
-  -32(int32)
-  -16(int16)
-  16(uint16)
-  32(uint32)
-  32.32(float32)
-  64(uint64)
+  -32.32::float32
+  -32::int32
+  -16::int16
+  16::uint16
+  32::uint32
+  32.32::float32
+  64::uint64
   64.64
   +Inf

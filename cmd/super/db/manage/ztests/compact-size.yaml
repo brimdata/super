@@ -14,5 +14,5 @@ script: |
 outputs:
   - name: stdout
     data: |
-      {min:0,max:150,count:102(uint64),size:600}
-      {min:200,max:250,count:51(uint64),size:241}
+      {min:0,max:150,count:102::uint64,size:600}
+      {min:200,max:250,count:51::uint64,size:241}

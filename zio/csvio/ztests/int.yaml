@@ -1,10 +1,10 @@
 spq: pass
 
 input: |
-  {int8:null(int8),int16:null(int16),int32:null(int32),int64:null(int64)}
-  {int8:0(int8),int16:0(int16),int32:0(int32),int64:0}
-  {int8:-128(int8),int16:-32768(int16),int32:-2147483648(int32),int64:-9223372036854775808}
-  {int8:127(int8),int16:32767(int16),int32:2147483647(int32),int64:9223372036854775807}
+  {int8:null::int8,int16:null::int16,int32:null::int32,int64:null::int64}
+  {int8:0::int8,int16:0::int16,int32:0::int32,int64:0}
+  {int8:-128::int8,int16:-32768::int16,int32:-2147483648::int32,int64:-9223372036854775808}
+  {int8:127::int8,int16:32767::int16,int32:2147483647::int32,int64:9223372036854775807}
 
 output-flags: -f csv
 

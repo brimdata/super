@@ -22,8 +22,8 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {commit:0,warnings:[]([string])}
-      {commit:0,warnings:[]([string])}
+      {commit:0,warnings:[]::[string]}
+      {commit:0,warnings:[]::[string]}
       //
       {a:1.,b:2.}
       {a:3.,b:4.}

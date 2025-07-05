@@ -20,6 +20,6 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {assignee:"sue",count:2(uint64)}
-      {assignee:"joe",count:2(uint64)}
-      {assignee:"fred",count:1(uint64)}
+      {assignee:"sue",count:2::uint64}
+      {assignee:"joe",count:2::uint64}
+      {assignee:"fred",count:1::uint64}

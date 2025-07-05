@@ -1,9 +1,9 @@
 spq: pass
 
 input: &input |
-  {x:1}(=foo)
-  {x:2}(=foo)
-  {x:"hello"}(=foo)
-  {x:"world"}(=foo)
+  {x:1}::=foo
+  {x:2}::=foo
+  {x:"hello"}::=foo
+  {x:"world"}::=foo
 
 output: *input

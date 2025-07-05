@@ -250,9 +250,9 @@ values this=="foo" ? {foocount:count()} : {barcount:count()}
 "bar"
 "foo"
 # expected output
-{foocount:1(uint64)}
-{barcount:1(uint64)}
-{foocount:2(uint64)}
+{foocount:1::uint64}
+{barcount:1::uint64}
+{foocount:2::uint64}
 ```
 
 ## Function Calls
@@ -297,9 +297,9 @@ values {id:count(),value:this}
 "bar"
 "baz"
 # expected output
-{id:1(uint64),value:"foo"}
-{id:2(uint64),value:"bar"}
-{id:3(uint64),value:"baz"}
+{id:1::uint64,value:"foo"}
+{id:2::uint64,value:"bar"}
+{id:3::uint64,value:"baz"}
 ```
 
 In contrast, calling aggregate functions within the [`aggregate` operator](operators/aggregate.md)
@@ -312,7 +312,7 @@ aggregate count(),union(this)
 "bar"
 "baz"
 # expected output
-{count:3(uint64),union:|["bar","baz","foo"]|}
+{count:3::uint64,union:|["bar","baz","foo"]|}
 ```
 
 ## Literals
@@ -533,8 +533,8 @@ values cast(this,<int64|string>)
 1
 "foo"
 # expected output
-1(int64|string)
-"foo"(int64|string)
+1::(int64|string)
+"foo"::(int64|string)
 ```
 
 The value underlying a union-tagged value is accessed with the
@@ -543,7 +543,7 @@ The value underlying a union-tagged value is accessed with the
 # spq
 values under(this)
 # input
-1(int64|string)
+1::(int64|string)
 # expected output
 1
 ```
@@ -586,9 +586,9 @@ values int8(this)
 "123"
 "200"
 # expected output
-1(int8)
+1::int8
 error({message:"cannot cast to int8",on:200})
-123(int8)
+123::int8
 error({message:"cannot cast to int8",on:"200"})
 ```
 
@@ -623,8 +623,8 @@ values <port>(this)
 80
 8080
 # expected output
-80(port=uint16)
-8080(port=uint16)
+80::(port=uint16)
+8080::(port=uint16)
 ```
 
 Casts may be used with complex types as well.  As long as the target type can

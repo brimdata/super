@@ -12,13 +12,13 @@ func TestBadFunction(t *testing.T) {
 }
 
 func TestAbs(t *testing.T) {
-	const record = "{u:50 (uint64)} (=0)"
+	const record = "{u:50::uint64}"
 
 	testSuccessful(t, "abs(-5)", record, "5")
 	testSuccessful(t, "abs(5)", record, "5")
 	testSuccessful(t, "abs(-3.2)", record, "3.2")
 	testSuccessful(t, "abs(3.2)", record, "3.2")
-	testSuccessful(t, "abs(u)", record, "50(uint64)")
+	testSuccessful(t, "abs(u)", record, "50::uint64")
 
 	testCompilationError(t, "abs()", function.ErrTooFewArgs)
 	testCompilationError(t, "abs(1, 2)", function.ErrTooManyArgs)
@@ -26,7 +26,7 @@ func TestAbs(t *testing.T) {
 }
 
 func TestSqrt(t *testing.T) {
-	const record = "{f:6.25,i:9 (int32)} (=0)"
+	const record = "{f:6.25,i:9::int32}"
 
 	testSuccessful(t, "sqrt(4.0)", record, "2.")
 	testSuccessful(t, "sqrt(f)", record, "2.5")
@@ -38,7 +38,7 @@ func TestSqrt(t *testing.T) {
 }
 
 func TestMinMax(t *testing.T) {
-	const record = "{i:1 (uint64),f:2.} (=0)"
+	const record = "{i:1::uint64,f:2.}"
 
 	// Simple cases
 	testSuccessful(t, "min(1, 2, 3)", record, "1")
@@ -47,9 +47,9 @@ func TestMinMax(t *testing.T) {
 	testSuccessful(t, "max(3, 2, 1)", record, "3")
 
 	// Mixed types work
-	testSuccessful(t, "min(i, 2, 3)", record, "1(uint64)")
+	testSuccessful(t, "min(i, 2, 3)", record, "1::uint64")
 	testSuccessful(t, "min(2, 3, i)", record, "1")
-	testSuccessful(t, "max(i, 2, 3)", record, "3(uint64)")
+	testSuccessful(t, "max(i, 2, 3)", record, "3::uint64")
 	testSuccessful(t, "max(2, 3, i)", record, "3")
 	testSuccessful(t, "min(1, -2.0)", record, "-2")
 	testSuccessful(t, "min(-2.0, 1)", record, "-2.")
@@ -120,7 +120,7 @@ func TestOtherStrFuncs(t *testing.T) {
 }
 
 func TestLen(t *testing.T) {
-	record := "{s:|[1 (int32),2 (int32),3 (int32)]| (=0),a:[4 (int32),5 (int32),6 (int32)] (=1)} (=2)"
+	record := "{s:|[1::int32,2::int32,3::int32]|,a:[4::int32,5::int32,6::int32]}"
 
 	testSuccessful(t, "len(s)", record, "3")
 	testSuccessful(t, "len(a)", record, "3")
@@ -141,19 +141,19 @@ func TestLen(t *testing.T) {
 
 func TestCast(t *testing.T) {
 	// Constant type argument
-	testSuccessful(t, "cast(1, <uint64>)", "", "1(uint64)")
+	testSuccessful(t, "cast(1, <uint64>)", "", "1::uint64")
 	testError(t, "cast(1, 2)", errors.New("shaper type argument is not a type: 2"))
 
 	// Constant name argument
-	testSuccessful(t, `cast(1, "my_int64")`, "", "1(=my_int64)")
+	testSuccessful(t, `cast(1, "my_int64")`, "", "1::=my_int64")
 	testError(t, `cast(1, "uint64")`, errors.New(`bad type name "uint64": primitive type name`))
 
 	// Variable type argument
-	testSuccessful(t, "cast(1, type)", "{type:<uint64>}", "1(uint64)")
+	testSuccessful(t, "cast(1, type)", "{type:<uint64>}", "1::uint64")
 	testSuccessful(t, "cast(1, type)", "{type:2}", `error({message:"shaper type argument is not a type",on:2})`)
 
 	// Variable name argument
-	testSuccessful(t, "cast(1, name)", `{name:"my_int64"}`, "1(=my_int64)")
+	testSuccessful(t, "cast(1, name)", `{name:"my_int64"}`, "1::=my_int64")
 	testSuccessful(t, "cast(1, name)", `{name:"uint64"}`, `error("bad type name \"uint64\": primitive type name")`)
 
 	testCompilationError(t, "cast()", function.ErrTooFewArgs)

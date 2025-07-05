@@ -7,9 +7,9 @@ spq: |
 vector: true
 
 input: |
-  {a:{q:1(=port),p:2(port)},b:[{q:1,p:2(port)}],c:3(port)}
-  {a:{q:1(myport=int16),p:2(myport)},b:[{q:1(myport),p:2(myport)}],c:3(myport)}
+  {a:{q:1::=port,p:2::port},b:[{q:1,p:2::port}],c:3::port}
+  {a:{q:1::(myport=int16),p:2::myport},b:[{q:1::myport,p:2::myport}],c:3::myport}
 
 output: |
-  {c:3(=port),b:[{p:2(port),q:1}],a:{p:2(port),q:1(port)}}
-  {c:3(myport=int16),b:[{p:2(myport),q:1(myport)}],a:{p:2(myport),q:1(myport)}}
+  {c:3::=port,b:[{p:2::port,q:1}],a:{p:2::port,q:1::port}}
+  {c:3::(myport=int16),b:[{p:2::myport,q:1::myport}],a:{p:2::myport,q:1::myport}}

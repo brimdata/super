@@ -8,8 +8,8 @@ input: |
   {in:"-ab-axxb-",re:"a(?P<X>x*)b",new:"$X"}
   {in:"Foo bar",re:"Foo",new:"foo"}
   {in:"", re:"a(x*)b",new:""}
-  {in:"foo",re:null(string),new:null(string)}
-  {in:null(string),re:"foo",new:"bar"}
+  {in:"foo",re:null::string,new:null::string}
+  {in:null::string,re:"foo",new:"bar"}
   // error cases
   {in:"seafood fool",re:"foo(.?",new:"food"}
   {in:4,re:5,new:["foo"]}
@@ -20,7 +20,7 @@ output: |
   "--xx-"
   "foo bar"
   ""
-  null(string)
-  null(string)
+  null::string
+  null::string
   error({message:"regexp_replace: invalid regular expression: missing closing )",on:"foo(.?"})
   error({message:"regexp_replace: string arg required",on:4})

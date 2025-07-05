@@ -22,7 +22,7 @@ output: |
   ]
   [
       "a",
-      null (string)
+      null::string
   ]
   [
       "b",

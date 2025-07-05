@@ -6,13 +6,13 @@ input: |
   {a:[{bar:"foo"}]}
   {a:[{car:"foo"}]}
   {a:[{c:"foo"},{b:1}]}
-  null({a:[{bar:null}]})
-  null({a:[{b:null}]})
-  {a:[]([{bar:null}])}
-  {a:[]([{b:null}])}
+  null::{a:[{bar:null}]}
+  null::{a:[{b:null}]}
+  {a:[]::[{bar:null}]}
+  {a:[]::[{b:null}]}
 
 output: |
   {a:[{bar:"foo"}]}
   {a:[{car:"foo"}]}
-  null({a:[{bar:null}]})
-  {a:[]([{bar:null}])}
+  null::{a:[{bar:null}]}
+  {a:[]::[{bar:null}]}

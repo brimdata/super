@@ -2,20 +2,20 @@ spq: cast(this, <int64|string>)
 
 input: |
   null
-  null(int64)
-  null(string)
-  null(int64|string)
-  1(int64|string)
+  null::int64
+  null::string
+  null::(int64|string)
+  1::(int64|string)
   1
-  "a"(int64|string)
+  "a"::(int64|string)
   "a"
 
 output: |
-  null(int64|string)
-  null(int64|string)
-  null(int64|string)
-  null(int64|string)
-  1(int64|string)
-  1(int64|string)
-  "a"(int64|string)
-  "a"(int64|string)
+  null::(int64|string)
+  null::(int64|string)
+  null::(int64|string)
+  null::(int64|string)
+  1::(int64|string)
+  1::(int64|string)
+  "a"::(int64|string)
+  "a"::(int64|string)

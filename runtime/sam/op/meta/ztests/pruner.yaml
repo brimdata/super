@@ -24,20 +24,20 @@ script: |
 outputs:
   - name: stdout
     data: |
-      {min:20,max:25,count:6(uint64),size:34}
+      {min:20,max:25,count:6::uint64,size:34}
       ===
-      {min:8,max:12,count:5(uint64),size:30}
-      {min:10,max:15,count:6(uint64),size:34}
+      {min:8,max:12,count:5::uint64,size:30}
+      {min:10,max:15,count:6::uint64,size:34}
       ===
-      {min:10,max:15,count:6(uint64),size:34}
-      {min:14,max:16,count:3(uint64),size:22}
+      {min:10,max:15,count:6::uint64,size:34}
+      {min:14,max:16,count:3::uint64,size:22}
       ===
-      {min:8,max:12,count:5(uint64),size:30}
-      {min:20,max:25,count:6(uint64),size:34}
+      {min:8,max:12,count:5::uint64,size:30}
+      {min:20,max:25,count:6::uint64,size:34}
       ===
-      {min:8,max:12,count:5(uint64),size:30}
-      {min:10,max:15,count:6(uint64),size:34}
-      {min:14,max:16,count:3(uint64),size:22}
-      {min:20,max:25,count:6(uint64),size:34}
+      {min:8,max:12,count:5::uint64,size:30}
+      {min:10,max:15,count:6::uint64,size:34}
+      {min:14,max:16,count:3::uint64,size:22}
+      {min:20,max:25,count:6::uint64,size:34}
       ===
-      {min:20,max:25,count:6(uint64),size:34}
+      {min:20,max:25,count:6::uint64,size:34}

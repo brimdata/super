@@ -18,7 +18,7 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {commit:xxx(=ksuid.KSUID),warnings:null([string])}(=api.CommitResponse)
+      {commit:xxx::=ksuid.KSUID,warnings:null::[string]}::=api.CommitResponse
       ===
       {x:5}
       {x:6}

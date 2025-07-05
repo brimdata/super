@@ -4,8 +4,8 @@ vector: true
 
 input: |
   {key:"key1",val:5}
-  {key:"key2",val:null(int64)}
+  {key:"key2",val:null::int64}
 
 output: |
   {key:"key1",sum:5}
-  {key:"key2",sum:null(int64)}
+  {key:"key2",sum:null::int64}

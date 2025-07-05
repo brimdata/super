@@ -17,10 +17,10 @@ input: |
   -,z,a,,dup,dup
 
 output: |
-  {f:null(|[string]|)}
-  {f:|[]|(|[string]|)}
+  {f:null::|[string]|}
+  {f:|[]|::|[string]|}
   {f:|["dup"]|}
   {f:|[""]|}
   {f:|["a","z"]|}
   {f:|["a","z"]|}
-  {f:|[null(string),"","a","z","dup"]|}
+  {f:|[null::string,"","a","z","dup"]|}

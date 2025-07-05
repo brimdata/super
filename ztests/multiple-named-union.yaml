@@ -1,7 +1,7 @@
 spq: values this
 
 input: |
-  1(foo=int64)((foo=int64)|foo=string)
+  1::(foo=int64)::((foo=int64)|foo=string)
 
 output: |
-  1(=foo)(foo|(foo=string))
+  1::=foo::(foo|(foo=string))

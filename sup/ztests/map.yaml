@@ -14,9 +14,9 @@ input: |
   |{::1/128:::1/128,2::/16:2::/16,3.3.3.0/24:3.3.3.0/24}|
   |{<int8>:<int8>}|
   |{null:null}|
-  |{null:null,null(int64):null(int64),null(string):null(string)}|
-  |{"a":"foo"(named=int64|string),"b":1(named=int64|string)}|
-  |{"a"(int64|string):"foo","b"(int64|string):"bar"}|
+  |{null:null,null::int64:null::int64,null::string:null::string}|
+  |{"a":"foo"::(named=int64|string),"b":1::(named=int64|string)}|
+  |{"a"::(int64|string):"foo","b"::(int64|string):"bar"}|
   {a:|{}|}
   {a:|{-1:-1,2:2}|}
   {a:|{1ns:1ns,2us:2us,3ms:3ms,4s:4s,5m:5m,6h:6h,7d:7d,8w:8w,9y:9y}|}
@@ -46,10 +46,10 @@ output: |
   |{3.3.3.0/24:3.3.3.0/24,::1/128:::1/128,2::/16:2::/16}|
   |{<int8>:<int8>}|
   |{null:null}|
-  |{null:null,null(int64):null(int64),null(string):null(string)}|
-  |{"a":"foo","b":1}|(|{string:named=int64|string}|)
-  |{"a":"foo","b":"bar"}|(|{int64|string:string}|)
-  {a:|{}|(|{null:null}|)}
+  |{null:null,null::int64:null::int64,null::string:null::string}|
+  |{"a":"foo","b":1}|::|{string:(named=int64|string)}|
+  |{"a":"foo","b":"bar"}|::|{int64|string:string}|
+  {a:|{}|::|{null:null}|}
   {a:|{-1:-1,2:2}|}
   {a:|{1ns:1ns,2us:2us,3ms:3ms,4s:4s,5m:5m,6h:6h,7d:7d,56d:56d,9y:9y}|}
   {a:|{2006-01-02T15:04:05.123456789Z:2006-01-02T15:04:05.123456789Z}|}

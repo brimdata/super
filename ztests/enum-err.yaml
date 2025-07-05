@@ -4,7 +4,7 @@ script: |
 inputs:
   - name: stdin
     data: |
-      {e:%bang (enum(foo,bar,baz))}
+      {e:%bang::enum(foo,bar,baz)}
 
 outputs:
   - name: stderr

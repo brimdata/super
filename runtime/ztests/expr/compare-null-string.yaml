@@ -3,13 +3,13 @@ spq: put eq := (a == b), ne := (a != b)
 vector: true
 
 input: |
-  {a:"s",b:null(string)}
+  {a:"s",b:null::string}
   {a:"s",b:null}
   {a:"s"}
   {b:null}
 
 output: |
-  {a:"s",b:null(string),eq:null(bool),ne:null(bool)}
-  {a:"s",b:null,eq:null(bool),ne:null(bool)}
+  {a:"s",b:null::string,eq:null::bool,ne:null::bool}
+  {a:"s",b:null,eq:null::bool,ne:null::bool}
   {a:"s",eq:error("missing"),ne:error("missing")}
   {b:null,eq:error("missing"),ne:error("missing")}

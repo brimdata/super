@@ -24,19 +24,19 @@ Unions are unwrapped:
 # spq
 values this
 # input
-1(int64|string)
-"foo"(int64|string)
+1::(int64|string)
+"foo"::(int64|string)
 # expected output
-1(int64|string)
-"foo"(int64|string)
+1::(int64|string)
+"foo"::(int64|string)
 ```
 
 ```mdtest-spq
 # spq
 values under(this)
 # input
-1(int64|string)
-"foo"(int64|string)
+1::(int64|string)
+"foo"::(int64|string)
 # expected output
 1
 "foo"
@@ -70,18 +70,18 @@ Values of named types are unwrapped:
 # spq
 values this
 # input
-80(port=uint16)
+80::(port=uint16)
 # expected output
-80(port=uint16)
+80::(port=uint16)
 ```
 
 ```mdtest-spq
 # spq
 values under(this)
 # input
-80(port=uint16)
+80::(port=uint16)
 # expected output
-80(uint16)
+80::uint16
 ```
 
 Values that are not wrapped are unmodified:

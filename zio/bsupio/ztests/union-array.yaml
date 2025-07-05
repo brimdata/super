@@ -4,7 +4,7 @@ inputs:
   - name: stdin
     data: &stdin |
       {a:["asdfasdf",null,100]}
-      {a:null([int64|string])}
+      {a:null::[int64|string]}
 
 outputs:
   - name: stdout

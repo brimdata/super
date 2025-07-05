@@ -1,9 +1,9 @@
 spq: pass
 
 input: |
-  {uint8:null(uint8),uint16:null(uint16),uint32:null(uint32),uint64:null(uint64)}
-  {uint8:0(uint8),uint16:0(uint16),uint32:0(uint32),uint64:0(uint64)}
-  {uint8:255(uint8),uint16:65535(uint16),uint32:4294967295(uint32),uint64:18446744073709551615(uint64)}
+  {uint8:null::uint8,uint16:null::uint16,uint32:null::uint32,uint64:null::uint64}
+  {uint8:0::uint8,uint16:0::uint16,uint32:0::uint32,uint64:0::uint64}
+  {uint8:255::uint8,uint16:65535::uint16,uint32:4294967295::uint32,uint64:18446744073709551615::uint64}
 
 output-flags: -f csv
 

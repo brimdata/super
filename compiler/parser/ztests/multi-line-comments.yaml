@@ -20,4 +20,4 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {c:1(uint64),sum:2}
+      {c:1::uint64,sum:2}

@@ -6,18 +6,18 @@ inputs:
   - name: stdin
     data: |
       {
-          u8: 8 (uint8),
-          u16: 16 (uint16),
-          u32: 32 (uint32),
+          u8: 8::uint8,
+          u16: 16::uint16,
+          u32: 32::uint32,
           u64: 64,
-          i8: -8 (int8),
-          i16: -16 (int16),
-          i32: -32 (int32),
+          i8: -8::int8,
+          i16: -16::int16,
+          i32: -32::int32,
           i64: -64,
           // duration is not supported by pqarrow.
           tim: 1970-01-01T00:00:00Z,
-          f16: 16. (float16),
-          f32: 32. (float32),
+          f16: 16.::float16,
+          f32: 32.::float32,
           f64: 64.,
           boo: false,
           byt: 0x01020304,
@@ -27,7 +27,7 @@ inputs:
           typ: <int8>,
           err: error("err"),
           rec: {a:1},
-      } (=0)
+      }::=0
       {
           u8: null,
           u16: null,
@@ -49,24 +49,24 @@ inputs:
           typ: null,
           err: null,
           rec: null,
-      } (0)
+      }::0
 
 
 outputs:
   - name: stdout
     data: |
       {
-          u8: 8 (uint8),
-          u16: 16 (uint16),
-          u32: 32 (uint32),
+          u8: 8::uint8,
+          u16: 16::uint16,
+          u32: 32::uint32,
           u64: 64,
-          i8: -8 (int8),
-          i16: -16 (int16),
-          i32: -32 (int32),
+          i8: -8::int8,
+          i16: -16::int16,
+          i32: -32::int32,
           i64: -64,
           tim: 1970-01-01T00:00:00Z,
-          f16: 16. (float16),
-          f32: 32. (float32),
+          f16: 16.::float16,
+          f32: 32.::float32,
           f64: 64.,
           boo: false,
           byt: 0x01020304,
@@ -80,24 +80,24 @@ outputs:
           }
       }
       {
-          u8: null (uint8),
-          u16: null (uint16),
-          u32: null (uint32),
-          u64: null (int64),
-          i8: null (int8),
-          i16: null (int16),
-          i32: null (int32),
-          i64: null (int64),
-          tim: null (time),
-          f16: null (float16),
-          f32: null (float32),
-          f64: null (float64),
-          boo: null (bool),
-          byt: null (bytes),
-          str: null (string),
-          ip: null (string),
-          net: null (string),
-          typ: null (string),
-          err: null (string),
-          rec: null ({a:int64})
+          u8: null::uint8,
+          u16: null::uint16,
+          u32: null::uint32,
+          u64: null::int64,
+          i8: null::int8,
+          i16: null::int16,
+          i32: null::int32,
+          i64: null::int64,
+          tim: null::time,
+          f16: null::float16,
+          f32: null::float32,
+          f64: null::float64,
+          boo: null::bool,
+          byt: null::bytes,
+          str: null::string,
+          ip: null::string,
+          net: null::string,
+          typ: null::string,
+          err: null::string,
+          rec: null::{a:int64}
       }

@@ -27,26 +27,26 @@ outputs:
       {
           name: "poolA",
           layout: {
-              order: "asc" (=order.Which),
+              order: "asc"::=order.Which,
               keys: [
                   [
                       "a"
-                  ] (=field.Path)
-              ] (=field.List)
-          } (=order.SortKey),
+                  ]::=field.Path
+              ]::=field.List
+          }::=order.SortKey,
           seek_stride: 65536,
           threshold: 524288000
       }
       {
           name: "poolB",
           layout: {
-              order: "desc" (=order.Which),
+              order: "desc"::=order.Which,
               keys: [
                   [
                       "b"
-                  ] (=field.Path)
-              ] (=field.List)
-          } (=order.SortKey),
+                  ]::=field.Path
+              ]::=field.List
+          }::=order.SortKey,
           seek_stride: 65536,
           threshold: 524288000
       }
@@ -55,7 +55,7 @@ outputs:
           nameof: "data.Object",
           min: 1,
           max: 2,
-          count: 2 (uint64),
+          count: 2::uint64,
           size: 18
       }
       {

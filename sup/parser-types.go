@@ -280,7 +280,7 @@ func (p *Parser) matchTypeParens() (ast.Type, error) {
 		return nil, err
 	}
 	if !ok {
-		return nil, p.error("mismatched parentheses while parsing union type")
+		return nil, p.error("mismatched parentheses while parsing parenthesized type")
 	}
 	return typ, nil
 }
@@ -301,7 +301,7 @@ func (p *Parser) matchTypeUnion(first ast.Type) (*ast.TypeUnion, error) {
 		}
 		types = append(types, typ)
 		ok, err := l.match('|')
-		if err != nil {
+		if noEOF(err) != nil {
 			return nil, err
 		}
 		if !ok {

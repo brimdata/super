@@ -54,7 +54,7 @@ func TestMarshalBSUP(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.NotNil(t, rec)
-	assert.Equal(t, `{Field1:"value1",Sub1:{f2:"value2",Field3:-1},PField1:null(bool)}`, sup.FormatValue(rec))
+	assert.Equal(t, `{Field1:"value1",Sub1:{f2:"value2",Field3:-1},PField1:null::bool}`, sup.FormatValue(rec))
 }
 
 func TestMarshalMap(t *testing.T) {
@@ -95,19 +95,19 @@ func TestMarshalSlice(t *testing.T) {
 	rec, err := m.Marshal(r)
 	require.NoError(t, err)
 	require.NotNil(t, rec)
-	assert.Equal(t, `{Things:[{a:"hello",B:123}(=BSUPThing),{a:"world",B:0}(BSUPThing)]}(=BSUPThings)`, sup.FormatValue(rec))
+	assert.Equal(t, `{Things:[{a:"hello",B:123}::=BSUPThing,{a:"world",B:0}::BSUPThing]}::=BSUPThings`, sup.FormatValue(rec))
 
 	empty := []BSUPThing{}
 	r2 := BSUPThings{empty}
 	rec2, err := m.Marshal(r2)
 	require.NoError(t, err)
 	require.NotNil(t, rec2)
-	assert.Equal(t, "{Things:[]([BSUPThing={a:string,B:int64}])}(=BSUPThings)", sup.FormatValue(rec2))
+	assert.Equal(t, "{Things:[]::[BSUPThing={a:string,B:int64}]}::=BSUPThings", sup.FormatValue(rec2))
 
 	rec3, err := m.Marshal(BSUPThings{nil})
 	require.NoError(t, err)
 	require.NotNil(t, rec3)
-	assert.Equal(t, "{Things:null([BSUPThing={a:string,B:int64}])}(=BSUPThings)", sup.FormatValue(rec3))
+	assert.Equal(t, "{Things:null::[BSUPThing={a:string,B:int64}]}::=BSUPThings", sup.FormatValue(rec3))
 
 }
 
@@ -181,7 +181,7 @@ func TestUnmarshalRecord(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, rec)
 
-	const expected = `{top:{T2f1:{T3f1:1(int32),T3f2:1.(float32)},T2f2:"t2f2-string1"}}`
+	const expected = `{top:{T2f1:{T3f1:1::int32,T3f2:1.::float32},T2f2:"t2f2-string1"}}`
 	require.Equal(t, expected, sup.FormatValue(rec))
 
 	val := sup.MustParseValue(super.NewContext(), expected)
@@ -209,10 +209,10 @@ func TestUnmarshalNull(t *testing.T) {
 		slice = []int{1}
 		assert.EqualError(t, sup.UnmarshalBSUP(super.NullInt64, &slice), `unmarshaling type "int64": not an array`)
 		slice = []int{1}
-		v := sup.MustParseValue(super.NewContext(), "null([int64])")
+		v := sup.MustParseValue(super.NewContext(), "null::[int64]")
 		require.NoError(t, sup.UnmarshalBSUP(v, &slice))
 		assert.Nil(t, slice)
-		v = sup.MustParseValue(super.NewContext(), "null(bytes)")
+		v = sup.MustParseValue(super.NewContext(), "null::bytes")
 		buf := []byte("testing")
 		require.NoError(t, sup.UnmarshalBSUP(v, &buf))
 		assert.Nil(t, buf)
@@ -230,10 +230,10 @@ func TestUnmarshalNull(t *testing.T) {
 		m := map[string]string{"key": "value"}
 		require.NoError(t, sup.UnmarshalBSUP(super.Null, &m))
 		assert.Nil(t, m)
-		val := sup.MustParseValue(super.NewContext(), "null({foo:int64})")
+		val := sup.MustParseValue(super.NewContext(), "null::{foo:int64}")
 		require.EqualError(t, sup.UnmarshalBSUP(val, &m), "not a map")
 		m = map[string]string{"key": "value"}
-		val = sup.MustParseValue(super.NewContext(), "null(|{string:string}|)")
+		val = sup.MustParseValue(super.NewContext(), "null::|{string:string}|")
 		require.NoError(t, sup.UnmarshalBSUP(val, &m))
 		assert.Nil(t, m)
 	})
@@ -244,11 +244,11 @@ func TestUnmarshalNull(t *testing.T) {
 		var obj struct {
 			Test *testobj `super:"test"`
 		}
-		val := sup.MustParseValue(super.NewContext(), "{test:null({Val:int64})}")
+		val := sup.MustParseValue(super.NewContext(), "{test:null::{Val:int64}}")
 		require.NoError(t, sup.UnmarshalBSUP(val, &obj))
 		require.Nil(t, obj.Test)
-		val = sup.MustParseValue(super.NewContext(), "{test:null(ip)}")
-		require.EqualError(t, sup.UnmarshalBSUP(val, &obj), `cannot unmarshal Zed value "null(ip)" into Go struct`)
+		val = sup.MustParseValue(super.NewContext(), "{test:null::ip}")
+		require.EqualError(t, sup.UnmarshalBSUP(val, &obj), `cannot unmarshal value "null::ip" into Go struct`)
 		var slice struct {
 			Test []string `super:"test"`
 		}
@@ -343,7 +343,7 @@ func TestMarshalArray(t *testing.T) {
 	rec, err := sup.NewBSUPMarshaler().Marshal(r1)
 	require.NoError(t, err)
 	require.NotNil(t, rec)
-	const expected = `{A1:[1(int8),2(int8)],A2:["foo","bar"],A3:null([bytes])}`
+	const expected = `{A1:[1::int8,2::int8],A2:["foo","bar"],A3:null::[bytes]}`
 	assert.Equal(t, expected, sup.FormatValue(rec))
 
 	var r2 rectype
@@ -388,7 +388,7 @@ func TestNumbers(t *testing.T) {
 	rec, err := sup.NewBSUPMarshaler().Marshal(r1)
 	require.NoError(t, err)
 	require.NotNil(t, rec)
-	const expected = "{I:-9223372036854775808,I8:-128(int8),I16:-32768(int16),I32:-2147483648(int32),I64:-9223372036854775808,U:18446744073709551615(uint64),UI8:255(uint8),UI16:65535(uint16),UI32:4294967295(uint32),UI64:18446744073709551615(uint64),F16:65504.(float16),F32:3.4028235e+38(float32),F64:1.7976931348623157e+308}"
+	const expected = "{I:-9223372036854775808,I8:-128::int8,I16:-32768::int16,I32:-2147483648::int32,I64:-9223372036854775808,U:18446744073709551615::uint64,UI8:255::uint8,UI16:65535::uint16,UI32:4294967295::uint32,UI64:18446744073709551615::uint64,F16:65504.::float16,F32:3.4028235e+38::float32,F64:1.7976931348623157e+308}"
 	assert.Equal(t, expected, sup.FormatValue(rec))
 
 	var r2 rectype
@@ -627,7 +627,7 @@ func TestZedValues(t *testing.T) {
 	}
 	t.Run("pointer", func(t *testing.T) {
 		test(t, "string", "{value:\"foo\"}", &testptr)
-		test(t, "typed-null", "{value:null(time)}", &testptr)
+		test(t, "typed-null", "{value:null::time}", &testptr)
 		test(t, "null", "{value:null}", &testptr)
 		test(t, "record", "{value:{foo:1,bar:\"baz\"}}", &testptr)
 	})
@@ -636,7 +636,7 @@ func TestZedValues(t *testing.T) {
 	}
 	t.Run("struct", func(t *testing.T) {
 		test(t, "string", "{value:\"foo\"}", &teststruct)
-		test(t, "typed-null", "{value:null(time)}", &teststruct)
+		test(t, "typed-null", "{value:null::time}", &teststruct)
 		test(t, "null", "{value:null}", &teststruct)
 		test(t, "record", "{value:{foo:1,bar:\"baz\"}}", &teststruct)
 	})

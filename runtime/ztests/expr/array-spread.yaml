@@ -3,13 +3,13 @@ spq: values [...a,...b]
 vector: true
 
 input: |
-  {a:|[1,2]|,b:[0,1,null(int64)],c:"hi"}
+  {a:|[1,2]|,b:[0,1,null::int64],c:"hi"}
   {a:|[1,2]|,b:"hi"}
-  {a:[{x:"foo"},null({x:string})],b:[{x:"bar"}]}
+  {a:[{x:"foo"},null::{x:string}],b:[{x:"bar"}]}
   {a:"foo",b:"bar"}
 
 output: |
-  [1,2,0,1,null(int64)]
+  [1,2,0,1,null::int64]
   [1,2]
-  [{x:"foo"},null({x:string}),{x:"bar"}]
+  [{x:"foo"},null::{x:string},{x:"bar"}]
   []

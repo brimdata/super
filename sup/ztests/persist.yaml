@@ -6,26 +6,26 @@ script: |
 inputs:
   - name: in.sup
     data: |
-      {a:1(baz=int8)}(=foo)
-      {a:1}(foo)
-      {a:1}(=fubar)
-      {a:1}(fubar)
-      {a:1}(=bar)
-      {a:1}(bar)
+      {a:1::(baz=int8)}::=foo
+      {a:1}::foo
+      {a:1}::=fubar
+      {a:1}::fubar
+      {a:1}::=bar
+      {a:1}::bar
 
 outputs:
   - name: stdout
     data: |
-      {a:1(baz=int8)}(=foo)
-      {a:1(baz)}(=foo)
-      {a:1}(=fubar)
-      {a:1}(fubar)
-      {a:1}(=bar)
-      {a:1}(bar)
+      {a:1::(baz=int8)}::=foo
+      {a:1::baz}::=foo
+      {a:1}::=fubar
+      {a:1}::fubar
+      {a:1}::=bar
+      {a:1}::bar
       ===
-      {a:1(baz=int8)}(=foo)
-      {a:1}(foo)
-      {a:1}(=fubar)
-      {a:1}(=fubar)
-      {a:1}(=bar)
-      {a:1}(bar)
+      {a:1::(baz=int8)}::=foo
+      {a:1}::foo
+      {a:1}::=fubar
+      {a:1}::=fubar
+      {a:1}::=bar
+      {a:1}::bar

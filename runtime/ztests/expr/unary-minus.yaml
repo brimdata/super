@@ -3,75 +3,75 @@ spq: values -this
 vector: true
 
 input: |
-  1(int8)
-  -1(int8)
-  1(uint8)
-  -128(int8)
-  1(int16)
-  -1(int16)
-  1(uint16)
-  -32768(int16)
-  1(int32)
-  -1(int32)
-  1(uint32)
-  -2147483648(int32)
+  1::int8
+  -1::int8
+  1::uint8
+  -128::int8
+  1::int16
+  -1::int16
+  1::uint16
+  -32768::int16
+  1::int32
+  -1::int32
+  1::uint32
+  -2147483648::int32
   1
   -1
-  1(uint64)
+  1::uint64
   -9223372036854775808
-  1.(float16)
-  1.(float32)
+  1.::float16
+  1.::float32
   1.
   "foo"
   10.0.0.1
   [1,2,3]
   null
-  null(string)
-  null(int8)
-  null(int16)
-  null(int32)
-  null(int64)
-  null(uint8)
-  null(uint16)
-  null(uint32)
-  null(uint64)
-  null(float16)
-  null(float32)
-  null(float64)
+  null::string
+  null::int8
+  null::int16
+  null::int32
+  null::int64
+  null::uint8
+  null::uint16
+  null::uint32
+  null::uint64
+  null::float16
+  null::float32
+  null::float64
 
 output: |
-  -1(int8)
-  1(int8)
-  -1(int8)
-  error({message:"unary '-' underflow",on:-128(int8)})(error({message:string,on:int8}))
-  -1(int16)
-  1(int16)
-  -1(int16)
-  error({message:"unary '-' underflow",on:-32768(int16)})(error({message:string,on:int16}))
-  -1(int32)
-  1(int32)
-  -1(int32)
-  error({message:"unary '-' underflow",on:-2147483648(int32)})(error({message:string,on:int32}))
+  -1::int8
+  1::int8
+  -1::int8
+  error({message:"unary '-' underflow",on:-128::int8})::error({message:string,on:int8})
+  -1::int16
+  1::int16
+  -1::int16
+  error({message:"unary '-' underflow",on:-32768::int16})::error({message:string,on:int16})
+  -1::int32
+  1::int32
+  -1::int32
+  error({message:"unary '-' underflow",on:-2147483648::int32})::error({message:string,on:int32})
   -1
   1
   -1
   error({message:"unary '-' underflow",on:-9223372036854775808})
-  -1.(float16)
-  -1.(float32)
+  -1.::float16
+  -1.::float32
   -1.
   error({message:"type incompatible with unary '-' operator",on:"foo"})
   error({message:"type incompatible with unary '-' operator",on:10.0.0.1})
   error({message:"type incompatible with unary '-' operator",on:[1,2,3]})
   error({message:"type incompatible with unary '-' operator",on:null})
-  error({message:"type incompatible with unary '-' operator",on:null(string)})
-  null(int8)
-  null(int16)
-  null(int32)
-  null(int64)
-  null(int8)
-  null(int16)
-  null(int32)
-  null(int64)
-  null(float16)
-  null(float32)
-  null(float64)
+  error({message:"type incompatible with unary '-' operator",on:null::string})
+  null::int8
+  null::int16
+  null::int32
+  null::int64
+  null::int8
+  null::int16
+  null::int32
+  null::int64
+  null::float16
+  null::float32
+  null::float64

@@ -97,17 +97,17 @@ super -S zeek_types.log | tee zeek_types.sup
 ```mdtest-output
 {
     my_bool: true,
-    my_count: 123 (uint64),
+    my_count: 123::uint64,
     my_int: 456,
     my_double: 123.456,
     my_time: 2020-06-18T17:42:31.123456Z,
     my_interval: 2m3.456s,
     my_printable_string: "smile😁smile",
     my_bytes_string: "\t\u0007\u0004",
-    my_port: 80 (port=uint16),
+    my_port: 80::(port=uint16),
     my_addr: 127.0.0.1,
     my_subnet: 10.0.0.0/8,
-    my_enum: "tcp" (=zenum),
+    my_enum: "tcp"::=zenum,
     my_set: |[
         "a",
         "in",
@@ -121,7 +121,7 @@ super -S zeek_types.log | tee zeek_types.sup
     ],
     my_record: {
         name: "Jeanne",
-        age: 122 (uint64)
+        age: 122::uint64
     }
 }
 ```

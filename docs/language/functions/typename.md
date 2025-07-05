@@ -20,7 +20,7 @@ Return a simple named type with a string constant argument:
 # spq
 values typename("port")
 # input
-80(port=int16)
+80::port=int16
 # expected output
 <port=int16>
 ```
@@ -30,7 +30,7 @@ Return a named type using an expression:
 # spq
 values typename(name)
 # input
-{name:"port",p:80(port=int16)}
+{name:"port",p:80::port=int16}
 # expected output
 <port=int16>
 ```

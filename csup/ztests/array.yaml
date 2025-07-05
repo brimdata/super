@@ -6,8 +6,8 @@ inputs:
   - name: stdin
     data: &input |
       {a:"hello",b:[{a:"a",b:"b"},{a:"c",b:"d"},{a:"e",b:"f"}]}
-      {a:"world",b:null([{a:string,b:string}])}
-      {a:"goodnight",b:[{a:"a",b:"b"},{a:"c",b:null(string)},{a:"e",b:"f"}]}
+      {a:"world",b:null::[{a:string,b:string}]}
+      {a:"goodnight",b:[{a:"a",b:"b"},{a:"c",b:null::string},{a:"e",b:"f"}]}
 
 outputs:
   - name: stdout

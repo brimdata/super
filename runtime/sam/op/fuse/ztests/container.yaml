@@ -1,9 +1,9 @@
 spq: fuse
 
 input: |
-  {a:"hello",r:{x:1(int32),y:2(int32)}}
-  {r:{y:4(int32),z:5(int32)},s:"world",r2:{x:6(int32)}}
+  {a:"hello",r:{x:1::int32,y:2::int32}}
+  {r:{y:4::int32,z:5::int32},s:"world",r2:{x:6::int32}}
 
 output: |
-  {a:"hello",r:{x:1(int32),y:2(int32),z:null(int32)},s:null(string),r2:null({x:int32})}
-  {a:null(string),r:{x:null(int32),y:4(int32),z:5(int32)},s:"world",r2:{x:6(int32)}}
+  {a:"hello",r:{x:1::int32,y:2::int32,z:null::int32},s:null::string,r2:null::{x:int32}}
+  {a:null::string,r:{x:null::int32,y:4::int32,z:5::int32},s:"world",r2:{x:6::int32}}

@@ -5,13 +5,13 @@ vector: true
 input: |
   1.5
   -1.5
-  1(uint8)
-  1.5(float32)
+  1::uint8
+  1.5::float32
   "foo"
 
 output: |
   2.
   -1.
-  1(uint8)
-  2.(float32)
+  1::uint8
+  2.::float32
   error({message:"ceil: not a number",on:"foo"})

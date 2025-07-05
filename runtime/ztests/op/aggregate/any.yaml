@@ -3,10 +3,10 @@ spq: any(v) by k | sort k
 vector: true
 
 input: |
-  {k:"k1",v:null(int64)}
+  {k:"k1",v:null::int64}
   {k:"k1",v:1}
-  {k:"k2",v:null({x:string})}
+  {k:"k2",v:null::{x:string}}
 
 output: |
   {k:"k1",any:1}
-  {k:"k2",any:null({x:string})}
+  {k:"k2",any:null::{x:string}}

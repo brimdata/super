@@ -4,7 +4,7 @@ vector: true
 
 input: |
   "{a:1}"
-  null(string)
+  null::string
   {}
   "!"
 

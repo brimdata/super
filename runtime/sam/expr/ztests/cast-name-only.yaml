@@ -5,5 +5,5 @@ input: |
   {x:123}
 
 output: |
-  null(foo={x:int64})
-  {x:123}(=foo)
+  null::(foo={x:int64})
+  {x:123}::=foo

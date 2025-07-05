@@ -12,14 +12,14 @@ inputs:
   - name: in.sup
     data: |
       {ts:0,uid:"C3UeSqaSOFRReHD68"}
-      {ts:1,uid:null(string)}
+      {ts:1,uid:null::string}
       {ts:2}
 
 outputs:
   - name: stdout
     data: |
-      {count:3(uint64)}
-      {count:2(uint64)}
+      {count:3::uint64}
+      {count:2::uint64}
   - name: stderr
     data: |
       empty transaction

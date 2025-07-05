@@ -3,9 +3,9 @@ spq: count() by host | sort host
 vector: true
 
 input: |
-  {host:127.0.0.1(=ipaddr)}
+  {host:127.0.0.1::=ipaddr}
   {host:127.0.0.2}
 
 output: |
-  {host:127.0.0.1(=ipaddr),count:1(uint64)}
-  {host:127.0.0.2,count:1(uint64)}
+  {host:127.0.0.1::=ipaddr,count:1::uint64}
+  {host:127.0.0.2,count:1::uint64}

@@ -7,7 +7,7 @@ input: |
   [null, ""]
 
 output: |
-  null(int64)
+  null::int64
   0
-  null(string)
+  null::string
   ""

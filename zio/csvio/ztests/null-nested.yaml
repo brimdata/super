@@ -1,7 +1,7 @@
 spq: fuse
 
 input: |
-  {a:null({b:{a1:[string],a2:[string]}})}
+  {a:null::{b:{a1:[string],a2:[string]}}}
   {s:"x"}
 
 output-flags: -f csv

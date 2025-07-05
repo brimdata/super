@@ -7,5 +7,5 @@ input: |
   {s:"bar",x:2,y:3}
 
 output: |
-  {s:"foo",x:1}(=foo)
-  {s:"bar",x:2,y:3}(=bar)
+  {s:"foo",x:1}::=foo
+  {s:"bar",x:2,y:3}::=bar

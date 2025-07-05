@@ -6,44 +6,44 @@ vector: true
 input: |
   "-1"
   "65535"
-  null(string)
-  1(uint64)
-  10000000000000000000(uint64)
+  null::string
+  1::uint64
+  10000000000000000000::uint64
   -1.
-  1.5(=named)
+  1.5::=named
   1e8
 
 
 output: |
-  -1(int8)
-  -1(int16)
-  -1(int32)
+  -1::int8
+  -1::int16
+  -1::int32
   -1
   error({message:"cannot cast to int8",on:"65535"})
   error({message:"cannot cast to int16",on:"65535"})
-  65535(int32)
+  65535::int32
   65535
-  null(int8)
-  null(int16)
-  null(int32)
-  null(int64)
-  1(int8)
-  1(int16)
-  1(int32)
+  null::int8
+  null::int16
+  null::int32
+  null::int64
+  1::int8
+  1::int16
+  1::int32
   1
-  error({message:"cannot cast to int8",on:10000000000000000000(uint64)})(error({message:string,on:uint64}))
-  error({message:"cannot cast to int16",on:10000000000000000000(uint64)})(error({message:string,on:uint64}))
-  error({message:"cannot cast to int32",on:10000000000000000000(uint64)})(error({message:string,on:uint64}))
-  error({message:"cannot cast to int64",on:10000000000000000000(uint64)})(error({message:string,on:uint64}))
-  -1(int8)
-  -1(int16)
-  -1(int32)
+  error({message:"cannot cast to int8",on:10000000000000000000::uint64})::error({message:string,on:uint64})
+  error({message:"cannot cast to int16",on:10000000000000000000::uint64})::error({message:string,on:uint64})
+  error({message:"cannot cast to int32",on:10000000000000000000::uint64})::error({message:string,on:uint64})
+  error({message:"cannot cast to int64",on:10000000000000000000::uint64})::error({message:string,on:uint64})
+  -1::int8
+  -1::int16
+  -1::int32
   -1
-  1(int8)
-  1(int16)
-  1(int32)
+  1::int8
+  1::int16
+  1::int32
   1
   error({message:"cannot cast to int8",on:100000000.})
   error({message:"cannot cast to int16",on:100000000.})
-  100000000(int32)
+  100000000::int32
   100000000

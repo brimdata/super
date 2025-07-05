@@ -99,7 +99,7 @@ cast(this, <connection>)
   "uid": "C2zK5f13SbCtKcyiW5"
 }
 # expected output
-{kind:"dns",server:{addr:10.0.0.100,port:53(port=uint16)}(=socket),client:{addr:10.47.1.100,port:41772}(socket),uid:"C2zK5f13SbCtKcyiW5"}
+{kind:"dns",server:{addr:10.0.0.100,port:53::(port=uint16)}::=socket,client:{addr:10.47.1.100,port:41772}::socket,uid:"C2zK5f13SbCtKcyiW5"}
 ```
 
 ### Crop
@@ -167,7 +167,7 @@ fill(this, <connection>)
   "uid": "C2zK5f13SbCtKcyiW5"
 }
 # expected output
-{kind:"dns",server:{addr:"10.0.0.100",port:53},client:{addr:"10.47.1.100",port:41772},uid:"C2zK5f13SbCtKcyiW5",vlan:null(uint16)}
+{kind:"dns",server:{addr:"10.0.0.100",port:53},client:{addr:"10.47.1.100",port:41772},uid:"C2zK5f13SbCtKcyiW5",vlan:null::uint16}
 ```
 
 ### Order
@@ -272,7 +272,7 @@ shape(this, <connection>)
   "uid": "C2zK5f13SbCtKcyiW5"
 }
 # expected output
-{kind:"dns",client:{addr:10.47.1.100,port:41772(port=uint16)}(=socket),server:{addr:10.0.0.100,port:53}(socket),vlan:null(uint16),uid:"C2zK5f13SbCtKcyiW5"}
+{kind:"dns",client:{addr:10.47.1.100,port:41772::(port=uint16)}::=socket,server:{addr:10.0.0.100,port:53}::socket,vlan:null::uint16,uid:"C2zK5f13SbCtKcyiW5"}
 ```
 
 To get a tight shape of the target type,
@@ -304,7 +304,7 @@ shape(this, <connection>)
   "uid": "C2zK5f13SbCtKcyiW5"
 }
 # expected output
-{kind:"dns",client:{addr:10.47.1.100,port:41772(port=uint16)}(=socket),server:{addr:10.0.0.100,port:53}(socket),vlan:null(uint16)}
+{kind:"dns",client:{addr:10.47.1.100,port:41772::(port=uint16)}::=socket,server:{addr:10.0.0.100,port:53}::socket,vlan:null::uint16}
 ```
 
 ## Error Handling
@@ -340,7 +340,7 @@ shape(this, <connection>)
   "vlan": "available"
 }
 # expected output
-{kind:"dns",client:{addr:error({message:"cannot cast to ip",on:"39 Elm Street"}),port:41772(port=uint16)},server:{addr:10.0.0.100,port:53(port)}(=socket),vlan:error({message:"cannot cast to uint16",on:"available"})}
+{kind:"dns",client:{addr:error({message:"cannot cast to ip",on:"39 Elm Street"}),port:41772::(port=uint16)},server:{addr:10.0.0.100,port:53::port}::=socket,vlan:error({message:"cannot cast to uint16",on:"available"})}
 ```
 
 Since these error values are nested inside an otherwise healthy record, adding
@@ -383,7 +383,7 @@ values {original: this, shaped: shape(this, <connection>)}
   "vlan": "available"
 }
 # expected output
-error({msg:"shaper error (see inner errors for details)",original:{kind:"dns",server:{addr:"10.0.0.100",port:53},client:{addr:"39 Elm Street",port:41772},vlan:"available"},shaped:{kind:"dns",client:{addr:error({message:"cannot cast to ip",on:"39 Elm Street"}),port:41772(port=uint16)},server:{addr:10.0.0.100,port:53(port)}(=socket),vlan:error({message:"cannot cast to uint16",on:"available"})}})(error({msg:string,original:{kind:string,server:{addr:string,port:int64},client:{addr:string,port:int64},vlan:string},shaped:{kind:string,client:{addr:error({message:string,on:string}),port:port=uint16},server:socket={addr:ip,port:port},vlan:error({message:string,on:string})}}))
+error({msg:"shaper error (see inner errors for details)",original:{kind:"dns",server:{addr:"10.0.0.100",port:53},client:{addr:"39 Elm Street",port:41772},vlan:"available"},shaped:{kind:"dns",client:{addr:error({message:"cannot cast to ip",on:"39 Elm Street"}),port:41772::(port=uint16)},server:{addr:10.0.0.100,port:53::port}::=socket,vlan:error({message:"cannot cast to uint16",on:"available"})}})::error({msg:string,original:{kind:string,server:{addr:string,port:int64},client:{addr:string,port:int64},vlan:string},shaped:{kind:string,client:{addr:error({message:string,on:string}),port:port=uint16},server:socket={addr:ip,port:port},vlan:error({message:string,on:string})}})
 ```
 
 If you require awareness about changes made by the shaping functions that
@@ -441,23 +441,23 @@ For example, an `int64` and a `string` can be merged into a common
 type of union `int64|string`, e.g., the value sequence `1 "foo"`
 can be fused into the single-type sequence:
 ```
-1(int64|string)
-"foo"(int64|string)
+1::(int64|string)
+"foo"::(int64|string)
 ```
 The second technique is to merge fields of records, analogous to a spread
 expression.  Here, the value sequence `{a:1}{b:"foo"}` may be
 fused into the single-type sequence:
 ```
-{a:1,b:null(string)}
-{a:null(int64),b:"foo"}
+{a:1,b:null::string}
+{a:null::int64,b:"foo"}
 ```
 
 Of course, these two techniques can be powerfully combined,
 e.g., where the value sequence `{a:1}{a:"foo",b:2}` may be
 fused into the single-type sequence:
 ```
-{a:1(int64|string),b:null(int64)}
-{a:"foo"(int64|string),b:2}
+{a:1::(int64|string),b:null::int64}
+{a:"foo"::(int64|string),b:2}
 ```
 
 To perform fusion, Zed currently includes two key mechanisms
@@ -477,8 +477,8 @@ fuse
 {y:"foo"}
 {x:2,y:"bar"}
 # expected output
-{x:1,y:null(string)}
-{x:null(int64),y:"foo"}
+{x:1,y:null::string}
+{x:null::int64,y:"foo"}
 {x:2,y:"bar"}
 ```
 
@@ -491,9 +491,9 @@ fuse
 {x:"foo",y:"foo"}
 {x:2,y:"bar"}
 # expected output
-{x:1(int64|string),y:null(string)}
-{x:"foo"(int64|string),y:"foo"}
-{x:2(int64|string),y:"bar"}
+{x:1::(int64|string),y:null::string}
+{x:"foo"::(int64|string),y:"foo"}
+{x:2::(int64|string),y:"bar"}
 ```
 
 ### Fuse Aggregate Function
@@ -548,7 +548,7 @@ switch len(this)
 {a:1,b:2,c:3}
 # expected output
 error({kind:"unrecognized shape",value:{a:1,b:2,c:3}})
-{x:"foo"(int64|string),y:"foo"}
-{x:2(int64|string),y:"bar"}
+{x:"foo"::(int64|string),y:"foo"}
+{x:2::(int64|string),y:"bar"}
 {x:1}
 ```

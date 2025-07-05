@@ -4,15 +4,15 @@ vector: true
 
 input: |
   {x:1}
-  {x:1}(=foo)
-  null(foo={x:int64})
+  {x:1}::=foo
+  null::(foo={x:int64})
   <foo={x:int64}>
-  <{x:int64}>(=bar)
+  <{x:int64}>::=bar
   {y:1}
   {x:"foo",y:1,z:2}
-  {x:"foo",y:1,z:2}(=bar)
+  {x:"foo",y:1,z:2}::=bar
   <{x:string,y:int64,z:int64}>
-  null(type)
+  null::type
 
 output: |
   error("missing")
@@ -24,4 +24,4 @@ output: |
   error("missing")
   "bar"
   error("missing")
-  null(string)
+  null::string

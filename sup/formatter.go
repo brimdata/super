@@ -199,7 +199,7 @@ func (f *Formatter) formatValue(indent int, typ super.Type, bytes zcode.Bytes, p
 	}
 }
 
-func (f *Formatter) formatTypeValue(indent int, tv zcode.Bytes, unionParent bool) zcode.Bytes {
+func (f *Formatter) formatTypeValue(indent int, tv zcode.Bytes, isComponentType bool) zcode.Bytes {
 	n, tv := super.DecodeLength(tv)
 	if tv == nil {
 		f.truncTypeValueErr()
@@ -223,13 +223,13 @@ func (f *Formatter) formatTypeValue(indent int, tv zcode.Bytes, unionParent bool
 			f.truncTypeValueErr()
 			return nil
 		}
-		if unionParent {
+		if isComponentType {
 			f.build("(")
 		}
 		f.build(QuotedName(name))
 		f.build("=")
-		tv = f.formatTypeValue(indent, tv, unionParent)
-		if unionParent {
+		tv = f.formatTypeValue(indent, tv, false)
+		if isComponentType {
 			f.build(")")
 		}
 	case super.TypeValueNameRef:
@@ -310,7 +310,7 @@ func (f *Formatter) formatTypeValue(indent int, tv zcode.Bytes, unionParent bool
 			return nil
 		}
 		indent += f.tab
-		if unionParent {
+		if isComponentType {
 			f.build("(" + f.newline)
 		} else {
 			f.build(f.newline)
@@ -325,7 +325,7 @@ func (f *Formatter) formatTypeValue(indent int, tv zcode.Bytes, unionParent bool
 		}
 		f.build(f.newline)
 		indent -= f.tab
-		if unionParent {
+		if isComponentType {
 			f.indent(indent, ")")
 		} else {
 			f.indent(indent, "")
@@ -389,25 +389,15 @@ func (f *Formatter) decorate(typ super.Type, known, null bool) {
 	f.startColor(color.Gray(200))
 	defer f.endColor()
 	if name := f.nameOf(typ); name != "" {
-		if f.tab > 0 {
-			f.build(" ")
-		}
-		f.buildf("(%s)", QuotedTypeName(name))
+		f.buildf("::%s", quoteHexyString(QuotedTypeName(name)))
 	} else if SelfDescribing(typ) && !null {
 		if typ, ok := typ.(*super.TypeNamed); ok {
 			f.saveType(typ)
-			if f.tab > 0 {
-				f.build(" ")
-			}
-			f.buildf("(=%s)", QuotedTypeName(typ.Name))
+			f.buildf("::=%s", QuotedTypeName(typ.Name))
 		}
 	} else {
-		if f.tab > 0 {
-			f.build(" ")
-		}
-		f.build("(")
-		f.formatType(typ, false)
-		f.build(")")
+		f.build("::")
+		f.formatType(typ, true)
 	}
 }
 
@@ -574,20 +564,21 @@ func (f *Formatter) buildf(s string, args ...any) {
 // Typedefs handled by decorators are handled in decorate().
 // The routine re-enters the type formatter with a fresh builder by
 // invoking push()/pop().
-func (f *Formatter) formatType(typ super.Type, unionParent bool) {
+func (f *Formatter) formatType(typ super.Type, isComponentType bool) {
 	if name := f.nameOf(typ); name != "" {
 		f.build(name)
 		return
 	}
 	if named, ok := typ.(*super.TypeNamed); ok {
+		needParens := isComponentType || super.IsUnionType(named.Type)
 		f.saveType(named)
-		if unionParent {
+		if needParens {
 			f.build("(")
 		}
 		f.build(named.Name)
 		f.build("=")
-		f.formatType(named.Type, unionParent)
-		if unionParent {
+		f.formatType(named.Type, false)
+		if needParens {
 			f.build(")")
 		}
 		return
@@ -597,13 +588,13 @@ func (f *Formatter) formatType(typ super.Type, unionParent bool) {
 		return
 	}
 	f.push()
-	f.formatTypeBody(typ, unionParent)
+	f.formatTypeBody(typ, isComponentType)
 	s := f.builder.String()
 	f.pop()
 	f.build(s)
 }
 
-func (f *Formatter) formatTypeBody(typ super.Type, unionParent bool) {
+func (f *Formatter) formatTypeBody(typ super.Type, isComponentType bool) {
 	if name := f.nameOf(typ); name != "" {
 		f.build(name)
 		return
@@ -630,7 +621,7 @@ func (f *Formatter) formatTypeBody(typ super.Type, unionParent bool) {
 		f.formatType(typ.ValType, false)
 		f.build("}|")
 	case *super.TypeUnion:
-		f.formatTypeUnion(typ, unionParent)
+		f.formatTypeUnion(typ, isComponentType)
 	case *super.TypeEnum:
 		f.formatTypeEnum(typ)
 	case *super.TypeError:
@@ -657,8 +648,8 @@ func (f *Formatter) formatTypeRecord(typ *super.TypeRecord) {
 	f.build("}")
 }
 
-func (f *Formatter) formatTypeUnion(typ *super.TypeUnion, unionParent bool) {
-	if unionParent {
+func (f *Formatter) formatTypeUnion(typ *super.TypeUnion, isComponentType bool) {
+	if isComponentType {
 		f.build("(")
 	}
 	for k, typ := range typ.Types {
@@ -667,7 +658,7 @@ func (f *Formatter) formatTypeUnion(typ *super.TypeUnion, unionParent bool) {
 		}
 		f.formatType(typ, true)
 	}
-	if unionParent {
+	if isComponentType {
 		f.build(")")
 	}
 }
@@ -727,7 +718,7 @@ func FormatType(typ super.Type) string {
 	return b.String()
 }
 
-func formatType(b *strings.Builder, typedefs map[string]*super.TypeNamed, typ super.Type, unionParent bool) {
+func formatType(b *strings.Builder, typedefs map[string]*super.TypeNamed, typ super.Type, isComponentType bool) {
 	switch t := typ.(type) {
 	case *super.TypeNamed:
 		name := t.Name
@@ -766,7 +757,7 @@ func formatType(b *strings.Builder, typedefs map[string]*super.TypeNamed, typ su
 		formatType(b, typedefs, t.ValType, false)
 		b.WriteString("}|")
 	case *super.TypeUnion:
-		if unionParent {
+		if isComponentType {
 			b.WriteByte('(')
 		}
 		for k, typ := range t.Types {
@@ -775,7 +766,7 @@ func formatType(b *strings.Builder, typedefs map[string]*super.TypeNamed, typ su
 			}
 			formatType(b, typedefs, typ, true)
 		}
-		if unionParent {
+		if isComponentType {
 			b.WriteByte(')')
 		}
 	case *super.TypeEnum:
@@ -865,4 +856,16 @@ func FormatTypeValue(tv zcode.Bytes) string {
 	f := NewFormatter(0, true, nil)
 	f.formatTypeValue(0, tv, false)
 	return f.builder.String()
+}
+
+func quoteHexyString(s string) string {
+	if s == "" || len(s) > 4 {
+		return s
+	}
+	for _, c := range s {
+		if !((c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F') || (c >= '0' && c <= '9')) {
+			return s
+		}
+	}
+	return fmt.Sprintf("%q", s)
 }

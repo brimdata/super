@@ -6,8 +6,8 @@ script: |
 inputs:
   - name: in.sup
     data: |
-      {a:"hello",b:"world",n:123(int32),f:[1(foo=uint8),2(foo),3(foo)]}
-      {a:"goodbye",b:"world",n:456(int32),f:[4(foo=uint8),5(foo),6(foo)]}
+      {a:"hello",b:"world",n:123::int32,f:[1::foo=uint8,2::foo,3::foo]}
+      {a:"goodbye",b:"world",n:456::int32,f:[4::foo=uint8,5::foo,6::foo]}
 
 outputs:
   - name: stdout
@@ -15,11 +15,11 @@ outputs:
       {
           a: "hello",
           b: "world",
-          n: 123 (int32),
+          n: 123::int32,
           f: [
-              1 (foo=uint8),
-              2 (foo),
-              3 (foo)
+              1::(foo=uint8),
+              2::foo,
+              3::foo
           ],
           t: <{
               a: string,
@@ -33,11 +33,11 @@ outputs:
       {
           a: "goodbye",
           b: "world",
-          n: 456 (int32),
+          n: 456::int32,
           f: [
-              4 (foo=uint8),
-              5 (foo),
-              6 (foo)
+              4::(foo=uint8),
+              5::foo,
+              6::foo
           ],
           t: <{
               a: string,

@@ -6,12 +6,12 @@ input: |
   {a:1}
   {b:1}
   {a:1,b:2}
-  {a:1,b:null(int64)}
+  {a:1,b:null::int64}
   {a:error("other"),b:2}
 
 output: |
   false
   false
   true
-  null(bool)
+  null::bool
   error("other")

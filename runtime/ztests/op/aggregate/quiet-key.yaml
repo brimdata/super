@@ -5,10 +5,10 @@ vector: true
 spq: count() by id.orig_h:=quiet(id.orig_h) | sort id
 
 input: |
-  {_path:"weird",id:{orig_h:10.47.1.152,orig_p:49562(port=uint16),resp_h:23.217.103.245,resp_p:80(port)}}
+  {_path:"weird",id:{orig_h:10.47.1.152,orig_p:49562::(port=uint16),resp_h:23.217.103.245,resp_p:80::port}}
   {_path:"x509",id:"FYNFkU3KccxXgIuUg5"}
-  {_path:"weird",id:{orig_h:10.47.5.155,orig_p:40712(port=uint16),resp_h:91.189.91.23,resp_p:80(port)}}
+  {_path:"weird",id:{orig_h:10.47.5.155,orig_p:40712::(port=uint16),resp_h:91.189.91.23,resp_p:80::port}}
 
 output: |
-  {id:{orig_h:10.47.1.152},count:1(uint64)}
-  {id:{orig_h:10.47.5.155},count:1(uint64)}
+  {id:{orig_h:10.47.1.152},count:1::uint64}
+  {id:{orig_h:10.47.5.155},count:1::uint64}

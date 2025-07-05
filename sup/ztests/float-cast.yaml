@@ -1,17 +1,17 @@
 spq: pass
 
 input: |
-  16(float16)
-  -16(float16)
-  32(float32)
-  -32(float32)
-  64(float64)
-  -64(float64)
+  16::float16
+  -16::float16
+  32::float32
+  -32::float32
+  64::float64
+  -64::float64
 
 output: |
-  16.(float16)
-  -16.(float16)
-  32.(float32)
-  -32.(float32)
+  16.::float16
+  -16.::float16
+  32.::float32
+  -32.::float32
   64.
   -64.

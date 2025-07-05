@@ -14,6 +14,6 @@ spq: |
 input: "1 2 3"
 
 output: |
-  {count:0(uint64),dcount:1(uint64),sum:1,min:1,max:1,any:1,all_odd:true,has_even:false,collect:[1],avg:1.,union:|[1]|}
-  {count:1(uint64),dcount:2(uint64),sum:3,min:1,max:2,any:1,all_odd:false,has_even:true,collect:[1,2],avg:1.5,union:|[1,2]|}
-  {count:2(uint64),dcount:3(uint64),sum:6,min:1,max:3,any:1,all_odd:false,has_even:true,collect:[1,2,3],avg:2.,union:|[1,2,3]|}
+  {count:0::uint64,dcount:1::uint64,sum:1,min:1,max:1,any:1,all_odd:true,has_even:false,collect:[1],avg:1.,union:|[1]|}
+  {count:1::uint64,dcount:2::uint64,sum:3,min:1,max:2,any:1,all_odd:false,has_even:true,collect:[1,2],avg:1.5,union:|[1,2]|}
+  {count:2::uint64,dcount:3::uint64,sum:6,min:1,max:3,any:1,all_odd:false,has_even:true,collect:[1,2,3],avg:2.,union:|[1,2,3]|}

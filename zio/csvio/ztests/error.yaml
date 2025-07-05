@@ -1,7 +1,7 @@
 spq: pass
 
 input: |
-  {error:error(null(string))}
+  {error:error(null::string)}
   {error:error("")}
   {error:error("\"")}
   {error:error(",")}

@@ -22,11 +22,11 @@ values floor(this)
 # input
 1.5
 -1.5
-1(uint8)
-1.5(float32)
+1::uint8
+1.5::float32
 # expected output
 1.
 -2.
-1(uint8)
-1.(float32)
+1::uint8
+1.::float32
 ```

@@ -22,11 +22,11 @@ values ceil(this)
 # input
 1.5
 -1.5
-1(uint8)
-1.5(float32)
+1::uint8
+1.5::float32
 # expected output
 2.
 -1.
-1(uint8)
-2.(float32)
+1::uint8
+2.::float32
 ```

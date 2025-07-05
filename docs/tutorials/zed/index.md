@@ -92,7 +92,7 @@ $ zed query -use prs 'count()'
 ```
 =>
 ```
-{count:100(uint64)}
+{count:100::uint64}
 ```
 
 This looks good so far, but let's do something more interesting. First let's use
@@ -111,12 +111,12 @@ $ zed query 'count() by user:=user.login | sort count desc'
 ```
 =>
 ```
-{user:"mccanne",count:40(uint64)}
-{user:"mattnibs",count:23(uint64)}
-{user:"aswan",count:20(uint64)}
-{user:"henridf",count:9(uint64)}
-{user:"nwt",count:5(uint64)}
-{user:"philrz",count:3(uint64)}
+{user:"mccanne",count:40::uint64}
+{user:"mattnibs",count:23::uint64}
+{user:"aswan",count:20::uint64}
+{user:"henridf",count:9::uint64}
+{user:"nwt",count:5::uint64}
+{user:"philrz",count:3::uint64}
 ```
 
 A productive few weeks for McCanne!
@@ -167,14 +167,14 @@ $ zed query 'count() by ts:=bucket(created_at, 1y/12) | sort ts'
 ```
 =>
 ```
-{ts:2019-10-20T04:00:00Z,count:28(uint64)}
-{ts:2019-11-19T14:00:00Z,count:123(uint64)}
-{ts:2019-12-20T00:00:00Z,count:72(uint64)}
-{ts:2020-01-19T10:00:00Z,count:102(uint64)}
-{ts:2020-02-18T20:00:00Z,count:114(uint64)}
-{ts:2020-03-20T06:00:00Z,count:111(uint64)}
-{ts:2020-04-19T16:00:00Z,count:137(uint64)}
-{ts:2020-05-20T02:00:00Z,count:74(uint64)}
+{ts:2019-10-20T04:00:00Z,count:28::uint64}
+{ts:2019-11-19T14:00:00Z,count:123::uint64}
+{ts:2019-12-20T00:00:00Z,count:72::uint64}
+{ts:2020-01-19T10:00:00Z,count:102::uint64}
+{ts:2020-02-18T20:00:00Z,count:114::uint64}
+{ts:2020-03-20T06:00:00Z,count:111::uint64}
+{ts:2020-04-19T16:00:00Z,count:137::uint64}
+{ts:2020-05-20T02:00:00Z,count:74::uint64}
 ...
 ```
 
@@ -187,14 +187,14 @@ $ zed query 'from prs range 2020-04-19T16:00:00Z to 2020-05-20T02:00:00Z
 ```
 =>
 ```
-{user:"mccanne",count:35(uint64)}
-{user:"henridf",count:34(uint64)}
-{user:"aswan",count:27(uint64)}
-{user:"mattnibs",count:14(uint64)}
-{user:"alfred-landrum",count:12(uint64)}
-{user:"philrz",count:9(uint64)}
-{user:"mikesbrown",count:5(uint64)}
-{user:"nwt",count:1(uint64)}
+{user:"mccanne",count:35::uint64}
+{user:"henridf",count:34::uint64}
+{user:"aswan",count:27::uint64}
+{user:"mattnibs",count:14::uint64}
+{user:"alfred-landrum",count:12::uint64}
+{user:"philrz",count:9::uint64}
+{user:"mikesbrown",count:5::uint64}
+{user:"nwt",count:1::uint64}
 ```
 
 McCanne is once again in the lead but Henri is not far behind.
@@ -258,7 +258,7 @@ $ zed query 'count()'
 ```
 =>
 ```
-{count:100(uint64)}
+{count:100::uint64}
 ```
 
 If we made a mistake and we'd like to keep the data, we can also revert our
@@ -275,7 +275,7 @@ $ zed query 'count()'
 ```
 =>
 ```
-{count:2000(uint64)}
+{count:2000::uint64}
 ```
 
 ## Running as a service

@@ -13,4 +13,4 @@ input: |
   #close	2018-08-17-16-04-30
 
 output: |
-  {_path:"smb_cmd",ts:2009-11-19T01:41:47.85978Z,uid:"Chjxid42dvvzIzdeG8",id:{orig_h:192.168.1.102,orig_p:1076(port=uint16),resp_h:192.168.1.1,resp_p:139(port)},referenced_file:{ts:2009-11-19T01:41:47.85978Z,uid:"Chjxid42dvvzIzdeG8",id:{orig_h:192.168.1.102,orig_p:1076(port),resp_h:192.168.1.1,resp_p:139(port)},fuid:"ZYjxid42dvvzIzdeG8"}}
+  {_path:"smb_cmd",ts:2009-11-19T01:41:47.85978Z,uid:"Chjxid42dvvzIzdeG8",id:{orig_h:192.168.1.102,orig_p:1076::(port=uint16),resp_h:192.168.1.1,resp_p:139::port},referenced_file:{ts:2009-11-19T01:41:47.85978Z,uid:"Chjxid42dvvzIzdeG8",id:{orig_h:192.168.1.102,orig_p:1076::port,resp_h:192.168.1.1,resp_p:139::port},fuid:"ZYjxid42dvvzIzdeG8"}}

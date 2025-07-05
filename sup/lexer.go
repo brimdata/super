@@ -16,6 +16,7 @@ var ErrBufferOverflow = errors.New("SUP scanner buffer size exceeded")
 
 const primitiveRE = `^(true|false|null|NaN|nan|[-+][Ii]nf|[-+0-9Ee./]+|0x[[:xdigit:]]*|([[:xdigit:]]{0,4}(:[[:xdigit:]]{0,4}){2,}(/[0-9]+)?)|([-.0-9]+(ns|us|ms|s|m|h|d|w|y))+|([-.:T\d]+(Z|[-+]\d\d:\d\d)))`
 const indentationRE = `\n\s*`
+const ip6followRE = `^([[:space:],:}\]])`
 
 type Lexer struct {
 	reader      io.Reader
@@ -23,6 +24,7 @@ type Lexer struct {
 	cursor      []byte
 	primitive   *regexp.Regexp
 	indentation *regexp.Regexp
+	ip6follow   *regexp.Regexp
 }
 
 const (
@@ -40,6 +42,7 @@ func NewLexer(r io.Reader) *Lexer {
 		buffer:      make([]byte, ReadSize),
 		primitive:   primitive,
 		indentation: indentation,
+		ip6follow:   regexp.MustCompile(ip6followRE),
 	}
 }
 
@@ -96,6 +99,13 @@ func (l *Lexer) peek() (byte, error) {
 		return 0, err
 	}
 	return l.cursor[0], nil
+}
+
+func (l *Lexer) peek3() (string, error) {
+	if err := l.check(3); err != nil {
+		return "", noEOF(err)
+	}
+	return string(l.cursor[0:3]), nil
 }
 
 func (l *Lexer) match(b byte) (bool, error) {
@@ -521,5 +531,25 @@ func (l *Lexer) peekPrimitive() (string, error) {
 	if len(l.cursor) == 0 {
 		return "", io.EOF
 	}
-	return string(l.primitive.Find(l.cursor)), nil
+	return string(l.ip6trim(l.primitive.Find(l.cursor), l.cursor)), nil
+}
+
+// IP6 addresses can overmatch into the decorator colons and into the
+// the type name after a cast.  Detect this condition and return
+// the match prior adjusted up to the cast.  If not detected,
+// return the match.
+func (l *Lexer) ip6trim(match, cursor []byte) []byte {
+	if match == nil {
+		return nil
+	}
+	colonsAt := bytes.LastIndex(match, []byte("::"))
+	if colonsAt < 0 || bytes.IndexByte(match, '/') >= 0 {
+		// No trim if not IP6 or IP6 but appended with slash network.
+		return match
+	}
+	follows := cursor[len(match):]
+	if len(follows) == 0 || len(l.cursor) <= colonsAt+2 || l.ip6follow.Find(follows) != nil {
+		return match
+	}
+	return match[:colonsAt]
 }

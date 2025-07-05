@@ -6,26 +6,26 @@ input: |
   "1.5"
   "-6.9e20"
   "foo"
-  1(uint64)
-  1000000000(uint64)
-  2(=named)
+  1::uint64
+  1000000000::uint64
+  2::=named
 
 output: |
-  1.5(float16)
-  1.5(float32)
+  1.5::float16
+  1.5::float32
   1.5
-  -Inf(float16)
-  -6.9e+20(float32)
+  -Inf::float16
+  -6.9e+20::float32
   -6.9e+20
   error({message:"cannot cast to float16",on:"foo"})
   error({message:"cannot cast to float32",on:"foo"})
   error({message:"cannot cast to float64",on:"foo"})
-  1.(float16)
-  1.(float32)
+  1.::float16
+  1.::float32
   1.
-  +Inf(float16)
-  1000000000.(float32)
+  +Inf::float16
+  1000000000.::float32
   1000000000.
-  2.(float16)
-  2.(float32)
+  2.::float16
+  2.::float32
   2.

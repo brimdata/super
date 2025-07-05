@@ -1,7 +1,7 @@
 spq: count() by typeof(this)
 
 input: |
-  {a:100}(=myrecord)
+  {a:100}::=myrecord
 
 output-flags: -f zjson
 

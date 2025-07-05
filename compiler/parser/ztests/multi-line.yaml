@@ -16,4 +16,4 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {c:3(uint64)}
+      {c:3::uint64}

@@ -3,8 +3,8 @@ spq: cut y:=x+1,a:=lower(s),typeof:=typeof(s)
 vector: true
 
 input: |
-  {a:[]([int32]),x:1(int32),s:"foo",b:0x68656c6c6f0a}
-  {a:[1(int32)],x:2(int32),s:"Bar",b:0x74686572650a}
+  {a:[]::[int32],x:1::int32,s:"foo",b:0x68656c6c6f0a}
+  {a:[1::int32],x:2::int32,s:"Bar",b:0x74686572650a}
 
 output: |
   {y:2,a:"foo",typeof:<string>}

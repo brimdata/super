@@ -3,7 +3,7 @@ spq: drop id
 vector: true
 
 input: |
-  {id:null({ip:ip}),id2:{ip:1.1.1.1}}
+  {id:null::{ip:ip},id2:{ip:1.1.1.1}}
 
 output: |
   {id2:{ip:1.1.1.1}}

@@ -3,13 +3,13 @@ script: super - | super -s -
 inputs:
   - name: stdin
     data: &stdin |
-      {f:null(|[string]|)}
-      {f:|[]|(|[string]|)}
-      {f:|[null(string)]|}
+      {f:null::|[string]|}
+      {f:|[]|::|[string]|}
+      {f:|[null::string]|}
       {f:|["dup"]|}
       {f:|["a","z"]|}
       {f:|["a","z"]|}
-      {f:|[null(string),"a","z","dup"]|}
+      {f:|[null::string,"a","z","dup"]|}
 
 outputs:
   - name: stdout

@@ -207,7 +207,7 @@ super db -db test -s -I count-pool.spq
 
 it produces the output
 ```mdtest-output
-1(uint64)
+1::uint64
 ```
 
 ### Nested Calls
@@ -253,7 +253,7 @@ cast(this, <port>)
 # input
 80
 # expected output
-80(port=uint16)
+80::(port=uint16)
 ```
 
 One or more `type` statements may appear at the beginning of a scope

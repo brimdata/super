@@ -5,10 +5,10 @@ script: |
 inputs:
   - name: stdin
     data: &input |
-      {a:"hello",b:1}(=foo)
-      {a:"there",c:2}(=foo)
+      {a:"hello",b:1}::=foo
+      {a:"there",c:2}::=foo
       {a:"goodbye",b:3}
-      {a:"world",d:4}(=foo)
+      {a:"world",d:4}::=foo
 
 outputs:
   - name: stdout

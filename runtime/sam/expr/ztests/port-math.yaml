@@ -8,13 +8,13 @@ script: |
 inputs:
   - name: in.sup
     data: |
-      {a:1(int32),p1:100(port=uint16),p2:200(port)}
+      {a:1::int32,p1:100::(port=uint16),p2:200::port}
 
 outputs:
   - name: stdout
     data: |
-      {a:1(int32),p1:100(port=uint16),p2:200(port),x:101}
+      {a:1::int32,p1:100::(port=uint16),p2:200::port,x:101}
       ===
-      {a:1(int32),p1:100(port=uint16),p2:200(port),x:false}
+      {a:1::int32,p1:100::(port=uint16),p2:200::port,x:false}
       ===
-      {a:1(int32),p1:100(port=uint16),p2:200(port),x:301(int32)}
+      {a:1::int32,p1:100::(port=uint16),p2:200::port,x:301::int32}

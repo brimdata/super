@@ -87,8 +87,8 @@ cast(this, "foo")
 {a:1,b:2}
 {a:3,b:4}
 # expected output
-{a:1,b:2}(=foo)
-{a:3,b:4}(=foo)
+{a:1,b:2}::=foo
+{a:3,b:4}::=foo
 ```
 
 _Derive type names from the properties of data_
@@ -103,7 +103,7 @@ switch
 {r:3}
 {x:4,y:5}
 # expected output
-{r:3}(=radius)
-{x:1,y:2}(=point)
-{x:4,y:5}(=point)
+{r:3}::=radius
+{x:1,y:2}::=point
+{x:4,y:5}::=point
 ```

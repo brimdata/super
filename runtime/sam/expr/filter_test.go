@@ -118,14 +118,14 @@ func TestFilters(t *testing.T) {
 	})
 
 	// Test membership in set of integers
-	runCases(t, "{intset:|[1 (int32),2 (int32),3 (int32)]| (=0)} (=1)", []testcase{
+	runCases(t, "{intset:|[1::int32,2::int32,3::int32]|}", []testcase{
 		{"2 in intset", true},
 		{"4 in intset", false},
 		{"'abc' in intset", false},
 	})
 
 	// Test membership in array of integers
-	runCases(t, "{intvec:[1 (int32),2 (int32),3 (int32)] (=0)} (=1)", []testcase{
+	runCases(t, "{intvec:[1::int32,2::int32,3::int32]}", []testcase{
 		{"2 in intvec", true},
 		{"4 in intvec", false},
 		{"'abc' in intvec", false},
@@ -162,7 +162,7 @@ func TestFilters(t *testing.T) {
 	})
 
 	// Test array of records
-	runCases(t, "{nested:[{field:1 (int32)} (=0),{field:2} (0)] (=1)} (=2)", []testcase{
+	runCases(t, "{nested:[{field:1::int32},{field:2}]}", []testcase{
 		{"nested[1].field == 1", true},
 		{"nested[2].field == 2", true},
 		{"nested[1].field == 2", false},
@@ -171,7 +171,7 @@ func TestFilters(t *testing.T) {
 	})
 
 	// Test array inside a record
-	runCases(t, "{nested:{vec:[1 (int32),2 (int32),3 (int32)]}}", []testcase{
+	runCases(t, "{nested:{vec:[1::int32,2::int32,3::int32]}}", []testcase{
 		{"1 in nested.vec", true},
 		{"2 in nested.vec", true},
 		{"4 in nested.vec", false},
@@ -236,7 +236,7 @@ func TestFilters(t *testing.T) {
 		{"array", `{a:[{i:123,s1:"456",s2:"hello"}]}`},
 		{"record", `{r:{r2:{i:123,s1:"456",s2:"hello"}}}`},
 		{"set", `{s:|[{i:123,s1:"456",s2:"hello"}]|}`},
-		{"union", `{u:{i:123,s1:"456",s2:"hello, world"}  (int64|{i:int64,s1:string,s2:string})}`},
+		{"union", `{u:{i:123,s1:"456",s2:"hello, world"}::(int64|{i:int64,s1:string,s2:string})}`},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			runCases(t, c.record, []testcase{
@@ -281,7 +281,7 @@ func TestFilters(t *testing.T) {
 	//    with integers on the RHS)
 	// 3. that coercion to float64 works properly (in the filters
 	//    with floats on the RHS)
-	record := "{b:0 (uint8),i16:-32768 (int16),u16:0 (uint16),i32:-2147483648 (int32),u32:0 (uint32),i64:-9223372036854775808,u64:0 (uint64)} (=0)"
+	record := "{b:0::uint8,i16:-32768::int16,u16:0::uint16,i32:-2147483648::int32,u32:0::uint32,i64:-9223372036854775808,u64:0::uint64}"
 	runCases(t, record, []testcase{
 		{"b > -1", true},
 		{"b == 0", true},
@@ -330,7 +330,7 @@ func TestFilters(t *testing.T) {
 		{"u64 < 0.5", true},
 	})
 
-	record = "{b:255 (uint8),i16:32767 (int16),u16:65535 (uint16),i32:2147483647 (int32),u32:4294967295 (uint32),i64:9223372036854775807,u64:18446744073709551615 (uint64)} (=0)"
+	record = "{b:255::uint8,i16:32767::int16,u16:65535::uint16,i32:2147483647::int32,u32:4294967295::uint32,i64:9223372036854775807,u64:18446744073709551615::uint64}"
 	runCases(t, record, []testcase{
 		{"b == 255", true},
 		{"i16 == 32767", true},
@@ -344,7 +344,7 @@ func TestFilters(t *testing.T) {
 
 	// Test comparisons with field of type port (can compare with
 	// a port literal or an integer literal)
-	runCases(t, "{p:443 (port=uint16)}", []testcase{
+	runCases(t, "{p:443::port=uint16}", []testcase{
 		{"p == 443", true},
 		{"p == 80", false},
 	})
@@ -371,7 +371,7 @@ func TestFilters(t *testing.T) {
 	})
 
 	// Test comparisons with a named type
-	runCases(t, "{i:100 (myint=int32)}", []testcase{
+	runCases(t, "{i:100::myint=int32}", []testcase{
 		{"i == 100", true},
 		{"i > 0", true},
 		{"i < 50", false},
@@ -389,7 +389,7 @@ func TestFilters(t *testing.T) {
 	})
 
 	// Test searching for a field name of an null record
-	runCases(t, "{rec:null ({str:string})}", []testcase{
+	runCases(t, "{rec:null::{str:string}}", []testcase{
 		{"?rec.str", true},
 	})
 

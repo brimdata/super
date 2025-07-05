@@ -45,7 +45,7 @@ const sortedStrings = `
 
 // A point that can be included with unsortedInts
 const nullInt = `
-{foo:null(int64)}
+{foo:null::int64}
 `
 
 // Some records that don't include the field "foo".  These are combined

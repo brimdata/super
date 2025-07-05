@@ -4,17 +4,17 @@ vector: true
 
 input: |
   {a:{b:1}}
-  {a:{b:1(int64|string)}}
-  {a:{b:1}((int64|{b:int64}))}
-  {a:{b:1}}((int64|{a:{b:int64}}))
+  {a:{b:1::(int64|string)}}
+  {a:{b:1}::(int64|{b:int64})}
+  {a:{b:1}}::(int64|{a:{b:int64}})
   {a:1}
   {}
-  null({})
+  null::{}
   null
 
 output: |
   1
-  1(int64|string)
+  1::(int64|string)
   1
   1
   error("missing")

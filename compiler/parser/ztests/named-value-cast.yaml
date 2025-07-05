@@ -1,0 +1,8 @@
+spq: |
+  values 1::=foo
+
+input: |
+  null
+
+output: |
+  1::=foo

@@ -35,7 +35,7 @@ inputs:
       {ts:1970-01-01T00:00:01Z}
       {ts:1970-01-01T00:00:02Z}
       {ts:1970-01-01T00:00:03Z}
-      {ts:null(time)}
+      {ts:null::time}
   - name: in-record-key.sup
     data: |
       {foo:{a:"aaa"}}
@@ -44,7 +44,7 @@ inputs:
     data: |
       {foo:{a:"aaa"}}
       {foo:{a:"baa"}}
-      {foo:{a:null(string)}}
+      {foo:{a:null::string}}
   - name: in-rev.sup
     data: |
       {ts:1970-01-01T00:00:10Z}
@@ -53,56 +53,56 @@ inputs:
       {ts:1970-01-01T00:00:06Z}
       {ts:1970-01-01T00:00:02Z}
       {ts:1970-01-01T00:00:01Z}
-      {ts:null(time)}
+      {ts:null::time}
 
 outputs:
   - name: stdout
     data: |
       === forward-sorted ===
-      {ts:1970-01-01T00:00:02Z,count:1(uint64)}
-      {ts:1970-01-01T00:00:01Z,count:2(uint64)}
-      {ts:1970-01-01T00:00:03Z,count:1(uint64)}
+      {ts:1970-01-01T00:00:02Z,count:1::uint64}
+      {ts:1970-01-01T00:00:01Z,count:2::uint64}
+      {ts:1970-01-01T00:00:03Z,count:1::uint64}
       === forward-sorted-with-null ===
-      {ts:null(time),count:1(uint64)}
-      {ts:1970-01-01T00:00:02Z,count:1(uint64)}
-      {ts:1970-01-01T00:00:01Z,count:2(uint64)}
-      {ts:1970-01-01T00:00:03Z,count:1(uint64)}
+      {ts:null::time,count:1::uint64}
+      {ts:1970-01-01T00:00:02Z,count:1::uint64}
+      {ts:1970-01-01T00:00:01Z,count:2::uint64}
+      {ts:1970-01-01T00:00:03Z,count:1::uint64}
       === forward-sorted-every ===
-      {ts:1970-01-01T00:00:02Z,count:1(uint64)}
-      {ts:1970-01-01T00:00:01Z,count:2(uint64)}
-      {ts:1970-01-01T00:00:03Z,count:1(uint64)}
+      {ts:1970-01-01T00:00:02Z,count:1::uint64}
+      {ts:1970-01-01T00:00:01Z,count:2::uint64}
+      {ts:1970-01-01T00:00:03Z,count:1::uint64}
       === forward-sorted-every-null ===
-      {ts:null(time),count:1(uint64)}
-      {ts:1970-01-01T00:00:02Z,count:1(uint64)}
-      {ts:1970-01-01T00:00:01Z,count:2(uint64)}
-      {ts:1970-01-01T00:00:03Z,count:1(uint64)}
+      {ts:null::time,count:1::uint64}
+      {ts:1970-01-01T00:00:02Z,count:1::uint64}
+      {ts:1970-01-01T00:00:01Z,count:2::uint64}
+      {ts:1970-01-01T00:00:03Z,count:1::uint64}
       === forward-sorted-record-key ===
-      {foo:{a:"aaa"},count:1(uint64)}
-      {foo:{a:"baa"},count:1(uint64)}
+      {foo:{a:"aaa"},count:1::uint64}
+      {foo:{a:"baa"},count:1::uint64}
       === forward-sorted-nested-key ===
-      {foo:{a:"aaa"},count:1(uint64)}
-      {foo:{a:"baa"},count:1(uint64)}
+      {foo:{a:"aaa"},count:1::uint64}
+      {foo:{a:"baa"},count:1::uint64}
       === forward-sorted-record-key-null ===
-      {foo:{a:null(string)},count:1(uint64)}
-      {foo:{a:"aaa"},count:1(uint64)}
-      {foo:{a:"baa"},count:1(uint64)}
+      {foo:{a:null::string},count:1::uint64}
+      {foo:{a:"aaa"},count:1::uint64}
+      {foo:{a:"baa"},count:1::uint64}
       === forward-sorted-nested-key-null ===
-      {foo:{a:null(string)},count:1(uint64)}
-      {foo:{a:"aaa"},count:1(uint64)}
-      {foo:{a:"baa"},count:1(uint64)}
+      {foo:{a:null::string},count:1::uint64}
+      {foo:{a:"aaa"},count:1::uint64}
+      {foo:{a:"baa"},count:1::uint64}
       === reverse-sorted ===
-      {ts:null(time),count:1(uint64)}
-      {ts:1970-01-01T00:00:02Z,count:1(uint64)}
-      {ts:1970-01-01T00:00:01Z,count:1(uint64)}
-      {ts:1970-01-01T00:00:07Z,count:1(uint64)}
-      {ts:1970-01-01T00:00:06Z,count:1(uint64)}
-      {ts:1970-01-01T00:00:08Z,count:1(uint64)}
-      {ts:1970-01-01T00:00:10Z,count:1(uint64)}
+      {ts:null::time,count:1::uint64}
+      {ts:1970-01-01T00:00:02Z,count:1::uint64}
+      {ts:1970-01-01T00:00:01Z,count:1::uint64}
+      {ts:1970-01-01T00:00:07Z,count:1::uint64}
+      {ts:1970-01-01T00:00:06Z,count:1::uint64}
+      {ts:1970-01-01T00:00:08Z,count:1::uint64}
+      {ts:1970-01-01T00:00:10Z,count:1::uint64}
       === reverse-sorted-null ===
-      {ts:null(time),count:1(uint64)}
-      {ts:1970-01-01T00:00:02Z,count:1(uint64)}
-      {ts:1970-01-01T00:00:01Z,count:1(uint64)}
-      {ts:1970-01-01T00:00:07Z,count:1(uint64)}
-      {ts:1970-01-01T00:00:06Z,count:1(uint64)}
-      {ts:1970-01-01T00:00:08Z,count:1(uint64)}
-      {ts:1970-01-01T00:00:10Z,count:1(uint64)}
+      {ts:null::time,count:1::uint64}
+      {ts:1970-01-01T00:00:02Z,count:1::uint64}
+      {ts:1970-01-01T00:00:01Z,count:1::uint64}
+      {ts:1970-01-01T00:00:07Z,count:1::uint64}
+      {ts:1970-01-01T00:00:06Z,count:1::uint64}
+      {ts:1970-01-01T00:00:08Z,count:1::uint64}
+      {ts:1970-01-01T00:00:10Z,count:1::uint64}

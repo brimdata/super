@@ -5,13 +5,13 @@ vector: true
 input: |
   "aGVsbG8gd29ybGQ="
   0x68656c6c6f20776f726c64
-  null(string)
+  null::string
   "foo"
-  null(bytes)
+  null::bytes
 
 output: |
   0x68656c6c6f20776f726c64
   "aGVsbG8gd29ybGQ="
-  null(bytes)
+  null::bytes
   error({message:"base64: string argument is not base64",on:"foo"})
   error("base64: illegal null argument")

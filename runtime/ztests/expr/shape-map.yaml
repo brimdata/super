@@ -15,6 +15,6 @@ input: |
   {_path:"conn",id:{src:"192.168.1.1",dst:"192.168.1.3"},etc:"foo"}
 
 output: |
-  {_path:"conn",id:{src:192.168.1.1,dst:192.168.1.2},etc:"foo"}(=conn)
-  {_path:"dns",id:{src:192.168.1.1,dst:192.168.1.2},query:"www.google.com",query_size:23(uint64)}(=dns)
-  {_path:"conn",id:{src:192.168.1.1,dst:192.168.1.3},etc:"foo"}(=conn)
+  {_path:"conn",id:{src:192.168.1.1,dst:192.168.1.2},etc:"foo"}::=conn
+  {_path:"dns",id:{src:192.168.1.1,dst:192.168.1.2},query:"www.google.com",query_size:23::uint64}::=dns
+  {_path:"conn",id:{src:192.168.1.1,dst:192.168.1.3},etc:"foo"}::=conn

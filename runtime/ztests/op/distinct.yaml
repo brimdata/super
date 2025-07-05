@@ -14,7 +14,7 @@ inputs:
       {x:2}
       {x:2}
       {y:3}
-      {y:3}(=named)
+      {y:3}::=named
   - name: 2.sup
     data: |
       1
@@ -37,5 +37,5 @@ outputs:
       -2
       3
       ===
-      3(uint64)
-      2(uint64)
+      3::uint64
+      2::uint64

@@ -8,8 +8,8 @@ vector: true
 
 input: |
   {a:{q:1},b:[{p:1}]}
-  {a:{q:1(myport=int16)},b:[{p:1(myport)}]}
+  {a:{q:1::(myport=int16)},b:[{p:1::myport}]}
 
 output: |
-  {a:{q:1,p:null(port=int64)},b:[{p:1,q:null(port)}],c:null(port)}
-  {a:{q:1(myport=int16),p:null(port=int64)},b:[{p:1(myport),q:null(port)}],c:null(port)}
+  {a:{q:1,p:null::(port=int64)},b:[{p:1,q:null::port}],c:null::port}
+  {a:{q:1::(myport=int16),p:null::(port=int64)},b:[{p:1::myport,q:null::port}],c:null::port}

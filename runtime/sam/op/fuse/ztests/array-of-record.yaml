@@ -7,7 +7,7 @@ input: |
   [{a:3,b:3}]
 
 output: |
-  [{a:1,b:null(int64)}]
-  [{a:null(int64),b:2}]
-  [{a:3,b:null(int64)},{a:null(int64),b:3}]
+  [{a:1,b:null::int64}]
+  [{a:null::int64,b:2}]
+  [{a:3,b:null::int64},{a:null::int64,b:3}]
   [{a:3,b:3}]

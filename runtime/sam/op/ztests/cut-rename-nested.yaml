@@ -1,9 +1,9 @@
 spq: cut ports:=id, resp_p:=quiet(id.resp_p)
 
 input: |
-  {id:{orig_p:1(port=uint16),resp_p:2(port)}}
-  {id:[3(port=uint16),4(port)]}
+  {id:{orig_p:1::(port=uint16),resp_p:2::port}}
+  {id:[3::(port=uint16),4::port]}
 
 output: |
-  {ports:{orig_p:1(port=uint16),resp_p:2(port)},resp_p:2(port)}
-  {ports:[3(port=uint16),4(port)]}
+  {ports:{orig_p:1::(port=uint16),resp_p:2::port},resp_p:2::port}
+  {ports:[3::(port=uint16),4::port]}

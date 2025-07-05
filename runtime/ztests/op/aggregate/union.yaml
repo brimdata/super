@@ -11,11 +11,11 @@ input: |
   ]
   [1,"1",1]
   [
-    []([string]),
-    null([string]),
+    []::[string],
+    null::[string],
   ]
 
 output: |
   |[{x:1,s:"a"},{x:2,s:"b"},{x:3,s:"e"}]|
   |[1,"1"]|
-  |[[]([string])]|
+  |[[]::[string]]|

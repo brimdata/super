@@ -3,13 +3,13 @@ spq: "result.count:=count() by result.animal:=animal | sort this"
 vector: true
 
 input: |
-  {animal:"cat",s:"a",x:1(int32)}
-  {animal:"dog",s:"b",x:1(int32)}
-  {animal:"cat",s:"a",x:1(int32)}
-  {animal:"elephant",s:"a",x:1(int32)}
-  {animal:"cat",s:"b",x:1(int32)}
+  {animal:"cat",s:"a",x:1::int32}
+  {animal:"dog",s:"b",x:1::int32}
+  {animal:"cat",s:"a",x:1::int32}
+  {animal:"elephant",s:"a",x:1::int32}
+  {animal:"cat",s:"b",x:1::int32}
 
 output: |
-  {result:{animal:"cat",count:3(uint64)}}
-  {result:{animal:"dog",count:1(uint64)}}
-  {result:{animal:"elephant",count:1(uint64)}}
+  {result:{animal:"cat",count:3::uint64}}
+  {result:{animal:"dog",count:1::uint64}}
+  {result:{animal:"elephant",count:1::uint64}}

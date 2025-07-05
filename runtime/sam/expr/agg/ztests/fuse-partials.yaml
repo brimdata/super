@@ -1,12 +1,12 @@
 spq: fuse(this) by key with -limit 1
 
 input: |
-  {a:"hello",r:{x:1(int32),y:2(int32)},key:"a"}
-  {a:"hello",r:{x:1(int32),y:2(int32)},key:"b"}
-  {a:"hello",r:{x:1(int32),y:2(int32)},key:"c"}
-  {r:{y:4(int32),z:5(int32)},s:"world",r2:{x:6(int32)},key:"a"}
-  {r:{y:4(int32),z:5(int32)},s:"world",r2:{x:6(int32)},key:"b"}
-  {r:{y:4(int32),z:5(int32)},s:"world",r2:{x:6(int32)},key:"c"}
+  {a:"hello",r:{x:1::int32,y:2::int32},key:"a"}
+  {a:"hello",r:{x:1::int32,y:2::int32},key:"b"}
+  {a:"hello",r:{x:1::int32,y:2::int32},key:"c"}
+  {r:{y:4::int32,z:5::int32},s:"world",r2:{x:6::int32},key:"a"}
+  {r:{y:4::int32,z:5::int32},s:"world",r2:{x:6::int32},key:"b"}
+  {r:{y:4::int32,z:5::int32},s:"world",r2:{x:6::int32},key:"c"}
 
 output: |
   {key:"a",fuse:<{a:string,r:{x:int32,y:int32,z:int32},key:string,s:string,r2:{x:int32}}>}

@@ -10,9 +10,9 @@ script: |
 inputs:
   - name: in.sup
     data: |
-      {key:"a",n:0(int32)}
-      {key:"a",n:5(int32)}
-      {key:"b",n:10(int32)}
+      {key:"a",n:0::int32}
+      {key:"a",n:5::int32}
+      {key:"b",n:10::int32}
       {key:"a"}
 
 outputs:
@@ -22,8 +22,8 @@ outputs:
       {key:"b",avg:10.}
   - name: count.sup
     data: |
-      {key:"a",count:3(uint64)}
-      {key:"b",count:1(uint64)}
+      {key:"a",count:3::uint64}
+      {key:"b",count:1::uint64}
   - name: min.sup
     data: |
       {key:"a",min:0}

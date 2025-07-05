@@ -3,9 +3,9 @@ spq: put eq := (a == b), ne := (a != b), lt := (a < b), lte := (a <= b), gt := (
 vector: true
 
 input: |
-  {a:1,b:null(int64)}
+  {a:1,b:null::int64}
   {a:1,b:null}
 
 output: |
-  {a:1,b:null(int64),eq:null(bool),ne:null(bool),lt:null(bool),lte:null(bool),gt:null(bool),gte:null(bool)}
-  {a:1,b:null,eq:null(bool),ne:null(bool),lt:null(bool),lte:null(bool),gt:null(bool),gte:null(bool)}
+  {a:1,b:null::int64,eq:null::bool,ne:null::bool,lt:null::bool,lte:null::bool,gt:null::bool,gte:null::bool}
+  {a:1,b:null,eq:null::bool,ne:null::bool,lt:null::bool,lte:null::bool,gt:null::bool,gte:null::bool}

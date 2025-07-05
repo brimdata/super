@@ -7,15 +7,15 @@ input: |
   {a:1,b:null}
   {a:1,b:{c:"foo",d:[1,2,3]}}
   {a:1,b:{c:2,d:{e:4,f:5}}}
-  {foo:null({bar:int32})}
-  {foo:{bar:2(int32)}}
-  {foo:{bar:null(int32)}}
+  {foo:null::{bar:int32}}
+  {foo:{bar:2::int32}}
+  {foo:{bar:null::int32}}
 
 output: |
   127.0.0.1
   [{key:["a"],value:1},{key:["b"],value:null}]
   [{key:["a"],value:1},{key:["b","c"],value:"foo"},{key:["b","d"],value:[1,2,3]}]
   [{key:["a"],value:1},{key:["b","c"],value:2},{key:["b","d","e"],value:4},{key:["b","d","f"],value:5}]
-  [{key:["foo"],value:null({bar:int32})}]
-  [{key:["foo","bar"],value:2(int32)}]
-  [{key:["foo","bar"],value:null(int32)}]
+  [{key:["foo"],value:null::{bar:int32}}]
+  [{key:["foo","bar"],value:2::int32}]
+  [{key:["foo","bar"],value:null::int32}]

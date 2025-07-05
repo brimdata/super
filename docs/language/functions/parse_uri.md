@@ -36,5 +36,5 @@ values parse_uri(this)
 # input
 "scheme://user:password@host:12345/path?a=1&a=2&b=3&c=#fragment"
 # expected output
-{scheme:"scheme",opaque:null(string),user:"user",password:"password",host:"host",port:12345(uint16),path:"/path",query:|{"a":["1","2"],"b":["3"],"c":[""]}|,fragment:"fragment"}
+{scheme:"scheme",opaque:null::string,user:"user",password:"password",host:"host",port:12345::uint16,path:"/path",query:|{"a":["1","2"],"b":["3"],"c":[""]}|,fragment:"fragment"}
 ```

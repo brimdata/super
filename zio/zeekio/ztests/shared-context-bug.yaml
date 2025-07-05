@@ -10,4 +10,4 @@ input: |
   10.164.94.120	39681	10.47.3.155	3389	-
 
 output: |
-  {id:{orig_p:39681(port=uint16),resp_h:10.47.3.155,resp_p:3389(port)},id2:10.164.94.120}
+  {id:{orig_p:39681::(port=uint16),resp_h:10.47.3.155,resp_p:3389::port},id2:10.164.94.120}

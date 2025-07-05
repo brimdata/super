@@ -4,8 +4,8 @@ spq: fork ( rename id2:=id ) ( cut id.orig_h ) | sort id
 vector: true
 
 input: |
-  {id:{orig_h:39681(port=uint16),resp_h:3389(port)}}
+  {id:{orig_h:39681::(port=uint16),resp_h:3389::port}}
 
 output: |
-  {id:{orig_h:39681(port=uint16)}}
-  {id2:{orig_h:39681(port=uint16),resp_h:3389(port)}}
+  {id:{orig_h:39681::(port=uint16)}}
+  {id2:{orig_h:39681::(port=uint16),resp_h:3389::port}}

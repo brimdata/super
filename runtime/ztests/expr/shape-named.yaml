@@ -7,7 +7,7 @@ spq: |
 vector: true
 
 input: |
-  {a:{q:1(myport=int16),p:2(myport)},b:[{q:1}],c:3}
+  {a:{q:1::(myport=int16),p:2::myport},b:[{q:1}],c:3}
 
 output: |
-  {c:3(=port),b:[{p:null(port),q:1(port)}(=prec)](=parr),a:{p:2,q:1}(prec)}
+  {c:3::=port,b:[{p:null::port,q:1::port}::=prec]::=parr,a:{p:2,q:1}::prec}

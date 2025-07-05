@@ -3,10 +3,10 @@ spq: count() by rec.i | sort rec.i
 vector: true
 
 input: |
-  {rec:{i:1(int32),s:"bleah"},val:1}
-  {rec:{i:1(int32),s:"bleah"},val:2}
-  {rec:{i:2(int32),s:"bleah"},val:3}
+  {rec:{i:1::int32,s:"bleah"},val:1}
+  {rec:{i:1::int32,s:"bleah"},val:2}
+  {rec:{i:2::int32,s:"bleah"},val:3}
 
 output: |
-  {rec:{i:1(int32)},count:2(uint64)}
-  {rec:{i:2(int32)},count:1(uint64)}
+  {rec:{i:1::int32},count:2::uint64}
+  {rec:{i:2::int32},count:1::uint64}

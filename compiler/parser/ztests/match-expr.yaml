@@ -1,10 +1,10 @@
 spq: 'c == a+b'
 
 input: |
-  {a:1(int32),b:2(int32),c:3(int32)}
-  {a:-1(int32),b:2(int32),c:1(int32)}
-  {a:1(int32),b:1(int32),c:0(int32)}
+  {a:1::int32,b:2::int32,c:3::int32}
+  {a:-1::int32,b:2::int32,c:1::int32}
+  {a:1::int32,b:1::int32,c:0::int32}
 
 output: |
-  {a:1(int32),b:2(int32),c:3(int32)}
-  {a:-1(int32),b:2(int32),c:1(int32)}
+  {a:1::int32,b:2::int32,c:3::int32}
+  {a:-1::int32,b:2::int32,c:1::int32}

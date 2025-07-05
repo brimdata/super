@@ -6,7 +6,7 @@ input: |
   {s:["a","b","c"],sep:", "}
   {s:"join",sep:","}
   {s:["a"],sep:["b"]}
-  {s:["a","b",null(string),"c"],sep:""(int64|string)}
+  {s:["a","b",null::string,"c"],sep:""::(int64|string)}
 
 output: |
   "a, b, c"

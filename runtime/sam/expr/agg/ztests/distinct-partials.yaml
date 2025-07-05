@@ -17,5 +17,5 @@ input: |
   {key:"a",n:1}
 
 output: |
-  {key:"a",avg:1.5,collect:["a"],count:2(uint64),sum:3}
-  {key:"b",avg:0.5,collect:["b"],count:2(uint64),sum:1}
+  {key:"a",avg:1.5,collect:["a"],count:2::uint64,sum:3}
+  {key:"b",avg:0.5,collect:["b"],count:2::uint64,sum:1}

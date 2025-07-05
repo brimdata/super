@@ -70,23 +70,23 @@ const sup1 = `
 
 const sup2 = `{foo:{bar:"test"}}`
 
-const sup3 = "{foo:|[null(string)]|}"
+const sup3 = "{foo:|[null::string]|}"
 
 const sup4 = `{foo:"-"}`
 
 const sup5 = `{foo:"[",bar:"[-]"}`
 
 // Make sure we handle null fields and empty sets.
-const sup6 = "{id:{a:null(string),s:|[]|(|[string]|)}}"
+const sup6 = "{id:{a:null::string,s:|[]|::|[string]|}}"
 
 // Make sure we handle empty and null sets.
-const sup7 = `{a:"foo",b:|[]|(|[string]|),c:null(|[string]|)}`
+const sup7 = `{a:"foo",b:|[]|::|[string]|,c:null::|[string]|}`
 
 // recursive record with null set and empty set
 const sup8 = `
-{id:{a:null(string),s:|[]|(|[string]|)}}
-{id:{a:null(string),s:null(|[string]|)}}
-{id:null({a:string,s:|[string]|})}
+{id:{a:null::string,s:|[]|::|[string]|}}
+{id:{a:null::string,s:null::|[string]|}}
+{id:null::{a:string,s:|[string]|}}
 `
 
 // generate some really big strings
@@ -138,14 +138,14 @@ func TestZjson(t *testing.T) {
 }
 
 func TestNamed(t *testing.T) {
-	const simple = `{foo:"bar",orig_h:127.0.0.1(=ipaddr)}`
+	const simple = `{foo:"bar",orig_h:127.0.0.1::=ipaddr}`
 	const multipleRecords = `
-{foo:"bar",orig_h:127.0.0.1(=ipaddr)}
-{foo:"bro",resp_h:127.0.0.1(=ipaddr)}
+{foo:"bar",orig_h:127.0.0.1::=ipaddr}
+{foo:"bro",resp_h:127.0.0.1::=ipaddr}
 `
 	const recordNamed = `
-{foo:{host:127.0.0.2}(=myrec)}
-{foo:null(myrec={host:ip})}
+{foo:{host:127.0.0.2}::=myrec}
+{foo:null::(myrec={host:ip})}
 `
 	t.Run("BSUP", func(t *testing.T) {
 		t.Run("simple", func(t *testing.T) {

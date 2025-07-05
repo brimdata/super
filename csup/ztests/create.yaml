@@ -5,8 +5,8 @@ script: |
 inputs:
   - name: stdin
     data: &input |
-      {a:"hello",b:1(int32)}
-      {a:"world",b:2(int32)}
+      {a:"hello",b:1::int32}
+      {a:"world",b:2::int32}
 
 outputs:
   - name: stdout

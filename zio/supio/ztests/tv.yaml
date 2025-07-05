@@ -3,27 +3,27 @@ spq: "put t:=typeof(s) | put tt:=typeof(t)"
 output-flags: -f sup -pretty=4
 
 input: |
-  {s:"hello",n:123(int32),a:[1(foo=uint8),2(foo),3(foo)]}
-  {s:"goodbye",n:34(int32),a:[3(foo=uint8),4(foo)]}
+  {s:"hello",n:123::int32,a:[1::(foo=uint8),2::foo,3::foo]}
+  {s:"goodbye",n:34::int32,a:[3::(foo=uint8),4::foo]}
 
 output: |
   {
       s: "hello",
-      n: 123 (int32),
+      n: 123::int32,
       a: [
-          1 (foo=uint8),
-          2 (foo),
-          3 (foo)
+          1::(foo=uint8),
+          2::foo,
+          3::foo
       ],
       t: <string>,
       tt: <type>
   }
   {
       s: "goodbye",
-      n: 34 (int32),
+      n: 34::int32,
       a: [
-          3 (foo=uint8),
-          4 (foo)
+          3::(foo=uint8),
+          4::foo
       ],
       t: <string>,
       tt: <type>

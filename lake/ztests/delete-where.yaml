@@ -16,8 +16,8 @@ outputs:
   - name: stdout
     data: |
       === desc ===
-      {count:900(uint64)}
-      {count:898(uint64)}
+      {count:900::uint64}
+      {count:898::uint64}
       === asc ===
-      {count:900(uint64)}
-      {count:898(uint64)}
+      {count:900::uint64}
+      {count:898::uint64}

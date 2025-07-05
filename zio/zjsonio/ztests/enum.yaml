@@ -4,13 +4,13 @@ script: |
 inputs:
   - name: in.sup
     data: |
-      {e:%foo(enum(foo,bar,baz))}
-      {e:%bar(enum(foo,bar,baz))}
-      {e:%baz(enum(foo,bar,baz))}
+      {e:%foo::enum(foo,bar,baz)}
+      {e:%bar::enum(foo,bar,baz)}
+      {e:%baz::enum(foo,bar,baz)}
 
 outputs:
   - name: stdout
     data: |
-      {e:%foo(enum(foo,bar,baz))}
-      {e:%bar(enum(foo,bar,baz))}
-      {e:%baz(enum(foo,bar,baz))}
+      {e:%foo::enum(foo,bar,baz)}
+      {e:%bar::enum(foo,bar,baz)}
+      {e:%baz::enum(foo,bar,baz)}

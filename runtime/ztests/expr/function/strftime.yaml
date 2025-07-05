@@ -4,14 +4,14 @@ vector: true
 
 input: |
   {f:"%Y-%a",v:2024-07-30T06:15:01.062681Z}
-  {f:"%Y-%a",v:null(time)}
+  {f:"%Y-%a",v:null::time}
   {f:1,v:2024-07-30T06:15:01.062681Z}
   {f:"%H",v:"foo"}
   {f:"%1",v:2024-07-30T06:15:01.062681Z}
 
 output: |
   "2024-Tue"
-  null(string)
+  null::string
   error({message:"strftime: string value required for format arg",on:1})
   error({message:"strftime: time value required for time arg",on:"foo"})
   error({message:"strftime: failed to compile format: pattern compilation failed: lookup failed: '%1' was not found in specification set",on:"%1"})

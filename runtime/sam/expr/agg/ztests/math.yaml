@@ -11,9 +11,9 @@ script: |
 inputs:
   - name: in.sup
     data: |
-      {n:0(int32)}
-      {n:5(int32)}
-      {n:10(int32)}
+      {n:0::int32}
+      {n:5::int32}
+      {n:10::int32}
 
 outputs:
   - name: avg.sup
@@ -21,17 +21,17 @@ outputs:
       5.
   - name: count.sup
     data: |
-      3(uint64)
+      3::uint64
   - name: dcount.sup
     data: |
-      3(uint64)
+      3::uint64
   - name: dcount-partials.sup
     data: |
-      3(uint64)
+      3::uint64
   # Note: min/max shouldn't be int64 (especially for uint)  Issue #1506.
   - name: any.sup
     data: |
-      0(int32)
+      0::int32
   - name: min.sup
     data: |
       0

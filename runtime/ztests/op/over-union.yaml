@@ -4,9 +4,9 @@ spq: |
 vector: true
 
 input: |
-  [1, "foo"] ([int64|string])
-  [3, 4] ([int64]|ip)
-  "bar" (int64| string)
+  [1, "foo"]::[int64|string]
+  [3, 4]::([int64]|ip)
+  "bar"::(int64|string)
 
 output: |
   1

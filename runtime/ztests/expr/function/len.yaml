@@ -4,32 +4,32 @@ vector: true
 
 input: |
   null
-  null(bytes)
+  null::bytes
   0x
   0x0123
-  0x0123(bytes|string)
-  null(string)
+  0x0123::(bytes|string)
+  null::string
   ""
   "string"
-  null(ip)
+  null::ip
   1.0.0.0
   1::
-  null(net)
+  null::net
   1.0.0.0/8
   1::/8
-  null({})
+  null::{}
   {}
   {x:1}
   {x:1,s:"hello"}
   {x:{a:1,b:2}}
-  null([int64])
-  []([int64])
-  [1,2]([int64])
-  null(|[int64]|)
-  |[]|(|[int64]|)
-  |[1,2]|(|[int64]|)
-  null(|{int64:int64}|)
-  |{1:1}|(|{int64:int64}|)
+  null::[int64]
+  []::[int64]
+  [1,2]::[int64]
+  null::|[int64]|
+  |[]|::|[int64]|
+  |[1,2]|::|[int64]|
+  null::|{int64:int64}|
+  |{1:1}|::|{int64:int64}|
   |{1:1,2:2}|
   <int64>
   <type>
@@ -78,6 +78,6 @@ output: |
   1
   2
   2
-  error({message:"len()",on:null(error(null))})
+  error({message:"len()",on:null::error(null)})
   error({message:"len()",on:error("")})
   error({message:"len()",on:error("error")})

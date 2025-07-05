@@ -6,6 +6,6 @@ script: |
 outputs:
   - name: stdout
     data: |
-      80(port=uint16)
-      "foo"(uint16|string)
-      {x:1(uint16)}
+      80::(port=uint16)
+      "foo"::(uint16|string)
+      {x:1::uint16}

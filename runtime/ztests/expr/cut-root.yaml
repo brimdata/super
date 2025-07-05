@@ -3,11 +3,11 @@ spq: 'put x:=this'
 vector: true
 
 input: |
-  {a:null({b:int32})}
-  {a:{b:null(int32)}}
-  {a:{b:1(int32)}}
+  {a:null::{b:int32}}
+  {a:{b:null::int32}}
+  {a:{b:1::int32}}
 
 output: |
-  {a:null({b:int32}),x:{a:null({b:int32})}}
-  {a:{b:null(int32)},x:{a:{b:null(int32)}}}
-  {a:{b:1(int32)},x:{a:{b:1(int32)}}}
+  {a:null::{b:int32},x:{a:null::{b:int32}}}
+  {a:{b:null::int32},x:{a:{b:null::int32}}}
+  {a:{b:1::int32},x:{a:{b:1::int32}}}

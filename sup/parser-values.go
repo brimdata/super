@@ -75,10 +75,7 @@ func (p *Parser) decorate(any ast.Any, err error) (ast.Value, error) {
 	if err != nil {
 		return nil, err
 	}
-	// First see if there's a short-form typedef decorator.
-	// If there isn't, matchShortForm() returns the AnyValue wrapped
-	// in an ast.ImpliedValue (as ast.Value)  Otherwise, it returns an
-	//  ast.DefVal (as ast.Vaue).
+	// See if there's a first decorator.
 	val, ok, err := p.matchDecorator(any, nil)
 	if err != nil {
 		return nil, err
@@ -105,20 +102,17 @@ func (p *Parser) decorate(any ast.Any, err error) (ast.Value, error) {
 // If we had proper backtracking, this would look a little more sensible.
 func (p *Parser) matchDecorator(any ast.Any, val ast.Value) (ast.Value, bool, error) {
 	l := p.lexer
-	ok, err := l.match('(')
-	if err != nil || !ok {
-		return nil, false, noEOF(err)
-	}
-	val, err = p.parseDecorator(any, val)
-	if err != nil {
+	// If there isn't a decorator, just return.  A decorator cannot start
+	// with ":::" so we check this condition which arises when an IP6 address or net
+	// with a "::" prefix follows a map key (and so we are checking for a decorator
+	// here after the key value but before the key colon).
+	if lookahead, err := l.peek3(); err != nil || lookahead == "" || lookahead[:2] != "::" || lookahead == ":::" {
 		return nil, false, err
 	}
-	ok, err = l.match(')')
-	if err != nil {
+	l.skip(2)
+	val, err := p.parseDecorator(any, val)
+	if noEOF(err) != nil {
 		return nil, false, err
-	}
-	if !ok {
-		return nil, false, p.error("mismatched parentheses while parsing type decorator")
 	}
 	return val, true, nil
 }
@@ -127,9 +121,7 @@ func (p *Parser) parseDecorator(any ast.Any, val ast.Value) (ast.Value, error) {
 	l := p.lexer
 	// We can have either:
 	//   Case 1: =<name>
-	//   Case 2: <type>
-	// For case 2, there can be embedded typedefs created from the
-	// descent into parseType.
+	//   Case 2: <type-component> (unions and typedefs with unions must have parens)
 	ok, err := l.match('=')
 	if err != nil {
 		return nil, err
@@ -145,7 +137,7 @@ func (p *Parser) parseDecorator(any ast.Any, val ast.Value) (ast.Value, error) {
 			TypeName: name,
 		}, nil
 	}
-	typ, err := p.parseType()
+	typ, err := p.matchTypeComponent()
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +174,7 @@ func (p *Parser) matchPrimitive() (*ast.Primitive, error) {
 		return nil, nil
 	}
 	// Try to parse the string different ways.  This is not intended
-	// to be performant.  BSUP provides performance for the Super data model.
+	// to be performant.  CSUP/BSUP provides performance for the Super data model.
 	var typ string
 	if s == "true" || s == "false" {
 		typ = "bool"

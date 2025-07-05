@@ -5,7 +5,7 @@ input: |
   {_path:"conn",ts:2015-03-05T14:25:14.4199391Z,ts2:1970-01-01T00:00:01Z}
   {_path:"conn",ts:2015-03-05T14:25:14.419939Z,ts2:1970-01-01T00:00:01Z}
   {_path:"conn",ts:1924-10-29T09:34:45.580061Z,ts2:1970-01-01T00:00:01Z}
-  {_path:"conn",ts:null(time),ts2:null(time)}
+  {_path:"conn",ts:null::time,ts2:null::time}
 
 output-flags: -f zeek
 

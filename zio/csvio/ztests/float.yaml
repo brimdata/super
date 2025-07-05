@@ -4,19 +4,19 @@ spq: pass
 # 3.4028235e+38 and 1.7976931348623157e+308 are the maximum float32 and
 # float64.
 input: |
-  {f16:null(float16),f32:null(float32),f64:null(float64)}
-  {f16:+Inf(float16),f32:+Inf(float32),f64:+Inf}
-  {f16:-Inf(float16),f32:-Inf(float32),f64:-Inf}
-  {f16:NaN(float16),f32:NaN(float32),f64:NaN}
-  {f16:0.(float16),f32:0.(float32),f64:0.}
-  {f16:1.(float16),f32:1.(float32),f64:1.}
-  {f16:-1.(float16),f32:-1.(float32),f64:-1.}
-  {f16:2.2(float16),f32:2.2(float32),f64:2.2}
-  {f16:-2.2(float16),f32:-2.2(float32),f64:-2.2}
-  {f16:5.9604645e-08(float16),f32:1e-45(float32),f64:5e-324}
-  {f16:-5.9604645e-08(float16),f32:-1e-45(float32),f64:-5e-324}
-  {f16:65504.(float16),f32:3.4028235e+38(float32),f64:1.7976931348623157e+308}
-  {f16:-65504.(float16),f32:-3.4028235e+38(float32),f64:-1.7976931348623157e+308}
+  {f16:null::float16,f32:null::float32,f64:null::float64}
+  {f16:+Inf::float16,f32:+Inf::float32,f64:+Inf}
+  {f16:-Inf::float16,f32:-Inf::float32,f64:-Inf}
+  {f16:NaN::float16,f32:NaN::float32,f64:NaN}
+  {f16:0.::float16,f32:0.::float32,f64:0.}
+  {f16:1.::float16,f32:1.::float32,f64:1.}
+  {f16:-1.::float16,f32:-1.::float32,f64:-1.}
+  {f16:2.2::float16,f32:2.2::float32,f64:2.2}
+  {f16:-2.2::float16,f32:-2.2::float32,f64:-2.2}
+  {f16:5.9604645e-08::float16,f32:1e-45::float32,f64:5e-324}
+  {f16:-5.9604645e-08::float16,f32:-1e-45::float32,f64:-5e-324}
+  {f16:65504.::float16,f32:3.4028235e+38::float32,f64:1.7976931348623157e+308}
+  {f16:-65504.::float16,f32:-3.4028235e+38::float32,f64:-1.7976931348623157e+308}
 
 output-flags: -f csv
 

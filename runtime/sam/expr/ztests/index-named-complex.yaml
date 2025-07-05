@@ -1,10 +1,10 @@
 spq: values this[2],this["x"]
 
 input: |
-  [1,2,3](=foo)
-  |[4,5,6]|(=bar)
-  |{2:"foo"}|(=baz)
-  {"x":123}(=bap)
+  [1,2,3]::=foo
+  |[4,5,6]|::=bar
+  |{2:"foo"}|::=baz
+  {"x":123}::=bap
   
 output: |
   2

@@ -3,13 +3,13 @@ spq: values abs(this),ceil(this),floor(this),log(this),pow(this,this),round(this
 vector: true
 
 input: |
-  1.(float32)
+  1.::float32
 
 output: |
-  1.(float32)
-  1.(float32)
-  1.(float32)
+  1.::float32
+  1.::float32
+  1.::float32
   0.
   1.
-  1.(float32)
+  1.::float32
   1.

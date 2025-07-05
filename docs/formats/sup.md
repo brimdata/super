@@ -403,11 +403,11 @@ referenced by any subsequent value in left-to-right depth-first order.
 
 For example,
 ```
-{p1:80 (port=uint16), p2: 8080 (port)}
+{p1:80::(port=uint16), p2: 8080::port}
 ````
 is valid but
 ```
-{p1:80 (port), p2: 8080 (port=uint16)}
+{p1:80::port, p2: 8080::(port=uint16)}
 ````
 is invalid.
 
@@ -453,13 +453,13 @@ might look like this:
 ```
 {
     info: "Connection Example",
-    src: { addr: 10.1.1.2, port: 80 (uint16) } (=socket),
-    dst: { addr: 10.0.1.2, port: 20130 (uint16) } (=socket)
+    src: { addr: 10.1.1.2, port: 80 (uint16) }::=socket,
+    dst: { addr: 10.0.1.2, port: 20130 (uint16) }::socket
 } (=conn)
 {
     info: "Connection Example 2",
-    src: { addr: 10.1.1.8, port: 80 (uint16) } (=socket),
-    dst: { addr: 10.1.2.88, port: 19801 (uint16) } (=socket)
+    src: { addr: 10.1.1.8, port: 80 (uint16) }::=socket,
+    dst: { addr: 10.1.2.88, port: 19801 (uint16) }::socket
 } (=conn)
 {
     info: "Access List Example",

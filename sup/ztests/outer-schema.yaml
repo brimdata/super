@@ -4,13 +4,13 @@ script: |
 inputs:
   - name: in.sup
     data: |
-      {city:"Berkeley",state:"CA",population:121643(uint32)}(=city_schema)
-      {city:"Broad Cove",state:"ME",population:806(uint32)}(=city_schema)
-      {city:"Baton Rouge",state:"LA",population:221599(uint32)}(=city_schema)
+      {city:"Berkeley",state:"CA",population:121643::uint32}::=city_schema
+      {city:"Broad Cove",state:"ME",population:806::uint32}::=city_schema
+      {city:"Baton Rouge",state:"LA",population:221599::uint32}::=city_schema
 
 outputs:
   - name: stdout
     data: |
-      {city:"Berkeley",state:"CA",population:121643(uint32)}(=city_schema)
-      {city:"Broad Cove",state:"ME",population:806(uint32)}(=city_schema)
-      {city:"Baton Rouge",state:"LA",population:221599(uint32)}(=city_schema)
+      {city:"Berkeley",state:"CA",population:121643::uint32}::=city_schema
+      {city:"Broad Cove",state:"ME",population:806::uint32}::=city_schema
+      {city:"Baton Rouge",state:"LA",population:221599::uint32}::=city_schema

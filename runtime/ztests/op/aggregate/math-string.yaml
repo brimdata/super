@@ -9,4 +9,4 @@ input: |
   "lobster"
 
 output: |
-  {min:"aardvark",max:"lobster",sum:null,avg:null(float64)}
+  {min:"aardvark",max:"lobster",sum:null,avg:null::float64}

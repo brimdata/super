@@ -3,7 +3,7 @@
 spq: pass
 
 input: |
-  {a:10.1.1.1,a2:fe80::eef4:bbff:fe51:89ec,b:true,c:517(uint64),f:3.14159,i:18(int32),interval:1m,p:443(uint16),s:"Hello, world!",t:2020-01-07T14:36:23.487Z,type:<int64>}
+  {a:10.1.1.1,a2:fe80::eef4:bbff:fe51:89ec,b:true,c:517::uint64,f:3.14159,i:18::int32,interval:1m,p:443::uint16,s:"Hello, world!",t:2020-01-07T14:36:23.487Z,type:<int64>}
 
 output-flags: -f json
 

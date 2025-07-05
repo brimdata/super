@@ -4,10 +4,10 @@ vector: true
 
 input: |
   {rec:{foo:"foo1",bar:"bar1"}}
-  {rec:{foo:"foo2",bar:"bar2"}(=rec_named)}(=named)
-  {rec:{foo:"foo3",baz:"baz1"}(=rec_named)}(=named)
+  {rec:{foo:"foo2",bar:"bar2"}::=rec_named}::=named
+  {rec:{foo:"foo3",baz:"baz1"}::=rec_named}::=named
 
 output: |
   {rec:{foo:"foo1"}}
   {rec:{foo:"foo2"}}
-  {rec:{foo:"foo3",baz:"baz1"}(=rec_named)}(=named)
+  {rec:{foo:"foo3",baz:"baz1"}::=rec_named}::=named

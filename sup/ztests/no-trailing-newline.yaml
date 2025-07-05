@@ -5,13 +5,13 @@ inputs:
   - name: in.sup
     data: | # |- means no newline at end
       {
-          c: 23 (int32)
+          c: 23::int32
       }
       {
-          c: 42 (int32)
+          c: 42::int32
       }
 
 outputs:
   - name: stdout
     data: |
-      2(uint64)
+      2::uint64

@@ -15,6 +15,6 @@ output-flags: -pretty=2
 
 output: |
   {
-    array: null ([string]),
-    record: null ({c1:int64,c2:string,c3:time})
+    array: null::[string],
+    record: null::{c1:int64,c2:string,c3:time}
   }

@@ -7,8 +7,8 @@ script: |
 inputs:
   - name: missingfield.sup
     data: |
-      {a:"a",b:"b"} (=foo)
-      {a:"a"} (foo)
+      {a:"a",b:"b"}::=foo
+      {a:"a"}::foo
 
 outputs:
   - name: stderr

@@ -3,7 +3,7 @@ spq: 'cut this:=a'
 vector: true
 
 input: |
-  {a:1(int32)}
+  {a:1::int32}
 
 error: |
   cannot assign to 'this' at line 1, column 5:

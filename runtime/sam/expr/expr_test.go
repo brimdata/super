@@ -45,7 +45,7 @@ values %s
 }
 
 func TestPrimitives(t *testing.T) {
-	const record = `{x:10 (int32),f:2.5,s:"hello"} (=0)`
+	const record = `{x:10::int32,f:2.5,s:"hello"}`
 
 	// Test simple literals
 	testSuccessful(t, "50", record, "50")
@@ -53,7 +53,7 @@ func TestPrimitives(t *testing.T) {
 	testSuccessful(t, `"boo"`, record, `"boo"`)
 
 	// Test good field references
-	testSuccessful(t, "x", record, "10(int32)")
+	testSuccessful(t, "x", record, "10::int32")
 	testSuccessful(t, "f", record, "2.5")
 	testSuccessful(t, "s", record, `"hello"`)
 }
@@ -71,7 +71,7 @@ func TestCompareNumbers(t *testing.T) {
 			one = "1."
 		}
 		record := fmt.Sprintf(
-			"{x:%s (%s),u8:0 (uint8),i16:0 (int16),u16:0 (uint16),i32:0 (int32),u32:0 (uint32),i64:0,u64:0 (uint64)} (=0)",
+			"{x:%s::%s,u8:0::uint8,i16:0::int16,u16:0::uint16,i32:0::int32,u32:0::uint32,i64:0,u64:0::uint64}",
 			one, typ)
 		// Test the 6 comparison operators against a constant
 		testSuccessful(t, "x == 1", record, "true")
@@ -115,7 +115,7 @@ func TestCompareNumbers(t *testing.T) {
 		// number-ish types: port, time, duration
 		if !strings.HasPrefix(typ, "float") {
 			record := fmt.Sprintf(
-				"{x:%s (%s),p:80 (port=uint16),t:2020-03-09T22:54:12Z,d:16m40s}", one, typ)
+				"{x:%s::%s,p:80::port=uint16,t:2020-03-09T22:54:12Z,d:16m40s}", one, typ)
 
 			// port
 			testSuccessful(t, "x == p", record, "false")
@@ -162,7 +162,7 @@ func TestCompareNumbers(t *testing.T) {
 
 		// Test this against non-numeric types
 		record = fmt.Sprintf(
-			`{x:%s (%s),s:"hello",i:10.1.1.1,n:10.1.0.0/16} (=0)`, one, typ)
+			`{x:%s::%s,s:"hello",i:10.1.1.1,n:10.1.0.0/16}`, one, typ)
 
 		testSuccessful(t, "x == s", record, "false")
 		testSuccessful(t, "x != s", record, "true")
@@ -188,7 +188,7 @@ func TestCompareNumbers(t *testing.T) {
 
 	// Test comparison between signed and unsigned and also
 	// floats that cast to different integers.
-	const rec2 = "{i:-1,u:18446744073709551615 (uint64),f:-1.} (=0)"
+	const rec2 = "{i:-1,u:18446744073709551615::uint64,f:-1.}"
 
 	testSuccessful(t, "i == u", rec2, "false")
 	testSuccessful(t, "i != u", rec2, "true")
@@ -219,7 +219,7 @@ func TestCompareNumbers(t *testing.T) {
 	testSuccessful(t, "u >= f", rec2, "true")
 
 	// Test comparisons with unions.
-	const rec3 = "{l:1(int64|bytes),r:2.(string|float64)}"
+	const rec3 = "{l:1::(int64|bytes),r:2.::(string|float64)}"
 	testSuccessful(t, "l == r", rec3, "false")
 	testSuccessful(t, "l != r", rec3, "true")
 	testSuccessful(t, "l < r", rec3, "true")
@@ -234,11 +234,11 @@ func TestCompareNonNumbers(t *testing.T) {
     b: true,
     s: "hello",
     i: 10.1.1.1,
-    p: 443 (port=uint16),
+    p: 443::port=uint16,
     net: 10.1.0.0/16,
     t: 2020-03-09T22:54:12Z,
     d: 16m40s
-} (=0)
+}
 `
 
 	// bool
@@ -332,7 +332,7 @@ func TestPattern(t *testing.T) {
 }
 
 func TestIn(t *testing.T) {
-	const record = "{a:[1 (int32),2 (int32),3 (int32)] (=0),s:|[4 (int32),5 (int32),6 (int32)]| (=1)} (=2)"
+	const record = "{a:[1::int32,2::int32,3::int32],s:|[4::int32,5::int32,6::int32]|}"
 
 	testSuccessful(t, "1 in a", record, "true")
 	testSuccessful(t, "0 in a", record, "false")
@@ -345,7 +345,7 @@ func TestIn(t *testing.T) {
 }
 
 func TestArithmetic(t *testing.T) {
-	record := "{x:10 (int32),f:2.5} (=0)"
+	record := "{x:10::int32,f:2.5}"
 
 	// Test integer arithmetic
 	testSuccessful(t, "100 + 23", record, "123")
@@ -374,7 +374,7 @@ func TestArithmetic(t *testing.T) {
 	testSuccessful(t, "5.0 / f", record, "2.")
 
 	// Union values are dereferenced when doing arithmetic on them.
-	val := "10(int64|string)"
+	val := "10::(int64|string)"
 	testSuccessful(t, "this + 1", val, "11")
 	testSuccessful(t, "this - 1", val, "9")
 	testSuccessful(t, "this * 2", val, "20")
@@ -382,14 +382,14 @@ func TestArithmetic(t *testing.T) {
 	testSuccessful(t, "this % 3", val, "1")
 
 	// Test arithmetic with null values
-	testSuccessful(t, "null + 1", "", "null(int64)")
-	testSuccessful(t, "uint64(1) + null", "", "null(uint64)")
-	testSuccessful(t, "null + 1.0", "", "null(float64)")
-	testSuccessful(t, "1. - null", "", "null(float64)")
-	testSuccessful(t, "uint64(1) * null", "", "null(uint64)")
-	testSuccessful(t, "null / 1.", "", "null(float64)")
-	testSuccessful(t, "1 / uint64(null)", "", "null(int64)")
-	testSuccessful(t, "null % 1", "", "null(int64)")
+	testSuccessful(t, "null + 1", "", "null::int64")
+	testSuccessful(t, "uint64(1) + null", "", "null::uint64")
+	testSuccessful(t, "null + 1.0", "", "null::float64")
+	testSuccessful(t, "1. - null", "", "null::float64")
+	testSuccessful(t, "uint64(1) * null", "", "null::uint64")
+	testSuccessful(t, "null / 1.", "", "null::float64")
+	testSuccessful(t, "1 / uint64(null)", "", "null::int64")
+	testSuccessful(t, "null % 1", "", "null::int64")
 
 	// Difference of two times is a duration
 	testSuccessful(t, "a - b", "{a:2022-09-22T00:00:01Z,b:2022-09-22T00:00:00Z}", "1s")
@@ -427,15 +427,15 @@ func TestArithmetic(t *testing.T) {
 			if w == 64 {
 				return ""
 			}
-			return fmt.Sprintf("(int%d)", w)
+			return fmt.Sprintf("::int%d", w)
 		}
-		return fmt.Sprintf("(uint%d)", w)
+		return fmt.Sprintf("::uint%d", w)
 	}
 
 	var intTypes = []string{"int8", "uint8", "int16", "uint16", "int32", "uint32", "int64", "uint64"}
 	for _, t1 := range intTypes {
 		for _, t2 := range intTypes {
-			record := fmt.Sprintf("{a:4 (%s),b:2 (%s)} (=0)", t1, t2)
+			record := fmt.Sprintf("{a:4::%s,b:2::%s}", t1, t2)
 			testSuccessful(t, "a + b", record, "6"+intResultDecorator(t1, t2))
 			testSuccessful(t, "b + a", record, "6"+intResultDecorator(t1, t2))
 			testSuccessful(t, "a - b", record, "2"+intResultDecorator(t1, t2))
@@ -446,7 +446,7 @@ func TestArithmetic(t *testing.T) {
 		}
 
 		// Test arithmetic mixing float + int
-		record = fmt.Sprintf("{x:10 (%s),f:2.5} (=0)", t1)
+		record = fmt.Sprintf("{x:10::%s,f:2.5}", t1)
 		testSuccessful(t, "f + 5", record, "7.5")
 		testSuccessful(t, "5 + f", record, "7.5")
 		testSuccessful(t, "f + x", record, "12.5")
@@ -473,7 +473,7 @@ func TestArithmetic(t *testing.T) {
 }
 
 func TestArrayIndex(t *testing.T) {
-	const record = `{x:[1,2,3],i:2 (uint16)} (=0)`
+	const record = `{x:[1,2,3],i:2::uint16}`
 
 	testSuccessful(t, "x[1]", record, "1")
 	testSuccessful(t, "x[2]", record, "2")
@@ -484,9 +484,9 @@ func TestArrayIndex(t *testing.T) {
 }
 
 func TestFieldReference(t *testing.T) {
-	const record = `{rec:{i:5 (int32),s:"boo",f:6.1} (=0)} (=1)`
+	const record = `{rec:{i:5::int32,s:"boo",f:6.1}}`
 
-	testSuccessful(t, "rec.i", record, "5(int32)")
+	testSuccessful(t, "rec.i", record, "5::int32")
 	testSuccessful(t, "rec.s", record, `"boo"`)
 	testSuccessful(t, "rec.f", record, "6.1")
 }
@@ -506,56 +506,56 @@ func TestConditional(t *testing.T) {
 
 func TestCasts(t *testing.T) {
 	// Test casts to byte
-	testSuccessful(t, "uint8(10)", "", "10(uint8)")
+	testSuccessful(t, "uint8(10)", "", "10::uint8")
 	testSuccessful(t, "uint8(-1)", "", `error({message:"cannot cast to uint8",on:-1})`)
 	testSuccessful(t, "uint8(300)", "", `error({message:"cannot cast to uint8",on:300})`)
 	testSuccessful(t, `uint8("foo")`, "", `error({message:"cannot cast to uint8",on:"foo"})`)
 	testSuccessful(t, `uint8("-1")`, "", `error({message:"cannot cast to uint8",on:"-1"})`)
 	testSuccessful(t, "uint8(258.)", "", `error({message:"cannot cast to uint8",on:258.})`)
-	testSuccessful(t, `uint8("255")`, "", `255(uint8)`)
+	testSuccessful(t, `uint8("255")`, "", `255::uint8`)
 
 	// Test casts to int16
-	testSuccessful(t, "int16(10)", "", "10(int16)")
+	testSuccessful(t, "int16(10)", "", "10::int16")
 	testSuccessful(t, "int16(-33000)", "", `error({message:"cannot cast to int16",on:-33000})`)
 	testSuccessful(t, "int16(33000)", "", `error({message:"cannot cast to int16",on:33000})`)
 	testSuccessful(t, `int16("foo")`, "", `error({message:"cannot cast to int16",on:"foo"})`)
 
 	// Test casts to uint16
-	testSuccessful(t, "uint16(10)", "", "10(uint16)")
+	testSuccessful(t, "uint16(10)", "", "10::uint16")
 	testSuccessful(t, "uint16(-1)", "", `error({message:"cannot cast to uint16",on:-1})`)
 	testSuccessful(t, "uint16(66000)", "", `error({message:"cannot cast to uint16",on:66000})`)
 	testSuccessful(t, `uint16("foo")`, "", `error({message:"cannot cast to uint16",on:"foo"})`)
 
 	// Test casts to int32
-	testSuccessful(t, "int32(10)", "", "10(int32)")
+	testSuccessful(t, "int32(10)", "", "10::int32")
 	testSuccessful(t, "int32(-2200000000)", "", `error({message:"cannot cast to int32",on:-2200000000})`)
 	testSuccessful(t, "int32(2200000000)", "", `error({message:"cannot cast to int32",on:2200000000})`)
 	testSuccessful(t, `int32("foo")`, "", `error({message:"cannot cast to int32",on:"foo"})`)
 
 	// Test casts to uint32
-	testSuccessful(t, "uint32(10)", "", "10(uint32)")
+	testSuccessful(t, "uint32(10)", "", "10::uint32")
 	testSuccessful(t, "uint32(-1)", "", `error({message:"cannot cast to uint32",on:-1})`)
 	testSuccessful(t, "uint32(4300000000)", "", `error({message:"cannot cast to uint32",on:4300000000})`)
 	testSuccessful(t, "uint32(-4.3e9)", "", `error({message:"cannot cast to uint32",on:-4300000000.})`)
 	testSuccessful(t, `uint32("foo")`, "", `error({message:"cannot cast to uint32",on:"foo"})`)
 
 	// Test cast to int64
-	testSuccessful(t, "int64(this)", "10000000000000000000(uint64)", `error({message:"cannot cast to int64",on:10000000000000000000(uint64)})(error({message:string,on:uint64}))`)
+	testSuccessful(t, "int64(this)", "10000000000000000000::uint64", `error({message:"cannot cast to int64",on:10000000000000000000::uint64})::error({message:string,on:uint64})`)
 	testSuccessful(t, "int64(this)", "1e+19", `error({message:"cannot cast to int64",on:1e+19})`)
 	testSuccessful(t, `int64("10000000000000000000")`, "", `error({message:"cannot cast to int64",on:"10000000000000000000"})`)
 
 	// Test casts to uint64
-	testSuccessful(t, "uint64(10)", "", "10(uint64)")
+	testSuccessful(t, "uint64(10)", "", "10::uint64")
 	testSuccessful(t, "uint64(-1)", "", `error({message:"cannot cast to uint64",on:-1})`)
 	testSuccessful(t, `uint64("foo")`, "", `error({message:"cannot cast to uint64",on:"foo"})`)
 	testSuccessful(t, `uint64(+Inf)`, "", `error({message:"cannot cast to uint64",on:+Inf})`)
 
 	// Test casts to float16
-	testSuccessful(t, "float16(10)", "", "10.(float16)")
+	testSuccessful(t, "float16(10)", "", "10.::float16")
 	testSuccessful(t, `float16("foo")`, "", `error({message:"cannot cast to float16",on:"foo"})`)
 
 	// Test casts to float32
-	testSuccessful(t, "float32(10)", "", "10.(float32)")
+	testSuccessful(t, "float32(10)", "", "10.::float32")
 	testSuccessful(t, `float32("foo")`, "", `error({message:"cannot cast to float32",on:"foo"})`)
 
 	// Test casts to float64
@@ -583,13 +583,13 @@ func TestCasts(t *testing.T) {
 
 	testSuccessful(t, "string(1.2)", "", `"1.2"`)
 	testSuccessful(t, "string(5)", "", `"5"`)
-	testSuccessful(t, "string(this)", "5(uint8)", `"5"`)
-	testSuccessful(t, "string(this)", "5.5(float16)", `"5.5"`)
+	testSuccessful(t, "string(this)", "5::uint8", `"5"`)
+	testSuccessful(t, "string(this)", "5.5::float16", `"5.5"`)
 	testSuccessful(t, "string(1.2.3.4)", "", `"1.2.3.4"`)
 	testSuccessful(t, `int64("1")`, "", "1")
 	testSuccessful(t, `int64("-1")`, "", "-1")
-	testSuccessful(t, `float16("5.5")`, "", "5.5(float16)")
-	testSuccessful(t, `float32("5.5")`, "", "5.5(float32)")
+	testSuccessful(t, `float16("5.5")`, "", "5.5::float16")
+	testSuccessful(t, `float32("5.5")`, "", "5.5::float32")
 	testSuccessful(t, `float64("5.5")`, "", "5.5")
 	testSuccessful(t, `ip("1.2.3.4")`, "", "1.2.3.4")
 

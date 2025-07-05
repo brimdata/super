@@ -6,7 +6,7 @@ vector: true
 
 input: |
   "foo"
-  null(string)
+  null::string
   error("missing")
   error("foo")
 

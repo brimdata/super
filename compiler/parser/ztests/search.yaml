@@ -4,9 +4,9 @@ vector: true
 
 input: |
   {s1:"foo",s2:"bar"}
-  {s1:"foo",s2:null(string)}
-  {s1:null(string),s2:"bar"}
+  {s1:"foo",s2:null::string}
+  {s1:null::string,s2:"bar"}
 
 output: |
   {s1:"foo",s2:"bar"}
-  {s1:null(string),s2:"bar"}
+  {s1:null::string,s2:"bar"}

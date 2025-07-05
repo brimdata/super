@@ -4,10 +4,10 @@ input: |
   |[1,1,1,5,1]|
   |[null,127.0.0.1]|
   |[1.5,"foo",1.5]|
-  |[null,null(string),null(int64)]|
+  |[null,null::string,null::int64]|
 
 output: |
   |[1,5]|
-  |[null(ip),127.0.0.1]|
+  |[null::ip,127.0.0.1]|
   |["foo",1.5]|
-  |[null,null(int64),null(string)]|
+  |[null,null::int64,null::string]|

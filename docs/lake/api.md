@@ -416,8 +416,8 @@ curl -X POST \
 **Example Response**
 
 ```
-{warehouse:"chicago",count:2(uint64)}
-{warehouse:"miami",count:1(uint64)}
+{warehouse:"chicago",count:2::uint64}
+{warehouse:"miami",count:1::uint64}
 ```
 
 **Example Request**

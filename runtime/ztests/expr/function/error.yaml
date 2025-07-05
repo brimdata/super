@@ -7,11 +7,11 @@ input: |
   "s"
   {a:1}
   null
-  null(int64)
+  null::int64
 
 output: |
   error(1)
   error("s")
   error({a:1})
-  null(error(null))
-  null(error(int64))
+  null::error(null)
+  null::error(int64)

@@ -6,22 +6,22 @@ vector: true
 inputs:
   - name: A.sup
     data: |
-      {a:10(int32),sa:"a0"}
-      {a:20(int32),sa:"a1"}
-      {a:30(int32),sa:"a2"}
-      {a:40(int32),sa:"a3"}
+      {a:10::int32,sa:"a0"}
+      {a:20::int32,sa:"a1"}
+      {a:30::int32,sa:"a2"}
+      {a:40::int32,sa:"a3"}
   - name: C.sup
     data: |
-      {c:20(int32),sc:"b20"}
-      {c:20(int32),sc:"b20v2"}
-      {c:40(int32),sc:"b40"}
-      {c:40(int32),sc:"b40v2"}
-      {c:60(int32),sc:"b60"}
+      {c:20::int32,sc:"b20"}
+      {c:20::int32,sc:"b20v2"}
+      {c:40::int32,sc:"b40"}
+      {c:40::int32,sc:"b40v2"}
+      {c:60::int32,sc:"b60"}
 
 outputs:
   - name: stdout
     data: |
-      {a:10(int32),sa:"a0",hit:error("missing")}
-      {a:20(int32),sa:"a1",hit:error("missing")}
-      {a:30(int32),sa:"a2",hit:error("missing")}
-      {a:40(int32),sa:"a3",hit:error("missing")}
+      {a:10::int32,sa:"a0",hit:error("missing")}
+      {a:20::int32,sa:"a1",hit:error("missing")}
+      {a:30::int32,sa:"a2",hit:error("missing")}
+      {a:40::int32,sa:"a3",hit:error("missing")}

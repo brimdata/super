@@ -7,18 +7,18 @@ inputs:
   - name: stdin
     # One value per type so they'll be encoded as constant vectors.
     data: &stdin |
-      8(uint8)
-      16(uint16)
-      32(uint32)
-      64(uint64)
-      -8(int8)
-      -16(int16)
-      -32(int32)
+      8::uint8
+      16::uint16
+      32::uint32
+      64::uint64
+      -8::int8
+      -16::int16
+      -32::int32
       -64
       1h2m3s
       2022-12-04T00:00:00Z
-      16.(float16)
-      32.(float32)
+      16.::float16
+      32.::float32
       64.
       false
       0x00

@@ -3,8 +3,8 @@ script: super - | super -s -|super - | super -s -
 inputs:
   - name: stdin
     data: &stdin |
-      0(=typ)
-      {x:0}(=typ)
+      0::=typ
+      {x:0}::=typ
 
 outputs:
   - name: stdout

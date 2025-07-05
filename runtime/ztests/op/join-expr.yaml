@@ -10,26 +10,26 @@ vector: true
 inputs:
   - name: A.sup
     data: |
-      {a:1(int32),s:"a"}
-      {a:2(int32),s:"B"}
-      {a:3(int32),s:"c"}
+      {a:1::int32,s:"a"}
+      {a:2::int32,s:"B"}
+      {a:3::int32,s:"c"}
   - name: B.sup
     data: |
-      {b:4(int32),s:"A"}
-      {b:5(int32),s:"b"}
-      {b:6(int32),s:"c"}
+      {b:4::int32,s:"A"}
+      {b:5::int32,s:"b"}
+      {b:6::int32,s:"c"}
 
 outputs:
   - name: stdout
     data: |
-      {a:1(int32),s:"a"}
-      {a:2(int32),s:"B"}
-      {a:3(int32),s:"c",b:6(int32)}
+      {a:1::int32,s:"a"}
+      {a:2::int32,s:"B"}
+      {a:3::int32,s:"c",b:6::int32}
       ===
-      {l:{a:1(int32),s:"a"},r:{b:4(int32),s:"A"}}
-      {l:{a:2(int32),s:"B"}}
-      {l:{a:3(int32),s:"c"},r:{b:6(int32),s:"c"}}
+      {l:{a:1::int32,s:"a"},r:{b:4::int32,s:"A"}}
+      {l:{a:2::int32,s:"B"}}
+      {l:{a:3::int32,s:"c"},r:{b:6::int32,s:"c"}}
       ===
-      {a:1(int32),s:"a",b:4(int32)}
-      {a:2(int32),s:"B",b:5(int32)}
-      {a:3(int32),s:"c",b:6(int32)}
+      {a:1::int32,s:"a",b:4::int32}
+      {a:2::int32,s:"B",b:5::int32}
+      {a:3::int32,s:"c",b:6::int32}

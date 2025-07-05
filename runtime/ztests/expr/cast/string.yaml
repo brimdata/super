@@ -5,10 +5,10 @@ vector: true
 input: |
   1
   2
-  3(=named)
-  null(int64)
-  1(uint32)
-  2(uint32)
+  3::=named
+  null::int64
+  1::uint32
+  2::uint32
   3.5
   4.3
   2023-10-19T23:11:20.999803Z
@@ -24,14 +24,14 @@ input: |
   "hi, world"
   "foo bar"
   {foo:"bar"}
-  null({foo:string})
+  null::{foo:string}
   [1,2,3]
 
 output: |
   "1"
   "2"
   "3"
-  null(string)
+  null::string
   "1"
   "2"
   "3.5"
@@ -49,5 +49,5 @@ output: |
   "hi, world"
   "foo bar"
   "{foo:\"bar\"}"
-  null(string)
+  null::string
   "[1,2,3]"

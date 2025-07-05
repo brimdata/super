@@ -5,8 +5,8 @@ vector: true
 
 input: |
   -1
-  null(int64) 
-  null(int64)
+  null::int64 
+  null::int64
   -1
 
 output: |
@@ -14,14 +14,14 @@ output: |
   error({message:"cannot cast to uint16",on:-1})
   error({message:"cannot cast to uint32",on:-1})
   error({message:"cannot cast to uint64",on:-1})
-  null(uint8)
-  null(uint16)
-  null(uint32)
-  null(uint64)
-  null(uint8)
-  null(uint16)
-  null(uint32)
-  null(uint64)
+  null::uint8
+  null::uint16
+  null::uint32
+  null::uint64
+  null::uint8
+  null::uint16
+  null::uint32
+  null::uint64
   error({message:"cannot cast to uint8",on:-1})
   error({message:"cannot cast to uint16",on:-1})
   error({message:"cannot cast to uint32",on:-1})

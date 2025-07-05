@@ -6,12 +6,12 @@ inputs:
     data: |
       {
           r: {
-              u: "\"hello\"" (sint=int32|string)
+              u: "\"hello\""::sint=int32|string
           }
       }
       {
           r: {
-              v: 123 (int32) (sint=int32|string)
+              v: 123::int32::sint=int32|string
           }
       }
 

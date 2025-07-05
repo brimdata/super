@@ -2,7 +2,7 @@ spq: pass
 
 input: |
   {s:"foo"}
-  {s:null(string)}
+  {s:null::string}
   {s:"-"}
   {s:"--"}
   {s:""}
@@ -13,14 +13,14 @@ input: |
   {s:"[hello"}
   {s:"hello["}
   {s:";"}
-  {s:null(|[string]|)}
-  {s:|[]|(|[string]|)}
+  {s:null::|[string]|}
+  {s:|[]|::|[string]|}
   {s:|[""]|}
   {s:|["(empty)"]|}
   {s:|["abc","xyz"]|}
   {s:|["a,b"]|}
-  {s:null([string])}
-  {s:[]([string])}
+  {s:null::[string]}
+  {s:[]::[string]}
   {s:[""]}
   {s:["(empty)"]}
   {s:["abc","xyz"]}

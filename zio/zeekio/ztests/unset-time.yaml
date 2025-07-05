@@ -13,4 +13,4 @@ input: |
   #close	2020-01-14-20-00-00
 
 output: |
-  {_path:"p",ts:null(time),uid:"e3ad37edfdf"}
+  {_path:"p",ts:null::time,uid:"e3ad37edfdf"}

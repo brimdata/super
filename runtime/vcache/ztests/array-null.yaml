@@ -6,7 +6,7 @@ inputs:
   - name: in.sup
     data: &input |
       {a:[1,2]}
-      null({a:[int64]})
+      null::{a:[int64]}
       {a:[3]}
 
 outputs:

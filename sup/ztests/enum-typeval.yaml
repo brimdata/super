@@ -1,7 +1,7 @@
 spq: values typeof(this)
 
 input: |
-  %heads(enum(heads,tails))
+  %heads::enum(heads,tails)
 
 output: |
   <enum(heads,tails)>

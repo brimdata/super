@@ -9,7 +9,7 @@ input: |
   "foobazbar"
   "xfoobazbar"
   "foobazbarx"
-  null(string)
+  null::string
   127.0.0.1
   null
 
@@ -20,6 +20,6 @@ output: |
   true
   false
   false
-  null(bool)
+  null::bool
   false
-  null(bool)
+  null::bool

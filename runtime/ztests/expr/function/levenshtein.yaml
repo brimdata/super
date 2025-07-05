@@ -4,8 +4,8 @@ vector: true
 
 input: |
   {a: "kitten", b: "sitting"}
-  {a: "kitten", b: ""(int64|string)}
-  {a: "kitten", b: null(string)}
+  {a: "kitten", b: ""::(int64|string)}
+  {a: "kitten", b: null::string}
   {a: "kitten", b: null}
   {a: 1, b: "kitten"}
 

@@ -4,8 +4,8 @@ spq: |
   is(r,<rec>)
 
 input: |
-  {r:{p:80(port=uint16)}(=rec)}
+  {r:{p:80::(port=uint16)}::=rec}
   {s:"hello"}
 
 output: |
-  {r:{p:80(port=uint16)}(=rec)}
+  {r:{p:80::(port=uint16)}::=rec}

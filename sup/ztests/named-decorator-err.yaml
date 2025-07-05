@@ -4,7 +4,7 @@ script: |
 inputs:
   - name: in.sup
     data: |
-      1((int64|string))(=foo)
+      1::(int64|string)::=foo
 
 outputs:
   - name: stderr

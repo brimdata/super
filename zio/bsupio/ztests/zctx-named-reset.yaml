@@ -9,12 +9,12 @@ inputs:
   - name: in.sup
     data: |
       {ts:2015-03-05T14:25:12.963801Z}
-      {ts:2015-03-05T14:25:14.419939Z,proto:"udp"(=zenum)}
-      {ts:2015-03-05T14:25:14.419939Z,proto:"udp"(=zenum)}
+      {ts:2015-03-05T14:25:14.419939Z,proto:"udp"::=zenum}
+      {ts:2015-03-05T14:25:14.419939Z,proto:"udp"::=zenum}
 
 outputs:
   - name: stdout
     data: |
       {ts:2015-03-05T14:25:12.963801Z}
-      {ts:2015-03-05T14:25:14.419939Z,proto:"udp"(=zenum)}
-      {ts:2015-03-05T14:25:14.419939Z,proto:"udp"(=zenum)}
+      {ts:2015-03-05T14:25:14.419939Z,proto:"udp"::=zenum}
+      {ts:2015-03-05T14:25:14.419939Z,proto:"udp"::=zenum}

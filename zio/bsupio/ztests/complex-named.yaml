@@ -5,8 +5,8 @@ script: super - | super -s -
 inputs:
   - name: stdin
     data: &stdin |
-      ["hello"(=bar),"world"(bar)]
-      {a:["hello"(=bar),"world"(bar)]}
+      ["hello"::=bar,"world"::bar]
+      {a:["hello"::=bar,"world"::bar]}
 
 outputs:
   - name: stdout

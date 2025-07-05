@@ -3,11 +3,11 @@ spq: log(this)
 vector: true
 
 input: |
-  4(int16)
+  4::int16
   4.0
   2.718
   -1
-  null(int64)
+  null::int64
   error("missing")
 
 output: |
@@ -15,5 +15,5 @@ output: |
   1.3862943611198906
   0.999896315728952
   error({message:"log: illegal argument",on:-1})
-  null(float64)
+  null::float64
   error("missing")

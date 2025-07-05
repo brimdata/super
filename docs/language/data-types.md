@@ -65,10 +65,10 @@ count() by typeof(this) | sort this
 10.0.0.1
 <string>
 # expected output
-{typeof:<int64>,count:2(uint64)}
-{typeof:<string>,count:1(uint64)}
-{typeof:<ip>,count:1(uint64)}
-{typeof:<type>,count:1(uint64)}
+{typeof:<int64>,count:2::uint64}
+{typeof:<string>,count:1::uint64}
+{typeof:<ip>,count:1::uint64}
+{typeof:<type>,count:1::uint64}
 ```
 
 When running such a query over complex, semi-structured data, the results can
@@ -119,12 +119,12 @@ appears to the runtime as a side effect of operating upon the data, e.g.,
 # spq
 typeof(this)==<foo>
 # input
-1(=foo)
-2(=bar)
-3(=foo)
+1::=foo
+2::=bar
+3::=foo
 # expected output
-1(=foo)
-3(=foo)
+1::=foo
+3::=foo
 ```
 
 and
@@ -133,7 +133,7 @@ and
 # spq
 values <foo>
 # input
-1(=foo)
+1::=foo
 # expected output
 <foo=int64>
 ```
@@ -159,14 +159,14 @@ particular named type.  For example,
 # spq
 count() by typeof(this) | sort this
 # input
-1(=foo)
-2(=bar)
-"hello"(=foo)
-3(=foo)
+1::=foo
+2::=bar
+"hello"::=foo
+3::=foo
 # expected output
-{typeof:<bar=int64>,count:1(uint64)}
-{typeof:<foo=int64>,count:2(uint64)}
-{typeof:<foo=string>,count:1(uint64)}
+{typeof:<bar=int64>,count:1::uint64}
+{typeof:<foo=int64>,count:2::uint64}
+{typeof:<foo=string>,count:1::uint64}
 ```
 
 Here, the two versions of type "foo" were retained in the aggregation results.

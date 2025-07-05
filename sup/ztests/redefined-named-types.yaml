@@ -1,7 +1,7 @@
 spq: typeof(this)
 
 input: |
-  [{x:{y:63}}(=foo),{x:{abcdef:{x:{y:127}}(foo)}}(=foo)]
+  [{x:{y:63}}::=foo,{x:{abcdef:{x:{y:127}}::foo}}::=foo]
 
 output: |
   <[(foo={x:{abcdef:foo={x:{y:int64}}}})|(foo={x:{y:int64}})]>

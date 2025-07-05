@@ -13,5 +13,5 @@ input: |
   {log_time:2012-05-12T10:23:22Z,client_ip:251.58.48.137}
 
 output: |
-  {client_ip:249.92.17.134,num_requests:1(uint64)}
-  {client_ip:251.58.48.137,num_requests:0(uint64)}
+  {client_ip:249.92.17.134,num_requests:1::uint64}
+  {client_ip:251.58.48.137,num_requests:0::uint64}

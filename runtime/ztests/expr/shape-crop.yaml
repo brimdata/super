@@ -8,7 +8,7 @@ spq: |
 vector: true
 
 input: |
-  {id:{orig_h:ff02::fb,orig_p:5353(port=uint16),resp_h:1.2.3.4,resp_p:5353(port)},other:123.}
+  {id:{orig_h:ff02::fb,orig_p:5353::(port=uint16),resp_h:1.2.3.4,resp_p:5353::port},other:123.}
 
 output: |
-  {id:{orig_h:ff02::fb,orig_p:5353(port=uint16)},other:123.,id2:{orig_h:ff02::fb,orig_p:5353(port)}}
+  {id:{orig_h:ff02::fb,orig_p:5353::(port=uint16)},other:123.,id2:{orig_h:ff02::fb,orig_p:5353::port}}

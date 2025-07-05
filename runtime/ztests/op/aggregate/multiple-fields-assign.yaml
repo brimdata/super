@@ -3,11 +3,11 @@ spq: count() by key1,newkey:=key2 | sort key1, newkey
 vector: true
 
 input: |
-  {key1:"a",key2:"x",n:1(int32)}
-  {key1:"a",key2:"y",n:2(int32)}
-  {key1:"b",key2:"z",n:1(int32)}
+  {key1:"a",key2:"x",n:1::int32}
+  {key1:"a",key2:"y",n:2::int32}
+  {key1:"b",key2:"z",n:1::int32}
 
 output: |
-  {key1:"a",newkey:"x",count:1(uint64)}
-  {key1:"a",newkey:"y",count:1(uint64)}
-  {key1:"b",newkey:"z",count:1(uint64)}
+  {key1:"a",newkey:"x",count:1::uint64}
+  {key1:"a",newkey:"y",count:1::uint64}
+  {key1:"b",newkey:"z",count:1::uint64}

@@ -37,11 +37,11 @@ func TestInterfaceMarshal(t *testing.T) {
 
 	supRose, err := m.Marshal(Thing(&Plant{"red"}))
 	require.NoError(t, err)
-	assert.Equal(t, `{MyColor:"red"}(=Plant)`, supRose)
+	assert.Equal(t, `{MyColor:"red"}::=Plant`, supRose)
 
 	supFlamingo, err := m.Marshal(Thing(&Animal{"pink"}))
 	require.NoError(t, err)
-	assert.Equal(t, `{MyColor:"pink"}(=Animal)`, supFlamingo)
+	assert.Equal(t, `{MyColor:"pink"}::=Animal`, supFlamingo)
 
 	u := sup.NewUnmarshaler()
 	u.Bind(Plant{}, Animal{})
@@ -66,7 +66,7 @@ func TestMarshal(t *testing.T) {
 	aIn := []int8{1, 2, 3}
 	z, err = sup.Marshal(aIn)
 	require.NoError(t, err)
-	assert.Equal(t, `[1(int8),2(int8),3(int8)]`, z)
+	assert.Equal(t, `[1::int8,2::int8,3::int8]`, z)
 
 	var v any
 	err = sup.Unmarshal(z, &v)
@@ -79,7 +79,7 @@ func TestMarshal(t *testing.T) {
 	m.Decorate(sup.StyleSimple)
 	z, err = m.Marshal(Roll(true))
 	require.NoError(t, err)
-	assert.Equal(t, `true(=Roll)`, z)
+	assert.Equal(t, `true::=Roll`, z)
 }
 
 type BytesRecord struct {
@@ -121,7 +121,7 @@ func TestBytes(t *testing.T) {
 	rec, err = m.Marshal(id)
 	require.NoError(t, err)
 	require.NotNil(t, rec)
-	assert.Equal(t, "{A:0x00010203(=ID),B:0x04050607(ID)}(=IDRecord)", sup.FormatValue(rec))
+	assert.Equal(t, "{A:0x00010203::=ID,B:0x04050607::ID}::=IDRecord", sup.FormatValue(rec))
 
 	var id2 IDRecord
 	u := sup.NewBSUPUnmarshaler()
@@ -135,14 +135,14 @@ func TestBytes(t *testing.T) {
 	rec, err = m.Marshal(b2)
 	require.NoError(t, err)
 	require.NotNil(t, rec)
-	assert.Equal(t, "{B:null(bytes)}", sup.FormatValue(rec))
+	assert.Equal(t, "{B:null::bytes}", sup.FormatValue(rec))
 
 	s := SliceRecord{S: nil}
 	m = sup.NewBSUPMarshaler()
 	rec, err = m.Marshal(s)
 	require.NoError(t, err)
 	require.NotNil(t, rec)
-	assert.Equal(t, "{S:null([bytes])}", sup.FormatValue(rec))
+	assert.Equal(t, "{S:null::[bytes]}", sup.FormatValue(rec))
 }
 
 type RecordWithInterfaceSlice struct {
@@ -178,7 +178,7 @@ func TestMixedTypeArrayInsideRecord(t *testing.T) {
 	actual := sup.FormatValue(*recActual)
 	assert.Equal(t, exp, actual)
 	// Double check that all the proper typing made it into the implied union.
-	assert.Equal(t, `{X:"hello",S:[[{MyColor:"red"}(=Plant),{MyColor:"blue"}(=Animal)]]}(=RecordWithInterfaceSlice)`, actual)
+	assert.Equal(t, `{X:"hello",S:[[{MyColor:"red"}::=Plant,{MyColor:"blue"}::=Animal]]}:=RecordWithInterfaceSlice`, actual)
 
 	u := sup.NewUnmarshaler()
 	u.Bind(Animal{}, Plant{}, RecordWithInterfaceSlice{})
@@ -196,7 +196,7 @@ func TestMixedTypeUnmarshal(t *testing.T) {
 	u := sup.NewUnmarshaler()
 	u.Bind(Animal{}, Plant{}, ArrayOfThings{})
 	var out ArrayOfThings
-	err := u.Unmarshal(`{S:[{MyColor:"red"}(=Plant),{MyColor:"blue"}(=Animal)]}`, &out)
+	err := u.Unmarshal(`{S:[{MyColor:"red"}::=Plant,{MyColor:"blue"}::=Animal]}`, &out)
 	require.NoError(t, err)
 	assert.Equal(t, ArrayOfThings{S: []Thing{&Plant{"red"}, &Animal{"blue"}}}, out)
 }
@@ -238,7 +238,7 @@ func TestMixedTypeArrayOfStructWithInterface(t *testing.T) {
 	actual := sup.FormatValue(*recActual)
 	assert.Equal(t, exp, actual)
 	// Double check that all the proper typing made it into the implied union.
-	assert.Equal(t, `[{Message:"hello",Thing:{MyColor:"red"}(=Plant)}(=MessageThing),{Message:"world",Thing:{MyColor:"blue"}(=Animal)}(=MessageThing)]`, actual)
+	assert.Equal(t, `[{Message:"hello",Thing:{MyColor:"red"}::=Plant}::=MessageThing,{Message:"world",Thing:{MyColor:"blue"}::=Animal}::=MessageThing]`, actual)
 
 	u := sup.NewUnmarshaler()
 	u.Bind(Plant{}, Animal{}, MessageThing{})
@@ -275,7 +275,7 @@ func TestBSUPValueField(t *testing.T) {
 	m.Decorate(sup.StyleSimple)
 	zv, err := m.Marshal(bsupValueField)
 	require.NoError(t, err)
-	assert.Equal(t, `{Name:"test1",field:123}(=BSUPValueField)`, sup.FormatValue(zv))
+	assert.Equal(t, `{Name:"test1",field:123}::=BSUPValueField`, sup.FormatValue(zv))
 	u := sup.NewBSUPUnmarshaler()
 	var out BSUPValueField
 	err = u.Unmarshal(zv, &out)
@@ -293,7 +293,7 @@ func TestBSUPValueField(t *testing.T) {
 	m2.Decorate(sup.StyleSimple)
 	zv3, err := m2.Marshal(bsupValueField2)
 	require.NoError(t, err)
-	assert.Equal(t, `{Name:"test2",field:{s:"foo",a:[1,2,3]}}(=BSUPValueField)`, sup.FormatValue(zv3))
+	assert.Equal(t, `{Name:"test2",field:{s:"foo",a:[1,2,3]}}::=BSUPValueField`, sup.FormatValue(zv3))
 	u2 := sup.NewBSUPUnmarshaler()
 	var out2 BSUPValueField
 	err = u2.Unmarshal(zv3, &out2)
@@ -437,7 +437,7 @@ func TestInterfaceWithConcreteEmptyValue(t *testing.T) {
 	// This case doesn't need a binding because we set the
 	// interface value to an empty underlying value.
 	out := Metadata(&Primitive{})
-	err := u.Unmarshal(`{Foo:"foo"}(=Primitive)`, &out)
+	err := u.Unmarshal(`{Foo:"foo"}::=Primitive`, &out)
 	require.NoError(t, err)
 	assert.Equal(t, &Primitive{Foo: "foo"}, out)
 }
@@ -460,7 +460,7 @@ func TestZedType(t *testing.T) {
 func TestSimpleUnionUnmarshal(t *testing.T) {
 	t.Skip("see issue #4012")
 	var i int64
-	err := sup.Unmarshal(`1((int64,string))`, &i)
+	err := sup.Unmarshal(`1::int64|string`, &i)
 	require.NoError(t, err)
 	assert.Equal(t, 1, i)
 }
@@ -471,5 +471,5 @@ func TestEmbeddedNilInterface(t *testing.T) {
 	}
 	val, err := sup.Marshal(in)
 	require.NoError(t, err)
-	assert.Equal(t, `{Fields:null([{Name:string,Values:null}])}`, val)
+	assert.Equal(t, `{Fields:null::[{Name:string,Values:null}]}`, val)
 }

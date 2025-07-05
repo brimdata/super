@@ -5,8 +5,8 @@ spq: put new:=1, x:=x+1
 vector: true
 
 input: |
-  {x:1(int32)}
-  {x:2(int32)}
+  {x:1::int32}
+  {x:2::int32}
 
 output: |
   {x:2,new:1}

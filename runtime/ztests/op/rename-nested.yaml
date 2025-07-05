@@ -3,11 +3,11 @@ spq: rename id.dst:=id.resp_h, id.src:=id.orig_h, net:=id
 vector: true
 
 input: |
-  {id:{orig_h:10.164.94.120,orig_p:39681(port=uint16),resp_h:10.47.3.155,resp_p:3389(port)}}
-  {id:{orig_h:10.164.94.121,orig_p:39681(port=uint16),resp_h:10.47.3.155,resp_p:3390(port)}}
-  {id:{orig_p:39681(port=uint16),resp_p:3389(port)}}
+  {id:{orig_h:10.164.94.120,orig_p:39681::(port=uint16),resp_h:10.47.3.155,resp_p:3389::port}}
+  {id:{orig_h:10.164.94.121,orig_p:39681::(port=uint16),resp_h:10.47.3.155,resp_p:3390::port}}
+  {id:{orig_p:39681::(port=uint16),resp_p:3389::port}}
 
 output: |
-  {net:{src:10.164.94.120,orig_p:39681(port=uint16),dst:10.47.3.155,resp_p:3389(port)}}
-  {net:{src:10.164.94.121,orig_p:39681(port=uint16),dst:10.47.3.155,resp_p:3390(port)}}
-  {net:{orig_p:39681(port=uint16),resp_p:3389(port)}}
+  {net:{src:10.164.94.120,orig_p:39681::(port=uint16),dst:10.47.3.155,resp_p:3389::port}}
+  {net:{src:10.164.94.121,orig_p:39681::(port=uint16),dst:10.47.3.155,resp_p:3390::port}}
+  {net:{orig_p:39681::(port=uint16),resp_p:3389::port}}

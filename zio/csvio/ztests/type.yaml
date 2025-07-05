@@ -1,7 +1,7 @@
 spq: pass
 
 input: |
-  {type:null(type)}
+  {type:null::type}
   {type:<{a:int64}>}
 
 output-flags: -f csv

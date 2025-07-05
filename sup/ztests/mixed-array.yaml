@@ -1,17 +1,17 @@
 spq: pass
 
 input: |
-  [1(int64|string),"b"(int64|string),2(int64|string)]
-  [8(int64|string),3(int64|string)]
-  ["hello"(int64|string),"goodbye"(int64|string)]
-  {version:[1(int64|string),"b"(int64|string),2(int64|string)]}
-  {version:[8(int64|string),3(int64|string)]}
-  {version:["hello"(int64|string),"goodbye"(int64|string)]}
+  [1::(int64|string),"b"::(int64|string),2::(int64|string)]
+  [8::(int64|string),3::(int64|string)]
+  ["hello"::(int64|string),"goodbye"::(int64|string)]
+  {version:[1::(int64|string),"b"::(int64|string),2::(int64|string)]}
+  {version:[8::(int64|string),3::(int64|string)]}
+  {version:["hello"::(int64|string),"goodbye"::(int64|string)]}
 
 output: |
   [1,"b",2]
-  [8,3]([int64|string])
-  ["hello","goodbye"]([int64|string])
+  [8,3]::[int64|string]
+  ["hello","goodbye"]::[int64|string]
   {version:[1,"b",2]}
-  {version:[8,3]([int64|string])}
-  {version:["hello","goodbye"]([int64|string])}
+  {version:[8,3]::[int64|string]}
+  {version:["hello","goodbye"]::[int64|string]}

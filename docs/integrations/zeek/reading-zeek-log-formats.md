@@ -45,25 +45,25 @@ super -S -c 'head 1' conn.log
     uid: "C8Tful1TvM3Zf5x8fl",
     id: {
         orig_h: 10.164.94.120,
-        orig_p: 39681 (port=uint16),
+        orig_p: 39681::(port=uint16),
         resp_h: 10.47.3.155,
-        resp_p: 3389 (port)
+        resp_p: 3389::port
     },
-    proto: "tcp" (=zenum),
-    service: null (string),
+    proto: "tcp"::=zenum,
+    service: null::string,
     duration: 4.266ms,
-    orig_bytes: 97 (uint64),
-    resp_bytes: 19 (uint64),
+    orig_bytes: 97::uint64,
+    resp_bytes: 19::uint64,
     conn_state: "RSTR",
-    local_orig: null (bool),
-    local_resp: null (bool),
-    missed_bytes: 0 (uint64),
+    local_orig: null::bool,
+    local_resp: null::bool,
+    missed_bytes: 0::uint64,
     history: "ShADTdtr",
-    orig_pkts: 10 (uint64),
-    orig_ip_bytes: 730 (uint64),
-    resp_pkts: 6 (uint64),
-    resp_ip_bytes: 342 (uint64),
-    tunnel_parents: null (|[string]|)
+    orig_pkts: 10::uint64,
+    orig_ip_bytes: 730::uint64,
+    resp_pkts: 6::uint64,
+    resp_ip_bytes: 342::uint64,
+    tunnel_parents: null::|[string]|
 }
 ```
 

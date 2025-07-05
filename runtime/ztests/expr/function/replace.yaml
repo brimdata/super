@@ -4,9 +4,9 @@ vector: true
 
 input: |
   {s:"oink oink oink", old:"oink",new: "moo"}
-  {s:"oink oink oink", old:"oink"(string|int64),new: "moo"}
-  {s:"oink oink oink", old:null(string),new: "moo"}
-  {s:"oink oink oink", old:"oink",new: null(string)}
+  {s:"oink oink oink", old:"oink"::(string|int64),new: "moo"}
+  {s:"oink oink oink", old:null::string,new: "moo"}
+  {s:"oink oink oink", old:"oink",new: null::string}
   {s:1., old:"oink",new: "moo"}
 
 output: |

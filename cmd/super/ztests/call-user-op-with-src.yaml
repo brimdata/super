@@ -13,4 +13,4 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      4(uint64)
+      4::uint64

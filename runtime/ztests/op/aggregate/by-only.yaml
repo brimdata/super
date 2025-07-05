@@ -3,14 +3,14 @@ spq: by s | sort s
 vector: true
 
 input: |
-  {x:1(int32),s:"b"}
-  {x:2(int32),s:"f"}
-  {x:1(int32),s:"b"}
-  {x:1(int32),s:"a"}
-  {x:1(int32),s:"b"}
-  {x:2(int32),s:"c"}
-  {x:1(int32),s:"a"}
-  {x:1(int32),s:"a"}
+  {x:1::int32,s:"b"}
+  {x:2::int32,s:"f"}
+  {x:1::int32,s:"b"}
+  {x:1::int32,s:"a"}
+  {x:1::int32,s:"b"}
+  {x:2::int32,s:"c"}
+  {x:1::int32,s:"a"}
+  {x:1::int32,s:"a"}
 
 output: |
   {s:"a"}

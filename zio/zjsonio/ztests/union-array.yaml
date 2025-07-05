@@ -5,5 +5,5 @@ input: |
   {"type":{"kind":"ref","id":32},"value":[null]}
 
 output: |
-  {a:["asdfasdf",null,100(int32)]}
-  {a:null([int32|string])}
+  {a:["asdfasdf",null,100::int32]}
+  {a:null::[int32|string]}

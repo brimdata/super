@@ -3,14 +3,14 @@ spq: count() by val:=this | sort this
 vector: true
 
 input: |
-  {x:1(int32),s:"foo"}
-  {x:2(int32),s:"Bar"}
+  {x:1::int32,s:"foo"}
+  {x:2::int32,s:"Bar"}
   {y:5}
   {y:5}
   {y:7}
 
 output: |
-  {val:{y:5},count:2(uint64)}
-  {val:{y:7},count:1(uint64)}
-  {val:{x:1(int32),s:"foo"},count:1(uint64)}
-  {val:{x:2(int32),s:"Bar"},count:1(uint64)}
+  {val:{y:5},count:2::uint64}
+  {val:{y:7},count:1::uint64}
+  {val:{x:1::int32,s:"foo"},count:1::uint64}
+  {val:{x:2::int32,s:"Bar"},count:1::uint64}

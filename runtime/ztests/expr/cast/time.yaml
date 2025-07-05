@@ -8,7 +8,7 @@ input: |
   "2015-03-05T16:07:13.154566+01:00"
   "1/2/2020"
   "12 Feb 2006 19:17"
-  "1e18"(=named)
+  "1e18"::=named
   "foo"
   -1e9
   1
@@ -25,5 +25,5 @@ output: |
   error({message:"cannot cast to time",on:"foo"})
   1969-12-31T23:59:59Z
   1970-01-01T00:00:00.000000001Z
-  null(time)
+  null::time
   error({message:"cannot cast to time",on:1e+200})

@@ -7,13 +7,13 @@ inputs:
   - name: in.sup
     data: |
       {x:1}
-      {x:2}(="@foo")
+      {x:2}::="@foo"
       {x:3}
-      {y:{x:4}(="@foo")}(="Y Z")
+      {y:{x:4}::="@foo"}::="Y Z"
 
 outputs:
   - name: stdout
     data: |
-      {x:2}(="@foo")
+      {x:2}::="@foo"
       ===
-      {y:{x:4}(="@foo")}(="Y Z")
+      {y:{x:4}::="@foo"}::="Y Z"

@@ -3,7 +3,7 @@ spq: cut v:=a.f
 vector: true
 
 input: |
-  {a:{f:1(int8)}(=foo)}
+  {a:{f:1::int8}::=foo}
 
 output: |
-  {v:1(int8)}
+  {v:1::int8}

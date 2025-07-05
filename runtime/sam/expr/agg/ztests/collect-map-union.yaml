@@ -4,9 +4,9 @@ output-flags: -pretty 2
 
 input: |
   // Named type and union type.
-  {k:"foo"(=my_string),v:"bar"(int64|string)}
+  {k:"foo"::=my_string,v:"bar"::(int64|string)}
   // Named union type.
-  {k:1(my_union=int32|int64),v:1}
+  {k:1::my_union=int32|int64,v:1}
   {k:127.0.0.1,v:127.0.0.1}
   {k:2.,v:2.}
   {k:["bar","baz"],v:["bar","baz"]}
@@ -14,7 +14,7 @@ input: |
 output: |
   |{
     1: 1,
-    "foo" (=my_string): "bar",
+    "foo"::=my_string: "bar",
     127.0.0.1: 127.0.0.1,
     2.: 2.,
     [

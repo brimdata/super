@@ -7,73 +7,73 @@ inputs:
       {
           null: null,
           bool: true,
-          uint8: 8 (uint8),
-          int8: -8 (int8),
-          uint16: 16 (uint16),
-          int16: -16 (int16),
-          uint32: 32 (uint32),
-          int32: -32 (int32),
-          uint64: 64 (uint64),
+          uint8: 8::uint8,
+          int8: -8::int8,
+          uint16: 16::uint16,
+          int16: -16::int16,
+          uint32: 32::uint32,
+          int32: -32::int32,
+          uint64: 64::uint64,
           int64: -64,
-          float16: 16. (float16),
-          float32: 32. (float32),
+          float16: 16.::float16,
+          float32: 32.::float32,
           float64: 64.,
           string: "",
           binary: 0x00,
-          fixed_size_binary: 0x0102 (=arrow_fixed_size_binary_2),
-          date32: 2022-12-04T00:00:00Z (=arrow_date32),
-          date64: 2022-12-04T00:00:00Z (=arrow_date64),
-          timestamp_s: 2022-12-04T19:43:48Z (=arrow_timestamp_s),
-          timestamp_ms: 2022-12-04T19:43:48.123Z (=arrow_timestamp_ms),
-          timestamp_us: 2022-12-04T19:43:48.123456Z (=arrow_timestamp_us),
+          fixed_size_binary: 0x0102::=arrow_fixed_size_binary_2,
+          date32: 2022-12-04T00:00:00Z::=arrow_date32,
+          date64: 2022-12-04T00:00:00Z::=arrow_date64,
+          timestamp_s: 2022-12-04T19:43:48Z::=arrow_timestamp_s,
+          timestamp_ms: 2022-12-04T19:43:48.123Z::=arrow_timestamp_ms,
+          timestamp_us: 2022-12-04T19:43:48.123456Z::=arrow_timestamp_us,
           timestamp_ns: 2022-12-04T19:43:48.123456789Z,
-          time32_s: 1970-01-01T19:43:48Z (=arrow_time32_s),
-          time32_ms: 1970-01-01T19:43:48.123Z (=arrow_time32_ms),
-          time64_us: 1970-01-01T19:43:48.123456Z (=arrow_time64_us),
-          time64_ns: 1970-01-01T19:43:48.123456789Z (=arrow_time64_ns),
-          month_interval: -12 (arrow_month_interval=int32),
+          time32_s: 1970-01-01T19:43:48Z::=arrow_time32_s,
+          time32_ms: 1970-01-01T19:43:48.123Z::=arrow_time32_ms,
+          time64_us: 1970-01-01T19:43:48.123456Z::=arrow_time64_us,
+          time64_ns: 1970-01-01T19:43:48.123456789Z::=arrow_time64_ns,
+          month_interval: -12::(arrow_month_interval=int32),
           day_time_interval: {
-              days: 1 (int32),
-              milliseconds: 2 (uint32)
-          } (=arrow_day_time_interval),
+              days: 1::int32,
+              milliseconds: 2::uint32
+          }::=arrow_day_time_interval,
           decimal128: {
               high: 1,
-              low: 2 (uint64)
-          } (=arrow_decimal128),
+              low: 2::uint64
+          }::=arrow_decimal128,
           decimal256: [
-              1 (uint64),
-              2 (uint64),
-              3 (uint64),
-              4 (uint64)
-          ] (=arrow_decimal256),
+              1::uint64,
+              2::uint64,
+              3::uint64,
+              4::uint64
+          ]::=arrow_decimal256,
           list: [
               1
           ],
           struct: {
               a: 0
           },
-          union: 1 (int64|string),
+          union: 1::(int64|string),
           map: |{
               1: "one"
           }|,
           fixed_size_list: [
               1
-          ] (=arrow_fixed_size_list_1),
-          duration_s: 1s (=arrow_duration_s),
-          duration_ms: 1ms (=arrow_duration_ms),
-          duration_us: 1us (=arrow_duration_us),
+          ]::=arrow_fixed_size_list_1,
+          duration_s: 1s::=arrow_duration_s,
+          duration_ms: 1ms::=arrow_duration_ms,
+          duration_us: 1us::=arrow_duration_us,
           duration_ns: 1ns,
-          large_string: "" (=arrow_large_string),
-          large_binary: 0x00 (=arrow_large_binary),
+          large_string: ""::=arrow_large_string,
+          large_binary: 0x00::=arrow_large_binary,
           large_list: [
               1,
               2
-          ] (=arrow_large_list),
+          ]::=arrow_large_list,
           month_day_nano_interval: {
-              month: 1 (int32),
-              day: 2 (int32),
+              month: 1::int32,
+              day: 2::int32,
               nanoseconds: 3
-          } (=arrow_month_day_nano_interval)
+          }::=arrow_month_day_nano_interval
       }
 
 outputs:

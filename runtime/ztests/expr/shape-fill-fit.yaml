@@ -7,4 +7,4 @@ input: |
   {id:{orig_h:"ff02::fb",resp_h:"ff02::fb"}}
 
 output: |
-  {id_filled:{orig_h:"ff02::fb",resp_h:"ff02::fb",orig_p:null(port=uint16)},id_fitted:{orig_h:"ff02::fb",orig_p:null(port)}}
+  {id_filled:{orig_h:"ff02::fb",resp_h:"ff02::fb",orig_p:null::(port=uint16)},id_fitted:{orig_h:"ff02::fb",orig_p:null::port}}

@@ -7,16 +7,16 @@ vector: true
 
 input: |
   {a:null}
-  {a:null(int64)}
-  {a:null(string)}
+  {a:null::int64}
+  {a:null::string}
   {a:1}
   {a:"hello"}
-  {a:"goodbye"(=string_named)}
+  {a:"goodbye"::=string_named}
 
 output: |
-  {a:null(union=int64|string|(string_named=string))}
-  {a:null(union=int64|string|(string_named=string))}
-  {a:null(union=int64|string|(string_named=string))}
-  {a:1(union=int64|string|(string_named=string))}
-  {a:"hello"(union=int64|string|(string_named=string))}
-  {a:"goodbye"(=string_named)(union=int64|string|string_named)}
+  {a:null::(union=int64|string|(string_named=string))}
+  {a:null::(union=int64|string|(string_named=string))}
+  {a:null::(union=int64|string|(string_named=string))}
+  {a:1::(union=int64|string|(string_named=string))}
+  {a:"hello"::(union=int64|string|(string_named=string))}
+  {a:"goodbye"::=string_named::(union=int64|string|string_named)}

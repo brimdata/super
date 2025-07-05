@@ -7,12 +7,12 @@ inputs:
   - name: in.sup
     data: |
       {s:"axb"}
-      {s:7(int32),a:2(int32),b:3(int32)}
-      {s:8(int32),a:2(int32),b:3(int32)}
+      {s:7::int32,a:2::int32,b:3::int32}
+      {s:8::int32,a:2::int32,b:3::int32}
 
 outputs:
   - name: stdout
     data: |
       {s:"axb"}
       ===
-      {s:7(int32),a:2(int32),b:3(int32)}
+      {s:7::int32,a:2::int32,b:3::int32}

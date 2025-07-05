@@ -6,4 +6,4 @@ spq: |
 input: 'null'
 
 output: |
-  [2(uint64),2(uint64),2(uint64)]
+  [2::uint64,2::uint64,2::uint64]

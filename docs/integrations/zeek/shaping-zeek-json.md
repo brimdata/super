@@ -328,17 +328,17 @@ produces
     uid: "C1zOivgBT6dBmknqk",
     id: {
         orig_h: 10.47.1.152,
-        orig_p: 49562 (port=uint16),
+        orig_p: 49562::(port=uint16),
         resp_h: 23.217.103.245,
-        resp_p: 80 (port)
-    } (=conn_id),
+        resp_p: 80::port
+    }::=conn_id,
     name: "TCP_ack_underflow_or_misorder",
-    addl: null (string),
+    addl: null::string,
     notice: false,
     peer: "zeek",
-    source: null (string),
+    source: null::string,
     _write_ts: 2018-03-24T17:15:20.600843Z
-} (=weird)
+}::=weird
 ```
 
 If working in a directory containing many JSON logs, the

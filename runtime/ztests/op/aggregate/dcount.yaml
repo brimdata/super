@@ -4,10 +4,10 @@ vector: true
 
 input: |
   null
-  null({x:int64})
+  null::{x:int64}
   {x:1}
-  {x:1(int8)}
+  {x:1::int8}
   1
 
 output: |
-  {dcount:3(uint64)}
+  {dcount:3::uint64}

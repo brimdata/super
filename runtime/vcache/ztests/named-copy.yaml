@@ -5,9 +5,9 @@ script: |
 inputs:
   - name: stdin
     data: &input |
-      {x:1,y:4}(=foo)
-      {x:2,y:3}(=foo)
-      {x:3,y:2}(=foo)
+      {x:1,y:4}::=foo
+      {x:2,y:3}::=foo
+      {x:3,y:2}::=foo
 
 outputs:
   - name: stdout

@@ -4,9 +4,9 @@ script: |
 inputs:
   - name: A.sup
     data: |
-      {a:1(int32)}
-      {a:2(int32)}
-      {a:3(int32)}
+      {a:1::int32}
+      {a:2::int32}
+      {a:3::int32}
 
 outputs:
   - name: stderr

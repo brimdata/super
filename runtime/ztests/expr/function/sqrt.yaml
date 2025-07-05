@@ -7,7 +7,7 @@ input: |
   2.
   1e10
   -1
-  null(float64)
+  null::float64
   null
   "9"
 
@@ -16,6 +16,6 @@ output: |
   1.4142135623730951
   100000.
   NaN
-  null(float64)
+  null::float64
   null
   error({message:"sqrt: number argument required",on:"9"})

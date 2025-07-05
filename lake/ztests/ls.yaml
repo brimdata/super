@@ -20,13 +20,13 @@ outputs:
       {
           name: "logs",
           layout: {
-              order: "desc" (=order.Which),
+              order: "desc"::=order.Which,
               keys: [
                   [
                       "ts"
-                  ] (=field.Path)
-              ] (=field.List)
-          } (=order.SortKey),
+                  ]::=field.Path
+              ]::=field.List
+          }::=order.SortKey,
           seek_stride: 65536,
           threshold: 524288000
       }
@@ -34,6 +34,6 @@ outputs:
       {
           min: 2020-04-21T22:40:30.06852324Z,
           max: 2020-04-22T01:23:40.0622373Z,
-          count: 1000 (uint64),
+          count: 1000::uint64,
           size: 33493
       }

@@ -34,5 +34,5 @@ values regexp("bar", this)
 # input
 "foo"
 # expected output
-null([string])
+null::[string]
 ```

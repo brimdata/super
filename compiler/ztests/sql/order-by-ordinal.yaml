@@ -1,5 +1,5 @@
 script: |
-  echo '{i:1} {i:2} {i:3} {i:null(int64)}' | super -s -c 'SELECT i, SUM(i) GROUP BY i ORDER BY 1;' -
+  echo '{i:1} {i:2} {i:3} {i:null::int64}' | super -s -c 'SELECT i, SUM(i) GROUP BY i ORDER BY 1;' -
   ! super -c 'SELECT a, b ORDER BY 3'
 
 inputs:
@@ -8,7 +8,7 @@ inputs:
       {i:1}
       {i:2}
       {i:3}
-      {i:null(int64)}
+      {i:null::int64}
     
 outputs:
   - name: stdout
@@ -16,7 +16,7 @@ outputs:
       {i:1,"SUM(i)":1}
       {i:2,"SUM(i)":2}
       {i:3,"SUM(i)":3}
-      {i:null(int64),"SUM(i)":null(int64)}
+      {i:null::int64,"SUM(i)":null::int64}
   - name: stderr
     data: |
       position 3 is not in select list at line 1, column 22:

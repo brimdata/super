@@ -5,9 +5,9 @@ spq: 'put y := x > 0 ? "string" : x'
 vector: true
 
 input: |
-  {x:0(int32)}
-  {x:1(int32)}
+  {x:0::int32}
+  {x:1::int32}
 
 output: |
-  {x:0(int32),y:0(int32)}
-  {x:1(int32),y:"string"}
+  {x:0::int32,y:0::int32}
+  {x:1::int32,y:"string"}

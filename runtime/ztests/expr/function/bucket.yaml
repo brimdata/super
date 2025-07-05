@@ -6,9 +6,9 @@ input: |
   {t:2020-05-26T15:27:47Z,bin:1h}
   {t:2020-05-27T15:27:47Z,bin:0s}
   {t:3s,bin:2s}
-  {t:null(time),bin:2s}
-  {t:null(duration),bin:2s}
-  {t:2020-05-26T15:27:47Z,bin:null(duration)}
+  {t:null::time,bin:2s}
+  {t:null::duration,bin:2s}
+  {t:2020-05-26T15:27:47Z,bin:null::duration}
   {t:"foo",bin:2s}
   {t:1h,bin:"bar"}
 
@@ -16,8 +16,8 @@ output: |
   2020-05-26T15:00:00Z
   2020-05-27T15:27:47Z
   2s
-  null(time)
-  null(duration)
-  null(time)
+  null::time
+  null::duration
+  null::time
   error({message:"bucket: first argument is not a time or duration",on:"foo"})
   error({message:"bucket: second argument is not a duration",on:"bar"})

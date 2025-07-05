@@ -5,12 +5,12 @@ inputs:
   - name: in.sup
     data: |
       {a:"hello",b:[{a:"a",b:"b"},{a:"c",b:"d"},{a:"e",b:"f"}]}
-      {a:"world",b:null([{a:string,b:string}])}
-      {a:"goodnight",b:null([{a:string,b:string}])}
+      {a:"world",b:null::[{a:string,b:string}]}
+      {a:"goodnight",b:null::[{a:string,b:string}]}
 
 outputs:
   - name: stdout
     data: |
       {a:"hello",b:[{a:"a",b:"b"},{a:"c",b:"d"},{a:"e",b:"f"}]}
-      {a:"world",b:null([{a:string,b:string}])}
-      {a:"goodnight",b:null([{a:string,b:string}])}
+      {a:"world",b:null::[{a:string,b:string}]}
+      {a:"goodnight",b:null::[{a:string,b:string}]}

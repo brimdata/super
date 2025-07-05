@@ -5,17 +5,17 @@ script: |
 inputs:
   - name: in.sup
     data: |
-      {x:1(int32)}
-      {x:-1(int32)}
-      {x:2(int32)}
-      {x:1(int32)}
-      {x:8(int32)}
-      {x:1(int32)}
+      {x:1::int32}
+      {x:-1::int32}
+      {x:2::int32}
+      {x:1::int32}
+      {x:8::int32}
+      {x:1::int32}
 
 outputs:
   - name: union.sup
     data: |
-      |[1(int32),-1(int32),2(int32),8(int32)]|
+      |[1::int32,-1::int32,2::int32,8::int32]|
   - name: collect.sup
     data: |
-      [1(int32),-1(int32),2(int32),1(int32),8(int32),1(int32)]
+      [1::int32,-1::int32,2::int32,1::int32,8::int32,1::int32]

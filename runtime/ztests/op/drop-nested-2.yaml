@@ -4,8 +4,8 @@ vector: true
 
 input: |
   {foo:"outer1",rec1:{sub1:{foo:"foo1.1",bar:"bar1.1"},sub2:{foo:"foo2.1",bar:"bar2.1"}},rec2:{foo:"foo3.1"}}
-  {foo:"outer2",rec1:{sub1:{foo:"foo1.2",bar:"bar1.2"},sub2:{foo:"foo2.2",bar:"bar2.2"}}(=rec1_named),rec2:{foo:"foo3.2"}(=rec2_named)}(=named)
+  {foo:"outer2",rec1:{sub1:{foo:"foo1.2",bar:"bar1.2"},sub2:{foo:"foo2.2",bar:"bar2.2"}}::=rec1_named,rec2:{foo:"foo3.2"}::=rec2_named}::=named
 
 output: |
   {foo:"outer1",rec2:{foo:"foo3.1"}}
-  {foo:"outer2",rec2:{foo:"foo3.2"}(=rec2_named)}
+  {foo:"outer2",rec2:{foo:"foo3.2"}::=rec2_named}

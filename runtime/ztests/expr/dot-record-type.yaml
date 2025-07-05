@@ -6,7 +6,7 @@ input: |
   <{foo:{bar:int64}}>
   <int64>
   <{foo:ip}>
-  null(type)
+  null::type
 
 output: |
   <{bar:int64}>
@@ -15,5 +15,5 @@ output: |
   error("missing")
   <ip>
   error("missing")
-  null(type)
-  null(type)
+  null::type
+  null::type

@@ -4,10 +4,10 @@ script: |
 inputs:
   - name: stdin
     data: &data |
-      {x:1}(=foo)
-      {x:2}(=foo)
-      {x:"hello"}(=foo)
-      {x:"world"}(=foo)
+      {x:1}::=foo
+      {x:2}::=foo
+      {x:"hello"}::=foo
+      {x:"world"}::=foo
 
 outputs:
   - name: stdout

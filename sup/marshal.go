@@ -939,7 +939,7 @@ func (u *UnmarshalBSUPContext) decodeRecord(val super.Value, sval reflect.Value)
 	}
 	recType, ok := super.TypeUnder(val.Type()).(*super.TypeRecord)
 	if !ok {
-		return fmt.Errorf("cannot unmarshal Zed value %q into Go struct", String(val))
+		return fmt.Errorf("cannot unmarshal value %q into Go struct", String(val))
 	}
 	nameToField := make(map[string]int)
 	stype := sval.Type()

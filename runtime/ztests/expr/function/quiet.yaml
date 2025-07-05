@@ -6,18 +6,18 @@ input: |
   1
   [3,2,1,0]
   error("missing")
-  error("missing")(=foo)
-  error("missing"(=bar))
-  null(error(string))
-  error(null(string))
+  error("missing")::=foo
+  error("missing"::=bar)
+  null::error(string)
+  error(null::string)
   error("quiet")
   error({x:"missing"})
 
 output: |
   1
   [3,2,1,0]
-  error("missing")(=foo)
-  error("missing")(error(bar=string))
-  null(error(string))
-  null(error(string))
+  error("missing")::=foo
+  error("missing")::error(bar=string)
+  null::error(string)
+  null::error(string)
   error({x:"missing"})

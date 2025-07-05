@@ -7,7 +7,7 @@ input: |
   {s:"scheme://user:password@host:12345/path?a=1&a=2&b=3&c=#fragment"}
   {s:"scheme:opaque"}
   {s:1}
-  {s:null(string)}
+  {s:null::string}
   {s:":no-scheme"}
   {s:"scheme://bad-port:1234567"}
 
@@ -17,26 +17,26 @@ output: |
   {
     s: "",
     uri: {
-      scheme: null (string),
-      opaque: null (string),
-      user: null (string),
-      password: null (string),
-      host: null (string),
-      port: null (uint16),
-      path: null (string),
-      query: null (|{string:[string]}|),
-      fragment: null (string)
+      scheme: null::string,
+      opaque: null::string,
+      user: null::string,
+      password: null::string,
+      host: null::string,
+      port: null::uint16,
+      path: null::string,
+      query: null::|{string:[string]}|,
+      fragment: null::string
     }
   }
   {
     s: "scheme://user:password@host:12345/path?a=1&a=2&b=3&c=#fragment",
     uri: {
       scheme: "scheme",
-      opaque: null (string),
+      opaque: null::string,
       user: "user",
       password: "password",
       host: "host",
-      port: 12345 (uint16),
+      port: 12345::uint16,
       path: "/path",
       query: |{
         "a": [
@@ -58,13 +58,13 @@ output: |
     uri: {
       scheme: "scheme",
       opaque: "opaque",
-      user: null (string),
-      password: null (string),
-      host: null (string),
-      port: null (uint16),
-      path: null (string),
-      query: null (|{string:[string]}|),
-      fragment: null (string)
+      user: null::string,
+      password: null::string,
+      host: null::string,
+      port: null::uint16,
+      path: null::string,
+      query: null::|{string:[string]}|,
+      fragment: null::string
     }
   }
   {
@@ -75,8 +75,8 @@ output: |
     })
   }
   {
-    s: null (string),
-    uri: null ({scheme:string,opaque:string,user:string,password:string,host:string,port:uint16,path:string,query:|{string:[string]}|,fragment:string})
+    s: null::string,
+    uri: null::{scheme:string,opaque:string,user:string,password:string,host:string,port:uint16,path:string,query:|{string:[string]}|,fragment:string}
   }
   {
     s: ":no-scheme",

@@ -5,18 +5,18 @@ vector: true
 input: |
   1
   0
-  24(uint8)
-  0(uint8)
-  null(uint8)
+  24::uint8
+  0::uint8
+  null::uint8
   1.5
   0.
-  null(float64)
-  "T"(=named)
+  null::float64
+  "T"::=named
   "true"
   "F"
   "false"
   "blah"
-  null(string)
+  null::string
   "1"
 
 output: |
@@ -24,14 +24,14 @@ output: |
   false
   true
   false
-  null(bool)
+  null::bool
   true
   false
-  null(bool)
+  null::bool
   true
   true
   false
   false
   error({message:"cannot cast to bool",on:"blah"})
-  null(bool)
+  null::bool
   true

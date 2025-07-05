@@ -7,15 +7,15 @@ input: |
   {x:2}
   "foo"
   "bar"
-  "baz"(=a)
+  "baz"::=a
   error("missing")
   error("foo")
 
 output: |
-  {x:1}(=named)
-  {x:2}(=named)
-  "foo"(=named)
-  "bar"(=named)
-  "baz"(=named)
+  {x:1}::=named
+  {x:2}::=named
+  "foo"::=named
+  "bar"::=named
+  "baz"::=named
   error("missing")
   error("foo")

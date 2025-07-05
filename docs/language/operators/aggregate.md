@@ -99,7 +99,7 @@ aggregate avg(this),sum(this),count()
 3
 4
 # expected output
-{avg:2.5,sum:10,count:4(uint64)}
+{avg:2.5,sum:10,count:4::uint64}
 ```
 
 Sum the input sequence, leaving out the `aggregate` keyword:

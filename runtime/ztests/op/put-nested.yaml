@@ -6,7 +6,7 @@ input: |
   {}
   {a:null}
   {a:{}}
-  {a:{}(=named)}
+  {a:{}::=named}
   {a:{c:null}}
   {a:{c:{}}}
   {a:{c:{a:4}}}

@@ -1376,7 +1376,8 @@ TypeLiteral
     }
 
 TypeAsValue
-  = t:EasyType {
+  = "=" name:Name { return newPrimitive(c, "string", name.(*ast.Name).Text), nil }
+  / t:EasyType {
       return &ast.TypeValue{
         Kind:"TypeValue",
         Value: t.(ast.Type),
@@ -1400,7 +1401,7 @@ ComponentType
         }, nil
       }
       return &ast.TypeName{Kind: "TypeName", Name: name.(*ast.Name).Text, Loc: loc(c)}, nil
-    }  
+    }
 
 EasyType
   = "(" __ typ:Type __ ")" { return typ, nil}

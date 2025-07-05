@@ -8,30 +8,30 @@ inputs:
     # Two different value per type (except for null) so they won't be encoded as
     # constant vectors.
     data: &stdin |
-      8(uint8)
-      80(uint8)
-      16(uint16)
-      1600(uint16)
-      32(uint32)
-      320(uint32)
-      64(uint64)
-      640(uint64)
-      -8(int8)
-      -80(int8)
-      -16(int16)
-      -160(int16)
-      -32(int32)
-      -320(int32)
+      8::uint8
+      80::uint8
+      16::uint16
+      1600::uint16
+      32::uint32
+      320::uint32
+      64::uint64
+      640::uint64
+      -8::int8
+      -80::int8
+      -16::int16
+      -160::int16
+      -32::int32
+      -320::int32
       -64
       -640
       1h2m3s
       1h2m30s
       2022-12-04T00:00:00Z
       2022-12-04T00:00:01Z
-      16.(float16)
-      160.(float16)
-      32.(float32)
-      320.(float32)
+      16.::float16
+      160.::float16
+      32.::float32
+      320.::float32
       64.
       640.
       true
