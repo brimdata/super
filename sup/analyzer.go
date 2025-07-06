@@ -107,6 +107,9 @@ func (a Analyzer) convertValue(sctx *super.Context, val ast.Value, parent super.
 	case *ast.ImpliedValue:
 		return a.convertAny(sctx, val.Of, parent)
 	case *ast.DefValue:
+		if val.Of == nil {
+			return nil, fmt.Errorf("decorator for typedef %q cannot appear after another decorator", val.TypeName)
+		}
 		v, err := a.convertAny(sctx, val.Of, parent)
 		if err != nil {
 			return nil, err

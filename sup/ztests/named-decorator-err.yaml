@@ -1,0 +1,12 @@
+script: |
+  ! super -i sup -s in.sup
+
+inputs:
+  - name: in.sup
+    data: |
+      1((int64,string))(=foo)
+
+outputs:
+  - name: stderr
+    data: |
+      in.sup: decorator for typedef "foo" cannot appear after another decorator
