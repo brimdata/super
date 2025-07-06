@@ -1,0 +1,14 @@
+script: |
+  super -s -c "typeof(this)" in.sup
+  super -s -c 'typeof([1::<foo=(int64)>,"bar"])'
+
+inputs:
+  - name: in.sup
+    data: |
+      [1(=foo),"bar"]
+
+outputs:
+  - name: stdout
+    data: |
+      <[foo=(int64)|string]>
+      <[foo=(int64)|string]>

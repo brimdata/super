@@ -225,7 +225,13 @@ func (f *Formatter) formatTypeValue(indent int, tv zcode.Bytes, unionParent bool
 		}
 		f.build(QuotedName(name))
 		f.build("=")
+		if unionParent {
+			f.build("(")
+		}
 		tv = f.formatTypeValue(indent, tv, unionParent)
+		if unionParent {
+			f.build(")")
+		}
 	case super.TypeValueNameRef:
 		var name string
 		name, tv = super.DecodeName(tv)
@@ -577,7 +583,13 @@ func (f *Formatter) formatType(typ super.Type, unionParent bool) {
 		f.saveType(named)
 		f.build(named.Name)
 		f.build("=")
+		if unionParent {
+			f.build("(")
+		}
 		f.formatType(named.Type, unionParent)
+		if unionParent {
+			f.build(")")
+		}
 		return
 	}
 	if typ.ID() < super.IDTypeComplex {
