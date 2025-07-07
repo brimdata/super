@@ -11,7 +11,7 @@ spq: |
 vector: true
 
 input: |
-  {r:{a:1(int32)},s:123(int32),array:[1,2,3]}
+  {r:{a:1::int32},s:123::int32,array:[1,2,3]}
   {r:{a:1(int8),b:2(int8)}}
 
 output: |

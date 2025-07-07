@@ -3,9 +3,9 @@ spq: put s1:=this["yodawg"],s2:=this[yodawg],k:=this["..."]+1
 vector: true
 
 input: |
-  {foo:"yodawg",bar:"a","...":1(int32),yodawg:"foo"}
-  {foo:"yodawg",bar:"b","...":2(int32),yodawg:"bar"}
+  {foo:"yodawg",bar:"a","...":1::int32,yodawg:"foo"}
+  {foo:"yodawg",bar:"b","...":2::int32,yodawg:"bar"}
 
 output: |
-  {foo:"yodawg",bar:"a","...":1(int32),yodawg:"foo",s1:"foo",s2:"yodawg",k:2}
-  {foo:"yodawg",bar:"b","...":2(int32),yodawg:"bar",s1:"bar",s2:"b",k:3}
+  {foo:"yodawg",bar:"a","...":1::int32,yodawg:"foo",s1:"foo",s2:"yodawg",k:2}
+  {foo:"yodawg",bar:"b","...":2::int32,yodawg:"bar",s1:"bar",s2:"b",k:3}

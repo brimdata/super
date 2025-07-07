@@ -4,9 +4,9 @@ spq: put a:=1, b:=2
 vector: true
 
 input: |
-  {x:1(int32)}
-  {x:2(int32)}
+  {x:1::int32}
+  {x:2::int32}
 
 output: |
-  {x:1(int32),a:1,b:2}
-  {x:2(int32),a:1,b:2}
+  {x:1::int32,a:1,b:2}
+  {x:2::int32,a:1,b:2}

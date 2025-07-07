@@ -1,7 +1,7 @@
 spq: pass
 
 input: |
-  {ja3s:null(int32)}
+  {ja3s:null::int32}
 
 output-flags: -f zjson
 

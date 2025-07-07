@@ -8,11 +8,11 @@ spq: |
 vector: true
 
 input: |
-  {a:1(int32),s:"a"}
-  {a:2(int32),s:"B"}
-  {a:3(int32),s:"c"}
-  {a:4(int32),s:"c"}
+  {a:1::int32,s:"a"}
+  {a:2::int32,s:"B"}
+  {a:3::int32,s:"c"}
+  {a:4::int32,s:"c"}
 
 output: |
-  {a:1(int32),s:"a",v:"one"}
-  {a:2(int32),s:"B",v:"two"}
+  {a:1::int32,s:"a",v:"one"}
+  {a:2::int32,s:"B",v:"two"}

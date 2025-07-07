@@ -3,9 +3,9 @@ spq: 't1:=or(x>2),t2:=or(x>4),t3:=and(x>0),t4:=and(x>2),t5:=and(x>2) where x>2'
 vector: true
 
 input: |
-  {x:1(int32)}
-  {x:2(int32)}
-  {x:3(int32)}
+  {x:1::int32}
+  {x:2::int32}
+  {x:3::int32}
 
 output: |
   {t1:true,t2:false,t3:true,t4:false,t5:true}

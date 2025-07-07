@@ -14,8 +14,8 @@ input: |
   {a:"0123"}
   {a:"0\u2071\u20723"}
   {a:"\u2070\u2071\u2072\u2073"}
-  {a:[10(int32),11(int32),12(int32),13(int32)]}
-  {a:|[10(int32),11(int32),12(int32),13(int32)]|}
+  {a:[10::int32,11::int32,12::int32,13::int32]}
+  {a:|[10::int32,11::int32,12::int32,13::int32]|}
 
 output: |
   {a1:error({message:"sliced value is not array, set, bytes, or string",on:null}),a2:error({message:"sliced value is not array, set, bytes, or string",on:null}),a3:error({message:"sliced value is not array, set, bytes, or string",on:null}),a4:error({message:"sliced value is not array, set, bytes, or string",on:null}),a5:error({message:"sliced value is not array, set, bytes, or string",on:null}),a6:error({message:"sliced value is not array, set, bytes, or string",on:null}),a7:error({message:"sliced value is not array, set, bytes, or string",on:null}),a8:null}
@@ -29,5 +29,5 @@ output: |
   {a1:"12",a2:"123",a3:"0",a4:"012",a5:"",a6:"3",a7:"2",a8:error("slice index is not a number")}
   {a1:"ⁱ⁲",a2:"ⁱ⁲3",a3:"0",a4:"0ⁱ⁲",a5:"",a6:"3",a7:"⁲",a8:error("slice index is not a number")}
   {a1:"ⁱ⁲",a2:"ⁱ⁲⁳",a3:"⁰",a4:"⁰ⁱ⁲",a5:"",a6:"⁳",a7:"⁲",a8:error("slice index is not a number")}
-  {a1:[11(int32),12(int32)],a2:[11(int32),12(int32),13(int32)],a3:[10(int32)],a4:[10(int32),11(int32),12(int32)],a5:[]([int32]),a6:[13(int32)],a7:[12(int32)],a8:[10(int32),11(int32)]}
-  {a1:|[11(int32),12(int32)]|,a2:|[11(int32),12(int32),13(int32)]|,a3:|[10(int32)]|,a4:|[10(int32),11(int32),12(int32)]|,a5:|[]|(|[int32]|),a6:|[13(int32)]|,a7:|[12(int32)]|,a8:|[10(int32),11(int32)]|}
+  {a1:[11::int32,12::int32],a2:[11::int32,12::int32,13::int32],a3:[10::int32],a4:[10::int32,11::int32,12::int32],a5:[]([int32]),a6:[13::int32],a7:[12::int32],a8:[10::int32,11::int32]}
+  {a1:|[11::int32,12::int32]|,a2:|[11::int32,12::int32,13::int32]|,a3:|[10::int32]|,a4:|[10::int32,11::int32,12::int32]|,a5:|[]|(|[int32]|),a6:|[13::int32]|,a7:|[12::int32]|,a8:|[10::int32,11::int32]|}

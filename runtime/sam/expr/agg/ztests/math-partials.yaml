@@ -10,9 +10,9 @@ script: |
 inputs:
   - name: in.sup
     data: |
-      {key:"a",n:0(int32)}
-      {key:"a",n:5(int32)}
-      {key:"b",n:10(int32)}
+      {key:"a",n:0::int32}
+      {key:"a",n:5::int32}
+      {key:"b",n:10::int32}
       {key:"a"}
 
 outputs:

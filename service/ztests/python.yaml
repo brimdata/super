@@ -92,16 +92,16 @@ inputs:
       {
         map: |{
           "a": {
-            a: 1 (int32),
-            b: 2 (int32)
+            a: 1 ::int32,
+            b: 2 ::int32
           },
           "b": {
-            a: 2 (int32),
-            b: 3 (int32)
+            a: 2 ::int32,
+            b: 3 ::int32
           },
           "c": {
-            a: 3 (int32),
-            b: 4 (int32)
+            a: 3 ::int32,
+            b: 4 ::int32
           }
         }|
       }
@@ -118,8 +118,8 @@ inputs:
       }
       {
         union: [
-          1 (int32),
-          2 (int32)
+          1 ::int32,
+          2 ::int32
         ] (string|[int32]|[string]|(string|int32))
       }
       {
@@ -129,7 +129,7 @@ inputs:
         ] (string|[int32]|[string]|(string|int32))
       }
       {
-        union: 123 (int32) (string|int32) (string|[int32]|[string]|(string|int32))
+        union: 123 ::int32 (string|int32) (string|[int32]|[string]|(string|int32))
       }
       {
         enum: %bar (enum(foo,bar,baz))

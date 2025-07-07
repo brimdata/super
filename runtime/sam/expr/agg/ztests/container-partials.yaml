@@ -8,12 +8,12 @@ script: |
 inputs:
   - name: in.sup
     data: |
-      {key:"a",x:1(int32)}
-      {key:"a",x:-1(int32)}
-      {key:"b",x:2(int32)}
-      {key:"b",x:1(int32)}
-      {key:"a",x:8(int32)}
-      {key:"b",x:1(int32)}
+      {key:"a",x:1::int32}
+      {key:"a",x:-1::int32}
+      {key:"b",x:2::int32}
+      {key:"b",x:1::int32}
+      {key:"a",x:8::int32}
+      {key:"b",x:1::int32}
       {key:"a"}
       {key:"a"}
       {key:"a"}
@@ -21,9 +21,9 @@ inputs:
 outputs:
   - name: union.sup
     data: |
-      {key:"a",union:|[1(int32),-1(int32),8(int32)]|}
-      {key:"b",union:|[1(int32),2(int32)]|}
+      {key:"a",union:|[1::int32,-1::int32,8::int32]|}
+      {key:"b",union:|[1::int32,2::int32]|}
   - name: collect.sup
     data: |
-      {key:"a",collect:[1(int32),-1(int32),8(int32)]}
-      {key:"b",collect:[2(int32),1(int32),1(int32)]}
+      {key:"a",collect:[1::int32,-1::int32,8::int32]}
+      {key:"b",collect:[2::int32,1::int32,1::int32]}

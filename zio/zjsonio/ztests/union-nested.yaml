@@ -8,6 +8,6 @@ input: |
 
 output: |
   {a:"\"hello\""(string|[int32]|[string]|(int32|string))}
-  {a:[1(int32),2(int32)](string|[int32]|[string]|(int32|string))}
+  {a:[1::int32,2::int32](string|[int32]|[string]|(int32|string))}
   {a:["\"a\"","\"b\""](string|[int32]|[string]|(int32|string))}
-  {a:123(int32)(int32|string)(string|[int32]|[string]|(int32|string))}
+  {a:123::int32(int32|string)(string|[int32]|[string]|(int32|string))}

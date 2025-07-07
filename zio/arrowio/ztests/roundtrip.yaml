@@ -12,7 +12,7 @@ inputs:
           uint16: 16 (uint16),
           int16: -16 (int16),
           uint32: 32 (uint32),
-          int32: -32 (int32),
+          int32: -32 ::int32,
           uint64: 64 ::uint64,
           int64: -64,
           float16: 16. (float16),
@@ -33,7 +33,7 @@ inputs:
           time64_ns: 1970-01-01T19:43:48.123456789Z (=arrow_time64_ns),
           month_interval: -12 (arrow_month_interval=int32),
           day_time_interval: {
-              days: 1 (int32),
+              days: 1 ::int32,
               milliseconds: 2 (uint32)
           } (=arrow_day_time_interval),
           decimal128: {
@@ -70,8 +70,8 @@ inputs:
               2
           ] (=arrow_large_list),
           month_day_nano_interval: {
-              month: 1 (int32),
-              day: 2 (int32),
+              month: 1 ::int32,
+              day: 2 ::int32,
               nanoseconds: 3
           } (=arrow_month_day_nano_interval)
       }

@@ -6,18 +6,18 @@ vector: true
 inputs:
   - name: stdin
     data: |
-      {a:1(int32)}
-      {a:2(int32)}
-      {a:3(int32)}
+      {a:1::int32}
+      {a:2::int32}
+      {a:3::int32}
   - name: B.sup
     data: |
-      {b:1(int32)}
-      {b:2(int32)}
-      {b:3(int32)}
+      {b:1::int32}
+      {b:2::int32}
+      {b:3::int32}
 
 outputs:
   - name: stdout
     data: |
-      {a:1(int32),b:1(int32)}
-      {a:2(int32),b:2(int32)}
-      {a:3(int32),b:3(int32)}
+      {a:1::int32,b:1::int32}
+      {a:2::int32,b:2::int32}
+      {a:3::int32,b:3::int32}

@@ -5,9 +5,9 @@ spq: put y := sqrt(x)
 vector: true
 
 input: |
-  {x:-1(int32)}
-  {x:-2(int32)}
+  {x:-1::int32}
+  {x:-2::int32}
 
 output: |
-  {x:-1(int32),y:NaN}
-  {x:-2(int32),y:NaN}
+  {x:-1::int32,y:NaN}
+  {x:-2::int32,y:NaN}

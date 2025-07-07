@@ -12,8 +12,8 @@ input: |
   {nums:|[1::uint64,2::uint64,3::uint64]|}
   {u:12::uint64(uint64|string)}
   {u:"foo"(uint64|string)}
-  {m:|{"a":1(int32),"b":2(int32),"c":3(int32)}|}
-  {m:|{"d":5(int32),"e":6(int32)}|}
+  {m:|{"a":1::int32,"b":2::int32,"c":3::int32}|}
+  {m:|{"d":5::int32,"e":6::int32}|}
 
 output: |
   {
@@ -96,14 +96,14 @@ output: |
   }
   {
       m: |{
-          "a": 1 (int32),
-          "b": 2 (int32),
-          "c": 3 (int32)
+          "a": 1 ::int32,
+          "b": 2 ::int32,
+          "c": 3 ::int32
       }|
   }
   {
       m: |{
-          "d": 5 (int32),
-          "e": 6 (int32)
+          "d": 5 ::int32,
+          "e": 6 ::int32
       }|
   }

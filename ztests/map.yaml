@@ -1,7 +1,7 @@
 spq: 'put x:=m["b"]'
 
 input: |
-  {m:|{"a":1(int32),"b":2(int32),"c":3(int32)}|}
+  {m:|{"a":1::int32,"b":2::int32,"c":3::int32}|}
 
 output: |
-  {m:|{"a":1(int32),"b":2(int32),"c":3(int32)}|,x:2(int32)}
+  {m:|{"a":1::int32,"b":2::int32,"c":3::int32}|,x:2::int32}

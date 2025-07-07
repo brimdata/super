@@ -4,7 +4,7 @@ spq: put y := x / 0
 vector: true
 
 input: |
-  {x:1(int32)}
+  {x:1::int32}
 
 output: |
-  {x:1(int32),y:error("divide by zero")}
+  {x:1::int32,y:error("divide by zero")}

@@ -3,7 +3,7 @@ spq: put b:=null
 vector: true
 
 input: |
-  {a:1(int32)}
+  {a:1::int32}
 
 output: |
-  {a:1(int32),b:null}
+  {a:1::int32,b:null}

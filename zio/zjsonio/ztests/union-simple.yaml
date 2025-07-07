@@ -7,5 +7,5 @@ input: |
 
 output: |
   {a:"asdfasdf"(int32|string)}
-  {a:1(int32)(int32|string)}
+  {a:1::int32(int32|string)}
   {a:null(int32|string)}

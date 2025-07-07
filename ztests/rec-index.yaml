@@ -1,7 +1,7 @@
 spq: 'put x:=r[".bar@"]+3'
 
 input: |
-  {r:{".bar@":123(int32),x:"hello"}}
+  {r:{".bar@":123::int32,x:"hello"}}
 
 output: |
-  {r:{".bar@":123(int32),x:"hello"},x:126}
+  {r:{".bar@":123::int32,x:"hello"},x:126}

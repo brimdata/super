@@ -6,8 +6,8 @@ vector: true
 input: |
   {s1:"a",s2:"b"}
   {s1:"b",s2:"b"}
-  {s1:"a",s2:0(int32)}
-  {s1:"b",s2:0(int32)}
+  {s1:"a",s2:0::int32}
+  {s1:"b",s2:0::int32}
   {s1:"b",s2:"a"}
 
 output: |

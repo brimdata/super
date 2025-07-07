@@ -3,8 +3,8 @@ spq: count() by typeof(this) | sort count
 vector: true
 
 input: |
-  {x:1(int32),s:"foo"}
-  {x:2(int32),s:"Bar"}
+  {x:1::int32,s:"foo"}
+  {x:2::int32,s:"Bar"}
   {y:5}
   {y:5}
   {y:7}

@@ -3,12 +3,12 @@ spq: a:=max(x) where x<5, b:=max(x) where x<=10
 vector: true
 
 input: |
-  {x:1(int32)}
-  {x:10(int32)}
-  {x:5(int32)}
-  {x:6(int32)}
-  {x:-1(int32)}
-  {x:12(int32)}
+  {x:1::int32}
+  {x:10::int32}
+  {x:5::int32}
+  {x:6::int32}
+  {x:-1::int32}
+  {x:12::int32}
 
 output: |
   {a:1,b:10}

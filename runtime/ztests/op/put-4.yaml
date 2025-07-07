@@ -4,8 +4,8 @@ spq: put x := r
 vector: true
 
 input: |
-  {x:1(int32),r:{s:"hello"}}
-  {x:2(int32),r:{s:"world"}}
+  {x:1::int32,r:{s:"hello"}}
+  {x:2::int32,r:{s:"world"}}
 
 output: |
   {x:{s:"hello"},r:{s:"hello"}}

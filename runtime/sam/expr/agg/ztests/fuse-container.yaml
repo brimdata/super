@@ -1,8 +1,8 @@
 spq: all:=fuse(this),r:=fuse(r)
 
 input: |
-  {a:"hello",r:{x:1(int32),y:2(int32)}}
-  {r:{y:4(int32),z:5(int32)},s:"world",r2:{x:6(int32)}}
+  {a:"hello",r:{x:1::int32,y:2::int32}}
+  {r:{y:4::int32,z:5::int32},s:"world",r2:{x:6::int32}}
 
 output: |
   {all:<{a:string,r:{x:int32,y:int32,z:int32},s:string,r2:{x:int32}}>,r:<{x:int32,y:int32,z:int32}>}
