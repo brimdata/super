@@ -39,7 +39,7 @@ func (p *Parser) matchTypeComponent() (ast.Type, error) {
 	if typ, err := p.matchTypeSetOrMap(); typ != nil || err != nil {
 		return typ, err
 	}
-	if typ, err := p.matchTypeUnionParens(); typ != nil || err != nil {
+	if typ, err := p.matchTypeParens(); typ != nil || err != nil {
 		return typ, err
 	}
 	// no match
@@ -88,24 +88,9 @@ func (p *Parser) matchTypeName() (ast.Type, error) {
 	if ok, err := l.match('='); !ok || err != nil {
 		return &ast.TypeName{Kind: "TypeName", Name: name}, nil
 	}
-	// After a name= type definition, we can have optional parentheses, which
-	// allows this construct to be embedded inside a union.
-	hasParen, err := l.match('(')
-	if err != nil {
-		return nil, err
-	}
 	typ, err := p.parseType()
 	if err != nil {
 		return nil, err
-	}
-	if hasParen {
-		ok, err := l.match(')')
-		if !ok {
-			return nil, errors.New("mismatched parenthesis in type definition")
-		}
-		if err != nil {
-			return nil, err
-		}
 	}
 	return &ast.TypeDef{
 		Kind: "TypeDef",
@@ -281,12 +266,12 @@ func (p *Parser) parseTypeMap() (*ast.TypeMap, error) {
 	}, nil
 }
 
-func (p *Parser) matchTypeUnionParens() (*ast.TypeUnion, error) {
+func (p *Parser) matchTypeParens() (ast.Type, error) {
 	l := p.lexer
 	if ok, err := l.match('('); !ok || err != nil {
 		return nil, err
 	}
-	typ, err := p.matchTypeUnion(nil)
+	typ, err := p.matchType()
 	if err != nil {
 		return nil, err
 	}
@@ -295,9 +280,6 @@ func (p *Parser) matchTypeUnionParens() (*ast.TypeUnion, error) {
 		return nil, err
 	}
 	if !ok {
-		if ok, _ := l.match(','); ok {
-			return nil, errors.New("union components are separated by pipe symbol (|) not comma")
-		}
 		return nil, p.error("mismatched parentheses while parsing union type")
 	}
 	return typ, nil

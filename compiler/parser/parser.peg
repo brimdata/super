@@ -1390,7 +1390,7 @@ Type
 
 ComponentType
   = EasyType
-  / name:Name opt:(__ '=' __ TypeDefTarget)? {
+  / name:Name opt:(__ '=' __ Type)? {
       if opt != nil {
         return &ast.TypeDef{
             Kind: "TypeDef",
@@ -1402,12 +1402,8 @@ ComponentType
       return &ast.TypeName{Kind: "TypeName", Name: name.(*ast.Name).Text, Loc: loc(c)}, nil
     }  
 
-TypeDefTarget
-  = "(" __ !TypeUnion typ:ComponentType __ ")" { return typ, nil }
-  / EasyType
-
 EasyType
-  = "(" __ typ:TypeUnion __ ")" { return typ, nil}
+  = "(" __ typ:Type __ ")" { return typ, nil}
   / name:PrimitiveType !IdentifierRest { return name, nil }
   / ERROR __ "(" __ t:Type __ ")" {
       return &ast.TypeError{
@@ -1652,7 +1648,7 @@ IP6Variations
   / "::" a:HexColon* b:IP6Tail {
       return "::" + joinChars(a) + b.(string), nil
     }
-  / a:Hex b:ColonHex* "::" {
+  / a:Hex b:ColonHex* "::" !TypeAsValue {
       return a.(string) + joinChars(b) + "::", nil
     }
   / "::" {

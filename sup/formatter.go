@@ -223,11 +223,11 @@ func (f *Formatter) formatTypeValue(indent int, tv zcode.Bytes, unionParent bool
 			f.truncTypeValueErr()
 			return nil
 		}
-		f.build(QuotedName(name))
-		f.build("=")
 		if unionParent {
 			f.build("(")
 		}
+		f.build(QuotedName(name))
+		f.build("=")
 		tv = f.formatTypeValue(indent, tv, unionParent)
 		if unionParent {
 			f.build(")")
@@ -581,11 +581,11 @@ func (f *Formatter) formatType(typ super.Type, unionParent bool) {
 	}
 	if named, ok := typ.(*super.TypeNamed); ok {
 		f.saveType(named)
-		f.build(named.Name)
-		f.build("=")
 		if unionParent {
 			f.build("(")
 		}
+		f.build(named.Name)
+		f.build("=")
 		f.formatType(named.Type, unionParent)
 		if unionParent {
 			f.build(")")
@@ -734,7 +734,7 @@ func formatType(b *strings.Builder, typedefs map[string]*super.TypeNamed, typ su
 		b.WriteString(QuotedTypeName(name))
 		if typedefs[t.Name] != t {
 			b.WriteByte('=')
-			formatType(b, typedefs, t.Type, unionParent)
+			formatType(b, typedefs, t.Type, false)
 			// Don't set typedef until after children are recursively
 			// traversed so that we adhere to the DFS order of
 			// type bindings.

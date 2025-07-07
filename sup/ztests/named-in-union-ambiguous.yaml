@@ -10,5 +10,5 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      <[foo=(int64)|string]>
-      <[foo=(int64)|string]>
+      <[(foo=int64)|string]>
+      <[(foo=int64)|string]>
