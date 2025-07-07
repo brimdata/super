@@ -6,4 +6,4 @@ input: !!binary |
   BQAAAQFhCRQAHgMCAv8FAAABAWEJFAAeAwIC/w==
 
 output: |
-  2(uint64)
+  2::uint64

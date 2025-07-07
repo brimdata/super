@@ -13,7 +13,7 @@ inputs:
           int16: -16 (int16),
           uint32: 32 (uint32),
           int32: -32 (int32),
-          uint64: 64 (uint64),
+          uint64: 64 ::uint64,
           int64: -64,
           float16: 16. (float16),
           float32: 32. (float32),
@@ -38,13 +38,13 @@ inputs:
           } (=arrow_day_time_interval),
           decimal128: {
               high: 1,
-              low: 2 (uint64)
+              low: 2 ::uint64
           } (=arrow_decimal128),
           decimal256: [
-              1 (uint64),
-              2 (uint64),
-              3 (uint64),
-              4 (uint64)
+              1 ::uint64,
+              2 ::uint64,
+              3 ::uint64,
+              4 ::uint64
           ] (=arrow_decimal256),
           list: [
               1

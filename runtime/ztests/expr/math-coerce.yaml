@@ -29,7 +29,7 @@ outputs:
       uint8 uint8: 1(uint8)
       uint8 uint16: 1(uint16)
       uint8 uint32: 1(uint32)
-      uint8 uint64: 1(uint64)
+      uint8 uint64: 1::uint64
       uint8 int8: 1(int8)
       uint8 int16: 1(int16)
       uint8 int32: 1(int32)
@@ -40,7 +40,7 @@ outputs:
       uint16 uint8: 1(uint16)
       uint16 uint16: 1(uint16)
       uint16 uint32: 1(uint32)
-      uint16 uint64: 1(uint64)
+      uint16 uint64: 1::uint64
       uint16 int8: 1(int16)
       uint16 int16: 1(int16)
       uint16 int32: 1(int32)
@@ -51,7 +51,7 @@ outputs:
       uint32 uint8: 1(uint32)
       uint32 uint16: 1(uint32)
       uint32 uint32: 1(uint32)
-      uint32 uint64: 1(uint64)
+      uint32 uint64: 1::uint64
       uint32 int8: 1(int32)
       uint32 int16: 1(int32)
       uint32 int32: 1(int32)
@@ -59,10 +59,10 @@ outputs:
       uint32 float16: 1.(float32)
       uint32 float32: 1.(float32)
       uint32 float64: 1.
-      uint64 uint8: 1(uint64)
-      uint64 uint16: 1(uint64)
-      uint64 uint32: 1(uint64)
-      uint64 uint64: 1(uint64)
+      uint64 uint8: 1::uint64
+      uint64 uint16: 1::uint64
+      uint64 uint32: 1::uint64
+      uint64 uint64: 1::uint64
       uint64 int8: 1
       uint64 int16: 1
       uint64 int32: 1

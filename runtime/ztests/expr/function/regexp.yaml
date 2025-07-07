@@ -12,4 +12,4 @@ output: |
   ["abc"]
   ["food fool friend","d","fool"]
   error({message:"regexp: invalid regular expression: missing closing )",on:"foo(.?"})
-  null([string])
+  null::[string]

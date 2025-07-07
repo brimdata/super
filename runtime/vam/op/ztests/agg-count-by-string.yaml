@@ -17,10 +17,10 @@ script: |
 outputs:
   - name: stdout
     data: |
-      {x:"0",count:514(uint64)}
-      {y:"1",count:257(uint64)}
-      {y:"2",count:257(uint64)}
-      {y:"1",count:1(uint64)}
-      {y:"2",count:1(uint64)}
-      {z:"257",count:2(uint64)}
-      {z:"257",count:1(uint64)}
+      {x:"0",count:514::uint64}
+      {y:"1",count:257::uint64}
+      {y:"2",count:257::uint64}
+      {y:"1",count:1::uint64}
+      {y:"2",count:1::uint64}
+      {z:"257",count:2::uint64}
+      {z:"257",count:1::uint64}

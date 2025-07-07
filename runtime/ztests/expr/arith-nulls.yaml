@@ -5,7 +5,7 @@ vector: true
 input: |
   {a:1,b:null(int64)}
   {a:null(int64),b:1}
-  {a:null(uint64),b:2}
+  {a:null::uint64,b:2}
 
 output: |
   null(int64)

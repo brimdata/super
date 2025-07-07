@@ -10,7 +10,7 @@ inputs:
       8(uint8)
       16(uint16)
       32(uint32)
-      64(uint64)
+      64::uint64
       -8(int8)
       -16(int16)
       -32(int32)

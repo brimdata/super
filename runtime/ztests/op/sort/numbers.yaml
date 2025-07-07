@@ -5,7 +5,7 @@ vector: true
 input: |
   16(uint16)
   32(uint32)
-  64(uint64)
+  64::uint64
   -16(int16)
   -32(int32)
   -64
@@ -28,6 +28,6 @@ output: |
   16(uint16)
   32(uint32)
   32.32(float32)
-  64(uint64)
+  64::uint64
   64.64
   +Inf

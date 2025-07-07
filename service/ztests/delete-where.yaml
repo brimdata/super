@@ -20,13 +20,13 @@ outputs:
   - name: stdout
     data: |
       === desc ===
-      900(uint64)
-      898(uint64)
-      898(uint64)
+      900::uint64
+      898::uint64
+      898::uint64
       === asc ===
-      900(uint64)
-      898(uint64)
-      898(uint64)
+      900::uint64
+      898::uint64
+      898::uint64
   - name: stderr
     data: |
       === desc ===

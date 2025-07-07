@@ -5,15 +5,15 @@ vector: true
 input: |
   {a:5,b:2}
   {a:5,b:-2}
-  {a:5,b:2(uint64)}
-  {a:5(uint64),b:2(uint64)}
-  {a:5.,b:2(uint64)}
+  {a:5,b:2::uint64}
+  {a:5::uint64,b:2::uint64}
+  {a:5.,b:2::uint64}
   {a:5,b:0}
 
 output: |
   {res:1}
   {res:1}
   {res:1}
-  {res:1(uint64)}
+  {res:1::uint64}
   {res:error("type float64 incompatible with '%' operator")}
   {res:error("divide by zero")}

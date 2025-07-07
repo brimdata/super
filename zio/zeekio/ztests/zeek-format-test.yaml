@@ -19,8 +19,8 @@ input: |
   {s:|["(empty)"]|}
   {s:|["abc","xyz"]|}
   {s:|["a,b"]|}
-  {s:null([string])}
-  {s:[]([string])}
+  {s:null::[string]}
+  {s:[]::[string]}
   {s:[""]}
   {s:["(empty)"]}
   {s:["abc","xyz"]}

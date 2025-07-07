@@ -17,7 +17,7 @@ output: |
   ["a","b","c"]
   ["a"]
   [""]
-  null([string])
-  null([string])
+  null::[string]
+  null::[string]
   error({message:"split: string arg required",on:1.})
   error({message:"split: string arg required",on:error("missing")})

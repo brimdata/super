@@ -11,7 +11,7 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      1(uint64)
+      1::uint64
   - name: stderr 
     data: |
       and: argument required

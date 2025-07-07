@@ -14,8 +14,8 @@ inputs:
       1600(uint16)
       32(uint32)
       320(uint32)
-      64(uint64)
-      640(uint64)
+      64::uint64
+      640::uint64
       -8(int8)
       -80(int8)
       -16(int16)

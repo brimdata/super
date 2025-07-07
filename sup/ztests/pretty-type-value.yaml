@@ -6,7 +6,7 @@ input: |
   <|{{x:string}:{ip:ip,port:uint16}}|>
   <|{string:uint64}|>
   <[int64]>
-  <error([string])>
+  <error::[string]>
   <[[string]]>
 
 output-flags: -pretty=4
@@ -44,7 +44,7 @@ output: |
   "==="
   <[int64]>
   "==="
-  <error([string])>
+  <error::[string]>
   "==="
   <[
       [string]

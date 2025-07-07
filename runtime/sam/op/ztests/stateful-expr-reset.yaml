@@ -26,8 +26,8 @@ outputs:
   - name: stdout
     data: |
       // values
-      1(uint64)
-      1(uint64)
+      1::uint64
+      1::uint64
       // filter
       3
       7
@@ -38,11 +38,11 @@ outputs:
       "sum is 1"
       "sum is 1"
       // over
-      1(uint64)
-      1(uint64)
+      1::uint64
+      1::uint64
       // over with
-      1(uint64)
-      1(uint64)
+      1::uint64
+      1::uint64
       // aggregate
-      {c:1(uint64),sum:1}
-      {c:1(uint64),sum:1}
+      {c:1::uint64,sum:1}
+      {c:1::uint64,sum:1}

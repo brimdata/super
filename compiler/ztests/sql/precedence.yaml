@@ -29,7 +29,7 @@ outputs:
       ===
       {Country:"France",Language:"French"}
       ===
-      1(uint64)
+      1::uint64
       ===
       {"--34+-26+-34+-34":-60}
 

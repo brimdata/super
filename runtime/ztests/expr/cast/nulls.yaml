@@ -8,7 +8,7 @@ input: |
   null
 
 output: |
-  null(uint64)
+  null::uint64
   null(int64)
   null(float64)
   null(bool)
