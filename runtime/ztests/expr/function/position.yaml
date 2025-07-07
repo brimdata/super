@@ -13,7 +13,7 @@ input: |
 output: |
   {sql:4,call:4}
   {sql:0,call:0}
-  {sql:null(int64),call:null(int64)}
-  {sql:null(int64),call:null(int64)}
+  {sql:null::int64,call:null::int64}
+  {sql:null::int64,call:null::int64}
   {sql:error({message:"position: string arguments required",on:1}),call:error({message:"position: string arguments required",on:1})}
   {sql:error({message:"position: string arguments required",on:1}),call:error({message:"position: string arguments required",on:1})}

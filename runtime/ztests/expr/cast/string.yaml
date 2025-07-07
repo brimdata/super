@@ -6,7 +6,7 @@ input: |
   1
   2
   3(=named)
-  null(int64)
+  null::int64
   1(uint32)
   2(uint32)
   3.5

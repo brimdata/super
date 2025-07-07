@@ -7,7 +7,7 @@ vector: true
 
 input: |
   {a:null}
-  {a:null(int64)}
+  {a:null::int64}
   {a:null(string)}
   {a:1}
   {a:"hello"}

@@ -5,8 +5,8 @@ vector: true
 
 input: |
   -1
-  null(int64) 
-  null(int64)
+  null::int64 
+  null::int64
   -1
 
 output: |

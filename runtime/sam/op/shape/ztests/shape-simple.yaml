@@ -5,5 +5,5 @@ input: |
   {a:null,b:11}
 
 output: |
-  {a:10,b:null(int64)}
-  {a:null(int64),b:11}
+  {a:10,b:null::int64}
+  {a:null::int64,b:11}

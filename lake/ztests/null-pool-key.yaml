@@ -11,7 +11,7 @@ script: |
 inputs:
   - name: in.sup
     data: |
-      {k:null(int64),v:"null"}
+      {k:null::int64,v:"null"}
       {k:0,v:"zero"}
       {k:1,v:"one"}
       {k:2,v:"two"}

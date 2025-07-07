@@ -7,7 +7,7 @@ input: |
   "s"
   {a:1}
   null
-  null(int64)
+  null::int64
 
 output: |
   error(1)

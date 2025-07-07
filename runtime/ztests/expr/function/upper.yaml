@@ -6,7 +6,7 @@ input: |
   "fOo"
   127.0.0.1
   null(string)
-  null(int64)
+  null::int64
   "BaR"(string|int64)
   1(string|int64)
 
@@ -14,6 +14,6 @@ output: |
   "FOO"
   error({message:"upper: string arg required",on:127.0.0.1})
   null(string)
-  error({message:"upper: string arg required",on:null(int64)})
+  error({message:"upper: string arg required",on:null::int64})
   "BAR"
   error({message:"upper: string arg required",on:1})

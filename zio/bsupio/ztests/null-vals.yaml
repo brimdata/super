@@ -5,7 +5,7 @@ script: super - | super -s -
 inputs:
   - name: stdin
     data: &stdin |
-      null(int64)
+      null::int64
       null
       null({s:string})
       null([uint8])

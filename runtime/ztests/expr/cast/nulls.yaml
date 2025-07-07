@@ -9,7 +9,7 @@ input: |
 
 output: |
   null::uint64
-  null(int64)
+  null::int64
   null(float64)
   null(bool)
   null(bytes)

@@ -7,7 +7,7 @@ input: |
   4.0
   2.718
   -1
-  null(int64)
+  null::int64
   error("missing")
 
 output: |

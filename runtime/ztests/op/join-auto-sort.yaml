@@ -16,38 +16,38 @@ vector: true
 inputs:
   - name: a.sup
     data: |
-      {a:null(int64)}
+      {a:null::int64}
       {a:1}
       {a:2}
   - name: b.sup
     data: |
       {b:2}
       {b:1}
-      {b:null(int64)}
+      {b:null::int64}
 
 outputs:
   - name: stdout
     data: |
       {a:1}
       {a:2}
-      {a:null(int64)}
+      {a:null::int64}
       // ===
       {a:1}
       {a:2}
-      {a:null(int64)}
+      {a:null::int64}
       // ===
       {a:1}
       {a:2}
-      {a:null(int64)}
+      {a:null::int64}
       // ===
       {a:1}
       {a:2}
-      {a:null(int64)}
+      {a:null::int64}
       // ===
       {a:1}
       {a:2}
-      {a:null(int64)}
+      {a:null::int64}
       // ===
       {a:1}
       {a:2}
-      {a:null(int64)}
+      {a:null::int64}

@@ -13,4 +13,4 @@ input: |
   #close	2020-01-14-20-00-00
 
 output: |
-  {_path:"ArrayGap",rec:{a:null(int64),b:null(int64)}}
+  {_path:"ArrayGap",rec:{a:null::int64,b:null::int64}}

@@ -5,7 +5,7 @@ vector: true
 
 input: |
   {from:null(int64|string),to:<string>}
-  {from:null(int64)(int64|string),to:<string>}
+  {from:null::int64(int64|string),to:<string>}
   {from:null(int64_named=int64)(union_named=int64_named|string),to:<string>}
   {from:1(int64|string),to:<string>}
   {from:1(int64_named=int64)(union_named=int64_named|string),to:<string>}

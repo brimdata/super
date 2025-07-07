@@ -30,7 +30,7 @@ input: |
   null(int8)
   null(int16)
   null::int32
-  null(int64)
+  null::int64
   null(uint8)
   null(uint16)
   null(uint32)
@@ -67,11 +67,11 @@ output: |
   null(int8)
   null(int16)
   null::int32
-  null(int64)
+  null::int64
   null(int8)
   null(int16)
   null::int32
-  null(int64)
+  null::int64
   null(float16)
   null(float32)
   null(float64)

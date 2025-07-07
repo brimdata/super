@@ -3,7 +3,7 @@ spq: top
 vector: true
 
 input: |
-  {foo:null(int64)}
+  {foo:null::int64}
   {foo:1}
   {foo:2}
   {foo:3}

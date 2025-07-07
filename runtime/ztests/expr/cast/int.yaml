@@ -26,7 +26,7 @@ output: |
   null(int8)
   null(int16)
   null::int32
-  null(int64)
+  null::int64
   1(int8)
   1(int16)
   1::int32
