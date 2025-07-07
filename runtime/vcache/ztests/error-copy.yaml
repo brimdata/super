@@ -8,7 +8,7 @@ inputs:
       error("error1")
       error("error2")
       error("error3")
-      null(error(string))
+      null::error(string)
 
 outputs:
   - name: stdout

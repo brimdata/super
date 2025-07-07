@@ -10,9 +10,9 @@ inputs:
     data: &input |
       {m:|{"foo":"bar","hello":"goodby"}|}
       {m:|{"foo":"bar2","hello2":"goodby"}|}
-      {m:|{1:"goodbye","foo":null(string)}|}
-      {m:null(|{int64:string}|)}
-      {m:|{2:"goodbye","bar":null(string)}|}
+      {m:|{1:"goodbye","foo":null::string}|}
+      {m:null::|{int64:string}|}
+      {m:|{2:"goodbye","bar":null::string}|}
 
 outputs:
   - name: stdout
