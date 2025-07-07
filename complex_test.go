@@ -14,7 +14,7 @@ import (
 )
 
 func TestRecordAccessNamed(t *testing.T) {
-	const input = `{foo:"hello" (=zfile),bar:true (=zbool)} (=0)`
+	const input = `{foo:"hello"::=zfile,bar:true::=zbool}::=0`
 	rec := sup.MustParseValue(super.NewContext(), input)
 	s := rec.Deref("foo").AsString()
 	assert.Equal(t, s, "hello")
