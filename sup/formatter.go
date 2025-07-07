@@ -13,6 +13,9 @@ import (
 	"github.com/brimdata/super/zcode"
 )
 
+//XXX TODO: we need to put a decorator that is a union that begins with a typedef
+// name=... into a <...> so that there is no collision with IP6 matching
+
 type Formatter struct {
 	typedefs      map[string]*super.TypeNamed
 	permanent     map[string]*super.TypeNamed
@@ -392,7 +395,7 @@ func (f *Formatter) decorate(typ super.Type, known, null bool) {
 		if f.tab > 0 {
 			f.build(" ")
 		}
-		f.buildf("::%s", QuotedTypeName(name))
+		f.buildf("::<%s>", QuotedTypeName(name))
 	} else if SelfDescribing(typ) && !null {
 		if typ, ok := typ.(*super.TypeNamed); ok {
 			f.saveType(typ)
@@ -400,7 +403,7 @@ func (f *Formatter) decorate(typ super.Type, known, null bool) {
 				f.build(" ")
 			}
 			// XXX add this to SuperSQL or expand the type?
-			// XXX Do we need the =?
+			// XXX Do we need the =?  Maybe easiest to add to SuperSQL
 			f.buildf("::=%s", QuotedTypeName(typ.Name))
 		}
 	} else {
@@ -408,7 +411,17 @@ func (f *Formatter) decorate(typ super.Type, known, null bool) {
 			f.build(" ")
 		}
 		f.build("::")
+		var needsTypeParens bool
+		if union, ok := typ.(*super.TypeUnion); ok {
+			_, needsTypeParens = union.Types[0].(*super.TypeNamed)
+			if needsTypeParens {
+				f.build("<")
+			}
+		}
 		f.formatType(typ, false)
+		if needsTypeParens {
+			f.build(">")
+		}
 	}
 }
 

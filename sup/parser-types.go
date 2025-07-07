@@ -319,7 +319,7 @@ func (p *Parser) matchTypeUnion(first ast.Type) (*ast.TypeUnion, error) {
 		}
 		types = append(types, typ)
 		ok, err := l.match('|')
-		if err != nil {
+		if noEOF(err) != nil {
 			return nil, err
 		}
 		if !ok {

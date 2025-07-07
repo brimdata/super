@@ -75,10 +75,7 @@ func (p *Parser) decorate(any ast.Any, err error) (ast.Value, error) {
 	if err != nil {
 		return nil, err
 	}
-	// First see if there's a short-form typedef decorator.
-	// If there isn't, matchShortForm() returns the AnyValue wrapped
-	// in an ast.ImpliedValue (as ast.Value)  Otherwise, it returns an
-	//  ast.DefVal (as ast.Vaue).
+	// See if there's a first decorator.
 	val, ok, err := p.matchDecorator(any, nil)
 	if err != nil {
 		return nil, err
@@ -116,9 +113,22 @@ func (p *Parser) matchDecorator(any ast.Any, val ast.Value) (ast.Value, bool, er
 		}
 		return nil, false, p.error("encounted single colon in decorator position")
 	}
-	val, err = p.parseDecorator(any, val)
-	if err != nil {
+	hasTypeParen, err := l.matchTight('<')
+	if noEOF(err) != nil {
 		return nil, false, err
+	}
+	val, err = p.parseDecorator(any, val)
+	if noEOF(err) != nil {
+		return nil, false, err
+	}
+	if hasTypeParen {
+		ok, err := l.matchTight('>')
+		if noEOF(err) != nil {
+			return nil, false, err
+		}
+		if !ok {
+			return nil, false, p.error("decorator has '<' but no '>'")
+		}
 	}
 	return val, true, nil
 }
@@ -130,6 +140,7 @@ func (p *Parser) parseDecorator(any ast.Any, val ast.Value) (ast.Value, error) {
 	//   Case 2: <type>
 	// For case 2, there can be embedded typedefs created from the
 	// descent into parseType.
+	// name=<type> typedefs must be embedded in <> types.
 	ok, err := l.match('=')
 	if err != nil {
 		return nil, err
