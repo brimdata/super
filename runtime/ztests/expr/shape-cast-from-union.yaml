@@ -19,9 +19,9 @@ input: |
   {from:{a:[1,"one"]},to:<{a:[int8|string]}>}
 
 output: |
-  null(string)
-  null(string)
-  null(string)
+  null::string
+  null::string
+  null::string
   "1"
   "1"
   error("createStep: incompatible types int8|string and int64|string")

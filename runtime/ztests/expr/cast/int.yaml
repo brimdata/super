@@ -6,7 +6,7 @@ vector: true
 input: |
   "-1"
   "65535"
-  null(string)
+  null::string
   1::uint64
   10000000000000000000::uint64
   -1.

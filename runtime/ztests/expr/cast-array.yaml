@@ -12,8 +12,8 @@ input: |
 
 output: |
   null::[string]
-  [null(string)]
-  [null(string)]
+  [null::string]
+  [null::string]
   ["1","2"]
   ["1","2"]
   ["1","2"]

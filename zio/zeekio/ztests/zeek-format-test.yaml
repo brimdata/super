@@ -2,7 +2,7 @@ spq: pass
 
 input: |
   {s:"foo"}
-  {s:null(string)}
+  {s:null::string}
   {s:"-"}
   {s:"--"}
   {s:""}

@@ -19,7 +19,7 @@ inputs:
       |{1:"a",2:"b"}|
       error("missing")
       null::int64
-      null(string)
+      null::string
       null(type)
       null([int64])
       null(|[int64]|)

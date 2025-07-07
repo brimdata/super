@@ -5,7 +5,7 @@ vector: true
 input: |
   "fOo"
   127.0.0.1
-  null(string)
+  null::string
   null::int64
   "BaR"(string|int64)
   1(string|int64)
@@ -14,7 +14,7 @@ input: |
 output: |
   "foo"
   error({message:"lower: string arg required",on:127.0.0.1})
-  null(string)
+  null::string
   error({message:"lower: string arg required",on:null::int64})
   "bar"
   error({message:"lower: string arg required",on:1})

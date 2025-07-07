@@ -16,7 +16,7 @@ input: |
   "F"
   "false"
   "blah"
-  null(string)
+  null::string
   "1"
 
 output: |

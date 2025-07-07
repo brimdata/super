@@ -9,7 +9,7 @@ input: |
   error("missing")(=foo)
   error("missing"(=bar))
   null(error(string))
-  error(null(string))
+  error(null::string)
   error("quiet")
   error({x:"missing"})
 

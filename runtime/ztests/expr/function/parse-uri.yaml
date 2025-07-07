@@ -7,7 +7,7 @@ input: |
   {s:"scheme://user:password@host:12345/path?a=1&a=2&b=3&c=#fragment"}
   {s:"scheme:opaque"}
   {s:1}
-  {s:null(string)}
+  {s:null::string}
   {s:":no-scheme"}
   {s:"scheme://bad-port:1234567"}
 

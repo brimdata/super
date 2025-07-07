@@ -5,7 +5,7 @@ vector: true
 input: &input |
   {s:"A=B"}
   {s:"A=*"}
-  {s:null(string)}
+  {s:null::string}
   {s:""}
 
 output: *input

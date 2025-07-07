@@ -23,4 +23,4 @@ output: |
   {f:|[""]|}
   {f:|["a","z"]|}
   {f:|["a","z"]|}
-  {f:|[null(string),"","a","z","dup"]|}
+  {f:|[null::string,"","a","z","dup"]|}

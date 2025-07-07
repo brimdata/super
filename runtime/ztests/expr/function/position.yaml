@@ -5,8 +5,8 @@ vector: true
 input: |
   {sub:"bar",s:"foobar"}
   {sub:"baz",s:"foobar"}
-  {sub:null(string),s:"friend"}
-  {sub:"baz",s:null(string)}
+  {sub:null::string,s:"friend"}
+  {sub:"baz",s:null::string}
   {sub:1(int64),s:"foo"}
   {sub:"bar",s:1(int64)}
 

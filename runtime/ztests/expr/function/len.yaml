@@ -8,7 +8,7 @@ input: |
   0x
   0x0123
   0x0123(bytes|string)
-  null(string)
+  null::string
   ""
   "string"
   null(ip)

@@ -11,7 +11,7 @@ input: |
 
 output: |
   "2024-Tue"
-  null(string)
+  null::string
   error({message:"strftime: string value required for format arg",on:1})
   error({message:"strftime: time value required for time arg",on:"foo"})
   error({message:"strftime: failed to compile format: pattern compilation failed: lookup failed: '%1' was not found in specification set",on:"%1"})

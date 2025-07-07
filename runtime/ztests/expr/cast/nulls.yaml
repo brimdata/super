@@ -13,7 +13,7 @@ output: |
   null(float64)
   null(bool)
   null(bytes)
-  null(string)
+  null::string
   null(ip)
   null(net)
   null(type)

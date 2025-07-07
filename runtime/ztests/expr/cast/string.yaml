@@ -31,7 +31,7 @@ output: |
   "1"
   "2"
   "3"
-  null(string)
+  null::string
   "1"
   "2"
   "3.5"
@@ -49,5 +49,5 @@ output: |
   "hi, world"
   "foo bar"
   "{foo:\"bar\"}"
-  null(string)
+  null::string
   "[1,2,3]"

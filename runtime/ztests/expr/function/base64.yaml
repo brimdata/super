@@ -5,7 +5,7 @@ vector: true
 input: |
   "aGVsbG8gd29ybGQ="
   0x68656c6c6f20776f726c64
-  null(string)
+  null::string
   "foo"
   null(bytes)
 

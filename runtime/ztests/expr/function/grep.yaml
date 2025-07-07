@@ -15,7 +15,7 @@ input: |
   {pattern:"c",input:{a:{b:"c"}}}
   {pattern:"z",input:{a:{b:"c"}}}
   {pattern:1,input:""}
-  {pattern:null(string),input:"a"}
+  {pattern:null::string,input:"a"}
 
 output: |
   [true,true]

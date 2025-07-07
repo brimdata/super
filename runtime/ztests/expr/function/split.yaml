@@ -7,8 +7,8 @@ input: |
   {s:"abc",sep:""}
   {s:"a",sep:","}
   {s:"",sep:","}
-  {s:null(string),sep:","}
-  {s:"a,b,c",sep:null(string)}
+  {s:null::string,sep:","}
+  {s:"a,b,c",sep:null::string}
   {s:1.,sep:""}
   {sep:""}
 

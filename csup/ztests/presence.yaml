@@ -11,32 +11,32 @@ script: |
 inputs:
   - name: p1.sup
     data: |
-      {s:null(string)}
+      {s:null::string}
   - name: p2.sup
     data: |
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
       {s:"x"}
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
   - name: p3.sup
     data: |
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
       {s:"x"}
   - name: p4.sup
     data: |
@@ -50,37 +50,37 @@ inputs:
       {s:"x"}
       {s:"x"}
       {s:"x"}
-      {s:null(string)}
+      {s:null::string}
 
 outputs:
   - name: o1.sup
     data: |
-      {s:null(string)}
+      {s:null::string}
   - name: o2.sup
     data: |
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
       {s:"x"}
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
   - name: o3.sup
     data: |
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
-      {s:null(string)}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
+      {s:null::string}
       {s:"x"}
   - name: o4.sup
     data: |
@@ -94,4 +94,4 @@ outputs:
       {s:"x"}
       {s:"x"}
       {s:"x"}
-      {s:null(string)}
+      {s:null::string}

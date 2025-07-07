@@ -17,7 +17,7 @@ inputs:
       <int64>
       |[1,2,3]|
       null::int64
-      null(string)
+      null::string
       null(type)
       null({})
 

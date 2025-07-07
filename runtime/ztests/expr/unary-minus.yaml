@@ -26,7 +26,7 @@ input: |
   10.0.0.1
   [1,2,3]
   null
-  null(string)
+  null::string
   null::int8
   null::int16
   null::int32
@@ -63,7 +63,7 @@ output: |
   error({message:"type incompatible with unary '-' operator",on:10.0.0.1})
   error({message:"type incompatible with unary '-' operator",on:[1,2,3]})
   error({message:"type incompatible with unary '-' operator",on:null})
-  error({message:"type incompatible with unary '-' operator",on:null(string)})
+  error({message:"type incompatible with unary '-' operator",on:null::string})
   null::int8
   null::int16
   null::int32

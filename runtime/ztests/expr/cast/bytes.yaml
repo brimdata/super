@@ -5,7 +5,7 @@ vector: true
 input: |
   "foo"
   "bar"(=named)
-  null(string)
+  null::string
   {x:"foo"}
   {x:"bar"}
 

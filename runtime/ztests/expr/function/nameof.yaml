@@ -24,4 +24,4 @@ output: |
   error("missing")
   "bar"
   error("missing")
-  null(string)
+  null::string

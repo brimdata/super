@@ -9,5 +9,5 @@ input: |
 output: |
   null::int64
   0
-  null(string)
+  null::string
   ""
