@@ -73,7 +73,7 @@ inputs:
         f64: 0.::<=myfloat64>,
         boo: false::<=mybool>,
         byt: 0x00::<=mybytes>,
-        str: ""::=<mystring>,
+        str: ""::<=mystring>,
         ip: 0.0.0.0::<=myip>,
         net: 0.0.0.0/0::<=mynet>,
         err: error("")::<=myerror>,
