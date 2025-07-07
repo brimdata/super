@@ -3,7 +3,7 @@ spq: cut m1:=missing(a[-1]),m2:=missing(a[4])
 vector: true
 
 input: |
-  {x:[1,2,3],i:1(uint16)}
+  {x:[1,2,3],i:1::uint16}
 
 output: |
   {m1:true,m2:true}

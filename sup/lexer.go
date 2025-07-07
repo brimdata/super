@@ -101,6 +101,13 @@ func (l *Lexer) peek() (byte, error) {
 	return l.cursor[0], nil
 }
 
+func (l *Lexer) peek2() (string, error) {
+	if err := l.check(2); err != nil {
+		return "", err
+	}
+	return string(l.cursor[0:2]), nil
+}
+
 func (l *Lexer) match(b byte) (bool, error) {
 	if err := l.skipSpace(); err != nil {
 		return false, err

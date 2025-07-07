@@ -3,7 +3,7 @@ spq: log(this)
 vector: true
 
 input: |
-  4(int16)
+  4::int16
   4.0
   2.718
   -1

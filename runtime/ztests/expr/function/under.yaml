@@ -24,8 +24,8 @@ output: |
   "foo"
   {}
   [1,2,3]
-  [1(int8),2(int8),3(int8)]
-  80(uint16)
+  [1::int8,2::int8,3::int8]
+  80::uint16
   "foo"
   1
   <{s:string}>

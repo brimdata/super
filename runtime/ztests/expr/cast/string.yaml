@@ -7,8 +7,8 @@ input: |
   2
   3(=named)
   null::int64
-  1(uint32)
-  2(uint32)
+  1::uint32
+  2::uint32
   3.5
   4.3
   2023-10-19T23:11:20.999803Z

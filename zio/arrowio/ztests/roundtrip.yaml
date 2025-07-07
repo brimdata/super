@@ -7,16 +7,16 @@ inputs:
       {
           null: null,
           bool: true,
-          uint8: 8 (uint8),
-          int8: -8 (int8),
-          uint16: 16 (uint16),
-          int16: -16 (int16),
-          uint32: 32 (uint32),
+          uint8: 8 ::uint8,
+          int8: -8 ::int8,
+          uint16: 16 ::uint16,
+          int16: -16 ::int16,
+          uint32: 32 ::uint32,
           int32: -32 ::int32,
           uint64: 64 ::uint64,
           int64: -64,
-          float16: 16. (float16),
-          float32: 32. (float32),
+          float16: 16. ::float16,
+          float32: 32. ::float32,
           float64: 64.,
           string: "",
           binary: 0x00,
@@ -34,7 +34,7 @@ inputs:
           month_interval: -12 (arrow_month_interval=int32),
           day_time_interval: {
               days: 1 ::int32,
-              milliseconds: 2 (uint32)
+              milliseconds: 2 ::uint32
           } (=arrow_day_time_interval),
           decimal128: {
               high: 1,

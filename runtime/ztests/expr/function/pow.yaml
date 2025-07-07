@@ -4,7 +4,7 @@ vector: true
 
 input: |
   {a:2,b:2}
-  {a:3::uint64,b:2(int16)}
+  {a:3::uint64,b:2::int16}
   {a:null::int32,b:2}
   {a:2,b:null(float64)}
   // error cases

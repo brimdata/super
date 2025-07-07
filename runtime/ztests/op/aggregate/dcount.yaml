@@ -6,7 +6,7 @@ input: |
   null
   null({x:int64})
   {x:1}
-  {x:1(int8)}
+  {x:1::int8}
   1
 
 output: |

@@ -5,7 +5,7 @@ vector: true
 input: |
   // array
   {val:[1,2,3,"foo"],idx:-1}
-  {val:[1,2,3,"bar"],idx:2(uint8)}
+  {val:[1,2,3,"bar"],idx:2::uint8}
   {val:[1,2,3,"foo"],idx:-4}
   {val:[1,2,3,null],idx:4}
   {val:[1,2,3,"foo"],idx:-5}

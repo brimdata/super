@@ -5,7 +5,7 @@ input: |
   {s:"goodnight, gracie"}(="github.com/acme/foo.Bar")
   {x:1}(=foo.bar)
   {x:2}(="@foo")
-  {x:3(uint8)}(=0)
+  {x:3::uint8}(=0)
   {x:4}(0)
 
 output: |
@@ -13,5 +13,5 @@ output: |
   {s:"goodnight, gracie"}(="github.com/acme/foo.Bar")
   {x:1}(=foo.bar)
   {x:2}(="@foo")
-  {x:3(uint8)}
-  {x:4(uint8)}
+  {x:3::uint8}
+  {x:4::uint8}

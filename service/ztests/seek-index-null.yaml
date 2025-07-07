@@ -13,7 +13,7 @@ inputs:
     source: ../../testdata/babble.sup
   - name: null.sup
     data: |
-      {ts:null(time),s:"foo-bar",v:1}
+      {ts:null::time,s:"foo-bar",v:1}
 
 outputs:
   - name: stdout

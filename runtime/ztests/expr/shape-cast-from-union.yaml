@@ -9,7 +9,7 @@ input: |
   {from:null(int64_named=int64)(union_named=int64_named|string),to:<string>}
   {from:1(int64|string),to:<string>}
   {from:1(int64_named=int64)(union_named=int64_named|string),to:<string>}
-  {from:1(int8)(int8|string),to:<int64|string>}
+  {from:1::int8(int8|string),to:<int64|string>}
   {from:1(int64|string),to:<int8|string>}
   {from:"one"(int64|string),to:<string>}
   {from:[1,"one"],to:<[string]>}

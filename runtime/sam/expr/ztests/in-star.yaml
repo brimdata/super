@@ -3,10 +3,10 @@ skip: disabled until we add "over/into"-style predicates
 spq: 2 in *
 
 input: |
-  {a:[1(uint32),2(uint32)]}
-  {a:[1(uint32)]}
-  {a:[2(uint32),3(uint32)]}
+  {a:[1::uint32,2::uint32]}
+  {a:[1::uint32]}
+  {a:[2::uint32,3::uint32]}
 
 output: |
-  {a:[1(uint32),2(uint32)]}
-  {a:[2(uint32),3(uint32)]}
+  {a:[1::uint32,2::uint32]}
+  {a:[2::uint32,3::uint32]}

@@ -102,17 +102,10 @@ func (p *Parser) decorate(any ast.Any, err error) (ast.Value, error) {
 // If we had proper backtracking, this would look a little more sensible.
 func (p *Parser) matchDecorator(any ast.Any, val ast.Value) (ast.Value, bool, error) {
 	l := p.lexer
-	ok, err := l.matchTight(':')
-	if err != nil || !ok {
-		return nil, false, noEOF(err)
+	if lookahead, _ := l.peek2(); lookahead != "::" {
+		return nil, false, nil
 	}
-	ok, err = l.matchTight(':')
-	if err != nil || !ok {
-		if err != nil && err != io.EOF {
-			return nil, false, noEOF(err)
-		}
-		return nil, false, p.error("encounted single colon in decorator position")
-	}
+	l.skip(2)
 	hasTypeParen, err := l.matchTight('<')
 	if noEOF(err) != nil {
 		return nil, false, err
