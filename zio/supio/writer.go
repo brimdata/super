@@ -30,8 +30,8 @@ func (w *Writer) Close() error {
 	return w.writer.Close()
 }
 
-func (w *Writer) Write(rec super.Value) error {
-	if _, err := io.WriteString(w.writer, w.formatter.FormatRecord(rec)); err != nil {
+func (w *Writer) Write(val super.Value) error {
+	if _, err := io.WriteString(w.writer, w.formatter.FormatValue(val)); err != nil {
 		return err
 	}
 	_, err := w.writer.Write([]byte("\n"))

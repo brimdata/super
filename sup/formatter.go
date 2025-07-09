@@ -66,14 +66,14 @@ func (f *Formatter) pop() {
 	f.stack = f.stack[:n-1]
 }
 
-func (f *Formatter) FormatRecord(rec super.Value) string {
+func (f *Formatter) FormatValue(val super.Value) string {
 	// We reset tyepdefs so named types are emitted with their
 	// definition at first use in each record according to the
 	// left-to-right DFS order.  We could make this more efficient
 	// by putting a record number/nonce in the map but SUP
 	// is already intended to be the low performance path.
 	f.typedefs = make(map[string]*super.TypeNamed)
-	return f.Format(rec)
+	return f.Format(val)
 }
 
 func FormatValue(val super.Value) string {

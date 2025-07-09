@@ -70,8 +70,8 @@ func (w *Writer) Close() error {
 	return w.writer.Close()
 }
 
-func (w *Writer) WriteSUP(rec super.Value) error {
-	if _, err := io.WriteString(w.writer, w.sup.FormatRecord(rec)); err != nil {
+func (w *Writer) WriteSUP(val super.Value) error {
+	if _, err := io.WriteString(w.writer, w.sup.FormatValue(val)); err != nil {
 		return err
 	}
 	_, err := io.WriteString(w.writer, "\n")

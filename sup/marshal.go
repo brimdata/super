@@ -53,11 +53,11 @@ func (m *MarshalContext) Marshal(v any) (string, error) {
 }
 
 func (m *MarshalContext) MarshalCustom(names []string, fields []any) (string, error) {
-	rec, err := m.MarshalBSUPContext.MarshalCustom(names, fields)
+	val, err := m.MarshalBSUPContext.MarshalCustom(names, fields)
 	if err != nil {
 		return "", err
 	}
-	return m.formatter.FormatRecord(rec), nil
+	return m.formatter.FormatValue(val), nil
 }
 
 type UnmarshalContext struct {
