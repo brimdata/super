@@ -17,7 +17,7 @@ const (
 	opStringFinder
 )
 
-// BufferFilter is a filter for byte slices containing BSON-serialized values.
+// BufferFilter is a filter for byte slices containing BSUP-serialized values.
 type BufferFilter struct {
 	op    int
 	left  *BufferFilter

@@ -323,8 +323,8 @@ func (w *worker) wantValue(val super.Value, progress *zbuf.Progress) bool {
 	progress.RecordsRead++
 	// It's tempting to call w.bufferFilter.Eval on rec.Bytes here, but that
 	// might call FieldNameFinder.Find, which could explode or return false
-	// negatives because it expects a buffer of BSON value messages, and
-	// rec.Bytes is just a BSON value.  (A BSON value message is a header
+	// negatives because it expects a buffer of BSUP value messages, and
+	// rec.Bytes is just a BSUP value.  (A BSUP value message is a header
 	// indicating a type ID followed by a value of that type.)
 	if w.filter == nil || check(w.ectx, val, w.filter) {
 		progress.BytesMatched += int64(len(val.Bytes()))

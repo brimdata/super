@@ -1,4 +1,4 @@
-# do a round-trip into serialized BSON to make sure top-level nulls encoded properly
+# do a round-trip into serialized BSUP to make sure top-level nulls encoded properly
 
 script: super - | super -s -
 

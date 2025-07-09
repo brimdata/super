@@ -120,7 +120,7 @@ func (w *Writer) Write(val super.Value) error {
 
 func (w *Writer) WriteControl(b []byte, format uint8) error {
 	// Flush the compressor since we need to preserve the interleaving
-	// order of control messages and BSON data.
+	// order of control messages and BSUP data.
 	if err := w.flush(); err != nil {
 		return err
 	}

@@ -48,7 +48,7 @@ func (e *Encoder) Lookup(external super.Type) super.Type {
 }
 
 // Encode takes a type from outside this context and constructs a type from
-// inside this context and emits BSON typedefs for any type needed to construct
+// inside this context and emits BSUP typedefs for any type needed to construct
 // the new type into the buffer provided.
 func (e *Encoder) Encode(external super.Type) (super.Type, error) {
 	if typ, ok := e.encoded[external]; ok {
@@ -243,7 +243,7 @@ func (d *Decoder) decode(b *buffer) error {
 		case TypeDefError:
 			err = d.readTypeError(b)
 		default:
-			return fmt.Errorf("unknown BSON typedef code: %d", code)
+			return fmt.Errorf("unknown BSUP typedef code: %d", code)
 		}
 		if err != nil {
 			return err

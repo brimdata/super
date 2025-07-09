@@ -21,7 +21,7 @@ func TestScannerContext(t *testing.T) {
 	var bufs [][]byte
 	var names []string
 	var values []any
-	// Add some BSON streams to bufs.  The records in each stream have a type
+	// Add some BSUP streams to bufs.  The records in each stream have a type
 	// unique to that stream so that they'll only validate if read with the
 	// correct context.
 	for i := range count {
@@ -38,7 +38,7 @@ func TestScannerContext(t *testing.T) {
 		require.NoError(t, w.Close())
 		bufs = append(bufs, buf.Bytes())
 	}
-	// Create a validating BSON reader that repeatedly reads the streams in bufs.
+	// Create a validating BSUP reader that repeatedly reads the streams in bufs.
 	var readers []io.Reader
 	for range 20 {
 		for j := range count {

@@ -13,8 +13,8 @@ import (
 
 var errBadFormat = errors.New("malformed BSUP value")
 
-// parser decodes the framing protocol for BSON updating and resetting its
-// super context in conformance with BSON framing.
+// parser decodes the framing protocol for BSUP updating and resetting its
+// super context in conformance with BSUP framing.
 type parser struct {
 	peeker  *peeker.Reader
 	types   *Decoder
@@ -50,7 +50,7 @@ func (p *parser) read() (frame, error) {
 		case ControlFrame:
 			return frame{}, p.decodeControl(code)
 		default:
-			return frame{}, fmt.Errorf("unknown BSON message frame type: %d", typ)
+			return frame{}, fmt.Errorf("unknown BSUP message frame type: %d", typ)
 		}
 	}
 }
