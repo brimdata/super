@@ -35,8 +35,8 @@ func NewWriter(w io.WriteCloser, format string, flusher http.Flusher, ctrl bool)
 	switch format {
 	case "bsup":
 		d.writer = NewBSUPWriter(w)
-	case "zjson":
-		d.writer = NewZJSONWriter(w)
+	case "jsup":
+		d.writer = NewJSUPWriter(w)
 	case "json":
 		// A JSON response is always an array.
 		d.writer = jsonio.NewArrayWriter(w)

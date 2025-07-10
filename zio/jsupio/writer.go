@@ -1,4 +1,4 @@
-package zjsonio
+package jsupio
 
 import (
 	"bytes"
@@ -20,7 +20,7 @@ type Object struct {
 func unmarshal(b []byte) (*Object, error) {
 	var object Object
 	if err := unpacker.Unmarshal(b, &object); err != nil {
-		return nil, fmt.Errorf("malformed ZJSON: bad type object: %q: %w", bytes.TrimSpace(b), err)
+		return nil, fmt.Errorf("malformed JSUP: bad type object: %q: %w", bytes.TrimSpace(b), err)
 	}
 	return &object, nil
 }

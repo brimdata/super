@@ -20,7 +20,7 @@ const (
 	MediaTypeSUP         = "application/x-sup"
 	MediaTypeTSV         = "text/tab-separated-values"
 	MediaTypeZeek        = "application/x-zeek"
-	MediaTypeZJSON       = "application/x-zjson"
+	MediaTypeJSUP       = "application/x-jsup"
 )
 
 type ErrUnsupportedMimeType struct {
@@ -66,8 +66,8 @@ func MediaTypeToFormat(s string, dflt string) (string, error) {
 		return "tsv", nil
 	case MediaTypeZeek:
 		return "zeek", nil
-	case MediaTypeZJSON:
-		return "zjson", nil
+	case MediaTypeJSUP:
+		return "jsup", nil
 	}
 	return "", &ErrUnsupportedMimeType{typ}
 }
@@ -96,8 +96,8 @@ func FormatToMediaType(format string) (string, error) {
 		return MediaTypeTSV, nil
 	case "zeek":
 		return MediaTypeZeek, nil
-	case "zjson":
-		return MediaTypeZJSON, nil
+	case "jsup":
+		return MediaTypeJSUP, nil
 	default:
 		return "", fmt.Errorf("unknown format type: %s", format)
 	}

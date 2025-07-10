@@ -2,10 +2,10 @@ script: |
   source service.sh
   super db create -q test
   super db load -q -use test -
-  for accept in text/csv application/{json,x-ndjson,x-sup,x-zeek,x-zjson} ""; do
+  for accept in text/csv application/{json,x-ndjson,x-sup,x-zeek,x-jsup} ""; do
     echo === $accept ===
     curl -H "Accept: $accept" -d '{"query":"from test"}' $SUPER_DB/query\?ctrl=true |
-      sed -E '/QueryStats/s/[0-9]{3,}/xxx/g' # for ZJSON
+      sed -E '/QueryStats/s/[0-9]{3,}/xxx/g' # for JSUP
   done
   echo === application/vnd.apache.arrow.stream ===
   curl -H 'Accept: application/vnd.apache.arrow.stream' -d '{"query":"from test"}' $SUPER_DB/query |
@@ -47,7 +47,7 @@ outputs:
       #types	string	string	string
       hello	world	goodbye
       one	two	three
-      === application/x-zjson ===
+      === application/x-jsup ===
       {"type":"QueryChannelSet","value":{"channel":"main"}}
       {"type":{"kind":"record","id":31,"fields":[{"name":"a","type":{"kind":"primitive","name":"string"}},{"name":"b","type":{"kind":"record","id":30,"fields":[{"name":"c","type":{"kind":"primitive","name":"string"}},{"name":"d","type":{"kind":"primitive","name":"string"}}]}}]},"value":["hello",["world","goodbye"]]}
       {"type":{"kind":"ref","id":31},"value":["one",["two","three"]]}

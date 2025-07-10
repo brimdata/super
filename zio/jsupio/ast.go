@@ -1,4 +1,4 @@
-package zjsonio
+package jsupio
 
 import (
 	"github.com/brimdata/super/pkg/unpack"

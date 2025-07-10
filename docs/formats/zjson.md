@@ -287,7 +287,7 @@ nesting, records, array, and union. Consider the file `input.sup`:
 This data is represented in ZJSON as follows:
 
 ```mdtest-command
-super -f zjson input.sup | jq .
+super -f jsup input.sup | jq .
 ```
 
 ```mdtest-output

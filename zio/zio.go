@@ -28,7 +28,7 @@ func Extension(format string) string {
 		return ".txt"
 	case "zeek":
 		return ".log"
-	case "zjson":
+	case "jsup":
 		return ".ndjson"
 	default:
 		return ""

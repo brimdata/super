@@ -19,7 +19,7 @@ import (
 	"github.com/brimdata/super/zio/parquetio"
 	"github.com/brimdata/super/zio/supio"
 	"github.com/brimdata/super/zio/zeekio"
-	"github.com/brimdata/super/zio/zjsonio"
+	"github.com/brimdata/super/zio/jsupio"
 )
 
 type ReaderOpts struct {
@@ -82,10 +82,10 @@ func NewReaderWithOpts(sctx *super.Context, r io.Reader, opts ReaderOpts) (zio.R
 	}
 	track.Reset()
 
-	// ZJSON must come before JSON and SUP since it is a subset of both.
-	zjsonErr := match(zjsonio.NewReader(super.NewContext(), track), "zjson", 1)
-	if zjsonErr == nil {
-		return zio.NopReadCloser(zjsonio.NewReader(sctx, track.Reader())), nil
+	// JSUP must come before JSON and SUP since it is a subset of both.
+	jsupErr := match(jsupio.NewReader(super.NewContext(), track), "jsup", 1)
+	if jsupErr == nil {
+		return zio.NopReadCloser(jsupio.NewReader(sctx, track.Reader())), nil
 	}
 	track.Reset()
 
@@ -142,7 +142,7 @@ func NewReaderWithOpts(sctx *super.Context, r io.Reader, opts ReaderOpts) (zio.R
 		supErr,
 		tsvErr,
 		zeekErr,
-		zjsonErr,
+		jsupErr,
 	})
 }
 

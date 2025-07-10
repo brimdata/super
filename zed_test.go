@@ -39,7 +39,7 @@ func TestZed(t *testing.T) {
 		runAllBoomerangs(t, "csup", data)
 		runAllBoomerangs(t, "parquet", data)
 		runAllBoomerangs(t, "sup", data)
-		runAllBoomerangs(t, "zjson", data)
+		runAllBoomerangs(t, "jsup", data)
 	})
 
 	for d := range dirs {

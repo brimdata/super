@@ -3,7 +3,7 @@ spq: count() by typeof(this)
 input: |
   {a:100}::=myrecord
 
-output-flags: -f zjson
+output-flags: -f jsup
 
 output: |
   {"type":{"kind":"record","id":30,"fields":[{"name":"typeof","type":{"kind":"primitive","name":"type"}},{"name":"count","type":{"kind":"primitive","name":"uint64"}}]},"value":[{"kind":"named","id":32,"name":"myrecord","type":{"kind":"record","id":31,"fields":[{"name":"a","type":{"kind":"primitive","name":"int64"}}]}},"1"]}

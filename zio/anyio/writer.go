@@ -18,7 +18,7 @@ import (
 	"github.com/brimdata/super/zio/tableio"
 	"github.com/brimdata/super/zio/textio"
 	"github.com/brimdata/super/zio/zeekio"
-	"github.com/brimdata/super/zio/zjsonio"
+	"github.com/brimdata/super/zio/jsupio"
 )
 
 type WriterOpts struct {
@@ -64,8 +64,8 @@ func NewWriter(w io.WriteCloser, opts WriterOpts) (zio.WriteCloser, error) {
 		return csvio.NewWriter(w, opts.CSV), nil
 	case "zeek":
 		return zeekio.NewWriter(w), nil
-	case "zjson":
-		return zjsonio.NewWriter(w), nil
+	case "jsup":
+		return jsupio.NewWriter(w), nil
 	default:
 		return nil, fmt.Errorf("unknown format: %s", opts.Format)
 	}

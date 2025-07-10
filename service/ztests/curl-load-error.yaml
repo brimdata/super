@@ -16,7 +16,7 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {"type":"Error","kind":"invalid operation","error":"format detection error\n\tarrows: schema message length exceeds 1 MiB\n\tbsup: malformed BSUP value\n\tcsup: auto-detection requires seekable input\n\tcsv: line 1: EOF\n\tjson: invalid character 'T' looking for beginning of value\n\tline: auto-detection not supported\n\tparquet: auto-detection requires seekable input\n\tsup: SUP syntax error\n\ttsv: line 1: EOF\n\tzeek: line 1: bad types/fields definition in zeek header\n\tzjson: line 1: malformed ZJSON: bad type object: \"This is not a detectable format.\": unpacker error parsing JSON: invalid character 'T' looking for beginning of value"}
+      {"type":"Error","kind":"invalid operation","error":"format detection error\n\tarrows: schema message length exceeds 1 MiB\n\tbsup: malformed BSUP value\n\tcsup: auto-detection requires seekable input\n\tcsv: line 1: EOF\n\tjson: invalid character 'T' looking for beginning of value\n\tline: auto-detection not supported\n\tparquet: auto-detection requires seekable input\n\tsup: SUP syntax error\n\ttsv: line 1: EOF\n\tzeek: line 1: bad types/fields definition in zeek header\n\tjsup: line 1: malformed JSUP: bad type object: \"This is not a detectable format.\": unpacker error parsing JSON: invalid character 'T' looking for beginning of value"}
       code 400
       {"type":"Error","kind":"invalid operation","error":"unsupported MIME type: unsupported"}
       code 400

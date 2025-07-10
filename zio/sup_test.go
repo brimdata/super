@@ -12,7 +12,7 @@ import (
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/bsupio"
 	"github.com/brimdata/super/zio/supio"
-	"github.com/brimdata/super/zio/zjsonio"
+	"github.com/brimdata/super/zio/jsupio"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -47,17 +47,17 @@ func boomerang(t *testing.T, logs string, compress bool) {
 	}
 }
 
-func boomerangZJSON(t *testing.T, logs string) {
+func boomerangJSUP(t *testing.T, logs string) {
 	supSrc := supio.NewReader(super.NewContext(), strings.NewReader(logs))
-	var zjsonOutput Output
-	zjsonDst := zjsonio.NewWriter(&zjsonOutput)
-	err := zio.Copy(zjsonDst, supSrc)
+	var jsupOutput Output
+	jsupDst := jsupio.NewWriter(&jsupOutput)
+	err := zio.Copy(jsupDst, supSrc)
 	require.NoError(t, err)
 
 	var out Output
-	zjsonSrc := zjsonio.NewReader(super.NewContext(), &zjsonOutput)
+	jsupSrc := jsupio.NewReader(super.NewContext(), &jsupOutput)
 	supDst := supio.NewWriter(&out, supio.WriterOpts{})
-	err = zio.Copy(supDst, zjsonSrc)
+	err = zio.Copy(supDst, jsupSrc)
 	if assert.NoError(t, err) {
 		assert.Equal(t, strings.TrimSpace(logs), strings.TrimSpace(out.String()))
 	}
@@ -119,22 +119,22 @@ func TestRawCompressed(t *testing.T) {
 	boomerang(t, supBig(), true)
 }
 
-func TestZjson(t *testing.T) {
-	boomerangZJSON(t, sup1)
-	boomerangZJSON(t, sup2)
+func TestJsup(t *testing.T) {
+	boomerangJSUP(t, sup1)
+	boomerangJSUP(t, sup2)
 	// XXX this one doesn't work right now but it's sort of ok becaue
 	// it's a little odd to have an null string value inside of a set.
 	// semantically this would mean the value shouldn't be in the set,
 	// but right now this turns into an empty string, which is somewhat reasonable.
-	//boomerangZJSON(t, sup3)
-	boomerangZJSON(t, sup4)
-	boomerangZJSON(t, sup5)
-	boomerangZJSON(t, sup6)
-	boomerangZJSON(t, sup7)
+	//boomerangJSUP(t, sup3)
+	boomerangJSUP(t, sup4)
+	boomerangJSUP(t, sup5)
+	boomerangJSUP(t, sup6)
+	boomerangJSUP(t, sup7)
 	// XXX need to fix bug in json reader where it always uses a primitive null
 	// even within a container type (like json array)
-	//boomerangZJSON(t, sup8)
-	boomerangZJSON(t, supBig())
+	//boomerangJSUP(t, sup8)
+	boomerangJSUP(t, supBig())
 }
 
 func TestNamed(t *testing.T) {
@@ -158,15 +158,15 @@ func TestNamed(t *testing.T) {
 			boomerang(t, recordNamed, true)
 		})
 	})
-	t.Run("ZJSON", func(t *testing.T) {
+	t.Run("JSUP", func(t *testing.T) {
 		t.Run("simple", func(t *testing.T) {
-			boomerangZJSON(t, simple)
+			boomerangJSUP(t, simple)
 		})
 		t.Run("named-type-in-different-records", func(t *testing.T) {
-			boomerangZJSON(t, multipleRecords)
+			boomerangJSUP(t, multipleRecords)
 		})
 		t.Run("named-record-type", func(t *testing.T) {
-			boomerangZJSON(t, recordNamed)
+			boomerangJSUP(t, recordNamed)
 		})
 	})
 }

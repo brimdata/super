@@ -424,7 +424,7 @@ curl -X POST \
 
 ```
 curl -X POST \
-     -H 'Accept: application/x-zjson' \
+     -H 'Accept: application/x-jsup' \
      -H 'Content-Type: application/json' \
      http://localhost:9867/query?ctrl=T -d '{"query":"from inventory@main | count() by warehouse"}'
 ```
@@ -556,4 +556,4 @@ The following table shows the supported MIME types and where they can be used.
 | SUP              | yes       | yes      | `application/x-sup`                   |
 | TSV              | yes       | yes      | `text/tab-separated-values`           |
 | Zeek             | yes       | yes      | `application/x-zeek`                  |
-| ZJSON            | yes       | yes      | `application/x-zjson`                 |
+| ZJSON            | yes       | yes      | `application/x-jsup`                 |

@@ -1,4 +1,4 @@
-package zjsonio
+package jsupio
 
 import (
 	"errors"
@@ -92,7 +92,7 @@ func (r *Reader) decodeValue(b *zcode.Builder, typ super.Type, body any) error {
 	case *super.TypeOfType:
 		var t zType
 		if err := unpacker.UnmarshalObject(body, &t); err != nil {
-			return fmt.Errorf("type value is not a valid ZJSON type: %w", err)
+			return fmt.Errorf("type value is not a valid JSUP type: %w", err)
 		}
 		local, err := r.decoder.decodeType(r.sctx, t)
 		if err != nil {
@@ -109,7 +109,7 @@ func (r *Reader) decodeValue(b *zcode.Builder, typ super.Type, body any) error {
 func (r *Reader) decodeRecord(b *zcode.Builder, typ *super.TypeRecord, v any) error {
 	values, ok := v.([]any)
 	if !ok {
-		return errors.New("ZJSON record value must be a JSON array")
+		return errors.New("JSUP record value must be a JSON array")
 	}
 	fields := typ.Fields
 	b.BeginContainer()
@@ -133,7 +133,7 @@ func (r *Reader) decodePrimitive(builder *zcode.Builder, typ super.Type, v any) 
 	}
 	text, ok := v.(string)
 	if !ok {
-		return errors.New("ZJSON primitive value is not a JSON string")
+		return errors.New("JSUP primitive value is not a JSON string")
 	}
 	return sup.BuildPrimitive(builder, sup.Primitive{
 		Type: typ,
@@ -144,7 +144,7 @@ func (r *Reader) decodePrimitive(builder *zcode.Builder, typ super.Type, v any) 
 func (r *Reader) decodeContainerBody(b *zcode.Builder, typ super.Type, body any, which string) error {
 	items, ok := body.([]any)
 	if !ok {
-		return fmt.Errorf("bad JSON for ZJSON %s value", which)
+		return fmt.Errorf("bad JSON for JSUP %s value", which)
 	}
 	for _, item := range items {
 		if err := r.decodeValue(b, typ, item); err != nil {
@@ -164,22 +164,22 @@ func (r *Reader) decodeContainer(b *zcode.Builder, typ super.Type, body any, whi
 func (r *Reader) decodeUnion(builder *zcode.Builder, typ *super.TypeUnion, body any) error {
 	tuple, ok := body.([]any)
 	if !ok {
-		return errors.New("bad JSON for ZJSON union value")
+		return errors.New("bad JSON for JSUP union value")
 	}
 	if len(tuple) != 2 {
-		return errors.New("ZJSON union value not an array of two elements")
+		return errors.New("JSUP union value not an array of two elements")
 	}
 	tagStr, ok := tuple[0].(string)
 	if !ok {
-		return errors.New("bad tag for ZJSON union value")
+		return errors.New("bad tag for JSUP union value")
 	}
 	tag, err := strconv.Atoi(tagStr)
 	if err != nil {
-		return fmt.Errorf("bad tag for ZJSON union value: %w", err)
+		return fmt.Errorf("bad tag for JSUP union value: %w", err)
 	}
 	inner, err := typ.Type(tag)
 	if err != nil {
-		return fmt.Errorf("bad tag for ZJSON union value: %w", err)
+		return fmt.Errorf("bad tag for JSUP union value: %w", err)
 	}
 	builder.BeginContainer()
 	builder.Append(super.EncodeInt(int64(tag)))
@@ -193,13 +193,13 @@ func (r *Reader) decodeUnion(builder *zcode.Builder, typ *super.TypeUnion, body 
 func (r *Reader) decodeMap(b *zcode.Builder, typ *super.TypeMap, body any) error {
 	items, ok := body.([]any)
 	if !ok {
-		return errors.New("bad JSON for ZJSON union value")
+		return errors.New("bad JSON for JSUP union value")
 	}
 	b.BeginContainer()
 	for _, item := range items {
 		pair, ok := item.([]any)
 		if !ok || len(pair) != 2 {
-			return errors.New("ZJSON map value must be an array of two-element arrays")
+			return errors.New("JSUP map value must be an array of two-element arrays")
 		}
 		if err := r.decodeValue(b, typ.KeyType, pair[0]); err != nil {
 			return err
@@ -215,11 +215,11 @@ func (r *Reader) decodeMap(b *zcode.Builder, typ *super.TypeMap, body any) error
 func (r *Reader) decodeEnum(b *zcode.Builder, typ *super.TypeEnum, body any) error {
 	s, ok := body.(string)
 	if !ok {
-		return errors.New("ZJSON enum index value is not a JSON string")
+		return errors.New("JSUP enum index value is not a JSON string")
 	}
 	index, err := strconv.Atoi(s)
 	if err != nil {
-		return errors.New("ZJSON enum index value is not a string integer")
+		return errors.New("JSUP enum index value is not a string integer")
 	}
 	b.Append(super.EncodeUint(uint64(index)))
 	return nil

@@ -18,7 +18,7 @@ class Client():
                  config_dir=os.path.expanduser('~/.zed')):
         self.base_url = base_url.rstrip('/')
         self.session = requests.Session()
-        self.session.headers.update({'Accept': 'application/x-zjson'})
+        self.session.headers.update({'Accept': 'application/x-jsup'})
         token = self.__get_auth_token(config_dir)
         if token is not None:
             self.session.headers.update({'Authorization': 'Bearer ' + token})
@@ -56,8 +56,8 @@ class Client():
 
     def query(self, query):
         r = self.query_raw(query)
-        zjson = (json.loads(line) for line in r.iter_lines() if line)
-        return decode_zjson(zjson)
+        jsup = (json.loads(line) for line in r.iter_lines() if line)
+        return decode_jsup(jsup)
 
     def query_raw(self, query, headers=None):
         r = self.session.post(self.base_url + '/query', headers=headers,
@@ -88,9 +88,9 @@ class QueryError(Exception):
     pass
 
 
-def decode_zjson(zjson):
+def decode_jsup(jsup):
     types = {}
-    for msg in zjson:
+    for msg in jsup:
         typ, value = msg['type'], msg['value']
         if isinstance(typ, dict):
             yield _decode_value(_decode_type(types, typ), value)

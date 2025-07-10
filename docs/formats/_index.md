@@ -278,7 +278,7 @@ Avro but leveraging the super data model to represent a sequence of arbitrarily-
 values.
 * [Super Columnar (CSUP)](csup.md) is columnar like Parquet or ORC but also
 embodies the super data model for heterogeneous and self-describing schemas.
-* [SUP over JSON](zjson.md) defines a format for encapsulating SUP
+* [SUP over JSON](jsup.md) defines a format for encapsulating SUP
 inside plain JSON for easy decoding by JSON-based clients, e.g.,
 the [JavaScript library used by SuperDB Desktop](https://github.com/brimdata/zui/tree/main/packages/superdb-types)
 and the [SuperDB Python library](../libraries/python.md).

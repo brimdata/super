@@ -7,24 +7,24 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/zjsonio"
+	"github.com/brimdata/super/zio/jsupio"
 )
 
-type ZJSONWriter struct {
+type JSUPWriter struct {
 	encoder *json.Encoder
-	writer  *zjsonio.Writer
+	writer  *jsupio.Writer
 }
 
-var _ controlWriter = (*ZJSONWriter)(nil)
+var _ controlWriter = (*JSUPWriter)(nil)
 
-func NewZJSONWriter(w io.Writer) *ZJSONWriter {
-	return &ZJSONWriter{
+func NewJSUPWriter(w io.Writer) *JSUPWriter {
+	return &JSUPWriter{
 		encoder: json.NewEncoder(w),
-		writer:  zjsonio.NewWriter(zio.NopCloser(w)),
+		writer:  jsupio.NewWriter(zio.NopCloser(w)),
 	}
 }
 
-func (w *ZJSONWriter) Write(rec super.Value) error {
+func (w *JSUPWriter) Write(rec super.Value) error {
 	return w.writer.Write(rec)
 }
 
@@ -33,10 +33,10 @@ type describe struct {
 	Value any    `json:"value"`
 }
 
-func (w *ZJSONWriter) WriteControl(v any) error {
+func (w *JSUPWriter) WriteControl(v any) error {
 	// XXX Would rather use sup.Marshal here instead of importing reflection
 	// into this package, but there's an issue with marshaling nil
-	// interfaces, which occurs frequently with zjsonio.Object.Types. For now
+	// interfaces, which occurs frequently with jsupio.Object.Types. For now
 	// just reflect here.
 	return w.encoder.Encode(describe{
 		Type:  reflect.TypeOf(v).Name(),
@@ -44,6 +44,6 @@ func (w *ZJSONWriter) WriteControl(v any) error {
 	})
 }
 
-func (w *ZJSONWriter) Close() error {
+func (w *JSUPWriter) Close() error {
 	return nil
 }

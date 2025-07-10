@@ -150,7 +150,7 @@ in the order appearing on the command line forming the input stream.
 | `sup`     |  yes | [SUP](../formats/sup.md) |
 | `tsv`     |  yes | [Tab-Separated Values](https://en.wikipedia.org/wiki/Tab-separated_values) |
 | `zeek`    |  yes | [Zeek Logs](https://docs.zeek.org/en/master/logs/index.html) |
-| `zjson`   |  yes | [Super over JSON (JSUP)](../formats/zjson.md) |
+| `jsup`   |  yes | [Super over JSON (JSUP)](../formats/jsup.md) |
 
 The input format is typically [detected automatically](#auto-detection) and the formats for which
 "Auto" is "yes" in the table above support _auto-detection_.
@@ -239,7 +239,7 @@ typically omit quotes around field names.
 | `text`    | (described [below](#simplified-text-outputs)) |
 | `tsv`     | [Tab-Separated Values](https://en.wikipedia.org/wiki/Tab-separated_values) |
 | `zeek`    | [Zeek Logs](https://docs.zeek.org/en/master/logs/index.html) |
-| `zjson`   | [SUP over JSON (JSUP)](../formats/zjson.md) |
+| `jsup`   | [SUP over JSON (JSUP)](../formats/jsup.md) |
 
 The output format defaults to either SUP or BSUP and may be specified
 with the `-f` option.

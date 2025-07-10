@@ -1,4 +1,4 @@
-package zjsonio
+package jsupio
 
 import (
 	"errors"
@@ -225,17 +225,17 @@ func (d decoder) decodeType(sctx *super.Context, t zType) (super.Type, error) {
 	case *zPrimitive:
 		typ := super.LookupPrimitive(t.Name)
 		if typ == nil {
-			return nil, errors.New("ZJSON unknown type: " + t.Name)
+			return nil, errors.New("JSUP unknown type: " + t.Name)
 		}
 		return typ, nil
 	case *zRef:
 		typ, ok := d[t.ID]
 		if !ok {
-			return nil, fmt.Errorf("ZJSON unknown type reference: %d", t.ID)
+			return nil, fmt.Errorf("JSUP unknown type reference: %d", t.ID)
 		}
 		return typ, nil
 	}
-	return nil, fmt.Errorf("ZJSON unknown type: %T", t)
+	return nil, fmt.Errorf("JSUP unknown type: %T", t)
 }
 
 func (d decoder) decodeTypeRecord(sctx *super.Context, typ *zRecord) (*super.TypeRecord, error) {

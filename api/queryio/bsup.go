@@ -15,7 +15,7 @@ type BSUPWriter struct {
 	marshaler *sup.MarshalBSUPContext
 }
 
-var _ controlWriter = (*ZJSONWriter)(nil)
+var _ controlWriter = (*JSUPWriter)(nil)
 
 func NewBSUPWriter(w io.Writer) *BSUPWriter {
 	m := sup.NewBSUPMarshaler()
