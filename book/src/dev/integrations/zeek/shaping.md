@@ -318,12 +318,12 @@ produces
         resp_p: 80 (port)
     } (=conn_id),
     name: "TCP_ack_underflow_or_misorder",
-    addl: null (string),
+    addl: null::string,
     notice: false,
     peer: "zeek",
-    source: null (string),
+    source: null::string,
     _write_ts: 2018-03-24T17:15:20.600843Z
-} (=weird)
+}::=weird
 ```
 
 If working in a directory containing many JSON logs, the

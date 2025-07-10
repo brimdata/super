@@ -98,7 +98,7 @@ cast(this, <connection>)
   "uid": "C2zK5f13SbCtKcyiW5"
 }
 # expected output
-{kind:"dns",server:{addr:10.0.0.100,port:53::(port=uint16)}::=socket,client:{addr:10.47.1.100,port:41772}(socket),uid:"C2zK5f13SbCtKcyiW5"}
+{kind:"dns",server:{addr:10.0.0.100,port:53::(port=uint16)}::=socket,client:{addr:10.47.1.100,port:41772}::socket,uid:"C2zK5f13SbCtKcyiW5"}
 ```
 
 ### Crop
@@ -271,7 +271,7 @@ shape(this, <connection>)
   "uid": "C2zK5f13SbCtKcyiW5"
 }
 # expected output
-{kind:"dns",client:{addr:10.47.1.100,port:41772::(port=uint16)}::=socket,server:{addr:10.0.0.100,port:53}(socket),vlan:null::uint16,uid:"C2zK5f13SbCtKcyiW5"}
+{kind:"dns",client:{addr:10.47.1.100,port:41772::(port=uint16)}::=socket,server:{addr:10.0.0.100,port:53}::socket,vlan:null::uint16,uid:"C2zK5f13SbCtKcyiW5"}
 ```
 
 To get a tight shape of the target type,
@@ -303,7 +303,7 @@ shape(this, <connection>)
   "uid": "C2zK5f13SbCtKcyiW5"
 }
 # expected output
-{kind:"dns",client:{addr:10.47.1.100,port:41772::(port=uint16)}::=socket,server:{addr:10.0.0.100,port:53}(socket),vlan:null::uint16}
+{kind:"dns",client:{addr:10.47.1.100,port:41772::(port=uint16)}::=socket,server:{addr:10.0.0.100,port:53}::socket,vlan:null::uint16}
 ```
 
 ## Error Handling
