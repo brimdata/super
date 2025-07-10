@@ -383,69 +383,11 @@ TODO (see data type section)
 
 ### Set Expressions
 
-Set literals have the form
-```
-|[ <spec>, <spec>, ... ]|
-```
-where a `<spec>` has one of two forms:
-```
-<expr>
-...<expr>
-```
-
-The first form is simply an element in the set, the result of `<expr>`.  The
-second form is the `...` spread operator which expects an array or set value as
-the result of `<expr>` and inserts all of the values from the result.  If a spread
-expression results in neither an array nor set, then the value is elided.
-
-When the expressions result in values of non-uniform type, then the implied
-type of the set is a set of type `union` of the types that appear.
-
-Set values are always organized in their "natural order" independent of the order
-they appear in the set literal.
-
-For example,
-```mdtest-spq
-# spq
-values |[3,1,2]|,|["hello","world","hello"]|
-# input
-null
-# expected output
-|[1,2,3]|
-|["hello","world"]|
-```
-
-Arrays and sets can be concatenated using the spread operator,
-```mdtest-spq
-# spq
-values |[...a,...b,4]|
-# input
-{a:[1,2],b:|[2,3]|}
-# expected output
-|[1,2,3,4]|
-```
+TODO (see data type section)
 
 ### Map Expressions
 
-Map literals have the form
-```
-|{ <expr>:<expr>, <expr>:<expr>, ... }|
-```
-where the first expression of each colon-separated entry is the key value
-and the second expression is the value.
-When the key and/or value expressions result in values of non-uniform type,
-then the implied type of the map has a key type and/or value type that is
-a union of the types that appear in each respective category.
-
-For example,
-```mdtest-spq
-# spq
-values |{"foo":1,"bar"+"baz":2+3}|
-# input
-null
-# expected output
-|{"foo":1,"barbaz":5}|
-```
+TODO (see data type section)
 
 ### Union Values
 

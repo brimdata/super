@@ -1,2 +1,2 @@
-### Bytes Type
+### Bytes
 

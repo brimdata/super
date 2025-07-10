@@ -1,2 +1,2 @@
-### String Type
+### Strings
 

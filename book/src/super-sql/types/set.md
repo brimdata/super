@@ -16,7 +16,7 @@ is a valid set literal in the SuperSQL language.
 #### Set Expressions
 
 Set values are constructed from a _set expression_ that is comprised of
-zero or more comma-separated elements contained in brackets:
+zero or more comma-separated elements contained in pipe brackets:
 ```
 |[ <element>, <element>, ... ]|
 ```

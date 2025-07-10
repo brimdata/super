@@ -1,4 +1,4 @@
-### Error Types
+### Errors
 
 TODO: split this into a part that goes in expression syntax and a simpler 
 part that just explains the errors here.

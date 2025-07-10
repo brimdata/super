@@ -1,6 +1,6 @@
 ### Records
 
-The record type conforms to the definition of the
+The record data type conforms to the definition of the
 [record type](../../formats/model.md#21-record) in the 
 super-structured data model.
 
