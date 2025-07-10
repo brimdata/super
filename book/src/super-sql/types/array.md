@@ -1,16 +1,16 @@
 ### Arrays
 
-The array type follows the definition of the
-[array type](../../formats/model.md#21-array) from the 
-super-structured data model.
+The array type conforms to the definition of the
+[array type](../../formats/model.md#22-array)
+in the super-structured data model.
 
 Arrays can be created by reading external data (SUP files, 
 database data, Parquet values, JSON objects, etc) or by 
 constructing instances using
-[array expressions](#array-expressions) or other 
+_array expressions_ or other 
 SuperSQL functions that produce arrays.
 
-Any SUP text defining an [array value](../../formats/sup.md#241-array-value)
+Any SUP text defining an [array value](../../formats/sup.html#242-array-value)
 is a valid array literal in the SuperSQL language.
 
 #### Array Expressions
@@ -28,7 +28,7 @@ or
 ```
 ...<expr>
 ```
-and where `<expr>` is any valid [expression](../expressions.md).
+`<expr>` may be any valid [expression](../expressions.md).
 
 The first form is simply an element in the array, the result of `<expr>`.
 
@@ -46,8 +46,8 @@ An empty array value has the form `[]`.
 #### Array Type
 
 An array type has the syntax defined for the
-[array type](../../formats/sup.md#251-record-type)
-in the [SUP format](../../formats/sup/md), i.e.,
+[array type](../../formats/sup.md#252-array-type)
+in the [SUP format](../../formats/sup.md), i.e.,
 ```
 [ <type> ]
 ```
@@ -68,7 +68,9 @@ null
 ["hello","world"]
 ```
 
-Arrays can be concatenated using the spread operator:
+---
+
+_Arrays can be concatenated using the spread operator_
 ```mdtest-spq
 # spq
 values [...a,...b,5]
@@ -78,12 +80,32 @@ values [...a,...b,5]
 [1,2,3,4,5]
 ```
 
-Arrays with mixed type are tied together with a union type:
+---
+
+_Arrays with mixed type are tied together with a union type_
 ```mdtest-spq
 # spq
 values typeof([1,"foo"])
 # input
 null
 # expected output
+<[int64|string]>
+```
+
+---
+
+_The collect aggregate function builds an array
+and uses a sum type for the mixed-type elements_
+```mdtest-spq
+# spq
+collect(this) | values this, typeof(this)
+# input
+1
+2
+3
+"hello"
+"world"
+# expected output
+[1,2,3,"hello","world"]
 <[int64|string]>
 ```

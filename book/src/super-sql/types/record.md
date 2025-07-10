@@ -1,13 +1,13 @@
 ### Records
 
-The record type follows the definition of the
-[record type](../../formats/model.md#21-record) from the 
+The record type conforms to the definition of the
+[record type](../../formats/model.md#21-record) in the 
 super-structured data model.
 
-Records can be created by reading external data (SUP files, 
-database data, Parquet values, JSON objects, etc) or by 
+Records can be created by reading external data (SUP files,
+database data, Parquet values, JSON objects, etc) or by
 constructing instances using
-[record expressions](../expressions.html#record-expressions) or other 
+[record expressions](../expressions.html#record-expressions) or other
 SuperSQL functions that produce records.
 
 Any SUP text defining a [record value](../../formats/sup.md#241-record-value)
@@ -44,7 +44,6 @@ and `<expr>` is an arbitrary [expression](../expressions.md),
 [identifier](xxx), which is shorthanf for the named field reference `<id>:<id>`, or
 * a spread expression of the form `...<expr>` where `<expr>` is an arbitrary 
 [expression](../expressions.md) that should evaluate to a record value.
-```
 
 The spread form inserts all of the fields from the resulting record.
 If a spread expression results in a non-record type (e.g., errors), then that
@@ -73,7 +72,6 @@ An empty record type has the same form as an empty record value, i.e., `{}`.
 
 #### Examples
 
-For example,
 ```mdtest-spq
 # spq
 values {a:0},{x}, {...r}, {a:0,...r,b:3}

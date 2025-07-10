@@ -379,44 +379,7 @@ TODO (see data type section)
 
 ### Array Expressions
 
-Array literals have the form
-```
-[ <spec>, <spec>, ... ]
-```
-where a `<spec>` has one of two forms:
-```
-<expr>
-...<expr>
-```
-
-The first form is simply an element in the array, the result of `<expr>`.  The
-second form is the `...` spread operator which expects an array or set value as
-the result of `<expr>` and inserts all of the values from the result.  If a spread
-expression results in neither an array nor set, then the value is elided.
-
-When the expressions result in values of non-uniform type, then the implied
-type of the array is an array of type `union` of the types that appear.
-
-For example,
-```mdtest-spq
-# spq
-values [1,2,3],["hello","world"]
-# input
-null
-# expected output
-[1,2,3]
-["hello","world"]
-```
-
-Arrays can be concatenated using the spread operator,
-```mdtest-spq
-# spq
-values [...a,...b,5]
-# input
-{a:[1,2],b:[3,4]}
-# expected output
-[1,2,3,4,5]
-```
+TODO (see data type section)
 
 ### Set Expressions
 
