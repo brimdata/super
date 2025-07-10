@@ -100,7 +100,7 @@ super -S zeek_types.log | tee zeek_types.sup
     my_port: 80::(port=uint16),
     my_addr: 127.0.0.1,
     my_subnet: 10.0.0.0/8,
-    my_enum: "tcp" (=zenum),
+    my_enum: "tcp"::=zenum,
     my_set: |[
         "a",
         "in",

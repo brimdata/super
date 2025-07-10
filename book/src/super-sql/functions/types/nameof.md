@@ -32,7 +32,7 @@ The missing value can be ignored with quiet:
 # spq
 values quiet(nameof(this))
 # input
-80(port=int16)
+80::(port=int16)
 80
 # expected output
 "port"

@@ -35,10 +35,10 @@ The following reference `shaper.spq` may seem large, but ultimately it follows a
 fairly simple pattern that repeats across the many [Zeek log types](https://docs.zeek.org/en/master/script-reference/log-files.html).
 
 ```mdtest-input shaper.spq
-// This reference shaper for Zeek JSON logs was most recently tested with
-// Zeek v7.0.0. The fields and data types reflect the default JSON
-// logs output by that Zeek version when using the JSON Streaming Logs package.
-// (https://github.com/corelight/json-streaming-logs).
+-- This reference shaper for Zeek JSON logs was most recently tested with
+-- Zeek v7.0.0. The fields and data types reflect the default JSON
+-- logs output by that Zeek version when using the JSON Streaming Logs package.
+-- (https://github.com/corelight/json-streaming-logs).
 
 const _crop_records = true
 const _error_if_cropped = true
@@ -113,29 +113,41 @@ const zeek_log_types = |{
 }|
 
 values nest_dotted(this)
-| switch has(_path) (
-  case true => switch (_path in zeek_log_types) (
-    case true => values {_original: this, _shaped: shape(zeek_log_types[_path])}
-      | switch has_error(_shaped) (
-          case true => values error({msg: "shaper error(s): see inner error value(s) for details", _original, _shaped})
-          case false => values {_original, _shaped}
-            | switch _crop_records (
-                case true => put _cropped := crop(_shaped, zeek_log_types[_shaped._path])
-                  | switch (_cropped == _shaped) (
-                      case true => values _shaped
-                      case false => values {_original, _shaped, _cropped}
-                      | switch _error_if_cropped (
-                          case true => values error({msg: "shaper error: one or more fields were cropped", _original, _shaped, _cropped})
-                          case false => values _cropped
-                        )
-                  )
-                case false => values _shaped
+| switch has(_path)
+  case true (
+    switch (_path in zeek_log_types)
+    case true (
+      values {_original: this, _shaped: shape(zeek_log_types[_path])}
+      | switch has_error(_shaped)
+        case true (
+          values error({msg: "shaper error(s): see inner error value(s) for details", _original, _shaped})
+        )
+        case false (
+          values {_original, _shaped}
+          | switch _crop_records
+            case true (
+              put _cropped := crop(_shaped, zeek_log_types[_shaped._path])
+              | switch (_cropped == _shaped)
+                case true ( values _shaped )
+                case false (
+                  values {_original, _shaped, _cropped}
+                  | switch _error_if_cropped
+                    case true (
+                      values error({msg: "shaper error: one or more fields were cropped", _original, _shaped, _cropped})
+                    )
+                    case false ( values _cropped )
+                )
             )
-      )
-    case false => values error({msg: "shaper error: _path '" + _path + "' is not a known zeek log type in shaper config", _original: this})
+            case false ( values _shaped )
+        )
+    )
+    case false ( 
+        values error({msg: "shaper error: _path '" + _path + "' is not a known zeek log type in shaper config", _original: this})
+    )
   )
-  case false => values error({msg: "shaper error: input record lacks _path field", _original: this})
-)
+  case false (
+    values error({msg: "shaper error: input record lacks _path field", _original: this})
+  )
 ```
 
 ### Configurable Options
