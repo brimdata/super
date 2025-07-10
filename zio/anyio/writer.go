@@ -11,6 +11,7 @@ import (
 	"github.com/brimdata/super/zio/csupio"
 	"github.com/brimdata/super/zio/csvio"
 	"github.com/brimdata/super/zio/jsonio"
+	"github.com/brimdata/super/zio/jsupio"
 	"github.com/brimdata/super/zio/lakeio"
 	"github.com/brimdata/super/zio/lineio"
 	"github.com/brimdata/super/zio/parquetio"
@@ -18,7 +19,6 @@ import (
 	"github.com/brimdata/super/zio/tableio"
 	"github.com/brimdata/super/zio/textio"
 	"github.com/brimdata/super/zio/zeekio"
-	"github.com/brimdata/super/zio/jsupio"
 )
 
 type WriterOpts struct {

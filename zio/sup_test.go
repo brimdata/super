@@ -11,8 +11,8 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/zio"
 	"github.com/brimdata/super/zio/bsupio"
-	"github.com/brimdata/super/zio/supio"
 	"github.com/brimdata/super/zio/jsupio"
+	"github.com/brimdata/super/zio/supio"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

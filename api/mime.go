@@ -20,7 +20,7 @@ const (
 	MediaTypeSUP         = "application/x-sup"
 	MediaTypeTSV         = "text/tab-separated-values"
 	MediaTypeZeek        = "application/x-zeek"
-	MediaTypeJSUP       = "application/x-jsup"
+	MediaTypeJSUP        = "application/x-jsup"
 )
 
 type ErrUnsupportedMimeType struct {
