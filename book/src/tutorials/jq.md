@@ -688,7 +688,7 @@ super -s -c 'over this | shapes | count()' prs.json
 ```
 produces
 ```mdtest-output
-3(uint64)
+3::uint64
 ```
 All that data across the samples and only three shapes.
 They must each be really big.  Let's check that out.
@@ -850,8 +850,8 @@ super -s -c 'shapes | count()' prs1.bsup
 ```
 produces
 ```
-{count:28(uint64)}
-{count:1(uint64)}
+{count:28::uint64}
+{count:1::uint64}
 ```
 Okay, good.  There are 28 values (the 30 requested less the two empty records)
 and exactly one shape since the data was fused.
@@ -1010,11 +1010,11 @@ super -s -c "count() by user:=user.login | sort count desc" prs.bsup
 ```
 produces
 ```mdtest-output
-{user:"mattnibs",count:10(uint64)}
-{user:"aswan",count:7(uint64)}
-{user:"mccanne",count:6(uint64)}
-{user:"nwt",count:4(uint64)}
-{user:"henridf",count:1(uint64)}
+{user:"mattnibs",count:10::uint64}
+{user:"aswan",count:7::uint64}
+{user:"mccanne",count:6::uint64}
+{user:"nwt",count:4::uint64}
+{user:"henridf",count:1::uint64}
 ```
 How about getting a list of all of the reviewers?  To do this, we need to
 traverse the records in the `requested_reviewers` array and collect up

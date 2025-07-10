@@ -206,7 +206,7 @@ super db -lake test query -s -I count-pool.spq
 
 it produces the output
 ```mdtest-output
-1(uint64)
+1::uint64
 ```
 
 ### Nested Calls

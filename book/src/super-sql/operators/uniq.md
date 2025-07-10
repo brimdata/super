@@ -48,9 +48,9 @@ uniq -c
 2
 3
 # expected output
-{value:1,count:1(uint64)}
-{value:2,count:2(uint64)}
-{value:3,count:1(uint64)}
+{value:1,count:1::uint64}
+{value:2,count:2::uint64}
+{value:3,count:1::uint64}
 ```
 
 _Use sort to deduplicate non-adjacent values_

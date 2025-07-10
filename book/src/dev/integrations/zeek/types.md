@@ -90,7 +90,7 @@ super -S zeek_types.log | tee zeek_types.sup
 ```mdtest-output
 {
     my_bool: true,
-    my_count: 123 (uint64),
+    my_count: 123::uint64,
     my_int: 456,
     my_double: 123.456,
     my_time: 2020-06-18T17:42:31.123456Z,
@@ -114,7 +114,7 @@ super -S zeek_types.log | tee zeek_types.sup
     ],
     my_record: {
         name: "Jeanne",
-        age: 122 (uint64)
+        age: 122::uint64
     }
 }
 ```

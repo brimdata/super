@@ -79,9 +79,9 @@ count() by typeof(this) | sort this
 "hello"(=foo)
 3(=foo)
 # expected output
-{typeof:<bar=int64>,count:1(uint64)}
-{typeof:<foo=int64>,count:2(uint64)}
-{typeof:<foo=string>,count:1(uint64)}
+{typeof:<bar=int64>,count:1::uint64}
+{typeof:<foo=int64>,count:2::uint64}
+{typeof:<foo=string>,count:1::uint64}
 ```
 
 Here, the two versions of type "foo" were retained in the aggregation results.

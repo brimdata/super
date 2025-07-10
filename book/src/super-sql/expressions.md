@@ -249,9 +249,9 @@ yield this=="foo" ? {foocount:count()} : {barcount:count()}
 "bar"
 "foo"
 # expected output
-{foocount:1(uint64)}
-{barcount:1(uint64)}
-{foocount:2(uint64)}
+{foocount:1::uint64}
+{barcount:1::uint64}
+{foocount:2::uint64}
 ```
 
 ## Function Calls
@@ -296,9 +296,9 @@ yield {id:count(),value:this}
 "bar"
 "baz"
 # expected output
-{id:1(uint64),value:"foo"}
-{id:2(uint64),value:"bar"}
-{id:3(uint64),value:"baz"}
+{id:1::uint64,value:"foo"}
+{id:2::uint64,value:"bar"}
+{id:3::uint64,value:"baz"}
 ```
 
 In contrast, calling aggregate functions within the [`aggregate` operator](operators/aggregate.md)
@@ -311,7 +311,7 @@ aggregate count(),union(this)
 "bar"
 "baz"
 # expected output
-{count:3(uint64),union:|["bar","baz","foo"]|}
+{count:3::uint64,union:|["bar","baz","foo"]|}
 ```
 
 ## Literals
