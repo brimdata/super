@@ -51,8 +51,8 @@ fuse
 {a:1}
 {b:2}
 # expected output
-{a:1,b:null(int64)}
-{a:null(int64),b:2}
+{a:1,b:null::int64}
+{a:null::int64,b:2}
 ```
 
 _Fuse records with type variation_

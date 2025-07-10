@@ -448,14 +448,14 @@ expression.  Here, the value sequence `{a:1}{b:"foo"}` may be
 fused into the single-type sequence:
 ```
 {a:1,b:null(string)}
-{a:null(int64),b:"foo"}
+{a:null::int64,b:"foo"}
 ```
 
 Of course, these two techniques can be powerfully combined,
 e.g., where the value sequence `{a:1}{a:"foo",b:2}` may be
 fused into the single-type sequence:
 ```
-{a:1((int64,string)),b:null(int64)}
+{a:1((int64,string)),b:null::int64}
 {a:"foo"((int64,string)),b:2}
 ```
 
@@ -477,7 +477,7 @@ fuse
 {x:2,y:"bar"}
 # expected output
 {x:1,y:null(string)}
-{x:null(int64),y:"foo"}
+{x:null::int64,y:"foo"}
 {x:2,y:"bar"}
 ```
 

@@ -146,7 +146,7 @@ super -s tmp.parquet
 ```
 produces
 ```mdtest-output
-{a:1,b:null(int64)}
-{a:2,b:null(int64)}
-{a:null(int64),b:3}
+{a:1,b:null::int64}
+{a:2,b:null::int64}
+{a:null::int64,b:3}
 ```

@@ -43,7 +43,7 @@ fill(this, <[{a:int64,b:int64}]>)
 # input
 [{a:1},{a:2}]
 # expected output
-[{a:1,b:null(int64)},{a:2,b:null(int64)}]
+[{a:1,b:null::int64},{a:2,b:null::int64}]
 ```
 
 _Non-records are returned unmodified_

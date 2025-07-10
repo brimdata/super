@@ -32,5 +32,5 @@ shape(this, <{a:int64,b:string}>)
 # expected output
 {a:2,b:"1"}
 {a:3,b:null(string)}
-{a:null(int64),b:"4",c:5}
+{a:null::int64,b:"4",c:5}
 ```
