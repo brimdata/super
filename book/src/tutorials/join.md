@@ -92,7 +92,7 @@ super -s -I left-join.spq
 produces
 ```mdtest-output
 {name:"figs",color:"brown",flavor:"plain",eater:"jessie",age:30}
-{name:"avocado",color:"green",flavor:"savory"}
+{name:"avocado",color:"green",flavor:"savory",eater:error("missing"),age:error("missing")}
 {name:"banana",color:"yellow",flavor:"sweet",eater:"quinn",age:14}
 {name:"strawberry",color:"red",flavor:"sweet",eater:"quinn",age:14}
 {name:"dates",color:"brown",flavor:"sweet",note:"in season",eater:"quinn",age:14}
@@ -154,7 +154,7 @@ super -s -I anti-join.spq
 ```
 produces
 ```mdtest-output
-{name:"avocado",color:"green",flavor:"savory",eater:error("missing"),age:error("missing")}
+{name:"avocado",color:"green",flavor:"savory"}
 ```
 
 ## Inputs from Pools
