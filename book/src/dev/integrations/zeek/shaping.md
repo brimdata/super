@@ -315,8 +315,8 @@ produces
         orig_h: 10.47.1.152,
         orig_p: 49562::(port=uint16),
         resp_h: 23.217.103.245,
-        resp_p: 80 (port)
-    } (=conn_id),
+        resp_p: 80::port
+    }::=conn_id,
     name: "TCP_ack_underflow_or_misorder",
     addl: null::string,
     notice: false,

@@ -437,7 +437,7 @@ Type fusion utilizes two key techniques.
 
 The first technique is to simply combine types with a type union.
 For example, an `int64` and a `string` can be merged into a common
-type of union `(int64,string)`, e.g., the value sequence `1 "foo"`
+type of union `int64|string`, e.g., the value sequence `1 "foo"`
 can be fused into the single-type sequence:
 ```
 1::(int64|string)
@@ -537,7 +537,7 @@ we "discovered" above, e.g.,
 # spq
 switch len(this)
     case 1 ( pass )
-    case 2 ( values shape(this, <{x:(int64,string),y:string}>) )
+    case 2 ( values shape(this, <{x:int64|string,y:string}>) )
     default ( values error({kind:"unrecognized shape",value:this}) )
 | sort this desc
 # input

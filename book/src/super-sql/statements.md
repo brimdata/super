@@ -198,10 +198,10 @@ CountPool("example")
 
 so that when we prepare and query the pool via
 ```mdtest-command
-super db -q -lake test init
-super db -q -lake test create -use example
-echo '{greeting: "hello"}' | super db -q -lake test load -
-super db -lake test query -s -I count-pool.spq
+super db -q -db test init
+super db -q -db test create -use example
+echo '{greeting: "hello"}' | super db -q -db test load -
+super db -db test query -s -I count-pool.spq
 ```
 
 it produces the output

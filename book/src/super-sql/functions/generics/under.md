@@ -81,7 +81,7 @@ values under(this)
 # input
 80::(port=uint16)
 # expected output
-80(uint16)
+80::uint16
 ```
 
 Values that are not wrapped are unmodified:

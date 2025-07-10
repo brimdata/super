@@ -28,8 +28,8 @@ pip3 install "git+https://github.com/brimdata/super@$(super -version | cut -d ' 
 
 To run this example, first start a SuperDB service from your shell:
 ```sh
-super db init -lake scratch
-super db serve -lake scratch
+super db init -db scratch
+super db serve -db scratch
 ```
 > Or you can launch the [Desktop app](https://zui.brimdata.io) and it will run a
 > SuperDB service on the default port at `http://localhost:9867`.

@@ -95,9 +95,9 @@ as access via a service endpoint.
 
 First, we'll use `super` to create a lake and load the example data:
 ```
-super db init -lake scratch
-super db create -lake scratch Demo
-echo '{s:"hello, world"}{x:1}{s:"good bye"}' | super db load -lake scratch -use Demo -
+super db init -db scratch
+super db create -db scratch Demo
+echo '{s:"hello, world"}{x:1}{s:"good bye"}' | super db load -db scratch -use Demo -
 ```
 Now replace `main.go` with this code:
 ```mdtest-go-example
@@ -175,7 +175,7 @@ give it the URI of the service, which by default is on port 9867.
 To try this out, first run a SuperDB service on the scratch lake we created
 above:
 ```
-super db serve -lake ./scratch
+super db serve -db ./scratch
 ```
 Finally, in another local shell, run the Go program and specify the service
 endpoint we just created:
