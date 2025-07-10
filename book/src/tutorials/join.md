@@ -42,10 +42,11 @@ explicit `inner` is not strictly necessary, but including it clarifies our inten
 
 The query `inner-join.spq`:
 ```mdtest-input inner-join.spq
-file fruit.json
+from fruit.json
 | inner join (
-  file people.json
-) on flavor=likes eater:=name
+  from people.json
+) as {f,p} on f.flavor=p.likes
+| values {...f, eater:p.name}
 ```
 
 Executing the query:
@@ -66,8 +67,6 @@ produces
 
 TODO: this statement is not aligned with our audience
 
-> In some databases a left join is called a _left outer join_.
-
 By performing a left join that targets the same key fields, now all of our
 fruits will be shown in the results even if no one likes them (e.g., `avocado`).
 
@@ -77,10 +76,12 @@ original field name `age` is maintained in the results.
 
 The query `left-join.spq`:
 ```mdtest-input left-join.spq
-file fruit.json
+from fruit.json
 | left join (
-  file people.json
-) on flavor=likes eater:=name,age
+  from people.json
+) as {f,p} on f.flavor=p.likes
+| f.eater := p.name, f.age := p.age
+| values f
 ```
 
 Executing the query:
@@ -110,10 +111,12 @@ the `note` field from the right-hand input to appear in the joined results.
 
 The query `right-join.spq`:
 ```mdtest-input right-join.spq
-file fruit.json
+from fruit.json
 | right join (
-  file people.json
-) on flavor=likes fruit:=name
+  from people.json
+) as {f,p} on f.flavor=p.likes
+| p.fruit:=f.name
+| values p
 ```
 Executing the query:
 ```mdtest-command
@@ -133,18 +136,17 @@ produces
 
 TODO: nibs brought up right anti join, which duckdb doesn't seem to do
 
-> In some databases an anti join is called a _left anti join_.
-
 The join type `anti` allows us to see which fruits are not liked by anyone.
 Note that with anti join only values from the left-hand input appear in the
 results.
 
 The query `anti-join.spq`:
 ```mdtest-input anti-join.spq
-file fruit.json
+from fruit.json
 | anti join (
-  file people.json
-) on flavor=likes
+  from people.json
+) as {fruit,people} on fruit.flavor=people.likes
+| values fruit
 ```
 Executing the query:
 ```mdtest-command
@@ -152,7 +154,7 @@ super -s -I anti-join.spq
 ```
 produces
 ```mdtest-output
-{name:"avocado",color:"green",flavor:"savory"}
+{name:"avocado",color:"green",flavor:"savory",eater:error("missing"),age:error("missing")}
 ```
 
 ## Inputs from Pools
@@ -164,7 +166,7 @@ we would instead specify the sources as data pools using the
 [`from` operator](../language/operators/from.md).
 
 Here we'll load our input data to pools in a temporary data lake, then execute
-our inner join using `super db query`.
+our inner join using `super db`.
 
 The query `inner-join-pools.spq`:
 
@@ -172,19 +174,20 @@ The query `inner-join-pools.spq`:
 from fruit
 | inner join (
   from people
-) on flavor=likes eater:=name
+) as {fruit,people} on fruit.flavor=people.likes
+| values {...fruit, eater:people.name}
 ```
 
 Populating the pools, then executing the query:
 
 ```mdtest-command
-export SUPER_DB_LAKE=lake
+export SUPER_DB=lake
 super db init -q
 super db create -q -orderby flavor:asc fruit
 super db create -q -orderby likes:asc people
 super db load -q -use fruit fruit.json
 super db load -q -use people people.json
-super db query -s -I inner-join-pools.spq
+super db -s -I inner-join-pools.spq
 ```
 produces
 ```mdtest-output
@@ -209,10 +212,11 @@ in the [Inner Join section](#inner-join).
 
 The query `inner-join-alternate.spq`:
 ```mdtest-input inner-join-alternate.spq
-from (
-  file fruit.json
-  file people.json
-) | inner join on flavor=likes eater:=name
+fork
+  ( from fruit.json )
+  ( from people.json )
+| inner join as {fruit,people} on fruit.flavor=people.likes
+| values {...fruit, eater:people.name}
 ```
 
 Executing the query:
@@ -243,10 +247,11 @@ inputs.
 The query `inner-join-streamed.spq`:
 
 ```mdtest-input inner-join-streamed.spq
-switch (
-  case has(color) => pass
-  case has(age) => pass
-) | inner join on flavor=likes eater:=name
+switch
+  case has(color) ( pass )
+  case has(age) ( pass )
+| inner join as {fruit,people} on fruit.flavor=people.likes
+| values {...fruit, eater:people.name}
 ```
 
 Executing the query:
@@ -289,10 +294,11 @@ they look like, but since it represents redundant data, in practice we'd
 typically [`drop`](../language/operators/drop.md) it after the `join` in our pipeline.
 
 ```mdtest-input multi-value-join.spq
-file fruit.json | put fruitkey:={name,color}
+from fruit.json | put fruitkey:={name,color}
 | inner join (
-  file inventory.json | put invkey:={name,color}
-) on fruitkey=invkey quantity
+  from inventory.json | put invkey:={name,color}
+) on left.fruitkey=right.invkey
+| values {...left, quantity:right.quantity}
 ```
 
 Executing the query:
@@ -326,13 +332,15 @@ previously for our inner join by piping its output to an additional join
 against the price list.
 
 ```mdtest-input three-way-join.spq
-file fruit.json
+from fruit.json
 | inner join (
-  file people.json
-) on flavor=likes eater:=name
+  from people.json
+) as {fruit,people} on fruit.flavor=people.likes
+| values {...fruit, eater:people.name}
 | inner join (
-  file prices.json
-) on name=name price:=price
+  from prices.json
+) as {fruit,prices} on fruit.name=prices.name
+| values {...fruit, price:prices.price}
 ```
 
 Executing the query:
@@ -367,10 +375,11 @@ in the result.
 The query `embed-opposite.spq`:
 
 ```mdtest-input embed-opposite.spq
-file fruit.json
+from fruit.json
 | inner join (
-  file people.json
-) on flavor=likes eaterinfo:=this
+  from people.json
+) as {fruit,people} on fruit.flavor=people.likes
+| values {...fruit, eaterinfo:people}
 ```
 
 Executing the query:
@@ -397,13 +406,12 @@ left and right inputs. We'll demonstrate this by augmenting `embed-opposite.spq`
 to produce `merge-opposite.spq`.
 
 ```mdtest-input merge-opposite.spq
-file fruit.json
+from fruit.json
 | inner join (
-  file people.json
-) on flavor=likes eaterinfo:=this
-| rename fruit:=name
-| values {...this,...eaterinfo}
-| drop eaterinfo
+  from people.json
+) as {fruit,people} on fruit.flavor=people.likes
+| rename fruit.fruit:=fruit.name
+| values {...fruit,...people}
 ```
 
 Executing the query:

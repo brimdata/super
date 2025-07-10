@@ -35,7 +35,7 @@ appears to the runtime as a side effect of operating upon the data, e.g.,
 typeof(this)==<foo>
 # input
 1::=foo
-2(=bar)
+2::=bar
 3::=foo
 # expected output
 1::=foo
@@ -75,7 +75,7 @@ particular named type.  For example,
 count() by typeof(this) | sort this
 # input
 1::=foo
-2(=bar)
+2::=bar
 "hello"::=foo
 3::=foo
 # expected output

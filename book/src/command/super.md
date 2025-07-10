@@ -646,18 +646,18 @@ For example, imagine you'd executed a [meta-query](super-db.md#meta-queries) via
 {
     ts: 2024-07-19T19:28:22.893089Z,
     name: "MyPool",
-    id: 0x132870564f00de22d252b3438c656691c87842c2 (=ksuid.KSUID),
+    id: 0x132870564f00de22d252b3438c656691c87842c2::=ksuid.KSUID,
     layout: {
-        order: "desc" (=order.Which),
+        order: "desc"::=order.Which,
         keys: [
             [
                 "ts"
-            ] (=field.Path)
-        ] (=field.List)
-    } (=order.SortKey),
+            ]::=field.Path
+        ]::=field.List
+    }::=order.SortKey,
     seek_stride: 65536,
     threshold: 524288000
-} (=pools.Config)
+}::=pools.Config
 ```
 
 Using `super -f lake`, this can be rendered in the same pretty-printed form as it
