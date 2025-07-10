@@ -154,7 +154,7 @@ In SuperDB, however, this value's type is type `record` with field `a`
 of type `array` of type `union` of `int64` and `string`,
 expressed succinctly in Super (SUP) format as
 ```
-{a:[(int64,string)]}
+{a:[int64|string]}
 ```
 This is super-structuredness in a nutshell.
 

@@ -56,7 +56,7 @@ set:=union(this) | values this,typeof(set)
 "foo"
 # expected output
 {set:|[1,2,3,"foo"]|}
-<|[(int64,string)]|>
+<|[int64|string]|>
 ```
 
 Create sets of values bucketed by key:

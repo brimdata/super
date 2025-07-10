@@ -192,7 +192,7 @@ In fact, we can see algebraic types at work here if we interrogate the type of
 such an expression:
 ```sh
 $ super -c "SELECT typeof(a) as type FROM (SELECT [1,'foo'] AS a)"       
-{type:<[(int64,string)]>}
+{type:<[int64|string]>}
 ```
 In this super-structured representation, the `type` field is a first-class type value
 representing the type array of elements of a sum type of `int64` and `string`.
