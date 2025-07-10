@@ -24,7 +24,7 @@ values abs(this)
 -1
 0
 -1.0
--1::=int8
+-1::int8
 1(uint8)
 "foo"
 # expected output
@@ -32,7 +32,7 @@ values abs(this)
 1
 0
 1.
-1::=int8
+1::int8
 1(uint8)
 error({message:"abs: not a number",on:"foo"})
 ```

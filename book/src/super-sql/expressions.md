@@ -551,9 +551,9 @@ values int8(this)
 "123"
 "200"
 # expected output
-1::=int8
+1::int8
 error({message:"cannot cast to int8",on:200})
-123::=int8
+123::int8
 error({message:"cannot cast to int8",on:"200"})
 ```
 

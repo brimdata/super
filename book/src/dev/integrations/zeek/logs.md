@@ -46,7 +46,7 @@ super -S -c 'head 1' conn.log
         resp_h: 10.47.3.155,
         resp_p: 3389::port
     },
-    proto: "tcp":zenum,
+    proto: "tcp"::=zenum,
     service: null::string,
     duration: 4.266ms,
     orig_bytes: 97::uint64,
