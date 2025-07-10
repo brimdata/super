@@ -88,7 +88,7 @@ echo '{number:1,word:"one"} {number:2,word:"two"} {number:3,word:"three"}' |
   super db load -q -use numbers -
 super db query -f text '
   from :branches
-  | yield pool.name + "@" + branch.name
+  | values pool.name + "@" + branch.name
   | sort'
 ```
 
@@ -111,7 +111,7 @@ The following file `hello.sup` is also used.
 _Source structured data from a local file_
 
 ```mdtest-command
-super -s -c 'file hello.sup | yield greeting'
+super -s -c 'file hello.sup | values greeting'
 ```
 =>
 ```mdtest-output
@@ -130,7 +130,7 @@ super -s -c 'file hello.sup format line'
 _Source structured data from a URI_
 ```
 super -s -c 'get https://raw.githubusercontent.com/brimdata/zui-insiders/main/package.json
-       | yield productName'
+       | values productName'
 ```
 =>
 ```
@@ -191,7 +191,7 @@ super db -lake example query -s '
     pass
     pool coinflips@trial =>
       c:=count()
-      | yield f"There were {int64(c)} flips"
+      | values f"There were {int64(c)} flips"
   ) | sort this'
 ```
 =>

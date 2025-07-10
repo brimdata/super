@@ -117,7 +117,7 @@ For example,
 ```mdtest-spq
 # spq
 op myop(): (
-  yield this
+  values this
 )
 
 myop()

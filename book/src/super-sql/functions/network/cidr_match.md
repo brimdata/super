@@ -20,7 +20,7 @@ If `network` is not type `net`, then an error is returned.
 Test whether values are IP addresses in a network:
 ```mdtest-spq
 # spq
-yield cidr_match(10.0.0.0/8, this)
+values cidr_match(10.0.0.0/8, this)
 # input
 10.1.2.129
 11.1.2.129
@@ -36,7 +36,7 @@ false
 It also works for IPs in complex values:
 ```mdtest-spq
 # spq
-yield cidr_match(10.0.0.0/8, this)
+values cidr_match(10.0.0.0/8, this)
 # input
 [10.1.2.129,11.1.2.129]
 {a:10.0.0.1}
@@ -50,7 +50,7 @@ false
 The first argument must be a network:
 ```mdtest-spq {data-layout="stacked"}
 # spq
-yield cidr_match([1,2,3], this)
+values cidr_match([1,2,3], this)
 # input
 10.0.0.1
 # expected output

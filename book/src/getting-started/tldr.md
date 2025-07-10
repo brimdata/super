@@ -22,7 +22,7 @@ super -c "count() by typeof(this)" file.json
 ```
 ### Display a sample value of each "shape" of JSON data
 ```
-super -c "any(this) by typeof(this) | yield any" file.json
+super -c "any(this) by typeof(this) | values any" file.json
 ```
 ### Read a CSV from stdin, process with a query, and write to stdout
 ```
@@ -45,7 +45,7 @@ super db -c "from logs | ? alert level >= 2"
 ```
 ... | super -c """
 switch is_error(this) (
-    case true ( yield error({message:"error into stage N", on:this}) )
+    case true ( values error({message:"error into stage N", on:this}) )
     default (
         <non-error processing here>
         ...

@@ -76,7 +76,7 @@ An empty record type has the same form as an empty record value, i.e., `{}`.
 For example,
 ```mdtest-spq
 # spq
-yield {a:0},{x}, {...r}, {a:0,...r,b:3}
+values {a:0},{x}, {...r}, {a:0,...r,b:3}
 # input
 {x:1,y:2,r:{a:1,b:2}}
 # expected output

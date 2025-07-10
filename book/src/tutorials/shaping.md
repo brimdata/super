@@ -220,7 +220,7 @@ type connection = {
     vlan: uint16
 }
 
-yield {kind,client,server,...this}
+values {kind,client,server,...this}
 # input
 {
   "kind": "dns",
@@ -360,8 +360,8 @@ type connection = {
     vlan: uint16
 }
 
-yield {original: this, shaped: shape(this, <connection>)}
-| yield has_error(shaped)
+values {original: this, shaped: shape(this, <connection>)}
+| values has_error(shaped)
   ? error({
       msg: "shaper error (see inner errors for details)",
       original,
@@ -400,8 +400,8 @@ type connection = {
     vlan: uint16
 }
 
-yield {original: this, cropped: crop(this, <connection>)}
-| yield original==cropped
+values {original: this, cropped: crop(this, <connection>)}
+| values original==cropped
   ? original
   : error({msg: "data was cropped", original, cropped})
 # input
@@ -537,8 +537,8 @@ we "discovered" above, e.g.,
 # spq
 switch len(this) (
     case 1 => pass
-    case 2 => yield shape(this, <{x:(int64,string),y:string}>)
-    default => yield error({kind:"unrecognized shape",value:this})
+    case 2 => values shape(this, <{x:(int64,string),y:string}>)
+    default => values error({kind:"unrecognized shape",value:this})
 )
 | sort this desc
 # input

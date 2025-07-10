@@ -21,7 +21,7 @@ For example,
 ```mdtest-spq
 # spq
 over a with name=s => (
-  yield {name,elem:this}
+  values {name,elem:this}
 )
 # input
 {s:"foo",a:[1,2]}
@@ -34,7 +34,7 @@ over a with name=s => (
 
 Here the [lateral scope](#lateral-scope), described below, creates a subquery
 ```
-yield {name,elem:this}
+values {name,elem:this}
 ```
 for each subsequence of values derived from each outer input value.
 In the example above, there are two input values:
@@ -60,7 +60,7 @@ simply referring to its name without assignment, e.g.,
 ```mdtest-spq
 # spq
 over a with s => (
-  yield {s,elem:this}
+  values {s,elem:this}
 )
 # input
 {s:"foo",a:[1,2]}
@@ -144,7 +144,7 @@ lateral expression is evaluated, the lateral operators are run to completion,
 e.g.,
 ```mdtest-spq
 # spq
-yield (
+values (
   over this | sum(this)
 )
 # input
@@ -179,7 +179,7 @@ at the conclusion of the lateral pipeline, they are automatically wrapped in
 an array, e.g.,
 ```mdtest-spq
 # spq
-yield {s:(over x | yield this+1)}
+values {s:(over x | values this+1)}
 # input
 {x:1}
 {x:[2]}
@@ -195,7 +195,7 @@ always receives consistently packaged values by explicitly wrapping the result
 of the lateral scope, e.g.,
 ```mdtest-spq
 # spq
-yield {s:(over x | yield this+1 | collect(this))}
+values {s:(over x | values this+1 | collect(this))}
 # input
 {x:1}
 {x:[2]}

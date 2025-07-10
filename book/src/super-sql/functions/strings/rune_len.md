@@ -19,7 +19,7 @@ this length is the same as the number of UTF-8 characters.
 The length in UTF-8 characters of a smiley is 1:
 ```mdtest-spq
 # spq
-yield rune_len(this)
+values rune_len(this)
 # input
 "hello"
 "😎"
@@ -31,7 +31,7 @@ yield rune_len(this)
 The length in bytes of a smiley is 4:
 ```mdtest-spq
 # spq
-yield len(bytes(this))
+values len(bytes(this))
 # input
 "hello"
 "😎"

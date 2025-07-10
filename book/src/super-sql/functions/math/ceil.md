@@ -18,7 +18,7 @@ which must be a numeric type.  The return type retains the type of the argument.
 The ceiling of various numbers:
 ```mdtest-spq
 # spq
-yield ceil(this)
+values ceil(this)
 # input
 1.5
 -1.5

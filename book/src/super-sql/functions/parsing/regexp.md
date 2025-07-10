@@ -21,7 +21,7 @@ groups) if there are any. A null value indicates no match.
 Regexp returns an array of the match and its subexpressions:
 ```mdtest-spq
 # spq
-yield regexp(/foo(.?) (\w+) fr.*/, this)
+values regexp(/foo(.?) (\w+) fr.*/, this)
 # input
 "seafood fool friend"
 # expected output
@@ -31,7 +31,7 @@ yield regexp(/foo(.?) (\w+) fr.*/, this)
 A null is returned if there is no match:
 ```mdtest-spq
 # spq
-yield regexp("bar", this)
+values regexp("bar", this)
 # input
 "foo"
 # expected output

@@ -22,7 +22,7 @@ The `yield` keyword is optional since it can be used as a
 _Hello, world_
 ```mdtest-spq
 # spq
-yield "hello, world"
+values "hello, world"
 # input
 null
 # expected output
@@ -32,7 +32,7 @@ null
 _Yield evaluates each expression for every input value_
 ```mdtest-spq
 # spq
-yield 1,2
+values 1,2
 # input
 null
 null
@@ -49,7 +49,7 @@ null
 _Yield typically operates on its input_
 ```mdtest-spq
 # spq
-yield this*2+1
+values this*2+1
 # input
 1
 2
@@ -63,7 +63,7 @@ yield this*2+1
 _Yield is often used to transform records_
 ```mdtest-spq
 # spq
-yield [a,b],[b,a] | collect(this)
+values [a,b],[b,a] | collect(this)
 # input
 {a:1,b:2}
 {a:3,b:4}

@@ -5,7 +5,7 @@ part that just explains the errors here.
 
 TODO: explain under, change error missing when operating on errors, e.g.,
 ```
-; echo 'error({x:1})' | super -c 'yield x' -
+; echo 'error({x:1})' | super -c 'values x' -
 error("missing")
 ```
 The error should be structured... can't deference error value on:this
@@ -74,7 +74,7 @@ A [shaper](shaping.md) could catch the bad value (e.g., as a default
 case in a [`switch`](operators/switch.md) topology) and propagate it as
 an error using the expression:
 ```
-yield error({message:"unrecognized input",input:this})
+values error({message:"unrecognized input",input:this})
 ```
 then such errors could be detected and searched for downstream with the
 [`is_error` function](functions/is_error.md).
@@ -143,7 +143,7 @@ a reference to something that does not exist is an error of type
 `error(string)` whose value is `error("missing")`.  For example,
 ```mdtest-spq
 # spq
-yield x
+values x
 # input
 {x:1}
 {y:2}
@@ -158,7 +158,7 @@ The [`quiet` function](functions/quiet.md) transforms missing errors into
 by most operators, in particular `yield`.  For example,
 ```mdtest-spq
 # spq
-yield quiet(x)
+values quiet(x)
 # input
 {x:1}
 {y:2}
@@ -171,7 +171,7 @@ And what if you want a default value instead of a "missing" error?  The
 null, `error("missing")`, or `error("quiet")`.  For example,
 ```mdtest-spq
 # spq
-yield coalesce(x, 0)
+values coalesce(x, 0)
 # input
 {x:1}
 {y:2}

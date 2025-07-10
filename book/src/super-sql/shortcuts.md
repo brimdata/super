@@ -39,7 +39,7 @@ then the abbreviation is treated as having an implied `yield` operator, e.g.,
 ```
 is shorthand for
 ```
-yield {s:lower(s)}
+values {s:lower(s)}
 ```
 
 Another common query pattern involves adding or mutating fields of records
@@ -82,6 +82,6 @@ search foo
 where is(<foo>)
 aggregate
     count()
-yield {a:x+1,b:y-1}
+values {a:x+1,b:y-1}
 put a:=x+1,b:=y-1
 ```

@@ -17,7 +17,7 @@ result in `NaN`.
 The square root of various numbers:
 ```mdtest-spq
 # spq
-yield sqrt(this)
+values sqrt(this)
 # input
 4
 2.

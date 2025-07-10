@@ -402,7 +402,7 @@ file fruit.json
   file people.json
 ) on flavor=likes eaterinfo:=this
 | rename fruit:=name
-| yield {...this,...eaterinfo}
+| values {...this,...eaterinfo}
 | drop eaterinfo
 ```
 

@@ -54,7 +54,7 @@ satisfies `<predicate>`
 _Join some numbers_
 ```mdtest-spq-notyet
 # spq
-join (from (yield 1,3)) on left=right | sort
+join (from (values 1,3)) on left=right | sort
 # input
 1
 2
@@ -67,7 +67,7 @@ join (from (yield 1,3)) on left=right | sort
 _Join some records with scalar keys_
 ```mdtest-spq-notyet
 # spq
-join as {recs,key} (from (yield "foo","baz")) on key=recs.key | yield recs.value | sort
+join as {recs,key} (from (values "foo","baz")) on key=recs.key | values recs.value | sort
 # input
 {key:"foo",value:1}
 {key:"bar",value:2}
@@ -80,7 +80,7 @@ join as {recs,key} (from (yield "foo","baz")) on key=recs.key | yield recs.value
 _Join some records requiring a cross-product computation_
 ```mdtest-spq-notyet
 # spq
-join as {b,a} (from (yield {id:"apple"},{id:"chair"},{id:"car"})) on grep("a", a.id) and grep("b", b.key) | sort
+join as {b,a} (from (values {id:"apple"},{id:"chair"},{id:"car"})) on grep("a", a.id) and grep("b", b.key) | sort
 # input
 {key:"foo",value:1}
 {key:"bar",value:2}
@@ -95,7 +95,7 @@ join as {b,a} (from (yield {id:"apple"},{id:"chair"},{id:"car"})) on grep("a", a
 _Anti-join some numbers_
 ```mdtest-spq-notyet
 # spq
-anti join (from (yield 1,3)) on left=right | sort
+anti join (from (values 1,3)) on left=right | sort
 # input
 1
 2

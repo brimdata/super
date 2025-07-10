@@ -37,7 +37,7 @@ Note that when the field references are all top level,
 [record literal](../expressions.md#record-expressions)
 using a spread operator of the form:
 ```
-yield {...this, <field>:<expr> [, <field>:<expr>...]}
+values {...this, <field>:<expr> [, <field>:<expr>...]}
 ```
 
 ### Examples
@@ -65,7 +65,7 @@ c:=3
 _A `put` operation can also be done with a record literal_
 ```mdtest-spq
 # spq
-yield {...this, c:3}
+values {...this, c:3}
 # input
 {a:1,b:2}
 # expected output

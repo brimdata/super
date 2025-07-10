@@ -46,7 +46,7 @@ and
 
 ```mdtest-spq
 # spq
-yield <foo>
+values <foo>
 # input
 1(=foo)
 # expected output
@@ -57,7 +57,7 @@ If the type name referred to in this way does not exist, then the type value
 reference results in `error("missing")`.  For example,
 ```mdtest-spq
 # spq
-yield <foo>
+values <foo>
 # input
 1
 # expected output

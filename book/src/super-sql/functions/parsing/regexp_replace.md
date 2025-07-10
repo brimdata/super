@@ -33,7 +33,7 @@ Replace regular expression matches with a letter:
 
 ```mdtest-spq
 # spq
-yield regexp_replace(this, /ax*b/, "T")
+values regexp_replace(this, /ax*b/, "T")
 # input
 "-ab-axxb-"
 # expected output
@@ -43,7 +43,7 @@ yield regexp_replace(this, /ax*b/, "T")
 Replace regular expression matches using numeric references to submatches:
 ```mdtest-spq
 # spq
-yield regexp_replace(this,
+values regexp_replace(this,
                      /(\w+):\s+(\w+)$/,
                      "$1=$2")
 # input
@@ -55,7 +55,7 @@ yield regexp_replace(this,
 Replace regular expression matches using named references:
 ```mdtest-spq
 # spq
-yield regexp_replace(this,
+values regexp_replace(this,
                      /(?P<key>\w+):\s+(?P<value>\w+)$/,
                      "$key=$value")
 # input
@@ -67,7 +67,7 @@ yield regexp_replace(this,
 Wrap a named reference in curly braces to avoid ambiguity:
 ```mdtest-spq
 # spq
-yield regexp_replace(this,
+values regexp_replace(this,
                      /(?P<key>\w+):\s+(?P<value>\w+)$/,
                      "$key=${value}AppendedText")
 # input

@@ -32,7 +32,7 @@ union(this)
 Create sets continuously from values in a simple sequence:
 ```mdtest-spq
 # spq
-yield union(this)
+values union(this)
 # input
 1
 2
@@ -48,7 +48,7 @@ yield union(this)
 Mixed types create a union type for the set elements:
 ```mdtest-spq
 # spq
-set:=union(this) | yield this,typeof(set)
+set:=union(this) | values this,typeof(set)
 # input
 1
 2

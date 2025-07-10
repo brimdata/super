@@ -21,16 +21,16 @@ Quiet errors are ignored by operators `aggregate`, `cut`, and `yield`.
 Yield processes a quiet error and thus no output:
 ```mdtest-spq
 # spq
-yield quiet(this)
+values quiet(this)
 # input
 error("missing")
 # expected output
 ```
 
-Without quiet, yield produces the missing error:
+Without quiet, values produces the missing error:
 ```mdtest-spq
 # spq
-yield this
+values this
 # input
 error("missing")
 # expected output

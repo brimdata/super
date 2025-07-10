@@ -18,7 +18,7 @@ occurs in string `s`. If `sub` is not a sub-string of `s` then 0 is returned.
 
 ```mdtest-spq
 # spq
-yield position(s, sub)
+values position(s, sub)
 # input
 {s:"foobar",sub:"bar"}
 # expected output
