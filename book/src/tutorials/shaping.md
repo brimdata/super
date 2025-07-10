@@ -440,14 +440,14 @@ For example, an `int64` and a `string` can be merged into a common
 type of union `(int64,string)`, e.g., the value sequence `1 "foo"`
 can be fused into the single-type sequence:
 ```
-1((int64,string))
-"foo"((int64,string))
+1::(int64|string)
+"foo"::(int64|string)
 ```
 The second technique is to merge fields of records, analogous to a spread
 expression.  Here, the value sequence `{a:1}{b:"foo"}` may be
 fused into the single-type sequence:
 ```
-{a:1,b:null(string)}
+{a:1,b:null::string}
 {a:null::int64,b:"foo"}
 ```
 
@@ -455,8 +455,8 @@ Of course, these two techniques can be powerfully combined,
 e.g., where the value sequence `{a:1}{a:"foo",b:2}` may be
 fused into the single-type sequence:
 ```
-{a:1((int64,string)),b:null::int64}
-{a:"foo"((int64,string)),b:2}
+{a:1::(int64|string),b:null::int64}
+{a:"foo"::(int64|string),b:2}
 ```
 
 To perform fusion, Zed currently includes two key mechanisms
@@ -476,7 +476,7 @@ fuse
 {y:"foo"}
 {x:2,y:"bar"}
 # expected output
-{x:1,y:null(string)}
+{x:1,y:null::string}
 {x:null::int64,y:"foo"}
 {x:2,y:"bar"}
 ```
@@ -490,9 +490,9 @@ fuse
 {x:"foo",y:"foo"}
 {x:2,y:"bar"}
 # expected output
-{x:1((int64,string)),y:null(string)}
-{x:"foo"((int64,string)),y:"foo"}
-{x:2((int64,string)),y:"bar"}
+{x:1::(int64|string),y:null::string}
+{x:"foo"::(int64|string),y:"foo"}
+{x:2::(int64|string),y:"bar"}
 ```
 
 ### Fuse Aggregate Function
@@ -548,7 +548,7 @@ switch len(this) (
 {a:1,b:2,c:3}
 # expected output
 error({kind:"unrecognized shape",value:{a:1,b:2,c:3}})
-{x:"foo"((int64,string)),y:"foo"}
-{x:2((int64,string)),y:"bar"}
+{x:"foo"::(int64|string),y:"foo"}
+{x:2::(int64|string),y:"bar"}
 {x:1}
 ```

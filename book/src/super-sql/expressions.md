@@ -498,8 +498,8 @@ values cast(this,<(int64,string)>)
 1
 "foo"
 # expected output
-1((int64,string))
-"foo"((int64,string))
+1::(int64|string)
+"foo"::(int64|string)
 ```
 
 The value underlying a union-tagged value is accessed with the
@@ -508,7 +508,7 @@ The value underlying a union-tagged value is accessed with the
 # spq
 values under(this)
 # input
-1((int64,string))
+1::(int64|string)
 # expected output
 1
 ```

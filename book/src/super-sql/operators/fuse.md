@@ -63,8 +63,8 @@ fuse
 {a:1}
 {a:"foo"}
 # expected output
-{a:1((int64,string))}
-{a:"foo"((int64,string))}
+{a:1::(int64|string)}
+{a:"foo"::(int64|string)}
 ```
 
 _Fuse records with complex type variation_

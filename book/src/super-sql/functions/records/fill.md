@@ -33,7 +33,7 @@ fill(this, <{a:int64,b:string}>)
 # input
 {a:1}
 # expected output
-{a:1,b:null(string)}
+{a:1,b:null::string}
 ```
 
 _Fill an array of records_

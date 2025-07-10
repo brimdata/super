@@ -504,7 +504,7 @@ super -s out.parquet
 ```
 but the data was necessarily changed (by inserting nulls):
 ```mdtest-output
-{x:1,s:null(string)}
+{x:1,s:null::string}
 {x:null::int64,s:"hello"}
 ```
 
