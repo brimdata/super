@@ -20,7 +20,7 @@ scoping.
 For example,
 ```mdtest-spq
 # spq
-over a with name=s => (
+over a with name=s into (
   values {name,elem:this}
 )
 # input
@@ -59,7 +59,7 @@ You can also import a parent-scope field reference into the inner scope by
 simply referring to its name without assignment, e.g.,
 ```mdtest-spq
 # spq
-over a with s => (
+over a with s into (
   values {s,elem:this}
 )
 # input
@@ -73,11 +73,11 @@ over a with s => (
 
 ## Lateral Scope
 
-A lateral scope has the form `=> ( <query> )` and currently appears
+A lateral scope has the form `into ( <query> )` and currently appears
 only the context of an [`over` operator](operators/over.md),
 as illustrated above, and has the form:
 ```
-over ... with <elem> [, <elem> ...] => ( <query> )
+over ... with <elem> [, <elem> ...] into ( <query> )
 ```
 where `<elem>` has either an assignment form
 ```
@@ -113,7 +113,7 @@ reads all values of the subsequence, sorts them, emits them, then
 repeats the process for the next subsequence.  For example,
 ```mdtest-spq
 # spq
-over this => (
+over this into (
   sort this | collect(this)
 )
 # input

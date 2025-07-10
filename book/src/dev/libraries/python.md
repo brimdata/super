@@ -41,7 +41,7 @@ python3 <<EOF
 import superdb
 
 # Connect to the default lake at http://localhost:9867.  To use a
-# different lake, supply its URL via the SUPER_DB_LAKE environment variable
+# different lake, supply its URL via the SUPER_DB environment variable
 # or as an argument here.
 client = superdb.Client()
 

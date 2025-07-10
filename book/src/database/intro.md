@@ -165,8 +165,8 @@ enable this by default while allowing for separate lake storage when desired,
 `super db` checks each of the following in order to attempt to locate an existing
 lake.
 
-1. The contents of the `-lake` option (if specified)
-2. The contents of the `SUPER_DB_LAKE` environment variable (if defined)
+1. The contents of the `-db` option (if specified)
+2. The contents of the `SUPER_DB` environment variable (if defined)
 3. A lake service running locally at `http://localhost:9867` (if a socket
    is listening at that port)
 4. A `super` subdirectory below a path in the

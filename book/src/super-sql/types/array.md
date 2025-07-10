@@ -45,7 +45,7 @@ An empty array value has the form `[]`.
 
 #### Array Type
 
-Aan array type has the syntax defined for the
+An array type has the syntax defined for the
 [array type](../../formats/sup.md#251-record-type)
 in the [SUP format](../../formats/sup/md), i.e.,
 ```

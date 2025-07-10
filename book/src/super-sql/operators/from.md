@@ -7,16 +7,6 @@
 ```
 from <pool>[@<commitish>]
 from <pattern>
-file <path> [format <format>]
-get <uri> [format <format>]
-from (
-   pool <pool>[@<commitish>] [ => <branch> ]
-   pool <pattern>
-   file <path> [format <format>] [ => <branch> ]
-   get <uri> [format <format>] [ => <branch> ]
-   pass
-   ...
-)
 ```
 ### Description
 
@@ -50,26 +40,26 @@ from PoolOne
 | fork
   ( op1 | op2 | ... )
   ( op1 | op2 | ... )
-| merge ts
-| ...
+| merge ts | ...
 ```
 
 Or multiple pools can be accessed and, for example, joined:
 ```
-from (
-  pool PoolOne => op1 | op2 | ...
-  pool PoolTwo => op1 | op2 | ...
-) | join on key=key | ...
+fork
+  ( from PoolOne | op1 | op2 | ... )
+  ( from PoolTwo | op1 | op2 | ... )
+| join on key=key | ...
 ```
 
 Similarly, data can be routed to different pipeline branches with replication
 using the [`switch` operator](switch.md):
 ```
-from ... | switch color (
-  case "red" => op1 | op2 | ...
-  case "blue" => op1 | op2 | ...
-  default => op1 | op2 | ...
-) | ...
+from ...
+| switch color
+  case "red" ( op1 | op2 | ... )
+  case "blue" ( op1 | op2 | ... )
+  default ( op1 | op2 | ... )
+| ...
 ```
 
 ### Input Data
@@ -78,7 +68,7 @@ Examples below below assume the existence of the SuperDB lake created and popula
 by the following commands:
 
 ```mdtest-command
-export SUPER_DB_LAKE=example
+export SUPER_DB=example
 super db -q init
 super db -q create -orderby flip:desc coinflips
 echo '{flip:1,result:"heads"} {flip:2,result:"tails"}' |
@@ -88,7 +78,7 @@ echo '{flip:3,result:"heads"}' | super db load -q -use coinflips@trial -
 super db -q create numbers
 echo '{number:1,word:"one"} {number:2,word:"two"} {number:3,word:"three"}' |
   super db load -q -use numbers -
-super db query -f text '
+super db -f text -c '
   from :branches
   | values pool.name + "@" + branch.name
   | sort'
@@ -113,7 +103,7 @@ The following file `hello.sup` is also used.
 _Source structured data from a local file_
 
 ```mdtest-command
-super -s -c 'file hello.sup | values greeting'
+super -s -c 'from hello.sup | values greeting'
 ```
 =>
 ```mdtest-output
@@ -122,7 +112,7 @@ super -s -c 'file hello.sup | values greeting'
 
 _Source data from a local file, but in line format_
 ```mdtest-command
-super -s -c 'file hello.sup format line'
+super -s -c 'from hello.sup format line'
 ```
 =>
 ```mdtest-output
@@ -131,7 +121,7 @@ super -s -c 'file hello.sup format line'
 
 _Source structured data from a URI_
 ```
-super -s -c 'get https://raw.githubusercontent.com/brimdata/zui-insiders/main/package.json
+super -s -c 'from https://raw.githubusercontent.com/brimdata/zui-insiders/main/package.json
        | values productName'
 ```
 =>
@@ -141,7 +131,7 @@ super -s -c 'get https://raw.githubusercontent.com/brimdata/zui-insiders/main/pa
 
 _Source data from the `main` branch of a pool_
 ```mdtest-command
-super db -db example query -s 'from coinflips'
+super db -db example -s -c 'from coinflips'
 ```
 =>
 ```mdtest-output
@@ -151,7 +141,7 @@ super db -db example query -s 'from coinflips'
 
 _Source data from a specific branch of a pool_
 ```mdtest-command
-super db -db example query -s 'from coinflips@trial'
+super db -db example -s -c 'from coinflips@trial'
 ```
 =>
 ```mdtest-output
@@ -162,7 +152,7 @@ super db -db example query -s 'from coinflips@trial'
 
 _Count the number of values in the `main` branch of all pools_
 ```mdtest-command
-super db -db example query -f text 'from * | count()'
+super db -db example -f text -c 'from * | count()'
 ```
 =>
 ```mdtest-output
@@ -170,11 +160,12 @@ super db -db example query -f text 'from * | count()'
 ```
 _Join the data from multiple pools_
 ```mdtest-command
-super db -db example query -s '
+super db -db example -s -c '
   from coinflips | sort flip
   | join (
     from numbers | sort number
-  ) on flip=number word'
+  ) on left.flip=right.number
+  | values {...left, word:right.word}'
 ```
 =>
 ```mdtest-output
@@ -184,17 +175,18 @@ super db -db example query -s '
 
 _Use `pass` to combine our join output with data from yet another source_
 ```mdtest-command
-super db -db example query -s '
+super db -db example -s -c '
   from coinflips | sort flip
   | join (
     from numbers | sort number
-  ) on flip=number word
-  | from (
-    pass
-    pool coinflips@trial =>
-      c:=count()
-      | values f"There were {int64(c)} flips"
-  ) | sort this'
+  ) on left.flip=right.number
+  | values {...left, word:right.word}
+  | fork 
+    ( pass )
+    ( from coinflips@trial 
+      | c:=count()
+      | values f"There were {int64(c)} flips" )
+  | sort this'
 ```
 =>
 ```mdtest-output

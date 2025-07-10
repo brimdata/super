@@ -39,7 +39,7 @@ but you can also run Hello World with a database.
 
 To create a database and populate it with data, run the following commands:
 ```
-export SUPER_DB_LAKE=./scratch
+export SUPER_DB=./scratch
 super db init
 super db create Demo
 echo '{Message:"hello, world"}' | super db load -use Demo -

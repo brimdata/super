@@ -50,11 +50,10 @@ corresponding branch (or dropped) based on the switch clauses. For example:
 
 ```mdtest-spq
 # spq
-switch this (
-  case 1 => values {val:this,message:"one"}
-  case 2 => values {val:this,message:"two"}
-  default => values {val:this,message:"many"}
-)
+switch this
+  case 1 ( values {val:this,message:"one"} )
+  case 2 ( values {val:this,message:"two"} )
+  default ( values {val:this,message:"many"} )
 | merge val
 # input
 1

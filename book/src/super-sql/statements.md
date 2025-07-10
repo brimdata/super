@@ -201,7 +201,7 @@ so that when we prepare and query the pool via
 super db -q -db test init
 super db -q -db test create -use example
 echo '{greeting: "hello"}' | super db -q -db test load -
-super db -db test query -s -I count-pool.spq
+super db -db test -s -I count-pool.spq
 ```
 
 it produces the output

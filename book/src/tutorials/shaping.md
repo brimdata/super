@@ -339,7 +339,7 @@ shape(this, <connection>)
   "vlan": "available"
 }
 # expected output
-{kind:"dns",client:{addr:error({message:"cannot cast to ip",on:"39 Elm Street"}),port:41772::(port=uint16)},server:{addr:10.0.0.100,port:53(port)}::=socket,vlan:error({message:"cannot cast to uint16",on:"available"})}
+{kind:"dns",client:{addr:error({message:"cannot cast to ip",on:"39 Elm Street"}),port:41772::(port=uint16)},server:{addr:10.0.0.100,port:53::port}::=socket,vlan:error({message:"cannot cast to uint16",on:"available"})}
 ```
 
 Since these error values are nested inside an otherwise healthy record, adding

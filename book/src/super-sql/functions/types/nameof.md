@@ -20,7 +20,7 @@ A named type yields its name and unnamed types values a missing error:
 # spq
 values nameof(this)
 # input
-80(port=int16)
+80::(port=int16)
 80
 # expected output
 "port"
