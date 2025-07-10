@@ -144,10 +144,10 @@ produces
 Doing searches like this in `jq` would be hard.
 
 That said, we can emulate the `jq` transformation stance by explicitly
-indicating that we want to [`yield`](../language/operators/yield.md)
+indicating that we want to [`values`](../language/operators/values.md)
 the result of the expression evaluated for each input value, e.g.,
 ```mdtest-command
-echo '1 2 3' | super -s -c 'yield 2' -
+echo '1 2 3' | super -s -c 'values 2' -
 ```
 now gives the same answer as `jq`:
 ```mdtest-output
@@ -291,7 +291,7 @@ while in super-structured data, data is nested with "records" and arrays (as wel
 are rather flexible with `super` and look a bit like JavaScript
 or `jq` syntax, e.g.,
 ```mdtest-command
-echo '1 2 3' | super -s -c 'yield {kind:"counter",val:this}' -
+echo '1 2 3' | super -s -c 'values {kind:"counter",val:this}' -
 ```
 produces
 ```mdtest-output
@@ -299,9 +299,9 @@ produces
 {kind:"counter",val:2}
 {kind:"counter",val:3}
 ```
-Note that like the search shortcut, you can also drop the `yield` keyword
+Note that like the search shortcut, you can also drop the `values` keyword
 here because the record literal [implies](../language/pipeline-model.md#implied-operators)
-the [`yield` operator](../language/operators/yield.md), e.g.,
+the [`values` operator](../language/operators/values.md), e.g.,
 ```mdtest-command
 echo '1 2 3' | super -s -c '{kind:"counter",val:this}' -
 ```
@@ -399,7 +399,7 @@ don't have to worry about them even when they show up.
 For example, this query is perfectly happy to operate on the union values
 that are implied by a mixed-type array:
 ```mdtest-command
-echo '[1, "foo", 2, "bar"]' | super -s -c 'yield this[3],this[2]' -
+echo '[1, "foo", 2, "bar"]' | super -s -c 'values this[3],this[2]' -
 ```
 produces
 ```mdtest-output
@@ -409,7 +409,7 @@ produces
 but under the covers, the elements of the array have a union type of
 `int64` and `string`, which is written `(int64,string)`, e.g.,
 ```mdtest-command
-echo '[1, "foo", 2, "bar"]' | super -s -c 'yield typeof(this)' -
+echo '[1, "foo", 2, "bar"]' | super -s -c 'values typeof(this)' -
 ```
 produces
 ```mdtest-output
@@ -434,7 +434,7 @@ In other words, the super data model has
 The type of any value in `super` can be accessed via the
 [`typeof` function](../language/functions/typeof.md), e.g.,
 ```mdtest-command
-echo '1 "foo" 10.0.0.1' | super -s -c 'yield typeof(this)' -
+echo '1 "foo" 10.0.0.1' | super -s -c 'values typeof(this)' -
 ```
 produces
 ```mdtest-output
@@ -448,7 +448,7 @@ Au contraire, this is really quite powerful because we can
 use types as values to functions, e.g., as a dynamic argument to
 the [`cast` function](../language/functions/cast.md):
 ```mdtest-command
-echo '{a:0,b:"2"}{a:0,b:"3"}' | super -s -c 'yield cast(b, typeof(a))' -
+echo '{a:0,b:"2"}{a:0,b:"3"}' | super -s -c 'values cast(b, typeof(a))' -
 ```
 produces
 ```mdtest-output
@@ -498,30 +498,30 @@ With `super` of course, these are different super-structured types so
 the result is false, e.g.,
 ```mdtest-command
 echo '{"a":{"s":"foo"},"b":{"x":1,"y":2}}' |
-  super -s -c 'yield typeof(a)==typeof(b)' -
+  super -s -c 'values typeof(a)==typeof(b)' -
 ```
 produces
 ```mdtest-output
 false
 ```
 
-## Sample
+## Shapes
 
 Sometimes you'd like to see a sample value of each shape, not its type.
 This is easy to do with the [`any` aggregate function](../language/aggregates/any.md),
 e.g.,
 ```mdtest-command
 echo '{x:1,y:2}{s:"foo"}{x:3,y:4}' |
-  super -s -c 'val:=any(this) by typeof(this) | sort val | yield val' -
+  super -s -c 'val:=any(this) by typeof(this) | sort val | values val' -
 ```
 produces
 ```mdtest-output
 {s:"foo"}
 {x:1,y:2}
 ```
-We like this pattern so much there is a shortcut [`sample` operator](../language/operators/sample.md), e.g.,
+We like this pattern so much there is a shortcut [`shapes` operator](../language/operators/shapes.md), e.g.,
 ```mdtest-command
-echo '{x:1,y:2}{s:"foo"}{x:3,y:4}' | super -s -c 'sample this | sort this' -
+echo '{x:1,y:2}{s:"foo"}{x:3,y:4}' | super -s -c 'shapes this | sort this' -
 ```
 emits the same result:
 ```mdtest-output
@@ -572,7 +572,7 @@ Now you can see all the detail.
 This turns out to be so useful, especially with large amounts of messy input data,
 you will often find yourself fusing data then sampling it, e.g.,
 ```mdtest-command
-echo '{a:1,b:null}{a:null,b:[2,3,4]}' | super -S -c 'fuse | sample' -
+echo '{a:1,b:null}{a:null,b:[2,3,4]}' | super -S -c 'fuse | shapes' -
 ```
 produces a comprehensively-typed sample:
 ```mdtest-output
@@ -583,7 +583,7 @@ produces a comprehensively-typed sample:
 ```
 As you explore data in this fashion, you will often type various searches
 to slice and dice the data as you get a feel for it all while sending
-your interactive search results to `fuse | sample`.
+your interactive search results to `fuse | shapes`.
 
 To appreciate all this, let's have a look next at some real-world data...
 
@@ -665,14 +665,14 @@ super -s -c 'over this | count() by kind(this)' prs.json
 ```
 produces
 ```mdtest-output
-{kind:"record",count:30(uint64)}
+{kind:"record",count:30::uint64}
 ```
 Ok, they're all records.  Good, this should be easy!
 
 The records were all originally JSON objects.
-Maybe we can just use "sample" to have a deeper look...
+Maybe we can just use "shapes" to have a deeper look...
 ```
-super -S -c 'over this | sample' prs.json
+super -S -c 'over this | shapes' prs.json
 ```
 
 > Here we are using `-S`, which is like `-s`, but instead of formatting each
@@ -682,9 +682,9 @@ super -S -c 'over this | sample' prs.json
 Ugh, that output is still pretty big.  It's not 10k lines but it's still
 more than 700 lines of pretty-printed SUP.
 
-Ok, maybe it's not so bad.  Let's check how many shapes there are with `sample`...
+Ok, maybe it's not so bad.  Let's check how many shapes there are with `shapes`...
 ```mdtest-command dir=docs/tutorials
-super -s -c 'over this | sample | count()' prs.json
+super -s -c 'over this | shapes | count()' prs.json
 ```
 produces
 ```mdtest-output
@@ -696,7 +696,7 @@ They must each be really big.  Let's check that out.
 We can use the [`len` function](../language/functions/len.md) on the records to
 see the size of each of the four records:
 ```mdtest-command dir=docs/tutorials
-super -s -c 'over this | sample | len(this) | sort this' prs.json
+super -s -c 'over this | shapes | len(this) | sort this' prs.json
 ```
 and we get
 ```mdtest-output
@@ -707,7 +707,7 @@ and we get
 Ok, this isn't so bad... two shapes each have 36 fields but one is length zero?!
 That outlier could only be the empty record.  Let's check:
 ```mdtest-command dir=docs/tutorials
-super -s -c 'over this | sample | len(this)==0' prs.json
+super -s -c 'over this | shapes | len(this)==0' prs.json
 ```
 produces
 ```mdtest-output
@@ -728,21 +728,21 @@ Who knows why they are there?  No fun. Real-world data is messy.
 
 How about we fuse the 3 shapes together and have a look at the result:
 ```
-super -S -c 'over this | fuse | sample' prs.json
+super -S -c 'over this | fuse | shapes' prs.json
 ```
 We won't display the result here as it's still pretty big.  But you can
 give it a try.  It's 379 lines.
 
 But let's break down what's taking up all this space.
 
-We can take the output from `fuse | sample` and list the fields with
+We can take the output from `fuse | shapes` and list the fields with
 and their "kind".  Note that when we do an `over this` with records as
 input, we get a new record value for each field structured as a key/value pair:
 ```mdtest-command dir=docs/tutorials
 super -f table -c '
   over this
   | fuse
-  | sample
+  | shapes
   | over this
   | {field:key[1],kind:kind(value)}
 ' prs.json
@@ -788,18 +788,18 @@ auto_merge          primitive
 active_lock_reason  primitive
 ```
 With this list of top-level fields, we can easily explore the different
-pieces of their structure with `sample`.  Let's have a look at a few of the
+pieces of their structure with `shapes`.  Let's have a look at a few of the
 record fields by giving these one-liners each a try and looking at the output:
 ```
-super -S -c 'over this | sample head' prs.json
-super -S -c 'over this | sample base' prs.json
-super -S -c 'over this | sample _links' prs.json
+super -S -c 'over this | shapes head' prs.json
+super -S -c 'over this | shapes base' prs.json
+super -S -c 'over this | shapes _links' prs.json
 ```
 While these fields have some useful information, we'll decide to drop them here
 and focus on other top-level fields.  To do this, we can use the
 [`drop` operator](../language/operators/drop.md) to whittle down the data:
 ```
-super -S -c 'over this | fuse | drop head,base,_link | sample' prs.json
+super -S -c 'over this | fuse | drop head,base,_link | shapes' prs.json
 ```
 Ok, this looks more reasonable and is now only 120 lines of pretty-printed SUP.
 
@@ -807,7 +807,7 @@ One more annoying detail here about JSON: time values are stored as strings,
 in this case, in ISO format, e.g., we can pull this value out with
 this query:
 ```mdtest-command dir=docs/tutorials
-super -s -c 'over this | head 1 | yield created_at' prs.json
+super -s -c 'over this | head 1 | values created_at' prs.json
 ```
 which produces this string:
 ```mdtest-output
@@ -816,7 +816,7 @@ which produces this string:
 Since the super data model has a native `time` type and we might want to do native date comparisons
 on these time fields, we can easily translate the string to a time with a cast, e.g.,
 ```mdtest-command dir=docs/tutorials
-super -s -c 'over this | head 1 | yield time(created_at)' prs.json
+super -s -c 'over this | head 1 | values time(created_at)' prs.json
 ```
 produces the native time value:
 ```mdtest-output
@@ -824,7 +824,7 @@ produces the native time value:
 ```
 To be sure, you can check any value's type with the `typeof` function, e.g.,
 ```mdtest-command dir=docs/tutorials
-super -s -c 'over this | head 1 | yield time(created_at) | typeof(this)' prs.json
+super -s -c 'over this | head 1 | values time(created_at) | typeof(this)' prs.json
 ```
 produces the native time value:
 ```mdtest-output
@@ -846,7 +846,7 @@ super -c 'over this | len(this) != 0 | fuse' prs.json > prs1.bsup
 We can check that worked with `count`:
 ```
 super -s -c 'count()' prs1.bsup
-super -s -c 'sample | count()' prs1.bsup
+super -s -c 'shapes | count()' prs1.bsup
 ```
 produces
 ```
@@ -1074,7 +1074,7 @@ But we need a "graph edge" between the requesting user and the reviewers.
 To do this, we need to reference the `user.login` from the top-level scope within the
 lateral scope.  This can be done by
 bringing that value into the scope using a `with` clause appended to the
-`over` expression and yielding a
+`over` expression and valuesing a
 [record literal](../language/expressions.md#record-expressions) with the desired value:
 ```mdtest-command dir=docs/tutorials
 super -s -c '

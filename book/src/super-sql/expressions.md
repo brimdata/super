@@ -375,41 +375,7 @@ yield f"{this} look like: \{ }"
 
 ### Record Expressions
 
-Record literals have the form
-```
-{ <spec>, <spec>, ... }
-```
-where a `<spec>` has one of three forms:
-```
-<field> : <expr>
-<ref>
-...<expr>
-```
-The first form is a customary colon-separated field and value similar to JavaScript,
-where `<field>` may be an identifier or quoted string.
-The second form is an [implied field reference](pipeline-model.md#implied-field-references)
-`<ref>`, which is shorthand for `<ref>:<ref>`.  The third form is the `...`
-spread operator which expects a record value as the result of `<expr>` and
-inserts all of the fields from the resulting record.
-If a spread expression results in a non-record type (e.g., errors), then that
-part of the record is simply elided.
-
-The fields of a record expression are evaluated left to right and when
-field names collide the rightmost instance of the name determines that
-field's value.
-
-For example,
-```mdtest-spq
-# spq
-yield {a:0},{x}, {...r}, {a:0,...r,b:3}
-# input
-{x:1,y:2,r:{a:1,b:2}}
-# expected output
-{a:0}
-{x:1}
-{a:1,b:2}
-{a:1,b:3}
-```
+TODO (see data type section)
 
 ### Array Expressions
 

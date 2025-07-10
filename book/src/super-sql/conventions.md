@@ -7,11 +7,11 @@ on strongly typed data.
 yet certain functions expect certain specific [data types](data-types.md)
 or classes of data types. To this end, the function and operator prototypes
 in the Zed documentation include several type classes as follows:
-* _any_ - any Zed data type
-* _float_ - any floating point Zed type
-* _int_ - any signed or unsigned Zed integer type
-* _number_ - either float or int
-* _record_ - any [record](../formats/sup.md#251-record-type) type
+* _any_ - any SuperSQL data type
+* _float_ - any floating point type
+* _int_ - any signed or unsigned integer type
+* _number_ - either _float_ or _int_
+* _record_ - any [record type](types/record.md)
 
 Note that there is no "any" type in SuperSQL as all super-structured data is
 strongly typed; "any" here simply refers to a value that is allowed
@@ -19,3 +19,4 @@ to take on any type.
 
 XXX mention syntax blocks `<expr>` refers to expression, `<id>` to identifier, etc
 
+Lexical structure goes here?  
