@@ -99,7 +99,7 @@ switch
 {r:3}
 {x:4,y:5}
 # expected output
-{r:3}(=radius)
+{r:3}::=radius
 {x:1,y:2}::=point
 {x:4,y:5}::=point
 ```

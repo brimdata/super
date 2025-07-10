@@ -382,7 +382,7 @@ values {original: this, shaped: shape(this, <connection>)}
   "vlan": "available"
 }
 # expected output
-error({msg:"shaper error (see inner errors for details)",original:{kind:"dns",server:{addr:"10.0.0.100",port:53},client:{addr:"39 Elm Street",port:41772},vlan:"available"},shaped:{kind:"dns",client:{addr:error({message:"cannot cast to ip",on:"39 Elm Street"}),port:41772::(port=uint16)},server:{addr:10.0.0.100,port:53(port)}::=socket,vlan:error({message:"cannot cast to uint16",on:"available"})}})(error({msg:string,original:{kind:string,server:{addr:string,port:int64},client:{addr:string,port:int64},vlan:string},shaped:{kind:string,client:{addr:error({message:string,on:string}),port:port=uint16},server:socket={addr:ip,port:port},vlan:error({message:string,on:string})}}))
+error({msg:"shaper error (see inner errors for details)",original:{kind:"dns",server:{addr:"10.0.0.100",port:53},client:{addr:"39 Elm Street",port:41772},vlan:"available"},shaped:{kind:"dns",client:{addr:error({message:"cannot cast to ip",on:"39 Elm Street"}),port:41772::(port=uint16)},server:{addr:10.0.0.100,port:53::port}::=socket,vlan:error({message:"cannot cast to uint16",on:"available"})}})::error({msg:string,original:{kind:string,server:{addr:string,port:int64},client:{addr:string,port:int64},vlan:string},shaped:{kind:string,client:{addr:error({message:string,on:string}),port:port=uint16},server:socket={addr:ip,port:port},vlan:error({message:string,on:string})}})
 ```
 
 If you require awareness about changes made by the shaping functions that
@@ -511,7 +511,7 @@ fuse(this)
 {x:"foo",y:"foo"}
 {x:2,y:"bar"}
 # expected output
-<{x:(int64,string),y:string}>
+<{x:int64|string,y:string}>
 ```
 
 Since the `fuse` here is an aggregate function, it can also be used with
@@ -528,18 +528,17 @@ fuse(this) by len(this) | sort len
 {x:2,y:"bar"}
 # expected output
 {len:1,fuse:<{x:int64}>}
-{len:2,fuse:<{x:(int64,string),y:string}>}
+{len:2,fuse:<{x:int64|string,y:string}>}
 ```
 
 Now, we can turn around and write a "shaper" for data that has the patterns
 we "discovered" above, e.g.,
 ```mdtest-spq {data-layout="stacked"}
 # spq
-switch len(this) (
-    case 1 => pass
-    case 2 => values shape(this, <{x:(int64,string),y:string}>)
-    default => values error({kind:"unrecognized shape",value:this})
-)
+switch len(this)
+    case 1 ( pass )
+    case 2 ( values shape(this, <{x:(int64,string),y:string}>) )
+    default ( values error({kind:"unrecognized shape",value:this}) )
 | sort this desc
 # input
 {x:1}
