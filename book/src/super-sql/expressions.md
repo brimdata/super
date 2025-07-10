@@ -588,8 +588,8 @@ values <port>(this)
 80
 8080
 # expected output
-80(port=uint16)
-8080(port=uint16)
+80::(port=uint16)
+8080::(port=uint16)
 ```
 
 Casts may be used with complex types as well.  As long as the target type can

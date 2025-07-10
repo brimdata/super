@@ -270,7 +270,7 @@ Example output:
     uid: "CNcpGS2BFLZaRCyN46",
     id: {
         orig_h: 172.31.9.104,
-        orig_p: 42796 (port=uint16),
+        orig_p: 42796::(port=uint16),
         resp_h: 172.31.0.2,
         resp_p: 53 (port)
     } (=conn_id),
@@ -313,12 +313,12 @@ zed query 'from "zeek-shaped" | _path=="conn" | cidr_match(172.31.0.0/16, id.res
 which in our test environment produced
 
 ```
-{id:{orig_h:218.92.0.99,orig_p:9090(port=uint16),resp_h:172.31.0.253,resp_p:22(port)}(=conn_id),count:4::uint64}
-{id:{orig_h:172.31.0.253,orig_p:42014(port=uint16),resp_h:172.31.0.2,resp_p:53(port)}(=conn_id),count:1::uint64}
-{id:{orig_h:172.31.0.253,orig_p:37490(port=uint16),resp_h:172.31.0.2,resp_p:53(port)}(=conn_id),count:1::uint64}
-{id:{orig_h:172.31.0.253,orig_p:33488(port=uint16),resp_h:172.31.0.2,resp_p:53(port)}(=conn_id),count:1::uint64}
-{id:{orig_h:172.31.0.253,orig_p:44362(port=uint16),resp_h:172.31.0.2,resp_p:53(port)}(=conn_id),count:1::uint64}
-{id:{orig_h:199.83.220.79,orig_p:52876(port=uint16),resp_h:172.31.0.253,resp_p:22(port)}(=conn_id),count:1::uint64}
+{id:{orig_h:218.92.0.99,orig_p:9090::(port=uint16),resp_h:172.31.0.253,resp_p:22(port)}(=conn_id),count:4::uint64}
+{id:{orig_h:172.31.0.253,orig_p:42014::(port=uint16),resp_h:172.31.0.2,resp_p:53(port)}(=conn_id),count:1::uint64}
+{id:{orig_h:172.31.0.253,orig_p:37490::(port=uint16),resp_h:172.31.0.2,resp_p:53(port)}(=conn_id),count:1::uint64}
+{id:{orig_h:172.31.0.253,orig_p:33488::(port=uint16),resp_h:172.31.0.2,resp_p:53(port)}(=conn_id),count:1::uint64}
+{id:{orig_h:172.31.0.253,orig_p:44362::(port=uint16),resp_h:172.31.0.2,resp_p:53(port)}(=conn_id),count:1::uint64}
+{id:{orig_h:199.83.220.79,orig_p:52876::(port=uint16),resp_h:172.31.0.253,resp_p:22(port)}(=conn_id),count:1::uint64}
 ```
 
 or this query that counts events into buckets by `time` span

@@ -97,7 +97,7 @@ super -S zeek_types.log | tee zeek_types.sup
     my_interval: 2m3.456s,
     my_printable_string: "smile😁smile",
     my_bytes_string: "\t\u0007\u0004",
-    my_port: 80 (port=uint16),
+    my_port: 80::(port=uint16),
     my_addr: 127.0.0.1,
     my_subnet: 10.0.0.0/8,
     my_enum: "tcp" (=zenum),

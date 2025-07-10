@@ -399,11 +399,11 @@ referenced by any subsequent value in left-to-right depth-first order.
 
 For example,
 ```
-{p1:80 (port=uint16), p2: 8080 (port)}
+{p1:80::(port=uint16), p2: 8080 (port)}
 ```
 is valid but
 ```
-{p1:80 (port), p2: 8080 (port=uint16)}
+{p1:80 (port), p2: 8080::(port=uint16)}
 ```
 is invalid.
 

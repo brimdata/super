@@ -252,7 +252,7 @@ cast(this, <port>)
 # input
 80
 # expected output
-80(port=uint16)
+80::(port=uint16)
 ```
 
 One or more `type` statements may appear at the beginning of a scope

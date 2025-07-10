@@ -42,7 +42,7 @@ super -S -c 'head 1' conn.log
     uid: "C8Tful1TvM3Zf5x8fl",
     id: {
         orig_h: 10.164.94.120,
-        orig_p: 39681 (port=uint16),
+        orig_p: 39681::(port=uint16),
         resp_h: 10.47.3.155,
         resp_p: 3389 (port)
     },

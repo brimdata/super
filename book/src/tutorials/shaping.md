@@ -98,7 +98,7 @@ cast(this, <connection>)
   "uid": "C2zK5f13SbCtKcyiW5"
 }
 # expected output
-{kind:"dns",server:{addr:10.0.0.100,port:53(port=uint16)}(=socket),client:{addr:10.47.1.100,port:41772}(socket),uid:"C2zK5f13SbCtKcyiW5"}
+{kind:"dns",server:{addr:10.0.0.100,port:53::(port=uint16)}(=socket),client:{addr:10.47.1.100,port:41772}(socket),uid:"C2zK5f13SbCtKcyiW5"}
 ```
 
 ### Crop
@@ -271,7 +271,7 @@ shape(this, <connection>)
   "uid": "C2zK5f13SbCtKcyiW5"
 }
 # expected output
-{kind:"dns",client:{addr:10.47.1.100,port:41772(port=uint16)}(=socket),server:{addr:10.0.0.100,port:53}(socket),vlan:null(uint16),uid:"C2zK5f13SbCtKcyiW5"}
+{kind:"dns",client:{addr:10.47.1.100,port:41772::(port=uint16)}(=socket),server:{addr:10.0.0.100,port:53}(socket),vlan:null(uint16),uid:"C2zK5f13SbCtKcyiW5"}
 ```
 
 To get a tight shape of the target type,
@@ -303,7 +303,7 @@ shape(this, <connection>)
   "uid": "C2zK5f13SbCtKcyiW5"
 }
 # expected output
-{kind:"dns",client:{addr:10.47.1.100,port:41772(port=uint16)}(=socket),server:{addr:10.0.0.100,port:53}(socket),vlan:null(uint16)}
+{kind:"dns",client:{addr:10.47.1.100,port:41772::(port=uint16)}(=socket),server:{addr:10.0.0.100,port:53}(socket),vlan:null(uint16)}
 ```
 
 ## Error Handling
@@ -339,7 +339,7 @@ shape(this, <connection>)
   "vlan": "available"
 }
 # expected output
-{kind:"dns",client:{addr:error({message:"cannot cast to ip",on:"39 Elm Street"}),port:41772(port=uint16)},server:{addr:10.0.0.100,port:53(port)}(=socket),vlan:error({message:"cannot cast to uint16",on:"available"})}
+{kind:"dns",client:{addr:error({message:"cannot cast to ip",on:"39 Elm Street"}),port:41772::(port=uint16)},server:{addr:10.0.0.100,port:53(port)}(=socket),vlan:error({message:"cannot cast to uint16",on:"available"})}
 ```
 
 Since these error values are nested inside an otherwise healthy record, adding
@@ -382,7 +382,7 @@ values {original: this, shaped: shape(this, <connection>)}
   "vlan": "available"
 }
 # expected output
-error({msg:"shaper error (see inner errors for details)",original:{kind:"dns",server:{addr:"10.0.0.100",port:53},client:{addr:"39 Elm Street",port:41772},vlan:"available"},shaped:{kind:"dns",client:{addr:error({message:"cannot cast to ip",on:"39 Elm Street"}),port:41772(port=uint16)},server:{addr:10.0.0.100,port:53(port)}(=socket),vlan:error({message:"cannot cast to uint16",on:"available"})}})(error({msg:string,original:{kind:string,server:{addr:string,port:int64},client:{addr:string,port:int64},vlan:string},shaped:{kind:string,client:{addr:error({message:string,on:string}),port:port=uint16},server:socket={addr:ip,port:port},vlan:error({message:string,on:string})}}))
+error({msg:"shaper error (see inner errors for details)",original:{kind:"dns",server:{addr:"10.0.0.100",port:53},client:{addr:"39 Elm Street",port:41772},vlan:"available"},shaped:{kind:"dns",client:{addr:error({message:"cannot cast to ip",on:"39 Elm Street"}),port:41772::(port=uint16)},server:{addr:10.0.0.100,port:53(port)}(=socket),vlan:error({message:"cannot cast to uint16",on:"available"})}})(error({msg:string,original:{kind:string,server:{addr:string,port:int64},client:{addr:string,port:int64},vlan:string},shaped:{kind:string,client:{addr:error({message:string,on:string}),port:port=uint16},server:socket={addr:ip,port:port},vlan:error({message:string,on:string})}}))
 ```
 
 If you require awareness about changes made by the shaping functions that
