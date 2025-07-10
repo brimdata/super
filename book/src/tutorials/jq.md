@@ -413,7 +413,7 @@ echo '[1, "foo", 2, "bar"]' | super -s -c 'values typeof(this)' -
 ```
 produces
 ```mdtest-output
-<[(int64,string)]>
+<[int64|string]>
 ```
 which is a type value representing an array of union values.
 
@@ -564,8 +564,8 @@ echo '{a:1,b:null}{a:null,b:[2,3,4]}' | super -s -c fuse -
 ```
 produces this transformed and comprehensively-typed SUP output:
 ```mdtest-output
-{a:1,b:null([int64])}
-{a:null(int64),b:[2,3,4]}
+{a:1,b:null::[int64]}
+{a:null::int64,b:[2,3,4]}
 ```
 Now you can see all the detail.
 
@@ -578,7 +578,7 @@ produces a comprehensively-typed sample:
 ```mdtest-output
 {
     a: 1,
-    b: null ([int64])
+    b: null::[int64]
 }
 ```
 As you explore data in this fashion, you will often type various searches

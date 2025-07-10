@@ -83,17 +83,16 @@ cast(this, "foo")
 {a:1,b:2}
 {a:3,b:4}
 # expected output
-{a:1,b:2}(=foo)
-{a:3,b:4}(=foo)
+{a:1,b:2}::=foo
+{a:3,b:4}::=foo
 ```
 
 _Derive type names from the properties of data_
 ```mdtest-spq
 # spq
-switch (
-  case has(x) => cast(this, "point")
-  default => cast(this, "radius")
-)
+switch
+  case has(x) ( cast(this, "point") )
+  default ( cast(this, "radius") )
 | sort this
 # input
 {x:1,y:2}
@@ -101,6 +100,6 @@ switch (
 {x:4,y:5}
 # expected output
 {r:3}(=radius)
-{x:1,y:2}(=point)
-{x:4,y:5}(=point)
+{x:1,y:2}::=point
+{x:4,y:5}::=point
 ```
