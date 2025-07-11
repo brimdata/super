@@ -19,13 +19,11 @@ as part of their semantics.
 
 ### Input Data
 
-In contrast to traditional SQL where the expressions in the various clauses have
-different scoping rules about how input data is referenced, the model used by 
-pipe operators in SuperSQL is straightforward:
+In contrast to traditional SQL where the expressions in the various
+SELECT query clauses have different scoping rules about how input data is referenced,
+the model used by pipe operators in SuperSQL is straightforward:
 * all input is referenced as a single value called `this`, and
 * all output is emitted into a single value called `this`.
-
-
 
 For example, referencing a field called `x` of record `this` has this 
 familiar pattern:

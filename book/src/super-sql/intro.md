@@ -157,17 +157,16 @@ SELECT x FROM (VALUES (1),(2),(3)) AS this(x)
 When SQL queries are nested, joined, or invoked as subqueries, the scoping
 rules are fairly complicated and often counterintuitive.  To support such 
 semantics, SuperSQL implements SQL scoping of table and column names 
-_inside of of any SQL pipe operator_ but between pipe operators.
+_inside of of any SQL pipe operator_ but not between pipe operators.
 
 Instead, super-structured data is referenced within a non-SQL pipe operator
 using a very simple pattern:
 * all input is referenced as a single value called `this`, and
 * all output is emitted into a single value called `this`.
 
-The `this` value can take on any type but
-when it takes the form of a record,
-When `this` is a set of homogeneously-typed [records](types/record.md), then
-the input data models a relational table where the record type resembles a
+When the input to a pipe operator
+is a set of homogeneously-typed [records](types/record.md), then
+that data models a relational table where the record type resembles a
 relational schema and each field in the record models the table's column.
 In other words, the record fields of `this` can be accessed with the dot operator
 reminiscent of a `table.column` reference in SQL.
