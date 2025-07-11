@@ -126,6 +126,8 @@ sort lower(this)
 
 ## Implied Field References
 
+XXX DISCARD (replaced by text in expressions section)
+
 A common SuperSQL use case is to process sequences of record-oriented data
 (e.g., arising from formats like JSON or Avro) in the form of events
 or structured logs.  In this case, the input values to the operators

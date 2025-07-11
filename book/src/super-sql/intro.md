@@ -1,7 +1,5 @@
 ## SuperSQL
 
-XXX TODO https://github.com/brimdata/super/issues/5974 (document this scoping)
-
 SuperSQL is a
 [Pipe SQL](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/)
 adapted for
@@ -16,16 +14,30 @@ by a number of commands:
 ```
 from source | operator | operator | ...
 ```
-
 As with SQL, SuperSQL is
 [declarative](https://en.wikipedia.org/wiki/Declarative_programming)
 and the SuperSQL compiler often optimizes a query into an implemention
 different from the dataflow implied by the pipeline to achieve the 
 same semantics with better performance.
 
+### SQL Compatibility
+
+SuperSQL is [backward compatible](../intro.md#supersql)
+with traditional SQL in that any SQL query
+is also a SuperSQL query.  SQL queries appear as a [pipe operator](#pipe-operators)
+anywhere in a SuperSQL pipe query.
+
+For example, these are all valid SuperSQL queries:
+```
+SELECT 'hello, world'
+SELECT * FROM table
+SELECT * FROM f1.json JOIN f2.json WHERE f1.id=f2.id
+SELECT watchers FROM https://api.github.com/repos/brimdata/super
+```
+
 ### Pipe Operators
 
-The entities that transform data within a pipeline are called
+The entities that transform data within a SuperSQL pipeline are called
 [pipe operators](operators/intro.md) 
 and take super-structured input from the upstream operator or data source,
 operate upon the input, and produce zero or more super-structured
@@ -129,28 +141,38 @@ acceptable SuperSQL query so all SQL query texts are also SuperSQL queries.
 
 > XXX cite areas of SQL that are TBD and mention dialects
 
-### "this"
+### Referencing Data
 
-In SQL expressions, data from tables is generally refereced with an identifier that
-specifies the column name of an implied table, e.g., referencing a column `x` in a 
-table `this` with
-```
-SELECT x FROM (VALUES (1),(2),(3)) AS this(x)
-```
-Altnernatively, the column may be referenced explicitly with respect to its table
-using the dot oeperator as in 
+In SQL expressions, data from tables is generally refereced with an identifiers that
+specify a table namd and a column name of a table,
+e.g., referencing a column `x` in a  table `this` with
 ```
 SELECT this.x FROM (VALUES (1),(2),(3)) AS this(x)
 ```
-Aside from SuperSQL supporting table and column names _inside of a SQL operator_,
-there are no table aliases or column bindings between pipe operators.
+Altnernatively, when column the column name is unambiguous, the table name 
+can be ommitted as in
+```
+SELECT x FROM (VALUES (1),(2),(3)) AS this(x)
+```
+When SQL queries are nested, joined, or invoked as subqueries, the scoping
+rules are fairly complicated and often counterintuitive.  To support such 
+semantics, SuperSQL implements SQL scoping of table and column names 
+_inside of of any SQL pipe operator_ but between pipe operators.
 
-Instead, super-structured data is referenced using
-a special value called `this`.  The `this` value can take on any type but
-when it takes the form of a record, fields in that record can be accessed
-with the dot operator.
+Instead, super-structured data is referenced within a non-SQL pipe operator
+using a very simple pattern:
+* all input is referenced as a single value called `this`, and
+* all output is emitted into a single value called `this`.
 
-The SQL query from above can thus be written in pipe form 
+The `this` value can take on any type but
+when it takes the form of a record,
+When `this` is a set of homogeneously-typed [records](types/record.md), then
+the input data models a relational table where the record type resembles a
+relational schema and each field in the record models the table's column.
+In other words, the record fields of `this` can be accessed with the dot operator
+reminiscent of a `table.column` reference in SQL.
+
+For example. ,the SQL query from above can thus be written in pipe form 
 using the [values operator](operators/values.md) as:
 ```
 values {x:1}, {x:2}, {x:3} | select this.x
@@ -161,11 +183,11 @@ which results in:
 {x:2}
 {x:3}
 ```
-As with SQL table names, `this` is optional can be omitted when the context
-is unambiguous, e.g.,
+As with SQL table names, `this` is optional can be omitted, i.e.,
 ```
 values {x:1}, {x:2}, {x:3} | select x
 ```
+produces the same result.
 
 ### Strong Typing
 

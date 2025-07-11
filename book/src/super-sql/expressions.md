@@ -1,18 +1,43 @@
-# Expressions
+## Expressions
 
-TODO
+As in SQL and typical programming languages, 
+SuperSQL expressions perform calculations, logical comparisons,
+data manipulation, complex value creation, and so forth.
 
-Expressions follow the typical patterns in programming languages.
-Expressions are often used within [operators](operators/_index.md)
+Expressions are used within [pipe operators](operators/index.md)
+and [SQL clauses](sql/index.md) to perform computation
+utilizing an operator's input values, literal values, function calls, and
+subqueries.
+
+For example, [`values`](operators/values.md), [`where`](operators/where.md),
+[`cut`](operators/cut.md), [`put`](operators/put.md),
+[`sort`](operators/sort.md) and so forth all utilize various expressions
+as part of their semantics.
+
+> SuperSQL expressions are mostly compatible with SQL expressions and diverge 
+> in XXX.
+
+### Input Data
+
+In contrast to traditional SQL where the expressions in the various clauses have
+different scoping rules about how input data is referenced, the model used by 
+pipe operators in SuperSQL is straightforward:
+* all input is referenced as a single value called `this`, and
+* all output is emitted into a single value called `this`.
+
+
+
+For example, referencing a field called `x` of record `this` has this 
+familiar pattern:
+```
+this.x
+```
+Because this patter is so common, 
+
 to perform computations on input values and are typically evaluated once per each
 input value [`this`](pipeline-model.md#the-special-value-this).
 
-For example, [`yield`](operators/yield.md), [`where`](operators/where.md),
-[`cut`](operators/cut.md), [`put`](operators/put.md),
-[`sort`](operators/sort.md) and so forth all take
-various expressions as part of their operation.
-
-## Arithmetic
+### Arithmetic
 
 Arithmetic operations (`*`, `/`, `%`, `+`, `-`) follow customary syntax
 and semantics and are left-associative with multiplication and division having
@@ -31,7 +56,7 @@ error("divide by zero")
 "foobar"
 ```
 
-## Comparisons
+### Comparisons
 
 Comparison operations (`<`, `<=`, `==`, `=`, `!=`, `>`, `>=`) follow customary syntax
 and semantics and result in a truth value of type `bool` or an [error](data-types.md#first-class-errors).
@@ -63,7 +88,7 @@ false
 error("missing")
 ```
 
-## Containment
+### Containment
 
 The `in` operator has the form
 ```
@@ -111,7 +136,7 @@ over accounts | where id in [1,2]
 {id:2}
 ```
 
-## Logic
+### Logic
 
 The keywords `and`, `or`, `not`, and `!` perform logic on operands of type `bool`.
 The binary operators `and` and `or` operate on Boolean values and result in
@@ -120,7 +145,7 @@ equivalent `!`) operates on its unary operand and results in an error if its
 operand is not type `bool`. Unlike many other languages, non-Boolean values are
 not automatically converted to Boolean type using "truthiness" heuristics.
 
-## Field Dereference
+### Field Dereference
 
 Record fields are dereferenced with the dot operator `.` as is customary
 in other languages and have the form
@@ -134,11 +159,13 @@ Such field names can be accessed using
 [`this`](pipeline-model.md#the-special-value-this) and an array-style reference, e.g.,
 `this["field with spaces"]`.
 
+XXX Backtick-escaped identifier
+
 If the dot operator is applied to a value that is not a record
 or if the record does not have the given field, then the result is
 `error("missing")`.
 
-## Indexing
+### Indexing
 
 The index operation can be applied to various data types and has the form:
 ```
@@ -169,7 +196,7 @@ If the `<value>` expression is type `bytes`, then the `<index>` operand
 must be coercible to an integer and the result is an unsigned 8-bit integer
 representing the byte value at that offset in the bytes sequence.
 
-## Slices
+### Slices
 
 The slice operation can be applied to various data types and has the form:
 ```
@@ -194,7 +221,7 @@ consisting of unicode code points comprising the given range.
 If the `<value>` expression is type `bytes`, then the result is a bytes sequence
 consisting of bytes comprising the given range.
 
-## Conditional
+### Conditional
 
 A conditional expression has the form
 ```
@@ -254,7 +281,7 @@ values this=="foo" ? {foocount:count()} : {barcount:count()}
 {foocount:2::uint64}
 ```
 
-## Function Calls
+### Function Calls
 
 Functions perform stateless transformations of their input value to their return
 value and utilize call-by value semantics with positional and unnamed arguments.
@@ -276,7 +303,7 @@ arguments.
 
 [User-defined functions](statements.md#func-statements) may also be created.
 
-## Aggregate Function Calls
+### Aggregate Function Calls
 
 [Aggregate functions](aggregates/_index.md) may be called within an expression.
 Unlike the aggregation context provided by the [`aggregate` operator](operators/aggregate.md),
@@ -314,7 +341,7 @@ aggregate count(),union(this)
 {count:3::uint64,union:|["bar","baz","foo"]|}
 ```
 
-## Literals
+### Literals
 
 Any of the [data types](data-types.md) may be used in expressions
 as long as it is compatible with the semantics of the expression.
@@ -323,7 +350,7 @@ String literals are enclosed in either single quotes or double quotes and
 must conform to UTF-8 encoding and follow the JavaScript escaping
 conventions and unicode escape syntax.
 
-### Formatted String Literals
+#### Formatted String Literals
 
 A formatted string literal (or f-string) is a string literal prefixed with `f`.
 These strings may include replacement expressions which are delimited by curly
@@ -391,46 +418,7 @@ TODO (see data type section)
 
 ### Union Values
 
-A union value can be created with a [cast](expressions.md#casts).  For example, a union of types `int64`
-and `string` is expressed as `int64|string` and any value that has a type
-that appears in the union type may be cast to that union type.
-Since 1 is an `int64` and "foo" is a `string`, they both can be
-values of type `int64|string`, e.g.,
-```mdtest-spq
-# spq
-values cast(this,<int64|string>)
-# input
-1
-"foo"
-# expected output
-1::(int64|string)
-"foo"::(int64|string)
-```
-
-The value underlying a union-tagged value is accessed with the
-[`under` function](functions/under.md):
-```mdtest-spq
-# spq
-values under(this)
-# input
-1::(int64|string)
-# expected output
-1
-```
-
-Union values are powerful because they provide a mechanism to precisely
-describe the type of any nested, semi-structured value composed of elements
-of different types.  For example, the type of the value `[1,"foo"]` in JavaScript
-is simply a generic JavaScript "object".  But in SuperSQL, the type of this
-value is an array of union of string and integer, e.g.,
-```mdtest-spq
-# spq
-typeof(this)
-# input
-[1,"foo"]
-# expected output
-<[int64|string]>
-```
+TODO (see data type section)
 
 ## Casts
 
