@@ -172,8 +172,6 @@ func (a *aggfuncs) subst(e dag.Expr) (dag.Expr, error) {
 				return nil, err
 			}
 		}
-	case *dag.OverExpr:
-		return nil, errors.New("over expression not allowed with aggregate function")
 	case *dag.RecordExpr:
 		for _, elem := range e.Elems {
 			switch elem := elem.(type) {
@@ -242,6 +240,8 @@ func (a *aggfuncs) subst(e dag.Expr) (dag.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
+	case *dag.UnnestExpr:
+		return nil, errors.New("unnest expression not allowed with aggregate function")
 	case *dag.Var:
 		return nil, errors.New("var not allowed with aggregate function")
 	}

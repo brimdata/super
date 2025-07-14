@@ -1,0 +1,25 @@
+spq: |
+  unnest { TOP:this["top"], outer } into (
+    values {msg:"OUTER", top:`TOP`, inner:outer.inner, b:outer.b}
+    | unnest {c:{BOTTOM:b,TOP:top}, elem:inner} into (
+      values {top:c.TOP, bottom:c.BOTTOM, elem}
+    )
+  )
+
+vector: true
+
+input: |
+  {outer:[{inner:[1,2,3],b:"hello"},{inner:[3,4],b:"world"}],top:888}
+  {outer:[{inner:[5,6],b:"goodnight"},{inner:[7,8,9],b:"gracie"}],top:999}
+
+output: |
+  {top:888,bottom:"hello",elem:1}
+  {top:888,bottom:"hello",elem:2}
+  {top:888,bottom:"hello",elem:3}
+  {top:888,bottom:"world",elem:3}
+  {top:888,bottom:"world",elem:4}
+  {top:999,bottom:"goodnight",elem:5}
+  {top:999,bottom:"goodnight",elem:6}
+  {top:999,bottom:"gracie",elem:7}
+  {top:999,bottom:"gracie",elem:8}
+  {top:999,bottom:"gracie",elem:9}

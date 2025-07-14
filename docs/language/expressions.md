@@ -104,7 +104,7 @@ anywhere within them:
 You can also use this operator with a static array:
 ```mdtest-spq
 # spq
-over accounts | where id in [1,2]
+unnest accounts | where id in [1,2]
 # input
 {accounts:[{id:1},{id:2},{id:3}]}
 # expected output

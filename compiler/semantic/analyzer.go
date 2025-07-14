@@ -143,7 +143,7 @@ func (a *analyzer) checkOutputs(isLeaf bool, seq dag.Seq) dag.Seq {
 			for k := range o.Paths {
 				o.Paths[k] = a.checkOutputs(isLast && isLeaf, o.Paths[k])
 			}
-		case *dag.Over:
+		case *dag.Unnest:
 			o.Body = a.checkOutputs(false, o.Body)
 		case *dag.Fork:
 			for k := range o.Paths {

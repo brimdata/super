@@ -232,7 +232,7 @@ Agg
       }
       return agg, nil
     }
-  / !FuncGuard name:AggName __ "(" __ expr:(OverExpr / Expr)? __ ")" !(__ ".") where:WhereClause? {
+  / !FuncGuard name:AggName __ "(" __ expr:(UnnestExpr / Expr)? __ ")" !(__ ".") where:WhereClause? {
       agg := &ast.Agg{
           Kind: "Agg",
           Name: name.(string),
@@ -255,7 +255,7 @@ Agg
     }
 
 AggDistinct
-  = !FuncGuard name:AggName __ "(" __ DISTINCT _ expr:(OverExpr / Expr) __ ")" {
+  = !FuncGuard name:AggName __ "(" __ DISTINCT _ expr:(UnnestExpr / Expr) __ ")" {
       return &ast.Agg{
           Kind: "Agg",
           Name: name.(string),
@@ -317,7 +317,7 @@ Operator
   / PassOp
   / ExplodeOp
   / MergeOp
-  / OverOp
+  / UnnestOp
   / ValuesOp
   / LoadOp
   / OutputOp
@@ -818,12 +818,11 @@ MergeOp
       }, nil
     }
 
-OverOp
-   = (OVER / UNNEST) _ exprs:Exprs locals:Locals? body:(_ "into"i _ body:ScopeBody { return body, nil })? {
-      o := &ast.Over{
-        Kind: "Over",
-        Exprs: sliceOf[ast.Expr](exprs),
-        Locals: sliceOf[ast.Def](locals),
+UnnestOp
+   = UNNEST _ e:Expr body:(_ "into"i _ body:ScopeBody { return body, nil })? {
+      o := &ast.Unnest{
+        Kind: "Unnest",
+        Expr: e.(ast.Expr),
         Loc: loc(c),
       }
       if body != nil {
@@ -1054,7 +1053,7 @@ NotFuncs
   / SELECT
 
 Cast
-  = typ:TypeLiteral __ "(" __ expr:(OverExpr / Expr) __ ")" {
+  = typ:TypeLiteral __ "(" __ expr:(UnnestExpr / Expr) __ ")" {
       return &ast.Cast{Kind: "Cast", Expr: expr.(ast.Expr), Type: typ.(ast.Expr), Loc: loc(c)}, nil
     }
 
@@ -1108,11 +1107,11 @@ RegexpPrimitive
   = pat:RegexpPattern { return newPrimitive(c, "string", pat.(string)), nil }
 
 FunctionArgs
-  = o:OverExpr { return []any{o}, nil }
+  = expr:UnnestExpr { return []any{expr}, nil }
   / OptionalExprs
 
 Grep
-  = GREP __ "(" __ pattern:(Regexp / Glob / Expr) __ opt:("," __ e:(OverExpr / Expr) __ { return e, nil })? ")" {
+  = GREP __ "(" __ pattern:(Regexp / Glob / Expr) __ opt:("," __ e:(UnnestExpr / Expr) __ { return e, nil })? ")" {
       g := &ast.Grep{
           Kind: "Grep",
           Pattern: pattern.(ast.Expr),
@@ -1143,7 +1142,7 @@ Primary
   / Literal
   / Identifier
   / Tuple
-  / "(" __ expr:OverExpr __ ")" { return expr, nil }
+  / "(" __ expr:UnnestExpr __ ")" { return expr, nil }
   / "(" __ expr:Expr __ ")" { return expr, nil }
 
 CaseExpr
@@ -1194,12 +1193,11 @@ When
       }, nil
     }
     
-OverExpr
-  = OVER _ exprs:Exprs locals:Locals? __ Pipe __ body:Seq {
-      return &ast.OverExpr{
-          Kind: "OverExpr",
-          Locals: sliceOf[ast.Def](locals),
-          Exprs: sliceOf[ast.Expr](exprs),
+UnnestExpr
+  = UNNEST _ e:Expr __ Pipe __ body:Seq {
+      return &ast.UnnestExpr{
+          Kind: "UnnestExpr",
+          Expr: e.(ast.Expr),
           Body: sliceOf[ast.Op](body),
           Loc: loc(c),
       }, nil
@@ -2423,7 +2421,6 @@ ORDER      = "ORDER"i           !IdentifierRest
 ORDINALITY = "ORDINALITY"i      !IdentifierRest
 OUTER      = "OUTER"i           !IdentifierRest
 OUTPUT     = "OUTPUT"i          !IdentifierRest
-OVER       = "OVER"i            !IdentifierRest
 PASS       = "PASS"i            !IdentifierRest
 PUT        = "PUT"i             !IdentifierRest
 RECURSIVE  = "RECURSIVE"        !IdentifierRest

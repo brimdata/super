@@ -165,20 +165,6 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 			Kind:    "MapExpr",
 			Entries: entries,
 		}
-	case *ast.OverExpr:
-		exprs := a.semExprs(e.Exprs)
-		if e.Body == nil {
-			a.error(e, errors.New("over expression missing lateral scope"))
-			return badExpr()
-		}
-		a.enterScope()
-		defer a.exitScope()
-		return &dag.OverExpr{
-			Kind:  "OverExpr",
-			Defs:  a.semVars(e.Locals),
-			Exprs: exprs,
-			Body:  a.semSeq(e.Body),
-		}
 	case *ast.Primitive:
 		val, err := sup.ParsePrimitive(e.Type, e.Text)
 		if err != nil {
@@ -408,6 +394,19 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 			Kind:    "UnaryExpr",
 			Op:      e.Op,
 			Operand: operand,
+		}
+	case *ast.UnnestExpr:
+		expr := a.semExpr(e.Expr)
+		if e.Body == nil {
+			a.error(e, errors.New("unnest expression missing lateral scope"))
+			return badExpr()
+		}
+		a.enterScope()
+		defer a.exitScope()
+		return &dag.UnnestExpr{
+			Kind: "UnnestExpr",
+			Expr: expr,
+			Body: a.semSeq(e.Body),
 		}
 	case nil:
 		panic("semantic analysis: illegal null value encountered in AST")

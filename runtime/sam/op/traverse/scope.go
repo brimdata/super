@@ -4,8 +4,6 @@ import (
 	"context"
 	"sync"
 
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/op"
 	"github.com/brimdata/super/zbuf"
 )
@@ -14,7 +12,6 @@ type Scope struct {
 	ctx         context.Context
 	parent      zbuf.Puller
 	parentEOSCh chan struct{}
-	enter       *Enter
 	subgraph    zbuf.Puller
 	once        sync.Once
 	resultCh    chan op.Result
@@ -22,14 +19,13 @@ type Scope struct {
 	subDoneCh   chan struct{}
 }
 
-func newScope(ctx context.Context, parent zbuf.Puller, names []string, exprs []expr.Evaluator) *Scope {
+func newScope(ctx context.Context, parent zbuf.Puller) *Scope {
 	return &Scope{
 		ctx:    ctx,
 		parent: parent,
 		// Buffered so we can send without blocking before we send EOS
 		// to resultCh.
 		parentEOSCh: make(chan struct{}, 1),
-		enter:       NewEnter(names, exprs),
 		resultCh:    make(chan op.Result),
 		exitDoneCh:  make(chan struct{}),
 		subDoneCh:   make(chan struct{}),
@@ -38,7 +34,7 @@ func newScope(ctx context.Context, parent zbuf.Puller, names []string, exprs []e
 
 func (s *Scope) NewExit(subgraph zbuf.Puller) *Exit {
 	s.subgraph = subgraph
-	return NewExit(s, len(s.enter.exprs))
+	return NewExit(s)
 }
 
 // Pull is called by the scoped subgraph.
@@ -145,45 +141,16 @@ again:
 	}
 }
 
-type Enter struct {
-	names []string
-	exprs []expr.Evaluator
-}
-
-func NewEnter(names []string, exprs []expr.Evaluator) *Enter {
-	return &Enter{
-		names: names,
-		exprs: exprs,
-	}
-}
-
-func (e *Enter) addLocals(batch zbuf.Batch, this super.Value) zbuf.Batch {
-	inner := newScopedBatch(batch, len(e.exprs))
-	for _, expr := range e.exprs {
-		// Note that we add a var to the frame on each Eval call
-		// since subsequent expressions can refer to results from
-		// previous expressions.  Also, we push any val including
-		// errors and missing as we want to propagate such conditions
-		// into the sub-graph to ease debuging. In fact, the subgraph
-		// can act accordingly in response to errors and missing.
-		val := expr.Eval(inner, this)
-		inner.push(val.Copy())
-	}
-	return inner
-}
-
 type Exit struct {
 	scope   *Scope
-	nvar    int
 	platoon []zbuf.Batch
 }
 
 var _ zbuf.Puller = (*Exit)(nil)
 
-func NewExit(scope *Scope, nvar int) *Exit {
+func NewExit(scope *Scope) *Exit {
 	return &Exit{
 		scope: scope,
-		nvar:  nvar,
 	}
 }
 
@@ -214,7 +181,7 @@ func (e *Exit) Pull(done bool) (zbuf.Batch, error) {
 	}
 	batch := e.platoon[0]
 	e.platoon = e.platoon[1:]
-	return newExitScope(batch, e.nvar), nil
+	return batch, nil
 }
 
 func (e *Exit) pullPlatoon() error {
@@ -241,55 +208,4 @@ func (e *Exit) pullPlatoon() error {
 		}
 		e.platoon = append(e.platoon, batch)
 	}
-}
-
-type scope struct {
-	zbuf.Batch
-	vars []super.Value
-}
-
-var _ zbuf.Batch = (*scope)(nil)
-
-func newScopedBatch(batch zbuf.Batch, nvar int) *scope {
-	vars := batch.Vars()
-	if len(vars) != 0 {
-		// XXX for now we just copy the slice.  we can be
-		// more sophisticated later.
-		newvars := make([]super.Value, len(vars), len(vars)+nvar)
-		copy(newvars, vars)
-		vars = newvars
-	}
-	return &scope{
-		Batch: batch,
-		vars:  vars,
-	}
-}
-
-func (s *scope) Vars() []super.Value {
-	return s.vars
-}
-
-func (s *scope) push(val super.Value) {
-	s.vars = append(s.vars, val)
-}
-
-type exitScope struct {
-	zbuf.Batch
-	vars []super.Value
-}
-
-var _ zbuf.Batch = (*exitScope)(nil)
-
-func newExitScope(batch zbuf.Batch, nvar int) *exitScope {
-	vars := batch.Vars()
-	nvar = min(nvar, len(vars))
-	vars = vars[:len(vars)-nvar]
-	return &exitScope{
-		Batch: batch,
-		vars:  vars,
-	}
-}
-
-func (s *exitScope) Vars() []super.Value {
-	return s.vars
 }

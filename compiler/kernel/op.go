@@ -259,7 +259,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 			return nil, err
 		}
 		return explode.New(b.sctx(), parent, args, typ, v.As, b.resetters)
-	case *dag.Over:
+	case *dag.Unnest:
 		return b.compileOver(parent, v)
 	case *dag.Values:
 		b.resetResetters()
@@ -404,36 +404,18 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 	}
 }
 
-func (b *Builder) compileDefs(defs []dag.Def) ([]string, []expr.Evaluator, error) {
-	exprs := make([]expr.Evaluator, 0, len(defs))
-	names := make([]string, 0, len(defs))
-	for _, def := range defs {
-		e, err := b.compileExpr(def.Expr)
-		if err != nil {
-			return nil, nil, err
-		}
-		exprs = append(exprs, e)
-		names = append(names, def.Name)
-	}
-	return names, exprs, nil
-}
-
-func (b *Builder) compileOver(parent zbuf.Puller, over *dag.Over) (zbuf.Puller, error) {
+func (b *Builder) compileOver(parent zbuf.Puller, unnest *dag.Unnest) (zbuf.Puller, error) {
 	b.resetResetters()
-	withNames, withExprs, err := b.compileDefs(over.Defs)
+	expr, err := b.compileExpr(unnest.Expr)
 	if err != nil {
 		return nil, err
 	}
-	exprs, err := b.compileExprs(over.Exprs)
-	if err != nil {
-		return nil, err
-	}
-	enter := traverse.NewOver(b.rctx, parent, exprs, b.resetters)
-	if over.Body == nil {
+	enter := traverse.NewUnnest(b.rctx, parent, expr, b.resetters)
+	if unnest.Body == nil {
 		return enter, nil
 	}
-	scope := enter.AddScope(b.rctx.Context, withNames, withExprs)
-	exits, err := b.compileSeq(over.Body, []zbuf.Puller{scope})
+	scope := enter.AddScope(b.rctx.Context)
+	exits, err := b.compileSeq(unnest.Body, []zbuf.Puller{scope})
 	if err != nil {
 		return nil, err
 	}

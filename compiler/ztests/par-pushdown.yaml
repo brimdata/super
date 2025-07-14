@@ -2,7 +2,7 @@ script: |
   export SUPER_DB=test
   super db init -q
   super db create -q -orderby ts test
-  super db compile -P 3 "from test | x==1" | super -s -c 'over this | kind=="Scatter" | over paths | values this[1].filter.kind' -
+  super db compile -P 3 "from test | x==1" | super -s -c 'unnest this | kind=="Scatter" | unnest paths | values this[1].filter.kind' -
 
 outputs:
   - name: stdout

@@ -304,12 +304,11 @@ type TupleExpr struct {
 	Loc   `json:"loc"`
 }
 
-type OverExpr struct {
-	Kind   string `json:"kind" unpack:""`
-	Locals []Def  `json:"locals"`
-	Exprs  []Expr `json:"exprs"`
-	Body   Seq    `json:"body"`
-	Loc    `json:"loc"`
+type UnnestExpr struct {
+	Kind string `json:"kind" unpack:""`
+	Expr Expr   `json:"expr"`
+	Body Seq    `json:"body"`
+	Loc  `json:"loc"`
 }
 
 type FString struct {
@@ -372,7 +371,7 @@ func (*SetExpr) ExprAST()      {}
 func (*MapExpr) ExprAST()      {}
 func (*TupleExpr) ExprAST()    {}
 func (*SQLTimeValue) ExprAST() {}
-func (*OverExpr) ExprAST()     {}
+func (*UnnestExpr) ExprAST()   {}
 func (*FString) ExprAST()      {}
 
 type ConstDecl struct {
@@ -531,12 +530,11 @@ type (
 		Exprs []SortExpr `json:"exprs"`
 		Loc   `json:"loc"`
 	}
-	Over struct {
-		Kind   string `json:"kind" unpack:""`
-		Exprs  []Expr `json:"exprs"`
-		Locals []Def  `json:"locals"`
-		Body   Seq    `json:"body"`
-		Loc    `json:"loc"`
+	Unnest struct {
+		Kind string `json:"kind" unpack:""`
+		Expr Expr   `json:"expr"`
+		Body Seq    `json:"body"`
+		Loc  `json:"loc"`
 	}
 	Search struct {
 		Kind string `json:"kind" unpack:""`
@@ -748,7 +746,7 @@ func (*From) OpAST()         {}
 func (*DefaultScan) OpAST()  {}
 func (*Explode) OpAST()      {}
 func (*Merge) OpAST()        {}
-func (*Over) OpAST()         {}
+func (*Unnest) OpAST()       {}
 func (*Search) OpAST()       {}
 func (*Values) OpAST()       {}
 func (*Where) OpAST()        {}

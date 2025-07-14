@@ -120,20 +120,11 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 			c.expr(e.To, "")
 		}
 		c.write("]")
-	case *dag.OverExpr:
+	case *dag.UnnestExpr:
 		c.open("(")
 		c.ret()
-		c.write("over ")
-		c.exprs(e.Exprs)
-		if len(e.Defs) > 0 {
-			for i, d := range e.Defs {
-				if i > 0 {
-					c.write(", ")
-				}
-				c.write("%s=", d.Name)
-				c.expr(d.Expr, "")
-			}
-		}
+		c.write("unnest ")
+		c.expr(e.Expr, "")
 		c.seq(e.Body)
 		c.close()
 		c.ret()
@@ -504,8 +495,8 @@ func (c *canonDAG) op(p dag.Op) {
 		c.next()
 		c.open("slicer")
 		c.close()
-	case *dag.Over:
-		c.over(p)
+	case *dag.Unnest:
+		c.unnest(p)
 	case *dag.Values:
 		c.next()
 		c.write("values ")
@@ -607,25 +598,15 @@ func (c *canonDAG) fields(fields []field.Path) {
 	c.write(" fields %s", strings.Join(ss, ","))
 }
 
-func (c *canonDAG) over(o *dag.Over) {
+func (c *canonDAG) unnest(u *dag.Unnest) {
 	c.next()
-	c.write("over ")
-	c.exprs(o.Exprs)
-	if len(o.Defs) > 0 {
-		c.write(" with ")
-		for i, d := range o.Defs {
-			if i > 0 {
-				c.write(", ")
-			}
-			c.write("%s=", d.Name)
-			c.expr(d.Expr, "")
-		}
-	}
-	if o.Body != nil {
+	c.write("unnest ")
+	c.expr(u.Expr, "")
+	if u.Body != nil {
 		c.write(" into (")
 		c.open()
 		c.head = true
-		c.seq(o.Body)
+		c.seq(u.Body)
 		c.close()
 		c.ret()
 		c.flush()

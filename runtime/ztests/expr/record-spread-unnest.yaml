@@ -1,0 +1,15 @@
+spq: |
+  unnest {outer:this,tweet_ids} into (
+    ids:=collect(string(tweet_ids)) by outer
+    | values {...outer,tweet_ids:join(ids,',')}
+  )
+
+vector: true
+
+input: |
+  {name:"bowzer", tweet_ids:[1,2,3]}
+  {name:"pinkie", tweet_ids:[4,5]}
+
+output: |
+  {name:"bowzer",tweet_ids:"1,2,3"}
+  {name:"pinkie",tweet_ids:"4,5"}

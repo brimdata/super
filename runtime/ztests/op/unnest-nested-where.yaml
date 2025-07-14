@@ -1,0 +1,18 @@
+spq: |
+  unnest this into (
+    unnest this into (
+      where this > 2
+    )
+  )
+
+vector: true
+
+input: |
+  [[1,2],[3,4]]
+  [[4,3],[2,1]]
+
+output: |
+  3
+  4
+  4
+  3

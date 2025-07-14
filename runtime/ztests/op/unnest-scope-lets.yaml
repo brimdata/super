@@ -1,0 +1,16 @@
+spq: |
+  unnest {that:{v:c,w:a},b} into (
+    values {x:that.w,y:b,z:that.v}
+  )
+
+vector: true
+
+input: |
+  {a:1,b:[10,11],c:"foo"}
+  {a:2,b:[12,13],c:123}
+
+output: |
+  {x:1,y:10,z:"foo"}
+  {x:1,y:11,z:"foo"}
+  {x:2,y:12,z:123}
+  {x:2,y:13,z:123}

@@ -889,23 +889,18 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 			exprs = append(exprs, a.semSortExpr(nil, e, false))
 		}
 		return append(seq, &dag.Merge{Kind: "Merge", Exprs: exprs})
-	case *ast.Over:
-		if len(o.Locals) != 0 && o.Body == nil {
-			a.error(o, errors.New("cannot have a with clause without a lateral query"))
-		}
+	case *ast.Unnest:
+		e := a.semExpr(o.Expr)
 		a.enterScope()
 		defer a.exitScope()
-		locals := a.semVars(o.Locals)
-		exprs := a.semExprs(o.Exprs)
 		var body dag.Seq
 		if o.Body != nil {
 			body = a.semSeq(o.Body)
 		}
-		return append(seq, &dag.Over{
-			Kind:  "Over",
-			Defs:  locals,
-			Exprs: exprs,
-			Body:  body,
+		return append(seq, &dag.Unnest{
+			Kind: "Unnest",
+			Expr: e,
+			Body: body,
 		})
 	case *ast.Shapes:
 		e := dag.Expr(&dag.This{Kind: "This"})

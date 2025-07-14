@@ -95,15 +95,6 @@ func demandForSimpleOp(op dag.Op, downstream demand.Demand) demand.Demand {
 		return demandForSortExprs(op.Exprs, downstream)
 	case *dag.Output:
 		return demand.All()
-	case *dag.Over:
-		d := demand.None()
-		for _, def := range op.Defs {
-			d = demand.Union(d, demandForExpr(def.Expr))
-		}
-		for _, e := range op.Exprs {
-			d = demand.Union(d, demandForExpr(e))
-		}
-		return d
 	case *dag.Pass:
 		return downstream
 	case *dag.Put:
@@ -122,6 +113,8 @@ func demandForSimpleOp(op dag.Op, downstream demand.Demand) demand.Demand {
 		return demandForSortExprs(op.Exprs, downstream)
 	case *dag.Uniq:
 		return downstream
+	case *dag.Unnest:
+		return demandForExpr(op.Expr)
 	case *dag.Values:
 		d := demand.None()
 		for _, e := range op.Exprs {
@@ -197,15 +190,6 @@ func demandForExpr(expr dag.Expr) demand.Demand {
 			d = demand.Union(d, demandForExpr(e.Value))
 		}
 		return d
-	case *dag.OverExpr:
-		d := demand.None()
-		for _, def := range expr.Defs {
-			d = demand.Union(d, demandForExpr(def.Expr))
-		}
-		for _, e := range expr.Exprs {
-			d = demand.Union(d, demandForExpr(e))
-		}
-		return d
 	case *dag.RecordExpr:
 		d := demand.None()
 		for _, e := range expr.Elems {
@@ -238,6 +222,8 @@ func demandForExpr(expr dag.Expr) demand.Demand {
 		return d
 	case *dag.UnaryExpr:
 		return demandForExpr(expr.Operand)
+	case *dag.UnnestExpr:
+		return demandForExpr(expr.Expr)
 	case *dag.Var:
 		return demand.None()
 	}

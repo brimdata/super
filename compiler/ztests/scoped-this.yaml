@@ -1,13 +1,12 @@
 spq: |
-  over ids with name into (
-    ids:=collect(string(this))
-    | values {name,ids:join(ids,',')}
-  )
+  unnest this into (collect(string(this)))
+
+vector: true
 
 input: |
-  {name:"alice",ids:[1,2,3]}
-  {name:"bob",ids:[4,5]}
+  [1,2,3]
+  [4,5]
 
 output: |
-  {name:"alice",ids:"1,2,3"}
-  {name:"bob",ids:"4,5"}
+  ["1","2","3"]
+  ["4","5"]

@@ -676,7 +676,7 @@ the items from the array and do something with them.  So how about we use
 the [`over` operator](../language/operators/over.md)
 to traverse the array and count the array items by their "kind",
 ```mdtest-command dir=docs/tutorials
-super -s -c 'over this | count() by kind(this)' prs.json
+super -s -c 'unnest this | count() by kind(this)' prs.json
 ```
 produces
 ```mdtest-output
@@ -687,7 +687,7 @@ Ok, they're all records.  Good, this should be easy!
 The records were all originally JSON objects.
 Maybe we can just use "shapes" to have a deeper look...
 ```
-super -S -c 'over this | shapes' prs.json
+super -S -c 'unnest this | shapes' prs.json
 ```
 
 {{% tip "Tip" %}}
@@ -703,7 +703,7 @@ more than 700 lines of pretty-printed SUP.
 
 Ok, maybe it's not so bad.  Let's check how many shapes there are with `shapes`...
 ```mdtest-command dir=docs/tutorials
-super -s -c 'over this | shapes | count()' prs.json
+super -s -c 'unnest this | shapes | count()' prs.json
 ```
 produces
 ```mdtest-output
@@ -715,7 +715,7 @@ They must each be really big.  Let's check that out.
 We can use the [`len` function](../language/functions/len.md) on the records to
 see the size of each of the four records:
 ```mdtest-command dir=docs/tutorials
-super -s -c 'over this | shapes | len(this) | sort this' prs.json
+super -s -c 'unnest this | shapes | len(this) | sort this' prs.json
 ```
 and we get
 ```mdtest-output
@@ -726,7 +726,7 @@ and we get
 Ok, this isn't so bad... two shapes each have 36 fields but one is length zero?!
 That outlier could only be the empty record.  Let's check:
 ```mdtest-command dir=docs/tutorials
-super -s -c 'over this | shapes | len(this)==0' prs.json
+super -s -c 'unnest this | shapes | len(this)==0' prs.json
 ```
 produces
 ```mdtest-output
@@ -747,7 +747,7 @@ Who knows why they are there?  No fun. Real-world data is messy.
 
 How about we fuse the 3 shapes together and have a look at the result:
 ```
-super -S -c 'over this | fuse | shapes' prs.json
+super -S -c 'unnest this | fuse | shapes' prs.json
 ```
 We won't display the result here as it's still pretty big.  But you can
 give it a try.  It's 379 lines.
@@ -755,19 +755,19 @@ give it a try.  It's 379 lines.
 But let's break down what's taking up all this space.
 
 We can take the output from `fuse | shapes` and list the fields with
-and their "kind".  Note that when we do an `over this` with records as
+and their "kind".  Note that when we do an `unnest this` with records as
 input, we get a new record value for each field structured as a key/value pair:
-```mdtest-command dir=docs/tutorials
+```mdtest-command-skip dir=docs/tutorials
 super -f table -c '
-  over this
+  unnest this
   | fuse
   | shapes
-  | over this
+  | unnest flatten(this)
   | {field:key[1],kind:kind(value)}
 ' prs.json
 ```
 produces
-```mdtest-output
+```mdtest-output-skip
 field               kind
 url                 primitive
 id                  primitive
@@ -810,15 +810,15 @@ With this list of top-level fields, we can easily explore the different
 pieces of their structure with `shapes`.  Let's have a look at a few of the
 record fields by giving these one-liners each a try and looking at the output:
 ```
-super -S -c 'over this | shapes head' prs.json
-super -S -c 'over this | shapes base' prs.json
-super -S -c 'over this | shapes _links' prs.json
+super -S -c 'unnest this | shapes head' prs.json
+super -S -c 'unnest this | shapes base' prs.json
+super -S -c 'unnest this | shapes _links' prs.json
 ```
 While these fields have some useful information, we'll decide to drop them here
 and focus on other top-level fields.  To do this, we can use the
 [`drop` operator](../language/operators/drop.md) to whittle down the data:
 ```
-super -S -c 'over this | fuse | drop head,base,_link | shapes' prs.json
+super -S -c 'unnest this | fuse | drop head,base,_link | shapes' prs.json
 ```
 Ok, this looks more reasonable and is now only 120 lines of pretty-printed SUP.
 
@@ -826,7 +826,7 @@ One more annoying detail here about JSON: time values are stored as strings,
 in this case, in ISO format, e.g., we can pull this value out with
 this query:
 ```mdtest-command dir=docs/tutorials
-super -s -c 'over this | head 1 | values created_at' prs.json
+super -s -c 'unnest this | head 1 | values created_at' prs.json
 ```
 which produces this string:
 ```mdtest-output
@@ -835,7 +835,7 @@ which produces this string:
 Since the super data model has a native `time` type and we might want to do native date comparisons
 on these time fields, we can easily translate the string to a time with a cast, e.g.,
 ```mdtest-command dir=docs/tutorials
-super -s -c 'over this | head 1 | values time(created_at)' prs.json
+super -s -c 'unnest this | head 1 | values time(created_at)' prs.json
 ```
 produces the native time value:
 ```mdtest-output
@@ -843,7 +843,7 @@ produces the native time value:
 ```
 To be sure, you can check any value's type with the `typeof` function, e.g.,
 ```mdtest-command dir=docs/tutorials
-super -s -c 'over this | head 1 | values time(created_at) | typeof(this)' prs.json
+super -s -c 'unnest this | head 1 | values time(created_at) | typeof(this)' prs.json
 ```
 produces the native time value:
 ```mdtest-output
@@ -860,7 +860,7 @@ First, let's get rid of the outer array and generate elements of an array
 as a sequence of records that have been fused and let's filter out
 the empty records:
 ```
-super -c 'over this | len(this) != 0 | fuse' prs.json > prs1.bsup
+super -c 'unnest this | len(this) != 0 | fuse' prs.json > prs1.bsup
 ```
 We can check that worked with `count`:
 ```
@@ -884,7 +884,7 @@ we can run this query to group field names by their type and limit the output
 to primitive types:
 ```
 super -s -c '
-  over this
+  unnest this
   | kind(value)=="primitive"
   | fields:=union(key[0]) by type:=typeof(value)
 ' prs2.bsup
@@ -933,7 +933,7 @@ super -c '
 ' prs2.bsup > prs.bsup
 ```
 We can check the result with our type analysis:
-```mdtest-command dir=docs/tutorials
+```mdtest-command-skip dir=docs/tutorials
 super -s -c '
   over this
   | kind(value)=="primitive"
@@ -942,7 +942,7 @@ super -s -c '
 ' prs.bsup
 ```
 which now gives:
-```mdtest-output
+```mdtest-output-skip
 {type:<int64>,fields:|["id","number"]|}
 {type:<time>,fields:|["closed_at","merged_at","created_at","updated_at"]|}
 {type:<bool>,fields:|["draft","locked"]|}
@@ -965,7 +965,7 @@ Instead of running each step above into a temporary file, we can
 put all the transformations together in a single
 pipeline, where the full query text might look like this:
 ```
-over this                      -- traverse the array of objects
+unnest this                      -- traverse the array of objects
 | len(this) != 0               -- skip empty objects
 | fuse                         -- fuse objects into records of a combined type
 | drop head,base,_links        -- drop fields that we don't need
@@ -1051,7 +1051,7 @@ How about getting a list of all of the reviewers?  To do this, we need to
 traverse the records in the `requested_reviewers` array and collect up
 the login field from each record:
 ```mdtest-command dir=docs/tutorials
-super -s -c 'over requested_reviewers | collect(login)' prs.bsup
+super -s -c 'unnest requested_reviewers | collect(login)' prs.bsup
 ```
 Oops, this gives us an array of the reviewer logins
 with repetitions since [`collect`](../language/aggregates/collect.md)
@@ -1066,7 +1066,7 @@ computes the set-wise union of its input and produces a `set` type as its
 output.  In this case, the output is a set of strings, written `|[string]|`
 in the query language.  For example:
 ```mdtest-command dir=docs/tutorials
-super -s -c 'over requested_reviewers | reviewers:=union(login)' prs.bsup
+super -s -c 'unnest requested_reviewers | reviewers:=union(login)' prs.bsup
 ```
 produces
 ```mdtest-output
@@ -1086,7 +1086,7 @@ Instead of computing a set-union over all the reviewers across all PRs,
 we instead want to compute the set-union over the reviewers in each PR.
 We can do this as follows:
 ```mdtest-command dir=docs/tutorials
-super -s -c 'over requested_reviewers into ( reviewers:=union(login) )' prs.bsup
+super -s -c 'unnest requested_reviewers into ( reviewers:=union(login) )' prs.bsup
 ```
 which produces an output like this:
 ```mdtest-output head
@@ -1109,9 +1109,8 @@ bringing that value into the scope using a `with` clause appended to the
 [record literal](../language/expressions.md#record-expressions) with the desired value:
 ```mdtest-command dir=docs/tutorials
 super -s -c '
-  over requested_reviewers with user=user.login into (
-    reviewers:=union(login)
-    | {user,reviewers}
+  unnest {user:user.login,reviewer:requested_reviewers} into (
+    reviewers:=union(reviewer.login) by user
   )
   | sort user,len(reviewers)
 ' prs.bsup
@@ -1132,9 +1131,8 @@ The final step is to simply aggregate the "reviewer sets" with the `user` field
 as the grouping key:
 ```mdtest-command dir=docs/tutorials
 super -S -c '
-  over requested_reviewers with user=user.login into (
-    reviewers:=union(login)
-    | {user,reviewers}
+  unnest {user:user.login,reviewer:requested_reviewers} into (
+    reviewers:=union(reviewer.login) by user
   )
   | groups:=union(reviewers) by user
   | sort user,len(groups)
@@ -1256,9 +1254,8 @@ of reviewers.  To do this, we just average the reviewer set size
 with an aggregation:
 ```mdtest-command dir=docs/tutorials
 super -s -c '
-  over requested_reviewers with user=user.login into (
-    reviewers:=union(login)
-    | {user,reviewers}
+  unnest {user:user.login,reviewer:requested_reviewers} into (
+    reviewers:=union(reviewer.login) by user
   )
   | avg_reviewers:=avg(len(reviewers)) by user
   | sort avg_reviewers
@@ -1277,9 +1274,8 @@ Of course, if you'd like the query output in JSON, you can just say `-j` and
 `super` will happily format the sets as JSON arrays, e.g.,
 ```mdtest-command dir=docs/tutorials
 super -j -c '
-  over requested_reviewers with user=user.login into (
-    reviewers:=union(login)
-    | {user,reviewers}
+  unnest {user:user.login,reviewer:requested_reviewers} into (
+    reviewers:=union(reviewer.login) by user
   )
   | groups:=union(reviewers) by user
   | sort user,len(groups)
