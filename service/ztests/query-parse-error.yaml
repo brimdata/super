@@ -34,34 +34,34 @@ outputs:
   - name: stderr
     data: |
       =1=
-      parse error at line 1, column 12:
+      parse error at line 1, column 11:
       from test \ count()
-             === ^ ===
+            === ^ ===
       =2=
-      parse error at line 2, column 7:
+      parse error at line 2, column 6:
       test \ count()
-        === ^ ===
+       === ^ ===
       =3=
-      parse error at line 1, column 12:
+      parse error at line 1, column 11:
       from test \ count()
-             === ^ ===
+            === ^ ===
       =4=
-      parse error at line 2, column 7:
+      parse error at line 2, column 6:
       test \ count()
-        === ^ ===
+       === ^ ===
       =5=
-      parse error in bad-single-line.spq at line 1, column 12:
+      parse error in bad-single-line.spq at line 1, column 11:
       from test \ count()
-             === ^ ===
+            === ^ ===
       =6=
-      parse error in bad-multiple-lines.spq at line 2, column 7:
+      parse error in bad-multiple-lines.spq at line 2, column 6:
       test \ count()
-        === ^ ===
+       === ^ ===
       =7=
-      parse error in bad-single-line.spq at line 1, column 12:
+      parse error in bad-single-line.spq at line 1, column 11:
       from test \ count()
-             === ^ ===
+            === ^ ===
       =8=
-      parse error in bad-multiple-lines.spq at line 2, column 7:
+      parse error in bad-multiple-lines.spq at line 2, column 6:
       test \ count()
-        === ^ ===
+       === ^ ===
