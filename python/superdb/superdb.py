@@ -182,7 +182,7 @@ if __name__ == '__main__':
     import pprint
 
     parser = argparse.ArgumentParser(
-        description='Query default SuperDB lake service and print results.',
+        description='Query default SuperDB service and print results.',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('query')
     args = parser.parse_args()
