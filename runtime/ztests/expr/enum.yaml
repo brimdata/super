@@ -3,11 +3,11 @@ spq: "put s:=string(e), v:=e+1"
 vector: true
 
 input: |
-  {e:%foo::enum(foo,bar,baz)}
-  {e:%bar::enum(foo,bar,baz)}
-  {e:%baz::enum(foo,bar,baz)}
+  {e:"foo"::enum(foo,bar,baz)}
+  {e:"bar"::enum(foo,bar,baz)}
+  {e:"baz"::enum(foo,bar,baz)}
 
 output: |
-  {e:%foo::enum(foo,bar,baz),s:"foo",v:1}
-  {e:%bar::enum(foo,bar,baz),s:"bar",v:2}
-  {e:%baz::enum(foo,bar,baz),s:"baz",v:3}
+  {e:"foo"::enum(foo,bar,baz),s:"foo",v:1}
+  {e:"bar"::enum(foo,bar,baz),s:"bar",v:2}
+  {e:"baz"::enum(foo,bar,baz),s:"baz",v:3}

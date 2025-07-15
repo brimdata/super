@@ -236,6 +236,9 @@ func buildEnum(b *zcode.Builder, enum *Enum) error {
 		return errors.New("enum value is not of type enum")
 	}
 	selector := typ.Lookup(enum.Name)
+	if selector < 0 {
+		return fmt.Errorf("symbol %q not a member of %s", enum.Name, String(typ))
+	}
 	b.Append(super.EncodeUint(uint64(selector)))
 	return nil
 }

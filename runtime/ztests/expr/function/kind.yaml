@@ -18,7 +18,7 @@ input: |
   <{s:string}>
   |[1,2,3]|
   |{1:1,2:2}|
-  %heads::enum(heads,tails)
+  "heads"::enum(heads,tails)
 
 output: |
   {val:null,kind:"primitive"}
@@ -36,4 +36,4 @@ output: |
   {val:<{s:string}>,kind:"record"}
   {val:|[1,2,3]|,kind:"set"}
   {val:|{1:1,2:2}|,kind:"map"}
-  {val:%heads::enum(heads,tails),kind:"enum"}
+  {val:"heads"::enum(heads,tails),kind:"enum"}

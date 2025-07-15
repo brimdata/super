@@ -1,0 +1,25 @@
+spq: |
+  values
+    "foo"::enum(foo,bar),
+    "bar"::enum("foo","bar"),
+    "fu bar"::enum("foo","bar","fu bar"),
+    "fu bar"::enum("foo","bar",`fu bar`),
+    "fu bar"::enum("foo", "bar", `fu bar`),
+    "hello"::enum("foo","bar"),
+    1::enum("foo","bar"),
+    {x:1,s:"foo"}::enum("foo","bar"),
+    {x:1,s:"foo"}.s::enum("foo","bar")
+
+input: |
+  null
+
+output: |
+  "foo"::enum(foo,bar)
+  "bar"::enum(foo,bar)
+  "fu bar"::enum(foo,bar,"fu bar")
+  "fu bar"::enum(foo,bar,"fu bar")
+  "fu bar"::enum(foo,bar,"fu bar")
+  error({message:"no such symbol in enum(foo,bar)",on:"hello"})
+  error({message:"cannot cast to type",on:1})
+  error({message:"cannot cast to type",on:{x:1,s:"foo"}})
+  "foo"::enum(foo,bar)

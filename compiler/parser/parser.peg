@@ -714,7 +714,7 @@ FromEntity
   / "(" __ s:SQLPipe __ ")" {
       return s, nil
     }
-   / name:Name    { return name, nil }
+   / Name
   // XXX UNNEST, PIVOT, UNPIVOT, type projection, left correlation?
 
 FromArgs
@@ -1233,7 +1233,7 @@ Spread
     }
 
 FieldExpr
-  = name:Name __ ":" __ value:Expr {
+  = name:SUPName __ ":" __ value:Expr {
       return &ast.FieldExpr{
         Kind: "FieldExpr",
         Name: name.(*ast.Name),
@@ -1376,7 +1376,7 @@ TypeLiteral
     }
 
 TypeAsValue
-  = "=" name:Name { return newPrimitive(c, "string", name.(*ast.Name).Text), nil }
+  = "=" name:SUPName { return newPrimitive(c, "string", name.(*ast.Name).Text), nil }
   / t:EasyType {
       return &ast.TypeValue{
         Kind:"TypeValue",
@@ -1391,7 +1391,7 @@ Type
 
 ComponentType
   = EasyType
-  / name:Name opt:(__ '=' __ Type)? {
+  / name:SUPName opt:(__ '=' __ Type)? {
       if opt != nil {
         return &ast.TypeDef{
             Kind: "TypeDef",
@@ -1410,6 +1410,13 @@ EasyType
       return &ast.TypeError{
           Kind: "TypeError",
           Type: t.(ast.Type),
+          Loc: loc(c),
+      }, nil
+    }
+  / ENUM __ "(" __ names:SUPNames __ ")" {
+      return &ast.TypeEnum{
+          Kind: "TypeEnum",
+          Symbols: sliceOf[*ast.Name](names),
           Loc: loc(c),
       }, nil
     }
@@ -1543,11 +1550,19 @@ TypeField
 
 Name
   = s:DottedIDs          { return &ast.Name{Kind:"Name",Text:s.(string),Loc:loc(c) }, nil }
-  / s:IdentifierName     { return &ast.Name{Kind:"Name",Text:s.(string),Loc:loc(c) }, nil }
+  / s:KSUID              { return &ast.Name{Kind:"Name",Text:s.(string),Loc:loc(c) }, nil }
+  / SUPName 
+
+SUPName
+  = s:IdentifierName     { return &ast.Name{Kind:"Name",Text:s.(string),Loc:loc(c) }, nil }
   / s:DoubleQuotedString { return &ast.Name{Kind:"Name",Text:s.(string),Loc:loc(c) }, nil }
   / s:SingleQuotedString { return &ast.Name{Kind:"Name",Text:s.(string),Loc:loc(c) }, nil }
-  / s:KSUID              { return &ast.Name{Kind:"Name",Text:s.(string),Loc:loc(c) }, nil }
 
+SUPNames
+  = first:SUPName rest:(__ "," __ name:SUPName { return name, nil })* {
+    return prepend(first, rest), nil
+  }
+  
 DottedIDs
   = (IdentifierStart / ".") (IdentifierRest / ".")* { return string(c.text), nil }
 
@@ -2364,6 +2379,7 @@ DISTINCT   = "DISTINCT"i        !IdentifierRest
 DROP       = "DROP"i            !IdentifierRest 
 ELSE       = "ELSE"i            !IdentifierRest
 END        = "END"i             !IdentifierRest
+ENUM       = "ENUM"i            !IdentifierRest
 ERROR      = "ERROR"i           !IdentifierRest
 EVAL       = "EVAL"i            !IdentifierRest
 EXPLODE    = "EXPLODE"i         !IdentifierRest

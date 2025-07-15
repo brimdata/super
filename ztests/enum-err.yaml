@@ -4,9 +4,9 @@ script: |
 inputs:
   - name: stdin
     data: |
-      {e:%bang::enum(foo,bar,baz)}
+      {e:"bang"::enum(foo,bar,baz)}
 
 outputs:
   - name: stderr
     data: |
-      stdio:stdin: symbol "bang" not a member of type "enum(foo,bar,baz)"
+      stdio:stdin: symbol "bang" not a member of enum(foo,bar,baz)

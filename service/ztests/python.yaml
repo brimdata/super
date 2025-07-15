@@ -132,7 +132,7 @@ inputs:
         union: 123::int32::(string|int32)::(string|[int32]|[string]|(string|int32))
       }
       {
-        enum: %bar::enum(foo,bar,baz)
+        enum: "bar"::enum(foo,bar,baz)
       }
   - name: service.sh
   - name: pyproject.toml

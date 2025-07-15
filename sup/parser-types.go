@@ -342,9 +342,9 @@ func (p *Parser) matchTypeEnumBody() (*ast.TypeEnum, error) {
 	}, nil
 }
 
-func (p *Parser) matchEnumSymbols() ([]string, error) {
+func (p *Parser) matchEnumSymbols() ([]*ast.Name, error) {
 	l := p.lexer
-	var symbols []string
+	var symbols []*ast.Name
 	for {
 		name, ok, err := p.matchSymbol()
 		if err != nil {
@@ -353,7 +353,7 @@ func (p *Parser) matchEnumSymbols() ([]string, error) {
 		if !ok {
 			return nil, nil
 		}
-		symbols = append(symbols, name)
+		symbols = append(symbols, &ast.Name{Kind: "Name", Text: name})
 		ok, err = l.match(',')
 		if err != nil {
 			return nil, err

@@ -240,9 +240,8 @@ func (a Analyzer) convertPrimitive(val *ast.Primitive, cast super.Type) (Value, 
 	}
 	isNull := typ == super.TypeNull
 	if cast != nil {
-		// The parser emits Enum values for identifiers but not for
-		// string enum names.  Check if the cast type is an enum,
-		// and if so, convert the string to its enum counterpart.
+		// SUP encodes enum values as a string followed by an enum cast.
+		// Check for this condition before applying the generic cast logic.
 		if v := stringToEnum(val, cast); v != nil {
 			return v, nil
 		}
@@ -681,5 +680,13 @@ func (a Analyzer) convertTypeEnum(sctx *super.Context, enum *ast.TypeEnum) (*sup
 	if len(enum.Symbols) == 0 {
 		return nil, errors.New("enum body is empty")
 	}
-	return sctx.LookupTypeEnum(enum.Symbols), nil
+	return sctx.LookupTypeEnum(symbolsOfEnum(enum)), nil
+}
+
+func symbolsOfEnum(enum *ast.TypeEnum) []string {
+	var s []string
+	for _, name := range enum.Symbols {
+		s = append(s, name.Text)
+	}
+	return s
 }

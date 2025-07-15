@@ -1,6 +1,7 @@
 package expr
 
 import (
+	"fmt"
 	"net/netip"
 	"strconv"
 	"unicode/utf8"
@@ -14,6 +15,9 @@ import (
 )
 
 func LookupPrimitiveCaster(sctx *super.Context, typ super.Type) Evaluator {
+	if enum, ok := typ.(*super.TypeEnum); ok {
+		return &casterEnum{sctx, enum}
+	}
 	switch typ {
 	case super.TypeBool:
 		return &casterBool{sctx}
@@ -268,4 +272,22 @@ func (c *casterType) Eval(ectx Context, val super.Value) super.Value {
 		return c.sctx.WrapError("cannot cast to type", val)
 	}
 	return typval
+}
+
+type casterEnum struct {
+	sctx *super.Context
+	enum *super.TypeEnum
+}
+
+func (c *casterEnum) Eval(ectx Context, val super.Value) super.Value {
+	id := val.Type().ID()
+	if id != super.IDString {
+		return c.sctx.WrapError("cannot cast to type", val)
+	}
+	s := super.DecodeString(val.Bytes())
+	selector := c.enum.Lookup(s)
+	if selector < 0 {
+		return c.sctx.WrapError(fmt.Sprintf("no such symbol in %s", sup.String(c.enum)), val)
+	}
+	return super.NewValue(c.enum, super.EncodeUint(uint64(selector)))
 }
