@@ -290,7 +290,7 @@ func (a *analyzer) semSelectFrom(loc ast.Loc, from *ast.From, seq dag.Seq) (dag.
 	// only if it's not a RobotScan where the parent feeds the from operateor.
 	if _, ok := seq[off].(*dag.RobotScan); !ok {
 		if hasParent {
-			a.error(loc, errors.New("SELECT cannot have both an embedded FROM claue and input from parents"))
+			a.error(loc, errors.New("SELECT cannot have both an embedded FROM clause and input from parents"))
 			return append(seq, badOp()), nil
 		}
 	}
