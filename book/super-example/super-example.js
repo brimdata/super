@@ -82,7 +82,7 @@ for (const [i, pre] of preNodes.entries()) {
 
   const commandCode = node.querySelector('.super-command code')
   SuperPlayground.setup(node, (query, input) => {
-    commandCode.textContent = `echo '${input}'\\\n| super -s -c '${query}' -`
+    commandCode.textContent = `echo '${input}' \\\n| super -s -c '${query}' -`
   });
 
   // Prevent keydown from bubbling up to book.js listeners.
