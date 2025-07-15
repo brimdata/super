@@ -202,7 +202,6 @@
         - [Python](dev/libraries/python.md)
     - [Integrations](dev/integrations/intro.md)
         - [Amazon S3](dev/integrations/s3.md)
-    !!    - [Authentication](dev/integrations/auth.md)
         - [Fluentd](dev/integrations/fluentd.md)
         - [Grafana](dev/integrations/grafana.md)
         - [Zeek](dev/integrations/zeek/intro.md)
