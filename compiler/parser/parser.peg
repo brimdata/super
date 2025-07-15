@@ -1567,7 +1567,6 @@ Identifiers
 
 SQLIdentifier
   = Identifier
-  / s:BacktickString     { return &ast.ID{Kind:"ID", Name:s.(string), Loc:loc(c) }, nil }
   / s:DoubleQuotedString { return &ast.ID{Kind:"ID", Name:s.(string), Loc:loc(c) }, nil }
 
 IdentifierName

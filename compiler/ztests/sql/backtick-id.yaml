@@ -1,0 +1,13 @@
+script: |
+  super -s -I query.sql
+
+inputs:
+  - name: query.sql
+    data: |
+      select `x` as `y` from (values (1),(2)) T(x)
+
+outputs:
+  - name: stdout
+    data: |
+      {y:1}
+      {y:2}
