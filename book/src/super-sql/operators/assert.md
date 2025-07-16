@@ -1,6 +1,6 @@
 ### Operator
 
-&emsp; **assert** &mdash; evaluate an assertion
+&emsp; **assert** &mdash; test a predicate and produce errors on failure
 
 ### Synopsis
 
@@ -10,7 +10,7 @@ assert <expr>
 ### Description
 
 The `assert` operator evaluates the Boolean expression `<expr>` for each
-input value, yielding its input value if `<expr>` evaluates to true or a
+input value, producing its input value if `<expr>` evaluates to true or a
 structured error if it does not.
 
 ### Examples
@@ -32,7 +32,9 @@ assert a > 0
 # spq
 assert a > 0
 # input
+{a:1}
 {a:-1}
 # expected output
+{a:1}
 error({message:"assertion failed",expr:"a > 0",on:{a:-1}})
 ```

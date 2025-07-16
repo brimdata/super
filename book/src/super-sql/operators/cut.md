@@ -13,12 +13,12 @@ The `cut` operator extracts values from each input record in the
 form of one or more [field assignments](../pipeline-model.md#field-assignments),
 creating one field for each expression.  Unlike the `put` operator,
 which adds or modifies the fields of a record, `cut` retains only the
-fields enumerated, much like a SQL projection.
+fields enumerated, much like a SQL select clause.
 
 Each `<field>` expression must be a field reference expressed as a dotted path or sequence of
 constant index operations on `this`, e.g., `a.b` or `a["b"]`.
 
-Each right-hand side `<expr>` can be any Zed expression and is optional.
+Each right-hand side `<expr>` can be any expression and is optional.
 
 When the right-hand side expressions are omitted,
 the _cut_ operation resembles the Unix shell command, e.g.,
@@ -29,12 +29,12 @@ If an expression results in `error("quiet")`, the corresponding field is omitted
 from the output.  This allows you to wrap expressions in a `quiet()` function
 to filter out missing errors.
 
-If an input value to cut is not a record, then the cut still operates as defined
+If an input value to cut is not a record, then cut still operates as defined
 resulting in `error("missing")` for expressions that reference fields of `this`.
 
 Note that when the field references are all top level,
 `cut` is a special case of a values with a
-[record literal](../expressions.md#record-expressions) having the form:
+[record literal](../types/record.md) having the form:
 ```
 values {<field>:<expr> [, <field>:<expr>...]}
 ```

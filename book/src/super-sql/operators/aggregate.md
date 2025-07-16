@@ -32,12 +32,13 @@ The `aggregate` keyword is optional since it can be used as a
 
 Each aggregate function may be optionally followed by a `where` clause, which
 applies a Boolean expression that indicates, for each input value,
-whether to deliver it to that aggregate. (`where` clauses are analogous
-to the [`where` operator](where.md).)
+whether to deliver it to that aggregate. `where` clauses are analogous
+to the [`where`](where.md) operator but apply their filter to the input
+argument stream to the aggregatge function.
 
 The output field names for each aggregate and each key are optional.  If omitted,
 a field name is inferred from each right-hand side, e.g., the output field for the
-[`count` aggregate function](../aggregates/count.md) is simply `count`.
+[`count`](../aggregates/count.md) aggregate function is simply `count`.
 
 A key may be either an expression or a field.  If the key field is omitted,
 it is inferred from the expression, e.g., the field name for `by lower(s)`
@@ -51,8 +52,8 @@ containing that value.
 If the cardinality of grouping keys causes the memory footprint to exceed
 a limit, then each aggregate's partial results are spilled to temporary storage
 and the results merged into final results using an external merge sort.
-The same mechanism that spills to storage can also spill across the network
-to a cluster of workers in an adaptive shuffle, though this is not yet implemented.
+
+> Spilling is not yet implemented for the vectorized runtime.
 
 ### Examples
 
@@ -158,8 +159,8 @@ Use separate `where` clauses on each aggregate function:
 ```mdtest-spq
 # spq
 set:=union(v) where v > 1,
-     array:=collect(v) where k=="foo"
-     by key:=k
+array:=collect(v) where k=="foo"
+  by key:=k
 | sort
 # input
 {k:"foo",v:1}

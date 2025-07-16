@@ -16,9 +16,8 @@ The implied `combine` operator merges inputs from multiple upstream branches of
 the pipeline into a single output.  The order of values in the combined
 output is undefined.
 
-You need not explicit reference the operator with any text.  Instead, the
-mere existence of a merge point in the flow graph implies its existence
-and its semantics of undefined merge order.
+The combine operator is not invoked by an operator name.  Instead, the
+mere existence of a merge point in the query struture implies its existence.
 
 ### Examples
 
