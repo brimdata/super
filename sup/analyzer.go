@@ -258,10 +258,10 @@ func (a Analyzer) convertPrimitive(val *ast.Primitive, cast super.Type) (Value, 
 }
 
 func stringToEnum(val *ast.Primitive, cast super.Type) Value {
-	if enum, ok := cast.(*super.TypeEnum); ok {
+	if _, ok := super.TypeUnder(cast).(*super.TypeEnum); ok {
 		if val.Type == "string" {
 			return &Enum{
-				Type: enum,
+				Type: cast,
 				Name: val.Text,
 			}
 		}

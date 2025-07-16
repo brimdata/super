@@ -8,7 +8,9 @@ spq: |
     "hello"::enum("foo","bar"),
     1::enum("foo","bar"),
     {x:1,s:"foo"}::enum("foo","bar"),
-    {x:1,s:"foo"}.s::enum("foo","bar")
+    {x:1,s:"foo"}.s::enum("foo","bar"),
+    "HEADS"::(flip=(enum(HEADS,TAILS))),
+    {head:"HEADS"::(flip=enum(HEADS,TAILS))}
 
 input: |
   null
@@ -23,3 +25,5 @@ output: |
   error({message:"cannot cast to type",on:1})
   error({message:"cannot cast to type",on:{x:1,s:"foo"}})
   "foo"::enum(foo,bar)
+  "HEADS"::(flip=enum(HEADS,TAILS))
+  {head:"HEADS"::(flip=enum(HEADS,TAILS))}

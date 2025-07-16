@@ -90,7 +90,7 @@ func String(p any) string {
 	case super.Value:
 		return FormatValue(val)
 	default:
-		panic("sup.String takes a super.Type or *super.Value")
+		panic(fmt.Sprintf("sup.String takes a super.Type or *super.Value: %T", val))
 	}
 }
 
@@ -183,7 +183,7 @@ func (f *Formatter) formatValue(indent int, typ super.Type, bytes zcode.Bytes, p
 		if code < uint64(len(t.Symbols)) {
 			f.build(t.Symbols[code])
 		} else {
-			f.build(fmt.Sprintf("<sup-error: bad enum index>"))
+			f.build("<sup-error: bad enum index>")
 		}
 		f.build("\"")
 	case *super.TypeError:

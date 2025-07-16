@@ -230,14 +230,14 @@ func buildUnion(b *zcode.Builder, union *Union) error {
 }
 
 func buildEnum(b *zcode.Builder, enum *Enum) error {
-	typ, ok := enum.Type.(*super.TypeEnum)
+	under, ok := super.TypeUnder(enum.Type).(*super.TypeEnum)
 	if !ok {
 		// This shouldn't happen.
 		return errors.New("enum value is not of type enum")
 	}
-	selector := typ.Lookup(enum.Name)
+	selector := under.Lookup(enum.Name)
 	if selector < 0 {
-		return fmt.Errorf("symbol %q not a member of %s", enum.Name, String(typ))
+		return fmt.Errorf("symbol %q not a member of %s", enum.Name, String(enum.Type))
 	}
 	b.Append(super.EncodeUint(uint64(selector)))
 	return nil
