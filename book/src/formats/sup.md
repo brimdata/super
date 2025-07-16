@@ -86,7 +86,7 @@ same name, from the case that an existing named type is merely decorating the va
 #### 2.3 Primitive Values
 
 The type names and format for
-[primitive values](data-model.md#1-primitive-types) is as follows:
+[primitive values](model.md#1-primitive-types) is as follows:
 
 | Type       | Value Format                                                  |
 |------------|---------------------------------------------------------------|
@@ -215,13 +215,13 @@ record types as well as enum symbols.
 
 Complex values are built from primitive values and/or other complex values
 and conform to the super data model's complex types:
-[record](data-model.md#21-record),
-[array](data-model.md#22-array),
-[set](data-model.md#23-set),
-[map](data-model.md#24-map),
-[union](data-model.md#25-union),
-[enum](data-model.md#26-enum), and
-[error](data-model.md#27-error).
+[record](model.md#21-record),
+[array](model.md#22-array),
+[set](model.md#23-set),
+[map](model.md#24-map),
+[union](model.md#25-union),
+[enum](model.md#26-enum), and
+[error](model.md#27-error).
 
 Complex values have an implied type when their constituent values all have
 implied types.

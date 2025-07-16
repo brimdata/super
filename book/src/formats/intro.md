@@ -16,7 +16,7 @@ a sequence of arbitrarily-typed values.
 * [Super JSON](jsup.md) defines a format for encapsulating SUP
 inside plain JSON for easy decoding by JSON-based clients, e.g.,
 the [JavaScript library used by SuperDB Desktop](https://github.com/brimdata/zui/tree/main/packages/superdb-types)
-and the [SuperDB Python library](../libraries/python.md).
+and the [SuperDB Python library](../dev/libraries/python.md).
 
 Because all of the formats conform to the same super-structured data model,
 conversions between a human-readable form, a row-based binary form,

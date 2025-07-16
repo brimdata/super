@@ -3,7 +3,7 @@
 > TODO: this is out of date and needs to be updated.
 
 Super Columnar (CSUP) is a file format based on
-the [super-structured data model](data-model.md) where data is stacked to form columns.
+the [super-structured data model](model.md) where data is stacked to form columns.
 Its purpose is to provide for efficient analytics and search over
 bounded-length sequences of super-structured data
 that is stored in columnar form.
@@ -72,7 +72,7 @@ in a single pass.
 The data section contains raw data values organized into _segments_,
 where a segment is a seek offset and byte length relative to the
 data section.  Each segment contains a sequence of
-[primitive-type values](data-model.md#1-primitive-types),
+[primitive-type values](model.md#1-primitive-types),
 encoded as counted-length byte sequences where the counted-length is
 variable-length encoded as in the [Super Binary (BSUP) specification](bsup.md).
 Segments may be compressed.
