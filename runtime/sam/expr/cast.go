@@ -282,7 +282,7 @@ type casterEnum struct {
 func (c *casterEnum) Eval(ectx Context, val super.Value) super.Value {
 	id := val.Type().ID()
 	if id != super.IDString {
-		return c.sctx.WrapError("cannot cast to type", val)
+		return c.sctx.WrapError("cannot cast to enum", val)
 	}
 	s := super.DecodeString(val.Bytes())
 	selector := c.enum.Lookup(s)

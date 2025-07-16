@@ -179,12 +179,7 @@ func (f *Formatter) formatValue(indent int, typ super.Type, bytes zcode.Bytes, p
 		null = f.formatMap(indent, t, bytes, known, parentImplied)
 	case *super.TypeEnum:
 		f.build("\"")
-		code := super.DecodeUint(bytes)
-		if code < uint64(len(t.Symbols)) {
-			f.build(t.Symbols[code])
-		} else {
-			f.build("<sup-error: bad enum index>")
-		}
+		f.build(t.Symbols[super.DecodeUint(bytes)])
 		f.build("\"")
 	case *super.TypeError:
 		f.startColor(color.Red)
