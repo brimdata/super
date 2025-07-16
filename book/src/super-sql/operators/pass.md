@@ -15,6 +15,8 @@ with operators that handle multiple branches of the pipeline such as
 
 ### Examples
 
+---
+
 _Copy input to output_
 ```mdtest-spq
 # spq
@@ -28,6 +30,8 @@ pass
 2
 3
 ```
+
+---
 
 _Copy each input value to three parallel pipeline branches and leave the values unmodified on one of them_
 ```mdtest-spq

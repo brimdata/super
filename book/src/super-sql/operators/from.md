@@ -100,6 +100,8 @@ The following file `hello.sup` is also used.
 
 ### Examples
 
+---
+
 _Source structured data from a local file_
 
 ```mdtest-command
@@ -110,6 +112,8 @@ super -s -c 'from hello.sup | values greeting'
 "hello world!"
 ```
 
+---
+
 _Source data from a local file, but in line format_
 ```mdtest-command
 super -s -c 'from hello.sup format line'
@@ -118,6 +122,8 @@ super -s -c 'from hello.sup format line'
 ```mdtest-output
 "{greeting:\"hello world!\"}"
 ```
+
+---
 
 _Source structured data from a URI_
 ```
@@ -129,6 +135,8 @@ super -s -c 'from https://raw.githubusercontent.com/brimdata/zui-insiders/main/p
 "Zui - Insiders"
 ```
 
+---
+
 _Source data from the `main` branch of a pool_
 ```mdtest-command
 super db -db example -s -c 'from coinflips'
@@ -138,6 +146,8 @@ super db -db example -s -c 'from coinflips'
 {flip:2,result:"tails"}
 {flip:1,result:"heads"}
 ```
+
+---
 
 _Source data from a specific branch of a pool_
 ```mdtest-command
@@ -150,6 +160,8 @@ super db -db example -s -c 'from coinflips@trial'
 {flip:1,result:"heads"}
 ```
 
+---
+
 _Count the number of values in the `main` branch of all pools_
 ```mdtest-command
 super db -db example -f text -c 'from * | count()'
@@ -158,7 +170,11 @@ super db -db example -f text -c 'from * | count()'
 ```mdtest-output
 5
 ```
+
+---
+
 _Join the data from multiple pools_
+
 ```mdtest-command
 super db -db example -s -c '
   from coinflips | sort flip
@@ -172,6 +188,8 @@ super db -db example -s -c '
 {flip:1,result:"heads",word:"one"}
 {flip:2,result:"tails",word:"two"}
 ```
+
+---
 
 _Use `pass` to combine our join output with data from yet another source_
 ```mdtest-command

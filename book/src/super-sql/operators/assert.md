@@ -15,6 +15,8 @@ structured error if it does not.
 
 ### Examples
 
+---
+
 ```mdtest-spq
 # spq
 assert a > 0
@@ -23,6 +25,8 @@ assert a > 0
 # expected output
 {a:1}
 ```
+
+---
 
 ```mdtest-spq {data-layout="stacked"}
 # spq

@@ -64,6 +64,8 @@ error({message:"unnest: encountered record without an array column",on:<value>})
 
 ### Examples
 
+---
+
 _unnest unrolls the elements of an array_
 ```mdtest-spq
 # spq
@@ -75,6 +77,8 @@ null
 2
 "foo"
 ```
+
+---
 
 _The unnest clause is evaluated once per each input value_
 ```mdtest-spq
@@ -90,6 +94,8 @@ null
 2
 ```
 
+---
+
 _Unnest traversing an array inside a record_
 ```mdtest-spq
 # spq
@@ -101,6 +107,8 @@ unnest a
 2
 3
 ```
+
+---
 
 _Filter the unnested values_
 ```mdtest-spq
@@ -115,6 +123,8 @@ unnest a | this % 2 == 0
 2
 ```
 
+---
+
 _Aggregate the unnested values_
 ```mdtest-spq
 # spq
@@ -125,6 +135,8 @@ unnest a | sum(this)
 # expected output
 15
 ```
+
+---
 
 _Aggregate the unnested values in a subquery_
 ```mdtest-spq
@@ -138,6 +150,8 @@ unnest a into ( sum(this) )
 12
 ```
 
+---
+
 _Access an outer value in a subquery_
 ```mdtest-spq
 # spq
@@ -149,6 +163,8 @@ unnest {s,a} into ( sum(a) by s )
 {s:"foo",sum:3}
 {s:"bar",sum:12}
 ```
+
+---
 
 _Unnested the elements of a record by flattening it_
 ```mdtest-spq

@@ -41,6 +41,8 @@ values {<field>:<expr> [, <field>:<expr>...]}
 
 ### Examples
 
+---
+
 _A simple Unix-like cut_
 ```mdtest-spq
 # spq
@@ -50,6 +52,8 @@ cut a,c
 # expected output
 {a:1,c:3}
 ```
+
+---
 
 _Missing fields show up as missing errors_
 ```mdtest-spq
@@ -61,6 +65,8 @@ cut a,d
 {a:1,d:error("missing")}
 ```
 
+---
+
 _The missing fields can be ignored with quiet_
 ```mdtest-spq
 # spq
@@ -70,6 +76,8 @@ cut a:=quiet(a),d:=quiet(d)
 # expected output
 {a:1}
 ```
+
+---
 
 _Non-record values generate missing errors for fields not present in a non-record `this`_
 ```mdtest-spq {data-layout="stacked"}
@@ -82,6 +90,8 @@ cut a,b
 {a:error("missing"),b:error("missing")}
 {a:1,b:2}
 ```
+
+---
 
 _Invoke a function while cutting to set a default value for a field_
 

@@ -16,6 +16,8 @@ is not provided, the value of N defaults to `1`.
 
 ### Examples
 
+---
+
 _Grab first two values of arbitrary sequence_
 ```mdtest-spq
 # spq
@@ -29,6 +31,8 @@ head 2
 "foo"
 ```
 
+---
+
 _Grab first two values of arbitrary sequence, using a different representation of two_
 ```mdtest-spq
 # spq
@@ -41,6 +45,8 @@ head 1+1
 1
 "foo"
 ```
+
+---
 
 _Grab the first record of a record sequence_
 ```mdtest-spq

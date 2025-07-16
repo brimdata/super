@@ -16,6 +16,8 @@ non-record values are copied unmodified.
 
 ### Examples
 
+---
+
 _Drop of a field_
 ```mdtest-spq
 # spq
@@ -25,6 +27,8 @@ drop b
 # expected output
 {a:1,c:3}
 ```
+
+---
 
 _Non-record values are copied to output_
 ```mdtest-spq

@@ -30,6 +30,8 @@ and the error is emitted.
 
 ### Examples
 
+---
+
 _A simple rename_
 ```mdtest-spq
 # spq
@@ -40,6 +42,8 @@ rename c:=b
 {a:1,c:2}
 ```
 
+---
+
 _Nested rename_
 ```mdtest-spq
 # spq
@@ -49,6 +53,8 @@ rename r.a:=r.b
 # expected output
 {a:1,r:{a:2,c:3}}
 ```
+
+---
 
 _Trying to mutate records with rename produces a compile-time error_
 ```mdtest-spq fails {data-layout="stacked"}
@@ -62,6 +68,8 @@ rename w:=r.b
        ~~~~~~
 ```
 
+---
+
 _Record literals can be used instead of rename for mutation_
 ```mdtest-spq
 # spq
@@ -72,6 +80,8 @@ values {a,r:{c:r.c},w:r.b}
 {a:1,r:{c:3},w:2}
 ```
 
+---
+
 _Alternatively, mutations can be more generic and use drop_
 ```mdtest-spq
 # spq
@@ -81,6 +91,8 @@ values {a,r,w:r.b} | drop r.b
 # expected output
 {a:1,r:{c:3},w:2}
 ```
+
+---
 
 _Duplicate fields create structured errors_
 ```mdtest-spq {data-layout="stacked"}

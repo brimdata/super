@@ -51,8 +51,10 @@ satisfies `<predicate>`
 
 ### Examples
 
+---
+
 _Join some numbers_
-```mdtest-spq-notyet
+```mdtest-spq
 # spq
 join (from (values 1,3)) on left=right | sort
 # input
@@ -64,10 +66,16 @@ join (from (values 1,3)) on left=right | sort
 {left:3,right:3}
 ```
 
+---
+
 _Join some records with scalar keys_
-```mdtest-spq-notyet
+```mdtest-spq
 # spq
-join as {recs,key} (from (values "foo","baz")) on key=recs.key | values recs.value | sort
+join (
+    from (values "foo","baz")
+  ) as {recs,key} on key=recs.key
+| values recs.value
+| sort
 # input
 {key:"foo",value:1}
 {key:"bar",value:2}
@@ -77,10 +85,12 @@ join as {recs,key} (from (values "foo","baz")) on key=recs.key | values recs.val
 3
 ```
 
+---
+
 _Join some records requiring a cross-product computation_
 ```mdtest-spq-notyet
 # spq
-join as {b,a} (from (values {id:"apple"},{id:"chair"},{id:"car"})) on grep("a", a.id) and grep("b", b.key) | sort
+join (from (values {id:"apple"},{id:"chair"},{id:"car"})) as {b,a} on grep("a", a.id) and grep("b", b.key) | sort
 # input
 {key:"foo",value:1}
 {key:"bar",value:2}
@@ -92,8 +102,10 @@ join as {b,a} (from (values {id:"apple"},{id:"chair"},{id:"car"})) on grep("a", 
 {b:{key:"baz",value:3},a:{id:"car"}}
 ```
 
+---
+
 _Anti-join some numbers_
-```mdtest-spq-notyet
+```mdtest-spq
 # spq
 anti join (from (values 1,3)) on left=right | sort
 # input

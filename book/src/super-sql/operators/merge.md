@@ -19,6 +19,8 @@ where the values from the upstream pipeline branches are forwarded based on thes
 
 ### Examples
 
+---
+
 _Copy input to two pipeline branches and merge_
 ```mdtest-spq
 # spq

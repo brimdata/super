@@ -21,6 +21,8 @@ merged with an automatically inserted [combine operator](combine.md).
 
 ### Examples
 
+---
+
 _Copy input to two pipeline branches and merge_
 ```mdtest-spq
 # spq

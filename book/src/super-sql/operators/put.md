@@ -42,6 +42,8 @@ values {...this, <field>:<expr> [, <field>:<expr>...]}
 
 ### Examples
 
+---
+
 _A simple put_
 ```mdtest-spq
 # spq
@@ -51,6 +53,8 @@ put c:=3
 # expected output
 {a:1,b:2,c:3}
 ```
+
+---
 
 _The `put` keyword may be omitted_
 ```mdtest-spq
@@ -62,6 +66,8 @@ c:=3
 {a:1,b:2,c:3}
 ```
 
+---
+
 _A `put` operation can also be done with a record literal_
 ```mdtest-spq
 # spq
@@ -72,6 +78,8 @@ values {...this, c:3}
 {a:1,b:2,c:3}
 ```
 
+---
+
 _Missing fields show up as missing errors_
 ```mdtest-spq
 # spq
@@ -81,6 +89,8 @@ put d:=e
 # expected output
 {a:1,b:2,c:3,d:error("missing")}
 ```
+
+---
 
 _Non-record input values generate errors_
 ```mdtest-spq {data-layout="stacked"}

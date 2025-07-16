@@ -22,6 +22,8 @@ and its semantics of undefined merge order.
 
 ### Examples
 
+---
+
 _Copy input to two pipeline branches and combine with the implied operator_
 ```mdtest-spq
 # spq

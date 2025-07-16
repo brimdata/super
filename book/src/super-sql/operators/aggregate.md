@@ -56,6 +56,8 @@ to a cluster of workers in an adaptive shuffle, though this is not yet implement
 
 ### Examples
 
+---
+
 Average the input sequence:
 ```mdtest-spq
 # spq
@@ -68,6 +70,8 @@ aggregate avg(this)
 # expected output
 2.5
 ```
+
+---
 
 To format the output of a single-valued aggregation into a record, simply specify
 an explicit field for the output:
@@ -83,6 +87,8 @@ aggregate mean:=avg(this)
 {mean:2.5}
 ```
 
+---
+
 When multiple aggregate functions are specified, even without explicit field names,
 a record result is generated with field names implied by the functions:
 ```mdtest-spq
@@ -97,6 +103,8 @@ aggregate avg(this),sum(this),count()
 {avg:2.5,sum:10,count:4::uint64}
 ```
 
+---
+
 Sum the input sequence, leaving out the `aggregate` keyword:
 ```mdtest-spq
 # spq
@@ -109,6 +117,8 @@ sum(this)
 # expected output
 10
 ```
+
+---
 
 Create integer sets by key and sort the output to get a deterministic order:
 ```mdtest-spq
@@ -125,6 +135,8 @@ set:=union(v) by key:=k | sort
 {key:"foo",set:|[1,3]|}
 ```
 
+---
+
 Use a `where` clause:
 ```mdtest-spq
 # spq
@@ -139,6 +151,8 @@ set:=union(v) where v > 1 by key:=k | sort
 {key:"baz",set:|[4]|}
 {key:"foo",set:|[3]|}
 ```
+
+---
 
 Use separate `where` clauses on each aggregate function:
 ```mdtest-spq
@@ -158,6 +172,8 @@ set:=union(v) where v > 1,
 {key:"foo",set:|[3]|,array:[1,3]}
 ```
 
+---
+
 Results are included for `by` groupings that generate null results when `where`
 clauses are used inside `aggregate`:
 ```mdtest-spq
@@ -174,6 +190,8 @@ sum(v) where k=="bar" by key:=k | sort
 {key:"foo",sum:null}
 ```
 
+---
+
 To avoid null results for `by` groupings as just shown, filter before `aggregate`:
 ```mdtest-spq
 # spq
@@ -186,6 +204,8 @@ k=="bar" | sum(v) by key:=k | sort
 # expected output
 {key:"bar",sum:2}
 ```
+
+---
 
 Output just the unique key values:
 ```mdtest-spq
