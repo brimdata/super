@@ -51,7 +51,7 @@ or
 ## The `super` Command
 
 SuperDB is implemented in a single, standalone executable called
-[`super`](command.md).
+[`super`](command/super.md).
 There are no external dependencies to futz with.
 Just [install the binary](getting-started/install.md) and you're off and running.
 
