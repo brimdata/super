@@ -21,6 +21,8 @@ aggregate sample:=any(<expr>) by typeof(this) | values sample
 
 ### Examples
 
+---
+
 ```mdtest-spq
 # spq
 shapes | sort

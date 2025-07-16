@@ -22,6 +22,8 @@ values are discarded).
 
 ### Examples
 
+---
+
 _Grab the smallest two values from a sequence of integers_
 ```mdtest-spq
 # spq
@@ -37,6 +39,8 @@ top 2
 1
 3
 ```
+
+---
 
 _Find the two names most frequently referenced in a sequence of records_
 ```mdtest-spq

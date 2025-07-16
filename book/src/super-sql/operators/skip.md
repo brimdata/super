@@ -15,6 +15,8 @@ integer.
 
 ### Examples
 
+---
+
 _Skip the first two values of an arbitrary sequence_
 ```mdtest-spq
 # spq

@@ -17,6 +17,8 @@ The `search` keyword can be abbreviated as `?`.
 
 ### Examples
 
+---
+
 _A simple keyword search for "world"_
 ```mdtest-spq
 # spq
@@ -29,6 +31,8 @@ search world
 "hello, world"
 "goodbye, world"
 ```
+
+---
 
 Search can utilize _arithmetic comparisons_
 ```mdtest-spq
@@ -43,6 +47,8 @@ search this >= 2
 3
 ```
 
+---
+
 _The "search" keyword may be dropped_
 ```mdtest-spq
 # spq
@@ -56,6 +62,8 @@ _The "search" keyword may be dropped_
 3
 ```
 
+---
+
 _A search with [Boolean logic](../search-expressions.md#boolean-logic)_
 ```mdtest-spq
 # spq
@@ -68,6 +76,8 @@ search this >= 2 AND this <= 2
 2
 ```
 
+---
+
 _The AND operator may be omitted through predicate concatenation_
 ```mdtest-spq
 # spq
@@ -77,6 +87,8 @@ search this >= 2 this <= 2
 # expected output
 2
 ```
+
+---
 
 _Concatenation for keyword search_
 ```mdtest-spq
@@ -92,6 +104,8 @@ _Concatenation for keyword search_
 "foo bar baz"
 ```
 
+---
+
 _Search expressions match fields names too_
 ```mdtest-spq
 # spq
@@ -105,6 +119,8 @@ _Search expressions match fields names too_
 {foo:3}
 ```
 
+---
+
 _Boolean functions may be called_
 ```mdtest-spq
 # spq
@@ -116,6 +132,8 @@ search is(<int64>)
 # expected output
 1
 ```
+
+---
 
 _Boolean functions with Boolean logic_
 ```mdtest-spq

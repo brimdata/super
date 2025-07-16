@@ -23,6 +23,8 @@ that occurred in the input for that output value.
 
 ### Examples
 
+---
+
 _Simple deduplication_
 ```mdtest-spq
 # spq
@@ -38,6 +40,8 @@ uniq
 3
 ```
 
+---
+
 _Simple deduplication with -c_
 ```mdtest-spq
 # spq
@@ -52,6 +56,8 @@ uniq -c
 {value:2,count:2::uint64}
 {value:3,count:1::uint64}
 ```
+
+---
 
 _Use sort to deduplicate non-adjacent values_
 ```mdtest-spq
@@ -70,6 +76,8 @@ sort | uniq
 "hello"
 "world"
 ```
+
+---
 
 _Complex values must match fully to be considered duplicate (e.g., every field/value pair in adjacent records)_
 ```mdtest-spq {data-layout="stacked"}

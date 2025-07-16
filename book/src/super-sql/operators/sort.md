@@ -61,6 +61,8 @@ when comparing heterogeneously typed values.
 
 ### Examples
 
+---
+
 _A simple sort with a null_
 ```mdtest-spq
 # spq
@@ -76,6 +78,8 @@ null
 3
 null
 ```
+
+---
 
 _With no sort expression, sort will sort by [`this`](../pipeline-model.md#the-special-value-this) for non-records_
 ```mdtest-spq
@@ -93,6 +97,8 @@ null
 null
 ```
 
+---
+
 _The "nulls last" default may be overridden_
 ```mdtest-spq
 # spq
@@ -109,6 +115,8 @@ null
 3
 ```
 
+---
+
 _With no sort expression, sort's heuristics will find a numeric key_
 ```mdtest-spq
 # spq
@@ -122,6 +130,8 @@ sort
 {s:"bar",k:2}
 {s:"bar",k:3}
 ```
+
+---
 
 _It's best practice to provide the sort key_
 ```mdtest-spq
@@ -137,6 +147,8 @@ sort k
 {s:"bar",k:3}
 ```
 
+---
+
 _Sort with a secondary key_
 ```mdtest-spq
 # spq
@@ -150,6 +162,8 @@ sort k,s
 {s:"foo",k:2}
 {s:"bar",k:3}
 ```
+
+---
 
 _Sort by secondary key in reverse order when the primary keys are identical_
 ```mdtest-spq
@@ -179,6 +193,8 @@ sort x+y
 {s:"sum 3",x:1,y:2}
 ```
 
+---
+
 _Case sensitivity affects sorting "lowest value to highest" in string values_
 ```mdtest-spq
 # spq
@@ -193,6 +209,8 @@ sort
 {word:"hello"}
 ```
 
+---
+
 _Case-insensitive sort by using a string expression_
 ```mdtest-spq
 # spq
@@ -206,6 +224,8 @@ sort lower(word)
 {word:"Hi"}
 {word:"WORLD"}
 ```
+
+---
 
 _Shorthand to reverse the sort order for each key_
 ```mdtest-spq

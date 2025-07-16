@@ -25,6 +25,8 @@ it is good practice to include the optional keyword.
 
 ### Examples
 
+---
+
 _An arithmetic comparison_
 ```mdtest-spq
 # spq
@@ -37,6 +39,8 @@ where this >= 2
 2
 3
 ```
+
+---
 
 _The "where" keyword may be dropped_
 ```mdtest-spq
@@ -51,6 +55,8 @@ this >= 2
 3
 ```
 
+---
+
 _A filter with Boolean logic_
 ```mdtest-spq
 # spq
@@ -62,6 +68,8 @@ where this >= 2 AND this <= 2
 # expected output
 2
 ```
+
+---
 
 _A filter with array [containment](../expressions.md#containment) logic_
 ```mdtest-spq
@@ -77,6 +85,8 @@ where this in [1,4]
 4
 ```
 
+---
+
 _A filter with inverse containment logic_
 ```mdtest-spq
 # spq
@@ -91,6 +101,8 @@ where ! (this in [1,4])
 3
 ```
 
+---
+
 _Boolean functions may be called_
 ```mdtest-spq
 # spq
@@ -102,6 +114,8 @@ where is(<int64>)
 # expected output
 1
 ```
+
+---
 
 _Boolean functions with Boolean logic_
 ```mdtest-spq

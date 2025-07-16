@@ -1,23 +1,25 @@
 ### Operator
 
-&emsp; **yield** &mdash; emit values from expressions
+&emsp; **values** &mdash; emit values from expressions
 
 ### Synopsis
 
 ```
-[yield] <expr> [, <expr>...]
+[values] <expr> [, <expr>...]
 ```
 ### Description
 
-The `yield` operator produces output values by evaluating one or more
+The `values` operator produces output values by evaluating one or more
 expressions on each input value and sending each result to the output
 in left-to-right order.  Each `<expr>` may be any valid
 [expression](../expressions.md).
 
-The `yield` keyword is optional since it can be used as a
+The `values` operator name is optional since it can be used as a
 [shortcut](../shortcuts.md).
 
 ### Examples
+
+---
 
 _Hello, world_
 ```mdtest-spq
@@ -29,7 +31,9 @@ null
 "hello, world"
 ```
 
-_Yield evaluates each expression for every input value_
+---
+
+_Values evaluates each expression for every input value_
 ```mdtest-spq
 # spq
 values 1,2
@@ -46,7 +50,9 @@ null
 2
 ```
 
-_Yield typically operates on its input_
+---
+
+_Values typically operates on its input_
 ```mdtest-spq
 # spq
 values this*2+1
@@ -60,7 +66,9 @@ values this*2+1
 7
 ```
 
-_Yield is often used to transform records_
+---
+
+_Values is often used to transform records_
 ```mdtest-spq
 # spq
 values [a,b],[b,a] | collect(this)

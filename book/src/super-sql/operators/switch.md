@@ -44,6 +44,8 @@ merged with an automatically inserted [`combine` operator](combine.md).
 
 ### Examples
 
+---
+
 _Split input into evens and odds_
 ```mdtest-spq
 # spq
@@ -62,6 +64,8 @@ switch
 {even:2}
 {even:4}
 ```
+
+---
 
 _Switch on `this` with a constant case_
 ```mdtest-spq
