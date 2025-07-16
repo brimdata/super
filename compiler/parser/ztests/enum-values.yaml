@@ -10,7 +10,10 @@ spq: |
     {x:1,s:"foo"}::enum("foo","bar"),
     {x:1,s:"foo"}.s::enum("foo","bar"),
     "HEADS"::(flip=(enum(HEADS,TAILS))),
-    {head:"HEADS"::(flip=enum(HEADS,TAILS))}
+    {head:"HEADS"::(flip=enum(HEADS,TAILS))},
+    <enum(a,b)>==<enum(a,b)>,
+    <enum(a,b)>==<enum(b,c)>,
+    <enum(a,b)>==<enum(a,b,c)>
 
 input: |
   null
@@ -27,3 +30,6 @@ output: |
   "foo"::enum(foo,bar)
   "HEADS"::(flip=enum(HEADS,TAILS))
   {head:"HEADS"::(flip=enum(HEADS,TAILS))}
+  true
+  false
+  false

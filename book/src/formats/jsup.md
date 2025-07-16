@@ -265,7 +265,7 @@ and an array of union of string, and float64 --- might have a value that looks l
 
 A JSUP file is composed of JSUP objects formatted as
 [newline delimited JSON (NDJSON)](https://en.wikipedia.org/wiki/JSON_streaming#NDJSON).
-e.g., the [super](../command/super.md) CLI command
+e.g., the [`super`](../command/super.md) CLI command
 writes its JSUP output as lines of NDJSON.
 
 ### 4. Example

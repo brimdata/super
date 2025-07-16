@@ -563,7 +563,7 @@ where `<typeval>` is a recursive encoding of a type value.
 
 #### 4.3 Set Type Value
 
-An set type value has the form:
+A set type value has the form:
 ```
 --------------
 |32|<typeval>|

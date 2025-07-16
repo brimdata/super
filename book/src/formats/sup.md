@@ -8,7 +8,7 @@ Super (SUP) is the human-readable, text-based serialization format for
 SUP builds upon the elegant simplicity of JSON with "type decorators".
 Where the type of a value is not implied by its syntax, a type decorator
 is appended to the value interposed with double colons
-to established a concrete type for every value expressed in source text.
+to establish a concrete type for every value expressed in source text.
 
 SUP is also a superset of JSON in that all JSON documents are valid
 SUP values.
@@ -370,8 +370,8 @@ An _enum type_ has the form:
 enum( <name>, <name>, ... )
 ```
 where `<name>` is a [SUP name](#21-names).
-Each enum name must be unique and the order is not significant, e.g.,
-enum type `enum(HEADS,TAILS)` is equal to type `enum(TAILS,HEADS)`.
+Each enum name must be unique and the order is significant, e.g.,
+enum type `enum(HEADS,TAILS)` is not equal to type `enum(TAILS,HEADS)`.
 
 ##### 2.5.7 Error Type
 
@@ -461,7 +461,7 @@ might look like this:
 ```
 In this case, the first record defines not just a record type
 with named type `conn`, but also a second embedded record type called `socket`.
-The parenthesized decorators are used where a type is not inferred from
+Decorators are used where a type is not inferred from
 the value itself:
 * `socket` is a record with typed fields `addr` and `port` where `port` is an unsigned 16-bit integer, and
 * `conn` is a record with typed fields `info`, `src`, and `dst`.

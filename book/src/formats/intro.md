@@ -13,7 +13,7 @@ a sequence of arbitrarily-typed values.
 [Parquet](https://parquet.apache.org/),
 [ORC](https://orc.apache.org/), or
 [Arrow](https://arrow.apache.org/) but for super-structured data.
-* [Super JSON](jsup.md) defines a format for encapsulating SUP
+* [Super JSON (JSUP)](jsup.md) defines a format for encapsulating SUP
 inside plain JSON for easy decoding by JSON-based clients, e.g.,
 the [JavaScript library used by SuperDB Desktop](https://github.com/brimdata/zui/tree/main/packages/superdb-types)
 and the [SuperDB Python library](../dev/libraries/python.md).

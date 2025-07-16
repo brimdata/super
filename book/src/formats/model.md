@@ -178,6 +178,9 @@ The type order of two enum types is as follows:
 * Two enum types with the same number of symbols are ordered according to
 the type order of the constituent types in left to right order.
 
+The order among enum values correponds to the order of the symbols in the enum type.
+Order among enum values from different types is undefined.
+
 #### 2.7 Error
 
 An error represents any value designated as an error.
