@@ -8,3 +8,4 @@ excludedDirs:
 # See https://github.com/brimdata/super/pull/5887
 ignorePatterns:
   - pattern: '^https://github.com/brimdata/super/blob/main/scripts/super-cmd-perf.*$'
+  - pattern: '^https://dl.acm.org/doi/pdf/10.1145/984549.984551$'
