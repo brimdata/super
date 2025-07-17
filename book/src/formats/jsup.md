@@ -2,9 +2,10 @@
 
 ### 1. Introduction
 
-The [super data model](data-model.md)
+The [super-structured data model](model.md)
 is based on richly typed records with a deterministic field order,
 as is implemented by the [Super (SUP)](sup.md), [Super Binary (BSUP)](bsup.md), and [Super Columnar (CSUP)](csup.md) formats.
+
 Given the ubiquity of JSON, it is desirable to also be able to serialize
 super data into the JSON format.   However, encoding super data values
 directly as JSON values would not work without loss of information.
@@ -56,8 +57,8 @@ Also, it is at the whim of a JSON implementation whether
 or not the order of object keys is preserved.
 
 While JSON is well suited for data exchange of generic information, it is not
-sufficient for the [super-structured data model](./_index.md#2-a-super-structured-pattern).
-That said, JSON can be used as an encoding format for super data with another layer
+sufficient for super-structured data.
+That said, JSON can be used as an encoding format for super-structured data with another layer
 of encoding on top of a JSON-based protocol.  This allows clients like web apps or
 Electron apps to receive and understand SUP and, with the help of client
 libraries like [superdb-types](https://github.com/brimdata/zui/tree/main/packages/superdb-types),
@@ -88,7 +89,7 @@ The type and value fields are encoded as defined below.
 
 #### 2.1 Type Encoding
 
-The type encoding for a primitive type is simply its [type name](data-model.md#1-primitive-types)
+The type encoding for a primitive type is simply its [type name](model.md#1-primitive-types)
 e.g., "int32" or "string".
 
 Complex types are encoded with small-integer identifiers.
@@ -264,7 +265,7 @@ and an array of union of string, and float64 --- might have a value that looks l
 
 A JSUP file is composed of JSUP objects formatted as
 [newline delimited JSON (NDJSON)](https://en.wikipedia.org/wiki/JSON_streaming#NDJSON).
-e.g., the [super](../commands/super.md) CLI command
+e.g., the [`super`](../command/super.md) CLI command
 writes its JSUP output as lines of NDJSON.
 
 ### 4. Example
@@ -276,8 +277,8 @@ nesting, records, array, and union. Consider the file `input.sup`:
 {s:"hello",r:{a:1,b:2}}
 {s:"world",r:{a:3,b:4}}
 {s:"hello",r:{a:[1,2,3]}}
-{s:"goodnight",r:{x:{u:"foo"::(string,int64)}}}
-{s:"gracie",r:{x:{u:12::(string,int64)}}}
+{s:"goodnight",r:{x:{u:"foo"::(string|int64)}}}
+{s:"gracie",r:{x:{u:12::(string|int64)}}}
 ```
 
 This data is represented in JSUP as follows:

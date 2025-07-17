@@ -55,18 +55,6 @@ if and only if their corresponding types are uniquely equal.
 The _null_ type is a primitive type representing only a `null` value.
 A `null` value can have any type.
 
-> `time` values correspond to 64-bit epoch nanoseconds and thus
-> not every valid RFC 3339 date and time string represents a valid time.
-> In addition, nanosecond epoch times overflow on April 11, 2262.
-> For the world of 2262, a new epoch can be created well in advance
-> and the old time epoch and new time epoch can live side by side with
-> the old using a [named type](#3-named-type) for the new epoch time referring to the old `time`.
->
-> An app that wants more than 64 bits of timestamp precision can always use
-> a named type of a `bytes` type and do its own conversions to and from the
-> corresponding bytes values.  A time with a local time zone can be represented
-> as a record of a `time` field and a zone field.
-
 ### 2. Complex Types
 
 Complex types are composed of primitive types and/or other complex types.
@@ -190,6 +178,9 @@ The type order of two enum types is as follows:
 * Two enum types with the same number of symbols are ordered according to
 the type order of the constituent types in left to right order.
 
+The order among enum values correponds to the order of the symbols in the enum type.
+Order among enum values from different types is undefined.
+
 #### 2.7 Error
 
 An error represents any value designated as an error.
@@ -215,24 +206,3 @@ The type order of a named type is the type order of its underlying type with two
 exceptions:
 * A named type is ordered after its underlying type.
 * Named types sharing an underlying type are ordered lexicographically by name.
-
-> While the data model does not include explicit support for schema versioning,
-> named types provide a flexible mechanism to implement versioning
-> on top of the super-structured serialization formats.  For example, a system
-> could define a naming convention of the form `<type>.<version>`
-> where `<type>` is the type name of a record representing the schema
-> and `<version>` is a decimal string indicating the version of that schema.
-> Since types need only be parsed once per stream
-> in the serialization formats, a super-structured type implementation could
-> efficiently support schema versioning using such a convention.
-
-### 4. Null Values
-
-TODO: this isn't right
-
-All data types have a null representation.  It is up to an
-implementation to decide how external data structures map into and
-out of values with nulls.  Typically, a null value is either the
-zero value or, in the case of record fields, an optional field whose
-value is not present, though these semantics are not explicitly
-defined by the super data model.

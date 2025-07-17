@@ -6,9 +6,9 @@ Super (SUP) is the human-readable, text-based serialization format for
 [super-structured data](model.md).
 
 SUP builds upon the elegant simplicity of JSON with "type decorators".
-Where the type of a value is not implied by its syntax, a parenthesized
-type decorator is appended to the value thus establishing a well-defined
-type for every value expressed in source text.
+Where the type of a value is not implied by its syntax, a type decorator
+is appended to the value interposed with double colons
+to establish a concrete type for every value expressed in source text.
 
 SUP is also a superset of JSON in that all JSON documents are valid
 SUP values.
@@ -25,7 +25,7 @@ treated as whitespace and ignored.
 
 All subsequent references to characters and strings in this section refer to
 the Unicode code points that result when the stream is decoded.
-If an input text includes data that is not valid UTF-8, the input is invalid.
+If an input text includes data that is not valid UTF-8, then the text is invalid.
 
 #### 2.1 Names
 
@@ -40,31 +40,31 @@ and digits `[0-9]`, but may not start with a digit.  An identifier cannot be
 #### 2.2 Type Decorators
 
 A value may be explicitly typed by tagging it with a type decorator.
-The syntax for a decorator is a parenthesized type:
+The syntax for a decorator is a double-colon appended type:
 ```
-<value> ( <type> )
+<value>::<type>
 ```
 For union values, multiple decorators might be
 required to distinguish the union-member type from the possible set of
 union types when there is ambiguity, as in
 ```
-123. (float32) ((int64,float32,float64))
+123.::float32::(int64|float32|float64)
 ```
 In contrast, this union value is unambiguous:
 ```
-123. ((int64,float64))
+123.::(int64|float64)
 ```
 
 The syntax of a union value decorator is
 ```
-<value> ( <type> ) [ ( <type> ) ...]
+<value>::<type>[::<type> ...]
 ```
 where the rightmost type must be a union type if more than one decorator
 is present.
 
 A decorator may also define a [named type](#258-named-type):
 ```
-<value> ( =<name> )
+<value>::=<name>
 ```
 which declares a new type with the indicated type name using the
 implied type of the value.  Type names may not be numeric, where a
@@ -72,7 +72,7 @@ numeric is a sequence of one or more characters in the set `[0-9]`.
 
 A decorator may also define a temporary numeric reference of the form:
 ```
-<value> ( =<numeric> )
+<value>::=<numeric>
 ```
 Once defined, this numeric reference may then be used anywhere a named type
 is used but a named type is not created.
@@ -86,7 +86,7 @@ same name, from the case that an existing named type is merely decorating the va
 #### 2.3 Primitive Values
 
 The type names and format for
-[primitive values](data-model.md#1-primitive-types) is as follows:
+[primitive values](model.md#1-primitive-types) is as follows:
 
 | Type       | Value Format                                                  |
 |------------|---------------------------------------------------------------|
@@ -147,7 +147,7 @@ also be one of:
 `+Inf`, `-Inf`, or `NaN`.
 
 A floating point value may be expressed with an integer string provided
-a type decorator is applied, e.g., `123 (float64)`.
+a type decorator is applied, e.g., `123::float64`.
 
 Decimal values require type decorators.
 
@@ -162,7 +162,7 @@ Of the 30 primitive types, eleven of them represent _implied-type_ values:
 Values for these types are determined by the format of the value and
 thus do not need decorators to clarify the underlying type, e.g.,
 ```
-123 (int64)
+123::int64
 ```
 is the same as `123`.
 
@@ -179,12 +179,6 @@ and thus always a primitive type.  A `type` value is encoded as:
 A `time` value corresponds to 64-bit Unix epoch nanoseconds and thus
 not all possible RFC 3339 date/time strings are valid.  In addition,
 nanosecond epoch times overflow on April 11, 2262.
-For the world of 2262, a new epoch can be created well in advance
-and the old time epoch and new time epoch can live side by side with
-the old using a named type for the new epoch time defined as the old `time` type.
-An app that requires more than 64 bits of timestamp precision can always use
-a typedef of a `bytes` type and do its own conversions to and from the
-corresponding `bytes` values.
 
 ##### 2.3.1 Strings
 
@@ -221,13 +215,13 @@ record types as well as enum symbols.
 
 Complex values are built from primitive values and/or other complex values
 and conform to the super data model's complex types:
-[record](data-model.md#21-record),
-[array](data-model.md#22-array),
-[set](data-model.md#23-set),
-[map](data-model.md#24-map),
-[union](data-model.md#25-union),
-[enum](data-model.md#26-enum), and
-[error](data-model.md#27-error).
+[record](model.md#21-record),
+[array](model.md#22-array),
+[set](model.md#23-set),
+[map](model.md#24-map),
+[union](model.md#25-union),
+[enum](model.md#26-enum), and
+[error](model.md#27-error).
 
 Complex values have an implied type when their constituent values all have
 implied types.
@@ -295,11 +289,12 @@ then the value must be decorated as [described above](#22-type-decorators).
 An enum type represents a symbol from a finite set of symbols
 referenced by name.
 
-An enum value is indicated with the sigil `%` and has the form
+An enum value is formed from a string representing the symbol followed 
+by an enum type decorator:
 ```
-%<name>
+<string>::enum(<name>[,<name>...])
 ```
-where the `<name>` is [SUP name](#21-names).
+where each `<name>` is [SUP name](#21-names).
 
 An enum value must appear in a context where the enum type is known, i.e.,
 with an explicit enum type decorator or within a complex type where the
@@ -307,9 +302,9 @@ contained enum type is defined by the complex type's decorator.
 
 A sequence of enum values might look like this:
 ```
-%HEADS (flip=(enum(HEADS,TAILS)))
-%TAILS (flip)
-%HEADS (flip)
+"HEADS"::(flip=(enum(HEADS,TAILS)))
+"TAILS"::flip
+"HEADS"::flip
 ```
 
 ##### 2.4.7 Error Value
@@ -375,8 +370,8 @@ An _enum type_ has the form:
 enum( <name>, <name>, ... )
 ```
 where `<name>` is a [SUP name](#21-names).
-Each enum name must be unique and the order is not significant, e.g.,
-enum type `enum(HEADS,TAILS)` is equal to type `enum(TAILS,HEADS)`.
+Each enum name must be unique and the order is significant, e.g.,
+enum type `enum(HEADS,TAILS)` is not equal to type `enum(TAILS,HEADS)`.
 
 ##### 2.5.7 Error Type
 
@@ -399,11 +394,11 @@ referenced by any subsequent value in left-to-right depth-first order.
 
 For example,
 ```
-{p1:80::(port=uint16), p2: 8080 (port)}
+{p1:80::(port=uint16), p2: 8080::port}
 ```
 is valid but
 ```
-{p1:80 (port), p2: 8080::(port=uint16)}
+{p1:80::port, p2: 8080::(port=uint16)}
 ```
 is invalid.
 
@@ -416,9 +411,7 @@ resolve to the most recent definition according to
 
 The null value is represented by the string `null`.
 
-A value of any type can be null.  It is up to an
-implementation to decide how external data structures map into and
-out of null values of different types.
+A value of any type can be null. 
 
 ### 3. Examples
 
@@ -430,9 +423,9 @@ There's no need for a type declaration here.  It's explicitly a string.
 
 A relational table might look like this:
 ```
-{ city: "Berkeley", state: "CA", population: 121643 (uint32) } (=city_schema)
-{ city: "Broad Cove", state: "ME", population: 806 (uint32) } (=city_schema)
-{ city: "Baton Rouge", state: "LA", population: 221599 (uint32) } (=city_schema)
+{ city: "Berkeley", state: "CA", population: 121643::uint32 }::=city_schema
+{ city: "Broad Cove", state: "ME", population: 806::uint32 }::=city_schema
+{ city: "Baton Rouge", state: "LA", population: 221599::uint32 }::=city_schema
 ```
 The text here depicts three record values.  It defines a type called `city_schema`
 and the inferred type of the `city_schema` has the signature:
@@ -451,16 +444,16 @@ might look like this:
     info: "Connection Example",
     src: { addr: 10.1.1.2, port: 80::uint16 }::=socket,
     dst: { addr: 10.0.1.2, port: 20130::uint16 }::=socket
-} (=conn)
+}::=conn
 {
     info: "Connection Example 2",
     src: { addr: 10.1.1.8, port: 80::uint16 }::=socket,
     dst: { addr: 10.1.2.88, port: 19801::uint16 }::=socket
-} (=conn)
+}::=conn
 {
     info: "Access List Example",
     nets: [ 10.1.1.0/24, 10.1.2.0/24 ]
-} (=access_list)
+}::=access_list
 { metric: "A", ts: 2020-11-24T08:44:09.586441-08:00, value: 120 }
 { metric: "B", ts: 2020-11-24T08:44:20.726057-08:00, value: 0.86 }
 { metric: "A", ts: 2020-11-24T08:44:32.201458-08:00, value: 126 }
@@ -468,7 +461,7 @@ might look like this:
 ```
 In this case, the first record defines not just a record type
 with named type `conn`, but also a second embedded record type called `socket`.
-The parenthesized decorators are used where a type is not inferred from
+Decorators are used where a type is not inferred from
 the value itself:
 * `socket` is a record with typed fields `addr` and `port` where `port` is an unsigned 16-bit integer, and
 * `conn` is a record with typed fields `info`, `src`, and `dst`.
@@ -501,9 +494,9 @@ that defines their type.
 
 <value> = <any> | <any> <val-typedef> | <any> <decorators>
 
-<val-typedef> = "(" "=" <name> ")"
+<val-typedef> = "::=" <name>
 
-<decorators> = "(" <type> ")" | <decorators> "(" <type> ")"
+<decorators> = "::" <type> | <decorators> "::" <type> 
 
 <any> = <primitive> | <type-val> | <record> | <array> | <set> | <map> | <enum>
 
@@ -527,7 +520,7 @@ that defines their type.
 
 <set> = "|[" <vlist> "]|"  |  "|["  "]|"
 
-<enum> = "%" ( <name> | <quoted-string> )
+<enum> = <string> "::" <enum-type>
 
 <map> = "|{" <mlist> "}|"  |  "|{"  "}|"
 
@@ -555,9 +548,9 @@ that defines their type.
 
 <set-type> = "|[" <type> "]|"  |  "|[" "]|"
 
-<union-type> = "(" <type> "," <tlist> ")"
+<union-type> = <type> "|" <tlist>
 
-<tlist> = <tlist> "," <type> | <type>
+<tlist> = <tlist> "|" <type> | <type>
 
 <enum-type> = "enum(" <nlist> ")"
 
