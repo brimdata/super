@@ -1,41 +1,57 @@
 package expr
 
 import (
-	"slices"
-
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/zcode"
 )
 
 const maxStackDepth = 10_000
 
 type UDF struct {
-	Body Evaluator
-	Name string
-	Sctx *super.Context
+	Body    Evaluator
+	sctx    *super.Context
+	name    string
+	fields  []super.Field
+	builder zcode.Builder
+}
+
+func NewUDF(sctx *super.Context, name string, params []string) *UDF {
+	var fields []super.Field
+	for _, p := range params {
+		fields = append(fields, super.Field{Name: p})
+	}
+	return &UDF{sctx: sctx, name: name, fields: fields}
 }
 
 func (u *UDF) Call(ectx super.Allocator, args []super.Value) super.Value {
-	stack := 1
-	if f, ok := ectx.(*frame); ok {
-		stack += f.stack
+	f, ok := ectx.(*frame)
+	if ok {
+		f.stack++
+	} else {
+		f = &frame{1}
 	}
-	if stack > maxStackDepth {
-		return u.Sctx.NewErrorf("stack overflow in function %q", u.Name)
+	if f.stack > maxStackDepth {
+		return u.sctx.NewErrorf("stack overflow in function %q", u.name)
 	}
-	// args must be cloned otherwise the values will be overwritten in
-	// recursive calls.
-	f := &frame{stack: stack, vars: slices.Clone(args)}
 	defer f.exit()
-	return u.Body.Eval(f, super.Null)
+	if len(args) == 0 {
+		return u.Body.Eval(f, super.Null)
+	}
+	u.builder.Reset()
+	for i := range args {
+		u.fields[i].Type = args[i].Type()
+		u.builder.Append(args[i].Bytes())
+	}
+	typ := u.sctx.MustLookupTypeRecord(u.fields)
+	return u.Body.Eval(f, super.NewValue(typ, u.builder.Bytes()))
 }
 
 type frame struct {
 	stack int
-	vars  []super.Value
 }
 
 func (f *frame) Vars() []super.Value {
-	return f.vars
+	return nil
 }
 
 func (f *frame) exit() {

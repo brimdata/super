@@ -59,7 +59,7 @@ type Builder struct {
 	progress     *zbuf.Progress
 	channels     map[string][]zbuf.Puller
 	deletes      *sync.Map
-	udfs         map[string]dag.Expr
+	udfs         map[string]*udf
 	compiledUDFs map[string]*expr.UDF
 	resetters    expr.Resetters
 }
@@ -76,7 +76,7 @@ func NewBuilder(rctx *runtime.Context, env *exec.Environment) *Builder {
 			RecordsMatched: 0,
 		},
 		channels:     make(map[string][]zbuf.Puller),
-		udfs:         make(map[string]dag.Expr),
+		udfs:         make(map[string]*udf),
 		compiledUDFs: make(map[string]*expr.UDF),
 	}
 }
@@ -507,9 +507,14 @@ func (b *Builder) compileScope(scope *dag.Scope, parents []zbuf.Puller) ([]zbuf.
 	b.udfs = maps.Clone(parentUDFs)
 	defer func() { b.udfs = parentUDFs }()
 	for _, f := range scope.Funcs {
-		b.udfs[f.Name] = f.Expr
+		b.udfs[f.Name] = &udf{f.Expr, f.Params}
 	}
 	return b.compileSeq(scope.Body, parents)
+}
+
+type udf struct {
+	expr   dag.Expr
+	params []string
 }
 
 func (b *Builder) compileFork(par *dag.Fork, parents []zbuf.Puller) ([]zbuf.Puller, error) {
