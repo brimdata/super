@@ -5,8 +5,13 @@
 ### Synopsis
 
 ```
-from <pool>[@<commitish>]
-from <pattern>
+from <entity> [ <arg> ... ] [ , <entity> [ <arg> ... ] ... ]
+```
+An `<entity>` has the form:
+```
+<string>
+<glob>
+eval( <expr> )
 ```
 ### Description
 
