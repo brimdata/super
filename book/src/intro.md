@@ -30,8 +30,8 @@ Super-structured data is strongly typed and self describing.
 While compatible with relational schemas, SuperDB does not require such schemas
 as they can be modeled as [super-structured records](formats/model.md#21-record).
 
-More specifically, a _relational table_ in SuperDB is simply a collection of tuples
-defined by a statically typed record,
+More specifically, a _relational table_ in SuperDB is simply a collection of
+uniformly typed records,
 whereas a collection of dynamic but strongly-typed
 data can model any sequence of JSON values, e.g., observability data,
 application events, system logs, and so forth.
