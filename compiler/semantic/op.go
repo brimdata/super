@@ -112,6 +112,9 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.TableAlias, a
 		return a.semSQLPipe(entity, seq, alias)
 	case *ast.SQLJoin:
 		return a.semSQLJoin(entity, seq)
+	case *ast.CrossJoin:
+		a.error(entity, errors.New("cross joins are not yet supported"))
+		return seq, badSchema()
 	default:
 		panic(fmt.Sprintf("semFromEntity: unknown entity type: %T", entity))
 	}
