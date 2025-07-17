@@ -92,7 +92,7 @@ type (
 
 type JoinExpr interface {
 	Node
-	joinExpr()
+	joinExprNode()
 }
 
 type JoinOnExpr struct {
@@ -101,7 +101,7 @@ type JoinOnExpr struct {
 	Loc  `json:"loc"`
 }
 
-func (*JoinOnExpr) joinExpr() {}
+func (*JoinOnExpr) joinExprNode() {}
 
 type JoinUsingExpr struct {
 	Kind   string `json:"kind" unpack:""`
@@ -109,17 +109,17 @@ type JoinUsingExpr struct {
 	Loc    `json:"loc"`
 }
 
-func (*JoinUsingExpr) joinExpr() {}
+func (*JoinUsingExpr) joinExprNode() {}
 
-func (*SQLPipe) OpAST()        {}
-func (*Select) OpAST()         {}
-func (*SQLValues) OpAST()      {}
-func (*CrossJoin) OpAST()      {}
-func (*SQLJoin) OpAST()        {}
-func (*Union) OpAST()          {}
-func (*OrderBy) OpAST()        {}
-func (*SQLLimitOffset) OpAST() {}
-func (*With) OpAST()           {}
+func (*SQLPipe) opNode()        {}
+func (*Select) opNode()         {}
+func (*SQLValues) opNode()      {}
+func (*CrossJoin) opNode()      {}
+func (*SQLJoin) opNode()        {}
+func (*Union) opNode()          {}
+func (*OrderBy) opNode()        {}
+func (*SQLLimitOffset) opNode() {}
+func (*With) opNode()           {}
 
 type AsExpr struct {
 	Kind  string `json:"kind" unpack:""`
@@ -128,7 +128,7 @@ type AsExpr struct {
 	Loc   `json:"loc"`
 }
 
-func (*AsExpr) ExprAST() {}
+func (*AsExpr) exprNode() {}
 
 type SQLCast struct {
 	Kind string `json:"kind" unpack:""`
@@ -145,5 +145,5 @@ type SQLSubstring struct {
 	Loc  `json:"loc"`
 }
 
-func (*SQLCast) ExprAST()      {}
-func (*SQLSubstring) ExprAST() {}
+func (*SQLCast) exprNode()      {}
+func (*SQLSubstring) exprNode() {}

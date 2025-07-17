@@ -92,6 +92,3 @@ func (*DoubleQuote) anyNode() {}
 
 func (*Primitive) ExprAST() {}
 func (*TypeValue) ExprAST() {}
-
-func (*Primitive) ExprDAG() {}
-func (*TypeValue) ExprDAG() {}

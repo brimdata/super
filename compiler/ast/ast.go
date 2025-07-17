@@ -29,17 +29,17 @@ func (l Loc) End() int { return l.Last }
 // Op is the interface implemented by all AST operator nodes.
 type Op interface {
 	Node
-	OpAST()
+	opNode()
 }
 
 type Decl interface {
 	Node
-	DeclAST()
+	declNode()
 }
 
 type Expr interface {
 	Node
-	ExprAST()
+	exprNode()
 }
 
 type ID struct {
@@ -194,7 +194,7 @@ type Name struct {
 
 type FromEntity interface {
 	Node
-	fromEntity()
+	fromEntityNode()
 }
 
 type ExprEntity struct {
@@ -203,14 +203,14 @@ type ExprEntity struct {
 	Loc  `json:"loc"`
 }
 
-func (*Glob) fromEntity()       {}
-func (*Regexp) fromEntity()     {}
-func (*ExprEntity) fromEntity() {}
-func (*LakeMeta) fromEntity()   {}
-func (*Name) fromEntity()       {}
-func (*CrossJoin) fromEntity()  {}
-func (*SQLJoin) fromEntity()    {}
-func (*SQLPipe) fromEntity()    {}
+func (*Glob) fromEntityNode()       {}
+func (*Regexp) fromEntityNode()     {}
+func (*ExprEntity) fromEntityNode() {}
+func (*LakeMeta) fromEntityNode()   {}
+func (*Name) fromEntityNode()       {}
+func (*CrossJoin) fromEntityNode()  {}
+func (*SQLJoin) fromEntityNode()    {}
+func (*SQLPipe) fromEntityNode()    {}
 
 type FromElem struct {
 	Kind       string      `json:"kind" unpack:""`
@@ -241,7 +241,7 @@ type RecordExpr struct {
 
 type RecordElem interface {
 	Node
-	recordAST()
+	recordElemNode()
 }
 
 type FieldExpr struct {
@@ -257,9 +257,9 @@ type Spread struct {
 	Loc  `json:"loc"`
 }
 
-func (*FieldExpr) recordAST() {}
-func (*ID) recordAST()        {}
-func (*Spread) recordAST()    {}
+func (*FieldExpr) recordElemNode() {}
+func (*ID) recordElemNode()        {}
+func (*Spread) recordElemNode()    {}
 
 type ArrayExpr struct {
 	Kind  string       `json:"kind" unpack:""`
@@ -274,11 +274,11 @@ type SetExpr struct {
 }
 
 type VectorElem interface {
-	vectorAST()
+	vectorElemNode()
 }
 
-func (*Spread) vectorAST()      {}
-func (*VectorValue) vectorAST() {}
+func (*Spread) vectorElemNode()      {}
+func (*VectorValue) vectorElemNode() {}
 
 type VectorValue struct {
 	Kind string `json:"kind" unpack:""`
@@ -320,7 +320,7 @@ type FString struct {
 
 type FStringElem interface {
 	Node
-	FStringElem()
+	fStringElemNode()
 }
 
 type FStringText struct {
@@ -342,38 +342,40 @@ type SQLTimeValue struct {
 	Loc   `json:"loc"`
 }
 
-func (*FStringText) FStringElem() {}
-func (*FStringExpr) FStringElem() {}
+func (*FStringText) fStringElemNode() {}
+func (*FStringExpr) fStringElemNode() {}
 
-func (*UnaryExpr) ExprAST()   {}
-func (*BinaryExpr) ExprAST()  {}
-func (*Between) ExprAST()     {}
-func (*Conditional) ExprAST() {}
-func (*Call) ExprAST()        {}
-func (*CallExtract) ExprAST() {}
-func (*CaseExpr) ExprAST()    {}
-func (*Cast) ExprAST()        {}
-func (*DoubleQuote) ExprAST() {}
-func (*ID) ExprAST()          {}
-func (*IndexExpr) ExprAST()   {}
-func (*IsNullExpr) ExprAST()  {}
-func (*SliceExpr) ExprAST()   {}
+func (*UnaryExpr) exprNode()   {}
+func (*BinaryExpr) exprNode()  {}
+func (*Between) exprNode()     {}
+func (*Conditional) exprNode() {}
+func (*Call) exprNode()        {}
+func (*CallExtract) exprNode() {}
+func (*CaseExpr) exprNode()    {}
+func (*Cast) exprNode()        {}
+func (*DoubleQuote) exprNode() {}
+func (*ID) exprNode()          {}
+func (*IndexExpr) exprNode()   {}
+func (*IsNullExpr) exprNode()  {}
+func (*SliceExpr) exprNode()   {}
 
-func (*Assignment) ExprAST() {}
-func (*Agg) ExprAST()        {}
-func (*Grep) ExprAST()       {}
-func (*Glob) ExprAST()       {}
-func (*Regexp) ExprAST()     {}
-func (*Term) ExprAST()       {}
+func (*Assignment) exprNode() {}
+func (*Agg) exprNode()        {}
+func (*Grep) exprNode()       {}
+func (*Glob) exprNode()       {}
+func (*Regexp) exprNode()     {}
+func (*Term) exprNode()       {}
 
-func (*RecordExpr) ExprAST()   {}
-func (*ArrayExpr) ExprAST()    {}
-func (*SetExpr) ExprAST()      {}
-func (*MapExpr) ExprAST()      {}
-func (*TupleExpr) ExprAST()    {}
-func (*SQLTimeValue) ExprAST() {}
-func (*OverExpr) ExprAST()     {}
-func (*FString) ExprAST()      {}
+func (*RecordExpr) exprNode()   {}
+func (*ArrayExpr) exprNode()    {}
+func (*SetExpr) exprNode()      {}
+func (*MapExpr) exprNode()      {}
+func (*TupleExpr) exprNode()    {}
+func (*SQLTimeValue) exprNode() {}
+func (*OverExpr) exprNode()     {}
+func (*FString) exprNode()      {}
+func (*Primitive) exprNode()    {}
+func (*TypeValue) exprNode()    {}
 
 type ConstDecl struct {
 	Kind string `json:"kind" unpack:""`
@@ -405,10 +407,10 @@ type TypeDecl struct {
 	Loc  `json:"loc"`
 }
 
-func (*ConstDecl) DeclAST() {}
-func (*FuncDecl) DeclAST()  {}
-func (*OpDecl) DeclAST()    {}
-func (*TypeDecl) DeclAST()  {}
+func (*ConstDecl) declNode() {}
+func (*FuncDecl) declNode()  {}
+func (*OpDecl) declNode()    {}
+func (*TypeDecl) declNode()  {}
 
 // ----------------------------------------------------------------------------
 // Operators
@@ -683,12 +685,12 @@ type HTTPArgs struct {
 
 type FromArgs interface {
 	Node
-	fromArgs()
+	fromArgsNode()
 }
 
-func (*PoolArgs) fromArgs()  {}
-func (*FormatArg) fromArgs() {}
-func (*HTTPArgs) fromArgs()  {}
+func (*PoolArgs) fromArgsNode()  {}
+func (*FormatArg) fromArgsNode() {}
+func (*HTTPArgs) fromArgsNode()  {}
 
 type SortExpr struct {
 	Kind  string `json:"kind" unpack:""`
@@ -724,41 +726,41 @@ type Def struct {
 	Loc  `json:"loc"`
 }
 
-func (*Scope) OpAST()        {}
-func (*Parallel) OpAST()     {}
-func (*Switch) OpAST()       {}
-func (*Sort) OpAST()         {}
-func (*Cut) OpAST()          {}
-func (*Drop) OpAST()         {}
-func (*Head) OpAST()         {}
-func (*Tail) OpAST()         {}
-func (*Skip) OpAST()         {}
-func (*Pass) OpAST()         {}
-func (*Uniq) OpAST()         {}
-func (*Aggregate) OpAST()    {}
-func (*Top) OpAST()          {}
-func (*Put) OpAST()          {}
-func (*OpAssignment) OpAST() {}
-func (*OpExpr) OpAST()       {}
-func (*Rename) OpAST()       {}
-func (*Fuse) OpAST()         {}
-func (*Join) OpAST()         {}
-func (*Shape) OpAST()        {}
-func (*From) OpAST()         {}
-func (*DefaultScan) OpAST()  {}
-func (*Explode) OpAST()      {}
-func (*Merge) OpAST()        {}
-func (*Over) OpAST()         {}
-func (*Search) OpAST()       {}
-func (*Values) OpAST()       {}
-func (*Where) OpAST()        {}
-func (*Shapes) OpAST()       {}
-func (*Load) OpAST()         {}
-func (*Assert) OpAST()       {}
-func (*Output) OpAST()       {}
-func (*Debug) OpAST()        {}
-func (*Distinct) OpAST()     {}
-func (*Delete) OpAST()       {}
+func (*Scope) opNode()        {}
+func (*Parallel) opNode()     {}
+func (*Switch) opNode()       {}
+func (*Sort) opNode()         {}
+func (*Cut) opNode()          {}
+func (*Drop) opNode()         {}
+func (*Head) opNode()         {}
+func (*Tail) opNode()         {}
+func (*Skip) opNode()         {}
+func (*Pass) opNode()         {}
+func (*Uniq) opNode()         {}
+func (*Aggregate) opNode()    {}
+func (*Top) opNode()          {}
+func (*Put) opNode()          {}
+func (*OpAssignment) opNode() {}
+func (*OpExpr) opNode()       {}
+func (*Rename) opNode()       {}
+func (*Fuse) opNode()         {}
+func (*Join) opNode()         {}
+func (*Shape) opNode()        {}
+func (*From) opNode()         {}
+func (*DefaultScan) opNode()  {}
+func (*Explode) opNode()      {}
+func (*Merge) opNode()        {}
+func (*Over) opNode()         {}
+func (*Search) opNode()       {}
+func (*Values) opNode()       {}
+func (*Where) opNode()        {}
+func (*Shapes) opNode()       {}
+func (*Load) opNode()         {}
+func (*Assert) opNode()       {}
+func (*Output) opNode()       {}
+func (*Debug) opNode()        {}
+func (*Distinct) opNode()     {}
+func (*Delete) opNode()       {}
 
 // An Agg is an AST node that represents a aggregate function.  The Name
 // field indicates the aggregation method while the Expr field indicates

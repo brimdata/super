@@ -18,7 +18,7 @@ import (
 )
 
 type Op interface {
-	OpNode()
+	opNode()
 }
 
 var PassOp = &Pass{Kind: "Pass"}
@@ -293,21 +293,21 @@ var CommitMetas = map[string]struct{}{
 	"vectors":    {},
 }
 
-func (*DefaultScan) OpNode()    {}
-func (*FileScan) OpNode()       {}
-func (*HTTPScan) OpNode()       {}
-func (*PoolScan) OpNode()       {}
-func (*RobotScan) OpNode()      {}
-func (*DeleteScan) OpNode()     {}
-func (*LakeMetaScan) OpNode()   {}
-func (*PoolMetaScan) OpNode()   {}
-func (*CommitMetaScan) OpNode() {}
-func (*NullScan) OpNode()       {}
+func (*DefaultScan) opNode()    {}
+func (*FileScan) opNode()       {}
+func (*HTTPScan) opNode()       {}
+func (*PoolScan) opNode()       {}
+func (*RobotScan) opNode()      {}
+func (*DeleteScan) opNode()     {}
+func (*LakeMetaScan) opNode()   {}
+func (*PoolMetaScan) opNode()   {}
+func (*CommitMetaScan) opNode() {}
+func (*NullScan) opNode()       {}
 
-func (*Lister) OpNode()  {}
-func (*Slicer) OpNode()  {}
-func (*SeqScan) OpNode() {}
-func (*Deleter) OpNode() {}
+func (*Lister) opNode()  {}
+func (*Slicer) opNode()  {}
+func (*SeqScan) opNode() {}
+func (*Deleter) opNode() {}
 
 // Various Op fields
 
@@ -327,37 +327,37 @@ type (
 	}
 )
 
-func (*Aggregate) OpNode() {}
-func (*BadOp) OpNode()     {}
-func (*Fork) OpNode()      {}
-func (*Scatter) OpNode()   {}
-func (*Switch) OpNode()    {}
-func (*Sort) OpNode()      {}
-func (*Cut) OpNode()       {}
-func (*Distinct) OpNode()  {}
-func (*Drop) OpNode()      {}
-func (*Head) OpNode()      {}
-func (*Tail) OpNode()      {}
-func (*Skip) OpNode()      {}
-func (*Pass) OpNode()      {}
-func (*Filter) OpNode()    {}
-func (*Uniq) OpNode()      {}
-func (*Top) OpNode()       {}
-func (*Put) OpNode()       {}
-func (*Rename) OpNode()    {}
-func (*Fuse) OpNode()      {}
-func (*Join) OpNode()      {}
-func (*Shape) OpNode()     {}
-func (*Explode) OpNode()   {}
-func (*Over) OpNode()      {}
-func (*Values) OpNode()    {}
-func (*Vectorize) OpNode() {}
-func (*Merge) OpNode()     {}
-func (*Mirror) OpNode()    {}
-func (*Combine) OpNode()   {}
-func (*Scope) OpNode()     {}
-func (*Load) OpNode()      {}
-func (*Output) OpNode()    {}
+func (*Aggregate) opNode() {}
+func (*BadOp) opNode()     {}
+func (*Fork) opNode()      {}
+func (*Scatter) opNode()   {}
+func (*Switch) opNode()    {}
+func (*Sort) opNode()      {}
+func (*Cut) opNode()       {}
+func (*Distinct) opNode()  {}
+func (*Drop) opNode()      {}
+func (*Head) opNode()      {}
+func (*Tail) opNode()      {}
+func (*Skip) opNode()      {}
+func (*Pass) opNode()      {}
+func (*Filter) opNode()    {}
+func (*Uniq) opNode()      {}
+func (*Top) opNode()       {}
+func (*Put) opNode()       {}
+func (*Rename) opNode()    {}
+func (*Fuse) opNode()      {}
+func (*Join) opNode()      {}
+func (*Shape) opNode()     {}
+func (*Explode) opNode()   {}
+func (*Over) opNode()      {}
+func (*Values) opNode()    {}
+func (*Vectorize) opNode() {}
+func (*Merge) opNode()     {}
+func (*Mirror) opNode()    {}
+func (*Combine) opNode()   {}
+func (*Scope) opNode()     {}
+func (*Load) opNode()      {}
+func (*Output) opNode()    {}
 
 // NewFilter returns a filter node for e.
 func NewFilter(e Expr) *Filter {

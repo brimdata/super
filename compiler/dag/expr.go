@@ -4,13 +4,13 @@ import "github.com/brimdata/super/order"
 
 type (
 	Expr interface {
-		ExprDAG()
+		exprNode()
 	}
 	RecordElem interface {
-		recordAST()
+		recordElemNode()
 	}
 	VectorElem interface {
-		vectorElem()
+		vectorElemNode()
 	}
 )
 
@@ -140,29 +140,29 @@ type (
 	}
 )
 
-func (*Agg) ExprDAG()          {}
-func (*ArrayExpr) ExprDAG()    {}
-func (*BadExpr) ExprDAG()      {}
-func (*BinaryExpr) ExprDAG()   {}
-func (*Call) ExprDAG()         {}
-func (*Conditional) ExprDAG()  {}
-func (*Dot) ExprDAG()          {}
-func (*Func) ExprDAG()         {}
-func (*IndexExpr) ExprDAG()    {}
-func (*IsNullExpr) ExprDAG()   {}
-func (*Literal) ExprDAG()      {}
-func (*MapCall) ExprDAG()      {}
-func (*MapExpr) ExprDAG()      {}
-func (*OverExpr) ExprDAG()     {}
-func (*RecordExpr) ExprDAG()   {}
-func (*RegexpMatch) ExprDAG()  {}
-func (*RegexpSearch) ExprDAG() {}
-func (*Search) ExprDAG()       {}
-func (*SetExpr) ExprDAG()      {}
-func (*SliceExpr) ExprDAG()    {}
-func (*This) ExprDAG()         {}
-func (*UnaryExpr) ExprDAG()    {}
-func (*Var) ExprDAG()          {}
+func (*Agg) exprNode()          {}
+func (*ArrayExpr) exprNode()    {}
+func (*BadExpr) exprNode()      {}
+func (*BinaryExpr) exprNode()   {}
+func (*Call) exprNode()         {}
+func (*Conditional) exprNode()  {}
+func (*Dot) exprNode()          {}
+func (*Func) exprNode()         {}
+func (*IndexExpr) exprNode()    {}
+func (*IsNullExpr) exprNode()   {}
+func (*Literal) exprNode()      {}
+func (*MapCall) exprNode()      {}
+func (*MapExpr) exprNode()      {}
+func (*OverExpr) exprNode()     {}
+func (*RecordExpr) exprNode()   {}
+func (*RegexpMatch) exprNode()  {}
+func (*RegexpSearch) exprNode() {}
+func (*Search) exprNode()       {}
+func (*SetExpr) exprNode()      {}
+func (*SliceExpr) exprNode()    {}
+func (*This) exprNode()         {}
+func (*UnaryExpr) exprNode()    {}
+func (*Var) exprNode()          {}
 
 // Various Expr fields.
 
@@ -186,10 +186,10 @@ type (
 	}
 )
 
-func (*Field) recordAST()        {}
-func (*Spread) recordAST()       {}
-func (*Spread) vectorElem()      {}
-func (*VectorValue) vectorElem() {}
+func (*Field) recordElemNode()       {}
+func (*Spread) recordElemNode()      {}
+func (*Spread) vectorElemNode()      {}
+func (*VectorValue) vectorElemNode() {}
 
 func NewBinaryExpr(op string, lhs, rhs Expr) *BinaryExpr {
 	return &BinaryExpr{
