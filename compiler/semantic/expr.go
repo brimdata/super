@@ -22,89 +22,26 @@ import (
 
 func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 	switch e := e.(type) {
-	case nil:
-		panic("semantic analysis: illegal null value encountered in AST")
-	case *ast.DoubleQuote:
-		return a.semDoubleQuote(e)
-	case *ast.Regexp:
-		return &dag.RegexpSearch{
-			Kind:    "RegexpSearch",
-			Pattern: e.Pattern,
-			Expr:    pathOf("this"),
-		}
-	case *ast.Glob:
-		return &dag.RegexpSearch{
-			Kind:    "RegexpSearch",
-			Pattern: reglob.Reglob(e.Pattern),
-			Expr:    pathOf("this"),
-		}
-	case *ast.Grep:
-		return a.semGrep(e)
-	case *ast.Primitive:
-		val, err := sup.ParsePrimitive(e.Type, e.Text)
-		if err != nil {
-			a.error(e, err)
+	case *ast.Agg:
+		expr := a.semExprNullable(e.Expr)
+		nameLower := strings.ToLower(e.Name)
+		if expr == nil && nameLower != "count" {
+			a.error(e, fmt.Errorf("aggregator '%s' requires argument", e.Name))
 			return badExpr()
 		}
-		return &dag.Literal{
-			Kind:  "Literal",
-			Value: sup.FormatValue(val),
+		where := a.semExprNullable(e.Where)
+		return &dag.Agg{
+			Kind:     "Agg",
+			Name:     nameLower,
+			Distinct: e.Distinct,
+			Expr:     expr,
+			Where:    where,
 		}
-	case *ast.ID:
-		id := a.semID(e)
-		if a.scope.schema != nil {
-			if this, ok := id.(*dag.This); ok {
-				out, err := a.scope.resolve(this.Path)
-				if err != nil {
-					a.error(e, err)
-					return badExpr()
-				}
-				return out
-			}
-		}
-		return id
-	case *ast.Term:
-		var val string
-		switch t := e.Value.(type) {
-		case *ast.Primitive:
-			v, err := sup.ParsePrimitive(t.Type, t.Text)
-			if err != nil {
-				a.error(e, err)
-				return badExpr()
-			}
-			val = sup.FormatValue(v)
-		case *ast.DoubleQuote:
-			v, err := sup.ParsePrimitive("string", t.Text)
-			if err != nil {
-				a.error(e, err)
-				return badExpr()
-			}
-			val = sup.FormatValue(v)
-		case *ast.TypeValue:
-			tv, err := a.semType(t.Value)
-			if err != nil {
-				a.error(e, err)
-				return badExpr()
-			}
-			val = "<" + tv + ">"
-		default:
-			panic(fmt.Errorf("unexpected term value: %s (%T)", e.Kind, e))
-		}
-		return &dag.Search{
-			Kind:  "Search",
-			Text:  e.Text,
-			Value: val,
-			Expr:  pathOf("this"),
-		}
-	case *ast.UnaryExpr:
-		operand := a.semExpr(e.Operand)
-		if e.Op == "+" {
-			return operand
-		}
-		return &dag.UnaryExpr{
-			Kind:    "UnaryExpr",
-			Op:      e.Op,
-			Operand: operand,
+	case *ast.ArrayExpr:
+		elems := a.semVectorElems(e.Elems)
+		return &dag.ArrayExpr{
+			Kind:  "ArrayExpr",
+			Elems: elems,
 		}
 	case *ast.BinaryExpr:
 		return a.semBinary(e)
@@ -136,6 +73,9 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 			}
 		}
 		return expr
+	case *ast.CaseExpr:
+		a.error(e, errors.New("case matching-style expressions not yet supported"))
+		return badExpr()
 	case *ast.Conditional:
 		cond := a.semExpr(e.Cond)
 		thenExpr := a.semExpr(e.Then)
@@ -165,6 +105,155 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 			Kind: "Call",
 			Name: "cast",
 			Args: []dag.Expr{expr, typ},
+		}
+	case *ast.DoubleQuote:
+		return a.semDoubleQuote(e)
+	case *ast.FString:
+		return a.semFString(e)
+	case *ast.Glob:
+		return &dag.RegexpSearch{
+			Kind:    "RegexpSearch",
+			Pattern: reglob.Reglob(e.Pattern),
+			Expr:    pathOf("this"),
+		}
+	case *ast.Grep:
+		return a.semGrep(e)
+	case *ast.ID:
+		id := a.semID(e)
+		if a.scope.schema != nil {
+			if this, ok := id.(*dag.This); ok {
+				out, err := a.scope.resolve(this.Path)
+				if err != nil {
+					a.error(e, err)
+					return badExpr()
+				}
+				return out
+			}
+		}
+		return id
+	case *ast.IndexExpr:
+		expr := a.semExpr(e.Expr)
+		index := a.semExpr(e.Index)
+		// If expr is a path and index is a string, then just extend the path.
+		if path := a.isIndexOfThis(expr, index); path != nil {
+			return path
+		}
+		return &dag.IndexExpr{
+			Kind:  "IndexExpr",
+			Expr:  expr,
+			Index: index,
+		}
+	case *ast.IsNullExpr:
+		expr := a.semExpr(e.Expr)
+		var out dag.Expr = &dag.IsNullExpr{Kind: "IsNullExpr", Expr: expr}
+		if e.Not {
+			out = &dag.UnaryExpr{
+				Kind:    "UnaryExpr",
+				Op:      "!",
+				Operand: out,
+			}
+		}
+		return out
+	case *ast.MapExpr:
+		var entries []dag.Entry
+		for _, entry := range e.Entries {
+			key := a.semExpr(entry.Key)
+			val := a.semExpr(entry.Value)
+			entries = append(entries, dag.Entry{Key: key, Value: val})
+		}
+		return &dag.MapExpr{
+			Kind:    "MapExpr",
+			Entries: entries,
+		}
+	case *ast.OverExpr:
+		exprs := a.semExprs(e.Exprs)
+		if e.Body == nil {
+			a.error(e, errors.New("over expression missing lateral scope"))
+			return badExpr()
+		}
+		a.enterScope()
+		defer a.exitScope()
+		return &dag.OverExpr{
+			Kind:  "OverExpr",
+			Defs:  a.semVars(e.Locals),
+			Exprs: exprs,
+			Body:  a.semSeq(e.Body),
+		}
+	case *ast.Primitive:
+		val, err := sup.ParsePrimitive(e.Type, e.Text)
+		if err != nil {
+			a.error(e, err)
+			return badExpr()
+		}
+		return &dag.Literal{
+			Kind:  "Literal",
+			Value: sup.FormatValue(val),
+		}
+	case *ast.RecordExpr:
+		fields := map[string]struct{}{}
+		var out []dag.RecordElem
+		for _, elem := range e.Elems {
+			switch elem := elem.(type) {
+			case *ast.FieldExpr:
+				if _, ok := fields[elem.Name.Text]; ok {
+					a.error(elem, fmt.Errorf("record expression: %w", &super.DuplicateFieldError{Name: elem.Name.Text}))
+					continue
+				}
+				fields[elem.Name.Text] = struct{}{}
+				e := a.semExpr(elem.Value)
+				out = append(out, &dag.Field{
+					Kind:  "Field",
+					Name:  elem.Name.Text,
+					Value: e,
+				})
+			case *ast.ID:
+				if _, ok := fields[elem.Name]; ok {
+					a.error(elem, fmt.Errorf("record expression: %w", &super.DuplicateFieldError{Name: elem.Name}))
+					continue
+				}
+				fields[elem.Name] = struct{}{}
+				// Call semExpr even though we know this is an ID so
+				// SQL-context scope mappings are carried out.
+				v := a.semExpr(elem)
+				out = append(out, &dag.Field{
+					Kind:  "Field",
+					Name:  elem.Name,
+					Value: v,
+				})
+			case *ast.Spread:
+				e := a.semExpr(elem.Expr)
+				out = append(out, &dag.Spread{
+					Kind: "Spread",
+					Expr: e,
+				})
+			}
+		}
+		return &dag.RecordExpr{
+			Kind:  "RecordExpr",
+			Elems: out,
+		}
+	case *ast.Regexp:
+		return &dag.RegexpSearch{
+			Kind:    "RegexpSearch",
+			Pattern: e.Pattern,
+			Expr:    pathOf("this"),
+		}
+	case *ast.SetExpr:
+		elems := a.semVectorElems(e.Elems)
+		return &dag.SetExpr{
+			Kind:  "SetExpr",
+			Elems: elems,
+		}
+	case *ast.SliceExpr:
+		expr := a.semExpr(e.Expr)
+		// XXX Literal indices should be type checked as int.
+		from := a.semExprNullable(e.From)
+		to := a.semExprNullable(e.To)
+		return &dag.SliceExpr{
+			Kind: "SliceExpr",
+			Expr: expr,
+			From: from,
+			To:   to,
 		}
 	case *ast.SQLCast:
 		expr := a.semExpr(e.Expr)
@@ -226,39 +315,67 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 				},
 			}},
 		}
-	case *ast.IndexExpr:
-		expr := a.semExpr(e.Expr)
-		index := a.semExpr(e.Index)
-		// If expr is a path and index is a string, then just extend the path.
-		if path := a.isIndexOfThis(expr, index); path != nil {
-			return path
+	case *ast.SQLTimeValue:
+		if e.Value.Type != "string" {
+			a.error(e.Value, errors.New("value must be a string literal"))
+			return badExpr()
 		}
-		return &dag.IndexExpr{
-			Kind:  "IndexExpr",
-			Expr:  expr,
-			Index: index,
+		t, err := dateparse.ParseAny(e.Value.Text)
+		if err != nil {
+			a.error(e.Value, err)
+			return badExpr()
 		}
-	case *ast.IsNullExpr:
-		expr := a.semExpr(e.Expr)
-		var out dag.Expr = &dag.IsNullExpr{Kind: "IsNullExpr", Expr: expr}
-		if e.Not {
-			out = &dag.UnaryExpr{
-				Kind:    "UnaryExpr",
-				Op:      "!",
-				Operand: out,
+		ts := nano.TimeToTs(t)
+		if e.Type == "date" {
+			ts = ts.Trunc(nano.Day)
+		}
+		return &dag.Literal{Kind: "Literal", Value: sup.FormatValue(super.NewTime(ts))}
+	case *ast.Term:
+		var val string
+		switch t := e.Value.(type) {
+		case *ast.Primitive:
+			v, err := sup.ParsePrimitive(t.Type, t.Text)
+			if err != nil {
+				a.error(e, err)
+				return badExpr()
 			}
+			val = sup.FormatValue(v)
+		case *ast.DoubleQuote:
+			v, err := sup.ParsePrimitive("string", t.Text)
+			if err != nil {
+				a.error(e, err)
+				return badExpr()
+			}
+			val = sup.FormatValue(v)
+		case *ast.TypeValue:
+			tv, err := a.semType(t.Value)
+			if err != nil {
+				a.error(e, err)
+				return badExpr()
+			}
+			val = "<" + tv + ">"
+		default:
+			panic(fmt.Errorf("unexpected term value: %s (%T)", e.Kind, e))
 		}
-		return out
-	case *ast.SliceExpr:
-		expr := a.semExpr(e.Expr)
-		// XXX Literal indices should be type checked as int.
-		from := a.semExprNullable(e.From)
-		to := a.semExprNullable(e.To)
-		return &dag.SliceExpr{
-			Kind: "SliceExpr",
-			Expr: expr,
-			From: from,
-			To:   to,
+		return &dag.Search{
+			Kind:  "Search",
+			Text:  e.Text,
+			Value: val,
+			Expr:  pathOf("this"),
+		}
+	case *ast.TupleExpr:
+		elems := make([]dag.RecordElem, 0, len(e.Elems))
+		for colno, elem := range e.Elems {
+			e := a.semExpr(elem)
+			elems = append(elems, &dag.Field{
+				Kind:  "Field",
+				Name:  fmt.Sprintf("c%d", colno),
+				Value: e,
+			})
+		}
+		return &dag.RecordExpr{
+			Kind:  "RecordExpr",
+			Elems: elems,
 		}
 	case *ast.TypeValue:
 		typ, err := a.semType(e.Value)
@@ -282,135 +399,18 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 			Kind:  "Literal",
 			Value: "<" + typ + ">",
 		}
-	case *ast.Agg:
-		expr := a.semExprNullable(e.Expr)
-		nameLower := strings.ToLower(e.Name)
-		if expr == nil && nameLower != "count" {
-			a.error(e, fmt.Errorf("aggregator '%s' requires argument", e.Name))
-			return badExpr()
+	case *ast.UnaryExpr:
+		operand := a.semExpr(e.Operand)
+		if e.Op == "+" {
+			return operand
 		}
-		where := a.semExprNullable(e.Where)
-		return &dag.Agg{
-			Kind:     "Agg",
-			Name:     nameLower,
-			Distinct: e.Distinct,
-			Expr:     expr,
-			Where:    where,
+		return &dag.UnaryExpr{
+			Kind:    "UnaryExpr",
+			Op:      e.Op,
+			Operand: operand,
 		}
-	case *ast.RecordExpr:
-		fields := map[string]struct{}{}
-		var out []dag.RecordElem
-		for _, elem := range e.Elems {
-			switch elem := elem.(type) {
-			case *ast.FieldExpr:
-				if _, ok := fields[elem.Name.Text]; ok {
-					a.error(elem, fmt.Errorf("record expression: %w", &super.DuplicateFieldError{Name: elem.Name.Text}))
-					continue
-				}
-				fields[elem.Name.Text] = struct{}{}
-				e := a.semExpr(elem.Value)
-				out = append(out, &dag.Field{
-					Kind:  "Field",
-					Name:  elem.Name.Text,
-					Value: e,
-				})
-			case *ast.ID:
-				if _, ok := fields[elem.Name]; ok {
-					a.error(elem, fmt.Errorf("record expression: %w", &super.DuplicateFieldError{Name: elem.Name}))
-					continue
-				}
-				fields[elem.Name] = struct{}{}
-				// Call semExpr even though we know this is an ID so
-				// SQL-context scope mappings are carried out.
-				v := a.semExpr(elem)
-				out = append(out, &dag.Field{
-					Kind:  "Field",
-					Name:  elem.Name,
-					Value: v,
-				})
-			case *ast.Spread:
-				e := a.semExpr(elem.Expr)
-				out = append(out, &dag.Spread{
-					Kind: "Spread",
-					Expr: e,
-				})
-			}
-		}
-		return &dag.RecordExpr{
-			Kind:  "RecordExpr",
-			Elems: out,
-		}
-	case *ast.ArrayExpr:
-		elems := a.semVectorElems(e.Elems)
-		return &dag.ArrayExpr{
-			Kind:  "ArrayExpr",
-			Elems: elems,
-		}
-	case *ast.SetExpr:
-		elems := a.semVectorElems(e.Elems)
-		return &dag.SetExpr{
-			Kind:  "SetExpr",
-			Elems: elems,
-		}
-	case *ast.MapExpr:
-		var entries []dag.Entry
-		for _, entry := range e.Entries {
-			key := a.semExpr(entry.Key)
-			val := a.semExpr(entry.Value)
-			entries = append(entries, dag.Entry{Key: key, Value: val})
-		}
-		return &dag.MapExpr{
-			Kind:    "MapExpr",
-			Entries: entries,
-		}
-	case *ast.SQLTimeValue:
-		if e.Value.Type != "string" {
-			a.error(e.Value, errors.New("value must be a string literal"))
-			return badExpr()
-		}
-		t, err := dateparse.ParseAny(e.Value.Text)
-		if err != nil {
-			a.error(e.Value, err)
-			return badExpr()
-		}
-		ts := nano.TimeToTs(t)
-		if e.Type == "date" {
-			ts = ts.Trunc(nano.Day)
-		}
-		return &dag.Literal{Kind: "Literal", Value: sup.FormatValue(super.NewTime(ts))}
-	case *ast.TupleExpr:
-		elems := make([]dag.RecordElem, 0, len(e.Elems))
-		for colno, elem := range e.Elems {
-			e := a.semExpr(elem)
-			elems = append(elems, &dag.Field{
-				Kind:  "Field",
-				Name:  fmt.Sprintf("c%d", colno),
-				Value: e,
-			})
-		}
-		return &dag.RecordExpr{
-			Kind:  "RecordExpr",
-			Elems: elems,
-		}
-	case *ast.OverExpr:
-		exprs := a.semExprs(e.Exprs)
-		if e.Body == nil {
-			a.error(e, errors.New("over expression missing lateral scope"))
-			return badExpr()
-		}
-		a.enterScope()
-		defer a.exitScope()
-		return &dag.OverExpr{
-			Kind:  "OverExpr",
-			Defs:  a.semVars(e.Locals),
-			Exprs: exprs,
-			Body:  a.semSeq(e.Body),
-		}
-	case *ast.FString:
-		return a.semFString(e)
-	case *ast.CaseExpr:
-		a.error(e, errors.New("case matching-style expressions not yet supported"))
-		return badExpr()
+	case nil:
+		panic("semantic analysis: illegal null value encountered in AST")
 	}
 	panic(errors.New("invalid expression type"))
 }
