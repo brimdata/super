@@ -52,16 +52,17 @@ import (
 var ErrJoinParents = errors.New("join requires two upstream parallel query paths")
 
 type Builder struct {
-	rctx         *runtime.Context
-	mctx         *super.Context
-	env          *exec.Environment
-	readers      []zio.Reader
-	progress     *zbuf.Progress
-	channels     map[string][]zbuf.Puller
-	deletes      *sync.Map
-	udfs         map[string]dag.Expr
-	compiledUDFs map[string]*expr.UDF
-	resetters    expr.Resetters
+	rctx          *runtime.Context
+	mctx          *super.Context
+	env           *exec.Environment
+	readers       []zio.Reader
+	progress      *zbuf.Progress
+	channels      map[string][]zbuf.Puller
+	deletes       *sync.Map
+	udfs          map[string]*dag.Func
+	compiledUDFs  map[string]*expr.UDF
+	udfStackDepth *int
+	resetters     expr.Resetters
 }
 
 func NewBuilder(rctx *runtime.Context, env *exec.Environment) *Builder {
@@ -76,7 +77,7 @@ func NewBuilder(rctx *runtime.Context, env *exec.Environment) *Builder {
 			RecordsMatched: 0,
 		},
 		channels:     make(map[string][]zbuf.Puller),
-		udfs:         make(map[string]dag.Expr),
+		udfs:         make(map[string]*dag.Func),
 		compiledUDFs: make(map[string]*expr.UDF),
 	}
 }
@@ -489,7 +490,7 @@ func (b *Builder) compileScope(scope *dag.Scope, parents []zbuf.Puller) ([]zbuf.
 	b.udfs = maps.Clone(parentUDFs)
 	defer func() { b.udfs = parentUDFs }()
 	for _, f := range scope.Funcs {
-		b.udfs[f.Name] = f.Expr
+		b.udfs[f.Name] = f
 	}
 	return b.compileSeq(scope.Body, parents)
 }

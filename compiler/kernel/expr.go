@@ -318,9 +318,9 @@ func (b *Builder) compileCall(call dag.Call) (expr.Evaluator, error) {
 	// First check if call is to a user defined function, otherwise check for
 	// builtin function.
 	var fn expr.Function
-	if e, ok := b.udfs[call.Name]; ok {
+	if u, ok := b.udfs[call.Name]; ok {
 		var err error
-		if fn, err = b.compileUDFCall(call.Name, e); err != nil {
+		if fn, err = b.compileUDFCall(call.Name, u); err != nil {
 			return nil, err
 		}
 	} else {
@@ -342,16 +342,20 @@ func (b *Builder) compileCall(call dag.Call) (expr.Evaluator, error) {
 	return expr.NewCall(fn, exprs), nil
 }
 
-func (b *Builder) compileUDFCall(name string, body dag.Expr) (expr.Function, error) {
+func (b *Builder) compileUDFCall(name string, f *dag.Func) (expr.Function, error) {
 	if fn, ok := b.compiledUDFs[name]; ok {
 		return fn, nil
 	}
-	fn := &expr.UDF{Name: name, Sctx: b.sctx()}
+	if b.udfStackDepth == nil {
+		b.udfStackDepth = new(int)
+		defer func() { b.udfStackDepth = nil }()
+	}
+	fn := expr.NewUDF(b.sctx(), name, f.Params, b.udfStackDepth)
 	// We store compiled UDF calls here so as to avoid stack overflows on
 	// recursive calls.
 	b.compiledUDFs[name] = fn
 	var err error
-	if fn.Body, err = b.compileExpr(body); err != nil {
+	if fn.Body, err = b.compileExpr(f.Expr); err != nil {
 		return nil, err
 	}
 	delete(b.compiledUDFs, name)

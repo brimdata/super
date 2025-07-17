@@ -1096,22 +1096,11 @@ func (a *analyzer) semFuncDecls(decls []*ast.FuncDecl) []*dag.Func {
 		funcs = append(funcs, f)
 	}
 	for i, d := range decls {
-		funcs[i].Expr = a.semFuncBody(d, d.Params, d.Expr)
+		a.enterScope()
+		funcs[i].Expr = a.semExpr(d.Expr)
+		a.exitScope()
 	}
 	return funcs
-}
-
-func (a *analyzer) semFuncBody(d *ast.FuncDecl, params []*ast.ID, body ast.Expr) dag.Expr {
-	a.enterScope()
-	defer a.exitScope()
-	for _, p := range params {
-		if err := a.scope.DefineVar(p); err != nil {
-			// XXX Each param should be a node but now just report the error
-			// as the entire declaration.
-			a.error(d, err)
-		}
-	}
-	return a.semExpr(body)
 }
 
 func (a *analyzer) semOpDecl(d *ast.OpDecl) {
