@@ -14,8 +14,8 @@
 
 The `merge` operator merges inputs from multiple upstream branches of
 the pipeline into a single output.  The order of values in the combined
-output is determined by the `<expr>` arguments, which act as sort expressions
-where the values from the upstream pipeline branches are forwarded based on these expressions.
+output is determined by the the sort expressions `<expr>` with optional 
+modifiers following the same semantics as the [`sort`](sort.md) operator.
 
 ### Examples
 
@@ -31,7 +31,10 @@ fork
 # input
 1
 2
+-1
 # expected output
+-1
+-1
 1
 1
 2

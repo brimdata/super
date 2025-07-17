@@ -42,10 +42,13 @@ The available join types are:
 `R` in `<right-input>` where the combined record `{<left-name>:L,<right-name>:R}`
 satisfies `<predicate>`
 
-This form of joining data utilizes dataflow scoping as compared to SQL relational
-scoping that maps table aliases and columns aliases onto the desired data.
-Instead, all data is combined into joined records that can be operated upon 
-like any other record.
+As compared to SQL relational scoping which utilizes table aliases and columns aliases
+within nested scopes, the pipeline join operator uses dataflow scoping to join data.
+Here, all data is combined into joined records that can be operated upon 
+like any other record without complex scoping logic.
+
+If relational scoping is desired, the [SQL join](../sql/join.md)
+operator can be used instead.
 
 ### Examples
 
