@@ -6,22 +6,15 @@
 
 ```
 <left-input>
-| [anti|inner|left|right] join [as { <left-name>,<right-name> }] (
+| [anti|inner|left|right] join (
   <right-input>
-) [on <predicate>]
+) [as { <left-name>,<right-name> }] [on <predicate>]
 
-( => <left-input> => <right-input> )
+... fork/switch/etc ...
+  ( <left-input> )
+  ( <right-input> )
 | [anti|inner|left|right] join [as { <left-name>,<right-name> }] [on <predicate>]
-
-==========
-DEPRECATED
-==========
-( => <left-input> => <right-input> )
-| [anti|inner|left|right] join on <left-key>=<right-key> [[<field>:=]<right-expr>, ...]
 ```
-
-> The first syntax should be used as support for the syntax marked DEPRECATED will be
-> removed at some point.
 
 ### Description
 
@@ -48,6 +41,11 @@ The available join types are:
 * _anti_ - the set of records of the form `{<left-name>:L}` for which there is no value
 `R` in `<right-input>` where the combined record `{<left-name>:L,<right-name>:R}`
 satisfies `<predicate>`
+
+This form of joining data utilizes dataflow scoping as compared to SQL relational
+scoping that maps table aliases and columns aliases onto the desired data.
+Instead, all data is combined into joined records that can be operated upon 
+like any other record.
 
 ### Examples
 
@@ -83,23 +81,6 @@ join (
 # expected output
 1
 3
-```
-
----
-
-_Join some records requiring a cross-product computation_
-```mdtest-spq-notyet
-# spq
-join (from (values {id:"apple"},{id:"chair"},{id:"car"})) as {b,a} on grep("a", a.id) and grep("b", b.key) | sort
-# input
-{key:"foo",value:1}
-{key:"bar",value:2}
-{key:"baz",value:3}
-# expected output
-{b:{key:"bar",value:2},a:{id:"apple"}}
-{b:{key:"bar",value:2},a:{id:"car"}}
-{b:{key:"baz",value:3},a:{id:"apple"}}
-{b:{key:"baz",value:3},a:{id:"car"}}
 ```
 
 ---

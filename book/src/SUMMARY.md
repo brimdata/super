@@ -92,6 +92,7 @@
         - [VALUES](super-sql/sql/values.md)
         - [ORDER](super-sql/sql/order.md)
         - [LIMIT](super-sql/sql/limit.md)
+        - [JOIN](super-sql/sql/join.md)
         - [WITH](super-sql/sql/with.md)
         - [UNION](super-sql/sql/union.md)
         - [INTERSECT](super-sql/sql/intersect.md)
