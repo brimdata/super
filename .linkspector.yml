@@ -4,8 +4,13 @@ useGitIgnore: true
 excludedDirs:
   - node_modules
 
+ignorePatterns:
+
 # Currently not crawling links matching the following pattern due to HTTP 429 errors
 # See https://github.com/brimdata/super/pull/5887
-ignorePatterns:
   - pattern: '^https://github.com/brimdata/super/blob/main/scripts/super-cmd-perf.*$'
+
+# Not crawling the following links because of HTTP 403 (Forbidden) errors.
+# Presumably these research-oriented sites don't like being crawled.
   - pattern: '^https://dl.acm.org/doi/pdf/10.1145/984549.984551$'
+  - pattern: '^https://www.researchgate.net/publication/221325979_Union_Types_for_Semistructured_Data$'
