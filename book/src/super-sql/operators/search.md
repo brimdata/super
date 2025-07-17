@@ -9,8 +9,8 @@ search <sexpr>
 ```
 ### Description
 
-The `search` operator filters its input by applying a [search expression](../search-expressions.md) `<sexpr>`
-to each input value and dropping each value for which the expression evaluates
+The `search` operator filters its input by applying a [search expression](../search.md) `<sexpr>`
+to each input value and omitting each value for which the expression evaluates
 to `false` or to an error.
 
 The `search` keyword can be abbreviated as `?`. 

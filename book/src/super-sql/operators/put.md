@@ -9,7 +9,7 @@
 ### Description
 
 The `put` operator modifies its input with
-one or more [field assignments](../pipeline-model.md#field-assignments).
+one or more [field assignments](../pipes.md#field-assignments).
 Each [expression](../expressions.md) `<expr>` is evaluated based on the input record
 and the result is either assigned to a new field of the input record if it does not
 exist, or the existing field is modified in its original location with the result.
@@ -68,7 +68,7 @@ c:=3
 
 ---
 
-_A `put` operation can also be done with a record literal_
+_A `put` operation can also be done with a record spread_
 ```mdtest-spq
 # spq
 values {...this, c:3}

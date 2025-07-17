@@ -10,7 +10,6 @@
   <right-input>
 ) [as { <left-name>,<right-name> }] [on <predicate>]
 
-... fork/switch/etc ...
   ( <left-input> )
   ( <right-input> )
 | [anti|inner|left|right] join [as { <left-name>,<right-name> }] [on <predicate>]

@@ -6,12 +6,15 @@
 
 ```
 sort [-r] [<expr> [asc|desc] [nulls {first|last}] [, <expr> [asc|desc] [nulls {first|last}] ...]]
+order by [-r] [<expr> [asc|desc] [nulls {first|last}] [, <expr> [asc|desc] [nulls {first|last}] ...]]
 ```
 ### Description
 
 The `sort` operator sorts its input by reading all values until the end of input,
 sorting the values according to the provided sort expression(s), and emitting
 the values in the sorted order.
+
+The `sort` operator can also be invoked as `order by`.
 
 The sort expressions act as primary key, secondary key, and so forth. By
 default, the sort order is ascending, from lowest value to highest. If
