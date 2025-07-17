@@ -9,10 +9,13 @@ from the ground up.
 
 Compared to putting JSON data in a relational column, 
 super-structured data makes it really easy to
-mash up JSON with your relational tables.  The [`super`](command/super.md) command
-is a little like [DuckDB](https://duckdb.org/) and a little like
-[`jq`](https://stedolan.github.io/jq/) but super-structured data ties the
-two patterns together with strong typing of dynamic values.
+mash up JSON with your relational tables.
+
+SuperDB is implemented with the standalone,
+dependency-free [`super`](command/super.md) command.
+`super` is a little like [DuckDB](https://duckdb.org/) and a little like
+[`jq`](https://stedolan.github.io/jq/) but super-structured data ties these
+two command styles together with strong typing of dynamic values.
 
 For a non-technical user, SuperDB is as easy to use as web search
 while for a technical user, SuperDB exposes its technical underpinnings
@@ -38,8 +41,10 @@ Thus, data in SuperDB is
 * dynamically typed like JSON.
 
 Self-describing data makes data easier: when transmitting data from one entity 
-to another there is no need for the two sides to agree up front what the schemas
-must be in order to communicate and land the data.  Likewise, when extracting and
+to another, there is no need for the two sides to agree up front what the schemas
+must be in order to communicate and land the data.
+
+Likewise, when extracting and
 serializing data from a query, there is never any loss of information as the 
 [super-structured formats](formats/intro.md)
 capture all aspects of the strongly-typed data whether in 
@@ -50,10 +55,10 @@ or
 
 ## The `super` Command
 
-SuperDB is implemented in a single, standalone executable called
-[`super`](command/super.md).
-There are no external dependencies to futz with.
-Just [install the binary](getting-started/install.md) and you're off and running.
+It's easy to get going with SuperDB and the
+[`super`](command/super.md) command.
+There are no external dependencies to futz with &mdash;
+just [install the binary](getting-started/install.md) and you're off and running.
 
 SuperDB separates compute and storage and is decomposed into
 a runtime system that
@@ -64,7 +69,8 @@ storage layer &mdash; the
 [lakehouse pattern](https://www.cidrdb.org/cidr2021/papers/cidr2021_paper17.pdf)
 but is based on super-structured data.
 
-The `super` command can execute the SuperDB runtime without a database:
+To invoke the SuperDB runtime without a database, just run `super` without 
+the `db` subcommand and specify an optional query with `-c`:
 ```
 super -c "SELECT 'hello, world'"
 ```
@@ -99,7 +105,7 @@ consider this simple line of JSON data is in a file called `example.json`:
 {"a":[1,"foo"]}
 ```
 
-> The literal `[1,"foo"]` is a contrived example but adequately
+> The literal `[1,"foo"]` is a contrived example but it adequately
 > represents the challenge of mixed-type JSON values, e.g.,
 > an API returning an array of JSON objects with varying shape.
 
@@ -208,8 +214,11 @@ adapted for super-structured data called
 [_SuperSQL_](super-sql/intro.md).
 
 SuperSQL is particularly well suited for data-wrangling use cases like
-ETL and data exploration and discovery.  Syntactic shortcuts, keyword search,
-and SuperDB Desktop make interactively querying data a breeze.
+ETL and data exploration and discovery.
+[Syntactic shortcuts](super-sql/shortcuts.md),
+[keyword search](super-sql/search.md), and the
+[pipe syntax](super-sql/intro.md)
+make interactively querying data a breeze.
 
 Instead of operating upon statically typed relational tables as SQL does,
 SuperSQL operates upon super-structured data.
@@ -227,15 +236,15 @@ SELECT a+b AS x, a-b AS y FROM (
 But when data does not conform to the relational model, SuperSQL can 
 still handle it with its super-structured runtime:
 ```sh
-$ super -c """
+$ super -c "
 SELECT avg(radius) as R, avg(width) as W FROM (
-  yield
+  VALUES
     {kind:'circle',radius:1.5},
     {kind:'rect',width:2.0,height:1.0},
     {kind:'circle',radius:2},
     {kind:'rect',width:1.0,height:3.5}
 )
-"""
+"
 {R:1.75,W:1.5}
 ```
 
@@ -244,21 +253,20 @@ for differently typed entities, e.g., let's compute an average radius of circles
 and double the width of each rectangle.  This time we'll use the pipe syntax 
 with shortcuts and employ first-class errors to flag unknown types:
 ```
-$ super -c """
-yield
+$ super -c "
+values
   {kind:'circle',radius:1.5},
   {kind:'rect',width:2.0,height:1.0},
   {kind:'circle',radius:2},
   {kind:'rect',width:1.0,height:3.5}
-| switch kind (
+| switch kind
     case 'circle' (
         R:=avg(radius)
     )
     case 'rect' (
         width:=width*2
     )
-  )  
-"""
+"
 {R:1.75}
 {kind:"rect",width:4.,height:1.}
 {kind:"rect",width:2.,height:3.5}
@@ -295,8 +303,9 @@ Query Language](https://www.cidrdb.org/cidr2024/papers/p48-neumann.pdf)
 by [Neumann](https://db.in.tum.de/~neumann/)
 and [Leis](https://www.cs.cit.tum.de/dis/team/prof-dr-viktor-leis/).
 
-But rather than replace SQL entirely, a very different approach is taken in 
-[SQL Has Problems. We Can Fix Them: Pipe Syntax In SQL](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/).
+A very different approach is taken in 
+[SQL Has Problems. We Can Fix Them: Pipe Syntax In SQL](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/), which argues that SQL
+should be merely improved upon and not replaced outright.
 Here the authors argue that except for compositional syntax, SQL is
 perfectly reasonable and we should live with its anachronisms (see Section 2.4).
 Thus, their
