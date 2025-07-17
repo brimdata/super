@@ -327,7 +327,7 @@ func (a *Aggregator) Consume(batch zbuf.Batch, this super.Value) error {
 	keyBytes := a.keyCache[:0]
 	var prim super.Value
 	for i, keyExpr := range a.keyExprs {
-		key := keyExpr.Eval(batch, this)
+		key := keyExpr.Eval(this)
 		if key.IsQuiet() {
 			return nil
 		}
@@ -361,9 +361,9 @@ func (a *Aggregator) Consume(batch zbuf.Batch, this super.Value) error {
 	}
 
 	if a.partialsIn {
-		row.reducers.consumeAsPartial(this, a.aggRefs, batch)
+		row.reducers.consumeAsPartial(this, a.aggRefs)
 	} else {
-		row.reducers.apply(a.sctx, batch, a.aggs, this)
+		row.reducers.apply(a.sctx, a.aggs, this)
 	}
 	return nil
 }
@@ -385,7 +385,7 @@ func (a *Aggregator) spillTable(eof bool, ref zbuf.Batch) error {
 		return err
 	}
 	if !eof && a.inputDir != 0 {
-		val := a.keyExprs[0].Eval(batch, recs[len(recs)-1])
+		val := a.keyExprs[0].Eval(recs[len(recs)-1])
 		if !val.IsError() {
 			// pass volatile super.Value since updateMaxSpillKey will make
 			// a copy if needed.
@@ -441,12 +441,12 @@ func (a *Aggregator) readSpills(eof bool, batch zbuf.Batch) (zbuf.Batch, error) 
 			if rec == nil {
 				break
 			}
-			keyVal := a.keyExprs[0].Eval(batch, *rec)
+			keyVal := a.keyExprs[0].Eval(*rec)
 			if !keyVal.IsError() && a.valueCompare(keyVal, *a.maxSpillKey) >= 0 {
 				break
 			}
 		}
-		rec, err := a.nextResultFromSpills(batch)
+		rec, err := a.nextResultFromSpills()
 		if err != nil {
 			return nil, err
 		}
@@ -458,10 +458,10 @@ func (a *Aggregator) readSpills(eof bool, batch zbuf.Batch) (zbuf.Batch, error) 
 	if len(recs) == 0 {
 		return nil, nil
 	}
-	return zbuf.NewBatch(batch, recs), nil
+	return zbuf.NewBatch(recs), nil
 }
 
-func (a *Aggregator) nextResultFromSpills(ectx expr.Context) (*super.Value, error) {
+func (a *Aggregator) nextResultFromSpills() (*super.Value, error) {
 	// This loop pulls records from the spiller in key order.
 	// The spiller is doing a merge across all of the spills and
 	// here we merge the decomposed aggregations across the batch
@@ -484,7 +484,7 @@ func (a *Aggregator) nextResultFromSpills(ectx expr.Context) (*super.Value, erro
 		} else if a.keysComparator.Compare(*firstRec, *rec) != 0 {
 			break
 		}
-		row.consumeAsPartial(*rec, a.aggRefs, ectx)
+		row.consumeAsPartial(*rec, a.aggRefs)
 		if _, err := a.spiller.Read(); err != nil {
 			return nil, err
 		}
@@ -496,7 +496,7 @@ func (a *Aggregator) nextResultFromSpills(ectx expr.Context) (*super.Value, erro
 	a.builder.Reset()
 	types := a.typeCache[:0]
 	for _, e := range a.keyRefs {
-		keyVal := e.Eval(ectx, *firstRec)
+		keyVal := e.Eval(*firstRec)
 		types = append(types, keyVal.Type())
 		a.builder.Append(keyVal.Bytes())
 	}
@@ -576,7 +576,7 @@ func (a *Aggregator) readTable(flush, partialsOut bool, batch zbuf.Batch) (zbuf.
 	if len(recs) == 0 {
 		return nil, nil
 	}
-	return zbuf.NewBatch(batch, recs), nil
+	return zbuf.NewBatch(recs), nil
 }
 
 func (a *Aggregator) lookupRecordType(types []super.Type) *super.TypeRecord {

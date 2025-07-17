@@ -123,11 +123,11 @@ func (o *Op) nextPuller() (zbuf.Puller, error) {
 	}
 	val := b.Values()[o.off]
 	o.off++
-	return o.openFromVal(b, val)
+	return o.openFromVal(val)
 }
 
-func (o *Op) openFromVal(b zbuf.Batch, val super.Value) (zbuf.Puller, error) {
-	target := o.expr.Eval(b, val)
+func (o *Op) openFromVal(val super.Value) (zbuf.Puller, error) {
+	target := o.expr.Eval(val)
 	typ := super.TypeUnder(target.Type())
 	if typ == super.TypeString {
 		return o.open(target.AsString())

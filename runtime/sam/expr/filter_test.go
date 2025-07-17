@@ -34,11 +34,11 @@ func runCasesExpectBufferFilterFalsePositives(t *testing.T, record string, cases
 	runCasesHelper(t, record, cases, true)
 }
 
-func filter(ectx expr.Context, this super.Value, e expr.Evaluator) bool {
+func filter(this super.Value, e expr.Evaluator) bool {
 	if e == nil {
 		return true
 	}
-	val := e.Eval(ectx, this)
+	val := e.Eval(this)
 	if val.Type() == super.TypeBool && val.Bool() {
 		return true
 	}
@@ -71,7 +71,7 @@ func runCasesHelper(t *testing.T, record string, cases []testcase, expectBufferF
 			f, err := filterMaker.DataFilter()
 			assert.NoError(t, err, "filter: %q", c.filter)
 			if f != nil {
-				assert.Equal(t, c.expected, filter(expr.NewContext(), rec, f),
+				assert.Equal(t, c.expected, filter(rec, f),
 					"filter: %q\nrecord: %s", c.filter, sup.FormatValue(rec))
 			}
 			bf, err := filterMaker.BSUPFilter()

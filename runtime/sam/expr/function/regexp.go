@@ -18,7 +18,7 @@ type Regexp struct {
 	sctx    *super.Context
 }
 
-func (r *Regexp) Call(_ super.Allocator, args []super.Value) super.Value {
+func (r *Regexp) Call(args []super.Value) super.Value {
 	if !args[0].IsString() {
 		return r.sctx.WrapError("regexp: string required for first arg", args[0])
 	}
@@ -55,7 +55,7 @@ type RegexpReplace struct {
 	err   error
 }
 
-func (r *RegexpReplace) Call(_ super.Allocator, args []super.Value) super.Value {
+func (r *RegexpReplace) Call(args []super.Value) super.Value {
 	sVal := args[0].Under()
 	reVal := args[1].Under()
 	newVal := args[2].Under()

@@ -64,7 +64,7 @@ func (u *Unnest) Pull(done bool) (zbuf.Batch, error) {
 }
 
 func (u *Unnest) unnest(batch zbuf.Batch, this super.Value) zbuf.Batch {
-	val := u.expr.Eval(batch, this)
+	val := u.expr.Eval(this)
 	// Propagate errors but skip missing values.
 	var vals []super.Value
 	if !val.IsMissing() {
@@ -73,7 +73,7 @@ func (u *Unnest) unnest(batch zbuf.Batch, this super.Value) zbuf.Batch {
 	if len(vals) == 0 {
 		return nil
 	}
-	return zbuf.NewBatch(batch, vals)
+	return zbuf.NewBatch(vals)
 }
 
 func unnest(sctx *super.Context, val super.Value) []super.Value {

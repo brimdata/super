@@ -28,9 +28,9 @@ func SearchByPredicate(pred Boolean, e Evaluator) Evaluator {
 	}
 }
 
-func (s *searchByPred) Eval(ectx Context, val super.Value) super.Value {
+func (s *searchByPred) Eval(val super.Value) super.Value {
 	if s.expr != nil {
-		val = s.expr.Eval(ectx, val)
+		val = s.expr.Eval(val)
 		if val.IsError() {
 			return super.False
 		}
@@ -98,9 +98,9 @@ func NewSearch(searchtext string, searchval super.Value, expr Evaluator) (Evalua
 	return &search{searchtext, typedCompare, expr}, nil
 }
 
-func (s *search) Eval(ectx Context, val super.Value) super.Value {
+func (s *search) Eval(val super.Value) super.Value {
 	if s.expr != nil {
-		val = s.expr.Eval(ectx, val)
+		val = s.expr.Eval(val)
 		if val.IsError() {
 			return super.False
 		}
@@ -127,7 +127,7 @@ type searchCIDR struct {
 	bytes zcode.Bytes
 }
 
-func (s *searchCIDR) Eval(_ Context, val super.Value) super.Value {
+func (s *searchCIDR) Eval(val super.Value) super.Value {
 	if errMatch == val.Walk(func(typ super.Type, body zcode.Bytes) error {
 		switch typ.ID() {
 		case super.IDNet:
@@ -164,9 +164,9 @@ func NewSearchString(term string, expr Evaluator) Evaluator {
 	}
 }
 
-func (s *searchString) Eval(ectx Context, val super.Value) super.Value {
+func (s *searchString) Eval(val super.Value) super.Value {
 	if s.expr != nil {
-		val = s.expr.Eval(ectx, val)
+		val = s.expr.Eval(val)
 		if val.IsError() {
 			return super.False
 		}
@@ -195,8 +195,8 @@ func NewFilter(expr Evaluator, pred Boolean) Evaluator {
 	return &filter{expr, pred}
 }
 
-func (f *filter) Eval(ectx Context, this super.Value) super.Value {
-	val := f.expr.Eval(ectx, this)
+func (f *filter) Eval(this super.Value) super.Value {
+	val := f.expr.Eval(this)
 	if val.IsError() {
 		return val
 	}
@@ -212,8 +212,8 @@ func NewFilterApplier(sctx *super.Context, e Evaluator) Evaluator {
 	return &filterApplier{sctx, e}
 }
 
-func (f *filterApplier) Eval(ectx Context, this super.Value) super.Value {
-	val := EvalBool(f.sctx, ectx, this, f.expr)
+func (f *filterApplier) Eval(this super.Value) super.Value {
+	val := EvalBool(f.sctx, this, f.expr)
 	if val.Type().ID() == super.IDBool {
 		if val.Bool() {
 			return this

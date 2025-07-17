@@ -13,7 +13,7 @@ type Position struct {
 	sctx *super.Context
 }
 
-func (p *Position) Call(_ super.Allocator, args []super.Value) super.Value {
+func (p *Position) Call(args []super.Value) super.Value {
 	val, subVal := args[0], args[1]
 	if !val.IsString() {
 		return p.sctx.WrapError("position: string arguments required", val)
@@ -33,7 +33,7 @@ type Replace struct {
 	sctx *super.Context
 }
 
-func (r *Replace) Call(_ super.Allocator, args []super.Value) super.Value {
+func (r *Replace) Call(args []super.Value) super.Value {
 	args = underAll(args)
 	sVal := args[0]
 	oldVal := args[1]
@@ -60,7 +60,7 @@ type RuneLen struct {
 	sctx *super.Context
 }
 
-func (r *RuneLen) Call(_ super.Allocator, args []super.Value) super.Value {
+func (r *RuneLen) Call(args []super.Value) super.Value {
 	val := args[0].Under()
 	if !val.IsString() {
 		return r.sctx.WrapError("rune_len: string arg required", val)
@@ -77,7 +77,7 @@ type ToLower struct {
 	sctx *super.Context
 }
 
-func (t *ToLower) Call(_ super.Allocator, args []super.Value) super.Value {
+func (t *ToLower) Call(args []super.Value) super.Value {
 	val := args[0].Under()
 	if !val.IsString() {
 		return t.sctx.WrapError("lower: string arg required", val)
@@ -94,7 +94,7 @@ type ToUpper struct {
 	sctx *super.Context
 }
 
-func (t *ToUpper) Call(_ super.Allocator, args []super.Value) super.Value {
+func (t *ToUpper) Call(args []super.Value) super.Value {
 	val := args[0].Under()
 	if !val.IsString() {
 		return t.sctx.WrapError("upper: string arg required", val)
@@ -111,7 +111,7 @@ type Trim struct {
 }
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#trim
-func (t *Trim) Call(_ super.Allocator, args []super.Value) super.Value {
+func (t *Trim) Call(args []super.Value) super.Value {
 	val := args[0].Under()
 	if !val.IsString() {
 		return t.sctx.WrapError("trim: string arg required", val)
@@ -136,7 +136,7 @@ func newSplit(sctx *super.Context) *Split {
 	}
 }
 
-func (s *Split) Call(_ super.Allocator, args []super.Value) super.Value {
+func (s *Split) Call(args []super.Value) super.Value {
 	args = underAll(args)
 	for i := range args {
 		if !args[i].IsString() {
@@ -163,7 +163,7 @@ type Join struct {
 	builder strings.Builder
 }
 
-func (j *Join) Call(_ super.Allocator, args []super.Value) super.Value {
+func (j *Join) Call(args []super.Value) super.Value {
 	args = underAll(args)
 	splitsVal := args[0]
 	typ, ok := super.TypeUnder(splitsVal.Type()).(*super.TypeArray)
@@ -195,7 +195,7 @@ type Levenshtein struct {
 	sctx *super.Context
 }
 
-func (l *Levenshtein) Call(_ super.Allocator, args []super.Value) super.Value {
+func (l *Levenshtein) Call(args []super.Value) super.Value {
 	args = underAll(args)
 	a, b := args[0], args[1]
 	if !a.IsString() {

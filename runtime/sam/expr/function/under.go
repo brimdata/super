@@ -9,7 +9,7 @@ type Under struct {
 	sctx *super.Context
 }
 
-func (u *Under) Call(_ super.Allocator, args []super.Value) super.Value {
+func (u *Under) Call(args []super.Value) super.Value {
 	val := args[0]
 	switch typ := args[0].Type().(type) {
 	case *super.TypeNamed:

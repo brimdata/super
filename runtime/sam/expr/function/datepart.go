@@ -13,7 +13,7 @@ func NewDatePart(sctx *super.Context) *DatePart {
 	return &DatePart{sctx}
 }
 
-func (d *DatePart) Call(_ super.Allocator, args []super.Value) super.Value {
+func (d *DatePart) Call(args []super.Value) super.Value {
 	if args[0].Type().ID() != super.IDString {
 		return d.sctx.WrapError("date_part: string value required for part argument", args[0])
 	}

@@ -132,11 +132,6 @@ type (
 		Expr Expr   `json:"expr"`
 		Body Seq    `json:"body"`
 	}
-	Var struct {
-		Kind string `json:"kind" unpack:""`
-		Name string `json:"name"`
-		Slot int    `json:"slot"`
-	}
 )
 
 func (*Agg) exprNode()          {}
@@ -161,7 +156,6 @@ func (*SliceExpr) exprNode()    {}
 func (*This) exprNode()         {}
 func (*UnaryExpr) exprNode()    {}
 func (*UnnestExpr) exprNode()   {}
-func (*Var) exprNode()          {}
 
 // Various Expr fields.
 

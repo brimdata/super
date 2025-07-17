@@ -30,7 +30,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 		vals := batch.Values()
 		if remaining := o.offset - o.count; remaining < len(vals) {
 			o.count = o.offset
-			return zbuf.NewBatch(batch, vals[remaining:]), nil
+			return zbuf.NewBatch(vals[remaining:]), nil
 		}
 		o.count += len(vals)
 	}

@@ -809,8 +809,6 @@ func inferColumnName(e dag.Expr, ae ast.Expr) string {
 	switch e := e.(type) {
 	case *dag.This:
 		return field.Path(e.Path).Leaf()
-	case *dag.Var:
-		return e.Name
 	default:
 		return zfmt.ASTExpr(ae)
 	}

@@ -21,7 +21,7 @@ func NewParseURI(sctx *super.Context) *ParseURI {
 	return &ParseURI{sctx, sup.NewBSUPMarshalerWithContext(sctx)}
 }
 
-func (p *ParseURI) Call(_ super.Allocator, args []super.Value) super.Value {
+func (p *ParseURI) Call(args []super.Value) super.Value {
 	type uri struct {
 		Scheme   *string    `super:"scheme"`
 		Opaque   *string    `super:"opaque"`
@@ -101,7 +101,7 @@ func newParseSUP(sctx *super.Context) *ParseSUP {
 	return &ParseSUP{sctx, &sr, supio.NewReader(sctx, &sr)}
 }
 
-func (p *ParseSUP) Call(_ super.Allocator, args []super.Value) super.Value {
+func (p *ParseSUP) Call(args []super.Value) super.Value {
 	in := args[0].Under()
 	if !in.IsString() {
 		return p.sctx.WrapError("parse_sup: string arg required", args[0])

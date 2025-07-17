@@ -32,14 +32,14 @@ func (a *Aggregator) NewFunction() agg.Function {
 	return a.pattern()
 }
 
-func (a *Aggregator) Apply(sctx *super.Context, ectx Context, f agg.Function, this super.Value) {
+func (a *Aggregator) Apply(sctx *super.Context, f agg.Function, this super.Value) {
 	if a.where != nil {
-		if val := EvalBool(sctx, ectx, this, a.where); !val.AsBool() {
+		if val := EvalBool(sctx, this, a.where); !val.AsBool() {
 			// XXX Issue #3401: do something with "where" errors.
 			return
 		}
 	}
-	v := a.expr.Eval(ectx, this)
+	v := a.expr.Eval(this)
 	if !v.IsMissing() {
 		f.Consume(v)
 	}
@@ -61,11 +61,11 @@ type AggregatorExpr struct {
 var _ Evaluator = (*AggregatorExpr)(nil)
 var _ Resetter = (*AggregatorExpr)(nil)
 
-func (s *AggregatorExpr) Eval(ectx Context, val super.Value) super.Value {
+func (s *AggregatorExpr) Eval(val super.Value) super.Value {
 	if s.fn == nil {
 		s.fn = s.agg.NewFunction()
 	}
-	s.agg.Apply(s.sctx, ectx, s.fn, val)
+	s.agg.Apply(s.sctx, s.fn, val)
 	return s.fn.Result(s.sctx)
 }
 

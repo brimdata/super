@@ -41,7 +41,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 		out := make([]super.Value, 0, len(vals))
 		for i := range vals {
 			for _, arg := range o.args {
-				val := arg.Eval(batch, vals[i])
+				val := arg.Eval(vals[i])
 				if val.IsError() {
 					if !val.IsMissing() {
 						out = append(out, val.Copy())
@@ -60,7 +60,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 		}
 		if len(out) > 0 {
 			defer batch.Unref()
-			return zbuf.NewBatch(batch, out), nil
+			return zbuf.NewBatch(out), nil
 		}
 		batch.Unref()
 	}

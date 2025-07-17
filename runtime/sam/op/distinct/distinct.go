@@ -37,7 +37,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 		out := make([]super.Value, 0, len(vals))
 		bytes := o.cache[:0]
 		for i := range vals {
-			val := o.expr.Eval(batch, vals[i])
+			val := o.expr.Eval(vals[i])
 			binary.LittleEndian.PutUint32(bytes[:4], uint32(val.Type().ID()))
 			bytes = append(bytes[:4], val.Bytes()...)
 			if _, ok := o.block[string(bytes)]; !ok {
@@ -47,7 +47,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 		}
 		if len(out) > 0 {
 			o.cache = bytes
-			return zbuf.NewBatch(batch, out), nil
+			return zbuf.NewBatch(out), nil
 		}
 		batch.Unref()
 	}

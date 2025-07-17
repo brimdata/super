@@ -81,8 +81,6 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 		go o.right.Reader.(*puller).run()
 	})
 	var out []super.Value
-	// See #3366
-	ectx := expr.NewContext()
 	for {
 		leftRec, err := o.left.Read()
 		if err != nil {
@@ -96,7 +94,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 			//XXX See issue #3427.
 			return zbuf.NewArray(out), nil
 		}
-		key := o.getLeftKey.Eval(ectx, *leftRec)
+		key := o.getLeftKey.Eval(*leftRec)
 		if key.IsMissing() {
 			// If the left key isn't present (which is not a thing
 			// in a sql join), then drop the record and return only
@@ -137,14 +135,12 @@ func (o *Op) getJoinSet(leftKey super.Value) ([]super.Value, error) {
 	if o.joinKey != nil && o.compare(leftKey, *o.joinKey) == 0 {
 		return o.joinSet, nil
 	}
-	// See #3366
-	ectx := expr.NewContext()
 	for {
 		rec, err := o.right.Peek()
 		if err != nil || rec == nil {
 			return nil, err
 		}
-		rightKey := o.getRightKey.Eval(ectx, *rec)
+		rightKey := o.getRightKey.Eval(*rec)
 		if rightKey.IsMissing() {
 			o.right.Read()
 			continue
@@ -179,7 +175,6 @@ func (o *Op) getJoinSet(leftKey super.Value) ([]super.Value, error) {
 func (o *Op) readJoinSet(joinKey *super.Value) ([]super.Value, error) {
 	var recs []super.Value
 	// See #3366
-	ectx := expr.NewContext()
 	for {
 		rec, err := o.right.Peek()
 		if err != nil {
@@ -188,7 +183,7 @@ func (o *Op) readJoinSet(joinKey *super.Value) ([]super.Value, error) {
 		if rec == nil {
 			return recs, nil
 		}
-		key := o.getRightKey.Eval(ectx, *rec)
+		key := o.getRightKey.Eval(*rec)
 		if key.IsMissing() {
 			o.right.Read()
 			continue

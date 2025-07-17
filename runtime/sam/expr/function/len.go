@@ -11,7 +11,7 @@ type LenFn struct {
 	sctx *super.Context
 }
 
-func (l *LenFn) Call(_ super.Allocator, args []super.Value) super.Value {
+func (l *LenFn) Call(args []super.Value) super.Value {
 	val := args[0].Under()
 	var length int
 	switch typ := super.TypeUnder(val.Type()).(type) {

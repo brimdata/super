@@ -23,7 +23,7 @@ func newGrok(sctx *super.Context) *Grok {
 	}
 }
 
-func (g *Grok) Call(_ super.Allocator, args []super.Value) super.Value {
+func (g *Grok) Call(args []super.Value) super.Value {
 	patternArg, inputArg, defArg := args[0], args[1], super.NullString
 	if len(args) == 3 {
 		defArg = args[2]

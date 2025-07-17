@@ -132,7 +132,7 @@ func (p *VectorReader) Pull(done bool) (vector.Any, error) {
 			if p.metadataFilter != nil {
 				rgMetadata := pr.MetaData().RowGroup(rowGroup)
 				val := buildMetadataValue(p.sctx, rgMetadata, p.metadataColIndexes, p.colIndexToField)
-				if !p.metadataFilter.Eval(nil, val).Ptr().AsBool() {
+				if !p.metadataFilter.Eval(val).Ptr().AsBool() {
 					continue
 				}
 			}

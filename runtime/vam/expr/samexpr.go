@@ -21,7 +21,6 @@ func (s *samExpr) Eval(this vector.Any) vector.Any {
 	if !ok {
 		typ = this.Type()
 	}
-	ectx := samexpr.NewContext()
 	var b zcode.Builder
 	vb := vector.NewDynamicBuilder()
 	for i := range this.Len() {
@@ -30,7 +29,7 @@ func (s *samExpr) Eval(this vector.Any) vector.Any {
 		if dynamic != nil {
 			typ = dynamic.TypeOf(i)
 		}
-		out := s.samEval.Eval(ectx, super.NewValue(typ, b.Bytes().Body()))
+		out := s.samEval.Eval(super.NewValue(typ, b.Bytes().Body()))
 		vb.Write(out)
 	}
 	return vb.Build()

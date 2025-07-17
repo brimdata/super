@@ -26,7 +26,7 @@ func (f *flatten) Call(args ...vector.Any) vector.Any {
 	for i := range vec.Len() {
 		b.Truncate()
 		vec.Serialize(&b, i)
-		val := f.fn.Call(nil, []super.Value{super.NewValue(rtyp, b.Bytes().Body())})
+		val := f.fn.Call([]super.Value{super.NewValue(rtyp, b.Bytes().Body())})
 		builder.Write(val)
 	}
 	return builder.Build()
@@ -48,7 +48,7 @@ func (u *unflatten) Call(args ...vector.Any) vector.Any {
 	for i := range vec.Len() {
 		b.Truncate()
 		vec.Serialize(&b, i)
-		val := u.fn.Call(nil, []super.Value{super.NewValue(typ, b.Bytes().Body())})
+		val := u.fn.Call([]super.Value{super.NewValue(typ, b.Bytes().Body())})
 		builder.Write(val)
 	}
 	return builder.Build()

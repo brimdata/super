@@ -5,7 +5,7 @@ import "github.com/brimdata/super"
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#has
 type Has struct{}
 
-func (h *Has) Call(_ super.Allocator, args []super.Value) super.Value {
+func (h *Has) Call(args []super.Value) super.Value {
 	for _, val := range args {
 		if val.IsNull() {
 			return super.NullBool
@@ -25,8 +25,8 @@ type Missing struct {
 	has Has
 }
 
-func (m *Missing) Call(ectx super.Allocator, args []super.Value) super.Value {
-	val := m.has.Call(ectx, args)
+func (m *Missing) Call(args []super.Value) super.Value {
+	val := m.has.Call(args)
 	if val.Type() == super.TypeBool && !val.IsNull() {
 		return super.NewBool(!val.Bool())
 	}

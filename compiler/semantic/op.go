@@ -140,7 +140,7 @@ func (a *analyzer) semFromExpr(entity *ast.ExprEntity, args ast.FromArgs, seq da
 
 func hasError(val super.Value) bool {
 	has := function.NewHasError()
-	result := has.Call(nil, []super.Value{val})
+	result := has.Call([]super.Value{val})
 	return result.AsBool()
 }
 
@@ -1116,22 +1116,6 @@ func (a *analyzer) semOpDecl(d *ast.OpDecl) {
 	if err := a.scope.DefineAs(d.Name, &opDecl{ast: d, scope: a.scope}); err != nil {
 		a.error(d, err)
 	}
-}
-
-func (a *analyzer) semVars(defs []ast.Def) []dag.Def {
-	var locals []dag.Def
-	for _, def := range defs {
-		e := a.semExpr(def.Expr)
-		if err := a.scope.DefineVar(def.Name); err != nil {
-			a.error(def, err)
-			continue
-		}
-		locals = append(locals, dag.Def{
-			Name: def.Name.Name,
-			Expr: e,
-		})
-	}
-	return locals
 }
 
 func (a *analyzer) semOpAssignment(p *ast.OpAssignment) dag.Op {

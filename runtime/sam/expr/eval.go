@@ -15,11 +15,11 @@ import (
 )
 
 type Evaluator interface {
-	Eval(Context, super.Value) super.Value
+	Eval(super.Value) super.Value
 }
 
 type Function interface {
-	Call(super.Allocator, []super.Value) super.Value
+	Call([]super.Value) super.Value
 }
 
 type Not struct {
@@ -33,8 +33,8 @@ func NewLogicalNot(sctx *super.Context, e Evaluator) *Not {
 	return &Not{sctx, e}
 }
 
-func (n *Not) Eval(ectx Context, this super.Value) super.Value {
-	val := EvalBool(n.sctx, ectx, this, n.expr)
+func (n *Not) Eval(this super.Value) super.Value {
+	val := EvalBool(n.sctx, this, n.expr)
 	if val.IsError() || val.IsNull() {
 		return val
 	}
@@ -63,17 +63,17 @@ func NewLogicalOr(sctx *super.Context, lhs, rhs Evaluator) *Or {
 
 // EvalBool evaluates e with this and returns the result if it is a bool or error.
 // Otherwise, EvalBool returns an error.
-func EvalBool(sctx *super.Context, ectx Context, this super.Value, e Evaluator) super.Value {
-	val := e.Eval(ectx, this)
+func EvalBool(sctx *super.Context, this super.Value, e Evaluator) super.Value {
+	val := e.Eval(this)
 	if super.TypeUnder(val.Type()) == super.TypeBool || val.IsError() {
 		return val
 	}
 	return sctx.WrapError("not type bool", val)
 }
 
-func (a *And) Eval(ectx Context, this super.Value) super.Value {
-	lhs := EvalBool(a.sctx, ectx, this, a.lhs)
-	rhs := EvalBool(a.sctx, ectx, this, a.rhs)
+func (a *And) Eval(this super.Value) super.Value {
+	lhs := EvalBool(a.sctx, this, a.lhs)
+	rhs := EvalBool(a.sctx, this, a.rhs)
 	if isfalse(lhs) || isfalse(rhs) {
 		// anything AND FALSE = FALSE
 		return super.False
@@ -97,9 +97,9 @@ func isfalse(val super.Value) bool {
 	return val.Type().ID() == super.IDBool && !val.IsNull() && !val.Bool()
 }
 
-func (o *Or) Eval(ectx Context, this super.Value) super.Value {
-	lhs := EvalBool(o.sctx, ectx, this, o.lhs)
-	rhs := EvalBool(o.sctx, ectx, this, o.rhs)
+func (o *Or) Eval(this super.Value) super.Value {
+	lhs := EvalBool(o.sctx, this, o.lhs)
+	rhs := EvalBool(o.sctx, this, o.rhs)
 	if lhs.AsBool() || rhs.AsBool() {
 		// anything OR TRUE = TRUE
 		return super.True
@@ -133,12 +133,12 @@ func NewIn(sctx *super.Context, elem, container Evaluator) *In {
 	}
 }
 
-func (i *In) Eval(ectx Context, this super.Value) super.Value {
-	elem := i.elem.Eval(ectx, this)
+func (i *In) Eval(this super.Value) super.Value {
+	elem := i.elem.Eval(this)
 	if elem.IsError() {
 		return elem
 	}
-	container := i.container.Eval(ectx, this)
+	container := i.container.Eval(this)
 	if container.IsError() {
 		return container
 	}
@@ -175,8 +175,8 @@ func NewCompareEquality(sctx *super.Context, lhs, rhs Evaluator, operator string
 	return e, nil
 }
 
-func (e *Equal) Eval(ectx Context, this super.Value) super.Value {
-	lhsVal, rhsVal, errVal := e.numeric.eval(ectx, this)
+func (e *Equal) Eval(this super.Value) super.Value {
+	lhsVal, rhsVal, errVal := e.numeric.eval(this)
 	if errVal != nil {
 		return *errVal
 	}
@@ -202,8 +202,8 @@ func NewRegexpMatch(re *regexp.Regexp, e Evaluator) *RegexpMatch {
 	return &RegexpMatch{re, e}
 }
 
-func (r *RegexpMatch) Eval(ectx Context, this super.Value) super.Value {
-	val := r.expr.Eval(ectx, this)
+func (r *RegexpMatch) Eval(this super.Value) super.Value {
+	val := r.expr.Eval(this)
 	switch id := val.Type().ID(); id {
 	case super.IDString:
 		if val.IsNull() {
@@ -232,8 +232,8 @@ func newNumeric(sctx *super.Context, lhs, rhs Evaluator) numeric {
 	}
 }
 
-func (n *numeric) evalAndPromote(ectx Context, this super.Value) (super.Value, super.Value, super.Type, *super.Value) {
-	lhsVal, rhsVal, errVal := n.eval(ectx, this)
+func (n *numeric) evalAndPromote(this super.Value) (super.Value, super.Value, super.Type, *super.Value) {
+	lhsVal, rhsVal, errVal := n.eval(this)
 	if errVal != nil {
 		return super.Null, super.Null, nil, errVal
 	}
@@ -251,12 +251,12 @@ func (n *numeric) evalAndPromote(ectx Context, this super.Value) (super.Value, s
 	return lhsVal, rhsVal, typ, nil
 }
 
-func (n *numeric) eval(ectx Context, this super.Value) (super.Value, super.Value, *super.Value) {
-	lhs := n.lhs.Eval(ectx, this)
+func (n *numeric) eval(this super.Value) (super.Value, super.Value, *super.Value) {
+	lhs := n.lhs.Eval(this)
 	if lhs.IsError() {
 		return super.Null, super.Null, &lhs
 	}
-	rhs := n.rhs.Eval(ectx, this)
+	rhs := n.rhs.Eval(this)
 	if rhs.IsError() {
 		return super.Null, super.Null, &rhs
 	}
@@ -299,12 +299,12 @@ func (c *Compare) result(result int) super.Value {
 	return super.NewBool(c.convert(result))
 }
 
-func (c *Compare) Eval(ectx Context, this super.Value) super.Value {
-	lhs := c.lhs.Eval(ectx, this)
+func (c *Compare) Eval(this super.Value) super.Value {
+	lhs := c.lhs.Eval(this)
 	if lhs.IsError() {
 		return lhs
 	}
-	rhs := c.rhs.Eval(ectx, this)
+	rhs := c.rhs.Eval(this)
 	if rhs.IsError() {
 		return rhs
 	}
@@ -376,8 +376,8 @@ func NewIsNullExpr(e Evaluator) Evaluator {
 	return &isNullExpr{e}
 }
 
-func (i *isNullExpr) Eval(ectx Context, this super.Value) super.Value {
-	val := i.eval.Eval(ectx, this)
+func (i *isNullExpr) Eval(this super.Value) super.Value {
+	val := i.eval.Eval(this)
 	if val.IsError() {
 		return val
 	}
@@ -435,8 +435,8 @@ func NewArithmetic(sctx *super.Context, lhs, rhs Evaluator, op string) (Evaluato
 	return nil, fmt.Errorf("unknown arithmetic operator: %s", op)
 }
 
-func (a *Add) Eval(ectx Context, this super.Value) super.Value {
-	lhsVal, rhsVal, typ, errVal := a.operands.evalAndPromote(ectx, this)
+func (a *Add) Eval(this super.Value) super.Value {
+	lhsVal, rhsVal, typ, errVal := a.operands.evalAndPromote(this)
 	if errVal != nil {
 		return *errVal
 	}
@@ -454,8 +454,8 @@ func (a *Add) Eval(ectx Context, this super.Value) super.Value {
 	return a.sctx.NewErrorf("type %s incompatible with '+' operator", sup.FormatType(typ))
 }
 
-func (s *Subtract) Eval(ectx Context, this super.Value) super.Value {
-	lhsVal, rhsVal, typ, errVal := s.operands.evalAndPromote(ectx, this)
+func (s *Subtract) Eval(this super.Value) super.Value {
+	lhsVal, rhsVal, typ, errVal := s.operands.evalAndPromote(this)
 	if errVal != nil {
 		return *errVal
 	}
@@ -477,8 +477,8 @@ func (s *Subtract) Eval(ectx Context, this super.Value) super.Value {
 	return s.sctx.NewErrorf("type %s incompatible with '-' operator", sup.FormatType(typ))
 }
 
-func (m *Multiply) Eval(ectx Context, this super.Value) super.Value {
-	lhsVal, rhsVal, typ, errVal := m.operands.evalAndPromote(ectx, this)
+func (m *Multiply) Eval(this super.Value) super.Value {
+	lhsVal, rhsVal, typ, errVal := m.operands.evalAndPromote(this)
 	if errVal != nil {
 		return *errVal
 	}
@@ -493,8 +493,8 @@ func (m *Multiply) Eval(ectx Context, this super.Value) super.Value {
 	return m.sctx.NewErrorf("type %s incompatible with '*' operator", sup.FormatType(typ))
 }
 
-func (d *Divide) Eval(ectx Context, this super.Value) super.Value {
-	lhsVal, rhsVal, typ, errVal := d.operands.evalAndPromote(ectx, this)
+func (d *Divide) Eval(this super.Value) super.Value {
+	lhsVal, rhsVal, typ, errVal := d.operands.evalAndPromote(this)
 	if errVal != nil {
 		return *errVal
 	}
@@ -521,8 +521,8 @@ func (d *Divide) Eval(ectx Context, this super.Value) super.Value {
 	return d.sctx.NewErrorf("type %s incompatible with '/' operator", sup.FormatType(typ))
 }
 
-func (m *Modulo) Eval(ectx Context, this super.Value) super.Value {
-	lhsVal, rhsVal, typ, errVal := m.operands.evalAndPromote(ectx, this)
+func (m *Modulo) Eval(this super.Value) super.Value {
+	lhsVal, rhsVal, typ, errVal := m.operands.evalAndPromote(this)
 	if errVal != nil {
 		return *errVal
 	}
@@ -555,8 +555,8 @@ func NewUnaryMinus(sctx *super.Context, e Evaluator) *UnaryMinus {
 	}
 }
 
-func (u *UnaryMinus) Eval(ectx Context, this super.Value) super.Value {
-	val := u.expr.Eval(ectx, this)
+func (u *UnaryMinus) Eval(this super.Value) super.Value {
+	val := u.expr.Eval(this)
 	typ := val.Type()
 	if super.IsUnsigned(typ.ID()) {
 		switch typ.ID() {
@@ -655,12 +655,12 @@ func NewIndexExpr(sctx *super.Context, container, index Evaluator) Evaluator {
 	return &Index{sctx, container, index}
 }
 
-func (i *Index) Eval(ectx Context, this super.Value) super.Value {
-	container := i.container.Eval(ectx, this)
-	index := i.index.Eval(ectx, this)
+func (i *Index) Eval(this super.Value) super.Value {
+	container := i.container.Eval(this)
+	index := i.index.Eval(this)
 	switch typ := super.TypeUnder(container.Type()).(type) {
 	case *super.TypeArray, *super.TypeSet:
-		return indexArrayOrSet(i.sctx, ectx, super.InnerType(typ), container.Bytes(), index)
+		return indexArrayOrSet(i.sctx, super.InnerType(typ), container.Bytes(), index)
 	case *super.TypeRecord:
 		return indexRecord(i.sctx, typ, container.Bytes(), index)
 	case *super.TypeMap:
@@ -670,10 +670,10 @@ func (i *Index) Eval(ectx Context, this super.Value) super.Value {
 	}
 }
 
-func indexArrayOrSet(sctx *super.Context, ectx Context, inner super.Type, vector zcode.Bytes, index super.Value) super.Value {
+func indexArrayOrSet(sctx *super.Context, inner super.Type, vector zcode.Bytes, index super.Value) super.Value {
 	id := index.Type().ID()
 	if super.IsUnsigned(id) {
-		index = LookupPrimitiveCaster(sctx, super.TypeInt64).Eval(ectx, index)
+		index = LookupPrimitiveCaster(sctx, super.TypeInt64).Eval(index)
 		id = index.Type().ID()
 	}
 	if !super.IsInteger(id) {
@@ -771,15 +771,15 @@ func NewConditional(sctx *super.Context, predicate, thenExpr, elseExpr Evaluator
 	}
 }
 
-func (c *Conditional) Eval(ectx Context, this super.Value) super.Value {
-	val := c.predicate.Eval(ectx, this)
+func (c *Conditional) Eval(this super.Value) super.Value {
+	val := c.predicate.Eval(this)
 	if val.Type().ID() != super.IDBool {
 		return c.sctx.WrapError("?-operator: bool predicate required", val)
 	}
 	if val.Bool() {
-		return c.thenExpr.Eval(ectx, this)
+		return c.thenExpr.Eval(this)
 	}
-	return c.elseExpr.Eval(ectx, this)
+	return c.elseExpr.Eval(this)
 }
 
 type Call struct {
@@ -796,11 +796,11 @@ func NewCall(fn Function, exprs []Evaluator) *Call {
 	}
 }
 
-func (c *Call) Eval(ectx Context, this super.Value) super.Value {
+func (c *Call) Eval(this super.Value) super.Value {
 	for k, e := range c.exprs {
-		c.args[k] = e.Eval(ectx, this)
+		c.args[k] = e.Eval(this)
 	}
-	return c.fn.Call(ectx, c.args)
+	return c.fn.Call(c.args)
 }
 
 type Assignment struct {

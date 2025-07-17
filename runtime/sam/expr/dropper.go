@@ -13,14 +13,14 @@ type dropper struct {
 	fieldRefs []Evaluator
 }
 
-func (d *dropper) drop(ectx Context, in super.Value) super.Value {
+func (d *dropper) drop(in super.Value) super.Value {
 	if d.typ == in.Type() {
 		return in
 	}
 	b := d.builder
 	b.Reset()
 	for _, e := range d.fieldRefs {
-		val := e.Eval(ectx, in)
+		val := e.Eval(in)
 		b.Append(val.Bytes())
 	}
 	val, err := b.Encode()
@@ -97,7 +97,7 @@ func complementFields(drops field.List, prefix field.Path, typ *super.TypeRecord
 	return fields, types, match
 }
 
-func (d *Dropper) Eval(ectx Context, in super.Value) super.Value {
+func (d *Dropper) Eval(in super.Value) super.Value {
 	if !super.IsRecordType(in.Type()) {
 		return in
 	}
@@ -110,5 +110,5 @@ func (d *Dropper) Eval(ectx Context, in super.Value) super.Value {
 	if dropper == nil {
 		return d.sctx.Quiet()
 	}
-	return dropper.drop(ectx, in)
+	return dropper.drop(in)
 }

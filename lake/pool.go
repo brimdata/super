@@ -161,25 +161,24 @@ func (p *Pool) BatchifyBranches(ctx context.Context, sctx *super.Context, recs [
 	if err != nil {
 		return nil, err
 	}
-	ectx := expr.NewContext()
 	for _, branchRef := range branches {
 		meta := BranchMeta{p.Config, branchRef}
 		rec, err := m.Marshal(&meta)
 		if err != nil {
 			return nil, err
 		}
-		if filter(sctx, ectx, rec, f) {
+		if filter(sctx, rec, f) {
 			recs = append(recs, rec)
 		}
 	}
 	return recs, nil
 }
 
-func filter(sctx *super.Context, ectx expr.Context, this super.Value, e expr.Evaluator) bool {
+func filter(sctx *super.Context, this super.Value, e expr.Evaluator) bool {
 	if e == nil {
 		return true
 	}
-	return expr.EvalBool(sctx, ectx, this, e).Ptr().AsBool()
+	return expr.EvalBool(sctx, this, e).Ptr().AsBool()
 }
 
 type BranchTip struct {
@@ -195,13 +194,12 @@ func (p *Pool) BatchifyBranchTips(ctx context.Context, sctx *super.Context, f ex
 	m := sup.NewBSUPMarshalerWithContext(sctx)
 	m.Decorate(sup.StylePackage)
 	recs := make([]super.Value, 0, len(branches))
-	ectx := expr.NewContext()
 	for _, branchRef := range branches {
 		rec, err := m.Marshal(&BranchTip{branchRef.Name, branchRef.Commit})
 		if err != nil {
 			return nil, err
 		}
-		if filter(sctx, ectx, rec, f) {
+		if filter(sctx, rec, f) {
 			recs = append(recs, rec)
 		}
 	}

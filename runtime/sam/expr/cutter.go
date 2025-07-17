@@ -48,8 +48,8 @@ func (c *Cutter) FoundCut() bool {
 // Apply returns a new record comprising fields copied from in according to the
 // receiver's configuration.  If the resulting record would be empty, Apply
 // returns super.Missing.
-func (c *Cutter) Eval(ectx Context, in super.Value) super.Value {
-	rb, paths, err := c.lookupBuilder(ectx, in)
+func (c *Cutter) Eval(in super.Value) super.Value {
+	rb, paths, err := c.lookupBuilder(in)
 	if err != nil {
 		return c.sctx.WrapError(fmt.Sprintf("cut: %s", err), in)
 	}
@@ -57,7 +57,7 @@ func (c *Cutter) Eval(ectx Context, in super.Value) super.Value {
 	rb.Reset()
 	droppers := c.dropperCache[:0]
 	for k, e := range c.fieldExprs {
-		val := e.Eval(ectx, in)
+		val := e.Eval(in)
 		if val.IsQuiet() {
 			// ignore this field
 			pathID := paths[k].String()
@@ -78,7 +78,7 @@ func (c *Cutter) Eval(ectx Context, in super.Value) super.Value {
 	}
 	rec := super.NewValue(rb.Type(c.outTypes.Lookup(types), types), bytes)
 	for _, d := range droppers {
-		rec = d.Eval(ectx, rec)
+		rec = d.Eval(rec)
 	}
 	if !rec.IsError() {
 		c.dirty = true
@@ -86,10 +86,10 @@ func (c *Cutter) Eval(ectx Context, in super.Value) super.Value {
 	return rec
 }
 
-func (c *Cutter) lookupBuilder(ectx Context, in super.Value) (*recordBuilderCachedTypes, field.List, error) {
+func (c *Cutter) lookupBuilder(in super.Value) (*recordBuilderCachedTypes, field.List, error) {
 	paths := c.fieldRefs[:0]
 	for _, p := range c.lvals {
-		path, err := p.Eval(ectx, in)
+		path, err := p.Eval(in)
 		if err != nil {
 			return nil, nil, err
 		}

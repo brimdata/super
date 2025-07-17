@@ -29,8 +29,6 @@ type Batch interface {
 	Ref()
 	Unref()
 	Values() []super.Value
-	// Vars accesses the variables reachable in the current scope.
-	Vars() []super.Value
 }
 
 // WriteBatch writes the values in batch to zw.  If an error occurs, WriteBatch
@@ -158,7 +156,6 @@ func (b *pullerBatch) Unref() {
 }
 
 func (p *pullerBatch) Values() []super.Value { return p.vals }
-func (*pullerBatch) Vars() []super.Value     { return nil }
 
 func CopyPuller(w zio.Writer, p Puller) error {
 	for {
@@ -202,40 +199,10 @@ func (r *pullerReader) Read() (*super.Value, error) {
 	return val, nil
 }
 
-// XXX at some point the stacked scopes should not make copies of values
-// but merely refer back to the value in the wrapped batch, and we should
-// ref the wrapped batch then downstream entities will unref it, but how
-// do we carry the var frame through... protocol needs to be that any new
-// batch created by a proc needs to preserve the var frame... we don't
-// do that right now and ref counting needs to account for the dependencies.
-// procs like aggregate and sort that unref their input batches merely need
-// to copy the first frame (of each batch) and the contract is that the
-// frame will not change between multiple batches within a single-EOS event.
-
 type batch struct {
 	Batch
-	vars []super.Value
 }
 
-func NewBatch(b Batch, vals []super.Value) Batch {
-	return &batch{
-		Batch: NewArray(vals),
-		vars:  CopyVars(b),
-	}
-}
-
-func (b *batch) Vars() []super.Value {
-	return b.vars
-}
-
-func CopyVars(b Batch) []super.Value {
-	vars := b.Vars()
-	if len(vars) > 0 {
-		newvars := make([]super.Value, len(vars))
-		for k, v := range vars {
-			newvars[k] = v.Copy()
-		}
-		vars = newvars
-	}
-	return vars
+func NewBatch(vals []super.Value) Batch {
+	return &batch{Batch: NewArray(vals)}
 }

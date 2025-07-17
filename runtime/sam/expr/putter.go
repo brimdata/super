@@ -47,16 +47,16 @@ func NewPutter(sctx *super.Context, clauses []Assignment) *Putter {
 	}
 }
 
-func (p *Putter) eval(ectx Context, this super.Value) ([]super.Value, field.List, error) {
+func (p *Putter) eval(this super.Value) ([]super.Value, field.List, error) {
 	p.vals = p.vals[:0]
 	p.paths = p.paths[:0]
 	for _, cl := range p.clauses {
-		val := cl.RHS.Eval(ectx, this)
+		val := cl.RHS.Eval(this)
 		if val.IsQuiet() {
 			continue
 		}
 		p.vals = append(p.vals, val)
-		path, err := cl.LHS.Eval(ectx, this)
+		path, err := cl.LHS.Eval(this)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -311,7 +311,7 @@ func sameTypes(types []super.Type, vals []super.Value) bool {
 	})
 }
 
-func (p *Putter) Eval(ectx Context, this super.Value) super.Value {
+func (p *Putter) Eval(this super.Value) super.Value {
 	recType := super.TypeRecordOf(this.Type())
 	if recType == nil {
 		if this.IsError() {
@@ -320,7 +320,7 @@ func (p *Putter) Eval(ectx Context, this super.Value) super.Value {
 		}
 		return p.sctx.WrapError("put: not a record", this)
 	}
-	vals, paths, err := p.eval(ectx, this)
+	vals, paths, err := p.eval(this)
 	if err != nil {
 		return p.sctx.WrapError(fmt.Sprintf("put: %s", err), this)
 	}

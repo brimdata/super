@@ -11,7 +11,7 @@ import (
 
 type This struct{}
 
-func (*This) Eval(_ Context, this super.Value) super.Value {
+func (*This) Eval(this super.Value) super.Value {
 	return this
 }
 
@@ -38,8 +38,8 @@ func NewDottedExpr(sctx *super.Context, f field.Path) Evaluator {
 	return ret
 }
 
-func (d *DotExpr) Eval(ectx Context, this super.Value) super.Value {
-	val := d.record.Eval(ectx, this).Under()
+func (d *DotExpr) Eval(this super.Value) super.Value {
+	val := d.record.Eval(this).Under()
 	// Cases are ordered by decreasing expected frequency.
 	switch typ := val.Type().(type) {
 	case *super.TypeRecord:

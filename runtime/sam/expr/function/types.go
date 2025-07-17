@@ -10,7 +10,7 @@ type TypeOf struct {
 	sctx *super.Context
 }
 
-func (t *TypeOf) Call(_ super.Allocator, args []super.Value) super.Value {
+func (t *TypeOf) Call(args []super.Value) super.Value {
 	return t.sctx.LookupTypeValue(args[0].Type())
 }
 
@@ -19,7 +19,7 @@ type NameOf struct {
 	sctx *super.Context
 }
 
-func (n *NameOf) Call(_ super.Allocator, args []super.Value) super.Value {
+func (n *NameOf) Call(args []super.Value) super.Value {
 	typ := args[0].Type()
 	if named, ok := typ.(*super.TypeNamed); ok {
 		return super.NewString(named.Name)
@@ -44,7 +44,7 @@ type typeName struct {
 	sctx *super.Context
 }
 
-func (t *typeName) Call(_ super.Allocator, args []super.Value) super.Value {
+func (t *typeName) Call(args []super.Value) super.Value {
 	if super.TypeUnder(args[0].Type()) != super.TypeString {
 		return t.sctx.WrapError("typename: argument must be a string", args[0])
 	}
@@ -61,14 +61,14 @@ type Error struct {
 	sctx *super.Context
 }
 
-func (e *Error) Call(_ super.Allocator, args []super.Value) super.Value {
+func (e *Error) Call(args []super.Value) super.Value {
 	return super.NewValue(e.sctx.LookupTypeError(args[0].Type()), args[0].Bytes())
 }
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#iserr
 type IsErr struct{}
 
-func (*IsErr) Call(_ super.Allocator, args []super.Value) super.Value {
+func (*IsErr) Call(args []super.Value) super.Value {
 	return super.NewBool(args[0].IsError())
 }
 
@@ -77,7 +77,7 @@ type Is struct {
 	sctx *super.Context
 }
 
-func (i *Is) Call(_ super.Allocator, args []super.Value) super.Value {
+func (i *Is) Call(args []super.Value) super.Value {
 	zvSubject := args[0]
 	zvTypeVal := args[1]
 	if len(args) == 3 {
@@ -103,7 +103,7 @@ func NewHasError() *HasError {
 	}
 }
 
-func (h *HasError) Call(_ super.Allocator, args []super.Value) super.Value {
+func (h *HasError) Call(args []super.Value) super.Value {
 	val := args[0]
 	hasError, _ := h.hasError(val.Type(), val.Bytes())
 	return super.NewBool(hasError)
@@ -172,7 +172,7 @@ type Quiet struct {
 	sctx *super.Context
 }
 
-func (q *Quiet) Call(_ super.Allocator, args []super.Value) super.Value {
+func (q *Quiet) Call(args []super.Value) super.Value {
 	val := args[0]
 	if val.IsMissing() {
 		return q.sctx.Quiet()
@@ -185,7 +185,7 @@ type Kind struct {
 	sctx *super.Context
 }
 
-func (k *Kind) Call(_ super.Allocator, args []super.Value) super.Value {
+func (k *Kind) Call(args []super.Value) super.Value {
 	val := args[0]
 	var typ super.Type
 	if _, ok := super.TypeUnder(val.Type()).(*super.TypeOfType); ok {

@@ -224,8 +224,6 @@ func demandForExpr(expr dag.Expr) demand.Demand {
 		return demandForExpr(expr.Operand)
 	case *dag.UnnestExpr:
 		return demandForExpr(expr.Expr)
-	case *dag.Var:
-		return demand.None()
 	}
 	panic(expr)
 }

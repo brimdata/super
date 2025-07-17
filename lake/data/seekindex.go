@@ -28,13 +28,12 @@ func LookupSeekRange(ctx context.Context, engine storage.Engine, path *storage.U
 	unmarshaler := sup.NewBSUPUnmarshaler()
 	reader := bsupio.NewReader(super.NewContext(), r)
 	defer reader.Close()
-	ectx := expr.NewContext()
 	for {
 		val, err := reader.Read()
 		if val == nil || err != nil {
 			return ranges, err
 		}
-		result := pruner.Eval(ectx, *val)
+		result := pruner.Eval(*val)
 		if result.Type() == super.TypeBool && result.Bool() {
 			continue
 		}

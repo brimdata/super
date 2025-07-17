@@ -48,7 +48,7 @@ func (s *ExprSwitch) AddCase(val *super.Value) zbuf.Puller {
 func (s *ExprSwitch) Forward(router *op.Router, batch zbuf.Batch) bool {
 	vals := batch.Values()
 	for i := range vals {
-		val := s.expr.Eval(batch, vals[i])
+		val := s.expr.Eval(vals[i])
 		if val.IsMissing() {
 			continue
 		}
@@ -70,7 +70,7 @@ func (s *ExprSwitch) Forward(router *op.Router, batch zbuf.Batch) bool {
 			// outgoing batch so we don't send these slices
 			// through GC.
 			batch.Ref()
-			out := zbuf.NewBatch(batch, c.vals)
+			out := zbuf.NewBatch(c.vals)
 			c.vals = nil
 			if ok := router.Send(c.route, out, nil); !ok {
 				return false

@@ -31,7 +31,7 @@ func (p *ParseURI) Call(args ...vector.Any) vector.Any {
 		b.Truncate()
 		vec.Serialize(&b, i)
 		val := super.NewValue(super.TypeString, b.Bytes().Body())
-		db.Write(p.samfn.Call(nil, []super.Value{val}))
+		db.Write(p.samfn.Call([]super.Value{val}))
 	}
 	return db.Build()
 }

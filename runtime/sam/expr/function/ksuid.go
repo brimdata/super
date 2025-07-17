@@ -10,7 +10,7 @@ type KSUIDToString struct {
 	sctx *super.Context
 }
 
-func (k *KSUIDToString) Call(_ super.Allocator, args []super.Value) super.Value {
+func (k *KSUIDToString) Call(args []super.Value) super.Value {
 	if len(args) == 0 {
 		return super.NewBytes(ksuid.New().Bytes())
 	}

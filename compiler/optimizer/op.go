@@ -226,9 +226,6 @@ func FieldsOf(e dag.Expr) (field.List, bool) {
 	switch e := e.(type) {
 	case *dag.Search, *dag.Literal:
 		return nil, true
-	case *dag.Var:
-		// finish with issue #2756
-		return nil, false
 	case *dag.This:
 		return field.List{e.Path}, true
 	case *dag.UnaryExpr:

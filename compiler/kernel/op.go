@@ -734,7 +734,7 @@ func (b *Builder) evalAtCompileTime(in dag.Expr) (val super.Value, err error) {
 			val = b.sctx().Missing()
 		}
 	}()
-	return e.Eval(expr.NewContext(), b.sctx().Missing()), nil
+	return e.Eval(b.sctx().Missing()), nil
 }
 
 func compileExpr(in dag.Expr) (expr.Evaluator, error) {
