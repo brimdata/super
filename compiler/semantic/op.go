@@ -1118,22 +1118,6 @@ func (a *analyzer) semOpDecl(d *ast.OpDecl) {
 	}
 }
 
-func (a *analyzer) semVars(defs []ast.Def) []dag.Def {
-	var locals []dag.Def
-	for _, def := range defs {
-		e := a.semExpr(def.Expr)
-		if err := a.scope.DefineVar(def.Name); err != nil {
-			a.error(def, err)
-			continue
-		}
-		locals = append(locals, dag.Def{
-			Name: def.Name.Name,
-			Expr: e,
-		})
-	}
-	return locals
-}
-
 func (a *analyzer) semOpAssignment(p *ast.OpAssignment) dag.Op {
 	var aggs, puts []dag.Assignment
 	for _, astAssign := range p.Assignments {
