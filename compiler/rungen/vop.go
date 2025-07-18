@@ -3,6 +3,7 @@ package rungen
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"slices"
 
 	"github.com/brimdata/super"
@@ -184,8 +185,14 @@ func (b *Builder) compileVamSwitch(swtch *dag.Switch, parents []vector.Puller) (
 }
 
 func (b *Builder) compileVamScope(scope *dag.Scope, parents []vector.Puller) ([]vector.Puller, error) {
-	if len(scope.Funcs) > 0 {
-		return nil, errors.New("udfs not currently supported in vector runtime")
+	// Because there can be name collisions between a child and parent scope
+	// we clone the current udf map, populate the cloned map, then restore the
+	// old scope once the current scope has been built.
+	parentUDFs := b.udfs
+	b.udfs = maps.Clone(parentUDFs)
+	defer func() { b.udfs = parentUDFs }()
+	for _, f := range scope.Funcs {
+		b.udfs[f.Name] = f
 	}
 	return b.compileVamSeq(scope.Body, parents)
 }

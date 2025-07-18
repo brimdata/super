@@ -196,9 +196,23 @@ func (b *Builder) compileVamCall(call *dag.Call) (vamexpr.Evaluator, error) {
 	if tf := expr.NewShaperTransform(call.Name); tf != 0 {
 		return b.compileVamShaper(call.Args, tf)
 	}
-	fn, path, err := vamfunction.New(b.sctx(), call.Name, len(call.Args))
-	if err != nil {
-		return nil, err
+	var path field.Path
+	var fn vamexpr.Function
+	if u, ok := b.udfs[call.Name]; ok {
+		var err error
+		if fn, err = b.compileVamUDFCall(call.Name, u); err != nil {
+			return nil, err
+		}
+		if len(u.Params) == 0 {
+			// If udfs has no params pass in "this" so we know vector size.
+			path = field.Path{}
+		}
+	} else {
+		var err error
+		fn, path, err = vamfunction.New(b.sctx(), call.Name, len(call.Args))
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", call.Name, err)
+		}
 	}
 	args := call.Args
 	if path != nil {
@@ -210,6 +224,22 @@ func (b *Builder) compileVamCall(call *dag.Call) (vamexpr.Evaluator, error) {
 		return nil, err
 	}
 	return vamexpr.NewCall(fn, exprs), nil
+}
+
+func (b *Builder) compileVamUDFCall(name string, f *dag.Func) (vamexpr.Function, error) {
+	if fn, ok := b.compiledVamUDFs[name]; ok {
+		return fn, nil
+	}
+	fn := vamexpr.NewUDF(b.sctx(), name, f.Params)
+	// We store compiled UDF calls here so as to avoid stack overflows on
+	// recursive calls.
+	b.compiledVamUDFs[name] = fn
+	var err error
+	if fn.Body, err = b.compileVamExpr(f.Expr); err != nil {
+		return nil, err
+	}
+	delete(b.compiledUDFs, name)
+	return fn, nil
 }
 
 func (b *Builder) compileVamCast(args []dag.Expr) (vamexpr.Evaluator, error) {

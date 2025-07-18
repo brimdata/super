@@ -40,6 +40,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/op/uniq"
 	"github.com/brimdata/super/runtime/sam/op/values"
 	"github.com/brimdata/super/runtime/vam"
+	vamexpr "github.com/brimdata/super/runtime/vam/expr"
 	vamop "github.com/brimdata/super/runtime/vam/op"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
@@ -51,16 +52,17 @@ import (
 var ErrJoinParents = errors.New("join requires two upstream parallel query paths")
 
 type Builder struct {
-	rctx         *runtime.Context
-	mctx         *super.Context
-	env          *exec.Environment
-	readers      []zio.Reader
-	progress     *zbuf.Progress
-	channels     map[string][]zbuf.Puller
-	deletes      *sync.Map
-	udfs         map[string]*dag.Func
-	compiledUDFs map[string]*expr.UDF
-	resetters    expr.Resetters
+	rctx            *runtime.Context
+	mctx            *super.Context
+	env             *exec.Environment
+	readers         []zio.Reader
+	progress        *zbuf.Progress
+	channels        map[string][]zbuf.Puller
+	deletes         *sync.Map
+	udfs            map[string]*dag.Func
+	compiledUDFs    map[string]*expr.UDF
+	compiledVamUDFs map[string]*vamexpr.UDF
+	resetters       expr.Resetters
 }
 
 func NewBuilder(rctx *runtime.Context, env *exec.Environment) *Builder {
@@ -74,9 +76,10 @@ func NewBuilder(rctx *runtime.Context, env *exec.Environment) *Builder {
 			RecordsRead:    0,
 			RecordsMatched: 0,
 		},
-		channels:     make(map[string][]zbuf.Puller),
-		udfs:         make(map[string]*dag.Func),
-		compiledUDFs: make(map[string]*expr.UDF),
+		channels:        make(map[string][]zbuf.Puller),
+		udfs:            make(map[string]*dag.Func),
+		compiledUDFs:    make(map[string]*expr.UDF),
+		compiledVamUDFs: make(map[string]*vamexpr.UDF),
 	}
 }
 

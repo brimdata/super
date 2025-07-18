@@ -5,7 +5,7 @@ import (
 	"github.com/brimdata/super/zcode"
 )
 
-const maxStackDepth = 10_000
+const MaxStackDepth = 10_000
 
 type UDF struct {
 	Body       Evaluator
@@ -26,7 +26,7 @@ func NewUDF(sctx *super.Context, name string, params []string) *UDF {
 
 func (u *UDF) Call(args []super.Value) super.Value {
 	u.stackDepth++
-	if u.stackDepth > maxStackDepth {
+	if u.stackDepth > MaxStackDepth {
 		return u.sctx.NewErrorf("stack overflow in function %q", u.name)
 	}
 	defer func() { u.stackDepth-- }()

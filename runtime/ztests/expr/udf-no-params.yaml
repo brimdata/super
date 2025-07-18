@@ -2,8 +2,9 @@ spq: |
   func no_params(): (
     "hello"
   )
-
   values no_params()
+
+vector: true
 
 input: |
   null
