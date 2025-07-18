@@ -1,5 +1,5 @@
 # Tests bug where use of under in sequential runtime would cause an infinite loop
-spq: over this | collect(this)
+spq: unnest this | collect(this)
 
 vector: true
 

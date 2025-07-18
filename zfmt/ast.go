@@ -229,15 +229,11 @@ func (c *canon) expr(e ast.Expr, parent string) {
 			c.expr(e.Value, "")
 		}
 		c.write("}|")
-	case *ast.OverExpr:
+	case *ast.UnnestExpr:
 		c.open("(")
 		c.ret()
-		c.write("over ")
-		c.exprs(e.Exprs)
-		if len(e.Locals) > 0 {
-			c.write(" with ")
-			c.defs(e.Locals, ", ")
-		}
+		c.write("unnest ")
+		c.expr(e.Expr, "")
 		c.seq(e.Body)
 		c.close()
 		c.ret()
@@ -649,8 +645,8 @@ func (c *canon) op(p ast.Op) {
 		c.next()
 		c.write("merge")
 		c.sortExprs(p.Exprs)
-	case *ast.Over:
-		c.over(p)
+	case *ast.Unnest:
+		c.unnest(p)
 	case *ast.Values:
 		c.next()
 		c.write("values ")
@@ -725,14 +721,10 @@ func (c *canon) fromEntity(e ast.FromEntity) {
 	}
 }
 
-func (c *canon) over(o *ast.Over) {
+func (c *canon) unnest(o *ast.Unnest) {
 	c.next()
-	c.write("over ")
-	c.exprs(o.Exprs)
-	if len(o.Locals) > 0 {
-		c.write(" with ")
-		c.defs(o.Locals, ", ")
-	}
+	c.write("unnest ")
+	c.expr(o.Expr, "")
 	if o.Body != nil {
 		c.write(" into (")
 		c.open()

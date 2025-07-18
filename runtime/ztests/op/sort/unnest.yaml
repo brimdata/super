@@ -1,0 +1,12 @@
+spq: |
+  unnest {foo:"bar",num:this} into (sort num | values {num, foo})
+
+vector: true
+
+input: "[4,2,6,1]"
+
+output: |
+  {num:1,foo:"bar"}
+  {num:2,foo:"bar"}
+  {num:4,foo:"bar"}
+  {num:6,foo:"bar"}

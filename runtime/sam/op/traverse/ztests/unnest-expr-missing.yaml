@@ -1,0 +1,11 @@
+spq: values (unnest a | sum(this))
+
+input: |
+  {a:[1,2]}
+  {b:[3,4]}
+  {a:[5,6]}
+
+output: |
+  3
+  null
+  11

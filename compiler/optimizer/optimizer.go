@@ -79,7 +79,7 @@ func Walk(seq dag.Seq, post func(dag.Seq) dag.Seq) dag.Seq {
 func walk(seq dag.Seq, over bool, post func(dag.Seq) dag.Seq) dag.Seq {
 	for _, op := range seq {
 		switch op := op.(type) {
-		case *dag.Over:
+		case *dag.Unnest:
 			if over && op.Body != nil {
 				op.Body = walk(op.Body, over, post)
 			}

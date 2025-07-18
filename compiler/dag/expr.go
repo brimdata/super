@@ -83,12 +83,6 @@ type (
 		Kind    string  `json:"kind" unpack:""`
 		Entries []Entry `json:"entries"`
 	}
-	OverExpr struct {
-		Kind  string `json:"kind" unpack:""`
-		Defs  []Def  `json:"defs"`
-		Exprs []Expr `json:"exprs"`
-		Body  Seq    `json:"body"`
-	}
 	RecordExpr struct {
 		Kind  string       `json:"kind" unpack:""`
 		Elems []RecordElem `json:"elems"`
@@ -133,6 +127,11 @@ type (
 		Op      string `json:"op"`
 		Operand Expr   `json:"operand"`
 	}
+	UnnestExpr struct {
+		Kind string `json:"kind" unpack:""`
+		Expr Expr   `json:"expr"`
+		Body Seq    `json:"body"`
+	}
 	Var struct {
 		Kind string `json:"kind" unpack:""`
 		Name string `json:"name"`
@@ -153,7 +152,6 @@ func (*IsNullExpr) exprNode()   {}
 func (*Literal) exprNode()      {}
 func (*MapCall) exprNode()      {}
 func (*MapExpr) exprNode()      {}
-func (*OverExpr) exprNode()     {}
 func (*RecordExpr) exprNode()   {}
 func (*RegexpMatch) exprNode()  {}
 func (*RegexpSearch) exprNode() {}
@@ -162,6 +160,7 @@ func (*SetExpr) exprNode()      {}
 func (*SliceExpr) exprNode()    {}
 func (*This) exprNode()         {}
 func (*UnaryExpr) exprNode()    {}
+func (*UnnestExpr) exprNode()   {}
 func (*Var) exprNode()          {}
 
 // Various Expr fields.

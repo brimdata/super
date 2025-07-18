@@ -1,0 +1,41 @@
+script: |
+  echo === aggregation
+  super compile -C 'collect(unnest {a:b,c} | ?d)'
+  echo === cast
+  super compile -C 'uint8(unnest a | ?b)'
+  echo === expression
+  super compile -C 'values (unnest a | ?b)'
+  echo === function
+  super compile -C 'quiet(unnest a | ?b)'
+  echo === grep
+  super compile -C 'grep(/regexp/, unnest a | ?b)'
+
+outputs:
+  - name: stdout
+    data: |
+      === aggregation
+      aggregate
+          collect((
+            unnest {a:b,c}
+            | search d
+          ))
+      === cast
+      uint8((
+        unnest a
+        | search b
+      ))
+      === expression
+      values (
+        unnest a
+        | search b
+      )
+      === function
+      quiet((
+        unnest a
+        | search b
+      ))
+      === grep
+      where grep(/regexp/,(
+          unnest a
+          | search b
+        ))

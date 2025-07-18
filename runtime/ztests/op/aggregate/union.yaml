@@ -1,4 +1,4 @@
-spq: over this into ( union(this) )
+spq: unnest this into ( union(this) )
 
 vector: true
 

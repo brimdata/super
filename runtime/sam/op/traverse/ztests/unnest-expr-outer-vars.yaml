@@ -1,0 +1,11 @@
+spq: |
+  func sumvals(vals): (
+    (unnest vals | sum(this))
+  )
+  sum := sumvals(v)
+
+input: |
+  {v:[1,2,3,4]}
+
+output: |
+  {v:[1,2,3,4],sum:10}

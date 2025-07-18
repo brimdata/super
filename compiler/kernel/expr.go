@@ -101,8 +101,8 @@ func (b *Builder) compileExpr(e dag.Expr) (expr.Evaluator, error) {
 		aggexpr := expr.NewAggregatorExpr(b.sctx(), agg)
 		b.resetters = append(b.resetters, aggexpr)
 		return aggexpr, nil
-	case *dag.OverExpr:
-		return b.compileOverExpr(e)
+	case *dag.UnnestExpr:
+		return b.compileUnnestExpr(e)
 	default:
 		return nil, fmt.Errorf("invalid expression type %T", e)
 	}
@@ -516,19 +516,15 @@ func (b *Builder) compileMapExpr(m *dag.MapExpr) (expr.Evaluator, error) {
 	return expr.NewMapExpr(b.sctx(), entries), nil
 }
 
-func (b *Builder) compileOverExpr(over *dag.OverExpr) (expr.Evaluator, error) {
-	names, lets, err := b.compileDefs(over.Defs)
-	if err != nil {
-		return nil, err
-	}
-	exprs, err := b.compileExprs(over.Exprs)
+func (b *Builder) compileUnnestExpr(unnest *dag.UnnestExpr) (expr.Evaluator, error) {
+	e, err := b.compileExpr(unnest.Expr)
 	if err != nil {
 		return nil, err
 	}
 	parent := traverse.NewExpr(b.rctx.Context, b.sctx())
-	enter := traverse.NewOver(b.rctx, parent, exprs, expr.Resetters{})
-	scope := enter.AddScope(b.rctx.Context, names, lets)
-	exits, err := b.compileSeq(over.Body, []zbuf.Puller{scope})
+	enter := traverse.NewUnnest(b.rctx, parent, e, expr.Resetters{})
+	scope := enter.AddScope(b.rctx.Context)
+	exits, err := b.compileSeq(unnest.Body, []zbuf.Puller{scope})
 	if err != nil {
 		return nil, err
 	}

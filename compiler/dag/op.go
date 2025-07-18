@@ -105,13 +105,6 @@ type (
 		Main   Seq    `json:"main"`
 		Mirror Seq    `json:"mirror"`
 	}
-	Over struct {
-		Kind  string `json:"kind" unpack:""`
-		Defs  []Def  `json:"defs"`
-		Exprs []Expr `json:"exprs"`
-		Vars  []Def  `json:"vars"`
-		Body  Seq    `json:"body"`
-	}
 	Output struct {
 		Kind string `json:"kind" unpack:""`
 		Name string `json:"name"`
@@ -167,6 +160,11 @@ type (
 	Uniq struct {
 		Kind  string `json:"kind" unpack:""`
 		Cflag bool   `json:"cflag"`
+	}
+	Unnest struct {
+		Kind string `json:"kind" unpack:""`
+		Expr Expr   `json:"exprs"`
+		Body Seq    `json:"body"`
 	}
 	Values struct {
 		Kind  string `json:"kind" unpack:""`
@@ -349,7 +347,7 @@ func (*Fuse) opNode()      {}
 func (*Join) opNode()      {}
 func (*Shape) opNode()     {}
 func (*Explode) opNode()   {}
-func (*Over) opNode()      {}
+func (*Unnest) opNode()    {}
 func (*Values) opNode()    {}
 func (*Vectorize) opNode() {}
 func (*Merge) opNode()     {}

@@ -31,7 +31,7 @@ The nested subquery depicted as `<lateral>` is called a [lateral subquery](../la
 ### Examples
 
 _Over evaluates each expression and emits it_
-```mdtest-spq
+```mdtest-spq-skip
 # spq
 over 1,2,"foo"
 # input
@@ -43,7 +43,7 @@ null
 ```
 
 _The over clause is evaluated once per each input value_
-```mdtest-spq
+```mdtest-spq-skip
 # spq
 over 1,2
 # input
@@ -57,7 +57,7 @@ null
 ```
 
 _Array elements are enumerated_
-```mdtest-spq
+```mdtest-spq-skip
 # spq
 over [1,2],[3,4,5]
 # input
@@ -71,7 +71,7 @@ null
 ```
 
 _Over traversing an array_
-```mdtest-spq
+```mdtest-spq-skip
 # spq
 over a
 # input
@@ -83,7 +83,7 @@ over a
 ```
 
 _Filter the traversed values_
-```mdtest-spq
+```mdtest-spq-skp
 # spq
 over a | this % 2 == 0
 # input
@@ -96,7 +96,7 @@ over a | this % 2 == 0
 ```
 
 _Aggregate the traversed values_
-```mdtest-spq
+```mdtest-spq-skip
 # spq
 over a | sum(this)
 # input
@@ -107,7 +107,7 @@ over a | sum(this)
 ```
 
 _Aggregate the traversed values in a lateral query_
-```mdtest-spq
+```mdtest-spq-skip
 # spq
 over a into ( sum(this) )
 # input
@@ -119,7 +119,7 @@ over a into ( sum(this) )
 ```
 
 _Access the outer values in a lateral query_
-```mdtest-spq
+```mdtest-spq-skip
 # spq
 over a with s into (sum(this) | values {s,sum:this})
 # input
@@ -131,7 +131,7 @@ over a with s into (sum(this) | values {s,sum:this})
 ```
 
 _Traverse a record by flattening it_
-```mdtest-spq
+```mdtest-spq-skip
 # spq
 over flatten(r) with s into (values {s,key:key[1],value})
 # input

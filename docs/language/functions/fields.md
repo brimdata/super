@@ -32,7 +32,7 @@ values fields(this)
 Easily convert to dotted names if you prefer:
 ```mdtest-spq
 # spq
-over fields(this) | values join(this,".")
+unnest fields(this) | values join(this,".")
 # input
 {a:1,b:2,c:{d:3,e:4}}
 # expected output

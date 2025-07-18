@@ -3,7 +3,7 @@ script: |
   echo ===
   super compile -C -O 'fork ( from a | where b | where c ) ( from d | where e | where f ) | where g'
   echo ===
-  super compile -C -O 'over a into ( where b | where c )'
+  super compile -C -O 'unnest a into ( where b | where c )'
   echo ===
   super compile -C -O 'fork ( where a | where b ) ( where c | where d  )'
 
@@ -23,7 +23,7 @@ outputs:
       | output main
       ===
       null
-      | over a into (
+      | unnest a into (
         where b and c
       )
       | output main

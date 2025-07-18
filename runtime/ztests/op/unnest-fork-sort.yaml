@@ -1,0 +1,28 @@
+spq: |
+  unnest a into (
+    fork
+      ( head 1 )
+      ( values this+10 )
+    | sort this
+  )
+
+vector: true
+
+input: |
+  {a:[1,3,2]}
+  {a:[6,9,8,7]}
+  {a:[4,5]}
+
+output: |
+  1
+  11
+  12
+  13
+  6
+  16
+  17
+  18
+  19
+  4
+  14
+  15

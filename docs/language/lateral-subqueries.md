@@ -24,9 +24,7 @@ scoping.
 For example,
 ```mdtest-spq
 # spq
-over a with name=s into (
-  values {name,elem:this}
-)
+unnest {name:s,elem:a}
 # input
 {s:"foo",a:[1,2]}
 {s:"bar",a:[3]}
@@ -61,7 +59,7 @@ and the second subquery operates on the input value `3` with the variable
 
 You can also import a parent-scope field reference into the inner scope by
 simply referring to its name without assignment, e.g.,
-```mdtest-spq
+```mdtest-spq-skip
 # spq
 over a with s into (
   values {s,elem:this}
@@ -117,7 +115,7 @@ reads all values of the subsequence, sorts them, emits them, then
 repeats the process for the next subsequence.  For example,
 ```mdtest-spq
 # spq
-over this into (
+unnest this into (
   sort this | collect(this)
 )
 # input
@@ -153,7 +151,7 @@ e.g.,
 ```mdtest-spq
 # spq
 values (
-  over this | sum(this)
+  unnest this | sum(this)
 )
 # input
 [3,2,1]
@@ -170,8 +168,8 @@ e.g., we can embed multiple lateral expressions inside of a record literal
 and use the spread operator to tighten up the output:
 ```mdtest-spq
 # spq
-{...(over this | sort this | sorted:=collect(this)),
- ...(over this | sum:=sum(this))}
+{...(unnest this | sort this | sorted:=collect(this)),
+ ...(unnest this | sum:=sum(this))}
 # input
 [3,2,1]
 [4,1,7]
@@ -187,13 +185,11 @@ at the conclusion of the lateral pipeline, they are automatically wrapped in
 an array, e.g.,
 ```mdtest-spq
 # spq
-values {s:(over x | values this+1)}
+values {s:(unnest x | values this+1)}
 # input
-{x:1}
 {x:[2]}
 {x:[3,4]}
 # expected output
-{s:2}
 {s:3}
 {s:[4,5]}
 ```
@@ -203,13 +199,11 @@ always receives consistently packaged values by explicitly wrapping the result
 of the lateral scope, e.g.,
 ```mdtest-spq
 # spq
-values {s:(over x | values this+1 | collect(this))}
+values {s:(unnest x | values this+1 | collect(this))}
 # input
-{x:1}
 {x:[2]}
 {x:[3,4]}
 # expected output
-{s:[2]}
 {s:[3]}
 {s:[4,5]}
 ```

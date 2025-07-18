@@ -245,8 +245,6 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 	case *dag.Output:
 		b.channels[o.Name] = append(b.channels[o.Name], vam.NewMaterializer(parent))
 		return parent, nil
-	case *dag.Over:
-		return b.compileVamOver(o, parent)
 	case *dag.Pass:
 		return parent, nil
 	case *dag.Put:
@@ -294,6 +292,8 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 			return nil, err
 		}
 		return vam.NewDematerializer(zbufPuller), nil
+	case *dag.Unnest:
+		return b.compileVamUnnest(o, parent)
 	case *dag.Values:
 		exprs, err := b.compileVamExprs(o.Exprs)
 		if err != nil {
@@ -345,21 +345,17 @@ func mergeRecordExprWithPath(rec *dag.RecordExpr, path []string) {
 	}
 }
 
-func (b *Builder) compileVamOver(over *dag.Over, parent vector.Puller) (vector.Puller, error) {
-	// withNames, withExprs, err := b.compileDefs(over.Defs)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	exprs, err := b.compileVamExprs(over.Exprs)
+func (b *Builder) compileVamUnnest(unnest *dag.Unnest, parent vector.Puller) (vector.Puller, error) {
+	e, err := b.compileVamExpr(unnest.Expr)
 	if err != nil {
 		return nil, err
 	}
-	o := vamop.NewOver(b.sctx(), parent, exprs)
-	if over.Body == nil {
-		return o, nil
+	u := vamop.NewUnnest(b.sctx(), parent, e)
+	if unnest.Body == nil {
+		return u, nil
 	}
-	scope := o.NewScope()
-	exits, err := b.compileVamSeq(over.Body, []vector.Puller{scope})
+	scope := u.NewScope()
+	exits, err := b.compileVamSeq(unnest.Body, []vector.Puller{scope})
 	if err != nil {
 		return nil, err
 	}
@@ -371,7 +367,7 @@ func (b *Builder) compileVamOver(over *dag.Over, parent vector.Puller) (vector.P
 		// is a fork or switch.
 		exit = vamop.NewCombine(b.rctx, exits)
 	}
-	return o.NewScopeExit(exit), nil
+	return u.NewScopeExit(exit), nil
 }
 
 func (b *Builder) compileVamSeq(seq dag.Seq, parents []vector.Puller) ([]vector.Puller, error) {
