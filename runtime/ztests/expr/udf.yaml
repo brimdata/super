@@ -4,6 +4,8 @@ spq: |
   )
   values fib(this)
 
+vector: true
+
 input: |
   3
   10

@@ -4,6 +4,8 @@ spq: |
   )
   values overflow(this)
 
+vector: true
+
 input: |
   3
 
