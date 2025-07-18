@@ -12,6 +12,6 @@ func NewLiteral(val super.Value) *Literal {
 	return &Literal{val: val}
 }
 
-func (l Literal) Eval(Context, super.Value) super.Value {
+func (l Literal) Eval(super.Value) super.Value {
 	return l.val
 }

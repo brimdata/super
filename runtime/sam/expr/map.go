@@ -21,8 +21,8 @@ func NewMapCall(sctx *super.Context, e, inner Evaluator) Evaluator {
 	return &mapCall{eval: e, inner: inner, sctx: sctx}
 }
 
-func (a *mapCall) Eval(ectx Context, in super.Value) super.Value {
-	val := a.eval.Eval(ectx, in)
+func (a *mapCall) Eval(in super.Value) super.Value {
+	val := a.eval.Eval(in)
 	if val.IsError() {
 		return val
 	}
@@ -36,7 +36,7 @@ func (a *mapCall) Eval(ectx Context, in super.Value) super.Value {
 	a.vals = a.vals[:0]
 	a.types = a.types[:0]
 	for _, elem := range elems {
-		val := a.inner.Eval(ectx, elem)
+		val := a.inner.Eval(elem)
 		a.vals = append(a.vals, val)
 		a.types = append(a.types, val.Type())
 	}

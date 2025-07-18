@@ -43,7 +43,7 @@ func (s *Selector) Forward(router *op.Router, batch zbuf.Batch) bool {
 	for i := range vals {
 		this := vals[i]
 		for _, c := range s.cases {
-			val := c.filter.Eval(batch, this)
+			val := c.filter.Eval(this)
 			if val.IsMissing() {
 				continue
 			}
@@ -70,7 +70,7 @@ func (s *Selector) Forward(router *op.Router, batch zbuf.Batch) bool {
 			// outgoing batch so we don't send these slices
 			// through GC.
 			batch.Ref()
-			out := zbuf.NewBatch(batch, c.vals)
+			out := zbuf.NewBatch(c.vals)
 			c.vals = nil
 			if ok := router.Send(c.route, out, nil); !ok {
 				return false

@@ -74,7 +74,6 @@ var unpacker = unpack.New(
 	Unnest{},
 	UnnestExpr{},
 	Values{},
-	Var{},
 	Vectorize{},
 	VectorValue{},
 )

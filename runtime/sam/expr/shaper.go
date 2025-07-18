@@ -82,8 +82,8 @@ type Shaper struct {
 	shapers map[super.Type]*ConstShaper
 }
 
-func (s *Shaper) Eval(ectx Context, this super.Value) super.Value {
-	typeVal := s.typeExpr.Eval(ectx, this)
+func (s *Shaper) Eval(this super.Value) super.Value {
+	typeVal := s.typeExpr.Eval(this)
 	switch id := typeVal.Type().ID(); {
 	case id == super.IDType:
 		typ, err := s.sctx.LookupByValue(typeVal.Bytes())
@@ -95,10 +95,10 @@ func (s *Shaper) Eval(ectx Context, this super.Value) super.Value {
 			shaper = NewConstShaper(s.sctx, s.expr, typ, s.transforms)
 			s.shapers[typ] = shaper
 		}
-		return shaper.Eval(ectx, this)
+		return shaper.Eval(this)
 	case id == super.IDString && s.transforms == Cast:
 		name := super.DecodeString(typeVal.Bytes())
-		return (&casterNamedType{s.sctx, s.expr, name}).Eval(ectx, this)
+		return (&casterNamedType{s.sctx, s.expr, name}).Eval(this)
 	}
 	return s.sctx.WrapError("shaper type argument is not a type", typeVal)
 }
@@ -132,8 +132,8 @@ func NewConstShaper(sctx *super.Context, expr Evaluator, shapeTo super.Type, tf 
 	}
 }
 
-func (c *ConstShaper) Eval(ectx Context, this super.Value) super.Value {
-	val := c.expr.Eval(ectx, this)
+func (c *ConstShaper) Eval(this super.Value) super.Value {
+	val := c.expr.Eval(this)
 	if val.IsError() {
 		return val
 	}
@@ -147,7 +147,7 @@ func (c *ConstShaper) Eval(ectx Context, this super.Value) super.Value {
 		return super.NewValue(c.shapeTo, val.Bytes())
 	}
 	if c.caster != nil && !super.IsUnionType(val.Type()) {
-		val = c.caster.Eval(ectx, val)
+		val = c.caster.Eval(val)
 		if val.Type() != c.shapeTo && val.Type().ID() == shapeToID {
 			// Same underlying types but one or both are named.
 			return super.NewValue(c.shapeTo, val.Bytes())
@@ -164,7 +164,7 @@ func (c *ConstShaper) Eval(ectx Context, this super.Value) super.Value {
 		c.shapers[id] = s
 	}
 	c.b.Reset()
-	typ := s.step.build(c.sctx, ectx, val.Bytes(), &c.b)
+	typ := s.step.build(c.sctx, val.Bytes(), &c.b)
 	return super.NewValue(typ, c.b.Bytes().Body())
 }
 
@@ -437,7 +437,7 @@ func newArrayOrSetStep(sctx *super.Context, op op, inInner, out super.Type) (ste
 // build applies the operation described by s to in, appends the resulting bytes
 // to b, and returns the resulting type.  The type is usually s.toType but can
 // differ if a primitive cast fails.
-func (s *step) build(sctx *super.Context, ectx Context, in zcode.Bytes, b *zcode.Builder) super.Type {
+func (s *step) build(sctx *super.Context, in zcode.Bytes, b *zcode.Builder) super.Type {
 	if in == nil || s.op == copyOp {
 		b.Append(in)
 		return s.toType
@@ -446,7 +446,7 @@ func (s *step) build(sctx *super.Context, ectx Context, in zcode.Bytes, b *zcode
 	case castPrimitive:
 		// For a successful cast, v.Type == super.TypeUnder(s.toType).
 		// For a failed cast, v.Type is a super.TypeError.
-		v := s.caster.Eval(ectx, super.NewValue(s.fromType, in))
+		v := s.caster.Eval(super.NewValue(s.fromType, in))
 		b.Append(v.Bytes())
 		if super.TypeUnder(v.Type()) == super.TypeUnder(s.toType) {
 			// Prefer s.toType in case it's a named type.
@@ -456,25 +456,25 @@ func (s *step) build(sctx *super.Context, ectx Context, in zcode.Bytes, b *zcode
 	case castFromUnion:
 		it := in.Iter()
 		tag := int(super.DecodeInt(it.Next()))
-		return s.children[tag].build(sctx, ectx, it.Next(), b)
+		return s.children[tag].build(sctx, it.Next(), b)
 	case castToUnion:
 		super.BuildUnion(b, s.toTag, in)
 		return s.toType
 	case array, set:
-		return s.buildArrayOrSet(sctx, ectx, s.op, in, b)
+		return s.buildArrayOrSet(sctx, s.op, in, b)
 	case record:
-		return s.buildRecord(sctx, ectx, in, b)
+		return s.buildRecord(sctx, in, b)
 	default:
 		panic(fmt.Sprintf("unknown step.op %v", s.op))
 	}
 }
 
-func (s *step) buildArrayOrSet(sctx *super.Context, ectx Context, op op, in zcode.Bytes, b *zcode.Builder) super.Type {
+func (s *step) buildArrayOrSet(sctx *super.Context, op op, in zcode.Bytes, b *zcode.Builder) super.Type {
 	b.BeginContainer()
 	defer b.EndContainer()
 	s.types = s.types[:0]
 	for it := in.Iter(); !it.Done(); {
-		typ := s.children[0].build(sctx, ectx, it.Next(), b)
+		typ := s.children[0].build(sctx, it.Next(), b)
 		s.types = append(s.types, typ)
 	}
 	s.uniqueTypes = append(s.uniqueTypes[:0], s.types...)
@@ -510,7 +510,7 @@ func (s *step) buildArrayOrSet(sctx *super.Context, ectx Context, op op, in zcod
 	return sctx.LookupTypeArray(inner)
 }
 
-func (s *step) buildRecord(sctx *super.Context, ectx Context, in zcode.Bytes, b *zcode.Builder) super.Type {
+func (s *step) buildRecord(sctx *super.Context, in zcode.Bytes, b *zcode.Builder) super.Type {
 	b.BeginContainer()
 	defer b.EndContainer()
 	s.types = s.types[:0]
@@ -528,7 +528,7 @@ func (s *step) buildRecord(sctx *super.Context, ectx Context, in zcode.Bytes, b 
 		// zcode.Iter along with keeping track of our
 		// position.
 		bytes, _ := getNthFromContainer(in, child.fromIndex)
-		typ := child.build(sctx, ectx, bytes, b)
+		typ := child.build(sctx, bytes, b)
 		if super.TypeUnder(typ) == super.TypeUnder(child.toType) {
 			// Prefer child.toType in case it's a named type.
 			typ = child.toType

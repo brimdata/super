@@ -51,7 +51,7 @@ type casterIntN struct {
 	typ  super.Type
 }
 
-func (c *casterIntN) Eval(ectx Context, val super.Value) super.Value {
+func (c *casterIntN) Eval(val super.Value) super.Value {
 	v, ok := coerce.ToInt(val, c.typ)
 	if !ok {
 		return c.sctx.WrapError("cannot cast to "+sup.FormatType(c.typ), val)
@@ -64,7 +64,7 @@ type casterUintN struct {
 	typ  super.Type
 }
 
-func (c *casterUintN) Eval(ectx Context, val super.Value) super.Value {
+func (c *casterUintN) Eval(val super.Value) super.Value {
 	v, ok := coerce.ToUint(val, c.typ)
 	if !ok {
 		return c.sctx.WrapError("cannot cast to "+sup.FormatType(c.typ), val)
@@ -76,7 +76,7 @@ type casterBool struct {
 	sctx *super.Context
 }
 
-func (c *casterBool) Eval(ectx Context, val super.Value) super.Value {
+func (c *casterBool) Eval(val super.Value) super.Value {
 	b, ok := coerce.ToBool(val)
 	if !ok {
 		return c.sctx.WrapError("cannot cast to bool", val)
@@ -89,7 +89,7 @@ type casterFloat struct {
 	typ  super.Type
 }
 
-func (c *casterFloat) Eval(ectx Context, val super.Value) super.Value {
+func (c *casterFloat) Eval(val super.Value) super.Value {
 	f, ok := coerce.ToFloat(val, c.typ)
 	if !ok {
 		return c.sctx.WrapError("cannot cast to "+sup.FormatType(c.typ), val)
@@ -101,7 +101,7 @@ type casterIP struct {
 	sctx *super.Context
 }
 
-func (c *casterIP) Eval(ectx Context, val super.Value) super.Value {
+func (c *casterIP) Eval(val super.Value) super.Value {
 	if _, ok := super.TypeUnder(val.Type()).(*super.TypeOfIP); ok {
 		return val
 	}
@@ -119,7 +119,7 @@ type casterNet struct {
 	sctx *super.Context
 }
 
-func (c *casterNet) Eval(ectx Context, val super.Value) super.Value {
+func (c *casterNet) Eval(val super.Value) super.Value {
 	if val.Type().ID() == super.IDNet {
 		return val
 	}
@@ -137,7 +137,7 @@ type casterDuration struct {
 	sctx *super.Context
 }
 
-func (c *casterDuration) Eval(ectx Context, val super.Value) super.Value {
+func (c *casterDuration) Eval(val super.Value) super.Value {
 	id := val.Type().ID()
 	if id == super.IDDuration {
 		return val
@@ -164,7 +164,7 @@ type casterTime struct {
 	sctx *super.Context
 }
 
-func (c *casterTime) Eval(ectx Context, val super.Value) super.Value {
+func (c *casterTime) Eval(val super.Value) super.Value {
 	id := val.Type().ID()
 	var ts nano.Ts
 	switch {
@@ -200,7 +200,7 @@ type casterString struct {
 	sctx *super.Context
 }
 
-func (c *casterString) Eval(ectx Context, val super.Value) super.Value {
+func (c *casterString) Eval(val super.Value) super.Value {
 	val = val.Under()
 	id := val.Type().ID()
 	switch id {
@@ -233,7 +233,7 @@ func (c *casterString) Eval(ectx Context, val super.Value) super.Value {
 
 type casterBytes struct{}
 
-func (c *casterBytes) Eval(ectx Context, val super.Value) super.Value {
+func (c *casterBytes) Eval(val super.Value) super.Value {
 	return super.NewBytes(val.Bytes())
 }
 
@@ -243,8 +243,8 @@ type casterNamedType struct {
 	name string
 }
 
-func (c *casterNamedType) Eval(ectx Context, this super.Value) super.Value {
-	val := c.expr.Eval(ectx, this)
+func (c *casterNamedType) Eval(this super.Value) super.Value {
+	val := c.expr.Eval(this)
 	if val.IsError() {
 		return val
 	}
@@ -259,7 +259,7 @@ type casterType struct {
 	sctx *super.Context
 }
 
-func (c *casterType) Eval(ectx Context, val super.Value) super.Value {
+func (c *casterType) Eval(val super.Value) super.Value {
 	id := val.Type().ID()
 	if id == super.IDType {
 		return val
@@ -279,7 +279,7 @@ type casterEnum struct {
 	enum *super.TypeEnum
 }
 
-func (c *casterEnum) Eval(ectx Context, val super.Value) super.Value {
+func (c *casterEnum) Eval(val super.Value) super.Value {
 	id := val.Type().ID()
 	if id != super.IDString {
 		return c.sctx.WrapError("cannot cast to enum", val)

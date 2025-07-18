@@ -33,7 +33,7 @@ func (a *applier) Pull(done bool) (zbuf.Batch, error) {
 		vals := batch.Values()
 		out := make([]super.Value, 0, len(vals))
 		for i := range vals {
-			val := a.expr.Eval(batch, vals[i])
+			val := a.expr.Eval(vals[i])
 			if val.IsError() {
 				if val.IsQuiet() || val.IsMissing() {
 					continue
@@ -42,7 +42,7 @@ func (a *applier) Pull(done bool) (zbuf.Batch, error) {
 			out = append(out, val)
 		}
 		if len(out) > 0 {
-			return zbuf.NewBatch(batch, out), nil
+			return zbuf.NewBatch(out), nil
 		}
 		batch.Unref()
 	}

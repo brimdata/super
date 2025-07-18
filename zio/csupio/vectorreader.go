@@ -125,7 +125,7 @@ func (v *VectorReader) Pull(done bool) (vector.Any, error) {
 func pruneObject(sctx *super.Context, mf *metafilter, o *csup.Object) bool {
 	vals := o.ProjectMetadata(sctx, mf.projection)
 	for _, val := range vals {
-		if mf.filter.Eval(nil, val).Ptr().AsBool() {
+		if mf.filter.Eval(val).Ptr().AsBool() {
 			return false
 		}
 	}

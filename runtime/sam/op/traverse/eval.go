@@ -41,9 +41,8 @@ func (e *Expr) SetExit(exit *Exit) {
 	e.exit = exit
 }
 
-func (e *Expr) Eval(ectx expr.Context, this super.Value) super.Value {
+func (e *Expr) Eval(this super.Value) super.Value {
 	b := zbuf.NewArray([]super.Value{this})
-	b.SetVars(ectx.Vars())
 	select {
 	case e.batchCh <- b:
 	case <-e.ctx.Done():

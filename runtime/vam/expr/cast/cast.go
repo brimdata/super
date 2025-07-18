@@ -77,7 +77,7 @@ func castConst(sctx *super.Context, vec *vector.Const, typ super.Type) vector.An
 	if vec.Type().ID() == super.IDNull {
 		return vector.NewConst(super.NewValue(typ, nil), vec.Len(), bitvec.Zero)
 	}
-	val := samexpr.LookupPrimitiveCaster(sctx, typ).Eval(samexpr.NewContext(), vec.Value())
+	val := samexpr.LookupPrimitiveCaster(sctx, typ).Eval(vec.Value())
 	if val.IsError() {
 		if !vec.Nulls.IsZero() {
 			var trueCount uint32

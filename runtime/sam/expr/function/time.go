@@ -9,7 +9,7 @@ import (
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#now
 type Now struct{}
 
-func (n *Now) Call(_ super.Allocator, _ []super.Value) super.Value {
+func (n *Now) Call(_ []super.Value) super.Value {
 	return super.NewTime(nano.Now())
 }
 
@@ -19,7 +19,7 @@ type Bucket struct {
 	sctx *super.Context
 }
 
-func (b *Bucket) Call(_ super.Allocator, args []super.Value) super.Value {
+func (b *Bucket) Call(args []super.Value) super.Value {
 	args = underAll(args)
 	tsArg := args[0]
 	binArg := args[1]
@@ -57,7 +57,7 @@ type Strftime struct {
 	formatter *strftime.Strftime
 }
 
-func (s *Strftime) Call(_ super.Allocator, args []super.Value) super.Value {
+func (s *Strftime) Call(args []super.Value) super.Value {
 	formatArg, timeArg := args[0], args[1]
 	if !formatArg.IsString() {
 		return s.sctx.WrapError("strftime: string value required for format arg", formatArg)

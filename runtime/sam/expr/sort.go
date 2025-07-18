@@ -40,12 +40,11 @@ func (c *Comparator) sortStableIndices(vals []super.Value) []uint32 {
 	indices := make([]uint32, n)
 	i64s := make([]int64, n)
 	val0s := make([]super.Value, n)
-	ectx := NewContext()
 	native := true
 	nullsMax0 := c.exprs[0].nullsMax()
 	for i := range indices {
 		indices[i] = uint32(i)
-		val := c.exprs[0].Eval(ectx, vals[i])
+		val := c.exprs[0].Eval(vals[i])
 		val0s[i] = val
 		if id := val.Type().ID(); id <= super.IDTime {
 			if val.IsNull() {
@@ -81,8 +80,8 @@ func (c *Comparator) sortStableIndices(vals []super.Value) []uint32 {
 				}
 				ival, jval = val0s[iidx], val0s[jidx]
 			} else {
-				ival = expr.Eval(ectx, vals[iidx])
-				jval = expr.Eval(ectx, vals[jidx])
+				ival = expr.Eval(vals[iidx])
+				jval = expr.Eval(vals[jidx])
 			}
 			if v := compareValues(ival, jval, expr.nullsMax()); v != 0 {
 				return v < 0
@@ -100,14 +99,13 @@ func NewValueCompareFn(o order.Which, n order.Nulls) CompareFn {
 }
 
 type Comparator struct {
-	ectx  Context
 	exprs []SortExpr
 }
 
 // NewComparator returns a super.Value comparator for exprs.  To compare values
 // a and b, it iterates over the elements e of exprs, stopping when e(a)!=e(b).
 func NewComparator(exprs ...SortExpr) *Comparator {
-	return &Comparator{NewContext(), slices.Clone(exprs)}
+	return &Comparator{slices.Clone(exprs)}
 }
 
 // WithMissingAsNull returns the receiver after modifying it to treat missing
@@ -121,8 +119,8 @@ func (c *Comparator) WithMissingAsNull() *Comparator {
 
 type missingAsNull struct{ Evaluator }
 
-func (m *missingAsNull) Eval(ectx Context, val super.Value) super.Value {
-	val = m.Evaluator.Eval(ectx, val)
+func (m *missingAsNull) Eval(val super.Value) super.Value {
+	val = m.Evaluator.Eval(val)
 	if val.IsMissing() {
 		return super.Null
 	}
@@ -133,8 +131,8 @@ func (m *missingAsNull) Eval(ectx Context, val super.Value) super.Value {
 // configuration.  The result will be 0 if a==b, -1 if a < b, and +1 if a > b.
 func (c *Comparator) Compare(a, b super.Value) int {
 	for _, k := range c.exprs {
-		aval := k.Eval(c.ectx, a)
-		bval := k.Eval(c.ectx, b)
+		aval := k.Eval(a)
+		bval := k.Eval(b)
 		if k.Order == order.Desc {
 			aval, bval = bval, aval
 		}

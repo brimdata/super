@@ -55,7 +55,7 @@ func (n *NestDotted) lookupBuilderAndType(in *super.TypeRecord) (*super.RecordBu
 	return b, typ, nil
 }
 
-func (n *NestDotted) Call(_ super.Allocator, args []super.Value) super.Value {
+func (n *NestDotted) Call(args []super.Value) super.Value {
 	val := args[len(args)-1]
 	if val.Type().ID() == super.IDNull {
 		return val

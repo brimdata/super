@@ -14,7 +14,6 @@ import (
 
 type Scope struct {
 	parent  *Scope
-	nvar    int
 	symbols map[string]*entry
 	ctes    map[string]*cte
 	schema  schema
@@ -32,19 +31,6 @@ type entry struct {
 type cte struct {
 	body   dag.Seq
 	schema schema
-}
-
-func (s *Scope) DefineVar(name *ast.ID) error {
-	ref := &dag.Var{
-		Kind: "Var",
-		Name: name.Name,
-		Slot: s.nvars(),
-	}
-	if err := s.DefineAs(name, ref); err != nil {
-		return err
-	}
-	s.nvar++
-	return nil
 }
 
 func (s *Scope) DefineAs(name *ast.ID, e any) error {
@@ -103,14 +89,6 @@ func (s *Scope) lookupEntry(name string) *entry {
 		}
 	}
 	return nil
-}
-
-func (s *Scope) nvars() int {
-	var n int
-	for scope := s; scope != nil; scope = scope.parent {
-		n += scope.nvar
-	}
-	return n
 }
 
 // resolve paths based on SQL semantics in order of precedence

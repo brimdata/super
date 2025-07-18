@@ -28,8 +28,8 @@ func NewSlice(sctx *super.Context, elem, from, to Evaluator) *Slice {
 var ErrSliceIndex = errors.New("slice index is not a number")
 var ErrSliceIndexEmpty = errors.New("slice index is empty")
 
-func (s *Slice) Eval(ectx Context, this super.Value) super.Value {
-	elem := s.elem.Eval(ectx, this)
+func (s *Slice) Eval(this super.Value) super.Value {
+	elem := s.elem.Eval(this)
 	if elem.IsError() {
 		return elem
 	}
@@ -51,11 +51,11 @@ func (s *Slice) Eval(ectx Context, this super.Value) super.Value {
 	if elem.IsNull() {
 		return elem
 	}
-	from, err := sliceIndex(ectx, this, s.from, length)
+	from, err := sliceIndex(this, s.from, length)
 	if err != nil && err != ErrSliceIndexEmpty {
 		return s.sctx.NewError(err)
 	}
-	to, err := sliceIndex(ectx, this, s.to, length)
+	to, err := sliceIndex(this, s.to, length)
 	if err != nil {
 		if err != ErrSliceIndexEmpty {
 			return s.sctx.NewError(err)
@@ -85,12 +85,12 @@ func (s *Slice) Eval(ectx Context, this super.Value) super.Value {
 	return super.NewValue(elem.Type(), bytes)
 }
 
-func sliceIndex(ectx Context, this super.Value, slot Evaluator, length int) (int, error) {
+func sliceIndex(this super.Value, slot Evaluator, length int) (int, error) {
 	if slot == nil {
 		//XXX
 		return 0, ErrSliceIndexEmpty
 	}
-	val := slot.Eval(ectx, this)
+	val := slot.Eval(this)
 	v, ok := coerce.ToInt(val, super.TypeInt64)
 	if !ok {
 		return 0, ErrSliceIndex

@@ -21,7 +21,6 @@ type Fuser struct {
 	types      map[super.Type]struct{}
 	uberSchema *agg.Schema
 	shaper     *expr.ConstShaper
-	ectx       expr.Context
 }
 
 // NewFuser returns a new Fuser.  The Fuser buffers records in memory until
@@ -33,7 +32,6 @@ func NewFuser(sctx *super.Context, memMaxBytes int) *Fuser {
 		memMaxBytes: memMaxBytes,
 		types:       make(map[super.Type]struct{}),
 		uberSchema:  agg.NewSchema(sctx),
-		ectx:        expr.NewContext(),
 	}
 }
 
@@ -96,7 +94,7 @@ func (f *Fuser) Read() (*super.Value, error) {
 	if rec == nil || err != nil {
 		return nil, err
 	}
-	return f.shaper.Eval(f.ectx, *rec).Ptr(), nil
+	return f.shaper.Eval(*rec).Ptr(), nil
 }
 
 func (f *Fuser) next() (*super.Value, error) {

@@ -43,7 +43,7 @@ func (d *DatePart) slow(partArg, timeArg vector.Any) vector.Any {
 		b.Reset()
 		timeArg.Serialize(&b, i)
 		timeVal := super.NewValue(super.TypeTime, b.Bytes().Body())
-		vb.Write(fn.Call(nil, []super.Value{partVal, timeVal}))
+		vb.Write(fn.Call([]super.Value{partVal, timeVal}))
 	}
 	return vb.Build()
 }

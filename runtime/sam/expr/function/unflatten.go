@@ -28,7 +28,7 @@ func NewUnflatten(sctx *super.Context) *Unflatten {
 	}
 }
 
-func (u *Unflatten) Call(_ super.Allocator, args []super.Value) super.Value {
+func (u *Unflatten) Call(args []super.Value) super.Value {
 	val := args[0]
 	array, ok := super.TypeUnder(val.Type()).(*super.TypeArray)
 	if !ok {

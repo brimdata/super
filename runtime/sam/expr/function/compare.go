@@ -20,7 +20,7 @@ func NewCompare(sctx *super.Context) *Compare {
 	}
 }
 
-func (e *Compare) Call(_ super.Allocator, args []super.Value) super.Value {
+func (e *Compare) Call(args []super.Value) super.Value {
 	nullsMax := true
 	if len(args) == 3 {
 		if super.TypeUnder(args[2].Type()) != super.TypeBool {

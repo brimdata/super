@@ -189,14 +189,13 @@ func (r *Root) BatchifyPools(ctx context.Context, sctx *super.Context, f expr.Ev
 	if err != nil {
 		return nil, err
 	}
-	ectx := expr.NewContext()
 	var vals []super.Value
 	for k := range pools {
 		rec, err := m.Marshal(&pools[k])
 		if err != nil {
 			return nil, err
 		}
-		if filter(sctx, ectx, rec, f) {
+		if filter(sctx, rec, f) {
 			vals = append(vals, rec)
 		}
 	}

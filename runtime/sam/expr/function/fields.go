@@ -33,7 +33,7 @@ func buildPath(typ *super.TypeRecord, b *zcode.Builder, prefix []string) {
 	}
 }
 
-func (f *Fields) Call(_ super.Allocator, args []super.Value) super.Value {
+func (f *Fields) Call(args []super.Value) super.Value {
 	subjectVal := args[0].Under()
 	typ := f.recordType(subjectVal)
 	if typ == nil {

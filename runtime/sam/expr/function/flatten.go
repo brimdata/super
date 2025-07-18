@@ -25,7 +25,7 @@ func NewFlatten(sctx *super.Context) *Flatten {
 	}
 }
 
-func (n *Flatten) Call(_ super.Allocator, args []super.Value) super.Value {
+func (n *Flatten) Call(args []super.Value) super.Value {
 	val := args[0]
 	typ := super.TypeRecordOf(val.Type())
 	if typ == nil {

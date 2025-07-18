@@ -45,8 +45,6 @@ var (
 	True  = NewBool(true)
 )
 
-type Allocator any
-
 type Value struct {
 	typ Type
 	// If base == &nativeBase, len holds this Value's native representation.

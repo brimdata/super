@@ -18,10 +18,10 @@ func NewLval(evals []LvalElem) *Lval {
 }
 
 // Eval returns the path of the lval.
-func (l *Lval) Eval(ectx Context, this super.Value) (field.Path, error) {
+func (l *Lval) Eval(this super.Value) (field.Path, error) {
 	l.cache = l.cache[:0]
 	for _, e := range l.Elems {
-		name, err := e.Eval(ectx, this)
+		name, err := e.Eval(this)
 		if err != nil {
 			return nil, err
 		}
@@ -45,14 +45,14 @@ func (l *Lval) Path() (field.Path, bool) {
 }
 
 type LvalElem interface {
-	Eval(ectx Context, this super.Value) (string, error)
+	Eval(this super.Value) (string, error)
 }
 
 type StaticLvalElem struct {
 	Name string
 }
 
-func (l *StaticLvalElem) Eval(_ Context, _ super.Value) (string, error) {
+func (l *StaticLvalElem) Eval(_ super.Value) (string, error) {
 	return l.Name, nil
 }
 
@@ -68,13 +68,13 @@ func NewExprLvalElem(sctx *super.Context, e Evaluator) *ExprLvalElem {
 	}
 }
 
-func (l *ExprLvalElem) Eval(ectx Context, this super.Value) (string, error) {
-	val := l.eval.Eval(ectx, this)
+func (l *ExprLvalElem) Eval(this super.Value) (string, error) {
+	val := l.eval.Eval(this)
 	if val.IsError() {
 		return "", lvalErr(val)
 	}
 	if !val.IsString() {
-		if val = l.caster.Eval(ectx, val); val.IsError() {
+		if val = l.caster.Eval(val); val.IsError() {
 			return "", errors.New("field reference is not a string")
 		}
 	}

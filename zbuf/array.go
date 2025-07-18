@@ -9,7 +9,6 @@ import (
 // the Reader interfaces.
 type Array struct {
 	values []super.Value
-	vars   []super.Value
 }
 
 var _ Batch = (*Array)(nil)
@@ -36,14 +35,6 @@ func (a *Array) Values() []super.Value {
 
 func (a *Array) Append(r super.Value) {
 	a.values = append(a.values, r)
-}
-
-func (a *Array) SetVars(vars []super.Value) {
-	a.vars = vars
-}
-
-func (a *Array) Vars() []super.Value {
-	return a.vars
 }
 
 func (a *Array) Write(r super.Value) error {

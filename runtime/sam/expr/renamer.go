@@ -28,19 +28,19 @@ func NewRenamer(sctx *super.Context, srcs, dsts []*Lval) *Renamer {
 	return &Renamer{sctx, srcs, dsts, make(map[int]map[string]*super.TypeRecord), nil}
 }
 
-func (r *Renamer) Eval(ectx Context, this super.Value) super.Value {
-	val, err := r.EvalToValAndError(ectx, this)
+func (r *Renamer) Eval(this super.Value) super.Value {
+	val, err := r.EvalToValAndError(this)
 	if err != nil {
 		return r.sctx.WrapError(err.Error(), this)
 	}
 	return val
 }
 
-func (r *Renamer) EvalToValAndError(ectx Context, this super.Value) (super.Value, error) {
+func (r *Renamer) EvalToValAndError(this super.Value) (super.Value, error) {
 	if !super.IsRecordType(this.Type()) {
 		return this, nil
 	}
-	srcs, dsts, err := r.evalFields(ectx, this)
+	srcs, dsts, err := r.evalFields(this)
 	if err != nil {
 		return super.Null, fmt.Errorf("rename: %w", err)
 	}
@@ -75,14 +75,14 @@ func CheckRenameField(src, dst field.Path) error {
 	return nil
 }
 
-func (r *Renamer) evalFields(ectx Context, this super.Value) (field.List, field.List, error) {
+func (r *Renamer) evalFields(this super.Value) (field.List, field.List, error) {
 	var srcs, dsts field.List
 	for i := range r.srcs {
-		src, err := r.srcs[i].Eval(ectx, this)
+		src, err := r.srcs[i].Eval(this)
 		if err != nil {
 			return nil, nil, err
 		}
-		dst, err := r.dsts[i].Eval(ectx, this)
+		dst, err := r.dsts[i].Eval(this)
 		if err != nil {
 			return nil, nil, err
 		}

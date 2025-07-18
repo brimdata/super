@@ -44,12 +44,12 @@ func newRecordExpr(sctx *super.Context, elems []RecordElem) *recordExpr {
 	}
 }
 
-func (r *recordExpr) Eval(ectx Context, this super.Value) super.Value {
+func (r *recordExpr) Eval(this super.Value) super.Value {
 	var changed bool
 	b := r.builder
 	b.Reset()
 	for k, e := range r.exprs {
-		val := e.Eval(ectx, this)
+		val := e.Eval(this)
 		if r.fields[k].Type != val.Type() {
 			r.fields[k].Type = val.Type()
 			changed = true
@@ -94,11 +94,11 @@ type fieldValue struct {
 	value super.Value
 }
 
-func (r *recordSpreadExpr) Eval(ectx Context, this super.Value) super.Value {
+func (r *recordSpreadExpr) Eval(this super.Value) super.Value {
 	object := make(map[string]fieldValue)
 	for _, elem := range r.elems {
 		if elem.Spread != nil {
-			rec := elem.Spread.Eval(ectx, this)
+			rec := elem.Spread.Eval(this)
 			if rec.IsMissing() {
 				continue
 			}
@@ -117,7 +117,7 @@ func (r *recordSpreadExpr) Eval(ectx Context, this super.Value) super.Value {
 				object[f.Name] = fv
 			}
 		} else {
-			val := elem.Field.Eval(ectx, this)
+			val := elem.Field.Eval(this)
 			fv, ok := object[elem.Name]
 			if ok {
 				fv.value = val
@@ -187,15 +187,15 @@ func NewArrayExpr(sctx *super.Context, elems []VectorElem) *ArrayExpr {
 	}
 }
 
-func (a *ArrayExpr) Eval(ectx Context, this super.Value) super.Value {
+func (a *ArrayExpr) Eval(this super.Value) super.Value {
 	a.builder.Reset()
 	a.collection.reset()
 	for _, e := range a.elems {
 		if e.Value != nil {
-			a.collection.append(e.Value.Eval(ectx, this))
+			a.collection.append(e.Value.Eval(this))
 			continue
 		}
-		val := e.Spread.Eval(ectx, this)
+		val := e.Spread.Eval(this)
 		inner := super.InnerType(val.Type())
 		if inner == nil {
 			// Treat non-list spread values values like missing.
@@ -227,15 +227,15 @@ func NewSetExpr(sctx *super.Context, elems []VectorElem) *SetExpr {
 	}
 }
 
-func (a *SetExpr) Eval(ectx Context, this super.Value) super.Value {
+func (a *SetExpr) Eval(this super.Value) super.Value {
 	a.builder.Reset()
 	a.collection.reset()
 	for _, e := range a.elems {
 		if e.Value != nil {
-			a.collection.append(e.Value.Eval(ectx, this))
+			a.collection.append(e.Value.Eval(this))
 			continue
 		}
-		val := e.Spread.Eval(ectx, this)
+		val := e.Spread.Eval(this)
 		inner := super.InnerType(val.Type())
 		if inner == nil {
 			// Treat non-list spread values values like missing.
@@ -273,12 +273,12 @@ func NewMapExpr(sctx *super.Context, entries []Entry) *MapExpr {
 	}
 }
 
-func (m *MapExpr) Eval(ectx Context, this super.Value) super.Value {
+func (m *MapExpr) Eval(this super.Value) super.Value {
 	m.keys.reset()
 	m.vals.reset()
 	for _, e := range m.entries {
-		m.keys.append(e.Key.Eval(ectx, this))
-		m.vals.append(e.Val.Eval(ectx, this))
+		m.keys.append(e.Key.Eval(this))
+		m.vals.append(e.Val.Eval(this))
 	}
 	if len(m.keys.types) == 0 {
 		typ := m.sctx.LookupTypeMap(super.TypeNull, super.TypeNull)

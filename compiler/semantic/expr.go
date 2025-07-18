@@ -840,8 +840,6 @@ func deriveLHSPath(rhs dag.Expr) ([]string, error) {
 		return []string{rhs.Name}, nil
 	case *dag.This:
 		return rhs.Path, nil
-	case *dag.Var:
-		return []string{rhs.Name}, nil
 	}
 	return nil, errors.New("cannot infer field from expression")
 }

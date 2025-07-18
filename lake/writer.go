@@ -311,6 +311,6 @@ func ImportComparator(sctx *super.Context, pool *Pool) *expr.Comparator {
 
 type valueAsBytes struct{}
 
-func (v *valueAsBytes) Eval(ectx expr.Context, val super.Value) super.Value {
+func (v *valueAsBytes) Eval(val super.Value) super.Value {
 	return super.NewBytes(val.Bytes())
 }

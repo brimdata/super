@@ -33,7 +33,6 @@ var _ Batch = (*EndOfChannel)(nil)
 func (*EndOfChannel) Ref()                  {}
 func (*EndOfChannel) Unref()                {}
 func (*EndOfChannel) Values() []super.Value { return nil }
-func (*EndOfChannel) Vars() []super.Value   { return nil }
 
 func CopyMux(outputs map[string]zio.WriteCloser, parent Puller) error {
 	for {

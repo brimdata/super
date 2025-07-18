@@ -134,8 +134,6 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 		c.write("search(%s)", e.Value)
 	case *dag.This:
 		c.fieldpath(e.Path)
-	case *dag.Var:
-		c.write("%s", e.Name)
 	case *dag.Literal:
 		c.write("%s", e.Value)
 	case *dag.RecordExpr:

@@ -182,7 +182,6 @@ type worker struct {
 	workCh       chan work
 	bufferFilter *expr.BufferFilter
 	filter       expr.Evaluator
-	ectx         expr.Context
 	validate     bool
 
 	typeCache super.TypeCache
@@ -206,7 +205,6 @@ func newWorker(ctx context.Context, p *zbuf.Progress, bf *expr.BufferFilter, f e
 		workCh:       make(chan work),
 		bufferFilter: bf,
 		filter:       f,
-		ectx:         expr.NewContext(),
 		validate:     validate,
 	}
 }
@@ -326,7 +324,7 @@ func (w *worker) wantValue(val super.Value, progress *zbuf.Progress) bool {
 	// negatives because it expects a buffer of BSUP value messages, and
 	// rec.Bytes is just a BSUP value.  (A BSUP value message is a header
 	// indicating a type ID followed by a value of that type.)
-	if w.filter == nil || check(w.ectx, val, w.filter) {
+	if w.filter == nil || check(val, w.filter) {
 		progress.BytesMatched += int64(len(val.Bytes()))
 		progress.RecordsMatched++
 		return true
@@ -334,7 +332,7 @@ func (w *worker) wantValue(val super.Value, progress *zbuf.Progress) bool {
 	return false
 }
 
-func check(ectx expr.Context, this super.Value, filter expr.Evaluator) bool {
-	val := filter.Eval(ectx, this)
+func check(this super.Value, filter expr.Evaluator) bool {
+	val := filter.Eval(this)
 	return val.Type() == super.TypeBool && val.Bool()
 }

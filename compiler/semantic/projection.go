@@ -242,8 +242,6 @@ func (a *aggfuncs) subst(e dag.Expr) (dag.Expr, error) {
 		}
 	case *dag.UnnestExpr:
 		return nil, errors.New("unnest expression not allowed with aggregate function")
-	case *dag.Var:
-		return nil, errors.New("var not allowed with aggregate function")
 	}
 	return e, nil
 }

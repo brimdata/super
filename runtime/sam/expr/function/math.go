@@ -13,7 +13,7 @@ type Abs struct {
 	sctx *super.Context
 }
 
-func (a *Abs) Call(_ super.Allocator, args []super.Value) super.Value {
+func (a *Abs) Call(args []super.Value) super.Value {
 	val := args[0].Under()
 	switch id := val.Type().ID(); {
 	case super.IsUnsigned(id):
@@ -35,7 +35,7 @@ type Ceil struct {
 	sctx *super.Context
 }
 
-func (c *Ceil) Call(_ super.Allocator, args []super.Value) super.Value {
+func (c *Ceil) Call(args []super.Value) super.Value {
 	val := args[0]
 	switch id := val.Type().ID(); {
 	case super.IsUnsigned(id) || super.IsSigned(id):
@@ -51,7 +51,7 @@ type Floor struct {
 	sctx *super.Context
 }
 
-func (f *Floor) Call(_ super.Allocator, args []super.Value) super.Value {
+func (f *Floor) Call(args []super.Value) super.Value {
 	val := args[0]
 	switch id := val.Type().ID(); {
 	case super.IsUnsigned(id) || super.IsSigned(id):
@@ -67,7 +67,7 @@ type Log struct {
 	sctx *super.Context
 }
 
-func (l *Log) Call(_ super.Allocator, args []super.Value) super.Value {
+func (l *Log) Call(args []super.Value) super.Value {
 	if args[0].IsError() {
 		return args[0]
 	}
@@ -90,7 +90,7 @@ type reducer struct {
 	fn   *anymath.Function
 }
 
-func (r *reducer) Call(_ super.Allocator, args []super.Value) super.Value {
+func (r *reducer) Call(args []super.Value) super.Value {
 	val0 := args[0]
 	switch id := val0.Type().ID(); {
 	case super.IsUnsigned(id):
@@ -136,7 +136,7 @@ type Round struct {
 	sctx *super.Context
 }
 
-func (r *Round) Call(_ super.Allocator, args []super.Value) super.Value {
+func (r *Round) Call(args []super.Value) super.Value {
 	val := args[0]
 	switch id := val.Type().ID(); {
 	case id == super.IDNull:
@@ -157,7 +157,7 @@ type Pow struct {
 	sctx *super.Context
 }
 
-func (p *Pow) Call(_ super.Allocator, args []super.Value) super.Value {
+func (p *Pow) Call(args []super.Value) super.Value {
 	a, b := args[0].Under(), args[1].Under()
 	if !super.IsNumber(a.Type().ID()) {
 		return p.sctx.WrapError("pow: not a number", args[0])
@@ -178,7 +178,7 @@ type Sqrt struct {
 	sctx *super.Context
 }
 
-func (s *Sqrt) Call(_ super.Allocator, args []super.Value) super.Value {
+func (s *Sqrt) Call(args []super.Value) super.Value {
 	val := args[0].Under()
 	if id := val.Type().ID(); id == super.IDNull {
 		return val

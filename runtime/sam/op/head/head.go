@@ -61,5 +61,5 @@ again:
 		return nil, err
 	}
 	o.count = o.limit
-	return zbuf.NewBatch(batch, vals[:remaining]), nil
+	return zbuf.NewBatch(vals[:remaining]), nil
 }

@@ -27,7 +27,7 @@ func (r *Renamer) eval(vecs ...vector.Any) vector.Any {
 	if !ok {
 		return vec
 	}
-	val, err := r.renamer.EvalToValAndError(nil, super.NewValue(vec.Type(), nil))
+	val, err := r.renamer.EvalToValAndError(super.NewValue(vec.Type(), nil))
 	if err != nil {
 		return vector.NewWrappedError(r.sctx, err.Error(), vec)
 	}

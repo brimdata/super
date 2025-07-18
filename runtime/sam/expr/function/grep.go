@@ -12,7 +12,7 @@ type Grep struct {
 	sctx    *super.Context
 }
 
-func (g *Grep) Call(_ super.Allocator, vals []super.Value) super.Value {
+func (g *Grep) Call(vals []super.Value) super.Value {
 	patternVal, inputVal := vals[0], vals[1]
 	if super.TypeUnder(patternVal.Type()) != super.TypeString {
 		return g.sctx.WrapError("grep: pattern argument must be a string", patternVal)
@@ -25,5 +25,5 @@ func (g *Grep) Call(_ super.Allocator, vals []super.Value) super.Value {
 		term := norm.NFC.Bytes(patternVal.Bytes())
 		g.grep = expr.NewSearchString(string(term), nil)
 	}
-	return g.grep.Eval(expr.NewContext(), inputVal)
+	return g.grep.Eval(inputVal)
 }

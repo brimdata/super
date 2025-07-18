@@ -45,7 +45,3 @@ func (b *batch) Unref() {
 }
 
 func (b *batch) Values() []super.Value { return b.vals }
-
-// XXX this should be ok, but we should handle nil receiver in scope so push
-// will do the right thing
-func (*batch) Vars() []super.Value { return nil }

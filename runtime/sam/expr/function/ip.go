@@ -14,7 +14,7 @@ type NetworkOf struct {
 	sctx *super.Context
 }
 
-func (n *NetworkOf) Call(_ super.Allocator, args []super.Value) super.Value {
+func (n *NetworkOf) Call(args []super.Value) super.Value {
 	id := args[0].Type().ID()
 	if id != super.IDIP {
 		return n.sctx.WrapError("network_of: not an IP", args[0])
@@ -81,7 +81,7 @@ type CIDRMatch struct {
 
 var errMatch = errors.New("match")
 
-func (c *CIDRMatch) Call(_ super.Allocator, args []super.Value) super.Value {
+func (c *CIDRMatch) Call(args []super.Value) super.Value {
 	maskVal := args[0]
 	if id := maskVal.Type().ID(); id != super.IDNet && id != super.IDNull {
 		val := c.sctx.WrapError("cidr_match: not a net", maskVal)

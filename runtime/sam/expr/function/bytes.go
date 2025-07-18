@@ -12,7 +12,7 @@ type Base64 struct {
 	sctx *super.Context
 }
 
-func (b *Base64) Call(_ super.Allocator, args []super.Value) super.Value {
+func (b *Base64) Call(args []super.Value) super.Value {
 	val := args[0].Under()
 	switch val.Type().ID() {
 	case super.IDBytes:
@@ -39,7 +39,7 @@ type Hex struct {
 	sctx *super.Context
 }
 
-func (h *Hex) Call(_ super.Allocator, args []super.Value) super.Value {
+func (h *Hex) Call(args []super.Value) super.Value {
 	val := args[0].Under()
 	switch val.Type().ID() {
 	case super.IDBytes:

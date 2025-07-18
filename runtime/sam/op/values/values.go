@@ -31,7 +31,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 		out := make([]super.Value, 0, len(o.exprs)*len(vals))
 		for i := range vals {
 			for _, e := range o.exprs {
-				val := e.Eval(batch, vals[i])
+				val := e.Eval(vals[i])
 				if val.IsQuiet() {
 					continue
 				}
@@ -40,7 +40,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 		}
 		if len(out) > 0 {
 			defer batch.Unref()
-			return zbuf.NewBatch(batch, out), nil
+			return zbuf.NewBatch(out), nil
 		}
 		batch.Unref()
 	}
