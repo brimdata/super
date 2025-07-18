@@ -85,6 +85,7 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.TableAlias, a
 		}
 		if !a.env.IsLake() {
 			a.error(entity, errors.New("cannot use regular expression with from operator on local file system"))
+			return seq, badSchema()
 		}
 		return a.semPoolFromRegexp(entity, entity.Pattern, entity.Pattern, "regexp", args), a.fromSchema(alias, "")
 	case *ast.Name:

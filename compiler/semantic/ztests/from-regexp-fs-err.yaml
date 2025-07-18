@@ -1,0 +1,9 @@
+script: |
+  ! super compile -dag "from /a.*.json/"  
+
+outputs:
+  - name: stderr
+    data: |
+      cannot use regular expression with from operator on local file system at line 1, column 6:
+      from /a.*.json/
+           ~~~~~~~~~~
