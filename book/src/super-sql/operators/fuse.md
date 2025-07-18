@@ -9,13 +9,17 @@ fuse
 ```
 ### Description
 
-The `fuse` operator reads all of its input, computes an "intelligent merge"
-of varied types in the input, then adjusts each output value
-to conform to the merged type.
+The `fuse` operator computes a fused type over all of its input then casts
+all values in the input to the fused type.  This is logically the same as:
+```
+from input | values cast(this, (from input | aggregate fuse(this)))
+```
+
+XXX
 
 The merged type is constructed intelligently in the sense that type
 `{a:string}` and `{b:string}` is fused into type `{a:string,b:string}`
-instead of the union type `({a:string},{b:string})`.
+instead of the union type `{a:string}|{b:string}`.
 
 > TBD: document the algorithm here in more detail.
 > The operator takes no paramters but we are experimenting with ways to
@@ -28,8 +32,10 @@ Because all values of the input must be read to compute the union,
 `Fuse` is not normally needed for super-structured data as the super data model supports
 heterogenous sequences of values.  However, `fuse` can be quite useful
 during data exploration when sampling or filtering data to look at
-slices of raw data that are fused together.  `Fuse` is also useful for
-transforming arbitrary super data to prepare it for formats that require
+slices of raw data that are fused together.
+
+`Fuse` is also useful for
+transforming arbitrary data to prepare it for formats that require
 a uniform schema like Parquet or a tabular structure like CSV.
 Unfortunately, when data leaves a super-structured format using `fuse` to accomplish this,
 the original data must be altered to fit into the rigid structure of

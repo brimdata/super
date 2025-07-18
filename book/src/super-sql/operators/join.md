@@ -18,17 +18,19 @@
 ### Description
 
 The `join` operator combines values from two inputs according to the Boolean-valued
-`<predicate>`.  Logically, a cross product of all values is formed by taking each
+`<predicate>` into two-field records, one field for each side of the join.
+
+Logically, a cross product of all values is formed by taking each
 value `L` from `<left-input>` and forming records with all of the values `R` from
 the `<right-input>` of the form `{<left-name>:L,<right-name>:R}`.  The result
 of the join is the set of all such records that satisfy `<predicate>`.
 
 The output order of the resulting records is undefined.
 
-If the "as clause" is ommited, then `<left-name>` defaults to "left" and
+If the "as clause" is omitted, then `<left-name>` defaults to "left" and
 `<right-name>` defaults to "right".
 
-If `<predicate>` is ommited, then it is presumed true and the entire cross
+If `<predicate>` is omitted, then it is presumed true and the entire cross
 product is produced.
 
 The available join types are:

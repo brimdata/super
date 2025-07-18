@@ -9,9 +9,15 @@ from <entity> [ <arg> ... ] [ , <entity> [ <arg> ... ] ... ]
 ```
 An `<entity>` has the form:
 ```
-<string>
-<glob>
-eval( <expr> )
+<string> -> url OR pool or file (pool can't have the name of an URL?) => no let's make syntax => no because robot scan should work with URLs
+<glob> -> matches pools or files
+<regexp> -> matches pools or files
+eval( <expr> ) -> robot scan from parent
+<url> - unquoted for easy cut and paste
+( join )
+( query )
+
+BUG: super -c "from /a.*.json/"  =>panic in matchPools (when no database)
 ```
 ### Description
 

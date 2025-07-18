@@ -6,6 +6,7 @@
 
 ```
 head [ <const-expr> ]
+limit [ <const-expr> ]
 ```
 ### Description
 
@@ -13,6 +14,10 @@ The `head` operator copies the first N values from its input to its output and e
 the sequence thereafter. N is given by `<const-expr>`, a compile-time
 constant expression that evaluates to a positive integer. If `<const-expr>`
 is not provided, the value of N defaults to `1`.
+
+For compatibility with other pipe SQL dialects,
+`limit` is an alias for the `head` operator.
+
 
 ### Examples
 
@@ -36,7 +41,8 @@ head 2
 _Grab first two values of arbitrary sequence, using a different representation of two_
 ```mdtest-spq
 # spq
-head 1+1
+const ONE = 1
+head ONE+1
 # input
 1
 "foo"
