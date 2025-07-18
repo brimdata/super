@@ -49,6 +49,7 @@ from fruit.json
   from people.json
 ) as {f,p} on f.flavor=p.likes
 | values {...f, eater:p.name}
+| sort flavor
 ```
 
 Executing the query:
@@ -88,6 +89,7 @@ from fruit.json
 ) as {f,p} on f.flavor=p.likes
 | f.eater := p.name, f.age := p.age
 | values f
+| sort flavor
 ```
 
 Executing the query:
@@ -125,6 +127,7 @@ from fruit.json
 ) as {f,p} on f.flavor=p.likes
 | p.fruit:=f.name
 | values p
+| sort likes
 ```
 Executing the query:
 ```mdtest-command
@@ -229,6 +232,7 @@ fork
   ( from people.json )
 | inner join as {fruit,people} on fruit.flavor=people.likes
 | values {...fruit, eater:people.name}
+| sort flavor
 ```
 
 Executing the query:
@@ -264,6 +268,7 @@ switch
   case has(age) ( pass )
 | inner join as {fruit,people} on fruit.flavor=people.likes
 | values {...fruit, eater:people.name}
+| sort flavor
 ```
 
 Executing the query:
@@ -353,6 +358,7 @@ from fruit.json
   from prices.json
 ) as {fruit,prices} on fruit.name=prices.name
 | values {...fruit, price:prices.price}
+| sort name
 ```
 
 Executing the query:
@@ -392,6 +398,7 @@ from fruit.json
   from people.json
 ) as {fruit,people} on fruit.flavor=people.likes
 | values {...fruit, eaterinfo:people}
+|sort flavor
 ```
 
 Executing the query:
@@ -424,6 +431,7 @@ from fruit.json
 ) as {fruit,people} on fruit.flavor=people.likes
 | rename fruit.fruit:=fruit.name
 | values {...fruit,...people}
+| sort flavor
 ```
 
 Executing the query:

@@ -17,6 +17,8 @@ inputs:
         ( PASS )
       | JOIN USING (user)
       | VALUES {...left,repos:right.repos}
+      | SORT user
+        
   - name: gha.sup
     data: |
       {repo:{name:"petroav/6.828"},actor:{login:"petroav"}}

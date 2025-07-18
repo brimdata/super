@@ -4,6 +4,7 @@ script: |
   super -s -c 'with x as ( select 1 as y ) select z.y from x as z'
   ! super -c 'with x as ( select 1 as y ), x as ( select 2 as y ) select * from x'
 
+vector: true
 
 inputs:
   - name: sales.spq
@@ -24,6 +25,7 @@ inputs:
           top_regions.region
       FROM orders.sup o
       INNER JOIN top_regions ON o.region = top_regions.region
+      ORDER BY region, order_id
   - name: orders.sup
     data: |
       {order_id:1001,amount:245.5,quantity:3,region:"North America"}

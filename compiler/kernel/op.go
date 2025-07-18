@@ -25,7 +25,6 @@ import (
 	"github.com/brimdata/super/runtime/sam/op/fork"
 	"github.com/brimdata/super/runtime/sam/op/fuse"
 	"github.com/brimdata/super/runtime/sam/op/head"
-	"github.com/brimdata/super/runtime/sam/op/join"
 	"github.com/brimdata/super/runtime/sam/op/load"
 	"github.com/brimdata/super/runtime/sam/op/merge"
 	"github.com/brimdata/super/runtime/sam/op/meta"
@@ -634,17 +633,15 @@ func (b *Builder) compile(o dag.Op, parents []zbuf.Puller) ([]zbuf.Puller, error
 		if len(parents) != 2 {
 			return nil, ErrJoinParents
 		}
-		b.resetResetters()
-		leftKey, err := b.compileExpr(o.LeftKey)
+		vectorParents := []vector.Puller{
+			vam.NewDematerializer(parents[0]),
+			vam.NewDematerializer(parents[1]),
+		}
+		vectorPuller, err := b.compileVam(o, vectorParents)
 		if err != nil {
 			return nil, err
 		}
-		rightKey, err := b.compileExpr(o.RightKey)
-		if err != nil {
-			return nil, err
-		}
-		join := join.New(b.rctx, o.Style, parents[0], parents[1], leftKey, rightKey, o.LeftAlias, o.RightAlias, o.LeftDir, o.RightDir, b.resetters)
-		return []zbuf.Puller{join}, nil
+		return []zbuf.Puller{vam.NewMaterializer(vectorPuller[0])}, nil
 	case *dag.Merge:
 		b.resetResetters()
 		exprs, err := b.compileSortExprs(o.Exprs)
