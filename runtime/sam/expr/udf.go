@@ -12,24 +12,24 @@ type UDF struct {
 	sctx       *super.Context
 	name       string
 	fields     []super.Field
-	stackDepth *int
+	stackDepth int
 	builder    zcode.Builder
 }
 
-func NewUDF(sctx *super.Context, name string, params []string, stackDepth *int) *UDF {
+func NewUDF(sctx *super.Context, name string, params []string) *UDF {
 	var fields []super.Field
 	for _, p := range params {
 		fields = append(fields, super.Field{Name: p})
 	}
-	return &UDF{sctx: sctx, name: name, fields: fields, stackDepth: stackDepth}
+	return &UDF{sctx: sctx, name: name, fields: fields}
 }
 
 func (u *UDF) Call(args []super.Value) super.Value {
-	*u.stackDepth++
-	if *u.stackDepth > maxStackDepth {
+	u.stackDepth++
+	if u.stackDepth > maxStackDepth {
 		return u.sctx.NewErrorf("stack overflow in function %q", u.name)
 	}
-	defer func() { *u.stackDepth-- }()
+	defer func() { u.stackDepth-- }()
 	if len(args) == 0 {
 		return u.Body.Eval(super.Null)
 	}

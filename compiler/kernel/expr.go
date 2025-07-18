@@ -344,11 +344,7 @@ func (b *Builder) compileUDFCall(name string, f *dag.Func) (expr.Function, error
 	if fn, ok := b.compiledUDFs[name]; ok {
 		return fn, nil
 	}
-	if b.udfStackDepth == nil {
-		b.udfStackDepth = new(int)
-		defer func() { b.udfStackDepth = nil }()
-	}
-	fn := expr.NewUDF(b.sctx(), name, f.Params, b.udfStackDepth)
+	fn := expr.NewUDF(b.sctx(), name, f.Params)
 	// We store compiled UDF calls here so as to avoid stack overflows on
 	// recursive calls.
 	b.compiledUDFs[name] = fn
