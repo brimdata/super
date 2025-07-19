@@ -5,48 +5,100 @@
 ### Synopsis
 
 ```
-from <file> [ ( <args> ) ] [ <table-alias> ] [ <join> ]
-from <pool> [ ( <args> ) ] [ <table-alias> ] [ <join> ]
-from eval(<expr>) [ ( <args> ) ] [ <table-alias> ] [ <join> ]
-from <url> [ ( <args> ) ] [ <table-alias> ] [ <join> ]
+from <file> [ ( format <name> ) ]
+from <pool>
+from <uri> [ ( format <name> method <id> header <expr> body <string> ) ]
+from <glob> [ ( format <name> ) ]
+from <regexp>
+from eval(<expr>) [ ( format <name> method <id> header <expr> body <string> ) ]
 ```
-An `<entity>` has the form:
-```
-<string> -> url OR pool or file (pool can't have the name of an URL?) => no let's make syntax => no because robot scan should work with URLs
-<glob> -> matches pools or files
-<regexp> -> matches pools or files
-eval( <expr> ) -> robot scan from parent
-<url> - unquoted for easy cut and paste
-( join )
-( query )
 
-BUG: super -c "from /a.*.json/"  =>panic in matchPools (when no database)
-```
 ### Description
 
+The `from` keyword signals one of two overlapping forms of operators:
+* a pipe operator with dataflow scoping as described here, or
+* a [SQL clause](../sql/from.md) with relational scoping.
+
 The `from` operator identifies one or more data sources and transmits
-their data to its output.  A data source can be
-* the name of a data pool in a SuperDB lake, with optional [commitish](../../commands/super-db.md#commitish);
-* the names of multiple data pools, expressed as a [regular expression](../search-expressions.md#regular-expressions) or [glob](../search-expressions.md#globs) pattern;
-* a path to a file;
-* an HTTP, HTTPS, or S3 URI; or
-* the [`pass` operator](pass.md), to treat the upstream pipeline branch as a source.
+their data to its output.
 
-> File paths and URIs may be followed by an optional
-> [format](../../commands/super.md#input-formats) specifier.
+When multiple sources are identified, the data may be read in parallel 
+and interleaved in an undefined order.  The order of the data within a file,
+URI, or a sorted pool is preserved at the output of `from`.
 
-Sourcing data from pools is only possible when querying a lake, such as
-via the [`super db` command](../../commands/super-db.md) or
-[SuperDB lake API](../../lake/api.md). Sourcing data from files is only possible
-with the [`super` command](../../commands/super.md).
+Optional arguments to `from` may be appended as a parenthesized concatenation
+of arguments.
 
-When a single pool name is specified without `@`-referencing a commit or ID, or
+The format of each data source is automatically but detected using heuristics.
+To manually specify the format of a source and override the autodetection heuristic,
+a format argument may be appended as an argument and has the form
+```
+format <name>
+```
+where `<name>` is the name of a supported
+[serialization format](../../commands/super.md#input-formats).
+
+#### Files
+
+When running without a database, a string argument or
+unquoted path identifier that does not match a URI is interpreted
+as a path to a file.
+
+XXX define file identifier, or path identifier?
+
+Files can also be referenced using a
+[glob](../search-expressions.md#globs) pattern.
+
+E.g., 
+```
+from "file.sup"
+from file.json (format json)
+from file*.parquet
+```
+
+#### Pools
+
+When running with a database, a string argument or
+unquoted path identifier that does not match a URI is interpreted
+as the name of a database pool.
+
+Sourcing data from pools is only possible when querying a database, such as
+via the [`super db` command](../../command/super-db.md) or
+[SuperDB API](../../database/api.md)
+
+The names of multiple data pools may also be expressed as a
+[regular expression](../search-expressions.md#regular-expressions) or
+[glob](../search-expressions.md#globs) pattern.
+
+The reference string for a pool may also include
+[commitish](../../commands/super-db.md#commitish)
+to read from a specific commit in the pool's commit history.
+
+When a single pool name is specified without `@`-referencing a commit, or
 when using a pool pattern, the tip of the `main` branch of each pool is
 accessed.
 
-In the first four forms, a single source is connected to a single output.
-In the fifth form, multiple sources are accessed in parallel and may be
-[joined](join.md), [combined](combine.md), or [merged](merge.md).
+The format argument is not valid with a database source.
+
+XXX :metadata at database level and pool level
+
+#### URIs
+
+Data sources identified by URIs can be accessed both when running with a database
+and without.
+
+URIs must begin with `http:`, `https:`, or `s3:`.
+
+A URI may be unquoted or quoted as a string, e.g., if it contains special characters.
+
+A format argument may be appended to a URI reference.
+
+XXX documnt rule for unquoted URI
+
+XXX take "merge" and "combine" out of docs and document them in pipeline dataflow
+
+### Examples
+
 
 A pipeline can be split with the [`fork` operator](fork.md) as in
 ```
@@ -119,6 +171,7 @@ The following file `hello.sup` is also used.
 _Source structured data from a local file_
 
 ```mdtest-command
+cat '{greeting:"hello world!"}' > hello.sup
 super -s -c 'from hello.sup | values greeting'
 ```
 =>
