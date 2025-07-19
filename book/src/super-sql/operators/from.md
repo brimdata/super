@@ -1,11 +1,14 @@
 ### Operator
 
-&emsp; **from** &mdash; source data from pools, files, or URIs
+&emsp; **from** &mdash; source data from databases, files, URIs, or subqueries
 
 ### Synopsis
 
 ```
-from <entity> [ <arg> ... ] [ , <entity> [ <arg> ... ] ... ]
+from <file> [ ( <args> ) ] [ <table-alias> ] [ <join> ]
+from <pool> [ ( <args> ) ] [ <table-alias> ] [ <join> ]
+from eval(<expr>) [ ( <args> ) ] [ <table-alias> ] [ <join> ]
+from <url> [ ( <args> ) ] [ <table-alias> ] [ <join> ]
 ```
 An `<entity>` has the form:
 ```
