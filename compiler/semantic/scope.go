@@ -7,7 +7,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/compiler/kernel"
+	"github.com/brimdata/super/compiler/rungen"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/sup"
 )
@@ -42,7 +42,7 @@ func (s *Scope) DefineAs(name *ast.ID, e any) error {
 }
 
 func (s *Scope) DefineConst(sctx *super.Context, name *ast.ID, def dag.Expr) error {
-	val, err := kernel.EvalAtCompileTime(sctx, def)
+	val, err := rungen.EvalAtCompileTime(sctx, def)
 	if err != nil {
 		return err
 	}
