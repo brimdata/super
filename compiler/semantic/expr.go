@@ -10,7 +10,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/compiler/kernel"
+	"github.com/brimdata/super/compiler/rungen"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/pkg/reglob"
 	"github.com/brimdata/super/runtime/sam/expr"
@@ -607,7 +607,7 @@ func (a *analyzer) isIndexOfThis(lhs, rhs dag.Expr) *dag.This {
 }
 
 func isStringConst(sctx *super.Context, e dag.Expr) (field string, ok bool) {
-	val, err := kernel.EvalAtCompileTime(sctx, e)
+	val, err := rungen.EvalAtCompileTime(sctx, e)
 	if err == nil && !val.IsError() && super.TypeUnder(val.Type()) == super.TypeString {
 		return string(val.Bytes()), true
 	}
@@ -994,7 +994,7 @@ func (a *analyzer) semFString(f *ast.FString) dag.Expr {
 
 func (a *analyzer) evalPositiveInteger(e ast.Expr) int {
 	expr := a.semExpr(e)
-	val, err := kernel.EvalAtCompileTime(a.sctx, expr)
+	val, err := rungen.EvalAtCompileTime(a.sctx, expr)
 	if err != nil {
 		a.error(e, err)
 		return -1

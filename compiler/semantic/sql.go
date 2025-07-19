@@ -11,7 +11,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/compiler/kernel"
+	"github.com/brimdata/super/compiler/rungen"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/sup"
@@ -335,7 +335,7 @@ func (a *analyzer) semValues(values *ast.SQLValues, seq dag.Seq) (dag.Seq, schem
 	sctx := super.NewContext()
 	for _, astExpr := range values.Exprs {
 		e := a.semExpr(astExpr)
-		val, err := kernel.EvalAtCompileTime(sctx, e)
+		val, err := rungen.EvalAtCompileTime(sctx, e)
 		if err != nil {
 			a.error(astExpr, errors.New("expressions in values clause must be constant"))
 			return seq, badSchema()

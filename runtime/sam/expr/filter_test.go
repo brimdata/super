@@ -8,8 +8,8 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler"
 	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/compiler/kernel"
 	"github.com/brimdata/super/compiler/parser"
+	"github.com/brimdata/super/compiler/rungen"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/runtime/sam/expr"
@@ -67,7 +67,7 @@ func runCasesHelper(t *testing.T, record string, cases []testcase, expectBufferF
 			require.NoError(t, err, "filter: %q", c.filter)
 			scan, ok := seq[0].(*dag.DefaultScan)
 			require.True(t, ok)
-			filterMaker := kernel.NewPushdown(builder, scan.Filter)
+			filterMaker := rungen.NewPushdown(builder, scan.Filter)
 			f, err := filterMaker.DataFilter()
 			assert.NoError(t, err, "filter: %q", c.filter)
 			if f != nil {

@@ -6,9 +6,9 @@ import (
 	"fmt"
 
 	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/compiler/kernel"
 	"github.com/brimdata/super/compiler/optimizer"
 	"github.com/brimdata/super/compiler/parser"
+	"github.com/brimdata/super/compiler/rungen"
 	"github.com/brimdata/super/compiler/semantic"
 	"github.com/brimdata/super/lakeparse"
 	"github.com/brimdata/super/order"
@@ -29,7 +29,7 @@ func Analyze(ctx context.Context, ast *parser.AST, env *exec.Environment, extInp
 
 func Optimize(ctx context.Context, seq dag.Seq, env *exec.Environment, parallel int) (dag.Seq, error) {
 	// Call optimize to possible push down a filter predicate into the
-	// kernel.Reader so that the BSUP scanner can do Boyer-Moore.
+	// rungen.Reader so that the BSUP scanner can do Boyer-Moore.
 	o := optimizer.New(ctx, env)
 	seq, err := o.Optimize(seq)
 	if err != nil {
@@ -53,7 +53,7 @@ func Optimize(ctx context.Context, seq dag.Seq, env *exec.Environment, parallel 
 }
 
 func Build(rctx *runtime.Context, seq dag.Seq, env *exec.Environment, readers []zio.Reader) (map[string]zbuf.Puller, zbuf.Meter, error) {
-	b := kernel.NewBuilder(rctx, env)
+	b := rungen.NewBuilder(rctx, env)
 	outputs, err := b.Build(seq, readers...)
 	if err != nil {
 		return nil, nil, err
@@ -61,8 +61,8 @@ func Build(rctx *runtime.Context, seq dag.Seq, env *exec.Environment, readers []
 	return outputs, b.Meter(), nil
 }
 
-func BuildWithBuilder(rctx *runtime.Context, seq dag.Seq, env *exec.Environment, readers []zio.Reader) (map[string]zbuf.Puller, *kernel.Builder, error) {
-	b := kernel.NewBuilder(rctx, env)
+func BuildWithBuilder(rctx *runtime.Context, seq dag.Seq, env *exec.Environment, readers []zio.Reader) (map[string]zbuf.Puller, *rungen.Builder, error) {
+	b := rungen.NewBuilder(rctx, env)
 	outputs, err := b.Build(seq, readers...)
 	if err != nil {
 		return nil, nil, err
@@ -112,7 +112,7 @@ func bundleOutputs(rctx *runtime.Context, outputs map[string]zbuf.Puller) zbuf.P
 }
 
 func VectorFilterCompile(rctx *runtime.Context, query string, env *exec.Environment, head *lakeparse.Commitish) (zbuf.Puller, error) {
-	// Eventually the semantic analyzer + kernel will resolve the pool but
+	// Eventually the semantic analyzer + rungen will resolve the pool but
 	// for now just do this manually.
 	if !env.IsLake() {
 		return nil, errors.New("non-lake vectorized search not supported")
@@ -145,7 +145,7 @@ func VectorFilterCompile(rctx *runtime.Context, query string, env *exec.Environm
 	if !ok {
 		return nil, errors.New("filter query must be a single filter op")
 	}
-	return kernel.NewBuilder(rctx, env).BuildVamToSeqFilter(f.Expr, poolID, commitID)
+	return rungen.NewBuilder(rctx, env).BuildVamToSeqFilter(f.Expr, poolID, commitID)
 }
 
 // XXX currently used only by aggregate test, need to deprecate

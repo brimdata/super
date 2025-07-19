@@ -1,4 +1,4 @@
-package kernel
+package rungen
 
 import (
 	"github.com/brimdata/super"

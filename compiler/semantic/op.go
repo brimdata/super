@@ -12,7 +12,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/compiler/kernel"
+	"github.com/brimdata/super/compiler/rungen"
 	"github.com/brimdata/super/lakeparse"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
@@ -123,7 +123,7 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.TableAlias, a
 
 func (a *analyzer) semFromExpr(entity *ast.ExprEntity, args ast.FromArgs, seq dag.Seq) (dag.Seq, string) {
 	expr := a.semExpr(entity.Expr)
-	val, err := kernel.EvalAtCompileTime(a.sctx, expr)
+	val, err := rungen.EvalAtCompileTime(a.sctx, expr)
 	if err == nil && !hasError(val) {
 		if bad := a.hasFromParent(entity, seq); bad != nil {
 			return bad, ""
@@ -316,7 +316,7 @@ func (a *analyzer) evalHTTPArgs(args ast.FromArgs) (string, string, map[string][
 		var headers map[string][]string
 		if args.Headers != nil {
 			expr := a.semExpr(args.Headers)
-			val, err := kernel.EvalAtCompileTime(a.sctx, expr)
+			val, err := rungen.EvalAtCompileTime(a.sctx, expr)
 			if err != nil {
 				a.error(args.Headers, err)
 			} else {
@@ -601,8 +601,8 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 		aggs := a.semAssignments(o.Aggs)
 		a.checkStaticAssignment(o.Aggs, aggs)
 		// Note: InputSortDir is copied in here but it's not meaningful
-		// coming from a parser AST, only from a worker using the kernel DSL,
-		// which is another reason why we need separate parser and kernel ASTs.
+		// coming from a parser AST, only from a worker using the DAG,
+		// which is another reason why we need separate AST and DAG.
 		// Said another way, we don't want to do semantic analysis on a worker AST
 		// as we presume that work had already been done and we just need
 		// to execute it.  For now, the worker only uses a filter expression
@@ -737,7 +737,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 		limit := 1
 		if o.Limit != nil {
 			l := a.semExpr(o.Limit)
-			val, err := kernel.EvalAtCompileTime(a.sctx, l)
+			val, err := rungen.EvalAtCompileTime(a.sctx, l)
 			if err != nil {
 				a.error(o.Limit, err)
 				return append(seq, badOp())
@@ -1268,7 +1268,7 @@ func (a *analyzer) maybeConvertUserOp(call *ast.Call) dag.Seq {
 		e := a.semExpr(arg)
 		// Transform non-path arguments into literals.
 		if _, ok := e.(*dag.This); !ok {
-			val, err := kernel.EvalAtCompileTime(a.sctx, e)
+			val, err := rungen.EvalAtCompileTime(a.sctx, e)
 			if err != nil {
 				a.error(arg, err)
 				exprs[i] = badExpr()
