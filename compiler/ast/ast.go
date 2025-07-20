@@ -186,9 +186,9 @@ type Regexp struct {
 	Loc        `json:"loc"`
 }
 
-type Name struct {
+type Text struct {
 	Kind string `json:"kind" unpack:""`
-	Text string `json:"text"`
+	Text string `json:"value"`
 	Loc  `json:"loc"`
 }
 
@@ -207,7 +207,7 @@ func (*Glob) fromEntityNode()       {}
 func (*Regexp) fromEntityNode()     {}
 func (*ExprEntity) fromEntityNode() {}
 func (*LakeMeta) fromEntityNode()   {}
-func (*Name) fromEntityNode()       {}
+func (*Text) fromEntityNode()       {}
 func (*CrossJoin) fromEntityNode()  {}
 func (*SQLJoin) fromEntityNode()    {}
 func (*SQLPipe) fromEntityNode()    {}
@@ -215,7 +215,7 @@ func (*SQLPipe) fromEntityNode()    {}
 type FromElem struct {
 	Kind       string      `json:"kind" unpack:""`
 	Entity     FromEntity  `json:"entity"`
-	Args       FromArgs    `json:"args"`
+	Args       []OpArg     `json:"args"`
 	Ordinality *Ordinality `json:"ordinality"`
 	Alias      *TableAlias `json:"alias"`
 	Loc        `json:"loc"`
@@ -246,7 +246,7 @@ type RecordElem interface {
 
 type FieldExpr struct {
 	Kind  string `json:"kind" unpack:""`
-	Name  *Name  `json:"name"`
+	Name  *Text  `json:"name"` //XXX ID?  probably not
 	Value Expr   `json:"value"`
 	Loc   `json:"loc"`
 }
@@ -600,13 +600,10 @@ type (
 		Loc  `json:"loc"`
 	}
 	Load struct {
-		Kind    string `json:"kind" unpack:""`
-		Pool    *Name  `json:"pool"`
-		Branch  *Name  `json:"branch"`
-		Author  *Name  `json:"author"`
-		Message *Name  `json:"message"`
-		Meta    *Name  `json:"meta"`
-		Loc     `json:"loc"`
+		Kind string  `json:"kind" unpack:""`
+		Pool *Text   `json:"pool"`
+		Args []OpArg `json:"args"`
+		Loc  `json:"loc"`
 	}
 	Assert struct {
 		Kind string `json:"kind" unpack:""`
@@ -635,13 +632,12 @@ type (
 	From struct {
 		Kind  string      `json:"kind" unpack:""`
 		Elems []*FromElem `json:"elems"`
-		Args  FromArgs    `json:"args"`
 		Loc   `json:"loc"`
 	}
 	LakeMeta struct {
 		Kind    string `json:"kind" unpack:""`
 		MetaPos int    `json:"meta_pos"`
-		Meta    *Name  `json:"meta"`
+		Meta    *Text  `json:"meta"`
 		Loc     `json:"loc"`
 	}
 	DefaultScan struct {
@@ -658,37 +654,27 @@ type (
 func (d *DefaultScan) Pos() int { return -1 }
 func (d *DefaultScan) End() int { return -1 }
 
-type PoolArgs struct {
-	Kind   string `json:"kind" unpack:""`
-	Commit *Name  `json:"commit"`
-	Meta   *Name  `json:"meta"`
-	Tap    bool   `json:"tap"`
-	Loc    `json:"loc"`
+type ArgExpr struct {
+	Kind  string `json:"kind" unpack:""`
+	Key   string `json:"key"`
+	Value Expr   `json:"value"`
+	Loc   `json:"loc"`
 }
 
-type FormatArg struct {
-	Kind   string `json:"kind" unpack:""`
-	Format *Name  `json:"format"`
-	Loc    `json:"loc"`
+type ArgText struct {
+	Kind  string `json:"kind" unpack:""`
+	Key   string `json:"key"`
+	Value *Text  `json:"value"`
+	Loc   `json:"loc"`
 }
 
-type HTTPArgs struct {
-	Kind    string      `json:"kind" unpack:""`
-	Format  *Name       `json:"format"`
-	Method  *Name       `json:"method"`
-	Headers *RecordExpr `json:"headers"`
-	Body    *Name       `json:"body"`
-	Loc     `json:"loc"`
-}
-
-type FromArgs interface {
+type OpArg interface {
 	Node
-	fromArgsNode()
+	opArgNode()
 }
 
-func (*PoolArgs) fromArgsNode()  {}
-func (*FormatArg) fromArgsNode() {}
-func (*HTTPArgs) fromArgsNode()  {}
+func (*ArgText) opArgNode() {}
+func (*ArgExpr) opArgNode() {}
 
 type SortExpr struct {
 	Kind  string `json:"kind" unpack:""`

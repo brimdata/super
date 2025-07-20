@@ -100,13 +100,6 @@ func parseInt(v any) any {
 	return i
 }
 
-func nullableName(v any) *ast.Name {
-	if v == nil {
-		return nil
-	}
-	return v.(*ast.Name)
-}
-
 func makeUnicodeChar(chars any) string {
 	var r rune
 	for _, char := range chars.([]any) {

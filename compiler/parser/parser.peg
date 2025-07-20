@@ -602,29 +602,14 @@ OpAssignment
     }
 
 LoadOp
-  = LOAD _ pool:Name branch:PoolBranch? author:AuthorArg? message:MessageArg? meta:MetaArg? {
+  = LOAD _ pool:Text args:CommitishOpArgs? {
       return &ast.Load{
         Kind: "Load",
-        Pool: nullableName(pool),
-        Branch: nullableName(branch),
-        Author: nullableName(author),
-        Message: nullableName(message),
-        Meta: nullableName(meta),
+        Pool: pool.(*ast.Text),
+        Args: sliceOf[ast.OpArg](args),
         Loc: loc(c),
       }, nil
     }
-
-AuthorArg
-  = _ AUTHOR _ n:Name { return n, nil }
-
-MessageArg
-  = _ MESSAGE _ n:Name { return n, nil }
-
-MetaArg
-  = _ META _ n:Name { return n, nil }
-
-PoolBranch
-  = "@" branch:Name { return branch, nil }
 
 OutputOp
   = OUTPUT _ name:Identifier {
@@ -662,14 +647,14 @@ FromElems
     }
     
 FromElem
-  = entity:FromEntity args:FromArgs o:OptOrdinality alias:OptAlias {
+  = entity:FromEntity args:CommitishOpArgs? o:OptOrdinality alias:OptAlias {
       elem := &ast.FromElem{
         Kind: "FromElem",
         Entity: entity.(ast.FromEntity),
         Loc: loc(c),
       }
       if args != nil {
-        elem.Args = args.(ast.FromArgs)
+        elem.Args = sliceOf[ast.OpArg](args)
       }
       if o != nil {
         elem.Ordinality = o.(*ast.Ordinality)
@@ -681,14 +666,7 @@ FromElem
     }
 
 FromEntity
-  = url:UnquotedURL {
-      return &ast.Name{
-        Kind: "Name",
-        Text: url.(string),
-        Loc: loc(c),
-      }, nil
-    }
-  / Regexp
+  = Regexp
   / Glob
   / "*" !ExprGuard { return &ast.Glob{Kind: "Glob", Pattern: "*", Loc: loc(c)}, nil }
   / EVAL __ "(" __ e:Expr __ ")" {
@@ -698,10 +676,10 @@ FromEntity
         Loc: loc(c),
       }, nil
     }
-  / meta:PoolMeta {
+  / meta:ColonText {
       return &ast.LakeMeta{
         Kind: "LakeMeta",
-        Meta: nullableName(meta),
+        Meta: meta.(*ast.Text),
         Loc: loc(c),
       }, nil
     }
@@ -710,62 +688,66 @@ FromEntity
   / "(" __ s:SQLPipe __ ")" {
       return s, nil
     }
-   / Name
+  / Text
   // XXX UNNEST, PIVOT, UNPIVOT, type projection, left correlation?
 
-FromArgs
-  = commit:PoolCommit meta:PoolMeta? tap:TapArg {
-      return &ast.PoolArgs{
-        Kind: "PoolArgs",
-        Commit: nullableName(commit),
-        Meta: nullableName(meta),
-        Tap: tap.(bool),
-        Loc: loc(c),
-      }, nil
+Text
+  = s:UnquotedURL { return &ast.Text{Kind:"Text",Text:s.(string),Loc:loc(c) }, nil }
+  / s:TextChars { return &ast.Text{Kind:"Text",Text:s.(string),Loc:loc(c) }, nil }
+  / s:KSUID     { return &ast.Text{Kind:"Text",Text:s.(string),Loc:loc(c) }, nil }
+  / s:DoubleQuotedString { return &ast.Text{Kind:"Text",Text:s.(string),Loc:loc(c) }, nil }
+  / s:SingleQuotedString { return &ast.Text{Kind:"Text",Text:s.(string),Loc:loc(c) }, nil }
+
+UnquotedURL = ("http://" / "https://" / "s3://") URLChar+ { return string(c.text), nil }
+
+URLChar = [0-9a-zA-Z!@$%&_=,./?:[\]~+-] //XXX fix this?
+
+TextChars
+  = (IdentifierRest / "." / "/")+ { return string(c.text), nil }
+
+CommitishOpArgs
+  = __ commit:MetaCommitish? __ args:OpArgs {
+      if commit != nil {
+        args = append(commit.([]any), args.([]any)...)
+      }
+      return args, nil
     }
-  / meta:PoolMeta tap:TapArg {
-      return &ast.PoolArgs{
-        Kind: "PoolArgs",
-        Meta: nullableName(meta),
-        Tap: tap.(bool),
-        Loc: loc(c),
-      }, nil
+  / __ commit:MetaCommitish { return commit, nil }
+
+MetaCommitish
+  = commit:Commitish meta:ColonText? {
+    out := []any{commit}
+    if meta != nil {
+        out = append(out, &ast.ArgText{Kind:"ArgText", Key: "meta", Value: meta.(*ast.Text), Loc: meta.(*ast.Text).Loc})
     }
-  / format:FormatArg !(_ (METHOD / HEADERS / BODY)) {
-      return &ast.FormatArg{
-        Kind: "FormatArg",
-        Format: nullableName(format),
-        Loc: loc(c),
-      }, nil
+    return out, nil
   }
-  / format:FormatArg? method:MethodArg? headers:HeadersArg? body:BodyArg? {
-      if format == nil && method == nil && headers == nil && body == nil {
-        return nil, nil
+  / meta:ColonText { 
+    return []any{&ast.ArgText{Kind:"ArgText", Key: "meta", Value: meta.(*ast.Text), Loc: loc(c)}}, nil
+  }
+
+Commitish
+  = "@" text:CommitText  {
+        return &ast.ArgText{Kind:"ArgText", Key: "commit", Value: text.(*ast.Text), Loc: text.(*ast.Text).Loc}, nil
       }
-      h := &ast.HTTPArgs{
-        Kind: "HTTPArgs",
-        Format: nullableName(format),
-        Method: nullableName(method),
-        Body: nullableName(body),
-        Loc: loc(c),
-      }
-      if headers != nil {
-        h.Headers = headers.(*ast.RecordExpr)
-      }
-      return h, nil
+
+CommitText
+  = Name
+  / s:KSUID  { return &ast.Text{Kind:"Text",Text:s.(string),Loc:loc(c) }, nil }
+
+OpArg
+  = &ArgNameExpr key:ArgName _ e:Expr { return &ast.ArgExpr{Kind:"ArgExpr", Key: key.(string), Value: e.(ast.Expr), Loc: loc(c)}, nil }
+  / key:ArgName _ t:Text { return &ast.ArgText{Kind:"ArgText", Key: key.(string), Value: t.(*ast.Text), Loc: loc(c)}, nil }
+
+OpArgs
+  = "(" __ first:OpArg rest:(_ a:OpArg { return a, nil })* __ ")" {
+      return prepend(first, rest), nil
     }
 
-FormatArg = _ FORMAT _ n:Name { return n, nil }
+ArgName = UnicodeLetter+ { return string(c.text), nil }
 
-MethodArg = _ METHOD _ n:Name { return n, nil }
-
-HeadersArg = _ HEADERS _ v:Record { return v, nil }
-
-BodyArg = _ BODY _ n:Name { return n, nil }
-
-UnquotedURL = ("http://" / "https://") URLChar+ { return string(c.text), nil }
-
-URLChar = [0-9a-zA-Z!@$%&_=,./?:[\]~+-]
+ArgNameExpr
+  = "headers"i !UnicodeLetter
 
 //XXX this should be a timestamp
 PoolAt
@@ -774,15 +756,8 @@ PoolAt
 //XXX this should allow 0x bytes format
 KSUID = ([0-9a-zA-Z])+ { return string(c.text), nil }
 
-PoolCommit
-  = "@" n:Name { return n, nil }
-
-PoolMeta
-  = ":" n:Name { return n, nil }
-
-TapArg
-  = _ TAP { return true, nil }
-  / "" { return false, nil }
+ColonText
+  = ":" n:Text { return n, nil }
 
 PassOp
   = PASS !(__ "(") &EOKW {
@@ -1227,10 +1202,10 @@ Spread
     }
 
 FieldExpr
-  = name:SUPName __ ":" __ value:Expr {
+  = name:Name __ ":" __ value:Expr {
       return &ast.FieldExpr{
         Kind: "FieldExpr",
-        Name: name.(*ast.Name),
+        Name: name.(*ast.Text),
         Value: value.(ast.Expr),
         Loc: loc(c),
       }, nil
@@ -1370,7 +1345,7 @@ TypeLiteral
     }
 
 TypeAsValue
-  = "=" name:SUPName { return newPrimitive(c, "string", name.(*ast.Name).Text), nil }
+  = "=" name:Name { return newPrimitive(c, "string", name.(*ast.Text).Text), nil }
   / t:EasyType {
       return &ast.TypeValue{
         Kind:"TypeValue",
@@ -1385,16 +1360,16 @@ Type
 
 ComponentType
   = EasyType
-  / name:SUPName opt:(__ '=' __ Type)? {
+  / name:Name opt:(__ '=' __ Type)? {
       if opt != nil {
         return &ast.TypeDef{
             Kind: "TypeDef",
-            Name: name.(*ast.Name).Text,
+            Name: name.(*ast.Text).Text,
             Type: opt.([]any)[3].(ast.Type),
             Loc: loc(c),
         }, nil
       }
-      return &ast.TypeName{Kind: "TypeName", Name: name.(*ast.Name).Text, Loc: loc(c)}, nil
+      return &ast.TypeName{Kind: "TypeName", Name: name.(*ast.Text).Text, Loc: loc(c)}, nil
     }
 
 EasyType
@@ -1407,10 +1382,10 @@ EasyType
           Loc: loc(c),
       }, nil
     }
-  / ENUM __ "(" __ names:SUPNames __ ")" {
+  / ENUM __ "(" __ names:Names __ ")" {
       return &ast.TypeEnum{
           Kind: "TypeEnum",
-          Symbols: sliceOf[*ast.Name](names),
+          Symbols: sliceOf[*ast.Text](names),
           Loc: loc(c),
       }, nil
     }
@@ -1536,30 +1511,22 @@ TypeFieldListTail = __ "," __ typ:TypeField { return typ, nil }
 TypeField
   = name:Name __ ":" __ typ:Type {
       return ast.TypeField{
-          Name: name.(*ast.Name).Text,
+          Name: name.(*ast.Text).Text,
           Type: typ.(ast.Type),
           Loc: loc(c),
       }, nil
     }
 
 Name
-  = s:DottedIDs          { return &ast.Name{Kind:"Name",Text:s.(string),Loc:loc(c) }, nil }
-  / s:KSUID              { return &ast.Name{Kind:"Name",Text:s.(string),Loc:loc(c) }, nil }
-  / SUPName 
+  = s:IdentifierName     { return &ast.Text{Kind:"Text",Text:s.(string),Loc:loc(c) }, nil }
+  / s:DoubleQuotedString { return &ast.Text{Kind:"Text",Text:s.(string),Loc:loc(c) }, nil }
+  / s:SingleQuotedString { return &ast.Text{Kind:"Text",Text:s.(string),Loc:loc(c) }, nil }
 
-SUPName
-  = s:IdentifierName     { return &ast.Name{Kind:"Name",Text:s.(string),Loc:loc(c) }, nil }
-  / s:DoubleQuotedString { return &ast.Name{Kind:"Name",Text:s.(string),Loc:loc(c) }, nil }
-  / s:SingleQuotedString { return &ast.Name{Kind:"Name",Text:s.(string),Loc:loc(c) }, nil }
-
-SUPNames
-  = first:SUPName rest:(__ "," __ name:SUPName { return name, nil })* {
+Names
+  = first:Name rest:(__ "," __ name:Name { return name, nil })* {
     return prepend(first, rest), nil
   }
   
-DottedIDs
-  = (IdentifierStart / ".") (IdentifierRest / ".")* { return string(c.text), nil }
-
 Identifier
   = id:IdentifierName {
       return &ast.ID{
@@ -2355,9 +2322,7 @@ AS         = "AS"i              !IdentifierRest
 ASC        = "ASC"i             !IdentifierRest { return "asc", nil }
 ASSERT     = "ASSERT"i          !IdentifierRest
 AT         = "AT"i              !IdentifierRest
-AUTHOR     = "AUTHOR"i          !IdentifierRest
 BETWEEN    = "BETWEEN"i         !IdentifierRest
-BODY       = "BODY"i            !IdentifierRest
 BY         = "BY"i              !IdentifierRest
 CASE       = "CASE"i            !IdentifierRest
 CAST       = "CAST"i            !IdentifierRest
@@ -2382,7 +2347,6 @@ FALSE      = "FALSE"i           !IdentifierRest
 FIRST      = "FIRST"i           !IdentifierRest
 FOR        = "FOR"i             !IdentifierRest
 FORK       = "FORK"i            !IdentifierRest
-FORMAT     = "FORMAT"i          !IdentifierRest
 FROM       = "FROM"i            !IdentifierRest
 FULL       = "FULL"i            !IdentifierRest
 FUNC       = "FUNC"i            !IdentifierRest
@@ -2403,9 +2367,6 @@ LIMIT      = "LIMIT"i           !IdentifierRest
 LOAD       = "LOAD"i            !IdentifierRest
 MATERIALIZED = "MATERIALIZED"i  !IdentifierRest
 MERGE      = "MERGE"i           !IdentifierRest
-MESSAGE    = "MESSAGE"i         !IdentifierRest
-META       = "META"i            !IdentifierRest
-METHOD     = "METHOD"i          !IdentifierRest
 NOT        = "NOT"i             !IdentifierRest
 NULL       = "NULL"i            !IdentifierRest
 NULLS      = "NULLS"i           !IdentifierRest
@@ -2434,7 +2395,6 @@ SUBSTRING  = "SUBSTRING"i       !IdentifierRest
 SUMMARIZE  = "SUMMARIZE"i       !IdentifierRest
 SWITCH     = "SWITCH"i          !IdentifierRest
 TAIL       = "TAIL"i            !IdentifierRest 
-TAP        = "TAP"i             !IdentifierRest
 THEN       = "THEN"i            !IdentifierRest
 TIMESTAMP  = "TIMESTAMP"i       !IdentifierRest { return "timestamp", nil }
 TOP        = "TOP"i             !IdentifierRest

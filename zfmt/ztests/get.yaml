@@ -1,14 +1,14 @@
 script: |
   super compile -C 'from http://host/path'
   echo ===
-  super compile -C 'from http://host/path format f method m headers {a:["b"]} body b'
+  super compile -C 'from http://host/path (format f method m headers {a:["b"]} body b)'
   echo ===
-  super compile -C 'from http://host/path method "m|" body "b|"'
+  super compile -C 'from http://host/path (method "m|" body "b|")'
 outputs:
   - name: stdout
     data: |
       from "http://host/path"
       ===
-      from "http://host/path" format f method m headers {a:["b"]} body b
+      from "http://host/path" ( format f method m headers {a:["b"]} body b )
       ===
-      from "http://host/path" method "m|" body "b|"
+      from "http://host/path" ( method "m|" body "b|" )

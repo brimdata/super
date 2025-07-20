@@ -38,7 +38,7 @@ type (
 	}
 	TypeEnum struct {
 		Kind    string  `json:"kind" unpack:""`
-		Symbols []*Name `json:"symbols"`
+		Symbols []*Text `json:"symbols"` // ID?
 		Loc     `json:"loc"`
 	}
 	TypeMap struct {

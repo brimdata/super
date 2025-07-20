@@ -1,11 +1,11 @@
 script: |
   super compile -C 'from path'
   echo ===
-  super compile -C 'from path format f'
+  super compile -C 'from path (format f)'
   echo ===
   super compile -C 'from http://host/path'
   echo ===
-  super compile -C 'from http://host/path format f'
+  super compile -C 'from http://host/path (format f)'
   echo ===
   super compile -C 'from foo'
   echo ===
@@ -15,22 +15,22 @@ script: |
   echo ===
   super compile -C 'fork ( from path ) ( from http://host/path ) ( from name )'
   echo ===
-  super compile -C 'fork ( from path format f ) ( from http://host/path format g ) ( from name )'
+  super compile -C 'fork ( from path (format f) ) ( from http://host/path (format g) ) ( from name )'
   echo ===
   super compile -C 'fork ( from path | head ) ( from http://host/path | head ) ( from name | head )'
   echo ===
-  super compile -C 'fork ( from path format f | head ) ( from http://host/path format g | head ) ( from name | head )'
+  super compile -C 'fork ( from path (format f) | head ) ( from http://host/path (format g) | head ) ( from name | head )'
 
 outputs:
   - name: stdout
     data: |
       from path
       ===
-      from path format f
+      from path ( format f )
       ===
       from "http://host/path"
       ===
-      from "http://host/path" format f
+      from "http://host/path" ( format f )
       ===
       from foo
       ===
@@ -51,10 +51,10 @@ outputs:
       ===
       fork
         (
-          from path format f
+          from path ( format f )
         )
         (
-          from "http://host/path" format g
+          from "http://host/path" ( format g )
         )
         (
           from name
@@ -76,11 +76,11 @@ outputs:
       ===
       fork
         (
-          from path format f
+          from path ( format f )
           | head
         )
         (
-          from "http://host/path" format g
+          from "http://host/path" ( format g )
           | head
         )
         (

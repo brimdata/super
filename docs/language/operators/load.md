@@ -79,10 +79,11 @@ _Add a filtered subset of records to our `onlytails` branch, while also adding m
 super db -db example -c '
   from coinflips
   | result=="tails"
-  | load coinflips@onlytails
+  | load coinflips@onlytails (
       author "Steve"
       message "A subset"
       meta "\"Additional metadata\""
+    )
 ' > /dev/null
 
 super db -db example -s -c 'from coinflips@onlytails'

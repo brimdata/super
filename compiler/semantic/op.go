@@ -68,7 +68,7 @@ func (a *analyzer) fromSchema(alias *ast.TableAlias, name string) schema {
 	return &dynamicSchema{name: name}
 }
 
-func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.TableAlias, args ast.FromArgs, seq dag.Seq) (dag.Seq, schema) {
+func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.TableAlias, args []ast.OpArg, seq dag.Seq) (dag.Seq, schema) {
 	switch entity := entity.(type) {
 	case *ast.Glob:
 		if bad := a.hasFromParent(entity, seq); bad != nil {
@@ -88,7 +88,7 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.TableAlias, a
 			return seq, badSchema()
 		}
 		return a.semPoolFromRegexp(entity, entity.Pattern, entity.Pattern, "regexp", args), a.fromSchema(alias, "")
-	case *ast.Name:
+	case *ast.Text:
 		if bad := a.hasFromParent(entity, seq); bad != nil {
 			return bad, badSchema()
 		}
@@ -121,7 +121,7 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.TableAlias, a
 	}
 }
 
-func (a *analyzer) semFromExpr(entity *ast.ExprEntity, args ast.FromArgs, seq dag.Seq) (dag.Seq, string) {
+func (a *analyzer) semFromExpr(entity *ast.ExprEntity, args []ast.OpArg, seq dag.Seq) (dag.Seq, string) {
 	expr := a.semExpr(entity.Expr)
 	val, err := rungen.EvalAtCompileTime(a.sctx, expr)
 	if err == nil && !hasError(val) {
@@ -135,7 +135,7 @@ func (a *analyzer) semFromExpr(entity *ast.ExprEntity, args ast.FromArgs, seq da
 	return append(seq, &dag.RobotScan{
 		Kind:   "RobotScan",
 		Expr:   expr,
-		Format: a.formatArg(args),
+		Format: a.asFormatArg(args),
 	}), ""
 }
 
@@ -153,7 +153,7 @@ func (a *analyzer) hasFromParent(loc ast.Node, seq dag.Seq) dag.Seq {
 	return nil
 }
 
-func (a *analyzer) semFromConstVal(val super.Value, entity *ast.ExprEntity, args ast.FromArgs) (dag.Seq, string) {
+func (a *analyzer) semFromConstVal(val super.Value, entity *ast.ExprEntity, args []ast.OpArg) (dag.Seq, string) {
 	if super.TypeUnder(val.Type()) == super.TypeString {
 		op, name := a.semFromName(entity, val.AsString(), args)
 		return dag.Seq{op}, name
@@ -188,67 +188,25 @@ func (a *analyzer) semFromConstVal(val super.Value, entity *ast.ExprEntity, args
 	}, ""
 }
 
-func (a *analyzer) semFromName(nameLoc ast.Node, name string, args ast.FromArgs) (dag.Op, string) {
+func (a *analyzer) semFromName(nameLoc ast.Node, name string, args []ast.OpArg) (dag.Op, string) {
 	if isURL(name) {
 		return a.semFromURL(nameLoc, name, args), ""
 	}
 	prefix := strings.Split(name, ".")[0]
 	if a.env.IsLake() {
-		poolArgs, err := asPoolArgs(args)
-		if err != nil {
-			a.error(args, err)
-			return badOp(), ""
-		}
-		return a.semPool(nameLoc, name, poolArgs), prefix
+		return a.semPool(nameLoc, name, args), prefix
 	}
 	return a.semFile(name, args), prefix
 }
 
-func asPoolArgs(args ast.FromArgs) (*ast.PoolArgs, error) {
-	switch args := args.(type) {
-	case nil:
-		return nil, nil
-	case *ast.FormatArg:
-		return nil, errors.New("cannot use format argument with a pool")
-	case *ast.PoolArgs:
-		return args, nil
-	case *ast.HTTPArgs:
-		return nil, errors.New("cannot use HTTP arguments with a pool")
-	default:
-		panic(fmt.Sprintf("unknown args type: %T", args))
-	}
+func (a *analyzer) asFormatArg(args []ast.OpArg) string {
+	opArgs := a.semOpArgs(args, "format")
+	s, _ := a.textArg(opArgs, "format")
+	return s
 }
 
-func asFileArgs(args ast.FromArgs) (*ast.FormatArg, error) {
-	switch args := args.(type) {
-	case nil:
-		return nil, nil
-	case *ast.FormatArg:
-		return args, nil
-	case *ast.PoolArgs:
-		return nil, errors.New("cannot use pool arguments when from operator references a file ")
-	case *ast.HTTPArgs:
-		return nil, errors.New("cannot use http arguments when from operator references a file")
-	default:
-		panic(fmt.Sprintf("unknown args type: %T", args))
-	}
-}
-
-func (a *analyzer) formatArg(args ast.FromArgs) string {
-	formatArg, err := asFileArgs(args)
-	if err != nil {
-		a.error(args, err)
-		return ""
-	}
-	var format string
-	if formatArg != nil {
-		format = nullableName(formatArg.Format)
-	}
-	return format
-}
-
-func (a *analyzer) semFile(name string, args ast.FromArgs) dag.Op {
-	format := a.formatArg(args)
+func (a *analyzer) semFile(name string, args []ast.OpArg) dag.Op {
+	format := a.asFormatArg(args)
 	if format == "" {
 		switch filepath.Ext(name) {
 		case ".parquet":
@@ -264,7 +222,7 @@ func (a *analyzer) semFile(name string, args ast.FromArgs) dag.Op {
 	}
 }
 
-func (a *analyzer) semFromFileGlob(globLoc ast.Node, pattern string, args ast.FromArgs) dag.Op {
+func (a *analyzer) semFromFileGlob(globLoc ast.Node, pattern string, args []ast.OpArg) dag.Op {
 	names, err := filepath.Glob(pattern)
 	if err != nil {
 		a.error(globLoc, err)
@@ -287,16 +245,27 @@ func (a *analyzer) semFromFileGlob(globLoc ast.Node, pattern string, args ast.Fr
 	}
 }
 
-func (a *analyzer) semFromURL(urlLoc ast.Node, u string, args ast.FromArgs) dag.Op {
+func (a *analyzer) semFromURL(urlLoc ast.Node, u string, args []ast.OpArg) dag.Op {
 	_, err := url.ParseRequestURI(u)
 	if err != nil {
 		a.error(urlLoc, err)
 		return badOp()
 	}
-	format, method, headers, body, err := a.evalHTTPArgs(args)
-	if err != nil {
-		a.error(args, err)
-		return badOp()
+	opArgs := a.semOpArgs(args, "format", "method", "body", "headers")
+	format, _ := a.textArg(opArgs, "format")
+	method, _ := a.textArg(opArgs, "method")
+	body, _ := a.textArg(opArgs, "body")
+	var headers map[string][]string
+	if e, loc := a.exprArg(opArgs, "headers"); e != nil {
+		val, err := rungen.EvalAtCompileTime(a.sctx, e)
+		if err != nil {
+			a.error(loc, err)
+		} else {
+			headers, err = unmarshalHeaders(val)
+			if err != nil {
+				a.error(loc, err)
+			}
+		}
 	}
 	return &dag.HTTPScan{
 		Kind:    "HTTPScan",
@@ -305,34 +274,6 @@ func (a *analyzer) semFromURL(urlLoc ast.Node, u string, args ast.FromArgs) dag.
 		Method:  method,
 		Headers: headers,
 		Body:    body,
-	}
-}
-
-func (a *analyzer) evalHTTPArgs(args ast.FromArgs) (string, string, map[string][]string, string, error) {
-	switch args := args.(type) {
-	case nil:
-		return "", "", nil, "", nil
-	case *ast.HTTPArgs:
-		var headers map[string][]string
-		if args.Headers != nil {
-			expr := a.semExpr(args.Headers)
-			val, err := rungen.EvalAtCompileTime(a.sctx, expr)
-			if err != nil {
-				a.error(args.Headers, err)
-			} else {
-				headers, err = unmarshalHeaders(val)
-				if err != nil {
-					a.error(args.Headers, err)
-				}
-			}
-		}
-		return nullableName(args.Format), nullableName(args.Method), headers, nullableName(args.Body), nil
-	case *ast.FormatArg:
-		return nullableName(args.Format), "", nil, "", nil
-	case *ast.PoolArgs:
-		return "", "", nil, "", errors.New("cannot use pool-style argument with a URL in a from operator")
-	default:
-		panic(fmt.Errorf("semantic analyzer: unsupported AST args type %T", args))
 	}
 }
 
@@ -358,20 +299,15 @@ func unmarshalHeaders(val super.Value) (map[string][]string, error) {
 	return headers, nil
 }
 
-func (a *analyzer) semPoolFromRegexp(patternLoc ast.Node, re, orig, which string, args ast.FromArgs) dag.Seq {
+func (a *analyzer) semPoolFromRegexp(patternLoc ast.Node, re, orig, which string, args []ast.OpArg) dag.Seq {
 	poolNames, err := a.matchPools(re, orig, which)
 	if err != nil {
 		a.error(patternLoc, err)
 		return dag.Seq{badOp()}
 	}
-	poolArgs, err := asPoolArgs(args)
-	if err != nil {
-		a.error(args, err)
-		return dag.Seq{badOp()}
-	}
 	var paths []dag.Seq
 	for _, name := range poolNames {
-		paths = append(paths, dag.Seq{a.semPool(patternLoc, name, poolArgs)})
+		paths = append(paths, dag.Seq{a.semPool(patternLoc, name, args)})
 	}
 	return dag.Seq{&dag.Fork{
 		Kind:  "Fork",
@@ -411,38 +347,36 @@ func (a *analyzer) semSortExpr(sch schema, s ast.SortExpr, reverse bool) dag.Sor
 	return dag.SortExpr{Key: e, Order: o, Nulls: n}
 }
 
-func (a *analyzer) semPool(nameLoc ast.Node, poolName string, args *ast.PoolArgs) dag.Op {
-	var commit, meta string
-	var tap bool
-	if args != nil {
-		commit = nullableName(args.Commit)
-		meta = nullableName(args.Meta)
-		tap = args.Tap
-	}
+func (a *analyzer) semPool(nameLoc ast.Node, poolName string, args []ast.OpArg) dag.Op {
+	opArgs := a.semOpArgs(args, "commit", "meta", "tap")
 	poolID, err := a.env.PoolID(a.ctx, poolName)
 	if err != nil {
 		a.error(nameLoc, err)
 		return badOp()
 	}
 	var commitID ksuid.KSUID
+	commit, commitLoc := a.textArg(opArgs, "commit")
 	if commit != "" {
 		if commitID, err = lakeparse.ParseID(commit); err != nil {
 			commitID, err = a.env.CommitObject(a.ctx, poolID, commit)
 			if err != nil {
-				a.error(args.Commit, err)
+				a.error(commitLoc, err)
 				return badOp()
 			}
 		}
 	}
+	meta, metaLoc := a.textArg(opArgs, "meta")
 	if meta != "" {
 		if _, ok := dag.CommitMetas[meta]; ok {
 			if commitID == ksuid.Nil {
 				commitID, err = a.env.CommitObject(a.ctx, poolID, "main")
 				if err != nil {
-					a.error(args.Commit, err)
+					a.error(metaLoc, err)
 					return badOp()
 				}
 			}
+			tapString, _ := a.textArg(opArgs, "tap")
+			tap := tapString != ""
 			return &dag.CommitMetaScan{
 				Kind:   "CommitMetaScan",
 				Meta:   meta,
@@ -478,7 +412,7 @@ func (a *analyzer) semPool(nameLoc ast.Node, poolName string, args *ast.PoolArgs
 }
 
 func (a *analyzer) semLakeMeta(entity *ast.LakeMeta) dag.Op {
-	meta := nullableName(entity.Meta)
+	meta := entity.Meta.Text
 	if _, ok := dag.LakeMetas[meta]; !ok {
 		a.error(entity, fmt.Errorf("unknown lake metadata type %q in from operator", meta))
 		return badOp()
@@ -990,13 +924,18 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 				return append(seq, badOp())
 			}
 		}
+		opArgs := a.semOpArgs(o.Args, "commit", "author", "message", "meta")
+		branch, _ := a.textArg(opArgs, "commit")
+		author, _ := a.textArg(opArgs, "author")
+		message, _ := a.textArg(opArgs, "message")
+		meta, _ := a.textArg(opArgs, "meta")
 		return append(seq, &dag.Load{
 			Kind:    "Load",
 			Pool:    poolID,
-			Branch:  nullableName(o.Branch),
-			Author:  nullableName(o.Author),
-			Message: nullableName(o.Message),
-			Meta:    nullableName(o.Meta),
+			Branch:  branch,
+			Author:  author,
+			Message: message,
+			Meta:    meta,
 		})
 	case *ast.Output:
 		out := &dag.Output{Kind: "Output", Name: o.Name.Name}
@@ -1004,13 +943,6 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 		return append(seq, out)
 	}
 	panic(fmt.Errorf("semantic transform: unknown AST operator type: %T", o))
-}
-
-func nullableName(n *ast.Name) string {
-	if n == nil {
-		return ""
-	}
-	return n.Text
 }
 
 func (a *analyzer) singletonAgg(agg ast.Assignment, seq dag.Seq) dag.Seq {
@@ -1306,6 +1238,76 @@ func (a *analyzer) maybeConvertUserOp(call *ast.Call) dag.Seq {
 		}
 	}
 	return a.semSeq(decl.ast.Body)
+}
+
+func (a *analyzer) semOpArgs(args []ast.OpArg, allowed ...string) opArgs {
+	guard := make(map[string]struct{})
+	for _, s := range allowed {
+		guard[s] = struct{}{}
+	}
+	return a.semOpArgsAny(args, guard)
+}
+
+func (a *analyzer) semOpArgsAny(args []ast.OpArg, allowed map[string]struct{}) opArgs {
+	opArgs := make(opArgs)
+	for _, arg := range args {
+		switch arg := arg.(type) {
+		case *ast.ArgText:
+			key := strings.ToLower(arg.Key)
+			if _, ok := opArgs[key]; ok {
+				a.error(arg, fmt.Errorf("duplicate argument %q", arg.Key))
+				continue
+			}
+			if _, ok := allowed[key]; !ok {
+				a.error(arg, fmt.Errorf("unknown argument %q", arg.Key))
+				continue
+			}
+			opArgs[key] = arg
+		case *ast.ArgExpr:
+			key := strings.ToLower(arg.Key)
+			if _, ok := opArgs[key]; ok {
+				a.error(arg, fmt.Errorf("duplicate argument %q", arg.Key))
+				continue
+			}
+			if _, ok := allowed[key]; !ok {
+				a.error(arg, fmt.Errorf("unknown argument %q", arg.Key))
+				continue
+			}
+			opArgs[key] = argExpr{arg: arg, expr: a.semExpr(arg.Value)}
+		default:
+			panic(fmt.Sprintf("unknown arg type %T", arg))
+		}
+	}
+	return opArgs
+}
+
+type opArgs map[string]any
+
+type argExpr struct {
+	arg  *ast.ArgExpr
+	expr dag.Expr
+}
+
+func (a *analyzer) textArg(o opArgs, key string) (string, ast.Loc) {
+	if v, ok := o[key]; ok {
+		if arg, ok := v.(*ast.ArgText); ok {
+			return arg.Value.Text, arg.Loc
+		}
+		// The PEG parser currently doesn't allow this but this may change.
+		a.error(v.(*ast.ArgExpr).Loc, fmt.Errorf("argument %q must be plain text", key))
+	}
+	return "", ast.Loc{}
+}
+
+func (a *analyzer) exprArg(o opArgs, key string) (dag.Expr, ast.Loc) {
+	if v, ok := o[key]; ok {
+		if arg, ok := v.(*argExpr); ok {
+			return arg.expr, arg.arg.Loc
+		}
+		// The PEG parser currently doesn't allow this but this may change.
+		a.error(v.(*ast.ArgText).Loc, fmt.Errorf("argument %q must be expression", key))
+	}
+	return nil, ast.Loc{}
 }
 
 func isURL(s string) bool {

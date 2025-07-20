@@ -509,18 +509,7 @@ func (c *canon) op(p ast.Op) {
 	case *ast.Load:
 		c.next()
 		c.write("load %s", sup.QuotedString(p.Pool.Text))
-		if p.Branch != nil {
-			c.write("@%s", p.Branch.Text)
-		}
-		if p.Author != nil {
-			c.write(" author %s", p.Author.Text)
-		}
-		if p.Message != nil {
-			c.write(" message %s", p.Message.Text)
-		}
-		if p.Meta != nil {
-			c.write(" meta %s", p.Meta.Text)
-		}
+		c.opArgs(p.Args)
 	case *ast.Head:
 		c.next()
 		c.open("head")
@@ -682,7 +671,7 @@ func (c *canon) fromElems(elems []*ast.FromElem) {
 func (c *canon) fromElem(elem *ast.FromElem) {
 	c.fromEntity(elem.Entity)
 	if elem.Args != nil {
-		c.fromArgs(elem.Args)
+		c.opArgs(elem.Args)
 	}
 	if elem.Alias != nil {
 		c.tableAlias(elem.Alias)
@@ -710,7 +699,7 @@ func (c *canon) fromEntity(e ast.FromEntity) {
 		c.write(")")
 	case *ast.Glob, *ast.Regexp:
 		c.pattern(e)
-	case *ast.Name:
+	case *ast.Text:
 		c.write(sup.QuotedName(e.Text))
 	case *ast.CrossJoin:
 		c.write("cross join XXX")
@@ -773,18 +762,23 @@ func (c *canon) sortExprs(sortExprs []ast.SortExpr) {
 	}
 }
 
-func (c *canon) poolArgs(args *ast.PoolArgs) {
-	s := ""
-	if args.Commit != nil {
-		s += "@" + args.Commit.Text
+func (c *canon) opArgs(args []ast.OpArg) {
+	if len(args) == 0 {
+		return
 	}
-	if args.Meta != nil {
-		s += ":" + args.Meta.Text
+	c.write(" (")
+	for _, arg := range args {
+		switch arg := arg.(type) {
+		case *ast.ArgText:
+			c.write(fmt.Sprintf(" %s %s", arg.Key, sup.QuotedName(arg.Value.Text)))
+		case *ast.ArgExpr:
+			c.write(fmt.Sprintf(" %s ", arg.Key))
+			c.expr(arg.Value, "")
+		default:
+			panic("fromArgs")
+		}
 	}
-	if args.Tap {
-		s += " tap"
-	}
-	c.write(s)
+	c.write(" )")
 }
 
 func (c *canon) pattern(p ast.FromEntity) {
@@ -867,40 +861,5 @@ func IsSearch(e ast.Expr) bool {
 		return IsSearch(e.Operand)
 	default:
 		return false
-	}
-}
-
-func (c *canon) httpArgs(args *ast.HTTPArgs) {
-	if args.Format != nil {
-		c.write(" format %s", args.Format.Text)
-	}
-	if args.Method != nil {
-		c.write(" method %s", sup.QuotedName(args.Method.Text))
-	}
-	if args.Headers != nil {
-		c.write(" headers ")
-		c.expr(args.Headers, "")
-	}
-	if args.Body != nil {
-		c.write(" body %s", sup.QuotedName(args.Body.Text))
-	}
-}
-
-func (c *canon) formatArg(arg *ast.FormatArg) {
-	if arg.Format != nil {
-		c.write(" format %s", arg.Format.Text)
-	}
-}
-
-func (c *canon) fromArgs(args ast.FromArgs) {
-	switch args := args.(type) {
-	case *ast.PoolArgs:
-		c.poolArgs(args)
-	case *ast.HTTPArgs:
-		c.httpArgs(args)
-	case *ast.FormatArg:
-		c.formatArg(args)
-	default:
-		panic(fmt.Sprintf("unknown argument type in from operaetor: %T", args))
 	}
 }

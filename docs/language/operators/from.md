@@ -113,7 +113,7 @@ super -s -c 'from hello.sup | values greeting'
 
 _Source data from a local file, but in line format_
 ```mdtest-command
-super -s -c 'from hello.sup format line'
+super -s -c 'from hello.sup (format line)'
 ```
 =>
 ```mdtest-output
