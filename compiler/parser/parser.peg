@@ -578,10 +578,6 @@ JoinRightInput
   = __ "(" __ s:Seq __ ")" { return s, nil }
   / "" { return nil, nil }
 
-JoinKey
-  = Lval
-  / "(" expr:Expr ")" { return expr, nil }
-
 ShapesOp
   = SHAPES &EOKW expr:(_ e:Lval { return e, nil })? {
       o := &ast.Shapes{Kind: "Shapes", Loc: loc(c)}
