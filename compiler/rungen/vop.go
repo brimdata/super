@@ -30,6 +30,10 @@ func (b *Builder) compileVam(o dag.Op, parents []vector.Puller) ([]vector.Puller
 		if len(parents) != 2 {
 			return nil, ErrJoinParents
 		}
+		if o.Style == "cross" {
+			join := vamop.NewCrossJoin(b.rctx, parents[0], parents[1], o.LeftAlias, o.RightAlias)
+			return []vector.Puller{join}, nil
+		}
 		leftKey, err := b.compileVamExpr(o.LeftKey)
 		if err != nil {
 			return nil, err

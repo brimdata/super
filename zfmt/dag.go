@@ -456,10 +456,13 @@ func (c *canonDAG) op(p dag.Op) {
 		if p.Style != "" {
 			c.write("%s ", p.Style)
 		}
-		c.write("join as {%s,%s} on ", p.LeftAlias, p.RightAlias)
-		c.expr(p.LeftKey, "")
-		c.write("=")
-		c.expr(p.RightKey, "")
+		c.write("join as {%s,%s}", p.LeftAlias, p.RightAlias)
+		if p.Style != "cross" {
+			c.write(" on ")
+			c.expr(p.LeftKey, "")
+			c.write("=")
+			c.expr(p.RightKey, "")
+		}
 		c.close()
 	case *dag.Lister:
 		c.next()

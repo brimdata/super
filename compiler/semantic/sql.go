@@ -505,6 +505,28 @@ func (a *analyzer) semSQLOp(op ast.Op, seq dag.Seq) (dag.Seq, schema) {
 	}
 }
 
+func (a *analyzer) semCrossJoin(join *ast.CrossJoin, seq dag.Seq) (dag.Seq, schema) {
+	if len(seq) > 0 {
+		// At some point we might want to let parent data flow into a join somehow,
+		// but for now we flag an error.
+		a.error(join, errors.New("SQL cross join cannot inherit data from pipeline parent"))
+	}
+	leftSeq, leftSchema := a.semFromElem(join.Left, nil)
+	rightSeq, rightSchema := a.semFromElem(join.Right, nil)
+	sch := &joinSchema{left: leftSchema, right: rightSchema}
+	par := &dag.Fork{
+		Kind:  "Fork",
+		Paths: []dag.Seq{leftSeq, rightSeq},
+	}
+	dagJoin := &dag.Join{
+		Kind:       "Join",
+		Style:      "cross",
+		LeftAlias:  "left",
+		RightAlias: "right",
+	}
+	return dag.Seq{par, dagJoin}, sch
+}
+
 // For now, each joining table is on the right...
 // We don't have logic to not care about the side of the JOIN ON keys...
 func (a *analyzer) semSQLJoin(join *ast.SQLJoin, seq dag.Seq) (dag.Seq, schema) {

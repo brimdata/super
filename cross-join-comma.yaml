@@ -1,0 +1,18 @@
+spq: |
+  select *
+  from (values {a:1},{a:2},{a:3}) as A,
+       (values {b:4},{b:5},{b:6}) as B
+  order by A.a, B.b
+
+vector: true
+
+output: |
+  {a:1,b:4}
+  {a:1,b:5}
+  {a:1,b:6}
+  {a:2,b:4}
+  {a:2,b:5}
+  {a:2,b:6}
+  {a:3,b:4}
+  {a:3,b:5}
+  {a:3,b:6}

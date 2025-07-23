@@ -68,20 +68,8 @@ func (j *Join) Pull(done bool) (vector.Any, error) {
 func (j *Join) tableInit() error {
 	// Read from both leftBuf and rightBuf parent and find the shortest parent to
 	// create the table from.
-	var leftBuf, rightBuf *bufPuller
-	done := new(atomic.Bool)
-	group, ctx := errgroup.WithContext(j.rctx)
-	group.Go(func() error {
-		var err error
-		rightBuf, err = readAllRace(ctx, done, j.right)
-		return err
-	})
-	group.Go(func() error {
-		var err error
-		leftBuf, err = readAllRace(ctx, done, j.left)
-		return err
-	})
-	if err := group.Wait(); err != nil {
+	leftBuf, rightBuf, err := pullRace(j.rctx.Context, j.left, j.right)
+	if err != nil {
 		return err
 	}
 	var table map[string][]super.Value
@@ -131,7 +119,27 @@ func buildTable(p vector.Puller, key expr.Evaluator) map[string][]super.Value {
 	return table
 }
 
-func readAllRace(ctx context.Context, done *atomic.Bool, parent vector.Puller) (*bufPuller, error) {
+// pullRace pulls from a and b concurrently until one reaches EOS.  It returns
+// bufPullers for a and b containing the vectors pulled from each.
+func pullRace(ctx context.Context, a, b vector.Puller) (*bufPuller, *bufPuller, error) {
+	var aBuf, bBuf *bufPuller
+	var done atomic.Bool
+	group, ctx := errgroup.WithContext(ctx)
+	group.Go(func() error {
+		var err error
+		aBuf, err = pullUntilEOSOrDone(ctx, &done, a)
+		return err
+	})
+	group.Go(func() error {
+		var err error
+		bBuf, err = pullUntilEOSOrDone(ctx, &done, b)
+		return err
+	})
+	err := group.Wait()
+	return aBuf, bBuf, err
+}
+
+func pullUntilEOSOrDone(ctx context.Context, done *atomic.Bool, parent vector.Puller) (*bufPuller, error) {
 	b := &bufPuller{puller: parent}
 	for ctx.Err() == nil && !done.Load() {
 		vec, err := parent.Pull(false)

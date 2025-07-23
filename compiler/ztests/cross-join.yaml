@@ -1,9 +1,0 @@
-script: |
-  ! super -c "from a,b"
-
-outputs:
-  - name: stderr
-    data: |
-      cross joins are not yet supported at line 1, column 6:
-      from a,b
-           ~~~

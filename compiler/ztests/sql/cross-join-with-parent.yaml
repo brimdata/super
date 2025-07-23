@@ -1,0 +1,7 @@
+spq: |
+  from a | from b cross join c
+
+error: |
+  SQL cross join cannot inherit data from pipeline parent at line 1, column 15:
+  from a | from b cross join c
+                ~~~~~~~~~~~~~~
