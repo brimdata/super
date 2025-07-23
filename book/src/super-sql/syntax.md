@@ -1,5 +1,13 @@
 # Syntax
 
+## todo
+
+The todo section here
+is temporary link landing site (so mdtests pass)
+that will be updated in the final version of the book PRs.
+
+## old
+
 TODO: update
 
 The Zed language is a query language for search, analytics,

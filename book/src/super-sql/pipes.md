@@ -7,6 +7,10 @@ either with a data source or with an implied source.
 
 All available operators are listed on the [reference page](operators/_index.md).
 
+XXX explain merge/combine semantics since we took them out of operators docs.
+This goes under the explanation of order, which diverges from but is backward
+compatible with SQL.  Some of this is already explain in from.md
+
 XXX
 
 ## Pipeline Operators

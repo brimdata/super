@@ -5,31 +5,33 @@
 ### Synopsis
 
 ```
-from <file> [ ( format <name> ) ]
-from <pool>
-from <uri> [ ( format <name> method <id> header <expr> body <string> ) ]
-from <glob> [ ( format <name> ) ]
+from <file> [ ( format <fmt> ) ]
+from <pool> [@<commit>]
+from <uri> [ ( format <fmt> method <id> header <expr> body <string> ) ]
+from <glob> [ ( format <fmt> ) ]
 from <regexp>
 from eval(<expr>) [ ( format <name> method <id> header <expr> body <string> ) ]
 ```
 
 ### Description
 
-The `from` keyword signals one of two overlapping forms of operators:
-* a pipe operator with dataflow scoping as described here, or
-* a [SQL clause](../sql/from.md) with relational scoping.
+The `from` operator identifies one or more sources of data as input to
+a query or subquery and transmits that data to its output.
 
-The `from` operator identifies one or more data sources and transmits
-their data to its output.
+It has two forms:
+* a `from` pipe operator with dataflow scoping as described here, or
+* a [`FROM`](../sql/from.md) SQL clause with relational scoping.
 
-When multiple sources are identified, the data may be read in parallel 
-and interleaved in an undefined order.  The order of the data within a file,
-URI, or a sorted pool is preserved at the output of `from`.
+As a pipe operator,
+`from` preserves the order of the data within a file,
+URI, or a sorted pool but when multiple sources are identified,
+the data may be read in parallel and interleaved in an undefined order.  
 
 Optional arguments to `from` may be appended as a parenthesized concatenation
 of arguments.
 
-The format of each data source is automatically but detected using heuristics.
+When reading from sources external to a database (e.g., URLs or files),
+the format of each data source is automatically detected using heuristics.
 To manually specify the format of a source and override the autodetection heuristic,
 a format argument may be appended as an argument and has the form
 ```
@@ -38,13 +40,19 @@ format <name>
 where `<name>` is the name of a supported
 [serialization format](../../commands/super.md#input-formats).
 
+When `from` references an entity whose name ends in `.parquet` or `.csup`,
+auto-detection is disabled and the format is presumed to be Parquet or
+CSUP, respectively.
+
 #### Files
 
-When running without a database, a string argument or
-unquoted path identifier that does not match a URI is interpreted
-as a path to a file.
+When running detached from a database, a file may be referenced as
+the target of `from` using a path as specified in the `<file>` argument
+above.  The path descriptor is formatted as a [text entity](../syntax.md#todo) and
+is a path relative to the directory in which the `super` command is running.
 
-XXX define file identifier, or path identifier?
+As a text entity, file names need not be quoted when the name consists of
+characters, digits, `.`, and `/`.
 
 Files can also be referenced using a
 [glob](../search-expressions.md#globs) pattern.
@@ -58,80 +66,126 @@ from file*.parquet
 
 #### Pools
 
-When running with a database, a string argument or
-unquoted path identifier that does not match a URI is interpreted
-as the name of a database pool.
+When running attached to a database (i.e., using `super db`),
+a database pool may be referenced as
+the target of `from` using a pool name as specified in the `<pool>` argument
+above.  Local files are not accessible when attached to a database.
 
-Sourcing data from pools is only possible when querying a database, such as
-via the [`super db` command](../../command/super-db.md) or
-[SuperDB API](../../database/api.md)
+The pool name is formatted as a [text entity](../syntax.md#todo).
+
+Note that pool names and file names have similar syntax in `from` but 
+their use is disambiguated by the presence or absence of an attached
+database.
 
 The names of multiple data pools may also be expressed as a
 [regular expression](../search-expressions.md#regular-expressions) or
 [glob](../search-expressions.md#globs) pattern.
 
-The reference string for a pool may also include
-[commitish](../../commands/super-db.md#commitish)
-to read from a specific commit in the pool's commit history.
+The reference string for a pool may also be appended with an `@`-style
+[commitish](../../commands/super-db.md#commitish), which specifies that
+data is sourced from a specific commit in a pool's commit history.
 
-When a single pool name is specified without `@`-referencing a commit, or
-when using a pool pattern, the tip of the `main` branch of each pool is
-accessed.
+When a single pool name is specified without an `@` reference, or
+when using a glob or regular expression, the tip of the `main`
+branch of each pool is accessed.
 
 The format argument is not valid with a database source.
 
-XXX :metadata at database level and pool level
+> Metadata from database pools also may be sourced using `from`.
+> This will be docuemented in a future release of SuperDB.
 
 #### URIs
 
-Data sources identified by URIs can be accessed both when running with a database
-and without.
+Data sources identified by URIs can be accessed either when attached 
+or detached from a database.
 
-URIs must begin with `http:`, `https:`, or `s3:`.
+When the `<uri>` argument begin with `http:`, `https:`, or `s3:`
+and has the form of a valid URI, then the source is fetched remotely using the
+indicated protocol.
 
-A URI may be unquoted or quoted as a string, e.g., if it contains special characters.
+As a [text entity](../syntax.md#todo), any valid URI need not be quoted.
 
 A format argument may be appended to a URI reference.
 
-XXX documnt rule for unquoted URI
+#### Combining Data
 
-XXX take "merge" and "combine" out of docs and document them in pipeline dataflow
+To combine data from multiple sources using pipe operators, `from` may be 
+used in combination with [`fork`](fork.md) and [`join`](join.md).
 
-### Examples
-
-
-A pipeline can be split with the [`fork` operator](fork.md) as in
-```
-from PoolOne
-| fork
-  ( op1 | op2 | ... )
-  ( op1 | op2 | ... )
-| merge ts | ...
-```
-
-Or multiple pools can be accessed and, for example, joined:
+Multiple pools can be accessed in parallel and combined in undefined order:
 ```
 fork
   ( from PoolOne | op1 | op2 | ... )
   ( from PoolTwo | op1 | op2 | ... )
-| join on key=key | ...
+| ...  
 ```
-
-Similarly, data can be routed to different pipeline branches with replication
-using the [`switch` operator](switch.md):
+or joined according to a join condition:
 ```
-from ...
-| switch color
-  case "red" ( op1 | op2 | ... )
-  case "blue" ( op1 | op2 | ... )
-  default ( op1 | op2 | ... )
+fork
+  ( from PoolOne | op1 | op2 | ... )
+  ( from PoolTwo | op1 | op2 | ... )
+| join as {left,right} on left.key=right.key
+| ...
+```
+Alternatively, the right-hand leg of the join may be written as a subquery
+of join:
+```
+from PoolOne | op1 | op2 | ... 
+| join ( from PoolTwo | op1 | op2 | ... )
+    as {left,right} on left.key=right.key
 | ...
 ```
 
-### Input Data
+### File Examples
 
-Examples below below assume the existence of the SuperDB lake created and populated
-by the following commands:
+---
+
+_Source structured data from a local file_
+
+```mdtest-command
+cat '{greeting:"hello world!"}' > hello.sup
+super -s -c 'from hello.sup | values greeting'
+```
+=>
+```mdtest-output
+"hello world!"
+```
+
+---
+
+_Source data from a local file, but in "line" format_
+```mdtest-command
+super -s -c 'from hello.sup format line'
+```
+=>
+```mdtest-output
+"{greeting:\"hello world!\"}"
+```
+
+### HTTP Examples
+
+---
+
+XXX this doesn't work
+
+_Source structured data from a URI_
+```
+super -s -c 'from https://raw.githubusercontent.com/brimdata/zui-insiders/main/package.json
+       | values productName'
+```
+=>
+```
+"Zui - Insiders"
+```
+
+---
+
+### Database Examples
+
+The remaining examples below assume the existence of the SuperDB database
+created and populated by the following commands:
+
+XXX take out meta reference below, use better dataset
 
 ```mdtest-command
 export SUPER_DB=example
@@ -163,46 +217,6 @@ The following file `hello.sup` is also used.
 ```mdtest-input hello.sup
 {greeting:"hello world!"}
 ```
-
-### Examples
-
----
-
-_Source structured data from a local file_
-
-```mdtest-command
-cat '{greeting:"hello world!"}' > hello.sup
-super -s -c 'from hello.sup | values greeting'
-```
-=>
-```mdtest-output
-"hello world!"
-```
-
----
-
-_Source data from a local file, but in line format_
-```mdtest-command
-super -s -c 'from hello.sup format line'
-```
-=>
-```mdtest-output
-"{greeting:\"hello world!\"}"
-```
-
----
-
-_Source structured data from a URI_
-```
-super -s -c 'from https://raw.githubusercontent.com/brimdata/zui-insiders/main/package.json
-       | values productName'
-```
-=>
-```
-"Zui - Insiders"
-```
-
----
 
 _Source data from the `main` branch of a pool_
 ```mdtest-command
