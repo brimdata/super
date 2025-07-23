@@ -15,6 +15,8 @@
 | [anti|inner|left|right] join [as { <left-name>,<right-name> }] [on <predicate>]
 ```
 
+XXX USING
+
 ### Description
 
 The `join` operator combines values from two inputs according to the Boolean-valued
