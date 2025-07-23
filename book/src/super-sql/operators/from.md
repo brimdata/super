@@ -7,10 +7,10 @@
 ```
 from <file> [ ( format <fmt> ) ]
 from <pool> [@<commit>]
-from <uri> [ ( format <fmt> method <id> header <expr> body <string> ) ]
+from <uri> [ ( format <fmt> method <method> header <expr> body <string> ) ]
 from <glob> [ ( format <fmt> ) ]
 from <regexp>
-from eval(<expr>) [ ( format <name> method <id> header <expr> body <string> ) ]
+from eval(<expr>) [ ( format <fmt> method <id> header <expr> body <string> ) ]
 ```
 
 ### Description
@@ -35,14 +35,17 @@ the format of each data source is automatically detected using heuristics.
 To manually specify the format of a source and override the autodetection heuristic,
 a format argument may be appended as an argument and has the form
 ```
-format <name>
+format <fmt>
 ```
-where `<name>` is the name of a supported
-[serialization format](../../commands/super.md#input-formats).
+where `<fmt>` is the name of a supported
+[serialization format](../../commands/super.md#input-formats) and is 
+parsed as a [text entity]((../syntax.md#todo).
 
-When `from` references an entity whose name ends in `.parquet` or `.csup`,
+When `from` references a file or URI entity whose name ends in `.parquet` or `.csup`,
 auto-detection is disabled and the format is presumed to be Parquet or
 CSUP, respectively.
+
+> TODO: I don't think this works for URIs
 
 #### Files
 
@@ -107,12 +110,29 @@ As a [text entity](../syntax.md#todo), any valid URI need not be quoted.
 
 A format argument may be appended to a URI reference.
 
+Other valid operator arguments control the body and headers of the HTTP request
+that implement the data retrieval and include:
+* method `<method>`
+* header `<expr>`
+* body `<string>`
+
+where
+
+* `<method>` is one of `GET`, `PUT`, `POST`, or `DELETE`,
+* `<expr>` is a [record expression](../types/record.md) that defines the names and values 
+to be included as HTTP header options, and
+* `<body>` is an arbitrary string to be included as the body of the HTTP request.
+
+Currently, the headers expression must evaluate to a compile-time constant though this
+may change to allow dynamic computation in a future version of SuperSQL.
+
 #### Combining Data
 
 To combine data from multiple sources using pipe operators, `from` may be 
-used in combination with [`fork`](fork.md) and [`join`](join.md).
+used in combination with other operators like [`fork`](fork.md) and [`join`](join.md).
 
-Multiple pools can be accessed in parallel and combined in undefined order:
+For example, multiple pools can be accessed in parallel
+and combined in undefined order:
 ```
 fork
   ( from PoolOne | op1 | op2 | ... )
@@ -204,7 +224,7 @@ super db -f text -c '
   | sort'
 ```
 
-The lake then contains the two pools:
+The lake then contains the two pools and three branches:
 
 ```mdtest-output
 coinflips@main
@@ -258,10 +278,8 @@ _Join the data from multiple pools_
 
 ```mdtest-command
 super db -db example -s -c '
-  from coinflips | sort flip
-  | join (
-    from numbers | sort number
-  ) on left.flip=right.number
+  from coinflips
+  | join ( from numbers ) on left.flip=right.number
   | values {...left, word:right.word}'
 ```
 =>
@@ -275,10 +293,8 @@ super db -db example -s -c '
 _Use `pass` to combine our join output with data from yet another source_
 ```mdtest-command
 super db -db example -s -c '
-  from coinflips | sort flip
-  | join (
-    from numbers | sort number
-  ) on left.flip=right.number
+  from coinflips
+  | join ( from numbers ) on left.flip=right.number
   | values {...left, word:right.word}
   | fork 
     ( pass )

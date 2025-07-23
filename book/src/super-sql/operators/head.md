@@ -42,7 +42,7 @@ _Grab first two values of arbitrary sequence, using a different representation o
 ```mdtest-spq
 # spq
 const ONE = 1
-head ONE+1
+limit ONE+1
 # input
 1
 "foo"

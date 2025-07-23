@@ -15,7 +15,8 @@ all values in the input to the fused type.  This is logically the same as:
 from input | values cast(this, (from input | aggregate fuse(this)))
 ```
 
-XXX
+This is related to what other database systems call _schema inference_,
+but in SuperSQL, the technique is purely based on types.
 
 The merged type is constructed intelligently in the sense that type
 `{a:string}` and `{b:string}` is fused into type `{a:string,b:string}`
