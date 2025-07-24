@@ -3,6 +3,7 @@ package zio
 import (
 	"context"
 	"io"
+	"path/filepath"
 	"slices"
 
 	"github.com/brimdata/super"
@@ -30,6 +31,29 @@ func Extension(format string) string {
 		return ".log"
 	case "jsup":
 		return ".ndjson"
+	default:
+		return ""
+	}
+}
+
+func FormatFromPath(path string) string {
+	switch filepath.Ext(path) {
+	case ".bsup":
+		return "bsup"
+	case ".csup":
+		return "csup"
+	case ".csv":
+		return "csv"
+	case ".json", ".ndjson", ".jsonl":
+		return "json"
+	case ".parquet":
+		return "parquet"
+	case ".sup":
+		return "sup"
+	case ".txt":
+		return "text"
+	case ".jsup":
+		return "jsup"
 	default:
 		return ""
 	}

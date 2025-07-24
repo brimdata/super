@@ -4,8 +4,8 @@ script: |
 inputs:
   - name: a.json
     data: |
-      {a:"foo bar"}
-      {a:"foo\nbar"}
+      {"a":"foo bar"}
+      {"a":"foo\nbar"}
 
 outputs:
   - name: stdout

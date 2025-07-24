@@ -61,10 +61,10 @@ outputs:
         
         fork
           (
-            file fruit.json
+            file fruit.json format json
           )
           (
-            file people.json
+            file people.json format json
           )
         | inner join as {left,right} on left_key=right_key
         | values {...left,left_dest:right.right_source}

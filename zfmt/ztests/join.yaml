@@ -20,7 +20,7 @@ outputs:
           pass
         )
         (
-          file test.sup
+          file test.sup format sup
         )
       | inner join as {left,right} on x=x
       | output main
@@ -35,7 +35,7 @@ outputs:
           pass
         )
         (
-          file test.sup
+          file test.sup format sup
         )
       | right join as {l,r} on x=x
       | output main

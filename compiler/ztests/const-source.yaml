@@ -24,7 +24,7 @@ outputs:
       (
         const FILE = "A.sup"
         
-        file A.sup
+        file A.sup format sup
         | output main
       )
       ===
