@@ -34,7 +34,7 @@ resulting in `error("missing")` for expressions that reference fields of `this`.
 
 Note that when the field references are all top level,
 `cut` is a special case of a values with a
-[record literal](../types/record.md) having the form:
+[record expression](../types/record.md) having the form:
 ```
 values {<field>:<expr> [, <field>:<expr>...]}
 ```

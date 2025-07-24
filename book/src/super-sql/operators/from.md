@@ -39,7 +39,7 @@ format <fmt>
 ```
 where `<fmt>` is the name of a supported
 [serialization format](../../commands/super.md#input-formats) and is 
-parsed as a [text entity]((../syntax.md#todo).
+parsed as a [text entity](../syntax.md#todo).
 
 When `from` references a file or URI entity whose name ends in `.parquet` or `.csup`,
 auto-detection is disabled and the format is presumed to be Parquet or
