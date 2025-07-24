@@ -905,9 +905,19 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 		})
 	case *ast.Shapes:
 		e := dag.Expr(&dag.This{Kind: "This"})
+		copy := dag.Expr(&dag.This{Kind: "This"})
 		if o.Expr != nil {
 			e = a.semExpr(o.Expr)
+			copy = a.semExpr(o.Expr)
 		}
+		seq = append(seq, &dag.Filter{
+			Kind: "Filter",
+			Expr: &dag.UnaryExpr{
+				Kind:    "UnaryExpr",
+				Op:      "!",
+				Operand: &dag.IsNullExpr{Kind: "IsNullExpr", Expr: copy},
+			},
+		})
 		seq = append(seq, &dag.Aggregate{
 			Kind: "Aggregate",
 			Aggs: []dag.Assignment{
