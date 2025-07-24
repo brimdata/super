@@ -10,7 +10,8 @@
 
 The `put` operator modifies its input with
 one or more [field assignments](../pipes.md#field-assignments).
-Each [expression](../expressions.md) `<expr>` is evaluated based on the input record
+
+Each [expression](../expressions.md) `<expr>` is evaluated based on the input value
 and the result is either assigned to a new field of the input record if it does not
 exist, or the existing field is modified in its original location with the result.
 
@@ -30,11 +31,16 @@ etc.
 
 Each right-hand side `<expr>` can be any SuperSQL expression.
 
-For any input value that is not a record, an error is emitted.
+For any input value that is not a record, a structured error is emitted 
+having the form:
+```
+error({message:"put: not a record",on:<value>})
+```
+where `<value>` is the offending input value.
 
 Note that when the field references are all top level,
-`put` is a special case of a [`yield`](yield.md) with a
-[record literal](../expressions.md#record-expressions)
+`put` is a special case of a [`values`](values.md) operator
+with a [record expression](../expressions.md#record-expressions)
 using a spread operator of the form:
 ```
 values {...this, <field>:<expr> [, <field>:<expr>...]}

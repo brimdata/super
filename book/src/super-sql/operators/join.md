@@ -8,14 +8,12 @@
 <left-input>
 | [anti|inner|left|right] join (
   <right-input>
-) [as { <left-name>,<right-name> }] [on <predicate>]
+) [as { <left-name>,<right-name> }] [on <predicate> | using <field> ]
 
   ( <left-input> )
   ( <right-input> )
-| [anti|inner|left|right] join [as { <left-name>,<right-name> }] [on <predicate>]
+| [anti|inner|left|right] join [as { <left-name>,<right-name> }] [on <predicate> | using ( <field> )]
 ```
-
-XXX USING
 
 ### Description
 
@@ -27,13 +25,24 @@ value `L` from `<left-input>` and forming records with all of the values `R` fro
 the `<right-input>` of the form `{<left-name>:L,<right-name>:R}`.  The result
 of the join is the set of all such records that satisfy `<predicate>`.
 
-The output order of the resulting records is undefined.
+A _using clause_ may be specified instead of an _on clause_ and
+is equivalent to an equi-join predicate of the form:
+```
+<left-name>.<field> = <right-name>.<field>
+```
+`<field>` must be an `<lvalue>`, i.e., an expression composed of dot operators and
+index operators.
 
-If the "as clause" is omitted, then `<left-name>` defaults to "left" and
+> TODO: array references are parsed but are rejected by semantic. seems like they should work.
+
+If the _as clause_ is omitted, then `<left-name>` defaults to "left" and
 `<right-name>` defaults to "right".
 
-If `<predicate>` is omitted, then it is presumed true and the entire cross
-product is produced.
+If neither an _on clause_ or a _using clause_ is present,
+then the join condition is presumed true for all values
+and the entire cross product is produced.
+
+The output order of the joined values is undefined.
 
 The available join types are:
 * _inner_ - as described above

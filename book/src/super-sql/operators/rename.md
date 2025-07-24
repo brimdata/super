@@ -22,7 +22,8 @@ Each `<field>` must be a field reference as a dotted path and the old name
 and new name must refer to the same record in the case of nested records.
 That is, the dotted path prefix before the final field name must be the
 same on the left- and right-hand sides.  To perform more sophisticated
-renaming of fields, you can use cut/put or record expressions.
+renaming of fields, you can use [`cut`](cut.md), [`put`](put.md)
+or [record expressions](../expressions.md#record-expressions).
 
 If a rename operation conflicts with an existing field name, then the
 offending record is wrapped in a structured error along with an error message
