@@ -77,6 +77,8 @@ func (b *Builder) compileExpr(e dag.Expr) (expr.Evaluator, error) {
 		return b.compileIsNullExpr(e)
 	case *dag.SliceExpr:
 		return b.compileSliceExpr(e)
+	case *dag.QueryExpr:
+		return b.compileQueryExpr(e)
 	case *dag.RegexpMatch:
 		return b.compileRegexpMatch(e)
 	case *dag.RegexpSearch:
@@ -410,6 +412,20 @@ func (b *Builder) compileIsNullExpr(e *dag.IsNullExpr) (expr.Evaluator, error) {
 		return nil, err
 	}
 	return expr.NewIsNullExpr(eval), nil
+}
+
+func (b *Builder) compileQueryExpr(query *dag.QueryExpr) (expr.Evaluator, error) {
+	exits, err := b.compileSeq(query.Body, nil)
+	if err != nil {
+		return nil, err
+	}
+	var exit zbuf.Puller
+	if len(exits) == 1 {
+		exit = exits[0]
+	} else {
+		exit = combine.New(b.rctx, exits)
+	}
+	return traverse.NewQueryExpr(b.rctx, exit), nil
 }
 
 func (b *Builder) compileRegexpMatch(match *dag.RegexpMatch) (expr.Evaluator, error) {

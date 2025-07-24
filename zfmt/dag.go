@@ -109,6 +109,12 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 	case *dag.IsNullExpr:
 		c.expr(e.Expr, "")
 		c.write(" IS NULL")
+	case *dag.QueryExpr:
+		c.open("(")
+		c.head = true
+		c.seq(e.Body)
+		c.close()
+		c.write(")")
 	case *dag.SliceExpr:
 		c.expr(e.Expr, "")
 		c.write("[")

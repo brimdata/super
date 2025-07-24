@@ -1,0 +1,10 @@
+script: |
+  super -s -c 'select 1+(select 1) as v'
+  # error cases:
+  # subquery must return only one column
+  super -s -c 'select (values (1,2))'
+
+outputs:
+  - name: stdout
+    data: |
+      {v:2}

@@ -214,6 +214,8 @@ func demandForExpr(expr dag.Expr) demand.Demand {
 	case *dag.SliceExpr:
 		return demand.Union(demandForExpr(expr.Expr),
 			demand.Union(demandForExpr(expr.From), demandForExpr(expr.To)))
+	case *dag.QueryExpr:
+		return DemandForSeq(expr.Body, demand.None())[0] // XXX Probably not right.
 	case *dag.This:
 		d := demand.All()
 		for i := len(expr.Path) - 1; i >= 0; i-- {

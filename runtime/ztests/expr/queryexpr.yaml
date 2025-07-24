@@ -1,0 +1,30 @@
+script: |
+  super -c 'from input.sup
+            | values (unnest {outer: this, inner: (from foo.sup)} | where inner.id=outer.id | values inner.name) +
+              "_" +
+              (unnest {outer: this, inner: (from bar.sup)} | where inner.id=outer.id | values inner.name)'
+
+inputs:
+  - name: input.sup
+    data: |
+      {id:4}
+      {id:1}
+      {id:2}
+      {id:3}
+  - name: foo.sup
+    data: |
+      {id:1,name:"foo1"}
+      {id:2,name:"foo2"}
+      {id:3,name:"foo3"}
+      {id:4,name:"foo4"}
+  - name: bar.sup
+    data: |
+      {id:1,name:"bar1"}
+      {id:2,name:"bar2"}
+      {id:3,name:"bar3"}
+      {id:4,name:"bar4"}
+
+outputs:
+  - name: stdout
+    data: |
+      hi there

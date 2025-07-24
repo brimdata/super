@@ -408,6 +408,8 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 			Expr: expr,
 			Body: a.semSeq(e.Body),
 		}
+	case *ast.QueryExpr:
+		return a.semQueryExpr(e)
 	case nil:
 		panic("semantic analysis: illegal null value encountered in AST")
 	}
@@ -990,6 +992,27 @@ func (a *analyzer) semFString(f *ast.FString) dag.Expr {
 		out = &dag.BinaryExpr{Kind: "BinaryExpr", LHS: out, Op: "+", RHS: e}
 	}
 	return out
+}
+
+func (a *analyzer) semQueryExpr(e *ast.QueryExpr) dag.Expr {
+	// seq := a.semSeq(e.Body)
+	// if !HasSource(seq) {
+	// 	seq.Prepend(&dag.NullScan{Kind: "NullScan"})
+	// }
+	// XXX IDK should we allow junk like values (head 1)?
+	expr := &dag.QueryExpr{
+		Kind: "QueryExpr",
+		Body: a.semSeq(e.Body),
+	}
+	if a.scope.schema != nil {
+		// fetch the first value
+		return &dag.IndexExpr{
+			Kind:  "IndexExpr",
+			Expr:  expr,
+			Index: &dag.Literal{Kind: "Literal", Value: "1"},
+		}
+	}
+	return expr
 }
 
 func (a *analyzer) evalPositiveInteger(e ast.Expr) int {

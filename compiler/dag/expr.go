@@ -83,6 +83,10 @@ type (
 		Kind    string  `json:"kind" unpack:""`
 		Entries []Entry `json:"entries"`
 	}
+	QueryExpr struct {
+		Kind string `json:"kind" unpack:""`
+		Body Seq    `json:"body"`
+	}
 	RecordExpr struct {
 		Kind  string       `json:"kind" unpack:""`
 		Elems []RecordElem `json:"elems"`
@@ -147,6 +151,7 @@ func (*IsNullExpr) exprNode()   {}
 func (*Literal) exprNode()      {}
 func (*MapCall) exprNode()      {}
 func (*MapExpr) exprNode()      {}
+func (*QueryExpr) exprNode()    {}
 func (*RecordExpr) exprNode()   {}
 func (*RegexpMatch) exprNode()  {}
 func (*RegexpSearch) exprNode() {}

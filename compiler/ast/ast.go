@@ -311,6 +311,12 @@ type UnnestExpr struct {
 	Loc  `json:"loc"`
 }
 
+type QueryExpr struct {
+	Kind string `json:"kind" unpack:""`
+	Body Seq    `json:"body"`
+	Loc  `json:"loc"`
+}
+
 type FString struct {
 	Kind  string        `json:"kind" unpack:""`
 	Elems []FStringElem `json:"elems"`
@@ -375,6 +381,7 @@ func (*UnnestExpr) exprNode()   {}
 func (*FString) exprNode()      {}
 func (*Primitive) exprNode()    {}
 func (*TypeValue) exprNode()    {}
+func (*QueryExpr) exprNode()    {}
 
 type ConstDecl struct {
 	Kind string `json:"kind" unpack:""`
