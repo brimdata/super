@@ -246,7 +246,7 @@ type RecordElem interface {
 
 type FieldExpr struct {
 	Kind  string `json:"kind" unpack:""`
-	Name  *Text  `json:"name"` //XXX ID?  probably not
+	Name  *Text  `json:"name"`
 	Value Expr   `json:"value"`
 	Loc   `json:"loc"`
 }
@@ -673,8 +673,8 @@ type OpArg interface {
 	opArgNode()
 }
 
-func (*ArgText) opArgNode() {}
 func (*ArgExpr) opArgNode() {}
+func (*ArgText) opArgNode() {}
 
 type SortExpr struct {
 	Kind  string `json:"kind" unpack:""`

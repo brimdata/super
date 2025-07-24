@@ -353,7 +353,7 @@ func (p *Parser) matchEnumSymbols() ([]*ast.Text, error) {
 		if !ok {
 			return nil, nil
 		}
-		symbols = append(symbols, &ast.Text{Kind: "Name", Text: name})
+		symbols = append(symbols, &ast.Text{Kind: "Text", Text: name})
 		ok, err = l.match(',')
 		if err != nil {
 			return nil, err

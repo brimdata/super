@@ -670,9 +670,7 @@ func (c *canon) fromElems(elems []*ast.FromElem) {
 
 func (c *canon) fromElem(elem *ast.FromElem) {
 	c.fromEntity(elem.Entity)
-	if elem.Args != nil {
-		c.opArgs(elem.Args)
-	}
+	c.opArgs(elem.Args)
 	if elem.Alias != nil {
 		c.tableAlias(elem.Alias)
 	}
@@ -770,9 +768,9 @@ func (c *canon) opArgs(args []ast.OpArg) {
 	for _, arg := range args {
 		switch arg := arg.(type) {
 		case *ast.ArgText:
-			c.write(fmt.Sprintf(" %s %s", arg.Key, sup.QuotedName(arg.Value.Text)))
+			c.write(" %s %s", arg.Key, sup.QuotedName(arg.Value.Text))
 		case *ast.ArgExpr:
-			c.write(fmt.Sprintf(" %s ", arg.Key))
+			c.write(" %s ", arg.Key)
 			c.expr(arg.Value, "")
 		default:
 			panic("fromArgs")

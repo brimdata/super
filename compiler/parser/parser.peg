@@ -692,11 +692,9 @@ FromEntity
   // XXX UNNEST, PIVOT, UNPIVOT, type projection, left correlation?
 
 Text
-  = s:UnquotedURL { return &ast.Text{Kind:"Text",Text:s.(string),Loc:loc(c) }, nil }
-  / s:TextChars { return &ast.Text{Kind:"Text",Text:s.(string),Loc:loc(c) }, nil }
-  / s:KSUID     { return &ast.Text{Kind:"Text",Text:s.(string),Loc:loc(c) }, nil }
-  / s:DoubleQuotedString { return &ast.Text{Kind:"Text",Text:s.(string),Loc:loc(c) }, nil }
-  / s:SingleQuotedString { return &ast.Text{Kind:"Text",Text:s.(string),Loc:loc(c) }, nil }
+ = s:(UnquotedURL / TextChars / KSUID / DoubleQuotedString / SingleQuotedString) {
+      return &ast.Text{Kind:"Text", Text:s.(string), Loc:loc(c) }, nil
+    }
 
 UnquotedURL = ("http://" / "https://" / "s3://") URLChar+ { return string(c.text), nil }
 
@@ -716,20 +714,20 @@ CommitishOpArgs
 
 MetaCommitish
   = commit:Commitish meta:ColonText? {
-    out := []any{commit}
-    if meta != nil {
+      out := []any{commit}
+      if meta != nil {
         out = append(out, &ast.ArgText{Kind:"ArgText", Key: "meta", Value: meta.(*ast.Text), Loc: meta.(*ast.Text).Loc})
+      }
+      return out, nil
     }
-    return out, nil
-  }
   / meta:ColonText { 
-    return []any{&ast.ArgText{Kind:"ArgText", Key: "meta", Value: meta.(*ast.Text), Loc: loc(c)}}, nil
-  }
+      return []any{&ast.ArgText{Kind:"ArgText", Key: "meta", Value: meta.(*ast.Text), Loc: loc(c)}}, nil
+    }
 
 Commitish
   = "@" text:CommitText  {
-        return &ast.ArgText{Kind:"ArgText", Key: "commit", Value: text.(*ast.Text), Loc: text.(*ast.Text).Loc}, nil
-      }
+      return &ast.ArgText{Kind:"ArgText", Key: "commit", Value: text.(*ast.Text), Loc: text.(*ast.Text).Loc}, nil
+    }
 
 CommitText
   = Name
@@ -1518,9 +1516,9 @@ TypeField
     }
 
 Name
-  = s:IdentifierName     { return &ast.Text{Kind:"Text",Text:s.(string),Loc:loc(c) }, nil }
-  / s:DoubleQuotedString { return &ast.Text{Kind:"Text",Text:s.(string),Loc:loc(c) }, nil }
-  / s:SingleQuotedString { return &ast.Text{Kind:"Text",Text:s.(string),Loc:loc(c) }, nil }
+ = s:(IdentifierName / DoubleQuotedString / SingleQuotedString) {
+      return &ast.Text{Kind:"Text", Text:s.(string), Loc:loc(c) }, nil
+    }
 
 Names
   = first:Name rest:(__ "," __ name:Name { return name, nil })* {
@@ -2355,14 +2353,13 @@ GREP       = "GREP"i            !IdentifierRest
 GROUP      = "GROUP"i           !IdentifierRest
 HAVING     = "HAVING"i          !IdentifierRest
 HEAD       = "HEAD"i            !IdentifierRest 
-HEADERS    = "HEADERS"i         !IdentifierRest
 IN         = "IN"i              !IdentifierRest
 INNER      = "INNER"i           !IdentifierRest
 IS         = "IS"i              !IdentifierRest
 JOIN       = "JOIN"i            !IdentifierRest
 LAST       = "LAST"i            !IdentifierRest
 LEFT       = "LEFT"i            !IdentifierRest
-LIKE       = "LIKE"i           !IdentifierRest
+LIKE       = "LIKE"i            !IdentifierRest
 LIMIT      = "LIMIT"i           !IdentifierRest
 LOAD       = "LOAD"i            !IdentifierRest
 MATERIALIZED = "MATERIALIZED"i  !IdentifierRest
