@@ -4,10 +4,12 @@ vector: true
 
 input: |
   {s1:"a",s2:"b"}
-  {s1:"b",s2:"b"}
   {s1:"a",s2:0}
-  {s1:"b",s2:0}
-  {s1:"b",s2:"a"}
+  {s1:"a",s2:null::string}
+  {s1:"a",s2:null::{x:int64}}
+  {s1:"a"}
+  {s1:"a",s2:error(1)}
+  {s1:"a",s2:error({x:1})}
 
 output: |
   0
