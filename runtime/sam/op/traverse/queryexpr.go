@@ -25,23 +25,15 @@ func (q *QueryExpr) Eval(this super.Value) super.Value {
 }
 
 func pullitMakeIt(sctx *super.Context, puller zbuf.Puller) super.Value {
-	var vals []super.Value
+	var batches []zbuf.Batch
 	for {
 		batch, err := puller.Pull(false)
 		if err != nil {
 			return sctx.NewError(err)
 		}
 		if batch == nil {
-			break
+			return combine(sctx, batches)
 		}
-		vals = append(vals, batch.Values()...)
+		batches = append(batches, batch)
 	}
-	if len(vals) == 0 {
-		return super.Null
-	}
-	if len(vals) == 1 {
-		return vals[0]
-	}
-	// XXX
-	panic("todo")
 }

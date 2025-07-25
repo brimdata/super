@@ -56,28 +56,28 @@ func (e *Expr) Eval(this super.Value) super.Value {
 		}
 		if b == nil {
 			e.out = out
-			return e.combine(out)
+			return combine(e.sctx, out)
 		}
 		out = append(out, b)
 	}
 }
 
-func (e *Expr) combine(batches []zbuf.Batch) super.Value {
+func combine(sctx *super.Context, batches []zbuf.Batch) super.Value {
 	switch len(batches) {
 	case 0:
 		return super.Null
 	case 1:
-		return e.makeArray(batches[0].Values())
+		return makeArray(sctx, batches[0].Values())
 	default:
 		var vals []super.Value
 		for _, batch := range batches {
 			vals = append(vals, batch.Values()...)
 		}
-		return e.makeArray(vals)
+		return makeArray(sctx, vals)
 	}
 }
 
-func (e *Expr) makeArray(vals []super.Value) super.Value {
+func makeArray(sctx *super.Context, vals []super.Value) super.Value {
 	if len(vals) == 0 {
 		return super.Null
 	}
@@ -87,17 +87,17 @@ func (e *Expr) makeArray(vals []super.Value) super.Value {
 	typ := vals[0].Type()
 	for _, val := range vals[1:] {
 		if typ != val.Type() {
-			return e.makeUnionArray(vals)
+			return makeUnionArray(sctx, vals)
 		}
 	}
 	var b zcode.Builder
 	for _, val := range vals {
 		b.Append(val.Bytes())
 	}
-	return super.NewValue(e.sctx.LookupTypeArray(typ), b.Bytes())
+	return super.NewValue(sctx.LookupTypeArray(typ), b.Bytes())
 }
 
-func (e *Expr) makeUnionArray(vals []super.Value) super.Value {
+func makeUnionArray(sctx *super.Context, vals []super.Value) super.Value {
 	types := make(map[super.Type]struct{})
 	for _, val := range vals {
 		types[val.Type()] = struct{}{}
@@ -106,12 +106,12 @@ func (e *Expr) makeUnionArray(vals []super.Value) super.Value {
 	for typ := range types {
 		utypes = append(utypes, typ)
 	}
-	union := e.sctx.LookupTypeUnion(utypes)
+	union := sctx.LookupTypeUnion(utypes)
 	var b zcode.Builder
 	for _, val := range vals {
 		super.BuildUnion(&b, union.TagOf(val.Type()), val.Bytes())
 	}
-	return super.NewValue(e.sctx.LookupTypeArray(union), b.Bytes())
+	return super.NewValue(sctx.LookupTypeArray(union), b.Bytes())
 }
 
 func (e *Expr) Pull(done bool) (zbuf.Batch, error) {
