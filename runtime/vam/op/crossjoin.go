@@ -84,13 +84,13 @@ func (c *crossJoin) makeOuterVec(length int) vector.Any {
 	}
 	index := c.outerIndexes[c.outerVecSlot]
 	if len(index) < length {
-		index = slices.Grow(index, length)[:length]
+		index = slices.Grow(index[:0], length)[:length]
 		for i := range index {
 			index[i] = c.outerVecSlot
 		}
 		c.outerIndexes[c.outerVecSlot] = index
 	}
-	return vector.Pick(c.outerVec, index)
+	return vector.Pick(c.outerVec, index[:length])
 }
 
 func (c *crossJoin) makeResult(vecs ...vector.Any) vector.Any {
