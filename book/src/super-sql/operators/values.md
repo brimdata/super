@@ -49,7 +49,7 @@ WITH points(x,y) AS (
   VALUES (2,1),(4,2),(6,3)
 )
 SELECT vals
-FROM points JOIN LATERAL (VALUES (x+y), (x-y)) t(vals) on true"
+FROM points CROSS JOIN LATERAL (VALUES (x+y), (x-y)) t(vals)"
 ```
 which produces
 ```

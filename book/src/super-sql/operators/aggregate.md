@@ -1,6 +1,6 @@
 ### Operator
 
-&emsp; **aggregate** &mdash; perform aggregations
+&emsp; **aggregate** &mdash; execute aggregation functions with optional group-by expressions
 
 ### Synopsis
 
@@ -11,9 +11,6 @@
 [aggregate] [<field>:=]<agg> [where <expr>][, [<field>:=]<agg> [where <expr>] ...] [by [<field>][:=<expr>][, [<field>][:=<expr>]] ...]
 [aggregate] by [<field>][:=<expr>][, [<field>][:=<expr>] ...]
 ```
-
-> Note: `aggregate` was previously known as `summarize`, which is now deprecated
-> and will be removed from the language in the future.
 
 ### Description
 
