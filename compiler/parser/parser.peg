@@ -800,24 +800,6 @@ UnnestOp
       return o, nil
     }
 
-Locals
-  = _ WITH _ first:LocalsAssignment rest:(__ "," __ a:LocalsAssignment { return a, nil })* {
-      return prepend(first, rest), nil
-    }
-
-LocalsAssignment
-  = name:Identifier opt:(__ "=" __ Expr)? {
-      def := ast.Def{
-        Name: name.(*ast.ID),
-        Expr: name.(*ast.ID),
-        Loc: loc(c),
-      }
-      if opt != nil {
-        def.Expr = opt.([]any)[3].(ast.Expr)
-      }
-      return def, nil
-    }
-
 TypeArg
   = _ BY _ typ:Type { return typ, nil }
 

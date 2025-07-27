@@ -56,20 +56,6 @@ func (c *canon) assignment(a ast.Assignment) {
 	c.expr(a.RHS, "")
 }
 
-func (c *canon) defs(defs []ast.Def, separator string) {
-	for k, d := range defs {
-		if k > 0 {
-			c.write(separator)
-		}
-		c.def(d)
-	}
-}
-
-func (c *canon) def(d ast.Def) {
-	c.write("%s=", d.Name.Name)
-	c.expr(d.Expr, "")
-}
-
 func (c *canon) exprs(exprs []ast.Expr) {
 	for k, e := range exprs {
 		if k > 0 {

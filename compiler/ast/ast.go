@@ -701,15 +701,6 @@ type Assignments []Assignment
 func (a Assignments) Pos() int { return a[0].Pos() }
 func (a Assignments) End() int { return a[len(a)-1].End() }
 
-// Def is like Assignment but the LHS is an identifier that may be later
-// referenced.  This is used for const blocks in Sequential and var blocks
-// in a let scope.
-type Def struct {
-	Name *ID  `json:"name"`
-	Expr Expr `json:"expr"`
-	Loc  `json:"loc"`
-}
-
 func (*Scope) opNode()        {}
 func (*Parallel) opNode()     {}
 func (*Switch) opNode()       {}
