@@ -54,7 +54,6 @@
     - [Expressions](super-sql/expressions.md)
     - [Statements](super-sql/statements.md)
     - [Search](super-sql/search.md)
-    - [Pipes](super-sql/pipes.md)
     - [Comments](super-sql/comments.md)
     - [Pipe Operators](super-sql/operators/intro.md)
         - [aggregate](super-sql/operators/aggregate.md)

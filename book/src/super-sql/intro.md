@@ -20,6 +20,9 @@ and the SuperSQL compiler often optimizes a query into an implemention
 different from the dataflow implied by the pipeline to achieve the 
 same semantics with better performance.
 
+When there is no [`from`](operators/from.md) operator
+providing source data, a single `null` value is implied.
+
 ### SQL Compatibility
 
 SuperSQL is [backward compatible](../intro.md#supersql)
@@ -31,7 +34,7 @@ For example, these are all valid SuperSQL queries:
 ```
 SELECT 'hello, world'
 SELECT * FROM table
-SELECT * FROM f1.json JOIN f2.json WHERE f1.id=f2.id
+SELECT * FROM f1.json JOIN f2.json ON f1.id=f2.id
 SELECT watchers FROM https://api.github.com/repos/brimdata/super
 ```
 

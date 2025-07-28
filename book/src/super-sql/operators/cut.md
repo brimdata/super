@@ -10,7 +10,7 @@ cut <field>[:=<expr>] [, <field>[:=<expr>] ...]
 ### Description
 
 The `cut` operator extracts values from each input record in the
-form of one or more [field assignments](../pipeline-model.md#field-assignments),
+form of one or more [field assignments](./intro.md#field-assignments),
 creating one field for each expression.  Unlike the `put` operator,
 which adds or modifies the fields of a record, `cut` retains only the
 fields enumerated, much like a SQL select clause.

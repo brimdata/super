@@ -14,8 +14,13 @@
 
 ### Description
 
+The `aggregate` operator  aggregates groups of its input to reduce
+each group of values to one or more values  according to one or more
+[aggregate functions](../aggregates/intro.md)
+When there is no grouping clause, the aggregate functions are applied to the entire input.
+
 In the first four forms, the `aggregate` operator consumes all of its input,
-applies an [aggregate function](../aggregates/_index.md) to each input value
+applies one or more aggregate functions `<agg>` to each input value
 optionally filtered by a `where` clause and/or organized with the grouping
 keys specified after the `by` keyword, and at the end of input produces one
 or more aggregations for each unique set of grouping key values.
@@ -28,7 +33,7 @@ The `aggregate` keyword is optional since it can be used as a
 [shortcut](../shortcuts.md).
 
 Each aggregate function may be optionally followed by a `where` clause, which
-applies a Boolean expression that indicates, for each input value,
+applies a Boolean expression `<expr>` that indicates, for each input value,
 whether to deliver it to that aggregate. `where` clauses are analogous
 to the [`where`](where.md) operator but apply their filter to the input
 argument stream to the aggregatge function.

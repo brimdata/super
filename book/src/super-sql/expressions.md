@@ -35,6 +35,94 @@ Because this patter is so common,
 to perform computations on input values and are typically evaluated once per each
 input value [`this`](pipeline-model.md#the-special-value-this).
 
+## XXX The Special Value `this`
+
+In SuperSQL, there are no looping constructs and variables are limited to binding
+values between [lateral scopes](lateral-subqueries.md#lateral-scope).
+Instead, the input sequence
+to an operator is produced continuously and any output values are derived
+from input values.
+
+In contrast to SQL, where a query may refer to input tables by name,
+there are no explicit tables and an operator instead refers
+to its input values using the special identifier `this`.
+
+For example, sorting the following input produces the case-sensitive output
+shown.
+```mdtest-spq
+# spq
+sort
+# input
+"foo"
+"bar"
+"BAZ"
+# expected output
+"BAZ"
+"bar"
+"foo"
+```
+
+But we can make the sort case-insensitive by applying a [function](functions/_index.md) to the
+input values with the expression `lower(this)`, which converts
+each value to lower-case for use in in the sort without actually modifying
+the input value, e.g.,
+
+```mdtest-spq
+# spq
+sort lower(this)
+# input
+"foo"
+"bar"
+"BAZ"
+# expected output
+"bar"
+"BAZ"
+"foo"
+```
+
+## Implied Field References
+
+XXX DISCARD (replaced by text in expressions section)
+
+A common SuperSQL use case is to process sequences of record-oriented data
+(e.g., arising from formats like JSON or Avro) in the form of events
+or structured logs.  In this case, the input values to the operators
+are [records](../formats/data-model.md#21-record) and the fields of a record are referenced with the dot operator.
+
+For example, if the input above were a sequence of records instead of strings
+and perhaps contained a second field, then we could refer to the field `s`
+using `this.s` when sorting, which would give e.g.,
+```mdtest-spq
+# spq
+sort this.s
+# input
+{s:"foo",x:1}
+{s:"bar",x:2}
+{s:"BAZ",x:3}
+# expected output
+{s:"BAZ",x:3}
+{s:"bar",x:2}
+{s:"foo",x:1}
+```
+
+This pattern is so common that field references to `this` may be shortened
+by simply referring to the field by name wherever an expression is expected,
+e.g., `sort s` is shorthand for `sort this.s`.
+
+```mdtest-spq
+# spq
+sort s
+# input
+{s:"foo",x:1}
+{s:"bar",x:2}
+{s:"BAZ",x:3}
+# expected output
+{s:"BAZ",x:3}
+{s:"bar",x:2}
+{s:"foo",x:1}
+```
+
+
 ### Arithmetic
 
 Arithmetic operations (`*`, `/`, `%`, `+`, `-`) follow customary syntax

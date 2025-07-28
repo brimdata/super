@@ -126,6 +126,10 @@ to be included as HTTP header options, and
 Currently, the headers expression must evaluate to a compile-time constant though this
 may change to allow dynamic computation in a future version of SuperSQL.
 
+#### From Expression
+
+XXX document `from eval()`
+
 #### Combining Data
 
 To combine data from multiple sources using pipe operators, `from` may be 
@@ -204,8 +208,6 @@ super -s -c 'from https://raw.githubusercontent.com/brimdata/zui-insiders/main/p
 
 The remaining examples below assume the existence of the SuperDB database
 created and populated by the following commands:
-
-XXX take out meta reference below, use better dataset
 
 ```mdtest-command
 export SUPER_DB=example
