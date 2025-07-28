@@ -262,6 +262,39 @@ XXX explain merge/combine semantics since we took them out of operators docs.
 This goes under the explanation of order, which diverges from but is backward
 compatible with SQL.  Some of this is already explain in from.md
 
+XXX For example:
+
+```mdtest-spq
+# spq
+switch this
+  case 1 ( values {val:this,message:"one"} )
+  case 2 ( values {val:this,message:"two"} )
+  default ( values {val:this,message:"many"} )
+| sort
+# input
+1
+2
+3
+4
+# expected output
+{val:1,message:"one"}
+{val:2,message:"two"}
+{val:3,message:"many"}
+{val:4,message:"many"}
+```
+Note that the output order of the switch branches is undefined (indeed they run
+in parallel on multiple threads).  To establish a consistent sequence order,
+a [`merge` operator](operators/merge.md)
+may be applied at the output of the `switch` specifying a sort key upon which
+to order the upstream data.  Often such order does not matter (e.g., when the output
+of the switch hits an [aggregator](aggregates/_index.md)), in which case it is typically more performant
+to omit the merge (though the SuperDB runtime will often delete such unnecessary
+operations automatically as part optimizing queries when they are compiled).
+
+If no `merge` or `join` is indicated downstream of a `fork` or `switch`,
+then the implied `combine` operator is presumed.  In this case, values are
+forwarded from the switch to the downstream operator in an undefined order.
+
 ### Data Types
 
 XXX
