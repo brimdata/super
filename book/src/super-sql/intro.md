@@ -153,7 +153,9 @@ from https://api.github.com/repos/brimdata/super
 """
 ```
 
-### Referencing Data
+### Dataflow Scoping
+
+XXX intro dataflow vs relational scoping
 
 In SQL expressions, data from tables is generally referenced with expressions that
 specify a table name and a column name withing that table,
@@ -255,6 +257,10 @@ $ super -c "from input.json | values typeof(this)"
 ### Data Order
 
 XXX
+
+XXX explain merge/combine semantics since we took them out of operators docs.
+This goes under the explanation of order, which diverges from but is backward
+compatible with SQL.  Some of this is already explain in from.md
 
 ### Data Types
 

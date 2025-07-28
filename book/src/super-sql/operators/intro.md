@@ -1,15 +1,8 @@
 ## Pipe Operators
 
-In the SuperSQL pipe model, each pipe operator takes its input from
-the output of its upstream operator beginning either with a data source
-or with an implied source.  When 
-
-XXX explain merge/combine semantics since we took them out of operators docs.
-This goes under the explanation of order, which diverges from but is backward
-compatible with SQL.  Some of this is already explain in from.md
-
-Each pipe operator is identified by its name and performs a specific operation
-on a sequence of values.
+Each component of a SuperSQL [pipeline](../intro.md/#pipe-queries)
+is a pipe operator and each operator is identified by its name
+and performs a specific operation on a sequence of values.
 
 Some operators, like
 [`aggregate`](operators/aggregate.md) and [`sort`](operators/sort.md),
@@ -29,10 +22,10 @@ The [`search`](search.md) and [`where`](where.md)
 operators "find" values in their input and drop
 the ones that do not match what is being looked for.
 
-The [`values` operator](values.md) emits one or more output values
+The [`values`](values.md) operator emits one or more output values
 for each input value based on arbitrary [expressions](expressions.md),
 providing a convenient means to derive arbitrary output values as a function
-of each input value, much like the map concept in the MapReduce framework.
+of each input value.
 
 The [`fork` operator](fork.md) copies its input to parallel
 branches of a pipeline.  The output of these parallel branches can be combined
@@ -51,7 +44,7 @@ switch this
   case 1 ( values {val:this,message:"one"} )
   case 2 ( values {val:this,message:"two"} )
   default ( values {val:this,message:"many"} )
-| merge val
+| sort
 # input
 1
 2
@@ -76,14 +69,10 @@ If no `merge` or `join` is indicated downstream of a `fork` or `switch`,
 then the implied `combine` operator is presumed.  In this case, values are
 forwarded from the switch to the downstream operator in an undefined order.
 
-### Dataflow Scoping
-
-
-
-### Field Assignments
+### Field Assignment
 
 Several pipe operators manipulate records by modifying fields
-or by creating new records are created from component expressions.
+or by creating new records from component expressions.
 
 For example,
 
@@ -93,7 +82,7 @@ For example,
 [aggregate functions](../aggregates/intro.md) and grouping expressions.
 
 In all of these cases, the SuperSQL language uses the token `:=` to denote
-field assignment and has the form:
+_field assignment_ and has the form:
 ```
 <field> := <expr>
 ```
@@ -107,6 +96,4 @@ or
 aggregate salary:=sum(income) by address:=lower(address)
 ```
 This style of "assignment" to a record value is distinguished from the `=`
-token which binds a locally scoped name to a value that can be referenced
-in later expressions.
-
+symbol, which denotes Boolean equality.
