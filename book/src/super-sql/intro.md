@@ -20,9 +20,6 @@ and the SuperSQL compiler often optimizes a query into an implemention
 different from the dataflow implied by the pipeline to achieve the 
 same semantics with better performance.
 
-When there is no [`from`](operators/from.md) operator
-providing source data, a single `null` value is implied.
-
 ### SQL Compatibility
 
 SuperSQL is [backward compatible](../intro.md#supersql)
@@ -108,6 +105,20 @@ results in
 ```
 null
 ```
+This pattern provides a simple means to produce a constant input within a
+query using the [values](operators/values.md) operator, wherein
+`values` takes as input a single null and produces each constant
+expression in turn, e.g.,
+```
+super -c "values 1,2,3"
+```
+results in
+```
+1
+2
+3
+```
+
 When running on the local file system, `from` may refer to a file, an HTTP
 endpoint, or an [S3](../integrations/amazon-s3.md) URI.
 When connected to [SuperDB database](../commands/super-db.md), `from` typically

@@ -60,7 +60,10 @@ also has many playground examples.
 
 Here are a few examples to get going.
 
-#### _Hello, world_
+---
+
+**_Hello, world_**
+
 ```mdtest-command
 super -s -c "SELECT VALUE 'hello, world'"
 ```
@@ -69,7 +72,10 @@ produces this SUP output
 "hello, world"
 ```
 
-#### _Some values of available [data types](../super-sql/data-types.md)_
+---
+
+**_Some values of available [data types](../super-sql/types/intro.md)_**
+
 ```mdtest-spq
 # spq
 SELECT VALUE in
@@ -85,7 +91,10 @@ SELECT VALUE in
 |["apple","banana"]|
 ```
 
-#### _The types of various data_
+---
+
+**_The types of various data_**
+
 ```mdtest-spq
 # spq
 SELECT VALUE typeof(in)
@@ -101,7 +110,9 @@ SELECT VALUE typeof(in)
 <|[string]|>
 ```
 
-#### _A simple [aggregation](../super-sql/aggregates/intro.md)_
+---
+
+**_A simple [aggregation](../super-sql/operators/aggregate.md)_**
 ```mdtest-spq
 # spq
 sum(val) by key | sort key
@@ -114,7 +125,9 @@ sum(val) by key | sort key
 {key:"foo",sum:4}
 ```
 
-#### _Read CSV input and [cast](../super-sql/functions/types/cast.md) a to an integer from default float_
+---
+
+**_Read CSV input and [cast](../super-sql/functions/types/cast.md) a to an integer from default float_**
 ```mdtest-spq
 # spq
 a:=int64(a)
@@ -127,7 +140,9 @@ a,b
 {a:2,b:"bar"}
 ```
 
-#### _Read JSON input and cast to an integer from default float_
+---
+
+**_Read JSON input and cast to an integer from default float_**
 ```mdtest-spq
 # spq
 a:=int64(a)
@@ -139,7 +154,10 @@ a:=int64(a)
 {a:2,b:"bar"}
 ```
 
-#### _Make a schema-rigid Parquet file using fuse, then output the Parquet file as SUP_
+---
+
+**_Make a schema-rigid Parquet file using fuse, then output the Parquet file
+as [SUP](../formats/sup.md)_**
 ```mdtest-command
 echo '{a:1}{a:2}{b:3}' | super -f parquet -o tmp.parquet -c fuse -
 super -s tmp.parquet
