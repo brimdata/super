@@ -483,6 +483,19 @@ func (a *analyzer) semSQLOp(op ast.Op, seq dag.Seq) (dag.Seq, schema) {
 			out = append(out, &dag.Head{Kind: "Head", Count: a.evalPositiveInteger(op.Limit)})
 		}
 		return out, schema
+	case *ast.Union:
+		if op.Distinct {
+			a.error(op, errors.New("UNION DISTINCT not currently supported"))
+		}
+		left, leftSch := a.semSQLOp(op.Left, seq)
+		left, _ = derefSchema(leftSch, left)
+		right, rightSch := a.semSQLOp(op.Right, seq)
+		right, _ = derefSchema(rightSch, right)
+		return dag.Seq{
+			&dag.Fork{Kind: "Fork", Paths: []dag.Seq{left, right}},
+			&dag.Combine{Kind: "Combine"},
+		}, &dynamicSchema{}
+
 	case *ast.With:
 		if op.Recursive {
 			a.error(op, errors.New("recursive WITH queries not currently supported"))

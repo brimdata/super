@@ -508,7 +508,7 @@ func (a *analyzer) semDebugOp(o *ast.Debug, mainAst ast.Seq, in dag.Seq) dag.Seq
 // with either an aggregate or filter op based on the function's name.
 func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 	switch o := o.(type) {
-	case *ast.Select, *ast.SQLLimitOffset, *ast.OrderBy, *ast.SQLPipe, *ast.With, *ast.SQLValues:
+	case *ast.Select, *ast.SQLLimitOffset, *ast.OrderBy, *ast.SQLPipe, *ast.Union, *ast.With, *ast.SQLValues:
 		seq, sch := a.semSQLOp(o, seq)
 		seq, _ = derefSchema(sch, seq)
 		return seq
@@ -866,19 +866,6 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 			},
 		})
 		return append(seq, dag.NewValues(&dag.This{Kind: "This", Path: field.Path{"sample"}}))
-	case *ast.Union:
-		if o.Distinct {
-			a.error(o, errors.New("UNION DISTINCT not currently supported"))
-			return append(seq, badOp())
-		}
-		left, leftSch := a.semSQLOp(o.Left, seq)
-		left, _ = derefSchema(leftSch, left)
-		right, rightSch := a.semSQLOp(o.Right, seq)
-		right, _ = derefSchema(rightSch, right)
-		return dag.Seq{
-			&dag.Fork{Kind: "Fork", Paths: []dag.Seq{left, right}},
-			&dag.Combine{Kind: "Combine"},
-		}
 	case *ast.Assert:
 		cond := a.semExpr(o.Expr)
 		// 'assert EXPR' is equivalent to

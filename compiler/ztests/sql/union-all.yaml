@@ -1,5 +1,5 @@
 script: |
-  super -s -c 'SELECT * FROM a.sup UNION ALL SELECT * FROM b.sup |> sort'
+  super -s -c 'SELECT * FROM a.sup UNION ALL SELECT * FROM b.sup UNION ALL SELECT * from c.sup |> sort x'
 
 vector: true
 
@@ -11,6 +11,9 @@ inputs:
     data: |
       {x:1,y:2}
       {y:3,x:4}
+  - name: c.sup
+    data: |
+      {x:5}
 
 outputs:
   - name: stdout
@@ -18,3 +21,4 @@ outputs:
       {x:1,y:2}
       {x:1,y:2}
       {y:3,x:4}
+      {x:5}
