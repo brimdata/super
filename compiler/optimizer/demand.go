@@ -190,6 +190,8 @@ func demandForExpr(expr dag.Expr) demand.Demand {
 			d = demand.Union(d, demandForExpr(e.Value))
 		}
 		return d
+	case *dag.QueryExpr:
+		return demand.Union(DemandForSeq(expr.Body, demand.All())...)
 	case *dag.RecordExpr:
 		d := demand.None()
 		for _, e := range expr.Elems {

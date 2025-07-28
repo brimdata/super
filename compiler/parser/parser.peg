@@ -1095,6 +1095,7 @@ Primary
   / Tuple
   / "(" __ expr:UnnestExpr __ ")" { return expr, nil }
   / "(" __ expr:Expr __ ")" { return expr, nil }
+  / "(" __ expr:QueryExpr __ ")" { return expr, nil }
 
 CaseExpr
   = CASE cases:When+ else_:(_ ELSE _ Expr)? _ END (_ CASE)? {
@@ -1153,6 +1154,15 @@ UnnestExpr
           Loc: loc(c),
       }, nil
     }
+
+QueryExpr
+  = body:Seq {
+      return &ast.QueryExpr{
+        Kind: "QueryExpr",
+        Body: sliceOf[ast.Op](body),
+        Loc: loc(c),
+      }, nil
+  }
 
 Record
   = "{" __ elems:RecordElems __ "}" {

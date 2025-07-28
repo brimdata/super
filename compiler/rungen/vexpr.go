@@ -11,7 +11,9 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr/function"
 	vamexpr "github.com/brimdata/super/runtime/vam/expr"
 	vamfunction "github.com/brimdata/super/runtime/vam/expr/function"
+	vamop "github.com/brimdata/super/runtime/vam/op"
 	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/vector"
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -48,6 +50,8 @@ func (b *Builder) compileVamExpr(e dag.Expr) (vamexpr.Evaluator, error) {
 		return b.compileVamConditional(*e)
 	case *dag.Call:
 		return b.compileVamCall(e)
+	case *dag.QueryExpr:
+		return b.compileVamQueryExpr(e)
 	case *dag.RegexpMatch:
 		return b.compileVamRegexpMatch(e)
 	case *dag.RegexpSearch:
@@ -291,6 +295,20 @@ func (b *Builder) compileVamRecordExpr(e *dag.RecordExpr) (vamexpr.Evaluator, er
 		})
 	}
 	return vamexpr.NewRecordExpr(b.sctx(), elems), nil
+}
+
+func (b *Builder) compileVamQueryExpr(query *dag.QueryExpr) (vamexpr.Evaluator, error) {
+	exits, err := b.compileVamSeq(query.Body, nil)
+	if err != nil {
+		return nil, err
+	}
+	var exit vector.Puller
+	if len(exits) == 1 {
+		exit = exits[0]
+	} else {
+		exit = vamop.NewCombine(b.rctx, exits)
+	}
+	return vamexpr.NewQueryExpr(b.rctx, exit), nil
 }
 
 func (b *Builder) compileVamRegexpMatch(match *dag.RegexpMatch) (vamexpr.Evaluator, error) {

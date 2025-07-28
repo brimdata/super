@@ -175,6 +175,8 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 			Kind:  "Literal",
 			Value: sup.FormatValue(val),
 		}
+	case *ast.QueryExpr:
+		return a.semQueryExpr(e)
 	case *ast.RecordExpr:
 		fields := map[string]struct{}{}
 		var out []dag.RecordElem
@@ -990,6 +992,26 @@ func (a *analyzer) semFString(f *ast.FString) dag.Expr {
 		out = &dag.BinaryExpr{Kind: "BinaryExpr", LHS: out, Op: "+", RHS: e}
 	}
 	return out
+}
+
+func (a *analyzer) semQueryExpr(q *ast.QueryExpr) dag.Expr {
+	e := &dag.QueryExpr{
+		Kind: "QueryExpr",
+		Body: a.semSeq(q.Body),
+	}
+	if !HasSource(e.Body) {
+		e.Body.Prepend(&dag.NullScan{Kind: "NullScan"})
+	}
+	if !isSQLOp(q.Body[0]) {
+		return e
+	}
+	// SQL expects a record with a single column result so fetch the first
+	// value.
+	return &dag.IndexExpr{
+		Kind:  "IndexExpr",
+		Expr:  e,
+		Index: &dag.Literal{Kind: "Literal", Value: "1"},
+	}
 }
 
 func (a *analyzer) evalPositiveInteger(e ast.Expr) int {

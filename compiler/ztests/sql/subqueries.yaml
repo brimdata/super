@@ -1,0 +1,14 @@
+script: |
+  super -s -c 'select 1+(select 1) as v'
+  echo // ===
+  # pipe subquery does not select first index of record.
+  super -s -c 'select (values {y:1+1}) as x'
+
+vector: true
+
+outputs:
+  - name: stdout
+    data: |
+      {v:2}
+      // ===
+      {x:{y:2}}

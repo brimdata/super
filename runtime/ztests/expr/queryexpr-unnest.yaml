@@ -1,0 +1,36 @@
+script: |
+  super -s -c 'from input.sup
+            | values (unnest {outer: this, inner: (from foo.sup)} | where inner.id=outer.id | values inner.name) +
+              "_" +
+              (unnest {outer: this, inner: (from bar.sup)} | where inner.id=outer.id | values inner.name)'
+
+# enable once we allow unnest expressions in vector runtime.
+# vector: true
+
+inputs:
+  - name: input.sup
+    data: |
+      {id:4}
+      {id:1}
+      {id:2}
+      {id:3}
+  - name: foo.sup
+    data: |
+      {id:1,name:"foo1"}
+      {id:2,name:"foo2"}
+      {id:3,name:"foo3"}
+      {id:4,name:"foo4"}
+  - name: bar.sup
+    data: |
+      {id:1,name:"bar1"}
+      {id:2,name:"bar2"}
+      {id:3,name:"bar3"}
+      {id:4,name:"bar4"}
+
+outputs:
+  - name: stdout
+    data: |
+      "foo4_bar4"
+      "foo1_bar1"
+      "foo2_bar2"
+      "foo3_bar3"
