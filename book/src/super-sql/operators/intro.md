@@ -28,21 +28,14 @@ for each input value based on arbitrary [expressions](expressions.md),
 providing a convenient means to derive arbitrary output values as a function
 of each input value.
 
-XXX rework refs to merge/combine
-
 The [`fork` operator](fork.md) copies its input to parallel
-branches of a pipeline.  The output of these parallel branches can be combined
-in a number of ways:
-* merged in sorted order using the [`merge` operator](operators/merge.md),
-* joined using the [`join` operator](operators/join.md), or
-* combined in an undefined order using the implied [`combine` operator](operators/combine.md).
-
-A pipeline can also be split to multiple branches using the
-[`switch` operator](switch.md), in which data is routed to only one
-corresponding branch (or dropped) based on the switch clauses.
+branches of a pipeline, while the [`switch` operator](switch.md)
+routes each input value to only one corresponding branch
+(or drops the value) based on the switch clauses.
 
 While the output order of the switch branches is undefined, order may be
-reestablished by applying a [`sort`](sort.md) at the merge point of the `switch`.
+reestablished by applying a [`sort`](sort.md) at the merge point of the `switch`
+or `fork`.
 
 ### Field Assignment
 
@@ -72,3 +65,23 @@ aggregate salary:=sum(income) by address:=lower(address)
 ```
 This style of "assignment" to a record value is distinguished from the `=`
 symbol, which denotes Boolean equality.
+
+Where field assignments are expected in the SuperSQL syntax, the field name
+and `:=` symbol may be omitted and replaced with just the expression, as in
+```
+aggregate count() by upper(key)
+```
+or 
+```
+put lower(s), a.b.c, x+1
+```
+In this case, the field name is derived from the expression body as follows:
+* for a dotted path expression, the name is the last element of the path;
+* for a function or aggregate function, the name is the name of the function;
+* otherwise, the name is the expression text formatted in a canonical form.
+
+In the two examples above, the derived names are filled in as follows:
+```
+aggregate count:=count() by upper:=upper(key)
+put lower:=lower(s), c:=a.b.c, `x+1`:=x+1
+```
