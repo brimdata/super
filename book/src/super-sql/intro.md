@@ -23,10 +23,12 @@ same semantics with better performance.
 ### SQL Compatibility
 
 SuperSQL is [backward compatible](../intro.md#supersql)
-with traditional SQL in that any SQL query
-is also a SuperSQL query.  SQL queries appear as a [pipe operator](#pipe-operators)
+with relational SQL in that any SQL query is also a SuperSQL query.
+SQL queries appear as a [pipe operator](operators/intro.md)
 anywhere in a SuperSQL pipe query.
 
+In particular, a single pipe operator that happens to be a SQL query
+is also a SuperSQL pipe query.
 For example, these are all valid SuperSQL queries:
 ```
 SELECT 'hello, world'
@@ -35,13 +37,27 @@ SELECT * FROM f1.json JOIN f2.json ON f1.id=f2.id
 SELECT watchers FROM https://api.github.com/repos/brimdata/super
 ```
 
-### Pipe Operators
+### Pipe Queries
 
 The entities that transform data within a SuperSQL pipeline are called
 [pipe operators](operators/intro.md) 
 and take super-structured input from the upstream operator or data source,
 operate upon the input, and produce zero or more super-structured
 values as output.
+
+Unlike relational SQL, SuperSQL pipelines define their computation in terms of dataflow
+through the directed graph of operators.  But instead of relational tables
+propagating from one pipe operator to another
+(e.g., as in [Zeta pipe SQL](https://github.com/google/zetasql/blob/master/docs/pipe-syntax.md#pipe-operator-semantics)), any sequence of potentially heterogeneously typed data
+may flow between SuperSQL pipe operators.
+
+When a super-structured sequence conforms to a single, homoegeneous
+[record type](types/record.md),
+then the data is equivalent to a SQL relation.
+And because [any SQL query is also a valid pipe operator](sql/intro.md),
+SuperSQL is thus a superset of SQL.
+In particular, a single operator defined as pure SQL is an
+acceptable SuperSQL query so all SQL query texts are also SuperSQL queries.
 
 Operators like
 [sort](operators/sort.md),
@@ -136,24 +152,6 @@ from https://api.github.com/repos/brimdata/super
 | values description,license.name
 """
 ```
-
-### Operator Data Model
-
-Unlike relational SQL, SuperSQL pipelines define their computation in terms of dataflow
-through the directed graph of operators.  But instead of relational tables
-propagating from one pipe operator to another
-(e.g., as in [Zeta pipe SQL](https://github.com/google/zetasql/blob/master/docs/pipe-syntax.md#pipe-operator-semantics)), any sequence of potentially heterogeneously typed data
-may flow between SuperSQL pipe operators.
-
-When a super-structured sequence conforms to a single, homoegeneous
-[record type](types/record.md),
-then the data is equivalent to a SQL relation.
-And because [any SQL query is also a valid pipe operator](sql/intro.md),
-SuperSQL is thus a superset of SQL.
-In particular, a single operator defined as pure SQL is an
-acceptable SuperSQL query so all SQL query texts are also SuperSQL queries.
-
-> XXX cite areas of SQL that are TBD and mention dialects
 
 ### Referencing Data
 

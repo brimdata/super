@@ -10,11 +10,11 @@ While all types include a null value, e.g., `null::int64` is the
 null value whose type is `int64`, the null type has no other values
 besides the null value.
 
-In traditional SQL, a null indicates the oxymoronish concept of the presence
+In relational SQL, a null indicates the oxymoronish concept of the presence
 of an absent value.  Nulls arise because relational columns are fixed in
 structure and real-world data can be eclectic and not always fit
 into predetermined structure.  Null values also arise when dynamic errors
-are generated and there is no way to represent the error in the fixed-type
+are generated and there is no way to represent a rich error type in the fixed-type
 column.
 
 Because SuperSQL has [first-class errors](errors.md) (obviating the need to

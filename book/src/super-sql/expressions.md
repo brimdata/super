@@ -19,7 +19,7 @@ as part of their semantics.
 
 ### Input Data
 
-In contrast to traditional SQL where the expressions in the various
+In contrast to relational SQL where the expressions in the various
 SELECT query clauses have different scoping rules about how input data is referenced,
 the model used by pipe operators in SuperSQL is straightforward:
 * all input is referenced as a single value called `this`, and
