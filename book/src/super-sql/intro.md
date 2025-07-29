@@ -24,7 +24,7 @@ same semantics with better performance.
 
 SuperSQL is [backward compatible](../intro.md#supersql)
 with relational SQL in that any SQL query is also a SuperSQL query.
-SQL queries appear as a [pipe operator](operators/intro.md)
+A SQL query may appear as a [pipe operator](operators/intro.md)
 anywhere in a SuperSQL pipe query.
 
 In particular, a single pipe operator that happens to be a SQL query
