@@ -197,23 +197,11 @@ Aggregation
 Aggregate = (AGGREGATE / SUMMARIZE) _
 
 AggregateKeys
-  = (GROUP _)? BY _ columns:FlexAssignments { return columns, nil }
+  = (GROUP _)? BY _ columns:Assignments { return columns, nil }
 
 LimitArg
   = _ WITH _ "-limit" _ limit:UInt { return limit, nil }
   / "" { return 0, nil }
-
-// A FlexAssignment is like an Assignment but it can optionally omit the lhs,
-// in which case the semantic pass will infer a name from the rhs, e.g., for
-// an expression like "count() by foo", the rhs is Field "foo" and the lhs is nil.
-FlexAssignment
-  = Assignment
-  / expr:Expr { return ast.Assignment{Kind:"Assignment",RHS:expr.(ast.Expr),Loc:loc(c)}, nil }
-
-FlexAssignments
-  = first:FlexAssignment rest:(__ "," __ expr:FlexAssignment { return expr, nil })* {
-      return prepend(first, rest), nil
-    }
 
 AggAssignment
   = lval:Lval __ ":=" __ agg:Agg {
@@ -422,7 +410,7 @@ TopOp
     }
 
 CutOp
-  = CUT _ args:FlexAssignments {
+  = CUT _ args:Assignments {
       return &ast.Cut{
         Kind: "Cut",
         Args: sliceOf[ast.Assignment](args),
@@ -593,7 +581,7 @@ ShapesOp
 //   2) A put operator.
 //  The semantic pass is responsible for converting it to one of the two.
 OpAssignment
-  = a:Assignments {
+  = &(Lval __ ":=") a:Assignments {
       return &ast.OpAssignment{
           Kind: "OpAssignment",
           Assignments: sliceOf[ast.Assignment](a),
@@ -821,13 +809,16 @@ Assignments
   }
 
 Assignment
-  = lhs:Lval __ ":=" __ rhs:Expr {
-      return ast.Assignment{
+  = lhs:(lval:Lval __ ":=" { return lval, nil })? __ rhs:Expr {
+      a := ast.Assignment{
           Kind: "Assignment",
-          LHS: lhs.(ast.Expr),
           RHS: rhs.(ast.Expr),
           Loc: loc(c),
-      }, nil
+      }
+      if lhs != nil {
+        a.LHS = lhs.(ast.Expr)
+      }
+      return a, nil
     }
 
 Expr = ConditionalExpr

@@ -1,0 +1,9 @@
+spq: put 1+1
+
+vector: true
+
+input: |
+  {}
+
+output: |
+  {"1+1":2}

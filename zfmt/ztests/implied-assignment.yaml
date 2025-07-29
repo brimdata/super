@@ -8,5 +8,4 @@ outputs:
     data: |
       put x:=1
       put x:=1,y:=lower(s)
-      aggregate
-          x:=count(),sum(x)
+      aggregate x:=count(),sum(x)
