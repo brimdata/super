@@ -791,12 +791,7 @@ func (a *analyzer) semAssignment(assign ast.Assignment) dag.Assignment {
 	rhs := a.semExpr(assign.RHS)
 	var lhs dag.Expr
 	if assign.LHS == nil {
-		if path, err := deriveNameFromExpr(rhs, assign.RHS); err != nil {
-			a.error(&assign, err)
-			lhs = badExpr()
-		} else {
-			lhs = &dag.This{Kind: "This", Path: path}
-		}
+		lhs = &dag.This{Kind: "This", Path: deriveNameFromExpr(rhs, assign.RHS)}
 	} else {
 		lhs = a.semExpr(assign.LHS)
 	}
@@ -823,28 +818,28 @@ func isLval(e dag.Expr) bool {
 	return false
 }
 
-func deriveNameFromExpr(e dag.Expr, a ast.Expr) ([]string, error) {
+func deriveNameFromExpr(e dag.Expr, a ast.Expr) []string {
 	switch e := e.(type) {
 	case *dag.Agg:
-		return []string{e.Name}, nil
+		return []string{e.Name}
 	case *dag.Call:
 		switch strings.ToLower(e.Name) {
 		case "every":
 			// If LHS is nil and the call is every() make the LHS field ts since
 			// field ts assumed with every.
-			return []string{"ts"}, nil
+			return []string{"ts"}
 		case "quiet":
 			if len(e.Args) > 0 {
 				if this, ok := e.Args[0].(*dag.This); ok {
-					return this.Path, nil
+					return this.Path
 				}
 			}
 		}
-		return []string{e.Name}, nil
+		return []string{e.Name}
 	case *dag.This:
-		return e.Path, nil
+		return e.Path
 	default:
-		return []string{zfmt.ASTExpr(a)}, nil
+		return []string{zfmt.ASTExpr(a)}
 	}
 }
 
