@@ -47,11 +47,6 @@ type (
 		ValType Type   `json:"val_type"`
 		Loc     `json:"loc"`
 	}
-	TypeNull struct {
-		Kind       string `json:"kind" unpack:""`
-		KeywordPos int    `json:"pos"`
-		Loc        `json:"loc"`
-	}
 	TypeError struct {
 		Kind string `json:"kind" unpack:""`
 		Type Type   `json:"type"`
@@ -77,7 +72,6 @@ func (*TypeSet) typeNode()       {}
 func (*TypeUnion) typeNode()     {}
 func (*TypeEnum) typeNode()      {}
 func (*TypeMap) typeNode()       {}
-func (*TypeNull) typeNode()      {}
 func (*TypeError) typeNode()     {}
 func (*TypeName) typeNode()      {}
 func (*TypeDef) typeNode()       {}

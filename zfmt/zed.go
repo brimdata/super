@@ -73,8 +73,6 @@ func (c *canonZed) typ(t ast.Type) {
 		c.write(":")
 		c.typ(t.ValType)
 		c.write("}|")
-	case *ast.TypeNull:
-		c.write("null")
 	case *ast.TypeDef:
 		c.write("%s=(", t.Name)
 		c.typ(t.Type)

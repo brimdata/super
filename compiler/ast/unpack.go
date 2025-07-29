@@ -89,7 +89,6 @@ var unpacker = unpack.New(
 	TypeError{},
 	TypeMap{},
 	TypeName{},
-	TypeNull{},
 	TypePrimitive{},
 	TypeRecord{},
 	TypeSet{},
