@@ -5,36 +5,44 @@
 ### Synopsis
 
 ```
-[aggregate] [<field>:=]<agg>
-[aggregate] [<field>:=]<agg> [where <expr>][, [<field>:=]<agg> [where <expr>] ...]
-[aggregate] [<field>:=]<agg> [by [<field>][:=<expr>][, [<field>][:=<expr>]] ...]
-[aggregate] [<field>:=]<agg> [where <expr>][, [<field>:=]<agg> [where <expr>] ...] [by [<field>][:=<expr>][, [<field>][:=<expr>]] ...]
-[aggregate] by [<field>][:=<expr>][, [<field>][:=<expr>] ...]
+[aggregate] <agg> [, <agg> ... ] [ by <grouping> [, <grouping> ... ] ]
+[aggregate] by <grouping> [, <grouping> ... ]
+```
+`<agg>` is an aggregate function [field assignment](intro.md#field-assignment)
+with an optional filter:
+```
+[ <field> := ] <agg-func> ( <expr> ) [ where <expr> ]
+```
+`<grouping>` is a grouping expression [field assignment](intro.md#field-assignment):
+```
+[ <field> := ] <expr>
 ```
 
 ### Description
 
-The `aggregate` operator  aggregates groups of its input to reduce
-each group of values to one or more values  according to one or more
+The `aggregate` operator aggregates groups of its input to reduce
+each group of values to one or more values according to one or more
 [aggregate functions](../aggregates/intro.md)
-When there is no grouping clause, the aggregate functions are applied to the entire input.
+When there are no grouping expressions, the aggregate functions are applied
+to the entire input.
 
-In the first four forms, the `aggregate` operator consumes all of its input,
+In the first form, the `aggregate` operator consumes all of its input,
 applies one or more aggregate functions `<agg>` to each input value
 optionally filtered by a `where` clause and/or organized with the grouping
 keys specified after the `by` keyword, and at the end of input produces one
 or more aggregations for each unique set of grouping key values.
 
-In the final form, `aggregate` consumes all of its input, then outputs each
+In the second form, `aggregate` consumes all of its input, then outputs each
 unique combination of values of the grouping keys specified after the `by`
-keyword.
+keyword without applying any aggregate functions.
 
 The `aggregate` keyword is optional since it can be used as a
 [shortcut](../shortcuts.md).
 
-Each aggregate function may be optionally followed by a `where` clause, which
-applies a Boolean expression `<expr>` that indicates, for each input value,
-whether to deliver it to that aggregate. `where` clauses are analogous
+Each aggregate function `<agg-func>` may be optionally followed by a `where` clause,
+which applies a Boolean expression `<expr>` that indicates, for each input value,
+whether to include it in the values operated upon by the aggregate function.
+`where` clauses are analogous
 to the [`where`](where.md) operator but apply their filter to the input
 argument stream to the aggregatge function.
 
