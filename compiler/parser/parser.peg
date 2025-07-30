@@ -1873,12 +1873,12 @@ SelectExpr
     loff:OptSQLLimitOffset {
       op := body.(ast.Op)
       if with != nil {
-          w := with.(*ast.With)
+          w := with.(*ast.SQLWith)
           w.Body = op
           op = w 
       }
       if orderby != nil {
-          o := orderby.(*ast.OrderBy)
+          o := orderby.(*ast.SQLOrderBy)
           o.Op = op
           op = o
       }
@@ -1904,11 +1904,11 @@ Select
     // XXX NOTYET OptQualifyClause
     // XXX NOTYET OptWindowClause
     {
-      sel := &ast.Select{
+      sel := &ast.SQLSelect{
           Kind: "Select",
           Distinct: distinct.(bool),
           Value: value.(bool),
-          Selection: selection.(ast.Selection),
+          Selection: selection.(ast.SQLSelection),
           Loc: loc(c),
       }
       if from != nil {
@@ -1939,11 +1939,11 @@ FromSelect
     // XXX NOTYET OptQualifyClause
     // XXX NOTYET OptWindowClause
     {
-      sel := &ast.Select{
+      sel := &ast.SQLSelect{
           Kind: "Select",
           Distinct: distinct.(bool),
           Value: value.(bool),
-          Selection: selection.(ast.Selection),
+          Selection: selection.(ast.SQLSelection),
           From: from.(*ast.From),
           Loc: loc(c),
       }
@@ -2008,10 +2008,10 @@ OptWithClause
 
 WithClause 
   = WITH r:OptRecursive _ ctes:CteList __ {
-        return &ast.With{
+        return &ast.SQLWith{
             Kind: "With",
             Recursive: r.(bool), 
-            CTEs: sliceOf[ast.CTE](ctes),
+            CTEs: sliceOf[ast.SQLCTE](ctes),
             Loc: loc(c),
         }, nil
     }
@@ -2026,7 +2026,7 @@ CteList = first:Cte rest:( __ "," __ cte:Cte { return cte, nil} )* {
 
 Cte
   = name:SQLIdentifier _ AS m:OptMaterialized __ "(" __ s:SQLPipe __ ")" {
-        return ast.CTE{
+        return ast.SQLCTE{
             Name: name.(*ast.ID),
             Materialized: m.(bool),
             Body: s.(*ast.SQLPipe),
@@ -2080,7 +2080,7 @@ JoinOperation
 
 CrossJoin
   = left:FromElem CrossJoinOp right:FromElem {
-        return &ast.CrossJoin{
+        return &ast.SQLCrossJoin{
             Kind: "CrossJoin",
             Left: left.(*ast.FromElem),
             Right: right.(*ast.FromElem),
@@ -2155,9 +2155,9 @@ Columns
 
 Selection
   = first:SelectElem rest:( __ "," __ s:SelectElem{ return s, nil })* {
-      return ast.Selection{
+      return ast.SQLSelection{
         Kind: "Selection",
-        Args: sliceOf[ast.AsExpr](prepend(first, rest)),
+        Args: sliceOf[ast.SQLAsExpr](prepend(first, rest)),
         Loc: loc(c),
       }, nil
   }
@@ -2165,7 +2165,7 @@ Selection
 //XXX need to add *, id.*, except, replace
 SelectElem 
   = expr:(AggDistinct / Expr) as:OptAsClause {
-      elem := ast.AsExpr{
+      elem := ast.SQLAsExpr{
         Kind: "AsExpr",
         Expr: expr.(ast.Expr),
         Loc: loc(c),
@@ -2177,7 +2177,7 @@ SelectElem
     }
   / "*" {
       // empty assignment is star (for now)
-      return ast.AsExpr{Kind: "AsExpr"}, nil
+      return ast.SQLAsExpr{Kind: "AsExpr"}, nil
     }
 
 OptAsClause 
@@ -2187,7 +2187,7 @@ OptAsClause
 
 OptOrderByClause 
   = _ ORDER _ BY _ list:OrderByList { 
-        return &ast.OrderBy{
+        return &ast.SQLOrderBy{
           Kind: "OrderBy",
           Exprs: list.([]ast.SortExpr),
           Loc: loc(c),
@@ -2269,7 +2269,7 @@ OffsetClause
 
 SetOperation
   = left:SelectExpr distinct:SetOp _ right:SelectExpr {
-        return &ast.Union{
+        return &ast.SQLUnion{
             Kind: "Union",
             Distinct: distinct.(bool),
             Left: left.(ast.Op),

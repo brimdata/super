@@ -26,7 +26,7 @@ import (
 // an OrderBy, it can reach into the "in" part of the select scope (for non-aggregates)
 // and also sort by the out elements.  It's up to the caller to unwrap the in/out
 // record when returning to pipeline context.
-func (a *analyzer) semSelect(sel *ast.Select, seq dag.Seq) (dag.Seq, schema) {
+func (a *analyzer) semSelect(sel *ast.SQLSelect, seq dag.Seq) (dag.Seq, schema) {
 	if len(sel.Selection.Args) == 0 {
 		a.error(sel, errors.New("SELECT clause has no selection"))
 		return seq, badSchema()
@@ -297,7 +297,7 @@ func (a *analyzer) semSelectFrom(loc ast.Loc, from *ast.From, seq dag.Seq) (dag.
 	return seq, sch
 }
 
-func (a *analyzer) semSelectValue(sel *ast.Select, sch schema, seq dag.Seq) (dag.Seq, schema) {
+func (a *analyzer) semSelectValue(sel *ast.SQLSelect, sch schema, seq dag.Seq) (dag.Seq, schema) {
 	if sel.GroupBy != nil {
 		a.error(sel, errors.New("SELECT VALUE cannot be used with GROUP BY"))
 		seq = append(seq, badOp())
@@ -451,7 +451,7 @@ func idsToStrings(ids []*ast.ID) []string {
 
 func isSQLOp(op ast.Op) bool {
 	switch op.(type) {
-	case *ast.Select, *ast.SQLLimitOffset, *ast.OrderBy, *ast.SQLPipe, *ast.SQLJoin, *ast.SQLValues:
+	case *ast.SQLSelect, *ast.SQLLimitOffset, *ast.SQLOrderBy, *ast.SQLPipe, *ast.SQLJoin, *ast.SQLValues:
 		return true
 	}
 	return false
@@ -461,13 +461,13 @@ func (a *analyzer) semSQLOp(op ast.Op, seq dag.Seq) (dag.Seq, schema) {
 	switch op := op.(type) {
 	case *ast.SQLPipe:
 		return a.semSQLPipe(op, seq, nil) //XXX should alias hang off SQLPipe?
-	case *ast.Select:
+	case *ast.SQLSelect:
 		return a.semSelect(op, seq)
 	case *ast.SQLValues:
 		return a.semValues(op, seq)
 	case *ast.SQLJoin:
 		return a.semSQLJoin(op, seq)
-	case *ast.OrderBy:
+	case *ast.SQLOrderBy:
 		out, schema := a.semSQLOp(op.Op, seq)
 		var exprs []dag.SortExpr
 		for _, e := range op.Exprs {
@@ -483,7 +483,7 @@ func (a *analyzer) semSQLOp(op ast.Op, seq dag.Seq) (dag.Seq, schema) {
 			out = append(out, &dag.Head{Kind: "Head", Count: a.evalPositiveInteger(op.Limit)})
 		}
 		return out, schema
-	case *ast.Union:
+	case *ast.SQLUnion:
 		if op.Distinct {
 			a.error(op, errors.New("UNION DISTINCT not currently supported"))
 		}
@@ -496,7 +496,7 @@ func (a *analyzer) semSQLOp(op ast.Op, seq dag.Seq) (dag.Seq, schema) {
 			&dag.Combine{Kind: "Combine"},
 		}, &dynamicSchema{}
 
-	case *ast.With:
+	case *ast.SQLWith:
 		if op.Recursive {
 			a.error(op, errors.New("recursive WITH queries not currently supported"))
 		}
@@ -518,7 +518,7 @@ func (a *analyzer) semSQLOp(op ast.Op, seq dag.Seq) (dag.Seq, schema) {
 	}
 }
 
-func (a *analyzer) semCrossJoin(join *ast.CrossJoin, seq dag.Seq) (dag.Seq, schema) {
+func (a *analyzer) semCrossJoin(join *ast.SQLCrossJoin, seq dag.Seq) (dag.Seq, schema) {
 	if len(seq) > 0 {
 		// At some point we might want to let parent data flow into a join somehow,
 		// but for now we flag an error.
@@ -755,7 +755,7 @@ func isOrdinal(sctx *super.Context, e dag.Expr) (int, bool) {
 	return -1, false
 }
 
-func (a *analyzer) semProjection(sch *selectSchema, args []ast.AsExpr, funcs *aggfuncs) projection {
+func (a *analyzer) semProjection(sch *selectSchema, args []ast.SQLAsExpr, funcs *aggfuncs) projection {
 	out := &staticSchema{}
 	sch.out = out
 	labels := make(map[string]struct{})
@@ -804,11 +804,11 @@ func dedupeColname(m map[string]struct{}, name string) string {
 	}
 }
 
-func isStar(a ast.AsExpr) bool {
+func isStar(a ast.SQLAsExpr) bool {
 	return a.Expr == nil && a.Label == nil
 }
 
-func (a *analyzer) semAs(sch schema, as ast.AsExpr, funcs *aggfuncs) *column {
+func (a *analyzer) semAs(sch schema, as ast.SQLAsExpr, funcs *aggfuncs) *column {
 	e := a.semExprSchema(sch, as.Expr)
 	// If we have a name from an AS clause, use it. Otherwise, infer a name.
 	var name string

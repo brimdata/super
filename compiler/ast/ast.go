@@ -203,14 +203,14 @@ type ExprEntity struct {
 	Loc  `json:"loc"`
 }
 
-func (*Glob) fromEntityNode()       {}
-func (*Regexp) fromEntityNode()     {}
-func (*ExprEntity) fromEntityNode() {}
-func (*LakeMeta) fromEntityNode()   {}
-func (*Text) fromEntityNode()       {}
-func (*CrossJoin) fromEntityNode()  {}
-func (*SQLJoin) fromEntityNode()    {}
-func (*SQLPipe) fromEntityNode()    {}
+func (*Glob) fromEntityNode()         {}
+func (*Regexp) fromEntityNode()       {}
+func (*ExprEntity) fromEntityNode()   {}
+func (*LakeMeta) fromEntityNode()     {}
+func (*Text) fromEntityNode()         {}
+func (*SQLCrossJoin) fromEntityNode() {}
+func (*SQLJoin) fromEntityNode()      {}
+func (*SQLPipe) fromEntityNode()      {}
 
 type FromElem struct {
 	Kind       string      `json:"kind" unpack:""`

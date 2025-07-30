@@ -114,7 +114,7 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.TableAlias, a
 		return a.semSQLPipe(entity, seq, alias)
 	case *ast.SQLJoin:
 		return a.semSQLJoin(entity, seq)
-	case *ast.CrossJoin:
+	case *ast.SQLCrossJoin:
 		return a.semCrossJoin(entity, seq)
 	default:
 		panic(fmt.Sprintf("semFromEntity: unknown entity type: %T", entity))
@@ -508,7 +508,7 @@ func (a *analyzer) semDebugOp(o *ast.Debug, mainAst ast.Seq, in dag.Seq) dag.Seq
 // with either an aggregate or filter op based on the function's name.
 func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 	switch o := o.(type) {
-	case *ast.Select, *ast.SQLLimitOffset, *ast.OrderBy, *ast.SQLPipe, *ast.Union, *ast.With, *ast.SQLValues:
+	case *ast.SQLSelect, *ast.SQLLimitOffset, *ast.SQLOrderBy, *ast.SQLPipe, *ast.SQLUnion, *ast.SQLWith, *ast.SQLValues:
 		seq, sch := a.semSQLOp(o, seq)
 		seq, _ = derefSchema(sch, seq)
 		return seq

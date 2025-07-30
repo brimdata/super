@@ -1,20 +1,20 @@
 package ast
 
-type Select struct {
-	Kind      string    `json:"kind" unpack:""`
-	Distinct  bool      `json:"distinct"`
-	Value     bool      `json:"value"`
-	Selection Selection `json:"selection"`
-	From      *From     `json:"from"`
-	Where     Expr      `json:"where"`
-	GroupBy   []Expr    `json:"group_by"`
-	Having    Expr      `json:"having"`
+type SQLSelect struct {
+	Kind      string       `json:"kind" unpack:""`
+	Distinct  bool         `json:"distinct"`
+	Value     bool         `json:"value"`
+	Selection SQLSelection `json:"selection"`
+	From      *From        `json:"from"`
+	Where     Expr         `json:"where"`
+	GroupBy   []Expr       `json:"group_by"`
+	Having    Expr         `json:"having"`
 	Loc       `json:"loc"`
 }
 
-type Selection struct {
-	Kind string   `json:"kind" unpack:""`
-	Args []AsExpr `json:"args"`
+type SQLSelection struct {
+	Kind string      `json:"kind" unpack:""`
+	Args []SQLAsExpr `json:"args"`
 	Loc  `json:"loc"`
 }
 
@@ -40,22 +40,22 @@ type SQLLimitOffset struct {
 	Loc    `json:"loc"`
 }
 
-type With struct {
-	Kind      string `json:"kind" unpack:""`
-	Body      Op     `json:"body"`
-	Recursive bool   `json:"recursive"`
-	CTEs      []CTE  `json:"ctes"`
+type SQLWith struct {
+	Kind      string   `json:"kind" unpack:""`
+	Body      Op       `json:"body"`
+	Recursive bool     `json:"recursive"`
+	CTEs      []SQLCTE `json:"ctes"`
 	Loc       `json:"loc"`
 }
 
-type CTE struct {
+type SQLCTE struct {
 	Name         *ID      `json:"name"`
 	Materialized bool     `json:"materialized"`
 	Body         *SQLPipe `json:"body"`
 	Loc          `json:"loc"`
 }
 
-type OrderBy struct {
+type SQLOrderBy struct {
 	Kind  string     `json:"kind" unpack:""`
 	Op    Op         `json:"op"`
 	Exprs []SortExpr `json:"exprs"`
@@ -75,13 +75,13 @@ type (
 		Cond  JoinExpr  `json:"cond"`
 		Loc   `json:"loc"`
 	}
-	CrossJoin struct {
+	SQLCrossJoin struct {
 		Kind  string    `json:"kind" unpack:""`
 		Left  *FromElem `json:"left"`
 		Right *FromElem `json:"right"`
 		Loc   `json:"loc"`
 	}
-	Union struct {
+	SQLUnion struct {
 		Kind     string `json:"kind" unpack:""`
 		Distinct bool   `json:"distinct"`
 		Left     Op     `json:"left"`
@@ -112,23 +112,23 @@ type JoinUsingExpr struct {
 func (*JoinUsingExpr) joinExprNode() {}
 
 func (*SQLPipe) opNode()        {}
-func (*Select) opNode()         {}
+func (*SQLSelect) opNode()      {}
 func (*SQLValues) opNode()      {}
-func (*CrossJoin) opNode()      {}
+func (*SQLCrossJoin) opNode()   {}
 func (*SQLJoin) opNode()        {}
-func (*Union) opNode()          {}
-func (*OrderBy) opNode()        {}
+func (*SQLUnion) opNode()       {}
+func (*SQLOrderBy) opNode()     {}
 func (*SQLLimitOffset) opNode() {}
-func (*With) opNode()           {}
+func (*SQLWith) opNode()        {}
 
-type AsExpr struct {
+type SQLAsExpr struct {
 	Kind  string `json:"kind" unpack:""`
 	Label *ID    `json:"label"`
 	Expr  Expr   `json:"expr"`
 	Loc   `json:"loc"`
 }
 
-func (*AsExpr) exprNode() {}
+func (*SQLAsExpr) exprNode() {}
 
 type SQLCast struct {
 	Kind string `json:"kind" unpack:""`
