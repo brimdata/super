@@ -484,17 +484,18 @@ func (a *analyzer) semSQLOp(op ast.Op, seq dag.Seq) (dag.Seq, schema) {
 		}
 		return out, schema
 	case *ast.SQLUnion:
-		if op.Distinct {
-			a.error(op, errors.New("UNION DISTINCT not currently supported"))
-		}
 		left, leftSch := a.semSQLOp(op.Left, seq)
 		left, _ = derefSchema(leftSch, left)
 		right, rightSch := a.semSQLOp(op.Right, seq)
 		right, _ = derefSchema(rightSch, right)
-		return dag.Seq{
+		out := dag.Seq{
 			&dag.Fork{Kind: "Fork", Paths: []dag.Seq{left, right}},
 			&dag.Combine{Kind: "Combine"},
-		}, &dynamicSchema{}
+		}
+		if op.Distinct {
+			out = a.genDistinct(&dag.This{Kind: "This"}, out)
+		}
+		return out, &dynamicSchema{}
 
 	case *ast.SQLWith:
 		if op.Recursive {
