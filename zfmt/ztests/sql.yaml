@@ -1,12 +1,10 @@
 script: |
-  echo === cast function
-  super compile -C 'select cast(a as b)'
+  echo === expressions
+  super compile -C "select cast(a as b), substring(c from d for e), date 'f', timestamp 'g'"
   echo === select
   super compile -C 'select a from b where c group by d having e order by f limit g offset h'
   echo === ornate select
   super compile -C 'select distinct value a, b as c from d as e (f) where g group by h, i having j order by k, l limit m offset n'
-  echo === substring function
-  super compile -C 'select substring(a from b for c)'
   echo === union
   super compile -C 'select a union all select b union distinct select c'
   echo === values
@@ -19,8 +17,8 @@ script: |
 outputs:
   - name: stdout
     data: |
-      === cast function
-      select CAST(a AS b)
+      === expressions
+      select CAST(a AS b), SUBSTRING(c FROM d FOR e), DATE "f", TIMESTAMP "g"
       === select
       select a
       from b
@@ -39,8 +37,6 @@ outputs:
       order by k, l
       limit m
       offset n
-      === substring function
-      select SUBSTRING(a FROM b FOR c)
       === union
       select a
       union all
