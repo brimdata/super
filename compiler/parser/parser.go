@@ -17569,9 +17569,9 @@ var g = &grammar{
 				exprs: []any{
 					&litMatcher{
 						pos:        position{line: 2363, col: 14, offset: 72824},
-						val:        "RECURSIVE",
-						ignoreCase: false,
-						want:       "\"RECURSIVE\"",
+						val:        "recursive",
+						ignoreCase: true,
+						want:       "\"RECURSIVE\"i",
 					},
 					&notExpr{
 						pos: position{line: 2363, col: 33, offset: 72843},
