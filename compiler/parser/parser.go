@@ -4189,7 +4189,7 @@ var g = &grammar{
 					},
 				},
 			},
-			leader:        true,
+			leader:        false,
 			leftRecursive: true,
 		},
 		{
@@ -13299,7 +13299,7 @@ var g = &grammar{
 					},
 				},
 			},
-			leader:        true,
+			leader:        false,
 			leftRecursive: true,
 		},
 		{
@@ -14403,7 +14403,7 @@ var g = &grammar{
 					},
 				},
 			},
-			leader:        false,
+			leader:        true,
 			leftRecursive: true,
 		},
 		{
@@ -15822,7 +15822,7 @@ var g = &grammar{
 					},
 				},
 			},
-			leader:        false,
+			leader:        true,
 			leftRecursive: true,
 		},
 		{
@@ -17569,9 +17569,9 @@ var g = &grammar{
 				exprs: []any{
 					&litMatcher{
 						pos:        position{line: 2363, col: 14, offset: 72872},
-						val:        "RECURSIVE",
-						ignoreCase: false,
-						want:       "\"RECURSIVE\"",
+						val:        "recursive",
+						ignoreCase: true,
+						want:       "\"RECURSIVE\"i",
 					},
 					&notExpr{
 						pos: position{line: 2363, col: 33, offset: 72891},
