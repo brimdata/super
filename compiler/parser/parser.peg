@@ -1905,7 +1905,7 @@ Select
     // XXX NOTYET OptWindowClause
     {
       sel := &ast.SQLSelect{
-          Kind: "Select",
+          Kind: "SQLSelect",
           Distinct: distinct.(bool),
           Value: value.(bool),
           Selection: selection.(ast.SQLSelection),
@@ -1940,7 +1940,7 @@ FromSelect
     // XXX NOTYET OptWindowClause
     {
       sel := &ast.SQLSelect{
-          Kind: "Select",
+          Kind: "SQLSelect",
           Distinct: distinct.(bool),
           Value: value.(bool),
           Selection: selection.(ast.SQLSelection),
@@ -2009,7 +2009,7 @@ OptWithClause
 WithClause 
   = WITH r:OptRecursive _ ctes:CteList __ {
         return &ast.SQLWith{
-            Kind: "With",
+            Kind: "SQLWith",
             Recursive: r.(bool), 
             CTEs: sliceOf[ast.SQLCTE](ctes),
             Loc: loc(c),
@@ -2081,7 +2081,7 @@ JoinOperation
 CrossJoin
   = left:FromElem CrossJoinOp right:FromElem {
         return &ast.SQLCrossJoin{
-            Kind: "CrossJoin",
+            Kind: "SQLCrossJoin",
             Left: left.(*ast.FromElem),
             Right: right.(*ast.FromElem),
             Loc: loc(c),
@@ -2156,7 +2156,7 @@ Columns
 Selection
   = first:SelectElem rest:( __ "," __ s:SelectElem{ return s, nil })* {
       return ast.SQLSelection{
-        Kind: "Selection",
+        Kind: "SQLSelection",
         Args: sliceOf[ast.SQLAsExpr](prepend(first, rest)),
         Loc: loc(c),
       }, nil
@@ -2166,7 +2166,7 @@ Selection
 SelectElem 
   = expr:(AggDistinct / Expr) as:OptAsClause {
       elem := ast.SQLAsExpr{
-        Kind: "AsExpr",
+        Kind: "SQLAsExpr",
         Expr: expr.(ast.Expr),
         Loc: loc(c),
       }
@@ -2188,7 +2188,7 @@ OptAsClause
 OptOrderByClause 
   = _ ORDER _ BY _ list:OrderByList { 
         return &ast.SQLOrderBy{
-          Kind: "OrderBy",
+          Kind: "SQLOrderBy",
           Exprs: list.([]ast.SortExpr),
           Loc: loc(c),
         }, nil
@@ -2270,7 +2270,7 @@ OffsetClause
 SetOperation
   = left:SelectExpr distinct:SetOp _ right:SelectExpr {
         return &ast.SQLUnion{
-            Kind: "Union",
+            Kind: "SQLUnion",
             Distinct: distinct.(bool),
             Left: left.(ast.Op),
             Right: right.(ast.Op),
