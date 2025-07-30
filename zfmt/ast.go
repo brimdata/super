@@ -83,6 +83,11 @@ func (c *canon) expr(e ast.Expr, parent string) {
 			c.write(" where ")
 			c.expr(e.Where, "")
 		}
+	case *ast.SQLAsExpr:
+		c.expr(e.Expr, "")
+		if e.Label != nil {
+			c.write(" as %s", e.Label.Name)
+		}
 	case *ast.Assignment:
 		c.assignment(*e)
 	case *ast.Primitive:
@@ -648,6 +653,100 @@ func (c *canon) op(p ast.Op) {
 			c.write(" ")
 			c.expr(p.Expr, "")
 		}
+	case *ast.SQLLimitOffset:
+		c.op(p.Op)
+		if p.Limit != nil {
+			c.ret()
+			c.write("limit ")
+			c.expr(p.Limit, "")
+		}
+		if p.Offset != nil {
+			c.ret()
+			c.write("offset ")
+			c.expr(p.Offset, "")
+		}
+	case *ast.SQLOrderBy:
+		c.op(p.Op)
+		c.ret()
+		c.write("order by")
+		c.sortExprs(p.Exprs)
+	case *ast.SQLPipe:
+		c.next()
+		c.open("(")
+		c.head = true
+		c.seq(p.Ops)
+		c.close()
+		c.ret()
+		c.flush()
+		c.write(")")
+	case *ast.SQLSelect:
+		c.next()
+		c.write("select ")
+		if p.Distinct {
+			c.write("distinct ")
+		}
+		if p.Value {
+			c.write("value ")
+		}
+		c.open()
+		for i, a := range p.Selection.Args {
+			if i > 0 {
+				c.write(", ")
+			}
+			c.expr(&a, "")
+		}
+		c.close()
+		if p.From != nil {
+			//c.ret()
+			//.first, c.head = true, true
+			c.head = true
+			c.op(p.From)
+		}
+		if p.Where != nil {
+			c.ret()
+			c.write("where ")
+			c.expr(p.Where, "")
+		}
+		if len(p.GroupBy) > 0 {
+			c.ret()
+			c.write("group by ")
+			c.exprs(p.GroupBy)
+		}
+		if p.Having != nil {
+			c.ret()
+			c.write("having ")
+			c.expr(p.Having, "")
+		}
+	case *ast.SQLUnion:
+		c.op(p.Left)
+		c.ret()
+		c.write("union")
+		if p.Distinct {
+			c.write(" distinct")
+		} else {
+			c.write(" all")
+		}
+		c.head = true
+		c.op(p.Right)
+	case *ast.SQLWith:
+		c.next()
+		c.write("with ")
+		if p.Recursive {
+			c.write("recursive ")
+		}
+		for i, cte := range p.CTEs {
+			if i > 0 {
+				c.write(", ")
+			}
+			c.write("%s as ", cte.Name.Name)
+			if cte.Materialized {
+				c.write("materialized ")
+			}
+			c.first, c.head = true, true
+			c.op(cte.Body)
+		}
+		c.head = true
+		c.op(p.Body)
 	default:
 		c.open("unknown operator: %T", p)
 		c.close()
@@ -671,7 +770,7 @@ func (c *canon) fromElem(elem *ast.FromElem) {
 }
 
 func (c *canon) tableAlias(alias *ast.TableAlias) {
-	c.write("as %s", sup.QuotedName(alias.Name))
+	c.write(" as %s", sup.QuotedName(alias.Name))
 	if len(alias.Columns) != 0 {
 		c.write(" (")
 		var comma string
