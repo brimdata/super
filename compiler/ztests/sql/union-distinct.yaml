@@ -4,6 +4,8 @@ spq: |
   select * from (values (2),(3),(4))
   | sort c0
 
+vector: true
+
 output: |
   {c0:1}
   {c0:2}
