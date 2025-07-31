@@ -220,16 +220,6 @@ func (c *canon) expr(e ast.Expr, parent string) {
 			c.expr(e.Value, "")
 		}
 		c.write("}|")
-	case *ast.UnnestExpr:
-		c.open("(")
-		c.ret()
-		c.write("unnest ")
-		c.expr(e.Expr, "")
-		c.seq(e.Body)
-		c.close()
-		c.ret()
-		c.flush()
-		c.write(")")
 	case *ast.QueryExpr:
 		c.open("(")
 		c.head = true

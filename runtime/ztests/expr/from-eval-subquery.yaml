@@ -1,0 +1,23 @@
+script: super -s -I query.spq
+
+# enable once we allow unnest expressions in vector runtime.
+# vector: true
+
+inputs:
+  - name: query.spq
+    data: |
+      values 'a.sup', 'b.sup'
+      | values (from eval(this) | collect(this))
+  - name: a.sup
+    data: |
+      {a:1}
+      {a:2}
+  - name: b.sup
+    data: |
+      {b:3}
+
+outputs:
+  - name: stdout
+    data: |
+      [{a:1},{a:2}]
+      [{b:3}]

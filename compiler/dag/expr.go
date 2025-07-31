@@ -84,8 +84,9 @@ type (
 		Entries []Entry `json:"entries"`
 	}
 	QueryExpr struct {
-		Kind string `json:"kind" unpack:""`
-		Body Seq    `json:"body"`
+		Kind       string `json:"kind" unpack:""`
+		Correlated bool   `json:"correlated"`
+		Body       Seq    `json:"body"`
 	}
 	RecordExpr struct {
 		Kind  string       `json:"kind" unpack:""`
@@ -131,11 +132,6 @@ type (
 		Op      string `json:"op"`
 		Operand Expr   `json:"operand"`
 	}
-	UnnestExpr struct {
-		Kind string `json:"kind" unpack:""`
-		Expr Expr   `json:"expr"`
-		Body Seq    `json:"body"`
-	}
 )
 
 func (*Agg) exprNode()          {}
@@ -160,7 +156,6 @@ func (*SetExpr) exprNode()      {}
 func (*SliceExpr) exprNode()    {}
 func (*This) exprNode()         {}
 func (*UnaryExpr) exprNode()    {}
-func (*UnnestExpr) exprNode()   {}
 
 // Various Expr fields.
 

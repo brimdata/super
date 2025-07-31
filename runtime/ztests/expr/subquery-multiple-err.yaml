@@ -1,0 +1,4 @@
+spq: values (values 1,2,3)
+
+output: |
+  error({message:"encountered 3 values in expression subquery (consider collect())",on:1})
