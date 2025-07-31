@@ -232,7 +232,7 @@ func (c *canon) expr(e ast.Expr, parent string) {
 		c.write(")")
 	case *ast.QueryExpr:
 		c.open("(")
-		c.ret()
+		c.head = true
 		c.seq(e.Body)
 		c.close()
 		c.ret()
@@ -688,17 +688,13 @@ func (c *canon) op(p ast.Op) {
 		if p.Value {
 			c.write("value ")
 		}
-		c.open()
 		for i, a := range p.Selection.Args {
 			if i > 0 {
 				c.write(", ")
 			}
 			c.expr(&a, "")
 		}
-		c.close()
 		if p.From != nil {
-			//c.ret()
-			//.first, c.head = true, true
 			c.head = true
 			c.op(p.From)
 		}

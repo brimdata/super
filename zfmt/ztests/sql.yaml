@@ -1,6 +1,4 @@
 script: |
-  echo === expressions
-  super compile -C "select cast(a as b), substring(c from d for e), date 'f', timestamp 'g'"
   echo === select
   super compile -C 'select a from b where c group by d having e order by f limit g offset h'
   echo === ornate select
@@ -13,12 +11,14 @@ script: |
   super compile -C 'with a as (select b) select c'
   echo === ornate with
   super compile -C 'with recursive a as (select b from c), d as (select e) select f'
+  echo === query expressions
+  super compile -C 'select a+(select b from c), d+(select e) as f'
+  echo === other expressions
+  super compile -C "select cast(a as b), substring(c from d for e), date 'f', timestamp 'g'"
 
 outputs:
   - name: stdout
     data: |
-      === expressions
-      select CAST(a AS b), SUBSTRING(c FROM d FOR e), DATE "f", TIMESTAMP "g"
       === select
       select a
       from b
@@ -58,3 +58,12 @@ outputs:
         select e
       )
       select f
+      === query expressions
+      select a+(
+        select b
+        from c
+      ), d+(
+        select e
+      ) as f
+      === other expressions
+      select CAST(a AS b), SUBSTRING(c FROM d FOR e), DATE "f", TIMESTAMP "g"
