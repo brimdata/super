@@ -1,8 +1,10 @@
 spq: values (unnest a | sum(this))
 
+vector: true
+
 input: |
   {a:[1,2]}
-  {a:null}
+  {b:[3,4]}
   {a:[5,6]}
 
 output: |

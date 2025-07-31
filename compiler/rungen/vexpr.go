@@ -62,6 +62,8 @@ func (b *Builder) compileVamExpr(e dag.Expr) (vamexpr.Evaluator, error) {
 		return b.compileVamSliceExpr(e)
 	case *dag.SetExpr:
 		return b.compileVamSetExpr(e)
+	case *dag.UnnestExpr:
+		return b.compileVamUnnestExpr(e)
 	//case *dag.MapCall:
 	//	return b.compileVamMapCall(e)
 	//case *dag.MapExpr:
@@ -406,4 +408,12 @@ func (b *Builder) compileVamListElems(elems []dag.VectorElem) ([]vamexpr.ListEle
 		}
 	}
 	return out, nil
+}
+
+func (b *Builder) compileVamUnnestExpr(unnest *dag.UnnestExpr) (vamexpr.Evaluator, error) {
+	e, err := b.compileUnnestExpr(unnest)
+	if err != nil {
+		return nil, err
+	}
+	return vamexpr.NewSamExpr(e), nil
 }

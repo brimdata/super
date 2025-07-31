@@ -4,6 +4,8 @@ spq: |
   )
   sum := sumvals(v)
 
+vector: true
+
 input: |
   {v:[1,2,3,4]}
 
