@@ -128,7 +128,12 @@ may change to allow dynamic computation in a future version of SuperSQL.
 
 #### From Expression
 
-XXX document `from eval()`
+The `eval` form of `from` provides a means to read data programmatically from
+sources based on the `<expr>` argument to `eval`, which should return
+a value of type [`string`](../types/string.md).
+
+data is read from the parent operator and each value is 
+
 
 #### Combining Data
 

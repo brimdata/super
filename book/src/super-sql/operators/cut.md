@@ -5,7 +5,12 @@
 ### Synopsis
 
 ```
-cut <field>[:=<expr>] [, <field>[:=<expr>] ...]
+cut <assignment> [, <assignment> ...]
+```
+where `<assignment>` is a [field assignment](intro.md#field-assignment)
+having the form:
+```
+[ <field> := ] <expr>
 ```
 ### Description
 
@@ -15,13 +20,14 @@ creating one field for each expression.  Unlike the `put` operator,
 which adds or modifies the fields of a record, `cut` retains only the
 fields enumerated, much like a SQL select clause.
 
-Each `<field>` expression must be a field reference expressed as a dotted path or sequence of
-constant index operations on `this`, e.g., `a.b` or `a["b"]`.
+Each left-hand side `<field>` term must be a field reference expressed as
+a dotted path or sequence of constant index operations on `this`, e.g.,
+`a.b` or `a["b"]`.
 
 Each right-hand side `<expr>` can be any expression and is optional.
 
-When the right-hand side expressions are omitted,
-the _cut_ operation resembles the Unix shell command, e.g.,
+When the left-hand side assignment are omitted and the expressions are
+simple field references, the _cut_ operation resembles the Unix shell command, e.g.,
 ```
 ... | cut a,c | ...
 ```

@@ -8,12 +8,13 @@
 [aggregate] <agg> [, <agg> ... ] [ by <grouping> [, <grouping> ... ] ]
 [aggregate] by <grouping> [, <grouping> ... ]
 ```
-`<agg>` is an aggregate function [field assignment](intro.md#field-assignment)
-with an optional filter:
+where `<agg>` is an aggregate function [field assignment](intro.md#field-assignment)
+with an optional filter having the form:
 ```
 [ <field> := ] <agg-func> ( <expr> ) [ where <expr> ]
 ```
-`<grouping>` is a grouping expression [field assignment](intro.md#field-assignment):
+and `<grouping>` is a grouping expression [field assignment](intro.md#field-assignment)
+having the form:
 ```
 [ <field> := ] <expr>
 ```
