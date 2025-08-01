@@ -78,8 +78,8 @@ TypeDecl
       }, nil
     }
 
-// A LeanOp is a pipeline operator along with various forms of 
-// "lean-forward" shortcuts: a scope with other LeanOps, a shortcut assignment 
+// A LeanOp is a pipeline operator along with various forms of
+// "lean-forward" shortcuts: a scope with other LeanOps, a shortcut assignment
 // for "put", a shortcut "aggregate", or an expression that is either
 // implied values op (non-boolean) or implied where (boolean).
 LeanOp
@@ -92,7 +92,7 @@ LeanOp
     }
 
 EndOfOp = __ (Pipe / ")" / ";" / EOF)
-Pipe = "|>" / "|" 
+Pipe = "|>" / "|"
 
 ExprGuard = __ (Comparator / AdditiveOperator / MultiplicativeOperator / ":" / "(" / "[" / "~")
 
@@ -282,7 +282,7 @@ CountStar = COUNT __ "(" __ "*" __ ")" {
 Operator
   = op:SelectOp &EndOfOp { return op, nil }
   / ForkOp
-  / SwitchOp 
+  / SwitchOp
   / SearchOp
   / AssertOp
   / SortOp
@@ -526,11 +526,11 @@ ShapeOp
     }
 
 JoinOp
-  = style:JoinStyle JOIN rightInput:JoinRightInput alias:OptJoinAlias _ e:JoinExpr {
+  = style:JoinStyle JOIN rightInput:JoinRightInput alias:OptJoinAlias _ e:JoinCond {
       o := &ast.Join{
         Kind: "Join",
         Style: style.(string),
-        Cond: e.(ast.JoinExpr),
+        Cond: e.(ast.JoinCond),
         Loc: loc(c),
       }
       if rightInput != nil {
@@ -633,7 +633,7 @@ FromElems
   = first:FromElem rest:( __ "," __ elem:FromElem { return elem, nil} )* {
       return prepend(first, rest), nil
     }
-    
+
 FromElem
   = entity:FromEntity args:CommitishOpArgs? o:OptOrdinality alias:OptAlias {
       elem := &ast.FromElem{
@@ -646,7 +646,7 @@ FromElem
       }
       if o != nil {
         elem.Ordinality = o.(*ast.Ordinality)
-      }      
+      }
       if alias != nil {
         elem.Alias = alias.(*ast.TableAlias)
       }
@@ -708,7 +708,7 @@ MetaCommitish
       }
       return out, nil
     }
-  / meta:ColonText { 
+  / meta:ColonText {
       return []any{&ast.ArgText{Kind:"ArgText", Key: "meta", Value: meta.(*ast.Text), Loc: loc(c)}}, nil
     }
 
@@ -860,7 +860,7 @@ NotExpr
       }, nil
     }
   / BetweenExpr
-  
+
 BetweenExpr
   = expr:ComparisonExpr _ not:(NOT _)? BETWEEN _ lower:BetweenExpr _ AND _ upper:BetweenExpr {
       return &ast.Between{
@@ -882,7 +882,7 @@ ComparisonExpr
         Not: not != nil,
         Loc: loc(c),
       }, nil
-    }   
+    }
   / lhs:AdditiveExpr opAndRHS:(__ Comparator __ AdditiveExpr / __ ("~" { return string(c.text), nil }) __ Regexp)? {
       if opAndRHS == nil {
         return lhs, nil
@@ -895,7 +895,7 @@ ComparisonExpr
         Loc: loc(c),
       }, nil
     }
- 
+
 AdditiveExpr
   = first:MultiplicativeExpr
     rest:(__ op:AdditiveOperator __ expr:MultiplicativeExpr { return []any{op, expr}, nil })* {
@@ -912,7 +912,7 @@ MultiplicativeExpr
 
 MultiplicativeOperator = ("*" / "/" / "%") { return string(c.text), nil }
 
-ConcatExpr 
+ConcatExpr
   = first:UnaryPlusOrMinus
     rest:(__ "||" __ expr:UnaryPlusOrMinus { return []any{"||", expr}, nil })* {
         return makeBinaryExprChain(first, rest, c), nil
@@ -980,7 +980,7 @@ DerefExpr
   / Primary
 
 DerefKey
-  = Identifier 
+  = Identifier
   / s:DoubleQuotedString    { return &ast.ID{Kind: "ID", Name:s.(string), Loc: loc(c)}, nil }
   / s:BacktickString        { return &ast.ID{Kind: "ID", Name:s.(string), Loc: loc(c)}, nil }
 
@@ -1014,7 +1014,7 @@ Function
       return &ast.CallExtract{
         Kind: "CallExtract",
         Part: part.(ast.Expr),
-        Expr: e.(ast.Expr), 
+        Expr: e.(ast.Expr),
         Loc: loc(c),
       }, nil
     }
@@ -1135,7 +1135,7 @@ When
         Loc: loc(c),
       }, nil
     }
-    
+
 UnnestExpr
   = UNNEST _ e:Expr __ Pipe __ body:Seq {
       return &ast.UnnestExpr{
@@ -1507,7 +1507,7 @@ Names
   = first:Name rest:(__ "," __ name:Name { return name, nil })* {
     return prepend(first, rest), nil
   }
-  
+
 Identifier
   = id:IdentifierName {
       return &ast.ID{
@@ -1528,7 +1528,7 @@ SQLIdentifier
 
 IdentifierName
   = !(IDGuard !IdentifierRest) IdentifierStart IdentifierRest* { return string(c.text), nil }
-  / BacktickString 
+  / BacktickString
 
 IdentifierStart
   = UnicodeLetter
@@ -1849,7 +1849,7 @@ EOKW = !KeyWordChars
 
 /// === SuperSQL ===
 
-SQLPipe 
+SQLPipe
   = s:Seq {
       return &ast.SQLPipe{
             Kind: "SQLPipe",
@@ -1860,7 +1860,7 @@ SQLPipe
 
 SelectOp = SelectExpr
 
-SelectExpr 
+SelectExpr
   = with:OptWithClause
     body:(
         SetOperation
@@ -1875,7 +1875,7 @@ SelectExpr
       if with != nil {
           w := with.(*ast.SQLWith)
           w.Body = op
-          op = w 
+          op = w
       }
       if orderby != nil {
           o := orderby.(*ast.SQLOrderBy)
@@ -1890,11 +1890,11 @@ SelectExpr
       return op, nil
     }
 
-Select 
-  = SELECT 
+Select
+  = SELECT
     distinct:OptDistinct
     value:OptSelectValue
-    //XXX for whitespace in front of target need it only if it begins with 
+    //XXX for whitespace in front of target need it only if it begins with
     // an identifier, e.g., select(1); is ok
     _ selection:Selection
     from:OptFromClause
@@ -1927,10 +1927,10 @@ Select
     }
 
 FromSelect
-  = from:FromOp _ SELECT 
+  = from:FromOp _ SELECT
     distinct:OptDistinct
     value:OptSelectValue
-    //XXX for whitespace in front of target need it only if it begins with 
+    //XXX for whitespace in front of target need it only if it begins with
     // an identifier, e.g., select(1); is ok
     _ selection:Selection
     where:OptWhereClause
@@ -1983,7 +1983,7 @@ SQLTuples
       return prepend(first, rest), nil
     }
 
-SQLTuple 
+SQLTuple
   = "(" __ exprs:Exprs __ ")" {
       return &ast.TupleExpr{
         Kind: "TupleExpr",
@@ -2002,26 +2002,26 @@ OptSelectValue
   / _ VALUE          { return true, nil } // SQL++ form XXX decide which
   / ""                  { return false, nil }
 
-OptWithClause 
+OptWithClause
   = WithClause
   / ""          { return nil, nil }
 
-WithClause 
+WithClause
   = WITH r:OptRecursive _ ctes:CteList __ {
         return &ast.SQLWith{
             Kind: "SQLWith",
-            Recursive: r.(bool), 
+            Recursive: r.(bool),
             CTEs: sliceOf[ast.SQLCTE](ctes),
             Loc: loc(c),
         }, nil
     }
 
-OptRecursive 
+OptRecursive
   = _ RECURSIVE  { return true, nil }
   / ""              { return false, nil }
 
 CteList = first:Cte rest:( __ "," __ cte:Cte { return cte, nil} )* {
-    return prepend(first, rest), nil 
+    return prepend(first, rest), nil
 }
 
 Cte
@@ -2034,13 +2034,13 @@ Cte
         }, nil
     }
 
-OptMaterialized 
+OptMaterialized
   = _ MATERIALIZED _             { return true, nil }
   / _ NOT _ MATERIALIZED _    { return false, nil }
   / ""                              { return false, nil }
 
 OptAllClause
-  = _ ALL 
+  = _ ALL
   / ""
 
 OptFromClause
@@ -2060,7 +2060,7 @@ OptGroupClause
 GroupClause
   = GROUP _ BY _ list:GroupByList { return list, nil }
 
-GroupByList 
+GroupByList
   = first:GroupByItem rest:( __ "," __ g:GroupByItem { return g, nil } )* {
       return prepend(first, rest), nil
     }
@@ -2088,45 +2088,45 @@ CrossJoin
         }, nil
     }
 
-CrossJoinOp 
-  = __ "," __ 
-  / _ CROSS _ JOIN _ 
+CrossJoinOp
+  = __ "," __
+  / _ CROSS _ JOIN _
 
 ConditionJoin
-  = left:FromElem style:SQLJoinStyle _ right:FromElem _ e:JoinExpr {
+  = left:FromElem style:SQLJoinStyle _ right:FromElem _ e:JoinCond {
         return &ast.SQLJoin{
             Kind: "SQLJoin",
             Style: style.(string),
             Left: left.(*ast.FromElem),
             Right: right.(*ast.FromElem),
-            Cond: e.(ast.JoinExpr),
+            Cond: e.(ast.JoinCond),
             Loc: loc(c),
         }, nil
     }
 
-SQLJoinStyle 
+SQLJoinStyle
   = (_ INNER)? _ JOIN             { return "inner", nil }
   / _ FULL (_ OUTER)? _ JOIN   { return "full", nil }
   / _ LEFT (_ OUTER)? _ JOIN   { return "left", nil }
   / _ RIGHT (_ OUTER)? _ JOIN   { return "right", nil }
 
-JoinExpr 
-  = ON _ e:Expr { 
-        return &ast.JoinOnExpr{
-            Kind: "JoinOnExpr", 
+JoinCond
+  = ON _ e:Expr {
+        return &ast.JoinOnCond{
+            Kind: "JoinOnCond",
             Expr: e.(ast.Expr),
             Loc: loc(c),
         }, nil
     }
   / USING __ "(" __ fields:Lvals __ ")" {
-        return &ast.JoinUsingExpr{
-            Kind: "JoinUsingExpr",
+        return &ast.JoinUsingCond{
+            Kind: "JoinUsingCond",
             Fields: sliceOf[ast.Expr](fields),
             Loc: loc(c),
         }, nil
     }
 
-OptOrdinality 
+OptOrdinality
   = _ WITH _ ORDINALITY   {
         return &ast.Ordinality{
             Kind: "Ordinality",
@@ -2150,7 +2150,7 @@ AliasClause
 
 Columns
   = __ "(" __ first:SQLIdentifier rest:( __ "," __ s:SQLIdentifier{ return s, nil })* __ ")" {
-        return sliceOf[*ast.ID](prepend(first,rest)), nil 
+        return sliceOf[*ast.ID](prepend(first,rest)), nil
     }
 
 Selection
@@ -2163,7 +2163,7 @@ Selection
   }
 
 //XXX need to add *, id.*, except, replace
-SelectElem 
+SelectElem
   = expr:(AggDistinct / Expr) as:OptAsClause {
       elem := ast.SQLAsExpr{
         Kind: "SQLAsExpr",
@@ -2180,13 +2180,13 @@ SelectElem
       return ast.SQLAsExpr{Kind: "AsExpr"}, nil
     }
 
-OptAsClause 
+OptAsClause
   = _ AS _ id:SQLIdentifier { return id, nil }
   / _ !SQLGuard id:SQLIdentifier { return id, nil }
   / ""  { return nil, nil }
 
-OptOrderByClause 
-  = _ ORDER _ BY _ list:OrderByList { 
+OptOrderByClause
+  = _ ORDER _ BY _ list:OrderByList {
         return &ast.SQLOrderBy{
           Kind: "SQLOrderBy",
           Exprs: list.([]ast.SortExpr),
@@ -2195,7 +2195,7 @@ OptOrderByClause
     }
   / ""          { return nil, nil }
 
-OrderByList 
+OrderByList
   = first:OrderByItem rest:( __ "," __ o:OrderByItem{ return o, nil})* {
       return sliceOf[ast.SortExpr](prepend(first, rest)), nil
     }
@@ -2223,7 +2223,7 @@ OptNullsOrder
   / ""                      { return nil, nil }
 
 OptSQLLimitOffset
-  = _ op:SQLLimitOffset { return op, nil } 
+  = _ op:SQLLimitOffset { return op, nil }
   / ""                  { return nil, nil }
 
 SQLLimitOffset
@@ -2252,19 +2252,19 @@ SQLLimitOffset
       return op, nil
     }
 
-OptLimitClause 
+OptLimitClause
   = _ l:LimitClause { return l, nil }
   / ""              { return nil, nil }
 
-LimitClause 
+LimitClause
   = LIMIT _ ALL { return nil, nil }
   / LIMIT _ e:Expr { return e, nil }
 
-OptOffsetClause 
+OptOffsetClause
   = _ o:OffsetClause  { return o, nil }
   / ""  { return nil, nil }
 
-OffsetClause 
+OffsetClause
   = OFFSET _ e:Expr  { return e, nil }
 
 SetOperation
@@ -2278,7 +2278,7 @@ SetOperation
         }, nil
     }
 
-SetOp 
+SetOp
   = _ UNION _ ALL       { return false, nil }
   / _ UNION (_ DISTINCT)?  { return true, nil }
 
@@ -2290,7 +2290,7 @@ SQLGuard =
   / ORDER
   / OFFSET
   / LIMIT
-  / WHERE 
+  / WHERE
   / WITH
   / USING
   / ON
@@ -2316,7 +2316,7 @@ DEBUG      = "DEBUG"i           !IdentifierRest
 DEFAULT    = "DEFAULT"i         !IdentifierRest
 DESC       = "DESC"i            !IdentifierRest { return "desc", nil }
 DISTINCT   = "DISTINCT"i        !IdentifierRest
-DROP       = "DROP"i            !IdentifierRest 
+DROP       = "DROP"i            !IdentifierRest
 ELSE       = "ELSE"i            !IdentifierRest
 END        = "END"i             !IdentifierRest
 ENUM       = "ENUM"i            !IdentifierRest
@@ -2335,7 +2335,7 @@ FUSE       = "FUSE"i            !IdentifierRest
 GREP       = "GREP"i            !IdentifierRest
 GROUP      = "GROUP"i           !IdentifierRest
 HAVING     = "HAVING"i          !IdentifierRest
-HEAD       = "HEAD"i            !IdentifierRest 
+HEAD       = "HEAD"i            !IdentifierRest
 IN         = "IN"i              !IdentifierRest
 INNER      = "INNER"i           !IdentifierRest
 IS         = "IS"i              !IdentifierRest
@@ -2374,14 +2374,14 @@ SORT       = "SORT"i            !IdentifierRest
 SUBSTRING  = "SUBSTRING"i       !IdentifierRest
 SUMMARIZE  = "SUMMARIZE"i       !IdentifierRest
 SWITCH     = "SWITCH"i          !IdentifierRest
-TAIL       = "TAIL"i            !IdentifierRest 
+TAIL       = "TAIL"i            !IdentifierRest
 THEN       = "THEN"i            !IdentifierRest
 TIMESTAMP  = "TIMESTAMP"i       !IdentifierRest { return "timestamp", nil }
 TOP        = "TOP"i             !IdentifierRest
 TRUE       = "TRUE"i            !IdentifierRest
 TYPE       = "TYPE"i            !IdentifierRest
 UNION      = "UNION"i           !IdentifierRest
-UNIQ       = "UNIQ"i            !IdentifierRest 
+UNIQ       = "UNIQ"i            !IdentifierRest
 UNNEST     = "UNNEST"i          !IdentifierRest
 USING      = "USING"i           !IdentifierRest
 VALUE      = "VALUE"i           !IdentifierRest

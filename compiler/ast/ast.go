@@ -590,7 +590,7 @@ type (
 		Style      string     `json:"style"`
 		RightInput Seq        `json:"right_input"`
 		Alias      *JoinAlias `json:"alias"`
-		Cond       JoinExpr   `json:"cond"`
+		Cond       JoinCond   `json:"cond"`
 		Loc        `json:"loc"`
 	}
 	JoinAlias struct {

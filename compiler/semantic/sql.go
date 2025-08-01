@@ -579,7 +579,7 @@ func (a *analyzer) semSQLJoin(join *ast.SQLJoin, seq dag.Seq) (dag.Seq, schema) 
 
 var badJoinCond = errors.New("bad join condition")
 
-func (a *analyzer) semSQLJoinCond(cond ast.JoinExpr, sch *joinSchema) (*dag.This, *dag.This, error) {
+func (a *analyzer) semSQLJoinCond(cond ast.JoinCond, sch *joinSchema) (*dag.This, *dag.This, error) {
 	//XXX we currently require field expressions for SQL joins and will need them
 	// to resolve names to join side when we add scope tracking
 	saved := a.scope.schema
@@ -613,19 +613,19 @@ func joinFieldAsThis(e dag.Expr) (*dag.This, error) {
 	return this, nil
 }
 
-func (a *analyzer) semJoinCond(cond ast.JoinExpr, leftAlias, rightAlias string) (dag.Expr, dag.Expr, error) {
+func (a *analyzer) semJoinCond(cond ast.JoinCond, leftAlias, rightAlias string) (dag.Expr, dag.Expr, error) {
 	switch cond := cond.(type) {
-	case *ast.JoinOnExpr:
+	case *ast.JoinOnCond:
 		if id, ok := cond.Expr.(*ast.ID); ok {
-			return a.semJoinCond(&ast.JoinUsingExpr{Fields: []ast.Expr{id}}, leftAlias, rightAlias)
+			return a.semJoinCond(&ast.JoinUsingCond{Fields: []ast.Expr{id}}, leftAlias, rightAlias)
 		}
 		binary, ok := cond.Expr.(*ast.BinaryExpr)
 		if !ok || !(binary.Op == "==" || binary.Op == "=") {
 			return nil, nil, errors.New("only equijoins currently supported")
 		}
-		leftKey, rightKey := a.semJoinOnExpr(cond, leftAlias, rightAlias, binary.LHS, binary.RHS)
+		leftKey, rightKey := a.semJoinOnCond(cond, leftAlias, rightAlias, binary.LHS, binary.RHS)
 		return leftKey, rightKey, nil
-	case *ast.JoinUsingExpr:
+	case *ast.JoinUsingCond:
 		if len(cond.Fields) > 1 {
 			return nil, nil, errors.New("join using currently limited to a single field")
 		}
@@ -645,7 +645,7 @@ func (a *analyzer) semJoinCond(cond ast.JoinExpr, leftAlias, rightAlias string) 
 	}
 }
 
-func (a *analyzer) semJoinOnExpr(cond *ast.JoinOnExpr, leftAlias, rightAlias string, lhs, rhs ast.Expr) (dag.Expr, dag.Expr) {
+func (a *analyzer) semJoinOnCond(cond *ast.JoinOnCond, leftAlias, rightAlias string, lhs, rhs ast.Expr) (dag.Expr, dag.Expr) {
 	var isbad bool
 	var left, right dag.Expr
 	for _, in := range []ast.Expr{lhs, rhs} {

@@ -114,8 +114,8 @@ var unpacker = unpack.New(
 	SQLUnion{},
 	SQLOrderBy{},
 	SQLWith{},
-	JoinOnExpr{},
-	JoinUsingExpr{},
+	JoinOnCond{},
+	JoinUsingCond{},
 )
 
 // UnmarshalOp transforms a JSON representation of an operator into an Op.
