@@ -9,7 +9,6 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/expr/function"
-	"github.com/brimdata/super/runtime/sam/op/combine"
 	"github.com/brimdata/super/runtime/sam/op/traverse"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zbuf"
@@ -419,13 +418,7 @@ func (b *Builder) compileQueryExpr(query *dag.QueryExpr) (expr.Evaluator, error)
 	if err != nil {
 		return nil, err
 	}
-	var exit zbuf.Puller
-	if len(exits) == 1 {
-		exit = exits[0]
-	} else {
-		exit = combine.New(b.rctx, exits)
-	}
-	return traverse.NewQueryExpr(b.rctx, exit), nil
+	return traverse.NewQueryExpr(b.rctx, b.combine(exits)), nil
 }
 
 func (b *Builder) compileRegexpMatch(match *dag.RegexpMatch) (expr.Evaluator, error) {
@@ -542,15 +535,7 @@ func (b *Builder) compileUnnestExpr(unnest *dag.UnnestExpr) (expr.Evaluator, err
 	if err != nil {
 		return nil, err
 	}
-	var exit zbuf.Puller
-	if len(exits) == 1 {
-		exit = exits[0]
-	} else {
-		// This can happen when output of over body
-		// is a fork or switch.
-		exit = combine.New(b.rctx, exits)
-	}
-	parent.SetExit(scope.NewExit(exit))
+	parent.SetExit(scope.NewExit(b.combine(exits)))
 	return parent, nil
 }
 

@@ -101,11 +101,7 @@ func (b *Builder) Build(seq dag.Seq, readers ...zio.Reader) (map[string]zbuf.Pul
 	}
 	channels := make(map[string]zbuf.Puller)
 	for key, pullers := range b.channels {
-		if len(pullers) == 1 {
-			channels[key] = pullers[0]
-		} else {
-			channels[key] = combine.New(b.rctx, pullers)
-		}
+		channels[key] = b.combine(pullers)
 	}
 	return channels, nil
 }
@@ -421,15 +417,7 @@ func (b *Builder) compileOver(parent zbuf.Puller, unnest *dag.Unnest) (zbuf.Pull
 	if err != nil {
 		return nil, err
 	}
-	var exit zbuf.Puller
-	if len(exits) == 1 {
-		exit = exits[0]
-	} else {
-		// This can happen when output of over body
-		// is a fork or switch.
-		exit = combine.New(b.rctx, exits)
-	}
-	return scope.NewExit(exit), nil
+	return scope.NewExit(b.combine(exits)), nil
 }
 
 func (b *Builder) compileAssignments(assignments []dag.Assignment) ([]expr.Assignment, error) {
@@ -539,11 +527,7 @@ func (b *Builder) compileScatter(par *dag.Scatter, parents []zbuf.Puller) ([]zbu
 }
 
 func (b *Builder) compileMirror(m *dag.Mirror, parents []zbuf.Puller) ([]zbuf.Puller, error) {
-	parent := parents[0]
-	if len(parents) > 1 {
-		parent = combine.New(b.rctx, parents)
-	}
-	o := mirror.New(b.rctx, parent)
+	o := mirror.New(b.rctx, b.combine(parents))
 	main, err := b.compileSeq(m.Main, []zbuf.Puller{o})
 	if err != nil {
 		return nil, err
@@ -556,16 +540,12 @@ func (b *Builder) compileMirror(m *dag.Mirror, parents []zbuf.Puller) ([]zbuf.Pu
 }
 
 func (b *Builder) compileExprSwitch(swtch *dag.Switch, parents []zbuf.Puller) ([]zbuf.Puller, error) {
-	parent := parents[0]
-	if len(parents) > 1 {
-		parent = combine.New(b.rctx, parents)
-	}
 	b.resetResetters()
 	e, err := b.compileExpr(swtch.Expr)
 	if err != nil {
 		return nil, err
 	}
-	s := exprswitch.New(b.rctx, parent, e, b.resetters)
+	s := exprswitch.New(b.rctx, b.combine(parents), e, b.resetters)
 	var exits []zbuf.Puller
 	for _, c := range swtch.Cases {
 		var val *super.Value
@@ -589,10 +569,6 @@ func (b *Builder) compileExprSwitch(swtch *dag.Switch, parents []zbuf.Puller) ([
 }
 
 func (b *Builder) compileSwitch(swtch *dag.Switch, parents []zbuf.Puller) ([]zbuf.Puller, error) {
-	parent := parents[0]
-	if len(parents) > 1 {
-		parent = combine.New(b.rctx, parents)
-	}
 	b.resetResetters()
 	var exprs []expr.Evaluator
 	for _, c := range swtch.Cases {
@@ -602,7 +578,7 @@ func (b *Builder) compileSwitch(swtch *dag.Switch, parents []zbuf.Puller) ([]zbu
 		}
 		exprs = append(exprs, e)
 	}
-	switcher := switcher.New(b.rctx, parent, b.resetters)
+	switcher := switcher.New(b.rctx, b.combine(parents), b.resetters)
 	var ops []zbuf.Puller
 	for i, e := range exprs {
 		o, err := b.compileSeq(swtch.Cases[i].Path, []zbuf.Puller{switcher.AddCase(e)})
@@ -655,13 +631,7 @@ func (b *Builder) compile(o dag.Op, parents []zbuf.Puller) ([]zbuf.Puller, error
 	case *dag.Combine:
 		return []zbuf.Puller{combine.New(b.rctx, parents)}, nil
 	default:
-		var parent zbuf.Puller
-		if len(parents) == 1 {
-			parent = parents[0]
-		} else if len(parents) > 1 {
-			parent = combine.New(b.rctx, parents)
-		}
-		p, err := b.compileLeaf(o, parent)
+		p, err := b.compileLeaf(o, b.combine(parents))
 		if err != nil {
 			return nil, err
 		}
@@ -716,6 +686,17 @@ func (b *Builder) lookupPool(id ksuid.KSUID) (*lake.Pool, error) {
 	}
 	// This is fast because of the pool cache in the lake.
 	return b.env.Lake().OpenPool(b.rctx.Context, id)
+}
+
+func (b *Builder) combine(pullers []zbuf.Puller) zbuf.Puller {
+	switch len(pullers) {
+	case 0:
+		return nil
+	case 1:
+		return pullers[0]
+	default:
+		return combine.New(b.rctx, pullers)
+	}
 }
 
 func (b *Builder) evalAtCompileTime(in dag.Expr) (val super.Value, err error) {
