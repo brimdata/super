@@ -583,6 +583,11 @@ func (a *analyzer) semBinary(e *ast.BinaryExpr) dag.Expr {
 		}
 		return expr
 	}
+	if op == "in" || op == "not in" {
+		if q, ok := rhs.(*dag.QueryExpr); ok {
+			q.ForceArray = true
+		}
+	}
 	switch op {
 	case "=":
 		op = "=="
