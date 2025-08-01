@@ -109,6 +109,15 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 		}
 	case *ast.DoubleQuote:
 		return a.semDoubleQuote(e)
+	case *ast.Exists:
+		q := a.semSeqExpr(e.Body)
+		q.ForceArray = true
+		return &dag.BinaryExpr{
+			Kind: "BinaryExpr",
+			Op:   ">",
+			LHS:  &dag.Call{Kind: "Call", Name: "len", Args: []dag.Expr{q}},
+			RHS:  &dag.Literal{Kind: "Literal", Value: "0"},
+		}
 	case *ast.FString:
 		return a.semFString(e)
 	case *ast.Glob:
@@ -177,7 +186,7 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 			Value: sup.FormatValue(val),
 		}
 	case *ast.QueryExpr:
-		return a.semQueryExpr(e)
+		return a.semSeqExpr(e.Body)
 	case *ast.RecordExpr:
 		fields := map[string]struct{}{}
 		var out []dag.RecordElem
@@ -991,24 +1000,28 @@ func (a *analyzer) semFString(f *ast.FString) dag.Expr {
 	return out
 }
 
-func (a *analyzer) semQueryExpr(q *ast.QueryExpr) dag.Expr {
+func (a *analyzer) semSeqExpr(body ast.Seq) *dag.QueryExpr {
 	e := &dag.QueryExpr{
 		Kind: "QueryExpr",
-		Body: a.semSeq(q.Body),
+		Body: a.semSeq(body),
 	}
 	if !HasSource(e.Body) {
 		e.Body.Prepend(&dag.NullScan{Kind: "NullScan"})
 	}
-	if !isSQLOp(q.Body[0]) {
-		return e
+	if isSQLOp(body[0]) {
+		// SQL expects a record with a single column result so fetch the first
+		// value.
+		e.Body.Append(&dag.Values{
+			Kind: "Values",
+			Exprs: []dag.Expr{
+				&dag.IndexExpr{
+					Kind:  "IndexExpr",
+					Expr:  &dag.This{},
+					Index: &dag.Literal{Kind: "Literal", Value: "1"},
+				}},
+		})
 	}
-	// SQL expects a record with a single column result so fetch the first
-	// value.
-	return &dag.IndexExpr{
-		Kind:  "IndexExpr",
-		Expr:  e,
-		Index: &dag.Literal{Kind: "Literal", Value: "1"},
-	}
+	return e
 }
 
 func (a *analyzer) evalPositiveInteger(e ast.Expr) int {

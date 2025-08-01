@@ -9,13 +9,14 @@ import (
 )
 
 type QueryExpr struct {
-	rctx   *runtime.Context
-	puller vector.Puller
-	cached vector.Any
+	rctx       *runtime.Context
+	puller     vector.Puller
+	cached     vector.Any
+	forceArray bool
 }
 
-func NewQueryExpr(rctx *runtime.Context, puller vector.Puller) *QueryExpr {
-	return &QueryExpr{rctx: rctx, puller: puller}
+func NewQueryExpr(rctx *runtime.Context, puller vector.Puller, forceArray bool) *QueryExpr {
+	return &QueryExpr{rctx: rctx, puller: puller, forceArray: forceArray}
 }
 
 func (q *QueryExpr) Eval(this vector.Any) vector.Any {
@@ -43,13 +44,24 @@ func (q *QueryExpr) exec(length uint32) vector.Any {
 			return vector.NewStringError(q.rctx.Sctx, err.Error(), length)
 		}
 		if vec == nil {
-			return combine(q.rctx.Sctx, vecs)
+			out := flattenVecs(vecs)
+			if q.forceArray {
+				return makeArray(q.rctx.Sctx, out)
+			}
+			switch out.Len() {
+			case 0:
+				return vector.NewConst(super.Null, 1, bitvec.Zero)
+			case 1:
+				return out
+			default:
+				return makeArray(q.rctx.Sctx, out)
+			}
 		}
 		vecs = append(vecs, vec)
 	}
 }
 
-func combine(sctx *super.Context, vecs []vector.Any) vector.Any {
+func flattenVecs(vecs []vector.Any) vector.Any {
 	var b zcode.Builder
 	db := vector.NewDynamicBuilder()
 	for _, vec := range vecs {
@@ -60,23 +72,19 @@ func combine(sctx *super.Context, vecs []vector.Any) vector.Any {
 			} else {
 				typ = vec.Type()
 			}
-			b.Reset()
+			b.Truncate()
 			vec.Serialize(&b, i)
 			db.Write(super.NewValue(typ, b.Bytes().Body()))
 		}
 	}
-	vec := db.Build()
-	switch vec.Len() {
-	case 0:
-		return vector.NewConst(super.Null, 1, bitvec.Zero)
-	case 1:
-		return vec
-	default:
-		return makeArray(sctx, vec)
-	}
+	return db.Build()
 }
 
 func makeArray(sctx *super.Context, vec vector.Any) vector.Any {
+	if vec.Len() == 0 {
+		typ := sctx.LookupTypeArray(super.TypeNull)
+		return vector.NewArray(typ, []uint32{0, 0}, vector.NewConst(super.Null, 0, bitvec.Zero), bitvec.Zero)
+	}
 	var typ *super.TypeArray
 	if dynamic, ok := vec.(*vector.Dynamic); ok {
 		var types []super.Type

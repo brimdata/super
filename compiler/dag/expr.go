@@ -84,8 +84,9 @@ type (
 		Entries []Entry `json:"entries"`
 	}
 	QueryExpr struct {
-		Kind string `json:"kind" unpack:""`
-		Body Seq    `json:"body"`
+		Kind       string `json:"kind" unpack:""`
+		Body       Seq    `json:"body"`
+		ForceArray bool   `json:"force_array"`
 	}
 	RecordExpr struct {
 		Kind  string       `json:"kind" unpack:""`
