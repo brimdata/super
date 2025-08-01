@@ -123,6 +123,14 @@ func (c *canon) expr(e ast.Expr, parent string) {
 		c.write("(")
 		c.expr(e.Expr, "")
 		c.write(")")
+	case *ast.Exists:
+		c.open("exists(")
+		c.head = true
+		c.seq(e.Body)
+		c.close()
+		c.ret()
+		c.flush()
+		c.write(")")
 	case *ast.TypeValue:
 		c.write("<")
 		c.typ(e.Value)

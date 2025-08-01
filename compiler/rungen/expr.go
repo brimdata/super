@@ -425,7 +425,7 @@ func (b *Builder) compileQueryExpr(query *dag.QueryExpr) (expr.Evaluator, error)
 	} else {
 		exit = combine.New(b.rctx, exits)
 	}
-	return traverse.NewQueryExpr(b.rctx, exit), nil
+	return traverse.NewQueryExpr(b.rctx, exit, query.ForceArray), nil
 }
 
 func (b *Builder) compileRegexpMatch(match *dag.RegexpMatch) (expr.Evaluator, error) {

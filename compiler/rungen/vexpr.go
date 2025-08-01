@@ -310,7 +310,7 @@ func (b *Builder) compileVamQueryExpr(query *dag.QueryExpr) (vamexpr.Evaluator, 
 	} else {
 		exit = vamop.NewCombine(b.rctx, exits)
 	}
-	return vamexpr.NewQueryExpr(b.rctx, exit), nil
+	return vamexpr.NewQueryExpr(b.rctx, exit, query.ForceArray), nil
 }
 
 func (b *Builder) compileVamRegexpMatch(match *dag.RegexpMatch) (vamexpr.Evaluator, error) {
