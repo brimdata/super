@@ -1,0 +1,17 @@
+script: |
+  super -s -c 'values "foo" in (values "foo", "bar", "baz")'
+  echo // ===
+  super -s -c 'values "foo" not in (values "fool")'
+  echo // ===
+  super -s -c 'values "foo" in (values "fool")'
+
+vector: true
+
+outputs:
+  - name: stdout
+    data: |
+      true
+      // ===
+      true
+      // ===
+      false
