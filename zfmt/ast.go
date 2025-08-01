@@ -596,30 +596,20 @@ func (c *canon) op(p ast.Op) {
 		if p.Style != "" {
 			c.write("%s ", p.Style)
 		}
-		c.write("join ")
+		c.write("join")
 		if p.RightInput != nil {
-			c.open("(")
+			c.open(" (")
 			c.head = true
 			c.seq(p.RightInput)
 			c.close()
 			c.ret()
 			c.flush()
-			c.write(") ")
+			c.write(")")
 		}
 		if p.Alias != nil {
-			c.write("as {%s,%s} ", p.Alias.Left.Name, p.Alias.Right.Name)
+			c.write(" as {%s,%s}", p.Alias.Left.Name, p.Alias.Right.Name)
 		}
-		switch cond := p.Cond.(type) {
-		case *ast.JoinOnCond:
-			c.write("on ")
-			c.expr(cond.Expr, "")
-		case *ast.JoinUsingCond:
-			c.write("using (")
-			c.exprs(cond.Fields)
-			c.write(")")
-		default:
-			panic(cond)
-		}
+		c.joinCond(p.Cond)
 	case *ast.OpAssignment:
 		c.next()
 		which := "put "
@@ -793,9 +783,29 @@ func (c *canon) fromEntity(e ast.FromEntity) {
 		c.write(" cross join ")
 		c.fromElem(e.Right)
 	case *ast.SQLJoin:
-		c.write("sql join XXX")
+		c.fromElem(e.Left)
+		if e.Style != "" {
+			c.write(" " + e.Style)
+		}
+		c.write(" join ")
+		c.fromElem(e.Right)
+		c.joinCond(e.Cond)
 	default:
 		panic(fmt.Sprintf("unknown from expression: %T", e))
+	}
+}
+
+func (c *canon) joinCond(e ast.JoinCond) {
+	switch e := e.(type) {
+	case *ast.JoinOnCond:
+		c.write(" on ")
+		c.expr(e.Expr, "")
+	case *ast.JoinUsingCond:
+		c.write(" using (")
+		c.exprs(e.Fields)
+		c.write(")")
+	default:
+		panic(e)
 	}
 }
 
