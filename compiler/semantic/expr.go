@@ -441,8 +441,17 @@ func (a *analyzer) semDoubleQuote(d *ast.DoubleQuote) dag.Expr {
 func (a *analyzer) semExists(e *ast.Exists) dag.Expr {
 	q := a.semSeqExpr(e.Body)
 	// Append collect(this) to ensure array of results is returned.
-	q.Body = append(q.Body,
-		&dag.Head{Kind: "Head", Count: 1},
+	q.Body = appendCollect(append(q.Body, &dag.Head{Kind: "Head", Count: 1}))
+	return &dag.BinaryExpr{
+		Kind: "BinaryExpr",
+		Op:   ">",
+		LHS:  &dag.Call{Kind: "Call", Name: "len", Args: []dag.Expr{q}},
+		RHS:  &dag.Literal{Kind: "Literal", Value: "0"},
+	}
+}
+
+func appendCollect(body dag.Seq) dag.Seq {
+	return append(body,
 		&dag.Aggregate{
 			Kind: "Aggregate",
 			Aggs: []dag.Assignment{{
@@ -453,12 +462,6 @@ func (a *analyzer) semExists(e *ast.Exists) dag.Expr {
 		},
 		&dag.Values{Kind: "Values", Exprs: []dag.Expr{pathOf("collect")}},
 	)
-	return &dag.BinaryExpr{
-		Kind: "BinaryExpr",
-		Op:   ">",
-		LHS:  &dag.Call{Kind: "Call", Name: "len", Args: []dag.Expr{q}},
-		RHS:  &dag.Literal{Kind: "Literal", Value: "0"},
-	}
 }
 
 func semDynamicType(tv ast.Type) *dag.Call {
@@ -585,6 +588,11 @@ func (a *analyzer) semBinary(e *ast.BinaryExpr) dag.Expr {
 			}
 		}
 		return expr
+	}
+	if op == "in" || op == "not in" {
+		if q, ok := rhs.(*dag.QueryExpr); ok {
+			q.Body = appendCollect(q.Body)
+		}
 	}
 	switch op {
 	case "=":

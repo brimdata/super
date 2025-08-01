@@ -1,0 +1,16 @@
+spq: |
+  values
+    "foo" in (values "foo", "bar", "baz"),
+    "===",
+    "foo" not in (values "fool"),
+    "===",
+    "foo" in (values "fool")
+
+vector: true
+
+output: |
+  true
+  "==="
+  true
+  "==="
+  false
