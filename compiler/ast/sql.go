@@ -72,7 +72,7 @@ type (
 		Style string    `json:"style"`
 		Left  *FromElem `json:"left"`
 		Right *FromElem `json:"right"`
-		Cond  JoinExpr  `json:"cond"`
+		Cond  JoinCond  `json:"cond"`
 		Loc   `json:"loc"`
 	}
 	SQLCrossJoin struct {
@@ -90,26 +90,26 @@ type (
 	}
 )
 
-type JoinExpr interface {
+type JoinCond interface {
 	Node
-	joinExprNode()
+	joinCondNode()
 }
 
-type JoinOnExpr struct {
+type JoinOnCond struct {
 	Kind string `json:"kind" unpack:""`
 	Expr Expr   `json:"expr"`
 	Loc  `json:"loc"`
 }
 
-func (*JoinOnExpr) joinExprNode() {}
+func (*JoinOnCond) joinCondNode() {}
 
-type JoinUsingExpr struct {
+type JoinUsingCond struct {
 	Kind   string `json:"kind" unpack:""`
 	Fields []Expr `json:"fields"`
 	Loc    `json:"loc"`
 }
 
-func (*JoinUsingExpr) joinExprNode() {}
+func (*JoinUsingCond) joinCondNode() {}
 
 func (*SQLPipe) opNode()        {}
 func (*SQLSelect) opNode()      {}

@@ -610,10 +610,10 @@ func (c *canon) op(p ast.Op) {
 			c.write("as {%s,%s} ", p.Alias.Left.Name, p.Alias.Right.Name)
 		}
 		switch cond := p.Cond.(type) {
-		case *ast.JoinOnExpr:
+		case *ast.JoinOnCond:
 			c.write("on ")
 			c.expr(cond.Expr, "")
-		case *ast.JoinUsingExpr:
+		case *ast.JoinUsingCond:
 			c.write("using (")
 			c.exprs(cond.Fields)
 			c.write(")")
