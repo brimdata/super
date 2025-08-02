@@ -262,7 +262,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 		}
 		return explode.New(b.sctx(), parent, args, typ, v.As, b.resetters)
 	case *dag.Unnest:
-		return b.compileOver(parent, v)
+		return b.compileUnnest(parent, v)
 	case *dag.Values:
 		b.resetResetters()
 		exprs, err := b.compileExprs(v.Exprs)
@@ -406,7 +406,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 	}
 }
 
-func (b *Builder) compileOver(parent zbuf.Puller, unnest *dag.Unnest) (zbuf.Puller, error) {
+func (b *Builder) compileUnnest(parent zbuf.Puller, unnest *dag.Unnest) (zbuf.Puller, error) {
 	b.resetResetters()
 	expr, err := b.compileExpr(unnest.Expr)
 	if err != nil {

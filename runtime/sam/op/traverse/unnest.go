@@ -52,8 +52,7 @@ func (u *Unnest) Pull(done bool) (zbuf.Batch, error) {
 		}
 		this := u.outer[0]
 		u.outer = u.outer[1:]
-		ectx := u.batch
-		innerBatch := u.unnest(ectx, this)
+		innerBatch := u.unnest(this)
 		if len(u.outer) == 0 {
 			u.batch.Unref()
 		}
@@ -63,7 +62,7 @@ func (u *Unnest) Pull(done bool) (zbuf.Batch, error) {
 	}
 }
 
-func (u *Unnest) unnest(batch zbuf.Batch, this super.Value) zbuf.Batch {
+func (u *Unnest) unnest(this super.Value) zbuf.Batch {
 	val := u.expr.Eval(this)
 	// Propagate errors but skip missing values.
 	var vals []super.Value
