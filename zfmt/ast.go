@@ -780,7 +780,8 @@ func (c *canon) fromEntity(e ast.FromEntity) {
 		c.write(sup.QuotedName(e.Text))
 	case *ast.SQLCrossJoin:
 		c.fromElem(e.Left)
-		c.write(" cross join ")
+		c.ret()
+		c.write("cross join ")
 		c.fromElem(e.Right)
 	case *ast.SQLJoin:
 		c.fromElem(e.Left)

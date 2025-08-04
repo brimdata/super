@@ -1,4 +1,6 @@
 script: |
+  echo === cross join
+  super compile -C 'from a cross join b, c'
   echo === join with on condition
   super compile -C 'from a join b on c'
   echo === join with using condition
@@ -23,6 +25,10 @@ script: |
 outputs:
   - name: stdout
     data: |
+      === cross join
+      from a
+      cross join b
+      cross join c
       === join with on condition
       from a
       inner join b on c

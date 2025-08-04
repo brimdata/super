@@ -6,15 +6,6 @@ script: |
   super compile -C "right join (from test.sup) as {l,r} on r.x=l.x"
   echo ===
   super compile -C -dag "right join (from test.sup) as {l,r} on r.x=l.x"
-  echo === SQL cross join
-  super compile -C "from a cross join b"
-  echo ===
-  super compile -C -dag "from a cross join b"
-  echo === SQL comma cross join
-  super compile -C "from a, b"
-  echo ===
-  super compile -C -dag "from a, b"
-
 
 outputs:
   - name: stdout
@@ -47,28 +38,4 @@ outputs:
           file test.sup format sup
         )
       | right join as {l,r} on x=x
-      | output main
-      === SQL cross join
-      from a cross join b
-      ===
-      fork
-        (
-          file a
-        )
-        (
-          file b
-        )
-      | cross join as {left,right}
-      | output main
-      === SQL comma cross join
-      from a cross join b
-      ===
-      fork
-        (
-          file a
-        )
-        (
-          file b
-        )
-      | cross join as {left,right}
       | output main
