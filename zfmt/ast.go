@@ -784,10 +784,11 @@ func (c *canon) fromEntity(e ast.FromEntity) {
 		c.fromElem(e.Right)
 	case *ast.SQLJoin:
 		c.fromElem(e.Left)
+		c.ret()
 		if e.Style != "" {
-			c.write(" " + e.Style)
+			c.write(e.Style + " ")
 		}
-		c.write(" join ")
+		c.write("join ")
 		c.fromElem(e.Right)
 		c.joinCond(e.Cond)
 	default:

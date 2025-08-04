@@ -1,8 +1,8 @@
 script: |
   echo === join with on condition
-  super compile -C 'select a from b join c on d'
+  super compile -C 'from a join b on c'
   echo === join with using condition
-  super compile -C 'select a from b join c using (d,e)'
+  super compile -C 'from a join b using (c,d)'
   echo === select
   super compile -C 'select a from b where c group by d having e order by f limit g offset h'
   echo === ornate select
@@ -24,11 +24,11 @@ outputs:
   - name: stdout
     data: |
       === join with on condition
-      select a
-      from b inner join c on d
+      from a
+      inner join b on c
       === join with using condition
-      select a
-      from b inner join c using (d, e)
+      from a
+      inner join b using (c, d)
       === select
       select a
       from b
