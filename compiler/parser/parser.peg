@@ -1960,7 +1960,7 @@ FromSelect
     }
 
 SQLValues
-  = VALUES _ tuples:SQLTuples {
+  = VALUES __ tuples:SQLTuples {
       return &ast.SQLValues{
           Kind: "SQLValues",
           Exprs: sliceOf[ast.Expr](tuples),
