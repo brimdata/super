@@ -1,6 +1,7 @@
 package semantic
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/url"
@@ -18,10 +19,12 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/plural"
 	"github.com/brimdata/super/pkg/reglob"
+	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/zio/parquetio"
 	"github.com/segmentio/ksuid"
 )
 
@@ -101,6 +104,11 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.TableAlias, a
 			return seq, schema
 		}
 		op, def := a.semFromName(entity, entity.Text, args)
+		if op, ok := op.(*dag.FileScan); ok {
+			if cols, ok := a.fileScanColumns(op); ok {
+				return dag.Seq{op}, &staticSchema{def, cols}
+			}
+		}
 		return dag.Seq{op}, a.fromSchema(alias, def)
 	case *ast.ExprEntity:
 		seq, def := a.semFromExpr(entity, args, seq)
@@ -119,6 +127,25 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.TableAlias, a
 	default:
 		panic(fmt.Sprintf("semFromEntity: unknown entity type: %T", entity))
 	}
+}
+
+func (a *analyzer) fileScanColumns(op *dag.FileScan) ([]string, bool) {
+	if op.Format != "parquet" {
+		return nil, false
+	}
+	uri, err := storage.ParseURI(op.Path)
+	if err != nil {
+		return nil, false
+	}
+	ctx, cancel := context.WithCancel(a.ctx)
+	defer cancel()
+	sr, err := a.env.Engine().Get(ctx, uri)
+	if err != nil {
+		return nil, false
+	}
+	defer sr.Close()
+	cols, err := parquetio.TopLevelFieldNames(sr)
+	return cols, err == nil
 }
 
 func (a *analyzer) semFromExpr(entity *ast.ExprEntity, args []ast.OpArg, seq dag.Seq) (dag.Seq, string) {

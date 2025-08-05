@@ -37,6 +37,10 @@ func NewEnvironment(engine storage.Engine, lake *lake.Root) *Environment {
 	}
 }
 
+func (e *Environment) Engine() storage.Engine {
+	return e.engine
+}
+
 func (e *Environment) UseVAM() bool {
 	return e.useVAM
 }
