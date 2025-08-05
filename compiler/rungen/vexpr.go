@@ -11,9 +11,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr/function"
 	vamexpr "github.com/brimdata/super/runtime/vam/expr"
 	vamfunction "github.com/brimdata/super/runtime/vam/expr/function"
-	vamop "github.com/brimdata/super/runtime/vam/op"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/vector"
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -62,8 +60,6 @@ func (b *Builder) compileVamExpr(e dag.Expr) (vamexpr.Evaluator, error) {
 		return b.compileVamSliceExpr(e)
 	case *dag.SetExpr:
 		return b.compileVamSetExpr(e)
-	case *dag.UnnestExpr:
-		return b.compileVamUnnestExpr(e)
 	//case *dag.MapCall:
 	//	return b.compileVamMapCall(e)
 	//case *dag.MapExpr:
@@ -300,17 +296,11 @@ func (b *Builder) compileVamRecordExpr(e *dag.RecordExpr) (vamexpr.Evaluator, er
 }
 
 func (b *Builder) compileVamQueryExpr(query *dag.QueryExpr) (vamexpr.Evaluator, error) {
-	exits, err := b.compileVamSeq(query.Body, nil)
+	e, err := b.compileQueryExpr(query)
 	if err != nil {
 		return nil, err
 	}
-	var exit vector.Puller
-	if len(exits) == 1 {
-		exit = exits[0]
-	} else {
-		exit = vamop.NewCombine(b.rctx, exits)
-	}
-	return vamexpr.NewQueryExpr(b.rctx, exit), nil
+	return vamexpr.NewSamExpr(e), nil
 }
 
 func (b *Builder) compileVamRegexpMatch(match *dag.RegexpMatch) (vamexpr.Evaluator, error) {
@@ -408,12 +398,4 @@ func (b *Builder) compileVamListElems(elems []dag.VectorElem) ([]vamexpr.ListEle
 		}
 	}
 	return out, nil
-}
-
-func (b *Builder) compileVamUnnestExpr(unnest *dag.UnnestExpr) (vamexpr.Evaluator, error) {
-	e, err := b.compileUnnestExpr(unnest)
-	if err != nil {
-		return nil, err
-	}
-	return vamexpr.NewSamExpr(e), nil
 }

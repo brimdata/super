@@ -304,13 +304,6 @@ type TupleExpr struct {
 	Loc   `json:"loc"`
 }
 
-type UnnestExpr struct {
-	Kind string `json:"kind" unpack:""`
-	Expr Expr   `json:"expr"`
-	Body Seq    `json:"body"`
-	Loc  `json:"loc"`
-}
-
 type QueryExpr struct {
 	Kind string `json:"kind" unpack:""`
 	Body Seq    `json:"body"`
@@ -377,7 +370,6 @@ func (*SetExpr) exprNode()      {}
 func (*MapExpr) exprNode()      {}
 func (*TupleExpr) exprNode()    {}
 func (*SQLTimeValue) exprNode() {}
-func (*UnnestExpr) exprNode()   {}
 func (*FString) exprNode()      {}
 func (*Primitive) exprNode()    {}
 func (*TypeValue) exprNode()    {}

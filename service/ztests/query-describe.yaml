@@ -6,7 +6,7 @@ script: |
     echo // === $file ===
     query="$(cat $file | jq -Rsa .)"
     curl -H "Accept: application/json" -d "{\"query\":$query,\"head\":{\"pool\":\"test1\"}}" $SUPER_DB/query/describe |
-      super -J -c 'sources := (unnest sources | id := "XXX")' -
+      super -J -c 'sources := (unnest sources | id := "XXX" | collect(this))' -
   done
 
 
@@ -77,11 +77,13 @@ outputs:
       }
       // === agg.spq ===
       {
-          "sources": {
-              "kind": "Pool",
-              "name": "test1",
-              "id": "XXX"
-          },
+          "sources": [
+              {
+                  "kind": "Pool",
+                  "name": "test1",
+                  "id": "XXX"
+              }
+          ],
           "channels": [
               {
                   "name": "main",
@@ -99,11 +101,13 @@ outputs:
       }
       // === agg-no-keys.spq ===
       {
-          "sources": {
-              "kind": "Pool",
-              "name": "test1",
-              "id": "XXX"
-          },
+          "sources": [
+              {
+                  "kind": "Pool",
+                  "name": "test1",
+                  "id": "XXX"
+              }
+          ],
           "channels": [
               {
                   "name": "main",
@@ -152,11 +156,13 @@ outputs:
       }
       // === agg-sort.spq ===
       {
-          "sources": {
-              "kind": "Pool",
-              "name": "test1",
-              "id": "XXX"
-          },
+          "sources": [
+              {
+                  "kind": "Pool",
+                  "name": "test1",
+                  "id": "XXX"
+              }
+          ],
           "channels": [
               {
                   "name": "main",
@@ -178,11 +184,13 @@ outputs:
       }
       // === scope.spq ===
       {
-          "sources": {
-              "kind": "Pool",
-              "name": "test1",
-              "id": "XXX"
-          },
+          "sources": [
+              {
+                  "kind": "Pool",
+                  "name": "test1",
+                  "id": "XXX"
+              }
+          ],
           "channels": [
               {
                   "name": "main",
@@ -205,11 +213,13 @@ outputs:
       }
       // === auto-combined-channels.spq ===
       {
-          "sources": {
-              "kind": "Pool",
-              "name": "test1",
-              "id": "XXX"
-          },
+          "sources": [
+              {
+                  "kind": "Pool",
+                  "name": "test1",
+                  "id": "XXX"
+              }
+          ],
           "channels": [
               {
                   "name": "main",

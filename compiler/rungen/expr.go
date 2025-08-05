@@ -100,8 +100,6 @@ func (b *Builder) compileExpr(e dag.Expr) (expr.Evaluator, error) {
 		aggexpr := expr.NewAggregatorExpr(b.sctx(), agg)
 		b.resetters = append(b.resetters, aggexpr)
 		return aggexpr, nil
-	case *dag.UnnestExpr:
-		return b.compileUnnestExpr(e)
 	default:
 		return nil, fmt.Errorf("invalid expression type %T", e)
 	}
@@ -414,11 +412,28 @@ func (b *Builder) compileIsNullExpr(e *dag.IsNullExpr) (expr.Evaluator, error) {
 }
 
 func (b *Builder) compileQueryExpr(query *dag.QueryExpr) (expr.Evaluator, error) {
-	exits, err := b.compileSeq(query.Body, nil)
+	if !query.Correlated {
+		exit, err := b.compileSeqAndCombine(query.Body, nil)
+		if err != nil {
+			return nil, err
+		}
+		return traverse.NewCachedQueryExpr(b.rctx, exit), nil
+	}
+	subquery := traverse.NewQueryExpr(b.rctx)
+	exit, err := b.compileSeqAndCombine(query.Body, []zbuf.Puller{subquery})
 	if err != nil {
 		return nil, err
 	}
-	return traverse.NewQueryExpr(b.rctx, b.combine(exits)), nil
+	subquery.SetBody(exit)
+	return subquery, nil
+}
+
+func (b *Builder) compileSeqAndCombine(seq dag.Seq, parents []zbuf.Puller) (zbuf.Puller, error) {
+	exits, err := b.compileSeq(seq, parents)
+	if err != nil {
+		return nil, err
+	}
+	return b.combine(exits), nil
 }
 
 func (b *Builder) compileRegexpMatch(match *dag.RegexpMatch) (expr.Evaluator, error) {
@@ -521,22 +536,6 @@ func (b *Builder) compileMapExpr(m *dag.MapExpr) (expr.Evaluator, error) {
 		entries = append(entries, expr.Entry{Key: key, Val: val})
 	}
 	return expr.NewMapExpr(b.sctx(), entries), nil
-}
-
-func (b *Builder) compileUnnestExpr(unnest *dag.UnnestExpr) (expr.Evaluator, error) {
-	e, err := b.compileExpr(unnest.Expr)
-	if err != nil {
-		return nil, err
-	}
-	parent := traverse.NewExpr(b.rctx.Context, b.sctx())
-	enter := traverse.NewUnnest(b.rctx, parent, e, expr.Resetters{})
-	scope := enter.AddScope(b.rctx.Context)
-	exits, err := b.compileSeq(unnest.Body, []zbuf.Puller{scope})
-	if err != nil {
-		return nil, err
-	}
-	parent.SetExit(scope.NewExit(b.combine(exits)))
-	return parent, nil
 }
 
 func (b *Builder) compileSortExprs(sortExprs []dag.SortExpr) ([]expr.SortExpr, error) {

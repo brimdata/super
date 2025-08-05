@@ -316,7 +316,6 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 		}
 		return zbuf.MultiScanner(scanners...), nil
 	case *dag.NullScan:
-		//XXX we need something that implements the done protocol and restarst
 		return zbuf.NewPuller(zbuf.NewArray([]super.Value{super.Null})), nil
 	case *dag.Lister:
 		if parent != nil {

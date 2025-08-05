@@ -1,7 +1,6 @@
 package semantic
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/brimdata/super/compiler/ast"
@@ -240,8 +239,6 @@ func (a *aggfuncs) subst(e dag.Expr) (dag.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
-	case *dag.UnnestExpr:
-		return nil, errors.New("unnest expression not allowed with aggregate function")
 	}
 	return e, nil
 }

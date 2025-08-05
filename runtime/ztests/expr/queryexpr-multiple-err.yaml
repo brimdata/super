@@ -1,0 +1,6 @@
+spq: values (values 1,2,3)
+
+vector: true
+
+output: |
+  error("query expression produced multiple values (consider collect())")

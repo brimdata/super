@@ -224,8 +224,6 @@ func demandForExpr(expr dag.Expr) demand.Demand {
 		return d
 	case *dag.UnaryExpr:
 		return demandForExpr(expr.Operand)
-	case *dag.UnnestExpr:
-		return demandForExpr(expr.Expr)
 	}
 	panic(expr)
 }

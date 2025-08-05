@@ -220,7 +220,7 @@ Agg
       }
       return agg, nil
     }
-  / !FuncGuard name:AggName __ "(" __ expr:(UnnestExpr / Expr)? __ ")" !(__ ".") where:WhereClause? {
+  / !FuncGuard name:AggName __ "(" __ expr:Expr? __ ")" !(__ ".") where:WhereClause? {
       agg := &ast.Agg{
           Kind: "Agg",
           Name: name.(string),
@@ -243,7 +243,7 @@ Agg
     }
 
 AggDistinct
-  = !FuncGuard name:AggName __ "(" __ DISTINCT _ expr:(UnnestExpr / Expr) __ ")" {
+  = !FuncGuard name:AggName __ "(" __ DISTINCT _ expr:Expr __ ")" {
       return &ast.Agg{
           Kind: "Agg",
           Name: name.(string),
@@ -1009,7 +1009,7 @@ NotFuncs
   / SELECT
 
 Cast
-  = typ:TypeLiteral __ "(" __ expr:(UnnestExpr / Expr) __ ")" {
+  = typ:TypeLiteral __ "(" __ expr:Expr __ ")" {
       return &ast.Cast{Kind: "Cast", Expr: expr.(ast.Expr), Type: typ.(ast.Expr), Loc: loc(c)}, nil
     }
 
@@ -1063,11 +1063,10 @@ RegexpPrimitive
   = pat:RegexpPattern { return newPrimitive(c, "string", pat.(string)), nil }
 
 FunctionArgs
-  = expr:UnnestExpr { return []any{expr}, nil }
-  / OptionalExprs
+  = OptionalExprs
 
 Grep
-  = GREP __ "(" __ pattern:(Regexp / Glob / Expr) __ opt:("," __ e:(UnnestExpr / Expr) __ { return e, nil })? ")" {
+  = GREP __ "(" __ pattern:(Regexp / Glob / Expr) __ opt:("," __ e:Expr __ { return e, nil })? ")" {
       g := &ast.Grep{
           Kind: "Grep",
           Pattern: pattern.(ast.Expr),
@@ -1098,9 +1097,10 @@ Primary
   / Literal
   / Identifier
   / Tuple
-  / "(" __ expr:UnnestExpr __ ")" { return expr, nil }
+  / "(" __ &SubqueryOps expr:QueryExpr __ ")" { return expr, nil }
   / "(" __ expr:Expr __ ")" { return expr, nil }
-  / "(" __ expr:QueryExpr __ ")" { return expr, nil }
+
+SubqueryOps = UNNEST / FROM / VALUES / SelectOp
 
 CaseExpr
   = CASE cases:When+ else_:(_ ELSE _ Expr)? _ END (_ CASE)? {
@@ -1147,16 +1147,6 @@ When
         Cond: cond.(ast.Expr),
         Then: then.(ast.Expr),
         Loc: loc(c),
-      }, nil
-    }
-
-UnnestExpr
-  = UNNEST _ e:Expr __ Pipe __ body:Seq {
-      return &ast.UnnestExpr{
-          Kind: "UnnestExpr",
-          Expr: e.(ast.Expr),
-          Body: sliceOf[ast.Op](body),
-          Loc: loc(c),
       }, nil
     }
 

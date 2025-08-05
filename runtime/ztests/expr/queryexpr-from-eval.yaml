@@ -1,0 +1,22 @@
+script: super -s -I query.spq
+
+vector: true
+
+inputs:
+  - name: query.spq
+    data: |
+      values 'a.sup', 'b.sup'
+      | values (from eval(this) | collect(this))
+  - name: a.sup
+    data: |
+      {a:1}
+      {a:2}
+  - name: b.sup
+    data: |
+      {b:3}
+
+outputs:
+  - name: stdout
+    data: |
+      [{a:1},{a:2}]
+      [{b:3}]
