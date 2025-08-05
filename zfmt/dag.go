@@ -126,16 +126,6 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 			c.expr(e.To, "")
 		}
 		c.write("]")
-	case *dag.UnnestExpr:
-		c.open("(")
-		c.ret()
-		c.write("unnest ")
-		c.expr(e.Expr, "")
-		c.seq(e.Body)
-		c.close()
-		c.ret()
-		c.flush()
-		c.write(")")
 	case *dag.Search:
 		c.write("search(%s)", e.Value)
 	case *dag.This:

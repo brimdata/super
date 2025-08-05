@@ -398,19 +398,6 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 			Op:      e.Op,
 			Operand: operand,
 		}
-	case *ast.UnnestExpr:
-		expr := a.semExpr(e.Expr)
-		if e.Body == nil {
-			a.error(e, errors.New("unnest expression missing lateral scope"))
-			return badExpr()
-		}
-		a.enterScope()
-		defer a.exitScope()
-		return &dag.UnnestExpr{
-			Kind: "UnnestExpr",
-			Expr: expr,
-			Body: a.semSeq(e.Body),
-		}
 	case nil:
 		panic("semantic analysis: illegal null value encountered in AST")
 	}
@@ -992,18 +979,29 @@ func (a *analyzer) semFString(f *ast.FString) dag.Expr {
 }
 
 func (a *analyzer) semQueryExpr(q *ast.QueryExpr) dag.Expr {
-	e := &dag.QueryExpr{
-		Kind: "QueryExpr",
-		Body: a.semSeq(q.Body),
+	body := a.semSeq(q.Body)
+	correlated := true
+	if len(body) >= 1 {
+		//XXX fragile
+		_, ok1 := body[0].(*dag.FileScan)
+		_, ok2 := body[0].(*dag.PoolScan)
+		correlated = !(ok1 || ok2)
 	}
-	if !HasSource(e.Body) {
+	e := &dag.QueryExpr{
+		Kind:       "QueryExpr",
+		Correlated: correlated,
+		Body:       body,
+	}
+	// Add a nullscan only for uncorrelated queries that don't have a source.
+	if !correlated && !HasSource(e.Body) {
 		e.Body.Prepend(&dag.NullScan{Kind: "NullScan"})
 	}
-	if !isSQLOp(q.Body[0]) {
+	if !isSQLOp(q.Body[0]) { //XXX this should check scope not isSQLOp?
 		return e
 	}
+	//XXX this should be a structured error... or just allow it
 	// SQL expects a record with a single column result so fetch the first
-	// value.
+	// value.  Or we should be descoping.
 	return &dag.IndexExpr{
 		Kind:  "IndexExpr",
 		Expr:  e,
