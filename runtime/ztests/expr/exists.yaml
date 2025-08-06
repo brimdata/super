@@ -1,0 +1,16 @@
+spq: |
+  values
+    exists(select * from (values ("foo"), ("bar"))),
+    "===",
+    exists(values 1),
+    "===",
+    exists(values "foo", "bar" | where this == "baz")
+
+vector: true
+
+output: |
+  true
+  "==="
+  true
+  "==="
+  false
