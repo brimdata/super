@@ -228,6 +228,14 @@ func (c *canon) expr(e ast.Expr, parent string) {
 		c.ret()
 		c.flush()
 		c.write(")")
+	case *ast.Exists:
+		c.open("exists(")
+		c.head = true
+		c.seq(e.Body)
+		c.close()
+		c.ret()
+		c.flush()
+		c.write(")")
 	case *ast.FString:
 		c.write(`f"`)
 		for _, elem := range e.Elems {

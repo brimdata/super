@@ -298,6 +298,12 @@ type EntryExpr struct {
 	Loc   `json:"loc"`
 }
 
+type Exists struct {
+	Kind string `json:"kind" unpack:""`
+	Body Seq    `json:"body"`
+	Loc  `json:"loc"`
+}
+
 type TupleExpr struct {
 	Kind  string `json:"kind" unpack:""`
 	Elems []Expr `json:"elems"`
@@ -368,6 +374,7 @@ func (*RecordExpr) exprNode()   {}
 func (*ArrayExpr) exprNode()    {}
 func (*SetExpr) exprNode()      {}
 func (*MapExpr) exprNode()      {}
+func (*Exists) exprNode()       {}
 func (*TupleExpr) exprNode()    {}
 func (*SQLTimeValue) exprNode() {}
 func (*FString) exprNode()      {}

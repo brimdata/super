@@ -1032,6 +1032,13 @@ Function
         Loc: loc(c),
       }, nil
     }
+  / !FuncGuard EXISTS __ "(" __ body:Seq __ ")" {
+      return &ast.Exists{
+        Kind: "Exists",
+        Body: sliceOf[ast.Op](body),
+        Loc: loc(c),
+      }, nil
+    }
   / !FuncGuard CAST __ "(" __ e:Expr _ AS _ typ:Identifier __ ")" {
       return &ast.SQLCast{
         Kind: "SQLCast",
@@ -2326,6 +2333,7 @@ END        = "END"i             !IdentifierRest
 ENUM       = "ENUM"i            !IdentifierRest
 ERROR      = "ERROR"i           !IdentifierRest
 EVAL       = "EVAL"i            !IdentifierRest
+EXISTS     = "EXISTS"i          !IdentifierRest
 EXPLODE    = "EXPLODE"i         !IdentifierRest
 EXTRACT    = "EXTRACT"i         !IdentifierRest
 FALSE      = "FALSE"i           !IdentifierRest

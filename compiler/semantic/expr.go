@@ -109,6 +109,8 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 		}
 	case *ast.DoubleQuote:
 		return a.semDoubleQuote(e)
+	case *ast.Exists:
+		return a.semExists(e)
 	case *ast.FString:
 		return a.semFString(e)
 	case *ast.Glob:
@@ -177,7 +179,7 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 			Value: sup.FormatValue(val),
 		}
 	case *ast.QueryExpr:
-		return a.semQueryExpr(e)
+		return a.semSeqExpr(e.Body)
 	case *ast.RecordExpr:
 		fields := map[string]struct{}{}
 		var out []dag.RecordElem
@@ -434,6 +436,29 @@ func (a *analyzer) semDoubleQuote(d *ast.DoubleQuote) dag.Expr {
 		Text: d.Text,
 		Loc:  d.Loc,
 	})
+}
+
+func (a *analyzer) semExists(e *ast.Exists) dag.Expr {
+	q := a.semSeqExpr(e.Body)
+	// Append collect(this) to ensure array of results is returned.
+	q.Body = append(q.Body,
+		&dag.Head{Kind: "Head", Count: 1},
+		&dag.Aggregate{
+			Kind: "Aggregate",
+			Aggs: []dag.Assignment{{
+				Kind: "Assignment",
+				LHS:  pathOf("collect"),
+				RHS:  &dag.Agg{Kind: "Agg", Name: "collect", Expr: &dag.This{Kind: "This"}},
+			}},
+		},
+		&dag.Values{Kind: "Values", Exprs: []dag.Expr{pathOf("collect")}},
+	)
+	return &dag.BinaryExpr{
+		Kind: "BinaryExpr",
+		Op:   ">",
+		LHS:  &dag.Call{Kind: "Call", Name: "len", Args: []dag.Expr{q}},
+		RHS:  &dag.Literal{Kind: "Literal", Value: "0"},
+	}
 }
 
 func semDynamicType(tv ast.Type) *dag.Call {
@@ -978,8 +1003,8 @@ func (a *analyzer) semFString(f *ast.FString) dag.Expr {
 	return out
 }
 
-func (a *analyzer) semQueryExpr(q *ast.QueryExpr) dag.Expr {
-	body := a.semSeq(q.Body)
+func (a *analyzer) semSeqExpr(b ast.Seq) *dag.QueryExpr {
+	body := a.semSeq(b)
 	correlated := true
 	if len(body) >= 1 {
 		//XXX fragile
@@ -996,17 +1021,23 @@ func (a *analyzer) semQueryExpr(q *ast.QueryExpr) dag.Expr {
 	if !correlated && !HasSource(e.Body) {
 		e.Body.Prepend(&dag.NullScan{Kind: "NullScan"})
 	}
-	if !isSQLOp(q.Body[0]) { //XXX this should check scope not isSQLOp?
-		return e
+	if isSQLOp(b[0]) { //XXX this should check scope not isSQLOp?
+		// SQL expects a record with a single column result so fetch the first
+		// value.
+		// XXX this should be a structured error... or just allow it
+		// SQL expects a record with a single column result so fetch the first
+		// value.  Or we should be descoping.
+		e.Body.Append(&dag.Values{
+			Kind: "Values",
+			Exprs: []dag.Expr{
+				&dag.IndexExpr{
+					Kind:  "IndexExpr",
+					Expr:  &dag.This{Kind: "This"},
+					Index: &dag.Literal{Kind: "Literal", Value: "1"},
+				}},
+		})
 	}
-	//XXX this should be a structured error... or just allow it
-	// SQL expects a record with a single column result so fetch the first
-	// value.  Or we should be descoping.
-	return &dag.IndexExpr{
-		Kind:  "IndexExpr",
-		Expr:  e,
-		Index: &dag.Literal{Kind: "Literal", Value: "1"},
-	}
+	return e
 }
 
 func (a *analyzer) evalPositiveInteger(e ast.Expr) int {
