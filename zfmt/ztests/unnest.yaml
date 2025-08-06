@@ -27,8 +27,7 @@ outputs:
       null
       | values (
         unnest a
-        | where search("b")
-      )
+        | where search("b"))
       | unnest a
       | unnest a into (
         where search("b")

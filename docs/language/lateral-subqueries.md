@@ -185,12 +185,12 @@ at the conclusion of the lateral pipeline, they are automatically wrapped in
 an array, e.g.,
 ```mdtest-spq
 # spq
-values {s:(unnest x | values this+1)}
+values {s:(unnest x | values this+1 | collect(this) )}
 # input
 {x:[2]}
 {x:[3,4]}
 # expected output
-{s:3}
+{s:[3]}
 {s:[4,5]}
 ```
 
