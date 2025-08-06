@@ -1,0 +1,9 @@
+script: |
+  super compile -C 'values exists(values "foo")'
+
+outputs:
+  - name: stdout
+    data: |
+      values exists(
+        values "foo"
+      )
