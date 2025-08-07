@@ -13,6 +13,8 @@ script: |
   ! super compile -dag -C 'join on right.key+foo.key=left.key'
   echo // === >&2
   ! super compile -dag -C 'join on left.key=1+2'
+  echo // === >&2
+  ! super compile -dag -C 'cross join on left.key=1+2'
 
 
 outputs:
@@ -50,4 +52,7 @@ outputs:
       no field references in join expression at line 1, column 18:
       join on left.key=1+2
                        ~~~
-
+      // ===
+      parse error at line 1, column 12:
+      cross join on left.key=1+2
+             === ^ ===

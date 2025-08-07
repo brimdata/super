@@ -526,7 +526,21 @@ ShapeOp
     }
 
 JoinOp
-  = style:JoinStyle JOIN rightInput:JoinRightInput alias:OptJoinAlias _ e:JoinCond {
+  = CROSS _ JOIN rightInput:JoinRightInput alias:OptJoinAlias {
+      o := &ast.Join{
+        Kind: "Join",
+        Style: "cross",
+        Loc: loc(c),
+      }
+      if rightInput != nil {
+        o.RightInput = sliceOf[ast.Op](rightInput)
+      }
+      if alias != nil {
+        o.Alias = alias.(*ast.JoinAlias)
+      }
+      return o, nil
+    }
+  / style:JoinStyle JOIN rightInput:JoinRightInput alias:OptJoinAlias _ e:JoinCond {
       o := &ast.Join{
         Kind: "Join",
         Style: style.(string),

@@ -772,10 +772,14 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 			a.error(o.Alias, errors.New("left and right join aliases cannot be the same"))
 			return append(seq, badOp())
 		}
-		leftKey, rightKey, err := a.semJoinCond(o.Cond, leftAlias, rightAlias)
-		if err != nil {
-			a.error(o.Cond, err)
-			return append(seq, badOp())
+		var leftKey, rightKey dag.Expr
+		if o.Cond != nil {
+			var err error
+			leftKey, rightKey, err = a.semJoinCond(o.Cond, leftAlias, rightAlias)
+			if err != nil {
+				a.error(o.Cond, err)
+				return append(seq, badOp())
+			}
 		}
 		style := o.Style
 		if style == "" {
