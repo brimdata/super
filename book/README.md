@@ -29,6 +29,8 @@ This way the service doesn't do things like recreating a file that you have
 removed when you are trying to rearrange things.
 
 After editing any JavaScript or Go files run `make` in this directory.
+This will update the Wasm file so playground examples use a version of
+SuperDB built from Go source files in the local repository.
 
 ## mdtest
 
