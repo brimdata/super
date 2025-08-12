@@ -64,11 +64,7 @@ func (d *deleter) DataFilter() (expr.Evaluator, error) {
 	return d.builder.compileExpr(&dag.BinaryExpr{
 		Kind: "BinaryExpr",
 		Op:   "or",
-		LHS: &dag.UnaryExpr{
-			Kind:    "UnaryExpr",
-			Op:      "!",
-			Operand: d.dataFilter,
-		},
+		LHS:  dag.NewUnaryExpr("!", d.dataFilter),
 		RHS: &dag.BinaryExpr{
 			Kind: "BinaryExpr",
 			Op:   "or",

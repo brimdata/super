@@ -67,11 +67,7 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 			},
 		}
 		if e.Not {
-			return &dag.UnaryExpr{
-				Kind:    "UnaryExpr",
-				Op:      "!",
-				Operand: expr,
-			}
+			return dag.NewUnaryExpr("!", expr)
 		}
 		return expr
 	case *ast.CaseExpr:
@@ -147,11 +143,7 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 		expr := a.semExpr(e.Expr)
 		var out dag.Expr = &dag.IsNullExpr{Kind: "IsNullExpr", Expr: expr}
 		if e.Not {
-			out = &dag.UnaryExpr{
-				Kind:    "UnaryExpr",
-				Op:      "!",
-				Operand: out,
-			}
+			out = dag.NewUnaryExpr("!", out)
 		}
 		return out
 	case *ast.MapExpr:
@@ -392,11 +384,7 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 		if e.Op == "+" {
 			return operand
 		}
-		return &dag.UnaryExpr{
-			Kind:    "UnaryExpr",
-			Op:      e.Op,
-			Operand: operand,
-		}
+		return dag.NewUnaryExpr(e.Op, operand)
 	case nil:
 		panic("semantic analysis: illegal null value encountered in AST")
 	}
@@ -553,11 +541,7 @@ func (a *analyzer) semBinary(e *ast.BinaryExpr) dag.Expr {
 			Expr:    lhs,
 		}
 		if op == "not like" {
-			return &dag.UnaryExpr{
-				Kind:    "UnaryExpr",
-				Op:      "!",
-				Operand: expr,
-			}
+			return dag.NewUnaryExpr("!", expr)
 		}
 		return expr
 	}
@@ -575,7 +559,7 @@ func (a *analyzer) semBinary(e *ast.BinaryExpr) dag.Expr {
 		op = "+"
 	case "not in":
 		expr := &dag.BinaryExpr{Kind: "BinaryExpr", Op: "in", LHS: lhs, RHS: rhs}
-		return &dag.UnaryExpr{Kind: "UnaryExpr", Op: "!", Operand: expr}
+		return dag.NewUnaryExpr("!", expr)
 	case "::":
 		return &dag.Call{
 			Kind: "Call",

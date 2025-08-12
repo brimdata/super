@@ -889,11 +889,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 		}
 		seq = append(seq, &dag.Filter{
 			Kind: "Filter",
-			Expr: &dag.UnaryExpr{
-				Kind:    "UnaryExpr",
-				Op:      "!",
-				Operand: &dag.IsNullExpr{Kind: "IsNullExpr", Expr: e},
-			},
+			Expr: dag.NewUnaryExpr("!", &dag.IsNullExpr{Kind: "IsNullExpr", Expr: e}),
 		})
 		seq = append(seq, &dag.Aggregate{
 			Kind: "Aggregate",

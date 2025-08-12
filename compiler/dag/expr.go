@@ -197,6 +197,10 @@ func NewBinaryExpr(op string, lhs, rhs Expr) *BinaryExpr {
 	}
 }
 
+func NewUnaryExpr(op string, e Expr) *UnaryExpr {
+	return &UnaryExpr{"UnaryExpr", op, e}
+}
+
 func NewValues(exprs ...Expr) *Values {
 	return &Values{"Values", exprs}
 }
