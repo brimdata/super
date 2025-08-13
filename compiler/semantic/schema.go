@@ -43,10 +43,16 @@ type joinUsingSchema struct {
 	*joinSchema
 }
 
+type subquerySchema struct {
+	outer schema
+	inner schema
+}
+
 func (s *staticSchema) Name() string  { return s.name }
 func (d *dynamicSchema) Name() string { return d.name }
 func (*selectSchema) Name() string    { return "" }
 func (*joinSchema) Name() string      { return "" }
+func (*subquerySchema) Name() string  { return "" }
 
 func badSchema() schema {
 	return &dynamicSchema{}
@@ -122,6 +128,21 @@ func (j *joinUsingSchema) resolveTable(string) (schema, field.Path, error) {
 	return nil, nil, fmt.Errorf("table selection in USING clause not allowed")
 }
 
+func (s *subquerySchema) resolveTable(table string) (schema, field.Path, error) {
+	if table == "" {
+		return s, nil, nil
+	}
+	sch, path, err := s.inner.resolveTable(table)
+	if err != nil || sch != nil {
+		return sch, path, err
+	}
+	sch, path, err = s.outer.resolveTable(table)
+	if sch != nil {
+		return nil, nil, errors.New("correlated subqueries not currently supported")
+	}
+	return nil, nil, err
+}
+
 func (*dynamicSchema) resolveColumn(col string) (field.Path, error) {
 	return field.Path{col}, nil
 }
@@ -176,6 +197,18 @@ func (j *joinUsingSchema) resolveColumn(col string) (field.Path, error) {
 	return field.Path{col}, nil
 }
 
+func (s *subquerySchema) resolveColumn(col string) (field.Path, error) {
+	path, _ := s.inner.resolveColumn(col)
+	if path != nil {
+		return path, nil
+	}
+	path, _ = s.outer.resolveColumn(col)
+	if path != nil {
+		return nil, errors.New("correlated subqueries not currently supported")
+	}
+	return nil, fmt.Errorf("column %q not found", col)
+}
+
 func (*dynamicSchema) resolveOrdinal(col int) (dag.Expr, error) {
 	if col <= 0 {
 		return nil, fmt.Errorf("position %d is not in select list", col)
@@ -215,6 +248,10 @@ func (j *joinSchema) resolveOrdinal(col int) (dag.Expr, error) {
 
 func (j *joinUsingSchema) resolveOrdinal(col int) (dag.Expr, error) {
 	return nil, errors.New("ordinal column selection in join not supported")
+}
+
+func (s *subquerySchema) resolveOrdinal(col int) (dag.Expr, error) {
+	return nil, errors.New("ordinal column selection in subquery not supported")
 }
 
 func appendExprToPath(path string, e dag.Expr) dag.Expr {
@@ -293,6 +330,10 @@ func joinSpread(left, right dag.Expr) *dag.RecordExpr {
 	}
 }
 
+func (s *subquerySchema) deref(name string) (dag.Expr, schema) {
+	panic(name)
+}
+
 func (s *staticSchema) String() string {
 	return fmt.Sprintf("static <%s>: %s", s.name, strings.Join(s.columns, ", "))
 }
@@ -307,4 +348,8 @@ func (s *selectSchema) String() string {
 
 func (s *joinSchema) String() string {
 	return fmt.Sprintf("join:\n  left: %s\n  right: %s", s.left, s.right)
+}
+
+func (s *subquerySchema) String() string {
+	return fmt.Sprintf("subquery:\n  outer: %s\n  inner: %s", s.outer, s.inner)
 }

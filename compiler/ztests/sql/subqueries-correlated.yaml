@@ -1,0 +1,52 @@
+script: |
+  # If column names collide the inner scope wins.
+  super -s -c 'select *
+               from (values (1),(2)) a(colA)
+               where exists (select 1
+                             from (values (3),(4)) b(colA)
+                             where colA=colA)'
+  echo // ===
+  # If table names collide the inner scope wins.
+  super -s -c 'select *
+               from (values (1),(2)) b(colA)
+               where exists (select 1
+                             from (values (3),(4)) b(colA)
+                             where b.colA=b.colA)'
+  # Error on outer scope table match.
+  ! super -c 'select *
+              from (values (1),(2)) a(col)
+              where exists (select 1
+                            from (values (2),(3)) b(col)
+                            where b.col=a.col)'
+  # Error on outer scope column match.
+  ! super -c 'select *
+              from (values (1),(2)) a(colA)
+              where exists (select 1
+                            from (values (2),(3)) b(colB)
+                            where colB=colA)'
+  # Error referencing a column that does not exist.
+  ! super -c 'select *
+              from (values (1),(2)) a(colA)
+              where exists (select 1
+                            from (values (2),(3)) b(colB)
+                            where colB=colC)'
+
+outputs:
+  - name: stdout
+    data: |
+      {colA:1}
+      {colA:2}
+      // ===
+      {colA:1}
+      {colA:2}
+  - name: stderr
+    data: |
+      correlated subqueries not currently supported at line 5, column 39:
+                                where b.col=a.col)
+                                            ~~~~~
+      correlated subqueries not currently supported at line 5, column 38:
+                                where colB=colA)
+                                           ~~~~
+      column "colC" not found at line 5, column 38:
+                                where colB=colC)
+                                           ~~~~

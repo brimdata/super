@@ -38,6 +38,12 @@ func (a *analyzer) semSelect(sel *ast.SQLSelect, seq dag.Seq) (dag.Seq, schema) 
 	if sel.Value {
 		return a.semSelectValue(sel, fromSchema, seq)
 	}
+	if a.scope.schema != nil {
+		fromSchema = &subquerySchema{
+			outer: a.scope.schema,
+			inner: fromSchema,
+		}
+	}
 	sch := &selectSchema{in: fromSchema}
 	var funcs aggfuncs
 	proj := a.semProjection(sch, sel.Selection.Args, &funcs)
