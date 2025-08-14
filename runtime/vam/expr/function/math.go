@@ -21,6 +21,8 @@ func (a *Abs) Call(args ...vector.Any) vector.Any {
 		return vec
 	case super.IsSigned(id) || super.IsFloat(id):
 		return a.abs(vec)
+	case id == super.IDNull:
+		return vec
 	}
 	return vector.NewWrappedError(a.sctx, "abs: not a number", vec)
 }

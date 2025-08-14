@@ -15,6 +15,9 @@ type Abs struct {
 
 func (a *Abs) Call(args []super.Value) super.Value {
 	val := args[0].Under()
+	if val.IsNull() {
+		return val
+	}
 	switch id := val.Type().ID(); {
 	case super.IsUnsigned(id):
 		return val
