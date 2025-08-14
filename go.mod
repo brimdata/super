@@ -3,7 +3,7 @@ module github.com/brimdata/super
 go 1.24
 
 require (
-	github.com/RoaringBitmap/roaring v1.9.4
+	github.com/RoaringBitmap/roaring/v2 v2.9.0
 	github.com/agnivade/levenshtein v1.1.1
 	github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d
 	github.com/apache/arrow-go/v18 v18.1.0
