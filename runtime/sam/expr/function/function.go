@@ -62,6 +62,7 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, field.Path,
 	case "floor":
 		f = &Floor{sctx: sctx}
 	case "grep":
+		argmin = 2
 		argmax = 2
 		f = &Grep{sctx: sctx}
 	case "grok":

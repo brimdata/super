@@ -119,8 +119,6 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 			Pattern: reglob.Reglob(e.Pattern),
 			Expr:    pathOf("this"),
 		}
-	case *ast.Grep:
-		return a.semGrep(e)
 	case *ast.ID:
 		id := a.semID(e)
 		if a.scope.schema != nil {
@@ -485,48 +483,23 @@ func dynamicTypeName(name string) *dag.Call {
 	}
 }
 
-func (a *analyzer) semGrep(grep *ast.Grep) dag.Expr {
-	e := dag.Expr(&dag.This{Kind: "This"})
-	if grep.Expr != nil {
-		e = a.semExpr(grep.Expr)
-	}
-	p := a.semExpr(grep.Pattern)
-	if s, ok := p.(*dag.RegexpSearch); ok {
-		s.Expr = e
-		return s
-	}
-	if s, ok := isStringConst(a.sctx, p); ok {
-		return &dag.Search{
-			Kind:  "Search",
-			Text:  s,
-			Value: sup.QuotedString(s),
-			Expr:  e,
-		}
-	}
-	return &dag.Call{
-		Kind: "Call",
-		Name: "grep",
-		Args: []dag.Expr{p, e},
-	}
-}
-
 func (a *analyzer) semRegexp(b *ast.BinaryExpr) dag.Expr {
 	if b.Op != "~" {
 		return nil
 	}
-	re, ok := b.RHS.(*ast.Regexp)
+	s, ok := isStringConst(a.sctx, a.semExpr(b.RHS))
 	if !ok {
-		a.error(b, errors.New(`right-hand side of ~ expression must be a regular expression`))
+		a.error(b, errors.New(`right-hand side of ~ expression must be a string literal`))
 		return badExpr()
 	}
-	if _, err := expr.CompileRegexp(re.Pattern); err != nil {
+	if _, err := expr.CompileRegexp(s); err != nil {
 		a.error(b.RHS, err)
 		return badExpr()
 	}
 	e := a.semExpr(b.LHS)
 	return &dag.RegexpMatch{
 		Kind:    "RegexpMatch",
-		Pattern: re.Pattern,
+		Pattern: s,
 		Expr:    e,
 	}
 }
@@ -723,6 +696,37 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 		}
 		if nargs == 1 {
 			exprs = append([]dag.Expr{&dag.This{Kind: "This"}}, exprs...)
+		}
+	case nameLower == "grep":
+		if err := function.CheckArgCount(nargs, 2, 2); err != nil {
+			a.error(call, err)
+			return badExpr()
+		}
+		pattern, ok := isStringConst(a.sctx, exprs[0])
+		if !ok {
+			return &dag.Call{
+				Kind: "Call",
+				Name: "grep",
+				Args: exprs,
+			}
+		}
+		re, err := expr.CompileRegexp(pattern)
+		if err != nil {
+			a.error(call.Args[0], err)
+			return badExpr()
+		}
+		if s, ok := re.LiteralPrefix(); ok {
+			return &dag.Search{
+				Kind:  "Search",
+				Text:  s,
+				Value: sup.QuotedString(s),
+				Expr:  exprs[1],
+			}
+		}
+		return &dag.RegexpSearch{
+			Kind:    "RegexpSearch",
+			Pattern: pattern,
+			Expr:    exprs[1],
 		}
 	case nameLower == "map":
 		if err := function.CheckArgCount(nargs, 2, 2); err != nil {

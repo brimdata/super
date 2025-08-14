@@ -1,4 +1,4 @@
-spq: values this ~ /^foo.*bar$/
+spq: values this ~ '^foo.*bar$'
 
 vector: true
 

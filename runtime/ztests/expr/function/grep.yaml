@@ -3,7 +3,7 @@
 # time.
 
 spq: |
-  [grep(pattern),grep(pattern,input)]
+  [grep(pattern,this),grep(pattern,input)]
 
 vector: true
 

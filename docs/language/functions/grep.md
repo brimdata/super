@@ -5,7 +5,7 @@
 ### Synopsis
 
 ```
-grep(<pattern> [, e: any]) -> bool
+grep(<pattern>, e: any) -> bool
 ```
 
 ### Description
@@ -36,7 +36,7 @@ if a complex type,
 _Reach into nested records_
 ```mdtest-spq
 # spq
-grep("baz")
+grep("baz", this)
 # input
 {foo:10}
 {bar:{s:"baz"}}
@@ -47,7 +47,7 @@ grep("baz")
 _It only matches string fields_
 ```mdtest-spq
 # spq
-grep("10")
+grep("10", this)
 # input
 {foo:10}
 {bar:{s:"baz"}}
@@ -57,7 +57,7 @@ grep("10")
 _Match a field name_
 ```mdtest-spq
 # spq
-grep("foo")
+grep("foo", this)
 # input
 {foo:10}
 {bar:{s:"baz"}}
@@ -68,7 +68,7 @@ grep("foo")
 _Regular expression_
 ```mdtest-spq
 # spq
-grep(/foo|baz/)
+grep('foo|baz', this)
 # input
 {foo:10}
 {bar:{s:"baz"}}
@@ -80,7 +80,7 @@ grep(/foo|baz/)
 _Glob with a second argument_
 ```mdtest-spq
 # spq
-grep(b*, s)
+grep('^b.*', s)
 # input
 {s:"bar"}
 {s:"foo"}

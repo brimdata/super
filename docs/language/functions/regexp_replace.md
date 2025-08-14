@@ -5,7 +5,7 @@
 ### Synopsis
 
 ```
-regexp_replace(s: string, re: string|regexp, new: string) -> string
+regexp_replace(s: string, re: string, new: string) -> string
 ```
 
 ### Description
@@ -33,7 +33,7 @@ Replace regular expression matches with a letter:
 
 ```mdtest-spq
 # spq
-values regexp_replace(this, /ax*b/, "T")
+values regexp_replace(this, 'ax*b', "T")
 # input
 "-ab-axxb-"
 # expected output
@@ -44,7 +44,7 @@ Replace regular expression matches using numeric references to submatches:
 ```mdtest-spq
 # spq
 values regexp_replace(this,
-                     /(\w+):\s+(\w+)$/,
+                     r'(\w+):\s+(\w+)$',
                      "$1=$2")
 # input
 "option: value"
@@ -56,7 +56,7 @@ Replace regular expression matches using named references:
 ```mdtest-spq
 # spq
 values regexp_replace(this,
-                     /(?P<key>\w+):\s+(?P<value>\w+)$/,
+                     r'(?P<key>\w+):\s+(?P<value>\w+)$',
                      "$key=$value")
 # input
 "option: value"
@@ -68,7 +68,7 @@ Wrap a named reference in curly braces to avoid ambiguity:
 ```mdtest-spq
 # spq
 values regexp_replace(this,
-                     /(?P<key>\w+):\s+(?P<value>\w+)$/,
+                     r'(?P<key>\w+):\s+(?P<value>\w+)$',
                      "$key=${value}AppendedText")
 # input
 "option: value"

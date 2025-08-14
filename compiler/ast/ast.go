@@ -166,13 +166,6 @@ type SliceExpr struct {
 	Loc  `json:"loc"`
 }
 
-type Grep struct {
-	Kind    string `json:"kind" unpack:""`
-	Pattern Expr   `json:"pattern"`
-	Expr    Expr   `json:"expr"`
-	Loc     `json:"loc"`
-}
-
 type Glob struct {
 	Kind    string `json:"kind" unpack:""`
 	Pattern string `json:"pattern"`
@@ -365,7 +358,6 @@ func (*SliceExpr) exprNode()   {}
 
 func (*Assignment) exprNode() {}
 func (*Agg) exprNode()        {}
-func (*Grep) exprNode()       {}
 func (*Glob) exprNode()       {}
 func (*Regexp) exprNode()     {}
 func (*Term) exprNode()       {}

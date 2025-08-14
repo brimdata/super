@@ -8,7 +8,7 @@ script: |
   echo === function
   super compile -C 'quiet((unnest a | ?b))'
   echo === grep
-  super compile -C 'grep(/regexp/, (unnest a | ?b))'
+  super compile -C 'grep("regexp", (unnest a | ?b))'
 
 outputs:
   - name: stdout
@@ -35,7 +35,7 @@ outputs:
         | search b
       ))
       === grep
-      where grep(/regexp/,(
+      where grep("regexp", (
           unnest a
           | search b
         ))

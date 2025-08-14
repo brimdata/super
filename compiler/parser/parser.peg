@@ -156,7 +156,7 @@ SearchPredicate
 
 SearchValue
   = Literal
-  / !RegexpPattern v:KeyWord {
+  / !Regexp v:KeyWord {
       return newPrimitive(c, "string", v.(string)), nil
     }
 
@@ -166,9 +166,12 @@ Glob
     }
 
 Regexp
-  = pattern:RegexpPattern {
+  = "/" pattern:RegexpBody "/" !KeyWordStart {
       return &ast.Regexp{Kind:"Regexp", Pattern:pattern.(string), Loc: loc(c)}, nil
     }
+
+RegexpBody
+  = ([^/\\] / "\\" .)+ { return string(c.text), nil }
 
 /// === Aggregations ===
 
@@ -897,7 +900,7 @@ ComparisonExpr
         Loc: loc(c),
       }, nil
     }
-  / lhs:AdditiveExpr opAndRHS:(__ Comparator __ AdditiveExpr / __ ("~" { return string(c.text), nil }) __ Regexp)? {
+  / lhs:AdditiveExpr opAndRHS:(__ Comparator __ AdditiveExpr / __ ("~" { return string(c.text), nil }) __ AdditiveExpr)? {
       if opAndRHS == nil {
         return lhs, nil
       }
@@ -1014,17 +1017,7 @@ Cast
     }
 
 Function
-  = Grep
-  // Special case to handle `regexp(/x/, y)` and `regexp_replace(x, /y/, z)`.
-  / REGEXP __ "(" __ arg0:RegexpPrimitive __ "," __ arg1:Expr __ ")" where:WhereClause? {
-      id := &ast.ID{Kind: "ID", Name: "regexp", Loc: ast.NewLoc(c.pos.offset, c.pos.offset+6)}
-      return newCall(c, id, []any{arg0, arg1}, where), nil
-    }
-  / REGEXP_REPLACE __ "(" __ arg0:Expr __ "," __ arg1:RegexpPrimitive __ "," __ arg2:Expr __ ")" where:WhereClause? {
-      id := &ast.ID{Kind: "ID", Name: "regexp_replace", Loc: ast.NewLoc(c.pos.offset, c.pos.offset+14)}
-      return newCall(c, id, []any{arg0, arg1, arg2}, where), nil
-    }
-  / !FuncGuard EXTRACT __ "(" __ part:Expr _ FROM _ e:Expr __ ")" where:WhereClause? {
+  = !FuncGuard EXTRACT __ "(" __ part:Expr _ FROM _ e:Expr __ ")" where:WhereClause? {
       return &ast.CallExtract{
         Kind: "CallExtract",
         Part: part.(ast.Expr),
@@ -1066,25 +1059,9 @@ Function
     }
   / CountStar
 
-RegexpPrimitive
-  = pat:RegexpPattern { return newPrimitive(c, "string", pat.(string)), nil }
-
 FunctionArgs
   = Exprs
   / __ { return []any{}, nil }
-
-Grep
-  = GREP __ "(" __ pattern:(Regexp / Glob / Expr) __ opt:("," __ e:Expr __ { return e, nil })? ")" {
-      g := &ast.Grep{
-          Kind: "Grep",
-          Pattern: pattern.(ast.Expr),
-          Loc: loc(c),
-      }
-      if opt != nil {
-          g.Expr = opt.(ast.Expr)
-      }
-      return g, nil
-    }
 
 Exprs
   = first:Expr rest:(__ "," __ e:Expr { return e, nil })* {
@@ -1761,11 +1738,6 @@ UnicodeEscape
       return makeUnicodeChar(chars), nil
     }
 
-RegexpPattern
-  = "/" body:RegexpBody "/" !KeyWordStart { return body, nil }
-
-RegexpBody
-  = ([^/\\] / "\\" .)+ { return string(c.text), nil }
 
 EscapedChar
   = [\x00-\x1f\\]
@@ -2352,7 +2324,6 @@ FROM       = "FROM"i            !IdentifierRest
 FULL       = "FULL"i            !IdentifierRest
 FUNC       = "FUNC"i            !IdentifierRest
 FUSE       = "FUSE"i            !IdentifierRest
-GREP       = "GREP"i            !IdentifierRest
 GROUP      = "GROUP"i           !IdentifierRest
 HAVING     = "HAVING"i          !IdentifierRest
 HEAD       = "HEAD"i            !IdentifierRest
@@ -2381,8 +2352,6 @@ OUTPUT     = "OUTPUT"i          !IdentifierRest
 PASS       = "PASS"i            !IdentifierRest
 PUT        = "PUT"i             !IdentifierRest
 RECURSIVE  = "RECURSIVE"i       !IdentifierRest
-REGEXP     = "REGEXP"i          !IdentifierRest
-REGEXP_REPLACE = "REGEXP_REPLACE"i !IdentifierRest
 RENAME     = "RENAME"i          !IdentifierRest
 RIGHT      = "RIGHT"i           !IdentifierRest
 SHAPES     = "SHAPES"i          !IdentifierRest

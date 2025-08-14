@@ -171,9 +171,9 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 		}
 		c.write("}|")
 	case *dag.RegexpSearch:
-		c.write("regexp_search(/")
+		c.write("regexp_search(r\"")
 		c.write(e.Pattern)
-		c.write("/, ")
+		c.write("\", ")
 		c.expr(e.Expr, "")
 		c.write(")")
 	case *dag.RegexpMatch:

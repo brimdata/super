@@ -43,7 +43,6 @@ var unpacker = unpack.New(
 	FStringText{},
 	FuncDecl{},
 	Fuse{},
-	Grep{},
 	Head{},
 	ID{},
 	ImpliedValue{},

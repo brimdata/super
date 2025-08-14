@@ -69,7 +69,7 @@ count() by k | sort
 A simple count with no input values returns no output:
 ```mdtest-spq
 # spq
-where grep("bar") | count()
+where grep("bar", this) | count()
 # input
 1
 "foo"
@@ -80,7 +80,7 @@ where grep("bar") | count()
 Count can return an explicit zero when using a `where` clause in the aggregation:
 ```mdtest-spq
 # spq
-count() where grep("bar")
+count() where grep("bar", this)
 # input
 1
 "foo"

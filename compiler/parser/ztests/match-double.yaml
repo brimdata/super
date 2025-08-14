@@ -1,4 +1,4 @@
-spq: '? grep("a") grep("b")'
+spq: '? grep("a", this) grep("b", this)'
 
 vector: true
 

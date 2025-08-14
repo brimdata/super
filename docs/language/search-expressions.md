@@ -44,7 +44,7 @@ Regular expressions may also appear in the [`grep`](functions/grep.md),
 [`regexp`](functions/regexp.md), and [`regexp_replace`](functions/regexp_replace.md) functions:
 ```mdtest-spq {data-layout="stacked"}
 # spq
-values {ba_start:grep(/^ba.*/, s),last_s_char:regexp(/(.)$/,s)[1]}
+values {ba_start:grep('^ba.*', s),last_s_char:regexp('(.)$',s)[1]}
 # input
 "foo"
 {s:"bar"}
@@ -122,7 +122,7 @@ and
 Globs may also appear in the [`grep` function](functions/grep.md):
 ```mdtest-spq
 # spq
-values grep(ba*, s)
+values grep('^ba.*', s)
 # input
 "foo" {s:"bar"} {s:"baz"} {foo:1}
 # expected output

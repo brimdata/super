@@ -2,9 +2,9 @@ script: |
   export SUPER_VAM=1
   super compile -C -O 'from test.csup | where x LIKE "cslab%"'
   echo // ===
-  super compile -C -O 'from test.csup | where grep(/^csla[bB].*/, x)'
+  super compile -C -O 'from test.csup | where grep("^csla[bB].*", x)'
   echo // ===
-  super compile -C -O 'from test.csup | where grep(/csla[bB].*/, x)'
+  super compile -C -O 'from test.csup | where grep("csla[bB].*", x)'
   echo // ===
   echo '{x:"a"}' | super -f csup -o x.csup -
   super -s -c "SELECT x FROM x.csup WHERE x LIKE 'a%'"
@@ -20,7 +20,7 @@ outputs:
            expr compare("cslab", x.max, true)<=0 and compare("cslac", x.min, true)>0
            fields x.max,x.min
         )
-      | where regexp_search(/(?s)^cslab.*?$/, x)
+      | where regexp_search(r"(?s)^cslab.*?$", x)
       | output main
       // ===
       file test.csup format csup
@@ -28,11 +28,11 @@ outputs:
            expr compare("csla", x.max, true)<=0 and compare("cslb", x.min, true)>0
            fields x.max,x.min
         )
-      | where regexp_search(/^csla[bB].*/, x)
+      | where regexp_search(r"^csla[bB].*", x)
       | output main
       // ===
       file test.csup format csup
-      | where regexp_search(/csla[bB].*/, x)
+      | where regexp_search(r"csla[bB].*", x)
       | output main
       // ===
       {x:"a"}

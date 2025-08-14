@@ -1,4 +1,4 @@
-spq: values grep(*foo*)
+spq: values grep('.*foo.*', this)
 
 vector: true
 

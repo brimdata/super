@@ -3,7 +3,7 @@ script: |
   echo ===
   super -s -c 'values LOWER(s),Collect(LoweR(s))' in.sup
   echo ===
-  super -s -c 'Grep(G*)' in.sup
+  super -s -c 'Grep("G.*", this)' in.sup
   echo ===
   super -s -c 'values {s,match:RegEXP("(f|B).*", s)}' in.sup
   echo ===

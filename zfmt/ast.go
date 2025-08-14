@@ -131,14 +131,6 @@ func (c *canon) expr(e ast.Expr, parent string) {
 		c.write("/%s/", e.Pattern)
 	case *ast.Glob:
 		c.write(e.Pattern)
-	case *ast.Grep:
-		c.write("grep(")
-		c.expr(e.Pattern, "")
-		if e.Expr != nil {
-			c.write(",")
-			c.expr(e.Expr, "")
-		}
-		c.write(")")
 	case *ast.IndexExpr:
 		c.expr(e.Expr, "")
 		c.write("[")
@@ -932,7 +924,7 @@ func IsBool(e ast.Expr) bool {
 			}
 		}
 		return false
-	case *ast.Grep, *ast.Regexp, *ast.Glob:
+	case *ast.Regexp, *ast.Glob:
 		return true
 	default:
 		return false

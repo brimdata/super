@@ -1,4 +1,4 @@
-spq: grep("a")
+spq: grep("a", this)
 
 vector: true
 
