@@ -1,6 +1,10 @@
 package dag
 
-import "github.com/brimdata/super/order"
+import (
+	"encoding/json"
+
+	"github.com/brimdata/super/order"
+)
 
 type (
 	Expr interface {
@@ -195,4 +199,19 @@ func NewBinaryExpr(op string, lhs, rhs Expr) *BinaryExpr {
 
 func NewValues(exprs ...Expr) *Values {
 	return &Values{"Values", exprs}
+}
+
+func CopyExpr(e Expr) Expr {
+	if e == nil {
+		panic("CopyExpr nil")
+	}
+	b, err := json.Marshal(e)
+	if err != nil {
+		panic(err)
+	}
+	var copy Expr
+	if err := unpacker.Unmarshal(b, &copy); err != nil {
+		panic(err)
+	}
+	return copy
 }
