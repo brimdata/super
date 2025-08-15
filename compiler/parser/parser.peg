@@ -1070,7 +1070,8 @@ RegexpPrimitive
   = pat:RegexpPattern { return newPrimitive(c, "string", pat.(string)), nil }
 
 FunctionArgs
-  = OptionalExprs
+  = Exprs
+  / __ { return []any{}, nil }
 
 Grep
   = GREP __ "(" __ pattern:(Regexp / Glob / Expr) __ opt:("," __ e:Expr __ { return e, nil })? ")" {
@@ -1084,10 +1085,6 @@ Grep
       }
       return g, nil
     }
-
-OptionalExprs
-  = Exprs
-  / __ { return []any{}, nil }
 
 Exprs
   = first:Expr rest:(__ "," __ e:Expr { return e, nil })* {
