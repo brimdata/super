@@ -1,0 +1,18 @@
+spq: |
+  values case this when 42 then 100 when 53 then 200 else 300 end 
+
+vector: true
+
+# If we are following SQL then this should return an error with a mismatched
+# type input, however we don't support this because mismatched comparisons do
+# not currently return errors.
+
+input: |
+  42
+  53
+  100
+
+output: |
+  100
+  200
+  300
