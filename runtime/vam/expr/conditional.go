@@ -25,19 +25,19 @@ func NewConditional(sctx *super.Context, predicate, thenExpr, elseExpr Evaluator
 
 func (c *conditional) Eval(this vector.Any) vector.Any {
 	predVec := c.predicate.Eval(this)
-	boolsMap, errsMap := BoolMask(predVec)
-	if errsMap.GetCardinality() == uint64(this.Len()) {
+	boolsMap, otherMap := BoolMask(predVec)
+	if otherMap.GetCardinality() == uint64(this.Len()) {
 		return c.predicateError(predVec)
 	}
 	if boolsMap.GetCardinality() == uint64(this.Len()) {
 		return c.thenExpr.Eval(this)
 	}
-	if boolsMap.IsEmpty() && errsMap.IsEmpty() {
+	if boolsMap.IsEmpty() && otherMap.IsEmpty() {
 		return c.elseExpr.Eval(this)
 	}
 	thenVec := c.thenExpr.Eval(vector.Pick(this, boolsMap.ToArray()))
 	// elseMap is the difference between boolsMap or errsMap
-	elseMap := roaring.Or(boolsMap, errsMap)
+	elseMap := roaring.Or(boolsMap, otherMap)
 	elseMap.Flip(0, uint64(this.Len()))
 	elseIndex := elseMap.ToArray()
 	elseVec := c.elseExpr.Eval(vector.Pick(this, elseIndex))
@@ -46,12 +46,12 @@ func (c *conditional) Eval(this vector.Any) vector.Any {
 		tags[idx] = 1
 	}
 	vecs := []vector.Any{thenVec, elseVec}
-	if !errsMap.IsEmpty() {
-		errsIndex := errsMap.ToArray()
-		for _, idx := range errsIndex {
+	if !otherMap.IsEmpty() {
+		otherIndex := otherMap.ToArray()
+		for _, idx := range otherIndex {
 			tags[idx] = 2
 		}
-		vecs = append(vecs, c.predicateError(vector.Pick(predVec, errsIndex)))
+		vecs = append(vecs, c.predicateError(vector.Pick(predVec, otherIndex)))
 	}
 	return vector.NewDynamic(tags, vecs)
 }
@@ -64,21 +64,29 @@ func (c *conditional) predicateError(vec vector.Any) vector.Any {
 
 func BoolMask(mask vector.Any) (*roaring.Bitmap, *roaring.Bitmap) {
 	bools := roaring.New()
-	errs := roaring.New()
+	other := roaring.New()
 	if dynamic, ok := mask.(*vector.Dynamic); ok {
 		reverse := dynamic.ReverseTagMap()
 		for i, val := range dynamic.Values {
-			boolMaskRidx(reverse[i], bools, errs, val)
+			boolMaskRidx(reverse[i], bools, other, val)
 		}
 	} else {
-		boolMaskRidx(nil, bools, errs, mask)
+		boolMaskRidx(nil, bools, other, mask)
 	}
-	return bools, errs
+	return bools, other
 }
 
-func boolMaskRidx(ridx []uint32, bools, errs *roaring.Bitmap, vec vector.Any) {
+func boolMaskRidx(ridx []uint32, bools, other *roaring.Bitmap, vec vector.Any) {
 	switch vec := vec.(type) {
 	case *vector.Const:
+		if vec.Type().ID() != super.IDBool {
+			if ridx != nil {
+				other.AddMany(ridx)
+			} else {
+				other.AddRange(0, uint64(vec.Len()))
+			}
+			return
+		}
 		if !vec.Value().Ptr().AsBool() {
 			return
 		}
@@ -118,11 +126,11 @@ func boolMaskRidx(ridx []uint32, bools, errs *roaring.Bitmap, vec vector.Any) {
 		} else {
 			bools.Or(roaring.FromDense(trues.GetBits(), true))
 		}
-	case *vector.Error:
+	default:
 		if ridx != nil {
-			errs.AddMany(ridx)
+			other.AddMany(ridx)
 		} else {
-			errs.AddRange(0, uint64(vec.Len()))
+			other.AddRange(0, uint64(vec.Len()))
 		}
 	}
 }
