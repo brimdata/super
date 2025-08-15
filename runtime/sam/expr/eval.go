@@ -773,6 +773,9 @@ func NewConditional(sctx *super.Context, predicate, thenExpr, elseExpr Evaluator
 
 func (c *Conditional) Eval(this super.Value) super.Value {
 	val := c.predicate.Eval(this)
+	if val.IsError() {
+		return val
+	}
 	if val.Type().ID() != super.IDBool {
 		return c.sctx.WrapError("?-operator: bool predicate required", val)
 	}

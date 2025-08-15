@@ -1,0 +1,12 @@
+spq: |
+  values x ? "foo" : "bar"
+
+vector: true
+
+input: |
+  1
+  {x:1}
+
+output: |
+  error("missing")
+  error({message:"?-operator: bool predicate required",on:1})
