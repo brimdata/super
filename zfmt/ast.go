@@ -118,6 +118,20 @@ func (c *canon) expr(e ast.Expr, parent string) {
 		c.write(" FROM ")
 		c.expr(e.Expr, "")
 		c.write(")")
+	case *ast.CaseExpr:
+		c.write("case ")
+		c.expr(e.Expr, "")
+		for _, when := range e.Whens {
+			c.write(" when ")
+			c.expr(when.Cond, "")
+			c.write(" then ")
+			c.expr(when.Then, "")
+		}
+		if e.Else != nil {
+			c.write(" else ")
+			c.expr(e.Else, "")
+		}
+		c.write(" end")
 	case *ast.Cast:
 		c.expr(e.Type, "")
 		c.write("(")

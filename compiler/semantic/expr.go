@@ -75,8 +75,7 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 		}
 		return expr
 	case *ast.CaseExpr:
-		a.error(e, errors.New("case matching-style expressions not yet supported"))
-		return badExpr()
+		return a.semCaseExpr(e)
 	case *ast.Conditional:
 		cond := a.semExpr(e.Cond)
 		thenExpr := a.semExpr(e.Then)
@@ -643,6 +642,26 @@ func (a *analyzer) semDotted(e *ast.BinaryExpr) ([]string, dag.Expr) {
 		return append(this, rhs.Name), nil
 	}
 	return nil, nil
+}
+
+func (a *analyzer) semCaseExpr(c *ast.CaseExpr) dag.Expr {
+	e := a.semExpr(c.Expr)
+	out := a.semExprNullable(c.Else)
+	for i := len(c.Whens) - 1; i >= 0; i-- {
+		when := c.Whens[i]
+		out = &dag.Conditional{
+			Kind: "Conditional",
+			Cond: &dag.BinaryExpr{
+				Kind: "BinaryExpr",
+				Op:   "==",
+				LHS:  dag.CopyExpr(e),
+				RHS:  a.semExpr(when.Cond),
+			},
+			Then: a.semExpr(when.Then),
+			Else: out,
+		}
+	}
+	return out
 }
 
 func (a *analyzer) semCall(call *ast.Call) dag.Expr {
