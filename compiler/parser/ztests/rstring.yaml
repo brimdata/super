@@ -1,0 +1,15 @@
+spq: |
+  values r'', r"", r'foo', r'\f\o\o\n', r"bar", r"\b\a\r\n"
+
+vector: true
+
+input: |
+  null
+
+output: |
+  ""
+  ""
+  "foo"
+  "\\f\\o\\o\\n"
+  "bar"
+  "\\b\\a\\r\\n"

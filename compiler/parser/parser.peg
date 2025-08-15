@@ -1427,6 +1427,7 @@ TypeListTail = __ "|" __ typ:ComponentType { return typ, nil }
 StringLiteral
   = s:DoubleQuotedString { return &ast.DoubleQuote{Kind:"DoubleQuote", Text: s.(string), Loc: loc(c)}, nil }
   / s:SingleQuotedString { return newPrimitive(c, "string", s.(string)), nil }
+  / s:RString { return newPrimitive(c, "string", s.(string)), nil }
 
 FString
   = "f\"" v:FStringDoubleQuotedElem* '"' {
@@ -1671,6 +1672,16 @@ DoubleQuotedString
 DoubleQuotedChar
   = !('"' / EscapedChar) . { return string(c.text), nil }
   / "\\" s:EscapeSequence { return s, nil }
+
+RString
+  = "r'" s:NoSingleQuotes "'" { return s.(string), nil }
+  / "r" '"' s:NoDoubleQuotes '"' { return s.(string), nil }
+
+NoSingleQuotes
+  = (!"'" .)* { return string(c.text), nil }
+
+NoDoubleQuotes
+  = (!'"' .)* { return string(c.text), nil }
 
 BacktickString
   = '`' v:BacktickChar* '`' { return joinChars(v), nil }
