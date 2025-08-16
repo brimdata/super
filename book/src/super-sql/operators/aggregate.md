@@ -21,10 +21,12 @@ having the form:
 
 ### Description
 
-The `aggregate` operator aggregates groups of its input to reduce
-each group of values to one or more values according to one or more
-[aggregate functions](../aggregates/intro.md)
-When there are no grouping expressions, the aggregate functions are applied
+The `aggregate` operator applies
+[aggregate functions](../aggregates/intro.md) to
+groups of its input to reduce each group of values to one output value
+where the result of each aggregate function appears as a field of the result.
+
+When there are no `<grouping>` expressions, the aggregate functions are applied
 to the entire input.
 
 In the first form, the `aggregate` operator consumes all of its input,
@@ -48,12 +50,15 @@ to the [`where`](where.md) operator but apply their filter to the input
 argument stream to the aggregatge function.
 
 The output field names for each aggregate and each key are optional.  If omitted,
-a field name is inferred from each right-hand side, e.g., the output field for the
+a field name is inferred from each right-hand side as in a
+[field assignment](intro.md#field-assignment),
+ e.g., the output field for the
 [`count`](../aggregates/count.md) aggregate function is simply `count`.
 
 A key may be either an expression or a field.  If the key field is omitted,
-it is inferred from the expression, e.g., the field name for `by lower(s)`
-is `lower`.
+it is also inferred from the expression as in a
+[field assignment](intro.md#field-assignment),
+e.g., the field name for `by lower(s)` is `lower`.
 
 When the result of `aggregate` is a single value (e.g., a single aggregate
 function without grouping keys) and there is no field name specified, then
@@ -64,7 +69,7 @@ If the cardinality of grouping keys causes the memory footprint to exceed
 a limit, then each aggregate's partial results are spilled to temporary storage
 and the results merged into final results using an external merge sort.
 
-> Spilling is not yet implemented for the vectorized runtime.
+> _Spilling is not yet implemented for the vectorized runtime._
 
 ### Examples
 
