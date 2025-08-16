@@ -1,18 +1,18 @@
 script: |
-  super -s -c "grep('a.*b',s)" in.sup
+  super -s -c "? a*b" in.sup
   echo ===
-  super -s -c "s==a*b+1" in.sup
+  super -s -c "? a*b=s" in.sup
 
 inputs:
   - name: in.sup
     data: |
       {s:"axb"}
-      {s:7::int32,a:2::int32,b:3::int32}
-      {s:8::int32,a:2::int32,b:3::int32}
+      {s:6,a:2,b:3}
+      {s:7,a:2,b:3}
 
 outputs:
   - name: stdout
     data: |
       {s:"axb"}
       ===
-      {s:7::int32,a:2::int32,b:3::int32}
+      {s:6,a:2,b:3}
