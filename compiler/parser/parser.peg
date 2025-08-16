@@ -128,7 +128,7 @@ SearchFactor
 
 SearchExpr
   = Regexp
-  / Glob
+  / g:Glob !ExprGuard { return g, nil }
   / v:SearchValue (!ExprGuard / &(_ Glob)) {
       return &ast.Term{
         Kind: "Term",
@@ -136,9 +136,6 @@ SearchExpr
         Value: v.(ast.Any),
         Loc: loc(c),
       }, nil
-    }
-  / "*" !ExprGuard {
-      return &ast.Primitive{Kind:"Primitive",Type:"bool",Text:"true",Loc:loc(c)}, nil
     }
   / SearchPredicate
 

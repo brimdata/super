@@ -21,7 +21,6 @@ top 1 -flush
 ? foo\tbar
 ? foo\\x11bar
 ? foo\\x11\bar
-? *
 ? *abc*
 field==null
 count() by _path,ts:=every(3600s)
