@@ -678,7 +678,7 @@ FromEntity
         Loc: loc(c),
       }, nil
     }
-  / meta:ColonText {
+  / meta:ColonName {
       return &ast.LakeMeta{
         Kind: "LakeMeta",
         Meta: meta.(*ast.Text),
@@ -694,13 +694,14 @@ FromEntity
   // XXX UNNEST, PIVOT, UNPIVOT, type projection, left correlation?
 
 Text
- = s:(UnquotedURL / TextChars / KSUID / DoubleQuotedString / SingleQuotedString) {
+ = s:(SimpleURL / TextChars / DoubleQuotedString / SingleQuotedString / RString) {
       return &ast.Text{Kind:"Text", Text:s.(string), Loc:loc(c) }, nil
     }
 
-UnquotedURL = ("http://" / "https://" / "s3://") URLChar+ { return string(c.text), nil }
-
-URLChar = [0-9a-zA-Z!@$%&_=,./?:[\]~+-] //XXX fix this?
+SimpleURL =
+  "http" "s"? "://"
+  ([a-zA-Z0-9_-]+) ( "." [a-zA-Z0-9_-]+)*
+  ("/" TextChars)? { return string(c.text), nil }
 
 TextChars
   = (IdentifierRest / "." / "/")+ { return string(c.text), nil }
@@ -715,14 +716,14 @@ CommitishOpArgs
   / __ commit:MetaCommitish { return commit, nil }
 
 MetaCommitish
-  = commit:Commitish meta:ColonText? {
+  = commit:Commitish meta:ColonName? {
       out := []any{commit}
       if meta != nil {
         out = append(out, &ast.ArgText{Kind:"ArgText", Key: "meta", Value: meta.(*ast.Text), Loc: meta.(*ast.Text).Loc})
       }
       return out, nil
     }
-  / meta:ColonText {
+  / meta:ColonName {
       return []any{&ast.ArgText{Kind:"ArgText", Key: "meta", Value: meta.(*ast.Text), Loc: loc(c)}}, nil
     }
 
@@ -733,7 +734,9 @@ Commitish
 
 CommitText
   = Name
-  / s:KSUID  { return &ast.Text{Kind:"Text",Text:s.(string),Loc:loc(c) }, nil }
+  / KSUID { return &ast.Text{Kind:"Text",Text:string(c.text),Loc:loc(c) }, nil }
+
+KSUID = [0-9a-zA-Z]+
 
 OpArg
   = &ArgNameExpr key:ArgName _ e:Expr { return &ast.ArgExpr{Kind:"ArgExpr", Key: key.(string), Value: e.(ast.Expr), Loc: loc(c)}, nil }
@@ -749,15 +752,8 @@ ArgName = UnicodeLetter+ { return string(c.text), nil }
 ArgNameExpr
   = "headers"i !UnicodeLetter
 
-//XXX this should be a timestamp
-PoolAt
-  = _ AT _ id:KSUID { return id, nil }
-
-//XXX this should allow 0x bytes format
-KSUID = ([0-9a-zA-Z])+ { return string(c.text), nil }
-
-ColonText
-  = ":" n:Text { return n, nil }
+ColonName
+  = ":" n:Name { return n, nil }
 
 PassOp
   = PASS !(__ "(") &EOKW {
