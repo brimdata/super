@@ -130,6 +130,7 @@
             - [fields](super-sql/functions/records/fields.md)
             - [fill](super-sql/functions/records/fill.md)
             - [flatten](super-sql/functions/records/flatten.md)
+            - [has](super-sql/functions/records/has.md)
             - [nest_dotted](super-sql/functions/records/nest_dotted.md)
             - [order](super-sql/functions/records/order.md)
             - [shape](super-sql/functions/records/shape.md)

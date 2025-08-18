@@ -24,7 +24,7 @@ operators "find" values in their input and drop
 the ones that do not match what is being looked for.
 
 The [`values`](values.md) operator emits one or more output values
-for each input value based on arbitrary [expressions](expressions.md),
+for each input value based on arbitrary [expressions](../expressions.md),
 providing a convenient means to derive arbitrary output values as a function
 of each input value.
 

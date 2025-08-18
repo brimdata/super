@@ -37,7 +37,7 @@ format <fmt>
 ```
 where `<fmt>` is the name of a supported
 [serialization format](../../command/super.md#input-formats) and is 
-parsed as a [text entity](../syntax.md#todo).
+parsed as a [text entity](../patterns.md#text-entity).
 
 When `from` references a file or URL entity whose name ends in a
 [well-known extension ](../../command/super.md#input-formats)

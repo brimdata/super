@@ -161,7 +161,7 @@ Any Boolean-valued [function](../functions/intro.md) like
 [`is`](../functions/types/is.md),
 [`has`](../functions/records/has.md),
 [`grep`](../functions/strings/grep.md),
-etc. and any [comparison expression](expressions.md#comparisons)
+etc. and any [comparison expression](../expressions.md#comparisons)
 may be used as a search term and mixed into a search expression.
 
 For example,
@@ -251,7 +251,7 @@ _The "search" keyword abbreviated as "?"_
 
 ---
 
-_A search with [Boolean logic](../search-expressions.md#boolean-logic)_
+_A search with [Boolean logic](#boolean-logic)_
 ```mdtest-spq
 # spq
 search this >= 2 AND this <= 2
@@ -324,7 +324,7 @@ search is(<int64>)
 
 ---
 
-_Boolean functions with Boolean logic_
+_Boolean functions with [Boolean logic](#boolean-logic)_
 ```mdtest-spq
 # spq
 search is(<int64>) or is(<ip>)

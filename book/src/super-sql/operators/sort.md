@@ -82,7 +82,7 @@ null
 
 ---
 
-_With no sort expression, sort will sort by [`this`](../pipeline-model.md#the-special-value-this) for non-records_
+_With no sort expression, sort will sort by `this` for non-records_
 ```mdtest-spq
 # spq
 sort
