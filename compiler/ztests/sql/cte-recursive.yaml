@@ -1,0 +1,16 @@
+spq: |
+  WITH t AS (
+    SELECT 1
+      UNION ALL
+    SELECT x+1
+    FROM   t
+    WHERE  x < 200000
+  )
+  SELECT count(t1) FROM t AS t1;
+
+input: null
+
+error: |
+  recursive WITH relations not currently supported at line 5, column 10:
+    FROM   t
+           ~

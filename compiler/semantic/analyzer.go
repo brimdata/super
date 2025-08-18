@@ -40,13 +40,14 @@ func Analyze(ctx context.Context, p *parser.AST, env *exec.Environment, extInput
 }
 
 type analyzer struct {
-	ctx     context.Context
-	files   *srcfiles.List
-	opStack []*ast.OpDecl
-	outputs map[*dag.Output]ast.Node
-	env     *exec.Environment
-	scope   *Scope
-	sctx    *super.Context
+	ctx      context.Context
+	files    *srcfiles.List
+	opStack  []*ast.OpDecl
+	cteStack []*cte
+	outputs  map[*dag.Output]ast.Node
+	env      *exec.Environment
+	scope    *Scope
+	sctx     *super.Context
 }
 
 func newAnalyzer(ctx context.Context, files *srcfiles.List, env *exec.Environment) *analyzer {

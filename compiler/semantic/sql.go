@@ -516,8 +516,7 @@ func (a *analyzer) semSQLOp(op ast.Op, seq dag.Seq) (dag.Seq, schema) {
 			if _, ok := a.scope.ctes[name]; ok {
 				a.error(c.Name, errors.New("duplicate WITH clause name"))
 			}
-			seq, schema := a.semSQLPipe(c.Body, nil, &ast.TableAlias{Name: c.Name.Name})
-			a.scope.ctes[name] = &cte{seq, schema}
+			a.scope.ctes[name] = &cte{ast: &c}
 		}
 		return a.semSQLOp(op.Body, seq)
 	default:

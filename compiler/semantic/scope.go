@@ -29,6 +29,7 @@ type entry struct {
 }
 
 type cte struct {
+	ast    *ast.SQLCTE
 	body   dag.Seq
 	schema schema
 }

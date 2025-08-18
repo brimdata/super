@@ -1,0 +1,15 @@
+# Tests to ensure CTEs can be called out of order and still work.
+spq: |
+  with cte3 as (
+    select ref2.j as i from cte1 as ref2
+  ), cte1 as (
+    select i as j from (values (42)) as x(i)
+  ), cte2 as (
+    select ref.j+1 as k from cte1 as ref
+  )
+  select * from cte2 union all select * FROM cte3
+  | sort this
+
+output: |
+  {i:42}
+  {k:43}

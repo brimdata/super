@@ -97,11 +97,7 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.TableAlias, a
 			return bad, badSchema()
 		}
 		if c, ok := a.scope.ctes[strings.ToLower(entity.Text)]; ok {
-			seq, schema, err := derefSchemaWithAlias(c.schema, alias, dag.CopySeq(c.body))
-			if err != nil {
-				a.error(alias, err)
-			}
-			return seq, schema
+			return a.fromCTE(entity, c, alias)
 		}
 		op, def := a.semFromName(entity, entity.Text, args)
 		if op, ok := op.(*dag.FileScan); ok {
@@ -127,6 +123,21 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.TableAlias, a
 	default:
 		panic(fmt.Sprintf("semFromEntity: unknown entity type: %T", entity))
 	}
+}
+
+func (a *analyzer) fromCTE(entity ast.FromEntity, c *cte, alias *ast.TableAlias) (dag.Seq, schema) {
+	if slices.Contains(a.cteStack, c) {
+		a.error(entity, errors.New("recursive WITH relations not currently supported"))
+		return dag.Seq{badOp()}, badSchema()
+	}
+	a.cteStack = append(a.cteStack, c)
+	body, schema := a.semSQLPipe(c.ast.Body, nil, &ast.TableAlias{Name: c.ast.Name.Name})
+	a.cteStack = a.cteStack[:len(a.cteStack)-1]
+	seq, schema, err := derefSchemaWithAlias(schema, alias, body)
+	if err != nil {
+		a.error(alias, err)
+	}
+	return seq, schema
 }
 
 func (a *analyzer) fileScanColumns(op *dag.FileScan) ([]string, bool) {
