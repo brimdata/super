@@ -260,7 +260,7 @@ func (n *numeric) eval(this super.Value) (super.Value, super.Value, *super.Value
 	if rhs.IsError() {
 		return super.Null, super.Null, &rhs
 	}
-	return enumToIndex(lhs), enumToIndex(rhs), nil
+	return enumToIndex(lhs.Under()), enumToIndex(rhs.Under()), nil
 }
 
 // enumToIndex converts an enum to its index value.
