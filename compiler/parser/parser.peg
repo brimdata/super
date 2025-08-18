@@ -701,7 +701,7 @@ Text
 SimpleURL =
   "http" "s"? "://"
   ([a-zA-Z0-9_-]+) ( "." [a-zA-Z0-9_-]+)*
-  ("/" TextChars)? { return string(c.text), nil }
+  ("/" TextChars?)? { return string(c.text), nil }
 
 TextChars
   = (IdentifierRest / "." / "/")+ { return string(c.text), nil }
