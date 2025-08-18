@@ -4,21 +4,10 @@ import {SuperPlayground} from './super-playground'
 const preNodes = document.querySelectorAll('pre:has(> code.language-mdtest-spq)');
 for (const [i, pre] of preNodes.entries()) {
   const codeNode = pre.querySelector('code')
-
-  const codeText = codeNode.innerText;
-  const matches = Array.from(codeText.matchAll(/(?:#[^\n]*\n)+((?:[^#][^\n]*\n)+)/gm));
-  if (matches.length != 3) {
-    continue;
-  }
-  const spq = matches[0][1].trim();
-  const input = matches[1][1].trim();
-  const expected = matches[2][1].trim();
-
   const attributes = Array.from(codeNode.classList)
         .filter((c) => c.match(/^{.*}$/))
         .map((c) => c.slice(1, -1))
         .join(' ')
-
   const html = `
   <article class="super-example">
     <nav role="tablist">
@@ -48,22 +37,16 @@ for (const [i, pre] of preNodes.entries()) {
       ${attributes}
     >
       <div class="editor query">
-        <header class="repel">
-          <label>Query</label>
-        </header>
-        <pre><code>${spq}</code></pre>
+        <header class="repel"><label>Query</label></header>
+        <pre><code></code></pre>
       </div>
       <div class="editor input">
-        <header class="repel">
-          <label>Input</label>
-        </header>
-        <pre><code>${input}</code></pre>
+        <header class="repel"><label>Input</label></header>
+        <pre><code></code></pre>
       </div>
       <div class="editor result">
-        <header class="repel">
-          <label>Result</label>
-        </header>
-        <pre><code>${expected}</code></pre>
+        <header class="repel"><label>Result</label></header>
+        <pre><code></code></pre>
       </div>
     </section>
     <section hidden role="tabpanel" id="command-panel-${i}" class="super-command">
@@ -74,11 +57,23 @@ for (const [i, pre] of preNodes.entries()) {
 
   const div = document.createElement('div');
   div.innerHTML = html;
-  const node = div.children[0]
+  const node = div.children[0];
   pre.replaceWith(node);
 
   const tablist = node.querySelector('[role="tablist"]');
   AriaTabs.setup(tablist);
+
+  const codeText = codeNode.innerText;
+  const matches = Array.from(codeText.matchAll(/(?:#[^\n]*\n)+((?:[^#][^\n]*\n)+)/gm));
+  if (matches.length != 3) {
+    continue;
+  }
+  const spq = matches[0][1].trim();
+  const input = matches[1][1].trim();
+  const expected = matches[2][1].trim();
+  node.querySelector('.super-playground .query code').textContent = spq;
+  node.querySelector('.super-playground .input code').textContent = input;
+  node.querySelector('.super-playground .result code').textContent = expected;
 
   const commandCode = node.querySelector('.super-command code')
   SuperPlayground.setup(node, (query, input) => {
