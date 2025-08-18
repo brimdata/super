@@ -80,7 +80,7 @@ TypeDecl
 
 // An PipeOp is any pipeline operator, or a parenthesized pipe scope, or
 // one of three shortcuts: a shortcut assignment for "put", a shortcut "aggregate",
-// or an expression that is either implied values op (non-boolean) or implied
+// or an expression that is either an implied "values" (non-boolean) or an implied
 // "where" (boolean).
 PipeOp
   = Operator
