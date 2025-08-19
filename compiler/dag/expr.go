@@ -83,11 +83,6 @@ type (
 		Kind    string  `json:"kind" unpack:""`
 		Entries []Entry `json:"entries"`
 	}
-	Subquery struct {
-		Kind       string `json:"kind" unpack:""`
-		Correlated bool   `json:"correlated"`
-		Body       Seq    `json:"body"`
-	}
 	RecordExpr struct {
 		Kind  string       `json:"kind" unpack:""`
 		Elems []RecordElem `json:"elems"`
@@ -122,6 +117,11 @@ type (
 		Key   Expr        `json:"key"`
 		Order order.Which `json:"order"`
 		Nulls order.Nulls `json:"nulls"`
+	}
+	Subquery struct {
+		Kind       string `json:"kind" unpack:""`
+		Correlated bool   `json:"correlated"`
+		Body       Seq    `json:"body"`
 	}
 	This struct {
 		Kind string   `json:"kind" unpack:""`

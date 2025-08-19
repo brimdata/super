@@ -190,8 +190,6 @@ func demandForExpr(expr dag.Expr) demand.Demand {
 			d = demand.Union(d, demandForExpr(e.Value))
 		}
 		return d
-	case *dag.Subquery:
-		return demand.Union(DemandForSeq(expr.Body, demand.All())...)
 	case *dag.RecordExpr:
 		d := demand.None()
 		for _, e := range expr.Elems {
@@ -216,6 +214,8 @@ func demandForExpr(expr dag.Expr) demand.Demand {
 	case *dag.SliceExpr:
 		return demand.Union(demandForExpr(expr.Expr),
 			demand.Union(demandForExpr(expr.From), demandForExpr(expr.To)))
+	case *dag.Subquery:
+		return demand.Union(DemandForSeq(expr.Body, demand.All())...)
 	case *dag.This:
 		d := demand.All()
 		for i := len(expr.Path) - 1; i >= 0; i-- {
