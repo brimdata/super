@@ -35,6 +35,7 @@ func CompareBool(op string, pattern bool) (Boolean, error) {
 		return nil, fmt.Errorf("unknown bool comparator: %s", op)
 	}
 	return func(val super.Value) super.Value {
+		val = val.Under()
 		if val.IsNull() {
 			return super.NullBool
 		}
@@ -76,6 +77,7 @@ func CompareInt64(op string, pattern int64) (Boolean, error) {
 	}
 	// many different Zed data types can be compared with integers
 	return func(val super.Value) super.Value {
+		val = val.Under()
 		if val.IsNull() {
 			return super.NullBool
 		}
@@ -116,6 +118,7 @@ func CompareIP(op string, pattern netip.Addr) (Boolean, error) {
 		return nil, fmt.Errorf("unknown addr comparator: %s", op)
 	}
 	return func(val super.Value) super.Value {
+		val = val.Under()
 		if val.IsNull() {
 			return super.NullBool
 		}
@@ -139,6 +142,7 @@ func CompareFloat64(op string, pattern float64) (Boolean, error) {
 		return nil, fmt.Errorf("unknown double comparator: %s", op)
 	}
 	return func(val super.Value) super.Value {
+		val = val.Under()
 		if val.IsNull() {
 			return super.NullBool
 		}
@@ -179,6 +183,7 @@ func CompareString(op string, pattern []byte) (Boolean, error) {
 	}
 	s := string(pattern)
 	return func(val super.Value) super.Value {
+		val = val.Under()
 		if val.IsNull() {
 			return super.NullBool
 		}
@@ -207,6 +212,7 @@ func CompareBytes(op string, pattern []byte) (Boolean, error) {
 		return nil, fmt.Errorf("unknown bytes comparator: %s", op)
 	}
 	return func(val super.Value) super.Value {
+		val = val.Under()
 		if val.IsNull() {
 			return super.NullBool
 		}
