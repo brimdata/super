@@ -1,6 +1,6 @@
 ### Operator
 
-&emsp; **aggregate** &mdash; execute aggregation functions with optional group-by expressions
+&emsp; **aggregate** &mdash; execute aggregation functions with optional grouping expressions
 
 ### Synopsis
 
@@ -48,10 +48,11 @@ which applies a Boolean expression `<expr>` that indicates, for each input value
 whether to include it in the values operated upon by the aggregate function.
 `where` clauses are analogous
 to the [`where`](where.md) operator but apply their filter to the input
-argument stream to the aggregatge function.
+argument stream to the aggregate function.
 
 The output values are records formed from the [field assignments](intro.md#field-assignment)
-of the grouping expressions then the aggregate functions in the left-to-right order.
+first from the grouping expressions then from the aggregate functions
+in left-to-right order.
 
 When the result of `aggregate` is a single value (e.g., a single aggregate
 function without grouping expressions) and there is no field name specified, then
@@ -164,7 +165,7 @@ set:=union(v) where v > 1 by key:=k | sort
 
 ---
 
-Use separate `where` clauses on each aggregate function:
+Use a separate `where` clause on each aggregate function:
 ```mdtest-spq
 # spq
 set:=union(v) where v > 1,

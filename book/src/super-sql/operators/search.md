@@ -59,8 +59,8 @@ For example,
 ```
 ? foo*baz*.com
 ```
-Searches for any string that begins with `foo` has the string
-`baz` in it and ends with `.com`.
+Searches for any string that begins with `foo`, has the string
+`baz` in it, and ends with `.com`.
 
 Note that a glob may look like multiplication but context disambiguates
 these conditions, e.g.,
@@ -105,7 +105,7 @@ is equivalent to
 where grep("foo", this)
 ```
 
-Note that the "search" keyword may be omitted.
+Note that the shorthand `?` may be used in lieu of the "search" keyword.
 For example, the simplest SuperSQL query is perhaps a single keyword search, e.g.,
 ```
 ? foo
@@ -286,11 +286,11 @@ _Concatenation for keyword search_
 # input
 "foo"
 "foo bar"
-"foo bar baz"
+"foo baz bar"
 "baz"
 # expected output
 "foo bar"
-"foo bar baz"
+"foo baz bar"
 ```
 
 ---

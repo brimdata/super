@@ -17,7 +17,8 @@ the pipeline.
 
 The output of a fork consists of multiple branches that must be merged.
 If the downstream operator expects a single input, then the output branches are
-combined without preserving order.
+combined without preserving order.  Order may be reestablished by applying a
+[`sort`](sort.md) at the merge point.
 
 ### Examples
 

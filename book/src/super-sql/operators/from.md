@@ -101,7 +101,7 @@ branch of each pool is accessed.
 The format argument is not valid with a database source.
 
 > Metadata from database pools also may be sourced using `from`.
-> This will be docuemented in a future release of SuperDB.
+> This will be documented in a future release of SuperDB.
 
 #### URL
 
@@ -318,7 +318,7 @@ super db -db example -s -c '
     ( pass )
     ( from coinflips@trial 
       | c:=count()
-      | values f"There were {int64(c)} flips" )
+      | values f"There were {c} flips" )
   | sort this'
 ```
 =>

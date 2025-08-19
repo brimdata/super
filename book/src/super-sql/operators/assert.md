@@ -17,17 +17,6 @@ structured error if it does not.
 
 ---
 
-```mdtest-spq
-# spq
-assert a > 0
-# input
-{a:1}
-# expected output
-{a:1}
-```
-
----
-
 ```mdtest-spq {data-layout="stacked"}
 # spq
 assert a > 0

@@ -25,7 +25,7 @@ a dotted path or sequence of constant index operations on `this`, e.g., `a.b`.
 
 Each right-hand side `<expr>` can be any expression and is optional.
 
-When the left-hand side assignment are omitted and the expressions are
+When the left-hand side assignments are omitted and the expressions are
 simple field references, the _cut_ operation resembles the Unix shell command, e.g.,
 ```
 ... | cut a,c | ...
@@ -38,7 +38,8 @@ If an input value to cut is not a record, then cut still operates as defined
 resulting in `error("missing")` for expressions that reference fields of `this`.
 
 Note that when the field references are all top level,
-`cut` is a special case of a values with a
+`cut` is a special case of
+[`values`](values.md) with a
 [record expression](../types/record.md) having the form:
 ```
 values {<field>:<expr> [, <field>:<expr>...]}

@@ -60,6 +60,7 @@ _Grab the first record of a record sequence_
 head
 # input
 {a:"hello"}
+{a:"world"}
 # expected output
 {a:"hello"}
 ```

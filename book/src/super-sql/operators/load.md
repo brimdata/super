@@ -18,7 +18,7 @@ The `load` operator populates the specified `<pool>` with the values it
 receives as input. Much like how [`super db load`](../../command/db-load.md)
 is used at the command line to populate a pool with data from files, streams,
 and URIs, the `load` operator is used to save query results from your SuperSQL
-query to a pool in the same SuperDB data lake. `<pool>` is a string indicating the
+query to a pool in the same database. `<pool>` is a string indicating the
 [name or ID](../../database/intro.md#data-pools) of the destination pool.
 If the optional `@<branch>` string is included then the data will be committed
 to an existing branch of that name, otherwise the `main` branch is assumed.
@@ -27,7 +27,7 @@ describe the committed data, similar to the same `super db load` options.
 
 ### Input Data
 
-Examples below assume the existence of the SuperDB data lake created and populated
+Examples below assume the existence of a database created and populated
 by the following commands:
 
 ```mdtest-command
@@ -44,7 +44,7 @@ super db -f text -c '
   | sort'
 ```
 
-The lake then contains the two pools:
+The database then contains the two pools:
 
 ```mdtest-output
 bigflips@main

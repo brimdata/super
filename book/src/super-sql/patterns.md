@@ -63,8 +63,8 @@ A glob cannot begin with a digit.
 
 ### Text Entity
 
-A text entity represents a string where quotes can be ommitted for
-certain common cases use cases regarding URLs and file paths.
+A text entity represents a string where quotes can be omitted for
+certain common use cases regarding URLs and file paths.
 
 Text entities are syntactically valid as targets of a
 [`from`](operators/from.md) operator and as named arguments 
@@ -74,7 +74,7 @@ to `from` and the
 Specifically, a text entity is one of:
 * a string literal (double quoted, single quoted, or raw string),
 * a path consisting of a sequence of characters consisting of letters, digits, `_`,  `$`,  `.`, and `/`, or
-* a simple URL consisting of sequence of characters beginning with `http://` or `https://`,  followed by dotted strings of letters, digits, `-`, and `_`, and in turn optionally followed by `/` and a sequence of characters consisting of letters, digits, `_`, `$`, `.`, and `/`.
+* a simple URL consisting of a sequence of characters beginning with `http://` or `https://`,  followed by dotted strings of letters, digits, `-`, and `_`, and in turn optionally followed by `/` and a sequence of characters consisting of letters, digits, `_`, `$`, `.`, and `/`.
 
 If a URL does not meet the constraints of the simple URL rule,
 e.g., containing a `:` or `&`, then it can simply be quoted.

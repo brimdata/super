@@ -10,8 +10,8 @@
   <right-input>
 ) [as { <left-name>,<right-name> }] [on <predicate> | using <field> ]
 
-  ( <left-input> )
-  ( <right-input> )
+( <left-input> )
+( <right-input> )
 | [anti|inner|left|right] join [as { <left-name>,<right-name> }] [on <predicate> | using ( <field> )]
 
 <left-input> cross join ( <right-input> ) [as { <left-name>,<right-name> }]
@@ -59,7 +59,7 @@ The available join types are:
 satisfies `<predicate>`
 * _cross_ - the entire cross product is computed
 
-As compared to SQL relational scoping, which utilizes table aliases and columns aliases
+As compared to SQL relational scoping, which utilizes table aliases and column aliases
 within nested scopes, the pipeline join operator uses dataflow scoping to join data.
 Here, all data is combined into joined records that can be operated upon 
 like any other record without complex scoping logic.

@@ -34,13 +34,13 @@ to a common type.
 
 The `values` operator is a _go to_ tool in SuperSQL queries as it allows
 the flexible creation of arbitrary values from its inputs while the
-SQL VALUES clause it a _go to_ building block for creating constant tables
-to insert into a database or operate upon.  That said, the SQL `VALUES` clause
+SQL VALUES clause is a _go to_ building block for creating constant tables
+to insert into or operate upon a database.  That said, the SQL `VALUES` clause
 can also be comprised of dynamic expressions though it is less often used
-in this fashion.  Nonetheless, the motivated the naming of the more general
+in this fashion.  Nonetheless, this motivated the naming of the more general
 SuperSQL `values` operator.
 
-For example, this query uses `VALUES` to both
+For example, this query uses `VALUES` to
 create a static table called _points_ then operate upon
 each row of _points_ using expressions embodied in
 dynamic `VALUES` subqueries placed in a lateral join as follows:

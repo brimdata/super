@@ -33,7 +33,7 @@ branches of a pipeline, while the [`switch` operator](switch.md)
 routes each input value to only one corresponding branch
 (or drops the value) based on the switch clauses.
 
-While the output order of the switch branches is undefined, order may be
+While the output order of parallel branches is undefined, order may be
 reestablished by applying a [`sort`](sort.md) at the merge point of the `switch`
 or `fork`.
 

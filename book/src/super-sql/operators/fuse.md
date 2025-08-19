@@ -20,6 +20,9 @@ from input | values cast(this, (from input | aggregate fuse(this)))
 Because all values of the input must be read to compute the fused type,
 `fuse` may spill its input to disk when memory limits are exceeded.
 
+> _Spilling is not yet implemented for the vectorized runtime._
+
+
 ### Examples
 
 ---
@@ -62,18 +65,4 @@ fuse
 # expected output
 {a:[1,2]::[int64|string],b:null::ip}
 {a:["foo","bar"]::[int64|string],b:10.0.0.1}
-```
-
----
-
-_The table format clarifies what fuse does_
-```mdtest-command
-echo '{a:1}{b:2}{a:3}' | super -f table -c fuse -
-```
-=>
-```mdtest-output
-a b
-1 -
-- 2
-3 -
 ```
