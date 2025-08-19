@@ -1,7 +1,6 @@
-package traverse
+package unnest
 
 import (
-	"context"
 	"slices"
 
 	"github.com/brimdata/super"
@@ -28,10 +27,6 @@ func NewUnnest(rctx *runtime.Context, parent zbuf.Puller, expr expr.Evaluator, r
 		resetter: resetter,
 		sctx:     rctx.Sctx,
 	}
-}
-
-func (u *Unnest) AddScope(ctx context.Context) *Scope {
-	return newScope(ctx, u)
 }
 
 func (u *Unnest) Pull(done bool) (zbuf.Batch, error) {

@@ -30,14 +30,15 @@ import (
 	"github.com/brimdata/super/runtime/sam/op/meta"
 	"github.com/brimdata/super/runtime/sam/op/mirror"
 	"github.com/brimdata/super/runtime/sam/op/robot"
+	"github.com/brimdata/super/runtime/sam/op/scope"
 	"github.com/brimdata/super/runtime/sam/op/shape"
 	"github.com/brimdata/super/runtime/sam/op/skip"
 	"github.com/brimdata/super/runtime/sam/op/sort"
 	"github.com/brimdata/super/runtime/sam/op/switcher"
 	"github.com/brimdata/super/runtime/sam/op/tail"
 	"github.com/brimdata/super/runtime/sam/op/top"
-	"github.com/brimdata/super/runtime/sam/op/traverse"
 	"github.com/brimdata/super/runtime/sam/op/uniq"
+	"github.com/brimdata/super/runtime/sam/op/unnest"
 	"github.com/brimdata/super/runtime/sam/op/values"
 	"github.com/brimdata/super/runtime/vam"
 	vamexpr "github.com/brimdata/super/runtime/vam/expr"
@@ -401,18 +402,18 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 	}
 }
 
-func (b *Builder) compileUnnest(parent zbuf.Puller, unnest *dag.Unnest) (zbuf.Puller, error) {
+func (b *Builder) compileUnnest(parent zbuf.Puller, u *dag.Unnest) (zbuf.Puller, error) {
 	b.resetResetters()
-	expr, err := b.compileExpr(unnest.Expr)
+	expr, err := b.compileExpr(u.Expr)
 	if err != nil {
 		return nil, err
 	}
-	enter := traverse.NewUnnest(b.rctx, parent, expr, b.resetters)
-	if unnest.Body == nil {
-		return enter, nil
+	unnestOp := unnest.NewUnnest(b.rctx, parent, expr, b.resetters)
+	if u.Body == nil {
+		return unnestOp, nil
 	}
-	scope := enter.AddScope(b.rctx.Context)
-	exits, err := b.compileSeq(unnest.Body, []zbuf.Puller{scope})
+	scope := scope.NewScope(b.rctx.Context, unnestOp)
+	exits, err := b.compileSeq(u.Body, []zbuf.Puller{scope})
 	if err != nil {
 		return nil, err
 	}

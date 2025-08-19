@@ -9,7 +9,7 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/expr/function"
-	"github.com/brimdata/super/runtime/sam/op/traverse"
+	"github.com/brimdata/super/runtime/sam/op/subquery"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zbuf"
 	"golang.org/x/text/unicode/norm"
@@ -413,18 +413,18 @@ func (b *Builder) compileIsNullExpr(e *dag.IsNullExpr) (expr.Evaluator, error) {
 
 func (b *Builder) compileSubquery(query *dag.Subquery) (expr.Evaluator, error) {
 	if !query.Correlated {
-		exit, err := b.compileSeqAndCombine(query.Body, nil)
+		body, err := b.compileSeqAndCombine(query.Body, nil)
 		if err != nil {
 			return nil, err
 		}
-		return traverse.NewCachedSubquery(b.rctx, exit), nil
+		return subquery.NewCachedSubquery(b.rctx, body), nil
 	}
-	subquery := traverse.NewSubquery(b.rctx)
-	exit, err := b.compileSeqAndCombine(query.Body, []zbuf.Puller{subquery})
+	subquery := subquery.NewSubquery(b.rctx)
+	body, err := b.compileSeqAndCombine(query.Body, []zbuf.Puller{subquery})
 	if err != nil {
 		return nil, err
 	}
-	subquery.SetBody(exit)
+	subquery.SetBody(body)
 	return subquery, nil
 }
 

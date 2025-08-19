@@ -1,4 +1,4 @@
-package traverse
+package scope
 
 import (
 	"context"
@@ -19,7 +19,7 @@ type Scope struct {
 	subDoneCh   chan struct{}
 }
 
-func newScope(ctx context.Context, parent zbuf.Puller) *Scope {
+func NewScope(ctx context.Context, parent zbuf.Puller) *Scope {
 	return &Scope{
 		ctx:    ctx,
 		parent: parent,
