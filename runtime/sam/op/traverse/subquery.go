@@ -8,24 +8,24 @@ import (
 	"github.com/brimdata/super/zbuf"
 )
 
-type CachedQueryExpr struct {
+type CachedSubquery struct {
 	rctx   *runtime.Context
 	body   zbuf.Puller
 	cached *super.Value
 }
 
-func NewCachedQueryExpr(rctx *runtime.Context, body zbuf.Puller) *CachedQueryExpr {
-	return &CachedQueryExpr{rctx: rctx, body: body}
+func NewCachedSubquery(rctx *runtime.Context, body zbuf.Puller) *CachedSubquery {
+	return &CachedSubquery{rctx: rctx, body: body}
 }
 
-func (c *CachedQueryExpr) Eval(_ super.Value) super.Value {
+func (c *CachedSubquery) Eval(_ super.Value) super.Value {
 	if c.cached == nil {
 		c.cached = c.exec().Ptr()
 	}
 	return *c.cached
 }
 
-func (c *CachedQueryExpr) exec() super.Value {
+func (c *CachedSubquery) exec() super.Value {
 	var batches []zbuf.Batch
 	for {
 		batch, err := c.body.Pull(false)
@@ -39,13 +39,13 @@ func (c *CachedQueryExpr) exec() super.Value {
 	}
 }
 
-// QueryExpr is a simple subquery mechanism where it has both an Eval
+// Subquery is a simple subquery mechanism where it has both an Eval
 // method to implement expressions and a Pull method to act as the parent
 // of a subgraph that is embedded in an expression.  Whenever eval
 // is called, it constructs a single valued batch using the passed-in
 // this, posts that batch to the embedded query, then pulls from the
 // query until eos.
-type QueryExpr struct {
+type Subquery struct {
 	ctx     context.Context
 	sctx    *super.Context
 	batchCh chan zbuf.Batch
@@ -54,33 +54,33 @@ type QueryExpr struct {
 	body zbuf.Puller
 }
 
-func NewQueryExpr(rctx *runtime.Context) *QueryExpr {
-	return &QueryExpr{
+func NewSubquery(rctx *runtime.Context) *Subquery {
+	return &Subquery{
 		ctx:     rctx.Context,
 		sctx:    rctx.Sctx,
 		batchCh: make(chan zbuf.Batch, 1),
 	}
 }
 
-func (q *QueryExpr) SetBody(body zbuf.Puller) {
-	q.body = body
+func (s *Subquery) SetBody(body zbuf.Puller) {
+	s.body = body
 }
 
-func (q *QueryExpr) Pull(done bool) (zbuf.Batch, error) {
-	if q.eos {
-		q.eos = false
+func (s *Subquery) Pull(done bool) (zbuf.Batch, error) {
+	if s.eos {
+		s.eos = false
 		return nil, nil
 	}
-	q.eos = true
+	s.eos = true
 	select {
-	case batch := <-q.batchCh:
+	case batch := <-s.batchCh:
 		return batch, nil
-	case <-q.ctx.Done():
-		return nil, q.ctx.Err()
+	case <-s.ctx.Done():
+		return nil, s.ctx.Err()
 	}
 }
 
-func (q *QueryExpr) Eval(this super.Value) super.Value {
+func (q *Subquery) Eval(this super.Value) super.Value {
 	select {
 	case q.batchCh <- zbuf.NewArray([]super.Value{this}):
 	case <-q.ctx.Done():

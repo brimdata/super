@@ -1071,7 +1071,7 @@ Primary
   / Literal
   / Identifier
   / Tuple
-  / "(" __ &SubqueryOps expr:QueryExpr __ ")" { return expr, nil }
+  / "(" __ &SubqueryOps expr:Subquery __ ")" { return expr, nil }
   / "(" __ expr:Expr __ ")" { return expr, nil }
 
 SubqueryOps = UNNEST / FROM / VALUES / SelectOp
@@ -1124,10 +1124,10 @@ When
       }, nil
     }
 
-QueryExpr
+Subquery
   = body:Seq {
-      return &ast.QueryExpr{
-        Kind: "QueryExpr",
+      return &ast.Subquery{
+        Kind: "Subquery",
         Body: sliceOf[ast.Op](body),
         Loc: loc(c),
       }, nil

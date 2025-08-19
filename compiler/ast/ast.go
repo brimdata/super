@@ -303,7 +303,7 @@ type TupleExpr struct {
 	Loc   `json:"loc"`
 }
 
-type QueryExpr struct {
+type Subquery struct {
 	Kind string `json:"kind" unpack:""`
 	Body Seq    `json:"body"`
 	Loc  `json:"loc"`
@@ -372,7 +372,7 @@ func (*SQLTimeValue) exprNode() {}
 func (*FString) exprNode()      {}
 func (*Primitive) exprNode()    {}
 func (*TypeValue) exprNode()    {}
-func (*QueryExpr) exprNode()    {}
+func (*Subquery) exprNode()     {}
 
 type ConstDecl struct {
 	Kind string `json:"kind" unpack:""`

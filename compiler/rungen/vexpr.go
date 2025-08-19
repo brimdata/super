@@ -48,8 +48,8 @@ func (b *Builder) compileVamExpr(e dag.Expr) (vamexpr.Evaluator, error) {
 		return b.compileVamConditional(*e)
 	case *dag.Call:
 		return b.compileVamCall(e)
-	case *dag.QueryExpr:
-		return b.compileVamQueryExpr(e)
+	case *dag.Subquery:
+		return b.compileVamSubquery(e)
 	case *dag.RegexpMatch:
 		return b.compileVamRegexpMatch(e)
 	case *dag.RegexpSearch:
@@ -295,8 +295,8 @@ func (b *Builder) compileVamRecordExpr(e *dag.RecordExpr) (vamexpr.Evaluator, er
 	return vamexpr.NewRecordExpr(b.sctx(), elems), nil
 }
 
-func (b *Builder) compileVamQueryExpr(query *dag.QueryExpr) (vamexpr.Evaluator, error) {
-	e, err := b.compileQueryExpr(query)
+func (b *Builder) compileVamSubquery(query *dag.Subquery) (vamexpr.Evaluator, error) {
+	e, err := b.compileSubquery(query)
 	if err != nil {
 		return nil, err
 	}

@@ -212,7 +212,7 @@ func (c *canon) expr(e ast.Expr, parent string) {
 			c.expr(e.Value, "")
 		}
 		c.write("}|")
-	case *ast.QueryExpr:
+	case *ast.Subquery:
 		c.open("(")
 		c.head = true
 		c.seq(e.Body)

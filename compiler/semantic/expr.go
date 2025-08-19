@@ -176,8 +176,8 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 			Kind:  "Literal",
 			Value: sup.FormatValue(val),
 		}
-	case *ast.QueryExpr:
-		return a.semSeqExpr(e.Body)
+	case *ast.Subquery:
+		return a.semSubquery(e.Body)
 	case *ast.RecordExpr:
 		fields := map[string]struct{}{}
 		var out []dag.RecordElem
@@ -437,7 +437,7 @@ func (a *analyzer) semDoubleQuote(d *ast.DoubleQuote) dag.Expr {
 }
 
 func (a *analyzer) semExists(e *ast.Exists) dag.Expr {
-	q := a.semSeqExpr(e.Body)
+	q := a.semSubquery(e.Body)
 	// Append collect(this) to ensure array of results is returned.
 	q.Body = appendCollect(append(q.Body, &dag.Head{Kind: "Head", Count: 1}))
 	return &dag.BinaryExpr{
@@ -563,7 +563,7 @@ func (a *analyzer) semBinary(e *ast.BinaryExpr) dag.Expr {
 		return expr
 	}
 	if op == "in" || op == "not in" {
-		if q, ok := rhs.(*dag.QueryExpr); ok {
+		if q, ok := rhs.(*dag.Subquery); ok {
 			q.Body = appendCollect(q.Body)
 		}
 	}
@@ -1015,7 +1015,7 @@ func (a *analyzer) semFString(f *ast.FString) dag.Expr {
 	return out
 }
 
-func (a *analyzer) semSeqExpr(b ast.Seq) *dag.QueryExpr {
+func (a *analyzer) semSubquery(b ast.Seq) *dag.Subquery {
 	body := a.semSeq(b)
 	correlated := true
 	if len(body) >= 1 {
@@ -1024,8 +1024,8 @@ func (a *analyzer) semSeqExpr(b ast.Seq) *dag.QueryExpr {
 		_, ok2 := body[0].(*dag.PoolScan)
 		correlated = !(ok1 || ok2)
 	}
-	e := &dag.QueryExpr{
-		Kind:       "QueryExpr",
+	e := &dag.Subquery{
+		Kind:       "Subquery",
 		Correlated: correlated,
 		Body:       body,
 	}

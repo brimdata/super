@@ -76,8 +76,8 @@ func (b *Builder) compileExpr(e dag.Expr) (expr.Evaluator, error) {
 		return b.compileIsNullExpr(e)
 	case *dag.SliceExpr:
 		return b.compileSliceExpr(e)
-	case *dag.QueryExpr:
-		return b.compileQueryExpr(e)
+	case *dag.Subquery:
+		return b.compileSubquery(e)
 	case *dag.RegexpMatch:
 		return b.compileRegexpMatch(e)
 	case *dag.RegexpSearch:
@@ -411,15 +411,15 @@ func (b *Builder) compileIsNullExpr(e *dag.IsNullExpr) (expr.Evaluator, error) {
 	return expr.NewIsNullExpr(eval), nil
 }
 
-func (b *Builder) compileQueryExpr(query *dag.QueryExpr) (expr.Evaluator, error) {
+func (b *Builder) compileSubquery(query *dag.Subquery) (expr.Evaluator, error) {
 	if !query.Correlated {
 		exit, err := b.compileSeqAndCombine(query.Body, nil)
 		if err != nil {
 			return nil, err
 		}
-		return traverse.NewCachedQueryExpr(b.rctx, exit), nil
+		return traverse.NewCachedSubquery(b.rctx, exit), nil
 	}
-	subquery := traverse.NewQueryExpr(b.rctx)
+	subquery := traverse.NewSubquery(b.rctx)
 	exit, err := b.compileSeqAndCombine(query.Body, []zbuf.Puller{subquery})
 	if err != nil {
 		return nil, err
