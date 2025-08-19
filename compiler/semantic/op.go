@@ -106,7 +106,12 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.TableAlias, a
 		op, def := a.semFromName(entity, entity.Text, args)
 		if op, ok := op.(*dag.FileScan); ok {
 			if cols, ok := a.fileScanColumns(op); ok {
-				return dag.Seq{op}, &staticSchema{def, cols}
+				schema := schema(&staticSchema{def, cols})
+				seq, schema, err := derefSchemaWithAlias(schema, alias, dag.Seq{op})
+				if err != nil {
+					a.error(alias, err)
+				}
+				return seq, schema
 			}
 		}
 		return dag.Seq{op}, a.fromSchema(alias, def)

@@ -10,6 +10,9 @@ script: |
   super -s -c "from (values (1),(2),(3))"
   echo ===
   super -s -c 'select V.s from (select sum(a) as s from (values (1),(2)) as T(a)) as V'
+  echo ===
+  super -f parquet -o f.parquet -c 'values {f:1},{f:2}'
+  super -s -c 'select T.a from f.parquet as T(a)'
 
 outputs:
   - name: stdout
@@ -31,3 +34,6 @@ outputs:
       {c0:3}
       ===
       {s:3}
+      ===
+      {a:1}
+      {a:2}
