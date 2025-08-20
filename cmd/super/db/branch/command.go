@@ -9,8 +9,8 @@ import (
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/cli/poolflags"
 	"github.com/brimdata/super/cmd/super/db"
-	"github.com/brimdata/super/lake/api"
-	"github.com/brimdata/super/lakeparse"
+	"github.com/brimdata/super/db/api"
+	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/zbuf"
@@ -66,7 +66,7 @@ func (c *Command) Run(args []string) error {
 		return errors.New("too many arguments")
 	}
 	defer cleanup()
-	lake, err := c.LakeFlags.Open(ctx)
+	lake, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}
@@ -82,14 +82,14 @@ func (c *Command) Run(args []string) error {
 	if poolName == "" {
 		return errors.New("a pool name must be included: pool@branch")
 	}
-	poolID, err := lakeparse.ParseID(poolName)
+	poolID, err := dbid.ParseID(poolName)
 	if err != nil {
 		poolID, err = lake.PoolID(ctx, poolName)
 		if err != nil {
 			return err
 		}
 	}
-	parentCommit, err := lakeparse.ParseID(head.Branch)
+	parentCommit, err := dbid.ParseID(head.Branch)
 	if err != nil {
 		parentCommit, err = lake.CommitObject(ctx, poolID, head.Branch)
 		if err != nil {
@@ -100,7 +100,7 @@ func (c *Command) Run(args []string) error {
 		if err := lake.RemoveBranch(ctx, poolID, branchName); err != nil {
 			return err
 		}
-		if !c.LakeFlags.Quiet {
+		if !c.DBFlags.Quiet {
 			fmt.Printf("branch deleted: %s\n", branchName)
 		}
 		return nil
@@ -108,7 +108,7 @@ func (c *Command) Run(args []string) error {
 	if err := lake.CreateBranch(ctx, poolID, branchName, parentCommit); err != nil {
 		return err
 	}
-	if !c.LakeFlags.Quiet {
+	if !c.DBFlags.Quiet {
 		fmt.Printf("%q: branch created\n", branchName)
 	}
 	return nil

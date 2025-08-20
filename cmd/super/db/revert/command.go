@@ -6,10 +6,10 @@ import (
 	"fmt"
 
 	"github.com/brimdata/super/cli/commitflags"
-	"github.com/brimdata/super/cli/lakeflags"
+	"github.com/brimdata/super/cli/dbflags"
 	"github.com/brimdata/super/cli/poolflags"
 	"github.com/brimdata/super/cmd/super/db"
-	"github.com/brimdata/super/lakeparse"
+	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/pkg/charm"
 )
 
@@ -52,7 +52,7 @@ func (c *Command) Run(args []string) error {
 	if len(args) != 1 {
 		return errors.New("commit ID must be specified")
 	}
-	lake, err := c.LakeFlags.Open(ctx)
+	lake, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}
@@ -61,16 +61,16 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	if head.Pool == "" {
-		return lakeflags.ErrNoHEAD
+		return dbflags.ErrNoHEAD
 	}
 	poolID, err := lake.PoolID(ctx, head.Pool)
 	if err != nil {
 		return err
 	}
-	if _, err := lakeparse.ParseID(head.Branch); err == nil {
+	if _, err := dbid.ParseID(head.Branch); err == nil {
 		return errors.New("branch must be named")
 	}
-	commitID, err := lakeparse.ParseID(args[0])
+	commitID, err := dbid.ParseID(args[0])
 	if err != nil {
 		return err
 	}
@@ -78,7 +78,7 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	if !c.LakeFlags.Quiet {
+	if !c.DBFlags.Quiet {
 		fmt.Printf("%q: %s reverted in %s\n", head.Branch, commitID, revertID)
 	}
 	return nil

@@ -52,7 +52,7 @@ func (c *Command) Run(args []string) error {
 	if len(args) != 0 {
 		return errors.New("no arguments allowed")
 	}
-	lake, err := c.LakeFlags.Open(ctx)
+	lake, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}

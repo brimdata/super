@@ -7,7 +7,7 @@ import (
 
 	"github.com/brimdata/super/cli/poolflags"
 	"github.com/brimdata/super/cmd/super/db"
-	"github.com/brimdata/super/lakeparse"
+	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/pkg/charm"
 )
 
@@ -16,7 +16,7 @@ import (
 var spec = &charm.Spec{
 	Name:  "use",
 	Usage: "use [pool][@branch]",
-	Short: "use a branch or print current branch and lake",
+	Short: "use a branch or print current branch and database",
 	Long: `
 The use command prints or sets the working pool and branch.  Setting these
 values allows commands like load, rebase, merge, etc. to function without
@@ -25,11 +25,11 @@ a commit ID, in which case you enter a headless state and commands
 like load that require a branch will report an error.
 
 The use command is like "git checkout" but there is no local copy of
-the lake data.  Rather, the local HEAD state influences commands as
-they access the lake.
+the database.  Rather, the local HEAD state influences commands as
+they access the database.
 
 With no argument, use prints the working pool and branch as well as the
-location of the current lake.
+location of the current database.
 
 With an argument of the form "pool", use sets the working pool as indicated
 and the working branch to "main".
@@ -47,7 +47,7 @@ Any command that relies upon HEAD can also be run with the -use option
 to refer to a different HEAD without executing an explicit "use" command.
 While the use of HEAD is convenient for interactive CLI sessions,
 automation and orchestration tools are better off hard-wiring the
-HEAD references in each lake command via -use.
+HEAD references in each database command via -use.
 
 The use command merely checks that the branch exists and updates the
 file ~/.zed_head.  This file simply contains a pointer to the HEAD branch
@@ -55,7 +55,7 @@ and thus provides the default for the -use option.  This way, multiple working
 directories can contain different HEAD pointers (along with your local files)
 and you can easily switch between windows without having to continually
 re-specify a new HEAD.  Unlike Git, all the committed pool data remains
-in the lake and is not copied to this local directory.
+in the database and is not copied to this local directory.
 `,
 	New: New,
 }
@@ -90,12 +90,12 @@ func (c *Command) Run(args []string) error {
 			return errors.New("default pool and branch unset")
 		}
 		fmt.Printf("HEAD at %s\n", head)
-		if u, err := c.LakeFlags.ClientURI(); err == nil {
-			fmt.Printf("Lake at %s\n", u)
+		if u, err := c.DBFlags.ClientURI(); err == nil {
+			fmt.Printf("Database at %s\n", u)
 		}
 		return nil
 	}
-	commitish, err := lakeparse.ParseCommitish(args[0])
+	commitish, err := dbid.ParseCommitish(args[0])
 	if err != nil {
 		return err
 	}
@@ -109,21 +109,21 @@ func (c *Command) Run(args []string) error {
 	if commitish.Branch == "" {
 		commitish.Branch = "main"
 	}
-	lake, err := c.LakeFlags.Open(ctx)
+	db, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}
-	poolID, err := lake.PoolID(ctx, commitish.Pool)
+	poolID, err := db.PoolID(ctx, commitish.Pool)
 	if err != nil {
 		return err
 	}
-	if _, err = lake.CommitObject(ctx, poolID, commitish.Branch); err != nil {
+	if _, err = db.CommitObject(ctx, poolID, commitish.Branch); err != nil {
 		return err
 	}
 	if err := poolflags.WriteHead(commitish.Pool, commitish.Branch); err != nil {
 		return err
 	}
-	if !c.LakeFlags.Quiet {
+	if !c.DBFlags.Quiet {
 		fmt.Printf("Switched to branch %q on pool %q\n", commitish.Branch, commitish.Pool)
 	}
 	return nil

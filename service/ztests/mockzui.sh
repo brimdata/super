@@ -33,7 +33,7 @@ mkdir -p lakeroot
 lakeroot=lakeroot
 tempdir=$(mktemp -d)
 
-mockzui -lake="$lakeroot" -portfile="$tempdir/port" -pidfile="$tempdir/pid" &
+mockzui -db="$lakeroot" -portfile="$tempdir/port" -pidfile="$tempdir/pid" &
 mockzuipid=$!
 
 # wait for service to start

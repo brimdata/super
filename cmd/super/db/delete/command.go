@@ -7,11 +7,11 @@ import (
 	"fmt"
 
 	"github.com/brimdata/super/cli/commitflags"
-	"github.com/brimdata/super/cli/lakeflags"
+	"github.com/brimdata/super/cli/dbflags"
 	"github.com/brimdata/super/cli/poolflags"
 	"github.com/brimdata/super/cmd/super/db"
-	"github.com/brimdata/super/lake/api"
-	"github.com/brimdata/super/lakeparse"
+	"github.com/brimdata/super/db/api"
+	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/segmentio/ksuid"
 )
@@ -66,7 +66,7 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	defer cleanup()
-	lake, err := c.LakeFlags.Open(ctx)
+	lake, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}
@@ -76,7 +76,7 @@ func (c *Command) Run(args []string) error {
 	}
 	poolName := head.Pool
 	if poolName == "" {
-		return lakeflags.ErrNoHEAD
+		return dbflags.ErrNoHEAD
 	}
 	poolID, err := lake.PoolID(ctx, poolName)
 	if err != nil {
@@ -94,14 +94,14 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	if !c.LakeFlags.Quiet {
+	if !c.DBFlags.Quiet {
 		fmt.Printf("%s delete committed\n", commit)
 	}
 	return nil
 }
 
 func (c *Command) deleteByIDs(ctx context.Context, lake api.Interface, poolID ksuid.KSUID, branchName string, args []string) (ksuid.KSUID, error) {
-	ids, err := lakeparse.ParseIDs(args)
+	ids, err := dbid.ParseIDs(args)
 	if err != nil {
 		return ksuid.Nil, err
 	}

@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/brimdata/super/cli/commitflags"
-	"github.com/brimdata/super/cli/lakeflags"
+	"github.com/brimdata/super/cli/dbflags"
 	"github.com/brimdata/super/cli/poolflags"
 	"github.com/brimdata/super/cmd/super/db"
 	"github.com/brimdata/super/pkg/charm"
@@ -52,7 +52,7 @@ func (c *Command) Run(args []string) error {
 		return errors.New("too many arguments")
 	}
 	targetBranch := args[0]
-	lake, err := c.LakeFlags.Open(ctx)
+	lake, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	if head.Pool == "" {
-		return lakeflags.ErrNoHEAD
+		return dbflags.ErrNoHEAD
 	}
 	if head.Branch == "" || targetBranch == "" {
 		return errors.New("both a child and a parent branch name must be specified")
@@ -76,7 +76,7 @@ func (c *Command) Run(args []string) error {
 	if _, err = lake.MergeBranch(ctx, poolID, head.Branch, targetBranch, c.commitFlags.CommitMessage()); err != nil {
 		return err
 	}
-	if !c.LakeFlags.Quiet {
+	if !c.DBFlags.Quiet {
 		fmt.Printf("%q: merged into branch %q\n", head.Branch, targetBranch)
 	}
 	return nil

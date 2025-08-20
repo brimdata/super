@@ -13,7 +13,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/cli/commitflags"
 	"github.com/brimdata/super/cli/inputflags"
-	"github.com/brimdata/super/cli/lakeflags"
+	"github.com/brimdata/super/cli/dbflags"
 	"github.com/brimdata/super/cli/poolflags"
 	"github.com/brimdata/super/cli/runtimeflags"
 	"github.com/brimdata/super/cmd/super/db"
@@ -72,7 +72,7 @@ func (c *Command) Run(args []string) error {
 	if len(args) == 0 {
 		return errors.New("zed load: at least one input file must be specified (- for stdin)")
 	}
-	lake, err := c.LakeFlags.Open(ctx)
+	lake, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}
@@ -89,14 +89,14 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	if head.Pool == "" {
-		return lakeflags.ErrNoHEAD
+		return dbflags.ErrNoHEAD
 	}
 	poolID, err := lake.PoolID(ctx, head.Pool)
 	if err != nil {
 		return err
 	}
 	var d *display.Display
-	if !c.LakeFlags.Quiet && term.IsTerminal(int(os.Stderr.Fd())) {
+	if !c.DBFlags.Quiet && term.IsTerminal(int(os.Stderr.Fd())) {
 		c.ctx = ctx
 		c.rate = ratecounter.NewRateCounter(time.Second)
 		d = display.New(c, time.Second/2, os.Stderr)
@@ -110,7 +110,7 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	if !c.LakeFlags.Quiet {
+	if !c.DBFlags.Quiet {
 		fmt.Printf("%s committed\n", commitID)
 	}
 	return nil

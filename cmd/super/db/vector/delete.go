@@ -6,7 +6,7 @@ import (
 
 	"github.com/brimdata/super/cli/commitflags"
 	"github.com/brimdata/super/cli/poolflags"
-	"github.com/brimdata/super/lakeparse"
+	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/pkg/charm"
 )
 
@@ -41,11 +41,11 @@ func (c *deleteCommand) Run(args []string) error {
 		return err
 	}
 	defer cleanup()
-	ids, err := lakeparse.ParseIDs(args)
+	ids, err := dbid.ParseIDs(args)
 	if err != nil {
 		return err
 	}
-	lake, err := c.LakeFlags.Open(ctx)
+	lake, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func (c *deleteCommand) Run(args []string) error {
 		return err
 	}
 	commit, err := lake.DeleteVectors(ctx, head.Pool, head.Branch, ids, c.commitFlags.CommitMessage())
-	if err == nil && !c.LakeFlags.Quiet {
+	if err == nil && !c.DBFlags.Quiet {
 		fmt.Printf("%s vectors deleted\n", commit)
 	}
 	return err

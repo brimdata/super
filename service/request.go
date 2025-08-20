@@ -14,12 +14,12 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/api"
 	"github.com/brimdata/super/compiler/srcfiles"
-	"github.com/brimdata/super/lake"
-	"github.com/brimdata/super/lake/branches"
-	"github.com/brimdata/super/lake/commits"
-	"github.com/brimdata/super/lake/journal"
-	"github.com/brimdata/super/lake/pools"
-	"github.com/brimdata/super/lakeparse"
+	"github.com/brimdata/super/db"
+	"github.com/brimdata/super/db/branches"
+	"github.com/brimdata/super/db/commits"
+	"github.com/brimdata/super/db/journal"
+	"github.com/brimdata/super/db/pools"
+	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/service/srverr"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
@@ -61,7 +61,7 @@ func newRequest(w http.ResponseWriter, r *http.Request, c *Core) (*ResponseWrite
 	return nil, nil, false
 }
 
-func (r *Request) openPool(w *ResponseWriter, root *lake.Root) (*lake.Pool, bool) {
+func (r *Request) openPool(w *ResponseWriter, root *db.Root) (*db.Pool, bool) {
 	id, ok := r.PoolID(w, root)
 	if !ok {
 		return nil, false
@@ -78,12 +78,12 @@ func (r *Request) ID() string {
 	return api.RequestIDFromContext(r.Context())
 }
 
-func (r *Request) PoolID(w *ResponseWriter, root *lake.Root) (ksuid.KSUID, bool) {
+func (r *Request) PoolID(w *ResponseWriter, root *db.Root) (ksuid.KSUID, bool) {
 	s, ok := r.StringFromPath(w, "pool")
 	if !ok {
 		return ksuid.Nil, false
 	}
-	if id, err := lakeparse.ParseID(s); err == nil {
+	if id, err := dbid.ParseID(s); err == nil {
 		if _, err = root.OpenPool(r.Context(), id); err == nil {
 			return id, true
 		}
@@ -134,7 +134,7 @@ func (r *Request) TagFromPath(w *ResponseWriter, arg string) (ksuid.KSUID, bool)
 		w.Error(srverr.ErrInvalid("no arg %q in path", arg))
 		return ksuid.Nil, false
 	}
-	id, err := lakeparse.ParseID(s)
+	id, err := dbid.ParseID(s)
 	if err != nil {
 		w.Error(srverr.ErrInvalid("invalid path param %q: %w", arg, err))
 		return ksuid.Nil, false

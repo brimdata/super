@@ -679,8 +679,8 @@ FromEntity
       }, nil
     }
   / meta:ColonName {
-      return &ast.LakeMeta{
-        Kind: "LakeMeta",
+      return &ast.DBMeta{
+        Kind: "DBMeta",
         Meta: meta.(*ast.Text),
         Loc: loc(c),
       }, nil

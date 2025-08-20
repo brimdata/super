@@ -14,7 +14,7 @@ import (
 
 	"github.com/brimdata/super/api"
 	"github.com/brimdata/super/compiler"
-	"github.com/brimdata/super/lake"
+	"github.com/brimdata/super/db"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/sup"
@@ -59,7 +59,7 @@ type Core struct {
 	engine           storage.Engine
 	logger           *zap.Logger
 	registry         *prometheus.Registry
-	root             *lake.Root
+	root             *db.Root
 	routerAPI        *mux.Router
 	routerAux        *mux.Router
 	runningQueries   map[string]*queryStatus
@@ -97,7 +97,7 @@ func NewCore(ctx context.Context, conf Config) (*Core, error) {
 	}
 	path := conf.Root
 	if path == nil {
-		return nil, errors.New("no lake root")
+		return nil, errors.New("no database root path")
 	}
 	var engine storage.Engine
 	switch storage.Scheme(path.Scheme) {
@@ -108,7 +108,7 @@ func NewCore(ctx context.Context, conf Config) (*Core, error) {
 	default:
 		return nil, fmt.Errorf("root path cannot have scheme %q", path.Scheme)
 	}
-	root, err := lake.CreateOrOpen(ctx, engine, conf.Logger.Named("lake"), path)
+	root, err := db.CreateOrOpen(ctx, engine, conf.Logger.Named("db"), path)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func NewCore(ctx context.Context, conf Config) (*Core, error) {
 
 	c := &Core{
 		auth:           authenticator,
-		compiler:       compiler.NewLakeCompiler(root),
+		compiler:       compiler.NewCompilerForDB(root),
 		conf:           conf,
 		engine:         engine,
 		logger:         conf.Logger.Named("core"),

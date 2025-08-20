@@ -39,12 +39,12 @@ func (c *StoreCommand) Run(args []string) error {
 	if len(args) > 0 {
 		return errors.New("store command takes no arguments")
 	}
-	if _, err := c.LakeFlags.Connection(); err != nil {
+	if _, err := c.DBFlags.Connection(); err != nil {
 		// The Connection call here is to verify we're operating on a remote database.
 		return err
 	}
-	store := c.LakeFlags.AuthStore()
-	tokens, err := store.Tokens(c.LakeFlags.DB)
+	store := c.DBFlags.AuthStore()
+	tokens, err := store.Tokens(c.DBFlags.DB)
 	if err != nil {
 		return fmt.Errorf("failed to load authentication store: %w", err)
 	}
@@ -52,7 +52,7 @@ func (c *StoreCommand) Run(args []string) error {
 		tokens = &auth0.Tokens{}
 	}
 	tokens.Access = c.accessToken
-	if err := store.SetTokens(c.LakeFlags.DB, *tokens); err != nil {
+	if err := store.SetTokens(c.DBFlags.DB, *tokens); err != nil {
 		return fmt.Errorf("failed to update authentication: %w", err)
 	}
 	return nil

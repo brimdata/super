@@ -4,7 +4,7 @@ import (
 	"context"
 	"path"
 
-	"github.com/brimdata/super/lake/data"
+	"github.com/brimdata/super/db/data"
 	"github.com/brimdata/super/pkg/storage"
 	arc "github.com/hashicorp/golang-lru/arc/v2"
 	"github.com/prometheus/client_golang/prometheus"

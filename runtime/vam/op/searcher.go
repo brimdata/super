@@ -4,8 +4,8 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/brimdata/super/lake"
-	"github.com/brimdata/super/lake/data"
+	"github.com/brimdata/super/db"
+	"github.com/brimdata/super/db/data"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/vam/expr"
@@ -19,14 +19,14 @@ type Searcher struct {
 	filter     expr.Evaluator
 	once       sync.Once
 	parent     *objectPuller
-	pool       *lake.Pool
+	pool       *db.Pool
 	projection field.Projection
 	rctx       *runtime.Context
 	resultCh   chan searchResult
 	doneCh     chan struct{}
 }
 
-func NewSearcher(rctx *runtime.Context, cache *vcache.Cache, parent zbuf.Puller, pool *lake.Pool, filter expr.Evaluator, project []field.Path) (*Searcher, error) {
+func NewSearcher(rctx *runtime.Context, cache *vcache.Cache, parent zbuf.Puller, pool *db.Pool, filter expr.Evaluator, project []field.Path) (*Searcher, error) {
 	return &Searcher{
 		cache:      cache,
 		filter:     filter,

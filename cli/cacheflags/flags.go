@@ -29,7 +29,7 @@ func (f *Flags) SetFlags(fs *flag.FlagSet) {
 }
 
 func cacheable(u *storage.URI) bool {
-	// XXX Caching was disabled when we we rewired the Zed lake.  It will
+	// XXX Caching was disabled when we we rewired the database.  It will
 	// go back in soon, but for now this is just a stub that we can work from
 	// later.  The cacheable predicate cache.Cahceable is a function that
 	// says whether a URI is cacheable.  The redis cache should have a funciton

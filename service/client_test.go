@@ -9,10 +9,10 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/api"
 	"github.com/brimdata/super/api/client"
-	"github.com/brimdata/super/lake"
-	lakeapi "github.com/brimdata/super/lake/api"
-	"github.com/brimdata/super/lake/branches"
-	"github.com/brimdata/super/lake/pools"
+	"github.com/brimdata/super/db"
+	dbapi "github.com/brimdata/super/db/api"
+	"github.com/brimdata/super/db/branches"
+	"github.com/brimdata/super/db/pools"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
@@ -34,15 +34,15 @@ func (c *testClient) TestPoolStats(id ksuid.KSUID) exec.PoolStats {
 }
 
 func (c *testClient) TestPoolGet(id ksuid.KSUID) (config pools.Config) {
-	remote := lakeapi.NewRemoteLake(c.Connection)
-	pool, err := lakeapi.LookupPoolByID(context.Background(), remote, id)
+	remote := dbapi.NewRemoteDB(c.Connection)
+	pool, err := dbapi.LookupPoolByID(context.Background(), remote, id)
 	require.NoError(c, err)
 	return *pool
 }
 
-func (c *testClient) TestBranchGet(id ksuid.KSUID) (config lake.BranchMeta) {
-	remote := lakeapi.NewRemoteLake(c.Connection)
-	branch, err := lakeapi.LookupBranchByID(context.Background(), remote, id)
+func (c *testClient) TestBranchGet(id ksuid.KSUID) (config db.BranchMeta) {
+	remote := dbapi.NewRemoteDB(c.Connection)
+	branch, err := dbapi.LookupBranchByID(context.Background(), remote, id)
 	require.NoError(c, err)
 	return *branch
 }

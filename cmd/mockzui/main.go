@@ -25,9 +25,9 @@ var (
 )
 
 func init() {
-	flag.StringVar(&portfile, "portfile", "", "location to write SuperDB lake serve port")
-	flag.StringVar(&pidfile, "pidfile", "", "location to write SuperDB lake serve pid")
-	flag.StringVar(&lakeroot, "lake", "", "SuperDB lake location")
+	flag.StringVar(&portfile, "portfile", "", "location to write database service port")
+	flag.StringVar(&pidfile, "pidfile", "", "location to write database service pid")
+	flag.StringVar(&lakeroot, "db", "", "path to database")
 	flag.Parse()
 }
 

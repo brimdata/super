@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/brimdata/super/api/client"
-	lakeapi "github.com/brimdata/super/lake/api"
-	"github.com/brimdata/super/lake/pools"
-	"github.com/brimdata/super/lakeparse"
+	lakeapi "github.com/brimdata/super/db/api"
+	"github.com/brimdata/super/db/pools"
+	"github.com/brimdata/super/dbid"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
@@ -39,7 +39,7 @@ func Monitor(ctx context.Context, conn *client.Connection, conf Config, logger *
 		logger = zap.NewNop()
 	}
 	logger.Info("monitoring")
-	lk := lakeapi.NewRemoteLake(conn)
+	lk := lakeapi.NewRemoteDB(conn)
 	for {
 		err := monitor(ctx, lk, conf, logger)
 		if errors.Is(err, syscall.ECONNREFUSED) {
@@ -108,7 +108,7 @@ func getPools(ctx context.Context, conf Config, lk lakeapi.Interface) ([]*pools.
 }
 
 func selectPool(c PoolConfig, pools []*pools.Config) *pools.Config {
-	id, _ := lakeparse.ParseID(c.Pool)
+	id, _ := dbid.ParseID(c.Pool)
 	for _, p := range pools {
 		if id == p.ID || c.Pool == p.Name {
 			return p

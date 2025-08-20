@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/lake/api"
-	"github.com/brimdata/super/lake/data"
-	"github.com/brimdata/super/lake/pools"
-	"github.com/brimdata/super/lakeparse"
+	"github.com/brimdata/super/db/api"
+	"github.com/brimdata/super/db/data"
+	"github.com/brimdata/super/db/pools"
+	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/expr/extent"
@@ -73,7 +73,7 @@ type objectIterator struct {
 	unmarshaler *sup.UnmarshalBSUPContext
 }
 
-func newObjectIterator(ctx context.Context, lake api.Interface, head *lakeparse.Commitish) (*objectIterator, error) {
+func newObjectIterator(ctx context.Context, lake api.Interface, head *dbid.Commitish) (*objectIterator, error) {
 	query := fmt.Sprintf(iteratorQuery, head.Pool, head.Branch, head.Pool, head.Branch)
 	q, err := lake.Query(ctx, query)
 	if err != nil {

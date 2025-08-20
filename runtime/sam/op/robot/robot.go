@@ -193,9 +193,9 @@ func (o *Op) open(path string) (zbuf.Puller, error) {
 		}
 		return f, err
 	}
-	// This lake check will be removed when we add support for pools here.
-	if o.env.IsLake() {
-		return nil, fmt.Errorf("%s: cannot open in a data lake environment", path)
+	// This check for attached database will be removed when we add support for pools here.
+	if o.env.IsAttached() {
+		return nil, fmt.Errorf("%s: cannot open in a database environment", path)
 	}
 	return o.env.Open(o.rctx.Context, o.rctx.Sctx, path, o.format, o.pushdown)
 }

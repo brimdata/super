@@ -2,7 +2,7 @@ package load
 
 import (
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/lake"
+	"github.com/brimdata/super/db"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/zbuf"
 	"github.com/segmentio/ksuid"
@@ -10,7 +10,7 @@ import (
 
 type Op struct {
 	rctx    *runtime.Context
-	lk      *lake.Root
+	lk      *db.Root
 	parent  zbuf.Puller
 	pool    ksuid.KSUID
 	branch  string
@@ -20,7 +20,7 @@ type Op struct {
 	done    bool
 }
 
-func New(rctx *runtime.Context, lk *lake.Root, parent zbuf.Puller, pool ksuid.KSUID, branch, author, message, meta string) *Op {
+func New(rctx *runtime.Context, lk *db.Root, parent zbuf.Puller, pool ksuid.KSUID, branch, author, message, meta string) *Op {
 	return &Op{
 		rctx:    rctx,
 		lk:      lk,

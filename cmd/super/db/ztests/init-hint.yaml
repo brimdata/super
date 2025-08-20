@@ -4,7 +4,7 @@ script: |
 outputs:
   - name: stderr
     regexp: |
-      .* lake does not exist
-      \(hint: run 'super db init' to initialize lake at this location\)
+      .* database does not exist
+      \(hint: run 'super db init' to initialize a database at this location\)
   - name: stdout
     data: ""

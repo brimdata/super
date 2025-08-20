@@ -10,7 +10,7 @@ import (
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/compiler/rungen"
 	"github.com/brimdata/super/compiler/semantic"
-	"github.com/brimdata/super/lakeparse"
+	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
@@ -111,11 +111,11 @@ func bundleOutputs(rctx *runtime.Context, outputs map[string]zbuf.Puller) zbuf.P
 	}
 }
 
-func VectorFilterCompile(rctx *runtime.Context, query string, env *exec.Environment, head *lakeparse.Commitish) (zbuf.Puller, error) {
+func VectorFilterCompile(rctx *runtime.Context, query string, env *exec.Environment, head *dbid.Commitish) (zbuf.Puller, error) {
 	// Eventually the semantic analyzer + rungen will resolve the pool but
 	// for now just do this manually.
-	if !env.IsLake() {
-		return nil, errors.New("non-lake vectorized search not supported")
+	if !env.IsAttached() {
+		return nil, errors.New("non-database vectorized search not supported")
 	}
 	poolID, err := env.PoolID(rctx.Context, head.Pool)
 	if err != nil {

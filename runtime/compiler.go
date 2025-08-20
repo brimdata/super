@@ -6,7 +6,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/parser"
-	"github.com/brimdata/super/lakeparse"
+	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/zbuf"
 	"github.com/segmentio/ksuid"
@@ -14,7 +14,7 @@ import (
 
 type Compiler interface {
 	NewQuery(*Context, *parser.AST, []sio.Reader, int) (Query, error)
-	NewLakeDeleteQuery(*Context, *parser.AST, *lakeparse.Commitish) (DeleteQuery, error)
+	NewDeleteQuery(*Context, *parser.AST, *dbid.Commitish) (DeleteQuery, error)
 }
 
 type Query interface {
@@ -39,7 +39,7 @@ func CompileQuery(ctx context.Context, sctx *super.Context, c Compiler, ast *par
 	return q, nil
 }
 
-func CompileLakeQuery(ctx context.Context, sctx *super.Context, c Compiler, ast *parser.AST) (Query, error) {
+func CompileQueryForDB(ctx context.Context, sctx *super.Context, c Compiler, ast *parser.AST) (Query, error) {
 	rctx := NewContext(ctx, sctx)
 	q, err := c.NewQuery(rctx, ast, nil, 0)
 	if err != nil {

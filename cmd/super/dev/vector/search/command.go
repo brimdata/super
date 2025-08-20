@@ -5,7 +5,7 @@ import (
 	"flag"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/cli/lakeflags"
+	"github.com/brimdata/super/cli/dbflags"
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/cli/poolflags"
 	"github.com/brimdata/super/cmd/super/dev/vector"
@@ -32,7 +32,7 @@ type Command struct {
 	*vector.Command
 	outputFlags outputflags.Flags
 	poolFlags   poolflags.Flags
-	lakeFlags   lakeflags.Flags
+	lakeFlags   dbflags.Flags
 }
 
 func newCommand(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {

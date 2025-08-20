@@ -36,7 +36,7 @@ var unpacker = unpack.New(
 	IndexExpr{},
 	IsNullExpr{},
 	Join{},
-	LakeMetaScan{},
+	DBMetaScan{},
 	Lister{},
 	Literal{},
 	Load{},

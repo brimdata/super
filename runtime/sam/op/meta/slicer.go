@@ -6,8 +6,8 @@ import (
 	"sync"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/lake/commits"
-	"github.com/brimdata/super/lake/data"
+	"github.com/brimdata/super/db/commits"
+	"github.com/brimdata/super/db/data"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sup"

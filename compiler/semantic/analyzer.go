@@ -24,7 +24,7 @@ func Analyze(ctx context.Context, p *parser.AST, env *exec.Environment, extInput
 	}
 	seq := a.semSeq(astseq)
 	if !HasSource(seq) {
-		if a.env.IsLake() {
+		if a.env.IsAttached() {
 			if len(seq) == 0 {
 				return nil, errors.New("query text is missing")
 			}
@@ -66,7 +66,7 @@ func HasSource(seq dag.Seq) bool {
 		return false
 	}
 	switch op := seq[0].(type) {
-	case *dag.FileScan, *dag.HTTPScan, *dag.PoolScan, *dag.LakeMetaScan, *dag.PoolMetaScan, *dag.CommitMetaScan, *dag.DeleteScan, *dag.NullScan, *dag.DefaultScan:
+	case *dag.FileScan, *dag.HTTPScan, *dag.PoolScan, *dag.DBMetaScan, *dag.PoolMetaScan, *dag.CommitMetaScan, *dag.DeleteScan, *dag.NullScan, *dag.DefaultScan:
 		return true
 	case *dag.Fork:
 		for _, path := range op.Paths {

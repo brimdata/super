@@ -5,15 +5,15 @@ import (
 	"errors"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/lake"
-	"github.com/brimdata/super/lake/commits"
+	"github.com/brimdata/super/db"
+	"github.com/brimdata/super/db/commits"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/op/meta"
 	"github.com/brimdata/super/zbuf"
 	"github.com/segmentio/ksuid"
 )
 
-func Compact(ctx context.Context, lk *lake.Root, pool *lake.Pool, branchName string, objectIDs []ksuid.KSUID, writeVectors bool, author, message, info string) (ksuid.KSUID, error) {
+func Compact(ctx context.Context, _ *db.Root, pool *db.Pool, branchName string, objectIDs []ksuid.KSUID, writeVectors bool, author, message, info string) (ksuid.KSUID, error) {
 	if len(objectIDs) < 2 {
 		return ksuid.Nil, errors.New("compact: two or more source objects required")
 	}
@@ -38,7 +38,7 @@ func Compact(ctx context.Context, lk *lake.Root, pool *lake.Pool, branchName str
 	rctx := runtime.NewContext(ctx, sctx)
 	slicer := meta.NewSlicer(lister, sctx)
 	puller := meta.NewSequenceScanner(rctx, slicer, pool, nil, nil, nil)
-	w := lake.NewSortedWriter(ctx, sctx, pool, writeVectors)
+	w := db.NewSortedWriter(ctx, sctx, pool, writeVectors)
 	if err := zbuf.CopyPuller(w, puller); err != nil {
 		puller.Pull(true)
 		w.Abort()

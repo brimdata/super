@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/lake"
-	"github.com/brimdata/super/lake/commits"
+	"github.com/brimdata/super/db"
+	"github.com/brimdata/super/db/commits"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sio"
@@ -15,7 +15,7 @@ import (
 	"github.com/segmentio/ksuid"
 )
 
-func NewLakeMetaScanner(ctx context.Context, sctx *super.Context, r *lake.Root, meta string) (zbuf.Scanner, error) {
+func NewDBMetaScanner(ctx context.Context, sctx *super.Context, r *db.Root, meta string) (zbuf.Scanner, error) {
 	var vals []super.Value
 	var err error
 	switch meta {
@@ -32,7 +32,7 @@ func NewLakeMetaScanner(ctx context.Context, sctx *super.Context, r *lake.Root, 
 	return zbuf.NewScanner(ctx, zbuf.NewArray(vals), nil)
 }
 
-func NewPoolMetaScanner(ctx context.Context, sctx *super.Context, r *lake.Root, poolID ksuid.KSUID, meta string) (zbuf.Scanner, error) {
+func NewPoolMetaScanner(ctx context.Context, sctx *super.Context, r *db.Root, poolID ksuid.KSUID, meta string) (zbuf.Scanner, error) {
 	p, err := r.OpenPool(ctx, poolID)
 	if err != nil {
 		return nil, err
@@ -52,7 +52,7 @@ func NewPoolMetaScanner(ctx context.Context, sctx *super.Context, r *lake.Root, 
 	return zbuf.NewScanner(ctx, zbuf.NewArray(vals), nil)
 }
 
-func NewCommitMetaScanner(ctx context.Context, sctx *super.Context, r *lake.Root, poolID, commit ksuid.KSUID, meta string, pruner expr.Evaluator) (zbuf.Puller, error) {
+func NewCommitMetaScanner(ctx context.Context, sctx *super.Context, r *db.Root, poolID, commit ksuid.KSUID, meta string, pruner expr.Evaluator) (zbuf.Puller, error) {
 	p, err := r.OpenPool(ctx, poolID)
 	if err != nil {
 		return nil, err

@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/brimdata/super/api"
-	lakeapi "github.com/brimdata/super/lake/api"
-	"github.com/brimdata/super/lake/pools"
-	"github.com/brimdata/super/lakeparse"
+	lakeapi "github.com/brimdata/super/db/api"
+	"github.com/brimdata/super/db/pools"
+	"github.com/brimdata/super/dbid"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
@@ -37,7 +37,7 @@ func newBranch(c Config, pool *pools.Config, lake lakeapi.Interface, logger *zap
 
 func (b *branch) run(ctx context.Context) error {
 	b.logger.Debug("compaction started")
-	head := lakeparse.Commitish{Pool: b.pool.Name, Branch: b.config.Branch}
+	head := dbid.Commitish{Pool: b.pool.Name, Branch: b.config.Branch}
 	it, err := newObjectIterator(ctx, b.lake, &head)
 	if err != nil {
 		return err

@@ -7,11 +7,11 @@ import (
 	"strings"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/lake"
-	"github.com/brimdata/super/lake/commits"
-	"github.com/brimdata/super/lake/data"
-	"github.com/brimdata/super/lake/pools"
-	"github.com/brimdata/super/lakeparse"
+	"github.com/brimdata/super/db"
+	"github.com/brimdata/super/db/commits"
+	"github.com/brimdata/super/db/data"
+	"github.com/brimdata/super/db/pools"
+	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/terminal/color"
 	"github.com/brimdata/super/pkg/units"
@@ -47,7 +47,7 @@ func NewWriter(w io.WriteCloser, opts WriterOpts) *Writer {
 	// If head is an ID, we assume its detached and format accordingly.
 	// If it's name, we'll print "HEAD -> branch" in the branch name listing
 	// if we encounter that name.
-	if headID, err := lakeparse.ParseID(opts.Head); err == nil {
+	if headID, err := dbid.ParseID(opts.Head); err == nil {
 		writer.headID = headID
 	} else {
 		writer.headName = opts.Head
@@ -82,7 +82,7 @@ func (w *Writer) formatValue(t table, b *bytes.Buffer, v any, width int, colors 
 	switch v := v.(type) {
 	case *pools.Config:
 		formatPoolConfig(b, v)
-	case *lake.BranchMeta:
+	case *db.BranchMeta:
 		formatBranchMeta(b, v, w.headID, w.headName, colors)
 	case data.Object:
 		formatDataObject(b, &v, "", 0)
@@ -93,7 +93,7 @@ func (w *Writer) formatValue(t table, b *bytes.Buffer, v any, width int, colors 
 	case *commits.Commit:
 		branches := w.branches[v.ID]
 		t.formatCommit(b, v, branches, w.headName, w.headID, width, colors)
-	case *lake.BranchTip:
+	case *db.BranchTip:
 		w.branches[v.Commit] = append(w.branches[v.Commit], v.Name)
 	default:
 		if action, ok := v.(commits.Action); ok {
@@ -115,7 +115,7 @@ func formatPoolConfig(b *bytes.Buffer, p *pools.Config) {
 	b.WriteByte('\n')
 }
 
-func formatBranchMeta(b *bytes.Buffer, p *lake.BranchMeta, headID ksuid.KSUID, headName string, colors *color.Stack) {
+func formatBranchMeta(b *bytes.Buffer, p *db.BranchMeta, headID ksuid.KSUID, headName string, colors *color.Stack) {
 	b.WriteString(p.Pool.Name)
 	b.WriteByte('@')
 	b.WriteString(p.Branch.Name)

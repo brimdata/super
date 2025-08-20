@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/brimdata/super/cmd/super/db"
-	"github.com/brimdata/super/lake/api"
+	"github.com/brimdata/super/db/api"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
 	"go.uber.org/zap"
@@ -42,7 +42,7 @@ func (c *Command) Run(args []string) error {
 	defer cleanup()
 	var u *storage.URI
 	if len(args) == 0 {
-		if u, err = c.LakeFlags.URI(); err != nil {
+		if u, err = c.DBFlags.URI(); err != nil {
 			return err
 		}
 	} else if len(args) == 1 {
@@ -54,13 +54,13 @@ func (c *Command) Run(args []string) error {
 			return err
 		}
 	}
-	if api.IsLakeService(u.String()) {
+	if api.IsRemote(u.String()) {
 		return fmt.Errorf("init command not valid on remote lake")
 	}
-	if _, err := api.CreateLocalLake(ctx, zap.Must(zap.NewProduction()), u.String()); err != nil {
+	if _, err := api.CreateLocalDB(ctx, zap.Must(zap.NewProduction()), u.String()); err != nil {
 		return err
 	}
-	if !c.LakeFlags.Quiet {
+	if !c.DBFlags.Quiet {
 		fmt.Printf("lake created: %s\n", u)
 	}
 	return nil

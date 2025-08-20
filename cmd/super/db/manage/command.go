@@ -6,7 +6,7 @@ import (
 	"flag"
 	"os"
 
-	"github.com/brimdata/super/cli/lakeflags"
+	"github.com/brimdata/super/cli/dbflags"
 	"github.com/brimdata/super/cli/logflags"
 	"github.com/brimdata/super/cmd/super/db"
 
@@ -87,7 +87,7 @@ func (c *Command) Run(args []string) error {
 	}
 	defer cleanup()
 	logger := zap.NewNop()
-	if !c.LakeFlags.Quiet {
+	if !c.DBFlags.Quiet {
 		logger, err = c.logFlags.Open()
 		if err != nil {
 			return err
@@ -95,16 +95,16 @@ func (c *Command) Run(args []string) error {
 		defer logger.Sync()
 	}
 	if c.monitor {
-		conn, err := c.LakeFlags.Connection()
+		conn, err := c.DBFlags.Connection()
 		if err != nil {
-			if errors.Is(err, lakeflags.ErrLocalDB) {
+			if errors.Is(err, dbflags.ErrLocalDB) {
 				return errors.New("monitor on local database not supported")
 			}
 			return err
 		}
 		return lakemanage.Monitor(ctx, conn, c.config, logger)
 	}
-	lk, err := c.LakeFlags.Open(ctx)
+	lk, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}

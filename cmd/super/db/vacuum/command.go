@@ -56,7 +56,7 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	lk, err := c.LakeFlags.Open(ctx)
+	lk, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	if !c.LakeFlags.Quiet {
+	if !c.DBFlags.Quiet {
 		fmt.Printf("%s %d object%s\n", verb, len(oids), plural.Slice(oids, "s"))
 	}
 	return nil

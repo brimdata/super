@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/lake"
-	"github.com/brimdata/super/lake/commits"
+	"github.com/brimdata/super/db"
+	"github.com/brimdata/super/db/commits"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/runtime/sam/expr/extent"
@@ -18,7 +18,7 @@ type PoolStats struct {
 	Span *nano.Span `super:"span"`
 }
 
-func GetPoolStats(ctx context.Context, p *lake.Pool, snap commits.View) (info PoolStats, err error) {
+func GetPoolStats(ctx context.Context, p *db.Pool, snap commits.View) (info PoolStats, err error) {
 	// XXX this doesn't scale... it should be stored in the snapshot and is
 	// not easy to compute in the face of deletes...
 	var poolSpan *extent.Generic
@@ -53,7 +53,7 @@ type BranchStats struct {
 	Span *nano.Span `super:"span"`
 }
 
-func GetBranchStats(ctx context.Context, b *lake.Branch, snap commits.View) (info BranchStats, err error) {
+func GetBranchStats(ctx context.Context, b *db.Branch, snap commits.View) (info BranchStats, err error) {
 	// XXX this doesn't scale... it should be stored in the snapshot and is
 	// not easy to compute in the face of deletes...
 	var poolSpan *extent.Generic

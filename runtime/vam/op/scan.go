@@ -6,8 +6,8 @@ import (
 	"sync"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/lake"
-	"github.com/brimdata/super/lake/data"
+	"github.com/brimdata/super/db"
+	"github.com/brimdata/super/db/data"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/expr"
@@ -21,7 +21,7 @@ type Scanner struct {
 	parent     *objectPuller
 	pruner     expr.Evaluator
 	rctx       *runtime.Context
-	pool       *lake.Pool
+	pool       *db.Pool
 	once       sync.Once
 	projection field.Projection
 	cache      *vcache.Cache
@@ -32,7 +32,7 @@ type Scanner struct {
 
 var _ vector.Puller = (*Scanner)(nil)
 
-func NewScanner(rctx *runtime.Context, cache *vcache.Cache, parent zbuf.Puller, pool *lake.Pool, paths []field.Path, pruner expr.Evaluator, progress *zbuf.Progress) *Scanner {
+func NewScanner(rctx *runtime.Context, cache *vcache.Cache, parent zbuf.Puller, pool *db.Pool, paths []field.Path, pruner expr.Evaluator, progress *zbuf.Progress) *Scanner {
 	return &Scanner{
 		cache:      cache,
 		rctx:       rctx,

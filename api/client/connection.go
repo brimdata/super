@@ -17,8 +17,8 @@ import (
 	"github.com/brimdata/super/api"
 	"github.com/brimdata/super/api/client/auth0"
 	"github.com/brimdata/super/compiler/srcfiles"
-	"github.com/brimdata/super/lake"
-	"github.com/brimdata/super/lake/branches"
+	"github.com/brimdata/super/db"
+	"github.com/brimdata/super/db/branches"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
@@ -226,9 +226,9 @@ func (c *Connection) BranchGet(ctx context.Context, poolID ksuid.KSUID, branchNa
 	return commit, err
 }
 
-func (c *Connection) CreatePool(ctx context.Context, payload api.PoolPostRequest) (lake.BranchMeta, error) {
+func (c *Connection) CreatePool(ctx context.Context, payload api.PoolPostRequest) (db.BranchMeta, error) {
 	req := c.NewRequest(ctx, http.MethodPost, "/pool", payload)
-	var meta lake.BranchMeta
+	var meta db.BranchMeta
 	err := c.doAndUnmarshal(req, &meta)
 	if errIsStatus(err, http.StatusConflict) {
 		err = ErrPoolExists
@@ -433,14 +433,14 @@ func (c *Connection) refreshAuthToken(ctx context.Context) (string, error) {
 		return "", err
 	}
 	if method.Auth0 == nil {
-		return "", fmt.Errorf("auth not available on lake: %s", c.hostURL)
+		return "", fmt.Errorf("auth not available on database: %s", c.hostURL)
 	}
 	tokens, err := c.auth.Tokens(c.hostURL)
 	if err != nil {
 		return "", err
 	}
 	if tokens == nil {
-		return "", fmt.Errorf("auth credentials not set for lake: %s", c.hostURL)
+		return "", fmt.Errorf("auth credentials not set for database: %s", c.hostURL)
 	}
 	client, err := auth0.NewClient(*method.Auth0)
 	if err != nil {

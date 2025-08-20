@@ -4,7 +4,7 @@ import (
 	"errors"
 	"flag"
 
-	"github.com/brimdata/super/lakeparse"
+	"github.com/brimdata/super/dbid"
 )
 
 type Flags struct {
@@ -16,12 +16,12 @@ func (l *Flags) SetFlags(fs *flag.FlagSet) {
 	fs.StringVar(&l.defaultHead, "use", defaultHead, "commit to use, i.e., pool, pool@branch, or pool@commit")
 }
 
-func (f *Flags) HEAD() (*lakeparse.Commitish, error) {
+func (f *Flags) HEAD() (*dbid.Commitish, error) {
 	if f.defaultHead == "" {
 		return nil, errors.New(`pool and branch are unspecified
 (specify with -use flag or "zed use" command)`)
 	}
-	c, err := lakeparse.ParseCommitish(f.defaultHead)
+	c, err := dbid.ParseCommitish(f.defaultHead)
 	if err != nil {
 		return nil, err
 	}

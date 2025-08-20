@@ -7,7 +7,7 @@ import (
 
 	"github.com/brimdata/super/cli/poolflags"
 	"github.com/brimdata/super/cmd/super/db"
-	"github.com/brimdata/super/lake/data"
+	"github.com/brimdata/super/db/data"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/units"
@@ -70,7 +70,7 @@ func (c *Command) Run(args []string) error {
 	if len(args) != 1 {
 		return errors.New("create requires one argument")
 	}
-	lake, err := c.LakeFlags.Open(ctx)
+	lake, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}
@@ -83,14 +83,14 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	if !c.LakeFlags.Quiet {
+	if !c.DBFlags.Quiet {
 		fmt.Printf("pool created: %s %s\n", poolName, id)
 	}
 	if c.use {
 		if err := poolflags.WriteHead(poolName, "main"); err != nil {
 			return err
 		}
-		if !c.LakeFlags.Quiet {
+		if !c.DBFlags.Quiet {
 			fmt.Printf("Switched to branch \"main\" on pool %q\n", poolName)
 		}
 	}

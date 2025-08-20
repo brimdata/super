@@ -113,7 +113,7 @@ import (
 	"os"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/lake/api"
+	"github.com/brimdata/super/db/api"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zbuf"
@@ -128,11 +128,11 @@ func main() {
 		log.Fatalln(err)
 	}
 	ctx := context.TODO()
-	lake, err := api.OpenLake(ctx, nil, uri.String())
+	db, err := api.Connect(ctx, nil, uri.String())
 	if err != nil {
 		log.Fatalln(err)
 	}
-	q, err := lake.Query(ctx, "from Demo")
+	q, err := db.Query(ctx, "from Demo")
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -155,7 +155,7 @@ func main() {
 	}
 }
 ```
-After a re-run of `go mod tidy`, run this command to interact with the lake via
+After a re-run of `go mod tidy`, run this command to interact with the database via
 the local file system:
 ```
 go run . ./scratch

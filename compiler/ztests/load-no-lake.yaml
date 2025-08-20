@@ -1,6 +1,0 @@
-spq: "load test"
-
-error: |
-  load operator cannot be used without a lake at line 1, column 1:
-  load test
-  ~~~~~~~~~

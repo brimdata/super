@@ -44,7 +44,7 @@ func (c *Command) Run(args []string) error {
 	}
 	oldName := args[0]
 	newName := args[1]
-	lake, err := c.LakeFlags.Open(ctx)
+	lake, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}
@@ -55,7 +55,7 @@ func (c *Command) Run(args []string) error {
 	if err := lake.RenamePool(ctx, poolID, newName); err != nil {
 		return err
 	}
-	if !c.LakeFlags.Quiet {
+	if !c.DBFlags.Quiet {
 		fmt.Printf("pool %s renamed from %s to %s\n", poolID, oldName, newName)
 	}
 	return nil

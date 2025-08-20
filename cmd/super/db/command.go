@@ -5,7 +5,7 @@ import (
 	"flag"
 	"os"
 
-	"github.com/brimdata/super/cli/lakeflags"
+	"github.com/brimdata/super/cli/dbflags"
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/cli/queryflags"
 	"github.com/brimdata/super/cli/runtimeflags"
@@ -34,7 +34,7 @@ func init() {
 
 type Command struct {
 	*root.Command
-	LakeFlags    lakeflags.Flags
+	DBFlags    dbflags.Flags
 	outputFlags  outputflags.Flags
 	queryFlags   queryflags.Flags
 	runtimeFlags runtimeflags.Flags
@@ -43,7 +43,7 @@ type Command struct {
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*root.Command)}
-	c.LakeFlags.SetFlags(f)
+	c.DBFlags.SetFlags(f)
 	return c, nil
 }
 
@@ -66,7 +66,7 @@ func (c *Command) Run(args []string) error {
 	if len(args) > 0 {
 		return errors.New("super db command takes no arguments")
 	}
-	lake, err := c.LakeFlags.Open(ctx)
+	lake, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}

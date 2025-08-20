@@ -9,7 +9,7 @@ import (
 
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/compiler/optimizer/demand"
-	"github.com/brimdata/super/lake"
+	"github.com/brimdata/super/db"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/segmentio/ksuid"
@@ -18,19 +18,19 @@ import (
 type Optimizer struct {
 	ctx  context.Context
 	env  *exec.Environment
-	lake *lake.Root
+	db   *db.Root
 	nent int
 }
 
 func New(ctx context.Context, env *exec.Environment) *Optimizer {
-	var lk *lake.Root
+	var root *db.Root
 	if env != nil {
-		lk = env.Lake()
+		root = env.DB()
 	}
 	return &Optimizer{
-		ctx:  ctx,
-		env:  env,
-		lake: lk,
+		ctx: ctx,
+		env: env,
+		db:  root,
 	}
 }
 
@@ -476,12 +476,12 @@ func (o *Optimizer) sortKey(id ksuid.KSUID) (order.SortKeys, error) {
 	return pool.SortKeys, nil
 }
 
-func (o *Optimizer) lookupPool(id ksuid.KSUID) (*lake.Pool, error) {
-	if o.lake == nil {
+func (o *Optimizer) lookupPool(id ksuid.KSUID) (*db.Pool, error) {
+	if o.db == nil {
 		return nil, errors.New("internal error: database operation requires database operating context")
 	}
-	// This is fast because of the pool cache in the lake.
-	return o.lake.OpenPool(o.ctx, id)
+	// This is fast because of the pool cache in the database.
+	return o.db.OpenPool(o.ctx, id)
 }
 
 // matchFilter attempts to find a filter from the front seq
@@ -734,7 +734,7 @@ func setPushdownUnordered(seq dag.Seq, unordered bool) bool {
 		switch op := seq[i].(type) {
 		case *dag.Aggregate, *dag.Combine, *dag.Distinct, *dag.Join, *dag.Sort, *dag.Top,
 			*dag.DefaultScan, *dag.HTTPScan, *dag.PoolScan,
-			*dag.CommitMetaScan, *dag.LakeMetaScan, *dag.PoolMetaScan:
+			*dag.CommitMetaScan, *dag.DBMetaScan, *dag.PoolMetaScan:
 			unordered = true
 		case *dag.FileScan:
 			op.Pushdown.Unordered = unordered

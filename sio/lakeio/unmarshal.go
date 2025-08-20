@@ -1,10 +1,10 @@
 package lakeio
 
 import (
-	"github.com/brimdata/super/lake"
-	"github.com/brimdata/super/lake/commits"
-	"github.com/brimdata/super/lake/data"
-	"github.com/brimdata/super/lake/pools"
+	"github.com/brimdata/super/db"
+	"github.com/brimdata/super/db/commits"
+	"github.com/brimdata/super/db/data"
+	"github.com/brimdata/super/db/pools"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/op/meta"
 	"github.com/brimdata/super/sup"
@@ -21,8 +21,8 @@ func init() {
 		field.Path{},
 		meta.Partition{},
 		pools.Config{},
-		lake.BranchMeta{},
-		lake.BranchTip{},
+		db.BranchMeta{},
+		db.BranchTip{},
 		data.Object{},
 	)
 }

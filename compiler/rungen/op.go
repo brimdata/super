@@ -12,7 +12,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/compiler/optimizer"
-	"github.com/brimdata/super/lake"
+	"github.com/brimdata/super/db"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
@@ -112,7 +112,7 @@ func (b *Builder) BuildWithPuller(seq dag.Seq, parent vector.Puller) ([]vector.P
 }
 
 func (b *Builder) BuildVamToSeqFilter(filter dag.Expr, poolID, commitID ksuid.KSUID) (zbuf.Puller, error) {
-	pool, err := b.env.Lake().OpenPool(b.rctx.Context, poolID)
+	pool, err := b.env.DB().OpenPool(b.rctx.Context, poolID)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +124,7 @@ func (b *Builder) BuildVamToSeqFilter(filter dag.Expr, poolID, commitID ksuid.KS
 	if err != nil {
 		return nil, err
 	}
-	cache := b.env.Lake().VectorCache()
+	cache := b.env.DB().VectorCache()
 	project, _ := optimizer.FieldsOf(filter)
 	search, err := vamop.NewSearcher(b.rctx, cache, l, pool, e, project)
 	if err != nil {
@@ -274,7 +274,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 		}
 		return b.compilePoolScan(v)
 	case *dag.PoolMetaScan:
-		return meta.NewPoolMetaScanner(b.rctx.Context, b.sctx(), b.env.Lake(), v.ID, v.Meta)
+		return meta.NewPoolMetaScanner(b.rctx.Context, b.sctx(), b.env.DB(), v.ID, v.Meta)
 	case *dag.CommitMetaScan:
 		var pruner expr.Evaluator
 		if v.Tap && v.KeyPruner != nil {
@@ -284,9 +284,9 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 				return nil, err
 			}
 		}
-		return meta.NewCommitMetaScanner(b.rctx.Context, b.sctx(), b.env.Lake(), v.Pool, v.Commit, v.Meta, pruner)
-	case *dag.LakeMetaScan:
-		return meta.NewLakeMetaScanner(b.rctx.Context, b.sctx(), b.env.Lake(), v.Meta)
+		return meta.NewCommitMetaScanner(b.rctx.Context, b.sctx(), b.env.DB(), v.Pool, v.Commit, v.Meta, pruner)
+	case *dag.DBMetaScan:
+		return meta.NewDBMetaScanner(b.rctx.Context, b.sctx(), b.env.DB(), v.Meta)
 	case *dag.HTTPScan:
 		body := strings.NewReader(v.Body)
 		return b.env.OpenHTTP(b.rctx.Context, b.sctx(), v.URL, v.Format, v.Method, v.Headers, body, nil)
@@ -370,7 +370,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 		}
 		return meta.NewDeleter(b.rctx, parent, pool, pushdown, pruner, b.progress, b.deletes), nil
 	case *dag.Load:
-		return load.New(b.rctx, b.env.Lake(), parent, v.Pool, v.Branch, v.Author, v.Message, v.Meta), nil
+		return load.New(b.rctx, b.env.DB(), parent, v.Pool, v.Branch, v.Author, v.Message, v.Meta), nil
 	case *dag.Vectorize:
 		// If the first op is SeqScan, then pull it out so we can
 		// give the scanner a sio.Puller parent (i.e., the lister).
@@ -680,12 +680,12 @@ func (b *Builder) newMetaPushdown(e dag.Expr, projection, metaProjection []field
 	}
 }
 
-func (b *Builder) lookupPool(id ksuid.KSUID) (*lake.Pool, error) {
-	if b.env == nil || b.env.Lake() == nil {
+func (b *Builder) lookupPool(id ksuid.KSUID) (*db.Pool, error) {
+	if b.env == nil || b.env.DB() == nil {
 		return nil, errors.New("internal error: database operation requires database operating context")
 	}
-	// This is fast because of the pool cache in the lake.
-	return b.env.Lake().OpenPool(b.rctx.Context, id)
+	// This is fast because of the pool cache in the database.
+	return b.env.DB().OpenPool(b.rctx.Context, id)
 }
 
 func (b *Builder) combine(pullers []zbuf.Puller) zbuf.Puller {
@@ -734,7 +734,7 @@ func isEntry(seq dag.Seq) bool {
 		return false
 	}
 	switch op := seq[0].(type) {
-	case *dag.Lister, *dag.DefaultScan, *dag.FileScan, *dag.HTTPScan, *dag.PoolScan, *dag.LakeMetaScan, *dag.PoolMetaScan, *dag.CommitMetaScan, *dag.NullScan:
+	case *dag.Lister, *dag.DefaultScan, *dag.FileScan, *dag.HTTPScan, *dag.PoolScan, *dag.DBMetaScan, *dag.PoolMetaScan, *dag.CommitMetaScan, *dag.NullScan:
 		return true
 	case *dag.Scope:
 		return isEntry(op.Body)
