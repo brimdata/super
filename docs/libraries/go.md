@@ -46,7 +46,7 @@ import (
 	"os"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zio/supio"
+	"github.com/brimdata/super/sio/supio"
 	"github.com/brimdata/super/sup"
 )
 
