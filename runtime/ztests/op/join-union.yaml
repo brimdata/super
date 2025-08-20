@@ -1,7 +1,7 @@
 script: |
   super -s -c 'inner join (from b.sup) on left.a=right.b | values left | sort' a.sup
 
-#vector: true
+vector: true
 
 inputs:
   - name: a.sup
@@ -14,6 +14,7 @@ inputs:
       {b:1}
       {b:3}
       {b:"bar"}
+
 outputs:
   - name: stdout
     data: |
