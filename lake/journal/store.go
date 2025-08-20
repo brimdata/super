@@ -13,7 +13,7 @@ import (
 	"github.com/brimdata/super/bsupbytes"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zio/bsupio"
+	"github.com/brimdata/super/sio/bsupio"
 	"go.uber.org/zap"
 )
 

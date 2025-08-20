@@ -15,7 +15,7 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/sio"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 )
@@ -145,7 +145,7 @@ func (l *local) lookupBranch(ctx context.Context, poolID ksuid.KSUID, branchName
 	return pool, branch, nil
 }
 
-func (l *local) Load(ctx context.Context, ztcx *super.Context, poolID ksuid.KSUID, branchName string, r zio.Reader, message api.CommitMessage) (ksuid.KSUID, error) {
+func (l *local) Load(ctx context.Context, ztcx *super.Context, poolID ksuid.KSUID, branchName string, r sio.Reader, message api.CommitMessage) (ksuid.KSUID, error) {
 	_, branch, err := l.lookupBranch(ctx, poolID, branchName)
 	if err != nil {
 		return ksuid.Nil, err

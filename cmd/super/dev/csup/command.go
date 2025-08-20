@@ -15,8 +15,8 @@ import (
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/bsupio"
+	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/bsupio"
 )
 
 var spec = &charm.Spec{
@@ -67,7 +67,7 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	meta := newReader(r)
-	err = zio.CopyWithContext(ctx, writer, meta)
+	err = sio.CopyWithContext(ctx, writer, meta)
 	if err2 := writer.Close(); err == nil {
 		err = err2
 	}
@@ -82,7 +82,7 @@ type reader struct {
 	dataSize  int
 }
 
-var _ zio.Reader = (*reader)(nil)
+var _ sio.Reader = (*reader)(nil)
 
 func newReader(r io.Reader) *reader {
 	sctx := super.NewContext()

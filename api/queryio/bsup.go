@@ -5,9 +5,9 @@ import (
 	"io"
 
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/bsupio"
-	"github.com/brimdata/super/zio/supio"
+	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/bsupio"
+	"github.com/brimdata/super/sio/supio"
 )
 
 type BSUPWriter struct {
@@ -21,7 +21,7 @@ func NewBSUPWriter(w io.Writer) *BSUPWriter {
 	m := sup.NewBSUPMarshaler()
 	m.Decorate(sup.StyleSimple)
 	return &BSUPWriter{
-		Writer:    bsupio.NewWriter(zio.NopCloser(w)),
+		Writer:    bsupio.NewWriter(sio.NopCloser(w)),
 		marshaler: m,
 	}
 }
@@ -32,7 +32,7 @@ func (w *BSUPWriter) WriteControl(v any) error {
 		return err
 	}
 	var buf bytes.Buffer
-	err = supio.NewWriter(zio.NopCloser(&buf), supio.WriterOpts{}).Write(val)
+	err = supio.NewWriter(sio.NopCloser(&buf), supio.WriterOpts{}).Write(val)
 	if err != nil {
 		return err
 	}

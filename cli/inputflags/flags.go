@@ -10,9 +10,9 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/cli/auto"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/anyio"
-	"github.com/brimdata/super/zio/bsupio"
+	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/anyio"
+	"github.com/brimdata/super/sio/bsupio"
 )
 
 type Flags struct {
@@ -58,8 +58,8 @@ func (f *Flags) Init() error {
 	return nil
 }
 
-func (f *Flags) Open(ctx context.Context, sctx *super.Context, engine storage.Engine, paths []string, stopOnErr bool) ([]zio.Reader, error) {
-	var readers []zio.Reader
+func (f *Flags) Open(ctx context.Context, sctx *super.Context, engine storage.Engine, paths []string, stopOnErr bool) ([]sio.Reader, error) {
+	var readers []sio.Reader
 	for _, path := range paths {
 		if path == "-" {
 			path = "stdio:stdin"

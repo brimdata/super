@@ -3,17 +3,17 @@ package seekindex
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/sio"
 )
 
 type Writer struct {
 	marshal *sup.MarshalBSUPContext
-	writer  zio.WriteCloser
+	writer  sio.WriteCloser
 	offset  uint64
 	valoff  uint64
 }
 
-func NewWriter(w zio.WriteCloser) *Writer {
+func NewWriter(w sio.WriteCloser) *Writer {
 	return &Writer{
 		marshal: sup.NewBSUPMarshaler(),
 		writer:  w,

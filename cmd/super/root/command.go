@@ -18,8 +18,8 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zfmt"
-	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/supio"
+	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/supio"
 )
 
 var Super = &charm.Spec{
@@ -142,13 +142,13 @@ func (c *Command) Run(args []string) error {
 	}
 	sctx := super.NewContext()
 	local := storage.NewLocalEngine()
-	var readers []zio.Reader
+	var readers []sio.Reader
 	if len(args) > 0 {
 		readers, err = c.inputFlags.Open(ctx, sctx, local, args, c.stopErr)
 		if err != nil {
 			return err
 		}
-		defer zio.CloseReaders(readers)
+		defer sio.CloseReaders(readers)
 	}
 	writer, err := c.outputFlags.Open(ctx, local)
 	if err != nil {
@@ -160,9 +160,9 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	defer query.Pull(true)
-	out := map[string]zio.WriteCloser{
+	out := map[string]sio.WriteCloser{
 		"main":  writer,
-		"debug": supio.NewWriter(zio.NopCloser(os.Stderr), supio.WriterOpts{}),
+		"debug": supio.NewWriter(sio.NopCloser(os.Stderr), supio.WriterOpts{}),
 	}
 	err = zbuf.CopyMux(out, query)
 	if closeErr := writer.Close(); err == nil {

@@ -18,7 +18,7 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/sio"
 	"github.com/segmentio/ksuid"
 )
 
@@ -47,12 +47,12 @@ func OpenBranch(ctx context.Context, config *branches.Config, engine storage.Eng
 	}, nil
 }
 
-func (b *Branch) Load(ctx context.Context, sctx *super.Context, r zio.Reader, author, message, meta string) (ksuid.KSUID, error) {
+func (b *Branch) Load(ctx context.Context, sctx *super.Context, r sio.Reader, author, message, meta string) (ksuid.KSUID, error) {
 	w, err := NewWriter(ctx, sctx, b.pool)
 	if err != nil {
 		return ksuid.Nil, err
 	}
-	err = zio.CopyWithContext(ctx, w, r)
+	err = sio.CopyWithContext(ctx, w, r)
 	if closeErr := w.Close(); err == nil {
 		err = closeErr
 	}

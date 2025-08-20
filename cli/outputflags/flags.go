@@ -13,10 +13,10 @@ import (
 	"github.com/brimdata/super/pkg/terminal"
 	"github.com/brimdata/super/pkg/terminal/color"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/anyio"
-	"github.com/brimdata/super/zio/bsupio"
-	"github.com/brimdata/super/zio/emitter"
+	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/anyio"
+	"github.com/brimdata/super/sio/bsupio"
+	"github.com/brimdata/super/sio/emitter"
 )
 
 type Flags struct {
@@ -124,7 +124,7 @@ func (f *Flags) FileName() string {
 	return f.outputFile
 }
 
-func (f *Flags) Open(ctx context.Context, engine storage.Engine) (zio.WriteCloser, error) {
+func (f *Flags) Open(ctx context.Context, engine storage.Engine) (sio.WriteCloser, error) {
 	if f.split != "" {
 		dir, err := storage.ParseURI(f.split)
 		if err != nil {

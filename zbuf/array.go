@@ -2,7 +2,7 @@ package zbuf
 
 import (
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/sio"
 )
 
 // Array is a slice of of records that implements the Batch and
@@ -12,8 +12,8 @@ type Array struct {
 }
 
 var _ Batch = (*Array)(nil)
-var _ zio.Reader = (*Array)(nil)
-var _ zio.Writer = (*Array)(nil)
+var _ sio.Reader = (*Array)(nil)
+var _ sio.Writer = (*Array)(nil)
 
 // XXX this should take the frame arg too and the procs that create
 // new arrays need to propagate their frames downstream.

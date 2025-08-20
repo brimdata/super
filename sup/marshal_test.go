@@ -9,8 +9,8 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/bsupio"
+	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/bsupio"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -166,7 +166,7 @@ func TestMixedTypeArrayInsideRecord(t *testing.T) {
 	require.NoError(t, err)
 
 	var buffer bytes.Buffer
-	writer := bsupio.NewWriter(zio.NopCloser(&buffer))
+	writer := bsupio.NewWriter(sio.NopCloser(&buffer))
 	recExpected := super.NewValue(zv.Type(), zv.Bytes())
 	writer.Write(recExpected)
 	writer.Close()
@@ -225,7 +225,7 @@ func TestMixedTypeArrayOfStructWithInterface(t *testing.T) {
 	require.NoError(t, err)
 
 	var buffer bytes.Buffer
-	writer := bsupio.NewWriter(zio.NopCloser(&buffer))
+	writer := bsupio.NewWriter(sio.NopCloser(&buffer))
 	recExpected := super.NewValue(zv.Type(), zv.Bytes())
 	writer.Write(recExpected)
 	writer.Close()

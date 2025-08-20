@@ -15,7 +15,7 @@ import (
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zcode"
-	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/sio"
 )
 
 var Frames = &charm.Spec{
@@ -68,7 +68,7 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	meta := newMetaReader(r)
-	if err := zio.Copy(writer, meta); err != nil {
+	if err := sio.Copy(writer, meta); err != nil {
 		return err
 	}
 	return writer.Close()
@@ -79,7 +79,7 @@ type metaReader struct {
 	marshaler *sup.MarshalBSUPContext
 }
 
-var _ zio.Reader = (*metaReader)(nil)
+var _ sio.Reader = (*metaReader)(nil)
 
 func newMetaReader(r io.Reader) *metaReader {
 	return &metaReader{

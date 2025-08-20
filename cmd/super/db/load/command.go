@@ -21,7 +21,7 @@ import (
 	"github.com/brimdata/super/pkg/display"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/pkg/units"
-	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/sio"
 	"github.com/paulbellamy/ratecounter"
 	"golang.org/x/term"
 )
@@ -83,7 +83,7 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	defer zio.CloseReaders(readers)
+	defer sio.CloseReaders(readers)
 	head, err := c.poolFlags.HEAD()
 	if err != nil {
 		return err
@@ -103,7 +103,7 @@ func (c *Command) Run(args []string) error {
 		go d.Run()
 	}
 	message := c.commitFlags.CommitMessage()
-	commitID, err := lake.Load(ctx, sctx, poolID, head.Branch, zio.ConcatReader(readers...), message)
+	commitID, err := lake.Load(ctx, sctx, poolID, head.Branch, sio.ConcatReader(readers...), message)
 	if d != nil {
 		d.Close()
 	}

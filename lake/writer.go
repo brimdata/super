@@ -9,12 +9,12 @@ import (
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/sio"
 	"github.com/segmentio/ksuid"
 	"golang.org/x/sync/errgroup"
 )
 
-// Writer is a zio.Writer that consumes records into memory according to
+// Writer is a sio.Writer that consumes records into memory according to
 // the pools data object threshold, sorts each resulting buffer, and writes
 // it as an immutable object to the storage system.  The presumption is that
 // each buffer's worth of data fits into memory.
@@ -44,7 +44,7 @@ type Writer struct {
 // microbatches with a timeout defined from above and a nice way to sync the
 // timeout with the commit rather than trying to do all of this bottoms up.
 
-// NewWriter creates a zio.Writer compliant writer for writing data to an
+// NewWriter creates a sio.Writer compliant writer for writing data to an
 // a data pool presuming the input is not guaranteed to be sorted.
 // XXX we should make another writer that takes sorted input and is a bit
 // more efficient.  This other writer could have different commit triggers
@@ -123,7 +123,7 @@ func (w *Writer) Close() error {
 }
 
 func (w *Writer) writeObject(object *data.Object, recs []super.Value) error {
-	var zr zio.Reader
+	var zr sio.Reader
 	if w.inputSorted {
 		zr = zbuf.NewArray(recs)
 	} else {
@@ -142,7 +142,7 @@ func (w *Writer) writeObject(object *data.Object, recs []super.Value) error {
 	if err != nil {
 		return err
 	}
-	if err := zio.CopyWithContext(w.ctx, writer, zr); err != nil {
+	if err := sio.CopyWithContext(w.ctx, writer, zr); err != nil {
 		writer.Abort()
 		return err
 	}

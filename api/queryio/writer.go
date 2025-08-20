@@ -7,20 +7,20 @@ import (
 	"github.com/brimdata/super/api"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/anyio"
-	"github.com/brimdata/super/zio/jsonio"
+	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/anyio"
+	"github.com/brimdata/super/sio/jsonio"
 )
 
 type controlWriter interface {
-	zio.WriteCloser
+	sio.WriteCloser
 	WriteControl(any) error
 }
 
 type Writer struct {
 	channel string
 	start   nano.Ts
-	writer  zio.WriteCloser
+	writer  sio.WriteCloser
 	ctrl    bool
 	flusher http.Flusher
 }
@@ -43,7 +43,7 @@ func NewWriter(w io.WriteCloser, format string, flusher http.Flusher, ctrl bool)
 	case "ndjson":
 		d.writer = jsonio.NewWriter(w, jsonio.WriterOpts{})
 	default:
-		d.writer, err = anyio.NewWriter(zio.NopCloser(w), anyio.WriterOpts{
+		d.writer, err = anyio.NewWriter(sio.NopCloser(w), anyio.WriterOpts{
 			Format: format,
 		})
 	}

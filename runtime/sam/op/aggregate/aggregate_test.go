@@ -18,8 +18,8 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/op/aggregate"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/supio"
+	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/supio"
 	"github.com/brimdata/super/ztest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -33,7 +33,7 @@ func TestAggregateZtestsSpill(t *testing.T) {
 }
 
 type countReader struct {
-	r zio.Reader
+	r sio.Reader
 	n atomic.Int64
 }
 
@@ -63,7 +63,7 @@ func (*countReader) Read() (*super.Value, error) {
 
 type testAggregateWriter struct {
 	n      int
-	writer zio.Writer
+	writer sio.Writer
 	cb     func(n int)
 }
 
@@ -116,7 +116,7 @@ func TestAggregateStreamingSpill(t *testing.T) {
 		zr := supio.NewReader(sctx, strings.NewReader(strings.Join(data, "\n")))
 		cr := &countReader{r: zr}
 		var outbuf bytes.Buffer
-		zw := supio.NewWriter(zio.NopCloser(&outbuf), supio.WriterOpts{})
+		zw := supio.NewWriter(sio.NopCloser(&outbuf), supio.WriterOpts{})
 		checker := &testAggregateWriter{
 			writer: zw,
 			cb: func(n int) {
@@ -143,7 +143,7 @@ func TestAggregateStreamingSpill(t *testing.T) {
 	require.Equal(t, res, resStreaming)
 }
 
-func newQueryOnOrderedReader(ctx context.Context, sctx *super.Context, ast *parser.AST, reader zio.Reader, sortKey order.SortKey) (runtime.Query, error) {
+func newQueryOnOrderedReader(ctx context.Context, sctx *super.Context, ast *parser.AST, reader sio.Reader, sortKey order.SortKey) (runtime.Query, error) {
 	rctx := runtime.NewContext(ctx, sctx)
 	q, err := compiler.CompileWithSortKey(rctx, ast, reader, sortKey)
 	if err != nil {

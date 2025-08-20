@@ -9,7 +9,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/sio"
 )
 
 // MergeSort manages "runs" (files of sorted BSUP values) that are spilled to
@@ -61,7 +61,7 @@ func (r *MergeSort) Cleanup() {
 // different chunks can be easily merged into sorted order when reading back
 // the chunks sequentially.
 func (r *MergeSort) Spill(ctx context.Context, vals []super.Value) error {
-	var zr zio.Reader
+	var zr sio.Reader
 	// Sorting can be slow, so check for cancellation.
 	if err := goWithContext(ctx, func() {
 		zr = r.comparator.SortStableReader(vals)

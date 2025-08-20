@@ -19,7 +19,7 @@ import (
 	"github.com/brimdata/super/runtime/vcache"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zio/bsupio"
+	"github.com/brimdata/super/sio/bsupio"
 	arc "github.com/hashicorp/golang-lru/arc/v2"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"

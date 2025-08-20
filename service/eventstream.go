@@ -6,8 +6,8 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/anyio"
+	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/anyio"
 )
 
 type event struct {
@@ -22,7 +22,7 @@ type eventStreamWriter struct {
 
 func (e *eventStreamWriter) writeEvent(ev event) error {
 	var buf bytes.Buffer
-	w, err := anyio.NewWriter(zio.NopCloser(&buf), anyio.WriterOpts{Format: e.format})
+	w, err := anyio.NewWriter(sio.NopCloser(&buf), anyio.WriterOpts{Format: e.format})
 	if err != nil {
 		return err
 	}

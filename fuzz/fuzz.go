@@ -25,9 +25,9 @@ import (
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zcode"
-	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/bsupio"
-	"github.com/brimdata/super/zio/csupio"
+	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/bsupio"
+	"github.com/brimdata/super/sio/csupio"
 	"github.com/stretchr/testify/require"
 	"github.com/x448/float16"
 	"go.uber.org/mock/gomock"
@@ -39,7 +39,7 @@ func ReadBSUP(bs []byte) ([]super.Value, error) {
 	reader := bsupio.NewReader(context, bytesReader)
 	defer reader.Close()
 	var a zbuf.Array
-	err := zio.Copy(&a, reader)
+	err := sio.Copy(&a, reader)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func ReadCSUP(bs []byte, fields []field.Path) ([]super.Value, error) {
 		return nil, err
 	}
 	var a zbuf.Array
-	err = zio.Copy(&a, reader)
+	err = sio.Copy(&a, reader)
 	if err != nil {
 		return nil, err
 	}
@@ -62,21 +62,21 @@ func ReadCSUP(bs []byte, fields []field.Path) ([]super.Value, error) {
 }
 
 func WriteBSUP(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
-	writer := bsupio.NewWriter(zio.NopCloser(buf))
-	require.NoError(t, zio.Copy(writer, zbuf.NewArray(valuesIn)))
+	writer := bsupio.NewWriter(sio.NopCloser(buf))
+	require.NoError(t, sio.Copy(writer, zbuf.NewArray(valuesIn)))
 	require.NoError(t, writer.Close())
 }
 
 func WriteCSUP(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
-	writer := csupio.NewWriter(zio.NopCloser(buf))
-	require.NoError(t, zio.Copy(writer, zbuf.NewArray(valuesIn)))
+	writer := csupio.NewWriter(sio.NopCloser(buf))
+	require.NoError(t, sio.Copy(writer, zbuf.NewArray(valuesIn)))
 	require.NoError(t, writer.Close())
 }
 
 func RunQueryBSUP(t testing.TB, buf *bytes.Buffer, querySource string) []super.Value {
 	sctx := super.NewContext()
-	readers := []zio.Reader{bsupio.NewReader(sctx, buf)}
-	defer zio.CloseReaders(readers)
+	readers := []sio.Reader{bsupio.NewReader(sctx, buf)}
+	defer sio.CloseReaders(readers)
 	return RunQuery(t, sctx, readers, querySource, func(_ demand.Demand) {})
 }
 
@@ -84,12 +84,12 @@ func RunQueryCSUP(t testing.TB, buf *bytes.Buffer, querySource string) []super.V
 	sctx := super.NewContext()
 	reader, err := csupio.NewReader(sctx, bytes.NewReader(buf.Bytes()), nil)
 	require.NoError(t, err)
-	readers := []zio.Reader{reader}
-	defer zio.CloseReaders(readers)
+	readers := []sio.Reader{reader}
+	defer sio.CloseReaders(readers)
 	return RunQuery(t, sctx, readers, querySource, func(_ demand.Demand) {})
 }
 
-func RunQuery(t testing.TB, sctx *super.Context, readers []zio.Reader, querySource string, useDemand func(demandIn demand.Demand)) []super.Value {
+func RunQuery(t testing.TB, sctx *super.Context, readers []sio.Reader, querySource string, useDemand func(demandIn demand.Demand)) []super.Value {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()

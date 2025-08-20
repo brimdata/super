@@ -11,7 +11,7 @@ import (
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
-	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/sio"
 )
 
 var Parallelism = goruntime.GOMAXPROCS(0) //XXX
@@ -35,7 +35,7 @@ func NewCompilerWithEnv(env *exec.Environment) runtime.Compiler {
 	return &compiler{env}
 }
 
-func (c *compiler) NewQuery(rctx *runtime.Context, ast *parser.AST, readers []zio.Reader, parallelism int) (runtime.Query, error) {
+func (c *compiler) NewQuery(rctx *runtime.Context, ast *parser.AST, readers []sio.Reader, parallelism int) (runtime.Query, error) {
 	if parallelism == 0 {
 		parallelism = Parallelism
 	}

@@ -14,8 +14,8 @@ import (
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/bsupio"
+	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/bsupio"
 	"github.com/segmentio/ksuid"
 )
 
@@ -100,11 +100,11 @@ func (r *remote) RenamePool(ctx context.Context, pool ksuid.KSUID, name string) 
 	return r.conn.RenamePool(ctx, pool, api.PoolPutRequest{Name: name})
 }
 
-func (r *remote) Load(ctx context.Context, _ *super.Context, poolID ksuid.KSUID, branchName string, reader zio.Reader, commit api.CommitMessage) (ksuid.KSUID, error) {
+func (r *remote) Load(ctx context.Context, _ *super.Context, poolID ksuid.KSUID, branchName string, reader sio.Reader, commit api.CommitMessage) (ksuid.KSUID, error) {
 	pr, pw := io.Pipe()
 	go func() {
-		w := bsupio.NewWriter(zio.NopCloser(pw))
-		err := zio.CopyWithContext(ctx, w, reader)
+		w := bsupio.NewWriter(sio.NopCloser(pw))
+		err := sio.CopyWithContext(ctx, w, reader)
 		if err2 := w.Close(); err == nil {
 			err = err2
 		}

@@ -17,8 +17,8 @@ import (
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/bsupio"
+	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/bsupio"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
@@ -110,7 +110,7 @@ func (p *Pool) Snapshot(ctx context.Context, commit ksuid.KSUID) (commits.View, 
 	return p.commits.Snapshot(ctx, commit)
 }
 
-func (p *Pool) OpenCommitLog(ctx context.Context, sctx *super.Context, commit ksuid.KSUID) zio.Reader {
+func (p *Pool) OpenCommitLog(ctx context.Context, sctx *super.Context, commit ksuid.KSUID) sio.Reader {
 	return p.commits.OpenCommitLog(ctx, sctx, commit, ksuid.Nil)
 }
 

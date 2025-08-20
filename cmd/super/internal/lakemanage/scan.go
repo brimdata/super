@@ -14,7 +14,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr/extent"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/sio"
 	"github.com/segmentio/ksuid"
 )
 
@@ -68,7 +68,7 @@ from %q@%q:objects
 `
 
 type objectIterator struct {
-	reader      zio.Reader
+	reader      sio.Reader
 	puller      zbuf.Puller
 	unmarshaler *sup.UnmarshalBSUPContext
 }

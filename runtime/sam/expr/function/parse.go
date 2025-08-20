@@ -8,7 +8,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zio/supio"
+	"github.com/brimdata/super/sio/supio"
 )
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#parse_uri

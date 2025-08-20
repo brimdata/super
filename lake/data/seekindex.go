@@ -10,7 +10,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zio/bsupio"
+	"github.com/brimdata/super/sio/bsupio"
 )
 
 func LookupSeekRange(ctx context.Context, engine storage.Engine, path *storage.URI,

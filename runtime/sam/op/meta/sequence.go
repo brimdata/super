@@ -15,7 +15,7 @@ import (
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zio/bsupio"
+	"github.com/brimdata/super/sio/bsupio"
 )
 
 // SequenceScanner implements an op that pulls metadata partitions to scan

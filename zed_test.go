@@ -16,10 +16,10 @@ import (
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/anyio"
-	"github.com/brimdata/super/zio/arrowio"
-	"github.com/brimdata/super/zio/bsupio"
+	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/anyio"
+	"github.com/brimdata/super/sio/arrowio"
+	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/ztest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -137,13 +137,13 @@ func runOneBoomerang(t *testing.T, format, data string) {
 	require.NoError(t, err)
 	defer dataReadCloser.Close()
 
-	dataReader := zio.Reader(dataReadCloser)
+	dataReader := sio.Reader(dataReadCloser)
 	if format == "parquet" {
 		// Fuse for formats that require uniform values.
 		ast, err := parser.ParseQuery("fuse")
 		require.NoError(t, err)
 		rctx := runtime.NewContext(context.Background(), sctx)
-		q, err := compiler.NewCompiler(nil).NewQuery(rctx, ast, []zio.Reader{dataReadCloser}, 0)
+		q, err := compiler.NewCompiler(nil).NewQuery(rctx, ast, []sio.Reader{dataReadCloser}, 0)
 		require.NoError(t, err)
 		defer q.Pull(true)
 		dataReader = zbuf.PullerReader(q)
@@ -152,9 +152,9 @@ func runOneBoomerang(t *testing.T, format, data string) {
 	// Copy from dataReader to baseline as format.
 	var baseline bytes.Buffer
 	writerOpts := anyio.WriterOpts{Format: format}
-	baselineWriter, err := anyio.NewWriter(zio.NopCloser(&baseline), writerOpts)
+	baselineWriter, err := anyio.NewWriter(sio.NopCloser(&baseline), writerOpts)
 	if err == nil {
-		err = zio.Copy(baselineWriter, dataReader)
+		err = sio.Copy(baselineWriter, dataReader)
 		require.NoError(t, baselineWriter.Close())
 	}
 	if err != nil {
@@ -178,9 +178,9 @@ func runOneBoomerang(t *testing.T, format, data string) {
 
 	// Copy from baselineReader to boomerang as format.
 	var boomerang bytes.Buffer
-	boomerangWriter, err := anyio.NewWriter(zio.NopCloser(&boomerang), writerOpts)
+	boomerangWriter, err := anyio.NewWriter(sio.NopCloser(&boomerang), writerOpts)
 	require.NoError(t, err)
-	assert.NoError(t, zio.Copy(boomerangWriter, baselineReader))
+	assert.NoError(t, sio.Copy(boomerangWriter, baselineReader))
 	require.NoError(t, boomerangWriter.Close())
 
 	require.Equal(t, baseline.String(), boomerang.String(), "baseline and boomerang differ")

@@ -8,7 +8,7 @@ import (
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/bitvec"
 	"github.com/brimdata/super/zcode"
-	"github.com/brimdata/super/zio/supio"
+	"github.com/brimdata/super/sio/supio"
 )
 
 type ParseURI struct {

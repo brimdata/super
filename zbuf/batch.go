@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/sio"
 )
 
 // Batch is an interface to a bundle of values.  Reference counting allows
@@ -33,7 +33,7 @@ type Batch interface {
 
 // WriteBatch writes the values in batch to zw.  If an error occurs, WriteBatch
 // stops and returns the error.
-func WriteBatch(zw zio.Writer, batch Batch) error {
+func WriteBatch(zw sio.Writer, batch Batch) error {
 	vals := batch.Values()
 	for i := range vals {
 		if err := zw.Write(vals[i]); err != nil {
@@ -66,12 +66,12 @@ var PullerBatchValues = 100
 
 // NewPuller returns a puller for zr that returns batches containing up to
 // [PullerBatchBytes] bytes and [PullerBatchValues] values.
-func NewPuller(zr zio.Reader) Puller {
+func NewPuller(zr sio.Reader) Puller {
 	return &puller{zr}
 }
 
 type puller struct {
-	zr zio.Reader
+	zr sio.Reader
 }
 
 func (p *puller) Pull(done bool) (Batch, error) {
@@ -157,7 +157,7 @@ func (b *pullerBatch) Unref() {
 
 func (p *pullerBatch) Values() []super.Value { return p.vals }
 
-func CopyPuller(w zio.Writer, p Puller) error {
+func CopyPuller(w sio.Writer, p Puller) error {
 	for {
 		b, err := p.Pull(false)
 		if b == nil || err != nil {
@@ -170,7 +170,7 @@ func CopyPuller(w zio.Writer, p Puller) error {
 	}
 }
 
-func PullerReader(p Puller) zio.Reader {
+func PullerReader(p Puller) sio.Reader {
 	return &pullerReader{p: p}
 }
 

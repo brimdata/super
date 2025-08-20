@@ -23,8 +23,8 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/parquetio"
+	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/parquetio"
 	"github.com/segmentio/ksuid"
 )
 
@@ -251,7 +251,7 @@ func (a *analyzer) asFormatArg(args []ast.OpArg) string {
 func (a *analyzer) semFile(name string, args []ast.OpArg) dag.Op {
 	format := a.asFormatArg(args)
 	if format == "" {
-		format = zio.FormatFromPath(name)
+		format = sio.FormatFromPath(name)
 	}
 	return &dag.FileScan{
 		Kind:   "FileScan",
@@ -306,7 +306,7 @@ func (a *analyzer) semFromURL(urlLoc ast.Node, u string, args []ast.OpArg) dag.O
 		}
 	}
 	if format == "" {
-		format = zio.FormatFromPath(u)
+		format = sio.FormatFromPath(u)
 	}
 	return &dag.HTTPScan{
 		Kind:    "HTTPScan",

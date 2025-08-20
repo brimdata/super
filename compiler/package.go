@@ -16,7 +16,7 @@ import (
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/runtime/sam/op"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/sio"
 )
 
 func Parse(query string, filenames ...string) (*parser.AST, error) {
@@ -52,7 +52,7 @@ func Optimize(ctx context.Context, seq dag.Seq, env *exec.Environment, parallel 
 	return seq, nil
 }
 
-func Build(rctx *runtime.Context, seq dag.Seq, env *exec.Environment, readers []zio.Reader) (map[string]zbuf.Puller, zbuf.Meter, error) {
+func Build(rctx *runtime.Context, seq dag.Seq, env *exec.Environment, readers []sio.Reader) (map[string]zbuf.Puller, zbuf.Meter, error) {
 	b := rungen.NewBuilder(rctx, env)
 	outputs, err := b.Build(seq, readers...)
 	if err != nil {
@@ -61,7 +61,7 @@ func Build(rctx *runtime.Context, seq dag.Seq, env *exec.Environment, readers []
 	return outputs, b.Meter(), nil
 }
 
-func BuildWithBuilder(rctx *runtime.Context, seq dag.Seq, env *exec.Environment, readers []zio.Reader) (map[string]zbuf.Puller, *rungen.Builder, error) {
+func BuildWithBuilder(rctx *runtime.Context, seq dag.Seq, env *exec.Environment, readers []sio.Reader) (map[string]zbuf.Puller, *rungen.Builder, error) {
 	b := rungen.NewBuilder(rctx, env)
 	outputs, err := b.Build(seq, readers...)
 	if err != nil {
@@ -70,7 +70,7 @@ func BuildWithBuilder(rctx *runtime.Context, seq dag.Seq, env *exec.Environment,
 	return outputs, b, nil
 }
 
-func CompileWithAST(rctx *runtime.Context, ast *parser.AST, env *exec.Environment, optimize bool, parallel int, readers []zio.Reader) (*exec.Query, error) {
+func CompileWithAST(rctx *runtime.Context, ast *parser.AST, env *exec.Environment, optimize bool, parallel int, readers []sio.Reader) (*exec.Query, error) {
 	dag, err := Analyze(rctx, ast, env, len(readers) > 0)
 	if err != nil {
 		return nil, err
@@ -88,7 +88,7 @@ func CompileWithAST(rctx *runtime.Context, ast *parser.AST, env *exec.Environmen
 	return exec.NewQuery(rctx, bundleOutputs(rctx, outputs), meter), nil
 }
 
-func Compile(rctx *runtime.Context, env *exec.Environment, optimize bool, parallel int, readers []zio.Reader, query string, filenames ...string) (*exec.Query, error) {
+func Compile(rctx *runtime.Context, env *exec.Environment, optimize bool, parallel int, readers []sio.Reader, query string, filenames ...string) (*exec.Query, error) {
 	ast, err := Parse(query, filenames...)
 	if err != nil {
 		return nil, err
@@ -149,7 +149,7 @@ func VectorFilterCompile(rctx *runtime.Context, query string, env *exec.Environm
 }
 
 // XXX currently used only by aggregate test, need to deprecate
-func CompileWithSortKey(rctx *runtime.Context, ast *parser.AST, r zio.Reader, sortKey order.SortKey) (*exec.Query, error) {
+func CompileWithSortKey(rctx *runtime.Context, ast *parser.AST, r sio.Reader, sortKey order.SortKey) (*exec.Query, error) {
 	env := exec.NewEnvironment(nil, nil)
 	seq, err := Analyze(rctx, ast, env, true)
 	if err != nil {
@@ -164,7 +164,7 @@ func CompileWithSortKey(rctx *runtime.Context, ast *parser.AST, r zio.Reader, so
 	if err != nil {
 		return nil, err
 	}
-	outputs, meter, err := Build(rctx, seq, env, []zio.Reader{r})
+	outputs, meter, err := Build(rctx, seq, env, []sio.Reader{r})
 	if err != nil {
 		return nil, err
 	}

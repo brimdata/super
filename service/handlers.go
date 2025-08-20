@@ -27,10 +27,10 @@ import (
 	"github.com/brimdata/super/service/auth"
 	"github.com/brimdata/super/service/srverr"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/anyio"
-	"github.com/brimdata/super/zio/bsupio"
-	"github.com/brimdata/super/zio/csvio"
+	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/anyio"
+	"github.com/brimdata/super/sio/bsupio"
+	"github.com/brimdata/super/sio/csvio"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 )
@@ -66,7 +66,7 @@ func handleQuery(c *Core, w *ResponseWriter, r *Request) {
 		return
 	}
 	flusher, _ := w.ResponseWriter.(http.Flusher)
-	writer, err := queryio.NewWriter(zio.NopCloser(w), w.Format, flusher, ctrl)
+	writer, err := queryio.NewWriter(sio.NopCloser(w), w.Format, flusher, ctrl)
 	if err != nil {
 		w.Error(srverr.ErrInvalid(err))
 		return
@@ -488,7 +488,7 @@ func handleBranchLoad(c *Core, w *ResponseWriter, r *Request) {
 }
 
 type warningsReader struct {
-	zio.Reader
+	sio.Reader
 	warnings []string
 }
 

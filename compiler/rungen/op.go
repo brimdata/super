@@ -46,7 +46,7 @@ import (
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/sio"
 	"github.com/segmentio/ksuid"
 )
 
@@ -56,7 +56,7 @@ type Builder struct {
 	rctx            *runtime.Context
 	mctx            *super.Context
 	env             *exec.Environment
-	readers         []zio.Reader
+	readers         []sio.Reader
 	progress        *zbuf.Progress
 	channels        map[string][]zbuf.Puller
 	deletes         *sync.Map
@@ -86,7 +86,7 @@ func NewBuilder(rctx *runtime.Context, env *exec.Environment) *Builder {
 
 // Build builds a flowgraph for seq.  If seq contains a dag.DefaultSource, it
 // will read from readers.
-func (b *Builder) Build(seq dag.Seq, readers ...zio.Reader) (map[string]zbuf.Puller, error) {
+func (b *Builder) Build(seq dag.Seq, readers ...sio.Reader) (map[string]zbuf.Puller, error) {
 	if !isEntry(seq) {
 		return nil, errors.New("internal error: DAG entry point is not a data source")
 	}
@@ -373,7 +373,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 		return load.New(b.rctx, b.env.Lake(), parent, v.Pool, v.Branch, v.Author, v.Message, v.Meta), nil
 	case *dag.Vectorize:
 		// If the first op is SeqScan, then pull it out so we can
-		// give the scanner a zio.Puller parent (i.e., the lister).
+		// give the scanner a sio.Puller parent (i.e., the lister).
 		if scan, ok := v.Body[0].(*dag.SeqScan); ok {
 			puller, err := b.compileVamScan(scan, parent)
 			if err != nil {

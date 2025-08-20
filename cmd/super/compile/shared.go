@@ -19,7 +19,7 @@ import (
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zfmt"
-	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/sio"
 )
 
 type Shared struct {
@@ -111,7 +111,7 @@ func (s *Shared) writeValue(ctx context.Context, v any) error {
 	if err != nil {
 		return err
 	}
-	err = zio.CopyWithContext(ctx, writer, zbuf.NewArray([]super.Value{val}))
+	err = sio.CopyWithContext(ctx, writer, zbuf.NewArray([]super.Value{val}))
 	if closeErr := writer.Close(); err == nil {
 		err = closeErr
 	}

@@ -10,7 +10,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/order"
-	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/sio"
 )
 
 type SortExpr struct {
@@ -230,7 +230,7 @@ func (c *Comparator) SortStable(vals []super.Value) {
 
 // SortStableReader returns a reader for vals sorted according to c, with equal
 // values in their original order.
-func (c *Comparator) SortStableReader(vals []super.Value) zio.Reader {
+func (c *Comparator) SortStableReader(vals []super.Value) sio.Reader {
 	return &sortStableReader{
 		indices: c.sortStableIndices(vals),
 		vals:    vals,

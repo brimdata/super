@@ -139,8 +139,8 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/anyio"
+	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/anyio"
 	"github.com/pmezard/go-difflib/difflib"
 	"gopkg.in/yaml.v3"
 )
@@ -474,14 +474,14 @@ func runInternal(zedProgram string, input *string, outputFlags, inputFlags []str
 		return "", err
 	}
 	sctx := super.NewContext()
-	var readers []zio.Reader
+	var readers []sio.Reader
 	if input != nil {
 		zrc, err := newInputReader(sctx, *input, inputFlags)
 		if err != nil {
 			return "", err
 		}
 		defer zrc.Close()
-		readers = []zio.Reader{zrc}
+		readers = []sio.Reader{zrc}
 	}
 	var fs flag.FlagSet
 	var outflags outputflags.Flags
@@ -502,7 +502,7 @@ func runInternal(zedProgram string, input *string, outputFlags, inputFlags []str
 	}
 	defer q.Pull(true)
 	var outbuf bytes.Buffer
-	zw, err := anyio.NewWriter(zio.NopCloser(&outbuf), outflags.Options())
+	zw, err := anyio.NewWriter(sio.NopCloser(&outbuf), outflags.Options())
 	if err != nil {
 		return "", err
 	}
@@ -513,7 +513,7 @@ func runInternal(zedProgram string, input *string, outputFlags, inputFlags []str
 	return outbuf.String(), err
 }
 
-func newInputReader(sctx *super.Context, input string, flags []string) (zio.ReadCloser, error) {
+func newInputReader(sctx *super.Context, input string, flags []string) (sio.ReadCloser, error) {
 	var inflags inputflags.Flags
 	var fs flag.FlagSet
 	inflags.SetFlags(&fs, true)

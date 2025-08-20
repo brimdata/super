@@ -1,0 +1,82 @@
+package anyio
+
+import (
+	"fmt"
+	"io"
+
+	"github.com/brimdata/super"
+	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/arrowio"
+	"github.com/brimdata/super/sio/bsupio"
+	"github.com/brimdata/super/sio/csupio"
+	"github.com/brimdata/super/sio/csvio"
+	"github.com/brimdata/super/sio/jsonio"
+	"github.com/brimdata/super/sio/jsupio"
+	"github.com/brimdata/super/sio/lakeio"
+	"github.com/brimdata/super/sio/lineio"
+	"github.com/brimdata/super/sio/parquetio"
+	"github.com/brimdata/super/sio/supio"
+	"github.com/brimdata/super/sio/tableio"
+	"github.com/brimdata/super/sio/textio"
+	"github.com/brimdata/super/sio/zeekio"
+)
+
+type WriterOpts struct {
+	Format string
+	BSUP   *bsupio.WriterOpts // Nil means use defaults via bsupio.NewWriter.
+	CSV    csvio.WriterOpts
+	JSON   jsonio.WriterOpts
+	Lake   lakeio.WriterOpts
+	SUP    supio.WriterOpts
+}
+
+func NewWriter(w io.WriteCloser, opts WriterOpts) (sio.WriteCloser, error) {
+	switch opts.Format {
+	case "arrows":
+		return arrowio.NewWriter(w), nil
+	case "bsup":
+		if opts.BSUP == nil {
+			return bsupio.NewWriter(w), nil
+		}
+		return bsupio.NewWriterWithOpts(w, *opts.BSUP), nil
+	case "csup":
+		return csupio.NewWriter(w), nil
+	case "csv":
+		return csvio.NewWriter(w, opts.CSV), nil
+	case "json":
+		return jsonio.NewWriter(w, opts.JSON), nil
+	case "lake":
+		return lakeio.NewWriter(w, opts.Lake), nil
+	case "line":
+		return lineio.NewWriter(w), nil
+	case "null":
+		return &nullWriter{}, nil
+	case "parquet":
+		return parquetio.NewWriter(w), nil
+	case "sup", "":
+		return supio.NewWriter(w, opts.SUP), nil
+	case "table":
+		return tableio.NewWriter(w), nil
+	case "text":
+		return textio.NewWriter(w), nil
+	case "tsv":
+		opts.CSV.Delim = '\t'
+		return csvio.NewWriter(w, opts.CSV), nil
+	case "zeek":
+		return zeekio.NewWriter(w), nil
+	case "jsup":
+		return jsupio.NewWriter(w), nil
+	default:
+		return nil, fmt.Errorf("unknown format: %s", opts.Format)
+	}
+}
+
+type nullWriter struct{}
+
+func (*nullWriter) Write(super.Value) error {
+	return nil
+}
+
+func (*nullWriter) Close() error {
+	return nil
+}

@@ -9,10 +9,10 @@ import (
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/bufwriter"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/zio/bsupio"
+	"github.com/brimdata/super/sio/bsupio"
 )
 
-// Writer is a zio.Writer that writes a stream of sorted records into a
+// Writer is a sio.Writer that writes a stream of sorted records into a
 // data object.
 type Writer struct {
 	object           *Object

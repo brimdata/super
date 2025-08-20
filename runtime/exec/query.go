@@ -3,12 +3,12 @@ package exec
 import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/sio"
 )
 
 // Query runs a flowgraph as a zbuf.Puller and implements a Close() method
 // that gracefully tears down the flowgraph.  Its AsReader() and AsProgressReader()
-// methods provide a convenient means to run a flowgraph as zio.Reader.
+// methods provide a convenient means to run a flowgraph as sio.Reader.
 type Query struct {
 	zbuf.Puller
 	rctx  *runtime.Context
@@ -25,7 +25,7 @@ func NewQuery(rctx *runtime.Context, puller zbuf.Puller, meter zbuf.Meter) *Quer
 	}
 }
 
-func (q *Query) AsReader() zio.Reader {
+func (q *Query) AsReader() sio.Reader {
 	return zbuf.PullerReader(q)
 }
 

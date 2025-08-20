@@ -2,7 +2,7 @@ package zbuf
 
 import (
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/sio"
 )
 
 func Label(label string, batch Batch) Batch {
@@ -34,7 +34,7 @@ func (*EndOfChannel) Ref()                  {}
 func (*EndOfChannel) Unref()                {}
 func (*EndOfChannel) Values() []super.Value { return nil }
 
-func CopyMux(outputs map[string]zio.WriteCloser, parent Puller) error {
+func CopyMux(outputs map[string]sio.WriteCloser, parent Puller) error {
 	for {
 		batch, err := parent.Pull(false)
 		if batch == nil || err != nil {

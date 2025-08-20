@@ -3,16 +3,16 @@ package zbuf
 import (
 	"io"
 
-	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/sio"
 )
 
 type File struct {
-	zio.Reader
+	sio.Reader
 	c    io.Closer
 	name string
 }
 
-func NewFile(r zio.Reader, c io.Closer, name string) *File {
+func NewFile(r sio.Reader, c io.Closer, name string) *File {
 	return &File{r, c, name}
 }
 

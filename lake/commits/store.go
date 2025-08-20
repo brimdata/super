@@ -13,8 +13,8 @@ import (
 	"github.com/brimdata/super/bsupbytes"
 	"github.com/brimdata/super/lake/data"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/bsupio"
+	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/bsupio"
 	arc "github.com/hashicorp/golang-lru/arc/v2"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
@@ -276,7 +276,7 @@ func (s *Store) OpenAsBSUP(ctx context.Context, sctx *super.Context, commit, sto
 	return bsupio.NewReader(sctx, r), nil
 }
 
-func (s *Store) OpenCommitLog(ctx context.Context, sctx *super.Context, commit, stop ksuid.KSUID) zio.Reader {
+func (s *Store) OpenCommitLog(ctx context.Context, sctx *super.Context, commit, stop ksuid.KSUID) sio.Reader {
 	return newLogReader(ctx, sctx, s, commit, stop)
 }
 

@@ -6,8 +6,8 @@ import (
 	"reflect"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/jsupio"
+	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/jsupio"
 )
 
 type JSUPWriter struct {
@@ -20,7 +20,7 @@ var _ controlWriter = (*JSUPWriter)(nil)
 func NewJSUPWriter(w io.Writer) *JSUPWriter {
 	return &JSUPWriter{
 		encoder: json.NewEncoder(w),
-		writer:  jsupio.NewWriter(zio.NopCloser(w)),
+		writer:  jsupio.NewWriter(sio.NopCloser(w)),
 	}
 }
 

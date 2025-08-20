@@ -12,8 +12,8 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/op/merge"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/supio"
+	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/supio"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -106,7 +106,7 @@ func TestParallelOrder(t *testing.T) {
 			om := merge.New(context.Background(), parents, cmp, expr.Resetters{})
 
 			var sb strings.Builder
-			err := zbuf.CopyPuller(supio.NewWriter(zio.NopCloser(&sb), supio.WriterOpts{}), om)
+			err := zbuf.CopyPuller(supio.NewWriter(sio.NopCloser(&sb), supio.WriterOpts{}), om)
 			require.NoError(t, err)
 			assert.Equal(t, c.exp, "\n"+sb.String())
 		})

@@ -13,7 +13,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/zio/bsupio"
+	"github.com/brimdata/super/sio/bsupio"
 )
 
 const ext = "bsup"

@@ -8,12 +8,12 @@ import (
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/lakeparse"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/sio"
 	"github.com/segmentio/ksuid"
 )
 
 type Compiler interface {
-	NewQuery(*Context, *parser.AST, []zio.Reader, int) (Query, error)
+	NewQuery(*Context, *parser.AST, []sio.Reader, int) (Query, error)
 	NewLakeDeleteQuery(*Context, *parser.AST, *lakeparse.Commitish) (DeleteQuery, error)
 }
 
@@ -29,7 +29,7 @@ type DeleteQuery interface {
 	DeletionSet() []ksuid.KSUID
 }
 
-func CompileQuery(ctx context.Context, sctx *super.Context, c Compiler, ast *parser.AST, readers []zio.Reader) (Query, error) {
+func CompileQuery(ctx context.Context, sctx *super.Context, c Compiler, ast *parser.AST, readers []sio.Reader) (Query, error) {
 	rctx := NewContext(ctx, sctx)
 	q, err := c.NewQuery(rctx, ast, readers, 0)
 	if err != nil {

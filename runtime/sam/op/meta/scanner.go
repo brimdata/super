@@ -11,7 +11,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/sio"
 	"github.com/segmentio/ksuid"
 )
 
@@ -111,7 +111,7 @@ func NewCommitMetaScanner(ctx context.Context, sctx *super.Context, r *lake.Root
 	}
 }
 
-func objectReader(sctx *super.Context, snap commits.View, order order.Which) (zio.Reader, error) {
+func objectReader(sctx *super.Context, snap commits.View, order order.Which) (sio.Reader, error) {
 	objects := snap.Select(nil, order)
 	m := sup.NewBSUPMarshalerWithContext(sctx)
 	m.Decorate(sup.StylePackage)

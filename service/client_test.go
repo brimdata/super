@@ -15,9 +15,9 @@ import (
 	"github.com/brimdata/super/lake/pools"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/bsupio"
-	"github.com/brimdata/super/zio/supio"
+	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/bsupio"
+	"github.com/brimdata/super/sio/supio"
 	"github.com/segmentio/ksuid"
 	"github.com/stretchr/testify/require"
 )
@@ -86,8 +86,8 @@ func (c *testClient) TestQuery(query string) string {
 	zr := bsupio.NewReader(super.NewContext(), r.Body)
 	defer zr.Close()
 	var buf bytes.Buffer
-	zw := supio.NewWriter(zio.NopCloser(&buf), supio.WriterOpts{})
-	require.NoError(c, zio.Copy(zw, zr))
+	zw := supio.NewWriter(sio.NopCloser(&buf), supio.WriterOpts{})
+	require.NoError(c, sio.Copy(zw, zr))
 	return buf.String()
 }
 

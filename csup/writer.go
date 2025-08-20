@@ -7,20 +7,20 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/bsupio"
+	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/bsupio"
 )
 
 var maxObjectSize uint32 = 120_000
 
-// Writer implements the zio.Writer interface. A Writer creates a vector
+// Writer implements the sio.Writer interface. A Writer creates a vector
 // CSUP object from a stream of super.Records.
 type Writer struct {
 	writer  io.WriteCloser
 	dynamic *DynamicEncoder
 }
 
-var _ zio.Writer = (*Writer)(nil)
+var _ sio.Writer = (*Writer)(nil)
 
 func NewWriter(w io.WriteCloser) *Writer {
 	return &Writer{
@@ -53,7 +53,7 @@ func (w *Writer) finalizeObject() error {
 	// At this point all the vector data has been written out
 	// to the underlying spiller, so we start writing BSUP at this point.
 	var metaBuf bytes.Buffer
-	zw := bsupio.NewWriter(zio.NopCloser(&metaBuf))
+	zw := bsupio.NewWriter(sio.NopCloser(&metaBuf))
 	// First, we write the root segmap of the vector of integer type IDs.
 	cctx := w.dynamic.cctx
 	m := sup.NewBSUPMarshalerWithContext(cctx.local)

@@ -10,7 +10,7 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zio/csupio"
+	"github.com/brimdata/super/sio/csupio"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

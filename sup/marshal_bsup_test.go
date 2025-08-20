@@ -11,8 +11,8 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/bsupio"
+	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/bsupio"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/x448/float16"
@@ -22,7 +22,7 @@ func boomerang(t *testing.T, in any, out any) {
 	rec, err := sup.NewBSUPMarshaler().Marshal(in)
 	require.NoError(t, err)
 	var buf bytes.Buffer
-	zw := bsupio.NewWriter(zio.NopCloser(&buf))
+	zw := bsupio.NewWriter(sio.NopCloser(&buf))
 	err = zw.Write(rec)
 	require.NoError(t, err)
 	require.NoError(t, zw.Close())

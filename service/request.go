@@ -22,8 +22,8 @@ import (
 	"github.com/brimdata/super/lakeparse"
 	"github.com/brimdata/super/service/srverr"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zio"
-	"github.com/brimdata/super/zio/anyio"
+	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/anyio"
 	"github.com/gorilla/mux"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
@@ -216,7 +216,7 @@ type ResponseWriter struct {
 	http.ResponseWriter
 	Format    string
 	Logger    *zap.Logger
-	zw        zio.WriteCloser
+	zw        sio.WriteCloser
 	marshaler *sup.MarshalBSUPContext
 	request   *Request
 	written   int32
@@ -226,7 +226,7 @@ func (w *ResponseWriter) ContentType() string {
 	return w.Header().Get("Content-Type")
 }
 
-func (w *ResponseWriter) ZioWriter() zio.WriteCloser {
+func (w *ResponseWriter) ZioWriter() sio.WriteCloser {
 	if w.zw == nil {
 		typ, err := api.FormatToMediaType(w.Format)
 		if err != nil {
@@ -234,7 +234,7 @@ func (w *ResponseWriter) ZioWriter() zio.WriteCloser {
 			return nil
 		}
 		w.Header().Set("Content-Type", typ)
-		w.zw, err = anyio.NewWriter(zio.NopCloser(w), anyio.WriterOpts{Format: w.Format})
+		w.zw, err = anyio.NewWriter(sio.NopCloser(w), anyio.WriterOpts{Format: w.Format})
 		if err != nil {
 			w.Error(err)
 			return nil

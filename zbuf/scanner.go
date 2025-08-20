@@ -8,7 +8,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/zio"
+	"github.com/brimdata/super/sio"
 )
 
 type Pushdown interface {
@@ -76,7 +76,7 @@ func (p *Progress) Progress() Progress {
 // NewScanner returns a Scanner for r that filters records by filterExpr and s.
 // If r implements fmt.Stringer, the scanner reports errors using a prefix of the
 // string returned by its String method.
-func NewScanner(ctx context.Context, r zio.Reader, filterExpr Pushdown) (Scanner, error) {
+func NewScanner(ctx context.Context, r sio.Reader, filterExpr Pushdown) (Scanner, error) {
 	s, err := newScanner(ctx, r, filterExpr)
 	if err != nil {
 		return nil, err
@@ -87,7 +87,7 @@ func NewScanner(ctx context.Context, r zio.Reader, filterExpr Pushdown) (Scanner
 	return s, nil
 }
 
-func newScanner(ctx context.Context, r zio.Reader, filterExpr Pushdown) (Scanner, error) {
+func newScanner(ctx context.Context, r sio.Reader, filterExpr Pushdown) (Scanner, error) {
 	var sa ScannerAble
 	if zf, ok := r.(*File); ok {
 		sa, _ = zf.Reader.(ScannerAble)
@@ -111,7 +111,7 @@ func newScanner(ctx context.Context, r zio.Reader, filterExpr Pushdown) (Scanner
 
 type scanner struct {
 	Puller
-	reader   zio.Reader
+	reader   sio.Reader
 	filter   expr.Evaluator
 	ctx      context.Context
 	progress Progress
