@@ -22,9 +22,9 @@ import (
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/expr/function"
-	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/parquetio"
+	"github.com/brimdata/super/sup"
 	"github.com/segmentio/ksuid"
 )
 

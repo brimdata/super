@@ -14,8 +14,8 @@ import (
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
-	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/zbuf"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 )

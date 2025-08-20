@@ -14,10 +14,10 @@ import (
 	"github.com/brimdata/super/lake/branches"
 	"github.com/brimdata/super/lake/pools"
 	"github.com/brimdata/super/runtime/exec"
-	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/supio"
+	"github.com/brimdata/super/sup"
 	"github.com/segmentio/ksuid"
 	"github.com/stretchr/testify/require"
 )

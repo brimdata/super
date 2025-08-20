@@ -12,11 +12,11 @@ import (
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/pkg/terminal"
 	"github.com/brimdata/super/pkg/terminal/color"
-	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/emitter"
+	"github.com/brimdata/super/zbuf"
 )
 
 type Flags struct {

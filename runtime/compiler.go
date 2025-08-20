@@ -7,8 +7,8 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/lakeparse"
-	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/zbuf"
 	"github.com/segmentio/ksuid"
 )
 

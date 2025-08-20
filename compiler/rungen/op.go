@@ -43,10 +43,10 @@ import (
 	"github.com/brimdata/super/runtime/vam"
 	vamexpr "github.com/brimdata/super/runtime/vam/expr"
 	vamop "github.com/brimdata/super/runtime/vam/op"
+	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/sio"
 	"github.com/segmentio/ksuid"
 )
 

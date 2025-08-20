@@ -12,9 +12,9 @@ import (
 	"github.com/brimdata/super/cmd/super/root"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/supio"
+	"github.com/brimdata/super/zbuf"
 )
 
 var Spec = &charm.Spec{

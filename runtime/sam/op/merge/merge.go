@@ -8,8 +8,8 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/op"
-	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/zbuf"
 )
 
 // Proc merges multiple upstream Pullers into one downstream Puller.

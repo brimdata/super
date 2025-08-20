@@ -6,10 +6,10 @@ import (
 
 	"github.com/brimdata/super/api"
 	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
 	"github.com/brimdata/super/sio/jsonio"
+	"github.com/brimdata/super/zbuf"
 )
 
 type controlWriter interface {

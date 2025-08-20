@@ -26,11 +26,11 @@ import (
 	"github.com/brimdata/super/runtime/sam/op"
 	"github.com/brimdata/super/service/auth"
 	"github.com/brimdata/super/service/srverr"
-	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/csvio"
+	"github.com/brimdata/super/zbuf"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 )

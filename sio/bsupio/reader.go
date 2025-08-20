@@ -8,8 +8,8 @@ import (
 	"runtime"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/zbuf"
 )
 
 const (

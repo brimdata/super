@@ -8,8 +8,8 @@ import (
 	"github.com/brimdata/super/lake/data"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/zbuf"
 	"github.com/segmentio/ksuid"
 	"golang.org/x/sync/errgroup"
 )

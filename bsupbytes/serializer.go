@@ -3,9 +3,9 @@ package bsupbytes
 import (
 	"bytes"
 
-	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
+	"github.com/brimdata/super/sup"
 )
 
 type Serializer struct {

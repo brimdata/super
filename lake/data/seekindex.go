@@ -8,9 +8,9 @@ import (
 	"github.com/brimdata/super/lake/seekindex"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime/sam/expr"
+	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/sio/bsupio"
 )
 
 func LookupSeekRange(ctx context.Context, engine storage.Engine, path *storage.URI,

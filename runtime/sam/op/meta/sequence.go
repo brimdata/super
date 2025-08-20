@@ -12,10 +12,10 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/op/merge"
+	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/sio/bsupio"
 )
 
 // SequenceScanner implements an op that pulls metadata partitions to scan

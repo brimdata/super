@@ -14,9 +14,9 @@ import (
 	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
+	"github.com/brimdata/super/sup"
 )
 
 var spec = &charm.Spec{

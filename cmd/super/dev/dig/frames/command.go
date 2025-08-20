@@ -13,9 +13,9 @@ import (
 	"github.com/brimdata/super/cmd/super/dev/dig"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
+	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zcode"
-	"github.com/brimdata/super/sio"
 )
 
 var Frames = &charm.Spec{

@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/supio"
+	"github.com/brimdata/super/sup"
 )
 
 type BSUPWriter struct {

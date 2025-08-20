@@ -13,9 +13,9 @@ import (
 	"github.com/brimdata/super/lakeparse"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
+	"github.com/brimdata/super/zbuf"
 	"github.com/segmentio/ksuid"
 )
 

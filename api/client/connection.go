@@ -20,8 +20,8 @@ import (
 	"github.com/brimdata/super/lake"
 	"github.com/brimdata/super/lake/branches"
 	"github.com/brimdata/super/runtime/exec"
-	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/sio/bsupio"
+	"github.com/brimdata/super/sup"
 	"github.com/segmentio/ksuid"
 )
 

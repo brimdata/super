@@ -4,8 +4,8 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/sio/bsupio"
+	"github.com/brimdata/super/sup"
 )
 
 type Deserializer struct {

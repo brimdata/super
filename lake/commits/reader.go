@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sup"
 	"github.com/segmentio/ksuid"
 )
 

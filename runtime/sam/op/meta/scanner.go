@@ -9,9 +9,9 @@ import (
 	"github.com/brimdata/super/lake/commits"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime/sam/expr"
+	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/sio"
 	"github.com/segmentio/ksuid"
 )
 

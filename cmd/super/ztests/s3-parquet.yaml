@@ -7,7 +7,7 @@ inputs:
   - name: minio.sh
     source: ../../../testdata/minio.sh
   - name: dns.parquet
-    source: ../../../zio/parquetio/ztests/dns.parquet
+    source: ../../../sio/parquetio/ztests/dns.parquet
 
 outputs:
   - name: stdout

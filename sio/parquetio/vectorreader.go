@@ -18,10 +18,10 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/byteconv"
 	"github.com/brimdata/super/runtime/sam/expr"
+	"github.com/brimdata/super/sio/arrowio"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/bitvec"
 	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/sio/arrowio"
 	"golang.org/x/exp/constraints"
 )
 
