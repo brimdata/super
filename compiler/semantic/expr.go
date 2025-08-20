@@ -50,22 +50,9 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 		val := a.semExpr(e.Expr)
 		lower := a.semExpr(e.Lower)
 		upper := a.semExpr(e.Upper)
-		expr := &dag.BinaryExpr{
-			Kind: "BinaryExpr",
-			Op:   "and",
-			LHS: &dag.BinaryExpr{
-				Kind: "BinaryExpr",
-				Op:   ">=",
-				LHS:  val,
-				RHS:  lower,
-			},
-			RHS: &dag.BinaryExpr{
-				Kind: "BinaryExpr",
-				Op:   "<=",
-				LHS:  val,
-				RHS:  upper,
-			},
-		}
+		expr := dag.NewBinaryExpr("and",
+			dag.NewBinaryExpr(">=", val, lower),
+			dag.NewBinaryExpr("<=", val, upper))
 		if e.Not {
 			return dag.NewUnaryExpr("!", expr)
 		}
@@ -427,12 +414,9 @@ func (a *analyzer) semExists(e *ast.Exists) dag.Expr {
 	q := a.semSubquery(e.Body)
 	// Append collect(this) to ensure array of results is returned.
 	q.Body = appendCollect(append(q.Body, &dag.Head{Kind: "Head", Count: 1}))
-	return &dag.BinaryExpr{
-		Kind: "BinaryExpr",
-		Op:   ">",
-		LHS:  &dag.Call{Kind: "Call", Name: "len", Args: []dag.Expr{q}},
-		RHS:  &dag.Literal{Kind: "Literal", Value: "0"},
-	}
+	return dag.NewBinaryExpr(">",
+		&dag.Call{Kind: "Call", Name: "len", Args: []dag.Expr{q}},
+		&dag.Literal{Kind: "Literal", Value: "0"})
 }
 
 func appendCollect(body dag.Seq) dag.Seq {
@@ -558,8 +542,7 @@ func (a *analyzer) semBinary(e *ast.BinaryExpr) dag.Expr {
 	case "||":
 		op = "+"
 	case "not in":
-		expr := &dag.BinaryExpr{Kind: "BinaryExpr", Op: "in", LHS: lhs, RHS: rhs}
-		return dag.NewUnaryExpr("!", expr)
+		return dag.NewUnaryExpr("!", dag.NewBinaryExpr("in", lhs, rhs))
 	case "::":
 		return &dag.Call{
 			Kind: "Call",
@@ -567,12 +550,7 @@ func (a *analyzer) semBinary(e *ast.BinaryExpr) dag.Expr {
 			Args: []dag.Expr{lhs, rhs},
 		}
 	}
-	return &dag.BinaryExpr{
-		Kind: "BinaryExpr",
-		Op:   op,
-		LHS:  lhs,
-		RHS:  rhs,
-	}
+	return dag.NewBinaryExpr(op, lhs, rhs)
 }
 
 func (a *analyzer) isIndexOfThis(lhs, rhs dag.Expr) *dag.This {
@@ -635,12 +613,7 @@ func (a *analyzer) semCaseExpr(c *ast.CaseExpr) dag.Expr {
 		when := c.Whens[i]
 		out = &dag.Conditional{
 			Kind: "Conditional",
-			Cond: &dag.BinaryExpr{
-				Kind: "BinaryExpr",
-				Op:   "==",
-				LHS:  dag.CopyExpr(e),
-				RHS:  a.semExpr(when.Cond),
-			},
+			Cond: dag.NewBinaryExpr("==", dag.CopyExpr(e), a.semExpr(when.Cond)),
 			Then: a.semExpr(when.Then),
 			Else: out,
 		}
@@ -1013,7 +986,7 @@ func (a *analyzer) semFString(f *ast.FString) dag.Expr {
 			out = e
 			continue
 		}
-		out = &dag.BinaryExpr{Kind: "BinaryExpr", LHS: out, Op: "+", RHS: e}
+		out = dag.NewBinaryExpr("+", out, e)
 	}
 	return out
 }
