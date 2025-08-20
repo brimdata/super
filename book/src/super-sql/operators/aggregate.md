@@ -69,7 +69,7 @@ and the results merged into final results using an external merge sort.
 
 ---
 
-Average the input sequence:
+_Average the input sequence_
 ```mdtest-spq
 # spq
 aggregate avg(this)
@@ -84,8 +84,8 @@ aggregate avg(this)
 
 ---
 
-To format the output of a single-valued aggregation into a record, simply specify
-an explicit field for the output:
+_To format the output of a single-valued aggregation into a record, simply specify
+an explicit field for the output_
 ```mdtest-spq
 # spq
 aggregate mean:=avg(this)
@@ -100,8 +100,8 @@ aggregate mean:=avg(this)
 
 ---
 
-When multiple aggregate functions are specified, even without explicit field names,
-a record result is generated with field names implied by the functions:
+_When multiple aggregate functions are specified, even without explicit field names,
+a record result is generated with field names implied by the functions_
 ```mdtest-spq
 # spq
 aggregate avg(this),sum(this),count()
@@ -116,7 +116,7 @@ aggregate avg(this),sum(this),count()
 
 ---
 
-Sum the input sequence, leaving out the `aggregate` keyword:
+_Sum the input sequence, leaving out the `aggregate` keyword_
 ```mdtest-spq
 # spq
 sum(this)
@@ -131,7 +131,7 @@ sum(this)
 
 ---
 
-Create integer sets by key and sort the output to get a deterministic order:
+_Create integer sets by key and sort the output to get a deterministic order_
 ```mdtest-spq
 # spq
 set:=union(v) by key:=k | sort
@@ -148,7 +148,7 @@ set:=union(v) by key:=k | sort
 
 ---
 
-Use a `where` clause:
+_Use a `where` clause_
 ```mdtest-spq
 # spq
 set:=union(v) where v > 1 by key:=k | sort
@@ -165,7 +165,7 @@ set:=union(v) where v > 1 by key:=k | sort
 
 ---
 
-Use a separate `where` clause on each aggregate function:
+_Use a separate `where` clause on each aggregate function_
 ```mdtest-spq
 # spq
 set:=union(v) where v > 1,
@@ -185,8 +185,8 @@ array:=collect(v) where k=="foo"
 
 ---
 
-Results are included for `by` groupings that generate null results when `where`
-clauses are used inside `aggregate`:
+_Results are included for `by` groupings that generate null results when `where`
+clauses are used inside `aggregate`_
 ```mdtest-spq
 # spq
 sum(v) where k=="bar" by key:=k | sort
@@ -203,7 +203,7 @@ sum(v) where k=="bar" by key:=k | sort
 
 ---
 
-To avoid null results for `by` groupings as just shown, filter before `aggregate`:
+_To avoid null results for `by` groupings as just shown, filter before `aggregate`_
 ```mdtest-spq
 # spq
 k=="bar" | sum(v) by key:=k | sort
@@ -218,7 +218,7 @@ k=="bar" | sum(v) by key:=k | sort
 
 ---
 
-Output just the unique key values:
+_Output just the unique key values_
 ```mdtest-spq
 # spq
 by k | sort

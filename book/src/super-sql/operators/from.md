@@ -44,7 +44,7 @@ When `from` references a file or URL entity whose name ends in a
 (e.g., `.json`, `.sup`, etc.), auto-detection is disabled and the
 format is implied by the extension name.
 
-#### File-system Operation
+#### File-System Operation
 
 When running detached from a database, the target of `from`
 is either a
@@ -52,7 +52,7 @@ is either a
 or a file system [glob](../patterns.md#glob).
 
 If a text entity is parseable as an HTTP or HTTPS URL,
-then the target is presumed to be an [URL](#url) and is processed
+then the target is presumed to be a [URL](#url) and is processed
 accordingly.  Otherwise, the target is assumed to be a file
 in the file system whose path is relative to the directory
 in which the `super` command is running.
@@ -77,7 +77,7 @@ or a [regular expression](../patterns.md#regular-expression)
 or [glob](../patterns.md#glob) that matches pool names.
 
 If a text entity is parseable as an HTTP or HTTPS URL,
-then the target is presumed to be an [URL](#url) and is processed
+then the target is presumed to be a [URL](#url) and is processed
 accordingly.  Otherwise, the target is assumed to be the name
 of a pool in the attached database.
 
