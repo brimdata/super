@@ -9,7 +9,7 @@ import (
 	"github.com/brimdata/super/lake/commits"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/op/meta"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 	"github.com/segmentio/ksuid"
 )
 
@@ -39,7 +39,7 @@ func Compact(ctx context.Context, lk *lake.Root, pool *lake.Pool, branchName str
 	slicer := meta.NewSlicer(lister, sctx)
 	puller := meta.NewSequenceScanner(rctx, slicer, pool, nil, nil, nil)
 	w := lake.NewSortedWriter(ctx, sctx, pool, writeVectors)
-	if err := zbuf.CopyPuller(w, puller); err != nil {
+	if err := sbuf.CopyPuller(w, puller); err != nil {
 		puller.Pull(true)
 		w.Abort()
 		return ksuid.Nil, err

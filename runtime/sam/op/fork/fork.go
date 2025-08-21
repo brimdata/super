@@ -3,19 +3,19 @@ package fork
 import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/op"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 )
 
 type Op struct {
 	router *op.Router
-	exits  []zbuf.Puller
+	exits  []sbuf.Puller
 }
 
-func New(rctx *runtime.Context, parent zbuf.Puller) *Op {
+func New(rctx *runtime.Context, parent sbuf.Puller) *Op {
 	return &Op{router: op.NewRouter(rctx, parent)}
 }
 
-func (o *Op) AddExit() zbuf.Puller {
+func (o *Op) AddExit() sbuf.Puller {
 	exit := o.router.AddRoute()
 	o.exits = append(o.exits, exit)
 	// Calling Link repeatedly is safe.
@@ -25,12 +25,12 @@ func (o *Op) AddExit() zbuf.Puller {
 
 // A splitter splits its input into multiple output operators by implementing
 // op.Selector and selecting all downstream legs of the flowgraph.
-type splitter []zbuf.Puller
+type splitter []sbuf.Puller
 
 var _ op.Selector = (*splitter)(nil)
 
 // Forward copies every batch to every output thus implementing fork.
-func (s splitter) Forward(r *op.Router, b zbuf.Batch) bool {
+func (s splitter) Forward(r *op.Router, b sbuf.Batch) bool {
 	for _, exit := range s {
 		b.Ref()
 		if ok := r.Send(exit, b, nil); !ok {

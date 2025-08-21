@@ -22,11 +22,11 @@ import (
 	"github.com/brimdata/super/pkg/storage/mock"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/csupio"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zcode"
 	"github.com/stretchr/testify/require"
 	"github.com/x448/float16"
@@ -38,7 +38,7 @@ func ReadBSUP(bs []byte) ([]super.Value, error) {
 	context := super.NewContext()
 	reader := bsupio.NewReader(context, bytesReader)
 	defer reader.Close()
-	var a zbuf.Array
+	var a sbuf.Array
 	err := sio.Copy(&a, reader)
 	if err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ func ReadCSUP(bs []byte, fields []field.Path) ([]super.Value, error) {
 	if err != nil {
 		return nil, err
 	}
-	var a zbuf.Array
+	var a sbuf.Array
 	err = sio.Copy(&a, reader)
 	if err != nil {
 		return nil, err
@@ -63,13 +63,13 @@ func ReadCSUP(bs []byte, fields []field.Path) ([]super.Value, error) {
 
 func WriteBSUP(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
 	writer := bsupio.NewWriter(sio.NopCloser(buf))
-	require.NoError(t, sio.Copy(writer, zbuf.NewArray(valuesIn)))
+	require.NoError(t, sio.Copy(writer, sbuf.NewArray(valuesIn)))
 	require.NoError(t, writer.Close())
 }
 
 func WriteCSUP(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
 	writer := csupio.NewWriter(sio.NopCloser(buf))
-	require.NoError(t, sio.Copy(writer, zbuf.NewArray(valuesIn)))
+	require.NoError(t, sio.Copy(writer, sbuf.NewArray(valuesIn)))
 	require.NoError(t, writer.Close())
 }
 

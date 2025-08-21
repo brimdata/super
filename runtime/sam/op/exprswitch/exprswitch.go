@@ -5,7 +5,7 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/op"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 )
 
 type ExprSwitch struct {
@@ -19,11 +19,11 @@ type ExprSwitch struct {
 var _ op.Selector = (*ExprSwitch)(nil)
 
 type switchCase struct {
-	route zbuf.Puller
+	route sbuf.Puller
 	vals  []super.Value
 }
 
-func New(rctx *runtime.Context, parent zbuf.Puller, e expr.Evaluator, resetter expr.Resetter) *ExprSwitch {
+func New(rctx *runtime.Context, parent sbuf.Puller, e expr.Evaluator, resetter expr.Resetter) *ExprSwitch {
 	router := op.NewRouter(rctx, parent)
 	s := &ExprSwitch{
 		Router:   router,
@@ -35,7 +35,7 @@ func New(rctx *runtime.Context, parent zbuf.Puller, e expr.Evaluator, resetter e
 	return s
 }
 
-func (s *ExprSwitch) AddCase(val *super.Value) zbuf.Puller {
+func (s *ExprSwitch) AddCase(val *super.Value) sbuf.Puller {
 	route := s.Router.AddRoute()
 	if val == nil {
 		s.defaultCase = &switchCase{route: route}
@@ -45,7 +45,7 @@ func (s *ExprSwitch) AddCase(val *super.Value) zbuf.Puller {
 	return route
 }
 
-func (s *ExprSwitch) Forward(router *op.Router, batch zbuf.Batch) bool {
+func (s *ExprSwitch) Forward(router *op.Router, batch sbuf.Batch) bool {
 	vals := batch.Values()
 	for i := range vals {
 		val := s.expr.Eval(vals[i])
@@ -70,7 +70,7 @@ func (s *ExprSwitch) Forward(router *op.Router, batch zbuf.Batch) bool {
 			// outgoing batch so we don't send these slices
 			// through GC.
 			batch.Ref()
-			out := zbuf.NewBatch(c.vals)
+			out := sbuf.NewBatch(c.vals)
 			c.vals = nil
 			if ok := router.Send(c.route, out, nil); !ok {
 				return false
@@ -79,7 +79,7 @@ func (s *ExprSwitch) Forward(router *op.Router, batch zbuf.Batch) bool {
 	}
 	if c := s.defaultCase; c != nil && len(c.vals) > 0 {
 		batch.Ref()
-		out := zbuf.NewArray(c.vals)
+		out := sbuf.NewArray(c.vals)
 		c.vals = nil
 		if ok := router.Send(c.route, out, nil); !ok {
 			return false

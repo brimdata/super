@@ -5,13 +5,13 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/zcode"
 )
 
 type Op struct {
 	rctx    *runtime.Context
-	parent  zbuf.Puller
+	parent  sbuf.Puller
 	builder zcode.Builder
 	cflag   bool
 	count   uint64
@@ -19,7 +19,7 @@ type Op struct {
 	eos     bool
 }
 
-func New(rctx *runtime.Context, parent zbuf.Puller, cflag bool) *Op {
+func New(rctx *runtime.Context, parent sbuf.Puller, cflag bool) *Op {
 	return &Op{
 		rctx:   rctx,
 		parent: parent,
@@ -58,7 +58,7 @@ func (o *Op) appendUniq(out []super.Value, t *super.Value) []super.Value {
 
 // uniq is a little bit complicated because we have to check uniqueness
 // across records between calls to Pull.
-func (o *Op) Pull(done bool) (zbuf.Batch, error) {
+func (o *Op) Pull(done bool) (sbuf.Batch, error) {
 	if o.eos {
 		o.eos = false
 		return nil, nil
@@ -75,7 +75,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 			o.eos = true
 			t := o.wrap(o.last)
 			o.last = nil
-			return zbuf.NewArray([]super.Value{t}), nil
+			return sbuf.NewArray([]super.Value{t}), nil
 		}
 		var out []super.Value
 		vals := batch.Values()
@@ -84,7 +84,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 		}
 		batch.Unref()
 		if len(out) > 0 {
-			return zbuf.NewArray(out), nil
+			return sbuf.NewArray(out), nil
 		}
 	}
 }

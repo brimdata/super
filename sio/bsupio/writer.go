@@ -148,15 +148,15 @@ func (w *Writer) writeBlock(blockType int, b []byte) error {
 		return nil
 	}
 	if w.compressor != nil {
-		zbuf, err := w.compressor.compress(b)
+		sbuf, err := w.compressor.compress(b)
 		if err != nil {
 			return err
 		}
-		if zbuf != nil {
-			if err := w.writeCompHeader(blockType, len(b), len(zbuf)); err != nil {
+		if sbuf != nil {
+			if err := w.writeCompHeader(blockType, len(b), len(sbuf)); err != nil {
 				return err
 			}
-			return w.write(zbuf)
+			return w.write(sbuf)
 		}
 	}
 	if err := w.writeHeader(blockType, len(b)); err != nil {
@@ -184,16 +184,16 @@ func (w *Writer) writeCompHeader(blockType, size, zlen int) error {
 
 type compressor struct {
 	compressor lz4.Compressor
-	zbuf       []byte
+	sbuf       []byte
 }
 
 func (c *compressor) compress(b []byte) ([]byte, error) {
 	if c == nil || len(b) == 0 {
 		return nil, nil
 	}
-	c.zbuf = slices.Grow(c.zbuf[:0], len(b))
-	zbuf := c.zbuf[:len(b)]
-	zlen, err := c.compressor.CompressBlock(b, zbuf)
+	c.sbuf = slices.Grow(c.sbuf[:0], len(b))
+	sbuf := c.sbuf[:len(b)]
+	zlen, err := c.compressor.CompressBlock(b, sbuf)
 	if err != nil && err != lz4.ErrInvalidSourceShortBuffer {
 		return nil, err
 	}
@@ -201,7 +201,7 @@ func (c *compressor) compress(b []byte) ([]byte, error) {
 		// Compression succeeded and the compressed value message block
 		// is smaller than the buffered messages, so write the
 		// compressed value message block.
-		return zbuf[:zlen], nil
+		return sbuf[:zlen], nil
 	}
 	return nil, nil
 }

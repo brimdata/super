@@ -24,13 +24,13 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/runtime/sam/op"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/service/auth"
 	"github.com/brimdata/super/service/srverr"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/csvio"
-	"github.com/brimdata/super/zbuf"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 )
@@ -125,7 +125,7 @@ func handleQuery(c *Core, w *ResponseWriter, r *Request) {
 				}
 			}
 			if len(batch.Values()) == 0 {
-				if eoc, ok := batch.(*zbuf.EndOfChannel); ok {
+				if eoc, ok := batch.(*sbuf.EndOfChannel); ok {
 					if err := writer.WhiteChannelEnd(string(*eoc)); err != nil {
 						w.Logger.Warn("Error writing channel end", zap.Error(err))
 						handleError(err)
@@ -135,7 +135,7 @@ func handleQuery(c *Core, w *ResponseWriter, r *Request) {
 				continue
 			}
 			var label string
-			batch, label = zbuf.Unlabel(batch)
+			batch, label = sbuf.Unlabel(batch)
 			if err := writer.WriteBatch(label, batch); err != nil {
 				w.Logger.Warn("Error writing batch", zap.Error(err))
 				handleError(err)

@@ -1,22 +1,22 @@
 package head
 
 import (
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 )
 
 type Op struct {
-	parent       zbuf.Puller
+	parent       sbuf.Puller
 	limit, count int
 }
 
-func New(parent zbuf.Puller, limit int) *Op {
+func New(parent sbuf.Puller, limit int) *Op {
 	return &Op{
 		parent: parent,
 		limit:  limit,
 	}
 }
 
-func (o *Op) Pull(done bool) (zbuf.Batch, error) {
+func (o *Op) Pull(done bool) (sbuf.Batch, error) {
 	if o.count >= o.limit {
 		// If we are at limit we already sent a done upstream,
 		// so for either sense of the done flag, we return EOS
@@ -61,5 +61,5 @@ again:
 		return nil, err
 	}
 	o.count = o.limit
-	return zbuf.NewBatch(vals[:remaining]), nil
+	return sbuf.NewBatch(vals[:remaining]), nil
 }

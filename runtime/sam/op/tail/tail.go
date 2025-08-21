@@ -3,18 +3,18 @@ package tail
 import (
 	"slices"
 
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 )
 
 type Op struct {
-	parent zbuf.Puller
+	parent sbuf.Puller
 	limit  int
 
-	batches []zbuf.Batch
+	batches []sbuf.Batch
 	eos     bool
 }
 
-func New(parent zbuf.Puller, limit int) *Op {
+func New(parent sbuf.Puller, limit int) *Op {
 	//XXX should have a limit check on limit
 	return &Op{
 		parent: parent,
@@ -22,7 +22,7 @@ func New(parent zbuf.Puller, limit int) *Op {
 	}
 }
 
-func (o *Op) Pull(done bool) (zbuf.Batch, error) {
+func (o *Op) Pull(done bool) (sbuf.Batch, error) {
 	if o.eos {
 		// We don't check done here because if we already got EOS,
 		// we don't propagate done.
@@ -52,8 +52,8 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 
 // tail pulls from o.parent until EOS and returns batches containing the
 // last o.limit values.
-func (o *Op) tail() ([]zbuf.Batch, error) {
-	var batches []zbuf.Batch
+func (o *Op) tail() ([]sbuf.Batch, error) {
+	var batches []sbuf.Batch
 	var n int
 	for {
 		batch, err := o.parent.Pull(false)
@@ -75,7 +75,7 @@ func (o *Op) tail() ([]zbuf.Batch, error) {
 	if n > o.limit {
 		// We have too many values so remove some from batches[0].
 		vals := batches[0].Values()[n-o.limit:]
-		batches[0] = zbuf.NewBatch(vals)
+		batches[0] = sbuf.NewBatch(vals)
 	}
 	return batches, nil
 }

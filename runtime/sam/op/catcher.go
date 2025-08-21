@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"runtime/debug"
 
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 )
 
 // Catcher wraps an Interface with a Pull method that recovers panics
@@ -12,14 +12,14 @@ import (
 // of a flowgraph and the top-level puller of any goroutine created inside
 // of a flowgraph.
 type Catcher struct {
-	parent zbuf.Puller
+	parent sbuf.Puller
 }
 
-func NewCatcher(parent zbuf.Puller) *Catcher {
+func NewCatcher(parent sbuf.Puller) *Catcher {
 	return &Catcher{parent}
 }
 
-func (c *Catcher) Pull(done bool) (b zbuf.Batch, err error) {
+func (c *Catcher) Pull(done bool) (b sbuf.Batch, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("panic: %+v\n%s\n", r, debug.Stack())

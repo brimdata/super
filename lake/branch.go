@@ -16,9 +16,9 @@ import (
 	"github.com/brimdata/super/pkg/plural"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zbuf"
 	"github.com/segmentio/ksuid"
 )
 
@@ -155,7 +155,7 @@ func (b *Branch) DeleteWhere(ctx context.Context, c runtime.Compiler, ast *parse
 		if err != nil {
 			return nil, err
 		}
-		err = zbuf.CopyPuller(w, query)
+		err = sbuf.CopyPuller(w, query)
 		if closeErr := w.Close(); err == nil {
 			err = closeErr
 		}

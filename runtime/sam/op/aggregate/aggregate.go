@@ -14,7 +14,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/op"
 	"github.com/brimdata/super/runtime/sam/op/spill"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/zcode"
 )
 
@@ -23,13 +23,13 @@ var DefaultLimit = 1000000
 // Proc computes aggregations using an Aggregator.
 type Op struct {
 	rctx     *runtime.Context
-	parent   zbuf.Puller
+	parent   sbuf.Puller
 	resetter expr.Resetter
 	agg      *Aggregator
 	once     sync.Once
 	resultCh chan op.Result
 	doneCh   chan struct{}
-	batch    zbuf.Batch
+	batch    sbuf.Batch
 }
 
 // Aggregator performs the core aggregation computation for a
@@ -113,7 +113,7 @@ func NewAggregator(ctx context.Context, sctx *super.Context, keyRefs, keyExprs, 
 	}, nil
 }
 
-func New(rctx *runtime.Context, parent zbuf.Puller, keys []expr.Assignment, aggNames field.List, aggs []*expr.Aggregator, limit int, inputSortDir order.Direction, partialsIn, partialsOut bool, resetter expr.Resetter) (*Op, error) {
+func New(rctx *runtime.Context, parent sbuf.Puller, keys []expr.Assignment, aggNames field.List, aggs []*expr.Aggregator, limit int, inputSortDir order.Direction, partialsIn, partialsOut bool, resetter expr.Resetter) (*Op, error) {
 	names := make(field.List, 0, len(keys)+len(aggNames))
 	for _, e := range keys {
 		p, ok := e.LHS.Path()
@@ -151,7 +151,7 @@ func New(rctx *runtime.Context, parent zbuf.Puller, keys []expr.Assignment, aggN
 	}, nil
 }
 
-func (o *Op) Pull(done bool) (zbuf.Batch, error) {
+func (o *Op) Pull(done bool) (sbuf.Batch, error) {
 	if done {
 		select {
 		case o.doneCh <- struct{}{}:
@@ -252,7 +252,7 @@ func (o *Op) run() {
 	}
 }
 
-func (o *Op) sendResult(b zbuf.Batch, err error) (bool, bool) {
+func (o *Op) sendResult(b sbuf.Batch, err error) (bool, bool) {
 	if b == nil {
 		// Reset stateful aggregation expressions on EOS.
 		o.resetter.Reset()
@@ -300,7 +300,7 @@ func (o *Op) reset() {
 }
 
 // Consume adds a value to an aggregation.
-func (a *Aggregator) Consume(batch zbuf.Batch, this super.Value) error {
+func (a *Aggregator) Consume(batch sbuf.Batch, this super.Value) error {
 	// See if we've encountered this row before.
 	// We compute a key for this row by exploiting the fact that
 	// a row key is uniquely determined by the inbound descriptor
@@ -368,7 +368,7 @@ func (a *Aggregator) Consume(batch zbuf.Batch, this super.Value) error {
 	return nil
 }
 
-func (a *Aggregator) spillTable(eof bool, ref zbuf.Batch) error {
+func (a *Aggregator) spillTable(eof bool, ref sbuf.Batch) error {
 	batch, err := a.readTable(true, true, ref)
 	if err != nil || batch == nil {
 		return err
@@ -414,7 +414,7 @@ func (a *Aggregator) updateMaxSpillKey(v super.Value) {
 // this should be called repeatedly until a nil batch is returned. If
 // the input is sorted in the primary key, Results can be called
 // before eof, and keys that are completed will returned.
-func (a *Aggregator) nextResult(eof bool, batch zbuf.Batch) (zbuf.Batch, error) {
+func (a *Aggregator) nextResult(eof bool, batch sbuf.Batch) (sbuf.Batch, error) {
 	if a.spiller == nil {
 		return a.readTable(eof, a.partialsOut, batch)
 	}
@@ -427,7 +427,7 @@ func (a *Aggregator) nextResult(eof bool, batch zbuf.Batch) (zbuf.Batch, error) 
 	return a.readSpills(eof, batch)
 }
 
-func (a *Aggregator) readSpills(eof bool, batch zbuf.Batch) (zbuf.Batch, error) {
+func (a *Aggregator) readSpills(eof bool, batch sbuf.Batch) (sbuf.Batch, error) {
 	recs := make([]super.Value, 0, op.BatchLen)
 	if !eof && a.inputDir == 0 {
 		return nil, nil
@@ -458,7 +458,7 @@ func (a *Aggregator) readSpills(eof bool, batch zbuf.Batch) (zbuf.Batch, error) 
 	if len(recs) == 0 {
 		return nil, nil
 	}
-	return zbuf.NewBatch(recs), nil
+	return sbuf.NewBatch(recs), nil
 }
 
 func (a *Aggregator) nextResultFromSpills() (*super.Value, error) {
@@ -523,7 +523,7 @@ func (a *Aggregator) nextResultFromSpills() (*super.Value, error) {
 // false and input is sorted only completed keys are returned.
 // If partialsOut is true, it returns partial aggregation results as
 // defined by each agg.Function.ResultAsPartial() method.
-func (a *Aggregator) readTable(flush, partialsOut bool, batch zbuf.Batch) (zbuf.Batch, error) {
+func (a *Aggregator) readTable(flush, partialsOut bool, batch sbuf.Batch) (sbuf.Batch, error) {
 	var recs []super.Value
 	for key, row := range a.table {
 		if !flush && a.valueCompare == nil {
@@ -576,7 +576,7 @@ func (a *Aggregator) readTable(flush, partialsOut bool, batch zbuf.Batch) (zbuf.
 	if len(recs) == 0 {
 		return nil, nil
 	}
-	return zbuf.NewBatch(recs), nil
+	return sbuf.NewBatch(recs), nil
 }
 
 func (a *Aggregator) lookupRecordType(types []super.Type) *super.TypeRecord {

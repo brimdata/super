@@ -7,7 +7,7 @@ import (
 	"slices"
 
 	"github.com/brimdata/super/pkg/peeker"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/zcode"
 )
 
@@ -99,7 +99,7 @@ func (p *parser) decodeValues(code byte) (frame, error) {
 }
 
 // decodeControl reads the next message frame as a control message and
-// returns it as *zbuf.Control, which implements error.  Errors are also
+// returns it as *sbuf.Control, which implements error.  Errors are also
 // return as error so reflection must be used to distringuish the cases.
 func (p *parser) decodeControl(code byte) error {
 	var bytes []byte
@@ -130,7 +130,7 @@ func (p *parser) decodeControl(code byte) error {
 	// sequence of control messages will be processed here by the scanner
 	// go-routine as the workers go idle.  However, this is not a critical
 	// performance path so we're not worried about parallelism here.
-	return &zbuf.Control{
+	return &sbuf.Control{
 		Message: &Control{
 			Format: int(bytes[0]),
 			Bytes:  bytes[1:],
@@ -189,7 +189,7 @@ func (p *parser) readCompressedFrame(code byte) (frame, error) {
 	}
 	return frame{
 		fmt:  CompressionFormat(format),
-		zbuf: newBufferFromBytes(b),
+		sbuf: newBufferFromBytes(b),
 		ubuf: newBuffer(size),
 	}, nil
 }

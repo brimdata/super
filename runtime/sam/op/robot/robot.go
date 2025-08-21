@@ -10,23 +10,23 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 )
 
 type Op struct {
-	parent   zbuf.Puller
+	parent   sbuf.Puller
 	rctx     *runtime.Context
 	env      *exec.Environment
 	expr     expr.Evaluator
-	pushdown zbuf.Pushdown
+	pushdown sbuf.Pushdown
 	format   string
-	batch    zbuf.Batch
+	batch    sbuf.Batch
 	off      int
-	src      zbuf.Puller
+	src      sbuf.Puller
 	targets  []super.Value
 }
 
-func New(rctx *runtime.Context, env *exec.Environment, parent zbuf.Puller, e expr.Evaluator, format string, p zbuf.Pushdown) *Op {
+func New(rctx *runtime.Context, env *exec.Environment, parent sbuf.Puller, e expr.Evaluator, format string, p sbuf.Pushdown) *Op {
 	return &Op{
 		parent:   parent,
 		rctx:     rctx,
@@ -37,7 +37,7 @@ func New(rctx *runtime.Context, env *exec.Environment, parent zbuf.Puller, e exp
 	}
 }
 
-func (o *Op) Pull(done bool) (zbuf.Batch, error) {
+func (o *Op) Pull(done bool) (sbuf.Batch, error) {
 	if done {
 		if o.batch != nil {
 			o.batch.Unref()
@@ -47,7 +47,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 		o.src = nil
 		var err error
 		if src != nil {
-			var b zbuf.Batch
+			var b sbuf.Batch
 			b, err = src.Pull(true)
 			if b != nil {
 				b.Unref()
@@ -65,7 +65,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 	return o.pullNext()
 }
 
-func (o *Op) pullNext() (zbuf.Batch, error) {
+func (o *Op) pullNext() (sbuf.Batch, error) {
 	for {
 		puller := o.src
 		if puller == nil {
@@ -90,7 +90,7 @@ func (o *Op) pullNext() (zbuf.Batch, error) {
 	}
 }
 
-func (o *Op) getPuller() (zbuf.Puller, error) {
+func (o *Op) getPuller() (sbuf.Puller, error) {
 	if len(o.targets) > 0 {
 		src, err := o.openNext()
 		o.src = src
@@ -101,7 +101,7 @@ func (o *Op) getPuller() (zbuf.Puller, error) {
 	return src, err
 }
 
-func (o *Op) nextPuller() (zbuf.Puller, error) {
+func (o *Op) nextPuller() (sbuf.Puller, error) {
 	b := o.batch
 	if b != nil && o.off >= len(b.Values()) {
 		b.Unref()
@@ -126,7 +126,7 @@ func (o *Op) nextPuller() (zbuf.Puller, error) {
 	return o.openFromVal(val)
 }
 
-func (o *Op) openFromVal(val super.Value) (zbuf.Puller, error) {
+func (o *Op) openFromVal(val super.Value) (sbuf.Puller, error) {
 	target := o.expr.Eval(val)
 	typ := super.TypeUnder(target.Type())
 	if typ == super.TypeString {
@@ -144,7 +144,7 @@ func (o *Op) openFromVal(val super.Value) (zbuf.Puller, error) {
 	return o.openNext()
 }
 
-func (o *Op) openNext() (zbuf.Puller, error) {
+func (o *Op) openNext() (sbuf.Puller, error) {
 	if len(o.targets) == 0 {
 		return nil, nil
 	}
@@ -153,12 +153,12 @@ func (o *Op) openNext() (zbuf.Puller, error) {
 	return o.open(val.AsString())
 }
 
-func (o *Op) errOnVal(val super.Value) zbuf.Puller {
+func (o *Op) errOnVal(val super.Value) sbuf.Puller {
 	errVal := o.rctx.Sctx.WrapError("from encountered non-string input", val)
-	return zbuf.NewPuller(zbuf.NewArray([]super.Value{errVal}))
+	return sbuf.NewPuller(sbuf.NewArray([]super.Value{errVal}))
 }
 
-func (o *Op) nextBatch() (zbuf.Batch, error) {
+func (o *Op) nextBatch() (sbuf.Batch, error) {
 again:
 	b, err := o.parent.Pull(false)
 	if err != nil {
@@ -178,7 +178,7 @@ again:
 	return b, nil
 }
 
-func (o *Op) open(path string) (zbuf.Puller, error) {
+func (o *Op) open(path string) (sbuf.Puller, error) {
 	u, err := storage.ParseURI(path)
 	if err == nil && false {
 		//XXX get from AST args, or we can also get this stuff from the

@@ -18,17 +18,17 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/byteconv"
 	"github.com/brimdata/super/runtime/sam/expr"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio/arrowio"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/bitvec"
-	"github.com/brimdata/super/zbuf"
 	"golang.org/x/exp/constraints"
 )
 
 type VectorReader struct {
 	ctx      context.Context
 	sctx     *super.Context
-	pushdown zbuf.Pushdown
+	pushdown sbuf.Pushdown
 
 	fr                 *pqarrow.FileReader
 	colIndexes         []int
@@ -40,7 +40,7 @@ type VectorReader struct {
 	vb                 vectorBuilder
 }
 
-func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, pushdown zbuf.Pushdown) (*VectorReader, error) {
+func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, pushdown sbuf.Pushdown) (*VectorReader, error) {
 	ras, ok := r.(parquet.ReaderAtSeeker)
 	if !ok {
 		return nil, errors.New("reader cannot seek")

@@ -1,4 +1,4 @@
-package zbuf
+package sbuf
 
 type Control struct {
 	Message any

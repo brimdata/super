@@ -9,10 +9,10 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/op/aggregate"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 )
 
-func (b *Builder) compileAggregate(parent zbuf.Puller, a *dag.Aggregate) (*aggregate.Op, error) {
+func (b *Builder) compileAggregate(parent sbuf.Puller, a *dag.Aggregate) (*aggregate.Op, error) {
 	b.resetResetters()
 	keys, err := b.compileAssignments(a.Keys)
 	if err != nil {

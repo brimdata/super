@@ -14,8 +14,8 @@ import (
 	vamexpr "github.com/brimdata/super/runtime/vam/expr"
 	vamop "github.com/brimdata/super/runtime/vam/op"
 	"github.com/brimdata/super/runtime/vam/op/aggregate"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zbuf"
 )
 
 // compile compiles a DAG into a graph of runtime operators, and returns
@@ -76,7 +76,7 @@ func (b *Builder) compileVam(o dag.Op, parents []vector.Puller) ([]vector.Puller
 	}
 }
 
-func (b *Builder) compileVamScan(scan *dag.SeqScan, parent zbuf.Puller) (vector.Puller, error) {
+func (b *Builder) compileVamScan(scan *dag.SeqScan, parent sbuf.Puller) (vector.Puller, error) {
 	pool, err := b.lookupPool(scan.Pool)
 	if err != nil {
 		return nil, err
@@ -216,11 +216,11 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		}
 		return vamop.NewValues(b.sctx(), parent, []vamexpr.Evaluator{e}), nil
 	case *dag.DefaultScan:
-		zbufPuller, err := b.compileLeaf(o, nil)
+		sbufPuller, err := b.compileLeaf(o, nil)
 		if err != nil {
 			return nil, err
 		}
-		return vam.NewDematerializer(zbufPuller), nil
+		return vam.NewDematerializer(sbufPuller), nil
 	case *dag.Distinct:
 		e, err := b.compileVamExpr(o.Expr)
 		if err != nil {
@@ -252,7 +252,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 	case *dag.Head:
 		return vamop.NewHead(parent, o.Count), nil
 	case *dag.NullScan:
-		return vam.NewDematerializer(zbuf.NewPuller(zbuf.NewArray([]super.Value{super.Null}))), nil
+		return vam.NewDematerializer(sbuf.NewPuller(sbuf.NewArray([]super.Value{super.Null}))), nil
 	case *dag.Output:
 		b.channels[o.Name] = append(b.channels[o.Name], vam.NewMaterializer(parent))
 		return parent, nil
@@ -279,11 +279,11 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 	case *dag.Skip:
 		return vamop.NewSkip(parent, o.Count), nil
 	case *dag.Top:
-		zbufPuller, err := b.compileLeaf(o, vam.NewMaterializer(parent))
+		sbufPuller, err := b.compileLeaf(o, vam.NewMaterializer(parent))
 		if err != nil {
 			return nil, err
 		}
-		return vam.NewDematerializer(zbufPuller), nil
+		return vam.NewDematerializer(sbufPuller), nil
 	case *dag.Sort:
 		b.resetResetters()
 		var sortExprs []expr.SortExpr
@@ -298,11 +298,11 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 	case *dag.Tail:
 		return vamop.NewTail(parent, o.Count), nil
 	case *dag.Uniq:
-		zbufPuller, err := b.compileLeaf(o, vam.NewMaterializer(parent))
+		sbufPuller, err := b.compileLeaf(o, vam.NewMaterializer(parent))
 		if err != nil {
 			return nil, err
 		}
-		return vam.NewDematerializer(zbufPuller), nil
+		return vam.NewDematerializer(sbufPuller), nil
 	case *dag.Unnest:
 		return b.compileVamUnnest(o, parent)
 	case *dag.Values:

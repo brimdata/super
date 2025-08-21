@@ -12,11 +12,11 @@ import (
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/pkg/terminal"
 	"github.com/brimdata/super/pkg/terminal/color"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/emitter"
-	"github.com/brimdata/super/zbuf"
 )
 
 type Flags struct {
@@ -115,7 +115,7 @@ func (f *Flags) Init() error {
 		f.SUP.Pretty = 0
 	}
 	if f.unbuffered {
-		zbuf.PullerBatchValues = 1
+		sbuf.PullerBatchValues = 1
 	}
 	return nil
 }

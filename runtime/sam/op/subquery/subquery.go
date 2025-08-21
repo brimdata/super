@@ -5,17 +5,17 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/zcode"
 )
 
 type CachedSubquery struct {
 	rctx   *runtime.Context
-	body   zbuf.Puller
+	body   sbuf.Puller
 	cached *super.Value
 }
 
-func NewCachedSubquery(rctx *runtime.Context, body zbuf.Puller) *CachedSubquery {
+func NewCachedSubquery(rctx *runtime.Context, body sbuf.Puller) *CachedSubquery {
 	return &CachedSubquery{rctx: rctx, body: body}
 }
 
@@ -27,7 +27,7 @@ func (c *CachedSubquery) Eval(_ super.Value) super.Value {
 }
 
 func (c *CachedSubquery) exec() super.Value {
-	var batches []zbuf.Batch
+	var batches []sbuf.Batch
 	for {
 		batch, err := c.body.Pull(false)
 		if err != nil {
@@ -49,25 +49,25 @@ func (c *CachedSubquery) exec() super.Value {
 type Subquery struct {
 	ctx     context.Context
 	sctx    *super.Context
-	batchCh chan zbuf.Batch
+	batchCh chan sbuf.Batch
 	eos     bool
 
-	body zbuf.Puller
+	body sbuf.Puller
 }
 
 func NewSubquery(rctx *runtime.Context) *Subquery {
 	return &Subquery{
 		ctx:     rctx.Context,
 		sctx:    rctx.Sctx,
-		batchCh: make(chan zbuf.Batch, 1),
+		batchCh: make(chan sbuf.Batch, 1),
 	}
 }
 
-func (s *Subquery) SetBody(body zbuf.Puller) {
+func (s *Subquery) SetBody(body sbuf.Puller) {
 	s.body = body
 }
 
-func (s *Subquery) Pull(done bool) (zbuf.Batch, error) {
+func (s *Subquery) Pull(done bool) (sbuf.Batch, error) {
 	if s.eos {
 		s.eos = false
 		return nil, nil
@@ -83,7 +83,7 @@ func (s *Subquery) Pull(done bool) (zbuf.Batch, error) {
 
 func (q *Subquery) Eval(this super.Value) super.Value {
 	select {
-	case q.batchCh <- zbuf.NewArray([]super.Value{this}):
+	case q.batchCh <- sbuf.NewArray([]super.Value{this}):
 	case <-q.ctx.Done():
 		return q.sctx.NewError(q.ctx.Err())
 	}
@@ -108,7 +108,7 @@ func (q *Subquery) Eval(this super.Value) super.Value {
 	}
 }
 
-func combine(sctx *super.Context, batches []zbuf.Batch) super.Value {
+func combine(sctx *super.Context, batches []sbuf.Batch) super.Value {
 	switch len(batches) {
 	case 0:
 		return super.Null

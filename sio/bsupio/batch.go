@@ -5,7 +5,7 @@ import (
 	"sync/atomic"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 )
 
 type batch struct {
@@ -14,7 +14,7 @@ type batch struct {
 	vals []super.Value
 }
 
-var _ zbuf.Batch = (*batch)(nil)
+var _ sbuf.Batch = (*batch)(nil)
 
 var batchPool sync.Pool
 

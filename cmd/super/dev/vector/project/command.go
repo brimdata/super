@@ -12,7 +12,7 @@ import (
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime/vam"
 	"github.com/brimdata/super/runtime/vcache"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 	"github.com/segmentio/ksuid"
 )
 
@@ -75,7 +75,7 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	if err := zbuf.CopyPuller(writer, projection); err != nil {
+	if err := sbuf.CopyPuller(writer, projection); err != nil {
 		writer.Close()
 		return err
 	}

@@ -16,9 +16,9 @@ import (
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/supio"
-	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zfmt"
 )
 
@@ -164,7 +164,7 @@ func (c *Command) Run(args []string) error {
 		"main":  writer,
 		"debug": supio.NewWriter(sio.NopCloser(os.Stderr), supio.WriterOpts{}),
 	}
-	err = zbuf.CopyMux(out, query)
+	err = sbuf.CopyMux(out, query)
 	if closeErr := writer.Close(); err == nil {
 		err = closeErr
 	}

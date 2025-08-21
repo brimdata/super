@@ -1,4 +1,4 @@
-package zbuf
+package sbuf
 
 import (
 	"slices"
@@ -151,7 +151,7 @@ func (b *pullerBatch) Unref() {
 	if refs := b.refs.Add(-1); refs == 0 {
 		pullerBatchPool.Put(b)
 	} else if refs < 0 {
-		panic("zbuf: negative batch reference count")
+		panic("sbuf: negative batch reference count")
 	}
 }
 

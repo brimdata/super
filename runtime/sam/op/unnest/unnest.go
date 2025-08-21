@@ -6,21 +6,21 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/zcode"
 )
 
 type Unnest struct {
-	parent   zbuf.Puller
+	parent   sbuf.Puller
 	expr     expr.Evaluator
 	resetter expr.Resetter
 
 	outer []super.Value
-	batch zbuf.Batch
+	batch sbuf.Batch
 	sctx  *super.Context
 }
 
-func NewUnnest(rctx *runtime.Context, parent zbuf.Puller, expr expr.Evaluator, resetter expr.Resetter) *Unnest {
+func NewUnnest(rctx *runtime.Context, parent sbuf.Puller, expr expr.Evaluator, resetter expr.Resetter) *Unnest {
 	return &Unnest{
 		parent:   parent,
 		expr:     expr,
@@ -29,7 +29,7 @@ func NewUnnest(rctx *runtime.Context, parent zbuf.Puller, expr expr.Evaluator, r
 	}
 }
 
-func (u *Unnest) Pull(done bool) (zbuf.Batch, error) {
+func (u *Unnest) Pull(done bool) (sbuf.Batch, error) {
 	if done {
 		u.outer = nil
 		u.resetter.Reset()
@@ -57,7 +57,7 @@ func (u *Unnest) Pull(done bool) (zbuf.Batch, error) {
 	}
 }
 
-func (u *Unnest) unnest(this super.Value) zbuf.Batch {
+func (u *Unnest) unnest(this super.Value) sbuf.Batch {
 	val := u.expr.Eval(this)
 	// Propagate errors but skip missing values.
 	var vals []super.Value
@@ -67,7 +67,7 @@ func (u *Unnest) unnest(this super.Value) zbuf.Batch {
 	if len(vals) == 0 {
 		return nil
 	}
-	return zbuf.NewBatch(vals)
+	return sbuf.NewBatch(vals)
 }
 
 func unnest(sctx *super.Context, val super.Value) []super.Value {

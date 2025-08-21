@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 )
 
 // Mux implements the muxing of a set of parallel paths at the output of
@@ -25,13 +25,13 @@ type Mux struct {
 }
 
 type result struct {
-	batch zbuf.Batch
+	batch sbuf.Batch
 	label string
 	err   error
 }
 
 type puller struct {
-	zbuf.Puller
+	sbuf.Puller
 	ch    chan<- result
 	label string
 }
@@ -50,7 +50,7 @@ func (p *puller) run(ctx context.Context) {
 	}
 }
 
-func NewMux(rctx *runtime.Context, parents map[string]zbuf.Puller) *Mux {
+func NewMux(rctx *runtime.Context, parents map[string]sbuf.Puller) *Mux {
 	if len(parents) <= 1 {
 		panic("mux.New() must be called with two or more parents")
 	}
@@ -68,7 +68,7 @@ func NewMux(rctx *runtime.Context, parents map[string]zbuf.Puller) *Mux {
 }
 
 // Pull implements the merge logic for returning data from the upstreams.
-func (m *Mux) Pull(bool) (zbuf.Batch, error) {
+func (m *Mux) Pull(bool) (sbuf.Batch, error) {
 	if m.nparents == 0 {
 		// When we get to EOS, we make sure all the flowgraph
 		// goroutines terminate by canceling the proc context.
@@ -90,9 +90,9 @@ func (m *Mux) Pull(bool) (zbuf.Batch, error) {
 				return nil, err
 			}
 			if batch != nil {
-				batch = zbuf.Label(res.label, batch)
+				batch = sbuf.Label(res.label, batch)
 			} else {
-				eoc := zbuf.EndOfChannel(res.label)
+				eoc := sbuf.EndOfChannel(res.label)
 				batch = &eoc
 				m.nparents--
 			}
@@ -104,24 +104,24 @@ func (m *Mux) Pull(bool) (zbuf.Batch, error) {
 }
 
 type Single struct {
-	zbuf.Puller
+	sbuf.Puller
 	label string
 	eos   bool
 }
 
-func NewSingle(label string, parent zbuf.Puller) *Single {
+func NewSingle(label string, parent sbuf.Puller) *Single {
 	return &Single{Puller: parent, label: label}
 }
 
-func (s *Single) Pull(bool) (zbuf.Batch, error) {
+func (s *Single) Pull(bool) (sbuf.Batch, error) {
 	if s.eos {
 		return nil, nil
 	}
 	batch, err := s.Puller.Pull(false)
 	if batch == nil {
 		s.eos = true
-		eoc := zbuf.EndOfChannel(s.label)
+		eoc := sbuf.EndOfChannel(s.label)
 		return &eoc, err
 	}
-	return zbuf.Label(s.label, batch), err
+	return sbuf.Label(s.label, batch), err
 }

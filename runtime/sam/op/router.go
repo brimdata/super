@@ -6,23 +6,23 @@ import (
 	"sync"
 
 	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 )
 
 type Selector interface {
 	expr.Resetter
-	Forward(*Router, zbuf.Batch) bool
+	Forward(*Router, sbuf.Batch) bool
 }
 
 type Router struct {
 	ctx      context.Context
-	parent   zbuf.Puller
+	parent   sbuf.Puller
 	selector Selector
 	routes   []*route
 	once     sync.Once
 }
 
-func NewRouter(ctx context.Context, parent zbuf.Puller) *Router {
+func NewRouter(ctx context.Context, parent sbuf.Puller) *Router {
 	return &Router{
 		ctx:    ctx,
 		parent: NewCatcher(parent),
@@ -33,7 +33,7 @@ func (r *Router) Link(s Selector) {
 	r.selector = s
 }
 
-func (r *Router) AddRoute() zbuf.Puller {
+func (r *Router) AddRoute() sbuf.Puller {
 	child := &route{
 		router:   r,
 		resultCh: make(chan Result),
@@ -132,7 +132,7 @@ func (r *Router) unblock() {
 	}
 }
 
-func (r *Router) Send(p zbuf.Puller, b zbuf.Batch, err error) bool {
+func (r *Router) Send(p sbuf.Puller, b sbuf.Batch, err error) bool {
 	if b == nil {
 		panic("EOS sent through router send API")
 	}
@@ -165,7 +165,7 @@ type route struct {
 	blocked bool
 }
 
-func (r *route) Pull(done bool) (zbuf.Batch, error) {
+func (r *route) Pull(done bool) (sbuf.Batch, error) {
 	r.router.once.Do(func() {
 		go r.router.run()
 	})

@@ -5,21 +5,21 @@ import (
 	"sync"
 
 	"github.com/brimdata/super/runtime/sam/op"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 )
 
 type Scope struct {
 	ctx         context.Context
-	parent      zbuf.Puller
+	parent      sbuf.Puller
 	parentEOSCh chan struct{}
-	subgraph    zbuf.Puller
+	subgraph    sbuf.Puller
 	once        sync.Once
 	resultCh    chan op.Result
 	exitDoneCh  chan struct{}
 	subDoneCh   chan struct{}
 }
 
-func NewScope(ctx context.Context, parent zbuf.Puller) *Scope {
+func NewScope(ctx context.Context, parent sbuf.Puller) *Scope {
 	return &Scope{
 		ctx:    ctx,
 		parent: parent,
@@ -32,14 +32,14 @@ func NewScope(ctx context.Context, parent zbuf.Puller) *Scope {
 	}
 }
 
-func (s *Scope) NewExit(subgraph zbuf.Puller) *Exit {
+func (s *Scope) NewExit(subgraph sbuf.Puller) *Exit {
 	s.subgraph = subgraph
 	return NewExit(s)
 }
 
 // Pull is called by the scoped subgraph.
 // Parent's batch will already be scoped by Over or Into.
-func (s *Scope) Pull(done bool) (zbuf.Batch, error) {
+func (s *Scope) Pull(done bool) (sbuf.Batch, error) {
 	s.once.Do(func() { go s.run() })
 	// Done can happen in two ways with a scope.
 	// 1) The output of the scope can be done, e.g., over => (sub) | head
@@ -81,7 +81,7 @@ func (s *Scope) run() {
 	}
 }
 
-func (s *Scope) sendBatch(b zbuf.Batch) bool {
+func (s *Scope) sendBatch(b sbuf.Batch) bool {
 	select {
 	case s.resultCh <- op.Result{Batch: b}:
 		if b != nil {
@@ -143,10 +143,10 @@ again:
 
 type Exit struct {
 	scope   *Scope
-	platoon []zbuf.Batch
+	platoon []sbuf.Batch
 }
 
-var _ zbuf.Puller = (*Exit)(nil)
+var _ sbuf.Puller = (*Exit)(nil)
 
 func NewExit(scope *Scope) *Exit {
 	return &Exit{
@@ -154,7 +154,7 @@ func NewExit(scope *Scope) *Exit {
 	}
 }
 
-func (e *Exit) Pull(done bool) (zbuf.Batch, error) {
+func (e *Exit) Pull(done bool) (sbuf.Batch, error) {
 	if done {
 		// Propagate the done to the enter puller then drain
 		// the next platoon from the subgraoh.

@@ -12,8 +12,8 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/vcache"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zbuf"
 )
 
 type VectorReader struct {
@@ -22,14 +22,14 @@ type VectorReader struct {
 
 	activeReaders *atomic.Int64
 	stream        *stream
-	pushdown      zbuf.Pushdown
+	pushdown      sbuf.Pushdown
 	metaFilter    *metafilter
 	readerAt      io.ReaderAt
 	hasClosed     bool
 	vecs          []vector.Any
 }
 
-func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, pushdown zbuf.Pushdown) (*VectorReader, error) {
+func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, pushdown sbuf.Pushdown) (*VectorReader, error) {
 	ra, ok := r.(io.ReaderAt)
 	if !ok {
 		return nil, errors.New("Super Columnar requires a seekable input")
@@ -50,7 +50,7 @@ type metafilter struct {
 	projection field.Projection
 }
 
-func newMetaFilter(pushdown zbuf.Pushdown) *metafilter {
+func newMetaFilter(pushdown sbuf.Pushdown) *metafilter {
 	if pushdown == nil {
 		return nil
 	}

@@ -16,9 +16,9 @@ import (
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/zfmt"
 )
 
@@ -111,7 +111,7 @@ func (s *Shared) writeValue(ctx context.Context, v any) error {
 	if err != nil {
 		return err
 	}
-	err = sio.CopyWithContext(ctx, writer, zbuf.NewArray([]super.Value{val}))
+	err = sio.CopyWithContext(ctx, writer, sbuf.NewArray([]super.Value{val}))
 	if closeErr := writer.Close(); err == nil {
 		err = closeErr
 	}

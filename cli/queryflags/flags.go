@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zbuf"
 )
 
 type Flags struct {
@@ -20,7 +20,7 @@ func (f *Flags) SetFlags(fs *flag.FlagSet) {
 	fs.Var(&f.Includes, "I", "source file containing Zed query text (may be used multiple times)")
 }
 
-func (f *Flags) PrintStats(stats zbuf.Progress) {
+func (f *Flags) PrintStats(stats sbuf.Progress) {
 	if f.Stats {
 		out, err := sup.Marshal(stats)
 		if err != nil {

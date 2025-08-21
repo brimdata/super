@@ -17,9 +17,9 @@ import (
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/op/aggregate"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/supio"
-	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/ztest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -37,24 +37,24 @@ type countReader struct {
 	n atomic.Int64
 }
 
-var _ zbuf.ScannerAble = (*countReader)(nil)
+var _ sbuf.ScannerAble = (*countReader)(nil)
 
-func (c *countReader) NewScanner(context.Context, zbuf.Pushdown) (zbuf.Scanner, error) {
+func (c *countReader) NewScanner(context.Context, sbuf.Pushdown) (sbuf.Scanner, error) {
 	return c, nil
 }
 
-func (*countReader) Progress() zbuf.Progress {
+func (*countReader) Progress() sbuf.Progress {
 	panic("unused")
 }
 
-func (c *countReader) Pull(bool) (zbuf.Batch, error) {
+func (c *countReader) Pull(bool) (sbuf.Batch, error) {
 	val, err := c.r.Read()
 	if val == nil || err != nil {
 		return nil, err
 	}
 	// Feed values to the caller one at a time.
 	c.n.Add(1)
-	return zbuf.NewArray([]super.Value{val.Copy()}), nil
+	return sbuf.NewArray([]super.Value{val.Copy()}), nil
 }
 
 func (*countReader) Read() (*super.Value, error) {
@@ -89,12 +89,12 @@ func TestAggregateStreamingSpill(t *testing.T) {
 	// spill before that all records for that key have been
 	// written to the spill.
 	//
-	savedPullerBatchValues := zbuf.PullerBatchValues
-	zbuf.PullerBatchValues = 1
+	savedPullerBatchValues := sbuf.PullerBatchValues
+	sbuf.PullerBatchValues = 1
 	savedDefaultLimit := aggregate.DefaultLimit
 	aggregate.DefaultLimit = 2
 	defer func() {
-		zbuf.PullerBatchValues = savedPullerBatchValues
+		sbuf.PullerBatchValues = savedPullerBatchValues
 		aggregate.DefaultLimit = savedDefaultLimit
 	}()
 
@@ -131,7 +131,7 @@ func TestAggregateStreamingSpill(t *testing.T) {
 		query, err := newQueryOnOrderedReader(context.Background(), sctx, ast, cr, sortKey)
 		require.NoError(t, err)
 		defer query.Pull(true)
-		err = zbuf.CopyPuller(checker, query)
+		err = sbuf.CopyPuller(checker, query)
 		require.NoError(t, err)
 		outData := strings.Split(outbuf.String(), "\n")
 		sort.Strings(outData)

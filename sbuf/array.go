@@ -1,4 +1,4 @@
-package zbuf
+package sbuf
 
 import (
 	"github.com/brimdata/super"
