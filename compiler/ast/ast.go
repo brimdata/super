@@ -199,7 +199,7 @@ type ExprEntity struct {
 func (*Glob) fromEntityNode()         {}
 func (*Regexp) fromEntityNode()       {}
 func (*ExprEntity) fromEntityNode()   {}
-func (*DBMeta) fromEntityNode()     {}
+func (*DBMeta) fromEntityNode()       {}
 func (*Text) fromEntityNode()         {}
 func (*SQLCrossJoin) fromEntityNode() {}
 func (*SQLJoin) fromEntityNode()      {}

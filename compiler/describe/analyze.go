@@ -44,9 +44,9 @@ type (
 )
 
 func (*DBMeta) Source() {}
-func (*Pool) Source()     {}
-func (*Path) Source()     {}
-func (*Null) Source()     {}
+func (*Pool) Source()   {}
+func (*Path) Source()   {}
+func (*Null) Source()   {}
 
 type Channel struct {
 	Name            string         `json:"name"`

@@ -12,8 +12,8 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/cli/commitflags"
-	"github.com/brimdata/super/cli/inputflags"
 	"github.com/brimdata/super/cli/dbflags"
+	"github.com/brimdata/super/cli/inputflags"
 	"github.com/brimdata/super/cli/poolflags"
 	"github.com/brimdata/super/cli/runtimeflags"
 	"github.com/brimdata/super/cmd/super/db"

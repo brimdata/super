@@ -297,7 +297,7 @@ func (*HTTPScan) opNode()       {}
 func (*PoolScan) opNode()       {}
 func (*RobotScan) opNode()      {}
 func (*DeleteScan) opNode()     {}
-func (*DBMetaScan) opNode()   {}
+func (*DBMetaScan) opNode()     {}
 func (*PoolMetaScan) opNode()   {}
 func (*CommitMetaScan) opNode() {}
 func (*NullScan) opNode()       {}

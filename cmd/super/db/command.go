@@ -34,7 +34,7 @@ func init() {
 
 type Command struct {
 	*root.Command
-	DBFlags    dbflags.Flags
+	DBFlags      dbflags.Flags
 	outputFlags  outputflags.Flags
 	queryFlags   queryflags.Flags
 	runtimeFlags runtimeflags.Flags
