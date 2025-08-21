@@ -2,7 +2,7 @@ package load
 
 import (
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/lake"
+	"github.com/brimdata/super/db"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/sbuf"
 	"github.com/segmentio/ksuid"
@@ -10,7 +10,7 @@ import (
 
 type Op struct {
 	rctx    *runtime.Context
-	lk      *lake.Root
+	root    *db.Root
 	parent  sbuf.Puller
 	pool    ksuid.KSUID
 	branch  string
@@ -20,10 +20,10 @@ type Op struct {
 	done    bool
 }
 
-func New(rctx *runtime.Context, lk *lake.Root, parent sbuf.Puller, pool ksuid.KSUID, branch, author, message, meta string) *Op {
+func New(rctx *runtime.Context, root *db.Root, parent sbuf.Puller, pool ksuid.KSUID, branch, author, message, meta string) *Op {
 	return &Op{
 		rctx:    rctx,
-		lk:      lk,
+		root:    root,
 		parent:  parent,
 		pool:    pool,
 		branch:  branch,
@@ -54,7 +54,7 @@ func (o *Op) Pull(done bool) (sbuf.Batch, error) {
 	}
 	o.done = true
 	reader := sbuf.PullerReader(o.parent)
-	pool, err := o.lk.OpenPool(o.rctx.Context, o.pool)
+	pool, err := o.root.OpenPool(o.rctx.Context, o.pool)
 	if err != nil {
 		return nil, err
 	}

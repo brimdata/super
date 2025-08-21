@@ -1,0 +1,23 @@
+script: |
+  export SUPER_DB=test
+  super db init -q
+  super db create -q test
+  super db load -q -use test 1.sup
+  super db load -q -use test 2.sup
+  super db -f db -c "from test@main:objects"
+
+inputs:
+  - name: 1.sup
+    data: |
+      {x:1}
+  - name: 2.sup
+    data: |
+      {x:2}
+
+outputs:
+  - name: stdout
+    regexp: |
+      \w{27} \d+B bytes 1 records
+         min null max null
+      \w{27} \d+B bytes 1 records
+         min null max null

@@ -564,7 +564,7 @@ func (c *canonDAG) op(p dag.Op) {
 		if p.Tap {
 			c.write(" tap")
 		}
-	case *dag.LakeMetaScan:
+	case *dag.DBMetaScan:
 		c.next()
 		c.write(":%s", p.Meta)
 	case *dag.Pass:

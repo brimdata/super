@@ -1,5 +1,5 @@
 script: |
-  LAKE_EXTRA_FLAGS='-cors.origin=http://a -cors.origin=http://*.b' source service.sh
+  DB_EXTRA_FLAGS='-cors.origin=http://a -cors.origin=http://*.b' source service.sh
   echo === OPTIONS: allowed ===
   curl -sD - \
     -X OPTIONS \

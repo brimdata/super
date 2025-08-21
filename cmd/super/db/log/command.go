@@ -19,7 +19,7 @@ var spec = &charm.Spec{
 	Long: `
 The log command outputs a commit history of any branch or unnamed commit object
 from a data pool in the format desired.
-By default, the output is in the human-readable "lake" format
+By default, the output is in the human-readable "db" format
 but BSUP can be used to easily be pipe a log to super or other tooling for analysis.
 `,
 	New: New,
@@ -37,7 +37,7 @@ type Command struct {
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*db.Command)}
-	c.outputFlags.DefaultFormat = "lake"
+	c.outputFlags.DefaultFormat = "db"
 	c.outputFlags.SetFlags(f)
 	c.poolFlags.SetFlags(f)
 	return c, nil
@@ -52,7 +52,7 @@ func (c *Command) Run(args []string) error {
 	if len(args) != 0 {
 		return errors.New("no arguments allowed")
 	}
-	lake, err := c.LakeFlags.Open(ctx)
+	db, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}
@@ -64,15 +64,15 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	if c.outputFlags.Format == "lake" {
-		c.outputFlags.WriterOpts.Lake.Head = head.Branch
+	if c.outputFlags.Format == "db" {
+		c.outputFlags.WriterOpts.DB.Head = head.Branch
 	}
 	w, err := c.outputFlags.Open(ctx, storage.NewLocalEngine())
 	if err != nil {
 		return err
 	}
 	defer w.Close()
-	q, err := lake.Query(ctx, query)
+	q, err := db.Query(ctx, query)
 	if err != nil {
 		return err
 	}

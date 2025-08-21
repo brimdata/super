@@ -1,7 +1,7 @@
 skip: "issue #2651"
 
 script: |
-  source services.sh s3://bucket/lake
+  source services.sh s3://bucket/db
   super db new -db $SUPER_DB test
   echo ===
   super db drop -db $SUPER_DB -p test

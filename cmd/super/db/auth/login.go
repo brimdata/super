@@ -14,7 +14,7 @@ import (
 var Login = &charm.Spec{
 	Name:  "login",
 	Usage: "auth login",
-	Short: "log in to Zed lake service and save credentials",
+	Short: "log in to a database service and save credentials",
 	Long:  ``,
 	New:   NewLoginCommand,
 }
@@ -39,7 +39,7 @@ func (c *LoginCommand) Run(args []string) error {
 	if len(args) > 0 {
 		return errors.New("login command takes no arguments")
 	}
-	conn, err := c.LakeFlags.Connection()
+	conn, err := c.DBFlags.Connection()
 	if err != nil {
 		return err
 	}
@@ -50,9 +50,9 @@ func (c *LoginCommand) Run(args []string) error {
 	switch method.Kind {
 	case api.AuthMethodAuth0:
 	case api.AuthMethodNone:
-		return fmt.Errorf("SuperDB service at %s does not support authentication", c.LakeFlags.DB)
+		return fmt.Errorf("SuperDB service at %s does not support authentication", c.DBFlags.DB)
 	default:
-		return fmt.Errorf("SuperDB service at %s requires unknown authentication method %s", c.LakeFlags.DB, method.Kind)
+		return fmt.Errorf("SuperDB service at %s requires unknown authentication method %s", c.DBFlags.DB, method.Kind)
 	}
 	fmt.Println("method", method.Auth0.ClientID)
 	fmt.Println("domain", method.Auth0.Domain)
@@ -74,9 +74,9 @@ func (c *LoginCommand) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	if err := c.LakeFlags.AuthStore().SetTokens(c.LakeFlags.DB, tokens); err != nil {
+	if err := c.DBFlags.AuthStore().SetTokens(c.DBFlags.DB, tokens); err != nil {
 		return fmt.Errorf("failed to save credentials file: %w", err)
 	}
-	fmt.Printf("Login successful, stored credentials for %s\n", c.LakeFlags.DB)
+	fmt.Printf("Login successful, stored credentials for %s\n", c.DBFlags.DB)
 	return nil
 }

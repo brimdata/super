@@ -7,7 +7,7 @@ script: |
   # -qq supresses warnings about availability of newer pip versions.
   pip install -qq ./superdb
 
-  LAKE_EXTRA_FLAGS='-auth.enabled=t -auth.audience=a -auth.clientid=c -auth.domain=d -auth.jwkspath=auth-public-jwks.json' source service.sh source service.sh
+  DB_EXTRA_FLAGS='-auth.enabled=t -auth.audience=a -auth.clientid=c -auth.domain=d -auth.jwkspath=auth-public-jwks.json' source service.sh source service.sh
   token=$(gentoken -audience a -domain d -keyid testkey -privatekeyfile auth-private-key -tenantid t -userid u)
   super db auth store -access $token -db $SUPER_DB
 

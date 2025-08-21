@@ -13,9 +13,9 @@ import (
 var spec = &charm.Spec{
 	Name:  "drop",
 	Usage: "drop pool",
-	Short: "delete a data pool from a lake",
+	Short: "delete a data pool from a database",
 	Long: `
-The drop command removes the named pool from the lake.
+The drop command removes the named pool from the database.
 
 DANGER ZONE.
 When deleting an entire pool, the drop command prompts for confirmation.
@@ -48,22 +48,22 @@ func (c *Command) Run(args []string) error {
 	if len(args) != 1 {
 		return errors.New("a single pool name must be specified")
 	}
-	lake, err := c.LakeFlags.Open(ctx)
+	db, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}
 	poolName := args[0]
-	poolID, err := lake.PoolID(ctx, poolName)
+	poolID, err := db.PoolID(ctx, poolName)
 	if err != nil {
 		return err
 	}
 	if err := c.confirm(poolName); err != nil {
 		return err
 	}
-	if err := lake.RemovePool(ctx, poolID); err != nil {
+	if err := db.RemovePool(ctx, poolID); err != nil {
 		return err
 	}
-	if !c.LakeFlags.Quiet {
+	if !c.DBFlags.Quiet {
 		fmt.Printf("pool deleted: %s\n", poolName)
 	}
 	return nil

@@ -5,7 +5,7 @@ import (
 	"flag"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/cli/lakeflags"
+	"github.com/brimdata/super/cli/dbflags"
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/cli/poolflags"
 	"github.com/brimdata/super/cmd/super/dev/vector"
@@ -20,7 +20,7 @@ import (
 var spec = &charm.Spec{
 	Name:  "search",
 	Usage: "search [flags] filter_expr",
-	Short: "run a CSUP optimized search on a lake",
+	Short: "run a CSUP optimized search on a database",
 	New:   newCommand,
 }
 
@@ -30,16 +30,16 @@ func init() {
 
 type Command struct {
 	*vector.Command
+	dbFlags     dbflags.Flags
 	outputFlags outputflags.Flags
 	poolFlags   poolflags.Flags
-	lakeFlags   lakeflags.Flags
 }
 
 func newCommand(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*vector.Command)}
+	c.dbFlags.SetFlags(f)
 	c.outputFlags.SetFlags(f)
 	c.poolFlags.SetFlags(f)
-	c.lakeFlags.SetFlags(f)
 	return c, nil
 }
 
@@ -52,13 +52,13 @@ func (c *Command) Run(args []string) error {
 	if len(args) != 1 {
 		return errors.New("usage: filter expression")
 	}
-	lk, err := c.lakeFlags.Open(ctx)
+	db, err := c.dbFlags.Open(ctx)
 	if err != nil {
 		return err
 	}
-	root := lk.Root()
+	root := db.Root()
 	if root == nil {
-		return errors.New("remote lakes not supported")
+		return errors.New("remote databases not supported")
 	}
 	head, err := c.poolFlags.HEAD()
 	if err != nil {

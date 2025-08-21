@@ -8,7 +8,7 @@ import (
 	"github.com/brimdata/super/compiler/optimizer"
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/compiler/semantic"
-	"github.com/brimdata/super/lake"
+	"github.com/brimdata/super/db"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/exec"
@@ -25,7 +25,7 @@ type Source interface {
 }
 
 type (
-	LakeMeta struct {
+	DBMeta struct {
 		Kind string `json:"kind"`
 		Meta string `json:"meta"`
 	}
@@ -43,10 +43,10 @@ type (
 	}
 )
 
-func (*LakeMeta) Source() {}
-func (*Pool) Source()     {}
-func (*Path) Source()     {}
-func (*Null) Source()     {}
+func (*DBMeta) Source() {}
+func (*Pool) Source()   {}
+func (*Path) Source()   {}
+func (*Null) Source()   {}
 
 type Channel struct {
 	Name            string         `json:"name"`
@@ -69,7 +69,7 @@ func Analyze(ctx context.Context, query string, src *exec.Environment) (*Info, e
 func AnalyzeDAG(ctx context.Context, entry dag.Seq, src *exec.Environment) (*Info, error) {
 	var err error
 	var info Info
-	if info.Sources, err = describeSources(ctx, src.Lake(), entry[0]); err != nil {
+	if info.Sources, err = describeSources(ctx, src.DB(), entry[0]); err != nil {
 		return nil, err
 	}
 	sortKeys, err := optimizer.New(ctx, src).SortKeys(entry)
@@ -99,14 +99,14 @@ func AnalyzeDAG(ctx context.Context, entry dag.Seq, src *exec.Environment) (*Inf
 	return &info, nil
 }
 
-func describeSources(ctx context.Context, lk *lake.Root, o dag.Op) ([]Source, error) {
+func describeSources(ctx context.Context, root *db.Root, o dag.Op) ([]Source, error) {
 	switch o := o.(type) {
 	case *dag.Scope:
-		return describeSources(ctx, lk, o.Body[0])
+		return describeSources(ctx, root, o.Body[0])
 	case *dag.Fork:
 		var s []Source
 		for _, p := range o.Paths {
-			out, err := describeSources(ctx, lk, p[0])
+			out, err := describeSources(ctx, root, p[0])
 			if err != nil {
 				return nil, err
 			}
@@ -122,22 +122,22 @@ func describeSources(ctx context.Context, lk *lake.Root, o dag.Op) ([]Source, er
 	case *dag.HTTPScan:
 		return []Source{&Path{Kind: "Path", URI: o.URL}}, nil
 	case *dag.PoolScan:
-		return sourceOfPool(ctx, lk, o.ID)
+		return sourceOfPool(ctx, root, o.ID)
 	case *dag.Lister:
-		return sourceOfPool(ctx, lk, o.Pool)
+		return sourceOfPool(ctx, root, o.Pool)
 	case *dag.SeqScan:
-		return sourceOfPool(ctx, lk, o.Pool)
+		return sourceOfPool(ctx, root, o.Pool)
 	case *dag.CommitMetaScan:
-		return sourceOfPool(ctx, lk, o.Pool)
-	case *dag.LakeMetaScan:
-		return []Source{&LakeMeta{Kind: "LakeMeta", Meta: o.Meta}}, nil
+		return sourceOfPool(ctx, root, o.Pool)
+	case *dag.DBMetaScan:
+		return []Source{&DBMeta{Kind: "DBMeta", Meta: o.Meta}}, nil
 	default:
 		return nil, fmt.Errorf("unsupported source type %T", o)
 	}
 }
 
-func sourceOfPool(ctx context.Context, lk *lake.Root, id ksuid.KSUID) ([]Source, error) {
-	p, err := lk.OpenPool(ctx, id)
+func sourceOfPool(ctx context.Context, root *db.Root, id ksuid.KSUID) ([]Source, error) {
+	p, err := root.OpenPool(ctx, id)
 	if err != nil {
 		return nil, err
 	}

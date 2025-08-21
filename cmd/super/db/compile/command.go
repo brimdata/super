@@ -11,12 +11,12 @@ import (
 var spec = &charm.Spec{
 	Name:  "compile",
 	Usage: "compile [ options ] spq|sql",
-	Short: "compile a lake query for inspection and debugging",
+	Short: "compile a database query for inspection and debugging",
 	Long: `
 The "super db compile" command is just like the "super compile" command except 
-it compiles the query for a SuperDB data lake instead of a local file system.
-The primary difference here is that "from" operators on a lake work with data
-stored in the lake whereas "from" operators on file system work with local files.
+it compiles the query for a database instead of a local file system.
+The primary difference here is that "from" operators on a database work with data
+stored in the database whereas "from" operators on file system work with local files.
 In both cases, "from" can also retrieve data from HTTP APIs via URL.
 
 See the "super compile" command help for futher information.
@@ -47,5 +47,5 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	defer cleanup()
-	return c.shared.Run(ctx, args, &c.parent.LakeFlags, c.describe, false)
+	return c.shared.Run(ctx, args, &c.parent.DBFlags, c.describe, false)
 }

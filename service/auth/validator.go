@@ -17,8 +17,8 @@ import (
 const (
 	// These are the namespaced custom claims we expect on any JWT
 	// access token.
-	TenantIDClaim = "https://lake.brimdata.io/tenant_id"
-	UserIDClaim   = "https://lake.brimdata.io/user_id"
+	TenantIDClaim = "https://db.brimdata.io/tenant_id"
+	UserIDClaim   = "https://db.brimdata.io/user_id"
 )
 
 type TokenValidator struct {

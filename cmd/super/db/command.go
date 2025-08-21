@@ -5,7 +5,7 @@ import (
 	"flag"
 	"os"
 
-	"github.com/brimdata/super/cli/lakeflags"
+	"github.com/brimdata/super/cli/dbflags"
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/cli/queryflags"
 	"github.com/brimdata/super/cli/runtimeflags"
@@ -20,10 +20,10 @@ import (
 var Spec = &charm.Spec{
 	Name:  "db",
 	Usage: "db <sub-command> [options] [arguments...]",
-	Short: "run SuperDB data lake commands",
+	Short: "run database commands",
 	Long: `
-XXX db is a command-line tool for creating, configuring, ingesting into,
-querying, and orchestrating Zed data lakes.`,
+db is a command-line tool for creating, configuring, ingesting into,
+querying, and orchestrating databases.`,
 	New:          New,
 	InternalLeaf: true,
 }
@@ -34,7 +34,7 @@ func init() {
 
 type Command struct {
 	*root.Command
-	LakeFlags    lakeflags.Flags
+	DBFlags      dbflags.Flags
 	outputFlags  outputflags.Flags
 	queryFlags   queryflags.Flags
 	runtimeFlags runtimeflags.Flags
@@ -43,7 +43,7 @@ type Command struct {
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*root.Command)}
-	c.LakeFlags.SetFlags(f)
+	c.DBFlags.SetFlags(f)
 	return c, nil
 }
 
@@ -66,7 +66,7 @@ func (c *Command) Run(args []string) error {
 	if len(args) > 0 {
 		return errors.New("super db command takes no arguments")
 	}
-	lake, err := c.LakeFlags.Open(ctx)
+	db, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}
@@ -74,7 +74,7 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	query, err := lake.Query(ctx, c.query, c.queryFlags.Includes...)
+	query, err := db.Query(ctx, c.query, c.queryFlags.Includes...)
 	if err != nil {
 		w.Close()
 		return err

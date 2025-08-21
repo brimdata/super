@@ -9,8 +9,8 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/lake"
-	"github.com/brimdata/super/lakeparse"
+	"github.com/brimdata/super/db"
+	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/storage"
@@ -25,14 +25,14 @@ import (
 
 type Environment struct {
 	engine storage.Engine
-	lake   *lake.Root
+	db     *db.Root
 	useVAM bool
 }
 
-func NewEnvironment(engine storage.Engine, lake *lake.Root) *Environment {
+func NewEnvironment(engine storage.Engine, d *db.Root) *Environment {
 	return &Environment{
 		engine: engine,
-		lake:   lake,
+		db:     d,
 		useVAM: os.Getenv("SUPER_VAM") != "",
 	}
 }
@@ -49,33 +49,33 @@ func (e *Environment) SetUseVAM() {
 	e.useVAM = true
 }
 
-func (e *Environment) IsLake() bool {
-	return e.lake != nil
+func (e *Environment) IsAttached() bool {
+	return e.db != nil
 }
 
-func (e *Environment) Lake() *lake.Root {
-	return e.lake
+func (e *Environment) DB() *db.Root {
+	return e.db
 }
 
 func (e *Environment) PoolID(ctx context.Context, name string) (ksuid.KSUID, error) {
-	if id, err := lakeparse.ParseID(name); err == nil {
-		if _, err := e.lake.OpenPool(ctx, id); err == nil {
+	if id, err := dbid.ParseID(name); err == nil {
+		if _, err := e.db.OpenPool(ctx, id); err == nil {
 			return id, nil
 		}
 	}
-	return e.lake.PoolID(ctx, name)
+	return e.db.PoolID(ctx, name)
 }
 
 func (e *Environment) CommitObject(ctx context.Context, id ksuid.KSUID, name string) (ksuid.KSUID, error) {
-	if e.lake != nil {
-		return e.lake.CommitObject(ctx, id, name)
+	if e.db != nil {
+		return e.db.CommitObject(ctx, id, name)
 	}
 	return ksuid.Nil, nil
 }
 
 func (e *Environment) SortKeys(ctx context.Context, src dag.Op) order.SortKeys {
-	if e.lake != nil {
-		return e.lake.SortKeys(ctx, src)
+	if e.db != nil {
+		return e.db.SortKeys(ctx, src)
 	}
 	return nil
 }

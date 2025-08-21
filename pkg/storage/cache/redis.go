@@ -7,7 +7,7 @@ import (
 	"path"
 	"time"
 
-	"github.com/brimdata/super/lake/data"
+	"github.com/brimdata/super/db/data"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/go-redis/redis/v8"
 	"github.com/prometheus/client_golang/prometheus"

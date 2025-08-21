@@ -14,7 +14,7 @@ import (
 
 	"github.com/brimdata/super/api"
 	"github.com/brimdata/super/compiler"
-	"github.com/brimdata/super/lake"
+	"github.com/brimdata/super/db"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/sup"
@@ -33,12 +33,12 @@ const DefaultFormat = "sup"
 const indexPage = `
 <!DOCTYPE html>
 <html>
-  <title>Zed lake service</title>
+  <title>SuperDB database service</title>
   <body style="padding:10px">
     <h2>zed serve</h2>
-    <p>A <a href="https://super.brimdata.io/docs/commands/zed#213-serve">Zed lake service</a> is listening on this host/port.</p>
+    <p>A <a href="https://super.brimdata.io/docs/commands/zed#213-serve">SuperDB database service</a> is listening on this host/port.</p>
     <p>If you're a <a href="https://zui.brimdata.io/">Zui</a> user, connect to this host/port from Zui app in the graphical desktop interface in your operating system (not a web browser).</p>
-    <p>If your goal is to perform command line operations against this Zed lake, use the <a href="https://super.brimdata.io/docs/commands/zed"><code>zed</code></a> command.</p>
+    <p>If your goal is to perform command line operations against this database, use the <a href="https://super.brimdata.io/docs/commands/zed"><code>zed</code></a> command.</p>
   </body>
 </html>`
 
@@ -59,7 +59,7 @@ type Core struct {
 	engine           storage.Engine
 	logger           *zap.Logger
 	registry         *prometheus.Registry
-	root             *lake.Root
+	root             *db.Root
 	routerAPI        *mux.Router
 	routerAux        *mux.Router
 	runningQueries   map[string]*queryStatus
@@ -97,7 +97,7 @@ func NewCore(ctx context.Context, conf Config) (*Core, error) {
 	}
 	path := conf.Root
 	if path == nil {
-		return nil, errors.New("no lake root")
+		return nil, errors.New("no database root path")
 	}
 	var engine storage.Engine
 	switch storage.Scheme(path.Scheme) {
@@ -108,7 +108,7 @@ func NewCore(ctx context.Context, conf Config) (*Core, error) {
 	default:
 		return nil, fmt.Errorf("root path cannot have scheme %q", path.Scheme)
 	}
-	root, err := lake.CreateOrOpen(ctx, engine, conf.Logger.Named("lake"), path)
+	root, err := db.CreateOrOpen(ctx, engine, conf.Logger.Named("db"), path)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func NewCore(ctx context.Context, conf Config) (*Core, error) {
 
 	c := &Core{
 		auth:           authenticator,
-		compiler:       compiler.NewLakeCompiler(root),
+		compiler:       compiler.NewCompilerForDB(root),
 		conf:           conf,
 		engine:         engine,
 		logger:         conf.Logger.Named("core"),

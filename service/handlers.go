@@ -14,11 +14,11 @@ import (
 	"github.com/brimdata/super/compiler"
 	"github.com/brimdata/super/compiler/describe"
 	"github.com/brimdata/super/compiler/parser"
-	"github.com/brimdata/super/lake"
-	lakeapi "github.com/brimdata/super/lake/api"
-	"github.com/brimdata/super/lake/commits"
-	"github.com/brimdata/super/lake/journal"
-	"github.com/brimdata/super/lakeparse"
+	"github.com/brimdata/super/db"
+	dbapi "github.com/brimdata/super/db/api"
+	"github.com/brimdata/super/db/commits"
+	"github.com/brimdata/super/db/journal"
+	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
@@ -60,7 +60,7 @@ func handleQuery(c *Core, w *ResponseWriter, r *Request) {
 		w.Error(srverr.ErrInvalid(err))
 		return
 	}
-	flowgraph, err := runtime.CompileLakeQuery(r.Context(), super.NewContext(), c.compiler, ast)
+	flowgraph, err := runtime.CompileQueryForDB(r.Context(), super.NewContext(), c.compiler, ast)
 	if err != nil {
 		w.Error(srverr.ErrInvalid(err))
 		return
@@ -289,7 +289,7 @@ func handleBranchPost(c *Core, w *ResponseWriter, r *Request) {
 	if !ok {
 		return
 	}
-	commit, err := lakeparse.ParseID(req.Commit)
+	commit, err := dbid.ParseID(req.Commit)
 	if err != nil {
 		w.Error(srverr.ErrInvalid("invalid commit object: %s", req.Commit))
 		return
@@ -454,7 +454,7 @@ func handleBranchLoad(c *Core, w *ResponseWriter, r *Request) {
 	opts := anyio.ReaderOpts{
 		Format: format,
 		CSV:    csvio.ReaderOpts{Delim: csvDelim},
-		// Force validation of BSUP when loading into the lake.
+		// Force validation of BSUP when loading into the database.
 		BSUP: bsupio.ReaderOpts{Validate: true},
 	}
 	sctx := super.NewContext()
@@ -470,7 +470,7 @@ func handleBranchLoad(c *Core, w *ResponseWriter, r *Request) {
 		if errors.Is(err, commits.ErrEmptyTransaction) {
 			err = srverr.ErrInvalid("no records in request")
 		}
-		if errors.Is(err, lake.ErrInvalidCommitMeta) {
+		if errors.Is(err, db.ErrInvalidCommitMeta) {
 			err = srverr.ErrInvalid("invalid commit metadata in request")
 		}
 		w.Error(err)
@@ -564,7 +564,7 @@ func handleDelete(c *Core, w *ResponseWriter, r *Request) {
 			return
 		}
 		var ids []ksuid.KSUID
-		ids, err = lakeparse.ParseIDs(payload.ObjectIDs)
+		ids, err = dbid.ParseIDs(payload.ObjectIDs)
 		if err != nil {
 			w.Error(srverr.ErrInvalid(err))
 			return
@@ -611,8 +611,8 @@ func handleVacuum(c *Core, w *ResponseWriter, r *Request) {
 	if !ok {
 		return
 	}
-	lk := lakeapi.FromRoot(c.root)
-	oids, err := lk.Vacuum(r.Context(), pool, revision, dryrun)
+	db := dbapi.FromRoot(c.root)
+	oids, err := db.Vacuum(r.Context(), pool, revision, dryrun)
 	if err != nil {
 		w.Error(err)
 		return
@@ -637,8 +637,8 @@ func handleVectorPost(c *Core, w *ResponseWriter, r *Request) {
 	if !ok {
 		return
 	}
-	lk := lakeapi.FromRoot(c.root)
-	commit, err := lk.AddVectors(r.Context(), pool, revision, req.ObjectIDs, message)
+	db := dbapi.FromRoot(c.root)
+	commit, err := db.AddVectors(r.Context(), pool, revision, req.ObjectIDs, message)
 	if err != nil {
 		w.Error(err)
 		return
@@ -663,8 +663,8 @@ func handleVectorDelete(c *Core, w *ResponseWriter, r *Request) {
 	if !ok {
 		return
 	}
-	lk := lakeapi.FromRoot(c.root)
-	commit, err := lk.DeleteVectors(r.Context(), pool, revision, req.ObjectIDs, message)
+	db := dbapi.FromRoot(c.root)
+	commit, err := db.DeleteVectors(r.Context(), pool, revision, req.ObjectIDs, message)
 	if err != nil {
 		w.Error(err)
 		return

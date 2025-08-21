@@ -14,7 +14,7 @@ outputs:
       HEAD: pool not found at line 1, column 6:
       from HEAD
            ~~~~
-      unknown lake metadata type "unknownmeta" in from operator at line 1, column 6:
+      unknown database metadata type "unknownmeta" in from operator at line 1, column 6:
       from :unknownmeta
            ~~~~~~~~~~~~
       doesnotexist: pool not found at line 1, column 6:

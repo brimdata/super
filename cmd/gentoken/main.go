@@ -14,7 +14,7 @@ import (
 var CLI = &charm.Spec{
 	Name:  "gentoken",
 	Usage: "gentoken",
-	Short: "generate access token to test Zed lake service auth",
+	Short: "generate access token to test database service auth",
 	New:   New,
 }
 

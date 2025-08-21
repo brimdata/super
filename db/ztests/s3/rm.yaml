@@ -1,0 +1,32 @@
+skip: issue 2540... need to delete by key range
+
+script: |
+  mkdir logs
+  source minio.sh
+  zed import -R logs -data s3://bucket/db babble.sup
+  zed map -R logs -o count.bsup "count()"
+  echo ===
+  zed ls -R logs -ranges -l
+  echo ===
+  zed rm -R logs -ranges count.bsup
+  echo ===
+  zed rm -R logs -ranges count.bsup
+
+inputs:
+  - name: babble.sup
+    source: ../../../testdata/babble.sup
+  - name: minio.sh
+    source: ../../../testdata/minio.sh
+
+outputs:
+  - name: stdout
+    data: |
+      ===
+      [1587518620062237300-1587513611063914690]/count.bsup
+      [1587513592062544400-1587508830068523240]/count.bsup
+      ===
+      [1587518620062237300-1587513611063914690]/count.bsup: removed
+      [1587513592062544400-1587508830068523240]/count.bsup: removed
+      ===
+      [1587518620062237300-1587513611063914690]/count.bsup: not found
+      [1587513592062544400-1587508830068523240]/count.bsup: not found

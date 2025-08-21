@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/lake"
+	"github.com/brimdata/super/db"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sbuf"
@@ -19,7 +19,7 @@ type Deleter struct {
 	pushdown    sbuf.Pushdown
 	pruner      expr.Evaluator
 	rctx        *runtime.Context
-	pool        *lake.Pool
+	pool        *db.Pool
 	progress    *sbuf.Progress
 	unmarshaler *sup.UnmarshalBSUPContext
 	done        bool
@@ -27,7 +27,7 @@ type Deleter struct {
 	deletes     *sync.Map
 }
 
-func NewDeleter(rctx *runtime.Context, parent sbuf.Puller, pool *lake.Pool, pushdown sbuf.Pushdown, pruner expr.Evaluator, progress *sbuf.Progress, deletes *sync.Map) *Deleter {
+func NewDeleter(rctx *runtime.Context, parent sbuf.Puller, pool *db.Pool, pushdown sbuf.Pushdown, pruner expr.Evaluator, progress *sbuf.Progress, deletes *sync.Map) *Deleter {
 	return &Deleter{
 		parent:      parent,
 		pushdown:    pushdown,

@@ -21,13 +21,13 @@ func die(err error) {
 var (
 	pidfile  string
 	portfile string
-	lakeroot string
+	dbroot   string
 )
 
 func init() {
-	flag.StringVar(&portfile, "portfile", "", "location to write SuperDB lake serve port")
-	flag.StringVar(&pidfile, "pidfile", "", "location to write SuperDB lake serve pid")
-	flag.StringVar(&lakeroot, "lake", "", "SuperDB lake location")
+	flag.StringVar(&portfile, "portfile", "", "location to write database service port")
+	flag.StringVar(&pidfile, "pidfile", "", "location to write database service pid")
+	flag.StringVar(&dbroot, "db", "", "path to database")
 	flag.Parse()
 }
 
@@ -47,7 +47,7 @@ func main() {
 		"db",
 		"serve",
 		"-l=localhost:0",
-		"-db=" + lakeroot,
+		"-db=" + dbroot,
 		"-log.level=warn",
 		"-portfile=" + portfile,
 		fmt.Sprintf("-brimfd=%d", r.Fd()),

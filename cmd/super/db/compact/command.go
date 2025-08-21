@@ -7,7 +7,7 @@ import (
 	"github.com/brimdata/super/cli/commitflags"
 	"github.com/brimdata/super/cli/poolflags"
 	"github.com/brimdata/super/cmd/super/db"
-	"github.com/brimdata/super/lakeparse"
+	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/pkg/charm"
 )
 
@@ -47,11 +47,11 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	defer cleanup()
-	ids, err := lakeparse.ParseIDs(args)
+	ids, err := dbid.ParseIDs(args)
 	if err != nil {
 		return err
 	}
-	lake, err := c.LakeFlags.Open(ctx)
+	db, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}
@@ -59,12 +59,12 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	poolID, err := lake.PoolID(ctx, head.Pool)
+	poolID, err := db.PoolID(ctx, head.Pool)
 	if err != nil {
 		return err
 	}
-	commit, err := lake.Compact(ctx, poolID, head.Branch, ids, c.writeVectors, c.commitFlags.CommitMessage())
-	if err == nil && !c.LakeFlags.Quiet {
+	commit, err := db.Compact(ctx, poolID, head.Branch, ids, c.writeVectors, c.commitFlags.CommitMessage())
+	if err == nil && !c.DBFlags.Quiet {
 		fmt.Printf("%s compaction committed\n", commit)
 	}
 	return err

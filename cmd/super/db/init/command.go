@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/brimdata/super/cmd/super/db"
-	"github.com/brimdata/super/lake/api"
+	"github.com/brimdata/super/db/api"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
 	"go.uber.org/zap"
@@ -14,7 +14,7 @@ import (
 
 var spec = &charm.Spec{
 	Name:  "init",
-	Usage: "create and initialize a new, empty lake",
+	Usage: "create and initialize a new, empty database",
 	Short: "init [ path ]",
 	Long: `
 "zed init" ...
@@ -42,26 +42,26 @@ func (c *Command) Run(args []string) error {
 	defer cleanup()
 	var u *storage.URI
 	if len(args) == 0 {
-		if u, err = c.LakeFlags.URI(); err != nil {
+		if u, err = c.DBFlags.URI(); err != nil {
 			return err
 		}
 	} else if len(args) == 1 {
 		path := args[0]
 		if path == "" {
-			return errors.New("single lake path argument required")
+			return errors.New("single database path argument required")
 		}
 		if u, err = storage.ParseURI(path); err != nil {
 			return err
 		}
 	}
-	if api.IsLakeService(u.String()) {
-		return fmt.Errorf("init command not valid on remote lake")
+	if api.IsRemote(u.String()) {
+		return fmt.Errorf("init command not valid on remote database")
 	}
-	if _, err := api.CreateLocalLake(ctx, zap.Must(zap.NewProduction()), u.String()); err != nil {
+	if _, err := api.CreateLocalDB(ctx, zap.Must(zap.NewProduction()), u.String()); err != nil {
 		return err
 	}
-	if !c.LakeFlags.Quiet {
-		fmt.Printf("lake created: %s\n", u)
+	if !c.DBFlags.Quiet {
+		fmt.Printf("database created: %s\n", u)
 	}
 	return nil
 }

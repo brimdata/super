@@ -15,8 +15,8 @@ import (
 	"github.com/brimdata/super/cli"
 	"github.com/brimdata/super/cli/logflags"
 	"github.com/brimdata/super/cmd/super/db"
-	"github.com/brimdata/super/cmd/super/internal/lakemanage"
-	"github.com/brimdata/super/lake/api"
+	"github.com/brimdata/super/cmd/super/db/internal/dbmanage"
+	"github.com/brimdata/super/db/api"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/fs"
 	"github.com/brimdata/super/pkg/httpd"
@@ -28,11 +28,11 @@ import (
 var spec = &charm.Spec{
 	Name:  "serve",
 	Usage: "serve [options]",
-	Short: "service requests to a Zed lake",
+	Short: "service requests to a database",
 	Long: `
-The serve command implements Zed's server personality to service
-requests from instances of Zed's client personality. It listens
-for Zed lake API requests on the interface and port specified by
+The serve command implements SuperDB's server personality to service
+requests from instances of SuperDB's client personality. It listens
+for database API requests on the interface and port specified by
 the -l option, executes the requests, and returns results.
 
 The -log.level option controls log verbosity. Available levels,
@@ -78,7 +78,7 @@ func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	})
 	f.StringVar(&c.conf.DefaultResponseFormat, "defaultfmt", service.DefaultFormat, "default response format")
 	f.StringVar(&c.listenAddr, "l", ":9867", "[addr]:port to listen on")
-	f.DurationVar(&c.manage, "manage", 0, "when positive, run lake maintenance tasks at this interval")
+	f.DurationVar(&c.manage, "manage", 0, "when positive, run database maintenance tasks at this interval")
 	f.StringVar(&c.portFile, "portfile", "", "write listen port to file")
 	f.StringVar(&c.rootContentFile, "rootcontentfile", "", "file to serve for GET /")
 	return c, nil
@@ -92,11 +92,11 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	defer cleanup()
-	if c.conf.Root, err = c.LakeFlags.URI(); err != nil {
+	if c.conf.Root, err = c.DBFlags.URI(); err != nil {
 		return err
 	}
-	if api.IsLakeService(c.conf.Root.String()) {
-		return errors.New("serve command available for local lakes only")
+	if api.IsRemote(c.conf.Root.String()) {
+		return errors.New("serve command available for local databases only")
 	}
 	if c.rootContentFile != "" {
 		f, err := fs.Open(c.rootContentFile)
@@ -130,7 +130,7 @@ func (c *Command) Run(args []string) error {
 	if c.manage > 0 {
 		conn := client.NewConnectionTo("http://" + srv.Addr())
 		group.Go(func() error {
-			return lakemanage.Monitor(ctx, conn, lakemanage.Config{Interval: &c.manage}, logger.Named("manage"))
+			return dbmanage.Monitor(ctx, conn, dbmanage.Config{Interval: &c.manage}, logger.Named("manage"))
 		})
 	}
 	if c.portFile != "" {

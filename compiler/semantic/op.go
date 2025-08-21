@@ -14,7 +14,7 @@ import (
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/compiler/rungen"
-	"github.com/brimdata/super/lakeparse"
+	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/plural"
@@ -79,7 +79,7 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.TableAlias, a
 			return bad, badSchema()
 		}
 		s := a.fromSchema(alias, "")
-		if a.env.IsLake() {
+		if a.env.IsAttached() {
 			return a.semPoolFromRegexp(entity, reglob.Reglob(entity.Pattern), entity.Pattern, "glob", args), s
 		}
 		return dag.Seq{a.semFromFileGlob(entity, entity.Pattern, args)}, s
@@ -87,7 +87,7 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.TableAlias, a
 		if bad := a.hasFromParent(entity, seq); bad != nil {
 			return bad, badSchema()
 		}
-		if !a.env.IsLake() {
+		if !a.env.IsAttached() {
 			a.error(entity, errors.New("cannot use regular expression with from operator on local file system"))
 			return seq, badSchema()
 		}
@@ -114,11 +114,11 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.TableAlias, a
 	case *ast.ExprEntity:
 		seq, def := a.semFromExpr(entity, args, seq)
 		return seq, a.fromSchema(alias, def)
-	case *ast.LakeMeta:
+	case *ast.DBMeta:
 		if bad := a.hasFromParent(entity, seq); bad != nil {
 			return bad, badSchema()
 		}
-		return dag.Seq{a.semLakeMeta(entity)}, &dynamicSchema{}
+		return dag.Seq{a.semDBMeta(entity)}, &dynamicSchema{}
 	case *ast.SQLPipe:
 		return a.semSQLPipe(entity, seq, alias)
 	case *ast.SQLJoin:
@@ -236,7 +236,7 @@ func (a *analyzer) semFromName(nameLoc ast.Node, name string, args []ast.OpArg) 
 		return a.semFromURL(nameLoc, name, args), ""
 	}
 	prefix := strings.Split(name, ".")[0]
-	if a.env.IsLake() {
+	if a.env.IsAttached() {
 		return a.semPool(nameLoc, name, args), prefix
 	}
 	return a.semFile(name, args), prefix
@@ -398,7 +398,7 @@ func (a *analyzer) semPool(nameLoc ast.Node, poolName string, args []ast.OpArg) 
 	var commitID ksuid.KSUID
 	commit, commitLoc := a.textArg(opArgs, "commit")
 	if commit != "" {
-		if commitID, err = lakeparse.ParseID(commit); err != nil {
+		if commitID, err = dbid.ParseID(commit); err != nil {
 			commitID, err = a.env.CommitObject(a.ctx, poolID, commit)
 			if err != nil {
 				a.error(commitLoc, err)
@@ -452,21 +452,21 @@ func (a *analyzer) semPool(nameLoc ast.Node, poolName string, args []ast.OpArg) 
 	}
 }
 
-func (a *analyzer) semLakeMeta(entity *ast.LakeMeta) dag.Op {
+func (a *analyzer) semDBMeta(entity *ast.DBMeta) dag.Op {
 	meta := entity.Meta.Text
-	if _, ok := dag.LakeMetas[meta]; !ok {
-		a.error(entity, fmt.Errorf("unknown lake metadata type %q in from operator", meta))
+	if _, ok := dag.DBMetas[meta]; !ok {
+		a.error(entity, fmt.Errorf("unknown database metadata type %q in from operator", meta))
 		return badOp()
 	}
-	return &dag.LakeMetaScan{
-		Kind: "LakeMetaScan",
+	return &dag.DBMetaScan{
+		Kind: "DBMetaScan",
 		Meta: meta,
 	}
 }
 
 func (a *analyzer) semDelete(op *ast.Delete) dag.Op {
-	if !a.env.IsLake() {
-		a.error(op, errors.New("deletion requires data lake"))
+	if !a.env.IsAttached() {
+		a.error(op, errors.New("deletion requires database"))
 		return badOp()
 	}
 	poolID, err := a.env.PoolID(a.ctx, op.Pool)
@@ -477,7 +477,7 @@ func (a *analyzer) semDelete(op *ast.Delete) dag.Op {
 	var commitID ksuid.KSUID
 	if op.Branch != "" {
 		var err error
-		if commitID, err = lakeparse.ParseID(op.Branch); err != nil {
+		if commitID, err = dbid.ParseID(op.Branch); err != nil {
 			commitID, err = a.env.CommitObject(a.ctx, poolID, op.Branch)
 			if err != nil {
 				a.error(op, err)
@@ -497,7 +497,7 @@ func (a *analyzer) matchPools(pattern, origPattern, patternDesc string) ([]strin
 	if err != nil {
 		return nil, err
 	}
-	pools, err := a.env.Lake().ListPools(a.ctx)
+	pools, err := a.env.DB().ListPools(a.ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -948,11 +948,11 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 		exprs := a.semExprs(o.Exprs)
 		return append(seq, dag.NewValues(exprs...))
 	case *ast.Load:
-		if !a.env.IsLake() {
-			a.error(o, errors.New("load operator cannot be used without a lake"))
+		if !a.env.IsAttached() {
+			a.error(o, errors.New("load operator cannot be used without an attached database"))
 			return dag.Seq{badOp()}
 		}
-		poolID, err := lakeparse.ParseID(o.Pool.Text)
+		poolID, err := dbid.ParseID(o.Pool.Text)
 		if err != nil {
 			poolID, err = a.env.PoolID(a.ctx, o.Pool.Text)
 			if err != nil {

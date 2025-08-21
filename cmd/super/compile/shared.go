@@ -7,12 +7,12 @@ import (
 	"fmt"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/cli/lakeflags"
+	"github.com/brimdata/super/cli/dbflags"
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/cli/queryflags"
 	"github.com/brimdata/super/compiler"
 	"github.com/brimdata/super/compiler/describe"
-	"github.com/brimdata/super/lake"
+	"github.com/brimdata/super/db"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
@@ -40,20 +40,20 @@ func (s *Shared) SetFlags(fs *flag.FlagSet) {
 	s.OutputFlags.SetFlags(fs)
 }
 
-func (s *Shared) Run(ctx context.Context, args []string, lakeFlags *lakeflags.Flags, desc, extInput bool) error {
+func (s *Shared) Run(ctx context.Context, args []string, dbFlags *dbflags.Flags, desc, extInput bool) error {
 	if len(s.includes) == 0 && len(args) == 0 {
 		return errors.New("no query specified")
 	}
 	if len(args) > 1 {
 		return errors.New("too many arguments")
 	}
-	var lk *lake.Root
-	if lakeFlags != nil {
-		lakeAPI, err := lakeFlags.Open(ctx)
+	var root *db.Root
+	if dbFlags != nil {
+		dbAPI, err := dbFlags.Open(ctx)
 		if err != nil {
 			return err
 		}
-		lk = lakeAPI.Root()
+		root = dbAPI.Root()
 	}
 	var query string
 	if len(args) == 1 {
@@ -77,7 +77,7 @@ func (s *Shared) Run(ctx context.Context, args []string, lakeFlags *lakeflags.Fl
 		return s.writeValue(ctx, ast.Parsed())
 	}
 	rctx := runtime.DefaultContext()
-	env := exec.NewEnvironment(nil, lk)
+	env := exec.NewEnvironment(nil, root)
 	dag, err := compiler.Analyze(rctx, ast, env, extInput)
 	if err != nil {
 		return err

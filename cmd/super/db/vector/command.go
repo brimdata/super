@@ -10,10 +10,10 @@ import (
 var spec = &charm.Spec{
 	Name:  "vector",
 	Usage: "vector [subcommand]",
-	Short: "create and delete vectorized versions of lake data",
+	Short: "create and delete vectorized versions of database data",
 	Long: `
 The vector subcommands control the creation, management, and deletion
-of vectorized data in a Zed lake.
+of vectorized data in a database.
 `,
 	New: New,
 }

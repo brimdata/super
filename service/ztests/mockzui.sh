@@ -5,7 +5,7 @@
 
 function awaitdeadservice {
   i=0
-  function servicealive { kill -0 $LAKE_PID 2> /dev/null; }
+  function servicealive { kill -0 $DB_PID 2> /dev/null; }
   while servicealive ; do
     let i+=1
     if [ $i -gt 50 ]; then
@@ -29,11 +29,11 @@ function awaitfile {
   done
 }
 
-mkdir -p lakeroot
-lakeroot=lakeroot
+mkdir -p db_root
+db_root=db_root
 tempdir=$(mktemp -d)
 
-mockzui -lake="$lakeroot" -portfile="$tempdir/port" -pidfile="$tempdir/pid" &
+mockzui -db="$db_root" -portfile="$tempdir/port" -pidfile="$tempdir/pid" &
 mockzuipid=$!
 
 # wait for service to start
@@ -41,9 +41,9 @@ awaitfile $tempdir/port
 awaitfile $tempdir/pid
 
 export SUPER_DB=http://localhost:$(cat $tempdir/port)
-export LAKE_PID=$(cat $tempdir/pid)
+export DB_PID=$(cat $tempdir/pid)
 export MOCKZUI_PID=$mockzuipid
 
-# ensure that lake service process isn't leaked
-trap "kill -9 $LAKE_PID 2>/dev/null || :" EXIT
+# ensure that db service process isn't leaked
+trap "kill -9 $DB_PID 2>/dev/null || :" EXIT
 rm -rf $tempdir

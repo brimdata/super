@@ -11,7 +11,7 @@ import (
 var Logout = &charm.Spec{
 	Name:  "logout",
 	Usage: "auth logout",
-	Short: "remove saved credentials for a Zed lake service",
+	Short: "remove saved credentials for a database service",
 	Long:  ``,
 	New:   NewLogoutCommand,
 }
@@ -30,14 +30,14 @@ func (c *LogoutCommand) Run(args []string) error {
 		return err
 	}
 	defer cleanup()
-	if _, err := c.LakeFlags.Connection(); err != nil {
-		// The Connection call here is to verify we're operating on a remote lake.
+	if _, err := c.DBFlags.Connection(); err != nil {
+		// The Connection call here is to verify we're operating on a remote database.
 		return err
 	}
 	if len(args) > 0 {
 		return errors.New("logout command takes no arguments")
 	}
-	if err := c.LakeFlags.AuthStore().RemoveTokens(c.LakeFlags.DB); err != nil {
+	if err := c.DBFlags.AuthStore().RemoveTokens(c.DBFlags.DB); err != nil {
 		return fmt.Errorf("failed to save credentials file: %w", err)
 	}
 	return nil

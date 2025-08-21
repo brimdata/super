@@ -1,0 +1,19 @@
+script: |
+  export SUPER_DB=test
+  super db init -q
+  ! super db -c 'from HEAD'
+  ! super db -c 'from :unknownmeta'
+  ! super db -c 'from doesnotexist'
+
+outputs:
+  - name: stderr
+    data: |
+      HEAD: pool not found at line 1, column 6:
+      from HEAD
+           ~~~~
+      unknown database metadata type "unknownmeta" in from operator at line 1, column 6:
+      from :unknownmeta
+           ~~~~~~~~~~~~
+      doesnotexist: pool not found at line 1, column 6:
+      from doesnotexist
+           ~~~~~~~~~~~~

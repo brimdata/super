@@ -6,8 +6,8 @@ import (
 	"sync"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/lake/commits"
-	"github.com/brimdata/super/lake/data"
+	"github.com/brimdata/super/db/commits"
+	"github.com/brimdata/super/db/data"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sbuf"
@@ -35,7 +35,7 @@ func NewSlicer(parent sbuf.Puller, sctx *super.Context) *Slicer {
 		parent:      parent,
 		marshaler:   m,
 		unmarshaler: sup.NewBSUPUnmarshaler(),
-		//XXX check that nulls position is consistent for both dirs in lake ops
+		//XXX check that nulls position is consistent for both dirs in database ops
 		cmp: expr.NewValueCompareFn(order.Asc, order.NullsLast),
 	}
 }

@@ -265,7 +265,7 @@ type (
 		Tap       bool        `json:"tap"`
 		KeyPruner Expr        `json:"key_pruner"`
 	}
-	LakeMetaScan struct {
+	DBMetaScan struct {
 		Kind string `json:"kind" unpack:""`
 		Meta string `json:"meta"`
 	}
@@ -274,7 +274,7 @@ type (
 	}
 )
 
-var LakeMetas = map[string]struct{}{
+var DBMetas = map[string]struct{}{
 	"branches": {},
 	"pools":    {},
 }
@@ -297,7 +297,7 @@ func (*HTTPScan) opNode()       {}
 func (*PoolScan) opNode()       {}
 func (*RobotScan) opNode()      {}
 func (*DeleteScan) opNode()     {}
-func (*LakeMetaScan) opNode()   {}
+func (*DBMetaScan) opNode()     {}
 func (*PoolMetaScan) opNode()   {}
 func (*CommitMetaScan) opNode() {}
 func (*NullScan) opNode()       {}

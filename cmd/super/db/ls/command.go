@@ -17,11 +17,11 @@ import (
 var spec = &charm.Spec{
 	Name:  "ls",
 	Usage: "ls [options] [pool]",
-	Short: "list pools in a lake or branches in a pool",
+	Short: "list pools in a database or branches in a pool",
 	Long: `
-"zed ls" lists pools in a lake or branches in a pool.
+"zed ls" lists pools in a database or branches in a pool.
 
-By default, all pools in the lake are listed along with each pool's unique ID
+By default, all pools in the database are listed along with each pool's unique ID
 and pool key configuration.
 
 If a pool name or pool ID is given, then the pool's branches are listed along
@@ -42,7 +42,7 @@ type Command struct {
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*db.Command)}
-	c.outputFlags.DefaultFormat = "lake"
+	c.outputFlags.DefaultFormat = "db"
 	c.outputFlags.SetFlags(f)
 	return c, nil
 }
@@ -62,7 +62,7 @@ func (c *Command) Run(args []string) error {
 	}
 	defer cleanup()
 	local := storage.NewLocalEngine()
-	lake, err := c.LakeFlags.Open(ctx)
+	db, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}
@@ -88,7 +88,7 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	q, err := lake.Query(ctx, query)
+	q, err := db.Query(ctx, query)
 	if err != nil {
 		w.Close()
 		return err

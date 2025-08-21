@@ -99,7 +99,7 @@ var unpacker = unpack.New(
 	Where{},
 	Shapes{},
 	Delete{},
-	LakeMeta{},
+	DBMeta{},
 	// SuperSQL
 	SQLPipe{},
 	SQLLimitOffset{},

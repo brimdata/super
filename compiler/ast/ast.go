@@ -199,7 +199,7 @@ type ExprEntity struct {
 func (*Glob) fromEntityNode()         {}
 func (*Regexp) fromEntityNode()       {}
 func (*ExprEntity) fromEntityNode()   {}
-func (*LakeMeta) fromEntityNode()     {}
+func (*DBMeta) fromEntityNode()       {}
 func (*Text) fromEntityNode()         {}
 func (*SQLCrossJoin) fromEntityNode() {}
 func (*SQLJoin) fromEntityNode()      {}
@@ -632,7 +632,7 @@ type (
 		Elems []*FromElem `json:"elems"`
 		Loc   `json:"loc"`
 	}
-	LakeMeta struct {
+	DBMeta struct {
 		Kind    string `json:"kind" unpack:""`
 		MetaPos int    `json:"meta_pos"`
 		Meta    *Text  `json:"meta"`

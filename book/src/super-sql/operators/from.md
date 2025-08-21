@@ -241,7 +241,7 @@ super db -f text -c '
   | sort'
 ```
 
-The lake then contains the two pools and three branches:
+The database then contains the two pools and three branches:
 
 ```mdtest-output
 coinflips@main
