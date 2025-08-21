@@ -6,12 +6,12 @@ import (
 
 	"github.com/RoaringBitmap/roaring/v2"
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector/bitvec"
-	"github.com/brimdata/super/zcode"
 )
 
 type Builder interface {
-	Write(zcode.Bytes)
+	Write(scode.Bytes)
 	Build(nulls bitvec.Bits) Any
 }
 
@@ -113,7 +113,7 @@ func newNullsBuilder(values Builder) Builder {
 	}
 }
 
-func (n *nullsBuilder) Write(bytes zcode.Bytes) {
+func (n *nullsBuilder) Write(bytes scode.Bytes) {
 	if bytes == nil {
 		n.nulls.Add(n.n)
 	}
@@ -158,7 +158,7 @@ func newRecordBuilder(typ *super.TypeRecord) Builder {
 	return &recordBuilder{typ: typ, values: values}
 }
 
-func (r *recordBuilder) Write(bytes zcode.Bytes) {
+func (r *recordBuilder) Write(bytes scode.Bytes) {
 	r.len++
 	if bytes == nil {
 		for _, v := range r.values {
@@ -199,7 +199,7 @@ func newArraySetBuilder(typ super.Type) Builder {
 	return &arraySetBuilder{typ: typ, values: NewBuilder(super.InnerType(typ)), offsets: []uint32{0}}
 }
 
-func (a *arraySetBuilder) Write(bytes zcode.Bytes) {
+func (a *arraySetBuilder) Write(bytes scode.Bytes) {
 	off := a.offsets[len(a.offsets)-1]
 	for it := bytes.Iter(); !it.Done(); {
 		a.values.Write(it.Next())
@@ -230,7 +230,7 @@ func newMapBuilder(typ *super.TypeMap) Builder {
 	}
 }
 
-func (m *mapBuilder) Write(bytes zcode.Bytes) {
+func (m *mapBuilder) Write(bytes scode.Bytes) {
 	off := m.offsets[len(m.offsets)-1]
 	it := bytes.Iter()
 	for !it.Done() {
@@ -259,7 +259,7 @@ func newUnionBuilder(typ *super.TypeUnion) Builder {
 	return &unionBuilder{typ: typ, values: values}
 }
 
-func (u *unionBuilder) Write(bytes zcode.Bytes) {
+func (u *unionBuilder) Write(bytes scode.Bytes) {
 	if bytes == nil {
 		u.tags = append(u.tags, 0)
 		u.values[0].Write(nil)
@@ -285,7 +285,7 @@ type enumBuilder struct {
 	values []uint64
 }
 
-func (e *enumBuilder) Write(bytes zcode.Bytes) {
+func (e *enumBuilder) Write(bytes scode.Bytes) {
 	e.values = append(e.values, super.DecodeUint(bytes))
 }
 
@@ -298,7 +298,7 @@ type intBuilder struct {
 	values []int64
 }
 
-func (i *intBuilder) Write(bytes zcode.Bytes) {
+func (i *intBuilder) Write(bytes scode.Bytes) {
 	i.values = append(i.values, super.DecodeInt(bytes))
 }
 
@@ -311,7 +311,7 @@ type uintBuilder struct {
 	values []uint64
 }
 
-func (u *uintBuilder) Write(bytes zcode.Bytes) {
+func (u *uintBuilder) Write(bytes scode.Bytes) {
 	u.values = append(u.values, super.DecodeUint(bytes))
 }
 
@@ -324,7 +324,7 @@ type floatBuilder struct {
 	values []float64
 }
 
-func (f *floatBuilder) Write(bytes zcode.Bytes) {
+func (f *floatBuilder) Write(bytes scode.Bytes) {
 	f.values = append(f.values, super.DecodeFloat(bytes))
 }
 
@@ -341,7 +341,7 @@ func newBoolBuilder() Builder {
 	return &boolBuilder{values: roaring.New()}
 }
 
-func (b *boolBuilder) Write(bytes zcode.Bytes) {
+func (b *boolBuilder) Write(bytes scode.Bytes) {
 	if super.DecodeBool(bytes) {
 		b.values.Add(b.n)
 	}
@@ -364,7 +364,7 @@ func newBytesStringTypeBuilder(typ super.Type) Builder {
 	return &bytesStringTypeBuilder{typ: typ, bytes: []byte{}, offs: []uint32{0}}
 }
 
-func (b *bytesStringTypeBuilder) Write(bytes zcode.Bytes) {
+func (b *bytesStringTypeBuilder) Write(bytes scode.Bytes) {
 	b.bytes = append(b.bytes, bytes...)
 	b.offs = append(b.offs, uint32(len(b.bytes)))
 }
@@ -384,7 +384,7 @@ type ipBuilder struct {
 	values []netip.Addr
 }
 
-func (i *ipBuilder) Write(bytes zcode.Bytes) {
+func (i *ipBuilder) Write(bytes scode.Bytes) {
 	i.values = append(i.values, super.DecodeIP(bytes))
 }
 
@@ -396,7 +396,7 @@ type netBuilder struct {
 	values []netip.Prefix
 }
 
-func (n *netBuilder) Write(bytes zcode.Bytes) {
+func (n *netBuilder) Write(bytes scode.Bytes) {
 	n.values = append(n.values, super.DecodeNet(bytes))
 }
 
@@ -408,7 +408,7 @@ type constNullBuilder struct {
 	n uint32
 }
 
-func (c *constNullBuilder) Write(bytes zcode.Bytes) {
+func (c *constNullBuilder) Write(bytes scode.Bytes) {
 	c.n++
 }
 

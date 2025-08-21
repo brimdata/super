@@ -13,8 +13,8 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/runtime/sam/expr"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zcode"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -82,7 +82,7 @@ func runCasesHelper(t *testing.T, record string, cases []testcase, expectBufferF
 				// hand BufferFilter.Eval a BSUP values frame
 				// containing rec, assembled here.
 				buf := binary.AppendUvarint(nil, uint64(rec.Type().ID()))
-				buf = zcode.Append(buf, rec.Bytes())
+				buf = scode.Append(buf, rec.Bytes())
 				assert.Equal(t, expected, bf.Eval(sctx, buf),
 					"filter: %q\nvalues:%s\nbuffer:\n%s", c.filter, sup.FormatValue(rec), hex.Dump(buf))
 			}

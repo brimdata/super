@@ -4,8 +4,8 @@ import (
 	"slices"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector/bitvec"
-	"github.com/brimdata/super/zcode"
 )
 
 type Union struct {
@@ -24,7 +24,7 @@ func (u *Union) Type() super.Type {
 	return u.Typ
 }
 
-func (u *Union) Serialize(b *zcode.Builder, slot uint32) {
+func (u *Union) Serialize(b *scode.Builder, slot uint32) {
 	if u.Nulls.IsSet(slot) {
 		b.Append(nil)
 		return

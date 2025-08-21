@@ -10,7 +10,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/byteconv"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 // Boolean is a function that takes a Value and returns a boolean result
@@ -267,7 +267,7 @@ func CompareNull(op string) (Boolean, error) {
 // predicate that implements the "in" comparison.
 func Contains(compare Boolean) Boolean {
 	return func(val super.Value) super.Value {
-		err := val.Walk(func(typ super.Type, body zcode.Bytes) error {
+		err := val.Walk(func(typ super.Type, body scode.Bytes) error {
 			if compare(super.NewValue(typ, body)) == super.True {
 				return errMatch
 			}

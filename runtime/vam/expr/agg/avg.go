@@ -2,8 +2,8 @@ package agg
 
 import (
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zcode"
 )
 
 type avg struct {
@@ -67,7 +67,7 @@ func (a *avg) ConsumeAsPartial(partial vector.Any) {
 }
 
 func (a *avg) ResultAsPartial(sctx *super.Context) super.Value {
-	var zv zcode.Bytes
+	var zv scode.Bytes
 	zv = super.NewFloat64(a.sum).Encode(zv)
 	zv = super.NewUint64(a.count).Encode(zv)
 	typ := sctx.MustLookupTypeRecord([]super.Field{

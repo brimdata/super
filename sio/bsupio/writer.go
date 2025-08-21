@@ -6,7 +6,7 @@ import (
 	"slices"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 	"github.com/pierrec/lz4/v4"
 )
 
@@ -111,7 +111,7 @@ func (w *Writer) Write(val super.Value) error {
 	}
 	id := super.TypeID(typ)
 	w.values = binary.AppendUvarint(w.values, uint64(id))
-	w.values = zcode.Append(w.values, val.Bytes())
+	w.values = scode.Append(w.values, val.Bytes())
 	if thresh := w.opts.FrameThresh; len(w.values) >= thresh || len(w.types.bytes) >= thresh {
 		return w.flush()
 	}
@@ -173,7 +173,7 @@ func (w *Writer) writeHeader(blockType, size int) error {
 }
 
 func (w *Writer) writeCompHeader(blockType, size, zlen int) error {
-	zlen += 1 + zcode.SizeOfUvarint(uint64(size))
+	zlen += 1 + scode.SizeOfUvarint(uint64(size))
 	code := (blockType << 4) | (zlen & 0xf) | 0x40
 	w.header = append(w.header[:0], byte(code))
 	w.header = binary.AppendUvarint(w.header, uint64(zlen>>4))

@@ -7,8 +7,8 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/pkg/fs"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zcode"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -51,7 +51,7 @@ func TestSUPBuilder(t *testing.T) {
 	sctx := super.NewContext()
 	val, err := analyze(sctx, testFile)
 	require.NoError(t, err)
-	b := zcode.NewBuilder()
+	b := scode.NewBuilder()
 	zv, err := sup.Build(b, val)
 	require.NoError(t, err)
 	rec := super.NewValue(zv.Type().(*super.TypeRecord), zv.Bytes())

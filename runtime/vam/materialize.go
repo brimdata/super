@@ -6,8 +6,8 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/sbuf"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zcode"
 )
 
 type Materializer struct {
@@ -32,7 +32,7 @@ func (m *Materializer) Pull(done bool) (sbuf.Batch, error) {
 	if d == nil {
 		typ = vec.Type()
 	}
-	builder := zcode.NewBuilder()
+	builder := scode.NewBuilder()
 	var vals []super.Value
 	n := vec.Len()
 	for slot := uint32(0); slot < n; slot++ {

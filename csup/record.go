@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -26,7 +26,7 @@ func NewRecordEncoder(typ *super.TypeRecord) *RecordEncoder {
 	return &RecordEncoder{fields: fields}
 }
 
-func (r *RecordEncoder) Write(body zcode.Bytes) {
+func (r *RecordEncoder) Write(body scode.Bytes) {
 	r.count++
 	it := body.Iter()
 	for _, f := range r.fields {

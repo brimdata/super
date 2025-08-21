@@ -6,7 +6,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/op/spill"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 type Shaper struct {
@@ -272,8 +272,8 @@ func (s *Shaper) Read() (*super.Value, error) {
 	return &s.val, nil
 }
 
-func recode(from, to []super.Field, bytes zcode.Bytes) (zcode.Bytes, error) {
-	out := make(zcode.Bytes, 0, len(bytes))
+func recode(from, to []super.Field, bytes scode.Bytes) (scode.Bytes, error) {
+	out := make(scode.Bytes, 0, len(bytes))
 	it := bytes.Iter()
 	for k, fromField := range from {
 		b := it.Next()
@@ -291,7 +291,7 @@ func recode(from, to []super.Field, bytes zcode.Bytes) (zcode.Bytes, error) {
 				return nil, errors.New("internal error: can't recode from to non-integer")
 			}
 		}
-		out = zcode.Append(out, b)
+		out = scode.Append(out, b)
 	}
 	return out, nil
 }

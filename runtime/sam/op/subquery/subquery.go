@@ -6,7 +6,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 type CachedSubquery struct {
@@ -136,7 +136,7 @@ func makeArray(sctx *super.Context, vals []super.Value) super.Value {
 			return makeUnionArray(sctx, vals)
 		}
 	}
-	var b zcode.Builder
+	var b scode.Builder
 	for _, val := range vals {
 		b.Append(val.Bytes())
 	}
@@ -153,7 +153,7 @@ func makeUnionArray(sctx *super.Context, vals []super.Value) super.Value {
 		utypes = append(utypes, typ)
 	}
 	union := sctx.LookupTypeUnion(utypes)
-	var b zcode.Builder
+	var b scode.Builder
 	for _, val := range vals {
 		super.BuildUnion(&b, union.TagOf(val.Type()), val.Bytes())
 	}

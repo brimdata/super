@@ -6,9 +6,9 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/runtime/vam/expr/agg"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/bitvec"
-	"github.com/brimdata/super/zcode"
 )
 
 // XXX use super.Value for slow path stuff, e.g., when the grouping key is
@@ -40,7 +40,7 @@ type aggRow struct {
 func (s *superTable) update(keys []vector.Any, args []vector.Any) {
 	m := make(map[string][]uint32)
 	if len(keys) > 0 {
-		var b zcode.Builder
+		var b scode.Builder
 		for slot := range keys[0].Len() {
 			b.Truncate()
 			for _, key := range keys {
@@ -78,7 +78,7 @@ func (s *superTable) newRow(keys []vector.Any, index []uint32) aggRow {
 	for _, agg := range s.aggs {
 		row.funcs = append(row.funcs, agg.Pattern())
 	}
-	var b zcode.Builder
+	var b scode.Builder
 	for _, key := range keys {
 		b.Reset()
 		key.Serialize(&b, index[0])

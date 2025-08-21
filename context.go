@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 	"unicode/utf8"
 
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 const (
@@ -42,7 +42,7 @@ type Context struct {
 	enums     map[string]*TypeEnum
 	nameds    map[string]*TypeNamed
 	errors    map[Type]*TypeError
-	toValue   map[Type]zcode.Bytes
+	toValue   map[Type]scode.Bytes
 	toType    map[string]Type
 }
 
@@ -346,12 +346,12 @@ func (c *Context) LookupTypeError(inner Type) *TypeError {
 // LookupByValue returns the Type indicated by a binary-serialized type value.
 // This provides a means to translate a type-context-independent serialized
 // encoding for an arbitrary type into the reciever Context.
-func (c *Context) LookupByValue(tv zcode.Bytes) (Type, error) {
+func (c *Context) LookupByValue(tv scode.Bytes) (Type, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if c.toType == nil {
 		c.toType = make(map[string]Type)
-		c.toValue = make(map[Type]zcode.Bytes)
+		c.toValue = make(map[Type]scode.Bytes)
 	}
 	typ, ok := c.toType[string(tv)]
 	if ok {
@@ -396,7 +396,7 @@ func (c *Context) LookupTypeValue(typ Type) Value {
 	return c.LookupTypeValue(typ)
 }
 
-func (c *Context) DecodeTypeValue(tv zcode.Bytes) (Type, zcode.Bytes) {
+func (c *Context) DecodeTypeValue(tv scode.Bytes) (Type, scode.Bytes) {
 	if len(tv) == 0 {
 		return nil, nil
 	}
@@ -540,7 +540,7 @@ func (c *Context) DecodeTypeValue(tv zcode.Bytes) (Type, zcode.Bytes) {
 	}
 }
 
-func DecodeName(tv zcode.Bytes) (string, zcode.Bytes) {
+func DecodeName(tv scode.Bytes) (string, scode.Bytes) {
 	namelen, tv := DecodeLength(tv)
 	if tv == nil || namelen > len(tv) {
 		return "", nil
@@ -548,7 +548,7 @@ func DecodeName(tv zcode.Bytes) (string, zcode.Bytes) {
 	return string(tv[:namelen]), tv[namelen:]
 }
 
-func DecodeLength(tv zcode.Bytes) (int, zcode.Bytes) {
+func DecodeLength(tv scode.Bytes) (int, scode.Bytes) {
 	namelen, n := binary.Uvarint(tv)
 	if n <= 0 {
 		return 0, nil
@@ -587,7 +587,7 @@ func (c *Context) WrapError(msg string, val Value) Value {
 		{"on", val.Type()},
 	})
 	errType := c.LookupTypeError(recType)
-	var b zcode.Builder
+	var b scode.Builder
 	b.Append(EncodeString(msg))
 	b.Append(val.Bytes())
 	return NewValue(errType, b.Bytes())

@@ -13,7 +13,7 @@ import (
 	"github.com/apache/arrow-go/v18/parquet/pqarrow"
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 // Reader is a sio.Reader for the Arrow IPC stream format.
@@ -27,7 +27,7 @@ type Reader struct {
 	rec arrow.Record
 	i   int
 
-	builder zcode.Builder
+	builder scode.Builder
 	val     super.Value
 }
 
@@ -98,7 +98,7 @@ func (r *Reader) Read() (*super.Value, error) {
 	}
 	r.builder.Truncate()
 	for _, array := range r.rec.Columns() {
-		if err := r.buildZcode(array, r.i); err != nil {
+		if err := r.buildScode(array, r.i); err != nil {
 			return nil, err
 		}
 	}
@@ -280,7 +280,7 @@ Loop:
 	return r.sctx.LookupTypeUnion(uniqueTypes), nil
 }
 
-func (r *Reader) buildZcode(a arrow.Array, i int) error {
+func (r *Reader) buildScode(a arrow.Array, i int) error {
 	b := &r.builder
 	if a.IsNull(i) {
 		b.Append(nil)
@@ -360,32 +360,32 @@ func (r *Reader) buildZcode(a arrow.Array, i int) error {
 	case arrow.LIST:
 		v := array.NewListData(data)
 		start, end := v.ValueOffsets(i)
-		return r.buildZcodeList(v.ListValues(), int(start), int(end))
+		return r.buildScodeList(v.ListValues(), int(start), int(end))
 	case arrow.STRUCT:
 		v := array.NewStructData(data)
 		b.BeginContainer()
 		for j := range v.NumField() {
-			if err := r.buildZcode(v.Field(j), i); err != nil {
+			if err := r.buildScode(v.Field(j), i); err != nil {
 				return err
 			}
 		}
 		b.EndContainer()
 	case arrow.SPARSE_UNION:
-		return r.buildZcodeUnion(array.NewSparseUnionData(data), data.DataType(), i)
+		return r.buildScodeUnion(array.NewSparseUnionData(data), data.DataType(), i)
 	case arrow.DENSE_UNION:
-		return r.buildZcodeUnion(array.NewDenseUnionData(data), data.DataType(), i)
+		return r.buildScodeUnion(array.NewDenseUnionData(data), data.DataType(), i)
 	case arrow.DICTIONARY:
 		v := array.NewDictionaryData(data)
-		return r.buildZcode(v.Dictionary(), v.GetValueIndex(i))
+		return r.buildScode(v.Dictionary(), v.GetValueIndex(i))
 	case arrow.MAP:
 		v := array.NewMapData(data)
 		keys, items := v.Keys(), v.Items()
 		b.BeginContainer()
 		for j, end := v.ValueOffsets(i); j < end; j++ {
-			if err := r.buildZcode(keys, int(j)); err != nil {
+			if err := r.buildScode(keys, int(j)); err != nil {
 				return err
 			}
-			if err := r.buildZcode(items, int(j)); err != nil {
+			if err := r.buildScode(items, int(j)); err != nil {
 				return err
 			}
 		}
@@ -393,7 +393,7 @@ func (r *Reader) buildZcode(a arrow.Array, i int) error {
 		b.EndContainer()
 	case arrow.FIXED_SIZE_LIST:
 		v := array.NewFixedSizeListData(data)
-		return r.buildZcodeList(v.ListValues(), 0, v.Len())
+		return r.buildScodeList(v.ListValues(), 0, v.Len())
 	case arrow.DURATION:
 		d := nano.Duration(array.NewDurationData(data).Value(i))
 		switch a.DataType().(*arrow.DurationType).Unit {
@@ -412,7 +412,7 @@ func (r *Reader) buildZcode(a arrow.Array, i int) error {
 	case arrow.LARGE_LIST:
 		v := array.NewLargeListData(data)
 		start, end := v.ValueOffsets(i)
-		return r.buildZcodeList(v.ListValues(), int(start), int(end))
+		return r.buildScodeList(v.ListValues(), int(start), int(end))
 	case arrow.INTERVAL_MONTH_DAY_NANO:
 		v := array.NewMonthDayNanoIntervalData(data).Value(i)
 		b.BeginContainer()
@@ -426,10 +426,10 @@ func (r *Reader) buildZcode(a arrow.Array, i int) error {
 	return nil
 }
 
-func (r *Reader) buildZcodeList(a arrow.Array, start, end int) error {
+func (r *Reader) buildScodeList(a arrow.Array, start, end int) error {
 	r.builder.BeginContainer()
 	for i := start; i < end; i++ {
-		if err := r.buildZcode(a, i); err != nil {
+		if err := r.buildScode(a, i); err != nil {
 			return err
 		}
 	}
@@ -437,7 +437,7 @@ func (r *Reader) buildZcodeList(a arrow.Array, start, end int) error {
 	return nil
 }
 
-func (r *Reader) buildZcodeUnion(u array.Union, dt arrow.DataType, i int) error {
+func (r *Reader) buildScodeUnion(u array.Union, dt arrow.DataType, i int) error {
 	childID := u.ChildID(i)
 	if u, ok := u.(*array.DenseUnion); ok {
 		i = int(u.ValueOffset(i))
@@ -448,7 +448,7 @@ func (r *Reader) buildZcodeUnion(u array.Union, dt arrow.DataType, i int) error 
 	} else {
 		b.BeginContainer()
 		b.Append(super.EncodeInt(int64(r.unionTagMappings[dt.Fingerprint()][childID])))
-		if err := r.buildZcode(field, i); err != nil {
+		if err := r.buildScode(field, i); err != nil {
 			return err
 		}
 		b.EndContainer()
@@ -456,7 +456,7 @@ func (r *Reader) buildZcodeUnion(u array.Union, dt arrow.DataType, i int) error 
 	return nil
 }
 
-func appendString(b *zcode.Builder, s string) {
+func appendString(b *scode.Builder, s string) {
 	if s == "" {
 		b.Append(super.EncodeString(s))
 	} else {

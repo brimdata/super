@@ -2,7 +2,7 @@ package function
 
 import (
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#fields
@@ -18,7 +18,7 @@ func NewFields(sctx *super.Context) *Fields {
 	}
 }
 
-func buildPath(typ *super.TypeRecord, b *zcode.Builder, prefix []string) {
+func buildPath(typ *super.TypeRecord, b *scode.Builder, prefix []string) {
 	for _, f := range typ.Fields {
 		if typ, ok := super.TypeUnder(f.Type).(*super.TypeRecord); ok {
 			buildPath(typ, b, append(prefix, f.Name))
@@ -39,7 +39,7 @@ func (f *Fields) Call(args []super.Value) super.Value {
 	if typ == nil {
 		return f.sctx.Missing()
 	}
-	var b zcode.Builder
+	var b scode.Builder
 	buildPath(typ, &b, nil)
 	return super.NewValue(f.typ, b.Bytes())
 }

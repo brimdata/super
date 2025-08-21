@@ -5,7 +5,7 @@ import (
 	"errors"
 	"sort"
 
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 type TypeArray struct {
@@ -36,8 +36,8 @@ var ErrMissing = errors.New("missing")
 // The Missing error can be propagated through  functions and expressions and
 // each operator has clearly defined semantics with respect to the Missing value.
 // For example, "true AND MISSING" is MISSING.
-var Missing = zcode.Bytes("missing")
-var Quiet = zcode.Bytes("quiet")
+var Missing = scode.Bytes("missing")
+var Quiet = scode.Bytes("quiet")
 
 type TypeError struct {
 	id   int
@@ -56,11 +56,11 @@ func (t *TypeError) Kind() Kind {
 	return ErrorKind
 }
 
-func (t *TypeError) IsMissing(zv zcode.Bytes) bool {
+func (t *TypeError) IsMissing(zv scode.Bytes) bool {
 	return t.Type == TypeString && bytes.Equal(zv, Missing)
 }
 
-func (t *TypeError) IsQuiet(zv zcode.Bytes) bool {
+func (t *TypeError) IsQuiet(zv scode.Bytes) bool {
 	return t.Type == TypeString && bytes.Equal(zv, Quiet)
 }
 
@@ -116,15 +116,15 @@ func (t *TypeMap) Kind() Kind {
 }
 
 type keyval struct {
-	key zcode.Bytes
-	val zcode.Bytes
+	key scode.Bytes
+	val scode.Bytes
 }
 
 // NormalizeMap interprets zv as a map body and returns an equivalent map body
 // that is normalized according to the BSUP specification (i.e., the tag-counted
 // value of each entry's key is lexicographically greater than that of the
 // preceding entry).
-func NormalizeMap(zv zcode.Bytes) zcode.Bytes {
+func NormalizeMap(zv scode.Bytes) scode.Bytes {
 	elements := make([]keyval, 0, 8)
 	for it := zv.Iter(); !it.Done(); {
 		key := it.NextTagAndBody()
@@ -137,7 +137,7 @@ func NormalizeMap(zv zcode.Bytes) zcode.Bytes {
 	sort.Slice(elements, func(i, j int) bool {
 		return bytes.Compare(elements[i].key, elements[j].key) == -1
 	})
-	norm := make(zcode.Bytes, 0, len(zv))
+	norm := make(scode.Bytes, 0, len(zv))
 	norm = append(norm, elements[0].key...)
 	norm = append(norm, elements[0].val...)
 	for i := 1; i < len(elements); i++ {
@@ -265,8 +265,8 @@ func (t *TypeSet) Kind() Kind {
 // that is normalized according to the BSUP specification (i.e., each element's
 // tag-counted value is lexicographically greater than that of the preceding
 // element).
-func NormalizeSet(zv zcode.Bytes) zcode.Bytes {
-	elements := make([]zcode.Bytes, 0, 8)
+func NormalizeSet(zv scode.Bytes) scode.Bytes {
+	elements := make([]scode.Bytes, 0, 8)
 	for it := zv.Iter(); !it.Done(); {
 		elements = append(elements, it.NextTagAndBody())
 	}
@@ -276,7 +276,7 @@ func NormalizeSet(zv zcode.Bytes) zcode.Bytes {
 	sort.Slice(elements, func(i, j int) bool {
 		return bytes.Compare(elements[i], elements[j]) == -1
 	})
-	norm := make(zcode.Bytes, 0, len(zv))
+	norm := make(scode.Bytes, 0, len(zv))
 	norm = append(norm, elements[0]...)
 	for i := 1; i < len(elements); i++ {
 		// Skip duplicates.
@@ -330,7 +330,7 @@ func (t *TypeUnion) TagOf(typ Type) int {
 // Untag takes bytes of the reciever's type and returns the underlying value
 // as its type and bytes by removing the tag and determining that tag's
 // type from the union.  Untag panics if the tag is invalid.
-func (t *TypeUnion) Untag(bytes zcode.Bytes) (Type, zcode.Bytes) {
+func (t *TypeUnion) Untag(bytes scode.Bytes) (Type, scode.Bytes) {
 	if bytes == nil {
 		return t, nil
 	}
@@ -348,7 +348,7 @@ func (t *TypeUnion) Kind() Kind {
 }
 
 // BuildUnion appends to b a union described by tag and val.
-func BuildUnion(b *zcode.Builder, tag int, val zcode.Bytes) {
+func BuildUnion(b *scode.Builder, tag int, val scode.Bytes) {
 	if val == nil {
 		b.Append(nil)
 		return

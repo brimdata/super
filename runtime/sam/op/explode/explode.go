@@ -4,7 +4,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 // A an explode Proc is a proc that, given an input record and a
@@ -48,9 +48,9 @@ func (o *Op) Pull(done bool) (sbuf.Batch, error) {
 					}
 					continue
 				}
-				super.Walk(val.Type(), val.Bytes(), func(typ super.Type, body zcode.Bytes) error {
+				super.Walk(val.Type(), val.Bytes(), func(typ super.Type, body scode.Bytes) error {
 					if typ == o.typ && body != nil {
-						bytes := zcode.Append(nil, body)
+						bytes := scode.Append(nil, body)
 						out = append(out, super.NewValue(o.outType, bytes))
 						return super.SkipContainer
 					}

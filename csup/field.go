@@ -3,7 +3,7 @@ package csup
 import (
 	"io"
 
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -12,7 +12,7 @@ type FieldEncoder struct {
 	values Encoder
 }
 
-func (f *FieldEncoder) write(body zcode.Bytes) {
+func (f *FieldEncoder) write(body scode.Bytes) {
 	f.values.Write(body)
 }
 

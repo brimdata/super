@@ -4,7 +4,7 @@ import (
 	"sync/atomic"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 // Dynamic is an ordered sequence of values taken from one or more
@@ -52,7 +52,7 @@ func (d *Dynamic) Len() uint32 {
 	return length
 }
 
-func (d *Dynamic) Serialize(b *zcode.Builder, slot uint32) {
+func (d *Dynamic) Serialize(b *scode.Builder, slot uint32) {
 	d.Values[d.Tags[slot]].Serialize(b, d.ForwardTagMap()[slot])
 }
 

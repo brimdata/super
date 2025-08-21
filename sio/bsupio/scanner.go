@@ -12,7 +12,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/op"
 	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 type scanner struct {
@@ -287,7 +287,7 @@ func (w *worker) decodeVal(buf *buffer, valRef *super.Value) error {
 	if err != nil {
 		return err
 	}
-	n, err := zcode.ReadTag(buf)
+	n, err := scode.ReadTag(buf)
 	if err != nil {
 		return errBadFormat
 	}

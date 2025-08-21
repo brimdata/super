@@ -11,9 +11,9 @@ import (
 	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/vcache"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zcode"
 )
 
 type reader struct {
@@ -74,7 +74,7 @@ func (r *reader) materializeVector(vec vector.Any) {
 	if d == nil {
 		typ = vec.Type()
 	}
-	builder := zcode.NewBuilder()
+	builder := scode.NewBuilder()
 	n := vec.Len()
 	for slot := uint32(0); slot < n; slot++ {
 		vec.Serialize(builder, slot)

@@ -5,8 +5,8 @@ import (
 	"net/netip"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zcode"
 )
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#network_of
@@ -95,7 +95,7 @@ func (c *CIDRMatch) Call(args []super.Value) super.Value {
 		return super.NewValue(super.TypeBool, nil)
 	}
 	prefix := super.DecodeNet(maskVal.Bytes())
-	err := args[1].Walk(func(typ super.Type, body zcode.Bytes) error {
+	err := args[1].Walk(func(typ super.Type, body scode.Bytes) error {
 		if typ.ID() == super.IDIP {
 			if prefix.Contains(super.DecodeIP(body)) {
 				return errMatch

@@ -6,8 +6,8 @@ import (
 	"sort"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zcode"
 )
 
 // A ShaperTransform represents one of the different transforms that a
@@ -109,7 +109,7 @@ type ConstShaper struct {
 	shapeTo    super.Type
 	transforms ShaperTransform
 
-	b       zcode.Builder
+	b       scode.Builder
 	caster  Evaluator       // used when shapeTo is a primitive type
 	shapers map[int]*shaper // map from input type ID to shaper
 }
@@ -437,7 +437,7 @@ func newArrayOrSetStep(sctx *super.Context, op op, inInner, out super.Type) (ste
 // build applies the operation described by s to in, appends the resulting bytes
 // to b, and returns the resulting type.  The type is usually s.toType but can
 // differ if a primitive cast fails.
-func (s *step) build(sctx *super.Context, in zcode.Bytes, b *zcode.Builder) super.Type {
+func (s *step) build(sctx *super.Context, in scode.Bytes, b *scode.Builder) super.Type {
 	if in == nil || s.op == copyOp {
 		b.Append(in)
 		return s.toType
@@ -469,7 +469,7 @@ func (s *step) build(sctx *super.Context, in zcode.Bytes, b *zcode.Builder) supe
 	}
 }
 
-func (s *step) buildArrayOrSet(sctx *super.Context, op op, in zcode.Bytes, b *zcode.Builder) super.Type {
+func (s *step) buildArrayOrSet(sctx *super.Context, op op, in scode.Bytes, b *scode.Builder) super.Type {
 	b.BeginContainer()
 	defer b.EndContainer()
 	s.types = s.types[:0]
@@ -488,8 +488,8 @@ func (s *step) buildArrayOrSet(sctx *super.Context, op op, in zcode.Bytes, b *zc
 	default:
 		union := sctx.LookupTypeUnion(s.uniqueTypes)
 		// Convert each container element to the union type.
-		b.TransformContainer(func(bytes zcode.Bytes) zcode.Bytes {
-			var b2 zcode.Builder
+		b.TransformContainer(func(bytes scode.Bytes) scode.Bytes {
+			var b2 scode.Builder
 			for i, it := 0, bytes.Iter(); !it.Done(); i++ {
 				super.BuildUnion(&b2, union.TagOf(s.types[i]), it.Next())
 			}
@@ -510,7 +510,7 @@ func (s *step) buildArrayOrSet(sctx *super.Context, op op, in zcode.Bytes, b *zc
 	return sctx.LookupTypeArray(inner)
 }
 
-func (s *step) buildRecord(sctx *super.Context, in zcode.Bytes, b *zcode.Builder) super.Type {
+func (s *step) buildRecord(sctx *super.Context, in scode.Bytes, b *scode.Builder) super.Type {
 	b.BeginContainer()
 	defer b.EndContainer()
 	s.types = s.types[:0]
@@ -525,7 +525,7 @@ func (s *step) buildRecord(sctx *super.Context, in zcode.Bytes, b *zcode.Builder
 		// beginning of the record for each field. An
 		// optimization (for shapes that don't require field
 		// reordering) would be make direct use of a
-		// zcode.Iter along with keeping track of our
+		// scode.Iter along with keeping track of our
 		// position.
 		bytes, _ := getNthFromContainer(in, child.fromIndex)
 		typ := child.build(sctx, bytes, b)

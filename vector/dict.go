@@ -1,8 +1,8 @@
 package vector
 
 import (
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector/bitvec"
-	"github.com/brimdata/super/zcode"
 )
 
 type Dict struct {
@@ -22,7 +22,7 @@ func (d *Dict) Len() uint32 {
 	return uint32(len(d.Index))
 }
 
-func (d *Dict) Serialize(builder *zcode.Builder, slot uint32) {
+func (d *Dict) Serialize(builder *scode.Builder, slot uint32) {
 	if d.Nulls.IsSet(slot) {
 		builder.Append(nil)
 	} else {

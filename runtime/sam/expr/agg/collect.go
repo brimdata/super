@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zcode"
 )
 
 type Collect struct {
@@ -35,7 +35,7 @@ func (c *Collect) Result(sctx *super.Context) super.Value {
 		// no values found
 		return super.Null
 	}
-	var b zcode.Builder
+	var b scode.Builder
 	inner := innerType(sctx, c.values)
 	if union, ok := inner.(*super.TypeUnion); ok {
 		for _, val := range c.values {

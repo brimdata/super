@@ -5,12 +5,12 @@ import (
 	"regexp/syntax"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#regexp
 type Regexp struct {
-	builder zcode.Builder
+	builder scode.Builder
 	re      *regexp.Regexp
 	restr   string
 	typ     super.Type

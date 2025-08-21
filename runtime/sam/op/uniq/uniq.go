@@ -6,13 +6,13 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 type Op struct {
 	rctx    *runtime.Context
 	parent  sbuf.Puller
-	builder zcode.Builder
+	builder scode.Builder
 	cflag   bool
 	count   uint64
 	last    *super.Value

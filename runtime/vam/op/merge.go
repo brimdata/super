@@ -7,8 +7,8 @@ import (
 
 	"github.com/brimdata/super"
 	samexpr "github.com/brimdata/super/runtime/sam/expr"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zcode"
 )
 
 type Merge struct {
@@ -156,7 +156,7 @@ type mergeParent struct {
 	vec     vector.Any
 	off     uint32
 	lastOff uint32
-	builder zcode.Builder
+	builder scode.Builder
 	val     super.Value
 }
 

@@ -185,7 +185,7 @@ func compareValues(a, b super.Value, nullsMax bool) int {
 	case aid == super.IDType:
 		sctx := super.NewContext() // XXX This is expensive.
 		// XXX This isn't cheap eventually we should add
-		// super.CompareTypeValues(a, b zcode.Bytes).
+		// super.CompareTypeValues(a, b scode.Bytes).
 		av, _ := sctx.DecodeTypeValue(a.Bytes())
 		bv, _ := sctx.DecodeTypeValue(b.Bytes())
 		return super.CompareTypes(av, bv)

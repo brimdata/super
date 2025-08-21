@@ -23,11 +23,11 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/sbuf"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/csupio"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zcode"
 	"github.com/stretchr/testify/require"
 	"github.com/x448/float16"
 	"go.uber.org/mock/gomock"
@@ -162,7 +162,7 @@ func CompareValues(t testing.TB, valuesExpected []super.Value, valuesActual []su
 
 func GenValues(b *bytes.Reader, context *super.Context, types []super.Type) []super.Value {
 	var values []super.Value
-	var builder zcode.Builder
+	var builder scode.Builder
 	for GenByte(b) != 0 {
 		typ := types[int(GenByte(b))%len(types)]
 		builder.Reset()
@@ -172,7 +172,7 @@ func GenValues(b *bytes.Reader, context *super.Context, types []super.Type) []su
 	return values
 }
 
-func GenValue(b *bytes.Reader, context *super.Context, typ super.Type, builder *zcode.Builder) {
+func GenValue(b *bytes.Reader, context *super.Context, typ super.Type, builder *scode.Builder) {
 	if GenByte(b) == 0 {
 		builder.Append(nil)
 		return

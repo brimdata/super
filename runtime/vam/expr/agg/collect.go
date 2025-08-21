@@ -3,8 +3,8 @@ package agg
 import (
 	"github.com/brimdata/super"
 	samagg "github.com/brimdata/super/runtime/sam/expr/agg"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zcode"
 )
 
 type collect struct {
@@ -14,7 +14,7 @@ type collect struct {
 func (c *collect) Consume(vec vector.Any) {
 	typ := vec.Type()
 	nulls := vector.NullsOf(vec)
-	var b zcode.Builder
+	var b scode.Builder
 	for i := range vec.Len() {
 		if nulls.IsSet(i) {
 			continue
@@ -42,7 +42,7 @@ func (c *collect) ConsumeAsPartial(partial vector.Any) {
 	if !ok {
 		panic("collection: partial not an array type")
 	}
-	var b zcode.Builder
+	var b scode.Builder
 	typ := array.Values.Type()
 	for i := range n {
 		idx := i

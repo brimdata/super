@@ -13,9 +13,9 @@ import (
 	"github.com/brimdata/super/cmd/super/dev/dig"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zcode"
 )
 
 var Frames = &charm.Spec{
@@ -199,7 +199,7 @@ func (r *reader) readComp(code byte) (any, error) {
 	// The size of the compressed buffer needs to be adjusted by the
 	// byte for the format and the variable-length bytes to encode
 	// the original size.
-	zlen -= 1 + zcode.SizeOfUvarint(uint64(size))
+	zlen -= 1 + scode.SizeOfUvarint(uint64(size))
 	err = r.skip(zlen)
 	if err != nil && err != io.EOF {
 	}

@@ -7,15 +7,15 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 	"golang.org/x/sync/errgroup"
 )
 
 const MaxDictSize = 256
 
-type ZcodeEncoder struct {
+type ScodeEncoder struct {
 	typ   super.Type
-	bytes zcode.Bytes
+	bytes scode.Bytes
 	cmp   expr.CompareFn
 	min   *super.Value
 	max   *super.Value
@@ -27,19 +27,19 @@ type ZcodeEncoder struct {
 	out      []byte
 }
 
-func NewZcodeEncoder(typ super.Type) *ZcodeEncoder {
-	return &ZcodeEncoder{
+func NewScodeEncoder(typ super.Type) *ScodeEncoder {
+	return &ScodeEncoder{
 		typ: typ,
 		cmp: expr.NewValueCompareFn(order.Asc, order.NullsFirst),
 	}
 }
 
-func (p *ZcodeEncoder) Write(body zcode.Bytes) {
+func (p *ScodeEncoder) Write(body scode.Bytes) {
 	p.update(body)
-	p.bytes = zcode.Append(p.bytes, body)
+	p.bytes = scode.Append(p.bytes, body)
 }
 
-func (p *ZcodeEncoder) update(body zcode.Bytes) {
+func (p *ScodeEncoder) update(body scode.Bytes) {
 	p.count++
 	if body == nil {
 		panic("PrimitiveWriter should not be called with null")
@@ -53,7 +53,7 @@ func (p *ZcodeEncoder) update(body zcode.Bytes) {
 	}
 }
 
-func (p *ZcodeEncoder) Encode(group *errgroup.Group) {
+func (p *ScodeEncoder) Encode(group *errgroup.Group) {
 	group.Go(func() error {
 		fmt, out, err := compressBuffer(p.bytes)
 		if err != nil {
@@ -67,7 +67,7 @@ func (p *ZcodeEncoder) Encode(group *errgroup.Group) {
 	})
 }
 
-func (p *ZcodeEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
+func (p *ScodeEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
 	loc := Segment{
 		Offset:            off,
 		Length:            uint64(len(p.out)),
@@ -84,7 +84,7 @@ func (p *ZcodeEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
 	})
 }
 
-func (p *ZcodeEncoder) Emit(w io.Writer) error {
+func (p *ScodeEncoder) Emit(w io.Writer) error {
 	var err error
 	if len(p.out) > 0 {
 		_, err = w.Write(p.out)
@@ -92,11 +92,11 @@ func (p *ZcodeEncoder) Emit(w io.Writer) error {
 	return err
 }
 
-func (p *ZcodeEncoder) Dict() (PrimitiveEncoder, []byte, []uint32) {
+func (p *ScodeEncoder) Dict() (PrimitiveEncoder, []byte, []uint32) {
 	m := make(map[string]byte)
 	var counts []uint32
 	index := make([]byte, p.count)
-	entries := NewZcodeEncoder(p.typ)
+	entries := NewScodeEncoder(p.typ)
 	var k uint32
 	it := p.bytes.Iter()
 	for !it.Done() {
@@ -118,7 +118,7 @@ func (p *ZcodeEncoder) Dict() (PrimitiveEncoder, []byte, []uint32) {
 	return entries, index, counts
 }
 
-func (p *ZcodeEncoder) ConstValue() super.Value {
+func (p *ScodeEncoder) ConstValue() super.Value {
 	it := p.bytes.Iter()
 	return super.NewValue(p.typ, it.Next())
 }

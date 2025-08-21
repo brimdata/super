@@ -4,8 +4,8 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zcode"
 )
 
 type Reader struct {
@@ -13,7 +13,7 @@ type Reader struct {
 	sctx     *super.Context
 	parser   *sup.Parser
 	analyzer sup.Analyzer
-	builder  *zcode.Builder
+	builder  *scode.Builder
 	val      super.Value
 }
 
@@ -22,7 +22,7 @@ func NewReader(sctx *super.Context, r io.Reader) *Reader {
 		reader:   r,
 		sctx:     sctx,
 		analyzer: sup.NewAnalyzer(),
-		builder:  zcode.NewBuilder(),
+		builder:  scode.NewBuilder(),
 	}
 }
 

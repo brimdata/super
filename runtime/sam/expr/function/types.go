@@ -2,7 +2,7 @@ package function
 
 import (
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#typeof
@@ -109,7 +109,7 @@ func (h *HasError) Call(args []super.Value) super.Value {
 	return super.NewBool(hasError)
 }
 
-func (h *HasError) hasError(t super.Type, b zcode.Bytes) (bool, bool) {
+func (h *HasError) hasError(t super.Type, b scode.Bytes) (bool, bool) {
 	typ := super.TypeUnder(t)
 	if _, ok := typ.(*super.TypeError); ok {
 		return true, false

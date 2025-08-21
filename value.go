@@ -11,7 +11,7 @@ import (
 
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 var (
@@ -57,8 +57,8 @@ func (v Value) Ptr() *Value { return &v }
 
 func (v Value) Type() Type { return v.typ }
 
-func NewValue(t Type, b zcode.Bytes) Value { return Value{t, unsafe.SliceData(b), uint64(len(b))} }
-func (v Value) bytes() zcode.Bytes         { return unsafe.Slice(v.base, v.len) }
+func NewValue(t Type, b scode.Bytes) Value { return Value{t, unsafe.SliceData(b), uint64(len(b))} }
+func (v Value) bytes() scode.Bytes         { return unsafe.Slice(v.base, v.len) }
 
 // nativeBase is the base address for all native Values, which are encoded with
 // the base field set to this address and the len field set to the bits of the
@@ -155,7 +155,7 @@ func (v Value) Bool() bool {
 }
 
 // Bytes returns v's BSUP representation.
-func (v Value) Bytes() zcode.Bytes {
+func (v Value) Bytes() scode.Bytes {
 	if x, ok := v.native(); ok {
 		switch v.Type().ID() {
 		case IDUint8, IDUint16, IDUint32, IDUint64:
@@ -188,14 +188,14 @@ func (v Value) String() string {
 }
 
 // Encode appends the BSUP representation of this value to the passed in
-// argument and returns the resulting zcode.Bytes (which may or may not
+// argument and returns the resulting scode.Bytes (which may or may not
 // be the same underlying buffer, as with append(), depending on its capacity)
-func (v Value) Encode(dst zcode.Bytes) zcode.Bytes {
+func (v Value) Encode(dst scode.Bytes) scode.Bytes {
 	//XXX don't need this...
-	return zcode.Append(dst, v.Bytes())
+	return scode.Append(dst, v.Bytes())
 }
 
-func (v Value) Iter() zcode.Iter {
+func (v Value) Iter() scode.Iter {
 	return v.Bytes().Iter()
 }
 
@@ -337,8 +337,8 @@ func (r Value) Walk(rv Visitor) error {
 	return Walk(r.Type(), r.Bytes(), rv)
 }
 
-func (r Value) nth(n int) (zcode.Bytes, bool) {
-	var zv zcode.Bytes
+func (r Value) nth(n int) (scode.Bytes, bool) {
+	var zv scode.Bytes
 	for i, it := 0, r.Bytes().Iter(); i <= n; i++ {
 		if it.Done() {
 			return nil, false
@@ -462,7 +462,7 @@ func (v Value) Validate() (err error) {
 			err = fmt.Errorf("panic: %+v\n%s", r, debug.Stack())
 		}
 	}()
-	return v.Walk(func(typ Type, body zcode.Bytes) error {
+	return v.Walk(func(typ Type, body scode.Bytes) error {
 		if _, ok := typ.(*TypeSet); ok {
 			if err := checkSet(body); err != nil {
 				return err
@@ -479,12 +479,12 @@ func (v Value) Validate() (err error) {
 	})
 }
 
-func checkSet(body zcode.Bytes) error {
+func checkSet(body scode.Bytes) error {
 	if body == nil {
 		return nil
 	}
 	it := body.Iter()
-	var prev zcode.Bytes
+	var prev scode.Bytes
 	for !it.Done() {
 		tagAndBody := it.NextTagAndBody()
 		if prev != nil {
@@ -500,7 +500,7 @@ func checkSet(body zcode.Bytes) error {
 	return nil
 }
 
-func checkEnum(typ *TypeEnum, body zcode.Bytes) error {
+func checkEnum(typ *TypeEnum, body scode.Bytes) error {
 	if body == nil {
 		return nil
 	}

@@ -8,8 +8,8 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/vam/expr"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zcode"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -98,7 +98,7 @@ func (j *Join) tableInit() error {
 
 func buildTable(p vector.Puller, key expr.Evaluator) map[string][]super.Value {
 	table := map[string][]super.Value{}
-	var keyBuilder, valBuilder zcode.Builder
+	var keyBuilder, valBuilder scode.Builder
 	for {
 		vec, _ := p.Pull(false)
 		if vec == nil {
@@ -163,7 +163,7 @@ type hashJoin struct {
 	rightAlias string
 	leftKey    expr.Evaluator
 	rightKey   expr.Evaluator
-	builder    zcode.Builder
+	builder    scode.Builder
 
 	// for left side hash joins
 	hits map[string]bool
@@ -183,7 +183,7 @@ func (j *hashJoin) probeLeft() (vector.Any, error) {
 			return nil, err
 		}
 		leftKeyVec := j.leftKey.Eval(vec)
-		var keyBuilder, valBuilder zcode.Builder
+		var keyBuilder, valBuilder scode.Builder
 		b := vector.NewDynamicBuilder()
 		for i := range vec.Len() {
 			keyBuilder.Truncate()
@@ -228,7 +228,7 @@ func (j *hashJoin) probeRight() (vector.Any, error) {
 			return nil, nil
 		}
 		rightKeyVec := j.rightKey.Eval(vec)
-		var keyBuilder, valBuilder zcode.Builder
+		var keyBuilder, valBuilder scode.Builder
 		b := vector.NewDynamicBuilder()
 		for i := range vec.Len() {
 			keyBuilder.Truncate()
@@ -319,7 +319,7 @@ func hashKey(val super.Value) string {
 	return string(binary.LittleEndian.AppendUint32(val.Bytes(), uint32(val.Type().ID())))
 }
 
-func vectorValue(b *zcode.Builder, vec vector.Any, slot uint32) super.Value {
+func vectorValue(b *scode.Builder, vec vector.Any, slot uint32) super.Value {
 	vec.Serialize(b, slot)
 	bytes := b.Bytes().Body()
 	if dynVec, ok := vec.(*vector.Dynamic); ok {

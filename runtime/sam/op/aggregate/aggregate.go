@@ -15,7 +15,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/op"
 	"github.com/brimdata/super/runtime/sam/op/spill"
 	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 var DefaultLimit = 1000000
@@ -102,7 +102,7 @@ func NewAggregator(ctx context.Context, sctx *super.Context, keyRefs, keyExprs, 
 		aggs:           aggs,
 		builder:        builder,
 		typeCache:      make([]super.Type, nkeys+len(aggs)),
-		keyCache:       make(zcode.Bytes, 0, 128),
+		keyCache:       make(scode.Bytes, 0, 128),
 		table:          make(map[string]*Row),
 		recordTypes:    make(map[int]*super.TypeRecord),
 		keyCompare:     keyCompare,
@@ -337,7 +337,7 @@ func (a *Aggregator) Consume(batch sbuf.Batch, this super.Value) error {
 		types = append(types, key.Type())
 		// Append each value to the key as a flat value, independent
 		// of whether this is a primitive or container.
-		keyBytes = zcode.Append(keyBytes, key.Bytes())
+		keyBytes = scode.Append(keyBytes, key.Bytes())
 	}
 	// We conveniently put the key type code at the end of the key string,
 	// so when we recontruct the key values below, we don't have skip over it.
@@ -542,7 +542,7 @@ func (a *Aggregator) readTable(flush, partialsOut bool, batch sbuf.Batch) (sbuf.
 		// as any of the underlying types can change based on functions
 		// applied to different values resulting in different types.
 		types := a.typeCache[:0]
-		it := zcode.Bytes(key).Iter()
+		it := scode.Bytes(key).Iter()
 		a.builder.Reset()
 		for _, typ := range a.keyTypes.Types(row.keyType) {
 			flatVal := it.Next()

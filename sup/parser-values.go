@@ -12,7 +12,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 func (p *Parser) ParseValue() (ast.Value, error) {
@@ -577,7 +577,7 @@ func ParsePrimitive(typeText, valText string) (super.Value, error) {
 	if typ == nil {
 		return super.Null, fmt.Errorf("no such type: %s", typeText)
 	}
-	var b zcode.Builder
+	var b scode.Builder
 	if err := BuildPrimitive(&b, Primitive{Type: typ, Text: valText}); err != nil {
 		return super.Null, err
 	}

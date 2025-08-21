@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -35,7 +35,7 @@ func TestValueValidate(t *testing.T) {
 		super.NewField("f", super.NewTypeSet(0, super.TypeString)),
 	})
 	t.Run("set/error/duplicate-element", func(t *testing.T) {
-		var b zcode.Builder
+		var b scode.Builder
 		b.BeginContainer()
 		b.Append([]byte("dup"))
 		b.Append([]byte("dup"))
@@ -45,7 +45,7 @@ func TestValueValidate(t *testing.T) {
 		assert.EqualError(t, val.Validate(), "invalid BSUP: duplicate set element")
 	})
 	t.Run("set/error/unsorted-elements", func(t *testing.T) {
-		var b zcode.Builder
+		var b scode.Builder
 		b.BeginContainer()
 		b.Append([]byte("a"))
 		b.Append([]byte("z"))
@@ -56,7 +56,7 @@ func TestValueValidate(t *testing.T) {
 		assert.EqualError(t, val.Validate(), "invalid BSUP: set elements not sorted")
 	})
 	t.Run("set/primitive-elements", func(t *testing.T) {
-		var b zcode.Builder
+		var b scode.Builder
 		b.BeginContainer()
 		b.Append([]byte("dup"))
 		b.Append([]byte("dup"))
@@ -68,7 +68,7 @@ func TestValueValidate(t *testing.T) {
 		assert.NoError(t, val.Validate())
 	})
 	t.Run("set/complex-elements", func(t *testing.T) {
-		var b zcode.Builder
+		var b scode.Builder
 		b.BeginContainer()
 		for _, s := range []string{"dup", "dup", "z", "a"} {
 			b.BeginContainer()

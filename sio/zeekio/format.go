@@ -11,8 +11,8 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/nano"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zcode"
 )
 
 func formatAny(val super.Value, inContainer bool) string {
@@ -68,7 +68,7 @@ func formatAny(val super.Value, inContainer bool) string {
 	}
 }
 
-func formatArray(t *super.TypeArray, zv zcode.Bytes) string {
+func formatArray(t *super.TypeArray, zv scode.Bytes) string {
 	if len(zv) == 0 {
 		return "(empty)"
 	}
@@ -93,7 +93,7 @@ func formatArray(t *super.TypeArray, zv zcode.Bytes) string {
 	return b.String()
 }
 
-func formatMap(t *super.TypeMap, zv zcode.Bytes) string {
+func formatMap(t *super.TypeMap, zv scode.Bytes) string {
 	var b strings.Builder
 	it := zv.Iter()
 	b.WriteByte('[')
@@ -105,7 +105,7 @@ func formatMap(t *super.TypeMap, zv zcode.Bytes) string {
 	return b.String()
 }
 
-func formatRecord(t *super.TypeRecord, zv zcode.Bytes) string {
+func formatRecord(t *super.TypeRecord, zv scode.Bytes) string {
 	var b strings.Builder
 	separator := byte(',')
 	first := true
@@ -125,7 +125,7 @@ func formatRecord(t *super.TypeRecord, zv zcode.Bytes) string {
 	return b.String()
 }
 
-func formatSet(t *super.TypeSet, zv zcode.Bytes) string {
+func formatSet(t *super.TypeSet, zv scode.Bytes) string {
 	if len(zv) == 0 {
 		return "(empty)"
 	}
@@ -144,7 +144,7 @@ func formatSet(t *super.TypeSet, zv zcode.Bytes) string {
 	return b.String()
 }
 
-func formatString(zv zcode.Bytes, inContainer bool) string {
+func formatString(zv scode.Bytes, inContainer bool) string {
 	if bytes.Equal(zv, []byte{'-'}) {
 		return "\\x2d"
 	}
@@ -189,7 +189,7 @@ func unescape(r rune) []byte {
 	return b.Bytes()
 }
 
-func formatUnion(t *super.TypeUnion, zv zcode.Bytes) string {
+func formatUnion(t *super.TypeUnion, zv scode.Bytes) string {
 	if zv == nil {
 		return FormatValue(super.Null)
 	}

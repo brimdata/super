@@ -7,7 +7,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/byteconv"
 	"github.com/brimdata/super/pkg/stringsearch"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 type FieldNameFinder struct {
@@ -34,7 +34,7 @@ func (f *FieldNameFinder) Find(types super.TypeFetcher, buf []byte) bool {
 		if idLen <= 0 {
 			return true
 		}
-		valLen := zcode.DecodeTagLength(buf[idLen:])
+		valLen := scode.DecodeTagLength(buf[idLen:])
 		buf = buf[idLen+valLen:]
 		if f.checkedIDs.Bit(int(id)) == 1 {
 			continue

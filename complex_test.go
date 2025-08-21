@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sio/supio"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zcode"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -43,30 +43,30 @@ null
 
 func TestNormalizeSet(t *testing.T) {
 	t.Run("duplicate-element", func(t *testing.T) {
-		b := zcode.NewBuilder()
+		b := scode.NewBuilder()
 		b.BeginContainer()
 		b.Append([]byte("dup"))
 		b.Append([]byte("dup"))
 		b.TransformContainer(super.NormalizeSet)
 		b.EndContainer()
-		set := zcode.Append(nil, []byte("dup"))
-		expected := zcode.Append(nil, set)
+		set := scode.Append(nil, []byte("dup"))
+		expected := scode.Append(nil, set)
 		require.Exactly(t, expected, b.Bytes())
 	})
 	t.Run("unsorted-elements", func(t *testing.T) {
-		b := zcode.NewBuilder()
+		b := scode.NewBuilder()
 		b.BeginContainer()
 		b.Append([]byte("z"))
 		b.Append([]byte("a"))
 		b.TransformContainer(super.NormalizeSet)
 		b.EndContainer()
-		set := zcode.Append(nil, []byte("a"))
-		set = zcode.Append(set, []byte("z"))
-		expected := zcode.Append(nil, set)
+		set := scode.Append(nil, []byte("a"))
+		set = scode.Append(set, []byte("z"))
+		expected := scode.Append(nil, set)
 		require.Exactly(t, expected, b.Bytes())
 	})
 	t.Run("unsorted-and-duplicate-elements", func(t *testing.T) {
-		b := zcode.NewBuilder()
+		b := scode.NewBuilder()
 		big := bytes.Repeat([]byte("x"), 256)
 		small := []byte("small")
 		b.Append(big)
@@ -82,11 +82,11 @@ func TestNormalizeSet(t *testing.T) {
 		}
 		b.TransformContainer(super.NormalizeSet)
 		b.EndContainer()
-		set := zcode.Append(nil, nil)
-		set = zcode.Append(set, small)
-		set = zcode.Append(set, big)
-		expected := zcode.Append(nil, big)
-		expected = zcode.Append(expected, set)
+		set := scode.Append(nil, nil)
+		set = scode.Append(set, small)
+		set = scode.Append(set, big)
+		expected := scode.Append(nil, big)
+		expected = scode.Append(expected, set)
 		require.Exactly(t, expected, b.Bytes())
 	})
 }

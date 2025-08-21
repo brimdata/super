@@ -10,8 +10,8 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zcode"
 )
 
 type Evaluator interface {
@@ -142,7 +142,7 @@ func (i *In) Eval(this super.Value) super.Value {
 	if container.IsError() {
 		return container
 	}
-	err := container.Walk(func(typ super.Type, body zcode.Bytes) error {
+	err := container.Walk(func(typ super.Type, body scode.Bytes) error {
 		if coerce.Equal(elem, super.NewValue(typ, body)) {
 			return errMatch
 		}
@@ -612,7 +612,7 @@ func (u *UnaryMinus) Eval(this super.Value) super.Value {
 	return u.sctx.WrapError("type incompatible with unary '-' operator", val)
 }
 
-func getNthFromContainer(container zcode.Bytes, idx int) (zcode.Bytes, int) {
+func getNthFromContainer(container scode.Bytes, idx int) (scode.Bytes, int) {
 	if idx < 0 {
 		var length int
 		for it := container.Iter(); !it.Done(); it.Next() {
@@ -632,7 +632,7 @@ func getNthFromContainer(container zcode.Bytes, idx int) (zcode.Bytes, int) {
 	return nil, -1
 }
 
-func lookupKey(mapBytes, target zcode.Bytes) (zcode.Bytes, bool) {
+func lookupKey(mapBytes, target scode.Bytes) (scode.Bytes, bool) {
 	for it := mapBytes.Iter(); !it.Done(); {
 		key := it.Next()
 		val := it.Next()
@@ -670,7 +670,7 @@ func (i *Index) Eval(this super.Value) super.Value {
 	}
 }
 
-func indexArrayOrSet(sctx *super.Context, inner super.Type, vector zcode.Bytes, index super.Value) super.Value {
+func indexArrayOrSet(sctx *super.Context, inner super.Type, vector scode.Bytes, index super.Value) super.Value {
 	id := index.Type().ID()
 	if super.IsUnsigned(id) {
 		index = LookupPrimitiveCaster(sctx, super.TypeInt64).Eval(index)
@@ -699,7 +699,7 @@ func indexArrayOrSet(sctx *super.Context, inner super.Type, vector zcode.Bytes, 
 	return deunion(inner, bytes)
 }
 
-func indexRecord(sctx *super.Context, typ *super.TypeRecord, record zcode.Bytes, index super.Value) super.Value {
+func indexRecord(sctx *super.Context, typ *super.TypeRecord, record scode.Bytes, index super.Value) super.Value {
 	id := index.Type().ID()
 	if super.IsInteger(id) {
 		idx := int(index.AsInt())
@@ -726,14 +726,14 @@ func indexRecord(sctx *super.Context, typ *super.TypeRecord, record zcode.Bytes,
 	return *val
 }
 
-func indexMap(sctx *super.Context, typ *super.TypeMap, mapBytes zcode.Bytes, key super.Value) super.Value {
+func indexMap(sctx *super.Context, typ *super.TypeMap, mapBytes scode.Bytes, key super.Value) super.Value {
 	if key.IsMissing() {
 		return sctx.Missing()
 	}
 	if key.Type() != typ.KeyType {
 		if union, ok := super.TypeUnder(typ.KeyType).(*super.TypeUnion); ok {
 			if tag := union.TagOf(key.Type()); tag >= 0 {
-				var b zcode.Builder
+				var b scode.Builder
 				super.BuildUnion(&b, union.TagOf(key.Type()), key.Bytes())
 				if valBytes, ok := lookupKey(mapBytes, b.Bytes().Body()); ok {
 					return deunion(typ.ValType, valBytes)
@@ -748,7 +748,7 @@ func indexMap(sctx *super.Context, typ *super.TypeMap, mapBytes zcode.Bytes, key
 	return sctx.Missing()
 }
 
-func deunion(typ super.Type, b zcode.Bytes) super.Value {
+func deunion(typ super.Type, b scode.Bytes) super.Value {
 	if union, ok := typ.(*super.TypeUnion); ok {
 		typ, b = union.Untag(b)
 	}

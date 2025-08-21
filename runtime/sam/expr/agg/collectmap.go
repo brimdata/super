@@ -4,7 +4,7 @@ import (
 	"slices"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 type CollectMap struct {
@@ -32,7 +32,7 @@ func (c *CollectMap) Consume(val super.Value) {
 		return
 	}
 	// Copy val.Bytes since we're going to keep slices of it.
-	it := zcode.Iter(slices.Clone(val.Bytes()))
+	it := scode.Iter(slices.Clone(val.Bytes()))
 	for !it.Done() {
 		keyTagAndBody := it.NextTagAndBody()
 		key := valueUnder(mtyp.KeyType, keyTagAndBody.Body())
@@ -62,7 +62,7 @@ func (c *CollectMap) Result(sctx *super.Context) super.Value {
 	// be a union itself).
 	ktyp, kuniq := unionOf(sctx, ktypes)
 	vtyp, vuniq := unionOf(sctx, vtypes)
-	var builder zcode.Builder
+	var builder scode.Builder
 	for _, e := range c.entries {
 		appendMapVal(&builder, ktyp, e.key, kuniq)
 		appendMapVal(&builder, vtyp, e.val, vuniq)
@@ -76,7 +76,7 @@ func (c *CollectMap) ResultAsPartial(sctx *super.Context) super.Value {
 	return c.Result(sctx)
 }
 
-func appendMapVal(b *zcode.Builder, typ super.Type, val super.Value, uniq int) {
+func appendMapVal(b *scode.Builder, typ super.Type, val super.Value, uniq int) {
 	if uniq > 1 {
 		u := super.TypeUnder(typ).(*super.TypeUnion)
 		super.BuildUnion(b, u.TagOf(val.Type()), val.Bytes())
@@ -94,7 +94,7 @@ func unionOf(sctx *super.Context, types []super.Type) (super.Type, int) {
 }
 
 // valueUnder is like super.(*Value).Under but it preserves non-union named types.
-func valueUnder(typ super.Type, b zcode.Bytes) super.Value {
+func valueUnder(typ super.Type, b scode.Bytes) super.Value {
 	val := super.NewValue(typ, b)
 	if _, ok := super.TypeUnder(typ).(*super.TypeUnion); !ok {
 		return val

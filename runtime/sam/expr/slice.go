@@ -6,7 +6,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 type Slice struct {
@@ -74,7 +74,7 @@ func (s *Slice) Eval(this super.Value) super.Value {
 		it := bytes.Iter()
 		for k := 0; k < to && !it.Done(); k++ {
 			if k == from {
-				bytes = zcode.Bytes(it)
+				bytes = scode.Bytes(it)
 			}
 			it.Next()
 		}

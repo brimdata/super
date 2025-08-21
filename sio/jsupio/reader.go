@@ -8,8 +8,8 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/skim"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zcode"
 )
 
 const (
@@ -21,7 +21,7 @@ type Reader struct {
 	scanner *skim.Scanner
 	sctx    *super.Context
 	decoder decoder
-	builder *zcode.Builder
+	builder *scode.Builder
 	val     super.Value
 }
 
@@ -31,7 +31,7 @@ func NewReader(sctx *super.Context, reader io.Reader) *Reader {
 		scanner: skim.NewScanner(reader, buffer, MaxLineSize),
 		sctx:    sctx,
 		decoder: make(decoder),
-		builder: zcode.NewBuilder(),
+		builder: scode.NewBuilder(),
 	}
 }
 
@@ -63,7 +63,7 @@ func (r *Reader) Read() (*super.Value, error) {
 	return &r.val, nil
 }
 
-func (r *Reader) decodeValue(b *zcode.Builder, typ super.Type, body any) error {
+func (r *Reader) decodeValue(b *scode.Builder, typ super.Type, body any) error {
 	if body == nil {
 		b.Append(nil)
 		return nil
@@ -106,7 +106,7 @@ func (r *Reader) decodeValue(b *zcode.Builder, typ super.Type, body any) error {
 	}
 }
 
-func (r *Reader) decodeRecord(b *zcode.Builder, typ *super.TypeRecord, v any) error {
+func (r *Reader) decodeRecord(b *scode.Builder, typ *super.TypeRecord, v any) error {
 	values, ok := v.([]any)
 	if !ok {
 		return errors.New("JSUP record value must be a JSON array")
@@ -127,7 +127,7 @@ func (r *Reader) decodeRecord(b *zcode.Builder, typ *super.TypeRecord, v any) er
 	return nil
 }
 
-func (r *Reader) decodePrimitive(builder *zcode.Builder, typ super.Type, v any) error {
+func (r *Reader) decodePrimitive(builder *scode.Builder, typ super.Type, v any) error {
 	if super.IsContainerType(typ) && !super.IsUnionType(typ) {
 		return errors.New("expected primitive type, got container")
 	}
@@ -141,7 +141,7 @@ func (r *Reader) decodePrimitive(builder *zcode.Builder, typ super.Type, v any) 
 	})
 }
 
-func (r *Reader) decodeContainerBody(b *zcode.Builder, typ super.Type, body any, which string) error {
+func (r *Reader) decodeContainerBody(b *scode.Builder, typ super.Type, body any, which string) error {
 	items, ok := body.([]any)
 	if !ok {
 		return fmt.Errorf("bad JSON for JSUP %s value", which)
@@ -154,14 +154,14 @@ func (r *Reader) decodeContainerBody(b *zcode.Builder, typ super.Type, body any,
 	return nil
 }
 
-func (r *Reader) decodeContainer(b *zcode.Builder, typ super.Type, body any, which string) error {
+func (r *Reader) decodeContainer(b *scode.Builder, typ super.Type, body any, which string) error {
 	b.BeginContainer()
 	err := r.decodeContainerBody(b, typ, body, which)
 	b.EndContainer()
 	return err
 }
 
-func (r *Reader) decodeUnion(builder *zcode.Builder, typ *super.TypeUnion, body any) error {
+func (r *Reader) decodeUnion(builder *scode.Builder, typ *super.TypeUnion, body any) error {
 	tuple, ok := body.([]any)
 	if !ok {
 		return errors.New("bad JSON for JSUP union value")
@@ -190,7 +190,7 @@ func (r *Reader) decodeUnion(builder *zcode.Builder, typ *super.TypeUnion, body 
 	return nil
 }
 
-func (r *Reader) decodeMap(b *zcode.Builder, typ *super.TypeMap, body any) error {
+func (r *Reader) decodeMap(b *scode.Builder, typ *super.TypeMap, body any) error {
 	items, ok := body.([]any)
 	if !ok {
 		return errors.New("bad JSON for JSUP union value")
@@ -212,7 +212,7 @@ func (r *Reader) decodeMap(b *zcode.Builder, typ *super.TypeMap, body any) error
 	return nil
 }
 
-func (r *Reader) decodeEnum(b *zcode.Builder, typ *super.TypeEnum, body any) error {
+func (r *Reader) decodeEnum(b *scode.Builder, typ *super.TypeEnum, body any) error {
 	s, ok := body.(string)
 	if !ok {
 		return errors.New("JSUP enum index value is not a JSON string")

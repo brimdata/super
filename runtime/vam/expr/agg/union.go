@@ -3,8 +3,8 @@ package agg
 import (
 	"github.com/brimdata/super"
 	samagg "github.com/brimdata/super/runtime/sam/expr/agg"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zcode"
 )
 
 type union struct {
@@ -28,7 +28,7 @@ func (u *union) Consume(vec vector.Any) {
 	default:
 		nulls := vector.NullsOf(vec)
 		typ := vec.Type()
-		var b zcode.Builder
+		var b scode.Builder
 		for i := range vec.Len() {
 			if nulls.IsSet(i) {
 				continue
@@ -55,7 +55,7 @@ func (u *union) ConsumeAsPartial(partial vector.Any) {
 	inner := set.Values
 	typ := inner.Type()
 	union, _ := typ.(*super.TypeUnion)
-	var b zcode.Builder
+	var b scode.Builder
 	for i := range set.Len() {
 		for k := set.Offsets[i]; k < set.Offsets[i+1]; k++ {
 			b.Truncate()

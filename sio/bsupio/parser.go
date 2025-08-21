@@ -8,7 +8,7 @@ import (
 
 	"github.com/brimdata/super/pkg/peeker"
 	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 var errBadFormat = errors.New("malformed BSUP value")
@@ -179,7 +179,7 @@ func (p *parser) readCompressedFrame(code byte) (frame, error) {
 	// The size of the compressed buffer needs to be adjusted by the
 	// byte for the format and the variable-length bytes to encode
 	// the original size.
-	n -= 1 + zcode.SizeOfUvarint(uint64(size))
+	n -= 1 + scode.SizeOfUvarint(uint64(size))
 	b, err := p.peeker.Read(n)
 	if err != nil && err != io.EOF {
 		if err == peeker.ErrBufferOverflow {

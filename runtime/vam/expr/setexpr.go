@@ -2,9 +2,9 @@ package expr
 
 import (
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/bitvec"
-	"github.com/brimdata/super/zcode"
 )
 
 type setExpr struct {
@@ -32,7 +32,7 @@ func (a *setExpr) eval(in ...vector.Any) vector.Any {
 	offsets, inner := buildList(a.sctx, a.elems, in)
 	// Dedupe list elems
 	vb := vector.NewBuilder(a.sctx.LookupTypeSet(inner.Type()))
-	var b zcode.Builder
+	var b scode.Builder
 	for i := range len(offsets) - 1 {
 		b.Truncate()
 		for off := offsets[i]; off < offsets[i+1]; off++ {

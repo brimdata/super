@@ -3,8 +3,8 @@ package vector
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/byteconv"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector/bitvec"
-	"github.com/brimdata/super/zcode"
 )
 
 type Bytes struct {
@@ -34,7 +34,7 @@ func (b *Bytes) Len() uint32 {
 	return b.table.Len()
 }
 
-func (b *Bytes) Serialize(builder *zcode.Builder, slot uint32) {
+func (b *Bytes) Serialize(builder *scode.Builder, slot uint32) {
 	builder.Append(b.Value(slot))
 }
 

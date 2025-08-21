@@ -7,14 +7,14 @@ import (
 	"strings"
 
 	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 // fieldInfo encodes the structure of a particular proc that writes a
 // sequence of fields, which may potentially be inside nested records.
 // This encoding enables the runtime processing to happen as efficiently
 // as possible.  When handling an input record, we build an output record
-// using a zcode.Builder but when handling fields within nested records,
+// using a scode.Builder but when handling fields within nested records,
 // calls to BeginContainer() and EndContainer() on the builder need to
 // happen at the right times to yield the proper output structure.
 // This is probably best illustrated with an example, consider the proc
@@ -46,15 +46,15 @@ type fieldInfo struct {
 
 type RecordBuilder struct {
 	fields   []fieldInfo
-	builder  *zcode.Builder
+	builder  *scode.Builder
 	sctx     *Context
 	curField int
 }
 
-// NewRecordBuilder constructs the zcode.Bytes representation for records
+// NewRecordBuilder constructs the scode.Bytes representation for records
 // built from an array of input field selectors expressed as field.Path.
 // Append should be called to enter field values in the left to right order
-// of the provided fields and Encode is called to retrieve the nested zcode.Bytes
+// of the provided fields and Encode is called to retrieve the nested scode.Bytes
 // value.  Reset should be called before encoding the next record.
 func NewRecordBuilder(sctx *Context, fields field.List) (*RecordBuilder, error) {
 	seenRecords := make(map[string]bool)
@@ -72,7 +72,7 @@ func NewRecordBuilder(sctx *Context, fields field.List) (*RecordBuilder, error) 
 		record := names[:len(names)-1]
 		var containerBegins []string
 		if !slices.Equal(record, currentRecord) {
-			// currentRecord is what nested record the zcode.Builder
+			// currentRecord is what nested record the scode.Builder
 			// is currently working on, record is the nested
 			// record for the current field.  First figure out
 			// what (if any) common parents are shared.
@@ -117,7 +117,7 @@ func NewRecordBuilder(sctx *Context, fields field.List) (*RecordBuilder, error) 
 
 	return &RecordBuilder{
 		fields:  fieldInfos,
-		builder: zcode.NewBuilder(),
+		builder: scode.NewBuilder(),
 		sctx:    sctx,
 	}, nil
 }
@@ -163,7 +163,7 @@ func (r *RecordBuilder) Append(leaf []byte) {
 	}
 }
 
-func (r *RecordBuilder) Encode() (zcode.Bytes, error) {
+func (r *RecordBuilder) Encode() (scode.Bytes, error) {
 	if r.curField != len(r.fields) {
 		return nil, errors.New("did not receive enough fields")
 	}

@@ -6,7 +6,7 @@ import (
 
 	"github.com/agnivade/levenshtein"
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 type Position struct {
@@ -150,9 +150,9 @@ func (s *Split) Call(args []super.Value) super.Value {
 	str := super.DecodeString(sVal.Bytes())
 	sep := super.DecodeString(sepVal.Bytes())
 	splits := strings.Split(str, sep)
-	var b zcode.Bytes
+	var b scode.Bytes
 	for _, substr := range splits {
-		b = zcode.Append(b, super.EncodeString(substr))
+		b = scode.Append(b, super.EncodeString(substr))
 	}
 	return super.NewValue(s.typ, b)
 }

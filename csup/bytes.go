@@ -6,14 +6,14 @@ import (
 	"math"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 	"golang.org/x/sync/errgroup"
 )
 
 type BytesEncoder struct {
 	typ      super.Type
 	min, max []byte
-	bytes    zcode.Bytes
+	bytes    scode.Bytes
 	offsets  Uint32Encoder
 
 	// These values are used for the Encode pass.
@@ -25,12 +25,12 @@ type BytesEncoder struct {
 func NewBytesEncoder(typ super.Type) *BytesEncoder {
 	return &BytesEncoder{
 		typ:     typ,
-		bytes:   zcode.Bytes{},
+		bytes:   scode.Bytes{},
 		offsets: Uint32Encoder{vals: []uint32{0}},
 	}
 }
 
-func (b *BytesEncoder) Write(vb zcode.Bytes) {
+func (b *BytesEncoder) Write(vb scode.Bytes) {
 	if len(b.bytes) == 0 || bytes.Compare(vb, b.min) < 0 {
 		b.min = append(b.min[:0], vb...)
 	}

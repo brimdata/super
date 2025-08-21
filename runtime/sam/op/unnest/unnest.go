@@ -7,7 +7,7 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 type Unnest struct {
@@ -91,7 +91,7 @@ func unnest(sctx *super.Context, val super.Value) []super.Value {
 		left := *val.DerefByColumn(0)
 		fields := slices.Clone(typ.Fields)
 		var out []super.Value
-		var b zcode.Builder
+		var b scode.Builder
 		for _, right := range unnest(sctx, *val.DerefByColumn(1)) {
 			b.Reset()
 			b.Append(left.Bytes())
