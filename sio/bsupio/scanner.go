@@ -228,16 +228,16 @@ func (w *worker) run(workerCh chan<- *worker) {
 			// the decompress and the boyer-moore short-circuit
 			// scan on a processor cache-friendly buffer and
 			// throwing it all out asap if it is not needed.
-			if work.frame.sbuf != nil {
+			if work.frame.zbuf != nil {
 				if err := work.frame.decompress(); err != nil {
 					work.resultCh <- op.Result{Err: err}
 					continue
 				}
-				work.frame.sbuf.free()
+				work.frame.zbuf.free()
 			}
 			// Either the frame was compressed or it was uncompressed.
 			// In either case,the uncompressed data is now in work.blk.
-			// We hand ownership of ubuf over to scanBatch.  the sbuf
+			// We hand ownership of ubuf over to scanBatch.  the zbuf
 			// has been freed above so no need to free work.blk.
 			// If the batch survives, the work.blk.ubuf will go with it
 			// and will get freed when the batch's Unref count hits 0.

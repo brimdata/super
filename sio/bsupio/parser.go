@@ -189,7 +189,7 @@ func (p *parser) readCompressedFrame(code byte) (frame, error) {
 	}
 	return frame{
 		fmt:  CompressionFormat(format),
-		sbuf: newBufferFromBytes(b),
+		zbuf: newBufferFromBytes(b),
 		ubuf: newBuffer(size),
 	}, nil
 }

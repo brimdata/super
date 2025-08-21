@@ -64,11 +64,11 @@ again:
 		}
 		return nil, err
 	}
-	if frame.sbuf != nil {
+	if frame.zbuf != nil {
 		if err := frame.decompress(); err != nil {
 			return nil, err
 		}
-		frame.sbuf.free()
+		frame.zbuf.free()
 	}
 	b, err := s.worker.scanBatch(frame.ubuf, s.parser.types)
 	if b == nil && err == nil {

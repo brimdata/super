@@ -22,7 +22,7 @@ type Segment struct {
 	CompressionFormat uint8  // Compression format in file
 }
 
-var sbufPool = sync.Pool{
+var zbufPool = sync.Pool{
 	New: func() any { return new([]byte) },
 }
 
@@ -42,13 +42,13 @@ func (s *Segment) Read(r io.ReaderAt, b []byte) error {
 		_, err := r.ReadAt(b, int64(s.Offset))
 		return err
 	case CompressionFormatLZ4:
-		sbuf := sbufPool.Get().(*[]byte)
-		defer sbufPool.Put(sbuf)
-		*sbuf = slices.Grow((*sbuf)[:0], int(s.Length))[:s.Length]
-		if _, err := r.ReadAt(*sbuf, int64(s.Offset)); err != nil {
+		zbuf := zbufPool.Get().(*[]byte)
+		defer zbufPool.Put(zbuf)
+		*zbuf = slices.Grow((*zbuf)[:0], int(s.Length))[:s.Length]
+		if _, err := r.ReadAt(*zbuf, int64(s.Offset)); err != nil {
 			return err
 		}
-		n, err := lz4.UncompressBlock(*sbuf, b)
+		n, err := lz4.UncompressBlock(*zbuf, b)
 		if err != nil {
 			return err
 		}
@@ -68,13 +68,13 @@ func compressBuffer(b []byte) (uint8, []byte, error) {
 	if inLen == 0 {
 		return CompressionFormatNone, nil, nil
 	}
-	sbuf := sbufPool.Get().(*[]byte)
-	defer sbufPool.Put(sbuf)
+	zbuf := zbufPool.Get().(*[]byte)
+	defer zbufPool.Put(zbuf)
 	// Use inLen-1 so compression will fail if it doesn't result in
 	// fewer bytes. XXX make the -1 a bigger gap
-	*sbuf = slices.Grow((*sbuf)[:0], inLen-1)[:inLen-1]
+	*zbuf = slices.Grow((*zbuf)[:0], inLen-1)[:inLen-1]
 	var c lz4.Compressor
-	zlen, err := c.CompressBlock(b, *sbuf)
+	zlen, err := c.CompressBlock(b, *zbuf)
 	if err != nil && err != lz4.ErrInvalidSourceShortBuffer {
 		return 0, nil, err
 	}
@@ -83,7 +83,7 @@ func compressBuffer(b []byte) (uint8, []byte, error) {
 		// have a way to stash the buffer in the Primitive and
 		// release it after written.
 		bytes := make([]byte, zlen)
-		copy(bytes, *sbuf)
+		copy(bytes, *zbuf)
 		return CompressionFormatLZ4, bytes, nil
 	}
 	return CompressionFormatNone, b, nil
