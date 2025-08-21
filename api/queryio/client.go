@@ -44,15 +44,15 @@ again:
 		}
 		return nil, s.closer.Close()
 	}
-	zctrl, ok := err.(*sbuf.Control)
+	sctrl, ok := err.(*sbuf.Control)
 	if !ok {
 		return nil, err
 	}
-	v, err := marshalControl(zctrl)
+	ctrl, err := marshalControl(sctrl)
 	if err != nil {
 		return nil, err
 	}
-	switch ctrl := v.(type) {
+	switch ctrl := ctrl.(type) {
 	case *api.QueryChannelSet:
 		s.channel = ctrl.Channel
 		goto again
