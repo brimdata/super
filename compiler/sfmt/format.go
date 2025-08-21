@@ -1,4 +1,4 @@
-package zfmt
+package sfmt
 
 import (
 	"fmt"

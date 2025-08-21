@@ -1,4 +1,4 @@
-package zfmt
+package sfmt
 
 import (
 	"fmt"
@@ -187,7 +187,7 @@ func (c *canon) expr(e ast.Expr, parent string) {
 				c.write("...")
 				c.expr(e.Expr, "")
 			default:
-				c.write("zfmt: unknown record elem type: %T", e)
+				c.write("sfmt: unknown record elem type: %T", e)
 			}
 		}
 		c.write("}")

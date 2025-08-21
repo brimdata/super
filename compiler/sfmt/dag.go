@@ -1,4 +1,4 @@
-package zfmt
+package sfmt
 
 import (
 	"slices"
@@ -147,7 +147,7 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 				c.write("...")
 				c.expr(e.Expr, "")
 			default:
-				c.write("zfmt: unknown record elem type: %T", e)
+				c.write("sfmt: unknown record elem type: %T", e)
 			}
 		}
 		c.write("}")
@@ -226,7 +226,7 @@ func (c *canonDAG) vectorElems(elems []dag.VectorElem) {
 		case *dag.VectorValue:
 			c.expr(elem.Expr, "")
 		default:
-			c.write("zfmt: unknown vector elem type: %T", elem)
+			c.write("sfmt: unknown vector elem type: %T", elem)
 		}
 	}
 }

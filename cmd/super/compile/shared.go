@@ -12,6 +12,7 @@ import (
 	"github.com/brimdata/super/cli/queryflags"
 	"github.com/brimdata/super/compiler"
 	"github.com/brimdata/super/compiler/describe"
+	"github.com/brimdata/super/compiler/sfmt"
 	"github.com/brimdata/super/db"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
@@ -19,7 +20,6 @@ import (
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zfmt"
 )
 
 type Shared struct {
@@ -71,7 +71,7 @@ func (s *Shared) Run(ctx context.Context, args []string, dbFlags *dbflags.Flags,
 	}
 	if !s.dag {
 		if s.query {
-			fmt.Println(zfmt.AST(ast.Parsed()))
+			fmt.Println(sfmt.AST(ast.Parsed()))
 			return nil
 		}
 		return s.writeValue(ctx, ast.Parsed())
@@ -96,7 +96,7 @@ func (s *Shared) Run(ctx context.Context, args []string, dbFlags *dbflags.Flags,
 		}
 	}
 	if s.query {
-		fmt.Println(zfmt.DAG(dag))
+		fmt.Println(sfmt.DAG(dag))
 		return nil
 	}
 	return s.writeValue(ctx, dag)
