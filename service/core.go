@@ -33,12 +33,12 @@ const DefaultFormat = "sup"
 const indexPage = `
 <!DOCTYPE html>
 <html>
-  <title>Zed lake service</title>
+  <title>SuperDB database service</title>
   <body style="padding:10px">
     <h2>zed serve</h2>
-    <p>A <a href="https://super.brimdata.io/docs/commands/zed#213-serve">Zed lake service</a> is listening on this host/port.</p>
+    <p>A <a href="https://super.brimdata.io/docs/commands/zed#213-serve">SuperDB database service</a> is listening on this host/port.</p>
     <p>If you're a <a href="https://zui.brimdata.io/">Zui</a> user, connect to this host/port from Zui app in the graphical desktop interface in your operating system (not a web browser).</p>
-    <p>If your goal is to perform command line operations against this Zed lake, use the <a href="https://super.brimdata.io/docs/commands/zed"><code>zed</code></a> command.</p>
+    <p>If your goal is to perform command line operations against this database, use the <a href="https://super.brimdata.io/docs/commands/zed"><code>zed</code></a> command.</p>
   </body>
 </html>`
 

@@ -15,7 +15,7 @@ import (
 	"github.com/brimdata/super/cli"
 	"github.com/brimdata/super/cli/logflags"
 	"github.com/brimdata/super/cmd/super/db"
-	"github.com/brimdata/super/cmd/super/internal/lakemanage"
+	"github.com/brimdata/super/cmd/super/db/internal/dbmanage"
 	"github.com/brimdata/super/db/api"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/fs"
@@ -130,7 +130,7 @@ func (c *Command) Run(args []string) error {
 	if c.manage > 0 {
 		conn := client.NewConnectionTo("http://" + srv.Addr())
 		group.Go(func() error {
-			return lakemanage.Monitor(ctx, conn, lakemanage.Config{Interval: &c.manage}, logger.Named("manage"))
+			return dbmanage.Monitor(ctx, conn, dbmanage.Config{Interval: &c.manage}, logger.Named("manage"))
 		})
 	}
 	if c.portFile != "" {

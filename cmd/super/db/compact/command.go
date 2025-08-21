@@ -51,7 +51,7 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	lake, err := c.DBFlags.Open(ctx)
+	db, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}
@@ -59,11 +59,11 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	poolID, err := lake.PoolID(ctx, head.Pool)
+	poolID, err := db.PoolID(ctx, head.Pool)
 	if err != nil {
 		return err
 	}
-	commit, err := lake.Compact(ctx, poolID, head.Branch, ids, c.writeVectors, c.commitFlags.CommitMessage())
+	commit, err := db.Compact(ctx, poolID, head.Branch, ids, c.writeVectors, c.commitFlags.CommitMessage())
 	if err == nil && !c.DBFlags.Quiet {
 		fmt.Printf("%s compaction committed\n", commit)
 	}

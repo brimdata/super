@@ -24,7 +24,7 @@ func NewDBMetaScanner(ctx context.Context, sctx *super.Context, r *db.Root, meta
 	case "branches":
 		vals, err = r.BatchifyBranches(ctx, sctx, nil)
 	default:
-		return nil, fmt.Errorf("unknown lake metadata type: %q", meta)
+		return nil, fmt.Errorf("unknown database metadata type: %q", meta)
 	}
 	if err != nil {
 		return nil, err

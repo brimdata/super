@@ -764,16 +764,16 @@ super db -S -c "from logs@live:objects"
 ```
 
 You can also pretty-print in human-readable form most of the metadata records
-using the "lake" format, e.g.,
+using the "db" format, e.g.,
 ```
-super db -f lake -c "from logs@live:objects"
+super db -f db -c "from logs@live:objects"
 ```
 
 The `main` branch is queried by default if an explicit branch is not specified,
 e.g.,
 
 ```
-super db -f lake -c "from logs:objects"
+super db -f db -c "from logs:objects"
 ```
 
 ### Rename

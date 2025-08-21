@@ -3,7 +3,7 @@ script: |
   super db create -q test
   super db load -q -use test 1.sup
   super db load -q -use test 2.sup
-  super db -f lake -c "from test@main:objects"
+  super db -f db -c "from test@main:objects"
 
 inputs:
   - name: service.sh

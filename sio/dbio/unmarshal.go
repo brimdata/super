@@ -1,4 +1,4 @@
-package lakeio
+package dbio
 
 import (
 	"github.com/brimdata/super/db"

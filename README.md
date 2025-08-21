@@ -85,7 +85,7 @@ Our areas of active development include:
 * the type-based query compiler and optimizer,
 * fast, vectorized ingest of common file formats,
 * a complete vectorized runtime, and
-* a data lake based on super-structured data.
+* a database based on super-structured data.
 
 ## Try It
 
@@ -109,13 +109,13 @@ Once you've tried it out, we'd love to hear your feedback via our
 >files, HTTP endpoints, or S3 paths using the `super` command. While
 >[earlier in its development](https://superdb.org/docs/commands/super-db/#status),
 >SuperDB can also run on a
->[super-structured data lake](https://superdb.org/docs/commands/super-db/#the-lake-model)
+>[super-structured database](https://superdb.org/docs/commands/super-db/#the-lake-model)
 >using the `super db` sub-commands.
 
 ### SuperDB Desktop - Coming Soon
 
 [SuperDB Desktop](https://github.com/brimdata/zui) is an Electron-based
-desktop app to explore, query, and shape data in a SuperDB data lake.
+desktop app to explore, query, and shape data in a SuperDB database.
 It combines a search experience with a SQL query and has some really slick
 design for dealing with complex and large JSON data.
 

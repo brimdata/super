@@ -1,5 +1,5 @@
 script: |
-  LAKE_EXTRA_FLAGS="-auth.enabled=true -auth.audience=a -auth.clientid=testuser -auth.domain=https://testdomain -auth.jwkspath=auth-public-jwks.json" source service.sh
+  DB_EXTRA_FLAGS="-auth.enabled=true -auth.audience=a -auth.clientid=testuser -auth.domain=https://testdomain -auth.jwkspath=auth-public-jwks.json" source service.sh
   super db auth store -configdir user1 -access \
     $(gentoken -audience a -domain https://testdomain -privatekeyfile auth-private-key -keyid testkey -tenantid tenant1 -userid user1)
   super db auth verify -configdir user1 

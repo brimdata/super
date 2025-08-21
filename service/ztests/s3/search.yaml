@@ -1,7 +1,7 @@
 skip: "issue #2651"
 
 script: |
-  source services.sh s3://bucket/lake
+  source services.sh s3://bucket/db
   super db new -S 20KiB test
   super db use test -q
   super db post babble.sup >/dev/null

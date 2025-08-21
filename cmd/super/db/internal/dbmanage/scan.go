@@ -1,4 +1,4 @@
-package lakemanage
+package dbmanage
 
 import (
 	"context"
@@ -73,9 +73,9 @@ type objectIterator struct {
 	unmarshaler *sup.UnmarshalBSUPContext
 }
 
-func newObjectIterator(ctx context.Context, lake api.Interface, head *dbid.Commitish) (*objectIterator, error) {
+func newObjectIterator(ctx context.Context, db api.Interface, head *dbid.Commitish) (*objectIterator, error) {
 	query := fmt.Sprintf(iteratorQuery, head.Pool, head.Branch, head.Pool, head.Branch)
-	q, err := lake.Query(ctx, query)
+	q, err := db.Query(ctx, query)
 	if err != nil {
 		return nil, err
 	}

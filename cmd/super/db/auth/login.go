@@ -14,7 +14,7 @@ import (
 var Login = &charm.Spec{
 	Name:  "login",
 	Usage: "auth login",
-	Short: "log in to Zed lake service and save credentials",
+	Short: "log in to a database service and save credentials",
 	Long:  ``,
 	New:   NewLoginCommand,
 }

@@ -455,7 +455,7 @@ func (a *analyzer) semPool(nameLoc ast.Node, poolName string, args []ast.OpArg) 
 func (a *analyzer) semDBMeta(entity *ast.DBMeta) dag.Op {
 	meta := entity.Meta.Text
 	if _, ok := dag.DBMetas[meta]; !ok {
-		a.error(entity, fmt.Errorf("unknown lake metadata type %q in from operator", meta))
+		a.error(entity, fmt.Errorf("unknown database metadata type %q in from operator", meta))
 		return badOp()
 	}
 	return &dag.DBMetaScan{
@@ -466,7 +466,7 @@ func (a *analyzer) semDBMeta(entity *ast.DBMeta) dag.Op {
 
 func (a *analyzer) semDelete(op *ast.Delete) dag.Op {
 	if !a.env.IsAttached() {
-		a.error(op, errors.New("deletion requires data lake"))
+		a.error(op, errors.New("deletion requires database"))
 		return badOp()
 	}
 	poolID, err := a.env.PoolID(a.ctx, op.Pool)

@@ -27,8 +27,8 @@ type local struct {
 
 var _ Interface = (*local)(nil)
 
-func OpenLocalDB(ctx context.Context, logger *zap.Logger, lakePath string) (Interface, error) {
-	uri, err := storage.ParseURI(lakePath)
+func OpenLocalDB(ctx context.Context, logger *zap.Logger, path string) (Interface, error) {
+	uri, err := storage.ParseURI(path)
 	if err != nil {
 		return nil, err
 	}
@@ -40,8 +40,8 @@ func OpenLocalDB(ctx context.Context, logger *zap.Logger, lakePath string) (Inte
 	return FromRoot(root), nil
 }
 
-func CreateLocalDB(ctx context.Context, logger *zap.Logger, dbPath string) (Interface, error) {
-	uri, err := storage.ParseURI(dbPath)
+func CreateLocalDB(ctx context.Context, logger *zap.Logger, path string) (Interface, error) {
+	uri, err := storage.ParseURI(path)
 	if err != nil {
 		return nil, err
 	}

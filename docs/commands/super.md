@@ -537,11 +537,11 @@ For example, imagine you'd executed a [meta-query](super-db.md#meta-queries) via
 }::=pools.Config
 ```
 
-Using `super -f lake`, this can be rendered in the same pretty-printed form as it
+Using `super -f db`, this can be rendered in the same pretty-printed form as it
 would have originally appeared in the output of `super db ls`, e.g.,
 
 ```mdtest-command
-super -f lake pools.sup
+super -f db pools.sup
 ```
 produces
 ```mdtest-output

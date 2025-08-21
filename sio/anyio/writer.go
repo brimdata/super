@@ -10,9 +10,9 @@ import (
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/csupio"
 	"github.com/brimdata/super/sio/csvio"
+	"github.com/brimdata/super/sio/dbio"
 	"github.com/brimdata/super/sio/jsonio"
 	"github.com/brimdata/super/sio/jsupio"
-	"github.com/brimdata/super/sio/lakeio"
 	"github.com/brimdata/super/sio/lineio"
 	"github.com/brimdata/super/sio/parquetio"
 	"github.com/brimdata/super/sio/supio"
@@ -25,8 +25,8 @@ type WriterOpts struct {
 	Format string
 	BSUP   *bsupio.WriterOpts // Nil means use defaults via bsupio.NewWriter.
 	CSV    csvio.WriterOpts
+	DB     dbio.WriterOpts
 	JSON   jsonio.WriterOpts
-	Lake   lakeio.WriterOpts
 	SUP    supio.WriterOpts
 }
 
@@ -43,10 +43,10 @@ func NewWriter(w io.WriteCloser, opts WriterOpts) (sio.WriteCloser, error) {
 		return csupio.NewWriter(w), nil
 	case "csv":
 		return csvio.NewWriter(w, opts.CSV), nil
+	case "db":
+		return dbio.NewWriter(w, opts.DB), nil
 	case "json":
 		return jsonio.NewWriter(w, opts.JSON), nil
-	case "lake":
-		return lakeio.NewWriter(w, opts.Lake), nil
 	case "line":
 		return lineio.NewWriter(w), nil
 	case "null":

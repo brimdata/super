@@ -73,11 +73,11 @@ func (l *Flags) Open(ctx context.Context) (api.Interface, error) {
 		}
 		return api.NewRemoteDB(conn), nil
 	}
-	lk, err := api.Connect(ctx, zap.Must(zap.NewProduction()), uri.String())
+	DB, err := api.Connect(ctx, zap.Must(zap.NewProduction()), uri.String())
 	if errors.Is(err, db.ErrNotExist) {
 		return nil, fmt.Errorf("%w\n(hint: run 'super db init' to initialize a database at this location)", err)
 	}
-	return lk, err
+	return DB, err
 }
 
 func (l *Flags) AuthStore() *auth0.Store {

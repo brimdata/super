@@ -1,5 +1,5 @@
 script: |
-  LAKE_EXTRA_FLAGS='-log.path=service.log' source service.sh
+  DB_EXTRA_FLAGS='-log.path=service.log' source service.sh
   super db create -use -q test
   echo '{}' | super db load -q -
   curl -o /dev/null -H 'Accept: application/x-parquet' -d '{"query":"from test"}' $SUPER_DB/query 

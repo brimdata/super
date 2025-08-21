@@ -1,5 +1,5 @@
 script: |
-  LAKE_EXTRA_FLAGS=-rootcontentfile=f source service.sh
+  DB_EXTRA_FLAGS=-rootcontentfile=f source service.sh
   curl $SUPER_DB
 
 inputs:

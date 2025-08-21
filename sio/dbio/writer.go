@@ -1,4 +1,4 @@
-package lakeio
+package dbio
 
 import (
 	"bytes"
@@ -100,7 +100,7 @@ func (w *Writer) formatValue(t table, b *bytes.Buffer, v any, width int, colors 
 			t.append(action)
 			return
 		}
-		b.WriteString(fmt.Sprintf("lake format: unknown type: %T\n", v))
+		b.WriteString(fmt.Sprintf("database format: unknown type: %T\n", v))
 	}
 }
 

@@ -44,7 +44,7 @@ func (c *addCommand) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	lake, err := c.DBFlags.Open(ctx)
+	db, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func (c *addCommand) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	commit, err := lake.AddVectors(ctx, head.Pool, head.Branch, ids, c.commitFlags.CommitMessage())
+	commit, err := db.AddVectors(ctx, head.Pool, head.Branch, ids, c.commitFlags.CommitMessage())
 	if err == nil && !c.DBFlags.Quiet {
 		fmt.Printf("%s vectors added\n", commit)
 	}

@@ -20,10 +20,10 @@ import (
 var Spec = &charm.Spec{
 	Name:  "db",
 	Usage: "db <sub-command> [options] [arguments...]",
-	Short: "run SuperDB data lake commands",
+	Short: "run database commands",
 	Long: `
-XXX db is a command-line tool for creating, configuring, ingesting into,
-querying, and orchestrating Zed data lakes.`,
+db is a command-line tool for creating, configuring, ingesting into,
+querying, and orchestrating databases.`,
 	New:          New,
 	InternalLeaf: true,
 }
@@ -66,7 +66,7 @@ func (c *Command) Run(args []string) error {
 	if len(args) > 0 {
 		return errors.New("super db command takes no arguments")
 	}
-	lake, err := c.DBFlags.Open(ctx)
+	db, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}
@@ -74,7 +74,7 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	query, err := lake.Query(ctx, c.query, c.queryFlags.Includes...)
+	query, err := db.Query(ctx, c.query, c.queryFlags.Includes...)
 	if err != nil {
 		w.Close()
 		return err

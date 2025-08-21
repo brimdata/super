@@ -10,7 +10,7 @@ import (
 
 type Op struct {
 	rctx    *runtime.Context
-	lk      *db.Root
+	root    *db.Root
 	parent  zbuf.Puller
 	pool    ksuid.KSUID
 	branch  string
@@ -20,10 +20,10 @@ type Op struct {
 	done    bool
 }
 
-func New(rctx *runtime.Context, lk *db.Root, parent zbuf.Puller, pool ksuid.KSUID, branch, author, message, meta string) *Op {
+func New(rctx *runtime.Context, root *db.Root, parent zbuf.Puller, pool ksuid.KSUID, branch, author, message, meta string) *Op {
 	return &Op{
 		rctx:    rctx,
-		lk:      lk,
+		root:    root,
 		parent:  parent,
 		pool:    pool,
 		branch:  branch,
@@ -54,7 +54,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 	}
 	o.done = true
 	reader := zbuf.PullerReader(o.parent)
-	pool, err := o.lk.OpenPool(o.rctx.Context, o.pool)
+	pool, err := o.root.OpenPool(o.rctx.Context, o.pool)
 	if err != nil {
 		return nil, err
 	}

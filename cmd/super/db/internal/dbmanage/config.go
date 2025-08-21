@@ -1,4 +1,4 @@
-package lakemanage
+package dbmanage
 
 import (
 	"time"

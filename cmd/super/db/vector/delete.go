@@ -45,7 +45,7 @@ func (c *deleteCommand) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	lake, err := c.DBFlags.Open(ctx)
+	db, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}
@@ -53,7 +53,7 @@ func (c *deleteCommand) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	commit, err := lake.DeleteVectors(ctx, head.Pool, head.Branch, ids, c.commitFlags.CommitMessage())
+	commit, err := db.DeleteVectors(ctx, head.Pool, head.Branch, ids, c.commitFlags.CommitMessage())
 	if err == nil && !c.DBFlags.Quiet {
 		fmt.Printf("%s vectors deleted\n", commit)
 	}

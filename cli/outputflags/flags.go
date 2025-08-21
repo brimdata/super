@@ -45,7 +45,7 @@ func (f *Flags) setFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&f.BSUP.Compress, "bsup.compress", true, "compress Super Binary frames")
 	fs.IntVar(&f.BSUP.FrameThresh, "bsup.framethresh", bsupio.DefaultFrameThresh,
 		"minimum Super Binary frame size in uncompressed bytes")
-	fs.BoolVar(&f.color, "color", true, "enable/disable color formatting for -S and lake text output")
+	fs.BoolVar(&f.color, "color", true, "enable/disable color formatting for -S and db text output")
 	fs.StringVar(&f.supPersist, "persist", "",
 		"regular expression to persist type definitions across the stream")
 	fs.IntVar(&f.pretty, "pretty", 4,
@@ -72,7 +72,7 @@ func (f *Flags) SetFormatFlags(fs *flag.FlagSet) {
 	if f.DefaultFormat == "" {
 		f.DefaultFormat = "bsup"
 	}
-	fs.StringVar(&f.Format, "f", f.DefaultFormat, "format for output data [arrows,bsup,csup,csv,json,lake,line,parquet,sup,table,text,tsv,zeek,jsup]")
+	fs.StringVar(&f.Format, "f", f.DefaultFormat, "format for output data [arrows,bsup,csup,csv,db,json,jsup,line,parquet,sup,table,text,tsv,zeek]")
 	fs.BoolVar(&f.forceBinary, "B", false, "allow Super Binary to be sent to a terminal output")
 	fs.BoolVar(&f.jsonPretty, "J", false, "use formatted JSON output independent of -f option")
 	fs.BoolVar(&f.jsonShortcut, "j", false, "use line-oriented JSON output independent of -f option")

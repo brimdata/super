@@ -4,4 +4,4 @@ script: |
 outputs:
   - name: stdout
     regexp: |
-      run SuperDB data lake commands
+      run database commands

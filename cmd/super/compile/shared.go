@@ -40,7 +40,7 @@ func (s *Shared) SetFlags(fs *flag.FlagSet) {
 	s.OutputFlags.SetFlags(fs)
 }
 
-func (s *Shared) Run(ctx context.Context, args []string, lakeFlags *dbflags.Flags, desc, extInput bool) error {
+func (s *Shared) Run(ctx context.Context, args []string, dbFlags *dbflags.Flags, desc, extInput bool) error {
 	if len(s.includes) == 0 && len(args) == 0 {
 		return errors.New("no query specified")
 	}
@@ -48,8 +48,8 @@ func (s *Shared) Run(ctx context.Context, args []string, lakeFlags *dbflags.Flag
 		return errors.New("too many arguments")
 	}
 	var root *db.Root
-	if lakeFlags != nil {
-		dbAPI, err := lakeFlags.Open(ctx)
+	if dbFlags != nil {
+		dbAPI, err := dbFlags.Open(ctx)
 		if err != nil {
 			return err
 		}

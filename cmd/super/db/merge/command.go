@@ -52,7 +52,7 @@ func (c *Command) Run(args []string) error {
 		return errors.New("too many arguments")
 	}
 	targetBranch := args[0]
-	lake, err := c.DBFlags.Open(ctx)
+	db, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}
@@ -69,11 +69,11 @@ func (c *Command) Run(args []string) error {
 	if head.Branch == "main" && !c.force {
 		return errors.New("merging the main branch into another branch is unusual; use -f to force")
 	}
-	poolID, err := lake.PoolID(ctx, head.Pool)
+	poolID, err := db.PoolID(ctx, head.Pool)
 	if err != nil {
 		return err
 	}
-	if _, err = lake.MergeBranch(ctx, poolID, head.Branch, targetBranch, c.commitFlags.CommitMessage()); err != nil {
+	if _, err = db.MergeBranch(ctx, poolID, head.Branch, targetBranch, c.commitFlags.CommitMessage()); err != nil {
 		return err
 	}
 	if !c.DBFlags.Quiet {

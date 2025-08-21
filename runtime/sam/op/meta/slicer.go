@@ -35,7 +35,7 @@ func NewSlicer(parent zbuf.Puller, sctx *super.Context) *Slicer {
 		parent:      parent,
 		marshaler:   m,
 		unmarshaler: sup.NewBSUPUnmarshaler(),
-		//XXX check that nulls position is consistent for both dirs in lake ops
+		//XXX check that nulls position is consistent for both dirs in database ops
 		cmp: expr.NewValueCompareFn(order.Asc, order.NullsLast),
 	}
 }

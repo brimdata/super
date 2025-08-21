@@ -1,10 +1,10 @@
-package lakemanage
+package dbmanage
 
 import (
 	"context"
 
 	"github.com/brimdata/super/api"
-	lakeapi "github.com/brimdata/super/db/api"
+	dbapi "github.com/brimdata/super/db/api"
 	"github.com/brimdata/super/db/pools"
 	"github.com/brimdata/super/dbid"
 	"github.com/segmentio/ksuid"
@@ -14,12 +14,12 @@ import (
 
 type branch struct {
 	config PoolConfig
-	lake   lakeapi.Interface
+	db     dbapi.Interface
 	logger *zap.Logger
 	pool   *pools.Config
 }
 
-func newBranch(c Config, pool *pools.Config, lake lakeapi.Interface, logger *zap.Logger) *branch {
+func newBranch(c Config, pool *pools.Config, db dbapi.Interface, logger *zap.Logger) *branch {
 	config := c.poolConfig(pool)
 	logger = logger.Named("pool").With(
 		zap.String("name", pool.Name),
@@ -29,7 +29,7 @@ func newBranch(c Config, pool *pools.Config, lake lakeapi.Interface, logger *zap
 	)
 	return &branch{
 		config: config,
-		lake:   lake,
+		db:     db,
 		logger: logger,
 		pool:   pool,
 	}
@@ -38,7 +38,7 @@ func newBranch(c Config, pool *pools.Config, lake lakeapi.Interface, logger *zap
 func (b *branch) run(ctx context.Context) error {
 	b.logger.Debug("compaction started")
 	head := dbid.Commitish{Pool: b.pool.Name, Branch: b.config.Branch}
-	it, err := newObjectIterator(ctx, b.lake, &head)
+	it, err := newObjectIterator(ctx, b.db, &head)
 	if err != nil {
 		return err
 	}
@@ -57,7 +57,7 @@ func (b *branch) run(ctx context.Context) error {
 	var vectors int
 	group.Go(func() error {
 		for run := range runCh {
-			commit, err := b.lake.Compact(ctx, b.pool.ID, b.config.Branch, run, b.config.Vectors, api.CommitMessage{})
+			commit, err := b.db.Compact(ctx, b.pool.ID, b.config.Branch, run, b.config.Vectors, api.CommitMessage{})
 			if err != nil {
 				return err
 			}
@@ -77,7 +77,7 @@ func (b *branch) run(ctx context.Context) error {
 		if len(oids) == 0 {
 			return nil
 		}
-		_, err := b.lake.AddVectors(ctx, head.Pool, head.Branch, oids, api.CommitMessage{})
+		_, err := b.db.AddVectors(ctx, head.Pool, head.Branch, oids, api.CommitMessage{})
 		if err == nil {
 			vectors += len(oids)
 		}

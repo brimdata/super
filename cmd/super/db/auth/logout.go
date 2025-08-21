@@ -11,7 +11,7 @@ import (
 var Logout = &charm.Spec{
 	Name:  "logout",
 	Usage: "auth logout",
-	Short: "remove saved credentials for a Zed lake service",
+	Short: "remove saved credentials for a database service",
 	Long:  ``,
 	New:   NewLogoutCommand,
 }
@@ -31,7 +31,7 @@ func (c *LogoutCommand) Run(args []string) error {
 	}
 	defer cleanup()
 	if _, err := c.DBFlags.Connection(); err != nil {
-		// The Connection call here is to verify we're operating on a remote lake.
+		// The Connection call here is to verify we're operating on a remote database.
 		return err
 	}
 	if len(args) > 0 {

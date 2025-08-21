@@ -18,14 +18,14 @@ var spec = &charm.Spec{
 	Usage: "create [-orderby key[:asc|:desc]] name",
 	Short: "create a new data pool",
 	Long: `
-The lake create command creates new pools.  A pool key may be specified
+The db create command creates new pools.  A pool key may be specified
 as the sort key of the data stored in the pool. The prefix ":asc" or ":desc"
 appearing after the specified key indicates the sort order.  If no sort
 order is given, ascending is assumed.
 
 The single argument specifies the name for the pool.
 
-The lake query command can efficiently perform
+The db query command can efficiently perform
 range scans with respect to the pool key using the
 "range" parameter to the Zed "from" operator as the data is laid out
 naturally for such scans.
@@ -70,7 +70,7 @@ func (c *Command) Run(args []string) error {
 	if len(args) != 1 {
 		return errors.New("create requires one argument")
 	}
-	lake, err := c.DBFlags.Open(ctx)
+	db, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}
@@ -79,7 +79,7 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	poolName := args[0]
-	id, err := lake.CreatePool(ctx, poolName, sortKey, int(c.seekStride), int64(c.thresh))
+	id, err := db.CreatePool(ctx, poolName, sortKey, int(c.seekStride), int64(c.thresh))
 	if err != nil {
 		return err
 	}

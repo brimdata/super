@@ -15,7 +15,7 @@ import (
 	"github.com/brimdata/super/compiler/describe"
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/db"
-	lakeapi "github.com/brimdata/super/db/api"
+	dbapi "github.com/brimdata/super/db/api"
 	"github.com/brimdata/super/db/commits"
 	"github.com/brimdata/super/db/journal"
 	"github.com/brimdata/super/dbid"
@@ -454,7 +454,7 @@ func handleBranchLoad(c *Core, w *ResponseWriter, r *Request) {
 	opts := anyio.ReaderOpts{
 		Format: format,
 		CSV:    csvio.ReaderOpts{Delim: csvDelim},
-		// Force validation of BSUP when loading into the lake.
+		// Force validation of BSUP when loading into the database.
 		BSUP: bsupio.ReaderOpts{Validate: true},
 	}
 	sctx := super.NewContext()
@@ -611,8 +611,8 @@ func handleVacuum(c *Core, w *ResponseWriter, r *Request) {
 	if !ok {
 		return
 	}
-	lk := lakeapi.FromRoot(c.root)
-	oids, err := lk.Vacuum(r.Context(), pool, revision, dryrun)
+	db := dbapi.FromRoot(c.root)
+	oids, err := db.Vacuum(r.Context(), pool, revision, dryrun)
 	if err != nil {
 		w.Error(err)
 		return
@@ -637,8 +637,8 @@ func handleVectorPost(c *Core, w *ResponseWriter, r *Request) {
 	if !ok {
 		return
 	}
-	lk := lakeapi.FromRoot(c.root)
-	commit, err := lk.AddVectors(r.Context(), pool, revision, req.ObjectIDs, message)
+	db := dbapi.FromRoot(c.root)
+	commit, err := db.AddVectors(r.Context(), pool, revision, req.ObjectIDs, message)
 	if err != nil {
 		w.Error(err)
 		return
@@ -663,8 +663,8 @@ func handleVectorDelete(c *Core, w *ResponseWriter, r *Request) {
 	if !ok {
 		return
 	}
-	lk := lakeapi.FromRoot(c.root)
-	commit, err := lk.DeleteVectors(r.Context(), pool, revision, req.ObjectIDs, message)
+	db := dbapi.FromRoot(c.root)
+	commit, err := db.DeleteVectors(r.Context(), pool, revision, req.ObjectIDs, message)
 	if err != nil {
 		w.Error(err)
 		return

@@ -197,7 +197,7 @@ func PlayAction(w Writeable, action Action) error {
 		// ignore
 		return nil
 	}
-	return fmt.Errorf("lake.commits.PlayAction: unknown action %T", action)
+	return fmt.Errorf("commits.PlayAction: unknown action %T", action)
 }
 
 // Play "plays" a recorded transaction into a writeable snapshot.

@@ -72,7 +72,7 @@ func (c *Command) Run(args []string) error {
 	if len(args) == 0 {
 		return errors.New("zed load: at least one input file must be specified (- for stdin)")
 	}
-	lake, err := c.DBFlags.Open(ctx)
+	db, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func (c *Command) Run(args []string) error {
 	if head.Pool == "" {
 		return dbflags.ErrNoHEAD
 	}
-	poolID, err := lake.PoolID(ctx, head.Pool)
+	poolID, err := db.PoolID(ctx, head.Pool)
 	if err != nil {
 		return err
 	}
@@ -103,7 +103,7 @@ func (c *Command) Run(args []string) error {
 		go d.Run()
 	}
 	message := c.commitFlags.CommitMessage()
-	commitID, err := lake.Load(ctx, sctx, poolID, head.Branch, sio.ConcatReader(readers...), message)
+	commitID, err := db.Load(ctx, sctx, poolID, head.Branch, sio.ConcatReader(readers...), message)
 	if d != nil {
 		d.Close()
 	}

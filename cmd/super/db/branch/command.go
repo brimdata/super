@@ -21,7 +21,7 @@ var spec = &charm.Spec{
 	Usage: "branch new-branch [base]",
 	Short: "create a new branch",
 	Long: `
-The lake branch command creates a new branch with the indicated name.
+The db branch command creates a new branch with the indicated name.
 If specified, base is either an existing branch name or a commit ID
 and provides the new branch's base.  If not specified, then HEAD is assumed.
 
@@ -51,7 +51,7 @@ func init() {
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*db.Command)}
 	f.BoolVar(&c.delete, "d", false, "delete the branch instead of creating it")
-	c.outputFlags.DefaultFormat = "lake"
+	c.outputFlags.DefaultFormat = "db"
 	c.outputFlags.SetFlags(f)
 	c.poolFlags.SetFlags(f)
 	return c, nil
@@ -66,12 +66,12 @@ func (c *Command) Run(args []string) error {
 		return errors.New("too many arguments")
 	}
 	defer cleanup()
-	lake, err := c.DBFlags.Open(ctx)
+	db, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}
 	if len(args) == 0 {
-		return c.list(ctx, lake)
+		return c.list(ctx, db)
 	}
 	branchName := args[0]
 	head, err := c.poolFlags.HEAD()
@@ -84,20 +84,20 @@ func (c *Command) Run(args []string) error {
 	}
 	poolID, err := dbid.ParseID(poolName)
 	if err != nil {
-		poolID, err = lake.PoolID(ctx, poolName)
+		poolID, err = db.PoolID(ctx, poolName)
 		if err != nil {
 			return err
 		}
 	}
 	parentCommit, err := dbid.ParseID(head.Branch)
 	if err != nil {
-		parentCommit, err = lake.CommitObject(ctx, poolID, head.Branch)
+		parentCommit, err = db.CommitObject(ctx, poolID, head.Branch)
 		if err != nil {
 			return err
 		}
 	}
 	if c.delete {
-		if err := lake.RemoveBranch(ctx, poolID, branchName); err != nil {
+		if err := db.RemoveBranch(ctx, poolID, branchName); err != nil {
 			return err
 		}
 		if !c.DBFlags.Quiet {
@@ -105,7 +105,7 @@ func (c *Command) Run(args []string) error {
 		}
 		return nil
 	}
-	if err := lake.CreateBranch(ctx, poolID, branchName, parentCommit); err != nil {
+	if err := db.CreateBranch(ctx, poolID, branchName, parentCommit); err != nil {
 		return err
 	}
 	if !c.DBFlags.Quiet {
@@ -114,7 +114,7 @@ func (c *Command) Run(args []string) error {
 	return nil
 }
 
-func (c *Command) list(ctx context.Context, lake api.Interface) error {
+func (c *Command) list(ctx context.Context, db api.Interface) error {
 	head, err := c.poolFlags.HEAD()
 	if err != nil {
 		return err
@@ -124,14 +124,14 @@ func (c *Command) list(ctx context.Context, lake api.Interface) error {
 		return errors.New("must be on a checked out branch to list the branches in the same pool")
 	}
 	query := fmt.Sprintf("from '%s':branches", poolName)
-	if c.outputFlags.Format == "lake" {
-		c.outputFlags.WriterOpts.Lake.Head = head.Branch
+	if c.outputFlags.Format == "db" {
+		c.outputFlags.WriterOpts.DB.Head = head.Branch
 	}
 	w, err := c.outputFlags.Open(ctx, storage.NewLocalEngine())
 	if err != nil {
 		return err
 	}
-	q, err := lake.Query(ctx, query)
+	q, err := db.Query(ctx, query)
 	if err != nil {
 		w.Close()
 		return err

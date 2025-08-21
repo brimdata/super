@@ -1,9 +1,9 @@
 script: |
   source service.sh
-  super db create -q -db $LAKE_PATH test
+  super db create -q -db $DB_PATH test
   super db ls
   echo ===
-  super db drop -q -db $LAKE_PATH -f test
+  super db drop -q -db $DB_PATH -f test
   super db ls
 
 inputs:

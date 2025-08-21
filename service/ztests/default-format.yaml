@@ -1,5 +1,5 @@
 script: |
-  export LAKE_EXTRA_FLAGS='-defaultfmt=ndjson'
+  export DB_EXTRA_FLAGS='-defaultfmt=ndjson'
   source service.sh
   super db create -use -q test
   echo '{x: 1::uint64}' | super db load -q -

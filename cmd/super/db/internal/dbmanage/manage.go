@@ -1,4 +1,4 @@
-package lakemanage
+package dbmanage
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/brimdata/super/api/client"
-	lakeapi "github.com/brimdata/super/db/api"
+	"github.com/brimdata/super/db/api"
 	"github.com/brimdata/super/db/pools"
 	"github.com/brimdata/super/dbid"
 	"github.com/segmentio/ksuid"
@@ -16,11 +16,11 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func Update(ctx context.Context, lk lakeapi.Interface, conf Config, logger *zap.Logger) error {
+func Update(ctx context.Context, db api.Interface, conf Config, logger *zap.Logger) error {
 	if logger == nil {
 		logger = zap.NewNop()
 	}
-	branches, err := getBranches(ctx, conf, lk, logger)
+	branches, err := getBranches(ctx, conf, db, logger)
 	if err != nil {
 		return err
 	}
@@ -39,11 +39,11 @@ func Monitor(ctx context.Context, conn *client.Connection, conf Config, logger *
 		logger = zap.NewNop()
 	}
 	logger.Info("monitoring")
-	lk := lakeapi.NewRemoteDB(conn)
+	db := api.NewRemoteDB(conn)
 	for {
-		err := monitor(ctx, lk, conf, logger)
+		err := monitor(ctx, db, conf, logger)
 		if errors.Is(err, syscall.ECONNREFUSED) {
-			logger.Info("cannot connect to lake, retrying in 5 seconds")
+			logger.Info("cannot connect to database, retrying in 5 seconds")
 		} else if err != nil {
 			return err
 		}
@@ -55,36 +55,36 @@ func Monitor(ctx context.Context, conn *client.Connection, conf Config, logger *
 	}
 }
 
-func monitor(ctx context.Context, lk lakeapi.Interface, conf Config, logger *zap.Logger) error {
+func monitor(ctx context.Context, db api.Interface, conf Config, logger *zap.Logger) error {
 	for {
 		select {
 		case <-time.After(conf.interval()):
 		case <-ctx.Done():
 			return ctx.Err()
 		}
-		err := Update(ctx, lk, conf, logger)
+		err := Update(ctx, db, conf, logger)
 		if err != nil {
 			return err
 		}
 	}
 }
 
-func getBranches(ctx context.Context, conf Config, lk lakeapi.Interface, logger *zap.Logger) ([]*branch, error) {
-	pools, err := getPools(ctx, conf, lk)
+func getBranches(ctx context.Context, conf Config, db api.Interface, logger *zap.Logger) ([]*branch, error) {
+	pools, err := getPools(ctx, conf, db)
 	if err != nil {
 		return nil, err
 	}
 	var branches []*branch
 	for _, pool := range pools {
-		if b := newBranch(conf, pool, lk, logger); b != nil {
+		if b := newBranch(conf, pool, db, logger); b != nil {
 			branches = append(branches, b)
 		}
 	}
 	return branches, nil
 }
 
-func getPools(ctx context.Context, conf Config, lk lakeapi.Interface) ([]*pools.Config, error) {
-	pls, err := lakeapi.GetPools(ctx, lk)
+func getPools(ctx context.Context, conf Config, db api.Interface) ([]*pools.Config, error) {
+	pls, err := api.GetPools(ctx, db)
 	if err != nil {
 		return nil, err
 	}

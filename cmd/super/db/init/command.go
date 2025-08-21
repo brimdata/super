@@ -14,7 +14,7 @@ import (
 
 var spec = &charm.Spec{
 	Name:  "init",
-	Usage: "create and initialize a new, empty lake",
+	Usage: "create and initialize a new, empty database",
 	Short: "init [ path ]",
 	Long: `
 "zed init" ...
@@ -48,20 +48,20 @@ func (c *Command) Run(args []string) error {
 	} else if len(args) == 1 {
 		path := args[0]
 		if path == "" {
-			return errors.New("single lake path argument required")
+			return errors.New("single database path argument required")
 		}
 		if u, err = storage.ParseURI(path); err != nil {
 			return err
 		}
 	}
 	if api.IsRemote(u.String()) {
-		return fmt.Errorf("init command not valid on remote lake")
+		return fmt.Errorf("init command not valid on remote database")
 	}
 	if _, err := api.CreateLocalDB(ctx, zap.Must(zap.NewProduction()), u.String()); err != nil {
 		return err
 	}
 	if !c.DBFlags.Quiet {
-		fmt.Printf("lake created: %s\n", u)
+		fmt.Printf("database created: %s\n", u)
 	}
 	return nil
 }

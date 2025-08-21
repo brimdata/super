@@ -33,7 +33,7 @@ single filter expression, e.g.:
 
 zed delete -where 'ts > 2022-10-05T17:20:00Z and ts < 2022-10-05T17:21:00Z'
 
-No data is actually removed from the lake.  Instead, a delete
+No data is actually removed from the database.  Instead, a delete
 operation is an action in the pool's commit journal.  Any delete
 can be "undone" by adding the commits back to the log using
 "zed revert".
@@ -66,7 +66,7 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	defer cleanup()
-	lake, err := c.DBFlags.Open(ctx)
+	db, err := c.DBFlags.Open(ctx)
 	if err != nil {
 		return err
 	}
@@ -78,7 +78,7 @@ func (c *Command) Run(args []string) error {
 	if poolName == "" {
 		return dbflags.ErrNoHEAD
 	}
-	poolID, err := lake.PoolID(ctx, poolName)
+	poolID, err := db.PoolID(ctx, poolName)
 	if err != nil {
 		return err
 	}
@@ -87,9 +87,9 @@ func (c *Command) Run(args []string) error {
 		if len(args) > 0 {
 			return errors.New("too many arguments")
 		}
-		commit, err = c.deleteWhere(ctx, lake, poolID, head.Branch)
+		commit, err = c.deleteWhere(ctx, db, poolID, head.Branch)
 	} else {
-		commit, err = c.deleteByIDs(ctx, lake, poolID, head.Branch, args)
+		commit, err = c.deleteByIDs(ctx, db, poolID, head.Branch, args)
 	}
 	if err != nil {
 		return err
@@ -100,7 +100,7 @@ func (c *Command) Run(args []string) error {
 	return nil
 }
 
-func (c *Command) deleteByIDs(ctx context.Context, lake api.Interface, poolID ksuid.KSUID, branchName string, args []string) (ksuid.KSUID, error) {
+func (c *Command) deleteByIDs(ctx context.Context, db api.Interface, poolID ksuid.KSUID, branchName string, args []string) (ksuid.KSUID, error) {
 	ids, err := dbid.ParseIDs(args)
 	if err != nil {
 		return ksuid.Nil, err
@@ -108,9 +108,9 @@ func (c *Command) deleteByIDs(ctx context.Context, lake api.Interface, poolID ks
 	if len(ids) == 0 {
 		return ksuid.Nil, errors.New("no data object IDs specified")
 	}
-	return lake.Delete(ctx, poolID, branchName, ids, c.commitFlags.CommitMessage())
+	return db.Delete(ctx, poolID, branchName, ids, c.commitFlags.CommitMessage())
 }
 
-func (c *Command) deleteWhere(ctx context.Context, lake api.Interface, poolID ksuid.KSUID, branchName string) (ksuid.KSUID, error) {
-	return lake.DeleteWhere(ctx, poolID, branchName, c.where, c.commitFlags.CommitMessage())
+func (c *Command) deleteWhere(ctx context.Context, db api.Interface, poolID ksuid.KSUID, branchName string) (ksuid.KSUID, error) {
+	return db.DeleteWhere(ctx, poolID, branchName, c.where, c.commitFlags.CommitMessage())
 }
