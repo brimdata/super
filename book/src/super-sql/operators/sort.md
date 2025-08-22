@@ -43,10 +43,10 @@ particularly when multiple sort expressions are present. However, `sort -r`
 provides a shorthand if the heuristics described above suffice but reversed
 output is desired.
 
-In the current implementation, data must fit into memory in order to be sorted.
+If not all data fits in memory, values are spilled to temporary storage
+and sorted with an external merge sort.
 
-> _A future version will allow sorting of data beyond that which fits into
-> memory._
+> _Spilling is not yet implemented for the vectorized runtime._
 
 SuperSQL's `sort` is [stable](https://en.wikipedia.org/wiki/Sorting_algorithm#Stability)
 such that values with identical sort keys always have the same relative order
