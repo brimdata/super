@@ -40,7 +40,8 @@ where it appears does not influence the result.
 
 The output of a switch consists of multiple branches that must be merged.
 If the downstream operator expects a single input, then the output branches are
-merged with an automatically inserted [`combine` operator](combine.md).
+combined without preserving order.  Order may be reestablished by applying a
+[`sort`](sort.md) at the merge point.
 
 ### Examples
 

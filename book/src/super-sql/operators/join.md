@@ -8,7 +8,7 @@
 <left-input>
 | [anti|inner|left|right] join (
   <right-input>
-) [as { <left-name>,<right-name> }] [on <predicate> | using <field> ]
+) [as { <left-name>,<right-name> }] [on <predicate> | using ( <field> )]
 
 ( <left-input> )
 ( <right-input> )
@@ -64,8 +64,8 @@ within nested scopes, the pipeline join operator uses dataflow scoping to join d
 Here, all data is combined into joined records that can be operated upon 
 like any other record without complex scoping logic.
 
-If relational scoping is desired, the [SQL join](../sql/join.md)
-operator can be used instead.
+If relational scoping is desired, a [SQL `JOIN` clause](../sql/join.md)
+can be used instead.
 
 ### Examples
 
@@ -101,6 +101,22 @@ join (
 # expected output
 1
 3
+```
+
+---
+_Join some records via a `using` clause_
+```mdtest-spq
+# spq
+join (
+  values {num:1,word:'one'},{num:2,word:'two'}
+) using (num)
+| {word:right.word, parity:left.parity}
+# input
+{num:1, parity:"odd"}
+{num:2, parity:"even"}
+# expected output
+{word:"one",parity:"odd"}
+{word:"two",parity:"even"}
 ```
 
 ---

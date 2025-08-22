@@ -22,8 +22,8 @@ The `values` operator name is optional since it can be used as a
 [shortcut](../shortcuts.md).  When used as a shortcut, only one expression
 may be present.
 
-The `values` abstraction is also available as the SQL
-[VALUES clause](../sql/values.md), where the tuples that comprise
+The `values` abstraction is also available as the [SQL `VALUES` clause](../sql/values.md),
+where the tuples that comprise
 this form must all adhere to a common type signature.
 
 The pipe form of `values` here is differentiated from the SQL form
@@ -34,13 +34,13 @@ to a common type.
 
 The `values` operator is a _go to_ tool in SuperSQL queries as it allows
 the flexible creation of arbitrary values from its inputs while the
-SQL VALUES clause is a _go to_ building block for creating constant tables
+SQL `VALUES` clause is a _go to_ building block for creating constant tables
 to insert into or operate upon a database.  That said, the SQL `VALUES` clause
 can also be comprised of dynamic expressions though it is less often used
 in this fashion.  Nonetheless, this motivated the naming of the more general
 SuperSQL `values` operator.
 
-For example, this query uses `VALUES` to
+For example, this query uses SQL `VALUES` to
 create a static table called _points_ then operate upon
 each row of _points_ using expressions embodied in
 dynamic `VALUES` subqueries placed in a lateral join as follows:
@@ -49,7 +49,7 @@ WITH points(x,y) AS (
   VALUES (2,1),(4,2),(6,3)
 )
 SELECT vals
-FROM points CROSS JOIN LATERAL (VALUES (x+y), (x-y)) t(vals)"
+FROM points CROSS JOIN LATERAL (VALUES (x+y), (x-y)) t(vals)
 ```
 which produces
 ```

@@ -13,7 +13,7 @@ Inspired by the traditional Unix shell command of the same name,
 the `uniq` operator copies its input to its output but removes duplicate values
 that are adjacent to one another.
 
-This operator is most often used with `cut` and `sort` to find and eliminate
+This operator is most often used with [`cut`](cut.md) and [`sort`](sort.md) to find and eliminate
 duplicate values.
 
 When run with the `-c` option, each value is output as a record with the
@@ -42,7 +42,7 @@ uniq
 
 ---
 
-_Simple deduplication with -c_
+_Simple deduplication with count of duplicate values_
 ```mdtest-spq
 # spq
 uniq -c

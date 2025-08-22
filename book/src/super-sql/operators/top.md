@@ -16,7 +16,7 @@ not provided, N defaults to `1`.
 
 The sort expressions `<expr>` and their parameters behave as they
 do for [`sort`](sort.md). If no sort expression is provided, a sort key is
-selected using same heuristic as [`sort`](sort.md).
+selected using the same heuristic as [`sort`](sort.md).
 
 `top` is functionally similar to [`sort`](sort.md) but is less resource
 intensive because only the first N values are stored in memory (i.e., subsequent

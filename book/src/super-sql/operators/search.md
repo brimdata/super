@@ -15,7 +15,7 @@ along the lines of web search, email search, or log search.
 A search operation filters its input by applying the search expression `<sexpr>`
 to each input value and emitting all values that match.
 
-The `search` keyword can be abbreviated as `?`. 
+The `search` keyword can be [abbreviated](../shortcuts.md) as `?`. 
 
 #### Search Expressions
 
@@ -28,7 +28,7 @@ a search term is one of:
 * a [glob](#glob) as described below,
 * a textual [keyword](#keyword),
 * any [literal](#literal) of a primitive type, or
-* any [expression](#expression-predicate) predicate.
+* any [expression predicate](#expression-predicate).
 
 ##### Regular Expression
 
@@ -236,7 +236,7 @@ search this >= 2
 
 ---
 
-_The "search" keyword abbreviated as "?"_
+_The "search" keyword can be abbreviated as "?"_
 ```mdtest-spq
 # spq
 ? 2 or 3

@@ -23,7 +23,7 @@ The [`search`](search.md) and [`where`](where.md)
 operators "find" values in their input and drop
 the ones that do not match what is being looked for.
 
-The [`values`](values.md) operator emits one or more output values
+The [`values` operator](values.md) emits one or more output values
 for each input value based on arbitrary [expressions](../expressions.md),
 providing a convenient means to derive arbitrary output values as a function
 of each input value.
@@ -44,9 +44,9 @@ or by creating new records from component expressions.
 
 For example,
 
-* the [`put`](put.md) operator adds or modifies fields,
-* the [`cut`](cut.md) operator extracts a subset of fields, and
-* the [`aggregate`](aggregate.md) operator forms new records from
+* the [`put` operator](put.md) adds or modifies fields,
+* the [`cut` operator](cut.md) extracts a subset of fields, and
+* the [`aggregate` operator](aggregate.md) forms new records from
 [aggregate functions](../aggregates/intro.md) and grouping expressions.
 
 In all of these cases, the SuperSQL language uses the token `:=` to denote

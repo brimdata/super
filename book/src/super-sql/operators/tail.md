@@ -9,7 +9,7 @@ tail [ <const-expr> ]
 ```
 ### Description
 
-The `tail` operator copies the last N from its input to its output and ends
+The `tail` operator copies the last N values from its input to its output and ends
 the sequence thereafter. N is given by `<const-expr>`, a compile-time
 constant expression that evaluates to a positive integer. If `<const-expr>`
 is not provided, the value of N defaults to `1`.
@@ -36,7 +36,8 @@ tail 2
 _Grab last two values of arbitrary sequence, using a different representation of two_
 ```mdtest-spq
 # spq
-tail 1+1
+const ONE = 1
+tail ONE+1
 # input
 1
 "foo"

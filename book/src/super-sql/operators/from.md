@@ -18,7 +18,7 @@ a query and transmits that data to its output.
 
 It has two forms:
 * a `from` pipe operator with dataflow scoping as described here, or
-* a [`FROM`](../sql/from.md) SQL clause with relational scoping.
+* a [SQL `FROM`](../sql/from.md) clause with relational scoping.
 
 As a pipe operator,
 `from` preserves the order of the data within a file,
@@ -28,7 +28,7 @@ the data may be read in parallel and interleaved in an undefined order.
 Optional arguments to `from` may be appended as a parenthesized concatenation
 of arguments.
 
-When reading from sources external to a database (e.g., URLs or files),
+When reading from sources external to a [database](../../command/db.md) (e.g., URLs or files),
 the format of each data source is automatically detected using heuristics.
 To manually specify the format of a source and override the autodetection heuristic,
 a format argument may be appended as an argument and has the form

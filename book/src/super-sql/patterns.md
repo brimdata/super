@@ -10,14 +10,14 @@ path can be expressed as a [text entity](#text-entity) and need not be quoted:
 from file.json | ...
 ```
 
-Likewise, in the search operator, the syntax for a [regular expression](#regular-expression)
+Likewise, in the [`search` operator](operators/search.md), the syntax for a [regular expression](#regular-expression)
 search can be specified as
 ```
 search /\w+(foo|bar)/
 ```
 instead of the `regexp` function call required in expression context
 ```
-where regexp(r'\w+(foo|bar)')
+where len(regexp(r'\w+(foo|bar)', this)) > 0
 ```
 
 ### Regular Expression
@@ -30,13 +30,19 @@ and is documented in the
 When used in an expression, e.g., as a parameter to a function, the
 RE2 text is simply passed as a string, e.g.,
 ```
-regexp('foo|bar')
+regexp('foo|bar', this)
+```
+
+To avoid having to add escaping that would otherwise be necessary to
+represent a regular expression as a string, prefix with `r`, e.g.,
+```
+regexp(r'\w+(foo|bar)', this)
 ```
 
 But when used outside of expressions where an explicit indication of
 a regular expression is required (e.g., in a
 [`search`](operators/search.md) or 
-[`from`](operators/from.md) operator), the RE2 is instead
+[`from`](operators/from.md#database-operation) operator), the RE2 is instead
 prefixed and suffixed with a `/`, e.g.,
 ```
 /foo|bar/
@@ -50,8 +56,8 @@ the familiar pattern of "file globbing" supported by Unix shells.
 Globs are a simple, special case that utilize only the `*` wildcard.
 
 Like regular expressions, globs may be used in
-a [`search`](operators/search.md) operator or a 
-[`from`](operators/from.md) operator.
+a [`search` operator](operators/search.md) or a 
+[`from` operator](operators/from.md).
 
 Valid glob characters include letters, digits (excepting the leading character),
 any valid string escape sequence
@@ -67,9 +73,9 @@ A text entity represents a string where quotes can be omitted for
 certain common use cases regarding URLs and file paths.
 
 Text entities are syntactically valid as targets of a
-[`from`](operators/from.md) operator and as named arguments 
+[`from` operator](operators/from.md) and as named arguments 
 to `from` and the 
-[`load`](operators/load.md) operator.
+[`load` operator](operators/load.md).
 
 Specifically, a text entity is one of:
 * a string literal (double quoted, single quoted, or raw string),

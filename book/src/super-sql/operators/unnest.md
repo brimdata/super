@@ -11,7 +11,7 @@ unnest <expr> [ into ( <subquery> ) ]
 
 ### Description
 
-The `unnest` operator transforms a the given expression
+The `unnest` operator transforms the given expression
 `<expr>` into a new ordered sequence of derived values.
 
 When the optional [`<subquery>`](../subqueries.md) is present,
@@ -52,8 +52,8 @@ sequence has the form:
 where the first field is copied to each derived value and the second field is
 the unnested elements of the array `elem0`, `elem1`, etc.
 
-To explode the fields of records or the key-value paris of maps, use the  
-[`flatten`](../functions/records/flatten.md) function, which produces an array that
+To explode the fields of records or the key-value pairs of maps, use the
+[`flatten` function](../functions/records/flatten.md), which produces an array that
 can be unnested.
 
 For example, if `this` is a record, it can be unnested with `unnest flatten(this)`.
