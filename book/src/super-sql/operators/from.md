@@ -18,7 +18,7 @@ a query and transmits that data to its output.
 
 It has two forms:
 * a `from` pipe operator with dataflow scoping as described here, or
-* a [SQL `FROM`](../sql/from.md) clause with relational scoping.
+* a [SQL `FROM` clause](../sql/from.md) with relational scoping.
 
 As a pipe operator,
 `from` preserves the order of the data within a file,
