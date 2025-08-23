@@ -4,7 +4,7 @@ Records conform to the
 [record type](../../formats/model.md#21-record) in the 
 super-structured data model and follow the
 [syntax](../../formats/sup.md#251-record-type)
-of records in the [SUP format](../../formats/sup/md), i.e.,
+of records in the [SUP format](../../formats/sup.md), i.e.,
 a record type has the form
 ```
 { <name> : <type>, <name> : <type>, ... }
