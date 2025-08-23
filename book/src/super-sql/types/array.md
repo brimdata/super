@@ -11,7 +11,7 @@ an array type has the form
 ```
 where `<type>` is any type.
 
-Any SUP text defining an [array value](../../formats/sup.html#242-array-value)
+Any SUP text defining an [array value](../../formats/sup.md#242-array-value)
 is a valid array literal in the SuperSQL language.
 
 For example, this is a simple array value

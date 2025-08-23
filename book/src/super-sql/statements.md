@@ -1,1 +1,3 @@
 # Statements
+
+## Type Statements

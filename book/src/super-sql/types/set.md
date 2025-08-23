@@ -11,7 +11,7 @@ a set type has the form
 ```
 where `<type>` is any type.
 
-Any SUP text defining a [set value](../../formats/sup.html#243-set-value)
+Any SUP text defining a [set value](../../formats/sup.md#243-set-value)
 is a valid set literal in the SuperSQL language.
 
 For example, this is a simple set value

@@ -12,7 +12,7 @@ a map type has the form
 where `<key>` and `<value>` are any types and represent the keys
 and values types of the map.
 
-Any SUP text defining a [map value](../../formats/sup.html#244-map-value)
+Any SUP text defining a [map value](../../formats/sup.md#244-map-value)
 is a valid map literal in the SuperSQL language.
 
 For example, this is a simple map value

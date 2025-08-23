@@ -14,7 +14,7 @@ with the syntax `<int64>`.
 The syntax for primitive type names are listed in the
 [data model specification](../../formats/model.md#1-primitive-types)
 and have the same syntax in SuperSQL.  Complex types also follow
-the [SUP syntax for types](../../formats/sup.html#25-types).
+the [SUP syntax for types](../../formats/sup.md#25-types).
 
 Note that the type of a type value is simply `type`.
 

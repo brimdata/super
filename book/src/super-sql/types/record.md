@@ -41,9 +41,7 @@ zero or more comma-separated elements contained in braces:
 where an `<element>` has one of three forms:
 
 * a named field of the form `<name> : <expr>`  where `<name>` is an
-[identifier](xxx) or 
-[string](xxx)
-and `<expr>` is an arbitrary [expression](../expressions.md),
+identifier or string and `<expr>` is an arbitrary [expression](../expressions.md),
 * a single [field reference]() in the form `<id>` of an 
 [identifier](xxx), which is shorthanf for the named field reference `<id>:<id>`, or
 * a spread expression of the form `...<expr>` where `<expr>` is an arbitrary 

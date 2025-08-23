@@ -14,7 +14,7 @@ In relational SQL, a null typically indicates an unknown value.
 Unfortunately, this concept is overloaded as unkown values may arise
 from runtime errors, missing data, or an intentional value of null.
 
-Because SuperSQL has [_first-class errors_](errors.md) (obviating the need to
+Because SuperSQL has [_first-class errors_](error.md) (obviating the need to
 serialize error conditions as fixed-type nulls)
 and [_sum types_](union.md) (obviating the need to flatten sum types into columns and
 occupy the absent component types with nulls), the use of null values is
