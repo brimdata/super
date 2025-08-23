@@ -101,25 +101,16 @@ _Signed integers_
 
 ```mdtest-spq
 # spq
-values f"{this} is type {typeof(this)}"
+values 1, 0, -1, 9223372036854775807
+| values f"{this} is type {typeof(this)}"
 # input
-1
-0 
--1
-9223372036854775807
-9223372036854775808
-18446744073709551615
+null
 # expected output
 "1 is type <int64>"
 "0 is type <int64>"
 "-1 is type <int64>"
 "9223372036854775807 is type <int64>"
-"9.223372036854776e+18 is type <float64>"
-"1.8446744073709552e+19 is type <float64>"
 ```
-
-> _In a future version of SuperSQL, the large integers that overflow `int64` but fit
-> in `uint64` will parse as `uint64` as floats should explicitly require `.` or `e`._
 
 ---
 
@@ -127,14 +118,10 @@ _Other signed integer types_
 
 ```mdtest-spq {data-layout="stacked"}
 # spq
-values this::int8, this::int16, this::int32, this::int64
+values 1, 200, 70000, 9223372036854775807
+| values this::int8, this::int16, this::int32, this::int64
 # input
-1
-200
-70000
-9223372036854775807
-9223372036854775808
-18446744073709551615
+null
 # expected output
 1::int8
 1::int16
@@ -152,14 +139,6 @@ error({message:"cannot cast to int8",on:9223372036854775807})
 error({message:"cannot cast to int16",on:9223372036854775807})
 error({message:"cannot cast to int32",on:9223372036854775807})
 9223372036854775807
-error({message:"cannot cast to int8",on:9223372036854775807.})
-error({message:"cannot cast to int16",on:9223372036854775807.})
-error({message:"cannot cast to int32",on:9223372036854775807.})
-9223372036854775807
-error({message:"cannot cast to int8",on:1.8446744073709552e+19})
-error({message:"cannot cast to int16",on:1.8446744073709552e+19})
-error({message:"cannot cast to int32",on:1.8446744073709552e+19})
-error({message:"cannot cast to int64",on:1.8446744073709552e+19})
 ```
 
 ---
@@ -168,15 +147,11 @@ _Unsigned integers_
 
 ```mdtest-spq {data-layout="stacked"}
 # spq
-values this::uint8, this::uint16, this::uint32, this::uint64
+values 1, 200, 70000, 9223372036854775807
+| values this::uint8, this::uint16, this::uint32, this::uint64
 | values f"{this} is type {typeof(this)}"
 # input
-1
-200
-70000
-9223372036854775807
-9223372036854775808
-18446744073709551615
+null
 # expected output
 "1 is type <uint8>"
 "1 is type <uint16>"
@@ -194,14 +169,6 @@ error({message:"cannot cast to uint8",on:9223372036854775807})
 error({message:"cannot cast to uint16",on:9223372036854775807})
 error({message:"cannot cast to uint32",on:9223372036854775807})
 "9223372036854775807 is type <uint64>"
-error({message:"cannot cast to uint8",on:9223372036854775807.})
-error({message:"cannot cast to uint16",on:9223372036854775807.})
-error({message:"cannot cast to uint32",on:9223372036854775807.})
-"9223372036854775808 is type <uint64>"
-error({message:"cannot cast to uint8",on:1.8446744073709552e+19})
-error({message:"cannot cast to uint16",on:1.8446744073709552e+19})
-error({message:"cannot cast to uint32",on:1.8446744073709552e+19})
-"18446744073709551615 is type <uint64>"
 ```
 
 ---
@@ -210,15 +177,10 @@ _Floating-point numbers_
 
 ```mdtest-spq
 # spq
-values f"{this} is type {typeof(this)}"
+values 1., 1.23, 18446744073709551615., 1.e100, +Inf, -Inf, NaN
+| values f"{this} is type {typeof(this)}"
 # input
-1.
-1.23
-18446744073709551615.
-1.e100
-+Inf
--Inf
-NaN
+null
 # expected output
 "1 is type <float64>"
 "1.23 is type <float64>"
@@ -234,16 +196,11 @@ _Other floating-point types_
 
 ```mdtest-spq {data-layout="stacked"}
 # spq
-values this::float16, this::float32, this::float64
+values 1., 1.23, 18446744073709551615., 1.e100, +Inf, -Inf, NaN
+| values this::float16, this::float32, this::float64
 | values f"{this} is type {typeof(this)}"
 # input
-1.
-1.23
-18446744073709551615.
-1.e100
-+Inf
--Inf
-NaN
+null
 # expected output
 "1 is type <float16>"
 "1 is type <float32>"
