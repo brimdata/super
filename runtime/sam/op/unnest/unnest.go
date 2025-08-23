@@ -83,10 +83,10 @@ func unnest(sctx *super.Context, val super.Value) []super.Value {
 		return vals
 	case *super.TypeRecord:
 		if len(typ.Fields) != 2 {
-			return []super.Value{sctx.WrapError("unnest: encountered record without two columns", val)}
+			return []super.Value{sctx.WrapError("unnest: encountered record without two fields", val)}
 		}
 		if super.InnerType(typ.Fields[1].Type) == nil {
-			return []super.Value{sctx.WrapError("unnest: encountered record without an array column", val)}
+			return []super.Value{sctx.WrapError("unnest: encountered record without an array/set type for second field", val)}
 		}
 		left := *val.DerefByColumn(0)
 		fields := slices.Clone(typ.Fields)

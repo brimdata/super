@@ -69,11 +69,11 @@ where `<value>` is the offending value.
 
 When a record value is encountered without the proper form, then the error is:
 ```
-error({message:"unnest: encountered record without two columns",on:<value>})
+error({message:"unnest: encountered record without two fields",on:<value>})
 ```
 or 
 ```
-error({message:"unnest: encountered record without an array column",on:<value>})
+error({message:"unnest: encountered record without an array/set type for second field",on:<value>})
 ```
 
 ### Examples
