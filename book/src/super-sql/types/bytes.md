@@ -7,7 +7,7 @@ digits forms a bytes type.
 
 An empty bytes value is simply `0x` followed by no digits.
 
-For backward compatibility with SQL, `BLOB` is a syntactic aliases for type `bytes`.
+For backward compatibility with SQL, `BLOB` is a syntactic alias for type `bytes`.
 
 > _The `BLOB` type alias is not yet implemented in SuperSQL._
 

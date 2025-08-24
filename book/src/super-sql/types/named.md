@@ -46,7 +46,7 @@ In this case, a SuperSQL expression may refer to the type by the name that simpl
 appears to the runtime as a side effect of operating upon the data.
 
 When the same name is bound to different types, a reference to that name is
-undefined except for the uses a definitions within a single heirarchical value,
+undefined except for the definitions within a single nested value,
 in which case, the most recent binding in depth-first order is used to resolve
 a reference to a type name.
 

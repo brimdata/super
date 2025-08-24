@@ -42,8 +42,8 @@ where an `<element>` has one of three forms:
 
 * a named field of the form `<name> : <expr>`  where `<name>` is an
 identifier or string and `<expr>` is an arbitrary [expression](../expressions.md),
-* a single [field reference]() in the form `<id>` of an identifier,
-which is shorthanf for the named field reference `<id>:<id>`, or
+* a single field reference in the form `<id>` as an identifier,
+which is shorthand for the named field reference `<id>:<id>`, or
 * a spread expression of the form `...<expr>` where `<expr>` is an arbitrary 
 [expression](../expressions.md) that should evaluate to a record value.
 

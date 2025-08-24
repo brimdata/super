@@ -11,7 +11,7 @@ null value whose type is `int64`, the null type has no other values
 besides the null value.
 
 In relational SQL, a null typically indicates an unknown value.
-Unfortunately, this concept is overloaded as unkown values may arise
+Unfortunately, this concept is overloaded as unknown values may arise
 from runtime errors, missing data, or an intentional value of null.
 
 Because SuperSQL has [_first-class errors_](error.md) (obviating the need to

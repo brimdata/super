@@ -61,7 +61,7 @@ In other languages, the _discriminant_ is the type name, e.g.,
 However, SuperSQL is polymorphic so there is no requirement to explicitly
 discriminate the member type of a union value.  When an expression
 operator or function references a union value in computation,
-then underlying value in its member type is _automatically_ expressed
+then the underlying value in its member type is _automatically_ expressed
 from the union value.
 
 For example, this predicate is true
@@ -149,7 +149,7 @@ values
 _Cast primitive values to a union type_
 ```mdtest-spq
 # spq
-values this::(<int64|string>)
+values this::(int64|string)
 # input
 1
 "foo"
@@ -158,7 +158,7 @@ values this::(<int64|string>)
 "foo"::(int64|string)
 ```
 
-_Explicitly express the underlying a union value using 
+_Explicitly express the underlying union value using 
 [`under`](../functions/generics/under.md)_
 ```mdtest-spq
 # spq

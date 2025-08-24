@@ -19,7 +19,7 @@ where `<value>` is any value.
 Error values can also be created by reading external data (SUP files or
 database data) that contains serialized error values
 or they can arise when any operator or function encounters
-an error and produce an error value to describe the condition.
+an error and produces an error value to describe the condition.
 
 In general, expressions and functions that result in errors simply return
 a value as an `error` type as a result.  This encourages a powerful flow-style
@@ -192,7 +192,7 @@ error("divide by zero")
 
 ---
 
-_The error type of a corresponding to an error value_
+_The error type corresponding to an error value_
 
 ```mdtest-spq
 # spq
@@ -205,7 +205,7 @@ typeof(1/this)
 
 ---
 
-_The `quiet` function supresses error values_
+_The `quiet` function suppresses error values_
 
 ```mdtest-spq
 # spq

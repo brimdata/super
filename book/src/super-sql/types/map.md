@@ -25,7 +25,7 @@ whose type is
 ```
 
 An empty map value has the form `|{}|` and
-an empty map type defaults to an map with null types, i.e., `|{null:null}|`,
+an empty map type defaults to a map with null types, i.e., `|{null:null}|`,
 unless otherwise cast, e.g., `|{}|::|{string:int64}|` represents an empty
 map of string keys and integer values.
 
@@ -41,7 +41,7 @@ zero or more comma-separated key-value pairs contained in pipe braces:
 ```
 |{ <key> : <value>, <key> : <value> ... }|
 ```
-where an `<key>` and `<value> 
+where `<key>` and `<value> 
 may be any valid [expression](../expressions.md).
 
 > The map spread operator is not yet implemented.

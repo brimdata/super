@@ -10,19 +10,19 @@ a string of base-256 decimal numbers separated by `.` as in
 `128.32.130.100` or `10.0.0.1`.
 
 A 128-bit IPv6 is formed from a sequence of eight groups of four 
-hecadecimal digits separate by colons (`:`).
+hecadecimal digits separated by colons (`:`).
 
 For IPv6 addresses,
 leading zeros in each group can be omitted (e.g., the sequence `2001:0db8`
 becomes `2001:db8`) and consecutive groups of zeros can be compressed
-using a double colon (::) but this can only be done once to avoid ambiguity, e.g.,
+using a double colon (`::`) but this can only be done once to avoid ambiguity, e.g.,
 ```
 2001:0db8:0000:0000:0000:0000:0000:0001
 ```
 can be expressed as `2001:db8::1`.
 
 A value of type `net` is formed as an IPv4 or IPv6 address followed by a slash (`/`) 
-followed by a decimal integer indicated the numbers of bits of contiguous network as 
+followed by a decimal integer indicating the numbers of bits of contiguous network as 
 in `128.32.130.100/24` or `fc00::/7`.
 
 Note that unlike other SQL dialects that require IP addresses and networks to be formatted

@@ -22,7 +22,7 @@ Here are a few examples of complex types:
 * a simple record type - `{x:int64,y:int64}`
 * an array of integers - `[int64]`
 * a set of strings - `|[string]|`
-* a map of strings keys to integer values - `{[string,int64]}`
+* a map of strings keys to integer values - `|{string,int64}|`
 * a union of string and integer  - `string|int64`
 
 Complex types may be composed in a nested fashion,
