@@ -1,4 +1,4 @@
-### Numbers
+### Number Types
 
 Numbers in SuperSQL follow the customary semantics and syntax 
 of SQL and other programming languages and include:
@@ -74,8 +74,8 @@ are defined as follows:
 #### Coercion
 
 Mixed-type numeric values used in expressions are promoted via an implicit
-cast to the type that best compatible with an operation or expected input type.
-Tihs process is called _coercion_.
+cast to the type that is best compatible with an operation or expected input type.
+This process is called _coercion_.
 
 For example, in the expression
 ```
@@ -85,13 +85,13 @@ the `1::int8` value is cast to `1::int16` and the result is `2::int16`.
 
 Similarly, in
 ```
-values 1:int8, 1:int16 | aggregate sum(this)
+values 1::int8, 1::int16 | aggregate sum(this)
 ```
 the input values to `sum()` are coerced to `int64` and the result is
 `2::int64`.
 
 > _Further details of coercion rules are forthcoming in a future 
-> verion of this documentation._
+> version of this documentation._
 
 #### Examples
 

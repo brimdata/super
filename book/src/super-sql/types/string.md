@@ -1,4 +1,4 @@
-### Strings
+### String
 
 The `string` type represents any valid
 [UTF-8 string](https://en.wikipedia.org/wiki/UTF-8).
@@ -22,7 +22,7 @@ The backslash character (`\`) and the control characters (U+0000 through U+001F)
 must be escaped.
 
 In SQL expressions, the quotation mark is a single quote character (`'`) 
-and in pipe expressions, the quoatation mark may be either single quote or
+and in pipe expressions, the quotation mark may be either single quote or
 double quote (`"`).
 
 In single-quote strings, the single-quote character must 

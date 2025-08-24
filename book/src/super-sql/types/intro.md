@@ -14,18 +14,19 @@ and _first class_
 The syntax of individual literal values follows
 the [SUP format](../../formats/sup.md) in that any legal
 SUP value is also valid SuperSQL literal.
-In particular, the type decorators in SUP utlize a double colon (`::`)
+In particular, the type decorators in SUP utilize a double colon (`::`)
 syntax that is compatible with the SuperSQL
-[cast](../expressions.md#casts) operator.
+[`cast`](../expressions.md#casts) operator.
 
 ### Primitive Types
 
-* [Numbers](numbers.md)
+* [Number Types](numbers.md)
 * [String](string.md)
 * [Bytes](bytes.md)
-* [Network](network.md)
-* [Time](time.md)
-* [Type](type.md)
+* [Network Types](network.md)
+* [Time Types](time.md)
+* [Type Type](type.md)
+* [Null](null.md)
 
 ### Complex Types
 
@@ -35,3 +36,4 @@ syntax that is compatible with the SuperSQL
 * [Maps](map.md)
 * [Union](union.md)
 * [Enums](enum.md)
+* [Errors](enum.md)

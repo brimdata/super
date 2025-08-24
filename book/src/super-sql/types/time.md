@@ -1,4 +1,4 @@
-### Time/Duration Types
+### Time Types
 
 > _WARNING: These data types are going to change in a forthcoming relese of SuperSQL._
 
