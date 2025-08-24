@@ -1,4 +1,4 @@
-### Network Types
+### Networks/IPs
 
 The `ip` type represents an internet address and supports both
 IPv4 and IPv6 variations.  The `net` type represents an `ip` value

@@ -1,4 +1,4 @@
-### String
+### Strings
 
 The `string` type represents any valid
 [UTF-8 string](https://en.wikipedia.org/wiki/UTF-8).

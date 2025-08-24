@@ -1,4 +1,4 @@
-### Type Type
+### Type Values
 
 Types in SuperSQL are _first class_ and conform
 with the [`type`](../../formats/model.md#1-primitive-types) type in the 

@@ -1,4 +1,4 @@
-### Number Types
+### Numbers
 
 Numbers in SuperSQL follow the customary semantics and syntax 
 of SQL and other programming languages and include:

@@ -1,4 +1,4 @@
-### Null
+### Nulls
 
 The null type represents a type that has just one value:
 the special value `null`.
