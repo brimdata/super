@@ -7,8 +7,8 @@
 ```
 from <file> [ ( format <fmt> ) ]
 from <pool> [@<commit>]
-from <url> [ ( format <fmt> method <method> header <expr> body <string> ) ]
-from eval(<expr>) [ ( format <fmt> method <id> header <expr> body <string> ) ]
+from <url> [ ( format <fmt> method <method> headers <expr> body <string> ) ]
+from eval(<expr>) [ ( format <fmt> method <id> headers <expr> body <string> ) ]
 ```
 
 ### Description
@@ -120,7 +120,7 @@ A format argument may be appended to a URL reference.
 Other valid operator arguments control the body and headers of the HTTP request
 that implement the data retrieval and include:
 * method `<method>`
-* header `<expr>`
+* headers `<expr>`
 * body `<string>`
 
 where
