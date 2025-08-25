@@ -64,7 +64,7 @@ within nested scopes, the pipeline join operator uses dataflow scoping to join d
 Here, all data is combined into joined records that can be operated upon 
 like any other record without complex scoping logic.
 
-If relational scoping is desired, a [SQL `JOIN` clause](../sql/join.md)
+If relational scoping is desired, a SQL [`JOIN`](../sql/join.md) clause
 can be used instead.
 
 ### Examples

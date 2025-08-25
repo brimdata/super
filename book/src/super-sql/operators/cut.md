@@ -16,9 +16,9 @@ having the form:
 
 The `cut` operator extracts values from each input record in the
 form of one or more [field assignments](intro.md#field-assignment),
-creating one field for each expression.  Unlike the [`put` operator](put.md),
+creating one field for each expression.  Unlike the [`put`](put.md) operator,
 which adds or modifies the fields of a record, `cut` retains only the
-fields enumerated, much like a [SQL `SELECT` clause](../sql/select.md).
+fields enumerated, much like a SQL [`SELECT`](../sql/select.md) clause.
 
 Each left-hand side `<field>` term must be a field reference expressed as
 a dotted path or sequence of constant index operations on `this`, e.g., `a.b`.

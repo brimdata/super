@@ -47,7 +47,7 @@ Each aggregate function `<agg-func>` may be optionally followed by a `where` cla
 which applies a Boolean expression `<expr>` that indicates, for each input value,
 whether to include it in the values operated upon by the aggregate function.
 `where` clauses are analogous
-to the [`where` operator](where.md) but apply their filter to the input
+to the [`where`](where.md) operator but apply their filter to the input
 argument stream to the aggregate function.
 
 The output values are records formed from the [field assignments](intro.md#field-assignment)

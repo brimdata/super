@@ -10,7 +10,7 @@ path can be expressed as a [text entity](#text-entity) and need not be quoted:
 from file.json | ...
 ```
 
-Likewise, in the [`search` operator](operators/search.md), the syntax for a [regular expression](#regular-expression)
+Likewise, in the [`search`](operators/search.md) operator, the syntax for a [regular expression](#regular-expression)
 search can be specified as
 ```
 search /\w+(foo|bar)/
@@ -56,8 +56,8 @@ the familiar pattern of "file globbing" supported by Unix shells.
 Globs are a simple, special case that utilize only the `*` wildcard.
 
 Like regular expressions, globs may be used in
-a [`search` operator](operators/search.md) or a 
-[`from` operator](operators/from.md).
+a [`search`](operators/search.md) operator or a
+[`from`](operators/from.md) operator.
 
 Valid glob characters include letters, digits (excepting the leading character),
 any valid string escape sequence
@@ -73,9 +73,9 @@ A text entity represents a string where quotes can be omitted for
 certain common use cases regarding URLs and file paths.
 
 Text entities are syntactically valid as targets of a
-[`from` operator](operators/from.md) and as named arguments 
+[`from`](operators/from.md) operator and as named arguments
 to `from` and the 
-[`load` operator](operators/load.md).
+[`load`](operators/load.md) operator.
 
 Specifically, a text entity is one of:
 * a string literal (double quoted, single quoted, or raw string),

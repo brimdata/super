@@ -53,10 +53,12 @@ where the first field is copied to each derived value and the second field is
 the unnested elements of the array `elem0`, `elem1`, etc.
 
 To explode the fields of records or the key-value pairs of maps, use the
-[`flatten` function](../functions/records/flatten.md), which produces an array that
+[`flatten`](../functions/records/flatten.md) function, which produces an array that
 can be unnested.
 
 For example, if `this` is a record, it can be unnested with `unnest flatten(this)`.
+
+> Support for map types in `flatten` is not yet implemented.
 
 ### Errors
 

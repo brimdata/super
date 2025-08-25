@@ -22,7 +22,7 @@ The `values` operator name is optional since it can be used as a
 [shortcut](../shortcuts.md).  When used as a shortcut, only one expression
 may be present.
 
-The `values` abstraction is also available as the [SQL `VALUES` clause](../sql/values.md),
+The `values` abstraction is also available as the SQL [`VALUES`](../sql/values.md) clause,
 where the tuples that comprise
 this form must all adhere to a common type signature.
 
