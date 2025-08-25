@@ -41,7 +41,7 @@ zero or more comma-separated key-value pairs contained in pipe braces:
 ```
 |{ <key> : <value>, <key> : <value> ... }|
 ```
-where `<key>` and `<value> 
+where `<key>` and `<value>`
 may be any valid [expression](../expressions.md).
 
 > The map spread operator is not yet implemented.
