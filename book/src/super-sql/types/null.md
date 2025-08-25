@@ -50,15 +50,17 @@ _Test for null with IS NULL_
 ```mdtest-spq
 # spq
 values
-  this IS NULL,
   this == null,
-  this == null ? "null == null" : "null != null"
+  this != null,
+  this IS NULL,
+  this IS NOT NULL
 # input
 null
 # expected output
-true
 null::bool
-"null != null"
+null::bool
+true
+false
 ```
 
 ---
