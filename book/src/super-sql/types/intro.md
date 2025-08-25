@@ -13,7 +13,7 @@ and _first class_
 
 The syntax of individual literal values follows
 the [SUP format](../../formats/sup.md) in that any legal
-SUP value is also valid SuperSQL literal.
+SUP value is also a valid SuperSQL literal.
 In particular, the type decorators in SUP utilize a double colon (`::`)
 syntax that is compatible with the SuperSQL
 [`cast`](../expressions.md#casts) operator.

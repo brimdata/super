@@ -58,7 +58,7 @@ which expects an array or set value as
 the result of `<expr>` and inserts all of the values from the result.  If a spread
 expression results in neither an array nor set, then the value is elided.
 
-When the expressions result in values of non-uniform type, then the type of the
+When the expressions result in values of non-uniform type, then the types of the
 set elements become a sum type of the types present,
 tied together with the corresponding [union type](union.md).
 
