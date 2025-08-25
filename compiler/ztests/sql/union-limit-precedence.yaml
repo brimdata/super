@@ -1,0 +1,12 @@
+spq: |
+  select * from (values {x:1},{x:2},{x:3}) 
+  union all
+  select * from (values {x:4},{x:5},{x:6})
+  order by x
+  limit 4
+
+output: |
+  {x:1}
+  {x:2}
+  {x:3}
+  {x:4}
