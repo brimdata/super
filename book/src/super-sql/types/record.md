@@ -21,7 +21,7 @@ For example, this is a simple record value
 ```
 whose type is
 ```
-{numer:int64,message:string}
+{number:int64,message:string}
 ```
 An empty record value and an empty record type are both represented as `{}`.
 
