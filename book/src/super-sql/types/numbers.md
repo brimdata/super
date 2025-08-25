@@ -51,7 +51,7 @@ followed optionally by one or more decimal digits forms
 a 64-bit IEEE floating point value of type `float64`.
 Alternatively, a floating point value may appear in scientific notation 
 having the form of a mantissa number (integer or with decimal point)
-followed by the character `e` and in turn followed by an signed integer exponent.
+followed by the character `e` and in turn followed by a signed integer exponent.
 
 Also `Inf`, `+Inf`, `-Inf`, or `NaN` are valid 64-bit floating point numbers.
 
