@@ -8,8 +8,8 @@ import (
 	"strconv"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zcode"
 )
 
 type Object struct {
@@ -89,7 +89,7 @@ func (w *Writer) Transform(r *super.Value) (Object, error) {
 	}, nil
 }
 
-func (w *Writer) encodeValue(sctx *super.Context, typ super.Type, val zcode.Bytes) (any, error) {
+func (w *Writer) encodeValue(sctx *super.Context, typ super.Type, val scode.Bytes) (any, error) {
 	if val == nil {
 		return nil, nil
 	}
@@ -121,7 +121,7 @@ func (w *Writer) encodeValue(sctx *super.Context, typ super.Type, val zcode.Byte
 	}
 }
 
-func (w *Writer) encodeRecord(sctx *super.Context, typ *super.TypeRecord, val zcode.Bytes) (any, error) {
+func (w *Writer) encodeRecord(sctx *super.Context, typ *super.TypeRecord, val scode.Bytes) (any, error) {
 	// We start out with a slice that contains nothing instead of nil
 	// so that an empty container encodes as a JSON empty array [].
 	out := []any{}
@@ -135,7 +135,7 @@ func (w *Writer) encodeRecord(sctx *super.Context, typ *super.TypeRecord, val zc
 	return out, nil
 }
 
-func (w *Writer) encodeContainer(sctx *super.Context, typ super.Type, bytes zcode.Bytes) (any, error) {
+func (w *Writer) encodeContainer(sctx *super.Context, typ super.Type, bytes scode.Bytes) (any, error) {
 	// We start out with a slice that contains nothing instead of nil
 	// so that an empty container encodes as a JSON empty array [].
 	out := []any{}
@@ -149,7 +149,7 @@ func (w *Writer) encodeContainer(sctx *super.Context, typ super.Type, bytes zcod
 	return out, nil
 }
 
-func (w *Writer) encodeMap(sctx *super.Context, typ *super.TypeMap, v zcode.Bytes) (any, error) {
+func (w *Writer) encodeMap(sctx *super.Context, typ *super.TypeMap, v scode.Bytes) (any, error) {
 	// We start out with a slice that contains nothing instead of nil
 	// so that an empty map encodes as a JSON empty array [].
 	out := []any{}
@@ -169,7 +169,7 @@ func (w *Writer) encodeMap(sctx *super.Context, typ *super.TypeMap, v zcode.Byte
 	return out, nil
 }
 
-func (w *Writer) encodeUnion(sctx *super.Context, union *super.TypeUnion, bytes zcode.Bytes) (any, error) {
+func (w *Writer) encodeUnion(sctx *super.Context, union *super.TypeUnion, bytes scode.Bytes) (any, error) {
 	inner, b := union.Untag(bytes)
 	val, err := w.encodeValue(sctx, inner, b)
 	if err != nil {
@@ -178,7 +178,7 @@ func (w *Writer) encodeUnion(sctx *super.Context, union *super.TypeUnion, bytes 
 	return []any{strconv.Itoa(union.TagOf(inner)), val}, nil
 }
 
-func (w *Writer) encodePrimitive(sctx *super.Context, typ super.Type, v zcode.Bytes) (any, error) {
+func (w *Writer) encodePrimitive(sctx *super.Context, typ super.Type, v scode.Bytes) (any, error) {
 	if typ == super.TypeType {
 		typ, err := sctx.LookupByValue(v)
 		if err != nil {

@@ -6,9 +6,9 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/nano"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zcode"
 )
 
 func castToString(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
@@ -102,7 +102,7 @@ func castToString(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
 			offs = append(offs, uint32(len(bytes)))
 		}
 	default:
-		var b zcode.Builder
+		var b scode.Builder
 		for i := range n {
 			idx := i
 			if index != nil {

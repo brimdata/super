@@ -2,7 +2,7 @@ package expr
 
 import (
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 const MaxStackDepth = 10_000
@@ -13,7 +13,7 @@ type UDF struct {
 	name       string
 	fields     []super.Field
 	stackDepth int
-	builder    zcode.Builder
+	builder    scode.Builder
 }
 
 func NewUDF(sctx *super.Context, name string, params []string) *UDF {

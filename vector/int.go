@@ -2,8 +2,8 @@ package vector
 
 import (
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector/bitvec"
-	"github.com/brimdata/super/zcode"
 )
 
 type Int struct {
@@ -39,7 +39,7 @@ func (i *Int) Value(slot uint32) int64 {
 	return i.Values[slot]
 }
 
-func (i *Int) Serialize(b *zcode.Builder, slot uint32) {
+func (i *Int) Serialize(b *scode.Builder, slot uint32) {
 	if i.Nulls.IsSet(slot) {
 		b.Append(nil)
 	} else {

@@ -3,16 +3,16 @@ package values
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 )
 
 type Op struct {
-	parent   zbuf.Puller
+	parent   sbuf.Puller
 	exprs    []expr.Evaluator
 	resetter expr.Resetter
 }
 
-func New(parent zbuf.Puller, exprs []expr.Evaluator, resetter expr.Resetter) *Op {
+func New(parent sbuf.Puller, exprs []expr.Evaluator, resetter expr.Resetter) *Op {
 	return &Op{
 		parent:   parent,
 		exprs:    exprs,
@@ -20,7 +20,7 @@ func New(parent zbuf.Puller, exprs []expr.Evaluator, resetter expr.Resetter) *Op
 	}
 }
 
-func (o *Op) Pull(done bool) (zbuf.Batch, error) {
+func (o *Op) Pull(done bool) (sbuf.Batch, error) {
 	for {
 		batch, err := o.parent.Pull(done)
 		if batch == nil || err != nil {
@@ -40,7 +40,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 		}
 		if len(out) > 0 {
 			defer batch.Unref()
-			return zbuf.NewBatch(out), nil
+			return sbuf.NewBatch(out), nil
 		}
 		batch.Unref()
 	}

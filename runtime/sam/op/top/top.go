@@ -6,13 +6,13 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/op/sort"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 )
 
 // Top produces the first N values that sort would produce with the same arguments.
 type Op struct {
 	sctx         *super.Context
-	parent       zbuf.Puller
+	parent       sbuf.Puller
 	limit        int
 	exprs        []expr.SortExpr
 	guessReverse bool
@@ -24,7 +24,7 @@ type Op struct {
 }
 
 // New returns an operator that produces the first limit
-func New(sctx *super.Context, parent zbuf.Puller, limit int, exprs []expr.SortExpr, guessReverse bool, resetter expr.Resetter) *Op {
+func New(sctx *super.Context, parent sbuf.Puller, limit int, exprs []expr.SortExpr, guessReverse bool, resetter expr.Resetter) *Op {
 	return &Op{
 		sctx:         sctx,
 		parent:       parent,
@@ -35,7 +35,7 @@ func New(sctx *super.Context, parent zbuf.Puller, limit int, exprs []expr.SortEx
 	}
 }
 
-func (o *Op) Pull(done bool) (zbuf.Batch, error) {
+func (o *Op) Pull(done bool) (sbuf.Batch, error) {
 	if o.eos {
 		o.eos = false
 		return nil, nil
@@ -79,12 +79,12 @@ func (o *Op) consume(rec super.Value) {
 	}
 }
 
-func (o *Op) sorted() zbuf.Batch {
+func (o *Op) sorted() sbuf.Batch {
 	out := make([]super.Value, o.records.Len())
 	for i := o.records.Len() - 1; i >= 0; i-- {
 		out[i] = heap.Pop(o.records).(super.Value)
 	}
 	// clear records
 	o.records = nil
-	return zbuf.NewArray(out)
+	return sbuf.NewArray(out)
 }

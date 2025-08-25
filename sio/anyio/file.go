@@ -6,18 +6,18 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 )
 
 // Open uses engine to open path for reading.  path is a local file path or a
 // URI whose scheme is understood by engine.
-func Open(ctx context.Context, sctx *super.Context, engine storage.Engine, path string, opts ReaderOpts) (*zbuf.File, error) {
+func Open(ctx context.Context, sctx *super.Context, engine storage.Engine, path string, opts ReaderOpts) (*sbuf.File, error) {
 	uri, err := storage.ParseURI(path)
 	if err != nil {
 		return nil, err
 	}
 	ch := make(chan struct{})
-	var zf *zbuf.File
+	var zf *sbuf.File
 	go func() {
 		defer close(ch)
 		var sr storage.Reader
@@ -40,7 +40,7 @@ func Open(ctx context.Context, sctx *super.Context, engine storage.Engine, path 
 	}
 }
 
-func NewFile(sctx *super.Context, rc io.ReadCloser, path string, opts ReaderOpts) (*zbuf.File, error) {
+func NewFile(sctx *super.Context, rc io.ReadCloser, path string, opts ReaderOpts) (*sbuf.File, error) {
 	r, err := GzipReader(rc)
 	if err != nil {
 		return nil, err
@@ -49,5 +49,5 @@ func NewFile(sctx *super.Context, rc io.ReadCloser, path string, opts ReaderOpts
 	if err != nil {
 		return nil, err
 	}
-	return zbuf.NewFile(zr, rc, path), nil
+	return sbuf.NewFile(zr, rc, path), nil
 }

@@ -7,20 +7,20 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/peeker"
 	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 )
 
 type scannerSync struct {
 	ctx      context.Context
 	cancel   context.CancelFunc
-	progress zbuf.Progress
+	progress sbuf.Progress
 	worker   *worker
 	parser   parser
 	err      error
 	eof      bool
 }
 
-func newScannerSync(ctx context.Context, sctx *super.Context, r io.Reader, filter zbuf.Pushdown, opts ReaderOpts) (*scannerSync, error) {
+func newScannerSync(ctx context.Context, sctx *super.Context, r io.Reader, filter sbuf.Pushdown, opts ReaderOpts) (*scannerSync, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	s := &scannerSync{
 		ctx:    ctx,
@@ -48,7 +48,7 @@ func newScannerSync(ctx context.Context, sctx *super.Context, r io.Reader, filte
 	return s, nil
 }
 
-func (s *scannerSync) Pull(done bool) (zbuf.Batch, error) {
+func (s *scannerSync) Pull(done bool) (sbuf.Batch, error) {
 	if done {
 		s.eof = true
 		return nil, nil
@@ -77,6 +77,6 @@ again:
 	return b, err
 }
 
-func (s *scannerSync) Progress() zbuf.Progress {
+func (s *scannerSync) Progress() sbuf.Progress {
 	return s.progress.Copy()
 }

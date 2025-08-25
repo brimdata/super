@@ -4,8 +4,8 @@ import (
 	"net/netip"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector/bitvec"
-	"github.com/brimdata/super/zcode"
 )
 
 type IP struct {
@@ -27,7 +27,7 @@ func (i *IP) Len() uint32 {
 	return uint32(len(i.Values))
 }
 
-func (i *IP) Serialize(b *zcode.Builder, slot uint32) {
+func (i *IP) Serialize(b *scode.Builder, slot uint32) {
 	if i.Nulls.IsSet(slot) {
 		b.Append(nil)
 	} else {

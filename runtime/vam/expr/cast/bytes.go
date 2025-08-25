@@ -1,8 +1,8 @@
 package cast
 
 import (
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zcode"
 )
 
 func castToBytes(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
@@ -12,7 +12,7 @@ func castToBytes(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
 		nulls = nulls.Pick(index)
 	}
 	out := vector.NewBytesEmpty(n, nulls)
-	var b zcode.Builder
+	var b scode.Builder
 	for i := range n {
 		idx := i
 		if index != nil {

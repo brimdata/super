@@ -1,4 +1,4 @@
-package zfmt
+package sfmt
 
 import (
 	"github.com/brimdata/super/compiler/ast"

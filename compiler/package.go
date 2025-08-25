@@ -15,8 +15,8 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/runtime/sam/op"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/zbuf"
 )
 
 func Parse(query string, filenames ...string) (*parser.AST, error) {
@@ -52,7 +52,7 @@ func Optimize(ctx context.Context, seq dag.Seq, env *exec.Environment, parallel 
 	return seq, nil
 }
 
-func Build(rctx *runtime.Context, seq dag.Seq, env *exec.Environment, readers []sio.Reader) (map[string]zbuf.Puller, zbuf.Meter, error) {
+func Build(rctx *runtime.Context, seq dag.Seq, env *exec.Environment, readers []sio.Reader) (map[string]sbuf.Puller, sbuf.Meter, error) {
 	b := rungen.NewBuilder(rctx, env)
 	outputs, err := b.Build(seq, readers...)
 	if err != nil {
@@ -61,7 +61,7 @@ func Build(rctx *runtime.Context, seq dag.Seq, env *exec.Environment, readers []
 	return outputs, b.Meter(), nil
 }
 
-func BuildWithBuilder(rctx *runtime.Context, seq dag.Seq, env *exec.Environment, readers []sio.Reader) (map[string]zbuf.Puller, *rungen.Builder, error) {
+func BuildWithBuilder(rctx *runtime.Context, seq dag.Seq, env *exec.Environment, readers []sio.Reader) (map[string]sbuf.Puller, *rungen.Builder, error) {
 	b := rungen.NewBuilder(rctx, env)
 	outputs, err := b.Build(seq, readers...)
 	if err != nil {
@@ -96,12 +96,12 @@ func Compile(rctx *runtime.Context, env *exec.Environment, optimize bool, parall
 	return CompileWithAST(rctx, ast, env, optimize, parallel, readers)
 }
 
-func bundleOutputs(rctx *runtime.Context, outputs map[string]zbuf.Puller) zbuf.Puller {
+func bundleOutputs(rctx *runtime.Context, outputs map[string]sbuf.Puller) sbuf.Puller {
 	switch len(outputs) {
 	case 0:
 		return nil
 	case 1:
-		var puller zbuf.Puller
+		var puller sbuf.Puller
 		for k, p := range outputs {
 			puller = op.NewCatcher(op.NewSingle(k, p))
 		}
@@ -111,7 +111,7 @@ func bundleOutputs(rctx *runtime.Context, outputs map[string]zbuf.Puller) zbuf.P
 	}
 }
 
-func VectorFilterCompile(rctx *runtime.Context, query string, env *exec.Environment, head *dbid.Commitish) (zbuf.Puller, error) {
+func VectorFilterCompile(rctx *runtime.Context, query string, env *exec.Environment, head *dbid.Commitish) (sbuf.Puller, error) {
 	// Eventually the semantic analyzer + rungen will resolve the pool but
 	// for now just do this manually.
 	if !env.IsAttached() {

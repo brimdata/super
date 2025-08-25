@@ -8,26 +8,26 @@ import (
 	"github.com/brimdata/super/db"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/expr"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zbuf"
 	"github.com/segmentio/ksuid"
 )
 
 type Deleter struct {
-	parent      zbuf.Puller
-	scanner     zbuf.Puller
-	pushdown    zbuf.Pushdown
+	parent      sbuf.Puller
+	scanner     sbuf.Puller
+	pushdown    sbuf.Pushdown
 	pruner      expr.Evaluator
 	rctx        *runtime.Context
 	pool        *db.Pool
-	progress    *zbuf.Progress
+	progress    *sbuf.Progress
 	unmarshaler *sup.UnmarshalBSUPContext
 	done        bool
 	err         error
 	deletes     *sync.Map
 }
 
-func NewDeleter(rctx *runtime.Context, parent zbuf.Puller, pool *db.Pool, pushdown zbuf.Pushdown, pruner expr.Evaluator, progress *zbuf.Progress, deletes *sync.Map) *Deleter {
+func NewDeleter(rctx *runtime.Context, parent sbuf.Puller, pool *db.Pool, pushdown sbuf.Pushdown, pruner expr.Evaluator, progress *sbuf.Progress, deletes *sync.Map) *Deleter {
 	return &Deleter{
 		parent:      parent,
 		pushdown:    pushdown,
@@ -40,7 +40,7 @@ func NewDeleter(rctx *runtime.Context, parent zbuf.Puller, pool *db.Pool, pushdo
 	}
 }
 
-func (d *Deleter) Pull(done bool) (zbuf.Batch, error) {
+func (d *Deleter) Pull(done bool) (sbuf.Batch, error) {
 	if d.done {
 		return nil, d.err
 	}
@@ -71,7 +71,7 @@ func (d *Deleter) Pull(done bool) (zbuf.Batch, error) {
 	}
 }
 
-func (d *Deleter) nextDeletion() (zbuf.Puller, error) {
+func (d *Deleter) nextDeletion() (sbuf.Puller, error) {
 	for {
 		if d.parent == nil { //XXX
 			return nil, nil
@@ -93,7 +93,7 @@ func (d *Deleter) nextDeletion() (zbuf.Puller, error) {
 			continue
 		}
 		// Use a no-op progress so stats are not inflated.
-		var progress zbuf.Progress
+		var progress sbuf.Progress
 		scanner, object, err := newScanner(d.rctx.Context, d.rctx.Sctx, d.pool, d.unmarshaler, d.pruner, d.pushdown, &progress, vals[0])
 		if err != nil {
 			return nil, err

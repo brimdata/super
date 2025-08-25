@@ -5,7 +5,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 type Metadata interface {
@@ -237,7 +237,7 @@ func (d *Dynamic) Len(*Context) uint32 {
 	return d.Length
 }
 
-func metadataValue(cctx *Context, sctx *super.Context, b *zcode.Builder, id ID, projection field.Projection) super.Type {
+func metadataValue(cctx *Context, sctx *super.Context, b *scode.Builder, id ID, projection field.Projection) super.Type {
 	m := cctx.Lookup(id)
 	switch m := under(cctx, m).(type) {
 	case *Dict:
@@ -285,7 +285,7 @@ func metadataValue(cctx *Context, sctx *super.Context, b *zcode.Builder, id ID, 
 	}
 }
 
-func metadataLeaf(sctx *super.Context, b *zcode.Builder, min, max super.Value) super.Type {
+func metadataLeaf(sctx *super.Context, b *scode.Builder, min, max super.Value) super.Type {
 	b.BeginContainer()
 	b.Append(min.Bytes())
 	b.Append(max.Bytes())

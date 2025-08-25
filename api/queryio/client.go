@@ -8,19 +8,19 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/api"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zbuf"
 )
 
 type scanner struct {
 	channel  string
-	scanner  zbuf.Scanner
+	scanner  sbuf.Scanner
 	closer   io.Closer
-	progress zbuf.Progress
+	progress sbuf.Progress
 }
 
-func NewScanner(ctx context.Context, rc io.ReadCloser) (zbuf.Scanner, error) {
+func NewScanner(ctx context.Context, rc io.ReadCloser) (sbuf.Scanner, error) {
 	s, err := bsupio.NewReader(super.NewContext(), rc).NewScanner(ctx, nil)
 	if err != nil {
 		return nil, err
@@ -31,33 +31,33 @@ func NewScanner(ctx context.Context, rc io.ReadCloser) (zbuf.Scanner, error) {
 	}, nil
 }
 
-func (s *scanner) Progress() zbuf.Progress {
+func (s *scanner) Progress() sbuf.Progress {
 	return s.progress
 }
 
-func (s *scanner) Pull(done bool) (zbuf.Batch, error) {
+func (s *scanner) Pull(done bool) (sbuf.Batch, error) {
 again:
 	batch, err := s.scanner.Pull(done)
 	if err == nil {
 		if batch != nil {
-			return zbuf.Label(s.channel, batch), nil
+			return sbuf.Label(s.channel, batch), nil
 		}
 		return nil, s.closer.Close()
 	}
-	zctrl, ok := err.(*zbuf.Control)
+	sctrl, ok := err.(*sbuf.Control)
 	if !ok {
 		return nil, err
 	}
-	v, err := marshalControl(zctrl)
+	ctrl, err := marshalControl(sctrl)
 	if err != nil {
 		return nil, err
 	}
-	switch ctrl := v.(type) {
+	switch ctrl := ctrl.(type) {
 	case *api.QueryChannelSet:
 		s.channel = ctrl.Channel
 		goto again
 	case *api.QueryChannelEnd:
-		eoc := zbuf.EndOfChannel(ctrl.Channel)
+		eoc := sbuf.EndOfChannel(ctrl.Channel)
 		return &eoc, nil
 	case *api.QueryStats:
 		s.progress.Add(ctrl.Progress)
@@ -69,7 +69,7 @@ again:
 	}
 }
 
-func marshalControl(zctrl *zbuf.Control) (any, error) {
+func marshalControl(zctrl *sbuf.Control) (any, error) {
 	ctrl, ok := zctrl.Message.(*bsupio.Control)
 	if !ok {
 		return nil, fmt.Errorf("unknown control type: %T", zctrl.Message)

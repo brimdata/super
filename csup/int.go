@@ -5,7 +5,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/byteconv"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 	"github.com/ronanh/intcomp"
 	"golang.org/x/sync/errgroup"
 )
@@ -23,7 +23,7 @@ func NewIntEncoder(typ super.Type) *IntEncoder {
 	}
 }
 
-func (i *IntEncoder) Write(bytes zcode.Bytes) {
+func (i *IntEncoder) Write(bytes scode.Bytes) {
 	v := super.DecodeInt(bytes)
 	if len(i.vals) == 0 || v < i.min {
 		i.min = v
@@ -95,7 +95,7 @@ func NewUintEncoder(typ super.Type) *UintEncoder {
 	return &UintEncoder{typ: typ}
 }
 
-func (u *UintEncoder) Write(bytes zcode.Bytes) {
+func (u *UintEncoder) Write(bytes scode.Bytes) {
 	v := super.DecodeUint(bytes)
 	if len(u.vals) == 0 || v < u.min {
 		u.min = v

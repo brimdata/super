@@ -4,17 +4,17 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 )
 
 type applier struct {
 	rctx     *runtime.Context
-	parent   zbuf.Puller
+	parent   sbuf.Puller
 	expr     expr.Evaluator
 	resetter expr.Resetter
 }
 
-func NewApplier(rctx *runtime.Context, parent zbuf.Puller, expr expr.Evaluator, resetter expr.Resetter) *applier {
+func NewApplier(rctx *runtime.Context, parent sbuf.Puller, expr expr.Evaluator, resetter expr.Resetter) *applier {
 	return &applier{
 		rctx:     rctx,
 		parent:   parent,
@@ -23,7 +23,7 @@ func NewApplier(rctx *runtime.Context, parent zbuf.Puller, expr expr.Evaluator, 
 	}
 }
 
-func (a *applier) Pull(done bool) (zbuf.Batch, error) {
+func (a *applier) Pull(done bool) (sbuf.Batch, error) {
 	for {
 		batch, err := a.parent.Pull(done)
 		if batch == nil || err != nil {
@@ -42,7 +42,7 @@ func (a *applier) Pull(done bool) (zbuf.Batch, error) {
 			out = append(out, val)
 		}
 		if len(out) > 0 {
-			return zbuf.NewBatch(out), nil
+			return sbuf.NewBatch(out), nil
 		}
 		batch.Unref()
 	}

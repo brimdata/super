@@ -4,7 +4,7 @@ import (
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 )
 
 type pushdown struct {
@@ -16,7 +16,7 @@ type pushdown struct {
 	unordred       bool
 }
 
-var _ zbuf.Pushdown = (*pushdown)(nil)
+var _ sbuf.Pushdown = (*pushdown)(nil)
 
 func (p *pushdown) DataFilter() (expr.Evaluator, error) {
 	if p.dataFilter == nil {
@@ -52,7 +52,7 @@ func (p *pushdown) Unordered() bool {
 }
 
 type deleter struct {
-	zbuf.Pushdown
+	sbuf.Pushdown
 	builder    *Builder
 	dataFilter dag.Expr
 }

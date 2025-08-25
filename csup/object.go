@@ -21,7 +21,7 @@
 //
 // Once the metadata is assembled in memory, the recontructed sequence data can be
 // read from the vector segments by calling the Build method on the top-level
-// Builder and passing in a zcode.Builder to reconstruct the super value.
+// Builder and passing in a scode.Builder to reconstruct the super value.
 package csup
 
 import (
@@ -30,7 +30,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 type Object struct {
@@ -86,7 +86,7 @@ func (o *Object) Size() uint64 {
 }
 
 func (o *Object) ProjectMetadata(sctx *super.Context, projection field.Projection) []super.Value {
-	var b zcode.Builder
+	var b scode.Builder
 	var values []super.Value
 	root := o.cctx.Lookup(o.Root())
 	if root, ok := root.(*Dynamic); ok {

@@ -6,10 +6,10 @@ import (
 
 	"github.com/brimdata/super/api"
 	"github.com/brimdata/super/pkg/nano"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
 	"github.com/brimdata/super/sio/jsonio"
-	"github.com/brimdata/super/zbuf"
 )
 
 type controlWriter interface {
@@ -50,7 +50,7 @@ func NewWriter(w io.WriteCloser, format string, flusher http.Flusher, ctrl bool)
 	return d, err
 }
 
-func (w *Writer) WriteBatch(channel string, batch zbuf.Batch) error {
+func (w *Writer) WriteBatch(channel string, batch sbuf.Batch) error {
 	if w.channel != channel {
 		w.channel = channel
 		if err := w.WriteControl(api.QueryChannelSet{Channel: channel}); err != nil {
@@ -58,14 +58,14 @@ func (w *Writer) WriteBatch(channel string, batch zbuf.Batch) error {
 		}
 	}
 	defer batch.Unref()
-	return zbuf.WriteBatch(w.writer, batch)
+	return sbuf.WriteBatch(w.writer, batch)
 }
 
 func (w *Writer) WhiteChannelEnd(channel string) error {
 	return w.WriteControl(api.QueryChannelEnd{Channel: channel})
 }
 
-func (w *Writer) WriteProgress(stats zbuf.Progress) error {
+func (w *Writer) WriteProgress(stats sbuf.Progress) error {
 	v := api.QueryStats{
 		StartTime:  w.start,
 		UpdateTime: nano.Now(),

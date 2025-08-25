@@ -17,9 +17,9 @@ import (
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/vcache"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zbuf"
 	arc "github.com/hashicorp/golang-lru/arc/v2"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
@@ -405,7 +405,7 @@ func (r *Root) Revert(ctx context.Context, poolID ksuid.KSUID, branchName string
 	return branch.Revert(ctx, commitID, author, message)
 }
 
-func (r *Root) Open(context.Context, *super.Context, string, string, zbuf.Pushdown) (zbuf.Puller, error) {
+func (r *Root) Open(context.Context, *super.Context, string, string, sbuf.Pushdown) (sbuf.Puller, error) {
 	return nil, errors.New("cannot use 'file' or 'http' source in a database query")
 }
 

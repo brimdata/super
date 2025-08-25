@@ -7,7 +7,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/byteconv"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -23,7 +23,7 @@ func NewFloatEncoder(typ super.Type) *FloatEncoder {
 	return &FloatEncoder{typ: typ}
 }
 
-func (f *FloatEncoder) Write(bytes zcode.Bytes) {
+func (f *FloatEncoder) Write(bytes scode.Bytes) {
 	v := super.DecodeFloat(bytes)
 	if len(f.vals) == 0 || v < f.min {
 		f.min = v

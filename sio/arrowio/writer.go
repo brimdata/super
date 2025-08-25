@@ -19,8 +19,8 @@ import (
 	"github.com/apache/arrow-go/v18/arrow/memory"
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/nano"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zcode"
 )
 
 var (
@@ -99,7 +99,7 @@ func (w *Writer) Write(val super.Value) error {
 	}
 	it := val.Bytes().Iter()
 	for i, builder := range w.builder.Fields() {
-		var b zcode.Bytes
+		var b scode.Bytes
 		if it != nil {
 			b = it.Next()
 		}
@@ -300,7 +300,7 @@ func (w *Writer) newArrowDataType(typ super.Type) (arrow.DataType, error) {
 	}
 }
 
-func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes zcode.Bytes) {
+func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes scode.Bytes) {
 	if bytes == nil {
 		b.AppendNull()
 		return
@@ -465,7 +465,7 @@ func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes zcode.By
 	}
 }
 
-func (w *Writer) buildArrowListValue(b array.ListLikeBuilder, typ super.Type, bytes zcode.Bytes) {
+func (w *Writer) buildArrowListValue(b array.ListLikeBuilder, typ super.Type, bytes scode.Bytes) {
 	b.Append(true)
 	for it := bytes.Iter(); !it.Done(); {
 		w.buildArrowValue(b.ValueBuilder(), super.InnerType(typ), it.Next())

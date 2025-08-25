@@ -138,9 +138,9 @@ import (
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
-	"github.com/brimdata/super/zbuf"
 	"github.com/pmezard/go-difflib/difflib"
 	"gopkg.in/yaml.v3"
 )
@@ -506,7 +506,7 @@ func runInternal(zedProgram string, input *string, outputFlags, inputFlags []str
 	if err != nil {
 		return "", err
 	}
-	err = zbuf.CopyPuller(zw, q)
+	err = sbuf.CopyPuller(zw, q)
 	if err2 := zw.Close(); err == nil {
 		err = err2
 	}

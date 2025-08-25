@@ -3,16 +3,16 @@ package mirror
 import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/op"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 )
 
 type Op struct {
-	parent   zbuf.Puller
+	parent   sbuf.Puller
 	rctx     *runtime.Context
 	mirrored *mirrored
 }
 
-func New(rctx *runtime.Context, parent zbuf.Puller) *Op {
+func New(rctx *runtime.Context, parent sbuf.Puller) *Op {
 	m := &Op{
 		parent: parent,
 		rctx:   rctx,
@@ -26,7 +26,7 @@ func New(rctx *runtime.Context, parent zbuf.Puller) *Op {
 	return m
 }
 
-func (o *Op) Pull(done bool) (zbuf.Batch, error) {
+func (o *Op) Pull(done bool) (sbuf.Batch, error) {
 	batch, err := o.parent.Pull(done)
 	if batch == nil || err != nil {
 		o.sendEOS(err)
@@ -59,7 +59,7 @@ func (o *Op) sendEOS(err error) {
 	o.mirrored.blocked = false
 }
 
-func (o *Op) Mirrored() zbuf.Puller {
+func (o *Op) Mirrored() sbuf.Puller {
 	return o.mirrored
 }
 
@@ -71,7 +71,7 @@ type mirrored struct {
 	blocked bool
 }
 
-func (s *mirrored) Pull(done bool) (zbuf.Batch, error) {
+func (s *mirrored) Pull(done bool) (sbuf.Batch, error) {
 	if done {
 		select {
 		case s.doneCh <- struct{}{}:

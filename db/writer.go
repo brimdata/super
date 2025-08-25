@@ -8,8 +8,8 @@ import (
 	"github.com/brimdata/super/db/data"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime/sam/expr"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/zbuf"
 	"github.com/segmentio/ksuid"
 	"golang.org/x/sync/errgroup"
 )
@@ -125,7 +125,7 @@ func (w *Writer) Close() error {
 func (w *Writer) writeObject(object *data.Object, recs []super.Value) error {
 	var zr sio.Reader
 	if w.inputSorted {
-		zr = zbuf.NewArray(recs)
+		zr = sbuf.NewArray(recs)
 	} else {
 		done := make(chan struct{})
 		go func() {

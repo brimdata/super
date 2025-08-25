@@ -6,7 +6,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 type This struct{}
@@ -79,7 +79,7 @@ func (d *DotExpr) fieldIndex(typ *super.TypeRecord) (int, bool) {
 	return i, ok
 }
 
-func (d *DotExpr) evalTypeOfType(b zcode.Bytes) super.Value {
+func (d *DotExpr) evalTypeOfType(b scode.Bytes) super.Value {
 	if b == nil {
 		return super.NewValue(super.TypeType, nil)
 	}

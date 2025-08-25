@@ -15,11 +15,11 @@ import (
 	"github.com/brimdata/super/compiler"
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/runtime"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
 	"github.com/brimdata/super/sio/arrowio"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/zbuf"
 	"github.com/brimdata/super/ztest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -146,7 +146,7 @@ func runOneBoomerang(t *testing.T, format, data string) {
 		q, err := compiler.NewCompiler(nil).NewQuery(rctx, ast, []sio.Reader{dataReadCloser}, 0)
 		require.NoError(t, err)
 		defer q.Pull(true)
-		dataReader = zbuf.PullerReader(q)
+		dataReader = sbuf.PullerReader(q)
 	}
 
 	// Copy from dataReader to baseline as format.

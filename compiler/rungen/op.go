@@ -43,10 +43,10 @@ import (
 	"github.com/brimdata/super/runtime/vam"
 	vamexpr "github.com/brimdata/super/runtime/vam/expr"
 	vamop "github.com/brimdata/super/runtime/vam/op"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zbuf"
 	"github.com/segmentio/ksuid"
 )
 
@@ -57,8 +57,8 @@ type Builder struct {
 	mctx            *super.Context
 	env             *exec.Environment
 	readers         []sio.Reader
-	progress        *zbuf.Progress
-	channels        map[string][]zbuf.Puller
+	progress        *sbuf.Progress
+	channels        map[string][]sbuf.Puller
 	deletes         *sync.Map
 	udfs            map[string]*dag.Func
 	compiledUDFs    map[string]*expr.UDF
@@ -71,13 +71,13 @@ func NewBuilder(rctx *runtime.Context, env *exec.Environment) *Builder {
 		rctx: rctx,
 		mctx: super.NewContext(),
 		env:  env,
-		progress: &zbuf.Progress{
+		progress: &sbuf.Progress{
 			BytesRead:      0,
 			BytesMatched:   0,
 			RecordsRead:    0,
 			RecordsMatched: 0,
 		},
-		channels:        make(map[string][]zbuf.Puller),
+		channels:        make(map[string][]sbuf.Puller),
 		udfs:            make(map[string]*dag.Func),
 		compiledUDFs:    make(map[string]*expr.UDF),
 		compiledVamUDFs: make(map[string]*vamexpr.UDF),
@@ -86,7 +86,7 @@ func NewBuilder(rctx *runtime.Context, env *exec.Environment) *Builder {
 
 // Build builds a flowgraph for seq.  If seq contains a dag.DefaultSource, it
 // will read from readers.
-func (b *Builder) Build(seq dag.Seq, readers ...sio.Reader) (map[string]zbuf.Puller, error) {
+func (b *Builder) Build(seq dag.Seq, readers ...sio.Reader) (map[string]sbuf.Puller, error) {
 	if !isEntry(seq) {
 		return nil, errors.New("internal error: DAG entry point is not a data source")
 	}
@@ -100,7 +100,7 @@ func (b *Builder) Build(seq dag.Seq, readers ...sio.Reader) (map[string]zbuf.Pul
 			return nil, err
 		}
 	}
-	channels := make(map[string]zbuf.Puller)
+	channels := make(map[string]sbuf.Puller)
 	for key, pullers := range b.channels {
 		channels[key] = b.combine(pullers)
 	}
@@ -111,7 +111,7 @@ func (b *Builder) BuildWithPuller(seq dag.Seq, parent vector.Puller) ([]vector.P
 	return b.compileVamSeq(seq, []vector.Puller{parent})
 }
 
-func (b *Builder) BuildVamToSeqFilter(filter dag.Expr, poolID, commitID ksuid.KSUID) (zbuf.Puller, error) {
+func (b *Builder) BuildVamToSeqFilter(filter dag.Expr, poolID, commitID ksuid.KSUID) (sbuf.Puller, error) {
 	pool, err := b.env.DB().OpenPool(b.rctx.Context, poolID)
 	if err != nil {
 		return nil, err
@@ -137,7 +137,7 @@ func (b *Builder) sctx() *super.Context {
 	return b.rctx.Sctx
 }
 
-func (b *Builder) Meter() zbuf.Meter {
+func (b *Builder) Meter() sbuf.Meter {
 	return b.progress
 }
 
@@ -149,7 +149,7 @@ func (b *Builder) resetResetters() {
 	b.resetters = nil
 }
 
-func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error) {
+func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error) {
 	switch v := o.(type) {
 	case *dag.Aggregate:
 		return b.compileAggregate(parent, v)
@@ -305,19 +305,19 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 	case *dag.DefaultScan:
 		pushdown := b.newPushdown(v.Filter, nil)
 		if len(b.readers) == 1 {
-			return zbuf.NewScanner(b.rctx.Context, b.readers[0], pushdown)
+			return sbuf.NewScanner(b.rctx.Context, b.readers[0], pushdown)
 		}
-		scanners := make([]zbuf.Scanner, 0, len(b.readers))
+		scanners := make([]sbuf.Scanner, 0, len(b.readers))
 		for _, r := range b.readers {
-			scanner, err := zbuf.NewScanner(b.rctx.Context, r, pushdown)
+			scanner, err := sbuf.NewScanner(b.rctx.Context, r, pushdown)
 			if err != nil {
 				return nil, err
 			}
 			scanners = append(scanners, scanner)
 		}
-		return zbuf.MultiScanner(scanners...), nil
+		return sbuf.MultiScanner(scanners...), nil
 	case *dag.NullScan:
-		return zbuf.NewPuller(zbuf.NewArray([]super.Value{super.Null})), nil
+		return sbuf.NewPuller(sbuf.NewArray([]super.Value{super.Null})), nil
 	case *dag.Lister:
 		if parent != nil {
 			return nil, errors.New("internal error: data source cannot have a parent operator")
@@ -402,7 +402,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent zbuf.Puller) (zbuf.Puller, error)
 	}
 }
 
-func (b *Builder) compileUnnest(parent zbuf.Puller, u *dag.Unnest) (zbuf.Puller, error) {
+func (b *Builder) compileUnnest(parent sbuf.Puller, u *dag.Unnest) (sbuf.Puller, error) {
 	b.resetResetters()
 	expr, err := b.compileExpr(u.Expr)
 	if err != nil {
@@ -413,7 +413,7 @@ func (b *Builder) compileUnnest(parent zbuf.Puller, u *dag.Unnest) (zbuf.Puller,
 		return unnestOp, nil
 	}
 	scope := scope.NewScope(b.rctx.Context, unnestOp)
-	exits, err := b.compileSeq(u.Body, []zbuf.Puller{scope})
+	exits, err := b.compileSeq(u.Body, []sbuf.Puller{scope})
 	if err != nil {
 		return nil, err
 	}
@@ -460,7 +460,7 @@ func splitAssignments(assignments []expr.Assignment) ([]*expr.Lval, []expr.Evalu
 	return lhs, rhs
 }
 
-func (b *Builder) compileSeq(seq dag.Seq, parents []zbuf.Puller) ([]zbuf.Puller, error) {
+func (b *Builder) compileSeq(seq dag.Seq, parents []sbuf.Puller) ([]sbuf.Puller, error) {
 	for _, o := range seq {
 		var err error
 		parents, err = b.compile(o, parents)
@@ -471,7 +471,7 @@ func (b *Builder) compileSeq(seq dag.Seq, parents []zbuf.Puller) ([]zbuf.Puller,
 	return parents, nil
 }
 
-func (b *Builder) compileScope(scope *dag.Scope, parents []zbuf.Puller) ([]zbuf.Puller, error) {
+func (b *Builder) compileScope(scope *dag.Scope, parents []sbuf.Puller) ([]sbuf.Puller, error) {
 	// Because there can be name collisions between a child and parent scope
 	// we clone the current udf map, populate the cloned map, then restore the
 	// old scope once the current scope has been built.
@@ -484,7 +484,7 @@ func (b *Builder) compileScope(scope *dag.Scope, parents []zbuf.Puller) ([]zbuf.
 	return b.compileSeq(scope.Body, parents)
 }
 
-func (b *Builder) compileFork(par *dag.Fork, parents []zbuf.Puller) ([]zbuf.Puller, error) {
+func (b *Builder) compileFork(par *dag.Fork, parents []sbuf.Puller) ([]sbuf.Puller, error) {
 	var f *fork.Op
 	switch len(parents) {
 	case 0:
@@ -496,13 +496,13 @@ func (b *Builder) compileFork(par *dag.Fork, parents []zbuf.Puller) ([]zbuf.Pull
 		// Multiple parents: insert a combine followed by a fork for n-way fanout.
 		f = fork.New(b.rctx, combine.New(b.rctx, parents))
 	}
-	var ops []zbuf.Puller
+	var ops []sbuf.Puller
 	for _, seq := range par.Paths {
-		var parent zbuf.Puller
+		var parent sbuf.Puller
 		if f != nil && !isEntry(seq) {
 			parent = f.AddExit()
 		}
-		op, err := b.compileSeq(seq, []zbuf.Puller{parent})
+		op, err := b.compileSeq(seq, []sbuf.Puller{parent})
 		if err != nil {
 			return nil, err
 		}
@@ -511,11 +511,11 @@ func (b *Builder) compileFork(par *dag.Fork, parents []zbuf.Puller) ([]zbuf.Pull
 	return ops, nil
 }
 
-func (b *Builder) compileScatter(par *dag.Scatter, parents []zbuf.Puller) ([]zbuf.Puller, error) {
+func (b *Builder) compileScatter(par *dag.Scatter, parents []sbuf.Puller) ([]sbuf.Puller, error) {
 	if len(parents) != 1 {
 		return nil, errors.New("internal error: scatter operator requires a single parent")
 	}
-	var ops []zbuf.Puller
+	var ops []sbuf.Puller
 	for _, o := range par.Paths {
 		op, err := b.compileSeq(o, parents[:1])
 		if err != nil {
@@ -526,27 +526,27 @@ func (b *Builder) compileScatter(par *dag.Scatter, parents []zbuf.Puller) ([]zbu
 	return ops, nil
 }
 
-func (b *Builder) compileMirror(m *dag.Mirror, parents []zbuf.Puller) ([]zbuf.Puller, error) {
+func (b *Builder) compileMirror(m *dag.Mirror, parents []sbuf.Puller) ([]sbuf.Puller, error) {
 	o := mirror.New(b.rctx, b.combine(parents))
-	main, err := b.compileSeq(m.Main, []zbuf.Puller{o})
+	main, err := b.compileSeq(m.Main, []sbuf.Puller{o})
 	if err != nil {
 		return nil, err
 	}
-	mirrored, err := b.compileSeq(m.Mirror, []zbuf.Puller{o.Mirrored()})
+	mirrored, err := b.compileSeq(m.Mirror, []sbuf.Puller{o.Mirrored()})
 	if err != nil {
 		return nil, err
 	}
 	return append(main, mirrored...), nil
 }
 
-func (b *Builder) compileExprSwitch(swtch *dag.Switch, parents []zbuf.Puller) ([]zbuf.Puller, error) {
+func (b *Builder) compileExprSwitch(swtch *dag.Switch, parents []sbuf.Puller) ([]sbuf.Puller, error) {
 	b.resetResetters()
 	e, err := b.compileExpr(swtch.Expr)
 	if err != nil {
 		return nil, err
 	}
 	s := exprswitch.New(b.rctx, b.combine(parents), e, b.resetters)
-	var exits []zbuf.Puller
+	var exits []sbuf.Puller
 	for _, c := range swtch.Cases {
 		var val *super.Value
 		if c.Expr != nil {
@@ -559,7 +559,7 @@ func (b *Builder) compileExprSwitch(swtch *dag.Switch, parents []zbuf.Puller) ([
 			}
 			val = &val2
 		}
-		parents, err := b.compileSeq(c.Path, []zbuf.Puller{s.AddCase(val)})
+		parents, err := b.compileSeq(c.Path, []sbuf.Puller{s.AddCase(val)})
 		if err != nil {
 			return nil, err
 		}
@@ -568,7 +568,7 @@ func (b *Builder) compileExprSwitch(swtch *dag.Switch, parents []zbuf.Puller) ([
 	return exits, nil
 }
 
-func (b *Builder) compileSwitch(swtch *dag.Switch, parents []zbuf.Puller) ([]zbuf.Puller, error) {
+func (b *Builder) compileSwitch(swtch *dag.Switch, parents []sbuf.Puller) ([]sbuf.Puller, error) {
 	b.resetResetters()
 	var exprs []expr.Evaluator
 	for _, c := range swtch.Cases {
@@ -579,9 +579,9 @@ func (b *Builder) compileSwitch(swtch *dag.Switch, parents []zbuf.Puller) ([]zbu
 		exprs = append(exprs, e)
 	}
 	switcher := switcher.New(b.rctx, b.combine(parents), b.resetters)
-	var ops []zbuf.Puller
+	var ops []sbuf.Puller
 	for i, e := range exprs {
-		o, err := b.compileSeq(swtch.Cases[i].Path, []zbuf.Puller{switcher.AddCase(e)})
+		o, err := b.compileSeq(swtch.Cases[i].Path, []sbuf.Puller{switcher.AddCase(e)})
 		if err != nil {
 			return nil, err
 		}
@@ -592,7 +592,7 @@ func (b *Builder) compileSwitch(swtch *dag.Switch, parents []zbuf.Puller) ([]zbu
 
 // compile compiles a DAG into a graph of runtime operators, and returns
 // the leaves.
-func (b *Builder) compile(o dag.Op, parents []zbuf.Puller) ([]zbuf.Puller, error) {
+func (b *Builder) compile(o dag.Op, parents []sbuf.Puller) ([]sbuf.Puller, error) {
 	switch o := o.(type) {
 	case *dag.Fork:
 		return b.compileFork(o, parents)
@@ -619,7 +619,7 @@ func (b *Builder) compile(o dag.Op, parents []zbuf.Puller) ([]zbuf.Puller, error
 		if err != nil {
 			return nil, err
 		}
-		return []zbuf.Puller{vam.NewMaterializer(vectorPuller[0])}, nil
+		return []sbuf.Puller{vam.NewMaterializer(vectorPuller[0])}, nil
 	case *dag.Merge:
 		b.resetResetters()
 		exprs, err := b.compileSortExprs(o.Exprs)
@@ -627,19 +627,19 @@ func (b *Builder) compile(o dag.Op, parents []zbuf.Puller) ([]zbuf.Puller, error
 			return nil, err
 		}
 		cmp := expr.NewComparator(exprs...).WithMissingAsNull()
-		return []zbuf.Puller{merge.New(b.rctx, parents, cmp.Compare, b.resetters)}, nil
+		return []sbuf.Puller{merge.New(b.rctx, parents, cmp.Compare, b.resetters)}, nil
 	case *dag.Combine:
-		return []zbuf.Puller{combine.New(b.rctx, parents)}, nil
+		return []sbuf.Puller{combine.New(b.rctx, parents)}, nil
 	default:
 		p, err := b.compileLeaf(o, b.combine(parents))
 		if err != nil {
 			return nil, err
 		}
-		return []zbuf.Puller{p}, nil
+		return []sbuf.Puller{p}, nil
 	}
 }
 
-func (b *Builder) compilePoolScan(scan *dag.PoolScan) (zbuf.Puller, error) {
+func (b *Builder) compilePoolScan(scan *dag.PoolScan) (sbuf.Puller, error) {
 	// Here we convert PoolScan to lister->slicer->seqscan for the slow path as
 	// optimizer should do this conversion, but this allows us to run
 	// unoptimized scans too.
@@ -656,10 +656,10 @@ func (b *Builder) compilePoolScan(scan *dag.PoolScan) (zbuf.Puller, error) {
 }
 
 // For runtime/sam/expr/filter_test.go
-func NewPushdown(b *Builder, e dag.Expr) zbuf.Pushdown {
+func NewPushdown(b *Builder, e dag.Expr) sbuf.Pushdown {
 	return b.newPushdown(e, nil)
 }
-func (b *Builder) newPushdown(e dag.Expr, projection []field.Path) zbuf.Pushdown {
+func (b *Builder) newPushdown(e dag.Expr, projection []field.Path) sbuf.Pushdown {
 	if e == nil && projection == nil {
 		return nil
 	}
@@ -688,7 +688,7 @@ func (b *Builder) lookupPool(id ksuid.KSUID) (*db.Pool, error) {
 	return b.env.DB().OpenPool(b.rctx.Context, id)
 }
 
-func (b *Builder) combine(pullers []zbuf.Puller) zbuf.Puller {
+func (b *Builder) combine(pullers []sbuf.Puller) sbuf.Puller {
 	switch len(pullers) {
 	case 0:
 		return nil

@@ -5,24 +5,24 @@ import (
 	"sync"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sbuf"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zcode"
 )
 
 type Materializer struct {
 	parent vector.Puller
 }
 
-var _ zbuf.Puller = (*Materializer)(nil)
+var _ sbuf.Puller = (*Materializer)(nil)
 
-func NewMaterializer(p vector.Puller) zbuf.Puller {
+func NewMaterializer(p vector.Puller) sbuf.Puller {
 	return &Materializer{
 		parent: p,
 	}
 }
 
-func (m *Materializer) Pull(done bool) (zbuf.Batch, error) {
+func (m *Materializer) Pull(done bool) (sbuf.Batch, error) {
 	vec, err := m.parent.Pull(done)
 	if vec == nil || err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func (m *Materializer) Pull(done bool) (zbuf.Batch, error) {
 	if d == nil {
 		typ = vec.Type()
 	}
-	builder := zcode.NewBuilder()
+	builder := scode.NewBuilder()
 	var vals []super.Value
 	n := vec.Len()
 	for slot := uint32(0); slot < n; slot++ {
@@ -44,15 +44,15 @@ func (m *Materializer) Pull(done bool) (zbuf.Batch, error) {
 		vals = append(vals, val)
 		builder.Reset()
 	}
-	return zbuf.NewArray(vals), nil
+	return sbuf.NewArray(vals), nil
 }
 
 type dematerializer struct {
 	mu     sync.Mutex
-	parent zbuf.Puller
+	parent sbuf.Puller
 }
 
-func NewDematerializer(p zbuf.Puller) vector.Puller {
+func NewDematerializer(p sbuf.Puller) vector.Puller {
 	return &dematerializer{parent: p}
 }
 

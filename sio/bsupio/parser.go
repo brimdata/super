@@ -7,8 +7,8 @@ import (
 	"slices"
 
 	"github.com/brimdata/super/pkg/peeker"
-	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/sbuf"
+	"github.com/brimdata/super/scode"
 )
 
 var errBadFormat = errors.New("malformed BSUP value")
@@ -99,7 +99,7 @@ func (p *parser) decodeValues(code byte) (frame, error) {
 }
 
 // decodeControl reads the next message frame as a control message and
-// returns it as *zbuf.Control, which implements error.  Errors are also
+// returns it as *sbuf.Control, which implements error.  Errors are also
 // return as error so reflection must be used to distringuish the cases.
 func (p *parser) decodeControl(code byte) error {
 	var bytes []byte
@@ -130,7 +130,7 @@ func (p *parser) decodeControl(code byte) error {
 	// sequence of control messages will be processed here by the scanner
 	// go-routine as the workers go idle.  However, this is not a critical
 	// performance path so we're not worried about parallelism here.
-	return &zbuf.Control{
+	return &sbuf.Control{
 		Message: &Control{
 			Format: int(bytes[0]),
 			Bytes:  bytes[1:],
@@ -179,7 +179,7 @@ func (p *parser) readCompressedFrame(code byte) (frame, error) {
 	// The size of the compressed buffer needs to be adjusted by the
 	// byte for the format and the variable-length bytes to encode
 	// the original size.
-	n -= 1 + zcode.SizeOfUvarint(uint64(size))
+	n -= 1 + scode.SizeOfUvarint(uint64(size))
 	b, err := p.peeker.Read(n)
 	if err != nil && err != io.EOF {
 		if err == peeker.ErrBufferOverflow {

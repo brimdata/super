@@ -9,13 +9,13 @@ import (
 	"github.com/brimdata/super/db/commits"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime/sam/expr"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zbuf"
 	"github.com/segmentio/ksuid"
 )
 
-func NewDBMetaScanner(ctx context.Context, sctx *super.Context, r *db.Root, meta string) (zbuf.Scanner, error) {
+func NewDBMetaScanner(ctx context.Context, sctx *super.Context, r *db.Root, meta string) (sbuf.Scanner, error) {
 	var vals []super.Value
 	var err error
 	switch meta {
@@ -29,10 +29,10 @@ func NewDBMetaScanner(ctx context.Context, sctx *super.Context, r *db.Root, meta
 	if err != nil {
 		return nil, err
 	}
-	return zbuf.NewScanner(ctx, zbuf.NewArray(vals), nil)
+	return sbuf.NewScanner(ctx, sbuf.NewArray(vals), nil)
 }
 
-func NewPoolMetaScanner(ctx context.Context, sctx *super.Context, r *db.Root, poolID ksuid.KSUID, meta string) (zbuf.Scanner, error) {
+func NewPoolMetaScanner(ctx context.Context, sctx *super.Context, r *db.Root, poolID ksuid.KSUID, meta string) (sbuf.Scanner, error) {
 	p, err := r.OpenPool(ctx, poolID)
 	if err != nil {
 		return nil, err
@@ -49,10 +49,10 @@ func NewPoolMetaScanner(ctx context.Context, sctx *super.Context, r *db.Root, po
 	default:
 		return nil, fmt.Errorf("unknown pool metadata type: %q", meta)
 	}
-	return zbuf.NewScanner(ctx, zbuf.NewArray(vals), nil)
+	return sbuf.NewScanner(ctx, sbuf.NewArray(vals), nil)
 }
 
-func NewCommitMetaScanner(ctx context.Context, sctx *super.Context, r *db.Root, poolID, commit ksuid.KSUID, meta string, pruner expr.Evaluator) (zbuf.Puller, error) {
+func NewCommitMetaScanner(ctx context.Context, sctx *super.Context, r *db.Root, poolID, commit ksuid.KSUID, meta string, pruner expr.Evaluator) (sbuf.Puller, error) {
 	p, err := r.OpenPool(ctx, poolID)
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func NewCommitMetaScanner(ctx context.Context, sctx *super.Context, r *db.Root, 
 		if err != nil {
 			return nil, err
 		}
-		return zbuf.NewScanner(ctx, zbuf.PullerReader(lister), nil)
+		return sbuf.NewScanner(ctx, sbuf.PullerReader(lister), nil)
 	case "partitions":
 		lister, err := NewSortedLister(ctx, sctx, p, commit, pruner)
 		if err != nil {
@@ -73,28 +73,28 @@ func NewCommitMetaScanner(ctx context.Context, sctx *super.Context, r *db.Root, 
 		if err != nil {
 			return nil, err
 		}
-		return zbuf.NewScanner(ctx, zbuf.PullerReader(slicer), nil)
+		return sbuf.NewScanner(ctx, sbuf.PullerReader(slicer), nil)
 	case "log":
 		tips, err := p.BatchifyBranchTips(ctx, sctx, nil)
 		if err != nil {
 			return nil, err
 		}
-		tipsScanner, err := zbuf.NewScanner(ctx, zbuf.NewArray(tips), nil)
+		tipsScanner, err := sbuf.NewScanner(ctx, sbuf.NewArray(tips), nil)
 		if err != nil {
 			return nil, err
 		}
 		log := p.OpenCommitLog(ctx, sctx, commit)
-		logScanner, err := zbuf.NewScanner(ctx, log, nil)
+		logScanner, err := sbuf.NewScanner(ctx, log, nil)
 		if err != nil {
 			return nil, err
 		}
-		return zbuf.MultiScanner(tipsScanner, logScanner), nil
+		return sbuf.MultiScanner(tipsScanner, logScanner), nil
 	case "rawlog":
 		reader, err := p.OpenCommitLogAsBSUP(ctx, sctx, commit)
 		if err != nil {
 			return nil, err
 		}
-		return zbuf.NewScanner(ctx, reader, nil)
+		return sbuf.NewScanner(ctx, reader, nil)
 	case "vectors":
 		snap, err := p.Snapshot(ctx, commit)
 		if err != nil {
@@ -105,7 +105,7 @@ func NewCommitMetaScanner(ctx context.Context, sctx *super.Context, r *db.Root, 
 		if err != nil {
 			return nil, err
 		}
-		return zbuf.NewScanner(ctx, reader, nil)
+		return sbuf.NewScanner(ctx, reader, nil)
 	default:
 		return nil, fmt.Errorf("unknown commit metadata type: %q", meta)
 	}

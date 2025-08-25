@@ -13,13 +13,13 @@ import (
 	"github.com/brimdata/super/cli/runtimeflags"
 	"github.com/brimdata/super/compiler"
 	"github.com/brimdata/super/compiler/parser"
+	"github.com/brimdata/super/compiler/sfmt"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/supio"
-	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zfmt"
 )
 
 var Super = &charm.Spec{
@@ -137,7 +137,7 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	if c.canon {
-		fmt.Println(zfmt.AST(ast.Parsed()))
+		fmt.Println(sfmt.AST(ast.Parsed()))
 		return nil
 	}
 	sctx := super.NewContext()
@@ -164,7 +164,7 @@ func (c *Command) Run(args []string) error {
 		"main":  writer,
 		"debug": supio.NewWriter(sio.NopCloser(os.Stderr), supio.WriterOpts{}),
 	}
-	err = zbuf.CopyMux(out, query)
+	err = sbuf.CopyMux(out, query)
 	if closeErr := writer.Close(); err == nil {
 		err = closeErr
 	}

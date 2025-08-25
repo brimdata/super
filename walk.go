@@ -3,21 +3,21 @@ package super
 import (
 	"errors"
 
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 // A Visitor is called for each value in a record encountered by
 // Walk. If the visitor returns an error, the walk stops and that
 // error will be returned to the caller of Walk(). The sole exception
 // is when the visitor returns the special value SkipContainer.
-type Visitor func(typ Type, body zcode.Bytes) error
+type Visitor func(typ Type, body scode.Bytes) error
 
 // SkipContainer is used as a return value from Visitors to indicate
 // that the container passed in the call should not be visited. It is
 // not returned as an error by any function.
 var SkipContainer = errors.New("skip this container")
 
-func Walk(typ Type, body zcode.Bytes, visit Visitor) error {
+func Walk(typ Type, body scode.Bytes, visit Visitor) error {
 	if err := visit(typ, body); err != nil {
 		if err == SkipContainer {
 			return nil
@@ -43,7 +43,7 @@ func Walk(typ Type, body zcode.Bytes, visit Visitor) error {
 	return nil
 }
 
-func walkRecord(typ *TypeRecord, body zcode.Bytes, visit Visitor) error {
+func walkRecord(typ *TypeRecord, body scode.Bytes, visit Visitor) error {
 	if body == nil {
 		return nil
 	}
@@ -59,7 +59,7 @@ func walkRecord(typ *TypeRecord, body zcode.Bytes, visit Visitor) error {
 	return nil
 }
 
-func walkArray(typ *TypeArray, body zcode.Bytes, visit Visitor) error {
+func walkArray(typ *TypeArray, body scode.Bytes, visit Visitor) error {
 	if body == nil {
 		return nil
 	}
@@ -73,7 +73,7 @@ func walkArray(typ *TypeArray, body zcode.Bytes, visit Visitor) error {
 	return nil
 }
 
-func walkUnion(typ *TypeUnion, body zcode.Bytes, visit Visitor) error {
+func walkUnion(typ *TypeUnion, body scode.Bytes, visit Visitor) error {
 	if body == nil {
 		return nil
 	}
@@ -93,7 +93,7 @@ func walkUnion(typ *TypeUnion, body zcode.Bytes, visit Visitor) error {
 	return Walk(inner, body, visit)
 }
 
-func walkSet(typ *TypeSet, body zcode.Bytes, visit Visitor) error {
+func walkSet(typ *TypeSet, body scode.Bytes, visit Visitor) error {
 	if body == nil {
 		return nil
 	}
@@ -107,7 +107,7 @@ func walkSet(typ *TypeSet, body zcode.Bytes, visit Visitor) error {
 	return nil
 }
 
-func walkMap(typ *TypeMap, body zcode.Bytes, visit Visitor) error {
+func walkMap(typ *TypeMap, body scode.Bytes, visit Visitor) error {
 	if body == nil {
 		return nil
 	}

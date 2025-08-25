@@ -3,8 +3,8 @@ package expr
 import (
 	"github.com/brimdata/super"
 	samexpr "github.com/brimdata/super/runtime/sam/expr"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zcode"
 )
 
 type samExpr struct {
@@ -21,7 +21,7 @@ func (s *samExpr) Eval(this vector.Any) vector.Any {
 	if !ok {
 		typ = this.Type()
 	}
-	var b zcode.Builder
+	var b scode.Builder
 	vb := vector.NewDynamicBuilder()
 	for i := range this.Len() {
 		b.Truncate()

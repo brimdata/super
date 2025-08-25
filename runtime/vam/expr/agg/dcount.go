@@ -5,8 +5,8 @@ import (
 
 	"github.com/axiomhq/hyperloglog"
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zcode"
 )
 
 // dcount uses hyperloglog to approximate the count of unique values for
@@ -25,7 +25,7 @@ func (d *dcount) Consume(vec vector.Any) {
 	// append type id to vals so we get a unique count where the bytes are same
 	// but the super.Type is different.
 	scratch := super.AppendInt(nil, int64(vec.Type().ID()))
-	var b zcode.Builder
+	var b scode.Builder
 	for i := range vec.Len() {
 		b.Truncate()
 		vec.Serialize(&b, i)

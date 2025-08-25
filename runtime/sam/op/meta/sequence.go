@@ -12,28 +12,28 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/op/merge"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zbuf"
 )
 
 // SequenceScanner implements an op that pulls metadata partitions to scan
 // from its parent and for each partition, scans the object.
 type SequenceScanner struct {
-	parent      zbuf.Puller
-	scanner     zbuf.Puller
-	pushdown    zbuf.Pushdown
+	parent      sbuf.Puller
+	scanner     sbuf.Puller
+	pushdown    sbuf.Pushdown
 	pruner      expr.Evaluator
 	rctx        *runtime.Context
 	pool        *db.Pool
-	progress    *zbuf.Progress
+	progress    *sbuf.Progress
 	unmarshaler *sup.UnmarshalBSUPContext
 	done        bool
 	err         error
 }
 
-func NewSequenceScanner(rctx *runtime.Context, parent zbuf.Puller, pool *db.Pool, pushdown zbuf.Pushdown, pruner expr.Evaluator, progress *zbuf.Progress) *SequenceScanner {
+func NewSequenceScanner(rctx *runtime.Context, parent sbuf.Puller, pool *db.Pool, pushdown sbuf.Pushdown, pruner expr.Evaluator, progress *sbuf.Progress) *SequenceScanner {
 	return &SequenceScanner{
 		rctx:        rctx,
 		parent:      parent,
@@ -45,7 +45,7 @@ func NewSequenceScanner(rctx *runtime.Context, parent zbuf.Puller, pool *db.Pool
 	}
 }
 
-func (s *SequenceScanner) Pull(done bool) (zbuf.Batch, error) {
+func (s *SequenceScanner) Pull(done bool) (sbuf.Batch, error) {
 	if s.done {
 		return nil, s.err
 	}
@@ -95,19 +95,19 @@ func (s *SequenceScanner) close(err error) {
 }
 
 type SearchScanner struct {
-	pushdown zbuf.Pushdown
+	pushdown sbuf.Pushdown
 	parent   Searcher
 	pool     *db.Pool
-	progress *zbuf.Progress
+	progress *sbuf.Progress
 	rctx     *runtime.Context
-	scanner  zbuf.Puller
+	scanner  sbuf.Puller
 }
 
 type Searcher interface {
 	Pull(bool) (*data.Object, *vector.Bool, error)
 }
 
-func NewSearchScanner(rctx *runtime.Context, parent Searcher, pool *db.Pool, pushdown zbuf.Pushdown, progress *zbuf.Progress) *SearchScanner {
+func NewSearchScanner(rctx *runtime.Context, parent Searcher, pool *db.Pool, pushdown sbuf.Pushdown, progress *sbuf.Progress) *SearchScanner {
 	return &SearchScanner{
 		pushdown: pushdown,
 		parent:   parent,
@@ -117,7 +117,7 @@ func NewSearchScanner(rctx *runtime.Context, parent Searcher, pool *db.Pool, pus
 	}
 }
 
-func (s *SearchScanner) Pull(done bool) (zbuf.Batch, error) {
+func (s *SearchScanner) Pull(done bool) (sbuf.Batch, error) {
 	if done {
 		var err error
 		if s.scanner != nil {
@@ -155,7 +155,7 @@ func (s *SearchScanner) Pull(done bool) (zbuf.Batch, error) {
 	}
 }
 
-func newScanner(ctx context.Context, sctx *super.Context, pool *db.Pool, u *sup.UnmarshalBSUPContext, pruner expr.Evaluator, pushdown zbuf.Pushdown, progress *zbuf.Progress, val super.Value) (zbuf.Puller, *data.Object, error) {
+func newScanner(ctx context.Context, sctx *super.Context, pool *db.Pool, u *sup.UnmarshalBSUPContext, pruner expr.Evaluator, pushdown sbuf.Pushdown, progress *sbuf.Progress, val super.Value) (sbuf.Puller, *data.Object, error) {
 	named, ok := val.Type().(*super.TypeNamed)
 	if !ok {
 		return nil, nil, errors.New("system error: SequenceScanner encountered unnamed object")
@@ -178,8 +178,8 @@ func newScanner(ctx context.Context, sctx *super.Context, pool *db.Pool, u *sup.
 	return scanner, objects[0], err
 }
 
-func newObjectsScanner(ctx context.Context, sctx *super.Context, pool *db.Pool, objects []*data.Object, pruner expr.Evaluator, pushdown zbuf.Pushdown, progress *zbuf.Progress) (zbuf.Puller, error) {
-	pullers := make([]zbuf.Puller, 0, len(objects))
+func newObjectsScanner(ctx context.Context, sctx *super.Context, pool *db.Pool, objects []*data.Object, pruner expr.Evaluator, pushdown sbuf.Pushdown, progress *sbuf.Progress) (sbuf.Puller, error) {
+	pullers := make([]sbuf.Puller, 0, len(objects))
 	pullersDone := func() {
 		for _, puller := range pullers {
 			puller.Pull(true)
@@ -203,7 +203,7 @@ func newObjectsScanner(ctx context.Context, sctx *super.Context, pool *db.Pool, 
 	return merge.New(ctx, pullers, db.ImportComparator(sctx, pool).Compare, expr.Resetters{}), nil
 }
 
-func newObjectScanner(ctx context.Context, sctx *super.Context, pool *db.Pool, object *data.Object, ranges []seekindex.Range, pushdown zbuf.Pushdown, progress *zbuf.Progress) (zbuf.Puller, error) {
+func newObjectScanner(ctx context.Context, sctx *super.Context, pool *db.Pool, object *data.Object, ranges []seekindex.Range, pushdown sbuf.Pushdown, progress *sbuf.Progress) (sbuf.Puller, error) {
 	rc, err := object.NewReader(ctx, pool.Storage(), pool.DataPath, ranges)
 	if err != nil {
 		return nil, err
@@ -221,13 +221,13 @@ func newObjectScanner(ctx context.Context, sctx *super.Context, pool *db.Pool, o
 }
 
 type statScanner struct {
-	scanner  zbuf.Scanner
+	scanner  sbuf.Scanner
 	closer   io.Closer
 	err      error
-	progress *zbuf.Progress
+	progress *sbuf.Progress
 }
 
-func (s *statScanner) Pull(done bool) (zbuf.Batch, error) {
+func (s *statScanner) Pull(done bool) (sbuf.Batch, error) {
 	if s.scanner == nil {
 		return nil, s.err
 	}

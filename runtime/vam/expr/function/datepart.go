@@ -3,8 +3,8 @@ package function
 import (
 	"github.com/brimdata/super"
 	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zcode"
 )
 
 //go:generate go run gendatepartfuncs.go
@@ -34,7 +34,7 @@ func (d *DatePart) Call(args ...vector.Any) vector.Any {
 
 func (d *DatePart) slow(partArg, timeArg vector.Any) vector.Any {
 	fn := samfunc.NewDatePart(d.sctx)
-	var b zcode.Builder
+	var b scode.Builder
 	vb := vector.NewDynamicBuilder()
 	for i := range partArg.Len() {
 		b.Reset()

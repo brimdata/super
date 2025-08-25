@@ -3,12 +3,12 @@ package function
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#flatten
 type Flatten struct {
-	zcode.Builder
+	scode.Builder
 	keyType    super.Type
 	entryTypes map[super.Type]super.Type
 	sctx       *super.Context
@@ -37,7 +37,7 @@ func (n *Flatten) Call(args []super.Value) super.Value {
 	return super.NewValue(n.sctx.LookupTypeArray(inner), n.Bytes())
 }
 
-func (n *Flatten) innerTypeOf(b zcode.Bytes, fields []super.Field) super.Type {
+func (n *Flatten) innerTypeOf(b scode.Bytes, fields []super.Field) super.Type {
 	n.types = n.appendTypes(n.types[:0], b, fields)
 	unique := super.UniqueTypes(n.types)
 	if len(unique) == 1 {
@@ -46,7 +46,7 @@ func (n *Flatten) innerTypeOf(b zcode.Bytes, fields []super.Field) super.Type {
 	return n.sctx.LookupTypeUnion(unique)
 }
 
-func (n *Flatten) appendTypes(types []super.Type, b zcode.Bytes, fields []super.Field) []super.Type {
+func (n *Flatten) appendTypes(types []super.Type, b scode.Bytes, fields []super.Field) []super.Type {
 	it := b.Iter()
 	for _, f := range fields {
 		val := it.Next()
@@ -67,7 +67,7 @@ func (n *Flatten) appendTypes(types []super.Type, b zcode.Bytes, fields []super.
 	return types
 }
 
-func (n *Flatten) encode(fields []super.Field, inner super.Type, base field.Path, b zcode.Bytes) {
+func (n *Flatten) encode(fields []super.Field, inner super.Type, base field.Path, b scode.Bytes) {
 	it := b.Iter()
 	for _, f := range fields {
 		val := it.Next()

@@ -3,8 +3,8 @@ package vector
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector/bitvec"
-	"github.com/brimdata/super/zcode"
 )
 
 type Const struct {
@@ -38,7 +38,7 @@ func (c *Const) Value() super.Value {
 	return c.val
 }
 
-func (c *Const) Serialize(b *zcode.Builder, slot uint32) {
+func (c *Const) Serialize(b *scode.Builder, slot uint32) {
 	if c.Nulls.IsSet(slot) {
 		b.Append(nil)
 	} else {

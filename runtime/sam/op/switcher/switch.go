@@ -5,7 +5,7 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/op"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 )
 
 type Selector struct {
@@ -18,11 +18,11 @@ var _ op.Selector = (*Selector)(nil)
 
 type switchCase struct {
 	filter expr.Evaluator
-	route  zbuf.Puller
+	route  sbuf.Puller
 	vals   []super.Value
 }
 
-func New(rctx *runtime.Context, parent zbuf.Puller, resetter expr.Resetter) *Selector {
+func New(rctx *runtime.Context, parent sbuf.Puller, resetter expr.Resetter) *Selector {
 	router := op.NewRouter(rctx, parent)
 	s := &Selector{
 		Router:   router,
@@ -32,13 +32,13 @@ func New(rctx *runtime.Context, parent zbuf.Puller, resetter expr.Resetter) *Sel
 	return s
 }
 
-func (s *Selector) AddCase(f expr.Evaluator) zbuf.Puller {
+func (s *Selector) AddCase(f expr.Evaluator) sbuf.Puller {
 	route := s.Router.AddRoute()
 	s.cases = append(s.cases, &switchCase{filter: f, route: route})
 	return route
 }
 
-func (s *Selector) Forward(router *op.Router, batch zbuf.Batch) bool {
+func (s *Selector) Forward(router *op.Router, batch sbuf.Batch) bool {
 	vals := batch.Values()
 	for i := range vals {
 		this := vals[i]
@@ -70,7 +70,7 @@ func (s *Selector) Forward(router *op.Router, batch zbuf.Batch) bool {
 			// outgoing batch so we don't send these slices
 			// through GC.
 			batch.Ref()
-			out := zbuf.NewBatch(c.vals)
+			out := sbuf.NewBatch(c.vals)
 			c.vals = nil
 			if ok := router.Send(c.route, out, nil); !ok {
 				return false

@@ -3,15 +3,15 @@ package explode
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/sbuf"
+	"github.com/brimdata/super/scode"
 )
 
 // A an explode Proc is a proc that, given an input record and a
 // type T, outputs one record for each field of the input record of
 // type T. It is useful for type-based indexing.
 type Op struct {
-	parent   zbuf.Puller
+	parent   sbuf.Puller
 	outType  super.Type
 	typ      super.Type
 	args     []expr.Evaluator
@@ -20,7 +20,7 @@ type Op struct {
 
 // New creates a exploder for type typ, where the
 // output records' single field is named name.
-func New(sctx *super.Context, parent zbuf.Puller, args []expr.Evaluator, typ super.Type, name string, resetter expr.Resetter) (zbuf.Puller, error) {
+func New(sctx *super.Context, parent sbuf.Puller, args []expr.Evaluator, typ super.Type, name string, resetter expr.Resetter) (sbuf.Puller, error) {
 	return &Op{
 		parent:   parent,
 		outType:  sctx.MustLookupTypeRecord([]super.Field{{Name: name, Type: typ}}),
@@ -30,7 +30,7 @@ func New(sctx *super.Context, parent zbuf.Puller, args []expr.Evaluator, typ sup
 	}, nil
 }
 
-func (o *Op) Pull(done bool) (zbuf.Batch, error) {
+func (o *Op) Pull(done bool) (sbuf.Batch, error) {
 	for {
 		batch, err := o.parent.Pull(done)
 		if batch == nil || err != nil {
@@ -48,9 +48,9 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 					}
 					continue
 				}
-				super.Walk(val.Type(), val.Bytes(), func(typ super.Type, body zcode.Bytes) error {
+				super.Walk(val.Type(), val.Bytes(), func(typ super.Type, body scode.Bytes) error {
 					if typ == o.typ && body != nil {
-						bytes := zcode.Append(nil, body)
+						bytes := scode.Append(nil, body)
 						out = append(out, super.NewValue(o.outType, bytes))
 						return super.SkipContainer
 					}
@@ -60,7 +60,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 		}
 		if len(out) > 0 {
 			defer batch.Unref()
-			return zbuf.NewBatch(out), nil
+			return sbuf.NewBatch(out), nil
 		}
 		batch.Unref()
 	}

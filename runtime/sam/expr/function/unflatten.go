@@ -5,21 +5,21 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zcode"
 )
 
 // https://github.com/brimdata/super/blob/main/docs/language/functions.md#unflatten
 type Unflatten struct {
 	sctx *super.Context
 
-	builder     zcode.Builder
+	builder     scode.Builder
 	recordCache recordCache
 
 	// These exist only to reduce memory allocations.
 	path   field.Path
 	types  []super.Type
-	values []zcode.Bytes
+	values []scode.Bytes
 }
 
 func NewUnflatten(sctx *super.Context) *Unflatten {
@@ -56,7 +56,7 @@ func (u *Unflatten) Call(args []super.Value) super.Value {
 	}
 	u.builder.Reset()
 	types, values := u.types, u.values
-	typ, err := root.build(u.sctx, &u.builder, func() (super.Type, zcode.Bytes) {
+	typ, err := root.build(u.sctx, &u.builder, func() (super.Type, scode.Bytes) {
 		typ, value := types[0], values[0]
 		types, values = types[1:], values[1:]
 		return typ, value
@@ -67,7 +67,7 @@ func (u *Unflatten) Call(args []super.Value) super.Value {
 	return super.NewValue(typ, u.builder.Bytes())
 }
 
-func (u *Unflatten) parseElem(inner super.Type, vb zcode.Bytes) (field.Path, super.Type, zcode.Bytes, error) {
+func (u *Unflatten) parseElem(inner super.Type, vb scode.Bytes) (field.Path, super.Type, scode.Bytes, error) {
 	if union, ok := super.TypeUnder(inner).(*super.TypeUnion); ok {
 		inner, vb = union.Untag(vb)
 	}
@@ -100,7 +100,7 @@ func (u *Unflatten) parseElem(inner super.Type, vb zcode.Bytes) (field.Path, sup
 	return nil, nil, nil, fmt.Errorf("invalid key type %s: expected either string or [string]", sup.FormatType(ktyp))
 }
 
-func (u *Unflatten) decodeKey(b zcode.Bytes) field.Path {
+func (u *Unflatten) decodeKey(b scode.Bytes) field.Path {
 	u.path = u.path[:0]
 	for it := b.Iter(); !it.Done(); {
 		u.path = append(u.path, super.DecodeString(it.Next()))
@@ -170,7 +170,7 @@ func (r *record) countLeaves() int {
 	return count
 }
 
-func (r *record) build(sctx *super.Context, b *zcode.Builder, next func() (super.Type, zcode.Bytes)) (super.Type, error) {
+func (r *record) build(sctx *super.Context, b *scode.Builder, next func() (super.Type, scode.Bytes)) (super.Type, error) {
 	for i, rec := range r.records {
 		if rec == nil {
 			typ, value := next()

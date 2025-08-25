@@ -5,14 +5,14 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/grok"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/bitvec"
-	"github.com/brimdata/super/zcode"
 )
 
 type Grok struct {
 	sctx    *super.Context
-	builder zcode.Builder
+	builder scode.Builder
 	hosts   map[string]*host
 	// fields is used as a scratch space to avoid allocating a new slice.
 	fields []super.Field

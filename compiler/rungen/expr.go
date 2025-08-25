@@ -10,8 +10,8 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/runtime/sam/op/subquery"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zbuf"
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -420,7 +420,7 @@ func (b *Builder) compileSubquery(query *dag.Subquery) (expr.Evaluator, error) {
 		return subquery.NewCachedSubquery(b.rctx, body), nil
 	}
 	subquery := subquery.NewSubquery(b.rctx)
-	body, err := b.compileSeqAndCombine(query.Body, []zbuf.Puller{subquery})
+	body, err := b.compileSeqAndCombine(query.Body, []sbuf.Puller{subquery})
 	if err != nil {
 		return nil, err
 	}
@@ -428,7 +428,7 @@ func (b *Builder) compileSubquery(query *dag.Subquery) (expr.Evaluator, error) {
 	return subquery, nil
 }
 
-func (b *Builder) compileSeqAndCombine(seq dag.Seq, parents []zbuf.Puller) (zbuf.Puller, error) {
+func (b *Builder) compileSeqAndCombine(seq dag.Seq, parents []sbuf.Puller) (sbuf.Puller, error) {
 	exits, err := b.compileSeq(seq, parents)
 	if err != nil {
 		return nil, err

@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -28,7 +28,7 @@ func NewUnionEncoder(typ *super.TypeUnion) *UnionEncoder {
 	}
 }
 
-func (u *UnionEncoder) Write(body zcode.Bytes) {
+func (u *UnionEncoder) Write(body scode.Bytes) {
 	u.count++
 	typ, zv := u.typ.Untag(body)
 	tag := u.typ.TagOf(typ)

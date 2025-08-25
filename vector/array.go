@@ -2,8 +2,8 @@ package vector
 
 import (
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector/bitvec"
-	"github.com/brimdata/super/zcode"
 )
 
 type Array struct {
@@ -27,7 +27,7 @@ func (a *Array) Len() uint32 {
 	return uint32(len(a.Offsets) - 1)
 }
 
-func (a *Array) Serialize(b *zcode.Builder, slot uint32) {
+func (a *Array) Serialize(b *scode.Builder, slot uint32) {
 	if a.Nulls.IsSet(slot) {
 		b.Append(nil)
 		return

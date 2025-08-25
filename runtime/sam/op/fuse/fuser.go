@@ -24,7 +24,7 @@ type Fuser struct {
 }
 
 // NewFuser returns a new Fuser.  The Fuser buffers records in memory until
-// their cumulative size (measured in zcode.Bytes length) exceeds memMaxBytes,
+// their cumulative size (measured in scode.Bytes length) exceeds memMaxBytes,
 // at which point it buffers them in a temporary file.
 func NewFuser(sctx *super.Context, memMaxBytes int) *Fuser {
 	return &Fuser{

@@ -4,8 +4,8 @@ import (
 	"encoding/binary"
 
 	"github.com/brimdata/super/runtime/vam/expr"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zcode"
 )
 
 type Distinct struct {
@@ -27,7 +27,7 @@ func (d *Distinct) Pull(done bool) (vector.Any, error) {
 			clear(d.blocked)
 			return nil, err
 		}
-		var b zcode.Builder
+		var b scode.Builder
 		var index []uint32
 		keyVec := d.expr.Eval(vec)
 		for i := range keyVec.Len() {

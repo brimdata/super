@@ -8,10 +8,10 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/field"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/bitvec"
-	"github.com/brimdata/super/zcode"
 )
 
 type primitive struct {
@@ -62,7 +62,7 @@ func (p *primitive) loadAnyWithLock(loader *loader, nulls bitvec.Bits) any {
 	if !nulls.IsZero() && nulls.Len() != length {
 		panic(fmt.Sprintf("BAD NULLS LEN nulls %d %d (cnt.vals %d cnt.null %d) %s", nulls.Len(), length, p.count.vals, p.count.nulls, sup.String(p.meta.Typ)))
 	}
-	it := zcode.Iter(bytes)
+	it := scode.Iter(bytes)
 	switch p.meta.Typ.(type) {
 	case *super.TypeOfUint8, *super.TypeOfUint16, *super.TypeOfUint32, *super.TypeOfUint64:
 		values := make([]uint64, length)

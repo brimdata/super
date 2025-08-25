@@ -5,13 +5,13 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 	"golang.org/x/sync/errgroup"
 )
 
 type Encoder interface {
 	// Write collects up values to be encoded into memory.
-	Write(zcode.Bytes)
+	Write(scode.Bytes)
 	// Encode encodes all in-memory vector data into its storage-ready serialized format.
 	// Vectors may be encoded concurrently and errgroup.Group is used to sync
 	// and return errors.
@@ -73,7 +73,7 @@ func NewPrimitiveEncoder(typ super.Type) PrimitiveEncoder {
 	case id == super.IDBytes || id == super.IDString || id == super.IDType:
 		return NewBytesEncoder(typ)
 	default:
-		return NewZcodeEncoder(typ)
+		return NewScodeEncoder(typ)
 	}
 }
 

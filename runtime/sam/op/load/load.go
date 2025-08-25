@@ -4,14 +4,14 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/db"
 	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 	"github.com/segmentio/ksuid"
 )
 
 type Op struct {
 	rctx    *runtime.Context
 	root    *db.Root
-	parent  zbuf.Puller
+	parent  sbuf.Puller
 	pool    ksuid.KSUID
 	branch  string
 	author  string
@@ -20,7 +20,7 @@ type Op struct {
 	done    bool
 }
 
-func New(rctx *runtime.Context, root *db.Root, parent zbuf.Puller, pool ksuid.KSUID, branch, author, message, meta string) *Op {
+func New(rctx *runtime.Context, root *db.Root, parent sbuf.Puller, pool ksuid.KSUID, branch, author, message, meta string) *Op {
 	return &Op{
 		rctx:    rctx,
 		root:    root,
@@ -33,7 +33,7 @@ func New(rctx *runtime.Context, root *db.Root, parent zbuf.Puller, pool ksuid.KS
 	}
 }
 
-func (o *Op) Pull(done bool) (zbuf.Batch, error) {
+func (o *Op) Pull(done bool) (sbuf.Batch, error) {
 	if o.done {
 		o.done = false
 		return nil, nil
@@ -53,7 +53,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 		o.branch = "main"
 	}
 	o.done = true
-	reader := zbuf.PullerReader(o.parent)
+	reader := sbuf.PullerReader(o.parent)
 	pool, err := o.root.OpenPool(o.rctx.Context, o.pool)
 	if err != nil {
 		return nil, err
@@ -67,5 +67,5 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 		return nil, err
 	}
 	val := super.NewBytes(commitID[:])
-	return zbuf.NewArray([]super.Value{val}), nil
+	return sbuf.NewArray([]super.Value{val}), nil
 }

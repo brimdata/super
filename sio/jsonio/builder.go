@@ -6,7 +6,7 @@ import (
 	"sort"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 type builder struct {
@@ -25,7 +25,7 @@ type builder struct {
 type item struct {
 	fieldName string
 	typ       super.Type
-	zb        zcode.Builder
+	zb        scode.Builder
 }
 
 func (b *builder) reset() {
@@ -33,7 +33,7 @@ func (b *builder) reset() {
 	b.items = b.items[:0]
 }
 
-func (b *builder) pushPrimitiveItem(fieldName string, typ super.Type, bytes zcode.Bytes) {
+func (b *builder) pushPrimitiveItem(fieldName string, typ super.Type, bytes scode.Bytes) {
 	i := b.pushItem(fieldName)
 	i.typ = typ
 	i.zb.Append(bytes)
@@ -135,7 +135,7 @@ func (b *builder) endRecord() {
 			panic(err)
 		}
 		// removeDuplicateItems operates on itemptrs rather than items
-		// to avoid copying zcode.Builders.
+		// to avoid copying scode.Builders.
 		itemptrs = removeDuplicateItems(itemptrs, dferr.Name)
 	}
 	container.zb.BeginContainer()

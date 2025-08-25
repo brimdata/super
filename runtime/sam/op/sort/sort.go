@@ -10,7 +10,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/op"
 	"github.com/brimdata/super/runtime/sam/op/spill"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 )
 
 // MemMaxBytes specifies the maximum amount of memory that each sort proc
@@ -19,18 +19,18 @@ var MemMaxBytes = 128 * 1024 * 1024
 
 type Op struct {
 	rctx         *runtime.Context
-	parent       zbuf.Puller
+	parent       sbuf.Puller
 	resetter     expr.Resetter
 	guessReverse bool
 
 	fieldResolvers []expr.SortExpr
-	lastBatch      zbuf.Batch
+	lastBatch      sbuf.Batch
 	once           sync.Once
 	resultCh       chan op.Result
 	comparator     *expr.Comparator
 }
 
-func New(rctx *runtime.Context, parent zbuf.Puller, fields []expr.SortExpr, guessReverse bool, resetter expr.Resetter) *Op {
+func New(rctx *runtime.Context, parent sbuf.Puller, fields []expr.SortExpr, guessReverse bool, resetter expr.Resetter) *Op {
 	return &Op{
 		rctx:           rctx,
 		parent:         parent,
@@ -41,7 +41,7 @@ func New(rctx *runtime.Context, parent zbuf.Puller, fields []expr.SortExpr, gues
 	}
 }
 
-func (o *Op) Pull(done bool) (zbuf.Batch, error) {
+func (o *Op) Pull(done bool) (sbuf.Batch, error) {
 	o.once.Do(func() {
 		// Block o.rctx.Cancel until p.run finishes its cleanup.
 		o.rctx.WaitGroup.Add(1)
@@ -148,12 +148,12 @@ func (o *Op) run() {
 // send sorts vals in memory and sends the result downstream.
 func (o *Op) send(vals []super.Value) bool {
 	o.comparator.SortStable(vals)
-	out := zbuf.NewBatch(vals)
+	out := sbuf.NewBatch(vals)
 	return o.sendResult(out, nil)
 }
 
 func (o *Op) sendSpills(spiller *spill.MergeSort) bool {
-	puller := zbuf.NewPuller(spiller)
+	puller := sbuf.NewPuller(spiller)
 	for {
 		if err := o.rctx.Err(); err != nil {
 			return false
@@ -169,7 +169,7 @@ func (o *Op) sendSpills(spiller *spill.MergeSort) bool {
 	}
 }
 
-func (o *Op) sendResult(b zbuf.Batch, err error) bool {
+func (o *Op) sendResult(b sbuf.Batch, err error) bool {
 	if b == nil && err == nil {
 		// Reset stateful aggregation expressions on EOS.
 		o.resetter.Reset()
@@ -182,7 +182,7 @@ func (o *Op) sendResult(b zbuf.Batch, err error) bool {
 	}
 }
 
-func (o *Op) append(out []super.Value, batch zbuf.Batch) ([]super.Value, int) {
+func (o *Op) append(out []super.Value, batch sbuf.Batch) ([]super.Value, int) {
 	var nbytes int
 	vals := batch.Values()
 	for i := range vals {

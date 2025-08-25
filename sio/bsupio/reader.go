@@ -8,8 +8,8 @@ import (
 	"runtime"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/zbuf"
 )
 
 const (
@@ -22,11 +22,11 @@ type Reader struct {
 	sctx    *super.Context
 	reader  io.Reader
 	opts    ReaderOpts
-	scanner zbuf.Scanner
+	scanner sbuf.Scanner
 	wrap    sio.Reader
 }
 
-var _ zbuf.ScannerAble = (*Reader)(nil)
+var _ sbuf.ScannerAble = (*Reader)(nil)
 
 type ReaderOpts struct {
 	Validate bool
@@ -62,7 +62,7 @@ func NewReaderWithOpts(sctx *super.Context, reader io.Reader, opts ReaderOpts) *
 	}
 }
 
-func (r *Reader) NewScanner(ctx context.Context, filter zbuf.Pushdown) (zbuf.Scanner, error) {
+func (r *Reader) NewScanner(ctx context.Context, filter sbuf.Pushdown) (sbuf.Scanner, error) {
 	if r.opts.Threads == 1 {
 		return newScannerSync(ctx, r.sctx, r.reader, filter, r.opts)
 	}
@@ -88,14 +88,14 @@ func (r *Reader) init() error {
 		return err
 	}
 	r.scanner = scanner
-	r.wrap = zbuf.PullerReader(scanner)
+	r.wrap = sbuf.PullerReader(scanner)
 	return nil
 }
 
 func (r *Reader) Read() (*super.Value, error) {
 	// If Read is called, then this Reader is being used as a sio.Reader and
-	// not as a zbuf.Puller.  We just wrap the scanner in a puller to
-	// implement the Reader interface.  If it's used a zbuf.Scanner, then
+	// not as a sbuf.Puller.  We just wrap the scanner in a puller to
+	// implement the Reader interface.  If it's used a sbuf.Scanner, then
 	// the NewScanner method will be called and Read will never happen.
 	if err := r.init(); err != nil {
 		return nil, err
@@ -103,7 +103,7 @@ func (r *Reader) Read() (*super.Value, error) {
 	for {
 		val, err := r.wrap.Read()
 		if err != nil {
-			if _, ok := err.(*zbuf.Control); ok {
+			if _, ok := err.(*sbuf.Control); ok {
 				continue
 			}
 			return nil, err
@@ -118,7 +118,7 @@ func (r *Reader) ReadPayload() (*super.Value, *Control, error) {
 	}
 	val, err := r.wrap.Read()
 	if err != nil {
-		if zctrl, ok := err.(*zbuf.Control); ok {
+		if zctrl, ok := err.(*sbuf.Control); ok {
 			ctrl, ok := zctrl.Message.(*Control)
 			if !ok {
 				return nil, nil, fmt.Errorf("bsupio internal error: unknown control type: %T", zctrl.Message)

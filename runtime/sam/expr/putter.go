@@ -6,7 +6,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 // Putter is an Evaluator that modifies the record stream with computed values.
@@ -17,7 +17,7 @@ import (
 // in the put expression.
 type Putter struct {
 	sctx    *super.Context
-	builder zcode.Builder
+	builder scode.Builder
 	clauses []Assignment
 	rules   map[int]map[string]putRule
 	// vals is a slice to avoid re-allocating for every value
@@ -87,7 +87,7 @@ const (
 	putRecord                  // recurse into record below us
 )
 
-func (p *putStep) build(in zcode.Bytes, b *zcode.Builder, vals []super.Value) zcode.Bytes {
+func (p *putStep) build(in scode.Bytes, b *scode.Builder, vals []super.Value) scode.Bytes {
 	switch p.op {
 	case putRecord:
 		b.Reset()
@@ -101,7 +101,7 @@ func (p *putStep) build(in zcode.Bytes, b *zcode.Builder, vals []super.Value) zc
 	}
 }
 
-func (p *putStep) buildRecord(in zcode.Bytes, b *zcode.Builder, vals []super.Value) error {
+func (p *putStep) buildRecord(in scode.Bytes, b *scode.Builder, vals []super.Value) error {
 	ig := newGetter(in)
 
 	for _, step := range p.record {
@@ -132,16 +132,16 @@ func (p *putStep) buildRecord(in zcode.Bytes, b *zcode.Builder, vals []super.Val
 	return nil
 }
 
-// A getter provides random access to values in a zcode container
-// using zcode.Iter. It uses a cursor to avoid quadratic re-seeks for
+// A getter provides random access to values in a scode container
+// using scode.Iter. It uses a cursor to avoid quadratic re-seeks for
 // the common case where values are fetched sequentially.
 type getter struct {
 	cursor    int
-	container zcode.Bytes
-	it        zcode.Iter
+	container scode.Bytes
+	it        scode.Iter
 }
 
-func newGetter(cont zcode.Bytes) getter {
+func newGetter(cont scode.Bytes) getter {
 	return getter{
 		cursor:    -1,
 		container: cont,
@@ -149,7 +149,7 @@ func newGetter(cont zcode.Bytes) getter {
 	}
 }
 
-func (ig *getter) nth(n int) (zcode.Bytes, error) {
+func (ig *getter) nth(n int) (scode.Bytes, error) {
 	if n < ig.cursor {
 		ig.it = ig.container.Iter()
 	}

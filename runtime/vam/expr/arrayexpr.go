@@ -2,9 +2,9 @@ package expr
 
 import (
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/bitvec"
-	"github.com/brimdata/super/zcode"
 )
 
 type ListElem struct {
@@ -130,7 +130,7 @@ func mergeSameTypeVecs(typ super.Type, tags []uint32, vecs []vector.Any) vector.
 	// merge of same type vectors.
 	counts := make([]uint32, len(vecs))
 	vb := vector.NewBuilder(typ)
-	var b zcode.Builder
+	var b scode.Builder
 	for _, tag := range tags {
 		b.Truncate()
 		vecs[tag].Serialize(&b, counts[tag])

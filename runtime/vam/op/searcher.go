@@ -10,8 +10,8 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/runtime/vcache"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zbuf"
 )
 
 type Searcher struct {
@@ -26,7 +26,7 @@ type Searcher struct {
 	doneCh     chan struct{}
 }
 
-func NewSearcher(rctx *runtime.Context, cache *vcache.Cache, parent zbuf.Puller, pool *db.Pool, filter expr.Evaluator, project []field.Path) (*Searcher, error) {
+func NewSearcher(rctx *runtime.Context, cache *vcache.Cache, parent sbuf.Puller, pool *db.Pool, filter expr.Evaluator, project []field.Path) (*Searcher, error) {
 	return &Searcher{
 		cache:      cache,
 		filter:     filter,

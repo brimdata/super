@@ -8,7 +8,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/byteconv"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 type searchByPred struct {
@@ -38,7 +38,7 @@ func (s *searchByPred) Eval(val super.Value) super.Value {
 	if s.fnm.Match(val.Type()) {
 		return super.True
 	}
-	if errMatch == val.Walk(func(typ super.Type, body zcode.Bytes) error {
+	if errMatch == val.Walk(func(typ super.Type, body scode.Bytes) error {
 		if s.pred(super.NewValue(typ, body)).Ptr().AsBool() {
 			return errMatch
 		}
@@ -105,7 +105,7 @@ func (s *search) Eval(val super.Value) super.Value {
 			return super.False
 		}
 	}
-	if errMatch == val.Walk(func(typ super.Type, body zcode.Bytes) error {
+	if errMatch == val.Walk(func(typ super.Type, body scode.Bytes) error {
 		if typ.ID() == super.IDString {
 			if StringContainsFold(byteconv.UnsafeString(body), s.text) {
 				return errMatch
@@ -124,11 +124,11 @@ func (s *search) Eval(val super.Value) super.Value {
 
 type searchCIDR struct {
 	net   netip.Prefix
-	bytes zcode.Bytes
+	bytes scode.Bytes
 }
 
 func (s *searchCIDR) Eval(val super.Value) super.Value {
-	if errMatch == val.Walk(func(typ super.Type, body zcode.Bytes) error {
+	if errMatch == val.Walk(func(typ super.Type, body scode.Bytes) error {
 		switch typ.ID() {
 		case super.IDNet:
 			if bytes.Equal(body, s.bytes) {
@@ -174,7 +174,7 @@ func (s *searchString) Eval(val super.Value) super.Value {
 	if s.fnm.Match(val.Type()) {
 		return super.True
 	}
-	if errMatch == val.Walk(func(typ super.Type, body zcode.Bytes) error {
+	if errMatch == val.Walk(func(typ super.Type, body scode.Bytes) error {
 		if typ.ID() == super.IDString &&
 			StringContainsFold(byteconv.UnsafeString(body), s.term) {
 			return errMatch

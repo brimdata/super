@@ -2,8 +2,8 @@ package vector
 
 import (
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector/bitvec"
-	"github.com/brimdata/super/zcode"
 )
 
 type Record struct {
@@ -27,7 +27,7 @@ func (r *Record) Len() uint32 {
 	return r.len
 }
 
-func (r *Record) Serialize(b *zcode.Builder, slot uint32) {
+func (r *Record) Serialize(b *scode.Builder, slot uint32) {
 	if r.Nulls.IsSet(slot) {
 		b.Append(nil)
 		return

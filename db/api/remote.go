@@ -13,9 +13,9 @@ import (
 	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/zbuf"
 	"github.com/segmentio/ksuid"
 )
 
@@ -119,7 +119,7 @@ func (r *remote) Revert(ctx context.Context, poolID ksuid.KSUID, branchName stri
 	return res.Commit, err
 }
 
-func (r *remote) Query(ctx context.Context, src string, srcfiles ...string) (zbuf.Scanner, error) {
+func (r *remote) Query(ctx context.Context, src string, srcfiles ...string) (sbuf.Scanner, error) {
 	res, err := r.conn.Query(ctx, src, srcfiles...)
 	if err != nil {
 		return nil, err

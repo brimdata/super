@@ -11,9 +11,9 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/op/merge"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/supio"
-	"github.com/brimdata/super/zbuf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -96,17 +96,17 @@ func TestParallelOrder(t *testing.T) {
 	for i, c := range cases {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			sctx := super.NewContext()
-			var parents []zbuf.Puller
+			var parents []sbuf.Puller
 			for _, input := range c.inputs {
 				r := supio.NewReader(sctx, strings.NewReader(input))
-				parents = append(parents, zbuf.NewPuller(r))
+				parents = append(parents, sbuf.NewPuller(r))
 			}
 			sortExpr := expr.NewSortExpr(expr.NewDottedExpr(sctx, field.Path{c.field}), c.order, order.NullsLast)
 			cmp := expr.NewComparator(sortExpr).Compare
 			om := merge.New(context.Background(), parents, cmp, expr.Resetters{})
 
 			var sb strings.Builder
-			err := zbuf.CopyPuller(supio.NewWriter(sio.NopCloser(&sb), supio.WriterOpts{}), om)
+			err := sbuf.CopyPuller(supio.NewWriter(sio.NopCloser(&sb), supio.WriterOpts{}), om)
 			require.NoError(t, err)
 			assert.Equal(t, c.exp, "\n"+sb.String())
 		})

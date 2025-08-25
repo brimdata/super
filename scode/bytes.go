@@ -1,4 +1,4 @@
-// Package zcode implements serialization and deserialzation for BSUP values.
+// Package scode implements serialization and deserialzation for BSUP values.
 //
 // Values of primitive type are represented by an unsigned integer tag and an
 // optional byte-sequence body.  A tag of zero indicates that the value is
@@ -11,7 +11,7 @@
 //
 // Values of container type (record, set, or array) are represented similarly,
 // with the body containing a sequence of zero or more serialized values.
-package zcode
+package scode
 
 import (
 	"encoding/binary"

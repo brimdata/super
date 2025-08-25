@@ -12,7 +12,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 	"github.com/x448/float16"
 )
 
@@ -64,7 +64,7 @@ type UnmarshalContext struct {
 	*UnmarshalBSUPContext
 	sctx     *super.Context
 	analyzer Analyzer
-	builder  *zcode.Builder
+	builder  *scode.Builder
 }
 
 func NewUnmarshaler() *UnmarshalContext {
@@ -72,7 +72,7 @@ func NewUnmarshaler() *UnmarshalContext {
 		UnmarshalBSUPContext: NewBSUPUnmarshaler(),
 		sctx:                 super.NewContext(),
 		analyzer:             NewAnalyzer(),
-		builder:              zcode.NewBuilder(),
+		builder:              scode.NewBuilder(),
 	}
 }
 
@@ -107,7 +107,7 @@ func MarshalBSUP(v any) (super.Value, error) {
 
 type MarshalBSUPContext struct {
 	*super.Context
-	zcode.Builder
+	scode.Builder
 	decorator func(string, string) string
 	bindings  map[string]string
 }
@@ -499,8 +499,8 @@ func (m *MarshalBSUPContext) encodeArray(arrayVal reflect.Value) (super.Type, er
 	default:
 		unionType := m.Context.LookupTypeUnion(uniqueTypes)
 		// Convert each container element to the union type.
-		m.Builder.TransformContainer(func(bytes zcode.Bytes) zcode.Bytes {
-			var b zcode.Builder
+		m.Builder.TransformContainer(func(bytes scode.Bytes) scode.Bytes {
+			var b scode.Builder
 			for i, it := 0, bytes.Iter(); !it.Done(); i++ {
 				super.BuildUnion(&b, unionType.TagOf(types[i]), it.Next())
 			}
@@ -1111,7 +1111,7 @@ func typeNameOfValue(value any) (string, error) {
 // This process requires
 // a value rather than a Zed type as it must determine the types of union elements
 // from their tags.
-func (u *UnmarshalBSUPContext) lookupGoType(typ super.Type, bytes zcode.Bytes) (reflect.Type, error) {
+func (u *UnmarshalBSUPContext) lookupGoType(typ super.Type, bytes scode.Bytes) (reflect.Type, error) {
 	switch typ := typ.(type) {
 	case *super.TypeNamed:
 		if template := u.binder.lookup(typ.Name); template != nil {

@@ -5,17 +5,17 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 )
 
 type Op struct {
-	parent zbuf.Puller
+	parent sbuf.Puller
 	expr   expr.Evaluator
 	cache  []byte
 	block  map[string]struct{}
 }
 
-func New(parent zbuf.Puller, expr expr.Evaluator) *Op {
+func New(parent sbuf.Puller, expr expr.Evaluator) *Op {
 	return &Op{
 		parent: parent,
 		expr:   expr,
@@ -23,7 +23,7 @@ func New(parent zbuf.Puller, expr expr.Evaluator) *Op {
 	}
 }
 
-func (o *Op) Pull(done bool) (zbuf.Batch, error) {
+func (o *Op) Pull(done bool) (sbuf.Batch, error) {
 	if o.block == nil {
 		o.block = make(map[string]struct{})
 	}
@@ -47,7 +47,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 		}
 		if len(out) > 0 {
 			o.cache = bytes
-			return zbuf.NewBatch(out), nil
+			return sbuf.NewBatch(out), nil
 		}
 		batch.Unref()
 	}

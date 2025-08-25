@@ -12,8 +12,8 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/pkg/terminal/color"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zcode"
 )
 
 var (
@@ -88,7 +88,7 @@ func (w *Writer) writeAny(tab int, val super.Value) {
 	}
 }
 
-func (w *Writer) writeRecord(tab int, typ *super.TypeRecord, bytes zcode.Bytes) {
+func (w *Writer) writeRecord(tab int, typ *super.TypeRecord, bytes scode.Bytes) {
 	tab += w.tab
 	w.punc('{')
 	if len(bytes) == 0 {
@@ -107,7 +107,7 @@ func (w *Writer) writeRecord(tab int, typ *super.TypeRecord, bytes zcode.Bytes) 
 	w.punc('}')
 }
 
-func (w *Writer) writeArray(tab int, typ super.Type, bytes zcode.Bytes) {
+func (w *Writer) writeArray(tab int, typ super.Type, bytes scode.Bytes) {
 	tab += w.tab
 	w.punc('[')
 	if len(bytes) == 0 {
@@ -128,7 +128,7 @@ func (w *Writer) writeArray(tab int, typ super.Type, bytes zcode.Bytes) {
 	w.punc(']')
 }
 
-func (w *Writer) writeMap(tab int, typ *super.TypeMap, bytes zcode.Bytes) {
+func (w *Writer) writeMap(tab int, typ *super.TypeMap, bytes scode.Bytes) {
 	tab += w.tab
 	w.punc('{')
 	if len(bytes) == 0 {
@@ -148,7 +148,7 @@ func (w *Writer) writeMap(tab int, typ *super.TypeMap, bytes zcode.Bytes) {
 	w.punc('}')
 }
 
-func mapKey(typ super.Type, b zcode.Bytes) string {
+func mapKey(typ super.Type, b scode.Bytes) string {
 	val := super.NewValue(typ, b)
 	switch val.Type().Kind() {
 	case super.PrimitiveKind:
@@ -169,18 +169,18 @@ func mapKey(typ super.Type, b zcode.Bytes) string {
 	}
 }
 
-func (w *Writer) writeEnum(typ *super.TypeEnum, bytes zcode.Bytes) {
+func (w *Writer) writeEnum(typ *super.TypeEnum, bytes scode.Bytes) {
 	w.writeColor(w.marshalJSON(convertEnum(typ, bytes)), stringColor)
 }
 
-func convertEnum(typ *super.TypeEnum, bytes zcode.Bytes) string {
+func convertEnum(typ *super.TypeEnum, bytes scode.Bytes) string {
 	if k := int(super.DecodeUint(bytes)); k < len(typ.Symbols) {
 		return typ.Symbols[k]
 	}
 	return "<bad enum>"
 }
 
-func (w *Writer) writeError(tab int, typ *super.TypeError, bytes zcode.Bytes) {
+func (w *Writer) writeError(tab int, typ *super.TypeError, bytes scode.Bytes) {
 	tab += w.tab
 	w.punc('{')
 	w.writeEntry(tab, "error", super.NewValue(typ.Type, bytes))

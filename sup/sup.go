@@ -12,7 +12,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 // Implied returns true for primitive types whose type can be inferred
@@ -76,7 +76,7 @@ func ParseValue(sctx *super.Context, sup string) (super.Value, error) {
 	if err != nil {
 		return super.Null, err
 	}
-	return Build(zcode.NewBuilder(), val)
+	return Build(scode.NewBuilder(), val)
 }
 
 func MustParseValue(sctx *super.Context, sup string) super.Value {
@@ -92,7 +92,7 @@ func ParseValueFromAST(sctx *super.Context, ast ast.Value) (super.Value, error) 
 	if err != nil {
 		return super.Null, err
 	}
-	return Build(zcode.NewBuilder(), val)
+	return Build(scode.NewBuilder(), val)
 }
 
 func TranslateType(sctx *super.Context, astType ast.Type) (super.Type, error) {

@@ -81,10 +81,10 @@ func (u *Unnest) flatten(vec vector.Any, slot uint32) vector.Any {
 			return nil
 		}
 		if len(vec.Fields) != 2 {
-			return vector.NewWrappedError(u.sctx, "unnest: encountered record without two columns", vec)
+			return vector.NewWrappedError(u.sctx, "unnest: encountered record without two fields", vec)
 		}
 		if super.InnerType(vec.Fields[1].Type()) == nil {
-			return vector.NewWrappedError(u.sctx, "unnest: encountered record without an array column", vec)
+			return vector.NewWrappedError(u.sctx, "unnest: encountered record without an array/set type for second field", vec)
 		}
 		right := u.flatten(vec.Fields[1], slot)
 		lindex := make([]uint32, right.Len())

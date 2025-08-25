@@ -1,23 +1,23 @@
 package skip
 
 import (
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 )
 
 type Op struct {
-	parent zbuf.Puller
+	parent sbuf.Puller
 	offset int
 	count  int
 }
 
-func New(parent zbuf.Puller, offset int) *Op {
+func New(parent sbuf.Puller, offset int) *Op {
 	return &Op{
 		parent: parent,
 		offset: offset,
 	}
 }
 
-func (o *Op) Pull(done bool) (zbuf.Batch, error) {
+func (o *Op) Pull(done bool) (sbuf.Batch, error) {
 	for {
 		batch, err := o.parent.Pull(done)
 		if batch == nil || err != nil {
@@ -30,7 +30,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 		vals := batch.Values()
 		if remaining := o.offset - o.count; remaining < len(vals) {
 			o.count = o.offset
-			return zbuf.NewBatch(vals[remaining:]), nil
+			return sbuf.NewBatch(vals[remaining:]), nil
 		}
 		o.count += len(vals)
 	}

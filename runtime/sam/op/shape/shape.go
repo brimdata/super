@@ -5,21 +5,21 @@ import (
 
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/op"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 )
 
 var MemMaxBytes = 128 * 1024 * 1024
 
 type Op struct {
 	rctx   *runtime.Context
-	parent zbuf.Puller
+	parent sbuf.Puller
 
 	shaper   *Shaper
 	once     sync.Once
 	resultCh chan op.Result
 }
 
-func New(rctx *runtime.Context, parent zbuf.Puller) (*Op, error) {
+func New(rctx *runtime.Context, parent sbuf.Puller) (*Op, error) {
 	return &Op{
 		rctx:     rctx,
 		parent:   parent,
@@ -28,7 +28,7 @@ func New(rctx *runtime.Context, parent zbuf.Puller) (*Op, error) {
 	}, nil
 }
 
-func (o *Op) Pull(done bool) (zbuf.Batch, error) {
+func (o *Op) Pull(done bool) (sbuf.Batch, error) {
 	//XXX see issue #3438
 	if done {
 		panic("shape done not supported")
@@ -58,7 +58,7 @@ func (o *Op) pullInput() error {
 			return err
 		}
 		//XXX see issue #3427.
-		if err := zbuf.WriteBatch(o.shaper, batch); err != nil {
+		if err := sbuf.WriteBatch(o.shaper, batch); err != nil {
 			return err
 		}
 		batch.Unref()
@@ -66,7 +66,7 @@ func (o *Op) pullInput() error {
 }
 
 func (o *Op) pushOutput() error {
-	puller := zbuf.NewPuller(o.shaper)
+	puller := sbuf.NewPuller(o.shaper)
 	for {
 		if err := o.rctx.Err(); err != nil {
 			return err
@@ -79,7 +79,7 @@ func (o *Op) pushOutput() error {
 	}
 }
 
-func (o *Op) sendResult(b zbuf.Batch, err error) {
+func (o *Op) sendResult(b sbuf.Batch, err error) {
 	select {
 	case o.resultCh <- op.Result{Batch: b, Err: err}:
 	case <-o.rctx.Done():

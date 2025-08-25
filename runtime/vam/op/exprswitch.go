@@ -5,15 +5,15 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zcode"
 )
 
 type ExprSwitch struct {
 	expr   expr.Evaluator
 	router *router
 
-	builder      zcode.Builder
+	builder      scode.Builder
 	cases        map[string]*route
 	caseIndexes  map[*route][]uint32
 	defaultRoute *route

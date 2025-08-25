@@ -1,8 +1,8 @@
 package vector
 
 import (
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector/bitvec"
-	"github.com/brimdata/super/zcode"
 )
 
 type View struct {
@@ -91,6 +91,6 @@ func (v *View) Len() uint32 {
 	return uint32(len(v.Index))
 }
 
-func (v *View) Serialize(b *zcode.Builder, slot uint32) {
+func (v *View) Serialize(b *scode.Builder, slot uint32) {
 	v.Any.Serialize(b, v.Index[slot])
 }

@@ -2,8 +2,8 @@ package vector
 
 import (
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector/bitvec"
-	"github.com/brimdata/super/zcode"
 )
 
 type TypeValue struct {
@@ -41,7 +41,7 @@ func (t *TypeValue) Table() BytesTable {
 	return t.table
 }
 
-func (t *TypeValue) Serialize(b *zcode.Builder, slot uint32) {
+func (t *TypeValue) Serialize(b *scode.Builder, slot uint32) {
 	if t.Nulls.IsSet(slot) {
 		b.Append(nil)
 	} else {

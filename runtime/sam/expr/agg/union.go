@@ -2,7 +2,7 @@ package agg
 
 import (
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 type Union struct {
@@ -25,7 +25,7 @@ func (u *Union) Consume(val super.Value) {
 	u.Update(val.Type(), val.Bytes())
 }
 
-func (u *Union) Update(typ super.Type, b zcode.Bytes) {
+func (u *Union) Update(typ super.Type, b scode.Bytes) {
 	m, ok := u.types[typ]
 	if !ok {
 		m = make(map[string]struct{})
@@ -65,7 +65,7 @@ func (u *Union) Result(sctx *super.Context) super.Value {
 		types = append(types, typ)
 	}
 	var inner super.Type
-	var b zcode.Builder
+	var b scode.Builder
 	if len(types) > 1 {
 		union := sctx.LookupTypeUnion(types)
 		inner = union

@@ -12,8 +12,8 @@ import (
 	"github.com/brimdata/super/db/data"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime/sam/expr"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zbuf"
 	"github.com/segmentio/ksuid"
 	"golang.org/x/sync/errgroup"
 )
@@ -34,7 +34,7 @@ type Lister struct {
 	err       error
 }
 
-var _ zbuf.Puller = (*Lister)(nil)
+var _ sbuf.Puller = (*Lister)(nil)
 
 func NewSortedLister(ctx context.Context, sctx *super.Context, pool *db.Pool, commit ksuid.KSUID, pruner expr.Evaluator) (*Lister, error) {
 	snap, err := pool.Snapshot(ctx, commit)
@@ -72,7 +72,7 @@ func (l *Lister) Snapshot() commits.View {
 	return l.snap
 }
 
-func (l *Lister) Pull(done bool) (zbuf.Batch, error) {
+func (l *Lister) Pull(done bool) (sbuf.Batch, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	if l.err != nil {
@@ -90,7 +90,7 @@ func (l *Lister) Pull(done bool) (zbuf.Batch, error) {
 			return nil, err
 		}
 		if !l.pruner.prune(val) {
-			return zbuf.NewArray([]super.Value{val}), nil
+			return sbuf.NewArray([]super.Value{val}), nil
 		}
 	}
 	return nil, nil

@@ -11,11 +11,11 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 	"golang.org/x/text/unicode/norm"
 )
 
-func Build(b *zcode.Builder, val Value) (super.Value, error) {
+func Build(b *scode.Builder, val Value) (super.Value, error) {
 	b.Truncate()
 	if err := buildValue(b, val); err != nil {
 		return super.Null, err
@@ -24,7 +24,7 @@ func Build(b *zcode.Builder, val Value) (super.Value, error) {
 	return super.NewValue(val.TypeOf(), it.Next()), nil
 }
 
-func buildValue(b *zcode.Builder, val Value) error {
+func buildValue(b *scode.Builder, val Value) error {
 	switch val := val.(type) {
 	case *Primitive:
 		return BuildPrimitive(b, *val)
@@ -51,7 +51,7 @@ func buildValue(b *zcode.Builder, val Value) error {
 	return fmt.Errorf("unknown ast type: %T", val)
 }
 
-func BuildPrimitive(b *zcode.Builder, val Primitive) error {
+func BuildPrimitive(b *scode.Builder, val Primitive) error {
 	switch super.TypeUnder(val.Type).(type) {
 	case *super.TypeOfUint8, *super.TypeOfUint16, *super.TypeOfUint32, *super.TypeOfUint64:
 		v, err := strconv.ParseUint(val.Text, 10, 64)
@@ -131,7 +131,7 @@ func BuildPrimitive(b *zcode.Builder, val Primitive) error {
 				return fmt.Errorf("invalid bytes: %s (%w)", s, err)
 			}
 		}
-		b.Append(zcode.Bytes(bytes))
+		b.Append(scode.Bytes(bytes))
 		return nil
 	case *super.TypeOfString:
 		body := super.EncodeString(val.Text)
@@ -166,7 +166,7 @@ func BuildPrimitive(b *zcode.Builder, val Primitive) error {
 	return fmt.Errorf("unknown primitive: %T", val.Type)
 }
 
-func buildRecord(b *zcode.Builder, val *Record) error {
+func buildRecord(b *scode.Builder, val *Record) error {
 	b.BeginContainer()
 	for _, v := range val.Fields {
 		if err := buildValue(b, v); err != nil {
@@ -177,7 +177,7 @@ func buildRecord(b *zcode.Builder, val *Record) error {
 	return nil
 }
 
-func buildArray(b *zcode.Builder, array *Array) error {
+func buildArray(b *scode.Builder, array *Array) error {
 	b.BeginContainer()
 	for _, v := range array.Elements {
 		if err := buildValue(b, v); err != nil {
@@ -188,7 +188,7 @@ func buildArray(b *zcode.Builder, array *Array) error {
 	return nil
 }
 
-func buildSet(b *zcode.Builder, set *Set) error {
+func buildSet(b *scode.Builder, set *Set) error {
 	b.BeginContainer()
 	for _, v := range set.Elements {
 		if err := buildValue(b, v); err != nil {
@@ -200,7 +200,7 @@ func buildSet(b *zcode.Builder, set *Set) error {
 	return nil
 }
 
-func buildMap(b *zcode.Builder, m *Map) error {
+func buildMap(b *scode.Builder, m *Map) error {
 	b.BeginContainer()
 	for _, entry := range m.Entries {
 		if err := buildValue(b, entry.Key); err != nil {
@@ -215,7 +215,7 @@ func buildMap(b *zcode.Builder, m *Map) error {
 	return nil
 }
 
-func buildUnion(b *zcode.Builder, union *Union) error {
+func buildUnion(b *scode.Builder, union *Union) error {
 	if tag := union.Tag; tag >= 0 {
 		b.BeginContainer()
 		b.Append(super.EncodeInt(int64(tag)))
@@ -229,7 +229,7 @@ func buildUnion(b *zcode.Builder, union *Union) error {
 	return nil
 }
 
-func buildEnum(b *zcode.Builder, enum *Enum) error {
+func buildEnum(b *scode.Builder, enum *Enum) error {
 	under, ok := super.TypeUnder(enum.Type).(*super.TypeEnum)
 	if !ok {
 		// This shouldn't happen.
@@ -243,7 +243,7 @@ func buildEnum(b *zcode.Builder, enum *Enum) error {
 	return nil
 }
 
-func buildTypeValue(b *zcode.Builder, tv *TypeValue) error {
+func buildTypeValue(b *scode.Builder, tv *TypeValue) error {
 	b.Append(super.EncodeTypeValue(tv.Value))
 	return nil
 }

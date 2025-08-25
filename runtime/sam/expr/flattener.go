@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 type Flattener struct {
@@ -23,7 +23,7 @@ func NewFlattener(sctx *super.Context) *Flattener {
 	}
 }
 
-func recode(dst zcode.Bytes, typ *super.TypeRecord, in zcode.Bytes) (zcode.Bytes, error) {
+func recode(dst scode.Bytes, typ *super.TypeRecord, in scode.Bytes) (scode.Bytes, error) {
 	if in == nil {
 		for _, f := range typ.Fields {
 			if typ, ok := super.TypeUnder(f.Type).(*super.TypeRecord); ok {
@@ -33,7 +33,7 @@ func recode(dst zcode.Bytes, typ *super.TypeRecord, in zcode.Bytes) (zcode.Bytes
 					return nil, err
 				}
 			} else {
-				dst = zcode.Append(dst, nil)
+				dst = scode.Append(dst, nil)
 			}
 		}
 		return dst, nil
@@ -51,7 +51,7 @@ func recode(dst zcode.Bytes, typ *super.TypeRecord, in zcode.Bytes) (zcode.Bytes
 				return nil, err
 			}
 		} else {
-			dst = zcode.Append(dst, val)
+			dst = scode.Append(dst, val)
 		}
 	}
 	return dst, nil

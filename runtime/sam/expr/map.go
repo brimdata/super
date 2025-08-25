@@ -2,11 +2,11 @@ package expr
 
 import (
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 type mapCall struct {
-	builder zcode.Builder
+	builder scode.Builder
 	eval    Evaluator
 	inner   Evaluator
 	sctx    *super.Context

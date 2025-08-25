@@ -3,7 +3,7 @@ package csup
 import (
 	"io"
 
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -24,7 +24,7 @@ func NewNullsEncoder(values Encoder) *NullsEncoder {
 	}
 }
 
-func (n *NullsEncoder) Write(body zcode.Bytes) {
+func (n *NullsEncoder) Write(body scode.Bytes) {
 	if body != nil {
 		n.touchValue()
 		n.values.Write(body)

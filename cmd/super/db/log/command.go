@@ -9,7 +9,7 @@ import (
 	"github.com/brimdata/super/cmd/super/db"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 )
 
 var spec = &charm.Spec{
@@ -77,7 +77,7 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	defer q.Pull(true)
-	err = zbuf.CopyPuller(w, q)
+	err = sbuf.CopyPuller(w, q)
 	if closeErr := w.Close(); err == nil {
 		err = closeErr
 	}

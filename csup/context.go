@@ -7,9 +7,9 @@ import (
 	"sync"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zbuf"
 )
 
 type Context struct {
@@ -64,7 +64,7 @@ func (c *Context) readMeta(r io.Reader) error {
 		return err
 	}
 	defer scanner.Pull(true)
-	var batches []zbuf.Batch
+	var batches []sbuf.Batch
 	var numValues int
 	for {
 		batch, err := scanner.Pull(false)

@@ -115,8 +115,8 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/db/api"
 	"github.com/brimdata/super/pkg/storage"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zbuf"
 )
 
 func main() {
@@ -137,7 +137,7 @@ func main() {
 		log.Fatalln(err)
 	}
 	defer q.Pull(true)
-	reader := zbuf.PullerReader(q)
+	reader := sbuf.PullerReader(q)
 	sctx := super.NewContext()
 	for {
 		val, err := reader.Read()

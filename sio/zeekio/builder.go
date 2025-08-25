@@ -9,12 +9,12 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/byteconv"
 	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 	"golang.org/x/text/unicode/norm"
 )
 
 type builder struct {
-	zcode.Builder
+	scode.Builder
 	buf             []byte
 	fields          [][]byte
 	reorderedFields [][]byte

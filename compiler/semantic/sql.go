@@ -12,10 +12,10 @@ import (
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/compiler/rungen"
+	"github.com/brimdata/super/compiler/sfmt"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zfmt"
 )
 
 // Analyze a SQL select expression which may have arbitrary nested subqueries
@@ -271,9 +271,9 @@ func (a *analyzer) genAggregateOutput(proj projection, keyExprs []exprloc, seq d
 }
 
 func exprMatch(e dag.Expr, exprs []exprloc) int {
-	target := zfmt.DAGExpr(e)
+	target := sfmt.DAGExpr(e)
 	for which, e := range exprs {
-		if target == zfmt.DAGExpr(e.expr) {
+		if target == sfmt.DAGExpr(e.expr) {
 			return which
 		}
 	}
@@ -851,7 +851,7 @@ func inferColumnName(e dag.Expr, ae ast.Expr) string {
 	case *dag.This:
 		return field.Path(e.Path).Leaf()
 	default:
-		return zfmt.ASTExpr(ae)
+		return sfmt.ASTExpr(ae)
 	}
 }
 

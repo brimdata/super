@@ -15,11 +15,11 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime/vam"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio/anyio"
 	"github.com/brimdata/super/sio/csupio"
 	"github.com/brimdata/super/sio/parquetio"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zbuf"
 	"github.com/segmentio/ksuid"
 )
 
@@ -80,7 +80,7 @@ func (e *Environment) SortKeys(ctx context.Context, src dag.Op) order.SortKeys {
 	return nil
 }
 
-func (e *Environment) Open(ctx context.Context, sctx *super.Context, path, format string, pushdown zbuf.Pushdown) (zbuf.Puller, error) {
+func (e *Environment) Open(ctx context.Context, sctx *super.Context, path, format string, pushdown sbuf.Pushdown) (sbuf.Puller, error) {
 	if path == "-" {
 		path = "stdio:stdin"
 	}
@@ -94,16 +94,16 @@ func (e *Environment) Open(ctx context.Context, sctx *super.Context, path, forma
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", path, err)
 	}
-	scanner, err := zbuf.NewScanner(ctx, file, pushdown)
+	scanner, err := sbuf.NewScanner(ctx, file, pushdown)
 	if err != nil {
 		file.Close()
 		return nil, err
 	}
-	sn := zbuf.NamedScanner(scanner, path)
+	sn := sbuf.NamedScanner(scanner, path)
 	return &closePuller{sn, file}, nil
 }
 
-func (*Environment) OpenHTTP(ctx context.Context, sctx *super.Context, url, format, method string, headers http.Header, body io.Reader, fields []field.Path) (zbuf.Puller, error) {
+func (*Environment) OpenHTTP(ctx context.Context, sctx *super.Context, url, format, method string, headers http.Header, body io.Reader, fields []field.Path) (sbuf.Puller, error) {
 	req, err := http.NewRequestWithContext(ctx, method, url, body)
 	if err != nil {
 		return nil, err
@@ -118,7 +118,7 @@ func (*Environment) OpenHTTP(ctx context.Context, sctx *super.Context, url, form
 		resp.Body.Close()
 		return nil, fmt.Errorf("%s: %w", url, err)
 	}
-	scanner, err := zbuf.NewScanner(ctx, file, nil)
+	scanner, err := sbuf.NewScanner(ctx, file, nil)
 	if err != nil {
 		file.Close()
 		return nil, err
@@ -127,11 +127,11 @@ func (*Environment) OpenHTTP(ctx context.Context, sctx *super.Context, url, form
 }
 
 type closePuller struct {
-	p zbuf.Puller
+	p sbuf.Puller
 	c io.Closer
 }
 
-func (c *closePuller) Pull(done bool) (zbuf.Batch, error) {
+func (c *closePuller) Pull(done bool) (sbuf.Batch, error) {
 	batch, err := c.p.Pull(done)
 	if batch == nil {
 		c.c.Close()
@@ -139,7 +139,7 @@ func (c *closePuller) Pull(done bool) (zbuf.Batch, error) {
 	return batch, err
 }
 
-func (e *Environment) VectorOpen(ctx context.Context, sctx *super.Context, path, format string, pushdown zbuf.Pushdown) (vector.Puller, error) {
+func (e *Environment) VectorOpen(ctx context.Context, sctx *super.Context, path, format string, pushdown sbuf.Pushdown) (vector.Puller, error) {
 	if path == "-" {
 		path = "stdio:stdin"
 	}
@@ -158,9 +158,9 @@ func (e *Environment) VectorOpen(ctx context.Context, sctx *super.Context, path,
 	case "parquet":
 		puller, err = parquetio.NewVectorReader(ctx, sctx, r, pushdown)
 	default:
-		var zbufPuller zbuf.Puller
-		zbufPuller, err = e.Open(ctx, sctx, path, format, nil)
-		puller = vam.NewDematerializer(zbufPuller)
+		var sbufPuller sbuf.Puller
+		sbufPuller, err = e.Open(ctx, sctx, path, format, nil)
+		puller = vam.NewDematerializer(sbufPuller)
 	}
 	if err != nil {
 		r.Close()

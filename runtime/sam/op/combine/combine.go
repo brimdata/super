@@ -7,7 +7,7 @@ import (
 
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/op"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -20,7 +20,7 @@ type Op struct {
 	nblocked int
 }
 
-func New(rctx *runtime.Context, parents []zbuf.Puller) *Op {
+func New(rctx *runtime.Context, parents []sbuf.Puller) *Op {
 	ctx := rctx.Context
 	queue := make(chan *puller, len(parents))
 	pullers := make([]*puller, 0, len(parents))
@@ -36,7 +36,7 @@ func New(rctx *runtime.Context, parents []zbuf.Puller) *Op {
 	}
 }
 
-func (o *Op) Pull(done bool) (zbuf.Batch, error) {
+func (o *Op) Pull(done bool) (sbuf.Batch, error) {
 	o.once.Do(func() {
 		for _, parent := range o.parents {
 			go parent.run()
@@ -159,7 +159,7 @@ drain:
 }
 
 type puller struct {
-	zbuf.Puller
+	sbuf.Puller
 	ctx      context.Context
 	resultCh chan op.Result
 	doneCh   chan struct{}
@@ -169,7 +169,7 @@ type puller struct {
 	blocked bool
 }
 
-func newPuller(ctx context.Context, waitCh chan<- struct{}, parent zbuf.Puller, q chan<- *puller) *puller {
+func newPuller(ctx context.Context, waitCh chan<- struct{}, parent sbuf.Puller, q chan<- *puller) *puller {
 	return &puller{
 		Puller:   op.NewCatcher(parent),
 		ctx:      ctx,

@@ -5,10 +5,10 @@ import (
 
 	"github.com/brimdata/super"
 	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sio/supio"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/bitvec"
-	"github.com/brimdata/super/zcode"
 )
 
 type ParseURI struct {
@@ -25,7 +25,7 @@ func (p *ParseURI) Call(args ...vector.Any) vector.Any {
 	if vec.Type().ID() != super.IDString {
 		return vector.NewWrappedError(p.sctx, "parse_uri: string arg required", args[0])
 	}
-	var b zcode.Builder
+	var b scode.Builder
 	db := vector.NewDynamicBuilder()
 	for i := range vec.Len() {
 		b.Truncate()

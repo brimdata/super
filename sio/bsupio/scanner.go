@@ -11,15 +11,15 @@ import (
 	"github.com/brimdata/super/pkg/peeker"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/op"
-	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/sbuf"
+	"github.com/brimdata/super/scode"
 )
 
 type scanner struct {
 	ctx        context.Context
 	cancel     context.CancelFunc
 	parser     parser
-	progress   zbuf.Progress
+	progress   sbuf.Progress
 	validate   bool
 	once       sync.Once
 	workers    []*worker
@@ -29,7 +29,7 @@ type scanner struct {
 	eof        bool
 }
 
-func newScanner(ctx context.Context, sctx *super.Context, r io.Reader, pushdown zbuf.Pushdown, opts ReaderOpts) (zbuf.Scanner, error) {
+func newScanner(ctx context.Context, sctx *super.Context, r io.Reader, pushdown sbuf.Pushdown, opts ReaderOpts) (sbuf.Scanner, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	s := &scanner{
 		ctx:    ctx,
@@ -62,7 +62,7 @@ func newScanner(ctx context.Context, sctx *super.Context, r io.Reader, pushdown 
 	return s, nil
 }
 
-func (s *scanner) Pull(done bool) (zbuf.Batch, error) {
+func (s *scanner) Pull(done bool) (sbuf.Batch, error) {
 	s.once.Do(s.start)
 	if done {
 		s.cancel()
@@ -84,7 +84,7 @@ func (s *scanner) Pull(done bool) (zbuf.Batch, error) {
 				continue
 			}
 			if result.Batch == nil || result.Err != nil {
-				if _, ok := result.Err.(*zbuf.Control); !ok {
+				if _, ok := result.Err.(*sbuf.Control); !ok {
 					s.eof = true
 					s.err = result.Err
 					s.cancel()
@@ -118,7 +118,7 @@ func (s *scanner) start() {
 		for {
 			frame, err := s.parser.read()
 			if err != nil {
-				if _, ok := err.(*zbuf.Control); ok {
+				if _, ok := err.(*sbuf.Control); ok {
 					s.sendControl(err)
 					continue
 				}
@@ -169,7 +169,7 @@ func (s *scanner) sendControl(err error) bool {
 	}
 }
 
-func (s *scanner) Progress() zbuf.Progress {
+func (s *scanner) Progress() sbuf.Progress {
 	return s.progress.Copy()
 }
 
@@ -178,7 +178,7 @@ func (s *scanner) Progress() zbuf.Progress {
 // be safely used without any channel involvement.
 type worker struct {
 	ctx          context.Context
-	progress     *zbuf.Progress
+	progress     *sbuf.Progress
 	workCh       chan work
 	bufferFilter *expr.BufferFilter
 	filter       expr.Evaluator
@@ -198,7 +198,7 @@ type work struct {
 	resultCh chan op.Result
 }
 
-func newWorker(ctx context.Context, p *zbuf.Progress, bf *expr.BufferFilter, f expr.Evaluator, validate bool) *worker {
+func newWorker(ctx context.Context, p *sbuf.Progress, bf *expr.BufferFilter, f expr.Evaluator, validate bool) *worker {
 	return &worker{
 		ctx:          ctx,
 		progress:     p,
@@ -252,7 +252,7 @@ func (w *worker) run(workerCh chan<- *worker) {
 	}
 }
 
-func (w *worker) scanBatch(buf *buffer, types super.TypeFetcher) (zbuf.Batch, error) {
+func (w *worker) scanBatch(buf *buffer, types super.TypeFetcher) (sbuf.Batch, error) {
 	// If w.bufferFilter evaluates to false, we know buf cannot contain
 	// values matching w.filter.
 	if w.bufferFilter != nil && !w.bufferFilter.Eval(types, buf.Bytes()) {
@@ -263,7 +263,7 @@ func (w *worker) scanBatch(buf *buffer, types super.TypeFetcher) (zbuf.Batch, er
 	// Otherwise, build a batch by reading all values in the buffer.
 	w.typeCache.Reset(types)
 	w.vals = w.vals[:0]
-	var progress zbuf.Progress
+	var progress sbuf.Progress
 	for buf.length() > 0 {
 		var val super.Value
 		if err := w.decodeVal(buf, &val); err != nil {
@@ -287,7 +287,7 @@ func (w *worker) decodeVal(buf *buffer, valRef *super.Value) error {
 	if err != nil {
 		return err
 	}
-	n, err := zcode.ReadTag(buf)
+	n, err := scode.ReadTag(buf)
 	if err != nil {
 		return errBadFormat
 	}
@@ -316,7 +316,7 @@ func (w *worker) decodeVal(buf *buffer, valRef *super.Value) error {
 	return nil
 }
 
-func (w *worker) wantValue(val super.Value, progress *zbuf.Progress) bool {
+func (w *worker) wantValue(val super.Value, progress *sbuf.Progress) bool {
 	progress.BytesRead += int64(len(val.Bytes()))
 	progress.RecordsRead++
 	// It's tempting to call w.bufferFilter.Eval on rec.Bytes here, but that

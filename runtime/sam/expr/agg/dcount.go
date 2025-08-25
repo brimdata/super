@@ -5,14 +5,14 @@ import (
 
 	"github.com/axiomhq/hyperloglog"
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zcode"
 )
 
 // DCount uses hyperloglog to approximate the count of unique values for
 // a field.
 type DCount struct {
-	scratch zcode.Bytes
+	scratch scode.Bytes
 	sketch  *hyperloglog.Sketch
 }
 

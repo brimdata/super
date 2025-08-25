@@ -10,8 +10,8 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zcode"
 )
 
 var ErrNotDataFrame = errors.New("CSV output requires uniform records but multiple types encountered (consider 'fuse')")
@@ -98,7 +98,7 @@ func (w *Writer) Write(rec super.Value) error {
 	return w.encoder.Write(w.strings)
 }
 
-func formatValue(typ super.Type, bytes zcode.Bytes) string {
+func formatValue(typ super.Type, bytes scode.Bytes) string {
 	// Avoid SUP decoration.
 	if typ.ID() < super.IDTypeComplex {
 		return sup.FormatPrimitive(super.TypeUnder(typ), bytes)

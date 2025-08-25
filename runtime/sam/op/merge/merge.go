@@ -8,8 +8,8 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/op"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/zbuf"
 )
 
 // Proc merges multiple upstream Pullers into one downstream Puller.
@@ -30,13 +30,13 @@ type Op struct {
 	// hol.vals[0] (see Less) so that the next Read always returns
 	// hol[0].vals[0].
 	hol   []*puller
-	unref zbuf.Batch
+	unref sbuf.Batch
 }
 
-var _ zbuf.Puller = (*Op)(nil)
+var _ sbuf.Puller = (*Op)(nil)
 var _ sio.Reader = (*Op)(nil)
 
-func New(ctx context.Context, parents []zbuf.Puller, cmp expr.CompareFn, resetter expr.Resetter) *Op {
+func New(ctx context.Context, parents []sbuf.Puller, cmp expr.CompareFn, resetter expr.Resetter) *Op {
 	pullers := make([]*puller, 0, len(parents))
 	for _, p := range parents {
 		pullers = append(pullers, newPuller(ctx, p))
@@ -49,7 +49,7 @@ func New(ctx context.Context, parents []zbuf.Puller, cmp expr.CompareFn, resette
 	}
 }
 
-func (o *Op) Pull(done bool) (zbuf.Batch, error) {
+func (o *Op) Pull(done bool) (sbuf.Batch, error) {
 	var err error
 	o.once.Do(func() { err = o.run() })
 	if err != nil {
@@ -74,7 +74,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 		// way, it's safe to return min's remaining values as a batch.
 		batch := min.batch
 		if len(min.vals) < len(batch.Values()) {
-			batch = zbuf.NewArray(min.vals)
+			batch = sbuf.NewArray(min.vals)
 		}
 		ok, err := min.replenish()
 		if err != nil {
@@ -86,7 +86,7 @@ func (o *Op) Pull(done bool) (zbuf.Batch, error) {
 		return batch, nil
 	}
 	heap.Push(o, min)
-	return zbuf.NewPuller(o).Pull(false)
+	return sbuf.NewPuller(o).Pull(false)
 }
 
 func (o *Op) Read() (*super.Value, error) {
@@ -187,17 +187,17 @@ func (o *Op) Pop() any {
 }
 
 type puller struct {
-	zbuf.Puller
+	sbuf.Puller
 	ctx      context.Context
 	resultCh chan op.Result
 	doneCh   chan struct{}
-	batch    zbuf.Batch
+	batch    sbuf.Batch
 	vals     []super.Value
 	// Used only by Proc
 	blocked bool
 }
 
-func newPuller(ctx context.Context, parent zbuf.Puller) *puller {
+func newPuller(ctx context.Context, parent sbuf.Puller) *puller {
 	return &puller{
 		Puller:   op.NewCatcher(parent),
 		ctx:      ctx,

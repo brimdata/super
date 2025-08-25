@@ -2,8 +2,8 @@ package vector
 
 import (
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector/bitvec"
-	"github.com/brimdata/super/zcode"
 )
 
 type Bool struct {
@@ -43,7 +43,7 @@ func (b *Bool) CopyWithBits(bits bitvec.Bits) *Bool {
 	return &out
 }
 
-func (b *Bool) Serialize(builder *zcode.Builder, slot uint32) {
+func (b *Bool) Serialize(builder *scode.Builder, slot uint32) {
 	if b.Nulls.IsSet(slot) {
 		builder.Append(nil)
 	} else {

@@ -10,7 +10,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/terminal/color"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 type Formatter struct {
@@ -140,14 +140,14 @@ func (f *Formatter) saveType(named *super.TypeNamed) {
 	}
 }
 
-func (f *Formatter) formatValueAndDecorate(typ super.Type, bytes zcode.Bytes) {
+func (f *Formatter) formatValueAndDecorate(typ super.Type, bytes scode.Bytes) {
 	known := f.hasName(typ)
 	implied := f.isImplied(typ)
 	f.formatValue(0, typ, bytes, known, implied, false)
 	f.decorate(typ, false, bytes == nil)
 }
 
-func (f *Formatter) formatValue(indent int, typ super.Type, bytes zcode.Bytes, parentKnown, parentImplied, decorate bool) {
+func (f *Formatter) formatValue(indent int, typ super.Type, bytes scode.Bytes, parentKnown, parentImplied, decorate bool) {
 	known := parentKnown || f.hasName(typ)
 	if bytes == nil {
 		f.build("null")
@@ -200,7 +200,7 @@ func (f *Formatter) formatValue(indent int, typ super.Type, bytes zcode.Bytes, p
 	}
 }
 
-func (f *Formatter) formatTypeValue(indent int, tv zcode.Bytes, isComponentType bool) zcode.Bytes {
+func (f *Formatter) formatTypeValue(indent int, tv scode.Bytes, isComponentType bool) scode.Bytes {
 	n, tv := super.DecodeLength(tv)
 	if tv == nil {
 		f.truncTypeValueErr()
@@ -363,7 +363,7 @@ func (f *Formatter) formatTypeValue(indent int, tv zcode.Bytes, isComponentType 
 	return tv
 }
 
-func (f *Formatter) formatVectorTypeValue(indent int, open, close string, tv zcode.Bytes) zcode.Bytes {
+func (f *Formatter) formatVectorTypeValue(indent int, open, close string, tv scode.Bytes) scode.Bytes {
 	f.build(open)
 	if n, _ := super.DecodeLength(tv); n < super.IDTypeComplex {
 		tv = f.formatTypeValue(indent, tv, false)
@@ -402,7 +402,7 @@ func (f *Formatter) decorate(typ super.Type, known, null bool) {
 	}
 }
 
-func (f *Formatter) formatRecord(indent int, typ *super.TypeRecord, bytes zcode.Bytes, known, parentImplied bool) {
+func (f *Formatter) formatRecord(indent int, typ *super.TypeRecord, bytes scode.Bytes, known, parentImplied bool) {
 	f.build("{")
 	if len(typ.Fields) == 0 {
 		f.build("}")
@@ -469,7 +469,7 @@ func newElemBuilder(typ super.Type) *elemHelper {
 	return &elemHelper{typ: typ, union: union, seen: make(map[super.Type]struct{})}
 }
 
-func (e *elemHelper) add(b zcode.Bytes) (super.Type, zcode.Bytes) {
+func (e *elemHelper) add(b scode.Bytes) (super.Type, scode.Bytes) {
 	if e.union == nil {
 		return e.typ, b
 	}
@@ -492,7 +492,7 @@ func (e *elemHelper) needsDecoration() bool {
 	return e.union != nil && (isnamed || len(e.seen) < len(e.union.Types))
 }
 
-func (f *Formatter) formatUnion(indent int, union *super.TypeUnion, bytes zcode.Bytes) {
+func (f *Formatter) formatUnion(indent int, union *super.TypeUnion, bytes scode.Bytes) {
 	typ, bytes := union.Untag(bytes)
 	// XXX For now, we always decorate a union value so that
 	// we can determine the tag from the value's explicit type.
@@ -507,7 +507,7 @@ func (f *Formatter) formatUnion(indent int, union *super.TypeUnion, bytes zcode.
 	f.formatValue(indent, typ, bytes, known, parentImplied, true)
 }
 
-func (f *Formatter) formatMap(indent int, typ *super.TypeMap, bytes zcode.Bytes, known, parentImplied bool) bool {
+func (f *Formatter) formatMap(indent int, typ *super.TypeMap, bytes scode.Bytes, known, parentImplied bool) bool {
 	empty := true
 	f.build("|{")
 	indent += f.tab
@@ -788,13 +788,13 @@ func formatType(b *strings.Builder, typedefs map[string]*super.TypeNamed, typ su
 	}
 }
 
-func FormatPrimitive(typ super.Type, bytes zcode.Bytes) string {
+func FormatPrimitive(typ super.Type, bytes scode.Bytes) string {
 	var b strings.Builder
 	formatPrimitive(&b, typ, bytes)
 	return b.String()
 }
 
-func formatPrimitive(b *strings.Builder, typ super.Type, bytes zcode.Bytes) {
+func formatPrimitive(b *strings.Builder, typ super.Type, bytes scode.Bytes) {
 	if bytes == nil {
 		b.WriteString("null")
 		return
@@ -853,7 +853,7 @@ func formatPrimitive(b *strings.Builder, typ super.Type, bytes zcode.Bytes) {
 	}
 }
 
-func FormatTypeValue(tv zcode.Bytes) string {
+func FormatTypeValue(tv scode.Bytes) string {
 	f := NewFormatter(0, true, nil)
 	f.formatTypeValue(0, tv, false)
 	return f.builder.String()

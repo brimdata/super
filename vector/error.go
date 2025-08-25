@@ -2,8 +2,8 @@ package vector
 
 import (
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector/bitvec"
-	"github.com/brimdata/super/zcode"
 )
 
 type Error struct {
@@ -28,7 +28,7 @@ func (e *Error) Len() uint32 {
 	return e.Vals.Len()
 }
 
-func (e *Error) Serialize(b *zcode.Builder, slot uint32) {
+func (e *Error) Serialize(b *scode.Builder, slot uint32) {
 	if e.Nulls.IsSet(slot) {
 		b.Append(nil)
 		return

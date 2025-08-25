@@ -12,9 +12,9 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/vcache"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zbuf"
 )
 
 type Scanner struct {
@@ -25,14 +25,14 @@ type Scanner struct {
 	once       sync.Once
 	projection field.Projection
 	cache      *vcache.Cache
-	progress   *zbuf.Progress
+	progress   *sbuf.Progress
 	resultCh   chan result
 	doneCh     chan struct{}
 }
 
 var _ vector.Puller = (*Scanner)(nil)
 
-func NewScanner(rctx *runtime.Context, cache *vcache.Cache, parent zbuf.Puller, pool *db.Pool, paths []field.Path, pruner expr.Evaluator, progress *zbuf.Progress) *Scanner {
+func NewScanner(rctx *runtime.Context, cache *vcache.Cache, parent sbuf.Puller, pool *db.Pool, paths []field.Path, pruner expr.Evaluator, progress *sbuf.Progress) *Scanner {
 	return &Scanner{
 		cache:      cache,
 		rctx:       rctx,
@@ -122,11 +122,11 @@ type result struct {
 }
 
 type objectPuller struct {
-	parent      zbuf.Puller
+	parent      sbuf.Puller
 	unmarshaler *sup.UnmarshalBSUPContext
 }
 
-func newObjectPuller(parent zbuf.Puller) *objectPuller {
+func newObjectPuller(parent sbuf.Puller) *objectPuller {
 	return &objectPuller{
 		parent:      parent,
 		unmarshaler: sup.NewBSUPUnmarshaler(),

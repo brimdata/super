@@ -11,7 +11,7 @@ import (
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime/vam"
 	"github.com/brimdata/super/runtime/vcache"
-	"github.com/brimdata/super/zbuf"
+	"github.com/brimdata/super/sbuf"
 )
 
 var spec = &charm.Spec{
@@ -67,7 +67,7 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	puller := vam.NewProjection(super.NewContext(), object, nil)
-	if err := zbuf.CopyPuller(writer, puller); err != nil {
+	if err := sbuf.CopyPuller(writer, puller); err != nil {
 		writer.Close()
 		return err
 	}

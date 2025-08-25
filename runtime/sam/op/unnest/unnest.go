@@ -6,21 +6,21 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/expr"
-	"github.com/brimdata/super/zbuf"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/sbuf"
+	"github.com/brimdata/super/scode"
 )
 
 type Unnest struct {
-	parent   zbuf.Puller
+	parent   sbuf.Puller
 	expr     expr.Evaluator
 	resetter expr.Resetter
 
 	outer []super.Value
-	batch zbuf.Batch
+	batch sbuf.Batch
 	sctx  *super.Context
 }
 
-func NewUnnest(rctx *runtime.Context, parent zbuf.Puller, expr expr.Evaluator, resetter expr.Resetter) *Unnest {
+func NewUnnest(rctx *runtime.Context, parent sbuf.Puller, expr expr.Evaluator, resetter expr.Resetter) *Unnest {
 	return &Unnest{
 		parent:   parent,
 		expr:     expr,
@@ -29,7 +29,7 @@ func NewUnnest(rctx *runtime.Context, parent zbuf.Puller, expr expr.Evaluator, r
 	}
 }
 
-func (u *Unnest) Pull(done bool) (zbuf.Batch, error) {
+func (u *Unnest) Pull(done bool) (sbuf.Batch, error) {
 	if done {
 		u.outer = nil
 		u.resetter.Reset()
@@ -57,7 +57,7 @@ func (u *Unnest) Pull(done bool) (zbuf.Batch, error) {
 	}
 }
 
-func (u *Unnest) unnest(this super.Value) zbuf.Batch {
+func (u *Unnest) unnest(this super.Value) sbuf.Batch {
 	val := u.expr.Eval(this)
 	// Propagate errors but skip missing values.
 	var vals []super.Value
@@ -67,7 +67,7 @@ func (u *Unnest) unnest(this super.Value) zbuf.Batch {
 	if len(vals) == 0 {
 		return nil
 	}
-	return zbuf.NewBatch(vals)
+	return sbuf.NewBatch(vals)
 }
 
 func unnest(sctx *super.Context, val super.Value) []super.Value {
@@ -83,15 +83,15 @@ func unnest(sctx *super.Context, val super.Value) []super.Value {
 		return vals
 	case *super.TypeRecord:
 		if len(typ.Fields) != 2 {
-			return []super.Value{sctx.WrapError("unnest: encountered record without two columns", val)}
+			return []super.Value{sctx.WrapError("unnest: encountered record without two fields", val)}
 		}
 		if super.InnerType(typ.Fields[1].Type) == nil {
-			return []super.Value{sctx.WrapError("unnest: encountered record without an array column", val)}
+			return []super.Value{sctx.WrapError("unnest: encountered record without an array/set type for second field", val)}
 		}
 		left := *val.DerefByColumn(0)
 		fields := slices.Clone(typ.Fields)
 		var out []super.Value
-		var b zcode.Builder
+		var b scode.Builder
 		for _, right := range unnest(sctx, *val.DerefByColumn(1)) {
 			b.Reset()
 			b.Append(left.Bytes())

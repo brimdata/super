@@ -12,9 +12,9 @@ import (
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/expr/extent"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zbuf"
 	"github.com/segmentio/ksuid"
 )
 
@@ -69,7 +69,7 @@ from %q@%q:objects
 
 type objectIterator struct {
 	reader      sio.Reader
-	puller      zbuf.Puller
+	puller      sbuf.Puller
 	unmarshaler *sup.UnmarshalBSUPContext
 }
 
@@ -80,7 +80,7 @@ func newObjectIterator(ctx context.Context, db api.Interface, head *dbid.Commiti
 		return nil, err
 	}
 	return &objectIterator{
-		reader:      zbuf.PullerReader(q),
+		reader:      sbuf.PullerReader(q),
 		puller:      q,
 		unmarshaler: sup.NewBSUPUnmarshaler(),
 	}, nil

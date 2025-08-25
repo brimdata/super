@@ -11,13 +11,13 @@ import (
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/compiler/rungen"
+	"github.com/brimdata/super/compiler/sfmt"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/pkg/reglob"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/expr/agg"
 	"github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zfmt"
 	"github.com/shellyln/go-sql-like-expr/likeexpr"
 )
 
@@ -839,7 +839,7 @@ func deriveNameFromExpr(e dag.Expr, a ast.Expr) []string {
 	case *dag.This:
 		return e.Path
 	default:
-		return []string{zfmt.ASTExpr(a)}
+		return []string{sfmt.ASTExpr(a)}
 	}
 }
 

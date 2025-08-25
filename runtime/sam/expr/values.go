@@ -4,13 +4,13 @@ import (
 	"slices"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 )
 
 type recordExpr struct {
 	sctx    *super.Context
 	typ     *super.TypeRecord
-	builder *zcode.Builder
+	builder *scode.Builder
 	fields  []super.Field
 	exprs   []Evaluator
 }
@@ -38,7 +38,7 @@ func newRecordExpr(sctx *super.Context, elems []RecordElem) *recordExpr {
 	return &recordExpr{
 		sctx:    sctx,
 		typ:     typ,
-		builder: zcode.NewBuilder(),
+		builder: scode.NewBuilder(),
 		fields:  fields,
 		exprs:   exprs,
 	}
@@ -76,9 +76,9 @@ type RecordElem struct {
 type recordSpreadExpr struct {
 	sctx    *super.Context
 	elems   []RecordElem
-	builder zcode.Builder
+	builder scode.Builder
 	fields  []super.Field
-	bytes   []zcode.Bytes
+	bytes   []scode.Bytes
 	cache   *super.TypeRecord
 }
 
@@ -176,7 +176,7 @@ type ArrayExpr struct {
 	elems []VectorElem
 	sctx  *super.Context
 
-	builder    zcode.Builder
+	builder    scode.Builder
 	collection collectionBuilder
 }
 
@@ -214,7 +214,7 @@ func (a *ArrayExpr) Eval(this super.Value) super.Value {
 }
 
 type SetExpr struct {
-	builder    zcode.Builder
+	builder    scode.Builder
 	collection collectionBuilder
 	elems      []VectorElem
 	sctx       *super.Context
@@ -259,7 +259,7 @@ type Entry struct {
 }
 
 type MapExpr struct {
-	builder zcode.Builder
+	builder scode.Builder
 	entries []Entry
 	keys    collectionBuilder
 	vals    collectionBuilder
@@ -298,7 +298,7 @@ func (m *MapExpr) Eval(this super.Value) super.Value {
 type collectionBuilder struct {
 	types       []super.Type
 	uniqueTypes []super.Type
-	bytes       []zcode.Bytes
+	bytes       []scode.Bytes
 }
 
 func (c *collectionBuilder) reset() {
@@ -312,7 +312,7 @@ func (c *collectionBuilder) append(val super.Value) {
 	c.bytes = append(c.bytes, val.Bytes())
 }
 
-func (c *collectionBuilder) appendSpread(inner super.Type, b zcode.Bytes) {
+func (c *collectionBuilder) appendSpread(inner super.Type, b scode.Bytes) {
 	union, _ := super.TypeUnder(inner).(*super.TypeUnion)
 	for it := b.Iter(); !it.Done(); {
 		typ := inner
@@ -339,12 +339,12 @@ func (c *collectionBuilder) iter(sctx *super.Context) collectionIter {
 
 type collectionIter struct {
 	typ   super.Type
-	bytes []zcode.Bytes
+	bytes []scode.Bytes
 	types []super.Type
 	uniq  int
 }
 
-func (c *collectionIter) appendNext(b *zcode.Builder) {
+func (c *collectionIter) appendNext(b *scode.Builder) {
 	if union, ok := c.typ.(*super.TypeUnion); ok && c.uniq > 1 {
 		super.BuildUnion(b, union.TagOf(c.types[0]), c.bytes[0])
 	} else {

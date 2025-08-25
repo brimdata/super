@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -23,7 +23,7 @@ func NewMapEncoder(typ *super.TypeMap) *MapEncoder {
 	}
 }
 
-func (m *MapEncoder) Write(body zcode.Bytes) {
+func (m *MapEncoder) Write(body scode.Bytes) {
 	m.count++
 	var len uint32
 	it := body.Iter()

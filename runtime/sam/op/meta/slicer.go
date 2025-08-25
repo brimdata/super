@@ -10,15 +10,15 @@ import (
 	"github.com/brimdata/super/db/data"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime/sam/expr"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/zbuf"
 )
 
 // Slicer implements an op that pulls data objects and organizes
 // them into overlapping object Slices forming a sequence of
 // non-overlapping Partitions.
 type Slicer struct {
-	parent      zbuf.Puller
+	parent      sbuf.Puller
 	marshaler   *sup.MarshalBSUPContext
 	unmarshaler *sup.UnmarshalBSUPContext
 	objects     []*data.Object
@@ -28,7 +28,7 @@ type Slicer struct {
 	mu          sync.Mutex
 }
 
-func NewSlicer(parent zbuf.Puller, sctx *super.Context) *Slicer {
+func NewSlicer(parent sbuf.Puller, sctx *super.Context) *Slicer {
 	m := sup.NewBSUPMarshalerWithContext(sctx)
 	m.Decorate(sup.StylePackage)
 	return &Slicer{
@@ -45,7 +45,7 @@ func (s *Slicer) Snapshot() commits.View {
 	return s.parent.(*Lister).Snapshot()
 }
 
-func (s *Slicer) Pull(done bool) (zbuf.Batch, error) {
+func (s *Slicer) Pull(done bool) (sbuf.Batch, error) {
 	//XXX for now we use a mutex because multiple downstream trunks can call
 	// Pull concurrently here.  We should change this to use a fork.  But for now,
 	// this does not seem like a performance critical issue because the bottleneck
@@ -77,7 +77,7 @@ func (s *Slicer) Pull(done bool) (zbuf.Batch, error) {
 
 // nextPartition takes collected up slices and forms a partition returning
 // a batch containing a single value comprising the serialized partition.
-func (s *Slicer) nextPartition() (zbuf.Batch, error) {
+func (s *Slicer) nextPartition() (sbuf.Batch, error) {
 	if len(s.objects) == 0 {
 		return nil, nil
 	}
@@ -101,11 +101,11 @@ func (s *Slicer) nextPartition() (zbuf.Batch, error) {
 	if err != nil {
 		return nil, err
 	}
-	return zbuf.NewArray([]super.Value{val}), nil
+	return sbuf.NewArray([]super.Value{val}), nil
 }
 
-func (s *Slicer) stash(o *data.Object) (zbuf.Batch, error) {
-	var batch zbuf.Batch
+func (s *Slicer) stash(o *data.Object) (sbuf.Batch, error) {
+	var batch sbuf.Batch
 	if len(s.objects) > 0 {
 		// We collect all the subsequent objects that overlap with any object in the
 		// accumulated set so far.  Since first times are non-decreasing this is

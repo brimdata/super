@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/zcode"
 )
 
 type distinct struct {
@@ -23,7 +23,7 @@ func newDistinct(f Func) Func {
 
 func (d *distinct) Consume(vec vector.Any) {
 	id := vec.Type().ID()
-	var b zcode.Builder
+	var b scode.Builder
 	for i := range vec.Len() {
 		b.Truncate()
 		vec.Serialize(&b, i)

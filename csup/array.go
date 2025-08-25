@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -25,7 +25,7 @@ func NewArrayEncoder(typ *super.TypeArray) *ArrayEncoder {
 	}
 }
 
-func (a *ArrayEncoder) Write(body zcode.Bytes) {
+func (a *ArrayEncoder) Write(body scode.Bytes) {
 	a.count++
 	it := body.Iter()
 	var len uint32

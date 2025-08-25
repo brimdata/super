@@ -9,24 +9,24 @@ import (
 	"net/netip"
 
 	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/zcode"
+	"github.com/brimdata/super/scode"
 	"github.com/x448/float16"
 )
 
 type TypeOfBool struct{}
 
-func AppendBool(zb zcode.Bytes, b bool) zcode.Bytes {
+func AppendBool(zb scode.Bytes, b bool) scode.Bytes {
 	if b {
 		return append(zb, 1)
 	}
 	return append(zb, 0)
 }
 
-func EncodeBool(b bool) zcode.Bytes {
+func EncodeBool(b bool) scode.Bytes {
 	return AppendBool(nil, b)
 }
 
-func DecodeBool(zv zcode.Bytes) bool {
+func DecodeBool(zv scode.Bytes) bool {
 	return zv != nil && zv[0] != 0
 }
 
@@ -40,11 +40,11 @@ func (t *TypeOfBool) Kind() Kind {
 
 type TypeOfBytes struct{}
 
-func EncodeBytes(b []byte) zcode.Bytes {
-	return zcode.Bytes(b)
+func EncodeBytes(b []byte) scode.Bytes {
+	return scode.Bytes(b)
 }
 
-func DecodeBytes(zv zcode.Bytes) []byte {
+func DecodeBytes(zv scode.Bytes) []byte {
 	return []byte(zv)
 }
 
@@ -56,21 +56,21 @@ func (t *TypeOfBytes) Kind() Kind {
 	return PrimitiveKind
 }
 
-func (t *TypeOfBytes) Format(zv zcode.Bytes) string {
+func (t *TypeOfBytes) Format(zv scode.Bytes) string {
 	return "0x" + hex.EncodeToString(zv)
 }
 
 type TypeOfDuration struct{}
 
-func EncodeDuration(d nano.Duration) zcode.Bytes {
+func EncodeDuration(d nano.Duration) scode.Bytes {
 	return EncodeInt(int64(d))
 }
 
-func AppendDuration(bytes zcode.Bytes, d nano.Duration) zcode.Bytes {
+func AppendDuration(bytes scode.Bytes, d nano.Duration) scode.Bytes {
 	return AppendInt(bytes, int64(d))
 }
 
-func DecodeDuration(zv zcode.Bytes) nano.Duration {
+func DecodeDuration(zv scode.Bytes) nano.Duration {
 	return nano.Duration(DecodeInt(zv))
 }
 
@@ -82,7 +82,7 @@ func (t *TypeOfDuration) Kind() Kind {
 	return PrimitiveKind
 }
 
-func DecodeFloat(zb zcode.Bytes) float64 {
+func DecodeFloat(zb scode.Bytes) float64 {
 	if zb == nil {
 		return 0
 	}
@@ -102,18 +102,18 @@ func DecodeFloat(zb zcode.Bytes) float64 {
 
 type TypeOfFloat16 struct{}
 
-func AppendFloat16(zb zcode.Bytes, f float32) zcode.Bytes {
+func AppendFloat16(zb scode.Bytes, f float32) scode.Bytes {
 	buf := make([]byte, 2)
 	binary.LittleEndian.PutUint16(buf, float16.Fromfloat32(f).Bits())
 	return append(zb, buf...)
 }
 
-func EncodeFloat16(d float32) zcode.Bytes {
+func EncodeFloat16(d float32) scode.Bytes {
 	var b [2]byte
 	return AppendFloat16(b[:0], d)
 }
 
-func DecodeFloat16(zb zcode.Bytes) float32 {
+func DecodeFloat16(zb scode.Bytes) float32 {
 	if zb == nil {
 		return 0
 	}
@@ -130,16 +130,16 @@ func (t *TypeOfFloat16) Kind() Kind {
 
 type TypeOfFloat32 struct{}
 
-func AppendFloat32(zb zcode.Bytes, f float32) zcode.Bytes {
+func AppendFloat32(zb scode.Bytes, f float32) scode.Bytes {
 	return binary.LittleEndian.AppendUint32(zb, math.Float32bits(f))
 }
 
-func EncodeFloat32(d float32) zcode.Bytes {
+func EncodeFloat32(d float32) scode.Bytes {
 	var b [4]byte
 	return AppendFloat32(b[:0], d)
 }
 
-func DecodeFloat32(zb zcode.Bytes) float32 {
+func DecodeFloat32(zb scode.Bytes) float32 {
 	if zb == nil {
 		return 0
 	}
@@ -156,16 +156,16 @@ func (t *TypeOfFloat32) Kind() Kind {
 
 type TypeOfFloat64 struct{}
 
-func AppendFloat64(zb zcode.Bytes, d float64) zcode.Bytes {
+func AppendFloat64(zb scode.Bytes, d float64) scode.Bytes {
 	return binary.LittleEndian.AppendUint64(zb, math.Float64bits(d))
 }
 
-func EncodeFloat64(d float64) zcode.Bytes {
+func EncodeFloat64(d float64) scode.Bytes {
 	var b [8]byte
 	return AppendFloat64(b[:0], d)
 }
 
-func DecodeFloat64(zv zcode.Bytes) float64 {
+func DecodeFloat64(zv scode.Bytes) float64 {
 	if zv == nil {
 		return 0
 	}
@@ -180,32 +180,32 @@ func (t *TypeOfFloat64) Kind() Kind {
 	return PrimitiveKind
 }
 
-func EncodeInt(i int64) zcode.Bytes {
+func EncodeInt(i int64) scode.Bytes {
 	var b [8]byte
-	n := zcode.EncodeCountedVarint(b[:], i)
+	n := scode.EncodeCountedVarint(b[:], i)
 	return b[:n]
 }
 
-func AppendInt(bytes zcode.Bytes, i int64) zcode.Bytes {
-	return zcode.AppendCountedVarint(bytes, i)
+func AppendInt(bytes scode.Bytes, i int64) scode.Bytes {
+	return scode.AppendCountedVarint(bytes, i)
 }
 
-func EncodeUint(i uint64) zcode.Bytes {
+func EncodeUint(i uint64) scode.Bytes {
 	var b [8]byte
-	n := zcode.EncodeCountedUvarint(b[:], i)
+	n := scode.EncodeCountedUvarint(b[:], i)
 	return b[:n]
 }
 
-func AppendUint(bytes zcode.Bytes, i uint64) zcode.Bytes {
-	return zcode.AppendCountedUvarint(bytes, i)
+func AppendUint(bytes scode.Bytes, i uint64) scode.Bytes {
+	return scode.AppendCountedUvarint(bytes, i)
 }
 
-func DecodeInt(zv zcode.Bytes) int64 {
-	return zcode.DecodeCountedVarint(zv)
+func DecodeInt(zv scode.Bytes) int64 {
+	return scode.DecodeCountedVarint(zv)
 }
 
-func DecodeUint(zv zcode.Bytes) uint64 {
-	return zcode.DecodeCountedUvarint(zv)
+func DecodeUint(zv scode.Bytes) uint64 {
+	return scode.DecodeCountedUvarint(zv)
 }
 
 type TypeOfInt8 struct{}
@@ -290,15 +290,15 @@ func (t *TypeOfUint64) Kind() Kind {
 
 type TypeOfIP struct{}
 
-func AppendIP(zb zcode.Bytes, a netip.Addr) zcode.Bytes {
+func AppendIP(zb scode.Bytes, a netip.Addr) scode.Bytes {
 	return append(zb, a.AsSlice()...)
 }
 
-func EncodeIP(a netip.Addr) zcode.Bytes {
+func EncodeIP(a netip.Addr) scode.Bytes {
 	return AppendIP(nil, a)
 }
 
-func DecodeIP(zv zcode.Bytes) netip.Addr {
+func DecodeIP(zv scode.Bytes) netip.Addr {
 	var a netip.Addr
 	if err := a.UnmarshalBinary(zv); err != nil {
 		panic(fmt.Errorf("failure trying to decode IP address: %w", err))
@@ -318,7 +318,7 @@ type TypeOfNet struct{}
 
 var ones = [16]byte{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
 
-func AppendNet(zb zcode.Bytes, p netip.Prefix) zcode.Bytes {
+func AppendNet(zb scode.Bytes, p netip.Prefix) scode.Bytes {
 	// Mask for canonical form.
 	p = p.Masked()
 	zb = append(zb, p.Addr().AsSlice()...)
@@ -331,11 +331,11 @@ func AppendNet(zb zcode.Bytes, p netip.Prefix) zcode.Bytes {
 	return append(zb, mask.Addr().AsSlice()...)
 }
 
-func EncodeNet(p netip.Prefix) zcode.Bytes {
+func EncodeNet(p netip.Prefix) scode.Bytes {
 	return AppendNet(nil, p)
 }
 
-func DecodeNet(zv zcode.Bytes) netip.Prefix {
+func DecodeNet(zv scode.Bytes) netip.Prefix {
 	if zv == nil {
 		return netip.Prefix{}
 	}
@@ -378,11 +378,11 @@ func (t *TypeOfNull) Kind() Kind {
 
 type TypeOfString struct{}
 
-func EncodeString(s string) zcode.Bytes {
-	return zcode.Bytes(s)
+func EncodeString(s string) scode.Bytes {
+	return scode.Bytes(s)
 }
 
-func DecodeString(zv zcode.Bytes) string {
+func DecodeString(zv scode.Bytes) string {
 	return string(zv)
 }
 
@@ -396,18 +396,18 @@ func (t *TypeOfString) Kind() Kind {
 
 type TypeOfTime struct{}
 
-func EncodeTime(t nano.Ts) zcode.Bytes {
+func EncodeTime(t nano.Ts) scode.Bytes {
 	var b [8]byte
-	n := zcode.EncodeCountedVarint(b[:], int64(t))
+	n := scode.EncodeCountedVarint(b[:], int64(t))
 	return b[:n]
 }
 
-func AppendTime(bytes zcode.Bytes, t nano.Ts) zcode.Bytes {
+func AppendTime(bytes scode.Bytes, t nano.Ts) scode.Bytes {
 	return AppendInt(bytes, int64(t))
 }
 
-func DecodeTime(zv zcode.Bytes) nano.Ts {
-	return nano.Ts(zcode.DecodeCountedVarint(zv))
+func DecodeTime(zv scode.Bytes) nano.Ts {
+	return nano.Ts(scode.DecodeCountedVarint(zv))
 }
 
 func (t *TypeOfTime) ID() int {
