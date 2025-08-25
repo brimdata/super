@@ -1842,17 +1842,9 @@ SQLPipe
         }, nil
     }
 
-SelectOp = SelectExpr
-
-SelectExpr
+SelectOp
   = with:OptWithClause
-    body:(
-        SetOperation
-      / Select
-      / FromSelect
-      / SQLValues
-      / "(" __ s:SQLPipe __")"      { return s, nil }
-    )
+    body:SelectSetOperation
     orderby:OptOrderByClause
     loff:OptSQLLimitOffset {
       op := body.(ast.Op)
@@ -1873,6 +1865,27 @@ SelectExpr
       }
       return op, nil
     }
+
+SelectSetOperation
+  = first:SimpleSelect rest:(SetOp _ SimpleSelect)* {
+      out := first.(ast.Op)
+      for _, o := range rest.([]any) {
+        o := o.([]any)
+        out = &ast.SQLUnion{
+          Kind: "SQLUnion",
+          Distinct: o[0].(bool),
+          Left: out,
+          Right: o[2].(ast.Op),
+        }
+      }
+      return out, nil
+    }
+
+SimpleSelect
+  = Select
+  / FromSelect
+  / SQLValues
+  / "(" __ s:SQLPipe __")" { return s, nil }
 
 Select
   = SELECT
@@ -2250,17 +2263,6 @@ OptOffsetClause
 
 OffsetClause
   = OFFSET _ e:Expr  { return e, nil }
-
-SetOperation
-  = left:SelectExpr distinct:SetOp _ right:SelectExpr {
-        return &ast.SQLUnion{
-            Kind: "SQLUnion",
-            Distinct: distinct.(bool),
-            Left: left.(ast.Op),
-            Right: right.(ast.Op),
-            Loc: loc(c),
-        }, nil
-    }
 
 SetOp
   = _ UNION _ ALL       { return false, nil }
