@@ -15,7 +15,7 @@ along the lines of web search, email search, or log search.
 A search operation filters its input by applying the search expression `<sexpr>`
 to each input value and emitting all values that match.
 
-The `search` keyword can be [abbreviated](../shortcuts.md) as `?`. 
+The `search` keyword can be abbreviated as `?`.
 
 #### Search Expressions
 
