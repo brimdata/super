@@ -949,45 +949,43 @@ ColonCast
     }
 
 DerefExpr
-  = expr:DerefExpr "[" __ from:AdditiveExpr __ ":" __ to:AdditiveExpr? __ "]" {
-      e := &ast.SliceExpr{
-        Kind: "SliceExpr",
-        Expr: expr.(ast.Expr),
-        From: from.(ast.Expr),
-        Loc: loc(c),
-      }
-      if to != nil {
-        e.To = to.(ast.Expr)
-      }
-      return e, nil
+  = head:(FuncExpr / Primary) tail:(
+        __ "[" __ from:AdditiveExpr __ ":" __ to:AdditiveExpr? __ "]" { 
+          e := &ast.SliceExpr{
+            Kind: "SliceExpr",
+            From: from.(ast.Expr),
+            Loc: loc(c),
+          }
+          if to != nil {
+            e.To = to.(ast.Expr)
+          }
+          return e, nil
+        }
+      / __ "[" __ ":" __ to:AdditiveExpr "]" {
+          return &ast.SliceExpr{
+            Kind: "SliceExpr",
+            To: to.(ast.Expr),
+            Loc: loc(c),
+          }, nil
+        }
+      / __ "[" __ index:Expr __ "]" {
+          return &ast.IndexExpr{
+            Kind: "IndexExpr",
+            Index: index.(ast.Expr),
+            Loc: loc(c),
+          }, nil
+        }
+      / "." id:DerefKey {
+          return &ast.BinaryExpr{
+            Kind: "BinaryExpr",
+            Op: ".",
+            RHS: id.(ast.Expr),
+            Loc: loc(c),
+          }, nil
+        }
+    )* {
+      return makeDerefExpr(head, tail), nil
     }
-  / expr:DerefExpr "[" __ ":" __ to:AdditiveExpr "]" {
-      return &ast.SliceExpr{
-        Kind: "SliceExpr",
-        Expr: expr.(ast.Expr),
-        To: to.(ast.Expr),
-        Loc: loc(c),
-      }, nil
-    }
-  / expr:DerefExpr "[" index:Expr "]" {
-      return &ast.IndexExpr{
-        Kind: "IndexExpr",
-        Expr: expr.(ast.Expr),
-        Index: index.(ast.Expr),
-        Loc: loc(c),
-      }, nil
-    }
-  / expr:DerefExpr "." id:DerefKey {
-      return &ast.BinaryExpr{
-        Kind: "BinaryExpr",
-        Op: ".",
-        LHS: expr.(ast.Expr),
-        RHS: id.(ast.Expr),
-        Loc: loc(c),
-      }, nil
-    }
-  / FuncExpr
-  / Primary
 
 DerefKey
   = Identifier
