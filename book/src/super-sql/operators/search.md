@@ -150,7 +150,7 @@ where (123 in this or grep("123", this))
 ```
 
 Complex values are not supported as search terms but may be queried with
-the ["in" operator](../expressions.md#containment), e.g.,
+the ["in"](../expressions.md#containment) operator, e.g.,
 ```
 {s:"foo"} in this
 ```

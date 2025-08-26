@@ -1,6 +1,6 @@
 ## Super Column (CSUP) Format
 
-> TODO: this is out of date and needs to be updated.
+> _TODO: this is out of date and needs to be updated._
 
 Super Columnar (CSUP) is a file format based on
 the [super-structured data model](model.md) where data is stacked to form columns.
@@ -62,10 +62,10 @@ then write the metadata into the reassembly section along with the trailer
 at the end.  This allows a stream to be converted to a CSUP file
 in a single pass.
 
-> That said, the layout is
+> _That said, the layout is
 > flexible enough that an implementation may optimize the data layout with
 > additional passes or by writing the output to multiple files then
-> merging them together (or even leaving the CSUP entity as separate files).
+> merging them together (or even leaving the CSUP entity as separate files)._
 
 #### The Data Section
 
@@ -81,15 +81,15 @@ There is no information in the data section for how segments relate
 to one another or how they are reconstructed into columns.  They are just
 blobs of BSUP data.
 
-> Unlike Parquet, there is no explicit arrangement of the column chunks into
+> _Unlike Parquet, there is no explicit arrangement of the column chunks into
 > row groups but rather they are allowed to grow at different rates so a
 > high-volume column might be comprised of many segments while a low-volume
 > column must just be one or several.  This allows scans of low-volume record types
 > (the "mice") to perform well amongst high-volume record types (the "elephants"),
 > i.e., there are not a bunch of seeks with tiny reads of mice data interspersed
-> throughout the elephants.
-
-> The mice/elephants model creates an interesting and challenging layout
+> throughout the elephants._
+>
+> _The mice/elephants model creates an interesting and challenging layout
 > problem.  If you let the row indexes get too far apart (call this "skew"), then
 > you have to buffer very large amounts of data to keep the column data aligned.
 > This is the point of row groups in Parquet, but the model here is to leave it
@@ -101,7 +101,7 @@ blobs of BSUP data.
 > if you use lots of buffering on ingest, you can write the mice in front of the
 > elephants so the read path requires less buffering to align columns.  Or you can
 > do two passes where you store segments in separate files then merge them at close
-> according to an optimization plan.
+> according to an optimization plan._
 
 #### The Reassembly Section
 
@@ -109,15 +109,15 @@ The reassembly section provides the information needed to reconstruct
 column streams from segments, and in turn, to reconstruct the original values
 from column streams, i.e., to map columns back to composite values.
 
-> Of course, the reassembly section also provides the ability to extract just subsets of columns
+> _Of course, the reassembly section also provides the ability to extract just subsets of columns
 > to be read and searched efficiently without ever needing to reconstruct
 > the original rows.  How well this performs is up to any particular
-> CSUP implementation.
+> CSUP implementation._
 > 
-> Also, the reassembly section is in general vastly smaller than the data section
+> _Also, the reassembly section is in general vastly smaller than the data section
 > so the goal here isn't to express information in cute and obscure compact forms
 > but rather to represent data in an easy-to-digest, programmer-friendly form that
-> leverages BSUP.
+> leverages BSUP._
 
 The reassembly section is a BSUP stream.  Unlike Parquet,
 which uses an externally described schema
@@ -137,7 +137,7 @@ A super type's integer position in this sequence defines its identifier
 encoded in the [super column](#the-super-column).  This identifier is called
 the super ID.
 
-> Change the first N values to type values instead of nulls?
+> _Change the first N values to type values instead of nulls?_
 
 The next N+1 records contain reassembly information for each of the N super types
 where each record defines the column streams needed to reconstruct the original
@@ -159,9 +159,9 @@ type signature:
 In the rest of this document, we will refer to this type as `<segmap>` for
 shorthand and refer to the concept as a "segmap".
 
-> We use the type name "segmap" to emphasize that this information represents
+> _We use the type name "segmap" to emphasize that this information represents
 > a set of byte ranges where data is stored and must be read from *rather than*
-> the data itself.
+> the data itself._
 
 ##### The Super Column
 
@@ -202,9 +202,9 @@ This simple top-down arrangement, along with the definition of the other
 column structures below, is all that is needed to reconstruct all of the
 original data.
 
-> Each row reassembly record has its own layout of columnar
+> _Each row reassembly record has its own layout of columnar
 > values and there is no attempt made to store like-typed columns from different
-> schemas in the same physical column.
+> schemas in the same physical column._
 
 
 The notation `<any_column>` refers to any instance of the five column types:
@@ -333,12 +333,12 @@ data in the file,
 it will typically fit comfortably in memory and it can be very fast to scan the
 entire reassembly structure for any purpose.
 
-> For a given query, a "scan planner" could traverse all the
+> _For a given query, a "scan planner" could traverse all the
 > reassembly records to figure out which segments will be needed, then construct
 > an intelligent plan for reading the needed segments and attempt to read them
 > in mostly sequential order, which could serve as
 > an optimizing intermediary between any underlying storage API and the
-> CSUP decoding logic.
+> CSUP decoding logic._
 
 To decode the "next" row, its schema index is read from the root reassembly
 column stream.

@@ -44,7 +44,7 @@ zero or more comma-separated key-value pairs contained in pipe braces:
 where `<key>` and `<value>`
 may be any valid [expression](../expressions.md).
 
-> The map spread operator is not yet implemented.
+> _The map spread operator is not yet implemented._
 
 When the expressions result in values of non-uniform type of either the keys or
 the values, then their types become a sum type of the types present,

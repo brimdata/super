@@ -20,7 +20,7 @@ These signed types include:
 * `int16`, and
 * `int32`.
 
-> The `int128` type is not yet implemented in SuperDB.
+> _The `int128` type is not yet implemented in SuperDB._
 
 For backward compatibility with SQL, syntactic aliases for signed integers
 are defined as follows:
@@ -41,7 +41,7 @@ These unsigned types include:
 * `uint16`, and
 * `uint32`.
 
-> The `uint128` type is not yet implemented in SuperDB.
+> _The `uint128` type is not yet implemented in SuperDB._
 
 
 #### Floating Point 
@@ -69,7 +69,7 @@ are defined as follows:
 
 #### Decimal 
 
-> _The decimal type is not yet implemented in SuperSQL._
+> _The `decimal` type is not yet implemented in SuperSQL._
 
 #### Coercion
 
