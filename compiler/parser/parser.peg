@@ -949,7 +949,7 @@ ColonCast
     }
 
 DerefExpr
-  = head:(FuncExpr / Primary) tail:(
+  = head:(Function / Primary) tail:(
         __ "[" __ from:AdditiveExpr __ ":" __ to:AdditiveExpr? __ "]" { 
           e := &ast.SliceExpr{
             Kind: "SliceExpr",
@@ -992,20 +992,11 @@ DerefKey
   / s:DoubleQuotedString    { return &ast.ID{Kind: "ID", Name:s.(string), Loc: loc(c)}, nil }
   / s:BacktickString        { return &ast.ID{Kind: "ID", Name:s.(string), Loc: loc(c)}, nil }
 
-FuncExpr
-  = Cast
-  / Function
-
 FuncGuard = NotFuncs __ "("
 
 NotFuncs
   = NOT
   / SELECT
-
-Cast
-  = typ:TypeLiteral __ "(" __ expr:Expr __ ")" {
-      return &ast.Cast{Kind: "Cast", Expr: expr.(ast.Expr), Type: typ.(ast.Expr), Loc: loc(c)}, nil
-    }
 
 Function
   = !FuncGuard EXTRACT __ "(" __ part:Expr _ FROM _ e:Expr __ ")" where:WhereClause? {

@@ -3,13 +3,13 @@ script: |
   super compile -C '[1,2,3]'
   super compile -C '|["foo","bar"]|'
   super compile -C '|{"foo":1,"bar":2}|'
-  super compile -C '<int64|string>(1)'
+  super compile -C '1::(int64|string)'
   echo "==="
   super compile -dag -C '{x:1,...y}'
   super compile -dag -C '[1,2,3]'
   super compile -dag -C '|["foo","bar"]|'
   super compile -dag -C '|{"foo":1,"bar":2}|'
-  super compile -dag -C '<int64|string>(1)'
+  super compile -dag -C '1::(int64|string)'
 
 outputs:
   - name: stdout
@@ -18,7 +18,7 @@ outputs:
       values [1,2,3]
       values |["foo","bar"]|
       values |{"foo":1,"bar":2}|
-      values <(int64|string)>(1)
+      values 1::<(int64|string)>
       ===
       null
       | values {x:1,...y}

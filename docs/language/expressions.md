@@ -618,7 +618,7 @@ For example
 # spq
 type port = uint16
 
-values <port>(this)
+values this::port
 # input
 80
 8080
