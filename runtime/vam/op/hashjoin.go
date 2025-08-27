@@ -13,7 +13,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type Join struct {
+type HashJoin struct {
 	rctx       *runtime.Context
 	style      string
 	left       vector.Puller
@@ -26,13 +26,13 @@ type Join struct {
 	hashJoin *hashJoin
 }
 
-func NewJoin(rctx *runtime.Context, style string, left, right vector.Puller,
-	leftKey, rightKey expr.Evaluator, leftAlias, rightAlias string) *Join {
+func NewHashJoin(rctx *runtime.Context, style string, left, right vector.Puller,
+	leftKey, rightKey expr.Evaluator, leftAlias, rightAlias string) *HashJoin {
 	if style == "right" {
 		leftKey, rightKey = rightKey, leftKey
 		left, right = right, left
 	}
-	return &Join{
+	return &HashJoin{
 		rctx:       rctx,
 		style:      style,
 		left:       left,
@@ -44,53 +44,53 @@ func NewJoin(rctx *runtime.Context, style string, left, right vector.Puller,
 	}
 }
 
-func (j *Join) Pull(done bool) (vector.Any, error) {
+func (h *HashJoin) Pull(done bool) (vector.Any, error) {
 	if done {
-		_, err := j.left.Pull(true)
+		_, err := h.left.Pull(true)
 		if err == nil {
-			_, err = j.right.Pull(true)
+			_, err = h.right.Pull(true)
 		}
-		j.hashJoin = nil
+		h.hashJoin = nil
 		return nil, err
 	}
-	if j.hashJoin == nil {
-		if err := j.tableInit(); err != nil {
+	if h.hashJoin == nil {
+		if err := h.tableInit(); err != nil {
 			return nil, err
 		}
 	}
-	vec, err := j.hashJoin.Pull()
+	vec, err := h.hashJoin.Pull()
 	if vec == nil || err != nil {
-		j.hashJoin = nil
+		h.hashJoin = nil
 	}
 	return vec, err
 }
 
-func (j *Join) tableInit() error {
+func (h *HashJoin) tableInit() error {
 	// Read from both leftBuf and rightBuf parent and find the shortest parent to
 	// create the table from.
-	leftBuf, rightBuf, err := pullRace(j.rctx.Context, j.left, j.right)
+	leftBuf, rightBuf, err := pullRace(h.rctx.Context, h.left, h.right)
 	if err != nil {
 		return err
 	}
 	var table map[string][]super.Value
 	var left, right vector.Puller
 	if rightBuf.EOS {
-		table = buildTable(rightBuf, j.rightKey)
+		table = buildTable(rightBuf, h.rightKey)
 		left = leftBuf
 	} else {
-		table = buildTable(leftBuf, j.leftKey)
+		table = buildTable(leftBuf, h.leftKey)
 		right = rightBuf
 	}
-	j.hashJoin = &hashJoin{
-		sctx:       j.rctx.Sctx,
-		style:      j.style,
+	h.hashJoin = &hashJoin{
+		sctx:       h.rctx.Sctx,
+		style:      h.style,
 		table:      table,
 		left:       left,
 		right:      right,
-		leftAlias:  j.leftAlias,
-		rightAlias: j.rightAlias,
-		leftKey:    j.leftKey,
-		rightKey:   j.rightKey,
+		leftAlias:  h.leftAlias,
+		rightAlias: h.rightAlias,
+		leftKey:    h.leftKey,
+		rightKey:   h.rightKey,
 		hits:       make(map[string]bool),
 	}
 	return nil
