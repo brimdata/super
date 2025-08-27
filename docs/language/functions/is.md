@@ -9,7 +9,7 @@ is(val: any, t: type) -> bool
 
 ### Description
 
-The _is_ function returns true if the argument `val` is of type `t`. 
+The _is_ function returns true if the argument `val` is of type `t`.
 The _is_ function is shorthand for `typeof(val)==t`.
 
 ### Examples
