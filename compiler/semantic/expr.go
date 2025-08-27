@@ -992,6 +992,13 @@ func (a *analyzer) semFString(f *ast.FString) dag.Expr {
 }
 
 func (a *analyzer) semSubquery(b ast.Seq) *dag.Subquery {
+	if a.scope.schema != nil {
+		return a.semSQLSubquery(b)
+	}
+	return a.semPipeSubquery(b)
+}
+
+func (a *analyzer) semPipeSubquery(b ast.Seq) *dag.Subquery {
 	body := a.semSeq(b)
 	correlated := true
 	if len(body) >= 1 {
@@ -1025,6 +1032,48 @@ func (a *analyzer) semSubquery(b ast.Seq) *dag.Subquery {
 				}},
 		})
 	}
+	return e
+}
+
+func (a *analyzer) semSQLSubquery(seq ast.Seq) *dag.Subquery {
+	// Setup the new schema as a subqeury pointing to the current scope.
+	// We leave the inner scope empty to be filled in by semSelect.
+	save := a.scope.schema
+	sch := &subquerySchema{
+		outer: a.scope.schema,
+	}
+	a.scope.schema = sch
+	body := a.semSeq(seq)
+	a.scope.schema = save
+	correlated := true //XXX we need to figure this out (from schema?)
+	e := &dag.Subquery{
+		Kind:       "Subquery",
+		Correlated: correlated,
+		Body:       body,
+	}
+	// select (select XXX from INNER) as u from OUTER
+
+	from INNER
+	| 
+
+	// Add a nullscan only for uncorrelated queries that don't have a source.
+	if !correlated && !HasSource(e.Body) {
+		e.Body.Prepend(&dag.NullScan{Kind: "NullScan"})
+	}
+	// SQL expects a record with a single column result so fetch the first
+	// value.
+	// XXX this should be a structured error... or just allow it
+	// SQL expects a record with a single column result so fetch the first
+	// value.  Or we should be descoping.
+	e.Body.Append(&dag.Values{
+		Kind: "Values",
+		Exprs: []dag.Expr{
+			&dag.IndexExpr{
+				Kind:  "IndexExpr",
+				Expr:  &dag.This{Kind: "This"}, //XXX we need to get this from schema?
+				Index: &dag.Literal{Kind: "Literal", Value: "1"},
+			}},
+	})
 	return e
 }
 
