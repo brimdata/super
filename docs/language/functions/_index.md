@@ -24,7 +24,6 @@ Zed's [primitive types](../../formats/data-model.md#1-primitive-types), e.g.,
 * [crop](crop.md) - remove fields from a value that are missing in a specified type
 * [date_part](date_part.md) - return a specified part of a time value
 * [error](error.md) - wrap a value as an error
-* [every](every.md) - bucket `ts` using a duration
 * [fields](fields.md) - return the flattened path names of a record
 * [fill](fill.md) - add null values for missing record fields
 * [flatten](flatten.md) - transform a record into a flattened map
