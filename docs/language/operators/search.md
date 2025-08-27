@@ -112,7 +112,7 @@ _Search expressions match fields names too_
 _Boolean functions may be called_
 ```mdtest-spq
 # spq
-search is(<int64>)
+search is(this, <int64>)
 # input
 1
 "foo"
@@ -124,7 +124,7 @@ search is(<int64>)
 _Boolean functions with Boolean logic_
 ```mdtest-spq
 # spq
-search is(<int64>) or is(<ip>)
+search is(this, <int64>) or is(this, <ip>)
 # input
 1
 "foo"

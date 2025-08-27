@@ -8,8 +8,8 @@ script: |
   super db compile -C -P 2  "from test | cut ts, foo:=x | uniq" | sed -e 's/pool .*/.../'
   echo "<DROP UNIQ>"
   super db compile -C -P 2 "from test | drop x | uniq" | sed -e 's/pool .*/.../'
-  echo "<EVERY COUNT>"
-  super db compile -C -P 2 "from test | count() by y, every(1h)" | sed -e 's/pool .*/.../'
+  echo "<BUCKET COUNT>"
+  super db compile -C -P 2 "from test | count() by y, ts:=bucket(ts, 1h)" | sed -e 's/pool .*/.../'
   echo "<PUT COUNTDISTINCT UNIQ>"
   super db compile -C -P 2  "from test | put x:=y | countdistinct(x) by y | uniq" | sed -e 's/pool .*/.../'
   echo "<RENAME UNIQ>"
@@ -74,19 +74,19 @@ outputs:
       | merge ts asc nulls last
       | uniq
       | output main
-      <EVERY COUNT>
+      <BUCKET COUNT>
       lister ...
       | slicer
       | scatter
         (
           seqscan ...
           | aggregate partials-out sort-dir 1
-              count:=count() by y:=y,ts:=every(1h)
+              count:=count() by y:=y,ts:=bucket(ts, 1h)
         )
         (
           seqscan ...
           | aggregate partials-out sort-dir 1
-              count:=count() by y:=y,ts:=every(1h)
+              count:=count() by y:=y,ts:=bucket(ts, 1h)
         )
       | merge ts asc nulls last
       | aggregate partials-in sort-dir 1

@@ -166,7 +166,7 @@ may be used as a search term and mixed into a search expression.
 
 For example,
 ```
-? is(<foo>) has(bar) baz x==y+z timestamp > 2018-03-24T17:17:55Z
+? is(this, <foo>) has(bar) baz x==y+z timestamp > 2018-03-24T17:17:55Z
 ```
 is a valid search expression but
 ```
@@ -313,7 +313,7 @@ _Search expressions match fields names too_
 _Boolean functions may be called_
 ```mdtest-spq
 # spq
-search is(<int64>)
+search is(this, <int64>)
 # input
 1
 "foo"
@@ -327,7 +327,7 @@ search is(<int64>)
 _Boolean functions with [Boolean logic](#boolean-logic)_
 ```mdtest-spq
 # spq
-search is(<int64>) or is(<ip>)
+search is(this, <int64>) or is(this, <ip>)
 # input
 1
 "foo"

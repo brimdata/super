@@ -1,4 +1,4 @@
-spq: is(<foo>)
+spq: is(this, <foo>)
 
 vector: true
 

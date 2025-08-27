@@ -4,16 +4,14 @@ import (
 	"slices"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
 )
 
-func New(sctx *super.Context, name string, narg int) (expr.Function, field.Path, error) {
+func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 	argmin := 1
 	argmax := 1
-	var path field.Path
 	var f expr.Function
 	switch name {
 	case "abs":
@@ -37,9 +35,6 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, field.Path,
 		argmin = 2
 		argmax = 2
 		f = &DatePart{sctx}
-	case "every":
-		path = field.Path{"ts"}
-		f = &Bucket{sctx: sctx, name: name}
 	case "error":
 		f = &Error{sctx}
 	case "fields":
@@ -61,9 +56,8 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, field.Path,
 	case "hex":
 		f = &Hex{sctx}
 	case "is":
-		argmin = 1
+		argmin = 2
 		argmax = 2
-		path = field.Path{}
 		f = &Is{sctx: sctx}
 	case "join":
 		argmax = 2
@@ -85,11 +79,8 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, field.Path,
 	case "nameof":
 		f = &NameOf{sctx: sctx}
 	case "nest_dotted":
-		path = field.Path{}
-		argmin = 0
 		f = &NestDotted{sctx}
 	case "now":
-		path = field.Path{}
 		argmax = 0
 		argmin = 0
 		f = &Now{}
@@ -143,12 +134,12 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, field.Path,
 	case "upper":
 		f = &ToUpper{sctx}
 	default:
-		return nil, nil, function.ErrNoSuchFunction
+		return nil, function.ErrNoSuchFunction
 	}
 	if err := function.CheckArgCount(narg, argmin, argmax); err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	return f, path, nil
+	return f, nil
 }
 
 func underAll(args []vector.Any) []vector.Any {

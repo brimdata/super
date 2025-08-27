@@ -94,7 +94,7 @@ where ! (this in [1,4])
 _Boolean functions may be called_
 ```mdtest-spq
 # spq
-where is(<int64>)
+where is(this, <int64>)
 # input
 1
 "foo"
@@ -106,7 +106,7 @@ where is(<int64>)
 _Boolean functions with Boolean logic_
 ```mdtest-spq
 # spq
-where is(<int64>) or is(<ip>)
+where is(this, <int64>) or is(this, <ip>)
 # input
 1
 "foo"

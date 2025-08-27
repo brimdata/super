@@ -3,10 +3,10 @@ script: |
   super -s -c "count() by ts | sort this" in.sup
   echo === forward-sorted-with-null ===
   super -s -c "count() by ts | sort this" in-with-null.sup
-  echo === forward-sorted-every ===
-  super -s -c "count() by every(1s) | sort this" in.sup
-  echo === forward-sorted-every-null ===
-  super -s -c "count() by every(1s) | sort this" in-with-null.sup
+  echo === forward-sorted-bucket ===
+  super -s -c "count() by ts:=bucket(ts, 1s) | sort this" in.sup
+  echo === forward-sorted-bucket-null ===
+  super -s -c "count() by ts:=bucket(ts, 1s) | sort this" in-with-null.sup
   echo === forward-sorted-record-key ===
   super -s -c "count() by foo | sort this" in-record-key.sup
   echo === forward-sorted-nested-key ===
@@ -18,7 +18,7 @@ script: |
   echo === reverse-sorted ===
   super -s -c "count() by ts | sort this" in-rev.sup
   echo === reverse-sorted-null ===
-  super -s -c "count() by every(1s) | sort this" in-rev.sup
+  super -s -c "count() by ts:=bucket(ts, 1s) | sort this" in-rev.sup
 
 vector: true
 
@@ -67,11 +67,11 @@ outputs:
       {ts:1970-01-01T00:00:02Z,count:1::uint64}
       {ts:1970-01-01T00:00:01Z,count:2::uint64}
       {ts:1970-01-01T00:00:03Z,count:1::uint64}
-      === forward-sorted-every ===
+      === forward-sorted-bucket ===
       {ts:1970-01-01T00:00:02Z,count:1::uint64}
       {ts:1970-01-01T00:00:01Z,count:2::uint64}
       {ts:1970-01-01T00:00:03Z,count:1::uint64}
-      === forward-sorted-every-null ===
+      === forward-sorted-bucket-null ===
       {ts:null::time,count:1::uint64}
       {ts:1970-01-01T00:00:02Z,count:1::uint64}
       {ts:1970-01-01T00:00:01Z,count:2::uint64}

@@ -733,7 +733,7 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 		}
 		fallthrough
 	default:
-		if _, _, err = function.New(a.sctx, nameLower, nargs); err != nil {
+		if _, err = function.New(a.sctx, nameLower, nargs); err != nil {
 			a.error(call, err)
 			return badExpr()
 		}

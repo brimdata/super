@@ -5,7 +5,6 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/anymath"
-	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
 )
 
@@ -16,10 +15,9 @@ var (
 	ErrTooManyArgs    = errors.New("too many arguments")
 )
 
-func New(sctx *super.Context, name string, narg int) (expr.Function, field.Path, error) {
+func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 	argmin := 1
 	argmax := 1
-	var path field.Path
 	var f expr.Function
 	switch name {
 	case "abs":
@@ -49,12 +47,6 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, field.Path,
 		f = &DatePart{sctx}
 	case "error":
 		f = &Error{sctx: sctx}
-	case "every":
-		path = field.Path{"ts"}
-		f = &Bucket{
-			sctx: sctx,
-			name: "every",
-		}
 	case "fields":
 		f = NewFields(sctx)
 	case "flatten":
@@ -76,9 +68,8 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, field.Path,
 	case "hex":
 		f = &Hex{sctx: sctx}
 	case "is":
-		argmin = 1
+		argmin = 2
 		argmax = 2
-		path = field.Path{}
 		f = &Is{sctx: sctx}
 	case "is_error":
 		f = &IsErr{}
@@ -112,8 +103,6 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, field.Path,
 	case "nameof":
 		f = &NameOf{sctx: sctx}
 	case "nest_dotted":
-		path = field.Path{}
-		argmin = 0
 		f = NewNestDotted(sctx)
 	case "network_of":
 		argmax = 2
@@ -171,12 +160,12 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, field.Path,
 	case "upper":
 		f = &ToUpper{sctx: sctx}
 	default:
-		return nil, nil, ErrNoSuchFunction
+		return nil, ErrNoSuchFunction
 	}
 	if err := CheckArgCount(narg, argmin, argmax); err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	return f, path, nil
+	return f, nil
 }
 
 func CheckArgCount(narg int, argmin int, argmax int) error {

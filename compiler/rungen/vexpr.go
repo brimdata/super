@@ -198,32 +198,28 @@ func (b *Builder) compileVamCall(call *dag.Call) (vamexpr.Evaluator, error) {
 	if tf := expr.NewShaperTransform(call.Name); tf != 0 {
 		return b.compileVamShaper(call.Args, tf)
 	}
-	var path field.Path
 	var fn vamexpr.Function
 	if u, ok := b.udfs[call.Name]; ok {
 		var err error
 		if fn, err = b.compileVamUDFCall(call.Name, u); err != nil {
 			return nil, err
 		}
-		if len(u.Params) == 0 {
-			// If udfs has no params pass in "this" so we know vector size.
-			path = field.Path{}
-		}
 	} else {
 		var err error
-		fn, path, err = vamfunction.New(b.sctx(), call.Name, len(call.Args))
+		fn, err = vamfunction.New(b.sctx(), call.Name, len(call.Args))
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", call.Name, err)
 		}
 	}
-	args := call.Args
-	if path != nil {
-		dagPath := &dag.This{Kind: "This", Path: path}
-		args = append([]dag.Expr{dagPath}, args...)
-	}
-	exprs, err := b.compileVamExprs(args)
+	exprs, err := b.compileVamExprs(call.Args)
 	if err != nil {
 		return nil, err
+	}
+	// Any call that expects zero arguments must take one argument
+	// consisting of a vector that can represent the length of the argument
+	// vector so we just pass in "this".
+	if len(exprs) == 0 {
+		exprs = []vamexpr.Evaluator{vamexpr.NewDottedExpr(b.sctx(), nil)}
 	}
 	return vamexpr.NewCall(fn, exprs), nil
 }

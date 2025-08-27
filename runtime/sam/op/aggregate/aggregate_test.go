@@ -109,7 +109,7 @@ func TestAggregateStreamingSpill(t *testing.T) {
 	}
 
 	runOne := func(inputSortKey string) []string {
-		ast, err := parser.ParseQuery("count() by every(1s), ip")
+		ast, err := parser.ParseQuery("count() by ts:=bucket(ts, 1s), ip")
 		assert.NoError(t, err)
 
 		sctx := super.NewContext()

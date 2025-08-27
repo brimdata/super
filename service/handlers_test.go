@@ -52,7 +52,7 @@ func TestQueryAggregateReverse(t *testing.T) {
 	_, conn := newCore(t)
 	poolID := conn.TestPoolPost(api.PoolPostRequest{Name: "test"})
 	conn.TestLoad(poolID, "main", strings.NewReader(src))
-	require.Equal(t, counts, "\n"+conn.TestQuery("from test | count() by every(1s)"))
+	require.Equal(t, counts, "\n"+conn.TestQuery("from test | count() by ts:=bucket(ts, 1s)"))
 }
 
 func TestPoolStats(t *testing.T) {

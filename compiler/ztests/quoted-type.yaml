@@ -1,7 +1,7 @@
 script: |
-  super -s -c 'is(<"@foo">)' in.sup
+  super -s -c 'is(this, <"@foo">)' in.sup
   echo ===
-  super -s -c 'const foo = <"@foo"={x:int64}> const yz = <"Y Z"={y:"@foo"}> is(<"Y Z">)' in.sup
+  super -s -c 'const foo = <"@foo"={x:int64}> const yz = <"Y Z"={y:"@foo"}> is(this, <"Y Z">)' in.sup
 
 inputs:
   - name: in.sup

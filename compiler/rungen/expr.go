@@ -311,7 +311,6 @@ func (b *Builder) compileCall(call dag.Call) (expr.Evaluator, error) {
 	if tf := expr.NewShaperTransform(call.Name); tf != 0 {
 		return b.compileShaper(call.Args, tf)
 	}
-	var path field.Path
 	// First check if call is to a user defined function, otherwise check for
 	// builtin function.
 	var fn expr.Function
@@ -322,17 +321,12 @@ func (b *Builder) compileCall(call dag.Call) (expr.Evaluator, error) {
 		}
 	} else {
 		var err error
-		fn, path, err = function.New(b.sctx(), call.Name, len(call.Args))
+		fn, err = function.New(b.sctx(), call.Name, len(call.Args))
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", call.Name, err)
 		}
 	}
-	args := call.Args
-	if path != nil {
-		dagPath := &dag.This{Kind: "This", Path: path}
-		args = append([]dag.Expr{dagPath}, args...)
-	}
-	exprs, err := b.compileExprs(args)
+	exprs, err := b.compileExprs(call.Args)
 	if err != nil {
 		return nil, fmt.Errorf("%s: bad argument: %w", call.Name, err)
 	}

@@ -80,10 +80,6 @@ type Is struct {
 func (i *Is) Call(args []super.Value) super.Value {
 	zvSubject := args[0]
 	zvTypeVal := args[1]
-	if len(args) == 3 {
-		zvSubject = args[1]
-		zvTypeVal = args[2]
-	}
 	var typ super.Type
 	var err error
 	if zvTypeVal.Type().ID() != super.IDType {

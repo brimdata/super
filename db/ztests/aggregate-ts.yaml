@@ -15,7 +15,7 @@ script: |
   echo ===
   super db -s -c 'from logs | count:=count() by g | sort g'
   echo ===
-  super db -s -c 'from logs | count:=count() by every(3600s), g | sort ts, g'
+  super db -s -c 'from logs | count:=count() by ts:=bucket(ts, 3600s), g | sort ts, g'
 
 inputs:
   - name: aggregate-ts.sup

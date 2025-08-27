@@ -11,14 +11,13 @@ nest_dotted(val: record) -> record
 
 ### Description
 The _nest_dotted_ function returns a copy of `val` with all dotted field names
-converted into nested records. If no argument is supplied to `nest_dotted`,
-`nest_dotted` operates on `this`.
+converted into nested records.
 
 ### Examples
 
 ```mdtest-spq
 # spq
-values nest_dotted()
+values nest_dotted(this)
 # input
 {"a.b.c":"foo"}
 # expected output
