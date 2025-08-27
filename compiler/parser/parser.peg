@@ -212,7 +212,7 @@ AggAssignment
     }
 
 Agg
-  = !FuncGuard aggDistinct:AggDistinct !(__ ".") where:WhereClause? {
+  = aggDistinct:AggDistinct !(__ ".") where:WhereClause? {
       agg := aggDistinct.(*ast.Agg)
       agg.Loc = loc(c)
       if where != nil {
@@ -220,7 +220,7 @@ Agg
       }
       return agg, nil
     }
-  / !FuncGuard name:AggName __ "(" __ expr:Expr? __ ")" !(__ ".") where:WhereClause? {
+  / name:AggName __ "(" __ expr:Expr? __ ")" !(__ ".") where:WhereClause? {
       agg := &ast.Agg{
           Kind: "Agg",
           Name: name.(string),
@@ -243,7 +243,7 @@ Agg
     }
 
 AggDistinct
-  = !FuncGuard name:AggName __ "(" __ DISTINCT _ expr:Expr __ ")" {
+  = name:AggName __ "(" __ DISTINCT _ expr:Expr __ ")" {
       return &ast.Agg{
           Kind: "Agg",
           Name: name.(string),
@@ -861,7 +861,7 @@ LogicalAndExpr
     }
 
 NotExpr
-  = (NOT _ / "!" __) e:NotExpr {
+  = (NOT __ / "!" __) e:NotExpr {
       return &ast.UnaryExpr{
           Kind: "UnaryExpr",
           Op: "!",
@@ -992,14 +992,8 @@ DerefKey
   / s:DoubleQuotedString    { return &ast.ID{Kind: "ID", Name:s.(string), Loc: loc(c)}, nil }
   / s:BacktickString        { return &ast.ID{Kind: "ID", Name:s.(string), Loc: loc(c)}, nil }
 
-FuncGuard = NotFuncs __ "("
-
-NotFuncs
-  = NOT
-  / SELECT
-
 Function
-  = !FuncGuard EXTRACT __ "(" __ part:Expr _ FROM _ e:Expr __ ")" where:WhereClause? {
+  = EXTRACT __ "(" __ part:Expr _ FROM _ e:Expr __ ")" where:WhereClause? {
       return &ast.CallExtract{
         Kind: "CallExtract",
         Part: part.(ast.Expr),
@@ -1007,14 +1001,14 @@ Function
         Loc: loc(c),
       }, nil
     }
-  / !FuncGuard EXISTS __ "(" __ body:Seq __ ")" {
+  / EXISTS __ "(" __ body:Seq __ ")" {
       return &ast.Exists{
         Kind: "Exists",
         Body: sliceOf[ast.Op](body),
         Loc: loc(c),
       }, nil
     }
-  / !FuncGuard CAST __ "(" __ e:Expr _ AS _ typ:Identifier __ ")" {
+  / CAST __ "(" __ e:Expr _ AS _ typ:Identifier __ ")" {
       return &ast.SQLCast{
         Kind: "SQLCast",
         Expr: e.(ast.Expr),
@@ -1022,7 +1016,7 @@ Function
         Loc: loc(c),
       }, nil
     }
-  / !FuncGuard SUBSTRING __ "(" __ expr:Expr from:(_ FROM _ e:Expr { return e, nil })? for_:(_ FOR _ e:Expr { return e, nil })? ")" {
+  / SUBSTRING __ "(" __ expr:Expr from:(_ FROM _ e:Expr { return e, nil })? for_:(_ FOR _ e:Expr { return e, nil })? ")" {
       s := &ast.SQLSubstring{
         Kind: "SQLSubstring",
         Expr: expr.(ast.Expr),
@@ -1036,7 +1030,7 @@ Function
       }
       return s, nil
     }
-  / !FuncGuard fn:Identifier __ "(" __ args:FunctionArgs __ ")" where:WhereClause? {
+  / fn:Identifier __ "(" __ args:FunctionArgs __ ")" where:WhereClause? {
       return newCall(c, fn, args, where), nil
     }
   / CountStar
