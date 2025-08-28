@@ -13,7 +13,6 @@ import (
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/compiler/rungen"
 	"github.com/brimdata/super/compiler/sfmt"
-	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/sup"
 )
@@ -557,13 +556,13 @@ func (a *analyzer) semSQLJoin(join *ast.SQLJoin, seq dag.Seq) (dag.Seq, schema) 
 	leftSeq, leftSchema := a.semFromElem(join.Left, nil)
 	rightSeq, rightSchema := a.semFromElem(join.Right, nil)
 	sch := &joinSchema{left: leftSchema, right: rightSchema}
-	leftKey, rightKey, err := a.semSQLJoinCond(join.Cond, sch)
-	if err != nil {
-		// Join expression errors are already logged so suppress further notice.
-		if err != badJoinCond {
-			a.error(join.Cond, err)
-		}
-		return append(seq, badOp()), badSchema()
+	saved := a.scope.schema
+	a.scope.schema = sch
+	cond := a.semJoinCond(join.Cond, "left", "right")
+	a.scope.schema = saved
+	style := join.Style
+	if style == "" {
+		style = "inner"
 	}
 	par := &dag.Fork{
 		Kind:  "Fork",
@@ -571,159 +570,58 @@ func (a *analyzer) semSQLJoin(join *ast.SQLJoin, seq dag.Seq) (dag.Seq, schema) 
 	}
 	dagJoin := &dag.Join{
 		Kind:       "Join",
-		Style:      join.Style,
+		Style:      style,
 		LeftAlias:  "left",
-		LeftDir:    order.Unknown,
-		LeftKey:    leftKey,
 		RightAlias: "right",
-		RightDir:   order.Unknown,
-		RightKey:   rightKey,
+		Cond:       cond,
 	}
 	return dag.Seq{par, dagJoin}, sch
 }
 
-var badJoinCond = errors.New("bad join condition")
-
-func (a *analyzer) semSQLJoinCond(cond ast.JoinCond, sch *joinSchema) (*dag.This, *dag.This, error) {
-	//XXX we currently require field expressions for SQL joins and will need them
-	// to resolve names to join side when we add scope tracking
-	saved := a.scope.schema
-	defer func() {
-		a.scope.schema = saved
-	}()
-	a.scope.schema = sch
-	l, r, err := a.semJoinCond(cond, "left", "right")
-	if err != nil {
-		return nil, nil, err
-	}
-	left, err := joinFieldAsThis(l)
-	if err != nil {
-		return nil, nil, err
-	}
-	right, err := joinFieldAsThis(r)
-	return left, right, err
-}
-
-func joinFieldAsThis(e dag.Expr) (*dag.This, error) {
-	if _, ok := e.(*dag.BadExpr); ok {
-		return nil, badJoinCond
-	}
-	this, ok := e.(*dag.This)
-	if !ok {
-		return nil, errors.New("join condition must be equijoin on fields")
-	}
-	if len(this.Path) == 0 {
-		return nil, errors.New("join expression cannot refer to 'this'")
-	}
-	return this, nil
-}
-
-func (a *analyzer) semJoinCond(cond ast.JoinCond, leftAlias, rightAlias string) (dag.Expr, dag.Expr, error) {
+func (a *analyzer) semJoinCond(cond ast.JoinCond, leftAlias, rightAlias string) dag.Expr {
 	switch cond := cond.(type) {
 	case *ast.JoinOnCond:
 		if id, ok := cond.Expr.(*ast.ID); ok {
 			return a.semJoinCond(&ast.JoinUsingCond{Fields: []ast.Expr{id}}, leftAlias, rightAlias)
 		}
-		binary, ok := cond.Expr.(*ast.BinaryExpr)
-		if !ok || !(binary.Op == "==" || binary.Op == "=") {
-			return nil, nil, errors.New("only equijoins currently supported")
-		}
-		leftKey, rightKey := a.semJoinOnCond(cond, leftAlias, rightAlias, binary.LHS, binary.RHS)
-		return leftKey, rightKey, nil
+		e := a.semExpr(cond.Expr)
+		dag.WalkT(reflect.ValueOf(e), func(t *dag.This) *dag.This {
+			if len(t.Path) == 0 {
+				a.error(cond.Expr, errors.New(`join expression cannot refer to "this"`))
+			} else if name := t.Path[0]; name != leftAlias && name != rightAlias {
+				a.error(cond.Expr, fmt.Errorf("ambiguous field reference %q", name))
+			}
+			return t
+		})
+		return e
 	case *ast.JoinUsingCond:
-		if len(cond.Fields) > 1 {
-			return nil, nil, errors.New("join using currently limited to a single field")
-		}
 		if a.scope.schema != nil {
 			sch := a.scope.schema.(*joinSchema)
 			a.scope.schema = &joinUsingSchema{sch}
 			defer func() { a.scope.schema = sch }()
 		}
-		e := a.semField(cond.Fields[0])
-		key, ok := e.(*dag.This)
-		if !ok {
-			return e, e, nil
+		var exprs []dag.Expr
+		for _, e := range a.semFields(cond.Fields) {
+			switch ee := e.(type) {
+			case *dag.BadExpr:
+			case *dag.This:
+				lhs := &dag.This{Kind: "This", Path: append([]string{leftAlias}, ee.Path...)}
+				rhs := &dag.This{Kind: "This", Path: append([]string{rightAlias}, ee.Path...)}
+				e = dag.NewBinaryExpr("==", lhs, rhs)
+			default:
+				panic(ee)
+			}
+			exprs = append(exprs, e)
 		}
-		return key, key, nil
+		n := len(exprs)
+		e := exprs[n-1]
+		for i := n - 2; i >= 0; i-- {
+			e = dag.NewBinaryExpr("and", exprs[i], e)
+		}
+		return e
 	default:
-		panic(fmt.Sprintf("semJoinCond: unknown type: %T", cond))
+		panic(cond)
 	}
-}
-
-func (a *analyzer) semJoinOnCond(cond *ast.JoinOnCond, leftAlias, rightAlias string, lhs, rhs ast.Expr) (dag.Expr, dag.Expr) {
-	var isbad bool
-	var left, right dag.Expr
-	for _, in := range []ast.Expr{lhs, rhs} {
-		e, alias := a.semEquiJoinExpr(in)
-		if _, ok := e.(*dag.BadExpr); ok {
-			isbad = true
-			continue
-		}
-		switch alias {
-		case leftAlias:
-			if left != nil {
-				a.error(cond.Expr, errors.New("self joins not currently supported"))
-			}
-			left = e
-		case rightAlias:
-			if right != nil {
-				a.error(cond.Expr, errors.New("self joins not currently supported"))
-			}
-			right = e
-		default:
-			a.error(in, fmt.Errorf("ambiguous field name %q", alias))
-		}
-	}
-	if isbad {
-		return badExpr(), badExpr()
-	}
-	return left, right
-}
-
-// Possible error states:
-//   - No field reference in one side of join expression (allowed for cross join
-//     but we ain't there).
-//   - There's an ID that doesn't have an alias (i.e., len < 2)
-//   - Mix of aliases in one side of equi-join (allowed for cross join).
-func (a *analyzer) semEquiJoinExpr(in ast.Expr) (dag.Expr, string) {
-	e := a.semExpr(in)
-	if _, ok := e.(*dag.BadExpr); ok {
-		return e, ""
-	}
-	fields := fieldsInExpr(e)
-	if len(fields) == 0 {
-		a.error(in, errors.New("no field references in join expression"))
-		return badExpr(), ""
-	}
-	var aliases []string
-	for _, field := range fields {
-		if len(field.Path) == 0 {
-			a.error(in, errors.New("cannot join on this"))
-			return badExpr(), ""
-		}
-		aliases = append(aliases, field.Path[0])
-	}
-	if len(slices.Compact(aliases)) > 1 {
-		a.error(in, errors.New("more than one alias referenced in one side of equi-join"))
-		return badExpr(), ""
-	}
-	// Strip alias from expr.
-	for _, field := range fields {
-		field.Path = field.Path[1:]
-	}
-	return e, aliases[0]
-}
-
-func fieldsInExpr(e dag.Expr) []*dag.This {
-	if this, ok := e.(*dag.This); ok {
-		return []*dag.This{this}
-	}
-	var fields []*dag.This
-	dag.WalkT(reflect.ValueOf(e), func(field *dag.This) *dag.This {
-		fields = append(fields, field)
-		return field
-	})
-	return fields
 }
 
 type exprloc struct {

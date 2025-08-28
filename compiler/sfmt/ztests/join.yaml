@@ -22,7 +22,7 @@ outputs:
         (
           file test.sup format sup
         )
-      | inner join as {left,right} on x=x
+      | inner join as {left,right} on right.x==left.x
       | output main
       ===
       right join (
@@ -37,5 +37,5 @@ outputs:
         (
           file test.sup format sup
         )
-      | right join as {l,r} on x=x
+      | right join as {l,r} on r.x==l.x
       | output main

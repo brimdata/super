@@ -1,13 +1,21 @@
 script: |
-  echo === ANTI ===
+  echo === anti hash
   super -s -c 'anti join (from B.sup) on left.a=right.b | values left | sort a' A.sup
-  echo === LEFT ===
-  super -s -c 'left join (from B.sup) on left.a=right.b | values {...left,hit:right.sb} | sort a' A.sup
-  echo === INNER ===
-  super -s -c 'inner join (from B.sup) on left.a=right.b | values {...left,hit:right.sb} | sort a' A.sup
-  echo === RIGHT ===
-  super -s -c 'right join (from C.sup) on right.c=left.b | values {...right,hit:left.sb} | sort c' B.sup
-  echo === CROSS ===
+  echo === anti nested loop
+  super -s -c 'anti join (from B.sup) on left.a>right.b | values left | sort a' A.sup
+  echo === left hash
+  super -s -c 'left join (from B.sup) on left.a=right.b | values {...left,hit:right.sb} | sort a, hit' A.sup
+  echo === left nested loop
+  super -s -c 'left join (from B.sup) on left.a>right.b | values {...left,hit:right.sb} | sort a, hit' A.sup
+  echo === inner hash
+  super -s -c 'inner join (from B.sup) on left.a=right.b | values {...left,hit:right.sb} | sort a, hit' A.sup
+  echo === inner nested loop
+  super -s -c 'inner join (from B.sup) on left.a>right.b | values {...left,hit:right.sb} | sort a, hit' A.sup
+  echo === right hash
+  super -s -c 'right join (from C.sup) on right.c=left.b | values {...right,hit:left.sb} | sort c, hit' B.sup
+  echo === right nested loop
+  super -s -c 'right join (from C.sup) on right.c>left.b | values {...right,hit:left.sb} | sort c, hit' B.sup
+  echo === cross
   super -s -c 'cross join (from C.sup) | values {...left,...right} | sort b, sb, c' B.sup
 
 vector: true
@@ -24,7 +32,7 @@ inputs:
       {a:40,sa:"a3"}
       {a:45,sa:"a5"}
       {a:50,sa:"a4"}
-      {anti_a:"Anti join output must not contain this record."}
+      {anti_a:"Anti hash join output must not contain this record."}
   - name: B.sup
     data: |
       {b:20,sb:"b20.1"}
@@ -44,7 +52,7 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      === ANTI ===
+      === anti hash
       {a:10,sa:"a0"}
       {a:15,sa:"a8"}
       {a:25,sa:"a7"}
@@ -52,7 +60,12 @@ outputs:
       {a:35,sa:"a6"}
       {a:45,sa:"a5"}
       {a:50,sa:"a4"}
-      === LEFT ===
+      === anti nested loop
+      {a:10,sa:"a0"}
+      {a:15,sa:"a8"}
+      {a:20,sa:"a1"}
+      {anti_a:"Anti hash join output must not contain this record."}
+      === left hash
       {a:10,sa:"a0",hit:error("missing")}
       {a:15,sa:"a8",hit:error("missing")}
       {a:20,sa:"a1",hit:"b20.1"}
@@ -64,12 +77,50 @@ outputs:
       {a:40,sa:"a3",hit:"b40.2"}
       {a:45,sa:"a5",hit:error("missing")}
       {a:50,sa:"a4",hit:error("missing")}
-      === INNER ===
+      === left nested loop
+      {a:10,sa:"a0",hit:error("missing")}
+      {a:15,sa:"a8",hit:error("missing")}
+      {a:20,sa:"a1",hit:error("missing")}
+      {a:25,sa:"a7",hit:"b20.1"}
+      {a:25,sa:"a7",hit:"b20.2"}
+      {a:30,sa:"a2",hit:"b20.1"}
+      {a:30,sa:"a2",hit:"b20.2"}
+      {a:35,sa:"a6",hit:"b20.1"}
+      {a:35,sa:"a6",hit:"b20.2"}
+      {a:40,sa:"a3",hit:"b20.1"}
+      {a:40,sa:"a3",hit:"b20.2"}
+      {a:45,sa:"a5",hit:"b20.1"}
+      {a:45,sa:"a5",hit:"b20.2"}
+      {a:45,sa:"a5",hit:"b40"}
+      {a:45,sa:"a5",hit:"b40.2"}
+      {a:50,sa:"a4",hit:"b20.1"}
+      {a:50,sa:"a4",hit:"b20.2"}
+      {a:50,sa:"a4",hit:"b40"}
+      {a:50,sa:"a4",hit:"b40.2"}
+      {anti_a:"Anti hash join output must not contain this record.",hit:error("missing")}
+      === inner hash
       {a:20,sa:"a1",hit:"b20.1"}
       {a:20,sa:"a1",hit:"b20.2"}
       {a:40,sa:"a3",hit:"b40"}
       {a:40,sa:"a3",hit:"b40.2"}
-      === RIGHT ===
+      === inner nested loop
+      {a:25,sa:"a7",hit:"b20.1"}
+      {a:25,sa:"a7",hit:"b20.2"}
+      {a:30,sa:"a2",hit:"b20.1"}
+      {a:30,sa:"a2",hit:"b20.2"}
+      {a:35,sa:"a6",hit:"b20.1"}
+      {a:35,sa:"a6",hit:"b20.2"}
+      {a:40,sa:"a3",hit:"b20.1"}
+      {a:40,sa:"a3",hit:"b20.2"}
+      {a:45,sa:"a5",hit:"b20.1"}
+      {a:45,sa:"a5",hit:"b20.2"}
+      {a:45,sa:"a5",hit:"b40"}
+      {a:45,sa:"a5",hit:"b40.2"}
+      {a:50,sa:"a4",hit:"b20.1"}
+      {a:50,sa:"a4",hit:"b20.2"}
+      {a:50,sa:"a4",hit:"b40"}
+      {a:50,sa:"a4",hit:"b40.2"}
+      === right hash
       {c:15,sc:"c8",hit:error("missing")}
       {c:20,sc:"c1",hit:"b20.1"}
       {c:20,sc:"c1",hit:"b20.2"}
@@ -78,7 +129,18 @@ outputs:
       {c:35,sc:"c6",hit:error("missing")}
       {c:40,sc:"c3",hit:"b40"}
       {c:40,sc:"c3",hit:"b40.2"}
-      === CROSS ===
+      === right nested loop
+      {c:15,sc:"c8",hit:error("missing")}
+      {c:20,sc:"c1",hit:error("missing")}
+      {c:25,sc:"c7",hit:"b20.1"}
+      {c:25,sc:"c7",hit:"b20.2"}
+      {c:30,sc:"c2",hit:"b20.1"}
+      {c:30,sc:"c2",hit:"b20.2"}
+      {c:35,sc:"c6",hit:"b20.1"}
+      {c:35,sc:"c6",hit:"b20.2"}
+      {c:40,sc:"c3",hit:"b20.1"}
+      {c:40,sc:"c3",hit:"b20.2"}
+      === cross
       {b:20,sb:"b20.1",c:15,sc:"c8"}
       {b:20,sb:"b20.1",c:20,sc:"c1"}
       {b:20,sb:"b20.1",c:25,sc:"c7"}

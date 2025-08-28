@@ -31,6 +31,7 @@ var unpacker = unpack.New(
 	Fork{},
 	Func{},
 	Fuse{},
+	HashJoin{},
 	Head{},
 	HTTPScan{},
 	IndexExpr{},

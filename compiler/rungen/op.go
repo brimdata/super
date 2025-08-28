@@ -243,7 +243,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 		return fuse.New(b.rctx, parent)
 	case *dag.Shape:
 		return shape.New(b.rctx, parent)
-	case *dag.Join:
+	case *dag.HashJoin, *dag.Join:
 		return nil, ErrJoinParents
 	case *dag.Merge:
 		return nil, errors.New("merge: multiple upstream paths required")
@@ -607,7 +607,7 @@ func (b *Builder) compile(o dag.Op, parents []sbuf.Puller) ([]sbuf.Puller, error
 			return b.compileExprSwitch(o, parents)
 		}
 		return b.compileSwitch(o, parents)
-	case *dag.Join:
+	case *dag.HashJoin, *dag.Join:
 		if len(parents) != 2 {
 			return nil, ErrJoinParents
 		}

@@ -23,12 +23,17 @@ func demandForOp(op dag.Op, downstreams []demand.Demand) []demand.Demand {
 			out = append(out, demand.Union(DemandForSeq(p, downstreams[i])...))
 		}
 		return out
-	case *dag.Join:
+	case *dag.HashJoin:
 		downstream := downstreams[0]
 		left := demand.GetKey(downstream, op.LeftAlias)
 		left = demand.Union(left, demandForExpr(op.LeftKey))
 		right := demand.GetKey(downstream, op.RightAlias)
 		right = demand.Union(right, demandForExpr(op.RightKey))
+		return []demand.Demand{left, right}
+	case *dag.Join:
+		d := demand.Union(downstreams[0], demandForExpr(op.Cond))
+		left := demand.GetKey(d, op.LeftAlias)
+		right := demand.GetKey(d, op.RightAlias)
 		return []demand.Demand{left, right}
 	case *dag.Mirror:
 		main := DemandForSeq(op.Main, downstreams...)

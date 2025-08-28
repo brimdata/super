@@ -446,18 +446,19 @@ func (c *canonDAG) op(p dag.Op) {
 	case *dag.Fuse:
 		c.next()
 		c.write("fuse")
+	case *dag.HashJoin:
+		c.next()
+		c.write("%s hashjoin as {%s,%s} on ", p.Style, p.LeftAlias, p.RightAlias)
+		c.expr(p.LeftKey, "")
+		c.write("==")
+		c.expr(p.RightKey, "")
 	case *dag.Join:
 		c.next()
 		c.open()
-		if p.Style != "" {
-			c.write("%s ", p.Style)
-		}
-		c.write("join as {%s,%s}", p.LeftAlias, p.RightAlias)
-		if p.Style != "cross" {
+		c.write("%s join as {%s,%s}", p.Style, p.LeftAlias, p.RightAlias)
+		if p.Cond != nil {
 			c.write(" on ")
-			c.expr(p.LeftKey, "")
-			c.write("=")
-			c.expr(p.RightKey, "")
+			c.expr(p.Cond, "")
 		}
 		c.close()
 	case *dag.Lister:

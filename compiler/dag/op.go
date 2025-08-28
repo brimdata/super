@@ -74,19 +74,24 @@ type (
 	Fuse struct {
 		Kind string `json:"kind" unpack:""`
 	}
+	HashJoin struct {
+		Kind       string `json:"kind" unpack:""`
+		Style      string `json:"style"`
+		LeftAlias  string `json:"left_alias"`
+		RightAlias string `json:"right_alias"`
+		LeftKey    Expr   `json:"left_key"`
+		RightKey   Expr   `json:"right_key"`
+	}
 	Head struct {
 		Kind  string `json:"kind" unpack:""`
 		Count int    `json:"count"`
 	}
 	Join struct {
-		Kind       string          `json:"kind" unpack:""`
-		Style      string          `json:"style"`
-		LeftAlias  string          `json:"left_alias"`
-		LeftKey    Expr            `json:"left_key"`
-		LeftDir    order.Direction `json:"left_dir"`
-		RightAlias string          `json:"right_alias"`
-		RightKey   Expr            `json:"right_key"`
-		RightDir   order.Direction `json:"right_dir"`
+		Kind       string `json:"kind" unpack:""`
+		Style      string `json:"style"`
+		LeftAlias  string `json:"left_alias"`
+		RightAlias string `json:"right_alias"`
+		Cond       Expr   `json:"cond"`
 	}
 	Load struct {
 		Kind    string      `json:"kind" unpack:""`
@@ -344,6 +349,7 @@ func (*Top) opNode()       {}
 func (*Put) opNode()       {}
 func (*Rename) opNode()    {}
 func (*Fuse) opNode()      {}
+func (*HashJoin) opNode()  {}
 func (*Join) opNode()      {}
 func (*Shape) opNode()     {}
 func (*Explode) opNode()   {}

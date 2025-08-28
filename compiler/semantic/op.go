@@ -788,14 +788,9 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 			a.error(o.Alias, errors.New("left and right join aliases cannot be the same"))
 			return append(seq, badOp())
 		}
-		var leftKey, rightKey dag.Expr
+		var cond dag.Expr
 		if o.Cond != nil {
-			var err error
-			leftKey, rightKey, err = a.semJoinCond(o.Cond, leftAlias, rightAlias)
-			if err != nil {
-				a.error(o.Cond, err)
-				return append(seq, badOp())
-			}
+			cond = a.semJoinCond(o.Cond, leftAlias, rightAlias)
 		}
 		style := o.Style
 		if style == "" {
@@ -805,11 +800,8 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 			Kind:       "Join",
 			Style:      style,
 			LeftAlias:  leftAlias,
-			LeftDir:    order.Unknown,
-			LeftKey:    leftKey,
 			RightAlias: rightAlias,
-			RightDir:   order.Unknown,
-			RightKey:   rightKey,
+			Cond:       cond,
 		}
 		if o.RightInput == nil {
 			return append(seq, join)

@@ -146,6 +146,7 @@ func walkEntries(seq dag.Seq, post func(dag.Seq) (dag.Seq, error)) (dag.Seq, err
 // source's pushdown predicate.  This should be called before ParallelizeScan().
 // TBD: we need to do pushdown for search/cut to optimize columnar extraction.
 func (o *Optimizer) Optimize(seq dag.Seq) (dag.Seq, error) {
+	replaceJoinWithHashJoin(seq)
 	seq = liftFilterOps(seq)
 	seq = mergeFilters(seq)
 	seq = mergeValuesOps(seq)
@@ -333,23 +334,8 @@ func (o *Optimizer) propagateSortKey(seq dag.Seq, parents []order.SortKeys) ([]o
 }
 
 func (o *Optimizer) propagateSortKeyOp(op dag.Op, parents []order.SortKeys) ([]order.SortKeys, error) {
-	if join, ok := op.(*dag.Join); ok {
-		if len(parents) != 2 {
-			return nil, errors.New("internal error: join does not have two parents")
-		}
-		if !parents[0].IsNil() && fieldOf(join.LeftKey).Equal(parents[0].Primary().Key) {
-			join.LeftDir = parents[0].Primary().Order.Direction()
-		}
-		if !parents[1].IsNil() && fieldOf(join.RightKey).Equal(parents[1].Primary().Key) {
-			join.RightDir = parents[1].Primary().Order.Direction()
-		}
-		// XXX There is definitely a way to propagate the sort key but there's
-		// some complexity here. The propagated sort key should be whatever key
-		// remains between the left and right join keys. If both the left and
-		// right key are part of the resultant record what should the
-		// propagated sort key be? Ideally in this case they both would which
-		// would allow for maximum flexibility. For now just return unspecified
-		// sort order.
+	switch op.(type) {
+	case *dag.HashJoin, *dag.Join:
 		return []order.SortKeys{nil}, nil
 	}
 	// If the op is not a join then condense sort order into a single parent,
@@ -732,7 +718,7 @@ func walkT[T any](v reflect.Value, post func(T) T) {
 func setPushdownUnordered(seq dag.Seq, unordered bool) bool {
 	for i := len(seq) - 1; i >= 0; i-- {
 		switch op := seq[i].(type) {
-		case *dag.Aggregate, *dag.Combine, *dag.Distinct, *dag.Join, *dag.Sort, *dag.Top,
+		case *dag.Aggregate, *dag.Combine, *dag.Distinct, *dag.HashJoin, *dag.Join, *dag.Sort, *dag.Top,
 			*dag.DefaultScan, *dag.HTTPScan, *dag.PoolScan,
 			*dag.CommitMetaScan, *dag.DBMetaScan, *dag.PoolMetaScan:
 			unordered = true

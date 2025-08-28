@@ -66,7 +66,7 @@ outputs:
           (
             file people.json format json
           )
-        | inner join as {left,right} on left_key=right_key
+        | inner join as {left,right} on left.left_key==right.right_key
         | values {...left,left_dest:right.right_source}
         | values {...this,assignee:"bob",ts:now()}
         | output main

@@ -26,13 +26,9 @@ func (b *Builder) compileVam(o dag.Op, parents []vector.Puller) ([]vector.Puller
 		return []vector.Puller{vamop.NewCombine(b.rctx, parents)}, nil
 	case *dag.Fork:
 		return b.compileVamFork(o, parents)
-	case *dag.Join:
+	case *dag.HashJoin:
 		if len(parents) != 2 {
 			return nil, ErrJoinParents
-		}
-		if o.Style == "cross" {
-			join := vamop.NewCrossJoin(b.rctx, parents[0], parents[1], o.LeftAlias, o.RightAlias)
-			return []vector.Puller{join}, nil
 		}
 		leftKey, err := b.compileVamExpr(o.LeftKey)
 		if err != nil {
@@ -43,6 +39,20 @@ func (b *Builder) compileVam(o dag.Op, parents []vector.Puller) ([]vector.Puller
 			return nil, err
 		}
 		join := vamop.NewHashJoin(b.rctx, o.Style, parents[0], parents[1], leftKey, rightKey, o.LeftAlias, o.RightAlias)
+		return []vector.Puller{join}, nil
+	case *dag.Join:
+		if len(parents) != 2 {
+			return nil, ErrJoinParents
+		}
+		var cond vamexpr.Evaluator
+		if o.Cond != nil {
+			var err error
+			cond, err = b.compileVamExpr(o.Cond)
+			if err != nil {
+				return nil, err
+			}
+		}
+		join := vamop.NewNestedLoopJoin(b.rctx, parents[0], parents[1], o.Style, o.LeftAlias, o.RightAlias, cond)
 		return []vector.Puller{join}, nil
 	case *dag.Merge:
 		b.resetResetters()

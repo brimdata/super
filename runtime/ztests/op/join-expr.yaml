@@ -4,6 +4,8 @@ script: |
   super -s -c 'left join (from B.sup) as {l,r} on lower(r.s)=l.s | sort' A.sup
   echo ===
   super -s -c 'left join (from B.sup) on (lower(right.s))=(lower(left.s)) | values {...left,b:right.b } | sort' A.sup
+  echo === nested loop join
+  super -s -c 'left join (from B.sup) on lower(left.s)<lower(right.s) | values {...left,b:right.b } | sort' A.sup
 
 vector: true
 
@@ -33,3 +35,8 @@ outputs:
       {a:1::int32,s:"a",b:4::int32}
       {a:2::int32,s:"B",b:5::int32}
       {a:3::int32,s:"c",b:6::int32}
+      === nested loop
+      {a:1::int32,s:"a",b:5::int32}
+      {a:1::int32,s:"a",b:6::int32}
+      {a:2::int32,s:"B",b:6::int32}
+      {a:3::int32,s:"c",b:error("missing")}

@@ -34,5 +34,5 @@ outputs:
             )
           | merge ts asc nulls last
         )
-      | inner join as {left,right} on a=b
+      | inner hashjoin as {left,right} on a==b
       | output main

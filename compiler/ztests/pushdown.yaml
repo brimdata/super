@@ -3,12 +3,18 @@ script: |
   super compile -C -O 'from file | debug a | values b'
   echo === distinct
   super compile -C -O 'from file | distinct a | values b'
-  echo === fork-join
+  echo === fork into hash join
   super compile -C -O 'fork ( from file1 ) ( from file2 ) | join on right.a=left.b | values left.c,right.d'
-  echo === join
+  echo === fork into nested loop join
+  super compile -C -O 'fork ( from file1 ) ( from file2 ) | join on right.a>left.b | values left.c,right.d'
+  echo === hash join
   super compile -C -O "from file1 | join (from file2) on left.a=right.b | values left.c,right.d"
-  echo === switch-join
+  echo === nested loop join
+  super compile -C -O "from file1 | join (from file2) on left.a>right.b | values left.c,right.d"
+  echo === switch into hash join
   super compile -C -O 'from file | switch a case b ( put x:=c ) case d ( put x:=e ) | join on left.f=right.g | values left.h,right.i'
+  echo === switch into nested loop join
+  super compile -C -O 'from file | switch a case b ( put x:=c ) case d ( put x:=e ) | join on left.f>right.g | values left.h,right.i'
   echo === where
   super compile -C -O "from file | a==1 or e==2 | values c, b, d"
   echo ===
@@ -46,7 +52,7 @@ outputs:
       | distinct a
       | values b
       | output main
-      === fork-join
+      === fork into hash join
       fork
         (
           file file1 unordered fields b,c
@@ -54,10 +60,21 @@ outputs:
         (
           file file2 unordered fields a,d
         )
-      | inner join as {left,right} on b=a
+      | inner hashjoin as {left,right} on b==a
       | values left.c, right.d
       | output main
-      === join
+      === fork into nested loop join
+      fork
+        (
+          file file1 unordered fields b,c
+        )
+        (
+          file file2 unordered fields a,d
+        )
+      | inner join as {left,right} on right.a>left.b
+      | values left.c, right.d
+      | output main
+      === hash join
       fork
         (
           file file1 unordered fields a,c
@@ -65,10 +82,21 @@ outputs:
         (
           file file2 unordered fields b,d
         )
-      | inner join as {left,right} on a=b
+      | inner hashjoin as {left,right} on a==b
       | values left.c, right.d
       | output main
-      === switch-join
+      === nested loop join
+      fork
+        (
+          file file1 unordered fields a,c
+        )
+        (
+          file file2 unordered fields b,d
+        )
+      | inner join as {left,right} on left.a>right.b
+      | values left.c, right.d
+      | output main
+      === switch into hash join
       file file unordered fields a,b,c,d,e,f,g,h,i
       | switch a
         case b (
@@ -77,7 +105,19 @@ outputs:
         case d (
           put x:=e
         )
-      | inner join as {left,right} on f=g
+      | inner hashjoin as {left,right} on f==g
+      | values left.h, right.i
+      | output main
+      === switch into nested loop join
+      file file unordered fields a,b,c,d,e,f,g,h,i
+      | switch a
+        case b (
+          put x:=c
+        )
+        case d (
+          put x:=e
+        )
+      | inner join as {left,right} on left.f>right.g
       | values left.h, right.i
       | output main
       === where
