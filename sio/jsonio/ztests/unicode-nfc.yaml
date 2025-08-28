@@ -1,4 +1,4 @@
-spq: values bytes(this)
+spq: values this::bytes
 
 input-flags: -i json
 

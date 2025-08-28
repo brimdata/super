@@ -1,4 +1,4 @@
-spq: values float16(this), float32(this), float64(this)
+spq: values this::float16, this::float32, this::float64
 
 vector: true
 

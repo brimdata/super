@@ -383,12 +383,12 @@ func TestArithmetic(t *testing.T) {
 
 	// Test arithmetic with null values
 	testSuccessful(t, "null + 1", "", "null::int64")
-	testSuccessful(t, "uint64(1) + null", "", "null::uint64")
+	testSuccessful(t, "(1)::uint64 + null", "", "null::uint64")
 	testSuccessful(t, "null + 1.0", "", "null::float64")
 	testSuccessful(t, "1. - null", "", "null::float64")
-	testSuccessful(t, "uint64(1) * null", "", "null::uint64")
+	testSuccessful(t, "(1)::uint64 * null", "", "null::uint64")
 	testSuccessful(t, "null / 1.", "", "null::float64")
-	testSuccessful(t, "1 / uint64(null)", "", "null::int64")
+	testSuccessful(t, "1 / (null)::uint64", "", "null::int64")
 	testSuccessful(t, "null % 1", "", "null::int64")
 
 	// Difference of two times is a duration
@@ -506,97 +506,97 @@ func TestConditional(t *testing.T) {
 
 func TestCasts(t *testing.T) {
 	// Test casts to byte
-	testSuccessful(t, "uint8(10)", "", "10::uint8")
-	testSuccessful(t, "uint8(-1)", "", `error({message:"cannot cast to uint8",on:-1})`)
-	testSuccessful(t, "uint8(300)", "", `error({message:"cannot cast to uint8",on:300})`)
-	testSuccessful(t, `uint8("foo")`, "", `error({message:"cannot cast to uint8",on:"foo"})`)
-	testSuccessful(t, `uint8("-1")`, "", `error({message:"cannot cast to uint8",on:"-1"})`)
-	testSuccessful(t, "uint8(258.)", "", `error({message:"cannot cast to uint8",on:258.})`)
-	testSuccessful(t, `uint8("255")`, "", `255::uint8`)
+	testSuccessful(t, "(10)::uint8", "", "10::uint8")
+	testSuccessful(t, "(-1)::uint8", "", `error({message:"cannot cast to uint8",on:-1})`)
+	testSuccessful(t, "(300)::uint8", "", `error({message:"cannot cast to uint8",on:300})`)
+	testSuccessful(t, `("foo")::uint8`, "", `error({message:"cannot cast to uint8",on:"foo"})`)
+	testSuccessful(t, `("-1")::uint8`, "", `error({message:"cannot cast to uint8",on:"-1"})`)
+	testSuccessful(t, "(258.)::uint8", "", `error({message:"cannot cast to uint8",on:258.})`)
+	testSuccessful(t, `("255")::uint8`, "", `255::uint8`)
 
 	// Test casts to int16
-	testSuccessful(t, "int16(10)", "", "10::int16")
-	testSuccessful(t, "int16(-33000)", "", `error({message:"cannot cast to int16",on:-33000})`)
-	testSuccessful(t, "int16(33000)", "", `error({message:"cannot cast to int16",on:33000})`)
-	testSuccessful(t, `int16("foo")`, "", `error({message:"cannot cast to int16",on:"foo"})`)
+	testSuccessful(t, "(10)::int16", "", "10::int16")
+	testSuccessful(t, "(-33000)::int16", "", `error({message:"cannot cast to int16",on:-33000})`)
+	testSuccessful(t, "(33000)::int16", "", `error({message:"cannot cast to int16",on:33000})`)
+	testSuccessful(t, `("foo")::int16`, "", `error({message:"cannot cast to int16",on:"foo"})`)
 
 	// Test casts to uint16
-	testSuccessful(t, "uint16(10)", "", "10::uint16")
-	testSuccessful(t, "uint16(-1)", "", `error({message:"cannot cast to uint16",on:-1})`)
-	testSuccessful(t, "uint16(66000)", "", `error({message:"cannot cast to uint16",on:66000})`)
-	testSuccessful(t, `uint16("foo")`, "", `error({message:"cannot cast to uint16",on:"foo"})`)
+	testSuccessful(t, "(10)::uint16", "", "10::uint16")
+	testSuccessful(t, "(-1)::uint16", "", `error({message:"cannot cast to uint16",on:-1})`)
+	testSuccessful(t, "(66000)::uint16", "", `error({message:"cannot cast to uint16",on:66000})`)
+	testSuccessful(t, `("foo")::uint16`, "", `error({message:"cannot cast to uint16",on:"foo"})`)
 
 	// Test casts to int32
-	testSuccessful(t, "int32(10)", "", "10::int32")
-	testSuccessful(t, "int32(-2200000000)", "", `error({message:"cannot cast to int32",on:-2200000000})`)
-	testSuccessful(t, "int32(2200000000)", "", `error({message:"cannot cast to int32",on:2200000000})`)
-	testSuccessful(t, `int32("foo")`, "", `error({message:"cannot cast to int32",on:"foo"})`)
+	testSuccessful(t, "(10)::int32", "", "10::int32")
+	testSuccessful(t, "(-2200000000)::int32", "", `error({message:"cannot cast to int32",on:-2200000000})`)
+	testSuccessful(t, "(2200000000)::int32", "", `error({message:"cannot cast to int32",on:2200000000})`)
+	testSuccessful(t, `("foo")::int32`, "", `error({message:"cannot cast to int32",on:"foo"})`)
 
 	// Test casts to uint32
-	testSuccessful(t, "uint32(10)", "", "10::uint32")
-	testSuccessful(t, "uint32(-1)", "", `error({message:"cannot cast to uint32",on:-1})`)
-	testSuccessful(t, "uint32(4300000000)", "", `error({message:"cannot cast to uint32",on:4300000000})`)
-	testSuccessful(t, "uint32(-4.3e9)", "", `error({message:"cannot cast to uint32",on:-4300000000.})`)
-	testSuccessful(t, `uint32("foo")`, "", `error({message:"cannot cast to uint32",on:"foo"})`)
+	testSuccessful(t, "(10)::uint32", "", "10::uint32")
+	testSuccessful(t, "(-1)::uint32", "", `error({message:"cannot cast to uint32",on:-1})`)
+	testSuccessful(t, "(4300000000)::uint32", "", `error({message:"cannot cast to uint32",on:4300000000})`)
+	testSuccessful(t, "(-4.3e9)::uint32", "", `error({message:"cannot cast to uint32",on:-4300000000.})`)
+	testSuccessful(t, `("foo")::uint32`, "", `error({message:"cannot cast to uint32",on:"foo"})`)
 
 	// Test cast to int64
-	testSuccessful(t, "int64(this)", "10000000000000000000::uint64", `error({message:"cannot cast to int64",on:10000000000000000000::uint64})::error({message:string,on:uint64})`)
-	testSuccessful(t, "int64(this)", "1e+19", `error({message:"cannot cast to int64",on:1e+19})`)
-	testSuccessful(t, `int64("10000000000000000000")`, "", `error({message:"cannot cast to int64",on:"10000000000000000000"})`)
+	testSuccessful(t, "(this)::int64", "10000000000000000000::uint64", `error({message:"cannot cast to int64",on:10000000000000000000::uint64})::error({message:string,on:uint64})`)
+	testSuccessful(t, "(this)::int64", "1e+19", `error({message:"cannot cast to int64",on:1e+19})`)
+	testSuccessful(t, `("10000000000000000000")::int64`, "", `error({message:"cannot cast to int64",on:"10000000000000000000"})`)
 
 	// Test casts to uint64
-	testSuccessful(t, "uint64(10)", "", "10::uint64")
-	testSuccessful(t, "uint64(-1)", "", `error({message:"cannot cast to uint64",on:-1})`)
-	testSuccessful(t, `uint64("foo")`, "", `error({message:"cannot cast to uint64",on:"foo"})`)
-	testSuccessful(t, `uint64(+Inf)`, "", `error({message:"cannot cast to uint64",on:+Inf})`)
+	testSuccessful(t, "(10)::uint64", "", "10::uint64")
+	testSuccessful(t, "(-1)::uint64", "", `error({message:"cannot cast to uint64",on:-1})`)
+	testSuccessful(t, `("foo")::uint64`, "", `error({message:"cannot cast to uint64",on:"foo"})`)
+	testSuccessful(t, `(+Inf)::uint64`, "", `error({message:"cannot cast to uint64",on:+Inf})`)
 
 	// Test casts to float16
-	testSuccessful(t, "float16(10)", "", "10.::float16")
-	testSuccessful(t, `float16("foo")`, "", `error({message:"cannot cast to float16",on:"foo"})`)
+	testSuccessful(t, "(10)::float16", "", "10.::float16")
+	testSuccessful(t, `("foo")::float16`, "", `error({message:"cannot cast to float16",on:"foo"})`)
 
 	// Test casts to float32
-	testSuccessful(t, "float32(10)", "", "10.::float32")
-	testSuccessful(t, `float32("foo")`, "", `error({message:"cannot cast to float32",on:"foo"})`)
+	testSuccessful(t, "(10)::float32", "", "10.::float32")
+	testSuccessful(t, `("foo")::float32`, "", `error({message:"cannot cast to float32",on:"foo"})`)
 
 	// Test casts to float64
-	testSuccessful(t, "float64(10)", "", "10.")
-	testSuccessful(t, `float64("foo")`, "", `error({message:"cannot cast to float64",on:"foo"})`)
+	testSuccessful(t, "(10)::float64", "", "10.")
+	testSuccessful(t, `("foo")::float64`, "", `error({message:"cannot cast to float64",on:"foo"})`)
 
 	// Test casts to ip
-	testSuccessful(t, `ip("1.2.3.4")`, "", "1.2.3.4")
-	testSuccessful(t, "ip(1234)", "", `error({message:"cannot cast to ip",on:1234})`)
-	testSuccessful(t, `ip("not an address")`, "", `error({message:"cannot cast to ip",on:"not an address"})`)
+	testSuccessful(t, `("1.2.3.4")::ip`, "", "1.2.3.4")
+	testSuccessful(t, "(1234)::ip", "", `error({message:"cannot cast to ip",on:1234})`)
+	testSuccessful(t, `("not an address")::ip`, "", `error({message:"cannot cast to ip",on:"not an address"})`)
 
 	// Test casts to net
-	testSuccessful(t, `net("1.2.3.0/24")`, "", "1.2.3.0/24")
-	testSuccessful(t, "net(1234)", "", `error({message:"cannot cast to net",on:1234})`)
-	testSuccessful(t, `net("not an address")`, "", `error({message:"cannot cast to net",on:"not an address"})`)
-	testSuccessful(t, `net(1.2.3.4)`, "", `error({message:"cannot cast to net",on:1.2.3.4})`)
+	testSuccessful(t, `("1.2.3.0/24")::net`, "", "1.2.3.0/24")
+	testSuccessful(t, "(1234)::net", "", `error({message:"cannot cast to net",on:1234})`)
+	testSuccessful(t, `("not an address")::net`, "", `error({message:"cannot cast to net",on:"not an address"})`)
+	testSuccessful(t, `(1.2.3.4)::net`, "", `error({message:"cannot cast to net",on:1.2.3.4})`)
 
 	// Test casts to time
-	testSuccessful(t, "time(float16(65504))", "", "1970-01-01T00:00:00.000065504Z")
+	testSuccessful(t, "((65504)::float16)::time", "", "1970-01-01T00:00:00.000065504Z")
 	// float32 lacks sufficient precision to represent this time exactly.
-	testSuccessful(t, "time(float32(1589126400000000000))", "", "2020-05-10T15:59:14.647908352Z")
-	testSuccessful(t, "time(float64(1589126400000000000))", "", "2020-05-10T16:00:00Z")
-	testSuccessful(t, "time(1589126400000000000)", "", "2020-05-10T16:00:00Z")
-	testSuccessful(t, `time("1589126400000000000")`, "", "2020-05-10T16:00:00Z")
+	testSuccessful(t, "((1589126400000000000)::float32)::time", "", "2020-05-10T15:59:14.647908352Z")
+	testSuccessful(t, "((1589126400000000000)::float64)::time", "", "2020-05-10T16:00:00Z")
+	testSuccessful(t, "(1589126400000000000)::time", "", "2020-05-10T16:00:00Z")
+	testSuccessful(t, `("1589126400000000000")::time`, "", "2020-05-10T16:00:00Z")
 
-	testSuccessful(t, "string(1.2)", "", `"1.2"`)
-	testSuccessful(t, "string(5)", "", `"5"`)
-	testSuccessful(t, "string(this)", "5::uint8", `"5"`)
-	testSuccessful(t, "string(this)", "5.5::float16", `"5.5"`)
-	testSuccessful(t, "string(1.2.3.4)", "", `"1.2.3.4"`)
-	testSuccessful(t, `int64("1")`, "", "1")
-	testSuccessful(t, `int64("-1")`, "", "-1")
-	testSuccessful(t, `float16("5.5")`, "", "5.5::float16")
-	testSuccessful(t, `float32("5.5")`, "", "5.5::float32")
-	testSuccessful(t, `float64("5.5")`, "", "5.5")
-	testSuccessful(t, `ip("1.2.3.4")`, "", "1.2.3.4")
+	testSuccessful(t, "(1.2)::string", "", `"1.2"`)
+	testSuccessful(t, "(5)::string", "", `"5"`)
+	testSuccessful(t, "(this)::string", "5::uint8", `"5"`)
+	testSuccessful(t, "(this)::string", "5.5::float16", `"5.5"`)
+	testSuccessful(t, "(1.2.3.4)::string", "", `"1.2.3.4"`)
+	testSuccessful(t, `("1")::int64`, "", "1")
+	testSuccessful(t, `("-1")::int64`, "", "-1")
+	testSuccessful(t, `("5.5")::float16`, "", "5.5::float16")
+	testSuccessful(t, `("5.5")::float32`, "", "5.5::float32")
+	testSuccessful(t, `("5.5")::float64`, "", "5.5")
+	testSuccessful(t, `("1.2.3.4")::ip`, "", "1.2.3.4")
 
-	testSuccessful(t, "ip(1)", "", `error({message:"cannot cast to ip",on:1})`)
-	testSuccessful(t, `int64("abc")`, "", `error({message:"cannot cast to int64",on:"abc"})`)
-	testSuccessful(t, `float16("abc")`, "", `error({message:"cannot cast to float16",on:"abc"})`)
-	testSuccessful(t, `float32("abc")`, "", `error({message:"cannot cast to float32",on:"abc"})`)
-	testSuccessful(t, `float64("abc")`, "", `error({message:"cannot cast to float64",on:"abc"})`)
-	testSuccessful(t, `ip("abc")`, "", `error({message:"cannot cast to ip",on:"abc"})`)
+	testSuccessful(t, "(1)::ip", "", `error({message:"cannot cast to ip",on:1})`)
+	testSuccessful(t, `("abc")::int64`, "", `error({message:"cannot cast to int64",on:"abc"})`)
+	testSuccessful(t, `("abc")::float16`, "", `error({message:"cannot cast to float16",on:"abc"})`)
+	testSuccessful(t, `("abc")::float32`, "", `error({message:"cannot cast to float32",on:"abc"})`)
+	testSuccessful(t, `("abc")::float64`, "", `error({message:"cannot cast to float64",on:"abc"})`)
+	testSuccessful(t, `("abc")::ip`, "", `error({message:"cannot cast to ip",on:"abc"})`)
 }

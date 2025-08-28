@@ -1,6 +1,6 @@
 spq: |
-  values uint64(this), int64(this), float64(this), bool(this), bytes(this),
-        string(this), ip(this), net(this), type(null)
+  values this::uint64, this::int64, this::float64, this::bool, this::bytes,
+        this::string, this::ip, this::net, null::type
 
 vector: true
 

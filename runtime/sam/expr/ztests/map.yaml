@@ -1,8 +1,8 @@
 script: |
   echo '{a:["foo","bar","baz"]}' | super -s -c 'a := map(a,upper)' -
   echo '{a:|["foo","bar","baz"]|}' | super -s -c 'a := map(a,upper)' -
-  echo '["1","2","3"]' | super -s -c 'values map(this,int64)' -
-  echo '[1,2,3]' |super - | super -s -I udf.zed -
+  echo '["1","2","3"]' | super -s -c 'func castInt(v) : (v::int64) values map(this, castInt)' -
+  echo '[1,2,3]' | super - | super -s -I udf.zed -
 
 inputs:
   - name: udf.zed

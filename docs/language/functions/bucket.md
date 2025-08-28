@@ -21,7 +21,7 @@ aligns with 0.
 Bucket a couple times to hour intervals:
 ```mdtest-spq
 # spq
-values bucket(time(this), 1h)
+values bucket(this::time, 1h)
 # input
 2020-05-26T15:27:47Z
 "5/26/2020 3:27pm"

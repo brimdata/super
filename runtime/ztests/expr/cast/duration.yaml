@@ -1,4 +1,4 @@
-spq: duration(this)
+spq: this::duration
 
 vector: true
 

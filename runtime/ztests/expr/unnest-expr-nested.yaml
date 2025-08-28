@@ -1,4 +1,4 @@
-spq: values (unnest a | unnest this | collect(string(this)))
+spq: values (unnest a | unnest this | collect(this::string))
 
 vector: true
 

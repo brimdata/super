@@ -1,4 +1,4 @@
-spq: c:=string(b),d:=base64(b) | e:=string(base64(d))
+spq: c:=b::string,d:=base64(b) | e:=base64(d)::string
 
 input: |
   {b:0x68692c20776f726c64}

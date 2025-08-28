@@ -1,5 +1,5 @@
 spq: |
-  cut count := count() - uint64(1),
+  cut count := count() - 1::uint64,
       dcount := dcount(this),
       sum := sum(this), 
       min := min(this),

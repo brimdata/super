@@ -186,7 +186,7 @@ super db -db example -s -c '
     ( pass )
     ( from coinflips@trial 
       | c:=count()
-      | values f"There were {int64(c)} flips" )
+      | values f"There were {c::int64} flips" )
   | sort this'
 ```
 =>

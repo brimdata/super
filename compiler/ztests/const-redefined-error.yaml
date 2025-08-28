@@ -1,7 +1,7 @@
 spq: |
   type myport=int16 
   type myport=int32 
-  put b:=type(myport)
+  put b:=this::'myport'
 
 error: |
   symbol "myport" redefined at line 2, column 6:

@@ -1,4 +1,4 @@
-spq: ip(this)
+spq: this::ip
 
 vector: true
 

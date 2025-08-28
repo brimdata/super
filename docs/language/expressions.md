@@ -579,7 +579,7 @@ to the indicated type, then the cast's result is an error value.
 For example,
 ```mdtest-spq {data-layout="stacked"}
 # spq
-values int8(this)
+values this::int8
 # input
 1
 200
@@ -598,7 +598,7 @@ based on the [Go Date Parser library](https://github.com/araddon/dateparse).
 
 ```mdtest-spq
 # spq
-values time(this)
+values this::time
 # input
 "May 8, 2009 5:57:51 PM"
 "oct 7, 1970"

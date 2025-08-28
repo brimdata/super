@@ -718,7 +718,7 @@ sum(val) by key | sort key
 _Read CSV input and [cast](../language/functions/cast.md) a to an integer from default float_
 ```mdtest-spq
 # spq
-a:=int64(a)
+a:=a::int64
 # input
 a,b
 1,foo
@@ -731,7 +731,7 @@ a,b
 _Read JSON input and cast to an integer from default float_
 ```mdtest-spq
 # spq
-a:=int64(a)
+a:=a::int64
 # input
 {"a":1,"b":"foo"}
 {"a":2,"b":"bar"}

@@ -1,4 +1,4 @@
-spq: "put s:=string(e), v:=e+1"
+spq: "put s:=e::string, v:=e+1"
 
 vector: true
 

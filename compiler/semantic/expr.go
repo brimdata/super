@@ -656,15 +656,6 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 			Name: name,
 			Args: exprs,
 		}
-	case super.LookupPrimitive(name) != nil:
-		// Primitive function call, change this to a cast.
-		if err := function.CheckArgCount(nargs, 1, 1); err != nil {
-			a.error(call, err)
-			return badExpr()
-		}
-		exprs = append(exprs, &dag.Literal{Kind: "Literal", Value: "<" + name + ">"})
-		name = "cast"
-		nameLower = name
 	case expr.NewShaperTransform(nameLower) != 0:
 		if err := function.CheckArgCount(nargs, 1, 2); err != nil {
 			a.error(call, err)

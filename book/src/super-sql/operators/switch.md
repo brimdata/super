@@ -73,7 +73,7 @@ _Switch on `this` with a constant case_
 # spq
 switch this
   case 1 ( values "1!" )
-  default ( values string(this) )
+  default ( values this::string )
 | sort
 # input
 1

@@ -1,4 +1,4 @@
-spq: 'put s:=string(b)'
+spq: 'put s:=b::string'
 
 input: |
   {b:0xc328}

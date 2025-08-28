@@ -1,5 +1,5 @@
 spq: |
-  unnest this into (collect(string(this)))
+  unnest this into (collect(this::string))
 
 vector: true
 

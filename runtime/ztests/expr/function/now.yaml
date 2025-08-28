@@ -1,7 +1,7 @@
 spq: |
   const t1 = now()
   values t1, now()
-  | values string(this) ~ '[0-9TZ:\\-\\.]+'
+  | values this::string ~ '[0-9TZ:\\-\\.]+'
 
 vector: true
 

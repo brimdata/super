@@ -1,4 +1,4 @@
-spq: bool(this)
+spq: this::bool
 
 vector: true
 

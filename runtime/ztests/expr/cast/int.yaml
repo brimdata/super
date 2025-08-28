@@ -1,5 +1,5 @@
 spq: |
-  values int8(this), int16(this), int32(this), int64(this)
+  values this::int8, this::int16, this::int32, this::int64
 
 vector: true
 

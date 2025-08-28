@@ -1,4 +1,4 @@
-spq: type(this)
+spq: this::type
 
 vector: true
 

@@ -1,4 +1,4 @@
-spq: bytes(this)
+spq: this::bytes
 
 vector: true
 

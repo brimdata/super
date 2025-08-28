@@ -1,4 +1,4 @@
-spq: string(this)
+spq: this::string
 
 vector: true
 

@@ -31,7 +31,7 @@ values rune_len(this)
 The length in bytes of a smiley is 4:
 ```mdtest-spq
 # spq
-values len(bytes(this))
+values len(this::bytes)
 # input
 "hello"
 "😎"

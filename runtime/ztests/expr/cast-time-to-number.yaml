@@ -1,9 +1,9 @@
 spq: |
-  values duration(this),
-        duration(this+2h-this),
-        int64(this),
-        uint64(this),
-        float64(this)
+  values this::duration,
+        (this+2h-this)::duration,
+        this::int64,
+        this::uint64,
+        this::float64
 
 vector: true
 

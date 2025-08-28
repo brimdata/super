@@ -37,7 +37,7 @@ values hex(this)
 Encode the bytes of an ASCII string as a hexadecimal string:
 ```mdtest-spq
 # spq
-values hex(bytes(this))
+values hex(this::bytes)
 # input
 "hello, world"
 # expected output
@@ -47,7 +47,7 @@ values hex(bytes(this))
 Decode hex string representing ASCII into its string form:
 ```mdtest-spq
 # spq
-values string(hex(this))
+values hex(this)::string
 # input
 "68656c6c6f20776f726c64"
 # expected output

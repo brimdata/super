@@ -40,7 +40,7 @@ values base64(this)
 Encode ASCII string into Base64-encoded string:
 ```mdtest-spq
 # spq
-values base64(bytes(this))
+values base64(this::bytes)
 # input
 "hello, world"
 # expected output
@@ -50,7 +50,7 @@ values base64(bytes(this))
 Decode a Base64 string and cast the decoded bytes to a string:
 ```mdtest-spq
 # spq
-values string(base64(this))
+values base64(this)::string
 # input
 "aGVsbG8gd29ybGQ="
 # expected output

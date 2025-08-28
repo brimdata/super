@@ -1,4 +1,4 @@
-spq: time(this)
+spq: this::time
 
 vector: true
 

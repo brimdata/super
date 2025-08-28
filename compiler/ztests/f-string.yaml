@@ -1,7 +1,7 @@
 spq: |
   values
     f"hello {this}",
-    f'hello {hex(bytes(this))}',
+    f'hello {hex(this::bytes)}',
     f"hello \{this}",
     f'hello \{hex(this)}',
     f'yo {f"dawg {this}"}',

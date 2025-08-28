@@ -835,7 +835,7 @@ which produces this string:
 Since the super data model has a native `time` type and we might want to do native date comparisons
 on these time fields, we can easily translate the string to a time with a cast, e.g.,
 ```mdtest-command dir=docs/tutorials
-super -s -c 'unnest this | head 1 | values time(created_at)' prs.json
+super -s -c 'unnest this | head 1 | values created_at::time' prs.json
 ```
 produces the native time value:
 ```mdtest-output
@@ -843,7 +843,7 @@ produces the native time value:
 ```
 To be sure, you can check any value's type with the `typeof` function, e.g.,
 ```mdtest-command dir=docs/tutorials
-super -s -c 'unnest this | head 1 | values time(created_at) | typeof(this)' prs.json
+super -s -c 'unnest this | head 1 | values created_at::time | typeof(this)' prs.json
 ```
 produces the native time value:
 ```mdtest-output
@@ -926,10 +926,10 @@ To fix those strings, we simply transform the fields in place using the
 output as BSUP to the file `prs.bsup`:
 ```
 super -c '
-  closed_at:=time(closed_at),
-  merged_at:=time(merged_at),
-  created_at:=time(created_at),
-  updated_at:=time(updated_at)
+  closed_at:=closed_at::time,
+  merged_at:=merged_at::time,
+  created_at:=created_at::time,
+  updated_at:=updated_at::time
 ' prs2.bsup > prs.bsup
 ```
 We can check the result with our type analysis:
@@ -969,10 +969,10 @@ unnest this                      -- traverse the array of objects
 | len(this) != 0               -- skip empty objects
 | fuse                         -- fuse objects into records of a combined type
 | drop head,base,_links        -- drop fields that we don't need
-| closed_at:=time(closed_at),  -- transform string dates to type time
-  merged_at:=time(merged_at),
-  created_at:=time(created_at),
-  updated_at:=time(updated_at)
+| closed_at:=closed_at::time,  -- transform string dates to type time
+  merged_at:=merged_at::time,
+  created_at:=created_at::time,
+  updated_at:=updated_at::time
 ```
 
 {{% tip "Note" %}}
