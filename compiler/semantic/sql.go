@@ -605,8 +605,8 @@ func (a *analyzer) semJoinCond(cond ast.JoinCond, leftAlias, rightAlias string) 
 			switch ee := e.(type) {
 			case *dag.BadExpr:
 			case *dag.This:
-				lhs := &dag.This{Kind: "This", Path: append([]string{leftAlias}, ee.Path...)}
-				rhs := &dag.This{Kind: "This", Path: append([]string{rightAlias}, ee.Path...)}
+				lhs := dag.NewThis(append([]string{leftAlias}, ee.Path...))
+				rhs := dag.NewThis(append([]string{rightAlias}, ee.Path...))
 				e = dag.NewBinaryExpr("==", lhs, rhs)
 			default:
 				panic(ee)
