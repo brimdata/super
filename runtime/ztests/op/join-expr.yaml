@@ -35,7 +35,7 @@ outputs:
       {a:1::int32,s:"a",b:4::int32}
       {a:2::int32,s:"B",b:5::int32}
       {a:3::int32,s:"c",b:6::int32}
-      === nested loop
+      === nested loop join
       {a:1::int32,s:"a",b:5::int32}
       {a:1::int32,s:"a",b:6::int32}
       {a:2::int32,s:"B",b:6::int32}
