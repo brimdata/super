@@ -316,7 +316,7 @@ func sortExprsForSortKeys(keys order.SortKeys) []dag.SortExpr {
 	var exprs []dag.SortExpr
 	for _, k := range keys {
 		exprs = append(exprs, dag.SortExpr{
-			Key:   &dag.This{Kind: "This", Path: k.Key},
+			Key:   dag.NewThis(k.Key),
 			Order: k.Order,
 			Nulls: k.Order.NullsMax(true)},
 		)

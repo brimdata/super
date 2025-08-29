@@ -426,7 +426,7 @@ func appendCollect(body dag.Seq) dag.Seq {
 			Aggs: []dag.Assignment{{
 				Kind: "Assignment",
 				LHS:  pathOf("collect"),
-				RHS:  &dag.Agg{Kind: "Agg", Name: "collect", Expr: &dag.This{Kind: "This"}},
+				RHS:  &dag.Agg{Kind: "Agg", Name: "collect", Expr: dag.NewThis(nil)},
 			}},
 		},
 		&dag.Values{Kind: "Values", Exprs: []dag.Expr{pathOf("collect")}},
@@ -485,7 +485,7 @@ func (a *analyzer) semBinary(e *ast.BinaryExpr) dag.Expr {
 			}
 			return out
 		}
-		return &dag.This{Kind: "This", Path: path}
+		return dag.NewThis(path)
 	} else if bad != nil {
 		return bad
 	}
@@ -662,7 +662,7 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 			return badExpr()
 		}
 		if nargs == 1 {
-			exprs = append([]dag.Expr{&dag.This{Kind: "This"}}, exprs...)
+			exprs = append([]dag.Expr{dag.NewThis(nil)}, exprs...)
 		}
 	case nameLower == "grep":
 		if err := function.CheckArgCount(nargs, 2, 2); err != nil {
@@ -782,7 +782,7 @@ func (a *analyzer) semAssignment(assign ast.Assignment) dag.Assignment {
 	rhs := a.semExpr(assign.RHS)
 	var lhs dag.Expr
 	if assign.LHS == nil {
-		lhs = &dag.This{Kind: "This", Path: deriveNameFromExpr(rhs, assign.RHS)}
+		lhs = dag.NewThis(deriveNameFromExpr(rhs, assign.RHS))
 	} else {
 		lhs = a.semExpr(assign.LHS)
 	}
@@ -927,7 +927,7 @@ func pathOf(name string) *dag.This {
 	if name != "this" {
 		path = []string{name}
 	}
-	return &dag.This{Kind: "This", Path: path}
+	return dag.NewThis(path)
 }
 
 func (a *analyzer) semType(typ ast.Type) (string, error) {
@@ -1011,7 +1011,7 @@ func (a *analyzer) semSubquery(b ast.Seq) *dag.Subquery {
 			Exprs: []dag.Expr{
 				&dag.IndexExpr{
 					Kind:  "IndexExpr",
-					Expr:  &dag.This{Kind: "This"},
+					Expr:  dag.NewThis(nil),
 					Index: &dag.Literal{Kind: "Literal", Value: "1"},
 				}},
 		})

@@ -208,7 +208,7 @@ func (o *Optimizer) OptimizeDeleter(seq dag.Seq, replicas int) (dag.Seq, error) 
 		merge = &dag.Merge{
 			Kind: "Merge",
 			Exprs: []dag.SortExpr{{
-				Key:   &dag.This{Kind: "This", Path: sortKey.Key},
+				Key:   dag.NewThis(sortKey.Key),
 				Order: sortKey.Order,
 				Nulls: sortKey.Order.NullsMax(true),
 			}},
@@ -640,7 +640,7 @@ func addPathToExpr(e dag.Expr, path []string) dag.Expr {
 			return addPathToExpr(spread, path)
 		}
 	case *dag.This:
-		return &dag.This{Kind: "This", Path: slices.Concat(e.Path, path)}
+		return dag.NewThis(slices.Concat(e.Path, path))
 	}
 	dot := &dag.Dot{Kind: "Dot", LHS: e, RHS: path[0]}
 	return addPathToExpr(dot, path[1:])

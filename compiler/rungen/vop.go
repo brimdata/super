@@ -345,7 +345,7 @@ func addPathToRecordExpr(rec *dag.RecordExpr, path []string, expr dag.Expr) {
 }
 
 func mergeRecordExprWithPath(rec *dag.RecordExpr, path []string) {
-	spread := &dag.Spread{Kind: "Spread", Expr: &dag.This{Kind: "This", Path: path}}
+	spread := &dag.Spread{Kind: "Spread", Expr: dag.NewThis(path)}
 	rec.Elems = append([]dag.RecordElem{spread}, rec.Elems...)
 	for _, elem := range rec.Elems {
 		if field, ok := elem.(*dag.Field); ok {

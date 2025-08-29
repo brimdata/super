@@ -197,6 +197,10 @@ func NewBinaryExpr(op string, lhs, rhs Expr) *BinaryExpr {
 	}
 }
 
+func NewThis(path []string) *This {
+	return &This{"This", path}
+}
+
 func NewUnaryExpr(op string, e Expr) *UnaryExpr {
 	return &UnaryExpr{"UnaryExpr", op, e}
 }

@@ -103,7 +103,7 @@ func (a *analyzer) genColumns(proj projection, sch *selectSchema, seq dag.Seq) d
 		if notFirst {
 			elems = append(elems, &dag.Spread{
 				Kind: "Spread",
-				Expr: &dag.This{Kind: "This", Path: []string{"out"}},
+				Expr: dag.NewThis([]string{"out"}),
 			})
 		} else {
 			notFirst = true
@@ -112,7 +112,7 @@ func (a *analyzer) genColumns(proj projection, sch *selectSchema, seq dag.Seq) d
 			for _, path := range unravel(sch, nil) {
 				elems = append(elems, &dag.Spread{
 					Kind: "Spread",
-					Expr: &dag.This{Kind: "This", Path: path},
+					Expr: dag.NewThis(path),
 				})
 			}
 		} else {
@@ -128,7 +128,7 @@ func (a *analyzer) genColumns(proj projection, sch *selectSchema, seq dag.Seq) d
 				&dag.Field{
 					Kind:  "Field",
 					Name:  "in",
-					Value: &dag.This{Kind: "This", Path: field.Path{"in"}},
+					Value: dag.NewThis(field.Path{"in"}),
 				},
 				&dag.Field{
 					Kind: "Field",
@@ -175,7 +175,7 @@ func (a *analyzer) genAggregate(loc ast.Loc, proj projection, where dag.Expr, ke
 	for _, named := range funcs {
 		a := dag.Assignment{
 			Kind: "Assignment",
-			LHS:  &dag.This{Kind: "This", Path: []string{named.name}},
+			LHS:  dag.NewThis([]string{named.name}),
 			RHS:  named.agg,
 		}
 		aggCols = append(aggCols, a)
@@ -184,7 +184,7 @@ func (a *analyzer) genAggregate(loc ast.Loc, proj projection, where dag.Expr, ke
 	for k, e := range keyExprs {
 		keyCols = append(keyCols, dag.Assignment{
 			Kind: "Assignment",
-			LHS:  &dag.This{Kind: "This", Path: []string{fmt.Sprintf("k%d", k)}},
+			LHS:  dag.NewThis([]string{fmt.Sprintf("k%d", k)}),
 			RHS:  e.expr,
 		})
 	}
@@ -212,7 +212,7 @@ func (a *analyzer) genAggregateOutput(proj projection, keyExprs []exprloc, seq d
 		if notFirst {
 			elems = append(elems, &dag.Spread{
 				Kind: "Spread",
-				Expr: &dag.This{Kind: "This", Path: []string{"out"}},
+				Expr: dag.NewThis([]string{"out"}),
 			})
 		} else {
 			notFirst = true
@@ -225,7 +225,7 @@ func (a *analyzer) genAggregateOutput(proj projection, keyExprs []exprloc, seq d
 			// Look for an exact-match of a column alias which would
 			// convert to path out.<id> in the name resolution of the
 			// grouping expression.
-			alias := &dag.This{Kind: "This", Path: []string{"out", col.name}}
+			alias := dag.NewThis([]string{"out", col.name})
 			which = exprMatch(alias, keyExprs)
 		}
 		if col.isAgg {
@@ -244,7 +244,7 @@ func (a *analyzer) genAggregateOutput(proj projection, keyExprs []exprloc, seq d
 			elems = append(elems, &dag.Field{
 				Kind:  "Field",
 				Name:  col.name,
-				Value: &dag.This{Kind: "This", Path: []string{"in", fmt.Sprintf("k%d", which)}},
+				Value: dag.NewThis([]string{"in", fmt.Sprintf("k%d", which)}),
 			})
 		}
 		e := &dag.RecordExpr{
@@ -253,7 +253,7 @@ func (a *analyzer) genAggregateOutput(proj projection, keyExprs []exprloc, seq d
 				&dag.Field{
 					Kind:  "Field",
 					Name:  "in",
-					Value: &dag.This{Kind: "This", Path: field.Path{"in"}},
+					Value: dag.NewThis(field.Path{"in"}),
 				},
 				&dag.Field{
 					Kind: "Field",
@@ -319,7 +319,7 @@ func (a *analyzer) semSelectValue(sel *ast.SQLSelect, sch schema, seq dag.Seq) (
 		}
 		var e dag.Expr
 		if as.Expr == nil {
-			e = &dag.This{Kind: "This"}
+			e = dag.NewThis(nil)
 		} else {
 			e = a.semExprSchema(sch, as.Expr)
 		}
@@ -436,7 +436,7 @@ func mapColumns(in []string, alias *ast.TableAlias, seq dag.Seq) (dag.Seq, schem
 			elems = append(elems, &dag.Field{
 				Kind:  "Field",
 				Name:  out[k],
-				Value: &dag.This{Kind: "This", Path: []string{in[k]}},
+				Value: dag.NewThis([]string{in[k]}),
 			})
 		}
 		seq = valuesExpr(&dag.RecordExpr{
@@ -499,7 +499,7 @@ func (a *analyzer) semSQLOp(op ast.Op, seq dag.Seq) (dag.Seq, schema) {
 			&dag.Combine{Kind: "Combine"},
 		}
 		if op.Distinct {
-			out = a.genDistinct(&dag.This{Kind: "This"}, out)
+			out = a.genDistinct(dag.NewThis(nil), out)
 		}
 		return out, &dynamicSchema{}
 
@@ -860,7 +860,7 @@ func valuesExpr(e dag.Expr, seq dag.Seq) dag.Seq {
 }
 
 func wrapThis(field string) *dag.RecordExpr {
-	return wrapField(field, &dag.This{Kind: "This"})
+	return wrapField(field, dag.NewThis(nil))
 }
 
 func wrapField(field string, e dag.Expr) *dag.RecordExpr {

@@ -530,7 +530,7 @@ func (a *analyzer) semDebugOp(o *ast.Debug, mainAst ast.Seq, in dag.Seq) dag.Seq
 	a.outputs[output] = o
 	e := a.semExprNullable(o.Expr)
 	if e == nil {
-		e = &dag.This{Kind: "This"}
+		e = dag.NewThis(nil)
 	}
 	y := &dag.Values{Kind: "Values", Exprs: []dag.Expr{e}}
 	main := a.semSeq(mainAst)
@@ -883,7 +883,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 			Body: body,
 		})
 	case *ast.Shapes:
-		e := dag.Expr(&dag.This{Kind: "This"})
+		e := dag.Expr(dag.NewThis(nil))
 		if o.Expr != nil {
 			e = a.semExpr(o.Expr)
 		}
@@ -908,7 +908,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 				},
 			},
 		})
-		return append(seq, dag.NewValues(&dag.This{Kind: "This", Path: field.Path{"sample"}}))
+		return append(seq, dag.NewValues(dag.NewThis(field.Path{"sample"})))
 	case *ast.Assert:
 		cond := a.semExpr(o.Expr)
 		// 'assert EXPR' is equivalent to
@@ -918,7 +918,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 			&dag.Conditional{
 				Kind: "Conditional",
 				Cond: cond,
-				Then: &dag.This{Kind: "This"},
+				Then: dag.NewThis(nil),
 				Else: &dag.Call{
 					Kind: "Call",
 					Name: "error",
@@ -938,7 +938,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 							&dag.Field{
 								Kind:  "Field",
 								Name:  "on",
-								Value: &dag.This{Kind: "This"},
+								Value: dag.NewThis(nil),
 							},
 						},
 					}},
@@ -1198,7 +1198,7 @@ func (a *analyzer) semCallOp(call *ast.Call, seq dag.Seq) dag.Seq {
 				},
 			},
 		}
-		values := dag.NewValues(&dag.This{Kind: "This", Path: field.Path{name}})
+		values := dag.NewValues(dag.NewThis(field.Path{name}))
 		return append(append(seq, aggregate), values)
 	}
 	if !function.HasBoolResult(strings.ToLower(name)) {
