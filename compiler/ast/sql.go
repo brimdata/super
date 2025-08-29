@@ -133,7 +133,7 @@ func (*SQLAsExpr) exprNode() {}
 type SQLCast struct {
 	Kind string `json:"kind" unpack:""`
 	Expr Expr   `json:"expr"`
-	Type *ID    `json:"type"`
+	Type Type   `json:"type"`
 	Loc  `json:"loc"`
 }
 

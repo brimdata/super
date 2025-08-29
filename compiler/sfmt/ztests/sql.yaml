@@ -20,7 +20,7 @@ script: |
   echo === query expressions
   super compile -C 'select a+(select b from c), d+(select e) as f'
   echo === other expressions
-  super compile -C "select cast(a as b), substring(c from d for e), date 'f', timestamp 'g'"
+  super compile -C "select cast(a as int64), substring(c from d for e), date 'f', timestamp 'g'"
 
 outputs:
   - name: stdout
@@ -82,4 +82,4 @@ outputs:
         select e
       ) as f
       === other expressions
-      select CAST(a AS b), SUBSTRING(c FROM d FOR e), DATE "f", TIMESTAMP "g"
+      select CAST(a AS int64), SUBSTRING(c FROM d FOR e), DATE "f", TIMESTAMP "g"

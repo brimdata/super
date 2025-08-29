@@ -224,8 +224,7 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 		}
 	case *ast.SQLCast:
 		expr := a.semExpr(e.Expr)
-		typstr := strings.ToLower(e.Type.Name)
-		if typstr == "date" {
+		if _, ok := e.Type.(*ast.DateTypeHack); ok {
 			// cast to time then bucket by 1d as a workaround for not currently
 			// supporting a "date" type.
 			cast := &dag.Call{
@@ -239,14 +238,14 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 				Args: []dag.Expr{cast, &dag.Literal{Kind: "Literal", Value: "1d"}},
 			}
 		}
-		if super.LookupPrimitive(typstr) == nil {
-			a.error(e.Type, fmt.Errorf("type %q does not exist", typstr))
-			return badExpr()
-		}
+		typ := a.semExpr(&ast.TypeValue{
+			Kind:  "TypeValue",
+			Value: e.Type,
+		})
 		return &dag.Call{
 			Kind: "Call",
 			Name: "cast",
-			Args: []dag.Expr{expr, &dag.Literal{Kind: "Literal", Value: "<" + typstr + ">"}},
+			Args: []dag.Expr{expr, typ},
 		}
 	case *ast.SQLSubstring:
 		expr := a.semExpr(e.Expr)

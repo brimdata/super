@@ -194,7 +194,9 @@ func (c *canon) expr(e ast.Expr, parent string) {
 	case *ast.SQLCast:
 		c.write("CAST(")
 		c.expr(e.Expr, "")
-		c.write(" AS %s)", e.Type.Name)
+		c.write(" AS ")
+		c.typ(e.Type)
+		c.write(")")
 	case *ast.SQLSubstring:
 		c.write("SUBSTRING(")
 		c.expr(e.Expr, "")

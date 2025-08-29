@@ -1008,11 +1008,11 @@ Function
         Loc: loc(c),
       }, nil
     }
-  / CAST __ "(" __ e:Expr _ AS _ typ:Identifier __ ")" {
+  / CAST __ "(" __ e:Expr _ AS _ typ:(DateTypeHack / Type) __ ")" {
       return &ast.SQLCast{
         Kind: "SQLCast",
         Expr: e.(ast.Expr),
-        Type: typ.(*ast.ID),
+        Type: typ.(ast.Type),
         Loc: loc(c),
       }, nil
     }
@@ -1034,6 +1034,14 @@ Function
       return newCall(c, fn, args, where), nil
     }
   / CountStar
+
+DateTypeHack
+  = "date"i {
+     return &ast.DateTypeHack{
+        Kind: "DateTypeHack",
+        Loc: loc(c),
+      }, nil
+    }
 
 FunctionArgs
   = Exprs
