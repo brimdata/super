@@ -21,3 +21,5 @@ outputs:
       null
       | values cast(foo, typename("DOESNOTEXIST"))
       | output main
+      // ===
+      values CAST(foo AS date)
