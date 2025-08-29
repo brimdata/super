@@ -4,6 +4,8 @@ script: |
   super compile -C -dag 'values CAST(ts AS DATE)'
   echo // ===
   super compile -C -dag 'values CAST(foo AS DOESNOTEXIST)'
+  echo // ===
+  super compile -C 'values CAST(foo AS date)'
 
 outputs:
   - name: stdout
