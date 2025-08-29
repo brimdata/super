@@ -75,3 +75,13 @@ func (*TypeMap) typeNode()       {}
 func (*TypeError) typeNode()     {}
 func (*TypeName) typeNode()      {}
 func (*TypeDef) typeNode()       {}
+
+// This is a hack that allows us to express a "date" type until we
+// get proper coverage of SQL date/time types natively in the super-structured
+// data model.
+type DateTypeHack struct {
+	Kind string `json:"kind" unpack:""`
+	Loc  `json:"loc"`
+}
+
+func (*DateTypeHack) typeNode() {}

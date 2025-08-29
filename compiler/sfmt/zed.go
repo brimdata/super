@@ -83,6 +83,8 @@ func (c *canonZed) typ(t ast.Type) {
 		c.write("error(")
 		c.typ(t.Type)
 		c.write(")")
+	case *ast.DateTypeHack:
+		c.write("date")
 	}
 }
 

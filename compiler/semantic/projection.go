@@ -88,7 +88,7 @@ func (a *aggfuncs) subst(e dag.Expr) (dag.Expr, error) {
 		// the generated aggregate operator.
 		tmp := a.tmp()
 		*a = append(*a, namedAgg{name: tmp, agg: e})
-		return &dag.This{Kind: "This", Path: []string{"in", tmp}}, nil
+		return dag.NewThis([]string{"in", tmp}), nil
 	case *dag.ArrayExpr:
 		for _, elem := range e.Elems {
 			switch elem := elem.(type) {

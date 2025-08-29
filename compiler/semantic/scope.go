@@ -104,7 +104,7 @@ func (s *Scope) resolve(path field.Path) (dag.Expr, error) {
 	// implied by the schema.
 	sch := s.schema
 	if sch == nil {
-		return &dag.This{Kind: "This", Path: path}, nil
+		return dag.NewThis(path), nil
 	}
 	if len(path) == 0 {
 		// XXX this should really treat this as a column in sql context but
@@ -113,7 +113,7 @@ func (s *Scope) resolve(path field.Path) (dag.Expr, error) {
 		return nil, errors.New("cannot reference 'this' in relational context; consider the 'values' operator")
 	}
 	path, err := resolvePath(sch, path)
-	return &dag.This{Kind: "This", Path: path}, err
+	return dag.NewThis(path), err
 }
 
 func resolvePath(sch schema, path field.Path) (field.Path, error) {

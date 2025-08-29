@@ -15,16 +15,16 @@ type NetworkOf struct {
 }
 
 func (n *NetworkOf) Call(args []super.Value) super.Value {
-	id := args[0].Type().ID()
-	if id != super.IDIP {
-		return n.sctx.WrapError("network_of: not an IP", args[0])
+	ipVal := args[0].Under()
+	if ipVal.Type().ID() != super.IDIP {
+		return n.sctx.WrapError("network_of: not an IP", ipVal)
 	}
-	ip := super.DecodeIP(args[0].Bytes())
+	ip := super.DecodeIP(ipVal.Bytes())
 	var bits int
 	if len(args) == 1 {
 		switch {
 		case !ip.Is4():
-			return n.sctx.WrapError("network_of: not an IPv4 address", args[0])
+			return n.sctx.WrapError("network_of: not an IPv4 address", ipVal)
 		case ip.As4()[0] < 0x80:
 			bits = 8
 		case ip.As4()[0] < 0xc0:
@@ -34,25 +34,27 @@ func (n *NetworkOf) Call(args []super.Value) super.Value {
 		}
 	} else {
 		// two args
-		body := args[1].Bytes()
-		switch id := args[1].Type().ID(); {
+		maskVal := args[1].Under()
+		switch id := maskVal.Type().ID(); {
 		case id == super.IDIP:
-			mask := super.DecodeIP(body)
+			mask := super.DecodeIP(maskVal.Bytes())
 			if mask.BitLen() != ip.BitLen() {
-				return n.sctx.WrapError("network_of: address and mask have different lengths", addressAndMask(n.sctx, args[0], args[1]))
+				val := addressAndMask(n.sctx, ipVal, maskVal)
+				return n.sctx.WrapError("network_of: address and mask have different lengths", val)
 			}
 			bits = super.LeadingOnes(mask.AsSlice())
 			if netip.PrefixFrom(mask, bits).Masked().Addr() != mask {
-				return n.sctx.WrapError("network_of: mask is non-contiguous", args[1])
+				return n.sctx.WrapError("network_of: mask is non-contiguous", maskVal)
 			}
 		case super.IsInteger(id):
 			if super.IsSigned(id) {
-				bits = int(args[1].Int())
+				bits = int(maskVal.Int())
 			} else {
-				bits = int(args[1].Uint())
+				bits = int(maskVal.Uint())
 			}
 			if bits > 128 || bits > 32 && ip.Is4() {
-				return n.sctx.WrapError("network_of: CIDR bit count out of range", addressAndMask(n.sctx, args[0], args[1]))
+				val := addressAndMask(n.sctx, ipVal, maskVal)
+				return n.sctx.WrapError("network_of: CIDR bit count out of range", val)
 			}
 		default:
 			return n.sctx.WrapError("network_of: bad arg for CIDR mask", args[1])
@@ -82,7 +84,7 @@ type CIDRMatch struct {
 var errMatch = errors.New("match")
 
 func (c *CIDRMatch) Call(args []super.Value) super.Value {
-	maskVal := args[0]
+	maskVal := args[0].Under()
 	if id := maskVal.Type().ID(); id != super.IDNet && id != super.IDNull {
 		val := c.sctx.WrapError("cidr_match: not a net", maskVal)
 		if maskVal.IsNull() {

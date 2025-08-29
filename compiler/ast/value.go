@@ -69,10 +69,9 @@ type (
 		Value Value `json:"value"`
 	}
 	TypeValue struct {
-		Kind   string `json:"kind" unpack:""`
-		Lbrack int    `json:"lbrack"`
-		Value  Type   `json:"value"`
-		Loc    `json:"loc"`
+		Kind  string `json:"kind" unpack:""`
+		Value Type   `json:"value"`
+		Loc   `json:"loc"`
 	}
 	Error struct {
 		Kind  string `json:"kind" unpack:""`

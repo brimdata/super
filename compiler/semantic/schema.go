@@ -215,7 +215,7 @@ func (*dynamicSchema) resolveOrdinal(col int) (dag.Expr, error) {
 	}
 	return &dag.IndexExpr{
 		Kind:  "IndexExpr",
-		Expr:  &dag.This{Kind: "This"},
+		Expr:  dag.NewThis(nil),
 		Index: &dag.Literal{Kind: "Literal", Value: strconv.Itoa(col)},
 	}, nil
 }
@@ -224,7 +224,7 @@ func (s *staticSchema) resolveOrdinal(col int) (dag.Expr, error) {
 	if col <= 0 || col > len(s.columns) {
 		return nil, fmt.Errorf("position %d is not in select list", col)
 	}
-	return &dag.This{Kind: "This", Path: []string{s.columns[col-1]}}, nil
+	return dag.NewThis([]string{s.columns[col-1]}), nil
 }
 
 func (s *selectSchema) resolveOrdinal(col int) (dag.Expr, error) {
@@ -257,7 +257,7 @@ func (s *subquerySchema) resolveOrdinal(col int) (dag.Expr, error) {
 func appendExprToPath(path string, e dag.Expr) dag.Expr {
 	switch e := e.(type) {
 	case *dag.This:
-		return &dag.This{Kind: "This", Path: append([]string{path}, e.Path...)}
+		return dag.NewThis(append([]string{path}, e.Path...))
 	case *dag.IndexExpr:
 		return &dag.IndexExpr{
 			Kind:  "IndexExpr",
@@ -310,10 +310,10 @@ func (j *joinSchema) deref(name string) (dag.Expr, schema) {
 // spread left/right join legs into "this"
 func joinSpread(left, right dag.Expr) *dag.RecordExpr {
 	if left == nil {
-		left = &dag.This{Kind: "This"}
+		left = dag.NewThis(nil)
 	}
 	if right == nil {
-		right = &dag.This{Kind: "This"}
+		right = dag.NewThis(nil)
 	}
 	return &dag.RecordExpr{
 		Kind: "RecordExpr",

@@ -1,8 +1,11 @@
 script: |
-  super compile -C -dag 'values CAST(x AS INT64)'
+  super compile -C -dag 'values CAST(x AS int64)'
   echo // ===
   super compile -C -dag 'values CAST(ts AS DATE)'
-  ! super compile -C -dag 'values CAST(foo AS DOESNOTEXIST)'
+  echo // ===
+  super compile -C -dag 'values CAST(foo AS DOESNOTEXIST)'
+  echo // ===
+  super compile -C 'values CAST(foo AS date)'
 
 outputs:
   - name: stdout
@@ -14,8 +17,9 @@ outputs:
       null
       | values bucket(cast(ts, <time>), 1d)
       | output main
-  - name: stderr
-    data: |
-      type "doesnotexist" does not exist at line 1, column 20:
-      values CAST(foo AS DOESNOTEXIST)
-                         ~~~~~~~~~~~~
+      // ===
+      null
+      | values cast(foo, typename("DOESNOTEXIST"))
+      | output main
+      // ===
+      values CAST(foo AS date)

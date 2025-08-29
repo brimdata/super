@@ -26,8 +26,8 @@ func maybeNewRangePruner(pred dag.Expr, sortKeys order.SortKeys) dag.Expr {
 // from a scan when we know the pool key range of the object could not satisfy
 // the filter predicate of any of the values in the object.
 func newRangePruner(pred dag.Expr, sortKey order.SortKey) dag.Expr {
-	min := &dag.This{Kind: "This", Path: field.Path{"min"}}
-	max := &dag.This{Kind: "This", Path: field.Path{"max"}}
+	min := dag.NewThis(field.Path{"min"})
+	max := dag.NewThis(field.Path{"max"})
 	if e := buildRangePruner(pred, sortKey.Key, min, max); e != nil {
 		return e
 	}
@@ -176,8 +176,8 @@ func newMetadataPruner(pred dag.Expr) dag.Expr {
 		min := &dag.Literal{Kind: "Literal", Value: sup.QuotedString(prefix)}
 		max := &dag.Literal{Kind: "Literal", Value: sup.QuotedString(maxPrefix)}
 		return dag.NewBinaryExpr("and",
-			compare("<=", min, &dag.This{Kind: "This", Path: append(slices.Clone(this.Path), "max")}),
-			compare(">", max, &dag.This{Kind: "This", Path: append(slices.Clone(this.Path), "min")}))
+			compare("<=", min, dag.NewThis(append(slices.Clone(this.Path), "max"))),
+			compare(">", max, dag.NewThis(append(slices.Clone(this.Path), "min"))))
 	default:
 		return nil
 	}
@@ -297,8 +297,8 @@ func literalsInArrayOrSet(elems []dag.VectorElem) []*dag.Literal {
 }
 
 func metadataPrunerPred(op string, this *dag.This, literal *dag.Literal) *dag.BinaryExpr {
-	min := &dag.This{Kind: "This", Path: append(slices.Clone(this.Path), "min")}
-	max := &dag.This{Kind: "This", Path: append(slices.Clone(this.Path), "max")}
+	min := dag.NewThis(append(slices.Clone(this.Path), "min"))
+	max := dag.NewThis(append(slices.Clone(this.Path), "max"))
 	switch op {
 	case "<":
 		return compare("<", min, literal)

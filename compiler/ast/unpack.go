@@ -26,6 +26,7 @@ var unpacker = unpack.New(
 	Conditional{},
 	ConstDecl{},
 	Cut{},
+	DateTypeHack{},
 	Debug{},
 	DefaultScan{},
 	DefValue{},

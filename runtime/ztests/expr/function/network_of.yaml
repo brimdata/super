@@ -1,6 +1,7 @@
 spq: |
   values 
     network_of(this, 24),
+    network_of(this::(ip|string), 24::(int64|string)),
     network_of(this, 48),
     network_of(this),
     network_of(ff::),
@@ -15,6 +16,7 @@ input: |
   10.1.2.129
 
 output: |
+  10.1.2.0/24
   10.1.2.0/24
   error({message:"network_of: CIDR bit count out of range",on:{address:10.1.2.129,mask:48}})
   10.0.0.0/8
