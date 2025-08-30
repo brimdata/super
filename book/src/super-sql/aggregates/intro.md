@@ -24,7 +24,7 @@ values {id:count(),value:this}
 ```
 
 In contrast, calling aggregate functions from within the
-[`aggregate`](operators/aggregate.md) operator
+[`aggregate`](../operators/aggregate.md) operator
 produces just one output value.
 ```mdtest-spq {data-layout="stacked"}
 # spq
