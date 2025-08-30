@@ -60,7 +60,7 @@ the use of the `grok` function, review the tips below.
    to store `num` as an integer type instead of as a
    string. SuperSQL currently accepts this trailing `:type` syntax but effectively
    ignores it and stores all parsed values as strings. Downstream use of the
-   [`cast`](cast.md) function can be used instead for data type conversion
+   [`cast`](../types/cast.md) function can be used instead for data type conversion
    ([super/4928](https://github.com/brimdata/super/issues/4928)).
 <br><br>
 2. Some Logstash Grok examples use an optional square bracket syntax for
@@ -70,7 +70,7 @@ the use of the `grok` function, review the tips below.
    ```
    to store a value into `{"nested": {"field": ... }}`. In SuperSQL the more common
    dot-separated field naming convention `nested.field` can be combined
-   with the downstream use of the [`nest_dotted`](nest_dotted.md) function to
+   with the downstream use of the [`nest_dotted`](../records/nest_dotted.md) function to
    store values in nested fields
    ([super/4929](https://github.com/brimdata/super/issues/4929)).
 <br><br>
@@ -172,7 +172,7 @@ values grok("%{TIMESTAMP_ISO8601} %{LOGLEVEL:level} %{GREEDYDATA}",
 
 ---
 
-_As with any [string literal](../expressions.md#literals), the
+_As with any [string literal](../../types/string.md), the
 leading backslash in escape sequences in string arguments must be doubled,
 such as changing the `\d` to `\\d` if we repurpose the
 [included pattern](#included-patterns) for `NUMTZ` as a `definitions` argument_
