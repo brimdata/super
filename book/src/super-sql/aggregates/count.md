@@ -89,7 +89,9 @@ count() where grep("bar", this)
 0::uint64
 ```
 
-Note that the number of input values are counted, unlike the [`len` function](../functions/len.md) which counts the number of elements in a given value:
+Note that the number of input values are counted, unlike the
+[`len`](../functions/generics/len.md) function
+which counts the number of elements in a given value:
 ```mdtest-spq
 # spq
 count()

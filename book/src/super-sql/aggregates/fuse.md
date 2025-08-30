@@ -9,7 +9,7 @@ fuse(any) -> type
 
 ### Description
 
-The _fuse_ aggregate function applies [type fusion](../../tutorials/shaping.md#type-fusion)
+The _fuse_ aggregate function applies [type fusion](../../type-fusion.md)
 to its input and returns the fused type.
 
 It is useful with grouped aggregation for data exploration and discovery
