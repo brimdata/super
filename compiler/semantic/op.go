@@ -1218,6 +1218,11 @@ func (a *analyzer) maybeConvertUserOp(call *ast.Call) dag.Seq {
 		a.error(call, errors.New("user defined operators cannot have a where clause"))
 		return dag.Seq{badOp()}
 	}
+	// We've found a user op bound to the name being invoked, so we pull out the
+	// AST elements that were stashed from the definition of the user op and subsitute
+	// them into the call site here.  This is essentially a thunk... each use of the
+	// user op is compiled into the context in which it appears and all the references
+	// in that expression are bound appropriately with respect to this context.
 	params, args := decl.ast.Params, call.Args
 	if len(params) != len(args) {
 		a.error(call, fmt.Errorf("%d arg%s provided when operator expects %d arg%s", len(params), plural.Slice(params, "s"), len(args), plural.Slice(args, "s")))
@@ -1225,28 +1230,7 @@ func (a *analyzer) maybeConvertUserOp(call *ast.Call) dag.Seq {
 	}
 	exprs := make([]dag.Expr, len(decl.ast.Params))
 	for i, arg := range args {
-		e := a.semExpr(arg)
-		// Transform non-path arguments into literals.
-		if _, ok := e.(*dag.This); !ok {
-			val, err := rungen.EvalAtCompileTime(a.sctx, e)
-			if err != nil {
-				a.error(arg, err)
-				exprs[i] = badExpr()
-				continue
-			}
-			if val.IsError() {
-				if val.IsMissing() {
-					a.error(arg, errors.New("non-path arguments cannot have variable dependency"))
-				} else {
-					a.error(arg, errors.New(string(val.Bytes())))
-				}
-			}
-			e = &dag.Literal{
-				Kind:  "Literal",
-				Value: sup.FormatValue(val),
-			}
-		}
-		exprs[i] = e
+		exprs[i] = a.semExpr(arg)
 	}
 	if slices.Contains(a.opStack, decl.ast) {
 		a.error(call, opCycleError(append(a.opStack, decl.ast)))
