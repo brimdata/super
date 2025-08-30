@@ -1,4 +1,4 @@
-# Aggregate Functions
+## Aggregate Functions
 
 Aggregate functions appear in either the [`aggregate`](../operators/aggregate.md) operator
 or in an [expression](../expressions.md).
