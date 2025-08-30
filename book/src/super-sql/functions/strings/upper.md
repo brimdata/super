@@ -26,7 +26,7 @@ values upper(this)
 "SUPER FORMAT"
 ```
 
-[Slices](../expressions.md#slices) can be used to uppercase a subset of a string as well.
+[Slices](../../expressions.md#slices) can be used to uppercase a subset of a string as well.
 
 ```mdtest-spq
 # spq
