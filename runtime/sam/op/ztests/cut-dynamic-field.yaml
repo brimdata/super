@@ -17,8 +17,8 @@ script: |
   echo '{a:"foo",b:"bar"}' | super -s -c 'cut this[a][b] := "world", this[a] := "world"' -
   echo "// ==="
   echo {} | super -s -c 'cut this[doesnotexist] := "world"' - 
-  # semantic error cases
-  ! super compile -dag 'op foo: ( values "error" ) cut this[foo] := "hello world"'
+  echo "// ==="
+  super -s -c 'op foo: ( values "error" ) cut this[foo] := "hello world"'
 
 outputs:
   - name: stdout
@@ -41,8 +41,5 @@ outputs:
       error({message:"cut: duplicate field: \"foo\"",on:{a:"foo",b:"bar"}})
       // ===
       error({message:"cut: missing",on:{}})
-  - name: stderr
-    data: |
-      symbol "foo" is not bound to an expression at line 1, column 37:
-      op foo: ( values "error" ) cut this[foo] := "hello world"
-                                          ~~~
+      // ===
+      {error:"hello world"}

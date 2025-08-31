@@ -1,0 +1,7 @@
+spq: |
+  op F a : (unnest a | this+1)
+  values {a:[1,2]}
+  | values {x:[F(a)]}
+
+output: |
+  {x:[2,3]}

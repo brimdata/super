@@ -1225,14 +1225,18 @@ func (a *analyzer) semCallOp(call *ast.CallOp, seq dag.Seq) dag.Seq {
 	if decl.bad {
 		return dag.Seq{badOp()}
 	}
+	return append(seq, a.semUserOp(call.Loc, decl, call.Args)...)
+}
+
+func (a *analyzer) semUserOp(loc ast.Loc, decl *opDecl, args []ast.FuncOrExpr) dag.Seq {
 	// We've found a user op bound to the name being invoked, so we pull out the
 	// AST elements that were stashed from the definition of the user op and subsitute
 	// them into the call site here.  This is essentially a thunk... each use of the
 	// user op is compiled into the context in which it appears and all the references
 	// in that expression are bound appropriately with respect to this context.
-	params, args := decl.ast.Params, call.Args
+	params := decl.ast.Params
 	if len(params) != len(args) {
-		a.error(call, fmt.Errorf("%d arg%s provided when operator expects %d arg%s", len(params), plural.Slice(params, "s"), len(args), plural.Slice(args, "s")))
+		a.error(loc, fmt.Errorf("%d arg%s provided when operator expects %d arg%s", len(params), plural.Slice(params, "s"), len(args), plural.Slice(args, "s")))
 		return dag.Seq{badOp()}
 	}
 	exprs := make([]dag.Expr, len(args))
@@ -1247,7 +1251,7 @@ func (a *analyzer) semCallOp(call *ast.CallOp, seq dag.Seq) dag.Seq {
 		}
 	}
 	if slices.Contains(a.opStack, decl.ast) {
-		a.error(call, opCycleError(append(a.opStack, decl.ast)))
+		a.error(loc, opCycleError(append(a.opStack, decl.ast)))
 		return dag.Seq{badOp()}
 	}
 	a.opStack = append(a.opStack, decl.ast)
@@ -1260,17 +1264,17 @@ func (a *analyzer) semCallOp(call *ast.CallOp, seq dag.Seq) dag.Seq {
 	for i, param := range params {
 		if e := exprs[i]; e != nil {
 			if err := a.scope.DefineAs(param, exprs[i]); err != nil {
-				a.error(call, err)
+				a.error(loc, err)
 				return dag.Seq{badOp()}
 			}
 		} else {
 			if err := a.scope.DefineAs(param, fns[i]); err != nil {
-				a.error(call, err)
+				a.error(loc, err)
 				return dag.Seq{badOp()}
 			}
 		}
 	}
-	return append(seq, a.semSeq(decl.ast.Body)...)
+	return a.semSeq(decl.ast.Body)
 }
 
 func (a *analyzer) semFuncRef(f ast.FuncRef) dag.FuncRef {

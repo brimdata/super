@@ -39,10 +39,10 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 			Where:    where,
 		}
 	case *ast.ArrayExpr:
-		if subquery := a.arraySubquery(e); subquery != nil {
+		elems := a.semVectorElems(e.Elems)
+		if subquery := a.arraySubquery(elems); subquery != nil {
 			return subquery
 		}
-		elems := a.semVectorElems(e.Elems)
 		return &dag.ArrayExpr{
 			Kind:  "ArrayExpr",
 			Elems: elems,
@@ -380,6 +380,9 @@ func (a *analyzer) semID(id *ast.ID) dag.Expr {
 	// and transform the AST node appropriately.  The resulting DAG
 	// doesn't have Identifiers as they are resolved here
 	// one way or the other.
+	if subquery := a.maybeSubqueryCallByID(id); subquery != nil {
+		return subquery
+	}
 	ref, err := a.scope.LookupExpr(id.Name)
 	if err != nil {
 		a.error(id, err)
@@ -648,6 +651,9 @@ func (a *analyzer) semCallLambda(lambda *ast.Lambda, args []dag.Expr) dag.Expr {
 }
 
 func (a *analyzer) semCallByName(call *ast.Call, name string, args []dag.Expr) dag.Expr {
+	if subquery := a.maybeSubqueryCall(call, name); subquery != nil {
+		return subquery
+	}
 	// Call could be to a user defined func. Check if we have a matching func in
 	// scope.  The name can be a formal argument of a user op so we look it up and
 	// see if it points to something else.
@@ -727,6 +733,44 @@ func (a *analyzer) semCallByName(call *ast.Call, name string, args []dag.Expr) d
 		}
 	}
 	return dag.NewCallByName(nameLower, args)
+}
+
+func (a *analyzer) maybeSubqueryCallByID(id *ast.ID) *dag.Subquery {
+	call := &ast.Call{
+		Kind: "Call",
+		Func: &ast.FuncName{Kind: "FuncName", Name: id.Name},
+		Loc:  id.Loc,
+	}
+	return a.maybeSubqueryCall(call, id.Name)
+}
+
+func (a *analyzer) maybeSubqueryCall(call *ast.Call, name string) *dag.Subquery {
+	decl, _ := a.scope.lookupOp(name)
+	if decl == nil || decl.bad {
+		return nil
+	}
+	var args []ast.FuncOrExpr
+	for _, arg := range call.Args {
+		args = append(args, arg)
+	}
+	userOp := a.semUserOp(call.Loc, decl, args)
+	// When a user op is encountered inside an expression, we turn it into a
+	// subquery operating on a single-shot "this" value unless it's uncorrelated
+	// (i.e., starts with a from), in which case we put the uncorrelated body
+	// in the subquery without the correlating values logic.
+	correlated := isCorrelated(userOp)
+	if correlated {
+		valuesOp := &dag.Values{
+			Kind:  "Values",
+			Exprs: []dag.Expr{dag.NewThis(nil)},
+		}
+		userOp.Prepend(valuesOp)
+	}
+	return &dag.Subquery{
+		Kind:       "Subquery",
+		Correlated: correlated,
+		Body:       userOp,
+	}
 }
 
 func (a *analyzer) semMapCall(call *ast.MapCall) dag.Expr {
@@ -1003,21 +1047,20 @@ func (a *analyzer) semFString(f *ast.FString) dag.Expr {
 	return out
 }
 
-func (a *analyzer) arraySubquery(e *ast.ArrayExpr) *dag.Subquery {
-	if len(e.Elems) != 1 {
+func (a *analyzer) arraySubquery(elems []dag.VectorElem) *dag.Subquery {
+	if len(elems) != 1 {
 		return nil
 	}
-	elem, ok := e.Elems[0].(*ast.VectorValue)
+	elem, ok := elems[0].(*dag.VectorValue)
 	if !ok {
 		return nil
 	}
-	subquery, ok := elem.Expr.(*ast.Subquery)
+	subquery, ok := elem.Expr.(*dag.Subquery)
 	if !ok {
 		return nil
 	}
-	out := a.semSubquery(subquery.Body)
-	out.Body = collectThis(out.Body)
-	return out
+	subquery.Body = collectThis(subquery.Body)
+	return subquery
 }
 
 func collectThis(seq dag.Seq) dag.Seq {
@@ -1040,13 +1083,7 @@ func collectThis(seq dag.Seq) dag.Seq {
 
 func (a *analyzer) semSubquery(b ast.Seq) *dag.Subquery {
 	body := a.semSeq(b)
-	correlated := true
-	if len(body) >= 1 {
-		//XXX fragile
-		_, ok1 := body[0].(*dag.FileScan)
-		_, ok2 := body[0].(*dag.PoolScan)
-		correlated = !(ok1 || ok2)
-	}
+	correlated := isCorrelated(body)
 	e := &dag.Subquery{
 		Kind:       "Subquery",
 		Correlated: correlated,
@@ -1073,6 +1110,16 @@ func (a *analyzer) semSubquery(b ast.Seq) *dag.Subquery {
 		})
 	}
 	return e
+}
+
+func isCorrelated(seq dag.Seq) bool {
+	if len(seq) >= 1 {
+		//XXX fragile
+		_, ok1 := seq[0].(*dag.FileScan)
+		_, ok2 := seq[0].(*dag.PoolScan)
+		return !(ok1 || ok2)
+	}
+	return true
 }
 
 func (a *analyzer) evalPositiveInteger(e ast.Expr) int {

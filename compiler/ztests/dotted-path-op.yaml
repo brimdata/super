@@ -1,0 +1,11 @@
+spq: |
+  op test: ( values this )
+  values test.that
+
+vector: true
+
+input: |
+  {that:1}
+
+output: |
+  1

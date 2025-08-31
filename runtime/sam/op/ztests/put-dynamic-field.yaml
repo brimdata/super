@@ -15,8 +15,8 @@ script: |
   echo '{a:"foo",b:"bar"}' | super -s -c 'this[a][b] := "world", this[a] := "world"' -
   echo "// ==="
   echo {} | super -s -c 'this[doesnotexist] := "world"' - 
-  # semantic error cases
-  ! super compile -dag 'op foo: ( values "error" ) put this[foo] := "hello world"'
+  echo "// ==="
+  super -s -c 'op foo: ( values "error" ) put this[foo] := "hello world"'
 
 outputs:
   - name: stdout
@@ -36,8 +36,5 @@ outputs:
       error({message:"put: conflicting nested assignments to foo and foo.bar",on:{a:"foo",b:"bar"}})
       // ===
       error({message:"put: missing",on:{}})
-  - name: stderr
-    data: |
-      symbol "foo" is not bound to an expression at line 1, column 37:
-      op foo: ( values "error" ) put this[foo] := "hello world"
-                                          ~~~
+      // ===
+      error({message:"put: not a record",on:null})

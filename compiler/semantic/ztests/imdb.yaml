@@ -1,0 +1,141 @@
+script: |
+  super -S -I imdb.spq
+
+inputs:
+  - name: imdb.spq
+    data: |
+      const titleID = 'tt3890160'
+      op title : (from title.basics.sup | tconst=titleID)
+      op principals : (from title.principals.sup | tconst=titleID)
+      op people which : (
+          principals
+        | join (from name.basics.sup) as {p,name} on p.nconst=name.nconst
+        | where p.category=which
+        | values {...p,name:name.primaryName}
+      )
+      values {
+        title: title.primaryTitle,
+        director: (people 'director' | collect(name)),
+        writer: (people 'writer' | collect(name)),
+        genres: title.genres,
+        actors: (people 'actor'
+                | order by ordering
+                | limit 10
+                | collect({name,characters}))
+      }
+  - name: title.basics.sup
+    data: |
+      {tconst:"tt3890160",titleType:"movie",primaryTitle:"Baby Driver",originalTitle:"Baby Driver",isAdult:0,startYear:"2017",endYear:null::string,runtimeMinutes:"113",genres:["Action","Crime","Drama"]}
+  - name: title.principals.sup
+    data: |
+      {tconst:"tt3890160",ordering:1,nconst:"nm5052065",category:"actor",job:"\\N",characters:["Baby"]}
+      {tconst:"tt3890160",ordering:2,nconst:"nm1256532",category:"actor",job:"\\N",characters:["Griff"]}
+      {tconst:"tt3890160",ordering:3,nconst:"nm0358316",category:"actor",job:"\\N",characters:["Buddy"]}
+      {tconst:"tt3890160",ordering:4,nconst:"nm2555462",category:"actress",job:"\\N",characters:["Darling"]}
+      {tconst:"tt3890160",ordering:5,nconst:"nm8328714",category:"actor",job:"\\N",characters:["Barista"]}
+      {tconst:"tt3890160",ordering:6,nconst:"nm4141252",category:"actress",job:"\\N",characters:["Debora"]}
+      {tconst:"tt3890160",ordering:7,nconst:"nm3231814",category:"actor",job:"\\N",characters:["Street Preacher"]}
+      {tconst:"tt3890160",ordering:8,nconst:"nm0000228",category:"actor",job:"\\N",characters:["Doc"]}
+      {tconst:"tt3890160",ordering:9,nconst:"nm1065096",category:"actor",job:"\\N",characters:["Morse Diggs"]}
+      {tconst:"tt3890160",ordering:10,nconst:"nm1471085",category:"actor",job:"\\N",characters:["Joseph"]}
+      {tconst:"tt3890160",ordering:11,nconst:"nm0942367",category:"director",job:"\\N",characters:null::[string]}
+      {tconst:"tt3890160",ordering:12,nconst:"nm0942367",category:"writer",job:"written by",characters:null::[string]}
+      {tconst:"tt3890160",ordering:13,nconst:"nm0079677",category:"producer",job:"producer",characters:null::[string]}
+      {tconst:"tt3890160",ordering:14,nconst:"nm0271479",category:"producer",job:"producer",characters:null::[string]}
+      {tconst:"tt3890160",ordering:15,nconst:"nm0661912",category:"producer",job:"producer",characters:null::[string]}
+      {tconst:"tt3890160",ordering:16,nconst:"nm1888527",category:"composer",job:"composer",characters:null::[string]}
+      {tconst:"tt3890160",ordering:17,nconst:"nm0691084",category:"cinematographer",job:"director of photography",characters:null::[string]}
+      {tconst:"tt3890160",ordering:18,nconst:"nm1633672",category:"editor",job:"\\N",characters:null::[string]}
+      {tconst:"tt3890160",ordering:19,nconst:"nm0532651",category:"editor",job:"\\N",characters:null::[string]}
+      {tconst:"tt3890160",ordering:20,nconst:"nm0537892",category:"casting_director",job:"\\N",characters:null::[string]}
+      {tconst:"tt3890160",ordering:21,nconst:"nm0746721",category:"production_designer",job:"\\N",characters:null::[string]}
+  - name: name.basics.sup
+    data: |
+      {nconst:"nm0000228",primaryName:"Kevin Spacey",birthYear:"1959",deathYear:null::string,primaryProfession:["actor","producer","director"],knownForTitles:["tt0114814","tt0119488","tt0169547","tt0114369"]}
+      {nconst:"nm0079677",primaryName:"Tim Bevan",birthYear:"1957",deathYear:null::string,primaryProfession:["producer","actor","executive"],knownForTitles:["tt1707386","tt17526714","tt0475276","tt0783233"]}
+      {nconst:"nm0271479",primaryName:"Eric Fellner",birthYear:"1959",deathYear:null::string,primaryProfession:["producer","executive","miscellaneous"],knownForTitles:["tt1707386","tt17526714","tt0475276","tt0783233"]}
+      {nconst:"nm0358316",primaryName:"Jon Hamm",birthYear:"1971",deathYear:null::string,primaryProfession:["actor","producer","director"],knownForTitles:["tt0804503","tt0840361","tt1647668","tt2854926"]}
+      {nconst:"nm0532651",primaryName:"Paul Machliss",birthYear:"1972",deathYear:null::string,primaryProfession:["editor","editorial_department","director"],knownForTitles:["tt0439572","tt9639470","tt3890160","tt8367814"]}
+      {nconst:"nm0537892",primaryName:"Francine Maisler",birthYear:"\\N",deathYear:null::string,primaryProfession:["casting_director","casting_department","producer"],knownForTitles:["tt2024544","tt1663202","tt2562232","tt7660850"]}
+      {nconst:"nm0661912",primaryName:"Nira Park",birthYear:"1967",deathYear:null::string,primaryProfession:["producer","miscellaneous","production_manager"],knownForTitles:["tt3890160","tt1478964","tt0425112","tt0365748"]}
+      {nconst:"nm0691084",primaryName:"Bill Pope",birthYear:"1952",deathYear:null::string,primaryProfession:["cinematographer","director","camera_department"],knownForTitles:["tt0133093","tt3040964","tt0115736","tt0316654"]}
+      {nconst:"nm0746721",primaryName:"Marcus Rowland",birthYear:"\\N",deathYear:null::string,primaryProfession:["production_designer","art_department","miscellaneous"],knownForTitles:["tt9639470","tt1478964","tt3706352","tt0446029"]}
+      {nconst:"nm0942367",primaryName:"Edgar Wright",birthYear:"1974",deathYear:null::string,primaryProfession:["director","writer","producer"],knownForTitles:["tt0365748","tt1213663","tt3890160","tt9639470"]}
+      {nconst:"nm1065096",primaryName:"Morse Diggs",birthYear:"1955",deathYear:null::string,primaryProfession:["actor"],knownForTitles:["tt3890160","tt0297672"]}
+      {nconst:"nm1256532",primaryName:"Jon Bernthal",birthYear:"1976",deathYear:null::string,primaryProfession:["actor","producer","writer"],knownForTitles:["tt0993846","tt9620288","tt2140479","tt2713180"]}
+      {nconst:"nm1471085",primaryName:"CJ Jones",birthYear:"1950",deathYear:null::string,primaryProfession:["actor","miscellaneous","writer"],knownForTitles:["tt1630029","tt3581920"]}
+      {nconst:"nm1633672",primaryName:"Jonathan Amos",birthYear:"\\N",deathYear:null::string,primaryProfession:["editor","editorial_department"],knownForTitles:["tt3890160","tt0446029","tt1478964","tt9224104"]}
+      {nconst:"nm1888527",primaryName:"Steven Price",birthYear:"\\N",deathYear:null::string,primaryProfession:["music_department","composer","actor"],knownForTitles:["tt1454468","tt1478964","tt9639470","tt1386697"]}
+      {nconst:"nm2555462",primaryName:"Eiza González",birthYear:"1990",deathYear:null::string,primaryProfession:["actress","soundtrack","music_department"],knownForTitles:["tt3890160","tt9893250","tt5034838","tt6806448"]}
+      {nconst:"nm3231814",primaryName:"Morgan Brown",birthYear:"\\N",deathYear:null::string,primaryProfession:["actor","stunts"],knownForTitles:["tt3890160","tt5071412","tt4288182"]}
+      {nconst:"nm4141252",primaryName:"Lily James",birthYear:"1989",deathYear:null::string,primaryProfession:["actress","producer","soundtrack"],knownForTitles:["tt1661199","tt6911608","tt1374989","tt3890160"]}
+      {nconst:"nm5052065",primaryName:"Ansel Elgort",birthYear:"1994",deathYear:null::string,primaryProfession:["actor","producer","soundtrack"],knownForTitles:["tt2582846","tt1840309","tt3890160","tt2908446"]}
+      {nconst:"nm8328714",primaryName:"Micah Howard",birthYear:"\\N",deathYear:null::string,primaryProfession:["actor"],knownForTitles:["tt3890160","tt8922118","tt21919934"]}
+
+outputs:
+  - name: stdout
+    data: |
+      {
+          title: "Baby Driver",
+          director: [
+              "Edgar Wright"
+          ],
+          writer: [
+              "Edgar Wright"
+          ],
+          genres: [
+              "Action",
+              "Crime",
+              "Drama"
+          ],
+          actors: [
+              {
+                  name: "Ansel Elgort",
+                  characters: [
+                      "Baby"
+                  ]
+              },
+              {
+                  name: "Jon Bernthal",
+                  characters: [
+                      "Griff"
+                  ]
+              },
+              {
+                  name: "Jon Hamm",
+                  characters: [
+                      "Buddy"
+                  ]
+              },
+              {
+                  name: "Micah Howard",
+                  characters: [
+                      "Barista"
+                  ]
+              },
+              {
+                  name: "Morgan Brown",
+                  characters: [
+                      "Street Preacher"
+                  ]
+              },
+              {
+                  name: "Kevin Spacey",
+                  characters: [
+                      "Doc"
+                  ]
+              },
+              {
+                  name: "Morse Diggs",
+                  characters: [
+                      "Morse Diggs"
+                  ]
+              },
+              {
+                  name: "CJ Jones",
+                  characters: [
+                      "Joseph"
+                  ]
+              }
+          ]
+      }
