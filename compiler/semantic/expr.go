@@ -628,6 +628,41 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 		a.error(call, errors.New("'where' clause on non-aggregation function"))
 		return badExpr()
 	}
+	if userOp := a.maybeConvertUserOp(call); userOp != nil {
+		// When a user op is encountered inside an expression, we turn it into
+		// subquery operating on a single-shot "this" value unless it's uncorrelated
+		// (i.e., starts with a from), in which case we put the uncorrelated body
+		// in the subquery without the values/collect logic.
+		var correlated bool
+		if isCorrelated(userOp) {
+			correlated = true
+			valuesOp := &dag.Values{
+				Kind:  "Values",
+				Exprs: []dag.Expr{dag.NewThis(nil)},
+			}
+			collect := dag.Assignment{
+				Kind: "Assignment",
+				LHS:  pathOf("collect"),
+				RHS:  &dag.Agg{Kind: "Agg", Name: "collect", Expr: dag.NewThis(nil)},
+			}
+			aggOp := &dag.Aggregate{
+				Kind: "Aggregate",
+				Aggs: []dag.Assignment{collect},
+			}
+			emitOp := &dag.Values{
+				Kind:  "Values",
+				Exprs: []dag.Expr{pathOf("collect")},
+			}
+			userOp.Prepend(valuesOp)
+			userOp.Append(aggOp)
+			userOp.Append(emitOp)
+		}
+		return &dag.Subquery{
+			Kind:       "Subquery",
+			Correlated: correlated,
+			Body:       userOp,
+		}
+	}
 	exprs := a.semExprs(call.Args)
 	name, nargs := call.Name.Name, len(call.Args)
 	nameLower := strings.ToLower(name)
@@ -983,13 +1018,7 @@ func (a *analyzer) semFString(f *ast.FString) dag.Expr {
 
 func (a *analyzer) semSubquery(b ast.Seq) *dag.Subquery {
 	body := a.semSeq(b)
-	correlated := true
-	if len(body) >= 1 {
-		//XXX fragile
-		_, ok1 := body[0].(*dag.FileScan)
-		_, ok2 := body[0].(*dag.PoolScan)
-		correlated = !(ok1 || ok2)
-	}
+	correlated := isCorrelated(body)
 	e := &dag.Subquery{
 		Kind:       "Subquery",
 		Correlated: correlated,
@@ -1016,6 +1045,16 @@ func (a *analyzer) semSubquery(b ast.Seq) *dag.Subquery {
 		})
 	}
 	return e
+}
+
+func isCorrelated(seq dag.Seq) bool {
+	if len(seq) >= 1 {
+		//XXX fragile
+		_, ok1 := seq[0].(*dag.FileScan)
+		_, ok2 := seq[0].(*dag.PoolScan)
+		return !(ok1 || ok2)
+	}
+	return true
 }
 
 func (a *analyzer) evalPositiveInteger(e ast.Expr) int {

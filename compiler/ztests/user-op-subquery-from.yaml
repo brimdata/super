@@ -1,0 +1,18 @@
+script: |
+  super -s -I query.spq
+
+inputs:
+  - name: query.spq
+    data: |
+      op slurp() : (from in.sup | count())
+      values {x:slurp()}
+  - name: in.sup
+    data: |
+      1
+      2
+      3
+
+outputs:
+  - name: stdout
+    data: |
+      {x:3::uint64}
