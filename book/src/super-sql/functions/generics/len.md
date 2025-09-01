@@ -39,7 +39,8 @@ values {this,len:len(this)}
 |["hello"]|
 {a:1,b:2}
 "hello"
-10.0.0.1 1
+10.0.0.1
+1
 # expected output
 {this:[1,2,3],len:3}
 {this:|["hello"]|,len:1}

@@ -1,6 +1,6 @@
 ### Function
 
-&emsp; **compare** &mdash; return an integer comparing two values
+&emsp; **compare** &mdash; compare values even when types vary
 
 ### Synopsis
 
@@ -33,7 +33,9 @@ is treated as the minimum or maximum value.
 # spq
 values compare(a, b)
 # input
+{a:2,b:1}
 {a:2,b:"1"}
 # expected output
+1
 -1
 ```

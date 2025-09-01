@@ -5,7 +5,7 @@
 ### Synopsis
 
 ```
-coalesce(val: any [, ... val: any]) -> bool
+coalesce(val: any [, ... val: any]) -> any
 ```
 
 ### Description

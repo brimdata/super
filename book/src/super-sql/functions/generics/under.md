@@ -13,8 +13,8 @@ under(val: any) -> any
 The _under_ function returns the value underlying the argument `val`:
 * for [unions](../../types/union.md), it returns the value as its elemental type of the union,
 * for [errors](../../types/error.md), it returns the value that the error wraps,
-* for [named values](../../types/named.md), it returns the value with the name removed,
-* for [type values](../../types/type.md), it removes the named type if one exists; otherwise,
+* for [name-typed](../../types/named.md) values, it returns the value with the named type's underlying type,
+* for [type values](../../types/type.md), it removes a named type if one exists; otherwise,
 * it returns `val` unmodified.
 
 ### Examples

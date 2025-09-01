@@ -20,11 +20,10 @@ or when `this` is a record and the field `a` is not present in `this`.
 It's also useful for shaping messy data when applying conditional logic based on the
 absence of certain fields:
 ```
-switch (
+switch
   case missing(a) ( ... )
   case missing(b) ( ... )
   default ( ... )
-)
 ```
 
 ### Examples
@@ -38,17 +37,6 @@ values {yes:missing(bar),no:missing(foo)}
 {foo:10}
 # expected output
 {yes:true,no:false}
-```
-
----
-
-```mdtest-spq
-# spq
-values {yes:has(foo[4]),no:has(foo[1])}
-# input
-{foo:[1,2,3]}
-# expected output
-{yes:false,no:true}
 ```
 
 ---

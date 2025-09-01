@@ -14,18 +14,17 @@ The `has` function returns false if any of its arguments are `error("missing")`
 and otherwise returns true.
 `has(e)` is a shortcut for [`!missing(e)`](../errors/missing.md).
 
-This function is most often used to test the existence of certain fields in an
-expected record, e.g., `has(a,b)` is true when `this` is a record and has
+This function is often used to determine the existence of fields in a
+record, e.g., `has(a,b)` is true when `this` is a record and has
 the fields `a` and `b`, provided their values are not `error("missing")`.
 
 It's also useful in shaping messy data when applying conditional logic based on the
 presence of certain fields:
 ```
-switch (
+switch
   case has(a) ( ... )
   case has(b) ( ... )
   default ( ... )
-)
 ```
 
 ### Examples
