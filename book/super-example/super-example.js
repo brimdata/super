@@ -63,14 +63,16 @@ for (const [i, pre] of preNodes.entries()) {
   const tablist = node.querySelector('[role="tablist"]');
   AriaTabs.setup(tablist);
 
-  const codeText = codeNode.innerText;
-  const matches = Array.from(codeText.matchAll(/(?:#[^\n]*\n)+((?:[^#][^\n]*\n)+)/gm));
-  if (matches.length != 3) {
+  // Matches one or more "#"-prefixed lines.
+  const sectionSeparatorRE = /(?m:^#.*\n)+/;
+  const sections = codeNode.innerText.split(sectionSeparatorRE);
+  // Ignore sections[0], which should be empty.
+  if (sections.length != 4) {
     continue;
   }
-  const spq = matches[0][1].trim();
-  const input = matches[1][1].trim();
-  const expected = matches[2][1].trim();
+  const spq = sections[1].trim();
+  const input = sections[2].trim();
+  const expected = sections[3].trim();
   node.querySelector('.super-playground .query code').textContent = spq;
   node.querySelector('.super-playground .input code').textContent = input;
   node.querySelector('.super-playground .result code').textContent = expected;
