@@ -9,6 +9,11 @@ You'll need `mdbook`.  Install it with brew
 brew install mdbook
 ```
 
+You'll also need the "table of contents" preprocessor. Install it with cargo
+```
+cargo install mdbook-pagetoc
+```
+
 The easiest way to work on docs is to run an mdbook service in this directory
 and point your browser at its embedded web server, e.g.,
 ```
