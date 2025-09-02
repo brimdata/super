@@ -9,7 +9,7 @@ dcount(any) -> uint64
 
 ### Description
 
-The _dcount_ aggregation function uses hyperloglog to estimate distinct values
+The _dcount_ aggregate function uses hyperloglog to estimate distinct values
 of the input in a memory efficient manner.
 
 ### Examples

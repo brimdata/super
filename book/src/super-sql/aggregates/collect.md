@@ -47,7 +47,7 @@ values collect(this)
 Mixed types create a union type for the array elements:
 ```mdtest-spq
 # spq
-collect(this)
+collect(this) | values this,typeof(this)
 # input
 1
 2
@@ -56,6 +56,7 @@ collect(this)
 "foo"
 # expected output
 [1,2,3,4,"foo"]
+<[int64|string]>
 ```
 
 Create arrays of values bucketed by key:

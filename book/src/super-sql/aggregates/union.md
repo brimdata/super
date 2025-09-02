@@ -11,7 +11,7 @@ union(any) -> |[any]|
 
 The _union_ aggregate function computes a set union of its input values.
 If the values are of uniform type, then the output is a set of that type.
-If the values are of mixed typs, the the output is a set of union of the
+If the values are of mixed type, the the output is a set of union of the
 types encountered.
 
 ### Examples

@@ -1,6 +1,6 @@
 ### Aggregate Function
 
-&emsp; **avg** &mdash; average value
+&emsp; **avg** &mdash; average (arithmetic mean) value
 
 ### Synopsis
 ```
@@ -9,7 +9,8 @@ avg(number) -> number
 
 ### Description
 
-The _avg_ aggregate function computes the mathematical average value of its input.
+The _avg_ aggregate function computes the average (arithmetic mean)
+value of its input.
 
 ### Examples
 
