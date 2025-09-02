@@ -1229,9 +1229,7 @@ func (a *analyzer) maybeConvertUserOp(call *ast.Call) dag.Seq {
 		return dag.Seq{badOp()}
 	}
 	exprs := make([]dag.Expr, len(decl.ast.Params))
-	for i, arg := range args {
-		exprs[i] = a.semExpr(arg)
-	}
+	exprs = a.semExprs(args)
 	if slices.Contains(a.opStack, decl.ast) {
 		a.error(call, opCycleError(append(a.opStack, decl.ast)))
 		return dag.Seq{badOp()}
