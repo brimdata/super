@@ -17,7 +17,7 @@ If the pattern matches for any string, then the result is `true`.  Otherwise, it
 
 > _String matches are case insensitive while regular expression
 > and glob matches are case sensitive.  In a forthcoming release, case sensitivity
-> will be a expressible for all three pattern types._
+> will be expressible for all three pattern types._
 
 The entire input value is traversed:
 * for records, each field name is traversed and each field value is traversed or descended

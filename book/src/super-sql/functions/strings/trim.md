@@ -10,7 +10,7 @@ trim(s: string) -> string
 
 ### Description
 
-The `trim` function converts stips all leading and trailing whitespace
+The `trim` function strips all leading and trailing whitespace
 from string argument `s` and returns the result.
 
 ### Examples

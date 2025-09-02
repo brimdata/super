@@ -22,12 +22,12 @@ which must be a numeric type.  The return type retains the type of the argument.
 values round(this)
 # input
 3.14
--1.5
+-1.5::float32
 0
 1
 # expected output
 3.
--2.
+-2.::float32
 0
 1
 ```

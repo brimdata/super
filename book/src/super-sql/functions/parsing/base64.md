@@ -11,7 +11,7 @@ base64(s: string) -> bytes
 
 ### Description
 
-The `base64` function encodes a bytes value `b` as a
+The `base64` function encodes a bytes value `b` as
 a [Base64](https://en.wikipedia.org/wiki/Base64) string,
 or decodes a Base64 string `s` into a bytes value.
 

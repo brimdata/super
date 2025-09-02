@@ -17,7 +17,7 @@ which must be a numeric type.  The return type retains the type of the argument.
 
 ---
 
-_The floor of a various numbers_
+_The floor of various numbers_
 
 ```mdtest-spq
 # spq

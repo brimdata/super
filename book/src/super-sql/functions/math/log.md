@@ -11,7 +11,8 @@ log(val: number) -> float64
 ### Description
 
 The `log` function returns the natural logarithm of its argument `val`, which
-must be numeric.  The return value is a float64 or an error.
+takes a [numeric](../../types/numbers.md) type.  The return value is a float64 or an error.
+Negative values result in an error.
 
 ### Examples
 

@@ -29,7 +29,7 @@ should instead be used to create error values.
 
 SQL syntax for casting, e.g., `CAST(<expr> AS <type>)` and `<expr>::<type>`, 
 is also [supported](../../expressions.md#casts).  These forms are
-internally converted to calls on the [`cast`](#function).
+internally converted to calls to [`cast`](#function).
 
 ### Primitive Values
 
@@ -50,13 +50,13 @@ The casting rules for primitives are as follows:
   * type [`time`](../../types/time.md) where the number is presumed to be nanoseconds since epoch, or
   * a [union](#union-types) or [named type](#named-types).
 * A [string](../../types/string.md) may be cast to any other primitive type as long as
-the string corresponds to is a valid SuperSQL primitive literal while time strings 
-in particular, may represent typical timestamp formats.  When cast to the
+the string corresponds to a valid SuperSQL primitive literal.  Time strings
+in particular may represent typical timestamp formats.  When cast to the
 [`bytes`](../../types/bytes.md) type,
 the result is the byte encoding of the UTF-8 string.  A string may also be cast to
 a [union](#union-types) or [named](#named-types) type.
 To parse a literal
-string that is in the SUP format without having to specify the target type, use
+string that is in the SUP or JSON format without having to specify the target type, use
 the [`parse_sup`](../parsing/parse_sup.md) function. 
 * A [bool](../../types/bool.md) may be cast to
   * a number type where `false` is zero and `true` is `1`, 
@@ -135,8 +135,8 @@ If the input type is present in the member types, then the best fit is that type
 
 Otherwise, the best fit is determined from the input type as follows:
 
-> A future version of this documentation will provide detailed documentation for 
-> best-fit selection algorithm.
+> _A future version of this documentation will provide detailed documentation for
+> best-fit selection algorithm._
 
 ### Named Types
 
@@ -152,7 +152,7 @@ result in a structured error of the form of:
 ```
 When errors appear within a complex value, the returned
 value may not be wrapped in a structured error and the problematic portions
-of the cast can be debugged by inspecting the result for where precisely
+of the cast can be debugged by inspecting the result for precisely where
 the errors arose.
 
 For example, this function call

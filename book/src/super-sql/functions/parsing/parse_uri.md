@@ -12,7 +12,7 @@ parse_uri(uri: string) -> record
 
 The `parse_uri` function parses the `uri` argument that must have the form of a
 [Universal Resource Identifier](https://en.wikipedia.org/wiki/Uniform_Resource_Identifier)
-into a structured URI comprising the parsed components as a Zed record
+into a structured URI comprising the parsed components as a record
 with the following type signature:
 ```
 {

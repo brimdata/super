@@ -5,7 +5,7 @@
 ### Synopsis
 
 ```
-regexp_replace(s: string, re: string|regexp, new: string) -> string
+regexp_replace(s: string, re: string, new: string) -> string
 ```
 
 ### Description

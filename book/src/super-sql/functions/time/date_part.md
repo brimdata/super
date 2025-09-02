@@ -1,6 +1,6 @@
 ### Function
 
-&emsp; **compare** &mdash; return a specified part of a time value
+&emsp; **date_part** &mdash; return a specified part of a time value
 
 ### Synopsis
 
