@@ -629,13 +629,12 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 		return badExpr()
 	}
 	if userOp := a.maybeConvertUserOp(call); userOp != nil {
-		// When a user op is encountered inside an expression, we turn it into
+		// When a user op is encountered inside an expression, we turn it into a
 		// subquery operating on a single-shot "this" value unless it's uncorrelated
 		// (i.e., starts with a from), in which case we put the uncorrelated body
 		// in the subquery without the values/collect logic.
-		var correlated bool
-		if isCorrelated(userOp) {
-			correlated = true
+		correlated := isCorrelated(userOp)
+		if correlated {
 			valuesOp := &dag.Values{
 				Kind:  "Values",
 				Exprs: []dag.Expr{dag.NewThis(nil)},
