@@ -8,6 +8,7 @@ title = "SuperDB"
 enable = true
 
 [preprocessor.pagetoc]
+
 [output.html]
 additional-css = ["super-example/super-example.css", "copy-button/copy-button.css", "theme/pagetoc.css"]
 additional-js = ["super-example.bundle.js", "copy-button/copy-button.js", "theme/pagetoc.js"]
