@@ -80,18 +80,18 @@ TypeDecl
 
 // An PipeOp is any pipeline operator, or a parenthesized pipe scope, or
 // one of four shortcuts: a shortcut assignment for "put", a shortcut "aggregate",
-// a shortcut "call" operator,  or an expression that is either an implied "values"
+// a shortcut "call",  or an expression that is either an implied "values"
 // (non-boolean) or an implied "where" (boolean).
 PipeOp
   = Operator
   / "(" __ scope:Scope __ ")" { return scope, nil }
   / a:OpAssignment &EndOfOp { return a, nil }
   / !(Function EndOfOp) a:Aggregation &EndOfOp { return a, nil }
-  / !CallIDGuard id:Identifier _ !CallExprGuard args:Exprs {
-      return &ast.CallOp{Kind:"CallOp", Name: id.(*ast.ID), Args:sliceOf[ast.Expr](args), Loc:loc(c)}, nil
+  / !CallIDGuard name:Identifier _ !CallExprGuard args:Exprs {
+      return &ast.CallOp{Kind:"CallOp", Name: name.(*ast.ID), Args:sliceOf[ast.Expr](args), Loc:loc(c)}, nil
     }
-  / !CallIDGuard id:Identifier &EndOfOp {
-      return &ast.CallOp{Kind:"CallOp", Name: id.(*ast.ID), Loc:loc(c)}, nil
+  / !CallIDGuard name:Identifier &EndOfOp {
+      return &ast.CallOp{Kind:"CallOp", Name: name.(*ast.ID), Loc:loc(c)}, nil
     }
   / !((Identifier / Literal) __ (Pipe/EOF)) e:Expr {
       return &ast.OpExpr{Kind:"OpExpr",Expr:e.(ast.Expr),Loc:loc(c)}, nil
@@ -420,12 +420,13 @@ TopOp
     }
 
 CallOp
-  = CALL _ id:Identifier args:((_ args:Exprs) { return args, nil })? {
-      op := &ast.CallOp{Kind:"CallOp", Name: id.(*ast.ID), Loc:loc(c)}
-      if args != nil {
-        op.Args = sliceOf[ast.Expr](args)
-      }
-      return op, nil
+  = CALL _ name:Identifier args:((_ args:Exprs) { return args, nil })? {
+      return &ast.CallOp{
+        Kind: "CallOp",
+        Name: name.(*ast.ID),
+        Args: sliceOf[ast.Expr](args),
+        Loc: loc(c),
+      }, nil
     }
     
 CutOp
