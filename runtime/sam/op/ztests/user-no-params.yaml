@@ -1,8 +1,8 @@
 spq: |
-  op noparams(): (
+  op noparams: (
     values "hello"
   )
-  noparams()
+  noparams
 
 input: "null"
 

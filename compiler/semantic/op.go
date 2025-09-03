@@ -702,6 +702,8 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 		return append(seq, dag.PassOp)
 	case *ast.OpExpr:
 		return a.semOpExpr(o.Expr, seq)
+	case *ast.CallOp:
+		return a.semCallOp(o, seq)
 	case *ast.Search:
 		e := a.semExpr(o.Expr)
 		return append(seq, dag.NewFilter(e))
@@ -1124,7 +1126,7 @@ func (a *analyzer) checkStaticAssignment(asts []ast.Assignment, assignments []da
 
 func (a *analyzer) semOpExpr(e ast.Expr, seq dag.Seq) dag.Seq {
 	if call, ok := e.(*ast.Call); ok {
-		if seq := a.semCallOp(call, seq); seq != nil {
+		if seq := a.semCallOpExpr(call, seq); seq != nil {
 			return seq
 		}
 	}
@@ -1174,10 +1176,7 @@ func (a *analyzer) isBool(e dag.Expr) bool {
 	}
 }
 
-func (a *analyzer) semCallOp(call *ast.Call, seq dag.Seq) dag.Seq {
-	if body := a.maybeConvertUserOp(call); body != nil {
-		return append(seq, body...)
-	}
+func (a *analyzer) semCallOpExpr(call *ast.Call, seq dag.Seq) dag.Seq {
 	name := call.Name.Name
 	if agg := a.maybeConvertAgg(call); agg != nil {
 		aggregate := &dag.Aggregate{
@@ -1200,22 +1199,17 @@ func (a *analyzer) semCallOp(call *ast.Call, seq dag.Seq) dag.Seq {
 	return append(seq, dag.NewFilter(c))
 }
 
-// maybeConvertUserOp returns nil, nil if the call is determined to not be a
-// UserOp, otherwise it returns the compiled op or the encountered error.
-func (a *analyzer) maybeConvertUserOp(call *ast.Call) dag.Seq {
+func (a *analyzer) semCallOp(call *ast.CallOp, seq dag.Seq) dag.Seq {
 	decl, err := a.scope.lookupOp(call.Name.Name)
-	if decl == nil {
-		return nil
-	}
 	if err != nil {
 		a.error(call, err)
 		return dag.Seq{badOp()}
 	}
-	if decl.bad {
+	if decl == nil {
+		a.error(call, fmt.Errorf("no such user operator: %q", call.Name.Name))
 		return dag.Seq{badOp()}
 	}
-	if call.Where != nil {
-		a.error(call, errors.New("user defined operators cannot have a where clause"))
+	if decl.bad {
 		return dag.Seq{badOp()}
 	}
 	// We've found a user op bound to the name being invoked, so we pull out the
@@ -1228,8 +1222,7 @@ func (a *analyzer) maybeConvertUserOp(call *ast.Call) dag.Seq {
 		a.error(call, fmt.Errorf("%d arg%s provided when operator expects %d arg%s", len(params), plural.Slice(params, "s"), len(args), plural.Slice(args, "s")))
 		return dag.Seq{badOp()}
 	}
-	exprs := make([]dag.Expr, len(decl.ast.Params))
-	exprs = a.semExprs(args)
+	exprs := a.semExprs(args)
 	if slices.Contains(a.opStack, decl.ast) {
 		a.error(call, opCycleError(append(a.opStack, decl.ast)))
 		return dag.Seq{badOp()}
@@ -1247,7 +1240,7 @@ func (a *analyzer) maybeConvertUserOp(call *ast.Call) dag.Seq {
 			return dag.Seq{badOp()}
 		}
 	}
-	return a.semSeq(decl.ast.Body)
+	return append(seq, a.semSeq(decl.ast.Body)...)
 }
 
 func (a *analyzer) semOpArgs(args []ast.OpArg, allowed ...string) opArgs {

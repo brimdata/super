@@ -19,6 +19,7 @@ var unpacker = unpack.New(
 	OpExpr{},
 	BinaryExpr{},
 	Call{},
+	CallOp{},
 	CallExtract{},
 	CaseExpr{},
 	Cast{},

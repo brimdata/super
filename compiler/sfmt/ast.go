@@ -492,6 +492,10 @@ func (c *canon) op(p ast.Op) {
 		}
 		c.close()
 		c.close()
+	case *ast.CallOp:
+		c.next()
+		c.write("call %s ", sup.QuotedName(p.Name.Name))
+		c.exprs(p.Args)
 	case *ast.Cut:
 		c.next()
 		c.write("cut ")

@@ -1,0 +1,22 @@
+script: |
+  super -s -c "op foo: (values 10) values {x:(call foo)}" in.sup
+  echo ===
+  super -s -c "op foo: (values 10) values {x:(this.foo)}" in.sup
+  ! super -s -c "op foo: (values 10) values {x:(foo)}" in.sup
+
+inputs:
+  - name: in.sup
+    data: |
+      {foo:1}
+
+outputs:
+  - name: stdout
+    data: |
+      {x:10}
+      ===
+      {x:1}
+  - name: stderr
+    data: |
+      symbol "foo" is not bound to an expression at line 1, column 32:
+      op foo: (values 10) values {x:(foo)}
+                                     ~~~

@@ -10,17 +10,17 @@ inputs:
       const foo = "bar"
       func add(a,b): (a+b)
       const bar = "baz"
-      op stamp(assignee): ( values {...this, assignee, ts: now()} )
-      op nop(foo): ( pass )
-      op joinTest(left_file, right_file, left_key, right_key, left_dest, right_source): (
+      op stamp assignee: ( values {...this, assignee, ts: now()} )
+      op nop foo: ( pass )
+      op joinTest left_file, right_file, left_key, right_key, left_dest, right_source: (
         from eval(left_file)
         | inner join (
           from eval(right_file)
         ) on left.left_key = right.right_key 
         | values {...left,left_dest:right.right_source}
       )
-      joinTest("fruit.json", "people.json", flavor, likes, eater, name)
-      | stamp("bob")
+      joinTest "fruit.json", "people.json", flavor, likes, eater, name
+      | stamp "bob"
 
 outputs:
   - name: stdout
@@ -46,8 +46,8 @@ outputs:
         ) on left.left_key=right.right_key
         | values {...left,left_dest:right.right_source}
       )
-      joinTest("fruit.json", "people.json", flavor, likes, eater, name)
-      | stamp("bob")
+      call joinTest "fruit.json", "people.json", flavor, likes, eater, name
+      | call stamp "bob"
       ===
       (
         const foo = "bar"

@@ -1,10 +1,10 @@
 script: |
-  super -s -I countfile.zed -c 'countfile()'
+  super -s -I countfile.spq -c countfile
 
 inputs:
-  - name: countfile.zed
+  - name: countfile.spq
     data: |
-      op countfile(): (
+      op countfile: (
         from test.sup | count()
       )
   - name: test.sup

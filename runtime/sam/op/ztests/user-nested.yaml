@@ -1,14 +1,14 @@
 spq: |
-  op add1(x): ( 
+  op add1 x: ( 
     x := x+1
   )
-  op add2(x): (
-    add1(x) | add1(x)
+  op add2 x: (
+    add1 x | add1 x
   )
-  op add4(x): (
-    add2(x) | add2(x)
+  op add4 x: (
+    add2 x | add2 x
   )
-  add4(y)
+  add4 y
 
 input: '{y:1} {y:2} {y:3}'
 

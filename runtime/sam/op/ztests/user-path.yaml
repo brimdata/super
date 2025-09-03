@@ -1,8 +1,8 @@
 spq: |
-  op add1(x): (
+  op add1 x: (
     x := x + 1
   )
-  add1(a.b)
+  add1 a.b
 
 input: |
   {a:{b:2}}

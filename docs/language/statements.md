@@ -117,11 +117,11 @@ calling sequence.
 For example,
 ```mdtest-spq
 # spq
-op myop(): (
+op myop: (
   values this
 )
 
-myop()
+myop
 # input
 {x:1}
 # expected output
@@ -143,11 +143,11 @@ the `msg` parameter is used flexibly in the following examples.
 
 ```mdtest-spq
 # spq
-op AddMessage(field_for_message, msg): (
+op AddMessage field_for_message, msg: (
   field_for_message:=msg
 )
 
-AddMessage(message, "hello")
+AddMessage message, "hello"
 # input
 {greeting: "hi"}
 # expected output
@@ -156,11 +156,11 @@ AddMessage(message, "hello")
 
 ```mdtest-spq
 # spq
-op AddMessage(field_for_message, msg): (
+op AddMessage field_for_message, msg: (
   field_for_message:=msg
 )
 
-AddMessage(message, greeting)
+AddMessage message, greeting
 # input
 {greeting: "hi"}
 # expected output
@@ -173,11 +173,11 @@ explicitly mentioned "field" in the name of our first parameter's name may help
 us avoid making mistakes when passing arguments, such as
 ```mdtest-spq fails {data-layout="stacked"}
 # spq
-op AddMessage(field_for_message, msg): (
+op AddMessage field_for_message, msg: (
   field_for_message:=msg
 )
 
-AddMessage("message", "hello")
+AddMessage "message", "hello"
 # input
 {greeting: "hi"}
 # expected output
@@ -190,11 +190,11 @@ A constant value must be used to pass a parameter that will be referenced as
 the data source of a [`from` operator](operators/from.md). For example, we
 quote the pool name in our program `count-pool.spq`
 ```mdtest-input count-pool.spq
-op CountPool(pool_name): (
+op CountPool pool_name: (
   from eval(pool_name) | count()
 )
 
-CountPool("example")
+CountPool "example"
 ```
 
 so that when we prepare and query the pool via
@@ -216,17 +216,17 @@ User-defined operators can make calls to other user-defined operators that
 are declared within the same scope or in a parent's scope. For example,
 ```mdtest-spq
 # spq
-op add1(x): (
+op add1 x: (
   x := x + 1
 )
-op add2(x): (
-  add1(x) | add1(x)
+op add2 x: (
+  add1 x | add1 x
 )
-op add4(x): (
-  add2(x) | add2(x)
+op add4 x: (
+  add2 x | add2 x
 )
 
-add4(a.b)
+add4 a.b
 # input
 {a:{b:1}}
 # expected output

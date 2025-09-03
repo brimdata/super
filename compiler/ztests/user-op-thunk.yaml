@@ -1,7 +1,7 @@
 spq: |
-  op mapF(F, out) : ( unnest this | values F | out:=collect(this) )
+  op mapF F, out: ( unnest this | values F | out:=collect(this) )
   values [[1,2,3],[4,5]]
-  | mapF((unnest [this] | mapF(this+1,y)), x)
+  | mapF (unnest [this] | mapF this+1, y), x
 
 output: |
   {x:[{y:[2,3,4]},{y:[5,6]}]}

@@ -1,14 +1,14 @@
 script: |
- super - | super -s -I test.zed
+ super - | super -s -I test.spq
 
 inputs:
-  - name: test.zed
+  - name: test.spq
     data: |
       const FILE = "A.sup"
-      op test(path): (
+      op test path: (
         from eval(path) | sort a 
       )
-      test(FILE)
+      test FILE
   - name: A.sup
     data: |
       {a:5}

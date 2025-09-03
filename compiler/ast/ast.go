@@ -624,6 +624,12 @@ type (
 		Expr Expr   `json:"expr"`
 		Loc  `json:"loc"`
 	}
+	CallOp struct {
+		Kind string `json:"kind" unpack:""`
+		Name *ID    `json:"name"`
+		Args []Expr `json:"args"`
+		Loc  `json:"loc"`
+	}
 )
 
 type (
@@ -734,6 +740,7 @@ func (*Output) opNode()       {}
 func (*Debug) opNode()        {}
 func (*Distinct) opNode()     {}
 func (*Delete) opNode()       {}
+func (*CallOp) opNode()       {}
 
 // An Agg is an AST node that represents a aggregate function.  The Name
 // field indicates the aggregation method while the Expr field indicates

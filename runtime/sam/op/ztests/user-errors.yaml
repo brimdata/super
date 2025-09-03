@@ -5,22 +5,22 @@ script: |
 inputs:
   - name: error-duplicate-parameters.zed
     data: |
-      op test(a, a): (
+      op test a, a: (
         pass
       )
-      test("a", "b")
+      test "a", "b"
   - name: error-const-lhs.zed
     data: |
-      op test(a): (
+      op test a: (
         a := a
       )
-      test("a")
+      test "a"
 
 outputs:
   - name: stderr
     data: |
       duplicate parameter "a" in error-duplicate-parameters.zed at line 1, column 12:
-      op test(a, a): (
+      op test a, a: (
                  ~
       illegal left-hand side of assignment in error-const-lhs.zed at line 2, column 3:
         a := a

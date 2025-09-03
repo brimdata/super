@@ -1,8 +1,8 @@
 spq: |
-  op stamper(assignee, foo): ( 
+  op stamper assignee, foo: ( 
       values {...this, assignee, foo}
   )
-  stamper("bob", "bar")
+  stamper "bob", "bar"
 
 input: '{x:1} {x:2} {x:3}'
 

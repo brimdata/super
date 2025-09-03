@@ -1,10 +1,10 @@
 spq: |
-  op callA(): (callB())
-  op callB(): (callC())
-  op callC(): (callA())
-  callA()
+  op callA: (callB)
+  op callB: (callC)
+  op callC: (callA)
+  callA
 
 error: |
-  operator cycle found: callA -> callB -> callC -> callA at line 3, column 14:
-  op callC(): (callA())
-               ~~~~~~~
+  operator cycle found: callA -> callB -> callC -> callA at line 3, column 12:
+  op callC: (callA)
+             ~~~~~

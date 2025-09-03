@@ -1,12 +1,12 @@
 spq: |
-  op keys(r): (
+  op keys r: (
     func k(e): (e.key)
-    op flatten_array(a): (unnest this | unnest this | collect(this))
+    op flatten_array a: (unnest this | unnest this | collect(this))
     flatten(this)
     | map(this, k)
-    | flatten_array(this)
+    | flatten_array this
   )
-  keys(this)
+  keys this
 
 input: |
   {x:"foo",y:"bar"}

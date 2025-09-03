@@ -54,7 +54,7 @@ FuncDecl
     }
 
 OpDecl
-  = OP _ name:Identifier __ "(" __ params:Identifiers? __ ")" __ ":" __ body:ScopeBody {
+  = OP _ name:Identifier params:(_ ids:Identifiers { return ids, nil })? __ ":" __ body:ScopeBody {
       return &ast.OpDecl{
         Kind: "OpDecl",
         Name: name.(*ast.ID),
@@ -79,20 +79,29 @@ TypeDecl
     }
 
 // An PipeOp is any pipeline operator, or a parenthesized pipe scope, or
-// one of three shortcuts: a shortcut assignment for "put", a shortcut "aggregate",
-// or an expression that is either an implied "values" (non-boolean) or an implied
-// "where" (boolean).
+// one of four shortcuts: a shortcut assignment for "put", a shortcut "aggregate",
+// a shortcut "call" operator,  or an expression that is either an implied "values"
+// (non-boolean) or an implied "where" (boolean).
 PipeOp
   = Operator
   / "(" __ scope:Scope __ ")" { return scope, nil }
   / a:OpAssignment &EndOfOp { return a, nil }
   / !(Function EndOfOp) a:Aggregation &EndOfOp { return a, nil }
+  / !CallIDGuard id:Identifier _ !CallExprGuard args:Exprs {
+      return &ast.CallOp{Kind:"CallOp", Name: id.(*ast.ID), Args:sliceOf[ast.Expr](args), Loc:loc(c)}, nil
+    }
+  / !CallIDGuard id:Identifier &EndOfOp {
+      return &ast.CallOp{Kind:"CallOp", Name: id.(*ast.ID), Loc:loc(c)}, nil
+    }
   / !((Identifier / Literal) __ (Pipe/EOF)) e:Expr {
       return &ast.OpExpr{Kind:"OpExpr",Expr:e.(ast.Expr),Loc:loc(c)}, nil
     }
 
 EndOfOp = __ (Pipe / ")" / ";" / EOF)
 Pipe = "|>" / "|"
+
+CallExprGuard = IN / LIKE / IS / OR / AND
+CallIDGuard = NOT / SQLGuard
 
 ExprGuard = __ (Comparator / AdditiveOperator / MultiplicativeOperator / ":" / "(" / "[" / "~")
 
@@ -287,6 +296,7 @@ Operator
   / AssertOp
   / SortOp
   / TopOp
+  / CallOp
   / CutOp
   / DistinctOp
   / DropOp
@@ -409,6 +419,15 @@ TopOp
       return op, nil
     }
 
+CallOp
+  = CALL _ id:Identifier args:((_ args:Exprs) { return args, nil })? {
+      op := &ast.CallOp{Kind:"CallOp", Name: id.(*ast.ID), Loc:loc(c)}
+      if args != nil {
+        op.Args = sliceOf[ast.Expr](args)
+      }
+      return op, nil
+    }
+    
 CutOp
   = CUT _ args:Assignments {
       return &ast.Cut{
@@ -1065,7 +1084,7 @@ Primary
   / "(" __ &SubqueryOps expr:Subquery __ ")" { return expr, nil }
   / "(" __ expr:Expr __ ")" { return expr, nil }
 
-SubqueryOps = UNNEST / FROM / VALUES / SelectOp
+SubqueryOps = UNNEST / FROM / VALUES / CALL / SelectOp
 
 CaseExpr
   = CASE cases:When+ else_:(_ ELSE _ Expr)? _ END (_ CASE)? {
@@ -2282,6 +2301,7 @@ ASSERT     = "ASSERT"i          !IdentifierRest
 AT         = "AT"i              !IdentifierRest
 BETWEEN    = "BETWEEN"i         !IdentifierRest
 BY         = "BY"i              !IdentifierRest
+CALL       = "CALL"i            !IdentifierRest
 CASE       = "CASE"i            !IdentifierRest
 CAST       = "CAST"i            !IdentifierRest
 CONST      = "CONST"i           !IdentifierRest

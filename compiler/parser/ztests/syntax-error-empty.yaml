@@ -1,5 +1,5 @@
 script: |
-  ! super compile -I query.sql -I empty.sql
+  ! super compile -s -I query.sql -I empty.sql
 
 inputs:
   - name: query.sql
