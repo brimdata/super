@@ -684,6 +684,11 @@ func (a *analyzer) semProjection(sch *selectSchema, args []ast.SQLAsExpr, funcs 
 	for i := range proj {
 		col := &proj[i]
 		if col.isStar() {
+			if static, ok := sch.in.(*staticSchema); ok {
+				out.columns = append(out.columns, static.columns...)
+			} else {
+				sch.out = &dynamicSchema{}
+			}
 			continue
 		}
 		if args[i].Label == nil {
@@ -692,7 +697,6 @@ func (a *analyzer) semProjection(sch *selectSchema, args []ast.SQLAsExpr, funcs 
 		labels[col.name] = struct{}{}
 		out.columns = append(out.columns, col.name)
 	}
-
 	return proj
 }
 
