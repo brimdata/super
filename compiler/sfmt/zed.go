@@ -36,7 +36,7 @@ func (c *canonZed) fieldpath(path []string) {
 			c.write(s)
 		} else {
 			if k == 0 {
-				c.write(".")
+				c.write("this")
 			}
 			c.write("[%q]", s)
 		}
