@@ -16,6 +16,7 @@ additional-js = ["super-example.bundle.js", "copy-button/copy-button.js", "theme
 # to work around a problem where cached files cause the sidebar not to reflect
 # changes to SUMMARY.md.  See https://github.com/rust-lang/mdBook/issues/2547
 hash-files = true
+no-section-label = true
 
 [output.html.playground]
 # Suppress mdBook's copy button since we add our own.
