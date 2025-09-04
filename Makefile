@@ -86,7 +86,7 @@ peg: compiler/parser/parser.go
 .PHONY: markdown-lint
 markdown-lint:
 	@npm install --no-save markdownlint-cli@0.35.0
-	@npx markdownlint docs
+	@npx markdownlint --ignore-path .gitignore .
 
 # CI performs these actions individually since that looks nicer in the UI;
 # this is a shortcut so that a local dev can easily run everything.

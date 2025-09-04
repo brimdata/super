@@ -1,7 +1,6 @@
 book
 theme
 
-node_modules
 package-lock.json
 src/super.wasm
 super-example.bundle.js
