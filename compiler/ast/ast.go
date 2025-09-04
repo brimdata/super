@@ -381,17 +381,29 @@ type ConstDecl struct {
 	Loc  `json:"loc"`
 }
 
-type FuncDecl struct {
+type FnDecl struct {
+	Kind   string    `json:"kind" unpack:""`
+	Name   *ID       `json:"name"`
+	Lambda *FnLambda `json:"lambda"`
+	Loc    `json:"loc"`
+}
+
+type FnLambda struct {
 	Kind   string `json:"kind" unpack:""`
-	Name   *ID    `json:"name"`
 	Params []*ID  `json:"params"`
 	Expr   Expr   `json:"expr"`
 	Loc    `json:"loc"`
 }
 
 type OpDecl struct {
+	Kind   string    `json:"kind" unpack:""`
+	Name   *ID       `json:"name"`
+	Lambda *OpLambda `json:"lambda"`
+	Loc    `json:"loc"`
+}
+
+type OpLambda struct {
 	Kind   string `json:"kind" unpack:""`
-	Name   *ID    `json:"name"`
 	Params []*ID  `json:"params"`
 	Body   Seq    `json:"body"`
 	Loc    `json:"loc"`
@@ -405,7 +417,7 @@ type TypeDecl struct {
 }
 
 func (*ConstDecl) declNode() {}
-func (*FuncDecl) declNode()  {}
+func (*FnDecl) declNode()    {}
 func (*OpDecl) declNode()    {}
 func (*TypeDecl) declNode()  {}
 

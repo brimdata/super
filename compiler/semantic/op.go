@@ -995,12 +995,12 @@ func (a *analyzer) singletonAgg(agg ast.Assignment, seq dag.Seq) dag.Seq {
 
 func (a *analyzer) semDecls(decls []ast.Decl) ([]dag.Def, []*dag.Func) {
 	var consts []dag.Def
-	var fnDecls []*ast.FuncDecl
+	var fnDecls []*ast.FnDecl
 	for _, d := range decls {
 		switch d := d.(type) {
 		case *ast.ConstDecl:
 			consts = append(consts, a.semConstDecl(d))
-		case *ast.FuncDecl:
+		case *ast.FnDecl:
 			fnDecls = append(fnDecls, d)
 		case *ast.OpDecl:
 			a.semOpDecl(d)
@@ -1041,11 +1041,11 @@ func (a *analyzer) semTypeDecl(d *ast.TypeDecl) dag.Def {
 	return dag.Def{Name: d.Name.Name, Expr: e}
 }
 
-func (a *analyzer) semFuncDecls(decls []*ast.FuncDecl) []*dag.Func {
+func (a *analyzer) semFuncDecls(decls []*ast.FnDecl) []*dag.Func {
 	funcs := make([]*dag.Func, 0, len(decls))
 	for _, d := range decls {
 		var params []string
-		for _, p := range d.Params {
+		for _, p := range d.Lambda.Params {
 			params = append(params, p.Name)
 		}
 		f := &dag.Func{
@@ -1060,7 +1060,7 @@ func (a *analyzer) semFuncDecls(decls []*ast.FuncDecl) []*dag.Func {
 	}
 	for i, d := range decls {
 		a.enterScope()
-		funcs[i].Expr = a.semExpr(d.Expr)
+		funcs[i].Expr = a.semExpr(d.Lambda.Expr)
 		a.exitScope()
 	}
 	return funcs
@@ -1068,7 +1068,7 @@ func (a *analyzer) semFuncDecls(decls []*ast.FuncDecl) []*dag.Func {
 
 func (a *analyzer) semOpDecl(d *ast.OpDecl) {
 	m := make(map[string]bool)
-	for _, p := range d.Params {
+	for _, p := range d.Lambda.Params {
 		if m[p.Name] {
 			a.error(p, fmt.Errorf("duplicate parameter %q", p.Name))
 			a.scope.DefineAs(d.Name, &opDecl{bad: true})
@@ -1217,7 +1217,7 @@ func (a *analyzer) semCallOp(call *ast.CallOp, seq dag.Seq) dag.Seq {
 	// them into the call site here.  This is essentially a thunk... each use of the
 	// user op is compiled into the context in which it appears and all the references
 	// in that expression are bound appropriately with respect to this context.
-	params, args := decl.ast.Params, call.Args
+	params, args := decl.ast.Lambda.Params, call.Args
 	if len(params) != len(args) {
 		a.error(call, fmt.Errorf("%d arg%s provided when operator expects %d arg%s", len(params), plural.Slice(params, "s"), len(args), plural.Slice(args, "s")))
 		return dag.Seq{badOp()}
@@ -1240,7 +1240,7 @@ func (a *analyzer) semCallOp(call *ast.CallOp, seq dag.Seq) dag.Seq {
 			return dag.Seq{badOp()}
 		}
 	}
-	return append(seq, a.semSeq(decl.ast.Body)...)
+	return append(seq, a.semSeq(decl.ast.Lambda.Body)...)
 }
 
 func (a *analyzer) semOpArgs(args []ast.OpArg, allowed ...string) opArgs {

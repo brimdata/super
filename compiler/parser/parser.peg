@@ -30,7 +30,7 @@ Seq
 SeqTail = __ Pipe __ o:PipeOp { return o, nil }
 
 Decl
-  = v:(ConstDecl / FuncDecl / OpDecl / TypeDecl) _ { return v, nil }
+  = v:(ConstDecl / FnDecl / OpDecl / TypeDecl) _ { return v, nil }
 
 ConstDecl
   = CONST _ name:Identifier __ "=" __ expr:Expr {
@@ -42,11 +42,21 @@ ConstDecl
       }, nil
     }
 
-FuncDecl
-  = FUNC _ name:Identifier __ "(" __ params:Identifiers? __ ")" __ ":" __ "(" __ expr:Expr __ ")" {
-      return &ast.FuncDecl{
-        Kind: "FuncDecl",
+//XXX change "func" to FN
+FnDecl
+  = "func" _ name:Identifier __ lambda:FnLambda {
+      return &ast.FnDecl{
+        Kind: "FnDecl",
         Name: name.(*ast.ID),
+        Lambda: lambda.(*ast.FnLambda),
+        Loc: loc(c),
+      }, nil
+    }
+
+FnLambda
+  = "(" __ params:Identifiers? __ ")" __ ":" __ "(" __ expr:Expr __ ")" {
+      return &ast.FnLambda{
+        Kind: "FnLambda",
         Params: sliceOf[*ast.ID](params),
         Expr: expr.(ast.Expr),
         Loc: loc(c),
@@ -54,10 +64,19 @@ FuncDecl
     }
 
 OpDecl
-  = OP _ name:Identifier params:(_ ids:Identifiers { return ids, nil })? __ ":" __ body:ScopeBody {
+  = OP _ name:Identifier lambda:OpLambda {
       return &ast.OpDecl{
         Kind: "OpDecl",
         Name: name.(*ast.ID),
+        Lambda: lambda.(*ast.OpLambda),
+        Loc: loc(c),
+      }, nil
+    }
+
+OpLambda
+  = params:(_ ids:Identifiers { return ids, nil })? __ ":" __ body:ScopeBody {
+      return &ast.OpLambda{
+        Kind: "OpLambda",
         Params: sliceOf[*ast.ID](params),
         Body: sliceOf[ast.Op](body),
         Loc: loc(c),
@@ -2329,7 +2348,7 @@ FOR        = "FOR"i             !IdentifierRest
 FORK       = "FORK"i            !IdentifierRest
 FROM       = "FROM"i            !IdentifierRest
 FULL       = "FULL"i            !IdentifierRest
-FUNC       = "FUNC"i            !IdentifierRest
+FN         = "FN"i              !IdentifierRest
 FUSE       = "FUSE"i            !IdentifierRest
 GROUP      = "GROUP"i           !IdentifierRest
 HAVING     = "HAVING"i          !IdentifierRest

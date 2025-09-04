@@ -383,24 +383,24 @@ func (c *canon) decl(d ast.Decl) {
 	case *ast.ConstDecl:
 		c.write("const %s = ", d.Name.Name)
 		c.expr(d.Expr, "")
-	case *ast.FuncDecl:
+	case *ast.FnDecl:
 		c.write("func %s(", d.Name.Name)
-		for i := range d.Params {
+		for i := range d.Lambda.Params {
 			if i != 0 {
 				c.write(", ")
 			}
-			c.write(d.Params[i].Name)
+			c.write(d.Lambda.Params[i].Name)
 		}
 		c.open("): (")
 		c.ret()
-		c.expr(d.Expr, d.Name.Name)
+		c.expr(d.Lambda.Expr, d.Name.Name)
 		c.close()
 		c.ret()
 		c.flush()
 		c.write(")")
 	case *ast.OpDecl:
 		c.write("op %s(", d.Name.Name)
-		for k, p := range d.Params {
+		for k, p := range d.Lambda.Params {
 			if k > 0 {
 				c.write(", ")
 			}
@@ -410,7 +410,7 @@ func (c *canon) decl(d ast.Decl) {
 		c.ret()
 		c.flush()
 		c.head = true
-		c.seq(d.Body)
+		c.seq(d.Lambda.Body)
 		c.close()
 		c.ret()
 		c.flush()
