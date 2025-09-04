@@ -1,15 +1,19 @@
 ## Comments
 
-TODO: update this old text (SQL comments)
-TODO: let's get multiline comments working
+Single-line comments are SQL style begin with two dashes `--` and end at the
+subsequent newline.
 
-To further ease the maintenance and readability of source files, comments
-beginning with `--` may appear in SuperSQL query texts.
+Multi-line comments are C style and begin with `/*` and end with `*/`.
 
-```
--- This includes a search with boolean logic, an expression, and an aggregation.
-
-search "example.com" AND "urgent"
-| where message_length > 100       // We only care about long messages
-| aggregate kinds:=union(type) by net:=network_of(srcip)
+```mdtest-spq
+# spq
+values 1, 2 -- , 3
+/*
+| aggregate sum(this)
+*/
+| aggregate sum(this / 2.0)
+# input
+null
+# expected output
+3.5
 ```

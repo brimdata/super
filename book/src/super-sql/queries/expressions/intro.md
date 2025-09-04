@@ -30,24 +30,23 @@ Basic values include
 Operators include
   * [aggregate functions](./aggregates.md) to carry out running aggregations using
       any available [aggregate function](../../aggregates/intro.md),
-  * [arithmatic](./arithmetic.md) to add, subtract, multiply, divide, etc,
+  * [arithmetic](./arithmetic.md) to add, subtract, multiply, divide, etc,
   * [cast](./cast.md) expressions convert values from one type to another,
   * [comparisons](./comparisons.md) to compare two values resulting in a Boolean,
   * [conditionals](./conditional) including C-style `?-:` operator and SQL `CASE` expressions,
   * [containment](./containment.md) to test for the existing value inside an array or set,
   * [f-strings](./f-strings.md) to easily compute values from expressions embedded inside strings,
-  * [functions](./functions.md) to apply built-in or user functions to zero or more input
-     arguments producing one value as a result,
+  * [functions](./functions.md) to apply [built-in functions](../../functions/intro.md) or
+    [user functions](../user-functions.md) to zero or more input arguments
+    producing one value as a result,
   * [index](./index.md) operator to select and slice elements from an array, record, or map,
   * [logic](./logic.md) operators to combine predicates using Boolean logic.
 
 ### Input Values
 
 For expressions that appear in pipe operators,
-all input is referenced using [dataflow scoping](../../intro.md#dataflow-scoping):
-
-* input is referenced as a single value called `this`, and
-* output is emitted into a single value called `this`.
+input is referenced using [dataflow scoping](../../intro.md#dataflow-scoping),
+where all input is referenced as a single value called `this`.
 
 The type of `this` may be any [type](../../types/intro.md).
 When `this` is a [record](../../types/record.md), references
