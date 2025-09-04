@@ -9,7 +9,6 @@ import (
 	"github.com/brimdata/super/vector/bitvec"
 )
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#len
 type Len struct {
 	sctx *super.Context
 }

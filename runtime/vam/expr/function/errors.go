@@ -6,7 +6,6 @@ import (
 	"github.com/brimdata/super/vector/bitvec"
 )
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#quiet
 type Quiet struct {
 	sctx *super.Context
 }

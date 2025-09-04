@@ -36,7 +36,6 @@ func (p *ParseURI) Call(args ...vector.Any) vector.Any {
 	return db.Build()
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#parse_sup
 type ParseSUP struct {
 	sctx *super.Context
 	sr   *strings.Reader

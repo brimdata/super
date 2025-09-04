@@ -7,7 +7,6 @@ import (
 	"github.com/brimdata/super"
 )
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#base64
 type Base64 struct {
 	sctx *super.Context
 }
@@ -34,7 +33,6 @@ func (b *Base64) Call(args []super.Value) super.Value {
 	}
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#hex
 type Hex struct {
 	sctx *super.Context
 }

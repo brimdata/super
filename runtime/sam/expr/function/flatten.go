@@ -6,7 +6,6 @@ import (
 	"github.com/brimdata/super/scode"
 )
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#flatten
 type Flatten struct {
 	scode.Builder
 	keyType    super.Type

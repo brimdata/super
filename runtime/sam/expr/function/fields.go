@@ -5,7 +5,6 @@ import (
 	"github.com/brimdata/super/scode"
 )
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#fields
 type Fields struct {
 	sctx *super.Context
 	typ  super.Type

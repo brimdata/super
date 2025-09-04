@@ -5,7 +5,6 @@ import (
 	"github.com/brimdata/super/scode"
 )
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#typeof
 type TypeOf struct {
 	sctx *super.Context
 }
@@ -14,7 +13,6 @@ func (t *TypeOf) Call(args []super.Value) super.Value {
 	return t.sctx.LookupTypeValue(args[0].Type())
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#nameof
 type NameOf struct {
 	sctx *super.Context
 }
@@ -39,7 +37,6 @@ func (n *NameOf) Call(args []super.Value) super.Value {
 	return n.sctx.Missing()
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#typename
 type typeName struct {
 	sctx *super.Context
 }
@@ -56,7 +53,6 @@ func (t *typeName) Call(args []super.Value) super.Value {
 	return t.sctx.LookupTypeValue(typ)
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#error
 type Error struct {
 	sctx *super.Context
 }
@@ -65,14 +61,12 @@ func (e *Error) Call(args []super.Value) super.Value {
 	return super.NewValue(e.sctx.LookupTypeError(args[0].Type()), args[0].Bytes())
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#iserr
 type IsErr struct{}
 
 func (*IsErr) Call(args []super.Value) super.Value {
 	return super.NewBool(args[0].IsError())
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#is
 type Is struct {
 	sctx *super.Context
 }
@@ -163,7 +157,6 @@ func (h *HasError) hasError(t super.Type, b scode.Bytes) (bool, bool) {
 	return hasErr, canCache
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#quiet
 type Quiet struct {
 	sctx *super.Context
 }
@@ -176,7 +169,6 @@ func (q *Quiet) Call(args []super.Value) super.Value {
 	return val
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#kind
 type Kind struct {
 	sctx *super.Context
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/brimdata/super/sup"
 )
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#unflatten
 type Unflatten struct {
 	sctx *super.Context
 

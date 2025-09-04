@@ -6,7 +6,6 @@ import (
 	"github.com/brimdata/super/vector/bitvec"
 )
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#is
 type Is struct {
 	sctx *super.Context
 }
@@ -37,7 +36,6 @@ func (i *Is) Call(args ...vector.Any) vector.Any {
 	return out
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#nameof
 type NameOf struct {
 	sctx *super.Context
 }
@@ -77,7 +75,6 @@ func (n *NameOf) Call(args ...vector.Any) vector.Any {
 	return out
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#typeof
 type TypeOf struct {
 	sctx *super.Context
 }
@@ -87,7 +84,6 @@ func (t *TypeOf) Call(args ...vector.Any) vector.Any {
 	return vector.NewConst(val, args[0].Len(), bitvec.Zero)
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#typename
 type TypeName struct {
 	sctx *super.Context
 }
@@ -125,7 +121,6 @@ func (t *TypeName) Call(args ...vector.Any) vector.Any {
 	return out
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#error
 type Error struct {
 	sctx *super.Context
 }
@@ -135,7 +130,6 @@ func (e *Error) Call(args ...vector.Any) vector.Any {
 	return vector.NewError(e.sctx.LookupTypeError(vec.Type()), vec, bitvec.Zero)
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#kind
 type Kind struct {
 	sctx *super.Context
 }

@@ -10,7 +10,6 @@ import (
 	"github.com/brimdata/super/vector/bitvec"
 )
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#regexp
 type Regexp struct {
 	re    *regexp.Regexp
 	restr string
@@ -64,7 +63,6 @@ func (r *Regexp) Call(args ...vector.Any) vector.Any {
 	return out
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#regexp_replace
 type RegexpReplace struct {
 	sctx  *super.Context
 	re    *regexp.Regexp

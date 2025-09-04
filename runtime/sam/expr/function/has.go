@@ -2,7 +2,6 @@ package function
 
 import "github.com/brimdata/super"
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#has
 type Has struct{}
 
 func (h *Has) Call(args []super.Value) super.Value {
@@ -20,7 +19,6 @@ func (h *Has) Call(args []super.Value) super.Value {
 	return super.True
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#missing
 type Missing struct {
 	has Has
 }

@@ -5,7 +5,6 @@ import (
 	"github.com/segmentio/ksuid"
 )
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#ksuid
 type KSUIDToString struct {
 	sctx *super.Context
 }

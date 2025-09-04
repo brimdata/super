@@ -6,7 +6,6 @@ import (
 	"github.com/brimdata/super/vector/bitvec"
 )
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#coalesce
 type Coalesce struct {
 	tags        []uint32
 	viewIndexes [][]uint32

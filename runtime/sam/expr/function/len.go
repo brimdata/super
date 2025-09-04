@@ -6,7 +6,6 @@ import (
 	"github.com/brimdata/super"
 )
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#len
 type LenFn struct {
 	sctx *super.Context
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/brimdata/super/vector/bitvec"
 )
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#base64
 type Base64 struct {
 	sctx *super.Context
 }
@@ -56,7 +55,6 @@ func (b *Base64) Call(args ...vector.Any) vector.Any {
 	}
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#hex
 type Hex struct {
 	sctx *super.Context
 }

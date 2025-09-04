@@ -6,7 +6,6 @@ import (
 	"github.com/brimdata/super/vector/bitvec"
 )
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#fields
 type Fields struct {
 	sctx     *super.Context
 	innerTyp *super.TypeArray

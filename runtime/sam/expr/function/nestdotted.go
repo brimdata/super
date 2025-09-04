@@ -5,7 +5,6 @@ import (
 	"github.com/brimdata/super/pkg/field"
 )
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#nest_dotted.md
 type NestDotted struct {
 	sctx        *super.Context
 	builders    map[int]*super.RecordBuilder

@@ -10,7 +10,6 @@ import (
 	"github.com/brimdata/super/vector/bitvec"
 )
 
-// // https://github.com/brimdata/super/blob/main/docs/language/functions.md#join
 type Join struct {
 	sctx    *super.Context
 	builder strings.Builder
@@ -53,7 +52,6 @@ func (j *Join) Call(args ...vector.Any) vector.Any {
 	return out
 }
 
-// // https://github.com/brimdata/super/blob/main/docs/language/functions.md#levenshtein
 type Levenshtein struct {
 	sctx *super.Context
 }
@@ -97,7 +95,6 @@ func (p *Position) Call(args ...vector.Any) vector.Any {
 	return vector.NewInt(super.TypeInt64, vals, bitvec.Or(vector.NullsOf(vec), vector.NullsOf(subVec)))
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#replace
 type Replace struct {
 	sctx *super.Context
 }
@@ -131,7 +128,6 @@ func (r *Replace) Call(args ...vector.Any) vector.Any {
 	return vector.NewDynamic(tags, []vector.Any{out, errval})
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#run_len
 type RuneLen struct {
 	sctx *super.Context
 }
@@ -152,7 +148,6 @@ func (r *RuneLen) Call(args ...vector.Any) vector.Any {
 	return out
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#split
 type Split struct {
 	sctx *super.Context
 }
@@ -188,7 +183,6 @@ func (s *Split) Call(args ...vector.Any) vector.Any {
 	return vector.NewArray(s.sctx.LookupTypeArray(super.TypeString), offsets, values, nulls)
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#lower
 type ToLower struct {
 	sctx *super.Context
 }
@@ -209,7 +203,6 @@ func (t *ToLower) Call(args ...vector.Any) vector.Any {
 	return out
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#upper
 type ToUpper struct {
 	sctx *super.Context
 }
@@ -230,7 +223,6 @@ func (t *ToUpper) Call(args ...vector.Any) vector.Any {
 	return out
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#trim
 type Trim struct {
 	sctx *super.Context
 }

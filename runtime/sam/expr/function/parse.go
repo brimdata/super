@@ -11,7 +11,6 @@ import (
 	"github.com/brimdata/super/sup"
 )
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#parse_uri
 type ParseURI struct {
 	sctx      *super.Context
 	marshaler *sup.MarshalBSUPContext
@@ -89,7 +88,6 @@ func (p *ParseURI) Call(args []super.Value) super.Value {
 	return out
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#parse_sup
 type ParseSUP struct {
 	sctx *super.Context
 	sr   *strings.Reader

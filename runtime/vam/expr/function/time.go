@@ -9,7 +9,6 @@ import (
 	"github.com/lestrrat-go/strftime"
 )
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#bucket
 type Bucket struct {
 	name string
 	sctx *super.Context
@@ -93,14 +92,12 @@ func (b *Bucket) resultType(tsVec vector.Any) super.Type {
 	return super.TypeTime
 }
 
-// https://github.com/brimdata/zed/blob/main/docs/language/functions.md#now
 type Now struct{}
 
 func (n *Now) Call(args ...vector.Any) vector.Any {
 	return vector.NewConst(super.NewTime(nano.Now()), args[0].Len(), bitvec.Zero)
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#strftime
 type Strftime struct {
 	sctx *super.Context
 }

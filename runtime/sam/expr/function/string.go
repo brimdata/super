@@ -28,7 +28,6 @@ func (p *Position) Call(args []super.Value) super.Value {
 	return super.NewInt64(int64(i + 1))
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#replace
 type Replace struct {
 	sctx *super.Context
 }
@@ -55,7 +54,6 @@ func (r *Replace) Call(args []super.Value) super.Value {
 	return super.NewString(strings.ReplaceAll(s, old, new))
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#run_len
 type RuneLen struct {
 	sctx *super.Context
 }
@@ -72,7 +70,6 @@ func (r *RuneLen) Call(args []super.Value) super.Value {
 	return super.NewInt64(int64(utf8.RuneCountInString(s)))
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#lower
 type ToLower struct {
 	sctx *super.Context
 }
@@ -89,7 +86,6 @@ func (t *ToLower) Call(args []super.Value) super.Value {
 	return super.NewString(strings.ToLower(s))
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#upper
 type ToUpper struct {
 	sctx *super.Context
 }
@@ -110,7 +106,6 @@ type Trim struct {
 	sctx *super.Context
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#trim
 func (t *Trim) Call(args []super.Value) super.Value {
 	val := args[0].Under()
 	if !val.IsString() {
@@ -123,7 +118,6 @@ func (t *Trim) Call(args []super.Value) super.Value {
 	return super.NewString(strings.TrimSpace(s))
 }
 
-// // https://github.com/brimdata/super/blob/main/docs/language/functions.md#split
 type Split struct {
 	sctx *super.Context
 	typ  super.Type
@@ -157,7 +151,6 @@ func (s *Split) Call(args []super.Value) super.Value {
 	return super.NewValue(s.typ, b)
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#join
 type Join struct {
 	sctx    *super.Context
 	builder strings.Builder
@@ -190,7 +183,6 @@ func (j *Join) Call(args []super.Value) super.Value {
 	return super.NewString(b.String())
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#levenshtein
 type Levenshtein struct {
 	sctx *super.Context
 }

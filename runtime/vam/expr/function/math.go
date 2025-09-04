@@ -9,7 +9,6 @@ import (
 	"github.com/brimdata/super/vector/bitvec"
 )
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#abs.md
 type Abs struct {
 	sctx *super.Context
 }
@@ -65,7 +64,6 @@ func (a *Abs) abs(vec vector.Any) vector.Any {
 	}
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#ceil
 type Ceil struct {
 	sctx *super.Context
 }
@@ -101,7 +99,6 @@ func (c *Ceil) ceil(vec vector.Any) vector.Any {
 	}
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#floor
 type Floor struct {
 	sctx *super.Context
 }
@@ -137,7 +134,6 @@ func (f *Floor) floor(vec vector.Any) vector.Any {
 	}
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#log
 type Log struct {
 	sctx *super.Context
 }
@@ -182,7 +178,6 @@ func (l *Log) Call(args ...vector.Any) vector.Any {
 	return out
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#pow
 type Pow struct {
 	sctx *super.Context
 }
@@ -213,7 +208,6 @@ func (p *Pow) Call(args ...vector.Any) vector.Any {
 	return vector.NewFloat(super.TypeFloat64, vals, nulls)
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#round
 type Round struct {
 	sctx *super.Context
 }
@@ -236,7 +230,6 @@ func (r *Round) Call(args ...vector.Any) vector.Any {
 	return vector.NewWrappedError(r.sctx, "round: not a number", vec)
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#sqrt
 type Sqrt struct {
 	sctx *super.Context
 }

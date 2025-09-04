@@ -9,7 +9,6 @@ import (
 	"github.com/brimdata/super/sup"
 )
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#network_of
 type NetworkOf struct {
 	sctx *super.Context
 }
@@ -76,7 +75,6 @@ func addressAndMask(sctx *super.Context, address, mask super.Value) super.Value 
 	return val
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#cidr_match
 type CIDRMatch struct {
 	sctx *super.Context
 }

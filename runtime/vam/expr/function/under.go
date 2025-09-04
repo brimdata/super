@@ -5,7 +5,6 @@ import (
 	"github.com/brimdata/super/vector"
 )
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#under
 type Under struct {
 	sctx *super.Context
 }

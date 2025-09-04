@@ -6,7 +6,6 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 )
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#compare
 type Compare struct {
 	nullsMax, nullsMin expr.CompareFn
 	sctx               *super.Context

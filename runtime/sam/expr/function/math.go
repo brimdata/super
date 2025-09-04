@@ -8,7 +8,6 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
 )
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#abs.md
 type Abs struct {
 	sctx *super.Context
 }
@@ -33,7 +32,6 @@ func (a *Abs) Call(args []super.Value) super.Value {
 	return a.sctx.WrapError("abs: not a number", val)
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#ceil
 type Ceil struct {
 	sctx *super.Context
 }
@@ -49,7 +47,6 @@ func (c *Ceil) Call(args []super.Value) super.Value {
 	return c.sctx.WrapError("ceil: not a number", val)
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#floor
 type Floor struct {
 	sctx *super.Context
 }
@@ -65,7 +62,6 @@ func (f *Floor) Call(args []super.Value) super.Value {
 	return f.sctx.WrapError("floor: not a number", val)
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#log
 type Log struct {
 	sctx *super.Context
 }
@@ -134,7 +130,6 @@ func (r *reducer) Call(args []super.Value) super.Value {
 	return r.sctx.WrapError(r.name+": not a number", val0)
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#round
 type Round struct {
 	sctx *super.Context
 }
@@ -155,7 +150,6 @@ func (r *Round) Call(args []super.Value) super.Value {
 	return r.sctx.WrapError("round: not a number", val)
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#pow
 type Pow struct {
 	sctx *super.Context
 }
@@ -176,7 +170,6 @@ func (p *Pow) Call(args []super.Value) super.Value {
 	return super.NewFloat64(math.Pow(x, y))
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#sqrt
 type Sqrt struct {
 	sctx *super.Context
 }

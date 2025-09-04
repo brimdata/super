@@ -8,7 +8,6 @@ import (
 	"github.com/brimdata/super/scode"
 )
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#regexp
 type Regexp struct {
 	builder scode.Builder
 	re      *regexp.Regexp
@@ -47,7 +46,6 @@ func (r *Regexp) Call(args []super.Value) super.Value {
 	return super.NewValue(r.typ, r.builder.Bytes())
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#regexp_replace
 type RegexpReplace struct {
 	sctx  *super.Context
 	re    *regexp.Regexp

@@ -6,14 +6,12 @@ import (
 	"github.com/lestrrat-go/strftime"
 )
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#now
 type Now struct{}
 
 func (n *Now) Call(_ []super.Value) super.Value {
 	return super.NewTime(nano.Now())
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#bucket
 type Bucket struct {
 	name string
 	sctx *super.Context
@@ -51,7 +49,6 @@ func (b *Bucket) Call(args []super.Value) super.Value {
 	return super.NewTime(ts)
 }
 
-// https://github.com/brimdata/super/blob/main/docs/language/functions.md#strftime
 type Strftime struct {
 	sctx      *super.Context
 	formatter *strftime.Strftime
