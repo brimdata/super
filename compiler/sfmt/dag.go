@@ -98,7 +98,7 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 		c.write(" : ")
 		c.expr(e.Else, "")
 	case *dag.Call:
-		c.write("%s(", e.Name)
+		c.write("%s(", e.Name())
 		c.exprs(e.Args)
 		c.write(")")
 	case *dag.IndexExpr:
@@ -622,15 +622,15 @@ func (c *canonDAG) scope(s *dag.Scope) {
 	}
 	for _, f := range s.Funcs {
 		c.write("fn %s(", f.Name)
-		for i := range f.Params {
+		for i := range f.Lambda.Formals {
 			if i != 0 {
 				c.write(", ")
 			}
-			c.write(f.Params[i])
+			c.write(f.Lambda.Formals[i])
 		}
 		c.open("): (")
 		c.ret()
-		c.expr(f.Expr, f.Name)
+		c.expr(f.Lambda.Expr, f.Name)
 		c.close()
 		c.ret()
 		c.flush()

@@ -112,8 +112,9 @@ func (c *canon) expr(e ast.Expr, parent string) {
 		c.write(" : ")
 		c.expr(e.Else, "")
 	case *ast.Call:
-		c.write("%s(", e.Name.Name)
-		c.exprs(e.Args)
+		c.fnRef(e.Fn)
+		c.write("(")
+		c.exprs(e.Actuals)
 		c.write(")")
 	case *ast.CallExtract:
 		c.write("EXTRACT(")
@@ -284,6 +285,25 @@ func (c *canon) expr(e ast.Expr, parent string) {
 	}
 }
 
+func (c *canon) fnRef(fn ast.FnRef) {
+	switch fn := fn.(type) {
+	case *ast.FnName:
+		c.write("%s", fn.ID.Name)
+	case *ast.FnLambda:
+		c.lambda(fn)
+	default:
+		panic(fmt.Sprintf("unknown ast.FnRef: %T", fn))
+	}
+}
+
+func (c *canon) lambda(lambda *ast.FnLambda) {
+	c.write("(lambda ")
+	c.ids(lambda.Formals)
+	c.write(":")
+	c.expr(lambda.Expr, "")
+	c.write(")")
+}
+
 func (c *canon) vectorElems(elems []ast.VectorElem) {
 	for k, elem := range elems {
 		if k > 0 {
@@ -383,28 +403,28 @@ func (c *canon) decl(d ast.Decl) {
 	case *ast.ConstDecl:
 		c.write("const %s = ", d.Name.Name)
 		c.expr(d.Expr, "")
-	case *ast.FuncDecl:
+	case *ast.FnDecl:
 		c.write("fn %s(", d.Name.Name)
-		for i := range d.Params {
+		for i := range d.Lambda.Formals {
 			if i != 0 {
 				c.write(", ")
 			}
-			c.write(d.Params[i].Name)
+			c.write(d.Lambda.Formals[i].Name)
 		}
 		c.open("): (")
 		c.ret()
-		c.expr(d.Expr, d.Name.Name)
+		c.expr(d.Lambda.Expr, d.Name.Name)
 		c.close()
 		c.ret()
 		c.flush()
 		c.write(")")
 	case *ast.OpDecl:
 		c.write("op %s(", d.Name.Name)
-		for k, p := range d.Params {
+		for k, f := range d.Formals {
 			if k > 0 {
 				c.write(", ")
 			}
-			c.write(p.Name)
+			c.write(f.Name)
 		}
 		c.open("): (")
 		c.ret()
@@ -498,7 +518,7 @@ func (c *canon) op(p ast.Op) {
 	case *ast.CallOp:
 		c.next()
 		c.write("call %s ", sup.QuotedName(p.Name.Name))
-		c.exprs(p.Args)
+		c.actuals(p.Actuals)
 	case *ast.Cut:
 		c.next()
 		c.write("cut ")
@@ -752,6 +772,36 @@ func (c *canon) op(p ast.Op) {
 	}
 }
 
+func (c *canon) actuals(actuals []ast.OpActual) {
+	for k, a := range actuals {
+		if k > 0 {
+			c.write(", ")
+		}
+		if e, ok := a.(ast.Expr); ok {
+			c.expr(e, "")
+			continue
+		}
+		switch a := a.(type) {
+		case *ast.FnLambda:
+			c.lambda(a)
+		case *ast.FnName:
+			c.write("&")
+			c.expr(a.ID, "")
+		default:
+			c.write(fmt.Sprintf("unknown type for op call actuals: %T", a))
+		}
+	}
+}
+
+func (c *canon) ids(ids []*ast.ID) {
+	for k, id := range ids {
+		if k > 0 {
+			c.write(", ")
+		}
+		c.expr(id, "")
+	}
+}
+
 func (c *canon) fromElems(elems []*ast.FromElem) {
 	c.fromElem(elems[0])
 	for _, elem := range elems[1:] {
@@ -911,7 +961,11 @@ func isAggFunc(e ast.Expr) *ast.Aggregate {
 	if !ok {
 		return nil
 	}
-	if _, err := agg.NewPattern(call.Name.Name, false, true); err != nil {
+	named, ok := call.Fn.(*ast.FnName)
+	if !ok {
+		return nil
+	}
+	if _, err := agg.NewPattern(named.ID.Name, false, true); err != nil {
 		return nil
 	}
 	return &ast.Aggregate{
@@ -939,7 +993,11 @@ func IsBool(e ast.Expr) bool {
 	case *ast.Conditional:
 		return IsBool(e.Then) && IsBool(e.Else)
 	case *ast.Call:
-		return function.HasBoolResult(e.Name.Name)
+		named, ok := e.Fn.(*ast.FnName)
+		if !ok {
+			return false
+		}
+		return function.HasBoolResult(named.ID.Name)
 	case *ast.Cast:
 		if typval, ok := e.Type.(*ast.TypeValue); ok {
 			if typ, ok := typval.Value.(*ast.TypePrimitive); ok {

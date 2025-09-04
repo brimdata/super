@@ -1,0 +1,7 @@
+spq: |
+  op foo f : (values f(1))
+  call foo lambda x:x+1
+
+output: |
+  2
+

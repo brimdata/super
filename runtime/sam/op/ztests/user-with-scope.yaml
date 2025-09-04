@@ -3,7 +3,7 @@ spq: |
     fn k(e): (e.key)
     op flatten_array a: (unnest this | unnest this | collect(this))
     flatten(this)
-    | map(this, k)
+    | map(this, &k)
     | flatten_array this
   )
   keys this

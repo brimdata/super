@@ -1,0 +1,5 @@
+spq: values (lambda x:x+1)(2), lambda x,y:(x+y)(3,4)
+
+output: |
+  3
+  7

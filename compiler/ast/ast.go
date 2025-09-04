@@ -123,11 +123,11 @@ type When struct {
 // a function call has the standard semantics where it takes one or more arguments
 // and returns a result.
 type Call struct {
-	Kind  string `json:"kind" unpack:""`
-	Name  *ID    `json:"name"`
-	Args  []Expr `json:"args"`
-	Where Expr   `json:"where"`
-	Loc   `json:"loc"`
+	Kind    string `json:"kind" unpack:""`
+	Fn      FnRef  `json:"fn"`
+	Actuals []Expr `json:"actuals"`
+	Where   Expr   `json:"where"`
+	Loc     `json:"loc"`
 }
 
 type CallExtract struct {
@@ -339,6 +339,13 @@ type SQLTimeValue struct {
 	Loc   `json:"loc"`
 }
 
+type MapCall struct {
+	Kind string `json:"kind" unpack:""`
+	Expr Expr   `json:"expr"`
+	Fn   FnRef  `json:"func"`
+	Loc  `json:"loc"`
+}
+
 func (*FStringText) fStringElemNode() {}
 func (*FStringExpr) fStringElemNode() {}
 
@@ -354,6 +361,7 @@ func (*DoubleQuote) exprNode() {}
 func (*ID) exprNode()          {}
 func (*IndexExpr) exprNode()   {}
 func (*IsNullExpr) exprNode()  {}
+func (*MapCall) exprNode()     {}
 func (*SliceExpr) exprNode()   {}
 
 func (*Assignment) exprNode() {}
@@ -381,20 +389,19 @@ type ConstDecl struct {
 	Loc  `json:"loc"`
 }
 
-type FuncDecl struct {
-	Kind   string `json:"kind" unpack:""`
-	Name   *ID    `json:"name"`
-	Params []*ID  `json:"params"`
-	Expr   Expr   `json:"expr"`
+type FnDecl struct {
+	Kind   string    `json:"kind" unpack:""`
+	Name   *ID       `json:"name"`
+	Lambda *FnLambda `json:"lambda"`
 	Loc    `json:"loc"`
 }
 
 type OpDecl struct {
-	Kind   string `json:"kind" unpack:""`
-	Name   *ID    `json:"name"`
-	Params []*ID  `json:"params"`
-	Body   Seq    `json:"body"`
-	Loc    `json:"loc"`
+	Kind    string `json:"kind" unpack:""`
+	Name    *ID    `json:"name"`
+	Formals []*ID  `json:"formals"`
+	Body    Seq    `json:"body"`
+	Loc     `json:"loc"`
 }
 
 type TypeDecl struct {
@@ -405,7 +412,7 @@ type TypeDecl struct {
 }
 
 func (*ConstDecl) declNode() {}
-func (*FuncDecl) declNode()  {}
+func (*FnDecl) declNode()    {}
 func (*OpDecl) declNode()    {}
 func (*TypeDecl) declNode()  {}
 
@@ -625,10 +632,10 @@ type (
 		Loc  `json:"loc"`
 	}
 	CallOp struct {
-		Kind string `json:"kind" unpack:""`
-		Name *ID    `json:"name"`
-		Args []Expr `json:"args"`
-		Loc  `json:"loc"`
+		Kind    string     `json:"kind" unpack:""`
+		Name    *ID        `json:"name"`
+		Actuals []OpActual `json:"actuals"`
+		Loc     `json:"loc"`
 	}
 )
 
@@ -756,3 +763,35 @@ type Agg struct {
 	Where    Expr   `json:"where"`
 	Loc      `json:"loc"`
 }
+
+// ----------------------------------------------------------------------------
+// Functions
+//
+// FnDecl (defined above) binds a lambda to a name that can be called
+// FnLamba is a nameless body with formal parameters that can be called or referenced
+// FnName is a reference to function's name for calling or passing to an op or map-call
+// FnRef is a sum type representing FnName or FnLambda (a named fn reference or a lambda value)
+
+type FnLambda struct {
+	Kind    string `json:"kind" unpack:""`
+	Formals []*ID  `json:"formals"`
+	Expr    Expr   `json:"expr"`
+	Loc     `json:"loc"`
+}
+
+type FnName struct {
+	Kind string `json:"kind" unpack:""`
+	ID   *ID    `json:"id"`
+	Loc  `json:"loc"`
+}
+
+type FnRef interface {
+	fnRefNode()
+}
+
+func (*FnLambda) fnRefNode() {}
+func (*FnName) fnRefNode()   {}
+
+// There's not an easy way to create an Expr|FnRef sum type so we use
+// type any here and are careful how we use it.
+type OpActual any

@@ -8,7 +8,7 @@ import (
 type mapCall struct {
 	builder scode.Builder
 	eval    Evaluator
-	inner   Evaluator
+	lambda  Evaluator
 	sctx    *super.Context
 
 	// vals is used to reduce allocations
@@ -17,8 +17,8 @@ type mapCall struct {
 	types []super.Type
 }
 
-func NewMapCall(sctx *super.Context, e, inner Evaluator) Evaluator {
-	return &mapCall{eval: e, inner: inner, sctx: sctx}
+func NewMapCall(sctx *super.Context, e, lambda Evaluator) Evaluator {
+	return &mapCall{eval: e, lambda: lambda, sctx: sctx}
 }
 
 func (a *mapCall) Eval(in super.Value) super.Value {
@@ -36,7 +36,7 @@ func (a *mapCall) Eval(in super.Value) super.Value {
 	a.vals = a.vals[:0]
 	a.types = a.types[:0]
 	for _, elem := range elems {
-		val := a.inner.Eval(elem)
+		val := a.lambda.Eval(elem)
 		a.vals = append(a.vals, val)
 		a.types = append(a.types, val.Type())
 	}

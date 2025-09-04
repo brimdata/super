@@ -120,7 +120,7 @@ func isKeyOfAggregate(a *dag.Aggregate, in order.SortKeys) bool {
 
 func orderPreservingCall(e dag.Expr, key field.Path) bool {
 	if call, ok := e.(*dag.Call); ok {
-		switch call.Name {
+		switch call.Name() {
 		// There are probably other functions we could cover.
 		// It would be good if the function declaration included
 		// the info we need here.  See issue #2660.

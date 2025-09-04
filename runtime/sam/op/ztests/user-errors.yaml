@@ -22,6 +22,9 @@ outputs:
       duplicate parameter "a" in error-duplicate-parameters.spq at line 1, column 12:
       op test a, a: (
                  ~
+      no such user operator: "test" in error-duplicate-parameters.spq at line 4, column 1:
+      test "a", "b"
+      ~~~~~~~~~~~~~
       illegal left-hand side of assignment in error-const-lhs.spq at line 2, column 3:
         a := a
         ~~~~~~

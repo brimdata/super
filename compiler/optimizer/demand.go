@@ -175,8 +175,6 @@ func demandForExpr(expr dag.Expr) demand.Demand {
 			demand.Union(demandForExpr(expr.Then), demandForExpr(expr.Else)))
 	case *dag.Dot:
 		return demandForExpr(expr.LHS)
-	case *dag.Func:
-		// return demand.All()
 	case *dag.IndexExpr:
 		return demand.Union(demandForExpr(expr.Expr), demandForExpr(expr.Index))
 	case *dag.IsNullExpr:

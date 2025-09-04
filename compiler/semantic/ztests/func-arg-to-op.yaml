@@ -1,7 +1,7 @@
 spq: |
   fn g(x) : (x+1)
   op foo f: (values f(123))
-  foo g
+  foo &g
 
 output: |
   124

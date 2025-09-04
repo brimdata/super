@@ -205,8 +205,8 @@ func (b *Builder) compileVamScope(scope *dag.Scope, parents []vector.Puller) ([]
 	parentUDFs := b.udfs
 	b.udfs = maps.Clone(parentUDFs)
 	defer func() { b.udfs = parentUDFs }()
-	for _, f := range scope.Funcs {
-		b.udfs[f.Name] = f
+	for k, f := range scope.Funcs {
+		b.udfs[f.Name] = &scope.Funcs[k].Lambda
 	}
 	return b.compileVamSeq(scope.Body, parents)
 }

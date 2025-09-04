@@ -1,0 +1,7 @@
+spq: map(this, lambda x:x+1)
+
+input: |
+  [1,2,3]
+
+output: |
+  [2,3,4]

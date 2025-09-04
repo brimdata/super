@@ -897,7 +897,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 				{
 					Kind: "Assignment",
 					LHS:  pathOf("shape"),
-					RHS:  &dag.Call{Kind: "Call", Name: "typeof", Args: []dag.Expr{e}},
+					RHS:  dag.NewCallByName("typeof", []dag.Expr{e}),
 				},
 			},
 		})
@@ -912,10 +912,9 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 				Kind: "Conditional",
 				Cond: cond,
 				Then: dag.NewThis(nil),
-				Else: &dag.Call{
-					Kind: "Call",
-					Name: "error",
-					Args: []dag.Expr{&dag.RecordExpr{
+				Else: dag.NewCallByName(
+					"error",
+					[]dag.Expr{&dag.RecordExpr{
 						Kind: "RecordExpr",
 						Elems: []dag.RecordElem{
 							&dag.Field{
@@ -935,7 +934,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 							},
 						},
 					}},
-				},
+				),
 			}))
 	case *ast.Values:
 		exprs := a.semExprs(o.Exprs)
@@ -992,13 +991,13 @@ func (a *analyzer) singletonAgg(agg ast.Assignment, seq dag.Seq) dag.Seq {
 	)
 }
 
-func (a *analyzer) semDecls(decls []ast.Decl) []*dag.Func {
-	var fnDecls []*ast.FuncDecl
+func (a *analyzer) semDecls(decls []ast.Decl) []*dag.FnDef {
+	var fnDecls []*ast.FnDecl
 	for _, d := range decls {
 		switch d := d.(type) {
 		case *ast.ConstDecl:
 			a.semConstDecl(d)
-		case *ast.FuncDecl:
+		case *ast.FnDecl:
 			fnDecls = append(fnDecls, d)
 		case *ast.OpDecl:
 			a.semOpDecl(d)
@@ -1033,17 +1032,23 @@ func (a *analyzer) semTypeDecl(d *ast.TypeDecl) {
 	}
 }
 
-func (a *analyzer) semFuncDecls(decls []*ast.FuncDecl) []*dag.Func {
-	funcs := make([]*dag.Func, 0, len(decls))
+func formalsAsStrings(formals []*ast.ID) []string {
+	out := make([]string, 0, len(formals))
+	for _, p := range formals {
+		out = append(out, p.Name)
+	}
+	return out
+}
+
+func (a *analyzer) semFuncDecls(decls []*ast.FnDecl) []*dag.FnDef {
+	funcs := make([]*dag.FnDef, 0, len(decls))
 	for _, d := range decls {
-		var params []string
-		for _, p := range d.Params {
-			params = append(params, p.Name)
-		}
-		f := &dag.Func{
-			Kind:   "Func",
-			Name:   d.Name.Name,
-			Params: params,
+		f := &dag.FnDef{
+			Name: d.Name.Name,
+			Lambda: dag.Lambda{
+				Kind:    "Lambda",
+				Formals: formalsAsStrings(d.Lambda.Formals),
+			},
 		}
 		if err := a.scope.DefineAs(d.Name, f); err != nil {
 			a.error(d.Name, err)
@@ -1052,7 +1057,7 @@ func (a *analyzer) semFuncDecls(decls []*ast.FuncDecl) []*dag.Func {
 	}
 	for i, d := range decls {
 		a.enterScope()
-		funcs[i].Expr = a.semExpr(d.Expr)
+		funcs[i].Lambda.Expr = a.semExpr(d.Lambda.Expr)
 		a.exitScope()
 	}
 	return funcs
@@ -1060,13 +1065,13 @@ func (a *analyzer) semFuncDecls(decls []*ast.FuncDecl) []*dag.Func {
 
 func (a *analyzer) semOpDecl(d *ast.OpDecl) {
 	m := make(map[string]bool)
-	for _, p := range d.Params {
-		if m[p.Name] {
-			a.error(p, fmt.Errorf("duplicate parameter %q", p.Name))
-			a.scope.DefineAs(d.Name, &opDecl{bad: true})
+	for _, formal := range d.Formals {
+		if m[formal.Name] {
+			a.error(formal, fmt.Errorf("duplicate parameter %q", formal.Name))
+			a.scope.DefineAs(formal, &opDecl{bad: true})
 			return
 		}
-		m[p.Name] = true
+		m[formal.Name] = true
 	}
 	if err := a.scope.DefineAs(d.Name, &opDecl{ast: d, scope: a.scope}); err != nil {
 		a.error(d, err)
@@ -1146,10 +1151,11 @@ func (a *analyzer) isBool(e dag.Expr) bool {
 		return a.isBool(e.Then) && a.isBool(e.Else)
 	case *dag.Call:
 		// If udf recurse to inner expression.
-		if f, _ := a.scope.LookupExpr(e.Name); f != nil {
-			return a.isBool(f.(*dag.Func).Expr)
+		fn, lambda, _ := a.scope.LookupFunc(e.Name())
+		if expr := funcBody(fn, lambda); expr != nil {
+			return a.isBool(expr)
 		}
-		if e.Name == "cast" {
+		if e.Name() == "cast" {
 			if len(e.Args) != 2 {
 				return false
 			}
@@ -1158,7 +1164,7 @@ func (a *analyzer) isBool(e dag.Expr) bool {
 			}
 			return false
 		}
-		return function.HasBoolResult(e.Name)
+		return function.HasBoolResult(e.Name())
 	case *dag.IsNullExpr:
 		return true
 	case *dag.Search, *dag.RegexpMatch, *dag.RegexpSearch:
@@ -1168,8 +1174,22 @@ func (a *analyzer) isBool(e dag.Expr) bool {
 	}
 }
 
+func funcBody(fnDef *dag.FnDef, lambda *dag.Lambda) dag.Expr {
+	if fnDef != nil {
+		return fnDef.Lambda.Expr
+	}
+	if lambda != nil {
+		return lambda.Expr
+	}
+	return nil
+}
+
 func (a *analyzer) semCallOpExpr(call *ast.Call, seq dag.Seq) dag.Seq {
-	name := call.Name.Name
+	fn, ok := call.Fn.(*ast.FnName)
+	if !ok {
+		return nil
+	}
+	name := fn.ID.Name
 	if agg := a.maybeConvertAgg(call); agg != nil {
 		aggregate := &dag.Aggregate{
 			Kind: "Aggregate",
@@ -1209,12 +1229,22 @@ func (a *analyzer) semCallOp(call *ast.CallOp, seq dag.Seq) dag.Seq {
 	// them into the call site here.  This is essentially a thunk... each use of the
 	// user op is compiled into the context in which it appears and all the references
 	// in that expression are bound appropriately with respect to this context.
-	params, args := decl.ast.Params, call.Args
-	if len(params) != len(args) {
-		a.error(call, fmt.Errorf("%d arg%s provided when operator expects %d arg%s", len(params), plural.Slice(params, "s"), len(args), plural.Slice(args, "s")))
+	formals, actuals := decl.ast.Formals, call.Actuals
+	if len(formals) != len(actuals) {
+		a.error(call, fmt.Errorf("%d arg%s provided when operator expects %d arg%s", len(formals), plural.Slice(formals, "s"), len(actuals), plural.Slice(actuals, "s")))
 		return dag.Seq{badOp()}
 	}
-	exprs := a.semExprs(args)
+	exprs := make([]dag.Expr, len(actuals))
+	fns := make([]dag.FnRef, len(actuals))
+	for i, e := range actuals {
+		if expr, ok := e.(ast.Expr); ok {
+			exprs[i] = a.semExpr(expr)
+		} else if fn, ok := e.(ast.FnRef); ok {
+			fns[i] = a.semFnRef(fn)
+		} else {
+			panic("semCallOp")
+		}
+	}
 	if slices.Contains(a.opStack, decl.ast) {
 		a.error(call, opCycleError(append(a.opStack, decl.ast)))
 		return dag.Seq{badOp()}
@@ -1226,13 +1256,38 @@ func (a *analyzer) semCallOp(call *ast.CallOp, seq dag.Seq) dag.Seq {
 		a.opStack = a.opStack[:len(a.opStack)-1]
 		a.scope = oldscope
 	}()
-	for i, p := range params {
-		if err := a.scope.DefineAs(p, exprs[i]); err != nil {
-			a.error(call, err)
-			return dag.Seq{badOp()}
+	for i, formal := range formals {
+		if e := exprs[i]; e != nil {
+			if err := a.scope.DefineAs(formal, exprs[i]); err != nil {
+				a.error(call, err)
+				return dag.Seq{badOp()}
+			}
+		} else {
+			if err := a.scope.DefineAs(formal, fns[i]); err != nil {
+				a.error(call, err)
+				return dag.Seq{badOp()}
+			}
 		}
 	}
 	return append(seq, a.semSeq(decl.ast.Body)...)
+}
+
+func (a *analyzer) semFnRef(fn ast.FnRef) dag.FnRef {
+	switch fn := fn.(type) {
+	case *ast.FnLambda:
+		return &dag.Lambda{
+			Kind:    "Lambda",
+			Formals: formalsAsStrings(fn.Formals),
+			Expr:    a.semExpr(fn.Expr),
+		}
+	case *ast.FnName:
+		return &dag.FnName{
+			Kind: "FnName",
+			Name: fn.ID.Name,
+		}
+	default:
+		panic("semFnRef")
+	}
 }
 
 func (a *analyzer) semOpArgs(args []ast.OpArg, allowed ...string) opArgs {

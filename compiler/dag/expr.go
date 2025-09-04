@@ -45,7 +45,7 @@ type (
 	}
 	Call struct {
 		Kind string `json:"kind" unpack:""`
-		Name string `json:"name"`
+		Fn   FnRef  `json:"fn"`
 		Args []Expr `json:"args"`
 	}
 	Conditional struct {
@@ -59,12 +59,6 @@ type (
 		LHS  Expr   `json:"lhs"`
 		RHS  string `json:"rhs"`
 	}
-	Func struct {
-		Kind   string   `json:"func" unpack:""`
-		Name   string   `json:"name"`
-		Params []string `json:"params"`
-		Expr   Expr     `json:"expr"`
-	}
 	IndexExpr struct {
 		Kind  string `json:"kind" unpack:""`
 		Expr  Expr   `json:"expr"`
@@ -74,14 +68,19 @@ type (
 		Kind string `json:"kind" unpack:""`
 		Expr Expr   `json:"expr"`
 	}
+	Lambda struct {
+		Kind    string   `json:"kind" unpack:""`
+		Formals []string `json:"formals"`
+		Expr    Expr     `json:"expr"`
+	}
 	Literal struct {
 		Kind  string `json:"kind" unpack:""`
 		Value string `json:"value"`
 	}
 	MapCall struct {
-		Kind  string `json:"kind" unpack:""`
-		Expr  Expr   `json:"expr"`
-		Inner Expr   `json:"inner"`
+		Kind   string `json:"kind" unpack:""`
+		Expr   Expr   `json:"expr"`
+		Lambda *Call  `json:"lambda"`
 	}
 	MapExpr struct {
 		Kind    string  `json:"kind" unpack:""`
@@ -138,6 +137,13 @@ type (
 	}
 )
 
+func (c *Call) Name() string {
+	if fn, ok := c.Fn.(*FnName); ok {
+		return fn.Name
+	}
+	return ""
+}
+
 func (*Agg) exprNode()          {}
 func (*ArrayExpr) exprNode()    {}
 func (*BadExpr) exprNode()      {}
@@ -145,7 +151,6 @@ func (*BinaryExpr) exprNode()   {}
 func (*Call) exprNode()         {}
 func (*Conditional) exprNode()  {}
 func (*Dot) exprNode()          {}
-func (*Func) exprNode()         {}
 func (*IndexExpr) exprNode()    {}
 func (*IsNullExpr) exprNode()   {}
 func (*Literal) exprNode()      {}
@@ -194,6 +199,14 @@ func NewBinaryExpr(op string, lhs, rhs Expr) *BinaryExpr {
 		Op:   op,
 		LHS:  lhs,
 		RHS:  rhs,
+	}
+}
+
+func NewCallByName(name string, args []Expr) *Call {
+	return &Call{
+		Kind: "Call",
+		Fn:   &FnName{Kind: "FnName", Name: name},
+		Args: args,
 	}
 }
 

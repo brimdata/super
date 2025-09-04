@@ -30,7 +30,7 @@ Seq
 SeqTail = __ Pipe __ o:PipeOp { return o, nil }
 
 Decl
-  = v:(ConstDecl / FuncDecl / OpDecl / TypeDecl) _ { return v, nil }
+  = v:(ConstDecl / FnDecl / OpDecl / TypeDecl) _ { return v, nil }
 
 ConstDecl
   = CONST _ name:Identifier __ "=" __ expr:Expr {
@@ -42,23 +42,45 @@ ConstDecl
       }, nil
     }
 
-FuncDecl
-  = FN _ name:Identifier __ "(" __ params:Identifiers? __ ")" __ ":" __ expr:Expr {
-      return &ast.FuncDecl{
-        Kind: "FuncDecl",
+FnDecl
+  = FN _ name:Identifier __ "(" __ formals:Identifiers? __ ")" __ ":" __ expr:Expr {
+      return &ast.FnDecl{
+        Kind: "FnDecl",
         Name: name.(*ast.ID),
-        Params: sliceOf[*ast.ID](params),
-        Expr: expr.(ast.Expr),
+        Lambda: &ast.FnLambda{
+          Kind: "FnLambda",
+          Formals: sliceOf[*ast.ID](formals),
+          Expr: expr.(ast.Expr),
+          Loc: loc(c),
+        },
         Loc: loc(c),
       }, nil
     }
 
+LambdaExpr
+  = "lambda" formals:(_ ids:Identifiers { return ids, nil })? __ ":" __ expr:Expr {
+      return &ast.FnLambda{
+        Kind: "FnLambda",
+        Formals: sliceOf[*ast.ID](formals),
+        Expr: expr.(ast.Expr),
+        Loc: loc(c),
+      }, nil
+    }
+    / "(" __ lambda:LambdaExpr __ ")" { return lambda, nil }
+
+OpActuals
+  = first:OpActual rest:(__ "," __ o:OpActual { return o, nil })* {
+      return prepend(first, rest), nil
+    }
+
+OpActual = FnValue / Expr
+
 OpDecl
-  = OP _ name:Identifier params:(_ ids:Identifiers { return ids, nil })? __ ":" __ body:ScopeBody {
+  = OP _ name:Identifier formals:(_ ids:Identifiers { return ids, nil })? __ ":" __ body:ScopeBody {
       return &ast.OpDecl{
         Kind: "OpDecl",
         Name: name.(*ast.ID),
-        Params: sliceOf[*ast.ID](params),
+        Formals: sliceOf[*ast.ID](formals),
         Body: sliceOf[ast.Op](body),
         Loc: loc(c),
       }, nil
@@ -87,8 +109,8 @@ PipeOp
   / "(" __ scope:Scope __ ")" { return scope, nil }
   / a:OpAssignment &EndOfOp { return a, nil }
   / !(Function EndOfOp) a:Aggregation &EndOfOp { return a, nil }
-  / !CallIDGuard name:Identifier _ !CallExprGuard args:Exprs {
-      return &ast.CallOp{Kind:"CallOp", Name: name.(*ast.ID), Args:sliceOf[ast.Expr](args), Loc:loc(c)}, nil
+  / !CallIDGuard name:Identifier _ !CallExprGuard actuals:OpActuals {
+      return &ast.CallOp{Kind:"CallOp", Name: name.(*ast.ID), Actuals:sliceOf[ast.OpActual](actuals), Loc:loc(c)}, nil
     }
   / !CallIDGuard name:Identifier &EndOfOp {
       return &ast.CallOp{Kind:"CallOp", Name: name.(*ast.ID), Loc:loc(c)}, nil
@@ -279,9 +301,14 @@ AggAssignments
     }
 
 CountStar = COUNT __ "(" __ "*" __ ")" {
+    name := &ast.FnName{
+        Kind: "FnName",
+        ID: &ast.ID{Kind:"ID", Name:"count", Loc: ast.NewLoc(c.pos.offset, c.pos.offset+5)},
+        Loc: loc(c),
+    }
     return &ast.Call{
 		Kind: "Call",
-		Name: &ast.ID{Kind:"ID", Name:"count", Loc: ast.NewLoc(c.pos.offset, c.pos.offset+5)},
+		Fn:   name,
         Loc:  loc(c),
     }, nil
   }
@@ -420,11 +447,11 @@ TopOp
     }
 
 CallOp
-  = CALL _ name:Identifier args:((_ args:Exprs) { return args, nil })? {
+  = CALL _ name:Identifier actuals:((_ actuals:OpActuals) { return actuals, nil })? {
       return &ast.CallOp{
         Kind: "CallOp",
         Name: name.(*ast.ID),
-        Args: sliceOf[ast.Expr](args),
+        Actuals: sliceOf[ast.OpActual](actuals),
         Loc: loc(c),
       }, nil
     }
@@ -1036,6 +1063,14 @@ Function
         Loc: loc(c),
       }, nil
     }
+  / MAP __ "(" __ e:Expr __ "," __ fn:FnValue ")" {
+      return &ast.MapCall{
+        Kind: "MapCall",
+        Expr: e.(ast.Expr),
+        Fn: fn.(ast.FnRef),
+        Loc: loc(c),
+      }, nil
+    }
   / SUBSTRING __ "(" __ expr:Expr from:(_ FROM _ e:Expr { return e, nil })? for_:(_ FOR _ e:Expr { return e, nil })? ")" {
       s := &ast.SQLSubstring{
         Kind: "SQLSubstring",
@@ -1050,10 +1085,30 @@ Function
       }
       return s, nil
     }
-  / fn:Identifier __ "(" __ args:FunctionArgs __ ")" where:WhereClause? {
+  / fn:Callable __ "(" __ args:FunctionArgs __ ")" where:WhereClause? {
       return newCall(c, fn, args, where), nil
     }
   / CountStar
+
+Callable
+  = LambdaExpr
+  / id:Identifier {
+      return &ast.FnName{
+        Kind: "FnName",
+        ID: id.(*ast.ID),
+        Loc: loc(c),
+      }, nil
+    }
+
+FnValue
+  = "&" id:Identifier {
+      return &ast.FnName{
+        Kind: "FnName",
+        ID: id.(*ast.ID),
+        Loc: loc(c),
+      }, nil
+    }
+  / LambdaExpr
 
 DateTypeHack
   = "date"i {
@@ -2342,6 +2397,7 @@ LIKE       = "LIKE"i            !IdentifierRest
 LIMIT      = "LIMIT"i           !IdentifierRest
 LOAD       = "LOAD"i            !IdentifierRest
 MATERIALIZED = "MATERIALIZED"i  !IdentifierRest
+MAP        = "MAP"i             !IdentifierRest
 MERGE      = "MERGE"i           !IdentifierRest
 NOT        = "NOT"i             !IdentifierRest
 NULL       = "NULL"i            !IdentifierRest
