@@ -1,0 +1,7 @@
+script: |
+  ! super -C
+
+outputs:
+  - name: stderr
+    data: |
+      query text must be specified (-c) when using -C
