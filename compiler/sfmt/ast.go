@@ -12,6 +12,9 @@ import (
 )
 
 func AST(p ast.Seq) string {
+	if len(p) == 0 {
+		return ""
+	}
 	c := &canon{canonZed: canonZed{formatter{tab: 2}}, head: true, first: true}
 	if scope, ok := p[0].(*ast.Scope); ok {
 		c.scope(scope, false)

@@ -4,4 +4,4 @@ script: |
 outputs:
   - name: stderr
     data: |
-      query text must be specified (-c) when using -C
+      query text must be specified (-c or -I) when using -C
