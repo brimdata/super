@@ -61,7 +61,7 @@ satisfies `<predicate>`
 
 As compared to SQL relational scoping, which utilizes table aliases and column aliases
 within nested scopes, the pipeline join operator uses dataflow scoping to join data.
-Here, all data is combined into joined records that can be operated upon 
+Here, all data is combined into joined records that can be operated upon
 like any other record without complex scoping logic.
 
 If relational scoping is desired, a SQL [`JOIN`](../sql/join.md) clause

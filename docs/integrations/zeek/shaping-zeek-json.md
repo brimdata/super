@@ -144,7 +144,7 @@ values nest_dotted(this)
             case false ( values _shaped )
         )
     )
-    case false ( 
+    case false (
         values error({msg: "shaper error: _path '" + _path + "' is not a known zeek log type in shaper config", _original: this})
     )
   )
@@ -249,7 +249,7 @@ values nest_dotted(this)
             case false ( values _shaped )
         )
     )
-    case false ( 
+    case false (
         values error({msg: "shaper error: _path '" + _path + "' is not a known zeek log type in shaper config", _original: this})
     )
   )

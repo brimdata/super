@@ -1,6 +1,6 @@
 ### Numbers
 
-Numbers in SuperSQL follow the customary semantics and syntax 
+Numbers in SuperSQL follow the customary semantics and syntax
 of SQL and other programming languages and include:
 * [signed integers](#signed-integers),
 * [unsigned integers](#unsigned-integers),
@@ -43,19 +43,18 @@ These unsigned types include:
 
 > _The `uint128` type is not yet implemented in SuperDB._
 
+#### Floating Point
 
-#### Floating Point 
-
-A sequence of one or more decimal digits followed by a decimal point (`.`) 
-followed optionally by one or more decimal digits forms 
+A sequence of one or more decimal digits followed by a decimal point (`.`)
+followed optionally by one or more decimal digits forms
 a 64-bit IEEE floating point value of type `float64`.
-Alternatively, a floating point value may appear in scientific notation 
+Alternatively, a floating point value may appear in scientific notation
 having the form of a mantissa number (integer or with decimal point)
 followed by the character `e` and in turn followed by a signed integer exponent.
 
 Also `Inf`, `+Inf`, `-Inf`, or `NaN` are valid 64-bit floating point numbers.
 
-Floating-point values with widths other than `float64` 
+Floating-point values with widths other than `float64`
 can be created when reading external data
 that corresponds to such other types or by casting numbers to the desired
 floating point type `float32` or `float16`.
@@ -67,7 +66,7 @@ are defined as follows:
 
 > _The `FLOAT(n)` SQL types are not yet implemented by SuperSQL._
 
-#### Decimal 
+#### Decimal
 
 > _The `decimal` type is not yet implemented in SuperSQL._
 
@@ -90,7 +89,7 @@ values 1::int8, 1::int16 | aggregate sum(this)
 the input values to `sum()` are coerced to `int64` and the result is
 `2::int64`.
 
-> _Further details of coercion rules are forthcoming in a future 
+> _Further details of coercion rules are forthcoming in a future
 > version of this documentation._
 
 #### Examples

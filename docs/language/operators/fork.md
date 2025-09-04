@@ -5,7 +5,7 @@
 ### Synopsis
 
 ```
-fork 
+fork
   ( <branch> )
   ( <branch> )
   ...

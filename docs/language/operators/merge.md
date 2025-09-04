@@ -19,7 +19,7 @@ where the values from the upstream pipeline branches are forwarded based on thes
 _Copy input to two pipeline branches and merge_
 ```mdtest-spq
 # spq
-fork 
+fork
   ( pass )
   ( pass )
 | merge this

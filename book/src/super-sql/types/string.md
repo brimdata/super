@@ -21,11 +21,11 @@ quotation marks whereby the following escape sequences allowed:
 The backslash character (`\`) and the control characters (U+0000 through U+001F)
 must be escaped.
 
-In SQL expressions, the quotation mark is a single quote character (`'`) 
+In SQL expressions, the quotation mark is a single quote character (`'`)
 and in pipe expressions, the quotation mark may be either single quote or
 double quote (`"`).
 
-In single-quote strings, the single-quote character must 
+In single-quote strings, the single-quote character must
 be escaped and in double-quote strings, the double-quote character must be
 escaped.
 
@@ -41,7 +41,7 @@ escape sequence.  For example, `r'foo\bar'` is equivalent to `'foo\\bar'`.
 Formatted strings or
 [_f-strings_](../expressions.md#formatted-string-literals) are expressed
 as the character `f` followed by a single- or double-quoted
-string and may contain embedded expressions denoted within 
+string and may contain embedded expressions denoted within
 curly braces `{` `}`.
 
 #### Examples

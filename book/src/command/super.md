@@ -1,4 +1,3 @@
 # Command
 
 ## Input Formats
-

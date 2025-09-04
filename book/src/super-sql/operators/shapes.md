@@ -12,9 +12,9 @@ The `shapes` operator aggregates the values computed by `<expr>`
 by type and produces an arbitrary sample value for each unique type
 in the input.  It ignores null values and errors.
 
-`shapes` is a shorthand for 
+`shapes` is a shorthand for
 ```
-where <expr> is not null 
+where <expr> is not null
 | aggregate sample:=any(<expr>) by typeof(this)
 | values sample
 ```

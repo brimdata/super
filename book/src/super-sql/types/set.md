@@ -62,7 +62,6 @@ When the expressions result in values of non-uniform type, then the types of the
 set elements become a sum type of the types present,
 tied together with the corresponding [union type](union.md).
 
-
 #### Examples
 ---
 ```mdtest-spq

@@ -1,7 +1,7 @@
  ## Type Fusion
 
 [_Type fusion_](https://openproceedings.org/2017/conf/edbt/paper-62.pdf)
-is a process by which a set of input types is merged together 
+is a process by which a set of input types is merged together
 to form one output type where all values of the input types are subtypes
 of the output type such that any value of an input type is representable in
 a _reasonable way_ (e.g., by inserting null values) as an equivalent value
@@ -35,7 +35,7 @@ _schema inference_ in other systems.
 
 > _Schema inference also involves the inference of particular primitive data types from
 > string data when the strings represent dates, times, IP addresses, etc.
-> This step is orthogonal to type fusion and can be applied to the input 
+> This step is orthogonal to type fusion and can be applied to the input
 > types of any type fusion algorithm._
 
 A fused type computed over heterogeneous data represents a typical
@@ -112,7 +112,7 @@ then type fusion may be computing iteratively over a set of arbitrary types.
 And when `m()` is commutative and associative, then the fused type can be computed
 in parallel without respect to the input order of the data.
 
-The merge function `m(t1,t2)` implemented by SuperSQL combines complex types 
+The merge function `m(t1,t2)` implemented by SuperSQL combines complex types
 by merging their structure and combines otherwise incompatible types
 with a union type as follows.
 
@@ -120,7 +120,7 @@ When `t1` and `t2` are different categories of types (e.g., record and array,
 a set and a primitive type, two different primitive types, and so forth), then
 the merged type is simply their sum type `t1|t2`.
 
-When one type (e.g., `t1`) is a union type and the other (e.g., `t2`) is not, 
+When one type (e.g., `t1`) is a union type and the other (e.g., `t2`) is not,
 then the `t2` is added to the elements of `t1` if not already a member of
 the union.
 
@@ -138,13 +138,11 @@ merge of the two key types and whose value type is the recursive merge of the tw
 value type,
 * for union types, the result is a union type comprising all the elemental types of
 `t1` and `t2`,
-* for error types, the result is an error type comprising the recursive merge of 
+* for error types, the result is an error type comprising the recursive merge of
 the two contained types,
 * for enum types, the result is the sum type of the two types `t1|t2`
 * for named types, the result is the sum type of the two types `t1|t2`.
 
-
 For further information and examples of type fusion, see the documentation for the
 [`fuse`](./aggregates/fuse.md) aggregate function and the
 [`fuse`](./operators/fuse.md) pipe operator.
-

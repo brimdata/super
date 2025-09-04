@@ -41,7 +41,7 @@ regexp(r'\w+(foo|bar)', this)
 
 But when used outside of expressions where an explicit indication of
 a regular expression is required (e.g., in a
-[`search`](operators/search.md) or 
+[`search`](operators/search.md) or
 [`from`](operators/from.md#database-operation) operator), the RE2 is instead
 prefixed and suffixed with a `/`, e.g.,
 ```
@@ -74,7 +74,7 @@ certain common use cases regarding URLs and file paths.
 
 Text entities are syntactically valid as targets of a
 [`from`](operators/from.md) operator and as named arguments
-to `from` and the 
+to `from` and the
 [`load`](operators/load.md) operator.
 
 Specifically, a text entity is one of:
@@ -84,4 +84,3 @@ Specifically, a text entity is one of:
 
 If a URL does not meet the constraints of the simple URL rule,
 e.g., containing a `:` or `&`, then it can simply be quoted.
-

@@ -2,7 +2,7 @@
 
 SuperSQL has a comprehensive types system that adheres to the
 [super-structured data model](../../formats/model.md)
-comprising 
+comprising
 [primitive types](../../formats/model.md#1-primitive-types),
 [complex types](../../formats/model.md#2-complex-types),
 [sum types](union.md),

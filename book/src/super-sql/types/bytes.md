@@ -2,7 +2,7 @@
 
 The `bytes` type represents an arbitrary sequence of 8-bit bytes.
 
-The character sequence `0x` followed by an even number of hexadecimal 
+The character sequence `0x` followed by an even number of hexadecimal
 digits forms a bytes type.
 
 An empty bytes value is simply `0x` followed by no digits.

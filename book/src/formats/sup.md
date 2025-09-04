@@ -289,7 +289,7 @@ then the value must be decorated as [described above](#22-type-decorators).
 An enum type represents a symbol from a finite set of symbols
 referenced by name.
 
-An enum value is formed from a string representing the symbol followed 
+An enum value is formed from a string representing the symbol followed
 by an enum type decorator:
 ```
 <string>::enum(<name>[,<name>...])
@@ -411,7 +411,7 @@ resolve to the most recent definition according to
 
 The null value is represented by the string `null`.
 
-A value of any type can be null. 
+A value of any type can be null.
 
 ### 3. Examples
 
@@ -496,7 +496,7 @@ that defines their type.
 
 <val-typedef> = "::=" <name>
 
-<decorators> = "::" <type> | <decorators> "::" <type> 
+<decorators> = "::" <type> | <decorators> "::" <type>
 
 <any> = <primitive> | <type-val> | <record> | <array> | <set> | <map> | <enum>
 

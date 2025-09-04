@@ -5,11 +5,11 @@ IPv4 and IPv6 variations.  The `net` type represents an `ip` value
 with a contiguous network mask as indicated by the number of bits
 in the mask.
 
-A 32-bit IPv4 address is formed using dotted-decimal notation, e.g., 
-a string of base-256 decimal numbers separated by `.` as in 
+A 32-bit IPv4 address is formed using dotted-decimal notation, e.g.,
+a string of base-256 decimal numbers separated by `.` as in
 `128.32.130.100` or `10.0.0.1`.
 
-A 128-bit IPv6 is formed from a sequence of eight groups of four 
+A 128-bit IPv6 is formed from a sequence of eight groups of four
 hecadecimal digits separated by colons (`:`).
 
 For IPv6 addresses,
@@ -21,8 +21,8 @@ using a double colon (`::`) but this can only be done once to avoid ambiguity, e
 ```
 can be expressed as `2001:db8::1`.
 
-A value of type `net` is formed as an IPv4 or IPv6 address followed by a slash (`/`) 
-followed by a decimal integer indicating the numbers of bits of contiguous network as 
+A value of type `net` is formed as an IPv4 or IPv6 address followed by a slash (`/`)
+followed by a decimal integer indicating the numbers of bits of contiguous network as
 in `128.32.130.100/24` or `fc00::/7`.
 
 Note that unlike other SQL dialects that require IP addresses and networks to be formatted
@@ -38,7 +38,7 @@ values
   10.0.0.1,
   ::2001:0db8,
   2001:0db8:0000:0000:0000:0000:0000:0001
-| values this, typeof(this)  
+| values this, typeof(this)
 # input
 null
 # expected output

@@ -23,7 +23,7 @@ It has two forms:
 As a pipe operator,
 `from` preserves the order of the data within a file,
 URL, or a sorted pool but when multiple sources are identified,
-the data may be read in parallel and interleaved in an undefined order.  
+the data may be read in parallel and interleaved in an undefined order.
 
 Optional arguments to `from` may be appended as a parenthesized concatenation
 of arguments.
@@ -36,11 +36,11 @@ a format argument may be appended as an argument and has the form
 format <fmt>
 ```
 where `<fmt>` is the name of a supported
-[serialization format](../../command/super.md#input-formats) and is 
+[serialization format](../../command/super.md#input-formats) and is
 parsed as a [text entity](../patterns.md#text-entity).
 
 When `from` references a file or URL entity whose name ends in a
-[well-known extension ](../../command/super.md#input-formats)
+[well-known extension](../../command/super.md#input-formats)
 (e.g., `.json`, `.sup`, etc.), auto-detection is disabled and the
 format is implied by the extension name.
 
@@ -83,7 +83,7 @@ of a pool in the attached database.
 
 Local files are not accessible when attached to a database.
 
-Note that pool names and file names have similar syntax in `from` but 
+Note that pool names and file names have similar syntax in `from` but
 their use is disambiguated by the presence or absence of an attached
 database.
 
@@ -105,7 +105,7 @@ The format argument is not valid with a database source.
 
 #### URL
 
-Data sources identified by URLs can be accessed either when attached 
+Data sources identified by URLs can be accessed either when attached
 or detached from a database.
 
 When the `<url>` argument begins with `http:` or `https:`
@@ -126,7 +126,7 @@ that implement the data retrieval and include:
 where
 
 * `<method>` is one of `GET`, `PUT`, `POST`, or `DELETE`,
-* `<expr>` is a [record expression](../types/record.md) that defines the names and values 
+* `<expr>` is a [record expression](../types/record.md) that defines the names and values
 to be included as HTTP header options, and
 * `<body>` is a [text-entity](../patterns.md#text-entity) string
 to be included as the body of the HTTP request.
@@ -149,7 +149,7 @@ or a URL forming a sequence of targets which are read and output by the
 
 #### Combining Data
 
-To combine data from multiple sources using pipe operators, `from` may be 
+To combine data from multiple sources using pipe operators, `from` may be
 used in combination with other operators like [`fork`](fork.md) and [`join`](join.md).
 
 For example, multiple pools can be accessed in parallel
@@ -158,7 +158,7 @@ and combined in undefined order:
 fork
   ( from PoolOne | op1 | op2 | ... )
   ( from PoolTwo | op1 | op2 | ... )
-| ...  
+| ...
 ```
 or joined according to a join condition:
 ```
@@ -171,7 +171,7 @@ fork
 Alternatively, the right-hand leg of the join may be written as a subquery
 of join:
 ```
-from PoolOne | op1 | op2 | ... 
+from PoolOne | op1 | op2 | ...
 | join ( from PoolTwo | op1 | op2 | ... )
     as {left,right} on left.key=right.key
 | ...
@@ -314,9 +314,9 @@ super db -db example -s -c '
   from coinflips
   | join ( from numbers ) on left.flip=right.number
   | values {...left, word:right.word}
-  | fork 
+  | fork
     ( pass )
-    ( from coinflips@trial 
+    ( from coinflips@trial
       | c:=count()
       | values f"There were {c} flips" )
   | sort this'
@@ -329,7 +329,6 @@ super db -db example -s -c '
 ```
 
 ---
-
 
 #### Expression Example
 

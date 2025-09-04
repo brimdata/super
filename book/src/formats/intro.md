@@ -1,6 +1,6 @@
 # Super-structured Formats
 
-This section contains the [data model definition](model.md) for super-structured data 
+This section contains the [data model definition](model.md) for super-structured data
 along with a set of concrete formats that all implement this same data model,
 providing a unified approach to row, columnar, and human-readable formats:
 

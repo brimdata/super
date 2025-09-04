@@ -14,7 +14,6 @@ If you want a fun, small project to help out, pick some functionality that is mi
 add an operator in [runtime/sam/op](runtime/sam/op) or an aggregate function
 in [runtime/sam/expr/agg](runtime/sam/expr/agg).
 
-
 ## Development
 
 `zed` requires Go 1.24 or later, and uses [Go modules](https://github.com/golang/go/wiki/Modules).

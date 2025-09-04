@@ -182,9 +182,9 @@ super db -db example -s -c '
     from numbers | sort number
   ) on left.flip=right.number
   | values {...left, word:right.word}
-  | fork 
+  | fork
     ( pass )
-    ( from coinflips@trial 
+    ( from coinflips@trial
       | c:=count()
       | values f"There were {c::int64} flips" )
   | sort this'

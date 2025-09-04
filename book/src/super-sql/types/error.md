@@ -1,16 +1,16 @@
 ### Errors
 
 Errors in SuperSQL are _first class_ and conform
-with the [error type](../../formats/model.md#27-error) in the 
+with the [error type](../../formats/model.md#27-error) in the
 super-structured data model.
 
-Error types have the form 
+Error types have the form
 ```
 error ( <type> )
 ```
 where `<type>` is any type.
 
-Error values can be created with the error function of the form 
+Error values can be created with the error function of the form
 ```
 error ( <value > )
 ```

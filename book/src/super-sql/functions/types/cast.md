@@ -14,7 +14,7 @@ cast(val: any, name: string) -> any
 The `cast` function converts a value in one type (the type of `val`) to another
 as indicated by the target type.  In the first form, the target type is the
 [type value](../../types/type.md) specified by `target`.
- 
+
 In the second form, the target type is a [named type](../../types/named.md)
 whose name is the `name` parameter and whose type is the type of `val`.
 
@@ -27,7 +27,7 @@ the target type.
 The target type cannot contain an error type.  The [`error`](../errors/error.md) function
 should instead be used to create error values.
 
-SQL syntax for casting, e.g., `CAST(<expr> AS <type>)` and `<expr>::<type>`, 
+SQL syntax for casting, e.g., `CAST(<expr> AS <type>)` and `<expr>::<type>`,
 is also [supported](../../expressions.md#casts).  These forms are
 internally converted to calls to [`cast`](#function).
 
@@ -57,9 +57,9 @@ the result is the byte encoding of the UTF-8 string.  A string may also be cast 
 a [union](#union-types) or [named](#named-types) type.
 To parse a literal
 string that is in the SUP or JSON format without having to specify the target type, use
-the [`parse_sup`](../parsing/parse_sup.md) function. 
+the [`parse_sup`](../parsing/parse_sup.md) function.
 * A [bool](../../types/bool.md) may be cast to
-  * a number type where `false` is zero and `true` is `1`, 
+  * a number type where `false` is zero and `true` is `1`,
   * type [`string`](../../types/string.md), or
   * a [union](#union-types) or [named type](#named-types).
 * A [time](../../types/time.md) value may be cast to
@@ -69,7 +69,7 @@ the [`parse_sup`](../parsing/parse_sup.md) function.
 
 A null value of type [null](../../types/null.md) may be cast to any type.
 
-> _A future version of this documentation will provide detailed documentation for 
+> _A future version of this documentation will provide detailed documentation for
 > acceptable date/time strings._
 
 ### Complex Values
@@ -87,7 +87,7 @@ is not castable.
 The casting rules for complex values are as follows:
 
 * A [record](../../types/record.md) may be cast to
-  * a [record](../../types/record.md) type where any fields not present in the 
+  * a [record](../../types/record.md) type where any fields not present in the
     target type are omitted, any fields not present in the input value while present in the
     target type are set to null, and the value of each input field present
     in both the input and target are recursively cast to the target's type of
@@ -166,7 +166,6 @@ returns
 That is the value for `a` was successfully cast from string `"1`" to integer `1` but
 the value for `b` could not be cast to an IP address so a structured error is
 instead embedded as the value for `b`.
-
 
 ### Examples
 

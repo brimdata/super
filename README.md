@@ -76,7 +76,7 @@ most common data formats.
 ## Project Status
 
 Our long-term goal for SuperSQL is to be Postgres-compatible and interoperate
-with existing SQL tooling. In the meantime, SuperSQL is a bit of a moving 
+with existing SQL tooling. In the meantime, SuperSQL is a bit of a moving
 target and we would love [community engagement](#join-the-community) to evolve and fine tune its
 syntax and semantics.
 
@@ -103,7 +103,7 @@ speedbumps in the near term, particularly in areas like performance and full
 SQL coverage. We're working on it! :wink:
 
 Once you've tried it out, we'd love to hear your feedback via our
-[community Slack](https://www.brimdata.io/join-slack/). 
+[community Slack](https://www.brimdata.io/join-slack/).
 
 >**NOTE:** The SuperDB query engine can run locally without a storage engine by accessing
 >files, HTTP endpoints, or S3 paths using the `super` command. While
@@ -134,4 +134,3 @@ Join our [public Slack](https://www.brimdata.io/join-slack/) workspace for annou
 [tests]: https://github.com/brimdata/super/actions?query=workflow%3ATests
 [gopkg-img]: https://pkg.go.dev/badge/github.com/brimdata/super
 [gopkg]: https://pkg.go.dev/github.com/brimdata/super
-

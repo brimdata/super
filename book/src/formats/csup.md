@@ -113,7 +113,7 @@ from column streams, i.e., to map columns back to composite values.
 > to be read and searched efficiently without ever needing to reconstruct
 > the original rows.  How well this performs is up to any particular
 > CSUP implementation._
-> 
+>
 > _Also, the reassembly section is in general vastly smaller than the data section
 > so the goal here isn't to express information in cute and obscure compact forms
 > but rather to represent data in an easy-to-digest, programmer-friendly form that
@@ -205,7 +205,6 @@ original data.
 > _Each row reassembly record has its own layout of columnar
 > values and there is no attempt made to store like-typed columns from different
 > schemas in the same physical column._
-
 
 The notation `<any_column>` refers to any instance of the five column types:
 * [`<record_column>`](#record-column),

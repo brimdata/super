@@ -71,7 +71,7 @@ as in
 ```
 aggregate count() by upper(key)
 ```
-or 
+or
 ```
 put lower(s), a.b.c, x+1
 ```

@@ -66,7 +66,6 @@ values {x:2,y:1},{x:4,y:2},{x:6,y:3}
 | values x+y, x-y
 ```
 
-
 ### Examples
 
 ---

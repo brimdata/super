@@ -36,7 +36,7 @@ a dotted path or sequence of constant index operations on `this`, e.g., `a.b`.
 
 Each right-hand side `<expr>` can be any expression.
 
-For any input value that is not a record, a structured error is emitted 
+For any input value that is not a record, a structured error is emitted
 having the form:
 ```
 error({message:"put: not a record",on:<value>})

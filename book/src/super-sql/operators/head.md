@@ -18,7 +18,6 @@ is not provided, the value of N defaults to `1`.
 For compatibility with other pipe SQL dialects,
 `limit` is an alias for the `head` operator.
 
-
 ### Examples
 
 ---

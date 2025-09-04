@@ -2,7 +2,6 @@
 
 &emsp; **unnest** &mdash; expand nested array as values optionally into a subquery
 
-
 ### Synopsis
 
 ```
@@ -41,7 +40,7 @@ If `<expr>` is a record, it must have two fields of the form:
 ```
 {<first>: <any>, <second>:<array>}
 ```
-where `<first>` and `<second>` are arbitrary field names, `<any>` is any 
+where `<first>` and `<second>` are arbitrary field names, `<any>` is any
 SuperSQL value, and `<array>` is an array value.  In this case, the derived
 sequence has the form:
 ```
@@ -62,7 +61,7 @@ For example, if `this` is a record, it can be unnested with `unnest flatten(this
 
 ### Errors
 
-If a value encountered by `unnest` does not have either of the forms defined 
+If a value encountered by `unnest` does not have either of the forms defined
 above, then an error results as follows:
 ```
 errror({message:"unnest: encountered non-array value",on:<value>})
@@ -73,7 +72,7 @@ When a record value is encountered without the proper form, then the error is:
 ```
 error({message:"unnest: encountered record without two fields",on:<value>})
 ```
-or 
+or
 ```
 error({message:"unnest: encountered record without an array/set type for second field",on:<value>})
 ```

@@ -3,10 +3,10 @@
 The null type represents a type that has just one value:
 the special value `null`.
 
-A value of type `null` is formed simply from the keyword `null` 
+A value of type `null` is formed simply from the keyword `null`
 representing the null value, which by default, is type `null`.
 
-While all types include a null value, e.g., `null::int64` is the 
+While all types include a null value, e.g., `null::int64` is the
 null value whose type is `int64`, the null type has no other values
 besides the null value.
 
@@ -24,11 +24,10 @@ That said, SuperSQL supports the null value for backward compatibility with
 their pervasive use in SQL, database systems, programming languages, and serialization
 formats.
 
-As in SQL, to test if a value is null, it cannot be compared to another null 
+As in SQL, to test if a value is null, it cannot be compared to another null
 value, which by definition, is always false, i.e., two unknown values cannot
-be known to be equal.  Instead the [`IS NULL`](../expressions.md#comparisons) operator or 
+be known to be equal.  Instead the [`IS NULL`](../expressions.md#comparisons) operator or
 [coalesce](../functions/generics/coalesce.md) function should be used.
-
 
 #### Examples
 ---

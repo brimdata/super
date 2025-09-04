@@ -1,7 +1,7 @@
 ### Records
 
 Records conform to the
-[record type](../../formats/model.md#21-record) in the 
+[record type](../../formats/model.md#21-record) in the
 super-structured data model and follow the
 [syntax](../../formats/sup.md#251-record-type)
 of records in the [SUP format](../../formats/sup.md), i.e.,
@@ -44,7 +44,7 @@ where an `<element>` has one of three forms:
 identifier or string and `<expr>` is an arbitrary [expression](../expressions.md),
 * a single field reference in the form `<id>` as an identifier,
 which is shorthand for the named field reference `<id>:<id>`, or
-* a spread expression of the form `...<expr>` where `<expr>` is an arbitrary 
+* a spread expression of the form `...<expr>` where `<expr>` is an arbitrary
 [expression](../expressions.md) that should evaluate to a record value.
 
 The spread form inserts all of the fields from the resulting record.

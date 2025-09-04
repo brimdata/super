@@ -79,7 +79,7 @@ keyword/clause/etc.
 `cut` is much like a SQL [`SELECT`](select.md) clause
 
 # ❌ Not these
-`cut` is much like a [SQL `SELECT` clause](select.md) 
+`cut` is much like a [SQL `SELECT` clause](select.md)
 `cut` is much like a [select](select.md) clause
 ```
 

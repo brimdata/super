@@ -1,11 +1,11 @@
 ### Type Values
 
 Types in SuperSQL are _first class_ and conform
-with the [`type`](../../formats/model.md#1-primitive-types) type in the 
+with the [`type`](../../formats/model.md#1-primitive-types) type in the
 super-structured data model.
 The `type` type represents the type of a type value.
 
-A type value is formed by enclosing a type specification in 
+A type value is formed by enclosing a type specification in
 angle brackets (`<` followed by the type followed by `>`).
 
 For example, the integer type `int64` is expressed as a value

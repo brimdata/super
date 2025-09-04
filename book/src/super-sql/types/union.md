@@ -4,7 +4,7 @@ The union type provides the foundation for
 [sum types](https://en.wikipedia.org/wiki/Tagged_union) in SuperSQL.
 
 Unions conform with the definition of the
-[union type](../../formats/model.md#25-union) in the 
+[union type](../../formats/model.md#25-union) in the
 super-structured data model and follow the
 [syntax](../../formats/sup.md#255-union-type)
 of unions in the [SUP format](../../formats/sup.md), i.e.,
@@ -68,7 +68,7 @@ For example, this predicate is true
 ```
 values 1::(int64|string)==1
 ```
-because the union value is automatically expressed as `1::int64` 
+because the union value is automatically expressed as `1::int64`
 by the comparison operator.
 
 Likewise
@@ -158,7 +158,7 @@ values this::(int64|string)
 "foo"::(int64|string)
 ```
 
-_Explicitly express the underlying union value using 
+_Explicitly express the underlying union value using
 [`under`](../functions/generics/under.md)_
 ```mdtest-spq
 # spq

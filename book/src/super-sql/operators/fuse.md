@@ -22,7 +22,6 @@ Because all values of the input must be read to compute the fused type,
 
 > _Spilling is not yet implemented for the vectorized runtime._
 
-
 ### Examples
 
 ---

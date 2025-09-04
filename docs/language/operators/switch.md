@@ -5,7 +5,7 @@
 ### Synopsis
 
 ```
-switch <expr> 
+switch <expr>
   case <const> ( <branch> )
   case <const> ( <branch> )
   ...

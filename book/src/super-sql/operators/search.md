@@ -40,7 +40,7 @@ expression from a string literal search, e.g.,
 ```
 /foo|bar/
 ```
-searches for the string `"foo"` or `"bar"` inside of any string entity while 
+searches for the string `"foo"` or `"bar"` inside of any string entity while
 ```
 "foo|bar"
 ```

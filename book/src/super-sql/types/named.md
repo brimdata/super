@@ -1,7 +1,7 @@
 ### Named Types
 
 A named type provides a means to bind a symbolic name to a type
-and conforms to the 
+and conforms to the
 [named type](../../formats/model.md#3-named-type)
 in the super-structured data model.
 The named type [syntax](../../formats/sup.md#258-named-type)
@@ -94,7 +94,7 @@ values <foo>
 error("missing")
 ```
 
---- 
+---
 
 _Conflicting named types appear as distinct type values_
 
