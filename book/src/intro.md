@@ -175,7 +175,8 @@ a product type &mdash; it unfortunately did not anticipate sum types.
 > _Codd's original paper on the relational model has a footnote that
 > essentially describes as a product type:_
 >
-> ![Codd's Footnote](codd-footnote.png "Codd's Footnote")
+> <!-- markdownlint-disable-next-line MD033 -->
+> <center><img src="codd-footnote.png" alt="Codd's Footnote" title="Codd's Footnote" width="500"></center>
 >
 > _But sum types were notably absent._
 
