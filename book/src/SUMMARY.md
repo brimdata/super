@@ -52,7 +52,6 @@
             - [Functions](super-sql/queries/expressions/functions.md)
             - [Index](super-sql/queries/expressions/index.md)
             - [Logic](super-sql/queries/expressions/logic.md)
-            - [Slice](super-sql/queries/expressions/slice.md)
         - [Subqueries](super-sql/queries/subqueries.md)
         - [User Operators](super-sql/queries/user-operators.md)
         - [User Functions](super-sql/queries/user-functions.md)
