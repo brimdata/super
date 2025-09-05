@@ -66,6 +66,7 @@ var unpacker = unpack.New(
 	Slicer{},
 	Sort{},
 	Spread{},
+	Subquery{},
 	Switch{},
 	Tail{},
 	This{},
