@@ -59,9 +59,6 @@ test-run: build bin/minio
 test-heavy: build
 	@PATH="$(CURDIR)/dist:$(PATH)" go test -tags=heavy ./mdtest
 
-perf-compare: build $(SAMPLEDATA)
-	scripts/perf-compare.sh
-
 output-check: build $(SAMPLEDATA)
 	scripts/output-check.sh
 
@@ -96,4 +93,4 @@ clean:
 	@rm -rf dist
 
 .PHONY: fmt tidy vet test-unit test-system test-heavy sampledata test-ci
-.PHONY: perf-compare build install clean generate test-generate
+.PHONY: build install clean generate test-generate
