@@ -47,10 +47,10 @@ been published by Elastic and others that provide helpful guidance on becoming
 proficient in Grok. To help you adapt what you learn from these resources to
 the use of the `grok` function, review the tips below.
 
-> As these represent areas of possible future SuperSQL enhancement, links to open
+> _As these represent areas of possible future SuperSQL enhancement, links to open
 > issues are provided. If you find a functional gap significantly impacts your
 > ability to use the `grok` function, please add a comment to the relevant
-> issue describing your use case.
+> issue describing your use case._
 
 1. Logstash's Grok offers an optional data type conversion syntax,
    e.g.,
@@ -106,7 +106,7 @@ the use of the `grok` function, review the tips below.
    avoid compatibility issues, we recommend building configurations starting
    from the RE2-based [included patterns](#included-patterns).
 
-> If you absolutely require features of Logstash's Grok that are not currently
+> _If you absolutely require features of Logstash's Grok that are not currently
 > present in SuperSQL, you can create a Logstash-based preprocessing
 > pipeline that uses its
 > [Grok filter plugin](https://www.elastic.co/guide/en/logstash/current/plugins-filters-grok.html)
@@ -114,7 +114,7 @@ the use of the `grok` function, review the tips below.
 > [super/3151](https://github.com/brimdata/super/issues/3151) provides some tips for
 > getting started. If you pursue this approach, please add a comment to the
 > issue describing your use case or come talk to us on
-> [community Slack](https://www.brimdata.io/join-slack/).
+> [community Slack](https://www.brimdata.io/join-slack/)._
 
 #### Debugging
 
@@ -149,7 +149,7 @@ _Parsing a simple log line using the built-in named patterns_
 ```mdtest-spq {data-layout="stacked"}
 # spq
 values grok("%{TIMESTAMP_ISO8601:timestamp} %{LOGLEVEL:level} %{GREEDYDATA:message}",
-           this)
+            this)
 # input
 "2020-09-16T04:20:42.45+01:00 DEBUG This is a sample debug log message"
 # expected output
@@ -163,7 +163,7 @@ _Parsing the log line using the same patterns but only capturing the log level_
 ```mdtest-spq {data-layout="stacked"}
 # spq
 values grok("%{TIMESTAMP_ISO8601} %{LOGLEVEL:level} %{GREEDYDATA}",
-           this)
+            this)
 # input
 "2020-09-16T04:20:42.45+01:00 DEBUG This is a sample debug log message"
 # expected output
@@ -172,16 +172,15 @@ values grok("%{TIMESTAMP_ISO8601} %{LOGLEVEL:level} %{GREEDYDATA}",
 
 ---
 
-_As with any [string literal](../../types/string.md), the
-leading backslash in escape sequences in string arguments must be doubled,
-such as changing the `\d` to `\\d` if we repurpose the
-[included pattern](#included-patterns) for `NUMTZ` as a `definitions` argument_
+_[Raw strings](../../types/string.md#raw-string) may be useful for regular
+expressions that contain escape sequences, such as when we repurpose the
+[included pattern](#included-patterns) for `NUMTZ` as a `definitions` argument here_
 
 ```mdtest-spq
 # spq
 values grok("%{MY_NUMTZ:tz}",
-           this,
-           "MY_NUMTZ [+-]\\d{4}")
+            this,
+            r"MY_NUMTZ [+-]\d{4}")
 # input
 "+7000"
 # expected output
@@ -190,16 +189,16 @@ values grok("%{MY_NUMTZ:tz}",
 
 ---
 
-_In addition to using `\n` newline escapes to separate multiple named patterns
+_To include the `\n` newline escapes to separate multiple named patterns
 in the `definitions` argument, string concatenation via `+` may further enhance
 readability_
 
 ```mdtest-spq {data-layout="stacked"}
 # spq
-values grok("\\(%{PH_PREFIX:prefix}\\)-%{PH_LINE_NUM:line_number}",
-           this,
-          "PH_PREFIX \\d{3}\n" +
-          "PH_LINE_NUM \\d{4}")
+values grok(r"\(%{PH_PREFIX:prefix}\)-%{PH_LINE_NUM:line_number}",
+            this,
+            r"PH_PREFIX \d{3}" + "\n" +
+            r"PH_LINE_NUM \d{4}")
 # input
 "(555)-1212"
 # expected output
@@ -238,7 +237,7 @@ _Using a regular expression to match outside of Grok patterns_
 
 ```mdtest-spq
 # spq
-grok("%{WORD:one}\\s+%{WORD:two}", this)
+grok(r"%{WORD:one}\s+%{WORD:two}", this)
 # input
 "hello     world"
 # expected output
@@ -252,7 +251,7 @@ an empty record_
 
 ```mdtest-spq {data-layout="stacked"}
 # spq
-grok("%{WORD}\\s+%{WORD}", this)
+grok(r"%{WORD}\s+%{WORD}", this)
 # input
 "hello world"
 # expected output
