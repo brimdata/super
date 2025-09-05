@@ -374,6 +374,9 @@ func (*Primitive) exprNode()    {}
 func (*TypeValue) exprNode()    {}
 func (*Subquery) exprNode()     {}
 
+func (*FnLambda) exprNode() {}
+func (*OpLambda) exprNode() {}
+
 type ConstDecl struct {
 	Kind string `json:"kind" unpack:""`
 	Name *ID    `json:"name"`

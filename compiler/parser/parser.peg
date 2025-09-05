@@ -1072,7 +1072,7 @@ Function
       }
       return s, nil
     }
-  / fn:Identifier __ "(" __ args:FunctionArgs __ ")" where:WhereClause? {
+  / !(FN/OP) fn:Identifier __ "(" __ args:FunctionArgs __ ")" where:WhereClause? {
       return newCall(c, fn, args, where), nil
     }
   / CountStar
@@ -1095,7 +1095,9 @@ Exprs
     }
 
 Primary
-  = CaseExpr
+  = FnLambdaExpr
+  / OpLambdaExpr
+  / CaseExpr
   / Record
   / Array
   / Set
