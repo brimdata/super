@@ -1,5 +1,5 @@
 spq: |
-  func no_params(): (
+  fn no_params(): (
     "hello"
   )
   values no_params()

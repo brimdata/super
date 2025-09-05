@@ -42,9 +42,8 @@ ConstDecl
       }, nil
     }
 
-//XXX change "func" to FN
 FnDecl
-  = "func" _ name:Identifier __ lambda:FnLambda {
+  = FN _ name:Identifier __ lambda:FnLambda {
       return &ast.FnDecl{
         Kind: "FnDecl",
         Name: name.(*ast.ID),
@@ -62,6 +61,8 @@ FnLambda
         Loc: loc(c),
       }, nil
     }
+
+FnLambdaExpr = FN __ lambda:FnLambda { return lambda, nil }
 
 OpDecl
   = OP _ name:Identifier lambda:OpLambda {
@@ -82,6 +83,8 @@ OpLambda
         Loc: loc(c),
       }, nil
     }
+
+OpLambdaExpr = OP __ lambda:OpLambda { return lambda, nil }
 
 ScopeBody
   = "(" __ scope:Scope __ ")"   { return []any{scope}, nil }

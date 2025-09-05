@@ -1,12 +1,12 @@
 script: |
-  super compile -C -dag 'func h(e): ( has(e) ) h(foo)'
+  super compile -C -dag 'fn h(e): ( has(e) ) h(foo)'
 
 outputs:
   - name: stdout
     data: |
       null
       | (
-        func h(e): (
+        fn h(e): (
           has(e)
         )
         

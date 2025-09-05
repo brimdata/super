@@ -626,7 +626,7 @@ func (c *canonDAG) scope(s *dag.Scope) {
 		c.flush()
 	}
 	for _, f := range s.Funcs {
-		c.write("func %s(", f.Name)
+		c.write("fn %s(", f.Name)
 		for i := range f.Params {
 			if i != 0 {
 				c.write(", ")

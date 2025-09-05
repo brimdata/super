@@ -1,6 +1,6 @@
 spq: |
   unnest this into (
-    func addbar(a): ( a + " bar" )
+    fn addbar(a): ( a + " bar" )
     values addbar(this)
   )
 
