@@ -1,6 +1,6 @@
 ## Conventions
 
-TODO: clean this up.  explain "any" in terms of polymorphic operators 
+TODO: clean this up.  explain "any" in terms of polymorphic operators
 on strongly typed data.
 
 [Function](functions/_index.md) arguments and [operator](operators/_index.md) input values are all dynamically typed,
@@ -19,4 +19,4 @@ to take on any type.
 
 XXX mention syntax blocks `<expr>` refers to expression, `<id>` to identifier, etc
 
-Lexical structure goes here?  
+Lexical structure goes here?

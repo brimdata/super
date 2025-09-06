@@ -4,7 +4,7 @@ Don't have time to dive into the documentation?
 
 Just skim these one liners to get the gist of what SuperDB can do!
 
-Note that JSON files can include any sequence of JSON values like 
+Note that JSON files can include any sequence of JSON values like
 [newline-deliminted JSON](https://github.com/ndjson/ndjson-spec)
 though the values need not be newline deliminated.
 
@@ -34,7 +34,7 @@ cat input.csv | super -f csv -c <query> -
 ```
 ### Fuse JSON data into a unified schema and output as Parquet
 ```
-super -f parquet -o out.parquet -c fuse file.json 
+super -f parquet -o out.parquet -c fuse file.json
 ```
 ### Run as a calculator
 ```
@@ -75,7 +75,7 @@ Or write this as a pure pipe query using SuperSQL [shortcuts](../super-sql/short
 ```
 super -c "
 from logs.json
-| ? example.com AND urgent 
+| ? example.com AND urgent
 | message_length > 100
 | kinds:=union(type), net:=network_of(srcip) by net
 "

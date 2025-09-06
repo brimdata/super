@@ -1,7 +1,7 @@
 ## Playground
 
 If you have `super` installed, a common pattern for experimentation is to
-"echo" some input to the `super -c` command, e.g., 
+"echo" some input to the `super -c` command, e.g.,
 ```
 echo <values> | super -c <query> -
 ```
@@ -29,7 +29,7 @@ and you should get this alternative output in the RESULT panel above:
 The input in the playground examples are generally formatted as
 [SUP](../formats/sup.md) but the `super` playground command autodetects
 the format, so feel free to experiment with other text formats like CSV or JSON.
-For example, if you change the input above to 
+For example, if you change the input above to
 ```
 id,message
 0,"Hello"
@@ -43,7 +43,7 @@ If you want to transfer a working playground query to your shell, just
 click on CLI tab and you will see text suitable for pasting into a
 `bash`, `zsh`, etc.
 
-> Note that there is no special quoting for the shell so you may run 
+> Note that there is no special quoting for the shell so you may run
 > into problems if you mix single and double quotes in your query.
 
 ### Examples
@@ -52,7 +52,7 @@ To explore a broad range of SuperSQL functionality,
 try browsing the documentation for
 [pipe operators](../super-sql/operators/intro.md) or
 [functions](../super-sql/functions/intro.md).
-Each operator and function has a section of examples 
+Each operator and function has a section of examples
 with playgrounds where you can edit
 the example queries and inputs to explore how SuperSQL works.
 The [tutorials section](../tutorials/intro.md)

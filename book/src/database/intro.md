@@ -70,8 +70,8 @@ ACID append and delete semantics at the commit level while
 we have plans to support CRUD updates at the primary-key level
 in the near future.
 
-TODO: make pools independent entities then tie them together with a separate 
-layer of adminstrative glue (i.e., there should be no depedencies in a pool 
+TODO: make pools independent entities then tie them together with a separate
+layer of adminstrative glue (i.e., there should be no depedencies in a pool
 that are required to interpret and query it outside of the pool entity)
 
 TODO: back off on github metaphor?

@@ -10,7 +10,7 @@ super db query [options] <query>
 
 ### Options
 
-TODO: unify this with super command flags.  
+TODO: unify this with super command flags.
 
 `-aggmem` maximum memory used per aggregate function value in MiB, MB, etc
 `-B` allow Super Binary to be sent to a terminal output

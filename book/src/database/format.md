@@ -23,7 +23,7 @@ Parquet files, Avro files, JSON, CSV, XML, and so forth are all subsets of the
 SuperDB's super-structured type system, a data lake based on SuperDB holds the promise
 to provide a universal data representation for all of these different approaches to data.
 
-TODO: update this to emphasize tables are just a special case... not that they 
+TODO: update this to emphasize tables are just a special case... not that they
 aren't present in the database
 
 Also, while we are not currently focused on building a SQL engine for the SuperDB database,

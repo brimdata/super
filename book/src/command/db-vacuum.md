@@ -11,7 +11,7 @@ super db vacuum [ options ]
 ### Options
 
 * `-dryrun` run vacuum without deleting anything
-* `-f` do not prompt for confirmation 
+* `-f` do not prompt for confirmation
 * `-use` specify commit to use, i.e., pool, pool@branch, or pool@commit
 
 ### Description

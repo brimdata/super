@@ -16,7 +16,7 @@ from source | operator | operator | ...
 As with SQL, SuperSQL is
 [declarative](https://en.wikipedia.org/wiki/Declarative_programming)
 and the SuperSQL compiler often optimizes a query into an implemention
-different from the dataflow implied by the pipeline to achieve the 
+different from the dataflow implied by the pipeline to achieve the
 same semantics with better performance.
 
 ### Interactive UX
@@ -64,7 +64,7 @@ SELECT watchers FROM https://api.github.com/repos/brimdata/super
 ### Pipe Queries
 
 The entities that transform data within a SuperSQL pipeline are called
-[pipe operators](operators/intro.md) 
+[pipe operators](operators/intro.md)
 and take super-structured input from the upstream operator or data source,
 operate upon the input, and produce zero or more super-structured
 values as output.
@@ -120,22 +120,22 @@ fork
 
 ### Pipe Sources
 
-Like SQL, input data for a query is typically sourced with the 
+Like SQL, input data for a query is typically sourced with the
 [`from`](operators/from.md) operator.
 
 When [`from`](operators/from.md) is not present, the file arguments to the
 [`super`](../commands/super.md) command are used as input to the query
 as if there is an implied
-[`from`](operators/from.md) operator, e.g., 
+[`from`](operators/from.md) operator, e.g.,
 ```
 super -c "op1 | op2 | ..." input.json
 ```
-is equivalent to 
+is equivalent to
 ```
 super -c "from input.json | op1 | op2 | ..."
 ```
 When neither
-[`from`](operators/from.md) nor file arguments are specified, a single `null` value 
+[`from`](operators/from.md) nor file arguments are specified, a single `null` value
 is provided as input to the query.
 ```
 super -c "pass"
@@ -187,7 +187,7 @@ e.g., referencing a column `x` in a table `this` as
 ```
 SELECT this.x FROM (VALUES (1),(2),(3)) AS this(x)
 ```
-More commonly, when the column name is unambiguous, the table name 
+More commonly, when the column name is unambiguous, the table name
 can be omitted as in
 ```
 SELECT x FROM (VALUES (1),(2),(3)) AS this(x)
@@ -195,7 +195,7 @@ SELECT x FROM (VALUES (1),(2),(3)) AS this(x)
 When SQL queries are nested, joined, or invoked as subqueries, scoping
 rules define how identifiers and dotted expressions resolve to the
 different available table names and columns reachable via containing scopes.
-To support such semantics, SuperSQL implements SQL scoping rules 
+To support such semantics, SuperSQL implements SQL scoping rules
 _inside of of any SQL pipe operator_ but not between pipe operators.
 
 In other words, table aliases and column references all work within
@@ -213,7 +213,7 @@ Here, a pipe operator takes any sequence of input values
 and produces any computed sequence of output values and _all
 data references are limited to these inputs and outputs_.
 Since there is just one sequence of values, it may be
-referenced as special value with a special name, which for 
+referenced as special value with a special name, which for
 SuperSQL is the value `this`.
 
 This scoping model can be summarized as follows:
@@ -227,7 +227,7 @@ relational schema and each field in the record models the table's column.
 In other words, the record fields of `this` can be accessed with the dot operator
 reminiscent of a `table.column` reference in SQL.
 
-For example. ,the SQL query from above can thus be written in pipe form 
+For example. ,the SQL query from above can thus be written in pipe form
 using the [`values`](operators/values.md) operator as:
 ```
 values {x:1}, {x:2}, {x:3} | select this.x
@@ -273,7 +273,7 @@ includes an _as clause_ that names the two sides of the join, e.g.,
 ... | join ( from ... ) as {left,right} | ...
 ```
 Here, the joined values are formed into a new two-field record
-whose first field is `left` and whose second field is `right` where the 
+whose first field is `left` and whose second field is `right` where the
 `left` values come from the parent operator and the `right` values come
 from the parenthesized join query argument.
 
@@ -283,7 +283,7 @@ For example, suppose the contents of a file `f1.json` is
 {"x":2}
 {"x":3}
 ```
-and `f2.json` is 
+and `f2.json` is
 ```
 {"y":4}
 {"y":5}
@@ -340,12 +340,12 @@ inner query embedded in the expression inside of the
 [`values`](operators/values.md) operator.
 
 The subquery produces an array value so it is often desirable to
-[`unnest`](operators/unnest.md) this array with respect to the outer 
-values as in 
+[`unnest`](operators/unnest.md) this array with respect to the outer
+values as in
 ```
 from f1.json | unnest {outer:this,inner:(from f2.json | ...)} into ( <scope> )
 ```
-where `<scope>` can be an arbitrary pipe query that processes each 
+where `<scope>` can be an arbitrary pipe query that processes each
 collection of unnested values separately as a unit for each outer value.
 The `into ( <scope> )` body is an optional component of `unnest`, and if absent,
 the unnested collection boundaries are ignored and all of the unnested data is output.

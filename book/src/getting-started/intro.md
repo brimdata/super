@@ -1,6 +1,6 @@
 # Getting Started
 
-It's super easy to get going with SuperDB. 
+It's super easy to get going with SuperDB.
 
 Short on time?  Just [browse the TL;DR](tldr.md).
 
@@ -10,11 +10,11 @@ throughout the documentation, or
 * [install super](install.md), and
 * [try it out](hello-world.md).
 
-The [`super` command](../command/super.md) is a single binary 
+The [`super` command](../command/super.md) is a single binary
 arranged into a hierarchy of sub-commands.
 
-SuperDB's disaggregation of compute and storage is reflected into the 
-design of its command hierarchy: running the top-level `super` command 
+SuperDB's disaggregation of compute and storage is reflected into the
+design of its command hierarchy: running the top-level `super` command
 runs the compute engine only on inputs like files and URLs, while
 the [`db`](../command/db.md) subcommands of `super` operate upon
 a [persistent database]().

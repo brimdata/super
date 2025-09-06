@@ -16,7 +16,7 @@ super compile [ options ] query
 * `-I` source file containing query text (may be repeated)
 * `-O` display optimized DAG (default "false")
 * `-P` display parallelized DAG (default "0")
-    
+
 Additional options of the [suepr top-level command](super.md#options)
 
 ### Description

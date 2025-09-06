@@ -24,7 +24,7 @@ super db serve [options]
 * `-log.path` path to send logs (values: stderr, stdout, path in file system)
 * `-manage` when positive, run lake maintenance tasks at this interval
 * `-rootcontentfile` file to serve for GET /
-    
+
 Additional options of the [db sub-command](db.md#options)
 
 ### Description

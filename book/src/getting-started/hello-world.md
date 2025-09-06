@@ -16,7 +16,7 @@ there is no query argument specified for `super` (i.e., no `-c` argument), which
 This `from` operator scans each of the command-line arguments
 interpreted as file paths or URLs (or `-` for standard input).
 
-In this case, the input is read from the implied operator, no further query 
+In this case, the input is read from the implied operator, no further query
 is applied, and the results are emitted to standard output.
 This results is the string value `"hello, world"`,
 serialized in the default [SUP format](../formats/sup.md),
@@ -56,7 +56,7 @@ and you should see
 
 ### SuperDB Service
 
-Now that you have a database in the `./scratch` directory, you could also 
+Now that you have a database in the `./scratch` directory, you could also
 run Hello World as a client talking to a SuperDB server instance.
 Continuing the example above (with the `SUPER_DB` environment pointing to `./scratch`),
 run a service as follows:

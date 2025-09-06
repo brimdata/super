@@ -1,6 +1,6 @@
 ## Expressions
 
-As in SQL and typical programming languages, 
+As in SQL and typical programming languages,
 SuperSQL expressions perform calculations, logical comparisons,
 data manipulation, complex value creation, and so forth.
 
@@ -22,7 +22,7 @@ Likewise, the projected columns of a
 
 Expressions are built up from basic values and operators over values.
 
-Basic values include 
+Basic values include
   * [input values](#input-values),
   * [literals](#literals), or
   * [subquery](../subqueries.md) results.
