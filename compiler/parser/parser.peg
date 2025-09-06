@@ -1082,10 +1082,8 @@ Primary
   / Literal
   / Identifier
   / Tuple
-  / "(" __ &SubqueryOps expr:Subquery __ ")" { return expr, nil }
   / "(" __ expr:Expr __ ")" { return expr, nil }
-
-SubqueryOps = UNNEST / FROM / VALUES / CALL / SelectOp
+  / "(" __ expr:Subquery __ ")" { return expr, nil }
 
 CaseExpr
   = CASE cases:When+ else_:(_ ELSE _ Expr)? _ END (_ CASE)? {

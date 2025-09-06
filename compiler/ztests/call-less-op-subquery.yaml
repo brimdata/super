@@ -1,0 +1,7 @@
+spq: |
+  op foo x, inc : (values x+inc)
+  values {a:1,b:2}
+  | values {x:(foo a, 1),y:(foo b, 10)}
+
+output: |
+  {x:2,y:12}
