@@ -284,4 +284,3 @@ a human-readable form, a row-based binary form, and a row-based columnar form ca
 be trivially carried out with no loss of information.  This is the best of both worlds:
 the same data can be easily expressed in and converted between a human-friendly
 and easy-to-program text form alongside efficient row and columnar formats.
-

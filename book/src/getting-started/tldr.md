@@ -80,5 +80,3 @@ from logs.json
 | kinds:=union(type), net:=network_of(srcip) by net
 "
 ```
-
-
