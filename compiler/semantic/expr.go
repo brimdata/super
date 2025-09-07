@@ -652,7 +652,7 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 		}
 		return &dag.Call{
 			Kind: "Call",
-			Name: name,
+			Name: f.Name,
 			Args: exprs,
 		}
 	case expr.NewShaperTransform(nameLower) != 0:
