@@ -814,10 +814,6 @@ func deriveNameFromExpr(e dag.Expr, a ast.Expr) []string {
 		return []string{e.Name}
 	case *dag.Call:
 		switch strings.ToLower(e.Name) {
-		case "every":
-			// If LHS is nil and the call is every() make the LHS field ts since
-			// field ts assumed with every.
-			return []string{"ts"}
 		case "quiet":
 			if len(e.Args) > 0 {
 				if this, ok := e.Args[0].(*dag.This); ok {

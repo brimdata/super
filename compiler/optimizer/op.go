@@ -128,8 +128,6 @@ func orderPreservingCall(e dag.Expr, key field.Path) bool {
 			if len(call.Args) >= 1 && fieldOf(call.Args[0]).Equal(key) {
 				return true
 			}
-		case "every":
-			return true
 		}
 	}
 	return false

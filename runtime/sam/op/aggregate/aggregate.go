@@ -33,8 +33,7 @@ type Op struct {
 }
 
 // Aggregator performs the core aggregation computation for a
-// list of reducer generators. It handles both regular and time-binned
-// ("every") aggregate operations.  Records are generated in a
+// list of aggregate functions.  Records are generated in a
 // deterministic but undefined total order.
 type Aggregator struct {
 	ctx  context.Context

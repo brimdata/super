@@ -166,9 +166,6 @@ func demandForExpr(expr dag.Expr) demand.Demand {
 		return demand.Union(demandForExpr(expr.LHS), demandForExpr(expr.RHS))
 	case *dag.Call:
 		d := demand.None()
-		if expr.Name == "every" {
-			d = demand.Key("ts", demand.All())
-		}
 		for _, a := range expr.Args {
 			d = demand.Union(d, demandForExpr(a))
 		}
