@@ -15,8 +15,6 @@ outputs:
       ===
       null
       | (
-        const x = 1
-        
         tail 2
         | output main
       )

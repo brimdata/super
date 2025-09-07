@@ -516,12 +516,11 @@ func (a *analyzer) matchPools(pattern, origPattern, patternDesc string) ([]strin
 func (a *analyzer) semScope(op *ast.Scope) *dag.Scope {
 	a.scope = NewScope(a.scope)
 	defer a.exitScope()
-	consts, funcs := a.semDecls(op.Decls)
+	funcs := a.semDecls(op.Decls)
 	return &dag.Scope{
-		Kind:   "Scope",
-		Consts: consts,
-		Funcs:  funcs,
-		Body:   a.semSeq(op.Body),
+		Kind:  "Scope",
+		Funcs: funcs,
+		Body:  a.semSeq(op.Body),
 	}
 }
 
@@ -993,39 +992,33 @@ func (a *analyzer) singletonAgg(agg ast.Assignment, seq dag.Seq) dag.Seq {
 	)
 }
 
-func (a *analyzer) semDecls(decls []ast.Decl) ([]dag.Def, []*dag.Func) {
-	var consts []dag.Def
+func (a *analyzer) semDecls(decls []ast.Decl) []*dag.Func {
 	var fnDecls []*ast.FuncDecl
 	for _, d := range decls {
 		switch d := d.(type) {
 		case *ast.ConstDecl:
-			consts = append(consts, a.semConstDecl(d))
+			a.semConstDecl(d)
 		case *ast.FuncDecl:
 			fnDecls = append(fnDecls, d)
 		case *ast.OpDecl:
 			a.semOpDecl(d)
 		case *ast.TypeDecl:
-			consts = append(consts, a.semTypeDecl(d))
+			a.semTypeDecl(d)
 		default:
 			panic(fmt.Errorf("invalid declaration type %T", d))
 		}
 	}
-	funcs := a.semFuncDecls(fnDecls)
-	return consts, funcs
+	return a.semFuncDecls(fnDecls)
 }
 
-func (a *analyzer) semConstDecl(c *ast.ConstDecl) dag.Def {
+func (a *analyzer) semConstDecl(c *ast.ConstDecl) {
 	e := a.semExpr(c.Expr)
 	if err := a.scope.DefineConst(a.sctx, c.Name, e); err != nil {
 		a.error(c, err)
 	}
-	return dag.Def{
-		Name: c.Name.Name,
-		Expr: e,
-	}
 }
 
-func (a *analyzer) semTypeDecl(d *ast.TypeDecl) dag.Def {
+func (a *analyzer) semTypeDecl(d *ast.TypeDecl) {
 	typ, err := a.semType(d.Type)
 	if err != nil {
 		a.error(d.Type, err)
@@ -1038,7 +1031,6 @@ func (a *analyzer) semTypeDecl(d *ast.TypeDecl) dag.Def {
 	if err := a.scope.DefineConst(a.sctx, d.Name, e); err != nil {
 		a.error(d.Name, err)
 	}
-	return dag.Def{Name: d.Name.Name, Expr: e}
 }
 
 func (a *analyzer) semFuncDecls(decls []*ast.FuncDecl) []*dag.Func {

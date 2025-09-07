@@ -616,14 +616,9 @@ func (c *canonDAG) scope(s *dag.Scope) {
 	first := c.first
 	if !first {
 		c.open("(")
-		c.ret()
-		c.flush()
-	}
-	for _, d := range s.Consts {
-		c.write("const %s = ", d.Name)
-		c.expr(d.Expr, "")
-		c.ret()
-		c.flush()
+		if len(s.Funcs) > 0 {
+			c.ret()
+		}
 	}
 	for _, f := range s.Funcs {
 		c.write("func %s(", f.Name)

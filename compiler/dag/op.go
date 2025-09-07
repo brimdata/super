@@ -130,10 +130,9 @@ type (
 		Paths []Seq  `json:"paths"`
 	}
 	Scope struct {
-		Kind   string  `json:"kind" unpack:""`
-		Consts []Def   `json:"consts"`
-		Funcs  []*Func `json:"funcs"`
-		Body   Seq     `json:"seq"`
+		Kind  string  `json:"kind" unpack:""`
+		Funcs []*Func `json:"funcs"`
+		Body  Seq     `json:"seq"`
 	}
 	Shape struct {
 		Kind string `json:"kind" unpack:""`
@@ -323,10 +322,6 @@ type (
 	Case struct {
 		Expr Expr `json:"expr"`
 		Path Seq  `json:"seq"`
-	}
-	Def struct {
-		Name string `json:"name"`
-		Expr Expr   `json:"expr"`
 	}
 )
 

@@ -15,22 +15,16 @@ outputs:
   - name: stdout
     data: |
       (
-        const POOL = "test"
-        
         pool XXX
         | output main
       )
       ===
       (
-        const FILE = "A.sup"
-        
         file A.sup format sup
         | output main
       )
       ===
       (
-        const URL = "http://brimdata.io"
-        
         get http://brimdata.io
         | output main
       )
