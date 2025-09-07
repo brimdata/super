@@ -79,11 +79,11 @@ func marshalControl(zctrl *sbuf.Control) (any, error) {
 	}
 	value, err := sup.ParseValue(super.NewContext(), string(ctrl.Bytes))
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse Zed control message: %w (%s)", err, ctrl.Bytes)
+		return nil, fmt.Errorf("unable to parse control message: %w (%s)", err, ctrl.Bytes)
 	}
 	var v any
 	if err := unmarshaler.Unmarshal(value, &v); err != nil {
-		return nil, fmt.Errorf("unable to unmarshal Zed control message: %w (%s)", err, ctrl.Bytes)
+		return nil, fmt.Errorf("unable to unmarshal control message: %w (%s)", err, ctrl.Bytes)
 	}
 	return v, nil
 }

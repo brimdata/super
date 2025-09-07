@@ -29,10 +29,10 @@ var (
 	ErrUnsupportedType = errors.New("arrowio: unsupported type")
 )
 
-// Writer is a sio.Writer for the Arrow IPC stream format.  Given Zed values
+// Writer is a sio.Writer for the Arrow IPC stream format.  Given values
 // with appropriately named types (see the newArrowDataType implementation), it
 // can write all Arrow types except dictionaries and sparse unions.  (Although
-// dictionaries are not part of the Zed data model, write support could be added
+// dictionaries are not part of the super-structured data model, write support could be added
 // using a named type.)
 type Writer struct {
 	NewWriterFunc    func(io.Writer, *arrow.Schema) (WriteCloser, error)
@@ -357,7 +357,7 @@ func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes scode.By
 		case *super.TypeError:
 			b.Append(sup.FormatValue(super.NewValue(typ, bytes)))
 		default:
-			panic(fmt.Sprintf("unexpected Zed type for StringBuilder: %s", sup.FormatType(typ)))
+			panic(fmt.Sprintf("unexpected type for StringBuilder: %s", sup.FormatType(typ)))
 		}
 	case *array.BinaryBuilder:
 		b.Append(super.DecodeBytes(bytes))
@@ -386,7 +386,7 @@ func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes scode.By
 		case "arrow_time32_ms":
 			ts /= nano.Ts(nano.Millisecond)
 		default:
-			panic(fmt.Sprintf("unexpected Zed type name for Time32Builder: %s", sup.FormatType(typ)))
+			panic(fmt.Sprintf("unexpected type name for Time32Builder: %s", sup.FormatType(typ)))
 		}
 		b.Append(arrow.Time32(ts))
 	case *array.Time64Builder:

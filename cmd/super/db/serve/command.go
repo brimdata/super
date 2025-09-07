@@ -42,7 +42,7 @@ output at the default info level seems too excessive for
 production use, warn level is recommended.
 
 The -manage option enables the running of the same maintenance tasks
-normally performed via the separate "zed manage" command.
+normally performed via the separate "super db manage" command.
 `,
 	HiddenFlags: "brimfd,portfile",
 	New:         New,

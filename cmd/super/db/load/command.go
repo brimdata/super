@@ -70,7 +70,7 @@ func (c *Command) Run(args []string) error {
 	}
 	defer cleanup()
 	if len(args) == 0 {
-		return errors.New("zed load: at least one input file must be specified (- for stdin)")
+		return errors.New("super db load: at least one input file must be specified (- for stdin)")
 	}
 	db, err := c.DBFlags.Open(ctx)
 	if err != nil {

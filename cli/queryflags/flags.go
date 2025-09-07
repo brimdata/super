@@ -17,7 +17,7 @@ type Flags struct {
 
 func (f *Flags) SetFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&f.Stats, "stats", false, "display search stats on stderr")
-	fs.Var(&f.Includes, "I", "source file containing Zed query text (may be used multiple times)")
+	fs.Var(&f.Includes, "I", "source file containing query text (may be used multiple times)")
 }
 
 func (f *Flags) PrintStats(stats sbuf.Progress) {

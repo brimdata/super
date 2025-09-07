@@ -27,7 +27,7 @@ fragmentation by reading data objects in a pool and writing their
 contents back to large, non-overlapping objects.
 
 If the -monitor option is specified and the database is located via network
-connection, zed manage will run continuously and perform updates as
+connection, super db manage will run continuously and perform updates as
 needed. By default a check is performed once per minute to determine if
 updates are necessary. The -interval option may be used to specify an
 alternate check frequency in duration format.
@@ -39,7 +39,7 @@ The output from manage provides a per-pool summary of the maintenance
 performed, including a count of objects_compacted.
 
 As an alternative to running manage as a separate command, the -manage
-option is also available on the "zed serve" command to have maintenance
+option is also available on the "super db serve" command to have maintenance
 tasks run at the specified interval by the service process.
 `,
 	New: New,

@@ -75,7 +75,7 @@ func CompareInt64(op string, pattern int64) (Boolean, error) {
 	if !ok1 || !ok2 {
 		return nil, fmt.Errorf("unknown int comparator: %s", op)
 	}
-	// many different Zed data types can be compared with integers
+	// many different data types can be compared with integers
 	return func(val super.Value) super.Value {
 		val = val.Under()
 		if val.IsNull() {

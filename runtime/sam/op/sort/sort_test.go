@@ -132,7 +132,7 @@ func cat(ss ...string) string {
 
 func runTest(t *testing.T, cmd, input, output string) {
 	(&ztest.ZTest{
-		Zed:    cmd,
+		Spq:    cmd,
 		Input:  &input,
 		Output: trim(output),
 	}).Run(t, "", "")

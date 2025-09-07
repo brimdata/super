@@ -11,9 +11,9 @@ import (
 
 func DAG(seq dag.Seq) string {
 	d := &canonDAG{
-		canonZed: canonZed{formatter: formatter{tab: 2}},
-		head:     true,
-		first:    true,
+		shared: shared{formatter: formatter{tab: 2}},
+		head:   true,
+		first:  true,
 	}
 	d.seq(seq)
 	d.flush()
@@ -22,9 +22,9 @@ func DAG(seq dag.Seq) string {
 
 func DAGExpr(e dag.Expr) string {
 	d := &canonDAG{
-		canonZed: canonZed{formatter: formatter{tab: 2}},
-		head:     true,
-		first:    true,
+		shared: shared{formatter: formatter{tab: 2}},
+		head:   true,
+		first:  true,
 	}
 	d.expr(e, "")
 	d.flush()
@@ -32,7 +32,7 @@ func DAGExpr(e dag.Expr) string {
 }
 
 type canonDAG struct {
-	canonZed
+	shared
 	head  bool
 	first bool
 }

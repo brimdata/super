@@ -1,4 +1,4 @@
-# `zed` Python Package
+# `superdb` Python Package
 
-Visit <https://zed.brimdata.io/docs/libraries/python/> for installation
+Visit <https://superdb.org/docs/libraries/python/> for installation
 instructions and example usage.

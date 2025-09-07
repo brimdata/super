@@ -25,7 +25,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestZed(t *testing.T) {
+func TestSPQ(t *testing.T) {
 	t.Parallel()
 
 	dirs, err := findZTests()

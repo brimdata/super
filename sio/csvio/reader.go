@@ -27,7 +27,7 @@ type ReaderOpts struct {
 
 // XXX This is a placeholder for an option that will allow one to convert
 // all csv fields to strings and defer any type coercion presumably to
-// Zed shapers.  Currently, this causes an import cycle because the csvio
+// SuperSQL shapers.  Currently, this causes an import cycle because the csvio
 // Writer depends on fuse.  We should refactor this so whatever logic wants
 // to tack on a fuse operator happens outside of sio.  See issue #2315
 //type ReaderOpts struct {

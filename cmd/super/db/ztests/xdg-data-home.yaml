@@ -5,4 +5,4 @@ script: |
 outputs:
   - name: stdout
     regexp: |
-      database created: file:.*path/to/db/zed
+      database created: file:.*path/to/db/super

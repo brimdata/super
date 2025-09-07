@@ -1,17 +1,17 @@
 // Package ztest runs formulaic tests ("ztests") that can be (1) run in-process
 // with the compiled-in code base or (2) run as a bash script running a sequence
 // of arbitrary shell commands invoking any of the build artifacts.  The
-// first two cases comprise the "Zed test style" and the last case
+// first two cases comprise the "spq test style" and the last case
 // comprises the "script test style".  Case (1) is easier to debug by
 // simply running "go test" compared replicating the test using "go run".
 // Script-style tests don't have this convenience.
 //
-// In the Zed style, ztest runs a Zed program on an input and checks
+// In the spq style, ztest runs a SuperSQL program on an input and checks
 // for an expected output.
 //
-// A Zed-style test is defined in a YAML file.
+// A spq-style test is defined in a YAML file.
 //
-//	zed: count()
+//	spq: count()
 //
 //	input: |
 //	  #0:record[i:int64]
@@ -26,7 +26,7 @@
 // "super -i auto" (including optional gzip compression).  Output format defaults
 // to SUP but can be set to anything accepted by "super -f".
 //
-//	zed: count()
+//	spq: count()
 //
 //	input: |
 //	  #0:record[i:int64]
@@ -46,7 +46,7 @@
 // command generally results in a test failure.  Here, the yaml sets up a collection
 // of input files and stdin, the script runs, and the test driver compares expected
 // output files, stdout, and stderr with data in the yaml spec.  In this case,
-// instead of specifying, "zed", "input", "output", you specify the yaml arrays
+// instead of specifying, "spq", "input", "output", you specify the yaml arrays
 // "inputs" and "outputs" --- where each array element defines a file, stdin,
 // stdout, or stderr --- and a "script" that specifies a multi-line yaml string
 // defining the script, e.g.,
@@ -257,8 +257,8 @@ type ZTest struct {
 	Skip string `yaml:"skip,omitempty"`
 	Tag  string `yaml:"tag,omitempty"`
 
-	// For Zed-style tests.
-	Zed         string  `yaml:"spq,omitempty"`
+	// For spq-style tests.
+	Spq         string  `yaml:"spq,omitempty"`
 	Input       *string `yaml:"input,omitempty"`
 	InputFlags  string  `yaml:"input-flags,omitempty"`
 	Output      string  `yaml:"output,omitempty"`
@@ -291,8 +291,8 @@ func (z *ZTest) check() error {
 				return err
 			}
 		}
-	} else if z.Zed == "" {
-		return errors.New("either a zed field or script field must be present")
+	} else if z.Spq == "" {
+		return errors.New("either a spq field or script field must be present")
 	}
 	return nil
 }
@@ -320,7 +320,7 @@ func (z *ZTest) ShouldSkip(path string) string {
 	switch {
 	case z.Script != "" && path == "":
 		return "script test on in-process run"
-	case z.Zed != "" && path != "":
+	case z.Spq != "" && path != "":
 		return "in-process test on script run"
 	case z.Skip != "":
 		return z.Skip
@@ -355,17 +355,17 @@ func (z *ZTest) RunInternal() error {
 	outputFlags := append([]string{"-f=sup", "-pretty=0"}, strings.Fields(z.OutputFlags)...)
 	inputFlags := strings.Fields(z.InputFlags)
 	if z.Vector {
-		verr := z.diffInternal(runInternal(z.Zed, z.Input, outputFlags, inputFlags, true))
+		verr := z.diffInternal(runInternal(z.Spq, z.Input, outputFlags, inputFlags, true))
 		if verr != nil {
 			verr = fmt.Errorf("=== vector ===\n%w", verr)
 		}
-		serr := z.diffInternal(runInternal(z.Zed, z.Input, outputFlags, inputFlags, false))
+		serr := z.diffInternal(runInternal(z.Spq, z.Input, outputFlags, inputFlags, false))
 		if serr != nil {
 			serr = fmt.Errorf("=== sequence ===\n%w", serr)
 		}
 		return errors.Join(verr, serr)
 	}
-	return z.diffInternal(runInternal(z.Zed, z.Input, outputFlags, inputFlags, false))
+	return z.diffInternal(runInternal(z.Spq, z.Input, outputFlags, inputFlags, false))
 }
 
 func (z *ZTest) diffInternal(out string, err error) error {
@@ -465,11 +465,11 @@ func runsh(path, testDir, tempDir string, zt *ZTest, extraEnv ...string) error {
 	return nil
 }
 
-// runInternal runs zedProgram over input and returns the output.  input
+// runInternal runs query over input and returns the output.  input
 // may be in any format recognized by "super -i auto" and may be gzip-compressed.
 // outputFlags may contain any flags accepted by cli/outputflags.Flags.
-func runInternal(zedProgram string, input *string, outputFlags, inputFlags []string, vector bool) (string, error) {
-	ast, err := parser.ParseQuery(zedProgram)
+func runInternal(query string, input *string, outputFlags, inputFlags []string, vector bool) (string, error) {
+	ast, err := parser.ParseQuery(query)
 	if err != nil {
 		return "", err
 	}

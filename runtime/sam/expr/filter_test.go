@@ -338,7 +338,7 @@ func TestFilters(t *testing.T) {
 		{"i32 == 2147483647", true},
 		{"u32 == 4294967295", true},
 		{"i64 == 9223372036854775807", true},
-		// Can't represent large unsigned 64 bit values in Zed.
+		// Can't represent large unsigned 64 bit values in SUP.
 		// {"u64 = 18446744073709551615", true},
 	})
 

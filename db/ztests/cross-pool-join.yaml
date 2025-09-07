@@ -5,7 +5,7 @@ script: |
   super db create -q person
   super db load -q -use fruit fruit.sup
   super db load -q -use person person.sup
-  super db -s -I join.zed
+  super db -s -I join.spq
 
 inputs:
   - name: fruit.sup
@@ -21,7 +21,7 @@ inputs:
       {name:"bob",likes:"tart",age:61}::=person
       {name:"joe",likes:"sweet",age:14}::=person
       {name:"jim",likes:"plain",age:30}::=person
-  - name: join.zed
+  - name: join.spq
     data: |
       fork
         ( from fruit )

@@ -53,8 +53,8 @@ func IsRemote(u string) bool {
 
 func LookupPoolByName(ctx context.Context, api Interface, name string) (*pools.Config, error) {
 	b := newBuffer(pools.Config{})
-	zed := fmt.Sprintf("from :pools | name == '%s'", name)
-	q, err := api.Query(ctx, zed)
+	query := fmt.Sprintf("from :pools | name == '%s'", name)
+	q, err := api.Query(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -95,8 +95,8 @@ func GetPools(ctx context.Context, api Interface) ([]*pools.Config, error) {
 
 func LookupPoolByID(ctx context.Context, api Interface, id ksuid.KSUID) (*pools.Config, error) {
 	b := newBuffer(pools.Config{})
-	zed := fmt.Sprintf("from :pools | id == hex('%s')", idToHex(id))
-	q, err := api.Query(ctx, zed)
+	query := fmt.Sprintf("from :pools | id == hex('%s')", idToHex(id))
+	q, err := api.Query(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -120,8 +120,8 @@ func LookupPoolByID(ctx context.Context, api Interface, id ksuid.KSUID) (*pools.
 
 func LookupBranchByName(ctx context.Context, api Interface, poolName, branchName string) (*db.BranchMeta, error) {
 	b := newBuffer(db.BranchMeta{})
-	zed := fmt.Sprintf("from :branches | pool.name == '%s' branch.name == '%s'", poolName, branchName)
-	q, err := api.Query(ctx, zed)
+	query := fmt.Sprintf("from :branches | pool.name == '%s' branch.name == '%s'", poolName, branchName)
+	q, err := api.Query(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -145,8 +145,8 @@ func LookupBranchByName(ctx context.Context, api Interface, poolName, branchName
 
 func LookupBranchByID(ctx context.Context, api Interface, id ksuid.KSUID) (*db.BranchMeta, error) {
 	b := newBuffer(db.BranchMeta{})
-	zed := fmt.Sprintf("from :branches | branch.id == 'hex(%s)'", idToHex(id))
-	q, err := api.Query(ctx, zed)
+	query := fmt.Sprintf("from :branches | branch.id == 'hex(%s)'", idToHex(id))
+	q, err := api.Query(ctx, query)
 	if err != nil {
 		return nil, err
 	}

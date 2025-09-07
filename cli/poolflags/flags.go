@@ -19,7 +19,7 @@ func (l *Flags) SetFlags(fs *flag.FlagSet) {
 func (f *Flags) HEAD() (*dbid.Commitish, error) {
 	if f.defaultHead == "" {
 		return nil, errors.New(`pool and branch are unspecified
-(specify with -use flag or "zed use" command)`)
+(specify with -use flag or "super db use" command)`)
 	}
 	c, err := dbid.ParseCommitish(f.defaultHead)
 	if err != nil {

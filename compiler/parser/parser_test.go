@@ -17,8 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func searchForZed() ([]string, error) {
-	var zed []string
+func searchForSuperSQL() ([]string, error) {
+	var queries []string
 	pattern := fmt.Sprintf(`.*ztests\%c.*\.yaml$`, filepath.Separator)
 	re := regexp.MustCompile(pattern)
 	err := filepath.Walk("..", func(path string, info os.FileInfo, err error) error {
@@ -27,15 +27,15 @@ func searchForZed() ([]string, error) {
 			if err != nil {
 				return fmt.Errorf("%s: %w", path, err)
 			}
-			z := zt.Zed
-			if z == "" || z == "*" {
+			q := zt.Spq
+			if q == "" || q == "*" {
 				return nil
 			}
-			zed = append(zed, z)
+			queries = append(queries, q)
 		}
 		return err
 	})
-	return zed, err
+	return queries, err
 }
 
 func parseOp(z string) ([]byte, error) {
@@ -54,10 +54,10 @@ func parsePigeon(z string) ([]byte, error) {
 	return json.Marshal(ast)
 }
 
-// testZed checks both that the parse is successful and that the
+// testQuery checks both that the parse is successful and that the
 // two resulting ASTs from the round trip through json marshal and
 // unmarshal are equivalent.
-func testZed(t *testing.T, line string) {
+func testQuery(t *testing.T, line string) {
 	pigeonJSON, err := parsePigeon(line)
 	assert.NoError(t, err, "parsePigeon: %q", line)
 
@@ -68,30 +68,30 @@ func testZed(t *testing.T, line string) {
 }
 
 func TestValid(t *testing.T) {
-	file, err := fs.Open("valid.zed")
+	file, err := fs.Open("valid.spq")
 	require.NoError(t, err)
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Bytes()
-		testZed(t, string(line))
+		testQuery(t, string(line))
 	}
 }
 
-func TestZtestZed(t *testing.T) {
-	zed, err := searchForZed()
+func TestZtestSuperSQL(t *testing.T) {
+	queries, err := searchForSuperSQL()
 	require.NoError(t, err)
-	for _, z := range zed {
-		testZed(t, z)
+	for _, q := range queries {
+		testQuery(t, q)
 	}
 }
 
 func TestInvalid(t *testing.T) {
-	file, err := fs.Open("invalid.zed")
+	file, err := fs.Open("invalid.spq")
 	require.NoError(t, err)
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Bytes()
 		_, err := parser.Parse("", line)
-		assert.Error(t, err, "Zed: %q", line)
+		assert.Error(t, err, "query text: %q", line)
 	}
 }

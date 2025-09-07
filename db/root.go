@@ -167,7 +167,7 @@ func (r *Root) readMagic(ctx context.Context) error {
 		return err
 	}
 	if last != nil {
-		return fmt.Errorf("corrupt database version file: more than one Zed value at %s", sup.String(last))
+		return fmt.Errorf("corrupt database version file: more than one value at %s", sup.String(last))
 	}
 	var magic Magic
 	if err := sup.UnmarshalBSUP(*val, &magic); err != nil {

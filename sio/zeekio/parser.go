@@ -216,11 +216,11 @@ func (p *Parser) ParseDirective(line []byte) error {
 }
 
 // Unflatten turns a set of fields from legacy Zeek logs into a
-// Zed-compatible format by creating nested records for any dotted
+// super-structured format by creating nested records for any dotted
 // field names. If addpath is true, a _path field is added if not
 // already present. The fields are returned as a slice along with a
 // bool indicating if a _path field was added.
-// Note that according to the Zed spec, all the fields for a nested
+// Note that according to the super-structured data model, all the fields for a nested
 // record must be adjacent which simplifies the logic here.
 func Unflatten(sctx *super.Context, fields []super.Field, addPath bool) ([]super.Field, bool, error) {
 	hasPath := false

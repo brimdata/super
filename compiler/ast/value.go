@@ -29,7 +29,7 @@ type Any interface {
 	anyNode()
 }
 
-// Only Primitive and TypeValue are used in zed parser so only these are given
+// Only Primitive and TypeValue are used in the parser so only these are given
 // ast.Node features.
 
 type (

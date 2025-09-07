@@ -1,7 +1,7 @@
-script: super -s -I src.zed
+script: super -s -I src.spq
 
 inputs:
-  - name: src.zed
+  - name: src.spq
     data: |
       const A=1
       fork

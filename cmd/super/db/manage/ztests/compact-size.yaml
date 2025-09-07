@@ -1,4 +1,4 @@
-# This tests behavior in zed manage that compacts non-overlapping consecutive
+# This tests behavior in super db manage that compacts non-overlapping consecutive
 # objects if their combined size is less than pool threshold.
 
 script: |

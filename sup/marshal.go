@@ -90,11 +90,11 @@ func (u *UnmarshalContext) Unmarshal(sup string, v any) error {
 	if err != nil {
 		return err
 	}
-	zedVal, err := Build(u.builder, val)
+	superVal, err := Build(u.builder, val)
 	if err != nil {
 		return nil
 	}
-	return u.UnmarshalBSUPContext.Unmarshal(zedVal, v)
+	return u.UnmarshalBSUPContext.Unmarshal(superVal, v)
 }
 
 type BSUPMarshaler interface {
@@ -607,7 +607,7 @@ func (m *MarshalBSUPContext) lookupTypeNamed(t reflect.Type, typ super.Type) (su
 		return typ, nil
 	}
 	// We do not want to further decorate nano.Ts as
-	// it's already been converted to a Zed time;
+	// it's already been converted to a time type;
 	// likewise for super.Value, which gets encoded as
 	// itself and its own named type if it has one.
 	if t == nanoTsType || t == superValueType || t == netipAddrType || t == netIPType {
@@ -653,7 +653,7 @@ func incompatTypeError(zt super.Type, v reflect.Value) error {
 }
 
 // SetContext provides an optional type context to the unmarshaler.  This is
-// needed only when unmarshaling Zed type values into Go super.Type interface values.
+// needed only when unmarshaling type values into Go super.Type interface values.
 func (u *UnmarshalBSUPContext) SetContext(sctx *super.Context) {
 	u.sctx = sctx
 }
@@ -719,7 +719,7 @@ func (u *UnmarshalBSUPContext) decodeAny(val super.Value, v reflect.Value) (x er
 		return nil
 	}
 	if super.TypeUnder(val.Type()) == super.TypeNull {
-		// A zed null value should successfully unmarshal to any go type. Typed
+		// A null value should successfully unmarshal to any go type. Typed
 		// nulls however need to be type checked.
 		v.Set(reflect.Zero(v.Type()))
 		return nil
@@ -847,7 +847,7 @@ func indirect(v reflect.Value, val super.Value) (BSUPUnmarshaler, reflect.Value)
 	var nilptr reflect.Value
 	for v.Kind() == reflect.Pointer {
 		if v.CanSet() && val.IsNull() {
-			// If the reflect value can be set and the zed Value is nil we want
+			// If the reflect value can be set and the value is nil we want
 			// to store this pointer since if destination is not a super.Value the
 			// pointer will be set to nil.
 			nilptr = v
@@ -950,7 +950,7 @@ func (u *UnmarshalBSUPContext) decodeRecord(val super.Value, sval reflect.Value)
 	}
 	for i, it := 0, val.Iter(); !it.Done(); i++ {
 		if i >= len(recType.Fields) {
-			return errors.New("malformed Zed value")
+			return errors.New("malformed super value")
 		}
 		itzv := it.Next()
 		name := recType.Fields[i].Name
@@ -1107,9 +1107,9 @@ func typeNameOfValue(value any) (string, error) {
 	return fmt.Sprintf("%s.%s", typ.PkgPath(), typ.Name()), nil
 }
 
-// lookupGoType builds a Go type for the Zed value given by typ and bytes.
+// lookupGoType builds a Go type for the super value given by typ and bytes.
 // This process requires
-// a value rather than a Zed type as it must determine the types of union elements
+// a value rather than a super type as it must determine the types of union elements
 // from their tags.
 func (u *UnmarshalBSUPContext) lookupGoType(typ super.Type, bytes scode.Bytes) (reflect.Type, error) {
 	switch typ := typ.(type) {
@@ -1178,14 +1178,14 @@ func (u *UnmarshalBSUPContext) lookupGoType(typ super.Type, bytes scode.Bytes) (
 	case *super.TypeMap:
 		it := bytes.Iter()
 		if it.Done() {
-			return nil, fmt.Errorf("corrupt Zed map value in Zed unmarshal: type %q", String(typ))
+			return nil, fmt.Errorf("corrupt map value in super unmarshal: type %q", String(typ))
 		}
 		keyType, err := u.lookupGoType(typ.KeyType, it.Next())
 		if err != nil {
 			return nil, err
 		}
 		if it.Done() {
-			return nil, fmt.Errorf("corrupt Zed map value in Zed unmarshal: type %q", String(typ))
+			return nil, fmt.Errorf("corrupt map value in super unmarshal: type %q", String(typ))
 		}
 		valType, err := u.lookupGoType(typ.ValType, it.Next())
 		if err != nil {

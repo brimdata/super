@@ -26,7 +26,7 @@ func (t *TypeArray) Kind() Kind {
 }
 
 // ErrMissing is a Go error that implies a missing value in the runtime logic
-// whereas Missing is a Zed error value that represents a missing value embedded
+// whereas Missing is an error value that represents a missing value embedded
 // in the dataflow computation.
 var ErrMissing = errors.New("missing")
 

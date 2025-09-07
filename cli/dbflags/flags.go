@@ -34,7 +34,7 @@ func (l *Flags) SetFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&l.Quiet, "q", false, "quiet mode")
 	dir, _ := os.UserHomeDir()
 	if dir != "" {
-		dir = filepath.Join(dir, ".zed")
+		dir = filepath.Join(dir, ".super")
 	}
 	fs.StringVar(&l.ConfigDir, "configdir", dir, "configuration and credentials directory")
 	if s, ok := os.LookupEnv("SUPER_DB"); ok {

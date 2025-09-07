@@ -1,11 +1,11 @@
 script: |
-  ! super -s -I badshaper.zed -
+  ! super -s -I badshaper.spq -
 
 inputs:
   - name: stdin
     data: |
       {"_path": "bar", "testfield": null}
-  - name: badshaper.zed
+  - name: badshaper.spq
     data: |
       type foo={_path:string,testfield:"null"}
       values shape(foo)
@@ -13,6 +13,6 @@ inputs:
 outputs:
   - name: stderr
     data: |
-      no such type name: "null" in badshaper.zed at line 1, column 10:
+      no such type name: "null" in badshaper.spq at line 1, column 10:
       type foo={_path:string,testfield:"null"}
                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

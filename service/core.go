@@ -25,7 +25,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// DefaultFormat is the default Zed format that the server will assume if the
+// DefaultFormat is the default data format that the server will assume if the
 // value for a request's "Accept" or "Content-Type" headers are not set or set
 // to "*/*".
 const DefaultFormat = "sup"
@@ -35,10 +35,10 @@ const indexPage = `
 <html>
   <title>SuperDB database service</title>
   <body style="padding:10px">
-    <h2>zed serve</h2>
-    <p>A <a href="https://super.brimdata.io/docs/commands/zed#213-serve">SuperDB database service</a> is listening on this host/port.</p>
+    <h2>super db serve</h2>
+    <p>A <a href="https://superdb.org/book/command/db-serve.html">SuperDB database service</a> is listening on this host/port.</p>
     <p>If you're a <a href="https://zui.brimdata.io/">Zui</a> user, connect to this host/port from Zui app in the graphical desktop interface in your operating system (not a web browser).</p>
-    <p>If your goal is to perform command line operations against this database, use the <a href="https://super.brimdata.io/docs/commands/zed"><code>zed</code></a> command.</p>
+    <p>If your goal is to perform command line operations against this database, use the <a href="https://superdb.org/book/command/db.html"><code>super db</code></a> command.</p>
   </body>
 </html>`
 

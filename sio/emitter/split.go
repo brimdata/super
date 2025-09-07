@@ -69,9 +69,9 @@ func (s *Split) lookupOutput(val super.Value) (sio.WriteCloser, error) {
 }
 
 // path returns the storage URI given the prefix combined with a unique ID
-// to make a unique path for each Zed type.  If the _path field is present,
+// to make a unique path for each type.  If the _path field is present,
 // we use that for the unique ID, but if the _path string appears with
-// different Zed types, then we prepend it to the unique ID.
+// different types, then we prepend it to the unique ID.
 func (s *Split) path(r super.Value) *storage.URI {
 	uniq := strconv.Itoa(len(s.writers))
 	if _path := r.Deref("_path").AsString(); _path != "" {

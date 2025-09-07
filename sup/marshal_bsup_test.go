@@ -596,7 +596,7 @@ func TestEmbeddedInterface(t *testing.T) {
 	assert.Equal(t, "It's a thing one", thingB.Who())
 }
 
-func TestMultipleZedValues(t *testing.T) {
+func TestMultipleSuperValues(t *testing.T) {
 	bytes := []byte("foo")
 	u := sup.NewBSUPUnmarshaler()
 	var foo super.Value
@@ -611,7 +611,7 @@ func TestMultipleZedValues(t *testing.T) {
 	assert.Equal(t, "bar", string(bar.Bytes()))
 }
 
-func TestZedValues(t *testing.T) {
+func TestSuperValues(t *testing.T) {
 	test := func(t *testing.T, name, s string, v any) {
 		t.Run(name, func(t *testing.T) {
 			val := sup.MustParseValue(super.NewContext(), s)

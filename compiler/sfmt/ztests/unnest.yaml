@@ -1,10 +1,10 @@
 script: |
-  super compile -C -I test.zed
+  super compile -C -I test.spq
   echo ===
-  super compile -dag -C -I test.zed
+  super compile -dag -C -I test.spq
 
 inputs:
-  - name: test.zed
+  - name: test.spq
     data: |
       -- Expressions
       values (unnest a | ?b)

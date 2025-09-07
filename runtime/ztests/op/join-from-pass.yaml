@@ -1,9 +1,9 @@
-script: super -s -I join.zed left.sup
+script: super -s -I join.spq left.sup
 
 vector: true
 
 inputs:
-  - name: join.zed
+  - name: join.spq
     data: |
       fork
         ( pass )

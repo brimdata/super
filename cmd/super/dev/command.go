@@ -10,9 +10,9 @@ import (
 var Spec = &charm.Spec{
 	Name:  "dev",
 	Usage: "dev sub-command [arguments...]",
-	Short: "run specified zed development tool",
+	Short: "run specified development tool",
 	Long: `
-dev runs the Zed dev command identified by the arguments. With no arguments it
+dev runs a development tool identified by the arguments. With no arguments it
 prints the list of known dev tools.`,
 	New: New,
 }

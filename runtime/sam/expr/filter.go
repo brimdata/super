@@ -78,7 +78,7 @@ type search struct {
 	expr    Evaluator
 }
 
-// NewSearch creates a filter that searches Zed records for the
+// NewSearch creates a filter that searches records for the
 // given value, which must be of a type other than string.  The filter
 // matches a record that contains this value either as the value of any
 // field or inside any set or array.  It also matches a record if the string

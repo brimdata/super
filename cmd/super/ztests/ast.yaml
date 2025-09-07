@@ -1,10 +1,10 @@
 script: |
   super -C -c "?a"
-  super -C -I query.zed
-  super -C -I query.zed -c a
+  super -C -I query.spq
+  super -C -I query.spq -c a
 
 inputs:
-  - name: query.zed
+  - name: query.spq
     data: |
       ? q
 

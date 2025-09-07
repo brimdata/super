@@ -1,4 +1,4 @@
-// Package ast declares the types used to represent syntax trees for Zed
+// Package ast declares the types used to represent syntax trees for SuperSQL
 // queries.
 package ast
 
@@ -413,7 +413,7 @@ func (*TypeDecl) declNode()  {}
 // Operators
 
 // A Seq represents a sequence of operators that receive
-// a stream of Zed values from their parent into the first operator
+// a stream of values from their parent into the first operator
 // and each subsequent operator processes the output records from the
 // previous operator.
 type Seq []Op
@@ -436,8 +436,8 @@ func (s *Seq) Prepend(front Op) {
 	*s = append([]Op{front}, *s...)
 }
 
-// An Op is a node in the flowgraph that takes Zed values in, operates upon them,
-// and produces Zed values as output.
+// An Op is a node in the flowgraph that takes values in, operates upon them,
+// and produces values as output.
 type (
 	Scope struct {
 		Kind  string `json:"kind" unpack:""`

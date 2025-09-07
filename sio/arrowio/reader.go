@@ -50,7 +50,7 @@ func NewReaderFromRecordReader(sctx *super.Context, rr pqarrow.RecordReader) (*R
 		rr:               rr,
 		unionTagMappings: map[string][]int{},
 	}
-	typ, err := r.newZedType(arrow.StructOf(rr.Schema().Fields()...))
+	typ, err := r.newType(arrow.StructOf(rr.Schema().Fields()...))
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ var monthDayNanoIntervalFields = []super.Field{
 	{Name: "nanoseconds", Type: super.TypeInt64},
 }
 
-func (r *Reader) newZedType(dt arrow.DataType) (super.Type, error) {
+func (r *Reader) newType(dt arrow.DataType) (super.Type, error) {
 	// Order here follows that of the arrow.Time constants.
 	switch dt.ID() {
 	case arrow.NULL:
@@ -193,7 +193,7 @@ func (r *Reader) newZedType(dt arrow.DataType) (super.Type, error) {
 	case arrow.DECIMAL256:
 		return r.sctx.LookupTypeNamed("arrow_decimal256", r.sctx.LookupTypeArray(super.TypeUint64))
 	case arrow.LIST:
-		typ, err := r.newZedType(dt.(*arrow.ListType).Elem())
+		typ, err := r.newType(dt.(*arrow.ListType).Elem())
 		if err != nil {
 			return nil, err
 		}
@@ -201,7 +201,7 @@ func (r *Reader) newZedType(dt arrow.DataType) (super.Type, error) {
 	case arrow.STRUCT:
 		var fields []super.Field
 		for _, f := range dt.(*arrow.StructType).Fields() {
-			typ, err := r.newZedType(f.Type)
+			typ, err := r.newType(f.Type)
 			if err != nil {
 				return nil, err
 			}
@@ -210,21 +210,21 @@ func (r *Reader) newZedType(dt arrow.DataType) (super.Type, error) {
 		UniquifyFieldNames(fields)
 		return r.sctx.LookupTypeRecord(fields)
 	case arrow.SPARSE_UNION, arrow.DENSE_UNION:
-		return r.newZedUnionType(dt.(arrow.UnionType), dt.Fingerprint())
+		return r.newUnionType(dt.(arrow.UnionType), dt.Fingerprint())
 	case arrow.DICTIONARY:
-		return r.newZedType(dt.(*arrow.DictionaryType).ValueType)
+		return r.newType(dt.(*arrow.DictionaryType).ValueType)
 	case arrow.MAP:
-		keyType, err := r.newZedType(dt.(*arrow.MapType).KeyType())
+		keyType, err := r.newType(dt.(*arrow.MapType).KeyType())
 		if err != nil {
 			return nil, err
 		}
-		itemType, err := r.newZedType(dt.(*arrow.MapType).ItemType())
+		itemType, err := r.newType(dt.(*arrow.MapType).ItemType())
 		if err != nil {
 			return nil, err
 		}
 		return r.sctx.LookupTypeMap(keyType, itemType), nil
 	case arrow.FIXED_SIZE_LIST:
-		typ, err := r.newZedType(dt.(*arrow.FixedSizeListType).Elem())
+		typ, err := r.newType(dt.(*arrow.FixedSizeListType).Elem())
 		if err != nil {
 			return nil, err
 		}
@@ -240,7 +240,7 @@ func (r *Reader) newZedType(dt arrow.DataType) (super.Type, error) {
 	case arrow.LARGE_BINARY:
 		return r.sctx.LookupTypeNamed("arrow_large_binary", super.TypeBytes)
 	case arrow.LARGE_LIST:
-		typ, err := r.newZedType(dt.(*arrow.LargeListType).Elem())
+		typ, err := r.newType(dt.(*arrow.LargeListType).Elem())
 		if err != nil {
 			return nil, err
 		}
@@ -256,10 +256,10 @@ func (r *Reader) newZedType(dt arrow.DataType) (super.Type, error) {
 	}
 }
 
-func (r *Reader) newZedUnionType(union arrow.UnionType, fingerprint string) (super.Type, error) {
+func (r *Reader) newUnionType(union arrow.UnionType, fingerprint string) (super.Type, error) {
 	var types []super.Type
 	for _, f := range union.Fields() {
-		typ, err := r.newZedType(f.Type)
+		typ, err := r.newType(f.Type)
 		if err != nil {
 			return nil, err
 		}

@@ -1,15 +1,15 @@
 script: |
-  ! super compile -dag -I error-duplicate-parameters.zed
-  ! super compile -dag -I error-const-lhs.zed
+  ! super compile -dag -I error-duplicate-parameters.spq
+  ! super compile -dag -I error-const-lhs.spq
 
 inputs:
-  - name: error-duplicate-parameters.zed
+  - name: error-duplicate-parameters.spq
     data: |
       op test a, a: (
         pass
       )
       test "a", "b"
-  - name: error-const-lhs.zed
+  - name: error-const-lhs.spq
     data: |
       op test a: (
         a := a
@@ -19,9 +19,9 @@ inputs:
 outputs:
   - name: stderr
     data: |
-      duplicate parameter "a" in error-duplicate-parameters.zed at line 1, column 12:
+      duplicate parameter "a" in error-duplicate-parameters.spq at line 1, column 12:
       op test a, a: (
                  ~
-      illegal left-hand side of assignment in error-const-lhs.zed at line 2, column 3:
+      illegal left-hand side of assignment in error-const-lhs.spq at line 2, column 3:
         a := a
         ~~~~~~

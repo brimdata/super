@@ -10,10 +10,10 @@ import (
 var Spec = &charm.Spec{
 	Name:  "dig",
 	Usage: "dig sub-command [arguments...]",
-	Short: "extract useful information from Zed streams or files",
+	Short: "extract useful information from super-structured streams or files",
 	Long: `
-The dig command provide various debug and test functions regarding the Zed family
-of formats. When run with no arguments or -h, it lists help for the dig sub-commands.`,
+The dig command provide various debug and test functions regarding super-structured
+formats. When run with no arguments or -h, it lists help for the dig sub-commands.`,
 	New: New,
 }
 

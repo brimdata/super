@@ -92,7 +92,7 @@ func (d *DotExpr) evalTypeOfType(b scode.Bytes) super.Value {
 	return d.sctx.Missing()
 }
 
-// DotExprToString returns Zed for the Evaluator assuming it's a field expr.
+// DotExprToString returns text for the Evaluator assuming it's a field expr.
 func DotExprToString(e Evaluator) (string, error) {
 	f, err := DotExprToField(e)
 	if err != nil {

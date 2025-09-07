@@ -266,7 +266,7 @@ type BSUPValueField struct {
 }
 
 func TestBSUPValueField(t *testing.T) {
-	// Include a Zed int64 inside a Go struct as a super.Value field.
+	// Include an int64 inside a Go struct as a super.Value field.
 	bsupValueField := &BSUPValueField{
 		Name:  "test1",
 		Field: super.NewInt64(123),
@@ -282,7 +282,7 @@ func TestBSUPValueField(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, bsupValueField.Name, out.Name)
 	assert.True(t, bsupValueField.Field.Equal(out.Field))
-	// Include a Zed record inside a Go struct in a super.Value field.
+	// Include a record inside a Go struct in a super.Value field.
 	zv2, err := sup.ParseValue(super.NewContext(), `{s:"foo",a:[1,2,3]}`)
 	require.NoError(t, err)
 	bsupValueField2 := &BSUPValueField{
@@ -351,7 +351,7 @@ func TestMarshalNetipAddr(t *testing.T) {
 func TestMarshalDecoratedIPs(t *testing.T) {
 	m := sup.NewMarshaler()
 	// Make sure IPs don't get decorated with Go type and just
-	// appear as native Zed IPs.
+	// appear as native super-structured IPs.
 	m.Decorate(sup.StyleSimple)
 	b, err := m.Marshal(net.ParseIP("142.250.72.142"))
 	require.NoError(t, err)
@@ -442,7 +442,7 @@ func TestInterfaceWithConcreteEmptyValue(t *testing.T) {
 	assert.Equal(t, &Primitive{Foo: "foo"}, out)
 }
 
-func TestZedType(t *testing.T) {
+func TestSuperType(t *testing.T) {
 	sctx := super.NewContext()
 	u := sup.NewUnmarshaler()
 	var typ super.Type

@@ -7,10 +7,10 @@ import (
 	"strings"
 )
 
-const headFile = ".zed_head"
+const headFile = ".super_head"
 
 func headPath() string {
-	dir := os.Getenv("ZED_HEAD_DIR")
+	dir := os.Getenv("SUPER_HEAD_DIR")
 	if dir == "" {
 		dir, _ = os.UserHomeDir()
 	}

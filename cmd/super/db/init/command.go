@@ -17,7 +17,7 @@ var spec = &charm.Spec{
 	Usage: "create and initialize a new, empty database",
 	Short: "init [ path ]",
 	Long: `
-"zed init" ...
+"super db init" ...
 `,
 	New: New,
 }

@@ -434,7 +434,7 @@ func handleBranchLoad(c *Core, w *ResponseWriter, r *Request) {
 		// io.Seeker.  Copy the reader to a temporary file and use that.
 		//
 		// TODO: Add a way to disable this or limit file size.
-		f, err := os.CreateTemp("", "zed-serve-load-")
+		f, err := os.CreateTemp("", "super-db-load-")
 		if err != nil {
 			w.Error(err)
 			return

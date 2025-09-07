@@ -105,11 +105,11 @@ func (r *Request) CommitID(w *ResponseWriter) (ksuid.KSUID, bool) {
 }
 
 func (r *Request) decodeCommitMessage(w *ResponseWriter) (api.CommitMessage, bool) {
-	commitJSON := r.Header.Get("Zed-Commit")
+	commitJSON := r.Header.Get("SuperDB-Commit")
 	var message api.CommitMessage
 	if commitJSON != "" {
 		if err := json.Unmarshal([]byte(commitJSON), &message); err != nil {
-			w.Error(srverr.ErrInvalid("load endpoint encountered invalid JSON in Zed-Commit header: %w", err))
+			w.Error(srverr.ErrInvalid("load endpoint encountered invalid JSON in SuperDB-Commit header: %w", err))
 			return message, false
 		}
 	}

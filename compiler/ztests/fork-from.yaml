@@ -1,8 +1,8 @@
 script: |
-  super -s -I query.zed
+  super -s -I query.spq
 
 inputs:
-  - name: query.zed
+  - name: query.spq
     data: |
       fork
         ( from a.sup )

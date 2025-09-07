@@ -10,7 +10,7 @@ import (
 
 // coerceVals checks if a and b are type compatible for comparison
 // and/or math and modifies one of the vectors promoting to the
-// other's type as needed according to Zed's coercion rules (modified
+// other's type as needed according to the coercion rules (modified
 // vectors are returned, not changed in place).  When errors are
 // encountered an error vector is returned and the coerced values
 // are abandoned.

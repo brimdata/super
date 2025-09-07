@@ -19,7 +19,7 @@ var spec = &charm.Spec{
 	Usage: "ls [options] [pool]",
 	Short: "list pools in a database or branches in a pool",
 	Long: `
-"zed ls" lists pools in a database or branches in a pool.
+"super db ls" lists pools in a database or branches in a pool.
 
 By default, all pools in the database are listed along with each pool's unique ID
 and pool key configuration.

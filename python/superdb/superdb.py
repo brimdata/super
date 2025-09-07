@@ -15,7 +15,7 @@ import requests
 class Client():
     def __init__(self,
                  base_url=os.environ.get('SUPER_DB', 'http://localhost:9867'),
-                 config_dir=os.path.expanduser('~/.zed')):
+                 config_dir=os.path.expanduser('~/.super')):
         self.base_url = base_url.rstrip('/')
         self.session = requests.Session()
         self.session.headers.update({'Accept': 'application/x-jsup'})
@@ -50,7 +50,7 @@ class Client():
         branch = urllib.parse.quote(branch_name, safe='')
         url = self.base_url + '/pool/' + pool + '/branch/' + branch
         commit_message = {'author': commit_author, 'body': commit_body}
-        headers = {'Zed-Commit': json.dumps(commit_message)}
+        headers = {'SuperDB-Commit': json.dumps(commit_message)}
         r = self.session.post(url, headers=headers, data=data)
         self.__raise_for_status(r)
 

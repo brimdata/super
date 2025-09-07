@@ -35,7 +35,7 @@ func newRangePruner(pred dag.Expr, sortKey order.SortKey) dag.Expr {
 }
 
 // buildRangePruner creates a DAG comparison expression that can evalaute whether
-// a Zed value adhering to the from/to pattern can be excluded from a scan because
+// a value adhering to the from/to pattern can be excluded from a scan because
 // the expression pred would evaluate to false for all values of fld in the
 // from/to value range.  If a pruning decision cannot be reliably determined then
 // the return value is nil.
@@ -110,7 +110,7 @@ func rangePrunerPred(op string, literal *dag.Literal, min, max *dag.This) *dag.B
 }
 
 // compare returns a DAG expression for a standard comparison operator but
-// uses a call to the Zed language function "compare()" as standard comparisons
+// uses a call to the SuperSQL function "compare()" as standard comparisons
 // do not handle nullsmax or cross-type comparisons (which can arise when the
 // pool key value type changes).
 func compare(op string, lhs, rhs dag.Expr) *dag.BinaryExpr {

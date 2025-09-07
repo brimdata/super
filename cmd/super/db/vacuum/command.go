@@ -17,7 +17,7 @@ var spec = &charm.Spec{
 	Usage: "vacuum [options]",
 	Short: "clear space by removing unreferenced objects",
 	Long: `
-"zed vacuum" clears up space in a pool by removing objects that are not visible 
+"super db vacuum" clears up space in a pool by removing objects that are not visible 
 from a pool's branch or commit.
 
 DANGER ZONE:

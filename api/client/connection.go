@@ -343,7 +343,7 @@ func encodeCommitMessage(req *Request, message api.CommitMessage) error {
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Zed-Commit", string(encoded))
+	req.Header.Set("SuperDB-Commit", string(encoded))
 	return nil
 }
 

@@ -24,7 +24,7 @@ type MergeSort struct {
 	sctx       *super.Context
 }
 
-const TempPrefix = "zed-spill-"
+const TempPrefix = "super-spill-"
 
 func TempDir() (string, error) {
 	return os.MkdirTemp("", TempPrefix)

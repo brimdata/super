@@ -9,7 +9,7 @@ $(error 32-bit architectures are unsupported; see https://github.com/brimdata/su
 endif
 
 # This enables a shortcut to run a single test from the ./ztests suite, e.g.:
-#  make TEST=TestZed/ztests/suite/cut/cut
+#  make TEST=TestSPQ/ztests/suite/cut/cut
 ifneq "$(TEST)" ""
 test-one: test-run
 endif

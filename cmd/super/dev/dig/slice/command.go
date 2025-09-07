@@ -23,7 +23,7 @@ var spec = &charm.Spec{
 	Short: "extract a slice from a file and attempt to interpret it as BSUP",
 	Long: `
 The slice command takes a slice specified and a file argument (which must be a BSUP file),
-extracts the requested slice of the file, and outputs the slice in any Zed format.
+extracts the requested slice of the file, and outputs the slice in any format.
 The command will fail if the slice boundary does not fall on a valid BSUP boundary.`,
 	New: newCommand,
 }
@@ -50,7 +50,7 @@ func (c *Command) Run(args []string) error {
 	}
 	defer cleanup()
 	if len(args) != 2 {
-		return errors.New("zed dev slice: requires a from:to specifier and a file")
+		return errors.New("super dev dig slice: requires a from:to specifier and a file")
 	}
 	uri, err := storage.ParseURI(args[1])
 	if err != nil {

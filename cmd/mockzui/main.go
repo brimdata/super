@@ -1,5 +1,5 @@
 // mockzui is a command for testing purposes only. It is designed to simulate
-// the exact way Zui launches then forks a separate zed process. zed must be
+// the exact way Zui launches then forks a separate super process. super must be
 // in $PATH for this to work.
 
 package main

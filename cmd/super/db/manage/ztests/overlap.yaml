@@ -1,4 +1,4 @@
-# Test ensures that zed manage merges objects with the same key into one object 
+# Test ensures that super db manage merges objects with the same key into one object 
 # even if the object is greater than pool threshold.
 
 script: |

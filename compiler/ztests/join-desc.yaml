@@ -1,12 +1,12 @@
 script: |
-  super -s -I file.zed > file.sup
+  super -s -I file.spq > file.sup
   export SUPER_DB=test
   super db init -q 
   super db create -q -use -orderby likes:desc people 
   super db load -q people.sup
   super db create -q -use -orderby flavor:desc fruits
   super db load -q fruits.sup
-  super db -s -I pool.zed > pool.sup
+  super db -s -I pool.spq > pool.sup
 
 inputs:
   - name: people.sup
@@ -23,12 +23,12 @@ inputs:
       {"name":"strawberry","color":"red","flavor":"sweet"}
       {"name":"dates","color":"brown","flavor":"sweet","note":"in season"}
       {"name":"figs","color":"brown","flavor":"plain"}
-  - name: file.zed
+  - name: file.spq
     data: |
       from fruits.sup | sort -r flavor
       | join (from people.sup | sort -r likes) on left.flavor=right.likes 
       | values {...left,eater:right.name}
-  - name: pool.zed
+  - name: pool.spq
     data: |
       from fruits
       | join (from people) on left.flavor=right.likes

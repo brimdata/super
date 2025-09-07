@@ -1,12 +1,12 @@
 script: |
   super -s -c 'from a.sup'
-  super -s -I query.zed
+  super -s -I query.spq
 
 inputs:
   - name: a.sup
     data: |
       {a:1}
-  - name: query.zed
+  - name: query.spq
     data: |
       from a.sup
 

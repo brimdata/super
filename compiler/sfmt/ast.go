@@ -15,7 +15,7 @@ func AST(p ast.Seq) string {
 	if len(p) == 0 {
 		return ""
 	}
-	c := &canon{canonZed: canonZed{formatter{tab: 2}}, head: true, first: true}
+	c := &canon{shared: shared{formatter{tab: 2}}, head: true, first: true}
 	if scope, ok := p[0].(*ast.Scope); ok {
 		c.scope(scope, false)
 	} else {
@@ -27,9 +27,9 @@ func AST(p ast.Seq) string {
 
 func ASTExpr(e ast.Expr) string {
 	d := &canon{
-		canonZed: canonZed{formatter: formatter{tab: 2}},
-		head:     true,
-		first:    true,
+		shared: shared{formatter: formatter{tab: 2}},
+		head:   true,
+		first:  true,
 	}
 	d.expr(e, "")
 	d.flush()
@@ -37,7 +37,7 @@ func ASTExpr(e ast.Expr) string {
 }
 
 type canon struct {
-	canonZed
+	shared
 	head  bool
 	first bool
 }
@@ -565,7 +565,7 @@ func (c *canon) op(p ast.Op) {
 		// Since we can't determine whether the expression is a func call or
 		// an op call until the semantic pass, leave this ambiguous.
 		// XXX (nibs) - I don't think we should be doing this kind introspection
-		// here. This is why we have the semantic pass and canonical zed here
+		// here. This is why we have the semantic pass and the canonical format here
 		// should reflect the ambiguous nature of the expression.
 		if which != "" {
 			c.open(which)

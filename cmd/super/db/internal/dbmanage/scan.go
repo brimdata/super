@@ -92,7 +92,7 @@ func (r *objectIterator) next() (*object, error) {
 		return nil, err
 	}
 	var o object
-	// XXX Embedded structs currently not supported in zed marshal so unmarshal
+	// XXX Embedded structs currently not supported in marshal so unmarshal
 	// embedded object struct separately.
 	if err := r.unmarshaler.Unmarshal(*val, &o.Object); err != nil {
 		return nil, err

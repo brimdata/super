@@ -50,7 +50,7 @@ automation and orchestration tools are better off hard-wiring the
 HEAD references in each database command via -use.
 
 The use command merely checks that the branch exists and updates the
-file ~/.zed_head.  This file simply contains a pointer to the HEAD branch
+file ~/.super_head.  This file simply contains a pointer to the HEAD branch
 and thus provides the default for the -use option.  This way, multiple working
 directories can contain different HEAD pointers (along with your local files)
 and you can easily switch between windows without having to continually

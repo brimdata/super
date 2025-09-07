@@ -1,6 +1,6 @@
-# Zed parser
+# SuperSQL parser
 
-This directory contains the Zed parser implemented in PEG.
+This directory contains the SuperSQL parser implemented in PEG.
 
 There is a single PEG input file that works with
 [pigeon](https://github.com/mna/pigeon) to generate the Go parser.
@@ -17,7 +17,7 @@ parser (parser.go).
 ## Testing
 
 The `super compile` command can be used for easily testing the output of
-the Zed parser.
+the parser.
 
 ## Development
 

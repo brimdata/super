@@ -1,19 +1,19 @@
 script: |
-  ! super -I duplicate.zed -
-  ! super -I call-non-func.zed -
-  ! super -I wrong-args.zed -
+  ! super -I duplicate.spq -
+  ! super -I call-non-func.spq -
+  ! super -I wrong-args.spq -
 
 inputs:
-  - name: duplicate.zed
+  - name: duplicate.spq
     data: |
       fn dup(n): (n+1)
       fn dup(n): (n+2)
       values dup(this)
-  - name: call-non-func.zed
+  - name: call-non-func.spq
     data: |
       const notAFunc = "foo"
       values notAFunc(this)
-  - name: wrong-args.zed
+  - name: wrong-args.spq
     data: |
       fn f(a,b): (a+b)
       values f(this)
@@ -24,9 +24,9 @@ outputs:
       symbol "dup" redefined in duplicate.zed at line 2, column 4:
       fn dup(n): (n+2)
          ~~~
-      not a function in call-non-func.zed at line 2, column 8:
+      not a function in call-non-func.spq at line 2, column 8:
       values notAFunc(this)
              ~~~~~~~~
-      call expects 2 argument(s) in wrong-args.zed at line 2, column 8:
+      call expects 2 argument(s) in wrong-args.spq at line 2, column 8:
       values f(this)
              ~~~~~~~

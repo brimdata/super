@@ -1,12 +1,12 @@
 # Contributing
 
-Thank you for contributing to `zed`!
+Thank you for contributing to SuperDB!
 
 Per common practice, please [open an issue](https://github.com/brimdata/super/issues)
 before sending a pull request.  If you think your ideas might benefit from some
 refinement via Q&A, come talk to us on [Slack](https://www.brimdata.io/join-slack/) as well.
 
-`zed` is early in its life cycle and will be expanding quickly.  Please star and/or
+SuperDB is early in its life cycle and will be expanding quickly.  Please star and/or
 watch the repo so you can follow and track our progress.
 
 In particular, we will be adding many more operators and aggregate functions.
@@ -16,7 +16,7 @@ in [runtime/sam/expr/agg](runtime/sam/expr/agg).
 
 ## Development
 
-`zed` requires Go 1.24 or later, and uses [Go modules](https://github.com/golang/go/wiki/Modules).
+Compiling `super` requires Go 1.24 or later and uses [Go modules](https://github.com/golang/go/wiki/Modules).
 Compilation for 32-bit target environments is not currently supported
 (see [super/4044](https://github.com/brimdata/super/issues/4044)).
 Dependencies are specified in the [`go.mod` file](./go.mod) and fetched

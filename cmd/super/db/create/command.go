@@ -27,7 +27,7 @@ The single argument specifies the name for the pool.
 
 The db query command can efficiently perform
 range scans with respect to the pool key using the
-"range" parameter to the Zed "from" operator as the data is laid out
+"range" parameter to the "from" operator as the data is laid out
 naturally for such scans.
 
 By default, a branch called "main" is initialized in the newly created pool.

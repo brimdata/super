@@ -182,10 +182,10 @@ func (b *builder) appendPrimitive(typ super.Type, val []byte) error {
 			// whether the data was originally in the network or was
 			// escaped.  The proper way to handle all this
 			// would be for Zeek's logging system to identify these
-			// quasi-strings natively (e.g., as a Zed union (string,bytes)),
+			// quasi-strings natively (e.g., as a union type string|bytes),
 			// but the Zeek team didn't seem to accept this as a priority,
 			// so we simply replicate here what Zeek does for JSON.
-			// If there ever is interest, we could create the (strings,bytes)
+			// If there ever is interest, we could create the strings|bytes
 			// union here, but given the current code structure, which
 			// assumes a fixed record-type per log type, it is a little
 			// bit involved.  Since the Zeek team doesn't think this is

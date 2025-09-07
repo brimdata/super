@@ -1,11 +1,11 @@
 script: |
-  super -I bug.zed -s -
+  super -I bug.spq -s -
 
 inputs:
   - name: stdin
     data: |
       {x:1}
-  - name: bug.zed
+  - name: bug.spq
     data: |
       type netx=uint16
       type foo={bar:netx}

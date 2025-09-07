@@ -15,7 +15,7 @@ func (i *Iter) Done() bool {
 
 // Next returns the body of the next value along with a boolean that is true if
 // the value is a container.  It returns an empty slice for an empty or
-// zero-length value and nil for a Zed null value.  The container boolean is not
+// zero-length value and nil for a super null value.  The container boolean is not
 // meaningful if the returned Bytes slice is nil.  Next panics if the next value
 // is malformed.
 func (i *Iter) Next() Bytes {
