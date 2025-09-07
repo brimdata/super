@@ -384,7 +384,7 @@ func (c *canon) decl(d ast.Decl) {
 		c.write("const %s = ", d.Name.Name)
 		c.expr(d.Expr, "")
 	case *ast.FuncDecl:
-		c.write("func %s(", d.Name.Name)
+		c.write("fn %s(", d.Name.Name)
 		for i := range d.Params {
 			if i != 0 {
 				c.write(", ")

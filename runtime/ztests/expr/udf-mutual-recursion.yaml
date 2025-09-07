@@ -1,9 +1,9 @@
 spq: |
-  func is_even(n): (
+  fn is_even(n): (
     n == 0 ? true : is_odd(n-1)
   )
 
-  func is_odd(n): (
+  fn is_odd(n): (
     n == 0 ? false: is_even(n-1)
   )
 

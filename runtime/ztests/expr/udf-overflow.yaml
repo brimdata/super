@@ -1,5 +1,5 @@
 spq: |
-  func overflow(n): (
+  fn overflow(n): (
     overflow(n+1)
   )
   values overflow(this)

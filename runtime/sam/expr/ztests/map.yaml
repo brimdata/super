@@ -1,13 +1,13 @@
 script: |
   echo '{a:["foo","bar","baz"]}' | super -s -c 'a := map(a,upper)' -
   echo '{a:|["foo","bar","baz"]|}' | super -s -c 'a := map(a,upper)' -
-  echo '["1","2","3"]' | super -s -c 'func castInt(v) : (v::int64) values map(this, castInt)' -
+  echo '["1","2","3"]' | super -s -c 'fn castInt(v) : (v::int64) values map(this, castInt)' -
   echo '[1,2,3]' | super - | super -s -I udf.zed -
 
 inputs:
   - name: udf.zed
     data: |
-      func stringify(x): ( cast(x, <string>) )
+      fn stringify(x): ( cast(x, <string>) )
       values map(this, stringify)
 
 outputs:

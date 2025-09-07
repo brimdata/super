@@ -43,7 +43,7 @@ ConstDecl
     }
 
 FuncDecl
-  = FUNC _ name:Identifier __ "(" __ params:Identifiers? __ ")" __ ":" __ "(" __ expr:Expr __ ")" {
+  = FN _ name:Identifier __ "(" __ params:Identifiers? __ ")" __ ":" __ "(" __ expr:Expr __ ")" {
       return &ast.FuncDecl{
         Kind: "FuncDecl",
         Name: name.(*ast.ID),
@@ -2323,11 +2323,11 @@ EXPLODE    = "EXPLODE"i         !IdentifierRest
 EXTRACT    = "EXTRACT"i         !IdentifierRest
 FALSE      = "FALSE"i           !IdentifierRest
 FIRST      = "FIRST"i           !IdentifierRest
+FN         = "FN"i              !IdentifierRest
 FOR        = "FOR"i             !IdentifierRest
 FORK       = "FORK"i            !IdentifierRest
 FROM       = "FROM"i            !IdentifierRest
 FULL       = "FULL"i            !IdentifierRest
-FUNC       = "FUNC"i            !IdentifierRest
 FUSE       = "FUSE"i            !IdentifierRest
 GROUP      = "GROUP"i           !IdentifierRest
 HAVING     = "HAVING"i          !IdentifierRest

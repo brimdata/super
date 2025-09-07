@@ -35,7 +35,7 @@ values map(this, upper)
 Using a user-defined function to convert epoch floats to time values:
 ```mdtest-spq {data-layout="stacked"}
 # spq
-func floatToTime(x): (
+fn floatToTime(x): (
   cast(x*1000000000, <time>)
 )
 values map(this, floatToTime)

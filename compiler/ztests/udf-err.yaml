@@ -6,8 +6,8 @@ script: |
 inputs:
   - name: duplicate.zed
     data: |
-      func dup(n): (n+1)
-      func dup(n): (n+2)
+      fn dup(n): (n+1)
+      fn dup(n): (n+2)
       values dup(this)
   - name: call-non-func.zed
     data: |
@@ -15,15 +15,15 @@ inputs:
       values notAFunc(this)
   - name: wrong-args.zed
     data: |
-      func f(a,b): (a+b)
+      fn f(a,b): (a+b)
       values f(this)
 
 outputs:
   - name: stderr
     data: |
-      symbol "dup" redefined in duplicate.zed at line 2, column 6:
-      func dup(n): (n+2)
-           ~~~
+      symbol "dup" redefined in duplicate.zed at line 2, column 4:
+      fn dup(n): (n+2)
+         ~~~
       not a function in call-non-func.zed at line 2, column 8:
       values notAFunc(this)
              ~~~~~~~~

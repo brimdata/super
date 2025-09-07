@@ -30,7 +30,7 @@ values upper(this)
 
 ```mdtest-spq
 # spq
-func capitalize(str): (
+fn capitalize(str): (
   upper(str[1:2]) + str[2:]
 )
 values capitalize(this)
