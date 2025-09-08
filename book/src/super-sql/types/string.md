@@ -36,6 +36,14 @@ are expressed as the character `r` followed by a single- or double-quoted
 string, where any backslash characters are treated literally and not as an
 escape sequence.  For example, `r'foo\bar'` is equivalent to `'foo\\bar'`.
 
+Unlike other string syntaxes, raw strings may have embedded newlines, e.g.,
+a literal newline inside of the string rather than the character sequence `\n`
+as in
+```
+r"foo
+bar"
+```
+
 #### Formatted Strings
 
 Formatted strings or
@@ -96,4 +104,16 @@ values r'foo\nbar\t'
 null
 # expected output
 "foo\\nbar\\t"
+```
+---
+_Raw strings withe embedded newline_
+
+```mdtest-spq
+# spq
+values r'foo
+bar'
+# input
+null
+# expected output
+"foo\nbar"
 ```
