@@ -106,7 +106,7 @@ null
 "foo\\nbar\\t"
 ```
 ---
-_Raw strings withe embedded newline_
+_Raw strings with embedded newline_
 
 ```mdtest-spq
 # spq
