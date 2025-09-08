@@ -189,16 +189,17 @@ values grok("%{MY_NUMTZ:tz}",
 
 ---
 
-_To include the `\n` newline escapes to separate multiple named patterns
-in the `definitions` argument, string concatenation via `+` may further enhance
-readability_
+_Raw strings also help express the newline separation in the `definitions` argument_
 
 ```mdtest-spq {data-layout="stacked"}
 # spq
+const defs = r"
+PH_PREFIX \d{3}
+PH_LINE_NUM \d{4}"
+
 values grok(r"\(%{PH_PREFIX:prefix}\)-%{PH_LINE_NUM:line_number}",
             this,
-            r"PH_PREFIX \d{3}" + "\n" +
-            r"PH_LINE_NUM \d{4}")
+            defs)
 # input
 "(555)-1212"
 # expected output
