@@ -154,9 +154,6 @@ func (p *Parser) matchPrimitive() (*ast.Primitive, error) {
 	if val, err := p.matchStringPrimitive(); val != nil || err != nil {
 		return val, noEOF(err)
 	}
-	if val, err := p.matchBacktickString(); val != nil || err != nil {
-		return val, noEOF(err)
-	}
 	l := p.lexer
 	if err := l.skipSpace(); err != nil {
 		return nil, noEOF(err)
@@ -239,43 +236,6 @@ func (p *Parser) matchString() (string, bool, error) {
 		return "", false, p.error("mismatched string quotes")
 	}
 	return s, true, nil
-}
-
-var arrow = []byte("=>")
-
-func (p *Parser) matchBacktickString() (*ast.Primitive, error) {
-	l := p.lexer
-	keepIndentation := false
-	ok, err := l.matchBytes(arrow)
-	if err != nil {
-		return nil, noEOF(err)
-	}
-	if ok {
-		keepIndentation = true
-	}
-	ok, err = l.match('`')
-	if err != nil || !ok {
-		if err == nil && keepIndentation {
-			err = errors.New("no backtick found following '=>'")
-		}
-		return nil, err
-	}
-	s, err := l.scanBacktickString(keepIndentation)
-	if err != nil {
-		return nil, p.error("parsing backtick string literal")
-	}
-	ok, err = l.match('`')
-	if err != nil {
-		return nil, err
-	}
-	if !ok {
-		return nil, p.error("mismatched string backticks")
-	}
-	return &ast.Primitive{
-		Kind: "Primitive",
-		Type: "string",
-		Text: s,
-	}, nil
 }
 
 func (p *Parser) matchRecord() (*ast.Record, error) {
