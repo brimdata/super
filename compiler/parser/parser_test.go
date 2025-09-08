@@ -27,7 +27,7 @@ func searchForSuperSQL() ([]string, error) {
 			if err != nil {
 				return fmt.Errorf("%s: %w", path, err)
 			}
-			q := zt.Spq
+			q := zt.SPQ
 			if q == "" || q == "*" {
 				return nil
 			}
@@ -92,6 +92,6 @@ func TestInvalid(t *testing.T) {
 	for scanner.Scan() {
 		line := scanner.Bytes()
 		_, err := parser.Parse("", line)
-		assert.Error(t, err, "query text: %q", line)
+		assert.Error(t, err, "query: %q", line)
 	}
 }

@@ -1,15 +1,15 @@
 // Package ztest runs formulaic tests ("ztests") that can be (1) run in-process
 // with the compiled-in code base or (2) run as a bash script running a sequence
 // of arbitrary shell commands invoking any of the build artifacts.  The
-// first two cases comprise the "spq test style" and the last case
+// first two cases comprise the "SPQ test style" and the last case
 // comprises the "script test style".  Case (1) is easier to debug by
 // simply running "go test" compared replicating the test using "go run".
 // Script-style tests don't have this convenience.
 //
-// In the spq style, ztest runs a SuperSQL program on an input and checks
+// In the SPQ style, ztest runs a SuperSQL program on an input and checks
 // for an expected output.
 //
-// A spq-style test is defined in a YAML file.
+// A SPQ-style test is defined in a YAML file.
 //
 //	spq: count()
 //
@@ -258,7 +258,7 @@ type ZTest struct {
 	Tag  string `yaml:"tag,omitempty"`
 
 	// For spq-style tests.
-	Spq         string  `yaml:"spq,omitempty"`
+	SPQ         string  `yaml:"spq,omitempty"`
 	Input       *string `yaml:"input,omitempty"`
 	InputFlags  string  `yaml:"input-flags,omitempty"`
 	Output      string  `yaml:"output,omitempty"`
@@ -291,7 +291,7 @@ func (z *ZTest) check() error {
 				return err
 			}
 		}
-	} else if z.Spq == "" {
+	} else if z.SPQ == "" {
 		return errors.New("either a spq field or script field must be present")
 	}
 	return nil
@@ -320,7 +320,7 @@ func (z *ZTest) ShouldSkip(path string) string {
 	switch {
 	case z.Script != "" && path == "":
 		return "script test on in-process run"
-	case z.Spq != "" && path != "":
+	case z.SPQ != "" && path != "":
 		return "in-process test on script run"
 	case z.Skip != "":
 		return z.Skip
@@ -355,17 +355,17 @@ func (z *ZTest) RunInternal() error {
 	outputFlags := append([]string{"-f=sup", "-pretty=0"}, strings.Fields(z.OutputFlags)...)
 	inputFlags := strings.Fields(z.InputFlags)
 	if z.Vector {
-		verr := z.diffInternal(runInternal(z.Spq, z.Input, outputFlags, inputFlags, true))
+		verr := z.diffInternal(runInternal(z.SPQ, z.Input, outputFlags, inputFlags, true))
 		if verr != nil {
 			verr = fmt.Errorf("=== vector ===\n%w", verr)
 		}
-		serr := z.diffInternal(runInternal(z.Spq, z.Input, outputFlags, inputFlags, false))
+		serr := z.diffInternal(runInternal(z.SPQ, z.Input, outputFlags, inputFlags, false))
 		if serr != nil {
 			serr = fmt.Errorf("=== sequence ===\n%w", serr)
 		}
 		return errors.Join(verr, serr)
 	}
-	return z.diffInternal(runInternal(z.Spq, z.Input, outputFlags, inputFlags, false))
+	return z.diffInternal(runInternal(z.SPQ, z.Input, outputFlags, inputFlags, false))
 }
 
 func (z *ZTest) diffInternal(out string, err error) error {

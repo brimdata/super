@@ -15,7 +15,7 @@ func testSuccessful(t *testing.T, e, input, expected string) {
 		input = "{}"
 	}
 	zt := ztest.ZTest{
-		Spq:    fmt.Sprintf("values %s", e),
+		SPQ:    fmt.Sprintf("values %s", e),
 		Input:  &input,
 		Output: expected + "\n",
 	}
@@ -27,7 +27,7 @@ func testSuccessful(t *testing.T, e, input, expected string) {
 func testError(t *testing.T, e string, expectErr error) {
 	t.Helper()
 	zt := ztest.ZTest{
-		Spq:   fmt.Sprintf("values %s", e),
+		SPQ:   fmt.Sprintf("values %s", e),
 		Error: expectErr.Error() + "\n",
 	}
 	if err := zt.RunInternal(); err != nil {
