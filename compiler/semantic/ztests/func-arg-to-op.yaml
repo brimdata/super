@@ -1,5 +1,5 @@
 spq: |
-  func g(x) : (x+1)
+  fn g(x) : (x+1)
   op foo f: (values f(123))
   foo g
 
