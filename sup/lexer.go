@@ -445,8 +445,6 @@ func unhexRune(b []byte) (rune, error) {
 	return r0<<12 | r1<<8 | r2<<4 | r3, nil
 }
 
-var newline = []byte{'\n'}
-
 func (l *Lexer) scanTypeName() (string, error) {
 	ok, err := l.match('"')
 	if err != nil {
