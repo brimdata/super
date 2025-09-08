@@ -139,7 +139,6 @@
             - [lower](super-sql/functions/strings/lower.md)
             - [position](super-sql/functions/strings/position.md)
             - [replace](super-sql/functions/strings/replace.md)
-            - [rune_len](super-sql/functions/strings/rune_len.md)
             - [split](super-sql/functions/strings/split.md)
             - [trim](super-sql/functions/strings/trim.md)
             - [upper](super-sql/functions/strings/upper.md)

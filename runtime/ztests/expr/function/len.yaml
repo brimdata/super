@@ -11,6 +11,7 @@ input: |
   null::string
   ""
   "string"
+  "😎"
   null::ip
   1.0.0.0
   1::
@@ -51,6 +52,7 @@ output: |
   0
   0
   6
+  1
   0
   4
   16

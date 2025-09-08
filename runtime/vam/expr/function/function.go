@@ -111,8 +111,6 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		f = &Replace{sctx}
 	case "round":
 		f = &Round{sctx}
-	case "rune_len":
-		f = &RuneLen{sctx}
 	case "split":
 		argmin, argmax = 2, 2
 		f = &Split{sctx}

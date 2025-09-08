@@ -2,7 +2,6 @@ package function
 
 import (
 	"strings"
-	"unicode/utf8"
 
 	"github.com/agnivade/levenshtein"
 	"github.com/brimdata/super"
@@ -52,22 +51,6 @@ func (r *Replace) Call(args []super.Value) super.Value {
 	old := super.DecodeString(oldVal.Bytes())
 	new := super.DecodeString(newVal.Bytes())
 	return super.NewString(strings.ReplaceAll(s, old, new))
-}
-
-type RuneLen struct {
-	sctx *super.Context
-}
-
-func (r *RuneLen) Call(args []super.Value) super.Value {
-	val := args[0].Under()
-	if !val.IsString() {
-		return r.sctx.WrapError("rune_len: string arg required", val)
-	}
-	if val.IsNull() {
-		return super.NewInt64(0)
-	}
-	s := super.DecodeString(val.Bytes())
-	return super.NewInt64(int64(utf8.RuneCountInString(s)))
 }
 
 type ToLower struct {

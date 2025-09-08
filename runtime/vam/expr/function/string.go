@@ -2,7 +2,6 @@ package function
 
 import (
 	"strings"
-	"unicode/utf8"
 
 	"github.com/agnivade/levenshtein"
 	"github.com/brimdata/super"
@@ -126,26 +125,6 @@ func (r *Replace) Call(args ...vector.Any) vector.Any {
 	}
 	errval := vector.NewStringError(r.sctx, "replace: an input arg is null", errcnt)
 	return vector.NewDynamic(tags, []vector.Any{out, errval})
-}
-
-type RuneLen struct {
-	sctx *super.Context
-}
-
-func (r *RuneLen) Call(args ...vector.Any) vector.Any {
-	val := underAll(args)[0]
-	if val.Type() != super.TypeString {
-		return vector.NewWrappedError(r.sctx, "rune_len: string arg required", val)
-	}
-	out := vector.NewIntEmpty(super.TypeInt64, val.Len(), bitvec.NewFalse(val.Len()))
-	for i := uint32(0); i < val.Len(); i++ {
-		s, null := vector.StringValue(val, i)
-		if null {
-			out.Nulls.Set(i)
-		}
-		out.Append(int64(utf8.RuneCountInString(s)))
-	}
-	return out
 }
 
 type Split struct {

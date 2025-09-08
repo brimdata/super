@@ -134,9 +134,6 @@ func TestLen(t *testing.T) {
 	testSuccessful(t, `len("foo")`, record, "3")
 	testSuccessful(t, `len(s)`, record, "1")
 	testSuccessful(t, `len(bs)`, record, "4")
-
-	testSuccessful(t, `rune_len("foo")`, record, "3")
-	testSuccessful(t, `rune_len(s)`, record, "1")
 }
 
 func TestCast(t *testing.T) {
