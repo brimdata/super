@@ -21,7 +21,7 @@ inputs:
 outputs:
   - name: stderr
     data: |
-      symbol "dup" redefined in duplicate.zed at line 2, column 4:
+      symbol "dup" redefined in duplicate.spq at line 2, column 4:
       fn dup(n): (n+2)
          ~~~
       not a function in call-non-func.spq at line 2, column 8:
