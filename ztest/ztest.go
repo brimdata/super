@@ -257,7 +257,7 @@ type ZTest struct {
 	Skip string `yaml:"skip,omitempty"`
 	Tag  string `yaml:"tag,omitempty"`
 
-	// For spq-style tests.
+	// For SPQ-style tests.
 	SPQ         string  `yaml:"spq,omitempty"`
 	Input       *string `yaml:"input,omitempty"`
 	InputFlags  string  `yaml:"input-flags,omitempty"`

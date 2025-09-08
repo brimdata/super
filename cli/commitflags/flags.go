@@ -9,7 +9,7 @@ import (
 )
 
 func username() string {
-	if s := os.Getenv("ZED_USER"); s != "" {
+	if s := os.Getenv("SUPERDB_USER"); s != "" {
 		return s
 	}
 	u, err := user.Current()
