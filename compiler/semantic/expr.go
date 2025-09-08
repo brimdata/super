@@ -399,7 +399,7 @@ func (a *analyzer) semDoubleQuote(d *ast.DoubleQuote) dag.Expr {
 	// as an identifier.  XXX we'll need to do something a bit more
 	// sophisticated to handle pipes inside SQL subqueries.
 	if a.scope.schema != nil {
-		return a.semID(&ast.ID{Kind: "ID", Name: d.Text, Loc: d.Loc})
+		return a.semExpr(&ast.ID{Kind: "ID", Name: d.Text, Loc: d.Loc})
 	}
 	return a.semExpr(&ast.Primitive{
 		Kind: "Primitive",
