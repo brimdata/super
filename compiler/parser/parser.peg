@@ -43,7 +43,7 @@ ConstDecl
     }
 
 FuncDecl
-  = FN _ name:Identifier __ "(" __ params:Identifiers? __ ")" __ ":" __ "(" __ expr:Expr __ ")" {
+  = FN _ name:Identifier __ "(" __ params:Identifiers? __ ")" __ ":" __ expr:Expr {
       return &ast.FuncDecl{
         Kind: "FuncDecl",
         Name: name.(*ast.ID),
