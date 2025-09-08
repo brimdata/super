@@ -115,7 +115,7 @@ The type names and format for
 | `decimal256`  | a _non-integer string_ representing an IEEE-754 decimal256 value |
 | `bool`     | the string `true` or `false` |
 | `bytes`    | a sequence of bytes encoded as a hexadecimal string prefixed with `0x` |
-| `string`   | a double-quoted or backtick-quoted UTF-8 string |
+| `string`   | a double-quoted UTF-8 string |
 | `ip`       | a string representing an IP address in [IPv4 or IPv6 format](https://tools.ietf.org/html/draft-main-ipaddr-text-rep-02#section-3) |
 | `net`      | a string in CIDR notation representing an IP address and prefix length as defined in RFC 4632 and RFC 4291. |
 | `type`     | a string in canonical form as described in [Section 2.5](#25-types) |
@@ -150,12 +150,6 @@ A floating point value may be expressed with an integer string provided
 a type decorator is applied, e.g., `123::float64`.
 
 Decimal values require type decorators.
-
-A string may be backtick-quoted with the backtick character `` ` ``.
-None of the text between backticks is escaped, but by default, any newlines
-followed by whitespace are converted to a single newline and the first
-newline of the string is deleted.  To avoid this automatic deletion and
-preserve indentation, the backtick-quoted string can be preceded with `=>`.
 
 Of the 30 primitive types, eleven of them represent _implied-type_ values:
 `int64`, `time`, `duration`, `float64`, `bool`, `bytes`, `string`, `ip`, `net`, `type`, and `null`.
