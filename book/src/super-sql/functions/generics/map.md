@@ -58,7 +58,7 @@ values map(this, &floatToTime)
 ```
 
 ---
-_Same as above but with an anonymous lambda expression_
+_Same as above but with a lambda expression_
 
 ```mdtest-spq {data-layout="stacked"}
 # spq
