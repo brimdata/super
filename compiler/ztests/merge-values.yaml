@@ -1,7 +1,7 @@
 script: |
-  super compile -C -O 'values {a:1} | values a, {b:a}'
+  super compile -C -O 'values {a:1} | values a, {b:a}, c'
   echo ===
-  super compile -C -O 'values {a,b} | aggregate count(a) by b'
+  super compile -C -O 'values {a,b} | aggregate count(a) by b, c'
   echo ===
   super compile -C -O 'values {...a} | values {...b.c} | values d, {e}'
   echo ===
@@ -17,12 +17,12 @@ outputs:
   - name: stdout
     data: |
       null
-      | values 1, {b:1}
+      | values 1, {b:1}, error("missing")
       | output main
       ===
       null
       | aggregate
-          count:=count(a) by b:=b
+          count:=count(a) by b:=b,c:=error("missing")
       | output main
       ===
       null

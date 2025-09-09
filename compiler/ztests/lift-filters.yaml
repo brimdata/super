@@ -1,5 +1,5 @@
 script: |
-  super compile -C -O 'values {a:b} | where a==1'
+  super compile -C -O 'values {a:b} | where a==1 and c==2'
   echo ===
   super compile -C -O 'values {...a} | where b==1'
   echo ===
@@ -9,7 +9,7 @@ outputs:
   - name: stdout
     data: |
       null
-      | where b==1
+      | where b==1 and error("missing")==2
       | values {a:b}
       | output main
       ===

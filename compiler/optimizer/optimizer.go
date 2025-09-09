@@ -525,11 +525,11 @@ func liftFilterOps(seq dag.Seq) dag.Seq {
 				}
 				e1, ok := fields[this.Path[0]]
 				if !ok {
-					if spread != nil {
-						// Copy spread so f and y don't share dag.Exprs.
-						return addPathToExpr(dag.CopyExpr(spread), this.Path)
+					if spread == nil {
+						return &dag.Literal{Kind: "Literal", Value: `error("missing")`}
 					}
-					return e
+					// Copy spread so f and y don't share dag.Exprs.
+					return addPathToExpr(dag.CopyExpr(spread), this.Path)
 				}
 				// Copy e1 so f and y don't share dag.Exprs.
 				return addPathToExpr(dag.CopyExpr(e1), this.Path[1:])
@@ -563,10 +563,10 @@ func mergeValuesOps(seq dag.Seq) dag.Seq {
 				}
 				v1Expr, ok := v1TopLevelFields[this.Path[0]]
 				if !ok {
-					if v1TopLevelSpread != nil {
-						return addPathToExpr(v1TopLevelSpread, this.Path)
+					if v1TopLevelSpread == nil {
+						return &dag.Literal{Kind: "Literal", Value: `error("missing")`}
 					}
-					return e
+					return addPathToExpr(v1TopLevelSpread, this.Path)
 				}
 				return addPathToExpr(v1Expr, this.Path[1:])
 			}
