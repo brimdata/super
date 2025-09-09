@@ -16,3 +16,6 @@ outputs:
       no such type name: "null" in badshaper.spq at line 1, column 10:
       type foo={_path:string,testfield:"null"}
                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      too few arguments in badshaper.spq at line 2, column 8:
+      values shape(foo)
+             ~~~~~~~~~~

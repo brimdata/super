@@ -1,5 +1,5 @@
 spq: |
-  values crop(<{set:|[{b:string}]|,arr:[{a:string}]}>)
+  values crop(this, <{set:|[{b:string}]|,arr:[{a:string}]}>)
 
 vector: true
 

@@ -2,7 +2,7 @@ spq: |
   type port=int64
   type prec={p:port}
   type parr=[port]
-  values cast(<{a:port,b:prec,c:parr}>)
+  values cast(this, <{a:port,b:prec,c:parr}>)
 
 vector: true
 

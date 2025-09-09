@@ -2,7 +2,7 @@ spq: |
   type port=int64
   type prec={p:port}
   type parr=[prec]
-  values crop(<{a:prec,b:parr}>)
+  values crop(this, <{a:prec,b:parr}>)
 
 vector: true
 

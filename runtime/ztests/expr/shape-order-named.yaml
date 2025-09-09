@@ -2,7 +2,7 @@ spq: |
   type port=int64
   type prec={p:port,q:port}
   type parr=[prec]
-  values order(<{c:port,b:parr,a:prec}>)
+  values order(this, <{c:port,b:parr,a:prec}>)
 
 vector: true
 

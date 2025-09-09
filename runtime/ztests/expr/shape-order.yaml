@@ -1,5 +1,5 @@
 spq: |
-  values order(<{id: {orig_h: string, orig_p: port=uint16, resp_h:ip,resp_p:port}}>)
+  values order(this, <{id: {orig_h: string, orig_p: port=uint16, resp_h:ip,resp_p:port}}>)
 
 vector: true
 

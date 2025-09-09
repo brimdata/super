@@ -1,5 +1,5 @@
 spq: |
-  values cast(<{a:|[ip]|,b:|[{b:ip}]|}>)
+  values cast(this, <{a:|[ip]|,b:|[{b:ip}]|}>)
 
 vector: true
 

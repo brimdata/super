@@ -1,4 +1,4 @@
-spq: values crop(<{f:null}>)
+spq: values crop(this, <{f:null}>)
 
 vector: true
 

@@ -1,5 +1,5 @@
 spq: |
-  values shape(<{a:string,b:string}>)
+  values shape(this, <{a:string,b:string}>)
 
 vector: true
 

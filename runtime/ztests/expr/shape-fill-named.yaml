@@ -2,7 +2,7 @@ spq: |
   type port=int64
   type prec={p:port,q:port}
   type parr=[prec]
-  values fill(<{a:prec,b:parr,c:port}>)
+  values fill(this, <{a:prec,b:parr,c:port}>)
 
 vector: true
 

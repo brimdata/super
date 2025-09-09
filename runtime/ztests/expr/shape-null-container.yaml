@@ -1,7 +1,7 @@
 # issues #2853 #2879
 
 spq: |
-  values shape(<{
+  values shape(this, <{
     array:[string],
     record:{c1:int64,c2:string,c3:time}
   }>)

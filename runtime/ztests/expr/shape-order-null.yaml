@@ -1,4 +1,4 @@
-spq: values order(<{f:null}>)
+spq: values order(this, <{f:null}>)
 
 vector: true
 

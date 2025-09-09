@@ -1,4 +1,4 @@
-spq: values fill(<{a:{b:{c:string}}}>)
+spq: values fill(this, <{a:{b:{c:string}}}>)
 
 vector: true
 

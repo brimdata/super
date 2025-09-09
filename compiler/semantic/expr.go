@@ -656,12 +656,9 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 			Args: exprs,
 		}
 	case expr.NewShaperTransform(nameLower) != 0:
-		if err := function.CheckArgCount(nargs, 1, 2); err != nil {
+		if err := function.CheckArgCount(nargs, 2, 2); err != nil {
 			a.error(call, err)
 			return badExpr()
-		}
-		if nargs == 1 {
-			exprs = append([]dag.Expr{dag.NewThis(nil)}, exprs...)
 		}
 	case nameLower == "grep":
 		if err := function.CheckArgCount(nargs, 2, 2); err != nil {

@@ -1,7 +1,7 @@
 spq: |
   type string_named=string
   type union=int64|string|string_named
-  values cast(<{a:union}>)
+  values cast(this, <{a:union}>)
 
 vector: true
 

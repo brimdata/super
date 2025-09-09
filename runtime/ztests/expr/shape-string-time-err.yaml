@@ -1,5 +1,5 @@
 spq: |
-  values shape(<{a:time}>)
+  values shape(this, <{a:time}>)
 
 vector: true
 
