@@ -675,7 +675,6 @@ func (a *analyzer) semCallByName(call *ast.Call, name string, actuals []dag.Expr
 	// udf should be checked first since a udf can override builtin functions.
 	case fn != nil:
 		if len(fn.Lambda.Formals) != nargs {
-			//XXX better error message here including function name
 			a.error(call, fmt.Errorf("call expects %d argument(s)", len(fn.Lambda.Formals)))
 			return badExpr()
 		}
