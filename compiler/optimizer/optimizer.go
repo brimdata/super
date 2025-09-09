@@ -526,11 +526,13 @@ func liftFilterOps(seq dag.Seq) dag.Seq {
 				e1, ok := fields[this.Path[0]]
 				if !ok {
 					if spread != nil {
-						return addPathToExpr(spread, this.Path)
+						// Copy spread so f and y don't share dag.Exprs.
+						return addPathToExpr(dag.CopyExpr(spread), this.Path)
 					}
 					return e
 				}
-				return addPathToExpr(e1, this.Path[1:])
+				// Copy e1 so f and y don't share dag.Exprs.
+				return addPathToExpr(dag.CopyExpr(e1), this.Path[1:])
 			})
 			seq[i], seq[i+1] = seq[i+1], seq[i]
 		}
