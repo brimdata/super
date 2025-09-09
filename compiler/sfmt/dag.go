@@ -571,12 +571,6 @@ func (c *canonDAG) op(p dag.Op) {
 	case *dag.Pass:
 		c.next()
 		c.write("pass")
-	case *dag.Vectorize:
-		c.next()
-		c.open("vectorize =>")
-		c.head = true
-		c.seq(p.Body)
-		c.close()
 	case *dag.Output:
 		c.next()
 		c.write("output %s", p.Name)

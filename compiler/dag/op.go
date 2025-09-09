@@ -174,11 +174,6 @@ type (
 		Kind  string `json:"kind" unpack:""`
 		Exprs []Expr `json:"exprs"`
 	}
-	// Vectorize executes its body using the vector engine.
-	Vectorize struct {
-		Kind string `json:"kind" unpack:""`
-		Body Seq    `json:"body"`
-	}
 )
 
 // Input structure
@@ -350,7 +345,6 @@ func (*Shape) opNode()     {}
 func (*Explode) opNode()   {}
 func (*Unnest) opNode()    {}
 func (*Values) opNode()    {}
-func (*Vectorize) opNode() {}
 func (*Merge) opNode()     {}
 func (*Mirror) opNode()    {}
 func (*Combine) opNode()   {}

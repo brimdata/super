@@ -40,14 +40,7 @@ func Optimize(ctx context.Context, seq dag.Seq, env *exec.Environment, parallel 
 		// any parallelization right now though this could be potentially
 		// beneficial depending on where the bottleneck is for a given shaper.
 		// See issue #2641.
-		seq, err = o.Parallelize(seq, parallel)
-		if err != nil {
-			return nil, err
-		}
-		seq, err = o.Vectorize(seq)
-		if err != nil {
-			return nil, err
-		}
+		return o.Parallelize(seq, parallel)
 	}
 	return seq, nil
 }

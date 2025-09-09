@@ -371,29 +371,6 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 		return meta.NewDeleter(b.rctx, parent, pool, pushdown, pruner, b.progress, b.deletes), nil
 	case *dag.Load:
 		return load.New(b.rctx, b.env.DB(), parent, v.Pool, v.Branch, v.Author, v.Message, v.Meta), nil
-	case *dag.Vectorize:
-		// If the first op is SeqScan, then pull it out so we can
-		// give the scanner a sio.Puller parent (i.e., the lister).
-		if scan, ok := v.Body[0].(*dag.SeqScan); ok {
-			puller, err := b.compileVamScan(scan, parent)
-			if err != nil {
-				return nil, err
-			}
-			if len(v.Body) > 1 {
-				outputs, err := b.compileVamSeq(v.Body[1:], []vector.Puller{puller})
-				if err != nil {
-					return nil, err
-				}
-				if len(outputs) == 1 {
-					puller = outputs[0]
-				} else {
-					puller = vamop.NewCombine(b.rctx, outputs)
-				}
-			}
-			return vam.NewMaterializer(puller), nil
-		}
-		//XXX
-		return nil, errors.New("dag.Vectorize must begin with SeqScan")
 	case *dag.Output:
 		b.channels[v.Name] = append(b.channels[v.Name], parent)
 		return parent, nil

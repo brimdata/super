@@ -56,8 +56,6 @@ func demandForOp(op dag.Op, downstreams []demand.Demand) []demand.Demand {
 			d = demand.Union(d, demand.Union(DemandForSeq(c.Path, downstreams[i])...))
 		}
 		return []demand.Demand{d}
-	case *dag.Vectorize:
-		return DemandForSeq(op.Body, downstreams...)
 	default:
 		return []demand.Demand{demandForSimpleOp(op, demand.Union(downstreams...))}
 	}
