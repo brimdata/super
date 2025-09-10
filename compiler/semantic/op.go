@@ -991,14 +991,14 @@ func (a *analyzer) singletonAgg(agg ast.Assignment, seq dag.Seq) dag.Seq {
 	)
 }
 
-func (a *analyzer) semDecls(decls []ast.Decl) []*dag.FnDef {
-	var fnDecls []*ast.FnDecl
+func (a *analyzer) semDecls(decls []ast.Decl) []*dag.FuncDef {
+	var funcDecls []*ast.FuncDecl
 	for _, d := range decls {
 		switch d := d.(type) {
 		case *ast.ConstDecl:
 			a.semConstDecl(d)
-		case *ast.FnDecl:
-			fnDecls = append(fnDecls, d)
+		case *ast.FuncDecl:
+			funcDecls = append(funcDecls, d)
 		case *ast.OpDecl:
 			a.semOpDecl(d)
 		case *ast.TypeDecl:
@@ -1007,7 +1007,7 @@ func (a *analyzer) semDecls(decls []ast.Decl) []*dag.FnDef {
 			panic(fmt.Errorf("invalid declaration type %T", d))
 		}
 	}
-	return a.semFuncDecls(fnDecls)
+	return a.semFuncDecls(funcDecls)
 }
 
 func (a *analyzer) semConstDecl(c *ast.ConstDecl) {
@@ -1040,10 +1040,11 @@ func idsAsStrings(ids []*ast.ID) []string {
 	return out
 }
 
-func (a *analyzer) semFuncDecls(decls []*ast.FnDecl) []*dag.FnDef {
-	funcs := make([]*dag.FnDef, 0, len(decls))
+func (a *analyzer) semFuncDecls(decls []*ast.FuncDecl) []*dag.FuncDef {
+	funcs := make([]*dag.FuncDef, 0, len(decls))
 	for _, d := range decls {
-		f := &dag.FnDef{
+		f := &dag.FuncDef{
+			Kind: "FuncDef",
 			Name: d.Name.Name,
 			Lambda: dag.Lambda{
 				Kind:   "Lambda",
@@ -1174,9 +1175,9 @@ func (a *analyzer) isBool(e dag.Expr) bool {
 	}
 }
 
-func funcBody(fnDef *dag.FnDef, lambda *dag.Lambda) dag.Expr {
-	if fnDef != nil {
-		return fnDef.Lambda.Expr
+func funcBody(funcDef *dag.FuncDef, lambda *dag.Lambda) dag.Expr {
+	if funcDef != nil {
+		return funcDef.Lambda.Expr
 	}
 	if lambda != nil {
 		return lambda.Expr
@@ -1185,11 +1186,11 @@ func funcBody(fnDef *dag.FnDef, lambda *dag.Lambda) dag.Expr {
 }
 
 func (a *analyzer) semCallOpExpr(call *ast.Call, seq dag.Seq) dag.Seq {
-	fn, ok := call.Fn.(*ast.FnName)
+	f, ok := call.Func.(*ast.FuncName)
 	if !ok {
 		return nil
 	}
-	name := fn.ID.Name
+	name := f.ID.Name
 	if agg := a.maybeConvertAgg(call); agg != nil {
 		aggregate := &dag.Aggregate{
 			Kind: "Aggregate",
@@ -1235,12 +1236,12 @@ func (a *analyzer) semCallOp(call *ast.CallOp, seq dag.Seq) dag.Seq {
 		return dag.Seq{badOp()}
 	}
 	exprs := make([]dag.Expr, len(args))
-	fns := make([]dag.FnRef, len(args))
+	fns := make([]dag.FuncRef, len(args))
 	for i, e := range args {
 		if expr, ok := e.(ast.Expr); ok {
 			exprs[i] = a.semExpr(expr)
-		} else if fn, ok := e.(ast.FnRef); ok {
-			fns[i] = a.semFnRef(fn)
+		} else if fn, ok := e.(ast.FuncRef); ok {
+			fns[i] = a.semFuncRef(fn)
 		} else {
 			panic(e)
 		}
@@ -1272,21 +1273,21 @@ func (a *analyzer) semCallOp(call *ast.CallOp, seq dag.Seq) dag.Seq {
 	return append(seq, a.semSeq(decl.ast.Body)...)
 }
 
-func (a *analyzer) semFnRef(fn ast.FnRef) dag.FnRef {
-	switch fn := fn.(type) {
-	case *ast.FnLambda:
+func (a *analyzer) semFuncRef(f ast.FuncRef) dag.FuncRef {
+	switch f := f.(type) {
+	case *ast.Lambda:
 		return &dag.Lambda{
 			Kind:   "Lambda",
-			Params: idsAsStrings(fn.Params),
-			Expr:   a.semExpr(fn.Expr),
+			Params: idsAsStrings(f.Params),
+			Expr:   a.semExpr(f.Expr),
 		}
-	case *ast.FnName:
-		return &dag.FnName{
-			Kind: "FnName",
-			Name: fn.ID.Name,
+	case *ast.FuncName:
+		return &dag.FuncName{
+			Kind: "FuncName",
+			Name: f.ID.Name,
 		}
 	default:
-		panic("semFnRef")
+		panic(f)
 	}
 }
 

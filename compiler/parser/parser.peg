@@ -30,7 +30,7 @@ Seq
 SeqTail = __ Pipe __ o:PipeOp { return o, nil }
 
 Decl
-  = v:(ConstDecl / FnDecl / OpDecl / TypeDecl) _ { return v, nil }
+  = v:(ConstDecl / FuncDecl / OpDecl / TypeDecl) _ { return v, nil }
 
 ConstDecl
   = CONST _ name:Identifier __ "=" __ expr:Expr {
@@ -42,13 +42,13 @@ ConstDecl
       }, nil
     }
 
-FnDecl
+FuncDecl
   = FN _ name:Identifier __ "(" __ params:Identifiers? __ ")" __ ":" __ expr:Expr {
-      return &ast.FnDecl{
-        Kind: "FnDecl",
+      return &ast.FuncDecl{
+        Kind: "FuncDecl",
         Name: name.(*ast.ID),
-        Lambda: &ast.FnLambda{
-          Kind: "FnLambda",
+        Lambda: &ast.Lambda{
+          Kind: "Lambda",
           Params: sliceOf[*ast.ID](params),
           Expr: expr.(ast.Expr),
           Loc: loc(c),
@@ -59,8 +59,8 @@ FnDecl
 
 LambdaExpr
   = "lambda" params:(_ ids:Identifiers { return ids, nil })? __ ":" __ expr:Expr {
-      return &ast.FnLambda{
-        Kind: "FnLambda",
+      return &ast.Lambda{
+        Kind: "Lambda",
         Params: sliceOf[*ast.ID](params),
         Expr: expr.(ast.Expr),
         Loc: loc(c),
@@ -73,7 +73,7 @@ FuncOrExprs
       return prepend(first, rest), nil
     }
 
-FuncOrExpr = FnValue / Expr
+FuncOrExpr = FuncValue / Expr
 
 OpDecl
   = OP _ name:Identifier params:(_ ids:Identifiers { return ids, nil })? __ ":" __ body:ScopeBody {
@@ -301,14 +301,14 @@ AggAssignments
     }
 
 CountStar = COUNT __ "(" __ "*" __ ")" {
-    name := &ast.FnName{
-        Kind: "FnName",
+    name := &ast.FuncName{
+        Kind: "FuncName",
         ID: &ast.ID{Kind:"ID", Name:"count", Loc: ast.NewLoc(c.pos.offset, c.pos.offset+5)},
         Loc: loc(c),
     }
     return &ast.Call{
 		Kind: "Call",
-		Fn:   name,
+		Func:   name,
         Loc:  loc(c),
     }, nil
   }
@@ -1063,11 +1063,11 @@ Function
         Loc: loc(c),
       }, nil
     }
-  / MAP __ "(" __ e:Expr __ "," __ fn:FnValue ")" {
+  / MAP __ "(" __ e:Expr __ "," __ f:FuncValue ")" {
       return &ast.MapCall{
         Kind: "MapCall",
         Expr: e.(ast.Expr),
-        Fn: fn.(ast.FnRef),
+        Func: f.(ast.FuncRef),
         Loc: loc(c),
       }, nil
     }
@@ -1085,25 +1085,25 @@ Function
       }
       return s, nil
     }
-  / fn:Callable __ "(" __ args:FunctionArgs __ ")" where:WhereClause? {
-      return newCall(c, fn, args, where), nil
+  / f:Callable __ "(" __ args:FunctionArgs __ ")" where:WhereClause? {
+      return newCall(c, f, args, where), nil
     }
   / CountStar
 
 Callable
   = LambdaExpr
   / id:Identifier {
-      return &ast.FnName{
-        Kind: "FnName",
+      return &ast.FuncName{
+        Kind: "FuncName",
         ID: id.(*ast.ID),
         Loc: loc(c),
       }, nil
     }
 
-FnValue
+FuncValue
   = "&" id:Identifier {
-      return &ast.FnName{
-        Kind: "FnName",
+      return &ast.FuncName{
+        Kind: "FuncName",
         ID: id.(*ast.ID),
         Loc: loc(c),
       }, nil

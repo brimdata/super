@@ -44,9 +44,9 @@ type (
 		RHS  Expr   `json:"rhs"`
 	}
 	Call struct {
-		Kind string `json:"kind" unpack:""`
-		Fn   FnRef  `json:"fn"`
-		Args []Expr `json:"args"`
+		Kind string  `json:"kind" unpack:""`
+		Func FuncRef `json:"func"`
+		Args []Expr  `json:"args"`
 	}
 	Conditional struct {
 		Kind string `json:"kind" unpack:""`
@@ -138,8 +138,8 @@ type (
 )
 
 func (c *Call) Name() string {
-	if fn, ok := c.Fn.(*FnName); ok {
-		return fn.Name
+	if f, ok := c.Func.(*FuncName); ok {
+		return f.Name
 	}
 	return ""
 }
@@ -205,7 +205,7 @@ func NewBinaryExpr(op string, lhs, rhs Expr) *BinaryExpr {
 func NewCallByName(name string, args []Expr) *Call {
 	return &Call{
 		Kind: "Call",
-		Fn:   &FnName{Kind: "FnName", Name: name},
+		Func: &FuncName{Kind: "FuncName", Name: name},
 		Args: args,
 	}
 }

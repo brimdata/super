@@ -123,10 +123,10 @@ type When struct {
 // a function call has the standard semantics where it takes one or more arguments
 // and returns a result.
 type Call struct {
-	Kind  string `json:"kind" unpack:""`
-	Fn    FnRef  `json:"fn"`
-	Args  []Expr `json:"args"`
-	Where Expr   `json:"where"`
+	Kind  string  `json:"kind" unpack:""`
+	Func  FuncRef `json:"func"`
+	Args  []Expr  `json:"args"`
+	Where Expr    `json:"where"`
 	Loc   `json:"loc"`
 }
 
@@ -340,9 +340,9 @@ type SQLTimeValue struct {
 }
 
 type MapCall struct {
-	Kind string `json:"kind" unpack:""`
-	Expr Expr   `json:"expr"`
-	Fn   FnRef  `json:"fn"`
+	Kind string  `json:"kind" unpack:""`
+	Expr Expr    `json:"expr"`
+	Func FuncRef `json:"func"`
 	Loc  `json:"loc"`
 }
 
@@ -389,10 +389,10 @@ type ConstDecl struct {
 	Loc  `json:"loc"`
 }
 
-type FnDecl struct {
-	Kind   string    `json:"kind" unpack:""`
-	Name   *ID       `json:"name"`
-	Lambda *FnLambda `json:"lambda"`
+type FuncDecl struct {
+	Kind   string  `json:"kind" unpack:""`
+	Name   *ID     `json:"name"`
+	Lambda *Lambda `json:"lambda"`
 	Loc    `json:"loc"`
 }
 
@@ -412,7 +412,7 @@ type TypeDecl struct {
 }
 
 func (*ConstDecl) declNode() {}
-func (*FnDecl) declNode()    {}
+func (*FuncDecl) declNode()  {}
 func (*OpDecl) declNode()    {}
 func (*TypeDecl) declNode()  {}
 
@@ -767,31 +767,31 @@ type Agg struct {
 // ----------------------------------------------------------------------------
 // Functions
 //
-// FnDecl (defined above) binds a lambda to a name that can be called
-// FnLamba is a nameless body with formal parameters that can be called or referenced
-// FnName is a reference to function's name for calling or passing to an op or map-call
-// FnRef is a sum type representing FnName or FnLambda (a named fn reference or a lambda value)
+// FuncDecl (defined above) binds a lambda to a name that can be called
+// Lambda is a nameless body with formal parameters that can be called or referenced
+// FuncName is a reference to function's name for calling or passing to an op or map-call
+// FuncRef is a sum type representing FuncName or Lambda (a named fn reference or a lambda value)
 
-type FnLambda struct {
+type Lambda struct {
 	Kind   string `json:"kind" unpack:""`
 	Params []*ID  `json:"params"`
 	Expr   Expr   `json:"expr"`
 	Loc    `json:"loc"`
 }
 
-type FnName struct {
+type FuncName struct {
 	Kind string `json:"kind" unpack:""`
 	ID   *ID    `json:"id"`
 	Loc  `json:"loc"`
 }
 
-type FnRef interface {
-	fnRefNode()
+type FuncRef interface {
+	funcRefNode()
 }
 
-func (*FnLambda) fnRefNode() {}
-func (*FnName) fnRefNode()   {}
+func (*Lambda) funcRefNode()   {}
+func (*FuncName) funcRefNode() {}
 
-// There's not an easy way to create an Expr|FnRef sum type so we use
+// There's not an easy way to create an Expr|FuncRef sum type so we use
 // type any here and are careful how we use it.
 type FuncOrExpr any

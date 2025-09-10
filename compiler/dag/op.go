@@ -130,9 +130,9 @@ type (
 		Paths []Seq  `json:"paths"`
 	}
 	Scope struct {
-		Kind  string   `json:"kind" unpack:""`
-		Funcs []*FnDef `json:"funcs"`
-		Body  Seq      `json:"seq"`
+		Kind  string     `json:"kind" unpack:""`
+		Funcs []*FuncDef `json:"funcs"`
+		Body  Seq        `json:"seq"`
 	}
 	Shape struct {
 		Kind string `json:"kind" unpack:""`
@@ -181,19 +181,19 @@ type (
 	}
 )
 
-type FnRef interface {
-	fnRefNode()
+type FuncRef interface {
+	funcRefNode()
 }
 
-func (*Lambda) fnRefNode() {}
-func (*FnName) fnRefNode() {}
+func (*Lambda) funcRefNode()   {}
+func (*FuncName) funcRefNode() {}
 
-type FnName struct {
+type FuncName struct {
 	Kind string `json:"kind" unpack:""`
 	Name string `json:"name"`
 }
 
-type FnDef struct {
+type FuncDef struct {
 	Kind   string `json:"func" unpack:""`
 	Name   string `json:"name"`
 	Lambda Lambda `json:"lambda"`

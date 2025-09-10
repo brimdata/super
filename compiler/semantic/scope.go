@@ -72,7 +72,7 @@ func (s *Scope) LookupExpr(name string) (dag.Expr, error) {
 	return nil, nil
 }
 
-func (s *Scope) LookupFunc(name string) (*dag.FnDef, *dag.Lambda, error) {
+func (s *Scope) LookupFunc(name string) (*dag.FuncDef, *dag.Lambda, error) {
 	for {
 		entry := s.lookupEntry(name)
 		if entry == nil {
@@ -81,10 +81,10 @@ func (s *Scope) LookupFunc(name string) (*dag.FnDef, *dag.Lambda, error) {
 		switch entry := entry.ref.(type) {
 		case *dag.Lambda:
 			return nil, entry, nil
-		case *dag.FnName:
+		case *dag.FuncName:
 			name = entry.Name
 			continue
-		case *dag.FnDef:
+		case *dag.FuncDef:
 			return entry, nil, nil
 		default:
 			return nil, nil, fmt.Errorf("%q is not a function", name)

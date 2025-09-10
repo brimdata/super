@@ -308,11 +308,11 @@ func (b *Builder) compileAssignment(node *dag.Assignment) (expr.Assignment, erro
 }
 
 func (b *Builder) compileCall(call dag.Call) (expr.Evaluator, error) {
-	switch fn := call.Fn.(type) {
-	case *dag.FnName:
-		return b.compileCallByName(fn.Name, call.Args)
+	switch f := call.Func.(type) {
+	case *dag.FuncName:
+		return b.compileCallByName(f.Name, call.Args)
 	case *dag.Lambda:
-		return b.compileLambda(fn, call.Args)
+		return b.compileLambda(f, call.Args)
 	default:
 		panic(call)
 	}

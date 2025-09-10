@@ -112,7 +112,7 @@ func (c *canon) expr(e ast.Expr, parent string) {
 		c.write(" : ")
 		c.expr(e.Else, "")
 	case *ast.Call:
-		c.fnRefCall(e.Fn)
+		c.funcRefAsCall(e.Func)
 		c.write("(")
 		c.exprs(e.Args)
 		c.write(")")
@@ -165,7 +165,7 @@ func (c *canon) expr(e ast.Expr, parent string) {
 		c.write("map(")
 		c.expr(e.Expr, "")
 		c.write(", ")
-		c.fnRefActual(e.Fn)
+		c.funcRefAsArg(e.Func)
 		c.write(")")
 	case *ast.SliceExpr:
 		c.expr(e.Expr, "")
@@ -291,39 +291,39 @@ func (c *canon) expr(e ast.Expr, parent string) {
 	}
 }
 
-func (c *canon) fnRefCall(fn ast.FnRef) {
-	if e, ok := fn.(ast.Expr); ok {
+func (c *canon) funcRefAsCall(f ast.FuncRef) {
+	if e, ok := f.(ast.Expr); ok {
 		c.expr(e, "")
 		return
 	}
-	switch fn := fn.(type) {
-	case *ast.FnName:
-		c.write("%s", fn.ID.Name)
-	case *ast.FnLambda:
+	switch f := f.(type) {
+	case *ast.FuncName:
+		c.write("%s", f.ID.Name)
+	case *ast.Lambda:
 		c.write("(")
-		c.lambda(fn)
+		c.lambda(f)
 		c.write(")")
 	default:
-		panic(fn)
+		panic(f)
 	}
 }
 
-func (c *canon) fnRefActual(fn ast.FnRef) {
-	if e, ok := fn.(ast.Expr); ok {
+func (c *canon) funcRefAsArg(f ast.FuncRef) {
+	if e, ok := f.(ast.Expr); ok {
 		c.expr(e, "")
 		return
 	}
-	switch fn := fn.(type) {
-	case *ast.FnName:
-		c.write("&%s", fn.ID.Name)
-	case *ast.FnLambda:
-		c.lambda(fn)
+	switch f := f.(type) {
+	case *ast.FuncName:
+		c.write("&%s", f.ID.Name)
+	case *ast.Lambda:
+		c.lambda(f)
 	default:
-		panic(fn)
+		panic(f)
 	}
 }
 
-func (c *canon) lambda(lambda *ast.FnLambda) {
+func (c *canon) lambda(lambda *ast.Lambda) {
 	c.write("(lambda ")
 	c.ids(lambda.Params)
 	c.write(":")
@@ -430,7 +430,7 @@ func (c *canon) decl(d ast.Decl) {
 	case *ast.ConstDecl:
 		c.write("const %s = ", d.Name.Name)
 		c.expr(d.Expr, "")
-	case *ast.FnDecl:
+	case *ast.FuncDecl:
 		c.write("fn %s(", d.Name.Name)
 		for i := range d.Lambda.Params {
 			if i != 0 {
@@ -809,9 +809,9 @@ func (c *canon) funcOrExprs(args []ast.FuncOrExpr) {
 			continue
 		}
 		switch a := a.(type) {
-		case *ast.FnLambda:
+		case *ast.Lambda:
 			c.lambda(a)
-		case *ast.FnName:
+		case *ast.FuncName:
 			c.write("&")
 			c.expr(a.ID, "")
 		default:
@@ -988,7 +988,7 @@ func isAggFunc(e ast.Expr) *ast.Aggregate {
 	if !ok {
 		return nil
 	}
-	name, ok := call.Fn.(*ast.FnName)
+	name, ok := call.Func.(*ast.FuncName)
 	if !ok {
 		return nil
 	}
@@ -1020,7 +1020,7 @@ func IsBool(e ast.Expr) bool {
 	case *ast.Conditional:
 		return IsBool(e.Then) && IsBool(e.Else)
 	case *ast.Call:
-		named, ok := e.Fn.(*ast.FnName)
+		named, ok := e.Func.(*ast.FuncName)
 		return ok && function.HasBoolResult(named.ID.Name)
 	case *ast.Cast:
 		if typval, ok := e.Type.(*ast.TypeValue); ok {

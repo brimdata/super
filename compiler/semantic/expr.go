@@ -87,7 +87,7 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 		name := "cast"
 		return &dag.Call{
 			Kind: "Call",
-			Fn:   &dag.FnName{Kind: "FnName", Name: name},
+			Func: &dag.FuncName{Kind: "FuncName", Name: name},
 			Args: []dag.Expr{expr, typ},
 		}
 	case *ast.DoubleQuote:
@@ -619,24 +619,24 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 		return badExpr()
 	}
 	args := a.semExprs(call.Args)
-	switch fn := call.Fn.(type) {
-	case *ast.FnName:
-		return a.semCallByName(call, fn.ID.Name, args)
-	case *ast.FnLambda:
-		return a.semCallLambda(fn, args)
+	switch f := call.Func.(type) {
+	case *ast.FuncName:
+		return a.semCallByName(call, f.ID.Name, args)
+	case *ast.Lambda:
+		return a.semCallLambda(f, args)
 	default:
-		panic(fn)
+		panic(f)
 	}
 }
 
-func (a *analyzer) semCallLambda(lambda *ast.FnLambda, args []dag.Expr) dag.Expr {
+func (a *analyzer) semCallLambda(lambda *ast.Lambda, args []dag.Expr) dag.Expr {
 	params := make([]string, 0, len(lambda.Params))
 	for _, id := range lambda.Params {
 		params = append(params, id.Name)
 	}
 	return &dag.Call{
 		Kind: "Call",
-		Fn: &dag.Lambda{
+		Func: &dag.Lambda{
 			Kind:   "Lambda",
 			Params: params,
 			Expr:   a.semExpr(lambda.Expr),
@@ -650,7 +650,7 @@ func (a *analyzer) semCallByName(call *ast.Call, name string, args []dag.Expr) d
 	// Call could be to a user defined func. Check if we have a matching func in
 	// scope.  The name can be a formal argument of a user op so we look it up and
 	// see if it points to something else.
-	fn, lambda, err := a.scope.LookupFunc(name)
+	f, lambda, err := a.scope.LookupFunc(name)
 	if err != nil {
 		a.error(call, err)
 		return badExpr()
@@ -661,7 +661,7 @@ func (a *analyzer) semCallByName(call *ast.Call, name string, args []dag.Expr) d
 		// op foo f : (values f(foo)) call foo lambda x:x+1
 		return &dag.Call{
 			Kind: "Call",
-			Fn: &dag.Lambda{
+			Func: &dag.Lambda{
 				Kind:   "Lambda",
 				Params: lambda.Params,
 				Expr:   lambda.Expr,
@@ -673,12 +673,12 @@ func (a *analyzer) semCallByName(call *ast.Call, name string, args []dag.Expr) d
 	nameLower := strings.ToLower(name)
 	switch {
 	// udf should be checked first since a udf can override builtin functions.
-	case fn != nil:
-		if len(fn.Lambda.Params) != nargs {
-			a.error(call, fmt.Errorf("call expects %d argument(s)", len(fn.Lambda.Params)))
+	case f != nil:
+		if len(f.Lambda.Params) != nargs {
+			a.error(call, fmt.Errorf("call expects %d argument(s)", len(f.Lambda.Params)))
 			return badExpr()
 		}
-		return dag.NewCallByName(fn.Name, args)
+		return dag.NewCallByName(f.Name, args)
 	case expr.NewShaperTransform(nameLower) != 0:
 		if err := function.CheckArgCount(nargs, 2, 2); err != nil {
 			a.error(call, err)
@@ -731,20 +731,20 @@ func (a *analyzer) semCallByName(call *ast.Call, name string, args []dag.Expr) d
 func (a *analyzer) semMapCall(call *ast.MapCall) dag.Expr {
 	var lambda *dag.Call
 	this := []dag.Expr{dag.NewThis(nil)}
-	switch fn := call.Fn.(type) {
-	case *ast.FnName:
-		if _, _, err := a.scope.LookupFunc(fn.ID.Name); err != nil {
-			a.error(fn, err)
+	switch f := call.Func.(type) {
+	case *ast.FuncName:
+		if _, _, err := a.scope.LookupFunc(f.ID.Name); err != nil {
+			a.error(f, err)
 			return badExpr()
 		}
-		lambda = dag.NewCallByName(fn.ID.Name, this)
-	case *ast.FnLambda:
+		lambda = dag.NewCallByName(f.ID.Name, this)
+	case *ast.Lambda:
 		lambda = &dag.Call{
 			Kind: "Call",
-			Fn: &dag.Lambda{
+			Func: &dag.Lambda{
 				Kind:   "Lambda",
-				Params: idsAsStrings(fn.Params),
-				Expr:   a.semExpr(fn.Expr),
+				Params: idsAsStrings(f.Params),
+				Expr:   a.semExpr(f.Expr),
 			},
 			Args: this,
 		}
@@ -882,7 +882,7 @@ func (a *analyzer) semField(f ast.Expr) dag.Expr {
 }
 
 func (a *analyzer) maybeConvertAgg(call *ast.Call) dag.Expr {
-	name, ok := call.Fn.(*ast.FnName)
+	name, ok := call.Func.(*ast.FuncName)
 	if !ok {
 		return nil
 	}

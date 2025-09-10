@@ -98,7 +98,7 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 		c.write(" : ")
 		c.expr(e.Else, "")
 	case *dag.Call:
-		c.fnRef(e.Fn)
+		c.funcRef(e.Func)
 		c.write("(")
 		c.exprs(e.Args)
 		c.write(")")
@@ -215,21 +215,21 @@ func (c *canonDAG) binary(e *dag.BinaryExpr, parent string) {
 	}
 }
 
-func (c *canonDAG) fnRef(fn dag.FnRef) {
-	switch fn := fn.(type) {
+func (c *canonDAG) funcRef(f dag.FuncRef) {
+	switch f := f.(type) {
 	case *dag.Lambda:
 		c.write("(lambda ")
-		for i := range fn.Params {
+		for i := range f.Params {
 			if i != 0 {
 				c.write(", ")
 			}
-			c.write(fn.Params[i])
+			c.write(f.Params[i])
 		}
 		c.write(":")
-		c.expr(fn.Expr, "")
+		c.expr(f.Expr, "")
 		c.write(")")
-	case *dag.FnName:
-		c.write(fn.Name)
+	case *dag.FuncName:
+		c.write(f.Name)
 	}
 }
 
