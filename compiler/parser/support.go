@@ -44,29 +44,6 @@ func makeBinaryExprChain(first, rest any, c *current) any {
 	return ret
 }
 
-func makeDerefExpr(head, tail any) any {
-	out := head.(ast.Expr)
-	for _, d := range tail.([]any) {
-		switch d := d.(type) {
-		case *ast.SliceExpr:
-			d.Expr = out
-			d.First = out.Pos()
-			out = d
-		case *ast.IndexExpr:
-			d.Expr = out
-			d.First = out.Pos()
-			out = d
-		case *ast.BinaryExpr:
-			d.LHS = out
-			d.First = out.Pos()
-			out = d
-		default:
-			panic(d)
-		}
-	}
-	return out
-}
-
 func makeArgMap(args any) (any, error) {
 	m := make(map[string]any)
 	for _, a := range args.([]any) {
