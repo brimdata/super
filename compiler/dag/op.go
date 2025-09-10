@@ -194,7 +194,7 @@ type FuncName struct {
 }
 
 type FuncDef struct {
-	Kind   string `json:"func" unpack:""`
+	Kind   string `json:"kind" unpack:""`
 	Name   string `json:"name"`
 	Lambda Lambda `json:"lambda"`
 }
