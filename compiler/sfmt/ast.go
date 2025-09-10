@@ -446,14 +446,14 @@ func (c *canon) decl(d ast.Decl) {
 		c.flush()
 		c.write(")")
 	case *ast.OpDecl:
-		c.write("op %s(", d.Name.Name)
+		c.write("op %s ", d.Name.Name)
 		for k, f := range d.Formals {
 			if k > 0 {
 				c.write(", ")
 			}
 			c.write(f.Name)
 		}
-		c.open("): (")
+		c.open(": (")
 		c.ret()
 		c.flush()
 		c.head = true

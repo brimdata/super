@@ -8,7 +8,7 @@ script: |
 outputs:
   - name: stdout
     data: |
-      op o(a): (
+      op o a: (
         values a(this)
       )
       call o (lambda x:x+1)

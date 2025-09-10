@@ -33,13 +33,13 @@ outputs:
         a+b
       )
       const bar = "baz"
-      op stamp(assignee): (
+      op stamp assignee: (
         values {...this,assignee,ts:now()}
       )
-      op nop(foo): (
+      op nop foo: (
         pass
       )
-      op joinTest(left_file, right_file, left_key, right_key, left_dest, right_source): (
+      op joinTest left_file, right_file, left_key, right_key, left_dest, right_source: (
         from eval(left_file)
         | inner join (
           from eval(right_file)
