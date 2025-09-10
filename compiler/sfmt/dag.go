@@ -219,11 +219,11 @@ func (c *canonDAG) fnRef(fn dag.FnRef) {
 	switch fn := fn.(type) {
 	case *dag.Lambda:
 		c.write("(lambda ")
-		for i := range fn.Formals {
+		for i := range fn.Params {
 			if i != 0 {
 				c.write(", ")
 			}
-			c.write(fn.Formals[i])
+			c.write(fn.Params[i])
 		}
 		c.write(":")
 		c.expr(fn.Expr, "")
@@ -641,11 +641,11 @@ func (c *canonDAG) scope(s *dag.Scope) {
 	}
 	for _, f := range s.Funcs {
 		c.write("fn %s(", f.Name)
-		for i := range f.Lambda.Formals {
+		for i := range f.Lambda.Params {
 			if i != 0 {
 				c.write(", ")
 			}
-			c.write(f.Lambda.Formals[i])
+			c.write(f.Lambda.Params[i])
 		}
 		c.open("): (")
 		c.ret()

@@ -229,7 +229,7 @@ func (b *Builder) compileVamUDFCall(name string, lambda *dag.Lambda) (vamexpr.Fu
 	if fn, ok := b.compiledVamUDFs[name]; ok {
 		return fn, nil
 	}
-	fn := vamexpr.NewUDF(b.sctx(), name, lambda.Formals)
+	fn := vamexpr.NewUDF(b.sctx(), name, lambda.Params)
 	// We store compiled UDF calls here so as to avoid stack overflows on
 	// recursive calls.
 	b.compiledVamUDFs[name] = fn

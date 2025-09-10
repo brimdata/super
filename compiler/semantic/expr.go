@@ -618,34 +618,34 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 		a.error(call, errors.New("'where' clause on non-aggregation function"))
 		return badExpr()
 	}
-	actuals := a.semExprs(call.Actuals)
+	args := a.semExprs(call.Args)
 	switch fn := call.Fn.(type) {
 	case *ast.FnName:
-		return a.semCallByName(call, fn.ID.Name, actuals)
+		return a.semCallByName(call, fn.ID.Name, args)
 	case *ast.FnLambda:
-		return a.semCallLambda(fn, actuals)
+		return a.semCallLambda(fn, args)
 	default:
 		panic(fn)
 	}
 }
 
-func (a *analyzer) semCallLambda(lambda *ast.FnLambda, actuals []dag.Expr) dag.Expr {
-	formals := make([]string, 0, len(lambda.Formals))
-	for _, id := range lambda.Formals {
-		formals = append(formals, id.Name)
+func (a *analyzer) semCallLambda(lambda *ast.FnLambda, args []dag.Expr) dag.Expr {
+	params := make([]string, 0, len(lambda.Params))
+	for _, id := range lambda.Params {
+		params = append(params, id.Name)
 	}
 	return &dag.Call{
 		Kind: "Call",
 		Fn: &dag.Lambda{
-			Kind:    "Lambda",
-			Formals: formals,
-			Expr:    a.semExpr(lambda.Expr),
+			Kind:   "Lambda",
+			Params: params,
+			Expr:   a.semExpr(lambda.Expr),
 		},
-		Args: actuals,
+		Args: args,
 	}
 }
 
-func (a *analyzer) semCallByName(call *ast.Call, name string, actuals []dag.Expr) dag.Expr {
+func (a *analyzer) semCallByName(call *ast.Call, name string, args []dag.Expr) dag.Expr {
 
 	// Call could be to a user defined func. Check if we have a matching func in
 	// scope.  The name can be a formal argument of a user op so we look it up and
@@ -662,23 +662,23 @@ func (a *analyzer) semCallByName(call *ast.Call, name string, actuals []dag.Expr
 		return &dag.Call{
 			Kind: "Call",
 			Fn: &dag.Lambda{
-				Kind:    "Lambda",
-				Formals: lambda.Formals,
-				Expr:    lambda.Expr,
+				Kind:   "Lambda",
+				Params: lambda.Params,
+				Expr:   lambda.Expr,
 			},
-			Args: actuals,
+			Args: args,
 		}
 	}
-	nargs := len(actuals)
+	nargs := len(args)
 	nameLower := strings.ToLower(name)
 	switch {
 	// udf should be checked first since a udf can override builtin functions.
 	case fn != nil:
-		if len(fn.Lambda.Formals) != nargs {
-			a.error(call, fmt.Errorf("call expects %d argument(s)", len(fn.Lambda.Formals)))
+		if len(fn.Lambda.Params) != nargs {
+			a.error(call, fmt.Errorf("call expects %d argument(s)", len(fn.Lambda.Params)))
 			return badExpr()
 		}
-		return dag.NewCallByName(fn.Name, actuals)
+		return dag.NewCallByName(fn.Name, args)
 	case expr.NewShaperTransform(nameLower) != 0:
 		if err := function.CheckArgCount(nargs, 2, 2); err != nil {
 			a.error(call, err)
@@ -689,13 +689,13 @@ func (a *analyzer) semCallByName(call *ast.Call, name string, actuals []dag.Expr
 			a.error(call, err)
 			return badExpr()
 		}
-		pattern, ok := isStringConst(a.sctx, actuals[0])
+		pattern, ok := isStringConst(a.sctx, args[0])
 		if !ok {
-			return dag.NewCallByName("grep", actuals)
+			return dag.NewCallByName("grep", args)
 		}
 		re, err := expr.CompileRegexp(pattern)
 		if err != nil {
-			a.error(call.Actuals[0], err)
+			a.error(call.Args[0], err)
 			return badExpr()
 		}
 		if s, ok := re.LiteralPrefix(); ok {
@@ -703,19 +703,19 @@ func (a *analyzer) semCallByName(call *ast.Call, name string, actuals []dag.Expr
 				Kind:  "Search",
 				Text:  s,
 				Value: sup.QuotedString(s),
-				Expr:  actuals[1],
+				Expr:  args[1],
 			}
 		}
 		return &dag.RegexpSearch{
 			Kind:    "RegexpSearch",
 			Pattern: pattern,
-			Expr:    actuals[1],
+			Expr:    args[1],
 		}
 	case nameLower == "position" && nargs == 1:
-		b, ok := actuals[0].(*dag.BinaryExpr)
+		b, ok := args[0].(*dag.BinaryExpr)
 		if ok && strings.ToLower(b.Op) == "in" {
 			// Support for SQL style position function call.
-			actuals = []dag.Expr{b.RHS, b.LHS}
+			args = []dag.Expr{b.RHS, b.LHS}
 			nargs = 2
 		}
 		fallthrough
@@ -725,7 +725,7 @@ func (a *analyzer) semCallByName(call *ast.Call, name string, actuals []dag.Expr
 			return badExpr()
 		}
 	}
-	return dag.NewCallByName(nameLower, actuals)
+	return dag.NewCallByName(nameLower, args)
 }
 
 func (a *analyzer) semMapCall(call *ast.MapCall) dag.Expr {
@@ -742,9 +742,9 @@ func (a *analyzer) semMapCall(call *ast.MapCall) dag.Expr {
 		lambda = &dag.Call{
 			Kind: "Call",
 			Fn: &dag.Lambda{
-				Kind:    "Lambda",
-				Formals: formalsAsStrings(fn.Formals),
-				Expr:    a.semExpr(fn.Expr),
+				Kind:   "Lambda",
+				Params: idsAsStrings(fn.Params),
+				Expr:   a.semExpr(fn.Expr),
 			},
 			Args: this,
 		}
@@ -891,7 +891,7 @@ func (a *analyzer) maybeConvertAgg(call *ast.Call) dag.Expr {
 		return nil
 	}
 	var e dag.Expr
-	if err := function.CheckArgCount(len(call.Actuals), 0, 1); err != nil {
+	if err := function.CheckArgCount(len(call.Args), 0, 1); err != nil {
 		if nameLower == "min" || nameLower == "max" {
 			// min and max are special cases as they are also functions. If the
 			// number of args is greater than 1 they're probably a function so do not
@@ -901,8 +901,8 @@ func (a *analyzer) maybeConvertAgg(call *ast.Call) dag.Expr {
 		a.error(call, err)
 		return badExpr()
 	}
-	if len(call.Actuals) == 1 {
-		e = a.semExpr(call.Actuals[0])
+	if len(call.Args) == 1 {
+		e = a.semExpr(call.Args[0])
 	}
 	return &dag.Agg{
 		Kind:  "Agg",

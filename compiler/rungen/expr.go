@@ -344,9 +344,9 @@ func (b *Builder) compileCallByName(name string, args []dag.Expr) (expr.Evaluato
 	return expr.NewCall(fn, exprs), nil
 }
 
-func (b *Builder) compileLambda(lambda *dag.Lambda, actuals []dag.Expr) (expr.Evaluator, error) {
-	fn := expr.NewUDF(b.sctx(), "lambda", lambda.Formals)
-	exprs, err := b.compileExprs(actuals)
+func (b *Builder) compileLambda(lambda *dag.Lambda, args []dag.Expr) (expr.Evaluator, error) {
+	fn := expr.NewUDF(b.sctx(), "lambda", lambda.Params)
+	exprs, err := b.compileExprs(args)
 	if err != nil {
 		return nil, fmt.Errorf("lambda call: bad argument: %w", err)
 	}
@@ -360,7 +360,7 @@ func (b *Builder) compileUDFCall(name string, lambda *dag.Lambda) (expr.Function
 	if fn, ok := b.compiledUDFs[name]; ok { //XXX this doesn't work for stateful things
 		return fn, nil
 	}
-	fn := expr.NewUDF(b.sctx(), name, lambda.Formals)
+	fn := expr.NewUDF(b.sctx(), name, lambda.Params)
 	// We store compiled UDF calls here so as to avoid stack overflows on
 	// recursive calls.
 	b.compiledUDFs[name] = fn

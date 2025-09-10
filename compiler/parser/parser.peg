@@ -43,13 +43,13 @@ ConstDecl
     }
 
 FnDecl
-  = FN _ name:Identifier __ "(" __ formals:Identifiers? __ ")" __ ":" __ expr:Expr {
+  = FN _ name:Identifier __ "(" __ params:Identifiers? __ ")" __ ":" __ expr:Expr {
       return &ast.FnDecl{
         Kind: "FnDecl",
         Name: name.(*ast.ID),
         Lambda: &ast.FnLambda{
           Kind: "FnLambda",
-          Formals: sliceOf[*ast.ID](formals),
+          Params: sliceOf[*ast.ID](params),
           Expr: expr.(ast.Expr),
           Loc: loc(c),
         },
@@ -58,29 +58,29 @@ FnDecl
     }
 
 LambdaExpr
-  = "lambda" formals:(_ ids:Identifiers { return ids, nil })? __ ":" __ expr:Expr {
+  = "lambda" params:(_ ids:Identifiers { return ids, nil })? __ ":" __ expr:Expr {
       return &ast.FnLambda{
         Kind: "FnLambda",
-        Formals: sliceOf[*ast.ID](formals),
+        Params: sliceOf[*ast.ID](params),
         Expr: expr.(ast.Expr),
         Loc: loc(c),
       }, nil
     }
     / "(" __ lambda:LambdaExpr __ ")" { return lambda, nil }
 
-OpActuals
-  = first:OpActual rest:(__ "," __ o:OpActual { return o, nil })* {
+FuncOrExprs
+  = first:FuncOrExpr rest:(__ "," __ f:FuncOrExpr { return f, nil })* {
       return prepend(first, rest), nil
     }
 
-OpActual = FnValue / Expr
+FuncOrExpr = FnValue / Expr
 
 OpDecl
-  = OP _ name:Identifier formals:(_ ids:Identifiers { return ids, nil })? __ ":" __ body:ScopeBody {
+  = OP _ name:Identifier params:(_ ids:Identifiers { return ids, nil })? __ ":" __ body:ScopeBody {
       return &ast.OpDecl{
         Kind: "OpDecl",
         Name: name.(*ast.ID),
-        Formals: sliceOf[*ast.ID](formals),
+        Params: sliceOf[*ast.ID](params),
         Body: sliceOf[ast.Op](body),
         Loc: loc(c),
       }, nil
@@ -109,8 +109,8 @@ PipeOp
   / "(" __ scope:Scope __ ")" { return scope, nil }
   / a:OpAssignment &EndOfOp { return a, nil }
   / !(Function EndOfOp) a:Aggregation &EndOfOp { return a, nil }
-  / !CallIDGuard name:Identifier _ !CallExprGuard actuals:OpActuals {
-      return &ast.CallOp{Kind:"CallOp", Name: name.(*ast.ID), Actuals:sliceOf[ast.OpActual](actuals), Loc:loc(c)}, nil
+  / !CallIDGuard name:Identifier _ !CallExprGuard args:FuncOrExprs {
+      return &ast.CallOp{Kind:"CallOp", Name: name.(*ast.ID), Args:sliceOf[ast.FuncOrExpr](args), Loc:loc(c)}, nil
     }
   / !CallIDGuard name:Identifier &EndOfOp {
       return &ast.CallOp{Kind:"CallOp", Name: name.(*ast.ID), Loc:loc(c)}, nil
@@ -447,11 +447,11 @@ TopOp
     }
 
 CallOp
-  = CALL _ name:Identifier actuals:((_ actuals:OpActuals) { return actuals, nil })? {
+  = CALL _ name:Identifier args:((_ args:FuncOrExprs) { return args, nil })? {
       return &ast.CallOp{
         Kind: "CallOp",
         Name: name.(*ast.ID),
-        Actuals: sliceOf[ast.OpActual](actuals),
+        Args: sliceOf[ast.FuncOrExpr](args),
         Loc: loc(c),
       }, nil
     }

@@ -69,9 +69,9 @@ type (
 		Expr Expr   `json:"expr"`
 	}
 	Lambda struct {
-		Kind    string   `json:"kind" unpack:""`
-		Formals []string `json:"formals"`
-		Expr    Expr     `json:"expr"`
+		Kind   string   `json:"kind" unpack:""`
+		Params []string `json:"params"`
+		Expr   Expr     `json:"expr"`
 	}
 	Literal struct {
 		Kind  string `json:"kind" unpack:""`

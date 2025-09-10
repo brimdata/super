@@ -114,7 +114,7 @@ func (c *canon) expr(e ast.Expr, parent string) {
 	case *ast.Call:
 		c.fnRefCall(e.Fn)
 		c.write("(")
-		c.exprs(e.Actuals)
+		c.exprs(e.Args)
 		c.write(")")
 	case *ast.CallExtract:
 		c.write("EXTRACT(")
@@ -325,7 +325,7 @@ func (c *canon) fnRefActual(fn ast.FnRef) {
 
 func (c *canon) lambda(lambda *ast.FnLambda) {
 	c.write("(lambda ")
-	c.ids(lambda.Formals)
+	c.ids(lambda.Params)
 	c.write(":")
 	c.expr(lambda.Expr, "")
 	c.write(")")
@@ -432,11 +432,11 @@ func (c *canon) decl(d ast.Decl) {
 		c.expr(d.Expr, "")
 	case *ast.FnDecl:
 		c.write("fn %s(", d.Name.Name)
-		for i := range d.Lambda.Formals {
+		for i := range d.Lambda.Params {
 			if i != 0 {
 				c.write(", ")
 			}
-			c.write(d.Lambda.Formals[i].Name)
+			c.write(d.Lambda.Params[i].Name)
 		}
 		c.open("): (")
 		c.ret()
@@ -447,7 +447,7 @@ func (c *canon) decl(d ast.Decl) {
 		c.write(")")
 	case *ast.OpDecl:
 		c.write("op %s ", d.Name.Name)
-		for k, f := range d.Formals {
+		for k, f := range d.Params {
 			if k > 0 {
 				c.write(", ")
 			}
@@ -545,7 +545,7 @@ func (c *canon) op(p ast.Op) {
 	case *ast.CallOp:
 		c.next()
 		c.write("call %s ", sup.QuotedName(p.Name.Name))
-		c.actuals(p.Actuals)
+		c.funcOrExprs(p.Args)
 	case *ast.Cut:
 		c.next()
 		c.write("cut ")
@@ -799,8 +799,8 @@ func (c *canon) op(p ast.Op) {
 	}
 }
 
-func (c *canon) actuals(actuals []ast.OpActual) {
-	for k, a := range actuals {
+func (c *canon) funcOrExprs(args []ast.FuncOrExpr) {
+	for k, a := range args {
 		if k > 0 {
 			c.write(", ")
 		}

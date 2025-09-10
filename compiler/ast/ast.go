@@ -123,11 +123,11 @@ type When struct {
 // a function call has the standard semantics where it takes one or more arguments
 // and returns a result.
 type Call struct {
-	Kind    string `json:"kind" unpack:""`
-	Fn      FnRef  `json:"fn"`
-	Actuals []Expr `json:"actuals"`
-	Where   Expr   `json:"where"`
-	Loc     `json:"loc"`
+	Kind  string `json:"kind" unpack:""`
+	Fn    FnRef  `json:"fn"`
+	Args  []Expr `json:"args"`
+	Where Expr   `json:"where"`
+	Loc   `json:"loc"`
 }
 
 type CallExtract struct {
@@ -397,11 +397,11 @@ type FnDecl struct {
 }
 
 type OpDecl struct {
-	Kind    string `json:"kind" unpack:""`
-	Name    *ID    `json:"name"`
-	Formals []*ID  `json:"formals"`
-	Body    Seq    `json:"body"`
-	Loc     `json:"loc"`
+	Kind   string `json:"kind" unpack:""`
+	Name   *ID    `json:"name"`
+	Params []*ID  `json:"params"`
+	Body   Seq    `json:"body"`
+	Loc    `json:"loc"`
 }
 
 type TypeDecl struct {
@@ -632,10 +632,10 @@ type (
 		Loc  `json:"loc"`
 	}
 	CallOp struct {
-		Kind    string     `json:"kind" unpack:""`
-		Name    *ID        `json:"name"`
-		Actuals []OpActual `json:"actuals"`
-		Loc     `json:"loc"`
+		Kind string       `json:"kind" unpack:""`
+		Name *ID          `json:"name"`
+		Args []FuncOrExpr `json:"args"`
+		Loc  `json:"loc"`
 	}
 )
 
@@ -773,10 +773,10 @@ type Agg struct {
 // FnRef is a sum type representing FnName or FnLambda (a named fn reference or a lambda value)
 
 type FnLambda struct {
-	Kind    string `json:"kind" unpack:""`
-	Formals []*ID  `json:"formals"`
-	Expr    Expr   `json:"expr"`
-	Loc     `json:"loc"`
+	Kind   string `json:"kind" unpack:""`
+	Params []*ID  `json:"params"`
+	Expr   Expr   `json:"expr"`
+	Loc    `json:"loc"`
 }
 
 type FnName struct {
@@ -794,4 +794,4 @@ func (*FnName) fnRefNode()   {}
 
 // There's not an easy way to create an Expr|FnRef sum type so we use
 // type any here and are careful how we use it.
-type OpActual any
+type FuncOrExpr any
