@@ -112,7 +112,7 @@ func (c *canon) expr(e ast.Expr, parent string) {
 		c.write(" : ")
 		c.expr(e.Else, "")
 	case *ast.Call:
-		c.fnRef(e.Fn)
+		c.fnRefCall(e.Fn)
 		c.write("(")
 		c.exprs(e.Actuals)
 		c.write(")")
@@ -161,6 +161,12 @@ func (c *canon) expr(e ast.Expr, parent string) {
 			c.write("NOT ")
 		}
 		c.write("NULL")
+	case *ast.MapCall:
+		c.write("map(")
+		c.expr(e.Expr, "")
+		c.write(", ")
+		c.fnRefActual(e.Fn)
+		c.write(")")
 	case *ast.SliceExpr:
 		c.expr(e.Expr, "")
 		c.write("[")
@@ -285,14 +291,35 @@ func (c *canon) expr(e ast.Expr, parent string) {
 	}
 }
 
-func (c *canon) fnRef(fn ast.FnRef) {
+func (c *canon) fnRefCall(fn ast.FnRef) {
+	if e, ok := fn.(ast.Expr); ok {
+		c.expr(e, "")
+		return
+	}
 	switch fn := fn.(type) {
 	case *ast.FnName:
 		c.write("%s", fn.ID.Name)
 	case *ast.FnLambda:
+		c.write("(")
+		c.lambda(fn)
+		c.write(")")
+	default:
+		panic(fn)
+	}
+}
+
+func (c *canon) fnRefActual(fn ast.FnRef) {
+	if e, ok := fn.(ast.Expr); ok {
+		c.expr(e, "")
+		return
+	}
+	switch fn := fn.(type) {
+	case *ast.FnName:
+		c.write("&%s", fn.ID.Name)
+	case *ast.FnLambda:
 		c.lambda(fn)
 	default:
-		panic(fmt.Sprintf("unknown ast.FnRef: %T", fn))
+		panic(fn)
 	}
 }
 
@@ -788,7 +815,7 @@ func (c *canon) actuals(actuals []ast.OpActual) {
 			c.write("&")
 			c.expr(a.ID, "")
 		default:
-			c.write(fmt.Sprintf("unknown type for op call actuals: %T", a))
+			panic(fmt.Sprintf("unknown type for op call actuals: %T", a))
 		}
 	}
 }
@@ -961,11 +988,11 @@ func isAggFunc(e ast.Expr) *ast.Aggregate {
 	if !ok {
 		return nil
 	}
-	named, ok := call.Fn.(*ast.FnName)
+	name, ok := call.Fn.(*ast.FnName)
 	if !ok {
 		return nil
 	}
-	if _, err := agg.NewPattern(named.ID.Name, false, true); err != nil {
+	if _, err := agg.NewPattern(name.ID.Name, false, true); err != nil {
 		return nil
 	}
 	return &ast.Aggregate{
@@ -994,10 +1021,7 @@ func IsBool(e ast.Expr) bool {
 		return IsBool(e.Then) && IsBool(e.Else)
 	case *ast.Call:
 		named, ok := e.Fn.(*ast.FnName)
-		if !ok {
-			return false
-		}
-		return function.HasBoolResult(named.ID.Name)
+		return ok && function.HasBoolResult(named.ID.Name)
 	case *ast.Cast:
 		if typval, ok := e.Type.(*ast.TypeValue); ok {
 			if typ, ok := typval.Value.(*ast.TypePrimitive); ok {

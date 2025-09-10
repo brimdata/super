@@ -1,0 +1,26 @@
+script: |
+  super compile -C 'op o a: (values a(this))  o lambda x: x+1'
+  echo ===
+  super compile -C -dag 'op o a: (values a(this))  o lambda x: x+1'
+  echo ===
+  super compile -C -dag 'op o inc: (values (lambda x:x+1)(this+inc))  o 123'
+
+outputs:
+  - name: stdout
+    data: |
+      op o(a): (
+        values a(this)
+      )
+      call o (lambda x:x+1)
+      ===
+      null
+      | (
+        values (lambda x:x+1)(this)
+        | output main
+      )
+      ===
+      null
+      | (
+        values (lambda x:x+1)(this+123)
+        | output main
+      )

@@ -342,7 +342,7 @@ type SQLTimeValue struct {
 type MapCall struct {
 	Kind string `json:"kind" unpack:""`
 	Expr Expr   `json:"expr"`
-	Fn   FnRef  `json:"func"`
+	Fn   FnRef  `json:"fn"`
 	Loc  `json:"loc"`
 }
 

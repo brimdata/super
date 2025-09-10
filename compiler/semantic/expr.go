@@ -87,7 +87,7 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 		name := "cast"
 		return &dag.Call{
 			Kind: "Call",
-			Fn:   &dag.FnName{Kind: "Name", Name: name},
+			Fn:   &dag.FnName{Kind: "FnName", Name: name},
 			Args: []dag.Expr{expr, typ},
 		}
 	case *ast.DoubleQuote:
@@ -625,7 +625,7 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 	case *ast.FnLambda:
 		return a.semCallLambda(fn, actuals)
 	default:
-		panic("semCall")
+		panic(fn)
 	}
 }
 

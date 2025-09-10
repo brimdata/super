@@ -314,7 +314,7 @@ func (b *Builder) compileCall(call dag.Call) (expr.Evaluator, error) {
 	case *dag.Lambda:
 		return b.compileLambda(fn, call.Args)
 	default:
-		panic("compileCall")
+		panic(call)
 	}
 }
 

@@ -1242,7 +1242,7 @@ func (a *analyzer) semCallOp(call *ast.CallOp, seq dag.Seq) dag.Seq {
 		} else if fn, ok := e.(ast.FnRef); ok {
 			fns[i] = a.semFnRef(fn)
 		} else {
-			panic("semCallOp")
+			panic(e)
 		}
 	}
 	if slices.Contains(a.opStack, decl.ast) {
