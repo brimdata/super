@@ -781,7 +781,7 @@ type Lambda struct {
 
 type FuncName struct {
 	Kind string `json:"kind" unpack:""`
-	ID   *ID    `json:"id"`
+	Name string `json:"name"`
 	Loc  `json:"loc"`
 }
 

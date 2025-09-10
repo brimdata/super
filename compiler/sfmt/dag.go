@@ -230,6 +230,8 @@ func (c *canonDAG) funcRef(f dag.FuncRef) {
 		c.write(")")
 	case *dag.FuncName:
 		c.write(f.Name)
+	default:
+		panic(f)
 	}
 }
 

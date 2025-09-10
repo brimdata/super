@@ -298,7 +298,7 @@ func (c *canon) funcRefAsCall(f ast.FuncRef) {
 	}
 	switch f := f.(type) {
 	case *ast.FuncName:
-		c.write("%s", f.ID.Name)
+		c.write("%s", f.Name)
 	case *ast.Lambda:
 		c.write("(")
 		c.lambda(f)
@@ -315,7 +315,7 @@ func (c *canon) funcRefAsArg(f ast.FuncRef) {
 	}
 	switch f := f.(type) {
 	case *ast.FuncName:
-		c.write("&%s", f.ID.Name)
+		c.write("&%s", f.Name)
 	case *ast.Lambda:
 		c.lambda(f)
 	default:
@@ -812,8 +812,7 @@ func (c *canon) funcOrExprs(args []ast.FuncOrExpr) {
 		case *ast.Lambda:
 			c.lambda(a)
 		case *ast.FuncName:
-			c.write("&")
-			c.expr(a.ID, "")
+			c.write("&%s", a.Name)
 		default:
 			panic(fmt.Sprintf("unknown type for op call actuals: %T", a))
 		}
@@ -992,7 +991,7 @@ func isAggFunc(e ast.Expr) *ast.Aggregate {
 	if !ok {
 		return nil
 	}
-	if _, err := agg.NewPattern(name.ID.Name, false, true); err != nil {
+	if _, err := agg.NewPattern(name.Name, false, true); err != nil {
 		return nil
 	}
 	return &ast.Aggregate{
@@ -1020,8 +1019,8 @@ func IsBool(e ast.Expr) bool {
 	case *ast.Conditional:
 		return IsBool(e.Then) && IsBool(e.Else)
 	case *ast.Call:
-		named, ok := e.Func.(*ast.FuncName)
-		return ok && function.HasBoolResult(named.ID.Name)
+		name, ok := e.Func.(*ast.FuncName)
+		return ok && function.HasBoolResult(name.Name)
 	case *ast.Cast:
 		if typval, ok := e.Type.(*ast.TypeValue); ok {
 			if typ, ok := typval.Value.(*ast.TypePrimitive); ok {

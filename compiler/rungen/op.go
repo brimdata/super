@@ -478,8 +478,8 @@ func (b *Builder) compileScope(scope *dag.Scope, parents []sbuf.Puller) ([]sbuf.
 	parentUDFs := b.udfs
 	b.udfs = maps.Clone(parentUDFs)
 	defer func() { b.udfs = parentUDFs }()
-	for k, f := range scope.Funcs {
-		b.udfs[f.Name] = &scope.Funcs[k].Lambda
+	for _, f := range scope.Funcs {
+		b.udfs[f.Name] = &f.Lambda
 	}
 	return b.compileSeq(scope.Body, parents)
 }

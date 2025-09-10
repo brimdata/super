@@ -84,10 +84,9 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 	case *ast.Cast:
 		expr := a.semExpr(e.Expr)
 		typ := a.semExpr(e.Type)
-		name := "cast"
 		return &dag.Call{
 			Kind: "Call",
-			Func: &dag.FuncName{Kind: "FuncName", Name: name},
+			Func: &dag.FuncName{Kind: "FuncName", Name: "cast"},
 			Args: []dag.Expr{expr, typ},
 		}
 	case *ast.DoubleQuote:
@@ -621,7 +620,7 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 	args := a.semExprs(call.Args)
 	switch f := call.Func.(type) {
 	case *ast.FuncName:
-		return a.semCallByName(call, f.ID.Name, args)
+		return a.semCallByName(call, f.Name, args)
 	case *ast.Lambda:
 		return a.semCallLambda(f, args)
 	default:
@@ -646,7 +645,6 @@ func (a *analyzer) semCallLambda(lambda *ast.Lambda, args []dag.Expr) dag.Expr {
 }
 
 func (a *analyzer) semCallByName(call *ast.Call, name string, args []dag.Expr) dag.Expr {
-
 	// Call could be to a user defined func. Check if we have a matching func in
 	// scope.  The name can be a formal argument of a user op so we look it up and
 	// see if it points to something else.
@@ -733,11 +731,11 @@ func (a *analyzer) semMapCall(call *ast.MapCall) dag.Expr {
 	this := []dag.Expr{dag.NewThis(nil)}
 	switch f := call.Func.(type) {
 	case *ast.FuncName:
-		if _, _, err := a.scope.LookupFunc(f.ID.Name); err != nil {
+		if _, _, err := a.scope.LookupFunc(f.Name); err != nil {
 			a.error(f, err)
 			return badExpr()
 		}
-		lambda = dag.NewCallByName(f.ID.Name, this)
+		lambda = dag.NewCallByName(f.Name, this)
 	case *ast.Lambda:
 		lambda = &dag.Call{
 			Kind: "Call",
@@ -836,9 +834,6 @@ func deriveNameFromExpr(e dag.Expr, a ast.Expr) []string {
 		return []string{e.Name}
 	case *dag.Call:
 		name := e.Name()
-		if name == "" {
-			name = "lambda"
-		}
 		switch strings.ToLower(name) {
 		case "quiet":
 			if len(e.Args) > 0 {
@@ -886,7 +881,7 @@ func (a *analyzer) maybeConvertAgg(call *ast.Call) dag.Expr {
 	if !ok {
 		return nil
 	}
-	nameLower := strings.ToLower(name.ID.Name)
+	nameLower := strings.ToLower(name.Name)
 	if _, err := agg.NewPattern(nameLower, false, true); err != nil {
 		return nil
 	}

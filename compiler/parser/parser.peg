@@ -58,7 +58,7 @@ FuncDecl
     }
 
 LambdaExpr
-  = "lambda" params:(_ ids:Identifiers { return ids, nil })? __ ":" __ expr:Expr {
+  = LAMBDA params:(_ ids:Identifiers { return ids, nil })? __ ":" __ expr:Expr {
       return &ast.Lambda{
         Kind: "Lambda",
         Params: sliceOf[*ast.ID](params),
@@ -303,7 +303,7 @@ AggAssignments
 CountStar = COUNT __ "(" __ "*" __ ")" {
     name := &ast.FuncName{
         Kind: "FuncName",
-        ID: &ast.ID{Kind:"ID", Name:"count", Loc: ast.NewLoc(c.pos.offset, c.pos.offset+5)},
+        Name: "count",
         Loc: loc(c),
     }
     return &ast.Call{
@@ -1092,19 +1092,18 @@ Function
 
 Callable
   = LambdaExpr
-  / id:Identifier {
+  / id:IdentifierName {
       return &ast.FuncName{
-        Kind: "FuncName",
-        ID: id.(*ast.ID),
+        Name: id.(string),
         Loc: loc(c),
       }, nil
     }
 
 FuncValue
-  = "&" id:Identifier {
+  = "&" id:IdentifierName {
       return &ast.FuncName{
         Kind: "FuncName",
-        ID: id.(*ast.ID),
+        Name: id.(string),
         Loc: loc(c),
       }, nil
     }
@@ -2391,6 +2390,7 @@ IN         = "IN"i              !IdentifierRest
 INNER      = "INNER"i           !IdentifierRest
 IS         = "IS"i              !IdentifierRest
 JOIN       = "JOIN"i            !IdentifierRest
+LAMBDA     = "LAMBDA"i          !IdentifierRest
 LAST       = "LAST"i            !IdentifierRest
 LEFT       = "LEFT"i            !IdentifierRest
 LIKE       = "LIKE"i            !IdentifierRest

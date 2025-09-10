@@ -1190,7 +1190,7 @@ func (a *analyzer) semCallOpExpr(call *ast.Call, seq dag.Seq) dag.Seq {
 	if !ok {
 		return nil
 	}
-	name := f.ID.Name
+	name := f.Name
 	if agg := a.maybeConvertAgg(call); agg != nil {
 		aggregate := &dag.Aggregate{
 			Kind: "Aggregate",
@@ -1284,7 +1284,7 @@ func (a *analyzer) semFuncRef(f ast.FuncRef) dag.FuncRef {
 	case *ast.FuncName:
 		return &dag.FuncName{
 			Kind: "FuncName",
-			Name: f.ID.Name,
+			Name: f.Name,
 		}
 	default:
 		panic(f)

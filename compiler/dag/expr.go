@@ -141,7 +141,7 @@ func (c *Call) Name() string {
 	if f, ok := c.Func.(*FuncName); ok {
 		return f.Name
 	}
-	return ""
+	return "lambda"
 }
 
 func (*Agg) exprNode()          {}
