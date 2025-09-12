@@ -104,8 +104,6 @@ func demandForSimpleOp(op dag.Op, downstream demand.Demand) demand.Demand {
 		return demandForAssignments(op.Args, downstream)
 	case *dag.Rename:
 		return demandForAssignments(op.Args, downstream)
-	case *dag.Shape:
-		return downstream
 	case *dag.Skip:
 		return downstream
 	case *dag.Sort:

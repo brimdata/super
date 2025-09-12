@@ -335,7 +335,6 @@ Operator
   / PutOp
   / RenameOp
   / FuseOp
-  / ShapeOp
   / JoinOp
   / ShapesOp
   / FromOp
@@ -561,11 +560,6 @@ RenameOp
 FuseOp
   = FUSE &EndOfOp {
       return &ast.Fuse{Kind: "Fuse", Loc: loc(c)}, nil
-    }
-
-ShapeOp
-  = SHAPE &EndOfOp {
-      return &ast.Shape{Kind: "Shape", Loc: loc(c)}, nil
     }
 
 JoinOp

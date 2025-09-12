@@ -31,7 +31,6 @@ import (
 	"github.com/brimdata/super/runtime/sam/op/mirror"
 	"github.com/brimdata/super/runtime/sam/op/robot"
 	"github.com/brimdata/super/runtime/sam/op/scope"
-	"github.com/brimdata/super/runtime/sam/op/shape"
 	"github.com/brimdata/super/runtime/sam/op/skip"
 	"github.com/brimdata/super/runtime/sam/op/sort"
 	"github.com/brimdata/super/runtime/sam/op/switcher"
@@ -241,8 +240,6 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 		return op.NewApplier(b.rctx, parent, renamer, b.resetters), nil
 	case *dag.Fuse:
 		return fuse.New(b.rctx, parent)
-	case *dag.Shape:
-		return shape.New(b.rctx, parent)
 	case *dag.HashJoin, *dag.Join:
 		return nil, ErrJoinParents
 	case *dag.Merge:

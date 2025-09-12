@@ -626,8 +626,6 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 			Expr:  expr,
 			Cases: cases,
 		})
-	case *ast.Shape:
-		return append(seq, &dag.Shape{Kind: "Shape"})
 	case *ast.Cut:
 		assignments := a.semAssignments(o.Args)
 		// Collect static paths so we can check on what is available.

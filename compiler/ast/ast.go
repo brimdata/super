@@ -600,10 +600,6 @@ type (
 		Expr Expr   `json:"expr"`
 		Loc  `json:"loc"`
 	}
-	Shape struct {
-		Kind string `json:"kind" unpack:""`
-		Loc  `json:"loc"`
-	}
 	Load struct {
 		Kind string  `json:"kind" unpack:""`
 		Pool *Text   `json:"pool"`
@@ -731,7 +727,6 @@ func (*OpExpr) opNode()       {}
 func (*Rename) opNode()       {}
 func (*Fuse) opNode()         {}
 func (*Join) opNode()         {}
-func (*Shape) opNode()        {}
 func (*From) opNode()         {}
 func (*DefaultScan) opNode()  {}
 func (*Explode) opNode()      {}

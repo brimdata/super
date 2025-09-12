@@ -61,7 +61,6 @@ var unpacker = unpack.New(
 	Map{},
 	MapCall{},
 	MapExpr{},
-	Shape{},
 	Parallel{},
 	Pass{},
 	Primitive{},

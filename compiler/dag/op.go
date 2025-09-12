@@ -134,9 +134,6 @@ type (
 		Funcs []*FuncDef `json:"funcs"`
 		Body  Seq        `json:"seq"`
 	}
-	Shape struct {
-		Kind string `json:"kind" unpack:""`
-	}
 	Skip struct {
 		Kind  string `json:"kind" unpack:""`
 		Count int    `json:"count"`
@@ -359,7 +356,6 @@ func (*Rename) opNode()    {}
 func (*Fuse) opNode()      {}
 func (*HashJoin) opNode()  {}
 func (*Join) opNode()      {}
-func (*Shape) opNode()     {}
 func (*Explode) opNode()   {}
 func (*Unnest) opNode()    {}
 func (*Values) opNode()    {}
