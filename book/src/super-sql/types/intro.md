@@ -17,3 +17,26 @@ SUP value is also a valid SuperSQL literal.
 In particular, the type decorators in SUP utilize a double colon (`::`)
 syntax that is compatible with the SuperSQL
 [`cast`](../expressions.md#casts) operator.
+TODO: clean this up.  explain "any" in terms of polymorphic operators
+on strongly typed data.
+
+Arguments to [functions](../functions/intro.md)
+and [operators](../operators/intro.md) are all dynamically typed,
+yet certain functions expect certain specific types
+or classes of data types.  The following names for categories of types
+are used in throughout the documentation:
+* `any` - any SuperSQL data type
+* `float` - any floating point type
+* `int` - any signed or unsigned integer type
+* `number` - either `float` or `int`
+* `record` - any [record type](record.md)
+* `set` - any [set type](set.md)
+* `map` - any [map type](map.md)
+* `function` - a function reference of lambda expression
+
+To be clear, none of these names may be used in a SuperSQL query.
+They are simply used to document expected type categories.
+
+> _In a future version of SuperSQL, user-defined function and operator declarations
+> will include optional type signatures and these names representing type categories
+> may be included in the language for that purpose._

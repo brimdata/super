@@ -20,3 +20,10 @@ arguments.
 
 [User-defined functions](statements.md#func-statements) may also be created.
 
+
+#### Function Reference
+
+XXX todo `&foo` convention
+
+#### Lambda Expression
+

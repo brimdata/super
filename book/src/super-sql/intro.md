@@ -411,9 +411,14 @@ $ super -c "from input.json | values typeof(this)"
 <{b:int64,c:int64}>
 <{b:int64,c:int64}>
 ```
-> In a future version of the SuperSQL compiler, we will use type information
-> from SuperSQL data formats to do compile-time type checking like SQL does
-> with schemas.
+> While SuperSQL currently uses aschema information to check the existence of
+> column references, type checking using the actual column types is
+> not yet performed at compile time and is instead detected dynamically at run time.
+> For example, `select "foo"+1 as x` produces the runtime value `{x:error("missing")}`.
+> Future versions of SuperSQL will do comprehensive type checking and report such
+> errors at compile time.  Similarly, future versions will use the type information
+> of super-structured file formats to perform compile-time type checking for
+> heterogeous data inputs.
 
 ### Data Order
 

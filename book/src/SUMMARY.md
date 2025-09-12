@@ -35,8 +35,6 @@
         - [Output Options](command/output-options.md)
 - [SuperSQL](super-sql/intro.md)
     - [Syntax](super-sql/syntax.md)
-    - [Conventions](super-sql/conventions.md)
-    - [Comments](super-sql/comments.md)
     - [Shortcuts](super-sql/shortcuts.md)
     - [Declarations](super-sql/declarations/intro.md)
         - [Constants](super-sql/declarations/constants.md)

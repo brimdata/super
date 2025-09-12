@@ -9,6 +9,26 @@ The syntactical structure of a pipe query consists of
 Any valid [SQL query](../sql/intro.md) may appear as a pipe operator and thus
 be embedded in a pipe query.
 
+### Comments
+
+Single-line comments are SQL style begin with two dashes `--` and end at the
+subsequent newline.
+
+Multi-line comments are C style and begin with `/*` and end with `*/`.
+
+```mdtest-spq
+# spq
+values 1, 2 -- , 3
+/*
+| aggregate sum(this)
+*/
+| aggregate sum(this / 2.0)
+# input
+null
+# expected output
+1.5
+```
+
 ### Scoping
 
 A declaration binds a name expressed as an [identifier](#identifiers) to
@@ -69,9 +89,3 @@ In SQL expressions, identifiers may also be enclosed in double-quoted strings.
 
 An unquoted identifier cannot be `true`, `false`, or `null` or a SQL keyword.
 
-XXX list the keywords somewhere
-
-XXX somewhere explain string quotes, backtick identifiers, and
-double-quote identifiers in SQL context all in the same place (here)
-and point to the respective definitions of these things (like types/string)
-and (expressions/intro#id)
