@@ -77,7 +77,7 @@ func (s *Shared) Run(ctx context.Context, args []string, dbFlags *dbflags.Flags,
 		return s.writeValue(ctx, ast.Parsed())
 	}
 	rctx := runtime.DefaultContext()
-	env := exec.NewEnvironment(nil, root)
+	env := exec.NewEnvironment(storage.NewLocalEngine(), root)
 	dag, err := compiler.Analyze(rctx, ast, env, extInput)
 	if err != nil {
 		return err
