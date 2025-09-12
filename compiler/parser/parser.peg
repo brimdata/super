@@ -243,7 +243,7 @@ AggAssignment
     }
 
 Agg
-  = aggDistinct:AggDistinct !(__ ".") where:WhereClause? {
+  = aggDistinct:AggDistinct where:WhereClause? {
       agg := aggDistinct.(*ast.Agg)
       agg.Loc = loc(c)
       if where != nil {
@@ -251,7 +251,7 @@ Agg
       }
       return agg, nil
     }
-  / name:AggName __ "(" __ expr:Expr? __ ")" !(__ ".") where:WhereClause? {
+  / name:AggName __ "(" __ expr:Expr? __ ")" where:WhereClause? {
       agg := &ast.Agg{
           Kind: "Agg",
           Name: name.(string),
@@ -407,7 +407,7 @@ AssertOp
     }
 
 SortOp
-  = (SORT / ORDER _ BY) &EOKW args:SortArgs exprs:(__ e:OrderByList { return e, nil })? {
+  = (SORT / ORDER _ BY) args:SortArgs exprs:(__ e:OrderByList { return e, nil })? {
       o := &ast.Sort{
         Kind: "Sort",
         Loc: loc(c),
@@ -428,7 +428,7 @@ SortArg
   = "-r" { return map[string]any{"name": "r", "value": nil}, nil }
 
 TopOp
-  = TOP &EOKW args:SortArgs limit:(_ e:Expr { return e, nil })? exprs:(_ e:OrderByList { return e, nil })? {
+  = TOP args:SortArgs limit:(_ e:Expr { return e, nil })? exprs:(_ e:OrderByList { return e, nil })? {
       op := &ast.Top{
         Kind: "Top",
         Loc: loc(c),
@@ -484,14 +484,14 @@ DropOp
     }
 
 HeadOp
-  = (HEAD / LIMIT) _ !EndOfOp count:Expr {
+  = (HEAD / LIMIT) _ count:Expr {
       return &ast.Head{
         Kind: "Head",
         Count: count.(ast.Expr),
         Loc: loc(c),
       }, nil
     }
-  / HEAD !(__ "(") &EOKW {
+  / HEAD &EndOfOp {
       return &ast.Head{
         Kind: "Head",
         Loc: loc(c),
@@ -499,14 +499,14 @@ HeadOp
     }
 
 TailOp
-  = TAIL _ !EndOfOp count:Expr {
+  = TAIL _ count:Expr {
       return &ast.Tail{
         Kind: "Tail",
         Count: count.(ast.Expr),
         Loc: loc(c),
       }, nil
     }
-  / TAIL !(__ "(") &EOKW {
+  / TAIL &EndOfOp {
       return &ast.Tail{
         Kind: "Tail",
         Loc: loc(c),
@@ -535,7 +535,7 @@ UniqOp
   = UNIQ _ "-c" {
       return &ast.Uniq{Kind: "Uniq", Cflag: true, Loc: loc(c)}, nil
     }
-  / UNIQ !(__ "(") &EOKW {
+  / UNIQ &EndOfOp {
       return &ast.Uniq{Kind: "Uniq", Loc: loc(c)}, nil
     }
 
@@ -558,17 +558,13 @@ RenameOp
       }, nil
     }
 
-// The paren guard is to allow parsing fuse() as an aggregator. This
-// is temporary pending finalizing the names
-// (https://github.com/brimdata/super/issues/2114) for the fuse op and
-// aggregator, at which point we may no longer need this.
 FuseOp
-  = FUSE !(__ "(") &EOKW {
+  = FUSE &EndOfOp {
       return &ast.Fuse{Kind: "Fuse", Loc: loc(c)}, nil
     }
 
 ShapeOp
-  = SHAPE !(__ "(") &EOKW {
+  = SHAPE &EndOfOp {
       return &ast.Shape{Kind: "Shape", Loc: loc(c)}, nil
     }
 
@@ -628,7 +624,7 @@ JoinRightInput
   / "" { return nil, nil }
 
 ShapesOp
-  = SHAPES &EOKW expr:(_ e:Lval { return e, nil })? {
+  = SHAPES expr:(_ e:Lval { return e, nil })? {
       o := &ast.Shapes{Kind: "Shapes", Loc: loc(c)}
       if expr != nil {
         o.Expr = expr.(ast.Expr)
@@ -670,7 +666,7 @@ OutputOp
     }
 
 DebugOp
-  = DEBUG &EOKW expr:(_ e:Expr { return e, nil })? {
+  = DEBUG expr:(_ e:Expr { return e, nil })? {
       d := &ast.Debug{
         Kind: "Debug",
         Loc: loc(c),
@@ -803,7 +799,7 @@ ColonName
   = ":" n:Name { return n, nil }
 
 PassOp
-  = PASS !(__ "(") &EOKW {
+  = PASS &EndOfOp {
       return &ast.Pass{Kind: "Pass", Loc: loc(c)}, nil
     }
 
@@ -1893,8 +1889,6 @@ EOL = WhiteSpace* LineTerminator
 EOT = _ / EOF
 
 EOF = !.
-
-EOKW = !KeyWordChars
 
 /// === SuperSQL ===
 
