@@ -1,6 +1,7 @@
-spq: values (values 1,2,3)
-
-vector: true
+spq: values (values 1), (values 1,2), [(values 1)], [(values 1,2)]
 
 output: |
+  1
   error("query expression produced multiple values (consider [(subquery)])")
+  [1]
+  [1,2]

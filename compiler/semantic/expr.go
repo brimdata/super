@@ -39,6 +39,9 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 			Where:    where,
 		}
 	case *ast.ArrayExpr:
+		if subquery := a.arraySubquery(e); subquery != nil {
+			return subquery
+		}
 		elems := a.semVectorElems(e.Elems)
 		return &dag.ArrayExpr{
 			Kind:  "ArrayExpr",
@@ -998,6 +1001,41 @@ func (a *analyzer) semFString(f *ast.FString) dag.Expr {
 		out = dag.NewBinaryExpr("+", out, e)
 	}
 	return out
+}
+
+func (a *analyzer) arraySubquery(e *ast.ArrayExpr) *dag.Subquery {
+	if len(e.Elems) != 1 {
+		return nil
+	}
+	elem, ok := e.Elems[0].(*ast.VectorValue)
+	if !ok {
+		return nil
+	}
+	subquery, ok := elem.Expr.(*ast.Subquery)
+	if !ok {
+		return nil
+	}
+	out := a.semSubquery(subquery.Body)
+	out.Body = collectThis(out.Body)
+	return out
+}
+
+func collectThis(seq dag.Seq) dag.Seq {
+	collect := dag.Assignment{
+		Kind: "Assignment",
+		LHS:  pathOf("collect"),
+		RHS:  &dag.Agg{Kind: "Agg", Name: "collect", Expr: dag.NewThis(nil)},
+	}
+	aggOp := &dag.Aggregate{
+		Kind: "Aggregate",
+		Aggs: []dag.Assignment{collect},
+	}
+	emitOp := &dag.Values{
+		Kind:  "Values",
+		Exprs: []dag.Expr{pathOf("collect")},
+	}
+	seq = append(seq, aggOp)
+	return append(seq, emitOp)
 }
 
 func (a *analyzer) semSubquery(b ast.Seq) *dag.Subquery {

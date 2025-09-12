@@ -96,7 +96,7 @@ func (q *Subquery) Eval(this super.Value) super.Value {
 		}
 		if b == nil {
 			if count > 1 {
-				return q.sctx.NewErrorf("query expression produced multiple values (consider collect())")
+				return q.sctx.NewErrorf("query expression produced multiple values (consider [(subquery)])")
 			}
 			return val
 		}
