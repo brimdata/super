@@ -83,18 +83,6 @@ SuperSQL is thus a superset of SQL.
 In particular, a single operator defined as pure SQL is an
 acceptable SuperSQL query so all SQL query texts are also SuperSQL queries.
 
-Operators like
-[`sort`](operators/sort.md),
-[`aggregate`](operators/aggregate.md),
-[`fuse`](operators/fuse.md), etc. are blocking in that they
-consume all of their input before produce output.
-
-Non-blocking operators like
-[`where`](operators/where.md),
-[`values`](operators/values.md),
-[`drop`](operators/drop.md), etc. produce output
-incrementally while their input is consumed.
-
 Unlike a Unix pipeline, a SuperSQL query can be forked and joined, e.g.,
 ```
 from source

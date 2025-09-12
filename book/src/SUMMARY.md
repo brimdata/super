@@ -37,7 +37,6 @@
     - [Queries](super-sql/queries/intro.md)
         - [Conventions](super-sql/queries/conventions.md)
         - [Comments](super-sql/queries/comments.md)
-        - [Pipe Symbol](super-sql/queries/pipe-symbol.md)
         - [Shortcuts](super-sql/queries/shortcuts.md)
         - [Declarations](super-sql/queries/declarations/intro.md)
             - [Constants](super-sql/queries/declarations/constants.md)

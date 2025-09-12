@@ -4,7 +4,7 @@ The syntactical structure of a pipe query consists of
 * an optional concatentation of [declarations](declarations/intro.md), 
   followed by
 * a sequence of [pipe operators](../operators/intro.md)
-  separated by the pipe character (`|`).
+  separated by a pipe symbol (`|` or `|>`).
 
 Any valid [SQL query](../sql/intro.md) may appear as a pipe operator and thus
 be embedded in a pipe query.
@@ -56,24 +56,20 @@ which does not exist.
 Identifiers are names that define many entities in a query and
 may be any sequence of UTF-8 characters.  When not quoted,
 an identifier may be comprised of Unicode letters, `$`, `_`,
-and digits `[0-9]`, but may not start with a digit.  An identifier cannot be
-`true`, `false`, or `null` or another SuperSQL keyword.
+and digits `[0-9]`, but may not start with a digit.
 
 To express an identifier that does not meet the requiremented of an
-unquoted identifier, arbitraray text may be quoted inside of backticks.
+unquoted identifier, arbitraray text may be quoted inside of backtick (`` ` ``)
+quotes.
+Escape sequences in backtick-quoted identifiers are interpreted as in
+[string literals](../types/string.md).  In particular, a backtick (`` ` ``)
+character may be included in a backtick string with Unicode escape `\u0060`.
 
-XXX explain escapes (point to strings)
+In SQL expressions, identifiers may also be enclosed in double-quoted strings.
 
-> _can put backtick in inside backtick string with Unicode escape `\u0060`._
+An unquoted identifier cannot be `true`, `false`, or `null` or a SQL keyword.
 
 XXX list the keywords somewhere
-
-an indentifier may be
- enclosed in backticks (`` ` ``).
-
-XXX explain
-
-backtick identifiers
 
 XXX somewhere explain string quotes, backtick identifiers, and
 double-quote identifiers in SQL context all in the same place (here)
