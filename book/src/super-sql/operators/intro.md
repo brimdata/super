@@ -1,4 +1,4 @@
-## Pipe Operators
+## Operators
 
 The components of a SuperSQL [pipeline](../intro.md#pipe-queries)
 are called pipe operators.  Each operator is identified by its name

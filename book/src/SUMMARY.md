@@ -71,7 +71,7 @@
         - [Errors](super-sql/types/error.md)
         - [Named Types](super-sql/types/named.md)
         - [Nulls](super-sql/types/null.md)
-    - [Pipe Operators](super-sql/operators/intro.md)
+    - [Operators](super-sql/operators/intro.md)
         - [aggregate](super-sql/operators/aggregate.md)
         - [assert](super-sql/operators/assert.md)
         - [cut](super-sql/operators/cut.md)
