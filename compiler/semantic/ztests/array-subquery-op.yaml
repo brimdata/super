@@ -1,0 +1,10 @@
+spq: |
+  op foo: (values 1)
+  op bar: (values 1,2)
+  values foo, bar, [foo], [bar]
+
+output: |
+  1
+  error("query expression produced multiple values (consider [(subquery)])")
+  [1]
+  [1,2]
