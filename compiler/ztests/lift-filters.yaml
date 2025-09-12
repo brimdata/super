@@ -4,6 +4,9 @@ script: |
   super compile -C -O 'values {...a} | where b==1'
   echo ===
   super compile -C -O 'values {a:{b:c}} | where a.b==1'
+  echo ===
+  # https://github.com/brimdata/super/issues/6223
+  super compile -C -O 'values {a:b,c,d} | where a+1 between c and d'
 
 outputs:
   - name: stdout
@@ -21,4 +24,9 @@ outputs:
       null
       | where c==1
       | values {a:{b:c}}
+      | output main
+      ===
+      null
+      | where b+1>=c and b+1<=d
+      | values {a:b,c:c,d:d}
       | output main

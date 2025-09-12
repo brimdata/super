@@ -53,9 +53,10 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 		val := a.semExpr(e.Expr)
 		lower := a.semExpr(e.Lower)
 		upper := a.semExpr(e.Upper)
+		// Copy val so an optimizer change to one instance doesn't affect the other.
 		expr := dag.NewBinaryExpr("and",
 			dag.NewBinaryExpr(">=", val, lower),
-			dag.NewBinaryExpr("<=", val, upper))
+			dag.NewBinaryExpr("<=", dag.CopyExpr(val), upper))
 		if e.Not {
 			return dag.NewUnaryExpr("!", expr)
 		}
