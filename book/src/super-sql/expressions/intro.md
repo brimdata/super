@@ -44,6 +44,11 @@ Operators include
       an array, record, map, string, or bytes, and
   * [logic](logic.md) to combine predicates using Boolean logic.
 
+### Identifier Resolution
+
+An identifier that appears as an operand in an expression is resolved to
+the entity that it represents using lexical scoping.
+
   XXX explain automatic promotion of operator references to subqueries
 
 ### Precedence
@@ -53,3 +58,7 @@ XXX TODO
 ### Coercion
 
 XXX TODO
+
+### Examples
+
+XXX TODO precedence, coercion, and id resolution
