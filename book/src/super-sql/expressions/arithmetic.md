@@ -1,4 +1,4 @@
-### Arithmetic
+## Arithmetic
 
 Arithmetic operations (`*`, `/`, `%`, `+`, `-`) follow customary syntax
 and semantics and are left-associative with multiplication and division having

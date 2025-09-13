@@ -1,4 +1,4 @@
-### Function Calls
+## Function Calls
 
 Functions perform stateless transformations of their input value to their return
 value and utilize call-by value semantics with positional and unnamed arguments.

@@ -1,8 +1,8 @@
-### Aggregate Function Calls
+## Aggregate Function Calls
 
+[Aggregate functions](../aggregates/intro.md) may be called within an expression.
 
-[Aggregate functions](aggregates/_index.md) may be called within an expression.
-Unlike the aggregation context provided by the [`aggregate` operator](operators/aggregate.md),
+Unlike the aggregation context provided by the [`aggregate` operator](../operators/aggregate.md),
 such calls in expression context values an output value for each input value.
 
 Note that because aggregate functions carry state which is typically

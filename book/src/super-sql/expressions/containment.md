@@ -1,4 +1,4 @@
-### Containment
+## Containment
 
 The `in` operator has the form
 ```

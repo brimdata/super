@@ -1,4 +1,4 @@
-### F-Strings
+## F-Strings
 
 A formatted string literal (or f-string) is a string literal prefixed with `f`.
 These strings may include replacement expressions which are delimited by curly

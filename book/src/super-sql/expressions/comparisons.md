@@ -1,4 +1,4 @@
-### Comparisons
+## Comparisons
 
 Comparison operations (`<`, `<=`, `==`, `=`, `!=`, `>`, `>=`) follow customary syntax
 and semantics and result in a truth value of type `bool` or an [error](data-types.md#first-class-errors).

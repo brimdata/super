@@ -1,9 +1,5 @@
 ## Expressions
 
-As in SQL and typical programming languages,
-SuperSQL expressions perform calculations, logical comparisons,
-data manipulation, complex value creation, and so forth.
-
 Expressions are used within [pipe operators](../operators/index.md)
 and [SQL clauses](../sql/index.md) to perform computation
 utilizing an operator's input values, literal values, function calls, and
@@ -17,359 +13,43 @@ as part of their semantics.
 Likewise, the projected columns of a
 [`SELECT`](../../sql/select.md) from the very same expression syntax
 (though with some variation in semantics) used by pipe operators.
+Such variations include:
 
-### Building Blocks
-
-Expressions are built up from basic values and operators over values.
-
-Basic values include
-  * [input values](#input-values),
-  * [literals](#literals), or
-  * [subquery](../subqueries.md) results.
-
-Operators include
-  * [aggregate functions](./aggregates.md) to carry out running aggregations using
-      any available [aggregate function](../../aggregates/intro.md),
-  * [arithmetic](./arithmetic.md) to add, subtract, multiply, divide, etc,
-  * [cast](./cast.md) expressions convert values from one type to another,
-  * [comparisons](./comparisons.md) to compare two values resulting in a Boolean,
-  * [conditionals](./conditional) including C-style `?-:` operator and SQL `CASE` expressions,
-  * [containment](./containment.md) to test for the existing value inside an array or set,
-  * [f-strings](./f-strings.md) to easily compute values from expressions embedded inside strings,
-  * [functions](./functions.md) to apply [built-in functions](../../functions/intro.md) or
-    [user functions](../user-functions.md) to zero or more input arguments
-    producing one value as a result,
-  * [index](./index.md) operator to select and slice elements from an array, record, or map,
-  * [logic](./logic.md) operators to combine predicates using Boolean logic.
-
-  XXX dereference above
-
-  XXX explain automatic promotion of operator references to subqueries
-
-### Input Values
-
-For expressions that appear in pipe operators,
-input is referenced using [dataflow scoping](../../intro.md#dataflow-scoping),
-where all input is referenced as a single value called `this`.
-
-The type of `this` may be any [type](../../types/intro.md).
-When `this` is a [record](../../types/record.md), references
-to fields of the record may be referenced by an indentifier that names the
-field of the implied `this` value, e.g., `x` means `this.x`.
-
-For expressions that appear in a [SQL operator](../../sql/intro.md),
-input is presumed to be in the form of records and is referenced using
-[relational scoping](../../intro.md#relational-scoping).
-Here, identifiers refer to table aliases and/or column names
-and are bound to the available inputs based on SQL semantics.
-When the input schema is known and is static, these references are
-statically checked and compile-time errors are raised when unknown
-tables or columns are referenced.
-
-> _In a future version of SuperSQL, static type analysis will also
-> apply to input references in pipe operators using super-structured
-> type analysis instead of relational schemas._
-
-When non-record data is referenced in a SQL operator and the input
-schema is dynamic and unknown, structured errors will generally arise
-and be present in the output data.  These errors can be used to debug
-the problem as the offending values will be present in the `on` field
-of the structured errors.
-
-XXX actually these will usually be error missing...
-
-### Field Dereference
-
-Record fields are dereferenced with the dot operator `.` as is customary
-in other languages and have the form
-```
-<value> . <id>
-```
-where `<id>` is an identifier representing the field name referenced.
-If a field name is not representable as an identifier, then [indexing](#indexing)
-may be used with a quoted string to represent any valid field name.
-Such field names can be accessed using
-[`this`](pipeline-model.md#the-special-value-this) and an array-style reference, e.g.,
-`this["field with spaces"]`.
-
-XXX Backtick-escaped identifier
-
-If the dot operator is applied to a value that is not a record
-or if the record does not have the given field, then the result is
-`error("missing")`.
-
-### Literals
-
-Literal values represent specific instances of a type embedded directly
-into an expression like the integer `1`, the record `{x:1.5,y:-4.0}`,
-or the mixed-type array `[1,"foo"]`.
-
-Any valid [SUP](../../../formats/sup.md) serialized text is a valid literal in SuperSQL.
-In particular, complex-type expressions composed recursively of
-other literal values can be used to construct any complex literal value,
-e.g.,
-* [record expressions](../../types/record.md#record-expressions),
-* [array expressions](../../types/array.md#array-expressions),
-* [set expressions](../../types/set.md#set-expressions),
-* [map expressions](../../types/map.md#map-expressions), and
-* [error expressions](../../types/error.md).
-
-Literal values of types
-[enum](../../types/enum.md),
-[union](../../types/union.md), and
-[named](../../types/named.md)
-may be created with a [cast](cast.md).
-
-### Semantic Variation
-
-To suppport SQL compatibility while also allowing for modern lanuage semantics
-
-SQL vs pipe
+XXX SQL vs pipe
 * access to `this`
 * array indexing (0-based vs 1-based)
 * identifier references (double quote vs backtick quote)
 
-There is no `this` in a select expression, for the curious
-```
-super -C "select ..."
-```
-or `super compile`
+### Expression Syntax
 
-### Expression Subqueries
+Expressions are composed from operands and operators over operands.
 
-An expression subquery is a query that appears inside of an expression
-and is formed simply by parenthesizing a query as an expression primitive
-as in 
-```
-( <query> )
-```
-where `<query>` is any query, e.g., the query
-```
-values (values "hello, world" | upper(this))
-```
-results in `"HELLO, WORLD"`.
+Operands include
+  * [inputs](inputs.md),
+  * [literals](literals.md),
+  * [formatted strings](f-strings.md)
+  * [function calls](functions.md),
+  * [aggregate function calls](aggregates.md),
+  * [subqueries](subqueries.md), or
+  * other expressions.
 
-As in SQL, an expression subquery is expected to return a single value.
-If it results in multiple values, then an error is generated, e.g.,
-```mdtest-spq {data-layout="stacked"}
-# spq
-values (values 1,2)
-# input
-null
-# expected output
-error("query expression produced multiple values (consider [(subquery)])")
-```
-If an expression query is expected to return multiple values,
-they can be collected into an array either using the
-[collect](../aggregates/collect.md) aggregate function or
-with the syntactic shortcut:
-```
-[( <query> )]
-```
-which is equivalent to
-```
-[( <query> ) | collect(this)]
-```
-For example, with this bracket syntax, the query from above runs as expected:
-```mdtest-spq
-# spq
-values [(values 1,2)]
-# input
-null
-# expected output
-[1,2]
-```
+Operators include
+  * [arithmetic](./arithmetic.md) to add, subtract, multiply, divide, etc,
+  * [cast](cast.md) to convert values from one type to another,
+  * [comparisons](comparisons.md) to compare two values resulting in a Boolean,
+  * [conditionals](conditional) including C-style `?-:` operator and SQL `CASE` expressions,
+  * [containment](containment.md) to test for the existing value inside an array or set,
+  * [dot](dot.md) to access a field of a record (or a SQL column of a table),
+  * [indexing](index.md) to select and slice elements from
+      an array, record, map, string, or bytes, and
+  * [logic](logic.md) to combine predicates using Boolean logic.
 
-XXX CONT
+  XXX explain automatic promotion of operator references to subqueries
 
-XXX Subquery returns one result per evaluation, correlated vs uncorrelated.
+### Precedence
 
-XXX operators "called" from expressions
+XXX TODO
 
-For example,
-```mdtest-spq
-# spq
-unnest {name:s,elem:a}
-# input
-{s:"foo",a:[1,2]}
-{s:"bar",a:[3]}
-# expected output
-{name:"foo",elem:1}
-{name:"foo",elem:2}
-{name:"bar",elem:3}
-```
+### Coercion
 
-Here the [lateral scope](#lateral-scope), described below, creates a subquery
-```
-values {name,elem:this}
-```
-for each subsequence of values derived from each outer input value.
-In the example above, there are two input values:
-```
-{s:"foo",a:[1,2]}
-{s:"bar",a:[3]}
-```
-which imply two subqueries derived from the `over` operator traversing `a`.
-The first subquery thus operates on the input values `1, 2` with the variable
-`name` set to "foo" assigning `1` and then `2` to `this`, thereby emitting
-```
-{name:"foo",elem:1}
-{name:"foo",elem:2}
-```
-and the second subquery operates on the input value `3` with the variable
-`name` set to "bar", emitting
-```
-{name:"bar",elem:3}
-```
-
-You can also import a parent-scope field reference into the inner scope by
-simply referring to its name without assignment, e.g.,
-```mdtest-spq-skip
-# spq
-over a with s into (
-  values {s,elem:this}
-)
-# input
-{s:"foo",a:[1,2]}
-{s:"bar",a:[3]}
-# expected output
-{s:"foo",elem:1}
-{s:"foo",elem:2}
-{s:"bar",elem:3}
-```
-
-## Lateral Scope
-
-A lateral scope has the form `=> ( <query> )` and currently appears
-only the context of an [`over` operator](operators/over.md),
-as illustrated above, and has the form:
-```
-over ... with <elem> [, <elem> ...] into ( <query> )
-```
-where `<elem>` has either an assignment form
-```
-<var>=<expr>
-```
-or a field reference form
-```
-<field>
-```
-For each input value to the outer scope, the assignment form creates a binding
-between each `<expr>` evaluated in the outer scope and each `<var>`, which
-represents a new symbol in the inner scope of the `<query>`.
-In the field reference form, a single identifier `<field>` refers to a field
-in the parent scope and makes that field's value available in the lateral scope
-via the same name.
-
-Note that any such variable definitions override [implied field references](pipeline-model.md#implied-field-references) of
-`this`. If a both a field named `x` and a variable named `x` need be
-referenced in the lateral scope, the field reference should be qualified as
-`this.x` while the variable is referenced simply as `x`.
-
-The `<query>` is evaluated once per outer value
-on the sequence generated by the `over` expression.  In the lateral scope,
-the value `this` refers to the inner sequence generated from the `over` expressions.
-This query runs to completion for each inner sequence and emits
-each subquery result as each inner sequence traversal completes.
-
-This structure is powerful because _any_ pipeline operator sequence (excluding
-[`from` operators](operators/from.md)) can appear in the body of
-the lateral scope.  In contrast to the [`values`](operators/values.md) example above, a [`sort`](operators/sort.md) could be
-applied to each subsequence in the subquery, where `sort`
-reads all values of the subsequence, sorts them, emits them, then
-repeats the process for the next subsequence.  For example,
-```mdtest-spq
-# spq
-unnest this into (
-  sort this | collect(this)
-)
-# input
-[3,2,1]
-[4,1,7]
-[1,2,3]
-# expected output
-[1,2,3]
-[1,4,7]
-[1,2,3]
-```
-
-## Lateral Expressions
-
-Lateral subqueries can also appear in expression context using the
-parenthesized form:
-```
-( over <expr> [, <expr>...] [with <var>=<expr> [, ... <var>[=<expr>]] | <lateral> )
-```
-
-> _The parentheses disambiguate a lateral expression from a [lateral pipeline operator](operators/over.md)._
-
-This form must always include a [lateral scope](#lateral-scope) as indicated by `<lateral>`.
-
-The lateral expression is evaluated by evaluating each `<expr>` and feeding
-the results as inputs to the `<lateral>` pipeline.  Each time the
-lateral expression is evaluated, the lateral operators are run to completion,
-e.g.,
-```mdtest-spq
-# spq
-values (
-  unnest this | sum(this)
-)
-# input
-[3,2,1]
-[4,1,7]
-[1,2,3]
-# expected output
-6
-12
-6
-```
-
-This structure generalizes to any more complicated expression context,
-e.g., we can embed multiple lateral expressions inside of a record literal
-and use the spread operator to tighten up the output:
-```mdtest-spq
-# spq
-{...(unnest this | sort this | sorted:=collect(this)),
- ...(unnest this | sum:=sum(this))}
-# input
-[3,2,1]
-[4,1,7]
-[1,2,3]
-# expected output
-{sorted:[1,2,3],sum:6}
-{sorted:[1,4,7],sum:12}
-{sorted:[1,2,3],sum:6}
-```
-
-Because Zed expressions evaluate to a single result, if multiple values remain
-at the conclusion of the lateral pipeline, they are automatically wrapped in
-an array, e.g.,
-```mdtest-spq
-# spq
-values {s:(unnest x | values this+1 | collect(this) )}
-# input
-{x:[2]}
-{x:[3,4]}
-# expected output
-{s:[3]}
-{s:[4,5]}
-```
-
-To handle such dynamic input data, you can ensure your downstream pipeline
-always receives consistently packaged values by explicitly wrapping the result
-of the lateral scope, e.g.,
-```mdtest-spq
-# spq
-values {s:(unnest x | values this+1 | collect(this))}
-# input
-{x:[2]}
-{x:[3,4]}
-# expected output
-{s:[3]}
-{s:[4,5]}
-```
-
-Similarly, a primitive value may be consistently produced by concluding the
-lateral scope with an operator such as [`head`](operators/head.md) or
-[`tail`](operators/tail.md), or by applying certain [aggregate functions](aggregates/_index.md)
-such as done with [`sum`](aggregates/sum.md) above.
+XXX TODO

@@ -220,7 +220,7 @@ result is `15`.
 Quite naturally, operator subqueries may be nested as in
 ```mdtest-spq
 # spq
-unnest a into ( unnest this into ( sum(this) ) | collect (this) )
+unnest a into ( unnest this into ( sum(this) ) | collect(this) )
 # input
 {a:[[1,2]]}
 {a:[[3,4,5],[6,7]]}

@@ -1,4 +1,4 @@
-### Indexing
+## Indexing
 
 The index operation is denoted with square brackets and can be applied to
 various data types having the form:
@@ -30,7 +30,7 @@ If the `<value>` expression is type `bytes`, then the `<index>` operand
 must be coercible to an integer and the result is an unsigned 8-bit integer
 representing the byte value at that offset in the bytes sequence.
 
-#### Slices
+### Slices
 
 The slice operation is a variation of indexing that returns a range of
 svalues and can be applied to various data types.  A slice has the form:
@@ -60,7 +60,18 @@ Note that if the expression has side effects,
 as with [aggregate function calls](expressions.md#aggregate-function-calls), only the selected expression
 will be evaluated.
 
-For example,
+### SQL Semantics
+
+In SQL expressions, array indexing and slicing is 1-based,
+meaning the first element of the array is at index `1`
+and the last element of a N-element array is at index `N`.
+
+Everywhere else, array indexing and slicing is 0-based,
+meaning the first element of the array is at index `0`
+and the last element of a N-element array is at index `N-1`.
+
+### Examples
+
 ```mdtest-spq
 # spq
 values this=="foo" ? {foocount:count()} : {barcount:count()}
@@ -73,4 +84,3 @@ values this=="foo" ? {foocount:count()} : {barcount:count()}
 {barcount:1::uint64}
 {foocount:2::uint64}
 ```
-
