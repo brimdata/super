@@ -18,7 +18,7 @@ Likewise, the projected columns of a
 [`SELECT`](../../sql/select.md) from the very same expression syntax
 (though with some variation in semantics) used by pipe operators.
 
-### Syntax
+### Building Blocks
 
 Expressions are built up from basic values and operators over values.
 
@@ -135,23 +135,56 @@ super -C "select ..."
 ```
 or `super compile`
 
-## Expression Subqueries
+### Expression Subqueries
 
-Subquery returns one result per evaluation, correlated vs uncorrelated.
+An expression subquery is a query that appears inside of an expression
+and is formed simply by parenthesizing a query as an expression primitive
+as in 
+```
+( <query> )
+```
+where `<query>` is any query, e.g., the query
+```
+values (values "hello, world" | upper(this))
+```
+results in `"HELLO, WORLD"`.
 
-Lateral subqueries provide a powerful means to apply a Zed query
-to each subsequence of values generated from an outer sequence of values.
-The inner query may be _any_ pipeline operator sequence (excluding
-[`from` operators](operators/from.md)) and may refer to values from
-the outer sequence.
+As in SQL, an expression subquery is expected to return a single value.
+If it results in multiple values, then an error is generated, e.g.,
+```mdtest-spq {data-layout="stacked"}
+# spq
+values (values 1,2)
+# input
+null
+# expected output
+error("query expression produced multiple values (consider [(subquery)])")
+```
+If an expression query is expected to return multiple values,
+they can be collected into an array either using the
+[collect](../aggregates/collect.md) aggregate function or
+with the syntactic shortcut:
+```
+[( <query> )]
+```
+which is equivalent to
+```
+[( <query> ) | collect(this)]
+```
+For example, with this bracket syntax, the query from above runs as expected:
+```mdtest-spq
+# spq
+values [(values 1,2)]
+# input
+null
+# expected output
+[1,2]
+```
 
-> _This pattern rhymes with the SQL pattern of a "lateral
-> join", which runs a subquery for each row of the outer query's results._
+XXX CONT
 
-Lateral subqueries are created using the scoped form of the
-[`over` operator](operators/over.md). They may be nested to arbitrary depth
-and accesses to variables in parent lateral query bodies follows lexical
-scoping.
+XXX Subquery returns one result per evaluation, correlated vs uncorrelated.
+
+XXX operators "called" from expressions
 
 For example,
 ```mdtest-spq

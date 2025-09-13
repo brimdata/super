@@ -251,20 +251,3 @@ Of course, this query could also be written as
 ```
 unnest a into (aggregate smallest:=min(this), biggest:=max(this))
 ```
-
-This structure generalizes to more complicated expressions,
-e.g., we can embed multiple operator subqueries inside of a record literal
-and use the spread operator to tighten up the output:
-```mdtest-spq
-# spq
-{...(unnest this | sort this | sorted:=collect(this)),
- ...(unnest this | sum(this))}
-# input
-[3,2,1]
-[4,1,7]
-[1,2,3]
-# expected output
-{sorted:[1,2,3],sum:6}
-{sorted:[1,4,7],sum:12}
-{sorted:[1,2,3],sum:6}
-```
