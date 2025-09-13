@@ -49,6 +49,40 @@ Operators include
 An identifier that appears as an operand in an expression is resolved to
 the entity that it represents using lexical scoping.
 
+For identifiers that appear in the context of call syntax, i.e., having the form
+```
+<id> ( <args> )
+```
+then `<id>` is either a [built-in function](../functions/intro.md) name,
+a reference to a [declared function](../declarations/functions.md) or
+a reference to a [declared operator](../declarations/operators.md).
+Otherwise, a compile-time error results.
+
+For identifiers that appear in the context of a function reference, i.e., having the form
+```
+&<id>
+```
+then <id> is
+
+For other instances of identifiers,
+if the identifier does not correspond to a declaration, then it is presumed 
+to be an [input reference](inputs.md) and is resolved as such.
+
+
+Otherwise, the 
+
+Otherwise, if the declared identifier aappears in call syntax, it must be
+3a [function](../functions/intro.md) or an
+[operator](../declarations/operators.md)
+* if it appears using call syntax, e.g., `<id> ( <args> )` then it is resolved 
+
+
+* otherwise, 
+* if the identifier exists in the scope as an [operator](../declarations/operators.md). declaration,
+  the identifier is substituted with a [subqyery](subquery.md) invoking
+  tha operator,
+*   
+
   XXX explain automatic promotion of operator references to subqueries
 
 ### Precedence
