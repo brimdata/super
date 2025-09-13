@@ -1,9 +1,14 @@
 ## Expressions
 
-Expressions are used within [pipe operators](../operators/index.md)
-and [SQL clauses](../sql/index.md) to perform computation
-utilizing an operator's input values, literal values, function calls, and
-subqueries.
+Expressions are the means the carry out calculations and utilize familiar
+query-language elements like literal values, function calls, subqueries,
+and so forth.
+
+Within [pipe operators](../operators/intro.md),
+expressions may reference input values either via the special value
+`this` or implied field references to `this`, while
+within [SQL clauses](../sql/intro.md), input is referenced with table and
+column references.
 
 For example, [`values`](../operators/values.md), [`where`](../operators/where.md),
 [`cut`](../operators/cut.md), [`put`](../operators/put.md),
@@ -12,13 +17,17 @@ as part of their semantics.
 
 Likewise, the projected columns of a
 [`SELECT`](../../sql/select.md) from the very same expression syntax
-(though with some variation in semantics) used by pipe operators.
-Such variations include:
+used by pipe operators.
 
-XXX SQL vs pipe
-* access to `this`
-* array indexing (0-based vs 1-based)
-* identifier references (double quote vs backtick quote)
+While SQL expressions and pipe expressions share an identical syntax,
+their semantics diverges in some key ways:
+* SQL expressions cannot access the special value `this` and pipe expressions have
+  no way of referencing tables or column as dataflow scoping and relational scoping
+  are mutually exclusive;
+* array indexing is 0-based in pipe expressions and [1-based](index.md#sql-semantics)
+  in SQL expressions; and
+* double-quoted string literals may be used in pipe expressions but are intepreted 
+  as identifiers in SQL expression.
 
 ### Expression Syntax
 
