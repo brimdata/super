@@ -1,0 +1,9 @@
+script: |
+  ! super compile -dag "op foo: (values 1) call foo 1"
+
+outputs:
+  - name: stderr
+    data: |
+      1 arg provided when operator expects 0 args at line 1, column 20:
+      op foo: (values 1) call foo 1
+                         ~~~~~~~~~~

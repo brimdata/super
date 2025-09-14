@@ -1234,7 +1234,7 @@ func (a *analyzer) semUserOp(loc ast.Loc, decl *opDecl, args []ast.FuncOrExpr) d
 	// in that expression are bound appropriately with respect to this context.
 	params := decl.ast.Params
 	if len(params) != len(args) {
-		a.error(loc, fmt.Errorf("%d arg%s provided when operator expects %d arg%s", len(params), plural.Slice(params, "s"), len(args), plural.Slice(args, "s")))
+		a.error(loc, fmt.Errorf("%d arg%s provided when operator expects %d arg%s", len(args), plural.Slice(args, "s"), len(params), plural.Slice(params, "s")))
 		return dag.Seq{badOp()}
 	}
 	exprs := make([]dag.Expr, len(args))
