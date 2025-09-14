@@ -49,23 +49,20 @@ outputs:
       call joinTest "fruit.json", "people.json", flavor, likes, eater, name
       | call stamp "bob"
       ===
-      (
-        fn fib(n): (
-          (n<=1) ? n : fib(n-1)+fib(n-2)
-        )
-        fn add(a, b): (
-          a+b
-        )
-        
-        fork
-          (
-            file fruit.json format json
-          )
-          (
-            file people.json format json
-          )
-        | inner join as {left,right} on left.left_key==right.right_key
-        | values {...left,left_dest:right.right_source}
-        | values {...this,assignee:"bob",ts:now()}
-        | output main
+      fn 0/fib(n): (
+        (n<=1) ? n : 0(n-1)+0(n-2)
       )
+      fn 1/add(a, b): (
+        a+b
+      )
+      fork
+        (
+          file fruit.json format json
+        )
+        (
+          file people.json format json
+        )
+      | inner join as {left,right} on left.left_key==right.right_key
+      | values {...left,left_dest:right.right_source}
+      | values {...this,assignee:"bob",ts:now()}
+      | output main

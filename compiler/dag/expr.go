@@ -44,9 +44,9 @@ type (
 		RHS  Expr   `json:"rhs"`
 	}
 	Call struct {
-		Kind string  `json:"kind" unpack:""`
-		Func FuncRef `json:"func"`
-		Args []Expr  `json:"args"`
+		Kind string `json:"kind" unpack:""`
+		Tag  string `json:"tag"`
+		Args []Expr `json:"args"`
 	}
 	Conditional struct {
 		Kind string `json:"kind" unpack:""`
@@ -67,11 +67,6 @@ type (
 	IsNullExpr struct {
 		Kind string `json:"kind" unpack:""`
 		Expr Expr   `json:"expr"`
-	}
-	Lambda struct {
-		Kind   string   `json:"kind" unpack:""`
-		Params []string `json:"params"`
-		Expr   Expr     `json:"expr"`
 	}
 	Literal struct {
 		Kind  string `json:"kind" unpack:""`
@@ -137,13 +132,6 @@ type (
 	}
 )
 
-func (c *Call) Name() string {
-	if f, ok := c.Func.(*FuncName); ok {
-		return f.Name
-	}
-	return "lambda"
-}
-
 func (*Agg) exprNode()          {}
 func (*ArrayExpr) exprNode()    {}
 func (*BadExpr) exprNode()      {}
@@ -202,10 +190,10 @@ func NewBinaryExpr(op string, lhs, rhs Expr) *BinaryExpr {
 	}
 }
 
-func NewCallByName(name string, args []Expr) *Call {
+func NewCall(tag string, args []Expr) *Call {
 	return &Call{
 		Kind: "Call",
-		Func: &FuncName{Kind: "FuncName", Name: name},
+		Tag:  tag,
 		Args: args,
 	}
 }

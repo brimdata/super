@@ -13,14 +13,16 @@ outputs:
       )
       call o (lambda x:x+1)
       ===
-      null
-      | (
-        values (lambda x:x+1)(this)
-        | output main
+      fn 0/lambda(x): (
+        x+1
       )
+      null
+      | values 0(this)
+      | output main
       ===
-      null
-      | (
-        values (lambda x:x+1)(this+123)
-        | output main
+      fn 0/lambda(x): (
+        x+1
       )
+      null
+      | values 0(this+123)
+      | output main

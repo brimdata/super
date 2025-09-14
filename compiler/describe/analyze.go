@@ -66,7 +66,8 @@ func Analyze(ctx context.Context, query string, src *exec.Environment) (*Info, e
 	return AnalyzeDAG(ctx, entry, src)
 }
 
-func AnalyzeDAG(ctx context.Context, entry dag.Seq, src *exec.Environment) (*Info, error) {
+func AnalyzeDAG(ctx context.Context, main *dag.Main, src *exec.Environment) (*Info, error) {
+	entry := main.Body
 	var err error
 	var info Info
 	if info.Sources, err = describeSources(ctx, src.DB(), entry[0]); err != nil {
@@ -101,8 +102,6 @@ func AnalyzeDAG(ctx context.Context, entry dag.Seq, src *exec.Environment) (*Inf
 
 func describeSources(ctx context.Context, root *db.Root, o dag.Op) ([]Source, error) {
 	switch o := o.(type) {
-	case *dag.Scope:
-		return describeSources(ctx, root, o.Body[0])
 	case *dag.Fork:
 		var s []Source
 		for _, p := range o.Paths {
@@ -157,8 +156,6 @@ func describeAggs(seq dag.Seq, parents []field.List) []field.List {
 
 func describeOpAggs(op dag.Op, parents []field.List) []field.List {
 	switch op := op.(type) {
-	case *dag.Scope:
-		return describeAggs(op.Body, parents)
 	case *dag.Fork:
 		var aggs []field.List
 		for _, p := range op.Paths {

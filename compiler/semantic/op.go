@@ -513,15 +513,11 @@ func (a *analyzer) matchPools(pattern, origPattern, patternDesc string) ([]strin
 	return matches, nil
 }
 
-func (a *analyzer) semScope(op *ast.Scope) *dag.Scope {
+func (a *analyzer) semScope(op *ast.Scope) dag.Seq {
 	a.scope = NewScope(a.scope)
 	defer a.exitScope()
-	funcs := a.semDecls(op.Decls)
-	return &dag.Scope{
-		Kind:  "Scope",
-		Funcs: funcs,
-		Body:  a.semSeq(op.Body),
-	}
+	a.semDecls(op.Decls)
+	return a.semSeq(op.Body)
 }
 
 func (a *analyzer) semDebugOp(o *ast.Debug, mainAst ast.Seq, in dag.Seq) dag.Seq {
@@ -599,7 +595,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 			Paths: paths,
 		})
 	case *ast.Scope:
-		return append(seq, a.semScope(o))
+		return append(seq, a.semScope(o)...)
 	case *ast.Switch:
 		var expr dag.Expr
 		if o.Expr != nil {
@@ -895,7 +891,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 				{
 					Kind: "Assignment",
 					LHS:  pathOf("shape"),
-					RHS:  dag.NewCallByName("typeof", []dag.Expr{e}),
+					RHS:  dag.NewCall("typeof", []dag.Expr{e}),
 				},
 			},
 		})
@@ -910,7 +906,7 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 				Kind: "Conditional",
 				Cond: cond,
 				Then: dag.NewThis(nil),
-				Else: dag.NewCallByName(
+				Else: dag.NewCall(
 					"error",
 					[]dag.Expr{&dag.RecordExpr{
 						Kind: "RecordExpr",
@@ -989,7 +985,7 @@ func (a *analyzer) singletonAgg(agg ast.Assignment, seq dag.Seq) dag.Seq {
 	)
 }
 
-func (a *analyzer) semDecls(decls []ast.Decl) []*dag.FuncDef {
+func (a *analyzer) semDecls(decls []ast.Decl) {
 	var funcDecls []*ast.FuncDecl
 	for _, d := range decls {
 		switch d := d.(type) {
@@ -1005,7 +1001,7 @@ func (a *analyzer) semDecls(decls []ast.Decl) []*dag.FuncDef {
 			panic(fmt.Errorf("invalid declaration type %T", d))
 		}
 	}
-	return a.semFuncDecls(funcDecls)
+	a.semFuncDecls(funcDecls)
 }
 
 func (a *analyzer) semConstDecl(c *ast.ConstDecl) {
@@ -1038,28 +1034,22 @@ func idsAsStrings(ids []*ast.ID) []string {
 	return out
 }
 
-func (a *analyzer) semFuncDecls(decls []*ast.FuncDecl) []*dag.FuncDef {
-	funcs := make([]*dag.FuncDef, 0, len(decls))
+func (a *analyzer) semFuncDecls(decls []*ast.FuncDecl) {
+	// Enter function names into scope symbols first then call semExpr on all the
+	// function bodies can call other functions defined in same scope.
+	var tags []string
 	for _, d := range decls {
-		f := &dag.FuncDef{
-			Kind: "FuncDef",
-			Name: d.Name.Name,
-			Lambda: dag.Lambda{
-				Kind:   "Lambda",
-				Params: idsAsStrings(d.Lambda.Params),
-			},
-		}
-		if err := a.scope.DefineAs(d.Name, f); err != nil {
+		tag := a.newFunc(d.Name.Name, idsAsStrings(d.Lambda.Params), nil)
+		if err := a.scope.DefineAs(d.Name, a.funcs[tag]); err != nil {
 			a.error(d.Name, err)
 		}
-		funcs = append(funcs, f)
+		tags = append(tags, tag)
 	}
-	for i, d := range decls {
+	for i, tag := range tags {
 		a.enterScope()
-		funcs[i].Lambda.Expr = a.semExpr(d.Lambda.Expr)
+		a.funcs[tag].Expr = a.semExpr(decls[i].Lambda.Expr)
 		a.exitScope()
 	}
-	return funcs
 }
 
 func (a *analyzer) semOpDecl(d *ast.OpDecl) {
@@ -1149,12 +1139,10 @@ func (a *analyzer) isBool(e dag.Expr) bool {
 	case *dag.Conditional:
 		return a.isBool(e.Then) && a.isBool(e.Else)
 	case *dag.Call:
-		// If udf recurse to inner expression.
-		fn, lambda, _ := a.scope.LookupFunc(e.Name())
-		if expr := funcBody(fn, lambda); expr != nil {
-			return a.isBool(expr)
+		if f := a.funcs[e.Tag]; f != nil {
+			return a.isBool(f.Expr)
 		}
-		if e.Name() == "cast" {
+		if e.Tag == "cast" {
 			if len(e.Args) != 2 {
 				return false
 			}
@@ -1163,7 +1151,7 @@ func (a *analyzer) isBool(e dag.Expr) bool {
 			}
 			return false
 		}
-		return function.HasBoolResult(e.Name())
+		return function.HasBoolResult(e.Tag)
 	case *dag.IsNullExpr:
 		return true
 	case *dag.Search, *dag.RegexpMatch, *dag.RegexpSearch:
@@ -1171,16 +1159,6 @@ func (a *analyzer) isBool(e dag.Expr) bool {
 	default:
 		return false
 	}
-}
-
-func funcBody(funcDef *dag.FuncDef, lambda *dag.Lambda) dag.Expr {
-	if funcDef != nil {
-		return funcDef.Lambda.Expr
-	}
-	if lambda != nil {
-		return lambda.Expr
-	}
-	return nil
 }
 
 func (a *analyzer) semCallOpExpr(call *ast.Call, seq dag.Seq) dag.Seq {
@@ -1237,13 +1215,16 @@ func (a *analyzer) semUserOp(loc ast.Loc, decl *opDecl, args []ast.FuncOrExpr) d
 		a.error(loc, fmt.Errorf("%d arg%s provided when operator expects %d arg%s", len(params), plural.Slice(params, "s"), len(args), plural.Slice(args, "s")))
 		return dag.Seq{badOp()}
 	}
-	exprs := make([]dag.Expr, len(args))
-	fns := make([]dag.FuncRef, len(args))
+	// XXX
+	// This "things" stuff will be cleaned up when we allow lambdas to be
+	// passed into functions where we will rework the FuncRefs to be ast.Expr
+	// and do a late compilation of the function bodies as a thunk for each call site.
+	things := make([]any, len(args))
 	for i, e := range args {
 		if expr, ok := e.(ast.Expr); ok {
-			exprs[i] = a.semExpr(expr)
+			things[i] = a.semExpr(expr)
 		} else if fn, ok := e.(ast.FuncRef); ok {
-			fns[i] = a.semFuncRef(fn)
+			things[i] = a.semFuncRef(fn)
 		} else {
 			panic(e)
 		}
@@ -1260,34 +1241,31 @@ func (a *analyzer) semUserOp(loc ast.Loc, decl *opDecl, args []ast.FuncOrExpr) d
 		a.scope = oldscope
 	}()
 	for i, param := range params {
-		if e := exprs[i]; e != nil {
-			if err := a.scope.DefineAs(param, exprs[i]); err != nil {
-				a.error(loc, err)
-				return dag.Seq{badOp()}
-			}
-		} else {
-			if err := a.scope.DefineAs(param, fns[i]); err != nil {
-				a.error(loc, err)
-				return dag.Seq{badOp()}
-			}
+		if err := a.scope.DefineAs(param, things[i]); err != nil {
+			a.error(loc, err)
+			return dag.Seq{badOp()}
 		}
 	}
 	return a.semSeq(decl.ast.Body)
 }
 
-func (a *analyzer) semFuncRef(f ast.FuncRef) dag.FuncRef {
+type builtin string
+
+func (a *analyzer) semFuncRef(f ast.FuncRef) any {
 	switch f := f.(type) {
 	case *ast.Lambda:
-		return &dag.Lambda{
-			Kind:   "Lambda",
-			Params: idsAsStrings(f.Params),
-			Expr:   a.semExpr(f.Expr),
-		}
+		tag := a.newFunc("lambda", idsAsStrings(f.Params), a.semExpr(f.Expr))
+		return a.funcs[tag]
 	case *ast.FuncName:
-		return &dag.FuncName{
-			Kind: "FuncName",
-			Name: f.Name,
+		funcDef, native, _ := a.scope.LookupFunc(f.Name)
+		if funcDef != nil {
+			return funcDef
 		}
+		name := f.Name
+		if native != "" {
+			name = native
+		}
+		return (*builtin)(&name)
 	default:
 		panic(f)
 	}

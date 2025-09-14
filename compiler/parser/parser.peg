@@ -1086,6 +1086,7 @@ Callable
   = LambdaExpr
   / id:IdentifierName {
       return &ast.FuncName{
+        Kind: "FuncName",
         Name: id.(string),
         Loc: loc(c),
       }, nil

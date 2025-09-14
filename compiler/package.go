@@ -23,40 +23,41 @@ func Parse(query string, filenames ...string) (*parser.AST, error) {
 	return parser.ParseQuery(query, filenames...)
 }
 
-func Analyze(ctx context.Context, ast *parser.AST, env *exec.Environment, extInput bool) (dag.Seq, error) {
+func Analyze(ctx context.Context, ast *parser.AST, env *exec.Environment, extInput bool) (*dag.Main, error) {
 	return semantic.Analyze(ctx, ast, env, extInput)
 }
 
-func Optimize(ctx context.Context, seq dag.Seq, env *exec.Environment, parallel int) (dag.Seq, error) {
+func Optimize(ctx context.Context, main *dag.Main, env *exec.Environment, parallel int) error {
 	// Call optimize to possible push down a filter predicate into the
 	// rungen.Reader so that the BSUP scanner can do Boyer-Moore.
 	o := optimizer.New(ctx, env)
-	seq, err := o.Optimize(seq)
-	if err != nil {
-		return nil, err
+	if err := o.Optimize(main); err != nil {
+		return err
 	}
 	if parallel > 1 {
 		// For an internal reader (like a shaper on intake), we don't do
 		// any parallelization right now though this could be potentially
 		// beneficial depending on where the bottleneck is for a given shaper.
 		// See issue #2641.
-		return o.Parallelize(seq, parallel)
+		if err := o.Parallelize(main, parallel); err != nil {
+			return err
+		}
 	}
-	return seq, nil
+	return nil
 }
 
-func Build(rctx *runtime.Context, seq dag.Seq, env *exec.Environment, readers []sio.Reader) (map[string]sbuf.Puller, sbuf.Meter, error) {
+func Build(rctx *runtime.Context, main *dag.Main, env *exec.Environment, readers []sio.Reader) (map[string]sbuf.Puller, sbuf.Meter, error) {
 	b := rungen.NewBuilder(rctx, env)
-	outputs, err := b.Build(seq, readers...)
+	outputs, err := b.Build(main, readers...)
 	if err != nil {
 		return nil, nil, err
 	}
 	return outputs, b.Meter(), nil
 }
 
-func BuildWithBuilder(rctx *runtime.Context, seq dag.Seq, env *exec.Environment, readers []sio.Reader) (map[string]sbuf.Puller, *rungen.Builder, error) {
+func BuildWithBuilder(rctx *runtime.Context, main *dag.Main, env *exec.Environment, readers []sio.Reader) (map[string]sbuf.Puller, *rungen.Builder, error) {
 	b := rungen.NewBuilder(rctx, env)
-	outputs, err := b.Build(seq, readers...)
+	outputs, err := b.Build(main, readers...)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -64,17 +65,17 @@ func BuildWithBuilder(rctx *runtime.Context, seq dag.Seq, env *exec.Environment,
 }
 
 func CompileWithAST(rctx *runtime.Context, ast *parser.AST, env *exec.Environment, optimize bool, parallel int, readers []sio.Reader) (*exec.Query, error) {
-	dag, err := Analyze(rctx, ast, env, len(readers) > 0)
+	main, err := Analyze(rctx, ast, env, len(readers) > 0)
 	if err != nil {
 		return nil, err
 	}
 	if optimize {
-		dag, err = Optimize(rctx, dag, env, parallel)
+		err = Optimize(rctx, main, env, parallel)
 		if err != nil {
 			return nil, err
 		}
 	}
-	outputs, meter, err := Build(rctx, dag, env, readers)
+	outputs, meter, err := Build(rctx, main, env, readers)
 	if err != nil {
 		return nil, err
 	}
@@ -126,10 +127,11 @@ func VectorFilterCompile(rctx *runtime.Context, query string, env *exec.Environm
 	if err != nil {
 		return nil, err
 	}
-	entry, err := semantic.Analyze(rctx.Context, ast, env, false)
+	main, err := semantic.Analyze(rctx.Context, ast, env, false)
 	if err != nil {
 		return nil, err
 	}
+	entry := main.Body
 	// from -> filter -> output
 	if len(entry) != 3 {
 		return nil, errors.New("filter query must have a single op")
@@ -144,20 +146,19 @@ func VectorFilterCompile(rctx *runtime.Context, query string, env *exec.Environm
 // XXX currently used only by aggregate test, need to deprecate
 func CompileWithSortKey(rctx *runtime.Context, ast *parser.AST, r sio.Reader, sortKey order.SortKey) (*exec.Query, error) {
 	env := exec.NewEnvironment(nil, nil)
-	seq, err := Analyze(rctx, ast, env, true)
+	main, err := Analyze(rctx, ast, env, true)
 	if err != nil {
 		return nil, err
 	}
-	scan, ok := seq[0].(*dag.DefaultScan)
+	scan, ok := main.Body[0].(*dag.DefaultScan)
 	if !ok {
 		return nil, errors.New("CompileWithSortKey: expected a reader")
 	}
 	scan.SortKeys = order.SortKeys{sortKey}
-	seq, err = Optimize(rctx, seq, env, 0)
-	if err != nil {
+	if err = Optimize(rctx, main, env, 0); err != nil {
 		return nil, err
 	}
-	outputs, meter, err := Build(rctx, seq, env, []sio.Reader{r})
+	outputs, meter, err := Build(rctx, main, env, []sio.Reader{r})
 	if err != nil {
 		return nil, err
 	}

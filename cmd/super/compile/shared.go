@@ -90,8 +90,7 @@ func (s *Shared) Run(ctx context.Context, args []string, dbFlags *dbflags.Flags,
 		return s.writeValue(ctx, description)
 	}
 	if s.optimize {
-		dag, err = compiler.Optimize(rctx, dag, env, s.parallel)
-		if err != nil {
+		if err = compiler.Optimize(rctx, dag, env, s.parallel); err != nil {
 			return err
 		}
 	}

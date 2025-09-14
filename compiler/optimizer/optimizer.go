@@ -94,8 +94,6 @@ func walk(seq dag.Seq, over bool, post func(dag.Seq) dag.Seq) dag.Seq {
 		case *dag.Mirror:
 			op.Main = walk(op.Main, over, post)
 			op.Mirror = walk(op.Mirror, over, post)
-		case *dag.Scope:
-			op.Body = walk(op.Body, over, post)
 		}
 	}
 	return post(seq)
@@ -128,12 +126,6 @@ func walkEntries(seq dag.Seq, post func(dag.Seq) (dag.Seq, error)) (dag.Seq, err
 			if op.Mirror, err = walkEntries(op.Mirror, post); err != nil {
 				return nil, err
 			}
-		case *dag.Scope:
-			seq, err := walkEntries(op.Body, post)
-			if err != nil {
-				return nil, err
-			}
-			op.Body = seq
 		}
 	}
 	return post(seq)
@@ -145,7 +137,8 @@ func walkEntries(seq dag.Seq, post func(dag.Seq) (dag.Seq, error)) (dag.Seq, err
 // it also attempts to move any candidate filtering operations into the
 // source's pushdown predicate.  This should be called before ParallelizeScan().
 // TBD: we need to do pushdown for search/cut to optimize columnar extraction.
-func (o *Optimizer) Optimize(seq dag.Seq) (dag.Seq, error) {
+func (o *Optimizer) Optimize(main *dag.Main) error {
+	seq := main.Body
 	replaceJoinWithHashJoin(seq)
 	seq = liftFilterOps(seq)
 	seq = mergeFilters(seq)
@@ -157,29 +150,31 @@ func (o *Optimizer) Optimize(seq dag.Seq) (dag.Seq, error) {
 	seq = mergeFilters(seq)
 	seq, err := o.optimizeSourcePaths(seq)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	seq = removePassOps(seq)
 	DemandForSeq(seq, demand.All())
 	setPushdownUnordered(seq, false)
-	return seq, nil
+	main.Body = seq
+	return nil
 }
 
-func (o *Optimizer) OptimizeDeleter(seq dag.Seq, replicas int) (dag.Seq, error) {
+func (o *Optimizer) OptimizeDeleter(main *dag.Main, replicas int) error {
+	seq := main.Body
 	if len(seq) != 3 {
-		return nil, errors.New("internal error: bad deleter structure")
+		return errors.New("internal error: bad deleter structure")
 	}
 	scan, ok := seq[0].(*dag.DeleteScan)
 	if !ok {
-		return nil, errors.New("internal error: bad deleter structure")
+		return errors.New("internal error: bad deleter structure")
 	}
 	filter, ok := seq[1].(*dag.Filter)
 	if !ok {
-		return nil, errors.New("internal error: bad deleter structure")
+		return errors.New("internal error: bad deleter structure")
 	}
 	output, ok := seq[2].(*dag.Output)
 	if !ok {
-		return nil, errors.New("internal error: bad deleter structure")
+		return errors.New("internal error: bad deleter structure")
 	}
 	lister := &dag.Lister{
 		Kind:   "Lister",
@@ -188,7 +183,7 @@ func (o *Optimizer) OptimizeDeleter(seq dag.Seq, replicas int) (dag.Seq, error) 
 	}
 	sortKeys, err := o.sortKeysOfSource(lister)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	deleter := &dag.Deleter{
 		Kind:  "Deleter",
@@ -215,7 +210,8 @@ func (o *Optimizer) OptimizeDeleter(seq dag.Seq, replicas int) (dag.Seq, error) 
 			}},
 		}
 	}
-	return dag.Seq{lister, scatter, merge, output}, nil
+	main.Body = dag.Seq{lister, scatter, merge, output}
+	return nil
 }
 
 func (o *Optimizer) optimizeSourcePaths(seq dag.Seq) (dag.Seq, error) {
@@ -419,8 +415,6 @@ func (o *Optimizer) propagateSortKeyOp(op dag.Op, parents []order.SortKeys) ([]o
 	case *dag.PoolScan, *dag.Lister, *dag.SeqScan, *dag.DefaultScan:
 		out, err := o.sortKeysOfSource(op)
 		return []order.SortKeys{out}, err
-	case *dag.Scope:
-		return o.propagateSortKey(op.Body, parents)
 	default:
 		out, err := o.analyzeSortKeys(op, parent)
 		return []order.SortKeys{out}, err
@@ -741,8 +735,6 @@ func setPushdownUnordered(seq dag.Seq, unordered bool) bool {
 				setPushdownUnordered(p, true)
 			}
 			unordered = true
-		case *dag.Scope:
-			unordered = setPushdownUnordered(op.Body, unordered)
 		case *dag.Switch:
 			for _, c := range op.Cases {
 				setPushdownUnordered(c.Path, true)

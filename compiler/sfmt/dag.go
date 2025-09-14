@@ -9,13 +9,13 @@ import (
 	"github.com/brimdata/super/sup"
 )
 
-func DAG(seq dag.Seq) string {
+func DAG(main *dag.Main) string {
 	d := &canonDAG{
 		shared: shared{formatter: formatter{tab: 2}},
 		head:   true,
 		first:  true,
 	}
-	d.seq(seq)
+	d.main(main)
 	d.flush()
 	return d.String()
 }
@@ -98,7 +98,7 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 		c.write(" : ")
 		c.expr(e.Else, "")
 	case *dag.Call:
-		c.funcRef(e.Func)
+		c.write(e.Tag)
 		c.write("(")
 		c.exprs(e.Args)
 		c.write(")")
@@ -215,26 +215,6 @@ func (c *canonDAG) binary(e *dag.BinaryExpr, parent string) {
 	}
 }
 
-func (c *canonDAG) funcRef(f dag.FuncRef) {
-	switch f := f.(type) {
-	case *dag.Lambda:
-		c.write("(lambda ")
-		for i := range f.Params {
-			if i != 0 {
-				c.write(", ")
-			}
-			c.write(f.Params[i])
-		}
-		c.write(":")
-		c.expr(f.Expr, "")
-		c.write(")")
-	case *dag.FuncName:
-		c.write(f.Name)
-	default:
-		panic(f)
-	}
-}
-
 func (c *canonDAG) vectorElems(elems []dag.VectorElem) {
 	for k, elem := range elems {
 		if k > 0 {
@@ -290,9 +270,6 @@ func (c *canonDAG) seq(seq dag.Seq) {
 
 func (c *canonDAG) op(p dag.Op) {
 	switch p := p.(type) {
-	case *dag.Scope:
-		c.next()
-		c.scope(p)
 	case *dag.Fork:
 		c.next()
 		c.open("fork")
@@ -627,25 +604,18 @@ func (c *canonDAG) unnest(u *dag.Unnest) {
 	}
 }
 
-func (c *canonDAG) scope(s *dag.Scope) {
-	first := c.first
-	if !first {
-		c.open("(")
-		if len(s.Funcs) > 0 {
-			c.ret()
-		}
-	}
-	for _, f := range s.Funcs {
-		c.write("fn %s(", f.Name)
-		for i := range f.Lambda.Params {
+func (c *canonDAG) main(main *dag.Main) {
+	for _, f := range main.Funcs {
+		c.write("fn %s/%s(", f.Tag, f.Name)
+		for i := range f.Params {
 			if i != 0 {
 				c.write(", ")
 			}
-			c.write(f.Lambda.Params[i])
+			c.write(f.Params[i])
 		}
 		c.open("): (")
 		c.ret()
-		c.expr(f.Lambda.Expr, f.Name)
+		c.expr(f.Expr, "")
 		c.close()
 		c.ret()
 		c.flush()
@@ -654,13 +624,7 @@ func (c *canonDAG) scope(s *dag.Scope) {
 		c.flush()
 	}
 	c.head = true
-	c.seq(s.Body)
-	if !first {
-		c.close()
-		c.ret()
-		c.flush()
-		c.write(")")
-	}
+	c.seq(main.Body)
 }
 
 func (c *canonDAG) sortExprs(sortExprs []dag.SortExpr) {

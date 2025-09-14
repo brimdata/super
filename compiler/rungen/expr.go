@@ -69,7 +69,7 @@ func (b *Builder) compileExpr(e dag.Expr) (expr.Evaluator, error) {
 	case *dag.Conditional:
 		return b.compileConditional(*e)
 	case *dag.Call:
-		return b.compileCall(*e)
+		return b.compileCall(e)
 	case *dag.IndexExpr:
 		return b.compileIndexExpr(e)
 	case *dag.IsNullExpr:
@@ -307,68 +307,45 @@ func (b *Builder) compileAssignment(node *dag.Assignment) (expr.Assignment, erro
 	return expr.Assignment{LHS: lhs, RHS: rhs}, err
 }
 
-func (b *Builder) compileCall(call dag.Call) (expr.Evaluator, error) {
-	switch f := call.Func.(type) {
-	case *dag.FuncName:
-		return b.compileCallByName(f.Name, call.Args)
-	case *dag.Lambda:
-		return b.compileLambda(f, call.Args)
-	default:
-		panic(call)
-	}
-}
-
-func (b *Builder) compileCallByName(name string, args []dag.Expr) (expr.Evaluator, error) {
-	if tf := expr.NewShaperTransform(name); tf != 0 {
-		return b.compileShaper(args, tf)
+func (b *Builder) compileCall(call *dag.Call) (expr.Evaluator, error) {
+	if tf := expr.NewShaperTransform(call.Tag); tf != 0 {
+		return b.compileShaper(call.Args, tf)
 	}
 	// First check if call is to a user defined function, otherwise check for
 	// builtin function.
 	var fn expr.Function
-	if u, ok := b.udfs[name]; ok {
+	if f, ok := b.funcs[call.Tag]; ok {
 		var err error
-		if fn, err = b.compileUDFCall(name, u); err != nil {
+		if fn, err = b.compileUDFCall(call.Tag, f); err != nil {
 			return nil, err
 		}
 	} else {
 		var err error
-		fn, err = function.New(b.sctx(), name, len(args))
+		fn, err = function.New(b.sctx(), call.Tag, len(call.Args))
 		if err != nil {
-			return nil, fmt.Errorf("%s: %w", name, err)
+			return nil, fmt.Errorf("%s: %w", call.Tag, err)
 		}
 	}
-	exprs, err := b.compileExprs(args)
+	exprs, err := b.compileExprs(call.Args)
 	if err != nil {
-		return nil, fmt.Errorf("%s: bad argument: %w", name, err)
+		return nil, fmt.Errorf("%s: bad argument: %w", call.Tag, err)
 	}
 	return expr.NewCall(fn, exprs), nil
 }
 
-func (b *Builder) compileLambda(lambda *dag.Lambda, args []dag.Expr) (expr.Evaluator, error) {
-	fn := expr.NewUDF(b.sctx(), "lambda", lambda.Params)
-	exprs, err := b.compileExprs(args)
-	if err != nil {
-		return nil, fmt.Errorf("lambda call: bad argument: %w", err)
-	}
-	if fn.Body, err = b.compileExpr(lambda.Expr); err != nil {
-		return nil, err
-	}
-	return expr.NewCall(fn, exprs), nil
-}
-
-func (b *Builder) compileUDFCall(name string, lambda *dag.Lambda) (expr.Function, error) {
-	if fn, ok := b.compiledUDFs[name]; ok { //XXX this doesn't work for stateful things
+func (b *Builder) compileUDFCall(tag string, f *dag.FuncDef) (expr.Function, error) {
+	if fn, ok := b.compiledUDFs[tag]; ok { //XXX this doesn't work for stateful things
 		return fn, nil
 	}
-	fn := expr.NewUDF(b.sctx(), name, lambda.Params)
+	fn := expr.NewUDF(b.sctx(), b.funcs[tag].Name, f.Params)
 	// We store compiled UDF calls here so as to avoid stack overflows on
 	// recursive calls.
-	b.compiledUDFs[name] = fn
+	b.compiledUDFs[tag] = fn
 	var err error
-	if fn.Body, err = b.compileExpr(lambda.Expr); err != nil {
+	if fn.Body, err = b.compileExpr(f.Expr); err != nil {
 		return nil, err
 	}
-	delete(b.compiledUDFs, name)
+	delete(b.compiledUDFs, tag)
 	return fn, nil
 }
 

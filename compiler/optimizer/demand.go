@@ -46,8 +46,6 @@ func demandForOp(op dag.Op, downstreams []demand.Demand) []demand.Demand {
 			d = demand.Union(d, demand.Union(DemandForSeq(p, downstreams[i])...))
 		}
 		return []demand.Demand{d}
-	case *dag.Scope:
-		return DemandForSeq(op.Body, downstreams...)
 	case *dag.Switch:
 		d := demandForExpr(op.Expr)
 		for i, c := range op.Cases {

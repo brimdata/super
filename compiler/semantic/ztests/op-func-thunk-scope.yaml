@@ -1,0 +1,7 @@
+spq: |
+  fn outer(x):x+1
+  op foo f,val: (fn outer(x):x values f(val))
+  foo &outer, 10
+
+output: |
+  11

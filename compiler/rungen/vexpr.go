@@ -192,24 +192,23 @@ func (b *Builder) compileVamExprs(in []dag.Expr) ([]vamexpr.Evaluator, error) {
 }
 
 func (b *Builder) compileVamCall(call *dag.Call) (vamexpr.Evaluator, error) {
-	name := call.Name()
-	if name == "cast" {
+	if call.Tag == "cast" {
 		return b.compileVamCast(call.Args)
 	}
-	if tf := expr.NewShaperTransform(name); tf != 0 {
+	if tf := expr.NewShaperTransform(call.Tag); tf != 0 {
 		return b.compileVamShaper(call.Args, tf)
 	}
 	var fn vamexpr.Function
-	if u, ok := b.udfs[name]; ok {
+	if f, ok := b.funcs[call.Tag]; ok {
 		var err error
-		if fn, err = b.compileVamUDFCall(name, u); err != nil {
+		if fn, err = b.compileVamUDFCall(call.Tag, f); err != nil {
 			return nil, err
 		}
 	} else {
 		var err error
-		fn, err = vamfunction.New(b.sctx(), name, len(call.Args))
+		fn, err = vamfunction.New(b.sctx(), call.Tag, len(call.Args))
 		if err != nil {
-			return nil, fmt.Errorf("%s: %w", name, err)
+			return nil, fmt.Errorf("%s: %w", call.Tag, err)
 		}
 	}
 	exprs, err := b.compileVamExprs(call.Args)
@@ -225,19 +224,19 @@ func (b *Builder) compileVamCall(call *dag.Call) (vamexpr.Evaluator, error) {
 	return vamexpr.NewCall(fn, exprs), nil
 }
 
-func (b *Builder) compileVamUDFCall(name string, lambda *dag.Lambda) (vamexpr.Function, error) {
-	if fn, ok := b.compiledVamUDFs[name]; ok {
+func (b *Builder) compileVamUDFCall(tag string, f *dag.FuncDef) (vamexpr.Function, error) {
+	if fn, ok := b.compiledVamUDFs[tag]; ok {
 		return fn, nil
 	}
-	fn := vamexpr.NewUDF(b.sctx(), name, lambda.Params)
+	fn := vamexpr.NewUDF(b.sctx(), b.funcs[tag].Name, f.Params)
 	// We store compiled UDF calls here so as to avoid stack overflows on
 	// recursive calls.
-	b.compiledVamUDFs[name] = fn
+	b.compiledVamUDFs[tag] = fn
 	var err error
-	if fn.Body, err = b.compileVamExpr(lambda.Expr); err != nil {
+	if fn.Body, err = b.compileVamExpr(f.Expr); err != nil {
 		return nil, err
 	}
-	delete(b.compiledUDFs, name)
+	delete(b.compiledUDFs, tag)
 	return fn, nil
 }
 

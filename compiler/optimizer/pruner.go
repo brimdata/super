@@ -115,7 +115,7 @@ func rangePrunerPred(op string, literal *dag.Literal, min, max *dag.This) *dag.B
 // pool key value type changes).
 func compare(op string, lhs, rhs dag.Expr) *dag.BinaryExpr {
 	nullsMax := &dag.Literal{Kind: "Literal", Value: "true"}
-	call := dag.NewCallByName("compare", []dag.Expr{lhs, rhs, nullsMax})
+	call := dag.NewCall("compare", []dag.Expr{lhs, rhs, nullsMax})
 	return dag.NewBinaryExpr(op, call, &dag.Literal{Kind: "Literal", Value: "0"})
 }
 

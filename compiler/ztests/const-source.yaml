@@ -14,20 +14,14 @@ script: |
 outputs:
   - name: stdout
     data: |
-      (
-        pool XXX
-        | output main
-      )
+      pool XXX
+      | output main
       ===
-      (
-        file A.sup format sup
-        | output main
-      )
+      file A.sup format sup
+      | output main
       ===
-      (
-        get http://brimdata.io
-        | output main
-      )
+      get http://brimdata.io
+      | output main
   - name: stderr
     data: |
       from expression requires a string but encountered 3.14 at line 1, column 29:

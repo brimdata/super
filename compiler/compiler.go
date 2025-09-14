@@ -50,18 +50,17 @@ func (l *compiler) NewDeleteQuery(rctx *runtime.Context, ast *parser.AST, head *
 	if len(seq) != 2 {
 		return nil, &InvalidDeleteWhereQuery{}
 	}
-	dagSeq, err := Analyze(rctx, ast, l.env, false)
+	main, err := Analyze(rctx, ast, l.env, false)
 	if err != nil {
 		return nil, err
 	}
-	if _, ok := dagSeq[1].(*dag.Filter); !ok {
+	if _, ok := main.Body[1].(*dag.Filter); !ok {
 		return nil, &InvalidDeleteWhereQuery{}
 	}
-	dagSeq, err = optimizer.New(rctx, l.env).OptimizeDeleter(dagSeq, Parallelism)
-	if err != nil {
+	if err = optimizer.New(rctx, l.env).OptimizeDeleter(main, Parallelism); err != nil {
 		return nil, err
 	}
-	outputs, b, err := BuildWithBuilder(rctx, dagSeq, l.env, nil)
+	outputs, b, err := BuildWithBuilder(rctx, main, l.env, nil)
 	if err != nil {
 		return nil, err
 	}

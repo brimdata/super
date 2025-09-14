@@ -3,6 +3,9 @@ package semantic
 import (
 	"context"
 	"errors"
+	"fmt"
+	"slices"
+	"strings"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
@@ -15,7 +18,7 @@ import (
 // Analyze performs a semantic analysis of the AST, translating it from AST
 // to DAG form, resolving syntax ambiguities, and performing constant propagation.
 // After semantic analysis, the DAG is ready for either optimization or compilation.
-func Analyze(ctx context.Context, p *parser.AST, env *exec.Environment, extInput bool) (dag.Seq, error) {
+func Analyze(ctx context.Context, p *parser.AST, env *exec.Environment, extInput bool) (*dag.Main, error) {
 	files := p.Files()
 	a := newAnalyzer(ctx, files, env)
 	astseq := p.Parsed()
@@ -35,8 +38,16 @@ func Analyze(ctx context.Context, p *parser.AST, env *exec.Environment, extInput
 			seq.Prepend(&dag.NullScan{Kind: "NullScan"})
 		}
 	}
+	var funcs []*dag.FuncDef
+	for _, f := range a.funcs {
+		funcs = append(funcs, f)
+	}
+	// Sort by tag so we get deterministic sfmt output.
+	slices.SortFunc(funcs, func(a, b *dag.FuncDef) int {
+		return strings.Compare(a.Tag, b.Tag)
+	})
 	seq = a.checkOutputs(true, seq)
-	return seq, files.Error()
+	return &dag.Main{Funcs: funcs, Body: seq}, files.Error()
 }
 
 type analyzer struct {
@@ -48,6 +59,7 @@ type analyzer struct {
 	env      *exec.Environment
 	scope    *Scope
 	sctx     *super.Context
+	funcs    map[string]*dag.FuncDef
 }
 
 func newAnalyzer(ctx context.Context, files *srcfiles.List, env *exec.Environment) *analyzer {
@@ -58,6 +70,7 @@ func newAnalyzer(ctx context.Context, files *srcfiles.List, env *exec.Environmen
 		env:     env,
 		scope:   NewScope(nil),
 		sctx:    super.NewContext(),
+		funcs:   make(map[string]*dag.FuncDef),
 	}
 }
 
@@ -75,8 +88,6 @@ func HasSource(seq dag.Seq) bool {
 			}
 		}
 		return true
-	case *dag.Scope:
-		return HasSource(op.Body)
 	}
 	return false
 }
@@ -87,6 +98,18 @@ func (a *analyzer) enterScope() {
 
 func (a *analyzer) exitScope() {
 	a.scope = a.scope.parent
+}
+
+func (a *analyzer) newFunc(name string, params []string, e dag.Expr) string {
+	tag := fmt.Sprintf("%d", len(a.funcs))
+	a.funcs[tag] = &dag.FuncDef{
+		Kind:   "FuncDef",
+		Tag:    tag,
+		Name:   name,
+		Params: params,
+		Expr:   e,
+	}
+	return tag
 }
 
 type opDecl struct {
@@ -138,8 +161,6 @@ func (a *analyzer) checkOutputs(isLeaf bool, seq dag.Seq) dag.Seq {
 				}
 				a.error(n, errors.New("output operator must be at flowgraph leaf"))
 			}
-		case *dag.Scope:
-			o.Body = a.checkOutputs(isLast && isLeaf, o.Body)
 		case *dag.Scatter:
 			for k := range o.Paths {
 				o.Paths[k] = a.checkOutputs(isLast && isLeaf, o.Paths[k])
@@ -160,7 +181,7 @@ func (a *analyzer) checkOutputs(isLeaf bool, seq dag.Seq) dag.Seq {
 		}
 	}
 	switch seq[lastN].(type) {
-	case *dag.Scope, *dag.Output, *dag.Scatter, *dag.Fork, *dag.Switch, *dag.Mirror:
+	case *dag.Output, *dag.Scatter, *dag.Fork, *dag.Switch, *dag.Mirror:
 	default:
 		if isLeaf {
 			return append(seq, &dag.Output{Kind: "Output", Name: "main"})

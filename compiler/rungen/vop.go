@@ -3,7 +3,6 @@ package rungen
 import (
 	"errors"
 	"fmt"
-	"maps"
 	"slices"
 
 	"github.com/brimdata/super"
@@ -64,8 +63,6 @@ func (b *Builder) compileVam(o dag.Op, parents []vector.Puller) ([]vector.Puller
 		return []vector.Puller{vamop.NewMerge(b.rctx, parents, cmp.Compare)}, nil
 	case *dag.Scatter:
 		return b.compileVamScatter(o, parents)
-	case *dag.Scope:
-		return b.compileVamScope(o, parents)
 	case *dag.Switch:
 		if o.Expr != nil {
 			return b.compileVamExprSwitch(o, parents)
@@ -198,17 +195,11 @@ func (b *Builder) compileVamSwitch(swtch *dag.Switch, parents []vector.Puller) (
 	return exits, nil
 }
 
-func (b *Builder) compileVamScope(scope *dag.Scope, parents []vector.Puller) ([]vector.Puller, error) {
-	// Because there can be name collisions between a child and parent scope
-	// we clone the current udf map, populate the cloned map, then restore the
-	// old scope once the current scope has been built.
-	parentUDFs := b.udfs
-	b.udfs = maps.Clone(parentUDFs)
-	defer func() { b.udfs = parentUDFs }()
-	for _, f := range scope.Funcs {
-		b.udfs[f.Name] = &f.Lambda
+func (b *Builder) compileVamMain(main *dag.Main, parents []vector.Puller) ([]vector.Puller, error) {
+	for _, f := range main.Funcs {
+		b.funcs[f.Tag] = f
 	}
-	return b.compileVamSeq(scope.Body, parents)
+	return b.compileVamSeq(main.Body, parents)
 }
 
 func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller, error) {

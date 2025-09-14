@@ -14,10 +14,8 @@ outputs:
       | output main
       ===
       null
-      | (
-        head 2
-        | output main
-      )
+      | head 2
+      | output main
   - name: stderr
     data: |
       expression value must be an integer value: 1. at line 1, column 6:

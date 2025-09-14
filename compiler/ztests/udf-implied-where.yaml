@@ -4,12 +4,9 @@ script: |
 outputs:
   - name: stdout
     data: |
-      null
-      | (
-        fn h(e): (
-          has(e)
-        )
-        
-        where h(foo)
-        | output main
+      fn 0/h(e): (
+        has(e)
       )
+      null
+      | where 0(foo)
+      | output main

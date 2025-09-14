@@ -7,15 +7,15 @@ import (
 
 // Parallelize tries to parallelize the DAG by splitting each source
 // path as much as possible of the sequence into n parallel branches.
-func (o *Optimizer) Parallelize(seq dag.Seq, concurrency int) (dag.Seq, error) {
+func (o *Optimizer) Parallelize(main *dag.Main, concurrency int) error {
 	// Compute the number of parallel paths across all input sources to
 	// achieve the desired level of concurrency.  At some point, we should
 	// use a semaphore here and let each possible path use the max concurrency.
 	if o.nent == 0 {
-		return seq, nil
+		return nil
 	}
 	concurrency = max(concurrency/o.nent, 2)
-	seq, err := walkEntries(seq, func(seq dag.Seq) (dag.Seq, error) {
+	seq, err := walkEntries(main.Body, func(seq dag.Seq) (dag.Seq, error) {
 		if len(seq) == 0 {
 			return seq, nil
 		}
@@ -49,10 +49,11 @@ func (o *Optimizer) Parallelize(seq dag.Seq, concurrency int) (dag.Seq, error) {
 		return append(front, parallel...), nil
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
 	o.optimizeParallels(seq)
-	return removePassOps(seq), nil
+	main.Body = removePassOps(seq)
+	return nil
 }
 
 func matchSource(seq dag.Seq) (*dag.Lister, *dag.Slicer, dag.Seq) {

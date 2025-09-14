@@ -110,12 +110,12 @@ func RunQuery(t testing.TB, sctx *super.Context, readers []sio.Reader, querySour
 	// Infer demand
 	// TODO This is a hack and should be replaced by a cleaner interface in CompileQuery.
 	env := exec.NewEnvironment(engine, nil)
-	dag, err := semantic.Analyze(ctx, ast, env, true)
+	main, err := semantic.Analyze(ctx, ast, env, true)
 	if err != nil {
 		t.Skipf("%v", err)
 	}
-	if len(dag) > 0 {
-		demand := demand.Union(optimizer.DemandForSeq(dag, demand.All())...)
+	if len(main.Body) > 0 {
+		demand := demand.Union(optimizer.DemandForSeq(main.Body, demand.All())...)
 		useDemand(demand)
 	}
 

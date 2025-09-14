@@ -17,6 +17,11 @@ import (
 	"github.com/segmentio/ksuid"
 )
 
+type Main struct {
+	Funcs []*FuncDef `json:"funcs"`
+	Body  Seq        `json:"body"`
+}
+
 type Op interface {
 	opNode()
 }
@@ -129,11 +134,7 @@ type (
 		Kind  string `json:"kind" unpack:""`
 		Paths []Seq  `json:"paths"`
 	}
-	Scope struct {
-		Kind  string     `json:"kind" unpack:""`
-		Funcs []*FuncDef `json:"funcs"`
-		Body  Seq        `json:"seq"`
-	}
+
 	Skip struct {
 		Kind  string `json:"kind" unpack:""`
 		Count int    `json:"count"`
@@ -173,22 +174,12 @@ type (
 	}
 )
 
-type FuncRef interface {
-	funcRefNode()
-}
-
-func (*Lambda) funcRefNode()   {}
-func (*FuncName) funcRefNode() {}
-
-type FuncName struct {
-	Kind string `json:"kind" unpack:""`
-	Name string `json:"name"`
-}
-
 type FuncDef struct {
-	Kind   string `json:"kind" unpack:""`
-	Name   string `json:"name"`
-	Lambda Lambda `json:"lambda"`
+	Kind   string   `json:"kind" unpack:""`
+	Tag    string   `json:"tag"`
+	Name   string   `json:"name"`
+	Params []string `json:"params"`
+	Expr   Expr     `json:"expr"`
 }
 
 // Input structure
@@ -362,7 +353,6 @@ func (*Values) opNode()    {}
 func (*Merge) opNode()     {}
 func (*Mirror) opNode()    {}
 func (*Combine) opNode()   {}
-func (*Scope) opNode()     {}
 func (*Load) opNode()      {}
 func (*Output) opNode()    {}
 
@@ -403,8 +393,6 @@ func FanIn(seq Seq) int {
 			n += FanIn(seq)
 		}
 		return n
-	case *Scope:
-		return FanIn(op.Body)
 	case *Join:
 		return 2
 	}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"maps"
 	"slices"
 	"strings"
 	"sync"
@@ -59,7 +58,7 @@ type Builder struct {
 	progress        *sbuf.Progress
 	channels        map[string][]sbuf.Puller
 	deletes         *sync.Map
-	udfs            map[string]*dag.Lambda
+	funcs           map[string]*dag.FuncDef
 	compiledUDFs    map[string]*expr.UDF
 	compiledVamUDFs map[string]*vamexpr.UDF
 	resetters       expr.Resetters
@@ -77,25 +76,25 @@ func NewBuilder(rctx *runtime.Context, env *exec.Environment) *Builder {
 			RecordsMatched: 0,
 		},
 		channels:        make(map[string][]sbuf.Puller),
-		udfs:            make(map[string]*dag.Lambda),
+		funcs:           make(map[string]*dag.FuncDef),
 		compiledUDFs:    make(map[string]*expr.UDF),
 		compiledVamUDFs: make(map[string]*vamexpr.UDF),
 	}
 }
 
-// Build builds a flowgraph for seq.  If seq contains a dag.DefaultSource, it
+// Build builds a flowgraph for main.  If main contains a dag.DefaultSource, it
 // will read from readers.
-func (b *Builder) Build(seq dag.Seq, readers ...sio.Reader) (map[string]sbuf.Puller, error) {
-	if !isEntry(seq) {
+func (b *Builder) Build(main *dag.Main, readers ...sio.Reader) (map[string]sbuf.Puller, error) {
+	if !isEntry(main.Body) {
 		return nil, errors.New("internal error: DAG entry point is not a data source")
 	}
 	b.readers = readers
 	if b.env.UseVAM() {
-		if _, err := b.compileVamSeq(seq, nil); err != nil {
+		if _, err := b.compileVamMain(main, nil); err != nil {
 			return nil, err
 		}
 	} else {
-		if _, err := b.compileSeq(seq, nil); err != nil {
+		if _, err := b.compileMain(main, nil); err != nil {
 			return nil, err
 		}
 	}
@@ -146,6 +145,13 @@ func (b *Builder) Deletes() *sync.Map {
 
 func (b *Builder) resetResetters() {
 	b.resetters = nil
+}
+
+func (b *Builder) compileMain(main *dag.Main, parents []sbuf.Puller) ([]sbuf.Puller, error) {
+	for _, f := range main.Funcs {
+		b.funcs[f.Tag] = f
+	}
+	return b.compileSeq(main.Body, parents)
 }
 
 func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error) {
@@ -445,19 +451,6 @@ func (b *Builder) compileSeq(seq dag.Seq, parents []sbuf.Puller) ([]sbuf.Puller,
 	return parents, nil
 }
 
-func (b *Builder) compileScope(scope *dag.Scope, parents []sbuf.Puller) ([]sbuf.Puller, error) {
-	// Because there can be name collisions between a child and parent scope
-	// we clone the current udf map, populate the cloned map, then restore the
-	// old scope once the current scope has been built.
-	parentUDFs := b.udfs
-	b.udfs = maps.Clone(parentUDFs)
-	defer func() { b.udfs = parentUDFs }()
-	for _, f := range scope.Funcs {
-		b.udfs[f.Name] = &f.Lambda
-	}
-	return b.compileSeq(scope.Body, parents)
-}
-
 func (b *Builder) compileFork(par *dag.Fork, parents []sbuf.Puller) ([]sbuf.Puller, error) {
 	var f *fork.Op
 	switch len(parents) {
@@ -574,8 +567,6 @@ func (b *Builder) compile(o dag.Op, parents []sbuf.Puller) ([]sbuf.Puller, error
 		return b.compileScatter(o, parents)
 	case *dag.Mirror:
 		return b.compileMirror(o, parents)
-	case *dag.Scope:
-		return b.compileScope(o, parents)
 	case *dag.Switch:
 		if o.Expr != nil {
 			return b.compileExprSwitch(o, parents)
@@ -710,8 +701,6 @@ func isEntry(seq dag.Seq) bool {
 	switch op := seq[0].(type) {
 	case *dag.Lister, *dag.DefaultScan, *dag.FileScan, *dag.HTTPScan, *dag.PoolScan, *dag.DBMetaScan, *dag.PoolMetaScan, *dag.CommitMetaScan, *dag.NullScan:
 		return true
-	case *dag.Scope:
-		return isEntry(op.Body)
 	case *dag.Fork:
 		return len(op.Paths) > 0 && !slices.ContainsFunc(op.Paths, func(seq dag.Seq) bool {
 			return !isEntry(seq)

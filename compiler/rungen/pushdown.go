@@ -65,7 +65,7 @@ func (d *deleter) DataFilter() (expr.Evaluator, error) {
 		dag.NewUnaryExpr("!", d.dataFilter),
 		dag.NewBinaryExpr("or",
 			&dag.IsNullExpr{Kind: "IsNullExpr", Expr: d.dataFilter},
-			dag.NewCallByName("is_error", []dag.Expr{d.dataFilter}))))
+			dag.NewCall("is_error", []dag.Expr{d.dataFilter}))))
 }
 
 func (d *deleter) BSUPFilter() (*expr.BufferFilter, error) {
