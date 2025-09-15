@@ -134,7 +134,6 @@ type (
 		Kind  string `json:"kind" unpack:""`
 		Paths []Seq  `json:"paths"`
 	}
-
 	Skip struct {
 		Kind  string `json:"kind" unpack:""`
 		Count int    `json:"count"`

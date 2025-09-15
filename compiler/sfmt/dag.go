@@ -607,11 +607,11 @@ func (c *canonDAG) unnest(u *dag.Unnest) {
 func (c *canonDAG) main(main *dag.Main) {
 	for _, f := range main.Funcs {
 		c.write("fn %s/%s(", f.Tag, f.Name)
-		for i := range f.Params {
+		for i, p := range f.Params {
 			if i != 0 {
 				c.write(", ")
 			}
-			c.write(f.Params[i])
+			c.write(p)
 		}
 		c.open("): (")
 		c.ret()

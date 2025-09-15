@@ -3,8 +3,9 @@ package semantic
 import (
 	"context"
 	"errors"
-	"fmt"
+	"maps"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/brimdata/super"
@@ -38,11 +39,8 @@ func Analyze(ctx context.Context, p *parser.AST, env *exec.Environment, extInput
 			seq.Prepend(&dag.NullScan{Kind: "NullScan"})
 		}
 	}
-	var funcs []*dag.FuncDef
-	for _, f := range a.funcs {
-		funcs = append(funcs, f)
-	}
-	// Sort by tag so we get deterministic sfmt output.
+	funcs := slices.Collect(maps.Values(a.funcs))
+	// Sort entries so they are consistently ordered by integer tag strings.
 	slices.SortFunc(funcs, func(a, b *dag.FuncDef) int {
 		return strings.Compare(a.Tag, b.Tag)
 	})
@@ -101,7 +99,7 @@ func (a *analyzer) exitScope() {
 }
 
 func (a *analyzer) newFunc(name string, params []string, e dag.Expr) string {
-	tag := fmt.Sprintf("%d", len(a.funcs))
+	tag := strconv.Itoa(len(a.funcs))
 	a.funcs[tag] = &dag.FuncDef{
 		Kind:   "FuncDef",
 		Tag:    tag,

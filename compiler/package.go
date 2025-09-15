@@ -155,7 +155,7 @@ func CompileWithSortKey(rctx *runtime.Context, ast *parser.AST, r sio.Reader, so
 		return nil, errors.New("CompileWithSortKey: expected a reader")
 	}
 	scan.SortKeys = order.SortKeys{sortKey}
-	if err = Optimize(rctx, main, env, 0); err != nil {
+	if err := Optimize(rctx, main, env, 0); err != nil {
 		return nil, err
 	}
 	outputs, meter, err := Build(rctx, main, env, []sio.Reader{r})

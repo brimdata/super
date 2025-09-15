@@ -77,11 +77,11 @@ func (s *Scope) LookupFunc(name string) (*dag.FuncDef, string, error) {
 	if entry == nil {
 		return nil, "", nil
 	}
-	if f, ok := entry.ref.(*dag.FuncDef); ok {
-		return f, "", nil
-	}
-	if b, ok := entry.ref.(*builtin); ok {
-		return nil, string(*b), nil
+	switch ref := entry.ref.(type) {
+	case *dag.FuncDef:
+		return ref, "", nil
+	case *builtin:
+		return nil, string(*ref), nil
 	}
 	return nil, "", fmt.Errorf("%q is not a function", name)
 }
