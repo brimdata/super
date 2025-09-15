@@ -986,13 +986,22 @@ func (a *analyzer) singletonAgg(agg ast.Assignment, seq dag.Seq) dag.Seq {
 }
 
 func (a *analyzer) semDecls(decls []ast.Decl) {
-	var funcDecls []*ast.FuncDecl
+	var funcDefs []*dag.FuncDef
+	var bodies []ast.Expr
 	for _, d := range decls {
 		switch d := d.(type) {
 		case *ast.ConstDecl:
+			// XXX Consts don't quite work right.  We should bind them all to a DAG
+			// placeholder and substitute them in as thunks, then do constant eval
+			// at the very end of semantic analysis.  To be done in a later PR.
 			a.semConstDecl(d)
 		case *ast.FuncDecl:
-			funcDecls = append(funcDecls, d)
+			// We need to declare functions in the symbol table (so ops can find them)
+			// but not try to process the function body (because they can refer to ops).
+			// So we declare all the functions, process the ops, then process the function
+			// bodies.
+			funcDefs = append(funcDefs, a.declareFunc(d))
+			bodies = append(bodies, d.Lambda.Expr)
 		case *ast.OpDecl:
 			a.semOpDecl(d)
 		case *ast.TypeDecl:
@@ -1001,12 +1010,12 @@ func (a *analyzer) semDecls(decls []ast.Decl) {
 			panic(fmt.Errorf("invalid declaration type %T", d))
 		}
 	}
-	a.semFuncDecls(funcDecls)
+	a.semFuncDefs(funcDefs, bodies)
 }
 
 func (a *analyzer) semConstDecl(c *ast.ConstDecl) {
 	e := a.semExpr(c.Expr)
-	if err := a.scope.DefineConst(a.sctx, c.Name, e); err != nil {
+	if err := a.scope.EvalAndBindConst(a.sctx, c.Name.Name, e); err != nil {
 		a.error(c, err)
 	}
 }
@@ -1021,7 +1030,7 @@ func (a *analyzer) semTypeDecl(d *ast.TypeDecl) {
 		Kind:  "Literal",
 		Value: fmt.Sprintf("<%s=%s>", sup.QuotedName(d.Name.Name), typ),
 	}
-	if err := a.scope.DefineConst(a.sctx, d.Name, e); err != nil {
+	if err := a.scope.EvalAndBindConst(a.sctx, d.Name.Name, e); err != nil {
 		a.error(d.Name, err)
 	}
 }
@@ -1034,20 +1043,22 @@ func idsAsStrings(ids []*ast.ID) []string {
 	return out
 }
 
-func (a *analyzer) semFuncDecls(decls []*ast.FuncDecl) {
-	// Enter function names into scope symbols first then call semExpr on all the
-	// function bodies can call other functions defined in same scope.
-	var tags []string
-	for _, d := range decls {
-		tag := a.newFunc(d.Name.Name, idsAsStrings(d.Lambda.Params), nil)
-		if err := a.scope.DefineAs(d.Name, a.funcs[tag]); err != nil {
-			a.error(d.Name, err)
-		}
-		tags = append(tags, tag)
+func (a *analyzer) declareFunc(d *ast.FuncDecl) *dag.FuncDef {
+	tag := a.newFunc(d.Name.Name, idsAsStrings(d.Lambda.Params), nil)
+	funcDef := a.funcsByTag[tag]
+	if err := a.scope.BindSymbol(d.Name.Name, funcDef); err != nil {
+		a.error(d.Name, err)
 	}
-	for i, tag := range tags {
+	return funcDef
+}
+
+func (a *analyzer) semFuncDefs(funcDefs []*dag.FuncDef, bodies []ast.Expr) {
+	for i, funcDef := range funcDefs {
 		a.enterScope()
-		a.funcs[tag].Expr = a.semExpr(decls[i].Lambda.Expr)
+		for _, p := range funcDef.Params {
+			a.scope.BindSymbol(p, param{})
+		}
+		funcDef.Expr = a.semExpr(bodies[i])
 		a.exitScope()
 	}
 }
@@ -1057,12 +1068,12 @@ func (a *analyzer) semOpDecl(d *ast.OpDecl) {
 	for _, formal := range d.Params {
 		if m[formal.Name] {
 			a.error(formal, fmt.Errorf("duplicate parameter %q", formal.Name))
-			a.scope.DefineAs(formal, &opDecl{bad: true})
+			a.scope.BindSymbol(formal.Name, &opDecl{bad: true})
 			return
 		}
 		m[formal.Name] = true
 	}
-	if err := a.scope.DefineAs(d.Name, &opDecl{ast: d, scope: a.scope}); err != nil {
+	if err := a.scope.BindSymbol(d.Name.Name, &opDecl{ast: d, scope: a.scope}); err != nil {
 		a.error(d, err)
 	}
 }
@@ -1139,7 +1150,7 @@ func (a *analyzer) isBool(e dag.Expr) bool {
 	case *dag.Conditional:
 		return a.isBool(e.Then) && a.isBool(e.Else)
 	case *dag.Call:
-		if f := a.funcs[e.Tag]; f != nil {
+		if f := a.funcsByTag[e.Tag]; f != nil {
 			return a.isBool(f.Expr)
 		}
 		if e.Tag == "cast" {
@@ -1204,7 +1215,7 @@ func (a *analyzer) semCallOp(call *ast.CallOp, seq dag.Seq) dag.Seq {
 	return append(seq, a.semUserOp(call.Loc, decl, call.Args)...)
 }
 
-func (a *analyzer) semUserOp(loc ast.Loc, decl *opDecl, args []ast.FuncOrExpr) dag.Seq {
+func (a *analyzer) semUserOp(loc ast.Loc, decl *opDecl, args []ast.Expr) dag.Seq {
 	// We've found a user op bound to the name being invoked, so we pull out the
 	// AST elements that were stashed from the definition of the user op and subsitute
 	// them into the call site here.  This is essentially a thunk... each use of the
@@ -1215,19 +1226,9 @@ func (a *analyzer) semUserOp(loc ast.Loc, decl *opDecl, args []ast.FuncOrExpr) d
 		a.error(loc, fmt.Errorf("%d arg%s provided when operator expects %d arg%s", len(args), plural.Slice(args, "s"), len(params), plural.Slice(params, "s")))
 		return dag.Seq{badOp()}
 	}
-	// XXX
-	// This "things" stuff will be cleaned up when we allow lambdas to be
-	// passed into functions where we will rework the FuncRefs to be ast.Expr
-	// and do a late compilation of the function bodies as a thunk for each call site.
-	things := make([]any, len(args))
-	for i, e := range args {
-		if expr, ok := e.(ast.Expr); ok {
-			things[i] = a.semExpr(expr)
-		} else if fn, ok := e.(ast.FuncRef); ok {
-			things[i] = a.semFuncRef(fn)
-		} else {
-			panic(e)
-		}
+	exprs := make([]dag.Expr, 0, len(args))
+	for _, arg := range args {
+		exprs = append(exprs, a.semExpr(arg))
 	}
 	if slices.Contains(a.opStack, decl.ast) {
 		a.error(loc, opCycleError(append(a.opStack, decl.ast)))
@@ -1241,34 +1242,12 @@ func (a *analyzer) semUserOp(loc ast.Loc, decl *opDecl, args []ast.FuncOrExpr) d
 		a.scope = oldscope
 	}()
 	for i, param := range params {
-		if err := a.scope.DefineAs(param, things[i]); err != nil {
+		if err := a.scope.BindSymbol(param.Name, exprs[i]); err != nil {
 			a.error(loc, err)
 			return dag.Seq{badOp()}
 		}
 	}
 	return a.semSeq(decl.ast.Body)
-}
-
-type builtin string
-
-func (a *analyzer) semFuncRef(f ast.FuncRef) any {
-	switch f := f.(type) {
-	case *ast.Lambda:
-		tag := a.newFunc("lambda", idsAsStrings(f.Params), a.semExpr(f.Expr))
-		return a.funcs[tag]
-	case *ast.FuncName:
-		funcDef, native, _ := a.scope.LookupFunc(f.Name)
-		if funcDef != nil {
-			return funcDef
-		}
-		name := f.Name
-		if native != "" {
-			name = native
-		}
-		return (*builtin)(&name)
-	default:
-		panic(f)
-	}
 }
 
 func (a *analyzer) semOpArgs(args []ast.OpArg, allowed ...string) opArgs {

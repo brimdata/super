@@ -123,11 +123,24 @@ type When struct {
 // a function call has the standard semantics where it takes one or more arguments
 // and returns a result.
 type Call struct {
-	Kind  string  `json:"kind" unpack:""`
-	Func  FuncRef `json:"func"`
-	Args  []Expr  `json:"args"`
-	Where Expr    `json:"where"`
+	Kind  string `json:"kind" unpack:""`
+	Func  Expr   `json:"func"`
+	Args  []Expr `json:"args"`
+	Where Expr   `json:"where"`
 	Loc   `json:"loc"`
+}
+
+type Lambda struct {
+	Kind   string `json:"kind" unpack:""`
+	Params []*ID  `json:"params"`
+	Expr   Expr   `json:"expr"`
+	Loc    `json:"loc"`
+}
+
+type FuncName struct {
+	Kind string `json:"kind" unpack:""`
+	Name string `json:"name"`
+	Loc  `json:"loc"`
 }
 
 type CallExtract struct {
@@ -340,13 +353,6 @@ type SQLTimeValue struct {
 	Loc   `json:"loc"`
 }
 
-type MapCall struct {
-	Kind string  `json:"kind" unpack:""`
-	Expr Expr    `json:"expr"`
-	Func FuncRef `json:"func"`
-	Loc  `json:"loc"`
-}
-
 func (*FStringText) fStringElemNode() {}
 func (*FStringExpr) fStringElemNode() {}
 
@@ -359,10 +365,11 @@ func (*CallExtract) exprNode() {}
 func (*CaseExpr) exprNode()    {}
 func (*Cast) exprNode()        {}
 func (*DoubleQuote) exprNode() {}
+func (*FuncName) exprNode()    {}
 func (*ID) exprNode()          {}
 func (*IndexExpr) exprNode()   {}
 func (*IsNullExpr) exprNode()  {}
-func (*MapCall) exprNode()     {}
+func (*Lambda) exprNode()      {}
 func (*SliceExpr) exprNode()   {}
 
 func (*Assignment) exprNode() {}
@@ -629,9 +636,9 @@ type (
 		Loc  `json:"loc"`
 	}
 	CallOp struct {
-		Kind string       `json:"kind" unpack:""`
-		Name *ID          `json:"name"`
-		Args []FuncOrExpr `json:"args"`
+		Kind string `json:"kind" unpack:""`
+		Name *ID    `json:"name"`
+		Args []Expr `json:"args"`
 		Loc  `json:"loc"`
 	}
 )
@@ -759,35 +766,3 @@ type Agg struct {
 	Where    Expr   `json:"where"`
 	Loc      `json:"loc"`
 }
-
-// ----------------------------------------------------------------------------
-// Functions
-//
-// FuncDecl (defined above) binds a lambda to a name that can be called
-// Lambda is a nameless body with formal parameters that can be called or referenced
-// FuncName is a reference to function's name for calling or passing to an op or map-call
-// FuncRef is a sum type representing FuncName or Lambda (a named fn reference or a lambda value)
-
-type Lambda struct {
-	Kind   string `json:"kind" unpack:""`
-	Params []*ID  `json:"params"`
-	Expr   Expr   `json:"expr"`
-	Loc    `json:"loc"`
-}
-
-type FuncName struct {
-	Kind string `json:"kind" unpack:""`
-	Name string `json:"name"`
-	Loc  `json:"loc"`
-}
-
-type FuncRef interface {
-	funcRefNode()
-}
-
-func (*Lambda) funcRefNode()   {}
-func (*FuncName) funcRefNode() {}
-
-// There's not an easy way to create an Expr|FuncRef sum type so we use
-// type any here and are careful how we use it.
-type FuncOrExpr any

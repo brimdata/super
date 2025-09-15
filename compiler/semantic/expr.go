@@ -99,6 +99,14 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 		return a.semExists(e)
 	case *ast.FString:
 		return a.semFString(e)
+	case *ast.FuncName:
+		// We get here for &refs that are in a call expression. e.g.,
+		// an arg to another function.  These are only built-ins as
+		// user functions should be referenced directly as an ID.
+		return &dag.FuncRef{
+			Kind: "FuncRef",
+			Tag:  e.Name,
+		}
 	case *ast.Glob:
 		return &dag.RegexpSearch{
 			Kind:    "RegexpSearch",
@@ -137,8 +145,12 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 			out = dag.NewUnaryExpr("!", out)
 		}
 		return out
-	case *ast.MapCall:
-		return a.semMapCall(e)
+	case *ast.Lambda:
+		tag := a.newFunc("lambda", idsAsStrings(e.Params), a.semExpr(e.Expr))
+		return &dag.FuncRef{
+			Kind: "FuncRef",
+			Tag:  tag,
+		}
 	case *ast.MapExpr:
 		var entries []dag.Entry
 		for _, entry := range e.Entries {
@@ -376,7 +388,7 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 	case nil:
 		panic("semantic analysis: illegal null value encountered in AST")
 	}
-	panic(errors.New("invalid expression type"))
+	panic(e)
 }
 
 func (a *analyzer) semID(id *ast.ID) dag.Expr {
@@ -388,12 +400,18 @@ func (a *analyzer) semID(id *ast.ID) dag.Expr {
 	if subquery := a.maybeSubqueryCallByID(id); subquery != nil {
 		return subquery
 	}
-	ref, err := a.scope.LookupExpr(id.Name)
-	if err != nil {
-		a.error(id, err)
-		return badExpr()
+	// Check if there's a user function in scope with this name.  This happens
+	// for isolated identifiers (e.g., when passing an arg to a function or user op).
+	// Functions that are called with a function value are handled in semCallByName.
+	// A FuncRef that isn't ultimately called will be errored later.
+	tag, _ := a.scope.lookupFunc(id.Name)
+	if tag != "" {
+		return &dag.FuncRef{
+			Kind: "FuncRef",
+			Tag:  tag,
+		}
 	}
-	if ref != nil {
+	if ref := a.scope.lookupExpr(id.Name); ref != nil {
 		return ref
 	}
 	return pathOf(id.Name)
@@ -640,36 +658,74 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 }
 
 func (a *analyzer) semCallLambda(lambda *ast.Lambda, args []dag.Expr) dag.Expr {
-	return &dag.Call{
+	call := &dag.Call{
 		Kind: "Call",
 		Tag:  a.newFunc("lambda", idsAsStrings(lambda.Params), a.semExpr(lambda.Expr)),
 		Args: args,
 	}
+	a.locs[call] = lambda.Loc
+	return call
 }
 
 func (a *analyzer) semCallByName(call *ast.Call, name string, args []dag.Expr) dag.Expr {
 	if subquery := a.maybeSubqueryCall(call, name); subquery != nil {
 		return subquery
 	}
-	// Call could be to a user defined func. Check if we have a matching func in
-	// scope.  When the name is a formal argument, the bindings will have been put
-	// in scope and will point to the right entity (a builtin function name or a FuncDef).
-	f, builtin, err := a.scope.LookupFunc(name)
-	if err != nil {
-		a.error(call, err)
-		return badExpr()
+	// Check if the name resolves to a symbol in scope.
+	if entry := a.scope.lookupEntry(name); entry != nil {
+		switch ref := entry.ref.(type) {
+		case param:
+			// Called name is a parameter inside of a function.   We create a dummy
+			// CallParam that will be converted to a direct call to the passed-in
+			// function (we don't know it yet and there may be multiple variations
+			// that all land at this call site) at the end of semantic analysis.
+			callParam := &dag.CallParam{
+				Kind:  "CallParam",
+				Param: name,
+				Args:  args,
+			}
+			a.locs[callParam] = call.Loc
+			return callParam
+		case *dag.FuncRef:
+			e := &dag.Call{
+				Kind: "Call",
+				Tag:  ref.Tag,
+				Args: args,
+			}
+			a.locs[e] = call.Loc
+			return e
+		case *dag.FuncDef:
+			e := &dag.Call{
+				Kind: "Call",
+				Tag:  ref.Tag,
+				Args: args,
+			}
+			a.locs[e] = call.Loc
+			return e
+		}
+		if _, ok := entry.ref.(dag.Expr); ok {
+			a.error(call, fmt.Errorf("%q is not a function", name))
+			return badExpr()
+		}
+		panic(entry.ref)
 	}
+	// Call could be to a user func. Check if we have a matching func in scope.
+	// When the name is a formal argument, the bindings will have been put
+	// in scope and will point to the right entity (a builtin function name or a FuncDef).
+	tag, _ := a.scope.lookupFunc(name)
 	nargs := len(args)
 	// udf should be checked first since a udf can override builtin functions.
-	if f != nil {
+	if f := a.funcsByTag[tag]; f != nil {
 		if len(f.Params) != nargs {
 			a.error(call, fmt.Errorf("call expects %d argument(s)", len(f.Params)))
 			return badExpr()
 		}
-		return dag.NewCall(f.Tag, args)
+		e := dag.NewCall(f.Tag, args)
+		a.locs[e] = call.Loc
+		return e
 	}
-	if builtin != "" {
-		name = builtin
+	if tag != "" {
+		name = tag
 	}
 	nameLower := strings.ToLower(name)
 	switch {
@@ -678,6 +734,8 @@ func (a *analyzer) semCallByName(call *ast.Call, name string, args []dag.Expr) d
 			a.error(call, err)
 			return badExpr()
 		}
+	case nameLower == "map":
+		return a.semMapCall(call.Loc, args)
 	case nameLower == "grep":
 		if err := function.CheckArgCount(nargs, 2, 2); err != nil {
 			a.error(call, err)
@@ -714,12 +772,14 @@ func (a *analyzer) semCallByName(call *ast.Call, name string, args []dag.Expr) d
 		}
 		fallthrough
 	default:
-		if _, err = function.New(a.sctx, nameLower, nargs); err != nil {
+		if _, err := function.New(a.sctx, nameLower, nargs); err != nil {
 			a.error(call, err)
 			return badExpr()
 		}
 	}
-	return dag.NewCall(nameLower, args)
+	e := dag.NewCall(nameLower, args)
+	a.locs[e] = call.Loc
+	return e
 }
 
 func (a *analyzer) maybeSubqueryCallByID(id *ast.ID) *dag.Subquery {
@@ -736,11 +796,7 @@ func (a *analyzer) maybeSubqueryCall(call *ast.Call, name string) *dag.Subquery 
 	if decl == nil || decl.bad {
 		return nil
 	}
-	var args []ast.FuncOrExpr
-	for _, arg := range call.Args {
-		args = append(args, arg)
-	}
-	userOp := a.semUserOp(call.Loc, decl, args)
+	userOp := a.semUserOp(call.Loc, decl, call.Args)
 	// When a user op is encountered inside an expression, we turn it into a
 	// subquery operating on a single-shot "this" value unless it's uncorrelated
 	// (i.e., starts with a from), in which case we put the uncorrelated body
@@ -760,36 +816,23 @@ func (a *analyzer) maybeSubqueryCall(call *ast.Call, name string) *dag.Subquery 
 	}
 }
 
-func (a *analyzer) semMapCall(call *ast.MapCall) dag.Expr {
-	var lambda *dag.Call
-	this := []dag.Expr{dag.NewThis(nil)}
-	switch f := call.Func.(type) {
-	case *ast.FuncName:
-		funcDef, name, err := a.scope.LookupFunc(f.Name)
-		if err != nil {
-			a.error(f, err)
-			return badExpr()
-		}
-		if funcDef != nil {
-			name = funcDef.Tag
-		} else if name == "" {
-			name = f.Name
-		}
-		lambda = dag.NewCall(name, this)
-	case *ast.Lambda:
-		lambda = &dag.Call{
-			Kind: "Call",
-			Tag:  a.newFunc("lambda", idsAsStrings(f.Params), a.semExpr(f.Expr)),
-			Args: this,
-		}
-	default:
-		panic("semMapCall")
+func (a *analyzer) semMapCall(loc ast.Loc, args []dag.Expr) dag.Expr {
+	if len(args) != 2 {
+		a.error(loc, errors.New("map requires two arguments"))
+		return badExpr()
 	}
-	return &dag.MapCall{
+	f, ok := args[1].(*dag.FuncRef)
+	if !ok {
+		a.error(loc, errors.New("second argument to map must be a function"))
+		return badExpr()
+	}
+	e := &dag.MapCall{
 		Kind:   "MapCall",
-		Expr:   a.semExpr(call.Expr),
-		Lambda: lambda,
+		Expr:   args[0],
+		Lambda: dag.NewCall(f.Tag, []dag.Expr{dag.NewThis(nil)}),
 	}
+	a.locs[e] = loc
+	return e
 }
 
 func (a *analyzer) semCallExtract(partExpr, argExpr ast.Expr) dag.Expr {

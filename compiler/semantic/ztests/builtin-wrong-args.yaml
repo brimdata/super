@@ -1,0 +1,8 @@
+spq: |
+  fn foo(f):f('foo','bar')
+  values foo(&upper)
+
+error: |
+  function "upper" called via parameter "f": too many arguments at line 1, column 11:
+  fn foo(f):f('foo','bar')
+            ~~~~~~~~~~~~~~

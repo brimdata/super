@@ -1,0 +1,6 @@
+spq: |
+  op f x: (values x)
+  f (f 1)
+
+output: |
+  1

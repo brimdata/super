@@ -1,0 +1,7 @@
+spq: |
+  fn f(g,val):g(val)
+  fn h(x):x+1
+  values f(h,10)
+
+output: |
+  11

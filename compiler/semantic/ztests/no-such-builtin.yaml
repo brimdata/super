@@ -1,0 +1,12 @@
+spq: |
+  fn foo(f,x):f(x)
+  values foo(nosuchfunction, 1)
+  | values foo(&nosuchfunction, 2)
+
+error: |
+  function called via parameter "f" is bound to a non-function at line 1, column 13:
+  fn foo(f,x):f(x)
+              ~~~~
+  function "nosuchfunction" called via parameter "f": no such function at line 1, column 13:
+  fn foo(f,x):f(x)
+              ~~~~

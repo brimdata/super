@@ -1,0 +1,7 @@
+spq: |
+  const x=1
+  fn f(x):x
+  values f(10)
+
+output: |
+  10

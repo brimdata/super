@@ -110,7 +110,7 @@ PipeOp
   / a:OpAssignment &EndOfOp { return a, nil }
   / !(Function EndOfOp) a:Aggregation &EndOfOp { return a, nil }
   / !CallIDGuard name:Identifier _ !CallExprGuard args:FuncOrExprs {
-      return &ast.CallOp{Kind:"CallOp", Name: name.(*ast.ID), Args:sliceOf[ast.FuncOrExpr](args), Loc:loc(c)}, nil
+      return &ast.CallOp{Kind:"CallOp", Name: name.(*ast.ID), Args:sliceOf[ast.Expr](args), Loc:loc(c)}, nil
     }
   / !CallIDGuard name:Identifier &EndOfOp {
       return &ast.CallOp{Kind:"CallOp", Name: name.(*ast.ID), Loc:loc(c)}, nil
@@ -450,7 +450,7 @@ CallOp
       return &ast.CallOp{
         Kind: "CallOp",
         Name: name.(*ast.ID),
-        Args: sliceOf[ast.FuncOrExpr](args),
+        Args: sliceOf[ast.Expr](args),
         Loc: loc(c),
       }, nil
     }
@@ -1055,14 +1055,6 @@ Function
         Loc: loc(c),
       }, nil
     }
-  / MAP __ "(" __ e:Expr __ "," __ f:FuncValue ")" {
-      return &ast.MapCall{
-        Kind: "MapCall",
-        Expr: e.(ast.Expr),
-        Func: f.(ast.FuncRef),
-        Loc: loc(c),
-      }, nil
-    }
   / SUBSTRING __ "(" __ expr:Expr from:(_ FROM _ e:Expr { return e, nil })? for_:(_ FOR _ e:Expr { return e, nil })? ")" {
       s := &ast.SQLSubstring{
         Kind: "SQLSubstring",
@@ -1111,7 +1103,7 @@ DateTypeHack
     }
 
 FunctionArgs
-  = Exprs
+  = FuncOrExprs
   / __ { return []any{}, nil }
 
 Exprs

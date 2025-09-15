@@ -3,7 +3,6 @@ package semantic
 import (
 	"context"
 	"errors"
-	"maps"
 	"slices"
 	"strconv"
 	"strings"
@@ -39,36 +38,41 @@ func Analyze(ctx context.Context, p *parser.AST, env *exec.Environment, extInput
 			seq.Prepend(&dag.NullScan{Kind: "NullScan"})
 		}
 	}
-	funcs := slices.Collect(maps.Values(a.funcs))
-	// Sort entries so they are consistently ordered by integer tag strings.
+	seq = a.checkOutputs(true, seq)
+	r := newResolver(a, a.funcsByTag)
+	seq, funcs := r.resolve(seq)
+	// Sort function entries so they are consistently ordered by integer tag strings.
 	slices.SortFunc(funcs, func(a, b *dag.FuncDef) int {
 		return strings.Compare(a.Tag, b.Tag)
 	})
-	seq = a.checkOutputs(true, seq)
 	return &dag.Main{Funcs: funcs, Body: seq}, files.Error()
 }
 
 type analyzer struct {
-	ctx      context.Context
-	files    *srcfiles.List
-	opStack  []*ast.OpDecl
-	cteStack []*cte
-	outputs  map[*dag.Output]ast.Node
-	env      *exec.Environment
-	scope    *Scope
-	sctx     *super.Context
-	funcs    map[string]*dag.FuncDef
+	ctx         context.Context
+	files       *srcfiles.List
+	opStack     []*ast.OpDecl
+	cteStack    []*cte
+	outputs     map[*dag.Output]ast.Node
+	env         *exec.Environment
+	scope       *Scope
+	sctx        *super.Context
+	funcsByTag  map[string]*dag.FuncDef
+	funcsByDecl map[*ast.Decl]*dag.FuncDef
+	locs        map[dag.Expr]ast.Loc
 }
 
 func newAnalyzer(ctx context.Context, files *srcfiles.List, env *exec.Environment) *analyzer {
 	return &analyzer{
-		ctx:     ctx,
-		files:   files,
-		outputs: make(map[*dag.Output]ast.Node),
-		env:     env,
-		scope:   NewScope(nil),
-		sctx:    super.NewContext(),
-		funcs:   make(map[string]*dag.FuncDef),
+		ctx:         ctx,
+		files:       files,
+		outputs:     make(map[*dag.Output]ast.Node),
+		env:         env,
+		scope:       NewScope(nil),
+		sctx:        super.NewContext(),
+		funcsByTag:  make(map[string]*dag.FuncDef),
+		funcsByDecl: make(map[*ast.Decl]*dag.FuncDef),
+		locs:        make(map[dag.Expr]ast.Loc),
 	}
 }
 
@@ -99,8 +103,8 @@ func (a *analyzer) exitScope() {
 }
 
 func (a *analyzer) newFunc(name string, params []string, e dag.Expr) string {
-	tag := strconv.Itoa(len(a.funcs))
-	a.funcs[tag] = &dag.FuncDef{
+	tag := strconv.Itoa(len(a.funcsByTag))
+	a.funcsByTag[tag] = &dag.FuncDef{
 		Kind:   "FuncDef",
 		Tag:    tag,
 		Name:   name,

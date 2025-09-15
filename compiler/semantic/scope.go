@@ -34,22 +34,24 @@ type cte struct {
 	schema schema
 }
 
-func (s *Scope) DefineAs(name *ast.ID, e any) error {
-	if _, ok := s.symbols[name.Name]; ok {
-		return fmt.Errorf("symbol %q redefined", name.Name)
+type param struct{}
+
+func (s *Scope) BindSymbol(name string, e any) error {
+	if _, ok := s.symbols[name]; ok {
+		return fmt.Errorf("symbol %q redefined", name)
 	}
-	s.symbols[name.Name] = &entry{ref: e, order: len(s.symbols)}
+	s.symbols[name] = &entry{ref: e, order: len(s.symbols)}
 	return nil
 }
 
-func (s *Scope) DefineConst(sctx *super.Context, name *ast.ID, def dag.Expr) error {
+func (s *Scope) EvalAndBindConst(sctx *super.Context, name string, def dag.Expr) error {
 	val, err := rungen.EvalAtCompileTime(sctx, def)
 	if err != nil {
 		return err
 	}
 	if val.IsError() {
 		if val.IsMissing() {
-			return fmt.Errorf("const %q: cannot have variable dependency", name.Name)
+			return fmt.Errorf("const %q: cannot have variable dependency", name)
 		} else {
 			return fmt.Errorf("const %q: %q", name, string(val.Bytes()))
 		}
@@ -58,32 +60,7 @@ func (s *Scope) DefineConst(sctx *super.Context, name *ast.ID, def dag.Expr) err
 		Kind:  "Literal",
 		Value: sup.FormatValue(val),
 	}
-	return s.DefineAs(name, literal)
-}
-
-func (s *Scope) LookupExpr(name string) (dag.Expr, error) {
-	if entry := s.lookupEntry(name); entry != nil {
-		e, ok := entry.ref.(dag.Expr)
-		if !ok {
-			return nil, fmt.Errorf("symbol %q is not bound to an expression", name)
-		}
-		return e, nil
-	}
-	return nil, nil
-}
-
-func (s *Scope) LookupFunc(name string) (*dag.FuncDef, string, error) {
-	entry := s.lookupEntry(name)
-	if entry == nil {
-		return nil, "", nil
-	}
-	switch ref := entry.ref.(type) {
-	case *dag.FuncDef:
-		return ref, "", nil
-	case *builtin:
-		return nil, string(*ref), nil
-	}
-	return nil, "", fmt.Errorf("%q is not a function", name)
+	return s.BindSymbol(name, literal)
 }
 
 func (s *Scope) lookupOp(name string) (*opDecl, error) {
@@ -104,6 +81,32 @@ func (s *Scope) lookupEntry(name string) *entry {
 		}
 	}
 	return nil
+}
+
+func (s *Scope) lookupExpr(name string) dag.Expr {
+	if entry := s.lookupEntry(name); entry != nil {
+		// function parameters hide exteral definitions as you don't
+		// want the this.param ref to be overriden by a const etc.
+		if _, ok := entry.ref.(param); ok {
+			return nil
+		}
+		return entry.ref.(dag.Expr)
+	}
+	return nil
+}
+
+func (s *Scope) lookupFunc(name string) (string, error) {
+	entry := s.lookupEntry(name)
+	if entry == nil {
+		return "", nil
+	}
+	switch ref := entry.ref.(type) {
+	case *dag.FuncDef:
+		return ref.Tag, nil
+	case *ast.FuncName:
+		return ref.Name, nil
+	}
+	return "", fmt.Errorf("%q is not bound to a function", name)
 }
 
 // resolve paths based on SQL semantics in order of precedence
