@@ -492,6 +492,16 @@ func inlineRecordExprSpreads(v any) {
 			}
 			r.Elems = slices.Concat(r.Elems[:i], r2.Elems, r.Elems[i+1:])
 		}
+		// dedupe elems from spreads
+		m := map[string]struct{}{}
+		for i := len(r.Elems) - 1; i >= 0; i-- {
+			if f, ok := r.Elems[i].(*dag.Field); ok {
+				if _, ok := m[f.Name]; ok {
+					r.Elems = slices.Delete(r.Elems, i, i+1)
+				}
+				m[f.Name] = struct{}{}
+			}
+		}
 		return r
 	})
 }
