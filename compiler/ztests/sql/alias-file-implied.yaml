@@ -1,0 +1,14 @@
+script: |
+  mkdir -p path/to
+  mv foo.sup path/to
+  super -s -c 'select foo.id from path/to/foo.sup'
+
+inputs:
+  - name: foo.sup
+    data: &data |
+      {id:1}
+      {id:2}
+
+outputs:
+  - name: stdout
+    data: *data

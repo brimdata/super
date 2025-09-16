@@ -235,7 +235,7 @@ func (a *analyzer) semFromName(nameLoc ast.Node, name string, args []ast.OpArg) 
 	if isURL(name) {
 		return a.semFromURL(nameLoc, name, args), ""
 	}
-	prefix := strings.Split(name, ".")[0]
+	prefix := strings.Split(filepath.Base(name), ".")[0]
 	if a.env.IsAttached() {
 		return a.semPool(nameLoc, name, args), prefix
 	}
