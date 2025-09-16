@@ -36,6 +36,13 @@ $(SAMPLEDATA):
 
 sampledata: $(SAMPLEDATA)
 
+SQLLOGIC_ZTESTS:=sqllogic-ztests/README.md
+
+$(SQLLOGIC_ZTESTS):
+	git clone --depth=1 https://github.com/brimdata/sqllogic-ztests $(@D)
+
+sqllogic-ztests: $(SQLLOGIC_ZTESTS)
+
 bin/minio: Makefile
 	@curl -o $@ --compressed --create-dirs \
 		https://dl.min.io/server/minio/release/$$(go env GOOS)-$$(go env GOARCH)/archive/minio.RELEASE.2022-05-04T07-45-27Z
@@ -58,6 +65,9 @@ test-run: build bin/minio
 
 test-heavy: build
 	@PATH="$(CURDIR)/dist:$(PATH)" go test -tags=heavy ./mdtest
+
+test-sqllogic: build $(SQLLOGIC_ZTESTS)
+	make TEST=TestSPQ/sqllogic-ztests
 
 output-check: build $(SAMPLEDATA)
 	scripts/output-check.sh
@@ -92,5 +102,5 @@ test-ci: fmt tidy vet test-generate test-unit test-system test-heavy
 clean:
 	@rm -rf dist
 
-.PHONY: fmt tidy vet test-unit test-system test-heavy sampledata test-ci
+.PHONY: fmt tidy vet test-unit test-system test-heavy test-sqllogic sampledata test-ci
 .PHONY: build install clean generate test-generate
