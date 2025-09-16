@@ -522,7 +522,12 @@ func liftFilterOps(seq dag.Seq) dag.Seq {
 			if !ok {
 				continue
 			}
+			f = dag.CopyOp(f).(*dag.Filter)
+			liftOK := true
 			walkT(reflect.ValueOf(f), func(e dag.Expr) dag.Expr {
+				if !liftOK {
+					return e
+				}
 				this, ok := e.(*dag.This)
 				if !ok {
 					return e
@@ -533,12 +538,16 @@ func liftFilterOps(seq dag.Seq) dag.Seq {
 						return &dag.Literal{Kind: "Literal", Value: `error("missing")`}
 					}
 					// Copy spread so f and y don't share dag.Exprs.
-					return addPathToExpr(dag.CopyExpr(spread), this.Path)
+					e, liftOK = addPathToExpr(dag.CopyExpr(spread), this.Path)
+					return e
 				}
 				// Copy e1 so f and y don't share dag.Exprs.
-				return addPathToExpr(dag.CopyExpr(e1), this.Path[1:])
+				e, liftOK = addPathToExpr(dag.CopyExpr(e1), this.Path[1:])
+				return e
 			})
-			seq[i], seq[i+1] = seq[i+1], seq[i]
+			if liftOK {
+				seq[i], seq[i+1] = f, y
+			}
 		}
 		return seq
 	})
@@ -560,7 +569,11 @@ func mergeValuesOps(seq dag.Seq) dag.Seq {
 			if !ok {
 				continue
 			}
+			mergeOK := true
 			propagateV1Fields := func(e dag.Expr) dag.Expr {
+				if !mergeOK {
+					return e
+				}
 				this, ok := e.(*dag.This)
 				if !ok {
 					return e
@@ -570,26 +583,36 @@ func mergeValuesOps(seq dag.Seq) dag.Seq {
 					if v1TopLevelSpread == nil {
 						return &dag.Literal{Kind: "Literal", Value: `error("missing")`}
 					}
-					return addPathToExpr(v1TopLevelSpread, this.Path)
+					e, mergeOK = addPathToExpr(v1TopLevelSpread, this.Path)
+					return e
 				}
-				return addPathToExpr(v1Expr, this.Path[1:])
+				e, mergeOK = addPathToExpr(v1Expr, this.Path[1:])
+				return e
 			}
+			var mergedOp dag.Op
 			switch op := seq[i+1].(type) {
 			case *dag.Aggregate:
+				op = dag.CopyOp(op).(*dag.Aggregate)
 				for i := range op.Keys {
 					walkT(reflect.ValueOf(&op.Keys[i].RHS), propagateV1Fields)
 				}
 				for i := range op.Aggs {
 					walkT(reflect.ValueOf(&op.Aggs[i].RHS), propagateV1Fields)
 				}
+				mergedOp = op
 			case *dag.Values:
+				op = dag.CopyOp(op).(*dag.Values)
 				walkT(reflect.ValueOf(op.Exprs), propagateV1Fields)
+				mergedOp = op
 			default:
 				continue
 			}
-			inlineRecordExprSpreads(seq[i+1])
-			seq.Delete(i, i+1)
-			i--
+			if mergeOK {
+				inlineRecordExprSpreads(mergedOp)
+				seq[i] = mergedOp
+				seq.Delete(i+1, i+2)
+				i--
+			}
 		}
 		return seq
 	})
@@ -606,36 +629,56 @@ func hasThisWithEmptyPath(v any) bool {
 	return found
 }
 
-func addPathToExpr(e dag.Expr, path []string) dag.Expr {
+// addPathToExpr is roughly equivalent to this:
+//
+//	func simpleAddPathToExpr((e dag.Expr, path []string) dag.Expr {
+//	   for _, elem := range path {
+//	       e = &dag.Dot{Kind: "Dot", LHS: e, RHS: elem}
+//	   }
+//	   return e
+//	}
+//
+// addPathToExpr differs in a few ways:
+//   - It returns a dag.This when possible.
+//   - It descends to a dag.RecordExpr.Elem when possible.
+//   - It returns false when it cannot descend to a dag.RecordExpr.Elem.
+func addPathToExpr(e dag.Expr, path []string) (dag.Expr, bool) {
 	if len(path) == 0 {
-		return e
+		return e, true
 	}
 	switch e := e.(type) {
 	case *dag.RecordExpr:
-		var field, spread dag.Expr
-		for _, elem := range e.Elems {
+		var spread *dag.Spread
+		for _, elem := range slices.Backward(e.Elems) {
 			switch elem := elem.(type) {
 			case *dag.Field:
-				if elem.Name == path[0] {
-					field = elem.Value
+				if elem.Name != path[0] {
+					continue
 				}
+				if spread != nil {
+					// Don't know which will win.
+					return e, false
+				}
+				return addPathToExpr(elem.Value, path[1:])
 			case *dag.Spread:
-				spread = elem.Expr
-			default:
-				panic(elem)
+				if spread != nil {
+					// Don't know which will win.
+					return e, false
+				}
+				spread = elem
 			}
 		}
-		if field != nil {
-			return addPathToExpr(field, path[1:])
+		if spread == nil {
+			return e, false
 		}
-		if spread != nil {
-			return addPathToExpr(spread, path)
-		}
+		return addPathToExpr(spread.Expr, path)
 	case *dag.This:
-		return dag.NewThis(slices.Concat(e.Path, path))
+		return dag.NewThis(slices.Concat(e.Path, path)), true
 	}
-	dot := &dag.Dot{Kind: "Dot", LHS: e, RHS: path[0]}
-	return addPathToExpr(dot, path[1:])
+	for _, elem := range path {
+		e = &dag.Dot{Kind: "Dot", LHS: e, RHS: elem}
+	}
+	return e, true
 }
 
 func recordElemsFieldsAndSpread(elems []dag.RecordElem) (map[string]dag.Expr, dag.Expr, bool) {

@@ -14,6 +14,8 @@ script: |
   super compile -C -O 'select a, max(b) as c group by a | aggregate min(c) by a'
   echo ===
   super compile -C -O 'values {b:{d:1},c:{d:2}} | values {d:3,...b,...c}'
+  echo ===
+  super compile -C -O 'values {a:{...b,...c}} | values a.d'
 
 outputs:
   - name: stdout
@@ -54,4 +56,9 @@ outputs:
       ===
       null
       | values {d:2}
+      | output main
+      ===
+      null
+      | values {a:{...b,...c}}
+      | values a.d
       | output main
