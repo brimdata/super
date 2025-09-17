@@ -161,7 +161,11 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 			Value: sup.FormatValue(val),
 		}
 	case *ast.Subquery:
-		return a.semSubquery(e.Body)
+		s := a.semSubquery(e.Body)
+		if e.Array {
+			s.Body = collectThis(s.Body)
+		}
+		return s
 	case *ast.RecordExpr:
 		fields := map[string]struct{}{}
 		var out []dag.RecordElem

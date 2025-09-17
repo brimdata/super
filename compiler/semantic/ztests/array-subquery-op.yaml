@@ -5,6 +5,6 @@ spq: |
 
 output: |
   1
-  error("query expression produced multiple values (consider [(subquery)])")
+  error("query expression produced multiple values (consider [subquery])")
   [1]
   [1,2]

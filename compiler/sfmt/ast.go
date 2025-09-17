@@ -239,13 +239,17 @@ func (c *canon) expr(e ast.Expr, parent string) {
 		}
 		c.write("}|")
 	case *ast.Subquery:
-		c.open("(")
+		open, close := "(", ")"
+		if e.Array {
+			open, close = "[", "]"
+		}
+		c.open(open)
 		c.head = true
 		c.seq(e.Body)
 		c.close()
 		c.ret()
 		c.flush()
-		c.write(")")
+		c.write(close)
 	case *ast.Exists:
 		c.open("exists(")
 		c.head = true

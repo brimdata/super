@@ -304,9 +304,10 @@ type TupleExpr struct {
 }
 
 type Subquery struct {
-	Kind string `json:"kind" unpack:""`
-	Body Seq    `json:"body"`
-	Loc  `json:"loc"`
+	Kind  string `json:"kind" unpack:""`
+	Body  Seq    `json:"body"`
+	Array bool   `json:"array"`
+	Loc   `json:"loc"`
 }
 
 type FString struct {

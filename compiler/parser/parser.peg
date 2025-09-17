@@ -1131,6 +1131,10 @@ Primary
   / Tuple
   / "(" __ expr:Expr __ ")" { return expr, nil }
   / "(" __ expr:Subquery __ ")" { return expr, nil }
+  / "[" __ expr:Subquery __ "]" { 
+      expr.(*ast.Subquery).Array = true
+      return expr, nil 
+    }
 
 CaseExpr
   = CASE cases:When+ else_:(_ ELSE _ Expr)? _ END (_ CASE)? {
