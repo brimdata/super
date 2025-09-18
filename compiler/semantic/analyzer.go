@@ -39,7 +39,7 @@ func Analyze(ctx context.Context, p *parser.AST, env *exec.Environment, extInput
 		}
 	}
 	seq = a.checkOutputs(true, seq)
-	r := newResolver(a, a.funcsByTag)
+	r := newResolver(a)
 	seq, funcs := r.resolve(seq)
 	// Sort function entries so they are consistently ordered by integer tag strings.
 	slices.SortFunc(funcs, func(a, b *dag.FuncDef) int {

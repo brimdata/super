@@ -18,10 +18,10 @@ type resolver struct {
 	ntag     int
 }
 
-func newResolver(a *analyzer, in map[string]*dag.FuncDef) *resolver {
+func newResolver(a *analyzer) *resolver {
 	r := &resolver{
 		analyzer: a,
-		in:       in,
+		in:       a.funcsByTag,
 		fixed:    make(map[string]*dag.FuncDef),
 	}
 	return r
@@ -36,7 +36,7 @@ func (r *resolver) resolve(seq dag.Seq) (dag.Seq, []*dag.FuncDef) {
 	return out, funcs
 }
 
-// resolve traverses a DAG and substitues all instances of CallParam by rewriting
+// resolveSeq traverses a DAG and substitues all instances of CallParam by rewriting
 // each called function that incudes one or more CallParams substituting the actual
 // function called (which is also possibly resolved) as indicated by a FuncRef.
 // Each function is also rewritten to remove the function parameters from its params.
@@ -553,10 +553,6 @@ func (r *resolver) nextTag() string {
 	tag := strconv.Itoa(r.ntag)
 	r.ntag++
 	return tag
-}
-
-func (r *resolver) bindParam(param, tag string) {
-	r.params[len(r.params)-1][param] = tag
 }
 
 func (r *resolver) pushParams(scope map[string]string) {
