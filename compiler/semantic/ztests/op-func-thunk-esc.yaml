@@ -3,7 +3,7 @@ spq: |
   op foo f,g,val: (values f(val),g(val))
   (
     fn inner(x):x
-    foo inner,outer,10
+    foo &inner,&outer,10
   )
 
 output: |

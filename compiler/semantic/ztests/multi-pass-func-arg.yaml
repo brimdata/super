@@ -1,7 +1,7 @@
 spq: |
   fn f(g,f,val):g(f,val)
   fn h(f,x):f(x)+1
-  values f(h,lambda x:x+1, 10)
+  values f(&h,lambda x:x+1, 10)
 
 output: |
   12

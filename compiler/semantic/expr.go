@@ -103,9 +103,13 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 		// We get here for &refs that are in a call expression. e.g.,
 		// an arg to another function.  These are only built-ins as
 		// user functions should be referenced directly as an ID.
+		tag := e.Name
+		if boundTag, _ := a.scope.lookupFunc(e.Name); boundTag != "" {
+			tag = boundTag
+		}
 		return &dag.FuncRef{
 			Kind: "FuncRef",
-			Tag:  e.Name,
+			Tag:  tag,
 		}
 	case *ast.Glob:
 		return &dag.RegexpSearch{
@@ -400,15 +404,13 @@ func (a *analyzer) semID(id *ast.ID) dag.Expr {
 	if subquery := a.maybeSubqueryCallByID(id); subquery != nil {
 		return subquery
 	}
-	// Check if there's a user function in scope with this name.  This happens
-	// for isolated identifiers (e.g., when passing an arg to a function or user op).
-	// Functions that are called with a function value are handled in semCallByName.
-	// A FuncRef that isn't ultimately called will be errored later.
-	tag, _ := a.scope.lookupFunc(id.Name)
-	if tag != "" {
-		return &dag.FuncRef{
-			Kind: "FuncRef",
-			Tag:  tag,
+	// Check if there's a user function in scope with this name and report
+	// an error to avoid a rake when such a function is mistakenly passed
+	// without "&" and otherwise turns into a field reference.
+	if entry := a.scope.lookupEntry(id.Name); entry != nil {
+		if _, ok := entry.ref.(*dag.FuncDef); ok {
+			a.error(id, fmt.Errorf("function %q referenced but not called (consider &%s to create a function value)", id.Name, id.Name))
+			return badExpr()
 		}
 	}
 	if ref := a.scope.lookupExpr(id.Name); ref != nil {
