@@ -28,6 +28,11 @@ super -c "count() by typeof(this)" file.json
 ```
 super -c "any(this) by typeof(this) | values any" file.json
 ```
+### Search Parquet files easily and efficiently without schema handcuffs
+```
+super *.parquet > all.bsup
+super -c "? search keywords | other pipe processing" all.bsup
+```
 ### Read a CSV from stdin, process with a query, and write to stdout
 ```
 cat input.csv | super -f csv -c <query> -
