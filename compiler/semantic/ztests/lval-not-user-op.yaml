@@ -1,0 +1,9 @@
+spq: |
+  op foo x:(pass)
+  put foo:=bar
+
+input: |
+  {bar:1}
+
+output: |
+  {bar:1,foo:1}
