@@ -1,0 +1,14 @@
+script: super -s -c "values 1,2,3 | {x:[cross join (from in.sup)]}"
+
+inputs:
+  - name: in.sup
+    data: |
+      2
+      3
+
+outputs:
+  - name: stdout
+    data: |
+      {x:[{left:1,right:2},{left:1,right:3}]}
+      {x:[{left:2,right:2},{left:2,right:3}]}
+      {x:[{left:3,right:2},{left:3,right:3}]}
