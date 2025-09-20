@@ -222,7 +222,7 @@ func (j *hashJoin) probeRight() (vector.Any, error) {
 			return nil, err
 		}
 		if vec == nil {
-			if len(j.hits) != 0 && j.style != "inner" {
+			if j.hits != nil && j.style != "inner" {
 				return j.drainLeftTable(), nil
 			}
 			return nil, nil
@@ -267,7 +267,7 @@ func (j *hashJoin) drainLeftTable() vector.Any {
 			b.Write(j.wrap(val.Ptr(), nil))
 		}
 	}
-	j.hits = make(map[string]bool)
+	j.hits = nil
 	return b.Build()
 }
 
