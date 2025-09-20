@@ -222,7 +222,7 @@ func (j *hashJoin) probeRight() (vector.Any, error) {
 			return nil, err
 		}
 		if vec == nil {
-			if j.hits != nil && j.style != "inner" {
+			if len(j.hits) != 0 && j.style != "inner" {
 				return j.drainLeftTable(), nil
 			}
 			return nil, nil
