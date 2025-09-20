@@ -1202,7 +1202,7 @@ Record
   = "{" __ elems:RecordElems __ "}" {
       return &ast.RecordExpr{
           Kind: "RecordExpr",
-          Elems: sliceOf[ast.RecordElem](elems),
+          Elems: sliceOf[ast.Expr](elems),
           Loc: loc(c),
       }, nil
     }
@@ -1218,7 +1218,7 @@ RecordElemTail = __ "," __ elem:RecordElem { return elem, nil }
 RecordElem
   = Spread
   / FieldExpr
-  / Identifier
+  / Expr
 
 Spread
   = "..." __ expr:Expr {

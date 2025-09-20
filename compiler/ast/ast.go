@@ -239,14 +239,9 @@ type TableAlias struct {
 }
 
 type RecordExpr struct {
-	Kind  string       `json:"kind" unpack:""`
-	Elems []RecordElem `json:"elems"`
+	Kind  string `json:"kind" unpack:""`
+	Elems []Expr `json:"elems"`
 	Loc   `json:"loc"`
-}
-
-type RecordElem interface {
-	Node
-	recordElemNode()
 }
 
 type FieldExpr struct {
@@ -262,9 +257,8 @@ type Spread struct {
 	Loc  `json:"loc"`
 }
 
-func (*FieldExpr) recordElemNode() {}
-func (*ID) recordElemNode()        {}
-func (*Spread) recordElemNode()    {}
+func (*FieldExpr) exprNode() {}
+func (*Spread) exprNode()    {}
 
 type ArrayExpr struct {
 	Kind  string       `json:"kind" unpack:""`
