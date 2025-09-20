@@ -412,6 +412,13 @@ type OpDecl struct {
 	Loc    `json:"loc"`
 }
 
+type QueryDecl struct {
+	Kind string `json:"kind" unpack:""`
+	Name *ID    `json:"name"`
+	Body Seq    `json:"body"`
+	Loc  `json:"loc"`
+}
+
 type TypeDecl struct {
 	Kind string `json:"kind" unpack:""`
 	Name *ID    `json:"name"`
@@ -422,6 +429,7 @@ type TypeDecl struct {
 func (*ConstDecl) declNode() {}
 func (*FuncDecl) declNode()  {}
 func (*OpDecl) declNode()    {}
+func (*QueryDecl) declNode() {}
 func (*TypeDecl) declNode()  {}
 
 // ----------------------------------------------------------------------------

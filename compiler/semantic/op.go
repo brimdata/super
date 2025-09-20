@@ -99,6 +99,9 @@ func (a *analyzer) semFromEntity(entity ast.FromEntity, alias *ast.TableAlias, a
 		if c, ok := a.scope.ctes[strings.ToLower(entity.Text)]; ok {
 			return a.fromCTE(entity, c, alias)
 		}
+		if seq := a.scope.lookupQuery(entity.Text); seq != nil {
+			return seq, &dynamicSchema{}
+		}
 		op, def := a.semFromName(entity, entity.Text, args)
 		if op, ok := op.(*dag.FileScan); ok {
 			if cols, ok := a.fileScanColumns(op); ok {
@@ -1004,6 +1007,8 @@ func (a *analyzer) semDecls(decls []ast.Decl) {
 			bodies = append(bodies, d.Lambda.Expr)
 		case *ast.OpDecl:
 			a.semOpDecl(d)
+		case *ast.QueryDecl:
+			a.semQueryDecl(d)
 		case *ast.TypeDecl:
 			a.semTypeDecl(d)
 		default:
@@ -1017,6 +1022,12 @@ func (a *analyzer) semConstDecl(c *ast.ConstDecl) {
 	e := a.semExpr(c.Expr)
 	if err := a.scope.EvalAndBindConst(a.sctx, c.Name.Name, e); err != nil {
 		a.error(c, err)
+	}
+}
+
+func (a *analyzer) semQueryDecl(d *ast.QueryDecl) {
+	if err := a.scope.BindSymbol(d.Name.Name, a.semSeq(d.Body)); err != nil {
+		a.error(d.Name, err)
 	}
 }
 

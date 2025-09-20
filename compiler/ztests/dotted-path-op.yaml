@@ -1,5 +1,5 @@
 spq: |
-  op test: ( values this )
+  let test = ( values this )
   values test.that
 
 vector: true

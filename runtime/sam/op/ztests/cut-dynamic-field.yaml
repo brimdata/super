@@ -18,7 +18,7 @@ script: |
   echo "// ==="
   echo {} | super -s -c 'cut this[doesnotexist] := "world"' - 
   echo "// ==="
-  super -s -c 'op foo: ( values "error" ) cut this[foo] := "hello world"'
+  super -s -c 'let foo = ( values "error" ) cut this[foo] := "hello world"'
 
 outputs:
   - name: stdout

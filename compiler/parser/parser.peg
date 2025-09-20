@@ -7,10 +7,13 @@
 }
 
 start
-  = __ scope:Scope EndQuery { return []any{scope}, nil }
-  / __ seq:Seq EndQuery { return seq, nil }
+  = __ q:Query EndQuery { return q, nil }
 
 EndQuery = __ ";"? __ EOF
+
+Query
+  = scope:Scope { return []any{scope}, nil }
+  / Seq
 
 Scope
   = decls:Decl+ body:Seq {
@@ -30,7 +33,7 @@ Seq
 SeqTail = __ Pipe __ o:PipeOp { return o, nil }
 
 Decl
-  = v:(ConstDecl / FuncDecl / OpDecl / TypeDecl) _ { return v, nil }
+  = v:(ConstDecl / FuncDecl / OpDecl / QueryDecl / TypeDecl) _ { return v, nil }
 
 ConstDecl
   = CONST _ name:Identifier __ "=" __ expr:Expr {
@@ -53,6 +56,16 @@ FuncDecl
           Expr: expr.(ast.Expr),
           Loc: loc(c),
         },
+        Loc: loc(c),
+      }, nil
+    }
+
+QueryDecl
+  = LET _ name:Identifier __ "=" __ "(" __ body:Query __ ")" {
+      return &ast.QueryDecl{
+        Kind: "QueryDecl",
+        Name: name.(*ast.ID),
+        Body: sliceOf[ast.Op](body),
         Loc: loc(c),
       }, nil
     }
@@ -2380,6 +2393,7 @@ JOIN       = "JOIN"i            !IdentifierRest
 LAMBDA     = "LAMBDA"i          !IdentifierRest
 LAST       = "LAST"i            !IdentifierRest
 LEFT       = "LEFT"i            !IdentifierRest
+LET        = "LET"i             !IdentifierRest
 LIKE       = "LIKE"i            !IdentifierRest
 LIMIT      = "LIMIT"i           !IdentifierRest
 LOAD       = "LOAD"i            !IdentifierRest

@@ -1,0 +1,9 @@
+spq: |
+  fn foo(x):x
+  put foo:=bar
+
+input: |
+  {bar:1}
+
+output: |
+  {bar:1,foo:1}

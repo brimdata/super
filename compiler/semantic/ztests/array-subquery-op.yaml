@@ -1,6 +1,6 @@
 spq: |
-  op foo: (values 1)
-  op bar: (values 1,2)
+  let foo = (values 1)
+  let bar = (values 1,2)
   values foo, bar, [foo], [bar]
 
 output: |

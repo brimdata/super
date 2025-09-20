@@ -1,0 +1,8 @@
+spq: |
+  let foo = (values 1,2,3)
+  from foo
+
+output: |
+  1
+  2
+  3

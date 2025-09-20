@@ -74,6 +74,15 @@ func (s *Scope) lookupOp(name string) (*opDecl, error) {
 	return nil, nil
 }
 
+func (s *Scope) lookupQuery(name string) dag.Seq {
+	if entry := s.lookupEntry(name); entry != nil {
+		if seq, ok := entry.ref.(dag.Seq); ok {
+			return seq
+		}
+	}
+	return nil
+}
+
 func (s *Scope) lookupEntry(name string) *entry {
 	for scope := s; scope != nil; scope = scope.parent {
 		if entry, ok := scope.symbols[name]; ok {
@@ -87,7 +96,12 @@ func (s *Scope) lookupExpr(name string) dag.Expr {
 	if entry := s.lookupEntry(name); entry != nil {
 		// function parameters hide exteral definitions as you don't
 		// want the this.param ref to be overriden by a const etc.
-		if _, ok := entry.ref.(param); ok {
+		switch entry.ref.(type) {
+		case *dag.FuncDef, *ast.FuncName, param, *opDecl:
+			return nil
+		}
+		if _, ok := entry.ref.(dag.Seq); ok {
+			// Named subquery handled elsewhere
 			return nil
 		}
 		return entry.ref.(dag.Expr)

@@ -5,7 +5,7 @@ inputs:
   - name: imdb.spq
     data: |
       const titleID = 'tt3890160'
-      op title : (from title.basics.sup | tconst=titleID)
+      let title = (from title.basics.sup | tconst=titleID)
       op principals : (from title.principals.sup | tconst=titleID)
       op people which : (
           principals

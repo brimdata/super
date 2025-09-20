@@ -118,7 +118,7 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 			Expr:    pathOf("this"),
 		}
 	case *ast.ID:
-		id := a.semID(e)
+		id := a.semID(e, false)
 		if a.scope.schema != nil {
 			if this, ok := id.(*dag.This); ok {
 				out, err := a.scope.resolve(this.Path)
@@ -395,20 +395,15 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 	panic(e)
 }
 
-func (a *analyzer) semID(id *ast.ID) dag.Expr {
-	// We use static scoping here to see if an identifier is
-	// a "var" reference to the name or a field access
-	// and transform the AST node appropriately.  The resulting DAG
-	// doesn't have Identifiers as they are resolved here
-	// one way or the other.
-	if subquery := a.maybeSubqueryCallByID(id); subquery != nil {
+func (a *analyzer) semID(id *ast.ID, lval bool) dag.Expr {
+	if subquery := a.maybeSubquery(id.Name); subquery != nil {
 		return subquery
 	}
 	// Check if there's a user function in scope with this name and report
 	// an error to avoid a rake when such a function is mistakenly passed
 	// without "&" and otherwise turns into a field reference.
 	if entry := a.scope.lookupEntry(id.Name); entry != nil {
-		if _, ok := entry.ref.(*dag.FuncDef); ok {
+		if _, ok := entry.ref.(*dag.FuncDef); ok && !lval {
 			a.error(id, fmt.Errorf("function %q referenced but not called (consider &%s to create a function value)", id.Name, id.Name))
 			return badExpr()
 		}
@@ -499,7 +494,7 @@ func (a *analyzer) semRegexp(b *ast.BinaryExpr) dag.Expr {
 }
 
 func (a *analyzer) semBinary(e *ast.BinaryExpr) dag.Expr {
-	if path, bad := a.semDotted(e); path != nil {
+	if path, bad := a.semDotted(e, false); path != nil {
 		if a.scope.schema != nil {
 			out, err := a.scope.resolve(path)
 			if err != nil {
@@ -597,7 +592,7 @@ func (a *analyzer) semExprNullable(e ast.Expr) dag.Expr {
 	return a.semExpr(e)
 }
 
-func (a *analyzer) semDotted(e *ast.BinaryExpr) ([]string, dag.Expr) {
+func (a *analyzer) semDotted(e *ast.BinaryExpr, lval bool) ([]string, dag.Expr) {
 	if e.Op != "." {
 		return nil, nil
 	}
@@ -607,7 +602,7 @@ func (a *analyzer) semDotted(e *ast.BinaryExpr) ([]string, dag.Expr) {
 	}
 	switch lhs := e.LHS.(type) {
 	case *ast.ID:
-		switch e := a.semID(lhs).(type) {
+		switch e := a.semID(lhs, lval).(type) {
 		case *dag.This:
 			return append(slices.Clone(e.Path), rhs.Name), nil
 		case *dag.BadExpr:
@@ -616,7 +611,7 @@ func (a *analyzer) semDotted(e *ast.BinaryExpr) ([]string, dag.Expr) {
 			return nil, nil
 		}
 	case *ast.BinaryExpr:
-		this, bad := a.semDotted(lhs)
+		this, bad := a.semDotted(lhs, lval)
 		if this == nil {
 			return nil, bad
 		}
@@ -659,6 +654,17 @@ func (a *analyzer) semCall(call *ast.Call) dag.Expr {
 	}
 }
 
+func (a *analyzer) maybeSubquery(name string) *dag.Subquery {
+	if seq := a.scope.lookupQuery(name); seq != nil {
+		return &dag.Subquery{
+			Kind:       "Subquery",
+			Correlated: isCorrelated(seq),
+			Body:       seq,
+		}
+	}
+	return nil
+}
+
 func (a *analyzer) semCallLambda(lambda *ast.Lambda, args []dag.Expr) dag.Expr {
 	call := &dag.Call{
 		Kind: "Call",
@@ -670,9 +676,6 @@ func (a *analyzer) semCallLambda(lambda *ast.Lambda, args []dag.Expr) dag.Expr {
 }
 
 func (a *analyzer) semCallByName(call *ast.Call, name string, args []dag.Expr) dag.Expr {
-	if subquery := a.maybeSubqueryCall(call, name); subquery != nil {
-		return subquery
-	}
 	// Check if the name resolves to a symbol in scope.
 	if entry := a.scope.lookupEntry(name); entry != nil {
 		switch ref := entry.ref.(type) {
@@ -704,6 +707,9 @@ func (a *analyzer) semCallByName(call *ast.Call, name string, args []dag.Expr) d
 			}
 			a.locs[e] = call.Loc
 			return e
+		case *opDecl:
+			a.error(call, fmt.Errorf("cannot call user operator %q in an expression (consider subquery syntax)", name))
+			return badExpr()
 		}
 		if _, ok := entry.ref.(dag.Expr); ok {
 			a.error(call, fmt.Errorf("%q is not a function", name))
@@ -784,40 +790,6 @@ func (a *analyzer) semCallByName(call *ast.Call, name string, args []dag.Expr) d
 	return e
 }
 
-func (a *analyzer) maybeSubqueryCallByID(id *ast.ID) *dag.Subquery {
-	call := &ast.Call{
-		Kind: "Call",
-		Func: &ast.FuncName{Kind: "FuncName", Name: id.Name},
-		Loc:  id.Loc,
-	}
-	return a.maybeSubqueryCall(call, id.Name)
-}
-
-func (a *analyzer) maybeSubqueryCall(call *ast.Call, name string) *dag.Subquery {
-	decl, _ := a.scope.lookupOp(name)
-	if decl == nil || decl.bad {
-		return nil
-	}
-	userOp := a.semUserOp(call.Loc, decl, call.Args)
-	// When a user op is encountered inside an expression, we turn it into a
-	// subquery operating on a single-shot "this" value unless it's uncorrelated
-	// (i.e., starts with a from), in which case we put the uncorrelated body
-	// in the subquery without the correlating values logic.
-	correlated := isCorrelated(userOp)
-	if correlated {
-		valuesOp := &dag.Values{
-			Kind:  "Values",
-			Exprs: []dag.Expr{dag.NewThis(nil)},
-		}
-		userOp.Prepend(valuesOp)
-	}
-	return &dag.Subquery{
-		Kind:       "Subquery",
-		Correlated: correlated,
-		Body:       userOp,
-	}
-}
-
 func (a *analyzer) semMapCall(loc ast.Loc, args []dag.Expr) dag.Expr {
 	if len(args) != 2 {
 		a.error(loc, errors.New("map requires two arguments"))
@@ -884,7 +856,7 @@ func (a *analyzer) semAssignment(assign ast.Assignment) dag.Assignment {
 	if assign.LHS == nil {
 		lhs = dag.NewThis(deriveNameFromExpr(rhs, assign.RHS))
 	} else {
-		lhs = a.semExpr(assign.LHS)
+		lhs = a.semLval(assign.LHS)
 	}
 	if !isLval(lhs) {
 		a.error(&assign, errors.New("illegal left-hand side of assignment"))
@@ -895,6 +867,13 @@ func (a *analyzer) semAssignment(assign ast.Assignment) dag.Assignment {
 		lhs = badExpr()
 	}
 	return dag.Assignment{Kind: "Assignment", LHS: lhs, RHS: rhs}
+}
+
+func (a *analyzer) semLval(e ast.Expr) dag.Expr {
+	if id, ok := e.(*ast.ID); ok {
+		return a.semID(id, true)
+	}
+	return a.semExpr(e)
 }
 
 func isLval(e dag.Expr) bool {
