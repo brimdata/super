@@ -267,7 +267,7 @@ func (j *hashJoin) drainLeftTable() vector.Any {
 			b.Write(j.wrap(val.Ptr(), nil))
 		}
 	}
-	j.hits = nil
+	j.hits = make(map[string]bool)
 	return b.Build()
 }
 
