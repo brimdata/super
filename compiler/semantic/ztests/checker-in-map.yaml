@@ -1,0 +1,7 @@
+spq: |
+  values 'foo' in |{1:2}|
+
+error: |
+  left-hand side of in operator be compatible with map value or key type at line 1, column 8:
+  values 'foo' in |{1:2}|
+         ~~~~~

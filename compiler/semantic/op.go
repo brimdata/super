@@ -162,6 +162,7 @@ func (t *translator) fileScanColumns(op *sem.FileScan) ([]string, bool) {
 	}
 	defer sr.Close()
 	cols, err := parquetio.TopLevelFieldNames(sr)
+	op.Type = parquetio.Type(t.sctx, sr)
 	return cols, err == nil
 }
 
@@ -919,7 +920,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 							&sem.FieldElem{
 								Node:  o.Expr,
 								Name:  "on",
-								Value: sem.NewThis(nil /*XXX*/, nil),
+								Value: sem.NewThis(o.Expr, nil),
 							},
 						},
 					}},

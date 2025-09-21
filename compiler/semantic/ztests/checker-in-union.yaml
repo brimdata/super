@@ -1,0 +1,10 @@
+spq: |
+  fork
+    (values 'foo')
+    (values [1,2])
+  | sort this
+  | values 1 in this
+
+output: |
+  false
+  true

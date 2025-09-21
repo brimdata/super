@@ -22,7 +22,7 @@ import (
 // the agg functions in the expr field.
 type column struct {
 	name  string
-	loc   ast.Expr
+	loc   ast.Node
 	expr  sem.Expr
 	isAgg bool
 }

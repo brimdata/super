@@ -58,6 +58,10 @@ func NewReaderFromRecordReader(sctx *super.Context, rr pqarrow.RecordReader) (*R
 	return r, nil
 }
 
+func (r *Reader) Type() super.Type {
+	return r.typ
+}
+
 func UniquifyFieldNames(fields []super.Field) {
 	names := map[string]int{}
 	for i, f := range fields {

@@ -1,0 +1,7 @@
+spq: |
+  values 'foo' in {x:1,y:bool}
+
+error: |
+  left-hand side of in operator not compatible with any fields of record on right-hand side at line 1, column 8:
+  values 'foo' in {x:1,y:bool}
+         ~~~~~

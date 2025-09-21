@@ -1,9 +1,10 @@
 script: |
-  super compile -C -dag 'nested[1].field == 1'
+  super compile -C -dag 'values {nested:[{field:1}]} | nested[1].field == 1'
 
 outputs:
   - name: stdout
     data: |
       null
+      | values {nested:[{field:1}]}
       | where nested[1]["field"]==1
       | output main

@@ -1,0 +1,8 @@
+spq: |
+  fn z(a):a[0]
+  values z(1)
+
+error: |
+  indexed entity is not indexable at line 1, column 9:
+  fn z(a):a[0]
+          ~

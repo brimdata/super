@@ -45,6 +45,10 @@ func Analyze(ctx context.Context, p *parser.AST, env *exec.Environment, extInput
 	if err := t.Error(); err != nil {
 		return nil, err
 	}
+	newChecker(t, dagFuncs).check(t.reporter, semSeq)
+	if err := t.Error(); err != nil {
+		return nil, err
+	}
 	main := newDagen(t.reporter).assemble(semSeq, dagFuncs)
 	return main, t.Error()
 }

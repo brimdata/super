@@ -1,0 +1,8 @@
+spq: |
+  fn f(a):a[1]
+  values map([1,2], &f)
+
+error: |
+  in functon called from map: indexed entity is not indexable at line 1, column 9:
+  fn f(a):a[1]
+          ~

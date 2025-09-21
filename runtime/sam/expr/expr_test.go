@@ -326,9 +326,7 @@ func TestPattern(t *testing.T) {
 	testSuccessful(t, `"abc" == "abc"`, "", "true")
 	testSuccessful(t, `"abc" != "abc"`, "", "false")
 	testSuccessful(t, "cidr_match(10.0.0.0/8, 10.1.1.1)", "", "true")
-	testSuccessful(t, "10.1.1.1 in 192.168.0.0/16", "", "false")
 	testSuccessful(t, "!cidr_match(10.0.0.0/8, 10.1.1.1)", "", "false")
-	testSuccessful(t, "!(10.1.1.1 in 192.168.0.0/16)", "", "true")
 }
 
 func TestIn(t *testing.T) {
@@ -460,16 +458,6 @@ func TestArithmetic(t *testing.T) {
 	}
 	// Test string concatenation
 	testSuccessful(t, `"hello" + " world"`, record, `"hello world"`)
-
-	// Test string arithmetic other than + fails
-	testSuccessful(t, `"hello" - " world"`, record, `error("type string incompatible with '-' operator")`)
-	testSuccessful(t, `"hello" * " world"`, record, `error("type string incompatible with '*' operator")`)
-	testSuccessful(t, `"hello" / " world"`, record, `error("type string incompatible with '/' operator")`)
-
-	// Test that addition fails on an unsupported type
-	testSuccessful(t, "10.1.1.1 + 1", record, `error("incompatible types")`)
-	testSuccessful(t, "10.1.1.1 + 3.14159", record, `error("incompatible types")`)
-	testSuccessful(t, `10.1.1.1 + "foo"`, record, `error("incompatible types")`)
 }
 
 func TestArrayIndex(t *testing.T) {

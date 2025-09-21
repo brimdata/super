@@ -8,6 +8,7 @@
 package sem
 
 import (
+	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/order"
 	"github.com/segmentio/ksuid"
@@ -47,6 +48,7 @@ type (
 	}
 	FileScan struct {
 		ast.Node
+		Type   super.Type
 		Path   string
 		Format string
 	}

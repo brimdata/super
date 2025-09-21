@@ -1,6 +1,6 @@
 script: |
   echo // values
-  super -s -c 'values null, null | unnest this into ( values count() )'
+  super -s -c 'values null, null | unnest [this] into ( values count() )'
   echo // filter
   super -s -c 'values [1,2,3,4], [5,6,7] | unnest this into ( where count() % 3 == 0 )'
   echo // switch
@@ -14,7 +14,7 @@ script: |
       case sum(this) == 1 ( values "sum is 1" )
   )'
   echo // unnest
-  super -s -c 'values null, null | unnest this into ( count() )'
+  super -s -c 'values null, null | unnest [this] into ( count() )'
   echo // aggregate
   super -s -c 'values [1], [1] | unnest this into ( sum(this) by c := count() )'
 

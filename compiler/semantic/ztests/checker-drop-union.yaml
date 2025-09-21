@@ -1,0 +1,5 @@
+spq: values {x:{y:1,w:1},z:1},1 | drop x.y | values this+1
+
+output: |
+  error("incompatible types")
+  2

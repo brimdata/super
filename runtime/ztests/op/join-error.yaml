@@ -11,4 +11,6 @@ inputs:
 outputs:
   - name: stderr
     data: |
-      join requires two upstream parallel query paths
+      join requires two query inputs at line 1, column 1:
+      join on left.a=right.b
+      ~~~~~~~~~~~~~~~~~~~~~~

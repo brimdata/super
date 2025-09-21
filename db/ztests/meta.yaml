@@ -8,7 +8,7 @@ script: |
   super db -S -c 'from :pools | drop id | sort name | drop ts'
   echo ===
   super db -S -c 'from poolA@main:objects | {nameof:nameof(this),...this} | drop id'
-  super db -S -c 'from poolA:log | cut nameof(this) | drop ts'
+  super db -S -c 'from poolA:log | cut nameof(this)'
 
 inputs:
   - name: a.sup

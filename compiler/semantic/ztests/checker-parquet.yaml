@@ -1,0 +1,10 @@
+script: |
+  super -f parquet -o t.parquet -c "values {x:1,y:2}"
+  ! super -c "from t.parquet | values z"
+
+outputs:
+  - name: stderr
+    data: |
+      "z" no such field at line 1, column 25:
+      from t.parquet | values z
+                              ~

@@ -1,0 +1,6 @@
+spq: values 10.1.1.1 in 192.168.0.0/16
+
+error: |
+  right-hand side of in operator cannot be type net; consider cidr_match() at line 1, column 20:
+  values 10.1.1.1 in 192.168.0.0/16
+                     ~~~~~~~~~~~~~~

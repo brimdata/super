@@ -15,7 +15,7 @@ import (
 type evaluator struct {
 	translator *translator
 	in         map[string]*sem.FuncDef
-	errs       []errloc
+	errs       errlist
 	constThis  bool
 	bad        bool
 }
@@ -34,7 +34,7 @@ func newEvaluator(t *translator, funcs map[string]*sem.FuncDef) *evaluator {
 
 func (e *evaluator) mustEval(sctx *super.Context, expr sem.Expr) (super.Value, bool) {
 	val, ok := e.maybeEval(sctx, expr)
-	e.flushErrs()
+	e.errs.flushErrs(e.translator.reporter)
 	return val, ok
 }
 
@@ -42,7 +42,7 @@ func (e *evaluator) maybeEval(sctx *super.Context, expr sem.Expr) (super.Value, 
 	if literal, ok := expr.(*sem.LiteralExpr); ok {
 		val, err := sup.ParseValue(sctx, literal.Value)
 		if err != nil {
-			e.error(literal.Node, err)
+			e.errs.error(literal.Node, err)
 			return val, false
 		}
 		return val, true
@@ -72,7 +72,7 @@ func (e *evaluator) maybeEval(sctx *super.Context, expr sem.Expr) (super.Value, 
 	main := newDagen(e.translator.reporter).assembleExpr(resolvedExpr, funcs)
 	val, err := rungen.EvalAtCompileTime(sctx, main)
 	if err != nil {
-		e.error(expr, err)
+		e.errs.error(expr, err)
 		return val, false
 	}
 	return val, true
@@ -103,7 +103,7 @@ func (e *evaluator) op(op sem.Op) bool {
 		*sem.PoolMetaScan,
 		*sem.CommitMetaScan,
 		*sem.DeleteScan:
-		e.error(op, errors.New("cannot read data in constant expression"))
+		e.errs.error(op, errors.New("cannot read data in constant expression"))
 		return false
 	case *sem.NullScan:
 		return true
@@ -276,7 +276,7 @@ func (e *evaluator) expr(expr sem.Expr) bool {
 		return e.seq(expr.Body)
 	case *sem.ThisExpr:
 		if !e.constThis {
-			e.error(expr, fmt.Errorf("cannot reference '%s' in constant expression", quotedPath(expr.Path)))
+			e.errs.error(expr, fmt.Errorf("cannot reference '%s' in constant expression", quotedPath(expr.Path)))
 		}
 		return e.constThis
 	case *sem.UnaryExpr:
@@ -335,12 +335,14 @@ func (e *evaluator) recordElems(elems []sem.RecordElem) bool {
 	return isConst
 }
 
-func (e *evaluator) error(loc ast.Node, err error) {
-	e.errs = append(e.errs, errloc{loc, err})
+type errlist []errloc
+
+func (e *errlist) error(loc ast.Node, err error) {
+	*e = append(*e, errloc{loc, err})
 }
 
-func (e *evaluator) flushErrs() {
-	for _, info := range e.errs {
-		e.translator.error(info.loc, info.err)
+func (e errlist) flushErrs(r reporter) {
+	for _, info := range e {
+		r.error(info.loc, info.err)
 	}
 }
