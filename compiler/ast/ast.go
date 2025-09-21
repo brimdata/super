@@ -186,10 +186,9 @@ type Glob struct {
 }
 
 type Regexp struct {
-	Kind       string `json:"kind" unpack:""`
-	Pattern    string `json:"pattern"`
-	PatternPos int    `json:"pattern_pos"`
-	Loc        `json:"loc"`
+	Kind    string `json:"kind" unpack:""`
+	Pattern string `json:"pattern"`
+	Loc     `json:"loc"`
 }
 
 type Text struct {
@@ -490,12 +489,11 @@ type (
 		Loc  `json:"loc"`
 	}
 	Explode struct {
-		Kind       string `json:"kind" unpack:""`
-		KeywordPos int    `json:"keyword_pos"`
-		Args       []Expr `json:"args"`
-		Type       Type   `json:"type"`
-		As         Expr   `json:"as"`
-		Loc        `json:"loc"`
+		Kind string `json:"kind" unpack:""`
+		Args []Expr `json:"args"`
+		Type Type   `json:"type"`
+		As   Expr   `json:"as"`
+		Loc  `json:"loc"`
 	}
 	Head struct {
 		Kind  string `json:"kind" unpack:""`
@@ -650,10 +648,9 @@ type (
 		Loc   `json:"loc"`
 	}
 	DBMeta struct {
-		Kind    string `json:"kind" unpack:""`
-		MetaPos int    `json:"meta_pos"`
-		Meta    *Text  `json:"meta"`
-		Loc     `json:"loc"`
+		Kind string `json:"kind" unpack:""`
+		Meta *Text  `json:"meta"`
+		Loc  `json:"loc"`
 	}
 	DefaultScan struct {
 		Kind string `json:"kind" unpack:""`
