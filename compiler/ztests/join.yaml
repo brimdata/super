@@ -1,5 +1,5 @@
 script: |
-  super compile -dag -C 'join as {j,k} on k.kkey=j.jkey'
+  super compile -dag -C 'fork (values {jkey:1}) (values {kkey:1}) | join as {j,k} on k.kkey=j.jkey'
   ! super compile -dag -C 'join as {j,j} on key'
   echo // === >&2
   ! super compile -dag -C 'join on foo.key=left.key'
@@ -15,6 +15,13 @@ outputs:
   - name: stdout
     data: |
       null
+      | fork
+        (
+          values {jkey:1}
+        )
+        (
+          values {kkey:1}
+        )
       | inner join as {j,k} on k.kkey==j.jkey
       | output main
   - name: stderr

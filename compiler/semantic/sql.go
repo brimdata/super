@@ -102,7 +102,7 @@ func (t *translator) genColumns(proj projection, sch *selectSchema, seq sem.Seq)
 		if notFirst {
 			elems = append(elems, &sem.SpreadElem{
 				Node: col.loc,
-				Expr: sem.NewThis(col.expr, []string{"out"}),
+				Expr: sem.NewThis(col.loc, []string{"out"}),
 			})
 		} else {
 			notFirst = true
@@ -232,7 +232,7 @@ func (t *translator) genAggregateOutput(loc ast.Node, proj projection, keyExprs 
 			// Look for an exact-match of a column alias which would
 			// convert to path out.<id> in the name resolution of the
 			// grouping expression.
-			alias := sem.NewThis(col.expr, []string{"out", col.name})
+			alias := sem.NewThis(col.loc, []string{"out", col.name})
 			which = exprMatch(alias, keyExprs)
 		}
 		if col.isAgg {
@@ -669,7 +669,7 @@ func (t *translator) semProjection(sch *selectSchema, args []ast.SQLAsExpr, func
 	var proj projection
 	for _, as := range args {
 		if isStar(as) {
-			proj = append(proj, column{})
+			proj = append(proj, column{loc: as})
 			continue
 		}
 		col := t.semAs(sch, as, funcs)

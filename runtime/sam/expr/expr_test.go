@@ -460,16 +460,6 @@ func TestArithmetic(t *testing.T) {
 	}
 	// Test string concatenation
 	testSuccessful(t, `"hello" + " world"`, record, `"hello world"`)
-
-	// Test string arithmetic other than + fails
-	testSuccessful(t, `"hello" - " world"`, record, `error("type string incompatible with '-' operator")`)
-	testSuccessful(t, `"hello" * " world"`, record, `error("type string incompatible with '*' operator")`)
-	testSuccessful(t, `"hello" / " world"`, record, `error("type string incompatible with '/' operator")`)
-
-	// Test that addition fails on an unsupported type
-	testSuccessful(t, "10.1.1.1 + 1", record, `error("incompatible types")`)
-	testSuccessful(t, "10.1.1.1 + 3.14159", record, `error("incompatible types")`)
-	testSuccessful(t, `10.1.1.1 + "foo"`, record, `error("incompatible types")`)
 }
 
 func TestArrayIndex(t *testing.T) {

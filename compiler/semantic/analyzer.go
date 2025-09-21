@@ -40,6 +40,14 @@ func Analyze(ctx context.Context, p *parser.AST, env *exec.Environment, extInput
 			seq.Prepend(&sem.NullScan{})
 		}
 	}
+	//clrSeq(seq)
+	//pretty.Println(seq)
+	//XXX we need to do this incremementally inside of translate so that
+	// we can form schemas from pipe operators for SQL name bindings
+	newChecker(t.sctx, t.funcs).check(t.reporter, seq)
+	if err := t.Error(); err != nil {
+		return nil, err
+	}
 	resolver := newResolver(t)
 	semSeq, dagFuncs := resolver.resolve(seq)
 	if err := t.Error(); err != nil {

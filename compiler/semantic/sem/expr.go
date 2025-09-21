@@ -200,6 +200,9 @@ func (*FuncRef) exprNode()   {}
 func (*CallParam) exprNode() {}
 
 func NewThis(n ast.Node, path []string) *ThisExpr {
+	if n == nil {
+		panic(".")
+	}
 	return &ThisExpr{Node: n, Path: path}
 }
 

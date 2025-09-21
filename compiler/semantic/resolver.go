@@ -11,6 +11,8 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr/function"
 )
 
+//XXX need to copy Type field
+
 type resolver struct {
 	t        *translator
 	fixed    map[string]*sem.FuncDef
@@ -115,10 +117,10 @@ func (r *resolver) op(op sem.Op) sem.Op {
 		}
 	case *sem.ExplodeOp:
 		return &sem.ExplodeOp{
-			Node: op.Node,
-			Args: r.exprs(op.Args),
-			Type: op.Type,
-			As:   op.As,
+			Node:  op.Node,
+			Args:  r.exprs(op.Args),
+			Type_: op.Type_,
+			As:    op.As,
 		}
 	case *sem.FilterOp:
 		return &sem.FilterOp{
