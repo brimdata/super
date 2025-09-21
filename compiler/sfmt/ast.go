@@ -302,17 +302,6 @@ func (c *canon) funcRefAsCall(f ast.Expr) {
 	}
 }
 
-func (c *canon) funcRefAsArg(f ast.Expr) {
-	switch f := f.(type) {
-	case *ast.FuncName:
-		c.write("&%s", f.Name)
-	case *ast.Lambda:
-		c.lambda(f)
-	default:
-		c.expr(f, "")
-	}
-}
-
 func (c *canon) lambda(lambda *ast.Lambda) {
 	c.write("(lambda ")
 	c.ids(lambda.Params)
