@@ -7,16 +7,17 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/brimdata/super/compiler/dag"
+	"github.com/brimdata/super/compiler/ast"
+	"github.com/brimdata/super/compiler/semantic/sem"
 	"github.com/brimdata/super/pkg/field"
 )
 
 type schema interface {
 	Name() string
 	resolveColumn(col string) (field.Path, error)
-	resolveOrdinal(colno int) (dag.Expr, error)
+	resolveOrdinal(n ast.Node, colno int) (sem.Expr, error)
 	resolveTable(table string) (schema, field.Path, error)
-	deref(name string) (dag.Expr, schema)
+	deref(n ast.Node, name string) (sem.Expr, schema)
 	String() string
 }
 
@@ -140,7 +141,7 @@ func (s *subquerySchema) resolveTable(table string) (schema, field.Path, error) 
 	if sch != nil {
 		return nil, nil, errors.New("correlated subqueries not currently supported")
 	}
-	return nil, nil, err
+	return sch, path, err
 }
 
 func (*dynamicSchema) resolveColumn(col string) (field.Path, error) {
@@ -209,58 +210,58 @@ func (s *subquerySchema) resolveColumn(col string) (field.Path, error) {
 	return nil, fmt.Errorf("column %q not found", col)
 }
 
-func (*dynamicSchema) resolveOrdinal(col int) (dag.Expr, error) {
+func (*dynamicSchema) resolveOrdinal(n ast.Node, col int) (sem.Expr, error) {
 	if col <= 0 {
 		return nil, fmt.Errorf("position %d is not in select list", col)
 	}
-	return &dag.IndexExpr{
-		Kind:  "IndexExpr",
-		Expr:  dag.NewThis(nil),
-		Index: &dag.Literal{Kind: "Literal", Value: strconv.Itoa(col)},
+	return &sem.IndexExpr{
+		Node:  n,
+		Expr:  sem.NewThis(n, nil),
+		Index: &sem.LiteralExpr{Node: n, Value: strconv.Itoa(col)},
 	}, nil
 }
 
-func (s *staticSchema) resolveOrdinal(col int) (dag.Expr, error) {
+func (s *staticSchema) resolveOrdinal(n ast.Node, col int) (sem.Expr, error) {
 	if col <= 0 || col > len(s.columns) {
 		return nil, fmt.Errorf("position %d is not in select list", col)
 	}
-	return dag.NewThis([]string{s.columns[col-1]}), nil
+	return sem.NewThis(n, []string{s.columns[col-1]}), nil
 }
 
-func (s *selectSchema) resolveOrdinal(col int) (dag.Expr, error) {
+func (s *selectSchema) resolveOrdinal(n ast.Node, col int) (sem.Expr, error) {
 	if s.out != nil {
-		if resolved, err := s.out.resolveOrdinal(col); resolved != nil {
+		if resolved, err := s.out.resolveOrdinal(n, col); resolved != nil {
 			return appendExprToPath("out", resolved), nil
 		} else if err != nil {
 			return nil, err
 		}
 	}
-	resolved, err := s.in.resolveOrdinal(col)
+	resolved, err := s.in.resolveOrdinal(n, col)
 	if resolved != nil {
 		return appendExprToPath("in", resolved), nil
 	}
 	return nil, err
 }
 
-func (j *joinSchema) resolveOrdinal(col int) (dag.Expr, error) {
+func (j *joinSchema) resolveOrdinal(ast.Node, int) (sem.Expr, error) {
 	return nil, errors.New("ordinal column selection in join not supported")
 }
 
-func (j *joinUsingSchema) resolveOrdinal(col int) (dag.Expr, error) {
+func (j *joinUsingSchema) resolveOrdinal(ast.Node, int) (sem.Expr, error) {
 	return nil, errors.New("ordinal column selection in join not supported")
 }
 
-func (s *subquerySchema) resolveOrdinal(col int) (dag.Expr, error) {
+func (s *subquerySchema) resolveOrdinal(ast.Node, int) (sem.Expr, error) {
 	return nil, errors.New("ordinal column selection in subquery not supported")
 }
 
-func appendExprToPath(path string, e dag.Expr) dag.Expr {
+func appendExprToPath(path string, e sem.Expr) sem.Expr {
 	switch e := e.(type) {
-	case *dag.This:
-		return dag.NewThis(append([]string{path}, e.Path...))
-	case *dag.IndexExpr:
-		return &dag.IndexExpr{
-			Kind:  "IndexExpr",
+	case *sem.ThisExpr:
+		return sem.NewThis(e, append([]string{path}, e.Path...))
+	case *sem.IndexExpr:
+		return &sem.IndexExpr{
+			Node:  e,
 			Expr:  appendExprToPath(path, e.Expr),
 			Index: e.Index,
 		}
@@ -269,21 +270,21 @@ func appendExprToPath(path string, e dag.Expr) dag.Expr {
 	}
 }
 
-func (d *dynamicSchema) deref(name string) (dag.Expr, schema) {
+func (d *dynamicSchema) deref(n ast.Node, name string) (sem.Expr, schema) {
 	if name != "" {
 		d = &dynamicSchema{name: name}
 	}
 	return nil, d
 }
 
-func (s *staticSchema) deref(name string) (dag.Expr, schema) {
+func (s *staticSchema) deref(n ast.Node, name string) (sem.Expr, schema) {
 	if name != "" {
 		s = &staticSchema{name: name, columns: s.columns}
 	}
 	return nil, s
 }
 
-func (s *selectSchema) deref(name string) (dag.Expr, schema) {
+func (s *selectSchema) deref(n ast.Node, name string) (sem.Expr, schema) {
 	if name == "" {
 		// postgres and duckdb oddly do this
 		name = "unamed_subquery"
@@ -299,38 +300,38 @@ func (s *selectSchema) deref(name string) (dag.Expr, schema) {
 		// e.g., record expression with fixed columns as an anonSchema.
 		outSchema = &dynamicSchema{name: name}
 	}
-	return pathOf("out"), outSchema
+	return sem.NewThis(n, []string{"out"}), outSchema
 }
 
-func (j *joinSchema) deref(name string) (dag.Expr, schema) {
+func (j *joinSchema) deref(n ast.Node, name string) (sem.Expr, schema) {
 	// spread left/right join legs into "this"
-	return joinSpread(nil, nil), &dynamicSchema{name: name}
+	return joinSpread(n, nil, nil), &dynamicSchema{name: name}
 }
 
 // spread left/right join legs into "this"
-func joinSpread(left, right dag.Expr) *dag.RecordExpr {
+func joinSpread(n ast.Node, left, right sem.Expr) *sem.RecordExpr {
 	if left == nil {
-		left = dag.NewThis(nil)
+		left = sem.NewThis(n, nil)
 	}
 	if right == nil {
-		right = dag.NewThis(nil)
+		right = sem.NewThis(n, nil)
 	}
-	return &dag.RecordExpr{
-		Kind: "RecordExpr",
-		Elems: []dag.RecordElem{
-			&dag.Spread{
-				Kind: "Spread",
+	return &sem.RecordExpr{
+		Node: n,
+		Elems: []sem.RecordElem{
+			&sem.SpreadElem{
+				Node: n,
 				Expr: left,
 			},
-			&dag.Spread{
-				Kind: "Spread",
+			&sem.SpreadElem{
+				Node: n,
 				Expr: right,
 			},
 		},
 	}
 }
 
-func (s *subquerySchema) deref(name string) (dag.Expr, schema) {
+func (s *subquerySchema) deref(n ast.Node, name string) (sem.Expr, schema) {
 	panic(name)
 }
 

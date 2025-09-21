@@ -24,6 +24,6 @@ outputs:
       expression value must be an integer value: "1" at line 1, column 6:
       tail "1"
            ~~~
-      expression value must be an integer value: error("missing") at line 1, column 6:
+      cannot reference 'x' in constant expression at line 1, column 6:
       tail x
            ~

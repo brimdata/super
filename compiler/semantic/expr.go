@@ -9,8 +9,7 @@ import (
 	"github.com/araddon/dateparse"
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
-	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/compiler/rungen"
+	"github.com/brimdata/super/compiler/semantic/sem"
 	"github.com/brimdata/super/compiler/sfmt"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/pkg/reglob"
@@ -21,362 +20,352 @@ import (
 	"github.com/shellyln/go-sql-like-expr/likeexpr"
 )
 
-func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
+func (t *translator) semExpr(e ast.Expr) sem.Expr {
 	switch e := e.(type) {
 	case *ast.Agg:
-		expr := a.semExprNullable(e.Expr)
+		expr := t.semExprNullable(e.Expr)
 		nameLower := strings.ToLower(e.Name)
 		if expr == nil && nameLower != "count" {
-			a.error(e, fmt.Errorf("aggregator '%s' requires argument", e.Name))
+			t.error(e, fmt.Errorf("aggregator '%s' requires argument", e.Name))
 			return badExpr()
 		}
-		where := a.semExprNullable(e.Where)
-		return &dag.Agg{
-			Kind:     "Agg",
+		where := t.semExprNullable(e.Where)
+		return &sem.AggFunc{
+			Node:     e,
 			Name:     nameLower,
 			Distinct: e.Distinct,
 			Expr:     expr,
 			Where:    where,
 		}
 	case *ast.ArrayExpr:
-		elems := a.semVectorElems(e.Elems)
-		if subquery := a.arraySubquery(elems); subquery != nil {
+		elems := t.semArrayElems(e.Elems)
+		if subquery := t.arraySubquery(elems); subquery != nil {
 			return subquery
 		}
-		return &dag.ArrayExpr{
-			Kind:  "ArrayExpr",
+		return &sem.ArrayExpr{
+			Node:  e,
 			Elems: elems,
 		}
 	case *ast.BinaryExpr:
-		return a.semBinary(e)
+		return t.semBinary(e)
 	case *ast.Between:
-		val := a.semExpr(e.Expr)
-		lower := a.semExpr(e.Lower)
-		upper := a.semExpr(e.Upper)
+		val := t.semExpr(e.Expr)
+		lower := t.semExpr(e.Lower)
+		upper := t.semExpr(e.Upper)
 		// Copy val so an optimizer change to one instance doesn't affect the other.
-		expr := dag.NewBinaryExpr("and",
-			dag.NewBinaryExpr(">=", val, lower),
-			dag.NewBinaryExpr("<=", dag.CopyExpr(val), upper))
+		expr := &sem.BinaryExpr{
+			Node: e,
+			Op:   "and",
+			LHS: &sem.BinaryExpr{
+				Node: e.Lower,
+				Op:   ">=",
+				LHS:  val,
+				RHS:  lower,
+			},
+			RHS: &sem.BinaryExpr{
+				Node: e.Upper,
+				Op:   "<=",
+				LHS:  val,
+				RHS:  upper,
+			},
+		}
 		if e.Not {
-			return dag.NewUnaryExpr("!", expr)
+			return sem.NewUnaryExpr(e, "!", expr)
 		}
 		return expr
 	case *ast.CaseExpr:
-		return a.semCaseExpr(e)
+		return t.semCaseExpr(e)
 	case *ast.Conditional:
-		cond := a.semExpr(e.Cond)
-		thenExpr := a.semExpr(e.Then)
-		var elseExpr dag.Expr
+		cond := t.semExpr(e.Cond)
+		thenExpr := t.semExpr(e.Then)
+		var elseExpr sem.Expr
 		if e.Else != nil {
-			elseExpr = a.semExpr(e.Else)
+			elseExpr = t.semExpr(e.Else)
 		} else {
-			elseExpr = &dag.Literal{
-				Kind:  "Literal",
-				Value: `error("missing")`,
-			}
+			elseExpr = &sem.LiteralExpr{Node: e, Value: `error("missing")`}
 		}
-		return &dag.Conditional{
-			Kind: "Conditional",
+		return &sem.CondExpr{
+			Node: e,
 			Cond: cond,
 			Then: thenExpr,
 			Else: elseExpr,
 		}
 	case *ast.Call:
-		return a.semCall(e)
+		return t.semCall(e)
 	case *ast.CallExtract:
-		return a.semCallExtract(e.Part, e.Expr)
+		return t.semCallExtract(e, e.Part, e.Expr)
 	case *ast.Cast:
-		expr := a.semExpr(e.Expr)
-		typ := a.semExpr(e.Type)
-		return &dag.Call{
-			Kind: "Call",
-			Tag:  "cast",
-			Args: []dag.Expr{expr, typ},
-		}
+		expr := t.semExpr(e.Expr)
+		typ := t.semExpr(e.Type)
+		return sem.NewCall(e, "cast", []sem.Expr{expr, typ})
 	case *ast.DoubleQuote:
-		return a.semDoubleQuote(e)
+		return t.semDoubleQuote(e)
 	case *ast.Exists:
-		return a.semExists(e)
+		return t.semExists(e)
 	case *ast.FString:
-		return a.semFString(e)
+		return t.semFString(e)
 	case *ast.FuncName:
 		// We get here for &refs that are in a call expression. e.g.,
 		// an arg to another function.  These are only built-ins as
 		// user functions should be referenced directly as an ID.
 		tag := e.Name
-		if boundTag, _ := a.scope.lookupFunc(e.Name); boundTag != "" {
+		if boundTag, _ := t.scope.lookupFunc(e.Name); boundTag != "" {
 			tag = boundTag
 		}
-		return &dag.FuncRef{
-			Kind: "FuncRef",
+		return &sem.FuncRef{
+			Node: e,
 			Tag:  tag,
 		}
 	case *ast.Glob:
-		return &dag.RegexpSearch{
-			Kind:    "RegexpSearch",
+		return &sem.RegexpSearchExpr{
+			Node:    e,
 			Pattern: reglob.Reglob(e.Pattern),
-			Expr:    pathOf("this"),
+			Expr:    sem.NewThis(e, nil),
 		}
 	case *ast.ID:
-		id := a.semID(e, false)
-		if a.scope.schema != nil {
-			if this, ok := id.(*dag.This); ok {
-				out, err := a.scope.resolve(this.Path)
+		id := t.semID(e, false)
+		if t.scope.schema != nil {
+			if this, ok := id.(*sem.ThisExpr); ok {
+				path, err := t.scope.resolve(this.Path)
 				if err != nil {
-					a.error(e, err)
+					t.error(e, err)
 					return badExpr()
 				}
-				return out
+				return sem.NewThis(e, path)
 			}
 		}
 		return id
 	case *ast.IndexExpr:
-		expr := a.semExpr(e.Expr)
-		index := a.semExpr(e.Index)
+		expr := t.semExpr(e.Expr)
+		index := t.semExpr(e.Index)
 		// If expr is a path and index is a string, then just extend the path.
-		if path := a.isIndexOfThis(expr, index); path != nil {
+		if path := t.isIndexOfThis(expr, index); path != nil {
 			return path
 		}
-		return &dag.IndexExpr{
-			Kind:  "IndexExpr",
+		return &sem.IndexExpr{
+			Node:  e,
 			Expr:  expr,
 			Index: index,
 		}
 	case *ast.IsNullExpr:
-		expr := a.semExpr(e.Expr)
-		var out dag.Expr = &dag.IsNullExpr{Kind: "IsNullExpr", Expr: expr}
+		expr := t.semExpr(e.Expr)
+		var out sem.Expr = &sem.IsNullExpr{Node: e, Expr: expr}
 		if e.Not {
-			out = dag.NewUnaryExpr("!", out)
+			out = sem.NewUnaryExpr(e, "!", out)
 		}
 		return out
 	case *ast.Lambda:
-		tag := a.newFunc("lambda", idsAsStrings(e.Params), a.semExpr(e.Expr))
-		return &dag.FuncRef{
-			Kind: "FuncRef",
+		tag := t.newFunc(e, "lambda", idsAsStrings(e.Params), t.semExpr(e.Expr))
+		return &sem.FuncRef{
+			Node: e,
 			Tag:  tag,
 		}
 	case *ast.MapExpr:
-		var entries []dag.Entry
+		var entries []sem.Entry
 		for _, entry := range e.Entries {
-			key := a.semExpr(entry.Key)
-			val := a.semExpr(entry.Value)
-			entries = append(entries, dag.Entry{Key: key, Value: val})
+			key := t.semExpr(entry.Key)
+			val := t.semExpr(entry.Value)
+			entries = append(entries, sem.Entry{Key: key, Value: val})
 		}
-		return &dag.MapExpr{
-			Kind:    "MapExpr",
+		return &sem.MapExpr{
+			Node:    e,
 			Entries: entries,
 		}
 	case *ast.Primitive:
 		val, err := sup.ParsePrimitive(e.Type, e.Text)
 		if err != nil {
-			a.error(e, err)
+			t.error(e, err)
 			return badExpr()
 		}
-		return &dag.Literal{
-			Kind:  "Literal",
+		return &sem.LiteralExpr{
+			Node:  e,
 			Value: sup.FormatValue(val),
 		}
 	case *ast.Subquery:
-		s := a.semSubquery(e.Body)
-		if e.Array {
-			s.Body = collectThis(s.Body)
-		}
-		return s
+		return t.semSubquery(e, e.Array, e.Body)
 	case *ast.RecordExpr:
 		fields := map[string]struct{}{}
-		var out []dag.RecordElem
+		var out []sem.RecordElem
 		for _, elem := range e.Elems {
 			switch elem := elem.(type) {
 			case *ast.FieldExpr:
 				if _, ok := fields[elem.Name.Text]; ok {
-					a.error(elem, fmt.Errorf("record expression: %w", &super.DuplicateFieldError{Name: elem.Name.Text}))
+					t.error(elem, fmt.Errorf("record expression: %w", &super.DuplicateFieldError{Name: elem.Name.Text}))
 					continue
 				}
 				fields[elem.Name.Text] = struct{}{}
-				e := a.semExpr(elem.Value)
-				out = append(out, &dag.Field{
-					Kind:  "Field",
+				e := t.semExpr(elem.Value)
+				out = append(out, &sem.FieldElem{
+					Node:  elem,
 					Name:  elem.Name.Text,
 					Value: e,
 				})
 			case *ast.ID:
 				if _, ok := fields[elem.Name]; ok {
-					a.error(elem, fmt.Errorf("record expression: %w", &super.DuplicateFieldError{Name: elem.Name}))
+					t.error(elem, fmt.Errorf("record expression: %w", &super.DuplicateFieldError{Name: elem.Name}))
 					continue
 				}
 				fields[elem.Name] = struct{}{}
 				// Call semExpr even though we know this is an ID so
 				// SQL-context scope mappings are carried out.
-				v := a.semExpr(elem)
-				out = append(out, &dag.Field{
-					Kind:  "Field",
+				v := t.semExpr(elem)
+				out = append(out, &sem.FieldElem{
+					Node:  elem,
 					Name:  elem.Name,
 					Value: v,
 				})
 			case *ast.Spread:
-				e := a.semExpr(elem.Expr)
-				out = append(out, &dag.Spread{
-					Kind: "Spread",
+				e := t.semExpr(elem.Expr)
+				out = append(out, &sem.SpreadElem{
+					Node: elem,
 					Expr: e,
 				})
 			default:
-				e := a.semExpr(elem)
+				e := t.semExpr(elem)
 				name := deriveNameFromExpr(e, elem)
 				if _, ok := fields[name]; ok {
-					a.error(elem, fmt.Errorf("record expression: %w", &super.DuplicateFieldError{Name: name}))
+					t.error(elem, fmt.Errorf("record expression: %w", &super.DuplicateFieldError{Name: name}))
 					continue
 				}
 				fields[name] = struct{}{}
-				out = append(out, &dag.Field{
-					Kind:  "Field",
+				out = append(out, &sem.FieldElem{
 					Name:  name,
 					Value: e,
 				})
 			}
-
 		}
-		return &dag.RecordExpr{
-			Kind:  "RecordExpr",
+		return &sem.RecordExpr{
+			Node:  e,
 			Elems: out,
 		}
 	case *ast.Regexp:
-		return &dag.RegexpSearch{
-			Kind:    "RegexpSearch",
+		return &sem.RegexpSearchExpr{
+			Node:    e,
 			Pattern: e.Pattern,
-			Expr:    pathOf("this"),
+			Expr:    sem.NewThis(e, nil),
 		}
 	case *ast.SetExpr:
-		elems := a.semVectorElems(e.Elems)
-		return &dag.SetExpr{
-			Kind:  "SetExpr",
+		elems := t.semArrayElems(e.Elems)
+		return &sem.SetExpr{
+			Node:  e,
 			Elems: elems,
 		}
 	case *ast.SliceExpr:
-		expr := a.semExpr(e.Expr)
+		expr := t.semExpr(e.Expr)
 		// XXX Literal indices should be type checked as int.
-		from := a.semExprNullable(e.From)
-		to := a.semExprNullable(e.To)
-		return &dag.SliceExpr{
-			Kind: "SliceExpr",
+		from := t.semExprNullable(e.From)
+		to := t.semExprNullable(e.To)
+		return &sem.SliceExpr{
+			Node: e,
 			Expr: expr,
 			From: from,
 			To:   to,
 		}
 	case *ast.SQLCast:
-		expr := a.semExpr(e.Expr)
+		expr := t.semExpr(e.Expr)
 		if _, ok := e.Type.(*ast.DateTypeHack); ok {
 			// cast to time then bucket by 1d as a workaround for not currently
 			// supporting a "date" type.
-			cast := dag.NewCall(
-				"cast",
-				[]dag.Expr{expr, &dag.Literal{Kind: "Literal", Value: "<time>"}},
-			)
-			return dag.NewCall(
-				"bucket",
-				[]dag.Expr{cast, &dag.Literal{Kind: "Literal", Value: "1d"}},
-			)
+			cast := sem.NewCall(e, "cast", []sem.Expr{expr, &sem.LiteralExpr{Node: e, Value: "<time>"}})
+			return sem.NewCall(e, "bucket", []sem.Expr{cast, &sem.LiteralExpr{Node: e, Value: "1d"}})
 		}
-		typ := a.semExpr(&ast.TypeValue{
+		typ := t.semExpr(&ast.TypeValue{
 			Kind:  "TypeValue",
 			Value: e.Type,
 		})
-		return dag.NewCall("cast", []dag.Expr{expr, typ})
+		return sem.NewCall(e, "cast", []sem.Expr{expr, typ})
 	case *ast.SQLSubstring:
-		expr := a.semExpr(e.Expr)
+		expr := t.semExpr(e.Expr)
 		if e.From == nil && e.For == nil {
-			a.error(e, errors.New("FROM or FOR must be set"))
+			t.error(e, errors.New("FROM or FOR must be set"))
 			return badExpr()
 		}
-		is := dag.NewCall(
-			"is",
-			[]dag.Expr{expr, &dag.Literal{Kind: "Literal", Value: "<string>"}},
-		)
-		slice := &dag.SliceExpr{Kind: "SliceExpr", Expr: expr, From: a.semExprNullable(e.From)}
+		// XXX type checker should remove this check when it finds it redundant
+		is := sem.NewCall(e, "is", []sem.Expr{expr, &sem.LiteralExpr{Node: e.Expr, Value: "<string>"}})
+		slice := &sem.SliceExpr{
+			Node: e,
+			Expr: expr,
+			From: t.semExprNullable(e.From),
+		}
 		if e.For != nil {
-			to := a.semExpr(e.For)
+			to := t.semExpr(e.For)
 			if slice.From != nil {
-				slice.To = dag.NewBinaryExpr("+", slice.From, to)
+				slice.To = sem.NewBinaryExpr(e, "+", slice.From, to)
 			} else {
-				slice.To = dag.NewBinaryExpr("+", to, &dag.Literal{Kind: "Literal", Value: "1"})
+				slice.To = sem.NewBinaryExpr(e, "+", to, &sem.LiteralExpr{Node: e, Value: "1"})
 			}
 		}
-		errRec := &dag.RecordExpr{
-			Kind: "RecordExpr",
-			Elems: []dag.RecordElem{
-				&dag.Field{Kind: "Field", Name: "message", Value: &dag.Literal{Kind: "Literal", Value: `"SUBSTRING: string value required"`}},
-				&dag.Field{Kind: "Field", Name: "value", Value: expr},
-			},
-		}
-		return &dag.Conditional{
-			Kind: "Conditional",
+		serr := sem.NewStructuredError(e, "SUBSTRING: string value required", expr)
+		return &sem.CondExpr{
+			Node: e,
 			Cond: is,
 			Then: slice,
-			Else: dag.NewCall("error", []dag.Expr{errRec}),
+			Else: serr,
 		}
 	case *ast.SQLTimeValue:
 		if e.Value.Type != "string" {
-			a.error(e.Value, errors.New("value must be a string literal"))
+			t.error(e.Value, errors.New("value must be a string literal"))
 			return badExpr()
 		}
-		t, err := dateparse.ParseAny(e.Value.Text)
+		tm, err := dateparse.ParseAny(e.Value.Text)
 		if err != nil {
-			a.error(e.Value, err)
+			t.error(e.Value, err)
 			return badExpr()
 		}
-		ts := nano.TimeToTs(t)
+		ts := nano.TimeToTs(tm)
 		if e.Type == "date" {
 			ts = ts.Trunc(nano.Day)
 		}
-		return &dag.Literal{Kind: "Literal", Value: sup.FormatValue(super.NewTime(ts))}
+		return &sem.LiteralExpr{Node: e, Value: sup.FormatValue(super.NewTime(ts))}
 	case *ast.Term:
 		var val string
-		switch t := e.Value.(type) {
+		switch term := e.Value.(type) {
 		case *ast.Primitive:
-			v, err := sup.ParsePrimitive(t.Type, t.Text)
+			v, err := sup.ParsePrimitive(term.Type, term.Text)
 			if err != nil {
-				a.error(e, err)
+				t.error(e, err)
 				return badExpr()
 			}
 			val = sup.FormatValue(v)
 		case *ast.DoubleQuote:
-			v, err := sup.ParsePrimitive("string", t.Text)
+			v, err := sup.ParsePrimitive("string", term.Text)
 			if err != nil {
-				a.error(e, err)
+				t.error(e, err)
 				return badExpr()
 			}
 			val = sup.FormatValue(v)
 		case *ast.TypeValue:
-			tv, err := a.semType(t.Value)
+			tv, err := t.semType(term.Value)
 			if err != nil {
-				a.error(e, err)
+				t.error(e, err)
 				return badExpr()
 			}
 			val = "<" + tv + ">"
 		default:
 			panic(fmt.Errorf("unexpected term value: %s (%T)", e.Kind, e))
 		}
-		return &dag.Search{
-			Kind:  "Search",
+		return &sem.SearchTermExpr{
+			Node:  e,
 			Text:  e.Text,
 			Value: val,
-			Expr:  pathOf("this"),
+			Expr:  sem.NewThis(e, nil),
 		}
 	case *ast.TupleExpr:
-		elems := make([]dag.RecordElem, 0, len(e.Elems))
+		elems := make([]sem.RecordElem, 0, len(e.Elems))
 		for colno, elem := range e.Elems {
-			e := a.semExpr(elem)
-			elems = append(elems, &dag.Field{
-				Kind:  "Field",
+			e := t.semExpr(elem)
+			elems = append(elems, &sem.FieldElem{
+				Node:  elem,
 				Name:  fmt.Sprintf("c%d", colno),
 				Value: e,
 			})
 		}
-		return &dag.RecordExpr{
-			Kind:  "RecordExpr",
+		return &sem.RecordExpr{
+			Node:  e,
 			Elems: elems,
 		}
 	case *ast.TypeValue:
-		typ, err := a.semType(e.Value)
+		typ, err := t.semType(e.Value)
 		if err != nil {
 			// If this is a type name, then we check to see if it's in the
 			// context because it has been defined locally.  If not, then
@@ -387,55 +376,64 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 			// is not yet supported and will fail here with a compile-time error
 			// complaining about the type not existing.
 			// XXX See issue #3413
-			if e := semDynamicType(e.Value); e != nil {
+			if e := semDynamicType(e, e.Value); e != nil {
 				return e
 			}
-			a.error(e, err)
+			t.error(e, err)
 			return badExpr()
 		}
-		return &dag.Literal{
-			Kind:  "Literal",
+		return &sem.LiteralExpr{
+			Node:  e,
 			Value: "<" + typ + ">",
 		}
 	case *ast.UnaryExpr:
-		operand := a.semExpr(e.Operand)
+		operand := t.semExpr(e.Operand)
 		if e.Op == "+" {
 			return operand
 		}
-		return dag.NewUnaryExpr(e.Op, operand)
+		return sem.NewUnaryExpr(e, e.Op, operand)
 	case nil:
 		panic("semantic analysis: illegal null value encountered in AST")
 	}
 	panic(e)
 }
 
-func (a *analyzer) semID(id *ast.ID, lval bool) dag.Expr {
-	if subquery := a.maybeSubquery(id.Name); subquery != nil {
+func (t *translator) semID(id *ast.ID, lval bool) sem.Expr {
+	// We use static scoping here to see if an identifier is
+	// a "var" reference to the name or a field access
+	// and transform the AST node appropriately.  The resulting
+	// sem tree doesn't have Identifiers as they are resolved here
+	// one way or the other.
+	if subquery := t.maybeSubquery(id, id.Name); subquery != nil {
 		return subquery
 	}
 	// Check if there's a user function in scope with this name and report
 	// an error to avoid a rake when such a function is mistakenly passed
 	// without "&" and otherwise turns into a field reference.
-	if entry := a.scope.lookupEntry(id.Name); entry != nil {
-		if _, ok := entry.ref.(*dag.FuncDef); ok && !lval {
-			a.error(id, fmt.Errorf("function %q referenced but not called (consider &%s to create a function value)", id.Name, id.Name))
+	if entry := t.scope.lookupEntry(id.Name); entry != nil {
+		if _, ok := entry.ref.(*sem.FuncDef); ok && !lval {
+			t.error(id, fmt.Errorf("function %q referenced but not called (consider &%s to create a function value)", id.Name, id.Name))
 			return badExpr()
 		}
 	}
-	if ref := a.scope.lookupExpr(id.Name); ref != nil {
+	if ref := t.scope.lookupExpr(id.Name); ref != nil {
 		return ref
 	}
-	return pathOf(id.Name)
+	var path []string
+	if id.Name != "this" {
+		path = []string{id.Name}
+	}
+	return sem.NewThis(id, path)
 }
 
-func (a *analyzer) semDoubleQuote(d *ast.DoubleQuote) dag.Expr {
+func (t *translator) semDoubleQuote(d *ast.DoubleQuote) sem.Expr {
 	// Check if there's a SQL scope and treat a double-quoted string
 	// as an identifier.  XXX we'll need to do something a bit more
 	// sophisticated to handle pipes inside SQL subqueries.
-	if a.scope.schema != nil {
-		return a.semExpr(&ast.ID{Kind: "ID", Name: d.Text, Loc: d.Loc})
+	if t.scope.schema != nil {
+		return t.semExpr(&ast.ID{Kind: "ID", Name: d.Text, Loc: d.Loc})
 	}
-	return a.semExpr(&ast.Primitive{
+	return t.semExpr(&ast.Primitive{
 		Kind: "Primitive",
 		Type: "string",
 		Text: d.Text,
@@ -443,127 +441,116 @@ func (a *analyzer) semDoubleQuote(d *ast.DoubleQuote) dag.Expr {
 	})
 }
 
-func (a *analyzer) semExists(e *ast.Exists) dag.Expr {
-	q := a.semSubquery(e.Body)
-	// Append collect(this) to ensure array of results is returned.
-	q.Body = appendCollect(append(q.Body, &dag.Head{Kind: "Head", Count: 1}))
-	return dag.NewBinaryExpr(">",
-		dag.NewCall("len", []dag.Expr{q}),
-		&dag.Literal{Kind: "Literal", Value: "0"})
+func (t *translator) semExists(e *ast.Exists) sem.Expr {
+	q := t.semSubquery(e, true, e.Body)
+	return sem.NewBinaryExpr(e, ">",
+		sem.NewCall(e, "len", []sem.Expr{q}),
+		&sem.LiteralExpr{Node: e, Value: "0"})
 }
 
-func appendCollect(body dag.Seq) dag.Seq {
-	return append(body,
-		&dag.Aggregate{
-			Kind: "Aggregate",
-			Aggs: []dag.Assignment{{
-				Kind: "Assignment",
-				LHS:  pathOf("collect"),
-				RHS:  &dag.Agg{Kind: "Agg", Name: "collect", Expr: dag.NewThis(nil)},
-			}},
-		},
-		&dag.Values{Kind: "Values", Exprs: []dag.Expr{pathOf("collect")}},
-	)
-}
-
-func semDynamicType(tv ast.Type) *dag.Call {
+func semDynamicType(n ast.Node, tv ast.Type) *sem.CallExpr {
 	if typeName, ok := tv.(*ast.TypeName); ok {
-		return dynamicTypeName(typeName.Name)
+		return dynamicTypeName(n, typeName.Name)
 	}
 	return nil
 }
 
-func dynamicTypeName(name string) *dag.Call {
-	return dag.NewCall(
+func dynamicTypeName(n ast.Node, name string) *sem.CallExpr {
+	return sem.NewCall(
+		n,
 		"typename",
-		[]dag.Expr{
+		[]sem.Expr{
 			// SUP string literal of type name
-			&dag.Literal{
-				Kind:  "Literal",
+			&sem.LiteralExpr{
+				Node:  n,
 				Value: `"` + name + `"`,
 			},
 		},
 	)
 }
 
-func (a *analyzer) semRegexp(b *ast.BinaryExpr) dag.Expr {
+func (t *translator) semRegexp(b *ast.BinaryExpr) sem.Expr {
 	if b.Op != "~" {
 		return nil
 	}
-	s, ok := isStringConst(a.sctx, a.semExpr(b.RHS))
+	s, ok := t.mustEvalString(t.semExpr(b.RHS))
 	if !ok {
-		a.error(b, errors.New(`right-hand side of ~ expression must be a string literal`))
+		t.error(b, errors.New(`right-hand side of ~ expression must be a string literal`))
 		return badExpr()
 	}
 	if _, err := expr.CompileRegexp(s); err != nil {
-		a.error(b.RHS, err)
+		t.error(b.RHS, err)
 		return badExpr()
 	}
-	e := a.semExpr(b.LHS)
-	return &dag.RegexpMatch{
-		Kind:    "RegexpMatch",
+	e := t.semExpr(b.LHS)
+	return &sem.RegexpMatchExpr{
+		Node:    b,
 		Pattern: s,
 		Expr:    e,
 	}
 }
 
-func (a *analyzer) semBinary(e *ast.BinaryExpr) dag.Expr {
-	if path, bad := a.semDotted(e, false); path != nil {
-		if a.scope.schema != nil {
-			out, err := a.scope.resolve(path)
+func (t *translator) semBinary(e *ast.BinaryExpr) sem.Expr {
+	if path, bad := t.semDotted(e, false); path != nil {
+		if t.scope.schema != nil {
+			path, err := t.scope.resolve(path)
 			if err != nil {
-				a.error(e, err)
+				t.error(e, err)
 				return badExpr()
 			}
-			return out
+			return sem.NewThis(e, path)
 		}
-		return dag.NewThis(path)
+		return sem.NewThis(e, path)
 	} else if bad != nil {
 		return bad
 	}
-	if e := a.semRegexp(e); e != nil {
+	if e := t.semRegexp(e); e != nil {
 		return e
 	}
 	op := strings.ToLower(e.Op)
 	if op == "." {
-		lhs := a.semExpr(e.LHS)
+		lhs := t.semExpr(e.LHS)
 		id, ok := e.RHS.(*ast.ID)
 		if !ok {
-			a.error(e, errors.New("RHS of dot operator is not an identifier"))
+			t.error(e, errors.New("RHS of dot operator is not an identifier"))
 			return badExpr()
 		}
-		if lhs, ok := lhs.(*dag.This); ok {
+		if lhs, ok := lhs.(*sem.ThisExpr); ok {
 			lhs.Path = append(lhs.Path, id.Name)
 			return lhs
 		}
-		return &dag.Dot{
-			Kind: "Dot",
+		return &sem.DotExpr{
+			Node: e,
 			LHS:  lhs,
 			RHS:  id.Name,
 		}
 	}
-	lhs := a.semExpr(e.LHS)
-	rhs := a.semExpr(e.RHS)
+	lhs := t.semExpr(e.LHS)
+	rhs := t.semExpr(e.RHS)
 	if op == "like" || op == "not like" {
-		s, ok := isStringConst(a.sctx, rhs)
+		s, ok := t.mustEvalString(rhs)
 		if !ok {
-			a.error(e.RHS, errors.New("non-constant pattern for LIKE not supported"))
+			t.error(e.RHS, errors.New("non-constant pattern for LIKE not supported"))
 			return badExpr()
 		}
 		pattern := likeexpr.ToRegexp(s, '\\', false)
-		expr := &dag.RegexpSearch{
-			Kind:    "RegexpSearch",
+		expr := &sem.RegexpSearchExpr{
+			Node:    e,
 			Pattern: "(?s)" + pattern,
 			Expr:    lhs,
 		}
 		if op == "not like" {
-			return dag.NewUnaryExpr("!", expr)
+			return &sem.UnaryExpr{
+				Node:    e,
+				Op:      "!",
+				Operand: expr,
+			}
 		}
 		return expr
 	}
 	if op == "in" || op == "not in" {
-		if q, ok := rhs.(*dag.Subquery); ok {
-			q.Body = appendCollect(q.Body)
+		if q, ok := rhs.(*sem.SubqueryExpr); ok {
+			q.Array = true
 		}
 	}
 	switch op {
@@ -574,16 +561,25 @@ func (a *analyzer) semBinary(e *ast.BinaryExpr) dag.Expr {
 	case "||":
 		op = "+"
 	case "not in":
-		return dag.NewUnaryExpr("!", dag.NewBinaryExpr("in", lhs, rhs))
+		return sem.NewUnaryExpr(e, "!", sem.NewBinaryExpr(e, "in", lhs, rhs))
 	case "::":
-		return dag.NewCall("cast", []dag.Expr{lhs, rhs})
+		return &sem.CallExpr{
+			Node: e,
+			Tag:  "cast",
+			Args: []sem.Expr{lhs, rhs},
+		}
 	}
-	return dag.NewBinaryExpr(op, lhs, rhs)
+	return &sem.BinaryExpr{
+		Node: e,
+		Op:   op,
+		LHS:  lhs,
+		RHS:  rhs,
+	}
 }
 
-func (a *analyzer) isIndexOfThis(lhs, rhs dag.Expr) *dag.This {
-	if this, ok := lhs.(*dag.This); ok {
-		if s, ok := isStringConst(a.sctx, rhs); ok {
+func (t *translator) isIndexOfThis(lhs, rhs sem.Expr) *sem.ThisExpr {
+	if this, ok := lhs.(*sem.ThisExpr); ok {
+		if s, ok := t.maybeEvalString(rhs); ok {
 			this.Path = append(this.Path, s)
 			return this
 		}
@@ -591,22 +587,14 @@ func (a *analyzer) isIndexOfThis(lhs, rhs dag.Expr) *dag.This {
 	return nil
 }
 
-func isStringConst(sctx *super.Context, e dag.Expr) (field string, ok bool) {
-	val, err := rungen.EvalAtCompileTime(sctx, e)
-	if err == nil && !val.IsError() && super.TypeUnder(val.Type()) == super.TypeString {
-		return string(val.Bytes()), true
-	}
-	return "", false
-}
-
-func (a *analyzer) semExprNullable(e ast.Expr) dag.Expr {
+func (t *translator) semExprNullable(e ast.Expr) sem.Expr {
 	if e == nil {
 		return nil
 	}
-	return a.semExpr(e)
+	return t.semExpr(e)
 }
 
-func (a *analyzer) semDotted(e *ast.BinaryExpr, lval bool) ([]string, dag.Expr) {
+func (t *translator) semDotted(e *ast.BinaryExpr, lval bool) ([]string, sem.Expr) {
 	if e.Op != "." {
 		return nil, nil
 	}
@@ -616,16 +604,16 @@ func (a *analyzer) semDotted(e *ast.BinaryExpr, lval bool) ([]string, dag.Expr) 
 	}
 	switch lhs := e.LHS.(type) {
 	case *ast.ID:
-		switch e := a.semID(lhs, lval).(type) {
-		case *dag.This:
+		switch e := t.semID(lhs, lval).(type) {
+		case *sem.ThisExpr:
 			return append(slices.Clone(e.Path), rhs.Name), nil
-		case *dag.BadExpr:
+		case *sem.BadExpr:
 			return nil, e
 		default:
 			return nil, nil
 		}
 	case *ast.BinaryExpr:
-		this, bad := a.semDotted(lhs, lval)
+		this, bad := t.semDotted(lhs, lval)
 		if this == nil {
 			return nil, bad
 		}
@@ -634,44 +622,44 @@ func (a *analyzer) semDotted(e *ast.BinaryExpr, lval bool) ([]string, dag.Expr) 
 	return nil, nil
 }
 
-func (a *analyzer) semCaseExpr(c *ast.CaseExpr) dag.Expr {
-	e := a.semExpr(c.Expr)
-	out := a.semExprNullable(c.Else)
+func (t *translator) semCaseExpr(c *ast.CaseExpr) sem.Expr {
+	e := t.semExpr(c.Expr)
+	out := t.semExprNullable(c.Else)
 	for i := len(c.Whens) - 1; i >= 0; i-- {
 		when := c.Whens[i]
-		out = &dag.Conditional{
-			Kind: "Conditional",
-			Cond: dag.NewBinaryExpr("==", dag.CopyExpr(e), a.semExpr(when.Cond)),
-			Then: a.semExpr(when.Then),
+		out = &sem.CondExpr{
+			Node: c,
+			Cond: sem.NewBinaryExpr(c, "==", e, t.semExpr(when.Cond)),
+			Then: t.semExpr(when.Then),
 			Else: out,
 		}
 	}
 	return out
 }
 
-func (a *analyzer) semCall(call *ast.Call) dag.Expr {
-	if e := a.maybeConvertAgg(call); e != nil {
+func (t *translator) semCall(call *ast.Call) sem.Expr {
+	if e := t.maybeConvertAgg(call); e != nil {
 		return e
 	}
 	if call.Where != nil {
-		a.error(call, errors.New("'where' clause on non-aggregation function"))
+		t.error(call, errors.New("'where' clause on non-aggregation function"))
 		return badExpr()
 	}
-	args := a.semExprs(call.Args)
+	args := t.semExprs(call.Args)
 	switch f := call.Func.(type) {
 	case *ast.FuncName:
-		return a.semCallByName(call, f.Name, args)
+		return t.semCallByName(call, f.Name, args)
 	case *ast.Lambda:
-		return a.semCallLambda(f, args)
+		return t.semCallLambda(f, args)
 	default:
 		panic(f)
 	}
 }
 
-func (a *analyzer) maybeSubquery(name string) *dag.Subquery {
-	if seq := a.scope.lookupQuery(name); seq != nil {
-		return &dag.Subquery{
-			Kind:       "Subquery",
+func (t *translator) maybeSubquery(n ast.Node, name string) *sem.SubqueryExpr {
+	if seq := t.scope.lookupQuery(name); seq != nil {
+		return &sem.SubqueryExpr{
+			Node:       n,
 			Correlated: isCorrelated(seq),
 			Body:       seq,
 		}
@@ -679,54 +667,38 @@ func (a *analyzer) maybeSubquery(name string) *dag.Subquery {
 	return nil
 }
 
-func (a *analyzer) semCallLambda(lambda *ast.Lambda, args []dag.Expr) dag.Expr {
-	call := &dag.Call{
-		Kind: "Call",
-		Tag:  a.newFunc("lambda", idsAsStrings(lambda.Params), a.semExpr(lambda.Expr)),
-		Args: args,
-	}
-	a.locs[call] = lambda.Loc
-	return call
+func (t *translator) semCallLambda(lambda *ast.Lambda, args []sem.Expr) sem.Expr {
+	tag := t.newFunc(lambda, "lambda", idsAsStrings(lambda.Params), t.semExpr(lambda.Expr))
+	return sem.NewCall(lambda, tag, args)
 }
 
-func (a *analyzer) semCallByName(call *ast.Call, name string, args []dag.Expr) dag.Expr {
+func (t *translator) semCallByName(call *ast.Call, name string, args []sem.Expr) sem.Expr {
+	if subquery := t.maybeSubqueryCall(call, name); subquery != nil {
+		return subquery
+	}
 	// Check if the name resolves to a symbol in scope.
-	if entry := a.scope.lookupEntry(name); entry != nil {
+	if entry := t.scope.lookupEntry(name); entry != nil {
 		switch ref := entry.ref.(type) {
 		case param:
 			// Called name is a parameter inside of a function.   We create a dummy
 			// CallParam that will be converted to a direct call to the passed-in
 			// function (we don't know it yet and there may be multiple variations
-			// that all land at this call site) at the end of semantic analysis.
-			callParam := &dag.CallParam{
-				Kind:  "CallParam",
+			// that all land at this call site) in the next pass of semantic analysis.
+			return &sem.CallParam{
+				Node:  call,
 				Param: name,
 				Args:  args,
 			}
-			a.locs[callParam] = call.Loc
-			return callParam
-		case *dag.FuncRef:
-			e := &dag.Call{
-				Kind: "Call",
-				Tag:  ref.Tag,
-				Args: args,
-			}
-			a.locs[e] = call.Loc
-			return e
-		case *dag.FuncDef:
-			e := &dag.Call{
-				Kind: "Call",
-				Tag:  ref.Tag,
-				Args: args,
-			}
-			a.locs[e] = call.Loc
-			return e
 		case *opDecl:
-			a.error(call, fmt.Errorf("cannot call user operator %q in an expression (consider subquery syntax)", name))
+			t.error(call, fmt.Errorf("cannot call user operator %q in an expression (consider subquery syntax)", name))
 			return badExpr()
+		case *sem.FuncRef:
+			return sem.NewCall(call, ref.Tag, args)
+		case *sem.FuncDef:
+			return sem.NewCall(call, ref.Tag, args)
 		}
-		if _, ok := entry.ref.(dag.Expr); ok {
-			a.error(call, fmt.Errorf("%q is not a function", name))
+		if _, ok := entry.ref.(sem.Expr); ok {
+			t.error(call, fmt.Errorf("%q is not a function", name))
 			return badExpr()
 		}
 		panic(entry.ref)
@@ -734,17 +706,15 @@ func (a *analyzer) semCallByName(call *ast.Call, name string, args []dag.Expr) d
 	// Call could be to a user func. Check if we have a matching func in scope.
 	// When the name is a formal argument, the bindings will have been put
 	// in scope and will point to the right entity (a builtin function name or a FuncDef).
-	tag, _ := a.scope.lookupFunc(name)
+	tag, _ := t.scope.lookupFunc(name)
 	nargs := len(args)
 	// udf should be checked first since a udf can override builtin functions.
-	if f := a.funcsByTag[tag]; f != nil {
+	if f := t.funcsByTag[tag]; f != nil {
 		if len(f.Params) != nargs {
-			a.error(call, fmt.Errorf("call expects %d argument(s)", len(f.Params)))
+			t.error(call, fmt.Errorf("call expects %d argument(s)", len(f.Params)))
 			return badExpr()
 		}
-		e := dag.NewCall(f.Tag, args)
-		a.locs[e] = call.Loc
-		return e
+		return sem.NewCall(call, f.Tag, args)
 	}
 	if tag != "" {
 		name = tag
@@ -753,156 +723,172 @@ func (a *analyzer) semCallByName(call *ast.Call, name string, args []dag.Expr) d
 	switch {
 	case expr.NewShaperTransform(nameLower) != 0:
 		if err := function.CheckArgCount(nargs, 2, 2); err != nil {
-			a.error(call, err)
+			t.error(call, err)
 			return badExpr()
 		}
 	case nameLower == "map":
-		return a.semMapCall(call.Loc, args)
+		return t.semMapCall(call, args)
 	case nameLower == "grep":
 		if err := function.CheckArgCount(nargs, 2, 2); err != nil {
-			a.error(call, err)
+			t.error(call, err)
 			return badExpr()
 		}
-		pattern, ok := isStringConst(a.sctx, args[0])
+		pattern, ok := t.maybeEvalString(args[0])
 		if !ok {
-			return dag.NewCall("grep", args)
+			return sem.NewCall(call, "grep", args)
 		}
 		re, err := expr.CompileRegexp(pattern)
 		if err != nil {
-			a.error(call.Args[0], err)
+			t.error(call.Args[0], err)
 			return badExpr()
 		}
 		if s, ok := re.LiteralPrefix(); ok {
-			return &dag.Search{
-				Kind:  "Search",
+			return &sem.SearchTermExpr{
+				Node:  call,
 				Text:  s,
 				Value: sup.QuotedString(s),
 				Expr:  args[1],
 			}
 		}
-		return &dag.RegexpSearch{
-			Kind:    "RegexpSearch",
+		return &sem.RegexpSearchExpr{
+			Node:    call,
 			Pattern: pattern,
 			Expr:    args[1],
 		}
 	case nameLower == "position" && nargs == 1:
-		b, ok := args[0].(*dag.BinaryExpr)
+		b, ok := args[0].(*sem.BinaryExpr)
 		if ok && strings.ToLower(b.Op) == "in" {
 			// Support for SQL style position function call.
-			args = []dag.Expr{b.RHS, b.LHS}
+			args = []sem.Expr{b.RHS, b.LHS}
 			nargs = 2
 		}
 		fallthrough
 	default:
-		if _, err := function.New(a.sctx, nameLower, nargs); err != nil {
-			a.error(call, err)
+		if _, err := function.New(t.sctx, nameLower, nargs); err != nil {
+			t.error(call, err)
 			return badExpr()
 		}
 	}
-	e := dag.NewCall(nameLower, args)
-	a.locs[e] = call.Loc
-	return e
+	return sem.NewCall(call, nameLower, args)
 }
 
-func (a *analyzer) semMapCall(loc ast.Loc, args []dag.Expr) dag.Expr {
+func (t *translator) maybeSubqueryCall(call *ast.Call, name string) *sem.SubqueryExpr {
+	decl, _ := t.scope.lookupOp(name)
+	if decl == nil || decl.bad {
+		return nil
+	}
+	userOp := t.semUserOp(call.Loc, decl, call.Args)
+	// When a user op is encountered inside an expression, we turn it into a
+	// subquery operating on a single-shot "this" value unless it's uncorrelated
+	// (i.e., starts with a from), in which case we put the uncorrelated body
+	// in the subquery without the correlating values logic. This is controlled
+	// via the Correlated flag.
+	return &sem.SubqueryExpr{
+		Node:       call,
+		Array:      false,
+		Correlated: isCorrelated(userOp),
+		Body:       userOp,
+	}
+}
+
+func (t *translator) semMapCall(call *ast.Call, args []sem.Expr) sem.Expr {
 	if len(args) != 2 {
-		a.error(loc, errors.New("map requires two arguments"))
+		t.error(call, errors.New("map requires two arguments"))
 		return badExpr()
 	}
-	f, ok := args[1].(*dag.FuncRef)
+	f, ok := args[1].(*sem.FuncRef)
 	if !ok {
-		a.error(loc, errors.New("second argument to map must be a function"))
+		t.error(call, errors.New("second argument to map must be a function"))
 		return badExpr()
 	}
-	e := &dag.MapCall{
-		Kind:   "MapCall",
+	e := &sem.MapCallExpr{
+		Node:   call,
 		Expr:   args[0],
-		Lambda: dag.NewCall(f.Tag, []dag.Expr{dag.NewThis(nil)}),
+		Lambda: sem.NewCall(call.Args[1], f.Tag, []sem.Expr{sem.NewThis(call.Args[1], nil)}),
 	}
-	a.locs[e] = loc
 	return e
 }
 
-func (a *analyzer) semCallExtract(partExpr, argExpr ast.Expr) dag.Expr {
+func (t *translator) semCallExtract(e, partExpr, argExpr ast.Expr) sem.Expr {
 	var partstr string
 	switch p := partExpr.(type) {
 	case *ast.ID:
 		partstr = p.Name
 	case *ast.Primitive:
 		if p.Type != "string" {
-			a.error(partExpr, fmt.Errorf("part must be an identifier or string"))
+			t.error(partExpr, fmt.Errorf("part must be an identifier or string"))
 			return badExpr()
 		} else {
 			partstr = p.Text
 		}
 	default:
-		a.error(partExpr, fmt.Errorf("part must be an identifier or string"))
+		t.error(partExpr, fmt.Errorf("part must be an identifier or string"))
 		return badExpr()
 	}
-	return dag.NewCall(
+	return sem.NewCall(e,
 		"date_part",
-		[]dag.Expr{
-			&dag.Literal{Kind: "Literal", Value: sup.QuotedString(strings.ToLower(partstr))},
-			a.semExpr(argExpr),
+		[]sem.Expr{
+			&sem.LiteralExpr{Node: partExpr, Value: sup.QuotedString(strings.ToLower(partstr))},
+			t.semExpr(argExpr),
 		},
 	)
 }
 
-func (a *analyzer) semExprs(in []ast.Expr) []dag.Expr {
-	exprs := make([]dag.Expr, 0, len(in))
+func (t *translator) semExprs(in []ast.Expr) []sem.Expr {
+	exprs := make([]sem.Expr, 0, len(in))
 	for _, e := range in {
-		exprs = append(exprs, a.semExpr(e))
+		exprs = append(exprs, t.semExpr(e))
 	}
 	return exprs
 }
 
-func (a *analyzer) semAssignments(assignments []ast.Assignment) []dag.Assignment {
-	out := make([]dag.Assignment, 0, len(assignments))
+func (t *translator) semAssignments(assignments []ast.Assignment) []sem.Assignment {
+	out := make([]sem.Assignment, 0, len(assignments))
 	for _, e := range assignments {
-		out = append(out, a.semAssignment(e))
+		out = append(out, t.semAssignment(&e))
 	}
 	return out
 }
 
-func (a *analyzer) semAssignment(assign ast.Assignment) dag.Assignment {
-	rhs := a.semExpr(assign.RHS)
-	var lhs dag.Expr
+func (t *translator) semAssignment(assign *ast.Assignment) sem.Assignment {
+	rhs := t.semExpr(assign.RHS)
+	var lhs sem.Expr
 	if assign.LHS == nil {
-		lhs = dag.NewThis([]string{deriveNameFromExpr(rhs, assign.RHS)})
+		lhs = sem.NewThis(assign.RHS, []string{deriveNameFromExpr(rhs, assign.RHS)})
 	} else {
-		lhs = a.semLval(assign.LHS)
+		lhs = t.semLval(assign.LHS)
 	}
 	if !isLval(lhs) {
-		a.error(&assign, errors.New("illegal left-hand side of assignment"))
+		t.error(assign, errors.New("illegal left-hand side of assignment"))
 		lhs = badExpr()
 	}
-	if this, ok := lhs.(*dag.This); ok && len(this.Path) == 0 {
-		a.error(&assign, errors.New("cannot assign to 'this'"))
+	if this, ok := lhs.(*sem.ThisExpr); ok && len(this.Path) == 0 {
+		t.error(assign, errors.New("cannot assign to 'this'"))
 		lhs = badExpr()
 	}
-	return dag.Assignment{Kind: "Assignment", LHS: lhs, RHS: rhs}
+	return sem.Assignment{Node: assign, LHS: lhs, RHS: rhs}
 }
 
-func (a *analyzer) semLval(e ast.Expr) dag.Expr {
+func (t *translator) semLval(e ast.Expr) sem.Expr {
 	if id, ok := e.(*ast.ID); ok {
-		return a.semID(id, true)
+		return t.semID(id, true)
 	}
-	return a.semExpr(e)
+	return t.semExpr(e)
 }
 
-func isLval(e dag.Expr) bool {
+func isLval(e sem.Expr) bool {
 	switch e := e.(type) {
-	case *dag.IndexExpr:
+	case *sem.IndexExpr:
 		return isLval(e.Expr)
-	case *dag.Dot:
+	case *sem.DotExpr:
 		return isLval(e.LHS)
-	case *dag.This:
+	case *sem.ThisExpr:
 		return true
 	}
 	return false
 }
 
-func deriveNameFromExpr(e dag.Expr, a ast.Expr) string {
+func deriveNameFromExpr(e sem.Expr, a ast.Expr) string {
 	switch a := a.(type) {
 	case *ast.Agg:
 		return a.Name
@@ -912,54 +898,54 @@ func deriveNameFromExpr(e dag.Expr, a ast.Expr) string {
 			name = f.Name
 		}
 		if strings.ToLower(name) == "quiet" {
-			if e, ok := e.(*dag.Call); ok && len(e.Args) > 0 {
-				if this, ok := e.Args[0].(*dag.This); ok {
+			if e, ok := e.(*sem.CallExpr); ok && len(e.Args) > 0 {
+				if this, ok := e.Args[0].(*sem.ThisExpr); ok {
 					return fieldOfThis(this)
 				}
 			}
 		}
 		return name
 	}
-	if e, ok := e.(*dag.This); ok {
+	if e, ok := e.(*sem.ThisExpr); ok {
 		return fieldOfThis(e)
 	}
 	return sfmt.ASTExpr(a)
 }
 
-func fieldOfThis(this *dag.This) string {
+func fieldOfThis(this *sem.ThisExpr) string {
 	if len(this.Path) == 0 {
 		return "that"
 	}
 	return this.Path[len(this.Path)-1]
 }
 
-func (a *analyzer) semFields(exprs []ast.Expr) []dag.Expr {
-	fields := make([]dag.Expr, 0, len(exprs))
+func (t *translator) semFields(exprs []ast.Expr) []sem.Expr {
+	fields := make([]sem.Expr, 0, len(exprs))
 	for _, e := range exprs {
-		fields = append(fields, a.semField(e))
+		fields = append(fields, t.semField(e))
 	}
 	return fields
 }
 
 // semField analyzes the expression f and makes sure that it's
 // a field reference returning an error if not.
-func (a *analyzer) semField(f ast.Expr) dag.Expr {
-	switch e := a.semExpr(f).(type) {
-	case *dag.This:
+func (t *translator) semField(f ast.Expr) sem.Expr {
+	switch e := t.semExpr(f).(type) {
+	case *sem.ThisExpr:
 		if len(e.Path) == 0 {
-			a.error(f, errors.New("cannot use 'this' as a field reference"))
+			t.error(f, errors.New("cannot use 'this' as a field reference"))
 			return badExpr()
 		}
 		return e
-	case *dag.BadExpr:
+	case *sem.BadExpr:
 		return e
 	default:
-		a.error(f, errors.New("invalid expression used as a field"))
+		t.error(f, errors.New("invalid expression used as a field"))
 		return badExpr()
 	}
 }
 
-func (a *analyzer) maybeConvertAgg(call *ast.Call) dag.Expr {
+func (t *translator) maybeConvertAgg(call *ast.Call) sem.Expr {
 	name, ok := call.Func.(*ast.FuncName)
 	if !ok {
 		return nil
@@ -968,7 +954,7 @@ func (a *analyzer) maybeConvertAgg(call *ast.Call) dag.Expr {
 	if _, err := agg.NewPattern(nameLower, false, true); err != nil {
 		return nil
 	}
-	var e dag.Expr
+	var e sem.Expr
 	if err := function.CheckArgCount(len(call.Args), 0, 1); err != nil {
 		if nameLower == "min" || nameLower == "max" {
 			// min and max are special cases as they are also functions. If the
@@ -976,21 +962,21 @@ func (a *analyzer) maybeConvertAgg(call *ast.Call) dag.Expr {
 			// return an error.
 			return nil
 		}
-		a.error(call, err)
+		t.error(call, err)
 		return badExpr()
 	}
 	if len(call.Args) == 1 {
-		e = a.semExpr(call.Args[0])
+		e = t.semExpr(call.Args[0])
 	}
-	return &dag.Agg{
-		Kind:  "Agg",
+	return &sem.AggFunc{
+		Node:  call,
 		Name:  nameLower,
 		Expr:  e,
-		Where: a.semExprNullable(call.Where),
+		Where: t.semExprNullable(call.Where),
 	}
 }
 
-func DotExprToFieldPath(e ast.Expr) *dag.This {
+func DotExprToFieldPath(e ast.Expr) *sem.ThisExpr {
 	switch e := e.(type) {
 	case *ast.BinaryExpr:
 		if e.Op == "." {
@@ -1017,161 +1003,115 @@ func DotExprToFieldPath(e ast.Expr) *dag.This {
 		this.Path = append(this.Path, id.Text)
 		return this
 	case *ast.ID:
-		return pathOf(e.Name)
+		return sem.NewThis(e, []string{e.Name})
 	}
 	// This includes a null Expr, which can happen if the AST is missing
 	// a field or sets it to null.
 	return nil
 }
 
-func pathOf(name string) *dag.This {
-	var path []string
-	if name != "this" {
-		path = []string{name}
-	}
-	return dag.NewThis(path)
-}
-
-func (a *analyzer) semType(typ ast.Type) (string, error) {
-	ztype, err := sup.TranslateType(a.sctx, typ)
+func (t *translator) semType(typ ast.Type) (string, error) {
+	ztype, err := sup.TranslateType(t.sctx, typ)
 	if err != nil {
 		return "", err
 	}
 	return sup.FormatType(ztype), nil
 }
 
-func (a *analyzer) semVectorElems(elems []ast.VectorElem) []dag.VectorElem {
-	var out []dag.VectorElem
+func (t *translator) semArrayElems(elems []ast.VectorElem) []sem.ArrayElem {
+	var out []sem.ArrayElem
 	for _, elem := range elems {
 		switch elem := elem.(type) {
 		case *ast.Spread:
-			e := a.semExpr(elem.Expr)
-			out = append(out, &dag.Spread{Kind: "Spread", Expr: e})
+			out = append(out, &sem.SpreadElem{Node: elem, Expr: t.semExpr(elem.Expr)})
 		case *ast.VectorValue:
-			e := a.semExpr(elem.Expr)
-			out = append(out, &dag.VectorValue{Kind: "VectorValue", Expr: e})
+			out = append(out, &sem.ExprElem{Node: elem, Expr: t.semExpr(elem.Expr)})
+		default:
+			panic(elem)
 		}
 	}
 	return out
 }
 
-func (a *analyzer) semFString(f *ast.FString) dag.Expr {
+func (t *translator) semFString(f *ast.FString) sem.Expr {
 	if len(f.Elems) == 0 {
-		return &dag.Literal{Kind: "Literal", Value: `""`}
+		return &sem.LiteralExpr{Node: f, Value: `""`}
 	}
-	var out dag.Expr
+	var out sem.Expr
 	for _, elem := range f.Elems {
-		var e dag.Expr
+		var e sem.Expr
 		switch elem := elem.(type) {
 		case *ast.FStringExpr:
-			e = a.semExpr(elem.Expr)
-			e = dag.NewCall(
+			e = t.semExpr(elem.Expr)
+			e = sem.NewCall(f,
 				"cast",
-				[]dag.Expr{e, &dag.Literal{Kind: "Literal", Value: "<string>"}},
-			)
+				[]sem.Expr{e, &sem.LiteralExpr{Value: "<string>"}})
 		case *ast.FStringText:
-			e = &dag.Literal{Kind: "Literal", Value: sup.QuotedString(elem.Text)}
+			e = &sem.LiteralExpr{Value: sup.QuotedString(elem.Text)}
 		default:
-			panic(fmt.Errorf("internal error: unsupported f-string elem %T", elem))
+			panic(elem)
 		}
 		if out == nil {
 			out = e
 			continue
 		}
-		out = dag.NewBinaryExpr("+", out, e)
+		out = sem.NewBinaryExpr(f, "+", out, e)
 	}
 	return out
 }
 
-func (a *analyzer) arraySubquery(elems []dag.VectorElem) *dag.Subquery {
-	if len(elems) != 1 {
-		return nil
+func (t *translator) arraySubquery(elems []sem.ArrayElem) *sem.SubqueryExpr {
+	if len(elems) == 1 {
+		if elem, ok := elems[0].(*sem.ExprElem); ok {
+			if subquery, ok := elem.Expr.(*sem.SubqueryExpr); ok {
+				subquery.Array = true
+				return subquery
+			}
+		}
 	}
-	elem, ok := elems[0].(*dag.VectorValue)
-	if !ok {
-		return nil
-	}
-	subquery, ok := elem.Expr.(*dag.Subquery)
-	if !ok {
-		return nil
-	}
-	subquery.Body = collectThis(subquery.Body)
-	return subquery
+	return nil
 }
 
-func collectThis(seq dag.Seq) dag.Seq {
-	collect := dag.Assignment{
-		Kind: "Assignment",
-		LHS:  pathOf("collect"),
-		RHS:  &dag.Agg{Kind: "Agg", Name: "collect", Expr: dag.NewThis(nil)},
-	}
-	aggOp := &dag.Aggregate{
-		Kind: "Aggregate",
-		Aggs: []dag.Assignment{collect},
-	}
-	emitOp := &dag.Values{
-		Kind:  "Values",
-		Exprs: []dag.Expr{pathOf("collect")},
-	}
-	seq = append(seq, aggOp)
-	return append(seq, emitOp)
-}
-
-func (a *analyzer) semSubquery(b ast.Seq) *dag.Subquery {
-	body := a.semSeq(b)
-	correlated := isCorrelated(body)
-	e := &dag.Subquery{
-		Kind:       "Subquery",
+func (t *translator) semSubquery(astExpr ast.Expr, array bool, body ast.Seq) *sem.SubqueryExpr {
+	seq := t.semSeq(body)
+	correlated := isCorrelated(seq)
+	e := &sem.SubqueryExpr{
+		Node:       astExpr,
+		Array:      array,
 		Correlated: correlated,
-		Body:       body,
+		Body:       seq,
 	}
 	// Add a nullscan only for uncorrelated queries that don't have a source.
 	if !correlated && !HasSource(e.Body) {
-		e.Body.Prepend(&dag.NullScan{Kind: "NullScan"})
+		e.Body.Prepend(&sem.NullScan{})
 	}
-	if isSQLOp(b[0]) { //XXX this should check scope not isSQLOp?
+	if isSQLOp(body[0]) { //XXX this should check scope not isSQLOp?
 		// SQL expects a record with a single column result so fetch the first
 		// value.
 		// XXX this should be a structured error... or just allow it
 		// SQL expects a record with a single column result so fetch the first
 		// value.  Or we should be descoping.
-		e.Body.Append(&dag.Values{
-			Kind: "Values",
-			Exprs: []dag.Expr{
-				&dag.IndexExpr{
-					Kind:  "IndexExpr",
-					Expr:  dag.NewThis(nil),
-					Index: &dag.Literal{Kind: "Literal", Value: "1"},
+		// XXX subquery runtime should return the error and user needs to wrap []
+		// if they expect multiple values
+		e.Body.Append(&sem.ValuesOp{
+			Node: astExpr,
+			Exprs: []sem.Expr{
+				&sem.IndexExpr{
+					Node:  astExpr,
+					Expr:  sem.NewThis(astExpr, nil),
+					Index: &sem.LiteralExpr{Node: astExpr, Value: "1"},
 				}},
 		})
 	}
 	return e
 }
 
-func isCorrelated(seq dag.Seq) bool {
+func isCorrelated(seq sem.Seq) bool {
 	if len(seq) >= 1 {
 		//XXX fragile
-		_, ok1 := seq[0].(*dag.FileScan)
-		_, ok2 := seq[0].(*dag.PoolScan)
+		_, ok1 := seq[0].(*sem.FileScan)
+		_, ok2 := seq[0].(*sem.PoolScan)
 		return !(ok1 || ok2)
 	}
 	return true
-}
-
-func (a *analyzer) evalPositiveInteger(e ast.Expr) int {
-	expr := a.semExpr(e)
-	val, err := rungen.EvalAtCompileTime(a.sctx, expr)
-	if err != nil {
-		a.error(e, err)
-		return -1
-	}
-	if !super.IsInteger(val.Type().ID()) || val.IsNull() {
-		a.error(e, fmt.Errorf("expression value must be an integer value: %s", sup.FormatValue(val)))
-		return -1
-	}
-	v := int(val.AsInt())
-	if v < 0 {
-		a.error(e, errors.New("expression value must be a positive integer"))
-	}
-	return v
 }

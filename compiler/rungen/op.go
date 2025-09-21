@@ -716,11 +716,14 @@ func compileExpr(in dag.Expr) (expr.Evaluator, error) {
 	return b.compileExpr(in)
 }
 
-func EvalAtCompileTime(sctx *super.Context, in dag.Expr) (val super.Value, err error) {
+func EvalAtCompileTime(sctx *super.Context, main *dag.MainExpr) (val super.Value, err error) {
 	// We pass in a nil adaptor, which causes a panic for anything adaptor
 	// related, which is not currently allowed in an expression sub-query.
 	b := NewBuilder(runtime.NewContext(context.Background(), sctx), nil)
-	return b.evalAtCompileTime(in)
+	for _, f := range main.Funcs {
+		b.funcs[f.Tag] = f
+	}
+	return b.evalAtCompileTime(main.Expr)
 }
 
 func isEntry(seq dag.Seq) bool {

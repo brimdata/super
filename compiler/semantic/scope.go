@@ -4,34 +4,26 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/compiler/rungen"
+	"github.com/brimdata/super/compiler/semantic/sem"
 	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/sup"
 )
 
 type Scope struct {
 	parent  *Scope
 	symbols map[string]*entry
-	ctes    map[string]*cte
+	ctes    map[string]*ast.SQLCTE
 	schema  schema
 }
 
 func NewScope(parent *Scope) *Scope {
-	return &Scope{parent: parent, symbols: make(map[string]*entry), ctes: make(map[string]*cte)}
+	return &Scope{parent: parent, symbols: make(map[string]*entry), ctes: make(map[string]*ast.SQLCTE)}
 }
 
 type entry struct {
 	ref   any
 	order int
-}
-
-type cte struct {
-	ast    *ast.SQLCTE
-	body   dag.Seq
-	schema schema
 }
 
 type param struct{}
@@ -42,25 +34,6 @@ func (s *Scope) BindSymbol(name string, e any) error {
 	}
 	s.symbols[name] = &entry{ref: e, order: len(s.symbols)}
 	return nil
-}
-
-func (s *Scope) EvalAndBindConst(sctx *super.Context, name string, def dag.Expr) error {
-	val, err := rungen.EvalAtCompileTime(sctx, def)
-	if err != nil {
-		return err
-	}
-	if val.IsError() {
-		if val.IsMissing() {
-			return fmt.Errorf("const %q: cannot have variable dependency", name)
-		} else {
-			return fmt.Errorf("const %q: %q", name, string(val.Bytes()))
-		}
-	}
-	literal := &dag.Literal{
-		Kind:  "Literal",
-		Value: sup.FormatValue(val),
-	}
-	return s.BindSymbol(name, literal)
 }
 
 func (s *Scope) lookupOp(name string) (*opDecl, error) {
@@ -74,9 +47,9 @@ func (s *Scope) lookupOp(name string) (*opDecl, error) {
 	return nil, nil
 }
 
-func (s *Scope) lookupQuery(name string) dag.Seq {
+func (s *Scope) lookupQuery(name string) sem.Seq {
 	if entry := s.lookupEntry(name); entry != nil {
-		if seq, ok := entry.ref.(dag.Seq); ok {
+		if seq, ok := entry.ref.(sem.Seq); ok {
 			return seq
 		}
 	}
@@ -92,19 +65,19 @@ func (s *Scope) lookupEntry(name string) *entry {
 	return nil
 }
 
-func (s *Scope) lookupExpr(name string) dag.Expr {
+func (s *Scope) lookupExpr(name string) sem.Expr {
 	if entry := s.lookupEntry(name); entry != nil {
 		// function parameters hide exteral definitions as you don't
 		// want the this.param ref to be overriden by a const etc.
 		switch entry.ref.(type) {
-		case *dag.FuncDef, *ast.FuncName, param, *opDecl:
+		case *sem.FuncDef, *ast.FuncName, param, *opDecl:
 			return nil
 		}
 		if _, ok := entry.ref.(dag.Seq); ok {
 			// Named subquery handled elsewhere
 			return nil
 		}
-		return entry.ref.(dag.Expr)
+		return entry.ref.(sem.Expr)
 	}
 	return nil
 }
@@ -115,10 +88,10 @@ func (s *Scope) lookupFunc(name string) (string, error) {
 		return "", nil
 	}
 	switch ref := entry.ref.(type) {
-	case *dag.FuncDef:
+	case *sem.FuncDef:
 		return ref.Tag, nil
-	case *ast.FuncName:
-		return ref.Name, nil
+	case *sem.FuncRef:
+		return ref.Tag, nil
 	}
 	return "", fmt.Errorf("%q is not bound to a function", name)
 }
@@ -128,14 +101,14 @@ func (s *Scope) lookupFunc(name string) (string, error) {
 // In the case of unqualified col ref, check that it is not ambiguous
 // when there are multiple tables (i.e., from joins).
 // An unqualified field reference is valid only in dynamic schemas.
-func (s *Scope) resolve(path field.Path) (dag.Expr, error) {
+func (s *Scope) resolve(path field.Path) ([]string, error) {
 	// If there's no schema, we're not in a SQL context so we just
 	// return the path unmodified.  Otherwise, we apply SQL scoping
 	// rules to transform the abstract path to the dataflow path
 	// implied by the schema.
 	sch := s.schema
 	if sch == nil {
-		return dag.NewThis(path), nil
+		return path, nil
 	}
 	if len(path) == 0 {
 		// XXX this should really treat this as a column in sql context but
@@ -143,8 +116,7 @@ func (s *Scope) resolve(path field.Path) (dag.Expr, error) {
 		// should flag and maybe make it part of a strict mode (like bitwise |)
 		return nil, errors.New("cannot reference 'this' in relational context; consider the 'values' operator")
 	}
-	path, err := resolvePath(sch, path)
-	return dag.NewThis(path), err
+	return resolvePath(sch, path)
 }
 
 func resolvePath(sch schema, path field.Path) (field.Path, error) {

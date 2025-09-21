@@ -1,0 +1,6 @@
+spq: |
+  const x = (values 1,2 | join (values 2,3) on left=right)
+  values x
+
+output: |
+  {left:2,right:2}

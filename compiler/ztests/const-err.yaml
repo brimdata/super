@@ -5,6 +5,6 @@ input: |
   {a:2}
 
 error: |
-  const "t": cannot have variable dependency at line 1, column 1:
+  cannot reference 'a' in constant expression at line 1, column 9:
   const t=a put x:=t
-  ~~~~~~~~~
+          ~

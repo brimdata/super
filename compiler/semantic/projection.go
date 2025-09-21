@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/brimdata/super/compiler/ast"
-	"github.com/brimdata/super/compiler/dag"
+	"github.com/brimdata/super/compiler/semantic/sem"
 )
 
 // Column of a select statement.  We bookkeep here whether
@@ -23,7 +23,7 @@ import (
 type column struct {
 	name  string
 	loc   ast.Expr
-	expr  dag.Expr
+	expr  sem.Expr
 	isAgg bool
 }
 
@@ -48,7 +48,7 @@ func (p projection) aggCols() []column {
 	return aggs
 }
 
-func newColumn(name string, loc ast.Expr, e dag.Expr, funcs *aggfuncs) (*column, error) {
+func newColumn(name string, loc ast.Expr, e sem.Expr, funcs *aggfuncs) (*column, error) {
 	c := &column{name: name, loc: loc}
 	cnt := len(*funcs)
 	var err error
@@ -67,7 +67,7 @@ func (c *column) isStar() bool {
 // namedAgg gives us a place to bind temp name to each agg function.
 type namedAgg struct {
 	name string
-	agg  *dag.Agg
+	agg  *sem.AggFunc
 }
 
 type aggfuncs []namedAgg
@@ -76,37 +76,26 @@ func (a aggfuncs) tmp() string {
 	return fmt.Sprintf("t%d", len(a))
 }
 
-func (a *aggfuncs) subst(e dag.Expr) (dag.Expr, error) {
+func (a *aggfuncs) subst(e sem.Expr) (sem.Expr, error) {
 	var err error
 	switch e := e.(type) {
 	case nil:
 		return e, nil
-	case *dag.Agg:
+	case *sem.AggFunc:
 		// swap in a temp column for each agg function found, which
 		// will then be referred to by the containing expression.
 		// The agg function is computed into the tmp value with
 		// the generated aggregate operator.
 		tmp := a.tmp()
 		*a = append(*a, namedAgg{name: tmp, agg: e})
-		return dag.NewThis([]string{"in", tmp}), nil
-	case *dag.ArrayExpr:
-		for _, elem := range e.Elems {
-			switch elem := elem.(type) {
-			case *dag.Spread:
-				elem.Expr, err = a.subst(elem.Expr)
-				if err != nil {
-					return nil, err
-				}
-			case *dag.VectorValue:
-				elem.Expr, err = a.subst(elem.Expr)
-				if err != nil {
-					return nil, err
-				}
-			default:
-				panic(elem)
-			}
+		return sem.NewThis(e, []string{"in", tmp}), nil
+	case *sem.ArrayExpr:
+		elems, err := a.substArrayElems(e.Elems)
+		if err != nil {
+			return nil, err
 		}
-	case *dag.BinaryExpr:
+		e.Elems = elems
+	case *sem.BinaryExpr:
 		e.LHS, err = a.subst(e.LHS)
 		if err != nil {
 			return nil, err
@@ -115,14 +104,14 @@ func (a *aggfuncs) subst(e dag.Expr) (dag.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
-	case *dag.Call:
+	case *sem.CallExpr:
 		for k, arg := range e.Args {
 			e.Args[k], err = a.subst(arg)
 			if err != nil {
 				return nil, err
 			}
 		}
-	case *dag.Conditional:
+	case *sem.CondExpr:
 		e.Cond, err = a.subst(e.Cond)
 		if err != nil {
 			return nil, err
@@ -135,12 +124,12 @@ func (a *aggfuncs) subst(e dag.Expr) (dag.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
-	case *dag.Dot:
+	case *sem.DotExpr:
 		e.LHS, err = a.subst(e.LHS)
 		if err != nil {
 			return nil, err
 		}
-	case *dag.IndexExpr:
+	case *sem.IndexExpr:
 		e.Expr, err = a.subst(e.Expr)
 		if err != nil {
 			return nil, err
@@ -149,18 +138,13 @@ func (a *aggfuncs) subst(e dag.Expr) (dag.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
-	case *dag.IsNullExpr:
+	case *sem.IsNullExpr:
 		e.Expr, err = a.subst(e.Expr)
 		if err != nil {
 			return nil, err
 		}
-	case *dag.Literal:
-	case *dag.MapCall:
-		e.Expr, err = a.subst(e.Expr)
-		if err != nil {
-			return nil, err
-		}
-	case *dag.MapExpr:
+	case *sem.LiteralExpr:
+	case *sem.MapExpr:
 		for _, ent := range e.Entries {
 			ent.Key, err = a.subst(ent.Key)
 			if err != nil {
@@ -171,56 +155,49 @@ func (a *aggfuncs) subst(e dag.Expr) (dag.Expr, error) {
 				return nil, err
 			}
 		}
-	case *dag.RecordExpr:
+	case *sem.RecordExpr:
+		var elems []sem.RecordElem
 		for _, elem := range e.Elems {
 			switch elem := elem.(type) {
-			case *dag.Field:
-				elem.Value, err = a.subst(elem.Value)
+			case *sem.FieldElem:
+				sub, err := a.subst(elem.Value)
 				if err != nil {
 					return nil, err
 				}
-			case *dag.Spread:
-				elem.Expr, err = a.subst(elem.Expr)
+				elems = append(elems, &sem.FieldElem{Node: elem, Name: elem.Name, Value: sub})
+			case *sem.SpreadElem:
+				sub, err := a.subst(elem.Expr)
 				if err != nil {
 					return nil, err
 				}
+				elems = append(elems, &sem.SpreadElem{Node: elem, Expr: sub})
 			default:
 				panic(elem)
 			}
 		}
-	case *dag.RegexpMatch:
+		e.Elems = elems
+	case *sem.RegexpMatchExpr:
 		e.Expr, err = a.subst(e.Expr)
 		if err != nil {
 			return nil, err
 		}
-	case *dag.RegexpSearch:
+	case *sem.RegexpSearchExpr:
 		e.Expr, err = a.subst(e.Expr)
 		if err != nil {
 			return nil, err
 		}
-	case *dag.Search:
+	case *sem.SearchTermExpr:
 		e.Expr, err = a.subst(e.Expr)
 		if err != nil {
 			return nil, err
 		}
-	case *dag.SetExpr:
-		for _, elem := range e.Elems {
-			switch elem := elem.(type) {
-			case *dag.Spread:
-				elem.Expr, err = a.subst(elem.Expr)
-				if err != nil {
-					return nil, err
-				}
-			case *dag.VectorValue:
-				elem.Expr, err = a.subst(elem.Expr)
-				if err != nil {
-					return nil, err
-				}
-			default:
-				panic(elem)
-			}
+	case *sem.SetExpr:
+		elems, err := a.substArrayElems(e.Elems)
+		if err != nil {
+			return nil, err
 		}
-	case *dag.SliceExpr:
+		e.Elems = elems
+	case *sem.SliceExpr:
 		e.Expr, err = a.subst(e.Expr)
 		if err != nil {
 			return nil, err
@@ -233,12 +210,35 @@ func (a *aggfuncs) subst(e dag.Expr) (dag.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
-	case *dag.This:
-	case *dag.UnaryExpr:
+	case *sem.ThisExpr:
+	case *sem.UnaryExpr:
 		e.Operand, err = a.subst(e.Operand)
 		if err != nil {
 			return nil, err
 		}
 	}
 	return e, nil
+}
+
+func (a *aggfuncs) substArrayElems(elems []sem.ArrayElem) ([]sem.ArrayElem, error) {
+	var out []sem.ArrayElem
+	for _, e := range elems {
+		switch e := e.(type) {
+		case *sem.SpreadElem:
+			sub, err := a.subst(e.Expr)
+			if err != nil {
+				return nil, err
+			}
+			out = append(out, &sem.SpreadElem{Node: e, Expr: sub})
+		case *sem.ExprElem:
+			sub, err := a.subst(e.Expr)
+			if err != nil {
+				return nil, err
+			}
+			out = append(out, &sem.ExprElem{Node: e, Expr: sub})
+		default:
+			panic(e)
+		}
+	}
+	return out, nil
 }

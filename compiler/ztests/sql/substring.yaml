@@ -10,6 +10,6 @@ output: |
   "ba"
   "bar"
   "foo"
-  error({message:"SUBSTRING: string value required",value:[1,2]})
-  error({message:"SUBSTRING: string value required",value:[1,2]})
-  error({message:"SUBSTRING: string value required",value:[1,2]})
+  error({message:"SUBSTRING: string value required",on:[1,2]})
+  error({message:"SUBSTRING: string value required",on:[1,2]})
+  error({message:"SUBSTRING: string value required",on:[1,2]})

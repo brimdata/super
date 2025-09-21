@@ -181,31 +181,6 @@ func (*Spread) recordElemNode()      {}
 func (*Spread) vectorElemNode()      {}
 func (*VectorValue) vectorElemNode() {}
 
-// FuncRef is a pseudo-expression that represents a function reference as a value.
-// It is not used by the runtime (but could be if we wanted to support this).  Instead,
-// the semantic pass uses this in a first stage to represent lambda-parameterized functions
-// then in a second stage it unrolls them all into regular calls by creating a unique
-// new function for each combination of passed in lambdas.
-type FuncRef struct {
-	Kind string `json:"kind" unpack:""`
-	Tag  string `json:"tag"`
-}
-
-// CallParam is a pseudo-expression that is like a call but represents the call
-// of a FuncRef passed as an argument with the parameter name given by Param.
-// It is not used by the runtime (but could be if we wanted to support this).  Instead,
-// the semantic pass uses this in a first stage to represent abstract calls to functions
-// passed as parameters, then in a second stage it flattens them all into regular calls
-// by creating a unique new function for each combination of passed-in lambdas.
-type CallParam struct {
-	Kind  string `json:"kind" unpack:""`
-	Param string `json:"param"`
-	Args  []Expr `json:"args"`
-}
-
-func (*FuncRef) exprNode()   {}
-func (*CallParam) exprNode() {}
-
 func NewBinaryExpr(op string, lhs, rhs Expr) *BinaryExpr {
 	return &BinaryExpr{
 		Kind: "BinaryExpr",

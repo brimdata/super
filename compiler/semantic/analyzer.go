@@ -3,7 +3,6 @@ package semantic
 import (
 	"context"
 	"errors"
-	"slices"
 	"strconv"
 	"strings"
 
@@ -11,6 +10,7 @@ import (
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/compiler/parser"
+	"github.com/brimdata/super/compiler/semantic/sem"
 	"github.com/brimdata/super/compiler/srcfiles"
 	"github.com/brimdata/super/runtime/exec"
 )
@@ -19,71 +19,73 @@ import (
 // to DAG form, resolving syntax ambiguities, and performing constant propagation.
 // After semantic analysis, the DAG is ready for either optimization or compilation.
 func Analyze(ctx context.Context, p *parser.AST, env *exec.Environment, extInput bool) (*dag.Main, error) {
-	files := p.Files()
-	a := newAnalyzer(ctx, files, env)
+	r := reporter{p.Files()}
+	t := newTranslator(ctx, r, env)
 	astseq := p.Parsed()
 	if extInput {
 		astseq.Prepend(&ast.DefaultScan{Kind: "DefaultScan"})
 	}
-	seq := a.semSeq(astseq)
+	seq := t.semSeq(astseq)
+	if err := r.Error(); err != nil {
+		return nil, err
+	}
 	if !HasSource(seq) {
-		if a.env.IsAttached() {
+		if t.env.IsAttached() {
 			if len(seq) == 0 {
 				return nil, errors.New("query text is missing")
 			}
-			seq.Prepend(&dag.NullScan{Kind: "NullScan"})
+			seq.Prepend(&sem.NullScan{})
 		} else {
 			// This is a local query and there's no external input
 			// (i.e., no command-line file args)
-			seq.Prepend(&dag.NullScan{Kind: "NullScan"})
+			seq.Prepend(&sem.NullScan{})
 		}
 	}
-	seq = a.checkOutputs(true, seq)
-	r := newResolver(a)
-	seq, funcs := r.resolve(seq)
-	// Sort function entries so they are consistently ordered by integer tag strings.
-	slices.SortFunc(funcs, func(a, b *dag.FuncDef) int {
-		return strings.Compare(a.Tag, b.Tag)
-	})
-	return &dag.Main{Funcs: funcs, Body: seq}, files.Error()
+	resolver := newResolver(r, t.funcsByTag)
+	semSeq, dagFuncs := resolver.resolve(seq)
+	if err := r.Error(); err != nil {
+		return nil, err
+	}
+	main := newDagen(r).assemble(semSeq, dagFuncs)
+	return main, r.Error()
 }
 
-type analyzer struct {
+// Translate AST into semantic tree.  Resolve all bindings
+// between symbols and their entities and flatten all scopes
+// creating a global function table.  Convert SQL entities
+// to dataflow.
+type translator struct {
+	reporter
 	ctx         context.Context
-	files       *srcfiles.List
 	opStack     []*ast.OpDecl
-	cteStack    []*cte
-	outputs     map[*dag.Output]ast.Node
+	cteStack    []*ast.SQLCTE
 	env         *exec.Environment
 	scope       *Scope
 	sctx        *super.Context
-	funcsByTag  map[string]*dag.FuncDef
-	funcsByDecl map[*ast.Decl]*dag.FuncDef
-	locs        map[dag.Expr]ast.Loc
+	funcsByTag  map[string]*sem.FuncDef
+	funcsByDecl map[*ast.Decl]*sem.FuncDef
 }
 
-func newAnalyzer(ctx context.Context, files *srcfiles.List, env *exec.Environment) *analyzer {
-	return &analyzer{
+func newTranslator(ctx context.Context, r reporter, env *exec.Environment) *translator {
+	return &translator{
+		reporter:    r,
 		ctx:         ctx,
-		files:       files,
-		outputs:     make(map[*dag.Output]ast.Node),
 		env:         env,
 		scope:       NewScope(nil),
 		sctx:        super.NewContext(),
-		funcsByTag:  make(map[string]*dag.FuncDef),
-		funcsByDecl: make(map[*ast.Decl]*dag.FuncDef),
-		locs:        make(map[dag.Expr]ast.Loc),
+		funcsByTag:  make(map[string]*sem.FuncDef),
+		funcsByDecl: make(map[*ast.Decl]*sem.FuncDef),
 	}
 }
 
-func HasSource(seq dag.Seq) bool {
+func HasSource(seq sem.Seq) bool {
 	if len(seq) == 0 {
 		return false
 	}
 	switch op := seq[0].(type) {
-	case *dag.FileScan, *dag.HTTPScan, *dag.PoolScan, *dag.DBMetaScan, *dag.PoolMetaScan, *dag.CommitMetaScan, *dag.DeleteScan, *dag.NullScan, *dag.DefaultScan:
+	case *sem.FileScan, *sem.HTTPScan, *sem.PoolScan, *sem.DBMetaScan, *sem.PoolMetaScan, *sem.CommitMetaScan, *sem.DeleteScan, *sem.NullScan, *sem.DefaultScan:
 		return true
-	case *dag.Fork:
+	case *sem.ForkOp:
 		for _, path := range op.Paths {
 			if !HasSource(path) {
 				return false
@@ -94,22 +96,22 @@ func HasSource(seq dag.Seq) bool {
 	return false
 }
 
-func (a *analyzer) enterScope() {
-	a.scope = NewScope(a.scope)
+func (t *translator) enterScope() {
+	t.scope = NewScope(t.scope)
 }
 
-func (a *analyzer) exitScope() {
-	a.scope = a.scope.parent
+func (t *translator) exitScope() {
+	t.scope = t.scope.parent
 }
 
-func (a *analyzer) newFunc(name string, params []string, e dag.Expr) string {
-	tag := strconv.Itoa(len(a.funcsByTag))
-	a.funcsByTag[tag] = &dag.FuncDef{
-		Kind:   "FuncDef",
+func (t *translator) newFunc(body ast.Expr, name string, params []string, e sem.Expr) string {
+	tag := strconv.Itoa(len(t.funcsByTag))
+	t.funcsByTag[tag] = &sem.FuncDef{
+		Node:   body,
 		Tag:    tag,
 		Name:   name,
 		Params: params,
-		Expr:   e,
+		Body:   e,
 	}
 	return tag
 }
@@ -133,61 +135,22 @@ func (e opCycleError) Error() string {
 	return b
 }
 
-func badExpr() dag.Expr {
-	return &dag.BadExpr{Kind: "BadExpr"}
+func badExpr() sem.Expr {
+	return &sem.BadExpr{}
 }
 
-func badOp() dag.Op {
-	return &dag.BadOp{Kind: "BadOp"}
+func badOp() sem.Op {
+	return &sem.BadOp{}
 }
 
-func (a *analyzer) error(n ast.Node, err error) {
-	a.files.AddError(err.Error(), n.Pos(), n.End())
+type reporter struct {
+	*srcfiles.List
 }
 
-func (a *analyzer) checkOutputs(isLeaf bool, seq dag.Seq) dag.Seq {
-	if len(seq) == 0 {
-		return seq
-	}
-	// - Report an error in any outputs are not located in the leaves.
-	// - Add output operators to any leaves where they do not exist.
-	lastN := len(seq) - 1
-	for i, o := range seq {
-		isLast := lastN == i
-		switch o := o.(type) {
-		case *dag.Output:
-			if !isLast || !isLeaf {
-				n, ok := a.outputs[o]
-				if !ok {
-					panic("system error: untracked user output")
-				}
-				a.error(n, errors.New("output operator must be at flowgraph leaf"))
-			}
-		case *dag.Scatter:
-			for k := range o.Paths {
-				o.Paths[k] = a.checkOutputs(isLast && isLeaf, o.Paths[k])
-			}
-		case *dag.Unnest:
-			o.Body = a.checkOutputs(false, o.Body)
-		case *dag.Fork:
-			for k := range o.Paths {
-				o.Paths[k] = a.checkOutputs(isLast && isLeaf, o.Paths[k])
-			}
-		case *dag.Switch:
-			for k := range o.Cases {
-				o.Cases[k].Path = a.checkOutputs(isLast && isLeaf, o.Cases[k].Path)
-			}
-		case *dag.Mirror:
-			o.Main = a.checkOutputs(isLast && isLeaf, o.Main)
-			o.Mirror = a.checkOutputs(isLast && isLeaf, o.Mirror)
-		}
-	}
-	switch seq[lastN].(type) {
-	case *dag.Output, *dag.Scatter, *dag.Fork, *dag.Switch, *dag.Mirror:
-	default:
-		if isLeaf {
-			return append(seq, &dag.Output{Kind: "Output", Name: "main"})
-		}
-	}
-	return seq
+func (r reporter) error(n ast.Node, err error) {
+	r.AddError(err.Error(), n.Pos(), n.End())
+}
+
+func isURL(s string) bool {
+	return strings.HasPrefix(s, "http://") || strings.HasPrefix(s, "https://")
 }
