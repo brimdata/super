@@ -295,12 +295,13 @@ type bufPuller struct {
 	vecs   []vector.Any
 	EOS    bool
 	puller vector.Puller
+	done   bool
 }
 
 func (b *bufPuller) Pull(done bool) (vector.Any, error) {
 	if done {
 		if !b.EOS {
-			return b.puller.Pull(done)
+			return b.pull(done)
 		}
 		return nil, nil
 	}
@@ -312,7 +313,18 @@ func (b *bufPuller) Pull(done bool) (vector.Any, error) {
 	if b.EOS {
 		return nil, nil
 	}
-	return b.puller.Pull(false)
+	return b.pull(false)
+}
+
+func (b *bufPuller) pull(done bool) (vector.Any, error) {
+	if b.done {
+		return nil, nil
+	}
+	vec, err := b.puller.Pull(done)
+	if vec == nil || err != nil {
+		b.done = true
+	}
+	return vec, nil
 }
 
 func hashKey(val super.Value) string {
