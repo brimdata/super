@@ -324,7 +324,7 @@ func (b *bufPuller) pull(done bool) (vector.Any, error) {
 	if vec == nil || err != nil {
 		b.done = true
 	}
-	return vec, nil
+	return vec, err
 }
 
 func hashKey(val super.Value) string {
