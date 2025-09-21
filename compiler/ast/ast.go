@@ -372,11 +372,10 @@ func (*IsNullExpr) exprNode()  {}
 func (*Lambda) exprNode()      {}
 func (*SliceExpr) exprNode()   {}
 
-func (*Assignment) exprNode() {}
-func (*Agg) exprNode()        {}
-func (*Glob) exprNode()       {}
-func (*Regexp) exprNode()     {}
-func (*Term) exprNode()       {}
+func (*Agg) exprNode()    {}
+func (*Glob) exprNode()   {}
+func (*Regexp) exprNode() {}
+func (*Term) exprNode()   {}
 
 func (*RecordExpr) exprNode()   {}
 func (*ArrayExpr) exprNode()    {}

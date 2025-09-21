@@ -91,8 +91,6 @@ func (c *canon) expr(e ast.Expr, parent string) {
 		if e.Label != nil {
 			c.write(" as %s", e.Label.Name)
 		}
-	case *ast.Assignment:
-		c.assignment(*e)
 	case *ast.Primitive:
 		c.literal(*e)
 	case *ast.ID:
