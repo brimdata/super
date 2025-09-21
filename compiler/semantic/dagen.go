@@ -157,7 +157,7 @@ func (d *dagen) op(op sem.Op) dag.Op {
 		return &dag.Explode{
 			Kind: "Explode",
 			Args: d.exprs(op.Args),
-			Type: op.Type,
+			Type: op.Type_,
 			As:   op.As,
 		}
 	case *sem.FilterOp:

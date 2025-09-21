@@ -829,10 +829,10 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			as = this.Path[0]
 		}
 		return append(seq, &sem.ExplodeOp{
-			Node: o,
-			Args: args,
-			Type: typ,
-			As:   as,
+			Node:  o,
+			Args:  args,
+			Type_: typ,
+			As:    as,
 		})
 	case *ast.Merge:
 		var ok bool
