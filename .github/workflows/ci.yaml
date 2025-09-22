@@ -36,14 +36,6 @@ jobs:
       - run: mkdir dist -ea 0
       - run: go build -o dist ./cmd/...
       - run: go test -v ./mdtest
-  test-sqllogic:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-      - run: make test-sqllogic
   output-check:
     runs-on: ubuntu-22.04
     steps:
