@@ -221,7 +221,7 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 				})
 			default:
 				e := a.semExpr(elem)
-				name := inferColumnName(e, elem)
+				name := deriveNameFromExpr(e, elem)
 				if _, ok := fields[name]; ok {
 					a.error(elem, fmt.Errorf("record expression: %w", &super.DuplicateFieldError{Name: name}))
 					continue
@@ -868,7 +868,7 @@ func (a *analyzer) semAssignment(assign ast.Assignment) dag.Assignment {
 	rhs := a.semExpr(assign.RHS)
 	var lhs dag.Expr
 	if assign.LHS == nil {
-		lhs = dag.NewThis(deriveNameFromExpr(rhs, assign.RHS))
+		lhs = dag.NewThis([]string{deriveNameFromExpr(rhs, assign.RHS)})
 	} else {
 		lhs = a.semLval(assign.LHS)
 	}
@@ -902,25 +902,35 @@ func isLval(e dag.Expr) bool {
 	return false
 }
 
-func deriveNameFromExpr(e dag.Expr, a ast.Expr) []string {
-	switch e := e.(type) {
-	case *dag.Agg:
-		return []string{e.Name}
-	case *dag.Call:
-		switch strings.ToLower(e.Tag) {
-		case "quiet":
-			if len(e.Args) > 0 {
+func deriveNameFromExpr(e dag.Expr, a ast.Expr) string {
+	switch a := a.(type) {
+	case *ast.Agg:
+		return a.Name
+	case *ast.Call:
+		var name string
+		if f, ok := a.Func.(*ast.FuncName); ok {
+			name = f.Name
+		}
+		if strings.ToLower(name) == "quiet" {
+			if e, ok := e.(*dag.Call); ok && len(e.Args) > 0 {
 				if this, ok := e.Args[0].(*dag.This); ok {
-					return this.Path
+					return fieldOfThis(this)
 				}
 			}
 		}
-		return []string{e.Tag}
-	case *dag.This:
-		return e.Path
-	default:
-		return []string{sfmt.ASTExpr(a)}
+		return name
 	}
+	if e, ok := e.(*dag.This); ok {
+		return fieldOfThis(e)
+	}
+	return sfmt.ASTExpr(a)
+}
+
+func fieldOfThis(this *dag.This) string {
+	if len(this.Path) == 0 {
+		return "that"
+	}
+	return this.Path[len(this.Path)-1]
 }
 
 func (a *analyzer) semFields(exprs []ast.Expr) []dag.Expr {

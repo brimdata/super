@@ -1,4 +1,4 @@
-spq: by s | sort s
+spq: by s | sort
 
 vector: true
 
@@ -13,7 +13,7 @@ input: |
   {x:1::int32,s:"a"}
 
 output: |
-  {s:"a"}
-  {s:"b"}
-  {s:"c"}
-  {s:"f"}
+  "a"
+  "b"
+  "c"
+  "f"

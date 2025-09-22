@@ -17,17 +17,17 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {"c+a":12,"collect(c)":[1]}
-      {"c+a":14,"collect(c)":[2,1]}
-      {"c+a":16,"collect(c)":[2]}
+      {"c+a":12,collect:[1]}
+      {"c+a":14,collect:[2,1]}
+      {"c+a":16,collect:[2]}
       ===
-      {d:12,"collect(c)":[1]}
-      {d:14,"collect(c)":[2,1]}
-      {d:16,"collect(c)":[2]}
+      {d:12,collect:[1]}
+      {d:14,collect:[2,1]}
+      {d:16,collect:[2]}
       ===
-      {d:12,"collect(c)":[1]}
-      {d:14,"collect(c)":[2,1]}
-      {d:16,"collect(c)":[2]}
+      {d:12,collect:[1]}
+      {d:14,collect:[2,1]}
+      {d:16,collect:[2]}
   - name: err1
     data: |
       no corresponding grouping element for non-aggregate "c+a" at line 1, column 8:

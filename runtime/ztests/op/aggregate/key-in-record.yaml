@@ -1,4 +1,4 @@
-spq: count() by rec.i | sort rec.i
+spq: count() by rec.i:=rec.i | sort rec.i
 
 vector: true
 

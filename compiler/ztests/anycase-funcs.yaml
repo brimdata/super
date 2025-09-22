@@ -22,9 +22,9 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {key:1,c:2::uint64,d:2::uint64,collect:["foo","goo"]}
-      {key:2,c:2::uint64,d:2::uint64,collect:["bar","gar"]}
-      {key:3,c:1::uint64,d:1::uint64,collect:["baz"]}
+      {key:1,c:2::uint64,d:2::uint64,Collect:["foo","goo"]}
+      {key:2,c:2::uint64,d:2::uint64,Collect:["bar","gar"]}
+      {key:3,c:1::uint64,d:1::uint64,Collect:["baz"]}
       ===
       "foo"
       ["foo"]

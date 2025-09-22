@@ -13,10 +13,10 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {i:1,"SUM(i)":1}
-      {i:2,"SUM(i)":2}
-      {i:3,"SUM(i)":3}
-      {i:null::int64,"SUM(i)":null::int64}
+      {i:1,SUM:1}
+      {i:2,SUM:2}
+      {i:3,SUM:3}
+      {i:null::int64,SUM:null::int64}
   - name: stderr
     data: |
       position 3 is not in select list at line 1, column 22:

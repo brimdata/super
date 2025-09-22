@@ -18,5 +18,5 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {typeof:<{r:{u:sint=int32|string}}>}
-      {typeof:<{r:{v:sint=int32|string}}>}
+      <{r:{u:sint=int32|string}}>
+      <{r:{v:sint=int32|string}}>

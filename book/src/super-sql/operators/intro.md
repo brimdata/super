@@ -78,6 +78,7 @@ put lower(s), a.b.c, x+1
 In this case, the field name is derived from the expression body as follows:
 * for a dotted path expression, the name is the last element of the path;
 * for a function or aggregate function, the name is the name of the function;
+* for `this`, the name is `that`;
 * otherwise, the name is the expression text formatted in a canonical form.
 
 In the two examples above, the derived names are filled in as follows:

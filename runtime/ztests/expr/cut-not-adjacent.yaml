@@ -1,8 +1,8 @@
 script: |
-  ! super -s -c "cut rec.sub1,other,rec.sub2" in.sup
-  ! super -s -c "cut rec1.rec2.sub1,other,rec1.sub2" in.sup
-  ! super -s -c "cut rec1.rec2.sub1,other,rec1.rec2.sub2" in.sup
-  ! super -s -c "cut t.rec.sub1,t.other,t.rec.sub2" in.sup
+  ! super -s -c "cut rec.sub1:=rec.sub1,other,rec.sub2:=rec.sub2" in.sup
+  ! super -s -c "cut rec1.rec2.sub1:=rec1.rec2.sub1,other,rec1.sub2:=rec1.sub2" in.sup
+  ! super -s -c "cut rec1.rec2.sub1:=rec1.rec2.sub1,other,rec1.rec2.sub2:=rec1.rec2.sub2" in.sup
+  ! super -s -c "cut t.rec.sub1:=t.rec.sub1,t.other:=t.other,t.rec.sub2:=rec.sub2" in.sup
 
 vector: true
 
@@ -15,14 +15,14 @@ outputs:
   - name: stderr
     data: |
       fields in record rec must be adjacent at line 1, column 5:
-      cut rec.sub1,other,rec.sub2
-          ~~~~~~~~~~~~~~~~~~~~~~~
+      cut rec.sub1:=rec.sub1,other,rec.sub2:=rec.sub2
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       fields in record rec1 must be adjacent at line 1, column 5:
-      cut rec1.rec2.sub1,other,rec1.sub2
-          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      cut rec1.rec2.sub1:=rec1.rec2.sub1,other,rec1.sub2:=rec1.sub2
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       fields in record rec1 must be adjacent at line 1, column 5:
-      cut rec1.rec2.sub1,other,rec1.rec2.sub2
-          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      cut rec1.rec2.sub1:=rec1.rec2.sub1,other,rec1.rec2.sub2:=rec1.rec2.sub2
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       fields in record t.rec must be adjacent at line 1, column 5:
-      cut t.rec.sub1,t.other,t.rec.sub2
-          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      cut t.rec.sub1:=t.rec.sub1,t.other:=t.other,t.rec.sub2:=rec.sub2
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -80,8 +80,8 @@ outputs:
       {foo:{a:"aaa"},count:1::uint64}
       {foo:{a:"baa"},count:1::uint64}
       === forward-sorted-nested-key ===
-      {foo:{a:"aaa"},count:1::uint64}
-      {foo:{a:"baa"},count:1::uint64}
+      {a:"aaa",count:1::uint64}
+      {a:"baa",count:1::uint64}
       === forward-sorted-record-key-null ===
       {foo:{a:null::string},count:1::uint64}
       {foo:{a:"aaa"},count:1::uint64}

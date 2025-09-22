@@ -1,5 +1,5 @@
 # tests that a rename isn't visible to other procs operating on same records.
-spq: fork ( rename id2:=id ) ( cut id.orig_h ) | sort id
+spq: fork ( rename id2:=id ) ( cut id.orig_h:=id.orig_h ) | sort id
 
 vector: true
 

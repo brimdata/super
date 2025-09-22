@@ -5,4 +5,4 @@ input: |
   {x:{y:123},s:"Hello, world", z:0.5}
 
 output: |
-  {y:123,"upper(s)":"HELLO, WORLD","sqrt(2)/z":2.8284271247461903}
+  {y:123,upper:"HELLO, WORLD","sqrt(2)/z":2.8284271247461903}

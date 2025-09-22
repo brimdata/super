@@ -2,7 +2,5 @@ spq: count() by this
 
 vector: true
 
-error: |
-  cannot assign to 'this' at line 1, column 12:
-  count() by this
-             ~~~~
+output: |
+  {that:null,count:1::uint64}

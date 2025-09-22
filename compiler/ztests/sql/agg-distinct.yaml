@@ -26,5 +26,5 @@ input: |
   {key:"a",n:1,b:false}
 
 output: |
-  {key:"a","and(distinct b)":false,"any(distinct n)":1,"avg(distinct n)":1.5,"collect(distinct key)":["a"],"count(distinct n)":2::uint64,"dcount(distinct n)":2::uint64,"max(distinct n)":2,"min(distinct n)":1,"or(distinct b)":true,"sum(distinct n)":3,"union(distinct n)":|[1,2]|}
-  {key:"b","and(distinct b)":true,"any(distinct n)":1,"avg(distinct n)":0.5,"collect(distinct key)":["b"],"count(distinct n)":2::uint64,"dcount(distinct n)":2::uint64,"max(distinct n)":1,"min(distinct n)":0,"or(distinct b)":true,"sum(distinct n)":1,"union(distinct n)":|[0,1]|}
+  {key:"a",and:false,any:1,avg:1.5,collect:["a"],count:2::uint64,dcount:2::uint64,max:2,min:1,or:true,sum:3,union:|[1,2]|}
+  {key:"b",and:true,any:1,avg:0.5,collect:["b"],count:2::uint64,dcount:2::uint64,max:1,min:0,or:true,sum:1,union:|[0,1]|}

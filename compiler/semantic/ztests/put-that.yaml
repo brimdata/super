@@ -1,0 +1,7 @@
+spq: put this
+
+input: |
+  {x:1}
+
+output: |
+  {x:1,that:{x:1}}

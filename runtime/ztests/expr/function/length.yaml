@@ -7,5 +7,5 @@ input: |
   {s:"emoji👀"}
 
 output: |
-  {"LENGTH(s)":13}
-  {"LENGTH(s)":6}
+  {LENGTH:13}
+  {LENGTH:6}

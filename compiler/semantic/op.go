@@ -571,6 +571,11 @@ func (a *analyzer) semOp(o ast.Op, seq dag.Seq) dag.Seq {
 				return seq
 			}
 		}
+		if len(keys) == 1 && len(o.Aggs) == 0 {
+			if seq := a.singletonKey(o.Keys[0], seq); seq != nil {
+				return seq
+			}
+		}
 		aggs := a.semAssignments(o.Aggs)
 		a.checkStaticAssignment(o.Aggs, aggs)
 		// Note: InputSortDir is copied in here but it's not meaningful
@@ -983,6 +988,24 @@ func (a *analyzer) singletonAgg(agg ast.Assignment, seq dag.Seq) dag.Seq {
 		&dag.Aggregate{
 			Kind: "Aggregate",
 			Aggs: []dag.Assignment{out},
+		},
+		dag.NewValues(this),
+	)
+}
+
+func (a *analyzer) singletonKey(agg ast.Assignment, seq dag.Seq) dag.Seq {
+	if agg.LHS != nil {
+		return nil
+	}
+	out := a.semAssignment(agg)
+	this, ok := out.LHS.(*dag.This)
+	if !ok || len(this.Path) != 1 {
+		return nil
+	}
+	return append(seq,
+		&dag.Aggregate{
+			Kind: "Aggregate",
+			Keys: []dag.Assignment{out},
 		},
 		dag.NewValues(this),
 	)

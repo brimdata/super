@@ -1,9 +1,9 @@
 script: |
-  super -s -c "cut rec.foo" nested1.sup
+  super -s -c "cut rec.foo:=rec.foo" nested1.sup
   echo ===
-  super -s -c "cut rec.foo,rec['bar']" nested1.sup
+  super -s -c "cut rec.foo:=rec.foo,rec.bar:=rec['bar']" nested1.sup
   echo ===
-  super -s -c "cut rec1.sub1.foo,rec1['sub2']['bar'],rec2.foo,foo" nested2.sup
+  super -s -c "cut rec1.sub1.foo:=rec1.sub1.foo,rec1['sub2']['bar'],rec2.foo:=rec2.foo,foo" nested2.sup
 
 vector: true
 
@@ -26,5 +26,5 @@ outputs:
       {rec:{foo:"foo1",bar:"bar1"}}
       {rec:{foo:"foo2",bar:"bar2"}}
       ===
-      {rec1:{sub1:{foo:"foo1.1"},sub2:{bar:"bar2.1"}},rec2:{foo:"foo3.1"},foo:"outer1"}
-      {rec1:{sub1:{foo:"foo1.2"},sub2:{bar:"bar2.2"}},rec2:{foo:"foo3.2"},foo:"outer2"}
+      {rec1:{sub1:{foo:"foo1.1"}},bar:"bar2.1",rec2:{foo:"foo3.1"},foo:"outer1"}
+      {rec1:{sub1:{foo:"foo1.2"}},bar:"bar2.2",rec2:{foo:"foo3.2"},foo:"outer2"}

@@ -1,0 +1,12 @@
+spq: by this | sort
+
+input: |
+  1
+  2
+  2
+  {x:1}
+
+output: |
+  1
+  2
+  {x:1}

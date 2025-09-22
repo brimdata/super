@@ -55,7 +55,8 @@ first from the grouping expressions then from the aggregate functions
 in left-to-right order.
 
 When the result of `aggregate` is a single value (e.g., a single aggregate
-function without grouping expressions) and there is no field name specified, then
+function without grouping expressions or a single grouping expression without aggregates)
+and there is no field name specified, then
 the output is that single value rather than a single-field record
 containing that value.
 
@@ -228,7 +229,7 @@ by k | sort
 {k:"foo",v:3}
 {k:"baz",v:4}
 # expected output
-{k:"bar"}
-{k:"baz"}
-{k:"foo"}
+"bar"
+"baz"
+"foo"
 ```

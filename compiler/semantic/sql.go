@@ -726,7 +726,7 @@ func (a *analyzer) semAs(sch schema, as ast.SQLAsExpr, funcs *aggfuncs) *column 
 			a.error(as.Label, errors.New("label cannot be an empty string"))
 		}
 	} else {
-		name = inferColumnName(e, as.Expr)
+		name = deriveNameFromExpr(e, as.Expr)
 	}
 	c, err := newColumn(name, as.Expr, e, funcs)
 	if err != nil {
@@ -741,20 +741,6 @@ func (a *analyzer) semExprSchema(s schema, e ast.Expr) dag.Expr {
 	out := a.semExpr(e)
 	a.scope.schema = save
 	return out
-}
-
-// inferColumnName translates an expression to a column name.
-// If it's a dotted field path, we use the last element of the path.
-// Otherwise, we format the expression as text.  Pretty gross but
-// that's what SQL does!  And it seems different implementations format
-// expressions differently.  XXX we need to check ANSI SQL spec here
-func inferColumnName(e dag.Expr, ae ast.Expr) string {
-	switch e := e.(type) {
-	case *dag.This:
-		return field.Path(e.Path).Leaf()
-	default:
-		return sfmt.ASTExpr(ae)
-	}
 }
 
 func valuesExpr(e dag.Expr, seq dag.Seq) dag.Seq {
