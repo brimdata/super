@@ -199,7 +199,6 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 					Name:  elem.Name.Text,
 					Value: e,
 				})
-				continue
 			case *ast.ID:
 				if _, ok := fields[elem.Name]; ok {
 					a.error(elem, fmt.Errorf("record expression: %w", &super.DuplicateFieldError{Name: elem.Name}))
@@ -214,27 +213,27 @@ func (a *analyzer) semExpr(e ast.Expr) dag.Expr {
 					Name:  elem.Name,
 					Value: v,
 				})
-				continue
 			case *ast.Spread:
 				e := a.semExpr(elem.Expr)
 				out = append(out, &dag.Spread{
 					Kind: "Spread",
 					Expr: e,
 				})
-				continue
+			default:
+				e := a.semExpr(elem)
+				name := inferColumnName(e, elem)
+				if _, ok := fields[name]; ok {
+					a.error(elem, fmt.Errorf("record expression: %w", &super.DuplicateFieldError{Name: name}))
+					continue
+				}
+				fields[name] = struct{}{}
+				out = append(out, &dag.Field{
+					Kind:  "Field",
+					Name:  name,
+					Value: e,
+				})
 			}
-			e := a.semExpr(elem)
-			name := inferColumnName(e, elem)
-			if _, ok := fields[name]; ok {
-				a.error(elem, fmt.Errorf("record expression: %w", &super.DuplicateFieldError{Name: name}))
-				continue
-			}
-			fields[name] = struct{}{}
-			out = append(out, &dag.Field{
-				Kind:  "Field",
-				Name:  name,
-				Value: e,
-			})
+
 		}
 		return &dag.RecordExpr{
 			Kind:  "RecordExpr",
