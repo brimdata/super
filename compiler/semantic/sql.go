@@ -108,12 +108,7 @@ func (a *analyzer) genColumns(proj projection, sch *selectSchema, seq dag.Seq) d
 			notFirst = true
 		}
 		if col.isStar() {
-			for _, path := range unravel(sch, nil) {
-				elems = append(elems, &dag.Spread{
-					Kind: "Spread",
-					Expr: dag.NewThis(path),
-				})
-			}
+			elems = unravel(elems, sch, nil)
 		} else {
 			elems = append(elems, &dag.Field{
 				Kind:  "Field",
@@ -144,15 +139,29 @@ func (a *analyzer) genColumns(proj projection, sch *selectSchema, seq dag.Seq) d
 	return seq
 }
 
-func unravel(schema schema, prefix field.Path) []field.Path {
+func unravel(elems []dag.RecordElem, schema schema, prefix field.Path) []dag.RecordElem {
 	switch schema := schema.(type) {
-	default:
-		return []field.Path{prefix}
+	case *dynamicSchema:
+		return append(elems, &dag.Spread{
+			Kind: "Spread",
+			Expr: dag.NewThis(prefix),
+		})
+	case *staticSchema:
+		for _, col := range schema.columns {
+			elems = append(elems, &dag.Field{
+				Kind:  "Field",
+				Name:  col,
+				Value: dag.NewThis(slices.Clone(append(prefix, col))),
+			})
+		}
+		return elems
 	case *selectSchema:
-		return unravel(schema.in, append(prefix, "in"))
+		return unravel(elems, schema.in, append(prefix, "in"))
 	case *joinSchema:
-		out := unravel(schema.left, append(prefix, "left"))
-		return append(out, unravel(schema.right, append(prefix, "right"))...)
+		elems = unravel(elems, schema.left, append(prefix, "left"))
+		return unravel(elems, schema.right, append(prefix, "right"))
+	default:
+		panic(schema)
 	}
 }
 

@@ -1,0 +1,42 @@
+# This test checks that select * on a static schema enumerates all selected
+# columns in the generated values dag instead of using record spreads. This is
+# important for ensuring that optimizations like filter pushdowns still happen
+# when querying static data. Dynamic data will still use spreads that cannot
+# be optimized.
+
+script: |
+  super compile -dag -C "select a, * from (values (1,2,3)) x(a,b,c)"
+  echo // ===
+  super compile -dag -C "
+    select *
+    from (values (1,'dodgers')) teams(id,team)
+    inner join (values (1,1,'ted')) players(id,team_id,player) on teams.id=players.team_id
+  "
+
+outputs:
+  - name: stdout
+    data: |
+      null
+      | values {c0:1,c1:2,c2:3}
+      | values {a:c0,b:c1,c:c2}
+      | values {in:this}
+      | values {in:in,out:{a:in.a}}
+      | values {in:in,out:{...out,a:in.a,b:in.b,c:in.c}}
+      | values out
+      | output main
+      // ===
+      null
+      | fork
+        (
+          values {c0:1,c1:"dodgers"}
+          | values {id:c0,team:c1}
+        )
+        (
+          values {c0:1,c1:1,c2:"ted"}
+          | values {id:c0,team_id:c1,player:c2}
+        )
+      | inner join as {left,right} on left.id==right.team_id
+      | values {in:this}
+      | values {in:in,out:{id:in.left.id,team:in.left.team,id:in.right.id,team_id:in.right.team_id,player:in.right.player}}
+      | values out
+      | output main
