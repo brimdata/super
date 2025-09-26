@@ -1,0 +1,7 @@
+spq: |
+  const x = (values y+1)
+  const y = 2
+  values x
+
+output: |
+  3

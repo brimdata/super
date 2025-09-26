@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/brimdata/super/compiler/ast"
-	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/compiler/semantic/sem"
 	"github.com/brimdata/super/pkg/field"
 )
@@ -47,10 +46,10 @@ func (s *Scope) lookupOp(name string) (*opDecl, error) {
 	return nil, nil
 }
 
-func (s *Scope) lookupQuery(name string) sem.Seq {
+func (s *Scope) lookupQuery(t *translator, name string) sem.Seq {
 	if entry := s.lookupEntry(name); entry != nil {
-		if seq, ok := entry.ref.(sem.Seq); ok {
-			return seq
+		if decl, ok := entry.ref.(*queryDecl); ok {
+			return decl.resolve(t)
 		}
 	}
 	return nil
@@ -65,17 +64,15 @@ func (s *Scope) lookupEntry(name string) *entry {
 	return nil
 }
 
-func (s *Scope) lookupExpr(name string) sem.Expr {
+func (s *Scope) lookupExpr(t *translator, name string) sem.Expr {
 	if entry := s.lookupEntry(name); entry != nil {
 		// function parameters hide exteral definitions as you don't
 		// want the this.param ref to be overriden by a const etc.
-		switch entry.ref.(type) {
+		switch entry := entry.ref.(type) {
 		case *sem.FuncDef, *ast.FuncName, param, *opDecl:
 			return nil
-		}
-		if _, ok := entry.ref.(dag.Seq); ok {
-			// Named subquery handled elsewhere
-			return nil
+		case *constDecl:
+			return entry.resolve(t)
 		}
 		return entry.ref.(sem.Expr)
 	}

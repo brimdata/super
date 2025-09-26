@@ -19,14 +19,13 @@ import (
 // to DAG form, resolving syntax ambiguities, and performing constant propagation.
 // After semantic analysis, the DAG is ready for either optimization or compilation.
 func Analyze(ctx context.Context, p *parser.AST, env *exec.Environment, extInput bool) (*dag.Main, error) {
-	r := reporter{p.Files()}
-	t := newTranslator(ctx, r, env)
+	t := newTranslator(ctx, reporter{p.Files()}, env)
 	astseq := p.Parsed()
 	if extInput {
 		astseq.Prepend(&ast.DefaultScan{Kind: "DefaultScan"})
 	}
 	seq := t.semSeq(astseq)
-	if err := r.Error(); err != nil {
+	if err := t.Error(); err != nil {
 		return nil, err
 	}
 	if !HasSource(seq) {
@@ -41,13 +40,13 @@ func Analyze(ctx context.Context, p *parser.AST, env *exec.Environment, extInput
 			seq.Prepend(&sem.NullScan{})
 		}
 	}
-	resolver := newResolver(r, t.funcsByTag)
+	resolver := newResolver(t)
 	semSeq, dagFuncs := resolver.resolve(seq)
-	if err := r.Error(); err != nil {
+	if err := t.Error(); err != nil {
 		return nil, err
 	}
-	main := newDagen(r).assemble(semSeq, dagFuncs)
-	return main, r.Error()
+	main := newDagen(t.reporter).assemble(semSeq, dagFuncs)
+	return main, t.Error()
 }
 
 // Translate AST into semantic tree.  Resolve all bindings
@@ -56,25 +55,25 @@ func Analyze(ctx context.Context, p *parser.AST, env *exec.Environment, extInput
 // to dataflow.
 type translator struct {
 	reporter
-	ctx         context.Context
-	opStack     []*ast.OpDecl
-	cteStack    []*ast.SQLCTE
-	env         *exec.Environment
-	scope       *Scope
-	sctx        *super.Context
-	funcsByTag  map[string]*sem.FuncDef
-	funcsByDecl map[*ast.Decl]*sem.FuncDef
+	ctx       context.Context
+	opStack   []*ast.OpDecl
+	cteStack  []*ast.SQLCTE
+	env       *exec.Environment
+	scope     *Scope
+	sctx      *super.Context
+	funcs     map[string]*sem.FuncDef
+	funcDecls map[string]*funcDecl
 }
 
 func newTranslator(ctx context.Context, r reporter, env *exec.Environment) *translator {
 	return &translator{
-		reporter:    r,
-		ctx:         ctx,
-		env:         env,
-		scope:       NewScope(nil),
-		sctx:        super.NewContext(),
-		funcsByTag:  make(map[string]*sem.FuncDef),
-		funcsByDecl: make(map[*ast.Decl]*sem.FuncDef),
+		reporter:  r,
+		ctx:       ctx,
+		env:       env,
+		scope:     NewScope(nil),
+		sctx:      super.NewContext(),
+		funcs:     make(map[string]*sem.FuncDef),
+		funcDecls: make(map[string]*funcDecl),
 	}
 }
 
@@ -96,6 +95,10 @@ func HasSource(seq sem.Seq) bool {
 	return false
 }
 
+func (t *translator) Error() error {
+	return t.reporter.Error()
+}
+
 func (t *translator) enterScope() {
 	t.scope = NewScope(t.scope)
 }
@@ -105,8 +108,8 @@ func (t *translator) exitScope() {
 }
 
 func (t *translator) newFunc(body ast.Expr, name string, params []string, e sem.Expr) string {
-	tag := strconv.Itoa(len(t.funcsByTag))
-	t.funcsByTag[tag] = &sem.FuncDef{
+	tag := strconv.Itoa(len(t.funcs))
+	t.funcs[tag] = &sem.FuncDef{
 		Node:   body,
 		Tag:    tag,
 		Name:   name,

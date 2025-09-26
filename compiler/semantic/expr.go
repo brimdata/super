@@ -416,7 +416,7 @@ func (t *translator) semID(id *ast.ID, lval bool) sem.Expr {
 			return badExpr()
 		}
 	}
-	if ref := t.scope.lookupExpr(id.Name); ref != nil {
+	if ref := t.scope.lookupExpr(t, id.Name); ref != nil {
 		return ref
 	}
 	var path []string
@@ -657,7 +657,7 @@ func (t *translator) semCall(call *ast.Call) sem.Expr {
 }
 
 func (t *translator) maybeSubquery(n ast.Node, name string) *sem.SubqueryExpr {
-	if seq := t.scope.lookupQuery(name); seq != nil {
+	if seq := t.scope.lookupQuery(t, name); seq != nil {
 		return &sem.SubqueryExpr{
 			Node:       n,
 			Correlated: isCorrelated(seq),
@@ -696,6 +696,9 @@ func (t *translator) semCallByName(call *ast.Call, name string, args []sem.Expr)
 			return sem.NewCall(call, ref.Tag, args)
 		case *sem.FuncDef:
 			return sem.NewCall(call, ref.Tag, args)
+		case *constDecl, *queryDecl:
+			t.error(call, fmt.Errorf("%q is not a function", name))
+			return badExpr()
 		}
 		if _, ok := entry.ref.(sem.Expr); ok {
 			t.error(call, fmt.Errorf("%q is not a function", name))
@@ -709,7 +712,7 @@ func (t *translator) semCallByName(call *ast.Call, name string, args []sem.Expr)
 	tag, _ := t.scope.lookupFunc(name)
 	nargs := len(args)
 	// udf should be checked first since a udf can override builtin functions.
-	if f := t.funcsByTag[tag]; f != nil {
+	if f := t.funcs[tag]; f != nil {
 		if len(f.Params) != nargs {
 			t.error(call, fmt.Errorf("call expects %d argument(s)", len(f.Params)))
 			return badExpr()

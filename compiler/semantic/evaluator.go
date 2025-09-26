@@ -13,11 +13,11 @@ import (
 )
 
 type evaluator struct {
-	reporter  reporter
-	in        map[string]*sem.FuncDef
-	errs      []errloc
-	constThis bool
-	bad       bool
+	translator *translator
+	in         map[string]*sem.FuncDef
+	errs       []errloc
+	constThis  bool
+	bad        bool
 }
 
 type errloc struct {
@@ -25,10 +25,10 @@ type errloc struct {
 	err error
 }
 
-func newEvaluator(r reporter, funcs map[string]*sem.FuncDef) *evaluator {
+func newEvaluator(t *translator, funcs map[string]*sem.FuncDef) *evaluator {
 	return &evaluator{
-		reporter: r,
-		in:       funcs,
+		translator: t,
+		in:         funcs,
 	}
 }
 
@@ -56,13 +56,20 @@ func (e *evaluator) maybeEval(sctx *super.Context, expr sem.Expr) (super.Value, 
 	// no existing state in the translator is touched nor is the passed-in
 	// sem tree modified at all; instead, the process here creates copies
 	// of any needed sem tree and funcs.
-	r := newResolver(e.reporter, e.in)
+	r := newResolver(e.translator)
 	resolvedExpr, funcs := r.resolveExpr(expr)
 	e.expr(resolvedExpr)
 	if len(e.errs) > 0 || e.bad {
 		return super.Value{}, false
 	}
-	main := newDagen(e.reporter).assembleExpr(resolvedExpr, funcs)
+	for _, f := range funcs {
+		e.constThis = true
+		e.expr(f.Body)
+		if len(e.errs) > 0 || e.bad {
+			return super.Value{}, false
+		}
+	}
+	main := newDagen(e.translator.reporter).assembleExpr(resolvedExpr, funcs)
 	val, err := rungen.EvalAtCompileTime(sctx, main)
 	if err != nil {
 		e.error(expr, err)
@@ -334,6 +341,6 @@ func (e *evaluator) error(loc ast.Node, err error) {
 
 func (e *evaluator) flushErrs() {
 	for _, info := range e.errs {
-		e.reporter.error(info.loc, info.err)
+		e.translator.error(info.loc, info.err)
 	}
 }

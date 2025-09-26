@@ -12,19 +12,17 @@ import (
 )
 
 type resolver struct {
-	reporter
-	in       map[string]*sem.FuncDef
+	t        *translator
 	fixed    map[string]*sem.FuncDef
 	variants []*sem.FuncDef
 	params   []map[string]string
 	ntag     int
 }
 
-func newResolver(r reporter, funcs map[string]*sem.FuncDef) *resolver {
+func newResolver(t *translator) *resolver {
 	return &resolver{
-		reporter: r,
-		in:       funcs,
-		fixed:    make(map[string]*sem.FuncDef),
+		t:     t,
+		fixed: make(map[string]*sem.FuncDef),
 	}
 }
 
@@ -39,7 +37,7 @@ func (r *resolver) resolve(seq sem.Seq) (sem.Seq, []*sem.FuncDef) {
 
 func (r *resolver) resolveExpr(e sem.Expr) (sem.Expr, []*sem.FuncDef) {
 	out := r.expr(e)
-	funcs := r.variants
+	funcs := slices.Clone(r.variants)
 	for _, f := range r.fixed {
 		funcs = append(funcs, f)
 	}
@@ -426,13 +424,13 @@ func (r *resolver) resolveCallParam(call *sem.CallParam) sem.Expr {
 		// This can happen when we go to resolve a parameter that wasn't bound to
 		// an actual function because some other value was bound to it so it didn't
 		// get put in the parameter table.
-		r.error(call.Node, fmt.Errorf("function called via parameter %q is bound to a non-function", call.Param))
+		r.t.error(call.Node, fmt.Errorf("function called via parameter %q is bound to a non-function", call.Param))
 		return badExpr()
 	}
 	if isBuiltin(oldTag) {
 		// Check argument count here for builtin functions.
 		if _, err := function.New(super.NewContext(), oldTag, len(call.Args)); err != nil {
-			r.error(call.Node, fmt.Errorf("function %q called via parameter %q: %w", oldTag, call.Param, err))
+			r.t.error(call.Node, fmt.Errorf("function %q called via parameter %q: %w", oldTag, call.Param, err))
 			return badExpr()
 		}
 	}
@@ -452,9 +450,9 @@ func (r *resolver) resolveCall(n ast.Node, oldTag string, args []sem.Expr) sem.E
 	// correponding args.
 	var params []string
 	var exprs []sem.Expr
-	funcDef := r.in[oldTag]
+	funcDef := r.t.resolveFunc(oldTag)
 	if len(funcDef.Params) != len(args) {
-		r.error(n, fmt.Errorf("%q: expected %d params but called with %d", funcDef.Name, len(funcDef.Params), len(args)))
+		r.t.error(n, fmt.Errorf("%q: expected %d params but called with %d", funcDef.Name, len(funcDef.Params), len(args)))
 		return badExpr()
 	}
 	bindings := make(map[string]string)
@@ -502,7 +500,7 @@ func (r *resolver) lookupFixed(oldTag string) string {
 	if funcDef, ok := r.fixed[oldTag]; ok {
 		return funcDef.Tag
 	}
-	funcDef := r.in[oldTag]
+	funcDef := r.t.resolveFunc(oldTag)
 	newTag := r.nextTag()
 	newFuncDef := &sem.FuncDef{
 		Node:   funcDef.Node,
@@ -517,7 +515,7 @@ func (r *resolver) lookupFixed(oldTag string) string {
 
 func (r *resolver) lookupVariant(oldTag string, params []string) string {
 	newTag := r.nextTag()
-	funcDef := r.in[oldTag]
+	funcDef := r.t.resolveFunc(oldTag)
 	r.variants = append(r.variants, &sem.FuncDef{
 		Node:   funcDef.Node,
 		Tag:    newTag,

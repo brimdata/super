@@ -1,5 +1,3 @@
-skip: will be fixed on decl-dep branch
-
 spq: |
   fn u(s): upper(s)
   const foo=u('bar')

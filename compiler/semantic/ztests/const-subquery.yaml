@@ -3,13 +3,11 @@ spq: |
   fn foo(a) : (
     unnest a | addEm
   )
-  ( -- we'll get rid of this scope requirement in decl-dep branch
-    const bar = [
-      values {a:[1,2,3],b:[10]}, {a:[4,5],b:[11,23]}
-      | {a:foo(a),b:foo(b)}
-    ]
-    values bar,bar
-  )
+  const bar = [
+    values {a:[1,2,3],b:[10]}, {a:[4,5],b:[11,23]}
+    | {a:foo(a),b:foo(b)}
+  ]
+  values bar,bar
 
 output: |
   [{a:6,b:10},{a:9,b:34}]

@@ -96,7 +96,7 @@ func (t *translator) semFromEntity(entity ast.FromEntity, alias *ast.TableAlias,
 		if c, ok := t.scope.ctes[strings.ToLower(entity.Text)]; ok {
 			return t.fromCTE(entity, c, alias)
 		}
-		if seq := t.scope.lookupQuery(entity.Text); seq != nil {
+		if seq := t.scope.lookupQuery(t, entity.Text); seq != nil {
 			return seq, &dynamicSchema{}
 		}
 		op, def := t.semFromName(entity, entity.Text, args)
@@ -995,20 +995,15 @@ func (t *translator) singletonKey(agg ast.Assignment, seq sem.Seq) sem.Seq {
 	)
 }
 
+// semDecls enters a block of declarations into the current scope.  We do late binding
+// of symbols to sem-tree entities so that the order of definition doesn't matter.
 func (t *translator) semDecls(decls []ast.Decl) {
-	var funcDefs []*sem.FuncDef
-	var bodies []ast.Expr
 	for _, d := range decls {
 		switch d := d.(type) {
 		case *ast.ConstDecl:
 			t.semConstDecl(d)
 		case *ast.FuncDecl:
-			// We need to declare functions in the symbol table (so ops can find them)
-			// but not try to process the function body (because they can refer to ops).
-			// So we declare all the functions, process the ops, then process the function
-			// bodies.
-			funcDefs = append(funcDefs, t.declareFunc(d))
-			bodies = append(bodies, d.Lambda.Expr)
+			t.semFuncDecl(d)
 		case *ast.OpDecl:
 			t.semOpDecl(d)
 		case *ast.QueryDecl:
@@ -1016,22 +1011,80 @@ func (t *translator) semDecls(decls []ast.Decl) {
 		case *ast.TypeDecl:
 			t.semTypeDecl(d)
 		default:
-			panic(fmt.Errorf("invalid declaration type %T", d))
+			panic(d)
 		}
 	}
-	t.semFuncDefs(funcDefs, bodies)
+}
+
+type constDecl struct {
+	decl    *ast.ConstDecl
+	expr    sem.Expr
+	scope   *Scope
+	pending bool
+}
+
+func (c *constDecl) resolve(t *translator) sem.Expr {
+	if c.expr == nil {
+		if !c.pending {
+			c.pending = true
+			save := t.scope
+			t.scope = NewScope(c.scope)
+			defer func() {
+				c.pending = false
+				t.scope = save
+			}()
+			c.expr = t.mustEvalConst(t.semExpr(c.decl.Expr))
+		} else {
+			t.error(c.decl.Name, fmt.Errorf("const %q involved in cyclic dependency", c.decl.Name.Name))
+			c.expr = badExpr()
+		}
+	}
+	return c.expr
 }
 
 func (t *translator) semConstDecl(c *ast.ConstDecl) {
-	e := t.semExpr(c.Expr)
-	if err := t.evalAndBindConst(c.Name.Name, e); err != nil {
-		t.error(c, err)
+	decl := &constDecl{
+		decl:  c,
+		scope: t.scope,
+	}
+	if err := t.scope.BindSymbol(c.Name.Name, decl); err != nil {
+		t.error(c.Name, err)
 	}
 }
 
-func (t *translator) semQueryDecl(d *ast.QueryDecl) {
-	if err := t.scope.BindSymbol(d.Name.Name, t.semSeq(d.Body)); err != nil {
-		t.error(d.Name, err)
+type queryDecl struct {
+	decl    *ast.QueryDecl
+	body    sem.Seq
+	scope   *Scope
+	pending bool
+}
+
+func (q *queryDecl) resolve(t *translator) sem.Seq {
+	if q.body == nil {
+		if !q.pending {
+			save := t.scope
+			q.pending = true
+			t.scope = NewScope(q.scope)
+			defer func() {
+				q.pending = false
+				t.scope = save
+			}()
+			q.body = t.semSeq(q.decl.Body)
+		} else {
+			t.error(q.decl.Name, fmt.Errorf("named query %q involved in cyclic dependency", q.decl.Name.Name))
+			q.body = sem.Seq{badOp()}
+		}
+	}
+	return q.body
+}
+
+func (t *translator) semQueryDecl(q *ast.QueryDecl) {
+	decl := &queryDecl{
+		decl:  q,
+		scope: t.scope,
+	}
+	if err := t.scope.BindSymbol(q.Name.Name, decl); err != nil {
+		t.error(q.Name, err)
 	}
 }
 
@@ -1045,7 +1098,12 @@ func (t *translator) semTypeDecl(d *ast.TypeDecl) {
 		Node:  d.Name,
 		Value: fmt.Sprintf("<%s=%s>", sup.QuotedName(d.Name.Name), typ),
 	}
-	if err := t.evalAndBindConst(d.Name.Name, e); err != nil {
+	val, ok := t.mustEval(e)
+	if !ok {
+		panic(e)
+	}
+	e.Value = sup.FormatValue(val)
+	if err := t.scope.BindSymbol(d.Name.Name, e); err != nil {
 		t.error(d.Name, err)
 	}
 }
@@ -1058,23 +1116,61 @@ func idsAsStrings(ids []*ast.ID) []string {
 	return out
 }
 
-func (t *translator) declareFunc(d *ast.FuncDecl) *sem.FuncDef {
-	tag := t.newFunc(d.Lambda, d.Name.Name, idsAsStrings(d.Lambda.Params), nil)
-	funcDef := t.funcsByTag[tag]
-	if err := t.scope.BindSymbol(d.Name.Name, funcDef); err != nil {
-		t.error(d.Name, err)
-	}
-	return funcDef
+type funcDecl struct {
+	translator *translator
+	decl       *ast.FuncDecl
+	funcDef    *sem.FuncDef
+	scope      *Scope
+	pending    bool
 }
 
-func (t *translator) semFuncDefs(funcDefs []*sem.FuncDef, bodies []ast.Expr) {
-	for i, funcDef := range funcDefs {
-		t.enterScope()
-		for _, p := range funcDef.Params {
-			t.scope.BindSymbol(p, param{})
+func newFuncDecl(t *translator, d *ast.FuncDecl, funcDef *sem.FuncDef, scope *Scope) *funcDecl {
+	return &funcDecl{
+		translator: t,
+		decl:       d,
+		funcDef:    funcDef,
+		scope:      scope,
+	}
+}
+
+func (f *funcDecl) resolve() *sem.FuncDef {
+	t := f.translator
+	if f.funcDef.Body == nil {
+		if !f.pending {
+			f.pending = true
+			save := t.scope
+			t.scope = NewScope(f.scope)
+			defer func() {
+				f.pending = false
+				t.scope = save
+			}()
+			t.enterScope()
+			for _, p := range f.decl.Lambda.Params {
+				t.scope.BindSymbol(p.Name, param{})
+			}
+			f.funcDef.Body = t.semExpr(f.decl.Lambda.Expr)
+			t.exitScope()
+		} else {
+			t.error(f.decl.Name, fmt.Errorf("function %q involved in cyclic dependency", f.funcDef.Name))
+			f.funcDef.Body = badExpr()
 		}
-		funcDef.Body = t.semExpr(bodies[i])
-		t.exitScope()
+	}
+	return f.funcDef
+}
+
+func (t *translator) resolveFunc(tag string) *sem.FuncDef {
+	if decl, ok := t.funcDecls[tag]; ok {
+		return decl.resolve()
+	}
+	return t.funcs[tag]
+}
+
+func (t *translator) semFuncDecl(d *ast.FuncDecl) {
+	tag := t.newFunc(d.Lambda, d.Name.Name, idsAsStrings(d.Lambda.Params), nil)
+	funcDef := t.funcs[tag]
+	t.funcDecls[tag] = newFuncDecl(t, d, funcDef, t.scope)
+	if err := t.scope.BindSymbol(d.Name.Name, funcDef); err != nil {
+		t.error(d.Name, err)
 	}
 }
 
@@ -1148,7 +1244,7 @@ func (t *translator) semOpExpr(e ast.Expr, seq sem.Seq) sem.Seq {
 		if decl, err := t.scope.lookupOp(id.Name); err == nil {
 			return append(seq, t.semUserOp(id.Loc, decl, nil)...)
 		}
-		if querySeq := t.scope.lookupQuery(id.Name); querySeq != nil {
+		if querySeq := t.scope.lookupQuery(t, id.Name); querySeq != nil {
 			return append(seq, querySeq...)
 		}
 	}
@@ -1175,7 +1271,7 @@ func (t *translator) isBool(e sem.Expr) bool {
 	case *sem.CondExpr:
 		return t.isBool(e.Then) && t.isBool(e.Else)
 	case *sem.CallExpr:
-		if f := t.funcsByTag[e.Tag]; f != nil {
+		if f := t.resolveFunc(e.Tag); f != nil {
 			return t.isBool(f.Body)
 		}
 		if e.Tag == "cast" {
@@ -1377,16 +1473,15 @@ func (t *translator) mustEvalPositiveInteger(ae ast.Expr) int {
 	return v
 }
 
-func (t *translator) evalAndBindConst(name string, e sem.Expr) error {
+func (t *translator) mustEvalConst(e sem.Expr) sem.Expr {
 	val, ok := t.mustEval(e)
 	if !ok {
-		return nil
+		return badExpr()
 	}
-	literal := &sem.LiteralExpr{
+	return &sem.LiteralExpr{
 		Node:  e,
 		Value: sup.FormatValue(val),
 	}
-	return t.scope.BindSymbol(name, literal)
 }
 
 // mustEval leaves errors on the reporter and returns a bool as to whether
@@ -1399,11 +1494,11 @@ func (t *translator) mustEval(e sem.Expr) (super.Value, bool) {
 	// and we'll compile this all the way to a DAG and rungen it.  This is pretty
 	// general because we need to handle things like subqueries that call
 	// operator sequences that result in a constant value.
-	return newEvaluator(t.reporter, t.funcsByTag).mustEval(t.sctx, e)
+	return newEvaluator(t, t.funcs).mustEval(t.sctx, e)
 }
 
 // maybeEVal leaves no errors behind and simply returns a value and bool
 // indicating if the eval was successful
 func (t *translator) maybeEval(e sem.Expr) (super.Value, bool) {
-	return newEvaluator(t.reporter, t.funcsByTag).maybeEval(t.sctx, e)
+	return newEvaluator(t, t.funcs).maybeEval(t.sctx, e)
 }
