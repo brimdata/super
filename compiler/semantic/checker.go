@@ -31,13 +31,12 @@ func (c *checker) check(sctx *super.Context, expr sem.Expr) bool {
 }
 
 // XXX?
-func (c *checker) maybeCheck(sctx *super.Context, expr sem.Expr) (super.Value, bool) {
-}
+//func (c *checker) maybeCheck(sctx *super.Context, expr sem.Expr) (super.Value, bool) {
+//}
 
 func (c *checker) seq(typ super.Type, seq sem.Seq) super.Type {
 	for _, op := range seq {
 		typ = c.op(typ, op)
-		op.SetType(typ)
 	}
 	return typ
 }
@@ -48,12 +47,11 @@ func (c *checker) op(typ super.Type, op sem.Op) super.Type {
 	// Scanners first
 	//
 	case *sem.DefaultScan:
-		return nil //XXX can type from readers interface
+		return super.TypeNull //XXX should get type from readers interface
 	case *sem.FileScan:
 		// XXX should have been set by translator so that SQL schemas could b e
 		// managed
-		return
-
+		return op.GetType()
 	case *sem.HTTPScan,
 		*sem.PoolScan,
 		*sem.RobotScan,
@@ -71,17 +69,25 @@ func (c *checker) op(typ super.Type, op sem.Op) super.Type {
 		return e.assignments(op.Keys) && e.assignments(op.Aggs)
 	case *sem.BadOp:
 		c.bad = true
-		return false
+		return super.TypeNull
 	case *sem.CutOp:
-		typ := c.assignments(op.Args)
+		typ := c.assignments(typ, op.Args)
 		op.SetType(typ)
 		return typ
 	case *sem.DebugOp:
-		return e.expr(op.Expr) && e.constThis
+		op.SetType(typ)
+		//XXX do analysis on debug expr
+		return typ
 	case *sem.DistinctOp:
-		return e.expr(op.Expr) && e.constThis
+		typ = c.expr(typ, op.Expr)
+		op.SetType(typ)
+		return typ
 	case *sem.DropOp:
-		return e.exprs(op.Args) && e.constThis
+		//XXX need to get cut fields and synthesize dropped type
+		// XXX should have a types library to do this?  share code with drop?
+		typ = super.TypeNull
+		op.SetType(typ)
+		return typ
 	case *sem.ExplodeOp:
 		return e.exprs(op.Args) && e.constThis
 	case *sem.FilterOp:
