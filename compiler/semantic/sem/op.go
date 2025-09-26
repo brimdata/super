@@ -1,8 +1,8 @@
-// Package sem represents an semantic-internal AST representation that
+// Package sem represents a semantic-internal AST representation that
 // is used for analysis between the AST and DAG representations.
 // This is never serialized so there are no Kind fields or unpacker hooks.
-// The sem AST has no scope and all functions, ops, etc are resolved
-// to flattened tables.  Likewise, all SQL  structure is transalted to
+// The sem AST has no scope and all functions, ops, etc. are resolved
+// to flattened tables.  Likewise, all SQL  structure is translated to
 // native dataflow here with backpointers to the original AST nodes for
 // error reporting.
 package sem

@@ -6,6 +6,11 @@ import (
 	"github.com/brimdata/super/order"
 )
 
+type MainExpr struct {
+	Funcs []*FuncDef `json:"funcs"`
+	Expr  Expr       `json:"expr"`
+}
+
 type (
 	Expr interface {
 		exprNode()

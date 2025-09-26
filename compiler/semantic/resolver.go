@@ -2,6 +2,7 @@ package semantic
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 
 	"github.com/brimdata/super"
@@ -29,7 +30,7 @@ func newResolver(r reporter, funcs map[string]*sem.FuncDef) *resolver {
 
 func (r *resolver) resolve(seq sem.Seq) (sem.Seq, []*sem.FuncDef) {
 	out := r.seq(seq)
-	funcs := r.variants
+	funcs := slices.Clone(r.variants)
 	for _, f := range r.fixed {
 		funcs = append(funcs, f)
 	}

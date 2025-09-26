@@ -152,6 +152,7 @@ func (*FieldElem) recordElemNode()  {}
 func (*SpreadElem) arrayElemNode()  {}
 func (*SpreadElem) recordElemNode() {}
 
+func (*AggFunc) exprNode()          {}
 func (*ArrayExpr) exprNode()        {}
 func (*BadExpr) exprNode()          {}
 func (*BinaryExpr) exprNode()       {}
@@ -247,6 +248,3 @@ func NewStructuredError(n ast.Node, message string, on Expr) Expr {
 		Args: []Expr{rec},
 	}
 }
-
-// XXX
-func (*AggFunc) exprNode() {}
