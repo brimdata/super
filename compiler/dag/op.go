@@ -22,11 +22,6 @@ type Main struct {
 	Body  Seq        `json:"body"`
 }
 
-type MainExpr struct {
-	Funcs []*FuncDef `json:"funcs"`
-	Expr  Expr       `json:"expr"`
-}
-
 type Op interface {
 	opNode()
 }
