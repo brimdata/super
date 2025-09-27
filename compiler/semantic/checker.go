@@ -24,22 +24,15 @@ func newChecker(r reporter, sctx *super.Context, funcs map[string]*sem.FuncDef) 
 	}
 }
 
-func (c *checker) check(sctx *super.Context, expr sem.Expr) bool {
-	c.maybeCheck(sctx, expr)
-	c.flushErrs()
-	return len(c.errs) == 0
-}
-
-// XXX?
-//func (c *checker) maybeCheck(sctx *super.Context, expr sem.Expr) (super.Value, bool) {
-//}
-
+/* model is to do the type checking bottom up during the translation pass
+so we don't need this...
 func (c *checker) seq(typ super.Type, seq sem.Seq) super.Type {
 	for _, op := range seq {
 		typ = c.op(typ, op)
 	}
 	return typ
 }
+*/
 
 func (c *checker) op(typ super.Type, op sem.Op) super.Type {
 	switch op := op.(type) {
@@ -71,9 +64,7 @@ func (c *checker) op(typ super.Type, op sem.Op) super.Type {
 		c.bad = true
 		return super.TypeNull
 	case *sem.CutOp:
-		typ := c.assignments(typ, op.Args)
-		op.SetType(typ)
-		return typ
+		return c.cutOp(op)
 	case *sem.DebugOp:
 		op.SetType(typ)
 		//XXX do analysis on debug expr
@@ -152,15 +143,21 @@ func (c *checker) op(typ super.Type, op sem.Op) super.Type {
 	}
 }
 
-func (c *checker) assignments(typ super.Type, assignments []sem.Assignment) super.Type {
-	isConst := true
+func (c *checker) cutOp(in super.Type, cut *sem.CutOp) super.Type {
+	types := c.assignments(in, cut.Args)
+	var fields []super.Field 
+	for _, t : =range types {
+		fields = append(fields &super.Field{
+
+		}
+	}
+	op.SetType(typ)
+	return typ
+}
+
+func (c *checker) assignments(typ super.Type, assignments []sem.Assignment) []super.Fields {
 	for _, a := range assignments {
-		if !e.expr(a.LHS) { //XXX lval needs to be treated differently...
-			isConst = false
-		}
-		if !e.expr(a.RHS) {
-			isConst = false
-		}
+		
 	}
 	return isConst
 }
