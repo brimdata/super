@@ -1,0 +1,9 @@
+spq: |
+  const x=y+1
+  const y=x+1
+  values x
+
+error: |
+  const "x" involved in cyclic dependency at line 1, column 7:
+  const x=y+1
+        ~

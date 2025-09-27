@@ -2,6 +2,7 @@ script: |
   ! super -I duplicate.spq -
   ! super -I call-non-func.spq -
   ! super -I wrong-args.spq -
+  ! super -I call-query-err.spq -
 
 inputs:
   - name: duplicate.spq
@@ -17,6 +18,10 @@ inputs:
     data: |
       fn f(a,b): (a+b)
       values f(this)
+  - name: call-query-err.spq
+    data: |
+      let q = (values 1)
+      values q(this)
 
 outputs:
   - name: stderr
@@ -30,3 +35,7 @@ outputs:
       "f": expected 2 params but called with 1 in wrong-args.spq at line 2, column 8:
       values f(this)
              ~~~~~~~
+      "q" is not a function in call-query-err.spq at line 2, column 8:
+      values q(this)
+             ~~~~~~~
+ 

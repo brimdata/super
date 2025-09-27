@@ -1,0 +1,10 @@
+spq: |
+  const y=f(3)
+  fn f(x):g(x+1)+2
+  fn g(x):x+y+4
+  values y
+
+error: |
+  const "y" involved in cyclic dependency at line 1, column 7:
+  const y=f(3)
+        ~
