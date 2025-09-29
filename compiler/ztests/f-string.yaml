@@ -1,9 +1,9 @@
 spq: |
   values
     f"hello {this}",
-    f'hello {hex(this::bytes)}',
+    f'hello {len(this)}',
     f"hello \{this}",
-    f'hello \{hex(this)}',
+    f'hello \{len(this)}',
     f'yo {f"dawg {this}"}',
     f'{this}',
     "==="
@@ -13,16 +13,16 @@ input: |
 
 output: |
    "hello world"
-   "hello 776f726c64"
+   "hello 5"
    "hello {this}"
-   "hello {hex(this)}"
+   "hello {len(this)}"
    "yo dawg world"
    "world"
    "==="
    "hello 127.0.0.1"
-   "hello 7f000001"
+   "hello 4"
    "hello {this}"
-   "hello {hex(this)}"
+   "hello {len(this)}"
    "yo dawg 127.0.0.1"
    "127.0.0.1"
    "==="

@@ -5,13 +5,13 @@ vector: true
 input: |
   "foo"
   "bar"::=named
+  ""
   null::string
   {x:"foo"}
-  {x:"bar"}
 
 output: |
   0x666f6f
   0x626172
+  0x
   null::bytes
-  0x04666f6f
-  0x04626172
+  error({message:"cannot cast to bytes",on:{x:"foo"}})

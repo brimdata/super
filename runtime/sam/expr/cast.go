@@ -38,7 +38,7 @@ func LookupPrimitiveCaster(sctx *super.Context, typ super.Type) Evaluator {
 	case super.TypeString:
 		return &casterString{sctx}
 	case super.TypeBytes:
-		return &casterBytes{}
+		return &casterBytes{sctx}
 	case super.TypeType:
 		return &casterType{sctx}
 	default:
@@ -231,9 +231,14 @@ func (c *casterString) Eval(val super.Value) super.Value {
 	return super.NewString(sup.FormatValue(val))
 }
 
-type casterBytes struct{}
+type casterBytes struct {
+	sctx *super.Context
+}
 
 func (c *casterBytes) Eval(val super.Value) super.Value {
+	if val.Type().ID() != super.IDString {
+		return c.sctx.WrapError("cannot cast to bytes", val)
+	}
 	return super.NewBytes(val.Bytes())
 }
 
