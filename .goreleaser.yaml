@@ -1,7 +1,9 @@
+# GoReleaser v2 configuration
+version: 2
+
+project_name: super
 builds:
   - main: ./cmd/super
-    id: sup
-    binary: super
     env:
       - CGO_ENABLED=0
     ldflags:
@@ -14,19 +16,18 @@ builds:
       - windows
       - darwin
 archives:
-  - name_template: super-{{ .Tag }}.{{ .Os }}-{{ .Arch }}
+  - name_template: "{{ .ProjectName }}-{{ .Tag }}.{{ .Os }}-{{ .Arch }}"
     format_overrides:
       - goos: windows
-        format: zip
+        formats: [ "zip" ]
     files:
       - LICENSE.txt
       - acknowledgments.txt
 release:
   header: |
     View [change log](CHANGELOG.md#{{ replace .Tag "." "" }}).
-brews:
-  - name: super
-    repository:
+homebrew_casks:
+  - repository:
       owner: brimdata
       name: homebrew-tap
     commit_author:
@@ -34,12 +35,10 @@ brews:
       email: bot@brimdata.io
     homepage: https://github.com/brimdata/super
     description: |
-      An analytics database that puts JSON and relational tables on equal footing
-    install: |
-      bin.install "super"
+      An analytics database that fuses structured and semi-structured data
 checksum:
   name_template: 'super-checksums.txt'
 snapshot:
-  name_template: "{{ incpatch .Version }}-{{ .ShortCommit }}"
+  version_template: "{{ incpatch .Version }}-{{ .ShortCommit }}"
 changelog:
-  skip: true
+  disable: true
