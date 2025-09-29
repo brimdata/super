@@ -1,0 +1,52 @@
+script: |
+  super compile -C -O "
+    select *
+    from (values (1,'badgers')) as teams(id,team)
+    inner join (values (1,1,'blake','P')) as players(id,team_id,player,position) on teams.id = players.team_id
+    where players.position = 'P' and 'badgers' = team
+  "
+  echo // ===
+  super compile -C -O "
+    select *
+    from (values (1)) as t1(a1), (values (1)) as t2(a2), (values (1)) as t3(a3)
+    where a1 == 1 and a3 == 1 and (1 == a2 or a2 == 2)
+  "
+
+outputs:
+  - name: stdout
+    data: |
+      null
+      | fork
+        (
+          values {id:1,team:"badgers"}
+          | where team=="badgers"
+        )
+        (
+          values {id:1,team_id:1,player:"blake",position:"P"}
+          | where position=="P"
+        )
+      | inner hashjoin as {left,right} on id==team_id
+      | values {team:left.team,id:right.id,team_id:right.team_id,player:right.player,position:right.position}
+      | output main
+      // ===
+      null
+      | fork
+        (
+          values {a1:1}
+          | where a1==1
+        )
+        (
+          fork
+            (
+              values {a2:1}
+              | where a2==1 or a2==2
+            )
+            (
+              values {a3:1}
+              | where a3==1
+            )
+          | cross join as {left,right}
+        )
+      | cross join as {left,right}
+      | values {a1:left.a1,a2:right.left.a2,a3:right.right.a3}
+      | output main

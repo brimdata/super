@@ -144,6 +144,7 @@ func (o *Optimizer) Optimize(main *dag.Main) error {
 	seq = mergeFilters(seq)
 	seq = mergeValuesOps(seq)
 	inlineRecordExprSpreads(seq)
+	seq = joinFilterPullup(seq)
 	seq = removePassOps(seq)
 	seq = replaceSortAndHeadOrTailWithTop(seq)
 	o.optimizeParallels(seq)
@@ -504,6 +505,103 @@ func inlineRecordExprSpreads(v any) {
 		}
 		return r
 	})
+}
+
+func joinFilterPullup(seq dag.Seq) dag.Seq {
+	seq = mergeFilters(seq)
+	for i := 0; i <= len(seq)-3; i++ {
+		fork, isfork := seq[i].(*dag.Fork)
+		leftAlias, rightAlias, isjoin := isJoin(seq[i+1])
+		filter, isfilter := seq[i+2].(*dag.Filter)
+		if !isfork || !isjoin || !isfilter {
+			continue
+		}
+		if len(fork.Paths) != 2 {
+			panic(seq[i])
+		}
+		var remaining []dag.Expr
+		for _, e := range splitPredicate(filter.Expr) {
+			if pullup, ok := pullupExpr(leftAlias, e); ok {
+				fork.Paths[0] = append(fork.Paths[0], dag.NewFilter(pullup))
+				continue
+			}
+			if pullup, ok := pullupExpr(rightAlias, e); ok {
+				fork.Paths[1] = append(fork.Paths[1], dag.NewFilter(pullup))
+				continue
+			}
+			remaining = append(remaining, e)
+		}
+		if len(remaining) == 0 {
+			// Filter has been fully pulled up and can be removed.
+			seq.Delete(i+2, i+3)
+		} else {
+			out := remaining[0]
+			for _, e := range remaining[1:] {
+				out = dag.NewBinaryExpr("and", e, out)
+			}
+			seq[i+2] = dag.NewFilter(out)
+		}
+		fork.Paths[0] = joinFilterPullup(fork.Paths[0])
+		fork.Paths[1] = joinFilterPullup(fork.Paths[1])
+	}
+	return seq
+}
+
+func isJoin(op dag.Op) (string, string, bool) {
+	switch op := op.(type) {
+	case *dag.HashJoin:
+		return op.LeftAlias, op.RightAlias, true
+	case *dag.Join:
+		return op.LeftAlias, op.RightAlias, true
+	default:
+		return "", "", false
+	}
+}
+
+func splitPredicate(e dag.Expr) []dag.Expr {
+	if b, ok := e.(*dag.BinaryExpr); ok && b.Op == "and" {
+		return append(splitPredicate(b.LHS), splitPredicate(b.RHS)...)
+	}
+	return []dag.Expr{e}
+}
+
+func pullupExpr(alias string, expr dag.Expr) (dag.Expr, bool) {
+	e, ok := expr.(*dag.BinaryExpr)
+	if !ok {
+		return nil, false
+	}
+	if e.Op == "and" {
+		lhs, lok := pullupExpr(alias, e.LHS)
+		rhs, rok := pullupExpr(alias, e.RHS)
+		if !lok || !rok {
+			return nil, false
+		}
+		return dag.NewBinaryExpr("and", lhs, rhs), true
+	}
+	if e.Op == "or" {
+		lhs, lok := pullupExpr(alias, e.LHS)
+		rhs, rok := pullupExpr(alias, e.RHS)
+		if !lok || !rok {
+			return nil, false
+		}
+		return dag.NewBinaryExpr("or", lhs, rhs), true
+
+	}
+	var literal *dag.Literal
+	var this *dag.This
+	for _, e := range []dag.Expr{e.RHS, e.LHS} {
+		if l, ok := e.(*dag.Literal); ok && literal == nil {
+			literal = l
+			continue
+		}
+		if t, ok := e.(*dag.This); ok && this == nil && len(t.Path) > 1 && t.Path[0] == alias {
+			this = t
+			continue
+		}
+		return nil, false
+	}
+	path := slices.Clone(this.Path[1:])
+	return dag.NewBinaryExpr(e.Op, dag.NewThis(path), literal), true
 }
 
 func liftFilterOps(seq dag.Seq) dag.Seq {
