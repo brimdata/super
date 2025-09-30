@@ -38,4 +38,3 @@ outputs:
       "q" is not a function in call-query-err.spq at line 2, column 8:
       values q(this)
              ~~~~~~~
- 
