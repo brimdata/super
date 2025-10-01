@@ -21,6 +21,8 @@ input: |
   1.2.3.4/32
   0x68692c20776f726c64
   0x666f6f20626172
+  0x00
+  0xc328
   "hi, world"
   "foo bar"
   {foo:"bar"}
@@ -46,6 +48,8 @@ output: |
   "1.2.3.4/32"
   "hi, world"
   "foo bar"
+  "\u0000"
+  error({message:"cannot cast to string: invalid UTF-8",on:0xc328})
   "hi, world"
   "foo bar"
   "{foo:\"bar\"}"

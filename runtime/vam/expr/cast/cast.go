@@ -13,7 +13,7 @@ func To(sctx *super.Context, vec vector.Any, typ super.Type) vector.Any {
 	var c caster
 	id := typ.ID()
 	if super.IsNumber(id) {
-		c = func(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
+		c = func(vec vector.Any, index []uint32) (vector.Any, []uint32, string, bool) {
 			return castToNumber(vec, typ, index)
 		}
 	} else {
@@ -29,29 +29,30 @@ func To(sctx *super.Context, vec vector.Any, typ super.Type) vector.Any {
 		case super.IDNet:
 			c = castToNet
 		case super.IDType:
-			c = func(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
+			c = func(vec vector.Any, index []uint32) (vector.Any, []uint32, string, bool) {
 				return castToType(sctx, vec, index)
 			}
 		default:
-			return errCastFailed(sctx, vec, typ)
+			return errCastFailed(sctx, vec, typ, "")
 		}
 	}
 	return assemble(sctx, vec, typ, c)
 }
 
-type caster func(vector.Any, []uint32) (vector.Any, []uint32, bool)
+type caster func(vector.Any, []uint32) (vector.Any, []uint32, string, bool)
 
 func assemble(sctx *super.Context, vec vector.Any, typ super.Type, fn caster) vector.Any {
 	var out vector.Any
 	var errs []uint32
+	var errMsg string
 	var ok bool
 	switch vec := vec.(type) {
 	case *vector.Const:
 		return castConst(sctx, vec, typ)
 	case *vector.View:
-		out, errs, ok = fn(vec.Any, vec.Index)
+		out, errs, errMsg, ok = fn(vec.Any, vec.Index)
 	case *vector.Dict:
-		out, errs, ok = fn(vec.Any, nil)
+		out, errs, errMsg, ok = fn(vec.Any, nil)
 		if ok {
 			if len(errs) > 0 {
 				index, counts, nulls, nerrs := vec.RebuildDropTags(errs...)
@@ -62,13 +63,13 @@ func assemble(sctx *super.Context, vec vector.Any, typ super.Type, fn caster) ve
 			}
 		}
 	default:
-		out, errs, ok = fn(vec, nil)
+		out, errs, errMsg, ok = fn(vec, nil)
 	}
 	if !ok {
-		return errCastFailed(sctx, vec, typ)
+		return errCastFailed(sctx, vec, typ, errMsg)
 	}
 	if len(errs) > 0 {
-		return vector.Combine(out, errs, errCastFailed(sctx, vector.Pick(vec, errs), typ))
+		return vector.Combine(out, errs, errCastFailed(sctx, vector.Pick(vec, errs), typ, errMsg))
 	}
 	return out
 }
@@ -88,17 +89,21 @@ func castConst(sctx *super.Context, vec *vector.Const, typ super.Type) vector.An
 					trueCount++
 				}
 			}
-			err := errCastFailed(sctx, vector.NewConst(vec.Value(), vec.Len()-trueCount, bitvec.Zero), typ)
+			err := errCastFailed(sctx, vector.NewConst(vec.Value(), vec.Len()-trueCount, bitvec.Zero), typ, "")
 			nulls := vector.NewConst(super.NewValue(typ, nil), trueCount, bitvec.Zero)
 			return vector.NewDynamic(index, []vector.Any{err, nulls})
 		}
-		return errCastFailed(sctx, vec, typ)
+		return errCastFailed(sctx, vec, typ, "")
 	}
 	return vector.NewConst(val, vec.Len(), vec.Nulls)
 }
 
-func errCastFailed(sctx *super.Context, vec vector.Any, typ super.Type) vector.Any {
-	return vector.NewWrappedError(sctx, "cannot cast to "+sup.FormatType(typ), vec)
+func errCastFailed(sctx *super.Context, vec vector.Any, typ super.Type, msgSuffix string) vector.Any {
+	msg := "cannot cast to " + sup.FormatType(typ)
+	if msgSuffix != "" {
+		msg = msg + ": " + msgSuffix
+	}
+	return vector.NewWrappedError(sctx, msg, vec)
 }
 
 func lengthOf(vec vector.Any, index []uint32) uint32 {

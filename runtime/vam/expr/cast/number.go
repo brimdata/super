@@ -17,10 +17,10 @@ type numeric interface {
 	constraints.Float | constraints.Integer
 }
 
-func castToNumber(vec vector.Any, typ super.Type, index []uint32) (vector.Any, []uint32, bool) {
+func castToNumber(vec vector.Any, typ super.Type, index []uint32) (vector.Any, []uint32, string, bool) {
 	if vec.Type().ID() == super.IDString {
 		out, errs := castStringToNumber(vec, typ, index)
-		return out, errs, true
+		return out, errs, "", true
 	}
 	nulls := vector.NullsOf(vec)
 	if index != nil {
@@ -32,21 +32,21 @@ func castToNumber(vec vector.Any, typ super.Type, index []uint32) (vector.Any, [
 		if len(errs) > 0 {
 			nulls = nulls.Pick(inverseIndex(errs, nulls.Len()))
 		}
-		return vector.NewInt(typ, vals, nulls), errs, true
+		return vector.NewInt(typ, vals, nulls), errs, "", true
 	case super.IsUnsigned(id):
 		vals, errs := toNumeric[uint64](vec, typ, index)
 		if len(errs) > 0 {
 			nulls = nulls.Pick(inverseIndex(errs, nulls.Len()))
 		}
-		return vector.NewUint(typ, vals, nulls), errs, true
+		return vector.NewUint(typ, vals, nulls), errs, "", true
 	case super.IsFloat(id):
 		vals, errs := toNumeric[float64](vec, typ, index)
 		if errs != nil {
 			nulls = nulls.Pick(inverseIndex(errs, nulls.Len()))
 		}
-		return vector.NewFloat(typ, vals, nulls), errs, true
+		return vector.NewFloat(typ, vals, nulls), errs, "", true
 	default:
-		return nil, nil, false
+		return nil, nil, "", false
 	}
 }
 

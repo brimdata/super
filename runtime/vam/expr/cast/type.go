@@ -7,10 +7,10 @@ import (
 	"github.com/brimdata/super/vector/bitvec"
 )
 
-func castToType(sctx *super.Context, vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
+func castToType(sctx *super.Context, vec vector.Any, index []uint32) (vector.Any, []uint32, string, bool) {
 	switch vec := vec.(type) {
 	case *vector.TypeValue:
-		return vec, nil, true
+		return vec, nil, "", true
 	case *vector.String:
 		n := lengthOf(vec, index)
 		out := vector.NewTypeValueEmpty(0, bitvec.Zero)
@@ -36,8 +36,8 @@ func castToType(sctx *super.Context, vec vector.Any, index []uint32) (vector.Any
 			}
 			out.Append(val.Bytes())
 		}
-		return out, errs, true
+		return out, errs, "", true
 	default:
-		return nil, nil, false
+		return nil, nil, "", false
 	}
 }

@@ -6,7 +6,7 @@ import (
 	"github.com/brimdata/super/vector/bitvec"
 )
 
-func castToBool(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
+func castToBool(vec vector.Any, index []uint32) (vector.Any, []uint32, string, bool) {
 	var out *vector.Bool
 	switch vec := vec.(type) {
 	case *vector.Int:
@@ -17,9 +17,9 @@ func castToBool(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
 		out = numberToBool(vec.Values, index)
 	case *vector.String:
 		vvec, errs := stringToBool(vec, index)
-		return vvec, errs, true
+		return vvec, errs, "", true
 	default:
-		return nil, nil, false
+		return nil, nil, "", false
 	}
 	nulls := vector.NullsOf(vec)
 	if index == nil {
@@ -27,7 +27,7 @@ func castToBool(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
 	} else {
 		out.Nulls = nulls.Pick(index)
 	}
-	return out, nil, true
+	return out, nil, "", true
 }
 
 func numberToBool[E numeric](s []E, index []uint32) *vector.Bool {

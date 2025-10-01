@@ -8,10 +8,10 @@ import (
 	"github.com/brimdata/super/vector/bitvec"
 )
 
-func castToIP(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
+func castToIP(vec vector.Any, index []uint32) (vector.Any, []uint32, string, bool) {
 	switch vec := vec.(type) {
 	case *vector.IP:
-		return vec, nil, true
+		return vec, nil, "", true
 	case *vector.String:
 		n := lengthOf(vec, index)
 		var nulls bitvec.Bits
@@ -37,16 +37,16 @@ func castToIP(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
 			}
 			ips = append(ips, ip)
 		}
-		return vector.NewIP(ips, nulls), errs, true
+		return vector.NewIP(ips, nulls), errs, "", true
 	default:
-		return nil, nil, false
+		return nil, nil, "", false
 	}
 }
 
-func castToNet(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
+func castToNet(vec vector.Any, index []uint32) (vector.Any, []uint32, string, bool) {
 	switch vec := vec.(type) {
 	case *vector.Net:
-		return vec, nil, true
+		return vec, nil, "", true
 	case *vector.String:
 		n := lengthOf(vec, index)
 		var nulls bitvec.Bits
@@ -72,8 +72,8 @@ func castToNet(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
 			}
 			nets = append(nets, net)
 		}
-		return vector.NewNet(nets, nulls), errs, true
+		return vector.NewNet(nets, nulls), errs, "", true
 	default:
-		return nil, nil, false
+		return nil, nil, "", false
 	}
 }

@@ -3,6 +3,7 @@ package cast
 import (
 	"strconv"
 	"time"
+	"unicode/utf8"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/nano"
@@ -11,7 +12,7 @@ import (
 	"github.com/brimdata/super/vector"
 )
 
-func castToString(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
+func castToString(vec vector.Any, index []uint32) (vector.Any, []uint32, string, bool) {
 	nulls := vector.NullsOf(vec)
 	if index != nil {
 		nulls = nulls.Pick(index)
@@ -56,21 +57,35 @@ func castToString(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
 		}
 	case *vector.String:
 		if index == nil {
-			return vec, nil, true
+			return vec, nil, "", true
 		}
 		for _, idx := range index {
 			bytes = append(bytes, vec.Value(idx)...)
 			offs = append(offs, uint32(len(bytes)))
 		}
 	case *vector.Bytes:
+		var errs []uint32
 		for i := range n {
 			idx := i
 			if index != nil {
 				idx = index[i]
 			}
-			bytes = append(bytes, vec.Value(idx)...)
-			offs = append(offs, uint32(len(bytes)))
+			if !utf8.Valid(vec.Value(idx)) {
+				errs = append(errs, i)
+			}
 		}
+		const errMsg = "invalid UTF-8"
+		if len(errs) == int(n) {
+			return nil, nil, errMsg, false
+		}
+		out := vector.Any(vector.NewString(vec.Table(), vec.Nulls))
+		if index != nil {
+			out = vector.Pick(out, index)
+		}
+		if len(errs) > 0 {
+			out = vector.ReversePick(out, errs)
+		}
+		return out, errs, errMsg, true
 	case *vector.IP:
 		for i := range n {
 			idx := i
@@ -115,7 +130,7 @@ func castToString(vec vector.Any, index []uint32) (vector.Any, []uint32, bool) {
 			offs = append(offs, uint32(len(bytes)))
 		}
 	}
-	return vector.NewString(vector.NewBytesTable(offs, bytes), nulls), nil, true
+	return vector.NewString(vector.NewBytesTable(offs, bytes), nulls), nil, "", true
 }
 
 func timeToString(vec *vector.Int, index []uint32, n uint32) ([]uint32, []byte) {
