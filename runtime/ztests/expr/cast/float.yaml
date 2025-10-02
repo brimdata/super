@@ -9,6 +9,8 @@ input: |
   1::uint64
   1000000000::uint64
   2::=named
+  false
+  true
 
 output: |
   1.5::float16
@@ -29,3 +31,9 @@ output: |
   2.::float16
   2.::float32
   2.
+  0.::float16
+  0.::float32
+  0.
+  1.::float16
+  1.::float32
+  1.

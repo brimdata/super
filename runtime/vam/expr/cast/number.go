@@ -79,6 +79,8 @@ func toNumeric[T numeric](vec vector.Any, typ super.Type, index []uint32) ([]T, 
 			return checkAndCastNumbers[float64, T](vec.Values, min, max, index)
 		}
 		return castNumbers[float64, T](vec.Values, index), nil
+	case *vector.Bool:
+		return boolToNumeric[T](vec, index), nil
 	default:
 		panic(vec)
 	}
@@ -119,6 +121,21 @@ func castNumbers[E numeric, T numeric](s []E, index []uint32) []T {
 	out := make([]T, len(s))
 	for i, v := range s {
 		out[i] = T(v)
+	}
+	return out
+}
+
+func boolToNumeric[T numeric](vec *vector.Bool, index []uint32) []T {
+	n := lengthOf(vec, index)
+	out := make([]T, n)
+	for i := range n {
+		idx := i
+		if index != nil {
+			idx = index[i]
+		}
+		if vec.Bits.IsSet(idx) {
+			out[i] = 1
+		}
 	}
 	return out
 }

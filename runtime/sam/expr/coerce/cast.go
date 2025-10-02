@@ -23,6 +23,12 @@ func ToUint(val super.Value, typUint super.Type) (uint64, bool) {
 		v := val.Float()
 		min, max, check := FromFloatOverflowCheck(val.Type(), typUint)
 		return uint64(v), !check || v >= min && v <= max
+	case id == super.IDBool:
+		var v uint64
+		if val.Bool() {
+			v = 1
+		}
+		return v, true
 	case id == super.IDString:
 		v, err := strconv.ParseUint(val.AsString(), 10, UintBits(typUint))
 		return v, err == nil
@@ -45,6 +51,12 @@ func ToInt(val super.Value, typInt super.Type) (int64, bool) {
 		v := val.Float()
 		min, max, check := FromFloatOverflowCheck(val.Type(), typInt)
 		return int64(v), !check || v >= min && v <= max
+	case id == super.IDBool:
+		var v int64
+		if val.Bool() {
+			v = 1
+		}
+		return v, true
 	case id == super.IDString:
 		v, err := strconv.ParseInt(val.AsString(), 10, IntBits(typInt))
 		return v, err == nil
@@ -63,6 +75,10 @@ func ToFloat(val super.Value, typ super.Type) (float64, bool) {
 		v = float64(val.Int())
 	case super.IsFloat(fromId):
 		v = val.Float()
+	case fromId == super.IDBool:
+		if val.Bool() {
+			v = 1
+		}
 	case fromId == super.IDString:
 		var err error
 		if v, err = byteconv.ParseFloat64(val.Bytes()); err != nil {

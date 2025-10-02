@@ -1,0 +1,18 @@
+spq: |
+  values this::uint8, this::uint16, this::uint32, this::uint64
+
+vector: true
+
+input: |
+  false
+  true
+
+output: |
+  0::uint8
+  0::uint16
+  0::uint32
+  0::uint64
+  1::uint8
+  1::uint16
+  1::uint32
+  1::uint64
