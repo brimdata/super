@@ -71,8 +71,7 @@ func (c *checker) op(typ super.Type, op sem.Op) super.Type {
 	case *sem.FileScan:
 		// XXX should have been set by translator so that SQL schemas could b e
 		// managed
-		typ := op.GetType()
-		if typ == super.TypeNull {
+		if op.Type == nil {
 			return c.unknown
 		}
 		return typ

@@ -163,7 +163,7 @@ func (t *translator) fileScanColumns(op *sem.FileScan) ([]string, bool) {
 	defer sr.Close()
 	cols, err := parquetio.TopLevelFieldNames(sr)
 	// XXX should just use type and construct staticSchema from type
-	op.SetType(parquetio.Type(t.sctx, sr))
+	op.Type = parquetio.Type(t.sctx, sr)
 	return cols, err == nil
 }
 
@@ -831,10 +831,10 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			as = this.Path[0]
 		}
 		return append(seq, &sem.ExplodeOp{
-			Node:  o,
-			Args:  args,
-			Type_: typ,
-			As:    as,
+			Node: o,
+			Args: args,
+			Type: typ,
+			As:   as,
 		})
 	case *ast.Merge:
 		var ok bool

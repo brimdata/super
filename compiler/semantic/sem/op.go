@@ -23,15 +23,12 @@ type Main struct {
 type Op interface {
 	opNode()
 	ast.Node
-	SetType(super.Type)
-	GetType() super.Type
 }
 
 // Scanner ops implement both Scanner and Op
 type (
 	CommitMetaScan struct {
 		ast.Node
-		Type
 		Pool   ksuid.KSUID
 		Commit ksuid.KSUID
 		Meta   string
@@ -39,28 +36,24 @@ type (
 	}
 	DBMetaScan struct {
 		ast.Node
-		Type
 		Meta string
 	}
 	DefaultScan struct {
 		ast.Node
-		Type
 	}
 	DeleteScan struct {
 		ast.Node
-		Type
 		ID     ksuid.KSUID
 		Commit ksuid.KSUID
 	}
 	FileScan struct {
 		ast.Node
-		Type
+		Type   super.Type
 		Path   string
 		Format string
 	}
 	HTTPScan struct {
 		ast.Node
-		Type
 		URL     string
 		Format  string
 		Method  string
@@ -72,19 +65,16 @@ type (
 	}
 	PoolMetaScan struct {
 		ast.Node
-		Type
 		ID   ksuid.KSUID
 		Meta string
 	}
 	PoolScan struct {
 		ast.Node
-		Type
 		ID     ksuid.KSUID
 		Commit ksuid.KSUID
 	}
 	RobotScan struct {
 		ast.Node
-		Type
 		Expr   Expr
 		Format string
 	}
@@ -122,64 +112,52 @@ func (seq *Seq) Append(op Op) {
 type (
 	AggregateOp struct {
 		ast.Node
-		Type
 		Limit int
 		Keys  []Assignment
 		Aggs  []Assignment
 	}
 	BadOp struct {
 		ast.Node
-		Type
 	}
 	CutOp struct {
 		ast.Node
-		Type
 		Args []Assignment
 	}
 	DebugOp struct {
 		ast.Node
-		Type
 		Expr Expr
 	}
 	DistinctOp struct {
 		ast.Node
-		Type
 		Expr Expr
 	}
 	DropOp struct {
 		ast.Node
-		Type
 		Args []Expr
 	}
 	ExplodeOp struct {
 		ast.Node
-		Type
-		Args  []Expr
-		Type_ string
-		As    string
+		Args []Expr
+		Type string
+		As   string
 	}
 	FilterOp struct {
 		ast.Node
-		Type
 		Expr Expr
 	}
 	ForkOp struct {
 		ast.Node
-		Type
 		Paths []Seq
 	}
 	FuseOp struct {
 		ast.Node
-		Type
 	}
 	HeadOp struct {
 		ast.Node
-		Type
 		Count int
 	}
 	JoinOp struct {
 		ast.Node
-		Type
 		Style      string
 		LeftAlias  string
 		RightAlias string
@@ -187,7 +165,6 @@ type (
 	}
 	LoadOp struct {
 		ast.Node
-		Type
 		Pool    ksuid.KSUID
 		Branch  string
 		Author  string
@@ -196,71 +173,58 @@ type (
 	}
 	MergeOp struct {
 		ast.Node
-		Type
 		Exprs []SortExpr
 	}
 	OutputOp struct {
 		ast.Node
-		Type
 		Name string
 	}
 	PassOp struct {
 		ast.Node
-		Type
 	}
 	PutOp struct {
 		ast.Node
-		Type
 		Args []Assignment
 	}
 	RenameOp struct {
 		ast.Node
-		Type
 		Args []Assignment
 	}
 	SkipOp struct {
 		ast.Node
-		Type
 		Count int
 	}
 	SortOp struct {
 		ast.Node
-		Type
 		Exprs   []SortExpr
 		Reverse bool
 	}
 	SwitchOp struct {
 		ast.Node
-		Type
 		Expr  Expr
 		Cases []Case
 	}
 	TailOp struct {
 		ast.Node
-		Type
 		Count int
 	}
 	TopOp struct {
 		ast.Node
-		Type
 		Limit   int
 		Exprs   []SortExpr
 		Reverse bool
 	}
 	UniqOp struct {
 		ast.Node
-		Type
 		Cflag bool
 	}
 	UnnestOp struct {
 		ast.Node
-		Type
 		Expr Expr
 		Body Seq
 	}
 	ValuesOp struct {
 		ast.Node
-		Type
 		Exprs []Expr
 	}
 )
