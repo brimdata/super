@@ -28,6 +28,7 @@ input: |
   {foo:"bar"}
   null::{foo:string}
   [1,2,3]
+  "e2"::enum(e1,e2)
 
 output: |
   "1"
@@ -55,3 +56,4 @@ output: |
   "{foo:\"bar\"}"
   null::string
   "[1,2,3]"
+  "e2"
