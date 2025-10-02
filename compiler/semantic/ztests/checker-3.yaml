@@ -1,0 +1,9 @@
+spq: values "hello" - "world"
+
+error: |
+  numeric type required, encountered string at line 1, column 8:
+  values "hello" - "world"
+         ~~~~~~~
+  numeric type required, encountered string at line 1, column 18:
+  values "hello" - "world"
+                   ~~~~~~~

@@ -1,0 +1,8 @@
+spq: |
+   values {x:true,y:1}, {x:"foo",y:1}
+   | values x+y
+
+error: |
+  type mismatch at line 2, column 10:
+  | values x+y
+           ~
