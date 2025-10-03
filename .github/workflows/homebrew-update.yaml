@@ -1,0 +1,60 @@
+name: "Update Homewbrew Cask"
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: closed
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Commit SHA to build'
+        required: true
+        default: 'main'
+        type: string
+
+jobs:
+  build-and-update:
+    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-22.04
+    steps:
+      - id: checkout-ref
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "ref=${{ github.event.inputs.ref }}" >> $GITHUB_OUTPUT
+          else
+            echo "ref=${{ github.event.pull_request.merge_commit_sha }}" >> $GITHUB_OUTPUT
+          fi
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.checkout-ref.outputs.ref }}
+          fetch-depth: 0    
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: goreleaser/goreleaser-action@v6
+        with:
+          args: release --snapshot --clean
+      - uses: aws-actions/configure-aws-credentials@v5
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+      - run: |
+          sha_hash=${{ steps.checkout-ref.outputs.ref }}
+          short_hash=${sha_hash:0:9}
+          for artifact in dist/super-${short_hash}*; do aws s3 cp $artifact s3://super-prereleases/${short_hash}/ ; done
+      - uses: actions/checkout@v4
+        with:
+          repository: brimdata/homebrew-tap
+          token: ${{ secrets.PAT_TOKEN }}
+          path: homebrew-tap
+      - run: |
+          mkdir -p homebrew-tap/Casks
+          cp dist/homebrew/Casks/super.rb homebrew-tap/Casks
+          cd homebrew-tap
+          git config --global user.name 'Brim Automation'
+          git config --global user.email 'automation@brimdata.com'
+          git add Casks/super.rb
+          git commit -am "update super Homebrew Cask to ${{ steps.checkout-ref.outputs.ref }}" || true
+          git push
