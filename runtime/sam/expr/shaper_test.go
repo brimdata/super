@@ -18,14 +18,14 @@ func TestBestUnionTag(t *testing.T) {
 	u8named3, err := sctx.LookupTypeNamed("u8named3", u8)
 	require.NoError(t, err)
 
-	assert.Equal(t, -1, bestUnionTag(u8, nil))
-	assert.Equal(t, -1, bestUnionTag(u8, u8))
-	assert.Equal(t, -1, bestUnionTag(super.TypeUint16, sctx.LookupTypeUnion([]super.Type{u8})))
+	assert.Equal(t, -1, BestUnionTag(u8, nil))
+	assert.Equal(t, -1, BestUnionTag(u8, u8))
+	assert.Equal(t, -1, BestUnionTag(super.TypeUint16, sctx.LookupTypeUnion([]super.Type{u8})))
 
 	test := func(expected, needle super.Type, haystack []super.Type) {
 		t.Helper()
 		union := sctx.LookupTypeUnion(haystack)
-		typ, err := union.Type(bestUnionTag(needle, union))
+		typ, err := union.Type(BestUnionTag(needle, union))
 		if assert.NoError(t, err) {
 			assert.Equal(t, expected, typ)
 		}

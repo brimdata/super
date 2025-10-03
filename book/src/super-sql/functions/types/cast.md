@@ -198,8 +198,8 @@ cast(this, <{b:string}>)
 {a:3}
 {b:4}
 # expected output
-{a:1,b:"2"}
-{a:3}
+{b:"2"}
+{b:null::string}
 {b:"4"}
 ```
 

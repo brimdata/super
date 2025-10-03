@@ -24,11 +24,11 @@ output: |
   null::string
   "1"
   "1"
-  error("createStep: incompatible types int8|string and int64|string")
-  error("createStep: incompatible types int64|string and int8|string")
+  error({message:"cannot cast to int64|string",on:1::int8::(int8|string)})::error({message:string,on:int8|string})
+  error({message:"cannot cast to int8|string",on:1::(int64|string)})::error({message:string,on:int64|string})
   "one"
   ["1","one"]
-  error("createStep: incompatible types int64|string and int8|string")
-  error("createStep: incompatible types int64|string and int8|int16")
+  [error({message:"cannot cast to int8|string",on:1::(int64|string)})::error({message:string,on:int64|string}),"one"::(int8|string)]
+  [error({message:"cannot cast to int8|int16",on:1::(int64|string)})::error({message:string,on:int64|string}),error({message:"cannot cast to int8|int16",on:"one"::(int64|string)})::error({message:string,on:int64|string})]
   {a:["1","one"]}
-  error("createStep: incompatible types int64|string and int8|string")
+  {a:[error({message:"cannot cast to int8|string",on:1::(int64|string)})::error({message:string,on:int64|string}),"one"::(int8|string)]}

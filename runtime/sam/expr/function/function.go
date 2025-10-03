@@ -28,6 +28,10 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		argmin = 2
 		argmax = 2
 		f = &Bucket{sctx: sctx, name: name}
+	case "cast":
+		argmin = 2
+		argmax = 2
+		f = &cast{sctx}
 	case "ceil":
 		f = &Ceil{sctx: sctx}
 	case "cidr_match":
