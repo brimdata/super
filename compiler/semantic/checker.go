@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
@@ -108,6 +109,7 @@ func (c *checker) op(typ super.Type, op sem.Op) super.Type {
 		if drops == nil {
 			return c.unknown
 		}
+		fmt.Println("DROP", sup.FormatType(typ), drops)
 		return c.dropPaths(typ, drops)
 	case *sem.ExplodeOp:
 		// TBD
@@ -168,11 +170,11 @@ func (c *checker) op(typ super.Type, op sem.Op) super.Type {
 }
 
 func (c *checker) fork(typ super.Type, fork *sem.ForkOp) []super.Type {
-	var out []super.Type
+	var types []super.Type
 	for _, seq := range fork.Paths {
-		out = append(out, c.seq(typ, seq))
+		types = append(types, c.seq(typ, seq))
 	}
-	return out
+	return types
 }
 
 func (c *checker) swtch(typ super.Type, op *sem.SwitchOp) []super.Type {
@@ -467,50 +469,60 @@ func (c *checker) pathToRec(typ super.Type, elems []string) super.Type {
 	return typ
 }
 
-func (c *checker) dropPaths(typ super.Type, drops [][]string) super.Type {
+func (c *checker) dropPaths(typ super.Type, drops []path) super.Type {
 	for _, drop := range drops {
 		typ = c.dropPath(typ, drop)
 	}
 	return typ
 }
 
-func (c *checker) dropPath(typ super.Type, elems []string) super.Type {
-	if len(elems) == 0 {
-		return typ
+func (c *checker) dropPath(typ super.Type, drop path) super.Type {
+	if len(drop.elems) == 0 {
+		return nil
 	}
-	rec := asRec(typ)
+	rec, unknown := asRec(typ)
 	if rec == nil {
-		return typ
-	}
-	if off, ok := rec.IndexOfField(elems[0]); ok {
-		fields := slices.Clone(rec.Fields)
-		childType := c.dropPath(fields[off].Type, elems[1:])
-		if childType == nil {
-			fields = slices.Delete(fields, off, off+1)
-		} else {
-			fields[off].Type = childType
+		if !unknown {
+			c.error(drop.loc, fmt.Errorf("no such field to drop: %q", strings.Join(drop.elems, ",")))
 		}
-		return c.sctx.MustLookupTypeRecord(fields)
+		return c.unknown
 	}
-	return typ
+	off, ok := rec.IndexOfField(drop.elems[0])
+	if !ok {
+		c.error(drop.loc, fmt.Errorf("no such field to drop: %q", drop.elems[0]))
+		return c.unknown
+	}
+	fields := slices.Clone(rec.Fields)
+	childType := c.dropPath(fields[off].Type, path{drop.loc, drop.elems[1:]})
+	if childType == nil {
+		fields = slices.Delete(fields, off, off+1)
+	} else {
+		fields[off].Type = c.unknown
+	}
+	return c.sctx.MustLookupTypeRecord(fields)
 }
 
 // XXX we need to have an invariant that the analysis types are fused so that we
 // can rely upon the invariant that there is only one record at any given level/position
 // in a nested type
 // XXX need to distinguish between no record and unknown
-func asRec(typ super.Type) *super.TypeRecord {
+func asRec(typ super.Type) (*super.TypeRecord, bool) {
 	switch typ := super.TypeUnder(typ).(type) {
+	case *super.TypeError:
+		if isAny(typ) {
+			return nil, true
+		}
+		return nil, false
 	case *super.TypeRecord:
-		return typ
+		return typ, false
 	case *super.TypeUnion:
 		for _, t := range typ.Types {
-			if t := asRec(t); t != nil {
-				return t
+			if t, unknown := asRec(t); t != nil {
+				return t, unknown
 			}
 		}
 	}
-	return nil
+	return nil, false
 }
 
 func (c *checker) putPaths(typ super.Type, puts []pathType) super.Type {
@@ -523,14 +535,19 @@ func (c *checker) putPaths(typ super.Type, puts []pathType) super.Type {
 	return fuser.Type(c)
 }
 
-func (c *checker) lvalsToPaths(exprs []sem.Expr) [][]string {
-	var paths [][]string
+type path struct {
+	loc   ast.Node
+	elems []string
+}
+
+func (c *checker) lvalsToPaths(exprs []sem.Expr) []path {
+	var paths []path
 	for _, e := range exprs {
 		this, ok := e.(*sem.ThisExpr)
 		if !ok {
 			return nil
 		}
-		paths = append(paths, this.Path)
+		paths = append(paths, path{loc: this.Node, elems: this.Path})
 	}
 	return paths
 }
@@ -596,9 +613,12 @@ func (c *checker) number(loc ast.Node, typ super.Type) bool {
 // fuse doesn't do this for obvious reasons, e.g., json fields with nulls don't cause type problems
 
 func (c *checker) deref(loc ast.Node, typ super.Type, field string) super.Type {
-	rec := asRec(typ)
+	rec, unknown := asRec(typ)
 	if rec == nil {
-		//XXX should distinguish between no record present, and unknown
+		// unknown bool distinguishes between non-record and unknown
+		if !unknown {
+			c.error(loc, fmt.Errorf("%q no such field", field))
+		}
 		return c.unknown
 	}
 	which, ok := rec.IndexOfField(field)
