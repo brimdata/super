@@ -12,6 +12,8 @@ import (
 	"github.com/brimdata/super/sup"
 )
 
+//XXX handle enums
+
 //XXX a lot of type problems should be warnings... e.g., a predicate that doesn't
 // encounter any relevant data because it's part of a larger query that might encounter
 // such data some of the time
@@ -490,7 +492,9 @@ func (c *checker) dropPath(typ super.Type, drop path) super.Type {
 	rec := super.TypeUnder(types[pick]).(*super.TypeRecord)
 	off, ok := rec.IndexOfField(drop.elems[0])
 	if !ok {
-		c.error(drop.loc, fmt.Errorf("no such field to drop: %q", drop.elems[0]))
+		if !hasUnknown(typ) {
+			c.error(drop.loc, fmt.Errorf("no such field to drop: %q", drop.elems[0]))
+		}
 		return c.unknown
 	}
 	fields := slices.Clone(rec.Fields)
@@ -624,7 +628,7 @@ func (c *checker) deref(loc ast.Node, typ super.Type, field string) (super.Type,
 	case *super.TypeRecord:
 		which, ok := typ.IndexOfField(field)
 		if !ok {
-			if !hasAny(typ) {
+			if !hasUnknown(typ) {
 				c.error(loc, fmt.Errorf("%q no such field", field))
 			}
 			return c.unknown, false
@@ -659,7 +663,7 @@ func (c *checker) logical(lloc, rloc ast.Node, lhs, rhs super.Type) {
 }
 
 func (c *checker) in(lloc, rloc ast.Node, lhs, rhs super.Type) {
-	if hasAny(lhs) || hasAny(rhs) {
+	if hasUnknown(lhs) || hasUnknown(rhs) {
 		//XXX should still check that RHS is container
 		return
 	}
@@ -793,10 +797,10 @@ func isUnknown(typ super.Type) bool {
 	return false
 }
 
-func hasAny(typ super.Type) bool {
+func hasUnknown(typ super.Type) bool {
 	if u, ok := super.TypeUnder(typ).(*super.TypeUnion); ok {
 		for _, t := range u.Types {
-			if hasAny(t) {
+			if hasUnknown(t) {
 				return true
 			}
 		}
@@ -806,7 +810,7 @@ func hasAny(typ super.Type) bool {
 
 func (c *checker) indexOf(cloc, iloc ast.Node, container, index super.Type) super.Type {
 	//XXX need to walk unions, then how to combine... just need to find one that works
-	if hasAny(container) {
+	if hasUnknown(container) {
 		return c.unknown
 	}
 	switch typ := super.TypeUnder(container).(type) {
@@ -837,15 +841,15 @@ func (c *checker) indexMap(loc ast.Node, m *super.TypeMap, index super.Type) (su
 	if isUnknown(index) {
 		return c.unknown, true
 	}
-	if err := c.coerceable(index, m.KeyType); err != nil {
-		c.error(loc, err)
+	if !c.coerceable(index, m.KeyType) {
+		c.error(loc, errors.New("type mismatch between map key and index"))
 		return c.unknown, false
 	}
 	return m.ValType, true
 }
 
 func (c *checker) sliceable(loc ast.Node, typ super.Type) {
-	if hasAny(typ) {
+	if hasUnknown(typ) {
 		return
 	}
 	switch super.TypeUnder(typ).(type) {
@@ -855,33 +859,34 @@ func (c *checker) sliceable(loc ast.Node, typ super.Type) {
 	}
 }
 
-func coercable(from, to super.Type) bool {
+// XXX method on checker?
+func (c *checker) coerceable(from, to super.Type) bool {
 	fromID := super.TypeUnder(from).ID() //XXX
 	toID := super.TypeUnder(to).ID()
-	if fromID == toID || aid == super.IDNull || bid == super.IDNull {
+	if fromID == toID || fromID == super.IDNull || toID == super.IDNull {
 		return true
 	}
-	if super.IsNumber(aid) {
-		return super.IsNumber(bid)
+	if super.IsNumber(toID) {
+		return super.IsNumber(fromID)
 	}
-	switch super.TypeUnder(a).(type) {
+	switch super.TypeUnder(to).(type) {
 	case *super.TypeRecord:
-		_, ok := super.TypeUnder(b).(*super.TypeRecord)
+		_, ok := super.TypeUnder(from).(*super.TypeRecord)
 		return ok
 	case *super.TypeArray:
-		if _, ok := super.TypeUnder(b).(*super.TypeArray); ok {
+		if _, ok := super.TypeUnder(from).(*super.TypeArray); ok {
 			return ok
 		}
-		_, ok := super.TypeUnder(b).(*super.TypeSet)
+		_, ok := super.TypeUnder(from).(*super.TypeSet)
 		return ok
 	case *super.TypeSet:
-		if _, ok := super.TypeUnder(b).(*super.TypeArray); ok {
+		if _, ok := super.TypeUnder(from).(*super.TypeArray); ok {
 			return ok
 		}
-		_, ok := super.TypeUnder(b).(*super.TypeSet)
+		_, ok := super.TypeUnder(from).(*super.TypeSet)
 		return ok
 	case *super.TypeMap:
-		_, ok := super.TypeUnder(b).(*super.TypeMap)
+		_, ok := super.TypeUnder(from).(*super.TypeMap)
 		return ok
 	}
 	return false
