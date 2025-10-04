@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"slices"
-	"strings"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
@@ -109,7 +108,6 @@ func (c *checker) op(typ super.Type, op sem.Op) super.Type {
 		if drops == nil {
 			return c.unknown
 		}
-		fmt.Println("DROP", sup.FormatType(typ), drops)
 		return c.dropPaths(typ, drops)
 	case *sem.ExplodeOp:
 		// TBD
@@ -212,7 +210,7 @@ func (c *checker) unnest(loc ast.Node, typ super.Type) super.Type {
 func (c *checker) unnestCheck(loc ast.Node, typ super.Type) (super.Type, bool) {
 	switch typ := super.TypeUnder(typ).(type) {
 	case *super.TypeError:
-		if isAny(typ) {
+		if isUnknown(typ) {
 			return c.unknown, true
 		}
 		c.error(loc, errors.New("unnested record cannot be an error"))
@@ -236,7 +234,7 @@ func (c *checker) unnestCheck(loc ast.Node, typ super.Type) (super.Type, bool) {
 			return c.unknown, false
 		}
 		arrayField := typ.Fields[1]
-		if isAny(arrayField.Type) {
+		if isUnknown(arrayField.Type) {
 			return typ, true
 		}
 		arrayType, ok := super.TypeUnder(arrayField.Type).(*super.TypeArray)
@@ -329,7 +327,8 @@ func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
 		c.boolean(e.Cond, c.expr(typ, e.Cond))
 		return c.fuse([]super.Type{c.expr(typ, e.Then), c.expr(typ, e.Else)})
 	case *sem.DotExpr:
-		return c.deref(e.Node, c.expr(typ, e.LHS), e.RHS)
+		typ, _ := c.deref(e.Node, c.expr(typ, e.LHS), e.RHS)
+		return typ
 	case *sem.FuncRef:
 		// TBD
 		return c.unknown
@@ -397,7 +396,7 @@ func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
 			if e.Node == nil {
 				panic(e)
 			}
-			typ = c.deref(e.Node, typ, field)
+			typ, _ = c.deref(e.Node, typ, field)
 		}
 		return typ
 	case *sem.UnaryExpr:
@@ -480,13 +479,15 @@ func (c *checker) dropPath(typ super.Type, drop path) super.Type {
 	if len(drop.elems) == 0 {
 		return nil
 	}
-	rec, unknown := asRec(typ)
-	if rec == nil {
-		if !unknown {
-			c.error(drop.loc, fmt.Errorf("no such field to drop: %q", strings.Join(drop.elems, ",")))
-		}
-		return c.unknown
+	// Drop is a little tricky since it passes through non-record values so
+	// we need to preserve any union type presented to its input. pickRec returns
+	// a copy of the types slice so we can modify it.
+	types, pick := pickRec(typ)
+	if types == nil {
+		// drop passes through non-records
+		return typ
 	}
+	rec := super.TypeUnder(types[pick]).(*super.TypeRecord)
 	off, ok := rec.IndexOfField(drop.elems[0])
 	if !ok {
 		c.error(drop.loc, fmt.Errorf("no such field to drop: %q", drop.elems[0]))
@@ -497,32 +498,28 @@ func (c *checker) dropPath(typ super.Type, drop path) super.Type {
 	if childType == nil {
 		fields = slices.Delete(fields, off, off+1)
 	} else {
-		fields[off].Type = c.unknown
+		fields[off].Type = childType
 	}
-	return c.sctx.MustLookupTypeRecord(fields)
+	types[pick] = c.sctx.MustLookupTypeRecord(fields)
+	if len(types) > 1 {
+		return c.sctx.LookupTypeUnion(types)
+	}
+	return types[0]
 }
 
-// XXX we need to have an invariant that the analysis types are fused so that we
-// can rely upon the invariant that there is only one record at any given level/position
-// in a nested type
-// XXX need to distinguish between no record and unknown
-func asRec(typ super.Type) (*super.TypeRecord, bool) {
+func pickRec(typ super.Type) ([]super.Type, int) {
 	switch typ := super.TypeUnder(typ).(type) {
-	case *super.TypeError:
-		if isAny(typ) {
-			return nil, true
-		}
-		return nil, false
 	case *super.TypeRecord:
-		return typ, false
+		return []super.Type{typ}, 0
 	case *super.TypeUnion:
-		for _, t := range typ.Types {
-			if t, unknown := asRec(t); t != nil {
-				return t, unknown
+		types := slices.Clone(typ.Types)
+		for k := range types {
+			if _, ok := super.TypeUnder(types[k]).(*super.TypeRecord); ok {
+				return types, k
 			}
 		}
 	}
-	return nil, false
+	return nil, 0
 }
 
 func (c *checker) putPaths(typ super.Type, puts []pathType) super.Type {
@@ -553,6 +550,9 @@ func (c *checker) lvalsToPaths(exprs []sem.Expr) []path {
 }
 
 func (c *checker) fuse(types []super.Type) super.Type {
+	if len(types) == 0 {
+		return c.unknown
+	}
 	if len(types) == 1 {
 		return types[0]
 	}
@@ -574,7 +574,7 @@ func (c *checker) boolean(loc ast.Node, typ super.Type) bool {
 }
 
 func typeCheck(typ super.Type, check func(super.Type) bool) bool {
-	if isAny(typ) {
+	if isUnknown(typ) {
 		return true
 	}
 	if u, ok := super.TypeUnder(typ).(*super.TypeUnion); ok {
@@ -609,26 +609,48 @@ func (c *checker) number(loc ast.Node, typ super.Type) bool {
 	return ok
 }
 
-//XXX we're not properly propagating null as the input...
-// fuse doesn't do this for obvious reasons, e.g., json fields with nulls don't cause type problems
+// XXX need to also prop unions for deref on multiple types, e.g., map keys as strings + records
 
-func (c *checker) deref(loc ast.Node, typ super.Type, field string) super.Type {
-	rec, unknown := asRec(typ)
-	if rec == nil {
-		// unknown bool distinguishes between non-record and unknown
-		if !unknown {
-			c.error(loc, fmt.Errorf("%q no such field", field))
+func (c *checker) deref(loc ast.Node, typ super.Type, field string) (super.Type, bool) {
+	switch typ := super.TypeUnder(typ).(type) {
+	case *super.TypeOfNull:
+		return super.TypeNull, true //XXX add tests for this
+	case *super.TypeError:
+		if isUnknown(typ) {
+			return typ, true
 		}
-		return c.unknown
-	}
-	which, ok := rec.IndexOfField(field)
-	if !ok {
-		if !hasAny(typ) {
-			c.error(loc, fmt.Errorf("%q no such field", field))
+	case *super.TypeMap:
+		return c.indexMap(loc, typ, super.TypeString)
+	case *super.TypeRecord:
+		which, ok := typ.IndexOfField(field)
+		if !ok {
+			if !hasAny(typ) {
+				c.error(loc, fmt.Errorf("%q no such field", field))
+			}
+			return c.unknown, false
 		}
-		return c.unknown
+		return typ.Fields[which].Type, true
+	case *super.TypeUnion:
+		// Push the error stack and if we find some valid deref,
+		// we'll discard the errors.  Otherwise, we'll keep them.
+		c.epush()
+		var types []super.Type
+		var valid bool
+		for _, t := range typ.Types {
+			typ, ok := c.deref(loc, t, field)
+			if ok {
+				types = append(types, typ)
+				valid = true
+			}
+		}
+		errs := c.epop()
+		if !valid {
+			c.ekeep(errs)
+		}
+		return c.fuse(types), valid
 	}
-	return rec.Fields[which].Type
+	c.error(loc, fmt.Errorf("%q no such field", field))
+	return c.unknown, false
 }
 
 func (c *checker) logical(lloc, rloc ast.Node, lhs, rhs super.Type) {
@@ -710,7 +732,7 @@ func comparable(a, b super.Type) bool {
 }
 
 func (c *checker) arithmetic(lloc, rloc ast.Node, lhs, rhs super.Type) super.Type {
-	if isAny(lhs) || isAny(rhs) {
+	if isUnknown(lhs) || isUnknown(rhs) {
 		return c.unknown
 	}
 	c.number(lloc, lhs)
@@ -720,7 +742,7 @@ func (c *checker) arithmetic(lloc, rloc ast.Node, lhs, rhs super.Type) super.Typ
 }
 
 func (c *checker) plus(lloc, rloc ast.Node, lhs, rhs super.Type) super.Type {
-	if isAny(lhs) || isAny(rhs) {
+	if isUnknown(lhs) || isUnknown(rhs) {
 		return c.unknown
 	}
 	if hasString(lhs) && hasString(rhs) {
@@ -762,7 +784,7 @@ func hasString(typ super.Type) bool {
 	return false
 }
 
-func isAny(typ super.Type) bool {
+func isUnknown(typ super.Type) bool {
 	if err, ok := super.TypeUnder(typ).(*super.TypeError); ok {
 		if rec, ok := err.Type.(*super.TypeRecord); ok {
 			return len(rec.Fields) == 0
@@ -779,7 +801,7 @@ func hasAny(typ super.Type) bool {
 			}
 		}
 	}
-	return isAny(typ)
+	return isUnknown(typ)
 }
 
 func (c *checker) indexOf(cloc, iloc ast.Node, container, index super.Type) super.Type {
@@ -811,6 +833,17 @@ func (c *checker) indexOf(cloc, iloc ast.Node, container, index super.Type) supe
 	}
 }
 
+func (c *checker) indexMap(loc ast.Node, m *super.TypeMap, index super.Type) (super.Type, bool) {
+	if isUnknown(index) {
+		return c.unknown, true
+	}
+	if err := c.coerceable(index, m.KeyType); err != nil {
+		c.error(loc, err)
+		return c.unknown, false
+	}
+	return m.ValType, true
+}
+
 func (c *checker) sliceable(loc ast.Node, typ super.Type) {
 	if hasAny(typ) {
 		return
@@ -820,6 +853,38 @@ func (c *checker) sliceable(loc ast.Node, typ super.Type) {
 	default:
 		c.error(loc, fmt.Errorf("sliced entity is not sliceable"))
 	}
+}
+
+func coercable(from, to super.Type) bool {
+	fromID := super.TypeUnder(from).ID() //XXX
+	toID := super.TypeUnder(to).ID()
+	if fromID == toID || aid == super.IDNull || bid == super.IDNull {
+		return true
+	}
+	if super.IsNumber(aid) {
+		return super.IsNumber(bid)
+	}
+	switch super.TypeUnder(a).(type) {
+	case *super.TypeRecord:
+		_, ok := super.TypeUnder(b).(*super.TypeRecord)
+		return ok
+	case *super.TypeArray:
+		if _, ok := super.TypeUnder(b).(*super.TypeArray); ok {
+			return ok
+		}
+		_, ok := super.TypeUnder(b).(*super.TypeSet)
+		return ok
+	case *super.TypeSet:
+		if _, ok := super.TypeUnder(b).(*super.TypeArray); ok {
+			return ok
+		}
+		_, ok := super.TypeUnder(b).(*super.TypeSet)
+		return ok
+	case *super.TypeMap:
+		_, ok := super.TypeUnder(b).(*super.TypeMap)
+		return ok
+	}
+	return false
 }
 
 func (c *checker) epush() {
