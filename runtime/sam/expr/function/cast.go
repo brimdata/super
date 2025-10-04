@@ -33,7 +33,7 @@ func (c *cast) Call(args []super.Value) super.Value {
 		}
 		return c.cast(from, typ)
 	}
-	return c.sctx.WrapError("cannot cast to "+sup.FormatValue(to), from)
+	return c.sctx.WrapError("cast target must be a type or type name", to)
 }
 
 func (c *cast) cast(from super.Value, to super.Type) super.Value {
