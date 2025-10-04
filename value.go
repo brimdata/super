@@ -429,6 +429,16 @@ func (v *Value) MissingAsNull() Value {
 	return *v
 }
 
+func (v Value) Deunion() Value {
+	for {
+		union, ok := v.Type().(*TypeUnion)
+		if !ok || v.IsNull() {
+			return v
+		}
+		v = NewValue(union.Untag(v.bytes()))
+	}
+}
+
 // Under resolves named types and untags unions repeatedly, returning a value
 // guaranteed to have neither a named type nor a union type.
 func (v Value) Under() Value {

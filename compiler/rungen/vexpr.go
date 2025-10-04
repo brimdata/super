@@ -253,7 +253,11 @@ func (b *Builder) compileVamCast(args []dag.Expr) (vamexpr.Evaluator, error) {
 			return cast, nil
 		}
 	}
-	return b.compileVamShaper(args, expr.Cast)
+	e, err := b.compileCall(&dag.Call{Tag: "cast", Args: args})
+	if err != nil {
+		return nil, err
+	}
+	return vamexpr.NewSamExpr(e), nil
 }
 
 func (b *Builder) compileVamShaper(args []dag.Expr, tf expr.ShaperTransform) (vamexpr.Evaluator, error) {

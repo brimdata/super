@@ -1,7 +1,6 @@
 package expr_test
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/brimdata/super/runtime/sam/expr/function"
@@ -139,20 +138,22 @@ func TestLen(t *testing.T) {
 func TestCast(t *testing.T) {
 	// Constant type argument
 	testSuccessful(t, "cast(1, <uint64>)", "", "1::uint64")
-	testError(t, "cast(1, 2)", errors.New("shaper type argument is not a type: 2"))
+	testSuccessful(t, "cast(1, 2)", "", `error({message:"cast target must be a type or type name",on:2})`)
 
 	// Constant name argument
 	testSuccessful(t, `cast(1, "my_int64")`, "", "1::=my_int64")
-	testError(t, `cast(1, "uint64")`, errors.New(`bad type name "uint64": primitive type name`))
+	testSuccessful(t, `cast(1, "uint64")`, "",
+		`error({message:"cannot cast to named type: bad type name \"uint64\": primitive type name",on:1})`)
 
 	// Variable type argument
 	testSuccessful(t, "cast(1, type)", "{type:<uint64>}", "1::uint64")
-	testSuccessful(t, "cast(1, type)", "{type:2}", `error({message:"shaper type argument is not a type",on:2})`)
+	testSuccessful(t, "cast(1, type)", "{type:2}",
+		`error({message:"cast target must be a type or type name",on:2})`)
 
 	// Variable name argument
 	testSuccessful(t, "cast(1, name)", `{name:"my_int64"}`, "1::=my_int64")
-	testSuccessful(t, "cast(1, name)", `{name:"uint64"}`, `error("bad type name \"uint64\": primitive type name")`)
-
+	testSuccessful(t, "cast(1, name)", `{name:"uint64"}`,
+		`error({message:"cannot cast to named type: bad type name \"uint64\": primitive type name",on:1})`)
 	testCompilationError(t, "cast()", function.ErrTooFewArgs)
 	testCompilationError(t, "cast(1, 2, 3)", function.ErrTooManyArgs)
 }

@@ -1,0 +1,22 @@
+spq: |
+  values this::{a:int64,b:string,c:{},d:[{e:string,f:int64}]}
+
+vector: true
+
+input: |
+  {}
+  {a:"1",b:{}}
+  {b:1,c:2}
+  {a:"1",b:2,c:{cc:3},d:[{e:4,f:"5"},{f:6,e:"7"},8]}
+  {d:[{e:1,f:"2"},{f:3,e:"4"},5],c:null,b:6,a:"7"}
+  null
+  1
+
+output: |
+  {a:null::int64,b:null::string,c:null::{},d:null::[{e:string,f:int64}]}
+  {a:1,b:"{}",c:null::{},d:null::[{e:string,f:int64}]}
+  {a:null::int64,b:"1",c:error({message:"cannot cast to {}",on:2}),d:null::[{e:string,f:int64}]}
+  {a:1,b:"2",c:null::{},d:[{e:"4",f:5},{e:"7",f:6},error({message:"cannot cast to {e:string,f:int64}",on:8})]}
+  {a:7,b:"6",c:null::{},d:[{e:"1",f:2},{e:"4",f:3},error({message:"cannot cast to {e:string,f:int64}",on:5})]}
+  null::{a:int64,b:string,c:{},d:[{e:string,f:int64}]}
+  error({message:"cannot cast to {a:int64,b:string,c:{},d:[{e:string,f:int64}]}",on:1})

@@ -27,8 +27,6 @@ const (
 
 func NewShaperTransform(s string) ShaperTransform {
 	switch s {
-	case "cast":
-		return Cast
 	case "crop":
 		return Crop
 	case "fill":
@@ -209,7 +207,7 @@ func shaperType(sctx *super.Context, tf ShaperTransform, in, out super.Type) (su
 			}
 			return out, nil
 		}
-		if bestUnionTag(in, outUnder) > -1 {
+		if BestUnionTag(in, outUnder) > -1 {
 			return out, nil
 		}
 	} else if inUnder == outUnder {
@@ -293,14 +291,14 @@ func shaperFields(sctx *super.Context, tf ShaperTransform, in, out *super.TypeRe
 	return fields, nil
 }
 
-// bestUnionTag tries to return the most specific union tag for in
+// BestUnionTag tries to return the most specific union tag for in
 // within out.  It returns -1 if out is not a union or contains no type
 // compatible with in.  (Types are compatible if they have the same underlying
-// type.)  If out contains in, bestUnionTag returns its tag.
-// Otherwise, if out contains in's underlying type, bestUnionTag returns
-// its tag.  Finally, bestUnionTag returns the smallest tag in
+// type.)  If out contains in, BestUnionTag returns its tag.
+// Otherwise, if out contains in's underlying type, BestUnionTag returns
+// its tag.  Finally, BestUnionTag returns the smallest tag in
 // out whose type is compatible with in.
-func bestUnionTag(in, out super.Type) int {
+func BestUnionTag(in, out super.Type) int {
 	outUnion, ok := super.TypeUnder(out).(*super.TypeUnion)
 	if !ok {
 		return -1
@@ -395,7 +393,7 @@ Switch:
 		}
 		return step{op: castFromUnion, toType: out, children: steps}, nil
 	}
-	if tag := bestUnionTag(in, out); tag != -1 {
+	if tag := BestUnionTag(in, out); tag != -1 {
 		return step{op: castToUnion, fromType: in, toTag: tag, toType: out}, nil
 	}
 	return step{}, fmt.Errorf("createStep: incompatible types %s and %s", sup.FormatType(in), sup.FormatType(out))

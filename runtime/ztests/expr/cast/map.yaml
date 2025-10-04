@@ -1,0 +1,16 @@
+spq: |
+  values this::|{int64:|{string:int64}|}|
+
+vector: true
+
+input: |
+  |{}|
+  |{1:|{"2":3,4:"5"}|,"7":8,"9":|{10:[],[]:11,null:null}|}|
+  null
+  1
+
+output: |
+  |{}|
+  |{1:|{"2":3,"4":5}|,7:error({message:"cannot cast to |{string:int64}|",on:8}),9:|{null::string:null,"10":error({message:"cannot cast to int64",on:[]::[null]}),"[]":11}|}|
+  null::|{int64:|{string:int64}|}|
+  error({message:"cannot cast to |{int64:|{string:int64}|}|",on:1})
