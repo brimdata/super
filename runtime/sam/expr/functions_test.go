@@ -138,7 +138,7 @@ func TestLen(t *testing.T) {
 func TestCast(t *testing.T) {
 	// Constant type argument
 	testSuccessful(t, "cast(1, <uint64>)", "", "1::uint64")
-	testSuccessful(t, "cast(1, 2)", "", `error({message:"cannot cast to 2",on:1})`)
+	testSuccessful(t, "cast(1, 2)", "", `error({message:"cast target must be a type or type name",on:2})`)
 
 	// Constant name argument
 	testSuccessful(t, `cast(1, "my_int64")`, "", "1::=my_int64")
@@ -147,7 +147,8 @@ func TestCast(t *testing.T) {
 
 	// Variable type argument
 	testSuccessful(t, "cast(1, type)", "{type:<uint64>}", "1::uint64")
-	testSuccessful(t, "cast(1, type)", "{type:2}", `error({message:"cannot cast to 2",on:1})`)
+	testSuccessful(t, "cast(1, type)", "{type:2}",
+		`error({message:"cast target must be a type or type name",on:2})`)
 
 	// Variable name argument
 	testSuccessful(t, "cast(1, name)", `{name:"my_int64"}`, "1::=my_int64")
