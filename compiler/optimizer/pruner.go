@@ -39,7 +39,7 @@ func newRangePruner(pred dag.Expr, sortKey order.SortKey) dag.Expr {
 // the expression pred would evaluate to false for all values of fld in the
 // from/to value range.  If a pruning decision cannot be reliably determined then
 // the return value is nil.
-func buildRangePruner(pred dag.Expr, fld field.Path, min, max *dag.This) *dag.BinaryExpr {
+func buildRangePruner(pred dag.Expr, fld field.Path, min, max *dag.ThisExpr) *dag.BinaryExpr {
 	e, ok := pred.(*dag.BinaryExpr)
 	if !ok {
 		// If this isn't a binary predicate composed of comparison operators, we
@@ -86,7 +86,7 @@ func buildRangePruner(pred dag.Expr, fld field.Path, min, max *dag.This) *dag.Bi
 	}
 }
 
-func rangePrunerPred(op string, literal *dag.Literal, min, max *dag.This) *dag.BinaryExpr {
+func rangePrunerPred(op string, literal *dag.LiteralExpr, min, max *dag.ThisExpr) *dag.BinaryExpr {
 	switch op {
 	case "<":
 		// key < CONST
@@ -114,19 +114,19 @@ func rangePrunerPred(op string, literal *dag.Literal, min, max *dag.This) *dag.B
 // do not handle nullsmax or cross-type comparisons (which can arise when the
 // pool key value type changes).
 func compare(op string, lhs, rhs dag.Expr) *dag.BinaryExpr {
-	nullsMax := &dag.Literal{Kind: "Literal", Value: "true"}
+	nullsMax := &dag.LiteralExpr{Kind: "LiteralExpr", Value: "true"}
 	call := dag.NewCall("compare", []dag.Expr{lhs, rhs, nullsMax})
-	return dag.NewBinaryExpr(op, call, &dag.Literal{Kind: "Literal", Value: "0"})
+	return dag.NewBinaryExpr(op, call, &dag.LiteralExpr{Kind: "LiteralExpr", Value: "0"})
 }
 
-func literalComparison(e *dag.BinaryExpr) (*dag.This, *dag.Literal, string) {
+func literalComparison(e *dag.BinaryExpr) (*dag.ThisExpr, *dag.LiteralExpr, string) {
 	switch lhs := e.LHS.(type) {
-	case *dag.This:
-		if rhs, ok := e.RHS.(*dag.Literal); ok {
+	case *dag.ThisExpr:
+		if rhs, ok := e.RHS.(*dag.LiteralExpr); ok {
 			return lhs, rhs, e.Op
 		}
-	case *dag.Literal:
-		if rhs, ok := e.RHS.(*dag.This); ok {
+	case *dag.LiteralExpr:
+		if rhs, ok := e.RHS.(*dag.ThisExpr); ok {
 			return rhs, lhs, reverseComparator(e.Op)
 		}
 	}
@@ -163,8 +163,8 @@ func newMetadataPruner(pred dag.Expr) dag.Expr {
 	switch e := pred.(type) {
 	case *dag.BinaryExpr:
 		return metaPrunerBinaryExpr(e)
-	case *dag.RegexpSearch:
-		this, ok := e.Expr.(*dag.This)
+	case *dag.RegexpSearchExpr:
+		this, ok := e.Expr.(*dag.ThisExpr)
 		if !ok {
 			return nil
 		}
@@ -173,8 +173,8 @@ func newMetadataPruner(pred dag.Expr) dag.Expr {
 		if prefix == "" || maxPrefix == "" {
 			return nil
 		}
-		min := &dag.Literal{Kind: "Literal", Value: sup.QuotedString(prefix)}
-		max := &dag.Literal{Kind: "Literal", Value: sup.QuotedString(maxPrefix)}
+		min := &dag.LiteralExpr{Kind: "LiteralExpr", Value: sup.QuotedString(prefix)}
+		max := &dag.LiteralExpr{Kind: "LiteralExpr", Value: sup.QuotedString(maxPrefix)}
 		return dag.NewBinaryExpr("and",
 			compare("<=", min, dag.NewThis(append(slices.Clone(this.Path), "max"))),
 			compare(">", max, dag.NewThis(append(slices.Clone(this.Path), "min"))))
@@ -240,11 +240,11 @@ func metaPrunerBinaryExpr(e *dag.BinaryExpr) dag.Expr {
 		}
 		return metadataPrunerPred(op, this, literal)
 	case "in":
-		this, ok := e.LHS.(*dag.This)
+		this, ok := e.LHS.(*dag.ThisExpr)
 		if !ok {
 			return nil
 		}
-		var literals []*dag.Literal
+		var literals []*dag.LiteralExpr
 		switch e := e.RHS.(type) {
 		case *dag.ArrayExpr:
 			literals = literalsInArrayOrSet(e.Elems)
@@ -256,7 +256,7 @@ func metaPrunerBinaryExpr(e *dag.BinaryExpr) dag.Expr {
 				if !ok {
 					return nil
 				}
-				l, ok := f.Value.(*dag.Literal)
+				l, ok := f.Value.(*dag.LiteralExpr)
 				if !ok {
 					return nil
 				}
@@ -280,14 +280,14 @@ func metaPrunerBinaryExpr(e *dag.BinaryExpr) dag.Expr {
 	}
 }
 
-func literalsInArrayOrSet(elems []dag.VectorElem) []*dag.Literal {
-	var literals []*dag.Literal
+func literalsInArrayOrSet(elems []dag.VectorElem) []*dag.LiteralExpr {
+	var literals []*dag.LiteralExpr
 	for _, elem := range elems {
 		val, ok := elem.(*dag.VectorValue)
 		if !ok {
 			return nil
 		}
-		l, ok := val.Expr.(*dag.Literal)
+		l, ok := val.Expr.(*dag.LiteralExpr)
 		if !ok {
 			return nil
 		}
@@ -296,7 +296,7 @@ func literalsInArrayOrSet(elems []dag.VectorElem) []*dag.Literal {
 	return literals
 }
 
-func metadataPrunerPred(op string, this *dag.This, literal *dag.Literal) *dag.BinaryExpr {
+func metadataPrunerPred(op string, this *dag.ThisExpr, literal *dag.LiteralExpr) *dag.BinaryExpr {
 	min := dag.NewThis(append(slices.Clone(this.Path), "min"))
 	max := dag.NewThis(append(slices.Clone(this.Path), "max"))
 	switch op {

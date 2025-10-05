@@ -262,11 +262,13 @@ func (r *Root) CommitObject(ctx context.Context, poolID ksuid.KSUID, branchName 
 
 func (r *Root) SortKeys(ctx context.Context, src dag.Op) order.SortKeys {
 	switch src := src.(type) {
-	case *dag.Lister:
-		if config, err := r.pools.LookupByID(ctx, src.Pool); err == nil {
-			return config.SortKeys
+	case *dag.CommitMetaScan:
+		if src.Tap {
+			if config, err := r.pools.LookupByID(ctx, src.Pool); err == nil {
+				return config.SortKeys
+			}
 		}
-	case *dag.SeqScan:
+	case *dag.ListerScan:
 		if config, err := r.pools.LookupByID(ctx, src.Pool); err == nil {
 			return config.SortKeys
 		}
@@ -274,11 +276,9 @@ func (r *Root) SortKeys(ctx context.Context, src dag.Op) order.SortKeys {
 		if config, err := r.pools.LookupByID(ctx, src.ID); err == nil {
 			return config.SortKeys
 		}
-	case *dag.CommitMetaScan:
-		if src.Tap {
-			if config, err := r.pools.LookupByID(ctx, src.Pool); err == nil {
-				return config.SortKeys
-			}
+	case *dag.SeqScan:
+		if config, err := r.pools.LookupByID(ctx, src.Pool); err == nil {
+			return config.SortKeys
 		}
 	}
 	return nil

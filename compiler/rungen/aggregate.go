@@ -12,7 +12,7 @@ import (
 	"github.com/brimdata/super/sbuf"
 )
 
-func (b *Builder) compileAggregate(parent sbuf.Puller, a *dag.Aggregate) (*aggregate.Op, error) {
+func (b *Builder) compileAggregate(parent sbuf.Puller, a *dag.AggregateOp) (*aggregate.Op, error) {
 	b.resetResetters()
 	keys, err := b.compileAssignments(a.Keys)
 	if err != nil {
@@ -41,11 +41,11 @@ func (b *Builder) compileAggAssignments(assignments []dag.Assignment) (field.Lis
 }
 
 func (b *Builder) compileAggAssignment(assignment dag.Assignment) (field.Path, *expr.Aggregator, error) {
-	aggAST, ok := assignment.RHS.(*dag.Agg)
+	aggAST, ok := assignment.RHS.(*dag.AggExpr)
 	if !ok {
 		return nil, nil, errors.New("aggregator is not an aggregation expression")
 	}
-	this, ok := assignment.LHS.(*dag.This)
+	this, ok := assignment.LHS.(*dag.ThisExpr)
 	if !ok {
 		return nil, nil, fmt.Errorf("internal error: aggregator assignment LHS is not a static path: %#v", assignment.LHS)
 	}
@@ -53,7 +53,7 @@ func (b *Builder) compileAggAssignment(assignment dag.Assignment) (field.Path, *
 	return this.Path, m, err
 }
 
-func (b *Builder) compileAgg(agg *dag.Agg) (*expr.Aggregator, error) {
+func (b *Builder) compileAgg(agg *dag.AggExpr) (*expr.Aggregator, error) {
 	name := agg.Name
 	var err error
 	var arg expr.Evaluator

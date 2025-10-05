@@ -22,56 +22,52 @@ func (b *Builder) compileVamExpr(e dag.Expr) (vamexpr.Evaluator, error) {
 	switch e := e.(type) {
 	case *dag.ArrayExpr:
 		return b.compileVamArrayExpr(e)
-	case *dag.Literal:
-		val, err := sup.ParseValue(b.sctx(), e.Value)
-		if err != nil {
-			return nil, err
-		}
-		return vamexpr.NewLiteral(val), nil
-	//case *dag.Var:
-	//	return vamexpr.NewVar(e.Slot), nil
-	case *dag.Search:
-		return b.compileVamSearch(e)
-	case *dag.This:
-		return vamexpr.NewDottedExpr(b.sctx(), field.Path(e.Path)), nil
-	case *dag.Dot:
+	case *dag.BinaryExpr:
+		return b.compileVamBinary(e)
+	case *dag.CondExpr:
+		return b.compileVamConditional(*e)
+	case *dag.CallExpr:
+		return b.compileVamCall(e)
+	case *dag.DotExpr:
 		return b.compileVamDotExpr(e)
 	case *dag.IndexExpr:
 		return b.compileVamIndexExpr(e)
 	case *dag.IsNullExpr:
 		return b.compileVamIsNullExpr(e)
-	case *dag.UnaryExpr:
-		return b.compileVamUnary(*e)
-	case *dag.BinaryExpr:
-		return b.compileVamBinary(e)
-	case *dag.Conditional:
-		return b.compileVamConditional(*e)
-	case *dag.Call:
-		return b.compileVamCall(e)
-	case *dag.Subquery:
-		return b.compileVamSubquery(e)
-	case *dag.RegexpMatch:
-		return b.compileVamRegexpMatch(e)
-	case *dag.RegexpSearch:
-		return b.compileVamRegexpSearch(e)
+	case *dag.LiteralExpr:
+		val, err := sup.ParseValue(b.sctx(), e.Value)
+		if err != nil {
+			return nil, err
+		}
+		return vamexpr.NewLiteral(val), nil
 	case *dag.RecordExpr:
 		return b.compileVamRecordExpr(e)
-	case *dag.SliceExpr:
-		return b.compileVamSliceExpr(e)
+	case *dag.RegexpMatchExpr:
+		return b.compileVamRegexpMatch(e)
+	case *dag.RegexpSearchExpr:
+		return b.compileVamRegexpSearch(e)
+	case *dag.SearchExpr:
+		return b.compileVamSearch(e)
 	case *dag.SetExpr:
 		return b.compileVamSetExpr(e)
-	//case *dag.MapCall:
+	case *dag.SliceExpr:
+		return b.compileVamSliceExpr(e)
+	case *dag.SubqueryExpr:
+		return b.compileVamSubquery(e)
+	case *dag.ThisExpr:
+		return vamexpr.NewDottedExpr(b.sctx(), field.Path(e.Path)), nil
+	case *dag.UnaryExpr:
+		return b.compileVamUnary(*e)
+	//case *dag.MapCallExpr:
 	//	return b.compileVamMapCall(e)
 	//case *dag.MapExpr:
 	//	return b.compileVamMapExpr(e)
-	//case *dag.Agg:
+	//case *dag.AggExpr:
 	//	agg, err := b.compileAgg(e)
 	//	if err != nil {
 	//		return nil, err
 	//	}
 	//	return expr.NewAggregatorExpr(agg), nil
-	//case *dag.OverExpr:
-	//	return b.compileOverExpr(e)
 	default:
 		return nil, fmt.Errorf("vector expression type %T: not supported", e)
 	}
@@ -120,7 +116,7 @@ func (b *Builder) compileVamBinary(e *dag.BinaryExpr) (vamexpr.Evaluator, error)
 	}
 }
 
-func (b *Builder) compileVamConditional(node dag.Conditional) (vamexpr.Evaluator, error) {
+func (b *Builder) compileVamConditional(node dag.CondExpr) (vamexpr.Evaluator, error) {
 	predicate, err := b.compileVamExpr(node.Cond)
 	if err != nil {
 		return nil, err
@@ -151,7 +147,7 @@ func (b *Builder) compileVamUnary(unary dag.UnaryExpr) (vamexpr.Evaluator, error
 	}
 }
 
-func (b *Builder) compileVamDotExpr(dot *dag.Dot) (vamexpr.Evaluator, error) {
+func (b *Builder) compileVamDotExpr(dot *dag.DotExpr) (vamexpr.Evaluator, error) {
 	record, err := b.compileVamExpr(dot.LHS)
 	if err != nil {
 		return nil, err
@@ -191,7 +187,7 @@ func (b *Builder) compileVamExprs(in []dag.Expr) ([]vamexpr.Evaluator, error) {
 	return exprs, nil
 }
 
-func (b *Builder) compileVamCall(call *dag.Call) (vamexpr.Evaluator, error) {
+func (b *Builder) compileVamCall(call *dag.CallExpr) (vamexpr.Evaluator, error) {
 	if call.Tag == "cast" {
 		return b.compileVamCast(call.Args)
 	}
@@ -295,7 +291,7 @@ func (b *Builder) compileVamRecordExpr(e *dag.RecordExpr) (vamexpr.Evaluator, er
 	return vamexpr.NewRecordExpr(b.sctx(), elems), nil
 }
 
-func (b *Builder) compileVamSubquery(query *dag.Subquery) (vamexpr.Evaluator, error) {
+func (b *Builder) compileVamSubquery(query *dag.SubqueryExpr) (vamexpr.Evaluator, error) {
 	e, err := b.compileSubquery(query)
 	if err != nil {
 		return nil, err
@@ -303,7 +299,7 @@ func (b *Builder) compileVamSubquery(query *dag.Subquery) (vamexpr.Evaluator, er
 	return vamexpr.NewSamExpr(e), nil
 }
 
-func (b *Builder) compileVamRegexpMatch(match *dag.RegexpMatch) (vamexpr.Evaluator, error) {
+func (b *Builder) compileVamRegexpMatch(match *dag.RegexpMatchExpr) (vamexpr.Evaluator, error) {
 	e, err := b.compileVamExpr(match.Expr)
 	if err != nil {
 		return nil, err
@@ -315,7 +311,7 @@ func (b *Builder) compileVamRegexpMatch(match *dag.RegexpMatch) (vamexpr.Evaluat
 	return vamexpr.NewRegexpMatch(re, e), nil
 }
 
-func (b *Builder) compileVamRegexpSearch(search *dag.RegexpSearch) (vamexpr.Evaluator, error) {
+func (b *Builder) compileVamRegexpSearch(search *dag.RegexpSearchExpr) (vamexpr.Evaluator, error) {
 	e, err := b.compileVamExpr(search.Expr)
 	if err != nil {
 		return nil, err
@@ -327,7 +323,7 @@ func (b *Builder) compileVamRegexpSearch(search *dag.RegexpSearch) (vamexpr.Eval
 	return vamexpr.NewSearchRegexp(re, e), nil
 }
 
-func (b *Builder) compileVamSearch(search *dag.Search) (vamexpr.Evaluator, error) {
+func (b *Builder) compileVamSearch(search *dag.SearchExpr) (vamexpr.Evaluator, error) {
 	val, err := sup.ParseValue(b.sctx(), search.Value)
 	if err != nil {
 		return nil, err

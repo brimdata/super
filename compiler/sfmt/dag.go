@@ -63,7 +63,7 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 	switch e := e.(type) {
 	case nil:
 		c.write("null")
-	case *dag.Agg:
+	case *dag.AggExpr:
 		var distinct string
 		if e.Distinct {
 			distinct = "distinct "
@@ -77,27 +77,24 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 			c.write(" where ")
 			c.expr(e.Where, "")
 		}
-	case *dag.Dot:
+	case *dag.ArrayExpr:
+		c.write("[")
+		c.vectorElems(e.Elems)
+		c.write("]")
+	case *dag.DotExpr:
 		c.expr(e.LHS, "")
 		c.write("[%q]", e.RHS)
-	case *dag.UnaryExpr:
-		if isnull, ok := e.Operand.(*dag.IsNullExpr); ok && e.Op == "!" {
-			c.expr(isnull.Expr, "")
-			c.write(" IS NOT NULL")
-		} else {
-			c.write(e.Op)
-			c.expr(e.Operand, "not")
-		}
+
 	case *dag.BinaryExpr:
 		c.binary(e, parent)
-	case *dag.Conditional:
+	case *dag.CondExpr:
 		c.write("(")
 		c.expr(e.Cond, "")
 		c.write(") ? ")
 		c.expr(e.Then, "")
 		c.write(" : ")
 		c.expr(e.Else, "")
-	case *dag.Call:
+	case *dag.CallExpr:
 		c.write(e.Tag)
 		c.write("(")
 		c.exprs(e.Args)
@@ -110,29 +107,19 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 	case *dag.IsNullExpr:
 		c.expr(e.Expr, "")
 		c.write(" IS NULL")
-	case *dag.Subquery:
-		c.open("(")
-		c.head = true
-		c.seq(e.Body)
-		c.close()
-		c.write(")")
-	case *dag.SliceExpr:
-		c.expr(e.Expr, "")
-		c.write("[")
-		if e.From != nil {
-			c.expr(e.From, "")
-		}
-		c.write(":")
-		if e.To != nil {
-			c.expr(e.To, "")
-		}
-		c.write("]")
-	case *dag.Search:
-		c.write("search(%s)", e.Value)
-	case *dag.This:
-		c.fieldpath(e.Path)
-	case *dag.Literal:
+	case *dag.LiteralExpr:
 		c.write("%s", e.Value)
+	case *dag.MapExpr:
+		c.write("|{")
+		for k, e := range e.Entries {
+			if k > 0 {
+				c.write(",")
+			}
+			c.expr(e.Key, "")
+			c.write(":")
+			c.expr(e.Value, "")
+		}
+		c.write("}|")
 	case *dag.RecordExpr:
 		c.write("{")
 		for k, elem := range e.Elems {
@@ -152,37 +139,51 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 			}
 		}
 		c.write("}")
-	case *dag.ArrayExpr:
-		c.write("[")
-		c.vectorElems(e.Elems)
-		c.write("]")
-	case *dag.SetExpr:
-		c.write("|[")
-		c.vectorElems(e.Elems)
-		c.write("]|")
-	case *dag.MapExpr:
-		c.write("|{")
-		for k, e := range e.Entries {
-			if k > 0 {
-				c.write(",")
-			}
-			c.expr(e.Key, "")
-			c.write(":")
-			c.expr(e.Value, "")
-		}
-		c.write("}|")
-	case *dag.RegexpSearch:
+	case *dag.RegexpSearchExpr:
 		c.write("regexp_search(r\"")
 		c.write(e.Pattern)
 		c.write("\", ")
 		c.expr(e.Expr, "")
 		c.write(")")
-	case *dag.RegexpMatch:
+	case *dag.RegexpMatchExpr:
 		c.write("regexp_match(/")
 		c.write(e.Pattern)
 		c.write("/, ")
 		c.expr(e.Expr, "")
 		c.write(")")
+	case *dag.SearchExpr:
+		c.write("search(%s)", e.Value)
+	case *dag.SetExpr:
+		c.write("|[")
+		c.vectorElems(e.Elems)
+		c.write("]|")
+	case *dag.SliceExpr:
+		c.expr(e.Expr, "")
+		c.write("[")
+		if e.From != nil {
+			c.expr(e.From, "")
+		}
+		c.write(":")
+		if e.To != nil {
+			c.expr(e.To, "")
+		}
+		c.write("]")
+	case *dag.SubqueryExpr:
+		c.open("(")
+		c.head = true
+		c.seq(e.Body)
+		c.close()
+		c.write(")")
+	case *dag.ThisExpr:
+		c.fieldpath(e.Path)
+	case *dag.UnaryExpr:
+		if isnull, ok := e.Operand.(*dag.IsNullExpr); ok && e.Op == "!" {
+			c.expr(isnull.Expr, "")
+			c.write(" IS NOT NULL")
+		} else {
+			c.write(e.Op)
+			c.expr(e.Operand, "not")
+		}
 	default:
 		c.open("(unknown expr %T)", e)
 		c.close()
@@ -233,7 +234,7 @@ func (c *canonDAG) vectorElems(elems []dag.VectorElem) {
 }
 
 func isDAGThis(e dag.Expr) bool {
-	if this, ok := e.(*dag.This); ok {
+	if this, ok := e.(*dag.ThisExpr); ok {
 		if len(this.Path) == 0 {
 			return true
 		}
@@ -270,233 +271,18 @@ func (c *canonDAG) seq(seq dag.Seq) {
 
 func (c *canonDAG) op(p dag.Op) {
 	switch p := p.(type) {
-	case *dag.Fork:
+	//
+	// Scanners in alphabetical order.
+	//
+	case *dag.CommitMetaScan:
 		c.next()
-		c.open("fork")
-		for _, seq := range p.Paths {
-			c.ret()
-			c.write("(")
-			c.open()
-			c.head = true
-			c.seq(seq)
-			c.close()
-			c.ret()
-			c.write(")")
+		c.write("pool %s@%s:%s", p.Pool, p.Commit, p.Meta)
+		if p.Tap {
+			c.write(" tap")
 		}
-		c.close()
-		c.flush()
-	case *dag.Scatter:
+	case *dag.DBMetaScan:
 		c.next()
-		c.open("scatter")
-		for _, seq := range p.Paths {
-			c.ret()
-			c.write("(")
-			c.open()
-			c.head = true
-			c.seq(seq)
-			c.close()
-			c.ret()
-			c.write(")")
-		}
-		c.close()
-		c.flush()
-	case *dag.Mirror:
-		c.next()
-		c.open("mirror")
-		for _, seq := range []dag.Seq{p.Mirror, p.Main} {
-			c.ret()
-			c.write("(")
-			c.open()
-			c.head = true
-			c.seq(seq)
-			c.close()
-			c.ret()
-			c.write(")")
-		}
-		c.close()
-		c.flush()
-	case *dag.Switch:
-		c.next()
-		c.open("switch")
-		if p.Expr != nil {
-			c.write(" ")
-			c.expr(p.Expr, "")
-		}
-		for _, k := range p.Cases {
-			c.ret()
-			if k.Expr != nil {
-				c.write("case ")
-				c.expr(k.Expr, "")
-			} else {
-				c.write("default")
-			}
-			c.write(" (")
-			c.open()
-			c.head = true
-			c.seq(k.Path)
-			c.close()
-			c.ret()
-			c.write(")")
-		}
-		c.close()
-		c.flush()
-	case *dag.Merge:
-		c.next()
-		c.write("merge")
-		c.sortExprs(p.Exprs)
-	case *dag.Aggregate:
-		c.next()
-		c.open("aggregate")
-		if p.PartialsIn {
-			c.write(" partials-in")
-		}
-		if p.PartialsOut {
-			c.write(" partials-out")
-		}
-		if p.InputSortDir != 0 {
-			c.write(" sort-dir %d", p.InputSortDir)
-		}
-		c.ret()
-		c.open()
-		c.assignments(p.Aggs)
-		if len(p.Keys) != 0 {
-			c.write(" by ")
-			c.assignments(p.Keys)
-		}
-		if p.Limit != 0 {
-			c.write(" -with limit %d", p.Limit)
-		}
-		c.close()
-		c.close()
-	case *dag.Combine:
-		c.next()
-		c.write("combine")
-	case *dag.Cut:
-		c.next()
-		c.write("cut ")
-		c.assignments(p.Args)
-	case *dag.Distinct:
-		c.next()
-		c.write("distinct ")
-		c.expr(p.Expr, "")
-	case *dag.Drop:
-		c.next()
-		c.write("drop ")
-		c.exprs(p.Args)
-	case *dag.Sort:
-		c.next()
-		c.write("sort")
-		if p.Reverse {
-			c.write(" -r")
-		}
-		c.sortExprs(p.Exprs)
-	case *dag.Load:
-		c.next()
-		c.write("load %s", p.Pool)
-		if p.Branch != "" {
-			c.write("@%s", p.Branch)
-		}
-		if p.Author != "" {
-			c.write(" author %s", p.Author)
-		}
-		if p.Message != "" {
-			c.write(" message %s", p.Message)
-		}
-		if p.Meta != "" {
-			c.write(" meta %s", p.Meta)
-		}
-	case *dag.Head:
-		c.next()
-		c.write("head %d", p.Count)
-	case *dag.Tail:
-		c.next()
-		c.write("tail %d", p.Count)
-	case *dag.Skip:
-		c.next()
-		c.write("skip %d", p.Count)
-	case *dag.Uniq:
-		c.next()
-		c.write("uniq")
-		if p.Cflag {
-			c.write(" -c")
-		}
-	case *dag.Filter:
-		c.next()
-		c.open("where ")
-		c.expr(p.Expr, "")
-		c.close()
-	case *dag.Top:
-		c.next()
-		c.write("top")
-		if p.Reverse {
-			c.write(" -r")
-		}
-		c.write(" %d", p.Limit)
-		c.sortExprs(p.Exprs)
-	case *dag.Put:
-		c.next()
-		c.write("put ")
-		c.assignments(p.Args)
-	case *dag.Rename:
-		c.next()
-		c.write("rename ")
-		c.assignments(p.Args)
-	case *dag.Fuse:
-		c.next()
-		c.write("fuse")
-	case *dag.HashJoin:
-		c.next()
-		c.write("%s hashjoin as {%s,%s} on ", p.Style, p.LeftAlias, p.RightAlias)
-		c.expr(p.LeftKey, "")
-		c.write("==")
-		c.expr(p.RightKey, "")
-	case *dag.Join:
-		c.next()
-		c.open()
-		c.write("%s join as {%s,%s}", p.Style, p.LeftAlias, p.RightAlias)
-		if p.Cond != nil {
-			c.write(" on ")
-			c.expr(p.Cond, "")
-		}
-		c.close()
-	case *dag.Lister:
-		c.next()
-		c.open("lister")
-		c.write(" pool %s commit %s", p.Pool, p.Commit)
-		if p.KeyPruner != nil {
-			c.write(" pruner (")
-			c.expr(p.KeyPruner, "")
-			c.write(")")
-		}
-		c.close()
-	case *dag.SeqScan:
-		c.next()
-		c.open("seqscan")
-		c.write(" pool %s", p.Pool)
-		if p.KeyPruner != nil {
-			c.write(" pruner (")
-			c.expr(p.KeyPruner, "")
-			c.write(")")
-		}
-		if len(p.Fields) > 0 {
-			c.fields(p.Fields)
-		}
-		if p.Filter != nil {
-			c.write(" filter (")
-			c.expr(p.Filter, "")
-			c.write(")")
-		}
-		c.close()
-	case *dag.Slicer:
-		c.next()
-		c.open("slicer")
-		c.close()
-	case *dag.Unnest:
-		c.unnest(p)
-	case *dag.Values:
-		c.next()
-		c.write("values ")
-		c.exprs(p.Exprs)
+		c.write(":%s", p.Meta)
 	case *dag.DefaultScan:
 		c.next()
 		c.write("reader")
@@ -505,9 +291,6 @@ func (c *canonDAG) op(p dag.Op) {
 			c.expr(p.Filter, "")
 			c.write(")")
 		}
-	case *dag.NullScan:
-		c.next()
-		c.write("null")
 	case *dag.FileScan:
 		c.next()
 		c.write("file %s", p.Path)
@@ -551,27 +334,251 @@ func (c *canonDAG) op(p dag.Op) {
 	case *dag.HTTPScan:
 		c.next()
 		c.write("get %s", p.URL)
+	case *dag.ListerScan:
+		c.next()
+		c.open("lister")
+		c.write(" pool %s commit %s", p.Pool, p.Commit)
+		if p.KeyPruner != nil {
+			c.write(" pruner (")
+			c.expr(p.KeyPruner, "")
+			c.write(")")
+		}
+		c.close()
+	case *dag.NullScan:
+		c.next()
+		c.write("null")
 	case *dag.PoolScan:
 		c.next()
 		c.write("pool %s", p.ID)
 	case *dag.PoolMetaScan:
 		c.next()
 		c.write("pool %s:%s", p.ID, p.Meta)
-	case *dag.CommitMetaScan:
+	case *dag.SeqScan:
 		c.next()
-		c.write("pool %s@%s:%s", p.Pool, p.Commit, p.Meta)
-		if p.Tap {
-			c.write(" tap")
+		c.open("seqscan")
+		c.write(" pool %s", p.Pool)
+		if p.KeyPruner != nil {
+			c.write(" pruner (")
+			c.expr(p.KeyPruner, "")
+			c.write(")")
 		}
-	case *dag.DBMetaScan:
+		if len(p.Fields) > 0 {
+			c.fields(p.Fields)
+		}
+		if p.Filter != nil {
+			c.write(" filter (")
+			c.expr(p.Filter, "")
+			c.write(")")
+		}
+		c.close()
+	//
+	// Operators in alphabeticl order.
+	//
+	case *dag.AggregateOp:
 		c.next()
-		c.write(":%s", p.Meta)
-	case *dag.Pass:
+		c.open("aggregate")
+		if p.PartialsIn {
+			c.write(" partials-in")
+		}
+		if p.PartialsOut {
+			c.write(" partials-out")
+		}
+		if p.InputSortDir != 0 {
+			c.write(" sort-dir %d", p.InputSortDir)
+		}
+		c.ret()
+		c.open()
+		c.assignments(p.Aggs)
+		if len(p.Keys) != 0 {
+			c.write(" by ")
+			c.assignments(p.Keys)
+		}
+		if p.Limit != 0 {
+			c.write(" -with limit %d", p.Limit)
+		}
+		c.close()
+		c.close()
+	case *dag.CombineOp:
 		c.next()
-		c.write("pass")
-	case *dag.Output:
+		c.write("combine")
+	case *dag.CutOp:
+		c.next()
+		c.write("cut ")
+		c.assignments(p.Args)
+	case *dag.DistinctOp:
+		c.next()
+		c.write("distinct ")
+		c.expr(p.Expr, "")
+	case *dag.DropOp:
+		c.next()
+		c.write("drop ")
+		c.exprs(p.Args)
+	case *dag.FilterOp:
+		c.next()
+		c.open("where ")
+		c.expr(p.Expr, "")
+		c.close()
+	case *dag.ForkOp:
+		c.next()
+		c.open("fork")
+		for _, seq := range p.Paths {
+			c.ret()
+			c.write("(")
+			c.open()
+			c.head = true
+			c.seq(seq)
+			c.close()
+			c.ret()
+			c.write(")")
+		}
+		c.close()
+		c.flush()
+	case *dag.FuseOp:
+		c.next()
+		c.write("fuse")
+	case *dag.HashJoinOp:
+		c.next()
+		c.write("%s hashjoin as {%s,%s} on ", p.Style, p.LeftAlias, p.RightAlias)
+		c.expr(p.LeftKey, "")
+		c.write("==")
+		c.expr(p.RightKey, "")
+	case *dag.HeadOp:
+		c.next()
+		c.write("head %d", p.Count)
+	case *dag.JoinOp:
+		c.next()
+		c.open()
+		c.write("%s join as {%s,%s}", p.Style, p.LeftAlias, p.RightAlias)
+		if p.Cond != nil {
+			c.write(" on ")
+			c.expr(p.Cond, "")
+		}
+		c.close()
+	case *dag.LoadOp:
+		c.next()
+		c.write("load %s", p.Pool)
+		if p.Branch != "" {
+			c.write("@%s", p.Branch)
+		}
+		if p.Author != "" {
+			c.write(" author %s", p.Author)
+		}
+		if p.Message != "" {
+			c.write(" message %s", p.Message)
+		}
+		if p.Meta != "" {
+			c.write(" meta %s", p.Meta)
+		}
+	case *dag.MergeOp:
+		c.next()
+		c.write("merge")
+		c.sortExprs(p.Exprs)
+	case *dag.MirrorOp:
+		c.next()
+		c.open("mirror")
+		for _, seq := range []dag.Seq{p.Mirror, p.Main} {
+			c.ret()
+			c.write("(")
+			c.open()
+			c.head = true
+			c.seq(seq)
+			c.close()
+			c.ret()
+			c.write(")")
+		}
+		c.close()
+		c.flush()
+	case *dag.OutputOp:
 		c.next()
 		c.write("output %s", p.Name)
+	case *dag.PassOp:
+		c.next()
+		c.write("pass")
+	case *dag.PutOp:
+		c.next()
+		c.write("put ")
+		c.assignments(p.Args)
+	case *dag.RenameOp:
+		c.next()
+		c.write("rename ")
+		c.assignments(p.Args)
+	case *dag.ScatterOp:
+		c.next()
+		c.open("scatter")
+		for _, seq := range p.Paths {
+			c.ret()
+			c.write("(")
+			c.open()
+			c.head = true
+			c.seq(seq)
+			c.close()
+			c.ret()
+			c.write(")")
+		}
+		c.close()
+		c.flush()
+	case *dag.SkipOp:
+		c.next()
+		c.write("skip %d", p.Count)
+	case *dag.SlicerOp:
+		c.next()
+		c.open("slicer")
+		c.close()
+	case *dag.SortOp:
+		c.next()
+		c.write("sort")
+		if p.Reverse {
+			c.write(" -r")
+		}
+		c.sortExprs(p.Exprs)
+	case *dag.SwitchOp:
+		c.next()
+		c.open("switch")
+		if p.Expr != nil {
+			c.write(" ")
+			c.expr(p.Expr, "")
+		}
+		for _, k := range p.Cases {
+			c.ret()
+			if k.Expr != nil {
+				c.write("case ")
+				c.expr(k.Expr, "")
+			} else {
+				c.write("default")
+			}
+			c.write(" (")
+			c.open()
+			c.head = true
+			c.seq(k.Path)
+			c.close()
+			c.ret()
+			c.write(")")
+		}
+		c.close()
+		c.flush()
+	case *dag.TailOp:
+		c.next()
+		c.write("tail %d", p.Count)
+	case *dag.TopOp:
+		c.next()
+		c.write("top")
+		if p.Reverse {
+			c.write(" -r")
+		}
+		c.write(" %d", p.Limit)
+		c.sortExprs(p.Exprs)
+	case *dag.UniqOp:
+		c.next()
+		c.write("uniq")
+		if p.Cflag {
+			c.write(" -c")
+		}
+	case *dag.UnnestOp:
+		c.unnest(p)
+	case *dag.ValuesOp:
+		c.next()
+		c.write("values ")
+		c.exprs(p.Exprs)
 	default:
 		c.next()
 		c.open("unknown operator: %T", p)
@@ -588,7 +595,7 @@ func (c *canonDAG) fields(fields []field.Path) {
 	c.write(" fields %s", strings.Join(ss, ","))
 }
 
-func (c *canonDAG) unnest(u *dag.Unnest) {
+func (c *canonDAG) unnest(u *dag.UnnestOp) {
 	c.next()
 	c.write("unnest ")
 	c.expr(u.Expr, "")

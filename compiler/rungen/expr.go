@@ -50,49 +50,7 @@ func (b *Builder) compileExpr(e dag.Expr) (expr.Evaluator, error) {
 		return nil, errors.New("null expression not allowed")
 	}
 	switch e := e.(type) {
-	case *dag.Literal:
-		val, err := sup.ParseValue(b.sctx(), e.Value)
-		if err != nil {
-			return nil, err
-		}
-		return expr.NewLiteral(val), nil
-	case *dag.Search:
-		return b.compileSearch(e)
-	case *dag.This:
-		return expr.NewDottedExpr(b.sctx(), field.Path(e.Path)), nil
-	case *dag.Dot:
-		return b.compileDotExpr(e)
-	case *dag.UnaryExpr:
-		return b.compileUnary(*e)
-	case *dag.BinaryExpr:
-		return b.compileBinary(e)
-	case *dag.Conditional:
-		return b.compileConditional(*e)
-	case *dag.Call:
-		return b.compileCall(e)
-	case *dag.IndexExpr:
-		return b.compileIndexExpr(e)
-	case *dag.IsNullExpr:
-		return b.compileIsNullExpr(e)
-	case *dag.SliceExpr:
-		return b.compileSliceExpr(e)
-	case *dag.Subquery:
-		return b.compileSubquery(e)
-	case *dag.RegexpMatch:
-		return b.compileRegexpMatch(e)
-	case *dag.RegexpSearch:
-		return b.compileRegexpSearch(e)
-	case *dag.RecordExpr:
-		return b.compileRecordExpr(e)
-	case *dag.ArrayExpr:
-		return b.compileArrayExpr(e)
-	case *dag.SetExpr:
-		return b.compileSetExpr(e)
-	case *dag.MapCall:
-		return b.compileMapCall(e)
-	case *dag.MapExpr:
-		return b.compileMapExpr(e)
-	case *dag.Agg:
+	case *dag.AggExpr:
 		agg, err := b.compileAgg(e)
 		if err != nil {
 			return nil, err
@@ -100,6 +58,48 @@ func (b *Builder) compileExpr(e dag.Expr) (expr.Evaluator, error) {
 		aggexpr := expr.NewAggregatorExpr(b.sctx(), agg)
 		b.resetters = append(b.resetters, aggexpr)
 		return aggexpr, nil
+	case *dag.ArrayExpr:
+		return b.compileArrayExpr(e)
+	case *dag.BinaryExpr:
+		return b.compileBinary(e)
+	case *dag.CondExpr:
+		return b.compileConditional(*e)
+	case *dag.CallExpr:
+		return b.compileCall(e)
+	case *dag.DotExpr:
+		return b.compileDotExpr(e)
+	case *dag.IndexExpr:
+		return b.compileIndexExpr(e)
+	case *dag.IsNullExpr:
+		return b.compileIsNullExpr(e)
+	case *dag.LiteralExpr:
+		val, err := sup.ParseValue(b.sctx(), e.Value)
+		if err != nil {
+			return nil, err
+		}
+		return expr.NewLiteral(val), nil
+	case *dag.MapCallExpr:
+		return b.compileMapCall(e)
+	case *dag.MapExpr:
+		return b.compileMapExpr(e)
+	case *dag.RegexpMatchExpr:
+		return b.compileRegexpMatch(e)
+	case *dag.RegexpSearchExpr:
+		return b.compileRegexpSearch(e)
+	case *dag.RecordExpr:
+		return b.compileRecordExpr(e)
+	case *dag.SearchExpr:
+		return b.compileSearch(e)
+	case *dag.SetExpr:
+		return b.compileSetExpr(e)
+	case *dag.SliceExpr:
+		return b.compileSliceExpr(e)
+	case *dag.SubqueryExpr:
+		return b.compileSubquery(e)
+	case *dag.ThisExpr:
+		return expr.NewDottedExpr(b.sctx(), field.Path(e.Path)), nil
+	case *dag.UnaryExpr:
+		return b.compileUnary(*e)
 	default:
 		return nil, fmt.Errorf("invalid expression type %T", e)
 	}
@@ -192,7 +192,7 @@ func (b *Builder) compileConstCompare(e *dag.BinaryExpr) (expr.Evaluator, error)
 	return expr.NewFilter(operand, comparison), nil
 }
 
-func (b *Builder) compileSearch(search *dag.Search) (expr.Evaluator, error) {
+func (b *Builder) compileSearch(search *dag.SearchExpr) (expr.Evaluator, error) {
 	val, err := sup.ParseValue(b.sctx(), search.Value)
 	if err != nil {
 		return nil, err
@@ -241,7 +241,7 @@ func (b *Builder) compileUnary(unary dag.UnaryExpr) (expr.Evaluator, error) {
 	}
 }
 
-func (b *Builder) compileConditional(node dag.Conditional) (expr.Evaluator, error) {
+func (b *Builder) compileConditional(node dag.CondExpr) (expr.Evaluator, error) {
 	predicate, err := b.compileExpr(node.Cond)
 	if err != nil {
 		return nil, err
@@ -257,7 +257,7 @@ func (b *Builder) compileConditional(node dag.Conditional) (expr.Evaluator, erro
 	return expr.NewConditional(b.sctx(), predicate, thenExpr, elseExpr), nil
 }
 
-func (b *Builder) compileDotExpr(dot *dag.Dot) (expr.Evaluator, error) {
+func (b *Builder) compileDotExpr(dot *dag.DotExpr) (expr.Evaluator, error) {
 	record, err := b.compileExpr(dot.LHS)
 	if err != nil {
 		return nil, err
@@ -267,6 +267,13 @@ func (b *Builder) compileDotExpr(dot *dag.Dot) (expr.Evaluator, error) {
 
 func (b *Builder) compileLval(e dag.Expr) (*expr.Lval, error) {
 	switch e := e.(type) {
+	case *dag.DotExpr:
+		lhs, err := b.compileLval(e.LHS)
+		if err != nil {
+			return nil, err
+		}
+		lhs.Elems = append(lhs.Elems, &expr.StaticLvalElem{Name: e.RHS})
+		return lhs, nil
 	case *dag.IndexExpr:
 		container, err := b.compileLval(e.Expr)
 		if err != nil {
@@ -278,14 +285,7 @@ func (b *Builder) compileLval(e dag.Expr) (*expr.Lval, error) {
 		}
 		container.Elems = append(container.Elems, expr.NewExprLvalElem(b.sctx(), index))
 		return container, nil
-	case *dag.Dot:
-		lhs, err := b.compileLval(e.LHS)
-		if err != nil {
-			return nil, err
-		}
-		lhs.Elems = append(lhs.Elems, &expr.StaticLvalElem{Name: e.RHS})
-		return lhs, nil
-	case *dag.This:
+	case *dag.ThisExpr:
 		var elems []expr.LvalElem
 		for _, elem := range e.Path {
 			elems = append(elems, &expr.StaticLvalElem{Name: elem})
@@ -307,7 +307,7 @@ func (b *Builder) compileAssignment(node *dag.Assignment) (expr.Assignment, erro
 	return expr.Assignment{LHS: lhs, RHS: rhs}, err
 }
 
-func (b *Builder) compileCall(call *dag.Call) (expr.Evaluator, error) {
+func (b *Builder) compileCall(call *dag.CallExpr) (expr.Evaluator, error) {
 	if tf := expr.NewShaperTransform(call.Tag); tf != 0 {
 		return b.compileShaper(call.Args, tf)
 	}
@@ -349,7 +349,7 @@ func (b *Builder) compileUDFCall(tag string, f *dag.FuncDef) (expr.Function, err
 	return fn, nil
 }
 
-func (b *Builder) compileMapCall(a *dag.MapCall) (expr.Evaluator, error) {
+func (b *Builder) compileMapCall(a *dag.MapCallExpr) (expr.Evaluator, error) {
 	e, err := b.compileExpr(a.Expr)
 	if err != nil {
 		return nil, err
@@ -405,7 +405,7 @@ func (b *Builder) compileIsNullExpr(e *dag.IsNullExpr) (expr.Evaluator, error) {
 	return expr.NewIsNullExpr(eval), nil
 }
 
-func (b *Builder) compileSubquery(query *dag.Subquery) (expr.Evaluator, error) {
+func (b *Builder) compileSubquery(query *dag.SubqueryExpr) (expr.Evaluator, error) {
 	if !query.Correlated {
 		body, err := b.compileSeqAndCombine(query.Body, nil)
 		if err != nil {
@@ -430,7 +430,7 @@ func (b *Builder) compileSeqAndCombine(seq dag.Seq, parents []sbuf.Puller) (sbuf
 	return b.combine(exits), nil
 }
 
-func (b *Builder) compileRegexpMatch(match *dag.RegexpMatch) (expr.Evaluator, error) {
+func (b *Builder) compileRegexpMatch(match *dag.RegexpMatchExpr) (expr.Evaluator, error) {
 	e, err := b.compileExpr(match.Expr)
 	if err != nil {
 		return nil, err
@@ -442,7 +442,7 @@ func (b *Builder) compileRegexpMatch(match *dag.RegexpMatch) (expr.Evaluator, er
 	return expr.NewRegexpMatch(re, e), nil
 }
 
-func (b *Builder) compileRegexpSearch(search *dag.RegexpSearch) (expr.Evaluator, error) {
+func (b *Builder) compileRegexpSearch(search *dag.RegexpSearchExpr) (expr.Evaluator, error) {
 	e, err := b.compileExpr(search.Expr)
 	if err != nil {
 		return nil, err

@@ -21,11 +21,11 @@ import (
 // the leaves.
 func (b *Builder) compileVam(o dag.Op, parents []vector.Puller) ([]vector.Puller, error) {
 	switch o := o.(type) {
-	case *dag.Combine:
+	case *dag.CombineOp:
 		return []vector.Puller{vamop.NewCombine(b.rctx, parents)}, nil
-	case *dag.Fork:
+	case *dag.ForkOp:
 		return b.compileVamFork(o, parents)
-	case *dag.HashJoin:
+	case *dag.HashJoinOp:
 		if len(parents) != 2 {
 			return nil, ErrJoinParents
 		}
@@ -39,7 +39,7 @@ func (b *Builder) compileVam(o dag.Op, parents []vector.Puller) ([]vector.Puller
 		}
 		join := vamop.NewHashJoin(b.rctx, o.Style, parents[0], parents[1], leftKey, rightKey, o.LeftAlias, o.RightAlias)
 		return []vector.Puller{join}, nil
-	case *dag.Join:
+	case *dag.JoinOp:
 		if len(parents) != 2 {
 			return nil, ErrJoinParents
 		}
@@ -53,7 +53,7 @@ func (b *Builder) compileVam(o dag.Op, parents []vector.Puller) ([]vector.Puller
 		}
 		join := vamop.NewNestedLoopJoin(b.rctx, parents[0], parents[1], o.Style, o.LeftAlias, o.RightAlias, cond)
 		return []vector.Puller{join}, nil
-	case *dag.Merge:
+	case *dag.MergeOp:
 		b.resetResetters()
 		exprs, err := b.compileSortExprs(o.Exprs)
 		if err != nil {
@@ -61,9 +61,9 @@ func (b *Builder) compileVam(o dag.Op, parents []vector.Puller) ([]vector.Puller
 		}
 		cmp := expr.NewComparator(exprs...).WithMissingAsNull()
 		return []vector.Puller{vamop.NewMerge(b.rctx, parents, cmp.Compare)}, nil
-	case *dag.Scatter:
+	case *dag.ScatterOp:
 		return b.compileVamScatter(o, parents)
-	case *dag.Switch:
+	case *dag.SwitchOp:
 		if o.Expr != nil {
 			return b.compileVamExprSwitch(o, parents)
 		}
@@ -92,7 +92,7 @@ func (b *Builder) compileVamScan(scan *dag.SeqScan, parent sbuf.Puller) (vector.
 	return vamop.NewScanner(b.rctx, b.env.DB().VectorCache(), parent, pool, scan.Fields, nil, nil), nil
 }
 
-func (b *Builder) compileVamFork(fork *dag.Fork, parents []vector.Puller) ([]vector.Puller, error) {
+func (b *Builder) compileVamFork(fork *dag.ForkOp, parents []vector.Puller) ([]vector.Puller, error) {
 	var f *vamop.Fork
 	switch len(parents) {
 	case 0:
@@ -119,7 +119,7 @@ func (b *Builder) compileVamFork(fork *dag.Fork, parents []vector.Puller) ([]vec
 	return exits, nil
 }
 
-func (b *Builder) compileVamScatter(scatter *dag.Scatter, parents []vector.Puller) ([]vector.Puller, error) {
+func (b *Builder) compileVamScatter(scatter *dag.ScatterOp, parents []vector.Puller) ([]vector.Puller, error) {
 	if len(parents) != 1 {
 		return nil, errors.New("internal error: scatter operator requires a single parent")
 	}
@@ -142,7 +142,7 @@ func (b *Builder) compileVamScatter(scatter *dag.Scatter, parents []vector.Pulle
 	return ops, nil
 }
 
-func (b *Builder) compileVamExprSwitch(swtch *dag.Switch, parents []vector.Puller) ([]vector.Puller, error) {
+func (b *Builder) compileVamExprSwitch(swtch *dag.SwitchOp, parents []vector.Puller) ([]vector.Puller, error) {
 	parent := parents[0]
 	if len(parents) > 1 {
 		parent = vamop.NewCombine(b.rctx, parents)
@@ -174,7 +174,7 @@ func (b *Builder) compileVamExprSwitch(swtch *dag.Switch, parents []vector.Pulle
 	return exits, nil
 }
 
-func (b *Builder) compileVamSwitch(swtch *dag.Switch, parents []vector.Puller) ([]vector.Puller, error) {
+func (b *Builder) compileVamSwitch(swtch *dag.SwitchOp, parents []vector.Puller) ([]vector.Puller, error) {
 	parent := parents[0]
 	if len(parents) > 1 {
 		parent = vamop.NewCombine(b.rctx, parents)
@@ -204,9 +204,9 @@ func (b *Builder) compileVamMain(main *dag.Main, parents []vector.Puller) ([]vec
 
 func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller, error) {
 	switch o := o.(type) {
-	case *dag.Aggregate:
+	case *dag.AggregateOp:
 		return b.compileVamAggregate(o, parent)
-	case *dag.Cut:
+	case *dag.CutOp:
 		rec, err := vamNewRecordExprFromAssignments(o.Args)
 		if err != nil {
 			return nil, err
@@ -222,16 +222,16 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 			return nil, err
 		}
 		return vam.NewDematerializer(sbufPuller), nil
-	case *dag.Distinct:
+	case *dag.DistinctOp:
 		e, err := b.compileVamExpr(o.Expr)
 		if err != nil {
 			return nil, err
 		}
 		return vamop.NewDistinct(parent, e), nil
-	case *dag.Drop:
+	case *dag.DropOp:
 		fields := make(field.List, 0, len(o.Args))
 		for _, e := range o.Args {
-			fields = append(fields, e.(*dag.This).Path)
+			fields = append(fields, e.(*dag.ThisExpr).Path)
 		}
 		dropper := vamexpr.NewDropper(b.sctx(), fields)
 		return vamop.NewValues(b.sctx(), parent, []vamexpr.Evaluator{dropper}), nil
@@ -244,22 +244,22 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		}
 		pushdown := b.newMetaPushdown(metaFilter, o.Pushdown.Projection, metaProjection, o.Pushdown.Unordered)
 		return b.env.VectorOpen(b.rctx, b.sctx(), o.Path, o.Format, pushdown)
-	case *dag.Filter:
+	case *dag.FilterOp:
 		e, err := b.compileVamExpr(o.Expr)
 		if err != nil {
 			return nil, err
 		}
 		return vamop.NewFilter(b.sctx(), parent, e), nil
-	case *dag.Head:
+	case *dag.HeadOp:
 		return vamop.NewHead(parent, o.Count), nil
 	case *dag.NullScan:
 		return vam.NewDematerializer(sbuf.NewPuller(sbuf.NewArray([]super.Value{super.Null}))), nil
-	case *dag.Output:
+	case *dag.OutputOp:
 		b.channels[o.Name] = append(b.channels[o.Name], vam.NewMaterializer(parent))
 		return parent, nil
-	case *dag.Pass:
+	case *dag.PassOp:
 		return parent, nil
-	case *dag.Put:
+	case *dag.PutOp:
 		rec, err := vamNewRecordExprFromAssignments(o.Args)
 		if err != nil {
 			return nil, err
@@ -270,22 +270,22 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 			return nil, err
 		}
 		return vamop.NewValues(b.sctx(), parent, []vamexpr.Evaluator{vamexpr.NewPutter(b.sctx(), e)}), nil
-	case *dag.Rename:
+	case *dag.RenameOp:
 		srcs, dsts, err := b.compileAssignmentsToLvals(o.Args)
 		if err != nil {
 			return nil, err
 		}
 		renamer := vamexpr.NewRenamer(b.sctx(), srcs, dsts)
 		return vamop.NewValues(b.sctx(), parent, []vamexpr.Evaluator{renamer}), nil
-	case *dag.Skip:
+	case *dag.SkipOp:
 		return vamop.NewSkip(parent, o.Count), nil
-	case *dag.Top:
+	case *dag.TopOp:
 		sbufPuller, err := b.compileLeaf(o, vam.NewMaterializer(parent))
 		if err != nil {
 			return nil, err
 		}
 		return vam.NewDematerializer(sbufPuller), nil
-	case *dag.Sort:
+	case *dag.SortOp:
 		b.resetResetters()
 		var sortExprs []expr.SortExpr
 		for _, e := range o.Exprs {
@@ -296,17 +296,17 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 			sortExprs = append(sortExprs, expr.NewSortExpr(k, e.Order, e.Nulls))
 		}
 		return vamop.NewSort(b.rctx, parent, sortExprs, o.Reverse, b.resetters), nil
-	case *dag.Tail:
+	case *dag.TailOp:
 		return vamop.NewTail(parent, o.Count), nil
-	case *dag.Uniq:
+	case *dag.UniqOp:
 		sbufPuller, err := b.compileLeaf(o, vam.NewMaterializer(parent))
 		if err != nil {
 			return nil, err
 		}
 		return vam.NewDematerializer(sbufPuller), nil
-	case *dag.Unnest:
+	case *dag.UnnestOp:
 		return b.compileVamUnnest(o, parent)
-	case *dag.Values:
+	case *dag.ValuesOp:
 		exprs, err := b.compileVamExprs(o.Exprs)
 		if err != nil {
 			return nil, err
@@ -320,7 +320,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 func vamNewRecordExprFromAssignments(assignments []dag.Assignment) (*dag.RecordExpr, error) {
 	rec := &dag.RecordExpr{Kind: "RecordExpr"}
 	for _, a := range assignments {
-		lhs, ok := a.LHS.(*dag.This)
+		lhs, ok := a.LHS.(*dag.ThisExpr)
 		if !ok {
 			return nil, fmt.Errorf("internal error: dynamic field name not supported in vector runtime: %#v", a.LHS)
 		}
@@ -357,7 +357,7 @@ func mergeRecordExprWithPath(rec *dag.RecordExpr, path []string) {
 	}
 }
 
-func (b *Builder) compileVamUnnest(unnest *dag.Unnest, parent vector.Puller) (vector.Puller, error) {
+func (b *Builder) compileVamUnnest(unnest *dag.UnnestOp, parent vector.Puller) (vector.Puller, error) {
 	e, err := b.compileVamExpr(unnest.Expr)
 	if err != nil {
 		return nil, err
@@ -393,19 +393,19 @@ func (b *Builder) compileVamSeq(seq dag.Seq, parents []vector.Puller) ([]vector.
 	return parents, nil
 }
 
-func (b *Builder) compileVamAggregate(s *dag.Aggregate, parent vector.Puller) (vector.Puller, error) {
+func (b *Builder) compileVamAggregate(s *dag.AggregateOp, parent vector.Puller) (vector.Puller, error) {
 	// compile aggs
 	var aggNames []field.Path
 	var aggExprs []vamexpr.Evaluator
 	var aggs []*vamexpr.Aggregator
 	for _, assignment := range s.Aggs {
-		aggNames = append(aggNames, assignment.LHS.(*dag.This).Path)
+		aggNames = append(aggNames, assignment.LHS.(*dag.ThisExpr).Path)
 		lhs, err := b.compileVamExpr(assignment.LHS)
 		if err != nil {
 			return nil, err
 		}
 		aggExprs = append(aggExprs, lhs)
-		agg, err := b.compileVamAgg(assignment.RHS.(*dag.Agg))
+		agg, err := b.compileVamAgg(assignment.RHS.(*dag.AggExpr))
 		if err != nil {
 			return nil, err
 		}
@@ -415,7 +415,7 @@ func (b *Builder) compileVamAggregate(s *dag.Aggregate, parent vector.Puller) (v
 	var keyNames []field.Path
 	var keyExprs []vamexpr.Evaluator
 	for _, assignment := range s.Keys {
-		lhs, ok := assignment.LHS.(*dag.This)
+		lhs, ok := assignment.LHS.(*dag.ThisExpr)
 		if !ok {
 			return nil, errors.New("invalid lval in grouping key")
 		}
@@ -429,7 +429,7 @@ func (b *Builder) compileVamAggregate(s *dag.Aggregate, parent vector.Puller) (v
 	return aggregate.New(parent, b.sctx(), aggNames, aggExprs, aggs, keyNames, keyExprs, s.PartialsIn, s.PartialsOut)
 }
 
-func (b *Builder) compileVamAgg(agg *dag.Agg) (*vamexpr.Aggregator, error) {
+func (b *Builder) compileVamAgg(agg *dag.AggExpr) (*vamexpr.Aggregator, error) {
 	name := agg.Name
 	var err error
 	var arg vamexpr.Evaluator

@@ -43,8 +43,8 @@ func mergeFilters(seq dag.Seq) dag.Seq {
 	return walk(seq, true, func(seq dag.Seq) dag.Seq {
 		// Start at the next to last element and work toward the first.
 		for i := len(seq) - 2; i >= 0; i-- {
-			if f1, ok := seq[i].(*dag.Filter); ok {
-				if f2, ok := seq[i+1].(*dag.Filter); ok {
+			if f1, ok := seq[i].(*dag.FilterOp); ok {
+				if f2, ok := seq[i+1].(*dag.FilterOp); ok {
 					// Merge the second filter into the
 					// first and then delete the second.
 					f1.Expr = dag.NewBinaryExpr("and", f1.Expr, f2.Expr)
@@ -59,14 +59,14 @@ func mergeFilters(seq dag.Seq) dag.Seq {
 func removePassOps(seq dag.Seq) dag.Seq {
 	return walk(seq, true, func(seq dag.Seq) dag.Seq {
 		for i := 0; i < len(seq); i++ {
-			if _, ok := seq[i].(*dag.Pass); ok {
+			if _, ok := seq[i].(*dag.PassOp); ok {
 				seq.Delete(i, i+1)
 				i--
 				continue
 			}
 		}
 		if len(seq) == 0 {
-			seq = dag.Seq{dag.PassOp}
+			seq = dag.Seq{dag.Pass}
 		}
 		return seq
 	})
@@ -79,19 +79,19 @@ func Walk(seq dag.Seq, post func(dag.Seq) dag.Seq) dag.Seq {
 func walk(seq dag.Seq, over bool, post func(dag.Seq) dag.Seq) dag.Seq {
 	for _, op := range seq {
 		switch op := op.(type) {
-		case *dag.Unnest:
+		case *dag.UnnestOp:
 			if over && op.Body != nil {
 				op.Body = walk(op.Body, over, post)
 			}
-		case *dag.Fork:
+		case *dag.ForkOp:
 			for k := range op.Paths {
 				op.Paths[k] = walk(op.Paths[k], over, post)
 			}
-		case *dag.Scatter:
+		case *dag.ScatterOp:
 			for k := range op.Paths {
 				op.Paths[k] = walk(op.Paths[k], over, post)
 			}
-		case *dag.Mirror:
+		case *dag.MirrorOp:
 			op.Main = walk(op.Main, over, post)
 			op.Mirror = walk(op.Mirror, over, post)
 		}
@@ -102,7 +102,7 @@ func walk(seq dag.Seq, over bool, post func(dag.Seq) dag.Seq) dag.Seq {
 func walkEntries(seq dag.Seq, post func(dag.Seq) (dag.Seq, error)) (dag.Seq, error) {
 	for _, op := range seq {
 		switch op := op.(type) {
-		case *dag.Fork:
+		case *dag.ForkOp:
 			for k := range op.Paths {
 				seq, err := walkEntries(op.Paths[k], post)
 				if err != nil {
@@ -110,7 +110,7 @@ func walkEntries(seq dag.Seq, post func(dag.Seq) (dag.Seq, error)) (dag.Seq, err
 				}
 				op.Paths[k] = seq
 			}
-		case *dag.Scatter:
+		case *dag.ScatterOp:
 			for k := range op.Paths {
 				seq, err := walkEntries(op.Paths[k], post)
 				if err != nil {
@@ -118,7 +118,7 @@ func walkEntries(seq dag.Seq, post func(dag.Seq) (dag.Seq, error)) (dag.Seq, err
 				}
 				op.Paths[k] = seq
 			}
-		case *dag.Mirror:
+		case *dag.MirrorOp:
 			var err error
 			if op.Main, err = walkEntries(op.Main, post); err != nil {
 				return nil, err
@@ -169,16 +169,16 @@ func (o *Optimizer) OptimizeDeleter(main *dag.Main, replicas int) error {
 	if !ok {
 		return errors.New("internal error: bad deleter structure")
 	}
-	filter, ok := seq[1].(*dag.Filter)
+	filter, ok := seq[1].(*dag.FilterOp)
 	if !ok {
 		return errors.New("internal error: bad deleter structure")
 	}
-	output, ok := seq[2].(*dag.Output)
+	output, ok := seq[2].(*dag.OutputOp)
 	if !ok {
 		return errors.New("internal error: bad deleter structure")
 	}
-	lister := &dag.Lister{
-		Kind:   "Lister",
+	lister := &dag.ListerScan{
+		Kind:   "ListerScan",
 		Pool:   scan.ID,
 		Commit: scan.Commit,
 	}
@@ -186,24 +186,24 @@ func (o *Optimizer) OptimizeDeleter(main *dag.Main, replicas int) error {
 	if err != nil {
 		return err
 	}
-	deleter := &dag.Deleter{
-		Kind:  "Deleter",
+	deleter := &dag.DeleterScan{
+		Kind:  "DeleterScan",
 		Pool:  scan.ID,
 		Where: filter.Expr,
 		//XXX KeyPruner?
 	}
 	lister.KeyPruner = maybeNewRangePruner(filter.Expr, sortKeys)
-	scatter := &dag.Scatter{Kind: "Scatter"}
+	scatter := &dag.ScatterOp{Kind: "ScatterOp"}
 	for range replicas {
 		scatter.Paths = append(scatter.Paths, dag.CopySeq(dag.Seq{deleter}))
 	}
 	var merge dag.Op
 	if sortKeys.IsNil() {
-		merge = &dag.Combine{Kind: "Combine"}
+		merge = &dag.CombineOp{Kind: "CombineOp"}
 	} else {
 		sortKey := sortKeys.Primary()
-		merge = &dag.Merge{
-			Kind: "Merge",
+		merge = &dag.MergeOp{
+			Kind: "MergeOp",
 			Exprs: []dag.SortExpr{{
 				Key:   dag.NewThis(sortKey.Key),
 				Order: sortKey.Order,
@@ -236,8 +236,8 @@ func (o *Optimizer) optimizeSourcePaths(seq dag.Seq) (dag.Seq, error) {
 			// Here we transform a PoolScan into a Lister followed by one or more chains
 			// of slicers and sequence scanners.  We'll eventually choose other configurations
 			// here based on metadata and availability of CSUP.
-			lister := &dag.Lister{
-				Kind:   "Lister",
+			lister := &dag.ListerScan{
+				Kind:   "ListerScan",
 				Pool:   op.ID,
 				Commit: op.Commit,
 			}
@@ -254,7 +254,7 @@ func (o *Optimizer) optimizeSourcePaths(seq dag.Seq) (dag.Seq, error) {
 				return nil, err
 			}
 			if orderRequired {
-				seq = append(seq, &dag.Slicer{Kind: "Slicer"})
+				seq = append(seq, &dag.SlicerOp{Kind: "SlicerOp"})
 			}
 			seq = append(seq, &dag.SeqScan{
 				Kind:      "SeqScan",
@@ -292,9 +292,9 @@ func (o *Optimizer) optimizeSourcePaths(seq dag.Seq) (dag.Seq, error) {
 				// in a normal filtering operation.
 				op.KeyPruner = maybeNewRangePruner(filter, sortKeys)
 				// Delete the downstream operators when we are tapping the object list.
-				o, ok := seq[len(seq)-1].(*dag.Output)
+				o, ok := seq[len(seq)-1].(*dag.OutputOp)
 				if !ok {
-					o = &dag.Output{Kind: "Output", Name: "main"}
+					o = &dag.OutputOp{Kind: "OutputOp", Name: "main"}
 				}
 				seq = dag.Seq{op, o}
 			}
@@ -332,7 +332,7 @@ func (o *Optimizer) propagateSortKey(seq dag.Seq, parents []order.SortKeys) ([]o
 
 func (o *Optimizer) propagateSortKeyOp(op dag.Op, parents []order.SortKeys) ([]order.SortKeys, error) {
 	switch op.(type) {
-	case *dag.HashJoin, *dag.Join:
+	case *dag.HashJoinOp, *dag.JoinOp:
 		return []order.SortKeys{nil}, nil
 	}
 	// If the op is not a join then condense sort order into a single parent,
@@ -348,7 +348,7 @@ func (o *Optimizer) propagateSortKeyOp(op dag.Op, parents []order.SortKeys) ([]o
 		}
 	}
 	switch op := op.(type) {
-	case *dag.Aggregate:
+	case *dag.AggregateOp:
 		if parent.IsNil() {
 			return []order.SortKeys{nil}, nil
 		}
@@ -373,7 +373,7 @@ func (o *Optimizer) propagateSortKeyOp(op dag.Op, parents []order.SortKeys) ([]o
 		// and not try to optimize downstream of the first aggregate
 		// unless there is an excplicit sort encountered.
 		return []order.SortKeys{nil}, nil
-	case *dag.Fork:
+	case *dag.ForkOp:
 		var keys []order.SortKeys
 		for _, seq := range op.Paths {
 			out, err := o.propagateSortKey(seq, []order.SortKeys{parent})
@@ -383,7 +383,7 @@ func (o *Optimizer) propagateSortKeyOp(op dag.Op, parents []order.SortKeys) ([]o
 			keys = append(keys, out...)
 		}
 		return keys, nil
-	case *dag.Scatter:
+	case *dag.ScatterOp:
 		var keys []order.SortKeys
 		for _, seq := range op.Paths {
 			out, err := o.propagateSortKey(seq, []order.SortKeys{parent})
@@ -393,7 +393,7 @@ func (o *Optimizer) propagateSortKeyOp(op dag.Op, parents []order.SortKeys) ([]o
 			keys = append(keys, out...)
 		}
 		return keys, nil
-	case *dag.Mirror:
+	case *dag.MirrorOp:
 		var keys []order.SortKeys
 		for _, seq := range []dag.Seq{op.Main, op.Mirror} {
 			out, err := o.propagateSortKey(seq, []order.SortKeys{parent})
@@ -403,17 +403,17 @@ func (o *Optimizer) propagateSortKeyOp(op dag.Op, parents []order.SortKeys) ([]o
 			keys = append(keys, out...)
 		}
 		return keys, nil
-	case *dag.Merge:
+	case *dag.MergeOp:
 		var sortKeys order.SortKeys
 		sortExpr := op.Exprs[0]
-		if this, ok := sortExpr.Key.(*dag.This); ok {
+		if this, ok := sortExpr.Key.(*dag.ThisExpr); ok {
 			sortKeys = append(sortKeys, order.NewSortKey(sortExpr.Order, this.Path))
 		}
 		if !sortKeys.Equal(parent) {
 			sortKeys = nil
 		}
 		return []order.SortKeys{sortKeys}, nil
-	case *dag.PoolScan, *dag.Lister, *dag.SeqScan, *dag.DefaultScan:
+	case *dag.PoolScan, *dag.ListerScan, *dag.SeqScan, *dag.DefaultScan:
 		out, err := o.sortKeysOfSource(op)
 		return []order.SortKeys{out}, err
 	default:
@@ -432,7 +432,7 @@ func (o *Optimizer) sortKeysOfSource(op dag.Op) (order.SortKeys, error) {
 		return nil, nil
 	case *dag.PoolScan:
 		return o.sortKey(op.ID)
-	case *dag.Lister:
+	case *dag.ListerScan:
 		return o.sortKey(op.Pool)
 	case *dag.SeqScan:
 		return o.sortKey(op.Pool)
@@ -472,7 +472,7 @@ func matchFilter(seq dag.Seq) (dag.Expr, dag.Seq) {
 	if len(seq) == 0 {
 		return nil, seq
 	}
-	filter, ok := seq[0].(*dag.Filter)
+	filter, ok := seq[0].(*dag.FilterOp)
 	if !ok {
 		return nil, seq
 	}
@@ -510,9 +510,9 @@ func inlineRecordExprSpreads(v any) {
 func joinFilterPullup(seq dag.Seq) dag.Seq {
 	seq = mergeFilters(seq)
 	for i := 0; i <= len(seq)-3; i++ {
-		fork, isfork := seq[i].(*dag.Fork)
+		fork, isfork := seq[i].(*dag.ForkOp)
 		leftAlias, rightAlias, isjoin := isJoin(seq[i+1])
-		filter, isfilter := seq[i+2].(*dag.Filter)
+		filter, isfilter := seq[i+2].(*dag.FilterOp)
 		if !isfork || !isjoin || !isfilter {
 			continue
 		}
@@ -522,11 +522,11 @@ func joinFilterPullup(seq dag.Seq) dag.Seq {
 		var remaining []dag.Expr
 		for _, e := range splitPredicate(filter.Expr) {
 			if pullup, ok := pullupExpr(leftAlias, e); ok {
-				fork.Paths[0] = append(fork.Paths[0], dag.NewFilter(pullup))
+				fork.Paths[0] = append(fork.Paths[0], dag.NewFilterOp(pullup))
 				continue
 			}
 			if pullup, ok := pullupExpr(rightAlias, e); ok {
-				fork.Paths[1] = append(fork.Paths[1], dag.NewFilter(pullup))
+				fork.Paths[1] = append(fork.Paths[1], dag.NewFilterOp(pullup))
 				continue
 			}
 			remaining = append(remaining, e)
@@ -539,7 +539,7 @@ func joinFilterPullup(seq dag.Seq) dag.Seq {
 			for _, e := range remaining[1:] {
 				out = dag.NewBinaryExpr("and", e, out)
 			}
-			seq[i+2] = dag.NewFilter(out)
+			seq[i+2] = dag.NewFilterOp(out)
 		}
 		fork.Paths[0] = joinFilterPullup(fork.Paths[0])
 		fork.Paths[1] = joinFilterPullup(fork.Paths[1])
@@ -549,9 +549,9 @@ func joinFilterPullup(seq dag.Seq) dag.Seq {
 
 func isJoin(op dag.Op) (string, string, bool) {
 	switch op := op.(type) {
-	case *dag.HashJoin:
+	case *dag.HashJoinOp:
 		return op.LeftAlias, op.RightAlias, true
-	case *dag.Join:
+	case *dag.JoinOp:
 		return op.LeftAlias, op.RightAlias, true
 	default:
 		return "", "", false
@@ -587,14 +587,14 @@ func pullupExpr(alias string, expr dag.Expr) (dag.Expr, bool) {
 		return dag.NewBinaryExpr("or", lhs, rhs), true
 
 	}
-	var literal *dag.Literal
-	var this *dag.This
+	var literal *dag.LiteralExpr
+	var this *dag.ThisExpr
 	for _, e := range []dag.Expr{e.RHS, e.LHS} {
-		if l, ok := e.(*dag.Literal); ok && literal == nil {
+		if l, ok := e.(*dag.LiteralExpr); ok && literal == nil {
 			literal = l
 			continue
 		}
-		if t, ok := e.(*dag.This); ok && this == nil && len(t.Path) > 1 && t.Path[0] == alias {
+		if t, ok := e.(*dag.ThisExpr); ok && this == nil && len(t.Path) > 1 && t.Path[0] == alias {
 			this = t
 			continue
 		}
@@ -607,12 +607,12 @@ func pullupExpr(alias string, expr dag.Expr) (dag.Expr, bool) {
 func liftFilterOps(seq dag.Seq) dag.Seq {
 	walkT(reflect.ValueOf(&seq), func(seq dag.Seq) dag.Seq {
 		for i := len(seq) - 2; i >= 0; i-- {
-			y, ok := seq[i].(*dag.Values)
+			y, ok := seq[i].(*dag.ValuesOp)
 			if !ok || len(y.Exprs) != 1 {
 				continue
 			}
 			re, ok1 := y.Exprs[0].(*dag.RecordExpr)
-			f, ok2 := seq[i+1].(*dag.Filter)
+			f, ok2 := seq[i+1].(*dag.FilterOp)
 			if !ok1 || !ok2 || hasThisWithEmptyPath(f) {
 				continue
 			}
@@ -620,20 +620,20 @@ func liftFilterOps(seq dag.Seq) dag.Seq {
 			if !ok {
 				continue
 			}
-			f = dag.CopyOp(f).(*dag.Filter)
+			f = dag.CopyOp(f).(*dag.FilterOp)
 			liftOK := true
 			walkT(reflect.ValueOf(f), func(e dag.Expr) dag.Expr {
 				if !liftOK {
 					return e
 				}
-				this, ok := e.(*dag.This)
+				this, ok := e.(*dag.ThisExpr)
 				if !ok {
 					return e
 				}
 				e1, ok := fields[this.Path[0]]
 				if !ok {
 					if spread == nil {
-						return &dag.Literal{Kind: "Literal", Value: `error("missing")`}
+						return &dag.LiteralExpr{Kind: "LiteralExpr", Value: `error("missing")`}
 					}
 					// Copy spread so f and y don't share dag.Exprs.
 					e, liftOK = addPathToExpr(dag.CopyExpr(spread), this.Path)
@@ -655,7 +655,7 @@ func liftFilterOps(seq dag.Seq) dag.Seq {
 func mergeValuesOps(seq dag.Seq) dag.Seq {
 	return walk(seq, true, func(seq dag.Seq) dag.Seq {
 		for i := 0; i+1 < len(seq); i++ {
-			v1, ok := seq[i].(*dag.Values)
+			v1, ok := seq[i].(*dag.ValuesOp)
 			if !ok || len(v1.Exprs) != 1 || hasThisWithEmptyPath(seq[i+1]) {
 				continue
 			}
@@ -672,14 +672,14 @@ func mergeValuesOps(seq dag.Seq) dag.Seq {
 				if !mergeOK {
 					return e
 				}
-				this, ok := e.(*dag.This)
+				this, ok := e.(*dag.ThisExpr)
 				if !ok {
 					return e
 				}
 				v1Expr, ok := v1TopLevelFields[this.Path[0]]
 				if !ok {
 					if v1TopLevelSpread == nil {
-						return &dag.Literal{Kind: "Literal", Value: `error("missing")`}
+						return &dag.LiteralExpr{Kind: "LiteralExpr", Value: `error("missing")`}
 					}
 					e, mergeOK = addPathToExpr(v1TopLevelSpread, this.Path)
 					return e
@@ -689,8 +689,8 @@ func mergeValuesOps(seq dag.Seq) dag.Seq {
 			}
 			var mergedOp dag.Op
 			switch op := seq[i+1].(type) {
-			case *dag.Aggregate:
-				op = dag.CopyOp(op).(*dag.Aggregate)
+			case *dag.AggregateOp:
+				op = dag.CopyOp(op).(*dag.AggregateOp)
 				for i := range op.Keys {
 					walkT(reflect.ValueOf(&op.Keys[i].RHS), propagateV1Fields)
 				}
@@ -698,8 +698,8 @@ func mergeValuesOps(seq dag.Seq) dag.Seq {
 					walkT(reflect.ValueOf(&op.Aggs[i].RHS), propagateV1Fields)
 				}
 				mergedOp = op
-			case *dag.Values:
-				op = dag.CopyOp(op).(*dag.Values)
+			case *dag.ValuesOp:
+				op = dag.CopyOp(op).(*dag.ValuesOp)
 				walkT(reflect.ValueOf(op.Exprs), propagateV1Fields)
 				mergedOp = op
 			default:
@@ -718,7 +718,7 @@ func mergeValuesOps(seq dag.Seq) dag.Seq {
 
 func hasThisWithEmptyPath(v any) bool {
 	var found bool
-	walkT(reflect.ValueOf(v), func(this *dag.This) *dag.This {
+	walkT(reflect.ValueOf(v), func(this *dag.ThisExpr) *dag.ThisExpr {
 		if len(this.Path) < 1 {
 			found = true
 		}
@@ -770,11 +770,11 @@ func addPathToExpr(e dag.Expr, path []string) (dag.Expr, bool) {
 			return e, false
 		}
 		return addPathToExpr(spread.Expr, path)
-	case *dag.This:
+	case *dag.ThisExpr:
 		return dag.NewThis(slices.Concat(e.Path, path)), true
 	}
 	for _, elem := range path {
-		e = &dag.Dot{Kind: "Dot", LHS: e, RHS: elem}
+		e = &dag.DotExpr{Kind: "DotExpr", LHS: e, RHS: elem}
 	}
 	return e, true
 }
@@ -801,7 +801,7 @@ func recordElemsFieldsAndSpread(elems []dag.RecordElem) (map[string]dag.Expr, da
 func replaceSortAndHeadOrTailWithTop(seq dag.Seq) dag.Seq {
 	walkT(reflect.ValueOf(&seq), func(seq dag.Seq) dag.Seq {
 		for i := 0; i+1 < len(seq); i++ {
-			sort, ok := seq[i].(*dag.Sort)
+			sort, ok := seq[i].(*dag.SortOp)
 			if !ok {
 				continue
 			}
@@ -809,9 +809,9 @@ func replaceSortAndHeadOrTailWithTop(seq dag.Seq) dag.Seq {
 			exprs := sort.Exprs
 			reverse := sort.Reverse
 			switch op := seq[i+1].(type) {
-			case *dag.Head:
+			case *dag.HeadOp:
 				limit = op.Count
-			case *dag.Tail:
+			case *dag.TailOp:
 				limit = op.Count
 				for i, e := range exprs {
 					exprs[i].Order = !e.Order
@@ -825,8 +825,8 @@ func replaceSortAndHeadOrTailWithTop(seq dag.Seq) dag.Seq {
 				// spill to disk.
 				continue
 			}
-			seq[i] = &dag.Top{
-				Kind:    "Top",
+			seq[i] = &dag.TopOp{
+				Kind:    "TopOp",
 				Limit:   limit,
 				Exprs:   exprs,
 				Reverse: reverse && len(exprs) == 0,
@@ -865,28 +865,28 @@ func walkT[T any](v reflect.Value, post func(T) T) {
 func setPushdownUnordered(seq dag.Seq, unordered bool) bool {
 	for i := len(seq) - 1; i >= 0; i-- {
 		switch op := seq[i].(type) {
-		case *dag.Aggregate, *dag.Combine, *dag.Distinct, *dag.HashJoin, *dag.Join, *dag.Sort, *dag.Top,
+		case *dag.AggregateOp, *dag.CombineOp, *dag.DistinctOp, *dag.HashJoinOp, *dag.JoinOp, *dag.SortOp, *dag.TopOp,
 			*dag.DefaultScan, *dag.HTTPScan, *dag.PoolScan,
 			*dag.CommitMetaScan, *dag.DBMetaScan, *dag.PoolMetaScan:
 			unordered = true
 		case *dag.FileScan:
 			op.Pushdown.Unordered = unordered
 			unordered = true
-		case *dag.Fork:
+		case *dag.ForkOp:
 			for _, p := range op.Paths {
 				setPushdownUnordered(p, true)
 			}
 			unordered = true
-		case *dag.Merge:
+		case *dag.MergeOp:
 			unordered = false
-		case *dag.Mirror:
+		case *dag.MirrorOp:
 			unordered = setPushdownUnordered(op.Main, unordered)
-		case *dag.Scatter:
+		case *dag.ScatterOp:
 			for _, p := range op.Paths {
 				setPushdownUnordered(p, true)
 			}
 			unordered = true
-		case *dag.Switch:
+		case *dag.SwitchOp:
 			for _, c := range op.Cases {
 				setPushdownUnordered(c.Path, true)
 			}

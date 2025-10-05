@@ -56,13 +56,13 @@ func (o *Optimizer) Parallelize(main *dag.Main, concurrency int) error {
 	return nil
 }
 
-func matchSource(seq dag.Seq) (*dag.Lister, *dag.Slicer, dag.Seq) {
-	lister, ok := seq[0].(*dag.Lister)
+func matchSource(seq dag.Seq) (*dag.ListerScan, *dag.SlicerOp, dag.Seq) {
+	lister, ok := seq[0].(*dag.ListerScan)
 	if !ok {
 		return nil, nil, nil
 	}
 	seq = seq[1:]
-	slicer, ok := seq[0].(*dag.Slicer)
+	slicer, ok := seq[0].(*dag.SlicerOp)
 	if ok {
 		seq = seq[1:]
 	}
@@ -74,14 +74,14 @@ func matchSource(seq dag.Seq) (*dag.Lister, *dag.Slicer, dag.Seq) {
 
 func (o *Optimizer) parallelizeFileScan(seq dag.Seq, replicas int) (dag.Seq, error) {
 	// Prepend a pass so we can parallelize seq[0].
-	seq = append(dag.Seq{dag.PassOp}, seq...)
+	seq = append(dag.Seq{dag.Pass}, seq...)
 	n, sortExprs, _, err := o.concurrentPath(seq, nil)
 	if err != nil {
 		return nil, err
 	}
 	if n < len(seq) {
 		switch seq[n].(type) {
-		case *dag.Aggregate, *dag.Sort, *dag.Top:
+		case *dag.AggregateOp, *dag.SortOp, *dag.TopOp:
 			return parallelizeHead(seq, n, sortExprs, replicas), nil
 		}
 	}
@@ -116,8 +116,8 @@ func (o *Optimizer) parallelizeSeqScan(seq dag.Seq, replicas int) (dag.Seq, erro
 func parallelizeHead(seq dag.Seq, n int, sortExprs []dag.SortExpr, replicas int) dag.Seq {
 	head := seq[:n]
 	tail := seq[n:]
-	scatter := &dag.Scatter{
-		Kind:  "Scatter",
+	scatter := &dag.ScatterOp{
+		Kind:  "ScatterOp",
 		Paths: make([]dag.Seq, replicas),
 	}
 	for k := range replicas {
@@ -130,9 +130,9 @@ func parallelizeHead(seq dag.Seq, n int, sortExprs []dag.SortExpr, replicas int)
 		// the fanin from this parallel structure and see if the merge can be
 		// removed while also pushing additional ops from the output segment up into
 		// the parallel branches to enhance concurrency.
-		merge = &dag.Merge{Kind: "Merge", Exprs: sortExprs}
+		merge = &dag.MergeOp{Kind: "MergeOp", Exprs: sortExprs}
 	} else {
-		merge = &dag.Combine{Kind: "Combine"}
+		merge = &dag.CombineOp{Kind: "CombineOp"}
 	}
 	return append(dag.Seq{scatter, merge}, tail...)
 }
@@ -159,19 +159,19 @@ func (o *Optimizer) liftIntoParPaths(seq dag.Seq) {
 		return
 	}
 	egress := 1
-	var merge *dag.Merge
+	var merge *dag.MergeOp
 	switch op := seq[1].(type) {
-	case *dag.Merge:
+	case *dag.MergeOp:
 		merge = op
 		egress = 2
-	case *dag.Combine:
+	case *dag.CombineOp:
 		egress = 2
 	}
 	if egress >= len(seq) {
 		return
 	}
 	switch op := seq[egress].(type) {
-	case *dag.Aggregate:
+	case *dag.AggregateOp:
 		// To decompose the aggregate, we split the flowgraph into
 		// branches that run up to and including an aggregate,
 		// followed by a post-merge aggregate that composes the results.
@@ -182,7 +182,7 @@ func (o *Optimizer) liftIntoParPaths(seq dag.Seq) {
 			return
 		}
 		for k := range paths {
-			partial := dag.CopyOp(op).(*dag.Aggregate)
+			partial := dag.CopyOp(op).(*dag.AggregateOp)
 			partial.PartialsOut = true
 			paths[k].Append(partial)
 		}
@@ -193,33 +193,33 @@ func (o *Optimizer) liftIntoParPaths(seq dag.Seq) {
 		for k := range op.Keys {
 			op.Keys[k].RHS = op.Keys[k].LHS
 		}
-	case *dag.Sort:
+	case *dag.SortOp:
 		if len(op.Exprs) == 0 {
 			return
 		}
-		seq[1] = &dag.Merge{Kind: "Merge", Exprs: op.Exprs}
+		seq[1] = &dag.MergeOp{Kind: "MergeOp", Exprs: op.Exprs}
 		if egress > 1 {
-			seq[2] = dag.PassOp
+			seq[2] = dag.Pass
 		}
 		for k := range paths {
 			paths[k].Append(dag.CopyOp(op))
 		}
-	case *dag.Top:
+	case *dag.TopOp:
 		if len(op.Exprs) == 0 {
 			return
 		}
-		seq[1] = &dag.Merge{Kind: "Merge", Exprs: op.Exprs}
-		seq[2] = &dag.Head{Kind: "Head", Count: op.Limit}
+		seq[1] = &dag.MergeOp{Kind: "MergeOp", Exprs: op.Exprs}
+		seq[2] = &dag.HeadOp{Kind: "HeadOp", Count: op.Limit}
 		for k := range paths {
 			paths[k].Append(dag.CopyOp(op))
 		}
-	case *dag.Head, *dag.Tail:
+	case *dag.HeadOp, *dag.TailOp:
 		// Copy the head or tail into the parallel path and leave the original in
 		// place which will apply another head or tail after the merge.
 		for k := range paths {
 			paths[k].Append(dag.CopyOp(op))
 		}
-	case *dag.Cut, *dag.Drop, *dag.Put, *dag.Rename, *dag.Filter:
+	case *dag.CutOp, *dag.DropOp, *dag.FilterOp, *dag.PutOp, *dag.RenameOp:
 		if merge != nil {
 			// See if this op would disrupt the merge-on key
 			mergeKey, err := o.propagateSortKeyOp(merge, []order.SortKeys{nil})
@@ -238,15 +238,15 @@ func (o *Optimizer) liftIntoParPaths(seq dag.Seq) {
 			paths[k].Append(dag.CopyOp(op))
 		}
 		// this will get removed later
-		seq[egress] = dag.PassOp
+		seq[egress] = dag.Pass
 	}
 }
 
 func parallelPaths(op dag.Op) ([]dag.Seq, bool) {
-	if s, ok := op.(*dag.Scatter); ok {
+	if s, ok := op.(*dag.ScatterOp); ok {
 		return s.Paths, true
 	}
-	if f, ok := op.(*dag.Fork); ok {
+	if f, ok := op.(*dag.ForkOp); ok {
 		return f.Paths, true
 	}
 	return nil, false
@@ -267,7 +267,7 @@ func (o *Optimizer) concurrentPath(seq dag.Seq, sortKeys order.SortKeys) (length
 		// function can be parallelized... need to think through
 		// what the meaning is here exactly.  This is all still a bit
 		// of a heuristic.  See #2660 and #2661.
-		case *dag.Aggregate:
+		case *dag.AggregateOp:
 			// We want input sorted when we are preserving order into
 			// aggregate so we can release values incrementally which is really
 			// important when doing a head on the aggregate results
@@ -277,7 +277,7 @@ func (o *Optimizer) concurrentPath(seq dag.Seq, sortKeys order.SortKeys) (length
 				return k, sortExprsForSortKeys(sortKeys), true, nil
 			}
 			return k, nil, false, nil
-		case *dag.Sort:
+		case *dag.SortOp:
 			if len(op.Exprs) == 0 {
 				// No analysis for sort without expression since we can't
 				// parallelize the heuristic.  We should revisit these semantics
@@ -285,20 +285,20 @@ func (o *Optimizer) concurrentPath(seq dag.Seq, sortKeys order.SortKeys) (length
 				return 0, nil, false, nil
 			}
 			return k, op.Exprs, false, nil
-		case *dag.Top:
+		case *dag.TopOp:
 			if len(op.Exprs) == 0 {
 				// No analysis for top without expression since we can't
 				// parallelize the heuristic.
 				return 0, nil, false, nil
 			}
 			return k, op.Exprs, false, nil
-		case *dag.Load:
+		case *dag.LoadOp:
 			// XXX At some point Load should have an optimization where if the
 			// upstream sort is the same as the Load destination sort we
 			// request a merge and set the Load operator to do a sorted write.
 			return k, nil, false, nil
-		case *dag.Fork, *dag.Scatter, *dag.Mirror, *dag.Head, *dag.Tail, *dag.Uniq, *dag.Fuse,
-			*dag.HashJoin, *dag.Join, *dag.Output:
+		case *dag.ForkOp, *dag.ScatterOp, *dag.MirrorOp, *dag.HeadOp, *dag.TailOp, *dag.UniqOp, *dag.FuseOp,
+			*dag.HashJoinOp, *dag.JoinOp, *dag.OutputOp:
 			return k, sortExprsForSortKeys(sortKeys), true, nil
 		default:
 			next, err := o.analyzeSortKeys(op, sortKeys)

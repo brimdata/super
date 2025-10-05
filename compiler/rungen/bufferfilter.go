@@ -52,7 +52,7 @@ func CompileBufferFilter(sctx *super.Context, e dag.Expr) (*expr.BufferFilter, e
 			return expr.NewOrBufferFilter(left, right), nil
 		}
 		return nil, nil
-	case *dag.Search:
+	case *dag.SearchExpr:
 		literal, err := sup.ParseValue(sctx, e.Value)
 		if err != nil {
 			return nil, err
@@ -81,16 +81,16 @@ func CompileBufferFilter(sctx *super.Context, e dag.Expr) (*expr.BufferFilter, e
 }
 
 func isFieldEqualOrIn(sctx *super.Context, e *dag.BinaryExpr) (*super.Value, error) {
-	if _, ok := e.LHS.(*dag.This); ok && e.Op == "==" {
-		if literal, ok := e.RHS.(*dag.Literal); ok {
+	if _, ok := e.LHS.(*dag.ThisExpr); ok && e.Op == "==" {
+		if literal, ok := e.RHS.(*dag.LiteralExpr); ok {
 			val, err := sup.ParseValue(sctx, literal.Value)
 			if err != nil {
 				return nil, err
 			}
 			return &val, nil
 		}
-	} else if _, ok := e.RHS.(*dag.This); ok && e.Op == "in" {
-		if literal, ok := e.LHS.(*dag.Literal); ok {
+	} else if _, ok := e.RHS.(*dag.ThisExpr); ok && e.Op == "in" {
+		if literal, ok := e.LHS.(*dag.LiteralExpr); ok {
 			val, err := sup.ParseValue(sctx, literal.Value)
 			if err != nil {
 				return nil, err

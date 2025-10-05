@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/brimdata/super/order"
+	"github.com/brimdata/super/pkg/field"
 )
 
 type MainExpr struct {
@@ -26,7 +27,7 @@ type (
 // Exprs
 
 type (
-	Agg struct {
+	AggExpr struct {
 		Kind     string `json:"kind" unpack:""`
 		Name     string `json:"name"`
 		Distinct bool   `json:"distinct"`
@@ -48,18 +49,18 @@ type (
 		LHS  Expr   `json:"lhs"`
 		RHS  Expr   `json:"rhs"`
 	}
-	Call struct {
+	CallExpr struct {
 		Kind string `json:"kind" unpack:""`
 		Tag  string `json:"tag"`
 		Args []Expr `json:"args"`
 	}
-	Conditional struct {
+	CondExpr struct {
 		Kind string `json:"kind" unpack:""`
 		Cond Expr   `json:"cond"`
 		Then Expr   `json:"then"`
 		Else Expr   `json:"else"`
 	}
-	Dot struct {
+	DotExpr struct {
 		Kind string `json:"kind" unpack:""`
 		LHS  Expr   `json:"lhs"`
 		RHS  string `json:"rhs"`
@@ -73,14 +74,14 @@ type (
 		Kind string `json:"kind" unpack:""`
 		Expr Expr   `json:"expr"`
 	}
-	Literal struct {
+	LiteralExpr struct {
 		Kind  string `json:"kind" unpack:""`
 		Value string `json:"value"`
 	}
-	MapCall struct {
-		Kind   string `json:"kind" unpack:""`
-		Expr   Expr   `json:"expr"`
-		Lambda *Call  `json:"lambda"`
+	MapCallExpr struct {
+		Kind   string    `json:"kind" unpack:""`
+		Expr   Expr      `json:"expr"`
+		Lambda *CallExpr `json:"lambda"`
 	}
 	MapExpr struct {
 		Kind    string  `json:"kind" unpack:""`
@@ -90,17 +91,17 @@ type (
 		Kind  string       `json:"kind" unpack:""`
 		Elems []RecordElem `json:"elems"`
 	}
-	RegexpMatch struct {
+	RegexpMatchExpr struct {
 		Kind    string `json:"kind" unpack:""`
 		Pattern string `json:"pattern"`
 		Expr    Expr   `json:"expr"`
 	}
-	RegexpSearch struct {
+	RegexpSearchExpr struct {
 		Kind    string `json:"kind" unpack:""`
 		Pattern string `json:"pattern"`
 		Expr    Expr   `json:"expr"`
 	}
-	Search struct {
+	SearchExpr struct {
 		Kind  string `json:"kind" unpack:""`
 		Text  string `json:"text"`
 		Value string `json:"value"`
@@ -121,12 +122,12 @@ type (
 		Order order.Which `json:"order"`
 		Nulls order.Nulls `json:"nulls"`
 	}
-	Subquery struct {
+	SubqueryExpr struct {
 		Kind       string `json:"kind" unpack:""`
 		Correlated bool   `json:"correlated"`
 		Body       Seq    `json:"body"`
 	}
-	This struct {
+	ThisExpr struct {
 		Kind string   `json:"kind" unpack:""`
 		Path []string `json:"path"`
 	}
@@ -137,27 +138,27 @@ type (
 	}
 )
 
-func (*Agg) exprNode()          {}
-func (*ArrayExpr) exprNode()    {}
-func (*BadExpr) exprNode()      {}
-func (*BinaryExpr) exprNode()   {}
-func (*Call) exprNode()         {}
-func (*Conditional) exprNode()  {}
-func (*Dot) exprNode()          {}
-func (*IndexExpr) exprNode()    {}
-func (*IsNullExpr) exprNode()   {}
-func (*Literal) exprNode()      {}
-func (*MapCall) exprNode()      {}
-func (*MapExpr) exprNode()      {}
-func (*RecordExpr) exprNode()   {}
-func (*RegexpMatch) exprNode()  {}
-func (*RegexpSearch) exprNode() {}
-func (*Search) exprNode()       {}
-func (*SetExpr) exprNode()      {}
-func (*SliceExpr) exprNode()    {}
-func (*Subquery) exprNode()     {}
-func (*This) exprNode()         {}
-func (*UnaryExpr) exprNode()    {}
+func (*AggExpr) exprNode()          {}
+func (*ArrayExpr) exprNode()        {}
+func (*BadExpr) exprNode()          {}
+func (*BinaryExpr) exprNode()       {}
+func (*CallExpr) exprNode()         {}
+func (*CondExpr) exprNode()         {}
+func (*DotExpr) exprNode()          {}
+func (*IndexExpr) exprNode()        {}
+func (*IsNullExpr) exprNode()       {}
+func (*LiteralExpr) exprNode()      {}
+func (*MapCallExpr) exprNode()      {}
+func (*MapExpr) exprNode()          {}
+func (*RecordExpr) exprNode()       {}
+func (*RegexpMatchExpr) exprNode()  {}
+func (*RegexpSearchExpr) exprNode() {}
+func (*SearchExpr) exprNode()       {}
+func (*SetExpr) exprNode()          {}
+func (*SliceExpr) exprNode()        {}
+func (*SubqueryExpr) exprNode()     {}
+func (*ThisExpr) exprNode()         {}
+func (*UnaryExpr) exprNode()        {}
 
 // Various Expr fields.
 
@@ -195,24 +196,24 @@ func NewBinaryExpr(op string, lhs, rhs Expr) *BinaryExpr {
 	}
 }
 
-func NewCall(tag string, args []Expr) *Call {
-	return &Call{
-		Kind: "Call",
+func NewCall(tag string, args []Expr) *CallExpr {
+	return &CallExpr{
+		Kind: "CallExpr",
 		Tag:  tag,
 		Args: args,
 	}
 }
 
-func NewThis(path []string) *This {
-	return &This{"This", path}
+func NewThis(path []string) *ThisExpr {
+	return &ThisExpr{"ThisExpr", path}
+}
+
+func (t *ThisExpr) String() string {
+	return field.Path(t.Path).String()
 }
 
 func NewUnaryExpr(op string, e Expr) *UnaryExpr {
 	return &UnaryExpr{"UnaryExpr", op, e}
-}
-
-func NewValues(exprs ...Expr) *Values {
-	return &Values{"Values", exprs}
 }
 
 func CopyExpr(e Expr) Expr {

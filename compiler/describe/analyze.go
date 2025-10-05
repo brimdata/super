@@ -102,7 +102,7 @@ func AnalyzeDAG(ctx context.Context, main *dag.Main, src *exec.Environment) (*In
 
 func describeSources(ctx context.Context, root *db.Root, o dag.Op) ([]Source, error) {
 	switch o := o.(type) {
-	case *dag.Fork:
+	case *dag.ForkOp:
 		var s []Source
 		for _, p := range o.Paths {
 			out, err := describeSources(ctx, root, p[0])
@@ -122,7 +122,7 @@ func describeSources(ctx context.Context, root *db.Root, o dag.Op) ([]Source, er
 		return []Source{&Path{Kind: "Path", URI: o.URL}}, nil
 	case *dag.PoolScan:
 		return sourceOfPool(ctx, root, o.ID)
-	case *dag.Lister:
+	case *dag.ListerScan:
 		return sourceOfPool(ctx, root, o.Pool)
 	case *dag.SeqScan:
 		return sourceOfPool(ctx, root, o.Pool)
@@ -156,29 +156,29 @@ func describeAggs(seq dag.Seq, parents []field.List) []field.List {
 
 func describeOpAggs(op dag.Op, parents []field.List) []field.List {
 	switch op := op.(type) {
-	case *dag.Fork:
-		var aggs []field.List
-		for _, p := range op.Paths {
-			aggs = append(aggs, describeAggs(p, []field.List{nil})...)
-		}
-		return aggs
-	case *dag.Scatter:
-		var aggs []field.List
-		for _, p := range op.Paths {
-			aggs = append(aggs, describeAggs(p, []field.List{nil})...)
-		}
-		return aggs
-	case *dag.Mirror:
-		aggs := describeAggs(op.Main, []field.List{nil})
-		return append(aggs, describeAggs(op.Mirror, []field.List{nil})...)
-	case *dag.Aggregate:
+	case *dag.AggregateOp:
 		// The field list for aggregation with no keys is an empty slice and
 		// not nil.
 		keys := field.List{}
 		for _, k := range op.Keys {
-			keys = append(keys, k.LHS.(*dag.This).Path)
+			keys = append(keys, k.LHS.(*dag.ThisExpr).Path)
 		}
 		return []field.List{keys}
+	case *dag.ForkOp:
+		var aggs []field.List
+		for _, p := range op.Paths {
+			aggs = append(aggs, describeAggs(p, []field.List{nil})...)
+		}
+		return aggs
+	case *dag.MirrorOp:
+		aggs := describeAggs(op.Main, []field.List{nil})
+		return append(aggs, describeAggs(op.Mirror, []field.List{nil})...)
+	case *dag.ScatterOp:
+		var aggs []field.List
+		for _, p := range op.Paths {
+			aggs = append(aggs, describeAggs(p, []field.List{nil})...)
+		}
+		return aggs
 	}
 	// If more than one parent reset to nil aggregation.
 	if len(parents) > 1 {
@@ -187,11 +187,11 @@ func describeOpAggs(op dag.Op, parents []field.List) []field.List {
 	return parents
 }
 
-func collectOutputs(seq dag.Seq) []*dag.Output {
-	var outputs []*dag.Output
+func collectOutputs(seq dag.Seq) []*dag.OutputOp {
+	var outputs []*dag.OutputOp
 	optimizer.Walk(seq, func(seq dag.Seq) dag.Seq {
 		if len(seq) > 0 {
-			if o, ok := seq[len(seq)-1].(*dag.Output); ok {
+			if o, ok := seq[len(seq)-1].(*dag.OutputOp); ok {
 				outputs = append(outputs, o)
 			}
 		}

@@ -8,7 +8,7 @@ import (
 
 func replaceJoinWithHashJoin(seq dag.Seq) {
 	walkT(reflect.ValueOf(seq), func(op dag.Op) dag.Op {
-		j, ok := op.(*dag.Join)
+		j, ok := op.(*dag.JoinOp)
 		if !ok {
 			return op
 		}
@@ -16,8 +16,8 @@ func replaceJoinWithHashJoin(seq dag.Seq) {
 		if !ok {
 			return op
 		}
-		return &dag.HashJoin{
-			Kind:       "HashJoin",
+		return &dag.HashJoinOp{
+			Kind:       "HashJoinOp",
 			Style:      j.Style,
 			LeftAlias:  j.LeftAlias,
 			RightAlias: j.RightAlias,
@@ -56,7 +56,7 @@ func equiJoinKeyExprs(e dag.Expr, leftAlias, rightAlias string) (left, right dag
 // firstThisPathComponent returns the first component common to every dag.This.Path
 // in e and a Boolean indicating whether such a common first component exists.
 func firstThisPathComponent(e dag.Expr) (prefix string, ok bool) {
-	walkT(reflect.ValueOf(e), func(t dag.This) dag.This {
+	walkT(reflect.ValueOf(e), func(t dag.ThisExpr) dag.ThisExpr {
 		if prefix == "" {
 			prefix = t.Path[0]
 			ok = true
@@ -70,7 +70,7 @@ func firstThisPathComponent(e dag.Expr) (prefix string, ok bool) {
 
 // stripFirstThisPathComponent removes the first component of every dag.This.Path in e.
 func stripFirstThisPathComponent(e dag.Expr) {
-	walkT(reflect.ValueOf(e), func(t dag.This) dag.This {
+	walkT(reflect.ValueOf(e), func(t dag.ThisExpr) dag.ThisExpr {
 		t.Path = t.Path[1:]
 		return t
 	})

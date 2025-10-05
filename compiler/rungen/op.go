@@ -156,128 +156,9 @@ func (b *Builder) compileMain(main *dag.Main, parents []sbuf.Puller) ([]sbuf.Pul
 
 func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error) {
 	switch v := o.(type) {
-	case *dag.Aggregate:
-		return b.compileAggregate(parent, v)
-	case *dag.Cut:
-		b.resetResetters()
-		assignments, err := b.compileAssignments(v.Args)
-		if err != nil {
-			return nil, err
-		}
-		lhs, rhs := splitAssignments(assignments)
-		cutter := expr.NewCutter(b.sctx(), lhs, rhs)
-		return op.NewApplier(b.rctx, parent, cutter, b.resetters), nil
-	case *dag.Drop:
-		fields := make(field.List, 0, len(v.Args))
-		for _, e := range v.Args {
-			fields = append(fields, e.(*dag.This).Path)
-		}
-		dropper := expr.NewDropper(b.sctx(), fields)
-		return op.NewApplier(b.rctx, parent, dropper, expr.Resetters{}), nil
-	case *dag.Distinct:
-		b.resetResetters()
-		e, err := b.compileExpr(v.Expr)
-		if err != nil {
-			return nil, err
-		}
-		return distinct.New(parent, e), nil
-	case *dag.Sort:
-		b.resetResetters()
-		var sortExprs []expr.SortExpr
-		for _, e := range v.Exprs {
-			k, err := b.compileExpr(e.Key)
-			if err != nil {
-				return nil, err
-			}
-			sortExprs = append(sortExprs, expr.NewSortExpr(k, e.Order, e.Nulls))
-		}
-		return sort.New(b.rctx, parent, sortExprs, v.Reverse, b.resetters), nil
-	case *dag.Head:
-		limit := v.Count
-		if limit == 0 {
-			limit = 1
-		}
-		return head.New(parent, limit), nil
-	case *dag.Tail:
-		limit := v.Count
-		if limit == 0 {
-			limit = 1
-		}
-		return tail.New(parent, limit), nil
-	case *dag.Skip:
-		return skip.New(parent, v.Count), nil
-	case *dag.Uniq:
-		return uniq.New(b.rctx, parent, v.Cflag), nil
-	case *dag.Pass:
-		return parent, nil
-	case *dag.Filter:
-		b.resetResetters()
-		f, err := b.compileExpr(v.Expr)
-		if err != nil {
-			return nil, fmt.Errorf("compiling filter: %w", err)
-		}
-		return op.NewApplier(b.rctx, parent, expr.NewFilterApplier(b.sctx(), f), b.resetters), nil
-	case *dag.Top:
-		b.resetResetters()
-		var sortExprs []expr.SortExpr
-		for _, dagSortExpr := range v.Exprs {
-			e, err := b.compileExpr(dagSortExpr.Key)
-			if err != nil {
-				return nil, err
-			}
-			sortExprs = append(sortExprs, expr.NewSortExpr(e, dagSortExpr.Order, dagSortExpr.Nulls))
-		}
-		return top.New(b.sctx(), parent, v.Limit, sortExprs, v.Reverse, b.resetters), nil
-	case *dag.Put:
-		b.resetResetters()
-		clauses, err := b.compileAssignments(v.Args)
-		if err != nil {
-			return nil, err
-		}
-		putter := expr.NewPutter(b.sctx(), clauses)
-		return op.NewApplier(b.rctx, parent, putter, b.resetters), nil
-	case *dag.Rename:
-		b.resetResetters()
-		srcs, dsts, err := b.compileAssignmentsToLvals(v.Args)
-		if err != nil {
-			return nil, err
-		}
-		renamer := expr.NewRenamer(b.sctx(), srcs, dsts)
-		return op.NewApplier(b.rctx, parent, renamer, b.resetters), nil
-	case *dag.Fuse:
-		return fuse.New(b.rctx, parent)
-	case *dag.HashJoin, *dag.Join:
-		return nil, ErrJoinParents
-	case *dag.Merge:
-		return nil, errors.New("merge: multiple upstream paths required")
-	case *dag.Explode:
-		typ, err := sup.ParseType(b.sctx(), v.Type)
-		if err != nil {
-			return nil, err
-		}
-		b.resetResetters()
-		args, err := b.compileExprs(v.Args)
-		if err != nil {
-			return nil, err
-		}
-		return explode.New(b.sctx(), parent, args, typ, v.As, b.resetters)
-	case *dag.Unnest:
-		return b.compileUnnest(parent, v)
-	case *dag.Values:
-		b.resetResetters()
-		exprs, err := b.compileExprs(v.Exprs)
-		if err != nil {
-			return nil, err
-		}
-		t := values.New(parent, exprs, b.resetters)
-		return t, nil
-	case *dag.PoolScan:
-		if parent != nil {
-			return nil, errors.New("internal error: pool scan cannot have a parent operator")
-		}
-		return b.compilePoolScan(v)
-	case *dag.PoolMetaScan:
-		return meta.NewPoolMetaScanner(b.rctx.Context, b.sctx(), b.env.DB(), v.ID, v.Meta)
+	//
+	// Scanners in alphatbetical order.
+	//
 	case *dag.CommitMetaScan:
 		var pruner expr.Evaluator
 		if v.Tap && v.KeyPruner != nil {
@@ -290,30 +171,6 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 		return meta.NewCommitMetaScanner(b.rctx.Context, b.sctx(), b.env.DB(), v.Pool, v.Commit, v.Meta, pruner)
 	case *dag.DBMetaScan:
 		return meta.NewDBMetaScanner(b.rctx.Context, b.sctx(), b.env.DB(), v.Meta)
-	case *dag.HTTPScan:
-		body := strings.NewReader(v.Body)
-		return b.env.OpenHTTP(b.rctx.Context, b.sctx(), v.URL, v.Format, v.Method, v.Headers, body, nil)
-	case *dag.FileScan:
-		var dataFilter dag.Expr
-		if v.Pushdown.DataFilter != nil {
-			dataFilter = v.Pushdown.DataFilter.Expr
-		}
-		puller, err := b.env.Open(b.rctx.Context, b.sctx(), v.Path, v.Format, b.newPushdown(dataFilter, v.Pushdown.Projection))
-		if err != nil {
-			return puller, err
-		}
-		return &rewinder{
-			puller: puller,
-			reopen: func() (sbuf.Puller, error) {
-				return b.env.Open(b.rctx.Context, b.sctx(), v.Path, v.Format, b.newPushdown(dataFilter, v.Pushdown.Projection))
-			},
-		}, nil
-	case *dag.RobotScan:
-		e, err := compileExpr(v.Expr)
-		if err != nil {
-			return nil, err
-		}
-		return robot.New(b.rctx, b.env, parent, e, v.Format, b.newPushdown(v.Filter, nil)), nil
 	case *dag.DefaultScan:
 		pushdown := b.newPushdown(v.Filter, nil)
 		if len(b.readers) == 1 {
@@ -328,40 +185,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 			scanners = append(scanners, scanner)
 		}
 		return sbuf.MultiScanner(scanners...), nil
-	case *dag.NullScan:
-		return sbuf.NewPuller(sbuf.NewArray([]super.Value{super.Null})), nil
-	case *dag.Lister:
-		if parent != nil {
-			return nil, errors.New("internal error: data source cannot have a parent operator")
-		}
-		pool, err := b.lookupPool(v.Pool)
-		if err != nil {
-			return nil, err
-		}
-		var pruner expr.Evaluator
-		if v.KeyPruner != nil {
-			pruner, err = compileExpr(v.KeyPruner)
-			if err != nil {
-				return nil, err
-			}
-		}
-		return meta.NewSortedLister(b.rctx.Context, b.mctx, pool, v.Commit, pruner)
-	case *dag.Slicer:
-		return meta.NewSlicer(parent, b.mctx), nil
-	case *dag.SeqScan:
-		pool, err := b.lookupPool(v.Pool)
-		if err != nil {
-			return nil, err
-		}
-		var pruner expr.Evaluator
-		if v.KeyPruner != nil {
-			pruner, err = compileExpr(v.KeyPruner)
-			if err != nil {
-				return nil, err
-			}
-		}
-		return meta.NewSequenceScanner(b.rctx, parent, pool, b.newPushdown(v.Filter, nil), pruner, b.progress), nil
-	case *dag.Deleter:
+	case *dag.DeleterScan:
 		pool, err := b.lookupPool(v.Pool)
 		if err != nil {
 			return nil, err
@@ -381,11 +205,194 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 			pushdown = &deleter{pushdown, b, v.Where}
 		}
 		return meta.NewDeleter(b.rctx, parent, pool, pushdown, pruner, b.progress, b.deletes), nil
-	case *dag.Load:
+	case *dag.FileScan:
+		var dataFilter dag.Expr
+		if v.Pushdown.DataFilter != nil {
+			dataFilter = v.Pushdown.DataFilter.Expr
+		}
+		puller, err := b.env.Open(b.rctx.Context, b.sctx(), v.Path, v.Format, b.newPushdown(dataFilter, v.Pushdown.Projection))
+		if err != nil {
+			return puller, err
+		}
+		return &rewinder{
+			puller: puller,
+			reopen: func() (sbuf.Puller, error) {
+				return b.env.Open(b.rctx.Context, b.sctx(), v.Path, v.Format, b.newPushdown(dataFilter, v.Pushdown.Projection))
+			},
+		}, nil
+	case *dag.HTTPScan:
+		body := strings.NewReader(v.Body)
+		return b.env.OpenHTTP(b.rctx.Context, b.sctx(), v.URL, v.Format, v.Method, v.Headers, body, nil)
+	case *dag.ListerScan:
+		if parent != nil {
+			return nil, errors.New("internal error: data source cannot have a parent operator")
+		}
+		pool, err := b.lookupPool(v.Pool)
+		if err != nil {
+			return nil, err
+		}
+		var pruner expr.Evaluator
+		if v.KeyPruner != nil {
+			pruner, err = compileExpr(v.KeyPruner)
+			if err != nil {
+				return nil, err
+			}
+		}
+		return meta.NewSortedLister(b.rctx.Context, b.mctx, pool, v.Commit, pruner)
+	case *dag.NullScan:
+		return sbuf.NewPuller(sbuf.NewArray([]super.Value{super.Null})), nil
+	case *dag.PoolMetaScan:
+		return meta.NewPoolMetaScanner(b.rctx.Context, b.sctx(), b.env.DB(), v.ID, v.Meta)
+	case *dag.PoolScan:
+		if parent != nil {
+			return nil, errors.New("internal error: pool scan cannot have a parent operator")
+		}
+		return b.compilePoolScan(v)
+	case *dag.RobotScan:
+		e, err := compileExpr(v.Expr)
+		if err != nil {
+			return nil, err
+		}
+		return robot.New(b.rctx, b.env, parent, e, v.Format, b.newPushdown(v.Filter, nil)), nil
+	case *dag.SlicerOp:
+		return meta.NewSlicer(parent, b.mctx), nil
+	case *dag.SeqScan:
+		pool, err := b.lookupPool(v.Pool)
+		if err != nil {
+			return nil, err
+		}
+		var pruner expr.Evaluator
+		if v.KeyPruner != nil {
+			pruner, err = compileExpr(v.KeyPruner)
+			if err != nil {
+				return nil, err
+			}
+		}
+		return meta.NewSequenceScanner(b.rctx, parent, pool, b.newPushdown(v.Filter, nil), pruner, b.progress), nil
+	//
+	// Non-scanner operators in alphabetical order.
+	//
+	case *dag.AggregateOp:
+		return b.compileAggregate(parent, v)
+	case *dag.CutOp:
+		b.resetResetters()
+		assignments, err := b.compileAssignments(v.Args)
+		if err != nil {
+			return nil, err
+		}
+		lhs, rhs := splitAssignments(assignments)
+		cutter := expr.NewCutter(b.sctx(), lhs, rhs)
+		return op.NewApplier(b.rctx, parent, cutter, b.resetters), nil
+	case *dag.DropOp:
+		fields := make(field.List, 0, len(v.Args))
+		for _, e := range v.Args {
+			fields = append(fields, e.(*dag.ThisExpr).Path)
+		}
+		dropper := expr.NewDropper(b.sctx(), fields)
+		return op.NewApplier(b.rctx, parent, dropper, expr.Resetters{}), nil
+	case *dag.DistinctOp:
+		b.resetResetters()
+		e, err := b.compileExpr(v.Expr)
+		if err != nil {
+			return nil, err
+		}
+		return distinct.New(parent, e), nil
+	case *dag.ExplodeOp:
+		typ, err := sup.ParseType(b.sctx(), v.Type)
+		if err != nil {
+			return nil, err
+		}
+		b.resetResetters()
+		args, err := b.compileExprs(v.Args)
+		if err != nil {
+			return nil, err
+		}
+		return explode.New(b.sctx(), parent, args, typ, v.As, b.resetters)
+	case *dag.FilterOp:
+		b.resetResetters()
+		f, err := b.compileExpr(v.Expr)
+		if err != nil {
+			return nil, fmt.Errorf("compiling filter: %w", err)
+		}
+		return op.NewApplier(b.rctx, parent, expr.NewFilterApplier(b.sctx(), f), b.resetters), nil
+	case *dag.FuseOp:
+		return fuse.New(b.rctx, parent)
+	case *dag.HashJoinOp, *dag.JoinOp:
+		return nil, ErrJoinParents
+	case *dag.MergeOp:
+		return nil, errors.New("merge: multiple upstream paths required")
+	case *dag.HeadOp:
+		limit := v.Count
+		if limit == 0 {
+			limit = 1
+		}
+		return head.New(parent, limit), nil
+	case *dag.LoadOp:
 		return load.New(b.rctx, b.env.DB(), parent, v.Pool, v.Branch, v.Author, v.Message, v.Meta), nil
-	case *dag.Output:
+	case *dag.OutputOp:
 		b.channels[v.Name] = append(b.channels[v.Name], parent)
 		return parent, nil
+	case *dag.PassOp:
+		return parent, nil
+	case *dag.PutOp:
+		b.resetResetters()
+		clauses, err := b.compileAssignments(v.Args)
+		if err != nil {
+			return nil, err
+		}
+		putter := expr.NewPutter(b.sctx(), clauses)
+		return op.NewApplier(b.rctx, parent, putter, b.resetters), nil
+	case *dag.RenameOp:
+		b.resetResetters()
+		srcs, dsts, err := b.compileAssignmentsToLvals(v.Args)
+		if err != nil {
+			return nil, err
+		}
+		renamer := expr.NewRenamer(b.sctx(), srcs, dsts)
+		return op.NewApplier(b.rctx, parent, renamer, b.resetters), nil
+	case *dag.SkipOp:
+		return skip.New(parent, v.Count), nil
+	case *dag.SortOp:
+		b.resetResetters()
+		var sortExprs []expr.SortExpr
+		for _, e := range v.Exprs {
+			k, err := b.compileExpr(e.Key)
+			if err != nil {
+				return nil, err
+			}
+			sortExprs = append(sortExprs, expr.NewSortExpr(k, e.Order, e.Nulls))
+		}
+		return sort.New(b.rctx, parent, sortExprs, v.Reverse, b.resetters), nil
+	case *dag.TailOp:
+		limit := v.Count
+		if limit == 0 {
+			limit = 1
+		}
+		return tail.New(parent, limit), nil
+	case *dag.TopOp:
+		b.resetResetters()
+		var sortExprs []expr.SortExpr
+		for _, dagSortExpr := range v.Exprs {
+			e, err := b.compileExpr(dagSortExpr.Key)
+			if err != nil {
+				return nil, err
+			}
+			sortExprs = append(sortExprs, expr.NewSortExpr(e, dagSortExpr.Order, dagSortExpr.Nulls))
+		}
+		return top.New(b.sctx(), parent, v.Limit, sortExprs, v.Reverse, b.resetters), nil
+	case *dag.UniqOp:
+		return uniq.New(b.rctx, parent, v.Cflag), nil
+	case *dag.UnnestOp:
+		return b.compileUnnest(parent, v)
+	case *dag.ValuesOp:
+		b.resetResetters()
+		exprs, err := b.compileExprs(v.Exprs)
+		if err != nil {
+			return nil, err
+		}
+		t := values.New(parent, exprs, b.resetters)
+		return t, nil
+
 	default:
 		return nil, fmt.Errorf("unknown DAG operator type: %v", v)
 	}
@@ -411,7 +418,7 @@ func (r *rewinder) Pull(done bool) (sbuf.Batch, error) {
 	return batch, err
 }
 
-func (b *Builder) compileUnnest(parent sbuf.Puller, u *dag.Unnest) (sbuf.Puller, error) {
+func (b *Builder) compileUnnest(parent sbuf.Puller, u *dag.UnnestOp) (sbuf.Puller, error) {
 	b.resetResetters()
 	expr, err := b.compileExpr(u.Expr)
 	if err != nil {
@@ -480,7 +487,7 @@ func (b *Builder) compileSeq(seq dag.Seq, parents []sbuf.Puller) ([]sbuf.Puller,
 	return parents, nil
 }
 
-func (b *Builder) compileFork(par *dag.Fork, parents []sbuf.Puller) ([]sbuf.Puller, error) {
+func (b *Builder) compileFork(par *dag.ForkOp, parents []sbuf.Puller) ([]sbuf.Puller, error) {
 	var f *fork.Op
 	switch len(parents) {
 	case 0:
@@ -507,7 +514,7 @@ func (b *Builder) compileFork(par *dag.Fork, parents []sbuf.Puller) ([]sbuf.Pull
 	return ops, nil
 }
 
-func (b *Builder) compileScatter(par *dag.Scatter, parents []sbuf.Puller) ([]sbuf.Puller, error) {
+func (b *Builder) compileScatter(par *dag.ScatterOp, parents []sbuf.Puller) ([]sbuf.Puller, error) {
 	if len(parents) != 1 {
 		return nil, errors.New("internal error: scatter operator requires a single parent")
 	}
@@ -522,7 +529,7 @@ func (b *Builder) compileScatter(par *dag.Scatter, parents []sbuf.Puller) ([]sbu
 	return ops, nil
 }
 
-func (b *Builder) compileMirror(m *dag.Mirror, parents []sbuf.Puller) ([]sbuf.Puller, error) {
+func (b *Builder) compileMirror(m *dag.MirrorOp, parents []sbuf.Puller) ([]sbuf.Puller, error) {
 	o := mirror.New(b.rctx, b.combine(parents))
 	main, err := b.compileSeq(m.Main, []sbuf.Puller{o})
 	if err != nil {
@@ -535,7 +542,7 @@ func (b *Builder) compileMirror(m *dag.Mirror, parents []sbuf.Puller) ([]sbuf.Pu
 	return append(main, mirrored...), nil
 }
 
-func (b *Builder) compileExprSwitch(swtch *dag.Switch, parents []sbuf.Puller) ([]sbuf.Puller, error) {
+func (b *Builder) compileExprSwitch(swtch *dag.SwitchOp, parents []sbuf.Puller) ([]sbuf.Puller, error) {
 	b.resetResetters()
 	e, err := b.compileExpr(swtch.Expr)
 	if err != nil {
@@ -564,7 +571,7 @@ func (b *Builder) compileExprSwitch(swtch *dag.Switch, parents []sbuf.Puller) ([
 	return exits, nil
 }
 
-func (b *Builder) compileSwitch(swtch *dag.Switch, parents []sbuf.Puller) ([]sbuf.Puller, error) {
+func (b *Builder) compileSwitch(swtch *dag.SwitchOp, parents []sbuf.Puller) ([]sbuf.Puller, error) {
 	b.resetResetters()
 	var exprs []expr.Evaluator
 	for _, c := range swtch.Cases {
@@ -590,18 +597,18 @@ func (b *Builder) compileSwitch(swtch *dag.Switch, parents []sbuf.Puller) ([]sbu
 // the leaves.
 func (b *Builder) compile(o dag.Op, parents []sbuf.Puller) ([]sbuf.Puller, error) {
 	switch o := o.(type) {
-	case *dag.Fork:
+	case *dag.ForkOp:
 		return b.compileFork(o, parents)
-	case *dag.Scatter:
+	case *dag.ScatterOp:
 		return b.compileScatter(o, parents)
-	case *dag.Mirror:
+	case *dag.MirrorOp:
 		return b.compileMirror(o, parents)
-	case *dag.Switch:
+	case *dag.SwitchOp:
 		if o.Expr != nil {
 			return b.compileExprSwitch(o, parents)
 		}
 		return b.compileSwitch(o, parents)
-	case *dag.HashJoin, *dag.Join:
+	case *dag.HashJoinOp, *dag.JoinOp:
 		if len(parents) != 2 {
 			return nil, ErrJoinParents
 		}
@@ -614,7 +621,7 @@ func (b *Builder) compile(o dag.Op, parents []sbuf.Puller) ([]sbuf.Puller, error
 			return nil, err
 		}
 		return []sbuf.Puller{vam.NewMaterializer(vectorPuller[0])}, nil
-	case *dag.Merge:
+	case *dag.MergeOp:
 		b.resetResetters()
 		exprs, err := b.compileSortExprs(o.Exprs)
 		if err != nil {
@@ -622,7 +629,7 @@ func (b *Builder) compile(o dag.Op, parents []sbuf.Puller) ([]sbuf.Puller, error
 		}
 		cmp := expr.NewComparator(exprs...).WithMissingAsNull()
 		return []sbuf.Puller{merge.New(b.rctx, parents, cmp.Compare, b.resetters)}, nil
-	case *dag.Combine:
+	case *dag.CombineOp:
 		return []sbuf.Puller{combine.New(b.rctx, parents)}, nil
 	default:
 		p, err := b.compileLeaf(o, b.combine(parents))
@@ -731,9 +738,9 @@ func isEntry(seq dag.Seq) bool {
 		return false
 	}
 	switch op := seq[0].(type) {
-	case *dag.Lister, *dag.DefaultScan, *dag.FileScan, *dag.HTTPScan, *dag.PoolScan, *dag.DBMetaScan, *dag.PoolMetaScan, *dag.CommitMetaScan, *dag.NullScan:
+	case *dag.ListerScan, *dag.DefaultScan, *dag.FileScan, *dag.HTTPScan, *dag.PoolScan, *dag.DBMetaScan, *dag.PoolMetaScan, *dag.CommitMetaScan, *dag.NullScan:
 		return true
-	case *dag.Fork:
+	case *dag.ForkOp:
 		return len(op.Paths) > 0 && !slices.ContainsFunc(op.Paths, func(seq dag.Seq) bool {
 			return !isEntry(seq)
 		})

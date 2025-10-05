@@ -16,37 +16,37 @@ func DemandForSeq(seq dag.Seq, downstreams ...demand.Demand) []demand.Demand {
 
 func demandForOp(op dag.Op, downstreams []demand.Demand) []demand.Demand {
 	switch op := op.(type) {
-	case *dag.Fork:
+	case *dag.ForkOp:
 		var out []demand.Demand
 		for i, p := range op.Paths {
 			i := min(i, len(downstreams)-1)
 			out = append(out, demand.Union(DemandForSeq(p, downstreams[i])...))
 		}
 		return out
-	case *dag.HashJoin:
+	case *dag.HashJoinOp:
 		downstream := downstreams[0]
 		left := demand.GetKey(downstream, op.LeftAlias)
 		left = demand.Union(left, demandForExpr(op.LeftKey))
 		right := demand.GetKey(downstream, op.RightAlias)
 		right = demand.Union(right, demandForExpr(op.RightKey))
 		return []demand.Demand{left, right}
-	case *dag.Join:
+	case *dag.JoinOp:
 		d := demand.Union(downstreams[0], demandForExpr(op.Cond))
 		left := demand.GetKey(d, op.LeftAlias)
 		right := demand.GetKey(d, op.RightAlias)
 		return []demand.Demand{left, right}
-	case *dag.Mirror:
+	case *dag.MirrorOp:
 		main := DemandForSeq(op.Main, downstreams...)
 		mirror := DemandForSeq(op.Mirror, demand.All())
 		return []demand.Demand{demand.Union(slices.Concat(main, mirror)...)}
-	case *dag.Scatter:
+	case *dag.ScatterOp:
 		d := demand.None()
 		for i, p := range op.Paths {
 			i := min(i, len(downstreams)-1)
 			d = demand.Union(d, demand.Union(DemandForSeq(p, downstreams[i])...))
 		}
 		return []demand.Demand{d}
-	case *dag.Switch:
+	case *dag.SwitchOp:
 		d := demandForExpr(op.Expr)
 		for i, c := range op.Cases {
 			d = demand.Union(d, demandForExpr(c.Expr))
@@ -61,7 +61,7 @@ func demandForOp(op dag.Op, downstreams []demand.Demand) []demand.Demand {
 
 func demandForSimpleOp(op dag.Op, downstream demand.Demand) demand.Demand {
 	switch op := op.(type) {
-	case *dag.Aggregate:
+	case *dag.AggregateOp:
 		d := demand.None()
 		for _, assignment := range op.Keys {
 			d = demand.Union(d, demandForExpr(assignment.RHS))
@@ -70,58 +70,58 @@ func demandForSimpleOp(op dag.Op, downstream demand.Demand) demand.Demand {
 			d = demand.Union(d, demandForExpr(assignment.RHS))
 		}
 		return d
-	case *dag.Combine:
+	case *dag.CombineOp:
 		return downstream
-	case *dag.Cut:
+	case *dag.CutOp:
 		return demandForAssignments(op.Args, demand.None())
-	case *dag.Distinct:
+	case *dag.DistinctOp:
 		return demand.Union(downstream, demandForExpr(op.Expr))
-	case *dag.Drop:
+	case *dag.DropOp:
 		return downstream
-	case *dag.Explode:
+	case *dag.ExplodeOp:
 		d := demand.None()
 		for _, a := range op.Args {
 			d = demand.Union(d, demandForExpr(a))
 		}
 		return d
-	case *dag.Filter:
+	case *dag.FilterOp:
 		return demand.Union(downstream, demandForExpr(op.Expr))
-	case *dag.Fuse:
+	case *dag.FuseOp:
 		return demand.All()
-	case *dag.Head:
+	case *dag.HeadOp:
 		return downstream
-	case *dag.Load:
+	case *dag.LoadOp:
 		return demand.All()
-	case *dag.Merge:
+	case *dag.MergeOp:
 		return demandForSortExprs(op.Exprs, downstream)
-	case *dag.Output:
+	case *dag.OutputOp:
 		return demand.All()
-	case *dag.Pass:
+	case *dag.PassOp:
 		return downstream
-	case *dag.Put:
+	case *dag.PutOp:
 		return demandForAssignments(op.Args, downstream)
-	case *dag.Rename:
+	case *dag.RenameOp:
 		return demandForAssignments(op.Args, downstream)
-	case *dag.Skip:
+	case *dag.SkipOp:
 		return downstream
-	case *dag.Sort:
+	case *dag.SortOp:
 		return demandForSortExprs(op.Exprs, downstream)
-	case *dag.Tail:
+	case *dag.TailOp:
 		return downstream
-	case *dag.Top:
+	case *dag.TopOp:
 		return demandForSortExprs(op.Exprs, downstream)
-	case *dag.Uniq:
+	case *dag.UniqOp:
 		return downstream
-	case *dag.Unnest:
+	case *dag.UnnestOp:
 		return demandForExpr(op.Expr)
-	case *dag.Values:
+	case *dag.ValuesOp:
 		d := demand.None()
 		for _, e := range op.Exprs {
 			d = demand.Union(d, demandForExpr(e))
 		}
 		return d
 
-	case *dag.CommitMetaScan, *dag.DefaultScan, *dag.Deleter, *dag.DeleteScan, *dag.DBMetaScan:
+	case *dag.CommitMetaScan, *dag.DefaultScan, *dag.DeleterScan, *dag.DeleteScan, *dag.DBMetaScan:
 		return demand.None()
 	case *dag.FileScan:
 		if mf := op.Pushdown.MetaFilter; mf != nil {
@@ -133,7 +133,7 @@ func demandForSimpleOp(op dag.Op, downstream demand.Demand) demand.Demand {
 		}
 		op.Pushdown.Projection = demand.Fields(d)
 		return demand.None()
-	case *dag.HTTPScan, *dag.Lister, *dag.NullScan, *dag.PoolMetaScan, *dag.PoolScan:
+	case *dag.HTTPScan, *dag.ListerScan, *dag.NullScan, *dag.PoolMetaScan, *dag.PoolScan:
 		return demand.None()
 	case *dag.RobotScan:
 		return demandForExpr(op.Expr)
@@ -142,7 +142,7 @@ func demandForSimpleOp(op dag.Op, downstream demand.Demand) demand.Demand {
 		d = demand.Union(d, demandForExpr(op.KeyPruner))
 		op.Fields = demand.Fields(d)
 		return demand.None()
-	case *dag.Slicer:
+	case *dag.SlicerOp:
 		return demand.None()
 	}
 	panic(op)
@@ -152,30 +152,30 @@ func demandForExpr(expr dag.Expr) demand.Demand {
 	switch expr := expr.(type) {
 	case nil:
 		return demand.None()
-	case *dag.Agg:
+	case *dag.AggExpr:
 		return demand.Union(demandForExpr(expr.Expr), demandForExpr(expr.Where))
 	case *dag.ArrayExpr:
 		return demandForArrayOrSetExpr(expr.Elems)
 	case *dag.BinaryExpr:
 		return demand.Union(demandForExpr(expr.LHS), demandForExpr(expr.RHS))
-	case *dag.Call:
+	case *dag.CallExpr:
 		d := demand.None()
 		for _, a := range expr.Args {
 			d = demand.Union(d, demandForExpr(a))
 		}
 		return d
-	case *dag.Conditional:
+	case *dag.CondExpr:
 		return demand.Union(demandForExpr(expr.Cond),
 			demand.Union(demandForExpr(expr.Then), demandForExpr(expr.Else)))
-	case *dag.Dot:
+	case *dag.DotExpr:
 		return demandForExpr(expr.LHS)
 	case *dag.IndexExpr:
 		return demand.Union(demandForExpr(expr.Expr), demandForExpr(expr.Index))
 	case *dag.IsNullExpr:
 		return demandForExpr(expr.Expr)
-	case *dag.Literal:
+	case *dag.LiteralExpr:
 		return demand.None()
-	case *dag.MapCall:
+	case *dag.MapCallExpr:
 		return demandForExpr(expr.Expr)
 	case *dag.MapExpr:
 		d := demand.None()
@@ -197,20 +197,20 @@ func demandForExpr(expr dag.Expr) demand.Demand {
 			}
 		}
 		return d
-	case *dag.RegexpMatch:
+	case *dag.RegexpMatchExpr:
 		return demandForExpr(expr.Expr)
-	case *dag.RegexpSearch:
+	case *dag.RegexpSearchExpr:
 		return demandForExpr(expr.Expr)
-	case *dag.Search:
+	case *dag.SearchExpr:
 		return demandForExpr(expr.Expr)
 	case *dag.SetExpr:
 		return demandForArrayOrSetExpr(expr.Elems)
 	case *dag.SliceExpr:
 		return demand.Union(demandForExpr(expr.Expr),
 			demand.Union(demandForExpr(expr.From), demandForExpr(expr.To)))
-	case *dag.Subquery:
+	case *dag.SubqueryExpr:
 		return demand.Union(DemandForSeq(expr.Body, demand.All())...)
-	case *dag.This:
+	case *dag.ThisExpr:
 		d := demand.All()
 		for i := len(expr.Path) - 1; i >= 0; i-- {
 			d = demand.Key(expr.Path[i], d)
@@ -240,7 +240,7 @@ func demandForArrayOrSetExpr(elems []dag.VectorElem) demand.Demand {
 func demandForAssignments(assignments []dag.Assignment, downstream demand.Demand) demand.Demand {
 	d := downstream
 	for _, a := range assignments {
-		if _, ok := a.LHS.(*dag.This); ok {
+		if _, ok := a.LHS.(*dag.ThisExpr); ok {
 			// Assignment clobbers a static field.
 			d = demand.Delete(d, demandForExpr(a.LHS))
 		} else {

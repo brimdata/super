@@ -11,14 +11,14 @@ import (
 
 type dagen struct {
 	reporter
-	outputs map[*dag.Output]*sem.DebugOp
+	outputs map[*dag.OutputOp]*sem.DebugOp
 	funcs   map[string]*dag.FuncDef
 }
 
 func newDagen(r reporter) *dagen {
 	return &dagen{
 		reporter: r,
-		outputs:  make(map[*dag.Output]*sem.DebugOp),
+		outputs:  make(map[*dag.OutputOp]*sem.DebugOp),
 		funcs:    make(map[string]*dag.FuncDef),
 	}
 }
@@ -132,64 +132,64 @@ func (d *dagen) op(op sem.Op) dag.Op {
 	// Ops in alphabetical order
 	//
 	case *sem.AggregateOp:
-		return &dag.Aggregate{
-			Kind:  "Aggregate",
+		return &dag.AggregateOp{
+			Kind:  "AggregateOp",
 			Limit: op.Limit,
 			Keys:  d.assignments(op.Keys),
 			Aggs:  d.assignments(op.Aggs),
 		}
 	case *sem.CutOp:
-		return &dag.Cut{
-			Kind: "Cut",
+		return &dag.CutOp{
+			Kind: "CutOp",
 			Args: d.assignments(op.Args),
 		}
 	case *sem.DistinctOp:
-		return &dag.Distinct{
-			Kind: "Distinct",
+		return &dag.DistinctOp{
+			Kind: "DistinctOp",
 			Expr: d.expr(op.Expr),
 		}
 	case *sem.DropOp:
-		return &dag.Drop{
-			Kind: "Drop",
+		return &dag.DropOp{
+			Kind: "DropOp",
 			Args: d.exprs(op.Args),
 		}
 	case *sem.ExplodeOp:
-		return &dag.Explode{
-			Kind: "Explode",
+		return &dag.ExplodeOp{
+			Kind: "ExplodeOp",
 			Args: d.exprs(op.Args),
 			Type: op.Type,
 			As:   op.As,
 		}
 	case *sem.FilterOp:
-		return &dag.Filter{
-			Kind: "Filter",
+		return &dag.FilterOp{
+			Kind: "FilterOp",
 			Expr: d.expr(op.Expr),
 		}
 	case *sem.ForkOp:
-		return &dag.Fork{
-			Kind:  "Fork",
+		return &dag.ForkOp{
+			Kind:  "ForkOp",
 			Paths: d.paths(op.Paths),
 		}
 	case *sem.FuseOp:
-		return &dag.Fuse{
-			Kind: "Fuse",
+		return &dag.FuseOp{
+			Kind: "FuseOp",
 		}
 	case *sem.HeadOp:
-		return &dag.Head{
-			Kind:  "Head",
+		return &dag.HeadOp{
+			Kind:  "HeadOp",
 			Count: op.Count,
 		}
 	case *sem.JoinOp:
-		return &dag.Join{
-			Kind:       "Join",
+		return &dag.JoinOp{
+			Kind:       "JoinOp",
 			Style:      op.Style,
 			LeftAlias:  op.LeftAlias,
 			RightAlias: op.RightAlias,
 			Cond:       d.expr(op.Cond),
 		}
 	case *sem.LoadOp:
-		return &dag.Load{
-			Kind:    "Load",
+		return &dag.LoadOp{
+			Kind:    "LoadOp",
 			Pool:    op.Pool,
 			Branch:  op.Branch,
 			Author:  op.Author,
@@ -198,74 +198,74 @@ func (d *dagen) op(op sem.Op) dag.Op {
 		}
 	case *sem.MergeOp:
 		if len(op.Exprs) == 0 {
-			return &dag.Combine{Kind: "Combine"}
+			return &dag.CombineOp{Kind: "CombineOp"}
 		}
-		return &dag.Merge{
-			Kind:  "Merge",
+		return &dag.MergeOp{
+			Kind:  "MergeOp",
 			Exprs: d.sortExprs(op.Exprs),
 		}
 	case *sem.OutputOp:
-		return &dag.Output{
-			Kind: "Output",
+		return &dag.OutputOp{
+			Kind: "OutputOp",
 			Name: op.Name,
 		}
 	case *sem.PassOp:
-		return &dag.Pass{
-			Kind: "Pass",
+		return &dag.PassOp{
+			Kind: "PassOp",
 		}
 	case *sem.PutOp:
-		return &dag.Put{
-			Kind: "Put",
+		return &dag.PutOp{
+			Kind: "PutOp",
 			Args: d.assignments(op.Args),
 		}
 	case *sem.RenameOp:
-		return &dag.Rename{
-			Kind: "Rename",
+		return &dag.RenameOp{
+			Kind: "RenameOp",
 			Args: d.assignments(op.Args),
 		}
 	case *sem.SkipOp:
-		return &dag.Skip{
-			Kind:  "Skeip",
+		return &dag.SkipOp{
+			Kind:  "SkipOp",
 			Count: op.Count,
 		}
 	case *sem.SortOp:
-		return &dag.Sort{
-			Kind:    "Sort",
+		return &dag.SortOp{
+			Kind:    "SortOp",
 			Exprs:   d.sortExprs(op.Exprs),
 			Reverse: op.Reverse,
 		}
 	case *sem.SwitchOp:
-		return &dag.Switch{
-			Kind:  "Switch",
+		return &dag.SwitchOp{
+			Kind:  "SwitchOp",
 			Expr:  d.expr(op.Expr),
 			Cases: d.cases(op.Cases),
 		}
 	case *sem.TailOp:
-		return &dag.Tail{
-			Kind:  "Tail",
+		return &dag.TailOp{
+			Kind:  "TailOp",
 			Count: op.Count,
 		}
 	case *sem.TopOp:
-		return &dag.Top{
-			Kind:    "Top",
+		return &dag.TopOp{
+			Kind:    "TopOp",
 			Limit:   op.Limit,
 			Exprs:   d.sortExprs(op.Exprs),
 			Reverse: op.Reverse,
 		}
 	case *sem.UniqOp:
-		return &dag.Uniq{
-			Kind:  "Uniq",
+		return &dag.UniqOp{
+			Kind:  "UniqOp",
 			Cflag: op.Cflag,
 		}
 	case *sem.UnnestOp:
-		return &dag.Unnest{
-			Kind: "Unnest",
+		return &dag.UnnestOp{
+			Kind: "UnnestOp",
 			Expr: d.expr(op.Expr),
 			Body: d.seq(op.Body),
 		}
 	case *sem.ValuesOp:
-		return &dag.Values{
-			Kind:  "Values",
+		return &dag.ValuesOp{
+			Kind:  "ValuesOp",
 			Exprs: d.exprs(op.Exprs),
 		}
 	}
@@ -326,8 +326,8 @@ func (d *dagen) expr(e sem.Expr) dag.Expr {
 	case nil:
 		return nil
 	case *sem.AggFunc:
-		return &dag.Agg{
-			Kind:     "Agg",
+		return &dag.AggExpr{
+			Kind:     "AggExpr",
 			Name:     e.Name,
 			Distinct: e.Distinct,
 			Expr:     d.expr(e.Expr),
@@ -348,15 +348,15 @@ func (d *dagen) expr(e sem.Expr) dag.Expr {
 	case *sem.CallExpr:
 		return d.call(e)
 	case *sem.CondExpr:
-		return &dag.Conditional{
-			Kind: "Conditional",
+		return &dag.CondExpr{
+			Kind: "CondExpr",
 			Cond: d.expr(e.Cond),
 			Then: d.expr(e.Then),
 			Else: d.expr(e.Else),
 		}
 	case *sem.DotExpr:
-		return &dag.Dot{
-			Kind: "Dot",
+		return &dag.DotExpr{
+			Kind: "DotExpr",
 			LHS:  d.expr(e.LHS),
 			RHS:  e.RHS,
 		}
@@ -372,13 +372,13 @@ func (d *dagen) expr(e sem.Expr) dag.Expr {
 			Expr: d.expr(e.Expr),
 		}
 	case *sem.LiteralExpr:
-		return &dag.Literal{ // XXX this should be called Primitive
-			Kind:  "Literal",
+		return &dag.LiteralExpr{
+			Kind:  "LiteralExpr",
 			Value: e.Value,
 		}
 	case *sem.MapCallExpr:
-		return &dag.MapCall{
-			Kind:   "MapCall",
+		return &dag.MapCallExpr{
+			Kind:   "MapCallExpr",
 			Expr:   d.expr(e.Expr),
 			Lambda: d.call(e.Lambda),
 		}
@@ -393,20 +393,20 @@ func (d *dagen) expr(e sem.Expr) dag.Expr {
 			Elems: d.recordElems(e.Elems),
 		}
 	case *sem.RegexpMatchExpr:
-		return &dag.RegexpMatch{
-			Kind:    "RegexpMatch",
+		return &dag.RegexpMatchExpr{
+			Kind:    "RegexpMatchExpr",
 			Pattern: e.Pattern,
 			Expr:    d.expr(e.Expr),
 		}
 	case *sem.RegexpSearchExpr:
-		return &dag.RegexpSearch{
-			Kind:    "RegexpSearch",
+		return &dag.RegexpSearchExpr{
+			Kind:    "RegexpSearchExpr",
 			Pattern: e.Pattern,
 			Expr:    d.expr(e.Expr),
 		}
 	case *sem.SearchTermExpr:
-		return &dag.Search{
-			Kind:  "Search",
+		return &dag.SearchExpr{
+			Kind:  "SearchExpr",
 			Text:  e.Text,
 			Value: e.Value,
 			Expr:  d.expr(e.Expr),
@@ -426,8 +426,8 @@ func (d *dagen) expr(e sem.Expr) dag.Expr {
 	case *sem.SubqueryExpr:
 		return d.subquery(e)
 	case *sem.ThisExpr:
-		return &dag.This{
-			Kind: "This",
+		return &dag.ThisExpr{
+			Kind: "ThisExpr",
 			Path: e.Path,
 		}
 	case *sem.UnaryExpr:
@@ -485,9 +485,9 @@ func (d *dagen) entries(entries []sem.Entry) []dag.Entry {
 	return out
 }
 
-func (d *dagen) subquery(e *sem.SubqueryExpr) *dag.Subquery {
-	subquery := &dag.Subquery{
-		Kind:       "Subquery",
+func (d *dagen) subquery(e *sem.SubqueryExpr) *dag.SubqueryExpr {
+	subquery := &dag.SubqueryExpr{
+		Kind:       "SubqueryExpr",
 		Correlated: e.Correlated,
 		Body:       d.seq(e.Body),
 	}
@@ -501,23 +501,23 @@ func collectThis(seq dag.Seq) dag.Seq {
 	collect := dag.Assignment{
 		Kind: "Assignment",
 		LHS:  dag.NewThis([]string{"collect"}),
-		RHS:  &dag.Agg{Kind: "Agg", Name: "collect", Expr: dag.NewThis(nil)},
+		RHS:  &dag.AggExpr{Kind: "AggExpr", Name: "collect", Expr: dag.NewThis(nil)},
 	}
-	aggOp := &dag.Aggregate{
-		Kind: "Aggregate",
+	aggOp := &dag.AggregateOp{
+		Kind: "AggregateOp",
 		Aggs: []dag.Assignment{collect},
 	}
-	emitOp := &dag.Values{
-		Kind:  "Values",
+	emitOp := &dag.ValuesOp{
+		Kind:  "ValuesOp",
 		Exprs: []dag.Expr{dag.NewThis([]string{"collect"})},
 	}
 	seq = append(seq, aggOp)
 	return append(seq, emitOp)
 }
 
-func (d *dagen) call(c *sem.CallExpr) *dag.Call {
-	return &dag.Call{
-		Kind: "Call",
+func (d *dagen) call(c *sem.CallExpr) *dag.CallExpr {
+	return &dag.CallExpr{
+		Kind: "CallExpr",
 		Tag:  c.Tag,
 		Args: d.exprs(c.Args),
 	}
@@ -534,19 +534,19 @@ func (d *dagen) fn(f *sem.FuncDef) *dag.FuncDef {
 }
 
 func (d *dagen) debugOp(o *sem.DebugOp, branch sem.Seq, seq dag.Seq) dag.Seq {
-	output := &dag.Output{Kind: "Output", Name: "debug"}
+	output := &dag.OutputOp{Kind: "OutputOp", Name: "debug"}
 	d.outputs[output] = o
 	e := d.expr(o.Expr)
 	if e == nil {
 		e = dag.NewThis(nil)
 	}
-	y := &dag.Values{Kind: "Values", Exprs: []dag.Expr{e}}
+	y := &dag.ValuesOp{Kind: "ValuesOp", Exprs: []dag.Expr{e}}
 	main := d.seq(branch)
 	if len(main) == 0 {
-		main.Append(&dag.Pass{Kind: "Pass"})
+		main.Append(&dag.PassOp{Kind: "PassOp"})
 	}
-	return append(seq, &dag.Mirror{
-		Kind:   "Mirror",
+	return append(seq, &dag.MirrorOp{
+		Kind:   "MirrorOp",
 		Main:   main,
 		Mirror: dag.Seq{y, output},
 	})
@@ -562,7 +562,7 @@ func (d *dagen) checkOutputs(isLeaf bool, seq dag.Seq) dag.Seq {
 	for i, o := range seq {
 		isLast := lastN == i
 		switch o := o.(type) {
-		case *dag.Output:
+		case *dag.OutputOp:
 			if !isLast || !isLeaf {
 				n, ok := d.outputs[o]
 				if !ok {
@@ -570,30 +570,30 @@ func (d *dagen) checkOutputs(isLeaf bool, seq dag.Seq) dag.Seq {
 				}
 				d.error(n, errors.New("output operator must be at flowgraph leaf"))
 			}
-		case *dag.Scatter:
+		case *dag.ScatterOp:
 			for k := range o.Paths {
 				o.Paths[k] = d.checkOutputs(isLast && isLeaf, o.Paths[k])
 			}
-		case *dag.Unnest:
+		case *dag.UnnestOp:
 			o.Body = d.checkOutputs(false, o.Body)
-		case *dag.Fork:
+		case *dag.ForkOp:
 			for k := range o.Paths {
 				o.Paths[k] = d.checkOutputs(isLast && isLeaf, o.Paths[k])
 			}
-		case *dag.Switch:
+		case *dag.SwitchOp:
 			for k := range o.Cases {
 				o.Cases[k].Path = d.checkOutputs(isLast && isLeaf, o.Cases[k].Path)
 			}
-		case *dag.Mirror:
+		case *dag.MirrorOp:
 			o.Main = d.checkOutputs(isLast && isLeaf, o.Main)
 			o.Mirror = d.checkOutputs(isLast && isLeaf, o.Mirror)
 		}
 	}
 	switch seq[lastN].(type) {
-	case *dag.Output, *dag.Scatter, *dag.Fork, *dag.Switch, *dag.Mirror:
+	case *dag.ForkOp, *dag.MirrorOp, *dag.OutputOp, *dag.ScatterOp, *dag.SwitchOp:
 	default:
 		if isLeaf {
-			return append(seq, &dag.Output{Kind: "Output", Name: "main"})
+			return append(seq, &dag.OutputOp{Kind: "OutputOp", Name: "main"})
 		}
 	}
 	return seq

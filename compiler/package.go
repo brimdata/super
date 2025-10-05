@@ -136,7 +136,7 @@ func VectorFilterCompile(rctx *runtime.Context, query string, env *exec.Environm
 	if len(entry) != 3 {
 		return nil, errors.New("filter query must have a single op")
 	}
-	f, ok := entry[1].(*dag.Filter)
+	f, ok := entry[1].(*dag.FilterOp)
 	if !ok {
 		return nil, errors.New("filter query must be a single filter op")
 	}

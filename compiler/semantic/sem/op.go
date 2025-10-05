@@ -24,7 +24,7 @@ type Op interface {
 	ast.Node
 }
 
-// Scanner ops implement both Scanner and Op
+// Scanner ops source data and implement Op.
 type (
 	CommitMetaScan struct {
 		ast.Node

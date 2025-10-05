@@ -54,7 +54,7 @@ func (l *compiler) NewDeleteQuery(rctx *runtime.Context, ast *parser.AST, head *
 	if err != nil {
 		return nil, err
 	}
-	if _, ok := main.Body[1].(*dag.Filter); !ok {
+	if _, ok := main.Body[1].(*dag.FilterOp); !ok {
 		return nil, &InvalidDeleteWhereQuery{}
 	}
 	if err = optimizer.New(rctx, l.env).OptimizeDeleter(main, Parallelism); err != nil {

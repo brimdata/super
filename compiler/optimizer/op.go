@@ -25,9 +25,9 @@ func (o *Optimizer) analyzeSortKeys(op dag.Op, in order.SortKeys) (order.SortKey
 			return nil, err
 		}
 		return pool.SortKeys, nil
-	case *dag.Sort:
+	case *dag.SortOp:
 		return sortKeysOfSortExprs(op.Exprs), nil
-	case *dag.Top:
+	case *dag.TopOp:
 		return sortKeysOfSortExprs(op.Exprs), nil
 	}
 	// We should handle secondary keys at some point.
@@ -37,21 +37,21 @@ func (o *Optimizer) analyzeSortKeys(op dag.Op, in order.SortKeys) (order.SortKey
 	}
 	key := in.Primary()
 	switch op := op.(type) {
-	case *dag.Lister:
+	case *dag.ListerScan:
 		// This shouldn't happen.
 		return nil, errors.New("internal error: dag.Lister encountered in anaylzeSortKeys")
-	case *dag.Filter, *dag.Head, *dag.Pass, *dag.Uniq, *dag.Tail, *dag.Fuse, *dag.Output:
+	case *dag.FilterOp, *dag.HeadOp, *dag.PassOp, *dag.UniqOp, *dag.TailOp, *dag.FuseOp, *dag.OutputOp:
 		return in, nil
-	case *dag.Cut:
+	case *dag.CutOp:
 		return analyzeCuts(op.Args, in), nil
-	case *dag.Drop:
+	case *dag.DropOp:
 		for _, f := range op.Args {
 			if fieldOf(f).Equal(key.Key) {
 				return nil, nil
 			}
 		}
 		return in, nil
-	case *dag.Rename:
+	case *dag.RenameOp:
 		out := in
 		for _, assignment := range op.Args {
 			if fieldOf(assignment.RHS).Equal(key.Key) {
@@ -60,12 +60,12 @@ func (o *Optimizer) analyzeSortKeys(op dag.Op, in order.SortKeys) (order.SortKey
 			}
 		}
 		return out, nil
-	case *dag.Aggregate:
+	case *dag.AggregateOp:
 		if isKeyOfAggregate(op, in) {
 			return in, nil
 		}
 		return nil, nil
-	case *dag.Put:
+	case *dag.PutOp:
 		for _, assignment := range op.Args {
 			if fieldOf(assignment.LHS).Equal(key.Key) {
 				return nil, nil
@@ -100,7 +100,7 @@ func sortKeyOfExpr(e dag.Expr, o order.Which) (order.SortKey, bool) {
 // isKeyOfAggregate returns true iff any of a's grouping keys is the
 // same as the given primary-key sort order or an order-preserving function
 // thereof.
-func isKeyOfAggregate(a *dag.Aggregate, in order.SortKeys) bool {
+func isKeyOfAggregate(a *dag.AggregateOp, in order.SortKeys) bool {
 	if in.IsNil() {
 		return false
 	}
@@ -119,7 +119,7 @@ func isKeyOfAggregate(a *dag.Aggregate, in order.SortKeys) bool {
 }
 
 func orderPreservingCall(e dag.Expr, key field.Path) bool {
-	if call, ok := e.(*dag.Call); ok {
+	if call, ok := e.(*dag.CallExpr); ok {
 		switch call.Tag {
 		// There are probably other functions we could cover.
 		// It would be good if the function declaration included
@@ -211,7 +211,7 @@ func fieldKey(f field.Path) string {
 }
 
 func fieldOf(e dag.Expr) field.Path {
-	if this, ok := e.(*dag.This); ok {
+	if this, ok := e.(*dag.ThisExpr); ok {
 		return this.Path
 	}
 	return nil
@@ -222,9 +222,9 @@ func FieldsOf(e dag.Expr) (field.List, bool) {
 		return nil, false
 	}
 	switch e := e.(type) {
-	case *dag.Search, *dag.Literal:
+	case *dag.SearchExpr, *dag.LiteralExpr:
 		return nil, true
-	case *dag.This:
+	case *dag.ThisExpr:
 		return field.List{e.Path}, true
 	case *dag.UnaryExpr:
 		return FieldsOf(e.Operand)
@@ -238,13 +238,13 @@ func FieldsOf(e dag.Expr) (field.List, bool) {
 			return nil, false
 		}
 		return append(lhs, rhs...), true
-	case *dag.Conditional:
+	case *dag.CondExpr:
 		// finish with issue #2756
 		return nil, false
-	case *dag.Call:
+	case *dag.CallExpr:
 		// finish with issue #2756
 		return nil, false
-	case *dag.RegexpMatch:
+	case *dag.RegexpMatchExpr:
 		return FieldsOf(e.Expr)
 	case *dag.RecordExpr:
 		// finish with issue #2756
