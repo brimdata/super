@@ -188,7 +188,7 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 		var out []sem.RecordElem
 		for _, elem := range e.Elems {
 			switch elem := elem.(type) {
-			case *ast.FieldExpr:
+			case *ast.FieldElem:
 				if _, ok := fields[elem.Name.Text]; ok {
 					t.error(elem, fmt.Errorf("record expression: %w", &super.DuplicateFieldError{Name: elem.Name.Text}))
 					continue
@@ -200,29 +200,31 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 					Name:  elem.Name.Text,
 					Value: e,
 				})
-			case *ast.ID:
-				if _, ok := fields[elem.Name]; ok {
-					t.error(elem, fmt.Errorf("record expression: %w", &super.DuplicateFieldError{Name: elem.Name}))
-					continue
-				}
-				fields[elem.Name] = struct{}{}
-				// Call semExpr even though we know this is an ID so
-				// SQL-context scope mappings are carried out.
-				v := t.semExpr(elem)
-				out = append(out, &sem.FieldElem{
-					Node:  elem,
-					Name:  elem.Name,
-					Value: v,
-				})
-			case *ast.Spread:
+			case *ast.SpreadElem:
 				e := t.semExpr(elem.Expr)
 				out = append(out, &sem.SpreadElem{
 					Node: elem,
 					Expr: e,
 				})
-			default:
-				e := t.semExpr(elem)
-				name := deriveNameFromExpr(e, elem)
+			case *ast.ExprElem:
+				if id, ok := elem.Expr.(*ast.ID); ok {
+					if _, ok := fields[id.Name]; ok {
+						t.error(elem, fmt.Errorf("record expression: %w", &super.DuplicateFieldError{Name: id.Name}))
+						continue
+					}
+					fields[id.Name] = struct{}{}
+					// Call semExpr even though we know this is an ID so
+					// SQL-context scope mappings are carried out.
+					v := t.semExpr(id)
+					out = append(out, &sem.FieldElem{
+						Node:  elem,
+						Name:  id.Name,
+						Value: v,
+					})
+					continue
+				}
+				e := t.semExpr(elem.Expr)
+				name := deriveNameFromExpr(e, elem.Expr)
 				if _, ok := fields[name]; ok {
 					t.error(elem, fmt.Errorf("record expression: %w", &super.DuplicateFieldError{Name: name}))
 					continue
@@ -232,6 +234,8 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 					Name:  name,
 					Value: e,
 				})
+			default:
+				panic(e)
 			}
 		}
 		return &sem.RecordExpr{
@@ -1021,13 +1025,13 @@ func (t *translator) semType(typ ast.Type) (string, error) {
 	return sup.FormatType(ztype), nil
 }
 
-func (t *translator) semArrayElems(elems []ast.VectorElem) []sem.ArrayElem {
+func (t *translator) semArrayElems(elems []ast.ArrayElem) []sem.ArrayElem {
 	var out []sem.ArrayElem
 	for _, elem := range elems {
 		switch elem := elem.(type) {
-		case *ast.Spread:
+		case *ast.SpreadElem:
 			out = append(out, &sem.SpreadElem{Node: elem, Expr: t.semExpr(elem.Expr)})
-		case *ast.VectorValue:
+		case *ast.ExprElem:
 			out = append(out, &sem.ExprElem{Node: elem, Expr: t.semExpr(elem.Expr)})
 		default:
 			panic(elem)

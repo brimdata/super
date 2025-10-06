@@ -179,13 +179,13 @@ func (c *canon) expr(e ast.Expr, parent string) {
 				c.write(",")
 			}
 			switch e := elem.(type) {
-			case *ast.FieldExpr:
+			case *ast.FieldElem:
 				c.write(sup.QuotedName(e.Name.Text))
 				c.write(":")
 				c.expr(e.Value, "")
-			case *ast.ID:
-				c.write(sup.QuotedName(e.Name))
-			case *ast.Spread:
+			case *ast.ExprElem:
+				c.expr(e.Expr, "")
+			case *ast.SpreadElem:
 				c.write("...")
 				c.expr(e.Expr, "")
 			default:
@@ -213,11 +213,11 @@ func (c *canon) expr(e ast.Expr, parent string) {
 		c.write(")")
 	case *ast.ArrayExpr:
 		c.write("[")
-		c.vectorElems(e.Elems)
+		c.arrayElems(e.Elems)
 		c.write("]")
 	case *ast.SetExpr:
 		c.write("|[")
-		c.vectorElems(e.Elems)
+		c.arrayElems(e.Elems)
 		c.write("]|")
 	case *ast.MapExpr:
 		c.write("|{")
@@ -308,16 +308,16 @@ func (c *canon) lambda(lambda *ast.Lambda) {
 	c.write(")")
 }
 
-func (c *canon) vectorElems(elems []ast.VectorElem) {
+func (c *canon) arrayElems(elems []ast.ArrayElem) {
 	for k, elem := range elems {
 		if k > 0 {
 			c.write(",")
 		}
 		switch elem := elem.(type) {
-		case *ast.Spread:
+		case *ast.SpreadElem:
 			c.write("...")
 			c.expr(elem.Expr, "")
-		case *ast.VectorValue:
+		case *ast.ExprElem:
 			c.expr(elem.Expr, "")
 		}
 	}

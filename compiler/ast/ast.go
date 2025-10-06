@@ -239,63 +239,69 @@ type TableAlias struct {
 }
 
 type RecordExpr struct {
-	Kind  string `json:"kind" unpack:""`
-	Elems []Expr `json:"elems"`
+	Kind  string       `json:"kind" unpack:""`
+	Elems []RecordElem `json:"elems"`
 	Loc   `json:"loc"`
 }
-
-type FieldExpr struct {
-	Kind  string `json:"kind" unpack:""`
-	Name  *Text  `json:"name"`
-	Value Expr   `json:"value"`
-	Loc   `json:"loc"`
-}
-
-type Spread struct {
-	Kind string `json:"kind" unpack:""`
-	Expr Expr   `json:"expr"`
-	Loc  `json:"loc"`
-}
-
-func (*FieldExpr) exprNode() {}
-func (*Spread) exprNode()    {}
 
 type ArrayExpr struct {
-	Kind  string       `json:"kind" unpack:""`
-	Elems []VectorElem `json:"elems"`
+	Kind  string      `json:"kind" unpack:""`
+	Elems []ArrayElem `json:"elems"`
 	Loc   `json:"loc"`
 }
 
 type SetExpr struct {
-	Kind  string       `json:"kind" unpack:""`
-	Elems []VectorElem `json:"elems"`
+	Kind  string      `json:"kind" unpack:""`
+	Elems []ArrayElem `json:"elems"`
 	Loc   `json:"loc"`
 }
 
-type VectorElem interface {
-	vectorElemNode()
-}
-
-func (*Spread) vectorElemNode()      {}
-func (*VectorValue) vectorElemNode() {}
-
-type VectorValue struct {
-	Kind string `json:"kind" unpack:""`
-	Expr Expr   `json:"expr"`
-	Loc  `json:"loc"`
-}
-
 type MapExpr struct {
-	Kind    string      `json:"kind" unpack:""`
-	Entries []EntryExpr `json:"entries"`
+	Kind    string     `json:"kind" unpack:""`
+	Entries []MapEntry `json:"entries"`
 	Loc     `json:"loc"`
 }
 
-type EntryExpr struct {
+// Support structures embedded in Expr nodes
+
+type MapEntry struct {
 	Key   Expr `json:"key"`
 	Value Expr `json:"value"`
 	Loc   `json:"loc"`
 }
+
+type ArrayElem interface {
+	arrayElemNode()
+}
+
+type RecordElem interface {
+	recordElemNode()
+}
+
+type (
+	FieldElem struct {
+		Kind  string `json:"kind" unpack:""`
+		Name  *Text  `json:"name"`
+		Value Expr   `json:"value"`
+		Loc   `json:"loc"`
+	}
+	SpreadElem struct {
+		Kind string `json:"kind" unpack:""`
+		Expr Expr   `json:"expr"`
+		Loc  `json:"loc"`
+	}
+	ExprElem struct {
+		Kind string `json:"kind" unpack:""`
+		Expr Expr   `json:"expr"`
+		Loc  `json:"loc"`
+	}
+)
+
+func (*ExprElem) arrayElemNode()    {}
+func (*ExprElem) recordElemNode()   {}
+func (*FieldElem) recordElemNode()  {}
+func (*SpreadElem) arrayElemNode()  {}
+func (*SpreadElem) recordElemNode() {}
 
 type Exists struct {
 	Kind string `json:"kind" unpack:""`

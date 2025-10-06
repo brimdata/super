@@ -1202,7 +1202,7 @@ Record
   = "{" __ elems:RecordElems __ "}" {
       return &ast.RecordExpr{
           Kind: "RecordExpr",
-          Elems: sliceOf[ast.Expr](elems),
+          Elems: sliceOf[ast.RecordElem](elems),
           Loc: loc(c),
       }, nil
     }
@@ -1215,59 +1215,59 @@ RecordElems
 
 RecordElemTail = __ "," __ elem:RecordElem { return elem, nil }
 
-RecordElem
-  = Spread
-  / FieldExpr
-  / Expr
+RecordElem = SpreadElem / FieldElem / ExprElem
 
-Spread
+SpreadElem
   = "..." __ expr:Expr {
-      return &ast.Spread{Kind: "Spread", Expr: expr.(ast.Expr), Loc: loc(c)}, nil
+      return &ast.SpreadElem{Kind: "SpreadElem", Expr: expr.(ast.Expr), Loc: loc(c)}, nil
     }
 
-FieldExpr
+FieldElem
   = name:Name __ ":" __ value:Expr {
-      return &ast.FieldExpr{
-        Kind: "FieldExpr",
+      return &ast.FieldElem{
+        Kind: "FieldElem",
         Name: name.(*ast.Text),
         Value: value.(ast.Expr),
         Loc: loc(c),
       }, nil
     }
 
+ExprElem
+  = expr:Expr {
+      return &ast.ExprElem{Kind: "ExprElem", Expr: expr.(ast.Expr), Loc: loc(c)}, nil
+    }
+
 Array
-  = "[" __ elems:VectorElems __ "]" {
+  = "[" __ elems:ArrayElems __ "]" {
       return &ast.ArrayExpr{
           Kind: "ArrayExpr",
-          Elems: sliceOf[ast.VectorElem](elems),
+          Elems: sliceOf[ast.ArrayElem](elems),
           Loc: loc(c),
       }, nil
     }
 
 Set
-  = "|[" __ elems:VectorElems __ "]|" {
+  = "|[" __ elems:ArrayElems __ "]|" {
       return &ast.SetExpr{
           Kind: "SetExpr",
-          Elems: sliceOf[ast.VectorElem](elems),
+          Elems: sliceOf[ast.ArrayElem](elems),
           Loc: loc(c),
       }, nil
     }
 
-VectorElems
-  = first:VectorElem rest:(__ "," __ e:VectorElem { return e, nil })* {
+ArrayElems
+  = first:ArrayElem rest:(__ "," __ e:ArrayElem { return e, nil })* {
       return prepend(first, rest), nil
     }
   / __ { return nil, nil }
 
-VectorElem
-  = Spread
-  / e:Expr { return &ast.VectorValue{Kind: "VectorValue", Expr: e.(ast.Expr),Loc:loc(c)}, nil }
+ArrayElem = SpreadElem / ExprElem
 
 Map
   = "|{" __ exprs:Entries __ "}|" {
       return &ast.MapExpr{
           Kind: "MapExpr",
-          Entries: sliceOf[ast.EntryExpr](exprs),
+          Entries: sliceOf[ast.MapEntry](exprs),
           Loc: loc(c),
       }, nil
     }
@@ -1283,7 +1283,7 @@ EntryTail = __ "," __ e:Entry { return e, nil }
 
 Entry
   = key:Expr __ ":" __ value:Expr {
-      return ast.EntryExpr{Key: key.(ast.Expr), Value: value.(ast.Expr),Loc:loc(c)}, nil
+      return ast.MapEntry{Key: key.(ast.Expr), Value: value.(ast.Expr),Loc:loc(c)}, nil
     }
 
 Tuple
