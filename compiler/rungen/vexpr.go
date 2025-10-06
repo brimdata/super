@@ -249,7 +249,7 @@ func (b *Builder) compileVamCast(args []dag.Expr) (vamexpr.Evaluator, error) {
 			return cast, nil
 		}
 	}
-	e, err := b.compileCall(&dag.Call{Tag: "cast", Args: args})
+	e, err := b.compileCall(&dag.CallExpr{Tag: "cast", Args: args})
 	if err != nil {
 		return nil, err
 	}
