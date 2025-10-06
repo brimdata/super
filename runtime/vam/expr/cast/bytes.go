@@ -5,11 +5,15 @@ import (
 )
 
 func castToBytes(vec vector.Any, index []uint32) (vector.Any, []uint32, string, bool) {
-	strVec, ok := vec.(*vector.String)
-	if !ok {
+	var out vector.Any
+	switch vec := vec.(type) {
+	case *vector.Bytes:
+		out = vec
+	case *vector.String:
+		out = vector.NewBytes(vec.Table(), vector.NullsOf(vec))
+	default:
 		return nil, nil, "", false
 	}
-	out := vector.Any(vector.NewBytes(strVec.Table(), vector.NullsOf(strVec)))
 	if index != nil {
 		out = vector.Pick(out, index)
 	}

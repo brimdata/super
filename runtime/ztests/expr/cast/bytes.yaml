@@ -3,6 +3,9 @@ spq: this::bytes
 vector: true
 
 input: |
+  0x01
+  null::bytes
+  null
   "foo"
   "bar"::=named
   ""
@@ -10,6 +13,9 @@ input: |
   {x:"foo"}
 
 output: |
+  0x01
+  null::bytes
+  null::bytes
   0x666f6f
   0x626172
   0x
