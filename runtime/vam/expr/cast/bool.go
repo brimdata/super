@@ -15,6 +15,12 @@ func castToBool(vec vector.Any, index []uint32) (vector.Any, []uint32, string, b
 		out = numberToBool(vec.Values, index)
 	case *vector.Float:
 		out = numberToBool(vec.Values, index)
+	case *vector.Bool:
+		out := vector.Any(vec)
+		if index != nil {
+			out = vector.Pick(out, index)
+		}
+		return out, nil, "", true
 	case *vector.String:
 		vvec, errs := stringToBool(vec, index)
 		return vvec, errs, "", true

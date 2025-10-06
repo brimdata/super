@@ -3,6 +3,10 @@ spq: this::bool
 vector: true
 
 input: |
+  true
+  false
+  null::bool
+  null
   1
   0
   24::uint8
@@ -20,6 +24,10 @@ input: |
   "1"
 
 output: |
+  true
+  false
+  null::bool
+  null::bool
   true
   false
   true
