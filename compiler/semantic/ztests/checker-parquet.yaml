@@ -5,6 +5,6 @@ script: |
 outputs:
   - name: stderr
     data: |
-      "z" no such field at line 1, column 25:
+      no such field "z" at line 1, column 25:
       from t.parquet | values z
                               ~

@@ -3,4 +3,4 @@ spq: values 10.1.1.1 + 1
 error: |
   type mismatch at line 1, column 8:
   values 10.1.1.1 + 1
-         ~~~~~~~~
+         ~~~~~~~~~~~~

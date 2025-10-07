@@ -8,4 +8,4 @@ input: |
 error: |
   type mismatch at line 1, column 16:
   values {x:'a'+(1+'b')}
-                 ~
+                 ~~~~~

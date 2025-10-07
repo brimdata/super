@@ -34,9 +34,9 @@ func newChecker(t *translator, funcs []*sem.FuncDef) *checker {
 }
 
 func (c *checker) check(r reporter, seq sem.Seq) {
-	c.epush()
+	c.pushErrs()
 	c.seq(c.unknown, seq)
-	errs := c.epop()
+	errs := c.popErrs()
 	errs.flushErrs(r)
 }
 
@@ -125,7 +125,7 @@ func (c *checker) op(typ super.Type, op sem.Op) super.Type {
 		c.sortExprs(typ, op.Exprs)
 		return typ
 	case *sem.JoinOp:
-		c.error(op, errors.New("join requires two query inputs"))
+		c.error(op, errors.New("join requires two inputs"))
 		return c.unknown
 	case *sem.OutputOp:
 		return typ
@@ -188,19 +188,19 @@ func (c *checker) join(types []super.Type, op *sem.JoinOp) super.Type {
 		c.error(op, errors.New("join requires two query inputs"))
 	}
 	typ := c.t.sctx.MustLookupTypeRecord([]super.Field{
-		{Name: op.LeftAlias, Type: types[0]},
-		{Name: op.RightAlias, Type: types[1]},
+		super.NewField(op.LeftAlias, types[0]),
+		super.NewField(op.RightAlias, types[1]),
 	})
 	c.expr(typ, op.Cond)
 	return typ
 }
 
 func (c *checker) unnest(loc ast.Node, typ super.Type) super.Type {
-	c.epush()
+	c.pushErrs()
 	typ, ok := c.unnestCheck(loc, typ)
-	errs := c.epop()
+	errs := c.popErrs()
 	if !ok {
-		c.ekeep(errs)
+		c.keepErrs(errs)
 	}
 	return typ
 }
@@ -308,7 +308,7 @@ func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
 			return c.comparison(lhs, rhs)
 		case "+", "-", "*", "/", "%":
 			if e.Op == "+" {
-				return c.plus(e.LHS, e.RHS, lhs, rhs)
+				return c.plus(e, lhs, rhs)
 			}
 			return c.arithmetic(e.LHS, e.RHS, lhs, rhs)
 		default:
@@ -342,14 +342,14 @@ func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
 		return c.unknown
 	case *sem.MapCallExpr:
 		containerType := c.expr(typ, e.Expr)
-		elemType := c.isContainer(containerType)
-		if elemType == nil {
+		elemType, ok := c.isContainer(containerType)
+		if !ok {
 			c.error(e.Expr, errors.New("map entity must be an array or set"))
 			return c.unknown
 		}
-		c.epush()
+		c.pushErrs()
 		lambdaType := c.expr(elemType, e.Lambda)
-		errs := c.epop()
+		errs := c.popErrs()
 		if len(errs) != 0 {
 			c.error(errs[0].loc, fmt.Errorf("in functon called from map: %w", errs[0].err))
 		}
@@ -414,19 +414,18 @@ func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
 	}
 }
 
-func (c *checker) isContainer(containerType super.Type) super.Type {
-	var elemType super.Type
+func (c *checker) isContainer(containerType super.Type) (super.Type, bool) {
 	switch typ := super.TypeUnder(containerType).(type) {
 	case *super.TypeArray:
-		elemType = typ.Type
+		return typ.Type, true
 	case *super.TypeSet:
-		elemType = typ.Type
+		return typ.Type, true
 	case *super.TypeError:
 		if isUnknown(typ) {
-			elemType = c.unknown
+			return c.unknown, true
 		}
 	}
-	return elemType
+	return nil, false
 }
 
 func (c *checker) arrayElems(typ super.Type, elems []sem.ArrayElem) super.Type {
@@ -507,9 +506,8 @@ func (c *checker) pathsToType(paths []pathType) super.Type {
 }
 
 func (c *checker) pathToRec(typ super.Type, elems []string) super.Type {
-	for ; len(elems) > 0; elems = elems[:len(elems)-1] {
-		last := elems[len(elems)-1]
-		typ = c.t.sctx.MustLookupTypeRecord([]super.Field{{Name: last, Type: typ}})
+	for _, elem := range slices.Backward(elems) {
+		typ = c.t.sctx.MustLookupTypeRecord([]super.Field{{Name: elem, Type: typ}})
 	}
 	return typ
 }
@@ -671,7 +669,7 @@ func (c *checker) deref(loc ast.Node, typ super.Type, field string) (super.Type,
 		which, ok := typ.IndexOfField(field)
 		if !ok {
 			if !hasUnknown(typ) {
-				c.error(loc, fmt.Errorf("%q no such field", field))
+				c.error(loc, fmt.Errorf("no such field %q", field))
 			}
 			return c.unknown, false
 		}
@@ -679,7 +677,7 @@ func (c *checker) deref(loc ast.Node, typ super.Type, field string) (super.Type,
 	case *super.TypeUnion:
 		// Push the error stack and if we find some valid deref,
 		// we'll discard the errors.  Otherwise, we'll keep them.
-		c.epush()
+		c.pushErrs()
 		var types []super.Type
 		var valid bool
 		for _, t := range typ.Types {
@@ -689,9 +687,9 @@ func (c *checker) deref(loc ast.Node, typ super.Type, field string) (super.Type,
 				valid = true
 			}
 		}
-		errs := c.epop()
+		errs := c.popErrs()
 		if !valid {
-			c.ekeep(errs)
+			c.keepErrs(errs)
 		}
 		return c.fuse(types), valid
 	}
@@ -739,16 +737,16 @@ func (c *checker) in(lloc, rloc ast.Node, lhs, rhs super.Type) bool {
 	case *super.TypeUnion:
 		// Push the error stack and if we find some valid deref,
 		// we'll discard the errors.  Otherwise, we'll keep them.
-		c.epush()
+		c.pushErrs()
 		var valid bool
 		for _, t := range typ.Types {
 			if c.in(lloc, rloc, lhs, t) {
 				valid = true
 			}
 		}
-		errs := c.epop()
+		errs := c.popErrs()
 		if !valid {
-			c.ekeep(errs)
+			c.keepErrs(errs)
 		}
 		return valid
 	default:
@@ -828,7 +826,7 @@ func (c *checker) arithmetic(lloc, rloc ast.Node, lhs, rhs super.Type) super.Typ
 	return c.fuse([]super.Type{lhs, rhs})
 }
 
-func (c *checker) plus(lloc, rloc ast.Node, lhs, rhs super.Type) super.Type {
+func (c *checker) plus(loc ast.Node, lhs, rhs super.Type) super.Type {
 	if isUnknown(lhs) || isUnknown(rhs) {
 		return c.unknown
 	}
@@ -838,7 +836,7 @@ func (c *checker) plus(lloc, rloc ast.Node, lhs, rhs super.Type) super.Type {
 	if hasNumber(lhs) && hasNumber(rhs) {
 		return c.fuse([]super.Type{lhs, rhs})
 	}
-	c.error(lloc, errors.New("type mismatch"))
+	c.error(loc, errors.New("type mismatch"))
 	return c.unknown
 }
 
@@ -848,10 +846,8 @@ func hasNumber(typ super.Type) bool {
 		return true
 	}
 	if u, ok := super.TypeUnder(typ).(*super.TypeUnion); ok {
-		for _, t := range u.Types {
-			if hasNumber(t) {
-				return true
-			}
+		if slices.ContainsFunc(u.Types, hasNumber) {
+			return true
 		}
 	}
 	return false
@@ -864,11 +860,7 @@ func hasString(typ super.Type) bool {
 	case *super.TypeOfString, *super.TypeOfNull:
 		return true
 	case *super.TypeUnion:
-		for _, t := range typ.Types {
-			if hasString(t) {
-				return true
-			}
-		}
+		return slices.ContainsFunc(typ.Types, hasString)
 	}
 	return false
 }
@@ -884,10 +876,8 @@ func isUnknown(typ super.Type) bool {
 
 func hasUnknown(typ super.Type) bool {
 	if u, ok := super.TypeUnder(typ).(*super.TypeUnion); ok {
-		for _, t := range u.Types {
-			if hasUnknown(t) {
-				return true
-			}
+		if slices.ContainsFunc(u.Types, hasUnknown) {
+			return true
 		}
 	}
 	return isUnknown(typ)
@@ -899,18 +889,18 @@ func (c *checker) indexOf(cloc, iloc ast.Node, container, index super.Type) (sup
 	}
 	switch typ := super.TypeUnder(container).(type) {
 	case *super.TypeArray:
-		c.epush()
+		c.pushErrs()
 		c.integer(iloc, index)
-		if errs := c.epop(); len(errs) > 0 {
-			c.ekeep(errs)
+		if errs := c.popErrs(); len(errs) > 0 {
+			c.keepErrs(errs)
 			return typ.Type, false
 		}
 		return typ.Type, true
 	case *super.TypeSet:
-		c.epush()
+		c.pushErrs()
 		c.integer(iloc, index)
-		if errs := c.epop(); len(errs) > 0 {
-			c.ekeep(errs)
+		if errs := c.popErrs(); len(errs) > 0 {
+			c.keepErrs(errs)
 			return typ.Type, false
 		}
 		return typ.Type, true
@@ -934,7 +924,7 @@ func (c *checker) indexOf(cloc, iloc ast.Node, container, index super.Type) (sup
 		}
 		return typ.ValType, true
 	case *super.TypeUnion:
-		c.epush()
+		c.pushErrs()
 		var types []super.Type
 		var valid bool
 		for _, t := range typ.Types {
@@ -944,9 +934,9 @@ func (c *checker) indexOf(cloc, iloc ast.Node, container, index super.Type) (sup
 				valid = true
 			}
 		}
-		errs := c.epop()
+		errs := c.popErrs()
 		if !valid {
-			c.ekeep(errs)
+			c.keepErrs(errs)
 		}
 		return c.fuse(types), valid
 	default:
@@ -1028,18 +1018,18 @@ func (c *checker) coerceable(from, to super.Type) bool {
 	return false
 }
 
-func (c *checker) epush() {
+func (c *checker) pushErrs() {
 	c.estack = append(c.estack, nil)
 }
 
-func (c *checker) epop() errlist {
+func (c *checker) popErrs() errlist {
 	n := len(c.estack) - 1
 	errs := c.estack[n]
 	c.estack = c.estack[:n]
 	return errs
 }
 
-func (c *checker) ekeep(errs errlist) {
+func (c *checker) keepErrs(errs errlist) {
 	n := len(c.estack) - 1
 	c.estack[n] = append(c.estack[n], errs...)
 }

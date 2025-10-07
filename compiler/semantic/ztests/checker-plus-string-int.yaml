@@ -5,4 +5,4 @@ spq: |
 error: |
   type mismatch at line 2, column 10:
   | values x+y
-           ~
+           ~~~
