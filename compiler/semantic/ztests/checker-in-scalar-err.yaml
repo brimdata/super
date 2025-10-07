@@ -1,0 +1,6 @@
+spq: values 1 in 'foo'
+
+error: |
+  scalar type mismatch for 'in' operator where right-hand side is not container type: string at line 1, column 8:
+  values 1 in 'foo'
+         ~~~~~~~~~~

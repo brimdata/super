@@ -300,7 +300,7 @@ func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
 			c.logical(e.LHS, e.RHS, lhs, rhs)
 			return super.TypeBool
 		case "in":
-			c.in(e.LHS, e.RHS, lhs, rhs)
+			c.in(e, e.LHS, e.RHS, lhs, rhs)
 			return super.TypeBool
 		case "==", "!=":
 			return c.equality(lhs, rhs)
@@ -702,7 +702,7 @@ func (c *checker) logical(lloc, rloc ast.Node, lhs, rhs super.Type) {
 	c.boolean(rloc, rhs)
 }
 
-func (c *checker) in(lloc, rloc ast.Node, lhs, rhs super.Type) bool {
+func (c *checker) in(loc, lloc, rloc ast.Node, lhs, rhs super.Type) bool {
 	switch typ := super.TypeUnder(rhs).(type) {
 	case *super.TypeOfNull:
 	case *super.TypeError:
@@ -740,7 +740,7 @@ func (c *checker) in(lloc, rloc ast.Node, lhs, rhs super.Type) bool {
 		c.pushErrs()
 		var valid bool
 		for _, t := range typ.Types {
-			if c.in(lloc, rloc, lhs, t) {
+			if c.in(loc, lloc, rloc, lhs, t) {
 				valid = true
 			}
 		}
@@ -750,7 +750,13 @@ func (c *checker) in(lloc, rloc ast.Node, lhs, rhs super.Type) bool {
 		}
 		return valid
 	default:
-		c.error(rloc, fmt.Errorf("bad type for right-hand side of in operator: %s", sup.FormatType(typ)))
+		// If the RHS is not a container, see if they are compatible in terms of
+		// equality comparison.  The in operator for SuperSQL is broader than SQL
+		// and is true for equality of any value as well as equality containment
+		// of the LHS in the RHS.
+		if !comparable(lhs, rhs) {
+			c.error(loc, fmt.Errorf("scalar type mismatch for 'in' operator where right-hand side is not container type: %s", sup.FormatType(typ)))
+		}
 		return false
 	}
 	return true
