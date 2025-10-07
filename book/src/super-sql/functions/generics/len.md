@@ -64,17 +64,17 @@ null
 |["x","y","z"]|
 "hello"
 # expected output
-{this:[1,2,3],kind:"array",type:<[int64]>,len:3}
-{this:0x0102ffee,kind:"primitive",type:<bytes>,len:4}
-{this:192.168.4.1,kind:"primitive",type:<ip>,len:4}
-{this:2001:db8:85a3::8a2e:370:7334,kind:"primitive",type:<ip>,len:16}
-{this:|{"APPL":145.03,"GOOG":87.07}|,kind:"map",type:<|{string:float64}|>,len:2}
-{this:192.168.4.0/24,kind:"primitive",type:<net>,len:8}
-{this:2001:db8:abcd::/64,kind:"primitive",type:<net>,len:32}
-{this:null,kind:"primitive",type:<null>,len:0}
-{this:{a:1,b:2},kind:"record",type:<{a:int64,b:int64}>,len:2}
-{this:|["x","y","z"]|,kind:"set",type:<|[string]|>,len:3}
-{this:"hello",kind:"primitive",type:<string>,len:5}
+{that:[1,2,3],kind:"array",type:<[int64]>,len:3}
+{that:0x0102ffee,kind:"primitive",type:<bytes>,len:4}
+{that:192.168.4.1,kind:"primitive",type:<ip>,len:4}
+{that:2001:db8:85a3::8a2e:370:7334,kind:"primitive",type:<ip>,len:16}
+{that:|{"APPL":145.03,"GOOG":87.07}|,kind:"map",type:<|{string:float64}|>,len:2}
+{that:192.168.4.0/24,kind:"primitive",type:<net>,len:8}
+{that:2001:db8:abcd::/64,kind:"primitive",type:<net>,len:32}
+{that:null,kind:"primitive",type:<null>,len:0}
+{that:{a:1,b:2},kind:"record",type:<{a:int64,b:int64}>,len:2}
+{that:|["x","y","z"]|,kind:"set",type:<|[string]|>,len:3}
+{that:"hello",kind:"primitive",type:<string>,len:5}
 ```
 
 _The length of various values of type `type`_
@@ -96,18 +96,18 @@ values {this,kind:kind(this),type:typeof(this),len:len(this)}
 <|[{a:int64,b:string,c:bool}]|>
 <(int64|float64|string)>
 # expected output
-{this:<[string]>,kind:"array",type:<type>,len:1}
-{this:<[{a:int64,b:string,c:bool}]>,kind:"array",type:<type>,len:3}
-{this:<enum(HEADS,TAILS)>,kind:"enum",type:<type>,len:2}
-{this:<error(string)>,kind:"error",type:<type>,len:1}
-{this:<error({ts:time,msg:string})>,kind:"error",type:<type>,len:2}
-{this:<|{string:float64}|>,kind:"map",type:<type>,len:1}
-{this:<|{string:{x:int64,y:float64}}|>,kind:"map",type:<type>,len:2}
-{this:<int8>,kind:"primitive",type:<type>,len:1}
-{this:<{a:int64,b:string,c:bool}>,kind:"record",type:<type>,len:3}
-{this:<|[string]|>,kind:"set",type:<type>,len:1}
-{this:<|[{a:int64,b:string,c:bool}]|>,kind:"set",type:<type>,len:3}
-{this:<int64|float64|string>,kind:"union",type:<type>,len:3}
+{that:<[string]>,kind:"array",type:<type>,len:1}
+{that:<[{a:int64,b:string,c:bool}]>,kind:"array",type:<type>,len:3}
+{that:<enum(HEADS,TAILS)>,kind:"enum",type:<type>,len:2}
+{that:<error(string)>,kind:"error",type:<type>,len:1}
+{that:<error({ts:time,msg:string})>,kind:"error",type:<type>,len:2}
+{that:<|{string:float64}|>,kind:"map",type:<type>,len:1}
+{that:<|{string:{x:int64,y:float64}}|>,kind:"map",type:<type>,len:2}
+{that:<int8>,kind:"primitive",type:<type>,len:1}
+{that:<{a:int64,b:string,c:bool}>,kind:"record",type:<type>,len:3}
+{that:<|[string]|>,kind:"set",type:<type>,len:1}
+{that:<|[{a:int64,b:string,c:bool}]|>,kind:"set",type:<type>,len:3}
+{that:<int64|float64|string>,kind:"union",type:<type>,len:3}
 ```
 
 _Unsupported values produce [errors](../../types/error.md)_
@@ -122,9 +122,9 @@ error("hello")
 1
 2024-07-30T20:05:15.118252Z
 # expected output
-{this:true,kind:"primitive",type:<bool>,len:error({message:"len: bad type",on:true})}
-{this:10m30s,kind:"primitive",type:<duration>,len:error({message:"len: bad type",on:10m30s})}
-{this:error("hello"),kind:"error",type:<error(string)>,len:error({message:"len()",on:error("hello")})}
-{this:1,kind:"primitive",type:<int64>,len:error({message:"len: bad type",on:1})}
-{this:2024-07-30T20:05:15.118252Z,kind:"primitive",type:<time>,len:error({message:"len: bad type",on:2024-07-30T20:05:15.118252Z})}
+{that:true,kind:"primitive",type:<bool>,len:error({message:"len: bad type",on:true})}
+{that:10m30s,kind:"primitive",type:<duration>,len:error({message:"len: bad type",on:10m30s})}
+{that:error("hello"),kind:"error",type:<error(string)>,len:error({message:"len()",on:error("hello")})}
+{that:1,kind:"primitive",type:<int64>,len:error({message:"len: bad type",on:1})}
+{that:2024-07-30T20:05:15.118252Z,kind:"primitive",type:<time>,len:error({message:"len: bad type",on:2024-07-30T20:05:15.118252Z})}
 ```

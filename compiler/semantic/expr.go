@@ -207,22 +207,6 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 					Expr: e,
 				})
 			case *ast.ExprElem:
-				if id, ok := elem.Expr.(*ast.ID); ok {
-					if _, ok := fields[id.Name]; ok {
-						t.error(elem, fmt.Errorf("record expression: %w", &super.DuplicateFieldError{Name: id.Name}))
-						continue
-					}
-					fields[id.Name] = struct{}{}
-					// Call semExpr even though we know this is an ID so
-					// SQL-context scope mappings are carried out.
-					v := t.semExpr(id)
-					out = append(out, &sem.FieldElem{
-						Node:  elem,
-						Name:  id.Name,
-						Value: v,
-					})
-					continue
-				}
 				e := t.semExpr(elem.Expr)
 				name := deriveNameFromExpr(e, elem.Expr)
 				if _, ok := fields[name]; ok {

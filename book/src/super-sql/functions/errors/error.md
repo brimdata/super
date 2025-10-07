@@ -57,8 +57,8 @@ values {this,err:is_error(this),kind:kind(this)}
 error("exception")
 "exception"
 # expected output
-{this:error("exception"),err:true,kind:"error"}
-{this:"exception",err:false,kind:"primitive"}
+{that:error("exception"),err:true,kind:"error"}
+{that:"exception",err:false,kind:"primitive"}
 ```
 
 ---
