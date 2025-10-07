@@ -191,9 +191,6 @@ func (b *Builder) compileVamCall(call *dag.CallExpr) (vamexpr.Evaluator, error) 
 	if call.Tag == "cast" {
 		return b.compileVamCast(call.Args)
 	}
-	if tf := expr.NewShaperTransform(call.Tag); tf != 0 {
-		return b.compileVamShaper(call.Args, tf)
-	}
 	var fn vamexpr.Function
 	if f, ok := b.funcs[call.Tag]; ok {
 		var err error
@@ -254,14 +251,6 @@ func (b *Builder) compileVamCast(args []dag.Expr) (vamexpr.Evaluator, error) {
 		return nil, err
 	}
 	return vamexpr.NewSamExpr(e), nil
-}
-
-func (b *Builder) compileVamShaper(args []dag.Expr, tf expr.ShaperTransform) (vamexpr.Evaluator, error) {
-	shaper, err := b.compileShaper(args, tf)
-	if err != nil {
-		return nil, err
-	}
-	return vamexpr.NewSamExpr(shaper), nil
 }
 
 func (b *Builder) compileVamRecordExpr(e *dag.RecordExpr) (vamexpr.Evaluator, error) {

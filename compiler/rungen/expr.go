@@ -308,9 +308,6 @@ func (b *Builder) compileAssignment(node *dag.Assignment) (expr.Assignment, erro
 }
 
 func (b *Builder) compileCall(call *dag.CallExpr) (expr.Evaluator, error) {
-	if tf := expr.NewShaperTransform(call.Tag); tf != 0 {
-		return b.compileShaper(call.Args, tf)
-	}
 	// First check if call is to a user defined function, otherwise check for
 	// builtin function.
 	var fn expr.Function
@@ -359,18 +356,6 @@ func (b *Builder) compileMapCall(a *dag.MapCallExpr) (expr.Evaluator, error) {
 		return nil, err
 	}
 	return expr.NewMapCall(b.sctx(), e, lambda), nil
-}
-
-func (b *Builder) compileShaper(args []dag.Expr, tf expr.ShaperTransform) (expr.Evaluator, error) {
-	field, err := b.compileExpr(args[0])
-	if err != nil {
-		return nil, err
-	}
-	typExpr, err := b.compileExpr(args[1])
-	if err != nil {
-		return nil, err
-	}
-	return expr.NewShaper(b.sctx(), field, typExpr, tf)
 }
 
 func (b *Builder) compileExprs(in []dag.Expr) ([]expr.Evaluator, error) {

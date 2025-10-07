@@ -724,11 +724,6 @@ func (t *translator) semCallByName(call *ast.Call, name string, args []sem.Expr)
 	}
 	nameLower := strings.ToLower(name)
 	switch {
-	case expr.NewShaperTransform(nameLower) != 0:
-		if err := function.CheckArgCount(nargs, 2, 2); err != nil {
-			t.error(call, err)
-			return badExpr()
-		}
 	case nameLower == "map":
 		return t.semMapCall(call, args)
 	case nameLower == "grep":

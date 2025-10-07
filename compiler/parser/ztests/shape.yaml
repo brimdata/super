@@ -1,7 +1,0 @@
-spq: shape(this,<{s:string}>)
-
-input: |
-  {s:1}
-
-output: |
-  {s:"1"}
