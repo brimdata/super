@@ -161,9 +161,15 @@ func (t *translator) fileScanColumns(op *sem.FileScan) ([]string, bool) {
 		return nil, false
 	}
 	defer sr.Close()
-	cols, err := parquetio.TopLevelFieldNames(sr)
 	op.Type = parquetio.Type(t.sctx, sr)
-	return cols, err == nil
+	if op.Type == nil {
+		return nil, false
+	}
+	var cols []string
+	for _, f := range op.Type.(*super.TypeRecord).Fields {
+		cols = append(cols, f.Name)
+	}
+	return cols, true
 }
 
 func (t *translator) semFromExpr(entity *ast.ExprEntity, args []ast.OpArg, seq sem.Seq) (sem.Seq, string) {

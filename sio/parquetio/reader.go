@@ -65,26 +65,3 @@ func Type(sctx *super.Context, r io.Reader) super.Type {
 	}
 	return nil
 }
-
-func TopLevelFieldNames(r io.Reader) ([]string, error) {
-	ras, ok := r.(parquet.ReaderAtSeeker)
-	if !ok {
-		return nil, errors.New("reader cannot seek")
-	}
-	pr, err := file.NewParquetReader(ras)
-	if err != nil {
-		return nil, err
-	}
-	var cols []string
-	var last string
-	schema := pr.MetaData().Schema
-	for i := range schema.NumColumns() {
-		name := schema.Column(i).ColumnPath()[0]
-		if name == last {
-			continue
-		}
-		cols = append(cols, name)
-		last = name
-	}
-	return cols, nil
-}
