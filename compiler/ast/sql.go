@@ -5,7 +5,7 @@ type SQLSelect struct {
 	Distinct  bool         `json:"distinct"`
 	Value     bool         `json:"value"`
 	Selection SQLSelection `json:"selection"`
-	From      *From        `json:"from"`
+	From      *FromOp      `json:"from"`
 	Where     Expr         `json:"where"`
 	GroupBy   []Expr       `json:"group_by"`
 	Having    Expr         `json:"having"`

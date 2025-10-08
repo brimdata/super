@@ -69,7 +69,7 @@ func (s *Scope) lookupExpr(t *translator, name string) sem.Expr {
 		// function parameters hide exteral definitions as you don't
 		// want the this.param ref to be overriden by a const etc.
 		switch entry := entry.ref.(type) {
-		case *sem.FuncDef, *ast.FuncName, param, *opDecl:
+		case *sem.FuncDef, *ast.FuncNameExpr, param, *opDecl:
 			return nil
 		case *constDecl:
 			return entry.resolve(t)

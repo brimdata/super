@@ -17,8 +17,8 @@ Query
 
 Scope
   = decls:Decl+ body:Seq {
-      return &ast.Scope{
-        Kind: "Scope",
+      return &ast.ScopeOp{
+        Kind: "ScopeOp",
         Decls: sliceOf[ast.Decl](decls),
         Body: sliceOf[ast.Op](body),
         Loc: loc(c),
@@ -50,8 +50,8 @@ FuncDecl
       return &ast.FuncDecl{
         Kind: "FuncDecl",
         Name: name.(*ast.ID),
-        Lambda: &ast.Lambda{
-          Kind: "Lambda",
+        Lambda: &ast.LambdaExpr{
+          Kind: "LambdaExpr",
           Params: sliceOf[*ast.ID](params),
           Expr: expr.(ast.Expr),
           Loc: loc(c),
@@ -72,8 +72,8 @@ QueryDecl
 
 LambdaExpr
   = LAMBDA params:(_ ids:Identifiers { return ids, nil })? __ ":" __ expr:Expr {
-      return &ast.Lambda{
-        Kind: "Lambda",
+      return &ast.LambdaExpr{
+        Kind: "LambdaExpr",
         Params: sliceOf[*ast.ID](params),
         Expr: expr.(ast.Expr),
         Loc: loc(c),
@@ -120,7 +120,7 @@ TypeDecl
 PipeOp
   = Operator
   / "(" __ scope:Scope __ ")" { return scope, nil }
-  / a:OpAssignment &EndOfOp { return a, nil }
+  / a:AssignmentOp &EndOfOp { return a, nil }
   / !(Function EndOfOp) a:Aggregation &EndOfOp { return a, nil }
   / !CallIDGuard name:Identifier _ !CallExprGuard args:FuncOrExprs {
       return &ast.CallOp{Kind:"CallOp", Name: name.(*ast.ID), Args:sliceOf[ast.Expr](args), Loc:loc(c)}, nil
@@ -129,7 +129,7 @@ PipeOp
       return &ast.CallOp{Kind:"CallOp", Name: name.(*ast.ID), Loc:loc(c)}, nil
     }
   / !((Identifier / Literal) __ (Pipe/EOF)) e:Expr {
-      return &ast.OpExpr{Kind:"OpExpr",Expr:e.(ast.Expr),Loc:loc(c)}, nil
+      return &ast.ExprOp{Kind:"ExprOp",Expr:e.(ast.Expr),Loc:loc(c)}, nil
     }
 
 EndOfOp = __ (Pipe / ")" / ";" / EOF)
@@ -174,8 +174,8 @@ SearchExpr
   = Regexp
   / g:Glob !ExprGuard { return g, nil }
   / v:SearchValue (!ExprGuard / &(_ Glob)) {
-      return &ast.Term{
-        Kind: "Term",
+      return &ast.SearchTermExpr{
+        Kind: "SearchTermExpr",
         Text: string(c.text),
         Value: v.(ast.Any),
         Loc: loc(c),
@@ -203,12 +203,12 @@ SearchValue
 
 Glob
   = pattern:GlobPattern {
-      return &ast.Glob{Kind: "Glob", Pattern: pattern.(string), Loc: loc(c)}, nil
+      return &ast.GlobExpr{Kind: "GlobExpr", Pattern: pattern.(string), Loc: loc(c)}, nil
     }
 
 Regexp
   = "/" pattern:RegexpBody "/" !KeyWordStart {
-      return &ast.Regexp{Kind:"Regexp", Pattern:pattern.(string), Loc: loc(c)}, nil
+      return &ast.RegexpExpr{Kind:"RegexpExpr", Pattern:pattern.(string), Loc: loc(c)}, nil
     }
 
 RegexpBody
@@ -218,16 +218,16 @@ RegexpBody
 
 Aggregation
   = Aggregate? keys:AggregateKeys limit:LimitArg {
-      return &ast.Aggregate{
-        Kind: "Aggregate",
+      return &ast.AggregateOp{
+        Kind: "AggregateOp",
         Keys: sliceOf[ast.Assignment](keys),
         Limit: limit.(int),
         Loc: loc(c),
       }, nil
     }
   / Aggregate? aggs:AggAssignments keys:(_ AggregateKeys)? limit:LimitArg {
-      s := &ast.Aggregate {
-        Kind: "Aggregate",
+      s := &ast.AggregateOp {
+        Kind: "AggregateOp",
         Aggs: sliceOf[ast.Assignment](aggs),
         Limit: limit.(int),
         Loc: loc(c),
@@ -249,10 +249,10 @@ LimitArg
 
 AggAssignment
   = lval:Lval __ ":=" __ agg:Agg {
-      return ast.Assignment{Kind:"Assignment",LHS:lval.(ast.Expr),RHS:agg.(ast.Expr),Loc:loc(c)}, nil
+      return ast.Assignment{LHS:lval.(ast.Expr),RHS:agg.(ast.Expr),Loc:loc(c)}, nil
     }
   / agg:Agg {
-      return ast.Assignment{Kind:"Assignment",RHS:agg.(ast.Expr),Loc:loc(c)}, nil
+      return ast.Assignment{RHS:agg.(ast.Expr),Loc:loc(c)}, nil
     }
 
 Agg
@@ -282,7 +282,7 @@ Agg
       return &ast.Agg{
           Kind: "Agg",
           Name: "count",
-          Loc: cs.(*ast.Call).Loc,
+          Loc: cs.(*ast.CallExpr).Loc,
       }, nil
     }
 
@@ -314,13 +314,13 @@ AggAssignments
     }
 
 CountStar = COUNT __ "(" __ "*" __ ")" {
-    name := &ast.FuncName{
-        Kind: "FuncName",
+    name := &ast.FuncNameExpr{
+        Kind: "FuncNameExpr",
         Name: "count",
         Loc: loc(c),
     }
-    return &ast.Call{
-		Kind: "Call",
+    return &ast.CallExpr{
+		Kind: "CallExpr",
 		Func:   name,
         Loc:  loc(c),
     }, nil
@@ -366,8 +366,8 @@ Operator
       for _, p := range paths.([]any) {
         seqs = append(seqs, sliceOf[ast.Op](p))
       }
-      return &ast.Parallel{
-          Kind: "Parallel",
+      return &ast.ForkOp{
+          Kind: "ForkOp",
           Paths: seqs,
           Loc: loc(c),
       }, nil
@@ -375,15 +375,15 @@ Operator
 
 SwitchOp
   = SWITCH _ cases:SwitchPath+ {
-      return &ast.Switch{
-          Kind: "Switch",
+      return &ast.SwitchOp{
+          Kind: "SwitchOp",
           Cases: sliceOf[ast.Case](cases),
           Loc: loc(c),
       }, nil
     }
   / SWITCH _ expr:Expr _ cases:SwitchPath+ {
-      return &ast.Switch{
-          Kind: "Switch",
+      return &ast.SwitchOp{
+          Kind: "SwitchOp",
           Expr: expr.(ast.Expr),
           Cases: sliceOf[ast.Case](cases),
           Loc: loc(c),
@@ -405,13 +405,13 @@ Case
 
 SearchOp
   = (SEARCH _ / "?" __) expr:SearchBoolean {
-      return &ast.Search{Kind:"Search",Expr:expr.(ast.Expr),Loc:loc(c)}, nil
+      return &ast.SearchOp{Kind:"SearchOp",Expr:expr.(ast.Expr),Loc:loc(c)}, nil
     }
 
 AssertOp
   = ASSERT _ expr:(e:Expr { return []any{e, string(c.text)}, nil }) {
-      return &ast.Assert{
-          Kind: "Assert",
+      return &ast.AssertOp{
+          Kind: "AssertOp",
           Expr: expr.([]any)[0].(ast.Expr),
           Text: expr.([]any)[1].(string),
           Loc: loc(c),
@@ -420,8 +420,8 @@ AssertOp
 
 SortOp
   = (SORT / ORDER _ BY) args:SortArgs exprs:(__ e:OrderByList { return e, nil })? {
-      o := &ast.Sort{
-        Kind: "Sort",
+      o := &ast.SortOp{
+        Kind: "SortOp",
         Loc: loc(c),
       }
       if exprs != nil {
@@ -441,8 +441,8 @@ SortArg
 
 TopOp
   = TOP args:SortArgs limit:(_ e:Expr { return e, nil })? exprs:(_ e:OrderByList { return e, nil })? {
-      op := &ast.Top{
-        Kind: "Top",
+      op := &ast.TopOp{
+        Kind: "TopOp",
         Loc: loc(c),
       }
       if limit != nil {
@@ -470,8 +470,8 @@ CallOp
     
 CutOp
   = CUT _ args:Assignments {
-      return &ast.Cut{
-        Kind: "Cut",
+      return &ast.CutOp{
+        Kind: "CutOp",
         Args: sliceOf[ast.Assignment](args),
         Loc: loc(c),
       }, nil
@@ -479,8 +479,8 @@ CutOp
 
 DistinctOp
   = DISTINCT _ e:Expr {
-      return &ast.Distinct{
-          Kind: "Distinct",
+      return &ast.DistinctOp{
+          Kind: "DistinctOp",
           Expr: e.(ast.Expr),
           Loc: loc(c),
       }, nil
@@ -488,8 +488,8 @@ DistinctOp
 
 DropOp
   = DROP _ args:Lvals {
-      return &ast.Drop{
-          Kind: "Drop",
+      return &ast.DropOp{
+          Kind: "DropOp",
           Args: sliceOf[ast.Expr](args),
           Loc: loc(c),
       }, nil
@@ -497,38 +497,38 @@ DropOp
 
 HeadOp
   = (HEAD / LIMIT) _ count:Expr {
-      return &ast.Head{
-        Kind: "Head",
+      return &ast.HeadOp{
+        Kind: "HeadOp",
         Count: count.(ast.Expr),
         Loc: loc(c),
       }, nil
     }
   / HEAD &EndOfOp {
-      return &ast.Head{
-        Kind: "Head",
+      return &ast.HeadOp{
+        Kind: "HeadOp",
         Loc: loc(c),
       }, nil
     }
 
 TailOp
   = TAIL _ count:Expr {
-      return &ast.Tail{
-        Kind: "Tail",
+      return &ast.TailOp{
+        Kind: "TailOp",
         Count: count.(ast.Expr),
         Loc: loc(c),
       }, nil
     }
   / TAIL &EndOfOp {
-      return &ast.Tail{
-        Kind: "Tail",
+      return &ast.TailOp{
+        Kind: "TailOp",
         Loc: loc(c),
       }, nil
     }
 
 SkipOp
   = SKIP _ count:Expr {
-      return &ast.Skip{
-        Kind: "Skip",
+      return &ast.SkipOp{
+        Kind: "SkipOp",
         Count: count.(ast.Expr),
         Loc: loc(c),
       }, nil
@@ -536,8 +536,8 @@ SkipOp
 
 WhereOp
   = WHERE _ expr:Expr {
-      return &ast.Where{
-        Kind: "Where",
+      return &ast.WhereOp{
+        Kind: "WhereOp",
         Expr: expr.(ast.Expr),
         Loc: loc(c),
       }, nil
@@ -545,16 +545,16 @@ WhereOp
 
 UniqOp
   = UNIQ _ "-c" {
-      return &ast.Uniq{Kind: "Uniq", Cflag: true, Loc: loc(c)}, nil
+      return &ast.UniqOp{Kind: "UniqOp", Cflag: true, Loc: loc(c)}, nil
     }
   / UNIQ &EndOfOp {
-      return &ast.Uniq{Kind: "Uniq", Loc: loc(c)}, nil
+      return &ast.UniqOp{Kind: "UniqOp", Loc: loc(c)}, nil
     }
 
 PutOp
   = PUT _ args:Assignments {
-      return &ast.Put{
-          Kind: "Put",
+      return &ast.PutOp{
+          Kind: "PutOp",
           Args: sliceOf[ast.Assignment](args),
           Loc: loc(c),
       }, nil
@@ -563,8 +563,8 @@ PutOp
 RenameOp
   = RENAME _ first:Assignment rest:(__ "," __ cl:Assignment { return cl, nil })* {
       args := append([]any{first}, rest.([]any)...)
-      return &ast.Rename{
-        Kind: "Rename",
+      return &ast.RenameOp{
+        Kind: "RenameOp",
         Args: sliceOf[ast.Assignment](args),
         Loc: loc(c),
       }, nil
@@ -572,13 +572,13 @@ RenameOp
 
 FuseOp
   = FUSE &EndOfOp {
-      return &ast.Fuse{Kind: "Fuse", Loc: loc(c)}, nil
+      return &ast.FuseOp{Kind: "FuseOp", Loc: loc(c)}, nil
     }
 
 JoinOp
   = CROSS _ JOIN rightInput:JoinRightInput alias:OptJoinAlias {
-      o := &ast.Join{
-        Kind: "Join",
+      o := &ast.JoinOp{
+        Kind: "JoinOp",
         Style: "cross",
         Loc: loc(c),
       }
@@ -591,8 +591,8 @@ JoinOp
       return o, nil
     }
   / style:JoinStyle JOIN rightInput:JoinRightInput alias:OptJoinAlias _ e:JoinCond {
-      o := &ast.Join{
-        Kind: "Join",
+      o := &ast.JoinOp{
+        Kind: "JoinOp",
         Style: style.(string),
         Cond: e.(ast.JoinCond),
         Loc: loc(c),
@@ -632,22 +632,22 @@ JoinRightInput
 
 ShapesOp
   = SHAPES expr:(_ e:Lval { return e, nil })? {
-      o := &ast.Shapes{Kind: "Shapes", Loc: loc(c)}
+      o := &ast.ShapesOp{Kind: "ShapesOp", Loc: loc(c)}
       if expr != nil {
         o.Expr = expr.(ast.Expr)
       }
       return o, nil
     }
 
-// OpAssignment is a top level operator that contains a list of assignment
+// AssignmentOp is a top level operator that contains a list of assignment
 // expressions. It is in an ambiguous state and could either be:
 //   1) An aggregate operator.
 //   2) A put operator.
 //  The semantic pass is responsible for converting it to one of the two.
-OpAssignment
+AssignmentOp
   = &(Lval __ ":=") a:Assignments {
-      return &ast.OpAssignment{
-          Kind: "OpAssignment",
+      return &ast.AssignmentOp{
+          Kind: "AssignmentOp",
           Assignments: sliceOf[ast.Assignment](a),
           Loc: loc(c),
       }, nil
@@ -655,8 +655,8 @@ OpAssignment
 
 LoadOp
   = LOAD _ pool:Text args:CommitishOpArgs? {
-      return &ast.Load{
-        Kind: "Load",
+      return &ast.LoadOp{
+        Kind: "LoadOp",
         Pool: pool.(*ast.Text),
         Args: sliceOf[ast.OpArg](args),
         Loc: loc(c),
@@ -665,8 +665,8 @@ LoadOp
 
 OutputOp
   = OUTPUT _ name:Identifier {
-      return &ast.Output{
-        Kind: "Output",
+      return &ast.OutputOp{
+        Kind: "OutputOp",
         Name: name.(*ast.ID),
         Loc: loc(c),
       }, nil
@@ -674,8 +674,8 @@ OutputOp
 
 DebugOp
   = DEBUG expr:(_ e:Expr { return e, nil })? {
-      d := &ast.Debug{
-        Kind: "Debug",
+      d := &ast.DebugOp{
+        Kind: "DebugOp",
         Loc: loc(c),
       }
       if expr != nil {
@@ -686,8 +686,8 @@ DebugOp
 
 FromOp
   = FROM _ elems:FromElems {
-      return &ast.From{
-        Kind: "From",
+      return &ast.FromOp{
+        Kind: "FromOp",
         Elems: sliceOf[*ast.FromElem](elems),
         Loc: loc(c),
       }, nil
@@ -701,7 +701,6 @@ FromElems
 FromElem
   = entity:FromEntity args:CommitishOpArgs? o:OptOrdinality alias:OptAlias {
       elem := &ast.FromElem{
-        Kind: "FromElem",
         Entity: entity.(ast.FromEntity),
         Loc: loc(c),
       }
@@ -720,7 +719,7 @@ FromElem
 FromEntity
   = Regexp
   / Glob
-  / "*" !ExprGuard { return &ast.Glob{Kind: "Glob", Pattern: "*", Loc: loc(c)}, nil }
+  / "*" !ExprGuard { return &ast.GlobExpr{Kind: "GlobExpr", Pattern: "*", Loc: loc(c)}, nil }
   / EVAL __ "(" __ e:Expr __ ")" {
       return &ast.ExprEntity{
         Kind: "ExprEntity",
@@ -807,15 +806,15 @@ ColonName
 
 PassOp
   = PASS &EndOfOp {
-      return &ast.Pass{Kind: "Pass", Loc: loc(c)}, nil
+      return &ast.PassOp{Kind: "PassOp", Loc: loc(c)}, nil
     }
 
 // Currently we support only "explode by type" but this will be generalized
 // to explode arbitrary arrays, records, etc.
 ExplodeOp
   = EXPLODE _ args:Exprs typ:TypeArg as:AsArg? {
-      o := &ast.Explode{
-        Kind: "Explode",
+      o := &ast.ExplodeOp{
+        Kind: "ExplodeOp",
         Args: sliceOf[ast.Expr](args),
         Type: typ.(ast.Type),
         Loc: loc(c),
@@ -828,8 +827,8 @@ ExplodeOp
 
 MergeOp
   = MERGE _ exprs:OrderByList {
-      return &ast.Merge{
-        Kind: "Merge",
+      return &ast.MergeOp{
+        Kind: "MergeOp",
         Exprs: exprs.([]ast.SortExpr),
         Loc: loc(c),
       }, nil
@@ -837,8 +836,8 @@ MergeOp
 
 UnnestOp
    = UNNEST _ e:Expr body:(_ "into"i _ body:ScopeBody { return body, nil })? {
-      o := &ast.Unnest{
-        Kind: "Unnest",
+      o := &ast.UnnestOp{
+        Kind: "UnnestOp",
         Expr: e.(ast.Expr),
         Loc: loc(c),
       }
@@ -871,7 +870,6 @@ Assignments
 Assignment
   = lhs:(lval:Lval __ ":=" { return lval, nil })? __ rhs:Expr {
       a := ast.Assignment{
-          Kind: "Assignment",
           RHS: rhs.(ast.Expr),
           Loc: loc(c),
       }
@@ -881,14 +879,14 @@ Assignment
       return a, nil
     }
 
-Expr = ConditionalExpr
+Expr = CondExpr
 
-ConditionalExpr
+CondExpr
   = cond:LogicalOrExpr opt:(__ "?" __ Expr __ ":" __ Expr)? {
       if opt != nil {
         t, e := opt.([]any)[3], opt.([]any)[7]
-        return &ast.Conditional{
-            Kind: "Conditional",
+        return &ast.CondExpr{
+            Kind: "CondExpr",
             Cond: cond.(ast.Expr),
             Then: t.(ast.Expr),
             Else: e.(ast.Expr),
@@ -923,8 +921,8 @@ NotExpr
 
 BetweenExpr
   = expr:ComparisonExpr _ not:(NOT _)? BETWEEN _ lower:BetweenExpr _ AND _ upper:BetweenExpr {
-      return &ast.Between{
-        Kind: "Between",
+      return &ast.BetweenExpr{
+        Kind: "BetweenExpr",
         Not: not != nil,
         Expr: expr.(ast.Expr),
         Lower: lower.(ast.Expr),
@@ -1040,22 +1038,22 @@ DerefExpr
   / Primary
 
 DerefKey
-  = Identifier
-  / s:DoubleQuotedString    { return &ast.ID{Kind: "ID", Name:s.(string), Loc: loc(c)}, nil }
-  / s:BacktickString        { return &ast.ID{Kind: "ID", Name:s.(string), Loc: loc(c)}, nil }
+  = id:Identifier           { return &ast.IDExpr{Kind: "IDExpr", ID: *(id.(*ast.ID)) }, nil }
+  / s:DoubleQuotedString    { return &ast.IDExpr{Kind: "IDExpr", ID: ast.ID{Name:s.(string), Loc: loc(c)}}, nil }
+  / s:BacktickString        { return &ast.IDExpr{Kind: "IDExpr", ID: ast.ID{Name:s.(string), Loc: loc(c)}}, nil }
 
 Function
   = EXTRACT __ "(" __ part:Expr _ FROM _ e:Expr __ ")" where:WhereClause? {
-      return &ast.CallExtract{
-        Kind: "CallExtract",
+      return &ast.ExtractExpr{
+        Kind: "ExtractExpr",
         Part: part.(ast.Expr),
         Expr: e.(ast.Expr),
         Loc: loc(c),
       }, nil
     }
   / EXISTS __ "(" __ body:Seq __ ")" {
-      return &ast.Exists{
-        Kind: "Exists",
+      return &ast.ExistsExpr{
+        Kind: "ExistsExpr",
         Body: sliceOf[ast.Op](body),
         Loc: loc(c),
       }, nil
@@ -1090,8 +1088,8 @@ Function
 Callable
   = LambdaExpr
   / id:IdentifierName {
-      return &ast.FuncName{
-        Kind: "FuncName",
+      return &ast.FuncNameExpr{
+        Kind: "FuncNameExpr",
         Name: id.(string),
         Loc: loc(c),
       }, nil
@@ -1099,8 +1097,8 @@ Callable
 
 FuncValue
   = "&" id:IdentifierName {
-      return &ast.FuncName{
-        Kind: "FuncName",
+      return &ast.FuncNameExpr{
+        Kind: "FuncNameExpr",
         Name: id.(string),
         Loc: loc(c),
       }, nil
@@ -1130,30 +1128,30 @@ Primary
   / Array
   / Set
   / Map
-  / SQLTimeValue
+  / SQLTimeExpr
   / Literal
-  / Identifier
+  / id:Identifier               { return &ast.IDExpr{Kind:"IDExpr", ID: *(id.(*ast.ID))}, nil }
   / Tuple
   / "(" __ expr:Expr __ ")" { return expr, nil }
-  / "(" __ expr:Subquery __ ")" { return expr, nil }
-  / "[" __ expr:Subquery __ "]" { 
-      expr.(*ast.Subquery).Array = true
+  / "(" __ expr:SubqueryExpr __ ")" { return expr, nil }
+  / "[" __ expr:SubqueryExpr __ "]" { 
+      expr.(*ast.SubqueryExpr).Array = true
       return expr, nil 
     }
 
 CaseExpr
   = CASE cases:When+ else_:(_ ELSE _ Expr)? _ END (_ CASE)? {
         whens := sliceOf[ast.When](cases)
-        cond := &ast.Conditional{
-            Kind: "Conditional",
+        cond := &ast.CondExpr{
+            Kind: "CondExpr",
             Cond: whens[0].Cond,
             Then: whens[0].Then,
             Loc: loc(c),
         }
         last := cond
         for _, when := range whens[1:] {
-            next := &ast.Conditional{
-               Kind: "Conditional",
+            next := &ast.CondExpr{
+               Kind: "CondExpr",
                Cond: when.Cond,
                Then: when.Then,
                Loc: when.Loc,
@@ -1182,17 +1180,16 @@ CaseExpr
 When
   = _ WHEN _ cond:Expr _ THEN _ then:Expr {
       return ast.When{
-        Kind: "When",
         Cond: cond.(ast.Expr),
         Then: then.(ast.Expr),
         Loc: loc(c),
       }, nil
     }
 
-Subquery
+SubqueryExpr
   = body:Seq {
-      return &ast.Subquery{
-        Kind: "Subquery",
+      return &ast.SubqueryExpr{
+        Kind: "SubqueryExpr",
         Body: sliceOf[ast.Op](body),
         Loc: loc(c),
       }, nil
@@ -1295,10 +1292,10 @@ Tuple
       }, nil
     }
 
-SQLTimeValue
+SQLTimeExpr
   = typ:(DATE / TIMESTAMP) _ s:StringLiteral {
-        return &ast.SQLTimeValue {
-          Kind: "SQLTimeValue",
+        return &ast.SQLTimeExpr {
+          Kind: "SQLTimeExpr",
           Type: typ.(string),
           Value: s.(*ast.Primitive),
           Loc: loc(c),
@@ -1460,30 +1457,30 @@ TypeList
 TypeListTail = __ "|" __ typ:ComponentType { return typ, nil }
 
 StringLiteral
-  = s:DoubleQuotedString { return &ast.DoubleQuote{Kind:"DoubleQuote", Text: s.(string), Loc: loc(c)}, nil }
+  = s:DoubleQuotedString { return &ast.DoubleQuoteExpr{Kind:"DoubleQuoteExpr", Text: s.(string), Loc: loc(c)}, nil }
   / s:SingleQuotedString { return newPrimitive(c, "string", s.(string)), nil }
   / s:RString { return newPrimitive(c, "string", s.(string)), nil }
 
 FString
   = "f\"" v:FStringDoubleQuotedElem* '"' {
-      return &ast.FString{
-        Kind: "FString",
+      return &ast.FStringExpr{
+        Kind: "FStringExpr",
         Elems: sliceOf[ast.FStringElem](v),
         Loc: loc(c),
       }, nil
     }
   / "f'" v:FStringSingleQuotedElem* "'" {
-      return &ast.FString{
-        Kind: "FString",
+      return &ast.FStringExpr{
+        Kind: "FStringExpr",
         Elems: sliceOf[ast.FStringElem](v),
         Loc: loc(c),
       }, nil
     }
 
 FStringDoubleQuotedElem
-  = FStringExpr
+  = FStringExprElem
   / v:FStringDoubleQuotedChar+ {
-      return &ast.FStringText{Kind: "FStringText", Loc: loc(c), Text: joinChars(v)}, nil
+      return &ast.FStringTextElem{Kind: "FStringTextElem", Loc: loc(c), Text: joinChars(v)}, nil
     }
 
 FStringDoubleQuotedChar
@@ -1491,19 +1488,19 @@ FStringDoubleQuotedChar
   / !("{") v:DoubleQuotedChar { return v, nil }
 
 FStringSingleQuotedElem
-  = FStringExpr
+  = FStringExprElem
   / v:FStringSingleQuotedChar+ {
-      return &ast.FStringText{Kind: "FStringText", Loc: loc(c), Text: joinChars(v)}, nil
+      return &ast.FStringTextElem{Kind: "FStringTextElem", Loc: loc(c), Text: joinChars(v)}, nil
     }
 
 FStringSingleQuotedChar
   = "\\" v:"{" { return v, nil }
   / !("{") v:SingleQuotedChar { return v, nil }
 
-FStringExpr
+FStringExprElem
   = "{" __ e:Expr __ "}" {
-      return &ast.FStringExpr{
-        Kind: "FStringExpr",
+      return &ast.FStringExprElem{
+        Kind: "FStringExprElem",
         Expr: e.(ast.Expr),
         Loc: loc(c),
       }, nil
@@ -1555,7 +1552,6 @@ Names
 Identifier
   = id:IdentifierName {
       return &ast.ID{
-          Kind: "ID",
           Name: id.(string),
           Loc: loc(c),
       }, nil
@@ -1568,7 +1564,7 @@ Identifiers
 
 SQLIdentifier
   = Identifier
-  / s:DoubleQuotedString { return &ast.ID{Kind:"ID", Name:s.(string), Loc:loc(c) }, nil }
+  / s:DoubleQuotedString { return &ast.ID{Name:s.(string), Loc:loc(c) }, nil }
 
 IdentifierName
   = !(IDGuard !IdentifierRest) IdentifierStart IdentifierRest* { return string(c.text), nil }
@@ -1972,7 +1968,7 @@ Select
           Loc: loc(c),
       }
       if from != nil {
-        sel.From = from.(*ast.From)
+        sel.From = from.(*ast.FromOp)
       }
       if where != nil {
         sel.Where = where.(ast.Expr)
@@ -2004,7 +2000,7 @@ FromSelect
           Distinct: distinct.(bool),
           Value: value.(bool),
           Selection: selection.(ast.SQLSelection),
-          From: from.(*ast.From),
+          From: from.(*ast.FromOp),
           Loc: loc(c),
       }
       if where != nil {
@@ -2030,8 +2026,8 @@ SQLValues
 
 ValuesOp
   = VALUES _ exprs:Exprs {
-      return &ast.Values{
-          Kind: "Values",
+      return &ast.ValuesOp{
+          Kind: "ValuesOp",
           Exprs: sliceOf[ast.Expr](exprs),
           Loc: loc(c),
       }, nil
@@ -2189,7 +2185,6 @@ JoinCond
 OptOrdinality
   = _ WITH _ ORDINALITY   {
         return &ast.Ordinality{
-            Kind: "Ordinality",
             Loc: loc(c),
         }, nil
     }
@@ -2201,7 +2196,7 @@ OptAlias
 
 AliasClause
  = (AS _)? !SQLGuard name:IdentifierName cols:Columns? {
-      alias := &ast.TableAlias{Kind: "TableAlias", Name: name.(string), Loc: loc(c)}
+      alias := &ast.TableAlias{Name: name.(string), Loc: loc(c)}
       if cols != nil {
         alias.Columns = cols.([]*ast.ID)
       }
@@ -2262,7 +2257,7 @@ OrderByList
 
 OrderByItem
   = e:Expr order:OptAscDesc nulls:OptNullsOrder {
-      s := ast.SortExpr{Kind: "SortExpr", Expr: e.(ast.Expr), Loc: loc(c)}
+      s := ast.SortExpr{Expr: e.(ast.Expr), Loc: loc(c)}
       if order != nil {
         s.Order = order.(*ast.ID)
       }
@@ -2273,13 +2268,13 @@ OrderByItem
     }
 
 OptAscDesc
-  = _ ASC   { return &ast.ID{Kind: "ID", Name: "asc", Loc: loc(c)}, nil }
-  / _ DESC { return &ast.ID{Kind: "ID", Name: "desc", Loc: loc(c)}, nil }
+  = _ ASC   { return &ast.ID{Name: "asc", Loc: loc(c)}, nil }
+  / _ DESC { return &ast.ID{Name: "desc", Loc: loc(c)}, nil }
   / ""         { return nil, nil }
 
 OptNullsOrder
-  = _ NULLS _ FIRST   { return &ast.ID{Kind: "ID", Name: "first", Loc: loc(c)}, nil }
-  / _ NULLS _ LAST    { return &ast.ID{Kind: "ID", Name: "last", Loc: loc(c)}, nil }
+  = _ NULLS _ FIRST   { return &ast.ID{Name: "first", Loc: loc(c)}, nil }
+  / _ NULLS _ LAST    { return &ast.ID{Name: "last", Loc: loc(c)}, nil }
   / ""                      { return nil, nil }
 
 OptSQLLimitOffset

@@ -16,7 +16,7 @@ func AST(p ast.Seq) string {
 		return ""
 	}
 	c := &canon{shared: shared{formatter{tab: 2}}, head: true, first: true}
-	if scope, ok := p[0].(*ast.Scope); ok {
+	if scope, ok := p[0].(*ast.ScopeOp); ok {
 		c.scope(scope, false)
 	} else {
 		c.seq(p)
@@ -93,32 +93,26 @@ func (c *canon) expr(e ast.Expr, parent string) {
 		}
 	case *ast.Primitive:
 		c.literal(*e)
-	case *ast.ID:
+	case *ast.IDExpr:
 		c.write(e.Name)
-	case *ast.DoubleQuote:
+	case *ast.DoubleQuoteExpr:
 		c.write("%q", e.Text)
 	case *ast.UnaryExpr:
 		c.write(e.Op)
 		c.expr(e.Operand, "not")
 	case *ast.BinaryExpr:
 		c.binary(e, parent)
-	case *ast.Conditional:
+	case *ast.CondExpr:
 		c.write("(")
 		c.expr(e.Cond, "")
 		c.write(") ? ")
 		c.expr(e.Then, "")
 		c.write(" : ")
 		c.expr(e.Else, "")
-	case *ast.Call:
+	case *ast.CallExpr:
 		c.funcRefAsCall(e.Func)
 		c.write("(")
 		c.exprs(e.Args)
-		c.write(")")
-	case *ast.CallExtract:
-		c.write("EXTRACT(")
-		c.expr(e.Part, "")
-		c.write(" FROM ")
-		c.expr(e.Expr, "")
 		c.write(")")
 	case *ast.CaseExpr:
 		c.write("case ")
@@ -134,18 +128,19 @@ func (c *canon) expr(e ast.Expr, parent string) {
 			c.expr(e.Else, "")
 		}
 		c.write(" end")
-	case *ast.Cast:
-		c.expr(e.Type, "")
-		c.write("(")
+	case *ast.ExtractExpr:
+		c.write("EXTRACT(")
+		c.expr(e.Part, "")
+		c.write(" FROM ")
 		c.expr(e.Expr, "")
 		c.write(")")
 	case *ast.TypeValue:
 		c.write("<")
 		c.typ(e.Value)
 		c.write(">")
-	case *ast.Regexp:
+	case *ast.RegexpExpr:
 		c.write("/%s/", e.Pattern)
-	case *ast.Glob:
+	case *ast.GlobExpr:
 		c.write(e.Pattern)
 	case *ast.IndexExpr:
 		c.expr(e.Expr, "")
@@ -170,7 +165,7 @@ func (c *canon) expr(e ast.Expr, parent string) {
 			c.expr(e.To, "")
 		}
 		c.write("]")
-	case *ast.Term:
+	case *ast.SearchTermExpr:
 		c.write(e.Text)
 	case *ast.RecordExpr:
 		c.write("{")
@@ -230,7 +225,7 @@ func (c *canon) expr(e ast.Expr, parent string) {
 			c.expr(e.Value, "")
 		}
 		c.write("}|")
-	case *ast.Subquery:
+	case *ast.SubqueryExpr:
 		open, close := "(", ")"
 		if e.Array {
 			open, close = "[", "]"
@@ -242,7 +237,7 @@ func (c *canon) expr(e ast.Expr, parent string) {
 		c.ret()
 		c.flush()
 		c.write(close)
-	case *ast.Exists:
+	case *ast.ExistsExpr:
 		c.open("exists(")
 		c.head = true
 		c.seq(e.Body)
@@ -250,22 +245,22 @@ func (c *canon) expr(e ast.Expr, parent string) {
 		c.ret()
 		c.flush()
 		c.write(")")
-	case *ast.FString:
+	case *ast.FStringExpr:
 		c.write(`f"`)
 		for _, elem := range e.Elems {
 			switch elem := elem.(type) {
-			case *ast.FStringExpr:
+			case *ast.FStringExprElem:
 				c.write("{")
 				c.expr(elem.Expr, "")
 				c.write("}")
-			case *ast.FStringText:
+			case *ast.FStringTextElem:
 				c.write(elem.Text)
 			default:
 				c.write("(unknown f-string element %T)", elem)
 			}
 		}
 		c.write(`"`)
-	case *ast.Between:
+	case *ast.BetweenExpr:
 		c.write("(")
 		c.expr(e.Expr, "")
 		if e.Not {
@@ -276,7 +271,7 @@ func (c *canon) expr(e ast.Expr, parent string) {
 		c.write(" and ")
 		c.expr(e.Upper, "")
 		c.write(")")
-	case *ast.SQLTimeValue:
+	case *ast.SQLTimeExpr:
 		c.write("%s %s", strings.ToUpper(e.Type), sup.QuotedString(e.Value.Text))
 	case *ast.TupleExpr:
 		c.write("(")
@@ -289,9 +284,9 @@ func (c *canon) expr(e ast.Expr, parent string) {
 
 func (c *canon) funcRefAsCall(f ast.Expr) {
 	switch f := f.(type) {
-	case *ast.FuncName:
+	case *ast.FuncNameExpr:
 		c.write("%s", f.Name)
-	case *ast.Lambda:
+	case *ast.LambdaExpr:
 		c.write("(")
 		c.lambda(f)
 		c.write(")")
@@ -300,7 +295,7 @@ func (c *canon) funcRefAsCall(f ast.Expr) {
 	}
 }
 
-func (c *canon) lambda(lambda *ast.Lambda) {
+func (c *canon) lambda(lambda *ast.LambdaExpr) {
 	c.write("(lambda ")
 	c.ids(lambda.Params)
 	c.write(":")
@@ -375,7 +370,7 @@ func precedence(op string) int {
 }
 
 func isThis(e ast.Expr) bool {
-	if id, ok := e.(*ast.ID); ok {
+	if id, ok := e.(*ast.IDExpr); ok {
 		return id.Name == "this"
 	}
 	return false
@@ -458,9 +453,9 @@ func (c *canon) seq(seq ast.Seq) {
 
 func (c *canon) op(p ast.Op) {
 	switch p := p.(type) {
-	case *ast.Scope:
+	case *ast.ScopeOp:
 		c.scope(p, true)
-	case *ast.Parallel:
+	case *ast.ForkOp:
 		c.next()
 		c.open("fork")
 		for _, p := range p.Paths {
@@ -475,7 +470,7 @@ func (c *canon) op(p ast.Op) {
 		}
 		c.close()
 		c.flush()
-	case *ast.Switch:
+	case *ast.SwitchOp:
 		c.next()
 		c.write("switch")
 		if p.Expr != nil {
@@ -500,11 +495,11 @@ func (c *canon) op(p ast.Op) {
 		}
 		c.close()
 		c.flush()
-	case *ast.From:
+	case *ast.FromOp:
 		c.next()
 		c.write("from ")
 		c.fromElems(p.Elems)
-	case *ast.Aggregate:
+	case *ast.AggregateOp:
 		c.next()
 		c.open("aggregate")
 		c.ret()
@@ -523,30 +518,30 @@ func (c *canon) op(p ast.Op) {
 		c.next()
 		c.write("call %s ", sup.QuotedName(p.Name.Name))
 		c.funcOrExprs(p.Args)
-	case *ast.Cut:
+	case *ast.CutOp:
 		c.next()
 		c.write("cut ")
 		c.assignments(p.Args)
-	case *ast.Distinct:
+	case *ast.DistinctOp:
 		c.next()
 		c.write("distinct ")
 		c.expr(p.Expr, "")
-	case *ast.Drop:
+	case *ast.DropOp:
 		c.next()
 		c.write("drop ")
 		c.exprs(p.Args)
-	case *ast.Sort:
+	case *ast.SortOp:
 		c.next()
 		c.write("sort")
 		if p.Reverse {
 			c.write(" -r")
 		}
 		c.sortExprs(p.Exprs)
-	case *ast.Load:
+	case *ast.LoadOp:
 		c.next()
 		c.write("load %s", sup.QuotedString(p.Pool.Text))
 		c.opArgs(p.Args)
-	case *ast.Head:
+	case *ast.HeadOp:
 		c.next()
 		c.open("head")
 		if p.Count != nil {
@@ -554,7 +549,7 @@ func (c *canon) op(p ast.Op) {
 			c.expr(p.Count, "")
 		}
 		c.close()
-	case *ast.Tail:
+	case *ast.TailOp:
 		c.next()
 		c.open("tail")
 		if p.Count != nil {
@@ -562,16 +557,16 @@ func (c *canon) op(p ast.Op) {
 			c.expr(p.Count, "")
 		}
 		c.close()
-	case *ast.Uniq:
+	case *ast.UniqOp:
 		c.next()
 		c.write("uniq")
 		if p.Cflag {
 			c.write(" -c")
 		}
-	case *ast.Pass:
+	case *ast.PassOp:
 		c.next()
 		c.write("pass")
-	case *ast.OpExpr:
+	case *ast.ExprOp:
 		if agg := isAggFunc(p.Expr); agg != nil {
 			c.op(agg)
 			return
@@ -583,7 +578,7 @@ func (c *canon) op(p ast.Op) {
 			which = "search "
 		} else if IsBool(e) {
 			which = "where "
-		} else if _, ok := e.(*ast.Call); !ok {
+		} else if _, ok := e.(*ast.CallExpr); !ok {
 			which = "values "
 		}
 		// Since we can't determine whether the expression is a func call or
@@ -596,17 +591,17 @@ func (c *canon) op(p ast.Op) {
 			defer c.close()
 		}
 		c.expr(e, "")
-	case *ast.Search:
+	case *ast.SearchOp:
 		c.next()
 		c.open("search ")
 		c.expr(p.Expr, "")
 		c.close()
-	case *ast.Where:
+	case *ast.WhereOp:
 		c.next()
 		c.open("where ")
 		c.expr(p.Expr, "")
 		c.close()
-	case *ast.Top:
+	case *ast.TopOp:
 		c.next()
 		c.write("top")
 		if p.Reverse {
@@ -617,18 +612,18 @@ func (c *canon) op(p ast.Op) {
 			c.expr(p.Limit, "")
 		}
 		c.sortExprs(p.Exprs)
-	case *ast.Put:
+	case *ast.PutOp:
 		c.next()
 		c.write("put ")
 		c.assignments(p.Args)
-	case *ast.Rename:
+	case *ast.RenameOp:
 		c.next()
 		c.write("rename ")
 		c.assignments(p.Args)
-	case *ast.Fuse:
+	case *ast.FuseOp:
 		c.next()
 		c.write("fuse")
-	case *ast.Join:
+	case *ast.JoinOp:
 		c.next()
 		if p.Style != "" {
 			c.write("%s ", p.Style)
@@ -647,7 +642,7 @@ func (c *canon) op(p ast.Op) {
 			c.write(" as {%s,%s}", p.Alias.Left.Name, p.Alias.Right.Name)
 		}
 		c.joinCond(p.Cond)
-	case *ast.OpAssignment:
+	case *ast.AssignmentOp:
 		c.next()
 		which := "put "
 		if isAggAssignments(p.Assignments) {
@@ -656,13 +651,13 @@ func (c *canon) op(p ast.Op) {
 		c.open(which)
 		c.assignments(p.Assignments)
 		c.close()
-	case *ast.Merge:
+	case *ast.MergeOp:
 		c.next()
 		c.write("merge")
 		c.sortExprs(p.Exprs)
-	case *ast.Unnest:
+	case *ast.UnnestOp:
 		c.unnest(p)
-	case *ast.Values:
+	case *ast.ValuesOp:
 		c.next()
 		c.write("values ")
 		c.exprs(p.Exprs)
@@ -670,10 +665,10 @@ func (c *canon) op(p ast.Op) {
 		c.next()
 		c.write("values ")
 		c.exprs(p.Exprs)
-	case *ast.Output:
+	case *ast.OutputOp:
 		c.next()
 		c.write("output %s", p.Name.Name)
-	case *ast.Debug:
+	case *ast.DebugOp:
 		c.next()
 		c.write("debug")
 		if p.Expr != nil {
@@ -782,9 +777,9 @@ func (c *canon) funcOrExprs(args []ast.Expr) {
 			c.write(", ")
 		}
 		switch a := a.(type) {
-		case *ast.Lambda:
+		case *ast.LambdaExpr:
 			c.lambda(a)
-		case *ast.FuncName:
+		case *ast.FuncNameExpr:
 			c.write("&%s", a.Name)
 		default:
 			c.expr(a, "")
@@ -797,7 +792,7 @@ func (c *canon) ids(ids []*ast.ID) {
 		if k > 0 {
 			c.write(", ")
 		}
-		c.expr(id, "")
+		c.write(id.Name)
 	}
 }
 
@@ -836,7 +831,7 @@ func (c *canon) fromEntity(e ast.FromEntity) {
 		c.write("eval(")
 		c.expr(e.Expr, "")
 		c.write(")")
-	case *ast.Glob, *ast.Regexp:
+	case *ast.GlobExpr, *ast.RegexpExpr:
 		c.pattern(e)
 	case *ast.Text:
 		c.write(sup.QuotedName(e.Text))
@@ -873,7 +868,7 @@ func (c *canon) joinCond(e ast.JoinCond) {
 	}
 }
 
-func (c *canon) unnest(o *ast.Unnest) {
+func (c *canon) unnest(o *ast.UnnestOp) {
 	c.next()
 	c.write("unnest ")
 	c.expr(o.Expr, "")
@@ -889,7 +884,7 @@ func (c *canon) unnest(o *ast.Unnest) {
 	}
 }
 
-func (c *canon) scope(s *ast.Scope, parens bool) {
+func (c *canon) scope(s *ast.ScopeOp, parens bool) {
 	if parens {
 		c.open("(")
 		c.ret()
@@ -946,32 +941,31 @@ func (c *canon) opArgs(args []ast.OpArg) {
 
 func (c *canon) pattern(p ast.FromEntity) {
 	switch p := p.(type) {
-	case *ast.Glob:
+	case *ast.GlobExpr:
 		c.write(p.Pattern)
-	case *ast.Regexp:
+	case *ast.RegexpExpr:
 		c.write("/" + p.Pattern + "/")
 	default:
 		panic(fmt.Sprintf("(unknown pattern type %T)", p))
 	}
 }
 
-func isAggFunc(e ast.Expr) *ast.Aggregate {
-	call, ok := e.(*ast.Call)
+func isAggFunc(e ast.Expr) *ast.AggregateOp {
+	call, ok := e.(*ast.CallExpr)
 	if !ok {
 		return nil
 	}
-	name, ok := call.Func.(*ast.FuncName)
+	name, ok := call.Func.(*ast.FuncNameExpr)
 	if !ok {
 		return nil
 	}
 	if _, err := agg.NewPattern(name.Name, false, true); err != nil {
 		return nil
 	}
-	return &ast.Aggregate{
-		Kind: "aggregate",
+	return &ast.AggregateOp{
+		Kind: "AggregateOp",
 		Aggs: []ast.Assignment{{
-			Kind: "Assignment",
-			RHS:  call,
+			RHS: call,
 		}},
 	}
 }
@@ -989,19 +983,12 @@ func IsBool(e ast.Expr) bool {
 		default:
 			return false
 		}
-	case *ast.Conditional:
+	case *ast.CondExpr:
 		return IsBool(e.Then) && IsBool(e.Else)
-	case *ast.Call:
-		name, ok := e.Func.(*ast.FuncName)
+	case *ast.CallExpr:
+		name, ok := e.Func.(*ast.FuncNameExpr)
 		return ok && function.HasBoolResult(name.Name)
-	case *ast.Cast:
-		if typval, ok := e.Type.(*ast.TypeValue); ok {
-			if typ, ok := typval.Value.(*ast.TypePrimitive); ok {
-				return typ.Name == "bool"
-			}
-		}
-		return false
-	case *ast.Regexp, *ast.Glob:
+	case *ast.RegexpExpr, *ast.GlobExpr:
 		return true
 	default:
 		return false
@@ -1016,7 +1003,7 @@ func isAggAssignments(assigns []ast.Assignment) bool {
 
 func IsSearch(e ast.Expr) bool {
 	switch e := e.(type) {
-	case *ast.Regexp, *ast.Glob, *ast.Term:
+	case *ast.RegexpExpr, *ast.GlobExpr, *ast.SearchTermExpr:
 		return true
 	case *ast.BinaryExpr:
 		switch e.Op {

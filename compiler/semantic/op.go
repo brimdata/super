@@ -36,7 +36,7 @@ func (t *translator) semSeq(seq ast.Seq) sem.Seq {
 	return converted
 }
 
-func (t *translator) semFrom(from *ast.From, seq sem.Seq) (sem.Seq, schema) {
+func (t *translator) semFrom(from *ast.FromOp, seq sem.Seq) (sem.Seq, schema) {
 	if len(from.Elems) > 1 {
 		t.error(from, errors.New("cross join implied by multiple elements in from clause is not yet supported"))
 		return sem.Seq{badOp()}, badSchema()
@@ -71,7 +71,7 @@ func (t *translator) fromSchema(alias *ast.TableAlias, name string) schema {
 
 func (t *translator) semFromEntity(entity ast.FromEntity, alias *ast.TableAlias, args []ast.OpArg, seq sem.Seq) (sem.Seq, schema) {
 	switch entity := entity.(type) {
-	case *ast.Glob:
+	case *ast.GlobExpr:
 		if bad := t.hasFromParent(entity, seq); bad != nil {
 			return bad, badSchema()
 		}
@@ -80,7 +80,7 @@ func (t *translator) semFromEntity(entity ast.FromEntity, alias *ast.TableAlias,
 			return t.semPoolFromRegexp(entity, reglob.Reglob(entity.Pattern), entity.Pattern, "glob", args), s
 		}
 		return sem.Seq{t.semFromFileGlob(entity, entity.Pattern, args)}, s
-	case *ast.Regexp:
+	case *ast.RegexpExpr:
 		if bad := t.hasFromParent(entity, seq); bad != nil {
 			return bad, badSchema()
 		}
@@ -507,7 +507,7 @@ func (t *translator) matchPools(pattern, origPattern, patternDesc string) ([]str
 	return matches, nil
 }
 
-func (t *translator) semScope(op *ast.Scope) sem.Seq {
+func (t *translator) semScope(op *ast.ScopeOp) sem.Seq {
 	t.scope = NewScope(t.scope)
 	defer t.exitScope()
 	t.semDecls(op.Decls)
@@ -525,7 +525,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 		seq, sch := t.semSQLOp(o, seq)
 		seq, _ = derefSchema(o, sch, seq)
 		return seq
-	case *ast.From:
+	case *ast.FromOp:
 		seq, _ := t.semFrom(o, seq)
 		return seq
 	case *ast.DefaultScan:
@@ -535,7 +535,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			panic("analyzer.SemOp: delete scan cannot have parent in AST")
 		}
 		return sem.Seq{t.semDelete(o)}
-	case *ast.Aggregate:
+	case *ast.AggregateOp:
 		keys := t.semAssignments(o.Keys)
 		t.checkStaticAssignment(o.Keys, keys)
 		if len(keys) == 0 && len(o.Aggs) == 1 {
@@ -565,15 +565,15 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			Keys:  keys,
 			Aggs:  aggs,
 		})
-	case *ast.Parallel:
+	case *ast.ForkOp:
 		var paths []sem.Seq
 		for _, seq := range o.Paths {
 			paths = append(paths, t.semSeq(seq))
 		}
 		return append(seq, &sem.ForkOp{Paths: paths})
-	case *ast.Scope:
+	case *ast.ScopeOp:
 		return append(seq, t.semScope(o)...)
-	case *ast.Switch:
+	case *ast.SwitchOp:
 		var expr sem.Expr
 		if o.Expr != nil {
 			expr = t.semExpr(o.Expr)
@@ -599,7 +599,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			Expr:  expr,
 			Cases: cases,
 		})
-	case *ast.Cut:
+	case *ast.CutOp:
 		//XXX When cutting an lval with no LHS, promote the lval to the LHS so
 		// it is not auto-inferred.  We will change cut to use paths in a future PR.
 		// Currently there is work in optimizer and parallelizer to manage changing
@@ -629,7 +629,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			Node: o,
 			Args: assignments,
 		})
-	case *ast.Debug:
+	case *ast.DebugOp:
 		e := t.semExprNullable(o.Expr)
 		if e == nil {
 			e = sem.NewThis(o.Expr, nil)
@@ -638,12 +638,12 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			Node: o,
 			Expr: e,
 		})
-	case *ast.Distinct:
+	case *ast.DistinctOp:
 		return append(seq, &sem.DistinctOp{
 			Node: o,
 			Expr: t.semExpr(o.Expr),
 		})
-	case *ast.Drop:
+	case *ast.DropOp:
 		args := t.semFields(o.Args)
 		if len(args) == 0 {
 			t.error(o, errors.New("no fields given"))
@@ -652,7 +652,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			Node: o,
 			Args: args,
 		})
-	case *ast.Sort:
+	case *ast.SortOp:
 		var sortExprs []sem.SortExpr
 		for _, e := range o.Exprs {
 			sortExprs = append(sortExprs, t.semSortExpr(nil, e, o.Reverse))
@@ -662,7 +662,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			Exprs:   sortExprs,
 			Reverse: o.Reverse && len(sortExprs) == 0,
 		})
-	case *ast.Head:
+	case *ast.HeadOp:
 		count := 1
 		if o.Count != nil {
 			count = t.mustEvalPositiveInteger(o.Count)
@@ -671,7 +671,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			Node:  o,
 			Count: count,
 		})
-	case *ast.Tail:
+	case *ast.TailOp:
 		count := 1
 		if o.Count != nil {
 			count = t.mustEvalPositiveInteger(o.Count)
@@ -680,27 +680,27 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			Node:  o,
 			Count: count,
 		})
-	case *ast.Skip:
+	case *ast.SkipOp:
 		return append(seq, &sem.SkipOp{
 			Node:  o,
 			Count: t.mustEvalPositiveInteger(o.Count),
 		})
-	case *ast.Uniq:
+	case *ast.UniqOp:
 		return append(seq, &sem.UniqOp{
 			Node:  o,
 			Cflag: o.Cflag,
 		})
-	case *ast.Pass:
+	case *ast.PassOp:
 		return append(seq, &sem.PassOp{Node: o})
-	case *ast.OpExpr:
-		return t.semOpExpr(o.Expr, seq)
+	case *ast.ExprOp:
+		return t.semExprOp(o.Expr, seq)
 	case *ast.CallOp:
 		return t.semCallOp(o, seq)
-	case *ast.Search:
+	case *ast.SearchOp:
 		return append(seq, &sem.FilterOp{Node: o, Expr: t.semExpr(o.Expr)})
-	case *ast.Where:
+	case *ast.WhereOp:
 		return append(seq, &sem.FilterOp{Node: o, Expr: t.semExpr(o.Expr)})
-	case *ast.Top:
+	case *ast.TopOp:
 		limit := 1
 		if o.Limit != nil {
 			l := t.semExpr(o.Limit)
@@ -727,7 +727,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			Exprs:   exprs,
 			Reverse: o.Reverse && len(exprs) == 0,
 		})
-	case *ast.Put:
+	case *ast.PutOp:
 		assignments := t.semAssignments(o.Args)
 		// We can do collision checking on static paths, so check what we can.
 		var fields field.List
@@ -743,9 +743,9 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			Node: o,
 			Args: assignments,
 		})
-	case *ast.OpAssignment:
-		return append(seq, t.semOpAssignment(o))
-	case *ast.Rename:
+	case *ast.AssignmentOp:
+		return append(seq, t.semAssignmentOp(o))
+	case *ast.RenameOp:
 		var assignments []sem.Assignment
 		for _, fa := range o.Args {
 			assign := t.semAssignment(&fa)
@@ -767,9 +767,9 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			Node: o,
 			Args: assignments,
 		})
-	case *ast.Fuse:
+	case *ast.FuseOp:
 		return append(seq, &sem.FuseOp{Node: o})
-	case *ast.Join:
+	case *ast.JoinOp:
 		leftAlias, rightAlias := "left", "right"
 		if o.Alias != nil {
 			leftAlias = o.Alias.Left.Name
@@ -807,7 +807,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			},
 		}
 		return sem.Seq{fork, join}
-	case *ast.Explode:
+	case *ast.ExplodeOp:
 		typ, err := t.semType(o.Type)
 		if err != nil {
 			t.error(o.Type, err)
@@ -835,7 +835,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			Type: typ,
 			As:   as,
 		})
-	case *ast.Merge:
+	case *ast.MergeOp:
 		var ok bool
 		if len(seq) > 0 {
 			switch seq[len(seq)-1].(type) {
@@ -851,7 +851,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			exprs = append(exprs, t.semSortExpr(nil, e, false))
 		}
 		return append(seq, &sem.MergeOp{Node: o, Exprs: exprs})
-	case *ast.Unnest:
+	case *ast.UnnestOp:
 		e := t.semExpr(o.Expr)
 		t.enterScope()
 		defer t.exitScope()
@@ -864,7 +864,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			Expr: e,
 			Body: body,
 		})
-	case *ast.Shapes: // XXX move to std library?
+	case *ast.ShapesOp: // XXX move to std library?
 		e := sem.Expr(sem.NewThis(o, nil))
 		if o.Expr != nil {
 			e = t.semExpr(o.Expr)
@@ -891,7 +891,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			},
 		})
 		return append(seq, sem.NewValues(o, sem.NewThis(o, []string{"sample"})))
-	case *ast.Assert:
+	case *ast.AssertOp:
 		cond := t.semExpr(o.Expr)
 		// 'assert EXPR' is equivalent to
 		// 'values EXPR ? this : error({message: "assertion failed", "expr": EXPR_text, "on": this}'
@@ -926,9 +926,9 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 					}},
 				),
 			}))
-	case *ast.Values:
+	case *ast.ValuesOp:
 		return append(seq, sem.NewValues(o, t.semExprs(o.Exprs)...))
-	case *ast.Load:
+	case *ast.LoadOp:
 		if !t.env.IsAttached() {
 			t.error(o, errors.New("load operator cannot be used without an attached database"))
 			return sem.Seq{badOp()}
@@ -954,7 +954,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			Message: message,
 			Meta:    meta,
 		})
-	case *ast.Output:
+	case *ast.OutputOp:
 		return append(seq, &sem.OutputOp{Node: o, Name: o.Name.Name})
 	}
 	panic(o)
@@ -1190,7 +1190,7 @@ func (t *translator) semOpDecl(d *ast.OpDecl) {
 	}
 }
 
-func (t *translator) semOpAssignment(p *ast.OpAssignment) sem.Op {
+func (t *translator) semAssignmentOp(p *ast.AssignmentOp) sem.Op {
 	var aggs, puts []sem.Assignment
 	for _, astAssign := range p.Assignments {
 		// Parition assignments into agg vs. puts.
@@ -1233,15 +1233,15 @@ func (t *translator) checkStaticAssignment(asts []ast.Assignment, assignments []
 	return false
 }
 
-func (t *translator) semOpExpr(e ast.Expr, seq sem.Seq) sem.Seq {
-	if call, ok := e.(*ast.Call); ok {
+func (t *translator) semExprOp(e ast.Expr, seq sem.Seq) sem.Seq {
+	if call, ok := e.(*ast.CallExpr); ok {
 		if seq := t.semCallOpExpr(call, seq); seq != nil {
 			return seq
 		}
 	}
 	// For stand-alone identifiers with no arguments, see if it's a user op
 	// or a named query.
-	if id, ok := e.(*ast.ID); ok {
+	if id, ok := e.(*ast.IDExpr); ok {
 		if decl, err := t.scope.lookupOp(id.Name); err == nil {
 			return append(seq, t.semUserOp(id.Loc, decl, nil)...)
 		}
@@ -1294,8 +1294,8 @@ func (t *translator) isBool(e sem.Expr) bool {
 	}
 }
 
-func (t *translator) semCallOpExpr(call *ast.Call, seq sem.Seq) sem.Seq {
-	f, ok := call.Func.(*ast.FuncName)
+func (t *translator) semCallOpExpr(call *ast.CallExpr, seq sem.Seq) sem.Seq {
+	f, ok := call.Func.(*ast.FuncNameExpr)
 	if !ok {
 		return nil
 	}

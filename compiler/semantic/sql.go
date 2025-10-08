@@ -286,7 +286,7 @@ func exprMatch(target sem.Expr, exprs []exprloc) int {
 	return -1
 }
 
-func (t *translator) semSelectFrom(loc ast.Loc, from *ast.From, seq sem.Seq) (sem.Seq, schema) {
+func (t *translator) semSelectFrom(loc ast.Loc, from *ast.FromOp, seq sem.Seq) (sem.Seq, schema) {
 	if from == nil {
 		return seq, &dynamicSchema{}
 	}
@@ -584,7 +584,7 @@ func (t *translator) semSQLJoin(join *ast.SQLJoin, seq sem.Seq) (sem.Seq, schema
 func (t *translator) semJoinCond(cond ast.JoinCond, leftAlias, rightAlias string) sem.Expr {
 	switch cond := cond.(type) {
 	case *ast.JoinOnCond:
-		if id, ok := cond.Expr.(*ast.ID); ok {
+		if id, ok := cond.Expr.(*ast.IDExpr); ok {
 			return t.semJoinCond(&ast.JoinUsingCond{Fields: []ast.Expr{id}}, leftAlias, rightAlias)
 		}
 		e := t.semExpr(cond.Expr)

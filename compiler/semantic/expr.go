@@ -48,7 +48,7 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 		}
 	case *ast.BinaryExpr:
 		return t.semBinary(e)
-	case *ast.Between:
+	case *ast.BetweenExpr:
 		val := t.semExpr(e.Expr)
 		lower := t.semExpr(e.Lower)
 		upper := t.semExpr(e.Upper)
@@ -75,7 +75,7 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 		return expr
 	case *ast.CaseExpr:
 		return t.semCaseExpr(e)
-	case *ast.Conditional:
+	case *ast.CondExpr:
 		cond := t.semExpr(e.Cond)
 		thenExpr := t.semExpr(e.Then)
 		var elseExpr sem.Expr
@@ -90,21 +90,17 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 			Then: thenExpr,
 			Else: elseExpr,
 		}
-	case *ast.Call:
+	case *ast.CallExpr:
 		return t.semCall(e)
-	case *ast.CallExtract:
-		return t.semCallExtract(e, e.Part, e.Expr)
-	case *ast.Cast:
-		expr := t.semExpr(e.Expr)
-		typ := t.semExpr(e.Type)
-		return sem.NewCall(e, "cast", []sem.Expr{expr, typ})
-	case *ast.DoubleQuote:
+	case *ast.ExtractExpr:
+		return t.semExtractExpr(e, e.Part, e.Expr)
+	case *ast.DoubleQuoteExpr:
 		return t.semDoubleQuote(e)
-	case *ast.Exists:
+	case *ast.ExistsExpr:
 		return t.semExists(e)
-	case *ast.FString:
+	case *ast.FStringExpr:
 		return t.semFString(e)
-	case *ast.FuncName:
+	case *ast.FuncNameExpr:
 		// We get here for &refs that are in a call expression. e.g.,
 		// an arg to another function.  These are only built-ins as
 		// user functions should be referenced directly as an ID.
@@ -116,13 +112,13 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 			Node: e,
 			Tag:  tag,
 		}
-	case *ast.Glob:
+	case *ast.GlobExpr:
 		return &sem.RegexpSearchExpr{
 			Node:    e,
 			Pattern: reglob.Reglob(e.Pattern),
 			Expr:    sem.NewThis(e, nil),
 		}
-	case *ast.ID:
+	case *ast.IDExpr:
 		id := t.semID(e, false)
 		if t.scope.schema != nil {
 			if this, ok := id.(*sem.ThisExpr); ok {
@@ -154,7 +150,7 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 			out = sem.NewUnaryExpr(e, "!", out)
 		}
 		return out
-	case *ast.Lambda:
+	case *ast.LambdaExpr:
 		tag := t.newFunc(e, "lambda", idsAsStrings(e.Params), t.semExpr(e.Expr))
 		return &sem.FuncRef{
 			Node: e,
@@ -181,7 +177,7 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 			Node:  e,
 			Value: sup.FormatValue(val),
 		}
-	case *ast.Subquery:
+	case *ast.SubqueryExpr:
 		return t.semSubquery(e, e.Array, e.Body)
 	case *ast.RecordExpr:
 		fields := map[string]struct{}{}
@@ -226,7 +222,7 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 			Node:  e,
 			Elems: out,
 		}
-	case *ast.Regexp:
+	case *ast.RegexpExpr:
 		return &sem.RegexpSearchExpr{
 			Node:    e,
 			Pattern: e.Pattern,
@@ -290,7 +286,7 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 			Then: slice,
 			Else: serr,
 		}
-	case *ast.SQLTimeValue:
+	case *ast.SQLTimeExpr:
 		if e.Value.Type != "string" {
 			t.error(e.Value, errors.New("value must be a string literal"))
 			return badExpr()
@@ -305,7 +301,7 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 			ts = ts.Trunc(nano.Day)
 		}
 		return &sem.LiteralExpr{Node: e, Value: sup.FormatValue(super.NewTime(ts))}
-	case *ast.Term:
+	case *ast.SearchTermExpr:
 		var val string
 		switch term := e.Value.(type) {
 		case *ast.Primitive:
@@ -315,7 +311,7 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 				return badExpr()
 			}
 			val = sup.FormatValue(v)
-		case *ast.DoubleQuote:
+		case *ast.DoubleQuoteExpr:
 			v, err := sup.ParsePrimitive("string", term.Text)
 			if err != nil {
 				t.error(e, err)
@@ -386,7 +382,7 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 	panic(e)
 }
 
-func (t *translator) semID(id *ast.ID, lval bool) sem.Expr {
+func (t *translator) semID(id *ast.IDExpr, lval bool) sem.Expr {
 	// We use static scoping here to see if an identifier is
 	// a "var" reference to the name or a field access
 	// and transform the AST node appropriately.  The resulting
@@ -414,12 +410,12 @@ func (t *translator) semID(id *ast.ID, lval bool) sem.Expr {
 	return sem.NewThis(id, path)
 }
 
-func (t *translator) semDoubleQuote(d *ast.DoubleQuote) sem.Expr {
+func (t *translator) semDoubleQuote(d *ast.DoubleQuoteExpr) sem.Expr {
 	// Check if there's a SQL scope and treat a double-quoted string
 	// as an identifier.  XXX we'll need to do something a bit more
 	// sophisticated to handle pipes inside SQL subqueries.
 	if t.scope.schema != nil {
-		return t.semExpr(&ast.ID{Kind: "ID", Name: d.Text, Loc: d.Loc})
+		return t.semExpr(&ast.IDExpr{Kind: "IDExpr", ID: ast.ID{Name: d.Text, Loc: d.Loc}})
 	}
 	return t.semExpr(&ast.Primitive{
 		Kind: "Primitive",
@@ -429,7 +425,7 @@ func (t *translator) semDoubleQuote(d *ast.DoubleQuote) sem.Expr {
 	})
 }
 
-func (t *translator) semExists(e *ast.Exists) sem.Expr {
+func (t *translator) semExists(e *ast.ExistsExpr) sem.Expr {
 	q := t.semSubquery(e, true, e.Body)
 	return sem.NewBinaryExpr(e, ">",
 		sem.NewCall(e, "len", []sem.Expr{q}),
@@ -498,7 +494,7 @@ func (t *translator) semBinary(e *ast.BinaryExpr) sem.Expr {
 	op := strings.ToLower(e.Op)
 	if op == "." {
 		lhs := t.semExpr(e.LHS)
-		id, ok := e.RHS.(*ast.ID)
+		id, ok := e.RHS.(*ast.IDExpr)
 		if !ok {
 			t.error(e, errors.New("RHS of dot operator is not an identifier"))
 			return badExpr()
@@ -586,12 +582,12 @@ func (t *translator) semDotted(e *ast.BinaryExpr, lval bool) ([]string, sem.Expr
 	if e.Op != "." {
 		return nil, nil
 	}
-	rhs, ok := e.RHS.(*ast.ID)
+	rhs, ok := e.RHS.(*ast.IDExpr)
 	if !ok {
 		return nil, nil
 	}
 	switch lhs := e.LHS.(type) {
-	case *ast.ID:
+	case *ast.IDExpr:
 		switch e := t.semID(lhs, lval).(type) {
 		case *sem.ThisExpr:
 			return append(slices.Clone(e.Path), rhs.Name), nil
@@ -625,7 +621,7 @@ func (t *translator) semCaseExpr(c *ast.CaseExpr) sem.Expr {
 	return out
 }
 
-func (t *translator) semCall(call *ast.Call) sem.Expr {
+func (t *translator) semCall(call *ast.CallExpr) sem.Expr {
 	if e := t.maybeConvertAgg(call); e != nil {
 		return e
 	}
@@ -635,9 +631,9 @@ func (t *translator) semCall(call *ast.Call) sem.Expr {
 	}
 	args := t.semExprs(call.Args)
 	switch f := call.Func.(type) {
-	case *ast.FuncName:
+	case *ast.FuncNameExpr:
 		return t.semCallByName(call, f.Name, args)
-	case *ast.Lambda:
+	case *ast.LambdaExpr:
 		return t.semCallLambda(f, args)
 	default:
 		panic(f)
@@ -655,12 +651,12 @@ func (t *translator) maybeSubquery(n ast.Node, name string) *sem.SubqueryExpr {
 	return nil
 }
 
-func (t *translator) semCallLambda(lambda *ast.Lambda, args []sem.Expr) sem.Expr {
+func (t *translator) semCallLambda(lambda *ast.LambdaExpr, args []sem.Expr) sem.Expr {
 	tag := t.newFunc(lambda, "lambda", idsAsStrings(lambda.Params), t.semExpr(lambda.Expr))
 	return sem.NewCall(lambda, tag, args)
 }
 
-func (t *translator) semCallByName(call *ast.Call, name string, args []sem.Expr) sem.Expr {
+func (t *translator) semCallByName(call *ast.CallExpr, name string, args []sem.Expr) sem.Expr {
 	if subquery := t.maybeSubqueryCall(call, name); subquery != nil {
 		return subquery
 	}
@@ -758,7 +754,7 @@ func (t *translator) semCallByName(call *ast.Call, name string, args []sem.Expr)
 	return sem.NewCall(call, nameLower, args)
 }
 
-func (t *translator) maybeSubqueryCall(call *ast.Call, name string) *sem.SubqueryExpr {
+func (t *translator) maybeSubqueryCall(call *ast.CallExpr, name string) *sem.SubqueryExpr {
 	decl, _ := t.scope.lookupOp(name)
 	if decl == nil || decl.bad {
 		return nil
@@ -777,7 +773,7 @@ func (t *translator) maybeSubqueryCall(call *ast.Call, name string) *sem.Subquer
 	}
 }
 
-func (t *translator) semMapCall(call *ast.Call, args []sem.Expr) sem.Expr {
+func (t *translator) semMapCall(call *ast.CallExpr, args []sem.Expr) sem.Expr {
 	if len(args) != 2 {
 		t.error(call, errors.New("map requires two arguments"))
 		return badExpr()
@@ -795,10 +791,10 @@ func (t *translator) semMapCall(call *ast.Call, args []sem.Expr) sem.Expr {
 	return e
 }
 
-func (t *translator) semCallExtract(e, partExpr, argExpr ast.Expr) sem.Expr {
+func (t *translator) semExtractExpr(e, partExpr, argExpr ast.Expr) sem.Expr {
 	var partstr string
 	switch p := partExpr.(type) {
-	case *ast.ID:
+	case *ast.IDExpr:
 		partstr = p.Name
 	case *ast.Primitive:
 		if p.Type != "string" {
@@ -856,7 +852,7 @@ func (t *translator) semAssignment(assign *ast.Assignment) sem.Assignment {
 }
 
 func (t *translator) semLval(e ast.Expr) sem.Expr {
-	if id, ok := e.(*ast.ID); ok {
+	if id, ok := e.(*ast.IDExpr); ok {
 		return t.semID(id, true)
 	}
 	return t.semExpr(e)
@@ -878,9 +874,9 @@ func deriveNameFromExpr(e sem.Expr, a ast.Expr) string {
 	switch a := a.(type) {
 	case *ast.Agg:
 		return a.Name
-	case *ast.Call:
+	case *ast.CallExpr:
 		var name string
-		if f, ok := a.Func.(*ast.FuncName); ok {
+		if f, ok := a.Func.(*ast.FuncNameExpr); ok {
 			name = f.Name
 		}
 		if strings.ToLower(name) == "quiet" {
@@ -931,8 +927,8 @@ func (t *translator) semField(f ast.Expr) sem.Expr {
 	}
 }
 
-func (t *translator) maybeConvertAgg(call *ast.Call) sem.Expr {
-	name, ok := call.Func.(*ast.FuncName)
+func (t *translator) maybeConvertAgg(call *ast.CallExpr) sem.Expr {
+	name, ok := call.Func.(*ast.FuncNameExpr)
 	if !ok {
 		return nil
 	}
@@ -970,7 +966,7 @@ func DotExprToFieldPath(e ast.Expr) *sem.ThisExpr {
 			if lhs == nil {
 				return nil
 			}
-			id, ok := e.RHS.(*ast.ID)
+			id, ok := e.RHS.(*ast.IDExpr)
 			if !ok {
 				return nil
 			}
@@ -988,7 +984,7 @@ func DotExprToFieldPath(e ast.Expr) *sem.ThisExpr {
 		}
 		this.Path = append(this.Path, id.Text)
 		return this
-	case *ast.ID:
+	case *ast.IDExpr:
 		return sem.NewThis(e, []string{e.Name})
 	}
 	// This includes a null Expr, which can happen if the AST is missing
@@ -1019,7 +1015,7 @@ func (t *translator) semArrayElems(elems []ast.ArrayElem) []sem.ArrayElem {
 	return out
 }
 
-func (t *translator) semFString(f *ast.FString) sem.Expr {
+func (t *translator) semFString(f *ast.FStringExpr) sem.Expr {
 	if len(f.Elems) == 0 {
 		return &sem.LiteralExpr{Node: f, Value: `""`}
 	}
@@ -1027,12 +1023,12 @@ func (t *translator) semFString(f *ast.FString) sem.Expr {
 	for _, elem := range f.Elems {
 		var e sem.Expr
 		switch elem := elem.(type) {
-		case *ast.FStringExpr:
+		case *ast.FStringExprElem:
 			e = t.semExpr(elem.Expr)
 			e = sem.NewCall(f,
 				"cast",
 				[]sem.Expr{e, &sem.LiteralExpr{Value: "<string>"}})
-		case *ast.FStringText:
+		case *ast.FStringTextElem:
 			e = &sem.LiteralExpr{Value: sup.QuotedString(elem.Text)}
 		default:
 			panic(elem)
