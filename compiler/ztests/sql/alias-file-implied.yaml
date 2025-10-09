@@ -1,7 +1,7 @@
 script: |
   mkdir -p path/to
-  mv foo.sup path/to
-  super -s -c 'select foo.id from path/to/foo.sup'
+  super -o path/to/foo.parquet -f parquet foo.sup
+  super -s -c 'select foo.id from path/to/foo.parquet'
 
 inputs:
   - name: foo.sup

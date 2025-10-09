@@ -29,14 +29,7 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 			t.error(e, fmt.Errorf("aggregator '%s' requires argument", e.Name))
 			return badExpr()
 		}
-		where := t.semExprNullable(e.Where)
-		return &sem.AggFunc{
-			Node:     e,
-			Name:     nameLower,
-			Distinct: e.Distinct,
-			Expr:     expr,
-			Where:    where,
-		}
+		return t.semAggFunc(e, nameLower, e.Expr, e.Where, e.Distinct)
 	case *ast.ArrayExpr:
 		elems := t.semArrayElems(e.Elems)
 		if subquery := t.arraySubquery(elems); subquery != nil {
@@ -122,12 +115,12 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 		id := t.semID(e, false)
 		if t.scope.schema != nil {
 			if this, ok := id.(*sem.ThisExpr); ok {
-				path, err := t.scope.resolve(this.Path)
+				ref, err := t.scope.resolve(e, this.Path)
 				if err != nil {
 					t.error(e, err)
 					return badExpr()
 				}
-				return sem.NewThis(e, path)
+				return ref
 			}
 		}
 		return id
@@ -204,7 +197,7 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 				})
 			case *ast.ExprElem:
 				e := t.semExpr(elem.Expr)
-				name := deriveNameFromExpr(e, elem.Expr)
+				name := deriveNameFromExpr(elem.Expr)
 				if _, ok := fields[name]; ok {
 					t.error(elem, fmt.Errorf("record expression: %w", &super.DuplicateFieldError{Name: name}))
 					continue
@@ -415,6 +408,14 @@ func (t *translator) semDoubleQuote(d *ast.DoubleQuoteExpr) sem.Expr {
 	// as an identifier.  XXX we'll need to do something a bit more
 	// sophisticated to handle pipes inside SQL subqueries.
 	if t.scope.schema != nil {
+		if d.Text == "this" {
+			ref, err := t.scope.resolve(d, []string{"this"})
+			if err != nil {
+				t.error(d, err)
+				return badExpr()
+			}
+			return ref
+		}
 		return t.semExpr(&ast.IDExpr{Kind: "IDExpr", ID: ast.ID{Name: d.Text, Loc: d.Loc}})
 	}
 	return t.semExpr(&ast.Primitive{
@@ -477,12 +478,12 @@ func (t *translator) semRegexp(b *ast.BinaryExpr) sem.Expr {
 func (t *translator) semBinary(e *ast.BinaryExpr) sem.Expr {
 	if path, bad := t.semDotted(e, false); path != nil {
 		if t.scope.schema != nil {
-			path, err := t.scope.resolve(path)
+			ref, err := t.scope.resolve(e, path)
 			if err != nil {
 				t.error(e, err)
 				return badExpr()
 			}
-			return sem.NewThis(e, path)
+			return ref
 		}
 		return sem.NewThis(e, path)
 	} else if bad != nil {
@@ -836,7 +837,7 @@ func (t *translator) semAssignment(assign *ast.Assignment) sem.Assignment {
 	rhs := t.semExpr(assign.RHS)
 	var lhs sem.Expr
 	if assign.LHS == nil {
-		lhs = sem.NewThis(assign.RHS, []string{deriveNameFromExpr(rhs, assign.RHS)})
+		lhs = sem.NewThis(assign.RHS, []string{deriveNameFromExpr(assign.RHS)})
 	} else {
 		lhs = t.semLval(assign.LHS)
 	}
@@ -870,35 +871,71 @@ func isLval(e sem.Expr) bool {
 	return false
 }
 
-func deriveNameFromExpr(e sem.Expr, a ast.Expr) string {
-	switch a := a.(type) {
+func deriveNameFromExpr(e ast.Expr) string {
+	switch e := e.(type) {
 	case *ast.Agg:
-		return a.Name
+		return e.Name
 	case *ast.CallExpr:
 		var name string
-		if f, ok := a.Func.(*ast.FuncNameExpr); ok {
+		if f, ok := e.Func.(*ast.FuncNameExpr); ok {
 			name = f.Name
 		}
-		if strings.ToLower(name) == "quiet" {
-			if e, ok := e.(*sem.CallExpr); ok && len(e.Args) > 0 {
-				if this, ok := e.Args[0].(*sem.ThisExpr); ok {
-					return fieldOfThis(this)
-				}
-			}
+		if strings.ToLower(name) == "quiet" && len(e.Args) > 0 {
+			return deriveNameFromExpr(e)
 		}
 		return name
+	case *ast.BinaryExpr:
+		if name, ok := dottedName(e); ok {
+			return name
+		}
+	case *ast.DoubleQuoteExpr:
+		if s, ok := quoteString(e); ok {
+			return s
+		}
+	case *ast.IDExpr:
+		if e.Name == "this" {
+			return "that"
+		}
+		return e.Name
 	}
-	if e, ok := e.(*sem.ThisExpr); ok {
-		return fieldOfThis(e)
-	}
-	return sfmt.ASTExpr(a)
+	return sfmt.ASTExpr(e)
 }
 
-func fieldOfThis(this *sem.ThisExpr) string {
-	if len(this.Path) == 0 {
-		return "that"
+func dottedName(e *ast.BinaryExpr) (string, bool) {
+	if e.Op != "." {
+		return "", false
 	}
-	return this.Path[len(this.Path)-1]
+	rhs, ok := idString(e.RHS)
+	if !ok {
+		return "", false
+	}
+	if _, ok := idString(e.LHS); ok {
+		return rhs, true
+	}
+	if lhs, ok := e.LHS.(*ast.BinaryExpr); ok {
+		if _, ok := dottedName(lhs); ok {
+			return rhs, true
+		}
+	}
+	return "", false
+}
+
+func idString(e ast.Expr) (string, bool) {
+	switch e := e.(type) {
+	case *ast.IDExpr:
+		return e.Name, true
+	case *ast.DoubleQuoteExpr:
+		return quoteString(e)
+	}
+	return "", false
+}
+
+func quoteString(e *ast.DoubleQuoteExpr) (string, bool) {
+	v, err := sup.ParsePrimitive("string", e.Text)
+	if err == nil {
+		return v.AsString(), true
+	}
+	return "", false
 }
 
 func (t *translator) semFields(exprs []ast.Expr) []sem.Expr {
@@ -936,7 +973,6 @@ func (t *translator) maybeConvertAgg(call *ast.CallExpr) sem.Expr {
 	if _, err := agg.NewPattern(nameLower, false, true); err != nil {
 		return nil
 	}
-	var e sem.Expr
 	if err := function.CheckArgCount(len(call.Args), 0, 1); err != nil {
 		if nameLower == "min" || nameLower == "max" {
 			// min and max are special cases as they are also functions. If the
@@ -947,14 +983,34 @@ func (t *translator) maybeConvertAgg(call *ast.CallExpr) sem.Expr {
 		t.error(call, err)
 		return badExpr()
 	}
+	var e ast.Expr
 	if len(call.Args) == 1 {
-		e = t.semExpr(call.Args[0])
+		e = call.Args[0]
+	}
+	return t.semAggFunc(call, nameLower, e, call.Where, false)
+}
+
+func (t *translator) semAggFunc(n ast.Node, name string, arg ast.Expr, where ast.Expr, distinct bool) *sem.AggFunc {
+	// If we are in the context of a having clause, re-expose the select schema
+	// since the agg func's arguments and where clause operate on the input relation
+	// not the output.
+	if having, ok := t.scope.schema.(*havingSchema); ok {
+		save := t.scope.schema
+		t.scope.schema = having.selectSchema
+		defer func() {
+			t.scope.schema = save
+		}()
+	}
+	var e sem.Expr
+	if arg != nil {
+		e = t.semExpr(arg)
 	}
 	return &sem.AggFunc{
-		Node:  call,
-		Name:  nameLower,
-		Expr:  e,
-		Where: t.semExprNullable(call.Where),
+		Node:     n,
+		Name:     name,
+		Expr:     e,
+		Where:    t.semExprNullable(where),
+		Distinct: distinct,
 	}
 }
 

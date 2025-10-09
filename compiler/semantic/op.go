@@ -113,6 +113,10 @@ func (t *translator) semFromEntity(entity ast.FromEntity, alias *ast.TableAlias,
 				return seq, schema
 			}
 		}
+		// Until we have type checking integrated into the translator pass,
+		// we won't use default table aliases for dynamic inputs so we clear
+		// def here.
+		def = ""
 		return sem.Seq{op}, t.fromSchema(alias, def)
 	case *ast.ExprEntity:
 		seq, def := t.semFromExpr(entity, args, seq)

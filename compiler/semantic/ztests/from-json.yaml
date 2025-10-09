@@ -1,5 +1,5 @@
 script: |
-  super -s -c 'select a.x from a.json'
+  super -s -c 'select a.x from a.json a'
 
 inputs:
   - name: a.json

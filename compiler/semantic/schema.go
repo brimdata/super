@@ -14,10 +14,12 @@ import (
 
 type schema interface {
 	Name() string
-	resolveColumn(col string) (field.Path, error)
+	resolveColumn(col string) (field.Path, bool, error)
 	resolveOrdinal(n ast.Node, colno int) (sem.Expr, error)
 	resolveTable(table string) (schema, field.Path, error)
 	deref(n ast.Node, name string) (sem.Expr, schema)
+	this(n ast.Node, path []string) sem.Expr
+	tableOnly(n ast.Node, table string, path []string) (sem.Expr, error)
 	String() string
 }
 
@@ -60,27 +62,20 @@ func badSchema() schema {
 }
 
 func (d *dynamicSchema) resolveTable(table string) (schema, field.Path, error) {
-	if table == "" || strings.EqualFold(d.name, table) {
+	if strings.EqualFold(d.name, table) {
 		return d, nil, nil
 	}
 	return nil, nil, nil
 }
 
 func (s *staticSchema) resolveTable(table string) (schema, field.Path, error) {
-	if table == "" || strings.EqualFold(s.name, table) {
+	if strings.EqualFold(s.name, table) {
 		return s, nil, nil
 	}
 	return nil, nil, nil
 }
 
 func (s *selectSchema) resolveTable(table string) (schema, field.Path, error) {
-	if table == "" {
-		sch, path, err := s.in.resolveTable(table)
-		if sch != nil {
-			path = append([]string{"in"}, path...)
-		}
-		return sch, path, err
-	}
 	if s.out != nil {
 		sch, path, err := s.out.resolveTable(table)
 		if err != nil {
@@ -101,9 +96,6 @@ func (s *selectSchema) resolveTable(table string) (schema, field.Path, error) {
 }
 
 func (j *joinSchema) resolveTable(table string) (schema, field.Path, error) {
-	if table == "" {
-		return j, nil, nil
-	}
 	sch, path, err := j.left.resolveTable(table)
 	if err != nil {
 		return nil, nil, err
@@ -130,9 +122,6 @@ func (j *joinUsingSchema) resolveTable(string) (schema, field.Path, error) {
 }
 
 func (s *subquerySchema) resolveTable(table string) (schema, field.Path, error) {
-	if table == "" {
-		return s, nil, nil
-	}
 	sch, path, err := s.inner.resolveTable(table)
 	if err != nil || sch != nil {
 		return sch, path, err
@@ -144,70 +133,99 @@ func (s *subquerySchema) resolveTable(table string) (schema, field.Path, error) 
 	return sch, path, err
 }
 
-func (*dynamicSchema) resolveColumn(col string) (field.Path, error) {
-	return field.Path{col}, nil
+func (d *dynamicSchema) resolveColumn(col string) (field.Path, bool, error) {
+	if d.name != "" && d.name == col {
+		// Special case the dynamic schema referencing a table alias without
+		// any fields.  We declare this an error so that the same query with
+		// schema information will not change it's result and favor a column
+		// present with the same name as the table.  Instead of referring to
+		// the table alias of a dynamic schema, the query could use `this` instead,
+		// or a pipe query!
+		return nil, true, fmt.Errorf("cannot reference column %q of dynamic input whose alias is %q (consider 'this')", col, d.name)
+	}
+	return field.Path{col}, false, nil
 }
 
-func (s *staticSchema) resolveColumn(col string) (field.Path, error) {
+func (s *staticSchema) resolveColumn(col string) (field.Path, bool, error) {
 	if slices.Contains(s.columns, col) {
-		return field.Path{col}, nil
+		return field.Path{col}, false, nil
 	}
-	return nil, fmt.Errorf("column %q: does not exist", col)
+	return nil, false, fmt.Errorf("column %q: does not exist", col)
 }
 
-func (s *selectSchema) resolveColumn(col string) (field.Path, error) {
+func (s *selectSchema) resolveColumn(col string) (field.Path, bool, error) {
 	if s.out != nil {
-		if resolved, _ := s.out.resolveColumn(col); resolved != nil {
-			return append([]string{"out"}, resolved...), nil
+		resolved, fatal, err := s.out.resolveColumn(col)
+		if fatal {
+			return nil, true, err
+		}
+		if resolved != nil {
+			return append([]string{"out"}, resolved...), false, nil
 		}
 	}
-	resolved, err := s.in.resolveColumn(col)
+	resolved, fatal, err := s.in.resolveColumn(col)
 	if resolved != nil {
-		return append([]string{"in"}, resolved...), nil
+		return append([]string{"in"}, resolved...), false, nil
 	}
-	return nil, err
+	return nil, fatal, err
 }
 
-func (j *joinSchema) resolveColumn(col string) (field.Path, error) {
-	left, lerr := j.left.resolveColumn(col)
+func (j *joinSchema) resolveColumn(col string) (field.Path, bool, error) {
+	left, fatal, lerr := j.left.resolveColumn(col)
+	if fatal {
+		return nil, true, lerr
+	}
 	if left != nil {
-		if chk, _ := j.right.resolveColumn(col); chk != nil {
-			return nil, fmt.Errorf("%q: ambiguous column reference", col)
+		chk, fatal, err := j.right.resolveColumn(col)
+		if fatal {
+			return nil, true, err
 		}
-		return append([]string{"left"}, left...), nil
+		if chk != nil {
+			return nil, true, fmt.Errorf("%q: ambiguous column reference", col)
+		}
+		return append([]string{"left"}, left...), false, nil
 	}
 	if lerr == nil {
 		// This shouldn't happen because the resolve return values should
 		// always be nil/err or val/nil.
 		panic("issue encountered in SQL name resolution")
 	}
-	right, rerr := j.right.resolveColumn(col)
+	right, fatal, rerr := j.right.resolveColumn(col)
+	if fatal {
+		return nil, true, rerr
+	}
 	if right != nil {
-		return append([]string{"right"}, right...), nil
+		return append([]string{"right"}, right...), false, nil
 	}
-	return nil, fmt.Errorf("%q: not found (%w, %w)", col, lerr, rerr)
+	return nil, false, fmt.Errorf("%q: not found (%w, %w)", col, lerr, rerr)
 }
 
-func (j *joinUsingSchema) resolveColumn(col string) (field.Path, error) {
-	if _, err := j.left.resolveColumn(col); err != nil {
-		return nil, fmt.Errorf("column %q in USING clause does not exist in left table", col)
+func (j *joinUsingSchema) resolveColumn(col string) (field.Path, bool, error) {
+	if _, _, err := j.left.resolveColumn(col); err != nil {
+		return nil, false, fmt.Errorf("column %q in USING clause does not exist in left table", col)
 	}
-	if _, err := j.right.resolveColumn(col); err != nil {
-		return nil, fmt.Errorf("column %q in USING clause does not exist in right table", col)
+	if _, _, err := j.right.resolveColumn(col); err != nil {
+		return nil, false, fmt.Errorf("column %q in USING clause does not exist in right table", col)
 	}
-	return field.Path{col}, nil
+	return field.Path{col}, false, nil
 }
 
-func (s *subquerySchema) resolveColumn(col string) (field.Path, error) {
-	path, _ := s.inner.resolveColumn(col)
-	if path != nil {
-		return path, nil
+func (s *subquerySchema) resolveColumn(col string) (field.Path, bool, error) {
+	path, fatal, err := s.inner.resolveColumn(col)
+	if fatal {
+		return nil, true, err
 	}
-	path, _ = s.outer.resolveColumn(col)
 	if path != nil {
-		return nil, errors.New("correlated subqueries not currently supported")
+		return path, false, nil
 	}
-	return nil, fmt.Errorf("column %q not found", col)
+	path, fatal, _ = s.outer.resolveColumn(col)
+	if fatal {
+		return nil, true, err
+	}
+	if path != nil {
+		return nil, true, errors.New("correlated subqueries not currently supported")
+	}
+	return nil, false, fmt.Errorf("column %q not found", col)
 }
 
 func (*dynamicSchema) resolveOrdinal(n ast.Node, col int) (sem.Expr, error) {
@@ -335,6 +353,65 @@ func (s *subquerySchema) deref(n ast.Node, name string) (sem.Expr, schema) {
 	panic(name)
 }
 
+func (d *dynamicSchema) this(n ast.Node, path []string) sem.Expr {
+	return sem.NewThis(n, path)
+}
+
+func (s *staticSchema) this(n ast.Node, path []string) sem.Expr {
+	return sem.NewThis(n, path)
+}
+
+func (s *selectSchema) this(n ast.Node, path []string) sem.Expr {
+	return s.in.this(n, append(path, "in"))
+}
+
+func (j *joinSchema) this(n ast.Node, path []string) sem.Expr {
+	left := j.left.this(n, append(path, "left"))
+	right := j.right.this(n, append(path, "right"))
+	return joinSpread(n, left, right)
+}
+
+func (s *subquerySchema) this(n ast.Node, path []string) sem.Expr {
+	panic("TBD")
+}
+
+func (d *dynamicSchema) tableOnly(n ast.Node, name string, path []string) (sem.Expr, error) {
+	if d.name != name {
+		return nil, fmt.Errorf("no such table %q", name)
+	}
+	return nil, fmt.Errorf("illegal reference to table %q in dynamic input", name)
+}
+
+func (s *staticSchema) tableOnly(n ast.Node, name string, path []string) (sem.Expr, error) {
+	if s.name == name {
+		return s.this(n, path), nil
+	}
+	return nil, fmt.Errorf("no such table %q", name)
+}
+
+func (s *selectSchema) tableOnly(n ast.Node, name string, path []string) (sem.Expr, error) {
+	return s.in.tableOnly(n, name, append(path, "in"))
+}
+
+func (j *joinSchema) tableOnly(n ast.Node, name string, path []string) (sem.Expr, error) {
+	e, err := j.left.tableOnly(n, name, append(path, "left"))
+	if err != nil {
+		return nil, err
+	}
+	if e != nil {
+		ambig, _ := j.right.tableOnly(n, name, append(path, "right"))
+		if ambig != nil {
+			return nil, fmt.Errorf("ambiguous table reference %q", name)
+		}
+		return e, nil
+	}
+	return j.right.tableOnly(n, name, append(path, "right"))
+}
+
+func (s *subquerySchema) tableOnly(n ast.Node, name string, path []string) (sem.Expr, error) {
+	return nil, fmt.Errorf("no such table %q", name) //XXX
+}
+
 func (s *staticSchema) String() string {
 	return fmt.Sprintf("static <%s>: %s", s.name, strings.Join(s.columns, ", "))
 }
@@ -353,4 +430,24 @@ func (s *joinSchema) String() string {
 
 func (s *subquerySchema) String() string {
 	return fmt.Sprintf("subquery:\n  outer: %s\n  inner: %s", s.outer, s.inner)
+}
+
+type havingSchema struct {
+	*selectSchema
+}
+
+func (h *havingSchema) resolveColumn(col string) (field.Path, bool, error) {
+	resolved, fatal, err := h.out.resolveColumn(col)
+	if resolved != nil {
+		return append([]string{"out"}, resolved...), false, nil
+	}
+	return nil, fatal, err
+}
+
+func (h *havingSchema) this(n ast.Node, path []string) sem.Expr {
+	return h.out.this(n, append(path, "out"))
+}
+
+func (h *havingSchema) tableOnly(n ast.Node, name string, path []string) (sem.Expr, error) {
+	return h.out.tableOnly(n, name, append(path, "out"))
 }

@@ -1,0 +1,17 @@
+script: |
+  super -f parquet -o a.parquet a.sup
+  ! super -c "select count() from a.parquet having a=1"
+
+inputs:
+  - name: a.sup
+    data: |
+      {a:1}
+      {a:2}
+      {a:3}
+
+outputs:
+  - name: stderr 
+    data: |
+      column "a": does not exist at line 1, column 38:
+      select count() from a.parquet having a=1
+                                           ~

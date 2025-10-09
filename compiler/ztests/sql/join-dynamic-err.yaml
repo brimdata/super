@@ -1,0 +1,24 @@
+script: |
+  ! super -s -c "select * from a.sup t1 join b.sup t2 on t1=t2"
+
+inputs:
+  - name: a.sup
+    data: |
+      1
+      2
+      3
+  - name: b.sup
+    data: |
+      2
+      3
+      4
+
+outputs:
+  - name: stderr
+    data: |
+      cannot reference column "t1" of dynamic input whose alias is "t1" (consider 'this') at line 1, column 41:
+      select * from a.sup t1 join b.sup t2 on t1=t2
+                                              ~~
+      cannot reference column "t2" of dynamic input whose alias is "t2" (consider 'this') at line 1, column 44:
+      select * from a.sup t1 join b.sup t2 on t1=t2
+                                                 ~~

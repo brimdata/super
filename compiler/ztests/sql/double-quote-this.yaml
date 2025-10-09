@@ -1,0 +1,35 @@
+script: |
+  super -o this.parquet -f parquet this.sup
+  super -s -c 'select "this" from this.parquet'
+  echo ===
+  super -s -c 'select this from this.parquet'
+  echo ===
+  super -o a.parquet -f parquet a.sup
+  super -s -c 'select this from a.parquet this'
+  echo ===
+  super -s -c 'select this.a from a.parquet this'
+
+inputs:
+  - name: this.sup
+    data: |
+      {this:1}
+      {this:2}
+  - name: a.sup
+    data: |
+      {a:1}
+      {a:2}
+
+outputs:
+  - name: stdout
+    data: |
+      {this:1}
+      {this:2}
+      ===
+      {that:{this:1}}
+      {that:{this:2}}
+      ===
+      {that:{a:1}}
+      {that:{a:2}}
+      ===
+      {a:1}
+      {a:2}

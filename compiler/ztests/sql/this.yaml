@@ -1,0 +1,36 @@
+script: |
+  super -s -c "select this from a.sup"
+  echo ===
+  super -s -c "select this as x from a.sup"
+  echo ===
+  cat a.sup | super -s -c "select this as x" -
+  echo ===
+  super -s -c "select x from (select this as x from a.sup) where this={x:2}"
+
+inputs:
+  - name: a.sup
+    data: |
+      1
+      2
+      3
+  - name: b.sup
+    data: |
+      2
+      3
+      4
+outputs:
+  - name: stdout
+    data: |
+      {that:1}
+      {that:2}
+      {that:3}
+      ===
+      {x:1}
+      {x:2}
+      {x:3}
+      ===
+      {x:1}
+      {x:2}
+      {x:3}
+      ===
+      {x:2}

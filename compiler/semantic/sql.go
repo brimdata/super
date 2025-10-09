@@ -74,11 +74,11 @@ func (t *translator) semSelect(sel *ast.SQLSelect, seq sem.Seq) (sem.Seq, schema
 	return seq, sch
 }
 
-func (t *translator) semHaving(sch schema, e ast.Expr, funcs *aggfuncs) (sem.Expr, error) {
+func (t *translator) semHaving(sch *selectSchema, e ast.Expr, funcs *aggfuncs) (sem.Expr, error) {
 	if e == nil {
 		return nil, nil
 	}
-	return funcs.subst(t.semExprSchema(sch, e))
+	return funcs.subst(t.semExprSchema(&havingSchema{sch}, e))
 }
 
 func (t *translator) genValues(proj projection, where sem.Expr, sch *selectSchema, seq sem.Seq) sem.Seq {
@@ -728,8 +728,10 @@ func (t *translator) semAs(sch schema, as ast.SQLAsExpr, funcs *aggfuncs) *colum
 		if name == "" {
 			t.error(as.Label, errors.New("label cannot be an empty string"))
 		}
+	} else if id, ok := as.Expr.(*ast.IDExpr); ok && id.Name == "this" {
+		name = "that"
 	} else {
-		name = deriveNameFromExpr(e, as.Expr)
+		name = deriveNameFromExpr(as.Expr)
 	}
 	c, err := newColumn(name, as.Expr, e, funcs)
 	if err != nil {

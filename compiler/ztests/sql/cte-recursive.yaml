@@ -6,7 +6,7 @@ spq: |
     FROM   t
     WHERE  x < 200000
   )
-  SELECT count(t1) FROM t AS t1;
+  SELECT count(x) FROM t AS t1;
 
 input: null
 

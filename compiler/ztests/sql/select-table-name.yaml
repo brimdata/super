@@ -1,0 +1,22 @@
+script: |
+  super -f parquet -o a.parquet -c "{a:this}" a.sup
+  super -s -c "select T from a.parquet T"
+  ! super -s -c "select T from a.sup T"
+
+inputs:
+  - name: a.sup
+    data: |
+      1
+      2
+      3
+outputs:
+  - name: stdout
+    data: |
+      {T:{a:1}}
+      {T:{a:2}}
+      {T:{a:3}}
+  - name: stderr
+    data: |
+      cannot reference column "T" of dynamic input whose alias is "T" (consider 'this') at line 1, column 8:
+      select T from a.sup T
+             ~
