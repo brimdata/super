@@ -1001,14 +1001,10 @@ func (t *translator) semAggFunc(n ast.Node, name string, arg ast.Expr, where ast
 			t.scope.schema = save
 		}()
 	}
-	var e sem.Expr
-	if arg != nil {
-		e = t.semExpr(arg)
-	}
 	return &sem.AggFunc{
 		Node:     n,
 		Name:     name,
-		Expr:     e,
+		Expr:     t.semExprNullable(arg),
 		Where:    t.semExprNullable(where),
 		Distinct: distinct,
 	}
