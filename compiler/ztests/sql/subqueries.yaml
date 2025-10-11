@@ -1,7 +1,13 @@
 script: |
   super -s -c 'select 1+(select 1) as v'
-  echo // ===
-  # pipe subquery does not select first index of record.
+  echo ===
+  # pipe subquery yields a value that is treated like a relation
+  super -s -c 'select (select {y:1+1}) as x'
+  echo ===
+  # pipe subquery yields a value that is treated like a relation
+  super -s -c 'select (values {y:1+1}) as x'
+  echo ===
+  # ...as does select value
   super -s -c 'select (values {y:1+1}) as x'
 
 vector: true
@@ -10,5 +16,9 @@ outputs:
   - name: stdout
     data: |
       {v:2}
-      // ===
+      ===
       {x:{y:2}}
+      ===
+      {x:2}
+      ===
+      {x:2}
