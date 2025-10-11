@@ -171,7 +171,7 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 			Value: sup.FormatValue(val),
 		}
 	case *ast.SubqueryExpr:
-		return t.semSubquery(e, e.Array, e.Body)
+		return t.semSubquery(e, e.Array, true, false, e.Body)
 	case *ast.RecordExpr:
 		fields := map[string]struct{}{}
 		var out []sem.RecordElem
@@ -427,7 +427,7 @@ func (t *translator) semDoubleQuote(d *ast.DoubleQuoteExpr) sem.Expr {
 }
 
 func (t *translator) semExists(e *ast.ExistsExpr) sem.Expr {
-	q := t.semSubquery(e, true, e.Body)
+	q := t.semSubquery(e, true, false, true, e.Body)
 	return sem.NewBinaryExpr(e, ">",
 		sem.NewCall(e, "len", []sem.Expr{q}),
 		&sem.LiteralExpr{Node: e, Value: "0"})
@@ -1106,7 +1106,13 @@ func (t *translator) arraySubquery(elems []sem.ArrayElem) *sem.SubqueryExpr {
 	return nil
 }
 
-func (t *translator) semSubquery(astExpr ast.Expr, array bool, body ast.Seq) *sem.SubqueryExpr {
+func (t *translator) semSubquery(astExpr ast.Expr, array bool, needScalar, needExists bool, body ast.Seq) *sem.SubqueryExpr {
+	if sch := t.scope.schema; sch != nil {
+		defer func() {
+			t.scope.schema = sch
+		}()
+		t.scope.schema = &subquerySchema{outer: sch}
+	}
 	seq := t.semSeq(body)
 	correlated := isCorrelated(seq)
 	e := &sem.SubqueryExpr{
@@ -1120,18 +1126,71 @@ func (t *translator) semSubquery(astExpr ast.Expr, array bool, body ast.Seq) *se
 		e.Body.Prepend(&sem.NullScan{})
 	}
 	if t.scope.schema != nil {
-		// SQL expects a record with a single column result so unravel this
-		// condition with this complex cleanup...
-		e.Body.Append(sqlSubqueryCheck(astExpr))
+		if needScalar {
+			// SQL expects a record with a single column result so unravel this
+			// condition with this complex cleanup...
+			e.Body.Append(scalarSubqueryCheck(astExpr))
+		}
+		//	if needExists {
+		//		e.Body.Append(existsSubqueryCheck(astExpr))
+		//	}
 	}
 	return e
 }
 
 // XXX  need to check on EXISTS and IN
 
-func sqlSubqueryCheck(n ast.Node) *sem.ValuesOp {
+func scalarSubqueryCheck(n ast.Node) *sem.ValuesOp {
 	// In a SQL expression (except for RHS of EXISTS or IN),
 	// a subquery returns a scalar but the result of the subquery is a relation.
+	// The runtime already checks if the subquery returns multiple "rows", so
+	// here we just check if the relation is a single column and error appropriately
+	// or otherwise pull out the value to make the scalar.
+	// values is_error(this) ? this : (len(this) == 1 ? this[1] : error() )
+	lenCall := &sem.CallExpr{
+		Node: n,
+		Tag:  "len",
+		Args: []sem.Expr{sem.NewThis(n, nil)},
+	}
+	lenCond := &sem.BinaryExpr{
+		Node: n,
+		Op:   "==",
+		LHS:  lenCall,
+		RHS:  &sem.LiteralExpr{Node: n, Value: "1"},
+	}
+	indexExpr := &sem.IndexExpr{
+		Node:  n,
+		Expr:  sem.NewThis(n, nil),
+		Index: &sem.LiteralExpr{Node: n, Value: "1"},
+	}
+	innerCond := &sem.CondExpr{
+		Node: n,
+		Cond: lenCond,
+		Then: indexExpr,
+		Else: sem.NewStructuredError(n, "subquery expression cannot have multiple columns", sem.NewThis(n, nil)),
+	}
+	isErrCond := &sem.CallExpr{
+		Node: n,
+		Tag:  "is_error",
+		Args: []sem.Expr{sem.NewThis(n, nil)},
+	}
+	outerCond := &sem.CondExpr{
+		Node: n,
+		Cond: isErrCond,
+		Then: sem.NewThis(n, nil),
+		Else: innerCond,
+	}
+	return &sem.ValuesOp{
+		Node:  n,
+		Exprs: []sem.Expr{outerCond},
+	}
+}
+
+func existsSubqueryCheck(n ast.Node) *sem.ValuesOp {
+	// In the RHS of SQL EXISTS, a subquery needs to return an array and if the
+	// array has length greater than zero, then the EXISTS test is true.XXX
+	// To make this efficient we need to get just the first result out... do a head 1 XXX
+	//  a scalar but the result of the subquery is a relation.
 	// The runtime already checks if the subquery returns multiple "rows", so
 	// here we just check if the relation is a single column and error appropriately
 	// or otherwise pull out the value to make the scalar.
