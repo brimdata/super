@@ -1136,16 +1136,6 @@ func sqlSubqueryCheck(n ast.Node) *sem.ValuesOp {
 	// here we just check if the relation is a single column and error appropriately
 	// or otherwise pull out the value to make the scalar.
 	// values is_error(this) ? this : (len(this) == 1 ? this[1] : error() )
-	indexExpr := &sem.IndexExpr{
-		Node:  n,
-		Expr:  sem.NewThis(n, nil),
-		Index: &sem.LiteralExpr{Node: n, Value: "1"},
-	}
-	isErrCond := &sem.CallExpr{
-		Node: n,
-		Tag:  "is_error",
-		Args: []sem.Expr{sem.NewThis(n, nil)},
-	}
 	lenCall := &sem.CallExpr{
 		Node: n,
 		Tag:  "len",
@@ -1157,11 +1147,21 @@ func sqlSubqueryCheck(n ast.Node) *sem.ValuesOp {
 		LHS:  lenCall,
 		RHS:  &sem.LiteralExpr{Node: n, Value: "1"},
 	}
+	indexExpr := &sem.IndexExpr{
+		Node:  n,
+		Expr:  sem.NewThis(n, nil),
+		Index: &sem.LiteralExpr{Node: n, Value: "1"},
+	}
 	innerCond := &sem.CondExpr{
 		Node: n,
 		Cond: lenCond,
 		Then: indexExpr,
 		Else: sem.NewStructuredError(n, "subquery expression cannot have multiple columns", sem.NewThis(n, nil)),
+	}
+	isErrCond := &sem.CallExpr{
+		Node: n,
+		Tag:  "is_error",
+		Args: []sem.Expr{sem.NewThis(n, nil)},
 	}
 	outerCond := &sem.CondExpr{
 		Node: n,
