@@ -1,33 +1,82 @@
 ## Types
 
-XXX types can be defined in a query in addition to in the input data
-
-Named types may be created with the syntax
+Named types are declared with the syntax
 ```
 type <id> = <type>
 ```
 where `<id>` is an identifier and `<type>` is a [type](data-types.md#first-class-types).
-This creates a new type with the given name in the type system, e.g.,
+This creates a new type with the given name in the type system.
+
+Type declarations must appear in the declaration section of a [scope](../syntax.md#scope).
+
+Input data may create named types that conflict with type declarations.  In this case,
+a reference to a declared type in the query text uses the type definition of the nearest
+containing scope that binds the type name independent of types in the input.
+
+When a named type is referenced as a string argument to cast, then any type definition
+with that name is ignored and the named type is bound to the type of the argument of cast.
+This does not affect the binding of the type used in other expression in the query text.
+
+### Examples
+
+---
+
+_Cast integers to a network port type_
+
 ```mdtest-spq
 # spq
 type port=uint16
-
-cast(this, <port>)
+values this::port
 # input
 80
 # expected output
 80::(port=uint16)
 ```
 
-One or more `type` statements may appear at the beginning of a scope
-(i.e., the main scope at the start of a query,
-the start of the body of a [user-defined operator](#operator-statements),
-or a [lateral scope](lateral-subqueries.md/#lateral-scope)
-defined by an [`over` operator](operators/over.md))
-and binds the identifier to the type in the scope in which it appears in addition
-to any contained scopes.
+---
 
-A `type` statement cannot redefine an identifier that was previously defined in the same
-scope but can override identifiers defined in ancestor scopes.
+_Cast integers to a network port type calling `cast` with a type value_
 
-`type` statements may appear intermixed with `const` and `func` statements.
+```mdtest-spq
+# spq
+type port=uint16
+values cast(this, <port>)
+# input
+80
+# expected output
+80::(port=uint16)
+```
+
+---
+
+_Override binding to type name with `this`_
+
+```mdtest-spq
+# spq
+type foo=string
+values cast(x, foo), cast(x, this.foo)
+# input
+{x:1,foo:<float64>}
+{x:2,foo:<bool>}
+# expected output
+"1"::=foo
+1.
+"2"::=foo
+true
+```
+
+---
+
+_A type name argument to cast in the form of a string is independent type declarations_
+
+```mdtest-spq
+# spq
+type foo=string
+values {str:cast(this, 'foo'), named:cast(this, foo)}
+# input
+1
+2
+# expected output
+{str:1::=foo,named:"1"::=foo}
+{str:2::=foo,named:"2"::=foo}
+```

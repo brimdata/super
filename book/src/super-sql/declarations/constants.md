@@ -1,6 +1,6 @@
 ## Constants
 
-Constants may be defined and assigned to a name with the syntax
+Constants are declared with the syntax
 ```
 const <id> = <expr>
 ```
@@ -9,7 +9,7 @@ and `<expr>` is a constant [expression](expressions.md)
 that must evaluate to a constant at compile time and not reference any
 runtime state such as `this` or a field of `this`.
 
-A constant declaration must appear in the declaration section of a [scope](../syntax.md#scope).
+Constant declarations must appear in the declaration section of a [scope](../syntax.md#scope).
 
 A constant can be any expression, inclusive of subqueries and function calls, as
 long as the expression evalautes to a compile-time constant.
