@@ -1,0 +1,4 @@
+spq: select (values {y:0,z:1}) as v
+
+output: |
+  {v:error({message:"subquery expression cannot have multiple columns",on:{y:0,z:1}})}

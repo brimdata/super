@@ -1124,24 +1124,57 @@ func (t *translator) subqueryExpr(astExpr ast.Expr, array bool, body ast.Seq) *s
 		e.Body.Prepend(&sem.NullScan{})
 	}
 	if !array && t.scope.schema != nil {
-		// SQL expects a record with a single column result so fetch the first
-		// value.
-		// XXX this should be a structured error... or just allow it
-		// SQL expects a record with a single column result so fetch the first
-		// value.  Or we should be descoping.
-		// XXX subquery runtime should return the error and user needs to wrap []
-		// if they expect multiple values
-		e.Body.Append(&sem.ValuesOp{
-			Node: astExpr,
-			Exprs: []sem.Expr{
-				&sem.IndexExpr{
-					Node:  astExpr,
-					Expr:  sem.NewThis(astExpr, nil),
-					Index: &sem.LiteralExpr{Node: astExpr, Value: "1"},
-				}},
-		})
+		// SQL expects a record with a single column result so unravel this
+		// condition with this complex cleanup...
+		e.Body.Append(scalarSubqueryCheck(astExpr))
 	}
 	return e
+}
+
+func scalarSubqueryCheck(n ast.Node) *sem.ValuesOp {
+	// In a SQL expression (except for RHS of EXISTS or IN, which both use array result),
+	// a subquery returns a scalar but the result of the subquery is a relation.
+	// The runtime already checks if the subquery returns multiple "rows", so
+	// here we just check if the relation is a single column and error appropriately
+	// or otherwise pull out the value to make the scalar.
+	// values is_error(this) ? this : (len(this) == 1 ? this[1] : error(...) )
+	lenCall := &sem.CallExpr{
+		Node: n,
+		Tag:  "len",
+		Args: []sem.Expr{sem.NewThis(n, nil)},
+	}
+	lenCond := &sem.BinaryExpr{
+		Node: n,
+		Op:   "==",
+		LHS:  lenCall,
+		RHS:  &sem.LiteralExpr{Node: n, Value: "1"},
+	}
+	indexExpr := &sem.IndexExpr{
+		Node:  n,
+		Expr:  sem.NewThis(n, nil),
+		Index: &sem.LiteralExpr{Node: n, Value: "1"},
+	}
+	innerCond := &sem.CondExpr{
+		Node: n,
+		Cond: lenCond,
+		Then: indexExpr,
+		Else: sem.NewStructuredError(n, "subquery expression cannot have multiple columns", sem.NewThis(n, nil)),
+	}
+	isErrCond := &sem.CallExpr{
+		Node: n,
+		Tag:  "is_error",
+		Args: []sem.Expr{sem.NewThis(n, nil)},
+	}
+	outerCond := &sem.CondExpr{
+		Node: n,
+		Cond: isErrCond,
+		Then: sem.NewThis(n, nil),
+		Else: innerCond,
+	}
+	return &sem.ValuesOp{
+		Node:  n,
+		Exprs: []sem.Expr{outerCond},
+	}
 }
 
 func isCorrelated(seq sem.Seq) bool {

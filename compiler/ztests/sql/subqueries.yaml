@@ -1,8 +1,20 @@
 script: |
   super -s -c 'select 1+(select 1) as v'
-  echo // ===
-  # pipe values operator presents as relation (select 1+1 as y)
+  echo ===
+  # pipe subquery yields a value that is treated like a relation
+  super -s -c 'select (select {y:1+1}) as x'
+  echo ===
+  # pipe subquery yields a value that is treated like a relation
   super -s -c 'select (values {y:1+1}) as x'
+  echo ===
+  # ...as does select value
+  super -s -c 'select (values {y:1+1}) as x'
+  echo ===
+  # ...but array is a single value and need not be unraveled
+  super -s -c 'select [values {y:1+1}] as x'
+  echo ===
+  # pass errors through unmodified, i.e., do not turn into missing
+  super -s -c "select (values error('foo')) as e"
 
 vector: true
 
@@ -10,5 +22,13 @@ outputs:
   - name: stdout
     data: |
       {v:2}
-      // ===
+      ===
+      {x:{y:2}}
+      ===
       {x:2}
+      ===
+      {x:2}
+      ===
+      {x:[{y:2}]}
+      ===
+      {e:error("foo")}

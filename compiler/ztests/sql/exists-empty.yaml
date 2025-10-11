@@ -1,0 +1,5 @@
+spq: |
+  SELECT 1
+  WHERE EXISTS (SELECT * FROM (VALUES (1),(2)) limit 0)
+
+output: ""

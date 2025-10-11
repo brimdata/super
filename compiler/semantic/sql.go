@@ -161,6 +161,12 @@ func unravel(n ast.Node, elems []sem.RecordElem, schema schema, prefix field.Pat
 	case *joinSchema:
 		elems = unravel(n, elems, schema.left, append(prefix, "left"))
 		return unravel(n, elems, schema.right, append(prefix, "right"))
+	case *subquerySchema:
+		// XXX we're currently using subquerySchema to detect correlated subqueries
+		// but not doing the unnest yet, so in this case here (e.g., (select * from...)),
+		// we just unravel the inner schema without a path extension. This will change
+		// when we implement proper SQL subqueries with correlated subquery support.
+		return unravel(n, elems, schema.inner, prefix)
 	default:
 		panic(schema)
 	}
