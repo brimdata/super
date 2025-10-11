@@ -19,7 +19,7 @@ To install the SuperDB Python client, see the
 On macOS and Linux, you can use [Homebrew](https://brew.sh/) to install `super`:
 
 ```bash
-brew install brimdata/tap/super
+brew install --cask brimdata/tap/super
 ```
 Once installed, run a [quick test](hello-world.md).
 
