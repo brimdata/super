@@ -4,6 +4,8 @@ The components of a SuperSQL [pipeline](../intro.md#pipe-queries)
 are called pipe operators.  Each operator is identified by its name
 and performs a specific operation on a sequence of values.
 
+XXX built-in and declared
+
 Some operators, like
 [`aggregate`](aggregate.md) and [`sort`](sort.md),
 read all of their input before producing output, though
@@ -86,6 +88,10 @@ In the two examples above, the derived names are filled in as follows:
 aggregate count:=count() by upper:=upper(key)
 put lower:=lower(s), c:=a.b.c, `x+1`:=x+1
 ```
+
+### Call
+
+XXX document how call works for declared operators
 
 ### Shortcuts
 

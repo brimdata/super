@@ -9,6 +9,13 @@ This creates a new type with the given name in the type system.
 
 Type declarations must appear in the declaration section of a [scope](../syntax.md#scope).
 
+Any named type that appears in the body of a type declaration must be previously
+declared in the same scope or in an ancestor scope, i.e., types cannot contained
+forward references to other named types.  In particular, named types cannot be recursive.
+
+> _A future version of SuperSQL may include recursive types.  This is a research topic
+> for the SuperDB project._
+
 Input data may create named types that conflict with type declarations.  In this case,
 a reference to a declared type in the query text uses the type definition of the nearest
 containing scope that binds the type name independent of types in the input.
@@ -16,6 +23,10 @@ containing scope that binds the type name independent of types in the input.
 When a named type is referenced as a string argument to cast, then any type definition
 with that name is ignored and the named type is bound to the type of the argument of cast.
 This does not affect the binding of the type used in other expression in the query text.
+
+Types can also be bound to identifiers without creating a named type using a
+[constant](constants.md) declaration binding the name to a [type value](../types/type.md).
+
 
 ### Examples
 
@@ -79,4 +90,20 @@ values {str:cast(this, 'foo'), named:cast(this, foo)}
 # expected output
 {str:1::=foo,named:"1"::=foo}
 {str:2::=foo,named:"2"::=foo}
+```
+
+---
+
+_Bind a name to a type without creating a named type_
+
+```mdtest-spq
+# spq
+const foo=<string>
+values this::foo
+# input
+1
+2
+# expected output
+"1"
+"2"
 ```
