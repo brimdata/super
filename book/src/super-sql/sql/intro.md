@@ -14,3 +14,5 @@ see https://github.com/brimdata/super/issues/5974 (document this scoping)
 
 CTE scoping
 
+#### Accessing `this`
+

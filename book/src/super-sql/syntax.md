@@ -6,7 +6,7 @@ The syntactical structure of a pipe query consists of
 * a sequence of [pipe operators](operators/intro.md)
   separated by a pipe symbol (`|` or `|>`).
 
-Any valid [SQL query](../sql/intro.md) may appear as a pipe operator and thus
+Any valid [SQL query](sql/intro.md) may appear as a pipe operator and thus
 be embedded in a pipe query.
 
 Operator sequences may be parenthesized and nested to form [scopes](#scope).
@@ -20,8 +20,8 @@ by the operator.
 
 ### Scope
 
-A scope is formed by enclosing a set of declarations along with an operator
-sequence in the parentheses having the structure:
+A scope is formed by enclosing a set of [declarations](declarations/intro.md)
+along with an operator sequence in the parentheses having the structure:
 ```
 (
     <declarations>
@@ -30,16 +30,17 @@ sequence in the parentheses having the structure:
 ```
 Scope blocks may appear anywhere a [pipe operator](operators/intro.md) may appear,
 as a [subquery](expressions/subqueries.md) in an expression,
-as a [lateral subquery](expressions/subqueries.md#lateral-subquery), or
+as a [lateral subquery](expressions/subqueries.md#lateral-subqueries), or
 as the body of [declared operator](declarations/operators.md).
 
-Any query can be enclosed in parentheses and additional declarations
-may appear at the beginning of the parenthesized query.
-The parenthesized entity forms a
+The parenthesized block forms a
 [lexical scope](https://en.wikipedia.org/wiki/Scope_(computer_science)#Lexical_scope)
 and the bindings created by declarations
 within the scope are reachable only within that scope inclusive
 of other scopes defined within the scope.
+
+A declaration cannot redefine an identifier that was previously defined in the same
+scope but can override identifiers defined in ancestor scopes.
 
 The topmost scope is the global scope where all declared identifiers
 are available everywhere and does not include parentheses.
@@ -49,23 +50,22 @@ of references to data input is defined by
 [dataflow scoping](intro.md#dataflow-scoping) and
 [relational scoping](intro.md#relational-scoping).
 
-For example,
+For example, [this example](declarations/constants.md#examples) of a constant declaration
 ```
-const pi=3.14
-values pi
+const PI=3.14
+values PI
 ```
-emits the value of the constant `pi`, but
+emits the value `3.14` whereas
 ```
 ( 
-  const pi=3.14
-  values pi
+  const PI=3.14
+  values PI
 )
-| values this+pi
+| values this+PI
 ```
-emits `error("missing")` because the second reference to `pi` does not
-the declared constant as it's in the outer scope,
-and thus it is bound `this.pi` via dataflow scoping,
-which does not exist at entry to the second [`values`](operators/values.md) operator.
+emits `error("missing")` because the second reference to `PI` is not
+in the scope of the declared constant and thus the identifier is interpreted
+as a field reference `this.pi` via [dataflow scoping](intro.md#dataflow-scoping).
 
 ### Identifiers
 
@@ -82,6 +82,11 @@ Escape sequences in backtick-quoted identifiers are interpreted as in
 character may be included in a backtick string with Unicode escape `\u0060`.
 
 In SQL expressions, identifiers may also be enclosed in double-quoted strings.
+
+The special value `this` is also available in SQL but has
+[peculiar semantics](sql/intro.md#accessing-this)
+due to SQL scoping rules.  To reference a column called `this`
+in a SQL expression, simply use double quotes, i.e., `"this"`.
 
 An unquoted identifier cannot be `true`, `false`, `null`, or a SQL keyword.
 
