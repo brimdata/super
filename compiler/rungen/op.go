@@ -322,11 +322,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 	case *dag.MergeOp:
 		return nil, errors.New("merge: multiple upstream paths required")
 	case *dag.HeadOp:
-		limit := v.Count
-		if limit == 0 {
-			limit = 1
-		}
-		return head.New(parent, limit), nil
+		return head.New(parent, v.Count), nil
 	case *dag.LoadOp:
 		return load.New(b.rctx, b.env.DB(), parent, v.Pool, v.Branch, v.Author, v.Message, v.Meta), nil
 	case *dag.OutputOp:
