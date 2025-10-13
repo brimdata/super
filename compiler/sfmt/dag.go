@@ -20,6 +20,10 @@ func DAG(main *dag.Main) string {
 	return d.String()
 }
 
+func DAGSeq(seq dag.Seq) string {
+	return DAG(&dag.Main{Body: seq})
+}
+
 func DAGExpr(e dag.Expr) string {
 	d := &canonDAG{
 		shared: shared{formatter: formatter{tab: 2}},
