@@ -7,9 +7,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/semantic/sem"
 	"github.com/brimdata/super/pkg/field"
+	"github.com/brimdata/super/sup"
 )
 
 type schema interface {
@@ -51,11 +53,26 @@ type subquerySchema struct {
 	inner schema
 }
 
+type pipeSchema struct {
+	name   string
+	typ    super.Type
+	record *super.TypeRecord
+}
+
+func newPipeSchema(name string, typ super.Type) *pipeSchema {
+	return &pipeSchema{
+		name:   name,
+		typ:    typ,
+		record: recordOf(typ),
+	}
+}
+
 func (s *staticSchema) Name() string  { return s.name }
 func (d *dynamicSchema) Name() string { return d.name }
 func (*selectSchema) Name() string    { return "" }
 func (*joinSchema) Name() string      { return "" }
 func (*subquerySchema) Name() string  { return "" }
+func (p *pipeSchema) Name() string    { return p.name }
 
 func badSchema() schema {
 	return &dynamicSchema{}
@@ -131,6 +148,13 @@ func (s *subquerySchema) resolveTable(table string) (schema, field.Path, error) 
 		return nil, nil, errors.New("correlated subqueries not currently supported")
 	}
 	return sch, path, err
+}
+
+func (p *pipeSchema) resolveTable(table string) (schema, field.Path, error) {
+	if strings.EqualFold(p.name, table) {
+		return p, nil, nil
+	}
+	return nil, nil, nil
 }
 
 func (d *dynamicSchema) resolveColumn(col string) (field.Path, bool, error) {
@@ -228,6 +252,15 @@ func (s *subquerySchema) resolveColumn(col string) (field.Path, bool, error) {
 	return nil, false, fmt.Errorf("column %q not found", col)
 }
 
+func (p *pipeSchema) resolveColumn(col string) (field.Path, bool, error) {
+	if p.record != nil && slices.ContainsFunc(p.record.Fields, func(f super.Field) bool {
+		return f.Name == col
+	}) {
+		return field.Path{col}, false, nil
+	}
+	return nil, false, fmt.Errorf("column %q: does not exist", col)
+}
+
 func (*dynamicSchema) resolveOrdinal(n ast.Node, col int) (sem.Expr, error) {
 	if col <= 0 {
 		return nil, fmt.Errorf("position %d is not in select list", col)
@@ -271,6 +304,13 @@ func (j *joinUsingSchema) resolveOrdinal(ast.Node, int) (sem.Expr, error) {
 
 func (s *subquerySchema) resolveOrdinal(ast.Node, int) (sem.Expr, error) {
 	return nil, errors.New("ordinal column selection in subquery not supported")
+}
+
+func (p *pipeSchema) resolveOrdinal(n ast.Node, col int) (sem.Expr, error) {
+	if p.record == nil || col <= 0 || col > len(p.record.Fields) {
+		return nil, fmt.Errorf("position %d is not in select list", col)
+	}
+	return sem.NewThis(n, []string{p.record.Fields[col-1].Name}), nil
 }
 
 func appendExprToPath(path string, e sem.Expr) sem.Expr {
@@ -353,6 +393,13 @@ func (s *subquerySchema) deref(n ast.Node, name string) (sem.Expr, schema) {
 	panic(name)
 }
 
+func (p *pipeSchema) deref(n ast.Node, name string) (sem.Expr, schema) {
+	if name != "" {
+		p = &pipeSchema{name: name, typ: p.typ, record: p.record}
+	}
+	return nil, p
+}
+
 func (d *dynamicSchema) this(n ast.Node, path []string) sem.Expr {
 	return sem.NewThis(n, path)
 }
@@ -373,6 +420,10 @@ func (j *joinSchema) this(n ast.Node, path []string) sem.Expr {
 
 func (s *subquerySchema) this(n ast.Node, path []string) sem.Expr {
 	panic("TBD")
+}
+
+func (p *pipeSchema) this(n ast.Node, path []string) sem.Expr {
+	return sem.NewThis(n, path)
 }
 
 func (d *dynamicSchema) tableOnly(n ast.Node, name string, path []string) (sem.Expr, error) {
@@ -412,6 +463,13 @@ func (s *subquerySchema) tableOnly(n ast.Node, name string, path []string) (sem.
 	return nil, fmt.Errorf("no such table %q", name) //XXX
 }
 
+func (p *pipeSchema) tableOnly(n ast.Node, name string, path []string) (sem.Expr, error) {
+	if p.name == name {
+		return p.this(n, path), nil
+	}
+	return nil, fmt.Errorf("no such table %q", name)
+}
+
 func (s *staticSchema) String() string {
 	return fmt.Sprintf("static <%s>: %s", s.name, strings.Join(s.columns, ", "))
 }
@@ -430,6 +488,10 @@ func (s *joinSchema) String() string {
 
 func (s *subquerySchema) String() string {
 	return fmt.Sprintf("subquery:\n  outer: %s\n  inner: %s", s.outer, s.inner)
+}
+
+func (p *pipeSchema) String() string {
+	return fmt.Sprintf("pipe <%s>:\n  type: %s\n", p.name, sup.FormatType(p.typ))
 }
 
 type havingSchema struct {

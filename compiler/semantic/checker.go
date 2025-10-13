@@ -883,6 +883,20 @@ func hasUnknown(typ super.Type) bool {
 	return isUnknown(typ)
 }
 
+func recordOf(typ super.Type) *super.TypeRecord {
+	switch typ := super.TypeUnder(typ).(type) {
+	case *super.TypeRecord:
+		return typ
+	case *super.TypeUnion:
+		for _, typ := range typ.Types {
+			if typ := recordOf(typ); typ != nil {
+				return typ
+			}
+		}
+	}
+	return nil
+}
+
 func (c *checker) indexOf(cloc, iloc ast.Node, container, index super.Type) (super.Type, bool) {
 	if hasUnknown(container) {
 		return c.unknown, true

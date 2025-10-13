@@ -1,0 +1,27 @@
+script: |
+  super -o x.parquet -f parquet x.sup
+  super -o y.parquet -f parquet y.sup
+  super -s -c "select x from x.parquet join y.parquet on x=y"
+  ! super -s -c "select x from x.parquet join y.sup on x=y"
+
+inputs:
+  - name: x.sup
+    data: |
+      {x:1}
+  - name: y.sup
+    data: |
+      {y:1}
+      {y:2}
+
+outputs:
+  - name: stdout
+    data: |
+      {x:1}
+  - name: stderr
+    data: |
+      "x": ambiguous column reference at line 1, column 39:
+      select x from x.parquet join y.sup on x=y
+                                            ~
+      "x": ambiguous column reference at line 1, column 8:
+      select x from x.parquet join y.sup on x=y
+             ~

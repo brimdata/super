@@ -39,7 +39,7 @@ func Analyze(ctx context.Context, p *parser.AST, env *exec.Environment, extInput
 			seq.Prepend(&sem.NullScan{})
 		}
 	}
-	newChecker(t).check(t.reporter, seq)
+	t.checker.check(t.reporter, seq)
 	if err := t.Error(); err != nil {
 		return nil, err
 	}
@@ -55,6 +55,7 @@ type translator struct {
 	reporter
 	ctx      context.Context
 	resolver *resolver
+	checker  *checker
 	opStack  []*ast.OpDecl
 	cteStack []*ast.SQLCTE
 	env      *exec.Environment
@@ -70,6 +71,7 @@ func newTranslator(ctx context.Context, r reporter, env *exec.Environment) *tran
 		scope:    NewScope(nil),
 		sctx:     super.NewContext(),
 	}
+	t.checker = newChecker(t)
 	t.resolver = newResolver(t)
 	return t
 }

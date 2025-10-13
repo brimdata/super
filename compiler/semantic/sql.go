@@ -159,6 +159,20 @@ func unravel(n ast.Node, elems []sem.RecordElem, schema schema, prefix field.Pat
 	case *joinSchema:
 		elems = unravel(n, elems, schema.left, append(prefix, "left"))
 		return unravel(n, elems, schema.right, append(prefix, "right"))
+	case *pipeSchema:
+		if schema.record == nil {
+			return append(elems, &sem.SpreadElem{
+				Node: n,
+				Expr: sem.NewThis(n, prefix),
+			})
+		}
+		for _, f := range schema.record.Fields {
+			elems = append(elems, &sem.FieldElem{
+				Name:  f.Name,
+				Value: sem.NewThis(n, slices.Clone(append(prefix, f.Name))),
+			})
+		}
+		return elems
 	default:
 		panic(schema)
 	}
@@ -398,7 +412,18 @@ func (t *translator) sqlPipe(op *ast.SQLPipe, seq sem.Seq, alias *ast.TableAlias
 			t.error(alias, errors.New("cannot apply column aliases to dynamically typed data"))
 		}
 	}
-	return t.seq(op.Ops), &dynamicSchema{name: name}
+	seq = t.seq(op.Ops)
+	// We pass in type null for initial type here since we know a pipe subquery inside
+	// of a sql table expression must always have a data source (i.e., it cannot inherit
+	// data from a parent node somewhere outside of this seq).  XXX this assumption may
+	// change when we add support for correlated subqueries and an embedded pipe may
+	// need access to the incoming type when feeding that type into the unnest scope
+	// that implements the correlated subquery.
+	typ := t.checker.seq(super.TypeNull, seq)
+	if isUnknown(typ) {
+		return seq, &dynamicSchema{name: name}
+	}
+	return seq, newPipeSchema(name, typ)
 }
 
 func derefSchemaAs(n ast.Node, sch schema, table string, seq sem.Seq) (sem.Seq, schema) {

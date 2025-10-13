@@ -1,0 +1,16 @@
+script: |
+  super -s -c "select x from (from x.sup | values {x}) join (from y.sup | values {y}) on x=y"
+
+inputs:
+  - name: x.sup
+    data: |
+      {x:1}
+  - name: y.sup
+    data: |
+      {y:1}
+      {y:2}
+
+outputs:
+  - name: stdout
+    data: |
+      {x:1}

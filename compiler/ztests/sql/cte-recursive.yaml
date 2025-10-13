@@ -14,3 +14,6 @@ error: |
   recursive WITH relations not currently supported at line 5, column 10:
     FROM   t
            ~
+  column "x": does not exist at line 8, column 14:
+  SELECT count(x) FROM t AS t1;
+               ~

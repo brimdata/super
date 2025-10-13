@@ -1,0 +1,4 @@
+spq: select x from (values {x:1}) join (values {y:1},{y:2}) on x=y
+
+output: |
+  {x:1}
