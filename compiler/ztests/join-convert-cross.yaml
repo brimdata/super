@@ -1,0 +1,78 @@
+script: |
+  super compile -O -C "
+    fork
+      (
+        values {a1:1}
+      )
+      (
+        fork
+          (
+            values {a2:1}
+          )
+          (
+            values {a3:1} 
+          )
+        | cross join as {left,right}
+      )
+    | cross join as {left,right}
+    | where right.right.a3 == right.left.a2+1
+    | where right.left.a2 == left.a1
+  "
+  echo // ===
+  super compile -O -C "
+    fork
+      (
+        fork
+          (
+            values {a2:1}
+          )
+          (
+            values {a3:1} 
+          )
+        | cross join as {left,right}
+      )
+      (
+        values {a1:1}
+      )
+    | cross join as {left,right}
+    | where left.left.a2 == left.right.a3 and right.a1 == left.left.a2
+  "
+
+outputs:
+  - name: stdout
+    data: |
+      null
+      | fork
+        (
+          values {a1:1}
+        )
+        (
+          fork
+            (
+              values {a2:1}
+            )
+            (
+              values {a3:1}
+            )
+          | inner hashjoin as {left,right} on a2+1==a3
+        )
+      | inner hashjoin as {left,right} on a1==left.a2
+      | output main
+      // ===
+      null
+      | fork
+        (
+          fork
+            (
+              values {a2:1}
+            )
+            (
+              values {a3:1}
+            )
+          | inner hashjoin as {left,right} on a2==a3
+        )
+        (
+          values {a1:1}
+        )
+      | inner hashjoin as {left,right} on left.a2==a1
+      | output main

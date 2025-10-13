@@ -144,6 +144,7 @@ func (o *Optimizer) Optimize(main *dag.Main) error {
 	seq = mergeFilters(seq)
 	seq = mergeValuesOps(seq)
 	inlineRecordExprSpreads(seq)
+	seq = liftFilterConvertCrossJoin(seq)
 	seq = joinFilterPullup(seq)
 	seq = removePassOps(seq)
 	seq = replaceSortAndHeadOrTailWithTop(seq)
@@ -511,7 +512,7 @@ func joinFilterPullup(seq dag.Seq) dag.Seq {
 	seq = mergeFilters(seq)
 	for i := 0; i <= len(seq)-3; i++ {
 		fork, isfork := seq[i].(*dag.ForkOp)
-		leftAlias, rightAlias, isjoin := isJoin(seq[i+1])
+		leftAlias, rightAlias, _, isjoin := isJoin(seq[i+1])
 		filter, isfilter := seq[i+2].(*dag.FilterOp)
 		if !isfork || !isjoin || !isfilter {
 			continue
@@ -535,11 +536,7 @@ func joinFilterPullup(seq dag.Seq) dag.Seq {
 			// Filter has been fully pulled up and can be removed.
 			seq.Delete(i+2, i+3)
 		} else {
-			out := remaining[0]
-			for _, e := range remaining[1:] {
-				out = dag.NewBinaryExpr("and", e, out)
-			}
-			seq[i+2] = dag.NewFilterOp(out)
+			seq[i+2] = dag.NewFilterOp(buildConjunction(remaining))
 		}
 		fork.Paths[0] = joinFilterPullup(fork.Paths[0])
 		fork.Paths[1] = joinFilterPullup(fork.Paths[1])
@@ -547,15 +544,23 @@ func joinFilterPullup(seq dag.Seq) dag.Seq {
 	return seq
 }
 
-func isJoin(op dag.Op) (string, string, bool) {
+func isJoin(op dag.Op) (string, string, string, bool) {
 	switch op := op.(type) {
 	case *dag.HashJoinOp:
-		return op.LeftAlias, op.RightAlias, true
+		return op.LeftAlias, op.RightAlias, "inner", true
 	case *dag.JoinOp:
-		return op.LeftAlias, op.RightAlias, true
+		return op.LeftAlias, op.RightAlias, op.Style, true
 	default:
-		return "", "", false
+		return "", "", "", false
 	}
+}
+
+func buildConjunction(exprs []dag.Expr) dag.Expr {
+	out := exprs[0]
+	for _, e := range exprs[1:] {
+		out = dag.NewBinaryExpr("and", e, out)
+	}
+	return out
 }
 
 func splitPredicate(e dag.Expr) []dag.Expr {
