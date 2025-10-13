@@ -1,0 +1,5 @@
+spq: |
+  values [select 1 as x]
+
+output: |
+  [{x:1}]

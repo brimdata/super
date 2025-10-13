@@ -132,7 +132,7 @@ PipeOp
       return &ast.ExprOp{Kind:"ExprOp",Expr:e.(ast.Expr),Loc:loc(c)}, nil
     }
 
-EndOfOp = __ (Pipe / ")" / ";" / EOF)
+EndOfOp = __ (Pipe / ")" / "]" / ";" / EOF)
 Pipe = "|>" / "|"
 
 CallExprGuard = IN / LIKE / IS / OR / AND
