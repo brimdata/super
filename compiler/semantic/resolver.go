@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/semantic/sem"
+	"github.com/brimdata/super/runtime/sam/expr/function"
 )
 
 type funcParamLambda struct {
@@ -35,8 +37,8 @@ func newResolver(t *translator) *resolver {
 // exactly one for each such combination of decl IDs.  The instances
 // are unqiue up to the lamba params, which are in turn identified by
 // their decl ID (or built-in name).  Since lambda params originate only
-// at a built-in // or function declaration and they can't be modified
-// *(only passed by reference), the variants are determined by decl ID
+// at a built-in or function declaration and they can't be modified
+// (only passed by reference), the variants are determined by decl ID
 // rather than call tag.  This allows us to translate and unravel
 // all the functions and lambda arguments in a single pass integrated
 // into the translator logic, which in turn, allows us to carry out
@@ -51,9 +53,21 @@ type funcDef struct {
 }
 
 type lambda struct {
-	param string // parameter name this lambda arg appeared asa
+	param string // parameter name this lambda arg appeared as
 	pos   int    // position in the formal parameters list of the function
 	id    string // declaration ID (or built-in) of the function value
+}
+
+func (r *resolver) resolveCall(n ast.Node, id string, args []sem.Expr) sem.Expr {
+	if isBuiltin(id) {
+		// Check argument count here for builtin functions.
+		if _, err := function.New(super.NewContext(), id, len(args)); err != nil {
+			r.t.error(n, err)
+			return badExpr()
+		}
+		return sem.NewCall(n, id, args)
+	}
+	return r.mustResolveCall(n, id, args)
 }
 
 func (r *resolver) mustResolveCall(n ast.Node, id string, args []sem.Expr) sem.Expr {
@@ -132,7 +146,7 @@ func (r *resolver) resolveFixed(d *funcDecl, tag string) *funcDef {
 	}()
 	r.t.enterScope()
 	params := idsToStrings(d.lambda.Params)
-	for _, param := range idsToStrings(d.lambda.Params) {
+	for _, param := range params {
 		r.t.scope.BindSymbol(param, funcParamValue{})
 	}
 	body := r.t.semExpr(d.lambda.Expr)

@@ -98,7 +98,7 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 		// an arg to another function.  It could be a built-in (as in &upper),
 		// or a user function (as in fn foo():... &foo)...
 		id := e.Name
-		if boundID, _ := t.scope.lookupFuncDeclOrParam(e.Name); boundID != "" {
+		if boundID, _ := t.scope.lookupFuncDeclOrParam(id); boundID != "" {
 			id = boundID
 		}
 		return &sem.FuncRef{
@@ -785,7 +785,7 @@ func (t *translator) semMapCall(call *ast.CallExpr, args []sem.Expr) sem.Expr {
 		return badExpr()
 	}
 	mapArgs := []sem.Expr{sem.NewThis(call.Args[1], nil)}
-	e := t.resolveCall(call.Args[1], ref.ID, mapArgs)
+	e := t.resolver.resolveCall(call.Args[1], ref.ID, mapArgs)
 	if callExpr, ok := e.(*sem.CallExpr); ok {
 		return &sem.MapCallExpr{
 			Node:   call,
@@ -794,18 +794,6 @@ func (t *translator) semMapCall(call *ast.CallExpr, args []sem.Expr) sem.Expr {
 		}
 	}
 	return e
-}
-
-func (t *translator) resolveCall(n ast.Node, id string, args []sem.Expr) sem.Expr {
-	if isBuiltin(id) {
-		// Check argument count here for builtin functions.
-		if _, err := function.New(super.NewContext(), id, len(args)); err != nil {
-			t.error(n, err)
-			return badExpr()
-		}
-		return sem.NewCall(n, id, args)
-	}
-	return t.resolver.mustResolveCall(n, id, args)
 }
 
 func (t *translator) semExtractExpr(e, partExpr, argExpr ast.Expr) sem.Expr {
