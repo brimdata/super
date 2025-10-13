@@ -25,17 +25,17 @@ import (
 // an OrderBy, it can reach into the "in" part of the select scope (for non-aggregates)
 // and also sort by the out elements.  It's up to the caller to unwrap the in/out
 // record when returning to pipeline context.
-func (t *translator) semSelect(sel *ast.SQLSelect, seq sem.Seq) (sem.Seq, schema) {
+func (t *translator) sqlSelect(sel *ast.SQLSelect, seq sem.Seq) (sem.Seq, schema) {
 	if len(sel.Selection.Args) == 0 {
 		t.error(sel, errors.New("SELECT clause has no selection"))
 		return seq, badSchema()
 	}
-	seq, fromSchema := t.semSelectFrom(sel.Loc, sel.From, seq)
+	seq, fromSchema := t.selectFrom(sel.Loc, sel.From, seq)
 	if fromSchema == nil {
 		return seq, badSchema()
 	}
 	if sel.Value {
-		return t.semSelectValue(sel, fromSchema, seq)
+		return t.selectValue(sel, fromSchema, seq)
 	}
 	if t.scope.schema != nil {
 		fromSchema = &subquerySchema{
@@ -45,13 +45,13 @@ func (t *translator) semSelect(sel *ast.SQLSelect, seq sem.Seq) (sem.Seq, schema
 	}
 	sch := &selectSchema{in: fromSchema}
 	var funcs aggfuncs
-	proj := t.semProjection(sch, sel.Selection.Args, &funcs)
+	proj := t.projection(sch, sel.Selection.Args, &funcs)
 	var where sem.Expr
 	if sel.Where != nil {
-		where = t.semExprSchema(sch, sel.Where)
+		where = t.exprSchema(sch, sel.Where)
 	}
-	keyExprs := t.semGroupBy(sch, sel.GroupBy)
-	having, err := t.semHaving(sch, sel.Having, &funcs)
+	keyExprs := t.groupBy(sch, sel.GroupBy)
+	having, err := t.having(sch, sel.Having, &funcs)
 	if err != nil {
 		t.error(sel.Having, err)
 		return seq, badSchema()
@@ -74,11 +74,11 @@ func (t *translator) semSelect(sel *ast.SQLSelect, seq sem.Seq) (sem.Seq, schema
 	return seq, sch
 }
 
-func (t *translator) semHaving(sch *selectSchema, e ast.Expr, funcs *aggfuncs) (sem.Expr, error) {
+func (t *translator) having(sch *selectSchema, e ast.Expr, funcs *aggfuncs) (sem.Expr, error) {
 	if e == nil {
 		return nil, nil
 	}
-	return funcs.subst(t.semExprSchema(&havingSchema{sch}, e))
+	return funcs.subst(t.exprSchema(&havingSchema{sch}, e))
 }
 
 func (t *translator) genValues(proj projection, where sem.Expr, sch *selectSchema, seq sem.Seq) sem.Seq {
@@ -286,13 +286,13 @@ func exprMatch(target sem.Expr, exprs []exprloc) int {
 	return -1
 }
 
-func (t *translator) semSelectFrom(loc ast.Loc, from *ast.FromOp, seq sem.Seq) (sem.Seq, schema) {
+func (t *translator) selectFrom(loc ast.Loc, from *ast.FromOp, seq sem.Seq) (sem.Seq, schema) {
 	if from == nil {
 		return seq, &dynamicSchema{}
 	}
 	off := len(seq)
 	hasParent := off > 0
-	seq, sch := t.semFrom(from, seq)
+	seq, sch := t.fromOp(from, seq)
 	if off >= len(seq) {
 		// The chain didn't get lengthed so semFrom must have enocounteded
 		// an error...
@@ -309,7 +309,7 @@ func (t *translator) semSelectFrom(loc ast.Loc, from *ast.FromOp, seq sem.Seq) (
 	return seq, sch
 }
 
-func (t *translator) semSelectValue(sel *ast.SQLSelect, sch schema, seq sem.Seq) (sem.Seq, schema) {
+func (t *translator) selectValue(sel *ast.SQLSelect, sch schema, seq sem.Seq) (sem.Seq, schema) {
 	if sel.GroupBy != nil {
 		t.error(sel, errors.New("SELECT VALUE cannot be used with GROUP BY"))
 		seq = append(seq, badOp())
@@ -327,12 +327,12 @@ func (t *translator) semSelectValue(sel *ast.SQLSelect, sch schema, seq sem.Seq)
 		if as.Expr == nil {
 			e = sem.NewThis(as, nil)
 		} else {
-			e = t.semExprSchema(sch, as.Expr)
+			e = t.exprSchema(sch, as.Expr)
 		}
 		exprs = append(exprs, e)
 	}
 	if sel.Where != nil {
-		seq = append(seq, sem.NewFilter(sel.Where, t.semExprSchema(sch, sel.Where)))
+		seq = append(seq, sem.NewFilter(sel.Where, t.exprSchema(sch, sel.Where)))
 	}
 	seq = append(seq, sem.NewValues(sel, exprs...))
 	if sel.Distinct {
@@ -341,10 +341,10 @@ func (t *translator) semSelectValue(sel *ast.SQLSelect, sch schema, seq sem.Seq)
 	return seq, &dynamicSchema{}
 }
 
-func (t *translator) semValues(values *ast.SQLValues, seq sem.Seq) (sem.Seq, schema) {
+func (t *translator) sqlValues(values *ast.SQLValues, seq sem.Seq) (sem.Seq, schema) {
 	exprs := make([]sem.Expr, 0, len(values.Exprs))
 	for _, astExpr := range values.Exprs {
-		e := t.semExpr(astExpr)
+		e := t.expr(astExpr)
 		exprs = append(exprs, e)
 	}
 	seq = append(seq, sem.NewValues(values, exprs...))
@@ -379,9 +379,9 @@ func (t *translator) genDistinct(e sem.Expr, seq sem.Seq) sem.Seq {
 	})
 }
 
-func (t *translator) semSQLPipe(op *ast.SQLPipe, seq sem.Seq, alias *ast.TableAlias) (sem.Seq, schema) {
+func (t *translator) sqlPipe(op *ast.SQLPipe, seq sem.Seq, alias *ast.TableAlias) (sem.Seq, schema) {
 	if len(op.Ops) == 1 && isSQLOp(op.Ops[0]) {
-		seq, sch := t.semSQLOp(op.Ops[0], seq)
+		seq, sch := t.sqlOp(op.Ops[0], seq)
 		outSeq, outSch, err := derefSchemaWithAlias(op.Ops[0], sch, alias, seq)
 		if err != nil {
 			t.error(op.Ops[0], err)
@@ -398,7 +398,7 @@ func (t *translator) semSQLPipe(op *ast.SQLPipe, seq sem.Seq, alias *ast.TableAl
 			t.error(alias, errors.New("cannot apply column aliases to dynamically typed data"))
 		}
 	}
-	return t.semSeq(op.Ops), &dynamicSchema{name: name}
+	return t.seq(op.Ops), &dynamicSchema{name: name}
 }
 
 func derefSchemaAs(n ast.Node, sch schema, table string, seq sem.Seq) (sem.Seq, schema) {
@@ -467,25 +467,25 @@ func isSQLOp(op ast.Op) bool {
 	return false
 }
 
-func (t *translator) semSQLOp(op ast.Op, seq sem.Seq) (sem.Seq, schema) {
+func (t *translator) sqlOp(op ast.Op, seq sem.Seq) (sem.Seq, schema) {
 	switch op := op.(type) {
 	case *ast.SQLPipe:
-		return t.semSQLPipe(op, seq, nil) //XXX should alias hang off SQLPipe?
+		return t.sqlPipe(op, seq, nil) //XXX should alias hang off SQLPipe?
 	case *ast.SQLSelect:
-		return t.semSelect(op, seq)
+		return t.sqlSelect(op, seq)
 	case *ast.SQLValues:
-		return t.semValues(op, seq)
+		return t.sqlValues(op, seq)
 	case *ast.SQLJoin:
-		return t.semSQLJoin(op, seq)
+		return t.sqlJoin(op, seq)
 	case *ast.SQLOrderBy:
-		out, schema := t.semSQLOp(op.Op, seq)
+		out, schema := t.sqlOp(op.Op, seq)
 		var exprs []sem.SortExpr
 		for _, e := range op.Exprs {
-			exprs = append(exprs, t.semSortExpr(schema, e, false))
+			exprs = append(exprs, t.sortExpr(schema, e, false))
 		}
 		return append(out, &sem.SortOp{Node: op, Exprs: exprs}), schema
 	case *ast.SQLLimitOffset:
-		out, schema := t.semSQLOp(op.Op, seq)
+		out, schema := t.sqlOp(op.Op, seq)
 		if op.Offset != nil {
 			out = append(out, &sem.SkipOp{Node: op.Offset, Count: t.mustEvalPositiveInteger(op.Offset)})
 		}
@@ -494,9 +494,9 @@ func (t *translator) semSQLOp(op ast.Op, seq sem.Seq) (sem.Seq, schema) {
 		}
 		return out, schema
 	case *ast.SQLUnion:
-		left, leftSch := t.semSQLOp(op.Left, seq)
+		left, leftSch := t.sqlOp(op.Left, seq)
 		left, _ = derefSchema(op.Left, leftSch, left)
-		right, rightSch := t.semSQLOp(op.Right, seq)
+		right, rightSch := t.sqlOp(op.Right, seq)
 		right, _ = derefSchema(op.Right, rightSch, right)
 		out := sem.Seq{
 			&sem.ForkOp{Node: op, Paths: []sem.Seq{left, right}},
@@ -526,20 +526,20 @@ func (t *translator) semSQLOp(op ast.Op, seq sem.Seq) (sem.Seq, schema) {
 			}
 			t.scope.ctes[name] = &op.CTEs[k]
 		}
-		return t.semSQLOp(op.Body, seq)
+		return t.sqlOp(op.Body, seq)
 	default:
 		panic(fmt.Sprintf("semSQLOp: unknown op: %#v", op))
 	}
 }
 
-func (t *translator) semCrossJoin(join *ast.SQLCrossJoin, seq sem.Seq) (sem.Seq, schema) {
+func (t *translator) sqlCrossJoin(join *ast.SQLCrossJoin, seq sem.Seq) (sem.Seq, schema) {
 	if len(seq) > 0 {
 		// At some point we might want to let parent data flow into a join somehow,
 		// but for now we flag an error.
 		t.error(join, errors.New("SQL cross join cannot inherit data from pipeline parent"))
 	}
-	leftSeq, leftSchema := t.semFromElem(join.Left, nil)
-	rightSeq, rightSchema := t.semFromElem(join.Right, nil)
+	leftSeq, leftSchema := t.fromElem(join.Left, nil)
+	rightSeq, rightSchema := t.fromElem(join.Right, nil)
 	sch := &joinSchema{left: leftSchema, right: rightSchema}
 	par := &sem.ForkOp{Paths: []sem.Seq{leftSeq, rightSeq}}
 	dagJoin := &sem.JoinOp{
@@ -553,18 +553,18 @@ func (t *translator) semCrossJoin(join *ast.SQLCrossJoin, seq sem.Seq) (sem.Seq,
 
 // For now, each joining table is on the right...
 // We don't have logic to not care about the side of the JOIN ON keys...
-func (t *translator) semSQLJoin(join *ast.SQLJoin, seq sem.Seq) (sem.Seq, schema) {
+func (t *translator) sqlJoin(join *ast.SQLJoin, seq sem.Seq) (sem.Seq, schema) {
 	if len(seq) > 0 {
 		// At some point we might want to let parent data flow into a join somehow,
 		// but for now we flag an error.
 		t.error(join, errors.New("SQL join cannot inherit data from pipeline parent"))
 	}
-	leftSeq, leftSchema := t.semFromElem(join.Left, nil)
-	rightSeq, rightSchema := t.semFromElem(join.Right, nil)
+	leftSeq, leftSchema := t.fromElem(join.Left, nil)
+	rightSeq, rightSchema := t.fromElem(join.Right, nil)
 	sch := &joinSchema{left: leftSchema, right: rightSchema}
 	saved := t.scope.schema
 	t.scope.schema = sch
-	cond := t.semJoinCond(join.Cond, "left", "right")
+	cond := t.joinCond(join.Cond, "left", "right")
 	t.scope.schema = saved
 	style := join.Style
 	if style == "" {
@@ -581,13 +581,13 @@ func (t *translator) semSQLJoin(join *ast.SQLJoin, seq sem.Seq) (sem.Seq, schema
 	return sem.Seq{par, dagJoin}, sch
 }
 
-func (t *translator) semJoinCond(cond ast.JoinCond, leftAlias, rightAlias string) sem.Expr {
+func (t *translator) joinCond(cond ast.JoinCond, leftAlias, rightAlias string) sem.Expr {
 	switch cond := cond.(type) {
 	case *ast.JoinOnCond:
 		if id, ok := cond.Expr.(*ast.IDExpr); ok {
-			return t.semJoinCond(&ast.JoinUsingCond{Fields: []ast.Expr{id}}, leftAlias, rightAlias)
+			return t.joinCond(&ast.JoinUsingCond{Fields: []ast.Expr{id}}, leftAlias, rightAlias)
 		}
-		e := t.semExpr(cond.Expr)
+		e := t.expr(cond.Expr)
 		dag.WalkT(reflect.ValueOf(e), func(e *sem.ThisExpr) *sem.ThisExpr {
 			if len(e.Path) == 0 {
 				t.error(cond.Expr, errors.New(`join expression cannot refer to "this"`))
@@ -604,7 +604,7 @@ func (t *translator) semJoinCond(cond ast.JoinCond, leftAlias, rightAlias string
 			defer func() { t.scope.schema = sch }()
 		}
 		var exprs []sem.Expr
-		for _, e := range t.semFields(cond.Fields) {
+		for _, e := range t.fields(cond.Fields) {
 			switch ee := e.(type) {
 			case *sem.BadExpr:
 			case *sem.ThisExpr:
@@ -632,11 +632,11 @@ type exprloc struct {
 	loc  ast.Expr
 }
 
-func (t *translator) semGroupBy(sch *selectSchema, in []ast.Expr) []exprloc {
+func (t *translator) groupBy(sch *selectSchema, in []ast.Expr) []exprloc {
 	var out []exprloc
 	var funcs aggfuncs
 	for k, expr := range in {
-		e := t.semExprSchema(sch, expr)
+		e := t.exprSchema(sch, expr)
 		if which, ok := isOrdinal(t.sctx, e); ok {
 			var err error
 			if e, err = sch.resolveOrdinal(e, which); err != nil {
@@ -662,7 +662,7 @@ func isOrdinal(sctx *super.Context, e sem.Expr) (int, bool) {
 	return -1, false
 }
 
-func (t *translator) semProjection(sch *selectSchema, args []ast.SQLAsExpr, funcs *aggfuncs) projection {
+func (t *translator) projection(sch *selectSchema, args []ast.SQLAsExpr, funcs *aggfuncs) projection {
 	out := &staticSchema{}
 	sch.out = out
 	labels := make(map[string]struct{})
@@ -672,7 +672,7 @@ func (t *translator) semProjection(sch *selectSchema, args []ast.SQLAsExpr, func
 			proj = append(proj, column{loc: as})
 			continue
 		}
-		col := t.semAs(sch, as, funcs)
+		col := t.as(sch, as, funcs)
 		if as.Label != nil {
 			if _, ok := labels[col.name]; ok {
 				t.error(as.Label, fmt.Errorf("duplicate column label %q", col.name))
@@ -719,8 +719,8 @@ func isStar(a ast.SQLAsExpr) bool {
 	return a.Expr == nil && a.Label == nil
 }
 
-func (t *translator) semAs(sch schema, as ast.SQLAsExpr, funcs *aggfuncs) *column {
-	e := t.semExprSchema(sch, as.Expr)
+func (t *translator) as(sch schema, as ast.SQLAsExpr, funcs *aggfuncs) *column {
+	e := t.exprSchema(sch, as.Expr)
 	// If we have a name from an AS clause, use it. Otherwise, infer a name.
 	var name string
 	if as.Label != nil {
@@ -740,10 +740,10 @@ func (t *translator) semAs(sch schema, as ast.SQLAsExpr, funcs *aggfuncs) *colum
 	return c
 }
 
-func (t *translator) semExprSchema(s schema, e ast.Expr) sem.Expr {
+func (t *translator) exprSchema(s schema, e ast.Expr) sem.Expr {
 	save := t.scope.schema
 	t.scope.schema = s
-	out := t.semExpr(e)
+	out := t.expr(e)
 	t.scope.schema = save
 	return out
 }

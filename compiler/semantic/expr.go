@@ -20,18 +20,18 @@ import (
 	"github.com/shellyln/go-sql-like-expr/likeexpr"
 )
 
-func (t *translator) semExpr(e ast.Expr) sem.Expr {
+func (t *translator) expr(e ast.Expr) sem.Expr {
 	switch e := e.(type) {
 	case *ast.Agg:
-		expr := t.semExprNullable(e.Expr)
+		expr := t.exprNullable(e.Expr)
 		nameLower := strings.ToLower(e.Name)
 		if expr == nil && nameLower != "count" {
 			t.error(e, fmt.Errorf("aggregator '%s' requires argument", e.Name))
 			return badExpr()
 		}
-		return t.semAggFunc(e, nameLower, e.Expr, e.Where, e.Distinct)
+		return t.aggFunc(e, nameLower, e.Expr, e.Where, e.Distinct)
 	case *ast.ArrayExpr:
-		elems := t.semArrayElems(e.Elems)
+		elems := t.arrayElems(e.Elems)
 		if subquery := t.arraySubquery(elems); subquery != nil {
 			return subquery
 		}
@@ -40,11 +40,11 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 			Elems: elems,
 		}
 	case *ast.BinaryExpr:
-		return t.semBinary(e)
+		return t.binaryExpr(e)
 	case *ast.BetweenExpr:
-		val := t.semExpr(e.Expr)
-		lower := t.semExpr(e.Lower)
-		upper := t.semExpr(e.Upper)
+		val := t.expr(e.Expr)
+		lower := t.expr(e.Lower)
+		upper := t.expr(e.Upper)
 		// Copy val so an optimizer change to one instance doesn't affect the other.
 		expr := &sem.BinaryExpr{
 			Node: e,
@@ -69,11 +69,11 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 	case *ast.CaseExpr:
 		return t.semCaseExpr(e)
 	case *ast.CondExpr:
-		cond := t.semExpr(e.Cond)
-		thenExpr := t.semExpr(e.Then)
+		cond := t.expr(e.Cond)
+		thenExpr := t.expr(e.Then)
 		var elseExpr sem.Expr
 		if e.Else != nil {
-			elseExpr = t.semExpr(e.Else)
+			elseExpr = t.expr(e.Else)
 		} else {
 			elseExpr = &sem.LiteralExpr{Node: e, Value: `error("missing")`}
 		}
@@ -88,11 +88,11 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 	case *ast.ExtractExpr:
 		return t.semExtractExpr(e, e.Part, e.Expr)
 	case *ast.DoubleQuoteExpr:
-		return t.semDoubleQuote(e)
+		return t.doubleQuoteExpr(e)
 	case *ast.ExistsExpr:
-		return t.semExists(e)
+		return t.existsExpr(e)
 	case *ast.FStringExpr:
-		return t.semFString(e)
+		return t.fstringExpr(e)
 	case *ast.FuncNameExpr:
 		// We get here for &refs that are in a call expression. e.g.,
 		// an arg to another function.  It could be a built-in (as in &upper),
@@ -112,7 +112,7 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 			Expr:    sem.NewThis(e, nil),
 		}
 	case *ast.IDExpr:
-		id := t.semID(e, false)
+		id := t.idExpr(e, false)
 		if t.scope.schema != nil {
 			if this, ok := id.(*sem.ThisExpr); ok {
 				ref, err := t.scope.resolve(e, this.Path)
@@ -125,8 +125,8 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 		}
 		return id
 	case *ast.IndexExpr:
-		expr := t.semExpr(e.Expr)
-		index := t.semExpr(e.Index)
+		expr := t.expr(e.Expr)
+		index := t.expr(e.Index)
 		// If expr is a path and index is a string, then just extend the path.
 		if path := t.isIndexOfThis(expr, index); path != nil {
 			return path
@@ -137,7 +137,7 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 			Index: index,
 		}
 	case *ast.IsNullExpr:
-		expr := t.semExpr(e.Expr)
+		expr := t.expr(e.Expr)
 		var out sem.Expr = &sem.IsNullExpr{Node: e, Expr: expr}
 		if e.Not {
 			out = sem.NewUnaryExpr(e, "!", out)
@@ -152,8 +152,8 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 	case *ast.MapExpr:
 		var entries []sem.Entry
 		for _, entry := range e.Entries {
-			key := t.semExpr(entry.Key)
-			val := t.semExpr(entry.Value)
+			key := t.expr(entry.Key)
+			val := t.expr(entry.Value)
 			entries = append(entries, sem.Entry{Key: key, Value: val})
 		}
 		return &sem.MapExpr{
@@ -171,7 +171,7 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 			Value: sup.FormatValue(val),
 		}
 	case *ast.SubqueryExpr:
-		return t.semSubquery(e, e.Array, e.Body)
+		return t.subqueryExpr(e, e.Array, e.Body)
 	case *ast.RecordExpr:
 		fields := map[string]struct{}{}
 		var out []sem.RecordElem
@@ -183,20 +183,20 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 					continue
 				}
 				fields[elem.Name.Text] = struct{}{}
-				e := t.semExpr(elem.Value)
+				e := t.expr(elem.Value)
 				out = append(out, &sem.FieldElem{
 					Node:  elem,
 					Name:  elem.Name.Text,
 					Value: e,
 				})
 			case *ast.SpreadElem:
-				e := t.semExpr(elem.Expr)
+				e := t.expr(elem.Expr)
 				out = append(out, &sem.SpreadElem{
 					Node: elem,
 					Expr: e,
 				})
 			case *ast.ExprElem:
-				e := t.semExpr(elem.Expr)
+				e := t.expr(elem.Expr)
 				name := deriveNameFromExpr(elem.Expr)
 				if _, ok := fields[name]; ok {
 					t.error(elem, fmt.Errorf("record expression: %w", &super.DuplicateFieldError{Name: name}))
@@ -222,16 +222,16 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 			Expr:    sem.NewThis(e, nil),
 		}
 	case *ast.SetExpr:
-		elems := t.semArrayElems(e.Elems)
+		elems := t.arrayElems(e.Elems)
 		return &sem.SetExpr{
 			Node:  e,
 			Elems: elems,
 		}
 	case *ast.SliceExpr:
-		expr := t.semExpr(e.Expr)
+		expr := t.expr(e.Expr)
 		// XXX Literal indices should be type checked as int.
-		from := t.semExprNullable(e.From)
-		to := t.semExprNullable(e.To)
+		from := t.exprNullable(e.From)
+		to := t.exprNullable(e.To)
 		return &sem.SliceExpr{
 			Node: e,
 			Expr: expr,
@@ -239,20 +239,20 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 			To:   to,
 		}
 	case *ast.SQLCast:
-		expr := t.semExpr(e.Expr)
+		expr := t.expr(e.Expr)
 		if _, ok := e.Type.(*ast.DateTypeHack); ok {
 			// cast to time then bucket by 1d as a workaround for not currently
 			// supporting a "date" type.
 			cast := sem.NewCall(e, "cast", []sem.Expr{expr, &sem.LiteralExpr{Node: e, Value: "<time>"}})
 			return sem.NewCall(e, "bucket", []sem.Expr{cast, &sem.LiteralExpr{Node: e, Value: "1d"}})
 		}
-		typ := t.semExpr(&ast.TypeValue{
+		typ := t.expr(&ast.TypeValue{
 			Kind:  "TypeValue",
 			Value: e.Type,
 		})
 		return sem.NewCall(e, "cast", []sem.Expr{expr, typ})
 	case *ast.SQLSubstring:
-		expr := t.semExpr(e.Expr)
+		expr := t.expr(e.Expr)
 		if e.From == nil && e.For == nil {
 			t.error(e, errors.New("FROM or FOR must be set"))
 			return badExpr()
@@ -262,10 +262,10 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 		slice := &sem.SliceExpr{
 			Node: e,
 			Expr: expr,
-			From: t.semExprNullable(e.From),
+			From: t.exprNullable(e.From),
 		}
 		if e.For != nil {
-			to := t.semExpr(e.For)
+			to := t.expr(e.For)
 			if slice.From != nil {
 				slice.To = sem.NewBinaryExpr(e, "+", slice.From, to)
 			} else {
@@ -330,7 +330,7 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 	case *ast.TupleExpr:
 		elems := make([]sem.RecordElem, 0, len(e.Elems))
 		for colno, elem := range e.Elems {
-			e := t.semExpr(elem)
+			e := t.expr(elem)
 			elems = append(elems, &sem.FieldElem{
 				Node:  elem,
 				Name:  fmt.Sprintf("c%d", colno),
@@ -364,7 +364,7 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 			Value: "<" + typ + ">",
 		}
 	case *ast.UnaryExpr:
-		operand := t.semExpr(e.Operand)
+		operand := t.expr(e.Operand)
 		if e.Op == "+" {
 			return operand
 		}
@@ -375,7 +375,7 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 	panic(e)
 }
 
-func (t *translator) semID(id *ast.IDExpr, lval bool) sem.Expr {
+func (t *translator) idExpr(id *ast.IDExpr, lval bool) sem.Expr {
 	// We use static scoping here to see if an identifier is
 	// a "var" reference to the name or a field access
 	// and transform the AST node appropriately.  The resulting
@@ -403,7 +403,7 @@ func (t *translator) semID(id *ast.IDExpr, lval bool) sem.Expr {
 	return sem.NewThis(id, path)
 }
 
-func (t *translator) semDoubleQuote(d *ast.DoubleQuoteExpr) sem.Expr {
+func (t *translator) doubleQuoteExpr(d *ast.DoubleQuoteExpr) sem.Expr {
 	// Check if there's a SQL scope and treat a double-quoted string
 	// as an identifier.  XXX we'll need to do something a bit more
 	// sophisticated to handle pipes inside SQL subqueries.
@@ -416,9 +416,9 @@ func (t *translator) semDoubleQuote(d *ast.DoubleQuoteExpr) sem.Expr {
 			}
 			return ref
 		}
-		return t.semExpr(&ast.IDExpr{Kind: "IDExpr", ID: ast.ID{Name: d.Text, Loc: d.Loc}})
+		return t.expr(&ast.IDExpr{Kind: "IDExpr", ID: ast.ID{Name: d.Text, Loc: d.Loc}})
 	}
-	return t.semExpr(&ast.Primitive{
+	return t.expr(&ast.Primitive{
 		Kind: "Primitive",
 		Type: "string",
 		Text: d.Text,
@@ -426,8 +426,8 @@ func (t *translator) semDoubleQuote(d *ast.DoubleQuoteExpr) sem.Expr {
 	})
 }
 
-func (t *translator) semExists(e *ast.ExistsExpr) sem.Expr {
-	q := t.semSubquery(e, true, e.Body)
+func (t *translator) existsExpr(e *ast.ExistsExpr) sem.Expr {
+	q := t.subqueryExpr(e, true, e.Body)
 	return sem.NewBinaryExpr(e, ">",
 		sem.NewCall(e, "len", []sem.Expr{q}),
 		&sem.LiteralExpr{Node: e, Value: "0"})
@@ -454,11 +454,11 @@ func dynamicTypeName(n ast.Node, name string) *sem.CallExpr {
 	)
 }
 
-func (t *translator) semRegexp(b *ast.BinaryExpr) sem.Expr {
+func (t *translator) regexp(b *ast.BinaryExpr) sem.Expr {
 	if b.Op != "~" {
 		return nil
 	}
-	s, ok := t.mustEvalString(t.semExpr(b.RHS))
+	s, ok := t.mustEvalString(t.expr(b.RHS))
 	if !ok {
 		t.error(b, errors.New(`right-hand side of ~ expression must be a string literal`))
 		return badExpr()
@@ -467,7 +467,7 @@ func (t *translator) semRegexp(b *ast.BinaryExpr) sem.Expr {
 		t.error(b.RHS, err)
 		return badExpr()
 	}
-	e := t.semExpr(b.LHS)
+	e := t.expr(b.LHS)
 	return &sem.RegexpMatchExpr{
 		Node:    b,
 		Pattern: s,
@@ -475,7 +475,7 @@ func (t *translator) semRegexp(b *ast.BinaryExpr) sem.Expr {
 	}
 }
 
-func (t *translator) semBinary(e *ast.BinaryExpr) sem.Expr {
+func (t *translator) binaryExpr(e *ast.BinaryExpr) sem.Expr {
 	if path, bad := t.semDotted(e, false); path != nil {
 		if t.scope.schema != nil {
 			ref, err := t.scope.resolve(e, path)
@@ -489,12 +489,12 @@ func (t *translator) semBinary(e *ast.BinaryExpr) sem.Expr {
 	} else if bad != nil {
 		return bad
 	}
-	if e := t.semRegexp(e); e != nil {
+	if e := t.regexp(e); e != nil {
 		return e
 	}
 	op := strings.ToLower(e.Op)
 	if op == "." {
-		lhs := t.semExpr(e.LHS)
+		lhs := t.expr(e.LHS)
 		id, ok := e.RHS.(*ast.IDExpr)
 		if !ok {
 			t.error(e, errors.New("RHS of dot operator is not an identifier"))
@@ -510,8 +510,8 @@ func (t *translator) semBinary(e *ast.BinaryExpr) sem.Expr {
 			RHS:  id.Name,
 		}
 	}
-	lhs := t.semExpr(e.LHS)
-	rhs := t.semExpr(e.RHS)
+	lhs := t.expr(e.LHS)
+	rhs := t.expr(e.RHS)
 	if op == "like" || op == "not like" {
 		s, ok := t.mustEvalString(rhs)
 		if !ok {
@@ -572,11 +572,11 @@ func (t *translator) isIndexOfThis(lhs, rhs sem.Expr) *sem.ThisExpr {
 	return nil
 }
 
-func (t *translator) semExprNullable(e ast.Expr) sem.Expr {
+func (t *translator) exprNullable(e ast.Expr) sem.Expr {
 	if e == nil {
 		return nil
 	}
-	return t.semExpr(e)
+	return t.expr(e)
 }
 
 func (t *translator) semDotted(e *ast.BinaryExpr, lval bool) ([]string, sem.Expr) {
@@ -589,7 +589,7 @@ func (t *translator) semDotted(e *ast.BinaryExpr, lval bool) ([]string, sem.Expr
 	}
 	switch lhs := e.LHS.(type) {
 	case *ast.IDExpr:
-		switch e := t.semID(lhs, lval).(type) {
+		switch e := t.idExpr(lhs, lval).(type) {
 		case *sem.ThisExpr:
 			return append(slices.Clone(e.Path), rhs.Name), nil
 		case *sem.BadExpr:
@@ -608,14 +608,14 @@ func (t *translator) semDotted(e *ast.BinaryExpr, lval bool) ([]string, sem.Expr
 }
 
 func (t *translator) semCaseExpr(c *ast.CaseExpr) sem.Expr {
-	e := t.semExpr(c.Expr)
-	out := t.semExprNullable(c.Else)
+	e := t.expr(c.Expr)
+	out := t.exprNullable(c.Else)
 	for i := len(c.Whens) - 1; i >= 0; i-- {
 		when := c.Whens[i]
 		out = &sem.CondExpr{
 			Node: c,
-			Cond: sem.NewBinaryExpr(c, "==", e, t.semExpr(when.Cond)),
-			Then: t.semExpr(when.Then),
+			Cond: sem.NewBinaryExpr(c, "==", e, t.expr(when.Cond)),
+			Then: t.expr(when.Then),
 			Else: out,
 		}
 	}
@@ -630,7 +630,7 @@ func (t *translator) semCall(call *ast.CallExpr) sem.Expr {
 		t.error(call, errors.New("'where' clause on non-aggregation function"))
 		return badExpr()
 	}
-	args := t.semExprs(call.Args)
+	args := t.exprs(call.Args)
 	switch f := call.Func.(type) {
 	case *ast.FuncNameExpr:
 		return t.semCallByName(call, f.Name, args)
@@ -760,7 +760,7 @@ func (t *translator) maybeSubqueryCall(call *ast.CallExpr, name string) *sem.Sub
 	if decl == nil || decl.bad {
 		return nil
 	}
-	userOp := t.semUserOp(call.Loc, decl, call.Args)
+	userOp := t.userOp(call.Loc, decl, call.Args)
 	// When a user op is encountered inside an expression, we turn it into a
 	// subquery operating on a single-shot "this" value unless it's uncorrelated
 	// (i.e., starts with a from), in which case we put the uncorrelated body
@@ -816,34 +816,34 @@ func (t *translator) semExtractExpr(e, partExpr, argExpr ast.Expr) sem.Expr {
 		"date_part",
 		[]sem.Expr{
 			&sem.LiteralExpr{Node: partExpr, Value: sup.QuotedString(strings.ToLower(partstr))},
-			t.semExpr(argExpr),
+			t.expr(argExpr),
 		},
 	)
 }
 
-func (t *translator) semExprs(in []ast.Expr) []sem.Expr {
+func (t *translator) exprs(in []ast.Expr) []sem.Expr {
 	exprs := make([]sem.Expr, 0, len(in))
 	for _, e := range in {
-		exprs = append(exprs, t.semExpr(e))
+		exprs = append(exprs, t.expr(e))
 	}
 	return exprs
 }
 
-func (t *translator) semAssignments(assignments []ast.Assignment) []sem.Assignment {
+func (t *translator) assignments(assignments []ast.Assignment) []sem.Assignment {
 	out := make([]sem.Assignment, 0, len(assignments))
 	for _, e := range assignments {
-		out = append(out, t.semAssignment(&e))
+		out = append(out, t.assignment(&e))
 	}
 	return out
 }
 
-func (t *translator) semAssignment(assign *ast.Assignment) sem.Assignment {
-	rhs := t.semExpr(assign.RHS)
+func (t *translator) assignment(assign *ast.Assignment) sem.Assignment {
+	rhs := t.expr(assign.RHS)
 	var lhs sem.Expr
 	if assign.LHS == nil {
 		lhs = sem.NewThis(assign.RHS, []string{deriveNameFromExpr(assign.RHS)})
 	} else {
-		lhs = t.semLval(assign.LHS)
+		lhs = t.lval(assign.LHS)
 	}
 	if !isLval(lhs) {
 		t.error(assign, errors.New("illegal left-hand side of assignment"))
@@ -856,11 +856,11 @@ func (t *translator) semAssignment(assign *ast.Assignment) sem.Assignment {
 	return sem.Assignment{Node: assign, LHS: lhs, RHS: rhs}
 }
 
-func (t *translator) semLval(e ast.Expr) sem.Expr {
+func (t *translator) lval(e ast.Expr) sem.Expr {
 	if id, ok := e.(*ast.IDExpr); ok {
-		return t.semID(id, true)
+		return t.idExpr(id, true)
 	}
-	return t.semExpr(e)
+	return t.expr(e)
 }
 
 func isLval(e sem.Expr) bool {
@@ -942,18 +942,18 @@ func quoteString(e *ast.DoubleQuoteExpr) (string, bool) {
 	return "", false
 }
 
-func (t *translator) semFields(exprs []ast.Expr) []sem.Expr {
+func (t *translator) fields(exprs []ast.Expr) []sem.Expr {
 	fields := make([]sem.Expr, 0, len(exprs))
 	for _, e := range exprs {
-		fields = append(fields, t.semField(e))
+		fields = append(fields, t.field(e))
 	}
 	return fields
 }
 
 // semField analyzes the expression f and makes sure that it's
 // a field reference returning an error if not.
-func (t *translator) semField(f ast.Expr) sem.Expr {
-	switch e := t.semExpr(f).(type) {
+func (t *translator) field(f ast.Expr) sem.Expr {
+	switch e := t.expr(f).(type) {
 	case *sem.ThisExpr:
 		if len(e.Path) == 0 {
 			t.error(f, errors.New("cannot use 'this' as a field reference"))
@@ -991,10 +991,10 @@ func (t *translator) maybeConvertAgg(call *ast.CallExpr) sem.Expr {
 	if len(call.Args) == 1 {
 		e = call.Args[0]
 	}
-	return t.semAggFunc(call, nameLower, e, call.Where, false)
+	return t.aggFunc(call, nameLower, e, call.Where, false)
 }
 
-func (t *translator) semAggFunc(n ast.Node, name string, arg ast.Expr, where ast.Expr, distinct bool) *sem.AggFunc {
+func (t *translator) aggFunc(n ast.Node, name string, arg ast.Expr, where ast.Expr, distinct bool) *sem.AggFunc {
 	// If we are in the context of a having clause, re-expose the select schema
 	// since the agg func's arguments and where clause operate on the input relation
 	// not the output.
@@ -1008,8 +1008,8 @@ func (t *translator) semAggFunc(n ast.Node, name string, arg ast.Expr, where ast
 	return &sem.AggFunc{
 		Node:     n,
 		Name:     name,
-		Expr:     t.semExprNullable(arg),
-		Where:    t.semExprNullable(where),
+		Expr:     t.exprNullable(arg),
+		Where:    t.exprNullable(where),
 		Distinct: distinct,
 	}
 }
@@ -1056,14 +1056,14 @@ func (t *translator) semType(typ ast.Type) (string, error) {
 	return sup.FormatType(ztype), nil
 }
 
-func (t *translator) semArrayElems(elems []ast.ArrayElem) []sem.ArrayElem {
+func (t *translator) arrayElems(elems []ast.ArrayElem) []sem.ArrayElem {
 	var out []sem.ArrayElem
 	for _, elem := range elems {
 		switch elem := elem.(type) {
 		case *ast.SpreadElem:
-			out = append(out, &sem.SpreadElem{Node: elem, Expr: t.semExpr(elem.Expr)})
+			out = append(out, &sem.SpreadElem{Node: elem, Expr: t.expr(elem.Expr)})
 		case *ast.ExprElem:
-			out = append(out, &sem.ExprElem{Node: elem, Expr: t.semExpr(elem.Expr)})
+			out = append(out, &sem.ExprElem{Node: elem, Expr: t.expr(elem.Expr)})
 		default:
 			panic(elem)
 		}
@@ -1071,7 +1071,7 @@ func (t *translator) semArrayElems(elems []ast.ArrayElem) []sem.ArrayElem {
 	return out
 }
 
-func (t *translator) semFString(f *ast.FStringExpr) sem.Expr {
+func (t *translator) fstringExpr(f *ast.FStringExpr) sem.Expr {
 	if len(f.Elems) == 0 {
 		return &sem.LiteralExpr{Node: f, Value: `""`}
 	}
@@ -1080,7 +1080,7 @@ func (t *translator) semFString(f *ast.FStringExpr) sem.Expr {
 		var e sem.Expr
 		switch elem := elem.(type) {
 		case *ast.FStringExprElem:
-			e = t.semExpr(elem.Expr)
+			e = t.expr(elem.Expr)
 			e = sem.NewCall(f,
 				"cast",
 				[]sem.Expr{e, &sem.LiteralExpr{Value: "<string>"}})
@@ -1110,8 +1110,8 @@ func (t *translator) arraySubquery(elems []sem.ArrayElem) *sem.SubqueryExpr {
 	return nil
 }
 
-func (t *translator) semSubquery(astExpr ast.Expr, array bool, body ast.Seq) *sem.SubqueryExpr {
-	seq := t.semSeq(body)
+func (t *translator) subqueryExpr(astExpr ast.Expr, array bool, body ast.Seq) *sem.SubqueryExpr {
+	seq := t.seq(body)
 	correlated := isCorrelated(seq)
 	e := &sem.SubqueryExpr{
 		Node:       astExpr,

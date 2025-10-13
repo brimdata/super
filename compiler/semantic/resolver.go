@@ -134,7 +134,7 @@ func (r *resolver) resolveVariant(d *funcDecl, variant *funcDef) {
 	for _, param := range variant.params {
 		r.t.scope.BindSymbol(param, funcParamValue{})
 	}
-	variant.body = r.t.semExpr(d.lambda.Expr)
+	variant.body = r.t.expr(d.lambda.Expr)
 	r.t.exitScope()
 }
 
@@ -149,7 +149,7 @@ func (r *resolver) resolveFixed(d *funcDecl, tag string) *funcDef {
 	for _, param := range params {
 		r.t.scope.BindSymbol(param, funcParamValue{})
 	}
-	body := r.t.semExpr(d.lambda.Expr)
+	body := r.t.expr(d.lambda.Expr)
 	r.t.exitScope()
 	return &funcDef{
 		tag:    tag,

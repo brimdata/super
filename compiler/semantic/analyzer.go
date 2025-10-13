@@ -23,7 +23,7 @@ func Analyze(ctx context.Context, p *parser.AST, env *exec.Environment, extInput
 	if extInput {
 		astseq.Prepend(&ast.DefaultScan{Kind: "DefaultScan"})
 	}
-	seq := t.semSeq(astseq)
+	seq := t.seq(astseq)
 	if err := t.Error(); err != nil {
 		return nil, err
 	}
