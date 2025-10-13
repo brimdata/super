@@ -1,8 +1,8 @@
-spq: cut a.b:=quiet(a.b)
+spq: cut quiet(a.b)
 
 input: |
   {a:1}
   {a:{b:1}}
 
 output: |
-  {a:{b:1}}
+  {b:1}

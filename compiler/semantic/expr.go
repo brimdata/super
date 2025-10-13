@@ -885,7 +885,7 @@ func deriveNameFromExpr(e ast.Expr) string {
 			name = f.Name
 		}
 		if strings.ToLower(name) == "quiet" && len(e.Args) > 0 {
-			return deriveNameFromExpr(e)
+			return deriveNameFromExpr(e.Args[0])
 		}
 		return name
 	case *ast.BinaryExpr:
