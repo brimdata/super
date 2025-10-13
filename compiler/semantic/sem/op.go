@@ -14,11 +14,6 @@ import (
 	"github.com/segmentio/ksuid"
 )
 
-type Main struct {
-	Funcs []*FuncDef
-	Body  Seq
-}
-
 // Op is the interface implemented by all AST operator nodes.
 type Op interface {
 	opNode()
@@ -90,14 +85,6 @@ func (*NullScan) opNode()       {}
 func (*PoolMetaScan) opNode()   {}
 func (*PoolScan) opNode()       {}
 func (*RobotScan) opNode()      {}
-
-type FuncDef struct {
-	ast.Node
-	Tag    string
-	Name   string
-	Params []string
-	Body   Expr
-}
 
 type Seq []Op
 

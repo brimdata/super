@@ -95,15 +95,15 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 		return t.semFString(e)
 	case *ast.FuncNameExpr:
 		// We get here for &refs that are in a call expression. e.g.,
-		// an arg to another function.  These are only built-ins as
-		// user functions should be referenced directly as an ID.
-		tag := e.Name
-		if boundTag, _ := t.scope.lookupFunc(e.Name); boundTag != "" {
-			tag = boundTag
+		// an arg to another function.  It could be a built-in (as in &upper),
+		// or a user function (as in fn foo():... &foo)...
+		id := e.Name
+		if boundID, _ := t.scope.lookupFuncDeclOrParam(e.Name); boundID != "" {
+			id = boundID
 		}
 		return &sem.FuncRef{
 			Node: e,
-			Tag:  tag,
+			ID:   id,
 		}
 	case *ast.GlobExpr:
 		return &sem.RegexpSearchExpr{
@@ -144,10 +144,10 @@ func (t *translator) semExpr(e ast.Expr) sem.Expr {
 		}
 		return out
 	case *ast.LambdaExpr:
-		tag := t.newFunc(e, "lambda", idsAsStrings(e.Params), t.semExpr(e.Expr))
+		funcDecl := t.resolver.newFuncDecl("lambda", e, t.scope)
 		return &sem.FuncRef{
 			Node: e,
-			Tag:  tag,
+			ID:   funcDecl.id,
 		}
 	case *ast.MapExpr:
 		var entries []sem.Entry
@@ -388,7 +388,7 @@ func (t *translator) semID(id *ast.IDExpr, lval bool) sem.Expr {
 	// an error to avoid a rake when such a function is mistakenly passed
 	// without "&" and otherwise turns into a field reference.
 	if entry := t.scope.lookupEntry(id.Name); entry != nil {
-		if _, ok := entry.ref.(*sem.FuncDef); ok && !lval {
+		if _, ok := entry.ref.(*funcDef); ok && !lval {
 			t.error(id, fmt.Errorf("function %q referenced but not called (consider &%s to create a function value)", id.Name, id.Name))
 			return badExpr()
 		}
@@ -653,8 +653,8 @@ func (t *translator) maybeSubquery(n ast.Node, name string) *sem.SubqueryExpr {
 }
 
 func (t *translator) semCallLambda(lambda *ast.LambdaExpr, args []sem.Expr) sem.Expr {
-	tag := t.newFunc(lambda, "lambda", idsAsStrings(lambda.Params), t.semExpr(lambda.Expr))
-	return sem.NewCall(lambda, tag, args)
+	funcDecl := t.resolver.newFuncDecl("lambda", lambda, t.scope)
+	return t.resolver.mustResolveCall(lambda, funcDecl.id, args)
 }
 
 func (t *translator) semCallByName(call *ast.CallExpr, name string, args []sem.Expr) sem.Expr {
@@ -664,23 +664,38 @@ func (t *translator) semCallByName(call *ast.CallExpr, name string, args []sem.E
 	// Check if the name resolves to a symbol in scope.
 	if entry := t.scope.lookupEntry(name); entry != nil {
 		switch ref := entry.ref.(type) {
-		case param:
-			// Called name is a parameter inside of a function.   We create a dummy
-			// CallParam that will be converted to a direct call to the passed-in
-			// function (we don't know it yet and there may be multiple variations
-			// that all land at this call site) in the next pass of semantic analysis.
-			return &sem.CallParam{
-				Node:  call,
-				Param: name,
-				Args:  args,
+		case funcParamValue:
+			t.error(call, fmt.Errorf("function called via parameter %q is bound to a non-function", name))
+			return badExpr()
+		case *funcParamLambda:
+			// Called name is a parameter inside of a function.   We only end up here
+			// when actual values have been bound to the parameter (i.e., we're compiling
+			// a lambda-variant function each time it is called to create each variant),
+			// so we call the resolver here to create a new instance of the function being
+			// called. In the case of recursion, all the lambdas that are further passed
+			// as args are known (in terms of their decl IDs), so the resolver can
+			// look this up in the variants of the decl and stop the recursion even if the body
+			// of the called entity is not completed yet.  We won't know the type but we
+			// can't know the type without function type signatures so when we integrate
+			// type checking here, we will use unknown for this corner case.
+			if isBuiltin(ref.id) {
+				// Check argument count here for builtin functions.
+				if _, err := function.New(super.NewContext(), ref.id, len(args)); err != nil {
+					t.error(call, fmt.Errorf("function %q called via parameter %q: %w", ref.id, ref.param, err))
+					return badExpr()
+				}
+				return sem.NewCall(call, ref.id, args)
 			}
+			return t.resolver.mustResolveCall(call, ref.id, args)
 		case *opDecl:
 			t.error(call, fmt.Errorf("cannot call user operator %q in an expression (consider subquery syntax)", name))
 			return badExpr()
 		case *sem.FuncRef:
-			return sem.NewCall(call, ref.Tag, args)
-		case *sem.FuncDef:
-			return sem.NewCall(call, ref.Tag, args)
+			// FuncRefs are put in the symbol table when passing stuff to user ops, e.g.,
+			// a lambda as a parameter, a &func, or a builtin like &upper.
+			return t.resolver.mustResolveCall(ref, ref.ID, args)
+		case *funcDecl:
+			return t.resolver.mustResolveCall(call, ref.id, args)
 		case *constDecl, *queryDecl:
 			t.error(call, fmt.Errorf("%q is not a function", name))
 			return badExpr()
@@ -691,22 +706,7 @@ func (t *translator) semCallByName(call *ast.CallExpr, name string, args []sem.E
 		}
 		panic(entry.ref)
 	}
-	// Call could be to a user func. Check if we have a matching func in scope.
-	// When the name is a formal argument, the bindings will have been put
-	// in scope and will point to the right entity (a builtin function name or a FuncDef).
-	tag, _ := t.scope.lookupFunc(name)
 	nargs := len(args)
-	// udf should be checked first since a udf can override builtin functions.
-	if f := t.funcs[tag]; f != nil {
-		if len(f.Params) != nargs {
-			t.error(call, fmt.Errorf("call expects %d argument(s)", len(f.Params)))
-			return badExpr()
-		}
-		return sem.NewCall(call, f.Tag, args)
-	}
-	if tag != "" {
-		name = tag
-	}
 	nameLower := strings.ToLower(name)
 	switch {
 	case nameLower == "map":
@@ -779,17 +779,33 @@ func (t *translator) semMapCall(call *ast.CallExpr, args []sem.Expr) sem.Expr {
 		t.error(call, errors.New("map requires two arguments"))
 		return badExpr()
 	}
-	f, ok := args[1].(*sem.FuncRef)
+	ref, ok := args[1].(*sem.FuncRef)
 	if !ok {
 		t.error(call, errors.New("second argument to map must be a function"))
 		return badExpr()
 	}
-	e := &sem.MapCallExpr{
-		Node:   call,
-		Expr:   args[0],
-		Lambda: sem.NewCall(call.Args[1], f.Tag, []sem.Expr{sem.NewThis(call.Args[1], nil)}),
+	mapArgs := []sem.Expr{sem.NewThis(call.Args[1], nil)}
+	e := t.resolveCall(call.Args[1], ref.ID, mapArgs)
+	if callExpr, ok := e.(*sem.CallExpr); ok {
+		return &sem.MapCallExpr{
+			Node:   call,
+			Expr:   args[0],
+			Lambda: callExpr,
+		}
 	}
 	return e
+}
+
+func (t *translator) resolveCall(n ast.Node, id string, args []sem.Expr) sem.Expr {
+	if isBuiltin(id) {
+		// Check argument count here for builtin functions.
+		if _, err := function.New(super.NewContext(), id, len(args)); err != nil {
+			t.error(n, err)
+			return badExpr()
+		}
+		return sem.NewCall(n, id, args)
+	}
+	return t.resolver.mustResolveCall(n, id, args)
 }
 
 func (t *translator) semExtractExpr(e, partExpr, argExpr ast.Expr) sem.Expr {

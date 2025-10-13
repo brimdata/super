@@ -14,7 +14,7 @@ import (
 
 type evaluator struct {
 	translator *translator
-	in         map[string]*sem.FuncDef
+	in         map[string]*funcDef
 	errs       errlist
 	constThis  bool
 	bad        bool
@@ -25,7 +25,7 @@ type errloc struct {
 	err error
 }
 
-func newEvaluator(t *translator, funcs map[string]*sem.FuncDef) *evaluator {
+func newEvaluator(t *translator, funcs map[string]*funcDef) *evaluator {
 	return &evaluator{
 		translator: t,
 		in:         funcs,
@@ -47,29 +47,18 @@ func (e *evaluator) maybeEval(sctx *super.Context, expr sem.Expr) (super.Value, 
 		}
 		return val, true
 	}
-	// re-enter the semantic analyzer with just this expr by resolving
-	// all needed funcs then traversing the resulting sem tree and seeing
-	// if it will eval as a compile-time constant.  If so, compile it the rest
-	// of the way and invoke rungen to get the result and return it.
-	// If an error is encountered, returns the error.  If the expression
-	// isn't a compile-time const, then errors will accumulate.  Note that
-	// no existing state in the translator is touched nor is the passed-in
-	// sem tree modified at all; instead, the process here creates copies
-	// of any needed sem tree and funcs.
-	r := newResolver(e.translator)
-	resolvedExpr, funcs := r.resolveExpr(expr)
-	e.expr(resolvedExpr)
+	e.expr(expr)
 	if len(e.errs) > 0 || e.bad {
 		return super.Value{}, false
 	}
-	for _, f := range funcs {
+	for _, f := range e.translator.resolver.funcs {
 		e.constThis = true
-		e.expr(f.Body)
+		e.expr(f.body)
 		if len(e.errs) > 0 || e.bad {
 			return super.Value{}, false
 		}
 	}
-	main := newDagen(e.translator.reporter).assembleExpr(resolvedExpr, funcs)
+	main := newDagen(e.translator.reporter).assembleExpr(expr, e.translator.resolver.funcs)
 	val, err := rungen.EvalAtCompileTime(sctx, main)
 	if err != nil {
 		e.errs.error(expr, err)

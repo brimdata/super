@@ -14,20 +14,14 @@ import (
 
 type checker struct {
 	t       *translator
-	funcs   map[string]*sem.FuncDef
 	checked map[super.Type]super.Type
 	unknown *super.TypeError
 	estack  []errlist
 }
 
-func newChecker(t *translator, funcs []*sem.FuncDef) *checker {
-	funcMap := make(map[string]*sem.FuncDef)
-	for _, f := range funcs {
-		funcMap[f.Tag] = f
-	}
+func newChecker(t *translator) *checker {
 	return &checker{
 		t:       t,
-		funcs:   funcMap,
 		unknown: t.sctx.LookupTypeError(t.sctx.MustLookupTypeRecord(nil)),
 		checked: make(map[super.Type]super.Type),
 	}
@@ -466,15 +460,15 @@ func (c *checker) callBuiltin(call *sem.CallExpr, args []super.Type) super.Type 
 }
 
 func (c *checker) callFunc(call *sem.CallExpr, args []super.Type) super.Type {
-	f := c.funcs[call.Tag]
-	if len(args) != len(f.Params) {
+	f := c.t.resolver.funcs[call.Tag]
+	if len(args) != len(f.params) {
 		// The translator has already checked that len(args) is len(params)
 		// but when there's an error, mismatches can still show up here so
 		// we ignore these here.
 		return c.unknown
 	}
 	fields := make([]super.Field, 0, len(args))
-	for k, param := range f.Params {
+	for k, param := range f.params {
 		fields = append(fields, super.Field{Name: param, Type: args[k]})
 	}
 	argsType := c.t.sctx.MustLookupTypeRecord(fields)
@@ -487,7 +481,7 @@ func (c *checker) callFunc(call *sem.CallExpr, args []super.Type) super.Type {
 	// of all recursive functions.  When we add (optional) type signatures to functions,
 	// this problem will (partially) go away.
 	c.checked[argsType] = c.unknown
-	typ := c.expr(argsType, f.Body)
+	typ := c.expr(argsType, f.body)
 	c.checked[argsType] = typ
 	return typ
 }

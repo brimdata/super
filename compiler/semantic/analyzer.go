@@ -3,7 +3,6 @@ package semantic
 import (
 	"context"
 	"errors"
-	"strconv"
 	"strings"
 
 	"github.com/brimdata/super"
@@ -40,16 +39,11 @@ func Analyze(ctx context.Context, p *parser.AST, env *exec.Environment, extInput
 			seq.Prepend(&sem.NullScan{})
 		}
 	}
-	resolver := newResolver(t)
-	semSeq, dagFuncs := resolver.resolve(seq)
+	newChecker(t).check(t.reporter, seq)
 	if err := t.Error(); err != nil {
 		return nil, err
 	}
-	newChecker(t, dagFuncs).check(t.reporter, semSeq)
-	if err := t.Error(); err != nil {
-		return nil, err
-	}
-	main := newDagen(t.reporter).assemble(semSeq, dagFuncs)
+	main := newDagen(t.reporter).assemble(seq, t.resolver.funcs)
 	return main, t.Error()
 }
 
@@ -59,26 +53,25 @@ func Analyze(ctx context.Context, p *parser.AST, env *exec.Environment, extInput
 // to dataflow.
 type translator struct {
 	reporter
-	ctx       context.Context
-	opStack   []*ast.OpDecl
-	cteStack  []*ast.SQLCTE
-	env       *exec.Environment
-	scope     *Scope
-	sctx      *super.Context
-	funcs     map[string]*sem.FuncDef
-	funcDecls map[string]*funcDecl
+	ctx      context.Context
+	resolver *resolver
+	opStack  []*ast.OpDecl
+	cteStack []*ast.SQLCTE
+	env      *exec.Environment
+	scope    *Scope
+	sctx     *super.Context
 }
 
 func newTranslator(ctx context.Context, r reporter, env *exec.Environment) *translator {
-	return &translator{
-		reporter:  r,
-		ctx:       ctx,
-		env:       env,
-		scope:     NewScope(nil),
-		sctx:      super.NewContext(),
-		funcs:     make(map[string]*sem.FuncDef),
-		funcDecls: make(map[string]*funcDecl),
+	t := &translator{
+		reporter: r,
+		ctx:      ctx,
+		env:      env,
+		scope:    NewScope(nil),
+		sctx:     super.NewContext(),
 	}
+	t.resolver = newResolver(t)
+	return t
 }
 
 func HasSource(seq sem.Seq) bool {
@@ -109,18 +102,6 @@ func (t *translator) enterScope() {
 
 func (t *translator) exitScope() {
 	t.scope = t.scope.parent
-}
-
-func (t *translator) newFunc(body ast.Expr, name string, params []string, e sem.Expr) string {
-	tag := strconv.Itoa(len(t.funcs))
-	t.funcs[tag] = &sem.FuncDef{
-		Node:   body,
-		Tag:    tag,
-		Name:   name,
-		Params: params,
-		Body:   e,
-	}
-	return tag
 }
 
 type opDecl struct {

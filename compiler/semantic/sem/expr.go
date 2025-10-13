@@ -176,28 +176,17 @@ func (*UnaryExpr) exprNode()        {}
 
 // FuncRef is a pseudo-expression that represents a function reference as a value.
 // It is not used by the runtime (but could be if we wanted to support this).  Instead,
-// the semantic pass uses this in a first stage to represent lambda-parameterized functions
-// then in a second stage it unrolls them all into regular calls by creating a unique
-// new function for each combination of passed in lambdas.
+// the semantic pass uses this to represent lambda-parameterized functions, e.g.,
+// functions that are passed to other functions as arguments.  Whenever such values
+// appear as function arguments, they are installed in the symbol table as bound to
+// the function declaration's ID then each variation of lambda-invoked function is
+// compiled to a unique function by the resolver.
 type FuncRef struct {
 	ast.Node
-	Tag string
+	ID string
 }
 
-// CallParam is a pseudo-expression that is like a call but represents the call
-// of a FuncRef passed as an argument with the parameter name given by Param.
-// It is not used by the runtime (but could be if we wanted to support this).  Instead,
-// the semantic pass uses this in a first stage to represent abstract calls to functions
-// passed as parameters, then in a second stage it flattens them all into regular calls
-// by creating a unique new function for each combination of passed-in lambdas.
-type CallParam struct {
-	ast.Node
-	Param string
-	Args  []Expr
-}
-
-func (*FuncRef) exprNode()   {}
-func (*CallParam) exprNode() {}
+func (*FuncRef) exprNode() {}
 
 func NewThis(n ast.Node, path []string) *ThisExpr {
 	return &ThisExpr{Node: n, Path: path}

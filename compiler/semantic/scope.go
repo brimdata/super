@@ -25,8 +25,6 @@ type entry struct {
 	order int
 }
 
-type param struct{}
-
 func (s *Scope) BindSymbol(name string, e any) error {
 	if _, ok := s.symbols[name]; ok {
 		return fmt.Errorf("symbol %q redefined", name)
@@ -69,7 +67,7 @@ func (s *Scope) lookupExpr(t *translator, name string) sem.Expr {
 		// function parameters hide exteral definitions as you don't
 		// want the this.param ref to be overriden by a const etc.
 		switch entry := entry.ref.(type) {
-		case *sem.FuncDef, *ast.FuncNameExpr, param, *opDecl:
+		case *funcDecl, *ast.FuncNameExpr, *funcParamLambda, funcParamValue, *opDecl:
 			return nil
 		case *constDecl:
 			return entry.resolve(t)
@@ -79,18 +77,34 @@ func (s *Scope) lookupExpr(t *translator, name string) sem.Expr {
 	return nil
 }
 
-func (s *Scope) lookupFunc(name string) (string, error) {
+// Returns the decl ID of a function declared with the given name in
+// this scope or a function value passed as a lambda parameter and bound
+// to formal parameter with the given name.
+func (s *Scope) lookupFuncDeclOrParam(name string) (string, error) {
 	entry := s.lookupEntry(name)
 	if entry == nil {
 		return "", nil
 	}
 	switch ref := entry.ref.(type) {
-	case *sem.FuncDef:
-		return ref.Tag, nil
-	case *sem.FuncRef:
-		return ref.Tag, nil
+	case *funcDecl:
+		return ref.id, nil
+	case *funcParamLambda:
+		return ref.id, nil
 	}
 	return "", fmt.Errorf("%q is not bound to a function", name)
+}
+
+// See if there's a function value passed as a lambda of a formal parameter
+// and if so, return the underlying decl ID of that lambda argument.
+func (s *Scope) lookupFuncParamLambda(name string) (string, bool) {
+	entry := s.lookupEntry(name)
+	if entry == nil {
+		return "", false
+	}
+	if ref, ok := entry.ref.(*funcParamLambda); ok {
+		return ref.id, true
+	}
+	return "", false
 }
 
 // resolve paths based on SQL semantics in order of precedence

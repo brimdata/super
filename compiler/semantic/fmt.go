@@ -2,22 +2,13 @@ package semantic
 
 import (
 	"github.com/brimdata/super/compiler/semantic/sem"
-	"github.com/brimdata/super/sup"
 )
 
-func Format(main *sem.Main) string {
-	clrSeq(main.Body)
-	for _, f := range main.Funcs {
-		f.Node = nil
-		clrExpr(f.Body)
+func Clear(seq sem.Seq, funcs map[string]*funcDef) {
+	clrSeq(seq)
+	for _, f := range funcs {
+		clrExpr(f.body)
 	}
-	m := sup.NewMarshaler()
-	m.Decorate(sup.StyleSimple)
-	s, err := m.Marshal(main)
-	if err != nil {
-		return err.Error()
-	}
-	return s
 }
 
 func clrSeq(seq sem.Seq) {

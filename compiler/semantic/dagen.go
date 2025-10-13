@@ -23,7 +23,7 @@ func newDagen(r reporter) *dagen {
 	}
 }
 
-func (d *dagen) assemble(seq sem.Seq, funcs []*sem.FuncDef) *dag.Main {
+func (d *dagen) assemble(seq sem.Seq, funcs map[string]*funcDef) *dag.Main {
 	dagSeq := d.seq(seq)
 	dagSeq = d.checkOutputs(true, dagSeq)
 	dagFuncs := make([]*dag.FuncDef, 0, len(d.funcs))
@@ -37,7 +37,7 @@ func (d *dagen) assemble(seq sem.Seq, funcs []*sem.FuncDef) *dag.Main {
 	return &dag.Main{Funcs: dagFuncs, Body: dagSeq}
 }
 
-func (d *dagen) assembleExpr(e sem.Expr, funcs []*sem.FuncDef) *dag.MainExpr {
+func (d *dagen) assembleExpr(e sem.Expr, funcs map[string]*funcDef) *dag.MainExpr {
 	dagExpr := d.expr(e)
 	dagFuncs := make([]*dag.FuncDef, 0, len(d.funcs))
 	for _, f := range funcs {
@@ -523,13 +523,13 @@ func (d *dagen) call(c *sem.CallExpr) *dag.CallExpr {
 	}
 }
 
-func (d *dagen) fn(f *sem.FuncDef) *dag.FuncDef {
+func (d *dagen) fn(f *funcDef) *dag.FuncDef {
 	return &dag.FuncDef{
 		Kind:   "FuncDef",
-		Tag:    f.Tag,
-		Name:   f.Name,
-		Params: f.Params,
-		Expr:   d.expr(f.Body),
+		Tag:    f.tag,
+		Name:   f.name,
+		Params: f.params,
+		Expr:   d.expr(f.body),
 	}
 }
 

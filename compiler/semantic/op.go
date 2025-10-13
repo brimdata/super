@@ -1116,68 +1116,9 @@ func (t *translator) semTypeDecl(d *ast.TypeDecl) {
 	}
 }
 
-func idsAsStrings(ids []*ast.ID) []string {
-	out := make([]string, 0, len(ids))
-	for _, p := range ids {
-		out = append(out, p.Name)
-	}
-	return out
-}
-
-type funcDecl struct {
-	translator *translator
-	decl       *ast.FuncDecl
-	funcDef    *sem.FuncDef
-	scope      *Scope
-	pending    bool
-}
-
-func newFuncDecl(t *translator, d *ast.FuncDecl, funcDef *sem.FuncDef, scope *Scope) *funcDecl {
-	return &funcDecl{
-		translator: t,
-		decl:       d,
-		funcDef:    funcDef,
-		scope:      scope,
-	}
-}
-
-func (f *funcDecl) resolve() *sem.FuncDef {
-	t := f.translator
-	if f.funcDef.Body == nil {
-		if !f.pending {
-			f.pending = true
-			save := t.scope
-			t.scope = NewScope(f.scope)
-			defer func() {
-				f.pending = false
-				t.scope = save
-			}()
-			t.enterScope()
-			for _, p := range f.decl.Lambda.Params {
-				t.scope.BindSymbol(p.Name, param{})
-			}
-			f.funcDef.Body = t.semExpr(f.decl.Lambda.Expr)
-			t.exitScope()
-		} else {
-			t.error(f.decl.Name, fmt.Errorf("function %q involved in cyclic dependency", f.funcDef.Name))
-			f.funcDef.Body = badExpr()
-		}
-	}
-	return f.funcDef
-}
-
-func (t *translator) resolveFunc(tag string) *sem.FuncDef {
-	if decl, ok := t.funcDecls[tag]; ok {
-		return decl.resolve()
-	}
-	return t.funcs[tag]
-}
-
 func (t *translator) semFuncDecl(d *ast.FuncDecl) {
-	tag := t.newFunc(d.Lambda, d.Name.Name, idsAsStrings(d.Lambda.Params), nil)
-	funcDef := t.funcs[tag]
-	t.funcDecls[tag] = newFuncDecl(t, d, funcDef, t.scope)
-	if err := t.scope.BindSymbol(d.Name.Name, funcDef); err != nil {
+	funcDecl := t.resolver.newFuncDecl(d.Name.Name, d.Lambda, t.scope)
+	if err := t.scope.BindSymbol(d.Name.Name, funcDecl); err != nil {
 		t.error(d.Name, err)
 	}
 }
@@ -1279,8 +1220,8 @@ func (t *translator) isBool(e sem.Expr) bool {
 	case *sem.CondExpr:
 		return t.isBool(e.Then) && t.isBool(e.Else)
 	case *sem.CallExpr:
-		if f := t.resolveFunc(e.Tag); f != nil {
-			return t.isBool(f.Body)
+		if funcDef, ok := t.resolver.funcs[e.Tag]; ok {
+			return t.isBool(funcDef.body)
 		}
 		if e.Tag == "cast" {
 			if len(e.Args) != 2 {
@@ -1502,11 +1443,11 @@ func (t *translator) mustEval(e sem.Expr) (super.Value, bool) {
 	// and we'll compile this all the way to a DAG and rungen it.  This is pretty
 	// general because we need to handle things like subqueries that call
 	// operator sequences that result in a constant value.
-	return newEvaluator(t, t.funcs).mustEval(t.sctx, e)
+	return newEvaluator(t, t.resolver.funcs).mustEval(t.sctx, e)
 }
 
 // maybeEVal leaves no errors behind and simply returns a value and bool
 // indicating if the eval was successful
 func (t *translator) maybeEval(e sem.Expr) (super.Value, bool) {
-	return newEvaluator(t, t.funcs).maybeEval(t.sctx, e)
+	return newEvaluator(t, t.resolver.funcs).maybeEval(t.sctx, e)
 }
