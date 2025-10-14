@@ -849,6 +849,13 @@ func (c *canon) fromEntity(e ast.FromEntity) {
 		c.write("join ")
 		c.fromElem(e.Right)
 		c.joinCond(e.Cond)
+	case *ast.SQLPipe:
+		c.open("(")
+		c.head = true
+		c.seq(e.Ops)
+		c.close()
+		c.ret()
+		c.write(")")
 	default:
 		panic(fmt.Sprintf("unknown from expression: %T", e))
 	}
