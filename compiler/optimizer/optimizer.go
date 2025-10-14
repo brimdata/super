@@ -139,12 +139,12 @@ func walkEntries(seq dag.Seq, post func(dag.Seq) (dag.Seq, error)) (dag.Seq, err
 // TBD: we need to do pushdown for search/cut to optimize columnar extraction.
 func (o *Optimizer) Optimize(main *dag.Main) error {
 	seq := main.Body
-	replaceJoinWithHashJoin(seq)
 	seq = liftFilterOps(seq)
 	seq = mergeFilters(seq)
 	seq = mergeValuesOps(seq)
 	inlineRecordExprSpreads(seq)
-	seq = liftFilterConvertCrossJoin(seq)
+	seq = liftFiltersIntoJoins(seq)
+	replaceJoinWithHashJoin(seq)
 	seq = joinFilterPullup(seq)
 	seq = removePassOps(seq)
 	seq = replaceSortAndHeadOrTailWithTop(seq)
@@ -512,7 +512,7 @@ func joinFilterPullup(seq dag.Seq) dag.Seq {
 	seq = mergeFilters(seq)
 	for i := 0; i <= len(seq)-3; i++ {
 		fork, isfork := seq[i].(*dag.ForkOp)
-		leftAlias, rightAlias, _, isjoin := isJoin(seq[i+1])
+		leftAlias, rightAlias, isjoin := isJoin(seq[i+1])
 		filter, isfilter := seq[i+2].(*dag.FilterOp)
 		if !isfork || !isjoin || !isfilter {
 			continue
@@ -544,14 +544,14 @@ func joinFilterPullup(seq dag.Seq) dag.Seq {
 	return seq
 }
 
-func isJoin(op dag.Op) (string, string, string, bool) {
+func isJoin(op dag.Op) (string, string, bool) {
 	switch op := op.(type) {
 	case *dag.HashJoinOp:
-		return op.LeftAlias, op.RightAlias, "inner", true
+		return op.LeftAlias, op.RightAlias, true
 	case *dag.JoinOp:
-		return op.LeftAlias, op.RightAlias, op.Style, true
+		return op.LeftAlias, op.RightAlias, true
 	default:
-		return "", "", "", false
+		return "", "", false
 	}
 }
 
