@@ -445,7 +445,7 @@ func (c *checker) recordElems(typ super.Type, elems []sem.RecordElem) super.Type
 			elemType := c.expr(typ, elem.Expr)
 			if hasUnknown(elemType) {
 				// If we're spreading an unknown type into this record, we don't
-				// the result at all.  Return unknown for the whole thing.
+				// know the result at all.  Return unknown for the whole thing.
 				return c.unknown
 			}
 			fuser.fuse(c.expr(typ, elem.Expr))
@@ -887,20 +887,6 @@ func hasUnknown(typ super.Type) bool {
 		}
 	}
 	return isUnknown(typ)
-}
-
-func recordOf(typ super.Type) *super.TypeRecord {
-	switch typ := super.TypeUnder(typ).(type) {
-	case *super.TypeRecord:
-		return typ
-	case *super.TypeUnion:
-		for _, typ := range typ.Types {
-			if typ := recordOf(typ); typ != nil {
-				return typ
-			}
-		}
-	}
-	return nil
 }
 
 func (c *checker) indexOf(cloc, iloc ast.Node, container, index super.Type) (super.Type, bool) {

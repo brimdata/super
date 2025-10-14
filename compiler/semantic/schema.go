@@ -67,6 +67,20 @@ func newPipeSchema(name string, typ super.Type) *pipeSchema {
 	}
 }
 
+func recordOf(typ super.Type) *super.TypeRecord {
+	switch typ := super.TypeUnder(typ).(type) {
+	case *super.TypeRecord:
+		return typ
+	case *super.TypeUnion:
+		for _, typ := range typ.Types {
+			if typ := recordOf(typ); typ != nil {
+				return typ
+			}
+		}
+	}
+	return nil
+}
+
 func (s *staticSchema) Name() string  { return s.name }
 func (d *dynamicSchema) Name() string { return d.name }
 func (*selectSchema) Name() string    { return "" }
