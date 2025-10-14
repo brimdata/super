@@ -1,6 +1,7 @@
 package optimizer
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/brimdata/super/compiler/dag"
@@ -63,9 +64,6 @@ func liftFilterIntoJoin(seq dag.Seq, lhs, rhs dag.Expr) bool {
 		}
 		return false
 	}
-	if join.Cond != nil {
-		return false
-	}
 	if lhsFirst != join.LeftAlias {
 		lhsFirst, rhsFirst = rhsFirst, lhsFirst
 		lhs, rhs = rhs, lhs
@@ -73,7 +71,11 @@ func liftFilterIntoJoin(seq dag.Seq, lhs, rhs dag.Expr) bool {
 	if lhsFirst != join.LeftAlias || rhsFirst != join.RightAlias {
 		return false
 	}
-	join.Cond = dag.NewBinaryExpr("==", lhs, rhs)
+	cond := dag.NewBinaryExpr("==", lhs, rhs)
+	if join.Cond != nil {
+		cond = dag.NewBinaryExpr("and", join.Cond, cond)
+	}
+	join.Cond = cond
 	return true
 }
 
@@ -83,9 +85,22 @@ func replaceJoinWithHashJoin(seq dag.Seq) {
 		if !ok {
 			return op
 		}
-		left, right, ok := equiJoinKeyExprs(j.Cond, j.LeftAlias, j.RightAlias)
-		if !ok {
-			return op
+		var lefts, rights []dag.Expr
+		for _, e := range splitPredicate(j.Cond) {
+			left, right, ok := equiJoinKeyExprs(e, j.LeftAlias, j.RightAlias)
+			if !ok {
+				return op
+			}
+			lefts = append(lefts, left)
+			rights = append(rights, right)
+		}
+		var left, right dag.Expr
+		if len(lefts) == 1 {
+			left, right = lefts[0], rights[0]
+		} else {
+			// XXX Perhaps we should merge record expressions?
+			left = buildTuple(lefts)
+			right = buildTuple(rights)
 		}
 		style := j.Style
 		if style == "cross" {
@@ -100,6 +115,18 @@ func replaceJoinWithHashJoin(seq dag.Seq) {
 			RightKey:   right,
 		}
 	})
+}
+
+func buildTuple(exprs []dag.Expr) dag.Expr {
+	var elems []dag.RecordElem
+	for i, e := range exprs {
+		elems = append(elems, &dag.Field{
+			Kind:  "Field",
+			Name:  fmt.Sprintf("c%d", i),
+			Value: e,
+		})
+	}
+	return &dag.RecordExpr{Kind: "RecordExpr", Elems: elems}
 }
 
 func equiJoinKeyExprs(e dag.Expr, leftAlias, rightAlias string) (left, right dag.Expr, ok bool) {

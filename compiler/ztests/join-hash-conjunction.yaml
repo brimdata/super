@@ -1,0 +1,41 @@
+script: |
+  super compile -O -C "
+    fork 
+      ( values {aid:'a',bid:'b'} )
+      ( values {aid:'a',bid:'b'} )
+    | join on lower(left.aid) == right.aid and right.bid == left.bid
+  "
+  echo // ===
+  super compile -O -C "
+    fork 
+      ( values {aid:'a',bid:'b',cid:'c'} )
+      ( values {aid:'a',bid:'B',cid:'c'} )
+    | join on lower(left.aid) == right.aid 
+    | where right.bid == upper(left.bid)
+    | where left.cid == right.cid
+  "
+
+outputs:
+  - name: stdout
+    data: |
+      null
+      | fork
+        (
+          values {aid:"a",bid:"b"}
+        )
+        (
+          values {aid:"a",bid:"b"}
+        )
+      | inner hashjoin as {left,right} on {c0:lower(aid),c1:bid}=={c0:aid,c1:bid}
+      | output main
+      // ===
+      null
+      | fork
+        (
+          values {aid:"a",bid:"b",cid:"c"}
+        )
+        (
+          values {aid:"a",bid:"B",cid:"c"}
+        )
+      | inner hashjoin as {left,right} on {c0:lower(aid),c1:upper(bid),c2:cid}=={c0:aid,c1:bid,c2:cid}
+      | output main
