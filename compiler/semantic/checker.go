@@ -442,6 +442,12 @@ func (c *checker) recordElems(typ super.Type, elems []sem.RecordElem) super.Type
 	for _, elem := range elems {
 		switch elem := elem.(type) {
 		case *sem.SpreadElem:
+			elemType := c.expr(typ, elem.Expr)
+			if hasUnknown(elemType) {
+				// If we're spreading an unknown type into this record, we don't
+				// the result at all.  Return unknown for the whole thing.
+				return c.unknown
+			}
 			fuser.fuse(c.expr(typ, elem.Expr))
 		case *sem.FieldElem:
 			column := super.Field{Name: elem.Name, Type: c.expr(typ, elem.Value)}
