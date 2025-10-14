@@ -98,7 +98,6 @@ type Command struct {
 	cli.Flags
 	// query runtime flags
 	canon        bool
-	quiet        bool
 	stopErr      bool
 	inputFlags   inputflags.Flags
 	outputFlags  outputflags.Flags
@@ -120,7 +119,6 @@ func (c *Command) SetLeafFlags(f *flag.FlagSet) {
 	c.runtimeFlags.SetFlags(f)
 	f.BoolVar(&c.canon, "C", false, "display parsed AST in a textual format")
 	f.BoolVar(&c.stopErr, "e", true, "stop upon input errors")
-	f.BoolVar(&c.quiet, "q", false, "don't display warnings")
 	f.StringVar(&c.query, "c", "", "query to execute")
 }
 
