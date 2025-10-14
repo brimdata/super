@@ -1,0 +1,12 @@
+script: |
+  super -s -c "select x from (from x.sup | {...this,z:'foo'})"
+
+inputs: 
+  - name: x.sup 
+    data: |
+      {x:1}
+
+outputs:
+  - name: stdout
+    data: |
+      {x:1}
