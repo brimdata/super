@@ -22,7 +22,7 @@ func TestRequestContextClosure(t *testing.T) {
 		errCh <- ctx.Err()
 	})
 	srv := httpd.New("127.0.0.1:", h)
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	require.NoError(t, srv.Start(ctx))
 	res, err := http.Get(fmt.Sprintf("http://%s/", srv.Addr()))
 	require.NoError(t, err)
@@ -48,7 +48,7 @@ func TestDeadlineExceeded(t *testing.T) {
 
 	})
 	srv := httpd.New("127.0.0.1:", h)
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	require.NoError(t, srv.Start(ctx))
 	_, err := http.Get(fmt.Sprintf("http://%s/", srv.Addr()))
 	require.NoError(t, err)

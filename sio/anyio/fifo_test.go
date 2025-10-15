@@ -20,7 +20,7 @@ func TestOpenFifoCancelation(t *testing.T) {
 	testOpenCancelation := func(path string) {
 		t.Helper()
 		errCh := make(chan error)
-		ctx, cancel := context.WithCancel(context.Background())
+		ctx, cancel := context.WithCancel(t.Context())
 		go func() {
 			_, err := Open(ctx, super.NewContext(), storage.NewFileSystem(), path, ReaderOpts{})
 			errCh <- err

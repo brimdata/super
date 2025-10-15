@@ -128,7 +128,7 @@ func TestAggregateStreamingSpill(t *testing.T) {
 			},
 		}
 		sortKey := order.NewSortKey(order.Asc, field.Path{inputSortKey})
-		query, err := newQueryOnOrderedReader(context.Background(), sctx, ast, cr, sortKey)
+		query, err := newQueryOnOrderedReader(t.Context(), sctx, ast, cr, sortKey)
 		require.NoError(t, err)
 		defer query.Pull(true)
 		err = sbuf.CopyPuller(checker, query)

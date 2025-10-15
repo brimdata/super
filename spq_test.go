@@ -2,7 +2,6 @@ package super_test
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -142,7 +141,7 @@ func runOneBoomerang(t *testing.T, format, data string) {
 		// Fuse for formats that require uniform values.
 		ast, err := parser.ParseQuery("fuse")
 		require.NoError(t, err)
-		rctx := runtime.NewContext(context.Background(), sctx)
+		rctx := runtime.NewContext(t.Context(), sctx)
 		q, err := compiler.NewCompiler(nil).NewQuery(rctx, ast, []sio.Reader{dataReadCloser}, 0)
 		require.NoError(t, err)
 		defer q.Pull(true)

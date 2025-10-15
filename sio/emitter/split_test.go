@@ -2,7 +2,6 @@ package emitter
 
 import (
 	"bytes"
-	"context"
 	"strings"
 	"testing"
 
@@ -28,14 +27,14 @@ func TestDirS3Source(t *testing.T) {
 	defer ctrl.Finish()
 	engine := storagemock.NewMockEngine(ctrl)
 
-	engine.EXPECT().Put(context.Background(), uri.JoinPath("conn.sup")).
+	engine.EXPECT().Put(t.Context(), uri.JoinPath("conn.sup")).
 		Return(sio.NopCloser(bytes.NewBuffer(nil)), nil)
-	engine.EXPECT().Put(context.Background(), uri.JoinPath("http.sup")).
+	engine.EXPECT().Put(t.Context(), uri.JoinPath("http.sup")).
 		Return(sio.NopCloser(bytes.NewBuffer(nil)), nil)
 
 	r := supio.NewReader(super.NewContext(), strings.NewReader(input))
 	require.NoError(t, err)
-	w, err := NewSplit(context.Background(), engine, uri, "", false, anyio.WriterOpts{Format: "sup"})
+	w, err := NewSplit(t.Context(), engine, uri, "", false, anyio.WriterOpts{Format: "sup"})
 	require.NoError(t, err)
 	require.NoError(t, sio.Copy(w, r))
 }

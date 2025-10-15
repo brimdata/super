@@ -19,7 +19,7 @@ func newQueue(ctx context.Context, t *testing.T) *Queue {
 }
 
 func TestJournalConcurrent(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	q := newQueue(ctx, t)
 	const N = 50
 	ch := make(chan error)

@@ -1,7 +1,6 @@
 package service_test
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"testing"
@@ -37,7 +36,7 @@ func TestAuthIdentity(t *testing.T) {
 	core, conn := newCoreWithConfig(t, service.Config{
 		Auth: authConfig,
 	})
-	_, err := conn.Query(context.Background(), "from [pools]")
+	_, err := conn.Query(t.Context(), "from [pools]")
 	require.Error(t, err)
 	require.Equal(t, 1.0, promCounterValue(core.Registry(), "request_errors_unauthorized_total"))
 
@@ -46,7 +45,7 @@ func TestAuthIdentity(t *testing.T) {
 	require.Equal(t, http.StatusUnauthorized, poolErr.StatusCode)
 
 	var identErr *client.ErrorResponse
-	_, err = conn.AuthIdentity(context.Background())
+	_, err = conn.AuthIdentity(t.Context())
 	require.Error(t, err)
 	require.True(t, errors.As(err, &identErr))
 	require.Equal(t, http.StatusUnauthorized, identErr.StatusCode)
@@ -59,7 +58,7 @@ func TestAuthIdentity(t *testing.T) {
 		UserID:   "test_user_id",
 	}, res)
 
-	_, err = conn.Query(context.Background(), "from :pools")
+	_, err = conn.Query(t.Context(), "from :pools")
 	require.NoError(t, err)
 }
 

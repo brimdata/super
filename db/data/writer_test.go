@@ -1,7 +1,6 @@
 package data_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/brimdata/super"
@@ -19,7 +18,7 @@ func TestDataReaderWriterVector(t *testing.T) {
 	engine := storage.NewLocalEngine()
 	tmp := storage.MustParseURI(t.TempDir())
 	object := data.NewObject()
-	ctx := context.Background()
+	ctx := t.Context()
 	w, err := object.NewWriter(ctx, engine, tmp, order.NewSortKey(order.Asc, field.Path{"a"}), 1000)
 	require.NoError(t, err)
 	sctx := super.NewContext()

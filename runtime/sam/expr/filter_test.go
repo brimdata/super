@@ -52,12 +52,12 @@ func runCasesHelper(t *testing.T, record string, cases []testcase, expectBufferF
 	rec, err := sup.ParseValue(sctx, record)
 	require.NoError(t, err, "record: %q", record)
 
+	rctx := runtime.NewContext(t.Context(), sctx)
 	for _, c := range cases {
 		t.Run(c.filter, func(t *testing.T) {
 			t.Helper()
 			ast, err := parser.ParseQuery(c.filter)
 			require.NoError(t, err, "filter: %q", c.filter)
-			rctx := runtime.DefaultContext()
 			env := &exec.Environment{}
 			main, err := compiler.Analyze(rctx, ast, env, true)
 			require.NoError(t, err, "filter: %q", c.filter)

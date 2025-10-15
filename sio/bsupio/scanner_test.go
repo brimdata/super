@@ -2,7 +2,6 @@ package bsupio
 
 import (
 	"bytes"
-	"context"
 	"io"
 	"runtime"
 	"strconv"
@@ -49,9 +48,7 @@ func TestScannerContext(t *testing.T) {
 		Validate: true,
 	})
 	// Create a scanner and scan, validating each record.
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	s, err := r.NewScanner(ctx, nil)
+	s, err := r.NewScanner(t.Context(), nil)
 	require.NoError(t, err)
 	for {
 		batch, err := s.Pull(false)

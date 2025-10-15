@@ -2,7 +2,6 @@ package fuzz
 
 import (
 	"bytes"
-	"context"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -90,10 +89,6 @@ func RunQueryCSUP(t testing.TB, buf *bytes.Buffer, querySource string) []super.V
 }
 
 func RunQuery(t testing.TB, sctx *super.Context, readers []sio.Reader, querySource string, useDemand func(demandIn demand.Demand)) []super.Value {
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
 	// Compile query
 	engine := mock.NewMockEngine(gomock.NewController(t))
 	comp := compiler.NewCompiler(engine)
@@ -101,7 +96,7 @@ func RunQuery(t testing.TB, sctx *super.Context, readers []sio.Reader, querySour
 	if err != nil {
 		t.Skipf("%v", err)
 	}
-	query, err := runtime.CompileQuery(ctx, sctx, comp, ast, readers)
+	query, err := runtime.CompileQuery(t.Context(), sctx, comp, ast, readers)
 	if err != nil {
 		t.Skipf("%v", err)
 	}
@@ -110,7 +105,7 @@ func RunQuery(t testing.TB, sctx *super.Context, readers []sio.Reader, querySour
 	// Infer demand
 	// TODO This is a hack and should be replaced by a cleaner interface in CompileQuery.
 	env := exec.NewEnvironment(engine, nil)
-	main, err := semantic.Analyze(ctx, ast, env, true)
+	main, err := semantic.Analyze(t.Context(), ast, env, true)
 	if err != nil {
 		t.Skipf("%v", err)
 	}
