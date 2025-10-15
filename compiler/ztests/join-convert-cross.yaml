@@ -54,9 +54,9 @@ outputs:
             (
               values {a3:1}
             )
-          | cross hashjoin as {left,right} on a2+1==a3
+          | inner hashjoin as {left,right} on a2+1==a3
         )
-      | cross hashjoin as {left,right} on a1==left.a2
+      | inner hashjoin as {left,right} on a1==left.a2
       | output main
       // ===
       null
@@ -69,10 +69,10 @@ outputs:
             (
               values {a3:1}
             )
-          | cross hashjoin as {left,right} on a2==a3
+          | inner hashjoin as {left,right} on a2==a3
         )
         (
           values {a1:1}
         )
-      | cross hashjoin as {left,right} on left.a2==a1
+      | inner hashjoin as {left,right} on left.a2==a1
       | output main

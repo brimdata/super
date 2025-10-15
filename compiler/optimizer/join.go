@@ -87,9 +87,13 @@ func replaceJoinWithHashJoin(seq dag.Seq) {
 		if !ok {
 			return op
 		}
+		style := j.Style
+		if style == "cross" {
+			style = "inner"
+		}
 		return &dag.HashJoinOp{
 			Kind:       "HashJoinOp",
-			Style:      j.Style,
+			Style:      style,
 			LeftAlias:  j.LeftAlias,
 			RightAlias: j.RightAlias,
 			LeftKey:    left,

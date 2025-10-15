@@ -32,6 +32,9 @@ func NewHashJoin(rctx *runtime.Context, style string, left, right vector.Puller,
 		leftKey, rightKey = rightKey, leftKey
 		left, right = right, left
 	}
+	if style == "cross" {
+		panic("cross join not compatible with hash join")
+	}
 	return &HashJoin{
 		rctx:       rctx,
 		style:      style,
