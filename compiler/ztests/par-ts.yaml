@@ -80,16 +80,16 @@ outputs:
       | scatter
         (
           seqscan ...
-          | aggregate partials-out sort-dir 1
+          | aggregate partials-out
               count:=count() by y:=y,ts:=bucket(ts, 1h)
         )
         (
           seqscan ...
-          | aggregate partials-out sort-dir 1
+          | aggregate partials-out
               count:=count() by y:=y,ts:=bucket(ts, 1h)
         )
       | merge ts asc nulls last
-      | aggregate partials-in sort-dir 1
+      | aggregate partials-in
           count:=count() by y:=y,ts:=ts
       | output main
       <PUT COUNTDISTINCT UNIQ>

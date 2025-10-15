@@ -398,9 +398,6 @@ func (c *canonDAG) op(p dag.Op) {
 		if p.PartialsOut {
 			c.write(" partials-out")
 		}
-		if p.InputSortDir != 0 {
-			c.write(" sort-dir %d", p.InputSortDir)
-		}
 		c.ret()
 		c.open()
 		c.assignments(p.Aggs)

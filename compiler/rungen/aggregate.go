@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/brimdata/super/compiler/dag"
-	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/op/aggregate"
@@ -21,11 +20,10 @@ func (b *Builder) compileAggregate(parent sbuf.Puller, a *dag.AggregateOp) (sbuf
 	if err != nil {
 		return nil, err
 	}
-	dir := order.Direction(a.InputSortDir)
 	if len(keys) == 0 {
 		return aggregate.NewScalar(b.rctx, parent, names, reducers, a.PartialsIn, a.PartialsOut)
 	}
-	return aggregate.New(b.rctx, parent, keys, names, reducers, a.Limit, dir, a.PartialsIn, a.PartialsOut)
+	return aggregate.New(b.rctx, parent, keys, names, reducers, a.Limit, a.PartialsIn, a.PartialsOut)
 }
 
 func (b *Builder) compileAggAssignments(assignments []dag.Assignment) (field.List, []*expr.Aggregator, error) {

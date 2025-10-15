@@ -332,29 +332,6 @@ func (o *Optimizer) propagateSortKeyOp(op dag.Op, parents []order.SortKeys) ([]o
 	}
 	switch op := op.(type) {
 	case *dag.AggregateOp:
-		if parent.IsNil() {
-			return []order.SortKeys{nil}, nil
-		}
-		//XXX handle only primary sortKey for now
-		sortKey := parent.Primary()
-		for _, k := range op.Keys {
-			if groupingKey := fieldOf(k.LHS); groupingKey.Equal(sortKey.Key) {
-				rhsExpr := k.RHS
-				rhs := fieldOf(rhsExpr)
-				if rhs.Equal(sortKey.Key) || orderPreservingCall(rhsExpr, groupingKey) {
-					op.InputSortDir = int(sortKey.Order.Direction())
-					// Currently, the aggregate operator will sort its
-					// output according to the primary key, but we
-					// should relax this and do an analysis here as
-					// to whether the sort is necessary for the
-					// downstream consumer.
-					return []order.SortKeys{parent}, nil
-				}
-			}
-		}
-		// We'll leave this as unknown for now in spite of the aggregate
-		// and not try to optimize downstream of the first aggregate
-		// unless there is an excplicit sort encountered.
 		return []order.SortKeys{nil}, nil
 	case *dag.ForkOp:
 		var keys []order.SortKeys

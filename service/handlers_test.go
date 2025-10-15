@@ -38,22 +38,6 @@ func TestQueryEmptyPool(t *testing.T) {
 	assert.Equal(t, "", conn.TestQuery("from test"))
 }
 
-func TestQueryAggregateReverse(t *testing.T) {
-	src := `
-{ts:1970-01-01T00:00:01Z,uid:"A"}
-{ts:1970-01-01T00:00:01Z,uid:"B"}
-{ts:1970-01-01T00:00:02Z,uid:"B"}
-`
-	counts := `
-{ts:1970-01-01T00:00:02Z,count:1}
-{ts:1970-01-01T00:00:01Z,count:2}
-`
-	_, conn := newCore(t)
-	poolID := conn.TestPoolPost(api.PoolPostRequest{Name: "test"})
-	conn.TestLoad(poolID, "main", strings.NewReader(src))
-	require.Equal(t, counts, "\n"+conn.TestQuery("from test | count() by ts:=bucket(ts, 1s)"))
-}
-
 func TestPoolStats(t *testing.T) {
 	src := `
 {_path:"conn",ts:1970-01-01T00:00:01Z,uid:"CBrzd94qfowOqJwCHa"}

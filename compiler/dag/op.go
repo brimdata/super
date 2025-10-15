@@ -53,13 +53,12 @@ func (seq *Seq) Delete(from, to int) {
 
 type (
 	AggregateOp struct {
-		Kind         string       `json:"kind" unpack:""`
-		Limit        int          `json:"limit"`
-		Keys         []Assignment `json:"keys"`
-		Aggs         []Assignment `json:"aggs"`
-		InputSortDir int          `json:"input_sort_dir,omitempty"`
-		PartialsIn   bool         `json:"partials_in,omitempty"`
-		PartialsOut  bool         `json:"partials_out,omitempty"`
+		Kind        string       `json:"kind" unpack:""`
+		Limit       int          `json:"limit"`
+		Keys        []Assignment `json:"keys"`
+		Aggs        []Assignment `json:"aggs"`
+		PartialsIn  bool         `json:"partials_in,omitempty"`
+		PartialsOut bool         `json:"partials_out,omitempty"`
 	}
 	CombineOp struct {
 		Kind string `json:"kind" unpack:""`

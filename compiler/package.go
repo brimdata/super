@@ -12,7 +12,6 @@ import (
 	"github.com/brimdata/super/compiler/semantic"
 	"github.com/brimdata/super/compiler/srcfiles"
 	"github.com/brimdata/super/dbid"
-	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/runtime/vam/op"
@@ -139,26 +138,4 @@ func VectorFilterCompile(rctx *runtime.Context, query string, env *exec.Environm
 		return nil, errors.New("filter query must be a single filter op")
 	}
 	return rungen.NewBuilder(rctx, env).BuildVamToSeqFilter(f.Expr, poolID, commitID)
-}
-
-// XXX currently used only by aggregate test, need to deprecate
-func CompileWithSortKey(rctx *runtime.Context, ast *parser.AST, r sio.Reader, sortKey order.SortKey) (*exec.Query, error) {
-	env := exec.NewEnvironment(nil, nil)
-	main, err := Analyze(rctx, ast, env, true)
-	if err != nil {
-		return nil, err
-	}
-	scan, ok := main.Body[0].(*dag.DefaultScan)
-	if !ok {
-		return nil, errors.New("CompileWithSortKey: expected a reader")
-	}
-	scan.SortKeys = order.SortKeys{sortKey}
-	if err := Optimize(rctx, main, env, 0); err != nil {
-		return nil, err
-	}
-	outputs, debugs, meter, err := Build(rctx, main, env, []sio.Reader{r})
-	if err != nil {
-		return nil, err
-	}
-	return exec.NewQuery(rctx, bundleOutputs(rctx, outputs, debugs), meter), nil
 }
