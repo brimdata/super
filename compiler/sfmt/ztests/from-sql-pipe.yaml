@@ -1,0 +1,10 @@
+script: |
+  super compile -C "select a from (values {a:1})"
+
+outputs:
+  - name: stdout
+    data: |
+      select a
+      from (
+        values {a:1}
+      )
