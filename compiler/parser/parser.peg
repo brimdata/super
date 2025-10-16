@@ -2162,6 +2162,7 @@ ConditionJoin
 
 SQLJoinStyle
   = (_ INNER)? _ JOIN             { return "inner", nil }
+  / _ ANTI _ JOIN { return "anti", nil }
   / _ FULL (_ OUTER)? _ JOIN   { return "full", nil }
   / _ LEFT (_ OUTER)? _ JOIN   { return "left", nil }
   / _ RIGHT (_ OUTER)? _ JOIN   { return "right", nil }
@@ -2329,7 +2330,7 @@ SetOp
 // XXX incomplete
 SQLGuard =
     FROM / GROUP / HAVING / SELECT / RECURSIVE
-  / INNER / LEFT / RIGHT / OUTER / CROSS / JOIN
+  / ANTI / INNER / LEFT / RIGHT / OUTER / CROSS / JOIN
   / UNION
   / ORDER
   / OFFSET

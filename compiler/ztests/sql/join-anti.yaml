@@ -1,0 +1,9 @@
+spq: |
+  select *
+  from (values {aid:1}, {aid:2}, {aid:3})
+  anti join (values {bid:2}) on aid == bid
+  order by aid
+
+output: |
+  {aid:1,bid:error("missing")}
+  {aid:3,bid:error("missing")}
