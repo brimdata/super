@@ -1,11 +1,15 @@
 package ast
 
+type SQLClause interface {
+	sqlClauseNode()
+}
+
 type SQLSelect struct {
 	Kind      string       `json:"kind" unpack:""`
 	Distinct  bool         `json:"distinct"`
 	Value     bool         `json:"value"`
 	Selection SQLSelection `json:"selection"`
-	From      *FromOp      `json:"from"`
+	From      *FromOp      `json:"from"` // XXX from clause?
 	Where     Expr         `json:"where"`
 	GroupBy   []Expr       `json:"group_by"`
 	Having    Expr         `json:"having"`
@@ -24,40 +28,48 @@ type SQLValues struct {
 	Loc   `json:"loc"`
 }
 
-// SQLPipe turns a Seq into an Op.  We need this to put pipes inside
-// of SQL expressions.
+// SQLPipe turns a Seq into an SQLClause.  This allows us to put pipes inside
+// of SQL.
 type SQLPipe struct {
 	Kind string `json:"kind" unpack:""`
-	Ops  Seq    `json:"ops"`
+	Body Seq    `json:"body"`
 	Loc  `json:"loc"`
 }
 
+// SQLOp turns a SQLClause into an Op.  This allows us to put SQL inside of pipes.
+type SQLOp struct {
+	Kind string    `json:"kind" unpack:""`
+	Body SQLClause `json:"body"`
+	Loc  `json:"loc"`
+}
+
+func (*SQLOp) opNode() {}
+
 type SQLLimitOffset struct {
-	Kind   string `json:"kind" unpack:""`
-	Op     Op     `json:"op"`
-	Limit  Expr   `json:"limit"`
-	Offset Expr   `json:"offset"`
+	Kind   string    `json:"kind" unpack:""`
+	Body   SQLClause `json:"body"`
+	Limit  Expr      `json:"limit"`
+	Offset Expr      `json:"offset"`
 	Loc    `json:"loc"`
 }
 
 type SQLWith struct {
-	Kind      string   `json:"kind" unpack:""`
-	Body      Op       `json:"body"`
-	Recursive bool     `json:"recursive"`
-	CTEs      []SQLCTE `json:"ctes"`
+	Body      SQLClause `json:"body"`
+	Recursive bool      `json:"recursive"`
+	CTEs      []SQLCTE  `json:"ctes"`
 	Loc       `json:"loc"`
 }
 
 type SQLCTE struct {
-	Name         *ID      `json:"name"`
-	Materialized bool     `json:"materialized"`
-	Body         *SQLPipe `json:"body"`
+	Name         *ID       `json:"name"`
+	Materialized bool      `json:"materialized"`
+	Body         SQLClause `json:"body"`
 	Loc          `json:"loc"`
 }
 
 type SQLOrderBy struct {
 	Kind  string     `json:"kind" unpack:""`
-	Op    Op         `json:"op"`
+	Body  SQLClause  `json:"body"`
 	Exprs []SortExpr `json:"exprs"`
 	Loc   `json:"loc"`
 }
@@ -82,10 +94,10 @@ type (
 		Loc   `json:"loc"`
 	}
 	SQLUnion struct {
-		Kind     string `json:"kind" unpack:""`
-		Distinct bool   `json:"distinct"`
-		Left     Op     `json:"left"`
-		Right    Op     `json:"right"`
+		Kind     string    `json:"kind" unpack:""`
+		Distinct bool      `json:"distinct"`
+		Left     SQLClause `json:"left"`
+		Right    SQLClause `json:"right"`
 		Loc      `json:"loc"`
 	}
 )
@@ -111,15 +123,16 @@ type JoinUsingCond struct {
 
 func (*JoinUsingCond) joinCondNode() {}
 
-func (*SQLPipe) opNode()        {}
-func (*SQLSelect) opNode()      {}
-func (*SQLValues) opNode()      {}
-func (*SQLCrossJoin) opNode()   {}
-func (*SQLJoin) opNode()        {}
-func (*SQLUnion) opNode()       {}
-func (*SQLOrderBy) opNode()     {}
-func (*SQLLimitOffset) opNode() {}
-func (*SQLWith) opNode()        {}
+func (*SQLPipe) sqlClauseNode()        {}
+func (*SQLSelect) sqlClauseNode()      {}
+func (*SQLValues) sqlClauseNode()      {}
+func (*SQLCrossJoin) sqlClauseNode()   {}
+func (*SQLJoin) sqlClauseNode()        {}
+func (*SQLUnion) sqlClauseNode()       {}
+func (*SQLOrderBy) sqlClauseNode()     {}
+func (*SQLLimitOffset) sqlClauseNode() {}
+
+func (*FromOp) sqlClauseNode() {} //XXX
 
 type SQLAsExpr struct {
 	Kind  string `json:"kind" unpack:""`

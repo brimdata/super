@@ -528,7 +528,7 @@ func (t *translator) scopeOp(op *ast.ScopeOp) sem.Seq {
 // with either an aggregate or filter op based on the function's name.
 func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 	switch o := o.(type) {
-	case *ast.SQLSelect, *ast.SQLLimitOffset, *ast.SQLOrderBy, *ast.SQLPipe, *ast.SQLUnion, *ast.SQLWith, *ast.SQLValues:
+	case *ast.SQLSelect, *ast.SQLLimitOffset, *ast.SQLOrderBy, *ast.SQLPipe, *ast.SQLUnion, *ast.SQLValues:
 		seq, sch := t.sqlOp(o, seq)
 		seq, _ = derefSchema(o, sch, seq)
 		return seq

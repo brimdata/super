@@ -1902,27 +1902,36 @@ SQLPipe
     }
 
 SelectOp
+  = clause:SelectClause {
+      return &ast.SQLOp{
+        Kind: "SQLOp",
+        Clause: clause.(ast.SQLClause),
+        Loc: loc(c),
+      }, nil
+    }
+
+SelectClause
   = with:OptWithClause
     body:SelectSetOperation
     orderby:OptOrderByClause
     loff:OptSQLLimitOffset {
-      op := body.(ast.Op)
+      clause := body.(ast.SQLClause)
       if with != nil {
           w := with.(*ast.SQLWith)
-          w.Body = op
-          op = w
+          w.Body = clause
+          clause = w
       }
       if orderby != nil {
           o := orderby.(*ast.SQLOrderBy)
-          o.Op = op
-          op = o
+          o.Body = clause
+          clause = o
       }
       if loff != nil {
           o := loff.(*ast.SQLLimitOffset)
-          o.Op = op
-          op = o
+          o.Body = clause
+          clause = o
       }
-      return op, nil
+      return clause, nil
     }
 
 SelectSetOperation
