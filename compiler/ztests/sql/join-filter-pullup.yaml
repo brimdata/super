@@ -9,7 +9,10 @@ script: |
   super compile -C -O "
     select *
     from (values (1)) as t1(a1), (values (1)) as t2(a2), (values (1)) as t3(a3)
-    where a1 == 1 and a3 == 1 and (1 == a2 or a2 == 2)
+    where a1 in [1,5,9]
+      and a1 in |[1,5,9]|
+      and a3 in (1,5,[9,11])
+      and (1 == a2 or a2 == 2)
   "
 
 outputs:
@@ -33,7 +36,7 @@ outputs:
       | fork
         (
           values {a1:1}
-          | where a1==1
+          | where a1 in [1,5,9] and a1 in |[1,5,9]|
         )
         (
           fork
@@ -43,7 +46,7 @@ outputs:
             )
             (
               values {a3:1}
-              | where a3==1
+              | where a3 in {c0:1,c1:5,c2:[9,11]}
             )
           | cross join as {left,right}
         )
