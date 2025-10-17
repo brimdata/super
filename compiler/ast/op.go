@@ -175,6 +175,12 @@ type (
 		Count Expr   `json:"count"`
 		Loc   `json:"loc"`
 	}
+	// SQLOp turns a SQLQueryBody into an Op.  This allows us to put SQL inside of pipes.
+	SQLOp struct {
+		Kind string       `json:"kind" unpack:""`
+		Body SQLQueryBody `json:"body"`
+		Loc  `json:"loc"`
+	}
 	SortOp struct {
 		Kind    string     `json:"kind" unpack:""`
 		Exprs   []SortExpr `json:"exprs"`
@@ -256,14 +262,11 @@ type ExprEntity struct {
 	Loc  `json:"loc"`
 }
 
-func (*GlobExpr) fromEntityNode()     {}
-func (*RegexpExpr) fromEntityNode()   {}
-func (*ExprEntity) fromEntityNode()   {}
-func (*DBMeta) fromEntityNode()       {}
-func (*Text) fromEntityNode()         {}
-func (*SQLCrossJoin) fromEntityNode() {}
-func (*SQLJoin) fromEntityNode()      {}
-func (*SQLPipe) fromEntityNode()      {}
+func (*GlobExpr) fromEntityNode()   {}
+func (*RegexpExpr) fromEntityNode() {}
+func (*ExprEntity) fromEntityNode() {}
+func (*DBMeta) fromEntityNode()     {}
+func (*Text) fromEntityNode()       {}
 
 type FromElem struct {
 	Entity     FromEntity  `json:"entity"`
@@ -363,6 +366,7 @@ func (*SearchOp) opNode()     {}
 func (*ShapesOp) opNode()     {}
 func (*SkipOp) opNode()       {}
 func (*SortOp) opNode()       {}
+func (*SQLOp) opNode()        {}
 func (*SwitchOp) opNode()     {}
 func (*TailOp) opNode()       {}
 func (*TopOp) opNode()        {}

@@ -104,14 +104,11 @@ var unpacker = unpack.New(
 	DBMeta{},
 	// SuperSQL
 	SQLPipe{},
-	SQLLimitOffset{},
 	SQLSelect{},
 	SQLCrossJoin{},
 	SQLJoin{},
 	SQLTimeExpr{},
 	SQLUnion{},
-	SQLOrderBy{},
-	SQLWith{},
 	JoinOnCond{},
 	JoinUsingCond{},
 )

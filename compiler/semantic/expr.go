@@ -1123,7 +1123,7 @@ func (t *translator) subqueryExpr(astExpr ast.Expr, array bool, body ast.Seq) *s
 	if !correlated && !HasSource(e.Body) {
 		e.Body.Prepend(&sem.NullScan{})
 	}
-	if !array && isSQLOp(body[0]) { //XXX this should check scope not isSQLOp?
+	if !array && t.scope.schema != nil {
 		// SQL expects a record with a single column result so fetch the first
 		// value.
 		// XXX this should be a structured error... or just allow it

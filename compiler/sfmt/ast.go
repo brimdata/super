@@ -661,10 +661,8 @@ func (c *canon) op(p ast.Op) {
 		c.next()
 		c.write("values ")
 		c.exprs(p.Exprs)
-	case *ast.SQLValues:
-		c.next()
-		c.write("values ")
-		c.exprs(p.Exprs)
+	case *ast.SQLOp:
+		c.sqlQueryBody(p.Body)
 	case *ast.OutputOp:
 		c.next()
 		c.write("output %s", p.Name.Name)
@@ -675,99 +673,106 @@ func (c *canon) op(p ast.Op) {
 			c.write(" ")
 			c.expr(p.Expr, "")
 		}
-	case *ast.SQLLimitOffset:
-		c.op(p.Op)
-		if p.Limit != nil {
+
+	default:
+		c.open("unknown operator: %T", p)
+		c.close()
+	}
+}
+
+func (c *canon) sqlQueryBody(query ast.SQLQueryBody) {
+	switch query := query.(type) {
+	case *ast.SQLQuery:
+		if with := query.With; with != nil {
+			c.next()
+			c.write("with ")
+			if with.Recursive {
+				c.write("recursive ")
+			}
+			for i, cte := range with.CTEs {
+				if i > 0 {
+					c.write(", ")
+				}
+				c.write("%s as ", cte.Name.Name)
+				if cte.Materialized {
+					c.write("materialized ")
+				}
+				c.open("(")
+				//c.first, c.head = true, true
+				c.sqlQueryBody(cte.Body)
+				c.close()
+				c.ret()
+				c.write(")")
+			}
+		}
+		c.head = true
+		c.sqlQueryBody(query.Body)
+		if query.OrderBy != nil {
+			c.ret()
+			c.write("order by")
+			c.sortExprs(query.OrderBy.Exprs)
+		}
+		if limoff := query.Limit; limoff != nil {
 			c.ret()
 			c.write("limit ")
-			c.expr(p.Limit, "")
+			c.expr(limoff.Limit, "")
+			if limoff.Offset != nil {
+				c.ret()
+				c.write("offset ")
+				c.expr(limoff.Offset, "")
+			}
 		}
-		if p.Offset != nil {
-			c.ret()
-			c.write("offset ")
-			c.expr(p.Offset, "")
-		}
-	case *ast.SQLOrderBy:
-		c.op(p.Op)
-		c.ret()
-		c.write("order by")
-		c.sortExprs(p.Exprs)
-	case *ast.SQLPipe:
-		c.next()
-		c.open("(")
-		c.head = true
-		c.seq(p.Ops)
-		c.close()
-		c.ret()
-		c.flush()
-		c.write(")")
 	case *ast.SQLSelect:
 		c.next()
 		c.write("select ")
-		if p.Distinct {
+		if query.Distinct {
 			c.write("distinct ")
 		}
-		if p.Value {
+		if query.Value {
 			c.write("value ")
 		}
-		for i, a := range p.Selection.Args {
+		for i, a := range query.Selection.Args {
 			if i > 0 {
 				c.write(", ")
 			}
 			c.expr(&a, "")
 		}
-		if p.From != nil {
+		if query.From != nil {
 			c.head = true
-			c.op(p.From)
+			c.op(query.From) //XXX sb table expr
 		}
-		if p.Where != nil {
+		if query.Where != nil {
 			c.ret()
 			c.write("where ")
-			c.expr(p.Where, "")
+			c.expr(query.Where, "")
 		}
-		if len(p.GroupBy) > 0 {
+		if len(query.GroupBy) > 0 {
 			c.ret()
 			c.write("group by ")
-			c.exprs(p.GroupBy)
+			c.exprs(query.GroupBy)
 		}
-		if p.Having != nil {
+		if query.Having != nil {
 			c.ret()
 			c.write("having ")
-			c.expr(p.Having, "")
+			c.expr(query.Having, "")
 		}
 	case *ast.SQLUnion:
-		c.op(p.Left)
+		c.sqlQueryBody(query.Left)
 		c.ret()
 		c.write("union")
-		if p.Distinct {
+		if query.Distinct {
 			c.write(" distinct")
 		} else {
 			c.write(" all")
 		}
 		c.head = true
-		c.op(p.Right)
-	case *ast.SQLWith:
+		c.sqlQueryBody(query.Right)
+	case *ast.SQLValues:
 		c.next()
-		c.write("with ")
-		if p.Recursive {
-			c.write("recursive ")
-		}
-		for i, cte := range p.CTEs {
-			if i > 0 {
-				c.write(", ")
-			}
-			c.write("%s as ", cte.Name.Name)
-			if cte.Materialized {
-				c.write("materialized ")
-			}
-			c.first, c.head = true, true
-			c.op(cte.Body)
-		}
-		c.head = true
-		c.op(p.Body)
+		c.write("values ")
+		c.exprs(query.Exprs)
 	default:
-		c.open("unknown operator: %T", p)
-		c.close()
+		panic(query)
 	}
 }
 
@@ -852,7 +857,7 @@ func (c *canon) fromEntity(e ast.FromEntity) {
 	case *ast.SQLPipe:
 		c.open("(")
 		c.head = true
-		c.seq(e.Ops)
+		c.seq(e.Body)
 		c.close()
 		c.ret()
 		c.write(")")

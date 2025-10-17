@@ -59,13 +59,14 @@ func (t *translator) fromElem(elem *ast.FromElem, seq sem.Seq) (sem.Seq, schema)
 }
 
 func (t *translator) fromSchema(alias *ast.TableAlias, name string) schema {
+	sch := &dynamicSchema{}
 	if alias != nil {
-		name = alias.Name
 		if len(alias.Columns) != 0 {
 			t.error(alias, errors.New("cannot apply aliased columns to dynamically typed data"))
 		}
+		return &aliasSchema{name: alias.Name, sch: sch}
 	}
-	return &dynamicSchema{name: name}
+	return sch
 }
 
 func (t *translator) fromEntity(entity ast.FromEntity, alias *ast.TableAlias, args []ast.OpArg, seq sem.Seq) (sem.Seq, schema) {
@@ -93,31 +94,29 @@ func (t *translator) fromEntity(entity ast.FromEntity, alias *ast.TableAlias, ar
 			return bad, badSchema()
 		}
 		if c, ok := t.scope.ctes[strings.ToLower(entity.Text)]; ok {
-			return t.fromCTE(entity, c, alias)
+			seq, sch := t.fromCTE(entity, c)
+			if alias == nil {
+				alias = &ast.TableAlias{Name: c.Name.Name, Loc: c.Name.Loc}
+			}
+			seq, sch, err := applyAlias(alias, sch, seq)
+			if err != nil {
+				t.error(alias, err)
+			}
+			return seq, sch
 		}
 		if seq := t.scope.lookupQuery(t, entity.Text); seq != nil {
 			return seq, &dynamicSchema{}
 		}
-		op, def := t.fromName(entity, entity.Text, args)
+		op, _ := t.fromName(entity, entity.Text, args)
 		if op, ok := op.(*sem.FileScan); ok {
-			if rec := super.TypeRecordOf(op.Type); rec != nil {
-				var columns []string
-				for _, f := range rec.Fields {
-					columns = append(columns, f.Name)
-				}
-				schema := schema(&staticSchema{def, columns})
-				seq, schema, err := derefSchemaWithAlias(op, schema, alias, sem.Seq{op})
-				if err != nil {
-					t.error(alias, err)
-				}
-				return seq, schema
+			schema := newSchemaFromType(op.Type)
+			seq, schema, err := applyAlias(alias, schema, sem.Seq{op})
+			if err != nil {
+				t.error(alias, err)
 			}
+			return seq, schema
 		}
-		// Until we have type checking integrated into the translator pass,
-		// we won't use default table aliases for dynamic inputs so we clear
-		// def here.
-		def = ""
-		return sem.Seq{op}, t.fromSchema(alias, def)
+		return sem.Seq{op}, t.fromSchema(alias, "")
 	case *ast.ExprEntity:
 		seq, def := t.fromExpr(entity, args, seq)
 		return seq, t.fromSchema(alias, def)
@@ -127,29 +126,35 @@ func (t *translator) fromEntity(entity ast.FromEntity, alias *ast.TableAlias, ar
 		}
 		return sem.Seq{t.dbMeta(entity)}, &dynamicSchema{}
 	case *ast.SQLPipe:
-		return t.sqlPipe(entity, seq, alias)
+		seq, sch := t.sqlPipe(entity, seq)
+		seq, sch = endScope(entity, sch, seq)
+		seq, sch, err := applyAlias(alias, sch, seq)
+		if err != nil {
+			t.error(alias, err)
+		}
+		return seq, sch
 	case *ast.SQLJoin:
 		return t.sqlJoin(entity, seq)
 	case *ast.SQLCrossJoin:
 		return t.sqlCrossJoin(entity, seq)
 	default:
-		panic(fmt.Sprintf("semFromEntity: unknown entity type: %T", entity))
+		panic(entity)
 	}
 }
 
-func (t *translator) fromCTE(entity ast.FromEntity, c *ast.SQLCTE, alias *ast.TableAlias) (sem.Seq, schema) {
+func (t *translator) fromCTE(entity ast.FromEntity, c *ast.SQLCTE) (sem.Seq, schema) {
 	if slices.Contains(t.cteStack, c) {
 		t.error(entity, errors.New("recursive WITH relations not currently supported"))
 		return sem.Seq{badOp()}, badSchema()
 	}
 	t.cteStack = append(t.cteStack, c)
-	body, schema := t.sqlPipe(c.Body, nil, &ast.TableAlias{Name: c.Name.Name})
+	seq, sch := t.sqlQueryBody(c.Body, nil)
+	// Add the CTE name as the alias.  If there is an actual alias, it will
+	// override this.
+	sch = addAlias(sch, c.Name.Name)
 	t.cteStack = t.cteStack[:len(t.cteStack)-1]
-	seq, schema, err := derefSchemaWithAlias(entity, schema, alias, body)
-	if err != nil {
-		t.error(alias, err)
-	}
-	return seq, schema
+	return endScope(entity, sch, seq)
+
 }
 
 func (t *translator) fromExpr(entity *ast.ExprEntity, args []ast.OpArg, seq sem.Seq) (sem.Seq, string) {
@@ -528,10 +533,9 @@ func (t *translator) scopeOp(op *ast.ScopeOp) sem.Seq {
 // with either an aggregate or filter op based on the function's name.
 func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 	switch o := o.(type) {
-	case *ast.SQLSelect, *ast.SQLLimitOffset, *ast.SQLOrderBy, *ast.SQLPipe, *ast.SQLUnion, *ast.SQLWith, *ast.SQLValues:
-		seq, sch := t.sqlOp(o, seq)
-		seq, _ = derefSchema(o, sch, seq)
-		return seq
+	case *ast.SQLOp:
+		seq, sch := t.sqlQueryBody(o.Body, seq)
+		return unfurl(o, sch, seq)
 	case *ast.FromOp:
 		seq, _ := t.fromOp(o, seq)
 		return seq

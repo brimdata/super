@@ -1896,55 +1896,64 @@ SQLPipe
   = s:Seq {
       return &ast.SQLPipe{
             Kind: "SQLPipe",
-            Ops: sliceOf[ast.Op](s),
+            Body: sliceOf[ast.Op](s),
             Loc: loc(c),
         }, nil
     }
 
 SelectOp
-  = with:OptWithClause
-    body:SelectSetOperation
-    orderby:OptOrderByClause
-    loff:OptSQLLimitOffset {
-      op := body.(ast.Op)
-      if with != nil {
-          w := with.(*ast.SQLWith)
-          w.Body = op
-          op = w
-      }
-      if orderby != nil {
-          o := orderby.(*ast.SQLOrderBy)
-          o.Op = op
-          op = o
-      }
-      if loff != nil {
-          o := loff.(*ast.SQLLimitOffset)
-          o.Op = op
-          op = o
-      }
-      return op, nil
+  = query:SQLQuery {
+      return &ast.SQLOp{
+        Kind: "SQLOp",
+        Body: query.(*ast.SQLQuery),
+        Loc: loc(c),
+      }, nil
     }
 
-SelectSetOperation
-  = first:SimpleSelect rest:(SetOp _ SimpleSelect)* {
-      out := first.(ast.Op)
+SQLQuery
+  = with:OptWithClause
+    body:SQLSetExpr
+    orderby:OptOrderByClause
+    loff:OptSQLLimitOffset {
+      queryExpr := &ast.SQLQuery{
+        Kind: "SQLQuery",
+        Body: body.(ast.SQLQueryBody),
+        Loc: loc(c),
+      }
+      if with != nil {
+          queryExpr.With = with.(*ast.SQLWith)
+      }
+      if orderby != nil {
+          queryExpr.OrderBy = orderby.(*ast.SQLOrderBy)
+      }
+      if loff != nil {
+          queryExpr.Limit = loff.(*ast.SQLLimitOffset)
+      }
+      return queryExpr, nil
+    }
+
+SQLSetExpr
+  = first:SQLQueryBody rest:(SetOp _ SQLQueryBody)* {
+      out := first.(ast.SQLQueryBody)
       for _, o := range rest.([]any) {
         o := o.([]any)
         out = &ast.SQLUnion{
           Kind: "SQLUnion",
           Distinct: o[0].(bool),
           Left: out,
-          Right: o[2].(ast.Op),
+          Right: o[2].(ast.SQLQueryBody),
         }
       }
       return out, nil
     }
 
-SimpleSelect
+SQLQueryBody
   = Select
   / FromSelect
   / SQLValues
-  / "(" __ s:SQLPipe __")" { return s, nil }
+  / "(" __ s:SQLQueryOrSetExpr __")" { return s, nil }
+
+SQLQueryOrSetExpr = SQLQuery / SQLSetExpr
 
 Select
   = SELECT
@@ -2065,7 +2074,6 @@ OptWithClause
 WithClause
   = WITH r:OptRecursive _ ctes:CteList __ {
         return &ast.SQLWith{
-            Kind: "SQLWith",
             Recursive: r.(bool),
             CTEs: sliceOf[ast.SQLCTE](ctes),
             Loc: loc(c),
@@ -2081,11 +2089,11 @@ CteList = first:Cte rest:( __ "," __ cte:Cte { return cte, nil} )* {
 }
 
 Cte
-  = name:SQLIdentifier _ AS m:OptMaterialized __ "(" __ s:SQLPipe __ ")" {
+  = name:SQLIdentifier _ AS m:OptMaterialized __ "(" __ s:SQLQueryOrSetExpr __ ")" {
         return ast.SQLCTE{
             Name: name.(*ast.ID),
             Materialized: m.(bool),
-            Body: s.(*ast.SQLPipe),
+            Body: s.(ast.SQLQueryBody),
             Loc: loc(c),
         }, nil
     }
@@ -2212,7 +2220,6 @@ Columns
 Selection
   = first:SelectElem rest:( __ "," __ s:SelectElem{ return s, nil })* {
       return ast.SQLSelection{
-        Kind: "SQLSelection",
         Args: sliceOf[ast.SQLAsExpr](prepend(first, rest)),
         Loc: loc(c),
       }, nil
@@ -2244,7 +2251,6 @@ OptAsClause
 OptOrderByClause
   = _ ORDER _ BY _ list:OrderByList {
         return &ast.SQLOrderBy{
-          Kind: "SQLOrderBy",
           Exprs: list.([]ast.SortExpr),
           Loc: loc(c),
         }, nil
@@ -2285,7 +2291,6 @@ OptSQLLimitOffset
 SQLLimitOffset
   = l:LimitClause o:OptOffsetClause {
       op := &ast.SQLLimitOffset{
-        Kind: "SQLLimitOffset",
         Loc: loc(c),
       }
       if l != nil {
@@ -2298,7 +2303,6 @@ SQLLimitOffset
     }
   / o:OffsetClause l:OptLimitClause {
       op := &ast.SQLLimitOffset{
-        Kind: "SQLLimitOffset",
         Offset: o.(ast.Expr),
         Loc: loc(c),
       }

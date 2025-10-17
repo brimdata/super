@@ -141,6 +141,8 @@ func (t *translator) genColumns(proj projection, sch *selectSchema, seq sem.Seq)
 
 func unravel(n ast.Node, elems []sem.RecordElem, schema schema, prefix field.Path) []sem.RecordElem {
 	switch schema := schema.(type) {
+	case *aliasSchema:
+		return unravel(n, elems, schema.sch, prefix)
 	case *dynamicSchema:
 		return append(elems, &sem.SpreadElem{
 			Node: n,
@@ -159,20 +161,6 @@ func unravel(n ast.Node, elems []sem.RecordElem, schema schema, prefix field.Pat
 	case *joinSchema:
 		elems = unravel(n, elems, schema.left, append(prefix, "left"))
 		return unravel(n, elems, schema.right, append(prefix, "right"))
-	case *pipeSchema:
-		if schema.record == nil {
-			return append(elems, &sem.SpreadElem{
-				Node: n,
-				Expr: sem.NewThis(n, prefix),
-			})
-		}
-		for _, f := range schema.record.Fields {
-			elems = append(elems, &sem.FieldElem{
-				Name:  f.Name,
-				Value: sem.NewThis(n, slices.Clone(append(prefix, f.Name))),
-			})
-		}
-		return elems
 	default:
 		panic(schema)
 	}
@@ -393,61 +381,66 @@ func (t *translator) genDistinct(e sem.Expr, seq sem.Seq) sem.Seq {
 	})
 }
 
-func (t *translator) sqlPipe(op *ast.SQLPipe, seq sem.Seq, alias *ast.TableAlias) (sem.Seq, schema) {
-	if len(op.Ops) == 1 && isSQLOp(op.Ops[0]) {
-		seq, sch := t.sqlOp(op.Ops[0], seq)
-		outSeq, outSch, err := derefSchemaWithAlias(op.Ops[0], sch, alias, seq)
-		if err != nil {
-			t.error(op.Ops[0], err)
-		}
-		return outSeq, outSch
+func (t *translator) sqlPipe(pipe *ast.SQLPipe, seq sem.Seq) (sem.Seq, schema) {
+	if from, ok := maybeFromOp(pipe); ok {
+		return t.fromOp(from, seq)
+	}
+	if query, ok := maybeSQLQueryBody(pipe); ok {
+		return t.sqlQueryBody(query, seq)
 	}
 	if len(seq) > 0 {
 		panic("semSQLOp: SQL pipes can't have parents")
 	}
-	var name string
-	if alias != nil {
-		name = alias.Name
-		if len(alias.Columns) != 0 {
-			t.error(alias, errors.New("cannot apply column aliases to dynamically typed data"))
-		}
-	}
-	seq = t.seq(op.Ops)
+	seq = t.seq(pipe.Body)
 	// We pass in type null for initial type here since we know a pipe subquery inside
 	// of a sql table expression must always have a data source (i.e., it cannot inherit
 	// data from a parent node somewhere outside of this seq).  XXX this assumption may
 	// change when we add support for correlated subqueries and an embedded pipe may
 	// need access to the incoming type when feeding that type into the unnest scope
 	// that implements the correlated subquery.
-	typ := t.checker.seq(super.TypeNull, seq)
-	if isUnknown(typ) {
-		return seq, &dynamicSchema{name: name}
-	}
-	return seq, newPipeSchema(name, typ)
+	return seq, newSchemaFromType(t.checker.seq(super.TypeNull, seq))
 }
 
-func derefSchemaAs(n ast.Node, sch schema, table string, seq sem.Seq) (sem.Seq, schema) {
-	e, sch := sch.deref(n, table)
+func maybeFromOp(pipe *ast.SQLPipe) (*ast.FromOp, bool) {
+	if len(pipe.Body) == 1 {
+		from, ok := pipe.Body[0].(*ast.FromOp)
+		return from, ok
+	}
+	return nil, false
+}
+
+func maybeSQLQueryBody(pipe *ast.SQLPipe) (ast.SQLQueryBody, bool) {
+	if len(pipe.Body) == 1 {
+		if op, ok := pipe.Body[0].(*ast.SQLOp); ok {
+			return op.Body, true
+		}
+	}
+	return nil, false
+}
+
+func endScope(n ast.Node, sch schema, seq sem.Seq) (sem.Seq, schema) {
+	e, sch := sch.endScope(n)
 	if e != nil {
 		seq = valuesExpr(e, seq)
 	}
 	return seq, sch
 }
 
-func derefSchema(n ast.Node, sch schema, seq sem.Seq) (sem.Seq, schema) {
-	return derefSchemaAs(n, sch, "", seq)
+func unfurl(n ast.Node, sch schema, seq sem.Seq) sem.Seq {
+	if e := sch.unfurl(n); e != nil {
+		return valuesExpr(e, seq)
+	}
+	return seq
 }
 
-func derefSchemaWithAlias(n ast.Node, insch schema, alias *ast.TableAlias, inseq sem.Seq) (sem.Seq, schema, error) {
-	var table string
-	if alias != nil {
-		table = alias.Name
-	}
-	seq, sch := derefSchemaAs(n, insch, table, inseq)
-	if alias == nil || len(alias.Columns) == 0 {
+func applyAlias(alias *ast.TableAlias, sch schema, seq sem.Seq) (sem.Seq, schema, error) {
+	if alias == nil {
 		return seq, sch, nil
 	}
-	if sch, ok := sch.(*staticSchema); ok {
+	if len(alias.Columns) == 0 {
+		return seq, addAlias(sch, alias.Name), nil
+	}
+	if sch, ok := maybeStatic(sch); ok {
 		return mapColumns(sch.columns, alias, seq)
 	}
 	return seq, sch, errors.New("cannot apply column aliases to dynamically typed data")
@@ -473,7 +466,7 @@ func mapColumns(in []string, alias *ast.TableAlias, seq sem.Seq) (sem.Seq, schem
 			Elems: elems,
 		}, seq)
 	}
-	return seq, &staticSchema{alias.Name, out}, nil
+	return seq, &aliasSchema{alias.Name, &staticSchema{out}}, nil
 }
 
 func idsToStrings(ids []*ast.ID) []string {
@@ -484,77 +477,71 @@ func idsToStrings(ids []*ast.ID) []string {
 	return out
 }
 
-func isSQLOp(op ast.Op) bool {
-	switch op.(type) {
-	case *ast.SQLSelect, *ast.SQLLimitOffset, *ast.SQLOrderBy, *ast.SQLPipe, *ast.SQLJoin, *ast.SQLValues:
-		return true
-	}
-	return false
-}
-
-func (t *translator) sqlOp(op ast.Op, seq sem.Seq) (sem.Seq, schema) {
-	switch op := op.(type) {
-	case *ast.SQLPipe:
-		return t.sqlPipe(op, seq, nil) //XXX should alias hang off SQLPipe?
+func (t *translator) sqlQueryBody(query ast.SQLQueryBody, seq sem.Seq) (sem.Seq, schema) {
+	switch query := query.(type) {
 	case *ast.SQLSelect:
-		return t.sqlSelect(op, seq)
+		return t.sqlSelect(query, seq)
 	case *ast.SQLValues:
-		return t.sqlValues(op, seq)
-	case *ast.SQLJoin:
-		return t.sqlJoin(op, seq)
-	case *ast.SQLOrderBy:
-		out, schema := t.sqlOp(op.Op, seq)
-		var exprs []sem.SortExpr
-		for _, e := range op.Exprs {
-			exprs = append(exprs, t.sortExpr(schema, e, false))
+		return t.sqlValues(query, seq)
+	case *ast.SQLQuery:
+		if query.With != nil {
+			old := t.sqlWith(query.With)
+			defer func() { t.scope.ctes = old }()
 		}
-		return append(out, &sem.SortOp{Node: op, Exprs: exprs}), schema
-	case *ast.SQLLimitOffset:
-		out, schema := t.sqlOp(op.Op, seq)
-		if op.Offset != nil {
-			out = append(out, &sem.SkipOp{Node: op.Offset, Count: t.mustEvalPositiveInteger(op.Offset)})
+		seq, sch := t.sqlQueryBody(query.Body, seq)
+		if query.OrderBy != nil {
+			var exprs []sem.SortExpr
+			for _, e := range query.OrderBy.Exprs {
+				exprs = append(exprs, t.sortExpr(sch, e, false))
+			}
+			seq = append(seq, &sem.SortOp{Node: query.OrderBy, Exprs: exprs})
 		}
-		if op.Limit != nil {
-			out = append(out, &sem.HeadOp{Node: op.Limit, Count: t.mustEvalPositiveInteger(op.Limit)})
+		if limoff := query.Limit; limoff != nil {
+			if limoff.Offset != nil {
+				seq = append(seq, &sem.SkipOp{Node: limoff.Offset, Count: t.mustEvalPositiveInteger(limoff.Offset)})
+			}
+			if limoff.Limit != nil {
+				seq = append(seq, &sem.HeadOp{Node: limoff.Limit, Count: t.mustEvalPositiveInteger(limoff.Limit)})
+			}
 		}
-		return out, schema
+		return seq, sch
 	case *ast.SQLUnion:
-		left, leftSch := t.sqlOp(op.Left, seq)
-		left, _ = derefSchema(op.Left, leftSch, left)
-		right, rightSch := t.sqlOp(op.Right, seq)
-		right, _ = derefSchema(op.Right, rightSch, right)
+		left, leftSch := t.sqlQueryBody(query.Left, seq)
+		left, _ = endScope(query.Left.(ast.Node), leftSch, left)
+		right, rightSch := t.sqlQueryBody(query.Right, seq)
+		right, _ = endScope(query.Right.(ast.Node), rightSch, right)
 		out := sem.Seq{
-			&sem.ForkOp{Node: op, Paths: []sem.Seq{left, right}},
+			&sem.ForkOp{Node: query, Paths: []sem.Seq{left, right}},
 			// This used to be dag.Combine but we don't have combine in the sem tree,
 			// so we use a merge here.  If we don't put this in, then the optimizer
 			// mysteriously removes the output/main from the end of the DAG.
 			// The optimizer is too fussy/buggy in this way and we should clean it up.
-			&sem.MergeOp{Node: op},
+			&sem.MergeOp{Node: query},
 		}
-		if op.Distinct {
-			out = t.genDistinct(sem.NewThis(op, nil), out)
+		if query.Distinct {
+			out = t.genDistinct(sem.NewThis(query, nil), out)
 		}
 		return out, &dynamicSchema{}
-
-	case *ast.SQLWith:
-		if op.Recursive {
-			t.error(op, errors.New("recursive WITH queries not currently supported"))
-		}
-		old := t.scope.ctes
-		t.scope.ctes = maps.Clone(t.scope.ctes)
-		defer func() { t.scope.ctes = old }()
-		for k, c := range op.CTEs {
-			// XXX Materialized option not currently supported.
-			name := strings.ToLower(c.Name.Name)
-			if _, ok := t.scope.ctes[name]; ok {
-				t.error(c.Name, errors.New("duplicate WITH clause name"))
-			}
-			t.scope.ctes[name] = &op.CTEs[k]
-		}
-		return t.sqlOp(op.Body, seq)
 	default:
-		panic(fmt.Sprintf("semSQLOp: unknown op: %#v", op))
+		panic(query)
 	}
+}
+
+func (t *translator) sqlWith(with *ast.SQLWith) map[string]*ast.SQLCTE {
+	if with.Recursive {
+		t.error(with, errors.New("recursive WITH queries not currently supported"))
+	}
+	old := t.scope.ctes
+	t.scope.ctes = maps.Clone(t.scope.ctes)
+	for k, c := range with.CTEs {
+		// XXX Materialized option not currently supported.
+		name := strings.ToLower(c.Name.Name)
+		if _, ok := t.scope.ctes[name]; ok {
+			t.error(c.Name, errors.New("duplicate WITH clause name"))
+		}
+		t.scope.ctes[name] = &with.CTEs[k]
+	}
+	return old
 }
 
 func (t *translator) sqlCrossJoin(join *ast.SQLCrossJoin, seq sem.Seq) (sem.Seq, schema) {
@@ -712,7 +699,7 @@ func (t *translator) projection(sch *selectSchema, args []ast.SQLAsExpr, funcs *
 	for i := range proj {
 		col := &proj[i]
 		if col.isStar() {
-			if static, ok := sch.in.(*staticSchema); ok {
+			if static, ok := maybeStatic(sch.in); ok {
 				out.columns = append(out.columns, static.columns...)
 			} else {
 				sch.out = &dynamicSchema{}
@@ -726,6 +713,16 @@ func (t *translator) projection(sch *selectSchema, args []ast.SQLAsExpr, funcs *
 		out.columns = append(out.columns, col.name)
 	}
 	return proj
+}
+
+func maybeStatic(sch schema) (*staticSchema, bool) {
+	switch sch := sch.(type) {
+	case *staticSchema:
+		return sch, true
+	case *aliasSchema:
+		return maybeStatic(sch.sch)
+	}
+	return nil, false
 }
 
 func dedupeColname(m map[string]struct{}, name string) string {

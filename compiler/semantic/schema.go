@@ -11,28 +11,24 @@ import (
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/semantic/sem"
 	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/sup"
 )
 
 type schema interface {
-	Name() string
 	resolveColumn(col string) (field.Path, bool, error)
 	resolveOrdinal(n ast.Node, colno int) (sem.Expr, error)
 	resolveTable(table string) (schema, field.Path, error)
-	deref(n ast.Node, name string) (sem.Expr, schema)
+	unfurl(n ast.Node) sem.Expr
+	endScope(n ast.Node) (sem.Expr, schema)
 	this(n ast.Node, path []string) sem.Expr
 	tableOnly(n ast.Node, table string, path []string) (sem.Expr, error)
 	String() string
 }
 
 type staticSchema struct {
-	name    string
 	columns []string
 }
 
-type dynamicSchema struct {
-	name string
-}
+type dynamicSchema struct{}
 
 type selectSchema struct {
 	in  schema
@@ -53,18 +49,20 @@ type subquerySchema struct {
 	inner schema
 }
 
-type pipeSchema struct {
-	name   string
-	typ    super.Type
-	record *super.TypeRecord
+type aliasSchema struct {
+	name string
+	sch  schema
 }
 
-func newPipeSchema(name string, typ super.Type) *pipeSchema {
-	return &pipeSchema{
-		name:   name,
-		typ:    typ,
-		record: recordOf(typ),
+func newSchemaFromType(typ super.Type) schema {
+	if recType := recordOf(typ); recType != nil {
+		var cols []string
+		for _, f := range recType.Fields {
+			cols = append(cols, f.Name)
+		}
+		return &staticSchema{cols}
 	}
+	return &dynamicSchema{}
 }
 
 func recordOf(typ super.Type) *super.TypeRecord {
@@ -72,6 +70,9 @@ func recordOf(typ super.Type) *super.TypeRecord {
 	case *super.TypeRecord:
 		return typ
 	case *super.TypeUnion:
+		if hasUnknown(typ) {
+			return nil
+		}
 		for _, typ := range typ.Types {
 			if typ := recordOf(typ); typ != nil {
 				return typ
@@ -81,28 +82,22 @@ func recordOf(typ super.Type) *super.TypeRecord {
 	return nil
 }
 
-func (s *staticSchema) Name() string  { return s.name }
-func (d *dynamicSchema) Name() string { return d.name }
-func (*selectSchema) Name() string    { return "" }
-func (*joinSchema) Name() string      { return "" }
-func (*subquerySchema) Name() string  { return "" }
-func (p *pipeSchema) Name() string    { return p.name }
-
 func badSchema() schema {
 	return &dynamicSchema{}
 }
 
-func (d *dynamicSchema) resolveTable(table string) (schema, field.Path, error) {
-	if strings.EqualFold(d.name, table) {
-		return d, nil, nil
+func (a *aliasSchema) resolveTable(table string) (schema, field.Path, error) {
+	if strings.EqualFold(a.name, table) {
+		return a.sch, nil, nil
 	}
 	return nil, nil, nil
 }
 
+func (d *dynamicSchema) resolveTable(table string) (schema, field.Path, error) {
+	return nil, nil, nil
+}
+
 func (s *staticSchema) resolveTable(table string) (schema, field.Path, error) {
-	if strings.EqualFold(s.name, table) {
-		return s, nil, nil
-	}
 	return nil, nil, nil
 }
 
@@ -164,23 +159,22 @@ func (s *subquerySchema) resolveTable(table string) (schema, field.Path, error) 
 	return sch, path, err
 }
 
-func (p *pipeSchema) resolveTable(table string) (schema, field.Path, error) {
-	if strings.EqualFold(p.name, table) {
-		return p, nil, nil
-	}
-	return nil, nil, nil
-}
-
-func (d *dynamicSchema) resolveColumn(col string) (field.Path, bool, error) {
-	if d.name != "" && d.name == col {
+func (a *aliasSchema) resolveColumn(col string) (field.Path, bool, error) {
+	if a.name == col {
 		// Special case the dynamic schema referencing a table alias without
 		// any fields.  We declare this an error so that the same query with
 		// schema information will not change it's result and favor a column
 		// present with the same name as the table.  Instead of referring to
 		// the table alias of a dynamic schema, the query could use `this` instead,
 		// or a pipe query!
-		return nil, true, fmt.Errorf("cannot reference column %q of dynamic input whose alias is %q (consider 'this')", col, d.name)
+		if _, ok := a.sch.(*dynamicSchema); ok {
+			return nil, true, fmt.Errorf("cannot reference column %q of dynamic input whose alias is %q (consider 'this')", col, a.name)
+		}
 	}
+	return a.sch.resolveColumn(col)
+}
+
+func (d *dynamicSchema) resolveColumn(col string) (field.Path, bool, error) {
 	return field.Path{col}, false, nil
 }
 
@@ -266,13 +260,8 @@ func (s *subquerySchema) resolveColumn(col string) (field.Path, bool, error) {
 	return nil, false, fmt.Errorf("column %q not found", col)
 }
 
-func (p *pipeSchema) resolveColumn(col string) (field.Path, bool, error) {
-	if p.record != nil && slices.ContainsFunc(p.record.Fields, func(f super.Field) bool {
-		return f.Name == col
-	}) {
-		return field.Path{col}, false, nil
-	}
-	return nil, false, fmt.Errorf("column %q: does not exist", col)
+func (a *aliasSchema) resolveOrdinal(n ast.Node, col int) (sem.Expr, error) {
+	return a.sch.resolveOrdinal(n, col)
 }
 
 func (*dynamicSchema) resolveOrdinal(n ast.Node, col int) (sem.Expr, error) {
@@ -320,13 +309,6 @@ func (s *subquerySchema) resolveOrdinal(ast.Node, int) (sem.Expr, error) {
 	return nil, errors.New("ordinal column selection in subquery not supported")
 }
 
-func (p *pipeSchema) resolveOrdinal(n ast.Node, col int) (sem.Expr, error) {
-	if p.record == nil || col <= 0 || col > len(p.record.Fields) {
-		return nil, fmt.Errorf("position %d is not in select list", col)
-	}
-	return sem.NewThis(n, []string{p.record.Fields[col-1].Name}), nil
-}
-
 func appendExprToPath(path string, e sem.Expr) sem.Expr {
 	switch e := e.(type) {
 	case *sem.ThisExpr:
@@ -342,42 +324,25 @@ func appendExprToPath(path string, e sem.Expr) sem.Expr {
 	}
 }
 
-func (d *dynamicSchema) deref(n ast.Node, name string) (sem.Expr, schema) {
-	if name != "" {
-		d = &dynamicSchema{name: name}
-	}
-	return nil, d
+func (a *aliasSchema) unfurl(n ast.Node) sem.Expr {
+	return a.sch.unfurl(n)
 }
 
-func (s *staticSchema) deref(n ast.Node, name string) (sem.Expr, schema) {
-	if name != "" {
-		s = &staticSchema{name: name, columns: s.columns}
-	}
-	return nil, s
+func (d *dynamicSchema) unfurl(n ast.Node) sem.Expr {
+	return nil
 }
 
-func (s *selectSchema) deref(n ast.Node, name string) (sem.Expr, schema) {
-	if name == "" {
-		// postgres and duckdb oddly do this
-		name = "unamed_subquery"
-	}
-	var outSchema schema
-	if sch, ok := s.out.(*staticSchema); ok {
-		// Hide any enclosing schema hierarchy by just exporting the
-		// select columns.
-		outSchema = &staticSchema{name: name, columns: sch.columns}
-	} else {
-		// This is a select value.
-		// XXX we should eventually have a way to propagate schema info here,
-		// e.g., record expression with fixed columns as an anonSchema.
-		outSchema = &dynamicSchema{name: name}
-	}
-	return sem.NewThis(n, []string{"out"}), outSchema
+func (s *staticSchema) unfurl(n ast.Node) sem.Expr {
+	return nil
 }
 
-func (j *joinSchema) deref(n ast.Node, name string) (sem.Expr, schema) {
+func (s *selectSchema) unfurl(n ast.Node) sem.Expr {
+	return sem.NewThis(n, []string{"out"})
+}
+
+func (j *joinSchema) unfurl(n ast.Node) sem.Expr {
 	// spread left/right join legs into "this"
-	return joinSpread(n, nil, nil), &dynamicSchema{name: name}
+	return joinSpread(n, nil, nil)
 }
 
 // spread left/right join legs into "this"
@@ -403,15 +368,36 @@ func joinSpread(n ast.Node, left, right sem.Expr) *sem.RecordExpr {
 	}
 }
 
-func (s *subquerySchema) deref(n ast.Node, name string) (sem.Expr, schema) {
-	panic(name)
+func (s *subquerySchema) unfurl(n ast.Node) sem.Expr {
+	panic(s)
 }
 
-func (p *pipeSchema) deref(n ast.Node, name string) (sem.Expr, schema) {
-	if name != "" {
-		p = &pipeSchema{name: name, typ: p.typ, record: p.record}
-	}
-	return nil, p
+func (a *aliasSchema) endScope(n ast.Node) (sem.Expr, schema) {
+	return a.sch.endScope(n)
+}
+
+func (d *dynamicSchema) endScope(n ast.Node) (sem.Expr, schema) {
+	return nil, d
+}
+
+func (s *staticSchema) endScope(n ast.Node) (sem.Expr, schema) {
+	return nil, s
+}
+
+func (s *selectSchema) endScope(n ast.Node) (sem.Expr, schema) {
+	return sem.NewThis(n, []string{"out"}), s.out
+}
+
+func (j *joinSchema) endScope(n ast.Node) (sem.Expr, schema) {
+	return nil, j
+}
+
+func (s *subquerySchema) endScope(n ast.Node) (sem.Expr, schema) {
+	panic(s)
+}
+
+func (a *aliasSchema) this(n ast.Node, path []string) sem.Expr {
+	return a.sch.this(n, path)
 }
 
 func (d *dynamicSchema) this(n ast.Node, path []string) sem.Expr {
@@ -436,21 +422,18 @@ func (s *subquerySchema) this(n ast.Node, path []string) sem.Expr {
 	panic("TBD")
 }
 
-func (p *pipeSchema) this(n ast.Node, path []string) sem.Expr {
-	return sem.NewThis(n, path)
+func (a *aliasSchema) tableOnly(n ast.Node, name string, path []string) (sem.Expr, error) {
+	if a.name == name {
+		return a.sch.this(n, path), nil
+	}
+	return nil, fmt.Errorf("no such table %q", name)
 }
 
 func (d *dynamicSchema) tableOnly(n ast.Node, name string, path []string) (sem.Expr, error) {
-	if d.name != name {
-		return nil, fmt.Errorf("no such table %q", name)
-	}
 	return nil, fmt.Errorf("illegal reference to table %q in dynamic input", name)
 }
 
 func (s *staticSchema) tableOnly(n ast.Node, name string, path []string) (sem.Expr, error) {
-	if s.name == name {
-		return s.this(n, path), nil
-	}
 	return nil, fmt.Errorf("no such table %q", name)
 }
 
@@ -477,19 +460,16 @@ func (s *subquerySchema) tableOnly(n ast.Node, name string, path []string) (sem.
 	return nil, fmt.Errorf("no such table %q", name) //XXX
 }
 
-func (p *pipeSchema) tableOnly(n ast.Node, name string, path []string) (sem.Expr, error) {
-	if p.name == name {
-		return p.this(n, path), nil
-	}
-	return nil, fmt.Errorf("no such table %q", name)
+func (a *aliasSchema) String() string {
+	return fmt.Sprintf("alias <%s>", a.name)
 }
 
 func (s *staticSchema) String() string {
-	return fmt.Sprintf("static <%s>: %s", s.name, strings.Join(s.columns, ", "))
+	return fmt.Sprintf("static %s", strings.Join(s.columns, ", "))
 }
 
 func (d *dynamicSchema) String() string {
-	return fmt.Sprintf("dynamic <%s>", d.name)
+	return "dynamic"
 }
 
 func (s *selectSchema) String() string {
@@ -502,10 +482,6 @@ func (s *joinSchema) String() string {
 
 func (s *subquerySchema) String() string {
 	return fmt.Sprintf("subquery:\n  outer: %s\n  inner: %s", s.outer, s.inner)
-}
-
-func (p *pipeSchema) String() string {
-	return fmt.Sprintf("pipe <%s>:\n  type: %s\n", p.name, sup.FormatType(p.typ))
 }
 
 type havingSchema struct {
@@ -526,4 +502,21 @@ func (h *havingSchema) this(n ast.Node, path []string) sem.Expr {
 
 func (h *havingSchema) tableOnly(n ast.Node, name string, path []string) (sem.Expr, error) {
 	return h.out.tableOnly(n, name, append(path, "out"))
+}
+
+func addAlias(sch schema, alias string) schema {
+	switch sch := sch.(type) {
+	case *aliasSchema:
+		return &aliasSchema{
+			name: alias,
+			sch:  sch.sch,
+		}
+	case *dynamicSchema, *selectSchema, *staticSchema:
+		return &aliasSchema{
+			name: alias,
+			sch:  sch,
+		}
+	default:
+		panic(sch)
+	}
 }

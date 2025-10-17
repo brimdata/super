@@ -5,7 +5,7 @@ script: |
   echo ===
   super -s -c "(select 1 as x) union all select 2 as y | sort this"
   echo ===
-  super -s -c "(select 1 as x) union all (from a.sup) | sort this"
+  super -s -c "(select 1 as x) union all (select * from a.sup) | sort this"
   echo ===
   super -s -c "(select * from (from a.sup)) union all (select 1 as x) | sort this"
 
