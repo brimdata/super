@@ -592,11 +592,11 @@ func pullupExpr(alias string, expr dag.Expr) (dag.Expr, bool) {
 		return dag.NewBinaryExpr("or", lhs, rhs), true
 
 	}
-	var literal *dag.LiteralExpr
+	var c dag.Expr
 	var this *dag.ThisExpr
 	for _, e := range []dag.Expr{e.RHS, e.LHS} {
-		if l, ok := e.(*dag.LiteralExpr); ok && literal == nil {
-			literal = l
+		if isConst(e) {
+			c = e
 			continue
 		}
 		if t, ok := e.(*dag.ThisExpr); ok && this == nil && len(t.Path) > 1 && t.Path[0] == alias {
@@ -606,7 +606,32 @@ func pullupExpr(alias string, expr dag.Expr) (dag.Expr, bool) {
 		return nil, false
 	}
 	path := slices.Clone(this.Path[1:])
-	return dag.NewBinaryExpr(e.Op, dag.NewThis(path), literal), true
+	return dag.NewBinaryExpr(e.Op, dag.NewThis(path), c), true
+}
+
+func isConst(e dag.Expr) bool {
+	switch e := e.(type) {
+	case *dag.LiteralExpr:
+		return true
+	case *dag.RecordExpr:
+		for _, elem := range e.Elems {
+			if field, ok := elem.(*dag.Field); ok && isConst(field.Value) {
+				continue
+			}
+			return false
+		}
+		return true
+	case *dag.ArrayExpr, *dag.SetExpr:
+		for _, elem := range vectorElems(e) {
+			if val, ok := elem.(*dag.VectorValue); ok && isConst(val.Expr) {
+				continue
+			}
+			return false
+		}
+		return true
+	default:
+		return false
+	}
 }
 
 func liftFilterOps(seq dag.Seq) dag.Seq {

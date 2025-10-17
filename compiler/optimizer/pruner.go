@@ -246,10 +246,8 @@ func metaPrunerBinaryExpr(e *dag.BinaryExpr) dag.Expr {
 		}
 		var literals []*dag.LiteralExpr
 		switch e := e.RHS.(type) {
-		case *dag.ArrayExpr:
-			literals = literalsInArrayOrSet(e.Elems)
-		case *dag.SetExpr:
-			literals = literalsInArrayOrSet(e.Elems)
+		case *dag.ArrayExpr, *dag.SetExpr:
+			literals = literalsInArrayOrSet(vectorElems(e))
 		case *dag.RecordExpr:
 			for _, elem := range e.Elems {
 				f, ok := elem.(*dag.Field)
@@ -277,6 +275,17 @@ func metaPrunerBinaryExpr(e *dag.BinaryExpr) dag.Expr {
 		return ret
 	default:
 		return nil
+	}
+}
+
+func vectorElems(e dag.Expr) []dag.VectorElem {
+	switch e := e.(type) {
+	case *dag.ArrayExpr:
+		return e.Elems
+	case *dag.SetExpr:
+		return e.Elems
+	default:
+		panic(e)
 	}
 }
 
