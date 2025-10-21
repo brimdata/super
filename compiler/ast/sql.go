@@ -129,21 +129,3 @@ type SQLAsExpr struct {
 }
 
 func (*SQLAsExpr) exprNode() {}
-
-type SQLCast struct {
-	Kind string `json:"kind" unpack:""`
-	Expr Expr   `json:"expr"`
-	Type Type   `json:"type"`
-	Loc  `json:"loc"`
-}
-
-type SQLSubstring struct {
-	Kind string `json:"kind" unpack:""`
-	Expr Expr   `json:"expr"`
-	From Expr   `json:"from"`
-	For  Expr   `json:"for"`
-	Loc  `json:"loc"`
-}
-
-func (*SQLCast) exprNode()      {}
-func (*SQLSubstring) exprNode() {}

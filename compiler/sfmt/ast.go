@@ -188,13 +188,13 @@ func (c *canon) expr(e ast.Expr, parent string) {
 			}
 		}
 		c.write("}")
-	case *ast.SQLCast:
+	case *ast.CastExpr:
 		c.write("CAST(")
 		c.expr(e.Expr, "")
 		c.write(" AS ")
 		c.typ(e.Type)
 		c.write(")")
-	case *ast.SQLSubstring:
+	case *ast.SubstringExpr:
 		c.write("SUBSTRING(")
 		c.expr(e.Expr, "")
 		if e.From != nil {

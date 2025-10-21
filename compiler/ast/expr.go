@@ -50,6 +50,12 @@ type (
 		Else  Expr   `json:"else"`
 		Loc   `json:"loc"`
 	}
+	CastExpr struct {
+		Kind string `json:"kind" unpack:""`
+		Expr Expr   `json:"expr"`
+		Type Type   `json:"type"`
+		Loc  `json:"loc"`
+	}
 	CondExpr struct {
 		Kind string `json:"kind" unpack:""`
 		Cond Expr   `json:"cond"`
@@ -159,6 +165,13 @@ type (
 		Array bool   `json:"array"`
 		Loc   `json:"loc"`
 	}
+	SubstringExpr struct {
+		Kind string `json:"kind" unpack:""`
+		Expr Expr   `json:"expr"`
+		From Expr   `json:"from"`
+		For  Expr   `json:"for"`
+		Loc  `json:"loc"`
+	}
 	TupleExpr struct {
 		Kind  string `json:"kind" unpack:""`
 		Elems []Expr `json:"elems"`
@@ -251,6 +264,7 @@ func (*BetweenExpr) exprNode()     {}
 func (*BinaryExpr) exprNode()      {}
 func (*CallExpr) exprNode()        {}
 func (*CaseExpr) exprNode()        {}
+func (*CastExpr) exprNode()        {}
 func (*CondExpr) exprNode()        {}
 func (*DoubleQuoteExpr) exprNode() {}
 func (*ExistsExpr) exprNode()      {}
@@ -274,3 +288,4 @@ func (*TupleExpr) exprNode()       {}
 func (*TypeValue) exprNode()       {}
 func (*UnaryExpr) exprNode()       {}
 func (*SubqueryExpr) exprNode()    {}
+func (*SubstringExpr) exprNode()   {}

@@ -1059,16 +1059,16 @@ Function
       }, nil
     }
   / CAST __ "(" __ e:Expr _ AS _ typ:(DateTypeHack / Type) __ ")" {
-      return &ast.SQLCast{
-        Kind: "SQLCast",
+      return &ast.CastExpr{
+        Kind: "CastExpr",
         Expr: e.(ast.Expr),
         Type: typ.(ast.Type),
         Loc: loc(c),
       }, nil
     }
   / SUBSTRING __ "(" __ expr:Expr from:(_ FROM _ e:Expr { return e, nil })? for_:(_ FOR _ e:Expr { return e, nil })? ")" {
-      s := &ast.SQLSubstring{
-        Kind: "SQLSubstring",
+      s := &ast.SubstringExpr{
+        Kind: "SubstringExpr",
         Expr: expr.(ast.Expr),
         Loc: loc(c),
       }

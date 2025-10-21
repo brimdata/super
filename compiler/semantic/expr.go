@@ -85,6 +85,19 @@ func (t *translator) expr(e ast.Expr) sem.Expr {
 		}
 	case *ast.CallExpr:
 		return t.semCall(e)
+	case *ast.CastExpr:
+		expr := t.expr(e.Expr)
+		if _, ok := e.Type.(*ast.DateTypeHack); ok {
+			// cast to time then bucket by 1d as a workaround for not currently
+			// supporting a "date" type.
+			cast := sem.NewCall(e, "cast", []sem.Expr{expr, &sem.LiteralExpr{Node: e, Value: "<time>"}})
+			return sem.NewCall(e, "bucket", []sem.Expr{cast, &sem.LiteralExpr{Node: e, Value: "1d"}})
+		}
+		typ := t.expr(&ast.TypeValue{
+			Kind:  "TypeValue",
+			Value: e.Type,
+		})
+		return sem.NewCall(e, "cast", []sem.Expr{expr, typ})
 	case *ast.ExtractExpr:
 		return t.semExtractExpr(e, e.Part, e.Expr)
 	case *ast.DoubleQuoteExpr:
@@ -238,47 +251,6 @@ func (t *translator) expr(e ast.Expr) sem.Expr {
 			From: from,
 			To:   to,
 		}
-	case *ast.SQLCast:
-		expr := t.expr(e.Expr)
-		if _, ok := e.Type.(*ast.DateTypeHack); ok {
-			// cast to time then bucket by 1d as a workaround for not currently
-			// supporting a "date" type.
-			cast := sem.NewCall(e, "cast", []sem.Expr{expr, &sem.LiteralExpr{Node: e, Value: "<time>"}})
-			return sem.NewCall(e, "bucket", []sem.Expr{cast, &sem.LiteralExpr{Node: e, Value: "1d"}})
-		}
-		typ := t.expr(&ast.TypeValue{
-			Kind:  "TypeValue",
-			Value: e.Type,
-		})
-		return sem.NewCall(e, "cast", []sem.Expr{expr, typ})
-	case *ast.SQLSubstring:
-		expr := t.expr(e.Expr)
-		if e.From == nil && e.For == nil {
-			t.error(e, errors.New("FROM or FOR must be set"))
-			return badExpr()
-		}
-		// XXX type checker should remove this check when it finds it redundant
-		is := sem.NewCall(e, "is", []sem.Expr{expr, &sem.LiteralExpr{Node: e.Expr, Value: "<string>"}})
-		slice := &sem.SliceExpr{
-			Node: e,
-			Expr: expr,
-			From: t.exprNullable(e.From),
-		}
-		if e.For != nil {
-			to := t.expr(e.For)
-			if slice.From != nil {
-				slice.To = sem.NewBinaryExpr(e, "+", slice.From, to)
-			} else {
-				slice.To = sem.NewBinaryExpr(e, "+", to, &sem.LiteralExpr{Node: e, Value: "1"})
-			}
-		}
-		serr := sem.NewStructuredError(e, "SUBSTRING: string value required", expr)
-		return &sem.CondExpr{
-			Node: e,
-			Cond: is,
-			Then: slice,
-			Else: serr,
-		}
 	case *ast.SQLTimeExpr:
 		if e.Value.Type != "string" {
 			t.error(e.Value, errors.New("value must be a string literal"))
@@ -326,6 +298,34 @@ func (t *translator) expr(e ast.Expr) sem.Expr {
 			Text:  e.Text,
 			Value: val,
 			Expr:  sem.NewThis(e, nil),
+		}
+	case *ast.SubstringExpr:
+		expr := t.expr(e.Expr)
+		if e.From == nil && e.For == nil {
+			t.error(e, errors.New("FROM or FOR must be set"))
+			return badExpr()
+		}
+		// XXX type checker should remove this check when it finds it redundant
+		is := sem.NewCall(e, "is", []sem.Expr{expr, &sem.LiteralExpr{Node: e.Expr, Value: "<string>"}})
+		slice := &sem.SliceExpr{
+			Node: e,
+			Expr: expr,
+			From: t.exprNullable(e.From),
+		}
+		if e.For != nil {
+			to := t.expr(e.For)
+			if slice.From != nil {
+				slice.To = sem.NewBinaryExpr(e, "+", slice.From, to)
+			} else {
+				slice.To = sem.NewBinaryExpr(e, "+", to, &sem.LiteralExpr{Node: e, Value: "1"})
+			}
+		}
+		serr := sem.NewStructuredError(e, "SUBSTRING: string value required", expr)
+		return &sem.CondExpr{
+			Node: e,
+			Cond: is,
+			Then: slice,
+			Else: serr,
 		}
 	case *ast.TupleExpr:
 		elems := make([]sem.RecordElem, 0, len(e.Elems))
