@@ -58,20 +58,25 @@ func (c *Combine) Pull(done bool) (vector.Any, error) {
 		if err := group.Wait(); err != nil {
 			return nil, err
 		}
-		return nil, c.resumeParents()
+		return nil, nil
+	}
+	if c.nblocked == len(c.parents) {
+		if err := c.resumeParents(); err != nil {
+			return nil, err
+		}
 	}
 	for {
-		if c.nblocked == len(c.parents) {
-			return nil, c.resumeParents()
-		}
 		select {
 		case r := <-c.resultCh:
-			if r.vector == nil && r.err == nil {
-				// EOS means the sending parent is now blocked.
-				c.nblocked++
-				continue
+			if r.vector != nil || r.err != nil {
+				return r.vector, r.err
 			}
-			return r.vector, r.err
+			// EOS means the sending parent is now blocked.
+			c.nblocked++
+			if c.nblocked == len(c.parents) {
+				// All parents are blocked.  Return EOS.
+				return nil, nil
+			}
 		case <-c.ctx.Done():
 			return nil, c.ctx.Err()
 		}
