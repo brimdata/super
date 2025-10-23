@@ -595,7 +595,7 @@ func pullupExpr(alias string, expr dag.Expr) (dag.Expr, bool) {
 	var c dag.Expr
 	var this *dag.ThisExpr
 	for _, e := range []dag.Expr{e.RHS, e.LHS} {
-		if isConst(e) {
+		if c == nil && isConst(e) {
 			c = e
 			continue
 		}

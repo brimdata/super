@@ -13,6 +13,7 @@ script: |
       and a1 in |[1,5,9]|
       and a3 in (1,5,[9,11])
       and (1 == a2 or a2 == 2)
+      and 1 == 1
   "
 
 outputs:
@@ -51,5 +52,6 @@ outputs:
           | cross join as {left,right}
         )
       | cross join as {left,right}
+      | where 1==1
       | values {a1:left.a1,a2:right.left.a2,a3:right.right.a3}
       | output main
