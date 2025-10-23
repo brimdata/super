@@ -107,9 +107,12 @@ func (t *translator) fromEntity(entity ast.FromEntity, alias *ast.TableAlias, ar
 		if seq := t.scope.lookupQuery(t, entity.Text); seq != nil {
 			return seq, &dynamicSchema{}
 		}
-		op, _ := t.fromName(entity, entity.Text, args)
+		op, def := t.fromName(entity, entity.Text, args)
 		if op, ok := op.(*sem.FileScan); ok {
 			schema := newSchemaFromType(op.Type)
+			if _, ok := schema.(*dynamicSchema); !ok && alias == nil {
+				alias = &ast.TableAlias{Name: def, Loc: entity.Loc}
+			}
 			seq, schema, err := applyAlias(alias, schema, sem.Seq{op})
 			if err != nil {
 				t.error(alias, err)
