@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/brimdata/super/vector"
-	"golang.org/x/sync/errgroup"
 )
 
 type Combine struct {
@@ -25,7 +24,7 @@ func NewCombine(ctx context.Context, parents []vector.Puller) *Combine {
 			ctx:      ctx,
 			parent:   p,
 			resultCh: resultCh,
-			doneCh:   make(chan struct{}),
+			doneCh:   make(chan struct{}, 1),
 			resumeCh: make(chan struct{}),
 		})
 	}
@@ -46,17 +45,11 @@ func (c *Combine) Pull(done bool) (vector.Any, error) {
 		// Send done upstream.  Parents waiting on resumeCh will ignore
 		// this.  All other parents will transition to waiting on
 		// resumeCh.
-		var group errgroup.Group
 		for _, p := range c.parents {
-			// We use a goroutine here because sending to parents[i].doneCh
+			// doneCh must be buffered because sending to parents[i].doneCh
 			// can block until we've sent to parents[i+1].doneCh, as with
-			// "fork (=> count() => pass) | head".
-			group.Go(func() error {
-				return c.signal(p.doneCh)
-			})
-		}
-		if err := group.Wait(); err != nil {
-			return nil, err
+			// "fork (count()) (pass) | head".
+			p.doneCh <- struct{}{}
 		}
 		return nil, c.resumeParents()
 	}
