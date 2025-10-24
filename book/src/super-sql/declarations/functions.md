@@ -4,15 +4,14 @@ New functions are declared with the syntax
 ```
 fn <id> ( [<param> [, <param> ...]] ) : <expr>
 ```
-where `<id>` and `<param>` are identifiers.
-`<id>` is the name of the new function and
-each `<param>` names a positional argument of the function.
+where
+* `<id>` is an identifier representing the name of the function,
+* each `<param>` is an identifier representing a positional argument to the function, and
+* `<expr>` is any [expression](../expressions/intro.md) that implements the function.
 
-Constant declarations must appear in the declaration section of a [scope](../syntax.md#scope).
+Function declarations must appear in the declaration section of a [scope](../syntax.md#scope).
 
-The function is defined by `<expr>`, which is any
-[expression](../expressions/intro.md).
-Thie function body may refer the passed-in arguments by name.
+The function body `<expr>` may refer the passed-in arguments by name.
 
 Specifically, the references to the named parameters are
 field references of the special value `this`, as in any expression.
@@ -38,6 +37,11 @@ which results in `2`.
 Any function-as-value arguments passed to a function do not appear in the `this`
 record formed from the parameters.  Instead, function values are expanded at their
 call sites in a macro-like fashion.
+
+Functions may be recursive.  If the maximum call stack depth is exceeded,
+the function returns an error value indicating so.  Recursive functions that
+run for an extended period of time without exceeding the stack depth will simply
+be allowed to run indefinitely and stall the query result.
 
 ### Subquery Functions
 
@@ -81,3 +85,46 @@ values add(x,y)
 ```
 
 ---
+
+_A simple recursive function_
+
+```mdtest-spq
+# spq
+fn fact(n): n<=1 ? 1 : n*fact(n-1)
+values fact(5)
+# input
+null
+# expected output
+120
+```
+---
+_A subquery function that computes some stats over numeric arrays_
+
+```mdtest-spq
+# spq
+fn stats(numbers): (
+    unnest numbers
+    | sort this
+    | avg(this),min(this),max(this),mode:=collect(this)
+    | mode:=mode[(len(mode)/2)+1]
+) 
+values stats(a)
+# input
+{a:[3,1,2]}
+{a:[4]}
+# expected output
+{avg:2.,min:1,max:3,mode:2}
+{avg:4.,min:4,max:4,mode:4}
+```
+---
+_Function arguments are actually fields in the "this" record_
+
+```mdtest-spq
+# spq
+fn that(a,b,c): this
+values that(x,y,3)
+# input
+{x:1,y:2}
+# expected output
+{a:1,b:2,c:3}
+```

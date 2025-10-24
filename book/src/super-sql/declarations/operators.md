@@ -1,36 +1,36 @@
 ## Operators
 
-XXX TODO: explain how these can be used like CTEs
-
-User-defined operators may be created with the syntax
-
+New operators are declared with the syntax
 ```
 op <id> [<param> [, <param> ...]] : (
-  <sequence>
+  <query>
 )
 ```
-where `<id>` is the operator identifier, `<param>` are the parameters for the
-operator, and `<sequence>` is the chain of operators (e.g., `operator | ...`)
-where the operator does its work.
+where 
+* `<id>` is an identifier representing the name of the new operator,
+* each `<param>` is an identifier representing a positional parameter to the operator, and
+* `<query>` is any [query](../syntax.md).
 
-XXX change param to formal and explain that it's an identifier
+Operator declarations must appear in the declaration section of a [scope](../syntax.md#scope).
 
-A user-defined operator can then be called using a syntax aligned with the
-built-in pipe operators
+Declared operators can then be called using the `call` keyword as in
 ```
-<id> [<expr> [, <expr> ...]]
+call <id> [<arg> [, <arg> ...]]
 ```
-where `<id>` is the identifier of the user-defined operator and `<expr>` is a list
-of [expressions](expressions.md) matching the number of `<param>`s defined in
-the operator's signature.
+where `<id>` is the name of the operator and each `<arg>` is an
+[expression](../expressions/intro.md) or function reference.
+The number of arguments must match the number
+of parameters appearing in the operator declaration.
 
-One or more `op` statements may appear only at the beginning of a scope
-(i.e., the main scope at the start of a query,
-the start of the body of a [user-defined operator](#operator-statements),
-or a [lateral scope](lateral-subqueries.md/#lateral-scope)
-defined by an [`over` operator](operators/over.md))
-and binds the identifier to the value in the scope in which it appears in addition
-to any contained scopes.
+In contrast to function calls, where the arguments are evaluated at the call site
+and values are passed to the function, operator arguments are instead passed to the
+operator body as an expression _template_ and the expression is evaluated in the
+context of the operator body.  That said, any other declared identifiers referenced
+by these expressions (e.g., constants, functions, named queries, etc.) are bound to
+those entities using the lexical scope of the use site rather than the operator body.
+
+XXX But lexical scope is the use site.
+
 
 ### Sequence `this` Value
 
