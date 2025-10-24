@@ -594,15 +594,12 @@ func pullupExpr(alias string, expr dag.Expr) (dag.Expr, bool) {
 	}
 	var c dag.Expr
 	var this *dag.ThisExpr
-	for _, e := range []dag.Expr{e.RHS, e.LHS} {
-		if c == nil && isConst(e) {
-			c = e
-			continue
-		}
-		if t, ok := e.(*dag.ThisExpr); ok && this == nil && len(t.Path) > 1 && t.Path[0] == alias {
-			this = t
-			continue
-		}
+	if t, ok := e.LHS.(*dag.ThisExpr); ok && isConst(e.RHS) {
+		this, c = t, e.RHS
+	} else if t, ok := e.RHS.(*dag.ThisExpr); ok && isConst(e.LHS) {
+		this, c = t, e.LHS
+	}
+	if c == nil || this == nil || len(this.Path) < 1 || this.Path[0] != alias {
 		return nil, false
 	}
 	path := slices.Clone(this.Path[1:])
