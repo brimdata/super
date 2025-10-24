@@ -146,7 +146,7 @@ func unravel(n ast.Node, elems []sem.RecordElem, schema schema, prefix field.Pat
 	case *dynamicSchema:
 		return append(elems, &sem.SpreadElem{
 			Node: n,
-			Expr: sem.NewThis(n, prefix),
+			Expr: sem.NewThis(n, slices.Clone(prefix)),
 		})
 	case *staticSchema:
 		for _, col := range schema.columns {
