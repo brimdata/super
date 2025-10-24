@@ -1,7 +1,7 @@
 script: |
   super -s -c 'select 1+(select 1) as v'
   echo // ===
-  # pipe subquery does not select first index of record.
+  # pipe values operator presents as relation (select 1+1 as y)
   super -s -c 'select (values {y:1+1}) as x'
 
 vector: true

@@ -673,10 +673,8 @@ func (c *canon) op(p ast.Op) {
 			c.write(" ")
 			c.expr(p.Expr, "")
 		}
-
 	default:
-		c.open("unknown operator: %T", p)
-		c.close()
+		panic(p)
 	}
 }
 
@@ -698,7 +696,6 @@ func (c *canon) sqlQueryBody(query ast.SQLQueryBody) {
 					c.write("materialized ")
 				}
 				c.open("(")
-				//c.first, c.head = true, true
 				c.sqlQueryBody(cte.Body)
 				c.close()
 				c.ret()
@@ -739,7 +736,7 @@ func (c *canon) sqlQueryBody(query ast.SQLQueryBody) {
 		}
 		if query.From != nil {
 			c.head = true
-			c.op(query.From) //XXX sb table expr
+			c.op(query.From)
 		}
 		if query.Where != nil {
 			c.ret()

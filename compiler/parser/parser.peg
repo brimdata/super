@@ -329,7 +329,7 @@ CountStar = COUNT __ "(" __ "*" __ ")" {
 /// === Operators ===
 
 Operator
-  = op:SelectOp &EndOfOp { return op, nil }
+  = op:SQLOp &EndOfOp { return op, nil }
   / ForkOp
   / SwitchOp
   / SearchOp
@@ -1901,7 +1901,7 @@ SQLPipe
         }, nil
     }
 
-SelectOp
+SQLOp
   = query:SQLQuery {
       return &ast.SQLOp{
         Kind: "SQLOp",
@@ -1912,27 +1912,27 @@ SelectOp
 
 SQLQuery
   = with:OptWithClause
-    body:SQLSetExpr
+    body:SQLBodySetOp
     orderby:OptOrderByClause
     loff:OptSQLLimitOffset {
-      queryExpr := &ast.SQLQuery{
+      query := &ast.SQLQuery{
         Kind: "SQLQuery",
         Body: body.(ast.SQLQueryBody),
         Loc: loc(c),
       }
       if with != nil {
-          queryExpr.With = with.(*ast.SQLWith)
+          query.With = with.(*ast.SQLWith)
       }
       if orderby != nil {
-          queryExpr.OrderBy = orderby.(*ast.SQLOrderBy)
+          query.OrderBy = orderby.(*ast.SQLOrderBy)
       }
       if loff != nil {
-          queryExpr.Limit = loff.(*ast.SQLLimitOffset)
+          query.Limit = loff.(*ast.SQLLimitOffset)
       }
-      return queryExpr, nil
+      return query, nil
     }
 
-SQLSetExpr
+SQLBodySetOp
   = first:SQLQueryBody rest:(SetOp _ SQLQueryBody)* {
       out := first.(ast.SQLQueryBody)
       for _, o := range rest.([]any) {
@@ -1953,7 +1953,7 @@ SQLQueryBody
   / SQLValues
   / "(" __ s:SQLQueryOrSetExpr __")" { return s, nil }
 
-SQLQueryOrSetExpr = SQLQuery / SQLSetExpr
+SQLQueryOrSetExpr = SQLQuery / SQLBodySetOp
 
 Select
   = SELECT
