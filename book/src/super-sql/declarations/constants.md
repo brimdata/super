@@ -6,7 +6,7 @@ const <id> = <expr>
 ```
 where `<id>` is an [identifier](../syntax.md#identifiers)
 and `<expr>` is a constant [expression](expressions.md)
-that must evaluate to a constant at compile time and not reference any
+that must evaluate at compile time without referencing any
 runtime state such as `this` or a field of `this`.
 
 Constant declarations must appear in the declaration section of a [scope](../syntax.md#scope).
