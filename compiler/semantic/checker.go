@@ -319,7 +319,17 @@ func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
 		return c.callFunc(e, types)
 	case *sem.CondExpr:
 		c.boolean(e.Cond, c.expr(typ, e.Cond))
-		return c.fuse([]super.Type{c.expr(typ, e.Then), c.expr(typ, e.Else)})
+		c.pushErrs()
+		thenType := c.expr(typ, e.Then)
+		thenErrs := c.popErrs()
+		c.pushErrs()
+		elseType := c.expr(typ, e.Else)
+		elseErrs := c.popErrs()
+		if len(thenErrs) != 0 && len(elseErrs) != 0 {
+			c.error(thenErrs[0].loc, fmt.Errorf("no valid conditional branch found: %w", thenErrs[0].err))
+			c.error(elseErrs[0].loc, fmt.Errorf("no valid conditional branch found: %w", elseErrs[0].err))
+		}
+		return c.fuse([]super.Type{thenType, elseType})
 	case *sem.DotExpr:
 		typ, _ := c.deref(e.Node, c.expr(typ, e.LHS), e.RHS)
 		return typ
