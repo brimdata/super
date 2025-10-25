@@ -128,3 +128,18 @@ values that(x,y,3)
 # expected output
 {a:1,b:2,c:3}
 ```
+---
+_Functions passed as values do not appear in the "this" record_
+
+```mdtest-spq
+# spq
+fn apply(f,arg):{that:this,result:f(arg)}
+fn square(x):x*x
+values apply(&square,val)
+# input
+{val:1}
+{val:2}
+# expected output
+{that:{arg:1},result:1}
+{that:{arg:2},result:4}
+```

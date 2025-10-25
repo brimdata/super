@@ -22,86 +22,85 @@ where `<id>` is the name of the operator and each `<arg>` is an
 The number of arguments must match the number
 of parameters appearing in the operator declaration.
 
+An instance of a declared operator invoked with `call`
+consumes input, operates on that input, and produces output.  The body of the
+operator declaration with argument expressions substituted into referenced parameters
+defines how the input is processed.
+
+An operator may also source its own data by beginning the query body
+with a [from](../operators/from.md) operator or [SQL statement](../sql/intro.md).
+
+Operators do not support recursion.  They cannot call themselves nor can they
+form a mutually recursive dependency loop.
+
 In contrast to function calls, where the arguments are evaluated at the call site
 and values are passed to the function, operator arguments are instead passed to the
 operator body as an expression _template_ and the expression is evaluated in the
 context of the operator body.  That said, any other declared identifiers referenced
 by these expressions (e.g., constants, functions, named queries, etc.) are bound to
-those entities using the lexical scope of the use site rather than the operator body.
+those entities using the lexical scope of the use site rather than the lexical
+scope of the operator body's definition.
 
-XXX But lexical scope is the use site.
+The expression arguments can be viewed as a
+[closure](https://en.wikipedia.org/wiki/Closure_(computer_programming))
+though there is no persistent state stored in the closure.
+The [jq](https://github.com/jqlang/jq/wiki/jq-Language-Description#the-jq-language) language
+describes its expression semantics as closures as well, though unlike jq,
+the operator expressions here are not generators and do not implement backtracking.
 
+Operators can be invoked without the `call` keyword as a shortcut when such use
+is syntatically
 
-### Sequence `this` Value
+### Examples
 
-The `this` value of a user-defined operator's sequence is provided by the
-calling sequence.
+---
 
-For example,
+_Trivial operator that echoes its input_
+
 ```mdtest-spq
 # spq
-op myop : (
+op echo: (
   values this
 )
-myop
+echo
 # input
 {x:1}
 # expected output
 {x:1}
 ```
 
-### Arguments
+---
 
-The arguments to a user-defined operator must be either constant values (e.g.,
-a [literal](expressions.md#literals) or reference to a
-[defined constant](#const-statements)), or a reference to a path in the data
-stream (e.g., a [field reference](expressions.md#field-dereference)). Any
-other expression will result in a compile-time error.
-
-Because both constant values and path references evaluate in
-[expression](expressions.md) contexts, a `<param>` may often be used inside of
-a user-defined operator without regard to the argument's origin. For instance,
-the `msg` parameter is used flexibly in the following examples.
+_Simple example that adds a new field to inputs records_
 
 ```mdtest-spq
 # spq
-op AddMessage field_for_message, msg: (
-  field_for_message:=msg
+op decorate field, msg: (
+  put field:=msg
 )
-AddMessage message, "hello"
+decorate message, "hello"
 # input
 {greeting: "hi"}
 # expected output
 {greeting:"hi",message:"hello"}
 ```
 
-```mdtest-spq
-# spq
-op AddMessage field_for_message, msg: (
-  field_for_message:=msg
-)
-AddMessage message, greeting
-# input
-{greeting: "hi"}
-# expected output
-{greeting:"hi",message:"hi"}
-```
-However, you may find it beneficial to use descriptive names for parameters
-where _only_ a certain category of argument is expected. For instance, having
-explicitly mentioned "field" in the name of our first parameter's name may help
-us avoid making mistakes when passing arguments, such as
+---
+
+_Error checking works as expected for non-l-values used as l-values_
+
 ```mdtest-spq fails {data-layout="stacked"}
 # spq
-op AddMessage field_for_message, msg: (
-  field_for_message:=msg
+op decorate field, msg: (
+  put field:=msg
 )
-AddMessage "message", "hello"
+decorate 1, "hello"
 # input
 {greeting: "hi"}
 # expected output
-illegal left-hand side of assignment at line 2, column 3:
-  field_for_message:=msg
-  ~~~~~~~~~~~~~~~~~~~~~~
+Error: illegal left-hand side of assignment at line 2, column 7:
+  put field:=msg
+      ~~~~~~~~~~
 ```
 
 A constant value must be used to pass a parameter that will be referenced as
