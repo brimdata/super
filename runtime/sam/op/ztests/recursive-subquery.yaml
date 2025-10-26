@@ -1,0 +1,13 @@
+spq: |
+  fn walk(v):
+    case kind(v)
+    when "array" then 
+      [unnest v | walk(this)]
+    when "record" then 
+      unflatten([unnest flatten(v) | {key,value:walk(value)}])
+    else v+1
+    end
+  values walk([{x:[1,2]},{y:3}])
+
+output: |
+  [{x:[2,3]},{y:4}]

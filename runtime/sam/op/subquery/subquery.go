@@ -51,14 +51,19 @@ type Subquery struct {
 	sctx    *super.Context
 	batchCh chan sbuf.Batch
 	eos     bool
+	tos     int
+	stack   []*Subquery
+	create  func() *Subquery
 
 	body sbuf.Puller
 }
 
-func NewSubquery(rctx *runtime.Context) *Subquery {
+func NewSubquery(rctx *runtime.Context, create func() *Subquery) *Subquery {
 	return &Subquery{
 		ctx:     rctx.Context,
 		sctx:    rctx.Sctx,
+		tos:     -2,
+		create:  create,
 		batchCh: make(chan sbuf.Batch, 1),
 	}
 }
@@ -81,22 +86,43 @@ func (s *Subquery) Pull(done bool) (sbuf.Batch, error) {
 	}
 }
 
-func (q *Subquery) Eval(this super.Value) super.Value {
+const MaxSubqueryRecursion = 10000
+
+func (s *Subquery) Eval(this super.Value) super.Value {
+	s.tos++
+	defer func() {
+		s.tos--
+	}()
+	if s.tos >= 0 {
+		// We're re-entering this subquery instance before it's done evaluating
+		// the previous invocation.  This happens when a subquery is invoked
+		// inside of a recursive function so the same instance ends up being
+		// called by different call frames.  To deal with this, we keep a stack
+		// of Subquery duplicates where each duplicate is not shared and extend
+		// the stack as needed.  If the stack overflows, we return an error.
+		if s.tos >= MaxSubqueryRecursion {
+			return s.sctx.WrapError("subquery recursion depth exceeded", this)
+		}
+		if s.tos >= len(s.stack) {
+			s.stack = append(s.stack, s.create())
+		}
+		return s.stack[s.tos].Eval(this)
+	}
 	select {
-	case q.batchCh <- sbuf.NewArray([]super.Value{this}):
-	case <-q.ctx.Done():
-		return q.sctx.NewError(q.ctx.Err())
+	case s.batchCh <- sbuf.NewArray([]super.Value{this}):
+	case <-s.ctx.Done():
+		return s.sctx.NewError(s.ctx.Err())
 	}
 	val := super.Null
 	var count int
 	for {
-		b, err := q.body.Pull(false)
+		b, err := s.body.Pull(false)
 		if err != nil {
 			panic(err)
 		}
 		if b == nil {
 			if count > 1 {
-				return q.sctx.NewErrorf("query expression produced multiple values (consider [subquery])")
+				return s.sctx.NewErrorf("query expression produced multiple values (consider [subquery])")
 			}
 			return val
 		}

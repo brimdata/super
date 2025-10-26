@@ -398,13 +398,17 @@ func (b *Builder) compileSubquery(query *dag.SubqueryExpr) (expr.Evaluator, erro
 		}
 		return subquery.NewCachedSubquery(b.rctx, body), nil
 	}
-	subquery := subquery.NewSubquery(b.rctx)
-	body, err := b.compileSeqAndCombine(query.Body, []sbuf.Puller{subquery})
-	if err != nil {
-		return nil, err
+	var create func() *subquery.Subquery
+	create = func() *subquery.Subquery {
+		subquery := subquery.NewSubquery(b.rctx, create)
+		body, err := b.compileSeqAndCombine(query.Body, []sbuf.Puller{subquery})
+		if err != nil {
+			panic(err)
+		}
+		subquery.SetBody(body)
+		return subquery
 	}
-	subquery.SetBody(body)
-	return subquery, nil
+	return create(), nil
 }
 
 func (b *Builder) compileSeqAndCombine(seq dag.Seq, parents []sbuf.Puller) (sbuf.Puller, error) {
