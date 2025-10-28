@@ -48,6 +48,7 @@
         - [Conditional](super-sql/expressions/conditional.md)
         - [Containment](super-sql/expressions/containment.md)
         - [Dot](super-sql/expressions/dot.md)
+        - [Exists](super-sql/expressions/exists.md)
         - [F-Strings](super-sql/expressions/f-strings.md)
         - [Functions](super-sql/expressions/functions.md)
         - [Index](super-sql/expressions/index.md)

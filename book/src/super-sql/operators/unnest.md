@@ -5,7 +5,7 @@
 ### Synopsis
 
 ```
-unnest <expr> [ into ( <subquery> ) ]
+unnest <expr> [ into ( <query> ) ]
 ```
 
 ### Description
@@ -13,8 +13,14 @@ unnest <expr> [ into ( <subquery> ) ]
 The `unnest` operator transforms the given expression
 `<expr>` into a new ordered sequence of derived values.
 
-When the optional [`<subquery>`](intro.md#operator-subqueries) is present,
-each unnested sequence of values is processed as a unit by that subquery.
+When the optional [`<query>`](intro.md#operator-subqueries) is present,
+each unnested sequence of values is processed as a unit by that subquery,
+which is shorthand for this pattern
+```
+unnest [unnest <expr> | <query>]
+```
+where the right-hand `unnest` is an
+[array subquery](../expressions/subqueries.md#array-subqueries).
 
 For example,
 ```

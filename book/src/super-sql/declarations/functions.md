@@ -64,42 +64,6 @@ fn <id> ( [<param> [, <param> ...]] ) : [
 ]
 ```
 
-### Recursive Subqueries
-
-When subqueries are combined with recursive invocation of the function they
-appear in, some powerful patterns can be constructed.
-
-For example, the [visitor-walk pattern](https://en.wikipedia.org/wiki/Visitor_pattern)
-can be implemented using recursive subqueries and function values.
-
-Here's a template for walk:
-```
-fn walk(node, visit):
-  case kind(node)
-  when "array" then
-    [unnest node | walk(this, visit)]
-  when "record" then
-    unflatten([unnest flatten(node) | {key,value:walk(value, visit)}])
-  when "union" then
-    walk(under(node), visit)
-  else visit(node)
-  end
-```
-> _Note in this case, we are traversing only records and arrays.  Support for flattening
-> and unflattening maps and sets is forthcoming._
-
-Here, `walk` is invoking an [array subquery](../expressions/subqueries.md) on the unnested
-entities (records or arrays), calling the `walk` function recursively on each item,
-then assembling the results back into an array (i.e., the raw result of the array subquery)
-or a record (i.e., calling unflatten on the key/value pairs returned in the array).
-
-If we call `walk` with this function on an arbitrary nested value
-```
-fn addOne(node): case typeof(node) when <int64> then node+1 else node end
-```
-then each leaf value of the nested value of type `int64` would be incremented
-while the other leaves would be left alone.  See the example below.
-
 
 ### Examples
 
@@ -179,31 +143,4 @@ values apply(&square,val)
 # expected output
 {that:{arg:1},result:1}
 {that:{arg:2},result:4}
-```
-
----
-_Recursive subqueries inside function implementing walk-visitor pattern_
-
-```mdtest-spq
-# spq
-fn walk(node, visit):
-  case kind(node)
-  when "array" then
-    [unnest node | walk(this, visit)]
-  when "record" then
-    unflatten([unnest flatten(node) | {key,value:walk(value, visit)}])
-  when "union" then
-    walk(under(node), visit)
-  else visit(node)
-  end
-fn addOne(node): case typeof(node) when <int64> then node+1 else node end
-values walk(this, &addOne)
-# input
-1
-[1,2,3]
-[{x:[1,"foo"]},{y:2}]
-# expected output
-2
-[2,3,4]
-[{x:[2,"foo"]},{y:3}]
 ```

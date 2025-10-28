@@ -9,7 +9,7 @@ appears somewhere in the `<container-expr>` as an exact match of the item.
 The right-hand side value can be any value. For example,
 ```mdtest-spq
 # spq
-1 in this
+where 1 in this
 # input
 {a:[1,2]}
 {b:{c:3}}
@@ -23,7 +23,7 @@ Complex values are recursively traversed to determine if the item is present
 anywhere within them:
 ```mdtest-spq
 # spq
-{s:"foo"} in this
+where {s:"foo"} in this
 # input
 {s:"foo"}
 {s:"foo",t:"bar"}
