@@ -992,9 +992,11 @@ PlusOrMinusOp = ("+" / "-") { return string(c.text), nil }
 
 ColonCast
   = first:DerefExpr
-    rest:(__ "::" __ expr:(TypeAsValue / DerefExpr) { return []any{"::", expr}, nil })* {
+    rest:(__ "::" __ expr:(TypeAsValue / IDExpr) { return []any{"::", expr}, nil })* {
       return makeBinaryExprChain(first, rest, c), nil
     }
+
+IDExpr = id:Identifier { return &ast.IDExpr{Kind:"IDExpr", ID: *(id.(*ast.ID)) }, nil }
 
 DerefExpr
   = expr:DerefExpr "[" __ from:AdditiveExpr __ ":" __ to:AdditiveExpr? __ "]" {

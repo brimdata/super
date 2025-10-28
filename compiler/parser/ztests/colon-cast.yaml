@@ -7,41 +7,16 @@ script: |
   super -s -c "values 80::(port=uint16)"
   super -s -c "values 123::uint16::(uint16|float64)"
   echo ===
-  super -s -c "values 1::<uint8>, 2::<int32>, 3::<float64>, '2025-07-01T21:53:23.26504Z'::<time>"
-  super -s -c "values [1,2,3]::<[string]>"
-  super -s -c "values {x:1,s:'foo'}::<{x:string,s:string}>"
-  super -s -c "values 3.3.3.0/24::<net>, ::1/128::<net>, 2::/16::<net>"
-  super -s -c "values 3.3.3.3::<ip>, ::::<ip>, 2::::<ip>, (::)::<ip>, (2::)::<ip>"
-  super -s -c "values 80::<port=uint16>"
-  super -s -c "values 123::<uint16>::<uint16|float64>"
-  echo ===
   # IP6 addresses can collide with type names that happen to be hex strings 
   # but you can use the type literal syntax or put the value in parens
   # to disambiguate.  IP6 literal has precedence over the cast syntax.
-  super -s -c 'type ff=int64 values 1::ff, 1::(ff), 1::<ff>'
+  super -s -c 'type ff=int64 values 1::ff, 1::(ff), cast(1, ff)'
   echo ===
-  echo '{x:1,y:2::int8}' | super -s -c "values x::typeof(y)" -
+  echo '{x:1,y:2::int8}' | super -s -c "values cast(x, typeof(y))" -
 
 outputs:
   - name: stdout
     data: |
-      1::uint8
-      2::int32
-      3.
-      2025-07-01T21:53:23.26504Z
-      ["1","2","3"]
-      {x:"1",s:"foo"}
-      3.3.3.0/24
-      ::1/128
-      2::/16
-      3.3.3.3
-      ::
-      2::
-      ::
-      2::
-      80::(port=uint16)
-      123::uint16::(uint16|float64)
-      ===
       1::uint8
       2::int32
       3.

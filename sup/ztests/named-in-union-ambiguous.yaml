@@ -1,6 +1,6 @@
 script: |
   super -s -c "typeof(this)" in.sup
-  super -s -c 'typeof([1::<foo=int64>,"bar"])'
+  super -s -c 'typeof([1::(foo=int64),"bar"])'
 
 inputs:
   - name: in.sup
