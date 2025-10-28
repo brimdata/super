@@ -94,7 +94,7 @@ func (d *dagen) op(op sem.Op) dag.Op {
 	case *sem.FileScan:
 		return &dag.FileScan{
 			Kind:   "FileScan",
-			Path:   op.Path,
+			Paths:  op.Paths,
 			Format: op.Format,
 		}
 	case *sem.HTTPScan:

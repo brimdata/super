@@ -1,6 +1,7 @@
 package compile
 
 import (
+	"errors"
 	"flag"
 
 	"github.com/brimdata/super/cmd/super/compile"
@@ -42,10 +43,13 @@ func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 }
 
 func (c *Command) Run(args []string) error {
+	if len(args) > 1 {
+		return errors.New("too many arguments")
+	}
 	ctx, cleanup, err := c.parent.Init(&c.shared.OutputFlags)
 	if err != nil {
 		return err
 	}
 	defer cleanup()
-	return c.shared.Run(ctx, args, &c.parent.DBFlags, c.describe, false)
+	return c.shared.Run(ctx, args, &c.parent.DBFlags, c.describe)
 }

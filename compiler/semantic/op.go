@@ -255,7 +255,7 @@ func (t *translator) file(n ast.Node, name string, args []ast.OpArg) sem.Op {
 	return &sem.FileScan{
 		Node:   n,
 		Type:   typ,
-		Path:   name,
+		Paths:  []string{name},
 		Format: format,
 	}
 }
@@ -539,6 +539,8 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 	case *ast.SQLOp:
 		seq, sch := t.sqlQueryBody(o.Body, seq)
 		return unfurl(o, sch, seq)
+	case *ast.FileScan:
+		return append(seq, &sem.FileScan{Node: o, Paths: o.Paths})
 	case *ast.FromOp:
 		seq, _ := t.fromOp(o, seq)
 		return seq
