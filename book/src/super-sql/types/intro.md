@@ -11,12 +11,16 @@ the [null type](null.md),
 and first-class
 [errors](error.md) and [types](type.md).
 
-The syntax of individual literal values follows
+The syntax of individual literal values as well as types follows
 the [SUP format](../../formats/sup.md) in that any legal
 SUP value is also a valid SuperSQL literal.
-In particular, the type decorators in SUP utilize a double colon (`::`)
-syntax that is compatible with the SuperSQL
-[`cast`](../expressions.md#casts) operator.
+
+Likewise, any SUP type is also valid type syntax, which may be used
+in [cast](../expressions/cast.md) expressions or
+[type declarations](../declarations/types.md).
+
+Note that the type decorators in SUP utilize a double colon (`::`)
+syntax that is compatible with [cast](../expressions/cast.md) expressions.
 
 Arguments to [functions](../functions/intro.md)
 and [operators](../operators/intro.md) are all dynamically typed,

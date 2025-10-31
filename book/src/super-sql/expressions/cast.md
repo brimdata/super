@@ -1,26 +1,24 @@
 ## Cast
 
-Type conversion is performed with the cast operator `::` and the built-in
-[cast](../functions/types/cast.md) function.
-
-The ANSI SQL syntax
-```
-CAST(<expr> AS <type>)
-```
-is also supported and is equivalent to
+Casting is the process of converting a value from its current data type
+to another type using an explicit expression having the form
 ```
 <expr> :: <type>
 ```
 where `<expr>` is any [expression](intro.md) and `<type>` is any type that is
 compatible with `<expr>`.  When `<expr>` and `<type>` are incompatible,
-structured errors result as desribed below.
+[structured errors](../errors.md) result as desribed below.
 
-The `cast` function converts a value in one type (the type of `val`) to another
-as indicated by the target type.  In the first form, the target type is the
-[type value](../../types/type.md) specified by `target`.
+The ANSI SQL syntax
+```
+CAST(<expr> AS <type>)
+```
+is also supported.
 
-In the second form, the target type is a [named type](../../types/named.md)
-whose name is the `name` parameter and whose type is the type of `val`.
+To cast to the value form of a type, i.e., a [type value](../types/type.md),
+the [cast](../functions/types/cast.md) function may be used.
+
+TBD: DateTypeHack (see peg)
 
 When a cast is successful, the return value of `cast` always has the target type.
 
@@ -175,7 +173,7 @@ _Cast primitives to type `ip`_
 
 ```mdtest-spq {data-layout="stacked"}
 # spq
-cast(this, <ip>)
+values this::ip
 # input
 "10.0.0.1"
 1
@@ -192,7 +190,7 @@ _Cast a record to a different record type_
 
 ```mdtest-spq
 # spq
-cast(this, <{b:string}>)
+values this::<{b:string}>
 # input
 {a:1,b:2}
 {a:3}
@@ -201,21 +199,6 @@ cast(this, <{b:string}>)
 {b:"2"}
 {b:null::string}
 {b:"4"}
-```
-
----
-
-_Create a named type and cast value to the new type_
-
-```mdtest-spq
-# spq
-cast(this, "foo")
-# input
-{a:1,b:2}
-{a:3,b:4}
-# expected output
-{a:1,b:2}::=foo
-{a:3,b:4}::=foo
 ```
 
 ---
@@ -238,54 +221,7 @@ null
 80::(port=uint16)
 ```
 
----
-
-_Derive type names from the properties of data_
-
-```mdtest-spq
-# spq
-switch
-  case has(x) ( cast(this, "point") )
-  default ( cast(this, "radius") )
-| sort this
-# input
-{x:1,y:2}
-{r:3}
-{x:4,y:5}
-# expected output
-{r:3}::=radius
-{x:1,y:2}::=point
-{x:4,y:5}::=point
-```
-
-
-XXX XXX
-
-Casts for primitive types have a function-style syntax of the form
-```
-<type> ( <expr> )
-```
-where `<type>` is a [type](data-types.md#first-class-types) and `<expr>` is any expression.
-In the case of primitive types, the type-value angle brackets
-may be omitted, e.g., `<string>(1)` is equivalent to `string(1)`.
-If the result of `<expr>` cannot be converted
-to the indicated type, then the cast's result is an error value.
-
-For example,
-```mdtest-spq {data-layout="stacked"}
-# spq
-values this::int8
-# input
-1
-200
-"123"
-"200"
-# expected output
-1::int8
-error({message:"cannot cast to int8",on:200})
-123::int8
-error({message:"cannot cast to int8",on:"200"})
-```
+=============
 
 Casting attempts to be fairly liberal in conversions.  For example, values
 of type `time` can be created from a diverse set of date/time input strings
