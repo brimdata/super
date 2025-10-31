@@ -330,42 +330,42 @@ func (z *ZTest) ShouldSkip(path string) string {
 	return ""
 }
 
-func (z *ZTest) RunScript(shellPath, testDir string, tempDir func() string) error {
+func (z *ZTest) RunScript(ctx context.Context, shellPath, testDir string, tempDir func() string) error {
 	if err := z.check(); err != nil {
 		return fmt.Errorf("bad yaml format: %w", err)
 	}
-	serr := runsh(shellPath, testDir, tempDir(), z)
+	serr := runsh(ctx, shellPath, testDir, tempDir(), z)
 	if !z.Vector {
 		return serr
 	}
 	if serr != nil {
 		serr = fmt.Errorf("=== sequence ===\n%w", serr)
 	}
-	verr := runsh(shellPath, testDir, tempDir(), z, "SUPER_VAM=1")
+	verr := runsh(ctx, shellPath, testDir, tempDir(), z, "SUPER_VAM=1")
 	if verr != nil {
 		verr = fmt.Errorf("=== vector ===\n%w", verr)
 	}
 	return errors.Join(serr, verr)
 }
 
-func (z *ZTest) RunInternal() error {
+func (z *ZTest) RunInternal(ctx context.Context) error {
 	if err := z.check(); err != nil {
 		return fmt.Errorf("bad yaml format: %w", err)
 	}
 	outputFlags := append([]string{"-f=sup", "-pretty=0"}, strings.Fields(z.OutputFlags)...)
 	inputFlags := strings.Fields(z.InputFlags)
 	if z.Vector {
-		verr := z.diffInternal(runInternal(z.SPQ, z.Input, outputFlags, inputFlags, true))
+		verr := z.diffInternal(runInternal(ctx, z.SPQ, z.Input, outputFlags, inputFlags, true))
 		if verr != nil {
 			verr = fmt.Errorf("=== vector ===\n%w", verr)
 		}
-		serr := z.diffInternal(runInternal(z.SPQ, z.Input, outputFlags, inputFlags, false))
+		serr := z.diffInternal(runInternal(ctx, z.SPQ, z.Input, outputFlags, inputFlags, false))
 		if serr != nil {
 			serr = fmt.Errorf("=== sequence ===\n%w", serr)
 		}
 		return errors.Join(verr, serr)
 	}
-	return z.diffInternal(runInternal(z.SPQ, z.Input, outputFlags, inputFlags, false))
+	return z.diffInternal(runInternal(ctx, z.SPQ, z.Input, outputFlags, inputFlags, false))
 }
 
 func (z *ZTest) diffInternal(out string, err error) error {
@@ -390,9 +390,9 @@ func (z *ZTest) Run(t *testing.T, path, filename string) {
 	}
 	var err error
 	if z.Script != "" {
-		err = z.RunScript(path, filepath.Dir(filename), t.TempDir)
+		err = z.RunScript(t.Context(), path, filepath.Dir(filename), t.TempDir)
 	} else {
-		err = z.RunInternal()
+		err = z.RunInternal(t.Context())
 	}
 	if err != nil {
 		t.Fatalf("%s: %s", filename, err)
@@ -417,7 +417,7 @@ func diffErr(name, expected, actual string) error {
 	return fmt.Errorf("expected and actual %s differ:\n%s", name, diff)
 }
 
-func runsh(path, testDir, tempDir string, zt *ZTest, extraEnv ...string) error {
+func runsh(ctx context.Context, path, testDir, tempDir string, zt *ZTest, extraEnv ...string) error {
 	var stdin io.Reader
 	for _, f := range zt.Inputs {
 		b, _, err := f.load(testDir)
@@ -432,7 +432,7 @@ func runsh(path, testDir, tempDir string, zt *ZTest, extraEnv ...string) error {
 			return err
 		}
 	}
-	stdout, stderr, err := RunShell(tempDir, path, zt.Script, stdin, zt.Env, extraEnv)
+	stdout, stderr, err := RunShell(ctx, tempDir, path, zt.Script, stdin, zt.Env, extraEnv)
 	if err != nil {
 		return fmt.Errorf("script failed: %w\n=== stdout ===\n%s=== stderr ===\n%s",
 			err, stdout, stderr)
@@ -468,7 +468,7 @@ func runsh(path, testDir, tempDir string, zt *ZTest, extraEnv ...string) error {
 // runInternal runs query over input and returns the output.  input
 // may be in any format recognized by "super -i auto" and may be gzip-compressed.
 // outputFlags may contain any flags accepted by cli/outputflags.Flags.
-func runInternal(query string, input *string, outputFlags, inputFlags []string, vector bool) (string, error) {
+func runInternal(ctx context.Context, query string, input *string, outputFlags, inputFlags []string, vector bool) (string, error) {
 	ast, err := parser.ParseQuery(query)
 	if err != nil {
 		return "", err
@@ -496,7 +496,7 @@ func runInternal(query string, input *string, outputFlags, inputFlags []string, 
 	if vector {
 		env.SetUseVAM()
 	}
-	q, err := runtime.CompileQuery(context.Background(), sctx, compiler.NewCompilerWithEnv(env), ast, readers)
+	q, err := runtime.CompileQuery(ctx, sctx, compiler.NewCompilerWithEnv(env), ast, readers)
 	if err != nil {
 		return "", err
 	}

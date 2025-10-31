@@ -2,16 +2,17 @@ package ztest
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 )
 
-func RunShell(dir, bindir, script string, stdin io.Reader, useenvs, extraenvs []string) (string, string, error) {
+func RunShell(ctx context.Context, dir, bindir, script string, stdin io.Reader, useenvs, extraenvs []string) (string, string, error) {
 	// "-e -o pipefile" ensures a test will fail if any command
 	// fails unexpectedly.
-	cmd := exec.Command("bash", "-e", "-o", "pipefail", "-c", script)
+	cmd := exec.CommandContext(ctx, "bash", "-e", "-o", "pipefail", "-c", script)
 	cmd.Dir = dir
 	cmd.Env = []string{
 		"AppData=" + dir,      // For os.UserConfigDir on Windows.
