@@ -112,8 +112,8 @@ func (m *mathReducer) ConsumeAsPartial(vec vector.Any) {
 	m.Consume(vec)
 }
 
-func (m *mathReducer) ResultAsPartial(*super.Context) super.Value {
-	return m.Result(nil)
+func (m *mathReducer) ResultAsPartial(sctx *super.Context) super.Value {
+	return m.Result(sctx)
 }
 
 func trimNulls(vec vector.Any) vector.Any {
