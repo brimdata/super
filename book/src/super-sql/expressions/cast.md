@@ -5,7 +5,8 @@ to another type using an explicit expression having the form
 ```
 <expr> :: <type>
 ```
-where `<expr>` is any [expression](intro.md) and `<type>` is any type that is
+where `<expr>` is any [expression](intro.md) and `<type>` is any
+[type](../types/intro.md) that is
 compatible with `<expr>`.  When `<expr>` and `<type>` are incompatible,
 [structured errors](../errors.md) result as desribed below.
 
@@ -169,7 +170,7 @@ instead embedded as the value for `b`.
 
 ---
 
-_Cast primitives to type `ip`_
+_Cast various primitives to type `ip`_
 
 ```mdtest-spq {data-layout="stacked"}
 # spq
@@ -183,6 +184,20 @@ values this::ip
 error({message:"cannot cast to ip",on:1})
 error({message:"cannot cast to ip",on:"foo"})
 ```
+
+---
+
+_Cast array of strings to array of IPs_
+
+```mdtest-spq
+# spq
+values this::[ip]
+# input
+["10.0.0.1","10.0.0.2"]
+# expected output
+[10.0.0.1,10.0.0.2]
+```
+
 
 ---
 
@@ -208,10 +223,10 @@ _Multiple syntax options for casting_
 ```mdtest-spq
 # spq
 values
-  cast(80::uint16, 'port'),
-  cast(cast(80, <uint16>), 'port'),
+  80::(port=uint16),
   CAST(80 AS (port=uint16)),
-  80::(port=uint16)
+  cast(80::uint16, 'port'),
+  cast(cast(80, <uint16>), 'port')
 # input
 null
 # expected output
@@ -221,11 +236,9 @@ null
 80::(port=uint16)
 ```
 
-=============
+---
 
-Casting attempts to be fairly liberal in conversions.  For example, values
-of type `time` can be created from a diverse set of date/time input strings
-based on the [Go Date Parser library](https://github.com/araddon/dateparse).
+_Casting time strings is fairly flexible_
 
 ```mdtest-spq
 # spq
@@ -238,18 +251,13 @@ values this::time
 1970-10-07T00:00:00Z
 ```
 
-Casts of complex or [named types](data-types.md#named-types) may be performed using type values
-either in functional form or with `cast`:
-```
-<type-value> ( <expr> )
-cast(<expr>, <type-value>)
-```
-For example
+---
+_Cast to a declared type_
+
 ```mdtest-spq
 # spq
 type port = uint16
-
-values this::<port>
+values this::port
 # input
 80
 8080
@@ -258,22 +266,13 @@ values this::<port>
 8080::(port=uint16)
 ```
 
-Casts may be used with complex types as well.  As long as the target type can
-accommodate the value, the cast will be recursively applied to the components
-of a nested value.  For example,
-```mdtest-spq
-# spq
-cast(this,<[ip]>)
-# input
-["10.0.0.1","10.0.0.2"]
-# expected output
-[10.0.0.1,10.0.0.2]
-```
+---
 
-and
+_Cast nested records_
+
 ```mdtest-spq {data-layout="stacked"}
 # spq
-cast(this,<{ts:time,r:{x:float64,y:float64}}>)
+values this::{ts:time,r:{x:float64,y:float64}}
 # input
 {ts:"1/1/2022",r:{x:"1",y:"2"}}
 {ts:"1/2/2022",r:{x:3,y:4}}

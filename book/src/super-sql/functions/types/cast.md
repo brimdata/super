@@ -84,10 +84,7 @@ _Derive type names from the properties of data_
 
 ```mdtest-spq
 # spq
-switch
-  case has(x) ( cast(this, "point") )
-  default ( cast(this, "radius") )
-| sort this
+values cast(this, has(x) ? "point" : "radius")
 # input
 {x:1,y:2}
 {r:3}
@@ -97,3 +94,21 @@ switch
 {x:1,y:2}::=point
 {x:4,y:5}::=point
 ```
+
+---
+
+_Cast using a computed type value_
+
+```mdtest-spq
+# spq
+values cast(val, type)
+# input
+{val:"123",type:<int64>}
+{val:"123",type:<float64>}
+{val:["true","false"],type:<[bool]>}
+# expected output
+123
+123.
+[true,false]
+```
+
