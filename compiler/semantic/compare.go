@@ -1,6 +1,8 @@
 package semantic
 
 import (
+	"slices"
+
 	"github.com/brimdata/super/compiler/semantic/sem"
 )
 
@@ -40,7 +42,7 @@ func eqOp(aop, bop sem.Op) bool {
 		return ok
 	case *sem.FileScan:
 		b, ok := bop.(*sem.FileScan)
-		return ok && a.Path == b.Path && a.Format == b.Format
+		return ok && slices.Equal(a.Paths, b.Paths) && a.Format == b.Format
 	case *sem.HTTPScan:
 		b, ok := bop.(*sem.HTTPScan)
 		return ok && a.URL == b.URL && a.Format == b.Format && a.Method == b.Method && a.Body == b.Body && eqHeaders(a.Headers, b.Headers)

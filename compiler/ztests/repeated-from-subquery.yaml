@@ -1,5 +1,7 @@
 script: super -s -c "values 1,2,3 | {x:[cross join (from in.sup)]}"
 
+vector: true
+
 inputs:
   - name: in.sup
     data: |

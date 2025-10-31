@@ -123,15 +123,15 @@ func (b *Builder) compileVamScatter(scatter *dag.ScatterOp, parents []vector.Pul
 	if len(parents) != 1 {
 		return nil, errors.New("internal error: scatter operator requires a single parent")
 	}
+	var concurrentPullers []vector.Puller
+	if f, ok := parents[0].(*vamop.FileScan); ok {
+		concurrentPullers = f.NewConcurrentPullers(len(scatter.Paths))
+	}
 	var ops []vector.Puller
-	for _, seq := range scatter.Paths {
+	for i, seq := range scatter.Paths {
 		parent := parents[0]
-		if p, ok := parent.(interface{ NewConcurrentPuller() (vector.Puller, error) }); ok {
-			p, err := p.NewConcurrentPuller()
-			if err != nil {
-				return nil, err
-			}
-			parent = p
+		if len(concurrentPullers) > 0 {
+			parent = concurrentPullers[i]
 		}
 		op, err := b.compileVamSeq(seq, []vector.Puller{parent})
 		if err != nil {
@@ -243,7 +243,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 			metaProjection = mf.Projection
 		}
 		pushdown := b.newMetaPushdown(metaFilter, o.Pushdown.Projection, metaProjection, o.Pushdown.Unordered)
-		return b.env.VectorOpen(b.rctx, b.sctx(), o.Path, o.Format, pushdown)
+		return vamop.NewFileScan(b.rctx, b.env, o.Paths, o.Format, pushdown), nil
 	case *dag.FilterOp:
 		e, err := b.compileVamExpr(o.Expr)
 		if err != nil {

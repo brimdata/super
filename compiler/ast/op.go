@@ -243,6 +243,11 @@ type (
 		Branch string       `json:"branch"`
 		Loc    `json:"loc"` // dummy field, not needed except to implement Node
 	}
+	FileScan struct {
+		Kind  string   `json:"kind" unpack:""`
+		Paths []string `json:"paths"`
+		Loc   `json:"loc"`
+	}
 )
 
 type Text struct {
@@ -350,6 +355,7 @@ func (*DistinctOp) opNode()   {}
 func (*DropOp) opNode()       {}
 func (*ExplodeOp) opNode()    {}
 func (*ExprOp) opNode()       {}
+func (*FileScan) opNode()     {}
 func (*ForkOp) opNode()       {}
 func (*FromOp) opNode()       {}
 func (*FuseOp) opNode()       {}

@@ -18,6 +18,7 @@ import (
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
+	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/supio"
@@ -142,26 +143,22 @@ func (c *Command) Run(args []string) error {
 		fmt.Println(sfmt.AST(ast.Parsed()))
 		return nil
 	}
-	sctx := super.NewContext()
-	local := storage.NewLocalEngine()
-	var readers []sio.Reader
 	if len(args) > 0 {
-		readers, err = c.inputFlags.Open(ctx, sctx, local, args, c.stopErr)
-		if err != nil {
-			return err
-		}
-		defer sio.CloseReaders(readers)
+		ast.PrependFileScan(args)
 	}
-	writer, err := c.outputFlags.Open(ctx, local)
-	if err != nil {
-		return err
-	}
-	comp := compiler.NewCompiler(local)
-	query, err := runtime.CompileQuery(ctx, sctx, comp, ast, readers)
+	env := exec.NewEnvironment(storage.NewLocalEngine(), nil)
+	env.IgnoreOpenErrors = !c.stopErr
+	env.ReaderOpts = c.inputFlags.Options()
+	comp := compiler.NewCompilerWithEnv(env)
+	query, err := runtime.CompileQuery(ctx, super.NewContext(), comp, ast, nil)
 	if err != nil {
 		return err
 	}
 	defer query.Pull(true)
+	writer, err := c.outputFlags.Open(ctx, env.Engine())
+	if err != nil {
+		return err
+	}
 	out := map[string]sio.WriteCloser{
 		"main":  writer,
 		"debug": supio.NewWriter(sio.NopCloser(os.Stderr), supio.WriterOpts{}),

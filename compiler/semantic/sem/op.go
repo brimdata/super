@@ -44,7 +44,7 @@ type (
 	FileScan struct {
 		ast.Node
 		Type   super.Type
-		Path   string
+		Paths  []string
 		Format string
 	}
 	HTTPScan struct {

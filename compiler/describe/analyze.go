@@ -117,7 +117,11 @@ func describeSources(ctx context.Context, root *db.Root, o dag.Op) ([]Source, er
 	case *dag.NullScan:
 		return []Source{&Null{Kind: "Null"}}, nil
 	case *dag.FileScan:
-		return []Source{&Path{Kind: "Path", URI: o.Path}}, nil
+		var sources []Source
+		for _, p := range o.Paths {
+			sources = append(sources, &Path{Kind: "Path", URI: p})
+		}
+		return sources, nil
 	case *dag.HTTPScan:
 		return []Source{&Path{Kind: "Path", URI: o.URL}}, nil
 	case *dag.PoolScan:

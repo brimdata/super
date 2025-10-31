@@ -36,6 +36,13 @@ func (a *AST) ConvertToDeleteWhere(pool, branch string) error {
 	return nil
 }
 
+func (a *AST) PrependFileScan(paths []string) {
+	a.seq.Prepend(&ast.FileScan{
+		Kind:  "FileScan",
+		Paths: paths,
+	})
+}
+
 // ParseQuery parses a query text and an optional set of include files and
 // tracks include file names and line numbers for error reporting.
 func ParseQuery(query string, filenames ...string) (*AST, error) {

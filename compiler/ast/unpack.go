@@ -40,6 +40,7 @@ var unpacker = unpack.New(
 	ExprEntity{},
 	ExprOp{},
 	FieldElem{},
+	FileScan{},
 	ForkOp{},
 	FromOp{},
 	FStringExpr{},

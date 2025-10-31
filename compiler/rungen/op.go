@@ -21,6 +21,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/op/distinct"
 	"github.com/brimdata/super/runtime/sam/op/explode"
 	"github.com/brimdata/super/runtime/sam/op/exprswitch"
+	"github.com/brimdata/super/runtime/sam/op/filescan"
 	"github.com/brimdata/super/runtime/sam/op/fork"
 	"github.com/brimdata/super/runtime/sam/op/fuse"
 	"github.com/brimdata/super/runtime/sam/op/head"
@@ -210,16 +211,8 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 		if v.Pushdown.DataFilter != nil {
 			dataFilter = v.Pushdown.DataFilter.Expr
 		}
-		puller, err := b.env.Open(b.rctx.Context, b.sctx(), v.Path, v.Format, b.newPushdown(dataFilter, v.Pushdown.Projection))
-		if err != nil {
-			return puller, err
-		}
-		return &rewinder{
-			puller: puller,
-			reopen: func() (sbuf.Puller, error) {
-				return b.env.Open(b.rctx.Context, b.sctx(), v.Path, v.Format, b.newPushdown(dataFilter, v.Pushdown.Projection))
-			},
-		}, nil
+		pushdown := b.newPushdown(dataFilter, v.Pushdown.Projection)
+		return filescan.New(b.rctx, b.env, v.Paths, v.Format, pushdown), nil
 	case *dag.HTTPScan:
 		body := strings.NewReader(v.Body)
 		return b.env.OpenHTTP(b.rctx.Context, b.sctx(), v.URL, v.Format, v.Method, v.Headers, body, nil)
@@ -388,26 +381,6 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 	default:
 		return nil, fmt.Errorf("unknown DAG operator type: %v", v)
 	}
-}
-
-type rewinder struct {
-	puller sbuf.Puller
-	reopen func() (sbuf.Puller, error)
-}
-
-func (r *rewinder) Pull(done bool) (sbuf.Batch, error) {
-	if r.puller == nil {
-		puller, err := r.reopen()
-		if err != nil {
-			return nil, err
-		}
-		r.puller = puller
-	}
-	batch, err := r.puller.Pull(done)
-	if batch == nil || err != nil {
-		r.puller = nil
-	}
-	return batch, err
 }
 
 func (b *Builder) compileUnnest(parent sbuf.Puller, u *dag.UnnestOp) (sbuf.Puller, error) {

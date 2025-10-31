@@ -47,16 +47,20 @@ func (m *Materializer) Pull(done bool) (sbuf.Batch, error) {
 	return sbuf.NewArray(vals), nil
 }
 
-type dematerializer struct {
+type Dematerializer struct {
 	mu     sync.Mutex
 	parent sbuf.Puller
 }
 
-func NewDematerializer(p sbuf.Puller) vector.Puller {
-	return &dematerializer{parent: p}
+func NewDematerializer(p sbuf.Puller) *Dematerializer {
+	return &Dematerializer{parent: p}
 }
 
-func (d *dematerializer) Pull(done bool) (vector.Any, error) {
+func (d *Dematerializer) Pull(done bool) (vector.Any, error) {
+	return d.ConcurrentPull(done, 0)
+}
+
+func (d *Dematerializer) ConcurrentPull(done bool, _ int) (vector.Any, error) {
 	d.mu.Lock()
 	batch, err := d.parent.Pull(done)
 	d.mu.Unlock()

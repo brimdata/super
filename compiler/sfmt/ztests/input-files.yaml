@@ -1,0 +1,14 @@
+script: |
+  # Command line input files do not appear in the AST.
+  super compile -C pass a b c
+  echo ===
+  super compile -C -dag pass a b c
+
+outputs:
+  - name: stdout
+    data: |
+      pass
+      ===
+      file a,b,c
+      | pass
+      | output main

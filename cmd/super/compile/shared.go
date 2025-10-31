@@ -40,12 +40,9 @@ func (s *Shared) SetFlags(fs *flag.FlagSet) {
 	s.OutputFlags.SetFlags(fs)
 }
 
-func (s *Shared) Run(ctx context.Context, args []string, dbFlags *dbflags.Flags, desc, extInput bool) error {
+func (s *Shared) Run(ctx context.Context, args []string, dbFlags *dbflags.Flags, desc bool) error {
 	if len(s.includes) == 0 && len(args) == 0 {
 		return errors.New("no query specified")
-	}
-	if len(args) > 1 {
-		return errors.New("too many arguments")
 	}
 	var root *db.Root
 	if dbFlags != nil {
@@ -56,8 +53,10 @@ func (s *Shared) Run(ctx context.Context, args []string, dbFlags *dbflags.Flags,
 		root = dbAPI.Root()
 	}
 	var query string
-	if len(args) == 1 {
+	var inputs []string
+	if len(args) > 0 {
 		query = args[0]
+		inputs = args[1:]
 	}
 	ast, err := compiler.Parse(query, s.includes...)
 	if err != nil {
@@ -76,9 +75,12 @@ func (s *Shared) Run(ctx context.Context, args []string, dbFlags *dbflags.Flags,
 		}
 		return s.writeValue(ctx, ast.Parsed())
 	}
+	if len(inputs) > 0 {
+		ast.PrependFileScan(inputs)
+	}
 	rctx := runtime.DefaultContext()
 	env := exec.NewEnvironment(storage.NewLocalEngine(), root)
-	dag, err := compiler.Analyze(rctx, ast, env, extInput)
+	dag, err := compiler.Analyze(rctx, ast, env, false)
 	if err != nil {
 		return err
 	}
