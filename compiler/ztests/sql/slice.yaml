@@ -1,0 +1,17 @@
+spq: |
+  select 
+    a[from:] as from,
+    a[:to] as to,
+    a[from:to] as both
+
+vector: true
+
+input: |
+  {a:[1,2,3],from:2,to:3}
+  {a:|[1,2,3]|,from:-2,to:-1}
+  {a:"123",from:2,to:3}
+
+output: |
+  {from:[2,3],to:[1,2],both:[2]}
+  {from:|[2,3]|,to:|[1,2]|,both:|[2]|}
+  {from:"23",to:"12",both:"2"}

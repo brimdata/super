@@ -47,6 +47,7 @@ type (
 		ast.Node
 		Expr  Expr
 		Index Expr
+		SQL   bool
 	}
 	IsNullExpr struct {
 		ast.Node
@@ -94,6 +95,7 @@ type (
 		Expr Expr
 		From Expr
 		To   Expr
+		SQL  bool
 	}
 	SubqueryExpr struct {
 		ast.Node

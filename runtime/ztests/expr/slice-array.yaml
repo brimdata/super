@@ -3,12 +3,12 @@ spq: "values c[start:end]"
 vector: true
 
 input: |
-  {start:2,end:-1,c:null::[int64]}
-  {start:2,end:-1,c:[1,2,3,4]}
-  {start:-3,end:4,c:[5,7,8,9]}
-  {start:-5,end:4,c:[5,7,8,9]}
-  {start:1,end:6,c:[5,7,8,9]}
-  {start:5,end:4,c:[5,7,8,9]}
+  {start:1,end:-1,c:null::[int64]}
+  {start:1,end:-1,c:[1,2,3,4]}
+  {start:-3,end:3,c:[5,7,8,9]}
+  {start:-5,end:3,c:[5,7,8,9]}
+  {start:0,end:5,c:[5,7,8,9]}
+  {start:4,end:3,c:[5,7,8,9]}
 
 output: |
   null::[int64]

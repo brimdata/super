@@ -164,7 +164,7 @@ func (b *Builder) compileVamIndexExpr(idx *dag.IndexExpr) (vamexpr.Evaluator, er
 	if err != nil {
 		return nil, err
 	}
-	return vamexpr.NewIndexExpr(b.sctx(), e, index), nil
+	return vamexpr.NewIndexExpr(b.sctx(), e, index, idx.SQL), nil
 }
 
 func (b *Builder) compileVamIsNullExpr(idx *dag.IsNullExpr) (vamexpr.Evaluator, error) {
@@ -343,7 +343,7 @@ func (b *Builder) compileVamSliceExpr(slice *dag.SliceExpr) (vamexpr.Evaluator, 
 	if err != nil {
 		return nil, err
 	}
-	return vamexpr.NewSliceExpr(b.sctx(), e, from, to), nil
+	return vamexpr.NewSliceExpr(b.sctx(), e, from, to, slice.SQL), nil
 }
 
 func (b *Builder) compileVamArrayExpr(e *dag.ArrayExpr) (vamexpr.Evaluator, error) {

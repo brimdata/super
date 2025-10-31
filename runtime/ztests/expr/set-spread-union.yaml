@@ -1,4 +1,4 @@
-spq: values |[a[1],...b]|
+spq: values |[a[0],...b]|
 
 vector: true
 

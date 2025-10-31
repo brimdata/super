@@ -12,14 +12,16 @@ import (
 type sliceExpr struct {
 	sctx                            *super.Context
 	containerEval, fromEval, toEval Evaluator
+	sql                             bool
 }
 
-func NewSliceExpr(sctx *super.Context, container, from, to Evaluator) Evaluator {
+func NewSliceExpr(sctx *super.Context, container, from, to Evaluator, sql bool) Evaluator {
 	return &sliceExpr{
 		sctx:          sctx,
 		containerEval: container,
 		fromEval:      from,
 		toEval:        to,
+		sql:           sql,
 	}
 }
 
@@ -53,9 +55,9 @@ func (s *sliceExpr) eval(vecs ...vector.Any) vector.Any {
 	}
 	switch vector.KindOf(container) {
 	case vector.KindArray, vector.KindSet:
-		return s.evalArrayOrSlice(container, from, to)
+		return s.evalArrayOrSlice(container, from, to, s.sql)
 	case vector.KindBytes, vector.KindString:
-		return s.evalStringOrBytes(container, from, to)
+		return s.evalStringOrBytes(container, from, to, s.sql)
 	case vector.KindError:
 		return container
 	default:
@@ -63,7 +65,7 @@ func (s *sliceExpr) eval(vecs ...vector.Any) vector.Any {
 	}
 }
 
-func (s *sliceExpr) evalArrayOrSlice(vec, fromVec, toVec vector.Any) vector.Any {
+func (s *sliceExpr) evalArrayOrSlice(vec, fromVec, toVec vector.Any, sql bool) vector.Any {
 	from, constFrom := sliceIsConstIndex(fromVec)
 	to, constTo := sliceIsConstIndex(toVec)
 	slowPath := !constFrom || !constTo
@@ -97,14 +99,14 @@ func (s *sliceExpr) evalArrayOrSlice(vec, fromVec, toVec vector.Any) vector.Any 
 				v, _ := vector.IntValue(fromVec, i)
 				from = int(v)
 			}
-			start = sliceIndex(from, size)
+			start = sliceIndex(from, size, sql)
 		}
 		if toVec != nil {
 			if slowPath {
 				v, _ := vector.IntValue(toVec, i)
 				to = int(v)
 			}
-			end = sliceIndex(to, size)
+			end = sliceIndex(to, size, sql)
 		}
 		start, end = expr.FixSliceBounds(start, end, size)
 		newOffsets = append(newOffsets, newOffsets[len(newOffsets)-1]+uint32(end-start))
@@ -125,11 +127,11 @@ func (s *sliceExpr) evalArrayOrSlice(vec, fromVec, toVec vector.Any) vector.Any 
 	return out
 }
 
-func (s *sliceExpr) evalStringOrBytes(vec, fromVec, toVec vector.Any) vector.Any {
+func (s *sliceExpr) evalStringOrBytes(vec, fromVec, toVec vector.Any, sql bool) vector.Any {
 	constFrom, isConstFrom := sliceIsConstIndex(fromVec)
 	constTo, isConstTo := sliceIsConstIndex(toVec)
 	if isConstFrom && isConstTo {
-		if out, ok := s.evalStringOrBytesFast(vec, constFrom, constTo); ok {
+		if out, ok := s.evalStringOrBytesFast(vec, constFrom, constTo, sql); ok {
 			return out
 		}
 	}
@@ -151,11 +153,11 @@ func (s *sliceExpr) evalStringOrBytes(vec, fromVec, toVec vector.Any) vector.Any
 		start, end := 0, size
 		if fromVec != nil {
 			from, _ := vector.IntValue(fromVec, i)
-			start = sliceIndex(int(from), size)
+			start = sliceIndex(int(from), size, sql)
 		}
 		if toVec != nil {
 			to, _ := vector.IntValue(toVec, i)
-			end = sliceIndex(int(to), size)
+			end = sliceIndex(int(to), size, sql)
 		}
 		start, end = expr.FixSliceBounds(start, end, size)
 		slice = sliceBytesOrString(slice, id, start, end)
@@ -170,7 +172,7 @@ func (s *sliceExpr) evalStringOrBytes(vec, fromVec, toVec vector.Any) vector.Any
 	return out
 }
 
-func (s *sliceExpr) evalStringOrBytesFast(vec vector.Any, from, to int) (vector.Any, bool) {
+func (s *sliceExpr) evalStringOrBytesFast(vec vector.Any, from, to int, sql bool) (vector.Any, bool) {
 	switch vec := vec.(type) {
 	case *vector.Const:
 		slice := vec.Value().Bytes()
@@ -178,22 +180,22 @@ func (s *sliceExpr) evalStringOrBytesFast(vec vector.Any, from, to int) (vector.
 		size := lengthOfBytesOrString(id, slice)
 		start, end := 0, size
 		if s.fromEval != nil {
-			start = sliceIndex(from, size)
+			start = sliceIndex(from, size, sql)
 		}
 		if s.toEval != nil {
-			end = sliceIndex(to, size)
+			end = sliceIndex(to, size, sql)
 		}
 		start, end = expr.FixSliceBounds(start, end, size)
 		slice = sliceBytesOrString(slice, id, start, end)
 		return vector.NewConst(super.NewValue(vec.Type(), slice), vec.Len(), vec.Nulls), true
 	case *vector.View:
-		out, ok := s.evalStringOrBytesFast(vec.Any, from, to)
+		out, ok := s.evalStringOrBytesFast(vec.Any, from, to, sql)
 		if !ok {
 			return nil, false
 		}
 		return vector.NewView(out, vec.Index), true
 	case *vector.Dict:
-		out, ok := s.evalStringOrBytesFast(vec.Any, from, to)
+		out, ok := s.evalStringOrBytesFast(vec.Any, from, to, sql)
 		if !ok {
 			return nil, false
 		}
@@ -208,10 +210,10 @@ func (s *sliceExpr) evalStringOrBytesFast(vec vector.Any, from, to int) (vector.
 			size := lengthOfBytesOrString(id, slice)
 			start, end := 0, size
 			if s.fromEval != nil {
-				start = sliceIndex(from, size)
+				start = sliceIndex(from, size, sql)
 			}
 			if s.toEval != nil {
-				end = sliceIndex(to, size)
+				end = sliceIndex(to, size, sql)
 			}
 			start, end = expr.FixSliceBounds(start, end, size)
 			slice = sliceBytesOrString(slice, id, start, end)
@@ -279,8 +281,8 @@ func sliceIsConstIndex(vec vector.Any) (int, bool) {
 	return 0, false
 }
 
-func sliceIndex(idx, size int) int {
-	if idx > 0 {
+func sliceIndex(idx, size int, sql bool) int {
+	if sql && idx > 0 {
 		idx--
 	}
 	if idx < 0 {

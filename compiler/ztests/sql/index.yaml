@@ -1,0 +1,32 @@
+spq: |
+  select a[i] as v
+
+vector: true
+
+input: |
+  {a:[1,2,3],i:1}
+  {a:[1,2,3],i:0}
+  {a:[1,2,3],i:-1}
+  {a:[1,2,3],i:"foo"}
+  {a:|[1,2,3]|,i:1}
+  {a:|[1,2,3]|,i:0}
+  {a:|[1,2,3]|,i:-1}
+  {a:|[1,2,3]|,i:"foo"}
+  {a:{c0:1,c1:2,c2:3},i:1}
+  {a:{c0:1,c1:2,c2:3},i:0}
+  {a:{c0:1,c1:2,c2:3},i:-1}
+  {a:{c0:1,c1:2,c2:3},i:"c1"}
+
+output: |
+  {v:1}
+  {v:error("missing")}
+  {v:3}
+  {v:error({message:"index is not an integer",on:"foo"})}
+  {v:1}
+  {v:error("missing")}
+  {v:3}
+  {v:error({message:"index is not an integer",on:"foo"})}
+  {v:1}
+  {v:error("missing")}
+  {v:3}
+  {v:2}

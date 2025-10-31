@@ -365,6 +365,7 @@ func (d *dagen) expr(e sem.Expr) dag.Expr {
 			Kind:  "IndexExpr",
 			Expr:  d.expr(e.Expr),
 			Index: d.expr(e.Index),
+			SQL:   e.SQL,
 		}
 	case *sem.IsNullExpr:
 		return &dag.IsNullExpr{
@@ -422,6 +423,7 @@ func (d *dagen) expr(e sem.Expr) dag.Expr {
 			Expr: d.expr(e.Expr),
 			From: d.expr(e.From),
 			To:   d.expr(e.To),
+			SQL:  e.SQL,
 		}
 	case *sem.SubqueryExpr:
 		return d.subquery(e)

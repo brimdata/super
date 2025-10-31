@@ -31,7 +31,7 @@ values upper(this)
 ```mdtest-spq
 # spq
 fn capitalize(str): (
-  upper(str[1:2]) + str[2:]
+  upper(str[0:1]) + str[1:]
 )
 values capitalize(this)
 # input

@@ -223,7 +223,7 @@ func (b *Builder) compileSliceExpr(slice *dag.SliceExpr) (expr.Evaluator, error)
 	if err != nil {
 		return nil, err
 	}
-	return expr.NewSlice(b.sctx(), e, from, to), nil
+	return expr.NewSlice(b.sctx(), e, from, to, slice.SQL), nil
 }
 
 func (b *Builder) compileUnary(unary dag.UnaryExpr) (expr.Evaluator, error) {
@@ -379,7 +379,7 @@ func (b *Builder) compileIndexExpr(e *dag.IndexExpr) (expr.Evaluator, error) {
 	if err != nil {
 		return nil, err
 	}
-	return expr.NewIndexExpr(b.sctx(), container, index), nil
+	return expr.NewIndexExpr(b.sctx(), container, index, e.SQL), nil
 }
 
 func (b *Builder) compileIsNullExpr(e *dag.IsNullExpr) (expr.Evaluator, error) {

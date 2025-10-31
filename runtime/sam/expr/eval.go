@@ -649,10 +649,11 @@ type Index struct {
 	sctx      *super.Context
 	container Evaluator
 	index     Evaluator
+	sql       bool
 }
 
-func NewIndexExpr(sctx *super.Context, container, index Evaluator) Evaluator {
-	return &Index{sctx, container, index}
+func NewIndexExpr(sctx *super.Context, container, index Evaluator, sql bool) Evaluator {
+	return &Index{sctx, container, index, sql}
 }
 
 func (i *Index) Eval(this super.Value) super.Value {
@@ -660,9 +661,23 @@ func (i *Index) Eval(this super.Value) super.Value {
 	index := i.index.Eval(this)
 	switch typ := super.TypeUnder(container.Type()).(type) {
 	case *super.TypeArray, *super.TypeSet:
-		return indexArrayOrSet(i.sctx, super.InnerType(typ), container.Bytes(), index)
+		idx, ok, err := getNumericIndex(i.sctx, i.sql, index)
+		if err != nil {
+			return *err
+		}
+		if !ok {
+			return i.sctx.WrapError("index is not an integer", index)
+		}
+		return indexArrayOrSet(i.sctx, super.InnerType(typ), container.Bytes(), idx)
 	case *super.TypeRecord:
-		return indexRecord(i.sctx, typ, container.Bytes(), index)
+		idx, ok, err := getNumericIndex(i.sctx, i.sql, index)
+		if err != nil {
+			return *err
+		}
+		if ok {
+			return indexRecordByIndex(i.sctx, typ, container.Bytes(), idx)
+		}
+		return indexRecordByName(i.sctx, typ, container.Bytes(), index)
 	case *super.TypeMap:
 		return indexMap(i.sctx, typ, container.Bytes(), index)
 	default:
@@ -670,28 +685,34 @@ func (i *Index) Eval(this super.Value) super.Value {
 	}
 }
 
-func indexArrayOrSet(sctx *super.Context, inner super.Type, vector scode.Bytes, index super.Value) super.Value {
+func getNumericIndex(sctx *super.Context, sql bool, index super.Value) (int, bool, *super.Value) {
 	id := index.Type().ID()
 	if super.IsUnsigned(id) {
 		index = LookupPrimitiveCaster(sctx, super.TypeInt64).Eval(index)
 		id = index.Type().ID()
 	}
-	if !super.IsInteger(id) {
+	if !super.IsInteger(index.Type().ID()) {
 		if index.IsError() {
-			return index
+			return 0, false, index.Ptr()
 		}
-		return sctx.WrapError("index is not an integer", index)
+		return 0, false, nil
 	}
 	if index.IsNull() {
-		return sctx.Missing()
+		return 0, false, sctx.Missing().Ptr()
 	}
 	idx := int(index.AsInt())
-	if idx == 0 {
-		return sctx.Missing()
+	if sql {
+		if idx == 0 {
+			return -1, false, sctx.Missing().Ptr()
+		}
+		if idx > 0 {
+			idx--
+		}
 	}
-	if idx > 0 {
-		idx--
-	}
+	return idx, true, nil
+}
+
+func indexArrayOrSet(sctx *super.Context, inner super.Type, vector scode.Bytes, idx int) super.Value {
 	bytes, idx := getNthFromContainer(vector, idx)
 	if idx < 0 {
 		return sctx.Missing()
@@ -699,23 +720,16 @@ func indexArrayOrSet(sctx *super.Context, inner super.Type, vector scode.Bytes, 
 	return deunion(inner, bytes)
 }
 
-func indexRecord(sctx *super.Context, typ *super.TypeRecord, record scode.Bytes, index super.Value) super.Value {
-	id := index.Type().ID()
-	if super.IsInteger(id) {
-		idx := int(index.AsInt())
-		if idx == 0 {
-			return sctx.Missing()
-		}
-		if idx > 0 {
-			idx--
-		}
-		bytes, idx := getNthFromContainer(record, idx)
-		if idx < 0 {
-			return sctx.Missing()
-		}
-		return super.NewValue(typ.Fields[idx].Type, bytes)
+func indexRecordByIndex(sctx *super.Context, typ *super.TypeRecord, record scode.Bytes, idx int) super.Value {
+	bytes, idx := getNthFromContainer(record, idx)
+	if idx < 0 {
+		return sctx.Missing()
 	}
-	if id != super.IDString {
+	return super.NewValue(typ.Fields[idx].Type, bytes)
+}
+
+func indexRecordByName(sctx *super.Context, typ *super.TypeRecord, record scode.Bytes, index super.Value) super.Value {
+	if index.Type().ID() != super.IDString {
 		return sctx.WrapError("invalid value for record index", index)
 	}
 	field := super.DecodeString(index.Bytes())

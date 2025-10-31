@@ -1,4 +1,4 @@
-spq: "cut a1:=a[2:-1],a2:=a[2:],a3:=a[:2],a4:=a[:-1],a5:=a[:-100],a6:=a[-1:],a7:=a[-2:-1],a8:=(a IS NOT NULL and len(a)>0) ? a[:a[2]-8] : null"
+spq: "cut a1:=a[1:-1],a2:=a[1:],a3:=a[:1],a4:=a[:-1],a5:=a[:-100],a6:=a[-1:],a7:=a[-2:-1],a8:=(a IS NOT NULL and len(a)>0) ? a[:a[1]-9] : null"
 
 vector: true
 

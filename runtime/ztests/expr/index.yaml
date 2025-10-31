@@ -5,9 +5,9 @@ vector: true
 input: |
   // array
   {val:[1,2,3,"foo"],idx:-1}
-  {val:[1,2,3,"bar"],idx:2::uint8}
+  {val:[1,2,3,"bar"],idx:1::uint8}
   {val:[1,2,3,"foo"],idx:-4}
-  {val:[1,2,3,null],idx:4}
+  {val:[1,2,3,null],idx:3}
   {val:[1,2,3,"foo"],idx:-5}
   {val:null::[int64|string],idx:-5}
   {val:[1,2,3,"foo"],idx:null::int64}
@@ -15,16 +15,16 @@ input: |
   {val:[1,2,3,"foo"],idx:9223372036854775808::uint64}
   // set
   {val:|[1,2,3,"foo"]|,idx:-1}
-  {val:|[1,2,3,"bar"]|,idx:2}
+  {val:|[1,2,3,"bar"]|,idx:1}
   {val:|[1,2,3,"foo"]|,idx:-4}
-  {val:[1,2,3,null],idx:4}
+  {val:[1,2,3,null],idx:3}
   {val:|[1,2,3,"foo"]|,idx:-5}
   {val:|[1,2,3,"foo"]|,idx:"hi"}
   // record
   {val:{a:"foo",b:"bar"},idx:"a"}
   {val:{a:"bar",b:"baz"},idx:"b"}
   {val:{a:"bar",b:null},idx:"b"}
-  {val:{a:"foo",b:"bar"},idx:1}
+  {val:{a:"foo",b:"bar"},idx:0}
   {val:{a:"foo",b:"bar"},idx:-1}
   {val:{a:"foo",b:"bar"},idx:1.}
   {val:{a:"bar",b:"baz"},idx:"doesnotexist"}

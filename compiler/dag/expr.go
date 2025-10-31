@@ -69,6 +69,7 @@ type (
 		Kind  string `json:"kind" unpack:""`
 		Expr  Expr   `json:"expr"`
 		Index Expr   `json:"index"`
+		SQL   bool   `json:"sql"`
 	}
 	IsNullExpr struct {
 		Kind string `json:"kind" unpack:""`
@@ -116,6 +117,7 @@ type (
 		Expr Expr   `json:"expr"`
 		From Expr   `json:"from"`
 		To   Expr   `json:"to"`
+		SQL  bool   `json:"sql"`
 	}
 	SortExpr struct {
 		Key   Expr        `json:"key"`

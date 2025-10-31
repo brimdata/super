@@ -1,4 +1,4 @@
-spq: cut a:=r[1].a,b:=r[2].b
+spq: cut a:=r[0].a,b:=r[1].b
 
 vector: true
 

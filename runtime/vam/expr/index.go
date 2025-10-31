@@ -13,10 +13,11 @@ type Index struct {
 	sctx      *super.Context
 	container Evaluator
 	index     Evaluator
+	sql       bool
 }
 
-func NewIndexExpr(sctx *super.Context, container, index Evaluator) Evaluator {
-	return &Index{sctx, container, index}
+func NewIndexExpr(sctx *super.Context, container, index Evaluator, sql bool) Evaluator {
+	return &Index{sctx, container, index, sql}
 }
 
 func (i *Index) Eval(this vector.Any) vector.Any {
@@ -29,9 +30,9 @@ func (i *Index) eval(args ...vector.Any) vector.Any {
 	index := i.index.Eval(this)
 	switch vector.KindOf(vector.Under(container)) {
 	case vector.KindArray, vector.KindSet:
-		return indexArrayOrSet(i.sctx, container, index)
+		return indexArrayOrSet(i.sctx, container, index, i.sql)
 	case vector.KindRecord:
-		return indexRecord(i.sctx, container, index)
+		return indexRecord(i.sctx, container, index, i.sql)
 	case vector.KindMap:
 		panic("vector index operations on maps not supported")
 	default:
@@ -39,13 +40,13 @@ func (i *Index) eval(args ...vector.Any) vector.Any {
 	}
 }
 
-func indexArrayOrSet(sctx *super.Context, vec, indexVec vector.Any) vector.Any {
+func indexArrayOrSet(sctx *super.Context, vec, indexVec vector.Any, sql bool) vector.Any {
 	if _, ok := indexVec.(*vector.Error); ok {
 		return indexVec
 	}
 	if id := indexVec.Type().ID(); super.IsUnsigned(id) {
 		return vector.Apply(true, func(args ...vector.Any) vector.Any {
-			return indexArrayOrSet(sctx, args[0], args[1])
+			return indexArrayOrSet(sctx, args[0], args[1], sql)
 		}, vec, cast.To(sctx, indexVec, super.TypeInt64))
 	} else if !super.IsInteger(id) {
 		return vector.NewWrappedError(sctx, "index is not an integer", indexVec)
@@ -63,12 +64,12 @@ func indexArrayOrSet(sctx *super.Context, vec, indexVec vector.Any) vector.Any {
 			idx = index[i]
 		}
 		idxVal, isnull := vector.IntValue(indexVec, uint32(i))
-		if !nulls.IsSet(idx) && !isnull && idxVal != 0 {
+		if !nulls.IsSet(idx) && !isnull {
 			start := offsets[idx]
 			len := int64(offsets[idx+1]) - int64(start)
 			if idxVal < 0 {
 				idxVal = len + idxVal
-			} else {
+			} else if sql {
 				idxVal--
 			}
 			if idxVal >= 0 && idxVal < len {
@@ -85,12 +86,12 @@ func indexArrayOrSet(sctx *super.Context, vec, indexVec vector.Any) vector.Any {
 	return out
 }
 
-func indexRecord(sctx *super.Context, vec, indexVec vector.Any) vector.Any {
+func indexRecord(sctx *super.Context, vec, indexVec vector.Any, sql bool) vector.Any {
 	var isint bool
 	switch id := indexVec.Type().ID(); {
 	case super.IsUnsigned(id):
 		return vector.Apply(true, func(args ...vector.Any) vector.Any {
-			return indexRecord(sctx, args[0], args[1])
+			return indexRecord(sctx, args[0], args[1], sql)
 		}, vec, cast.To(sctx, indexVec, super.TypeInt64))
 	case super.IsSigned(id):
 		isint = true
@@ -122,7 +123,7 @@ func indexRecord(sctx *super.Context, vec, indexVec vector.Any) vector.Any {
 			k = int(idx)
 			if k < 0 {
 				k = n + k
-			} else {
+			} else if sql {
 				k--
 			}
 		} else {
