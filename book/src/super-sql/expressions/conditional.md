@@ -1,17 +1,73 @@
 ## Conditional
 
-A conditional expression has the form
-```
-<boolean> ? <expr> : <expr>
-```
-The `<boolean>` expression is evaluated and must have a result of type `bool`.
-If not, an error results.
+Conditional expressions compute their result based on a Boolean predicate
+(or multiple predicates in one of the forms).
 
-If the result is true, then the first `<expr>` expression is evaluated and becomes
-the result.  Otherwise, the second `<expr>` expression is evaluated and
+### Ternary Conditional
+
+The ternary form follows the C language and has syntax
+```
+<predicate> ? <true-expr> : <false-expr>
+```
+where `<predicate>` is a Boolean-valued expression
+and `<true-expr>` and `<false-expr>` are any [expressions](intro.md).
+When `<predicate>` is true, then `<true-expr>` is evaluated and becomes
+the result of the conditional expression; otherwise, `<false-expr>`
 becomes the result.
 
-For example,
+If `<predicate>` is not a Boolean, then an error results.  The error
+is reported at compile time if possible, but when input is dynamic and
+the type cannot be statically determined, a [structured error](../errors.md)
+is generated at run time as the result of the conditional expression.
+
+### Case Expressions
+
+SQL-style `CASE` expressions have two forms.
+
+The first form has the syntax
+```
+CASE <expr>
+WHEN <expr-1> THEN <result-1>
+[ WHEN <expr-2> THEN <result-2> ]
+...
+[ ELSE <else-result> ]
+END
+```
+The expression `<expr>` is evaluated and compared with each subsequent
+`WHEN` expression `<expr-1>`, `<expr-2>`, etc. until a match is found,
+in which case, the corresponding expression `<result-n>` is evaluated for the match,
+and that value becomes the result of the `CASE` exxpression.
+If there is no match and an `ELSE` clause is present, the the result is
+determined by the expression `<else-result>`.  Otherwise, the result is `null`.
+
+The second form omits `<expr>` from above and has the syntax
+```
+CASE
+WHEN <predicate-1> THEN <result-1>
+[ WHEN <predicate-2> THEN <result-2> ]
+...
+[ ELSE <else-result> ]
+END
+```
+Here, each `WHEN` expression must be Boolean-valued and
+`<predicate-1>`, `<predicate-2>`, etc. are evaluated
+in order until a true result is encountered,
+in which case, the corresponding expression `<result-n>` is evaluated for the match,
+and that value becomes the result of the `CASE` exxpression.
+If there is no `true` result and an `ELSE` clause is present, the the result is
+determined by the expression `<else-result>`.  Otherwise, the result is `null`.
+
+If the predicate expressions are not Boolean valued, then an error results.
+The error is reported at compile time if possible, but when input is dynamic and
+the type cannot be statically determined, a [structured error](../errors.md)
+is generated at run time as the result of the conditional expression.
+
+### Examples
+
+---
+
+_A simple ternary conditional_
+
 ```mdtest-spq
 # spq
 values (s=="foo") ? v : -v
@@ -23,13 +79,50 @@ values (s=="foo") ? v : -v
 -2
 ```
 
-Conditional expressions can be chained, providing behavior equivalent to
-"else if" as appears in other languages.
+---
 
-For example,
+_The previous example as a CASE expression_
+
+```mdtest-spq
+# spq
+values CASE WHEN s="foo" THEN v ELSE -v END
+# input
+{s:"foo",v:1}
+{s:"bar",v:2}
+# expected output
+1
+-2
+```
+
+---
+
+_Ternary conditionals can be chained_
+
 ```mdtest-spq
 # spq
 values (s=="foo") ? v : (s=="bar") ? -v : v*v
+# input
+{s:"foo",v:1}
+{s:"bar",v:2}
+{s:"baz",v:3}
+# expected output
+1
+-2
+9
+```
+
+---
+
+_The previous example as a CASE expression_
+
+```mdtest-spq
+# spq
+values
+  CASE s
+  WHEN "foo" THEN v
+  WHEN "bar" THEN -v
+  ELSE v*v
+  END
 # input
 {s:"foo",v:1}
 {s:"bar",v:2}
