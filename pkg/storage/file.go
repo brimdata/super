@@ -30,7 +30,7 @@ func NewFileSystem() *FileSystem {
 
 func (f *FileSystem) Get(ctx context.Context, u *URI) (Reader, error) {
 	r, err := pkgfs.Open(u.Filepath())
-	return &fileSizer{r, u}, fileErr(err)
+	return &fileSizer{r}, fileErr(err)
 }
 
 func (f *FileSystem) Put(_ context.Context, u *URI) (io.WriteCloser, error) {
@@ -135,13 +135,12 @@ func fileErr(err error) error {
 
 type fileSizer struct {
 	*os.File
-	uri *URI
 }
 
 var _ Sizer = (*fileSizer)(nil)
 
 func (f *fileSizer) Size() (int64, error) {
-	info, err := os.Stat(f.uri.Filepath())
+	info, err := f.File.Stat()
 	if err != nil {
 		return 0, fileErr(err)
 	}
