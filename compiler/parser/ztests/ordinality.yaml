@@ -1,9 +1,9 @@
 script: |
-  ! super compile -dag 'from x with ordinality'
+  ! super compile -dag 'from /dev/null with ordinality'
 
 outputs:
   - name: stderr
     data: |
-      WITH ORDINALITY clause is not yet supported at line 1, column 7:
-      from x with ordinality
-            ~~~~~~~~~~~~~~~~
+      WITH ORDINALITY clause is not yet supported at line 1, column 15:
+      from /dev/null with ordinality
+                    ~~~~~~~~~~~~~~~~

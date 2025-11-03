@@ -1,22 +1,22 @@
 script: |
   echo === debug
-  super compile -C -O 'from file | debug a | values b'
+  super compile -C -O 'from /dev/null | debug a | values b'
   echo === distinct
-  super compile -C -O 'from file | distinct a | values b'
+  super compile -C -O 'from /dev/null | distinct a | values b'
   echo === fork into hash join
-  super compile -C -O 'fork ( from file1 ) ( from file2 ) | join on right.a=left.b | values left.c,right.d'
+  super compile -C -O 'fork ( from /dev/null ) ( from /dev/zero ) | join on right.a=left.b | values left.c,right.d'
   echo === fork into nested loop join
-  super compile -C -O 'fork ( from file1 ) ( from file2 ) | join on right.a>left.b | values left.c,right.d'
+  super compile -C -O 'fork ( from /dev/null ) ( from /dev/zero ) | join on right.a>left.b | values left.c,right.d'
   echo === hash join
-  super compile -C -O "from file1 | join (from file2) on left.a=right.b | values left.c,right.d"
+  super compile -C -O "from /dev/null | join (from /dev/zero) on left.a=right.b | values left.c,right.d"
   echo === nested loop join
-  super compile -C -O "from file1 | join (from file2) on left.a>right.b | values left.c,right.d"
+  super compile -C -O "from /dev/null | join (from /dev/zero) on left.a>right.b | values left.c,right.d"
   echo === switch into hash join
-  super compile -C -O 'from file | switch a case b ( put x:=c ) case d ( put x:=e ) | join on left.f=right.g | values left.h,right.i'
+  super compile -C -O 'from /dev/null | switch a case b ( put x:=c ) case d ( put x:=e ) | join on left.f=right.g | values left.h,right.i'
   echo === switch into nested loop join
-  super compile -C -O 'from file | switch a case b ( put x:=c ) case d ( put x:=e ) | join on left.f>right.g | values left.h,right.i'
+  super compile -C -O 'from /dev/null | switch a case b ( put x:=c ) case d ( put x:=e ) | join on left.f>right.g | values left.h,right.i'
   echo === where
-  super compile -C -O "from file | a==1 or e==2 | values c, b, d"
+  super compile -C -O "from /dev/null | a==1 or e==2 | values c, b, d"
   echo ===
   export SUPER_DB=test
   super db init -q
@@ -37,7 +37,7 @@ outputs:
   - name: stdout
     data: |
       === debug
-      file file fields a,b
+      file /dev/null fields a,b
       | mirror
         (
           values a
@@ -48,17 +48,17 @@ outputs:
           | output main
         )
       === distinct
-      file file unordered fields a,b
+      file /dev/null unordered fields a,b
       | distinct a
       | values b
       | output main
       === fork into hash join
       fork
         (
-          file file1 unordered fields b,c
+          file /dev/null unordered fields b,c
         )
         (
-          file file2 unordered fields a,d
+          file /dev/zero unordered fields a,d
         )
       | inner hashjoin as {left,right} on b==a
       | values left.c, right.d
@@ -66,10 +66,10 @@ outputs:
       === fork into nested loop join
       fork
         (
-          file file1 unordered fields b,c
+          file /dev/null unordered fields b,c
         )
         (
-          file file2 unordered fields a,d
+          file /dev/zero unordered fields a,d
         )
       | inner join as {left,right} on right.a>left.b
       | values left.c, right.d
@@ -77,10 +77,10 @@ outputs:
       === hash join
       fork
         (
-          file file1 unordered fields a,c
+          file /dev/null unordered fields a,c
         )
         (
-          file file2 unordered fields b,d
+          file /dev/zero unordered fields b,d
         )
       | inner hashjoin as {left,right} on a==b
       | values left.c, right.d
@@ -88,16 +88,16 @@ outputs:
       === nested loop join
       fork
         (
-          file file1 unordered fields a,c
+          file /dev/null unordered fields a,c
         )
         (
-          file file2 unordered fields b,d
+          file /dev/zero unordered fields b,d
         )
       | inner join as {left,right} on left.a>right.b
       | values left.c, right.d
       | output main
       === switch into hash join
-      file file unordered fields a,b,c,d,e,f,g,h,i
+      file /dev/null unordered fields a,b,c,d,e,f,g,h,i
       | switch a
         case b (
           put x:=c
@@ -109,7 +109,7 @@ outputs:
       | values left.h, right.i
       | output main
       === switch into nested loop join
-      file file unordered fields a,b,c,d,e,f,g,h,i
+      file /dev/null unordered fields a,b,c,d,e,f,g,h,i
       | switch a
         case b (
           put x:=c
@@ -121,7 +121,7 @@ outputs:
       | values left.h, right.i
       | output main
       === where
-      file file fields a,b,c,d,e filter (a==1 or e==2)
+      file /dev/null fields a,b,c,d,e filter (a==1 or e==2)
       | values c, b, d
       | output main
       ===
