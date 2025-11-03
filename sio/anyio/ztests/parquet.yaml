@@ -1,12 +1,17 @@
 script: |
   super -f parquet -o f -
   super -s f
+  echo // standard input
+  super -s -c 'from "stdio:stdin"' < f
 
 inputs:
   - name: stdin
-    data: &stdin |
+    data: |
       {a:1}
 
 outputs:
   - name: stdout
-    data: *stdin
+    data: |
+      {a:1}
+      // standard input
+      {a:1}

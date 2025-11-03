@@ -20,7 +20,7 @@ func (*StdioEngine) Get(_ context.Context, u *URI) (Reader, error) {
 	if u.Scheme != "stdio" || (u.Path != "stdin" && u.Path != "") {
 		return nil, fmt.Errorf("cannot read from %q", u)
 	}
-	return &notSupportedReaderAt{io.NopCloser(os.Stdin)}, nil
+	return os.Stdin, nil
 }
 
 func (*StdioEngine) Put(ctx context.Context, u *URI) (io.WriteCloser, error) {
