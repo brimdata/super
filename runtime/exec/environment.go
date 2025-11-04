@@ -154,7 +154,7 @@ func (c *closePuller) Pull(done bool) (sbuf.Batch, error) {
 	return batch, err
 }
 
-func (e *Environment) VectorOpen(ctx context.Context, sctx *super.Context, path, format string, p sbuf.Pushdown, n int) (VectorConcurrentPuller, error) {
+func (e *Environment) VectorOpen(ctx context.Context, sctx *super.Context, path, format string, p sbuf.Pushdown, concurrentReaders int) (VectorConcurrentPuller, error) {
 	if path == "-" {
 		path = "stdio:stdin"
 	}
@@ -169,9 +169,9 @@ func (e *Environment) VectorOpen(ctx context.Context, sctx *super.Context, path,
 	var puller VectorConcurrentPuller
 	switch format {
 	case "csup":
-		puller, err = csupio.NewVectorReader(ctx, sctx, reader, p, n)
+		puller, err = csupio.NewVectorReader(ctx, sctx, reader, p, concurrentReaders)
 	case "parquet":
-		puller, err = parquetio.NewVectorReader(ctx, sctx, reader, p, n)
+		puller, err = parquetio.NewVectorReader(ctx, sctx, reader, p, concurrentReaders)
 	default:
 		var sbufPuller sbuf.Puller
 		sbufPuller, err = e.Open(ctx, sctx, path, format, p)

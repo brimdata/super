@@ -40,9 +40,9 @@ type VectorReader struct {
 	vbs                []vectorBuilder
 }
 
-func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pushdown, n int) (*VectorReader, error) {
-	if n < 1 {
-		panic(n)
+func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pushdown, concurrentReaders int) (*VectorReader, error) {
+	if concurrentReaders < 1 {
+		panic(concurrentReaders)
 	}
 	ras, ok := r.(parquet.ReaderAtSeeker)
 	if !ok {
@@ -80,7 +80,7 @@ func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, p sb
 		colIndexes := columnIndexes(pr.MetaData().Schema, paths)
 		// Remove duplicates created above by trimming "max" and "min".
 		metadataColIndexes = slices.Compact(colIndexes)
-		for range n {
+		for range concurrentReaders {
 			filter, _, err := p.MetaFilter()
 			if err != nil {
 				return nil, err
@@ -89,7 +89,7 @@ func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, p sb
 		}
 	}
 	var vbs []vectorBuilder
-	for range n {
+	for range concurrentReaders {
 		vbs = append(vbs, vectorBuilder{sctx, map[arrow.DataType]super.Type{}})
 	}
 	return &VectorReader{

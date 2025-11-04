@@ -29,9 +29,9 @@ type VectorReader struct {
 	vecs          []vector.Any
 }
 
-func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pushdown, n int) (*VectorReader, error) {
-	if n < 1 {
-		panic(n)
+func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pushdown, concurrentReaders int) (*VectorReader, error) {
+	if concurrentReaders < 1 {
+		panic(concurrentReaders)
 	}
 	ra, ok := r.(io.ReaderAt)
 	if !ok {
@@ -44,7 +44,7 @@ func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, p sb
 			return nil, err
 		}
 		if filter != nil {
-			for range n {
+			for range concurrentReaders {
 				filter, projection, err := p.MetaFilter()
 				if err != nil {
 					return nil, err
