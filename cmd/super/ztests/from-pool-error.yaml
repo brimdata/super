@@ -3,5 +3,7 @@ script: |
 
 outputs:
   - name: stderr
-    regexp: |
-      a: file does not exist
+    data: |
+      file does not exist at line 1, column 13:
+      from ( from a )
+                  ~

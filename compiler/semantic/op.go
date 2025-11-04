@@ -261,14 +261,15 @@ func (t *translator) file(n ast.Node, name string, args []ast.OpArg) sem.Op {
 }
 
 func (t *translator) fileType(path, format string) (super.Type, error) {
-	if format != "parquet" {
+	engine := t.env.Engine()
+	if engine == nil || format != "" && format != "parquet" {
 		return nil, nil
 	}
 	uri, err := storage.ParseURI(path)
 	if err != nil {
 		return nil, err
 	}
-	r, err := t.env.Engine().Get(t.ctx, uri)
+	r, err := engine.Get(t.ctx, uri)
 	if err != nil {
 		return nil, err
 	}

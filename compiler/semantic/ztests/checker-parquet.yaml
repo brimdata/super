@@ -1,6 +1,8 @@
 script: |
   super -f parquet -o t.parquet -c "values {x:1,y:2}"
   ! super -c "from t.parquet | values z"
+  echo === auto-detection >&2
+  ! super -c "from 'stdio:stdin' | values z" < t.parquet
 
 outputs:
   - name: stderr
@@ -8,3 +10,7 @@ outputs:
       no such field "z" at line 1, column 25:
       from t.parquet | values z
                               ~
+      === auto-detection
+      no such field "z" at line 1, column 29:
+      from 'stdio:stdin' | values z
+                                  ~
