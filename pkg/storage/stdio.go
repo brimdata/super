@@ -20,8 +20,12 @@ func (*StdioEngine) Get(_ context.Context, u *URI) (Reader, error) {
 	if u.Scheme != "stdio" || (u.Path != "stdin" && u.Path != "") {
 		return nil, fmt.Errorf("cannot read from %q", u)
 	}
-	return os.Stdin, nil
+	return &nopCloseFile{os.Stdin}, nil
 }
+
+type nopCloseFile struct{ *os.File }
+
+func (*nopCloseFile) Close() error { return nil }
 
 func (*StdioEngine) Put(ctx context.Context, u *URI) (io.WriteCloser, error) {
 	switch u.Path {
