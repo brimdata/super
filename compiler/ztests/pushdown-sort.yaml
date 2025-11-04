@@ -1,29 +1,29 @@
 script: |
-  super compile -C -O 'from file1 | sort'
+  super compile -C -O 'from /dev/null | sort'
   echo ===
-  super compile -C -O 'from file1 | sort | values a'
+  super compile -C -O 'from /dev/null | sort | values a'
   echo ===
-  super compile -C -O 'from file1 | sort a'
+  super compile -C -O 'from /dev/null | sort a'
   echo ===
-  super compile -C -O 'from file1 | sort a | values b'
+  super compile -C -O 'from /dev/null | sort a | values b'
 
 outputs:
   - name: stdout
     data: |
-      file file1 unordered
+      file /dev/null unordered
       | sort
       | output main
       ===
-      file file1 unordered
+      file /dev/null unordered
       | sort
       | values a
       | output main
       ===
-      file file1 unordered
+      file /dev/null unordered
       | sort a asc nulls last
       | output main
       ===
-      file file1 unordered fields a,b
+      file /dev/null unordered fields a,b
       | sort a asc nulls last
       | values b
       | output main

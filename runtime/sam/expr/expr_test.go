@@ -19,7 +19,7 @@ func testSuccessful(t *testing.T, e, input, expected string) {
 		Input:  &input,
 		Output: expected + "\n",
 	}
-	if err := zt.RunInternal(); err != nil {
+	if err := zt.RunInternal(t.Context()); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -30,7 +30,7 @@ func testError(t *testing.T, e string, expectErr error) {
 		SPQ:   fmt.Sprintf("values %s", e),
 		Error: expectErr.Error() + "\n",
 	}
-	if err := zt.RunInternal(); err != nil {
+	if err := zt.RunInternal(t.Context()); err != nil {
 		t.Fatal(err)
 	}
 }

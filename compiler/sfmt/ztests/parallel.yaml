@@ -1,10 +1,10 @@
 script: |
-  super compile -dag -C 'from bar | ?foo | fork ( count() by x:=this["@foo"] ) ( sum(x) ) ( put a:=b*c ) | cut cake | sort -r x'
+  super compile -dag -C 'from /dev/null | ?foo | fork ( count() by x:=this["@foo"] ) ( sum(x) ) ( put a:=b*c ) | cut cake | sort -r x'
 
 outputs:
   - name: stdout
     data: |
-      file bar
+      file /dev/null
       | where search("foo")
       | fork
         (
