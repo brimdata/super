@@ -23,10 +23,17 @@ import (
 	"github.com/segmentio/ksuid"
 )
 
+type VectorConcurrentPuller interface {
+	ConcurrentPull(done bool, id int) (vector.Any, error)
+}
+
 type Environment struct {
 	engine storage.Engine
 	db     *db.Root
 	useVAM bool
+
+	IgnoreOpenErrors bool
+	ReaderOpts       anyio.ReaderOpts
 }
 
 func NewEnvironment(engine storage.Engine, d *db.Root) *Environment {
@@ -90,7 +97,7 @@ func (e *Environment) Open(ctx context.Context, sctx *super.Context, path, forma
 			fields = proj.Paths()
 		}
 	}
-	file, err := anyio.Open(ctx, sctx, e.engine, path, anyio.ReaderOpts{Fields: fields, Format: format})
+	file, err := anyio.Open(ctx, sctx, e.engine, path, e.readerOpts(fields, format))
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", path, err)
 	}
@@ -99,11 +106,19 @@ func (e *Environment) Open(ctx context.Context, sctx *super.Context, path, forma
 		file.Close()
 		return nil, err
 	}
-	sn := sbuf.NamedScanner(scanner, path)
-	return &closePuller{sn, file}, nil
+	return &closePuller{scanner, file}, nil
 }
 
-func (*Environment) OpenHTTP(ctx context.Context, sctx *super.Context, url, format, method string, headers http.Header, body io.Reader, fields []field.Path) (sbuf.Puller, error) {
+func (e *Environment) readerOpts(fields []field.Path, format string) anyio.ReaderOpts {
+	o := e.ReaderOpts
+	o.Fields = fields
+	if format != "" {
+		o.Format = format
+	}
+	return o
+}
+
+func (e *Environment) OpenHTTP(ctx context.Context, sctx *super.Context, url, format, method string, headers http.Header, body io.Reader, fields []field.Path) (sbuf.Puller, error) {
 	req, err := http.NewRequestWithContext(ctx, method, url, body)
 	if err != nil {
 		return nil, err
@@ -113,7 +128,7 @@ func (*Environment) OpenHTTP(ctx context.Context, sctx *super.Context, url, form
 	if err != nil {
 		return nil, err
 	}
-	file, err := anyio.NewFile(sctx, resp.Body, url, anyio.ReaderOpts{Fields: fields, Format: format})
+	file, err := anyio.NewFile(sctx, resp.Body, url, e.readerOpts(fields, format))
 	if err != nil {
 		resp.Body.Close()
 		return nil, fmt.Errorf("%s: %w", url, err)
@@ -139,7 +154,7 @@ func (c *closePuller) Pull(done bool) (sbuf.Batch, error) {
 	return batch, err
 }
 
-func (e *Environment) VectorOpen(ctx context.Context, sctx *super.Context, path, format string, pushdown sbuf.Pushdown) (vector.Puller, error) {
+func (e *Environment) VectorOpen(ctx context.Context, sctx *super.Context, path, format string, p sbuf.Pushdown, concurrentReaders int) (VectorConcurrentPuller, error) {
 	if path == "-" {
 		path = "stdio:stdin"
 	}
@@ -147,23 +162,23 @@ func (e *Environment) VectorOpen(ctx context.Context, sctx *super.Context, path,
 	if err != nil {
 		return nil, err
 	}
-	r, err := e.engine.Get(ctx, uri)
+	reader, err := e.engine.Get(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
-	var puller vector.Puller
+	var puller VectorConcurrentPuller
 	switch format {
 	case "csup":
-		puller, err = csupio.NewVectorReader(ctx, sctx, r, pushdown)
+		puller, err = csupio.NewVectorReader(ctx, sctx, reader, p, concurrentReaders)
 	case "parquet":
-		puller, err = parquetio.NewVectorReader(ctx, sctx, r, pushdown)
+		puller, err = parquetio.NewVectorReader(ctx, sctx, reader, p, concurrentReaders)
 	default:
 		var sbufPuller sbuf.Puller
-		sbufPuller, err = e.Open(ctx, sctx, path, format, nil)
+		sbufPuller, err = e.Open(ctx, sctx, path, format, p)
 		puller = vam.NewDematerializer(sbufPuller)
 	}
 	if err != nil {
-		r.Close()
+		reader.Close()
 		return nil, err
 	}
 	return puller, nil

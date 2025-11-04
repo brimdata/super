@@ -9,7 +9,7 @@ import (
 
 var spec = &charm.Spec{
 	Name:  "compile",
-	Usage: "compile [ options ] query",
+	Usage: "compile [ options ] query [file ...]",
 	Short: "compile a SuperSQL query for inspection and debugging",
 	Long: `
 This command parses a query and emits the resulting abstract syntax
@@ -22,7 +22,7 @@ in their abbreviated form are translated into the exanded, pedantic form.
 The DAG can also be formatted as query-style text
 but the resulting text is informational only and does not conform to
 any query syntax.  When "-C" is specified, the result is sent to stdout
-and the "-f" and "-o" options have no effect.
+and the "-o" option has no effect.
 
 This command is often used for dev and test but
 is also useful to advanced users for understanding how SuperSQL syntax is
@@ -38,12 +38,10 @@ func init() {
 type Command struct {
 	*root.Command
 	shared Shared
-	files  bool
 }
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 	c := &Command{Command: parent.(*root.Command)}
-	f.BoolVar(&c.files, "files", false, "compile query as if command-line input files are present)")
 	c.shared.SetFlags(f)
 	return c, nil
 }
@@ -54,5 +52,5 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	defer cleanup()
-	return c.shared.Run(ctx, args, nil, false, c.files)
+	return c.shared.Run(ctx, args, nil, false)
 }

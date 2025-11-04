@@ -297,7 +297,7 @@ func (c *canonDAG) op(p dag.Op) {
 		}
 	case *dag.FileScan:
 		c.next()
-		c.write("file %s", p.Path)
+		c.write("file %s", strings.Join(p.Paths, ","))
 		if p.Format != "" {
 			c.write(" format %s", p.Format)
 		}

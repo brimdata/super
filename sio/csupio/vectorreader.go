@@ -23,24 +23,44 @@ type VectorReader struct {
 	activeReaders *atomic.Int64
 	stream        *stream
 	pushdown      sbuf.Pushdown
-	metaFilter    *metafilter
+	metaFilters   []*metafilter
 	readerAt      io.ReaderAt
 	hasClosed     bool
 	vecs          []vector.Any
 }
 
-func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, pushdown sbuf.Pushdown) (*VectorReader, error) {
+func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pushdown, concurrentReaders int) (*VectorReader, error) {
+	if concurrentReaders < 1 {
+		panic(concurrentReaders)
+	}
 	ra, ok := r.(io.ReaderAt)
 	if !ok {
 		return nil, errors.New("Super Columnar requires a seekable input")
 	}
+	var metaFilters []*metafilter
+	if p != nil {
+		filter, _, err := p.MetaFilter()
+		if err != nil {
+			return nil, err
+		}
+		if filter != nil {
+			for range concurrentReaders {
+				filter, projection, err := p.MetaFilter()
+				if err != nil {
+					return nil, err
+				}
+				metaFilters = append(metaFilters, &metafilter{filter, projection})
+			}
+		}
+	}
+
 	return &VectorReader{
 		ctx:           ctx,
 		sctx:          sctx,
 		activeReaders: &atomic.Int64{},
 		stream:        &stream{ctx: ctx, r: ra},
-		pushdown:      pushdown,
-		metaFilter:    newMetaFilter(pushdown),
+		pushdown:      p,
+		metaFilters:   metaFilters,
 		readerAt:      ra,
 	}, nil
 }
@@ -50,34 +70,11 @@ type metafilter struct {
 	projection field.Projection
 }
 
-func newMetaFilter(pushdown sbuf.Pushdown) *metafilter {
-	if pushdown == nil {
-		return nil
-	}
-	filter, projection, err := pushdown.MetaFilter()
-	if err != nil {
-		panic(err)
-	}
-	if filter == nil {
-		return nil
-	}
-	return &metafilter{filter, projection}
-}
-
-func (v *VectorReader) NewConcurrentPuller() (vector.Puller, error) {
-	v.activeReaders.Add(1)
-	return &VectorReader{
-		ctx:           v.ctx,
-		sctx:          v.sctx,
-		activeReaders: v.activeReaders,
-		stream:        v.stream,
-		pushdown:      v.pushdown,
-		metaFilter:    newMetaFilter(v.pushdown),
-		readerAt:      v.readerAt,
-	}, nil
-}
-
 func (v *VectorReader) Pull(done bool) (vector.Any, error) {
+	return v.ConcurrentPull(done, 0)
+}
+
+func (v *VectorReader) ConcurrentPull(done bool, n int) (vector.Any, error) {
 	if done {
 		return nil, v.close()
 	}
@@ -104,7 +101,7 @@ func (v *VectorReader) Pull(done bool) (vector.Any, error) {
 		// pollutes the type context.  We should use the csup local context for
 		// this filtering but this will require a little compiler refactoring to be
 		// able to build runtime expressions that use different type contexts.
-		if v.metaFilter == nil || !pruneObject(v.sctx, v.metaFilter, o) {
+		if len(v.metaFilters) == 0 || !pruneObject(v.sctx, v.metaFilters[n], o) {
 			vo := vcache.NewObjectFromCSUP(o)
 			if v.pushdown.Unordered() {
 				v.vecs, err = vo.FetchUnordered(v.vecs[:0], v.sctx, v.pushdown.Projection())

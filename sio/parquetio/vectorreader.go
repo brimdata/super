@@ -34,13 +34,16 @@ type VectorReader struct {
 	colIndexes         []int
 	colIndexToField    map[int]*pqarrow.SchemaField
 	metadataColIndexes []int
-	metadataFilter     expr.Evaluator
+	metadataFilters    []expr.Evaluator
 	nextRowGroup       *atomic.Int64
 	rr                 pqarrow.RecordReader
-	vb                 vectorBuilder
+	vbs                []vectorBuilder
 }
 
-func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, pushdown sbuf.Pushdown) (*VectorReader, error) {
+func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pushdown, concurrentReaders int) (*VectorReader, error) {
+	if concurrentReaders < 1 {
+		panic(concurrentReaders)
+	}
 	ras, ok := r.(parquet.ReaderAtSeeker)
 	if !ok {
 		return nil, errors.New("reader cannot seek")
@@ -63,9 +66,9 @@ func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, push
 		return nil, err
 	}
 	var metadataColIndexes []int
-	var metadataFilter expr.Evaluator
-	if pushdown != nil {
-		filter, projection, err := pushdown.MetaFilter()
+	var metadataFilters []expr.Evaluator
+	if p != nil {
+		_, projection, err := p.MetaFilter()
 		if err != nil {
 			return nil, err
 		}
@@ -77,45 +80,36 @@ func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, push
 		colIndexes := columnIndexes(pr.MetaData().Schema, paths)
 		// Remove duplicates created above by trimming "max" and "min".
 		metadataColIndexes = slices.Compact(colIndexes)
-		metadataFilter = filter
+		for range concurrentReaders {
+			filter, _, err := p.MetaFilter()
+			if err != nil {
+				return nil, err
+			}
+			metadataFilters = append(metadataFilters, filter)
+		}
+	}
+	var vbs []vectorBuilder
+	for range concurrentReaders {
+		vbs = append(vbs, vectorBuilder{sctx, map[arrow.DataType]super.Type{}})
 	}
 	return &VectorReader{
 		ctx:                ctx,
 		sctx:               sctx,
-		pushdown:           pushdown,
 		fr:                 fr,
-		colIndexes:         columnIndexes(prmd.Schema, pushdown.Projection().Paths()),
+		colIndexes:         columnIndexes(prmd.Schema, p.Projection().Paths()),
 		colIndexToField:    schemaManifest.ColIndexToField,
 		metadataColIndexes: metadataColIndexes,
-		metadataFilter:     metadataFilter,
+		metadataFilters:    metadataFilters,
 		nextRowGroup:       &atomic.Int64{},
-		vb:                 vectorBuilder{sctx, map[arrow.DataType]super.Type{}},
-	}, nil
-}
-
-func (p *VectorReader) NewConcurrentPuller() (vector.Puller, error) {
-	var metadataFilter expr.Evaluator
-	if p.pushdown != nil {
-		var err error
-		metadataFilter, _, err = p.pushdown.MetaFilter()
-		if err != nil {
-			return nil, err
-		}
-	}
-	return &VectorReader{
-		ctx:                p.ctx,
-		sctx:               p.sctx,
-		fr:                 p.fr,
-		colIndexes:         p.colIndexes,
-		colIndexToField:    p.colIndexToField,
-		metadataColIndexes: p.metadataColIndexes,
-		metadataFilter:     metadataFilter,
-		nextRowGroup:       p.nextRowGroup,
-		vb:                 vectorBuilder{p.sctx, map[arrow.DataType]super.Type{}},
+		vbs:                vbs,
 	}, nil
 }
 
 func (p *VectorReader) Pull(done bool) (vector.Any, error) {
+	return p.ConcurrentPull(done, 0)
+}
+
+func (p *VectorReader) ConcurrentPull(done bool, id int) (vector.Any, error) {
 	if done {
 		return nil, nil
 	}
@@ -129,10 +123,10 @@ func (p *VectorReader) Pull(done bool) (vector.Any, error) {
 			if rowGroup >= pr.NumRowGroups() {
 				return nil, nil
 			}
-			if p.metadataFilter != nil {
+			if len(p.metadataFilters) > 0 {
 				rgMetadata := pr.MetaData().RowGroup(rowGroup)
 				val := buildMetadataValue(p.sctx, rgMetadata, p.metadataColIndexes, p.colIndexToField)
-				if !p.metadataFilter.Eval(val).Ptr().AsBool() {
+				if !p.metadataFilters[id].Eval(val).Ptr().AsBool() {
 					continue
 				}
 			}
@@ -150,7 +144,7 @@ func (p *VectorReader) Pull(done bool) (vector.Any, error) {
 			}
 			return nil, err
 		}
-		return p.vb.build(array.RecordToStructArray(rec))
+		return p.vbs[id].build(array.RecordToStructArray(rec))
 	}
 }
 
