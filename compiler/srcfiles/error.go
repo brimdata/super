@@ -41,7 +41,7 @@ type Error struct {
 }
 
 func (e *Error) Error() string {
-	if e.list == nil {
+	if e.list == nil || e.Pos < 0 {
 		return e.Msg
 	}
 	file := e.list.FileOf(e.Pos)

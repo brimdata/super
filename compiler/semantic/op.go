@@ -262,7 +262,7 @@ func (t *translator) file(n ast.Node, name string, args []ast.OpArg) sem.Op {
 
 func (t *translator) fileType(path, format string) (super.Type, error) {
 	engine := t.env.Engine()
-	if engine == nil || format != "" && format != "parquet" {
+	if engine == nil || format != "" && format != "auto" && format != "parquet" {
 		return nil, nil
 	}
 	uri, err := storage.ParseURI(path)
@@ -541,7 +541,34 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 		seq, sch := t.sqlQueryBody(o.Body, seq)
 		return unfurl(o, sch, seq)
 	case *ast.FileScan:
-		return append(seq, &sem.FileScan{Node: o, Paths: o.Paths})
+		format := t.env.ReaderOpts.Format
+		fuser := t.checker.newFuser()
+		paths := slices.Clone(o.Paths)
+		for i, p := range paths {
+			if p == "-" {
+				p = "stdio:stdin"
+				paths[i] = p
+			}
+			typ, err := t.fileType(p, format)
+			if typ == nil || err != nil {
+				if err != nil {
+					t.reporter.AddError(p+": "+err.Error(), -1, -1)
+				}
+				fuser = nil
+				break
+			}
+			fuser.fuse(typ)
+		}
+		var typ super.Type
+		if fuser != nil {
+			typ = fuser.Type(t.checker)
+		}
+		return append(seq, &sem.FileScan{
+			Node:   o,
+			Type:   typ,
+			Paths:  paths,
+			Format: format,
+		})
 	case *ast.FromOp:
 		seq, _ := t.fromOp(o, seq)
 		return seq

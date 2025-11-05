@@ -3,6 +3,9 @@ script: |
   ! super -c "from t.parquet | values z"
   echo === auto-detection >&2
   ! super -c "from 'stdio:stdin' | values z" < t.parquet
+  echo === multiple files >&2
+  super -f parquet -o a.parquet -c "values {a:1}"
+  ! super -c "values z" a.parquet t.parquet 
 
 outputs:
   - name: stderr
@@ -14,3 +17,7 @@ outputs:
       no such field "z" at line 1, column 29:
       from 'stdio:stdin' | values z
                                   ~
+      === multiple files
+      no such field "z" at line 1, column 8:
+      values z
+             ~
