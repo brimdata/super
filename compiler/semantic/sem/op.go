@@ -106,6 +106,11 @@ type (
 	BadOp struct {
 		ast.Node
 	}
+	CountOp struct {
+		ast.Node
+		Alias string
+		Expr  Expr
+	}
 	CutOp struct {
 		ast.Node
 		Args []Assignment
@@ -238,6 +243,7 @@ type (
 
 func (*AggregateOp) opNode() {}
 func (*BadOp) opNode()       {}
+func (*CountOp) opNode()     {}
 func (*CutOp) opNode()       {}
 func (*DebugOp) opNode()     {}
 func (*DistinctOp) opNode()  {}

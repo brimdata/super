@@ -17,6 +17,7 @@ var unpacker = unpack.New(
 	CombineOp{},
 	CommitMetaScan{},
 	CondExpr{},
+	CountOp{},
 	CutOp{},
 	DefaultScan{},
 	DeleterScan{},

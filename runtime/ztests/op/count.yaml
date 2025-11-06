@@ -1,0 +1,45 @@
+script: |
+  super -s -c 'values null,null | count {count}'
+  echo // ===
+  super -s -c 'values {x:1},{x:2} | count {row_number,...this}'  
+  echo // ===
+  super -s -c 'values {x:1,y:1},{x:2,y:2} | count {row_number,x}'  
+  echo // ===
+  super -s -c 'values [1,2],[3,4] | unnest this into ( count {c,val:this} )'
+  ! super -s -c 'values null | count {count} | count := count+"hello"'
+  >&2 echo // ===
+  ! super -s -c 'values {x:"foo"} | count {row,...this} | x := x+1'
+  >&2 echo // ===
+  ! super -s -c 'values {x:"foo"} | count {...this}'
+
+vector: true
+
+outputs:
+  - name: stdout
+    data: |
+      {count:1::uint64}
+      {count:2::uint64}
+      // ===
+      {row_number:1::uint64,x:1}
+      {row_number:2::uint64,x:2}
+      // ===
+      {row_number:1::uint64,x:1}
+      {row_number:2::uint64,x:2}
+      // ===
+      {c:1::uint64,val:1}
+      {c:2::uint64,val:2}
+      {c:1::uint64,val:3}
+      {c:2::uint64,val:4}
+  - name: stderr
+    data: |
+      type mismatch at line 1, column 40:
+      values null | count {count} | count := count+"hello"
+                                             ~~~~~~~~~~~~~
+      // ===
+      type mismatch at line 1, column 47:
+      values {x:"foo"} | count {row,...this} | x := x+1
+                                                    ~~~
+      // ===
+      first element in record expression for count must be an identifier at line 1, column 26:
+      values {x:"foo"} | count {...this}
+                               ~~~~~~~~~

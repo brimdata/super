@@ -643,6 +643,30 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			Expr:  expr,
 			Cases: cases,
 		})
+	case *ast.CountOp:
+		if len(o.Expr.Elems) == 0 {
+			t.error(o.Expr, errors.New("count record expression must not be empty"))
+			return append(seq, badOp())
+		}
+		first, ok := o.Expr.Elems[0].(*ast.ExprElem)
+		if !ok {
+			t.error(o.Expr, errors.New("first element in record expression for count must be an identifier"))
+			return append(seq, badOp())
+		}
+		alias := first.Expr.(*ast.IDExpr).Name
+		var expr sem.Expr
+		if len(o.Expr.Elems) > 1 {
+			expr = t.expr(&ast.RecordExpr{
+				Kind:  "RecordExpr",
+				Elems: o.Expr.Elems[1:],
+				Loc:   o.Expr.Loc,
+			})
+		}
+		return append(seq, &sem.CountOp{
+			Node:  o,
+			Alias: alias,
+			Expr:  expr,
+		})
 	case *ast.CutOp:
 		//XXX When cutting an lval with no LHS, promote the lval to the LHS so
 		// it is not auto-inferred.  We will change cut to use paths in a future PR.

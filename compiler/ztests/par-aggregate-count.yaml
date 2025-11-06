@@ -1,0 +1,45 @@
+script: |
+  export SUPER_DB=test
+  super db init -q
+  super db create -q -orderby ts test
+  super db compile -C -P 2 "from test | count() by y" | sed -e 's/pool .*/.../'
+  echo ===
+  super db compile -C -P 2 "from test | count()" | sed -e 's/pool .*/.../'
+
+outputs:
+  - name: stdout
+    data: |
+      lister ...
+      | scatter
+        (
+          seqscan ...
+          | aggregate partials-out
+              count:=count() by y:=y
+        )
+        (
+          seqscan ...
+          | aggregate partials-out
+              count:=count() by y:=y
+        )
+      | combine
+      | aggregate partials-in
+          count:=count() by y:=y
+      | output main
+      ===
+      lister ...
+      | scatter
+        (
+          seqscan ...
+          | aggregate partials-out
+              count:=count()
+        )
+        (
+          seqscan ...
+          | aggregate partials-out
+              count:=count()
+        )
+      | combine
+      | aggregate partials-in
+          count:=count()
+      | values count
+      | output main

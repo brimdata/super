@@ -126,22 +126,7 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 		c.write("}|")
 	case *dag.RecordExpr:
 		c.write("{")
-		for k, elem := range e.Elems {
-			if k > 0 {
-				c.write(",")
-			}
-			switch e := elem.(type) {
-			case *dag.Field:
-				c.write(sup.QuotedName(e.Name))
-				c.write(":")
-				c.expr(e.Value, "")
-			case *dag.Spread:
-				c.write("...")
-				c.expr(e.Expr, "")
-			default:
-				c.write("sfmt: unknown record elem type: %T", e)
-			}
-		}
+		c.recordElems(e.Elems)
 		c.write("}")
 	case *dag.RegexpSearchExpr:
 		c.write("regexp_search(r\"")
@@ -217,6 +202,25 @@ func (c *canonDAG) binary(e *dag.BinaryExpr, parent string) {
 		c.write("%s", e.Op)
 		c.expr(e.RHS, e.Op)
 		c.maybewrite(")", parens)
+	}
+}
+
+func (c *canonDAG) recordElems(elems []dag.RecordElem) {
+	for k, elem := range elems {
+		if k > 0 {
+			c.write(",")
+		}
+		switch e := elem.(type) {
+		case *dag.Field:
+			c.write(sup.QuotedName(e.Name))
+			c.write(":")
+			c.expr(e.Value, "")
+		case *dag.Spread:
+			c.write("...")
+			c.expr(e.Expr, "")
+		default:
+			panic(e)
+		}
 	}
 }
 
@@ -405,6 +409,14 @@ func (c *canonDAG) op(p dag.Op) {
 	case *dag.CombineOp:
 		c.next()
 		c.write("combine")
+	case *dag.CountOp:
+		c.next()
+		c.write("count {%s", p.Alias)
+		if p.Expr != nil {
+			c.write(",")
+			c.recordElems(p.Expr.(*dag.RecordExpr).Elems)
+		}
+		c.write("}")
 	case *dag.CutOp:
 		c.next()
 		c.write("cut ")

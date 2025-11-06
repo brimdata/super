@@ -60,6 +60,11 @@ type (
 		Args []Expr `json:"args"`
 		Loc  `json:"loc"`
 	}
+	CountOp struct {
+		Kind string      `json:"kind" unpack:""`
+		Expr *RecordExpr `json:"expr"`
+		Loc  `json:"loc"`
+	}
 	CutOp struct {
 		Kind string      `json:"kind" unpack:""`
 		Args Assignments `json:"args"`
@@ -348,6 +353,7 @@ func (*AggregateOp) opNode()  {}
 func (*AssertOp) opNode()     {}
 func (*AssignmentOp) opNode() {}
 func (*CallOp) opNode()       {}
+func (*CountOp) opNode()      {}
 func (*CutOp) opNode()        {}
 func (*DebugOp) opNode()      {}
 func (*Delete) opNode()       {}

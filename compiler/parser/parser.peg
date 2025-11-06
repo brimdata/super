@@ -338,6 +338,7 @@ Operator
   / SortOp
   / TopOp
   / CallOp
+  / CountOp
   / CutOp
   / DistinctOp
   / DropOp
@@ -468,7 +469,15 @@ CallOp
         Loc: loc(c),
       }, nil
     }
-    
+
+CountOp
+  = COUNT _ rec:Record {
+      return &ast.CountOp{
+        Kind: "CountOp",
+        Expr: rec.(*ast.RecordExpr),
+      }, nil
+    }
+
 CutOp
   = CUT _ args:Assignments {
       return &ast.CutOp{

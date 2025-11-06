@@ -277,6 +277,8 @@ func (o *Optimizer) concurrentPath(seq dag.Seq, sortKeys order.SortKeys) (length
 				return k, sortExprsForSortKeys(sortKeys), true, nil
 			}
 			return k, nil, false, nil
+		case *dag.CountOp:
+			return k, nil, true, nil
 		case *dag.SortOp:
 			if len(op.Exprs) == 0 {
 				// No analysis for sort without expression since we can't

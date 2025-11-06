@@ -138,6 +138,16 @@ func (d *dagen) op(op sem.Op) dag.Op {
 			Keys:  d.assignments(op.Keys),
 			Aggs:  d.assignments(op.Aggs),
 		}
+	case *sem.CountOp:
+		var e dag.Expr
+		if op.Expr != nil {
+			e = d.expr(op.Expr)
+		}
+		return &dag.CountOp{
+			Kind:  "CountOp",
+			Alias: op.Alias,
+			Expr:  e,
+		}
 	case *sem.CutOp:
 		return &dag.CutOp{
 			Kind: "CutOp",

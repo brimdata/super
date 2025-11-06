@@ -206,6 +206,15 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 	switch o := o.(type) {
 	case *dag.AggregateOp:
 		return b.compileVamAggregate(o, parent)
+	case *dag.CountOp:
+		var e vamexpr.Evaluator
+		if o.Expr != nil {
+			var err error
+			if e, err = b.compileVamExpr(o.Expr); err != nil {
+				return nil, err
+			}
+		}
+		return vamop.NewCount(b.rctx.Sctx, parent, o.Alias, e), nil
 	case *dag.CutOp:
 		rec, err := vamNewRecordExprFromAssignments(o.Args)
 		if err != nil {

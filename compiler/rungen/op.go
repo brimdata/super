@@ -18,6 +18,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/op"
 	"github.com/brimdata/super/runtime/sam/op/combine"
+	"github.com/brimdata/super/runtime/sam/op/count"
 	"github.com/brimdata/super/runtime/sam/op/distinct"
 	"github.com/brimdata/super/runtime/sam/op/explode"
 	"github.com/brimdata/super/runtime/sam/op/exprswitch"
@@ -267,6 +268,15 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 	//
 	case *dag.AggregateOp:
 		return b.compileAggregate(parent, v)
+	case *dag.CountOp:
+		var e expr.Evaluator
+		if v.Expr != nil {
+			var err error
+			if e, err = b.compileExpr(v.Expr); err != nil {
+				return nil, err
+			}
+		}
+		return count.New(b.rctx.Sctx, parent, v.Alias, e)
 	case *dag.CutOp:
 		b.resetResetters()
 		assignments, err := b.compileAssignments(v.Args)

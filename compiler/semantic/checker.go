@@ -87,6 +87,14 @@ func (c *checker) op(typ super.Type, op sem.Op) super.Type {
 		return c.pathsToType(append(keyPaths, aggPaths...))
 	case *sem.BadOp:
 		return c.unknown
+	case *sem.CountOp:
+		elems := []sem.RecordElem{
+			&sem.FieldElem{Name: op.Alias, Value: &sem.LiteralExpr{Value: "0(uint64)"}},
+		}
+		if op.Expr != nil {
+			elems = append(elems, op.Expr.(*sem.RecordExpr).Elems...)
+		}
+		return c.recordElems(typ, elems)
 	case *sem.CutOp:
 		return c.pathsToType(c.assignments(typ, op.Args))
 	case *sem.DebugOp:

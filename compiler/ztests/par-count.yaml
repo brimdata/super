@@ -1,45 +1,16 @@
+# Test ensures that flowgraphs utilizing the count operator
+# are not parallelized.
 script: |
-  export SUPER_DB=test
-  super db init -q
-  super db create -q -orderby ts test
-  super db compile -C -P 2 "from test | count() by y" | sed -e 's/pool .*/.../'
-  echo ===
-  super db compile -C -P 2 "from test | count()" | sed -e 's/pool .*/.../'
+  export SUPER_VAM=1
+  super -f csup -o a.csup -c 'values {x:1}'
+  super compile -C -P 2 'from a.csup | count {row_number,...this} | aggregate sum(x)'
 
 outputs:
   - name: stdout
     data: |
-      lister ...
-      | scatter
-        (
-          seqscan ...
-          | aggregate partials-out
-              count:=count() by y:=y
-        )
-        (
-          seqscan ...
-          | aggregate partials-out
-              count:=count() by y:=y
-        )
-      | combine
-      | aggregate partials-in
-          count:=count() by y:=y
-      | output main
-      ===
-      lister ...
-      | scatter
-        (
-          seqscan ...
-          | aggregate partials-out
-              count:=count()
-        )
-        (
-          seqscan ...
-          | aggregate partials-out
-              count:=count()
-        )
-      | combine
-      | aggregate partials-in
-          count:=count()
-      | values count
+      file a.csup format csup unordered
+      | count {row_number,...this}
+      | aggregate
+          sum:=sum(x)
+      | values sum
       | output main

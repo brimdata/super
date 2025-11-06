@@ -24,6 +24,7 @@ var unpacker = unpack.New(
 	CastValue{},
 	CondExpr{},
 	ConstDecl{},
+	CountOp{},
 	CutOp{},
 	DateTypeHack{},
 	DebugOp{},
