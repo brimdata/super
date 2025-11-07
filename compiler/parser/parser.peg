@@ -256,8 +256,8 @@ AggAssignment
     }
 
 Agg
-  = aggDistinct:AggDistinct where:WhereClause? {
-      agg := aggDistinct.(*ast.Agg)
+  = a:AggAllOrDistinct where:WhereClause? {
+      agg := a.(*ast.Agg)
       agg.Loc = loc(c)
       if where != nil {
         agg.Where = where.(ast.Expr)
@@ -286,12 +286,13 @@ Agg
       }, nil
     }
 
-AggDistinct
-  = name:AggName __ "(" __ DISTINCT _ expr:Expr __ ")" {
+AggAllOrDistinct
+  = name:AggName __ "(" __ q:(ALL / DISTINCT)  _ expr:Expr __ ")" {
+      qualifier := string(q.([]any)[0].([]byte))
       return &ast.Agg{
           Kind: "Agg",
           Name: name.(string),
-          Distinct: true,
+          Distinct: strings.EqualFold(qualifier, "distinct"),
           Expr: expr.(ast.Expr),
           Loc: loc(c),
       }, nil
@@ -2229,7 +2230,7 @@ Selection
 
 //XXX need to add *, id.*, except, replace
 SelectElem
-  = expr:(AggDistinct / Expr) as:OptAsClause {
+  = expr:(AggAllOrDistinct / Expr) as:OptAsClause {
       elem := ast.SQLAsExpr{
         Kind: "SQLAsExpr",
         Expr: expr.(ast.Expr),
