@@ -1510,7 +1510,14 @@ FStringExprElem
     }
 
 PrimitiveType
-  = (   "uint8" / "uint16" / "uint32" / "uint64"
+  = name:PostgreSQLPrimitiveType {
+        return &ast.TypePrimitive{
+          Kind: "TypePrimitive",
+          Name: name.(string),
+          Loc: loc(c),
+        }, nil
+      }
+  / (   "uint8" / "uint16" / "uint32" / "uint64"
       / "int8" / "int16" / "int32" / "int64"
       / "float16" / "float32" / "float64"
       / "bool" / "string"
@@ -1524,6 +1531,26 @@ PrimitiveType
                 Loc: loc(c),
             }, nil
         }
+
+// https://www.postgresql.org/docs/current/datatype.html#DATATYPE-TABLE
+PostgreSQLPrimitiveType
+  = "bigint"i            { return "int64", nil }
+  / "boolean"i           { return "bool", nil }
+  / "bytea"i             { return "bytes", nil }
+  / "char"i !"a"i        { return "string", nil }
+  / "character varying"i { return "string", nil }
+  / "character"i         { return "string", nil }
+  / "cidr"i              { return "net", nil }
+  / "double precision"i  { return "float64", nil }
+  / "float"i ![136]      { return "float64", nil }
+  / "inet"i              { return "ip", nil }
+  / "int"i ![1368e]i     { return "int32", nil }
+  / "integer"i           { return "int32", nil }
+  / "interval"i          { return "duration", nil }
+  / "real"i              { return "float32", nil }
+  / "smallint"i          { return "int16", nil }
+  / "text"i              { return "string", nil }
+  / "varchar"i           { return "string", nil }
 
 TypeFieldList
   = first:TypeField rest:TypeFieldListTail* {

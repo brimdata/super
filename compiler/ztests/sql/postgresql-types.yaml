@@ -1,0 +1,38 @@
+spq: |
+  values
+    <bigint>,
+    <boolean>,
+    <bytea>,
+    <char>,
+    <character varying>,
+    <character>,
+    <cidr>,
+    <double precision>,
+    <float>,
+    <inet>,
+    <int>,
+    <integer>,
+    <interval>,
+    <real>,
+    <smallint>,
+    <text>,
+    <varchar>
+
+output: |
+  <int64>
+  <bool>
+  <bytes>
+  <string>
+  <string>
+  <string>
+  <net>
+  <float64>
+  <float64>
+  <ip>
+  <int32>
+  <int32>
+  <duration>
+  <float32>
+  <int16>
+  <string>
+  <string>
