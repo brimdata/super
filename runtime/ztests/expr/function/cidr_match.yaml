@@ -1,5 +1,5 @@
 spq: |
-  values cidr_match(this[1], this[2])
+  values cidr_match(this[0], this[1])
 
 vector: true
 

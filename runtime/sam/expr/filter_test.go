@@ -163,10 +163,10 @@ func TestFilters(t *testing.T) {
 
 	// Test array of records
 	runCases(t, "{nested:[{field:1::int32},{field:2}]}", []testcase{
-		{"nested[1].field == 1", true},
-		{"nested[2].field == 2", true},
-		{"nested[1].field == 2", false},
-		{"nested[3].field == 2", false},
+		{"nested[0].field == 1", true},
+		{"nested[1].field == 2", true},
+		{"nested[0].field == 2", false},
+		{"nested[2].field == 2", false},
 		{"nested.field == 2", false},
 	})
 
@@ -175,8 +175,8 @@ func TestFilters(t *testing.T) {
 		{"1 in nested.vec", true},
 		{"2 in nested.vec", true},
 		{"4 in nested.vec", false},
-		{"nested.vec[1] == 1", true},
-		{"nested.vec[2] == 1", false},
+		{"nested.vec[0] == 1", true},
+		{"nested.vec[1] == 1", false},
 		{"1 in nested", true},
 		{"?1", true},
 	})

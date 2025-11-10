@@ -65,6 +65,7 @@ var unpacker = unpack.New(
 	OpDecl{},
 	OutputOp{},
 	PassOp{},
+	PragmaDecl{},
 	Primitive{},
 	PutOp{},
 	Record{},

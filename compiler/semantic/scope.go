@@ -11,13 +11,19 @@ import (
 
 type Scope struct {
 	parent  *Scope
+	pragmas map[string]any
 	symbols map[string]*entry
 	ctes    map[string]*ast.SQLCTE
 	schema  schema
 }
 
 func NewScope(parent *Scope) *Scope {
-	return &Scope{parent: parent, symbols: make(map[string]*entry), ctes: make(map[string]*ast.SQLCTE)}
+	return &Scope{
+		parent:  parent,
+		pragmas: make(map[string]any),
+		symbols: make(map[string]*entry),
+		ctes:    make(map[string]*ast.SQLCTE),
+	}
 }
 
 type entry struct {
@@ -151,6 +157,18 @@ func (s *Scope) resolve(n ast.Node, path field.Path) (sem.Expr, error) {
 		return nil, err
 	}
 	return sem.NewThis(n, path), nil
+}
+
+func (s *Scope) indexBase() int {
+	for {
+		if v, ok := s.pragmas["index_base"]; ok {
+			return v.(int)
+		}
+		if s.parent == nil {
+			return 0
+		}
+		s = s.parent
+	}
 }
 
 func resolvePath(sch schema, path field.Path) (field.Path, error) {

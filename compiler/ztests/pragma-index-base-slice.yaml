@@ -1,0 +1,28 @@
+spq: |
+  pragma index_base = 1
+  fork
+    (
+      const s = "base1" 
+      values {s, from:a[from:], to:a[:to], both:a[from:to]}
+    )
+    (
+      const s = "base0"
+      pragma index_base = 0
+      values {s, from:a[from:], to:a[:to], both:a[from:to]}
+    )
+  | sort s
+
+vector: true
+
+input: |
+  {a:[1,2,3],from:1,to:3}
+  {a:|[1,2,3]|,from:-2,to:-1}
+  {a:"123",from:1,to:3}
+
+output: |
+  {s:"base0",from:[2,3],to:[1,2,3],both:[2,3]}
+  {s:"base0",from:|[2,3]|,to:|[1,2]|,both:|[2]|}
+  {s:"base0",from:"23",to:"123",both:"23"}
+  {s:"base1",from:[1,2,3],to:[1,2],both:[1,2]}
+  {s:"base1",from:|[2,3]|,to:|[1,2]|,both:|[2]|}
+  {s:"base1",from:"123",to:"12",both:"12"}

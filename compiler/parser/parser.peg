@@ -33,7 +33,7 @@ Seq
 SeqTail = __ Pipe __ o:PipeOp { return o, nil }
 
 Decl
-  = v:(ConstDecl / FuncDecl / OpDecl / QueryDecl / TypeDecl) _ { return v, nil }
+  = v:(ConstDecl / FuncDecl / OpDecl / PragmaDecl / QueryDecl / TypeDecl ) _ { return v, nil }
 
 ConstDecl
   = CONST _ name:Identifier __ "=" __ expr:Expr {
@@ -102,6 +102,16 @@ OpDecl
 ScopeBody
   = "(" __ scope:Scope __ ")"   { return []any{scope}, nil }
   / "(" __ seq:Seq __ ")"       { return seq, nil }
+
+PragmaDecl
+  = PRAGMA _ name:Identifier __ "=" __ e:Expr {
+      return &ast.PragmaDecl{
+        Kind: "PragmaDecl",
+        Name: name.(*ast.ID),
+        Expr: e.(ast.Expr),
+        Loc: loc(c),
+      }, nil
+    }
 
 TypeDecl
   = TYPE _ name:Identifier __ "=" __ typ:Type {
@@ -2452,6 +2462,7 @@ OUTER      = "OUTER"i           !IdentifierRest
 OUTPUT     = "OUTPUT"i          !IdentifierRest
 PASS       = "PASS"i            !IdentifierRest
 PUT        = "PUT"i             !IdentifierRest
+PRAGMA     = "PRAGMA"i          !IdentifierRest
 RECURSIVE  = "RECURSIVE"i       !IdentifierRest
 RENAME     = "RENAME"i          !IdentifierRest
 RIGHT      = "RIGHT"i           !IdentifierRest

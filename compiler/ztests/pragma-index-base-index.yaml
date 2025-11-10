@@ -1,0 +1,28 @@
+spq: |
+  pragma index_base = 1
+  fork
+    (
+      const s = "base1"
+      values {s,v:this[1]}
+    )
+    (
+      const s = "base0"
+      pragma index_base = 0
+      values {s,v:this[1]}
+    )
+  | sort s
+
+vector: true
+
+input: |
+  [1,2]
+  |[1,2]|
+  {c0:1,c1:2}
+
+output: |
+  {s:"base0",v:2}
+  {s:"base0",v:2}
+  {s:"base0",v:2}
+  {s:"base1",v:1}
+  {s:"base1",v:1}
+  {s:"base1",v:1}

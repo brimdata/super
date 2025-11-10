@@ -1075,6 +1075,8 @@ func (t *translator) decls(decls []ast.Decl) {
 			t.funcDecl(d)
 		case *ast.OpDecl:
 			t.opDecl(d)
+		case *ast.PragmaDecl:
+			t.pragmaDecl(d)
 		case *ast.QueryDecl:
 			t.queryDecl(d)
 		case *ast.TypeDecl:
@@ -1196,6 +1198,33 @@ func (t *translator) opDecl(d *ast.OpDecl) {
 	}
 	if err := t.scope.BindSymbol(d.Name.Name, &opDecl{ast: d, scope: t.scope}); err != nil {
 		t.error(d, err)
+	}
+}
+
+func (t *translator) pragmaDecl(d *ast.PragmaDecl) {
+	switch d.Name.Name {
+	case "index_base":
+		if _, ok := t.scope.pragmas["index_base"]; ok {
+			t.error(d.Name, errors.New("index_base defined multiple times in scope"))
+			return
+		}
+		e := t.expr(d.Expr)
+		val, ok := t.mustEval(e)
+		if !ok {
+			return
+		}
+		if !super.IsInteger(val.Type().ID()) || val.IsNull() {
+			t.error(d.Expr, fmt.Errorf("index_base value must be an integer: %s", sup.FormatValue(val)))
+			return
+		}
+		v := int(val.AsInt())
+		if v < 0 || v > 1 {
+			t.error(d.Name, errors.New("index_base must be 0 or 1"))
+			return
+		}
+		t.scope.pragmas["index_base"] = v
+	default:
+		t.error(d.Name, fmt.Errorf("unknown pragma %q", d.Name.Name))
 	}
 }
 
@@ -1474,11 +1503,12 @@ func (t *translator) mustEvalPositiveInteger(ae ast.Expr) int {
 	}
 	if !super.IsInteger(val.Type().ID()) || val.IsNull() {
 		t.error(ae, fmt.Errorf("expression value must be an integer value: %s", sup.FormatValue(val)))
-		return -1
+		return 0
 	}
 	v := int(val.AsInt())
 	if v < 0 {
 		t.error(ae, errors.New("expression value must be a positive integer"))
+		return 0
 	}
 	return v
 }

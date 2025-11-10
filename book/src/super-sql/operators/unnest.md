@@ -184,7 +184,7 @@ unnest {s,a} into ( sum(a) by s )
 _Unnested the elements of a record by flattening it_
 ```mdtest-spq
 # spq
-unnest {s,f:flatten(r)} into ( values {s,key:f.key[1],val:f.value} )
+unnest {s,f:flatten(r)} into ( values {s,key:f.key[0],val:f.value} )
 # input
 {s:"foo",r:{a:1,b:2}}
 {s:"bar",r:{a:3,b:4}}

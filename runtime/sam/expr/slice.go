@@ -10,18 +10,20 @@ import (
 )
 
 type Slice struct {
-	sctx *super.Context
-	elem Evaluator
-	from Evaluator
-	to   Evaluator
+	sctx  *super.Context
+	elem  Evaluator
+	from  Evaluator
+	to    Evaluator
+	base1 bool
 }
 
-func NewSlice(sctx *super.Context, elem, from, to Evaluator) *Slice {
+func NewSlice(sctx *super.Context, elem, from, to Evaluator, base1 bool) *Slice {
 	return &Slice{
-		sctx: sctx,
-		elem: elem,
-		from: from,
-		to:   to,
+		sctx:  sctx,
+		elem:  elem,
+		from:  from,
+		to:    to,
+		base1: base1,
 	}
 }
 
@@ -51,11 +53,11 @@ func (s *Slice) Eval(this super.Value) super.Value {
 	if elem.IsNull() {
 		return elem
 	}
-	from, err := sliceIndex(this, s.from, length)
+	from, err := sliceIndex(this, s.from, length, s.base1)
 	if err != nil && err != ErrSliceIndexEmpty {
 		return s.sctx.NewError(err)
 	}
-	to, err := sliceIndex(this, s.to, length)
+	to, err := sliceIndex(this, s.to, length, s.base1)
 	if err != nil {
 		if err != ErrSliceIndexEmpty {
 			return s.sctx.NewError(err)
@@ -85,7 +87,7 @@ func (s *Slice) Eval(this super.Value) super.Value {
 	return super.NewValue(elem.Type(), bytes)
 }
 
-func sliceIndex(this super.Value, slot Evaluator, length int) (int, error) {
+func sliceIndex(this super.Value, slot Evaluator, length int, base1 bool) (int, error) {
 	if slot == nil {
 		//XXX
 		return 0, ErrSliceIndexEmpty
@@ -96,7 +98,7 @@ func sliceIndex(this super.Value, slot Evaluator, length int) (int, error) {
 		return 0, ErrSliceIndex
 	}
 	index := int(v)
-	if index > 0 {
+	if base1 && index > 0 {
 		index--
 	}
 	if index < 0 {

@@ -148,6 +148,7 @@ func (t *translator) expr(e ast.Expr) sem.Expr {
 			Node:  e,
 			Expr:  expr,
 			Index: index,
+			Base1: t.scope.indexBase() == 1,
 		}
 	case *ast.IsNullExpr:
 		expr := t.expr(e.Expr)
@@ -246,10 +247,11 @@ func (t *translator) expr(e ast.Expr) sem.Expr {
 		from := t.exprNullable(e.From)
 		to := t.exprNullable(e.To)
 		return &sem.SliceExpr{
-			Node: e,
-			Expr: expr,
-			From: from,
-			To:   to,
+			Node:  e,
+			Expr:  expr,
+			From:  from,
+			To:    to,
+			Base1: t.scope.indexBase() == 1,
 		}
 	case *ast.SQLTimeExpr:
 		if e.Value.Type != "string" {
@@ -308,9 +310,10 @@ func (t *translator) expr(e ast.Expr) sem.Expr {
 		// XXX type checker should remove this check when it finds it redundant
 		is := sem.NewCall(e, "is", []sem.Expr{expr, &sem.LiteralExpr{Node: e.Expr, Value: "<string>"}})
 		slice := &sem.SliceExpr{
-			Node: e,
-			Expr: expr,
-			From: t.exprNullable(e.From),
+			Node:  e,
+			Expr:  expr,
+			From:  t.exprNullable(e.From),
+			Base1: true,
 		}
 		if e.For != nil {
 			to := t.expr(e.For)
@@ -1152,7 +1155,7 @@ func scalarSubqueryCheck(n ast.Node) *sem.ValuesOp {
 	indexExpr := &sem.IndexExpr{
 		Node:  n,
 		Expr:  sem.NewThis(n, nil),
-		Index: &sem.LiteralExpr{Node: n, Value: "1"},
+		Index: &sem.LiteralExpr{Node: n, Value: "0"},
 	}
 	innerCond := &sem.CondExpr{
 		Node: n,

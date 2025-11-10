@@ -47,6 +47,7 @@ type (
 		ast.Node
 		Expr  Expr
 		Index Expr
+		Base1 bool
 	}
 	IsNullExpr struct {
 		ast.Node
@@ -91,9 +92,10 @@ type (
 	}
 	SliceExpr struct {
 		ast.Node
-		Expr Expr
-		From Expr
-		To   Expr
+		Expr  Expr
+		From  Expr
+		To    Expr
+		Base1 bool
 	}
 	SubqueryExpr struct {
 		ast.Node

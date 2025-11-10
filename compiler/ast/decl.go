@@ -27,6 +27,13 @@ type OpDecl struct {
 	Loc    `json:"loc"`
 }
 
+type PragmaDecl struct {
+	Kind string `json:"kind" unpack:""`
+	Name *ID    `json:"name"`
+	Expr Expr   `json:"expr"`
+	Loc  `json:"loc"`
+}
+
 type QueryDecl struct {
 	Kind string `json:"kind" unpack:""`
 	Name *ID    `json:"name"`
@@ -41,8 +48,9 @@ type TypeDecl struct {
 	Loc  `json:"loc"`
 }
 
-func (*ConstDecl) declNode() {}
-func (*FuncDecl) declNode()  {}
-func (*OpDecl) declNode()    {}
-func (*QueryDecl) declNode() {}
-func (*TypeDecl) declNode()  {}
+func (*ConstDecl) declNode()  {}
+func (*FuncDecl) declNode()   {}
+func (*OpDecl) declNode()     {}
+func (*PragmaDecl) declNode() {}
+func (*QueryDecl) declNode()  {}
+func (*TypeDecl) declNode()   {}

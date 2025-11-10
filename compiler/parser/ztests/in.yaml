@@ -1,5 +1,5 @@
 spq: |
-  values { x: 2 in a, y: b In a[2:], z: '1' IN a::[string]}
+  values { x: 2 in a, y: b In a[1:], z: '1' IN a::[string]}
 
 input: |
   {a:[1],b:2}

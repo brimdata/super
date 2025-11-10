@@ -375,6 +375,7 @@ func (d *dagen) expr(e sem.Expr) dag.Expr {
 			Kind:  "IndexExpr",
 			Expr:  d.expr(e.Expr),
 			Index: d.expr(e.Index),
+			Base1: e.Base1,
 		}
 	case *sem.IsNullExpr:
 		return &dag.IsNullExpr{
@@ -428,10 +429,11 @@ func (d *dagen) expr(e sem.Expr) dag.Expr {
 		}
 	case *sem.SliceExpr:
 		return &dag.SliceExpr{
-			Kind: "SliceExpr",
-			Expr: d.expr(e.Expr),
-			From: d.expr(e.From),
-			To:   d.expr(e.To),
+			Kind:  "SliceExpr",
+			Expr:  d.expr(e.Expr),
+			From:  d.expr(e.From),
+			To:    d.expr(e.To),
+			Base1: e.Base1,
 		}
 	case *sem.SubqueryExpr:
 		return d.subquery(e)

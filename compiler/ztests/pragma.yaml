@@ -1,0 +1,27 @@
+script: |
+  ! super -c 'pragma doesnotexist = 0 values null'
+  echo // === >&2
+  ! super -c 'pragma index_base = 0 pragma index_base = 1 values null'
+  echo // === >&2
+  ! super -c 'pragma index_base = "foo" values null'
+  echo // === >&2
+  ! super -c 'pragma index_base = -1 values null'
+
+outputs:
+  - name: stderr
+    data: |
+      unknown pragma "doesnotexist" at line 1, column 8:
+      pragma doesnotexist = 0 values null
+             ~~~~~~~~~~~~
+      // ===
+      index_base defined multiple times in scope at line 1, column 30:
+      pragma index_base = 0 pragma index_base = 1 values null
+                                   ~~~~~~~~~~
+      // ===
+      index_base value must be an integer: "foo" at line 1, column 21:
+      pragma index_base = "foo" values null
+                          ~~~~~
+      // ===
+      index_base must be 0 or 1 at line 1, column 8:
+      pragma index_base = -1 values null
+             ~~~~~~~~~~

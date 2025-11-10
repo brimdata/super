@@ -69,6 +69,7 @@ type (
 		Kind  string `json:"kind" unpack:""`
 		Expr  Expr   `json:"expr"`
 		Index Expr   `json:"index"`
+		Base1 bool   `json:"base1"`
 	}
 	IsNullExpr struct {
 		Kind string `json:"kind" unpack:""`
@@ -112,10 +113,11 @@ type (
 		Elems []VectorElem `json:"elems"`
 	}
 	SliceExpr struct {
-		Kind string `json:"kind" unpack:""`
-		Expr Expr   `json:"expr"`
-		From Expr   `json:"from"`
-		To   Expr   `json:"to"`
+		Kind  string `json:"kind" unpack:""`
+		Expr  Expr   `json:"expr"`
+		From  Expr   `json:"from"`
+		To    Expr   `json:"to"`
+		Base1 bool   `json:"base1"`
 	}
 	SortExpr struct {
 		Key   Expr        `json:"key"`

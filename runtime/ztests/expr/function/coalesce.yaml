@@ -1,4 +1,4 @@
-spq: coalesce(this[1], this[2], this[3])
+spq: coalesce(this[0], this[1], this[2])
 
 vector: true
 

@@ -37,7 +37,7 @@ _Flatten to unflatten_
 ```mdtest-spq
 # spq
 unnest flatten(this) into (
-  key[1] != "rm"
+  key[0] != "rm"
   | values collect(this)
 )
 | values unflatten(this)
