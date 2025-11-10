@@ -1,14 +1,12 @@
 # Test ensures that flowgraphs utilizing the count operator
 # are not parallelized.
 script: |
-  export SUPER_VAM=1
-  super -f csup -o a.csup -c 'values {x:1}'
-  super compile -C -P 2 'from a.csup | count {row_number,...this} | aggregate sum(x)'
+  SUPER_VAM=1 super compile -C -P 2 'from /dev/null | count {row_number,...this} | aggregate sum(x)'
 
 outputs:
   - name: stdout
     data: |
-      file a.csup format csup unordered
+      file /dev/null unordered
       | count {row_number,...this}
       | aggregate
           sum:=sum(x)
