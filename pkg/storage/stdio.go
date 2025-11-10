@@ -17,7 +17,7 @@ func NewStdioEngine() *StdioEngine {
 }
 
 func (*StdioEngine) Get(_ context.Context, u *URI) (Reader, error) {
-	if u.Scheme != "stdio" || (u.Path != "stdin" && u.Path != "") {
+	if u.Path != "stdin" && u.Path != "" {
 		return nil, fmt.Errorf("cannot read from %q", u)
 	}
 	return &nopCloseFile{os.Stdin}, nil
