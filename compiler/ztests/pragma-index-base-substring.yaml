@@ -1,0 +1,8 @@
+spq: |
+  pragma index_base = 1
+  values substring("foobar" FROM 4)
+
+vector: true
+  
+output: |
+  "bar"

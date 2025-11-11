@@ -309,18 +309,19 @@ func (t *translator) expr(e ast.Expr) sem.Expr {
 		}
 		// XXX type checker should remove this check when it finds it redundant
 		is := sem.NewCall(e, "is", []sem.Expr{expr, &sem.LiteralExpr{Node: e.Expr, Value: "<string>"}})
+		indexBase := t.scope.indexBase()
 		slice := &sem.SliceExpr{
 			Node:  e,
 			Expr:  expr,
 			From:  t.exprNullable(e.From),
-			Base1: true,
+			Base1: indexBase == 1,
 		}
 		if e.For != nil {
 			to := t.expr(e.For)
 			if slice.From != nil {
 				slice.To = sem.NewBinaryExpr(e, "+", slice.From, to)
 			} else {
-				slice.To = sem.NewBinaryExpr(e, "+", to, &sem.LiteralExpr{Node: e, Value: "1"})
+				slice.To = sem.NewBinaryExpr(e, "+", to, &sem.LiteralExpr{Node: e, Value: sup.FormatValue(super.NewInt64(int64(indexBase)))})
 			}
 		}
 		serr := sem.NewStructuredError(e, "SUBSTRING: string value required", expr)
