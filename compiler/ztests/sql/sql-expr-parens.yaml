@@ -3,15 +3,10 @@ script: |
   echo ===
   super -s -c "(select 1 as x) union all select 2 as y | sort this"
   echo ===
-  super -s -c "(select 1 as x) union all (select * from a.sup) | sort this"
+  super -f parquet -o a.parquet -c 'values {a:1},{a:2}'
+  super -s -c "(select 1 as x) union all (select * from a.parquet) | sort this"
   echo ===
-  super -s -c "(select * from (from a.sup)) union all (select 1 as x) | sort this"
-
-inputs:
-  - name: a.sup
-    data: |
-      {a:1}
-      {a:2}
+  super -s -c "(select * from (from a.parquet)) union all (select 1 as x) | sort this"
 
 outputs:
   - name: stdout
@@ -19,12 +14,12 @@ outputs:
       {"1":1}
       ===
       {x:1}
-      {y:2}
+      {x:2}
+      ===
+      {x:1}
+      {x:1}
+      {x:2}
       ===
       {a:1}
-      {a:2}
-      {x:1}
-      ===
       {a:1}
       {a:2}
-      {x:1}

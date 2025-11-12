@@ -1,6 +1,7 @@
 package ast
 
 type SQLQueryBody interface {
+	Node
 	sqlQueryBodyNode()
 }
 

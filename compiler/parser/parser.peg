@@ -1986,11 +1986,13 @@ SQLBodySetOp
       out := first.(ast.SQLQueryBody)
       for _, o := range rest.([]any) {
         o := o.([]any)
+        right := o[2].(ast.SQLQueryBody)
         out = &ast.SQLUnion{
           Kind: "SQLUnion",
           Distinct: o[0].(bool),
           Left: out,
-          Right: o[2].(ast.SQLQueryBody),
+          Right: right,
+          Loc: ast.Loc{First:out.Pos(),Last:right.End()},
         }
       }
       return out, nil

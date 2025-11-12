@@ -11,5 +11,5 @@ spq: |
   | sort this
 
 output: |
-  {i:42}
+  {k:42}
   {k:43}
