@@ -27,20 +27,6 @@ collect_map(|{stock:price}|)
 |{"APPL":145.03,"GOOG":87.07}|
 ```
 
-Continuous collection over a simple sequence:
-```mdtest-spq
-# spq
-values collect_map(this)
-# input
-|{"APPL":145.03}|
-|{"GOOG":87.07}|
-|{"APPL":150.13}|
-# expected output
-|{"APPL":145.03}|
-|{"APPL":145.03,"GOOG":87.07}|
-|{"APPL":150.13,"GOOG":87.07}|
-```
-
 Create maps by key:
 ```mdtest-spq {data-layout="stacked"}
 # spq

@@ -27,22 +27,6 @@ avg(this)
 2.5
 ```
 
-Continuous average of simple sequence:
-```mdtest-spq
-# spq
-values avg(this)
-# input
-1
-2
-3
-4
-# expected output
-1.
-1.5
-2.
-2.5
-```
-
 Unrecognized types are ignored:
 ```mdtest-spq
 # spq

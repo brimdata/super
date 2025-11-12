@@ -26,22 +26,6 @@ sum(this)
 10
 ```
 
-Continuous sum of simple sequence:
-```mdtest-spq
-# spq
-values sum(this)
-# input
-1
-2
-3
-4
-# expected output
-1
-3
-6
-10
-```
-
 Unrecognized types are ignored:
 ```mdtest-spq
 # spq

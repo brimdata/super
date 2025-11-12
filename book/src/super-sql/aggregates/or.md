@@ -25,24 +25,10 @@ false
 true
 ```
 
-Continuous OR of simple sequence:
-```mdtest-spq
-# spq
-values or(this)
-# input
-false
-true
-false
-# expected output
-false
-true
-true
-```
-
 Unrecognized types are ignored and not coerced for truthiness:
 ```mdtest-spq
 # spq
-values or(this)
+or(this)
 # input
 false
 "foo"
@@ -50,10 +36,6 @@ false
 true
 false
 # expected output
-false
-false
-false
-true
 true
 ```
 

@@ -31,22 +31,6 @@ min(this)
 1
 ```
 
-Continuous minimum of simple numeric sequence:
-```mdtest-spq
-# spq
-values min(this)
-# input
-1
-2
-3
-4
-# expected output
-1
-1
-1
-1
-```
-
 Minimum of several string values:
 ```mdtest-spq
 # spq

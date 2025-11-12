@@ -25,24 +25,10 @@ true
 false
 ```
 
-Continuous AND of simple sequence:
-```mdtest-spq
-# spq
-values and(this)
-# input
-true
-false
-true
-# expected output
-true
-false
-false
-```
-
 Unrecognized types are ignored and not coerced for truthiness:
 ```mdtest-spq
 # spq
-values and(this)
+and(this)
 # input
 true
 "foo"
@@ -50,10 +36,6 @@ true
 false
 true
 # expected output
-true
-true
-true
-false
 false
 ```
 

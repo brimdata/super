@@ -28,22 +28,6 @@ collect(this)
 [1,2,3,4]
 ```
 
-Continuous collection over a simple sequence:
-```mdtest-spq
-# spq
-values collect(this)
-# input
-1
-2
-3
-4
-# expected output
-[1]
-[1,2]
-[1,2,3]
-[1,2,3,4]
-```
-
 Mixed types create a union type for the array elements:
 ```mdtest-spq
 # spq

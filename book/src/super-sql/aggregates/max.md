@@ -31,22 +31,6 @@ max(this)
 4
 ```
 
-Continuous maximum of simple numeric sequence:
-```mdtest-spq
-# spq
-values max(this)
-# input
-1
-2
-3
-4
-# expected output
-1
-2
-3
-4
-```
-
 Maximum of several string values:
 ```mdtest-spq
 # spq

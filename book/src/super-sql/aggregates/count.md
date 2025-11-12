@@ -25,31 +25,15 @@ count()
 3::uint64
 ```
 
-Continuous count of simple sequence:
-```mdtest-spq
-# spq
-values count()
-# input
-1
-2
-3
-# expected output
-1::uint64
-2::uint64
-3::uint64
-```
-
 Mixed types are handled:
 ```mdtest-spq
 # spq
-values count()
+count()
 # input
 1
 "foo"
 10.0.0.1
 # expected output
-1::uint64
-2::uint64
 3::uint64
 ```
 

@@ -29,22 +29,6 @@ union(this)
 |[1,2,3]|
 ```
 
-Create sets continuously from values in a simple sequence:
-```mdtest-spq
-# spq
-values union(this)
-# input
-1
-2
-3
-3
-# expected output
-|[1]|
-|[1,2]|
-|[1,2,3]|
-|[1,2,3]|
-```
-
 Mixed types create a union type for the set elements:
 ```mdtest-spq
 # spq

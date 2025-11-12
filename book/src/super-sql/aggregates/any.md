@@ -27,19 +27,6 @@ any(this)
 1
 ```
 
-Continuous any over a simple sequence:
-```mdtest-spq
-# spq
-values any(this)
-# input
-1 2 3 4
-# expected output
-1
-1
-1
-1
-```
-
 Any is not sensitive to mixed types as it just picks one:
 ```mdtest-spq
 # spq

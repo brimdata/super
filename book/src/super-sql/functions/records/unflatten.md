@@ -38,7 +38,7 @@ _Flatten to unflatten_
 # spq
 unnest flatten(this) into (
   key[0] != "rm"
-  | values collect(this)
+  | collect(this)
 )
 | values unflatten(this)
 # input
