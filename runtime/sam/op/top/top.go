@@ -16,7 +16,6 @@ type Op struct {
 	limit        int
 	exprs        []expr.SortExpr
 	guessReverse bool
-	resetter     expr.Resetter
 
 	eos     bool
 	records *expr.RecordSlice
@@ -24,14 +23,13 @@ type Op struct {
 }
 
 // New returns an operator that produces the first limit
-func New(sctx *super.Context, parent sbuf.Puller, limit int, exprs []expr.SortExpr, guessReverse bool, resetter expr.Resetter) *Op {
+func New(sctx *super.Context, parent sbuf.Puller, limit int, exprs []expr.SortExpr, guessReverse bool) *Op {
 	return &Op{
 		sctx:         sctx,
 		parent:       parent,
 		limit:        limit,
 		exprs:        exprs,
 		guessReverse: guessReverse,
-		resetter:     resetter,
 	}
 }
 
@@ -50,7 +48,6 @@ func (o *Op) Pull(done bool) (sbuf.Batch, error) {
 				return nil, nil
 			}
 			o.eos = true
-			defer o.resetter.Reset()
 			return o.sorted(), nil
 		}
 		vals := batch.Values()

@@ -50,14 +50,6 @@ func (b *Builder) compileExpr(e dag.Expr) (expr.Evaluator, error) {
 		return nil, errors.New("null expression not allowed")
 	}
 	switch e := e.(type) {
-	case *dag.AggExpr:
-		agg, err := b.compileAgg(e)
-		if err != nil {
-			return nil, err
-		}
-		aggexpr := expr.NewAggregatorExpr(b.sctx(), agg)
-		b.resetters = append(b.resetters, aggexpr)
-		return aggexpr, nil
 	case *dag.ArrayExpr:
 		return b.compileArrayExpr(e)
 	case *dag.BinaryExpr:

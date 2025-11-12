@@ -19,9 +19,8 @@ import (
 // would otherwise block waiting for an adjacent puller to finish but the
 // Merger is waiting on the upstream puller.
 type Op struct {
-	ctx      context.Context
-	cmp      expr.CompareFn
-	resetter expr.Resetter
+	ctx context.Context
+	cmp expr.CompareFn
 
 	once sync.Once
 	// parents holds all of the upstream pullers and never changes.
@@ -36,16 +35,15 @@ type Op struct {
 var _ sbuf.Puller = (*Op)(nil)
 var _ sio.Reader = (*Op)(nil)
 
-func New(ctx context.Context, parents []sbuf.Puller, cmp expr.CompareFn, resetter expr.Resetter) *Op {
+func New(ctx context.Context, parents []sbuf.Puller, cmp expr.CompareFn) *Op {
 	pullers := make([]*puller, 0, len(parents))
 	for _, p := range parents {
 		pullers = append(pullers, newPuller(ctx, p))
 	}
 	return &Op{
-		ctx:      ctx,
-		cmp:      cmp,
-		resetter: resetter,
-		parents:  pullers,
+		ctx:     ctx,
+		cmp:     cmp,
+		parents: pullers,
 	}
 }
 
@@ -132,7 +130,6 @@ func (o *Op) run() error {
 // each parent, e.g., a parent may be immediately blocked because it has
 // no data at (re)start and should not be re-entered into the HOL queue.
 func (o *Op) start() error {
-	o.resetter.Reset()
 	o.hol = o.hol[:0]
 	for _, parent := range o.parents {
 		parent.blocked = false

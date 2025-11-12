@@ -1,0 +1,11 @@
+# Test that an error is returned if an aggregate function
+# is called in expression context.
+spq: |
+  put count := count()
+
+vector: true
+
+error: |
+  call to aggregate function in non-aggregate context at line 1, column 14:
+  put count := count()
+               ~~~~~~~

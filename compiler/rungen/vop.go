@@ -54,7 +54,6 @@ func (b *Builder) compileVam(o dag.Op, parents []vector.Puller) ([]vector.Puller
 		join := vamop.NewNestedLoopJoin(b.rctx, parents[0], parents[1], o.Style, o.LeftAlias, o.RightAlias, cond)
 		return []vector.Puller{join}, nil
 	case *dag.MergeOp:
-		b.resetResetters()
 		exprs, err := b.compileSortExprs(o.Exprs)
 		if err != nil {
 			return nil, err
@@ -295,7 +294,6 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		}
 		return vam.NewDematerializer(sbufPuller), nil
 	case *dag.SortOp:
-		b.resetResetters()
 		var sortExprs []expr.SortExpr
 		for _, e := range o.Exprs {
 			k, err := b.compileExpr(e.Key)
@@ -304,7 +302,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 			}
 			sortExprs = append(sortExprs, expr.NewSortExpr(k, e.Order, e.Nulls))
 		}
-		return vamop.NewSort(b.rctx, parent, sortExprs, o.Reverse, b.resetters), nil
+		return vamop.NewSort(b.rctx, parent, sortExprs, o.Reverse), nil
 	case *dag.TailOp:
 		return vamop.NewTail(parent, o.Count), nil
 	case *dag.UniqOp:

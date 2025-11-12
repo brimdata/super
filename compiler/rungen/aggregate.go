@@ -13,7 +13,6 @@ import (
 )
 
 func (b *Builder) compileAggregate(parent sbuf.Puller, a *dag.AggregateOp) (*aggregate.Op, error) {
-	b.resetResetters()
 	keys, err := b.compileAssignments(a.Keys)
 	if err != nil {
 		return nil, err
@@ -23,7 +22,7 @@ func (b *Builder) compileAggregate(parent sbuf.Puller, a *dag.AggregateOp) (*agg
 		return nil, err
 	}
 	dir := order.Direction(a.InputSortDir)
-	return aggregate.New(b.rctx, parent, keys, names, reducers, a.Limit, dir, a.PartialsIn, a.PartialsOut, b.resetters)
+	return aggregate.New(b.rctx, parent, keys, names, reducers, a.Limit, dir, a.PartialsIn, a.PartialsOut)
 }
 
 func (b *Builder) compileAggAssignments(assignments []dag.Assignment) (field.List, []*expr.Aggregator, error) {

@@ -102,7 +102,7 @@ func TestParallelOrder(t *testing.T) {
 			}
 			sortExpr := expr.NewSortExpr(expr.NewDottedExpr(sctx, field.Path{c.field}), c.order, order.NullsLast)
 			cmp := expr.NewComparator(sortExpr).Compare
-			om := merge.New(t.Context(), parents, cmp, expr.Resetters{})
+			om := merge.New(t.Context(), parents, cmp)
 
 			var sb strings.Builder
 			err := sbuf.CopyPuller(supio.NewWriter(sio.NopCloser(&sb), supio.WriterOpts{}), om)

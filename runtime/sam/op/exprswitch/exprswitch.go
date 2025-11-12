@@ -10,7 +10,6 @@ import (
 
 type ExprSwitch struct {
 	*op.Router
-	expr.Resetter
 	expr        expr.Evaluator
 	cases       map[string]*switchCase
 	defaultCase *switchCase
@@ -23,13 +22,12 @@ type switchCase struct {
 	vals  []super.Value
 }
 
-func New(rctx *runtime.Context, parent sbuf.Puller, e expr.Evaluator, resetter expr.Resetter) *ExprSwitch {
+func New(rctx *runtime.Context, parent sbuf.Puller, e expr.Evaluator) *ExprSwitch {
 	router := op.NewRouter(rctx, parent)
 	s := &ExprSwitch{
-		Router:   router,
-		Resetter: resetter,
-		expr:     e,
-		cases:    make(map[string]*switchCase),
+		Router: router,
+		expr:   e,
+		cases:  make(map[string]*switchCase),
 	}
 	router.Link(s)
 	return s

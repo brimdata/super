@@ -7,16 +7,14 @@ import (
 )
 
 type Op struct {
-	parent   sbuf.Puller
-	exprs    []expr.Evaluator
-	resetter expr.Resetter
+	parent sbuf.Puller
+	exprs  []expr.Evaluator
 }
 
-func New(parent sbuf.Puller, exprs []expr.Evaluator, resetter expr.Resetter) *Op {
+func New(parent sbuf.Puller, exprs []expr.Evaluator) *Op {
 	return &Op{
-		parent:   parent,
-		exprs:    exprs,
-		resetter: resetter,
+		parent: parent,
+		exprs:  exprs,
 	}
 }
 
@@ -24,7 +22,6 @@ func (o *Op) Pull(done bool) (sbuf.Batch, error) {
 	for {
 		batch, err := o.parent.Pull(done)
 		if batch == nil || err != nil {
-			o.resetter.Reset()
 			return nil, err
 		}
 		vals := batch.Values()

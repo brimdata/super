@@ -5,12 +5,10 @@ import (
 	"slices"
 	"sync"
 
-	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sbuf"
 )
 
 type Selector interface {
-	expr.Resetter
 	Forward(*Router, sbuf.Batch) bool
 }
 
@@ -95,7 +93,6 @@ func (r *Router) blocked() bool {
 // after receiving the EOS, it's done will be captured as soon as we unblock
 // all channels.
 func (r *Router) sendEOS(err error) bool {
-	defer r.selector.Reset()
 	// First, we need to send EOS to all non-blocked legs and
 	// catch any dones in progress.  This result in all routes
 	// being blocked.

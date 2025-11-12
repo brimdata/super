@@ -136,7 +136,7 @@ func (d *dagen) op(op sem.Op) dag.Op {
 			Kind:  "AggregateOp",
 			Limit: op.Limit,
 			Keys:  d.assignments(op.Keys),
-			Aggs:  d.assignments(op.Aggs),
+			Aggs:  d.aggAssignments(op.Aggs),
 		}
 	case *sem.CountOp:
 		var e dag.Expr
@@ -310,6 +310,32 @@ func (d *dagen) assignments(assignments []sem.Assignment) []dag.Assignment {
 	return out
 }
 
+func (d *dagen) aggAssignments(assignments []sem.Assignment) []dag.Assignment {
+	var out []dag.Assignment
+	for _, e := range assignments {
+		out = append(out, dag.Assignment{
+			Kind: "Assignment",
+			LHS:  d.expr(e.LHS),
+			RHS:  d.aggExpr(e.RHS),
+		})
+	}
+	return out
+}
+
+func (d *dagen) aggExpr(e sem.Expr) dag.Expr {
+	agg, ok := e.(*sem.AggFunc)
+	if !ok {
+		return &dag.BadExpr{Kind: "BadExpr"}
+	}
+	return &dag.AggExpr{
+		Kind:     "AggExpr",
+		Name:     agg.Name,
+		Distinct: agg.Distinct,
+		Expr:     d.expr(agg.Expr),
+		Where:    d.expr(agg.Where),
+	}
+}
+
 func (d *dagen) sortExprs(exprs []sem.SortExpr) []dag.SortExpr {
 	var out []dag.SortExpr
 	for _, e := range exprs {
@@ -336,13 +362,8 @@ func (d *dagen) expr(e sem.Expr) dag.Expr {
 	case nil:
 		return nil
 	case *sem.AggFunc:
-		return &dag.AggExpr{
-			Kind:     "AggExpr",
-			Name:     e.Name,
-			Distinct: e.Distinct,
-			Expr:     d.expr(e.Expr),
-			Where:    d.expr(e.Where),
-		}
+		d.error(e, errors.New("call to aggregate function in non-aggregate context"))
+		return &dag.BadExpr{Kind: "BadExpr"}
 	case *sem.ArrayExpr:
 		return &dag.ArrayExpr{
 			Kind:  "ArrayExpr",

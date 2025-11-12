@@ -1,9 +1,0 @@
-spq: |
-  fn c1(): ( count() )
-  fn c2(): ( c1()+c1() )
-  values [c2(),c2(),c2()]
-
-input: 'null'
-
-output: |
-  [2::uint64,2::uint64,2::uint64]

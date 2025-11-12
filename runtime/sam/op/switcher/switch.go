@@ -10,7 +10,6 @@ import (
 
 type Selector struct {
 	*op.Router
-	expr.Resetter
 	cases []*switchCase
 }
 
@@ -22,11 +21,10 @@ type switchCase struct {
 	vals   []super.Value
 }
 
-func New(rctx *runtime.Context, parent sbuf.Puller, resetter expr.Resetter) *Selector {
+func New(rctx *runtime.Context, parent sbuf.Puller) *Selector {
 	router := op.NewRouter(rctx, parent)
 	s := &Selector{
-		Router:   router,
-		Resetter: resetter,
+		Router: router,
 	}
 	router.Link(s)
 	return s

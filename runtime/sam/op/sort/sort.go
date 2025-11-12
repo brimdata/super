@@ -20,7 +20,6 @@ var MemMaxBytes = 128 * 1024 * 1024
 type Op struct {
 	rctx         *runtime.Context
 	parent       sbuf.Puller
-	resetter     expr.Resetter
 	guessReverse bool
 
 	fieldResolvers []expr.SortExpr
@@ -30,11 +29,10 @@ type Op struct {
 	comparator     *expr.Comparator
 }
 
-func New(rctx *runtime.Context, parent sbuf.Puller, fields []expr.SortExpr, guessReverse bool, resetter expr.Resetter) *Op {
+func New(rctx *runtime.Context, parent sbuf.Puller, fields []expr.SortExpr, guessReverse bool) *Op {
 	return &Op{
 		rctx:           rctx,
 		parent:         parent,
-		resetter:       resetter,
 		guessReverse:   guessReverse,
 		fieldResolvers: fields,
 		resultCh:       make(chan op.Result),
@@ -170,10 +168,6 @@ func (o *Op) sendSpills(spiller *spill.MergeSort) bool {
 }
 
 func (o *Op) sendResult(b sbuf.Batch, err error) bool {
-	if b == nil && err == nil {
-		// Reset stateful aggregation expressions on EOS.
-		o.resetter.Reset()
-	}
 	select {
 	case o.resultCh <- op.Result{Batch: b, Err: err}:
 		return true

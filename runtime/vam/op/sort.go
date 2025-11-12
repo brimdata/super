@@ -13,9 +13,9 @@ type Sort struct {
 	samsort *sort.Op
 }
 
-func NewSort(rctx *runtime.Context, parent vector.Puller, fields []expr.SortExpr, guessReverse bool, resetter expr.Resetter) *Sort {
+func NewSort(rctx *runtime.Context, parent vector.Puller, fields []expr.SortExpr, guessReverse bool) *Sort {
 	materializer := vam.NewMaterializer(parent)
-	s := sort.New(rctx, materializer, fields, guessReverse, resetter)
+	s := sort.New(rctx, materializer, fields, guessReverse)
 	return &Sort{rctx: rctx, samsort: s}
 }
 

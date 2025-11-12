@@ -8,18 +8,16 @@ import (
 )
 
 type applier struct {
-	rctx     *runtime.Context
-	parent   sbuf.Puller
-	expr     expr.Evaluator
-	resetter expr.Resetter
+	rctx   *runtime.Context
+	parent sbuf.Puller
+	expr   expr.Evaluator
 }
 
-func NewApplier(rctx *runtime.Context, parent sbuf.Puller, expr expr.Evaluator, resetter expr.Resetter) *applier {
+func NewApplier(rctx *runtime.Context, parent sbuf.Puller, expr expr.Evaluator) *applier {
 	return &applier{
-		rctx:     rctx,
-		parent:   parent,
-		expr:     expr,
-		resetter: resetter,
+		rctx:   rctx,
+		parent: parent,
+		expr:   expr,
 	}
 }
 
@@ -27,7 +25,6 @@ func (a *applier) Pull(done bool) (sbuf.Batch, error) {
 	for {
 		batch, err := a.parent.Pull(done)
 		if batch == nil || err != nil {
-			a.resetter.Reset()
 			return nil, err
 		}
 		vals := batch.Values()

@@ -62,12 +62,6 @@ func (b *Builder) compileVamExpr(e dag.Expr) (vamexpr.Evaluator, error) {
 	//	return b.compileVamMapCall(e)
 	//case *dag.MapExpr:
 	//	return b.compileVamMapExpr(e)
-	//case *dag.AggExpr:
-	//	agg, err := b.compileAgg(e)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//	return expr.NewAggregatorExpr(agg), nil
 	default:
 		return nil, fmt.Errorf("vector expression type %T: not supported", e)
 	}

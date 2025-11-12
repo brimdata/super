@@ -63,7 +63,6 @@ type Builder struct {
 	funcs           map[string]*dag.FuncDef
 	compiledUDFs    map[string]*expr.UDF
 	compiledVamUDFs map[string]*vamexpr.UDF
-	resetters       expr.Resetters
 }
 
 func NewBuilder(rctx *runtime.Context, env *exec.Environment) *Builder {
@@ -143,10 +142,6 @@ func (b *Builder) Meter() sbuf.Meter {
 
 func (b *Builder) Deletes() *sync.Map {
 	return b.deletes
-}
-
-func (b *Builder) resetResetters() {
-	b.resetters = nil
 }
 
 func (b *Builder) compileMain(main *dag.Main, parents []sbuf.Puller) ([]sbuf.Puller, error) {
@@ -278,23 +273,21 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 		}
 		return count.New(b.rctx.Sctx, parent, v.Alias, e)
 	case *dag.CutOp:
-		b.resetResetters()
 		assignments, err := b.compileAssignments(v.Args)
 		if err != nil {
 			return nil, err
 		}
 		lhs, rhs := splitAssignments(assignments)
 		cutter := expr.NewCutter(b.sctx(), lhs, rhs)
-		return op.NewApplier(b.rctx, parent, cutter, b.resetters), nil
+		return op.NewApplier(b.rctx, parent, cutter), nil
 	case *dag.DropOp:
 		fields := make(field.List, 0, len(v.Args))
 		for _, e := range v.Args {
 			fields = append(fields, e.(*dag.ThisExpr).Path)
 		}
 		dropper := expr.NewDropper(b.sctx(), fields)
-		return op.NewApplier(b.rctx, parent, dropper, expr.Resetters{}), nil
+		return op.NewApplier(b.rctx, parent, dropper), nil
 	case *dag.DistinctOp:
-		b.resetResetters()
 		e, err := b.compileExpr(v.Expr)
 		if err != nil {
 			return nil, err
@@ -305,19 +298,17 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 		if err != nil {
 			return nil, err
 		}
-		b.resetResetters()
 		args, err := b.compileExprs(v.Args)
 		if err != nil {
 			return nil, err
 		}
-		return explode.New(b.sctx(), parent, args, typ, v.As, b.resetters)
+		return explode.New(b.sctx(), parent, args, typ, v.As)
 	case *dag.FilterOp:
-		b.resetResetters()
 		f, err := b.compileExpr(v.Expr)
 		if err != nil {
 			return nil, fmt.Errorf("compiling filter: %w", err)
 		}
-		return op.NewApplier(b.rctx, parent, expr.NewFilterApplier(b.sctx(), f), b.resetters), nil
+		return op.NewApplier(b.rctx, parent, expr.NewFilterApplier(b.sctx(), f)), nil
 	case *dag.FuseOp:
 		return fuse.New(b.rctx, parent)
 	case *dag.HashJoinOp, *dag.JoinOp:
@@ -334,25 +325,22 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 	case *dag.PassOp:
 		return parent, nil
 	case *dag.PutOp:
-		b.resetResetters()
 		clauses, err := b.compileAssignments(v.Args)
 		if err != nil {
 			return nil, err
 		}
 		putter := expr.NewPutter(b.sctx(), clauses)
-		return op.NewApplier(b.rctx, parent, putter, b.resetters), nil
+		return op.NewApplier(b.rctx, parent, putter), nil
 	case *dag.RenameOp:
-		b.resetResetters()
 		srcs, dsts, err := b.compileAssignmentsToLvals(v.Args)
 		if err != nil {
 			return nil, err
 		}
 		renamer := expr.NewRenamer(b.sctx(), srcs, dsts)
-		return op.NewApplier(b.rctx, parent, renamer, b.resetters), nil
+		return op.NewApplier(b.rctx, parent, renamer), nil
 	case *dag.SkipOp:
 		return skip.New(parent, v.Count), nil
 	case *dag.SortOp:
-		b.resetResetters()
 		var sortExprs []expr.SortExpr
 		for _, e := range v.Exprs {
 			k, err := b.compileExpr(e.Key)
@@ -361,11 +349,10 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 			}
 			sortExprs = append(sortExprs, expr.NewSortExpr(k, e.Order, e.Nulls))
 		}
-		return sort.New(b.rctx, parent, sortExprs, v.Reverse, b.resetters), nil
+		return sort.New(b.rctx, parent, sortExprs, v.Reverse), nil
 	case *dag.TailOp:
 		return tail.New(parent, v.Count), nil
 	case *dag.TopOp:
-		b.resetResetters()
 		var sortExprs []expr.SortExpr
 		for _, dagSortExpr := range v.Exprs {
 			e, err := b.compileExpr(dagSortExpr.Key)
@@ -374,18 +361,17 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 			}
 			sortExprs = append(sortExprs, expr.NewSortExpr(e, dagSortExpr.Order, dagSortExpr.Nulls))
 		}
-		return top.New(b.sctx(), parent, v.Limit, sortExprs, v.Reverse, b.resetters), nil
+		return top.New(b.sctx(), parent, v.Limit, sortExprs, v.Reverse), nil
 	case *dag.UniqOp:
 		return uniq.New(b.rctx, parent, v.Cflag), nil
 	case *dag.UnnestOp:
 		return b.compileUnnest(parent, v)
 	case *dag.ValuesOp:
-		b.resetResetters()
 		exprs, err := b.compileExprs(v.Exprs)
 		if err != nil {
 			return nil, err
 		}
-		t := values.New(parent, exprs, b.resetters)
+		t := values.New(parent, exprs)
 		return t, nil
 
 	default:
@@ -394,12 +380,11 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 }
 
 func (b *Builder) compileUnnest(parent sbuf.Puller, u *dag.UnnestOp) (sbuf.Puller, error) {
-	b.resetResetters()
 	expr, err := b.compileExpr(u.Expr)
 	if err != nil {
 		return nil, err
 	}
-	unnestOp := unnest.NewUnnest(b.rctx, parent, expr, b.resetters)
+	unnestOp := unnest.NewUnnest(b.rctx, parent, expr)
 	if u.Body == nil {
 		return unnestOp, nil
 	}
@@ -518,12 +503,11 @@ func (b *Builder) compileMirror(m *dag.MirrorOp, parents []sbuf.Puller) ([]sbuf.
 }
 
 func (b *Builder) compileExprSwitch(swtch *dag.SwitchOp, parents []sbuf.Puller) ([]sbuf.Puller, error) {
-	b.resetResetters()
 	e, err := b.compileExpr(swtch.Expr)
 	if err != nil {
 		return nil, err
 	}
-	s := exprswitch.New(b.rctx, b.combine(parents), e, b.resetters)
+	s := exprswitch.New(b.rctx, b.combine(parents), e)
 	var exits []sbuf.Puller
 	for _, c := range swtch.Cases {
 		var val *super.Value
@@ -547,7 +531,6 @@ func (b *Builder) compileExprSwitch(swtch *dag.SwitchOp, parents []sbuf.Puller) 
 }
 
 func (b *Builder) compileSwitch(swtch *dag.SwitchOp, parents []sbuf.Puller) ([]sbuf.Puller, error) {
-	b.resetResetters()
 	var exprs []expr.Evaluator
 	for _, c := range swtch.Cases {
 		e, err := b.compileExpr(c.Expr)
@@ -556,7 +539,7 @@ func (b *Builder) compileSwitch(swtch *dag.SwitchOp, parents []sbuf.Puller) ([]s
 		}
 		exprs = append(exprs, e)
 	}
-	switcher := switcher.New(b.rctx, b.combine(parents), b.resetters)
+	switcher := switcher.New(b.rctx, b.combine(parents))
 	var ops []sbuf.Puller
 	for i, e := range exprs {
 		o, err := b.compileSeq(swtch.Cases[i].Path, []sbuf.Puller{switcher.AddCase(e)})
@@ -597,13 +580,12 @@ func (b *Builder) compile(o dag.Op, parents []sbuf.Puller) ([]sbuf.Puller, error
 		}
 		return []sbuf.Puller{vam.NewMaterializer(vectorPuller[0])}, nil
 	case *dag.MergeOp:
-		b.resetResetters()
 		exprs, err := b.compileSortExprs(o.Exprs)
 		if err != nil {
 			return nil, err
 		}
 		cmp := expr.NewComparator(exprs...).WithMissingAsNull()
-		return []sbuf.Puller{merge.New(b.rctx, parents, cmp.Compare, b.resetters)}, nil
+		return []sbuf.Puller{merge.New(b.rctx, parents, cmp.Compare)}, nil
 	case *dag.CombineOp:
 		return []sbuf.Puller{combine.New(b.rctx, parents)}, nil
 	default:

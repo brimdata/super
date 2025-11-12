@@ -11,22 +11,20 @@ import (
 // type T, outputs one record for each field of the input record of
 // type T. It is useful for type-based indexing.
 type Op struct {
-	parent   sbuf.Puller
-	outType  super.Type
-	typ      super.Type
-	args     []expr.Evaluator
-	resetter expr.Resetter
+	parent  sbuf.Puller
+	outType super.Type
+	typ     super.Type
+	args    []expr.Evaluator
 }
 
 // New creates a exploder for type typ, where the
 // output records' single field is named name.
-func New(sctx *super.Context, parent sbuf.Puller, args []expr.Evaluator, typ super.Type, name string, resetter expr.Resetter) (sbuf.Puller, error) {
+func New(sctx *super.Context, parent sbuf.Puller, args []expr.Evaluator, typ super.Type, name string) (sbuf.Puller, error) {
 	return &Op{
-		parent:   parent,
-		outType:  sctx.MustLookupTypeRecord([]super.Field{{Name: name, Type: typ}}),
-		typ:      typ,
-		args:     args,
-		resetter: resetter,
+		parent:  parent,
+		outType: sctx.MustLookupTypeRecord([]super.Field{{Name: name, Type: typ}}),
+		typ:     typ,
+		args:    args,
 	}, nil
 }
 
@@ -34,7 +32,6 @@ func (o *Op) Pull(done bool) (sbuf.Batch, error) {
 	for {
 		batch, err := o.parent.Pull(done)
 		if batch == nil || err != nil {
-			o.resetter.Reset()
 			return nil, err
 		}
 		vals := batch.Values()

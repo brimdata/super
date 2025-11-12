@@ -11,35 +11,31 @@ import (
 )
 
 type Unnest struct {
-	parent   sbuf.Puller
-	expr     expr.Evaluator
-	resetter expr.Resetter
+	parent sbuf.Puller
+	expr   expr.Evaluator
 
 	outer []super.Value
 	batch sbuf.Batch
 	sctx  *super.Context
 }
 
-func NewUnnest(rctx *runtime.Context, parent sbuf.Puller, expr expr.Evaluator, resetter expr.Resetter) *Unnest {
+func NewUnnest(rctx *runtime.Context, parent sbuf.Puller, expr expr.Evaluator) *Unnest {
 	return &Unnest{
-		parent:   parent,
-		expr:     expr,
-		resetter: resetter,
-		sctx:     rctx.Sctx,
+		parent: parent,
+		expr:   expr,
+		sctx:   rctx.Sctx,
 	}
 }
 
 func (u *Unnest) Pull(done bool) (sbuf.Batch, error) {
 	if done {
 		u.outer = nil
-		u.resetter.Reset()
 		return u.parent.Pull(true)
 	}
 	for {
 		if len(u.outer) == 0 {
 			batch, err := u.parent.Pull(false)
 			if batch == nil || err != nil {
-				u.resetter.Reset()
 				return nil, err
 			}
 			u.batch = batch
