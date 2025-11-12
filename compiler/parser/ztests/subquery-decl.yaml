@@ -1,0 +1,5 @@
+spq: |
+  values (const c=1 values c)
+
+output: |
+  1

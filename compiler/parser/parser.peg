@@ -1209,7 +1209,7 @@ When
     }
 
 SubqueryExpr
-  = body:Seq {
+  = body:Query {
       return &ast.SubqueryExpr{
         Kind: "SubqueryExpr",
         Body: sliceOf[ast.Op](body),
