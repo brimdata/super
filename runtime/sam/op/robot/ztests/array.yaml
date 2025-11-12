@@ -1,5 +1,5 @@
 script: |
-  super -s -c 'from which.sup | select value s from eval(["a"+val::string+".sup","a"+(val+1)::string+".sup"])'
+  super -s -c 'from which.sup | select s from eval(["a"+val::string+".sup","a"+(val+1)::string+".sup"])'
 
 inputs:
   - name: which.sup
@@ -19,7 +19,7 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      "hello"
-      "world"
-      "world"
-      "goodbye"
+      {s:"hello"}
+      {s:"world"}
+      {s:"world"}
+      {s:"goodbye"}

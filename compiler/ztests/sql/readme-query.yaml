@@ -12,7 +12,7 @@ inputs:
       | FORK
         (
           FROM eval(f'{user}.sup')
-          SELECT VALUE {user:login,created_at:created_at::time}
+          SELECT login AS user, created_at::time AS created_at
         )
         ( PASS )
       | JOIN USING (user)

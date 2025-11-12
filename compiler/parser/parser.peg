@@ -2007,7 +2007,6 @@ SQLQueryOrSetExpr = SQLQuery / SQLBodySetOp
 Select
   = SELECT
     distinct:OptDistinct
-    value:OptSelectValue
     //XXX for whitespace in front of target need it only if it begins with
     // an identifier, e.g., select(1); is ok
     _ selection:Selection
@@ -2021,7 +2020,6 @@ Select
       sel := &ast.SQLSelect{
           Kind: "SQLSelect",
           Distinct: distinct.(bool),
-          Value: value.(bool),
           Selection: selection.(ast.SQLSelection),
           Loc: loc(c),
       }
@@ -2043,7 +2041,6 @@ Select
 FromSelect
   = from:FromOp _ SELECT
     distinct:OptDistinct
-    value:OptSelectValue
     //XXX for whitespace in front of target need it only if it begins with
     // an identifier, e.g., select(1); is ok
     _ selection:Selection
@@ -2056,7 +2053,6 @@ FromSelect
       sel := &ast.SQLSelect{
           Kind: "SQLSelect",
           Distinct: distinct.(bool),
-          Value: value.(bool),
           Selection: selection.(ast.SQLSelection),
           From: from.(*ast.FromOp),
           Loc: loc(c),
@@ -2110,11 +2106,6 @@ OptDistinct
   = _ ALL        { return false, nil }
   / _ DISTINCT   { return true, nil }
   / ""              { return false, nil }
-
-OptSelectValue
-  = _ AS _ VALUE  { return true, nil }
-  / _ VALUE          { return true, nil } // SQL++ form XXX decide which
-  / ""                  { return false, nil }
 
 OptWithClause
   = WithClause

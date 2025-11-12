@@ -52,7 +52,7 @@ FROM 'https://data.gharchive.org/2015-01-01-15.json.gz'
   LIMIT 5
 | FORK
   ( FROM eval(f'https://api.github.com/users/{user}')
-    SELECT VALUE {user:login,created_at:created_at::time} )
+    SELECT login AS user, created_at::time AS created_at )
   ( PASS )
 | JOIN USING (user)
 | VALUES {...left,repos:right.repos}

@@ -34,9 +34,6 @@ func (t *translator) sqlSelect(sel *ast.SQLSelect, seq sem.Seq) (sem.Seq, schema
 	if fromSchema == nil {
 		return seq, badSchema()
 	}
-	if sel.Value {
-		return t.selectValue(sel, fromSchema, seq)
-	}
 	if t.scope.schema != nil {
 		fromSchema = &subquerySchema{
 			outer: t.scope.schema,
@@ -315,38 +312,6 @@ func (t *translator) selectFrom(loc ast.Loc, from *ast.FromOp, seq sem.Seq) (sem
 		}
 	}
 	return seq, sch
-}
-
-func (t *translator) selectValue(sel *ast.SQLSelect, sch schema, seq sem.Seq) (sem.Seq, schema) {
-	if sel.GroupBy != nil {
-		t.error(sel, errors.New("SELECT VALUE cannot be used with GROUP BY"))
-		seq = append(seq, badOp())
-	}
-	if sel.Having != nil {
-		t.error(sel, errors.New("SELECT VALUE cannot be used with HAVING"))
-		seq = append(seq, badOp())
-	}
-	exprs := make([]sem.Expr, 0, len(sel.Selection.Args))
-	for _, as := range sel.Selection.Args {
-		if as.Label != nil {
-			t.error(sel, errors.New("SELECT VALUE cannot have AS clause in selection"))
-		}
-		var e sem.Expr
-		if as.Expr == nil {
-			e = sem.NewThis(as, nil)
-		} else {
-			e = t.exprSchema(sch, as.Expr)
-		}
-		exprs = append(exprs, e)
-	}
-	if sel.Where != nil {
-		seq = append(seq, sem.NewFilter(sel.Where, t.exprSchema(sch, sel.Where)))
-	}
-	seq = append(seq, sem.NewValues(sel, exprs...))
-	if sel.Distinct {
-		seq = t.genDistinct(sem.NewThis(sel, nil), seq)
-	}
-	return seq, &dynamicSchema{}
 }
 
 func (t *translator) sqlValues(values *ast.SQLValues, seq sem.Seq) (sem.Seq, schema) {

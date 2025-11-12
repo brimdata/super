@@ -1,8 +1,6 @@
 script: |
   super -s -c "(select 1)"
   echo ===
-  super -s -c "(select value 1)"
-  echo ===
   super -s -c "(select 1 as x) union all select 2 as y | sort this"
   echo ===
   super -s -c "(select 1 as x) union all (select * from a.sup) | sort this"
@@ -19,8 +17,6 @@ outputs:
   - name: stdout
     data: |
       {"1":1}
-      ===
-      1
       ===
       {x:1}
       {y:2}

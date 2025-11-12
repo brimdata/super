@@ -729,9 +729,6 @@ func (c *canon) sqlQueryBody(query ast.SQLQueryBody) {
 		if query.Distinct {
 			c.write("distinct ")
 		}
-		if query.Value {
-			c.write("value ")
-		}
 		for i, a := range query.Selection.Args {
 			if i > 0 {
 				c.write(", ")

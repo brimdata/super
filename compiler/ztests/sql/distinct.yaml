@@ -1,5 +1,5 @@
 script: |
-  super -s -c 'select distinct value case when has(d) then {a,c,d} else {a,c} end from "d.json" | sort this'
+  super -s -c 'select distinct case when has(d) then {a,c,d} else {a,c} end as x from "d.json" | values x | sort this'
   echo ===
   super -s -c 'select distinct a,c from "d.json" | sort this'
 

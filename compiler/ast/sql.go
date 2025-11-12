@@ -18,7 +18,6 @@ type (
 	SQLSelect struct {
 		Kind      string       `json:"kind" unpack:""`
 		Distinct  bool         `json:"distinct"`
-		Value     bool         `json:"value"`
 		Selection SQLSelection `json:"selection"`
 		From      *FromOp      `json:"from"` // XXX from clause?
 		Where     Expr         `json:"where"`

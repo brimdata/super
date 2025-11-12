@@ -1,7 +1,5 @@
 script: |
   super -s -c 'from files.sup | from eval(f)'
-  echo ===
-  super -s -c 'from files.sup | select value s from eval(f)'
 
 inputs:
   - name: files.sup
@@ -20,6 +18,3 @@ outputs:
     data: |
       {s:"hello"}
       {s:"world"}
-      ===
-      "hello"
-      "world"

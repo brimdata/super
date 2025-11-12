@@ -8,7 +8,7 @@ script: |
   echo === select
   super compile -C 'select a from b where c group by d having e order by f limit g offset h'
   echo === ornate select
-  super compile -C 'select distinct value a, b as c from d as e (f) where g group by h, i having j order by k, l limit m offset n'
+  super compile -C 'select distinct a, b as c from d as e (f) where g group by h, i having j order by k, l limit m offset n'
   echo === union
   super compile -C 'select a union all select b union distinct select c'
   echo === values
@@ -45,7 +45,7 @@ outputs:
       limit g
       offset h
       === ornate select
-      select distinct value a, b as c
+      select distinct a, b as c
       from d as e (f)
       where g
       group by h, i

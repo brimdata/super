@@ -1,7 +1,5 @@
 script: |
   super -s -c 'select {x:T.a,y:c,c} as outer from "a.sup" T'
-  echo ===
-  super -s -c 'select value {x:T.a,y:T.c} from "a.sup" T'
 
 inputs:
   - name: a.sup
@@ -18,8 +16,3 @@ outputs:
       {outer:{x:12,y:2,c:2}}
       {outer:{x:13,y:3,c:3}}
       {outer:{x:14,y:4,c:4}}
-      ===
-      {x:11,y:1}
-      {x:12,y:2}
-      {x:13,y:3}
-      {x:14,y:4}

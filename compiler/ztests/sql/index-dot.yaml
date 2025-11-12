@@ -1,6 +1,6 @@
 
 script: |
-  super -s -c "select value val[1].r from demo.json where kind='list'"
+  super -s -c "select val[1].r r from demo.json where kind='list'"
 
 inputs:
   - name: demo.json
@@ -13,4 +13,4 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      6
+      {r:6}

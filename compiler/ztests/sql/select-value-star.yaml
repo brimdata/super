@@ -1,7 +1,0 @@
-spq: select value * from (values 1,2)
-
-vector: true
-
-output: |
-  1
-  2

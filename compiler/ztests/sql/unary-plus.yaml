@@ -1,4 +1,4 @@
-spq: select value - + 34 + + - 26 + - 34 + - 34 + + COALESCE ( 93, COUNT (  ) + + 44 - 16, - AVG ( + 86 ) + 12 ) / 86 * + 55 * + 46;
+spq: select - + 34 + + - 26 + - 34 + - 34 + + COALESCE ( 93, COUNT (  ) + + 44 - 16, - AVG ( + 86 ) + 12 ) / 86 * + 55 * + 46 as x;
 
 input: |
   null
@@ -8,4 +8,4 @@ input: |
 # aggregate).  This is a fundamental difference between relational and
 # polymorphic models and I think we just embrace this disparity.
 output: |
-  2402
+  {x:2402}
