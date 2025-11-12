@@ -985,7 +985,7 @@ func (c *checker) sliceable(loc ast.Node, typ super.Type) {
 		return
 	}
 	switch super.TypeUnder(typ).(type) {
-	case *super.TypeArray, *super.TypeSet, *super.TypeRecord:
+	case *super.TypeArray, *super.TypeSet, *super.TypeRecord, *super.TypeOfString, *super.TypeOfBytes:
 	default:
 		c.error(loc, fmt.Errorf("sliced entity is not sliceable"))
 	}

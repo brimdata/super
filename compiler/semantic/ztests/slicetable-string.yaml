@@ -1,0 +1,4 @@
+spq: values 'foo' | values this[1:2]
+
+output: |
+  "o"

@@ -1,0 +1,4 @@
+spq: values 0x010203 | values this[1:2]
+
+output: |
+  0x02
