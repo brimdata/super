@@ -1,13 +1,29 @@
 import { AriaTabs } from './aria-tabs';
-import { SuperPlayground } from './super-playground'
+import { SuperPlayground } from './super-playground';
 
 const preNodes = document.querySelectorAll('pre:has(> code.language-mdtest-spq)');
 for (const [i, pre] of preNodes.entries()) {
-  const codeNode = pre.querySelector('code')
-  const attributes = Array.from(codeNode.classList)
+  const codeNode = pre.querySelector('code');
+
+  // Matches one or more "#"-prefixed lines.
+  const sectionSeparatorRE = /(?m:^#.*\n)+/;
+  const sections = codeNode.innerText.split(sectionSeparatorRE);
+  // Ignore sections[0], which should be empty.
+  if (sections.length != 4) {
+    continue;
+  }
+  const spq = sections[1].trim();
+  const input = sections[2].trim();
+  const expected = sections[3].trim();
+
+  let attributes = Array.from(codeNode.classList)
         .filter((c) => c.match(/^{.*}$/))
         .map((c) => c.slice(1, -1))
-        .join(' ')
+        .join(' ');
+  if (input.length === 0) {
+    attributes += 'data-layout="no-input"';
+  }
+
   const html = `
   <article class="super-example">
     <nav role="tablist">
@@ -63,23 +79,17 @@ for (const [i, pre] of preNodes.entries()) {
     const tablist = node.querySelector('[role="tablist"]');
     AriaTabs.setup(tablist);
 
-  // Matches one or more "#"-prefixed lines.
-  const sectionSeparatorRE = /(?m:^#.*\n)+/;
-  const sections = codeNode.innerText.split(sectionSeparatorRE);
-  // Ignore sections[0], which should be empty.
-  if (sections.length != 4) {
-    continue;
-  }
-  const spq = sections[1].trim();
-  const input = sections[2].trim();
-  const expected = sections[3].trim();
   node.querySelector('.super-playground .query code').textContent = spq;
   node.querySelector('.super-playground .input code').textContent = input;
   node.querySelector('.super-playground .result code').textContent = expected;
 
   const commandCode = node.querySelector('.super-command code')
   SuperPlayground.setup(node, (query, input) => {
-    commandCode.textContent = `echo '${input}' \\\n| super -s -c '${query}' -`
+    let command = `super -s -c '${query}'`;
+    if (input.length > 0) {
+      command = `echo '${input}' \\\n| ${command} -`;
+    }
+    commandCode.textContent = command;
   });
 
     // Prevent keydown from bubbling up to book.js listeners.

@@ -81,6 +81,16 @@
     'input result';
   border-radius: var(--radius);
 
+  &[data-layout='no-input'] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'query'
+      'result';
+    .input {
+      display: none;
+    }
+  }
+
   &[data-layout='stacked'] {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
