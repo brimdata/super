@@ -12,6 +12,15 @@ script: |
     from (values (1,'dodgers')) teams(id,team)
     inner join (values (1,1,'ted')) players(id,team_id,player) on teams.id=players.team_id
   "
+  echo // ===
+  super compile -dag -C "
+    select *
+    from (
+      select *      
+      from (values (1,2,'a')) as x(aid,bid,a)
+      inner join (values (1,2,'b')) as y(aid,bid,b) using (aid,bid)
+    )
+  "
 
 outputs:
   - name: stdout
@@ -38,5 +47,24 @@ outputs:
       | inner join as {left,right} on left.id==right.team_id
       | values {in:this}
       | values {in:in,out:{id:in.left.id,team:in.left.team,id:in.right.id,team_id:in.right.team_id,player:in.right.player}}
+      | values out
+      | output main
+      // ===
+      null
+      | fork
+        (
+          values {c0:1,c1:2,c2:"a"}
+          | values {aid:c0,bid:c1,a:c2}
+        )
+        (
+          values {c0:1,c1:2,c2:"b"}
+          | values {aid:c0,bid:c1,b:c2}
+        )
+      | inner join as {left,right} on left.aid==right.aid and left.bid==right.bid
+      | values {in:this}
+      | values {in:in,out:{aid:in.left.aid,bid:in.left.bid,a:in.left.a,aid:in.right.aid,bid:in.right.bid,b:in.right.b}}
+      | values out
+      | values {in:this}
+      | values {in:in,out:{a:in.a,aid:in.aid,bid:in.bid,b:in.b}}
       | values out
       | output main

@@ -411,8 +411,8 @@ func applyAlias(alias *ast.TableAlias, sch schema, seq sem.Seq) (sem.Seq, schema
 	if len(alias.Columns) == 0 {
 		return seq, addAlias(sch, alias.Name), nil
 	}
-	if sch, ok := maybeStatic(sch); ok {
-		return mapColumns(sch.columns, alias, seq)
+	if cols, ok := sch.outColumns(); ok {
+		return mapColumns(cols, alias, seq)
 	}
 	return seq, sch, errors.New("cannot apply column aliases to dynamically typed data")
 }
@@ -670,8 +670,8 @@ func (t *translator) projection(sch *selectSchema, args []ast.SQLAsExpr, funcs *
 	for i := range proj {
 		col := &proj[i]
 		if col.isStar() {
-			if static, ok := maybeStatic(sch.in); ok {
-				out.columns = append(out.columns, static.columns...)
+			if cols, ok := sch.in.outColumns(); ok {
+				out.columns = append(out.columns, cols...)
 			} else {
 				sch.out = &dynamicSchema{}
 			}
@@ -684,16 +684,6 @@ func (t *translator) projection(sch *selectSchema, args []ast.SQLAsExpr, funcs *
 		out.columns = append(out.columns, col.name)
 	}
 	return proj
-}
-
-func maybeStatic(sch schema) (*staticSchema, bool) {
-	switch sch := sch.(type) {
-	case *staticSchema:
-		return sch, true
-	case *aliasSchema:
-		return maybeStatic(sch.sch)
-	}
-	return nil, false
 }
 
 func dedupeColname(m map[string]struct{}, name string) string {
