@@ -51,7 +51,9 @@
 // contains an SPQ test.  The content of the block must comprise three sections,
 // each preceeded by one or more "#"-prefixed lines.  The first section contains
 // an SPQ program, the second contains input provided to the program when the
-// test runs, and the third contains the program's expected output.
+// test runs, and the third contains the program's expected output.  If the
+// second section contains only whitespace, no input is provided when the test
+// runs.
 //
 // SPQ tests are run via the super command.  The command's exit status must
 // indicate success (i.e., be zero) unless the mdtest-spq block's info string

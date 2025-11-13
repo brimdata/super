@@ -33,8 +33,11 @@ func (t *Test) Run() error {
 	}
 	var c *exec.Cmd
 	if t.SPQ != "" {
-		c = exec.Command("super", "-s", "-c", t.SPQ, "-")
-		c.Stdin = strings.NewReader(t.Input)
+		c = exec.Command("super", "-s", "-c", t.SPQ)
+		if s := t.Input; strings.TrimSpace(s) != "" {
+			c.Args = append(c.Args, "-")
+			c.Stdin = strings.NewReader(s)
+		}
 	} else {
 		c = exec.Command("bash", "-e", "-o", "pipefail")
 		c.Dir = t.Dir

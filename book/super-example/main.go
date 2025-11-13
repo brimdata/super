@@ -53,7 +53,9 @@ func run(opts opts) wasm.Promise {
 		var r io.Reader
 		switch typ := opts.Input.Type(); typ {
 		case js.TypeString:
-			r = strings.NewReader(opts.Input.String())
+			if s := opts.Input.String(); strings.TrimSpace(s) != "" {
+				r = strings.NewReader(s)
+			}
 		case js.TypeObject:
 			if !opts.Input.InstanceOf(js.Global().Get("ReadableStream")) {
 				return nil, errInvalidInput
@@ -63,13 +65,15 @@ func run(opts opts) wasm.Promise {
 			return "", errInvalidInput
 		}
 		zctx := super.NewContext()
-		zr, err := anyio.NewReaderWithOpts(zctx, r, anyio.ReaderOpts{
-			Format: opts.InputFormat,
-		})
-		if err != nil {
-			return "", err
+		var readers []sio.Reader
+		if r != nil {
+			rc, err := anyio.NewReaderWithOpts(zctx, r, anyio.ReaderOpts{Format: opts.InputFormat})
+			if err != nil {
+				return "", err
+			}
+			defer rc.Close()
+			readers = []sio.Reader{rc}
 		}
-		defer zr.Close()
 		var buf bytes.Buffer
 		zwc, err := anyio.NewWriter(sio.NopCloser(&buf), anyio.WriterOpts{Format: opts.OutputFormat})
 		if err != nil {
@@ -78,7 +82,7 @@ func run(opts opts) wasm.Promise {
 		defer zwc.Close()
 		local := storage.NewLocalEngine()
 		comp := compiler.NewCompiler(local)
-		query, err := runtime.CompileQuery(context.Background(), zctx, comp, flowgraph, []sio.Reader{zr})
+		query, err := runtime.CompileQuery(context.Background(), zctx, comp, flowgraph, readers)
 		if err != nil {
 			return "", err
 		}
