@@ -42,7 +42,6 @@ func TestSPQ(t *testing.T) {
 	})
 
 	for d := range dirs {
-		d := d
 		t.Run(filepath.ToSlash(d), func(t *testing.T) {
 			t.Parallel()
 			ztest.Run(t, d)
@@ -120,7 +119,6 @@ func runAllBoomerangs(t *testing.T, format string, data map[string]string) {
 	t.Run(format, func(t *testing.T) {
 		t.Parallel()
 		for name, data := range data {
-			data := data
 			t.Run(name, func(t *testing.T) {
 				t.Parallel()
 				runOneBoomerang(t, format, data)

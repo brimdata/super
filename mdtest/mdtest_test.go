@@ -241,7 +241,6 @@ input
 		},
 	}
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			inputs, tests, err := parseMarkdown([]byte(tc.markdown))
 			if tc.strerror != "" {

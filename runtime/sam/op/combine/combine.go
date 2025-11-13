@@ -116,7 +116,6 @@ func (o *Op) propagateDone() error {
 		if parent.blocked {
 			continue
 		}
-		parent := parent
 		// We use a goroutine here because sending to parents[i].doneCh
 		// can block until we've sent to parents[i+1].doneCh, as with
 		// "fork (=> count() => pass) | head".

@@ -175,8 +175,7 @@ func (b *Branch) DeleteWhere(ctx context.Context, c runtime.Compiler, ast *parse
 			patch.DeleteObject(oid)
 		}
 		for _, o := range w.Objects() {
-			obj := o
-			patch.AddDataObject(&obj)
+			patch.AddDataObject(&o)
 		}
 		if message == "" {
 			var deletedObjs []*data.Object
@@ -186,8 +185,7 @@ func (b *Branch) DeleteWhere(ctx context.Context, c runtime.Compiler, ast *parse
 			}
 			var added []*data.Object
 			for _, o := range w.Objects() {
-				obj := o
-				added = append(added, &obj)
+				added = append(added, &o)
 			}
 			message = deleteWhereMessage(deletedObjs, added)
 		}

@@ -222,7 +222,6 @@ func (p *Pool) Vacuum(ctx context.Context, commit ksuid.KSUID, dryrun bool) ([]k
 	var vacuumed []ksuid.KSUID
 	var mu sync.Mutex
 	for o := range ch {
-		o := o
 		if dryrun {
 			// For dryrun just check if the object exists and append existing
 			// objects to list of results.

@@ -68,9 +68,8 @@ func TestMarshalMap(t *testing.T) {
 		{Name: "nonempty", Map: map[string]int{"a": 1, "b": 2}},
 	}
 	for _, c := range cases {
-		c := c
-		var v s
 		t.Run(c.Name, func(t *testing.T) {
+			var v s
 			boomerang(t, c, &v)
 			assert.Equal(t, c, v)
 		})

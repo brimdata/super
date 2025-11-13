@@ -16,7 +16,6 @@ func TestMarkdownExamples(t *testing.T) {
 	require.NoError(t, err)
 	require.NotZero(t, len(files))
 	for _, f := range files {
-		f := f
 		t.Run(filepath.ToSlash(f.Path), func(t *testing.T) {
 			t.Parallel()
 			f.Run(t)
