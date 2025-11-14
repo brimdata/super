@@ -483,9 +483,8 @@ func (j *joinSchema) outColumns() ([]string, bool) {
 	if !lok || !rok {
 		return nil, false
 	}
-	// Append all columns from the left except for those that overlap with
-	// the right as these will be overwritten. We/If we allow duplicate columns
-	// this should be changed to just concat both columns.
+	// Include all columns from the left except for those appearing on
+	// the right since that's what {...left,...right} does.
 	m := make(map[string]struct{})
 	for _, col := range right {
 		m[col] = struct{}{}
