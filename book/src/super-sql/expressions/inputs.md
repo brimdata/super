@@ -19,7 +19,7 @@ field of the implied `this` value, e.g., `x` means `this.x`.
 
 For expressions that appear in a [SQL operator](../sql/intro.md),
 input is presumed to be in the form of records and is referenced using
-[relational scoping](../../intro.md#relational-scoping).
+[relational scoping](../intro.md#relational-scoping).
 Here, identifiers refer to table aliases and/or column names
 and are bound to the available inputs based on SQL semantics.
 When the input schema is known, these references are

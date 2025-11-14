@@ -66,7 +66,7 @@ emits the value `3.14` whereas
 ```
 emits `error("missing")` because the second reference to `PI` is not
 in the scope of the declared constant and thus the identifier is interpreted
-as a field reference `this.pi` via [dataflow scoping](intro.md#dataflow-scoping).
+as a field reference `this.pi` via [pipe scoping](intro.md#pipe-scoping).
 
 ### Identifiers
 
