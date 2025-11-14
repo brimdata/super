@@ -1,6 +1,6 @@
 ## Pragmas
 
-Pragmase control various language features and appear in a declaration block
+Pragmas control various language features and appear in a declaration block
 so their effect is lexically scoped.  They have the form
 ```
 pragma <id> = <expr>
@@ -38,9 +38,9 @@ values {
   )
 }
 # input
-"foo"
+"bar"
 [1,2,3]
 # expected output
-{a:"o",b:error("missing")}
+{a:"a",b:error("missing")}
 {a:[2],b:1}
 ```

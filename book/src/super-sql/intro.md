@@ -72,7 +72,9 @@ values as output.
 Unlike relational SQL, SuperSQL pipe queries define their computation in terms of dataflow
 through the directed graph of operators.  But instead of relational tables
 propagating from one pipe operator to another
-(e.g., as in [Zeta pipe SQL](https://github.com/google/zetasql/blob/master/docs/pipe-syntax.md#pipe-operator-semantics)), any sequence of potentially heterogeneously typed data
+(e.g., as in
+[ZetaSQL pipe syntax](https://github.com/google/zetasql/blob/master/docs/pipe-syntax.md#pipe-operator-semantics)),
+any sequence of potentially heterogeneously typed data
 may flow between SuperSQL pipe operators.
 
 When a super-structured sequence conforms to a single, homogeneous
@@ -184,7 +186,7 @@ When SQL queries are nested, joined, or invoked as subqueries, scoping
 rules define how identifiers and dotted expressions resolve to the
 different available table names and columns reachable via containing scopes.
 To support such semantics, SuperSQL implements SQL scoping rules
-_inside of of any SQL pipe operator_ but not between pipe operators.
+_inside of any SQL pipe operator_ but not between pipe operators.
 
 In other words, table aliases and column references all work within
 a SQL query written as a single pipe operator but scoping of tables
@@ -321,7 +323,7 @@ SELECT f1.x, f2.y FROM f1.json as f1 CROSS JOIN f2.json as f2
 A subquery embedded in an expression can also combine data entities
 via pipe scoping as in
 ```
-from outer | values {outer:this,inner:[from inner | ...]}
+from f1.json | values {outer:this,inner:[from f2.json | ...]}
 ```
 Here data from the outer query can be mixed in with data from the
 inner array subquery embedded in the expression inside of the
