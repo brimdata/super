@@ -561,7 +561,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 		}
 		var typ super.Type
 		if fuser != nil {
-			typ = fuser.Type(t.checker)
+			typ = fuser.Type()
 		}
 		return append(seq, &sem.FileScan{
 			Node:   o,

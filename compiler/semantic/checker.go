@@ -452,7 +452,7 @@ func (c *checker) arrayElems(typ super.Type, elems []sem.ArrayElem) super.Type {
 			panic(elem)
 		}
 	}
-	return fuser.Type(c)
+	return fuser.Type()
 }
 
 func (c *checker) recordElems(typ super.Type, elems []sem.RecordElem) super.Type {
@@ -474,7 +474,7 @@ func (c *checker) recordElems(typ super.Type, elems []sem.RecordElem) super.Type
 			panic(elem)
 		}
 	}
-	return fuser.Type(c)
+	return fuser.Type()
 }
 
 func (c *checker) callBuiltin(call *sem.CallExpr, args []super.Type) super.Type {
@@ -520,7 +520,7 @@ func (c *checker) pathsToType(paths []pathType) super.Type {
 	for _, path := range paths {
 		fuser.fuse(c.pathToRec(path.typ, path.elems))
 	}
-	return fuser.Type(c)
+	return fuser.Type()
 }
 
 func (c *checker) pathToRec(typ super.Type, elems []string) super.Type {
@@ -593,7 +593,7 @@ func (c *checker) putPaths(typ super.Type, puts []pathType) super.Type {
 	for _, put := range puts {
 		fuser.fuse(c.pathToRec(put.typ, put.elems))
 	}
-	return fuser.Type(c)
+	return fuser.Type()
 }
 
 type path struct {
@@ -624,7 +624,7 @@ func (c *checker) fuse(types []super.Type) super.Type {
 	for _, typ := range types {
 		fuser.fuse(typ)
 	}
-	return fuser.Type(c)
+	return fuser.Type()
 }
 
 func (c *checker) boolean(loc ast.Node, typ super.Type) bool {
@@ -1063,13 +1063,15 @@ func (c *checker) error(loc ast.Node, err error) {
 }
 
 func (c *checker) newFuser() *fuser {
-	return &fuser{sctx: c.t.sctx}
+	return &fuser{sctx: c.t.sctx, unknown: c.unknown}
 }
 
 type fuser struct {
-	sctx *super.Context
-	typ  super.Type
-	sch  *agg.Schema
+	sctx    *super.Context
+	unknown super.Type
+
+	typ super.Type
+	sch *agg.Schema
 }
 
 func (f *fuser) fuse(typ super.Type) {
@@ -1084,12 +1086,12 @@ func (f *fuser) fuse(typ super.Type) {
 	}
 }
 
-func (f *fuser) Type(c *checker) super.Type {
+func (f *fuser) Type() super.Type {
 	if f.sch != nil {
 		return f.sch.Type()
 	}
 	if f.typ != nil {
 		return f.typ
 	}
-	return c.unknown
+	return f.unknown
 }
