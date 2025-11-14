@@ -12,7 +12,7 @@ grep(re: string e: any) -> bool
 
 The `grep` function searches all of the strings in its input value `e`
  using the `re` argument, which is a
-[regular expression](../../patterns.md#regular-expression).
+[regular expression](../../queries.md#regular-expression).
 If the pattern matches for any string, then the result is `true`.  Otherwise, it is `false`.
 
 > _String matches are case insensitive while regular expression

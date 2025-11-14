@@ -17,6 +17,8 @@ to upper case and returns the result.
 
 ---
 
+_Simple call on upper_
+
 ```mdtest-spq
 # spq
 values upper(this)
@@ -26,7 +28,9 @@ values upper(this)
 "SUPER FORMAT"
 ```
 
-[Slices](../../expressions.md#slices) can be used to uppercase a subset of a string as well.
+---
+
+_Apply upper to a string [slice](../../expressions/slices.md)_
 
 ```mdtest-spq
 # spq

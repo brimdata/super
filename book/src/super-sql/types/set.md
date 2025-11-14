@@ -24,7 +24,7 @@ whose type is
 ```
 
 An empty set value has the form `|[]|` and
-an empty set type defaults to an set of type null, i.e., `|[null]|`,
+an empty set type defaults to a set of type null, i.e., `|[null]|`,
 unless otherwise cast, e.g., `|[]|::[int64]` represents an empty set
 of integers.
 
@@ -49,7 +49,7 @@ or
 ```
 ...<expr>
 ```
-`<expr>` may be any valid [expression](../expressions.md).
+`<expr>` may be any valid [expression](../expressions/intro.md).
 
 The first form is simply an element in the set, the result of `<expr>`.
 

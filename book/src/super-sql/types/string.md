@@ -3,12 +3,20 @@
 The `string` type represents any valid
 [UTF-8 string](https://en.wikipedia.org/wiki/UTF-8).
 
+For backward compatibility with SQL, syntactic aliases for type `string`
+are defined as follows:
+* `CHARACTER VARYING`
+* `CHARACTER`
+* `TEXT`
+* `VARCHAR`
+
 A string is formed by enclosing the string's unicode characters in
 quotation marks whereby the following escape sequences allowed:
 
 | Sequence | Unicode Character      |
 |----------|------------------------|
 | `\"`     | quotation mark  U+0022 |
+| `\'`     | apostrophe      U+0008 |
 | `\\`     | reverse solidus U+005C |
 | `\/`     | solidus         U+002F |
 | `\b`     | backspace       U+0008 |
@@ -47,7 +55,7 @@ bar"
 #### Formatted Strings
 
 Formatted strings or
-[_f-strings_](../expressions.md#formatted-string-literals) are expressed
+[_f-strings_](../expressions/f-strings.md) are expressed
 as the character `f` followed by a single- or double-quoted
 string and may contain embedded expressions denoted within
 curly braces `{` `}`.

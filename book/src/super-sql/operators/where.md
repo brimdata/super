@@ -8,11 +8,12 @@
 ```
 ### Description
 
-The `where` operator filters its input by applying a Boolean [expression](../expressions.md) `<expr>`
+The `where` operator filters its input by applying a Boolean
+[expression](../expressions/intro.md) `<expr>`
 to each input value and dropping each value for which the expression evaluates
 to `false` or to an error.
 
-The `where` keyword is optional since it is a [shortcut](../shortcuts.md).
+The `where` keyword is optional since it is a [shortcut](intro.md#shortcuts).
 
 When SuperSQL queries are run interactively, it is highly convenient to be able to omit
 the "where" keyword, but when `where` filters appear in query source files,
@@ -66,7 +67,7 @@ where this >= 2 AND this <= 2
 
 ---
 
-_A filter with array [containment](../expressions.md#containment) logic_
+_A filter with array [containment](../expressions/containment.md) logic_
 ```mdtest-spq
 # spq
 where this in [1,4]

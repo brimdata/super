@@ -42,7 +42,7 @@ zero or more comma-separated key-value pairs contained in pipe braces:
 |{ <key> : <value>, <key> : <value> ... }|
 ```
 where `<key>` and `<value>`
-may be any valid [expression](../expressions.md).
+may be any valid [expression](../expressions/intro.md).
 
 > _The map spread operator is not yet implemented._
 

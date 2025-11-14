@@ -5,12 +5,17 @@ IPv4 and IPv6 variations.  The `net` type represents an `ip` value
 with a contiguous network mask as indicated by the number of bits
 in the mask.
 
+For backward compatibility with SQL, syntactic aliases for signed integers
+are defined as follows:
+* `CIDR` maps to `net`
+* `INET` maps to `ip`
+
 A 32-bit IPv4 address is formed using dotted-decimal notation, e.g.,
 a string of base-256 decimal numbers separated by `.` as in
 `128.32.130.100` or `10.0.0.1`.
 
 A 128-bit IPv6 is formed from a sequence of eight groups of four
-hecadecimal digits separated by colons (`:`).
+hexadecimal digits separated by colons (`:`).
 
 For IPv6 addresses,
 leading zeros in each group can be omitted (e.g., the sequence `2001:0db8`

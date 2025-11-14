@@ -216,7 +216,7 @@ adapted for super-structured data called
 
 SuperSQL is particularly well suited for data-wrangling use cases like
 ETL and data exploration and discovery.
-[Syntactic shortcuts](super-sql/shortcuts.md),
+[Syntactic shortcuts](super-sql/operators/intro.md#shortcuts),
 [keyword search](super-sql/operators/search.md), and the
 [pipe syntax](super-sql/intro.md)
 make interactively querying data a breeze.
@@ -319,7 +319,8 @@ the ergonomics of the language.  The vision here is that comprehensive backward
 compatibility can reside in the SQL operators while a modernized syntax and
 and improved ergonomics can reside in the pipe operators, e.g.,
 
-* array indexing is one-based in SQL clauses but zero-based in pipe operators,
+* array indexing [can be configured](super-sql/declarations/pragmas.md)
+  as 1-based in SQL clauses but 0-based in pipe operators,
 * column names in SQL clauses are case insensitive while record field references
 are case sensitive in pipe operators,
 * complex scoping rules for table aliases and column references are required in
@@ -336,7 +337,7 @@ the pipe model tied to super-structured data.
 Perhaps this could enable a long-term and gradual transition away
 from relational SQL toward a modern and more ergonomic replacement.
 
-The jury is out as to whether Piped SQL for super-structured data is the
+The jury is out as to whether a Pipe SQL for super-structured data is the
 right approach for curing SQL's ills, but it certainly provides a framework
 for exploring entirely new language abstractions while maintaining complete
 backward compatibility with SQL all in the same query language.

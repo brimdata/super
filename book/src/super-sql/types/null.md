@@ -26,7 +26,7 @@ formats.
 
 As in SQL, to test if a value is null, it cannot be compared to another null
 value, which by definition, is always false, i.e., two unknown values cannot
-be known to be equal.  Instead the [`IS NULL`](../expressions.md#comparisons) operator or
+be known to be equal.  Instead the [`IS NULL`](../expressions/comparisons.md) operator or
 [coalesce](../functions/generics/coalesce.md) function should be used.
 
 #### Examples
@@ -105,7 +105,7 @@ _All types have a null value_
 
 ```mdtest-spq
 # spq
-values null::this
+values cast(null, this)
 # input
 <int64>
 <string>

@@ -25,9 +25,9 @@ These signed types include:
 For backward compatibility with SQL, syntactic aliases for signed integers
 are defined as follows:
 * `BIGINT` maps to `int64`
+* `INT` maps to `int32`
 * `INTEGER` maps to `int32`
 * `SMALLINT` maps to `int16`
-* `TINYINT` maps to `int8`
 
 #### Unsigned Integers
 
@@ -62,7 +62,9 @@ floating point type `float32` or `float16`.
 For backward compatibility with SQL, syntactic aliases for signed integers
 are defined as follows:
 * `REAL` maps to `float32`
+* `FLOAT` maps to `float64`
 * `DOUBLE PRECISION` maps to `float64`
+
 
 > _The `FLOAT(n)` SQL types are not yet implemented by SuperSQL._
 

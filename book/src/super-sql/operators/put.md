@@ -28,7 +28,7 @@ computed first and then they are all written simultaneously.  As a result,
 a computed value cannot be referenced in another expression.  If you need
 to re-use a computed result, this can be done by chaining multiple `put` operators.
 
-The `put` keyword is optional since it can be used as a [shortcut](../shortcuts.md).
+The `put` keyword is optional since it can be used as a [shortcut](intro.md#shortcuts).
 When used as a shortcut, the `<field>:=` portion of `<assignment>` is not optional.
 
 Each left-hand side `<field>` term must be a field reference expressed as
@@ -45,7 +45,7 @@ where `<value>` is the offending input value.
 
 Note that when the field references are all top level,
 `put` is a special case of [`values`](values.md)
-with a [record expression](../expressions.md#record-expressions)
+with a [record expression](../types/record.md#record-expressions)
 using a spread operator of the form:
 ```
 values {...this, <field>:<expr> [, <field>:<expr>...]}

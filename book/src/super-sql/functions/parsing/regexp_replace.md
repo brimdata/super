@@ -11,7 +11,7 @@ regexp_replace(s: string, re: string, new: string) -> string
 ### Description
 
 The `regexp_replace` function substitutes all characters matching the
-[regular expression](../../patterns.md#regular-expression) `re` in string `s` with
+[regular expression](../../queries.md#regular-expression) `re` in string `s` with
 the string `new`.
 
 Variables in `new` are replaced with corresponding matches drawn from `s`.

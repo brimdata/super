@@ -13,8 +13,8 @@ a named type has the form
 where `<name>` is an identifier or string and `<type>` is any type.
 
 Named types may be defined in four ways:
-* with a [`type`](../statements.md#type-statements) statement,
-* with a [cast](../expressions.md#casts),
+* with a [type](../declarations/types.md) declaration,
+* with a [cast](../expressions/cast.md),
 * with a definition inside of another type, or
 * by the input data itself.
 

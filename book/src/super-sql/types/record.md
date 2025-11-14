@@ -41,22 +41,50 @@ zero or more comma-separated elements contained in braces:
 where an `<element>` has one of three forms:
 
 * a named field of the form `<name> : <expr>`  where `<name>` is an
-identifier or string and `<expr>` is an arbitrary [expression](../expressions.md),
-* a single field reference in the form `<id>` as an identifier,
-which is shorthand for the named field reference `<id>:<id>`, or
+identifier or string and `<expr>` is any [expression](../expressions/intro.md),
+* any [expression](../expressions/intro.md) by itself where the field name
+  is derived from the expression text as defined below, or
 * a spread expression of the form `...<expr>` where `<expr>` is an arbitrary
-[expression](../expressions.md) that should evaluate to a record value.
+[expression](../expressions/intro.md) that should evaluate to a record value.
 
 The spread form inserts all of the fields from the resulting record.
 If a spread expression results in a non-record type (e.g., errors), then that
-part of the record is simply elided.
+part of the record is simply elided.  Note that the field names for
+the spread come from the constituent record values.
 
 The fields of a record expression are evaluated left to right and when
 field names collide the rightmost instance of the name determines that
 field's value.
 
+#### Derived Field Names
+
+When an expression is present without a field name,
+the field name is derived from the expression text as follows:
+* for a dotted path expression, the name is the last element of the path;
+* for a function or aggregate function, the name is the name of the function;
+* for `this`, the name is `that`;
+* otherwise, the name is the expression text formatted in a canonical form.
+
 #### Examples
+
 ---
+
+_A simple record literal_
+
+```mdtest-spq
+# spq
+values {a:1,b:2,s:"hello"}
+# input
+null
+# expected output
+{a:1,b:2,s:"hello"}
+```
+
+---
+
+_A record expression with spreads operating on various input values_
+
+
 ```mdtest-spq
 # spq
 values {a:0},{x}, {...r}, {a:0,...r,b:3}
@@ -68,7 +96,11 @@ values {a:0},{x}, {...r}, {a:0,...r,b:3}
 {a:1,b:2}
 {a:1,b:3}
 ```
+
 ---
+
+_A record literal with casts_
+
 ```mdtest-spq {data-layout="stacked"}
 # spq
 values {b:true,u:1::uint8,a:[1,2,3],s:"hello"::=CustomString}
@@ -76,4 +108,30 @@ values {b:true,u:1::uint8,a:[1,2,3],s:"hello"::=CustomString}
 null
 # expected output
 {b:true,u:1::uint8,a:[1,2,3],s:"hello"::=CustomString}
+```
+
+---
+
+_A record expression with an unnamed expression_
+
+```mdtest-spq
+# spq
+values {1+2*3}
+# input
+null
+# expected output
+{"1+2*3":7}
+```
+
+---
+
+_Selecting a record expression with an unnamed expression_
+
+```mdtest-spq
+# spq
+select {1+2*3} as x
+# input
+null
+# expected output
+{x:{"1+2*3":7}}
 ```

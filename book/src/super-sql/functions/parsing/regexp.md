@@ -12,7 +12,7 @@ regexp(re: string, s: string) -> any
 
 The `regexp` function returns an array of strings holding the text
 of the left most match of the regular expression `re`, which is
-a [regular expression](../../patterns.md#regular-expression),
+a [regular expression](../../queries.md#regular-expression),
 and the matches of each parenthesized subexpression (also known as capturing
 groups) if there are any. A null value indicates no match.
 

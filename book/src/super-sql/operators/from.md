@@ -17,8 +17,9 @@ The `from` operator identifies one or more sources of data as input to
 a query and transmits that data to its output.
 
 It has two forms:
-* a `from` pipe operator with dataflow scoping as described here, or
-* a SQL [`FROM`](../sql/from.md) clause with relational scoping.
+* a `from` pipe operator with [pipe scoping](../intro.md#pipe-scoping) as described here, or
+* a SQL [`FROM`](../sql/from.md) clause with
+  [relational scoping](../intro.md#relational-scoping).
 
 As a pipe operator,
 `from` preserves the order of the data within a file,
@@ -37,7 +38,7 @@ format <fmt>
 ```
 where `<fmt>` is the name of a supported
 [serialization format](../../command/super.md#input-formats) and is
-parsed as a [text entity](../patterns.md#text-entity).
+parsed as a [text entity](../queries.md#text-entity).
 
 When `from` references a file or URL entity whose name ends in a
 [well-known extension](../../command/super.md#input-formats)
@@ -48,8 +49,8 @@ format is implied by the extension name.
 
 When running detached from a database, the target of `from`
 is either a
-[text entity](../patterns.md#text-entity)
-or a file system [glob](../patterns.md#glob).
+[text entity](../queries.md#text-entity)
+or a file system [glob](../queries.md#glob).
 
 If a text entity is parseable as an HTTP or HTTPS URL,
 then the target is presumed to be a [URL](#url) and is processed
@@ -72,9 +73,9 @@ from file*.parq (format parquet)
 
 When running attached to a database (i.e., using `super db`),
 the target of `from` is either a
-[text entity](../patterns.md#text-entity)
-or a [regular expression](../patterns.md#regular-expression)
-or [glob](../patterns.md#glob) that matches pool names.
+[text entity](../queries.md#text-entity)
+or a [regular expression](../queries.md#regular-expression)
+or [glob](../queries.md#glob) that matches pool names.
 
 If a text entity is parseable as an HTTP or HTTPS URL,
 then the target is presumed to be a [URL](#url) and is processed
@@ -112,7 +113,7 @@ When the `<url>` argument begins with `http:` or `https:`
 and has the form of a valid URL, then the source is fetched remotely using the
 indicated protocol.
 
-As a [text entity](../patterns.md#text-entity), typical URLs need not be quoted
+As a [text entity](../queries.md#text-entity), typical URLs need not be quoted
 though URLs with special characters must be quoted.
 
 A format argument may be appended to a URL reference.
@@ -128,7 +129,7 @@ where
 * `<method>` is one of `GET`, `PUT`, `POST`, or `DELETE`,
 * `<expr>` is a [record expression](../types/record.md) that defines the names and values
 to be included as HTTP header options, and
-* `<body>` is a [text-entity](../patterns.md#text-entity) string
+* `<body>` is a [text-entity](../queries.md#text-entity) string
 to be included as the body of the HTTP request.
 
 Currently, the headers expression must evaluate to a compile-time constant though this

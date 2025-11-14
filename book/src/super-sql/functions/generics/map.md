@@ -15,7 +15,9 @@ in the form of an existing function or a lambda expression,
 to every element in array or set `v` and
 returns an array or set of the results.
 
-The function `f` may reference a [user function](../../statements.md#func-statements) or a built-in function using the `&` syntax as in
+The function `f` may reference
+a [declared function](../../declarations/functions.md) or
+a [built-in function](../../functions/intro.md) using the `&` syntax as in
 ```
 &<name>
 ```

@@ -8,10 +8,11 @@
 [aggregate] <agg> [, <agg> ... ] [ by <grouping> [, <grouping> ... ] ]
 [aggregate] by <grouping> [, <grouping> ... ]
 ```
-where `<agg>` is an aggregate function [field assignment](intro.md#field-assignment)
-with an optional filter having the form:
+where `<agg>` references an [aggregate function](../aggregates/intro.md)
+optionally structured as a  [field assignment](intro.md#field-assignment)
+having the form:
 ```
-[ <field> := ] <agg-func> ( <expr> ) [ where <expr> ]
+[ <field> := ] <agg-func> ( [ all | distinct ] <expr> ) [ where <pred> ]
 ```
 and `<grouping>` is a grouping expression [field assignment](intro.md#field-assignment)
 having the form:
@@ -28,7 +29,7 @@ where the result of each aggregate function appears as a field of the result.
 
 Each group corresponds to the unique values of the `<grouping>` expressions.
 When there are no `<grouping>` expressions, the aggregate functions are applied
-to the entire input.
+to the entire input optionally filtered by `<pred>`.
 
 In the first form, the `aggregate` operator consumes all of its input,
 applies one or more aggregate functions `<agg>` to each input value
@@ -41,16 +42,17 @@ unique combination of values of the grouping expressions specified after the `by
 keyword without applying any aggregate functions.
 
 The `aggregate` keyword is optional since it can be used as a
-[shortcut](../shortcuts.md).
+[shortcut](intro.md#shortcuts).
 
 Each aggregate function `<agg-func>` may be optionally followed by a `where` clause,
-which applies a Boolean expression `<expr>` that indicates, for each input value,
+which applies a Boolean expression `<pred>` that indicates, for each input value,
 whether to include it in the values operated upon by the aggregate function.
 `where` clauses are analogous
 to the [`where`](where.md) operator but apply their filter to the input
 argument stream to the aggregate function.
 
-The output values are records formed from the [field assignments](intro.md#field-assignment)
+The output values are records formed from the
+[field assignments](intro.md#field-assignment)
 first from the grouping expressions then from the aggregate functions
 in left-to-right order.
 

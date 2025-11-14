@@ -13,13 +13,13 @@ The `values` operator produces output values by evaluating one or more
 comma-separated
 expressions on each input value and sending each result to the output
 in left-to-right order.  Each `<expr>` may be any valid
-[expression](../expressions.md).
+[expression](../expressions/intro.md).
 
 The input order convolved with left-to-right evaluation order is preserved
 at the output.
 
 The `values` operator name is optional since it can be used as a
-[shortcut](../shortcuts.md).  When used as a shortcut, only one expression
+[shortcut](intro.md#shortcuts).  When used as a shortcut, only one expression
 may be present.
 
 The `values` abstraction is also available as the SQL [`VALUES`](../sql/values.md) clause,

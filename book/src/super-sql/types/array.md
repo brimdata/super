@@ -49,7 +49,7 @@ or
 ```
 ...<expr>
 ```
-`<expr>` may be any valid [expression](../expressions.md).
+`<expr>` may be any valid [expression](../expressions/intro.md).
 
 The first form is simply an element in the array, the result of `<expr>`.
 

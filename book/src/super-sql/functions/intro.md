@@ -1,14 +1,14 @@
-# Functions
+## Functions
 
 An invocation of a built-in function may appear in any
-[expression](../expressions.md).
+[expression](../expressions/intro.md).
 A function takes zero or more positional arguments and always produces
 a single output value.  There are no named function parameters.
 
-A user-defined function whose name conflicts with a built-in function name overrides
-the built-in function.
+A [declared function](../declarations/functions.md) whose name conflicts with a
+built-in function name overrides the built-in function.
 
-Functions are generally polymorphic and can be called with values of any type
+Functions are generally polymorphic and can be called with values of varying type
 as their arguments.  When type errors occur, functions will return structured errors
 reflecting the error.
 

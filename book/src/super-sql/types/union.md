@@ -28,7 +28,7 @@ To precisely such control coercion, an explicit first cast may be used as in
 ```
 Union values can be created by reading external data (SUP files,
 database data, JSON objects, etc),
-by constructing instances with a [type cast](../expressions.md#casts)
+by constructing instances with a [type cast](../expressions/cast.md)
 as above, or with other SuperSQL functions or expressions that produce unions
 like the [`fuse`](../operators/fuse.md) operator.
 
@@ -104,7 +104,7 @@ Instead, union values are simply operated upon and the "right thing happens".
 
 That said, union dispatch may be accomplished with the
 [`switch`](../operators/switch.md) operator or a
-[`case`](../expressions.md#conditional) expression.
+[`case`](../expressions/conditional.md) expression.
 
 For example, `switch` can be used to route union values to different
 branches of a query:

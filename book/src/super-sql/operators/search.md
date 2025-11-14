@@ -32,7 +32,7 @@ a search term is one of:
 
 ##### Regular Expression
 
-A search term may be a [regular expression](../patterns.md#regular-expression).
+A search term may be a [regular expression](../queries.md#regular-expression).
 
 To create a regular expression search term, the expression text is
 prefixed and suffixed with a `/`.  This distinguishes a regular
@@ -48,7 +48,7 @@ searches for the string `"foo|bar"`.
 
 ##### Glob
 
-A search term may be a [glob](../patterns.md#glob).
+A search term may be a [glob](../queries.md#glob).
 
 Globs are distinguished from keywords by the presence of any wildcard
 `*` character.  To search for a string containing such a character,
@@ -150,7 +150,7 @@ where (123 in this or grep("123", this))
 ```
 
 Complex values are not supported as search terms but may be queried with
-the ["in"](../expressions.md#containment) operator, e.g.,
+the [in](../expressions/containment.md) operator, e.g.,
 ```
 {s:"foo"} in this
 ```
@@ -161,7 +161,7 @@ Any Boolean-valued [function](../functions/intro.md) like
 [`is`](../functions/types/is.md),
 [`has`](../functions/generics/has.md),
 [`grep`](../functions/strings/grep.md),
-etc. and any [comparison expression](../expressions.md#comparisons)
+etc. and any [comparison expression](../expressions/comparisons.md)
 may be used as a search term and mixed into a search expression.
 
 For example,
