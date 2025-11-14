@@ -24,7 +24,7 @@ The inverse of `in` has the syntax
 ```
 and is true when `<item>` is not contained in the `<target>`.
 
-> _The `in` operator currently does not support SQL NULL semantics in that 
+> _The `in` operator currently does not support SQL NULL semantics in that
 > `1 not in [2,NULL]` is false instead of NULL.  This will be fixed
 > in a future version._
 

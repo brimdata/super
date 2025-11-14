@@ -27,7 +27,6 @@ This does not affect the binding of the type used in other expressions in the qu
 Types can also be bound to identifiers without creating a named type using a
 [constant](constants.md) declaration binding the name to a [type value](../types/type.md).
 
-
 ### Examples
 
 ---

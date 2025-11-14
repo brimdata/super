@@ -10,7 +10,7 @@ Any number may be signed with a unary operator having the form:
 ```
 - <expr>
 ```
-and 
+and
 ```
 + <expr>
 ```
@@ -33,4 +33,3 @@ error("divide by zero")
 1
 -1
 ```
-

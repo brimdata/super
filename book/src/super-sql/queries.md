@@ -1,7 +1,7 @@
 ## Queries
 
 The syntactical structure of a query consists of
-* an optional concatenation of [declarations](declarations/intro.md), 
+* an optional concatenation of [declarations](declarations/intro.md),
   followed by
 * a sequence of [pipe operators](operators/intro.md)
   separated by a pipe symbol (`|` or `|>`).

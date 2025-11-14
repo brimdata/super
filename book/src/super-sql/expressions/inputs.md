@@ -1,7 +1,7 @@
 ## Inputs
 
 Input data is processed by queries through expressions that contain
-input-data references. 
+input-data references.
 
 In [pipe scoping](../intro.md#pipe-scoping), input data
 is always referenced as the special value `this`.
@@ -34,8 +34,7 @@ thus the select value is empty, i.e., the value `{}`.
 
 When non-record data is referenced in a SQL operator and the input
 schema is dynamic and unknown, runtime errors like `error("missing")`
-will generally arise and be present in the output data. 
-
+will generally arise and be present in the output data.
 
 ### Examples
 

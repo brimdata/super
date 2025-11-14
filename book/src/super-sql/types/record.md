@@ -84,7 +84,6 @@ null
 
 _A record expression with spreads operating on various input values_
 
-
 ```mdtest-spq
 # spq
 values {a:0},{x}, {...r}, {a:0,...r,b:3}

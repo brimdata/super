@@ -18,7 +18,7 @@ The result of a dot expression is
 * the value of the indicated entry for a map with string keys, or
 * the type value of the indicated field for a record type value.
 
-When a field or key is referenced in a dereferenceable type but that 
+When a field or key is referenced in a dereferenceable type but that
 field or key is not present, then `error("missing")` is the result.
 
 If a non-dereferenceable type is operated upon with the dot operator,

@@ -16,7 +16,7 @@ Sliceable entities include
 [bytes](../types/bytes.md).
 
 The value `<from>` and `<to>` represent a range of index values
-to form a subset of elements from the `<entity>` term provided. 
+to form a subset of elements from the `<entity>` term provided.
 The range begins at the `<from>` position and ends one element before
 the `<to>` position.  A negative value of `<from>` or `<to>` represents
 a position relative to the end of the value being sliced.

@@ -395,7 +395,7 @@ type checking, instead creating runtime errors when type errors are encountered.
 In other words, dynamic data is statically type checked when possible.
 This works by computing fused types of each operator's output and propagating
 these types in a dataflow analysis.  When types are unknown, the
-analysis flexibly models them as having any possible type. 
+analysis flexibly models them as having any possible type.
 
 For example, this query produces the expected output
 ```

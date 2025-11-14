@@ -10,8 +10,8 @@ The binary comparison operators have the form
 where `<op>` is one of
 * `<` for less than,
 * `<=` for less than or equal,
-*  `>` for greater than
-*  `>=` for greater than or equal,
+* `>` for greater than
+* `>=` for greater than or equal,
 * `==` or `=` for equal,
 * `!=` or `<>` for not equal, or
 * `like` or `not like` for the SQL string pattern matching.
@@ -42,7 +42,7 @@ The `like` comparator has the form
 ```
 <expr> like <pattern>
 ```
-where `<expr>` is any expression that produces a string type and `<pattern>` 
+where `<expr>` is any expression that produces a string type and `<pattern>`
 is a constant expression that results in a string type.
 
 > _Currently, `<pattern>` must be a constant value and cannot depend on the input.
@@ -132,4 +132,3 @@ error("missing")
 null::string
 error("missing")
 ```
-

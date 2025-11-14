@@ -17,7 +17,7 @@ values {s:(values "hello, world" | upper(this))}
 results in in the value `{s:"HELLO, WORLD"}`.
 
 Except for subqueries appearing as the right-hand side of
-an [in](containment.md) operator, the result of a subquery must be a single value. 
+an [in](containment.md) operator, the result of a subquery must be a single value.
 When multiple values are generated, an error is produced.
 
 For the [in](containment.md) operator, any subquery on the right-hand side is
@@ -52,7 +52,7 @@ values {a:(values 1,2,3 | values this+1 | collect(this))}
 
 A subquery that depends on its input as described above is called a _dependent subquery_.
 
-When the subquery ignores its input value, e.g., when it begins with 
+When the subquery ignores its input value, e.g., when it begins with
 a [from](../operators/from.md) operator, then they query is called an _independent subquery_.
 
 For efficiency, the system materializes independent subqueries so that they are evaluated
@@ -87,7 +87,7 @@ A correlated subquery can always be rewritten as a pipe subquery using
 ```
 unnest {outer:this,inner:[<query>]}
 ```
-where `<query>` generates the correlated subquery values, then they can 
+where `<query>` generates the correlated subquery values, then they can
 be accessed as if the `outer` field is the outer scope and the `inner` field
 is the subquery scope.
 
@@ -145,7 +145,6 @@ fn addOne(node): case typeof(node) when <int64> then node+1 else node end
 ```
 then each leaf value of the nested value of type `int64` would be incremented
 while the other leaves would be left alone.  See the example below.
-
 
 ### Examples
 

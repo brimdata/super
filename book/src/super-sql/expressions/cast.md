@@ -196,7 +196,6 @@ values this::[ip]
 [10.0.0.1,10.0.0.2]
 ```
 
-
 ---
 
 _Cast a record to a different record type_

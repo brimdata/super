@@ -15,7 +15,7 @@ The `cast` function implements a [cast](../../expressions/cast.md) where the tar
 of the cast is a [type value](../../types/type.md) instead of a type.
 
 In the first form,
-the function converts `val` to the type indicated by `target` in accordance 
+the function converts `val` to the type indicated by `target` in accordance
 with the semantics of the [expression cast](../../expressions/cast.md).
 
 In the second form, the target type is a [named type](../../types/named.md)
@@ -111,4 +111,3 @@ values cast(val, type)
 123.
 [true,false]
 ```
-

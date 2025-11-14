@@ -16,7 +16,7 @@ Pragmas must appear in the declaration section of a [scope](../queries.md#scope)
 
 Currently, there is just one supported pragma.
 
-* `index_base` - controls whether [index expressions](../expressions/index.md) and 
+* `index_base` - controls whether [index expressions](../expressions/index.md) and
     [slice expressions](../expressions/slices.md) are 0-based or 1-based.
     * `0` for zero-based indexing
     * `1` for one-based indexing

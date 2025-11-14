@@ -48,7 +48,7 @@ For example,
 ```
 lambda x:x+1 (2)
 ```
-is the value `3` and 
+is the value `3` and
 ```
 f(lambda x:x+1, 2)
 ```
@@ -156,4 +156,3 @@ parse error at line 2, column 11:
 values {x:&f}
       === ^ ===
 ```
-

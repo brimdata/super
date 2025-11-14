@@ -6,7 +6,7 @@ op <name> [<param> [, <param> ...]] : (
   <query>
 )
 ```
-where 
+where
 * `<name>` is an [identifier](../queries.md#identifiers)
   representing the name of the new operator,
 * each `<param>` is an [identifier](../queries.md#identifiers)
@@ -36,7 +36,6 @@ Operators do not support recursion.  They cannot call themselves nor can they
 form a mutually recursive dependency loop.
 However, operators can call other operators whose declaration is in scope
 as long as no dependency loop is formed.
-
 
 ### Closure-like Arguments
 

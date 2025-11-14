@@ -10,11 +10,10 @@ with the pipe operator form of FROM
 
 TODO: seciton on scoping
 
-see https://github.com/brimdata/super/issues/5974 (document this scoping)
+see [issue](https://github.com/brimdata/super/issues/5974)
 
 CTE scoping
 
 ### Input References
 
 ### Accessing `this`
-

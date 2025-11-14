@@ -24,7 +24,7 @@ their semantics diverges in some key ways:
 * SQL expressions that reference `this` have [semantics](../sql/intro.md#accessing-this)
   that depend on the SQL clause that expression appears in,
 * relational tables and/or columns cannot be referenced using aliases in pipe scoping,
-* double-quoted string literals may be used in pipe expressions but are interpreted 
+* double-quoted string literals may be used in pipe expressions but are interpreted
   as identifiers in SQL expressions.
 
 ### Expression Syntax

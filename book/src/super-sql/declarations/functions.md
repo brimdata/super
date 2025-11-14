@@ -86,7 +86,6 @@ values apply([1,2,3], 1)
 ```
 See the example below.
 
-
 ### Examples
 
 ---

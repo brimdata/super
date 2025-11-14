@@ -89,7 +89,7 @@ put lower:=lower(s), c:=a.b.c, `x+1`:=x+1
 
 In addition to the built-in operators,
 [new operators can be declared](../declarations/operators.md)
-that take parameters and operate on input just like the built-ins. 
+that take parameters and operate on input just like the built-ins.
 
 A declared operator is called using the `call` keyword:
 ```
@@ -185,4 +185,3 @@ put a:=x+1,b:=y-1
 ```
 When composing long-form queries that are shared via SuperDB Desktop or managed in GitHub,
 it is best practice to include all operator names in the query text.
-
