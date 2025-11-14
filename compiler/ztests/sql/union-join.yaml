@@ -1,0 +1,48 @@
+script: |
+  super -s -c "
+    select * from (
+      select 1 as x
+      union all
+      select 2 as y
+    )
+    join (
+      select 1 as y
+      union all
+      select 3 as z
+    ) on x=y"
+  echo // === 
+  super -s -c "
+    select *
+    from (values {x:1})
+    inner join (values {y:1}) on x = y
+    union all
+    select * from (values {y:2,z:2})
+    | sort this"
+  ! super -s -c "
+    select * from (
+      select 1 as x
+      union all
+      select 2 as y
+    )
+    join (
+      select 1 as x
+      union all
+      select 3 as z
+    ) on x=x"
+
+
+outputs:
+  - name: stdout
+    data: |
+      {x:1,y:1}
+      // ===
+      {x:1,y:1}
+      {x:2,y:2}
+  - name: stderr
+    data: |
+      "x": ambiguous column reference at line 11, column 8:
+        ) on x=x
+             ~
+      "x": ambiguous column reference at line 11, column 10:
+        ) on x=x
+               ~

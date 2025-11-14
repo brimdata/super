@@ -1,8 +1,8 @@
 spq: |
   WITH t AS (
-    SELECT 1
+    SELECT 1 x
       UNION ALL
-    SELECT x+1
+    SELECT x+1 x
     FROM   t
     WHERE  x < 200000
   )

@@ -1,24 +1,15 @@
-script: |
-  super -s -c 'SELECT * FROM a.sup UNION ALL SELECT * FROM b.sup UNION ALL SELECT * from c.sup |> sort x'
+spq: |
+  SELECT * FROM (values {x:1,y:2})
+    UNION ALL
+  SELECT * FROM (values {y:2,x:1}, {y:3,x:4})
+    UNION ALL
+  SELECT * from (values {x:5,z:10})
+  | sort x
 
 vector: true
 
-inputs:
-  - name: a.sup
-    data: |
-      {x:1,y:2}
-  - name: b.sup
-    data: |
-      {x:1,y:2}
-      {y:3,x:4}
-  - name: c.sup
-    data: |
-      {x:5}
-
-outputs:
-  - name: stdout
-    data: |
-      {x:1,y:2}
-      {x:1,y:2}
-      {y:3,x:4}
-      {x:5}
+output: |
+  {x:1,y:2}
+  {x:2,y:1}
+  {x:3,y:4}
+  {x:5,y:10}

@@ -6,6 +6,7 @@ import (
 	"maps"
 	"reflect"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/brimdata/super"
@@ -478,9 +479,38 @@ func (t *translator) sqlQueryBody(query ast.SQLQueryBody, seq sem.Seq) (sem.Seq,
 		return seq, sch
 	case *ast.SQLUnion:
 		left, leftSch := t.sqlQueryBody(query.Left, seq)
-		left, _ = endScope(query.Left.(ast.Node), leftSch, left)
+		left, leftSch = endScope(query.Left.(ast.Node), leftSch, left)
+		leftCols, lok := leftSch.outColumns()
+		if !lok {
+			t.error(query.Left, errors.New("set operations cannot be applied to dynamic sources"))
+		}
 		right, rightSch := t.sqlQueryBody(query.Right, seq)
-		right, _ = endScope(query.Right.(ast.Node), rightSch, right)
+		right, rightSch = endScope(query.Right.(ast.Node), rightSch, right)
+		rightCols, rok := rightSch.outColumns()
+		if !rok {
+			t.error(query.Right, errors.New("set operations cannot be applied to dynamic sources"))
+		}
+		if !lok || !rok {
+			return sem.Seq{badOp()}, badSchema()
+		}
+		if len(leftCols) != len(rightCols) {
+			t.error(query, errors.New("set operations can only be applied to sources with the same number of columns"))
+			return sem.Seq{badOp()}, badSchema()
+		}
+		if !slices.Equal(leftCols, rightCols) {
+			// Rename fields on the right to match the left.
+			var elems []sem.RecordElem
+			for i, col := range leftCols {
+				elems = append(elems, &sem.FieldElem{
+					Name: col,
+					Value: &sem.IndexExpr{
+						Expr:  sem.NewThis(nil, nil),
+						Index: &sem.LiteralExpr{Value: strconv.Itoa(i)},
+					},
+				})
+			}
+			right = append(right, sem.NewValues(nil, &sem.RecordExpr{Elems: elems}))
+		}
 		out := sem.Seq{
 			&sem.ForkOp{Node: query, Paths: []sem.Seq{left, right}},
 			// This used to be dag.Combine but we don't have combine in the sem tree,
@@ -492,7 +522,7 @@ func (t *translator) sqlQueryBody(query ast.SQLQueryBody, seq sem.Seq) (sem.Seq,
 		if query.Distinct {
 			out = t.genDistinct(sem.NewThis(query, nil), out)
 		}
-		return out, &dynamicSchema{}
+		return out, leftSch
 	default:
 		panic(query)
 	}

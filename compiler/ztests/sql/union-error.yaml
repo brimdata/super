@@ -1,0 +1,23 @@
+script: |
+  ! super -c 'select 1 x union all select 1 x, 1 y'
+  echo // === >&2
+  ! super -c 'select * from a.sup union all select * from a.sup'
+
+inputs:
+  - name: a.sup
+    data: |
+      {x:1}
+
+outputs:
+  - name: stderr
+    data: |
+      set operations can only be applied to sources with the same number of columns at line 1, column 1:
+      select 1 x union all select 1 x, 1 y
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      // ===
+      set operations cannot be applied to dynamic sources at line 1, column 1:
+      select * from a.sup union all select * from a.sup
+      ~~~~~~~~~~~~~~~~~~~
+      set operations cannot be applied to dynamic sources at line 1, column 31:
+      select * from a.sup union all select * from a.sup
+                                    ~~~~~~~~~~~~~~~~~~~
