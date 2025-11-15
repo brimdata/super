@@ -59,6 +59,27 @@ The [dev](dev.md) sub-command provides dev tooling for the advanced users or
 developers of SuperDB while the [compile](compile.md) command allows detailed
 interactions with various stages of the query compiler.
 
+### Supported Formats
+
+|  Option   | Auto | Extension | Specification                            |
+|-----------|------|-----------|------------------------------------------|
+| `arrows`  |  yes | `.arrows` | [Arrow IPC Stream Format](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format) |
+| `bsup`    |  yes | `.bsup` | [BSUP](../formats/bsup.md) |
+| `csup`    |  yes | `.csup` | [CSUP](../formats/csup.md) |
+| `csv`     |  yes | `.csv` | [Comma-Separated Values (RFC 4180)](https://www.rfc-editor.org/rfc/rfc4180.html) |
+| `json`    |  yes | `.json` | [JSON (RFC 8259)](https://www.rfc-editor.org/rfc/rfc8259.html) |
+| `jsup`   |  yes | `.jsup` | [Super over JSON (JSUP)](../formats/jsup.md) |
+| `line`    |  no  | n/a | One string value per input line |
+| `parquet` |  yes | `.parquet` | [Apache Parquet](https://github.com/apache/parquet-format) |
+| `sup`     |  yes | `.sup` | [SUP](../formats/sup.md) |
+| `tsv`     |  yes | `.tsv` | [Tab-Separated Values](https://en.wikipedia.org/wiki/Tab-separated_values) |
+| `zeek`    |  yes | `.zeek` | [Zeek Logs](https://docs.zeek.org/en/master/logs/index.html) |
+
+> _Best performance is achieved when operating on data in binary columnar formats
+> such as [CSUP](../formats/csup.md),
+> [Parquet](https://github.com/apache/parquet-format), or
+> [Arrow](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format)._
+
 ### Input
 
 When run detached from a database, `super` executes a query over inputs
@@ -89,10 +110,8 @@ if the data were provided by a single, concatenated `FROM` clause.
 
 If no input is specified,
 the query is fed a single `null` value analogous to SQL's default
-input of a single empty row of an unnamed table.
-
-This provides a convenient means to explore examples or run in a
-"calculator mode", e.g.,
+input of a single empty row of an unnamed table.  This provides a convenient means
+to run standalone examples or compute results like a calculator, e.g.,
 ```mdtest-command
 super -s -c '1+1'
 ```
@@ -102,34 +121,6 @@ for `values 1+1` and emits
 2
 ```
 
-`super` currently supports the following input formats:
-
-|  Option   | Auto | Extension | Specification                            |
-|-----------|------|-----------|------------------------------------------|
-| `arrows`  |  yes | `.arrows` | [Arrow IPC Stream Format](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format) |
-| `bsup`    |  yes | `.bsup` | [BSUP](../formats/bsup.md) |
-| `csup`    |  yes | `.csup` | [CSUP](../formats/csup.md) |
-| `csv`     |  yes | `.csv` | [Comma-Separated Values (RFC 4180)](https://www.rfc-editor.org/rfc/rfc4180.html) |
-| `json`    |  yes | `.json` | [JSON (RFC 8259)](https://www.rfc-editor.org/rfc/rfc8259.html) |
-| `jsup`   |  yes | `.jsup` | [Super over JSON (JSUP)](../formats/jsup.md) |
-| `line`    |  no  | n/a | One string value per input line |
-| `parquet` |  yes | `.parquet` | [Apache Parquet](https://github.com/apache/parquet-format) |
-| `sup`     |  yes | `.sup` | [SUP](../formats/sup.md) |
-| `tsv`     |  yes | `.tsv` | [Tab-Separated Values](https://en.wikipedia.org/wiki/Tab-separated_values) |
-| `zeek`    |  yes | `.zeek` | [Zeek Logs](https://docs.zeek.org/en/master/logs/index.html) |
-
-> _Best performance is achieved when operating on data in binary columnar formats
-> such as [CSUP](../formats/csup.md),
-> [Parquet](https://github.com/apache/parquet-format), or
-> [Arrow](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format)._
-
-For most types of data, the input format is automatically detected as indicated
-by a "yes" in the "Auto" column above.
-If multiple files are specified, each file format is determined independently
-so you can mix and match input types.
-
-Formats without auto-detection require the `-i` option.
-
 #### Hard-wired Input Format
 
 The input format is specified with the `-i` flag.
@@ -137,11 +128,24 @@ The input format is specified with the `-i` flag.
 When `-i` is specified, all of the inputs on the command-line must be
 in the indicated format.
 
-#### Auto-detection
+#### Format Detection
 
-> **TODO: clarify any format inference based on file extension.**
+In general, `super` _just works_ when it comes to automatically inferring
+the data formats of its inputs.
 
-Without `-i`, `super` uses _auto-detection to infer each input's format.
+For files with a well known extension (like `.json`, `.parquet`, `.sup` etc.),
+the format is implied by the extension.
+
+For standard input or files without a recognizable extension, `super` attempts
+to detect the format by reading and parsing some of the data.
+
+To override these format inference heuristics, `-i` may be used to specify
+the input formats of command-line files or the `(format)` option of a data source
+specified in a [from](../super-sql/operators/from.md) operator.
+
+When `-i` is used, all of the input files must have the same format.
+Without `-i`, each file format is determined independently so you can
+mix and match input formats.
 
 For example, suppose this content is in a file `sample.csv`:
 ```mdtest-input sample.csv
@@ -163,6 +167,13 @@ would produce this output in the default SUP format
 {a:2.,b:"bar"}
 {a:3,b:"baz"}
 ```
+Note that the `line` format cannot be automatically detected and
+requires `-i` or `(format line)` for reading.
+
+> **TODO: Parquet and CSUP require a seekable input and cannot be operated upon
+> when read on standard input.
+>  It seems like this should change given the pipe-able nature of super and
+>  the desire to make CSUP be the default output to a non-terminal output.**
 
 #### JSON vs SUP Autodetection
 
@@ -203,12 +214,51 @@ output format is [SUP](../formats/sup.md).
 Otherwise, the default format is [CSUP](../formats/csup.md).
 In either case, the default may be overridden with `-f`, `-s`, or `-S`.
 
+> _Having the default output format dependent on the terminal status
+> causes an occasional surprise
+> (e.g., forgetting `-f` or `-s` in a scripted test that works fine on the
+> command line but fails in CI), this avoids problematic performance where a
+> data pipeline deployed to product accidentally uses SUP instead of CSUP.
+> Since `super` gracefully handles any input, this would be hard to detect.
+> Alternatively, making CSUP the default would cause much annoyance when
+> binary data is written to the terminal._
+
 If no query is specified with `-c`, the inputs are scanned without modification
 and output in the specified format
 providing a convenient means to convert files from one format to another, e.g.,
 ```
 super -f arrows file1.json file2.parquet file3.csv > file-combined.arrows
 ```
+
+`super` supports the following output formats:
+
+|  Option   | Specification                            |
+|-----------|------------------------------------------|
+| `arrows`  | [Arrow IPC Stream Format](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format) |
+| `bsup`    | [BSUP](../formats/bsup.md) |
+| `csup`    | [CSUP](../formats/csup.md) |
+| `csv`     | [Comma-Separated Values (RFC 4180)](https://www.rfc-editor.org/rfc/rfc4180.html) |
+| `db`      | [SuperDB Database Metadata Output](#superdb-data-lake-metadata-output) |
+| `json`    | [JSON (RFC 8259)](https://www.rfc-editor.org/rfc/rfc8259.html) |
+| `line`    | (described [below](#simplified-text-outputs)) |
+| `parquet` | [Apache Parquet](https://github.com/apache/parquet-format) |
+| `sup`     | [SUP](../formats/sup.md) |
+| `table`   | (described [below](#simplified-text-outputs)) |
+| `text`    | (described [below](#simplified-text-outputs)) |
+| `tsv`     | [Tab-Separated Values](https://en.wikipedia.org/wiki/Tab-separated_values) |
+| `zeek`    | [Zeek Logs](https://docs.zeek.org/en/master/logs/index.html) |
+| `zjson`   | [SUP over JSON (JSUP)](../formats/zjson.md) |
+
+The output format defaults to either SUP or BSUP and may be specified
+with the `-f` option.
+
+Since SUP is a common format choice for interactive use,
+the `-s` flag is shorthand for `-f sup`. 
+Also, `-S` is a shortcut for `-f sup` with `-pretty 4` as
+[described below](#pretty-printing).
+
+And since plain JSON is another common format choice, the `-j` flag is a shortcut for
+`-f json` and `-J` is a shortcut for pretty printing JSON.
 
 Some output formats like Parquet are based on
 schemas and require all data in the output to conform to the same
@@ -244,9 +294,6 @@ super -c <query> fast.bsup
 ==OUTPUT==
 
 
-
-
-
 ## Data Formats
 
 `super` supports a number of [input](#input-formats) and [output](#output-formats) formats, but the
@@ -262,61 +309,15 @@ each input's format is [automatically inferred](#auto-detection)
 and each input is scanned
 in the order appearing on the command line forming the input stream.
 
-### Input Formats
 
-
-
-
-### Output Formats
-
-`super` currently supports the following output formats:
-
-|  Option   | Specification                            |
-|-----------|------------------------------------------|
-| `arrows`  | [Arrow IPC Stream Format](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format) |
-| `bsup`    | [BSUP](../formats/bsup.md) |
-| `csup`    | [CSUP](../formats/csup.md) |
-| `csv`     | [Comma-Separated Values (RFC 4180)](https://www.rfc-editor.org/rfc/rfc4180.html) |
-| `db`      | [SuperDB Database Metadata Output](#superdb-data-lake-metadata-output) |
-| `json`    | [JSON (RFC 8259)](https://www.rfc-editor.org/rfc/rfc8259.html) |
-| `line`    | (described [below](#simplified-text-outputs)) |
-| `parquet` | [Apache Parquet](https://github.com/apache/parquet-format) |
-| `sup`     | [SUP](../formats/sup.md) |
-| `table`   | (described [below](#simplified-text-outputs)) |
-| `text`    | (described [below](#simplified-text-outputs)) |
-| `tsv`     | [Tab-Separated Values](https://en.wikipedia.org/wiki/Tab-separated_values) |
-| `zeek`    | [Zeek Logs](https://docs.zeek.org/en/master/logs/index.html) |
-| `zjson`   | [SUP over JSON (JSUP)](../formats/zjson.md) |
-
-The output format defaults to either SUP or BSUP and may be specified
-with the `-f` option.
-
-Since SUP is a common format choice for interactive use,
-the `-s` flag is shorthand for `-f sup`. 
-Also, `-S` is a shortcut for `-f sup` with `-pretty 4` as
-[described below](#pretty-printing).
-
-And since plain JSON is another common format choice, the `-j` flag is a shortcut for
-`-f json` and `-J` is a shortcut for pretty printing JSON.
 
 #### Output Format Selection
 
 When the format is not specified with `-f`, it defaults to SUP if the output
 is a terminal and to BSUP otherwise.
 
-While this can cause an occasional surprise (e.g., forgetting `-f` or `-s`
-in a scripted test that works fine on the command line but fails in CI),
-we felt that the design of having a uniform default had worse consequences:
-* If the default format were SUP, it would be very easy to create pipelines
-and deploy to production systems that were accidentally using SUP instead of
-the much more efficient BSUP format because the `-f bsup` had been mistakenly
-omitted from some command.  The beauty of SuperDB is that all of this "just works"
-but it would otherwise perform poorly.
-* If the default format were BSUP, then users would be endlessly annoyed by
-binary output to their terminal when forgetting to type `-f sup`.
 
-In practice, we have found that the output defaults
-"just do the right thing" almost all of the time.
+
 
 #### Pretty Printing
 
