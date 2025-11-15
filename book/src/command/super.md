@@ -96,8 +96,8 @@ This provides a convenient means to explore examples or run in a
 ```mdtest-command
 super -s -c '1+1'
 ```
-which is [shorthand](../super-sql/operators/intro.md#shortcuts)
-for `values 1+1`, emits
+is [shorthand](../super-sql/operators/intro.md#shortcuts)
+for `values 1+1` and emits
 ```mdtest-output
 2
 ```
@@ -195,16 +195,20 @@ typically omit quotes around field names.
 
 > **TODO: make CSUP not BSUP the default output format when not a terminal.**
 
-Output is written to one or more files or to standard output in the
-format specified `-f`, which if omitted, defaults to [SUP](../formats/sup.md).
-
-Output is sent to standard output unless an output file is
-specified with -o.
+Output is written to standard output by default or, if `-o` is specified,
+to the indicated file or directory.
 
 When writing to stdout and stdout is a terminal, the default
 output format is [SUP](../formats/sup.md).
 Otherwise, the default format is [CSUP](../formats/csup.md).
 In either case, the default may be overridden with `-f`, `-s`, or `-S`.
+
+If no query is specified with `-c`, the inputs are scanned without modification
+and output in the specified format
+providing a convenient means to convert files from one format to another, e.g.,
+```
+super -f arrows file1.json file2.parquet file3.csv > file-combined.arrows
+```
 
 Some output formats like Parquet are based on
 schemas and require all data in the output to conform to the same
@@ -239,12 +243,7 @@ super -c <query> fast.bsup
 
 ==OUTPUT==
 
-If no query is specified with `-c`, the inputs are scanned without modification
-and output in the desired format as [described below](#input-formats),
-providing a convenient means to convert files from one format to another, e.g.,
-```
-super -f arrows file1.json file2.parquet file3.csv > file-combined.arrows
-```
+
 
 
 
@@ -292,8 +291,9 @@ in the order appearing on the command line forming the input stream.
 The output format defaults to either SUP or BSUP and may be specified
 with the `-f` option.
 
-Since SUP is a common format choice, the `-s` flag is a shortcut for
-`-f sup`.  Also, `-S` is a shortcut for `-f sup` with `-pretty 4` as
+Since SUP is a common format choice for interactive use,
+the `-s` flag is shorthand for `-f sup`. 
+Also, `-S` is a shortcut for `-f sup` with `-pretty 4` as
 [described below](#pretty-printing).
 
 And since plain JSON is another common format choice, the `-j` flag is a shortcut for
