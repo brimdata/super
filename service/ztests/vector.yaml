@@ -24,10 +24,10 @@ outputs:
   - name: stdout
     data: |
       {
-          min: null,
-          max: null,
-          count: 5::uint64,
-          size: 72
+        min: null,
+        max: null,
+        count: 5::uint64,
+        size: 72
       }
       ===
       ===

@@ -28,10 +28,10 @@ outputs:
       p2 \w{27} key ts order desc
       ===
       {
-          name: "p1"
+        name: "p1"
       }
       {
-          name: "p2"
+        name: "p2"
       }
       ===
       name

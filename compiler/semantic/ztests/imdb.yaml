@@ -76,66 +76,66 @@ outputs:
   - name: stdout
     data: |
       {
-          title: "Baby Driver",
-          director: [
-              "Edgar Wright"
-          ],
-          writer: [
-              "Edgar Wright"
-          ],
-          genres: [
-              "Action",
-              "Crime",
-              "Drama"
-          ],
-          actors: [
-              {
-                  name: "Ansel Elgort",
-                  characters: [
-                      "Baby"
-                  ]
-              },
-              {
-                  name: "Jon Bernthal",
-                  characters: [
-                      "Griff"
-                  ]
-              },
-              {
-                  name: "Jon Hamm",
-                  characters: [
-                      "Buddy"
-                  ]
-              },
-              {
-                  name: "Micah Howard",
-                  characters: [
-                      "Barista"
-                  ]
-              },
-              {
-                  name: "Morgan Brown",
-                  characters: [
-                      "Street Preacher"
-                  ]
-              },
-              {
-                  name: "Kevin Spacey",
-                  characters: [
-                      "Doc"
-                  ]
-              },
-              {
-                  name: "Morse Diggs",
-                  characters: [
-                      "Morse Diggs"
-                  ]
-              },
-              {
-                  name: "CJ Jones",
-                  characters: [
-                      "Joseph"
-                  ]
-              }
-          ]
+        title: "Baby Driver",
+        director: [
+          "Edgar Wright"
+        ],
+        writer: [
+          "Edgar Wright"
+        ],
+        genres: [
+          "Action",
+          "Crime",
+          "Drama"
+        ],
+        actors: [
+          {
+            name: "Ansel Elgort",
+            characters: [
+              "Baby"
+            ]
+          },
+          {
+            name: "Jon Bernthal",
+            characters: [
+              "Griff"
+            ]
+          },
+          {
+            name: "Jon Hamm",
+            characters: [
+              "Buddy"
+            ]
+          },
+          {
+            name: "Micah Howard",
+            characters: [
+              "Barista"
+            ]
+          },
+          {
+            name: "Morgan Brown",
+            characters: [
+              "Street Preacher"
+            ]
+          },
+          {
+            name: "Kevin Spacey",
+            characters: [
+              "Doc"
+            ]
+          },
+          {
+            name: "Morse Diggs",
+            characters: [
+              "Morse Diggs"
+            ]
+          },
+          {
+            name: "CJ Jones",
+            characters: [
+              "Joseph"
+            ]
+          }
+        ]
       }

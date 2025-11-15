@@ -25,42 +25,42 @@ outputs:
   - name: stdout
     data: |
       {
-          name: "poolA",
-          layout: {
-              order: "asc"::=order.Which,
-              keys: [
-                  [
-                      "a"
-                  ]::=field.Path
-              ]::=field.List
-          }::=order.SortKey,
-          seek_stride: 65536,
-          threshold: 524288000
+        name: "poolA",
+        layout: {
+          order: "asc"::=order.Which,
+          keys: [
+            [
+              "a"
+            ]::=field.Path
+          ]::=field.List
+        }::=order.SortKey,
+        seek_stride: 65536,
+        threshold: 524288000
       }
       {
-          name: "poolB",
-          layout: {
-              order: "desc"::=order.Which,
-              keys: [
-                  [
-                      "b"
-                  ]::=field.Path
-              ]::=field.List
-          }::=order.SortKey,
-          seek_stride: 65536,
-          threshold: 524288000
+        name: "poolB",
+        layout: {
+          order: "desc"::=order.Which,
+          keys: [
+            [
+              "b"
+            ]::=field.Path
+          ]::=field.List
+        }::=order.SortKey,
+        seek_stride: 65536,
+        threshold: 524288000
       }
       ===
       {
-          nameof: "data.Object",
-          min: 1,
-          max: 2,
-          count: 2::uint64,
-          size: 18
+        nameof: "data.Object",
+        min: 1,
+        max: 2,
+        count: 2::uint64,
+        size: 18
       }
       {
-          nameof: "db.BranchTip"
+        nameof: "db.BranchTip"
       }
       {
-          nameof: "Commit"
+        nameof: "Commit"
       }
