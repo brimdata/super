@@ -1,4 +1,4 @@
-## Command
+# Command
 
 &emsp; **super** &mdash; invoke or manage SuperDB
 

@@ -1,7 +1,4 @@
----
-weight: 1
-title: For jq Users
----
+## For jq Users
 
 [SuperSQL](../language/_index.md)’s pipes and shortcuts provide a flexible and powerful way for SQL
 users to query their JSON data while leveraging their existing skills.
@@ -35,7 +32,7 @@ If you want to follow along on the command line,
 just make sure the `super` command [is installed](../getting_started/install.md)
 as well as [`jq`](https://jqlang.org/download/).
 
-## But JSON
+### But JSON
 
 While `super` is based on a new type of [data model](../formats/data-model.md),
 its human-readable format [Super (SUP)](../formats/sup.md) just so
@@ -56,16 +53,11 @@ To this end, if you want full JSON compatibility without having to delve into th
 details of SUP, just use the `-j` option with `super` and this will tell it to
 expect JSON values as input and produce JSON values as output, much like `jq`.
 
-{{% tip "Tip" %}}
+> _If your downstream JSON tooling expects only a single JSON value, we can use
+> `-j` along with [collect](../super-sql/aggregates/collect.md) to aggregate
+> multiple input values into an array._
 
-If your downstream JSON tooling expects only a single JSON value, we can use
-`-j` along with [`collect()`](../language/aggregates/collect.md) to aggregate
-multiple input values into an array. A `collect()` example is shown
-[later in this tutorial](#running-analytics).
-
-{{% /tip %}}
-
-## `this` vs `.`
+### `this` vs `.`
 
 For example, to add 1 to some numbers with `jq`, you say:
 ```
@@ -90,17 +82,10 @@ which also gives
 4
 ```
 
-{{% tip "Note" %}}
+> _We are using the `-s` option with `super` in all of the examples,
+> which formats the output as [SUP](../formats/sup.md)._
 
-We are using the `-s` option with `super` in all of the examples,
-which formats the output as [SUP](../formats/sup.md).
-When running `super` on the terminal, you do not need `-s` as it is the default,
-but we include it here for clarity and because all of these examples are
-run through automated testing, which is not attached to a terminal.
-
-{{% /tip %}}
-
-## Search vs Transformation
+### Search vs Transformation
 
 Generally, `jq` leads with _transformation_. By comparison, `super` leads with _search_, but
 transformation is also pretty easy.  Let's show what we mean here with an
@@ -169,7 +154,7 @@ now gives the same answer as `jq`:
 Cool, but doesn't it seem like search is a better disposition for
 shorthand syntax?  What do you think?
 
-## On to SUP
+### On to SUP
 
 JSON is super easy and ubiquitous, but it can be limiting and frustrating when
 trying to do high-precision stuff with data.
@@ -225,7 +210,7 @@ produces
 {"":{}}
 ```
 
-## Comprehensive Types
+### Comprehensive Types
 
 SUP also has a [comprehensive type system](../formats/data-model.md).
 
@@ -292,13 +277,13 @@ Finally, `v11` is a "[record](../formats/data-model.md#21-record)", which is sim
 keys are called "fields" and the order of the fields is significant and
 is always preserved.
 
-## Records
+### Records
 
 As is often the case with semi-structured systems, you deal with
 nested values all the time: in JSON, data is nested with objects and arrays,
 while in super-structured data, data is nested with "records" and arrays (as well as other complex types).
 
-[Record expressions](../language/expressions.md#record-expressions)
+[Record expressions](../super-sql/types/record.md#record-expressions)
 are rather flexible with `super` and look a bit like JavaScript
 or `jq` syntax, e.g.,
 ```mdtest-command
@@ -341,7 +326,7 @@ produces
 {d:2,s:"bar"}
 ```
 
-## Record Mutation
+### Record Mutation
 
 Sometimes you just want to extract or mutate certain fields of records.
 
@@ -398,10 +383,10 @@ produces
 {val:1}
 ```
 
-## Union Types
+### Union Types
 
 One of the tricks `super` uses to represent JSON data in its structured type system
-is [union types](../language/expressions.md#union-values).
+is [union types](../super-sql/types/union.md).
 Most of the time, you don't need to worry about unions
 but they show up from time to time.  Even when
 they show up, `super` just tries to "do the right thing" so you usually
@@ -435,7 +420,7 @@ while also having a very precise type definition.  This is the essence
 of the new
 [super-structured data model](../formats/_index.md#2-a-super-structured-pattern).
 
-## First-class Types
+### First-class Types
 
 Note that in the type value above, the type is wrapped in angle brackets.
 This is how SUP represents types when expressed as values.
@@ -443,7 +428,7 @@ In other words, the super data model has
 [first-class](https://en.wikipedia.org/wiki/First-class_citizen) types.
 
 The type of any value in `super` can be accessed via the
-[`typeof` function](../language/functions/typeof.md), e.g.,
+[typeof](../super-sql/functions/typeof.md) function, e.g.,
 ```mdtest-command
 echo '1 "foo" 10.0.0.1' | super -s -c 'values typeof(this)' -
 ```
@@ -457,7 +442,7 @@ What's the big deal here?  We can print out the type of something.  Yawn.
 
 Au contraire, this is really quite powerful because we can
 use types as values to functions, e.g., as a dynamic argument to
-the [`cast` function](../language/functions/cast.md):
+the [cast](../language/functions/cast.md) function:
 ```mdtest-command
 echo '{a:0,b:"2"}{a:0,b:"3"}' | super -s -c 'values cast(b, typeof(a))' -
 ```
@@ -516,11 +501,11 @@ produces
 false
 ```
 
-## Shapes
+### Shapes
 
 Sometimes you'd like to see a sample value of each shape, not its type.
-This is easy to do with the [`any` aggregate function](../language/aggregates/any.md),
-e.g.,
+This is easy to do with the
+[any](../super-sql/aggregates/any.md) aggregate function, e.g.,
 ```mdtest-command
 echo '{x:1,y:2}{s:"foo"}{x:3,y:4}' |
   super -s -c 'val:=any(this) by typeof(this) | sort val | values val' -
@@ -540,7 +525,7 @@ emits the same result:
 {x:1,y:2}
 ```
 
-## Fuse
+### Fuse
 
 Sometimes JSON data can get really messy with lots of variations in fields,
 with null values appearing sometimes and sometimes not, and with the same
@@ -598,7 +583,7 @@ your interactive search results to `fuse | shapes`.
 
 To appreciate all this, let's have a look next at some real-world data...
 
-## Real-world GitHub Data
+### Real-world GitHub Data
 
 Now that we've covered the basics of `super` and its query language, let's
 use the query patterns from above to explore some GitHub data.
@@ -613,18 +598,14 @@ super -f json \
   > prs.json
 ```
 
-{{% tip "Note" %}}
-
-As we get into the exercise below, we'll reach a step where we encounter some
-unexpected empty objects in the original data. It seems the GitHub API
-must have been having a bad day when we first ran this exercise, as these
-empty records no longer appear if the download is repeated today using the same
-URL shown above. But taming glitchy data is a big part of data discovery, so to
-relive the magic of our original experience, you can download
-[this archived copy](https://superdb.org/docs/tutorials/prs.json) of the
-`prs.json` we originally saw.
-
-{{% /tip %}}
+> _As we get into the exercise below, we'll reach a step where we encounter some
+> unexpected empty objects in the original data. It seems the GitHub API
+> must have been having a bad day when we first ran this exercise, as these
+> empty records no longer appear if the download is repeated today using the same
+> URL shown above. But taming glitchy data is a big part of data discovery, so to
+> relive the magic of our original experience, you can download
+> [this archived copy](https://superdb.org/docs/tutorials/prs.json) of the
+> `prs.json` we originally saw._
 
 Now that you have this JSON file on your local file system, how would you query it
 with `super`?
@@ -690,13 +671,9 @@ Maybe we can just use "shapes" to have a deeper look...
 super -S -c 'unnest this | shapes' prs.json
 ```
 
-{{% tip "Tip" %}}
-
-Here we are using `-S`, which is like `-s`, but instead of formatting each
-SUP value on its own line, it pretty-prints with vertical
-formatting like `jq` does for JSON.
-
-{{% /tip %}}
+> _Here we are using `-S`, which is like `-s`, but instead of formatting each
+> SUP value on its own line, it pretty-prints with vertical
+> formatting like `jq` does for JSON._
 
 Ugh, that output is still pretty big.  It's not 10k lines but it's still
 more than 700 lines of pretty-printed SUP.
@@ -897,12 +874,8 @@ which gives
 {type:<null>,fields:|["assignee","milestone","auto_merge","active_lock_reason"]|}
 ```
 
-{{% tip "Note" %}}
-
-This use of `over` traverses each record and generates a key-value pair
-for each field in each record.
-
-{{% /tip %}}
+> _This use of `over` traverses each record and generates a key-value pair
+> for each field in each record._
 
 Looking through the fields that are strings, the candidates for ISO dates appear
 to be
@@ -951,15 +924,12 @@ which now gives:
 ```
 and we can see that the date fields are correctly typed as type `time`!
 
-{{% tip "Note" %}}
+> _We sorted the output values here using the
+> [sort](../language/operators/sort.md) operator
+> to produce a consistent output order since aggregations can be run in parallel
+> to achieve scale and do not guarantee their output order._
 
-We sorted the output values here using the [`sort` operator](../language/operators/sort.md)
-to produce a consistent output order since aggregations can be run in parallel
-to achieve scale and do not guarantee their output order.
-
-{{% /tip %}}
-
-## Putting It All Together
+### Putting It All Together
 
 Instead of running each step above into a temporary file, we can
 put all the transformations together in a single
@@ -975,11 +945,7 @@ unnest this                      -- traverse the array of objects
   updated_at:=updated_at::time
 ```
 
-{{% tip "Note" %}}
-
-The `--` syntax indicates a single-line comment.
-
-{{% /tip %}}
+> _The `--` syntax indicates a single-line comment._
 
 We can then put this in a file, called say `transform.spq`, and use the `-I`
 argument to run all the transformations in one fell swoop:
@@ -987,7 +953,7 @@ argument to run all the transformations in one fell swoop:
 super -I transform.spq prs.json > prs.bsup
 ```
 
-## Running Analytics
+### Running Analytics
 
 Now that we've cleaned up our data, we can reliably and easily run analytics
 on the finalized BSUP file `prs.bsup`.
@@ -1290,7 +1256,7 @@ produces
 {"user":"nwt","groups":[["aswan"],["aswan","mattnibs"],["henridf","mattnibs"],["mccanne","mattnibs"]]}
 ```
 
-## Key Takeaways
+### Key Takeaways
 
 So to summarize, we gave you a tour here of how `super` the super data model
 provide a powerful way do search, transformation, and analytics in a structured-like
@@ -1306,6 +1272,6 @@ of tricks to:
 clean data for analysis by `super` or even export into other systems or for testing.
 
 If you'd like to learn more, feel free to read through the
-[language docs](../language/_index.md) in depth
-or see how you can organize [data into a lake](../commands/super-db.md)
+[SuperSQL](../super-sql/index.md) documentation in depth
+or see how you can organize [data into a SuperDB database](../command/db.md)
 using a git-like commit model.

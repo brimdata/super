@@ -197,7 +197,7 @@
     - [Shaping](tutorials/shaping.md)
     - [Database](tutorials/database.md)
     - [Performance](tutorials/performance.md)
-    - [Comparing with JQ](tutorials/jq.md)
+    - [For jq Users](tutorials/jq.md)
 - [Formats](formats/intro.md)
     - [Data Model](formats/model.md)
     - [Super (SUP)](formats/sup.md)
