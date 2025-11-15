@@ -48,183 +48,183 @@ outputs:
     data: |
       // === multifrom.spq ===
       {
-          "sources": [
+        "sources": [
+          {
+            "kind": "Pool",
+            "name": "test1",
+            "id": "XXX"
+          },
+          {
+            "kind": "Pool",
+            "name": "test2",
+            "id": "XXX"
+          }
+        ],
+        "channels": [
+          {
+            "name": "main",
+            "aggregation_keys": null,
+            "sort": [
               {
-                  "kind": "Pool",
-                  "name": "test1",
-                  "id": "XXX"
-              },
-              {
-                  "kind": "Pool",
-                  "name": "test2",
-                  "id": "XXX"
+                "order": "desc",
+                "key": [
+                  "ts"
+                ]
               }
-          ],
-          "channels": [
-              {
-                  "name": "main",
-                  "aggregation_keys": null,
-                  "sort": [
-                      {
-                          "order": "desc",
-                          "key": [
-                              "ts"
-                          ]
-                      }
-                  ]
-              }
-          ]
+            ]
+          }
+        ]
       }
       // === agg.spq ===
       {
-          "sources": [
-              {
-                  "kind": "Pool",
-                  "name": "test1",
-                  "id": "XXX"
-              }
-          ],
-          "channels": [
-              {
-                  "name": "main",
-                  "aggregation_keys": [
-                      [
-                          "key1"
-                      ],
-                      [
-                          "key2"
-                      ]
-                  ],
-                  "sort": null
-              }
-          ]
+        "sources": [
+          {
+            "kind": "Pool",
+            "name": "test1",
+            "id": "XXX"
+          }
+        ],
+        "channels": [
+          {
+            "name": "main",
+            "aggregation_keys": [
+              [
+                "key1"
+              ],
+              [
+                "key2"
+              ]
+            ],
+            "sort": null
+          }
+        ]
       }
       // === agg-no-keys.spq ===
       {
-          "sources": [
-              {
-                  "kind": "Pool",
-                  "name": "test1",
-                  "id": "XXX"
-              }
-          ],
-          "channels": [
-              {
-                  "name": "main",
-                  "aggregation_keys": [],
-                  "sort": null
-              }
-          ]
+        "sources": [
+          {
+            "kind": "Pool",
+            "name": "test1",
+            "id": "XXX"
+          }
+        ],
+        "channels": [
+          {
+            "name": "main",
+            "aggregation_keys": [],
+            "sort": null
+          }
+        ]
       }
       // === two-channels.spq ===
       {
-          "sources": [
+        "sources": [
+          {
+            "kind": "Pool",
+            "name": "test1",
+            "id": "XXX"
+          },
+          {
+            "kind": "Pool",
+            "name": "test2",
+            "id": "XXX"
+          }
+        ],
+        "channels": [
+          {
+            "name": "main",
+            "aggregation_keys": [
+              [
+                "key1"
+              ]
+            ],
+            "sort": null
+          },
+          {
+            "name": "secondary",
+            "aggregation_keys": null,
+            "sort": [
               {
-                  "kind": "Pool",
-                  "name": "test1",
-                  "id": "XXX"
-              },
-              {
-                  "kind": "Pool",
-                  "name": "test2",
-                  "id": "XXX"
+                "order": "desc",
+                "key": [
+                  "ts"
+                ]
               }
-          ],
-          "channels": [
-              {
-                  "name": "main",
-                  "aggregation_keys": [
-                      [
-                          "key1"
-                      ]
-                  ],
-                  "sort": null
-              },
-              {
-                  "name": "secondary",
-                  "aggregation_keys": null,
-                  "sort": [
-                      {
-                          "order": "desc",
-                          "key": [
-                              "ts"
-                          ]
-                      }
-                  ]
-              }
-          ]
+            ]
+          }
+        ]
       }
       // === agg-sort.spq ===
       {
-          "sources": [
+        "sources": [
+          {
+            "kind": "Pool",
+            "name": "test1",
+            "id": "XXX"
+          }
+        ],
+        "channels": [
+          {
+            "name": "main",
+            "aggregation_keys": [
+              [
+                "foo"
+              ]
+            ],
+            "sort": [
               {
-                  "kind": "Pool",
-                  "name": "test1",
-                  "id": "XXX"
+                "order": "asc",
+                "key": [
+                  "x"
+                ]
               }
-          ],
-          "channels": [
-              {
-                  "name": "main",
-                  "aggregation_keys": [
-                      [
-                          "foo"
-                      ]
-                  ],
-                  "sort": [
-                      {
-                          "order": "asc",
-                          "key": [
-                              "x"
-                          ]
-                      }
-                  ]
-              }
-          ]
+            ]
+          }
+        ]
       }
       // === scope.spq ===
       {
-          "sources": [
+        "sources": [
+          {
+            "kind": "Pool",
+            "name": "test1",
+            "id": "XXX"
+          }
+        ],
+        "channels": [
+          {
+            "name": "main",
+            "aggregation_keys": null,
+            "sort": [
               {
-                  "kind": "Pool",
-                  "name": "test1",
-                  "id": "XXX"
+                "order": "desc",
+                "key": [
+                  "ts"
+                ]
               }
-          ],
-          "channels": [
-              {
-                  "name": "main",
-                  "aggregation_keys": null,
-                  "sort": [
-                      {
-                          "order": "desc",
-                          "key": [
-                              "ts"
-                          ]
-                      }
-                  ]
-              },
-              {
-                  "name": "secondary",
-                  "aggregation_keys": null,
-                  "sort": null
-              }
-          ]
+            ]
+          },
+          {
+            "name": "secondary",
+            "aggregation_keys": null,
+            "sort": null
+          }
+        ]
       }
       // === auto-combined-channels.spq ===
       {
-          "sources": [
-              {
-                  "kind": "Pool",
-                  "name": "test1",
-                  "id": "XXX"
-              }
-          ],
-          "channels": [
-              {
-                  "name": "main",
-                  "aggregation_keys": null,
-                  "sort": null
-              }
-          ]
+        "sources": [
+          {
+            "kind": "Pool",
+            "name": "test1",
+            "id": "XXX"
+          }
+        ],
+        "channels": [
+          {
+            "name": "main",
+            "aggregation_keys": null,
+            "sort": null
+          }
+        ]
       }

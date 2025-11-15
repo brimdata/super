@@ -48,7 +48,7 @@ func (f *Flags) setFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&f.color, "color", true, "enable/disable color formatting for -S and db text output")
 	fs.StringVar(&f.supPersist, "persist", "",
 		"regular expression to persist type definitions across the stream")
-	fs.IntVar(&f.pretty, "pretty", 4,
+	fs.IntVar(&f.pretty, "pretty", 2,
 		"tab size to pretty print JSON and Super JSON output (0 for newline-delimited output")
 	fs.StringVar(&f.outputFile, "o", "", "write data to output file")
 	fs.StringVar(&f.split, "split", "",

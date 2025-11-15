@@ -13,7 +13,7 @@ outputs:
   - name: stdout
     data: |
       {
-          level: "warn",
-          msg: "Error writing batch",
-          error: "parquetio: unsupported type: empty record"
+        level: "warn",
+        msg: "Error writing batch",
+        error: "parquetio: unsupported type: empty record"
       }

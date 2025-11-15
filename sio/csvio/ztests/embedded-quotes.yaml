@@ -10,7 +10,7 @@ outputs:
   - name: stdout
     data: |
       {
-          field1: "\",\"",
-          field2: "\" has a couple \" embedded quotes and a , comma",
-          field3: "\" \""
+        field1: "\",\"",
+        field2: "\" has a couple \" embedded quotes and a , comma",
+        field3: "\" \""
       }

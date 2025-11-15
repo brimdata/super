@@ -20,17 +20,17 @@ outputs:
   - name: stdout
     data: |
       {
-          ts: 0,
-          name: "new_test",
-          id: 0,
-          layout: {
-              order: "desc",
-              keys: [
-                  [
-                      "ts"
-                  ]
-              ]
-          },
-          seek_stride: 65536,
-          threshold: 524288000
+        ts: 0,
+        name: "new_test",
+        id: 0,
+        layout: {
+          order: "desc",
+          keys: [
+            [
+              "ts"
+            ]
+          ]
+        },
+        seek_stride: 65536,
+        threshold: 524288000
       }

@@ -21,12 +21,12 @@ outputs:
   - name: inherit.sup
     data: | 
       {
-          name: "test1",
-          branch: "main"
+        name: "test1",
+        branch: "main"
       }
       {
-          name: "test2",
-          branch: "live"
+        name: "test2",
+        branch: "live"
       }
   - name: stderr
     data: ""
