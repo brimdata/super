@@ -52,6 +52,10 @@ the `-c` argument.  If no query is provided, the inputs are scanned
 and output is produced in accordance with `-f` to specify a serialization format
 and `-o` to specified an optional output (file or directory).
 
+The query text may originate in files using one or more `-I` arguments.
+In this case, these source files are concatenated together in order and prepended
+to any `-c` query text.  `-I` may be used without `-c`.
+
 When invoked using the [db](db.md) sub-command, `super` interacts with
 an underlying SuperDB database.
 
@@ -69,7 +73,7 @@ interactions with various stages of the query compiler.
 | `csv`     |  yes | `.csv` | [Comma-Separated Values (RFC 4180)](https://www.rfc-editor.org/rfc/rfc4180.html) |
 | `json`    |  yes | `.json` | [JSON (RFC 8259)](https://www.rfc-editor.org/rfc/rfc8259.html) |
 | `jsup`   |  yes | `.jsup` | [Super over JSON (JSUP)](../formats/jsup.md) |
-| `line`    |  no  | n/a | One string value per input line |
+| `line`    |  no  | n/a | One text value per line |
 | `parquet` |  yes | `.parquet` | [Apache Parquet](https://github.com/apache/parquet-format) |
 | `sup`     |  yes | `.sup` | [SUP](../formats/sup.md) |
 | `tsv`     |  yes | `.tsv` | [Tab-Separated Values](https://en.wikipedia.org/wiki/Tab-separated_values) |
@@ -121,13 +125,6 @@ for `values 1+1` and emits
 2
 ```
 
-#### Hard-wired Input Format
-
-The input format is specified with the `-i` flag.
-
-When `-i` is specified, all of the inputs on the command-line must be
-in the indicated format.
-
 #### Format Detection
 
 In general, `super` _just works_ when it comes to automatically inferring
@@ -175,33 +172,6 @@ requires `-i` or `(format line)` for reading.
 >  It seems like this should change given the pipe-able nature of super and
 >  the desire to make CSUP be the default output to a non-terminal output.**
 
-#### JSON vs SUP Autodetection
-
-Since [SUP](../formats/sup.md) is a superset of plain JSON, `super` must be careful how it distinguishes the two cases when performing auto-inference.
-While you can always clarify your intent
-via `-i sup` or `-i json`, `super` attempts to "just do the right thing"
-when you run it with SUP vs. plain JSON.
-
-While `super` can parse any JSON using its built-in SUP parser this is typically
-not desirable because (1) the SUP parser is not particularly performant and
-(2) all JSON numbers are floating point but the SUP parser will parse as
-JSON any number that appears without a decimal point as an integer type.
-
-> Note that `super` is not particularly performant for SUP because it is intended
-> as a human-readable format while the high-performance
-> columnar [CSUP](../formats/csup.md) is semantically equivalent but much more efficient.
-> The design intent is that these efficient binary formats should be used in
-> use cases where performance matter and SUP is typically used only when
-> data needs to be human-readable in interactive settings or in automated tests.
-
-To this end, `super` uses a heuristic to select between SUP and plain JSON when the
-`-i` option is not specified. Specifically, plain JSON is selected when the first values
-of the input are parsable as valid JSON and includes a JSON object either
-as an outer object or as a value nested somewhere within a JSON array.
-
-This heuristic almost always works in practice because SUP records
-typically omit quotes around field names.
-
 ### Output
 
 > **TODO: make CSUP not BSUP the default output format when not a terminal.**
@@ -212,7 +182,15 @@ to the indicated file or directory.
 When writing to stdout and stdout is a terminal, the default
 output format is [SUP](../formats/sup.md).
 Otherwise, the default format is [CSUP](../formats/csup.md).
-In either case, the default may be overridden with `-f`, `-s`, or `-S`.
+These defaults may be overridden with `-f`, `-s`, or `-S`.
+
+Since SUP is a common format choice for interactive use,
+the `-s` flag is shorthand for `-f sup`. 
+Also, `-S` is a shortcut for `-f sup` with `-pretty 2` as
+[described below](#pretty-printing).
+
+And since plain JSON is another common format choice, the `-j` flag
+is a shortcut for `-f json` and `-J` is a shortcut for pretty-printing JSON.
 
 > _Having the default output format dependent on the terminal status
 > causes an occasional surprise
@@ -227,108 +205,37 @@ If no query is specified with `-c`, the inputs are scanned without modification
 and output in the specified format
 providing a convenient means to convert files from one format to another, e.g.,
 ```
-super -f arrows file1.json file2.parquet file3.csv > file-combined.arrows
+super -f arrows -o  out.arrows file1.json file2.parquet file3.csv
 ```
-
-`super` supports the following output formats:
-
-|  Option   | Specification                            |
-|-----------|------------------------------------------|
-| `arrows`  | [Arrow IPC Stream Format](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format) |
-| `bsup`    | [BSUP](../formats/bsup.md) |
-| `csup`    | [CSUP](../formats/csup.md) |
-| `csv`     | [Comma-Separated Values (RFC 4180)](https://www.rfc-editor.org/rfc/rfc4180.html) |
-| `db`      | [SuperDB Database Metadata Output](#superdb-data-lake-metadata-output) |
-| `json`    | [JSON (RFC 8259)](https://www.rfc-editor.org/rfc/rfc8259.html) |
-| `line`    | (described [below](#simplified-text-outputs)) |
-| `parquet` | [Apache Parquet](https://github.com/apache/parquet-format) |
-| `sup`     | [SUP](../formats/sup.md) |
-| `table`   | (described [below](#simplified-text-outputs)) |
-| `text`    | (described [below](#simplified-text-outputs)) |
-| `tsv`     | [Tab-Separated Values](https://en.wikipedia.org/wiki/Tab-separated_values) |
-| `zeek`    | [Zeek Logs](https://docs.zeek.org/en/master/logs/index.html) |
-| `zjson`   | [SUP over JSON (JSUP)](../formats/zjson.md) |
-
-The output format defaults to either SUP or BSUP and may be specified
-with the `-f` option.
-
-Since SUP is a common format choice for interactive use,
-the `-s` flag is shorthand for `-f sup`. 
-Also, `-S` is a shortcut for `-f sup` with `-pretty 4` as
-[described below](#pretty-printing).
-
-And since plain JSON is another common format choice, the `-j` flag is a shortcut for
-`-f json` and `-J` is a shortcut for pretty printing JSON.
-
-Some output formats like Parquet are based on
-schemas and require all data in the output to conform to the same
-schema.  To handle this, you can either fuse the data into a union
-of all the record types present (presuming all the output values
-are records) or you can specify the -split flag to indicate a
-destination directory for separate output files for each output
-type.  This flag may be used in combination with -o, which provides
-the prefix for the file path, e.g.,
-
-super -f parquet -split out -o example-output input.bsup
-
-
-
-The query text may include source files using -I, which is
-particularly convenient when a large, complex query spans multiple
-lines.  In this case, these source files are concatenated together
-along with the command-line query text in the order appearing on
-the command line.  Any error messages are properly collated to the
-included file in which they occurred.
-
-The runtime processes input natively as super-structured data so
-if you intend to run many queries over the same data, you will see
-substantial performance gains by converting your data to the Super
-Binary format, e.g.,
-
-super -f bsup input.any > fast.bsup
-
-super -c <query> fast.bsup
-
-## XXX
-
-==OUTPUT==
-
-
-## Data Formats
-
-`super` supports a number of [input](#input-formats) and [output](#output-formats) formats, but the
-[SUP](../formats/sup.md),
-[BSUP](../formats/bsup.md), and
-[CSUP](../formats/csup.md) formats tend to be the most versatile and
-easy to work with.
-
-
-
-Unless the `-i` option specifies a specific input format,
-each input's format is [automatically inferred](#auto-detection)
-and each input is scanned
-in the order appearing on the command line forming the input stream.
-
-
-
-#### Output Format Selection
-
-When the format is not specified with `-f`, it defaults to SUP if the output
-is a terminal and to BSUP otherwise.
-
-
-
 
 #### Pretty Printing
 
 SUP and plain JSON text may be "pretty printed" with the `-pretty` option, which takes
 the number of spaces to use for indentation.  As this is a common option,
-the `-S` option is a shortcut for `-f sup -pretty 4` and `-J` is a shortcut
-for `-f json -pretty 4`.
+the `-S` option is a shortcut for `-f sup -pretty 2` and `-J` is a shortcut
+for `-f json -pretty 2`.
 
 For example,
 ```mdtest-command
 echo '{a:{b:1,c:[1,2]},d:"foo"}' | super -S -
+```
+produces
+```mdtest-output
+{
+  a: {
+    b: 1,
+    c: [
+      1,
+      2
+    ]
+  },
+  d: "foo"
+}
+
+```
+and
+```mdtest-command
+echo '{a:{b:1,c:[1,2]},d:"foo"}' | super -f sup -pretty 4 -
 ```
 produces
 ```mdtest-output
@@ -343,44 +250,24 @@ produces
     d: "foo"
 }
 ```
-and
-```mdtest-command
-echo '{a:{b:1,c:[1,2]},d:"foo"}' | super -f sup -pretty 2 -
-```
-produces
-```mdtest-output
-{
-  a: {
-    b: 1,
-    c: [
-      1,
-      2
-    ]
-  },
-  d: "foo"
-}
-```
-
 When pretty printing, colorization is enabled by default when writing to a terminal,
 and can be disabled with `-color false`.
 
-TODO: MOVE THIS STUFF INTO TOP INTRO... SELF-DESCRIBING FORMATS
+#### Pipeline-friendly Formats
 
-#### Pipeline-friendly BSUP
+Though it's a compressed format, CSUP and BSUP data is self-describing and
+stream-oriented and thus is pipeline friendly.
 
-Though it's a compressed format, BSUP data is self-describing and stream-oriented
-and thus is pipeline friendly.
-
-Since data is self-describing you can simply take BSUP output
+Since data is self-describing you can simply take super-structured output
 of one command and pipe it to the input of another.  It doesn't matter if the value
 sequence is scalars, complex types, or records.  There is no need to declare
 or register schemas or "protos" with the downstream entities.
 
-In particular, BSUP data can simply be concatenated together, e.g.,
+In particular, super-structured data can simply be concatenated together, e.g.,
 ```mdtest-command
-super -f bsup -c 'select value 1, [1,2,3]' > a.bsup
-super -f bsup -c "select value {s:'hello'}, {s:'world'}" > b.bsup
-cat a.bsup b.bsup | super -s -
+super -f csup -c 'select value 1, [1,2,3]' > a.csup
+super -f csup -c "select value {s:'hello'}, {s:'world'}" > b.csup
+cat a.csup b.csup | super -s -
 ```
 produces
 ```mdtest-output
@@ -389,29 +276,18 @@ produces
 {s:"hello"}
 {s:"world"}
 ```
-And while this SUP output is human readable, the BSUP files are binary, e.g.,
-```mdtest-command
-super -f bsup -c 'select value 1,[ 1,2,3]' > a.bsup
-hexdump -C a.bsup
-```
-produces
-```mdtest-output
-00000000  02 00 01 09 1b 00 09 02  02 1e 07 02 02 02 04 02  |................|
-00000010  06 ff                                             |..|
-00000012
-```
 
 #### Schema-rigid Outputs
 
 Certain data formats like [Arrow](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format)
-and [Parquet](https://github.com/apache/parquet-format) are "schema rigid" in the sense that
-they require a schema to be defined before values can be written into the file
-and all the values in the file must conform to this schema.
+and [Parquet](https://github.com/apache/parquet-format) are _schema rigid_
+in the sense that they require a schema to be defined before
+values can be written into the file and all the values in the file
+must conform to this schema.
 
 SuperDB, however, has a fine-grained type system instead of schemas such that a sequence
 of data values is completely self-describing and may be heterogeneous in nature.
-This creates a challenge converting the type-flexible super-structured data formats to a schema-rigid
-format like Arrow and Parquet.
+This creates a challenge converting the type-flexible super-structured data formats to a schema-rigid format like Arrow and Parquet.
 
 For example, this seemingly simple conversion:
 ```mdtest-command fails
@@ -422,26 +298,42 @@ causes this error
 parquetio: encountered multiple types (consider 'fuse'): {x:int64} and {s:string}
 ```
 
-##### Fusing Schemas
+To write heterogeneous data to a schema-based file format, you must
+convert the data to a monolithic type.  To handle this,
+you can either [fuse](../super-sql/operators/fuse.md)
+the data into a single fused type or you can specify
+the `-split` flag to indicate a destination directory that receives
+a separate output file for each output type.
 
-As suggested by the error above, the [`fuse` operator](../language/operators/fuse.md) can merge different record
-types into a blended type, e.g., here we create the file and read it back:
+#### Fused Data
+
+The [fuse](../language/operators/fuse.md) operator uses
+[type fusion](../super-sql/type-fusion.md) to merge different record
+types into a blended type, e.g.,
 ```mdtest-command
 echo '{x:1}{s:"hello"}' | super -o out.parquet -f parquet -c fuse -
 super -s out.parquet
 ```
-but the data was necessarily changed (by inserting nulls):
+which produces
 ```mdtest-output
 {x:1,s:null::string}
 {x:null::int64,s:"hello"}
 ```
+The downside of this approach is that the data muts be changed (by inserting nulls)
+to conform to a single type.
 
-##### Splitting Schemas
+Also, data fusion can sometimes involve sum types that are not
+representable in a format like Parquet.  While a bit cumbersome,
+you could write a query that adjusts the output be renaming columns
+so that heterogenous data column types are avoided.   This modified
+data could then be fused without sum types and output to Parquet.
 
-Another common approach to dealing with the schema-rigid limitation of Arrow and
+#### Splitting Schemas
+
+An alternative approach to the schema-rigid limitation of Arrow and
 Parquet is to create a separate file for each schema.
 
-`super` can do this too with the `-split` option, which specifies a path
+`super` can do this too with its `-split` option, which specifies a path
 to a directory for the output files.  If the path is `.`, then files
 are written to the current directory.
 
@@ -460,108 +352,13 @@ produces the original data
 {x:1}
 {s:"hello"}
 ```
-
 While the `-split` option is most useful for schema-rigid formats, it can
 be used with any output format.
 
-#### Simplified Text Outputs
-
-The `line`, `text`, and `table` formats simplify data to fit within the
-limitations of text-based output. They may be a good fit for use with other text-based shell
-tools, but due to their limitations should be used with care.
-
-In `line` output, each string value is printed on its own line, with minimal
-formatting applied if any of the following escape sequences are present:
-
-| Escape Sequence | Rendered As                             |
-|-----------------|-----------------------------------------|
-| `\n`            | Newline                                 |
-| `\t`            | Horizontal tab                          |
-| `\\`            | Backslash                               |
-| `\"`            | Double quote                            |
-| `\r`            | Carriage return                         |
-| `\b`            | Backspace                               |
-| `\f`            | Form feed                               |
-| `\u`            | Unicode escape (e.g., `\u0041` for `A`) |
-
-Non-string values are formatted as [SUP](../formats/sup.md).
-
-For example:
-
-```mdtest-command
-echo '"hi" "hello\nworld" { time_elapsed: 86400s }' | super -f line -
-```
-produces
-```mdtest-output
-hi
-hello
-world
-{time_elapsed:1d}
-```
-
-In `text` output, minimal formatting is applied, e.g., strings are shown
-without quotes and brackets are dropped from [arrays](../formats/data-model.md#22-array)
-and [sets](../formats/data-model.md#23-set). [Records](../formats/data-model.md#21-record)
-are printed as tab-separated field values without their corresponding field
-names. For example:
-
-```mdtest-command
-echo '"hi" {hello:"world",good:"bye"} [1,2,3]' | super -f text -
-```
-produces
-```mdtest-output
-hi
-world	bye
-1,2,3
-```
-
-The `table` format includes header lines showing the field names in records.
-For example:
-
-```mdtest-command
-echo '{word:"one",digit:1} {word:"two",digit:2}' | super -f table -
-```
-produces
-```mdtest-output
-word digit
-one  1
-two  2
-```
-
-If a new record type is encountered in the input stream that does not match
-the previously-printed header line, a new header line will be output.
-For example:
-
-```mdtest-command
-echo '{word:"one",digit: 1} {word:"hello",style:"greeting"}' |
-  super -f table -
-```
-produces
-```mdtest-output
-word digit
-one  1
-word  style
-hello greeting
-```
-
-If this is undesirable, the [`fuse` operator](../language/operators/fuse.md)
-may prove useful to unify the input stream under a single record type that can
-be described with a single header line. Doing this to our last example, we find
-
-```mdtest-command
-echo '{word:"one",digit:1} {word:"hello",style:"greeting"}' |
-  super -f table -c 'fuse' -
-```
-now produces
-```mdtest-output
-word  digit style
-one   1     -
-hello -     greeting
-```
-
 #### SuperDB Database Metadata Output
 
-TODO: change this to dbmeta
+> **TODO: We should get rid of this.  Or document it as an internal format.
+> It's not a format that people should rely upon.**
 
 The `db` format is used to pretty-print lake metadata, such as in
 [`super db` sub-command](super-db.md) outputs.  Because it's `super db`'s default output format,
@@ -601,7 +398,57 @@ produces
 MyPool 2jTi7n3sfiU7qTgPTAE1nwTUJ0M key ts order desc
 ```
 
-## Query Debugging
+### Line Format
+
+The `line` format is convenient for interacting with other Unix-style tooling that
+produces text input and output a line at a time.
+
+When `-i line` is specified as the input format, data is read a line as a
+[string](../super-sql/types/string.md) type.
+
+When `-f line` is specified as the output format, each value is formatted
+a line at a time.  String values are printed as is with otherwise escaped
+values formatted as their native character in the output, e.g.,
+
+| Escape Sequence | Rendered As                             |
+|-----------------|-----------------------------------------|
+| `\n`            | Newline                                 |
+| `\t`            | Horizontal tab                          |
+| `\\`            | Backslash                               |
+| `\"`            | Double quote                            |
+| `\r`            | Carriage return                         |
+| `\b`            | Backspace                               |
+| `\f`            | Form feed                               |
+| `\u`            | Unicode escape (e.g., `\u0041` for `A`) |
+
+Non-string values are formatted as [SUP](../formats/sup.md).
+
+For example:
+
+```mdtest-command
+echo '"hi" "hello\nworld" { time_elapsed: 86400s }' | super -f line -
+```
+produces
+```mdtest-output
+hi
+hello
+world
+{time_elapsed:1d}
+```
+Because embedded newlines create multi-lined output with `-i line`, this mode can
+alter the sequence of values, e.g.,
+```
+super -c "values 'foo\nbar' | count()"
+```
+results in `1` but
+```
+super -f line -c "values 'foo\nbar'" | super -i line -c "count()" -
+```
+results in `2`.
+
+## Debugging
+
+> **TODO: this belongs in the super-sql section.  We can link to it.**
 
 If you are ever stumped about how the `super` compiler is parsing your query,
 you can always run `super -C` to compile and display your query in canonical form
@@ -628,7 +475,10 @@ with the value `x+1`, i.e.,
 put a:=x+1
 ```
 
-## Error Handling
+## Errors
+
+> **TODO: this belongs in the super-sql section.  We can link to it.**
+> **TODO: document compile-time errors and reference type checking.**
 
 Fatal errors like "file not found" or "file system full" are reported
 as soon as they happen and cause the `super` process to exit.
