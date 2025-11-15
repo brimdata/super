@@ -1,20 +1,21 @@
-### Command
+## Command
 
-&emsp; **super** &mdash; invoke SuperDB
+&emsp; **super** &mdash; invoke or manage SuperDB
 
-### Synopsis
-
+## Synopsis
 ```
-super [ options ] [ file ... ]
+super [ -c query ] [ options ] [ file ... ]
 super [ options ] <sub-command> ...
 ```
-### Sub-commands
+## Sub-commands
 
 * [compile](compile.md)
 * [db](db.md)
 * [dev](dev.md)
 
-### Options
+## Options
+
+> **TODO: link these short-hand flag descriptions to longer form descriptions**
 
 * [Output Options](output-options.md)
 * `-aggmem` maximum memory used per aggregate function value in MiB, MB, etc
@@ -26,171 +27,51 @@ super [ options ] <sub-command> ...
 * `-help` display help
 * `-hidden` show hidden options
 * `-i` format of input data
-* `-I` source file containing Zed query text
+* `-I` source file containing query text
 * `-q` don't display warnings
 * `-sortmem` maximum memory used by sort in MiB, MB, etc
 * `-stats` display search stats on stderr
 * `-version` print version and exit
 
-### Description
+## Description
 
-`super` is the command-line tool for interacting with and managing SuperDB.
+`super` is the command-line tool for interacting with and managing SuperDB
+and is organized as a hierarchy of sub-commands similar to 
+[`docker`](https://docs.docker.com/engine/reference/commandline/cli/)
+or [`kubectl`](https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands).
 
-The `super` command is organized in a hierarchy of sub-commands.
+For built-in command help and a listing of all available options,
+simply run `super` without any arguments.
 
 When invoked at the top level without a sub-command, `super` executes the
-SuperDB query engine independently from the database storage layer where
-the data inputs may be files, HTTP APIs, S3 cloud objects, or standard input.
+SuperDB query engine detached from the database storage layer
+where the data inputs may be files, HTTP APIs, S3 cloud objects, or standard input.
 
-When invoked using the [`db` sub-command](db.md), `super` provides various means to
-interact with a SuperDB database.
+Optional [SuperSQL](../super-sql/intro.md) query text may be provided with
+the `-c` argument.  If no query is provided, the inputs are scanned
+and output is produced in accordance with `-f` to specify a serialization format
+and `-o` to specified an optional output (file or directory).
 
-The [`dev` sub-command](dev.md) provides dev tooling for the advanced users or
-developers of SuperDB.
+When invoked using the [db](db.md) sub-command, `super` interacts with
+an underlying SuperDB database.
 
-#### Standalone Queries
+The [dev](dev.md) sub-command provides dev tooling for the advanced users or
+developers of SuperDB while the [compile](compile.md) command allows detailed
+interactions with various stages of the query compiler.
 
-When run without a sub-command, `super` executes a query on its inputs.
-Inputs may be specified with the `from` operator within the query text
-or via the command line as file arguments or standard input.
+### Input
 
-Optional [SuperSQL](../super-sql/intro.md) query text may be provided with the `-c` argument.
-If no query is provided, the inputs are scanned and output is produced
-in accordance with `-f` to specify a serialization format and `-o`
-to specified an optional output (file or directory).
+When run detached from a database, `super` executes a query over inputs
+external to the database including
+* file system paths,
+* standard input, or
+* HTTP, HTTPS, or S3 URLs.
 
-TODO: order assumptions of inputs
+These inputs may be specified with the  operator
+within the query text or via the file arguments (including stdin) to the command.
 
-formats, providing search, analytics, and extensive transformations
-using the SuperSQL query language. A query typically applies
-Boolean logic or keyword search to filter the input and then
-transforms or analyzes the filtered stream. Output is written to
-one or more files or to standard output.
-
-A query is comprised of one or more operators interconnected into
-a pipeline using the pipe symbol "|" or the alternate "|>". See
-https://zed.brimdata.io/docs/language for details.  The "select"
-and "from" operators provide backward compatibility with SQL. In
-fact, you can use SQL exclusively and avoid pipeline operators
-altogether if you prefer.
-
-Supported file formats include Arrow, CSV, JSON, Parquet, Super
-JSON, Super Binary, Super Columnar, and Zeek TSV.
-
-Input files may be file system paths; "-" for standard input; or
-HTTP, HTTPS, or S3 URLs. For most types of data, the input format
-is automatically detected. If multiple files are specified, each
-file format is determined independently so you can mix and match
-input types.  If multiple files are concatenated into a stream and
-presented as standard input, the files must all be of the same type
-as the beginning of the stream will determine the format.
-
-If no input file is specified, the default of a single null input
-value will be fed to the query.  This is analogous to SQL's default
-input of a single empty input row.
-
-Output is sent to standard output unless an output file is
-specified with -o. Some output formats like Parquet are based on
-schemas and require all data in the output to conform to the same
-schema.  To handle this, you can either fuse the data into a union
-of all the record types present (presuming all the output values
-are records) or you can specify the -split flag to indicate a
-destination directory for separate output files for each output
-type.  This flag may be used in combination with -o, which provides
-the prefix for the file path, e.g.,
-
-super -f parquet -split out -o example-output input.bsup
-
-When writing to stdout and stdout is a terminal, the default
-output format is Super JSON. Otherwise, the default format is Super
-Binary.  In either case, the default may be overridden with -f, -s,
-or -S.
-
-The query text may include source files using -I, which is
-particularly convenient when a large, complex query spans multiple
-lines.  In this case, these source files are concatenated together
-along with the command-line query text in the order appearing on
-the command line.  Any error messages are properly collated to the
-included file in which they occurred.
-
-The runtime processes input natively as super-structured data so
-if you intend to run many queries over the same data, you will see
-substantial performance gains by converting your data to the Super
-Binary format, e.g.,
-
-super -f bsup input.any > fast.bsup
-
-super -c <query> fast.bsup
-
-### Examples
-
-
-
-===
-TODO: integrate this here or move pieces into tutorial
-===
-
-
-
-## Synopsis
-
-`super` is a command-line tool that uses [SuperSQL](../language/_index.md)
-to query a variety of data formats in files, over HTTP, or in [S3](../integrations/amazon-s3.md)
-storage. Best performance is achieved when operating on data in binary formats such as
-[Super Binary (BSUP)](../formats/bsup.md), [Super Columnar (CSUP)](../formats/csup.md),
-[Parquet](https://github.com/apache/parquet-format), or
-[Arrow](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format).
-
-> The SuperDB code and docs are still under construction. Once you've [installed](../getting_started/install.md) `super` we
-> recommend focusing first on the functionality shown in this page. Feel free to
-> explore other docs and try things out, but please don't be shocked if you hit
-> speedbumps in the near term, particularly in areas like performance and full
-> SQL coverage. We're working on it! 😉
->
-> Once you've tried it out, we'd love to
-> hear your feedback via our [community Slack](https://www.brimdata.io/join-slack/).
-
-## Usage
-
-```
-super [ options ] [ -c query ] input [ input ... ]
-```
-
-`super` is a command-line tool for processing data in diverse input
-formats, providing data wrangling, search, analytics, and extensive transformations
-using the [SuperSQL](../language/_index.md) dialect of SQL. Any SQL query expression
-may be extended with [pipe syntax](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/)
-to filter, transform, and/or analyze input data.
-Super's SQL pipes dialect is extensive, so much so that it can resemble
-a log-search experience despite its SQL foundation.
-
-The `super` command works with data from ephemeral sources like files and URLs.
-If you want to persist your data into a data lake for persistent storage,
-check out the [`super db`](super-db.md) set of commands.
-
-By invoking the `-c` option, a query expressed in the [SuperSQL language](../language/_index.md)
-may be specified and applied to the input stream.
-
-The [super data model](../formats/data-model.md) is based on [super-structured data](../formats/_index.md#2-a-super-structured-pattern), meaning that all data
-is both strongly _and_ dynamically typed and need not conform to a homogeneous
-schema.  The type structure is self-describing so it's easy to daisy-chain
-queries and inspect data at any point in a complex query or data pipeline.
-For example, there's no need for a set of Parquet input files to all be
-schema-compatible and it's easy to mix and match Parquet with JSON across
-queries.
-
-When processing JSON data, all values are converted to strongly typed values
-that fit naturally alongside relational data so there is no need for a separate
-"JSON type".  Unlike SQL systems that integrate JSON data,
-there isn't a JSON way to do things and a separate relational way
-to do things.
-
-Because there are no schemas, there is no schema inference, so inferred schemas
-do not haphazardly change when input data changes in subtle ways.
-
-Each `input` argument to `super` must be a file path, an HTTP or HTTPS URL,
-an S3 URL, or standard input specified with `-`.
-These input arguments are treated as if a SQL `FROM` operator precedes
+Command-line paths are treated as if a
+[from](../super-sql/operators/from.md) operator precedes
 the provided query, e.g.,
 ```
 super -c "FROM example.json | SELECT a,b,c"
@@ -203,63 +84,23 @@ and both are equivalent to the classic SQL
 ```
 super -c "SELECT a,b,c FROM example.json"
 ```
-Output is written to one or more files or to standard output in the format specified.
-
 When multiple input files are specified, they are processed in the order given as
 if the data were provided by a single, concatenated `FROM` clause.
 
-If no query is specified with `-c`, the inputs are scanned without modification
-and output in the desired format as [described below](#input-formats),
-providing a convenient means to convert files from one format to another, e.g.,
-```
-super -f arrows file1.json file2.parquet file3.csv > file-combined.arrows
-```
-When `super` is run with a query that has no `FROM` operator and no input arguments,
-the SuperSQL query is fed a single `null` value analogous to SQL's default
+If no input is specified,
+the query is fed a single `null` value analogous to SQL's default
 input of a single empty row of an unnamed table.
+
 This provides a convenient means to explore examples or run in a
 "calculator mode", e.g.,
 ```mdtest-command
 super -s -c '1+1'
 ```
-emits
+which is [shorthand](../super-sql/operators/intro.md#shortcuts)
+for `values 1+1`, emits
 ```mdtest-output
 2
 ```
-Note that SuperSQL's has syntactic shortcuts for interactive data exploration and
-an expression that stands alone is a shortcut for `SELECT VALUE`, e.g., the query text
-```
-1+1
-```
-is equivalent to
-```
-SELECT VALUE 1+1
-```
-To learn more about shortcuts, refer to the SuperSQL
-[documentation on shortcuts](../language/pipeline-model.md#implied-operators).
-
-For built-in command help and a listing of all available options,
-simply run `super` with no arguments.
-
-## Data Formats
-
-`super` supports a number of [input](#input-formats) and [output](#output-formats) formats, but the
-[SUP](../formats/sup.md),
-[BSUP](../formats/bsup.md), and
-[CSUP](../formats/csup.md) formats tend to be the most versatile and
-easy to work with.
-
-`super` typically operates on binary-encoded data and when you want to inspect
-human-readable bits of output, you merely format it as SUP, which is the
-default format when output is directed to the terminal.  BSUP is the default
-when redirecting to a non-terminal output like a file or pipe.
-
-Unless the `-i` option specifies a specific input format,
-each input's format is [automatically inferred](#auto-detection)
-and each input is scanned
-in the order appearing on the command line forming the input stream.
-
-### Input Formats
 
 `super` currently supports the following input formats:
 
@@ -277,8 +118,16 @@ in the order appearing on the command line forming the input stream.
 | `tsv`     |  yes | `.tsv` | [Tab-Separated Values](https://en.wikipedia.org/wiki/Tab-separated_values) |
 | `zeek`    |  yes | `.zeek` | [Zeek Logs](https://docs.zeek.org/en/master/logs/index.html) |
 
-The input format is typically [detected automatically](#auto-detection) and the formats for which
-"Auto" is "yes" in the table above support _auto-detection_.
+> _Best performance is achieved when operating on data in binary columnar formats
+> such as [CSUP](../formats/csup.md),
+> [Parquet](https://github.com/apache/parquet-format), or
+> [Arrow](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format)._
+
+For most types of data, the input format is automatically detected as indicated
+by a "yes" in the "Auto" column above.
+If multiple files are specified, each file format is determined independently
+so you can mix and match input types.
+
 Formats without auto-detection require the `-i` option.
 
 #### Hard-wired Input Format
@@ -290,9 +139,9 @@ in the indicated format.
 
 #### Auto-detection
 
-When using _auto-detection_, each input's format is independently determined
-so it is possible to easily blend different input formats into a unified
-output format.
+> **TODO: clarify any format inference based on file extension.**
+
+Without `-i`, `super` uses _auto-detection to infer each input's format.
 
 For example, suppose this content is in a file `sample.csv`:
 ```mdtest-input sample.csv
@@ -315,7 +164,7 @@ would produce this output in the default SUP format
 {a:3,b:"baz"}
 ```
 
-#### JSON Auto-detection: Super vs. Plain
+#### JSON vs SUP Autodetection
 
 Since [SUP](../formats/sup.md) is a superset of plain JSON, `super` must be careful how it distinguishes the two cases when performing auto-inference.
 While you can always clarify your intent
@@ -327,10 +176,11 @@ not desirable because (1) the SUP parser is not particularly performant and
 (2) all JSON numbers are floating point but the SUP parser will parse as
 JSON any number that appears without a decimal point as an integer type.
 
-> The reason `super` is not particularly performant for SUP is that the [BSUP](../formats/bsup.md) or
-> [CSUP](../formats/csup.md) formats are semantically equivalent to SUP but much more efficient and
-> the design intent is that these efficient binary formats should be used in
-> use cases where performance matters.  SUP is typically used only when
+> Note that `super` is not particularly performant for SUP because it is intended
+> as a human-readable format while the high-performance
+> columnar [CSUP](../formats/csup.md) is semantically equivalent but much more efficient.
+> The design intent is that these efficient binary formats should be used in
+> use cases where performance matter and SUP is typically used only when
 > data needs to be human-readable in interactive settings or in automated tests.
 
 To this end, `super` uses a heuristic to select between SUP and plain JSON when the
@@ -340,6 +190,83 @@ as an outer object or as a value nested somewhere within a JSON array.
 
 This heuristic almost always works in practice because SUP records
 typically omit quotes around field names.
+
+### Output
+
+> **TODO: make CSUP not BSUP the default output format when not a terminal.**
+
+Output is written to one or more files or to standard output in the
+format specified `-f`, which if omitted, defaults to [SUP](../formats/sup.md).
+
+Output is sent to standard output unless an output file is
+specified with -o.
+
+When writing to stdout and stdout is a terminal, the default
+output format is [SUP](../formats/sup.md).
+Otherwise, the default format is [CSUP](../formats/csup.md).
+In either case, the default may be overridden with `-f`, `-s`, or `-S`.
+
+Some output formats like Parquet are based on
+schemas and require all data in the output to conform to the same
+schema.  To handle this, you can either fuse the data into a union
+of all the record types present (presuming all the output values
+are records) or you can specify the -split flag to indicate a
+destination directory for separate output files for each output
+type.  This flag may be used in combination with -o, which provides
+the prefix for the file path, e.g.,
+
+super -f parquet -split out -o example-output input.bsup
+
+
+
+The query text may include source files using -I, which is
+particularly convenient when a large, complex query spans multiple
+lines.  In this case, these source files are concatenated together
+along with the command-line query text in the order appearing on
+the command line.  Any error messages are properly collated to the
+included file in which they occurred.
+
+The runtime processes input natively as super-structured data so
+if you intend to run many queries over the same data, you will see
+substantial performance gains by converting your data to the Super
+Binary format, e.g.,
+
+super -f bsup input.any > fast.bsup
+
+super -c <query> fast.bsup
+
+## XXX
+
+==OUTPUT==
+
+If no query is specified with `-c`, the inputs are scanned without modification
+and output in the desired format as [described below](#input-formats),
+providing a convenient means to convert files from one format to another, e.g.,
+```
+super -f arrows file1.json file2.parquet file3.csv > file-combined.arrows
+```
+
+
+
+## Data Formats
+
+`super` supports a number of [input](#input-formats) and [output](#output-formats) formats, but the
+[SUP](../formats/sup.md),
+[BSUP](../formats/bsup.md), and
+[CSUP](../formats/csup.md) formats tend to be the most versatile and
+easy to work with.
+
+
+
+Unless the `-i` option specifies a specific input format,
+each input's format is [automatically inferred](#auto-detection)
+and each input is scanned
+in the order appearing on the command line forming the input stream.
+
+### Input Formats
+
+
+
 
 ### Output Formats
 

@@ -10,9 +10,9 @@ A SuperDB database offers an easy-to-use substrate for data discovery, preparati
 and transformation as well as serving as a queryable and searchable store
 for super-structured data both for online and archive use cases.
 
-### Command
+## Sub-command
 
-&emsp; **super db** &mdash; invoke SuperDB on a super-structured database
+&emsp; **db** &mdash; invoke SuperDB on a super-structured database
 
 ### Synopsis
 

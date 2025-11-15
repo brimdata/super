@@ -1,6 +1,6 @@
 ## Installation
 
-TODO: upon release, update this first paragrahp.
+> **TODO: upon release, update this first paragraph.**
 
 Because SuperDB is still under construction, GA releases are not yet available.
 However, you can install a build of the [`super`](https://superdb.org/docs/commands/super)
