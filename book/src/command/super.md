@@ -266,8 +266,8 @@ or register schemas or "protos" with the downstream entities.
 
 In particular, super-structured data can simply be concatenated together, e.g.,
 ```mdtest-command
-super -f csup -c 'select value 1, [1,2,3]' > a.csup
-super -f csup -c "select value {s:'hello'}, {s:'world'}" > b.csup
+super -f csup -c 'values 1, [1,2,3]' > a.csup
+super -f csup -c "values {s:'hello'}, {s:'world'}" > b.csup
 cat a.csup b.csup | super -s -
 ```
 produces
