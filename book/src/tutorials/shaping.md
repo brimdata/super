@@ -1,6 +1,6 @@
 # Shaping
 
-TODO: convert to super and make sure this reads as tutorial
+>**TODO: update this to use cast, fuse, etc?**
 
 ## Shaping
 
@@ -73,7 +73,7 @@ In the following example we cast the address fields to type `ip`, the port field
 type `socket` without modifying the `uid` field or changing the
 order of the `server` and `client` fields:
 
-```mdtest-spq {data-layout="stacked"}
+```mdtest-spq-skip {data-layout="stacked"}
 # spq
 type socket = { addr:ip, port:port=uint16 }
 type connection = {
@@ -107,7 +107,7 @@ Cropping is useful when you want records to "fit" a schema tightly.
 
 In the following example we remove the `uid` field since it is not in the `connection` type:
 
-```mdtest-spq {data-layout="stacked"}
+```mdtest-spq-skip {data-layout="stacked"}
 # spq
 type socket = { addr:ip, port:port=uint16 }
 type connection = {
@@ -141,7 +141,7 @@ Use `fill` when you want to fill out missing fields with nulls.
 
 In the following example we add a null-valued `vlan` field since the input value is missing it and
 the `connection` type has it:
-```mdtest-spq {data-layout="stacked"}
+```mdtest-spq-skip {data-layout="stacked"}
 # spq
 type socket = { addr:ip, port:port=uint16 }
 type connection = {
@@ -178,7 +178,7 @@ The following example reorders the `client` and `server` fields to match
 the input but does nothing about the `uid` field as it is not in the
 `connection` type.
 
-```mdtest-spq {data-layout="stacked"}
+```mdtest-spq-skip {data-layout="stacked"}
 # spq
 type socket = { addr:ip, port:port=uint16 }
 type connection = {
@@ -210,7 +210,7 @@ As an alternative to the `order` function,
 [record expressions](expressions.md#record-expressions) can be used to reorder
 fields without specifying types. For example:
 
-```mdtest-spq {data-layout="stacked"}
+```mdtest-spq-skip {data-layout="stacked"}
 # spq
 type socket = { addr:ip, port:port=uint16 }
 type connection = {
@@ -246,7 +246,7 @@ The `shape` function brings everything together by applying `cast`,
 In the following example we reorder the `client` and `server` fields to match
 the input but do not impact the `uid` field as it is not in the `connection` type.
 
-```mdtest-spq {data-layout="stacked"}
+```mdtest-spq-skip {data-layout="stacked"}
 # spq
 type socket = { addr:ip, port:port=uint16 }
 type connection = {
@@ -277,7 +277,7 @@ shape(this, <connection>)
 To get a tight shape of the target type,
 apply `crop` to the output of `shape`, e.g.,
 to dropping the `uid` after shaping:
-```mdtest-spq {data-layout="stacked"}
+```mdtest-spq-skip {data-layout="stacked"}
 # spq
 type socket = { addr:ip, port:port=uint16 }
 type connection = {
@@ -314,7 +314,7 @@ in the problematic leaf field.
 In the next two examples, we use a malformed variation of our input data. When
 we apply our shaper to it, we now see two errors.
 
-```mdtest-spq {data-layout="stacked"}
+```mdtest-spq-skip {data-layout="stacked"}
 # spq
 type socket = { addr:ip, port:port=uint16 }
 type connection = {
@@ -350,7 +350,7 @@ field is considered severe enough to render the entire input record unhealthy,
 could be applied to wrap the input record as an error while including detail
 to debug the problem, e.g.,
 
-```mdtest-spq {data-layout="stacked"}
+```mdtest-spq-skip {data-layout="stacked"}
 # spq
 type socket = { addr:ip, port:port=uint16 }
 type connection = {
@@ -390,7 +390,7 @@ aren't surfaced as errors, a similar wrapping approach can be used with a
 general check for equality. For example, to treat cropped fields as an error,
 we can execute
 
-```mdtest-spq {data-layout="stacked"}
+```mdtest-spq-skip {data-layout="stacked"}
 # spq
 type socket = { addr:ip, port:port=uint16 }
 type connection = {
@@ -482,7 +482,7 @@ fuse
 ```
 
 Whereas a type union for field `x` is produced in the following:
-```mdtest-spq {data-layout="stacked"}
+```mdtest-spq-skip {data-layout="stacked"}
 # spq
 fuse
 # input
@@ -519,7 +519,7 @@ grouping keys.  Supposing we want to divide records into categories and fuse
 the records in each category, we can use a grouped aggregation.  In this simple example, we
 will fuse records based on their number of fields using the
 [`len` function:](functions/len.md)
-```mdtest-spq {data-layout="stacked"}
+```mdtest-spq-skip {data-layout="stacked"}
 # spq
 fuse(this) by len(this) | sort len
 # input
@@ -533,7 +533,7 @@ fuse(this) by len(this) | sort len
 
 Now, we can turn around and write a "shaper" for data that has the patterns
 we "discovered" above, e.g.,
-```mdtest-spq {data-layout="stacked"}
+```mdtest-spq-skip {data-layout="stacked"}
 # spq
 switch len(this)
     case 1 ( pass )

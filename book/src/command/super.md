@@ -215,6 +215,8 @@ the number of spaces to use for indentation.  As this is a common option,
 the `-S` option is a shortcut for `-f sup -pretty 2` and `-J` is a shortcut
 for `-f json -pretty 2`.
 
+>**TODO: update this when pretty=2 is the default**
+
 For example,
 ```mdtest-command
 echo '{a:{b:1,c:[1,2]},d:"foo"}' | super -S -
@@ -222,16 +224,15 @@ echo '{a:{b:1,c:[1,2]},d:"foo"}' | super -S -
 produces
 ```mdtest-output
 {
-  a: {
-    b: 1,
-    c: [
-      1,
-      2
-    ]
-  },
-  d: "foo"
+    a: {
+        b: 1,
+        c: [
+            1,
+            2
+        ]
+    },
+    d: "foo"
 }
-
 ```
 and
 ```mdtest-command

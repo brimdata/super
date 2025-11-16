@@ -399,8 +399,8 @@ echo '[1, "foo", 2, "bar"]' | super -s -c 'values this[3],this[2]' -
 ```
 produces
 ```mdtest-output
+"bar"
 2
-"foo"
 ```
 but under the covers, the elements of the array have a union type of
 `int64` and `string`, which is written `int64|string`, e.g.,
@@ -625,7 +625,7 @@ jq . prs.json
 That's 10,592 lines.  Ugh, quite a challenge to sift through.
 
 Instead, let's start out by figuring out how many values are in the input, e.g.,
-```mdtest-command dir=docs/tutorials
+```mdtest-command dir=book/src/tutorials
 super -f text -c 'count()' prs.json
 ```
 produces
@@ -634,7 +634,7 @@ produces
 ```
 Hmm, there's just one value.  It's probably a big JSON array but let's check with
 the [`kind` function](../language/functions/kind.md), and as expected:
-```mdtest-command dir=docs/tutorials
+```mdtest-command dir=book/src/tutorials
 super -s -c 'kind(this)' prs.json
 ```
 produces
@@ -642,7 +642,7 @@ produces
 "array"
 ```
 Ok got it.  But, how many items are in the array?
-```mdtest-command dir=docs/tutorials
+```mdtest-command dir=book/src/tutorials
 super -s -c 'len(this)' prs.json
 ```
 produces
@@ -656,7 +656,7 @@ Let's see what sorts of things are in this array.  Here, we need to enumerate
 the items from the array and do something with them.  So how about we use
 the [`over` operator](../language/operators/over.md)
 to traverse the array and count the array items by their "kind",
-```mdtest-command dir=docs/tutorials
+```mdtest-command dir=book/src/tutorials
 super -s -c 'unnest this | count() by kind(this)' prs.json
 ```
 produces
@@ -679,7 +679,7 @@ Ugh, that output is still pretty big.  It's not 10k lines but it's still
 more than 700 lines of pretty-printed SUP.
 
 Ok, maybe it's not so bad.  Let's check how many shapes there are with `shapes`...
-```mdtest-command dir=docs/tutorials
+```mdtest-command dir=book/src/tutorials
 super -s -c 'unnest this | shapes | count()' prs.json
 ```
 produces
@@ -691,7 +691,7 @@ They must each be really big.  Let's check that out.
 
 We can use the [`len` function](../language/functions/len.md) on the records to
 see the size of each of the four records:
-```mdtest-command dir=docs/tutorials
+```mdtest-command dir=book/src/tutorials
 super -s -c 'unnest this | shapes | len(this) | sort this' prs.json
 ```
 and we get
@@ -702,7 +702,7 @@ and we get
 ```
 Ok, this isn't so bad... two shapes each have 36 fields but one is length zero?!
 That outlier could only be the empty record.  Let's check:
-```mdtest-command dir=docs/tutorials
+```mdtest-command dir=book/src/tutorials
 super -s -c 'unnest this | shapes | len(this)==0' prs.json
 ```
 produces
@@ -734,7 +734,7 @@ But let's break down what's taking up all this space.
 We can take the output from `fuse | shapes` and list the fields with
 and their "kind".  Note that when we do an `unnest this` with records as
 input, we get a new record value for each field structured as a key/value pair:
-```mdtest-command-skip dir=docs/tutorials
+```mdtest-command-skip dir=book/src/tutorials
 super -f table -c '
   unnest this
   | fuse
@@ -802,7 +802,7 @@ Ok, this looks more reasonable and is now only 120 lines of pretty-printed SUP.
 One more annoying detail here about JSON: time values are stored as strings,
 in this case, in ISO format, e.g., we can pull this value out with
 this query:
-```mdtest-command dir=docs/tutorials
+```mdtest-command dir=book/src/tutorials
 super -s -c 'unnest this | head 1 | values created_at' prs.json
 ```
 which produces this string:
@@ -811,7 +811,7 @@ which produces this string:
 ```
 Since the super data model has a native `time` type and we might want to do native date comparisons
 on these time fields, we can easily translate the string to a time with a cast, e.g.,
-```mdtest-command dir=docs/tutorials
+```mdtest-command dir=book/src/tutorials
 super -s -c 'unnest this | head 1 | values created_at::time' prs.json
 ```
 produces the native time value:
@@ -819,7 +819,7 @@ produces the native time value:
 2019-11-11T19:50:46Z
 ```
 To be sure, you can check any value's type with the `typeof` function, e.g.,
-```mdtest-command dir=docs/tutorials
+```mdtest-command dir=book/src/tutorials
 super -s -c 'unnest this | head 1 | values created_at::time | typeof(this)' prs.json
 ```
 produces the native time value:
@@ -906,7 +906,7 @@ super -c '
 ' prs2.bsup > prs.bsup
 ```
 We can check the result with our type analysis:
-```mdtest-command-skip dir=docs/tutorials
+```mdtest-command-skip dir=book/src/tutorials
 super -s -c '
   over this
   | kind(value)=="primitive"
@@ -965,7 +965,7 @@ to put your clean data into all the right places.
 
 Let's start with something simple.  How about we output a "PR Report" listing
 the title of each PR along with its PR number and creation date:
-```mdtest-command dir=docs/tutorials
+```mdtest-command dir=book/src/tutorials
 super -f table -c '{DATE:created_at,NUMBER:f"PR #{number}",TITLE:title}' prs.bsup
 ```
 and you'll see this output...
@@ -984,7 +984,7 @@ to convert the field `number` into a string and format it with surrounding text.
 Instead of old PRs, we can get the latest list of PRs using the
 [`tail` operator](../language/operators/tail.md) since we know the data is sorted
 chronologically. This command retrieves the last five PRs in the dataset:
-```mdtest-command dir=docs/tutorials
+```mdtest-command dir=book/src/tutorials
 super -f table -c '
   tail 5
   | {DATE:created_at,"NUMBER":f"PR #{number}",TITLE:title}
@@ -1002,7 +1002,7 @@ DATE                 NUMBER TITLE
 
 How about some aggregations?  We can count the number of PRs and sort by the
 count highest first:
-```mdtest-command dir=docs/tutorials
+```mdtest-command dir=book/src/tutorials
 super -s -c "count() by user:=user.login | sort count desc" prs.bsup
 ```
 produces
@@ -1016,7 +1016,7 @@ produces
 How about getting a list of all of the reviewers?  To do this, we need to
 traverse the records in the `requested_reviewers` array and collect up
 the login field from each record:
-```mdtest-command dir=docs/tutorials
+```mdtest-command dir=book/src/tutorials
 super -s -c 'unnest requested_reviewers | collect(login)' prs.bsup
 ```
 Oops, this gives us an array of the reviewer logins
@@ -1031,7 +1031,7 @@ is easily done with the [`union`](../language/aggregates/union.md) aggregate fun
 computes the set-wise union of its input and produces a `set` type as its
 output.  In this case, the output is a set of strings, written `|[string]|`
 in the query language.  For example:
-```mdtest-command dir=docs/tutorials
+```mdtest-command dir=book/src/tutorials
 super -s -c 'unnest requested_reviewers | reviewers:=union(login)' prs.bsup
 ```
 produces
@@ -1051,7 +1051,7 @@ create this with a ["lateral subquery"](../language/lateral-subqueries.md).
 Instead of computing a set-union over all the reviewers across all PRs,
 we instead want to compute the set-union over the reviewers in each PR.
 We can do this as follows:
-```mdtest-command dir=docs/tutorials
+```mdtest-command dir=book/src/tutorials
 super -s -c 'unnest requested_reviewers into ( reviewers:=union(login) )' prs.bsup
 ```
 which produces an output like this:
@@ -1073,7 +1073,7 @@ lateral scope.  This can be done by
 bringing that value into the scope using a `with` clause appended to the
 `over` expression and returning a
 [record literal](../language/expressions.md#record-expressions) with the desired value:
-```mdtest-command dir=docs/tutorials
+```mdtest-command dir=book/src/tutorials
 super -s -c '
   unnest {user:user.login,reviewer:requested_reviewers} into (
     reviewers:=union(reviewer.login) by user
@@ -1095,7 +1095,7 @@ which gives us
 ```
 The final step is to simply aggregate the "reviewer sets" with the `user` field
 as the grouping key:
-```mdtest-command dir=docs/tutorials
+```mdtest-command dir=book/src/tutorials
 super -S -c '
   unnest {user:user.login,reviewer:requested_reviewers} into (
     reviewers:=union(reviewer.login) by user
@@ -1218,7 +1218,7 @@ To quantify this concept, we can easily modify this query to compute
 the average number of reviewers requested instead of the set of groups
 of reviewers.  To do this, we just average the reviewer set size
 with an aggregation:
-```mdtest-command dir=docs/tutorials
+```mdtest-command dir=book/src/tutorials
 super -s -c '
   unnest {user:user.login,reviewer:requested_reviewers} into (
     reviewers:=union(reviewer.login) by user
@@ -1238,7 +1238,7 @@ which produces
 
 Of course, if you'd like the query output in JSON, you can just say `-j` and
 `super` will happily format the sets as JSON arrays, e.g.,
-```mdtest-command dir=docs/tutorials
+```mdtest-command dir=book/src/tutorials
 super -j -c '
   unnest {user:user.login,reviewer:requested_reviewers} into (
     reviewers:=union(reviewer.login) by user

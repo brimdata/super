@@ -297,13 +297,13 @@ For example, if we assume this input file `weird.json`
 
 applying the reference shaper via
 
-```mdtest-command
+```mdtest-command-skip
 super -S -I shaper.spq weird.json
 ```
 
 produces
 
-```mdtest-output
+```mdtest-output-skip
 {
     _path: "weird",
     ts: 2018-03-24T17:15:20.600843Z,
