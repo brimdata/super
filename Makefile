@@ -29,13 +29,6 @@ tidy:
 	go mod tidy
 	git diff --exit-code -- go.mod go.sum
 
-SAMPLEDATA:=zed-sample-data/README.md
-
-$(SAMPLEDATA):
-	git clone --depth=1 https://github.com/brimdata/zed-sample-data $(@D)
-
-sampledata: $(SAMPLEDATA)
-
 bin/minio: Makefile
 	@curl -o $@ --compressed --create-dirs \
 		https://dl.min.io/server/minio/release/$$(go env GOOS)-$$(go env GOARCH)/archive/minio.RELEASE.2022-05-04T07-45-27Z
@@ -58,9 +51,6 @@ test-run: build bin/minio
 
 test-heavy: build
 	@PATH="$(CURDIR)/dist:$(PATH)" go test -tags=heavy ./mdtest
-
-output-check: build $(SAMPLEDATA)
-	scripts/output-check.sh
 
 build: $(PEG_DEP)
 	@mkdir -p dist
@@ -92,5 +82,5 @@ test-ci: fmt tidy vet test-generate test-unit test-system test-heavy
 clean:
 	@rm -rf dist
 
-.PHONY: fmt tidy vet test-unit test-system test-heavy sampledata test-ci
+.PHONY: fmt tidy vet test-unit test-system test-heavy test-ci
 .PHONY: build install clean generate test-generate

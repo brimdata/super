@@ -1,6 +1,5 @@
 /bin/
 /dist/
-/zed-sample-data/
 node_modules/
 
 .idea
