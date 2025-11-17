@@ -89,7 +89,7 @@ outputs:
             "name": "main",
             "aggregation_keys": [
               [
-                "key1"
+                "v1"
               ],
               [
                 "key2"
