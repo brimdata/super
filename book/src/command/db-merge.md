@@ -34,5 +34,5 @@ This Git-like behavior for a data lake provides a clean solution to
 the live ingest problem.
 For example, data can be continuously ingested into a branch of `main` called `live`
 and orchestration logic can periodically merge updates from branch `live` to
-branch `main`, possibly [compacting](db.md#manage) data after the merge
+branch `main`, possibly [compacting](db-manage.md) data after the merge
 according to configured policies and logic.

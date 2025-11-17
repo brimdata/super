@@ -31,7 +31,8 @@ Additional options of the [db sub-command](db.md#options)
 
 TODO: get rid of personality metaphor?
 
-The `serve` command implements the [server personality](db.md#command-personalities) to service requests
+The `serve` command implements the
+[server personality](../database/intro.md#command-personalities) to service requests
 from instances of the client personality.
 It listens for [API](../database/api.md) requests on the interface and port
 specified by the `-l` option, executes the requests, and returns results.

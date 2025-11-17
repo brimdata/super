@@ -26,8 +26,8 @@ schema-agnostic fashion.  Data of any _shape_ can be stored in any pool
 and arbitrary data _shapes_ can coexist side by side.
 
 As with [`super`](super.md),
-the [input arguments](super.md#usage) can be in
-any [supported format](super.md#input-formats) and
+the [input arguments](super.md#options) can be in
+any [supported format](super.md#supported-formats) and
 the input format is auto-detected if `-i` is not provided.  Likewise,
 the inputs may be URLs, in which case, the `load` command streams
 the data from a Web server or [S3](../dev/integrations/s3.md)

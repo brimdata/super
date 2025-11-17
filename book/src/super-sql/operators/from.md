@@ -37,11 +37,11 @@ a format argument may be appended as an argument and has the form
 format <fmt>
 ```
 where `<fmt>` is the name of a supported
-[serialization format](../../command/super.md#input-formats) and is
+[serialization format](../../command/super.md#supported-formats) and is
 parsed as a [text entity](../queries.md#text-entity).
 
 When `from` references a file or URL entity whose name ends in a
-[well-known extension](../../command/super.md#input-formats)
+[well-known extension](../../command/super.md#supported-formats)
 (e.g., `.json`, `.sup`, etc.), auto-detection is disabled and the
 format is implied by the extension name.
 

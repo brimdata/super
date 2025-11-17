@@ -58,7 +58,7 @@ After making these changes, Zeek was started by running
 
 The `super`
 executable compatible with our instance was downloaded and unpacked to a
-directory in our `$PATH`, then the [database service](../../command/db.md#serve)
+directory in our `$PATH`, then the [database service](../../command/db-serve.md)
 was started with a specified storage path.
 
 ```
@@ -358,7 +358,7 @@ in storing the pool data across a smaller number of larger
 as data volumes increase.
 
 By default, even after compaction is performed, the granular commit history is
-still maintained to allow for [time travel](../../command/db.md#time-travel)
+still maintained to allow for [time travel](../../database/intro.md#time-travel)
 use cases. However, if time travel is not functionality you're likely to
 leverage, you can reduce the lake's storage footprint by periodically running
 [`super db vacuum`](../../command/db-vacuum.md). This will delete files from lake
