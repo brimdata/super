@@ -8,8 +8,9 @@ The language is a superset of SQL query syntax and includes
 a modern [type system](types/intro.md) with [sum types](types/union.md) to represent
 heterogeneous data.
 
-Similar to a Unix pipeline, a SuperSQL query is expressed as a data source followed
-by a number of [operators](operators/intro.md) that manipulate the data:
+Similar to a Unix pipeline, a SuperSQL [query](queries.md)
+is expressed as a data source followed by a number of
+[operators](operators/intro.md) that manipulate the data:
 ```
 from source | operator | operator | ...
 ```
