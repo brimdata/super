@@ -45,7 +45,7 @@ const ABC = [
 ]
 values ABC
 # input
-null
+
 # expected output
 ["A","B","C"]
 ```

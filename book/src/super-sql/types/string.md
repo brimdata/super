@@ -68,7 +68,7 @@ _Various strings_
 # spq
 values 'hello, world', len('foo'), "SuperDB", "\"quoted\"", 'foo'+'bar'
 # input
-null
+
 # expected output
 "hello, world"
 3
@@ -109,7 +109,7 @@ _Raw strings_
 # spq
 values r'foo\nbar\t'
 # input
-null
+
 # expected output
 "foo\\nbar\\t"
 ```
@@ -121,7 +121,7 @@ _Raw strings with embedded newline_
 values r'foo
 bar'
 # input
-null
+
 # expected output
 "foo\nbar"
 ```

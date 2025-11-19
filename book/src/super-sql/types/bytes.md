@@ -20,7 +20,7 @@ values
   0x,
   null::bytes
 # input
-null
+
 # expected output
 0x0102beef
 0x68656c6c6f2c20776f726c64

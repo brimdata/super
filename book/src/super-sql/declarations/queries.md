@@ -44,7 +44,7 @@ _Simplest named query_
 let hello = (values 'hello, world')
 from hello
 # input
-null
+
 # expected output
 "hello, world"
 ```
@@ -58,7 +58,7 @@ _Use an array subquery if multiple values expected_
 let q = (values 1,2,3)
 values [q]
 # input
-null
+
 # expected output
 [1,2,3]
 ```
@@ -74,7 +74,7 @@ let q2 = (values 3,4)
 let q3 = (values 5)
 values {a:[q1],b:[q2],c:q3}
 # input
-null
+
 # expected output
 {a:[1,2,3],b:[3,4],c:5}
 ```

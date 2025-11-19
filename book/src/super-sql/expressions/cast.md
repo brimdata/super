@@ -225,7 +225,7 @@ values
   cast(80::uint16, 'port'),
   cast(cast(80, <uint16>), 'port')
 # input
-null
+
 # expected output
 80::(port=uint16)
 80::(port=uint16)

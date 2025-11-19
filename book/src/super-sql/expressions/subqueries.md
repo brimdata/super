@@ -174,7 +174,7 @@ _Multi-valued subqueries emit an error_
 # spq
 values (values 1,2,3)
 # input
-null
+
 # expected output
 error("query expression produced multiple values (consider [subquery])")
 ```
@@ -186,7 +186,7 @@ _Multi-valued subqueries can be invoked as an array subquery_
 # spq
 values [values 1,2,3]
 # input
-null
+
 # expected output
 [1,2,3]
 ```
@@ -219,7 +219,7 @@ select *
 from input
 where x >= (select avg(x) from input)  
 # input
-null
+
 # expected output
 {x:2}
 {x:3}

@@ -45,7 +45,7 @@ values
   2001:0db8:0000:0000:0000:0000:0000:0001
 | values this, typeof(this)
 # input
-null
+
 # expected output
 128.32.130.100
 <ip>
@@ -63,7 +63,7 @@ null
 values 128.32.130.100/24, fc00::/7
 | values this, typeof(this)
 # input
-null
+
 # expected output
 128.32.130.0/24
 <net>

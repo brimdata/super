@@ -120,7 +120,7 @@ let input = (
 )
 SELECT x FROM input
 # input
-null
+
 # expected output
 {x:1}
 {x:2}

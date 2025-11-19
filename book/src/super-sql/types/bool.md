@@ -15,7 +15,7 @@ _Comparisons produces Boolean values_
 # spq
 values 1==1, 1>2
 # input
-null
+
 # expected output
 true
 false
@@ -28,7 +28,7 @@ _Booleans are used as predicates_
 # spq
 values 1==1, 1>2
 # input
-null
+
 # expected output
 true
 false

@@ -75,7 +75,7 @@ _A simple record literal_
 # spq
 values {a:1,b:2,s:"hello"}
 # input
-null
+
 # expected output
 {a:1,b:2,s:"hello"}
 ```
@@ -104,7 +104,7 @@ _A record literal with casts_
 # spq
 values {b:true,u:1::uint8,a:[1,2,3],s:"hello"::=CustomString}
 # input
-null
+
 # expected output
 {b:true,u:1::uint8,a:[1,2,3],s:"hello"::=CustomString}
 ```
@@ -117,7 +117,7 @@ _A record expression with an unnamed expression_
 # spq
 values {1+2*3}
 # input
-null
+
 # expected output
 {"1+2*3":7}
 ```
@@ -130,7 +130,7 @@ _Selecting a record expression with an unnamed expression_
 # spq
 select {1+2*3} as x
 # input
-null
+
 # expected output
 {x:{"1+2*3":7}}
 ```

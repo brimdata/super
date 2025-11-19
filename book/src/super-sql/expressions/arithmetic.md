@@ -24,7 +24,7 @@ where `<expr>` is any [expression](intro.md) that results in a number type.
 # spq
 values 2*3+1, 11%5, 1/0, "foo"+"bar", +1, -1
 # input
-null
+
 # expected output
 7
 1

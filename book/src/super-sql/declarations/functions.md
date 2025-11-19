@@ -115,7 +115,7 @@ _A simple recursive function_
 fn fact(n): n<=1 ? 1 : n*fact(n-1)
 values fact(5)
 # input
-null
+
 # expected output
 120
 ```
@@ -176,7 +176,7 @@ fn apply(a,val): (
 )
 values apply([1,2,3], 1)
 # input
-null
+
 # expected output
 "val" no such field at line 3, column 18:
   | collect(this+val)
@@ -193,7 +193,7 @@ fn apply(a,val): (
 )
 values apply([1,2,3], 1)
 # input
-null
+
 # expected output
 [2,3,4]
 ```

@@ -37,7 +37,7 @@ _The null value_
 # spq
 values typeof(null)
 # input
-null
+
 # expected output
 <null>
 ```
@@ -54,7 +54,7 @@ values
   this IS NULL,
   this IS NOT NULL
 # input
-null
+
 # expected output
 null::bool
 null::bool

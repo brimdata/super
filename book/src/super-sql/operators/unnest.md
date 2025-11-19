@@ -92,7 +92,7 @@ _unnest unrolls the elements of an array_
 # spq
 unnest [1,2,"foo"]
 # input
-null
+
 # expected output
 1
 2

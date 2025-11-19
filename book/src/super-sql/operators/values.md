@@ -75,7 +75,7 @@ _Hello, world_
 # spq
 values "hello, world"
 # input
-null
+
 # expected output
 "hello, world"
 ```

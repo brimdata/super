@@ -49,7 +49,7 @@ _The type of a type is type [`type`](../../types/type.md)_
 # spq
 values typeof(typeof(this))
 # input
-null
+
 # expected output
 <type>
 ```

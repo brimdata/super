@@ -85,7 +85,7 @@ _Sample calls to various built-in functions_
 # spq
 values pow(2,3), lower("ABC")+upper("def"), typeof(1)
 # input
-null
+
 # expected output
 8.
 "abcDEF"
@@ -100,7 +100,7 @@ _Calling a lambda function_
 # spq
 values lambda x:x+1 (2)
 # input
-null
+
 # expected output
 3
 ```
@@ -113,7 +113,7 @@ _Passing a lambda function_
 fn square(g,val):g(val)*g(val)
 values square(lambda x:x+1, 2)
 # input
-null
+
 # expected output
 9
 ```
@@ -150,7 +150,7 @@ _Function references may not be assigned to super-structured values_
 fn f():null
 values {x:&f}
 # input
-null
+
 # expected output
 parse error at line 2, column 11:
 values {x:&f}

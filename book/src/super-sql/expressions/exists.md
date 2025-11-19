@@ -22,7 +22,7 @@ _Simple example showing true for non-empty result_
 # spq
 values exists (values 1,2,3)
 # input
-null
+
 # expected output
 true
 ```
@@ -40,7 +40,7 @@ WHERE EXISTS (
     FROM Orders
 )
 # input
-null
+
 # expected output
 {s:"there are orders in the system"}
 ```

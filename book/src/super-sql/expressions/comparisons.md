@@ -82,7 +82,7 @@ _Various scalar comparisons_
 # spq
 values 1 > 2, 1 < 2, "b" > "a", 1 > "a", 1 > x
 # input
-null
+
 # expected output
 false
 true

@@ -195,7 +195,7 @@ values 1, 2 -- , 3
 */
 | aggregate sum(this / 2.0)
 # input
-null
+
 # expected output
 1.5
 ```

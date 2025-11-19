@@ -36,7 +36,7 @@ _Cast non-string values to concatenate_
 # spq
 values "foo" || 123::string
 # input
-null
+
 # expected output
 "foo123"
 ```

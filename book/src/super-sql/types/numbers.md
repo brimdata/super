@@ -104,7 +104,7 @@ _Signed integers_
 values 1, 0, -1, 9223372036854775807
 | values f"{this} is type {typeof(this)}"
 # input
-null
+
 # expected output
 "1 is type <int64>"
 "0 is type <int64>"
@@ -121,7 +121,7 @@ _Other signed integer types_
 values 1, 200, 70000, 9223372036854775807
 | values this::int8, this::int16, this::int32, this::int64
 # input
-null
+
 # expected output
 1::int8
 1::int16
@@ -151,7 +151,7 @@ values 1, 200, 70000, 9223372036854775807
 | values this::uint8, this::uint16, this::uint32, this::uint64
 | values f"{this} is type {typeof(this)}"
 # input
-null
+
 # expected output
 "1 is type <uint8>"
 "1 is type <uint16>"
@@ -180,7 +180,7 @@ _Floating-point numbers_
 values 1., 1.23, 18446744073709551615., 1.e100, +Inf, -Inf, NaN
 | values f"{this} is type {typeof(this)}"
 # input
-null
+
 # expected output
 "1 is type <float64>"
 "1.23 is type <float64>"
@@ -200,7 +200,7 @@ values 1., 1.23, 18446744073709551615., 1.e100, +Inf, -Inf, NaN
 | values this::float16, this::float32, this::float64
 | values f"{this} is type {typeof(this)}"
 # input
-null
+
 # expected output
 "1 is type <float16>"
 "1 is type <float32>"

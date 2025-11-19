@@ -68,7 +68,7 @@ tied together with the corresponding [union type](union.md).
 # spq
 values |[3,1,2]|,|["hello","world","hello"]|
 # input
-null
+
 # expected output
 |[1,2,3]|
 |["hello","world"]|
@@ -91,7 +91,7 @@ values |[...a,...b,4]|
 # spq
 values [1,2,3],["hello","world"]
 # input
-null
+
 # expected output
 [1,2,3]
 ["hello","world"]
@@ -104,7 +104,7 @@ _Sets with mixed types are tied together with a union type_
 # spq
 values typeof(|[1,"foo"]|)
 # input
-null
+
 # expected output
 <|[int64|string]|>
 ```
