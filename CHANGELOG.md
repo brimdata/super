@@ -1,7 +1,7 @@
-SuperDB's first GA release is expected in the Summer of 2025. Ongoing changes
+SuperDB's first GA release is expected in the 2026. Ongoing changes
 will be documented here once that release is made available. To try out
 SuperDB while it's still under development we recommend starting from the
-[`super` command doc](https://superdb.org/docs/commands/super/).
+[`super` command doc](https://superdb.org/command/super.html).
 
 The SuperDB codebase originates from the [Zed project](https://zed.brimdata.io/)
 which is no longer under active development. While the full Zed commit history

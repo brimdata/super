@@ -1,8 +1,7 @@
-# Query Performance From `super` Command Doc
+# Query Performance From Tutorial Doc
 
 These scripts were used to generate the results in the
-[Performance](https://superdb.org/docs/commands/super/#performance)
-section of the [`super` command doc](https://superdb.org/docs/commands/super).
+[Performance Tutorial doc](https://superdb.org/tutorials/performance.html).
 The scripts have been made available to allow for easy reproduction of the
 results under different conditions and/or as tested systems evolve.
 

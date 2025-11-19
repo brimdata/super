@@ -39,7 +39,7 @@ Output is written to one or more files or to standard output.
 
 A query is comprised of one or more operators interconnected
 into a pipeline using the pipe symbol "|" or the alternate "|>".
-See https://superdb.org/docs/
+See https://superdb.org
 for details.  The "select" and "from" operators provide backward
 compatibility with SQL. In fact, you can use SQL exclusively and
 avoid pipeline operators altogether if you prefer.

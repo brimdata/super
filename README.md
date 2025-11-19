@@ -10,12 +10,12 @@ SuperDB is a new analytics database that supports relational tables and JSON
 on an equal footing.  It shines when it comes to data wrangling where
 you need to explore or process large eclectic data sets.  It's also pretty
 decent at analytics and
-[search use cases](https://superdb.org/docs/language/search-expressions).
+[search use cases](https://superdb.org/super-sql/operators/search.html).
 
 Unlike other relational systems that do performance-fragile "schema inference" of JSON,
 SuperDB won't fall over if you throw a bunch of eclectic JSON at it.
 You can easily do
-[schema inference if you want](https://superdb.org/docs/language/operators/fuse),
+[schema inference if you want](https://superdb.org/super-sql/operators/fuse.html),
 but data is ingested by default in its natural form no matter how much heterogeneity
 it might have.  And unlike systems based on the document data model,
 every value in SuperDB is strongly and dynamically typed thus providing the
@@ -27,7 +27,7 @@ way to do things" and a different "JSON way to do things".  Instead of having
 a relational type system for structured data and completely separate JSON type
 system for semi-structured data,
 all data handled by SuperDB (e.g., JSON, CSV, Parquet files, Arrow streams, relational tables, etc) is automatically massaged into
-[super-structured data](https://superdb.org/docs/formats/#2-a-super-structured-pattern)
+[super-structured data](https://superdb.org/intro.html#super-structured-data)
 form.  This super-structured data is then processed by a runtime that simultaneously
 supports the statically-typed relational model and the dynamically-typed
 JSON data model in a unified compute engine.
@@ -36,7 +36,7 @@ JSON data model in a unified compute engine.
 
 SuperDB uses SQL as its query language, but it's a SQL that has been extended
 with [pipe syntax](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/)
-and [lots of fun shortcuts](https://superdb.org/docs/language/pipeline-model/#implied-operators).
+and [lots of fun shortcuts](https://superdb.org/super-sql/operators/intro.html#shortcuts).
 This extended SQL is called SuperSQL.
 
 Here's a SuperSQL query that fetches some data from GitHub Archive,
@@ -63,11 +63,11 @@ FROM 'https://data.gharchive.org/2015-01-01-15.json.gz'
 Super-structured data is strongly typed and "polymorphic": any value can take on any type
 and sequences of data need not all conform to a predefined schema.  To this end,
 SuperDB extends the JSON format to support super-structured data in a format called
-[Super (SUP)](https://superdb.org/docs/formats/sup) where all JSON values
+[Super (SUP)](https://superdb.org/formats/sup.html) where all JSON values
 are also SUP.  Similarly,
-the [Super Binary (BSUP)](https://superdb.org/docs/formats/bsup) format is an efficient
+the [Super Binary (BSUP)](https://superdb.org/formats/sup.html) format is an efficient
 binary representation of SUP (a bit like Avro) and the
-[Super Columnar (CSUP)](https://superdb.org/docs/formats/csup) format is a columnar
+[Super Columnar (CSUP)](https://superdb.org/formats/csup.html) format is a columnar
 representation of SUP (a bit like Parquet).
 
 Even though SuperDB is based on these super-structured data formats, it can read and write
@@ -90,14 +90,14 @@ Our areas of active development include:
 ## Try It
 
 As SuperDB is still under construction, GA releases are not yet available.
-However, you can [install](https://superdb.org/docs/getting_started/install) a build of the
-[`super`](https://superdb.org/docs/commands/super) command-line tool based on
+However, you can [install](https://superdb.org/getting-started/install.html) a build of the
+[`super`](https://superdb.org/command/super.html) command-line tool based on
 code that's under active development to start tinkering. Detailed documentation
 for the SuperDB system and its piped SQL syntax is available on the
-[SuperDB docs site](https://superdb.org/docs).
+[SuperDB docs site](https://superdb.org).
 
 As the code and docs are evolving, we recommend focusing first on what's in the
-[`super` command doc](https://superdb.org/docs/commands/super). Feel free to
+[`super` command doc](https://superdb.org/command/super.html). Feel free to
 explore other docs and try things out, but please don't be shocked if you hit
 speedbumps in the near term, particularly in areas like performance and full
 SQL coverage. We're working on it! :wink:
@@ -107,9 +107,8 @@ Once you've tried it out, we'd love to hear your feedback via our
 
 >**NOTE:** The SuperDB query engine can run locally without a storage engine by accessing
 >files, HTTP endpoints, or S3 paths using the `super` command. While
->[earlier in its development](https://superdb.org/docs/commands/super-db/#status),
->SuperDB can also run on a
->[super-structured database](https://superdb.org/docs/commands/super-db/#the-lake-model)
+>earlier in its development, SuperDB can also run on a
+>[super-structured database](https://superdb.org/command/db)
 >using the `super db` sub-commands.
 
 ### SuperDB Desktop - Coming Soon
