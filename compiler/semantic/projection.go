@@ -51,11 +51,7 @@ func (p projection) aggCols() []column {
 func newColumn(name string, loc ast.Expr, e sem.Expr, funcs *aggfuncs) (*column, error) {
 	c := &column{name: name, loc: loc}
 	cnt := len(*funcs)
-	var err error
-	c.expr, err = funcs.subst(e)
-	if err != nil {
-		return nil, err
-	}
+	c.expr = funcs.subst(e)
 	c.isAgg = cnt != len(*funcs)
 	return c, nil
 }
@@ -76,11 +72,10 @@ func (a aggfuncs) tmp() string {
 	return fmt.Sprintf("t%d", len(a))
 }
 
-func (a *aggfuncs) subst(e sem.Expr) (sem.Expr, error) {
-	var err error
+func (a *aggfuncs) subst(e sem.Expr) sem.Expr {
 	switch e := e.(type) {
 	case nil:
-		return e, nil
+		return e
 	case *sem.AggFunc:
 		// swap in a temp column for each agg function found, which
 		// will then be referred to by the containing expression.
@@ -88,157 +83,77 @@ func (a *aggfuncs) subst(e sem.Expr) (sem.Expr, error) {
 		// the generated aggregate operator.
 		tmp := a.tmp()
 		*a = append(*a, namedAgg{name: tmp, agg: e})
-		return sem.NewThis(e, []string{"in", tmp}), nil
+		return sem.NewThis(e, []string{"in", tmp})
 	case *sem.ArrayExpr:
-		elems, err := a.substArrayElems(e.Elems)
-		if err != nil {
-			return nil, err
-		}
-		e.Elems = elems
+		e.Elems = a.substArrayElems(e.Elems)
 	case *sem.BinaryExpr:
-		e.LHS, err = a.subst(e.LHS)
-		if err != nil {
-			return nil, err
-		}
-		e.RHS, err = a.subst(e.RHS)
-		if err != nil {
-			return nil, err
-		}
+		e.LHS = a.subst(e.LHS)
+		e.RHS = a.subst(e.RHS)
 	case *sem.CallExpr:
 		for k, arg := range e.Args {
-			e.Args[k], err = a.subst(arg)
-			if err != nil {
-				return nil, err
-			}
+			e.Args[k] = a.subst(arg)
 		}
 	case *sem.CondExpr:
-		e.Cond, err = a.subst(e.Cond)
-		if err != nil {
-			return nil, err
-		}
-		e.Then, err = a.subst(e.Then)
-		if err != nil {
-			return nil, err
-		}
-		e.Else, err = a.subst(e.Else)
-		if err != nil {
-			return nil, err
-		}
+		e.Cond = a.subst(e.Cond)
+		e.Then = a.subst(e.Then)
+		e.Else = a.subst(e.Else)
 	case *sem.DotExpr:
-		e.LHS, err = a.subst(e.LHS)
-		if err != nil {
-			return nil, err
-		}
+		e.LHS = a.subst(e.LHS)
 	case *sem.IndexExpr:
-		e.Expr, err = a.subst(e.Expr)
-		if err != nil {
-			return nil, err
-		}
-		e.Index, err = a.subst(e.Index)
-		if err != nil {
-			return nil, err
-		}
+		e.Expr = a.subst(e.Expr)
+		e.Index = a.subst(e.Index)
 	case *sem.IsNullExpr:
-		e.Expr, err = a.subst(e.Expr)
-		if err != nil {
-			return nil, err
-		}
+		e.Expr = a.subst(e.Expr)
 	case *sem.LiteralExpr:
 	case *sem.MapExpr:
 		for _, ent := range e.Entries {
-			ent.Key, err = a.subst(ent.Key)
-			if err != nil {
-				return nil, err
-			}
-			ent.Value, err = a.subst(ent.Value)
-			if err != nil {
-				return nil, err
-			}
+			ent.Key = a.subst(ent.Key)
+			ent.Value = a.subst(ent.Value)
 		}
 	case *sem.RecordExpr:
 		var elems []sem.RecordElem
 		for _, elem := range e.Elems {
 			switch elem := elem.(type) {
 			case *sem.FieldElem:
-				sub, err := a.subst(elem.Value)
-				if err != nil {
-					return nil, err
-				}
+				sub := a.subst(elem.Value)
 				elems = append(elems, &sem.FieldElem{Node: elem, Name: elem.Name, Value: sub})
 			case *sem.SpreadElem:
-				sub, err := a.subst(elem.Expr)
-				if err != nil {
-					return nil, err
-				}
-				elems = append(elems, &sem.SpreadElem{Node: elem, Expr: sub})
+				elems = append(elems, &sem.SpreadElem{Node: elem, Expr: a.subst(elem.Expr)})
 			default:
 				panic(elem)
 			}
 		}
 		e.Elems = elems
 	case *sem.RegexpMatchExpr:
-		e.Expr, err = a.subst(e.Expr)
-		if err != nil {
-			return nil, err
-		}
+		e.Expr = a.subst(e.Expr)
 	case *sem.RegexpSearchExpr:
-		e.Expr, err = a.subst(e.Expr)
-		if err != nil {
-			return nil, err
-		}
+		e.Expr = a.subst(e.Expr)
 	case *sem.SearchTermExpr:
-		e.Expr, err = a.subst(e.Expr)
-		if err != nil {
-			return nil, err
-		}
+		e.Expr = a.subst(e.Expr)
 	case *sem.SetExpr:
-		elems, err := a.substArrayElems(e.Elems)
-		if err != nil {
-			return nil, err
-		}
-		e.Elems = elems
+		e.Elems = a.substArrayElems(e.Elems)
 	case *sem.SliceExpr:
-		e.Expr, err = a.subst(e.Expr)
-		if err != nil {
-			return nil, err
-		}
-		e.From, err = a.subst(e.From)
-		if err != nil {
-			return nil, err
-		}
-		e.To, err = a.subst(e.To)
-		if err != nil {
-			return nil, err
-		}
+		e.Expr = a.subst(e.Expr)
+		e.From = a.subst(e.From)
+		e.To = a.subst(e.To)
 	case *sem.ThisExpr:
 	case *sem.UnaryExpr:
-		e.Operand, err = a.subst(e.Operand)
-		if err != nil {
-			return nil, err
-		}
+		e.Operand = a.subst(e.Operand)
 	}
-	return e, nil
+	return e
 }
 
-func (a *aggfuncs) substArrayElems(elems []sem.ArrayElem) ([]sem.ArrayElem, error) {
+func (a *aggfuncs) substArrayElems(elems []sem.ArrayElem) []sem.ArrayElem {
 	var out []sem.ArrayElem
 	for _, e := range elems {
 		switch e := e.(type) {
 		case *sem.SpreadElem:
-			sub, err := a.subst(e.Expr)
-			if err != nil {
-				return nil, err
-			}
-			out = append(out, &sem.SpreadElem{Node: e, Expr: sub})
+			out = append(out, &sem.SpreadElem{Node: e, Expr: a.subst(e.Expr)})
 		case *sem.ExprElem:
-			sub, err := a.subst(e.Expr)
-			if err != nil {
-				return nil, err
-			}
-			out = append(out, &sem.ExprElem{Node: e, Expr: sub})
+			out = append(out, &sem.ExprElem{Node: e, Expr: a.subst(e.Expr)})
 		default:
 			panic(e)
 		}
 	}
-	return out, nil
+	return out
 }

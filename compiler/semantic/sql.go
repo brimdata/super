@@ -49,11 +49,7 @@ func (t *translator) sqlSelect(sel *ast.SQLSelect, seq sem.Seq) (sem.Seq, schema
 		where = t.exprSchema(sch, sel.Where)
 	}
 	keyExprs := t.groupBy(sch, sel.GroupBy)
-	having, err := t.having(sch, sel.Having, &funcs)
-	if err != nil {
-		t.error(sel.Having, err)
-		return seq, badSchema()
-	}
+	having := t.having(sch, sel.Having, &funcs)
 	// Now that all the pieces have been converted to sem tree fragments,
 	// we stitch together the fragments into pipeline operators depending
 	// on whether its an aggregation or a selection of scalar expressions.
@@ -72,9 +68,9 @@ func (t *translator) sqlSelect(sel *ast.SQLSelect, seq sem.Seq) (sem.Seq, schema
 	return seq, sch
 }
 
-func (t *translator) having(sch *selectSchema, e ast.Expr, funcs *aggfuncs) (sem.Expr, error) {
+func (t *translator) having(sch *selectSchema, e ast.Expr, funcs *aggfuncs) sem.Expr {
 	if e == nil {
-		return nil, nil
+		return nil
 	}
 	return funcs.subst(t.exprSchema(&havingSchema{sch}, e))
 }
