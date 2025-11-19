@@ -1,0 +1,12 @@
+script: |
+  super -s -c 'from conn.parquet | aggregate count()'
+
+vector: true
+
+inputs:
+  - name: conn.parquet
+
+outputs:
+  - name: stdout
+    data: |
+      10::uint64
