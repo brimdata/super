@@ -608,7 +608,7 @@ super -f json \
 > empty records no longer appear if the download is repeated today using the same
 > URL shown above. But taming glitchy data is a big part of data discovery, so to
 > relive the magic of our original experience, you can download
-> [this archived copy](https://superdb.org/docs/tutorials/prs.json) of the
+> [this archived copy](prs.json) of the
 > `prs.json` we originally saw._
 
 Now that you have this JSON file on your local file system, how would you query it
