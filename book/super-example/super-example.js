@@ -1,4 +1,3 @@
-import { AriaTabs } from './aria-tabs';
 import { SuperPlayground } from './super-playground';
 
 const preNodes = document.querySelectorAll('pre:has(> code.language-mdtest-spq)');
@@ -25,49 +24,19 @@ for (const [i, pre] of preNodes.entries()) {
   }
 
   const html = `
-  <article class="super-example">
-    <nav role="tablist">
-      <button
-        role="tab"
-        aria-selected="true"
-        aria-controls="playground-panel-${i}"
-        id="playground-tab-${i}"
-        tabindex="0"
-      >
-        Interactive
-      </button>
-      <button
-        role="tab"
-        aria-selected="false"
-        aria-controls="command-panel-${i}"
-        id="command-tab-${i}"
-        tabindex="-1"
-      >
-        CLI
-      </button>
-    </nav>
-    <section
-      role="tabpanel"
-      id="playground-panel-${i}"
-      class="super-playground"
-      ${attributes}
-    >
-      <div class="editor query">
-        <header class="repel"><label>Query</label></header>
-        <pre><code></code></pre>
-      </div>
-      <div class="editor input">
-        <header class="repel"><label>Input</label></header>
-        <pre><code></code></pre>
-      </div>
-      <div class="editor result">
-        <header class="repel"><label>Result</label></header>
-        <pre><code></code></pre>
-      </div>
-    </section>
-    <section hidden role="tabpanel" id="command-panel-${i}" class="super-command">
+  <article class="super-example" ${attributes}>
+    <div class="editor query">
+      <header class="repel"><label>Query</label></header>
       <pre><code></code></pre>
-    </section>
+    </div>
+    <div class="editor input">
+      <header class="repel"><label>Input</label></header>
+      <pre><code></code></pre>
+    </div>
+    <div class="editor result">
+      <header class="repel"><label>Result</label></header>
+      <pre><code></code></pre>
+    </div>
   </article>
 `;
 
@@ -76,22 +45,12 @@ for (const [i, pre] of preNodes.entries()) {
   const node = div.children[0];
   pre.replaceWith(node);
 
-    const tablist = node.querySelector('[role="tablist"]');
-    AriaTabs.setup(tablist);
+  node.querySelector('.query code').textContent = spq;
+  node.querySelector('.input code').textContent = input;
+  node.querySelector('.result code').textContent = expected;
 
-  node.querySelector('.super-playground .query code').textContent = spq;
-  node.querySelector('.super-playground .input code').textContent = input;
-  node.querySelector('.super-playground .result code').textContent = expected;
+  SuperPlayground.setup(node, null);
 
-  const commandCode = node.querySelector('.super-command code')
-  SuperPlayground.setup(node, (query, input) => {
-    let command = `super -s -c '${query}'`;
-    if (input.length > 0) {
-      command = `echo '${input}' \\\n| ${command} -`;
-    }
-    commandCode.textContent = command;
-  });
-
-    // Prevent keydown from bubbling up to book.js listeners.
-    node.addEventListener('keydown', (e) => e.stopPropagation());
+  // Prevent keydown from bubbling up to book.js listeners.
+  node.addEventListener('keydown', (e) => e.stopPropagation());
 }
