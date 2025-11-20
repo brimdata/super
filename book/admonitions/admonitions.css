@@ -1,0 +1,25 @@
+/* Add light background colors to mdbook admonitions */
+.blockquote-tag {
+  padding: 1em;
+  border-radius: 4px;
+}
+
+.blockquote-tag-note {
+  background-color: rgba(68, 138, 255, 0.1);
+}
+
+.blockquote-tag-tip {
+  background-color: rgba(0, 191, 165, 0.1);
+}
+
+.blockquote-tag-important {
+  background-color: rgba(137, 87, 229, 0.1);
+}
+
+.blockquote-tag-warning {
+  background-color: rgba(255, 152, 0, 0.1);
+}
+
+.blockquote-tag-caution {
+  background-color: rgba(244, 67, 54, 0.1);
+}
