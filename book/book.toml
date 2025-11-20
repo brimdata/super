@@ -7,16 +7,10 @@ title = "SuperDB"
 [output.html.fold]
 enable = true
 
-[preprocessor.pagetoc]
-
 [output.html]
-additional-css = ["super-example/super-example.css", "copy-button/copy-button.css", "theme/pagetoc.css"]
-additional-js = ["super-example.bundle.js", "copy-button/copy-button.js", "theme/pagetoc.js"]
+additional-css = ["super-example/super-example.css", "copy-button/copy-button.css"]
+additional-js = ["super-example.bundle.js", "copy-button/copy-button.js"]
 git-repository-url = "https://github.com/brimdata/super/tree/main/book"
-# This directive embeds content hashes in the certain asset file names 
-# to work around a problem where cached files cause the sidebar not to reflect
-# changes to SUMMARY.md.  See https://github.com/rust-lang/mdBook/issues/2547
-hash-files = true
 no-section-label = true
 
 [output.html.playground]
