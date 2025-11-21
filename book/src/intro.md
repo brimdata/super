@@ -260,7 +260,7 @@ ETL and data exploration and discovery.
 [pipe syntax](super-sql/intro.md)
 make interactively querying data a breeze.  And language features like
 [recursive functions](super-sql/expressions/subqueries.md#recursive-subqueries)
-with re-entrant subqueries allows for traversing nested data
+with re-entrant subqueries allow for traversing nested data
 in a general and powerful fashion.
 
 Instead of operating upon statically typed relational tables as SQL does,
