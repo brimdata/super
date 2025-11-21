@@ -37,15 +37,6 @@ id,message
 ```
 `super` will detect this as CSV and you will get the same result.
 
-### Copy to CLI
-
-If you want to transfer a working playground query to your shell, just
-click on CLI tab and you will see text suitable for pasting into a
-`bash`, `zsh`, etc.
-
-> Note that there is no special quoting for the shell so you may run
-> into problems if you mix single and double quotes in your query.
-
 ### Examples
 
 To explore a broad range of SuperSQL functionality,

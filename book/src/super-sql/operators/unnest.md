@@ -63,7 +63,8 @@ can be unnested.
 
 For example, if `this` is a record, it can be unnested with `unnest flatten(this)`.
 
-> _Support for map types in `flatten` is not yet implemented._
+>[!NOTE]
+> Support for map types in `flatten` is not yet implemented.
 
 ### Errors
 

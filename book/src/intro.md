@@ -75,8 +75,9 @@ super -c "SELECT 'hello, world'"
 To interact with a SuperDB database, the `super db` subcommands and/or
 its corresponding API can be utilized.
 
-> _Note that the persistent database layer is still under development and not yet
-> ready for turnkey production use._
+>[!NOTE]
+> The persistent database layer is still under development and not yet
+> ready for turnkey production use.
 
 ## Why Not Relational?
 
@@ -103,9 +104,10 @@ consider this simple line of JSON data is in a file called `example.json`:
 {"a":[1,"foo"]}
 ```
 
-> _The literal `[1,"foo"]` is a contrived example but it adequately
+>[!NOTE]
+> The literal `[1,"foo"]` is a contrived example but it adequately
 > represents the challenge of mixed-type JSON values, e.g.,
-> an API returning an array of JSON objects with varying shape._
+> an API returning an array of JSON objects with varying shape.
 
 Surprisingly, this simple JSON input causes unpredictable schema inference
 across different SQL systems.
@@ -170,13 +172,14 @@ While the original conception of the relational data model anticipated
 "product types" &mdash; in fact, describing a relation's schema in terms of
 a product type &mdash; it unfortunately did not anticipate sum types.
 
-> _Codd's original paper on the relational model has a footnote that
-> essentially describes as a product type:_
+>[!NOTE]
+> Codd's original paper on the relational model has a footnote that
+> essentially describes as a product type:
 >
 > <!-- markdownlint-disable-next-line MD033 -->
 > <center><img src="codd-footnote.png" alt="Codd's Footnote" title="Codd's Footnote" width="500"></center>
 >
-> _But sum types were notably absent._
+> But sum types were notably absent.
 
 Armed with both sum and product types, super-structured data provides a
 comprehensive algebraic type system that can represent any
@@ -383,5 +386,6 @@ feel free to dive in deeper:
 [formats](formats/intro.md) underlying SuperDB, or
 * browse the [tutorials](tutorials/intro.md).
 
-> _Once you've had a look at SuperDB, feel free to chat with us on
-> our [community Slack](https://www.brimdata.io/join-slack/)._
+>[!NOTE]
+> Once you've had a look at SuperDB, feel free to chat with us on
+> our [community Slack](https://www.brimdata.io/join-slack/).

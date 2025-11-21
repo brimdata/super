@@ -8,9 +8,10 @@
 load <pool>[@<branch>] [ ( [author <author>] [message <message>] [meta <meta>] ) ]
 ```
 
-> _The `load` operator is exclusively for working with a
+>[!NOTE]
+> The `load` operator is exclusively for working with a
 >[database](../../command/db.md) and is not available when running
->[`super`](../../command/super.md) detached from a database._
+>[`super`](../../command/super.md) detached from a database.
 
 ### Description
 

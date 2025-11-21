@@ -203,10 +203,11 @@ specification.
 ...
 ```
 
-> _See [the role of `_path`](logs.md#the-role-of-_path)
+>[!NOTE]
+> See [the role of `_path`](logs.md#the-role-of-_path)
 > for important details if you're using Zeek's built-in [ASCII logger](https://docs.zeek.org/en/current/scripts/base/frameworks/logging/writers/ascii.zeek.html)
 > rather than the
-> [JSON Streaming Logs](https://github.com/corelight/json-streaming-logs) package._
+> [JSON Streaming Logs](https://github.com/corelight/json-streaming-logs) package.
 
 ### SuperSQL Pipeline
 

@@ -42,7 +42,8 @@ If `<entity>` is type `bytes`, then the `<index>` operand
 must be coercible to an integer and the result is an unsigned 8-bit integer
 representing the byte value at that offset in the bytes sequence.
 
-> _Indexing of strings and bytes is not yet implemented._
+>[!NOTE]
+> Indexing of strings and bytes is not yet implemented.
 
 ### Index Base
 
@@ -54,7 +55,8 @@ to specify either 1-based indexing or mixed indexing.  In mixed indexing,
 0-based indexing is used for expressions appearing in pipe operators and
 1-based indexing is used for expressions appearing in SQL operators.
 
-> _Mixed indexing is not yet implemented._
+>[!NOTE]
+> Mixed indexing is not yet implemented.
 
 ### Examples
 

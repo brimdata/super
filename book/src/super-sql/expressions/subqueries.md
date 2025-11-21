@@ -131,8 +131,10 @@ fn walk(node, visit):
   else visit(node)
   end
 ```
-> _Note in this case, we are traversing only records and arrays.  Support for flattening
-> and unflattening maps and sets is forthcoming._
+
+>[!NOTE]
+> In this case, we are traversing only records and arrays.  Support for flattening
+> and unflattening maps and sets is forthcoming.
 
 Here, `walk` is invoking an [array subquery](#array-subqueries) on the unnested
 entities (records or arrays), calling the `walk` function recursively on each item,

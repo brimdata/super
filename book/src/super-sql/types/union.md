@@ -120,13 +120,13 @@ values
     default ( values error({message: "unknown type", on:this}) )
 | ...
 ```
-
-> _Note the presence of a default case above.  In statically typed languages with
+>[!NOTE]
+> Note the presence of a default case above.  In statically typed languages with
 > sum types, the compiler can ensure that all possible cases for a union are covered
 > and report an error otherwise.  In this case, there would be no need for a default.
 > A future version of SuperSQL will include more comprehensive compile-time type
 > checking and will include a mechanism for explicit union dispatch with
-> static type checking._
+> static type checking.
 
 A `case` expression can also be used to dispatch union values inside of
 an expression as in

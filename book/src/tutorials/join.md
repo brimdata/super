@@ -108,6 +108,7 @@ produces
 
 **TODO: this statement is not aligned with our audience**
 
+>[!NOTE]
 > In SQL, a right join is called a _right outer join_.
 
 Next we'll change the join type from `left` to `right`. Notice that this causes

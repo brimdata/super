@@ -101,9 +101,10 @@ cut a,b
 
 _Invoke a function while cutting to set a default value for a field_
 
-> _This can be helpful to transform data into a uniform record type, such as if
+>[!TIP]
+> This can be helpful to transform data into a uniform record type, such as if
 > the output will be exported in formats such as `csv` or `parquet` (see also:
-> [`fuse`](fuse.md))._
+> [`fuse`](fuse.md)).
 
 ```mdtest-spq
 # spq

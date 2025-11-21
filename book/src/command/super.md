@@ -79,10 +79,11 @@ interactions with various stages of the query compiler.
 | `tsv`     |  yes | `.tsv` | [Tab-Separated Values](https://en.wikipedia.org/wiki/Tab-separated_values) |
 | `zeek`    |  yes | `.zeek` | [Zeek Logs](https://docs.zeek.org/en/master/logs/index.html) |
 
-> _Best performance is achieved when operating on data in binary columnar formats
+>[!NOTE]
+> Best performance is achieved when operating on data in binary columnar formats
 > such as [CSUP](../formats/csup.md),
 > [Parquet](https://github.com/apache/parquet-format), or
-> [Arrow](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format)._
+> [Arrow](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format).
 
 ### Input
 
@@ -192,14 +193,15 @@ Also, `-S` is a shortcut for `-f sup` with `-pretty 2` as
 And since plain JSON is another common format choice, the `-j` flag
 is a shortcut for `-f json` and `-J` is a shortcut for pretty-printing JSON.
 
-> _Having the default output format dependent on the terminal status
+>[!NOTE]
+> Having the default output format dependent on the terminal status
 > causes an occasional surprise
 > (e.g., forgetting `-f` or `-s` in a scripted test that works fine on the
 > command line but fails in CI), this avoids problematic performance where a
 > data pipeline deployed to product accidentally uses SUP instead of CSUP.
 > Since `super` gracefully handles any input, this would be hard to detect.
 > Alternatively, making CSUP the default would cause much annoyance when
-> binary data is written to the terminal._
+> binary data is written to the terminal.
 
 If no query is specified with `-c`, the inputs are scanned without modification
 and output in the specified format
@@ -214,8 +216,6 @@ SUP and plain JSON text may be "pretty printed" with the `-pretty` option, which
 the number of spaces to use for indentation.  As this is a common option,
 the `-S` option is a shortcut for `-f sup -pretty 2` and `-J` is a shortcut
 for `-f json -pretty 2`.
-
->**TODO: update this when pretty=2 is the default**
 
 For example,
 ```mdtest-command

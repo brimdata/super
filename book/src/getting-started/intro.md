@@ -30,6 +30,7 @@ super db load -h
 ```
 displays help for loading data into a SuperDB database, and so forth.
 
+>[!NOTE]
 > While `super` and its accompanying data formats are production quality for
 > many use cases, the project's [persistent database](../command/db.md)
 > is a bit earlier in development.

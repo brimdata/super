@@ -56,9 +56,10 @@ To this end, if you want full JSON compatibility without having to delve into th
 details of SUP, just use the `-j` option with `super` and this will tell it to
 expect JSON values as input and produce JSON values as output, much like `jq`.
 
-> _If your downstream JSON tooling expects only a single JSON value, we can use
+>[!NOTE]
+> If your downstream JSON tooling expects only a single JSON value, we can use
 > `-j` along with [collect](../super-sql/aggregates/collect.md) to aggregate
-> multiple input values into an array._
+> multiple input values into an array.
 
 ### `this` vs `.`
 
@@ -86,8 +87,9 @@ which also gives
 4
 ```
 
-> _We are using the `-s` option with `super` in all of the examples,
-> which formats the output as [SUP](../formats/sup.md)._
+>[!NOTE]
+> We are using the `-s` option with `super` in all of the examples,
+> which formats the output as [SUP](../formats/sup.md).
 
 ### Search vs Transformation
 
@@ -602,14 +604,15 @@ super -f json \
   > prs.json
 ```
 
-> _As we get into the exercise below, we'll reach a step where we encounter some
+>[!NOTE]
+> As we get into the exercise below, we'll reach a step where we encounter some
 > unexpected empty objects in the original data. It seems the GitHub API
 > must have been having a bad day when we first ran this exercise, as these
 > empty records no longer appear if the download is repeated today using the same
 > URL shown above. But taming glitchy data is a big part of data discovery, so to
 > relive the magic of our original experience, you can download
 > [this archived copy](prs.json) of the
-> `prs.json` we originally saw._
+> `prs.json` we originally saw.
 
 Now that you have this JSON file on your local file system, how would you query it
 with `super`?
@@ -675,9 +678,10 @@ Maybe we can just use "shapes" to have a deeper look...
 super -S -c 'unnest this | shapes' prs.json
 ```
 
-> _Here we are using `-S`, which is like `-s`, but instead of formatting each
+>[!NOTE]
+> Here we are using `-S`, which is like `-s`, but instead of formatting each
 > SUP value on its own line, it pretty-prints with vertical
-> formatting like `jq` does for JSON._
+> formatting like `jq` does for JSON.
 
 Ugh, that output is still pretty big.  It's not 10k lines but it's still
 more than 700 lines of pretty-printed SUP.
@@ -865,7 +869,7 @@ we can run this query to group field names by their type and limit the output
 to primitive types:
 ```
 super -s -c '
-  unnest this
+  unnest flatten(this)
   | kind(value)=="primitive"
   | fields:=union(key[0]) by type:=typeof(value)
 ' prs2.bsup
@@ -878,8 +882,9 @@ which gives
 {type:<null>,fields:|["assignee","milestone","auto_merge","active_lock_reason"]|}
 ```
 
-> _This use of `over` traverses each record and generates a key-value pair
-> for each field in each record._
+>[!NOTE]
+> This use of `unnest` with `flatten` traverses each record and generates a key-value pair
+> for each field in each record.
 
 Looking through the fields that are strings, the candidates for ISO dates appear
 to be
@@ -928,10 +933,11 @@ which now gives:
 ```
 and we can see that the date fields are correctly typed as type `time`!
 
-> _We sorted the output values here using the
+>[!NOTE]
+> We sorted the output values here using the
 > [sort](../super-sql/operators/sort.md) operator
 > to produce a consistent output order since aggregations can be run in parallel
-> to achieve scale and do not guarantee their output order._
+> to achieve scale and do not guarantee their output order.
 
 ### Putting It All Together
 
@@ -939,7 +945,7 @@ Instead of running each step above into a temporary file, we can
 put all the transformations together in a single
 pipeline, where the full query text might look like this:
 ```
-unnest this                      -- traverse the array of objects
+unnest this                    -- traverse the array of objects
 | len(this) != 0               -- skip empty objects
 | fuse                         -- fuse objects into records of a combined type
 | drop head,base,_links        -- drop fields that we don't need
@@ -949,7 +955,8 @@ unnest this                      -- traverse the array of objects
   updated_at:=updated_at::time
 ```
 
-> _The `--` syntax indicates a single-line comment._
+>[!NOTE]
+> The `--` syntax indicates a single-line comment.
 
 We can then put this in a file, called say `transform.spq`, and use the `-I`
 argument to run all the transformations in one fell swoop:

@@ -6,6 +6,7 @@
 
 ## Commitish
 
+>[!NOTE]
 > While `super` and its accompanying formats
 > are production quality, SuperDB's persistent database is still fairly early in development
 > and alpha quality.
@@ -188,11 +189,13 @@ running any `super db` lake command all pointing at the same storage endpoint
 and the lake's data footprint will always remain consistent as the endpoints
 all adhere to the consistency semantics of the lake.
 
+>[!NOTE]
 > Transactional data consistency is not fully implemented yet for
 > the S3 endpoint so only single-node access to S3 is available right now,
 > though support for multi-node access is forthcoming.
 > For a shared file system, the close-to-open cache consistency
-> semantics of [NFS](https://en.wikipedia.org/wiki/Network_File_System) should provide the > necessary consistency guarantees needed by
+> semantics of [NFS](https://en.wikipedia.org/wiki/Network_File_System) should provide the
+> necessary consistency guarantees needed by
 > the lake though this has not been tested.  Multi-process, single-node
 > access to a local file system has been thoroughly tested and should be
 > deemed reliable, i.e., you can run a direct-access instance of `super db` alongside
@@ -239,6 +242,7 @@ Each commit object is assigned a global ID.
 Similar to Git, commit objects are arranged into a tree and
 represent the entire commit history of the lake.
 
+>[!NOTE]
 > Technically speaking, Git can merge from multiple parents and thus
 > Git commits form a directed acyclic graph instead of a tree;
 > SuperDB does not currently support multiple parents in the commit object history.
@@ -303,6 +307,7 @@ key.  For example, on a pool with pool key `ts`, the query `ts == 100`
 will be optimized to scan only the data objects where the value `100` could be
 present.
 
+>[!NOTE]
 > The pool key will also serve as the primary key for the forthcoming
 > CRUD semantics.
 
@@ -354,4 +359,5 @@ using that pool's "branches log" in a similar fashion, then its corresponding
 commit object can be used to construct the data of that branch at that
 past point in time.
 
+>[!NOTE]
 > Time travel using timestamps is a forthcoming feature.

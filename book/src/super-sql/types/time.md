@@ -1,6 +1,7 @@
 ### Date/Times
 
-> _WARNING: These data types are going to change in a forthcoming release of SuperSQL._
+>[!WARNING]
+> These data types are going to change in a forthcoming release of SuperSQL.
 
 The `time` type represents an unsigned 64-bit number of nanoseconds since epoch.
 

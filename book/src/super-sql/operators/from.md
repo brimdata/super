@@ -101,8 +101,9 @@ branch of each pool is accessed.
 
 The format argument is not valid with a database source.
 
-> _Metadata from database pools also may be sourced using `from`.
-> This will be documented in a future release of SuperDB._
+>[!NOTE]
+> Metadata from database pools also may be sourced using `from`.
+> This will be documented in a future release of SuperDB.
 
 #### URL
 

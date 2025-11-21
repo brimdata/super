@@ -141,8 +141,10 @@ is shorthand for
 ```
 values {a:x+1,b:y-1}
 ```
-> _Note that the values shortcut means SuperSQL provides a calculator experience, e.g.,
-> the command `super -c '1+1'` emits the value `2`._
+
+>[!NOTE]
+> The values shortcut means SuperSQL provides a calculator experience, e.g.,
+> the command `super -c '1+1'` emits the value `2`.
 
 When the expression is Boolean-valued, however, the shortcut is [where](where.md)
 instead of [values](values.md) providing a convenient means to filter values.

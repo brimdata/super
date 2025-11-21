@@ -40,4 +40,5 @@ that is stored in the commit journal for reference.  These values may
 be specified as options to the [`load`](db-load.md) command, and are also available in the
 database [API](../database/api.md) for automation.
 
+>[!NOTE]
 > The branchlog meta-query source is not yet implemented.

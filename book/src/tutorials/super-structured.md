@@ -1,9 +1,10 @@
 # Super-structured Data
 
- **TODO: update this doc.  drop TLDR.  Lead with "does the wolrd need another data model?
+ **TODO: update this doc.  drop TLDR.  Lead with "does the world need another data model?
  emphasize it kinds of looks like other things but is subtly different and that subtle
  difference is the key to a unified model.**
 
+>[!NOTE]
 > **TL;DR** The super-structured data model defines a new and easy way to manage, store,
 > and process data utilizing an collections of strongly yet heterogeneously
 typed values.

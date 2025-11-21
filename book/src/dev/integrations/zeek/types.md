@@ -46,6 +46,7 @@ applicable to handling certain types.
 | [`vector`](https://docs.zeek.org/en/current/script-reference/types.html#type-vector)     | [`array`](../../../formats/model.md#22-array)              | |
 | [`record`](https://docs.zeek.org/en/current/script-reference/types.html#type-record)     | [`record`](../../../formats/model.md#21-record)            | See [`record` details](#record) |
 
+>[!NOTE]
 > The [Zeek data types](https://docs.zeek.org/en/current/script-reference/types.html)
 > page describes the types in the context of the
 > [Zeek scripting language](https://docs.zeek.org/en/master/scripting/index.html).

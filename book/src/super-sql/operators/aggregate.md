@@ -66,7 +66,8 @@ If the cardinality of grouping expressions causes the memory footprint to exceed
 a limit, then each aggregate's partial results are spilled to temporary storage
 and the results merged into final results using an external merge sort.
 
-> _Spilling is not yet implemented for the vectorized runtime._
+>[!NOTE]
+> Spilling is not yet implemented for the vectorized runtime.
 
 ### Examples
 

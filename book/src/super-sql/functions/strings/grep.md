@@ -15,9 +15,10 @@ The `grep` function searches all of the strings in its input value `e`
 [regular expression](../../queries.md#regular-expression).
 If the pattern matches for any string, then the result is `true`.  Otherwise, it is `false`.
 
-> _String matches are case insensitive while regular expression
+>[!NOTE]
+> String matches are case insensitive while regular expression
 > and glob matches are case sensitive.  In a forthcoming release, case sensitivity
-> will be expressible for all three pattern types._
+> will be expressible for all three pattern types.
 
 The entire input value is traversed:
 * for records, each field name is traversed and each field value is traversed or descended

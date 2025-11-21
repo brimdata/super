@@ -19,9 +19,10 @@ Indexing is 0-based by default but can be 1-based by the use of
 a [pragma](../../declarations/pragmas.md) as with
 [generalized indexing](../../expressions/index.md#index-base).
 
-> _This function is implemented for backward compatibility with SQL.
+>[!TIP]
+> This function is implemented for backward compatibility with SQL.
 > [Slice expressions](../../expressions/slices.md) should be used instead
-> and are best practice._
+> and are best practice.
 
 ### Examples
 

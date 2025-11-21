@@ -65,9 +65,10 @@ where `<name>` is an [identifier](../queries.md#identifiers) corresponding to
 either a [built-in function](../functions/intro.md)
 or a [declared function](../declarations/functions.md) that is in scope.
 
-> _Many languages form function references simply by referring to their name
+>[!NOTE]
+> Many languages form function references simply by referring to their name
 > without the need for a special symbol like`&`.  However, an ambiguity arises
-> here between a field reference, which is not declared, and a function name._
+> here between a field reference, which is not declared, and a function name.
 
 For example,
 ```

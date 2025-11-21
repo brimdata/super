@@ -20,7 +20,8 @@ from input | values cast(this, (from input | aggregate fuse(this)))
 Because all values of the input must be read to compute the fused type,
 `fuse` may spill its input to disk when memory limits are exceeded.
 
-> _Spilling is not yet implemented for the vectorized runtime._
+>[!NOTE]
+> Spilling is not yet implemented for the vectorized runtime.
 
 ### Examples
 

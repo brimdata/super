@@ -47,10 +47,11 @@ been published by Elastic and others that provide helpful guidance on becoming
 proficient in Grok. To help you adapt what you learn from these resources to
 the use of the `grok` function, review the tips below.
 
-> _As these represent areas of possible future SuperSQL enhancement, links to open
+>[!NOTE]
+> As these represent areas of possible future SuperSQL enhancement, links to open
 > issues are provided. If you find a functional gap significantly impacts your
 > ability to use the `grok` function, please add a comment to the relevant
-> issue describing your use case._
+> issue describing your use case.
 
 1. Logstash's Grok offers an optional data type conversion syntax,
    e.g.,
@@ -106,7 +107,8 @@ the use of the `grok` function, review the tips below.
    avoid compatibility issues, we recommend building configurations starting
    from the RE2-based [included patterns](#included-patterns).
 
-> _If you absolutely require features of Logstash's Grok that are not currently
+>[!NOTE]
+> If you absolutely require features of Logstash's Grok that are not currently
 > present in SuperSQL, you can create a Logstash-based preprocessing
 > pipeline that uses its
 > [Grok filter plugin](https://www.elastic.co/guide/en/logstash/current/plugins-filters-grok.html)
@@ -114,7 +116,7 @@ the use of the `grok` function, review the tips below.
 > [super/3151](https://github.com/brimdata/super/issues/3151) provides some tips for
 > getting started. If you pursue this approach, please add a comment to the
 > issue describing your use case or come talk to us on
-> [community Slack](https://www.brimdata.io/join-slack/)._
+> [community Slack](https://www.brimdata.io/join-slack/).
 
 #### Debugging
 

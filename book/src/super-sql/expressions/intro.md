@@ -128,5 +128,6 @@ and thus do not have any inherent precedence.
 
 ### Coercion
 
-> _A forthcoming version of this documentation will describe the coercion
-rules for automatically casting of values for type compatibility in expressions._
+>[!NOTE]
+> A forthcoming version of this documentation will describe the coercion
+rules for automatically casting of values for type compatibility in expressions.

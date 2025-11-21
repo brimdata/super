@@ -2,6 +2,7 @@
 
 ### _Status_
 
+>[!NOTE]
 > This is a brief sketch of the functionality exposed in the
 > SuperDB API. More detailed documentation of the API will be forthcoming.
 

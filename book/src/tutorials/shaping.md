@@ -28,6 +28,7 @@ XXX
 They all have the same signature, taking two parameters: the value to be
 transformed and a [type value](../super-sql/types/type.md) for the target type.
 
+>[!NOTE]
 > Another type of transformation that's needed for shaping is renaming fields,
 > which is supported by the [rename](../super-sql/operators/rename.md) operator.
 > Also, the [values](../super-sql/operators/values.md) operator

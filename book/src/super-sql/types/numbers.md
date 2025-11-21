@@ -20,7 +20,8 @@ These signed types include:
 * `int16`, and
 * `int32`.
 
-> _The `int128` type is not yet implemented in SuperDB._
+>[!NOTE]
+> The `int128` type is not yet implemented in SuperDB.
 
 For backward compatibility with SQL, syntactic aliases for signed integers
 are defined as follows:
@@ -41,7 +42,8 @@ These unsigned types include:
 * `uint16`, and
 * `uint32`.
 
-> _The `uint128` type is not yet implemented in SuperDB._
+>[!NOTE]
+> The `uint128` type is not yet implemented in SuperDB.
 
 #### Floating Point
 
@@ -65,11 +67,13 @@ are defined as follows:
 * `FLOAT` maps to `float64`
 * `DOUBLE PRECISION` maps to `float64`
 
-> _The `FLOAT(n)` SQL types are not yet implemented by SuperSQL._
+>[!NOTE]
+> The `FLOAT(n)` SQL types are not yet implemented by SuperSQL.
 
 #### Decimal
 
-> _The `decimal` type is not yet implemented in SuperSQL._
+>[!NOTE]
+> The `decimal` type is not yet implemented in SuperSQL.
 
 #### Coercion
 
@@ -90,8 +94,9 @@ values 1::int8, 1::int16 | aggregate sum(this)
 the input values to `sum()` are coerced to `int64` and the result is
 `2::int64`.
 
-> _Further details of coercion rules are forthcoming in a future
-> version of this documentation._
+>[!NOTE]
+> Further details of coercion rules are forthcoming in a future
+> version of this documentation.
 
 #### Examples
 

@@ -46,7 +46,8 @@ output is desired.
 If not all data fits in memory, values are spilled to temporary storage
 and sorted with an external merge sort.
 
-> _Spilling is not yet implemented for the vectorized runtime._
+>[!NOTE]
+> Spilling is not yet implemented for the vectorized runtime.
 
 SuperSQL's `sort` is [stable](https://en.wikipedia.org/wiki/Sorting_algorithm#Stability)
 such that values with identical sort keys always have the same relative order

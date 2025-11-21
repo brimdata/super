@@ -16,9 +16,10 @@ where `key` is a string array of the path of each record field of `val` and
 If there are multiple types for the leaf values in `val`, then the array value
 inner type is a union of the record types present.
 
-> _A future version of `flatten` will support all nested data types (e.g., maps, sets, etc)
+>[!NOTE]
+> A future version of `flatten` will support all nested data types (e.g., maps, sets, etc)
 > where the array-of-strings value of key becomes a more general data structure representing
-> all possible value types that comprise a path._
+> all possible value types that comprise a path.
 
 ### Examples
 

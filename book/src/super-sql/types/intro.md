@@ -40,6 +40,7 @@ To be clear, none of these categorical names are actual types and may not
 be used in a SuperSQL query.  They are simply used to document expected
 type categories.
 
-> _In a future version of SuperSQL, user-defined function and operator declarations
+>[!NOTE]
+> In a future version of SuperSQL, user-defined function and operator declarations
 > will include optional type signatures and these names representing type categories
-> may be included in the language for that purpose._
+> may be included in the language for that purpose.

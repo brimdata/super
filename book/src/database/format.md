@@ -1,10 +1,9 @@
 ## Database Format
 
-### _Status_
-
+>[!NOTE]
 >This document is a rough draft and work in progress.  We plan to
-soon bring it up to date with the current implementation and maintain it
-as we add new capabilities to the system.
+>soon bring it up to date with the current implementation and maintain it
+>as we add new capabilities to the system.
 
 ### Introduction
 
@@ -58,6 +57,7 @@ sort of the KSUIDs results in a creation-time ordering (though this ordering
 is not relied on for causal relationships since clock skew can violate
 such an assumption).
 
+>[!NOTE]
 > While a SuperDB database is defined in terms of a cloud object store, it may also
 > be realized on top of a file system, which provides a convenient means for
 > local, small-scale deployments for test/debug workflows.  Thus, for simple use cases,
@@ -99,7 +99,8 @@ The seek index maps pool key values to seek offsets in the BSUP file thereby
 allowing a scan to do a byte-range retrieval of the BSUP object when
 processing only a subset of data.
 
-> Note the CSUP format allows individual vector segments to be read in isolation
+>[!NOTE]
+> The CSUP format allows individual vector segments to be read in isolation
 > and the in-memory CSUP representation supports random access so there is
 > no need to have a seek index for the vector object.
 
@@ -192,7 +193,8 @@ HEAD, but HEAD is always less than or equal to the real end of journal,
 and this condition can be self-corrected by probing for HEAD+1 whenever
 the HEAD of the journal is accessed.
 
-> Note that put-if-missing can be emulated on a local file system by opening
+>[!NOTE]
+> Put-if-missing can be emulated on a local file system by opening
 > a file for exclusive access and checking that it has zero length after
 > a successful open.
 

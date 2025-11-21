@@ -13,8 +13,9 @@ Any named type that appears in the body of a type declaration must be previously
 declared in the same scope or in an ancestor scope, i.e., types cannot contained
 forward references to other named types.  In particular, named types cannot be recursive.
 
-> _A future version of SuperSQL may include recursive types.  This is a research topic
-> for the SuperDB project._
+>[!NOTE]
+> A future version of SuperSQL may include recursive types.  This is a research topic
+> for the SuperDB project.
 
 Input data may create named types that conflict with type declarations.  In this case,
 a reference to a declared type in the query text uses the type definition of the nearest

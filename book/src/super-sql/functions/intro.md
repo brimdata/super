@@ -12,8 +12,9 @@ Functions are generally polymorphic and can be called with values of varying typ
 as their arguments.  When type errors occur, functions will return structured errors
 reflecting the error.
 
-> _Static type checking of function arguments and return values is not yet implemented
-> in SuperSQL but will be supported in a future version._
+>[!NOTE]
+> Static type checking of function arguments and return values is not yet implemented
+> in SuperSQL but will be supported in a future version.
 
 Throughout the function documentation, expected parameter types and the return type
 are indicated with type signatures having the form

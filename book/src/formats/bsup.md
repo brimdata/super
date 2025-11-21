@@ -93,12 +93,13 @@ of bytes of said length:
 ```
 The length encoding utilizes a variable-length unsigned integer called herein a `uvarint`:
 
-> _Inspired by Protocol Buffers,
+>[!NOTE]
+> Inspired by Protocol Buffers,
 > a `uvarint` is an unsigned, variable-length integer encoded as a sequence of
 > bytes consisting of N-1 bytes with bit 7 clear and the Nth byte with bit 7 set,
 > whose value is the base-128 number composed of the digits defined by the lower
 > 7 bits of each byte from least-significant digit (byte 0) to
-> most-significant digit (byte N-1)._
+> most-significant digit (byte N-1).
 
 The frame payload's length is equal to the value of the `uvarint` following the
 frame code times 16 plus the low 4-bit integer value `L` field in the frame code.
@@ -128,7 +129,8 @@ Of the 256 possible values for the `<format>` byte, only type `0` is currently
 defined and specifies that `<compressed payload>` contains an
 [LZ4 block](https://github.com/lz4/lz4/blob/master/doc/lz4_Block_format.md).
 
-> _This arrangement of frames separating types and values allows
+>[!NOTE]
+> This arrangement of frames separating types and values allows
 > for efficient scanning and parallelization.  In general, values depend
 > on type definitions but as long as all of the types are known when
 > values are used, decoding can be done in parallel.  Likewise, since
@@ -139,7 +141,7 @@ defined and specifies that `<compressed payload>` contains an
 > heuristics, e.g., knowing a filtering predicate can't be true based on a
 > quick scan of the data perhaps using the Boyer-Moore algorithm to determine
 > that a comparison with a string constant would not work for any
-> value in the buffer._
+> value in the buffer.
 
 Whether the payload was originally uncompressed or was decompressed, it is
 then interpreted according to the `T` bits of the frame code as a
@@ -207,10 +209,11 @@ is further encoded as a "counted string", which is the `uvarint` encoding
 of the length of the string followed by that many bytes of UTF-8 encoded
 string data.
 
-> _As defined by [Super (SUP)](sup.md), a field name can be any valid UTF-8 string much like JSON
+>[!NOTE]
+> As defined by [Super (SUP)](sup.md), a field name can be any valid UTF-8 string much like JSON
 > objects can be indexed with arbitrary string keys (via index operator)
 > even if the field names available to the dot operator are restricted
-> by language syntax for identifiers._
+> by language syntax for identifiers.
 
 The type ID follows the field name and is encoded as a `uvarint`.
 

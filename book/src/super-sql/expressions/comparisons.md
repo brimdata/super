@@ -45,9 +45,10 @@ The `like` comparator has the form
 where `<expr>` is any expression that produces a string type and `<pattern>`
 is a constant expression that results in a string type.
 
-> _Currently, `<pattern>` must be a constant value and cannot depend on the input.
+>[!NOTE]
+> Currently, `<pattern>` must be a constant value and cannot depend on the input.
 > Also, the `ilike` operator for case-insensitive matching is not yet supported.
-> These capabilities will be included in a future version of SuperSQL._
+> These capabilities will be included in a future version of SuperSQL.
 
 The `like` comparator is true if the `<pattern>` matches `<expr>` where pattern
 consists of literal characters, `_` for matching any single letter, and `%` for
@@ -63,7 +64,8 @@ String values are compared via byte order in accordance with
 [C/POSIX collation](https://www.postgresql.org/docs/current/collation.html#COLLATION-MANAGING-STANDARD)
 as found in other SQL databases such as Postgres.
 
-> _SuperSQL does net yet support SQL COLLATE keyword and variations._
+>[!NOTE]
+> SuperSQL does net yet support SQL COLLATE keyword and variations.
 
 When the operands are coercible to like types, the result is the truth value
 of the comparison.  Otherwise, the result is `false`.  To compare values of

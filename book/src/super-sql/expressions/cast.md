@@ -66,8 +66,9 @@ the [`parse_sup`](../functions/parsing/parse_sup.md) function.
 
 A null value of type [null](../types/null.md) may be cast to any type.
 
-> _A future version of this documentation will provide detailed documentation for
-> acceptable date/time strings._
+>[!NOTE]
+> A future version of this documentation will provide detailed documentation for
+> acceptable date/time strings.
 
 ### Complex Values
 
@@ -132,8 +133,9 @@ If the input type is present in the member types, then the best fit is that type
 
 Otherwise, the best fit is determined from the input type as follows:
 
-> _A future version of this documentation will provide detailed documentation for
-> best-fit selection algorithm._
+>[!NOTE]
+> A future version of this documentation will provide detailed documentation for
+> best-fit selection algorithm.
 
 ### Named Types
 
