@@ -20,6 +20,21 @@ and the SuperSQL compiler often optimizes a query into an implementation
 different from the dataflow implied by the pipeline to achieve the
 same semantics with better performance.
 
+While SuperSQL at core is a pipe-oriented language, it is also
+[backward compatible](../intro.md#supersql) with relational SQL in that any
+arbitrarily complex SQL query may appear as a single pipe operator
+anywhere in SuperSQL ipe query.
+
+In other words, a single pipe operator that happens to be a standalone SQL query
+is also a SuperSQL pipe query.
+For example, these are all valid SuperSQL queries:
+```
+SELECT 'hello, world'
+SELECT * FROM table
+SELECT * FROM f1.json JOIN f2.json ON f1.id=f2.id
+SELECT watchers FROM https://api.github.com/repos/brimdata/super
+```
+
 ## Interactive UX
 
 To support an interactive pattern of usage, SuperSQL includes
@@ -44,23 +59,6 @@ from source
 ```
 searches for the strings "example.com" and "urgent" in all of the string values in
 the input and also includes a numeric comparison regarding the field `message_length`.
-
-## SQL Compatibility
-
-SuperSQL is [backward compatible](../intro.md#supersql)
-with relational SQL in that any SQL query is also a SuperSQL query.
-An arbitrarily complex SQL query may appear as a single [pipe operator](operators/intro.md)
-anywhere in a SuperSQL pipe query.
-
-In other words, a single pipe operator that happens to be a SQL query
-is also a SuperSQL pipe query.
-For example, these are all valid SuperSQL queries:
-```
-SELECT 'hello, world'
-SELECT * FROM table
-SELECT * FROM f1.json JOIN f2.json ON f1.id=f2.id
-SELECT watchers FROM https://api.github.com/repos/brimdata/super
-```
 
 ## Pipe Queries
 

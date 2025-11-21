@@ -1,26 +1,59 @@
 # Introduction
 
-SuperDB is a new analytics database that fuses structured and semi-structured data
-into a unified data model called [_super-structured data_](formats/model.md).
-With super-structured data,
-complex problems with modern data stacks become easier to tackle
-because relational tables and eclectic JSON data are treated in a uniform way
+SuperDB is a new type of analytics database that promises an easier approach
+to modern data because it unifies relational tables and eclectic JSON in a
+powerful, new data model called [_super-structured data_](formats/model.md).
+
+> [!NOTE]
+> The SuperDB implementation is open source and available as a
+> [GitHub repository](https://github.com/brimdata/super).  Pre-built binaries
+> may be [downloaded and installed](getting-started/install.md)
+> via customary mechanisms.
+
+Super-structured data is
+* _dynamic_ so that data collections can vary by type and are not handcuffed by schemas,
+* _strongly typed_ ensuring that all the benefits of a comprehsenive type
+  apply to dynamic data, and
+* _self-describing_ thus obviating the need define schemas up front.
+
+SuperDB has taken many of the best ideas of current data systems and adapted them
+for super-structured data with the introduction of:
+
+* the super-structured [data model](formats/model.md),
+* several super-structured serialization [formats](formats/intro.md),
+* a super-structured [query language](super-sql/intro.md),
+* a super-structured [query engine](https://github.com/brimdata/super/tree/main/runtime/vam), and
+* a super-strcutured [database format](database/format.md) compatible with
+  cloud object stores.
+
+To achieve high performance for the dynamically type data that lies at the heart of
+super-structured data, SuperDB has devised a novel vectorized runtime
+built as a _clean slate_ around [algebraic types](#enter-algebraic-types).
+This contrasts with the Frankenstein approach taken by other analytics systems that
+[shred variants](https://github.com/apache/parquet-format/blob/master/VariantShredding.md#value-shredding)
+into relational columns.
+
+Putting JSON into a relational table &mdash; whether adding a JSON or variant
+column to a relational table or performing schema inference that does not
+always work &mdash; is like putting a square peg in a round hole.
+SuperDB turns this apparoch _upside down_ where JSON and
+schema-constrained relational tables are simply special cases of
+the more general and holistic super-structured data model.
+
+This leads to ergonomics for SuperDB that are far better for the query language
+and for managing data end to end because there is not one way for handling
+relational data and a different way for managing dynamic data &mdash;
+relational tables and eclectic JSON data are treated in a uniform way
 from the ground up.
 
-Data is self-describing so it's easy to daisy-chain queries and inspect data at any point in a complex query or data pipeline. For example, there's no need for a set of Parquet input files to all be schema-compatible and it's easy to mix and match Parquet with JSON across queries.
+Because data is self-describing, it's easy to daisy-chain queries and
+inspect data at any point in a complex query or data pipeline. For example,
+there's no need for a set of Parquet input files to all be schema-compatible and
+it's easy to mix and match Parquet with JSON across queries.
 
-SuperDB is implemented with the standalone,
-dependency-free [`super`](command/super.md) command.
-`super` is a little like [DuckDB](https://duckdb.org/) and a little like
-[`jq`](https://stedolan.github.io/jq/) but super-structured data ties these
-two command styles together with strong typing of dynamic data.
-
-For a non-technical user, SuperDB is as easy to use as web search
-while for a technical user, SuperDB exposes its technical underpinnings
-in a gradual slope, providing as much detail as desired,
-packaged up in the easy-to-understand
-[Super (SUP) data format](formats/sup.md) and
-[SuperSQL query language](super-sql/intro.md).
+For a less technical user, SuperDB can be as easy to use as log search
+while for an advanced user, SuperDB is full-fledge query language that is
+backward compatible with SQL.
 
 ## Super-structured Data
 
@@ -53,9 +86,13 @@ or
 
 ## The `super` Command
 
-It's easy to get going with SuperDB and the
-[`super`](command/super.md) command.
-There are no external dependencies to futz with &mdash;
+SuperDB is implemented as the standalone,
+dependency-free [super](command/super.md) command.
+`super` is a little like [DuckDB](https://duckdb.org/) and a little like
+[jq](https://stedolan.github.io/jq/) but super-structured data ties these
+two command styles together with strong typing of dynamic data.
+
+Because `super` has no dependencies, it's easy to get going &mdash;
 just [install the binary](getting-started/install.md) and you're off and running.
 
 SuperDB separates compute and storage and is decomposed into
@@ -72,8 +109,8 @@ the `db` subcommand and specify an optional query with `-c`:
 ```
 super -c "SELECT 'hello, world'"
 ```
-To interact with a SuperDB database, the `super db` subcommands and/or
-its corresponding API can be utilized.
+To interact with a SuperDB database, invoke the [db](command/db.md) subcommands
+of `super` and/or program against the [database API](database/api.md).
 
 >[!NOTE]
 > The persistent database layer is still under development and not yet
@@ -81,9 +118,9 @@ its corresponding API can be utilized.
 
 ## Why Not Relational?
 
-The _en vogue_ argument against a new system like SuperDB is that SQL and the relational
+The fashionable argument against a new system like SuperDB is that SQL and the relational
 model (RM) are perfectly good solutions that have stood the test of time
-and there's no need to replace them.
+so there's no need to replace them.
 In fact,
 [a recent paper](https://db.cs.cmu.edu/papers/2024/whatgoesaround-sigmodrec2024.pdf)
 from legendary database experts
@@ -92,10 +129,10 @@ because any good ideas that arise from such efforts will simply be incorporated
 into SQL and the RM.
 
 Yet, the incorporation of the JSON data model into the
-relational model has left much to be desired.  One must typically choose
-between creating columns of "JSON type" that layers in a parallel set of
+relational model never fails to disappoint.  One must typically choose
+between creating columns of a JSON or varianet type that layers in a parallel set of
 operators and behaviors that diverge from core SQL semantics, or
-rely upon schema inference to convert JSON into relational tables,
+rely upon schema inference to convert variant data into relational tables,
 which unfortunately does not always work.
 
 To understand the difficulty of schema inference,
@@ -153,7 +190,7 @@ Error: Arrow error: Cast error: Cannot cast string 'foo' to value of Int64 type
 ```
 
 The more recent innovation of an open
-["variant type"](https://github.com/apache/spark/blob/master/common/variant/README.md)
+[variant type](https://github.com/apache/spark/blob/master/common/variant/README.md)
 is more general than JSON but suffers from similar problems.
 In both these cases, the JSON type and the variant
 type are not individual types but rather entire type systems that differ
@@ -203,7 +240,8 @@ such an expression:
 $ super -c "SELECT typeof(a) as type FROM (SELECT [1,'foo'] AS a)"
 {type:<[int64|string]>}
 ```
-In this super-structured representation, the `type` field is a first-class type value
+In this super-structured representation, the `type` field is a first-class
+[type value](super-sql/types/type.md)
 representing an array type of elements having a sum type of `int64` and `string`.
 
 ## SuperSQL
@@ -220,7 +258,10 @@ ETL and data exploration and discovery.
 [Syntactic shortcuts](super-sql/operators/intro.md#shortcuts),
 [keyword search](super-sql/operators/search.md), and the
 [pipe syntax](super-sql/intro.md)
-make interactively querying data a breeze.
+make interactively querying data a breeze.  And language features like
+[recursive functions](super-sql/expressions/subqueries.md#recursive-subqueries)
+with re-entrant subqueries allows for traversing nested data
+in a general and powerful fashion.
 
 Instead of operating upon statically typed relational tables as SQL does,
 SuperSQL operates upon super-structured data.
@@ -315,8 +356,17 @@ Thus, their
 carries forward SQL eccentricities into their modern adaptation
 of pipes for SQL.
 
-SuperSQL follows the Pipe SQL pattern but seizes the opportunity to modernize
-the ergonomics of the language.  The vision here is that comprehensive backward
+SuperSQL takes a different approach and seizes the opportunity to modernize
+the ergonomics of a SQL-compatible query language.
+While embracing backward compatibility,
+SuperSQL diverges significantly from SQL anachronisms in the pipe portion of
+the language by introducing
+[pipe-scoping](super-sql/intro.md#pipe-scoping) semantics
+that coexists next to the
+[relational-scoping](super-sql/intro.md#relational-scoping) semantics
+of SQL tables and columns.
+
+The vision here is that comprehensive backward
 compatibility can reside in the SQL operators while a modernized syntax and
 and improved ergonomics can reside in the pipe operators, e.g.,
 
@@ -343,49 +393,19 @@ right approach for curing SQL's ills, but it certainly provides a framework
 for exploring entirely new language abstractions while maintaining complete
 backward compatibility with SQL all in the same query language.
 
-## Performance
-
-The super-structured data model is inherently more complex
-than the relational model and thus poses performance challenges.
-
-But since the relational model is a special case of the super-structured model,
-the myriad of optimization techniques developed for SQL and the relational
-model can apply when super-structured data is homogeneously typed.  Moreover, it turns
-out that you can implement a vectorized runtime for super-structured data by
-organizing the data into vectorized units based on types instead of relational columns.
-
-While SuperDB is not yet setting speed records for relational queries, its performance
-for an early system is decent and will continue to improve.
-SQL and the RM have had 55 years to mature and improve and SuperDB is applying
-these lessons step by step.
-
-## Summary
-
-To summarize, SuperDB provides a unified approach to analytics for eclectic JSON data
-and uniformly typed relational tables.  It does so in a SQL compatible fashion when
-data looks like relational tables while offering
-a modern pipe syntax suited for arbitrarily typed collections of data.
-
-In other words,
-SuperDB does not attempt to replace the relational model but rather leverages it
-in a more general approach based on the super-structured data model where:
-
-* SuperSQL is a superset of SQL,
-* the super-structured data model is a superset of the relational model,
-* JSON is easily and automatically represented with strong typing,
-* a polymorphic algebra generalizes the relational algebra, and
-* it all has an efficient vectorized implementation.
-
-## Next Steps
-
-If SuperDB or super-structured data has piqued your interest at all,
-feel free to dive in deeper:
-* explore the [SuperSQL](super-sql/intro.md) query language,
-* learn about the
-[super-structured data model](formats/model.md) and
-[formats](formats/intro.md) underlying SuperDB, or
-* browse the [tutorials](tutorials/intro.md).
-
->[!NOTE]
-> Once you've had a look at SuperDB, feel free to chat with us on
-> our [community Slack](https://www.brimdata.io/join-slack/).
+> [!NOTE]
+> If SuperDB or super-structured data has piqued your interest,
+> you can dive deeper by:
+> * exploring the [SuperSQL](super-sql/intro.md) query language,
+> * learning about the
+> [super-structured data model](formats/model.md) and
+  [formats](formats/intro.md) underlying SuperDB, or
+> * browsing the [tutorials](tutorials/intro.md).
+>
+> We'd love your feedback and we hope to build a thriving community around
+> SuperDB so please feel free to reach out to us via
+> * [Slack](https://www.brimdata.io/join-slack/)
+> * [GitHub issues](https://github.com/brimdata/super/issues), or
+> * [GitHub pull requests](https://github.com/brimdata/super/pulls).
+>
+> See you online!
