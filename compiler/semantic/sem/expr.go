@@ -12,6 +12,13 @@ type Expr interface {
 }
 
 type (
+	AggFunc struct {
+		ast.Node
+		Name     string // convert to lower case
+		Distinct bool
+		Expr     Expr
+		Where    Expr
+	}
 	ArrayExpr struct {
 		ast.Node
 		Elems []ArrayElem

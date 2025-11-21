@@ -269,14 +269,6 @@ func (*UnnestOp) opNode()    {}
 func (*UniqOp) opNode()      {}
 func (*ValuesOp) opNode()    {}
 
-type AggFunc struct {
-	ast.Node
-	Name     string // convert to lower case
-	Distinct bool
-	Expr     Expr
-	Where    Expr
-}
-
 func NewValues(n ast.Node, expr ...Expr) *ValuesOp {
 	return &ValuesOp{Node: n, Exprs: expr}
 }
