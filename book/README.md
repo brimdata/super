@@ -78,19 +78,6 @@ keyword/clause/etc.
 `cut` is much like a [select](select.md) clause
 ```
 
-### Caveats/tips
-
-Format as quoted, italic text.
-
-```
-# ✅ Do this
-> _Spilling is not yet implemented for the vectorized runtime._
-
-# ❌ Not these
-> Spilling is not yet implemented for the vectorized runtime.
-Spilling is not yet implemented for the vectorized runtime.
-```
-
 ### Stacked mdtest-spq for wide examples
 
 Locally check the rendering of mdtest-spq examples and use "stacked" layout
