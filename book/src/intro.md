@@ -12,9 +12,9 @@ powerful, new data model called [_super-structured data_](formats/model.md).
 
 Super-structured data is
 * _dynamic_ so that data collections can vary by type and are not handcuffed by schemas,
-* _strongly typed_ ensuring that all the benefits of a comprehsenive type
+* _strongly typed_ ensuring that all the benefits of a comprehensive type
   apply to dynamic data, and
-* _self-describing_ thus obviating the need define schemas up front.
+* _self-describing_ thus obviating the need to define schemas up front.
 
 SuperDB has taken many of the best ideas of current data systems and adapted them
 for super-structured data with the introduction of:
@@ -23,10 +23,10 @@ for super-structured data with the introduction of:
 * several super-structured serialization [formats](formats/intro.md),
 * a super-structured [query language](super-sql/intro.md),
 * a super-structured [query engine](https://github.com/brimdata/super/tree/main/runtime/vam), and
-* a super-strcutured [database format](database/format.md) compatible with
+* a super-structured [database format](database/format.md) compatible with
   cloud object stores.
 
-To achieve high performance for the dynamically type data that lies at the heart of
+To achieve high performance for the dynamically typed data that lies at the heart of
 super-structured data, SuperDB has devised a novel vectorized runtime
 built as a _clean slate_ around [algebraic types](#enter-algebraic-types).
 This contrasts with the Frankenstein approach taken by other analytics systems that
@@ -36,7 +36,7 @@ into relational columns.
 Putting JSON into a relational table &mdash; whether adding a JSON or variant
 column to a relational table or performing schema inference that does not
 always work &mdash; is like putting a square peg in a round hole.
-SuperDB turns this apparoch _upside down_ where JSON and
+SuperDB turns this approach _upside down_ where JSON and
 schema-constrained relational tables are simply special cases of
 the more general and holistic super-structured data model.
 
@@ -52,7 +52,7 @@ there's no need for a set of Parquet input files to all be schema-compatible and
 it's easy to mix and match Parquet with JSON across queries.
 
 For a less technical user, SuperDB can be as easy to use as log search
-while for an advanced user, SuperDB is full-fledge query language that is
+while for an advanced user, SuperDB is a full-fledged query language that is
 backward compatible with SQL.
 
 ## Super-structured Data
@@ -130,7 +130,7 @@ into SQL and the RM.
 
 Yet, the incorporation of the JSON data model into the
 relational model never fails to disappoint.  One must typically choose
-between creating columns of a JSON or varianet type that layers in a parallel set of
+between creating columns of a JSON or variant type that layers in a parallel set of
 operators and behaviors that diverge from core SQL semantics, or
 rely upon schema inference to convert variant data into relational tables,
 which unfortunately does not always work.

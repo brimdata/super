@@ -20,10 +20,10 @@ and the SuperSQL compiler often optimizes a query into an implementation
 different from the dataflow implied by the pipeline to achieve the
 same semantics with better performance.
 
-While SuperSQL at core is a pipe-oriented language, it is also
+While SuperSQL at its core is a pipe-oriented language, it is also
 [backward compatible](../intro.md#supersql) with relational SQL in that any
 arbitrarily complex SQL query may appear as a single pipe operator
-anywhere in SuperSQL ipe query.
+anywhere in a SuperSQL pipe query.
 
 In other words, a single pipe operator that happens to be a standalone SQL query
 is also a SuperSQL pipe query.
