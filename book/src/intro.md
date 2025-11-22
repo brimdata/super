@@ -21,7 +21,7 @@ for super-structured data with the introduction of:
 
 * the super-structured [data model](formats/model.md),
 * several super-structured serialization [formats](formats/intro.md),
-* a super-structured [query language](super-sql/intro.md),
+* a SQL-compatible [query language](super-sql/intro.md) adapted for super-structured data,
 * a super-structured [query engine](https://github.com/brimdata/super/tree/main/runtime/vam), and
 * a super-structured [database format](database/format.md) compatible with
   cloud object stores.
@@ -36,7 +36,7 @@ into relational columns.
 Putting JSON into a relational table &mdash; whether adding a JSON or variant
 column to a relational table or performing schema inference that does not
 always work &mdash; is like putting a square peg in a round hole.
-SuperDB turns this approach _upside down_ where JSON and
+SuperDB turns this status quo _upside down_ where JSON and
 schema-constrained relational tables are simply special cases of
 the more general and holistic super-structured data model.
 
@@ -44,16 +44,9 @@ This leads to ergonomics for SuperDB that are far better for the query language
 and for managing data end to end because there is not one way for handling
 relational data and a different way for managing dynamic data &mdash;
 relational tables and eclectic JSON data are treated in a uniform way
-from the ground up.
-
-Because data is self-describing, it's easy to daisy-chain queries and
-inspect data at any point in a complex query or data pipeline. For example,
-there's no need for a set of Parquet input files to all be schema-compatible and
-it's easy to mix and match Parquet with JSON across queries.
-
-For a less technical user, SuperDB can be as easy to use as log search
-while for an advanced user, SuperDB is a full-fledged query language that is
-backward compatible with SQL.
+from the ground up.  For exmaple, there's no need for a set of Parquet input files
+to all be schema-compatible and it's easy to mix and match Parquet with
+JSON across queries.
 
 ## Super-structured Data
 
