@@ -17,7 +17,7 @@ from source | operator | operator | ...
 As with SQL, SuperSQL is
 [declarative](https://en.wikipedia.org/wiki/Declarative_programming)
 and the SuperSQL compiler often optimizes a query into an implementation
-different from the dataflow implied by the pipeline to achieve the
+different from the [dataflow](https://en.wikipedia.org/wiki/Dataflow) implied by the pipeline to achieve the
 same semantics with better performance.
 
 While SuperSQL at its core is a pipe-oriented language, it is also
@@ -68,7 +68,7 @@ and take super-structured input from the upstream operator or data source,
 operate upon the input, and produce zero or more super-structured
 values as output.
 
-Unlike relational SQL, SuperSQL pipe queries define their computation in terms of dataflow
+Unlike relational SQL, SuperSQL pipe queries define their computation in terms of [dataflow](https://en.wikipedia.org/wiki/Dataflow)
 through the directed graph of operators.  But instead of relational tables
 propagating from one pipe operator to another
 (e.g., as in
@@ -110,23 +110,23 @@ fork
 ## Pipe Sources
 
 Like SQL, input data for a query is typically sourced with the
-[`from`](operators/from.md) operator.
+[from](operators/from.md) operator.
 
-When [`from`](operators/from.md) is not present, the file arguments to the
-[`super`](../command/super.md) command are used as input to the query
+When `from` is not present, the file arguments to the
+[super](../command/super.md) command are used as input to the query
 as if there is an implied
-[`from`](operators/from.md) operator, e.g.,
-```
+`from` operator, e.g.,
+```sh
 super -c "op1 | op2 | ..." input.json
 ```
 is equivalent to
-```
+```sh
 super -c "from input.json | op1 | op2 | ..."
 ```
 When neither
-[`from`](operators/from.md) nor file arguments are specified, a single `null` value
+`from` nor file arguments are specified, a single `null` value
 is provided as input to the query.
-```
+```sh
 super -c "pass"
 ```
 results in
@@ -134,10 +134,10 @@ results in
 null
 ```
 This pattern provides a simple means to produce a constant input within a
-query using the [`values`](operators/values.md) operator, wherein
-[`values`](operators/values.md) takes as input a single null and produces each constant
+query using the [values](operators/values.md) operator, wherein
+`values` takes as input a single null and produces each constant
 expression in turn, e.g.,
-```
+```sh
 super -c "values 1,2,3"
 ```
 results in
@@ -148,20 +148,19 @@ results in
 ```
 
 When running on the local file system,
-[`from`](operators/from.md) may refer to a file or an HTTP URL
+`from` may refer to a file or an HTTP URL
 indicating an API endpoint.
-When connected to [SuperDB database](../database/intro.md),
-[`from`](operators/from.md) typically
+When connected to a [SuperDB database](../database/intro.md),
+`from` typically
 refers to a collection of super-structured data called a _pool_ and
 is referenced using the pool's name similar to SQL referencing
 a relational table by name.
 
-For more detail, see the reference page of the [`from`](operators/from.md) operator,
-but as an example, you might use its
-[`from`](operators/from.md) to fetch data from an
+For more detail, see the reference page of the [from](operators/from.md) operator,
+but as an example, you might use `from` to fetch data from an
 HTTP endpoint and process it with `super`, in this case, to extract the description
 and license of a GitHub repository:
-```
+```sh
 super -f line -c "
 from https://api.github.com/repos/brimdata/super
 | values description,license.name
@@ -202,10 +201,10 @@ Here, a pipe operator takes any sequence of input values
 and produces any computed sequence of output values and _all
 data references are limited to these inputs and outputs_.
 Since there is just one sequence of values, it may be
-referenced as special value with a special name, which for
+referenced as a special value with a special name, which for
 SuperSQL is the value `this`.
 
-This scoping model can be summarized as follows:
+The pipe scoping model can be summarized as follows:
 * all input is referenced as a single value called `this`, and
 * all output is emitted into a single value called `this`.
 
@@ -217,7 +216,7 @@ In other words, the record fields of `this` can be accessed with the dot operato
 reminiscent of a `table.column` reference in SQL.
 
 For example, the SQL query from above can thus be written in pipe form
-using the [`values`](operators/values.md) operator as:
+using the [values](operators/values.md) operator as:
 ```
 values {x:1}, {x:2}, {x:3} | select this.x
 ```
@@ -256,7 +255,7 @@ where multiple entities can be combined into the common value `this`.
 #### Join Scoping
 
 To combine joined entities into `this` via pipe scoping, the
-[`join`](operators/join.md) operator
+[join](operators/join.md) operator
 includes an _as clause_ that names the two sides of the join, e.g.,
 ```
 ... | join ( from ... ) as {left,right} | ...
@@ -310,7 +309,7 @@ produces
 {x:2,y:5}
 {x:3,y:5}
 ```
-In contrast, relational scoping using identifier scoping in a `SELECT` clause
+In contrast, relational scoping using [identifier scoping](https://en.wikipedia.org/wiki/Scope_(computer_programming)) in a `SELECT` clause
 with the table source identified in `FROM` and `JOIN` clauses, e.g., this query
 produces the same result:
 ```
@@ -326,10 +325,10 @@ from f1.json | values {outer:this,inner:[from f2.json | ...]}
 ```
 Here data from the outer query can be mixed in with data from the
 inner array subquery embedded in the expression inside of the
-[`values`](operators/values.md) operator.
+[values](operators/values.md) operator.
 
 The array subquery produces an array value so it is often desirable to
-[`unnest`](operators/unnest.md) this array with respect to the outer
+[unnest](operators/unnest.md) this array with respect to the outer
 values as in
 ```
 from f1.json | unnest {outer:this,inner:[from f2.json | ...]} into ( <scope> )
@@ -339,7 +338,7 @@ collection of unnested values separately as a unit for each outer value.
 The `into ( <scope> )` body is an optional component of `unnest`, and if absent,
 the unnested collection boundaries are ignored and all of the unnested data is output.
 
-With the `unnest` operator, we can now consider how a correlated subquery from
+With the `unnest` operator, we can now consider how a [correlated subquery](https://en.wikipedia.org/wiki/Correlated_subquery) from
 SQL can be implemented purely as a pipe query with pipe scoping.
 For example,
 ```
@@ -395,17 +394,17 @@ type checking, instead creating runtime errors when type errors are encountered.
 
 In other words, dynamic data is statically type checked when possible.
 This works by computing fused types of each operator's output and propagating
-these types in a dataflow analysis.  When types are unknown, the
+these types in a [dataflow](https://en.wikipedia.org/wiki/Dataflow) analysis.  When types are unknown, the
 analysis flexibly models them as having any possible type.
 
 For example, this query produces the expected output
-```
+```sh
 $ super -c "select b from (values (1,2),(3,4)) as T(b,c)"
 {b:1}
 {b:2}
 ```
 But this query produced a compile-time error:
-```
+```sh
 $ super -c "select a from (values (1,2),(3,4)) as T(b,c)"
 column "a": does not exist at line 1, column 8:
 select a from (values (1,2),(3,4)) as T(b,c)
@@ -416,7 +415,7 @@ Now supposing this data is in the file `input.json`:
 {"b":1,"c":2}
 {"b":3,"c":4}
 ```
-If we run this the query from above without type checking data from the source
+If we run the query from above without type checking data from the source
 (enabled with the `-dynamic` flag), then the query runs even though there are type
 errors.  In this case, "missing" values are produced:
 ```
@@ -426,7 +425,7 @@ $ super -dynamic -c "select a from input.json"
 ```
 Even though the reference to column "a" is dynamically evaluated, all
 the data is still strongly typed, i.e.,
- ```
+ ```sh
 $ super -c "from input.json | values typeof(this)"
 <{b:int64,c:int64}>
 <{b:int64,c:int64}>
@@ -440,21 +439,27 @@ appear in the file.  Likewise, data stored in a database organized by
 a sort constraint is presumed to have the sorted order.
 
 For _order-preserving_ pipe operators, this order is preserved.
-For _order-creating_ operators like [`sort`](operators/sort.md)
+For _order-creating_ operators like [sort](operators/sort.md)
 an output order is created independent of the input order.
 For other operators, the output order is undefined.
 
-Each operator defines whether or not it is order is preserved,
-created, or discarded.
+The top of the documentation page for each [operator](operators/intro.md)
+is marked with an icon to describe its data order behavior:
 
-For example, the [`where`](operators/where.md) drops values that do
+|Marker|Data Order behavior    |
+|:----:|:----------------------|
+| ✅   | Order-preserving      |
+| 🔀   | Order-creating        |
+| 🎲   | Undefined output order|
+
+For example, [where](operators/where.md) drops values that do
 not meet the operator's condition but otherwise preserves data order,
-whereas the [`sort`](operators/sort.md) creates an output order defined
-by the sort expressions.  The [`aggregate`](operators/aggregate.md)
+whereas [sort](operators/sort.md) creates an output order defined
+by the sort expressions.  The [aggregate](operators/aggregate.md) operator
 creates an undefined order at output.
 
 When a pipe query branches as in
-[`join`](operators/join.md),
-[`fork`](operators/fork.md), or
-[`switch`](operators/switch.md),
+[join](operators/join.md),
+[fork](operators/fork.md), or
+[switch](operators/switch.md),
 the order at the merged branches is undefined.

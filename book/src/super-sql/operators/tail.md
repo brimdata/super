@@ -1,6 +1,6 @@
 ### Operator
 
-&emsp; **tail** &mdash; copy trailing values of input sequence
+[✅](../intro.md#data-order)&emsp; **tail** &mdash; copy trailing values of input sequence
 
 ### Synopsis
 

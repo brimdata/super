@@ -5,13 +5,13 @@ This directory contains the user documentation for all of the SuperDB system.
 ## Working on docs
 
 You'll need `mdbook`.  Install it with brew
-```
+```sh
 brew install mdbook
 ```
 
 The easiest way to work on docs is to run an mdbook service in this directory
 and point your browser at its embedded web server, e.g.,
-```
+```sh
 cd book
 make
 mdbook serve
@@ -22,7 +22,7 @@ To add or remove sections of the book edit `src/SUMMARY.md`.
 
 When editing `SUMMARY.md` it can be useful to kill the mdbook service
 and build the book manually like this:
-```
+```sh
 mdbook build
 ```
 This way the service doesn't do things like recreating a file that you have
@@ -47,35 +47,42 @@ The following should be rendered in `fixed width` font:
 * References to operator/function usage (e.g., "the `<expr>` argument to `eval`)"
 * Input/output/parameter values (e.g., "the value of N defaults to `1`)
 
-### Pipeline elements
+> **Exception**: Don't use fixed width when hyperlinking, since rendered
+  hyperlinks already have color/underline emphasis.
 
-* Use lowercase `fixed width` font
-* When hyperlinking, anchor text should contain _only_ the name of the
-function/operator/etc.
+### Hyperlinking names of functions/operators/etc.
 
-```
-# ✅ Do this
-the [`put`](put.md) operator performs field assignment
-
-# ❌ Not these
-the [`put` operator](put.md) performs field assignment
-the [`PUT` operator](put.md) performs field assignment
-```
-
-### SQL keywords
-
-* Use uppercase `fixed with` font
-* When hyperlinking, anchor text should contain _only_ the name of the
-keyword/clause/etc.
-* Lead with "SQL" if the doc needs to contrast with pipe context.
+* The anchor text should contain _only_ the name of the functions/operators/etc.
+* Precede with "SQL" if contrast with pipe context is appropriate
+* Hyperlink from only the first reference in a section
 
 ```
 # ✅ Do this
-`cut` is much like a SQL [`SELECT`](select.md) clause
+the [put](put.md) operator performs field assignment
+`cut` is much like a SQL [SELECT](select.md) clause
+While [`from`](from.md) is often used with files, `from` also works with URLs
 
 # ❌ Not these
-`cut` is much like a [SQL `SELECT` clause](select.md)
-`cut` is much like a [select](select.md) clause
+the [put operator](put.md) performs field assignment
+`cut` is much like a [SELECT clause](select.md)
+While [`from`](from) is often used with files, [`from`](from.md) also works with URLs
+```
+
+> **Exception**: Hyperlinking to the same place multiple times in the same
+  section may sometimes be appropriate, e.g., if you're closing a section by
+  once again mentioning there's more examples in some operator's docs,
+  hyperlink there too.
+
+### Uppercase
+
+* References to SQL keywords should be in `UPPERCASE`
+
+```
+# ✅ Do this
+`cut` is much like a SQL [SELECT](select.md) clause
+
+# ❌ Not this
+`cut` is much like a SQL [select](select.md) clause
 ```
 
 ### Stacked mdtest-spq for wide examples

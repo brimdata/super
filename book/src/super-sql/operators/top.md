@@ -1,6 +1,6 @@
 ### Operator
 
-&emsp; **top** &mdash; output the first N sorted values of input sequence
+[🔀](../intro.md#data-order)&emsp; **top** &mdash; output the first N sorted values of input sequence
 
 ### Synopsis
 

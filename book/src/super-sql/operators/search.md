@@ -1,6 +1,6 @@
 ### Operator
 
-&emsp; **search** &mdash; select values based on a search expression
+[✅](../intro.md#data-order)&emsp; **search** &mdash; select values based on a search expression
 
 ### Synopsis
 ```

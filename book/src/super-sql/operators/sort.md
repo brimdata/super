@@ -1,6 +1,6 @@
 ### Operator
 
-&emsp; **sort** &mdash; sort values
+[🔀](../intro.md#data-order)&emsp; **sort** &mdash; sort values
 
 ### Synopsis
 

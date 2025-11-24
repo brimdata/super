@@ -1,6 +1,6 @@
 ### Operator
 
-&emsp; **load** &mdash; add and commit data to a pool
+[✅](../intro.md#data-order)&emsp; **load** &mdash; add and commit data to a pool
 
 ### Synopsis
 

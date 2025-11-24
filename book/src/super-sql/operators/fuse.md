@@ -1,6 +1,6 @@
 ### Operator
 
-&emsp; **fuse** &mdash; coerce all input values into a fused type
+[✅](../intro.md#data-order)&emsp; **fuse** &mdash; coerce all input values into a fused type
 
 ### Synopsis
 

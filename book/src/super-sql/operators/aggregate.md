@@ -1,6 +1,6 @@
 ### Operator
 
-&emsp; **aggregate** &mdash; execute aggregate functions with optional grouping expressions
+[🎲](../intro.md#data-order)&emsp; **aggregate** &mdash; execute aggregate functions with optional grouping expressions
 
 ### Synopsis
 

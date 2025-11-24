@@ -1,6 +1,6 @@
 ### Operator
 
-&emsp; **put** &mdash; add or modify fields of records
+[✅](../intro.md#data-order)&emsp; **put** &mdash; add or modify fields of records
 
 ### Synopsis
 ```

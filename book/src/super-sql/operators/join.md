@@ -1,6 +1,6 @@
 ### Operator
 
-&emsp; **join** &mdash; combine data from two inputs using a join predicate
+[🎲](../intro.md#data-order)&emsp; **join** &mdash; combine data from two inputs using a join predicate
 
 ### Synopsis
 

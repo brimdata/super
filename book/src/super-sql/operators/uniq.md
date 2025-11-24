@@ -1,6 +1,6 @@
 ### Operator
 
-&emsp; **uniq** &mdash; deduplicate adjacent values
+[✅](../intro.md#data-order)&emsp; **uniq** &mdash; deduplicate adjacent values
 
 ### Synopsis
 

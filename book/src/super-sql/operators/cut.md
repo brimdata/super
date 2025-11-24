@@ -1,6 +1,6 @@
 ### Operator
 
-&emsp; **cut** &mdash; extract subsets of record fields into new records
+[✅](../intro.md#data-order)&emsp; **cut** &mdash; extract subsets of record fields into new records
 
 ### Synopsis
 
@@ -12,6 +12,7 @@ having the form:
 ```
 [ <field> := ] <expr>
 ```
+
 ### Description
 
 The `cut` operator extracts values from each input record in the

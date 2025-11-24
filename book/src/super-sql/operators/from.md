@@ -1,6 +1,6 @@
 ### Operator
 
-&emsp; **from** &mdash; source data from databases, files, or URLs
+[✅](../intro.md#data-order)[🎲](../intro.md#data-order)&emsp; **from** &mdash; source data from databases, files, or URLs
 
 ### Synopsis
 

@@ -1,6 +1,6 @@
 ### Operator
 
-&emsp; **fork** &mdash; copy values to parallel pipeline branches
+[🎲](../intro.md#data-order)&emsp; **fork** &mdash; copy values to parallel pipeline branches
 
 ### Synopsis
 

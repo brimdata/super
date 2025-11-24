@@ -44,7 +44,7 @@ This leads to ergonomics for SuperDB that are far better for the query language
 and for managing data end to end because there is not one way for handling
 relational data and a different way for managing dynamic data &mdash;
 relational tables and eclectic JSON data are treated in a uniform way
-from the ground up.  For exmaple, there's no need for a set of Parquet input files
+from the ground up.  For example, there's no need for a set of Parquet input files
 to all be schema-compatible and it's easy to mix and match Parquet with
 JSON across queries.
 
@@ -98,8 +98,8 @@ storage layer &mdash; the
 but is based on super-structured data.
 
 To invoke the SuperDB runtime without a database, just run `super` without
-the `db` subcommand and specify an optional query with `-c`:
-```
+the [db](command/db.md) subcommand and specify an optional query with `-c`:
+```sh
 super -c "SELECT 'hello, world'"
 ```
 To interact with a SuperDB database, invoke the [db](command/db.md) subcommands
@@ -123,7 +123,7 @@ into SQL and the RM.
 
 Yet, the incorporation of the JSON data model into the
 relational model never fails to disappoint.  One must typically choose
-between creating columns of a JSON or variant type that layers in a parallel set of
+between creating columns of a JSON or [variant type](https://github.com/apache/spark/blob/master/common/variant/README.md) that layers in a parallel set of
 operators and behaviors that diverge from core SQL semantics, or
 rely upon schema inference to convert variant data into relational tables,
 which unfortunately does not always work.
@@ -141,7 +141,7 @@ consider this simple line of JSON data is in a file called `example.json`:
 
 Surprisingly, this simple JSON input causes unpredictable schema inference
 across different SQL systems.
-Clickhouse converts the JSON number `1` to a string:
+ClickHouse converts the JSON number `1` to a string:
 ```sh
 $ clickhouse -q "SELECT * FROM 'example.json'"
 ['1','foo']
@@ -182,8 +182,7 @@ DataFusion CLI v46.0.1
 Error: Arrow error: Cast error: Cannot cast string 'foo' to value of Int64 type
 ```
 
-The more recent innovation of an open
-[variant type](https://github.com/apache/spark/blob/master/common/variant/README.md)
+The more recent innovation of an open variant type
 is more general than JSON but suffers from similar problems.
 In both these cases, the JSON type and the variant
 type are not individual types but rather entire type systems that differ
@@ -250,7 +249,7 @@ SuperSQL is particularly well suited for data-wrangling use cases like
 ETL and data exploration and discovery.
 [Syntactic shortcuts](super-sql/operators/intro.md#shortcuts),
 [keyword search](super-sql/operators/search.md), and the
-[pipe syntax](super-sql/intro.md)
+[pipe syntax](super-sql/intro.md#pipe-queries)
 make interactively querying data a breeze.  And language features like
 [recursive functions](super-sql/expressions/subqueries.md#recursive-subqueries)
 with re-entrant subqueries allow for traversing nested data
@@ -284,17 +283,18 @@ SELECT avg(radius) as R, avg(width) as W FROM (
 {R:1.75,W:1.5}
 ```
 
-Things get more interesting when you want to do different types of processing
+Things get more interesting when you want to do different kinds of processing
 for differently typed entities, e.g., let's compute an average radius of circles,
 and double the width of each rectangle.  This time we'll use the pipe syntax
 with shortcuts and employ first-class errors to flag unknown types:
-```
+```sh
 $ super -c "
 values
   {kind:'circle',radius:1.5},
   {kind:'rect',width:2.0,height:1.0},
   {kind:'circle',radius:2},
-  {kind:'rect',width:1.0,height:3.5}
+  {kind:'rect',width:1.0,height:3.5},
+  {kind:'triangle',base:2.0,height:3.0}
 | switch kind
     case 'circle' (
         R:=avg(radius)
@@ -302,10 +302,14 @@ values
     case 'rect' (
         width:=width*2
     )
+    default (
+        error({message:'unknown shape',value:this})
+    )
 "
 {R:1.75}
 {kind:"rect",width:4.,height:1.}
 {kind:"rect",width:2.,height:3.5}
+error({message:"unknown shape",value:{kind:"triangle",base:2.,height:3.}})
 ```
 
 So what's going on here?  The data model here is acting both
@@ -354,9 +358,9 @@ the ergonomics of a SQL-compatible query language.
 While embracing backward compatibility,
 SuperSQL diverges significantly from SQL anachronisms in the pipe portion of
 the language by introducing
-[pipe-scoping](super-sql/intro.md#pipe-scoping) semantics
-that coexists next to the
-[relational-scoping](super-sql/intro.md#relational-scoping) semantics
+[pipe scoping](super-sql/intro.md#pipe-scoping) semantics
+that coexist next to the
+[relational scoping](super-sql/intro.md#relational-scoping) semantics
 of SQL tables and columns.
 
 The vision here is that comprehensive backward
@@ -369,10 +373,10 @@ and improved ergonomics can reside in the pipe operators, e.g.,
 are case sensitive in pipe operators,
 * complex scoping rules for table aliases and column references are required in
 relational SQL while binding from names to data in pipe operators is managed
-in a uniform and simple way as derefenced paths on `this`,
+in a uniform and simple way as derefenced paths on [this](super-sql/intro.md#pipe-scoping),
 * the syntactic structure of SQL clauses means all data must conform to a table
 whereas pipe operators can emit any data type desired in a varying fashion, and
-* sum types are integral to piped data allowing mix-typed data processing
+* [sum types](super-sql/types/union.md) are integral to piped data allowing mix-typed data processing
 and results that need not fit in a uniform table.
 
 With this approach, SuperSQL can be adopted and used for existing use cases
