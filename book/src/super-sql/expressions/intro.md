@@ -52,7 +52,7 @@ Operators include
       an array, set, record, [map](../types/map.md), string, or [bytes](../types/bytes.md),
   * [logic](logic.md) to combine predicates using Boolean logic, and
   * [slices](slices.md) to extract subsequences from arrays, sets, strings, and bytes.
-  
+
 ### Identifier Resolution
 
 An identifier that appears as an operand in an expression is resolved to

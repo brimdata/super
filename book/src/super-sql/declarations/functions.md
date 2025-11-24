@@ -140,7 +140,7 @@ fn stats(numbers): (
     | sort this
     | avg(this),min(this),max(this),mode:=collect(this)
     | mode:=mode[len(mode)/2]
-) 
+)
 values stats(a)
 # input
 {a:[3,1,2]}

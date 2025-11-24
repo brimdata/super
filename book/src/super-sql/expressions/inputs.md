@@ -9,8 +9,9 @@ is always referenced as the special value `this`.
 In [relational scoping](../intro.md#relational-scoping), input data
 is referenced by specifying the columns of one or more tables.
 See the [SQL section](../sql/intro.md#input-references) for
-details on how columns are bound to [identifiers](../queries.md#identifiers), how table references
-are resolved, and how `this` behaves in a SQL expression.
+details on how columns are [bound](../sql/intro.md#relational-bindings)
+to [identifiers](../queries.md#identifiers), how table references
+are resolved, and how [`this`](../sql/intro.md#this) behaves in a SQL expression.
 
 The type of `this` may be any [type](../types/intro.md).
 When `this` is a [record](../types/record.md), references
@@ -29,12 +30,9 @@ tables or columns are referenced.
 In a SQL operator, if the input is not a record (i.e., not relational),
 then the input data can still be referred to as the value `this` and placed
 into an output relation using [SELECT](../sql/select.md).
-When referring to non-relational inputs with `*`, there are no columns and
-thus the select value is empty, i.e., the value `{}`.
-
-When non-record data is referenced in a SQL operator and the input
-schema is dynamic and unknown, runtime [errors](../types/error.md) like `error("missing")`
-will generally arise and be present in the output data.
+Otherwise, column references to non-record data in dynamic inputs
+generally cause runtime [errors](../types/error.md)
+like `error("missing")`.
 
 ### Examples
 

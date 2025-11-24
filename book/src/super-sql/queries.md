@@ -8,7 +8,7 @@ The syntactical structure of a query consists of
 
 Any valid SQL query may appear as a pipe operator and thus
 be embedded in a pipe query.  A SQL query expressed as a pipe operator is
-called a [SQL operator](sql/intro.md).
+called a [SQL operator](sql/intro.md#sql-operator).
 
 Operator sequences may be parenthesized and nested to form lexical [scopes](#scope).
 
@@ -66,7 +66,7 @@ as a field reference `this.PI` via pipe scoping.
 
 ```mdtest-spq fails {data-layout='no-labels'} {style='margin:auto;width:85%'}
 # spq
-( 
+(
   const PI=3.14
   values PI
 )
@@ -184,7 +184,7 @@ to the `from` and [load](operators/load.md) operators.
 Specifically, a text entity is one of:
 * a [string literal](types/string.md) (double quoted, single quoted, or raw string),
 * an unquoted string consisting of a sequence of characters consisting of letters, digits, `_`,  `$`,  `.`, and `/`, or
-* a simple URL consisting of a sequence of characters beginning with `http://` or `https://`,  followed by dotted strings of letters, digits, `-`, and `_`, and in turn optionally followed by `/` and a sequence of characters consisting of letters, digits, `_`, `$`, `.`, and `/`.
+* a simple URL consisting of a sequence of characters beginning with `http://` , `https://`, or `s3://` followed by dotted strings of letters, digits, `-`, and `_`, and in turn optionally followed by `/` and a sequence of characters consisting of letters, digits, `_`, `$`, `.`, and `/`.
 
 If a URL does not meet the constraints of the simple URL rule,
 e.g., containing a `:` or `&`, then it must be quoted.

@@ -20,8 +20,42 @@ and the SuperSQL compiler often optimizes a query into an implementation
 different from the [dataflow](https://en.wikipedia.org/wiki/Dataflow) implied by the pipeline to achieve the
 same semantics with better performance.
 
+## Friendly Syntax
+
+In addition to its user-friendly pipe syntax,
+SuperSQL embraces two key design patterns that simplify
+query editing for interactive usage:
+* [shortcuts](operators/intro.md#shortcuts) that reduce
+typing overhead and provide a concise syntax for common query patterns, and
+* [search](operators/search.md)
+reminiscent of Web or email keyword search, which is otherwise hard
+to carry out with traditional SQL syntax.
+
+With shortcuts, verbose queries can be typed in a shorthand facilitating
+rapid data exploration.  For example, the query
+```
+SELECT count(), key
+FROM source
+GROUP BY key
+```
+can be simplified to
+```
+from source | count() by key
+```
+
+With search, all of the string fields in a value can easily be searched for
+patterns, e.g., this query
+```
+from source
+| ? example.com urgent message_length > 100
+```
+searches for the strings "example.com" and "urgent" in all of the string values in
+the input and also includes a numeric comparison regarding the field `message_length`.
+
+## SQL Compatibility
+
 While SuperSQL at its core is a pipe-oriented language, it is also
-[backward compatible](../intro.md#supersql) with relational SQL in that any
+[backward compatible](sql/intro.md) with relational SQL in that any
 arbitrarily complex SQL query may appear as a single pipe operator
 anywhere in a SuperSQL pipe query.
 
@@ -34,31 +68,6 @@ SELECT * FROM table
 SELECT * FROM f1.json JOIN f2.json ON f1.id=f2.id
 SELECT watchers FROM https://api.github.com/repos/brimdata/super
 ```
-
-## Interactive UX
-
-To support an interactive pattern of usage, SuperSQL includes
-[search](operators/search.md) syntax
-reminiscent of Web or email keyword search along with
-[_operator shortcuts_](operators/intro.md#shortcuts).
-
-With shortcuts, verbose queries can be typed in a shorthand facilitating
-rapid data exploration.  For example, the query
-```
-SELECT count(), key
-FROM source
-GROUP BY key
-```
-can be simplified as `from source | count() by key`.
-
-With search, all of the string fields in a value can easily be searched for
-patterns, e.g., this query
-```
-from source
-| ? example.com urgent message_length > 100
-```
-searches for the strings "example.com" and "urgent" in all of the string values in
-the input and also includes a numeric comparison regarding the field `message_length`.
 
 ## Pipe Queries
 
@@ -109,7 +118,7 @@ fork
 
 ## Pipe Sources
 
-Like SQL, input data for a query is typically sourced with the
+Like SQL, input data for a pipe query is typically sourced with the
 [from](operators/from.md) operator.
 
 When `from` is not present, the file arguments to the
@@ -331,12 +340,12 @@ The array subquery produces an array value so it is often desirable to
 [unnest](operators/unnest.md) this array with respect to the outer
 values as in
 ```
-from f1.json | unnest {outer:this,inner:[from f2.json | ...]} into ( <scope> )
+from f1.json | unnest {outer:this,inner:[from f2.json | ...]} into ( <query> )
 ```
-where `<scope>` can be an arbitrary pipe query that processes each
+where `<query>` is an arbitrary pipe query that processes each
 collection of unnested values separately as a unit for each outer value.
-The `into ( <scope> )` body is an optional component of `unnest`, and if absent,
-the unnested collection boundaries are ignored and all of the unnested data is output.
+The `into ( <query> )` body is an optional component of `unnest`, and if absent,
+the unnested collection boundaries are ignored and all of the unnested data is output as a combined sequence.
 
 With the `unnest` operator, we can now consider how a [correlated subquery](https://en.wikipedia.org/wiki/Correlated_subquery) from
 SQL can be implemented purely as a pipe query with pipe scoping.
@@ -363,7 +372,7 @@ giving the same result
 {s:21}
 ```
 
-## Strong Typing
+## Type Checking
 
 Data in SuperSQL is always strongly typed.
 

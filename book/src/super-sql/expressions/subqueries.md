@@ -221,7 +221,7 @@ _Independent subqueries in SQL operators are supported while correlated subqueri
 let input = (values {x:1},{x:2},{x:3})
 select x
 from input
-where x >= (select avg(x) from input)  
+where x >= (select avg(x) from input)
 # input
 
 # expected output

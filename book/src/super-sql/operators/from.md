@@ -1,37 +1,101 @@
-### Operator
+# from
 
-[✅](../intro.md#data-order)[🎲](../intro.md#data-order)&emsp; **from** &mdash; source data from databases, files, or URLs
+[✅](../intro.md#data-order)[🎲](../intro.md#data-order) source data from databases, files, or URLs
 
-### Synopsis
+## Synopsis
 
 ```
-from <file> [ ( format <fmt> ) ]
-from <pool> [@<commit>]
-from <url> [ ( format <fmt> method <method> headers <expr> body <string> ) ]
-from eval(<expr>) [ ( format <fmt> method <id> headers <expr> body <string> ) ]
+from <entity> [ ( <options> ) ]
+from <named-query>
 ```
+where `<entity>` has the form of
+* a [text entity](../queries.md#text-entity) representing a file, URL, or pool name,
+* an [f-string](../expressions/f-strings.md) representing a file, URL, or pool name,
+* a [glob](../queries.md#glob) matching files in the local file system or pool names in a database, or
+* a [regular expression](../queries.md#regular-expression) matching pool names
+  in a database;
 
-### Description
+`<options>` is an optional concatenation of named [options](#options); and,
+
+`<named-query>` is an identifier referencing a
+[declared query](../declarations/queries.md).
+
+## Description
 
 The `from` operator identifies one or more sources of data as input to
-a query and transmits that data to its output.
+a query and transmits the data required by the query to its output.
 
-It has two forms:
-* a `from` pipe operator with [pipe scoping](../intro.md#pipe-scoping) as described here, or
-* a SQL [`FROM`](../sql/from.md) clause with
-  [relational scoping](../intro.md#relational-scoping).
+Unlike the [FROM](../sql/from.md) clause in a [SQL query](../sql/intro.md),
+the pipe `from` merely sources data to its downstream operators
+and does not include relational joins or table subqueries, .
 
 As a pipe operator,
 `from` preserves the order of the data within a file,
-URL, or a sorted pool but when multiple sources are identified,
+URL, or a sorted pool but when multiple sources are identified
+(e.g., as a file-system glob or regular expression matching pools),
 the data may be read in parallel and interleaved in an undefined order.
 
-Optional arguments to `from` may be appended as a parenthesized concatenation
-of arguments.
+Optional arguments to `from` may be appended as a parenthesized concatenation of named [arguments](#options).
 
-When reading from sources external to a [database](../../command/db.md) (e.g., URLs or files),
-the format of each data source is automatically detected using heuristics.
-To manually specify the format of a source and override the autodetection heuristic,
+### Entity Syntax
+
+How the entity is interpreted depends on whether the query is run
+attached to or detached from a [database](../../command/db.md).
+
+When detached from a database, the entity must be a
+[text entity](../queries.md#text-entity),
+[f-string](../expressions/f-strings.md), or
+[glob](../queries.md#glob).
+A glob matches [files](#files) in the file system
+while a text entity or f-string
+is an [URL](#urls) if it parses as an URL; otherwise, it is presumed to be a file path.
+
+When attached to a database, the entity must be a
+[text entity](../queries.md#text-entity),
+[f-string](../expressions/f-strings.md),
+[glob](../queries.md#glob), or a slash-delimitated
+[regular expression](../queries.md#regular-expression).
+A regular expression matches [pools](#pools) in the attached database.
+A text entity or f-string is an [URL](#urls) if it parses as an URL and otherwise,
+is presumed to be a pool name.
+
+Local files are not accessible when attached to a database.
+
+> [!NOTE]
+> While pool names and file names have overlapping syntax,
+> their use is disambiguated by the presence or absence of an attached
+> database.
+
+When the entity is an [f-string](../expressions/f-strings.md),
+the `from` operator reads data from its upstream pipe operator
+and for each input value, the f-string expression is evaluated and
+used as the `<entity>` string argument.  Each such entity is scanned
+one at a time and the data is fed to the output of `from`.
+When an entity does not exist, a structured error is produced and
+the query continues execution.
+
+### Options
+
+Options to `from` may be appended as a parenthesized list of name/value pairs
+having the form:
+```
+( <name> <value> [ <name> <value> ... ] )
+```
+Each entity type supports a specific set of named options as described below.
+When the entity comprises multiple sources (e.g., with a glob), then the
+options apply to every entity matched.
+
+### Format Detection
+
+When reading data from files or URLs, the serialization format of the
+input data is determined by the presence of a
+[well-known extension](../../command/super.md#supported-formats)
+(e.g., `.json`, `.sup`, etc.) on the file path or URL,
+or if the extension is not present or unknown, the format is
+[inferred](../../command/super.md#format-detection)
+by inspecting the input data.
+
+To manually specify the format of a source and override these heuristics,
 a format argument may be appended as an argument and has the form
 ```
 format <fmt>
@@ -40,96 +104,84 @@ where `<fmt>` is the name of a supported
 [serialization format](../../command/super.md#supported-formats) and is
 parsed as a [text entity](../queries.md#text-entity).
 
-When `from` references a file or URL entity whose name ends in a
-[well-known extension](../../command/super.md#supported-formats)
-(e.g., `.json`, `.sup`, etc.), auto-detection is disabled and the
-format is implied by the extension name.
+### Files
 
-#### File-System Operation
+When the `<entity>` argument is recognized as a file, the file
+data required for the query
+is read from the local file system, parsed as its specified or
+detected serialization format,  and emitted to its output.
 
-When running detached from a database, the target of `from`
-is either a
-[text entity](../queries.md#text-entity)
-or a file system [glob](../queries.md#glob).
+File-system paths are interpreted relative to the directory in which
+the [super](../../command/super.md) command is running.
 
-If a text entity is parseable as an HTTP or HTTPS URL,
-then the target is presumed to be a [URL](#url) and is processed
-accordingly.  Otherwise, the target is assumed to be a file
-in the file system whose path is relative to the directory
-in which the `super` command is running.
+The only allowed option for file entities is the
+[format](#format-detection) option described above.
 
-If the target is a glob, then the glob is expanded and the files
-are processed in an undefined order.  Any operator arguments specified
-after a glob target are applied to all of the matched files.
-
-Here are a few examples illustrating file references:
+Here are some examples of file syntax:
 ```
-from "file.sup"
 from file.json
+from 'file-with-dash.sup'
+from /path/to/file.csv
 from file*.parq (format parquet)
 ```
 
-#### Database Operation
+### Pools
 
-When running attached to a database (i.e., using `super db`),
-the target of `from` is either a
-[text entity](../queries.md#text-entity)
-or a [regular expression](../queries.md#regular-expression)
-or [glob](../queries.md#glob) that matches pool names.
+When the `<entity>` argument is recognized as a [database](../../command/db.md) pool,
+the data required for the query is ready from the database and
+emitted to its output.
 
-If a text entity is parseable as an HTTP or HTTPS URL,
-then the target is presumed to be a [URL](#url) and is processed
-accordingly.  Otherwise, the target is assumed to be the name
-of a pool in the attached database.
+The only allowed option for a pool is the commit argument having the form
+```
+commit <commitsh>
+```
+where `<commitish>` is a
+[commitish](../../database/intro.md#commitish) that specifies a specific
+commit in the pool's log thereby allowing time travel.
 
-Local files are not accessible when attached to a database.
+The the commit argument may be abbreviated by appending to the pool name
+an `@` character followed by the commitish, e.g.,
+```
+from Pool (commit 36AwHUt9s8usF7pi9x3l6LOl8IB)
+```
+maybe be instead written as
+```
+from Pool@36AwHUt9s8usF7pi9x3l6LOl8IB
+```
+When a single pool name is specified without a `commit` option, or
+when using a regular expression, the tip of the `main` branch
+of each pool is accessed.
 
-Note that pool names and file names have similar syntax in `from` but
-their use is disambiguated by the presence or absence of an attached
-database.
-
-When multiple data pools are referenced with a glob or regular expression,
-they are scanned in an undefined order.
-
-The reference string for a pool may also be appended with an `@`-style
-[commitish](../../database/intro.md#commitish), which specifies that
-data is sourced from a specific commit in a pool's commit history.
-
-When a single pool name is specified without an `@` reference, or
-when using a glob or regular expression, the tip of the `main`
-branch of each pool is accessed.
-
-The format argument is not valid with a database source.
+It is an error to specify a format option when the entity is
+is a pool.
 
 >[!NOTE]
 > Metadata from database pools also may be sourced using `from`.
 > This will be documented in a future release of SuperDB.
 
-#### URL
+### URLs
 
 Data sources identified by URLs can be accessed either when attached
 or detached from a database.
 
-When the `<url>` argument begins with `http:` or `https:`
-and has the form of a valid URL, then the source is fetched remotely using the
-indicated protocol.
+As a [text entity](../queries.md#text-entity), typical URLs need not be quoted though URLs with special characters must be quoted.
 
-As a [text entity](../queries.md#text-entity), typical URLs need not be quoted
-though URLs with special characters must be quoted.
+When the `<entity>` argument begins with `http:` or `https:`
+and has the form of a valid URL, then the source is fetched remotely
+using either HTTP or HTTPS.
 
-A format argument may be appended to a URL reference.
+When the URL begins with `s3:` then data is fetched via
+the Amazon S3 object service using the settings defined
+by a [local configuration](../../dev/integrations/s3.md).
 
-Other valid operator arguments control the body and headers of the HTTP request
-that implement the data retrieval and include:
-* method `<method>`
-* headers `<expr>`
-* body `<string>`
-
+Named options for URL entities include `format`, `method`, `headers`,
+and `body` as in
+```
+from <url> [ ( format <fmt> method <method> headers <expr> body <string> ) ]
+```
 where
-
 * `<method>` is one of `GET`, `PUT`, `POST`, or `DELETE`,
-* `<expr>` is a [record expression](../types/record.md) that defines the names and values
-to be included as HTTP header options, and
+* `<expr>` is a [record expression](../types/record.md) that defines the names and values to be included as HTTP header options, and
 * `<body>` is a [text-entity](../queries.md#text-entity) string
 to be included as the body of the HTTP request.
 
@@ -139,20 +191,13 @@ Each field of this record must either be a string or (to specify a
 header option appearing multiple times with different values)
 an array or set of strings.
 
-#### Expression
+These options cannot be used with S3 URLs.
 
-The `eval()` form of `from` provides a means to read data programmatically from
-sources based on the `<expr>` argument to `eval`, which should return
-a value of type [`string`](../types/string.md).
-In this case, `from` reads values from its parent, applies `<expr>` to each
-value, and interprets the string result as a target to be processed.
+> [!NOTE]
+> Currently, the headers expression must evaluate to a compile-time constant though
+> this may change to allow run-time evaluation in a future version of SuperSQL.
 
-Each string value is interpreted as a from target and must be a file path
-(when running detached from a database), a pool name (when attached to a database),
-or a URL forming a sequence of targets which are read and output by the
-`from` operator in the order encountered.
-
-#### Combining Data
+### Combining Data
 
 To combine data from multiple sources using pipe operators, `from` may be
 used in combination with other operators like [`fork`](fork.md) and [`join`](join.md).
@@ -182,49 +227,70 @@ from PoolOne | op1 | op2 | ...
 | ...
 ```
 
-### File Examples
+## File Examples
 
 ---
 
-_Source structured data from a local file_
+_Source structured data from a JSON file_
 
 ```mdtest-command
-echo '{greeting:"hello world!"}' > hello.sup
-super -s -c 'from hello.sup | values greeting'
+echo '{"greeting":"hello world!"}' > hello.json
+super -s -c 'from hello.json | values greeting'
 ```
-=>
 ```mdtest-output
 "hello world!"
 ```
 
 ---
 
-_Source data from a local file, but in "line" format_
+_Source super-structured from a local file_
 ```mdtest-command
-super -s -c 'from hello.sup (format line)'
+echo '1 2 {x:1} {s:1::(int64|string)} {s:"hello"::(int64|string)}' > vals.sup
+super -s -c 'from vals.sup'
 ```
-=>
 ```mdtest-output
-"{greeting:\"hello world!\"}"
+1
+2
+{x:1}
+{s:1::(int64|string)}
+{s:"hello"::(int64|string)}
 ```
 
-### HTTP Example
+---
+
+## HTTP Example
 
 ---
 
 _Source data from a URL_
 ```
-super -s -c 'from https://raw.githubusercontent.com/brimdata/super/main/package.json
-       | values name'
+super -s -c 'from https://api.github.com/repos/brimdata/super | values name'
 ```
-=>
 ```
 "super"
 ```
 
 ---
 
-### Database Examples
+## F-String Example
+
+_Read from dynamically defined files and add a column_
+
+```mdtest-command
+echo '{a:1}{a:2}' > a.sup
+echo '{b:3}{b:4}' > b.sup
+echo '"a.sup" "b.sup"' | super -s -c "from f'{this}' | c:=coalesce(a,b)+1" -
+```
+```mdtest-output
+{a:1,c:2}
+{a:2,c:3}
+{b:3,c:4}
+{b:4,c:5}
+```
+
+---
+
+## Database Examples
 
 The remaining examples below assume the existence of the SuperDB database
 created and populated by the following commands:
@@ -264,7 +330,6 @@ _Source data from the `main` branch of a pool_
 ```mdtest-command
 super db -db example -s -c 'from coinflips'
 ```
-=>
 ```mdtest-output
 {flip:2,result:"tails"}
 {flip:1,result:"heads"}
@@ -276,7 +341,6 @@ _Source data from a specific branch of a pool_
 ```mdtest-command
 super db -db example -s -c 'from coinflips@trial'
 ```
-=>
 ```mdtest-output
 {flip:3,result:"heads"}
 {flip:2,result:"tails"}
@@ -289,7 +353,6 @@ _Count the number of values in the `main` branch of all pools_
 ```mdtest-command
 super db -db example -s -c 'from * | count()'
 ```
-=>
 ```mdtest-output
 5
 ```
@@ -305,7 +368,6 @@ super db -db example -s -c '
   | values {...left, word:right.word}
   | sort'
 ```
-=>
 ```mdtest-output
 {flip:1,result:"heads",word:"one"}
 {flip:2,result:"tails",word:"two"}
@@ -326,30 +388,10 @@ super db -db example -s -c '
       | values f"There were {c} flips" )
   | sort this'
 ```
-=>
 ```mdtest-output
 "There were 3 flips"
 {flip:1,result:"heads",word:"one"}
 {flip:2,result:"tails",word:"two"}
-```
-
----
-
-#### Expression Example
-
-_Read from dynamically defined files and add a column_
-
-```mdtest-command
-echo '{a:1}{a:2}' > a.sup
-echo '{b:3}{b:4}' > b.sup
-echo '"a.sup" "b.sup"' | super -s -c "from f'{this}' | c:=coalesce(a,b)+1" -
-```
-=>
-```mdtest-output
-{a:1,c:2}
-{a:2,c:3}
-{b:3,c:4}
-{b:4,c:5}
 ```
 
 ---
