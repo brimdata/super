@@ -8,7 +8,7 @@ The syntactical structure of a query consists of
 
 Any valid SQL query may appear as a pipe operator and thus
 be embedded in a pipe query.  A SQL query expressed as a pipe operator is
-called a [SQL operator](sql/intro.md).
+called a [SQL pipe operator](sql/intro.md).
 
 Operator sequences may be parenthesized and nested to form lexical [scopes](#scope).
 

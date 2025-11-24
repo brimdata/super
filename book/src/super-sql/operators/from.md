@@ -5,11 +5,14 @@
 ### Synopsis
 
 ```
+from <entity> [ <args> ]
 from <file> [ ( format <fmt> ) ]
 from <pool> [@<commit>]
 from <url> [ ( format <fmt> method <method> headers <expr> body <string> ) ]
 from eval(<expr>) [ ( format <fmt> method <id> headers <expr> body <string> ) ]
 ```
+where `<entity>` is a [file](#file-input), [URL](#url-input), or [pool](#pool-input)
+and `<args>` is an optional list of [arguments](#arguments).
 
 ### Description
 
@@ -29,7 +32,28 @@ the data may be read in parallel and interleaved in an undefined order.
 Optional arguments to `from` may be appended as a parenthesized concatenation
 of arguments.
 
-When reading from sources external to a [database](../../command/db.md) (e.g., URLs or files),
+The input `<entity>` has the form of
+* a [text entity](../queries.md#text-entity),
+* a [glob](../queries.md#glob), or
+* a [regular expression](../queries.md#regular-expression).
+
+How the entity is interpreted depends on the entities syntax as
+well as whether the query is running attached to or detached from
+a [database](../../command/db.md).
+
+When detached from a database, the entity must be a file system path or URL.
+
+### Arguments
+
+Arguments to `from` may be appended as a parethesized list of name/value pairs
+having the form:
+```
+from ... ( <name> <value> [ <name> <value> ... ] )
+```
+
+from <url> [ ( format <fmt> method <method> headers <expr> body <string> ) ]
+
+reading from sources external to a [database](../../command/db.md) (e.g., URLs or files),
 the format of each data source is automatically detected using heuristics.
 To manually specify the format of a source and override the autodetection heuristic,
 a format argument may be appended as an argument and has the form
@@ -45,12 +69,9 @@ When `from` references a file or URL entity whose name ends in a
 (e.g., `.json`, `.sup`, etc.), auto-detection is disabled and the
 format is implied by the extension name.
 
-#### File-System Operation
+#### File Input
 
-When running detached from a database, the target of `from`
-is either a
-[text entity](../queries.md#text-entity)
-or a file system [glob](../queries.md#glob).
+
 
 If a text entity is parseable as an HTTP or HTTPS URL,
 then the target is presumed to be a [URL](#url) and is processed
