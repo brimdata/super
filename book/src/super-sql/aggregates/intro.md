@@ -15,11 +15,11 @@ with the particular function, and
 Aggregate functions may appear in
 * the [aggregate](../operators/aggregate.md) operator,
 * an aggregate [shortcut](../operators/intro.md#shortcuts), or
-* in [SQL operators](../sql/intro.md) when performing aggregations.
+* in [SQL expressions](../sql/intro.md) when performing aggregations.
 
 When aggregate functions appear in context of grouping
 (e.g., the `by` clause of an [aggregate](../operators/aggregate.md) operator or a
-[SQL operator](../sql/intro.md) with a [GROUP BY](../sql/group-by.md) clause),
+[SELECT](../sql/select.md) query with a [GROUP BY](../sql/group-by.md) clause),
 then the aggregate function produces one output value for each
 unique combination of grouping expressions.
 
