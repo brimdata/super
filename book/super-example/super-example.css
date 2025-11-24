@@ -18,7 +18,15 @@
     'input result';
   border-radius: var(--radius);
 
-  &[data-layout='no-input'] {
+  &[data-layout='stacked']:not(.no-input) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'query'
+      'input'
+      'result';
+  }
+
+  &.no-input {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
       'query'
@@ -26,14 +34,6 @@
     .input {
       display: none;
     }
-  }
-
-  &[data-layout='stacked'] {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      'query'
-      'input'
-      'result';
   }
 
   & > * {

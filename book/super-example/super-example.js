@@ -19,12 +19,9 @@ for (const [i, pre] of preNodes.entries()) {
         .filter((c) => c.match(/^{.*}$/))
         .map((c) => c.slice(1, -1))
         .join(' ');
-  if (input.length === 0) {
-    attributes += 'data-layout="no-input"';
-  }
 
   const html = `
-  <article class="super-example" ${attributes}>
+  <article class="super-example ${input.length === 0 ? 'no-input' : ''}" ${attributes}>
     <div class="editor query">
       <header class="repel"><label>Query</label></header>
       <pre><code></code></pre>
