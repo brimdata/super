@@ -2,6 +2,7 @@ import { SuperPlayground } from './super-playground';
 
 const preNodes = document.querySelectorAll('pre:has(> code.language-mdtest-spq)');
 for (const [i, pre] of preNodes.entries()) {
+  // mdBook creates a <code> element for each fenced code block.
   const codeNode = pre.querySelector('code');
 
   // Matches one or more "#"-prefixed lines.
@@ -15,9 +16,13 @@ for (const [i, pre] of preNodes.entries()) {
   const input = sections[2].trim();
   const expected = sections[3].trim();
 
-  let attributes = Array.from(codeNode.classList)
+  // mdBook creates a <code> element's class list by splitting the
+  // corresponding fenced block's info string on ' ', '\t', and ','.
+  //
+  // Replace '&' with ' ' so attributes can contain spaces.
+  const attributes = Array.from(codeNode.classList)
         .filter((c) => c.match(/^{.*}$/))
-        .map((c) => c.slice(1, -1))
+        .map((c) => c.slice(1, -1).replaceAll('&', ' '))
         .join(' ');
 
   const html = `
