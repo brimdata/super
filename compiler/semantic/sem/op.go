@@ -8,6 +8,9 @@
 package sem
 
 import (
+	"maps"
+	"slices"
+
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/order"
@@ -275,4 +278,262 @@ func NewValues(n ast.Node, expr ...Expr) *ValuesOp {
 
 func NewFilter(n ast.Node, expr Expr) *FilterOp {
 	return &FilterOp{Node: n, Expr: expr}
+}
+
+func CopySeq(seq Seq) Seq {
+	var out Seq
+	for _, op := range seq {
+		out = append(out, CopyOp(op))
+	}
+	return out
+}
+
+func CopyOp(op Op) Op {
+	switch op := op.(type) {
+	case *CommitMetaScan:
+		return &CommitMetaScan{
+			Node:   op.Node,
+			Pool:   op.Pool,
+			Commit: op.Commit,
+			Meta:   op.Meta,
+			Tap:    op.Tap,
+		}
+	case *DBMetaScan:
+		return &DBMetaScan{
+			Node: op.Node,
+			Meta: op.Meta,
+		}
+	case *DefaultScan:
+		return &DefaultScan{
+			Node: op.Node,
+		}
+	case *DeleteScan:
+		return &DeleteScan{
+			Node:   op.Node,
+			ID:     op.ID,
+			Commit: op.Commit,
+		}
+	case *FileScan:
+		return &FileScan{
+			Node:   op.Node,
+			Type:   op.Type,
+			Paths:  slices.Clone(op.Paths),
+			Format: op.Format,
+		}
+	case *HTTPScan:
+		return &HTTPScan{
+			Node:    op.Node,
+			URL:     op.URL,
+			Format:  op.Format,
+			Method:  op.Method,
+			Headers: maps.Clone(op.Headers),
+			Body:    op.Body,
+		}
+	case *NullScan:
+		return &NullScan{
+			Node: op.Node,
+		}
+	case *PoolMetaScan:
+		return &PoolMetaScan{
+			Node: op.Node,
+			ID:   op.ID,
+			Meta: op.Meta,
+		}
+	case *PoolScan:
+		return &PoolScan{
+			Node:   op.Node,
+			ID:     op.ID,
+			Commit: op.Commit,
+		}
+	case *RobotScan:
+		return &RobotScan{
+			Node:   op.Node,
+			Expr:   CopyExpr(op.Expr),
+			Format: op.Format,
+		}
+
+	case *AggregateOp:
+		return &AggregateOp{
+			Node:  op.Node,
+			Limit: op.Limit,
+			Keys:  copyAssignments(op.Keys),
+			Aggs:  copyAssignments(op.Aggs),
+		}
+	case *BadOp:
+		return &BadOp{Node: op.Node}
+	case *CountOp:
+		return &CountOp{
+			Node:  op.Node,
+			Alias: op.Alias,
+			Expr:  CopyExpr(op.Expr),
+		}
+	case *CutOp:
+		return &CutOp{
+			Node: op.Node,
+			Args: copyAssignments(op.Args),
+		}
+	case *DebugOp:
+		return &DebugOp{
+			Node: op.Node,
+			Expr: CopyExpr(op.Expr),
+		}
+	case *DistinctOp:
+		return &DistinctOp{
+			Node: op.Node,
+			Expr: CopyExpr(op.Expr),
+		}
+	case *DropOp:
+		return &DropOp{
+			Node: op.Node,
+			Args: copyExprs(op.Args),
+		}
+	case *ExplodeOp:
+		return &ExplodeOp{
+			Node: op.Node,
+			Args: copyExprs(op.Args),
+			Type: op.Type,
+			As:   op.As,
+		}
+	case *FilterOp:
+		return &FilterOp{
+			Node: op.Node,
+			Expr: CopyExpr(op.Expr),
+		}
+	case *ForkOp:
+		var paths []Seq
+		for _, seq := range op.Paths {
+			paths = append(paths, CopySeq(seq))
+		}
+		return &ForkOp{
+			Node:  op.Node,
+			Paths: paths,
+		}
+	case *FuseOp:
+		return &FuseOp{
+			Node: op.Node,
+		}
+	case *HeadOp:
+		return &HeadOp{
+			Node:  op.Node,
+			Count: op.Count,
+		}
+	case *JoinOp:
+		return &JoinOp{
+			Node:       op.Node,
+			Style:      op.Style,
+			LeftAlias:  op.LeftAlias,
+			RightAlias: op.RightAlias,
+			Cond:       CopyExpr(op.Cond),
+		}
+	case *LoadOp:
+		return &LoadOp{
+			Node:    op.Node,
+			Pool:    op.Pool,
+			Branch:  op.Branch,
+			Author:  op.Author,
+			Message: op.Message,
+			Meta:    op.Meta,
+		}
+	case *MergeOp:
+		return &MergeOp{
+			Node:  op.Node,
+			Exprs: copySortExprs(op.Exprs),
+		}
+	case *OutputOp:
+		return &OutputOp{
+			Node: op.Node,
+			Name: op.Name,
+		}
+	case *PassOp:
+		return &PassOp{Node: op.Node}
+	case *PutOp:
+		return &PutOp{
+			Node: op.Node,
+			Args: copyAssignments(op.Args),
+		}
+	case *RenameOp:
+		return &RenameOp{
+			Node: op.Node,
+			Args: copyAssignments(op.Args),
+		}
+	case *SkipOp:
+		return &SkipOp{
+			Node:  op.Node,
+			Count: op.Count,
+		}
+	case *SortOp:
+		return &SortOp{
+			Node:    op.Node,
+			Exprs:   copySortExprs(op.Exprs),
+			Reverse: op.Reverse,
+		}
+	case *SwitchOp:
+		var cases []Case
+		for _, c := range op.Cases {
+			cases = append(cases, Case{
+				Expr: CopyExpr(c.Expr),
+				Path: CopySeq(c.Path),
+			})
+		}
+		return &SwitchOp{
+			Node:  op.Node,
+			Expr:  CopyExpr(op.Expr),
+			Cases: cases,
+		}
+	case *TailOp:
+		return &TailOp{
+			Node:  op.Node,
+			Count: op.Count,
+		}
+	case *TopOp:
+		return &TopOp{
+			Node:    op.Node,
+			Limit:   op.Limit,
+			Exprs:   copySortExprs(op.Exprs),
+			Reverse: op.Reverse,
+		}
+	case *UniqOp:
+		return &UniqOp{
+			Node:  op.Node,
+			Cflag: op.Cflag,
+		}
+	case *UnnestOp:
+		return &UnnestOp{
+			Node: op.Node,
+			Expr: CopyExpr(op.Expr),
+			Body: CopySeq(op.Body),
+		}
+	case *ValuesOp:
+		return &ValuesOp{
+			Node:  op.Node,
+			Exprs: copyExprs(op.Exprs),
+		}
+	default:
+		panic(op)
+	}
+}
+
+func copyAssignments(assignment []Assignment) []Assignment {
+	var out []Assignment
+	for _, a := range assignment {
+		out = append(out, Assignment{
+			Node: a.Node,
+			LHS:  CopyExpr(a.LHS),
+			RHS:  CopyExpr(a.RHS),
+		})
+	}
+	return out
+}
+
+func copySortExprs(exprs []SortExpr) []SortExpr {
+	var out []SortExpr
+	for _, e := range exprs {
+		out = append(out, SortExpr{
+			Node:  e.Node,
+			Expr:  CopyExpr(e.Expr),
+			Order: e.Order,
+			Nulls: e.Nulls,
+		})
+	}
+	return out
 }

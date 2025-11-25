@@ -1,6 +1,8 @@
 package sem
 
 import (
+	"slices"
+
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/sup"
@@ -245,4 +247,189 @@ func NewStructuredError(n ast.Node, message string, on Expr) Expr {
 		Tag:  "error",
 		Args: []Expr{rec},
 	}
+}
+
+func CopyExpr(e Expr) Expr {
+	switch e := e.(type) {
+	case *AggFunc:
+		return &AggFunc{
+			Node:     e.Node,
+			Name:     e.Name,
+			Distinct: e.Distinct,
+			Expr:     CopyExpr(e.Expr),
+			Where:    CopyExpr(e.Where),
+		}
+	case *ArrayExpr:
+		return &ArrayExpr{
+			Node:  e.Node,
+			Elems: copyArrayElems(e.Elems),
+		}
+	case *BadExpr:
+		return &BadExpr{Node: e.Node}
+	case *BinaryExpr:
+		return &BinaryExpr{
+			Node: e.Node,
+			Op:   e.Op,
+			LHS:  CopyExpr(e.LHS),
+			RHS:  CopyExpr(e.RHS),
+		}
+	case *CondExpr:
+		return &CondExpr{
+			Node: e.Node,
+			Cond: CopyExpr(e.Cond),
+			Then: CopyExpr(e.Then),
+			Else: CopyExpr(e.Else),
+		}
+	case *CallExpr:
+		return &CallExpr{
+			Node: e.Node,
+			Tag:  e.Tag,
+			Args: copyExprs(e.Args),
+		}
+	case *DotExpr:
+		return &DotExpr{
+			Node: e.Node,
+			LHS:  CopyExpr(e.LHS),
+			RHS:  e.RHS,
+		}
+	case *IndexExpr:
+		return &IndexExpr{
+			Node:  e.Node,
+			Expr:  CopyExpr(e.Expr),
+			Index: CopyExpr(e.Index),
+			Base1: e.Base1,
+		}
+	case *IsNullExpr:
+		return &IsNullExpr{
+			Node: e.Node,
+			Expr: CopyExpr(e.Expr),
+		}
+	case *LiteralExpr:
+		return &LiteralExpr{
+			Node:  e.Node,
+			Value: e.Value,
+		}
+	case *MapCallExpr:
+		return &MapCallExpr{
+			Node:   e.Node,
+			Expr:   CopyExpr(e.Expr),
+			Lambda: CopyExpr(e.Lambda).(*CallExpr),
+		}
+	case *MapExpr:
+		var entries []Entry
+		for _, entry := range e.Entries {
+			entries = append(entries, Entry{
+				Key:   CopyExpr(entry.Key),
+				Value: CopyExpr(entry.Value),
+			})
+		}
+		return &MapExpr{
+			Node:    e.Node,
+			Entries: entries,
+		}
+	case *RecordExpr:
+		var elems []RecordElem
+		for _, elem := range e.Elems {
+			switch elem := elem.(type) {
+			case *FieldElem:
+				elems = append(elems, &FieldElem{
+					Node:  elem.Node,
+					Name:  elem.Name,
+					Value: CopyExpr(elem.Value),
+				})
+			case *SpreadElem:
+				elems = append(elems, &SpreadElem{
+					Node: elem.Node,
+					Expr: CopyExpr(elem.Expr),
+				})
+			default:
+				panic(elem)
+			}
+		}
+		return &RecordExpr{
+			Node:  e.Node,
+			Elems: elems,
+		}
+	case *RegexpMatchExpr:
+		return &RegexpMatchExpr{
+			Node:    e.Node,
+			Pattern: e.Pattern,
+			Expr:    CopyExpr(e.Expr),
+		}
+	case *RegexpSearchExpr:
+		return &RegexpSearchExpr{
+			Node:    e.Node,
+			Pattern: e.Pattern,
+			Expr:    CopyExpr(e.Expr),
+		}
+	case *SearchTermExpr:
+		return &SearchTermExpr{
+			Node:  e.Node,
+			Text:  e.Text,
+			Value: e.Value,
+			Expr:  CopyExpr(e.Expr),
+		}
+	case *SetExpr:
+		return &SetExpr{
+			Node:  e.Node,
+			Elems: copyArrayElems(e.Elems),
+		}
+	case *SliceExpr:
+		return &SliceExpr{
+			Node:  e.Node,
+			Expr:  CopyExpr(e.Expr),
+			From:  CopyExpr(e.Expr),
+			To:    CopyExpr(e.Expr),
+			Base1: e.Base1,
+		}
+	case *SubqueryExpr:
+		return &SubqueryExpr{
+			Node:       e.Node,
+			Correlated: e.Correlated,
+			Array:      e.Array,
+			Body:       CopySeq(e.Body),
+		}
+	case *ThisExpr:
+		return &ThisExpr{
+			Node: e.Node,
+			Path: slices.Clone(e.Path),
+		}
+	case *UnaryExpr:
+		return &UnaryExpr{
+			Node:    e.Node,
+			Op:      e.Op,
+			Operand: CopyExpr(e.Operand),
+		}
+	default:
+		panic(e)
+	}
+}
+
+func copyExprs(exprs []Expr) []Expr {
+	var out []Expr
+	for _, e := range exprs {
+		out = append(out, CopyExpr(e))
+	}
+	return out
+}
+
+func copyArrayElems(elems []ArrayElem) []ArrayElem {
+	var out []ArrayElem
+	for _, elem := range elems {
+		switch elem := elem.(type) {
+		case *ExprElem:
+			out = append(out, &ExprElem{
+				Node: elem.Node,
+				Expr: CopyExpr(elem.Expr),
+			})
+		case *SpreadElem:
+			out = append(out, &SpreadElem{
+				Node: elem.Node,
+				Expr: CopyExpr(elem.Expr),
+			})
+		default:
+			panic(elem)
+		}
+	}
+	return out
 }

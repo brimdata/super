@@ -1,0 +1,22 @@
+# Test that group by expressions can be combined into complex select clauses.
+script: |
+  super -s -c '
+    select a+b+c
+    from (values (1,1,1),(2,2,2)) t(a,b,c)
+    group by a+b, c
+    order by 1'
+  ! super -s -c '
+    select b+a+c
+    from (values (1,1,1),(2,2,2)) t(a,b,c)
+    group by a+b,c'
+
+outputs:
+  - name: stdout
+    data: |
+      {"a+b+c":3}
+      {"a+b+c":6}
+  - name: stderr
+    data: |
+      no corresponding grouping element for non-aggregate "b+a+c" at line 2, column 10:
+        select b+a+c
+               ~~~~~
