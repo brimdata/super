@@ -1,0 +1,8 @@
+# Test that a select statement can include an aggregation expression and a
+# literal expression.
+
+spq: |
+  SELECT - 82 + - 61 + 13, 11 - - - COUNT ( * ) AS col1
+
+output: |
+  {"-82+-61+13":-130,col1:10}

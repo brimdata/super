@@ -50,6 +50,26 @@ super -c "1.+(1/2.)+(1/3.)+(1/4.)"
 super db -c "from logs | ? alert level >= 2"
 ```
 
+### Traverse nested data with recursive functions and re-entrant subqueries
+
+```
+super -c '
+fn walk(node, visit):
+  case kind(node)
+  when "array" then
+    [unnest node | walk(this, visit)]
+  when "record" then
+    unflatten([unnest flatten(node) | {key,value:walk(value, visit)}])
+  when "union" then
+    walk(under(node), visit)
+  else visit(node)
+  end
+fn addOne(node): case typeof(node) when <int64> then node+1 else node end
+values 1, [1,2,3], [{x:[1,"foo"]},{y:2}]
+| values walk(this, &addOne)
+'
+```
+
 ### Handle and wrap errors in a SuperSQL pipeline
 ```
 ... | super -c "

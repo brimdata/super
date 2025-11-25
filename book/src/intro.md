@@ -12,7 +12,7 @@ powerful, new data model called [_super-structured data_](formats/model.md).
 
 Super-structured data is
 * _dynamic_ so that data collections can vary by type and are not handcuffed by schemas,
-* _strongly typed_ ensuring that all the benefits of a comprehensive type
+* _strongly typed_ ensuring that all the benefits of a comprehensive type system
   apply to dynamic data, and
 * _self-describing_ thus obviating the need to define schemas up front.
 
