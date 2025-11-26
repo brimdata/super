@@ -86,6 +86,7 @@ func (a *aggfuncs) subst(e sem.Expr) sem.Expr {
 		return sem.NewThis(e, []string{"in", tmp})
 	case *sem.ArrayExpr:
 		e.Elems = a.substArrayElems(e.Elems)
+	case *sem.BadExpr:
 	case *sem.BinaryExpr:
 		e.LHS = a.subst(e.LHS)
 		e.RHS = a.subst(e.RHS)
@@ -170,6 +171,7 @@ func keySubst(e sem.Expr, exprs []exprloc) (sem.Expr, bool) {
 		panic(e)
 	case *sem.ArrayExpr:
 		e.Elems, ok = keySubstArrayElems(e.Elems, exprs)
+	case *sem.BadExpr:
 	case *sem.BinaryExpr:
 		if e.LHS, ok = keySubst(e.LHS, exprs); ok {
 			e.RHS, ok = keySubst(e.RHS, exprs)
@@ -242,6 +244,7 @@ func keySubst(e sem.Expr, exprs []exprloc) (sem.Expr, bool) {
 		e.From, ok2 = keySubst(e.From, exprs)
 		e.To, ok3 = keySubst(e.To, exprs)
 		ok = ok1 && ok2 && ok3
+	case *sem.SubqueryExpr: // XXX This might need to be traversed?
 	case *sem.ThisExpr:
 		// If we've gotten here it means we have a portion of e that does
 		// not exist in exprs so we are in an error state.
