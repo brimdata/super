@@ -42,9 +42,9 @@ outputs:
       select a, b, c, d group by 5, 0
                       ~
       // ===
-      aggregate functions are not allowed in GROUP BY at line 1, column 33:
+      aggregate functions are not allowed in GROUP BY at line 1, column 8:
       select count() as c, a group by 1,2
-                                      ~
+             ~~~~~~~
 
 output: |
   {c:1::uint64}

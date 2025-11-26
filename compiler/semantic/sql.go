@@ -229,17 +229,17 @@ func (t *translator) genAggregateOutput(loc ast.Node, proj projection, keyExprs 
 		// First, try to match the column expression to one of the grouping
 		// expressions.  If that doesn't work, see if the aliased column
 		// name is one of the grouping expressions.
-		which := exprMatch(col.expr, keyExprs)
-		if which < 0 {
-			// Look for an exact-match of a column alias which would
-			// convert to path out.<id> in the name resolution of the
-			// grouping expression.
+		key, ok := keySubst(sem.CopyExpr(col.expr), keyExprs)
+		if !ok {
 			alias := sem.NewThis(col.loc, []string{"out", col.name})
-			which = exprMatch(alias, keyExprs)
+			if which := exprMatch(alias, keyExprs); which >= 0 {
+				key = sem.NewThis(col.loc, []string{"in", fmt.Sprintf("k%d", which)})
+				ok = true
+			}
 		}
 		if col.isAgg {
-			if which >= 0 {
-				t.error(keyExprs[which].loc, fmt.Errorf("aggregate functions are not allowed in GROUP BY"))
+			if ok {
+				t.error(col.expr, fmt.Errorf("aggregate functions are not allowed in GROUP BY"))
 			}
 			elems = append(elems, &sem.FieldElem{
 				Node:  col.loc,
@@ -247,13 +247,13 @@ func (t *translator) genAggregateOutput(loc ast.Node, proj projection, keyExprs 
 				Value: col.expr,
 			})
 		} else {
-			if which < 0 {
+			if !ok {
 				t.error(col.loc, fmt.Errorf("no corresponding grouping element for non-aggregate %q", col.name))
 			}
 			elems = append(elems, &sem.FieldElem{
 				Node:  col.loc,
 				Name:  col.name,
-				Value: sem.NewThis(col.loc, []string{"in", fmt.Sprintf("k%d", which)}),
+				Value: key,
 			})
 		}
 		e := &sem.RecordExpr{
