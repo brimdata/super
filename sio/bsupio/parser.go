@@ -143,6 +143,9 @@ func (p *parser) readFrame(code byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	if size < 1 {
+		return nil, fmt.Errorf("bsupio: frame length (%d) too small", size)
+	}
 	if size > p.maxSize {
 		return nil, fmt.Errorf("bsupio: frame length (%d) exceeds maximum allowed (%d)", size, p.maxSize)
 	}
@@ -172,6 +175,9 @@ func (p *parser) readCompressedFrame(code byte) (frame, error) {
 	size, err := readUvarintAsInt(p.peeker)
 	if err != nil {
 		return frame{}, err
+	}
+	if size < 1 {
+		return frame{}, fmt.Errorf("bsupio: frame length (%d) too small", size)
 	}
 	if size > p.maxSize {
 		return frame{}, fmt.Errorf("bsupio: frame length (%d) exceeds maximum allowed (%d)", size, p.maxSize)
