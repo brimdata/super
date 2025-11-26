@@ -251,6 +251,8 @@ func NewStructuredError(n ast.Node, message string, on Expr) Expr {
 
 func CopyExpr(e Expr) Expr {
 	switch e := e.(type) {
+	case nil:
+		return nil
 	case *AggFunc:
 		return &AggFunc{
 			Node:     e.Node,
