@@ -140,6 +140,13 @@ func (t *translator) fromEntity(entity ast.FromEntity, alias *ast.TableAlias, ar
 		return t.sqlJoin(entity, seq)
 	case *ast.SQLCrossJoin:
 		return t.sqlCrossJoin(entity, seq)
+	case *ast.SQLValues:
+		seq, sch := t.sqlValues(entity, seq)
+		seq, sch, err := applyAlias(alias, sch, seq)
+		if err != nil {
+			t.error(alias, err)
+		}
+		return seq, sch
 	default:
 		panic(entity)
 	}

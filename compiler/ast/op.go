@@ -276,6 +276,7 @@ func (*GlobExpr) fromEntityNode()   {}
 func (*RegexpExpr) fromEntityNode() {}
 func (*ExprEntity) fromEntityNode() {}
 func (*DBMeta) fromEntityNode()     {}
+func (*SQLValues) fromEntityNode()  {}
 func (*Text) fromEntityNode()       {}
 
 type FromElem struct {

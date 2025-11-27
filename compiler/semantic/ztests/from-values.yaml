@@ -1,0 +1,4 @@
+spq: SELECT a FROM VALUES(1) AS t(a)
+
+output: |
+  {a:1}

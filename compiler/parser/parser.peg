@@ -754,6 +754,9 @@ FromEntity
         Loc: loc(c),
       }, nil
     }
+  / s:SQLValues {
+      return s, nil
+    }
   / join:JoinOperation !AliasClause {return join, nil}
   / "(" __ join:JoinOperation __ ")" { return join, nil }
   / "(" __ s:SQLPipe __ ")" {
