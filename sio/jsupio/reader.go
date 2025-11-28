@@ -1,13 +1,13 @@
 package jsupio
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"io"
 	"strconv"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/skim"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sup"
 )
@@ -18,17 +18,20 @@ const (
 )
 
 type Reader struct {
-	scanner *skim.Scanner
+	scanner *bufio.Scanner
 	sctx    *super.Context
 	decoder decoder
 	builder *scode.Builder
-	val     super.Value
+
+	lines int
+	val   super.Value
 }
 
 func NewReader(sctx *super.Context, reader io.Reader) *Reader {
-	buffer := make([]byte, ReadSize)
+	s := bufio.NewScanner(reader)
+	s.Buffer(make([]byte, ReadSize), MaxLineSize)
 	return &Reader{
-		scanner: skim.NewScanner(reader, buffer, MaxLineSize),
+		scanner: s,
 		sctx:    sctx,
 		decoder: make(decoder),
 		builder: scode.NewBuilder(),
@@ -37,17 +40,19 @@ func NewReader(sctx *super.Context, reader io.Reader) *Reader {
 
 func (r *Reader) Read() (*super.Value, error) {
 	e := func(err error) error {
-		if err == nil {
-			return err
+		if errors.Is(err, bufio.ErrTooLong) {
+			err = errors.New("line too long")
 		}
-		return fmt.Errorf("line %d: %w", r.scanner.Stats.Lines, err)
+		return fmt.Errorf("line %d: %w", r.lines, err)
 	}
-
-	line, err := r.scanner.ScanLine()
-	if line == nil {
-		return nil, e(err)
+	r.lines++
+	if !r.scanner.Scan() {
+		if err := r.scanner.Err(); err != nil {
+			return nil, e(err)
+		}
+		return nil, nil
 	}
-	object, err := unmarshal(line)
+	object, err := unmarshal(r.scanner.Bytes())
 	if err != nil {
 		return nil, e(err)
 	}
