@@ -1,6 +1,6 @@
 ### Operator
 
-&emsp; **assert** &mdash; test a predicate and produce errors on failure
+[✅](../intro.md#data-order)&emsp; **assert** &mdash; test a predicate and produce errors on failure
 
 ### Synopsis
 

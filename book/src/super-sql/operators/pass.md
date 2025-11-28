@@ -1,6 +1,6 @@
 ### Operator
 
-&emsp; **pass** &mdash; copy input values to output
+[✅](../intro.md#data-order)&emsp; **pass** &mdash; copy input values to output
 
 ### Synopsis
 

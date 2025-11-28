@@ -1,6 +1,6 @@
 ### Operator
 
-&emsp; **rename** &mdash; change the name of record fields
+[✅](../intro.md#data-order)&emsp; **rename** &mdash; change the name of record fields
 
 ### Synopsis
 ```

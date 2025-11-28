@@ -1,6 +1,6 @@
 ### Operator
 
-&emsp; **shapes** &mdash; aggregate sample values by type
+[🎲](../intro.md#data-order)&emsp; **shapes** &mdash; aggregate sample values by type
 
 ### Synopsis
 ```

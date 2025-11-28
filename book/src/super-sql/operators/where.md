@@ -1,6 +1,6 @@
 ### Operator
 
-&emsp; **where** &mdash; select values based on a Boolean expression
+[✅](../intro.md#data-order)&emsp; **where** &mdash; select values based on a Boolean expression
 
 ### Synopsis
 ```

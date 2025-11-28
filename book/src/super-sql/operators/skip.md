@@ -1,6 +1,6 @@
 ### Operator
 
-&emsp; **skip** &mdash; skip leading values of input sequence
+[✅](../intro.md#data-order)&emsp; **skip** &mdash; skip leading values of input sequence
 
 ### Synopsis
 

@@ -1,6 +1,6 @@
 ### Operator
 
-&emsp; **switch** &mdash; route values based on cases
+[🎲](../intro.md#data-order)&emsp; **switch** &mdash; route values based on cases
 
 ### Synopsis
 

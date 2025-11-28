@@ -1,6 +1,6 @@
 ### Operator
 
-&emsp; **values** &mdash; emit values from expressions
+[✅](../intro.md#data-order)&emsp; **values** &mdash; emit values from expressions
 
 ### Synopsis
 

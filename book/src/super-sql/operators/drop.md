@@ -1,6 +1,6 @@
 ### Operator
 
-&emsp; **drop** &mdash; drop fields from record values
+[✅](../intro.md#data-order)&emsp; **drop** &mdash; drop fields from record values
 
 ### Synopsis
 

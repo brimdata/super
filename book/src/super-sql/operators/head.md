@@ -1,6 +1,6 @@
 ### Operator
 
-&emsp; **head** &mdash; copy leading values of input sequence
+[✅](../intro.md#data-order)&emsp; **head** &mdash; copy leading values of input sequence
 
 ### Synopsis
 

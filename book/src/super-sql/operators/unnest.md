@@ -1,6 +1,6 @@
 ### Operator
 
-&emsp; **unnest** &mdash; expand nested array as values optionally into a subquery
+[✅](../intro.md#data-order)&emsp; **unnest** &mdash; expand nested array as values optionally into a subquery
 
 ### Synopsis
 
