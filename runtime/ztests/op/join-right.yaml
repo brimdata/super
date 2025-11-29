@@ -1,5 +1,5 @@
 spq: |
-  right join (from (values 2,4,6)) on right=left*2 | sort 
+  right join (values 2,4,6) on right=left*2 | sort 
 
 vector: true
 

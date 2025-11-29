@@ -1,7 +1,10 @@
 spq: |
-  from a | from b cross join c
+  values {x:1} | select * from (values {x:2}) cross join (values {y:3})
 
 error: |
-  SQL cross join cannot inherit data from pipeline parent at line 1, column 15:
-  from a | from b cross join c
-                ~~~~~~~~~~~~~~
+  SQL cross join cannot inherit data from pipeline parent at line 1, column 30:
+  values {x:1} | select * from (values {x:2}) cross join (values {y:3})
+                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  SELECT cannot have both an embedded FROM clause and input from parents at line 1, column 16:
+  values {x:1} | select * from (values {x:2}) cross join (values {y:3})
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -1,6 +1,7 @@
 spq: |
   select a
   from (
+    select *
     from (values {a:1},{a:2},{a:3})
     cross join (values {b:3},{b:4},{b:5})
   )

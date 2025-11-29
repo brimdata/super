@@ -1,9 +1,9 @@
 script: |
-  ! super -c 'from ( from a )'
+  ! super -c 'select * from ( select * from a )'
 
 outputs:
   - name: stderr
     data: |
-      file does not exist at line 1, column 13:
-      from ( from a )
-                  ~
+      file does not exist at line 1, column 31:
+      select * from ( select * from a )
+                                    ~
