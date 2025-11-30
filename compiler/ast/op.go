@@ -93,9 +93,9 @@ type (
 		Loc  `json:"loc"`
 	}
 	FromOp struct {
-		Kind  string      `json:"kind" unpack:""`
-		Elems []*FromElem `json:"elems"`
-		Loc   `json:"loc"`
+		Kind string    `json:"kind" unpack:""`
+		Item *FromItem `json:"item"`
+		Loc  `json:"loc"`
 	}
 	FuseOp struct {
 		Kind string `json:"kind" unpack:""`
@@ -261,39 +261,27 @@ type Text struct {
 	Loc  `json:"loc"`
 }
 
-type FromEntity interface {
+type FromSource interface {
 	Node
-	fromEntityNode()
+	fromSourceNode()
 }
 
-type ExprEntity struct {
+type FromEval struct {
 	Kind string `json:"kind" unpack:""`
 	Expr Expr   `json:"expr"`
 	Loc  `json:"loc"`
 }
 
-func (*GlobExpr) fromEntityNode()   {}
-func (*RegexpExpr) fromEntityNode() {}
-func (*ExprEntity) fromEntityNode() {}
-func (*DBMeta) fromEntityNode()     {}
-func (*Text) fromEntityNode()       {}
+func (*GlobExpr) fromSourceNode()   {}
+func (*RegexpExpr) fromSourceNode() {}
+func (*FromEval) fromSourceNode()   {}
+func (*DBMeta) fromSourceNode()     {}
+func (*Text) fromSourceNode()       {}
 
-type FromElem struct {
-	Entity     FromEntity  `json:"entity"`
-	Args       []OpArg     `json:"args"`
-	Ordinality *Ordinality `json:"ordinality"`
-	Alias      *TableAlias `json:"alias"`
-	Loc        `json:"loc"`
-}
-
-type Ordinality struct {
-	Loc `json:"loc"`
-}
-
-type TableAlias struct {
-	Name    string `json:"name"`
-	Columns []*ID  `json:"columns"`
-	Loc     `json:"loc"`
+type FromItem struct {
+	Source FromSource `json:"source"`
+	Args   []OpArg    `json:"args"`
+	Loc    `json:"loc"`
 }
 
 func (d *DefaultScan) Pos() int { return -1 }

@@ -498,7 +498,7 @@ func (c *canon) op(p ast.Op) {
 	case *ast.FromOp:
 		c.next()
 		c.write("from ")
-		c.fromElems(p.Elems)
+		c.fromItem(p.Item)
 	case *ast.AggregateOp:
 		c.next()
 		c.open("aggregate")
@@ -737,7 +737,9 @@ func (c *canon) sqlQueryBody(query ast.SQLQueryBody) {
 		}
 		if query.From != nil {
 			c.head = true
-			c.op(query.From)
+			c.ret()
+			c.write("from ")
+			c.tableExprs(query.From)
 		}
 		if query.Where != nil {
 			c.ret()
@@ -799,19 +801,30 @@ func (c *canon) ids(ids []*ast.ID) {
 	}
 }
 
-func (c *canon) fromElems(elems []*ast.FromElem) {
-	c.fromElem(elems[0])
-	for _, elem := range elems[1:] {
+func (c *canon) tableExprs(exprs []ast.SQLTableExpr) {
+	c.tableExpr(exprs[0])
+	for _, e := range exprs[1:] {
 		c.write(", ")
-		c.fromElem(elem)
+		c.tableExpr(e)
 	}
 }
 
-func (c *canon) fromElem(elem *ast.FromElem) {
-	c.fromEntity(elem.Entity)
-	c.opArgs(elem.Args)
-	if elem.Alias != nil {
-		c.tableAlias(elem.Alias)
+func (c *canon) fromItem(item *ast.FromItem) {
+	c.fromSource(item.Source)
+	c.opArgs(item.Args)
+}
+
+func (c *canon) sqlFromItem(item *ast.SQLFromItem) {
+	switch input := item.Input.(type) {
+	case *ast.FromItem:
+		c.fromItem(input)
+	case *ast.SQLPipe:
+		c.sqlPipe(input)
+	default:
+		panic(input)
+	}
+	if item.Alias != nil {
+		c.tableAlias(item.Alias)
 	}
 }
 
@@ -828,40 +841,53 @@ func (c *canon) tableAlias(alias *ast.TableAlias) {
 	}
 }
 
-func (c *canon) fromEntity(e ast.FromEntity) {
-	switch e := e.(type) {
-	case *ast.ExprEntity:
+func (c *canon) fromSource(s ast.FromSource) {
+	switch s := s.(type) {
+	case *ast.FromEval:
 		c.write("eval(")
-		c.expr(e.Expr, "")
+		c.expr(s.Expr, "")
 		c.write(")")
-	case *ast.GlobExpr, *ast.RegexpExpr:
-		c.pattern(e)
+	case *ast.GlobExpr:
+		c.write(s.Pattern)
+	case *ast.RegexpExpr:
+		c.write("/" + s.Pattern + "/")
 	case *ast.Text:
-		c.write(sup.QuotedName(e.Text))
+		c.write(sup.QuotedName(s.Text))
+	default:
+		panic(s)
+	}
+}
+
+func (c *canon) tableExpr(e ast.SQLTableExpr) {
+	switch e := e.(type) {
+	case *ast.SQLFromItem:
+		c.sqlFromItem(e)
 	case *ast.SQLCrossJoin:
-		c.fromElem(e.Left)
+		c.tableExpr(e.Left)
 		c.ret()
 		c.write("cross join ")
-		c.fromElem(e.Right)
+		c.tableExpr(e.Right)
 	case *ast.SQLJoin:
-		c.fromElem(e.Left)
+		c.tableExpr(e.Left)
 		c.ret()
 		if e.Style != "" {
 			c.write(e.Style + " ")
 		}
 		c.write("join ")
-		c.fromElem(e.Right)
+		c.tableExpr(e.Right)
 		c.joinCond(e.Cond)
-	case *ast.SQLPipe:
-		c.open("(")
-		c.head = true
-		c.seq(e.Body)
-		c.close()
-		c.ret()
-		c.write(")")
 	default:
 		panic(fmt.Sprintf("unknown from expression: %T", e))
 	}
+}
+
+func (c *canon) sqlPipe(pipe *ast.SQLPipe) {
+	c.open("(")
+	c.head = true
+	c.seq(pipe.Body)
+	c.close()
+	c.ret()
+	c.write(")")
 }
 
 func (c *canon) joinCond(e ast.JoinCond) {
@@ -947,17 +973,6 @@ func (c *canon) opArgs(args []ast.OpArg) {
 		}
 	}
 	c.write(" )")
-}
-
-func (c *canon) pattern(p ast.FromEntity) {
-	switch p := p.(type) {
-	case *ast.GlobExpr:
-		c.write(p.Pattern)
-	case *ast.RegexpExpr:
-		c.write("/" + p.Pattern + "/")
-	default:
-		panic(fmt.Sprintf("(unknown pattern type %T)", p))
-	}
 }
 
 func isAggFunc(e ast.Expr) *ast.AggregateOp {

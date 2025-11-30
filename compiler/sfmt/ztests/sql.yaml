@@ -1,10 +1,10 @@
 script: |
   echo === cross join
-  super compile -C 'from a cross join b, c'
+  super compile -C 'select * from a cross join b, c'
   echo === join with on condition
-  super compile -C 'from a join b on c'
+  super compile -C 'select * from a join b on c'
   echo === join with using condition
-  super compile -C 'from a join b using (c,d)'
+  super compile -C 'select * from a join b using (c,d)'
   echo === select
   super compile -C 'select a from b where c group by d having e order by f limit g offset h'
   echo === ornate select
@@ -26,13 +26,16 @@ outputs:
   - name: stdout
     data: |
       === cross join
+      select null
       from a
       cross join b
       cross join c
       === join with on condition
+      select null
       from a
       inner join b on c
       === join with using condition
+      select null
       from a
       inner join b using (c, d)
       === select
