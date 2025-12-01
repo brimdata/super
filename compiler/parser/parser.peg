@@ -752,14 +752,11 @@ SQLTableExpr
 
 FromItem
   = source:FromSource args:CommitishOpArgs? {
-      s := &ast.FromItem{
+      return &ast.FromItem{
         Source: source.(ast.FromSource),
+        Args: sliceOf[ast.OpArg](args),
         Loc: loc(c),
-      }
-      if args != nil {
-        s.Args = sliceOf[ast.OpArg](args)
-      }
-      return s, nil
+      }, nil
     }
 
 FromSource

@@ -83,12 +83,12 @@ type SQLTableInput interface {
 func (*FromItem) sqlTableInputNode() {}
 func (*SQLPipe) sqlTableInputNode()  {}
 
-// SQL table expression structure all of which implement FromEntity
-
 type SQLTableExpr interface {
 	Node
 	sqlTableExprNode()
 }
+
+// SQL table expression structure all of which implement SQLTableExpr
 
 type (
 	SQLCrossJoin struct {
