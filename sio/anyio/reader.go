@@ -2,11 +2,11 @@ package anyio
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
-	"strings"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
@@ -177,9 +177,9 @@ func isArrowStream(track *Track) error {
 }
 
 func isCSVStream(track *Track, delim rune, name string) error {
-	if s, err := bufio.NewReader(track).ReadString('\n'); err != nil {
+	if line, err := bufio.NewReader(track).ReadSlice('\n'); err != nil {
 		return fmt.Errorf("%s: line 1: %w", name, err)
-	} else if !strings.Contains(s, string(delim)) {
+	} else if !bytes.ContainsRune(line, delim) {
 		return fmt.Errorf("%s: line 1: delimiter %q not found", name, delim)
 	}
 	track.Reset()
