@@ -1,6 +1,6 @@
 ### Function
 
-&emsp; **coalesce** &mdash; return first value that is not null, a "missing" error, or a "quiet" error
+&emsp; **coalesce** &mdash; return first value that is not null or an error
 
 ### Synopsis
 
