@@ -1,8 +1,8 @@
 spq: |
-  values 1,2 | values case this when 1 then 'foo' end
+  values 1,2 | values case when this==1 then 'foo' end
 
 vector: true
 
 output: |
   "foo"
-  error({message:"case: no clause matched and no else provided",on:2})
+  error("case: no clause matched and no else provided")

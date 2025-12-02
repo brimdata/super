@@ -1,5 +1,5 @@
 spq: |
-  select case x when 1 then 'foo' end as x from (values (1),(2)) T(x)
+  select case when x==1 then 'foo' end as x from (values (1),(2)) T(x)
 
 vector: true
 

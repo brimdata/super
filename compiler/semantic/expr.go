@@ -612,20 +612,26 @@ func (t *translator) semDotted(e *ast.BinaryExpr, lval bool) ([]string, sem.Expr
 }
 
 func (t *translator) semCaseExpr(c *ast.CaseExpr) sem.Expr {
-	e := t.expr(c.Expr)
+	e := t.exprNullable(c.Expr)
 	var out sem.Expr
 	if c.Else != nil {
 		out = t.expr(c.Else)
 	} else if t.scope.schema != nil {
 		out = &sem.LiteralExpr{Node: c, Value: "null"}
-	} else {
+	} else if e != nil {
 		out = sem.NewStructuredError(c, "case: no clause matched and no else provided", e)
+	} else {
+		out = sem.NewStringError(c, "case: no clause matched and no else provided")
 	}
 	for i := len(c.Whens) - 1; i >= 0; i-- {
 		when := c.Whens[i]
+		cond := t.expr(when.Cond)
+		if e != nil {
+			cond = sem.NewBinaryExpr(c, "==", e, cond)
+		}
 		out = &sem.CondExpr{
 			Node: c,
-			Cond: sem.NewBinaryExpr(c, "==", e, t.expr(when.Cond)),
+			Cond: cond,
 			Then: t.expr(when.Then),
 			Else: out,
 		}

@@ -249,6 +249,16 @@ func NewStructuredError(n ast.Node, message string, on Expr) Expr {
 	}
 }
 
+func NewStringError(n ast.Node, message string) Expr {
+	return &CallExpr{
+		Node: n,
+		Tag:  "error",
+		Args: []Expr{
+			&LiteralExpr{Node: n, Value: sup.FormatValue(super.NewString(message))},
+		},
+	}
+}
+
 func CopyExpr(e Expr) Expr {
 	switch e := e.(type) {
 	case nil:

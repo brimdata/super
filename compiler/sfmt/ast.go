@@ -115,8 +115,11 @@ func (c *canon) expr(e ast.Expr, parent string) {
 		c.exprs(e.Args)
 		c.write(")")
 	case *ast.CaseExpr:
-		c.write("case ")
-		c.expr(e.Expr, "")
+		c.write("case")
+		if e.Expr != nil {
+			c.write(" ")
+			c.expr(e.Expr, "")
+		}
 		for _, when := range e.Whens {
 			c.write(" when ")
 			c.expr(when.Cond, "")

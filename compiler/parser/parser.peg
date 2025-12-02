@@ -1179,27 +1179,14 @@ Primary
     }
 
 CaseExpr
-  = CASE cases:When+ else_:(_ ELSE _ Expr)? _ END (_ CASE)? {
-        whens := sliceOf[ast.When](cases)
-        cond := &ast.CondExpr{
-            Kind: "CondExpr",
-            Cond: whens[0].Cond,
-            Then: whens[0].Then,
+  = CASE whens:When+ else_:(_ ELSE _ Expr)? _ END (_ CASE)? {
+        cond := &ast.CaseExpr{
+            Kind: "CaseExpr",
+            Whens: sliceOf[ast.When](whens),
             Loc: loc(c),
         }
-        last := cond
-        for _, when := range whens[1:] {
-            next := &ast.CondExpr{
-               Kind: "CondExpr",
-               Cond: when.Cond,
-               Then: when.Then,
-               Loc: when.Loc,
-            }
-            last.Else = next
-            last = next
-        }
         if else_ != nil {
-            last.Else = else_.([]any)[3].(ast.Expr)
+            cond.Else = else_.([]any)[3].(ast.Expr)
         }
         return cond, nil
     }
