@@ -309,7 +309,7 @@ produces
 {x:2,y:5}
 {x:3,y:5}
 ```
-In contrast, relational scoping using [identifier scoping](https://en.wikipedia.org/wiki/Scope_(computer_programming)) in a `SELECT` clause
+In contrast, [relational scoping](#relational-scoping) in a `SELECT` clause
 with the table source identified in `FROM` and `JOIN` clauses, e.g., this query
 produces the same result:
 ```
@@ -394,7 +394,7 @@ type checking, instead creating runtime errors when type errors are encountered.
 
 In other words, dynamic data is statically type checked when possible.
 This works by computing fused types of each operator's output and propagating
-these types in a [dataflow](https://en.wikipedia.org/wiki/Dataflow) analysis.  When types are unknown, the
+these types in a [dataflow analysis](https://en.wikipedia.org/wiki/Data-flow_analysis).  When types are unknown, the
 analysis flexibly models them as having any possible type.
 
 For example, this query produces the expected output
