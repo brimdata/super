@@ -1,0 +1,11 @@
+spq: values [(values this,this,this+1,this+1 | uniq)]
+
+vector: true
+
+input: |
+  1
+  2
+
+output: |
+  [1,2]
+  [2,3]

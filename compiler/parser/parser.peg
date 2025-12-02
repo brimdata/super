@@ -705,44 +705,67 @@ DebugOp
     }
 
 FromOp
-  = FROM _ elems:FromElems {
+  = FROM _ item:FromItem {
       return &ast.FromOp{
         Kind: "FromOp",
-        Elems: sliceOf[*ast.FromElem](elems),
+        Item: item.(*ast.FromItem),
         Loc: loc(c),
       }, nil
   }
 
-FromElems
-  = first:FromElem rest:( __ "," __ elem:FromElem { return elem, nil} )* {
-      return prepend(first, rest), nil
+SQLTableExprs
+  = first:SQLTableExpr rest:( __ "," __ t:SQLTableExpr { return t, nil} )* {
+      return sliceOf[ast.SQLTableExpr](prepend(first, rest)), nil
     }
 
-FromElem
-  = entity:FromEntity args:CommitishOpArgs? o:OptOrdinality alias:OptAlias {
-      elem := &ast.FromElem{
-        Entity: entity.(ast.FromEntity),
+SQLTableExpr
+  = join:JoinOperation !AliasClause {return join, nil}
+  / "(" __ join:JoinOperation __ ")" { return join, nil }
+  / "(" __ pipe:SQLPipe __ ")" o:OptOrdinality alias:OptAlias {
+      item := &ast.SQLFromItem{
+        Kind: "SQLFromItem",
+        Input: pipe.(*ast.SQLPipe),
         Loc: loc(c),
       }
-      if args != nil {
-        elem.Args = sliceOf[ast.OpArg](args)
-      }
       if o != nil {
-        elem.Ordinality = o.(*ast.Ordinality)
+        item.Ordinality = o.(*ast.Ordinality)
       }
       if alias != nil {
-        elem.Alias = alias.(*ast.TableAlias)
+        item.Alias = alias.(*ast.TableAlias)
       }
-      return elem, nil
+      return item, nil
+    }
+  / f:FromItem o:OptOrdinality alias:OptAlias {
+      item := &ast.SQLFromItem{
+        Kind: "SQLFromItem",
+        Input: f.(*ast.FromItem),
+        Loc: loc(c),
+      }
+      if o != nil {
+        item.Ordinality = o.(*ast.Ordinality)
+      }
+      if alias != nil {
+        item.Alias = alias.(*ast.TableAlias)
+      }
+      return item, nil
     }
 
-FromEntity
+FromItem
+  = source:FromSource args:CommitishOpArgs? {
+      return &ast.FromItem{
+        Source: source.(ast.FromSource),
+        Args: sliceOf[ast.OpArg](args),
+        Loc: loc(c),
+      }, nil
+    }
+
+FromSource
   = Regexp
   / Glob
   / "*" !ExprGuard { return &ast.GlobExpr{Kind: "GlobExpr", Pattern: "*", Loc: loc(c)}, nil }
   / EVAL __ "(" __ e:Expr __ ")" {
-      return &ast.ExprEntity{
-        Kind: "ExprEntity",
+      return &ast.FromEval{
+        Kind: "FromEval",
         Expr: e.(ast.Expr),
         Loc: loc(c),
       }, nil
@@ -754,13 +777,7 @@ FromEntity
         Loc: loc(c),
       }, nil
     }
-  / join:JoinOperation !AliasClause {return join, nil}
-  / "(" __ join:JoinOperation __ ")" { return join, nil }
-  / "(" __ s:SQLPipe __ ")" {
-      return s, nil
-    }
   / Text
-  // XXX UNNEST, PIVOT, UNPIVOT, type projection, left correlation?
 
 Text
  = s:(SimpleURL / TextChars / DoubleQuotedString / SingleQuotedString / RString) {
@@ -2026,7 +2043,7 @@ Select
           Loc: loc(c),
       }
       if from != nil {
-        sel.From = from.(*ast.FromOp)
+        sel.From = from.([]ast.SQLTableExpr)
       }
       if where != nil {
         sel.Where = where.(ast.Expr)
@@ -2041,7 +2058,7 @@ Select
     }
 
 FromSelect
-  = from:FromOp _ SELECT
+  = FROM _ exprs:SQLTableExprs _ SELECT
     distinct:OptDistinct
     //XXX for whitespace in front of target need it only if it begins with
     // an identifier, e.g., select(1); is ok
@@ -2056,7 +2073,7 @@ FromSelect
           Kind: "SQLSelect",
           Distinct: distinct.(bool),
           Selection: selection.(ast.SQLSelection),
-          From: from.(*ast.FromOp),
+          From: exprs.([]ast.SQLTableExpr),
           Loc: loc(c),
       }
       if where != nil {
@@ -2150,8 +2167,8 @@ OptAllClause
   / ""
 
 OptFromClause
-  = _ from:FromOp {
-      return from, nil
+  = _ FROM _ exprs:SQLTableExprs {
+      return exprs, nil
     }
   / ""                  { return nil, nil }
 
@@ -2185,11 +2202,11 @@ JoinOperation
   / ConditionJoin
 
 CrossJoin
-  = left:FromElem CrossJoinOp right:FromElem {
+  = left:SQLTableExpr CrossJoinOp right:SQLTableExpr {
         return &ast.SQLCrossJoin{
             Kind: "SQLCrossJoin",
-            Left: left.(*ast.FromElem),
-            Right: right.(*ast.FromElem),
+            Left: left.(ast.SQLTableExpr),
+            Right: right.(ast.SQLTableExpr),
             Loc: loc(c),
         }, nil
     }
@@ -2199,12 +2216,12 @@ CrossJoinOp
   / _ CROSS _ JOIN _
 
 ConditionJoin
-  = left:FromElem style:SQLJoinStyle _ right:FromElem _ e:JoinCond {
+  = left:SQLTableExpr style:SQLJoinStyle _ right:SQLTableExpr _ e:JoinCond {
         return &ast.SQLJoin{
             Kind: "SQLJoin",
             Style: style.(string),
-            Left: left.(*ast.FromElem),
-            Right: right.(*ast.FromElem),
+            Left: left.(ast.SQLTableExpr),
+            Right: right.(ast.SQLTableExpr),
             Cond: e.(ast.JoinCond),
             Loc: loc(c),
         }, nil

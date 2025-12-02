@@ -1,12 +1,12 @@
 package zeekio
 
 import (
-	"bytes"
+	"bufio"
+	"errors"
 	"fmt"
 	"io"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/skim"
 )
 
 const (
@@ -15,14 +15,16 @@ const (
 )
 
 type Reader struct {
-	scanner *skim.Scanner
+	scanner *bufio.Scanner
 	parser  *Parser
+	lines   int
 }
 
 func NewReader(sctx *super.Context, reader io.Reader) *Reader {
-	buffer := make([]byte, ReadSize)
+	s := bufio.NewScanner(reader)
+	s.Buffer(make([]byte, ReadSize), MaxLineSize)
 	return &Reader{
-		scanner: skim.NewScanner(reader, buffer, MaxLineSize),
+		scanner: s,
 		parser:  NewParser(sctx),
 	}
 }
@@ -32,29 +34,28 @@ func (r *Reader) Read() (*super.Value, error) {
 		if err == nil {
 			return err
 		}
-		return fmt.Errorf("line %d: %w", r.scanner.Stats.Lines, err)
+		if errors.Is(err, bufio.ErrTooLong) {
+			err = errors.New("line too long")
+		}
+		return fmt.Errorf("line %d: %w", r.lines, err)
+	}
+	for {
+		r.lines++
+		if !r.scanner.Scan() {
+			return nil, e(r.scanner.Err())
+		}
+		line := r.scanner.Bytes()
+		if len(line) == 0 {
+			continue
+		}
+		if line[0] == '#' {
+			if err := r.parser.ParseDirective(line); err != nil {
+				return nil, e(err)
+			}
+			continue
+		}
+		val, err := r.parser.ParseValue(line)
+		return val, e(err)
 	}
 
-again:
-	line, err := r.scanner.ScanLine()
-	if line == nil {
-		if err != nil {
-			return nil, e(err)
-		}
-		return nil, nil
-	}
-	// remove newline
-	line = bytes.TrimSuffix(line, []byte("\n"))
-	if line[0] == '#' {
-
-		if err := r.parser.ParseDirective(line); err != nil {
-			return nil, e(err)
-		}
-		goto again
-	}
-	rec, err := r.parser.ParseValue(line)
-	if err != nil {
-		return nil, e(err)
-	}
-	return rec, nil
 }

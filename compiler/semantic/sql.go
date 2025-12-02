@@ -288,15 +288,15 @@ func exprMatch(target sem.Expr, exprs []exprloc) int {
 	return -1
 }
 
-func (t *translator) selectFrom(loc ast.Loc, from *ast.FromOp, seq sem.Seq) (sem.Seq, schema) {
-	if from == nil {
+func (t *translator) selectFrom(loc ast.Loc, exprs []ast.SQLTableExpr, seq sem.Seq) (sem.Seq, schema) {
+	if len(exprs) == 0 {
 		return seq, &dynamicSchema{}
 	}
 	off := len(seq)
 	hasParent := off > 0
-	seq, sch := t.fromOp(from, seq)
+	seq, sch := t.sqlTableExpr(exprs[0], seq)
 	if off >= len(seq) {
-		// The chain didn't get lengthed so semFrom must have enocounteded
+		// The chain didn't get lengthed so semFrom must have encountered
 		// an error...
 		return seq, nil
 	}
@@ -307,6 +307,10 @@ func (t *translator) selectFrom(loc ast.Loc, from *ast.FromOp, seq sem.Seq) (sem
 			t.error(loc, errors.New("SELECT cannot have both an embedded FROM clause and input from parents"))
 			return append(seq, badOp()), nil
 		}
+	}
+	// Handle comma-separated table expressions in FROM clause.
+	for _, e := range exprs[1:] {
+		seq, sch = t.sqlAppendCrossJoin(e, seq, sch, e)
 	}
 	return seq, sch
 }
@@ -350,9 +354,6 @@ func (t *translator) genDistinct(e sem.Expr, seq sem.Seq) sem.Seq {
 }
 
 func (t *translator) sqlPipe(pipe *ast.SQLPipe, seq sem.Seq) (sem.Seq, schema) {
-	if from, ok := maybeFromOp(pipe); ok {
-		return t.fromOp(from, seq)
-	}
 	if query, ok := maybeSQLQueryBody(pipe); ok {
 		return t.sqlQueryBody(query, seq)
 	}
@@ -367,14 +368,6 @@ func (t *translator) sqlPipe(pipe *ast.SQLPipe, seq sem.Seq) (sem.Seq, schema) {
 	// need access to the incoming type when feeding that type into the unnest scope
 	// that implements the correlated subquery.
 	return seq, newSchemaFromType(t.checker.seq(super.TypeNull, seq))
-}
-
-func maybeFromOp(pipe *ast.SQLPipe) (*ast.FromOp, bool) {
-	if len(pipe.Body) == 1 {
-		from, ok := pipe.Body[0].(*ast.FromOp)
-		return from, ok
-	}
-	return nil, false
 }
 
 func maybeSQLQueryBody(pipe *ast.SQLPipe) (ast.SQLQueryBody, bool) {
@@ -547,12 +540,16 @@ func (t *translator) sqlCrossJoin(join *ast.SQLCrossJoin, seq sem.Seq) (sem.Seq,
 		// but for now we flag an error.
 		t.error(join, errors.New("SQL cross join cannot inherit data from pipeline parent"))
 	}
-	leftSeq, leftSchema := t.fromElem(join.Left, nil)
-	rightSeq, rightSchema := t.fromElem(join.Right, nil)
+	leftSeq, leftSchema := t.sqlTableExpr(join.Left, nil)
+	return t.sqlAppendCrossJoin(join, leftSeq, leftSchema, join.Right)
+}
+
+func (t *translator) sqlAppendCrossJoin(node ast.Node, leftSeq sem.Seq, leftSchema schema, rhs ast.SQLTableExpr) (sem.Seq, schema) {
+	rightSeq, rightSchema := t.sqlTableExpr(rhs, nil)
 	sch := &joinSchema{left: leftSchema, right: rightSchema}
 	par := &sem.ForkOp{Paths: []sem.Seq{leftSeq, rightSeq}}
 	dagJoin := &sem.JoinOp{
-		Node:       join,
+		Node:       node,
 		Style:      "cross",
 		LeftAlias:  "left",
 		RightAlias: "right",
@@ -568,8 +565,8 @@ func (t *translator) sqlJoin(join *ast.SQLJoin, seq sem.Seq) (sem.Seq, schema) {
 		// but for now we flag an error.
 		t.error(join, errors.New("SQL join cannot inherit data from pipeline parent"))
 	}
-	leftSeq, leftSchema := t.fromElem(join.Left, nil)
-	rightSeq, rightSchema := t.fromElem(join.Right, nil)
+	leftSeq, leftSchema := t.sqlTableExpr(join.Left, nil)
+	rightSeq, rightSchema := t.sqlTableExpr(join.Right, nil)
 	sch := &joinSchema{left: leftSchema, right: rightSchema}
 	saved := t.scope.schema
 	t.scope.schema = sch

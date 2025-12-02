@@ -17,13 +17,13 @@ type (
 		Loc     `json:"loc"`
 	}
 	SQLSelect struct {
-		Kind      string       `json:"kind" unpack:""`
-		Distinct  bool         `json:"distinct"`
-		Selection SQLSelection `json:"selection"`
-		From      *FromOp      `json:"from"` // XXX from clause?
-		Where     Expr         `json:"where"`
-		GroupBy   []Expr       `json:"group_by"`
-		Having    Expr         `json:"having"`
+		Kind      string         `json:"kind" unpack:""`
+		Distinct  bool           `json:"distinct"`
+		Selection SQLSelection   `json:"selection"`
+		From      []SQLTableExpr `json:"from"`
+		Where     Expr           `json:"where"`
+		GroupBy   []Expr         `json:"group_by"`
+		Having    Expr           `json:"having"`
 		Loc       `json:"loc"`
 	}
 	SQLUnion struct {
@@ -74,25 +74,46 @@ type (
 	}
 )
 
-// SQL table expression structure all of which implement FromEntity
+// SQLTableInput is a table expression that can be aliased with an AS clause.
+type SQLTableInput interface {
+	Node
+	sqlTableInputNode()
+}
+
+func (*FromItem) sqlTableInputNode() {}
+func (*SQLPipe) sqlTableInputNode()  {}
+
+type SQLTableExpr interface {
+	Node
+	sqlTableExprNode()
+}
+
+// SQL table expression structure all of which implement SQLTableExpr
 
 type (
 	SQLCrossJoin struct {
-		Kind  string    `json:"kind" unpack:""`
-		Left  *FromElem `json:"left"`
-		Right *FromElem `json:"right"`
+		Kind  string       `json:"kind" unpack:""`
+		Left  SQLTableExpr `json:"left"`
+		Right SQLTableExpr `json:"right"`
 		Loc   `json:"loc"`
+	}
+	SQLFromItem struct {
+		Kind       string        `json:"kind" unpack:""`
+		Input      SQLTableInput `json:"input"`
+		Ordinality *Ordinality   `json:"ordinality"`
+		Alias      *TableAlias   `json:"alias"`
+		Loc        `json:"loc"`
 	}
 	// A SQLJoin sources data from the two branches of FromElems where any
 	// parent feeds the froms with meta data that can be used in the from-entity
 	// expression.  This differs from a pipeline Join where the left input data comes
 	// from the parent.
 	SQLJoin struct {
-		Kind  string    `json:"kind" unpack:""`
-		Style string    `json:"style"`
-		Left  *FromElem `json:"left"`
-		Right *FromElem `json:"right"`
-		Cond  JoinCond  `json:"cond"`
+		Kind  string       `json:"kind" unpack:""`
+		Style string       `json:"style"`
+		Left  SQLTableExpr `json:"left"`
+		Right SQLTableExpr `json:"right"`
+		Cond  JoinCond     `json:"cond"`
 		Loc   `json:"loc"`
 	}
 	// SQLPipe turns a Seq into an SQLQueryBody.  This allows us to put pipe queries inside
@@ -105,9 +126,19 @@ type (
 	}
 )
 
-func (*SQLCrossJoin) fromEntityNode() {}
-func (*SQLJoin) fromEntityNode()      {}
-func (*SQLPipe) fromEntityNode()      {}
+type Ordinality struct {
+	Loc `json:"loc"`
+}
+
+type TableAlias struct {
+	Name    string `json:"name"`
+	Columns []*ID  `json:"columns"`
+	Loc     `json:"loc"`
+}
+
+func (*SQLCrossJoin) sqlTableExprNode() {}
+func (*SQLFromItem) sqlTableExprNode()  {}
+func (*SQLJoin) sqlTableExprNode()      {}
 
 type JoinCond interface {
 	Node

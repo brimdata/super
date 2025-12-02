@@ -1,0 +1,18 @@
+script: |
+  ! super /dev/zero
+
+outputs:
+  - name: stderr
+    data: |
+      /dev/zero: format detection error
+      	arrows: arrow/ipc: could not read message schema: EOF
+      	bsup: bsupio: frame length (0) too small
+      	csup: invalid CSUP header
+      	csv: line 1: bufio: buffer full
+      	json: invalid character '\x00' looking for beginning of value
+      	line: auto-detection not supported
+      	parquet: parquet: file too small (size=0)
+      	sup: short buffer
+      	tsv: line 1: bufio: buffer full
+      	zeek: line 1: line too long
+      	jsup: line 1: line too long

@@ -1,0 +1,7 @@
+script: |
+  ! super -i zeek /dev/zero
+
+outputs:
+  - name: stderr
+    data: |
+      /dev/zero: line 1: line too long

@@ -74,6 +74,7 @@ func (o *Op) Pull(done bool) (sbuf.Batch, error) {
 			}
 			o.eos = true
 			t := o.wrap(o.last)
+			o.count = 0
 			o.last = nil
 			return sbuf.NewArray([]super.Value{t}), nil
 		}

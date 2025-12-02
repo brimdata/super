@@ -7,7 +7,7 @@ type Coalesce struct{}
 func (c *Coalesce) Call(args []super.Value) super.Value {
 	for i := range args {
 		val := args[i].Under()
-		if !val.IsNull() && !val.IsMissing() && !val.IsQuiet() {
+		if !val.IsNull() && !val.IsError() {
 			return args[i]
 		}
 	}

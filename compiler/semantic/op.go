@@ -35,119 +35,127 @@ func (t *translator) seq(seq ast.Seq) sem.Seq {
 	return converted
 }
 
-func (t *translator) fromOp(from *ast.FromOp, seq sem.Seq) (sem.Seq, schema) {
-	if len(from.Elems) > 1 {
-		t.error(from, errors.New("cross join implied by multiple elements in from clause is not yet supported"))
-		return sem.Seq{badOp()}, badSchema()
-	}
-	return t.fromElem(from.Elems[0], seq)
-}
-
-// semFromElem generates a sem-tree fragment to read from the various sources potentially
-// with embedded SQL subexpressions and joins.  We return the schema of the
-// the entity to support SQL scoping semantics.  The callee is responsible for
-// wrapping the result in a record representing the schemafied data as the output
-// here is simply the underlying data sequence.
-func (t *translator) fromElem(elem *ast.FromElem, seq sem.Seq) (sem.Seq, schema) {
-	var sch schema
-	seq, sch = t.fromEntity(elem.Entity, elem.Alias, elem.Args, seq)
-	if elem.Ordinality != nil {
-		t.error(elem.Ordinality, errors.New("WITH ORDINALITY clause is not yet supported"))
-		return sem.Seq{badOp()}, badSchema()
-	}
-	return seq, sch
-}
-
-func (t *translator) fromSchema(alias *ast.TableAlias, name string) schema {
-	sch := &dynamicSchema{}
-	if alias != nil {
-		if len(alias.Columns) != 0 {
-			t.error(alias, errors.New("cannot apply aliased columns to dynamically typed data"))
-		}
-		return &aliasSchema{name: alias.Name, sch: sch}
-	}
-	return sch
-}
-
-func (t *translator) fromEntity(entity ast.FromEntity, alias *ast.TableAlias, args []ast.OpArg, seq sem.Seq) (sem.Seq, schema) {
+func (t *translator) fromSource(entity ast.FromSource, args []ast.OpArg, seq sem.Seq) (sem.Seq, super.Type, string) {
 	switch entity := entity.(type) {
 	case *ast.GlobExpr:
 		if bad := t.hasFromParent(entity, seq); bad != nil {
-			return bad, badSchema()
+			return bad, nil, ""
 		}
-		s := t.fromSchema(alias, "")
 		if t.env.IsAttached() {
-			return t.fromPoolRegexp(entity, reglob.Reglob(entity.Pattern), entity.Pattern, "glob", args), s
+			// XXX need to get fused type from pool
+			return t.fromPoolRegexp(entity, reglob.Reglob(entity.Pattern), entity.Pattern, "glob", args), nil, ""
 		}
-		return sem.Seq{t.fromFileGlob(entity, entity.Pattern, args)}, s
+		// XXX should fuse the types across the glob
+		return sem.Seq{t.fromFileGlob(entity, entity.Pattern, args)}, nil, ""
 	case *ast.RegexpExpr:
 		if bad := t.hasFromParent(entity, seq); bad != nil {
-			return bad, badSchema()
+			return bad, nil, ""
 		}
 		if !t.env.IsAttached() {
 			t.error(entity, errors.New("cannot use regular expression with from operator on local file system"))
-			return seq, badSchema()
+			return seq, nil, ""
 		}
-		return t.fromPoolRegexp(entity, entity.Pattern, entity.Pattern, "regexp", args), t.fromSchema(alias, "")
+		// XXX need to get fused type from pool
+		return t.fromPoolRegexp(entity, entity.Pattern, entity.Pattern, "regexp", args), nil, ""
 	case *ast.Text:
 		if bad := t.hasFromParent(entity, seq); bad != nil {
-			return bad, badSchema()
+			return bad, nil, ""
 		}
-		if c, ok := t.scope.ctes[strings.ToLower(entity.Text)]; ok {
-			seq, sch := t.fromCTE(entity, c)
-			if alias == nil {
-				alias = &ast.TableAlias{Name: c.Name.Name, Loc: c.Name.Loc}
+		if seq := t.scope.lookupQuery(t, entity.Text); seq != nil {
+			// XXX call type checker on to compute type of query?
+			return seq, nil, entity.Text
+		}
+		op, def := t.fromName(entity, entity.Text, args)
+		if op, ok := op.(*sem.FileScan); ok {
+			return sem.Seq{op}, op.Type, def
+		}
+		return sem.Seq{op}, nil, def
+	case *ast.FromEval:
+		seq, def := t.fromExpr(entity, args, seq)
+		return seq, nil, def
+	case *ast.DBMeta:
+		if bad := t.hasFromParent(entity, seq); bad != nil {
+			return bad, nil, ""
+		}
+		return sem.Seq{t.dbMeta(entity)}, nil, ""
+	default:
+		panic(entity)
+	}
+}
+
+func (t *translator) sqlTableExpr(e ast.SQLTableExpr, seq sem.Seq) (sem.Seq, schema) {
+	switch e := e.(type) {
+	case *ast.SQLFromItem:
+		if e.Ordinality != nil {
+			t.error(e.Ordinality, errors.New("WITH ORDINALITY clause is not yet supported"))
+			return seq, badSchema()
+		}
+		alias := e.Alias
+		switch input := e.Input.(type) {
+		case *ast.FromItem:
+			var sch schema
+			if c, name := t.maybeCTE(input.Source); c != nil {
+				if bad := t.hasFromParent(input, seq); bad != nil {
+					return bad, badSchema()
+				}
+				if len(input.Args) != 0 {
+					t.error(input, fmt.Errorf("CTE cannot use operator arguments"))
+					return seq, badSchema()
+				}
+				if alias == nil {
+					alias = &ast.TableAlias{Name: name, Loc: c.Name.Loc}
+				}
+				seq, sch = t.fromCTE(input, c)
+			} else {
+				if _, ok := input.Source.(*ast.FromEval); !ok {
+					if bad := t.hasFromParent(e, seq); bad != nil {
+						return bad, badSchema()
+					}
+				}
+				var typ super.Type
+				seq, typ, name = t.fromSource(input.Source, input.Args, seq)
+				sch = newSchemaFromType(typ)
+				if _, ok := sch.(*dynamicSchema); !ok && alias == nil {
+					alias = &ast.TableAlias{Name: name, Loc: input.Loc}
+				}
 			}
 			seq, sch, err := applyAlias(alias, sch, seq)
 			if err != nil {
 				t.error(alias, err)
 			}
 			return seq, sch
-		}
-		if seq := t.scope.lookupQuery(t, entity.Text); seq != nil {
-			return seq, &dynamicSchema{}
-		}
-		op, def := t.fromName(entity, entity.Text, args)
-		if op, ok := op.(*sem.FileScan); ok {
-			schema := newSchemaFromType(op.Type)
-			if _, ok := schema.(*dynamicSchema); !ok && alias == nil {
-				alias = &ast.TableAlias{Name: def, Loc: entity.Loc}
-			}
-			seq, schema, err := applyAlias(alias, schema, sem.Seq{op})
+		case *ast.SQLPipe:
+			seq, sch := t.sqlPipe(input, seq)
+			seq, sch = endScope(input, sch, seq)
+			seq, sch, err := applyAlias(alias, sch, seq)
 			if err != nil {
 				t.error(alias, err)
 			}
-			return seq, schema
+			return seq, sch
+		default:
+			panic(input)
 		}
-		return sem.Seq{op}, t.fromSchema(alias, "")
-	case *ast.ExprEntity:
-		seq, def := t.fromExpr(entity, args, seq)
-		return seq, t.fromSchema(alias, def)
-	case *ast.DBMeta:
-		if bad := t.hasFromParent(entity, seq); bad != nil {
-			return bad, badSchema()
-		}
-		return sem.Seq{t.dbMeta(entity)}, &dynamicSchema{}
-	case *ast.SQLPipe:
-		seq, sch := t.sqlPipe(entity, seq)
-		seq, sch = endScope(entity, sch, seq)
-		seq, sch, err := applyAlias(alias, sch, seq)
-		if err != nil {
-			t.error(alias, err)
-		}
-		return seq, sch
 	case *ast.SQLJoin:
-		return t.sqlJoin(entity, seq)
+		return t.sqlJoin(e, seq)
 	case *ast.SQLCrossJoin:
-		return t.sqlCrossJoin(entity, seq)
+		return t.sqlCrossJoin(e, seq)
 	default:
-		panic(entity)
+		panic(e)
 	}
 }
 
-func (t *translator) fromCTE(entity ast.FromEntity, c *ast.SQLCTE) (sem.Seq, schema) {
+func (t *translator) maybeCTE(source ast.FromSource) (*ast.SQLCTE, string) {
+	if text, ok := source.(*ast.Text); ok {
+		if c, ok := t.scope.ctes[strings.ToLower(text.Text)]; ok {
+			return c, text.Text
+		}
+	}
+	return nil, ""
+}
+
+func (t *translator) fromCTE(node ast.Node, c *ast.SQLCTE) (sem.Seq, schema) {
 	if slices.Contains(t.cteStack, c) {
-		t.error(entity, errors.New("recursive WITH relations not currently supported"))
+		t.error(node, errors.New("recursive WITH relations not currently supported"))
 		return sem.Seq{badOp()}, badSchema()
 	}
 	t.cteStack = append(t.cteStack, c)
@@ -156,11 +164,11 @@ func (t *translator) fromCTE(entity ast.FromEntity, c *ast.SQLCTE) (sem.Seq, sch
 	// override this.
 	sch = addAlias(sch, c.Name.Name)
 	t.cteStack = t.cteStack[:len(t.cteStack)-1]
-	return endScope(entity, sch, seq)
+	return endScope(node, sch, seq)
 
 }
 
-func (t *translator) fromExpr(entity *ast.ExprEntity, args []ast.OpArg, seq sem.Seq) (sem.Seq, string) {
+func (t *translator) fromExpr(entity *ast.FromEval, args []ast.OpArg, seq sem.Seq) (sem.Seq, string) {
 	expr := t.expr(entity.Expr)
 	val, ok := t.maybeEval(expr)
 	if ok && !hasError(val) {
@@ -192,7 +200,7 @@ func (t *translator) hasFromParent(loc ast.Node, seq sem.Seq) sem.Seq {
 	return nil
 }
 
-func (t *translator) fromConst(val super.Value, entity *ast.ExprEntity, args []ast.OpArg) (sem.Seq, string) {
+func (t *translator) fromConst(val super.Value, entity *ast.FromEval, args []ast.OpArg) (sem.Seq, string) {
 	if super.TypeUnder(val.Type()) == super.TypeString {
 		op, name := t.fromName(entity, val.AsString(), args)
 		return sem.Seq{op}, name
@@ -226,15 +234,15 @@ func (t *translator) fromConst(val super.Value, entity *ast.ExprEntity, args []a
 	}, ""
 }
 
-func (t *translator) fromName(entity ast.FromEntity, name string, args []ast.OpArg) (sem.Op, string) {
+func (t *translator) fromName(node ast.Node, name string, args []ast.OpArg) (sem.Op, string) {
 	if isURL(name) {
-		return t.fromURL(entity, name, args), ""
+		return t.fromURL(node, name, args), ""
 	}
 	prefix := strings.Split(filepath.Base(name), ".")[0]
 	if t.env.IsAttached() {
-		return t.pool(entity, name, args), prefix
+		return t.pool(node, name, args), prefix
 	}
-	return t.file(entity, name, args), prefix
+	return t.file(node, name, args), prefix
 }
 
 func (t *translator) asFormatArg(args []ast.OpArg) string {
@@ -353,15 +361,15 @@ func unmarshalHeaders(val super.Value) (map[string][]string, error) {
 	return headers, nil
 }
 
-func (t *translator) fromPoolRegexp(entity ast.FromEntity, re, orig, which string, args []ast.OpArg) sem.Seq {
+func (t *translator) fromPoolRegexp(node ast.Node, re, orig, which string, args []ast.OpArg) sem.Seq {
 	poolNames, err := t.matchPools(re, orig, which)
 	if err != nil {
-		t.error(entity, err)
+		t.error(node, err)
 		return sem.Seq{badOp()}
 	}
 	var paths []sem.Seq
 	for _, name := range poolNames {
-		paths = append(paths, sem.Seq{t.pool(entity, name, args)})
+		paths = append(paths, sem.Seq{t.pool(node, name, args)})
 	}
 	return sem.Seq{&sem.ForkOp{Paths: paths}}
 }
@@ -398,11 +406,11 @@ func (t *translator) sortExpr(sch schema, s ast.SortExpr, reverse bool) sem.Sort
 	return sem.SortExpr{Node: s, Expr: e, Order: o, Nulls: n}
 }
 
-func (t *translator) pool(entity ast.FromEntity, poolName string, args []ast.OpArg) sem.Op {
+func (t *translator) pool(node ast.Node, poolName string, args []ast.OpArg) sem.Op {
 	opArgs := t.opArgs(args, "commit", "meta", "tap")
 	poolID, err := t.env.PoolID(t.ctx, poolName)
 	if err != nil {
-		t.error(entity, err)
+		t.error(node, err)
 		return badOp()
 	}
 	var commitID ksuid.KSUID
@@ -429,7 +437,7 @@ func (t *translator) pool(entity ast.FromEntity, poolName string, args []ast.OpA
 			tapString, _ := t.textArg(opArgs, "tap")
 			tap := tapString != ""
 			return &sem.CommitMetaScan{
-				Node:   entity,
+				Node:   node,
 				Meta:   meta,
 				Pool:   poolID,
 				Commit: commitID,
@@ -438,7 +446,7 @@ func (t *translator) pool(entity ast.FromEntity, poolName string, args []ast.OpA
 		}
 		if _, ok := dag.PoolMetas[meta]; ok {
 			return &sem.PoolMetaScan{
-				Node: entity,
+				Node: node,
 				Meta: meta,
 				ID:   poolID,
 			}
@@ -451,12 +459,12 @@ func (t *translator) pool(entity ast.FromEntity, poolName string, args []ast.OpA
 		// there is a "from pool" operator with no meta query or commit object.
 		commitID, err = t.env.CommitObject(t.ctx, poolID, "main")
 		if err != nil {
-			t.error(entity, err)
+			t.error(node, err)
 			return badOp()
 		}
 	}
 	return &sem.PoolScan{
-		Node:   entity,
+		Node:   node,
 		ID:     poolID,
 		Commit: commitID,
 	}
@@ -570,7 +578,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			Format: format,
 		})
 	case *ast.FromOp:
-		seq, _ := t.fromOp(o, seq)
+		seq, _, _ = t.fromSource(o.Item.Source, o.Item.Args, seq)
 		return seq
 	case *ast.DefaultScan:
 		return append(seq, &sem.DefaultScan{Node: o})

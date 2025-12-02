@@ -1,0 +1,8 @@
+spq: |
+  select case x when 1 then 'foo' end as x from (values (1),(2)) T(x)
+
+vector: true
+
+output: |
+  {x:"foo"}
+  {x:null}

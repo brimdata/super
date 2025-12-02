@@ -1,0 +1,7 @@
+script: |
+  ! super -i bsup /dev/zero
+
+outputs:
+  - name: stderr
+    data: |
+      /dev/zero: bsupio: frame length (0) too small

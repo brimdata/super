@@ -10,9 +10,8 @@ coalesce(val: any [, ... val: any]) -> any
 
 ### Description
 
-The `coalesce` function returns the first of its arguments that is not null,
-`error("missing")`, or `error("quiet")`.  It returns null if all its arguments
-are null, `error("missing")`, or `error("quiet")`.
+The `coalesce` function returns the first of its arguments that is not null or
+an error.  It returns null if all its arguments are null or an error.
 
 ### Examples
 
@@ -20,7 +19,7 @@ are null, `error("missing")`, or `error("quiet")`.
 
 ```mdtest-spq
 # spq
-values coalesce(null, error("missing"), error("quiet"), this)
+values coalesce(null, error("missing"), error({x:"foo"}), this)
 # input
 1
 # expected output
@@ -31,7 +30,7 @@ values coalesce(null, error("missing"), error("quiet"), this)
 
 ```mdtest-spq
 # spq
-values coalesce(null, error("missing"), this)
+values coalesce(null, error({x:"foo"}), this)
 # input
 error("quiet")
 # expected output
