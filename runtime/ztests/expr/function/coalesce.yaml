@@ -8,6 +8,7 @@ input: |
   [error("missing")::=missing, 2020::=port, null::string]
   [null::string, error("missing"), error("quiet")]
   [null::error({x:string}), "gotme", "ted sando"]
+  [null, error({x:1}), "foo"]
 
 output: |
   "foo"::(uint64|string)
@@ -15,3 +16,4 @@ output: |
   2020::=port
   null
   "gotme"
+  "foo"

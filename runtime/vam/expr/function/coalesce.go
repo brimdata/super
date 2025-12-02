@@ -51,9 +51,7 @@ func (c *Coalesce) Call(vecs ...vector.Any) vector.Any {
 }
 
 func (c *Coalesce) arg(vec vector.Any, tag uint32) {
-	if errvec, ok := vec.(*vector.Error); ok && errvec.Typ.Type == super.TypeString {
-		c.errString(tag, errvec)
-	} else {
+	if _, ok := vec.(*vector.Error); !ok {
 		c.checkNulls(vec, tag)
 	}
 }
@@ -75,22 +73,6 @@ func (c *Coalesce) checkNulls(vec vector.Any, tag uint32) {
 		}
 	}
 	c.setAll(vector.NullsOf(vec), tag)
-}
-
-func (c *Coalesce) errString(tag uint32, vec *vector.Error) {
-	if cnst, ok := vec.Vals.(*vector.Const); ok {
-		if s, _ := cnst.AsString(); s != "missing" && s != "quiet" {
-			c.setAll(cnst.Nulls, tag)
-		}
-		return
-	}
-	for i := range vec.Len() {
-		s, null := vector.StringValue(vec.Vals, i)
-		if null || s == "missing" || s == "quiet" {
-			continue
-		}
-		c.setTag(i, tag)
-	}
 }
 
 func (c *Coalesce) setAll(nulls bitvec.Bits, tag uint32) {
