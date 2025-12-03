@@ -105,15 +105,6 @@ func (b *Builder) compileExprWithEmpty(e dag.Expr) (expr.Evaluator, error) {
 }
 
 func (b *Builder) compileBinary(e *dag.BinaryExpr) (expr.Evaluator, error) {
-	if e.Op == "in" {
-		// Do a faster comparison if the LHS is a compile-time constant expression.
-		if in, err := b.compileConstIn(e); in != nil && err == nil {
-			return in, err
-		}
-	}
-	if e, err := b.compileConstCompare(e); e != nil && err == nil {
-		return e, nil
-	}
 	lhs, err := b.compileExpr(e.LHS)
 	if err != nil {
 		return nil, err
@@ -138,50 +129,6 @@ func (b *Builder) compileBinary(e *dag.BinaryExpr) (expr.Evaluator, error) {
 	default:
 		return nil, fmt.Errorf("invalid binary operator %s", op)
 	}
-}
-
-func (b *Builder) compileConstIn(e *dag.BinaryExpr) (expr.Evaluator, error) {
-	literal, err := b.evalAtCompileTime(e.LHS)
-	if err != nil || literal.IsError() {
-		// If the RHS here is a literal value, it would be good
-		// to optimize this too.  However, this will all be handled
-		// by the JIT compiler that will create optimized closures
-		// on a per-type basis.
-		return nil, nil
-	}
-	eql, err := expr.Comparison("==", literal)
-	if eql == nil || err != nil {
-		return nil, nil
-	}
-	operand, err := b.compileExpr(e.RHS)
-	if err != nil {
-		return nil, err
-	}
-	return expr.NewFilter(operand, expr.Contains(eql)), nil
-}
-
-func (b *Builder) compileConstCompare(e *dag.BinaryExpr) (expr.Evaluator, error) {
-	switch e.Op {
-	case "==", "!=", "<", "<=", ">", ">=":
-	default:
-		return nil, nil
-	}
-	literal, err := b.evalAtCompileTime(e.RHS)
-	if err != nil || literal.IsError() {
-		return nil, nil
-	}
-	comparison, err := expr.Comparison(e.Op, literal)
-	if comparison == nil || err != nil {
-		// If this fails, return no match instead of the error and
-		// let later-on code detect the error as this could be a
-		// non-error situation that isn't a simple comparison.
-		return nil, nil
-	}
-	operand, err := b.compileExpr(e.LHS)
-	if err != nil {
-		return nil, err
-	}
-	return expr.NewFilter(operand, comparison), nil
 }
 
 func (b *Builder) compileSearch(search *dag.SearchExpr) (expr.Evaluator, error) {
