@@ -28,8 +28,7 @@ outputs:
       === cross join
       select null
       from a
-      cross join b
-      cross join c
+      cross join b, c
       === join with on condition
       select null
       from a

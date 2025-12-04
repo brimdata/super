@@ -36,22 +36,22 @@ outputs:
       null
       | fork
         (
-          values {a1:1}
-          | where a1 in [1,5,9] and a1 in |[1,5,9]|
-        )
-        (
           fork
+            (
+              values {a1:1}
+              | where a1 in [1,5,9] and a1 in |[1,5,9]|
+            )
             (
               values {a2:1}
               | where a2==1 or a2==2
             )
-            (
-              values {a3:1}
-              | where a3 in {c0:1,c1:5,c2:[9,11]}
-            )
           | cross join as {left,right}
+        )
+        (
+          values {a3:1}
+          | where a3 in {c0:1,c1:5,c2:[9,11]}
         )
       | cross join as {left,right}
       | where 1==1
-      | values {a1:left.a1,a2:right.left.a2,a3:right.right.a3}
+      | values {a1:left.left.a1,a2:left.right.a2,a3:right.a3}
       | output main

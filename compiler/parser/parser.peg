@@ -714,13 +714,31 @@ FromOp
   }
 
 SQLTableExprs
-  = first:SQLTableExpr rest:( __ "," __ t:SQLTableExpr { return t, nil} )* {
+  = first:JoinedTable rest:( __ "," __ t:JoinedTable { return t, nil} )* {
       return sliceOf[ast.SQLTableExpr](prepend(first, rest)), nil
     }
 
+JoinedTable
+  = first:SQLTableExpr rest:(JoinOperation)* {
+      out := first.(ast.SQLTableExpr)
+      for _, join := range rest.([]any) {
+        switch join := join.(type) {
+        case *ast.SQLCrossJoin:
+          join.Left = out
+          join.Loc.First = out.Pos()
+        case *ast.SQLJoin:
+          join.Left = out
+          join.Loc.First = out.Pos()
+        default:
+          panic(join)
+        }
+        out = join.(ast.SQLTableExpr)
+      }
+      return out, nil
+    }
+
 SQLTableExpr
-  = join:JoinOperation !AliasClause {return join, nil}
-  / "(" __ join:JoinOperation __ ")" { return join, nil }
+  = "(" __ table:JoinedTable __ ")" { return table, nil }
   / "(" __ pipe:SQLPipe __ ")" o:OptOrdinality alias:OptAlias {
       item := &ast.SQLFromItem{
         Kind: "SQLFromItem",
@@ -2189,25 +2207,19 @@ JoinOperation
   / ConditionJoin
 
 CrossJoin
-  = left:SQLTableExpr CrossJoinOp right:SQLTableExpr {
+  = _ CROSS _ JOIN _ right:SQLTableExpr {
         return &ast.SQLCrossJoin{
             Kind: "SQLCrossJoin",
-            Left: left.(ast.SQLTableExpr),
             Right: right.(ast.SQLTableExpr),
             Loc: loc(c),
         }, nil
     }
 
-CrossJoinOp
-  = __ "," __
-  / _ CROSS _ JOIN _
-
 ConditionJoin
-  = left:SQLTableExpr style:SQLJoinStyle _ right:SQLTableExpr _ e:JoinCond {
+  = style:SQLJoinStyle _ right:SQLTableExpr _ e:JoinCond {
         return &ast.SQLJoin{
             Kind: "SQLJoin",
             Style: style.(string),
-            Left: left.(ast.SQLTableExpr),
             Right: right.(ast.SQLTableExpr),
             Cond: e.(ast.JoinCond),
             Loc: loc(c),
