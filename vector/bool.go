@@ -51,11 +51,15 @@ func (b *Bool) Serialize(builder *scode.Builder, slot uint32) {
 	}
 }
 
-// Or is a simple case of logical-or where we don't care about nulls in
-// the input (presuming the corresponding bits to be false) and we return
-// the or'd result as a boolean vector without nulls.
 func Or(a, b *Bool) *Bool {
-	return NewBool(bitvec.Or(a.Bits, b.Bits), bitvec.Zero)
+	bits := bitvec.Or(a.Bits, b.Bits)
+	if a.Nulls.IsZero() && b.Nulls.IsZero() {
+		// Fast path involves no nulls.
+		return NewBool(bits, bitvec.Zero)
+	}
+	nulls := bitvec.Or(a.Nulls, b.Nulls)
+	nulls = bitvec.And(bitvec.Not(bits), nulls)
+	return NewBool(bits, nulls)
 }
 
 // BoolValue returns the value of slot in vec if the value is a Boolean.  It
