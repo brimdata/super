@@ -118,15 +118,7 @@ func (o *Or) eval(vecs ...vector.Any) vector.Any {
 	if _, ok := rhs.(*vector.Error); ok {
 		return o.orError(rhs, lhs)
 	}
-	blhs, brhs := toBool(lhs), toBool(rhs)
-	bits := bitvec.Or(blhs.Bits, brhs.Bits)
-	if blhs.Nulls.IsZero() && brhs.Nulls.IsZero() {
-		// Fast path involves no nulls.
-		return vector.NewBool(bits, bitvec.Zero)
-	}
-	nulls := bitvec.Or(blhs.Nulls, brhs.Nulls)
-	nulls = bitvec.And(bitvec.Not(bits), nulls)
-	return vector.NewBool(bits, nulls)
+	return vector.Or(toBool(lhs), toBool(rhs))
 }
 
 func (o *Or) orError(err, vec vector.Any) vector.Any {
