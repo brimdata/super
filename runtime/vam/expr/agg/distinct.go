@@ -28,7 +28,7 @@ func (d *distinct) Consume(vec vector.Any) {
 		b.Truncate()
 		vec.Serialize(&b, i)
 		d.buf = binary.AppendVarint(d.buf[:0], int64(id))
-		d.buf = scode.Append(d.buf, b.Bytes().Body())
+		d.buf = append(d.buf, b.Bytes()...)
 		if _, ok := d.seen[string(d.buf)]; ok {
 			continue
 		}
