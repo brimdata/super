@@ -138,11 +138,18 @@ func (i *In) Eval(this super.Value) super.Value {
 	if elem.IsError() {
 		return elem
 	}
+	if elem.IsNull() {
+		return super.NullBool
+	}
 	container := i.container.Eval(this)
 	if container.IsError() {
 		return container
 	}
+	var hasnull bool
 	err := container.Walk(func(typ super.Type, body scode.Bytes) error {
+		if body == nil {
+			hasnull = true
+		}
 		if coerce.Equal(elem, super.NewValue(typ, body)) {
 			return errMatch
 		}
@@ -152,6 +159,9 @@ func (i *In) Eval(this super.Value) super.Value {
 	case errMatch:
 		return super.True
 	case nil:
+		if hasnull {
+			return super.NullBool
+		}
 		return super.False
 	default:
 		return i.sctx.NewError(err)

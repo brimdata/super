@@ -6,7 +6,9 @@ vector: true
 input: |
   1
   {a:1}
+  {c0:null,c1:9}
   [0,1,2]
+  [0,null,1]
   |[0,1,2]|
   |{1:null}|
   |{null:1}|
@@ -18,10 +20,12 @@ input: |
 output: |
   [true,false]
   [true,false]
+  [null::bool,true]
   [true,false]
+  [true,null::bool]
   [true,false]
-  [true,false]
-  [true,false]
+  [true,null::bool]
+  [true,null::bool]
   [true,false]
   [true,false]
   [true,false]
