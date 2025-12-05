@@ -174,9 +174,10 @@ func toBool(vec vector.Any) *vector.Bool {
 			out := vector.NewTrue(vec.Len())
 			out.Nulls = vec.Nulls
 			return out
-		} else {
-			return vector.NewBoolEmpty(vec.Len(), vec.Nulls)
+		} else if val.IsNull() {
+			return vector.NewBoolEmpty(vec.Len(), bitvec.NewTrue(vec.Len()))
 		}
+		return vector.NewBoolEmpty(vec.Len(), vec.Nulls)
 	case *vector.Dynamic:
 		nulls := bitvec.NewFalse(vec.Len())
 		out := vector.NewBoolEmpty(vec.Len(), nulls)
