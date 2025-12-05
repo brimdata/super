@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/scode"
 )
 
 type distinct struct {
@@ -21,7 +22,7 @@ func newDistinct(f Function) Function {
 
 func (d *distinct) Consume(val super.Value) {
 	d.buf = binary.AppendVarint(d.buf[:0], int64(val.Type().ID()))
-	d.buf = append(d.buf, val.Bytes()...)
+	d.buf = scode.Append(d.buf, val.Bytes())
 	if _, ok := d.seen[string(d.buf)]; ok {
 		return
 	}
@@ -60,7 +61,7 @@ func (d *distinct) Result(sctx *super.Context) super.Value {
 		if err != nil {
 			panic(err)
 		}
-		d.fun.Consume(super.NewValue(typ, bytes))
+		d.fun.Consume(super.NewValue(typ, scode.Bytes(bytes).Body()))
 		delete(d.seen, key)
 	}
 	return d.fun.Result(sctx)

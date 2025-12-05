@@ -28,7 +28,7 @@ func (d *distinct) Consume(vec vector.Any) {
 		b.Truncate()
 		vec.Serialize(&b, i)
 		d.buf = binary.AppendVarint(d.buf[:0], int64(id))
-		d.buf = append(d.buf, b.Bytes().Body()...)
+		d.buf = scode.Append(d.buf, b.Bytes().Body())
 		if _, ok := d.seen[string(d.buf)]; ok {
 			continue
 		}
@@ -71,7 +71,7 @@ func (d *distinct) Result(sctx *super.Context) super.Value {
 		if err != nil {
 			panic(err)
 		}
-		b.Write(super.NewValue(typ, bytes))
+		b.Write(super.NewValue(typ, scode.Bytes(bytes).Body()))
 		count++
 		if count == 1024 {
 			d.fun.Consume(b.Build())

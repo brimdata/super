@@ -1,0 +1,10 @@
+spq: |
+  avg(distinct this), count(distinct this), collect(distinct this), sum(distinct this)
+
+vector: true
+
+input: |
+  null::float64
+
+output: |
+  {avg:null::float64,count:0::uint64,collect:null,sum:null::float64}
