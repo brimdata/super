@@ -68,7 +68,14 @@ func (c *Compare) eval(vecs ...vector.Any) vector.Any {
 		return vector.NewConst(super.False, lhs.Len(), nulls)
 	}
 	out := f(lhs, rhs)
-	return vector.CopyAndSetNulls(out, nulls)
+	if !nulls.IsZero() {
+		// Having a null true value can cause incorrect results when and'ing
+		// and or'ing with other boolean values. Flip true values to false if
+		// they are null.
+		bits := bitvec.And(toBool(out).Bits, bitvec.Not(nulls))
+		out = vector.NewBool(bits, nulls)
+	}
+	return out
 }
 
 func (c *Compare) compareIPs(lhs, rhs vector.Any, nulls bitvec.Bits) vector.Any {
