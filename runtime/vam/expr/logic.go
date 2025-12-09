@@ -211,6 +211,18 @@ func (i *In) eval(vecs ...vector.Any) vector.Any {
 		return lhs
 	}
 	if rhs.Type().Kind() == super.ErrorKind {
+		if nulls := vector.NullsOf(lhs); !nulls.IsZero() {
+			// Nulls in LHS should still be null.
+			var nullTags []uint32
+			for i := range rhs.Len() {
+				if nulls.IsSetDirect(i) {
+					nullTags = append(nullTags, i)
+				}
+			}
+			out := vector.NewConst(super.NullBool, uint32(len(nullTags)), bitvec.Zero)
+			rhs = vector.ReversePick(rhs, nullTags)
+			return vector.Combine(rhs, nullTags, out)
+		}
 		return rhs
 	}
 	return i.pw.Eval(lhs, rhs)

@@ -1,8 +1,0 @@
-spq: |
-  values null in (null), null in (1)
-
-vector: true
-
-output: |
-  null::bool
-  null::bool
