@@ -1,45 +1,56 @@
 script: |
+  super -s -c 'values {x:1},{x:2} | count'
+  echo // ===
   super -s -c 'values null,null | count {count}'
   echo // ===
-  super -s -c 'values {x:1},{x:2} | count {row_number,...this}'  
+  super -s -c 'values {x:1},{x:2} | count {...this,row_number}'
   echo // ===
-  super -s -c 'values {x:1,y:1},{x:2,y:2} | count {row_number,x}'  
+  super -s -c 'values {x:1,y:1},{x:2,y:2} | count {x,row_number}'  
   echo // ===
-  super -s -c 'values [1,2],[3,4] | unnest this into ( count {c,val:this} )'
-  ! super -s -c 'values null | count {count} | count := count+"hello"'
+  super -s -c 'values [1,2],[3,4] | unnest this into ( count {val:this,c} )'
+  ! super -s -c 'values null | count | count := count+"hello"'
   >&2 echo // ===
-  ! super -s -c 'values {x:"foo"} | count {row,...this} | x := x+1'
+  ! super -s -c 'values {x:"foo"} | count {...this,row} | x := x+1'
   >&2 echo // ===
   ! super -s -c 'values {x:"foo"} | count {...this}'
+  >&2 echo // ===
+  ! super -s -c 'count {foo:"foo",1}'
 
 vector: true
 
 outputs:
   - name: stdout
     data: |
+      {that:{x:1},count:1::uint64}
+      {that:{x:2},count:2::uint64}
+      // ===
       {count:1::uint64}
       {count:2::uint64}
       // ===
-      {row_number:1::uint64,x:1}
-      {row_number:2::uint64,x:2}
+      {x:1,row_number:1::uint64}
+      {x:2,row_number:2::uint64}
       // ===
-      {row_number:1::uint64,x:1}
-      {row_number:2::uint64,x:2}
+      {x:1,row_number:1::uint64}
+      {x:2,row_number:2::uint64}
       // ===
-      {c:1::uint64,val:1}
-      {c:2::uint64,val:2}
-      {c:1::uint64,val:3}
-      {c:2::uint64,val:4}
+      {val:1,c:1::uint64}
+      {val:2,c:2::uint64}
+      {val:3,c:1::uint64}
+      {val:4,c:2::uint64}
   - name: stderr
     data: |
-      type mismatch at line 1, column 40:
-      values null | count {count} | count := count+"hello"
-                                             ~~~~~~~~~~~~~
+      type mismatch at line 1, column 32:
+      values null | count | count := count+"hello"
+                                     ~~~~~~~~~~~~~
       // ===
       type mismatch at line 1, column 47:
-      values {x:"foo"} | count {row,...this} | x := x+1
+      values {x:"foo"} | count {...this,row} | x := x+1
                                                     ~~~
       // ===
-      first element in record expression for count must be an identifier at line 1, column 26:
+      last element in record expression for count must be an identifier at line 1, column 27:
       values {x:"foo"} | count {...this}
-                               ~~~~~~~~~
+                                ~~~~~~~
+      // ===
+      last element in record expression for count must be an identifier at line 1, column 18:
+      count {foo:"foo",1}
+                       ~

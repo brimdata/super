@@ -16,10 +16,10 @@ type Op struct {
 func New(sctx *super.Context, parent sbuf.Puller, alias string, in expr.Evaluator) (*Op, error) {
 	o := &Op{parent: parent, alias: alias}
 	var elems []expr.RecordElem
-	elems = append(elems, expr.RecordElem{Name: alias, Field: evalfunc(o.evalCount)})
 	if in != nil {
 		elems = append(elems, expr.RecordElem{Spread: in})
 	}
+	elems = append(elems, expr.RecordElem{Name: alias, Field: evalfunc(o.evalCount)})
 	var err error
 	o.expr, err = expr.NewRecordExpr(sctx, elems)
 	return o, err

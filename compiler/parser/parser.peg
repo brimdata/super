@@ -485,6 +485,13 @@ CountOp
       return &ast.CountOp{
         Kind: "CountOp",
         Expr: rec.(*ast.RecordExpr),
+        Loc: loc(c),
+      }, nil
+    }
+  / COUNT &EndOfOp {
+      return &ast.CountOp{
+        Kind: "CountOp",
+        Loc: loc(c),
       }, nil
     }
 

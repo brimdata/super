@@ -1,13 +1,13 @@
 # Test ensures that flowgraphs utilizing the count operator
 # are not parallelized.
 script: |
-  SUPER_VAM=1 super compile -C -P 2 'from /dev/null | count {row_number,...this} | aggregate sum(x)'
+  SUPER_VAM=1 super compile -C -P 2 'from /dev/null | count {...this,row_number} | aggregate sum(x)'
 
 outputs:
   - name: stdout
     data: |
       file /dev/null unordered
-      | count {row_number,...this}
+      | count {...this,row_number}
       | aggregate
           sum:=sum(x)
       | values sum

@@ -17,10 +17,10 @@ type Count struct {
 func NewCount(sctx *super.Context, parent vector.Puller, alias string, in expr.Evaluator) *Count {
 	o := &Count{parent: parent, alias: alias}
 	var elems []expr.RecordElem
-	elems = append(elems, expr.RecordElem{Name: alias, Expr: evalfunc(o.evalCount)})
 	if in != nil {
 		elems = append(elems, expr.RecordElem{Expr: in})
 	}
+	elems = append(elems, expr.RecordElem{Name: alias, Expr: evalfunc(o.evalCount)})
 	o.expr = expr.NewRecordExpr(sctx, elems)
 	return o
 }

@@ -652,23 +652,38 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			Cases: cases,
 		})
 	case *ast.CountOp:
-		if len(o.Expr.Elems) == 0 {
-			t.error(o.Expr, errors.New("count record expression must not be empty"))
-			return append(seq, badOp())
-		}
-		first, ok := o.Expr.Elems[0].(*ast.ExprElem)
-		if !ok {
-			t.error(o.Expr, errors.New("first element in record expression for count must be an identifier"))
-			return append(seq, badOp())
-		}
-		alias := first.Expr.(*ast.IDExpr).Name
+		var alias string
 		var expr sem.Expr
-		if len(o.Expr.Elems) > 1 {
-			expr = t.expr(&ast.RecordExpr{
-				Kind:  "RecordExpr",
-				Elems: o.Expr.Elems[1:],
-				Loc:   o.Expr.Loc,
-			})
+		if o.Expr == nil {
+			alias = "count"
+			expr = &sem.RecordExpr{
+				Elems: []sem.RecordElem{
+					&sem.FieldElem{Name: "that", Value: sem.NewThis(nil, nil)},
+				},
+			}
+		} else {
+			n := len(o.Expr.Elems)
+			if n == 0 {
+				t.error(o.Expr, errors.New("count record expression must not be empty"))
+				return append(seq, badOp())
+			}
+			last := o.Expr.Elems[n-1]
+			if exprElem, ok := last.(*ast.ExprElem); ok {
+				if id, ok := exprElem.Expr.(*ast.IDExpr); ok {
+					alias = id.Name
+				}
+			}
+			if alias == "" {
+				t.error(last, errors.New("last element in record expression for count must be an identifier"))
+				return append(seq, badOp())
+			}
+			if len(o.Expr.Elems) > 1 {
+				expr = t.expr(&ast.RecordExpr{
+					Kind:  "RecordExpr",
+					Elems: o.Expr.Elems[:n-1],
+					Loc:   o.Expr.Loc,
+				})
+			}
 		}
 		return append(seq, &sem.CountOp{
 			Node:  o,

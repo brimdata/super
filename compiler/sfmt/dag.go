@@ -411,12 +411,12 @@ func (c *canonDAG) op(p dag.Op) {
 		c.write("combine")
 	case *dag.CountOp:
 		c.next()
-		c.write("count {%s", p.Alias)
+		c.write("count {")
 		if p.Expr != nil {
-			c.write(",")
 			c.recordElems(p.Expr.(*dag.RecordExpr).Elems)
+			c.write(",")
 		}
-		c.write("}")
+		c.write("%s}", p.Alias)
 	case *dag.CutOp:
 		c.next()
 		c.write("cut ")
