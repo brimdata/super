@@ -205,10 +205,12 @@ type When struct {
 }
 
 type ArrayElem interface {
+	Node
 	arrayElemNode()
 }
 
 type RecordElem interface {
+	Node
 	recordElemNode()
 }
 

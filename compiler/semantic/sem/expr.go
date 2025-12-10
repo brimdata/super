@@ -135,10 +135,12 @@ type Entry struct {
 // of creating a Go pseudo-type
 
 type ArrayElem interface {
+	ast.Node
 	arrayElemNode()
 }
 
 type RecordElem interface {
+	ast.Node
 	recordElemNode()
 }
 
