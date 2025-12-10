@@ -1,10 +1,10 @@
 script: |
   export SUPER_VAM=1
-  super compile -C -O 'from test.csup | where x LIKE "cslab%"'
+  super compile -C -O -dynamic 'from test.csup | where x LIKE "cslab%"'
   echo // ===
-  super compile -C -O 'from test.csup | where grep("^csla[bB].*", x)'
+  super compile -C -O -dynamic 'from test.csup | where grep("^csla[bB].*", x)'
   echo // ===
-  super compile -C -O 'from test.csup | where grep("csla[bB].*", x)'
+  super compile -C -O -dynamic 'from test.csup | where grep("csla[bB].*", x)'
   echo // ===
   echo '{x:"a"}' | super -f csup -o x.csup -
   super -s -c "SELECT x FROM x.csup WHERE x LIKE 'a%'"

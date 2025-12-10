@@ -1,11 +1,11 @@
 script: |
   super compile -C "join (from test.sup) on left.x=right.x"
   echo ===
-  super compile -C -dag "join (from test.sup) on right.x=left.x"
+  super compile -C -dag -dynamic "join (from test.sup) on right.x=left.x"
   echo ===
   super compile -C "right join (from test.sup) as {l,r} on r.x=l.x"
   echo ===
-  super compile -C -dag "right join (from test.sup) as {l,r} on r.x=l.x"
+  super compile -C -dag -dynamic "right join (from test.sup) as {l,r} on r.x=l.x"
 
 outputs:
   - name: stdout

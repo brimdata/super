@@ -1,9 +1,9 @@
 script: |
   export SUPER_VAM=1
-  super compile -C -O 'from test.csup | x in ["foo","bar"]'
+  super compile -C -O -dynamic 'from test.csup | x in ["foo","bar"]'
   echo // ===
   # Test that we still optimize for a tuple which gets translated into a record.
-  super compile -C -O 'from test.csup | x in ("foo","bar")'
+  super compile -C -O -dynamic 'from test.csup | x in ("foo","bar")'
 
 outputs:
   - name: stdout

@@ -1,5 +1,5 @@
 script: |
-  ! super -I query.spq
+  ! super -dynamic -I query.spq
 
 inputs:
   - name: query.spq

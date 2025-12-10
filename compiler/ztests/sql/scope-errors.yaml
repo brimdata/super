@@ -1,11 +1,11 @@
 script: |
-  ! super -s -c "select * from (select 1 as a, 2 as b) t1 join (select 2 as b) on a=b"
+  ! super -dynamic -s -c "select * from (select 1 as a, 2 as b) t1 join (select 2 as b) on a=b"
   echo === 1>&2
-  ! super -s -c "select * from a.json join b.json on a=b"
+  ! super -dynamic -s -c "select * from a.json join b.json on a=b"
   echo === 1>&2
-  ! super -s -c "select * from (select 2 as x) as a join b.json on x=b.c"
+  ! super -dynamic -s -c "select * from (select 2 as x) as a join b.json on x=b.c"
   echo === 1>&2
-  ! super -s -c "select * from (select 2 as x) a join b.json a on a.x=a.y"
+  ! super -dynamic -s -c "select * from (select 2 as x) a join b.json a on a.x=a.y"
 
 outputs:
   - name: stderr

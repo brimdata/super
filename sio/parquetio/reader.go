@@ -56,12 +56,3 @@ func columnIndexes(schema *schema.Schema, fields []field.Path) []int {
 	}
 	return indexes
 }
-
-func Type(sctx *super.Context, r io.Reader) super.Type {
-	if ar, err := NewReader(sctx, r, nil); err == nil {
-		typ := ar.Type()
-		ar.Close()
-		return typ
-	}
-	return nil
-}

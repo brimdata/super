@@ -1,6 +1,6 @@
 # Second input has bad middle line (detection succeeds).
 script: |
-  ! super -s -e=false good.sup bad.sup
+  ! super -dynamic -e=false -s good.sup bad.sup
 
 inputs:
   - name: good.sup

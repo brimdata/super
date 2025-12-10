@@ -1,7 +1,7 @@
 script: |
   ! super -c 'select 1 x union all select 1 x, 1 y'
   echo // === >&2
-  ! super -c 'select * from a.sup union all select * from a.sup'
+  ! super -dynamic -c 'select * from a.sup union all select * from a.sup'
 
 inputs:
   - name: a.sup

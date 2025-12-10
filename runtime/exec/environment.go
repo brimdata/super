@@ -32,6 +32,7 @@ type Environment struct {
 	db     *db.Root
 	useVAM bool
 
+	Dynamic          bool
 	IgnoreOpenErrors bool
 	ReaderOpts       anyio.ReaderOpts
 }

@@ -22,7 +22,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sio/parquetio"
+	"github.com/brimdata/super/sio/anyio"
 	"github.com/brimdata/super/sup"
 	"github.com/segmentio/ksuid"
 )
@@ -269,8 +269,11 @@ func (t *translator) file(n ast.Node, name string, args []ast.OpArg) sem.Op {
 }
 
 func (t *translator) fileType(path, format string) (super.Type, error) {
+	if t.env.Dynamic {
+		return nil, nil
+	}
 	engine := t.env.Engine()
-	if engine == nil || format != "" && format != "auto" && format != "parquet" {
+	if engine == nil {
 		return nil, nil
 	}
 	uri, err := storage.ParseURI(path)
@@ -282,7 +285,27 @@ func (t *translator) fileType(path, format string) (super.Type, error) {
 		return nil, err
 	}
 	defer r.Close()
-	return parquetio.Type(t.sctx, r), nil
+	var b [1]byte
+	if _, err := r.ReadAt(b[:], 0); err != nil {
+		// r can't seek so it's a fifo or pipe.
+		return nil, nil
+	}
+	f, err := anyio.NewFile(t.sctx, r, path, anyio.ReaderOpts{Format: format})
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	if typer, ok := f.Reader.(interface{ Type() super.Type }); ok {
+		return typer.Type(), nil
+	}
+	fuser := t.checker.newFuser()
+	for {
+		val, err := f.Read()
+		if val == nil || err != nil {
+			return fuser.Type(), err
+		}
+		fuser.fuse(val.Type())
+	}
 }
 
 func (t *translator) fromFileGlob(globLoc ast.Node, pattern string, args []ast.OpArg) sem.Op {

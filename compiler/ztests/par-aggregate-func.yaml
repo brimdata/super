@@ -4,7 +4,7 @@ script: |
   super db create -q -orderby s:asc test
   super db compile -P 2 -C "from test | union(s) by n:=len(s)" | sed -e 's/pool .*/.../'
   echo ===
-  SUPER_VAM=1 super compile -C -P 2 'from test.csup | summarize count(a) by b'
+  SUPER_VAM=1 super compile -C -P 2 -dynamic 'from test.csup | summarize count(a) by b'
 
 outputs:
   - name: stdout

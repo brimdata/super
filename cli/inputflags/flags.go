@@ -17,6 +17,7 @@ import (
 
 type Flags struct {
 	anyio.ReaderOpts
+	Dynamic  bool
 	ReadMax  auto.Bytes
 	ReadSize auto.Bytes
 	Threads  int
@@ -43,6 +44,7 @@ func (f *Flags) SetFlags(fs *flag.FlagSet, validate bool) {
 	fs.Var(&f.ReadMax, "bsup.readmax", "maximum Super Binary read buffer size in MiB, MB, etc.")
 	f.ReadSize = auto.NewBytes(bsupio.ReadSize)
 	fs.Var(&f.ReadSize, "bsup.readsize", "target Super Binary read buffer size in MiB, MB, etc.")
+	fs.BoolVar(&f.Dynamic, "dynamic", false, "disable static type checking of inputs")
 }
 
 // Init is called after flags have been parsed.

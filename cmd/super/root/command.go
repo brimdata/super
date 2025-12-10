@@ -147,6 +147,7 @@ func (c *Command) Run(args []string) error {
 		ast.PrependFileScan(args)
 	}
 	env := exec.NewEnvironment(storage.NewLocalEngine(), nil)
+	env.Dynamic = c.inputFlags.Dynamic
 	env.IgnoreOpenErrors = !c.stopErr
 	env.ReaderOpts = c.inputFlags.Options()
 	comp := compiler.NewCompilerWithEnv(env)

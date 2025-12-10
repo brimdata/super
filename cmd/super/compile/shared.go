@@ -24,6 +24,7 @@ import (
 
 type Shared struct {
 	dag         bool
+	dynamic     bool
 	includes    queryflags.Includes
 	optimize    bool
 	parallel    int
@@ -33,6 +34,7 @@ type Shared struct {
 
 func (s *Shared) SetFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&s.dag, "dag", false, "display output as DAG (implied by -O or -P)")
+	fs.BoolVar(&s.dynamic, "dynamic", false, "disable static type checking of inputs on DAG")
 	fs.Var(&s.includes, "I", "source file containing query text (may be repeated)")
 	fs.BoolVar(&s.optimize, "O", false, "display optimized DAG")
 	fs.IntVar(&s.parallel, "P", 0, "display parallelized DAG")
@@ -80,6 +82,7 @@ func (s *Shared) Run(ctx context.Context, args []string, dbFlags *dbflags.Flags,
 	}
 	rctx := runtime.DefaultContext()
 	env := exec.NewEnvironment(storage.NewLocalEngine(), root)
+	env.Dynamic = s.dynamic
 	dag, err := compiler.Analyze(rctx, ast, env, false)
 	if err != nil {
 		return err

@@ -1,8 +1,8 @@
 script: |
   echo === hash join
-  super -s -c 'left join (from C.sup) on left.a=right.a | values {...left,hit:right.sc} | sort' A.sup
+  super -dynamic -s -c 'left join (from C.sup) on left.a=right.a | values {...left,hit:right.sc} | sort' A.sup
   echo === nested loop join
-  super -s -c 'left join (from C.sup) on left.a<right.a | values {...left,hit:right.sc} | sort' A.sup
+  super -dynamic -s -c 'left join (from C.sup) on left.a<right.a | values {...left,hit:right.sc} | sort' A.sup
 
 vector: true
 

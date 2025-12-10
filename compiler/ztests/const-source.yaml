@@ -2,14 +2,14 @@ script: |
   export SUPER_DB=test
   super db init -q
   super db create -q test
-  super db compile -dag -C 'const POOL = "test" from eval(POOL)' | sed -e "s/[a-zA-Z0-9]\{27\}/XXX/"
+  super db compile -C -dag 'const POOL = "test" from eval(POOL)' | sed -e "s/[a-zA-Z0-9]\{27\}/XXX/"
   echo "==="
-  super compile -dag -C 'const FILE = "A.sup" from eval(FILE)'
+  super compile -C -dag -dynamic 'const FILE = "A.sup" from eval(FILE)'
   echo "==="
-  super db compile -dag -C 'const URL = "http://brimdata.io" from eval(URL)'
-  ! super db compile -dag -C 'const POOL = 3.14 from eval(POOL)'
-  ! super db compile -dag -C 'const FILE = 127.0.0.1 from eval(FILE)'
-  ! super db compile -dag -C 'const URL = true from eval(URL)'
+  super db compile -C -dag 'const URL = "http://brimdata.io" from eval(URL)'
+  ! super db compile -C -dag 'const POOL = 3.14 from eval(POOL)'
+  ! super db compile -C -dag 'const FILE = 127.0.0.1 from eval(FILE)'
+  ! super db compile -C -dag 'const URL = true from eval(URL)'
 
 outputs:
   - name: stdout
