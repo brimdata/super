@@ -29,4 +29,4 @@ output: |
   [true,false,null::bool]
   [true,false,null::bool]
   [true,false,null::bool]
-  [error(0),error(0),null::bool]
+  [error(0),error(0),null]::[bool|error(int64)]

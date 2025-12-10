@@ -109,7 +109,8 @@ func buildList(sctx *super.Context, elems []ListElem, in []vector.Any) ([]uint32
 	if len(types) == 1 {
 		return offsets, mergeSameTypeVecs(types[0], tags, vecs)
 	}
-	return offsets, vector.NewUnion(sctx.LookupTypeUnion(types), tags, vecs, bitvec.Zero)
+	nulls := unionNulls(tags, vecs)
+	return offsets, vector.NewUnion(sctx.LookupTypeUnion(types), tags, vecs, nulls)
 }
 
 func unwrapSpread(vec vector.Any) (vector.Any, []uint32, []uint32) {
@@ -123,6 +124,23 @@ func unwrapSpread(vec vector.Any) (vector.Any, []uint32, []uint32) {
 		return vals, offsets, vec.Index
 	}
 	return nil, nil, nil
+}
+
+func unionNulls(tags []uint32, vecs []vector.Any) bitvec.Bits {
+	for i, vec := range vecs {
+		if !vector.NullsOf(vec).IsZero() {
+			nulls := bitvec.NewFalse(uint32(len(tags)))
+			offs := make([]uint32, len(vecs))
+			for j, t := range tags {
+				if t >= uint32(i) && vector.NullsOf(vecs[t]).IsSet(offs[t]) {
+					nulls.Set(uint32(j))
+				}
+				offs[t]++
+			}
+			return nulls
+		}
+	}
+	return bitvec.Zero
 }
 
 func mergeSameTypeVecs(typ super.Type, tags []uint32, vecs []vector.Any) vector.Any {

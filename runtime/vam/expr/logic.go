@@ -219,7 +219,8 @@ func (i *In) eval(vecs ...vector.Any) vector.Any {
 					nullTags = append(nullTags, i)
 				}
 			}
-			out := vector.NewConst(super.NullBool, uint32(len(nullTags)), bitvec.Zero)
+			length := uint32(len(nullTags))
+			out := vector.NewConst(super.NullBool, length, bitvec.NewTrue(length))
 			rhs = vector.ReversePick(rhs, nullTags)
 			return vector.Combine(rhs, nullTags, out)
 		}
