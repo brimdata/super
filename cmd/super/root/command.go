@@ -149,7 +149,7 @@ func (c *Command) Run(args []string) error {
 	env := exec.NewEnvironment(storage.NewLocalEngine(), nil)
 	env.Dynamic = c.inputFlags.Dynamic
 	env.IgnoreOpenErrors = !c.stopErr
-	env.ReaderOpts = c.inputFlags.Options()
+	env.ReaderOpts = c.inputFlags.ReaderOpts
 	comp := compiler.NewCompilerWithEnv(env)
 	query, err := runtime.CompileQuery(ctx, super.NewContext(), comp, ast, nil)
 	if err != nil {

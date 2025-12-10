@@ -523,5 +523,5 @@ func newInputReader(sctx *super.Context, input string, flags []string) (sio.Read
 	if err != nil {
 		return nil, err
 	}
-	return anyio.NewReaderWithOpts(sctx, r, inflags.Options())
+	return anyio.NewReaderWithOpts(sctx, r, inflags.ReaderOpts)
 }
