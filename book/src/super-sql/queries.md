@@ -37,7 +37,7 @@ Scope blocks may appear
 The parenthesized block forms a
 [lexical scope](https://en.wikipedia.org/wiki/Scope_(computer_science)#Lexical_scope).
 Bindings created by declarations within the scope are reachable within that
-scope and any nested scopes, but not outside it.
+scope and any scopes nested within it.
 
 A declaration cannot redefine an [identifier](#identifiers) that was previously defined in the same
 scope but can override identifiers defined in ancestor scopes.
