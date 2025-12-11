@@ -141,8 +141,9 @@ import (
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
+	"github.com/goccy/go-yaml"
+	yamlparser "github.com/goccy/go-yaml/parser"
 	"github.com/pmezard/go-difflib/difflib"
-	"gopkg.in/yaml.v3"
 )
 
 func ShellPath() string {
@@ -298,19 +299,16 @@ func (z *ZTest) check() error {
 
 // FromYAMLFile loads a ZTest from the YAML file named filename.
 func FromYAMLFile(filename string) (*ZTest, error) {
-	buf, err := os.ReadFile(filename)
+	f, err := yamlparser.ParseFile(filename, 0)
 	if err != nil {
 		return nil, err
 	}
-	d := yaml.NewDecoder(bytes.NewReader(buf))
-	d.KnownFields(true)
-	var z ZTest
-	if err := d.Decode(&z); err != nil {
-		return nil, err
+	if len(f.Docs) != 1 {
+		return nil, errors.New("file must contain one YAML document")
 	}
-	var v any
-	if d.Decode(&v) != io.EOF {
-		return nil, errors.New("found multiple YAML documents or garbage after first document")
+	var z ZTest
+	if err := yaml.NodeToValue(f.Docs[0].Body, &z, yaml.DisallowUnknownField()); err != nil {
+		return nil, err
 	}
 	return &z, nil
 }

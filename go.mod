@@ -11,6 +11,7 @@ require (
 	github.com/aws/aws-sdk-go v1.36.17
 	github.com/axiomhq/hyperloglog v0.2.5
 	github.com/go-redis/redis/v8 v8.11.5
+	github.com/goccy/go-yaml v1.19.0
 	github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/gorilla/mux v1.7.5-0.20200711200521-98cb6bf42e08
 	github.com/gosuri/uilive v0.0.4
@@ -41,7 +42,6 @@ require (
 	golang.org/x/term v0.28.0
 	golang.org/x/text v0.21.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
-	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -85,6 +85,7 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241104194629-dd2ea8efbc28 // indirect
 	google.golang.org/grpc v1.69.2 // indirect
 	google.golang.org/protobuf v1.36.1 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 tool (

@@ -1,7 +1,6 @@
 package manage
 
 import (
-	"bytes"
 	"errors"
 	"flag"
 	"os"
@@ -11,8 +10,8 @@ import (
 	"github.com/brimdata/super/cmd/super/db"
 	"github.com/brimdata/super/cmd/super/db/internal/dbmanage"
 	"github.com/brimdata/super/pkg/charm"
+	"github.com/goccy/go-yaml"
 	"go.uber.org/zap"
-	"gopkg.in/yaml.v3"
 )
 
 var spec = &charm.Spec{
@@ -64,9 +63,7 @@ func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
 		if err != nil {
 			return err
 		}
-		d := yaml.NewDecoder(bytes.NewReader(b))
-		d.KnownFields(true) // returns error for unknown fields
-		return d.Decode(&c.config)
+		return yaml.UnmarshalWithOptions(b, &c.config, yaml.DisallowUnknownField())
 	})
 	f.Func("pool", "pool to manage (all if unset, can be specified multiple times)", func(s string) error {
 		c.config.Pools = append(c.config.Pools, dbmanage.PoolConfig{Pool: s, Branch: "main"})
