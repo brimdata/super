@@ -25,35 +25,41 @@ type schema interface {
 	String() string
 }
 
-type staticSchema struct {
-	columns []string
-}
+type (
+	aliasSchema struct {
+		name string
+		sch  schema
+	}
 
-type dynamicSchema struct{}
+	dynamicSchema struct{}
 
-type selectSchema struct {
-	in  schema
-	out schema
-}
+	havingSchema struct {
+		*selectSchema
+	}
 
-type joinSchema struct {
-	left  schema
-	right schema
-}
+	joinSchema struct {
+		left  schema
+		right schema
+	}
 
-type joinUsingSchema struct {
-	*joinSchema
-}
+	joinUsingSchema struct {
+		*joinSchema
+	}
 
-type subquerySchema struct {
-	outer schema
-	inner schema
-}
+	selectSchema struct {
+		in  schema
+		out schema
+	}
 
-type aliasSchema struct {
-	name string
-	sch  schema
-}
+	staticSchema struct {
+		columns []string
+	}
+
+	subquerySchema struct {
+		outer schema
+		inner schema
+	}
+)
 
 func newSchemaFromType(typ super.Type) schema {
 	if recType := recordOf(typ); recType != nil {
@@ -98,30 +104,6 @@ func (d *dynamicSchema) resolveTable(table string) (schema, field.Path, error) {
 	return nil, nil, nil
 }
 
-func (s *staticSchema) resolveTable(table string) (schema, field.Path, error) {
-	return nil, nil, nil
-}
-
-func (s *selectSchema) resolveTable(table string) (schema, field.Path, error) {
-	if s.out != nil {
-		sch, path, err := s.out.resolveTable(table)
-		if err != nil {
-			return nil, nil, err
-		}
-		if sch != nil {
-			return sch, append([]string{"out"}, path...), nil
-		}
-	}
-	sch, path, err := s.in.resolveTable(table)
-	if err != nil {
-		return nil, nil, err
-	}
-	if sch != nil {
-		return sch, append([]string{"in"}, path...), nil
-	}
-	return nil, nil, nil
-}
-
 func (j *joinSchema) resolveTable(table string) (schema, field.Path, error) {
 	sch, path, err := j.left.resolveTable(table)
 	if err != nil {
@@ -146,6 +128,30 @@ func (j *joinSchema) resolveTable(table string) (schema, field.Path, error) {
 
 func (j *joinUsingSchema) resolveTable(string) (schema, field.Path, error) {
 	return nil, nil, fmt.Errorf("table selection in USING clause not allowed")
+}
+
+func (s *selectSchema) resolveTable(table string) (schema, field.Path, error) {
+	if s.out != nil {
+		sch, path, err := s.out.resolveTable(table)
+		if err != nil {
+			return nil, nil, err
+		}
+		if sch != nil {
+			return sch, append([]string{"out"}, path...), nil
+		}
+	}
+	sch, path, err := s.in.resolveTable(table)
+	if err != nil {
+		return nil, nil, err
+	}
+	if sch != nil {
+		return sch, append([]string{"in"}, path...), nil
+	}
+	return nil, nil, nil
+}
+
+func (s *staticSchema) resolveTable(table string) (schema, field.Path, error) {
+	return nil, nil, nil
 }
 
 func (s *subquerySchema) resolveTable(table string) (schema, field.Path, error) {
@@ -179,26 +185,10 @@ func (d *dynamicSchema) resolveColumn(col string) (field.Path, bool, error) {
 	return field.Path{col}, false, nil
 }
 
-func (s *staticSchema) resolveColumn(col string) (field.Path, bool, error) {
-	if slices.Contains(s.columns, col) {
-		return field.Path{col}, false, nil
-	}
-	return nil, false, fmt.Errorf("column %q: does not exist", col)
-}
-
-func (s *selectSchema) resolveColumn(col string) (field.Path, bool, error) {
-	if s.out != nil {
-		resolved, fatal, err := s.out.resolveColumn(col)
-		if fatal {
-			return nil, true, err
-		}
-		if resolved != nil {
-			return append([]string{"out"}, resolved...), false, nil
-		}
-	}
-	resolved, fatal, err := s.in.resolveColumn(col)
+func (h *havingSchema) resolveColumn(col string) (field.Path, bool, error) {
+	resolved, fatal, err := h.out.resolveColumn(col)
 	if resolved != nil {
-		return append([]string{"in"}, resolved...), false, nil
+		return append([]string{"out"}, resolved...), false, nil
 	}
 	return nil, fatal, err
 }
@@ -243,6 +233,30 @@ func (j *joinUsingSchema) resolveColumn(col string) (field.Path, bool, error) {
 	return field.Path{col}, false, nil
 }
 
+func (s *selectSchema) resolveColumn(col string) (field.Path, bool, error) {
+	if s.out != nil {
+		resolved, fatal, err := s.out.resolveColumn(col)
+		if fatal {
+			return nil, true, err
+		}
+		if resolved != nil {
+			return append([]string{"out"}, resolved...), false, nil
+		}
+	}
+	resolved, fatal, err := s.in.resolveColumn(col)
+	if resolved != nil {
+		return append([]string{"in"}, resolved...), false, nil
+	}
+	return nil, fatal, err
+}
+
+func (s *staticSchema) resolveColumn(col string) (field.Path, bool, error) {
+	if slices.Contains(s.columns, col) {
+		return field.Path{col}, false, nil
+	}
+	return nil, false, fmt.Errorf("column %q: does not exist", col)
+}
+
 func (s *subquerySchema) resolveColumn(col string) (field.Path, bool, error) {
 	path, fatal, err := s.inner.resolveColumn(col)
 	if fatal {
@@ -276,11 +290,12 @@ func (*dynamicSchema) resolveOrdinal(n ast.Node, col int) (sem.Expr, error) {
 	}, nil
 }
 
-func (s *staticSchema) resolveOrdinal(n ast.Node, col int) (sem.Expr, error) {
-	if col <= 0 || col > len(s.columns) {
-		return nil, fmt.Errorf("position %d is not in select list", col)
-	}
-	return sem.NewThis(n, []string{s.columns[col-1]}), nil
+func (j *joinSchema) resolveOrdinal(ast.Node, int) (sem.Expr, error) {
+	return nil, errors.New("ordinal column selection in join not supported")
+}
+
+func (j *joinUsingSchema) resolveOrdinal(ast.Node, int) (sem.Expr, error) {
+	return nil, errors.New("ordinal column selection in join not supported")
 }
 
 func (s *selectSchema) resolveOrdinal(n ast.Node, col int) (sem.Expr, error) {
@@ -298,12 +313,11 @@ func (s *selectSchema) resolveOrdinal(n ast.Node, col int) (sem.Expr, error) {
 	return nil, err
 }
 
-func (j *joinSchema) resolveOrdinal(ast.Node, int) (sem.Expr, error) {
-	return nil, errors.New("ordinal column selection in join not supported")
-}
-
-func (j *joinUsingSchema) resolveOrdinal(ast.Node, int) (sem.Expr, error) {
-	return nil, errors.New("ordinal column selection in join not supported")
+func (s *staticSchema) resolveOrdinal(n ast.Node, col int) (sem.Expr, error) {
+	if col <= 0 || col > len(s.columns) {
+		return nil, fmt.Errorf("position %d is not in select list", col)
+	}
+	return sem.NewThis(n, []string{s.columns[col-1]}), nil
 }
 
 func (s *subquerySchema) resolveOrdinal(ast.Node, int) (sem.Expr, error) {
@@ -333,17 +347,21 @@ func (d *dynamicSchema) unfurl(n ast.Node) sem.Expr {
 	return nil
 }
 
-func (s *staticSchema) unfurl(n ast.Node) sem.Expr {
-	return nil
+func (j *joinSchema) unfurl(n ast.Node) sem.Expr {
+	// spread left/right join legs into "this"
+	return joinSpread(n, nil, nil)
 }
 
 func (s *selectSchema) unfurl(n ast.Node) sem.Expr {
 	return sem.NewThis(n, []string{"out"})
 }
 
-func (j *joinSchema) unfurl(n ast.Node) sem.Expr {
-	// spread left/right join legs into "this"
-	return joinSpread(n, nil, nil)
+func (s *staticSchema) unfurl(n ast.Node) sem.Expr {
+	return nil
+}
+
+func (s *subquerySchema) unfurl(n ast.Node) sem.Expr {
+	panic(s)
 }
 
 // spread left/right join legs into "this"
@@ -369,10 +387,6 @@ func joinSpread(n ast.Node, left, right sem.Expr) *sem.RecordExpr {
 	}
 }
 
-func (s *subquerySchema) unfurl(n ast.Node) sem.Expr {
-	panic(s)
-}
-
 func (a *aliasSchema) endScope(n ast.Node) (sem.Expr, schema) {
 	return a.sch.endScope(n)
 }
@@ -381,16 +395,16 @@ func (d *dynamicSchema) endScope(n ast.Node) (sem.Expr, schema) {
 	return nil, d
 }
 
-func (s *staticSchema) endScope(n ast.Node) (sem.Expr, schema) {
-	return nil, s
+func (j *joinSchema) endScope(n ast.Node) (sem.Expr, schema) {
+	return nil, j
 }
 
 func (s *selectSchema) endScope(n ast.Node) (sem.Expr, schema) {
 	return sem.NewThis(n, []string{"out"}), s.out
 }
 
-func (j *joinSchema) endScope(n ast.Node) (sem.Expr, schema) {
-	return nil, j
+func (s *staticSchema) endScope(n ast.Node) (sem.Expr, schema) {
+	return nil, s
 }
 
 func (s *subquerySchema) endScope(n ast.Node) (sem.Expr, schema) {
@@ -405,18 +419,22 @@ func (d *dynamicSchema) this(n ast.Node, path []string) sem.Expr {
 	return sem.NewThis(n, path)
 }
 
-func (s *staticSchema) this(n ast.Node, path []string) sem.Expr {
-	return sem.NewThis(n, path)
-}
-
-func (s *selectSchema) this(n ast.Node, path []string) sem.Expr {
-	return s.in.this(n, append(path, "in"))
+func (h *havingSchema) this(n ast.Node, path []string) sem.Expr {
+	return h.out.this(n, append(path, "out"))
 }
 
 func (j *joinSchema) this(n ast.Node, path []string) sem.Expr {
 	left := j.left.this(n, append(path, "left"))
 	right := j.right.this(n, append(path, "right"))
 	return joinSpread(n, left, right)
+}
+
+func (s *selectSchema) this(n ast.Node, path []string) sem.Expr {
+	return s.in.this(n, append(path, "in"))
+}
+
+func (s *staticSchema) this(n ast.Node, path []string) sem.Expr {
+	return sem.NewThis(n, path)
 }
 
 func (s *subquerySchema) this(n ast.Node, path []string) sem.Expr {
@@ -434,12 +452,8 @@ func (d *dynamicSchema) tableOnly(n ast.Node, name string, path []string) (sem.E
 	return nil, fmt.Errorf("illegal reference to table %q in dynamic input", name)
 }
 
-func (s *staticSchema) tableOnly(n ast.Node, name string, path []string) (sem.Expr, error) {
-	return nil, fmt.Errorf("no such table %q", name)
-}
-
-func (s *selectSchema) tableOnly(n ast.Node, name string, path []string) (sem.Expr, error) {
-	return s.in.tableOnly(n, name, append(path, "in"))
+func (h *havingSchema) tableOnly(n ast.Node, name string, path []string) (sem.Expr, error) {
+	return h.out.tableOnly(n, name, append(path, "out"))
 }
 
 func (j *joinSchema) tableOnly(n ast.Node, name string, path []string) (sem.Expr, error) {
@@ -457,6 +471,14 @@ func (j *joinSchema) tableOnly(n ast.Node, name string, path []string) (sem.Expr
 	return j.right.tableOnly(n, name, append(path, "right"))
 }
 
+func (s *selectSchema) tableOnly(n ast.Node, name string, path []string) (sem.Expr, error) {
+	return s.in.tableOnly(n, name, append(path, "in"))
+}
+
+func (s *staticSchema) tableOnly(n ast.Node, name string, path []string) (sem.Expr, error) {
+	return nil, fmt.Errorf("no such table %q", name)
+}
+
 func (s *subquerySchema) tableOnly(n ast.Node, name string, path []string) (sem.Expr, error) {
 	return nil, fmt.Errorf("no such table %q", name) //XXX
 }
@@ -467,14 +489,6 @@ func (a *aliasSchema) outColumns() ([]string, bool) {
 
 func (d *dynamicSchema) outColumns() ([]string, bool) {
 	return nil, false
-}
-
-func (s *staticSchema) outColumns() ([]string, bool) {
-	return s.columns, true
-}
-
-func (s *selectSchema) outColumns() ([]string, bool) {
-	return s.out.outColumns()
 }
 
 func (j *joinSchema) outColumns() ([]string, bool) {
@@ -498,6 +512,14 @@ func (j *joinSchema) outColumns() ([]string, bool) {
 	return append(out, right...), true
 }
 
+func (s *selectSchema) outColumns() ([]string, bool) {
+	return s.out.outColumns()
+}
+
+func (s *staticSchema) outColumns() ([]string, bool) {
+	return s.columns, true
+}
+
 func (s *subquerySchema) outColumns() ([]string, bool) {
 	return s.outer.outColumns()
 }
@@ -506,44 +528,24 @@ func (a *aliasSchema) String() string {
 	return fmt.Sprintf("alias <%s>", a.name)
 }
 
-func (s *staticSchema) String() string {
-	return fmt.Sprintf("static %s", strings.Join(s.columns, ", "))
-}
-
 func (d *dynamicSchema) String() string {
 	return "dynamic"
-}
-
-func (s *selectSchema) String() string {
-	return fmt.Sprintf("select:\n  in: %s\n  out: %s", s.in, s.out)
 }
 
 func (s *joinSchema) String() string {
 	return fmt.Sprintf("join:\n  left: %s\n  right: %s", s.left, s.right)
 }
 
+func (s *selectSchema) String() string {
+	return fmt.Sprintf("select:\n  in: %s\n  out: %s", s.in, s.out)
+}
+
+func (s *staticSchema) String() string {
+	return fmt.Sprintf("static %s", strings.Join(s.columns, ", "))
+}
+
 func (s *subquerySchema) String() string {
 	return fmt.Sprintf("subquery:\n  outer: %s\n  inner: %s", s.outer, s.inner)
-}
-
-type havingSchema struct {
-	*selectSchema
-}
-
-func (h *havingSchema) resolveColumn(col string) (field.Path, bool, error) {
-	resolved, fatal, err := h.out.resolveColumn(col)
-	if resolved != nil {
-		return append([]string{"out"}, resolved...), false, nil
-	}
-	return nil, fatal, err
-}
-
-func (h *havingSchema) this(n ast.Node, path []string) sem.Expr {
-	return h.out.this(n, append(path, "out"))
-}
-
-func (h *havingSchema) tableOnly(n ast.Node, name string, path []string) (sem.Expr, error) {
-	return h.out.tableOnly(n, name, append(path, "out"))
 }
 
 func addAlias(sch schema, alias string) schema {
