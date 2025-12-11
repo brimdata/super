@@ -183,7 +183,7 @@ to the `from` and [load](operators/load.md) operators.
 
 Specifically, a text entity is one of:
 * a [string literal](types/string.md) (double quoted, single quoted, or raw string),
-* a path consisting of a sequence of characters consisting of letters, digits, `_`,  `$`,  `.`, and `/`, or
+* an unquoted string consisting of a sequence of characters consisting of letters, digits, `_`,  `$`,  `.`, and `/`, or
 * a simple URL consisting of a sequence of characters beginning with `http://` or `https://`,  followed by dotted strings of letters, digits, `-`, and `_`, and in turn optionally followed by `/` and a sequence of characters consisting of letters, digits, `_`, `$`, `.`, and `/`.
 
 If a URL does not meet the constraints of the simple URL rule,
