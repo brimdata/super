@@ -51,7 +51,7 @@ of references to data input is defined by
 [relational scoping](intro.md#relational-scoping).
 
 For example, this query containing a constant declaration emits the value `3.14`
-```mdtest-spq {data-layout='no-labels'} {style='margin:auto;width:20%'}
+```mdtest-spq {data-layout='no-labels'} {style='margin-left:auto;width:92%'}
 # spq
 const PI=3.14
 values PI
@@ -64,7 +64,7 @@ whereas the following query fails because the second reference to `PI` is not
 in the scope of the declared constant and thus the identifier is interpreted
 as a field reference `this.PI` via pipe scoping.
 
-```mdtest-spq fails {data-layout='no-labels'} {style='margin:auto;width:60%'}
+```mdtest-spq fails {data-layout='no-labels'} {style='margin-left:auto;width:92%'}
 # spq
 ( 
   const PI=3.14
@@ -196,7 +196,7 @@ subsequent newline.
 
 Multi-line comments are C style and begin with `/*` and end with `*/`.
 
-```mdtest-spq {data-layout='no-labels'} {style='margin:auto;width:50%'}
+```mdtest-spq {data-layout='no-labels'} {style='margin-left:auto;width:92%'}
 # spq
 values 1, 2 -- , 3
 /*
