@@ -79,6 +79,7 @@
     - [Operators](super-sql/operators/intro.md)
         - [aggregate](super-sql/operators/aggregate.md)
         - [assert](super-sql/operators/assert.md)
+        - [count](super-sql/operators/count.md)
         - [cut](super-sql/operators/cut.md)
         - [drop](super-sql/operators/drop.md)
         - [fork](super-sql/operators/fork.md)

@@ -1,6 +1,9 @@
 ### Aggregate Function
 
-&emsp; **count** &mdash; count input values
+&emsp; **count** &mdash; count all input values
+
+>[!TIP]
+> For running counts as values arrive, see the [count](../operators/count.md) operator.
 
 ### Synopsis
 ```
