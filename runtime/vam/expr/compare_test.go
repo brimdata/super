@@ -43,7 +43,7 @@ func TestCompareOpsAndForms(t *testing.T) {
 	for _, c := range cases {
 		f := func(expected string, lhs, rhs vector.Any) {
 			t.Helper()
-			cmp := NewCompare(super.NewContext(), &testEval{lhs}, &testEval{rhs}, c.op)
+			cmp := NewCompare(super.NewContext(), c.op, &testEval{lhs}, &testEval{rhs})
 			assert.Equal(t, expected, cmp.Eval(nil).(*vector.Bool).Bits.String(), "op: %s", c.op)
 		}
 
@@ -67,11 +67,10 @@ func TestCompareOpsAndForms(t *testing.T) {
 		f(c.expectedForConstLHS, Const, rhsView)
 
 		// Comparing two vector.Consts yields another vector.Const.
-		cmp := NewCompare(super.NewContext(), &testEval{Const}, &testEval{Const}, c.op)
+		cmp := NewCompare(super.NewContext(), c.op, &testEval{Const}, &testEval{Const})
 		val := cmp.Eval(nil).(*vector.Const)
 		assert.Equal(t, uint32(3), val.Len(), "op: %s", c.op)
 		expected := super.NewBool(c.expectedForConstLHS == "111")
 		assert.Equal(t, expected, val.Value(), "op: %s", c.op)
 	}
-
 }

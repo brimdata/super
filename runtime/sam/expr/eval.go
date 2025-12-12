@@ -428,7 +428,7 @@ var DivideByZero = errors.New("divide by zero")
 
 // NewArithmetic compiles an expression of the form "expr1 op expr2"
 // for the arithmetic operators +, -, *, /
-func NewArithmetic(sctx *super.Context, lhs, rhs Evaluator, op string) (Evaluator, error) {
+func NewArithmetic(sctx *super.Context, op string, lhs, rhs Evaluator) (Evaluator, error) {
 	n := newNumeric(sctx, lhs, rhs)
 	switch op {
 	case "+":

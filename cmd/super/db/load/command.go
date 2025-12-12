@@ -22,6 +22,7 @@ import (
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/pkg/units"
 	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/anyio"
 	"github.com/paulbellamy/ratecounter"
 	"golang.org/x/term"
 )
@@ -79,7 +80,7 @@ func (c *Command) Run(args []string) error {
 	paths := args
 	c.engine = &engineWrap{Engine: storage.NewLocalEngine()}
 	sctx := super.NewContext()
-	readers, err := c.inputFlags.Open(ctx, sctx, c.engine, paths, false)
+	readers, err := c.open(ctx, sctx, paths)
 	if err != nil {
 		return err
 	}
@@ -114,6 +115,22 @@ func (c *Command) Run(args []string) error {
 		fmt.Printf("%s committed\n", commitID)
 	}
 	return nil
+}
+
+func (c *Command) open(ctx context.Context, sctx *super.Context, paths []string) ([]sio.Reader, error) {
+	var readers []sio.Reader
+	for _, path := range paths {
+		if path == "-" {
+			path = "stdio:stdin"
+		}
+		file, err := anyio.Open(ctx, sctx, c.engine, path, c.inputFlags.ReaderOpts)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%s: %s\n", path, err)
+			continue
+		}
+		readers = append(readers, file)
+	}
+	return readers, nil
 }
 
 func (c *Command) Display(w io.Writer) bool {
