@@ -3,7 +3,7 @@
 [✅](../intro.md#data-order)&emsp; **count** &mdash; emit a running count of input values
 
 >[!TIP]
-> For final counts across all input values, see the [count](../aggregates/count.md) aggregate function.
+> For a final count of all input values, see the [count](../aggregates/count.md) aggregate function.
 
 ### Synopsis
 
