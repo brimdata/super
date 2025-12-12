@@ -127,6 +127,22 @@ Which avoids the effect shown here:
 
 ![Default Rendering](mdtest-spq-default.png)
 
-## mdtest
+### Use 85% Width for Inlined Playground Examples
 
-TBD
+To avoid disrupting flow when small playground examples are inlined with text,
+style _without_ **Query**/**Input**/**Result** labels and use an 85% width so
+there's some left indent and doesn't feel like a new section boundary.
+
+````
+```mdtest-spq {data-layout='no-labels'} {style='margin:auto;width:85%'}
+````
+
+Which gives a look like:
+
+![No Labels, Width 85%](no-labels-width-85.png)
+
+Default styling with labels and full width are still ok for larger sets of
+back-to-back examples such as found at the bottom of pages for Operators,
+Functions, etc.
+
+![Large Block Examples](large-block-examples.png)
