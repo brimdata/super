@@ -35,7 +35,7 @@ func TestArithOpsAndForms(t *testing.T) {
 	for _, c := range cases {
 		f := func(expected []int64, lhs, rhs vector.Any) {
 			t.Helper()
-			cmp := NewArith(super.NewContext(), &testEval{lhs}, &testEval{rhs}, c.op)
+			cmp := NewArith(super.NewContext(), c.op, &testEval{lhs}, &testEval{rhs})
 			assert.Equal(t, expected, cmp.Eval(nil).(*vector.Int).Values, "op: %s", c.op)
 		}
 
@@ -59,7 +59,7 @@ func TestArithOpsAndForms(t *testing.T) {
 		f(c.expectedForConstLHS, Const, rhsView)
 
 		// Arithmetic on two vector.Consts returns another vector.Const.
-		cmp := NewArith(super.NewContext(), &testEval{Const}, &testEval{Const}, c.op)
+		cmp := NewArith(super.NewContext(), c.op, &testEval{Const}, &testEval{Const})
 		val := cmp.Eval(nil).(*vector.Const)
 		assert.Equal(t, uint32(3), val.Len(), "op: %s", c.op)
 		expected := super.NewInt64(c.expectedForConstLHS[0])

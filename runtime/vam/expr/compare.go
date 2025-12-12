@@ -19,7 +19,7 @@ type Compare struct {
 	rhs    Evaluator
 }
 
-func NewCompare(sctx *super.Context, lhs, rhs Evaluator, op string) *Compare {
+func NewCompare(sctx *super.Context, op string, lhs, rhs Evaluator) *Compare {
 	return &Compare{sctx, vector.CompareOpFromString(op), lhs, rhs}
 }
 

@@ -20,7 +20,7 @@ type Arith struct {
 	rhs    Evaluator
 }
 
-func NewArith(sctx *super.Context, lhs, rhs Evaluator, op string) *Arith {
+func NewArith(sctx *super.Context, op string, lhs, rhs Evaluator) *Arith {
 	return &Arith{sctx, vector.ArithOpFromString(op), lhs, rhs}
 }
 
