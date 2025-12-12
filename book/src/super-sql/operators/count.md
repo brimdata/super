@@ -14,14 +14,14 @@ count [ <record-expr> ]
 
 The `count` operator produces records that include a running count of its input values.
 
-If the optional `<record-expr>` is absent, the output record contains the
-input value in an element of [derived field name](../types/record.md#derived-field-names)
-`that` and a field of name `count` that contains the numeric count.
-
 When `<record-expr>` is present, it must be a
 [record expression](../types/record.md#record-expressions) in which the
 rightmost element is the name of a field to hold the numeric count and any
 preceding elements are evaluated on the input value.
+
+If the optional `<record-expr>` is absent, the output record contains the
+input value in an element of [derived field name](../types/record.md#derived-field-names)
+`that` and a field of name `count` that contains the numeric count.
 
 ### Examples
 
