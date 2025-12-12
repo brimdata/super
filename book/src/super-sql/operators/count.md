@@ -1,6 +1,6 @@
 ### Operator
 
-[✅](../intro.md#data-order)&emsp; **count** &mdash; emit a running count of input values
+[✅](../intro.md#data-order)&emsp; **count** &mdash; emit records containing a running count of input values
 
 >[!TIP]
 > For a final count of all input values, see the [count](../aggregates/count.md) aggregate function.
