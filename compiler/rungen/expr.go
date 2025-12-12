@@ -125,7 +125,7 @@ func (b *Builder) compileBinary(e *dag.BinaryExpr) (expr.Evaluator, error) {
 	case "<", "<=", ">", ">=":
 		return expr.NewCompareRelative(b.sctx(), lhs, rhs, op)
 	case "+", "-", "*", "/", "%":
-		return expr.NewArithmetic(b.sctx(), lhs, rhs, op)
+		return expr.NewArithmetic(b.sctx(), op, lhs, rhs)
 	default:
 		return nil, fmt.Errorf("invalid binary operator %s", op)
 	}
