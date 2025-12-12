@@ -152,7 +152,6 @@ func ShellPath() string {
 }
 
 type Bundle struct {
-	TestName string
 	FileName string
 	Test     *ZTest
 	Error    error
@@ -166,20 +165,17 @@ func Load(dirname string) ([]Bundle, error) {
 	}
 	for _, fi := range fileinfos {
 		filename := fi.Name()
-		const dotyaml = ".yaml"
-		if !strings.HasSuffix(filename, dotyaml) {
+		if !strings.HasSuffix(filename, ".yaml") {
 			continue
 		}
-		testname := strings.TrimSuffix(filename, dotyaml)
 		filename = filepath.Join(dirname, filename)
 		zts, err := FromYAMLFile(filename)
 		if err != nil {
-			bundles = append(bundles, Bundle{testname, filename, nil, err})
+			bundles = append(bundles, Bundle{filename, nil, err})
 			continue
 		}
 		for _, zt := range zts {
-			testname := fmt.Sprintf("%s/%d", testname, zt.Line)
-			bundles = append(bundles, Bundle{testname, filename, zt, nil})
+			bundles = append(bundles, Bundle{filename, zt, nil})
 		}
 	}
 	return bundles, nil
@@ -196,7 +192,11 @@ func Run(t *testing.T, dirname string) {
 		t.Fatal(err)
 	}
 	for _, b := range bundles {
-		t.Run(b.TestName, func(t *testing.T) {
+		name := strings.TrimSuffix(b.FileName, ".yaml")
+		if z := b.Test; z != nil {
+			name = fmt.Sprintf("%s/%d", name, z.Line)
+		}
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			if b.Error != nil {
 				t.Fatalf("%s: %s", b.FileName, b.Error)
