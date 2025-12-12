@@ -6,10 +6,11 @@
 // simply running "go test" compared replicating the test using "go run".
 // Script-style tests don't have this convenience.
 //
+// Ztests are specified in YAML files.  Multiple ztests can be specified in a
+// single file by separating them with a line containing three dashes ("---").
+//
 // In the SPQ style, ztest runs a SuperSQL program on an input and checks
 // for an expected output.
-//
-// A SPQ-style test is defined in a YAML file.
 //
 //	spq: count()
 //
@@ -171,8 +172,15 @@ func Load(dirname string) ([]Bundle, error) {
 		}
 		testname := strings.TrimSuffix(filename, dotyaml)
 		filename = filepath.Join(dirname, filename)
-		zt, err := FromYAMLFile(filename)
-		bundles = append(bundles, Bundle{testname, filename, zt, err})
+		zts, err := FromYAMLFile(filename)
+		if err != nil {
+			bundles = append(bundles, Bundle{testname, filename, nil, err})
+			continue
+		}
+		for _, zt := range zts {
+			testname := fmt.Sprintf("%s/%d", testname, zt.Line)
+			bundles = append(bundles, Bundle{testname, filename, zt, nil})
+		}
 	}
 	return bundles, nil
 }
@@ -254,6 +262,7 @@ func (f *File) load(dir string) ([]byte, *regexp.Regexp, error) {
 
 // ZTest defines a ztest.
 type ZTest struct {
+	Line int    `yaml:"-"`
 	Skip string `yaml:"skip,omitempty"`
 	Tag  string `yaml:"tag,omitempty"`
 
@@ -297,20 +306,27 @@ func (z *ZTest) check() error {
 	return nil
 }
 
-// FromYAMLFile loads a ZTest from the YAML file named filename.
-func FromYAMLFile(filename string) (*ZTest, error) {
-	f, err := yamlparser.ParseFile(filename, 0)
+// FromYAMLFile loads ztests from the named YAML file.
+func FromYAMLFile(name string) ([]*ZTest, error) {
+	f, err := yamlparser.ParseFile(name, 0)
 	if err != nil {
 		return nil, err
 	}
-	if len(f.Docs) != 1 {
-		return nil, errors.New("file must contain one YAML document")
+	var zs []*ZTest
+	for _, d := range f.Docs {
+		var z ZTest
+		if err := yaml.NodeToValue(d.Body, &z, yaml.DisallowUnknownField()); err != nil {
+			return nil, err
+		}
+		if s := d.Start; s != nil {
+			// s is a YAML directives end marker ("---").
+			z.Line = s.Position.Line + 1
+		} else {
+			z.Line = 1
+		}
+		zs = append(zs, &z)
 	}
-	var z ZTest
-	if err := yaml.NodeToValue(f.Docs[0].Body, &z, yaml.DisallowUnknownField()); err != nil {
-		return nil, err
-	}
-	return &z, nil
+	return zs, nil
 }
 
 func (z *ZTest) ShouldSkip(path string) string {
@@ -392,7 +408,7 @@ func (z *ZTest) Run(t *testing.T, path, filename string) {
 		err = z.RunInternal(t.Context())
 	}
 	if err != nil {
-		t.Fatalf("%s: %s", filename, err)
+		t.Fatalf("%s:%d: %s", filename, z.Line, err)
 	}
 }
 

@@ -23,15 +23,15 @@ func searchForSuperSQL() ([]string, error) {
 	re := regexp.MustCompile(pattern)
 	err := filepath.Walk("..", func(path string, info os.FileInfo, err error) error {
 		if !info.IsDir() && strings.HasSuffix(path, ".yaml") && re.MatchString(path) {
-			zt, err := ztest.FromYAMLFile(path)
+			ztests, err := ztest.FromYAMLFile(path)
 			if err != nil {
 				return fmt.Errorf("%s: %w", path, err)
 			}
-			q := zt.SPQ
-			if q == "" || q == "*" {
-				return nil
+			for _, z := range ztests {
+				if s := z.SPQ; s != "" {
+					queries = append(queries, s)
+				}
 			}
-			queries = append(queries, q)
 		}
 		return err
 	})
