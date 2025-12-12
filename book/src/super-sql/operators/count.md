@@ -20,10 +20,8 @@ input value in an element of [derived field name](../types/record.md#derived-fie
 
 When `<record-expr>` is present, it must be a
 [record expression](../types/record.md#record-expressions) in which the
-rightmost element is the name of a field to hold the numeric count. Any
-preceding elements determine what parts of the input value to include in the
-output record, similar to how a record expression may be used with the
-[values](values.md) operator.
+rightmost element is the name of a field to hold the numeric count and any
+preceding elements are evaluated on the input value.
 
 ### Examples
 
