@@ -12,7 +12,6 @@ count [ <record-expr> ]
 ```
 ### Description
 
-The `count` operator produces a running count of input values as a field in
 The `count` operator produces records that include a running count of its input values.
 
 If the optional `<record-expr>` is absent, the output record contains the
