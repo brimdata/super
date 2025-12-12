@@ -13,7 +13,7 @@ count [ <record-expr> ]
 ### Description
 
 The `count` operator produces a running count of input values as a field in
-an output record, including some or all of parts of input values in the output.
+The `count` operator produces records that include a running count of its input values.
 
 If the optional `<record-expr>` is absent, the output record contains the
 input value in an element of [derived field name](../types/record.md#derived-field-names)
