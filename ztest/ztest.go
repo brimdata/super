@@ -115,6 +115,12 @@
 //
 // Tests of either style can be skipped by setting the skip field to a non-empty
 // string.  A message containing the string will be written to the test log.
+//
+// Environment variables:
+//
+//	ZTEST_PATH - Path to super executable for script tests
+//	ZTEST_TAG  - Only run tests with matching tag
+//	ZTEST_VECTOR - Override "vector:" setting in YAML (true/false)
 package ztest
 
 import (
@@ -149,6 +155,22 @@ import (
 
 func ShellPath() string {
 	return os.Getenv("ZTEST_PATH")
+}
+
+// VectorOverride returns the vector override setting from the ZTEST_VECTOR
+// environment variable. It returns:
+//   - (true, true) if ZTEST_VECTOR=true
+//   - (false, true) if ZTEST_VECTOR=false
+//   - (false, false) if ZTEST_VECTOR is unset or invalid
+func VectorOverride() (bool, bool) {
+	switch strings.ToLower(os.Getenv("ZTEST_VECTOR")) {
+	case "true", "1", "yes":
+		return true, true
+	case "false", "0", "no":
+		return false, true
+	default:
+		return false, false
+	}
 }
 
 type Bundle struct {
@@ -343,14 +365,23 @@ func (z *ZTest) ShouldSkip(path string) string {
 	return ""
 }
 
+// effectiveVector returns the effective vector setting for this test,
+// taking into account any ZTEST_VECTOR environment variable override.
+func (z *ZTest) effectiveVector() bool {
+	if value, ok := VectorOverride(); ok {
+		return value
+	}
+	return z.Vector
+}
+
 func (z *ZTest) RunScript(ctx context.Context, shellPath, testDir string, tempDir func() string) error {
 	if err := z.check(); err != nil {
 		return fmt.Errorf("bad yaml format: %w", err)
 	}
-	serr := runsh(ctx, shellPath, testDir, tempDir(), z)
-	if !z.Vector {
-		return serr
+	if !z.effectiveVector() {
+		return runsh(ctx, shellPath, testDir, tempDir(), z)
 	}
+	serr := runsh(ctx, shellPath, testDir, tempDir(), z)
 	if serr != nil {
 		serr = fmt.Errorf("=== sequence ===\n%w", serr)
 	}
@@ -367,7 +398,7 @@ func (z *ZTest) RunInternal(ctx context.Context) error {
 	}
 	outputFlags := append([]string{"-f=sup", "-pretty=0"}, strings.Fields(z.OutputFlags)...)
 	inputFlags := strings.Fields(z.InputFlags)
-	if z.Vector {
+	if z.effectiveVector() {
 		verr := z.diffInternal(runInternal(ctx, z.SPQ, z.Input, outputFlags, inputFlags, true))
 		if verr != nil {
 			verr = fmt.Errorf("=== vector ===\n%w", verr)
