@@ -20,13 +20,15 @@ type Writer struct {
 	writer    io.WriteCloser
 	encoder   *csv.Writer
 	flattener *expr.Flattener
+	header    bool
 	types     map[int]struct{}
 	first     *super.TypeRecord
 	strings   []string
 }
 
 type WriterOpts struct {
-	Delim rune
+	Delim    rune
+	NoHeader bool
 }
 
 func NewWriter(w io.WriteCloser, opts WriterOpts) *Writer {
@@ -38,6 +40,7 @@ func NewWriter(w io.WriteCloser, opts WriterOpts) *Writer {
 		writer:    w,
 		encoder:   encoder,
 		flattener: expr.NewFlattener(super.NewContext()),
+		header:    !opts.NoHeader,
 		types:     make(map[int]struct{}),
 	}
 }
@@ -63,11 +66,13 @@ func (w *Writer) Write(rec super.Value) error {
 	if w.first == nil {
 		w.first = super.TypeRecordOf(rec.Type())
 		var hdr []string
-		for _, f := range rec.Fields() {
-			hdr = append(hdr, f.Name)
-		}
-		if err := w.encoder.Write(hdr); err != nil {
-			return err
+		if w.header {
+			for _, f := range rec.Fields() {
+				hdr = append(hdr, f.Name)
+			}
+			if err := w.encoder.Write(hdr); err != nil {
+				return err
+			}
 		}
 	} else if _, ok := w.types[rec.Type().ID()]; !ok {
 		if !fieldNamesEqual(w.first.Fields, rec.Fields()) {

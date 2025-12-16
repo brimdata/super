@@ -1,0 +1,11 @@
+spq: pass
+
+input: |
+  {a:1,b:2}
+  {a:"one",b:"two"}
+
+output-flags: -f csv -noheader
+
+output: |
+  1,2
+  one,two
