@@ -11,8 +11,7 @@ nullif(val1: any, val2: any) -> any
 ### Description
 
 The `nullif` function returns a `null` value if its first argument `val1` is
-equal to its second argument `val2`, otherwise the value of `val1` is
-returned.
+equal to its second argument `val2`, otherwise it returns `val1`.
 
 ### Examples
 
