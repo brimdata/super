@@ -6,7 +6,7 @@ inputs:
   - name: query.spq
     data: |
       values 'a.sup', 'b.sup'
-      | values (from eval(this) | collect(this))
+      | values (from f"{this}" | collect(this))
   - name: a.sup
     data: |
       {a:1}

@@ -2,14 +2,14 @@ script: |
   export SUPER_DB=test
   super db init -q
   super db create -q test
-  super db compile -C -dag 'const POOL = "test" from eval(POOL)' | sed -e "s/[a-zA-Z0-9]\{27\}/XXX/"
+  super db compile -C -dag 'const POOL = "test" from f"{POOL}"' | sed -e "s/[a-zA-Z0-9]\{27\}/XXX/"
   echo "==="
-  super compile -C -dag -dynamic 'const FILE = "A.sup" from eval(FILE)'
+  super compile -C -dag -dynamic 'const FILE = "A.sup" from f"{FILE}"'
   echo "==="
-  super db compile -C -dag 'const URL = "http://brimdata.io" from eval(URL)'
-  ! super db compile -C -dag 'const POOL = 3.14 from eval(POOL)'
-  ! super db compile -C -dag 'const FILE = 127.0.0.1 from eval(FILE)'
-  ! super db compile -C -dag 'const URL = true from eval(URL)'
+  super db compile -C -dag 'const URL = "http://brimdata.io" from f"{URL}"'
+  ! super db compile -C -dag 'const POOL = 3.14 from f"{POOL}"'
+  ! super db compile -C -dag 'const FILE = 127.0.0.1 from f"{FILE}"'
+  ! super db compile -C -dag 'const URL = true from f"{URL}"'
 
 outputs:
   - name: stdout
@@ -24,12 +24,12 @@ outputs:
       | output main
   - name: stderr
     data: |
-      from expression requires a string but encountered 3.14 at line 1, column 29:
-      const POOL = 3.14 from eval(POOL)
-                                  ~~~~
-      from expression requires a string but encountered 127.0.0.1 at line 1, column 34:
-      const FILE = 127.0.0.1 from eval(FILE)
-                                       ~~~~
-      from expression requires a string but encountered true at line 1, column 28:
-      const URL = true from eval(URL)
-                                 ~~~
+      3.14: pool not found at line 1, column 24:
+      const POOL = 3.14 from f"{POOL}"
+                             ~~~~~~~~~
+      127.0.0.1: pool not found at line 1, column 29:
+      const FILE = 127.0.0.1 from f"{FILE}"
+                                  ~~~~~~~~~
+      true: pool not found at line 1, column 23:
+      const URL = true from f"{URL}"
+                            ~~~~~~~~

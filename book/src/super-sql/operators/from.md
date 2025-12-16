@@ -339,7 +339,7 @@ _Read from dynamically defined files and add a column_
 ```mdtest-command
 echo '{a:1}{a:2}' > a.sup
 echo '{b:3}{b:4}' > b.sup
-echo '"a.sup" "b.sup"' | super -s -c "from eval(this) | c:=coalesce(a,b)+1" -
+echo '"a.sup" "b.sup"' | super -s -c "from f'{this}' | c:=coalesce(a,b)+1" -
 ```
 =>
 ```mdtest-output
