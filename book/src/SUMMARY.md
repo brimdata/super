@@ -123,6 +123,7 @@
             - [has](super-sql/functions/generics/has.md)
             - [len](super-sql/functions/generics/len.md)
             - [map](super-sql/functions/generics/map.md)
+            - [nullif](super-sql/functions/generics/nullif.md)
             - [under](super-sql/functions/generics/under.md)
         - [Errors](super-sql/functions/errors/intro.md)
             - [error](super-sql/functions/errors/error.md)
