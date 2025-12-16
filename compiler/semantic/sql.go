@@ -651,8 +651,7 @@ func (t *translator) groupBy(sch *selectSchema, in []ast.Expr) []exprloc {
 		}
 		// Grouping expressions can't have agg funcs so we parse as a column
 		// and see if any agg functions were found.
-		c, _ := newColumn("", in[k], e, &funcs)
-		if c != nil && c.isAgg {
+		if newColumn("", in[k], e, &funcs).isAgg {
 			t.error(in[k], errors.New("aggregate function cannot appear in GROUP BY clause"))
 		}
 		out = append(out, exprloc{e, expr})
@@ -739,11 +738,7 @@ func (t *translator) as(sch schema, as ast.SQLAsExpr, funcs *aggfuncs) *column {
 	} else {
 		name = deriveNameFromExpr(as.Expr)
 	}
-	c, err := newColumn(name, as.Expr, e, funcs)
-	if err != nil {
-		t.error(as, err)
-	}
-	return c
+	return newColumn(name, as.Expr, e, funcs)
 }
 
 func (t *translator) exprSchema(s schema, e ast.Expr) sem.Expr {
