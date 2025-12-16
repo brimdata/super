@@ -791,7 +791,7 @@ FromSource
   / e:FString {
       return &ast.FromEval{
         Kind: "FromEval",
-        Expr: e.(ast.Expr),
+        Expr: e.(*ast.FStringExpr),
         Loc: loc(c),
       }, nil
     }

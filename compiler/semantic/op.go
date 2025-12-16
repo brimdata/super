@@ -71,7 +71,7 @@ func (t *translator) fromSource(entity ast.FromSource, args []ast.OpArg, seq sem
 		}
 		return sem.Seq{op}, nil, def
 	case *ast.FromEval:
-		seq, def := t.fromExpr(entity, args, seq)
+		seq, def := t.fromFString(entity, args, seq)
 		return seq, nil, def
 	case *ast.DBMeta:
 		if bad := t.hasFromParent(entity, seq); bad != nil {
@@ -168,8 +168,8 @@ func (t *translator) fromCTE(node ast.Node, c *ast.SQLCTE) (sem.Seq, schema) {
 
 }
 
-func (t *translator) fromExpr(entity *ast.FromEval, args []ast.OpArg, seq sem.Seq) (sem.Seq, string) {
-	expr := t.expr(entity.Expr)
+func (t *translator) fromFString(entity *ast.FromEval, args []ast.OpArg, seq sem.Seq) (sem.Seq, string) {
+	expr := t.fstringExpr(entity.Expr)
 	val, ok := t.maybeEval(expr)
 	if ok && !hasError(val) {
 		if bad := t.hasFromParent(entity, seq); bad != nil {
