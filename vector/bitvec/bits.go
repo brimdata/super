@@ -2,6 +2,7 @@ package bitvec
 
 import (
 	"math/bits"
+	"slices"
 	"strings"
 )
 
@@ -26,6 +27,10 @@ func NewTrue(n uint32) Bits {
 		b.bits[i] = ^uint64(0)
 	}
 	return b
+}
+
+func (b Bits) Clone() Bits {
+	return Bits{slices.Clone(b.bits), b.length}
 }
 
 func (b Bits) IsZero() bool {
