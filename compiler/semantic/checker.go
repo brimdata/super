@@ -677,8 +677,6 @@ func (c *checker) number(loc ast.Node, typ super.Type) bool {
 
 func (c *checker) deref(loc ast.Node, typ super.Type, field string) (super.Type, bool) {
 	switch typ := super.TypeUnder(typ).(type) {
-	case *super.TypeOfNull:
-		return super.TypeNull, true
 	case *super.TypeError:
 		if isUnknown(typ) {
 			return typ, true
