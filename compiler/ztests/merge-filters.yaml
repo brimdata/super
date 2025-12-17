@@ -3,9 +3,9 @@ script: |
   echo ===
   super compile -C -O -dynamic 'fork ( from /dev/null | where b | where c ) ( from /dev/zero | where e | where f ) | where g'
   echo ===
-  super compile -C -O 'unnest [a] into ( where b | where c )'
+  super compile -C -O 'from /dev/null | unnest [a] into ( where b | where c )'
   echo ===
-  super compile -C -O 'fork ( where a | where b ) ( where c | where d  )'
+  super compile -C -O -dynamic 'from /dev/null | fork ( where a | where b ) ( where c | where d  )'
 
 outputs:
   - name: stdout
@@ -22,13 +22,13 @@ outputs:
         )
       | output main
       ===
-      null
+      file /dev/null fields a
       | unnest [a] into (
         where b and c
       )
       | output main
       ===
-      null
+      file /dev/null unordered
       | fork
         (
           where a and b

@@ -7,29 +7,29 @@ inputs:
   - name: test.spq
     data: |
       -- Expressions
-      values (unnest [a] | ?b)
+      values (unnest [this] | ?b)
       -- Operators
-      | unnest [a]
-      | unnest [a] into ( ?b )
+      | unnest [this]
+      | unnest [this] into ( ?b )
 
 outputs:
   - name: stdout
     data: |
       values (
-        unnest [a]
+        unnest [this]
         | search b
       )
-      | unnest [a]
-      | unnest [a] into (
+      | unnest [this]
+      | unnest [this] into (
         search b
       )
       ===
       null
       | values (
-        unnest [a]
+        unnest [this]
         | where search("b"))
-      | unnest [a]
-      | unnest [a] into (
+      | unnest [this]
+      | unnest [this] into (
         where search("b")
       )
       | output main

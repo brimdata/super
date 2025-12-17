@@ -1,5 +1,5 @@
 script: |
-  super compile -C -dag 'fn h(e): ( has(e) ) h(foo)'
+  super compile -C -dag 'fn h(e): ( has(e) ) h(this)'
 
 outputs:
   - name: stdout
@@ -8,5 +8,5 @@ outputs:
         has(e)
       )
       null
-      | where 0(foo)
+      | where 0(this)
       | output main
