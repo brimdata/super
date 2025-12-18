@@ -15,7 +15,8 @@ import (
 	"github.com/brimdata/super/sio/arrowio"
 )
 
-var errNotSeekable = errors.New("parquet format requires seekable input")
+//lint:ignore ST1005 parquet should be capitalized
+var errNotSeekable = errors.New("Parquet format requires seekable input")
 
 func NewReader(sctx *super.Context, r io.Reader, fields []field.Path) (*arrowio.Reader, error) {
 	ras, ok := r.(parquet.ReaderAtSeeker)
