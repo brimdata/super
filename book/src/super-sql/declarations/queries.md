@@ -7,7 +7,7 @@ let <name> = ( <query> )
 where `<name>` is an [identifier](../queries.md#identifiers)
 and `<query>` is any standalone [query](../queries.md) that sources its own input.
 
-Named queries are similar to [common-table expressions (CTE)](../sql/with.md)
+Named queries are similar to SQL [common-table expressions (CTE)](../sql/with.md)
 and may be likewise invoked in a [from](../operators/from.md) operator by referencing
 the query's name, as in
 ```
@@ -25,12 +25,11 @@ As with any expression subquery, multiple values result in an error, so when
 this is expected, the query reference may be enclosed in brackets to form
 an array subquery.
 
-To create a query that can be used as an operator and thus can operate on its input,
-declare an [operator](operators.md).
+To create a query that can operate on its input, declare an [operator](operators.md).
 
 A common use case for a named query is to compute a complex query that returns a scalar,
-then embedding that scalar result in an expression.  Even though the named query
-appears syntactically as a sub-query in this case, the result is efficient
+then embedding that scalar result in an [expression](../expressions/intro.md).  Even though the named query
+appears syntactically as a subquery in this case, the result is efficient
 because the compiler will materialize the result and reuse it on each invocation.
 
 ### Examples

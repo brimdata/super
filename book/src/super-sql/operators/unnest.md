@@ -47,7 +47,7 @@ If `<expr>` is a record, it must have two fields of the form:
 {<first>: <any>, <second>:<array>}
 ```
 where `<first>` and `<second>` are arbitrary field names, `<any>` is any
-SuperSQL value, and `<array>` is an array value.  In this case, the derived
+SuperSQL value, and `<array>` is an array value.  In this compound form of `unnest`, the derived
 sequence has the form:
 ```
 {<first>: <any>, <second>:<elem0>}

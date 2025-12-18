@@ -12,7 +12,7 @@ Declarations may be created for
 * [operators](operators.md), or
 * [pragmas](pragmas.md).
 
-All of the names defined in a given scope are available to other declarations defined
+With the exception of types that reference other types, all of the names defined in a given scope are available to other declarations defined
 in the same scope (as well as containing scopes) independent of the order of declaration,
 i.e., a declaration may forward-reference another declaration that is defined in the
 same scope.
