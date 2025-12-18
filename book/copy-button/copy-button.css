@@ -1,19 +1,12 @@
 pre:has(> code),
 .editor {
   position: relative;
-  &:hover,
-  &:focus-within {
-    & .copy-button {
-      opacity: 0.3;
-    }
-  }
 }
 
 .copy-button {
   align-items: center;
-  background: none;
+  background-color: var(--bg);
   border-color: var(--fg);
-  border-radius: 4px;
   border-style: solid;
   border-width: 1px;
   color: var(--fg);
@@ -29,10 +22,10 @@ pre:has(> code),
   padding-inline: 0.3em;
   padding: 0.5em 1em;
   position: absolute;
-  right: clamp(0.875rem, 0.8487rem + 0.1316vi, 0.9375rem);
+  right: 0.5em;
   text-decoration: none;
   text-transform: uppercase;
-  top: clamp(0.5625rem, 0.5362rem + 0.1316vi, 0.625rem);
+  top: 0.5em;
   transition-duration: 300ms;
   white-space: nowrap;
 
@@ -47,9 +40,6 @@ pre:has(> code),
   }
 
   &[aria-pressed='true'] {
-    background-color: var(--bg);
-    border-color: var(--bg);
-    color: var(--fg);
     display: block;
     opacity: 1;
   }
