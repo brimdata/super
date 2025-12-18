@@ -17,7 +17,7 @@ forward references to other named types.  In particular, named types cannot be r
 > A future version of SuperSQL may include recursive types.  This is a research topic
 > for the SuperDB project.
 
-[Input data may create named types](../../formats/model.md#3-named-type) that conflict with type declarations.  In this case,
+Input data may create [named types](../../formats/model.md#3-named-type) that conflict with type declarations.  In this case,
 a reference to a declared type in the query text uses the type definition of the nearest
 containing scope that binds the type name independent of types in the input.
 

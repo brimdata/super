@@ -51,7 +51,7 @@ These expression arguments can be viewed as a
 [closure](https://en.wikipedia.org/wiki/Closure_(computer_programming))
 though there is no persistent state stored in the closure.
 The [jq](https://github.com/jqlang/jq/wiki/jq-Language-Description#the-jq-language) language
-describes its expression semantics as closures as well, though unlike `jq`,
+describes its expression semantics as closures as well, though unlike jq,
 the operator expressions here are not generators and do not implement backtracking.
 
 ### Examples
