@@ -144,7 +144,7 @@ then the named type is reattached to the result.
 
 ### Errors
 
-Casts attempted between a value and a type that are not defined
+Casts attempted between a value and a type that are not permitted
 result in a structured error of the form of:
 ```
 {message:"cannot cast to <target>", on:<val>}
@@ -154,15 +154,16 @@ value may not be wrapped in a structured error and the problematic portions
 of the cast can be debugged by inspecting the result for precisely where
 the errors arose.
 
-For example, this function call
-```
+For example, notice the error returned by the following function call.
+```mdtest-spq {data-layout='no-labels'} {style='margin:auto;width:85%'}
+# spq
 cast({a:"1",b:2}, <{a:int64,b:ip}>)
-```
-returns
-```
+# input
+
+# expected output
 {a:1,b:error({message:"cannot cast to ip",on:2})}
 ```
-That is the value for `a` was successfully cast from string `"1`" to integer `1` but
+That is, the value for `a` was successfully cast from string `"1`" to integer `1` but
 the value for `b` could not be cast to an IP address so a structured error is
 instead embedded as the value for `b`.
 
