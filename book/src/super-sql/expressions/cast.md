@@ -98,7 +98,7 @@ The casting rules for complex values are as follows:
     recursively cast to the element type of the target array type,
   * a [set](../types/set.md) type where the elements of the input value are
     recursively cast to the element type of the target set type and any duplicate
-    values are automatically removed, or
+    values are automatically removed,
   * a [string](../types/string.md) type where the string is the input value
     serialized in the [SUP](../../formats/sup.md) format, or
   * a [union](#union-types) or [named type](#named-types).
@@ -106,19 +106,19 @@ The casting rules for complex values are as follows:
   * a [set](../types/set.md) type where the elements of the input value are
     recursively cast to the element type of the target set type,
   * an [array](../types/array.md) type where the elements of the input value are
-    recursively cast to the element type of the target array type, or
+    recursively cast to the element type of the target array type,
   * a [string](../types/string.md) type where the string is the input value
     serialized in the [SUP](../../formats/sup.md) format, or
   * a [union](#union-types) or [named type](#named-types).
 * A [map](../types/map.md) may be cast to
   * a [map](../types/map.md) type where the keys and values of the input value are
-    recursively cast to the key and value type of the target map type, or
+    recursively cast to the key and value type of the target map type,
   * a [string](../types/string.md) type where the string is the input value
     serialized in the [SUP](../../formats/sup.md) format, or
   * a [union](#union-types) or [named type](#named-types).
 * An [enum](../types/enum.md) may be cast to
   * an [enum](../types/enum.md) type where the target type includes the symbol
-    of the value being cast, or
+    of the value being cast,
   * a [string](../types/string.md) type where the string is the input value
     serialized in the [SUP](../../formats/sup.md) format, or
   * a [union](#union-types) or [named type](#named-types).
