@@ -1,0 +1,7 @@
+spq: |
+  values null | values a
+
+error: |
+  "a" no such field at line 1, column 22:
+  values null | values a
+                       ~

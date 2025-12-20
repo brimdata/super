@@ -788,10 +788,10 @@ FromSource
   = Regexp
   / Glob
   / "*" !ExprGuard { return &ast.GlobExpr{Kind: "GlobExpr", Pattern: "*", Loc: loc(c)}, nil }
-  / EVAL __ "(" __ e:Expr __ ")" {
+  / e:FString {
       return &ast.FromEval{
         Kind: "FromEval",
-        Expr: e.(ast.Expr),
+        Expr: e.(*ast.FStringExpr),
         Loc: loc(c),
       }, nil
     }
@@ -2436,7 +2436,6 @@ ELSE       = "ELSE"i            !IdentifierRest
 END        = "END"i             !IdentifierRest
 ENUM       = "ENUM"i            !IdentifierRest
 ERROR      = "ERROR"i           !IdentifierRest
-EVAL       = "EVAL"i            !IdentifierRest
 EXISTS     = "EXISTS"i          !IdentifierRest
 EXPLODE    = "EXPLODE"i         !IdentifierRest
 EXTRACT    = "EXTRACT"i         !IdentifierRest

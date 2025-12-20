@@ -48,12 +48,12 @@ func (p projection) aggCols() []column {
 	return aggs
 }
 
-func newColumn(name string, loc ast.Expr, e sem.Expr, funcs *aggfuncs) (*column, error) {
+func newColumn(name string, loc ast.Expr, e sem.Expr, funcs *aggfuncs) *column {
 	c := &column{name: name, loc: loc}
 	cnt := len(*funcs)
 	c.expr = funcs.subst(e)
 	c.isAgg = cnt != len(*funcs)
-	return c, nil
+	return c
 }
 
 func (c *column) isStar() bool {

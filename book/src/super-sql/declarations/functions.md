@@ -5,7 +5,7 @@ New functions are declared with the syntax
 fn <id> ( [<param> [, <param> ...]] ) : <expr>
 ```
 where
-* `<id>` is an identifier representing the name of the function,
+* `<id>` is an [identifier](../queries.md#identifiers) representing the name of the function,
 * each `<param>` is an identifier representing a positional argument to the function, and
 * `<expr>` is any [expression](../expressions/intro.md) that implements the function.
 
@@ -14,9 +14,9 @@ Function declarations must appear in the declaration section of a [scope](../que
 The function body `<expr>` may refer to the passed-in arguments by name.
 
 Specifically, the references to the named parameters are
-field references of the special value `this`, as in any expression.
+field references of the [special value](../intro.md#pipe-scoping) `this`, as in any expression.
 In particular, the value of `this` referenced in a function body
-is formed as record from the actual values passed to the function
+is formed as a [record](../types/record.md) from the actual values passed to the function
 where the field names correspond to the parameters of the function.
 
 For example, the function `add` as defined by
@@ -25,21 +25,21 @@ fn add(a,b): a+b
 ```
 when invoked as
 ```
-values {x:1} | values add(x,1)
+values {x:1} | values add(x,2)
 ```
 is passed the record the `{a:x,b:1}`, which after resolving `x` to `1`,
-is `{a:1,b:1}` and thus evaluates the expression
+is `{a:1,b:2}` and thus evaluates the expression
 ```
 this.a + this.b
 ```
-which results in `2`.
+which results in `3`.
 
-Any function-as-value arguments passed to a function do not appear in the `this`
+Any [function references](../expressions/functions.md#function-references) passed to a function do not appear in the `this`
 record formed from the parameters.  Instead, function values are expanded at their
-call sites in a macro-like fashion.
+call sites in a [macro](https://en.wikipedia.org/wiki/Macro_(computer_science))-like fashion.
 
 Functions may be recursive.  If the maximum call stack depth is exceeded,
-the function returns an error value indicating so.  Recursive functions that
+the function returns an [error](../types/error.md) value indicating so.  Recursive functions that
 run for an extended period of time without exceeding the stack depth will simply
 be allowed to run indefinitely and stall the query result.
 
@@ -56,7 +56,7 @@ fn <id> ( [<param> [, <param> ...]] ) : (
 where `<query>` is any [query](../queries.md) and is simply wrapped in parentheses
 to form the subquery.
 
-As with any subquery, when multiple results are expected, an array subquery
+As with any subquery, when multiple results are expected, an [array subquery](../expressions/subqueries.md#array-subqueries)
 may be used by wrapping `<query>` in square brackets instead of parentheses:
 ```
 fn <id> ( [<param> [, <param> ...]] ) : [
@@ -67,24 +67,35 @@ fn <id> ( [<param> [, <param> ...]] ) : [
 Note when using a subquery expression in this fashion,
 the function's parameters do not appear in the scope of the expressions
 embedded in the query.  For example, this function results in a type error:
-```
+```mdtest-spq fails {data-layout='no-labels'} {style='margin:auto;width:85%'}
+# spq
 fn apply(a,val): (
   unnest a
-  | collect(this+val))
+  | collect(this+val)
 )
 values apply([1,2,3], 1)
+# input
+
+# expected output
+"val" no such field at line 3, column 18:
+  | collect(this+val)
+                 ~~~
 ```
 because the field reference to `val` within the subquery does not exist.
-Instead the parameter `val` can be carried into the subquery using the
-alternative form of [unnest](../operators/unnest.md):
-```
+Instead the parameter `val` can be carried into the subquery using
+the compound form of [unnest](../operators/unnest.md):
+```mdtest-spq {data-layout='no-labels'} {style='margin:auto;width:85%'}
+# spq
 fn apply(a,val): (
   unnest {outer:val,item:a}
   | collect(outer+item)
 )
 values apply([1,2,3], 1)
+# input
+
+# expected output
+[2,3,4]
 ```
-See the example below.
 
 ### Examples
 
@@ -139,7 +150,7 @@ values stats(a)
 {avg:4.,min:4,max:4,mode:4}
 ```
 ---
-_Function arguments are actually fields in the "this" record_
+_Function arguments are actually fields in the `this` record_
 
 ```mdtest-spq
 # spq
@@ -151,7 +162,7 @@ values that(x,y,3)
 {a:1,b:2,c:3}
 ```
 ---
-_Functions passed as values do not appear in the "this" record_
+_Functions passed as values do not appear in the `this` record_
 
 ```mdtest-spq
 # spq

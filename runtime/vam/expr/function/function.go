@@ -87,6 +87,9 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 	case "network_of":
 		argmax = 2
 		f = &NetworkOf{sctx}
+	case "nullif":
+		argmin, argmax = 2, 2
+		f = newNullIf(sctx)
 	case "parse_sup":
 		f = newParseSUP(sctx)
 	case "parse_uri":

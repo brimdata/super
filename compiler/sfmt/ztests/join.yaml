@@ -1,41 +1,41 @@
 script: |
-  super compile -C "join (from test.sup) on left.x=right.x"
+  super compile -C "from f1 | join (from f2) on left.x=right.x"
   echo ===
-  super compile -C -dag -dynamic "join (from test.sup) on right.x=left.x"
+  super compile -C -dag -dynamic "from f1 | join (from f2) on right.x=left.x"
   echo ===
-  super compile -C "right join (from test.sup) as {l,r} on r.x=l.x"
+  super compile -C "from f1 | right join (from f2) as {l,r} on r.x=l.x"
   echo ===
-  super compile -C -dag -dynamic "right join (from test.sup) as {l,r} on r.x=l.x"
+  super compile -C -dag -dynamic "from f1 | right join (from f2) as {l,r} on r.x=l.x"
 
 outputs:
   - name: stdout
     data: |
-      join (
-        from "test.sup"
+      from f1
+      | join (
+        from f2
       ) on left.x=right.x
       ===
-      null
-      | fork
+      fork
         (
-          pass
+          file f1
         )
         (
-          file test.sup format sup
+          file f2
         )
       | inner join as {left,right} on right.x==left.x
       | output main
       ===
-      right join (
-        from "test.sup"
+      from f1
+      | right join (
+        from f2
       ) as {l,r} on r.x=l.x
       ===
-      null
-      | fork
+      fork
         (
-          pass
+          file f1
         )
         (
-          file test.sup format sup
+          file f2
         )
       | right join as {l,r} on r.x==l.x
       | output main

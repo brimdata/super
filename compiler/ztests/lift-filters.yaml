@@ -1,39 +1,35 @@
 script: |
-  super compile -C -O 'values {a:b,c:d} | where a==1 and c==2'
+  super compile -C -O -dynamic 'from f | values {a:b,c:d} | where a==1 and c==2'
   echo ===
-  super compile -C -O 'values {...a} | where b==1'
+  super compile -C -O -dynamic 'from f | values {...a} | where b==1'
   echo ===
-  super compile -C -O 'values {a:{b:c}} | where a.b==1'
+  super compile -C -O -dynamic 'from f | values {a:{b:c}} | where a.b==1'
   echo ===
   # https://github.com/brimdata/super/issues/6223
-  super compile -C -O 'values {a:b,c,d} | where a+1 between c and d'
+  super compile -C -O -dynamic 'from f |values {a:b,c,d} | where a+1 between c and d'
   echo ===
-  super compile -C -O 'values {a:{...b,...c}} | where a.d'
+  super compile -C -O -dynamic 'from f | values {a:{...b,...c}} | where a.d'
 
 outputs:
   - name: stdout
     data: |
-      null
-      | where b==1 and d==2
+      file f fields b,d filter (b==1 and d==2)
       | values {a:b,c:d}
       | output main
       ===
-      null
-      | where a.b==1
+      file f fields a filter (a.b==1)
       | values {...a}
       | output main
       ===
-      null
-      | where c==1
+      file f fields c filter (c==1)
       | values {a:{b:c}}
       | output main
       ===
-      null
-      | where b+1>=c and b+1<=d
+      file f fields b,c,d filter (b+1>=c and b+1<=d)
       | values {a:b,c:c,d:d}
       | output main
       ===
-      null
+      file f fields b,c
       | values {a:{...b,...c}}
       | where a.d
       | output main

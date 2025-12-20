@@ -4,25 +4,25 @@ Named types are declared with the syntax
 ```
 type <id> = <type>
 ```
-where `<id>` is an identifier and `<type>` is a [type](../types/intro.md).
+where `<id>` is an [identifier](../queries.md#identifiers) and `<type>` is a [type](../types/intro.md).
 This creates a new type with the given name in the type system.
 
 Type declarations must appear in the declaration section of a [scope](../queries.md#scope).
 
 Any named type that appears in the body of a type declaration must be previously
-declared in the same scope or in an ancestor scope, i.e., types cannot contained
+declared in the same scope or in an ancestor scope, i.e., types cannot contain
 forward references to other named types.  In particular, named types cannot be recursive.
 
 >[!NOTE]
 > A future version of SuperSQL may include recursive types.  This is a research topic
 > for the SuperDB project.
 
-Input data may create named types that conflict with type declarations.  In this case,
+Input data may create [named types](../../formats/model.md#3-named-type) that conflict with type declarations.  In this case,
 a reference to a declared type in the query text uses the type definition of the nearest
 containing scope that binds the type name independent of types in the input.
 
-When a named type is referenced as a string argument to cast, then any type definition
-with that name is ignored and the named type is bound to the type of the argument of cast.
+When a named type is referenced as a string argument to [cast](../functions/types/cast.md), then any type definition
+with that name is ignored and the named type is bound to the type of the first argument of `cast`.
 This does not affect the binding of the type used in other expressions in the query text.
 
 Types can also be bound to identifiers without creating a named type using a
@@ -78,7 +78,7 @@ true
 
 ---
 
-_A type name argument to cast in the form of a string is independent type declarations_
+_A type name argument to `cast` in the form of a string is independent of type declarations_
 
 ```mdtest-spq
 # spq

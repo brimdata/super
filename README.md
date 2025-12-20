@@ -51,7 +51,7 @@ FROM 'https://data.gharchive.org/2015-01-01-15.json.gz'
   ORDER BY len(repos) DESC
   LIMIT 5
 | FORK
-  ( FROM eval(f'https://api.github.com/users/{user}')
+  ( FROM f'https://api.github.com/users/{user}'
     SELECT login AS user, created_at::time AS created_at )
   ( PASS )
 | JOIN USING (user)

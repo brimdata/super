@@ -32,15 +32,14 @@ along with an operator sequence in the parentheses having the structure:
 Scope blocks may appear
 * anywhere a [pipe operator](operators/intro.md) may appear,
 * as a [subquery](expressions/subqueries.md) in an expression, or
-* as the body of [declared operator](declarations/operators.md).
+* as the body of a [declared operator](declarations/operators.md).
 
 The parenthesized block forms a
-[lexical scope](https://en.wikipedia.org/wiki/Scope_(computer_science)#Lexical_scope)
-and the bindings created by declarations
-within the scope are reachable only within that scope inclusive
-of other scopes defined within the scope.
+[lexical scope](https://en.wikipedia.org/wiki/Scope_(computer_science)#Lexical_scope).
+Bindings created by declarations within the scope are reachable within that
+scope and any scopes nested within it.
 
-A declaration cannot redefine an identifier that was previously defined in the same
+A declaration cannot redefine an [identifier](#identifiers) that was previously defined in the same
 scope but can override identifiers defined in ancestor scopes.
 
 The topmost scope is the global scope where all declared identifiers
@@ -51,22 +50,34 @@ of references to data input is defined by
 [pipe scoping](intro.md#pipe-scoping) and
 [relational scoping](intro.md#relational-scoping).
 
-For example, [this example](declarations/constants.md#examples) of a constant declaration
-```
+For example, this query containing a constant declaration emits the value `3.14`
+```mdtest-spq {data-layout='no-labels'} {style='margin:auto;width:85%'}
+# spq
 const PI=3.14
 values PI
+# input
+
+# expected output
+3.14
 ```
-emits the value `3.14` whereas
-```
+whereas the following query fails because the second reference to `PI` is not
+in the scope of the declared constant and thus the identifier is interpreted
+as a field reference `this.PI` via pipe scoping.
+
+```mdtest-spq fails {data-layout='no-labels'} {style='margin:auto;width:85%'}
+# spq
 ( 
   const PI=3.14
   values PI
 )
 | values this+PI
+# input
+
+# expected output
+"PI" no such field at line 5, column 15:
+| values this+PI
+              ~~
 ```
-emits `error("missing")` because the second reference to `PI` is not
-in the scope of the declared constant and thus the identifier is interpreted
-as a field reference `this.pi` via [pipe scoping](intro.md#pipe-scoping).
 
 ### Identifiers
 
@@ -84,7 +95,7 @@ character may be included in a backtick string with Unicode escape `\u0060`.
 
 In SQL expressions, identifiers may also be enclosed in double-quoted strings.
 
-The special value `this` is also available in SQL but has
+The [special value](intro.md#pipe-scoping) `this` is also available in SQL but has
 [peculiar semantics](sql/intro.md#accessing-this)
 due to SQL scoping rules.  To reference a column called `this`
 in a SQL expression, simply use double quotes, i.e., `"this"`.
@@ -103,12 +114,12 @@ path can be expressed as a [text entity](#text-entity) and need not be quoted:
 from file.json | ...
 ```
 
-Likewise, in the [`search`](operators/search.md) operator, the syntax for a
+Likewise, in the [search](operators/search.md) operator, the syntax for a
 [regular expression](#regular-expression) search can be specified as
 ```
 search /\w+(foo|bar)/
 ```
-whereas an explicit function call like `regexp` must be invoked to utilize
+whereas an explicit function call like [regexp](functions/parsing/regexp.md) must be invoked to utilize
 regular expressions in expressions as in
 ```
 where len(regexp(r'\w+(foo|bar)', this)) > 0
@@ -129,15 +140,15 @@ regexp('foo|bar', this)
 
 To avoid having to add escaping that would otherwise be necessary to
 represent a regular expression as a [raw string](types/string.md#raw-string),
-with prefix with `r`, e.g.,
+prefix with `r`, e.g.,
 ```
 regexp(r'\w+(foo|bar)', this)
 ```
 
 But when used outside of expressions where an explicit indication of
 a regular expression is required (e.g., in a
-[`search`](operators/search.md) or
-[`from`](operators/from.md#database-operation) operator), the RE2 is instead
+[search](operators/search.md) or
+[from](operators/from.md#database-operation) operator), the RE2 is instead
 prefixed and suffixed with a `/`, e.g.,
 ```
 /foo|bar/
@@ -151,8 +162,7 @@ the familiar pattern of "file globbing" supported by Unix shells.
 Globs are a simple, special case that utilize only the `*` wildcard.
 
 Like regular expressions, globs may be used in
-a [`search`](operators/search.md) operator or a
-[`from`](operators/from.md) operator.
+a [search](operators/search.md) or [from](operators/from.md) operator.
 
 Valid glob characters include letters, digits (excepting the leading character),
 any valid string escape sequence
@@ -168,13 +178,12 @@ A text entity represents a string where quotes can be omitted for
 certain common use cases regarding URLs and file paths.
 
 Text entities are syntactically valid as targets of a
-[`from`](operators/from.md) operator and as named arguments
-to `from` and the
-[`load`](operators/load.md) operator.
+[from](operators/from.md) operator and as named arguments
+to the `from` and [load](operators/load.md) operators.
 
 Specifically, a text entity is one of:
-* a string literal (double quoted, single quoted, or raw string),
-* a path consisting of a sequence of characters consisting of letters, digits, `_`,  `$`,  `.`, and `/`, or
+* a [string literal](types/string.md) (double quoted, single quoted, or raw string),
+* an unquoted string consisting of a sequence of characters consisting of letters, digits, `_`,  `$`,  `.`, and `/`, or
 * a simple URL consisting of a sequence of characters beginning with `http://` or `https://`,  followed by dotted strings of letters, digits, `-`, and `_`, and in turn optionally followed by `/` and a sequence of characters consisting of letters, digits, `_`, `$`, `.`, and `/`.
 
 If a URL does not meet the constraints of the simple URL rule,
@@ -187,7 +196,7 @@ subsequent newline.
 
 Multi-line comments are C style and begin with `/*` and end with `*/`.
 
-```mdtest-spq
+```mdtest-spq {data-layout='no-labels'} {style='margin:auto;width:85%'}
 # spq
 values 1, 2 -- , 3
 /*

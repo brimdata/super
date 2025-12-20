@@ -13,9 +13,9 @@ inputs:
       op stamp assignee: ( values {...this, assignee, ts: now()} )
       op nop foo: ( pass )
       op joinTest left_file, right_file, left_key, right_key, left_dest, right_source: (
-        from eval(left_file)
+        from f"{left_file}"
         | inner join (
-          from eval(right_file)
+          from f"{right_file}"
         ) on left.left_key = right.right_key 
         | values {...left,left_dest:right.right_source}
       )
@@ -41,9 +41,9 @@ outputs:
         pass
       )
       op joinTest left_file, right_file, left_key, right_key, left_dest, right_source: (
-        from eval(left_file)
+        from f"{left_file}"
         | inner join (
-          from eval(right_file)
+          from f"{right_file}"
         ) on left.left_key=right.right_key
         | values {...left,left_dest:right.right_source}
       )

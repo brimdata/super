@@ -3,15 +3,15 @@
 # same code path.
 script: |
   while read -r line; do
-    super compile -dag -C "$line"
+    super compile -C -dag -dynamic "$line"
   done < inputs.spq
 
 inputs:
   - name: inputs.spq
     data: |
       values (10+2)/8
-      where (y==2 or x==4) and z==5
-      where !(ts<=2)
+      from f | where (y==2 or x==4) and z==5
+      from f | where !(ts<=2)
 
 outputs:
   -  name: stdout
@@ -19,9 +19,9 @@ outputs:
         null
         | values (10+2)/8
         | output main
-        null
+        file f
         | where (y==2 or x==4) and z==5
         | output main
-        null
+        file f
         | where !(ts<=2)
         | output main

@@ -1,13 +1,11 @@
 script: |
-  super compile -C 'SELECT CASE a WHEN 42 THEN 100 WHEN 53 THEN 200 ELSE 300 END as z'
-  super compile -dag -C 'SELECT CASE a WHEN 42 THEN 100 WHEN 53 THEN 200 ELSE 300 END as z'
+  super compile -C 'values CASE this WHEN 42 THEN 100 WHEN 53 THEN 200 ELSE 300 END'
+  super compile -C -dag 'values CASE this WHEN 42 THEN 100 WHEN 53 THEN 200 ELSE 300 END'
 
 outputs:
   - name: stdout
     data: |
-      select case a when 42 then 100 when 53 then 200 else 300 end as z
+      values case this when 42 then 100 when 53 then 200 else 300 end
       null
-      | values {in:this}
-      | values {in:in,out:{z:(in.a==42) ? 100 : (in.a==53) ? 200 : 300}}
-      | values out
+      | values (this==42) ? 100 : (this==53) ? 200 : 300
       | output main

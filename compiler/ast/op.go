@@ -267,8 +267,8 @@ type FromSource interface {
 }
 
 type FromEval struct {
-	Kind string `json:"kind" unpack:""`
-	Expr Expr   `json:"expr"`
+	Kind string       `json:"kind" unpack:""`
+	Expr *FStringExpr `json:"expr"`
 	Loc  `json:"loc"`
 }
 

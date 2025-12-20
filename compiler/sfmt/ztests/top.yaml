@@ -1,11 +1,11 @@
 script: |
   super compile -C 'top'
   echo ===
-  super compile -dag -C 'top'
+  super compile -C -dag 'top'
   echo ===
-  super compile -C 'top -r 10 a, b desc, c nulls first'
+  super compile -C 'from f | top -r 10 a, b desc, c nulls first'
   echo ===
-  super compile -dag -C 'top -r 10 a, b desc, c nulls first'
+  super compile -C -dag -dynamic 'from f | top -r 10 a, b desc, c nulls first'
 
 outputs:
   - name: stdout
@@ -16,8 +16,9 @@ outputs:
       | top 1
       | output main
       ===
-      top -r 10 a, b desc, c nulls first
+      from f
+      | top -r 10 a, b desc, c nulls first
       ===
-      null
+      file f
       | top 10 a desc nulls last, b asc nulls last, c desc nulls first
       | output main

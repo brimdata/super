@@ -23,7 +23,6 @@ type Op struct {
 	batch    sbuf.Batch
 	off      int
 	src      sbuf.Puller
-	targets  []super.Value
 }
 
 func New(rctx *runtime.Context, env *exec.Environment, parent sbuf.Puller, e expr.Evaluator, format string, p sbuf.Pushdown) *Op {
@@ -91,11 +90,6 @@ func (o *Op) pullNext() (sbuf.Batch, error) {
 }
 
 func (o *Op) getPuller() (sbuf.Puller, error) {
-	if len(o.targets) > 0 {
-		src, err := o.openNext()
-		o.src = src
-		return src, err
-	}
 	src, err := o.nextPuller()
 	o.src = src
 	return src, err
@@ -123,34 +117,11 @@ func (o *Op) nextPuller() (sbuf.Puller, error) {
 	}
 	val := b.Values()[o.off]
 	o.off++
-	return o.openFromVal(val)
-}
-
-func (o *Op) openFromVal(val super.Value) (sbuf.Puller, error) {
 	target := o.expr.Eval(val)
-	typ := super.TypeUnder(target.Type())
-	if typ == super.TypeString {
-		return o.open(target.AsString())
-	}
-	vals, err := target.Elements()
-	if err != nil || len(vals) == 0 {
+	if super.TypeUnder(target.Type()) != super.TypeString {
 		return o.errOnVal(target), nil
 	}
-	typ = super.TypeUnder(vals[0].Type())
-	if typ != super.TypeString {
-		return o.errOnVal(target), nil
-	}
-	o.targets = vals
-	return o.openNext()
-}
-
-func (o *Op) openNext() (sbuf.Puller, error) {
-	if len(o.targets) == 0 {
-		return nil, nil
-	}
-	val := o.targets[0]
-	o.targets = o.targets[1:]
-	return o.open(val.AsString())
+	return o.open(target.AsString())
 }
 
 func (o *Op) errOnVal(val super.Value) sbuf.Puller {

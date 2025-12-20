@@ -1,21 +1,21 @@
 script: |
   super compile -C -O 'values {a:1,c:1} | values a, {b:a}, c'
   echo ===
-  super compile -C -O 'values {a,b,c:1} | aggregate count(a) by b, c'
+  super compile -C -O -dynamic 'from f | values {a,b,c:1} | aggregate count(a) by b, c'
   echo ===
-  super compile -C -O 'values {...a} | values {...b.c} | values d, {e}'
+  super compile -C -O -dynamic 'from f | values {...a} | values {...b.c} | values d, {e}'
   echo ===
   super compile -C -O 'values {a:{b:1}} | values {a:{...a,c:2}} | values {a:{...a,d:3}}'
   echo ===
-  super compile -C -O '{...a,...b} | values {c}'
+  super compile -C -O -dynamic 'from f | {...a,...b} | values {c}'
   echo ===
-  super compile -C -O '{a,...b} | values {a}'
+  super compile -C -O -dynamic 'from f | {a,...b} | values {a}'
   echo ===
-  super compile -C -O 'select a, max(b) as c group by a | aggregate min(c) by a'
+  super compile -C -O -dynamic 'select a, max(b) as c from f group by a | aggregate min(c) by a'
   echo ===
   super compile -C -O 'values {b:{d:1},c:{d:2}} | values {d:3,...b,...c}'
   echo ===
-  super compile -C -O 'values {a:{...b,...c}} | values a.d'
+  super compile -C -O -dynamic 'from f | values {a:{...b,...c}} | values a.d'
 
 outputs:
   - name: stdout
@@ -24,12 +24,12 @@ outputs:
       | values 1, {b:1}, 1
       | output main
       ===
-      null
+      file f unordered fields a,b
       | aggregate
           count:=count(a) by b:=b,c:=1
       | output main
       ===
-      null
+      file f fields a.b.c.d,a.b.c.e
       | values a.b.c.d, {e:a.b.c.e}
       | output main
       ===
@@ -37,17 +37,17 @@ outputs:
       | values {a:{b:1,c:2,d:3}}
       | output main
       ===
-      null
+      file f fields a,b
       | values {...a,...b}
       | values {c:c}
       | output main
       ===
-      null
+      file f fields a,b
       | values {a:a,...b}
       | values {a:a}
       | output main
       ===
-      null
+      file f unordered fields a,b
       | aggregate
           t0:=max(b) by k0:=a
       | aggregate
@@ -58,7 +58,7 @@ outputs:
       | values {d:2}
       | output main
       ===
-      null
+      file f fields b,c
       | values {a:{...b,...c}}
       | values a.d
       | output main

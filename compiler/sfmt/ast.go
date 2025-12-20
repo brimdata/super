@@ -847,9 +847,7 @@ func (c *canon) tableAlias(alias *ast.TableAlias) {
 func (c *canon) fromSource(s ast.FromSource) {
 	switch s := s.(type) {
 	case *ast.FromEval:
-		c.write("eval(")
 		c.expr(s.Expr, "")
-		c.write(")")
 	case *ast.GlobExpr:
 		c.write(s.Pattern)
 	case *ast.RegexpExpr:

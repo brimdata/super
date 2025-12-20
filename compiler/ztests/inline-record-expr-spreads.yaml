@@ -1,9 +1,9 @@
 script: |
-  super compile -C -O 'values {...{a}}, {...{...{b}}}'
+  super compile -C -O -dynamic 'from f | values {...{a}}, {...{...{b}}}'
 
 outputs:
   - name: stdout
     data: |
-      null
+      file f fields a,b
       | values {a:a}, {b:b}
       | output main

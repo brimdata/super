@@ -1,25 +1,25 @@
 script: |
-  super compile -C -dag 'values CAST(x AS int64)'
+  super compile -C -dag 'values CAST(this AS int64)'
   echo // ===
-  super compile -C -dag 'values CAST(ts AS DATE)'
+  super compile -C -dag 'values CAST(this AS DATE)'
   echo // ===
-  super compile -C -dag 'values CAST(foo AS DOESNOTEXIST)'
+  super compile -C -dag 'values CAST(this AS DOESNOTEXIST)'
   echo // ===
-  super compile -C 'values CAST(foo AS date)'
+  super compile -C 'values CAST(this AS date)'
 
 outputs:
   - name: stdout
     data: |
       null
-      | values cast(x, <int64>)
+      | values cast(this, <int64>)
       | output main
       // ===
       null
-      | values bucket(cast(ts, <time>), 1d)
+      | values bucket(cast(this, <time>), 1d)
       | output main
       // ===
       null
-      | values cast(foo, typename("DOESNOTEXIST"))
+      | values cast(this, typename("DOESNOTEXIST"))
       | output main
       // ===
-      values CAST(foo AS date)
+      values CAST(this AS date)

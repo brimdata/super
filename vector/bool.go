@@ -1,6 +1,8 @@
 package vector
 
 import (
+	"fmt"
+
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector/bitvec"
@@ -81,7 +83,7 @@ func BoolValue(vec Any, slot uint32) (bool, bool) {
 	case *View:
 		return BoolValue(vec.Any, vec.Index[slot])
 	}
-	panic(vec)
+	panic(fmt.Sprintf("%#v", vec))
 }
 
 func NullsOf(v Any) bitvec.Bits {
@@ -211,6 +213,14 @@ func CopyAndSetNulls(v Any, nulls bitvec.Bits) Any {
 		return &copy
 	case *Union:
 		return NewUnion(v.Typ, v.Tags, v.Values, nulls)
+	case *View:
+		newNulls := bitvec.NewFalse(uint32(len(v.Index)))
+		for i, idx := range v.Index {
+			if nulls.IsSet(uint32(i)) {
+				newNulls.Set(idx)
+			}
+		}
+		return NewView(CopyAndSetNulls(v.Any, newNulls), v.Index)
 	default:
 		panic(v)
 	}

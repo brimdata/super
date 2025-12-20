@@ -3,11 +3,11 @@ script: |
   echo ===
   super -s -c "select a x, a as y, b z from t.json"
   echo ===
-  super compile -C -O 'select n+1, n+2, n+1, n+3, n+1'
+  super compile -C -O 'select a+1, a+2, a+1, a+3, a+1 from t.json'
   echo ===
   # Test that if a label and inferred label conflict the inferred label is
   # changed.
-  super compile -C -O 'select n+1, n+1 as "n+1"'
+  super compile -C -O 'select a+1, a+1 as "a+1" from t.json'
 
 inputs:
   - name: t.json
@@ -30,10 +30,10 @@ outputs:
       {x:3,y:3,z:2}
       {x:4,y:4,z:2}
       ===
-      null
-      | values {"n+1":n+1,"n+2":n+2,"n+1_1":n+1,"n+3":n+3,"n+1_2":n+1}
+      file t.json format json fields a
+      | values {"a+1":a+1,"a+2":a+2,"a+1_1":a+1,"a+3":a+3,"a+1_2":a+1}
       | output main
       ===
-      null
-      | values {"n+1_1":n+1,"n+1":n+1}
+      file t.json format json fields a
+      | values {"a+1_1":a+1,"a+1":a+1}
       | output main

@@ -1,9 +1,9 @@
 script: |
-  super compile -C -dag 'EXTRACT(MICROSECONDS FROM ts)'
+  super compile -C -dag 'EXTRACT(MICROSECONDS FROM this)'
 
 outputs:
   - name: stdout
     data: |
       null
-      | values date_part("microseconds", ts)
+      | values date_part("microseconds", this)
       | output main

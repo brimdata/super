@@ -1,5 +1,5 @@
 script: |
-  super -s -c 'from files.sup | from eval(f)'
+  super -s -c 'from files.sup | from f"{f}"'
 
 inputs:
   - name: files.sup

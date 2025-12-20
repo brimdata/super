@@ -11,7 +11,7 @@ inputs:
         LIMIT 2
       | FORK
         (
-          FROM eval(f'{user}.sup')
+          FROM f'{user}.sup'
           SELECT login AS user, created_at::time AS created_at
         )
         ( PASS )

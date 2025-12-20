@@ -2,7 +2,6 @@ package parquetio
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"slices"
@@ -46,7 +45,7 @@ func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, p sb
 	}
 	ras, ok := r.(parquet.ReaderAtSeeker)
 	if !ok {
-		return nil, errors.New("reader cannot seek")
+		return nil, errNotSeekable
 	}
 	pr, err := file.NewParquetReader(ras)
 	if err != nil {

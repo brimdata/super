@@ -23,6 +23,10 @@ func NewCompare(sctx *super.Context, op string, lhs, rhs Evaluator) *Compare {
 	return &Compare{sctx, vector.CompareOpFromString(op), lhs, rhs}
 }
 
+func (c *Compare) Compare(vec0, vec1 vector.Any) vector.Any {
+	return c.eval(vec0, vec1)
+}
+
 func (c *Compare) Eval(val vector.Any) vector.Any {
 	return vector.Apply(true, c.eval, c.lhs.Eval(val), c.rhs.Eval(val))
 }

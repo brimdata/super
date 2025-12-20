@@ -1,0 +1,33 @@
+spq: nullif(this[0], this[1])
+
+vector: true
+
+input: |
+  [1, 1]
+  [1, 1::int32]
+  [1::int32, 1]
+  [1, 2]
+  [1, "s"]
+  [1, null]
+  [1, error(0)]
+  [null, 1]
+  [null, null]
+  [null, error(0)]
+  [error(0), 1]
+  [error(0), null]
+  [error(0), error(1)]
+
+output: |
+  null::int64
+  null::int64
+  null::int32
+  1
+  1
+  1
+  error(0)
+  null::int64
+  null
+  null::error(int64)
+  error(0)
+  error(0)
+  error(0)

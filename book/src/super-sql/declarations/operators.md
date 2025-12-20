@@ -9,7 +9,7 @@ op <name> [<param> [, <param> ...]] : (
 where
 * `<name>` is an [identifier](../queries.md#identifiers)
   representing the name of the new operator,
-* each `<param>` is an [identifier](../queries.md#identifiers)
+* each `<param>` is an identifier
   representing a positional parameter to the operator, and
 * `<query>` is any [query](../queries.md).
 
@@ -20,7 +20,7 @@ Operator declarations must appear in the declaration section of a [scope](../que
 A declared operator is invoked by its name
 using the [call](../operators/intro.md#call) keyword.
 Operators can be invoked without the `call` keyword as a shortcut when such use
-is unambiguous with the built-in operators.
+is unambiguous with the [built-in operators](../operators/intro.md).
 
 A called instance of a declared operator consumes input, operates on that input,
 and produces output.  The body of the
@@ -43,7 +43,7 @@ In contrast to function calls, where the arguments are evaluated at the call sit
 and values are passed to the function, operator arguments are instead passed to the
 operator body as an expression _template_ and the expression is evaluated in the
 context of the operator body.  That said, any other declared identifiers referenced
-by these expressions (e.g., constants, functions, named queries, etc.) are bound to
+by these expressions (e.g., [constants](constants.md), [functions](functions.md), [named queries](queries.md), etc.) are bound to
 those entities using the lexical scope where they are defined rather than the
 scope of their expanded use in the operator's definition.
 
@@ -58,14 +58,14 @@ the operator expressions here are not generators and do not implement backtracki
 
 ---
 
-_Trivial operator that echoes its input_
+_Trivial operator that echoes its input, invoked with explicit `call`_
 
 ```mdtest-spq
 # spq
 op echo: (
   values this
 )
-echo
+call echo
 # input
 {x:1}
 # expected output
@@ -74,7 +74,7 @@ echo
 
 ---
 
-_Simple example that adds a new field to inputs records_
+_Simple example that adds a new field to input records_
 
 ```mdtest-spq
 # spq

@@ -26,6 +26,7 @@ type Flags struct {
 	forceBinary   bool
 	jsonPretty    bool
 	jsonShortcut  bool
+	noHeader      bool
 	outputFile    string
 	pretty        int
 	split         string
@@ -46,6 +47,7 @@ func (f *Flags) setFlags(fs *flag.FlagSet) {
 	fs.IntVar(&f.BSUP.FrameThresh, "bsup.framethresh", bsupio.DefaultFrameThresh,
 		"minimum Super Binary frame size in uncompressed bytes")
 	fs.BoolVar(&f.color, "color", true, "enable/disable color formatting for -S and db text output")
+	fs.BoolVar(&f.CSV.NoHeader, "noheader", false, "omit header for CSV and TSV output")
 	fs.StringVar(&f.supPersist, "persist", "",
 		"regular expression to persist type definitions across the stream")
 	fs.IntVar(&f.pretty, "pretty", 2,

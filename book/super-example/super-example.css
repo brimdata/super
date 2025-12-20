@@ -4,7 +4,6 @@
   --color-text-code: var(--fg);
   --color-text-meta: var(--fg);
   --label-size: 1rem;
-  --radius: 16px;
   --space-2xs: clamp(0.5625rem, 0.5362rem + 0.1316vi, 0.625rem);
   --space-s: clamp(1.125rem, 1.0724rem + 0.2632vi, 1.25rem);
 
@@ -16,7 +15,6 @@
   grid-template-areas:
     'query query'
     'input result';
-  border-radius: var(--radius);
 
   &[data-layout~='no-labels'] {
     label {
@@ -59,7 +57,6 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: min-content auto;
-    padding-block-start: 1em;
 
     & header {
       align-items: end;
@@ -93,7 +90,7 @@
     overflow: auto;
     max-height: 40rem;
     scrollbar-color: var(--color-text-meta) var(--color-bg-code);
-    padding-block: 0.75em;
+    padding-block: 0.2em;
   }
 
   & .cm-selectionBackground {
