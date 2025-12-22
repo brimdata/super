@@ -21,22 +21,22 @@ vector: true
 outputs:
   - name: stdout
     data: |
-      {that:{x:1},count:1::uint64}
-      {that:{x:2},count:2::uint64}
+      {that:{x:1},count:1}
+      {that:{x:2},count:2}
       // ===
-      {count:1::uint64}
-      {count:2::uint64}
+      {count:1}
+      {count:2}
       // ===
-      {x:1,row_number:1::uint64}
-      {x:2,row_number:2::uint64}
+      {x:1,row_number:1}
+      {x:2,row_number:2}
       // ===
-      {x:1,row_number:1::uint64}
-      {x:2,row_number:2::uint64}
+      {x:1,row_number:1}
+      {x:2,row_number:2}
       // ===
-      {val:1,c:1::uint64}
-      {val:2,c:2::uint64}
-      {val:3,c:1::uint64}
-      {val:4,c:2::uint64}
+      {val:1,c:1}
+      {val:2,c:2}
+      {val:3,c:1}
+      {val:4,c:2}
   - name: stderr
     data: |
       type mismatch at line 1, column 32:

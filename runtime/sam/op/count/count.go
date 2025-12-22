@@ -10,7 +10,7 @@ type Op struct {
 	parent sbuf.Puller
 	alias  string
 	expr   expr.Evaluator
-	count  uint64
+	count  int64
 }
 
 func New(sctx *super.Context, parent sbuf.Puller, alias string, in expr.Evaluator) (*Op, error) {
@@ -44,5 +44,5 @@ func (e evalfunc) Eval(this super.Value) super.Value { return e(this) }
 
 func (o *Op) evalCount(_ super.Value) super.Value {
 	o.count++
-	return super.NewUint64(o.count)
+	return super.NewInt64(o.count)
 }
