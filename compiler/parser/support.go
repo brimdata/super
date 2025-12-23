@@ -58,13 +58,12 @@ func makeArgMap(args any) (any, error) {
 }
 
 func newCall(c *current, name, args any) ast.Expr {
-	call := &ast.CallExpr{
+	return &ast.CallExpr{
 		Kind: "CallExpr",
 		Func: name.(ast.Expr),
 		Args: sliceOf[ast.Expr](args),
 		Loc:  loc(c),
 	}
-	return call
 }
 
 func loc(c *current) ast.Loc {

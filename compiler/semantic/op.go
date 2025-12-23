@@ -1322,7 +1322,7 @@ func (t *translator) exprOp(e ast.Expr, seq sem.Seq) sem.Seq {
 		if seq := t.maybeCallShortcut(call, seq); seq != nil {
 			return seq
 		}
-	} else if agg, ok := e.(*ast.AggFunc); ok {
+	} else if agg, ok := e.(*ast.AggFuncExpr); ok {
 		return t.aggFuncShortcut(agg, seq)
 	}
 	// For stand-alone identifiers with no arguments, see if it's a user op
@@ -1406,7 +1406,7 @@ func (t *translator) maybeCallShortcut(call *ast.CallExpr, seq sem.Seq) sem.Seq 
 	return append(seq, &sem.FilterOp{Node: call, Expr: t.semCall(call)})
 }
 
-func (t *translator) aggFuncShortcut(agg *ast.AggFunc, seq sem.Seq) sem.Seq {
+func (t *translator) aggFuncShortcut(agg *ast.AggFuncExpr, seq sem.Seq) sem.Seq {
 	name := agg.Name
 	aggFunc := t.aggFunc(agg, name, agg.Expr, agg.Filter, agg.Distinct)
 	aggregate := &sem.AggregateOp{
@@ -1420,7 +1420,7 @@ func (t *translator) aggFuncShortcut(agg *ast.AggFunc, seq sem.Seq) sem.Seq {
 		},
 	}
 	values := sem.NewValues(agg, sem.NewThis(agg, []string{name}))
-	return append(append(seq, aggregate), values)
+	return append(seq, aggregate, values)
 }
 
 func (t *translator) callOp(call *ast.CallOp, seq sem.Seq) sem.Seq {

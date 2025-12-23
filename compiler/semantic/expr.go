@@ -22,7 +22,7 @@ import (
 
 func (t *translator) expr(e ast.Expr) sem.Expr {
 	switch e := e.(type) {
-	case *ast.AggFunc:
+	case *ast.AggFuncExpr:
 		expr := t.exprNullable(e.Expr)
 		nameLower := strings.ToLower(e.Name)
 		if expr == nil && nameLower != "count" {
@@ -890,7 +890,7 @@ func isLval(e sem.Expr) bool {
 
 func deriveNameFromExpr(e ast.Expr) string {
 	switch e := e.(type) {
-	case *ast.AggFunc:
+	case *ast.AggFuncExpr:
 		return e.Name
 	case *ast.CallExpr:
 		var name string

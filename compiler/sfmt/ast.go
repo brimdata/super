@@ -72,7 +72,7 @@ func (c *canon) expr(e ast.Expr, parent string) {
 	switch e := e.(type) {
 	case nil:
 		c.write("null")
-	case *ast.AggFunc:
+	case *ast.AggFuncExpr:
 		var distinct string
 		if e.Distinct {
 			distinct = "distinct "

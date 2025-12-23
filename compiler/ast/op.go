@@ -376,12 +376,3 @@ func (*ValuesOp) opNode()     {}
 func (*WhereOp) opNode()      {}
 
 func (*DefaultScan) opNode() {}
-
-type AggFunc struct {
-	Kind     string `json:"kind" unpack:""`
-	Name     string `json:"name"`
-	Distinct bool   `json:"distinct"`
-	Expr     Expr   `json:"expr"`
-	Filter   Expr   `json:"filter"`
-	Loc      `json:"loc"`
-}

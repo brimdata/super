@@ -6,6 +6,14 @@ type Expr interface {
 }
 
 type (
+	AggFuncExpr struct {
+		Kind     string `json:"kind" unpack:""`
+		Name     string `json:"name"`
+		Distinct bool   `json:"distinct"`
+		Expr     Expr   `json:"expr"`
+		Filter   Expr   `json:"filter"`
+		Loc      `json:"loc"`
+	}
 	ArrayExpr struct {
 		Kind  string      `json:"kind" unpack:""`
 		Elems []ArrayElem `json:"elems"`
@@ -260,7 +268,7 @@ type (
 func (*FStringTextElem) fStringElemNode() {}
 func (*FStringExprElem) fStringElemNode() {}
 
-func (*AggFunc) exprNode()         {}
+func (*AggFuncExpr) exprNode()     {}
 func (*ArrayExpr) exprNode()       {}
 func (*BetweenExpr) exprNode()     {}
 func (*BinaryExpr) exprNode()      {}

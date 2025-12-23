@@ -267,8 +267,8 @@ AggAssignment
 
 AggFunc
   = name:AggName __ "(" __ expr:Expr? __ ")" filter:FilterClause? {
-      agg := &ast.AggFunc{
-          Kind: "AggFunc",
+      agg := &ast.AggFuncExpr{
+          Kind: "AggFuncExpr",
           Name: name.(string),
           Loc: loc(c),
       }
@@ -282,8 +282,8 @@ AggFunc
     }
   / name:AggName __ "(" __ q:(ALL / DISTINCT)  _ expr:Expr __ ")" filter:FilterClause? {
       qualifier := string(q.([]any)[0].([]byte))
-      agg := &ast.AggFunc{
-          Kind: "AggFunc",
+      agg := &ast.AggFuncExpr{
+          Kind: "AggFuncExpr",
           Name: name.(string),
           Distinct: strings.EqualFold(qualifier, "distinct"),
           Expr: expr.(ast.Expr),
@@ -295,8 +295,8 @@ AggFunc
       return agg, nil    
     }
   / cs:CountStar filter:FilterClause? {
-      agg := &ast.AggFunc{
-          Kind: "AggFunc",
+      agg := &ast.AggFuncExpr{
+          Kind: "AggFuncExpr",
           Name: "count",
           Loc: loc(c),
       }
@@ -312,8 +312,6 @@ AggName
   / OR
 
 FilterClause = _ FILTER __ "(" __ expr:LogicalOrExpr __ ")" { return expr, nil }
-
-WhereClause = _ WHERE _ expr:LogicalOrExpr { return expr, nil }
 
 AggAssignments
   = first:AggAssignment rest:(__ "," __ AggAssignment)* {
@@ -2099,6 +2097,8 @@ FromSelect
       }
       return sel, nil
     }
+
+WhereClause = _ WHERE _ expr:LogicalOrExpr { return expr, nil }
 
 SQLValues
   = VALUES __ tuples:SQLTuples {
