@@ -1,4 +1,4 @@
-spq: summarize count() where _path == 'conn'
+spq: summarize count() filter (_path == 'conn')
 
 input: |
   {_path:"conn"}

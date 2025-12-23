@@ -19,7 +19,7 @@ type (
 		Name     string // convert to lower case
 		Distinct bool
 		Expr     Expr
-		Where    Expr
+		Filter   Expr
 	}
 	ArrayExpr struct {
 		ast.Node
@@ -271,7 +271,7 @@ func CopyExpr(e Expr) Expr {
 			Name:     e.Name,
 			Distinct: e.Distinct,
 			Expr:     CopyExpr(e.Expr),
-			Where:    CopyExpr(e.Where),
+			Filter:   CopyExpr(e.Filter),
 		}
 	case *ArrayExpr:
 		return &ArrayExpr{

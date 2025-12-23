@@ -1,7 +1,7 @@
 script: |
   super -s -c "_path == 'conn' | count()" in.sup
   echo ===
-  super -s -c "count() where _path == 'conn'" in.sup
+  super -s -c "count() filter ( _path == 'conn' )" in.sup
 
 inputs:
   - name: in.sup

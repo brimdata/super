@@ -12,7 +12,7 @@ script: |
   super -s -c 'from t.csup | count() by y | sort y'
   super -s -c 'from t.csup | count(distinct x) by y | sort y'
   super -s -c 'from t.csup | count() by z | z == "257"'
-  super -s -c 'from t.csup | count() where y=="1" by z | z == "257"'
+  super -s -c 'from t.csup | count() filter (y=="1") by z | z == "257"'
 
 outputs:
   - name: stdout

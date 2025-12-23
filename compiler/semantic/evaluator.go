@@ -214,7 +214,7 @@ func (e *evaluator) expr(expr sem.Expr) bool {
 	case nil:
 		return true
 	case *sem.AggFunc:
-		return e.expr(expr.Expr) && e.expr(expr.Where)
+		return e.expr(expr.Expr) && e.expr(expr.Filter)
 	case *sem.ArrayExpr:
 		return e.arrayElems(expr.Elems)
 	case *sem.BadExpr:

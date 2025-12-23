@@ -1,7 +1,7 @@
 spq: |
   aggregate
     num_requests := count()
-    where log_time >= 2012-10-01T00:00:00Z
+    filter (log_time >= 2012-10-01T00:00:00Z)
     by client_ip
   | sort client_ip
 

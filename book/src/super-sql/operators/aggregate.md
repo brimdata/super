@@ -12,7 +12,7 @@ where `<agg>` references an [aggregate function](../aggregates/intro.md)
 optionally structured as a  [field assignment](intro.md#field-assignment)
 having the form:
 ```
-[ <field> := ] <agg-func> ( [ all | distinct ] <expr> ) [ where <pred> ]
+[ <field> := ] <agg-func> ( [ all | distinct ] <expr> ) [ filter ( <pred> ) ]
 ```
 and `<grouping>` is a grouping expression [field assignment](intro.md#field-assignment)
 having the form:
@@ -33,7 +33,7 @@ to the entire input optionally filtered by `<pred>`.
 
 In the first form, the `aggregate` operator consumes all of its input,
 applies one or more aggregate functions `<agg>` to each input value
-optionally filtered by a `where` clause and/or organized with the grouping
+optionally filtered by a `filter` clause and/or organized with the grouping
 expressions specified after the `by` keyword, and at the end of input produces one
 or more aggregations for each unique set of grouping key values.
 
@@ -44,10 +44,10 @@ keyword without applying any aggregate functions.
 The `aggregate` keyword is optional since it can be used as a
 [shortcut](intro.md#shortcuts).
 
-Each aggregate function `<agg-func>` may be optionally followed by a `where` clause,
+Each aggregate function `<agg-func>` may be optionally followed by a `filter` clause,
 which applies a Boolean expression `<pred>` that indicates, for each input value,
 whether to include it in the values operated upon by the aggregate function.
-`where` clauses are analogous
+`filter` clauses are analogous
 to the [`where`](where.md) operator but apply their filter to the input
 argument stream to the aggregate function.
 
@@ -152,10 +152,10 @@ set:=union(v) by key:=k | sort
 
 ---
 
-_Use a `where` clause_
+_Use a `filter` clause_
 ```mdtest-spq
 # spq
-set:=union(v) where v > 1 by key:=k | sort
+set:=union(v) filter (v > 1) by key:=k | sort
 # input
 {k:"foo",v:1}
 {k:"bar",v:2}
@@ -169,11 +169,11 @@ set:=union(v) where v > 1 by key:=k | sort
 
 ---
 
-_Use a separate `where` clause on each aggregate function_
+_Use a separate `filter` clause on each aggregate function_
 ```mdtest-spq
 # spq
-set:=union(v) where v > 1,
-array:=collect(v) where k=="foo"
+set:=union(v) filter (v > 1),
+array:=collect(v) filter (k=="foo")
   by key:=k
 | sort
 # input
@@ -189,11 +189,11 @@ array:=collect(v) where k=="foo"
 
 ---
 
-_Results are included for `by` groupings that generate null results when `where`
+_Results are included for `by` groupings that generate null results when `filter`
 clauses are used inside `aggregate`_
 ```mdtest-spq
 # spq
-sum(v) where k=="bar" by key:=k | sort
+sum(v) filter (k=="bar") by key:=k | sort
 # input
 {k:"foo",v:1}
 {k:"bar",v:2}

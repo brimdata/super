@@ -64,10 +64,10 @@ where grep("bar", this) | count()
 # expected output
 ```
 
-Count can return an explicit zero when using a `where` clause in the aggregation:
+Count can return an explicit zero when using a `filter` clause in the aggregation:
 ```mdtest-spq
 # spq
-count() where grep("bar", this)
+count() filter (grep("bar", this))
 # input
 1
 "foo"

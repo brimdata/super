@@ -118,7 +118,7 @@ func exprWalk(e sem.Expr, visit exprVisitor) sem.Expr {
 	case nil:
 	case *sem.AggFunc:
 		e.Expr = exprWalk(e, visit)
-		e.Where = exprWalk(e, visit)
+		e.Filter = exprWalk(e, visit)
 	case *sem.ArrayExpr:
 		e.Elems = exprWalkArrayElems(e.Elems, visit)
 	case *sem.BadExpr:

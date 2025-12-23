@@ -332,7 +332,7 @@ func (d *dagen) aggExpr(e sem.Expr) dag.Expr {
 		Name:     agg.Name,
 		Distinct: agg.Distinct,
 		Expr:     d.expr(agg.Expr),
-		Where:    d.expr(agg.Where),
+		Filter:   d.expr(agg.Filter),
 	}
 }
 

@@ -288,7 +288,7 @@ func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
 		return c.unknown
 	case *sem.AggFunc:
 		c.expr(typ, e.Expr)
-		c.expr(typ, e.Where)
+		c.expr(typ, e.Filter)
 		// XXX This will be handled in a subsequent PR where we add type signatures
 		// to the package containing the agg func implementatons.
 		return c.unknown

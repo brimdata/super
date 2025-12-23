@@ -155,7 +155,7 @@ func demandForExpr(expr dag.Expr) demand.Demand {
 	case nil:
 		return demand.None()
 	case *dag.AggExpr:
-		return demand.Union(demandForExpr(expr.Expr), demandForExpr(expr.Where))
+		return demand.Union(demandForExpr(expr.Expr), demandForExpr(expr.Filter))
 	case *dag.ArrayExpr:
 		return demandForArrayOrSetExpr(expr.Elems)
 	case *dag.BinaryExpr:

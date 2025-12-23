@@ -1,4 +1,4 @@
-spq: a:=max(x) where x<5, b:=max(x) where x<=10
+spq: lg:=sum(x) filter (x>=5), sm:=sum(x) filter (x<8)
 
 vector: true
 
@@ -11,4 +11,4 @@ input: |
   {x:12::int32}
 
 output: |
-  {a:1,b:10}
+  {lg:33,sm:11}

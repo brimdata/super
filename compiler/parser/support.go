@@ -57,15 +57,12 @@ func makeArgMap(args any) (any, error) {
 	return m, nil
 }
 
-func newCall(c *current, name, args, where any) ast.Expr {
+func newCall(c *current, name, args any) ast.Expr {
 	call := &ast.CallExpr{
 		Kind: "CallExpr",
 		Func: name.(ast.Expr),
 		Args: sliceOf[ast.Expr](args),
 		Loc:  loc(c),
-	}
-	if where != nil {
-		call.Where = where.(ast.Expr)
 	}
 	return call
 }

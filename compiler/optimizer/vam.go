@@ -20,7 +20,7 @@ func isCount(a dag.Assignment) bool {
 		return false
 	}
 	agg, ok := a.RHS.(*dag.AggExpr)
-	return ok && agg.Name == "count" && agg.Expr == nil && agg.Where == nil
+	return ok && agg.Name == "count" && agg.Expr == nil && agg.Filter == nil
 }
 
 func isSingleField(a dag.Assignment) (string, bool) {
