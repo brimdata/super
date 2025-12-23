@@ -1,0 +1,26 @@
+spq: |
+  select a
+  from (values (1,2), (2,1)) as T(a,b)
+  group by a
+  order by sum(b)
+output: |
+  {a:2}
+  {a:1}
+---
+spq: |
+  select count() as c
+  from (values (4)) T(id)
+  group by id
+  order by c
+output: |
+  {c:1::uint64}
+---
+# we got to disable this test in a future pr we'll handle this kind of query.
+# skip: "agg aliases"
+spq: |
+  select count() as c
+  from (values (4)) T(id)
+  group by id
+  order by c+max(id)
+output: |
+  {c:1::uint64}

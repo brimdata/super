@@ -159,7 +159,7 @@ func (t *translator) fromCTE(node ast.Node, c *ast.SQLCTE) (sem.Seq, schema) {
 		return sem.Seq{badOp()}, badSchema()
 	}
 	t.cteStack = append(t.cteStack, c)
-	seq, sch := t.sqlQueryBody(c.Body, nil)
+	seq, sch := t.sqlQueryBody(c.Body, nil, nil)
 	// Add the CTE name as the alias.  If there is an actual alias, it will
 	// override this.
 	sch = addAlias(sch, c.Name.Name)
@@ -569,7 +569,7 @@ func (t *translator) scopeOp(op *ast.ScopeOp) sem.Seq {
 func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 	switch o := o.(type) {
 	case *ast.SQLOp:
-		seq, sch := t.sqlQueryBody(o.Body, seq)
+		seq, sch := t.sqlQueryBody(o.Body, seq, nil)
 		return unfurl(o, sch, seq)
 	case *ast.FileScan:
 		format := t.env.ReaderOpts.Format

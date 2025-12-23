@@ -1,0 +1,32 @@
+spq: |
+  select T.id
+  from (values (1,'yyy'), (2,'aaa')) T(id,foo)
+  inner join (values (1,'zzz'),(2,'aaa')) J(id,bar) on T.id = J.id
+  group by T.id, foo || bar
+  order by T.foo || J.bar
+
+output: |
+  {id:2}
+  {id:1}
+
+---
+spq: |
+  select a+b x
+  from ( values (1,2,3)) T(a,b,c)
+  group by x
+  order by T.a+T.b
+
+output: |
+  {x:3}
+
+---
+spq: |
+  select T.id
+  from (values (1), (2)) T(id)
+  inner join (values (1,'zzz'),(2,'aaa')) J(id,bar) on T.id = J.id
+  group by T.id,bar
+  order by J.bar
+
+output: |
+  {id:2}
+  {id:1}

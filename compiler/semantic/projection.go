@@ -89,7 +89,7 @@ func (a *aggfuncs) subst(e sem.Expr) sem.Expr {
 	})
 }
 
-func keySubst(e sem.Expr, exprs []exprloc) (sem.Expr, bool) {
+func keySubst(e sem.Expr, exprs []sem.Expr) (sem.Expr, bool) {
 	ok := true
 	e = exprWalk(e, func(e sem.Expr) (sem.Expr, bool) {
 		if i := exprMatch(e, exprs); i >= 0 {

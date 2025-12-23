@@ -26,7 +26,7 @@ import (
 // an OrderBy, it can reach into the "in" part of the select scope (for non-aggregates)
 // and also sort by the out elements.  It's up to the caller to unwrap the in/out
 // record when returning to pipeline context.
-func (t *translator) sqlSelect(sel *ast.SQLSelect, seq sem.Seq) (sem.Seq, schema) {
+func (t *translator) sqlSelect(sel *ast.SQLSelect, seq sem.Seq, orderByDemand *ast.SQLOrderBy) (sem.Seq, schema) {
 	if len(sel.Selection.Args) == 0 {
 		t.error(sel, errors.New("SELECT clause has no selection"))
 		return seq, badSchema()
@@ -55,8 +55,9 @@ func (t *translator) sqlSelect(sel *ast.SQLSelect, seq sem.Seq) (sem.Seq, schema
 	// on whether its an aggregation or a selection of scalar expressions.
 	seq = valuesExpr(wrapThis(sel, "in"), seq)
 	if len(funcs) != 0 || len(keyExprs) != 0 {
+		t.addOrderByAggs(sch, orderByDemand, &funcs)
 		seq = t.genAggregate(sel.Loc, proj, where, keyExprs, funcs, having, seq)
-		return seq, sch.out
+		return seq, newAggSchema(sch, proj, keyExprs, funcs)
 	}
 	if having != nil {
 		t.error(sel.Having, errors.New("HAVING clause requires aggregations and/or a GROUP BY clause"))
@@ -66,6 +67,59 @@ func (t *translator) sqlSelect(sel *ast.SQLSelect, seq sem.Seq) (sem.Seq, schema
 		seq = t.genDistinct(sem.NewThis(sel, []string{"out"}), seq)
 	}
 	return seq, sch
+}
+
+func newAggSchema(sch *selectSchema, proj projection, keyExprs []exprloc, funcs aggfuncs) schema {
+	var keys []sem.Expr
+	var keyAliases []sem.Expr
+	for _, k := range keyExprs {
+		// We need to check if a keyExpr is a call to an alias of a projection.
+		// If this is the case then store the original proj expr so it can be
+		// used in the order by.
+		expr := k.expr
+		var alias sem.Expr
+		if this, ok := k.expr.(*sem.ThisExpr); ok && this.Path[0] == "out" {
+			name := this.Path[1]
+			for _, col := range proj {
+				if col.name == name {
+					alias = expr
+					expr = col.expr
+				}
+			}
+		}
+		keys = append(keys, expr)
+		keyAliases = append(keyAliases, alias)
+	}
+	//
+	var aggs []sem.Expr
+	for _, f := range funcs {
+		aggs = append(aggs, f.agg)
+	}
+	// Add aliases for aggs so we can match aliases in order by.
+	aggAliases := make([]string, 0, len(funcs))
+	for _, col := range proj {
+		if col.isAgg {
+			aggAliases = append(aggAliases, col.name)
+		}
+	}
+	aggAliases = aggAliases[:len(funcs)]
+	return &aggSchema{
+		schema:     sch,
+		aggs:       aggs,
+		aggAliases: aggAliases,
+		keys:       keys,
+		keyAliases: keyAliases,
+	}
+}
+
+func (t *translator) addOrderByAggs(sch *selectSchema, o *ast.SQLOrderBy, funcs *aggfuncs) {
+	if o == nil {
+		return
+	}
+	for _, sort := range o.Exprs {
+		e := t.exprSchema(sch, sort.Expr)
+		newColumn("", sort.Expr, e, funcs)
+	}
 }
 
 func (t *translator) having(sch *selectSchema, e ast.Expr, funcs *aggfuncs) sem.Expr {
@@ -207,11 +261,12 @@ func (t *translator) genAggregate(loc ast.Loc, proj projection, where sem.Expr, 
 	if having != nil {
 		seq = append(seq, sem.NewFilter(having, having))
 	}
-	return valuesExpr(sem.NewThis(loc, []string{"out"}), seq)
+	return seq
 }
 
-func (t *translator) genAggregateOutput(loc ast.Node, proj projection, keyExprs []exprloc, seq sem.Seq) sem.Seq {
+func (t *translator) genAggregateOutput(loc ast.Node, proj projection, keyExprs exprlocs, seq sem.Seq) sem.Seq {
 	notFirst := false
+	keys := keyExprs.exprs()
 	for _, col := range proj {
 		if col.isStar() {
 			// XXX this turns into grouping keys (this)
@@ -229,10 +284,10 @@ func (t *translator) genAggregateOutput(loc ast.Node, proj projection, keyExprs 
 		// First, try to match the column expression to one of the grouping
 		// expressions.  If that doesn't work, see if the aliased column
 		// name is one of the grouping expressions.
-		key, ok := keySubst(sem.CopyExpr(col.expr), keyExprs)
+		key, ok := keySubst(sem.CopyExpr(col.expr), keys)
 		if !ok {
 			alias := sem.NewThis(col.loc, []string{"out", col.name})
-			if which := exprMatch(alias, keyExprs); which >= 0 {
+			if which := exprMatch(alias, keys); which >= 0 {
 				key = sem.NewThis(col.loc, []string{"in", fmt.Sprintf("k%d", which)})
 				ok = true
 			}
@@ -279,9 +334,9 @@ func (t *translator) genAggregateOutput(loc ast.Node, proj projection, keyExprs 
 	return seq
 }
 
-func exprMatch(target sem.Expr, exprs []exprloc) int {
+func exprMatch(target sem.Expr, exprs []sem.Expr) int {
 	for which, e := range exprs {
-		if eqExpr(target, e.expr) {
+		if eqExpr(target, e) {
 			return which
 		}
 	}
@@ -355,7 +410,7 @@ func (t *translator) genDistinct(e sem.Expr, seq sem.Seq) sem.Seq {
 
 func (t *translator) sqlPipe(pipe *ast.SQLPipe, seq sem.Seq) (sem.Seq, schema) {
 	if query, ok := maybeSQLQueryBody(pipe); ok {
-		return t.sqlQueryBody(query, seq)
+		return t.sqlQueryBody(query, seq, nil)
 	}
 	if len(seq) > 0 {
 		panic("semSQLOp: SQL pipes can't have parents")
@@ -438,42 +493,24 @@ func idsToStrings(ids []*ast.ID) []string {
 	return out
 }
 
-func (t *translator) sqlQueryBody(query ast.SQLQueryBody, seq sem.Seq) (sem.Seq, schema) {
+func (t *translator) sqlQueryBody(query ast.SQLQueryBody, seq sem.Seq, orderbyDemand *ast.SQLOrderBy) (sem.Seq, schema) {
 	switch query := query.(type) {
 	case *ast.SQLSelect:
-		return t.sqlSelect(query, seq)
+		return t.sqlSelect(query, seq, orderbyDemand)
 	case *ast.SQLValues:
 		return t.sqlValues(query, seq)
 	case *ast.SQLQuery:
-		if query.With != nil {
-			old := t.sqlWith(query.With)
-			defer func() { t.scope.ctes = old }()
-		}
-		seq, sch := t.sqlQueryBody(query.Body, seq)
-		if query.OrderBy != nil {
-			var exprs []sem.SortExpr
-			for _, e := range query.OrderBy.Exprs {
-				exprs = append(exprs, t.sortExpr(sch, e, false))
-			}
-			seq = append(seq, &sem.SortOp{Node: query.OrderBy, Exprs: exprs})
-		}
-		if limoff := query.Limit; limoff != nil {
-			if limoff.Offset != nil {
-				seq = append(seq, &sem.SkipOp{Node: limoff.Offset, Count: t.mustEvalPositiveInteger(limoff.Offset)})
-			}
-			if limoff.Limit != nil {
-				seq = append(seq, &sem.HeadOp{Node: limoff.Limit, Count: t.mustEvalPositiveInteger(limoff.Limit)})
-			}
-		}
-		return seq, sch
+		return t.sqlQuery(query, seq)
 	case *ast.SQLUnion:
-		left, leftSch := t.sqlQueryBody(query.Left, seq)
+		// XXX Ignore orderby for now though.
+		left, leftSch := t.sqlQueryBody(query.Left, seq, nil)
 		left, leftSch = endScope(query.Left.(ast.Node), leftSch, left)
 		leftCols, lok := leftSch.outColumns()
 		if !lok {
 			t.error(query.Left, errors.New("set operations cannot be applied to dynamic sources"))
 		}
-		right, rightSch := t.sqlQueryBody(query.Right, seq)
+		// XXX Ignore orderby for now though.
+		right, rightSch := t.sqlQueryBody(query.Right, seq, nil)
 		right, rightSch = endScope(query.Right.(ast.Node), rightSch, right)
 		rightCols, rok := rightSch.outColumns()
 		if !rok {
@@ -515,6 +552,79 @@ func (t *translator) sqlQueryBody(query ast.SQLQueryBody, seq sem.Seq) (sem.Seq,
 	default:
 		panic(query)
 	}
+}
+
+func (t *translator) sqlQuery(query *ast.SQLQuery, seq sem.Seq) (sem.Seq, schema) {
+	if query.With != nil {
+		old := t.sqlWith(query.With)
+		defer func() { t.scope.ctes = old }()
+	}
+	seq, sch := t.sqlQueryBody(query.Body, seq, query.OrderBy)
+	if query.OrderBy != nil {
+		var exprs []sem.SortExpr
+		for _, e := range query.OrderBy.Exprs {
+			exprs = append(exprs, t.sortExpr(sch, e, false))
+		}
+		if aggSch, ok := sch.(*aggSchema); ok {
+			exprs = t.resolveOrderByAggExprs(aggSch, exprs)
+		}
+		seq = append(seq, &sem.SortOp{Node: query.OrderBy, Exprs: exprs})
+	}
+	if limoff := query.Limit; limoff != nil {
+		if limoff.Offset != nil {
+			seq = append(seq, &sem.SkipOp{Node: limoff.Offset, Count: t.mustEvalPositiveInteger(limoff.Offset)})
+		}
+		if limoff.Limit != nil {
+			seq = append(seq, &sem.HeadOp{Node: limoff.Limit, Count: t.mustEvalPositiveInteger(limoff.Limit)})
+		}
+	}
+	return seq, sch
+}
+
+func (t *translator) resolveOrderByAggExprs(sch *aggSchema, sorts []sem.SortExpr) []sem.SortExpr {
+	var outSorts []sem.SortExpr
+	for _, sort := range sorts {
+		if this, ok := sort.Expr.(*sem.ThisExpr); ok && this.Path[0] == "out" {
+			outSorts = append(outSorts, sort)
+			continue
+		}
+		var replaced bool
+		expr := sem.CopyExpr(sort.Expr)
+		out := exprWalk(expr, func(e sem.Expr) (sem.Expr, bool) {
+			which := -1
+			switch e := e.(type) {
+			case *sem.AggFunc:
+				if which = exprMatch(e, sch.aggs); which == -1 {
+					// This shouldn't happen because all AggFuncs should be
+					// accounted for at this point.
+					panic(e)
+				}
+			case *sem.ThisExpr:
+				// Check for aliased aggregation.
+				if e.Path[0] == "out" {
+					which = slices.Index(sch.aggAliases, e.Path[1])
+				}
+			}
+			if which >= 0 {
+				replaced = true
+				name := fmt.Sprintf("t%d", which)
+				return sem.NewThis(nil, []string{"in", name}), true
+			}
+			return e, false
+		})
+		if !replaced {
+			var ok bool
+			if out, ok = keySubst(expr, sch.keys); !ok {
+				if out, ok = keySubst(expr, sch.keyAliases); !ok {
+					out = badExpr()
+					t.error(sort.Expr, errors.New("expressions must appear in the group by clause or be an aggregate function"))
+				}
+			}
+		}
+		sort.Expr = out
+		outSorts = append(outSorts, sort)
+	}
+	return outSorts
 }
 
 func (t *translator) sqlWith(with *ast.SQLWith) map[string]*ast.SQLCTE {
@@ -636,6 +746,16 @@ func (t *translator) joinCond(cond ast.JoinCond, leftAlias, rightAlias string) s
 type exprloc struct {
 	expr sem.Expr
 	loc  ast.Expr
+}
+
+type exprlocs []exprloc
+
+func (exprs exprlocs) exprs() []sem.Expr {
+	var out []sem.Expr
+	for _, e := range exprs {
+		out = append(out, e.expr)
+	}
+	return out
 }
 
 func (t *translator) groupBy(sch *selectSchema, in []ast.Expr) []exprloc {

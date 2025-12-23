@@ -26,6 +26,14 @@ type schema interface {
 }
 
 type (
+	aggSchema struct {
+		schema
+		aggs       []sem.Expr
+		aggAliases []string
+		keys       []sem.Expr
+		keyAliases []sem.Expr
+	}
+
 	aliasSchema struct {
 		name string
 		sch  schema
@@ -524,6 +532,10 @@ func (s *subquerySchema) outColumns() ([]string, bool) {
 	return s.outer.outColumns()
 }
 
+func (a *aggSchema) String() string {
+	return fmt.Sprintf("agg: %s", a.schema)
+}
+
 func (a *aliasSchema) String() string {
 	return fmt.Sprintf("alias <%s>", a.name)
 }
@@ -555,7 +567,7 @@ func addAlias(sch schema, alias string) schema {
 			name: alias,
 			sch:  sch.sch,
 		}
-	case *dynamicSchema, *selectSchema, *staticSchema:
+	case *aggSchema, *dynamicSchema, *selectSchema, *staticSchema:
 		return &aliasSchema{
 			name: alias,
 			sch:  sch,
