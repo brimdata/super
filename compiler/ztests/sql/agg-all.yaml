@@ -26,5 +26,5 @@ input: |
   {key:"a",n:1,b:false}
 
 output: |
-  {key:"a",and:false,any:1,avg:1.3333333333333333,collect:["a","a","a"],count:3,dcount:2::uint64,max:2,min:1,or:true,sum:4,union:|[1,2]|}
-  {key:"b",and:true,any:1,avg:0.5,collect:["b","b"],count:2,dcount:2::uint64,max:1,min:0,or:true,sum:1,union:|[0,1]|}
+  {key:"a",and:false,any:1,avg:1.3333333333333333,collect:["a","a","a"],count:3,dcount:2,max:2,min:1,or:true,sum:4,union:|[1,2]|}
+  {key:"b",and:true,any:1,avg:0.5,collect:["b","b"],count:2,dcount:2,max:1,min:0,or:true,sum:1,union:|[0,1]|}

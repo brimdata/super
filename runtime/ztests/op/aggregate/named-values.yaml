@@ -20,5 +20,5 @@ output: |
           2
       ],
       any: 1::=named,
-      dcount: 2::uint64
+      dcount: 2
   }

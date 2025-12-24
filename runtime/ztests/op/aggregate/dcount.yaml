@@ -10,4 +10,4 @@ input: |
   1
 
 output: |
-  {dcount:3::uint64}
+  {dcount:3}
