@@ -21,7 +21,7 @@ outputs:
       5.
   - name: count.sup
     data: |
-      3::uint64
+      3
   - name: dcount.sup
     data: |
       3::uint64

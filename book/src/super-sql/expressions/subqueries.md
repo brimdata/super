@@ -67,8 +67,8 @@ values 3,4
 evaluates the subquery `from input | count()` just once and materializes the result.
 Then, for each input value `3` and `4`, the result is emitted, e.g.,
 ```
-{that:3,count:3::uint64}
-{that:4,count:3::uint64}
+{that:3,count:3}
+{that:4,count:3}
 ```
 
 ### Correlated Subqueries

@@ -7,4 +7,4 @@ input: |
   {s:"FOO",i:2::uint64,j:2::uint64}
 
 output: |
-  {s:"foo",ij:4::uint64,count:2::uint64}
+  {s:"foo",ij:4::uint64,count:2}

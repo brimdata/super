@@ -8,5 +8,5 @@ input: |
   {arr:[1::int32,2::int32],val:3::int32}
 
 output: |
-  {arr:null::[int32],count:1::uint64}
-  {arr:[1::int32,2::int32],count:2::uint64}
+  {arr:null::[int32],count:1}
+  {arr:[1::int32,2::int32],count:2}

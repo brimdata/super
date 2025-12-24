@@ -15,4 +15,4 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {proto:"udp"::=zenum,count:2::uint64}
+      {proto:"udp"::=zenum,count:2}

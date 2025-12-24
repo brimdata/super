@@ -15,6 +15,6 @@ input: |
   {a:4::int32,s:"c"}
 
 output: |
-  {count:1::uint64,a:-1}
+  {count:1,a:-1}
   {a:1::int32,s:"a",v:"one"}
   {a:2::int32,s:"B",v:"two"}

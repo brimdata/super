@@ -10,7 +10,7 @@ output-flags: -pretty=4
 
 output: |
   {
-      count: 2::uint64,
+      count: 2,
       sum: 3,
       min: 1,
       max: 2,

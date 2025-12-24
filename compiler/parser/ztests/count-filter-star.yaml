@@ -3,4 +3,4 @@ spq: 'count(*) filter (true)'
 vector: true
 
 output: |
-  1::uint64
+  1

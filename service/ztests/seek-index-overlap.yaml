@@ -20,9 +20,9 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      1150::uint64
+      1150
       ===
-      1150::uint64
+      1150
   - name: stderr
     data: |
       {bytes_read:37833,bytes_matched:37833,records_read:1150,records_matched:1150}

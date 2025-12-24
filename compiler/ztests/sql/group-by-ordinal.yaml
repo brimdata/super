@@ -19,8 +19,8 @@ outputs:
     data: |
       {a:1}
       // ===
-      {"1":1,b:"foo",c:2::uint64}
-      {"1":1,b:"bar",c:1::uint64}
+      {"1":1,b:"foo",c:2}
+      {"1":1,b:"bar",c:1}
   - name: stderr
     data: |
       position 5 is not in select list at line 1, column 28:
@@ -47,5 +47,5 @@ outputs:
              ~~~~~~~
 
 output: |
-  {c:1::uint64}
-  {c:2::uint64}
+  {c:1}
+  {c:2}

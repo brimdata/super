@@ -15,5 +15,5 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {x:3::uint64}
-      {y:3::uint64}
+      {x:3}
+      {y:3}

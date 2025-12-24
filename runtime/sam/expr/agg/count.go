@@ -4,7 +4,7 @@ import (
 	"github.com/brimdata/super"
 )
 
-type Count uint64
+type Count int64
 
 var _ Function = (*Count)(nil)
 
@@ -15,14 +15,14 @@ func (c *Count) Consume(val super.Value) {
 }
 
 func (c Count) Result(*super.Context) super.Value {
-	return super.NewUint64(uint64(c))
+	return super.NewInt64(int64(c))
 }
 
 func (c *Count) ConsumeAsPartial(partial super.Value) {
-	if partial.Type() != super.TypeUint64 {
-		panic("count: partial not uint64")
+	if partial.Type() != super.TypeInt64 {
+		panic("count: bad partial")
 	}
-	*c += Count(partial.Uint())
+	*c += Count(partial.Int())
 }
 
 func (c Count) ResultAsPartial(*super.Context) super.Value {

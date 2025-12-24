@@ -9,5 +9,5 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      2::uint64
-      2::uint64
+      2
+      2

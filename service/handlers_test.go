@@ -45,8 +45,8 @@ func TestQueryAggregateReverse(t *testing.T) {
 {ts:1970-01-01T00:00:02Z,uid:"B"}
 `
 	counts := `
-{ts:1970-01-01T00:00:02Z,count:1::uint64}
-{ts:1970-01-01T00:00:01Z,count:2::uint64}
+{ts:1970-01-01T00:00:02Z,count:1}
+{ts:1970-01-01T00:00:01Z,count:2}
 `
 	_, conn := newCore(t)
 	poolID := conn.TestPoolPost(api.PoolPostRequest{Name: "test"})

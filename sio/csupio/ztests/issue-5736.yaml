@@ -26,5 +26,5 @@ inputs:
 outputs:
   - name: stdout
     data: | 
-      {event:"app.bsky.feed.repost",count:2::uint64,users:2::uint64}
-      {event:"app.bsky.graph.follow",count:1::uint64,users:1::uint64}
+      {event:"app.bsky.feed.repost",count:2,users:2}
+      {event:"app.bsky.graph.follow",count:1,users:1}

@@ -3,4 +3,4 @@ spq: count() by this
 vector: true
 
 output: |
-  {that:null,count:1::uint64}
+  {that:null,count:1}

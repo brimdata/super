@@ -527,7 +527,7 @@ WHERE grep('in case you have any feedback 😊', payload.pull_request.body)
 
 + hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'super -s -I /mnt/tmpdir/tmp.pDeSZCTa2V'
 Benchmark 1: super -s -I /mnt/tmpdir/tmp.pDeSZCTa2V
-{count:2::uint64}
+{count:2}
   Time (abs ≡):         6.371 s               [User: 23.178 s, System: 1.700 s]
 
 About to execute
@@ -542,7 +542,7 @@ WHERE grep('in case you have any feedback 😊', payload.pull_request.body)
 
 + hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.AYZIh6yi2s'
 Benchmark 1: SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.AYZIh6yi2s
-{count:2::uint64}
+{count:2}
   Time (abs ≡):        40.838 s               [User: 292.674 s, System: 18.797 s]
 ```
 ### Search+ Test
@@ -673,7 +673,7 @@ WHERE grep('in case you have any feedback 😊')
 
 + hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'super -s -I /mnt/tmpdir/tmp.jJSibCjp8r'
 Benchmark 1: super -s -I /mnt/tmpdir/tmp.jJSibCjp8r
-{count:3::uint64}
+{count:3}
   Time (abs ≡):        12.492 s               [User: 88.901 s, System: 1.672 s]
 
 About to execute
@@ -688,7 +688,7 @@ WHERE grep('in case you have any feedback 😊')
 
 + hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.evXq1mxkI0'
 Benchmark 1: SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.evXq1mxkI0
-{count:3::uint64}
+{count:3}
   Time (abs ≡):        55.081 s               [User: 408.337 s, System: 18.597 s]
 ```
 
@@ -800,7 +800,7 @@ WHERE actor.login='johnbieren'
 
 + hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'super -s -I /mnt/tmpdir/tmp.AbeKpBbYW8'
 Benchmark 1: super -s -I /mnt/tmpdir/tmp.AbeKpBbYW8
-{count:879::uint64}
+{count:879}
   Time (abs ≡):         5.786 s               [User: 17.405 s, System: 1.637 s]
 
 About to execute
@@ -815,7 +815,7 @@ WHERE actor.login='johnbieren'
 
 + hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.5xTnB02WgG'
 Benchmark 1: SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.5xTnB02WgG
-{count:879::uint64}
+{count:879}
   Time (abs ≡):         0.303 s               [User: 0.792 s, System: 0.240 s]
 ```
 
@@ -969,14 +969,14 @@ GROUP BY type
 
 + hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'super -s -I /mnt/tmpdir/tmp.QMhaBvUi2y'
 Benchmark 1: super -s -I /mnt/tmpdir/tmp.QMhaBvUi2y
-{type:"PullRequestReviewCommentEvent",count:7::uint64}
-{type:"PullRequestReviewEvent",count:14::uint64}
-{type:"IssueCommentEvent",count:30::uint64}
-{type:"WatchEvent",count:29::uint64}
-{type:"PullRequestEvent",count:35::uint64}
-{type:"PushEvent",count:15::uint64}
-{type:"IssuesEvent",count:9::uint64}
-{type:"ForkEvent",count:3::uint64}
+{type:"PullRequestReviewCommentEvent",count:7}
+{type:"PullRequestReviewEvent",count:14}
+{type:"IssueCommentEvent",count:30}
+{type:"WatchEvent",count:29}
+{type:"PullRequestEvent",count:35}
+{type:"PushEvent",count:15}
+{type:"IssuesEvent",count:9}
+{type:"ForkEvent",count:3}
   Time (abs ≡):         5.626 s               [User: 15.509 s, System: 1.552 s]
 
 About to execute
@@ -992,14 +992,14 @@ GROUP BY type
 
 + hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.yfAdMeskPR'
 Benchmark 1: SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.yfAdMeskPR
-{type:"PushEvent",count:15::uint64}
-{type:"IssuesEvent",count:9::uint64}
-{type:"WatchEvent",count:29::uint64}
-{type:"PullRequestEvent",count:35::uint64}
-{type:"ForkEvent",count:3::uint64}
-{type:"PullRequestReviewCommentEvent",count:7::uint64}
-{type:"PullRequestReviewEvent",count:14::uint64}
-{type:"IssueCommentEvent",count:30::uint64}
+{type:"PushEvent",count:15}
+{type:"IssuesEvent",count:9}
+{type:"WatchEvent",count:29}
+{type:"PullRequestEvent",count:35}
+{type:"ForkEvent",count:3}
+{type:"PullRequestReviewCommentEvent",count:7}
+{type:"PullRequestReviewEvent",count:14}
+{type:"IssueCommentEvent",count:30}
   Time (abs ≡):         0.491 s               [User: 2.049 s, System: 0.357 s]
 ```
 
@@ -1157,11 +1157,11 @@ FROM '/mnt/gha.bsup'
 
 + hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'super -s -I /mnt/tmpdir/tmp.JzRx6IABuv'
 Benchmark 1: super -s -I /mnt/tmpdir/tmp.JzRx6IABuv
-{assignee:"poad",count:1966::uint64}
-{assignee:"vinayakkulkarni",count:508::uint64}
-{assignee:"tmtmtmtm",count:356::uint64}
-{assignee:"AMatutat",count:260::uint64}
-{assignee:"danwinship",count:208::uint64}
+{assignee:"poad",count:1966}
+{assignee:"vinayakkulkarni",count:508}
+{assignee:"tmtmtmtm",count:356}
+{assignee:"AMatutat",count:260}
+{assignee:"danwinship",count:208}
   Time (abs ≡):         8.245 s               [User: 17.489 s, System: 1.938 s]
 
 About to execute
@@ -1179,10 +1179,10 @@ FROM '/mnt/gha.parquet'
 
 + hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.djiUKncZ0T'
 Benchmark 1: SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.djiUKncZ0T
-{assignee:"poad",count:1966::uint64}
-{assignee:"vinayakkulkarni",count:508::uint64}
-{assignee:"tmtmtmtm",count:356::uint64}
-{assignee:"AMatutat",count:260::uint64}
-{assignee:"danwinship",count:208::uint64}
+{assignee:"poad",count:1966}
+{assignee:"vinayakkulkarni",count:508}
+{assignee:"tmtmtmtm",count:356}
+{assignee:"AMatutat",count:260}
+{assignee:"danwinship",count:208}
   Time (abs ≡):        40.014 s               [User: 291.269 s, System: 17.516 s]
 ```

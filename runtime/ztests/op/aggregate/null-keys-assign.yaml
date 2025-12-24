@@ -10,6 +10,6 @@ input: |
   {key1:null::string,key2:null::string,n:4::int32}
 
 output: |
-  {newkey:"a",count:2::uint64}
-  {newkey:"b",count:1::uint64}
-  {newkey:null::string,count:2::uint64}
+  {newkey:"a",count:2}
+  {newkey:"b",count:1}
+  {newkey:null::string,count:2}

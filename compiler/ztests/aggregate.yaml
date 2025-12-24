@@ -8,4 +8,4 @@ input: |
 output-flags: -pretty=0
 
 output: |
-  2::uint64
+  2
