@@ -24,10 +24,10 @@ outputs:
       3
   - name: dcount.sup
     data: |
-      3::uint64
+      3
   - name: dcount-partials.sup
     data: |
-      3::uint64
+      3
   # Note: min/max shouldn't be int64 (especially for uint)  Issue #1506.
   - name: any.sup
     data: |

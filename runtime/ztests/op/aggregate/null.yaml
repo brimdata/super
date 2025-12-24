@@ -10,4 +10,4 @@ input: |
   {x:null::time}
 
 output: |
-  {avg:null::float64,count:0,dcount:0::uint64,any:null::uint64,max:null::float64,min:null::float64,sum:null::float64}
+  {avg:null::float64,count:0,dcount:0,any:null::uint64,max:null::float64,min:null::float64,sum:null::float64}

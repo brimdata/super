@@ -4,7 +4,7 @@
 
 ### Synopsis
 ```
-dcount(any) -> uint64
+dcount(any) -> int64
 ```
 
 ### Description
@@ -24,7 +24,7 @@ dcount(this)
 2
 3
 # expected output
-3::uint64
+3
 ```
 
 Mixed types are handled:
@@ -36,7 +36,7 @@ dcount(this)
 "foo"
 10.0.0.1
 # expected output
-3::uint64
+3
 ```
 
 The estimated result may become less accurate with more unique input values:
@@ -45,7 +45,7 @@ seq 10000 | super -s -c 'dcount(this)' -
 ```
 =>
 ```mdtest-output
-9987::uint64
+9987
 ```
 
 Count of values in buckets grouped by key:
@@ -57,6 +57,6 @@ dcount(a) by k | sort
 {a:2,k:1}
 {a:3,k:2}
 # expected output
-{k:1,dcount:2::uint64}
-{k:2,dcount:1::uint64}
+{k:1,dcount:2}
+{k:2,dcount:1}
 ```
