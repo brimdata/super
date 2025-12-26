@@ -198,6 +198,9 @@ To remedy this, references of entities in dynamic tables are constrained as foll
 * When there is more than one table in scope, any column reference to a dynamic
   table must include the table name in that reference; otherwise an error is
   reported and the query fails to compile.
+* XXX Reference to a column where the column name is present must be
+qualified either with the input table name or with `alias` to indicate
+that the column alias should be used.
 
 > [!NOTE]
 > These restriction on resolving identifiers to dynamic tables
