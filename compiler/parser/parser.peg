@@ -266,7 +266,21 @@ AggAssignment
     }
 
 AggFunc
-  = name:AggName __ "(" __ expr:Expr? __ ")" filter:FilterClause? {
+  = name:AggName __ "(" __ q:(ALL / DISTINCT)  _ expr:Expr __ ")" filter:FilterClause? {
+      qualifier := string(q.([]any)[0].([]byte))
+      agg := &ast.AggFuncExpr{
+          Kind: "AggFuncExpr",
+          Name: name.(string),
+          Distinct: strings.EqualFold(qualifier, "distinct"),
+          Expr: expr.(ast.Expr),
+          Loc: loc(c),
+      }
+      if filter != nil {
+        agg.Filter = filter.(ast.Expr)
+      }
+      return agg, nil
+    }
+  / name:AggName __ "(" __ expr:Expr? __ ")" filter:FilterClause? {
       agg := &ast.AggFuncExpr{
           Kind: "AggFuncExpr",
           Name: name.(string),
@@ -280,20 +294,7 @@ AggFunc
       }
       return agg, nil
     }
-  / name:AggName __ "(" __ q:(ALL / DISTINCT)  _ expr:Expr __ ")" filter:FilterClause? {
-      qualifier := string(q.([]any)[0].([]byte))
-      agg := &ast.AggFuncExpr{
-          Kind: "AggFuncExpr",
-          Name: name.(string),
-          Distinct: strings.EqualFold(qualifier, "distinct"),
-          Expr: expr.(ast.Expr),
-          Loc: loc(c),
-      }
-      if filter != nil {
-        agg.Filter = filter.(ast.Expr)
-      }  
-      return agg, nil    
-    }
+
   / cs:CountStar filter:FilterClause? {
       agg := &ast.AggFuncExpr{
           Kind: "AggFuncExpr",
@@ -1142,10 +1143,12 @@ Function
       }
       return s, nil
     }
-  / f:Callable __ "(" __ args:FunctionArgs __ ")" !FilterClause {
+  / f:Callable __ "(" !AggArgGuard __ args:FunctionArgs __ ")" !FilterClause {
       return newCall(c, f, args), nil
     }
   / AggFunc
+
+AggArgGuard = __ (ALL / DISTINCT) _ Expr
 
 Callable
   = LambdaExpr

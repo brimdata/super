@@ -1,0 +1,8 @@
+spq: |
+  select avg(distinct -1), sum(all -1), min(`distinct` -1), max(`all` -1)
+
+input: |
+  {distinct:100,all:10}
+
+output: |
+  {avg:-1.,sum:-1,min:99,max:9}
