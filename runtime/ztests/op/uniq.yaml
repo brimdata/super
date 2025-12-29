@@ -8,5 +8,5 @@ input: |
   {x:1}
 
 output: |
-  {value:1,count:2::uint64}
-  {value:{x:1},count:1::uint64}
+  {value:1,count:2}
+  {value:{x:1},count:1}

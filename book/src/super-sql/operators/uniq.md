@@ -17,7 +17,7 @@ This operator is most often used with [`cut`](cut.md) and [`sort`](sort.md) to f
 duplicate values.
 
 When run with the `-c` option, each value is output as a record with the
-type signature `{value:any,count:uint64}`, where the `value` field contains the
+type signature `{value:any,count:int64}`, where the `value` field contains the
 unique value and the `count` field indicates the number of consecutive duplicates
 that occurred in the input for that output value.
 
@@ -52,9 +52,9 @@ uniq -c
 2
 3
 # expected output
-{value:1,count:1::uint64}
-{value:2,count:2::uint64}
-{value:3,count:1::uint64}
+{value:1,count:1}
+{value:2,count:2}
+{value:3,count:1}
 ```
 
 ---

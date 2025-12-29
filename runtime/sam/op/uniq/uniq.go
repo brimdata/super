@@ -14,7 +14,7 @@ type Op struct {
 	parent  sbuf.Puller
 	builder scode.Builder
 	cflag   bool
-	count   uint64
+	count   int64
 	last    *super.Value
 	eos     bool
 }
@@ -31,10 +31,10 @@ func (o *Op) wrap(t *super.Value) super.Value {
 	if o.cflag {
 		o.builder.Reset()
 		o.builder.Append(t.Bytes())
-		o.builder.Append(super.EncodeUint(o.count))
+		o.builder.Append(super.EncodeInt(o.count))
 		typ := o.rctx.Sctx.MustLookupTypeRecord([]super.Field{
 			super.NewField("value", t.Type()),
-			super.NewField("count", super.TypeUint64),
+			super.NewField("count", super.TypeInt64),
 		})
 		return super.NewValue(typ, o.builder.Bytes()).Copy()
 	}
