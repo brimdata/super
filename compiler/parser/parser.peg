@@ -104,13 +104,16 @@ ScopeBody
   / "(" __ seq:Seq __ ")"       { return seq, nil }
 
 PragmaDecl
-  = PRAGMA _ name:Identifier __ "=" __ e:Expr {
-      return &ast.PragmaDecl{
+  = PRAGMA _ name:Identifier expr:(__ "=" __ e:Expr { return e, nil})? {
+      d := &ast.PragmaDecl{
         Kind: "PragmaDecl",
         Name: name.(*ast.ID),
-        Expr: e.(ast.Expr),
         Loc: loc(c),
-      }, nil
+      }
+      if expr != nil {
+        d.Expr = expr.(ast.Expr)
+      }
+      return d, nil
     }
 
 TypeDecl
@@ -146,7 +149,7 @@ EndOfOp = __ (Pipe / ")" / "]" / ";" / EOF)
 Pipe = "|>" / "|"
 
 CallExprGuard = IN / LIKE / IS / OR / AND
-CallIDGuard = NOT / SQLGuard
+CallIDGuard = NOT / SQLGuard / PRAGMA
 
 ExprGuard = __ (Comparator / AdditiveOperator / MultiplicativeOperator / ":" / "(" / "[" / "~")
 

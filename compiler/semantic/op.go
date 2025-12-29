@@ -1255,15 +1255,24 @@ func (t *translator) pragmaDecl(d *ast.PragmaDecl) {
 		t.error(d.Name, fmt.Errorf("%q redefined", name))
 		return
 	}
+	expr := d.Expr
+	if expr == nil {
+		expr = &ast.Primitive{
+			Kind: "Primitive",
+			Type: "bool",
+			Text: "true",
+			Loc:  d.Name.Loc,
+		}
+	}
 	switch name {
 	case "index_base":
-		if v := t.mustEvalPositiveInteger(d.Expr); v <= 1 {
+		if v := t.mustEvalPositiveInteger(expr); v <= 1 {
 			t.scope.pragmas["index_base"] = v
 		} else {
 			t.error(d.Name, errors.New("index_base must be 0 or 1"))
 		}
 	case "pg":
-		if v, ok := t.mustEvalBool(d.Expr); ok {
+		if v, ok := t.mustEvalBool(expr); ok {
 			t.scope.pragmas["pg"] = v
 		}
 	default:

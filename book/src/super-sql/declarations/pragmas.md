@@ -3,12 +3,14 @@
 Pragmas control various language features and appear in a declaration block
 so their effect is lexically scoped.  They have the form
 ```
-pragma <id> = <expr>
+pragma <id> [ = <expr> ]
 ```
 where `<id>` is an [identifier](../queries.md#identifiers)
 and `<expr>` is a constant [expression](../expressions/intro.md)
 that must evaluate at compile time without referencing any
 runtime state such as [this](../intro.md#pipe-scoping) or a field of `this`.
+
+If `<expr>` is omitted, it defaults to `true`.
 
 Pragmas must appear in the declaration section of a [scope](../queries.md#scope).
 
