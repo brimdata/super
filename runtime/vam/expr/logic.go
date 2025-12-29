@@ -27,8 +27,11 @@ func (n *Not) Eval(val vector.Any) vector.Any {
 func (n *Not) eval(vecs ...vector.Any) vector.Any {
 	switch vec := vecs[0].(type) {
 	case *vector.Bool:
-		return vector.NewBool(bitvec.Not(vec.Bits), vec.Nulls)
+		return vector.Not(vec)
 	case *vector.Const:
+		if vec.Value().IsNull() {
+			return vec
+		}
 		return vector.NewConst(super.NewBool(!vec.Value().Bool()), vec.Len(), vec.Nulls)
 	case *vector.Error:
 		return vec

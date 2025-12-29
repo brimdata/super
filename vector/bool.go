@@ -64,6 +64,16 @@ func Or(a, b *Bool) *Bool {
 	return NewBool(bits, nulls)
 }
 
+func Not(vec *Bool) *Bool {
+	bits := bitvec.Not(vec.Bits)
+	if vec.Nulls.IsZero() {
+		return NewBool(bits, bitvec.Zero)
+	}
+	// Flip true/null values to false/null.
+	bits = bitvec.And(bits, bitvec.Not(vec.Nulls))
+	return NewBool(bits, vec.Nulls)
+}
+
 // BoolValue returns the value of slot in vec if the value is a Boolean.  It
 // returns false otherwise.
 func BoolValue(vec Any, slot uint32) (bool, bool) {

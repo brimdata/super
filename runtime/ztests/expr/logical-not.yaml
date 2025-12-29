@@ -15,3 +15,21 @@ output: |
   null::bool
   error("missing")
   error("foo")
+
+---
+
+# Ensure true/null values are converted to false/null.
+spq: |
+  values false or not this
+
+vector: true
+
+input: |
+  true
+  false
+  null::bool
+
+output: |
+  false
+  true
+  null::bool
