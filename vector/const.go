@@ -16,6 +16,9 @@ type Const struct {
 var _ Any = (*Const)(nil)
 
 func NewConst(val super.Value, len uint32, nulls bitvec.Bits) *Const {
+	if val.IsNull() {
+		nulls = bitvec.NewTrue(len)
+	}
 	return &Const{val: val, len: len, Nulls: nulls}
 }
 
