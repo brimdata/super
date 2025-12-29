@@ -49,13 +49,14 @@ func (t *translator) sqlSelect(sel *ast.SQLSelect, demand []ast.Expr, seq sem.Se
 		t.scope.schema = save
 	}()
 	// form column slots (and expand *'s) so we can resolve lateral column aliases
+	sch.lateral = false
 	sch.columns = t.formProjection(sch, sel.Selection.Args)
-	sch.latStop = len(sch.columns)
 	seq = valuesExpr(wrapThis(sel, "in"), seq)
 	if sel.Where != nil {
 		where := t.expr(sel.Where)
 		seq = append(seq, sem.NewFilter(sel.Where, where))
 	}
+	sch.lateral = true
 	sch.groupings = t.groupBy(sch, sel.GroupBy)
 	sch.aggOk = true
 	// Make sure any aggs needed by ORDER BY and computed.
@@ -65,7 +66,9 @@ func (t *translator) sqlSelect(sel *ast.SQLSelect, demand []ast.Expr, seq sem.Se
 	// Next analyze all the columns so we know if there are aggregate functions
 	// (in particular, we know this when there is no GROUP BY) so after this,
 	// we know for sure if the output is grouped or not.
+	sch.lateral = false
 	t.projection(sch, sch.columns)
+	sch.lateral = true
 	// We now stitch together the fragments into pipeline operators depending
 	// on whether the ouput is grouped or not.
 	var having sem.Expr
@@ -166,12 +169,10 @@ func (t *translator) projection(sch *selectSchema, columns []column) {
 	for k := range columns {
 		// Translates all expressions that weren't already expanded
 		// from * patterns.
-		sch.latStop = k
 		if columns[k].semExpr == nil {
 			columns[k].semExpr = t.expr(columns[k].astExpr)
 		}
 	}
-	sch.latStop = len(sch.columns)
 }
 
 func (t *translator) emitProjection(columns []column, grouped bool, seq sem.Seq) (sem.Seq, *staticSchema) {

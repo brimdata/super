@@ -46,9 +46,9 @@ outputs:
       // ===
   - name: stderr
     data: |
-      expression value must be a positive integer at line 1, column 35:
+      expression must be a positive integer at line 1, column 35:
       select this from /dev/null offset -1 limit "foo"
                                         ~~
-      expression value must be an integer value: "foo" at line 1, column 44:
+      expression must be an integer: "foo" at line 1, column 44:
       select this from /dev/null offset -1 limit "foo"
                                                  ~~~~~

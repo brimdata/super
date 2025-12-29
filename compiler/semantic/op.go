@@ -1251,29 +1251,24 @@ func (t *translator) opDecl(d *ast.OpDecl) {
 }
 
 func (t *translator) pragmaDecl(d *ast.PragmaDecl) {
-	switch d.Name.Name {
+	name := d.Name.Name
+	if _, ok := t.scope.pragmas[name]; ok {
+		t.error(d.Name, fmt.Errorf("%q redefined", name))
+		return
+	}
+	switch name {
 	case "index_base":
-		if _, ok := t.scope.pragmas["index_base"]; ok {
-			t.error(d.Name, errors.New("index_base defined multiple times in scope"))
-			return
-		}
-		e := t.expr(d.Expr)
-		val, ok := t.mustEval(e)
-		if !ok {
-			return
-		}
-		if !super.IsInteger(val.Type().ID()) || val.IsNull() {
-			t.error(d.Expr, fmt.Errorf("index_base value must be an integer: %s", sup.FormatValue(val)))
-			return
-		}
-		v := int(val.AsInt())
-		if v < 0 || v > 1 {
+		if v := t.mustEvalPositiveInteger(d.Expr); v <= 1 {
+			t.scope.pragmas["index_base"] = v
+		} else {
 			t.error(d.Name, errors.New("index_base must be 0 or 1"))
-			return
 		}
-		t.scope.pragmas["index_base"] = v
+	case "pg":
+		if v, ok := t.mustEvalBool(d.Expr); ok {
+			t.scope.pragmas["pg"] = v
+		}
 	default:
-		t.error(d.Name, fmt.Errorf("unknown pragma %q", d.Name.Name))
+		t.error(d.Name, fmt.Errorf("unknown pragma %q", name))
 	}
 }
 
@@ -1555,6 +1550,14 @@ func (t *translator) mustEvalString(e sem.Expr) (field string, ok bool) {
 	return "", false
 }
 
+func (t *translator) mustEvalBool(in ast.Expr) (bool, bool) {
+	val, ok := t.mustEval(t.expr(in))
+	if ok && !val.IsError() && super.TypeUnder(val.Type()) == super.TypeBool {
+		return val.AsBool(), true
+	}
+	return false, false
+}
+
 func (t *translator) maybeEvalString(e sem.Expr) (field string, ok bool) {
 	val, ok := t.maybeEval(e)
 	if ok && !val.IsError() && super.TypeUnder(val.Type()) == super.TypeString {
@@ -1570,12 +1573,12 @@ func (t *translator) mustEvalPositiveInteger(ae ast.Expr) int {
 		return 0
 	}
 	if !super.IsInteger(val.Type().ID()) || val.IsNull() {
-		t.error(ae, fmt.Errorf("expression value must be an integer value: %s", sup.FormatValue(val)))
+		t.error(ae, fmt.Errorf("expression must be an integer: %s", sup.FormatValue(val)))
 		return 0
 	}
 	v := int(val.AsInt())
 	if v < 0 {
-		t.error(ae, errors.New("expression value must be a positive integer"))
+		t.error(ae, errors.New("expression must be a positive integer"))
 		return 0
 	}
 	return v

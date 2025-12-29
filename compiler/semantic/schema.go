@@ -80,7 +80,7 @@ type (
 		// so latStop limits the extent of the column lookup to avoid
 		// an infinite expansion cycle.
 		columns []column
-		latStop int
+		lateral bool
 
 		// The output schema is always static, e.g., a dynamic input is
 		// always wrapped in a column.  Also, the projected columns referenced

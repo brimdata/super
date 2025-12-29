@@ -68,6 +68,15 @@ func (s *Scope) lookupEntry(name string) *entry {
 	return nil
 }
 
+func (s *Scope) lookupPragma(name string) any {
+	for scope := s; scope != nil; scope = scope.parent {
+		if p, ok := scope.pragmas[name]; ok {
+			return p
+		}
+	}
+	return nil
+}
+
 func (s *Scope) lookupExpr(t *translator, name string) sem.Expr {
 	if entry := s.lookupEntry(name); entry != nil {
 		// function parameters hide exteral definitions as you don't
@@ -132,6 +141,12 @@ func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) (sem.Expr, e
 		}
 		return nil, errors.New("cannot reference 'this' in relational context; consider the 'values' operator") //XXX new error?
 	}
+	var inputFirst bool
+	if pg := s.lookupPragma("pg"); pg != nil {
+		if b, ok := pg.(bool); ok {
+			inputFirst = b
+		}
+	}
 	// We give priority to lateral column aliases which diverges from
 	// Postgres semantics (which checks the input table first) but follows
 	// Google SQL semantics.  We favor this approach so we can avoid
@@ -141,8 +156,10 @@ func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) (sem.Expr, e
 	// to a column aliases otherwise as data evolves (and such a column shows up)
 	// the binding of identifiers changes and query results can change.  By
 	// resolving lateral aliases first, we avoid this problem.
-	if e := resolveLateralColumn(t, sch, path[0]); e != nil {
-		return extend(n, e, path[1:]), nil
+	if sch, ok := sch.(*selectSchema); ok && sch.lateral && !inputFirst {
+		if e := resolveLateralColumn(t, sch, path[0]); e != nil {
+			return extend(n, e, path[1:]), nil
+		}
 	}
 	out, dyn, err := sch.resolveUnqualified(path[0])
 	if err != nil {
@@ -156,6 +173,11 @@ func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) (sem.Expr, e
 			}
 		}
 		return sem.NewThis(n, append(out, path[1:]...)), nil
+	}
+	if sch, ok := sch.(*selectSchema); ok && sch.lateral && inputFirst {
+		if e := resolveLateralColumn(t, sch, path[0]); e != nil {
+			return extend(n, e, path[1:]), nil
+		}
 	}
 	if len(path) == 1 {
 		// Single identifier didn't resolve to column so let's see if there's
@@ -209,14 +231,13 @@ func resolveLateralColumn(t *translator, s schema, col string) sem.Expr {
 		// lateral columns available only inside select bodies
 		return nil
 	}
-	for k := range sch.latStop {
+	for k := range len(sch.columns) {
 		c := sch.columns[k]
 		if c.lateral && c.name == col {
-			save := sch.latStop
 			defer func() {
-				sch.latStop = save
+				sch.lateral = true
 			}()
-			sch.latStop = k
+			sch.lateral = false
 			return t.expr(c.astExpr)
 		}
 	}
@@ -224,13 +245,8 @@ func resolveLateralColumn(t *translator, s schema, col string) sem.Expr {
 }
 
 func (s *Scope) indexBase() int {
-	for {
-		if v, ok := s.pragmas["index_base"]; ok {
-			return v.(int)
-		}
-		if s.parent == nil {
-			return 0
-		}
-		s = s.parent
+	if v := s.lookupPragma("index_base"); v != nil {
+		return v.(int)
 	}
+	return 0
 }

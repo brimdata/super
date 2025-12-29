@@ -1,5 +1,5 @@
 spq: |
-  select (select {q:1}) as x, x.q as z
+  select x.q as z from (select {q:1} as x)
 
 output: |
-  {x:{q:1},z:1}
+  {z:1}

@@ -1,0 +1,6 @@
+spq: select a as c from (values (1),(2)) T(a) where c = 2
+
+error: |
+  "c" is not a column or table at line 1, column 48:
+  select a as c from (values (1),(2)) T(a) where c = 2
+                                                 ~
