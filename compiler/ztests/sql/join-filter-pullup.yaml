@@ -30,7 +30,7 @@ outputs:
           | where position=="P"
         )
       | inner hashjoin as {left,right} on id==team_id
-      | values {team:left.team,id:right.id,team_id:right.team_id,player:right.player,position:right.position}
+      | values {id:left.id,team:left.team,id_1:right.id,team_id:right.team_id,player:right.player,position:right.position}
       | output main
       // ===
       null

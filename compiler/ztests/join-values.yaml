@@ -1,6 +1,6 @@
 script: |
   super -s -c 'from input.sup
-               | join (values {x:3,y:"a"}, {x:4,y:"b"}) on y
+               | join (values {x:3,y:"a"}, {x:4,y:"b"}) using (y)
                | values left'
 
 inputs:

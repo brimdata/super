@@ -1,9 +1,7 @@
 script: |
-  ! super -c 'SELECT 1 as foo, 2 as foo'
+  super -s -c 'SELECT 1 as foo, 2 as foo'
 
 outputs:
-  - name: stderr
+  - name: stdout
     data: |
-      duplicate column label "foo" at line 1, column 23:
-      SELECT 1 as foo, 2 as foo
-                            ~~~
+      {foo:1,foo_1:2}

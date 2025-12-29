@@ -1,6 +1,6 @@
 spq: |
   fork ( pass ) ( pass )
-  | join on a
+  | join using (a)
   | values left
 
 vector: true

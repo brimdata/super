@@ -2,6 +2,6 @@ spq: |
   SELECT x FROM (SELECT 1)
 
 error: |
-  column "x": does not exist at line 1, column 8:
+  "x": not a column or table at line 1, column 8:
   SELECT x FROM (SELECT 1)
          ~

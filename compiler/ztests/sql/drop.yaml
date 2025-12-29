@@ -1,7 +1,7 @@
 script: |
   super -s -c 'select * from "a.sup" | drop c'
   echo ===
-  super -dynamic -s -c 'select * from "messy.sup" | drop s,t'
+  super -dynamic -s -c 'select this from "messy.sup" | values that | drop s,t'
   echo ===
   super -s -c 'select * from "b.sup" | drop b'
 

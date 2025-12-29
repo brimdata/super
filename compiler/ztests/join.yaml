@@ -6,8 +6,6 @@ script: |
   echo // === >&2
   ! super compile -dag -C 'join on this'
   echo // === >&2
-  ! super compile -dag -C 'join using (this)'
-  echo // === >&2
   ! super compile -dag -C 'cross join on left.key=1+2'
 
 
@@ -34,13 +32,9 @@ outputs:
       join on foo.key=left.key
               ~~~~~~~~~~~~~~~~
       // ===
-      cannot use 'this' as a field reference at line 1, column 9:
+      join expression cannot refer to "this" at line 1, column 9:
       join on this
               ~~~~
-      // ===
-      cannot use 'this' as a field reference at line 1, column 13:
-      join using (this)
-                  ~~~~
       // ===
       parse error at line 1, column 12:
       cross join on left.key=1+2

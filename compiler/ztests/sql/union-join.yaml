@@ -40,9 +40,9 @@ outputs:
       {x:2,y:2}
   - name: stderr
     data: |
-      "x": ambiguous column reference at line 11, column 8:
+      ambiguous unqualified column "x" at line 11, column 8:
         ) on x=x
              ~
-      "x": ambiguous column reference at line 11, column 10:
+      ambiguous unqualified column "x" at line 11, column 10:
         ) on x=x
                ~

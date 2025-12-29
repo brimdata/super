@@ -8,11 +8,11 @@
 <left-input>
 | [anti|inner|left|right] join (
   <right-input>
-) [as { <left-name>,<right-name> }] [on <predicate> | using ( <field> )]
+) [as { <left-name>,<right-name> }] [on <predicate> | using ( <field> [, <field> ...]) ]
 
 ( <left-input> )
 ( <right-input> )
-| [anti|inner|left|right] join [as { <left-name>,<right-name> }] [on <predicate> | using ( <field> )]
+| [anti|inner|left|right] join [as { <left-name>,<right-name> }] [on <predicate> | using ( <field> [, <field> ...])]
 
 <left-input> cross join ( <right-input> ) [as { <left-name>,<right-name> }]
 
@@ -31,13 +31,18 @@ value `L` from `<left-input>` and forming records with all of the values `R` fro
 the `<right-input>` of the form `{<left-name>:L,<right-name>:R}`.  The result
 of the join is the set of all such records that satisfy `<predicate>`.
 
-A _using clause_ may be specified instead of an _on clause_ and
-is equivalent to an equi-join predicate of the form:
+A _using clause_ `using (f1, f2, ...)` may be specified instead of
+an _on clause_ and is equivalent to an equi-join predicate of the form:
 ```
-<left-name>.<field> = <right-name>.<field>
+<left-name>.<f1> = <right-name>.<f1>
+and
+<left-name>.<f2> = <right-name>.<f2>
+and
+...
 ```
-`<field>` must be an _l-value_, i.e., an expression composed of dot operators and
-index operators.
+where each field reference must be an identifier.  If dotted paths are
+desired instead of singe-identifier fields, the _on clause_ should be
+used instead.
 
 If the _as clause_ is omitted, then `<left-name>` defaults to "left" and
 `<right-name>` defaults to "right".

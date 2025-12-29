@@ -17,6 +17,9 @@ outputs:
       {"a+b+c":6}
   - name: stderr
     data: |
-      no corresponding grouping element for non-aggregate "b+a+c" at line 2, column 10:
+      column "b" must appear in GROUP BY clause at line 2, column 10:
         select b+a+c
-               ~~~~~
+               ~
+      column "a" must appear in GROUP BY clause at line 2, column 12:
+        select b+a+c
+                 ~

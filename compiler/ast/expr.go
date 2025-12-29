@@ -161,6 +161,11 @@ type (
 		To   Expr   `json:"to"`
 		Loc  `json:"loc"`
 	}
+	StarExpr struct {
+		Kind  string `json:"kind" unpack:""`
+		Table string `json:"table"`
+		Loc   `json:"loc"`
+	}
 	SQLTimeExpr struct {
 		Kind  string     `json:"kind" unpack:""`
 		Type  string     `json:"type"`
@@ -293,6 +298,7 @@ func (*RegexpExpr) exprNode()      {}
 func (*SearchTermExpr) exprNode()  {}
 func (*SetExpr) exprNode()         {}
 func (*SliceExpr) exprNode()       {}
+func (*StarExpr) exprNode()        {}
 func (*SQLTimeExpr) exprNode()     {}
 func (*TupleExpr) exprNode()       {}
 func (*TypeValue) exprNode()       {}

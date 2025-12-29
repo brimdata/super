@@ -88,7 +88,7 @@ func (t *translator) sqlTableExpr(e ast.SQLTableExpr, seq sem.Seq) (sem.Seq, sch
 	case *ast.SQLFromItem:
 		if e.Ordinality != nil {
 			t.error(e.Ordinality, errors.New("WITH ORDINALITY clause is not yet supported"))
-			return seq, badSchema()
+			return seq, badSchema
 		}
 		alias := e.Alias
 		switch input := e.Input.(type) {
@@ -96,11 +96,11 @@ func (t *translator) sqlTableExpr(e ast.SQLTableExpr, seq sem.Seq) (sem.Seq, sch
 			var sch schema
 			if c, name := t.maybeCTE(input.Source); c != nil {
 				if bad := t.hasFromParent(input, seq); bad != nil {
-					return bad, badSchema()
+					return bad, badSchema
 				}
 				if len(input.Args) != 0 {
 					t.error(input, fmt.Errorf("CTE cannot use operator arguments"))
-					return seq, badSchema()
+					return seq, badSchema
 				}
 				if alias == nil {
 					alias = &ast.TableAlias{Name: name, Loc: c.Name.Loc}
@@ -109,7 +109,7 @@ func (t *translator) sqlTableExpr(e ast.SQLTableExpr, seq sem.Seq) (sem.Seq, sch
 			} else {
 				if _, ok := input.Source.(*ast.FromEval); !ok {
 					if bad := t.hasFromParent(e, seq); bad != nil {
-						return bad, badSchema()
+						return bad, badSchema
 					}
 				}
 				var typ super.Type
@@ -126,7 +126,7 @@ func (t *translator) sqlTableExpr(e ast.SQLTableExpr, seq sem.Seq) (sem.Seq, sch
 			return seq, sch
 		case *ast.SQLPipe:
 			seq, sch := t.sqlPipe(input, seq)
-			seq, sch = endScope(input, sch, seq)
+			seq, sch = sch.endScope(input, seq)
 			seq, sch, err := applyAlias(alias, sch, seq)
 			if err != nil {
 				t.error(alias, err)
@@ -156,15 +156,16 @@ func (t *translator) maybeCTE(source ast.FromSource) (*ast.SQLCTE, string) {
 func (t *translator) fromCTE(node ast.Node, c *ast.SQLCTE) (sem.Seq, schema) {
 	if slices.Contains(t.cteStack, c) {
 		t.error(node, errors.New("recursive WITH relations not currently supported"))
-		return sem.Seq{badOp()}, badSchema()
+		return sem.Seq{badOp()}, badSchema
 	}
 	t.cteStack = append(t.cteStack, c)
-	seq, sch := t.sqlQueryBody(c.Body, nil)
+	seq, sch := t.sqlQueryBody(c.Body, nil, nil)
 	// Add the CTE name as the alias.  If there is an actual alias, it will
 	// override this.
-	sch = addAlias(sch, c.Name.Name)
+	seq, sch = sch.endScope(node, seq)
+	sch = addTableAlias(sch, c.Name.Name)
 	t.cteStack = t.cteStack[:len(t.cteStack)-1]
-	return endScope(node, sch, seq)
+	return sch.endScope(node, seq)
 
 }
 
@@ -259,6 +260,7 @@ func (t *translator) file(n ast.Node, name string, args []ast.OpArg) sem.Op {
 	typ, err := t.fileType(name, format)
 	if err != nil {
 		t.error(n, err)
+		typ = badType
 	}
 	return &sem.FileScan{
 		Node:   n,
@@ -400,12 +402,13 @@ func (t *translator) fromPoolRegexp(node ast.Node, re, orig, which string, args 
 func (t *translator) sortExpr(sch schema, s ast.SortExpr, reverse bool) sem.SortExpr {
 	var e sem.Expr
 	if sch != nil {
-		e = t.exprSchema(sch, s.Expr)
-		if which, ok := isOrdinal(t.sctx, e); ok {
-			var err error
-			if e, err = sch.resolveOrdinal(s, which); err != nil {
-				t.error(s.Expr, err)
-			}
+		if selSch, ok := sch.(*selectSchema); ok {
+			e = t.groupedExpr(selSch, s.Expr)
+		} else {
+			e = t.expr(s.Expr)
+		}
+		if colno, ok := isOrdinal(t.sctx, e); ok {
+			e = t.resolveOrdinalOuter(sch, s.Expr, "", colno)
 		}
 	} else {
 		e = t.expr(s.Expr)
@@ -569,7 +572,7 @@ func (t *translator) scopeOp(op *ast.ScopeOp) sem.Seq {
 func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 	switch o := o.(type) {
 	case *ast.SQLOp:
-		seq, sch := t.sqlQueryBody(o.Body, seq)
+		seq, sch := t.sqlQueryBody(o.Body, nil, seq)
 		return unfurl(o, sch, seq)
 	case *ast.FileScan:
 		format := t.env.ReaderOpts.Format
@@ -895,7 +898,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 		}
 		var cond sem.Expr
 		if o.Cond != nil {
-			cond = t.joinCond(o.Cond, leftAlias, rightAlias)
+			cond = t.pipeJoinCond(o.Cond, leftAlias, rightAlias)
 		}
 		style := o.Style
 		if style == "" {

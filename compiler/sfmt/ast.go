@@ -170,6 +170,12 @@ func (c *canon) expr(e ast.Expr, parent string) {
 		c.write("]")
 	case *ast.SearchTermExpr:
 		c.write(e.Text)
+	case *ast.StarExpr:
+		if e.Table != "" {
+			c.write(sup.QuotedName(e.Table))
+			c.write(".")
+		}
+		c.write("*")
 	case *ast.RecordExpr:
 		c.write("{")
 		for k, elem := range e.Elems {
@@ -898,7 +904,7 @@ func (c *canon) joinCond(e ast.JoinCond) {
 		c.expr(e.Expr, "")
 	case *ast.JoinUsingCond:
 		c.write(" using (")
-		c.exprs(e.Fields)
+		c.ids(e.Fields)
 		c.write(")")
 	default:
 		panic(e)

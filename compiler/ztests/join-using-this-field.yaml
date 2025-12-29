@@ -1,0 +1,18 @@
+script: |
+  super -s -c "from a.sup | join (from b.sup) using (this)"
+
+inputs:
+  - name: a.sup
+    data: |
+      {a:1,this:10}
+      {a:2,this:10}
+      {a:3,this:11}
+  - name: b.sup
+    data: |
+      {b:1,this:10}
+
+outputs:
+  - name: stdout
+    data: |
+      {left:{a:1,this:10},right:{b:1,this:10}}
+      {left:{a:2,this:10},right:{b:1,this:10}}

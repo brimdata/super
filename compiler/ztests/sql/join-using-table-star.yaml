@@ -1,0 +1,28 @@
+script: |
+  super -s -c "select * from j0.json join j1.json using (a)"
+  echo ===
+  super -s -c "select j0.* from j0.json join j1.json using (a)"
+  echo ===
+  super -s -c "select j1.* from j0.json join j1.json using (a)"
+
+inputs:
+  - name: j0.json
+    data: |
+      {"a":1,"ta":11}
+      {"a":2,"ta":12}
+  - name: j1.json
+    data: |
+      {"f":100,"a":2,"tb":5}
+      {"f":101,"a":2,"tb":6}
+
+outputs:
+  - name: stdout
+    data: |
+      {a:2,ta:12,f:100,tb:5}
+      {a:2,ta:12,f:101,tb:6}
+      ===
+      {a:2,ta:12}
+      {a:2,ta:12}
+      ===
+      {f:100,a:2,tb:5}
+      {f:101,a:2,tb:6}

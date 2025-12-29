@@ -47,6 +47,6 @@ outputs:
       correlated subqueries not currently supported at line 5, column 38:
                                 where colB=colA)
                                            ~~~~
-      column "colC" not found at line 5, column 38:
+      "colC": not a column or table at line 5, column 38:
                                 where colB=colC)
                                            ~~~~

@@ -16,9 +16,12 @@ inputs:
 outputs:
   - name: stderr
     data: |
-      cannot reference column "t1" of dynamic input whose alias is "t1" (consider 'this') at line 1, column 41:
+      join on dynamic column "t1" requires table-qualified reference at line 1, column 41:
       select * from a.sup t1 join b.sup t2 on t1=t2
                                               ~~
-      cannot reference column "t2" of dynamic input whose alias is "t2" (consider 'this') at line 1, column 44:
+      join on dynamic column "t2" requires table-qualified reference at line 1, column 44:
       select * from a.sup t1 join b.sup t2 on t1=t2
                                                  ~~
+      the all-columns (*) pattern cannot be used for dynamic inputs at line 1, column 8:
+      select * from a.sup t1 join b.sup t2 on t1=t2
+             ~

@@ -1,0 +1,5 @@
+spq: select A from (values (1),(2)) T(a)
+
+output: |
+  {A:1}
+  {A:2}

@@ -209,6 +209,9 @@ func eqExpr(aexpr, bexpr sem.Expr) bool {
 	case *sem.AggFunc:
 		b, ok := bexpr.(*sem.AggFunc)
 		return ok && a.Name == b.Name && a.Distinct == b.Distinct && eqExpr(a.Expr, b.Expr) && eqExpr(a.Filter, b.Filter)
+	case *sem.AggRef:
+		b, ok := bexpr.(*sem.AggRef)
+		return ok && a.Index == b.Index
 	case *sem.ArrayExpr:
 		b, ok := bexpr.(*sem.ArrayExpr)
 		return ok && eqArrayElems(a.Elems, b.Elems)

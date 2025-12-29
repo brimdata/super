@@ -217,7 +217,7 @@ _Independent subqueries in SQL operators are supported while correlated subqueri
 ```mdtest-spq
 # spq
 let input = (values {x:1},{x:2},{x:3})
-select *
+select x
 from input
 where x >= (select avg(x) from input)  
 # input
@@ -233,7 +233,7 @@ _Correlated subqueries in SQL operators not yet supported_
 
 ```mdtest-spq {data-layout="stacked"} fails
 # spq
-select *
+select x
 from (values (1),(2)) a(x)
 where exists (
   select 1

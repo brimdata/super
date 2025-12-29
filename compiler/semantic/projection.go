@@ -3,108 +3,49 @@ package semantic
 import (
 	"fmt"
 
-	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/semantic/sem"
 )
 
-// Column of a select statement.  We bookkeep here whether
-// a column is a scalar expression or an aggregation by looking up the function
-// name and seeing if it's an aggregator or not.  We also infer the column
-// names so we can do SQL error checking relating the selections to the grouping keys,
-// and statically compute the resulting schema from the selection.
-// When the column is an agg function expression,
-// the expression is composed of agg functions and
-// fixed references relative to the agg (like grouping keys)
-// as well as alias from selected columns to the left of the
-// agg expression.  e.g., select max(x) m, (sum(a) + sum(b)) / m as q
-// would be two aggs where sum(a) and sum(b) are
-// stored inside the aggs slice and we subtitute temp variables for
-// the agg functions in the expr field.
-type column struct {
-	name  string
-	loc   ast.Node
-	expr  sem.Expr
-	isAgg bool
-}
-
-type projection []column
-
-func (p projection) hasStar() bool {
-	for _, col := range p {
-		if col.isStar() {
-			return true
-		}
-	}
-	return false
-}
-
-func (p projection) aggCols() []column {
-	aggs := make([]column, 0, len(p))
-	for _, col := range p {
-		if col.isAgg {
-			aggs = append(aggs, col)
-		}
-	}
-	return aggs
-}
-
-func newColumn(name string, loc ast.Expr, e sem.Expr, funcs *aggfuncs) *column {
-	c := &column{name: name, loc: loc}
-	cnt := len(*funcs)
-	c.expr = funcs.subst(e)
-	c.isAgg = cnt != len(*funcs)
-	return c
-}
-
-func (c *column) isStar() bool {
-	return c.expr == nil
-}
-
-// namedAgg gives us a place to bind temp name to each agg function.
-type namedAgg struct {
-	name string
-	agg  *sem.AggFunc
-}
-
-type aggfuncs []namedAgg
-
-func (a aggfuncs) tmp() string {
-	return fmt.Sprintf("t%d", len(a))
-}
-
-func (a *aggfuncs) subst(e sem.Expr) sem.Expr {
-	return exprWalk(e, func(e sem.Expr) (sem.Expr, bool) {
-		switch e := e.(type) {
-		case *sem.AggFunc:
-			// swap in a temp column for each agg function found, which
-			// will then be referred to by the containing expression.
-			// The agg function is computed into the tmp value with
-			// the generated aggregate operator.
-			tmp := a.tmp()
-			*a = append(*a, namedAgg{name: tmp, agg: e})
-			return sem.NewThis(e, []string{"in", tmp}), true
-		default:
-			return e, false
-		}
-	})
-}
-
-func keySubst(e sem.Expr, exprs []exprloc) (sem.Expr, bool) {
+func replaceGroupings(t *translator, in sem.Expr, groupings []exprloc) (sem.Expr, bool) {
 	ok := true
-	e = exprWalk(e, func(e sem.Expr) (sem.Expr, bool) {
-		if i := exprMatch(e, exprs); i >= 0 {
-			return sem.NewThis(e, []string{"in", fmt.Sprintf("k%d", i)}), true
+	out := exprWalk(in, func(e sem.Expr) (sem.Expr, bool) {
+		if i := exprMatch(e, groupings); i >= 0 {
+			return sem.NewThis(e, []string{"g", groupTmp(i)}), true
 		}
 		switch e := e.(type) {
 		case *sem.ThisExpr:
-			ok = false
+			if len(e.Path) >= 1 {
+				s := e.Path[0]
+				switch s {
+				case "in":
+					ok = false
+					t.error(e, fmt.Errorf("column %q must appear in GROUP BY clause", e.Path[1]))
+					return e, true
+				case "out", "g":
+				default:
+					panic(s)
+				}
+			}
+			return e, false
 		case *sem.AggFunc:
-			// This should't happen.
+			// This should't happen as all AggFuncs should have been
+			// turned into AggRefs before this is called.
 			panic(e)
+		case *sem.AggRef:
+			return sem.NewThis(e.Node, []string{"g", aggTmp(e.Index)}), false
 		}
 		return e, false
 	})
-	return e, ok
+	return out, ok
+}
+
+func exprMatch(target sem.Expr, exprs []exprloc) int {
+	for which, e := range exprs {
+		if eqExpr(target, e.expr) {
+			return which
+		}
+	}
+	return -1
 }
 
 type exprVisitor func(e sem.Expr) (sem.Expr, bool)

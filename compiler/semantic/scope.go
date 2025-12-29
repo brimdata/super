@@ -117,8 +117,7 @@ func (s *Scope) lookupFuncParamLambda(name string) (string, bool) {
 // and replace with dag path with schemafied semantics.
 // In the case of unqualified col ref, check that it is not ambiguous
 // when there are multiple tables (i.e., from joins).
-// An unqualified field reference is valid only in dynamic schemas.
-func (s *Scope) resolve(n ast.Node, path field.Path) (sem.Expr, error) {
+func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) (sem.Expr, error) {
 	// If there's no schema, we're not in a SQL context so we just
 	// return the path unmodified.  Otherwise, we apply SQL scoping
 	// rules to transform the abstract path to the dataflow path
@@ -128,35 +127,100 @@ func (s *Scope) resolve(n ast.Node, path field.Path) (sem.Expr, error) {
 		return sem.NewThis(n, path), nil
 	}
 	if len(path) == 0 {
-		// XXX this should really treat this as a column in sql context but
-		// but this will cause dynamic stuff to silently fail so I think we
-		// should flag and maybe make it part of a strict mode (like bitwise |)
 		if e := sch.this(n, nil); e != nil {
 			return e, nil
 		}
 		return nil, errors.New("cannot reference 'this' in relational context; consider the 'values' operator") //XXX new error?
 	}
-	if len(path) == 1 {
-		out, fatal, err := sch.resolveColumn(path[0])
-		if fatal {
-			return badExpr(), err
-		}
-		if err != nil {
-			if e, err := sch.tableOnly(n, path[0], nil); err == nil {
-				return e, nil
-			}
-			return badExpr(), err
-		}
-		if out != nil {
-			return sem.NewThis(n, out), nil
-		}
+	// We give priority to lateral column aliases which diverges from
+	// Postgres semantics (which checks the input table first) but follows
+	// Google SQL semantics.  We favor this approach so we can avoid
+	// precedence problems for dynamic inputs or super-structured inputs
+	// that evolve, e.g., with a super-structured input, whether a column
+	// is present in the input shouldn't control the scoping decision compared
+	// to a column aliases otherwise as data evolves (and such a column shows up)
+	// the binding of identifiers changes and query results can change.  By
+	// resolving lateral aliases first, we avoid this problem.
+	if e := resolveLateralColumn(t, sch, path[0]); e != nil {
+		return extend(n, e, path[1:]), nil
+	}
+	out, dyn, err := sch.resolveUnqualified(path[0])
+	if err != nil {
 		return badExpr(), err
 	}
-	path, err := resolvePath(sch, path)
-	if err != nil {
-		return nil, err
+	if out != nil {
+		if dyn {
+			// Make sure there's not a table with the same name as the column name.
+			if _, tdyn, err := sch.resolveTable(n, path[0], nil); err != nil && tdyn {
+				return badExpr(), fmt.Errorf("cannot use unqualified reference %q when table of same name is in scope (consider qualified reference)", path[0])
+			}
+		}
+		return sem.NewThis(n, append(out, path[1:]...)), nil
 	}
-	return sem.NewThis(n, path), nil
+	if len(path) == 1 {
+		// Single identifier didn't resolve to column so let's see if there's
+		// a table with this name and return an expression capturing the
+		// rows as single-column records.
+		out, _, err := sch.resolveTable(n, path[0], nil)
+		if out != nil || err != nil {
+			return out, err
+		}
+	} else {
+		// Look for match of a qualified reference (table.col).
+		out, err := sch.resolveQualified(path[0], path[1])
+		if err != nil {
+			return nil, err
+		}
+		if out != nil {
+			return sem.NewThis(n, append(out, path[2:]...)), nil
+		}
+		if p, _, _ := sch.resolveTable(n, path[0], nil); p != nil {
+			return nil, fmt.Errorf("column %q does not exist in table %q", path[1], path[0])
+		}
+	}
+	return nil, fmt.Errorf("%q: not a column or table", path[0])
+}
+
+func extend(n ast.Node, e sem.Expr, rest []string) sem.Expr {
+	if len(rest) == 0 {
+		return e
+	}
+	if this, ok := e.(*sem.ThisExpr); ok {
+		return sem.NewThis(n, append(this.Path, rest...))
+	}
+	out := &sem.DotExpr{
+		Node: n,
+		LHS:  e,
+		RHS:  rest[0],
+	}
+	for _, f := range rest[1:] {
+		out = &sem.DotExpr{
+			Node: n,
+			LHS:  out,
+			RHS:  f,
+		}
+	}
+	return out
+}
+
+func resolveLateralColumn(t *translator, s schema, col string) sem.Expr {
+	sch, ok := s.(*selectSchema)
+	if !ok {
+		// lateral columns available only inside select bodies
+		return nil
+	}
+	for k := range sch.latStop {
+		c := sch.columns[k]
+		if c.lateral && c.name == col {
+			save := sch.latStop
+			defer func() {
+				sch.latStop = save
+			}()
+			sch.latStop = k
+			return t.expr(c.astExpr)
+		}
+	}
+	return nil
 }
 
 func (s *Scope) indexBase() int {
@@ -169,32 +233,4 @@ func (s *Scope) indexBase() int {
 		}
 		s = s.parent
 	}
-}
-
-func resolvePath(sch schema, path field.Path) (field.Path, error) {
-	if len(path) <= 1 {
-		panic("resolvePath")
-	}
-	table, tablePath, err := sch.resolveTable(path[0])
-	if err != nil {
-		return nil, err
-	}
-	if table != nil {
-		columnPath, _, err := table.resolveColumn(path[1])
-		if err != nil {
-			return nil, fmt.Errorf("table %q: %w", path[0], err)
-		}
-		if columnPath != nil {
-			out := append(tablePath, columnPath...)
-			if len(path) > 2 {
-				out = append(out, path[2:]...)
-			}
-			return out, nil
-		}
-	}
-	out, _, err := sch.resolveColumn(path[0])
-	if out == nil && err == nil {
-		err = fmt.Errorf("%q: not a column or table", path[0])
-	}
-	return append(out, path[1:]...), err
 }

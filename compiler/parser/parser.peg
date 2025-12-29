@@ -2246,10 +2246,10 @@ JoinCond
             Loc: loc(c),
         }, nil
     }
-  / USING __ "(" __ fields:Lvals __ ")" {
+  / USING __ "(" __ fields:Identifiers __ ")" {
         return &ast.JoinUsingCond{
             Kind: "JoinUsingCond",
-            Fields: sliceOf[ast.Expr](fields),
+            Fields: sliceOf[*ast.ID](fields),
             Loc: loc(c),
         }, nil
     }
@@ -2288,9 +2288,8 @@ Selection
       }, nil
   }
 
-//XXX need to add *, id.*, except, replace
 SelectElem
-  = expr:Expr as:OptAsClause {
+  = expr:ColumnExpr as:OptAsClause {
       elem := ast.SQLAsExpr{
         Kind: "SQLAsExpr",
         Expr: expr.(ast.Expr),
@@ -2301,10 +2300,20 @@ SelectElem
       }
       return elem, nil
     }
-  / "*" {
-      // empty assignment is star (for now)
-      return ast.SQLAsExpr{Kind: "AsExpr"}, nil
+
+// XXX should add support for EXCEPT and REPLACE
+ColumnExpr
+  = table:SQLIdentifier __ "." __ "*" {
+      return &ast.StarExpr{
+        Kind: "StarExpr",
+        Table: table.(*ast.ID).Name,
+        Loc: loc(c),
+      }, nil
     }
+  / "*" {
+      return &ast.StarExpr{Kind: "StarExpr", Loc: loc(c)}, nil
+    }
+  / Expr
 
 OptAsClause
   = _ AS _ id:SQLIdentifier { return id, nil }

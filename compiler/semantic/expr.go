@@ -128,7 +128,7 @@ func (t *translator) expr(e ast.Expr) sem.Expr {
 		id := t.idExpr(e, false)
 		if t.scope.schema != nil {
 			if this, ok := id.(*sem.ThisExpr); ok {
-				ref, err := t.scope.resolve(e, this.Path)
+				ref, err := t.scope.resolve(t, e, this.Path)
 				if err != nil {
 					t.error(e, err)
 					return badExpr()
@@ -413,7 +413,7 @@ func (t *translator) doubleQuoteExpr(d *ast.DoubleQuoteExpr) sem.Expr {
 	// sophisticated to handle pipes inside SQL subqueries.
 	if t.scope.schema != nil {
 		if d.Text == "this" {
-			ref, err := t.scope.resolve(d, []string{"this"})
+			ref, err := t.scope.resolve(t, d, []string{"this"})
 			if err != nil {
 				t.error(d, err)
 				return badExpr()
@@ -482,7 +482,7 @@ func (t *translator) regexp(b *ast.BinaryExpr) sem.Expr {
 func (t *translator) binaryExpr(e *ast.BinaryExpr) sem.Expr {
 	if path, bad := t.semDotted(e, false); path != nil {
 		if t.scope.schema != nil {
-			ref, err := t.scope.resolve(e, path)
+			ref, err := t.scope.resolve(t, e, path)
 			if err != nil {
 				t.error(e, err)
 				return badExpr()
@@ -1011,24 +1011,50 @@ func (t *translator) maybeConvertAgg(call *ast.CallExpr) sem.Expr {
 	return t.aggFunc(call, nameLower, e, nil, false)
 }
 
-func (t *translator) aggFunc(n ast.Node, name string, arg ast.Expr, filter ast.Expr, distinct bool) *sem.AggFunc {
+func (t *translator) aggFunc(n ast.Node, name string, arg ast.Expr, filter ast.Expr, distinct bool) sem.Expr {
 	// If we are in the context of a having clause, re-expose the select schema
 	// since the agg func's arguments and where clause operate on the input relation
 	// not the output.
-	if having, ok := t.scope.schema.(*havingSchema); ok {
-		save := t.scope.schema
-		t.scope.schema = having.selectSchema
+	sch, ok := t.scope.schema.(*selectSchema)
+	if ok {
+		if !sch.aggOk {
+			if sch.groupByLoc != nil {
+				t.error(sch.groupByLoc, fmt.Errorf("aggregate function %q cannot appear in GROUP BY via positional reference", name))
+			} else {
+				t.error(n, fmt.Errorf("aggregate function %q called in non-aggregate context", name))
+			}
+			return badExpr()
+		}
+		sch.aggOk = false
+		save := sch.out
 		defer func() {
-			t.scope.schema = save
+			sch.aggOk = true
+			sch.out = save
 		}()
+		sch.out = nil
 	}
-	return &sem.AggFunc{
+	f := &sem.AggFunc{
 		Node:     n,
 		Name:     name,
 		Expr:     t.exprNullable(arg),
 		Filter:   t.exprNullable(filter),
 		Distinct: distinct,
 	}
+	if ok {
+		return lookupAggFunc(sch, f)
+	}
+	return f
+}
+
+func lookupAggFunc(sch *selectSchema, target *sem.AggFunc) *sem.AggRef {
+	for k, f := range sch.aggs {
+		if f.Name == target.Name && f.Distinct == target.Distinct && eqExpr(f.Expr, target.Expr) && eqExpr(f.Filter, target.Filter) {
+			return &sem.AggRef{Node: target, Index: k}
+		}
+	}
+	ref := &sem.AggRef{Node: target, Index: len(sch.aggs)}
+	sch.aggs = append(sch.aggs, target)
+	return ref
 }
 
 func DotExprToFieldPath(e ast.Expr) *sem.ThisExpr {

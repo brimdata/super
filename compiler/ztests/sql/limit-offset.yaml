@@ -1,44 +1,44 @@
 script: |
-  super compile -C -O 'select * from /dev/null limit 1'
+  super compile -C -O 'select this from /dev/null limit 1'
   echo // ===
-  super compile -C -O 'select * from /dev/null limit all'
+  super compile -C -O 'select this from /dev/null limit all'
   echo // ===
-  super compile -C -O 'select * from /dev/null offset 1'
+  super compile -C -O 'select this from /dev/null offset 1'
   echo // ===
-  super compile -C -O 'select * from /dev/null limit 1 offset 1'
+  super compile -C -O 'select this from /dev/null limit 1 offset 1'
   echo // ===
-  super compile -C -O 'select * from /dev/null offset 1 limit 1'
+  super compile -C -O 'select this from /dev/null offset 1 limit 1'
   echo // ===
-  ! super compile -C -O 'select * from /dev/null offset -1 limit "foo"'
+  ! super compile -C -O 'select this from /dev/null offset -1 limit "foo"'
 
 outputs:
   - name: stdout
     data: |
       file /dev/null
-      | values {in:this,out:{...this}}
+      | values {in:this,out:{that:this}}
       | head 1
       | values out
       | output main
       // ===
       file /dev/null
-      | values {...this}
+      | values {that:this}
       | output main
       // ===
       file /dev/null
-      | values {in:this,out:{...this}}
+      | values {in:this,out:{that:this}}
       | skip 1
       | values out
       | output main
       // ===
       file /dev/null
-      | values {in:this,out:{...this}}
+      | values {in:this,out:{that:this}}
       | skip 1
       | head 1
       | values out
       | output main
       // ===
       file /dev/null
-      | values {in:this,out:{...this}}
+      | values {in:this,out:{that:this}}
       | skip 1
       | head 1
       | values out
@@ -46,9 +46,9 @@ outputs:
       // ===
   - name: stderr
     data: |
-      expression value must be a positive integer at line 1, column 32:
-      select * from /dev/null offset -1 limit "foo"
-                                     ~~
-      expression value must be an integer value: "foo" at line 1, column 41:
-      select * from /dev/null offset -1 limit "foo"
-                                              ~~~~~
+      expression value must be a positive integer at line 1, column 35:
+      select this from /dev/null offset -1 limit "foo"
+                                        ~~
+      expression value must be an integer value: "foo" at line 1, column 44:
+      select this from /dev/null offset -1 limit "foo"
+                                                 ~~~~~

@@ -1,0 +1,5 @@
+spq: |
+  select (select {q:1}) as x, x.q as z
+
+output: |
+  {x:{q:1},z:1}

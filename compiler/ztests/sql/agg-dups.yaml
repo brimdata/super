@@ -1,0 +1,15 @@
+script: |
+  super compile -C -O "select max(a),max(a) from (values (1),(2)) T(a) order by max(a)"
+
+outputs:
+  - name: stdout
+    data: |
+      null
+      | values {c0:1}, {c0:2}
+      | values {a:c0}
+      | aggregate
+          t0:=max(a)
+      | values {g:this,out:{max:t0,max_1:t0}}
+      | sort g.t0 asc nulls last
+      | values out
+      | output main

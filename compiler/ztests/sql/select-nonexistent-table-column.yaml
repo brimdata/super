@@ -2,6 +2,6 @@ spq: |
   SELECT t.x FROM (SELECT 1 as y) t
 
 error: |
-  table "t": column "x": does not exist at line 1, column 8:
+  column "x" does not exist in table "t" at line 1, column 8:
   SELECT t.x FROM (SELECT 1 as y) t
          ~~~

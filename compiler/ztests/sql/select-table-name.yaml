@@ -17,6 +17,6 @@ outputs:
       {T:{a:3}}
   - name: stderr
     data: |
-      cannot reference column "T" of dynamic input whose alias is "T" (consider 'this') at line 1, column 8:
+      cannot use unqualified reference "T" when table of same name is in scope (consider qualified reference) at line 1, column 8:
       select T from a.sup T
              ~

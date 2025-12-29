@@ -1,8 +1,8 @@
 spq: |
   select *
-  from (values {a:1},{a:2},{a:3}) as A
-       cross join (values {b:4},{b:5},{b:6}) as B
-  order by A.a, B.b
+  from (values {a:1},{a:2},{a:3}) as Ta
+       cross join (values {b:4},{b:5},{b:6}) as Tb
+  order by Ta.a, Tb.b
 
 vector: true
 

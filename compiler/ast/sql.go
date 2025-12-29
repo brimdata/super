@@ -153,7 +153,7 @@ type (
 	}
 	JoinUsingCond struct {
 		Kind   string `json:"kind" unpack:""`
-		Fields []Expr `json:"fields"`
+		Fields []*ID  `json:"fields"`
 		Loc    `json:"loc"`
 	}
 )

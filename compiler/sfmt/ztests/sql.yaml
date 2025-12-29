@@ -26,15 +26,15 @@ outputs:
   - name: stdout
     data: |
       === cross join
-      select null
+      select *
       from a
       cross join b, c
       === join with on condition
-      select null
+      select *
       from a
       inner join b on c
       === join with using condition
-      select null
+      select *
       from a
       inner join b using (c, d)
       === select

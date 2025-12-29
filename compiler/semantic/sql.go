@@ -26,14 +26,14 @@ import (
 // an OrderBy, it can reach into the "in" part of the select scope (for non-aggregates)
 // and also sort by the out elements.  It's up to the caller to unwrap the in/out
 // record when returning to pipeline context.
-func (t *translator) sqlSelect(sel *ast.SQLSelect, seq sem.Seq) (sem.Seq, schema) {
+func (t *translator) sqlSelect(sel *ast.SQLSelect, demand []ast.Expr, seq sem.Seq) (sem.Seq, schema) {
 	if len(sel.Selection.Args) == 0 {
 		t.error(sel, errors.New("SELECT clause has no selection"))
-		return seq, badSchema()
+		return seq, badSchema
 	}
 	seq, fromSchema := t.selectFrom(sel.Loc, sel.From, seq)
-	if fromSchema == nil {
-		return seq, badSchema()
+	if fromSchema == nil || fromSchema == badSchema {
+		return seq, badSchema
 	}
 	if t.scope.schema != nil {
 		fromSchema = &subquerySchema{
@@ -41,251 +41,213 @@ func (t *translator) sqlSelect(sel *ast.SQLSelect, seq sem.Seq) (sem.Seq, schema
 			inner: fromSchema,
 		}
 	}
-	sch := &selectSchema{in: fromSchema}
-	var funcs aggfuncs
-	proj := t.projection(sch, sel.Selection.Args, &funcs)
-	var where sem.Expr
-	if sel.Where != nil {
-		where = t.exprSchema(sch, sel.Where)
+	save := t.scope.schema
+	sch := &selectSchema{
+		in: fromSchema,
 	}
-	keyExprs := t.groupBy(sch, sel.GroupBy)
-	having := t.having(sch, sel.Having, &funcs)
-	// Now that all the pieces have been converted to sem tree fragments,
-	// we stitch together the fragments into pipeline operators depending
-	// on whether its an aggregation or a selection of scalar expressions.
+	t.scope.schema = sch
+	defer func() {
+		t.scope.schema = save
+	}()
+	// form column slots (and expand *'s) so we can resolve lateral column aliases
+	sch.columns = t.formProjection(sch, sel.Selection.Args)
+	sch.latStop = len(sch.columns)
 	seq = valuesExpr(wrapThis(sel, "in"), seq)
-	if len(funcs) != 0 || len(keyExprs) != 0 {
-		seq = t.genAggregate(sel.Loc, proj, where, keyExprs, funcs, having, seq)
-		return seq, sch.out
+	if sel.Where != nil {
+		where := t.expr(sel.Where)
+		seq = append(seq, sem.NewFilter(sel.Where, where))
 	}
+	sch.groupings = t.groupBy(sch, sel.GroupBy)
+	sch.aggOk = true
+	// Make sure any aggs needed by ORDER BY and computed.
+	for _, e := range demand {
+		t.expr(e)
+	}
+	// Next analyze all the columns so we know if there are aggregate functions
+	// (in particular, we know this when there is no GROUP BY) so after this,
+	// we know for sure if the output is grouped or not.
+	t.projection(sch, sch.columns)
+	// We now stitch together the fragments into pipeline operators depending
+	// on whether the ouput is grouped or not.
+	var having sem.Expr
+	if sch.isGrouped() {
+		if sel.Having != nil {
+			having = t.groupedExpr(sch, sel.Having)
+		}
+		// Match grouping expressions in the projected column expressions.
+		t.replaceGroupings(sch, sch.columns)
+		seq = t.genAggregate(sel.Loc, sch, seq)
+		seq = valuesExpr(wrapThis(sel, "g"), seq)
+	} else if sel.Having != nil {
+		t.error(sel.Having, errors.New("HAVING clause requires aggregation functions and/or a GROUP BY clause"))
+	}
+	seq, sch.out = t.emitProjection(sch.columns, sch.isGrouped(), seq)
 	if having != nil {
-		t.error(sel.Having, errors.New("HAVING clause requires aggregations and/or a GROUP BY clause"))
+		seq = append(seq, sem.NewFilter(sel.Having, having))
 	}
-	seq = t.genValues(proj, where, sch, seq)
 	if sel.Distinct {
 		seq = t.genDistinct(sem.NewThis(sel, []string{"out"}), seq)
 	}
 	return seq, sch
 }
 
-func (t *translator) having(sch *selectSchema, e ast.Expr, funcs *aggfuncs) sem.Expr {
-	if e == nil {
-		return nil
+// groupedExpr translates e in the context of any grouping expressions where
+// we translate any matching expression to its aggregate tmp variable and
+// flag an error if we encounter un-matched references to the input table.
+// When the sel schema isn't an agg, this is like a normal t.expr().
+func (t *translator) groupedExpr(sch *selectSchema, e ast.Expr) sem.Expr {
+	if e != nil {
+		if !sch.isGrouped() {
+			return t.expr(e)
+		}
+		save := sch.grouped
+		defer func() {
+			sch.grouped = save
+		}()
+		sch.grouped = true
+		if out, ok := replaceGroupings(t, t.expr(e), sch.groupings); ok {
+			return out
+		}
 	}
-	return funcs.subst(t.exprSchema(&havingSchema{sch}, e))
+	return nil
 }
 
-func (t *translator) genValues(proj projection, where sem.Expr, sch *selectSchema, seq sem.Seq) sem.Seq {
-	if len(proj) == 0 {
-		return nil
+func (t *translator) replaceGroupings(sch *selectSchema, columns []column) {
+	for k, c := range columns {
+		columns[k].semExpr, _ = replaceGroupings(t, c.semExpr, sch.groupings)
 	}
-	seq = t.genColumns(proj, sch, seq)
-	if where != nil {
-		seq = append(seq, sem.NewFilter(where, where))
-	}
-	return seq
 }
 
-func (t *translator) genColumns(proj projection, sch *selectSchema, seq sem.Seq) sem.Seq {
-	var notFirst bool
-	for _, col := range proj {
-		if col.isAgg {
+type column struct {
+	name    string
+	astExpr ast.Expr
+	semExpr sem.Expr
+	lateral bool
+}
+
+func (t *translator) formProjection(sch *selectSchema, in []ast.SQLAsExpr) []column {
+	var out []column
+	scores := make(map[string]int)
+	for _, as := range in {
+		if star, ok := as.Expr.(*ast.StarExpr); ok {
+			// expand * and table.* expressions
+			paths, err := sch.star(star, star.Table, nil)
+			if err != nil {
+				t.error(as, err)
+			}
+			for _, p := range paths {
+				out = append(out, column{name: dedup(scores, t.asName(as.Label, nil, p.Path)), semExpr: p, astExpr: as.Expr})
+			}
 			continue
 		}
-		var elems []sem.RecordElem
-		if notFirst {
-			elems = append(elems, &sem.SpreadElem{
-				Node: col.loc,
-				Expr: sem.NewThis(col.loc, []string{"out"}),
-			})
-		} else {
-			notFirst = true
+		lateral := as.Label != nil && as.Label.Name != ""
+		out = append(out, column{name: dedup(scores, t.asName(as.Label, as.Expr, nil)), astExpr: as.Expr, lateral: lateral})
+	}
+	return out
+}
+
+func (t *translator) asName(label *ast.ID, expr ast.Expr, path []string) string {
+	var name string
+	if label != nil {
+		name = label.Name
+		if name == "" {
+			t.error(label, errors.New("column alias cannot be an empty string"))
 		}
-		if col.isStar() {
-			elems = unravel(col.loc, elems, sch, nil)
-		} else {
-			elems = append(elems, &sem.FieldElem{
-				Node:  col.loc,
-				Name:  col.name,
-				Value: col.expr,
-			})
+	} else if id, ok := expr.(*ast.IDExpr); ok && id.Name == "this" {
+		name = "that"
+	} else if path != nil {
+		name = path[len(path)-1]
+	} else {
+		name = deriveNameFromExpr(expr)
+	}
+	return name
+}
+
+func (t *translator) projection(sch *selectSchema, columns []column) {
+	for k := range columns {
+		// Translates all expressions that weren't already expanded
+		// from * patterns.
+		sch.latStop = k
+		if columns[k].semExpr == nil {
+			columns[k].semExpr = t.expr(columns[k].astExpr)
 		}
-		e := &sem.RecordExpr{
-			Node: col.loc,
-			Elems: []sem.RecordElem{
-				&sem.FieldElem{
-					Node:  col.loc,
-					Name:  "in",
-					Value: sem.NewThis(col.loc, field.Path{"in"}),
-				},
-				&sem.FieldElem{
-					Node: col.loc,
-					Name: "out",
-					Value: &sem.RecordExpr{
-						Node:  col.loc,
-						Elems: elems,
-					},
+	}
+	sch.latStop = len(sch.columns)
+}
+
+func (t *translator) emitProjection(columns []column, grouped bool, seq sem.Seq) (sem.Seq, *staticSchema) {
+	if len(columns) == 0 {
+		return seq, nil
+	}
+	var outs []sem.RecordElem
+	var names []string
+	for _, c := range columns {
+		outs = append(outs, &sem.FieldElem{
+			Node:  c.astExpr,
+			Name:  c.name,
+			Value: c.semExpr,
+		})
+		names = append(names, c.name)
+	}
+	var in string
+	if grouped {
+		in = "g"
+	} else {
+		in = "in"
+	}
+	loc := columns[0].astExpr //XXX
+	e := &sem.RecordExpr{
+		Node: loc,
+		Elems: []sem.RecordElem{
+			&sem.FieldElem{
+				Node:  loc,
+				Name:  in,
+				Value: sem.NewThis(loc, field.Path{in}),
+			},
+			&sem.FieldElem{
+				Node: loc,
+				Name: "out",
+				Value: &sem.RecordExpr{
+					Node:  loc,
+					Elems: outs,
 				},
 			},
-		}
-		seq = append(seq, sem.NewValues(col.loc, e))
+		},
 	}
-	return seq
+	return append(seq, sem.NewValues(loc, e)), &staticSchema{columns: names}
 }
 
-func unravel(n ast.Node, elems []sem.RecordElem, schema schema, prefix field.Path) []sem.RecordElem {
-	switch schema := schema.(type) {
-	case *aliasSchema:
-		return unravel(n, elems, schema.sch, prefix)
-	case *dynamicSchema:
-		return append(elems, &sem.SpreadElem{
-			Node: n,
-			Expr: sem.NewThis(n, slices.Clone(prefix)),
-		})
-	case *staticSchema:
-		for _, col := range schema.columns {
-			elems = append(elems, &sem.FieldElem{
-				Name:  col,
-				Value: sem.NewThis(n, slices.Clone(append(prefix, col))),
-			})
-		}
-		return elems
-	case *selectSchema:
-		return unravel(n, elems, schema.in, append(prefix, "in"))
-	case *joinSchema:
-		elems = unravel(n, elems, schema.left, append(prefix, "left"))
-		return unravel(n, elems, schema.right, append(prefix, "right"))
-	case *subquerySchema:
-		// XXX we're currently using subquerySchema to detect correlated subqueries
-		// but not doing the unnest yet, so in this case here (e.g., (select * from...)),
-		// we just unravel the inner schema without a path extension. This will change
-		// when we implement proper SQL subqueries with correlated subquery support.
-		return unravel(n, elems, schema.inner, prefix)
-	default:
-		panic(schema)
-	}
-}
-
-func (t *translator) genAggregate(loc ast.Loc, proj projection, where sem.Expr, keyExprs []exprloc, funcs aggfuncs, having sem.Expr, seq sem.Seq) sem.Seq {
-	if proj.hasStar() {
-		// XXX take this out and figure out to incorporate this especially if we know the input schema
-		t.error(loc, errors.New("aggregate mixed with *-selector not yet supported"))
-		return append(seq, badOp())
-	}
-	if len(proj) != len(proj.aggCols()) {
-		// Yield expressions for potentially left-to-right-dependent
-		// column expressions of the grouping expression components.
-		seq = t.genValues(proj, nil, nil, seq)
-	}
-	if where != nil {
-		seq = append(seq, sem.NewFilter(loc, where))
-	}
+func (t *translator) genAggregate(loc ast.Loc, sch *selectSchema, seq sem.Seq) sem.Seq {
 	var aggCols []sem.Assignment
-	for _, named := range funcs {
+	for k, agg := range sch.aggs {
 		a := sem.Assignment{
-			Node: named.agg.Node,
-			LHS:  sem.NewThis(named.agg.Node, []string{named.name}),
-			RHS:  named.agg,
+			Node: agg.Node,
+			LHS:  sem.NewThis(agg.Node, []string{aggTmp(k)}),
+			RHS:  agg,
 		}
 		aggCols = append(aggCols, a)
 	}
 	var keyCols []sem.Assignment
-	for k, e := range keyExprs {
+	for k, e := range sch.groupings {
 		keyCols = append(keyCols, sem.Assignment{
 			Node: e.loc,
-			LHS:  sem.NewThis(e.loc, []string{fmt.Sprintf("k%d", k)}),
+			LHS:  sem.NewThis(e.loc, []string{groupTmp(k)}),
 			RHS:  e.expr,
 		})
 	}
-	seq = append(seq, &sem.AggregateOp{
+	return append(seq, &sem.AggregateOp{
 		Node: loc,
 		Aggs: aggCols,
 		Keys: keyCols,
 	})
-	seq = valuesExpr(wrapThis(loc, "in"), seq)
-	seq = t.genAggregateOutput(loc, proj, keyExprs, seq)
-	if having != nil {
-		seq = append(seq, sem.NewFilter(having, having))
-	}
-	return valuesExpr(sem.NewThis(loc, []string{"out"}), seq)
 }
 
-func (t *translator) genAggregateOutput(loc ast.Node, proj projection, keyExprs []exprloc, seq sem.Seq) sem.Seq {
-	notFirst := false
-	for _, col := range proj {
-		if col.isStar() {
-			// XXX this turns into grouping keys (this)
-			panic("TBD")
-		}
-		var elems []sem.RecordElem
-		if notFirst {
-			elems = append(elems, &sem.SpreadElem{
-				Node: col.loc,
-				Expr: sem.NewThis(col.loc, []string{"out"}),
-			})
-		} else {
-			notFirst = true
-		}
-		// First, try to match the column expression to one of the grouping
-		// expressions.  If that doesn't work, see if the aliased column
-		// name is one of the grouping expressions.
-		key, ok := keySubst(sem.CopyExpr(col.expr), keyExprs)
-		if !ok {
-			alias := sem.NewThis(col.loc, []string{"out", col.name})
-			if which := exprMatch(alias, keyExprs); which >= 0 {
-				key = sem.NewThis(col.loc, []string{"in", fmt.Sprintf("k%d", which)})
-				ok = true
-			}
-		}
-		if col.isAgg {
-			if ok {
-				t.error(col.expr, fmt.Errorf("aggregate functions are not allowed in GROUP BY"))
-			}
-			elems = append(elems, &sem.FieldElem{
-				Node:  col.loc,
-				Name:  col.name,
-				Value: col.expr,
-			})
-		} else {
-			if !ok {
-				t.error(col.loc, fmt.Errorf("no corresponding grouping element for non-aggregate %q", col.name))
-			}
-			elems = append(elems, &sem.FieldElem{
-				Node:  col.loc,
-				Name:  col.name,
-				Value: key,
-			})
-		}
-		e := &sem.RecordExpr{
-			Node: loc,
-			Elems: []sem.RecordElem{
-				&sem.FieldElem{
-					Node:  loc,
-					Name:  "in",
-					Value: sem.NewThis(loc, field.Path{"in"}),
-				},
-				&sem.FieldElem{
-					Node: loc,
-					Name: "out",
-					Value: &sem.RecordExpr{
-						Node:  loc,
-						Elems: elems,
-					},
-				},
-			},
-		}
-		seq = append(seq, sem.NewValues(loc, e))
-	}
-	return seq
+func aggTmp(k int) string {
+	return fmt.Sprintf("t%d", k)
 }
 
-func exprMatch(target sem.Expr, exprs []exprloc) int {
-	for which, e := range exprs {
-		if eqExpr(target, e.expr) {
-			return which
-		}
-	}
-	return -1
+func groupTmp(k int) string {
+	return fmt.Sprintf("k%d", k)
 }
 
 func (t *translator) selectFrom(loc ast.Loc, exprs []ast.SQLTableExpr, seq sem.Seq) (sem.Seq, schema) {
@@ -298,16 +260,17 @@ func (t *translator) selectFrom(loc ast.Loc, exprs []ast.SQLTableExpr, seq sem.S
 	if off >= len(seq) {
 		// The chain didn't get lengthed so semFrom must have encountered
 		// an error...
-		return seq, nil
+		return seq, badSchema
 	}
 	// If we have parents with both a from and select, report an error but
 	// only if it's not a RobotScan where the parent feeds the from operateor.
 	if _, ok := seq[off].(*sem.RobotScan); !ok {
 		if hasParent {
 			t.error(loc, errors.New("SELECT cannot have both an embedded FROM clause and input from parents"))
-			return append(seq, badOp()), nil
+			return append(seq, badOp()), badSchema
 		}
 	}
+
 	// Handle comma-separated table expressions in FROM clause.
 	for _, e := range exprs[1:] {
 		seq, sch = t.sqlAppendCrossJoin(e, seq, sch, e)
@@ -355,7 +318,7 @@ func (t *translator) genDistinct(e sem.Expr, seq sem.Seq) sem.Seq {
 
 func (t *translator) sqlPipe(pipe *ast.SQLPipe, seq sem.Seq) (sem.Seq, schema) {
 	if query, ok := maybeSQLQueryBody(pipe); ok {
-		return t.sqlQueryBody(query, seq)
+		return t.sqlQueryBody(query, nil, seq)
 	}
 	if len(seq) > 0 {
 		panic("semSQLOp: SQL pipes can't have parents")
@@ -379,14 +342,6 @@ func maybeSQLQueryBody(pipe *ast.SQLPipe) (ast.SQLQueryBody, bool) {
 	return nil, false
 }
 
-func endScope(n ast.Node, sch schema, seq sem.Seq) (sem.Seq, schema) {
-	e, sch := sch.endScope(n)
-	if e != nil {
-		seq = valuesExpr(e, seq)
-	}
-	return seq, sch
-}
-
 func unfurl(n ast.Node, sch schema, seq sem.Seq) sem.Seq {
 	if e := sch.unfurl(n); e != nil {
 		return valuesExpr(e, seq)
@@ -395,11 +350,11 @@ func unfurl(n ast.Node, sch schema, seq sem.Seq) sem.Seq {
 }
 
 func applyAlias(alias *ast.TableAlias, sch schema, seq sem.Seq) (sem.Seq, schema, error) {
-	if alias == nil {
+	if alias == nil || sch == badSchema {
 		return seq, sch, nil
 	}
 	if len(alias.Columns) == 0 {
-		return seq, addAlias(sch, alias.Name), nil
+		return seq, addTableAlias(sch, alias.Name), nil
 	}
 	if cols, ok := sch.outColumns(); ok {
 		return mapColumns(cols, alias, seq)
@@ -427,7 +382,7 @@ func mapColumns(in []string, alias *ast.TableAlias, seq sem.Seq) (sem.Seq, schem
 			Elems: elems,
 		}, seq)
 	}
-	return seq, &aliasSchema{alias.Name, &staticSchema{out}}, nil
+	return seq, &staticSchema{table: alias.Name, columns: out}, nil
 }
 
 func idsToStrings(ids []*ast.ID) []string {
@@ -438,10 +393,10 @@ func idsToStrings(ids []*ast.ID) []string {
 	return out
 }
 
-func (t *translator) sqlQueryBody(query ast.SQLQueryBody, seq sem.Seq) (sem.Seq, schema) {
+func (t *translator) sqlQueryBody(query ast.SQLQueryBody, demand []ast.Expr, seq sem.Seq) (sem.Seq, schema) {
 	switch query := query.(type) {
 	case *ast.SQLSelect:
-		return t.sqlSelect(query, seq)
+		return t.sqlSelect(query, demand, seq)
 	case *ast.SQLValues:
 		return t.sqlValues(query, seq)
 	case *ast.SQLQuery:
@@ -449,13 +404,16 @@ func (t *translator) sqlQueryBody(query ast.SQLQueryBody, seq sem.Seq) (sem.Seq,
 			old := t.sqlWith(query.With)
 			defer func() { t.scope.ctes = old }()
 		}
-		seq, sch := t.sqlQueryBody(query.Body, seq)
+		var demand []ast.Expr
 		if query.OrderBy != nil {
-			var exprs []sem.SortExpr
-			for _, e := range query.OrderBy.Exprs {
-				exprs = append(exprs, t.sortExpr(sch, e, false))
-			}
-			seq = append(seq, &sem.SortOp{Node: query.OrderBy, Exprs: exprs})
+			demand = exprsFromSortExprs(query.OrderBy.Exprs)
+		}
+		seq, sch := t.sqlQueryBody(query.Body, demand, seq)
+		if sch == badSchema {
+			return seq, sch
+		}
+		if query.OrderBy != nil {
+			seq = t.orderBy(query.OrderBy, sch, seq)
 		}
 		if limoff := query.Limit; limoff != nil {
 			if limoff.Offset != nil {
@@ -467,24 +425,32 @@ func (t *translator) sqlQueryBody(query ast.SQLQueryBody, seq sem.Seq) (sem.Seq,
 		}
 		return seq, sch
 	case *ast.SQLUnion:
-		left, leftSch := t.sqlQueryBody(query.Left, seq)
-		left, leftSch = endScope(query.Left.(ast.Node), leftSch, left)
+		left, leftSch := t.sqlQueryBody(query.Left, nil, seq)
+		left, leftSch = leftSch.endScope(query.Left.(ast.Node), left)
+		if leftSch == nil || leftSch == badSchema {
+			// error happened in query body
+			return sem.Seq{badOp()}, badSchema
+		}
 		leftCols, lok := leftSch.outColumns()
 		if !lok {
 			t.error(query.Left, errors.New("set operations cannot be applied to dynamic sources"))
 		}
-		right, rightSch := t.sqlQueryBody(query.Right, seq)
-		right, rightSch = endScope(query.Right.(ast.Node), rightSch, right)
+		right, rightSch := t.sqlQueryBody(query.Right, nil, seq)
+		right, rightSch = rightSch.endScope(query.Right.(ast.Node), right)
+		if rightSch == nil || rightSch == badSchema {
+			// error happened in query body
+			return sem.Seq{badOp()}, badSchema
+		}
 		rightCols, rok := rightSch.outColumns()
 		if !rok {
 			t.error(query.Right, errors.New("set operations cannot be applied to dynamic sources"))
 		}
 		if !lok || !rok {
-			return sem.Seq{badOp()}, badSchema()
+			return sem.Seq{badOp()}, badSchema
 		}
 		if len(leftCols) != len(rightCols) {
 			t.error(query, errors.New("set operations can only be applied to sources with the same number of columns"))
-			return sem.Seq{badOp()}, badSchema()
+			return sem.Seq{badOp()}, badSchema
 		}
 		if !slices.Equal(leftCols, rightCols) {
 			// Rename fields on the right to match the left.
@@ -515,6 +481,27 @@ func (t *translator) sqlQueryBody(query ast.SQLQueryBody, seq sem.Seq) (sem.Seq,
 	default:
 		panic(query)
 	}
+}
+
+func exprsFromSortExprs(in []ast.SortExpr) []ast.Expr {
+	var out []ast.Expr
+	for _, e := range in {
+		out = append(out, e.Expr)
+	}
+	return out
+}
+
+func (t *translator) orderBy(op *ast.SQLOrderBy, sch schema, seq sem.Seq) sem.Seq {
+	save := t.scope.schema
+	t.scope.schema = sch
+	defer func() {
+		t.scope.schema = save
+	}()
+	var exprs []sem.SortExpr
+	for _, e := range op.Exprs {
+		exprs = append(exprs, t.sortExpr(sch, e, false))
+	}
+	return append(seq, &sem.SortOp{Node: op, Exprs: exprs})
 }
 
 func (t *translator) sqlWith(with *ast.SQLWith) map[string]*ast.SQLCTE {
@@ -567,10 +554,15 @@ func (t *translator) sqlJoin(join *ast.SQLJoin, seq sem.Seq) (sem.Seq, schema) {
 	}
 	leftSeq, leftSchema := t.sqlTableExpr(join.Left, nil)
 	rightSeq, rightSchema := t.sqlTableExpr(join.Right, nil)
-	sch := &joinSchema{left: leftSchema, right: rightSchema}
+	var sch schema
+	if using, ok := join.Cond.(*ast.JoinUsingCond); ok {
+		sch = newJoinUsingSchema(&joinSchema{left: leftSchema, right: rightSchema}, idsToStrings(using.Fields))
+	} else {
+		sch = &joinSchema{left: leftSchema, right: rightSchema}
+	}
 	saved := t.scope.schema
 	t.scope.schema = sch
-	cond := t.joinCond(join.Cond, "left", "right")
+	cond := t.sqlJoinCond(join.Cond)
 	t.scope.schema = saved
 	style := join.Style
 	if style == "" {
@@ -587,14 +579,60 @@ func (t *translator) sqlJoin(join *ast.SQLJoin, seq sem.Seq) (sem.Seq, schema) {
 	return sem.Seq{par, dagJoin}, sch
 }
 
-func (t *translator) joinCond(cond ast.JoinCond, leftAlias, rightAlias string) sem.Expr {
+func (t *translator) sqlJoinCond(cond ast.JoinCond) sem.Expr {
 	switch cond := cond.(type) {
 	case *ast.JoinOnCond:
-		if id, ok := cond.Expr.(*ast.IDExpr); ok {
-			return t.joinCond(&ast.JoinUsingCond{Fields: []ast.Expr{id}}, leftAlias, rightAlias)
+		return t.expr(cond.Expr)
+	case *ast.JoinUsingCond:
+		jsch := t.scope.schema.(*joinUsingSchema).joinSchema
+		var exprs []sem.Expr
+		for _, id := range cond.Fields {
+			left, _, err := jsch.left.resolveUnqualified(id.Name)
+			if err != nil {
+				t.error(id, err)
+				continue
+			}
+			if left == nil {
+				t.error(id, fmt.Errorf("column %q in USING clause does not exist in left table", id.Name))
+				continue
+			}
+			right, _, err := jsch.right.resolveUnqualified(id.Name)
+			if err != nil {
+				t.error(id, err)
+				continue
+			}
+			if right == nil {
+				t.error(id, fmt.Errorf("column %q in USING clause does not exist in right table", id.Name))
+				continue
+			}
+			lhs := sem.NewThis(id, append([]string{"left"}, left...))
+			rhs := sem.NewThis(id, append([]string{"right"}, right...))
+			exprs = append(exprs, sem.NewBinaryExpr(id, "==", lhs, rhs))
 		}
+		if len(exprs) == 0 {
+			return badExpr()
+		}
+		return andUsingExprs(cond, exprs)
+	default:
+		panic(cond)
+	}
+}
+
+func andUsingExprs(cond ast.Node, exprs []sem.Expr) sem.Expr {
+	n := len(exprs)
+	e := exprs[n-1]
+	for i := n - 2; i >= 0; i-- {
+		e = sem.NewBinaryExpr(cond, "and", exprs[i], e)
+	}
+	return e
+}
+
+func (t *translator) pipeJoinCond(cond ast.JoinCond, leftAlias, rightAlias string) sem.Expr {
+	switch cond := cond.(type) {
+	case *ast.JoinOnCond:
 		e := t.expr(cond.Expr)
-		dag.WalkT(reflect.ValueOf(e), func(e *sem.ThisExpr) *sem.ThisExpr {
+		// hack: e is wrapped in []sem.Expr to work around CanSet() model in WalkT
+		dag.WalkT(reflect.ValueOf([]sem.Expr{e}), func(e *sem.ThisExpr) *sem.ThisExpr {
 			if len(e.Path) == 0 {
 				t.error(cond.Expr, errors.New(`join expression cannot refer to "this"`))
 			} else if name := e.Path[0]; name != leftAlias && name != rightAlias {
@@ -604,30 +642,13 @@ func (t *translator) joinCond(cond ast.JoinCond, leftAlias, rightAlias string) s
 		})
 		return e
 	case *ast.JoinUsingCond:
-		if t.scope.schema != nil {
-			sch := t.scope.schema.(*joinSchema)
-			t.scope.schema = &joinUsingSchema{sch}
-			defer func() { t.scope.schema = sch }()
-		}
 		var exprs []sem.Expr
-		for _, e := range t.fields(cond.Fields) {
-			switch ee := e.(type) {
-			case *sem.BadExpr:
-			case *sem.ThisExpr:
-				lhs := sem.NewThis(ee, append([]string{leftAlias}, ee.Path...))
-				rhs := sem.NewThis(ee, append([]string{rightAlias}, ee.Path...))
-				e = sem.NewBinaryExpr(ee, "==", lhs, rhs)
-			default:
-				panic(ee)
-			}
-			exprs = append(exprs, e)
+		for _, id := range cond.Fields {
+			lhs := sem.NewThis(id, []string{leftAlias, id.Name})
+			rhs := sem.NewThis(id, []string{rightAlias, id.Name})
+			exprs = append(exprs, sem.NewBinaryExpr(id, "==", lhs, rhs))
 		}
-		n := len(exprs)
-		e := exprs[n-1]
-		for i := n - 2; i >= 0; i-- {
-			e = sem.NewBinaryExpr(cond, "and", exprs[i], e)
-		}
-		return e
+		return andUsingExprs(cond, exprs)
 	default:
 		panic(cond)
 	}
@@ -640,19 +661,17 @@ type exprloc struct {
 
 func (t *translator) groupBy(sch *selectSchema, in []ast.Expr) []exprloc {
 	var out []exprloc
-	var funcs aggfuncs
-	for k, expr := range in {
-		e := t.exprSchema(sch, expr)
-		if which, ok := isOrdinal(t.sctx, e); ok {
-			var err error
-			if e, err = sch.resolveOrdinal(e, which); err != nil {
-				t.error(in[k], err)
+	for _, expr := range in {
+		e := t.expr(expr)
+		if colno, ok := isOrdinal(t.sctx, e); ok {
+			if colno < 1 || colno > len(sch.columns) {
+				t.error(expr, fmt.Errorf("position %d is not in select list", colno))
+			} else {
+				save := sch.groupByLoc
+				sch.groupByLoc = expr
+				e = t.expr(sch.columns[colno-1].astExpr)
+				sch.groupByLoc = save
 			}
-		}
-		// Grouping expressions can't have agg funcs so we parse as a column
-		// and see if any agg functions were found.
-		if newColumn("", in[k], e, &funcs).isAgg {
-			t.error(in[k], errors.New("aggregate function cannot appear in GROUP BY clause"))
 		}
 		out = append(out, exprloc{e, expr})
 	}
@@ -667,86 +686,34 @@ func isOrdinal(sctx *super.Context, e sem.Expr) (int, bool) {
 	return -1, false
 }
 
-func (t *translator) projection(sch *selectSchema, args []ast.SQLAsExpr, funcs *aggfuncs) projection {
-	out := &staticSchema{}
-	sch.out = out
-	labels := make(map[string]struct{})
-	var proj projection
-	for _, as := range args {
-		if isStar(as) {
-			proj = append(proj, column{loc: as})
-			continue
+func (t *translator) resolveOrdinalOuter(s schema, n ast.Node, prefix string, col int) sem.Expr {
+	switch s := s.(type) {
+	case *selectSchema:
+		return t.resolveOrdinalOuter(s.out, n, "out", col)
+	case *staticSchema:
+		if col < 1 || col > len(s.columns) {
+			t.error(n, fmt.Errorf("column %d is out of range", col))
+			return badExpr()
 		}
-		col := t.as(sch, as, funcs)
-		if as.Label != nil {
-			if _, ok := labels[col.name]; ok {
-				t.error(as.Label, fmt.Errorf("duplicate column label %q", col.name))
-				continue
-			}
-			labels[col.name] = struct{}{}
+		var path []string
+		if prefix != "" {
+			path = []string{prefix, s.columns[col-1]}
+		} else {
+			path = []string{s.columns[col-1]}
 		}
-		proj = append(proj, *col)
-	}
-	// Do we have duplicates for inferred columns? If an alias and an
-	// inferred column collide the inferred name should be changed.
-	for i := range proj {
-		col := &proj[i]
-		if col.isStar() {
-			if cols, ok := sch.in.outColumns(); ok {
-				out.columns = append(out.columns, cols...)
-			} else {
-				sch.out = &dynamicSchema{}
-			}
-			continue
-		}
-		if args[i].Label == nil {
-			col.name = dedupeColname(labels, col.name)
-		}
-		labels[col.name] = struct{}{}
-		out.columns = append(out.columns, col.name)
-	}
-	return proj
-}
-
-func dedupeColname(m map[string]struct{}, name string) string {
-	for i := 0; ; i++ {
-		s := name
-		if i > 0 {
-			s += fmt.Sprintf("_%d", i)
-		}
-		if _, ok := m[s]; !ok {
-			return s
-		}
+		return sem.NewThis(n, path)
+	default:
+		panic(s)
 	}
 }
 
-func isStar(a ast.SQLAsExpr) bool {
-	return a.Expr == nil && a.Label == nil
-}
-
-func (t *translator) as(sch schema, as ast.SQLAsExpr, funcs *aggfuncs) *column {
-	e := t.exprSchema(sch, as.Expr)
-	// If we have a name from an AS clause, use it. Otherwise, infer a name.
-	var name string
-	if as.Label != nil {
-		name = as.Label.Name
-		if name == "" {
-			t.error(as.Label, errors.New("label cannot be an empty string"))
-		}
-	} else if id, ok := as.Expr.(*ast.IDExpr); ok && id.Name == "this" {
-		name = "that"
-	} else {
-		name = deriveNameFromExpr(as.Expr)
+func dedup(scores map[string]int, s string) string {
+	cnt := scores[s]
+	scores[s] = cnt + 1
+	if cnt != 0 {
+		s = fmt.Sprintf("%s_%d", s, cnt)
 	}
-	return newColumn(name, as.Expr, e, funcs)
-}
-
-func (t *translator) exprSchema(s schema, e ast.Expr) sem.Expr {
-	save := t.scope.schema
-	t.scope.schema = s
-	out := t.expr(e)
-	t.scope.schema = save
-	return out
+	return s
 }
 
 func valuesExpr(e sem.Expr, seq sem.Seq) sem.Seq {

@@ -20,9 +20,12 @@ outputs:
       {x:1}
   - name: stderr
     data: |
-      "x": ambiguous column reference at line 1, column 39:
+      join on dynamic column "x" requires table-qualified reference at line 1, column 39:
       select x from x.parquet join z.sup on x=y
                                             ~
-      "x": ambiguous column reference at line 1, column 8:
+      join on dynamic column "y" requires table-qualified reference at line 1, column 41:
+      select x from x.parquet join z.sup on x=y
+                                              ~
+      join on dynamic column "x" requires table-qualified reference at line 1, column 8:
       select x from x.parquet join z.sup on x=y
              ~

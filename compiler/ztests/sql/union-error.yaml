@@ -15,9 +15,6 @@ outputs:
       select 1 x union all select 1 x, 1 y
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       // ===
-      set operations cannot be applied to dynamic sources at line 1, column 1:
+      the all-columns (*) pattern cannot be used for dynamic inputs at line 1, column 8:
       select * from a.sup union all select * from a.sup
-      ~~~~~~~~~~~~~~~~~~~
-      set operations cannot be applied to dynamic sources at line 1, column 31:
-      select * from a.sup union all select * from a.sup
-                                    ~~~~~~~~~~~~~~~~~~~
+             ~

@@ -21,6 +21,10 @@ type (
 		Expr     Expr
 		Filter   Expr
 	}
+	AggRef struct {
+		ast.Node
+		Index int
+	}
 	ArrayExpr struct {
 		ast.Node
 		Elems []ArrayElem
@@ -166,6 +170,7 @@ func (*SpreadElem) arrayElemNode()  {}
 func (*SpreadElem) recordElemNode() {}
 
 func (*AggFunc) exprNode()          {}
+func (*AggRef) exprNode()           {}
 func (*ArrayExpr) exprNode()        {}
 func (*BadExpr) exprNode()          {}
 func (*BinaryExpr) exprNode()       {}

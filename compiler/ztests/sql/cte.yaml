@@ -25,7 +25,7 @@ inputs:
           top_regions.region
       FROM orders.sup o
       INNER JOIN top_regions ON o.region = top_regions.region
-      ORDER BY region, order_id
+      ORDER BY top_regions.region, order_id
   - name: orders.sup
     data: |
       {order_id:1001,amount:245.5,quantity:3,region:"North America"}

@@ -12,6 +12,6 @@ inputs:
 outputs:
   - name: stderr 
     data: |
-      column "a": does not exist at line 1, column 38:
+      column "a" must appear in GROUP BY clause at line 1, column 38:
       select count() from a.parquet having a=1
                                            ~

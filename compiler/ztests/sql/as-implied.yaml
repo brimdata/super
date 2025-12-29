@@ -35,5 +35,5 @@ outputs:
       | output main
       ===
       file t.json format json fields a
-      | values {"a+1_1":a+1,"a+1":a+1}
+      | values {"a+1":a+1,"a+1_1":a+1}
       | output main

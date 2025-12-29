@@ -5,10 +5,10 @@ inputs:
   - name: query.sql
     data: |
       FROM gha.sup
-      | SELECT union(repo.name) AS repos, actor.login AS user
-        GROUP BY user
-        ORDER BY len(repos) DESC
-        LIMIT 2
+      SELECT union(repo.name) AS repos, actor.login AS user
+      GROUP BY user
+      ORDER BY len(repos) DESC
+      LIMIT 2
       | FORK
         (
           FROM f'{user}.sup'

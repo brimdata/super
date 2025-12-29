@@ -6,7 +6,6 @@ script: |
   echo // === >&2
   ! super -s -c 'select count() as c, a group by 1,2'
 
-
 inputs:
   - name: test.sup
     data: |
@@ -29,22 +28,22 @@ outputs:
       position 0 is not in select list at line 1, column 31:
       select a, b, c, d group by 5, 0
                                     ~
-      no corresponding grouping element for non-aggregate "a" at line 1, column 8:
+      column "a" must appear in GROUP BY clause at line 1, column 8:
       select a, b, c, d group by 5, 0
              ~
-      no corresponding grouping element for non-aggregate "b" at line 1, column 11:
+      column "b" must appear in GROUP BY clause at line 1, column 11:
       select a, b, c, d group by 5, 0
                 ~
-      no corresponding grouping element for non-aggregate "c" at line 1, column 14:
+      column "c" must appear in GROUP BY clause at line 1, column 14:
       select a, b, c, d group by 5, 0
                    ~
-      no corresponding grouping element for non-aggregate "d" at line 1, column 17:
+      column "d" must appear in GROUP BY clause at line 1, column 17:
       select a, b, c, d group by 5, 0
                       ~
       // ===
-      aggregate functions are not allowed in GROUP BY at line 1, column 8:
+      aggregate function "count" cannot appear in GROUP BY via positional reference at line 1, column 33:
       select count() as c, a group by 1,2
-             ~~~~~~~
+                                      ~
 
 output: |
   {c:1}

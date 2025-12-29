@@ -10,24 +10,36 @@ script: |
 outputs:
   - name: stderr
     data: |
-      "b": ambiguous column reference at line 1, column 68:
+      ambiguous unqualified column "b" at line 1, column 68:
       select * from (select 1 as a, 2 as b) t1 join (select 2 as b) on a=b
                                                                          ~
       ===
-      "a": ambiguous column reference at line 1, column 37:
+      join on dynamic column "a" requires table-qualified reference at line 1, column 37:
       select * from a.json join b.json on a=b
                                           ~
-      "b": ambiguous column reference at line 1, column 39:
+      join on dynamic column "b" requires table-qualified reference at line 1, column 39:
       select * from a.json join b.json on a=b
                                             ~
+      the all-columns (*) pattern cannot be used for dynamic inputs at line 1, column 8:
+      select * from a.json join b.json on a=b
+             ~
       ===
-      "x": ambiguous column reference at line 1, column 51:
+      join on dynamic column "x" requires table-qualified reference at line 1, column 51:
       select * from (select 2 as x) as a join b.json on x=b.c
                                                         ~
+      join on dynamic column "b" requires table-qualified reference at line 1, column 53:
+      select * from (select 2 as x) as a join b.json on x=b.c
+                                                          ~~~
+      the all-columns (*) pattern cannot be used for dynamic inputs at line 1, column 8:
+      select * from (select 2 as x) as a join b.json on x=b.c
+             ~
       ===
-      "a": ambiguous table reference at line 1, column 50:
+      join on dynamic column "a" requires table-qualified reference at line 1, column 50:
       select * from (select 2 as x) a join b.json a on a.x=a.y
                                                        ~~~
-      "a": ambiguous table reference at line 1, column 54:
+      join on dynamic column "a" requires table-qualified reference at line 1, column 54:
       select * from (select 2 as x) a join b.json a on a.x=a.y
                                                            ~~~
+      the all-columns (*) pattern cannot be used for dynamic inputs at line 1, column 8:
+      select * from (select 2 as x) a join b.json a on a.x=a.y
+             ~

@@ -10,6 +10,6 @@ outputs:
       | output main
   - name: stderr
     data: |
-      label cannot be an empty string at line 1, column 13:
+      column alias cannot be an empty string at line 1, column 13:
       SELECT 1 as ""
                   ~~

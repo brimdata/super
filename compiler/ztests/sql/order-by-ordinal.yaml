@@ -19,6 +19,6 @@ outputs:
       {i:null::int64,SUM:null::int64}
   - name: stderr
     data: |
-      position 3 is not in select list at line 1, column 22:
+      column 3 is out of range at line 1, column 22:
       SELECT a, b ORDER BY 3
                            ~

@@ -16,13 +16,13 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {x:3,y:"a"}
-      {x:4,y:"b"}
+      {y:"a",x:1,x_1:3}
+      {y:"b",x:2,x_1:4}
   - name: stderr
     data: |
-      table selection in USING clause not allowed at line 1, column 45:
+      parse error at line 1, column 46:
       select * from A A(x,y) join B B(x,y) using (A.y)
-                                                  ~~~
+                                               === ^ ===
       column "y" in USING clause does not exist in right table at line 1, column 45:
       select * from A A(x,y) join B B(x,z) using (y)
                                                   ~
