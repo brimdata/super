@@ -99,7 +99,7 @@ func (a *Arith) evalDivideByZero(kind vector.Kind, lhs, rhs vector.Any) vector.A
 			l, lnull := vector.IntValue(lhs, i)
 			r, rnull := vector.IntValue(rhs, i)
 			if lnull || rnull {
-				nulls.Set(i)
+				nulls.Set(uint32(len(ints)))
 				ints = append(ints, 0)
 				continue
 			}
@@ -113,6 +113,7 @@ func (a *Arith) evalDivideByZero(kind vector.Kind, lhs, rhs vector.Any) vector.A
 				ints = append(ints, l%r)
 			}
 		}
+		nulls.Shorten(uint32(len(ints)))
 		out = vector.NewInt(super.TypeInt64, ints, nulls)
 	case vector.KindUint:
 		var uints []uint64
@@ -121,7 +122,7 @@ func (a *Arith) evalDivideByZero(kind vector.Kind, lhs, rhs vector.Any) vector.A
 			l, lnull := vector.UintValue(lhs, i)
 			r, rnull := vector.UintValue(rhs, i)
 			if lnull || rnull {
-				nulls.Set(i)
+				nulls.Set(uint32(len(uints)))
 				uints = append(uints, 0)
 				continue
 			}
@@ -135,6 +136,7 @@ func (a *Arith) evalDivideByZero(kind vector.Kind, lhs, rhs vector.Any) vector.A
 				uints = append(uints, l%r)
 			}
 		}
+		nulls.Shorten(uint32(len(uints)))
 		out = vector.NewUint(super.TypeUint64, uints, nulls)
 	default:
 		panic(kind)
