@@ -36,7 +36,7 @@ func (d *dcount) Consume(vec vector.Any) {
 }
 
 func (d *dcount) Result(*super.Context) super.Value {
-	return super.NewUint64(d.sketch.Estimate())
+	return super.NewInt64(int64(d.sketch.Estimate()))
 }
 
 func (d *dcount) ConsumeAsPartial(partial vector.Any) {

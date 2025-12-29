@@ -22,14 +22,14 @@ import (
 
 func (t *translator) expr(e ast.Expr) sem.Expr {
 	switch e := e.(type) {
-	case *ast.Agg:
+	case *ast.AggFuncExpr:
 		expr := t.exprNullable(e.Expr)
 		nameLower := strings.ToLower(e.Name)
 		if expr == nil && nameLower != "count" {
 			t.error(e, fmt.Errorf("aggregator '%s' requires argument", e.Name))
 			return badExpr()
 		}
-		return t.aggFunc(e, nameLower, e.Expr, e.Where, e.Distinct)
+		return t.aggFunc(e, nameLower, e.Expr, e.Filter, e.Distinct)
 	case *ast.ArrayExpr:
 		elems := t.arrayElems(e.Elems)
 		if subquery := t.arraySubquery(elems); subquery != nil {
@@ -643,10 +643,6 @@ func (t *translator) semCall(call *ast.CallExpr) sem.Expr {
 	if e := t.maybeConvertAgg(call); e != nil {
 		return e
 	}
-	if call.Where != nil {
-		t.error(call, errors.New("'where' clause on non-aggregation function"))
-		return badExpr()
-	}
 	args := t.exprs(call.Args)
 	switch f := call.Func.(type) {
 	case *ast.FuncNameExpr:
@@ -894,7 +890,7 @@ func isLval(e sem.Expr) bool {
 
 func deriveNameFromExpr(e ast.Expr) string {
 	switch e := e.(type) {
-	case *ast.Agg:
+	case *ast.AggFuncExpr:
 		return e.Name
 	case *ast.CallExpr:
 		var name string
@@ -1008,10 +1004,10 @@ func (t *translator) maybeConvertAgg(call *ast.CallExpr) sem.Expr {
 	if len(call.Args) == 1 {
 		e = call.Args[0]
 	}
-	return t.aggFunc(call, nameLower, e, call.Where, false)
+	return t.aggFunc(call, nameLower, e, nil, false)
 }
 
-func (t *translator) aggFunc(n ast.Node, name string, arg ast.Expr, where ast.Expr, distinct bool) *sem.AggFunc {
+func (t *translator) aggFunc(n ast.Node, name string, arg ast.Expr, filter ast.Expr, distinct bool) *sem.AggFunc {
 	// If we are in the context of a having clause, re-expose the select schema
 	// since the agg func's arguments and where clause operate on the input relation
 	// not the output.
@@ -1026,7 +1022,7 @@ func (t *translator) aggFunc(n ast.Node, name string, arg ast.Expr, where ast.Ex
 		Node:     n,
 		Name:     name,
 		Expr:     t.exprNullable(arg),
-		Where:    t.exprNullable(where),
+		Filter:   t.exprNullable(filter),
 		Distinct: distinct,
 	}
 }

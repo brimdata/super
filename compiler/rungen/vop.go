@@ -446,12 +446,12 @@ func (b *Builder) compileVamAgg(agg *dag.AggExpr) (*vamexpr.Aggregator, error) {
 			return nil, err
 		}
 	}
-	var where vamexpr.Evaluator
-	if agg.Where != nil {
-		where, err = b.compileVamExpr(agg.Where)
+	var filter vamexpr.Evaluator
+	if agg.Filter != nil {
+		filter, err = b.compileVamExpr(agg.Filter)
 		if err != nil {
 			return nil, err
 		}
 	}
-	return vamexpr.NewAggregator(name, agg.Distinct, arg, where)
+	return vamexpr.NewAggregator(name, agg.Distinct, arg, filter)
 }

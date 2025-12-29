@@ -35,8 +35,8 @@ count
 {foo:"bar",a:true}
 {foo:"baz",b:false}
 # expected output
-{that:{foo:"bar",a:true},count:1::uint64}
-{that:{foo:"baz",b:false},count:2::uint64}
+{that:{foo:"bar",a:true},count:1}
+{that:{foo:"baz",b:false},count:2}
 ```
 
 ---
@@ -50,9 +50,9 @@ count {c}
 "b"
 "c"
 # expected output
-{c:1::uint64}
-{c:2::uint64}
-{c:3::uint64}
+{c:1}
+{c:2}
+{c:3}
 ```
 
 ---
@@ -65,8 +65,8 @@ count {...this,c}
 {foo:"bar",a:true}
 {foo:"baz",b:false}
 # expected output
-{foo:"bar",a:true,c:1::uint64}
-{foo:"baz",b:false,c:2::uint64}
+{foo:"bar",a:true,c:1}
+{foo:"baz",b:false,c:2}
 ```
 
 ---
@@ -79,6 +79,6 @@ count {third_foo_char:foo[2:3],c}
 {foo:"bar",a:true}
 {foo:"baz",b:false}
 # expected output
-{third_foo_char:"r",c:1::uint64}
-{third_foo_char:"z",c:2::uint64}
+{third_foo_char:"r",c:1}
+{third_foo_char:"z",c:2}
 ```

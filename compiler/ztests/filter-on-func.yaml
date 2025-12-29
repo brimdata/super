@@ -1,0 +1,6 @@
+spq: cut hex := hex(this) filter ( this % 2 == 0 )
+
+error: |
+  call to aggregate function in non-aggregate context at line 1, column 12:
+  cut hex := hex(this) filter ( this % 2 == 0 )
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

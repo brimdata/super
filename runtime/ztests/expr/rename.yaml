@@ -9,5 +9,5 @@ vector: true
 input: !!binary BQAAAQFzGRwAHgMCYR4DAmIeAwJh/w==
 
 output: |
-  {s2:"a",count:2::uint64}
-  {s2:"b",count:1::uint64}
+  {s2:"a",count:2}
+  {s2:"b",count:1}

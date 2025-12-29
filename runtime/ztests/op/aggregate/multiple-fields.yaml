@@ -8,6 +8,6 @@ input: |
   {key1:"b",key2:"z",n:1::int32}
 
 output: |
-  {key1:"a",key2:"x",count:1::uint64}
-  {key1:"a",key2:"y",count:1::uint64}
-  {key1:"b",key2:"z",count:1::uint64}
+  {key1:"a",key2:"x",count:1}
+  {key1:"a",key2:"y",count:1}
+  {key1:"b",key2:"z",count:1}

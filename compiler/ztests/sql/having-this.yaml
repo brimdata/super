@@ -1,4 +1,4 @@
-spq: select count() from (values 1,2) having this={count:2::uint64}
+spq: select count() from (values 1,2) having this={count:2}
 
 output: |
-  {count:2::uint64}
+  {count:2}

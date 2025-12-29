@@ -7,4 +7,4 @@ input: |
   null::float64
 
 output: |
-  {avg:null::float64,count:0::uint64,collect:null,sum:null::float64}
+  {avg:null::float64,count:0,collect:null,sum:null::float64}

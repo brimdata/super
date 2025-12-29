@@ -1319,9 +1319,11 @@ func (t *translator) checkStaticAssignment(asts []ast.Assignment, assignments []
 
 func (t *translator) exprOp(e ast.Expr, seq sem.Seq) sem.Seq {
 	if call, ok := e.(*ast.CallExpr); ok {
-		if seq := t.callExpr(call, seq); seq != nil {
+		if seq := t.maybeCallShortcut(call, seq); seq != nil {
 			return seq
 		}
+	} else if agg, ok := e.(*ast.AggFuncExpr); ok {
+		return t.aggFuncShortcut(agg, seq)
 	}
 	// For stand-alone identifiers with no arguments, see if it's a user op
 	// or a named query.
@@ -1378,7 +1380,7 @@ func (t *translator) isBool(e sem.Expr) bool {
 	}
 }
 
-func (t *translator) callExpr(call *ast.CallExpr, seq sem.Seq) sem.Seq {
+func (t *translator) maybeCallShortcut(call *ast.CallExpr, seq sem.Seq) sem.Seq {
 	f, ok := call.Func.(*ast.FuncNameExpr)
 	if !ok {
 		return nil
@@ -1402,6 +1404,23 @@ func (t *translator) callExpr(call *ast.CallExpr, seq sem.Seq) sem.Seq {
 		return nil
 	}
 	return append(seq, &sem.FilterOp{Node: call, Expr: t.semCall(call)})
+}
+
+func (t *translator) aggFuncShortcut(agg *ast.AggFuncExpr, seq sem.Seq) sem.Seq {
+	name := agg.Name
+	aggFunc := t.aggFunc(agg, name, agg.Expr, agg.Filter, agg.Distinct)
+	aggregate := &sem.AggregateOp{
+		Node: agg,
+		Aggs: []sem.Assignment{
+			{
+				Node: aggFunc,
+				LHS:  sem.NewThis(agg, []string{name}),
+				RHS:  aggFunc,
+			},
+		},
+	}
+	values := sem.NewValues(agg, sem.NewThis(agg, []string{name}))
+	return append(seq, aggregate, values)
 }
 
 func (t *translator) callOp(call *ast.CallOp, seq sem.Seq) sem.Seq {

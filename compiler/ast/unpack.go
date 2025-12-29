@@ -8,7 +8,7 @@ import (
 )
 
 var unpacker = unpack.New(
-	Agg{},
+	AggFuncExpr{},
 	AggregateOp{},
 	ArgExpr{},
 	ArgText{},

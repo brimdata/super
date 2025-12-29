@@ -8,5 +8,5 @@ input: |
   {rec:{i:2::int32,s:"bleah"},val:3}
 
 output: |
-  {newkey:1::int32,count:2::uint64}
-  {newkey:2::int32,count:1::uint64}
+  {newkey:1::int32,count:2}
+  {newkey:2::int32,count:1}

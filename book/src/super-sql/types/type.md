@@ -93,8 +93,8 @@ count() by typeof(this) | sort this
 10.0.0.1
 <string>
 # expected output
-{typeof:<int64>,count:2::uint64}
-{typeof:<string>,count:1::uint64}
-{typeof:<ip>,count:1::uint64}
-{typeof:<type>,count:1::uint64}
+{typeof:<int64>,count:2}
+{typeof:<string>,count:1}
+{typeof:<ip>,count:1}
+{typeof:<type>,count:1}
 ```

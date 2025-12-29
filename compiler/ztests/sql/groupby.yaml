@@ -14,10 +14,10 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {radius:1.5,count:1::uint64}
-      {radius:0.7,count:1::uint64}
-      {radius:4.2,count:1::uint64}
-      {radius:error("missing"),count:1::uint64}
+      {radius:1.5,count:1}
+      {radius:0.7,count:1}
+      {radius:4.2,count:1}
+      {radius:error("missing"),count:1}
       ===
       {type:"circle",sum:6.4}
       {type:"rectangle",sum:null}

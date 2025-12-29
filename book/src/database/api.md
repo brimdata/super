@@ -414,8 +414,8 @@ curl -X POST \
 **Example Response**
 
 ```
-{warehouse:"chicago",count:2::uint64}
-{warehouse:"miami",count:1::uint64}
+{warehouse:"chicago",count:2}
+{warehouse:"miami",count:1}
 ```
 
 **Example Request**
@@ -431,7 +431,7 @@ curl -X POST \
 
 ```
 {"type":"QueryChannelSet","value":{"channel":"main"}}
-{"type":{"kind":"record","id":30,"fields":[{"name":"warehouse","type":{"kind":"primitive","name":"string"}},{"name":"count","type":{"kind":"primitive","name":"uint64"}}]},"value":["miami","1"]}
+{"type":{"kind":"record","id":30,"fields":[{"name":"warehouse","type":{"kind":"primitive","name":"string"}},{"name":"count","type":{"kind":"primitive","name":"int64"}}]},"value":["miami","1"]}
 {"type":{"kind":"ref","id":30},"value":["chicago","2"]}
 {"type":"QueryChannelEnd","value":{"channel":"main"}}
 {"type":"QueryStats","value":{"start_time":{"sec":1658193276,"ns":964207000},"update_time":{"sec":1658193276,"ns":964592000},"bytes_read":55,"bytes_matched":55,"records_read":3,"records_matched":3}}

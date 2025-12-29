@@ -125,8 +125,8 @@ func (s *superTable) materializeAgg(i int) vector.Any {
 }
 
 type countByString struct {
-	nulls      uint64
-	table      map[string]uint64
+	nulls      int64
+	table      map[string]int64
 	builder    *vector.RecordBuilder
 	partialsIn bool
 }
@@ -134,7 +134,7 @@ type countByString struct {
 func newCountByString(b *vector.RecordBuilder, partialsIn bool) aggTable {
 	return &countByString{
 		builder:    b,
-		table:      make(map[string]uint64),
+		table:      make(map[string]int64),
 		partialsIn: partialsIn,
 	}
 }
@@ -160,7 +160,7 @@ func (c *countByString) update(keys, vals []vector.Any) {
 
 func (c *countByString) updatePartial(keyvec, valvec vector.Any) {
 	key, ok1 := keyvec.(*vector.String)
-	val, ok2 := valvec.(*vector.Uint)
+	val, ok2 := valvec.(*vector.Int)
 	if !ok1 || !ok2 {
 		panic("count by string: invalid partials in")
 	}
@@ -200,21 +200,21 @@ func (c *countByString) countDict(vec *vector.String, counts []uint32, nulls bit
 	offs, bytes := vec.Table().Slices()
 	for k := range vec.Len() {
 		if counts[k] > 0 {
-			c.table[string(bytes[offs[k]:offs[k+1]])] += uint64(counts[k])
+			c.table[string(bytes[offs[k]:offs[k+1]])] += int64(counts[k])
 		}
 	}
-	c.nulls += uint64(nulls.TrueCount())
+	c.nulls += int64(nulls.TrueCount())
 }
 
 func (c *countByString) countFixed(vec *vector.Const) {
 	val := vec.Value()
 	switch val.Type().ID() {
 	case super.IDString:
-		nullCnt := uint64(vec.Nulls.TrueCount())
-		c.nulls += nullCnt
-		c.table[super.DecodeString(val.Bytes())] += uint64(vec.Len()) - nullCnt
+		nulls := int64(vec.Nulls.TrueCount())
+		c.nulls += nulls
+		c.table[super.DecodeString(val.Bytes())] += int64(vec.Len()) - nulls
 	case super.IDNull:
-		c.nulls += uint64(vec.Len())
+		c.nulls += int64(vec.Len())
 	}
 }
 
@@ -237,7 +237,7 @@ func (c *countByString) countView(vec *vector.View) {
 
 func (c *countByString) materialize() vector.Any {
 	length := len(c.table)
-	counts := make([]uint64, length)
+	counts := make([]int64, length)
 	var bytes []byte
 	offs := make([]uint32, length+1)
 	var k int
@@ -257,6 +257,6 @@ func (c *countByString) materialize() vector.Any {
 		nulls.Set(uint32(length - 1))
 	}
 	keyVec := vector.NewString(vector.NewBytesTable(offs, bytes), nulls)
-	countVec := vector.NewUint(super.TypeUint64, counts, bitvec.Zero)
+	countVec := vector.NewInt(super.TypeInt64, counts, bitvec.Zero)
 	return c.builder.New([]vector.Any{keyVec, countVec}, bitvec.Zero)
 }

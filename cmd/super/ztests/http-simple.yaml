@@ -10,4 +10,4 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      1000::uint64
+      1000

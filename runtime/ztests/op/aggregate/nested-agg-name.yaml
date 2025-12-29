@@ -10,6 +10,6 @@ input: |
   {animal:"cat",s:"b",x:1::int32}
 
 output: |
-  {result:{animal:"cat",count:3::uint64}}
-  {result:{animal:"dog",count:1::uint64}}
-  {result:{animal:"elephant",count:1::uint64}}
+  {result:{animal:"cat",count:3}}
+  {result:{animal:"dog",count:1}}
+  {result:{animal:"elephant",count:1}}

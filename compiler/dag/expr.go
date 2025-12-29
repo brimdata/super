@@ -32,7 +32,7 @@ type (
 		Name     string `json:"name"`
 		Distinct bool   `json:"distinct"`
 		Expr     Expr   `json:"expr"`
-		Where    Expr   `json:"where"`
+		Filter   Expr   `json:"filter"`
 	}
 	ArrayExpr struct {
 		Kind  string       `json:"kind" unpack:""`

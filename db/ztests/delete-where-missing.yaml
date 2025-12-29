@@ -18,8 +18,8 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {count:3::uint64}
-      {count:2::uint64}
+      {count:3}
+      {count:2}
   - name: stderr
     data: |
       empty transaction

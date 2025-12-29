@@ -10,7 +10,7 @@ input: |
   {y:7}
 
 output: |
-  {val:{y:5},count:2::uint64}
-  {val:{y:7},count:1::uint64}
-  {val:{x:1::int32,s:"foo"},count:1::uint64}
-  {val:{x:2::int32,s:"Bar"},count:1::uint64}
+  {val:{y:5},count:2}
+  {val:{y:7},count:1}
+  {val:{x:1::int32,s:"foo"},count:1}
+  {val:{x:2::int32,s:"Bar"},count:1}

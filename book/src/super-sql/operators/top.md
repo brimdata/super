@@ -59,6 +59,6 @@ count() by name | top -r 2 count
 {name:"sue", age:41}
 {name:"liz", age:60}
 # expected output
-{name:"liz",count:3::uint64}
-{name:"bob",count:2::uint64}
+{name:"liz",count:3}
+{name:"bob",count:2}
 ```

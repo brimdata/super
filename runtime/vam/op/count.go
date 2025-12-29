@@ -11,7 +11,7 @@ type Count struct {
 	parent vector.Puller
 	alias  string
 	expr   expr.Evaluator
-	count  uint64
+	count  int64
 }
 
 func NewCount(sctx *super.Context, parent vector.Puller, alias string, in expr.Evaluator) *Count {
@@ -39,10 +39,10 @@ type evalfunc func(vector.Any) vector.Any
 func (e evalfunc) Eval(this vector.Any) vector.Any { return e(this) }
 
 func (o *Count) evalCount(in vector.Any) vector.Any {
-	counts := make([]uint64, in.Len())
+	counts := make([]int64, in.Len())
 	for i := range in.Len() {
 		o.count++
 		counts[i] = o.count
 	}
-	return vector.NewUint(super.TypeUint64, counts, bitvec.Zero)
+	return vector.NewInt(super.TypeInt64, counts, bitvec.Zero)
 }

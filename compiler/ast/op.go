@@ -376,18 +376,3 @@ func (*ValuesOp) opNode()     {}
 func (*WhereOp) opNode()      {}
 
 func (*DefaultScan) opNode() {}
-
-// An Agg is an AST node that represents a aggregate function.  The Name
-// field indicates the aggregation method while the Expr field indicates
-// an expression applied to the incoming records that is operated upon by them
-// aggregate function.  If Expr isn't present, then the aggregator doesn't act
-// upon a function of the record, e.g., count() counts up records without
-// looking into them.
-type Agg struct {
-	Kind     string `json:"kind" unpack:""`
-	Name     string `json:"name"`
-	Distinct bool   `json:"distinct"`
-	Expr     Expr   `json:"expr"`
-	Where    Expr   `json:"where"`
-	Loc      `json:"loc"`
-}

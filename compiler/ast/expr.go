@@ -6,6 +6,14 @@ type Expr interface {
 }
 
 type (
+	AggFuncExpr struct {
+		Kind     string `json:"kind" unpack:""`
+		Name     string `json:"name"`
+		Distinct bool   `json:"distinct"`
+		Expr     Expr   `json:"expr"`
+		Filter   Expr   `json:"filter"`
+		Loc      `json:"loc"`
+	}
 	ArrayExpr struct {
 		Kind  string      `json:"kind" unpack:""`
 		Elems []ArrayElem `json:"elems"`
@@ -30,18 +38,18 @@ type (
 		Loc  `json:"loc"`
 	}
 	// A CallExpr represents different things dependending on its context.
-	// As an operator (when wrapped in an OpExpr), it is either an aggregate
-	// with no grouping keys and no duration, or a filter with a function
-	// that is boolean valued.  This is determined by the compiler rather than
-	// the syntax tree based on the specific functions and aggregators that
+	// As an operator (when wrapped in an ExprOp), it is either an aggregate
+	// function (without grouping keys, filter, or distinct/all keywords),
+	// or an implied where-operator that is boolean valued.
+	// This is determined by the semantic analysis rather than
+	// the syntax based on the specific functions and aggregators that
 	// are defined at compile time.  In expression context, a function call has
 	// the standard semantics where it takes one or more arguments and returns a result.
 	CallExpr struct {
-		Kind  string `json:"kind" unpack:""`
-		Func  Expr   `json:"func"`
-		Args  []Expr `json:"args"`
-		Where Expr   `json:"where"`
-		Loc   `json:"loc"`
+		Kind string `json:"kind" unpack:""`
+		Func Expr   `json:"func"`
+		Args []Expr `json:"args"`
+		Loc  `json:"loc"`
 	}
 	CaseExpr struct {
 		Kind  string `json:"kind" unpack:""`
@@ -260,7 +268,7 @@ type (
 func (*FStringTextElem) fStringElemNode() {}
 func (*FStringExprElem) fStringElemNode() {}
 
-func (*Agg) exprNode()             {}
+func (*AggFuncExpr) exprNode()     {}
 func (*ArrayExpr) exprNode()       {}
 func (*BetweenExpr) exprNode()     {}
 func (*BinaryExpr) exprNode()      {}

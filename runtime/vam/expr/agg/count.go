@@ -6,7 +6,7 @@ import (
 )
 
 type count struct {
-	count uint64
+	count int64
 }
 
 func (a *count) Consume(vec vector.Any) {
@@ -16,18 +16,18 @@ func (a *count) Consume(vec vector.Any) {
 	if _, ok := vector.Under(vec).Type().(*super.TypeError); ok {
 		return
 	}
-	a.count += uint64((vec.Len()) - vector.NullsOf(vec).TrueCount())
+	a.count += int64((vec.Len()) - vector.NullsOf(vec).TrueCount())
 }
 
 func (a *count) Result(*super.Context) super.Value {
-	return super.NewUint64(a.count)
+	return super.NewInt64(a.count)
 }
 
 func (a *count) ConsumeAsPartial(partial vector.Any) {
-	if partial.Len() != 1 || partial.Type() != super.TypeUint64 {
+	if partial.Len() != 1 || partial.Type() != super.TypeInt64 {
 		panic("count: bad partial")
 	}
-	count, _ := vector.UintValue(partial, 0)
+	count, _ := vector.IntValue(partial, 0)
 	a.count += count
 }
 

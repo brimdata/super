@@ -22,8 +22,8 @@ outputs:
       {key:"b",avg:10.}
   - name: count.sup
     data: |
-      {key:"a",count:3::uint64}
-      {key:"b",count:1::uint64}
+      {key:"a",count:3}
+      {key:"b",count:1}
   - name: min.sup
     data: |
       {key:"a",min:0}

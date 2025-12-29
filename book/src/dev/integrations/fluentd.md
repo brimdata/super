@@ -309,12 +309,12 @@ super db -c 'from "zeek-shaped" | _path=="conn" | cidr_match(172.31.0.0/16, id.r
 which in our test environment produced
 
 ```
-{id:{orig_h:218.92.0.99,orig_p:9090::(port=uint16),resp_h:172.31.0.253,resp_p:22(port)}(=conn_id),count:4::uint64}
-{id:{orig_h:172.31.0.253,orig_p:42014::(port=uint16),resp_h:172.31.0.2,resp_p:53(port)}(=conn_id),count:1::uint64}
-{id:{orig_h:172.31.0.253,orig_p:37490::(port=uint16),resp_h:172.31.0.2,resp_p:53(port)}(=conn_id),count:1::uint64}
-{id:{orig_h:172.31.0.253,orig_p:33488::(port=uint16),resp_h:172.31.0.2,resp_p:53(port)}(=conn_id),count:1::uint64}
-{id:{orig_h:172.31.0.253,orig_p:44362::(port=uint16),resp_h:172.31.0.2,resp_p:53(port)}(=conn_id),count:1::uint64}
-{id:{orig_h:199.83.220.79,orig_p:52876::(port=uint16),resp_h:172.31.0.253,resp_p:22(port)}(=conn_id),count:1::uint64}
+{id:{orig_h:218.92.0.99,orig_p:9090::(port=uint16),resp_h:172.31.0.253,resp_p:22(port)}(=conn_id),count:4}
+{id:{orig_h:172.31.0.253,orig_p:42014::(port=uint16),resp_h:172.31.0.2,resp_p:53(port)}(=conn_id),count:1}
+{id:{orig_h:172.31.0.253,orig_p:37490::(port=uint16),resp_h:172.31.0.2,resp_p:53(port)}(=conn_id),count:1}
+{id:{orig_h:172.31.0.253,orig_p:33488::(port=uint16),resp_h:172.31.0.2,resp_p:53(port)}(=conn_id),count:1}
+{id:{orig_h:172.31.0.253,orig_p:44362::(port=uint16),resp_h:172.31.0.2,resp_p:53(port)}(=conn_id),count:1}
+{id:{orig_h:199.83.220.79,orig_p:52876::(port=uint16),resp_h:172.31.0.253,resp_p:22(port)}(=conn_id),count:1}
 ```
 
 or this query that counts events into buckets by `time` span
@@ -326,12 +326,12 @@ super db -c 'from "zeek-shaped" | count() by bucket(ts,5m) | sort bucket'
 which in our test environment produced
 
 ```
-{bucket:2024-07-19T22:15:00Z,count:1::uint64}
-{bucket:2024-07-19T22:45:00Z,count:6::uint64}
-{bucket:2024-07-19T22:50:00Z,count:696::uint64}
-{bucket:2024-07-19T22:55:00Z,count:683::uint64}
-{bucket:2024-07-19T23:00:00Z,count:698::uint64}
-{bucket:2024-07-19T23:05:00Z,count:309::uint64}
+{bucket:2024-07-19T22:15:00Z,count:1}
+{bucket:2024-07-19T22:45:00Z,count:6}
+{bucket:2024-07-19T22:50:00Z,count:696}
+{bucket:2024-07-19T22:55:00Z,count:683}
+{bucket:2024-07-19T23:00:00Z,count:698}
+{bucket:2024-07-19T23:05:00Z,count:309}
 ```
 
 ## SuperDB Database Maintenance

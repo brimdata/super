@@ -9,4 +9,4 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      10::uint64
+      10

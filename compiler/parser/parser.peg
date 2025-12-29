@@ -258,54 +258,52 @@ LimitArg
   / "" { return 0, nil }
 
 AggAssignment
-  = lval:Lval __ ":=" __ agg:Agg {
+  = lval:Lval __ ":=" __ agg:AggFunc {
       return ast.Assignment{LHS:lval.(ast.Expr),RHS:agg.(ast.Expr),Loc:loc(c)}, nil
     }
-  / agg:Agg {
+  / agg:AggFunc {
       return ast.Assignment{RHS:agg.(ast.Expr),Loc:loc(c)}, nil
     }
 
-Agg
-  = a:AggAllOrDistinct where:WhereClause? {
-      agg := a.(*ast.Agg)
-      agg.Loc = loc(c)
-      if where != nil {
-        agg.Where = where.(ast.Expr)
-      }
-      return agg, nil
-    }
-  / name:AggName __ "(" __ expr:Expr? __ ")" where:WhereClause? {
-      agg := &ast.Agg{
-          Kind: "Agg",
+AggFunc
+  = name:AggName __ "(" __ expr:Expr? __ ")" filter:FilterClause? {
+      agg := &ast.AggFuncExpr{
+          Kind: "AggFuncExpr",
           Name: name.(string),
           Loc: loc(c),
       }
       if expr != nil {
         agg.Expr = expr.(ast.Expr)
       }
-      if where != nil {
-        agg.Where = where.(ast.Expr)
+      if filter != nil {
+        agg.Filter = filter.(ast.Expr)
       }
       return agg, nil
     }
-  / cs:CountStar {
-      return &ast.Agg{
-          Kind: "Agg",
-          Name: "count",
-          Loc: cs.(*ast.CallExpr).Loc,
-      }, nil
-    }
-
-AggAllOrDistinct
-  = name:AggName __ "(" __ q:(ALL / DISTINCT)  _ expr:Expr __ ")" {
+  / name:AggName __ "(" __ q:(ALL / DISTINCT)  _ expr:Expr __ ")" filter:FilterClause? {
       qualifier := string(q.([]any)[0].([]byte))
-      return &ast.Agg{
-          Kind: "Agg",
+      agg := &ast.AggFuncExpr{
+          Kind: "AggFuncExpr",
           Name: name.(string),
           Distinct: strings.EqualFold(qualifier, "distinct"),
           Expr: expr.(ast.Expr),
           Loc: loc(c),
-      }, nil
+      }
+      if filter != nil {
+        agg.Filter = filter.(ast.Expr)
+      }  
+      return agg, nil    
+    }
+  / cs:CountStar filter:FilterClause? {
+      agg := &ast.AggFuncExpr{
+          Kind: "AggFuncExpr",
+          Name: "count",
+          Loc: loc(c),
+      }
+      if filter != nil {
+        agg.Filter = filter.(ast.Expr)
+      }
+      return agg, nil
     }
 
 AggName
@@ -313,7 +311,7 @@ AggName
   / AND
   / OR
 
-WhereClause = _ WHERE _ expr:LogicalOrExpr { return expr, nil }
+FilterClause = _ FILTER __ "(" __ expr:LogicalOrExpr __ ")" { return expr, nil }
 
 AggAssignments
   = first:AggAssignment rest:(__ "," __ AggAssignment)* {
@@ -810,7 +808,7 @@ Text
     }
 
 SimpleURL =
-  "http" "s"? "://"
+  ("http" "s"? / "s3") "://"
   ([a-zA-Z0-9_-]+) ( "." [a-zA-Z0-9_-]+)*
   ("/" TextChars?)? { return string(c.text), nil }
 
@@ -1107,7 +1105,7 @@ DerefKey
   / s:BacktickString        { return &ast.IDExpr{Kind: "IDExpr", ID: ast.ID{Name:s.(string), Loc: loc(c)}}, nil }
 
 Function
-  = EXTRACT __ "(" __ part:Expr _ FROM _ e:Expr __ ")" where:WhereClause? {
+  = EXTRACT __ "(" __ part:Expr _ FROM _ e:Expr __ ")" {
       return &ast.ExtractExpr{
         Kind: "ExtractExpr",
         Part: part.(ast.Expr),
@@ -1144,10 +1142,10 @@ Function
       }
       return s, nil
     }
-  / f:Callable __ "(" __ args:FunctionArgs __ ")" where:WhereClause? {
-      return newCall(c, f, args, where), nil
+  / f:Callable __ "(" __ args:FunctionArgs __ ")" !FilterClause {
+      return newCall(c, f, args), nil
     }
-  / CountStar
+  / AggFunc
 
 Callable
   = LambdaExpr
@@ -2042,7 +2040,7 @@ Select
     // an identifier, e.g., select(1); is ok
     _ selection:Selection
     from:OptFromClause
-    where:OptWhereClause
+    where:WhereClause?
     group:OptGroupClause
     having:OptHavingClause
     // XXX NOTYET OptQualifyClause
@@ -2075,7 +2073,7 @@ FromSelect
     //XXX for whitespace in front of target need it only if it begins with
     // an identifier, e.g., select(1); is ok
     _ selection:Selection
-    where:OptWhereClause
+    where:WhereClause?
     group:OptGroupClause
     having:OptHavingClause
     // XXX NOTYET OptQualifyClause
@@ -2099,6 +2097,8 @@ FromSelect
       }
       return sel, nil
     }
+
+WhereClause = _ WHERE _ expr:LogicalOrExpr { return expr, nil }
 
 SQLValues
   = VALUES __ tuples:SQLTuples {
@@ -2183,10 +2183,6 @@ OptFromClause
       return exprs, nil
     }
   / ""                  { return nil, nil }
-
-OptWhereClause
-  = where:WhereClause     { return where, nil }
-  / ""                      { return nil, nil }
 
 OptGroupClause
   = _ group:GroupClause { return group, nil }
@@ -2292,7 +2288,7 @@ Selection
 
 //XXX need to add *, id.*, except, replace
 SelectElem
-  = expr:(AggAllOrDistinct / Expr) as:OptAsClause {
+  = expr:Expr as:OptAsClause {
       elem := ast.SQLAsExpr{
         Kind: "SQLAsExpr",
         Expr: expr.(ast.Expr),
@@ -2440,6 +2436,7 @@ EXISTS     = "EXISTS"i          !IdentifierRest
 EXPLODE    = "EXPLODE"i         !IdentifierRest
 EXTRACT    = "EXTRACT"i         !IdentifierRest
 FALSE      = "FALSE"i           !IdentifierRest
+FILTER     = "FILTER"i          !IdentifierRest
 FIRST      = "FIRST"i           !IdentifierRest
 FN         = "FN"i              !IdentifierRest
 FOR        = "FOR"i             !IdentifierRest

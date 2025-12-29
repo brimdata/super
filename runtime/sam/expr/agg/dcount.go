@@ -37,7 +37,7 @@ func (d *DCount) Consume(val super.Value) {
 }
 
 func (d *DCount) Result(*super.Context) super.Value {
-	return super.NewUint64(d.sketch.Estimate())
+	return super.NewInt64(int64(d.sketch.Estimate()))
 }
 
 func (d *DCount) ConsumeAsPartial(partial super.Value) {

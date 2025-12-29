@@ -1,6 +1,0 @@
-spq: cut hex := hex(this) where this % 2 == 0
-
-error: |
-  'where' clause on non-aggregation function at line 1, column 12:
-  cut hex := hex(this) where this % 2 == 0
-             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

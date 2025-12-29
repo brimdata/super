@@ -77,9 +77,9 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 			c.expr(e.Expr, "")
 		}
 		c.write(")")
-		if e.Where != nil {
-			c.write(" where ")
-			c.expr(e.Where, "")
+		if e.Filter != nil {
+			c.write(" filter ")
+			c.expr(e.Filter, "")
 		}
 	case *dag.ArrayExpr:
 		c.write("[")

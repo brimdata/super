@@ -62,12 +62,12 @@ func (b *Builder) compileAgg(agg *dag.AggExpr) (*expr.Aggregator, error) {
 			return nil, err
 		}
 	}
-	var where expr.Evaluator
-	if agg.Where != nil {
-		where, err = b.compileExpr(agg.Where)
+	var filter expr.Evaluator
+	if agg.Filter != nil {
+		filter, err = b.compileExpr(agg.Filter)
 		if err != nil {
 			return nil, err
 		}
 	}
-	return expr.NewAggregator(name, agg.Distinct, arg, where)
+	return expr.NewAggregator(name, agg.Distinct, arg, filter)
 }

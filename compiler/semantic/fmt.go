@@ -149,7 +149,7 @@ func clrExpr(expr sem.Expr) {
 	case *sem.AggFunc:
 		expr.Node = nil
 		clrExpr(expr.Expr)
-		clrExpr(expr.Where)
+		clrExpr(expr.Filter)
 	case *sem.ArrayExpr:
 		expr.Node = nil
 		clrArrayElems(expr.Elems)

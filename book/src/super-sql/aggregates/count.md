@@ -7,7 +7,7 @@
 
 ### Synopsis
 ```
-count() -> uint64
+count() -> int64
 ```
 
 ### Description
@@ -25,7 +25,7 @@ count()
 2
 3
 # expected output
-3::uint64
+3
 ```
 
 Mixed types are handled:
@@ -37,7 +37,7 @@ count()
 "foo"
 10.0.0.1
 # expected output
-3::uint64
+3
 ```
 
 Count of values in buckets grouped by key:
@@ -49,8 +49,8 @@ count() by k | sort
 {a:2,k:1}
 {a:3,k:2}
 # expected output
-{k:1,count:2::uint64}
-{k:2,count:1::uint64}
+{k:1,count:2}
+{k:2,count:1}
 ```
 
 A simple count with no input values returns no output:
@@ -64,16 +64,16 @@ where grep("bar", this) | count()
 # expected output
 ```
 
-Count can return an explicit zero when using a `where` clause in the aggregation:
+Count can return an explicit zero when using a `filter` clause in the aggregation:
 ```mdtest-spq
 # spq
-count() where grep("bar", this)
+count() filter (grep("bar", this))
 # input
 1
 "foo"
 10.0.0.1
 # expected output
-0::uint64
+0
 ```
 
 Note that the number of input values are counted, unlike the
@@ -85,5 +85,5 @@ count()
 # input
 [1,2,3]
 # expected output
-1::uint64
+1
 ```
