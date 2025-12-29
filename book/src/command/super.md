@@ -500,18 +500,18 @@ or trying to debug a halted query with a vague error message.
 
 For example, this query
 ```mdtest-command
-echo '1 2 0 3' | super -s -c '10.0/this' -
+echo '1 2 0 5' | super -s -c '10/this' -
 ```
 produces
 ```mdtest-output
-10.
-5.
+10
+5
 error("divide by zero")
-3.3333333333333335
+2
 ```
 and
 ```mdtest-command
-echo '1 2 0 3' | super -c '10.0/this' - | super -s -c 'is_error(this)' -
+echo '1 2 0 5' | super -c '10/this' - | super -s -c 'is_error(this)' -
 ```
 produces just
 ```mdtest-output

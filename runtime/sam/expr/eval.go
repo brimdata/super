@@ -522,11 +522,7 @@ func (d *Divide) Eval(this super.Value) super.Value {
 		}
 		return super.NewInt(typ, toInt(lhsVal)/v)
 	case super.IsFloat(id):
-		v := toFloat(rhsVal)
-		if v == 0 {
-			return d.sctx.NewError(DivideByZero)
-		}
-		return super.NewFloat(typ, toFloat(lhsVal)/v)
+		return super.NewFloat(typ, toFloat(lhsVal)/toFloat(rhsVal))
 	}
 	return d.sctx.NewErrorf("type %s incompatible with '/' operator", sup.FormatType(typ))
 }

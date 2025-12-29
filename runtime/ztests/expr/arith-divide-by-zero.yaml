@@ -6,6 +6,8 @@ input: |
   {a:null::uint64,b:0::uint64}
   {a:2::uint64,b:null::uint64}
   {a:5::uint64,b:0::uint64}
+  {a:1.,b:0.}
+  {a:-1.,b:0.}
 
 output: |
   null::uint64
@@ -14,3 +16,7 @@ output: |
   null::uint64
   error("divide by zero")
   error("divide by zero")
+  +Inf
+  error("type float64 incompatible with '%' operator")
+  -Inf
+  error("type float64 incompatible with '%' operator")
