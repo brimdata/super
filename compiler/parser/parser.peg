@@ -266,7 +266,7 @@ AggAssignment
     }
 
 AggFunc
-  = name:AggName __ "(" __ q:(ALL / DISTINCT)  _ expr:Expr __ ")" filter:FilterClause? {
+  = name:AggName __ "(" __ q:(ALL / DISTINCT) _ expr:Expr __ ")" filter:FilterClause? {
       qualifier := string(q.([]any)[0].([]byte))
       agg := &ast.AggFuncExpr{
           Kind: "AggFuncExpr",
@@ -294,7 +294,6 @@ AggFunc
       }
       return agg, nil
     }
-
   / cs:CountStar filter:FilterClause? {
       agg := &ast.AggFuncExpr{
           Kind: "AggFuncExpr",
