@@ -150,6 +150,8 @@ func equiJoinKeyExprs(e dag.Expr, leftAlias, rightAlias string) (left, right dag
 	if lhsFirst != leftAlias || rhsFirst != rightAlias {
 		return nil, nil, false
 	}
+	// This next step will mutate the input expression, do a copy here.
+	lhs, rhs = dag.CopyExpr(lhs), dag.CopyExpr(rhs)
 	stripFirstThisPathComponent(lhs)
 	stripFirstThisPathComponent(rhs)
 	return lhs, rhs, true
