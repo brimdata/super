@@ -1096,6 +1096,7 @@ DerefExpr
         Loc: loc(c),
       }, nil
     }
+  / CaseExpr
   / Function
   / Primary
 
@@ -1187,8 +1188,7 @@ Exprs
     }
 
 Primary
-  = CaseExpr
-  / Record
+  = Record
   / Array
   / Set
   / Map
