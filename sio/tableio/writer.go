@@ -43,6 +43,7 @@ func (w *Writer) Write(r super.Value) error {
 	if r.Type() != w.typ {
 		if w.typ != nil {
 			w.flush()
+			w.writer.Write([]byte("---\n"))
 			w.nline = 0
 		}
 		// First time, or new descriptor, print header

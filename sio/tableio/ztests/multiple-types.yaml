@@ -1,0 +1,14 @@
+spq: pass
+
+input: |
+  {s:"foo",val:1}
+  {s:"bar"}
+
+output-flags: -f table
+
+output: |
+  s   val
+  foo 1
+  ---
+  s
+  bar
