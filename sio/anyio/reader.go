@@ -41,14 +41,15 @@ func NewReaderWithOpts(sctx *super.Context, r io.Reader, opts ReaderOpts) (sio.R
 	var parquetErr, csupErr error
 	if rs, ok := r.(io.ReadSeeker); ok {
 		if n, err := rs.Seek(0, io.SeekCurrent); err == nil {
-			var zr sio.Reader
-			zr, parquetErr = parquetio.NewReader(sctx, rs, opts.Fields)
+			var rc sio.ReadCloser
+			rc, parquetErr = parquetio.NewReader(sctx, rs, opts.Fields)
 			if parquetErr == nil {
-				return sio.NopReadCloser(zr), nil
+				return rc, nil
 			}
 			if _, err := rs.Seek(n, io.SeekStart); err != nil {
 				return nil, err
 			}
+			var zr sio.Reader
 			zr, csupErr = csupio.NewReader(sctx, rs, opts.Fields)
 			if csupErr == nil {
 				return sio.NopReadCloser(zr), nil

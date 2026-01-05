@@ -37,11 +37,7 @@ func lookupReader(sctx *super.Context, r io.Reader, opts ReaderOpts) (sio.ReadCl
 	case "json":
 		return sio.NopReadCloser(jsonio.NewReader(sctx, r)), nil
 	case "parquet":
-		zr, err := parquetio.NewReader(sctx, r, opts.Fields)
-		if err != nil {
-			return nil, err
-		}
-		return sio.NopReadCloser(zr), nil
+		return parquetio.NewReader(sctx, r, opts.Fields)
 	case "sup":
 		return sio.NopReadCloser(supio.NewReader(sctx, r)), nil
 	case "tsv":
