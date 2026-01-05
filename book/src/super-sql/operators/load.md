@@ -41,7 +41,7 @@ echo '{flip:1,result:"heads"} {flip:2,result:"tails"}' |
 super db -q create -orderby flip:asc bigflips
 super db -f text -c '
   from :branches
-  | values pool.name + "@" + branch.name
+  | values pool.name || "@" || branch.name
   | sort'
 ```
 

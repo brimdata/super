@@ -9,6 +9,40 @@ import (
 	"github.com/brimdata/super/vector/bitvec"
 )
 
+type Concat struct {
+	sctx    *super.Context
+	builder strings.Builder
+}
+
+func (c *Concat) Call(args ...vector.Any) vector.Any {
+	args = underAll(args)
+	for _, arg := range args {
+		switch vector.KindOf(arg) {
+		case vector.KindError:
+			return arg
+		case vector.KindString:
+		default:
+			return vector.NewWrappedError(c.sctx, "concat: string arg required", arg)
+		}
+	}
+	n := args[0].Len()
+	out := vector.NewStringEmpty(0, bitvec.NewFalse(n))
+	for i := range n {
+		c.builder.Reset()
+		for _, arg := range args {
+			s, null := vector.StringValue(arg, i)
+			if null {
+				out.Nulls.Set(i)
+				c.builder.Reset()
+				break
+			}
+			c.builder.WriteString(s)
+		}
+		out.Append(c.builder.String())
+	}
+	return out
+}
+
 type Join struct {
 	sctx    *super.Context
 	builder strings.Builder

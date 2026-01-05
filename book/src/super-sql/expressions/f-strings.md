@@ -38,7 +38,7 @@ _A complex expression with nested f-strings_
 
 ```mdtest-spq {data-layout="stacked"}
 # spq
-values f"oh {this[upper(f"{foo + bar}")]}"
+values f"oh {this[upper(f"{foo || bar}")]}"
 # input
 {foo:"hello", bar:"world", HELLOWORLD:"hi!"}
 # expected output

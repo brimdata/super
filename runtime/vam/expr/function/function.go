@@ -31,6 +31,10 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 	case "coalesce":
 		argmax = -1
 		f = &Coalesce{}
+	case "concat":
+		argmin = 1
+		argmax = -1
+		f = &Concat{sctx: sctx}
 	case "date_part":
 		argmin = 2
 		argmax = 2

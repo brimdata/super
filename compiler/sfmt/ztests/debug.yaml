@@ -10,7 +10,7 @@ outputs:
       null
       | mirror
         (
-          values "debug: "+cast(this, <string>)
+          values concat("debug: ", cast(this, <string>))
           | output debug
         )
         (

@@ -854,9 +854,6 @@ func (c *checker) plus(loc ast.Node, lhs, rhs super.Type) super.Type {
 	if isUnknown(lhs) || isUnknown(rhs) {
 		return c.unknown
 	}
-	if hasString(lhs) && hasString(rhs) {
-		return c.fuse([]super.Type{lhs, rhs})
-	}
 	if hasNumber(lhs) && hasNumber(rhs) {
 		return c.fuse([]super.Type{lhs, rhs})
 	}

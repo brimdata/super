@@ -34,9 +34,8 @@ func main() {
 
 	var ents strings.Builder
 	for _, op := range []string{"+", "-", "*", "/", "%"} {
-		for _, typ := range []string{"Int", "Uint", "Float", "String"} {
-			if typ == "Float" && op == "%" ||
-				typ == "String" && op != "+" {
+		for _, typ := range []string{"Int", "Uint", "Float"} {
+			if typ == "Float" && op == "%" {
 				continue
 			}
 			for lform := vector.Form(0); lform < 4; lform++ {
@@ -73,20 +72,12 @@ func genFunc(name, op, typ string, lhs, rhs vector.Form) string {
 	s += genVarInit("l", typ, lhs)
 	s += genVarInit("r", typ, rhs)
 	if lhs == vector.FormConst && rhs == vector.FormConst {
-		if typ == "String" {
-			s += fmt.Sprintf("val := super.NewString(lconst %s rconst)\n", op)
-		} else {
-			s += fmt.Sprintf("val := super.New%s(lhs.Type(), lconst %s rconst)\n", typ, op)
-		}
+		s += fmt.Sprintf("val := super.New%s(lhs.Type(), lconst %s rconst)\n", typ, op)
 		s += "return vector.NewConst(val, lhs.Len(), bitvec.Zero)\n"
 	} else {
 		s += "n := lhs.Len()\n"
-		if typ == "String" {
-			s += "out := vector.NewStringEmpty(n, bitvec.Zero)\n"
-		} else {
-			s += fmt.Sprintf("out := vector.New%sEmpty(lhs.Type(), n, bitvec.Zero)\n", typ)
-		}
-		s += genLoop(op, typ, lhs, rhs)
+		s += fmt.Sprintf("out := vector.New%sEmpty(lhs.Type(), n, bitvec.Zero)\n", typ)
+		s += genLoop(op, lhs, rhs)
 		s += "return out\n"
 	}
 	s += "}\n"
@@ -111,13 +102,9 @@ func genVarInit(which, typ string, form vector.Form) string {
 	}
 }
 
-func genLoop(op, typ string, lform, rform vector.Form) string {
+func genLoop(op string, lform, rform vector.Form) string {
 	lexpr := genExpr("l", lform)
 	rexpr := genExpr("r", rform)
-	if typ == "Bytes" {
-		lexpr = "string(" + lexpr + ")"
-		rexpr = "string(" + rexpr + ")"
-	}
 	return fmt.Sprintf("for k := uint32(0); k < n; k++ { out.Append(%s %s %s) }\n", lexpr, op, rexpr)
 }
 

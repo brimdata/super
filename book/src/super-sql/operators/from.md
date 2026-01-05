@@ -239,7 +239,7 @@ echo '{number:1,word:"one"} {number:2,word:"two"} {number:3,word:"three"}' |
   super db load -q -use numbers -
 super db -f text -c '
   from :branches
-  | values pool.name + "@" + branch.name
+  | values pool.name || "@" || branch.name
   | sort'
 ```
 

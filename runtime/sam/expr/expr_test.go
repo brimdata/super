@@ -456,8 +456,6 @@ func TestArithmetic(t *testing.T) {
 		testSuccessful(t, "x/f", record, "4.")
 		testSuccessful(t, "f/x", record, "0.25")
 	}
-	// Test string concatenation
-	testSuccessful(t, `"hello" + " world"`, record, `"hello world"`)
 }
 
 func TestArrayIndex(t *testing.T) {

@@ -8,6 +8,29 @@ import (
 	"github.com/brimdata/super/scode"
 )
 
+type Concat struct {
+	sctx    *super.Context
+	builder strings.Builder
+}
+
+func (c *Concat) Call(args []super.Value) super.Value {
+	args = underAll(args)
+	c.builder.Reset()
+	for _, arg := range args {
+		if arg.IsError() {
+			return arg
+		}
+		if !arg.IsString() {
+			return c.sctx.WrapError("concat: string arg required", arg)
+		}
+		if arg.IsNull() {
+			return super.NullString
+		}
+		c.builder.WriteString(super.DecodeString(arg.Bytes()))
+	}
+	return super.NewString(c.builder.String())
+}
+
 type Position struct {
 	sctx *super.Context
 }

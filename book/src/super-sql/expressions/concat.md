@@ -25,7 +25,7 @@ values a || b
 # expected output
 "foobar"
 "hello, world"
-error("incompatible types")
+error({message:"concat: string arg required",on:123})
 ```
 
 ---

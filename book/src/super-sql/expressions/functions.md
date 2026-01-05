@@ -84,7 +84,7 @@ _Sample calls to various built-in functions_
 
 ```mdtest-spq
 # spq
-values pow(2,3), lower("ABC")+upper("def"), typeof(1)
+values pow(2,3), lower("ABC")||upper("def"), typeof(1)
 # input
 
 # expected output

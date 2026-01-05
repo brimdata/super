@@ -548,7 +548,11 @@ func (t *translator) binaryExpr(e *ast.BinaryExpr) sem.Expr {
 	case "<>":
 		op = "!="
 	case "||":
-		op = "+"
+		return &sem.CallExpr{
+			Node: e,
+			Tag:  "concat",
+			Args: []sem.Expr{lhs, rhs},
+		}
 	case "not in":
 		return sem.NewUnaryExpr(e, "!", sem.NewBinaryExpr(e, "in", lhs, rhs))
 	case "::":
@@ -1106,7 +1110,7 @@ func (t *translator) fstringExpr(f *ast.FStringExpr) sem.Expr {
 			out = e
 			continue
 		}
-		out = sem.NewBinaryExpr(f, "+", out, e)
+		out = sem.NewCall(f, "concat", []sem.Expr{out, e})
 	}
 	return out
 }

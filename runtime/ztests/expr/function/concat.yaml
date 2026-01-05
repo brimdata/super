@@ -1,0 +1,36 @@
+spq: concat(a, b, c)
+
+vector: true
+
+input: |
+  {a:"hello",b:" ",c:"world"}
+  {a:"test",b:null::string,c:"end"}
+  {a:123,b:"test",c:"fail"}
+
+output: |
+  "hello world"
+  null::string
+  error({message:"concat: string arg required",on:123})
+
+---
+
+spq: concat(a)
+
+vector: true
+
+input: |
+  {a:"single"}
+
+output: |
+  "single"
+
+---
+
+spq: concat()
+
+vector: true
+
+error: |
+  too few arguments at line 1, column 1:
+  concat()
+  ~~~~~~~~

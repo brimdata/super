@@ -22,14 +22,13 @@ where `<expr>` is any [expression](intro.md) that results in a number type.
 
 ```mdtest-spq
 # spq
-values 2*3+1, 11%5, 1/0, "foo"+"bar", +1, -1
+values 2*3+1, 11%5, 1/0, +1, -1
 # input
 
 # expected output
 7
 1
 error("divide by zero")
-"foobar"
 1
 -1
 ```

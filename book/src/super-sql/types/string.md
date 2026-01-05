@@ -66,7 +66,7 @@ _Various strings_
 
 ```mdtest-spq
 # spq
-values 'hello, world', len('foo'), "SuperDB", "\"quoted\"", 'foo'+'bar'
+values 'hello, world', len('foo'), "SuperDB", "\"quoted\"", 'foo'||'bar'
 # input
 
 # expected output

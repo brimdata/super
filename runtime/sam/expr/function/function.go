@@ -45,6 +45,10 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		argmin = 2
 		argmax = 3
 		f = NewCompare(sctx)
+	case "concat":
+		argmin = 1
+		argmax = -1
+		f = &Concat{sctx: sctx}
 	case "date_part":
 		argmin = 2
 		argmax = 2

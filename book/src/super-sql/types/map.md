@@ -55,7 +55,7 @@ tied together with the corresponding [union type](union.md).
 ---
 ```mdtest-spq
 # spq
-values |{"foo":1,"bar"+"baz":2+3}|
+values |{"foo":1,"bar"||"baz":2+3}|
 # input
 
 # expected output

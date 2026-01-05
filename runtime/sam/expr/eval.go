@@ -457,9 +457,6 @@ func (a *Add) Eval(this super.Value) super.Value {
 		return super.NewInt(typ, toInt(lhsVal)+toInt(rhsVal))
 	case super.IsFloat(id):
 		return super.NewFloat(typ, toFloat(lhsVal)+toFloat(rhsVal))
-	case id == super.IDString:
-		v1, v2 := super.DecodeString(lhsVal.Bytes()), super.DecodeString(rhsVal.Bytes())
-		return super.NewValue(typ, super.EncodeString(v1+v2))
 	}
 	return a.sctx.NewErrorf("type %s incompatible with '+' operator", sup.FormatType(typ))
 }
