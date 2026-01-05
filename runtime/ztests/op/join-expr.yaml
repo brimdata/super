@@ -40,3 +40,17 @@ outputs:
       {a:1::int32,s:"a",b:6::int32}
       {a:2::int32,s:"B",b:6::int32}
       {a:3::int32,s:"c",b:error("missing")}
+
+---
+
+# Issue #6361.
+spq: |
+  values {a:1,x:5},{a:2,x:6}
+  | join (
+    values {b:1,y:7},{b:2,y:4}
+  ) as {l,r} on l.a=r.b and l.x > r.y
+
+vector: true
+
+output: |
+  {l:{a:2,x:6},r:{b:2,y:4}}
