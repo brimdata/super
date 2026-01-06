@@ -64,10 +64,10 @@ type (
 		// inclusive of agg functions used subsequently in an order by
 		aggs []*sem.AggFunc
 
-		// groupings hold the grouping expression which are needed to do
+		// groupings holds the grouping expressions which are needed to do
 		// expression matching for having, order by, and the projection.
-		// These expressions are always relative to the "in" scope
-		// grouped is true when resolution has access only to the outputs
+		// These expressions are always relative to the "in" scope.
+		// The grouped field true when resolution has access only to the outputs.
 		groupings []exprloc
 
 		// groupByLoc is set when invoking t.expr() from an ordinal reference

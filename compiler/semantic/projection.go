@@ -2,6 +2,7 @@ package semantic
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/brimdata/super/compiler/semantic/sem"
 )
@@ -40,12 +41,9 @@ func replaceGroupings(t *translator, in sem.Expr, groupings []exprloc) (sem.Expr
 }
 
 func exprMatch(target sem.Expr, exprs []exprloc) int {
-	for which, e := range exprs {
-		if eqExpr(target, e.expr) {
-			return which
-		}
-	}
-	return -1
+	return slices.IndexFunc(exprs, func(e exprloc) bool {
+		return eqExpr(target, e.expr)
+	})
 }
 
 type exprVisitor func(e sem.Expr) (sem.Expr, bool)
