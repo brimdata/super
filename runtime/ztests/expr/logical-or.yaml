@@ -69,3 +69,13 @@ output: |
   null::bool
   error({message:"not type bool",on:"foo"})
   error({message:"not type bool",on:"foo"})
+
+---
+
+# Issue #6482
+spq: values !(null == null) or false
+
+vector: true
+
+output: |
+  null::bool

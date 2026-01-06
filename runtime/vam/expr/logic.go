@@ -167,9 +167,13 @@ func toBool(vec vector.Any) *vector.Bool {
 	case *vector.Const:
 		val := vec.Value()
 		if val.Bool() {
-			out := vector.NewTrue(vec.Len())
-			out.Nulls = vec.Nulls
-			return out
+			var bits bitvec.Bits
+			if vec.Nulls.IsZero() {
+				bits = bitvec.NewTrue(vec.Len())
+			} else {
+				bits = bitvec.Not(vec.Nulls)
+			}
+			return vector.NewBool(bits, vec.Nulls)
 		} else if val.IsNull() {
 			return vector.NewBoolEmpty(vec.Len(), bitvec.NewTrue(vec.Len()))
 		}
