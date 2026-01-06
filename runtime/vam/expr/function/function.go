@@ -4,8 +4,10 @@ import (
 	"slices"
 
 	"github.com/brimdata/super"
+	samexpr "github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/runtime/vam/expr"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
 )
 
@@ -31,6 +33,10 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 	case "coalesce":
 		argmax = -1
 		f = &Coalesce{}
+	case "compare":
+		argmin = 2
+		argmax = 3
+		f = &samFunc{function.NewCompare(sctx)}
 	case "concat":
 		argmin = 1
 		argmax = -1
@@ -153,4 +159,24 @@ func underAll(args []vector.Any) []vector.Any {
 		out[i] = vector.Under(args[i])
 	}
 	return out
+}
+
+type samFunc struct {
+	fn samexpr.Function
+}
+
+func (f *samFunc) Call(args ...vector.Any) vector.Any {
+	builders := make([]scode.Builder, len(args))
+	vals := make([]super.Value, len(args))
+	b := vector.NewDynamicBuilder()
+	for i := range args[0].Len() {
+		for k := range args {
+			b := &builders[k]
+			b.Truncate()
+			args[k].Serialize(b, i)
+			vals[k] = super.NewValue(args[k].Type(), b.Bytes().Body())
+		}
+		b.Write(f.fn.Call(vals))
+	}
+	return b.Build()
 }

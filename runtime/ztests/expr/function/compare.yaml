@@ -1,0 +1,36 @@
+spq: values compare(a, b)
+
+vector: true
+
+input: |
+  {a:2,b:1}
+  {a:2,b:"1"}
+  {a:null,b:2}
+  {a:0,b:0.}
+  {a:0}
+  {b:0}
+
+output: |
+  1
+  -1
+  1
+  0
+  error("missing")
+  error("missing")
+
+---
+
+spq: |
+  values compare(a, b, true),
+         compare(a, b, false),
+         compare(a, b, "error")
+
+vector: true
+
+input: |
+  {a:null,b:2}
+
+output: |
+  1
+  -1
+  error({message:"compare: nullsMax arg is not bool",on:"error"})
