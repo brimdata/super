@@ -1,7 +1,0 @@
-spq: values len(ksuid())
-
-input: |
-  null
-
-output: |
-  20

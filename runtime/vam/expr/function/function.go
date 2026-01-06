@@ -68,6 +68,10 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		f = &Join{sctx: sctx}
 	case "kind":
 		f = &Kind{sctx: sctx}
+	case "ksuid":
+		argmin = 0
+		argmax = 1
+		f = &KSUID{sctx}
 	case "len", "length":
 		f = &Len{sctx}
 	case "levenshtein":
@@ -145,6 +149,10 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		return nil, err
 	}
 	return f, nil
+}
+
+type NeedsInput interface {
+	needsInput()
 }
 
 func underAll(args []vector.Any) []vector.Any {

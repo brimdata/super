@@ -94,6 +94,8 @@ func (b *Bucket) resultType(tsVec vector.Any) super.Type {
 
 type Now struct{}
 
+func (*Now) needsInput() {}
+
 func (n *Now) Call(args ...vector.Any) vector.Any {
 	return vector.NewConst(super.NewTime(nano.Now()), args[0].Len(), bitvec.Zero)
 }

@@ -3,6 +3,7 @@ package rungen
 import (
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/dag"
@@ -205,8 +206,8 @@ func (b *Builder) compileVamCall(call *dag.CallExpr) (vamexpr.Evaluator, error) 
 	// Any call that expects zero arguments must take one argument
 	// consisting of a vector that can represent the length of the argument
 	// vector so we just pass in "this".
-	if len(exprs) == 0 {
-		exprs = []vamexpr.Evaluator{vamexpr.NewDottedExpr(b.sctx(), nil)}
+	if _, ok := fn.(vamfunction.NeedsInput); ok || len(exprs) == 0 {
+		exprs = slices.Insert(exprs, 0, vamexpr.NewDottedExpr(b.sctx(), nil))
 	}
 	return vamexpr.NewCall(fn, exprs), nil
 }
