@@ -681,7 +681,10 @@ func (t *translator) groupBy(sch *selectSchema, in []ast.Expr) []exprloc {
 
 func isOrdinal(e ast.Expr) (int, bool) {
 	if e, ok := e.(*ast.Primitive); ok && e.Type == "int64" {
-		colno, _ := strconv.Atoi(e.Text)
+		colno, err := strconv.Atoi(e.Text)
+		if err != nil {
+			panic(err)
+		}
 		return colno, true
 	}
 	return -1, false

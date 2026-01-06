@@ -178,7 +178,7 @@ func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) (sem.Expr, e
 			return nil, fmt.Errorf("column %q does not exist in table %q", path[1], path[0])
 		}
 	}
-	return nil, fmt.Errorf("%q: not a column or table", path[0])
+	return nil, fmt.Errorf("%q is not a column or table", path[0])
 }
 
 func extend(n ast.Node, e sem.Expr, rest []string) sem.Expr {

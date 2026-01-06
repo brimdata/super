@@ -20,7 +20,7 @@ func replaceGroupings(t *translator, in sem.Expr, groupings []exprloc) (sem.Expr
 				switch s {
 				case "in":
 					ok = false
-					t.error(e, fmt.Errorf("column %q must appear in GROUP BY clause", e.Path[1]))
+					t.error(e, fmt.Errorf("column %q must appear in GROUP BY clause", e.Path[len(e.Path)-1]))
 					return e, true
 				case "out", "g":
 				default:

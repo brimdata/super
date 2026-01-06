@@ -156,7 +156,7 @@ func (s *selectSchema) isGrouped() bool {
 }
 
 func (d *dynamicSchema) resolveQualified(table, col string) (field.Path, error) {
-	if strings.EqualFold(d.table, table) {
+	if d.table == table {
 		return field.Path{col}, nil
 	}
 	return nil, nil
@@ -211,12 +211,8 @@ func (s *selectSchema) resolveQualified(table, col string) (field.Path, error) {
 }
 
 func (s *staticSchema) resolveQualified(table, col string) (field.Path, error) {
-	if strings.EqualFold(s.table, table) {
-		for _, actual := range s.columns {
-			if strings.EqualFold(actual, col) {
-				return field.Path{actual}, nil
-			}
-		}
+	if s.table == table && slices.Contains(s.columns, col) {
+		return field.Path{col}, nil
 	}
 	return nil, nil
 }
@@ -280,7 +276,11 @@ func (j *joinSchema) resolveUnqualified(col string) (field.Path, bool, error) {
 func (j *joinUsingSchema) resolveUnqualified(col string) (field.Path, bool, error) {
 	if slices.Contains(j.columns, col) {
 		// avoid ambiguous column reference and return arbitrarily return left side
-		return j.left.resolveUnqualified(col)
+		left, dyn, err := j.left.resolveUnqualified(col)
+		if err != nil {
+			return nil, dyn, err
+		}
+		return append([]string{"left"}, left...), dyn, nil
 	}
 	// for non-using columns, ambiguous colomn references should be reported
 	return j.joinSchema.resolveUnqualified(col)
@@ -311,10 +311,8 @@ func (s *selectSchema) resolveUnqualified(col string) (field.Path, bool, error) 
 }
 
 func (s *staticSchema) resolveUnqualified(col string) (field.Path, bool, error) {
-	for _, actual := range s.columns {
-		if strings.EqualFold(actual, col) {
-			return field.Path{actual}, false, nil
-		}
+	if slices.Contains(s.columns, col) {
+		return field.Path{col}, false, nil
 	}
 	return nil, false, nil
 }
@@ -397,7 +395,7 @@ func (s *selectSchema) star(n ast.Node, table string, path field.Path) ([]*sem.T
 
 func (s *staticSchema) star(n ast.Node, table string, path field.Path) ([]*sem.ThisExpr, error) {
 	var out []*sem.ThisExpr
-	if table == "" || strings.EqualFold(s.table, table) {
+	if table == "" || s.table == table {
 		for _, col := range s.columns {
 			out = append(out, sem.NewThis(n, append(path, col)))
 		}
@@ -504,7 +502,7 @@ func (s *subquerySchema) this(n ast.Node, path []string) sem.Expr {
 }
 
 func (d *dynamicSchema) resolveTable(n ast.Node, table string, path []string) (sem.Expr, bool, error) {
-	if strings.EqualFold(d.table, table) {
+	if d.table == table {
 		// Can't refer to dynamic inputs by the table name because of the
 		// table changes to static and has a column of that name, the query
 		// semantics change.  Instead, consider "this".
@@ -533,7 +531,7 @@ func (s *selectSchema) resolveTable(n ast.Node, name string, path []string) (sem
 }
 
 func (s *staticSchema) resolveTable(n ast.Node, table string, path []string) (sem.Expr, bool, error) {
-	if strings.EqualFold(s.table, table) {
+	if s.table == table {
 		return sem.NewThis(n, path), false, nil
 	}
 	return nil, false, nil
