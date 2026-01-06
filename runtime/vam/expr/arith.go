@@ -31,10 +31,10 @@ func (a *Arith) Eval(val vector.Any) vector.Any {
 func (a *Arith) eval(vecs ...vector.Any) (out vector.Any) {
 	lhs := enumToIndex(vector.Under(vecs[0]))
 	rhs := enumToIndex(vector.Under(vecs[1]))
-	if vector.KindOf(lhs) == vector.KindError {
+	if k := vector.KindOf(lhs); k == vector.KindNull || k == vector.KindError {
 		return lhs
 	}
-	if vector.KindOf(rhs) == vector.KindError {
+	if k := vector.KindOf(rhs); k == vector.KindNull || k == vector.KindError {
 		return rhs
 	}
 	lhs, rhs, errVal := coerceVals(a.sctx, lhs, rhs)

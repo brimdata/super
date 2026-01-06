@@ -19,11 +19,12 @@ const (
 	KindIP      = 6
 	KindNet     = 7
 	KindType    = 8
-	KindError   = 9
-	KindArray   = 10
-	KindSet     = 11
-	KindMap     = 12
-	KindRecord  = 13
+	KindNull    = 9
+	KindError   = 10
+	KindArray   = 11
+	KindSet     = 12
+	KindMap     = 13
+	KindRecord  = 14
 )
 
 const (
@@ -119,6 +120,8 @@ func KindOfType(typ super.Type) Kind {
 		return KindNet
 	case *super.TypeOfType:
 		return KindType
+	case *super.TypeOfNull:
+		return KindNull
 	case *super.TypeArray:
 		return KindArray
 	case *super.TypeSet:
