@@ -1,15 +1,45 @@
-spq: join(s, sep)
+spq: |
+  values join(this, "->")
 
 vector: true
 
 input: |
-  {s:["a","b","c"],sep:", "}
-  {s:"join",sep:","}
-  {s:["a"],sep:["b"]}
-  {s:["a","b",null::string,"c"],sep:""::(int64|string)}
+  ["foo","bar","baz"]
+  ["foo"]
+  null::[string]
+  []::[string]
+  [""]
+  "not an array"
+
 
 output: |
-  "a, b, c"
-  error({message:"join: array of string arg required",on:"join"})
-  error({message:"join: separator must be string",on:["b"]})
-  "abc"
+  "foo->bar->baz"
+  "foo"
+  null::string
+  ""
+  ""
+  error({message:"join: array of string arg required",on:"not an array"})
+
+---
+
+# Single arg
+spq: |
+  join(this)
+
+vector: true
+
+input: |
+  ["f",".bar.com"]
+
+output: |
+  "f.bar.com"
+
+---
+
+# Bad separator arg
+spq: join(["foo","bar"], 1)
+
+vector: true
+
+output: |
+  error({message:"join: separator must be string",on:1})

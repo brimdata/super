@@ -169,6 +169,9 @@ func (j *Join) Call(args []super.Value) super.Value {
 	if !ok || typ.Type.ID() != super.IDString {
 		return j.sctx.WrapError("join: array of string arg required", splitsVal)
 	}
+	if splitsVal.IsNull() {
+		return super.NullString
+	}
 	var separator string
 	if len(args) == 2 {
 		sepVal := args[1]

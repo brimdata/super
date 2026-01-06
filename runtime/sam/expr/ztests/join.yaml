@@ -1,8 +1,0 @@
-spq: |
-  cut s1:=join(a1,"."),s2:=join(a1,"."),s3:=join(a3,"."),s4:=join(a4,"."),s5:=join(oo)
-
-input: |
-  {a1:["foo","bar","com"],a2:["foo"],a3:null::[string],a4:[""],oo:["f",".bar.com"]}
-
-output: |
-  {s1:"foo.bar.com",s2:"foo.bar.com",s3:"",s4:"",s5:"f.bar.com"}
