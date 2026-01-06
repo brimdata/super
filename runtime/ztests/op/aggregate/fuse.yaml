@@ -1,4 +1,20 @@
-spq: fuse(this) by key with -limit 1
+spq: fuse(this)
+
+vector: true
+
+input: |
+  {a:"hello",b:"world"}
+  {a:"goodnight",b:123::int32}
+
+output: |
+  <{a:string,b:int32|string}>
+
+---
+
+# Test partials.
+spq: fuse(this) by key with -limit 1 | sort key
+
+vector: true
 
 input: |
   {a:"hello",r:{x:1::int32,y:2::int32},key:"a"}

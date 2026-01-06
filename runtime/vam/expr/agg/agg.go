@@ -37,10 +37,10 @@ func NewPattern(op string, distinct, hasarg bool) (Pattern, error) {
 		pattern = func() Func {
 			return newDCount()
 		}
-	// case "fuse":
-	// 	pattern = func() AggFunc {
-	// 		return newFuse()
-	// 	}
+	case "fuse":
+		pattern = func() Func {
+			return newFuse()
+		}
 	case "sum":
 		pattern = func() Func {
 			return newMathReducer(mathSum)
