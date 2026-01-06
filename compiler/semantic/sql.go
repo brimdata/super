@@ -15,7 +15,6 @@ import (
 	"github.com/brimdata/super/compiler/semantic/sem"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr/agg"
-	"github.com/brimdata/super/sup"
 )
 
 // Analyze a SQL select expression which may have arbitrary nested subqueries
@@ -662,8 +661,8 @@ type exprloc struct {
 func (t *translator) groupBy(sch *selectSchema, in []ast.Expr) []exprloc {
 	var out []exprloc
 	for _, expr := range in {
-		e := t.expr(expr)
-		if colno, ok := isOrdinal(t.sctx, e); ok {
+		var e sem.Expr
+		if colno, ok := isOrdinal(expr); ok {
 			if colno < 1 || colno > len(sch.columns) {
 				t.error(expr, fmt.Errorf("position %d is not in select list", colno))
 			} else {
@@ -672,16 +671,18 @@ func (t *translator) groupBy(sch *selectSchema, in []ast.Expr) []exprloc {
 				e = t.expr(sch.columns[colno-1].astExpr)
 				sch.groupByLoc = save
 			}
+		} else {
+			e = t.expr(expr)
 		}
 		out = append(out, exprloc{e, expr})
 	}
 	return out
 }
 
-func isOrdinal(sctx *super.Context, e sem.Expr) (int, bool) {
-	if literal, ok := e.(*sem.LiteralExpr); ok {
-		v := sup.MustParseValue(sctx, literal.Value)
-		return int(v.AsInt()), super.IsInteger(v.Type().ID())
+func isOrdinal(e ast.Expr) (int, bool) {
+	if e, ok := e.(*ast.Primitive); ok && e.Type == "int64" {
+		colno, _ := strconv.Atoi(e.Text)
+		return colno, true
 	}
 	return -1, false
 }

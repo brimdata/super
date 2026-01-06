@@ -402,14 +402,14 @@ func (t *translator) fromPoolRegexp(node ast.Node, re, orig, which string, args 
 func (t *translator) sortExpr(sch schema, s ast.SortExpr, reverse bool) sem.SortExpr {
 	var e sem.Expr
 	if sch != nil {
-		if selSch, ok := sch.(*selectSchema); ok {
+		if colno, ok := isOrdinal(s.Expr); ok {
+			e = t.resolveOrdinalOuter(sch, s.Expr, "", colno)
+		} else if selSch, ok := sch.(*selectSchema); ok {
 			e = t.groupedExpr(selSch, s.Expr)
 		} else {
 			e = t.expr(s.Expr)
 		}
-		if colno, ok := isOrdinal(t.sctx, e); ok {
-			e = t.resolveOrdinalOuter(sch, s.Expr, "", colno)
-		}
+
 	} else {
 		e = t.expr(s.Expr)
 	}

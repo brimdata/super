@@ -1,0 +1,4 @@
+spq: select 2 as x group by x
+
+output: |
+  {x:2}
