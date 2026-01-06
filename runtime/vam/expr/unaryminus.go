@@ -31,7 +31,10 @@ func (u *unaryMinus) eval(vecs ...vector.Any) vector.Any {
 		return vec
 	}
 	id := vec.Type().ID()
-	if !super.IsNumber(vec.Type().ID()) {
+	if id == super.IDNull {
+		return vec
+	}
+	if !super.IsNumber(id) {
 		return vector.NewWrappedError(u.sctx, "type incompatible with unary '-' operator", vecs[0])
 	}
 	if super.IsUnsigned(id) {

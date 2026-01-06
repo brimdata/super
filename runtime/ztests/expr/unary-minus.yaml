@@ -62,7 +62,7 @@ output: |
   error({message:"type incompatible with unary '-' operator",on:"foo"})
   error({message:"type incompatible with unary '-' operator",on:10.0.0.1})
   error({message:"type incompatible with unary '-' operator",on:[1,2,3]})
-  error({message:"type incompatible with unary '-' operator",on:null})
+  null
   error({message:"type incompatible with unary '-' operator",on:null::string})
   null::int8
   null::int16

@@ -581,7 +581,7 @@ func (u *UnaryMinus) Eval(this super.Value) super.Value {
 		}
 		val = super.NewInt(typ, v)
 	}
-	if val.IsNull() && super.IsNumber(typ.ID()) {
+	if val.IsNull() && (super.IsNumber(typ.ID()) || typ.ID() == super.IDNull) {
 		return val
 	}
 	switch typ.ID() {
