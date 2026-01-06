@@ -20,7 +20,6 @@ import (
 	"github.com/brimdata/super/runtime/sam/op/combine"
 	"github.com/brimdata/super/runtime/sam/op/count"
 	"github.com/brimdata/super/runtime/sam/op/distinct"
-	"github.com/brimdata/super/runtime/sam/op/explode"
 	"github.com/brimdata/super/runtime/sam/op/exprswitch"
 	"github.com/brimdata/super/runtime/sam/op/filescan"
 	"github.com/brimdata/super/runtime/sam/op/fork"
@@ -45,7 +44,6 @@ import (
 	vamop "github.com/brimdata/super/runtime/vam/op"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 	"github.com/segmentio/ksuid"
 )
@@ -293,16 +291,6 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 			return nil, err
 		}
 		return distinct.New(parent, e), nil
-	case *dag.ExplodeOp:
-		typ, err := sup.ParseType(b.sctx(), v.Type)
-		if err != nil {
-			return nil, err
-		}
-		args, err := b.compileExprs(v.Args)
-		if err != nil {
-			return nil, err
-		}
-		return explode.New(b.sctx(), parent, args, typ, v.As)
 	case *dag.FilterOp:
 		f, err := b.compileExpr(v.Expr)
 		if err != nil {

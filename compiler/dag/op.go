@@ -80,12 +80,6 @@ type (
 		Kind string `json:"kind" unpack:""`
 		Args []Expr `json:"args"`
 	}
-	ExplodeOp struct {
-		Kind string `json:"kind" unpack:""`
-		Args []Expr `json:"args"`
-		Type string `json:"type"`
-		As   string `json:"as"`
-	}
 	FilterOp struct {
 		Kind string `json:"kind" unpack:""`
 		Expr Expr   `json:"expr"`
@@ -214,7 +208,6 @@ func (*CountOp) opNode()     {}
 func (*CutOp) opNode()       {}
 func (*DistinctOp) opNode()  {}
 func (*DropOp) opNode()      {}
-func (*ExplodeOp) opNode()   {}
 func (*FilterOp) opNode()    {}
 func (*ForkOp) opNode()      {}
 func (*FuseOp) opNode()      {}

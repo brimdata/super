@@ -80,12 +80,6 @@ func demandForSimpleOp(op dag.Op, downstream demand.Demand) demand.Demand {
 		return demand.Union(downstream, demandForExpr(op.Expr))
 	case *dag.DropOp:
 		return downstream
-	case *dag.ExplodeOp:
-		d := demand.None()
-		for _, a := range op.Args {
-			d = demand.Union(d, demandForExpr(a))
-		}
-		return d
 	case *dag.FilterOp:
 		return demand.Union(downstream, demandForExpr(op.Expr))
 	case *dag.FuseOp:

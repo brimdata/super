@@ -130,12 +130,6 @@ type (
 		ast.Node
 		Args []Expr
 	}
-	ExplodeOp struct {
-		ast.Node
-		Args []Expr
-		Type string
-		As   string
-	}
 	FilterOp struct {
 		ast.Node
 		Expr Expr
@@ -251,7 +245,6 @@ func (*CutOp) opNode()       {}
 func (*DebugOp) opNode()     {}
 func (*DistinctOp) opNode()  {}
 func (*DropOp) opNode()      {}
-func (*ExplodeOp) opNode()   {}
 func (*FilterOp) opNode()    {}
 func (*ForkOp) opNode()      {}
 func (*FuseOp) opNode()      {}
@@ -386,13 +379,6 @@ func CopyOp(op Op) Op {
 		return &DropOp{
 			Node: op.Node,
 			Args: copyExprs(op.Args),
-		}
-	case *ExplodeOp:
-		return &ExplodeOp{
-			Node: op.Node,
-			Args: copyExprs(op.Args),
-			Type: op.Type,
-			As:   op.As,
 		}
 	case *FilterOp:
 		return &FilterOp{

@@ -112,8 +112,6 @@ func (e *evaluator) op(op sem.Op) bool {
 		return e.expr(op.Expr) && e.constThis
 	case *sem.DropOp:
 		return e.exprs(op.Args) && e.constThis
-	case *sem.ExplodeOp:
-		return e.exprs(op.Args) && e.constThis
 	case *sem.FilterOp:
 		return e.expr(op.Expr) && e.constThis
 	case *sem.ForkOp:

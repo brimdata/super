@@ -85,13 +85,6 @@ type (
 		Args []Expr `json:"args"`
 		Loc  `json:"loc"`
 	}
-	ExplodeOp struct {
-		Kind string `json:"kind" unpack:""`
-		Args []Expr `json:"args"`
-		Type Type   `json:"type"`
-		As   Expr   `json:"as"`
-		Loc  `json:"loc"`
-	}
 	FromOp struct {
 		Kind string    `json:"kind" unpack:""`
 		Item *FromItem `json:"item"`
@@ -347,7 +340,6 @@ func (*DebugOp) opNode()      {}
 func (*Delete) opNode()       {}
 func (*DistinctOp) opNode()   {}
 func (*DropOp) opNode()       {}
-func (*ExplodeOp) opNode()    {}
 func (*ExprOp) opNode()       {}
 func (*FileScan) opNode()     {}
 func (*ForkOp) opNode()       {}

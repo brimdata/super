@@ -111,9 +111,6 @@ func (c *checker) op(typ super.Type, op sem.Op) super.Type {
 			return c.unknown
 		}
 		return c.dropPaths(typ, drops)
-	case *sem.ExplodeOp:
-		// TBD
-		return c.unknown
 	case *sem.FilterOp:
 		c.boolean(op.Expr, c.expr(typ, op.Expr))
 		return typ

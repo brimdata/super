@@ -365,7 +365,6 @@ Operator
   / ShapesOp
   / FromOp
   / PassOp
-  / ExplodeOp
   / MergeOp
   / UnnestOp
   / ValuesOp
@@ -872,22 +871,6 @@ PassOp
       return &ast.PassOp{Kind: "PassOp", Loc: loc(c)}, nil
     }
 
-// Currently we support only "explode by type" but this will be generalized
-// to explode arbitrary arrays, records, etc.
-ExplodeOp
-  = EXPLODE _ args:Exprs typ:TypeArg as:AsArg? {
-      o := &ast.ExplodeOp{
-        Kind: "ExplodeOp",
-        Args: sliceOf[ast.Expr](args),
-        Type: typ.(ast.Type),
-        Loc: loc(c),
-      }
-      if as != nil {
-        o.As = as.(ast.Expr)
-      }
-      return o, nil
-    }
-
 MergeOp
   = MERGE _ exprs:OrderByList {
       return &ast.MergeOp{
@@ -909,9 +892,6 @@ UnnestOp
       }
       return o, nil
     }
-
-TypeArg
-  = _ BY _ typ:Type { return typ, nil }
 
 AsArg
   = _ AS _ lhs:Lval { return lhs, nil }
@@ -2447,7 +2427,6 @@ END        = "END"i             !IdentifierRest
 ENUM       = "ENUM"i            !IdentifierRest
 ERROR      = "ERROR"i           !IdentifierRest
 EXISTS     = "EXISTS"i          !IdentifierRest
-EXPLODE    = "EXPLODE"i         !IdentifierRest
 EXTRACT    = "EXTRACT"i         !IdentifierRest
 FALSE      = "FALSE"i           !IdentifierRest
 FILTER     = "FILTER"i          !IdentifierRest

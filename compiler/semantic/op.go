@@ -923,34 +923,6 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			},
 		}
 		return sem.Seq{fork, join}
-	case *ast.ExplodeOp:
-		typ, err := t.semType(o.Type)
-		if err != nil {
-			t.error(o.Type, err)
-			typ = "<bad type expr>"
-		}
-		args := t.exprs(o.Args)
-		var as string
-		if o.As == nil {
-			as = "value"
-		} else {
-			e := t.expr(o.As)
-			this, ok := e.(*sem.ThisExpr)
-			if !ok {
-				t.error(o.As, errors.New("as clause must be a field reference"))
-				return append(seq, badOp)
-			} else if len(this.Path) != 1 {
-				t.error(o.As, errors.New("field must be a top-level field"))
-				return append(seq, badOp)
-			}
-			as = this.Path[0]
-		}
-		return append(seq, &sem.ExplodeOp{
-			Node: o,
-			Args: args,
-			Type: typ,
-			As:   as,
-		})
 	case *ast.MergeOp:
 		var ok bool
 		if len(seq) > 0 {

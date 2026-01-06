@@ -24,7 +24,6 @@ var unpacker = unpack.New(
 	DeleteScan{},
 	DotExpr{},
 	DropOp{},
-	ExplodeOp{},
 	Field{},
 	FileScan{},
 	FilterOp{},

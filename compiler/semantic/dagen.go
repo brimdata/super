@@ -163,13 +163,6 @@ func (d *dagen) op(op sem.Op) dag.Op {
 			Kind: "DropOp",
 			Args: d.exprs(op.Args),
 		}
-	case *sem.ExplodeOp:
-		return &dag.ExplodeOp{
-			Kind: "ExplodeOp",
-			Args: d.exprs(op.Args),
-			Type: op.Type,
-			As:   op.As,
-		}
 	case *sem.FilterOp:
 		return &dag.FilterOp{
 			Kind: "FilterOp",

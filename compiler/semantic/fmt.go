@@ -62,9 +62,6 @@ func clrOp(op sem.Op) {
 	case *sem.DropOp:
 		op.Node = nil
 		clrExprs(op.Args)
-	case *sem.ExplodeOp:
-		op.Node = nil
-		clrExprs(op.Args)
 	case *sem.FilterOp:
 		op.Node = nil
 		clrExpr(op.Expr)

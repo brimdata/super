@@ -78,9 +78,6 @@ func eqOp(aop, bop sem.Op) bool {
 	case *sem.DropOp:
 		b, ok := bop.(*sem.DropOp)
 		return ok && eqExprs(a.Args, b.Args)
-	case *sem.ExplodeOp:
-		b, ok := bop.(*sem.ExplodeOp)
-		return ok && a.Type == b.Type && a.As == b.As && eqExprs(a.Args, b.Args)
 	case *sem.FilterOp:
 		b, ok := bop.(*sem.FilterOp)
 		return ok && eqExpr(a.Expr, b.Expr)

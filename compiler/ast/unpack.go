@@ -33,7 +33,6 @@ var unpacker = unpack.New(
 	Delete{},
 	DoubleQuoteExpr{},
 	DropOp{},
-	ExplodeOp{},
 	ExprElem{},
 	ExtractExpr{},
 	Enum{},
