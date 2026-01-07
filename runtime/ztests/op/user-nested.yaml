@@ -10,6 +10,8 @@ spq: |
   )
   add4 y
 
+vector: true
+
 input: '{y:1} {y:2} {y:3}'
 
 output: |

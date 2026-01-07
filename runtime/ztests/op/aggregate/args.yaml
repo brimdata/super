@@ -4,6 +4,8 @@ script: |
     ! super -s -c "$agg()" in.sup
   done
 
+vector: true
+
 inputs:
   - name: in.sup
     data: "{}"

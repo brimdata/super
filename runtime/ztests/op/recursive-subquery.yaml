@@ -9,5 +9,7 @@ spq: |
     end
   values walk([{x:[1,2]},{y:3}])
 
+vector: true
+
 output: |
   [{x:[2,3]},{y:4}]

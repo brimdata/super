@@ -1,6 +1,8 @@
 script: |
  super - | super -s -I test.spq
 
+vector: true
+
 inputs:
   - name: test.spq
     data: |

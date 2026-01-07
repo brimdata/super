@@ -9,6 +9,8 @@ spq: |
     sum(distinct n) by key
   | sort key
 
+vector: true
+
 input: |
   {key:"a",n:1}
   {key:"a",n:2}

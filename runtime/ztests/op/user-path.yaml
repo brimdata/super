@@ -4,6 +4,8 @@ spq: |
   )
   add1 a.b
 
+vector: true
+
 input: |
   {a:{b:2}}
 

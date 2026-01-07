@@ -2,6 +2,8 @@ script: |
   ! super compile -dag -I error-duplicate-parameters.spq
   ! super compile -dag -I error-const-lhs.spq
 
+vector: true
+
 inputs:
   - name: error-duplicate-parameters.spq
     data: |

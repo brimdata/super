@@ -8,6 +8,8 @@ script: |
   super -s -c "min(n)" in.sup > min.sup
   super -s -c "max(n)" in.sup > max.sup
 
+vector: true
+
 inputs:
   - name: in.sup
     data: |

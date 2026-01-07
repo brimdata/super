@@ -1,5 +1,7 @@
 spq: cut r:={x:a+b,y:a-b},a1:=[a],a2:=[a+b,a-b]
 
+vector: true
+
 input: |
   {a:2,b:1}
   {a:4,b:3}

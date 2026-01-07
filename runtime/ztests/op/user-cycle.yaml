@@ -4,6 +4,8 @@ spq: |
   op callC: (callA)
   callA
 
+vector: true
+
 error: |
   operator cycle found: callA -> callB -> callC -> callA at line 3, column 12:
   op callC: (callA)

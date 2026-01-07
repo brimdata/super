@@ -1,5 +1,7 @@
 spq: cast(this, <int64|string>)
 
+vector: true
+
 input: |
   null
   null::int64
