@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/cli"
@@ -104,7 +105,18 @@ type Command struct {
 	outputFlags  outputflags.Flags
 	queryFlags   queryflags.Flags
 	runtimeFlags runtimeflags.Flags
-	query        string
+	query        QueryString
+}
+
+type QueryString []string
+
+func (q *QueryString) String() string {
+	return strings.Join(*q, "\n")
+}
+
+func (q *QueryString) Set(value string) error {
+	*q = append(*q, value)
+	return nil
 }
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
@@ -120,11 +132,11 @@ func (c *Command) SetLeafFlags(f *flag.FlagSet) {
 	c.runtimeFlags.SetFlags(f)
 	f.BoolVar(&c.canon, "C", false, "display parsed AST in a textual format")
 	f.BoolVar(&c.stopErr, "e", true, "stop upon input errors")
-	f.StringVar(&c.query, "c", "", "query to execute")
+	f.Var(&c.query, "c", "query to execute (multiple instances concatenated with newlines)")
 }
 
 func (c *Command) Run(args []string) error {
-	if c.canon && c.query == "" && len(c.queryFlags.Includes) == 0 {
+	if c.canon && c.query.String() == "" && len(c.queryFlags.Includes) == 0 {
 		return errors.New("query text must be specified (-c or -I) when using -C")
 	}
 	ctx, cleanup, err := c.Init(&c.inputFlags, &c.outputFlags, &c.runtimeFlags)
@@ -132,10 +144,10 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	defer cleanup()
-	if len(args) == 0 && len(c.queryFlags.Includes) == 0 && c.query == "" {
+	if len(args) == 0 && len(c.queryFlags.Includes) == 0 && c.query.String() == "" {
 		return charm.NeedHelp
 	}
-	ast, err := parser.ParseQuery(c.query, c.queryFlags.Includes...)
+	ast, err := parser.ParseQuery(c.query.String(), c.queryFlags.Includes...)
 	if err != nil {
 		return err
 	}

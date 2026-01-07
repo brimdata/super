@@ -1,0 +1,6 @@
+script: super -s -c "pass" -c "| values 1"
+
+outputs:
+  - name: stdout
+    data: |
+      1
