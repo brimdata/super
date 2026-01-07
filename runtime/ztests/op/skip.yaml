@@ -12,6 +12,6 @@ outputs:
       901
   - name: stderr
     data: |
-      expression must be an integer: "hello" at line 1, column 6:
+      expected integer at line 1, column 6:
       skip "hello"
            ~~~~~~~

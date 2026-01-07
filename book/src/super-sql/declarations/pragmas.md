@@ -22,7 +22,7 @@ Currently, there are two supported pragmas.
     * `1` for one-based indexing
 * `pg` - controls the precedence of scoping for GROUP BY clauses in SQL operators
     * `false` to follow Google SQL semantics of resolving identifiers first from column aliases then from the input table
-    * `true` to follow Postgres semantics of resolving identifiers first from the input table then from the column aliases
+    * `true` to follow PostgreSQL semantics of resolving identifiers first from the input table then from the column aliases
 
 ### Example
 

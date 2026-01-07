@@ -1,0 +1,6 @@
+spq: pragma pg="foo" pass
+
+error: |
+  expected type bool at line 1, column 11:
+  pragma pg="foo" pass
+            ~~~~~

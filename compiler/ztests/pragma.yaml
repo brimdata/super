@@ -18,10 +18,10 @@ outputs:
       pragma index_base = 0 pragma index_base = 1 values null
                                    ~~~~~~~~~~
       // ===
-      expression must be an integer: "foo" at line 1, column 21:
+      expected integer at line 1, column 21:
       pragma index_base = "foo" values null
                           ~~~~~
       // ===
-      expression must be a positive integer at line 1, column 21:
+      expected positive integer at line 1, column 21:
       pragma index_base = -1 values null
                           ~~

@@ -1552,7 +1552,11 @@ func (t *translator) mustEvalString(e sem.Expr) (field string, ok bool) {
 
 func (t *translator) mustEvalBool(in ast.Expr) (bool, bool) {
 	val, ok := t.mustEval(t.expr(in))
-	if ok && !val.IsError() && super.TypeUnder(val.Type()) == super.TypeBool {
+	if ok {
+		if super.TypeUnder(val.Type()) != super.TypeBool {
+			t.error(in, errors.New("expected type bool"))
+			return false, false
+		}
 		return val.AsBool(), true
 	}
 	return false, false
@@ -1560,7 +1564,7 @@ func (t *translator) mustEvalBool(in ast.Expr) (bool, bool) {
 
 func (t *translator) maybeEvalString(e sem.Expr) (field string, ok bool) {
 	val, ok := t.maybeEval(e)
-	if ok && !val.IsError() && super.TypeUnder(val.Type()) == super.TypeString {
+	if ok && super.TypeUnder(val.Type()) == super.TypeString {
 		return string(val.Bytes()), true
 	}
 	return "", false
@@ -1573,12 +1577,12 @@ func (t *translator) mustEvalPositiveInteger(ae ast.Expr) int {
 		return 0
 	}
 	if !super.IsInteger(val.Type().ID()) || val.IsNull() {
-		t.error(ae, fmt.Errorf("expression must be an integer: %s", sup.FormatValue(val)))
+		t.error(ae, errors.New("expected integer"))
 		return 0
 	}
 	v := int(val.AsInt())
 	if v < 0 {
-		t.error(ae, errors.New("expression must be a positive integer"))
+		t.error(ae, errors.New("expected positive integer"))
 		return 0
 	}
 	return v
