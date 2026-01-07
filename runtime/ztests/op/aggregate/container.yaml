@@ -2,6 +2,8 @@ script: |
   super -s -c "union(x)" in.sup > union.sup
   super -s -c "collect(x)" in.sup > collect.sup
 
+vector: true
+
 inputs:
   - name: in.sup
     data: |

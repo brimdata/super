@@ -25,6 +25,7 @@ func (u *union) Consume(vec vector.Any) {
 		u.samunion.Update(vec.Type(), val.Bytes())
 	case *vector.Dict:
 		u.Consume(vec.Any)
+	case *vector.Error: // ignore
 	default:
 		nulls := vector.NullsOf(vec)
 		typ := vec.Type()
@@ -48,6 +49,12 @@ func (u *union) ConsumeAsPartial(partial vector.Any) {
 	if c, ok := partial.(*vector.Const); ok && c.Value().IsNull() {
 		return
 	}
+	n := partial.Len()
+	var index []uint32
+	if view, ok := partial.(*vector.View); ok {
+		index = view.Index
+		partial = view.Any
+	}
 	set, ok := partial.(*vector.Set)
 	if !ok {
 		panic("union: partial not a set type")
@@ -56,8 +63,12 @@ func (u *union) ConsumeAsPartial(partial vector.Any) {
 	typ := inner.Type()
 	union, _ := typ.(*super.TypeUnion)
 	var b scode.Builder
-	for i := range set.Len() {
-		for k := set.Offsets[i]; k < set.Offsets[i+1]; k++ {
+	for idx := range n {
+		i := idx
+		if index != nil {
+			idx = index[i]
+		}
+		for k := set.Offsets[idx]; k < set.Offsets[idx+1]; k++ {
 			b.Truncate()
 			inner.Serialize(&b, k)
 			bytes := b.Bytes().Body()

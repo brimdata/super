@@ -12,6 +12,9 @@ type collect struct {
 }
 
 func (c *collect) Consume(vec vector.Any) {
+	if _, ok := vec.(*vector.Error); ok {
+		return
+	}
 	typ := vec.Type()
 	nulls := vector.NullsOf(vec)
 	var b scode.Builder
