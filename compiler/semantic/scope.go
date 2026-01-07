@@ -151,7 +151,7 @@ func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) (sem.Expr, e
 	// SELECT body (e.g., in ORDER BY), so we need to first check
 	// the select column names before the inputs.  This is handled by
 	// other SQLs by looking in the output table, but we can't do that
-	// since we must can't mix output columns and input columns
+	// since we can't mix output columns and input columns
 	// in the grouping expression matcher.  So we rely upon this column
 	// lookup to give us the input bindings and then match everything to its
 	// grouped output.
@@ -163,7 +163,7 @@ func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) (sem.Expr, e
 		}
 	}
 	// We give priority to lateral column aliases which diverges from
-	// Postgres semantics (which checks the input table first) but follows
+	// PostgreSQL semantics (which checks the input table first) but follows
 	// Google SQL semantics.  We favor this approach so we can avoid
 	// precedence problems for dynamic inputs or super-structured inputs
 	// that evolve, e.g., with a super-structured input, whether a column
@@ -171,7 +171,7 @@ func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) (sem.Expr, e
 	// to a column aliases otherwise as data evolves (and such a column shows up)
 	// the binding of identifiers changes and query results can change.  By
 	// resolving lateral aliases first, we avoid this problem.  This can
-	// be overridden with "pragma pg" to favor Postgres precedence.
+	// be overridden with "pragma pg" to favor PostgreSQL precedence.
 	if sch, ok := sch.(*selectSchema); ok && sch.lateral && !inputFirst {
 		if e := resolveLateralColumn(t, sch, path[0]); e != nil {
 			return extend(n, e, path[1:]), nil

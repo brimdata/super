@@ -4,7 +4,6 @@ script: |
 inputs:
   - name: query.spq
     data: |
-      pragma pg=false
       select a/2 as a
       from (values (0),(1),(2)) T(a)
       group by a
