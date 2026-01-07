@@ -147,6 +147,21 @@ func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) (sem.Expr, e
 			inputFirst = b
 		}
 	}
+	// If the output projection is in place, then we are outside the
+	// SELECT body (e.g., in ORDER BY), so we need to first check
+	// the select column names before the inputs.  This is handled by
+	// other SQLs by looking in the output table, but we can't do that
+	// since we must can't mix output columns and input columns
+	// in the grouping expression matcher.  So we rely upon this column
+	// lookup to give us the input bindings and then match everything to its
+	// grouped output.
+	if sch, ok := sch.(*selectSchema); ok && sch.out != nil && sch.isGrouped() {
+		for _, c := range sch.columns {
+			if c.name == path[0] {
+				return extend(n, c.semExpr, path[1:]), nil
+			}
+		}
+	}
 	// We give priority to lateral column aliases which diverges from
 	// Postgres semantics (which checks the input table first) but follows
 	// Google SQL semantics.  We favor this approach so we can avoid
@@ -155,7 +170,8 @@ func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) (sem.Expr, e
 	// is present in the input shouldn't control the scoping decision compared
 	// to a column aliases otherwise as data evolves (and such a column shows up)
 	// the binding of identifiers changes and query results can change.  By
-	// resolving lateral aliases first, we avoid this problem.
+	// resolving lateral aliases first, we avoid this problem.  This can
+	// be overridden with "pragma pg" to favor Postgres precedence.
 	if sch, ok := sch.(*selectSchema); ok && sch.lateral && !inputFirst {
 		if e := resolveLateralColumn(t, sch, path[0]); e != nil {
 			return extend(n, e, path[1:]), nil
@@ -227,7 +243,7 @@ func extend(n ast.Node, e sem.Expr, rest []string) sem.Expr {
 
 func resolveLateralColumn(t *translator, s schema, col string) sem.Expr {
 	sch, ok := s.(*selectSchema)
-	if !ok {
+	if !ok || !sch.lateral {
 		// lateral columns available only inside select bodies
 		return nil
 	}

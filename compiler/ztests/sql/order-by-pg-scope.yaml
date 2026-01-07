@@ -1,0 +1,16 @@
+script: |
+  super compile -C -O -I query.spq | grep sort
+
+inputs:
+  - name: query.spq
+    data: |
+      pragma pg=false
+      select a/2 as a
+      from (values (0),(1),(2)) T(a)
+      group by a
+      order by a
+
+outputs:
+  - name: stdout
+    data: |
+      | sort g.k0 asc nulls last

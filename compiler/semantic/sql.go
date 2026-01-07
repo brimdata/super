@@ -48,8 +48,9 @@ func (t *translator) sqlSelect(sel *ast.SQLSelect, demand []ast.Expr, seq sem.Se
 	defer func() {
 		t.scope.schema = save
 	}()
-	// form column slots (and expand *'s) so we can resolve lateral column aliases
-	sch.lateral = false
+	// Form column slots (and expand *'s) but delay analysis of expressions.
+	// This will let us properly resolve lateral column aliases from any
+	// GROUP BY expressions that reference them.
 	sch.columns = t.formProjection(sch, sel.Selection.Args)
 	seq = valuesExpr(wrapThis(sel, "in"), seq)
 	if sel.Where != nil {

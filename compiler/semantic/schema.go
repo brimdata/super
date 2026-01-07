@@ -76,7 +76,8 @@ type (
 
 		// Columns holds the projection.  We bookkeep both the ast expression
 		// and sem tree expr so we can do lateral column alias macro substition.
-		// The lateral field is true when lateral column resolution is allowed.
+		// The lateral field is true when lateral column resolution is allowed
+		// during the analysis GROUP BY expressions.
 		columns []column
 		lateral bool
 
@@ -186,21 +187,6 @@ func (j *joinSchema) resolveQualified(table, col string) (field.Path, error) {
 }
 
 func (s *selectSchema) resolveQualified(table, col string) (field.Path, error) {
-	if s.out != nil {
-		// The output scope is set after the select scope is almost closed so that
-		// ORDER BY can utilize the projected columns, which have precedence
-		// higher than anything else, except when recursively descending
-		// into the argument expression of agg functions, in which case,
-		// s.out is temporarily cleared (in t.aggFunc()) and scalars then resolve
-		// to input and lateral columns.
-		path, err := s.out.resolveQualified(table, col)
-		if err != nil {
-			return nil, err
-		}
-		if path != nil {
-			return append([]string{"out"}, path...), nil
-		}
-	}
 	path, err := s.in.resolveQualified(table, col)
 	if path != nil {
 		return append([]string{"in"}, path...), nil
@@ -287,7 +273,7 @@ func (j *joinUsingSchema) resolveUnqualified(col string) (field.Path, bool, erro
 func (s *selectSchema) resolveUnqualified(col string) (field.Path, bool, error) {
 	// This just looks for column in the input table.  The resolve() function
 	// looks at lateral column aliases if this fails.
-	if s.out != nil {
+	if s.out != nil && !s.isGrouped() {
 		// The output scope is set after the select scope is almost closed so that
 		// ORDER BY can utilize the projected columns, which have precedence
 		// higher than anything else, except when recursively descending

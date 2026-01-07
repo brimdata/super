@@ -409,7 +409,6 @@ func (t *translator) sortExpr(sch schema, s ast.SortExpr, reverse bool) sem.Sort
 		} else {
 			e = t.expr(s.Expr)
 		}
-
 	} else {
 		e = t.expr(s.Expr)
 	}
