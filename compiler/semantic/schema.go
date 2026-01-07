@@ -99,8 +99,6 @@ type (
 	}
 )
 
-var badType = &super.TypeOfNull{}
-
 func newSchemaFromType(typ super.Type) schema {
 	if typ == badType {
 		return badSchema
@@ -133,8 +131,6 @@ func recordOf(typ super.Type) *super.TypeRecord {
 	}
 	return nil
 }
-
-var badSchema = &dynamicSchema{}
 
 func newJoinUsingSchema(j *joinSchema, columns []string) *joinUsingSchema {
 	skip := make(map[string]struct{})

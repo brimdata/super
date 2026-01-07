@@ -63,7 +63,7 @@ func (r *resolver) resolveCall(n ast.Node, id string, args []sem.Expr) sem.Expr 
 		// Check argument count here for builtin functions.
 		if _, err := function.New(super.NewContext(), id, len(args)); err != nil {
 			r.t.error(n, err)
-			return badExpr()
+			return badExpr
 		}
 		return sem.NewCall(n, id, args)
 	}
@@ -83,7 +83,7 @@ func (r *resolver) mustResolveCall(n ast.Node, id string, args []sem.Expr) sem.E
 	declParams := d.lambda.Params
 	if len(declParams) != len(args) {
 		r.t.error(n, fmt.Errorf("%q: expected %d params but called with %d", d.name, len(declParams), len(args)))
-		return badExpr()
+		return badExpr
 	}
 	var lambdas []lambda
 	for k, arg := range args {

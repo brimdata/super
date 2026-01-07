@@ -27,7 +27,7 @@ func (t *translator) expr(e ast.Expr) sem.Expr {
 		nameLower := strings.ToLower(e.Name)
 		if expr == nil && nameLower != "count" {
 			t.error(e, fmt.Errorf("aggregator '%s' requires argument", e.Name))
-			return badExpr()
+			return badExpr
 		}
 		return t.aggFunc(e, nameLower, e.Expr, e.Filter, e.Distinct)
 	case *ast.ArrayExpr:
@@ -131,7 +131,7 @@ func (t *translator) expr(e ast.Expr) sem.Expr {
 				ref, err := t.scope.resolve(t, e, this.Path)
 				if err != nil {
 					t.error(e, err)
-					return badExpr()
+					return badExpr
 				}
 				return ref
 			}
@@ -178,7 +178,7 @@ func (t *translator) expr(e ast.Expr) sem.Expr {
 		val, err := sup.ParsePrimitive(e.Type, e.Text)
 		if err != nil {
 			t.error(e, err)
-			return badExpr()
+			return badExpr
 		}
 		return &sem.LiteralExpr{
 			Node:  e,
@@ -256,12 +256,12 @@ func (t *translator) expr(e ast.Expr) sem.Expr {
 	case *ast.SQLTimeExpr:
 		if e.Value.Type != "string" {
 			t.error(e.Value, errors.New("value must be a string literal"))
-			return badExpr()
+			return badExpr
 		}
 		tm, err := dateparse.ParseAny(e.Value.Text)
 		if err != nil {
 			t.error(e.Value, err)
-			return badExpr()
+			return badExpr
 		}
 		ts := nano.TimeToTs(tm)
 		if e.Type == "date" {
@@ -275,21 +275,21 @@ func (t *translator) expr(e ast.Expr) sem.Expr {
 			v, err := sup.ParsePrimitive(term.Type, term.Text)
 			if err != nil {
 				t.error(e, err)
-				return badExpr()
+				return badExpr
 			}
 			val = sup.FormatValue(v)
 		case *ast.DoubleQuoteExpr:
 			v, err := sup.ParsePrimitive("string", term.Text)
 			if err != nil {
 				t.error(e, err)
-				return badExpr()
+				return badExpr
 			}
 			val = sup.FormatValue(v)
 		case *ast.TypeValue:
 			tv, err := t.semType(term.Value)
 			if err != nil {
 				t.error(e, err)
-				return badExpr()
+				return badExpr
 			}
 			val = "<" + tv + ">"
 		default:
@@ -305,7 +305,7 @@ func (t *translator) expr(e ast.Expr) sem.Expr {
 		expr := t.expr(e.Expr)
 		if e.From == nil && e.For == nil {
 			t.error(e, errors.New("FROM or FOR must be set"))
-			return badExpr()
+			return badExpr
 		}
 		// XXX type checker should remove this check when it finds it redundant
 		is := sem.NewCall(e, "is", []sem.Expr{expr, &sem.LiteralExpr{Node: e.Expr, Value: "<string>"}})
@@ -361,7 +361,7 @@ func (t *translator) expr(e ast.Expr) sem.Expr {
 				return e
 			}
 			t.error(e, err)
-			return badExpr()
+			return badExpr
 		}
 		return &sem.LiteralExpr{
 			Node:  e,
@@ -394,7 +394,7 @@ func (t *translator) idExpr(id *ast.IDExpr, lval bool) sem.Expr {
 	if entry := t.scope.lookupEntry(id.Name); entry != nil {
 		if _, ok := entry.ref.(*funcDef); ok && !lval {
 			t.error(id, fmt.Errorf("function %q referenced but not called (consider &%s to create a function value)", id.Name, id.Name))
-			return badExpr()
+			return badExpr
 		}
 	}
 	if ref := t.scope.lookupExpr(t, id.Name); ref != nil {
@@ -416,7 +416,7 @@ func (t *translator) doubleQuoteExpr(d *ast.DoubleQuoteExpr) sem.Expr {
 			ref, err := t.scope.resolve(t, d, []string{"this"})
 			if err != nil {
 				t.error(d, err)
-				return badExpr()
+				return badExpr
 			}
 			return ref
 		}
@@ -465,11 +465,11 @@ func (t *translator) regexp(b *ast.BinaryExpr) sem.Expr {
 	s, ok := t.mustEvalString(t.expr(b.RHS))
 	if !ok {
 		t.error(b, errors.New(`right-hand side of ~ expression must be a string literal`))
-		return badExpr()
+		return badExpr
 	}
 	if _, err := expr.CompileRegexp(s); err != nil {
 		t.error(b.RHS, err)
-		return badExpr()
+		return badExpr
 	}
 	e := t.expr(b.LHS)
 	return &sem.RegexpMatchExpr{
@@ -485,7 +485,7 @@ func (t *translator) binaryExpr(e *ast.BinaryExpr) sem.Expr {
 			ref, err := t.scope.resolve(t, e, path)
 			if err != nil {
 				t.error(e, err)
-				return badExpr()
+				return badExpr
 			}
 			return ref
 		}
@@ -502,7 +502,7 @@ func (t *translator) binaryExpr(e *ast.BinaryExpr) sem.Expr {
 		id, ok := e.RHS.(*ast.IDExpr)
 		if !ok {
 			t.error(e, errors.New("RHS of dot operator is not an identifier"))
-			return badExpr()
+			return badExpr
 		}
 		if lhs, ok := lhs.(*sem.ThisExpr); ok {
 			lhs.Path = append(lhs.Path, id.Name)
@@ -520,7 +520,7 @@ func (t *translator) binaryExpr(e *ast.BinaryExpr) sem.Expr {
 		s, ok := t.mustEvalString(rhs)
 		if !ok {
 			t.error(e.RHS, errors.New("non-constant pattern for LIKE not supported"))
-			return badExpr()
+			return badExpr
 		}
 		pattern := likeexpr.ToRegexp(s, '\\', false)
 		expr := &sem.RegexpSearchExpr{
@@ -683,7 +683,7 @@ func (t *translator) semCallByName(call *ast.CallExpr, name string, args []sem.E
 		switch ref := entry.ref.(type) {
 		case funcParamValue:
 			t.error(call, fmt.Errorf("function called via parameter %q is bound to a non-function", name))
-			return badExpr()
+			return badExpr
 		case *funcParamLambda:
 			// Called name is a parameter inside of a function.   We only end up here
 			// when actual values have been bound to the parameter (i.e., we're compiling
@@ -699,14 +699,14 @@ func (t *translator) semCallByName(call *ast.CallExpr, name string, args []sem.E
 				// Check argument count here for builtin functions.
 				if _, err := function.New(super.NewContext(), ref.id, len(args)); err != nil {
 					t.error(call, fmt.Errorf("function %q called via parameter %q: %w", ref.id, ref.param, err))
-					return badExpr()
+					return badExpr
 				}
 				return sem.NewCall(call, ref.id, args)
 			}
 			return t.resolver.mustResolveCall(call, ref.id, args)
 		case *opDecl:
 			t.error(call, fmt.Errorf("cannot call user operator %q in an expression (consider subquery syntax)", name))
-			return badExpr()
+			return badExpr
 		case *sem.FuncRef:
 			// FuncRefs are put in the symbol table when passing stuff to user ops, e.g.,
 			// a lambda as a parameter, a &func, or a builtin like &upper.
@@ -715,11 +715,11 @@ func (t *translator) semCallByName(call *ast.CallExpr, name string, args []sem.E
 			return t.resolver.mustResolveCall(call, ref.id, args)
 		case *constDecl, *queryDecl:
 			t.error(call, fmt.Errorf("%q is not a function", name))
-			return badExpr()
+			return badExpr
 		}
 		if _, ok := entry.ref.(sem.Expr); ok {
 			t.error(call, fmt.Errorf("%q is not a function", name))
-			return badExpr()
+			return badExpr
 		}
 		panic(entry.ref)
 	}
@@ -731,7 +731,7 @@ func (t *translator) semCallByName(call *ast.CallExpr, name string, args []sem.E
 	case nameLower == "grep":
 		if err := function.CheckArgCount(nargs, 2, 2); err != nil {
 			t.error(call, err)
-			return badExpr()
+			return badExpr
 		}
 		pattern, ok := t.maybeEvalString(args[0])
 		if !ok {
@@ -740,7 +740,7 @@ func (t *translator) semCallByName(call *ast.CallExpr, name string, args []sem.E
 		re, err := expr.CompileRegexp(pattern)
 		if err != nil {
 			t.error(call.Args[0], err)
-			return badExpr()
+			return badExpr
 		}
 		if s, ok := re.LiteralPrefix(); ok {
 			return &sem.SearchTermExpr{
@@ -766,7 +766,7 @@ func (t *translator) semCallByName(call *ast.CallExpr, name string, args []sem.E
 	default:
 		if _, err := function.New(t.sctx, nameLower, nargs); err != nil {
 			t.error(call, err)
-			return badExpr()
+			return badExpr
 		}
 	}
 	return sem.NewCall(call, nameLower, args)
@@ -794,12 +794,12 @@ func (t *translator) maybeSubqueryCall(call *ast.CallExpr, name string) *sem.Sub
 func (t *translator) semMapCall(call *ast.CallExpr, args []sem.Expr) sem.Expr {
 	if len(args) != 2 {
 		t.error(call, errors.New("map requires two arguments"))
-		return badExpr()
+		return badExpr
 	}
 	ref, ok := args[1].(*sem.FuncRef)
 	if !ok {
 		t.error(call, errors.New("second argument to map must be a function"))
-		return badExpr()
+		return badExpr
 	}
 	mapArgs := []sem.Expr{sem.NewThis(call.Args[1], nil)}
 	e := t.resolver.resolveCall(call.Args[1], ref.ID, mapArgs)
@@ -821,13 +821,13 @@ func (t *translator) semExtractExpr(e, partExpr, argExpr ast.Expr) sem.Expr {
 	case *ast.Primitive:
 		if p.Type != "string" {
 			t.error(partExpr, fmt.Errorf("part must be an identifier or string"))
-			return badExpr()
+			return badExpr
 		} else {
 			partstr = p.Text
 		}
 	default:
 		t.error(partExpr, fmt.Errorf("part must be an identifier or string"))
-		return badExpr()
+		return badExpr
 	}
 	return sem.NewCall(e,
 		"date_part",
@@ -864,11 +864,11 @@ func (t *translator) assignment(assign *ast.Assignment) sem.Assignment {
 	}
 	if !isLval(lhs) {
 		t.error(assign, errors.New("illegal left-hand side of assignment"))
-		lhs = badExpr()
+		lhs = badExpr
 	}
 	if this, ok := lhs.(*sem.ThisExpr); ok && len(this.Path) == 0 {
 		t.error(assign, errors.New("cannot assign to 'this'"))
-		lhs = badExpr()
+		lhs = badExpr
 	}
 	return sem.Assignment{Node: assign, LHS: lhs, RHS: rhs}
 }
@@ -974,14 +974,14 @@ func (t *translator) field(f ast.Expr) sem.Expr {
 	case *sem.ThisExpr:
 		if len(e.Path) == 0 {
 			t.error(f, errors.New("cannot use 'this' as a field reference"))
-			return badExpr()
+			return badExpr
 		}
 		return e
 	case *sem.BadExpr:
 		return e
 	default:
 		t.error(f, errors.New("invalid expression used as a field"))
-		return badExpr()
+		return badExpr
 	}
 }
 
@@ -1002,7 +1002,7 @@ func (t *translator) maybeConvertAgg(call *ast.CallExpr) sem.Expr {
 			return nil
 		}
 		t.error(call, err)
-		return badExpr()
+		return badExpr
 	}
 	var e ast.Expr
 	if len(call.Args) == 1 {
@@ -1023,7 +1023,7 @@ func (t *translator) aggFunc(n ast.Node, name string, arg ast.Expr, filter ast.E
 			} else {
 				t.error(n, fmt.Errorf("aggregate function %q called in non-aggregate context", name))
 			}
-			return badExpr()
+			return badExpr
 		}
 		sch.aggOk = false
 		save := sch.out

@@ -125,13 +125,12 @@ func (e opCycleError) Error() string {
 	return b
 }
 
-func badExpr() sem.Expr {
-	return &sem.BadExpr{}
-}
-
-func badOp() sem.Op {
-	return &sem.BadOp{}
-}
+var (
+	badExpr   = &sem.BadExpr{}
+	badOp     = &sem.BadOp{}
+	badSchema = &dynamicSchema{}
+	badType   = &super.TypeOfNull{}
+)
 
 type reporter struct {
 	*srcfiles.List

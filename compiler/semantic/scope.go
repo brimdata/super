@@ -163,13 +163,13 @@ func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) (sem.Expr, e
 	}
 	out, dyn, err := sch.resolveUnqualified(path[0])
 	if err != nil {
-		return badExpr(), err
+		return badExpr, err
 	}
 	if out != nil {
 		if dyn {
 			// Make sure there's not a table with the same name as the column name.
 			if _, tdyn, err := sch.resolveTable(n, path[0], nil); err != nil && tdyn {
-				return badExpr(), fmt.Errorf("cannot use unqualified reference %q when table of same name is in scope (consider qualified reference)", path[0])
+				return badExpr, fmt.Errorf("cannot use unqualified reference %q when table of same name is in scope (consider qualified reference)", path[0])
 			}
 		}
 		return sem.NewThis(n, append(out, path[1:]...)), nil

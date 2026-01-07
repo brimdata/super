@@ -267,7 +267,7 @@ func (t *translator) selectFrom(loc ast.Loc, exprs []ast.SQLTableExpr, seq sem.S
 	if _, ok := seq[off].(*sem.RobotScan); !ok {
 		if hasParent {
 			t.error(loc, errors.New("SELECT cannot have both an embedded FROM clause and input from parents"))
-			return append(seq, badOp()), badSchema
+			return append(seq, badOp), badSchema
 		}
 	}
 
@@ -429,7 +429,7 @@ func (t *translator) sqlQueryBody(query ast.SQLQueryBody, demand []ast.Expr, seq
 		left, leftSch = leftSch.endScope(query.Left.(ast.Node), left)
 		if leftSch == nil || leftSch == badSchema {
 			// error happened in query body
-			return sem.Seq{badOp()}, badSchema
+			return sem.Seq{badOp}, badSchema
 		}
 		leftCols, lok := leftSch.outColumns()
 		if !lok {
@@ -439,18 +439,18 @@ func (t *translator) sqlQueryBody(query ast.SQLQueryBody, demand []ast.Expr, seq
 		right, rightSch = rightSch.endScope(query.Right.(ast.Node), right)
 		if rightSch == nil || rightSch == badSchema {
 			// error happened in query body
-			return sem.Seq{badOp()}, badSchema
+			return sem.Seq{badOp}, badSchema
 		}
 		rightCols, rok := rightSch.outColumns()
 		if !rok {
 			t.error(query.Right, errors.New("set operations cannot be applied to dynamic sources"))
 		}
 		if !lok || !rok {
-			return sem.Seq{badOp()}, badSchema
+			return sem.Seq{badOp}, badSchema
 		}
 		if len(leftCols) != len(rightCols) {
 			t.error(query, errors.New("set operations can only be applied to sources with the same number of columns"))
-			return sem.Seq{badOp()}, badSchema
+			return sem.Seq{badOp}, badSchema
 		}
 		if !slices.Equal(leftCols, rightCols) {
 			// Rename fields on the right to match the left.
@@ -610,7 +610,7 @@ func (t *translator) sqlJoinCond(cond ast.JoinCond) sem.Expr {
 			exprs = append(exprs, sem.NewBinaryExpr(id, "==", lhs, rhs))
 		}
 		if len(exprs) == 0 {
-			return badExpr()
+			return badExpr
 		}
 		return andUsingExprs(cond, exprs)
 	default:
@@ -698,7 +698,7 @@ func (t *translator) resolveOrdinalOuter(s schema, n ast.Node, prefix string, co
 	case *staticSchema:
 		if col < 1 || col > len(s.columns) {
 			t.error(n, fmt.Errorf("column %d is out of range", col))
-			return badExpr()
+			return badExpr
 		}
 		var path []string
 		if prefix != "" {
