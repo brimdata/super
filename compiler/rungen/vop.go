@@ -285,6 +285,12 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		}
 		renamer := vamexpr.NewRenamer(b.sctx(), srcs, dsts)
 		return vamop.NewValues(b.sctx(), parent, []vamexpr.Evaluator{renamer}), nil
+	case *dag.RobotScan:
+		e, err := b.compileVamExpr(o.Expr)
+		if err != nil {
+			return nil, err
+		}
+		return vamop.NewRobot(b.rctx, b.env, parent, e, o.Format, b.newPushdown(o.Filter, nil)), nil
 	case *dag.SkipOp:
 		return vamop.NewSkip(parent, o.Count), nil
 	case *dag.TopOp:

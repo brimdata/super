@@ -5,6 +5,8 @@ script: |
   echo ===
   super -s -c 'from files.sup | select value this from [f]'
 
+vector: true
+
 inputs:
   - name: files.sup
     data: |

@@ -1,6 +1,8 @@
 script: |
   super -s -c 'from which.sup | values "a"||val::string||".sup","a"||(val+1)::string||".sup" | select s from f"{this}"'
 
+vector: true
+
 inputs:
   - name: which.sup
     data: |

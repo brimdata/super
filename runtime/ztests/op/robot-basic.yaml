@@ -1,6 +1,8 @@
 script: |
   super -s -c 'from files.sup | from f"{f}"'
 
+vector: true
+
 inputs:
   - name: files.sup
     data: |

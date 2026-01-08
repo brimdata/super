@@ -24,6 +24,7 @@ import (
 )
 
 type VectorConcurrentPuller interface {
+	vector.Puller
 	ConcurrentPull(done bool, id int) (vector.Any, error)
 }
 
