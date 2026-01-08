@@ -2,11 +2,8 @@ package robot
 
 import (
 	"fmt"
-	"io"
-	"net/http"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/runtime/sam/expr"
@@ -150,20 +147,6 @@ again:
 }
 
 func (o *Op) open(path string) (sbuf.Puller, error) {
-	u, err := storage.ParseURI(path)
-	if err == nil && false {
-		//XXX get from AST args, or we can also get this stuff from the
-		// robot expr, e.g., allowning the querying to create a record
-		// to hold these args...
-		var method string
-		var body io.Reader
-		var headers http.Header
-		f, err := o.env.OpenHTTP(o.rctx.Context, o.rctx.Sctx, u.String(), o.format, method, headers, body, nil)
-		if err != nil {
-			return nil, err
-		}
-		return f, err
-	}
 	// This check for attached database will be removed when we add support for pools here.
 	if o.env.IsAttached() {
 		return nil, fmt.Errorf("%s: cannot open in a database environment", path)
