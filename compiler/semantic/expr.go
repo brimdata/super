@@ -128,12 +128,7 @@ func (t *translator) expr(e ast.Expr) sem.Expr {
 		id := t.idExpr(e, false)
 		if t.scope.schema != nil {
 			if this, ok := id.(*sem.ThisExpr); ok {
-				ref, err := t.scope.resolve(t, e, this.Path)
-				if err != nil {
-					t.error(e, err)
-					return badExpr
-				}
-				return ref
+				return t.scope.resolve(t, e, this.Path)
 			}
 		}
 		return id
@@ -413,12 +408,7 @@ func (t *translator) doubleQuoteExpr(d *ast.DoubleQuoteExpr) sem.Expr {
 	// sophisticated to handle pipes inside SQL subqueries.
 	if t.scope.schema != nil {
 		if d.Text == "this" {
-			ref, err := t.scope.resolve(t, d, []string{"this"})
-			if err != nil {
-				t.error(d, err)
-				return badExpr
-			}
-			return ref
+			return t.scope.resolve(t, d, []string{"this"})
 		}
 		return t.expr(&ast.IDExpr{Kind: "IDExpr", ID: ast.ID{Name: d.Text, Loc: d.Loc}})
 	}
@@ -482,12 +472,7 @@ func (t *translator) regexp(b *ast.BinaryExpr) sem.Expr {
 func (t *translator) binaryExpr(e *ast.BinaryExpr) sem.Expr {
 	if path, bad := t.semDotted(e, false); path != nil {
 		if t.scope.schema != nil {
-			ref, err := t.scope.resolve(t, e, path)
-			if err != nil {
-				t.error(e, err)
-				return badExpr
-			}
-			return ref
+			return t.scope.resolve(t, e, path)
 		}
 		return sem.NewThis(e, path)
 	} else if bad != nil {

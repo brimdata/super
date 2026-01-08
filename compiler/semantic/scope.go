@@ -126,20 +126,21 @@ func (s *Scope) lookupFuncParamLambda(name string) (string, bool) {
 // and replace with dag path with schemafied semantics.
 // In the case of unqualified col ref, check that it is not ambiguous
 // when there are multiple tables (i.e., from joins).
-func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) (sem.Expr, error) {
+func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) sem.Expr {
 	// If there's no schema, we're not in a SQL context so we just
 	// return the path unmodified.  Otherwise, we apply SQL scoping
 	// rules to transform the abstract path to the dataflow path
 	// implied by the schema.
 	sch := s.schema
 	if sch == nil {
-		return sem.NewThis(n, path), nil
+		return sem.NewThis(n, path)
 	}
 	if len(path) == 0 {
 		if e := sch.this(n, nil); e != nil {
-			return e, nil
+			return e
 		}
-		return nil, errors.New("cannot reference 'this' in relational context; consider the 'values' operator") //XXX new error?
+		t.error(n, errors.New("cannot reference 'this' in this context"))
+		return badExpr
 	}
 	var inputFirst bool
 	if pg := s.lookupPragma("pg"); pg != nil {
@@ -158,7 +159,7 @@ func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) (sem.Expr, e
 	if sch, ok := sch.(*selectSchema); ok && sch.out != nil && sch.isGrouped() {
 		for _, c := range sch.columns {
 			if c.name == path[0] {
-				return extend(n, c.semExpr, path[1:]), nil
+				return extend(n, c.semExpr, path[1:])
 			}
 		}
 	}
@@ -174,25 +175,27 @@ func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) (sem.Expr, e
 	// be overridden with "pragma pg" to favor PostgreSQL precedence.
 	if sch, ok := sch.(*selectSchema); ok && sch.lateral && !inputFirst {
 		if e := resolveLateralColumn(t, sch, path[0]); e != nil {
-			return extend(n, e, path[1:]), nil
+			return extend(n, e, path[1:])
 		}
 	}
 	out, dyn, err := sch.resolveUnqualified(path[0])
 	if err != nil {
-		return badExpr, err
+		t.error(n, err)
+		return badExpr
 	}
 	if out != nil {
 		if dyn {
 			// Make sure there's not a table with the same name as the column name.
 			if _, tdyn, err := sch.resolveTable(n, path[0], nil); err != nil && tdyn {
-				return badExpr, fmt.Errorf("cannot use unqualified reference %q when table of same name is in scope (consider qualified reference)", path[0])
+				t.error(n, fmt.Errorf("cannot use unqualified reference %q when table of same name is in scope (consider qualified reference)", path[0]))
+				return badExpr
 			}
 		}
-		return sem.NewThis(n, append(out, path[1:]...)), nil
+		return sem.NewThis(n, append(out, path[1:]...))
 	}
 	if sch, ok := sch.(*selectSchema); ok && sch.lateral && inputFirst {
 		if e := resolveLateralColumn(t, sch, path[0]); e != nil {
-			return extend(n, e, path[1:]), nil
+			return extend(n, e, path[1:])
 		}
 	}
 	if len(path) == 1 {
@@ -200,23 +203,30 @@ func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) (sem.Expr, e
 		// a table with this name and return an expression capturing the
 		// rows as single-column records.
 		out, _, err := sch.resolveTable(n, path[0], nil)
-		if out != nil || err != nil {
-			return out, err
+		if err != nil {
+			t.error(n, err)
+			return badExpr
+		}
+		if out != nil {
+			return out
 		}
 	} else {
 		// Look for match of a qualified reference (table.col).
 		out, err := sch.resolveQualified(path[0], path[1])
 		if err != nil {
-			return nil, err
+			t.error(n, err)
+			return badExpr
 		}
 		if out != nil {
-			return sem.NewThis(n, append(out, path[2:]...)), nil
+			return sem.NewThis(n, append(out, path[2:]...))
 		}
 		if p, _, _ := sch.resolveTable(n, path[0], nil); p != nil {
-			return nil, fmt.Errorf("column %q does not exist in table %q", path[1], path[0])
+			t.error(n, fmt.Errorf("column %q does not exist in table %q", path[1], path[0]))
+			return badExpr
 		}
 	}
-	return nil, fmt.Errorf("%q is not a column or table", path[0])
+	t.error(n, fmt.Errorf("%q is not a column or table", path[0]))
+	return badExpr
 }
 
 func extend(n ast.Node, e sem.Expr, rest []string) sem.Expr {
