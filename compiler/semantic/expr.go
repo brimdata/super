@@ -470,7 +470,7 @@ func (t *translator) regexp(b *ast.BinaryExpr) sem.Expr {
 }
 
 func (t *translator) binaryExpr(e *ast.BinaryExpr) sem.Expr {
-	if path := t.semDotted(e); path != nil {
+	if path := t.dottedPath(e); path != nil {
 		if t.scope.schema != nil {
 			return t.scope.resolve(t, e, path)
 		}
@@ -570,7 +570,7 @@ func (t *translator) exprNullable(e ast.Expr) sem.Expr {
 	return t.expr(e)
 }
 
-func (t *translator) semDotted(e *ast.BinaryExpr) []string {
+func (t *translator) dottedPath(e *ast.BinaryExpr) []string {
 	if e.Op != "." {
 		return nil
 	}
@@ -587,7 +587,7 @@ func (t *translator) semDotted(e *ast.BinaryExpr) []string {
 			return nil
 		}
 	case *ast.BinaryExpr:
-		if path := t.semDotted(lhs); path != nil {
+		if path := t.dottedPath(lhs); path != nil {
 			return append(path, rhs.Name)
 		}
 	}
