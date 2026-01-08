@@ -470,13 +470,11 @@ func (t *translator) regexp(b *ast.BinaryExpr) sem.Expr {
 }
 
 func (t *translator) binaryExpr(e *ast.BinaryExpr) sem.Expr {
-	if path, bad := t.semDotted(e, false); path != nil {
+	if path := t.semDotted(e); path != nil {
 		if t.scope.schema != nil {
 			return t.scope.resolve(t, e, path)
 		}
 		return sem.NewThis(e, path)
-	} else if bad != nil {
-		return bad
 	}
 	if e := t.regexp(e); e != nil {
 		return e
@@ -572,32 +570,28 @@ func (t *translator) exprNullable(e ast.Expr) sem.Expr {
 	return t.expr(e)
 }
 
-func (t *translator) semDotted(e *ast.BinaryExpr, lval bool) ([]string, sem.Expr) {
+func (t *translator) semDotted(e *ast.BinaryExpr) []string {
 	if e.Op != "." {
-		return nil, nil
+		return nil
 	}
 	rhs, ok := e.RHS.(*ast.IDExpr)
 	if !ok {
-		return nil, nil
+		return nil
 	}
 	switch lhs := e.LHS.(type) {
 	case *ast.IDExpr:
-		switch e := t.idExpr(lhs, lval).(type) {
+		switch e := t.idExpr(lhs, false).(type) {
 		case *sem.ThisExpr:
-			return append(slices.Clone(e.Path), rhs.Name), nil
-		case *sem.BadExpr:
-			return nil, e
+			return append(slices.Clone(e.Path), rhs.Name)
 		default:
-			return nil, nil
+			return nil
 		}
 	case *ast.BinaryExpr:
-		this, bad := t.semDotted(lhs, lval)
-		if this == nil {
-			return nil, bad
+		if path := t.semDotted(lhs); path != nil {
+			return append(path, rhs.Name)
 		}
-		return append(this, rhs.Name), nil
 	}
-	return nil, nil
+	return nil
 }
 
 func (t *translator) semCaseExpr(c *ast.CaseExpr) sem.Expr {
