@@ -118,11 +118,8 @@ func handleQuery(c *Core, w *ResponseWriter, r *Request) {
 				if err := writer.WriteProgress(meter.Progress()); err != nil {
 					w.Logger.Warn("Error writing progress", zap.Error(err))
 					handleError(err)
-					return
 				}
-				if batch == nil {
-					return
-				}
+				return
 			}
 			if len(batch.Values()) == 0 {
 				if eoc, ok := batch.(*sbuf.EndOfChannel); ok {
@@ -576,7 +573,7 @@ func handleDelete(c *Core, w *ResponseWriter, r *Request) {
 			return
 		}
 		ast, err2 := parser.ParseQuery(payload.Where)
-		if err != nil {
+		if err2 != nil {
 			w.Error(srverr.ErrInvalid(err2))
 			return
 		}
