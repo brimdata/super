@@ -147,7 +147,6 @@ func (o *Robot) nextVec() (vector.Any, error) {
 	o.off = 0
 	o.vecs = o.vecs[1:]
 	return vec, nil
-
 }
 
 func (o *Robot) open(path string) (vector.Puller, error) {
