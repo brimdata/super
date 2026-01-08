@@ -1,0 +1,27 @@
+spq: |
+  values |{"a":192.168.1.1,"b":192.168.1.2 }|, null::|{string:ip}|, |{}|
+
+vector: true
+
+output: |
+  |{"a":192.168.1.1,"b":192.168.1.2}|
+  null::|{string:ip}|
+  |{}|
+
+---
+
+# Test that maps are normalized.
+spq: |
+  |{k1:v1,k2:v2}|
+
+vector: true
+
+input: |
+  {k1:"b",v1:1,k2:"a",v2:2}
+  {k1:"a",v1:1,k2:"b",v2:2}
+  {k1:"a",v1:1,k2:"a",v2:2}
+
+output: |
+  |{"a":2,"b":1}|
+  |{"a":1,"b":2}|
+  |{"a":1}|

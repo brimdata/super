@@ -41,6 +41,8 @@ func (b *Builder) compileVamExpr(e dag.Expr) (vamexpr.Evaluator, error) {
 			return nil, err
 		}
 		return vamexpr.NewLiteral(val), nil
+	case *dag.MapExpr:
+		return b.compileVamMapExpr(e)
 	case *dag.RecordExpr:
 		return b.compileVamRecordExpr(e)
 	case *dag.RegexpMatchExpr:
@@ -61,8 +63,6 @@ func (b *Builder) compileVamExpr(e dag.Expr) (vamexpr.Evaluator, error) {
 		return b.compileVamUnary(*e)
 	//case *dag.MapCallExpr:
 	//	return b.compileVamMapCall(e)
-	//case *dag.MapExpr:
-	//	return b.compileVamMapExpr(e)
 	default:
 		return nil, fmt.Errorf("vector expression type %T: not supported", e)
 	}
@@ -246,6 +246,22 @@ func (b *Builder) compileVamCast(args []dag.Expr) (vamexpr.Evaluator, error) {
 		return nil, err
 	}
 	return vamexpr.NewSamExpr(e), nil
+}
+
+func (b *Builder) compileVamMapExpr(m *dag.MapExpr) (vamexpr.Evaluator, error) {
+	var entries []vamexpr.Entry
+	for _, entry := range m.Entries {
+		key, err := b.compileVamExpr(entry.Key)
+		if err != nil {
+			return nil, err
+		}
+		val, err := b.compileVamExpr(entry.Value)
+		if err != nil {
+			return nil, err
+		}
+		entries = append(entries, vamexpr.Entry{Key: key, Val: val})
+	}
+	return vamexpr.NewMapExpr(b.sctx(), entries), nil
 }
 
 func (b *Builder) compileVamRecordExpr(e *dag.RecordExpr) (vamexpr.Evaluator, error) {
