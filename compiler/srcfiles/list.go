@@ -7,6 +7,27 @@ import (
 	"unicode"
 )
 
+type Input interface {
+	Load() (string, error)
+}
+
+type PlainInput struct {
+	Text string
+}
+
+func (p *PlainInput) Load() (string, error) {
+	return p.Text, nil
+}
+
+type FileInput struct {
+	Name string
+}
+
+func (f *FileInput) Load() (string, error) {
+	b, err := os.ReadFile(f.Name)
+	return string(b), err
+}
+
 type List struct {
 	Text   string
 	Files  []File
@@ -31,31 +52,40 @@ func (l *List) FileOf(pos int) File {
 
 // Concat reads in the indicated files and concatenates their content with
 // newlines appending the final query text.
-func Concat(filenames []string, query string) (*List, error) {
+func Concat(inputs []Input) (*List, error) {
 	var b strings.Builder
 	var files []File
 	var needSep bool
-	for _, f := range filenames {
-		bb, err := os.ReadFile(f)
-		if err != nil {
-			return nil, err
+	for _, input := range inputs {
+		// Empty string is the unnamed query text while
+		// the included files all have names.
+		var name string
+		var bytes []byte
+		switch input := input.(type) {
+		case *PlainInput:
+			bytes = []byte(input.Text)
+		case *FileInput:
+			name = input.Name
+			var err error
+			bytes, err = os.ReadFile(input.Name)
+			if err != nil {
+				return nil, err
+			}
 		}
-		// Skip over empty files.
-		if len(bb) > 0 {
-			files = append(files, newFile(f, b.Len(), bb))
+		// Skip over any empties.
+		if len(bytes) > 0 {
+			files = append(files, newFile(name, b.Len(), bytes))
 			// Separate file content with a newline but only when needed.
 			if needSep {
 				b.WriteByte('\n')
 			}
-			b.Write(bb)
-			needSep = !unicode.IsSpace(rune(bb[len(bb)-1]))
+			b.Write(bytes)
+			needSep = !unicode.IsSpace(rune(bytes[len(bytes)-1]))
 		}
 	}
-	if query != "" {
-		// Empty string is the unnamed query text while the included files all
-		// have names.
-		files = append(files, newFile("", b.Len(), []byte(query)))
-		b.WriteString(query)
-	}
 	return &List{Text: b.String(), Files: files}, nil
+}
+
+func Plain(src string) []Input {
+	return []Input{&PlainInput{src}}
 }

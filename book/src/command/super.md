@@ -19,7 +19,7 @@ super [ options ] <sub-command> ...
 
 * [Output Options](output-options.md)
 * `-aggmem` maximum memory used per aggregate function value in MiB, MB, etc
-* `-c` [SuperSQL](../super-sql/intro.md) query to execute
+* `-c` [SuperSQL](../super-sql/intro.md) query to execute (may be used multiple times)
 * `-csv.delim` CSV field delimiter
 * `-e` stop upon input errors
 * `-fusemem` maximum memory used by fuse in MiB, MB, etc
@@ -27,7 +27,7 @@ super [ options ] <sub-command> ...
 * `-help` display help
 * `-hidden` show hidden options
 * `-i` format of input data
-* `-I` source file containing query text
+* `-I` source file containing query text (may be used multiple times)
 * `-q` don't display warnings
 * `-sortmem` maximum memory used by sort in MiB, MB, etc
 * `-stats` display search stats on stderr
@@ -47,14 +47,16 @@ When invoked at the top level without a sub-command, `super` executes the
 SuperDB query engine detached from the database storage layer
 where the data inputs may be files, HTTP APIs, S3 cloud objects, or standard input.
 
-Optional [SuperSQL](../super-sql/intro.md) query text may be provided with
-the `-c` argument.  If no query is provided, the inputs are scanned
+An optional [SuperSQL](../super-sql/intro.md)
+query is comprised of text specified by `-c` and source files
+specified by `-I`.  Both `-c` and `-I` may appear multiple times and the
+query text is concatenated in left-to-right order with intervening newlines.
+Any error messages are properly collated to the included file
+in which they occurred.
+
+If no query is provided, the inputs are scanned
 and output is produced in accordance with `-f` to specify a serialization format
 and `-o` to specified an optional output (file or directory).
-
-The query text may originate in files using one or more `-I` arguments.
-In this case, these source files are concatenated together in order and prepended
-to any `-c` query text.  `-I` may be used without `-c`.
 
 When invoked using the [db](db.md) sub-command, `super` interacts with
 an underlying SuperDB database.

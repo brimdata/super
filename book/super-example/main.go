@@ -46,7 +46,7 @@ var errInvalidInput = errors.New("only string or ReadableStream accept as input"
 
 func run(opts opts) wasm.Promise {
 	return wasm.NewPromise(func() (interface{}, error) {
-		flowgraph, err := compiler.Parse(opts.Program)
+		flowgraph, err := parser.ParseText(opts.Program)
 		if err != nil {
 			return "", err
 		}
@@ -98,7 +98,7 @@ func run(opts opts) wasm.Promise {
 }
 
 func parse(program string) (interface{}, error) {
-	ast, err := parser.ParseQuery(program)
+	ast, err := parser.ParseText(program)
 	result := ParseResult{AST: ast, Error: err}
 
 	return result, nil

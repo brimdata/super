@@ -12,7 +12,9 @@ import (
 	"github.com/brimdata/super/cli/queryflags"
 	"github.com/brimdata/super/compiler"
 	"github.com/brimdata/super/compiler/describe"
+	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/compiler/sfmt"
+	"github.com/brimdata/super/compiler/srcfiles"
 	"github.com/brimdata/super/db"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
@@ -25,26 +27,31 @@ import (
 type Shared struct {
 	dag         bool
 	dynamic     bool
-	includes    queryflags.Includes
 	optimize    bool
 	parallel    int
 	query       bool
+	queryFlags  queryflags.QueryTextFlags
 	OutputFlags outputflags.Flags
 }
 
 func (s *Shared) SetFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&s.dag, "dag", false, "display output as DAG (implied by -O or -P)")
 	fs.BoolVar(&s.dynamic, "dynamic", false, "disable static type checking of inputs on DAG")
-	fs.Var(&s.includes, "I", "source file containing query text (may be repeated)")
 	fs.BoolVar(&s.optimize, "O", false, "display optimized DAG")
 	fs.IntVar(&s.parallel, "P", 0, "display parallelized DAG")
 	fs.BoolVar(&s.query, "C", false, "display DAG or AST as query text")
 	s.OutputFlags.SetFlags(fs)
+	s.queryFlags.SetFlags(fs)
 }
 
 func (s *Shared) Run(ctx context.Context, args []string, dbFlags *dbflags.Flags, desc bool) error {
-	if len(s.includes) == 0 && len(args) == 0 {
+	if len(s.queryFlags.Query) == 0 && len(args) == 0 {
 		return errors.New("no query specified")
+	}
+	var inputs []string
+	if len(args) > 0 {
+		s.queryFlags.Query = append(s.queryFlags.Query, &srcfiles.PlainInput{Text: args[0]})
+		inputs = args[1:]
 	}
 	var root *db.Root
 	if dbFlags != nil {
@@ -54,13 +61,7 @@ func (s *Shared) Run(ctx context.Context, args []string, dbFlags *dbflags.Flags,
 		}
 		root = dbAPI.Root()
 	}
-	var query string
-	var inputs []string
-	if len(args) > 0 {
-		query = args[0]
-		inputs = args[1:]
-	}
-	ast, err := compiler.Parse(query, s.includes...)
+	ast, err := parser.ParseFiles(s.queryFlags.Query)
 	if err != nil {
 		return err
 	}

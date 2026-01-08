@@ -1,0 +1,12 @@
+script: |
+  super -s -c "{} | a:=1 |" -I b.spq -c "| c:=3"
+
+inputs:
+  - name: b.spq
+    data: |
+      b:=2
+
+outputs:
+  - name: stdout
+    data: |
+      {a:1,b:2,c:3}

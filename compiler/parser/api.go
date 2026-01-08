@@ -43,10 +43,15 @@ func (a *AST) PrependFileScan(paths []string) {
 	})
 }
 
-// ParseQuery parses a query text and an optional set of include files and
-// tracks include file names and line numbers for error reporting.
-func ParseQuery(query string, filenames ...string) (*AST, error) {
-	files, err := srcfiles.Concat(filenames, query)
+// ParseText parses a query text in string form.
+func ParseText(text string) (*AST, error) {
+	return ParseFiles(srcfiles.Plain(text))
+}
+
+// ParseFiles parses a query text comprised of a mixture of plain text
+// and source files, tracking file names and line numbers for error reporting.
+func ParseFiles(inputs []srcfiles.Input) (*AST, error) {
+	files, err := srcfiles.Concat(inputs)
 	if err != nil {
 		return nil, err
 	}

@@ -38,7 +38,6 @@ type Command struct {
 	outputFlags  outputflags.Flags
 	queryFlags   queryflags.Flags
 	runtimeFlags runtimeflags.Flags
-	query        root.QueryString
 }
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
@@ -51,7 +50,6 @@ func (c *Command) SetLeafFlags(f *flag.FlagSet) {
 	c.outputFlags.SetFlags(f)
 	c.queryFlags.SetFlags(f)
 	c.runtimeFlags.SetFlags(f)
-	f.Var(&c.query, "c", "query to execute (multiple instances concatenated with newlines)")
 }
 
 func (c *Command) Run(args []string) error {
@@ -60,7 +58,7 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	defer cleanup()
-	if len(args) == 0 && len(c.queryFlags.Includes) == 0 && c.query.String() == "" {
+	if len(args) == 0 && len(c.queryFlags.Query) == 0 {
 		return charm.NeedHelp
 	}
 	if len(args) > 0 {
@@ -74,7 +72,7 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	query, err := db.Query(ctx, c.query.String(), c.queryFlags.Includes...)
+	query, err := db.Query(ctx, c.queryFlags.Query)
 	if err != nil {
 		w.Close()
 		return err

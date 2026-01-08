@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/compiler/srcfiles"
 	"github.com/brimdata/super/db/api"
 	"github.com/brimdata/super/db/data"
 	"github.com/brimdata/super/db/pools"
@@ -75,7 +76,7 @@ type objectIterator struct {
 
 func newObjectIterator(ctx context.Context, db api.Interface, head *dbid.Commitish) (*objectIterator, error) {
 	query := fmt.Sprintf(iteratorQuery, head.Pool, head.Branch, head.Pool, head.Branch)
-	q, err := db.Query(ctx, query)
+	q, err := db.Query(ctx, srcfiles.Plain(query))
 	if err != nil {
 		return nil, err
 	}

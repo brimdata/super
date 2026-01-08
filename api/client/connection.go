@@ -295,8 +295,8 @@ func (c *Connection) Revert(ctx context.Context, poolID ksuid.KSUID, branchName 
 //
 // As for Connection.Do, if the returned error is nil, the user is expected to
 // call Response.Body.Close.
-func (c *Connection) Query(ctx context.Context, src string, filenames ...string) (*Response, error) {
-	files, err := srcfiles.Concat(filenames, src)
+func (c *Connection) Query(ctx context.Context, inputs []srcfiles.Input) (*Response, error) {
+	files, err := srcfiles.Concat(inputs)
 	if err != nil {
 		return nil, err
 	}

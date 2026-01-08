@@ -8,6 +8,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/api"
 	"github.com/brimdata/super/api/client"
+	"github.com/brimdata/super/compiler/srcfiles"
 	"github.com/brimdata/super/db"
 	dbapi "github.com/brimdata/super/db/api"
 	"github.com/brimdata/super/db/branches"
@@ -47,7 +48,7 @@ func (c *testClient) TestBranchGet(id ksuid.KSUID) (config db.BranchMeta) {
 }
 
 func (c *testClient) TestPoolList() []pools.Config {
-	r, err := c.Query(c.Context(), "from :pools")
+	r, err := c.Query(c.Context(), srcfiles.Plain("from :pools"))
 	require.NoError(c, err)
 	defer r.Body.Close()
 	var confs []pools.Config
@@ -79,7 +80,7 @@ func (c *testClient) TestBranchPost(poolID ksuid.KSUID, payload api.BranchPostRe
 }
 
 func (c *testClient) TestQuery(query string) string {
-	r, err := c.Connection.Query(c.Context(), query)
+	r, err := c.Connection.Query(c.Context(), srcfiles.Plain(query))
 	require.NoError(c, err)
 	defer r.Body.Close()
 	zr := bsupio.NewReader(super.NewContext(), r.Body)

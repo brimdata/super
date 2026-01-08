@@ -8,6 +8,7 @@ import (
 
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/cmd/super/db"
+	"github.com/brimdata/super/compiler/srcfiles"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/sbuf"
@@ -88,7 +89,7 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	q, err := db.Query(ctx, query)
+	q, err := db.Query(ctx, srcfiles.Plain(query))
 	if err != nil {
 		w.Close()
 		return err

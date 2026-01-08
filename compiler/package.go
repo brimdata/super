@@ -10,6 +10,7 @@ import (
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/compiler/rungen"
 	"github.com/brimdata/super/compiler/semantic"
+	"github.com/brimdata/super/compiler/srcfiles"
 	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime"
@@ -18,10 +19,6 @@ import (
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 )
-
-func Parse(query string, filenames ...string) (*parser.AST, error) {
-	return parser.ParseQuery(query, filenames...)
-}
 
 func Analyze(ctx context.Context, ast *parser.AST, env *exec.Environment, extInput bool) (*dag.Main, error) {
 	return semantic.Analyze(ctx, ast, env, extInput)
@@ -82,8 +79,8 @@ func CompileWithAST(rctx *runtime.Context, ast *parser.AST, env *exec.Environmen
 	return exec.NewQuery(rctx, bundleOutputs(rctx, outputs), meter), nil
 }
 
-func Compile(rctx *runtime.Context, env *exec.Environment, optimize bool, parallel int, readers []sio.Reader, query string, filenames ...string) (*exec.Query, error) {
-	ast, err := Parse(query, filenames...)
+func Compile(rctx *runtime.Context, env *exec.Environment, optimize bool, parallel int, readers []sio.Reader, inputs []srcfiles.Input) (*exec.Query, error) {
+	ast, err := parser.ParseFiles(inputs)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +120,7 @@ func VectorFilterCompile(rctx *runtime.Context, query string, env *exec.Environm
 	if err != nil {
 		return nil, err
 	}
-	ast, err := parser.ParseQuery(fmt.Sprintf("%s | %s", spec, query))
+	ast, err := parser.ParseText(fmt.Sprintf("%s | %s", spec, query))
 	if err != nil {
 		return nil, err
 	}

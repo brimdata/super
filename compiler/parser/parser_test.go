@@ -39,7 +39,7 @@ func searchForSuperSQL() ([]string, error) {
 }
 
 func parseOp(z string) ([]byte, error) {
-	ast, err := parser.ParseQuery(z)
+	ast, err := parser.ParseText(z)
 	if err != nil {
 		return nil, err
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/cli/poolflags"
 	"github.com/brimdata/super/cmd/super/db"
+	"github.com/brimdata/super/compiler/srcfiles"
 	"github.com/brimdata/super/db/api"
 	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/pkg/charm"
@@ -131,7 +132,7 @@ func (c *Command) list(ctx context.Context, db api.Interface) error {
 	if err != nil {
 		return err
 	}
-	q, err := db.Query(ctx, query)
+	q, err := db.Query(ctx, srcfiles.Plain(query))
 	if err != nil {
 		w.Close()
 		return err

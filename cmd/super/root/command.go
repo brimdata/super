@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/cli"
@@ -75,11 +74,11 @@ When writing to stdout and stdout is a terminal, the default output format is Su
 Otherwise, the default format is Super Binary.  In either case, the default
 may be overridden with -f, -s, or -S.
 
-The query text may include source files using -I, which is particularly
-convenient when a large, complex query spans multiple lines.  In this case,
-these source files are concatenated together along with the command-line query text
-in the order appearing on the command line.  Any error messages are properly
-collated to the included file in which they occurred.
+The query text is comprised of text specified by -c and source files
+specified by -I.  Both -c and -I may appear multiple times and the
+query text is concatenated in left-to-right order with intervening newlines.
+Any error messages are properly collated to the included file
+in which they occurred.
 
 The runtime processes input natively as super-structured data so if you intend to run
 many queries over the same data, you will see substantial performance gains
@@ -105,18 +104,6 @@ type Command struct {
 	outputFlags  outputflags.Flags
 	queryFlags   queryflags.Flags
 	runtimeFlags runtimeflags.Flags
-	query        QueryString
-}
-
-type QueryString []string
-
-func (q *QueryString) String() string {
-	return strings.Join(*q, "\n")
-}
-
-func (q *QueryString) Set(value string) error {
-	*q = append(*q, value)
-	return nil
 }
 
 func New(parent charm.Command, f *flag.FlagSet) (charm.Command, error) {
@@ -132,11 +119,10 @@ func (c *Command) SetLeafFlags(f *flag.FlagSet) {
 	c.runtimeFlags.SetFlags(f)
 	f.BoolVar(&c.canon, "C", false, "display parsed AST in a textual format")
 	f.BoolVar(&c.stopErr, "e", true, "stop upon input errors")
-	f.Var(&c.query, "c", "query to execute (multiple instances concatenated with newlines)")
 }
 
 func (c *Command) Run(args []string) error {
-	if c.canon && c.query.String() == "" && len(c.queryFlags.Includes) == 0 {
+	if c.canon && len(c.queryFlags.Query) == 0 {
 		return errors.New("query text must be specified (-c or -I) when using -C")
 	}
 	ctx, cleanup, err := c.Init(&c.inputFlags, &c.outputFlags, &c.runtimeFlags)
@@ -144,10 +130,10 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	defer cleanup()
-	if len(args) == 0 && len(c.queryFlags.Includes) == 0 && c.query.String() == "" {
+	if len(args) == 0 && len(c.queryFlags.Query) == 0 {
 		return charm.NeedHelp
 	}
-	ast, err := parser.ParseQuery(c.query.String(), c.queryFlags.Includes...)
+	ast, err := parser.ParseFiles(c.queryFlags.Query)
 	if err != nil {
 		return err
 	}

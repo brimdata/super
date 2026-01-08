@@ -109,6 +109,7 @@ import (
 	"os"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/compiler/srcfiles"
 	"github.com/brimdata/super/db/api"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/sup"
@@ -128,7 +129,7 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	q, err := db.Query(ctx, "from Demo")
+	q, err := db.Query(ctx, srcfiles.Plain("from Demo"))
 	if err != nil {
 		log.Fatalln(err)
 	}

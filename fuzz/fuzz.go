@@ -92,7 +92,7 @@ func RunQuery(t testing.TB, sctx *super.Context, readers []sio.Reader, querySour
 	// Compile query
 	engine := mock.NewMockEngine(gomock.NewController(t))
 	comp := compiler.NewCompiler(engine)
-	ast, err := parser.ParseQuery(querySource)
+	ast, err := parser.ParseText(querySource)
 	if err != nil {
 		t.Skipf("%v", err)
 	}

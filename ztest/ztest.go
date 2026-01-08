@@ -483,7 +483,7 @@ func runsh(ctx context.Context, path, testDir, tempDir string, zt *ZTest, extraE
 // may be in any format recognized by "super -i auto" and may be gzip-compressed.
 // outputFlags may contain any flags accepted by cli/outputflags.Flags.
 func runInternal(ctx context.Context, query string, input *string, outputFlags, inputFlags []string, vector bool) (string, error) {
-	ast, err := parser.ParseQuery(query)
+	ast, err := parser.ParseText(query)
 	if err != nil {
 		return "", err
 	}

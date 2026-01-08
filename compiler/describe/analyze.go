@@ -55,7 +55,7 @@ type Channel struct {
 }
 
 func Analyze(ctx context.Context, query string, src *exec.Environment) (*Info, error) {
-	ast, err := parser.ParseQuery(query)
+	ast, err := parser.ParseText(query)
 	if err != nil {
 		return nil, err
 	}

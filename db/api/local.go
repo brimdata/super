@@ -8,6 +8,7 @@ import (
 	"github.com/brimdata/super/api"
 	"github.com/brimdata/super/compiler"
 	"github.com/brimdata/super/compiler/parser"
+	"github.com/brimdata/super/compiler/srcfiles"
 	"github.com/brimdata/super/db"
 	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/order"
@@ -105,8 +106,8 @@ func (l *local) Compact(ctx context.Context, poolID ksuid.KSUID, branchName stri
 	return exec.Compact(ctx, l.db, pool, branchName, objects, writeVectors, commit.Author, commit.Body, commit.Meta)
 }
 
-func (l *local) Query(ctx context.Context, src string, srcfiles ...string) (sbuf.Scanner, error) {
-	ast, err := parser.ParseQuery(src, srcfiles...)
+func (l *local) Query(ctx context.Context, inputs []srcfiles.Input) (sbuf.Scanner, error) {
+	ast, err := parser.ParseFiles(inputs)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +167,7 @@ func (l *local) Delete(ctx context.Context, poolID ksuid.KSUID, branchName strin
 }
 
 func (l *local) DeleteWhere(ctx context.Context, poolID ksuid.KSUID, branchName, src string, commit api.CommitMessage) (ksuid.KSUID, error) {
-	ast, err := parser.ParseQuery(src)
+	ast, err := parser.ParseFiles(srcfiles.Plain(src))
 	if err != nil {
 		return ksuid.Nil, err
 	}

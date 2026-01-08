@@ -55,7 +55,7 @@ func handleQuery(c *Core, w *ResponseWriter, r *Request) {
 	// The client must look at the return code and interpret the result
 	// accordingly and when it sees a BSUP error after underway,
 	// the error should be relay that to the caller/user.
-	ast, err := parser.ParseQuery(req.Query)
+	ast, err := parser.ParseText(req.Query)
 	if err != nil {
 		w.Error(srverr.ErrInvalid(err))
 		return
@@ -163,7 +163,7 @@ func handleCompile(c *Core, w *ResponseWriter, r *Request) {
 	if !r.Unmarshal(w, &req) {
 		return
 	}
-	ast, err := parser.ParseQuery(req.Query)
+	ast, err := parser.ParseText(req.Query)
 	if err != nil {
 		w.Error(srverr.ErrInvalid(err))
 		return
@@ -572,7 +572,7 @@ func handleDelete(c *Core, w *ResponseWriter, r *Request) {
 			w.Error(srverr.ErrInvalid("either object_ids or where must be set"))
 			return
 		}
-		ast, err2 := parser.ParseQuery(payload.Where)
+		ast, err2 := parser.ParseText(payload.Where)
 		if err2 != nil {
 			w.Error(srverr.ErrInvalid(err2))
 			return
