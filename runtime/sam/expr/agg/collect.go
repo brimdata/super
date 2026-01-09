@@ -31,34 +31,35 @@ func (c *Collect) Consume(val super.Value) {
 }
 
 func (c *Collect) Result(sctx *super.Context) super.Value {
-	if len(c.values) == 0 {
-		// no values found
-		return super.Null
-	}
-	var b scode.Builder
-	inner := innerType(sctx, c.values)
-	if union, ok := inner.(*super.TypeUnion); ok {
-		for _, val := range c.values {
-			super.BuildUnion(&b, union.TagOf(val.Type()), val.Bytes())
-		}
-	} else {
-		for _, val := range c.values {
-			b.Append(val.Bytes())
-		}
-	}
-	return super.NewValue(sctx.LookupTypeArray(inner), b.Bytes())
+	return newArray(sctx, c.values)
 }
 
-func innerType(sctx *super.Context, vals []super.Value) super.Type {
+// newArray returns an array of vals. If vals is empty, newArray returns
+// super.Null.
+func newArray(sctx *super.Context, vals []super.Value) super.Value {
+	if len(vals) == 0 {
+		return super.Null
+	}
 	var types []super.Type
 	for _, val := range vals {
 		types = append(types, val.Type())
 	}
 	types = super.UniqueTypes(types)
+	var b scode.Builder
+	var typ super.Type
 	if len(types) == 1 {
-		return types[0]
+		for _, val := range vals {
+			b.Append(val.Bytes())
+		}
+		typ = types[0]
+	} else {
+		union := sctx.LookupTypeUnion(types)
+		for _, val := range vals {
+			super.BuildUnion(&b, union.TagOf(val.Type()), val.Bytes())
+		}
+		typ = union
 	}
-	return sctx.LookupTypeUnion(types)
+	return super.NewValue(sctx.LookupTypeArray(typ), b.Bytes())
 }
 
 func (c *Collect) ConsumeAsPartial(val super.Value) {

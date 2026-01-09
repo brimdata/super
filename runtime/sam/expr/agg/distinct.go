@@ -6,14 +6,13 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/sup"
 )
 
 type distinct struct {
-	fun      Function
-	buf      []byte
-	seen     map[string]struct{}
-	size     int
-	partials [][]byte
+	fun  Function
+	buf  []byte
+	seen map[string]struct{}
 }
 
 func newDistinct(f Function) Function {
@@ -27,51 +26,53 @@ func (d *distinct) Consume(val super.Value) {
 		return
 	}
 	d.seen[string(d.buf)] = struct{}{}
-	d.size += 1 + len(d.buf)
 }
 
 func (d *distinct) ConsumeAsPartial(val super.Value) {
-	if val.Type() != super.TypeBytes {
-		panic("distinct: invalid partial")
+	if val.IsNull() {
+		return
 	}
-	d.partials = append(d.partials, val.Bytes())
+	arrayType, ok := val.Type().(*super.TypeArray)
+	if !ok {
+		panic(fmt.Errorf("distinct partial is not an array: %s", sup.FormatValue(val)))
+	}
+	typ := arrayType.Type
+	for it := val.Iter(); !it.Done(); {
+		d.Consume(super.NewValue(typ, it.Next()))
+	}
 }
 
 func (d *distinct) Result(sctx *super.Context) super.Value {
-	for i, partial := range d.partials {
-		for len(partial) > 0 {
-			length, n := binary.Uvarint(partial)
-			if n <= 0 {
-				panic(fmt.Sprintf("bad varint: %d", n))
-			}
-			partial = partial[n:]
-			d.seen[string(partial[:length])] = struct{}{}
-			partial = partial[length:]
-		}
-		d.partials[i] = nil
-	}
 	for key := range d.seen {
-		bytes := []byte(key)
-		id, n := binary.Varint(bytes)
-		if n <= 0 {
-			panic(fmt.Sprintf("bad varint: %d", n))
-		}
-		bytes = bytes[n:]
-		typ, err := sctx.LookupType(int(id))
-		if err != nil {
-			panic(err)
-		}
-		d.fun.Consume(super.NewValue(typ, scode.Bytes(bytes).Body()))
+		d.fun.Consume(NewValueFromDistinctKey(sctx, key))
 		delete(d.seen, key)
 	}
 	return d.fun.Result(sctx)
 }
 
 func (d *distinct) ResultAsPartial(sctx *super.Context) super.Value {
-	buf := make([]byte, 0, d.size)
-	for key := range d.seen {
-		buf = binary.AppendUvarint(buf, uint64(len(key)))
-		buf = append(buf, key...)
+	return DistinctResultAsPartial(sctx, d.seen)
+}
+
+func DistinctResultAsPartial(sctx *super.Context, seen map[string]struct{}) super.Value {
+	vals := make([]super.Value, 0, len(seen))
+	for key := range seen {
+		vals = append(vals, NewValueFromDistinctKey(sctx, key))
+		delete(seen, key)
 	}
-	return super.NewBytes(buf)
+	return newArray(sctx, vals)
+}
+
+func NewValueFromDistinctKey(sctx *super.Context, key string) super.Value {
+	bytes := []byte(key)
+	id, n := binary.Varint(bytes)
+	if n <= 0 {
+		panic(fmt.Sprintf("bad varint: %d", n))
+	}
+	bytes = bytes[n:]
+	typ, err := sctx.LookupType(int(id))
+	if err != nil {
+		panic(err)
+	}
+	return super.NewValue(typ, scode.Bytes(bytes).Body())
 }
