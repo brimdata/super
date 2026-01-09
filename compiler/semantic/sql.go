@@ -343,13 +343,6 @@ func maybeSQLQueryBody(pipe *ast.SQLPipe) (ast.SQLQueryBody, bool) {
 	return nil, false
 }
 
-func unfurl(n ast.Node, sch schema, seq sem.Seq) sem.Seq {
-	if e := sch.unfurl(n); e != nil {
-		return valuesExpr(e, seq)
-	}
-	return seq
-}
-
 func applyAlias(alias *ast.TableAlias, sch schema, seq sem.Seq) (sem.Seq, schema, error) {
 	if alias == nil || sch == badSchema {
 		return seq, sch, nil

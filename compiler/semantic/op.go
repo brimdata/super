@@ -572,7 +572,8 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 	switch o := o.(type) {
 	case *ast.SQLOp:
 		seq, sch := t.sqlQueryBody(o.Body, nil, seq)
-		return unfurl(o, sch, seq)
+		seq, _ = sch.endScope(o.Body, seq)
+		return seq
 	case *ast.FileScan:
 		format := t.env.ReaderOpts.Format
 		fuser := t.checker.newFuser()

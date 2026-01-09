@@ -17,7 +17,6 @@ type schema interface {
 	resolveUnqualified(col string) (field.Path, bool, error)
 	resolveTable(n ast.Node, table string, path []string) (sem.Expr, bool, error)
 	star(n ast.Node, table string, path field.Path) ([]*sem.ThisExpr, error)
-	unfurl(n ast.Node) sem.Expr
 	endScope(n ast.Node, seq sem.Seq) (sem.Seq, schema)
 	this(n ast.Node, path []string) sem.Expr
 	outColumns() ([]string, bool)
@@ -385,27 +384,6 @@ func (s *staticSchema) star(n ast.Node, table string, path field.Path) ([]*sem.T
 
 func (s *subquerySchema) star(n ast.Node, table string, path field.Path) ([]*sem.ThisExpr, error) {
 	return s.inner.star(n, table, path)
-}
-
-func (d *dynamicSchema) unfurl(n ast.Node) sem.Expr {
-	return nil
-}
-
-func (j *joinSchema) unfurl(n ast.Node) sem.Expr {
-	// spread left/right join legs into "this"
-	return joinSpread(n, nil, nil)
-}
-
-func (s *selectSchema) unfurl(n ast.Node) sem.Expr {
-	return sem.NewThis(n, []string{"out"})
-}
-
-func (s *staticSchema) unfurl(n ast.Node) sem.Expr {
-	return nil
-}
-
-func (s *subquerySchema) unfurl(n ast.Node) sem.Expr {
-	panic(s)
 }
 
 // spread left/right join legs into "this"
