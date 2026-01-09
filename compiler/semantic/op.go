@@ -114,7 +114,7 @@ func (t *translator) sqlTableExpr(e ast.SQLTableExpr, seq sem.Seq) (sem.Seq, rel
 				}
 				var typ super.Type
 				seq, typ, name = t.fromSource(input.Source, input.Args, seq)
-				table = newTableFromType(typ)
+				table = newTableFromType(typ, t.checker.unknown)
 				if _, ok := table.(*dynamicTable); !ok && alias == nil {
 					alias = &ast.TableAlias{Name: name, Loc: input.Loc}
 				}
@@ -122,14 +122,14 @@ func (t *translator) sqlTableExpr(e ast.SQLTableExpr, seq sem.Seq) (sem.Seq, rel
 			if table == badTable {
 				return seq, badTable
 			}
-			seq, table, err := applyAlias(alias, table, seq)
+			seq, table, err := applyAlias(t.sctx, alias, table, seq)
 			if err != nil {
 				t.error(alias, err)
 			}
 			return seq, table
 		case *ast.SQLPipe:
 			seq, sch := t.sqlPipe(input, seq)
-			seq, sch, err := applyAlias(alias, sch, seq)
+			seq, sch, err := applyAlias(t.sctx, alias, sch, seq)
 			if err != nil {
 				t.error(alias, err)
 			}

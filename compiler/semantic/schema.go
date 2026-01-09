@@ -39,6 +39,7 @@ type relScope interface {
 type (
 	dynamicTable struct {
 		table string
+		typ   *super.TypeError
 	}
 
 	joinScope struct {
@@ -102,8 +103,8 @@ type (
 	}
 
 	staticTable struct {
-		table   string
-		columns []string
+		table string
+		typ   *super.TypeRecord
 	}
 
 	subqueryScope struct {
@@ -112,18 +113,14 @@ type (
 	}
 )
 
-func newTableFromType(typ super.Type) relTable {
+func newTableFromType(typ super.Type, unknown *super.TypeError) relTable {
 	if typ == badType {
 		return badTable
 	}
 	if recType := recordOf(typ); recType != nil {
-		var cols []string
-		for _, f := range recType.Fields {
-			cols = append(cols, f.Name)
-		}
-		return &staticTable{columns: cols}
+		return &staticTable{typ: recType}
 	}
-	return &dynamicTable{}
+	return &dynamicTable{typ: unknown}
 }
 
 func recordOf(typ super.Type) *super.TypeRecord {
@@ -158,8 +155,14 @@ func newJoinUsingScope(j *joinScope, columns []string) *joinUsingScope {
 }
 
 func (s *staticTable) superType() super.Type {
-	// this will be implemented in a subsequent PR
-	panic("TBD")
+	return s.typ
+}
+
+func (s *staticTable) width() int {
+	if s.typ == nil {
+		return 0
+	}
+	return len(s.typ.Fields)
 }
 
 func (s *selectScope) isGrouped() bool {
@@ -167,8 +170,7 @@ func (s *selectScope) isGrouped() bool {
 }
 
 func (d *dynamicTable) superType() super.Type {
-	// this will be implemented in a subsequent PR
-	panic("TBD")
+	return d.typ
 }
 
 func (d *dynamicTable) resolveQualified(table, col string) (field.Path, error) {
@@ -212,7 +214,9 @@ func (s *selectScope) resolveQualified(table, col string) (field.Path, error) {
 }
 
 func (s *staticTable) resolveQualified(table, col string) (field.Path, error) {
-	if s.table == table && slices.Contains(s.columns, col) {
+	if s.table == table && slices.ContainsFunc(s.typ.Fields, func(f super.Field) bool {
+		return f.Name == col
+	}) {
 		return field.Path{col}, nil
 	}
 	return nil, nil
@@ -312,7 +316,9 @@ func (s *selectScope) resolveUnqualified(col string) (field.Path, bool, error) {
 }
 
 func (s *staticTable) resolveUnqualified(col string) (field.Path, bool, error) {
-	if slices.Contains(s.columns, col) {
+	if slices.ContainsFunc(s.typ.Fields, func(f super.Field) bool {
+		return f.Name == col
+	}) {
 		return field.Path{col}, false, nil
 	}
 	return nil, false, nil
@@ -397,8 +403,8 @@ func (s *selectScope) star(n ast.Node, table string, path field.Path) ([]*sem.Th
 func (s *staticTable) star(n ast.Node, table string, path field.Path) ([]*sem.ThisExpr, error) {
 	var out []*sem.ThisExpr
 	if table == "" || s.table == table {
-		for _, col := range s.columns {
-			out = append(out, sem.NewThis(n, append(path, col)))
+		for _, col := range s.typ.Fields {
+			out = append(out, sem.NewThis(n, append(path, col.Name)))
 		}
 	}
 	return out, nil
@@ -521,7 +527,15 @@ func (s *selectScope) String() string {
 }
 
 func (s *staticTable) String() string {
-	return fmt.Sprintf("static %s", strings.Join(s.columns, ", "))
+	return fmt.Sprintf("static %s", strings.Join(fieldsToNames(s.typ.Fields), ", "))
+}
+
+func fieldsToNames(columns []super.Field) []string {
+	out := make([]string, 0, len(columns))
+	for _, c := range columns {
+		out = append(out, c.Name)
+	}
+	return out
 }
 
 func (s *subqueryScope) String() string {
@@ -534,8 +548,8 @@ func addTableAlias(t relTable, table string) relTable {
 		return &dynamicTable{table: table}
 	case *staticTable:
 		return &staticTable{
-			table:   table,
-			columns: t.columns,
+			table: table,
+			typ:   t.typ,
 		}
 	default:
 		// There shouldn't be any other table types.

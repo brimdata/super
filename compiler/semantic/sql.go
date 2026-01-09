@@ -215,7 +215,16 @@ func (t *translator) emitProjection(columns []column, grouped bool, seq sem.Seq)
 			},
 		},
 	}
-	return append(seq, sem.NewValues(loc, e)), &staticTable{columns: names}
+	return append(seq, sem.NewValues(loc, e)), &staticTable{typ: t.anonRecord(names)}
+}
+
+// This will be replaced in a subsequent PR after we glue in type checking here.
+func (t *translator) anonRecord(columns []string) *super.TypeRecord {
+	var fields []super.Field
+	for _, c := range columns {
+		fields = append(fields, super.Field{Name: c, Type: t.checker.unknown})
+	}
+	return t.sctx.MustLookupTypeRecord(fields)
 }
 
 func (t *translator) genAggregate(loc ast.Loc, scope *selectScope, seq sem.Seq) sem.Seq {
@@ -314,7 +323,7 @@ func (t *translator) inferSchema(loc ast.Node, exprs []sem.Expr) *staticTable {
 	for _, f := range recType.Fields {
 		columns = append(columns, f.Name)
 	}
-	return &staticTable{columns: columns}
+	return &staticTable{typ: recType}
 }
 
 func (t *translator) genDistinct(e sem.Expr, seq sem.Seq) sem.Seq {
@@ -339,7 +348,7 @@ func (t *translator) sqlPipe(pipe *ast.SQLPipe, seq sem.Seq) (sem.Seq, relTable)
 	// change when we add support for correlated subqueries and an embedded pipe may
 	// need access to the incoming type when feeding that type into the unnest scope
 	// that implements the correlated subquery.
-	return seq, newTableFromType(t.checker.seq(super.TypeNull, seq))
+	return seq, newTableFromType(t.checker.seq(super.TypeNull, seq), t.checker.unknown)
 }
 
 func maybeSQLQueryBody(pipe *ast.SQLPipe) (ast.SQLQueryBody, bool) {
@@ -351,7 +360,7 @@ func maybeSQLQueryBody(pipe *ast.SQLPipe) (ast.SQLQueryBody, bool) {
 	return nil, false
 }
 
-func applyAlias(alias *ast.TableAlias, t relTable, seq sem.Seq) (sem.Seq, relTable, error) {
+func applyAlias(sctx *super.Context, alias *ast.TableAlias, t relTable, seq sem.Seq) (sem.Seq, relTable, error) {
 	if alias == nil || t == badTable {
 		return seq, t, nil
 	}
@@ -359,32 +368,38 @@ func applyAlias(alias *ast.TableAlias, t relTable, seq sem.Seq) (sem.Seq, relTab
 		return seq, addTableAlias(t, alias.Name), nil
 	}
 	if t, ok := t.(*staticTable); ok {
-		return mapColumns(t.columns, alias, seq)
+		return mapColumns(sctx, t.typ, alias, seq)
 	}
 	return seq, t, errors.New("cannot apply column aliases to dynamically typed data")
 }
 
-func mapColumns(in []string, alias *ast.TableAlias, seq sem.Seq) (sem.Seq, *staticTable, error) {
-	if len(alias.Columns) > len(in) {
-		return nil, nil, fmt.Errorf("cannot apply %d column aliases in table alias %q to table with %d columns", len(alias.Columns), alias.Name, len(in))
+func mapColumns(sctx *super.Context, in *super.TypeRecord, alias *ast.TableAlias, seq sem.Seq) (sem.Seq, *staticTable, error) {
+	if len(alias.Columns) > len(in.Fields) {
+		return nil, nil, fmt.Errorf("cannot apply %d column aliases in table alias %q to table with %d columns", len(alias.Columns), alias.Name, len(in.Fields))
 	}
+	typ := in
 	out := idsToStrings(alias.Columns)
-	if !slices.Equal(in, out) {
+	if !slices.EqualFunc(in.Fields, out, func(f super.Field, name string) bool {
+		return f.Name == name
+	}) {
 		// Make a record expression...
-		elems := make([]sem.RecordElem, 0, len(in))
+		elems := make([]sem.RecordElem, 0, len(in.Fields))
+		fields := make([]super.Field, 0, len(in.Fields))
 		for k := range out {
 			elems = append(elems, &sem.FieldElem{
 				Node:  alias.Columns[k],
 				Name:  out[k],
-				Value: sem.NewThis(alias.Columns[k], []string{in[k]}),
+				Value: sem.NewThis(alias.Columns[k], []string{in.Fields[k].Name}),
 			})
+			fields = append(fields, super.Field{Name: out[k], Type: in.Fields[k].Type})
 		}
 		seq = valuesExpr(&sem.RecordExpr{
 			Node:  alias,
 			Elems: elems,
 		}, seq)
+		typ = sctx.MustLookupTypeRecord(fields)
 	}
-	return seq, &staticTable{table: alias.Name, columns: out}, nil
+	return seq, &staticTable{table: alias.Name, typ: typ}, nil
 }
 
 func idsToStrings(ids []*ast.ID) []string {
@@ -428,25 +443,24 @@ func (t *translator) sqlQueryBody(query ast.SQLQueryBody, demand []ast.Expr, seq
 		return seq, scope
 	case *ast.SQLUnion:
 		left, leftScope := t.sqlQueryBody(query.Left, nil, seq)
-		if leftScope == badTable {
-			return left, badTable
-		}
 		left, leftTable := leftScope.endScope(query.Left.(ast.Node), left)
 		right, rightScope := t.sqlQueryBody(query.Right, nil, seq)
-		if rightScope == badTable {
+		right, rightTable := rightScope.endScope(query.Right.(ast.Node), right)
+		if leftTable == badTable || rightTable == badTable {
 			return right, badTable
 		}
-		right, rightTable := rightScope.endScope(query.Right.(ast.Node), right)
-		if len(leftTable.columns) != len(rightTable.columns) {
+		if leftTable.width() != rightTable.width() {
 			t.error(query, errors.New("set operations can only be applied to sources with the same number of columns"))
 			return sem.Seq{badOp}, badTable
 		}
-		if !slices.Equal(leftTable.columns, rightTable.columns) {
+		if !slices.EqualFunc(leftTable.typ.Fields, rightTable.typ.Fields, func(f1 super.Field, f2 super.Field) bool {
+			return f1.Name == f2.Name
+		}) {
 			// Rename fields on the right to match the left.
 			var elems []sem.RecordElem
-			for i, col := range leftTable.columns {
+			for i, col := range leftTable.typ.Fields {
 				elems = append(elems, &sem.FieldElem{
-					Name: col,
+					Name: col.Name,
 					Value: &sem.IndexExpr{
 						Expr:  sem.NewThis(nil, nil),
 						Index: &sem.LiteralExpr{Value: strconv.Itoa(i)},
@@ -685,15 +699,15 @@ func (t *translator) resolveOrdinalOuter(ts tableScope, n ast.Node, prefix strin
 	case *selectScope:
 		return t.resolveOrdinalOuter(ts.out, n, "out", col)
 	case *staticTable:
-		if col < 1 || col > len(ts.columns) {
+		if col < 1 || col > ts.width() {
 			t.error(n, fmt.Errorf("column %d is out of range", col))
 			return badExpr
 		}
 		var path []string
 		if prefix != "" {
-			path = []string{prefix, ts.columns[col-1]}
+			path = []string{prefix, ts.typ.Fields[col-1].Name}
 		} else {
-			path = []string{ts.columns[col-1]}
+			path = []string{ts.typ.Fields[col-1].Name}
 		}
 		return sem.NewThis(n, path)
 	default:
