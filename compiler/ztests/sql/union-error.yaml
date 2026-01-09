@@ -18,3 +18,6 @@ outputs:
       the all-columns (*) pattern cannot be used for dynamic inputs at line 1, column 8:
       select * from a.sup union all select * from a.sup
              ~
+      the all-columns (*) pattern cannot be used for dynamic inputs at line 1, column 38:
+      select * from a.sup union all select * from a.sup
+                                           ~

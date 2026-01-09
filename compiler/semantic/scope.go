@@ -14,7 +14,7 @@ type Scope struct {
 	pragmas map[string]any
 	symbols map[string]*entry
 	ctes    map[string]*ast.SQLCTE
-	schema  schema
+	sql     relScope
 }
 
 func NewScope(parent *Scope) *Scope {
@@ -127,16 +127,16 @@ func (s *Scope) lookupFuncParamLambda(name string) (string, bool) {
 // In the case of unqualified col ref, check that it is not ambiguous
 // when there are multiple tables (i.e., from joins).
 func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) sem.Expr {
-	// If there's no schema, we're not in a SQL context so we just
+	// If there's no relational scope, we're not in a SQL context so we just
 	// return the path unmodified.  Otherwise, we apply SQL scoping
 	// rules to transform the abstract path to the dataflow path
-	// implied by the schema.
-	sch := s.schema
-	if sch == nil {
+	// implied by the relational scope.
+	scope := s.sql
+	if scope == nil {
 		return sem.NewThis(n, path)
 	}
 	if len(path) == 0 {
-		if e := sch.this(n, nil); e != nil {
+		if e := scope.this(n, nil); e != nil {
 			return e
 		}
 		t.error(n, errors.New("cannot reference 'this' in this context"))
@@ -156,7 +156,7 @@ func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) sem.Expr {
 	// in the grouping expression matcher.  So we rely upon this column
 	// lookup to give us the input bindings and then match everything to its
 	// grouped output.
-	if sch, ok := sch.(*selectSchema); ok && sch.out != nil && sch.isGrouped() {
+	if sch, ok := scope.(*selectScope); ok && sch.out != nil && sch.isGrouped() {
 		for _, c := range sch.columns {
 			if c.name == path[0] {
 				return extend(n, c.semExpr, path[1:])
@@ -173,12 +173,12 @@ func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) sem.Expr {
 	// the binding of identifiers changes and query results can change.  By
 	// resolving lateral aliases first, we avoid this problem.  This can
 	// be overridden with "pragma pg" to favor PostgreSQL precedence.
-	if sch, ok := sch.(*selectSchema); ok && sch.lateral && !inputFirst {
-		if e := resolveLateralColumn(t, sch, path[0]); e != nil {
+	if sel, ok := scope.(*selectScope); ok && sel.lateral && !inputFirst {
+		if e := resolveLateralColumn(t, sel, path[0]); e != nil {
 			return extend(n, e, path[1:])
 		}
 	}
-	out, dyn, err := sch.resolveUnqualified(path[0])
+	out, dyn, err := scope.resolveUnqualified(path[0])
 	if err != nil {
 		t.error(n, err)
 		return badExpr
@@ -186,14 +186,14 @@ func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) sem.Expr {
 	if out != nil {
 		if dyn {
 			// Make sure there's not a table with the same name as the column name.
-			if _, tdyn, err := sch.resolveTable(n, path[0], nil); err != nil && tdyn {
+			if _, tdyn, err := scope.resolveTable(n, path[0], nil); err != nil && tdyn {
 				t.error(n, fmt.Errorf("cannot use unqualified reference %q when table of same name is in scope (consider qualified reference)", path[0]))
 				return badExpr
 			}
 		}
 		return sem.NewThis(n, append(out, path[1:]...))
 	}
-	if sch, ok := sch.(*selectSchema); ok && sch.lateral && inputFirst {
+	if sch, ok := scope.(*selectScope); ok && sch.lateral && inputFirst {
 		if e := resolveLateralColumn(t, sch, path[0]); e != nil {
 			return extend(n, e, path[1:])
 		}
@@ -202,7 +202,7 @@ func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) sem.Expr {
 		// Single identifier didn't resolve to column so let's see if there's
 		// a table with this name and return an expression capturing the
 		// rows as single-column records.
-		out, _, err := sch.resolveTable(n, path[0], nil)
+		out, _, err := scope.resolveTable(n, path[0], nil)
 		if err != nil {
 			t.error(n, err)
 			return badExpr
@@ -212,7 +212,7 @@ func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) sem.Expr {
 		}
 	} else {
 		// Look for match of a qualified reference (table.col).
-		out, err := sch.resolveQualified(path[0], path[1])
+		out, err := scope.resolveQualified(path[0], path[1])
 		if err != nil {
 			t.error(n, err)
 			return badExpr
@@ -220,7 +220,7 @@ func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) sem.Expr {
 		if out != nil {
 			return sem.NewThis(n, append(out, path[2:]...))
 		}
-		if p, _, _ := sch.resolveTable(n, path[0], nil); p != nil {
+		if p, _, _ := scope.resolveTable(n, path[0], nil); p != nil {
 			t.error(n, fmt.Errorf("column %q does not exist in table %q", path[1], path[0]))
 			return badExpr
 		}
@@ -251,19 +251,19 @@ func extend(n ast.Node, e sem.Expr, rest []string) sem.Expr {
 	return out
 }
 
-func resolveLateralColumn(t *translator, s schema, col string) sem.Expr {
-	sch, ok := s.(*selectSchema)
-	if !ok || !sch.lateral {
+func resolveLateralColumn(t *translator, scope relScope, col string) sem.Expr {
+	sel, ok := scope.(*selectScope)
+	if !ok || !sel.lateral {
 		// lateral columns available only inside select bodies
 		return nil
 	}
-	for k := range len(sch.columns) {
-		c := sch.columns[k]
+	for k := range len(sel.columns) {
+		c := sel.columns[k]
 		if c.lateral && c.name == col {
 			defer func() {
-				sch.lateral = true
+				sel.lateral = true
 			}()
-			sch.lateral = false
+			sel.lateral = false
 			return t.expr(c.astExpr)
 		}
 	}

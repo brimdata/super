@@ -12,45 +12,58 @@ import (
 	"github.com/brimdata/super/pkg/field"
 )
 
-type schema interface {
+// relTable is a dynamic input or static relational table
+type relTable interface {
+	relScope
+	superType() super.Type
+}
+
+// tableScope is the entity used by the SQL query body logic
+// where the termination of scope of a selectScope is delayed
+// until ORDER BY can see it.
+type tableScope interface {
+	relScope
+	endScope(n ast.Node, seq sem.Seq) (sem.Seq, *staticTable)
+}
+
+// relScope is a relational scope that can resolve names with respect
+// to an arbitrarily nested set of relational entities.
+type relScope interface {
 	resolveQualified(table, col string) (field.Path, error)
 	resolveUnqualified(col string) (field.Path, bool, error)
 	resolveTable(n ast.Node, table string, path []string) (sem.Expr, bool, error)
 	star(n ast.Node, table string, path field.Path) ([]*sem.ThisExpr, error)
-	endScope(n ast.Node, seq sem.Seq) (sem.Seq, schema)
 	this(n ast.Node, path []string) sem.Expr
-	outColumns() ([]string, bool)
-	String() string
 }
 
 type (
-	dynamicSchema struct {
+	dynamicTable struct {
 		table string
 	}
 
-	joinSchema struct {
-		left  schema
-		right schema
+	joinScope struct {
+		left  relScope
+		right relScope
 	}
 
-	// joinUsingSchema specializes the joinSchema so that * expansion
+	// joinUsingScope specializes the joinScope so that * expansion
 	// follows the ANSI standard by eliminating the duplicate using columns
 	// from both sides and putting those columns in the leftmost positions.
 	// The semantic logic checks that each column is present in both sides
 	// of the join so there is no need to do that here and the unqualified
 	// method matches the left side arbitrarily.
-	joinUsingSchema struct {
-		*joinSchema
+	joinUsingScope struct {
+		*joinScope
 		// The using condition columns
 		columns []string
 		skip    map[string]struct{}
 	}
 
-	// Schema is...
+	// Schema of selectScope is...
 	// {in:<input>,out:<projection>} for non-grouped
 	// {g:{k0,k1,...,a0,a1,...},out:<projection>} for grouped
-	selectSchema struct {
-		in schema
+	selectScope struct {
+		in relScope
 
 		// aggOk set when it's ok to process agg functions in expressions
 		aggOk bool
@@ -80,37 +93,37 @@ type (
 		columns []column
 		lateral bool
 
-		// The output schema is always static, e.g., a dynamic input is
+		// The output table is always static, e.g., a dynamic input is
 		// always wrapped in a column.  Also, the projected columns referenced
 		// in ORDER BY have precedence over the rest of the SELECT expressions
 		// (in contrast to the rest of the SELECT body, where lateral column
 		// aliases have lwoer precedecne).
-		out *staticSchema
+		out *staticTable
 	}
 
-	staticSchema struct {
+	staticTable struct {
 		table   string
 		columns []string
 	}
 
-	subquerySchema struct {
-		outer schema
-		inner schema
+	subqueryScope struct {
+		outer relScope
+		inner relScope
 	}
 )
 
-func newSchemaFromType(typ super.Type) schema {
+func newTableFromType(typ super.Type) relTable {
 	if typ == badType {
-		return badSchema
+		return badTable
 	}
 	if recType := recordOf(typ); recType != nil {
 		var cols []string
 		for _, f := range recType.Fields {
 			cols = append(cols, f.Name)
 		}
-		return &staticSchema{columns: cols}
+		return &staticTable{columns: cols}
 	}
-	return &dynamicSchema{}
+	return &dynamicTable{}
 }
 
 func recordOf(typ super.Type) *super.TypeRecord {
@@ -132,31 +145,40 @@ func recordOf(typ super.Type) *super.TypeRecord {
 	return nil
 }
 
-func newJoinUsingSchema(j *joinSchema, columns []string) *joinUsingSchema {
+func newJoinUsingScope(j *joinScope, columns []string) *joinUsingScope {
 	skip := make(map[string]struct{})
 	for _, c := range columns {
 		skip[c] = struct{}{}
 	}
-	return &joinUsingSchema{
-		joinSchema: j,
-		columns:    columns,
-		skip:       skip,
+	return &joinUsingScope{
+		joinScope: j,
+		columns:   columns,
+		skip:      skip,
 	}
-
 }
 
-func (s *selectSchema) isGrouped() bool {
+func (s *staticTable) superType() super.Type {
+	// this will be implemented in a subsequent PR
+	panic("TBD")
+}
+
+func (s *selectScope) isGrouped() bool {
 	return len(s.aggs) != 0 || len(s.groupings) != 0
 }
 
-func (d *dynamicSchema) resolveQualified(table, col string) (field.Path, error) {
+func (d *dynamicTable) superType() super.Type {
+	// this will be implemented in a subsequent PR
+	panic("TBD")
+}
+
+func (d *dynamicTable) resolveQualified(table, col string) (field.Path, error) {
 	if d.table == table {
 		return field.Path{col}, nil
 	}
 	return nil, nil
 }
 
-func (j *joinSchema) resolveQualified(table, col string) (field.Path, error) {
+func (j *joinScope) resolveQualified(table, col string) (field.Path, error) {
 	left, err := j.left.resolveQualified(table, col)
 	if err != nil {
 		return nil, err
@@ -181,7 +203,7 @@ func (j *joinSchema) resolveQualified(table, col string) (field.Path, error) {
 	return nil, nil
 }
 
-func (s *selectSchema) resolveQualified(table, col string) (field.Path, error) {
+func (s *selectScope) resolveQualified(table, col string) (field.Path, error) {
 	path, err := s.in.resolveQualified(table, col)
 	if path != nil {
 		return append([]string{"in"}, path...), nil
@@ -189,14 +211,14 @@ func (s *selectSchema) resolveQualified(table, col string) (field.Path, error) {
 	return nil, err
 }
 
-func (s *staticSchema) resolveQualified(table, col string) (field.Path, error) {
+func (s *staticTable) resolveQualified(table, col string) (field.Path, error) {
 	if s.table == table && slices.Contains(s.columns, col) {
 		return field.Path{col}, nil
 	}
 	return nil, nil
 }
 
-func (s *subquerySchema) resolveQualified(table, col string) (field.Path, error) {
+func (s *subqueryScope) resolveQualified(table, col string) (field.Path, error) {
 	path, err := s.inner.resolveQualified(table, col)
 	if err != nil {
 		return nil, err
@@ -214,11 +236,11 @@ func (s *subquerySchema) resolveQualified(table, col string) (field.Path, error)
 	return nil, nil
 }
 
-func (d *dynamicSchema) resolveUnqualified(col string) (field.Path, bool, error) {
+func (d *dynamicTable) resolveUnqualified(col string) (field.Path, bool, error) {
 	return field.Path{col}, true, nil
 }
 
-func (j *joinSchema) resolveUnqualified(col string) (field.Path, bool, error) {
+func (j *joinScope) resolveUnqualified(col string) (field.Path, bool, error) {
 	left, ldyn, err := j.left.resolveUnqualified(col)
 	if ldyn && err == nil {
 		err = fmt.Errorf("join on dynamic column %q requires table-qualified reference", col)
@@ -252,7 +274,7 @@ func (j *joinSchema) resolveUnqualified(col string) (field.Path, bool, error) {
 	return nil, false, nil
 }
 
-func (j *joinUsingSchema) resolveUnqualified(col string) (field.Path, bool, error) {
+func (j *joinUsingScope) resolveUnqualified(col string) (field.Path, bool, error) {
 	if slices.Contains(j.columns, col) {
 		// avoid ambiguous column reference and return arbitrarily return left side
 		left, dyn, err := j.left.resolveUnqualified(col)
@@ -262,10 +284,10 @@ func (j *joinUsingSchema) resolveUnqualified(col string) (field.Path, bool, erro
 		return append([]string{"left"}, left...), dyn, nil
 	}
 	// for non-using columns, ambiguous colomn references should be reported
-	return j.joinSchema.resolveUnqualified(col)
+	return j.joinScope.resolveUnqualified(col)
 }
 
-func (s *selectSchema) resolveUnqualified(col string) (field.Path, bool, error) {
+func (s *selectScope) resolveUnqualified(col string) (field.Path, bool, error) {
 	// This just looks for column in the input table.  The resolve() function
 	// looks at lateral column aliases if this fails.
 	if s.out != nil && !s.isGrouped() {
@@ -289,14 +311,14 @@ func (s *selectSchema) resolveUnqualified(col string) (field.Path, bool, error) 
 	return nil, false, err
 }
 
-func (s *staticSchema) resolveUnqualified(col string) (field.Path, bool, error) {
+func (s *staticTable) resolveUnqualified(col string) (field.Path, bool, error) {
 	if slices.Contains(s.columns, col) {
 		return field.Path{col}, false, nil
 	}
 	return nil, false, nil
 }
 
-func (s *subquerySchema) resolveUnqualified(col string) (field.Path, bool, error) {
+func (s *subqueryScope) resolveUnqualified(col string) (field.Path, bool, error) {
 	path, dyn, err := s.inner.resolveUnqualified(col)
 	if err != nil {
 		return nil, dyn, err
@@ -314,11 +336,11 @@ func (s *subquerySchema) resolveUnqualified(col string) (field.Path, bool, error
 	return nil, false, nil
 }
 
-func (d *dynamicSchema) star(n ast.Node, table string, path field.Path) ([]*sem.ThisExpr, error) {
+func (d *dynamicTable) star(n ast.Node, table string, path field.Path) ([]*sem.ThisExpr, error) {
 	return nil, errors.New("the all-columns (*) pattern cannot be used for dynamic inputs")
 }
 
-func (j *joinSchema) star(n ast.Node, table string, path field.Path) ([]*sem.ThisExpr, error) {
+func (j *joinScope) star(n ast.Node, table string, path field.Path) ([]*sem.ThisExpr, error) {
 	left, err := j.left.star(n, table, append(path, "left"))
 	if err != nil {
 		return nil, err
@@ -330,11 +352,11 @@ func (j *joinSchema) star(n ast.Node, table string, path field.Path) ([]*sem.Thi
 	return append(left, right...), nil
 }
 
-func (j *joinUsingSchema) star(n ast.Node, table string, path field.Path) ([]*sem.ThisExpr, error) {
+func (j *joinUsingScope) star(n ast.Node, table string, path field.Path) ([]*sem.ThisExpr, error) {
 	if table != "" {
 		// If this is a table.* match, then we don't need to worry about putting
 		// the USING columns on the left.  Just let the underlying join do the work.
-		return j.joinSchema.star(n, table, path)
+		return j.joinScope.star(n, table, path)
 	}
 	// ANSI SQL says the USING columns are leftmost in the table, then the remaining.
 	var out []*sem.ThisExpr
@@ -355,8 +377,8 @@ func (j *joinUsingSchema) star(n ast.Node, table string, path field.Path) ([]*se
 	return j.filterAppend(out, j.right, n, append(path, "right"))
 }
 
-func (j *joinUsingSchema) filterAppend(out []*sem.ThisExpr, s schema, n ast.Node, path []string) ([]*sem.ThisExpr, error) {
-	exprs, err := s.star(n, "", path)
+func (j *joinUsingScope) filterAppend(out []*sem.ThisExpr, rs relScope, n ast.Node, path []string) ([]*sem.ThisExpr, error) {
+	exprs, err := rs.star(n, "", path)
 	if err != nil {
 		return nil, err
 	}
@@ -368,11 +390,11 @@ func (j *joinUsingSchema) filterAppend(out []*sem.ThisExpr, s schema, n ast.Node
 	return out, nil
 }
 
-func (s *selectSchema) star(n ast.Node, table string, path field.Path) ([]*sem.ThisExpr, error) {
+func (s *selectScope) star(n ast.Node, table string, path field.Path) ([]*sem.ThisExpr, error) {
 	return s.in.star(n, table, append(path, "in"))
 }
 
-func (s *staticSchema) star(n ast.Node, table string, path field.Path) ([]*sem.ThisExpr, error) {
+func (s *staticTable) star(n ast.Node, table string, path field.Path) ([]*sem.ThisExpr, error) {
 	var out []*sem.ThisExpr
 	if table == "" || s.table == table {
 		for _, col := range s.columns {
@@ -382,7 +404,7 @@ func (s *staticSchema) star(n ast.Node, table string, path field.Path) ([]*sem.T
 	return out, nil
 }
 
-func (s *subquerySchema) star(n ast.Node, table string, path field.Path) ([]*sem.ThisExpr, error) {
+func (s *subqueryScope) star(n ast.Node, table string, path field.Path) ([]*sem.ThisExpr, error) {
 	return s.inner.star(n, table, path)
 }
 
@@ -409,57 +431,43 @@ func joinSpread(n ast.Node, left, right sem.Expr) *sem.RecordExpr {
 	}
 }
 
-func (d *dynamicSchema) endScope(n ast.Node, seq sem.Seq) (sem.Seq, schema) {
-	return seq, d
-}
-
-func (j *joinSchema) endScope(n ast.Node, seq sem.Seq) (sem.Seq, schema) {
-	return seq, j
-}
-
-func (s *selectSchema) endScope(n ast.Node, seq sem.Seq) (sem.Seq, schema) {
-	var sch schema
-	// s.out can be nil for error conditions and we need to avoid non-nil interface
-	if s.out != nil {
-		sch = s.out
+func (s *selectScope) endScope(n ast.Node, seq sem.Seq) (sem.Seq, *staticTable) {
+	if s.out == nil {
+		return seq, badTable
 	}
-	return valuesExpr(sem.NewThis(n, []string{"out"}), seq), sch
+	return valuesExpr(sem.NewThis(n, []string{"out"}), seq), s.out
 }
 
-func (s *staticSchema) endScope(n ast.Node, seq sem.Seq) (sem.Seq, schema) {
+func (s *staticTable) endScope(n ast.Node, seq sem.Seq) (sem.Seq, *staticTable) {
 	return seq, s
 }
 
-func (s *subquerySchema) endScope(n ast.Node, seq sem.Seq) (sem.Seq, schema) {
-	panic(s)
-}
-
-func (d *dynamicSchema) this(n ast.Node, path []string) sem.Expr {
+func (d *dynamicTable) this(n ast.Node, path []string) sem.Expr {
 	return sem.NewThis(n, path)
 }
 
-func (j *joinSchema) this(n ast.Node, path []string) sem.Expr {
+func (j *joinScope) this(n ast.Node, path []string) sem.Expr {
 	left := j.left.this(n, append(path, "left"))
 	right := j.right.this(n, append(path, "right"))
 	return joinSpread(n, left, right)
 }
 
-func (s *selectSchema) this(n ast.Node, path []string) sem.Expr {
+func (s *selectScope) this(n ast.Node, path []string) sem.Expr {
 	if s.grouped {
 		return s.out.this(n, append(path, "out"))
 	}
 	return s.in.this(n, append(path, "in"))
 }
 
-func (s *staticSchema) this(n ast.Node, path []string) sem.Expr {
+func (s *staticTable) this(n ast.Node, path []string) sem.Expr {
 	return sem.NewThis(n, path)
 }
 
-func (s *subquerySchema) this(n ast.Node, path []string) sem.Expr {
-	panic("TBD")
+func (s *subqueryScope) this(n ast.Node, path []string) sem.Expr {
+	return s.inner.this(n, append(path, "inner"))
 }
 
-func (d *dynamicSchema) resolveTable(n ast.Node, table string, path []string) (sem.Expr, bool, error) {
+func (d *dynamicTable) resolveTable(n ast.Node, table string, path []string) (sem.Expr, bool, error) {
 	if d.table == table {
 		// Can't refer to dynamic inputs by the table name because of the
 		// table changes to static and has a column of that name, the query
@@ -469,7 +477,7 @@ func (d *dynamicSchema) resolveTable(n ast.Node, table string, path []string) (s
 	return nil, false, nil
 }
 
-func (j *joinSchema) resolveTable(n ast.Node, name string, path []string) (sem.Expr, bool, error) {
+func (j *joinScope) resolveTable(n ast.Node, name string, path []string) (sem.Expr, bool, error) {
 	e, dyn, err := j.left.resolveTable(n, name, append(path, "left"))
 	if err != nil {
 		return nil, dyn, err
@@ -484,91 +492,53 @@ func (j *joinSchema) resolveTable(n ast.Node, name string, path []string) (sem.E
 	return j.right.resolveTable(n, name, append(path, "right"))
 }
 
-func (s *selectSchema) resolveTable(n ast.Node, name string, path []string) (sem.Expr, bool, error) {
+func (s *selectScope) resolveTable(n ast.Node, name string, path []string) (sem.Expr, bool, error) {
 	return s.in.resolveTable(n, name, append(path, "in"))
 }
 
-func (s *staticSchema) resolveTable(n ast.Node, table string, path []string) (sem.Expr, bool, error) {
+func (s *staticTable) resolveTable(n ast.Node, table string, path []string) (sem.Expr, bool, error) {
 	if s.table == table {
 		return sem.NewThis(n, path), false, nil
 	}
 	return nil, false, nil
 }
 
-func (s *subquerySchema) resolveTable(n ast.Node, table string, path []string) (sem.Expr, bool, error) {
+func (s *subqueryScope) resolveTable(n ast.Node, table string, path []string) (sem.Expr, bool, error) {
 	// XXX should search outer once we have suppport for correlated subq
 	return s.inner.resolveTable(n, table, path)
 }
 
-func (d *dynamicSchema) outColumns() ([]string, bool) {
-	return nil, false
-}
-
-func (j *joinSchema) outColumns() ([]string, bool) {
-	left, lok := j.left.outColumns()
-	right, rok := j.right.outColumns()
-	if !lok || !rok {
-		return nil, false
-	}
-	// Include all columns from the left except for those appearing on
-	// the right since that's what {...left,...right} does.
-	m := make(map[string]struct{})
-	for _, col := range right {
-		m[col] = struct{}{}
-	}
-	var out []string
-	for _, col := range left {
-		if _, ok := m[col]; !ok {
-			out = append(out, col)
-		}
-	}
-	return append(out, right...), true
-}
-
-func (s *selectSchema) outColumns() ([]string, bool) {
-	return s.out.outColumns()
-}
-
-func (s *staticSchema) outColumns() ([]string, bool) {
-	return s.columns, true
-}
-
-func (s *subquerySchema) outColumns() ([]string, bool) {
-	return s.outer.outColumns()
-}
-
-func (d *dynamicSchema) String() string {
+func (d *dynamicTable) String() string {
 	return "dynamic"
 }
 
-func (s *joinSchema) String() string {
+func (s *joinScope) String() string {
 	return fmt.Sprintf("join:\n  left: %s\n  right: %s", s.left, s.right)
 }
 
-func (s *selectSchema) String() string {
+func (s *selectScope) String() string {
 	return fmt.Sprintf("select:\n  in: %s\n  out: %s", s.in, s.out)
 }
 
-func (s *staticSchema) String() string {
+func (s *staticTable) String() string {
 	return fmt.Sprintf("static %s", strings.Join(s.columns, ", "))
 }
 
-func (s *subquerySchema) String() string {
+func (s *subqueryScope) String() string {
 	return fmt.Sprintf("subquery:\n  outer: %s\n  inner: %s", s.outer, s.inner)
 }
 
-func addTableAlias(sch schema, table string) schema {
-	switch sch := sch.(type) {
-	case *dynamicSchema:
-		return &dynamicSchema{table: table}
-	case *staticSchema:
-		return &staticSchema{
+func addTableAlias(t relTable, table string) relTable {
+	switch t := t.(type) {
+	case *dynamicTable:
+		return &dynamicTable{table: table}
+	case *staticTable:
+		return &staticTable{
 			table:   table,
-			columns: sch.columns,
+			columns: t.columns,
 		}
 	default:
-		// Should never be trying to apply a table alias to the
-		// other schema types.
-		panic(sch)
+		// There shouldn't be any other table types.
+		panic(t)
 	}
 }

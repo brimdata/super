@@ -83,50 +83,52 @@ func (t *translator) fromSource(entity ast.FromSource, args []ast.OpArg, seq sem
 	}
 }
 
-func (t *translator) sqlTableExpr(e ast.SQLTableExpr, seq sem.Seq) (sem.Seq, schema) {
+func (t *translator) sqlTableExpr(e ast.SQLTableExpr, seq sem.Seq) (sem.Seq, relScope) {
 	switch e := e.(type) {
 	case *ast.SQLFromItem:
 		if e.Ordinality != nil {
 			t.error(e.Ordinality, errors.New("WITH ORDINALITY clause is not yet supported"))
-			return seq, badSchema
+			return seq, badTable
 		}
 		alias := e.Alias
 		switch input := e.Input.(type) {
 		case *ast.FromItem:
-			var sch schema
+			var table relTable
 			if c, name := t.maybeCTE(input.Source); c != nil {
 				if bad := t.hasFromParent(input, seq); bad != nil {
-					return bad, badSchema
+					return bad, badTable
 				}
 				if len(input.Args) != 0 {
 					t.error(input, fmt.Errorf("CTE cannot use operator arguments"))
-					return seq, badSchema
+					return seq, badTable
 				}
 				if alias == nil {
 					alias = &ast.TableAlias{Name: name, Loc: c.Name.Loc}
 				}
-				seq, sch = t.fromCTE(input, c)
+				seq, table = t.fromCTE(input, c)
 			} else {
 				if _, ok := input.Source.(*ast.FromEval); !ok {
 					if bad := t.hasFromParent(e, seq); bad != nil {
-						return bad, badSchema
+						return bad, badTable
 					}
 				}
 				var typ super.Type
 				seq, typ, name = t.fromSource(input.Source, input.Args, seq)
-				sch = newSchemaFromType(typ)
-				if _, ok := sch.(*dynamicSchema); !ok && alias == nil {
+				table = newTableFromType(typ)
+				if _, ok := table.(*dynamicTable); !ok && alias == nil {
 					alias = &ast.TableAlias{Name: name, Loc: input.Loc}
 				}
 			}
-			seq, sch, err := applyAlias(alias, sch, seq)
+			if table == badTable {
+				return seq, badTable
+			}
+			seq, table, err := applyAlias(alias, table, seq)
 			if err != nil {
 				t.error(alias, err)
 			}
-			return seq, sch
+			return seq, table
 		case *ast.SQLPipe:
 			seq, sch := t.sqlPipe(input, seq)
-			seq, sch = sch.endScope(input, seq)
 			seq, sch, err := applyAlias(alias, sch, seq)
 			if err != nil {
 				t.error(alias, err)
@@ -153,20 +155,17 @@ func (t *translator) maybeCTE(source ast.FromSource) (*ast.SQLCTE, string) {
 	return nil, ""
 }
 
-func (t *translator) fromCTE(node ast.Node, c *ast.SQLCTE) (sem.Seq, schema) {
+func (t *translator) fromCTE(node ast.Node, c *ast.SQLCTE) (sem.Seq, relTable) {
 	if slices.Contains(t.cteStack, c) {
 		t.error(node, errors.New("recursive WITH relations not currently supported"))
-		return sem.Seq{badOp}, badSchema
+		return sem.Seq{badOp}, badTable
 	}
 	t.cteStack = append(t.cteStack, c)
-	seq, sch := t.sqlQueryBody(c.Body, nil, nil)
-	// Add the CTE name as the alias.  If there is an actual alias, it will
-	// override this.
-	seq, sch = sch.endScope(node, seq)
-	sch = addTableAlias(sch, c.Name.Name)
-	t.cteStack = t.cteStack[:len(t.cteStack)-1]
-	return sch.endScope(node, seq)
-
+	defer func() {
+		t.cteStack = t.cteStack[:len(t.cteStack)-1]
+	}()
+	seq, scope := t.sqlQueryBody(c.Body, nil, nil)
+	return scope.endScope(node, seq)
 }
 
 func (t *translator) fromFString(entity *ast.FromEval, args []ast.OpArg, seq sem.Seq) (sem.Seq, string) {
@@ -399,13 +398,13 @@ func (t *translator) fromPoolRegexp(node ast.Node, re, orig, which string, args 
 	return sem.Seq{&sem.ForkOp{Paths: paths}}
 }
 
-func (t *translator) sortExpr(sch schema, s ast.SortExpr, reverse bool) sem.SortExpr {
+func (t *translator) sortExpr(sch relScope, s ast.SortExpr, reverse bool) sem.SortExpr {
 	var e sem.Expr
-	if sch != nil {
+	if ts, ok := sch.(tableScope); ok && ts != nil {
 		if colno, ok := isOrdinal(s.Expr); ok {
-			e = t.resolveOrdinalOuter(sch, s.Expr, "", colno)
-		} else if selSch, ok := sch.(*selectSchema); ok {
-			e = t.groupedExpr(selSch, s.Expr)
+			e = t.resolveOrdinalOuter(ts, s.Expr, "", colno)
+		} else if sel, ok := ts.(*selectScope); ok {
+			e = t.groupedExpr(sel, s.Expr)
 		} else {
 			e = t.expr(s.Expr)
 		}

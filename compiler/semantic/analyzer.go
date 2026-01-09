@@ -126,10 +126,10 @@ func (e opCycleError) Error() string {
 }
 
 var (
-	badExpr   = &sem.BadExpr{}
-	badOp     = &sem.BadOp{}
-	badSchema = &dynamicSchema{}
-	badType   = &super.TypeOfNull{}
+	badExpr  = &sem.BadExpr{}
+	badOp    = &sem.BadOp{}
+	badTable = &staticTable{}
+	badType  = &super.TypeOfNull{}
 )
 
 type reporter struct {

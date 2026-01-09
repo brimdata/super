@@ -126,7 +126,7 @@ func (t *translator) expr(e ast.Expr) sem.Expr {
 		}
 	case *ast.IDExpr:
 		id := t.idExpr(e, false)
-		if t.scope.schema != nil {
+		if t.scope.sql != nil {
 			if this, ok := id.(*sem.ThisExpr); ok {
 				return t.scope.resolve(t, e, this.Path)
 			}
@@ -406,7 +406,7 @@ func (t *translator) doubleQuoteExpr(d *ast.DoubleQuoteExpr) sem.Expr {
 	// Check if there's a SQL scope and treat a double-quoted string
 	// as an identifier.  XXX we'll need to do something a bit more
 	// sophisticated to handle pipes inside SQL subqueries.
-	if t.scope.schema != nil {
+	if t.scope.sql != nil {
 		if d.Text == "this" {
 			return t.scope.resolve(t, d, []string{"this"})
 		}
@@ -471,7 +471,7 @@ func (t *translator) regexp(b *ast.BinaryExpr) sem.Expr {
 
 func (t *translator) binaryExpr(e *ast.BinaryExpr) sem.Expr {
 	if path := t.dottedPath(e); path != nil {
-		if t.scope.schema != nil {
+		if t.scope.sql != nil {
 			return t.scope.resolve(t, e, path)
 		}
 		return sem.NewThis(e, path)
@@ -599,7 +599,7 @@ func (t *translator) semCaseExpr(c *ast.CaseExpr) sem.Expr {
 	var out sem.Expr
 	if c.Else != nil {
 		out = t.expr(c.Else)
-	} else if t.scope.schema != nil {
+	} else if t.scope.sql != nil {
 		out = &sem.LiteralExpr{Node: c, Value: "null"}
 	} else if e != nil {
 		out = sem.NewStructuredError(c, "case: no clause matched and no else provided", e)
@@ -991,26 +991,26 @@ func (t *translator) maybeConvertAgg(call *ast.CallExpr) sem.Expr {
 }
 
 func (t *translator) aggFunc(n ast.Node, name string, arg ast.Expr, filter ast.Expr, distinct bool) sem.Expr {
-	// If we are in the context of a having clause, re-expose the select schema
+	// If we are in the context of a having clause, re-expose the select scope
 	// since the agg func's arguments and where clause operate on the input relation
 	// not the output.
-	sch, ok := t.scope.schema.(*selectSchema)
+	scope, ok := t.scope.sql.(*selectScope)
 	if ok {
-		if !sch.aggOk {
-			if sch.groupByLoc != nil {
-				t.error(sch.groupByLoc, fmt.Errorf("aggregate function %q cannot appear in GROUP BY via positional reference", name))
+		if !scope.aggOk {
+			if scope.groupByLoc != nil {
+				t.error(scope.groupByLoc, fmt.Errorf("aggregate function %q cannot appear in GROUP BY via positional reference", name))
 			} else {
 				t.error(n, fmt.Errorf("aggregate function %q called in non-aggregate context", name))
 			}
 			return badExpr
 		}
-		sch.aggOk = false
-		save := sch.out
+		scope.aggOk = false
+		save := scope.out
 		defer func() {
-			sch.aggOk = true
-			sch.out = save
+			scope.aggOk = true
+			scope.out = save
 		}()
-		sch.out = nil
+		scope.out = nil
 	}
 	f := &sem.AggFunc{
 		Node:     n,
@@ -1020,12 +1020,12 @@ func (t *translator) aggFunc(n ast.Node, name string, arg ast.Expr, filter ast.E
 		Distinct: distinct,
 	}
 	if ok {
-		return lookupAggFunc(sch, f)
+		return lookupAggFunc(scope, f)
 	}
 	return f
 }
 
-func lookupAggFunc(sch *selectSchema, target *sem.AggFunc) *sem.AggRef {
+func lookupAggFunc(sch *selectScope, target *sem.AggFunc) *sem.AggRef {
 	for k, f := range sch.aggs {
 		if f.Name == target.Name && f.Distinct == target.Distinct && eqExpr(f.Expr, target.Expr) && eqExpr(f.Filter, target.Filter) {
 			return &sem.AggRef{Node: target, Index: k}
@@ -1145,7 +1145,7 @@ func (t *translator) subqueryExpr(astExpr ast.Expr, array bool, body ast.Seq) *s
 	if !correlated && !HasSource(e.Body) {
 		e.Body.Prepend(&sem.NullScan{})
 	}
-	if !array && t.scope.schema != nil {
+	if !array && t.scope.sql != nil {
 		// SQL expects a record with a single column result so unravel this
 		// condition with this complex cleanup...
 		e.Body.Append(scalarSubqueryCheck(astExpr))

@@ -1,7 +1,7 @@
 script: |
   super -s -c 'select id from ( select * from (values (1)) x(id) )'
   echo // ===
-  # Ensure id can be selected when subquery has select * on a dynamic schema.
+  # Ensure id can be selected when subquery has select * on a dynamic input.
   super -s -c 'select id from ( select * from in.sup )'
 
 inputs:
