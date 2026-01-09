@@ -1,8 +1,0 @@
-spq: values m[1], m["foo"]
-
-input: |
-  {m:|{1:"a","foo":"bar"}|}
-
-output: |
-  "a"
-  "bar"

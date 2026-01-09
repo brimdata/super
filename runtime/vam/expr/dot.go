@@ -78,7 +78,8 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 		}
 		return typvals
 	case *vector.Map:
-		panic("vam.DotExpr Map TBD")
+		index := vector.NewConst(super.NewString(d.field), val.Len(), bitvec.Zero)
+		return indexMap(d.sctx, val, index)
 	case *vector.View:
 		return vector.Pick(d.eval(val.Any), val.Index)
 	default:

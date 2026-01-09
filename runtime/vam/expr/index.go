@@ -26,15 +26,15 @@ func (i *Index) Eval(this vector.Any) vector.Any {
 
 func (i *Index) eval(args ...vector.Any) vector.Any {
 	this := args[0]
-	container := i.container.Eval(this)
-	index := i.index.Eval(this)
-	switch vector.KindOf(vector.Under(container)) {
+	container := vector.Under(i.container.Eval(this))
+	index := vector.Under(i.index.Eval(this))
+	switch vector.KindOf(container) {
 	case vector.KindArray, vector.KindSet:
 		return indexArrayOrSet(i.sctx, container, index, i.base1)
 	case vector.KindRecord:
 		return indexRecord(i.sctx, container, index, i.base1)
 	case vector.KindMap:
-		panic("vector index operations on maps not supported")
+		return indexMap(i.sctx, container, index)
 	default:
 		return vector.NewMissing(i.sctx, this.Len())
 	}
@@ -151,4 +151,52 @@ func indexRecord(sctx *super.Context, vec, indexVec vector.Any, base1 bool) vect
 		out[i] = vector.Pick(field, viewIndexes[i])
 	}
 	return vector.NewDynamic(tags, out)
+}
+
+func indexMap(sctx *super.Context, vec, indexVec vector.Any) vector.Any {
+	// XXX At some point we'll want to optimize having a const indexVec.
+	n := vec.Len()
+	var index []uint32
+	if view, ok := vec.(*vector.View); ok {
+		index = view.Index
+		vec = view.Any
+	}
+	m := vec.(*vector.Map)
+	var pick []uint32
+	for idx := range n {
+		i := idx
+		if index != nil {
+			i = index[idx]
+		}
+		for range m.Offsets[i+1] - m.Offsets[i] {
+			pick = append(pick, idx)
+		}
+	}
+	var valIndexes, errs []uint32
+	cmp := NewCompare(sctx, "==", nil, nil).eval
+	hits := vector.Apply(true, cmp, vector.Pick(indexVec, pick), m.Keys)
+	bits := toBool(hits).Bits
+	for idx := range n {
+		i := idx
+		if index != nil {
+			i = index[idx]
+		}
+		selected := -1
+		for off := m.Offsets[i]; off < m.Offsets[i+1]; off++ {
+			if bits.IsSet(off) {
+				selected = int(off)
+				break
+			}
+		}
+		if selected != -1 {
+			valIndexes = append(valIndexes, uint32(selected))
+		} else {
+			errs = append(errs, idx)
+		}
+	}
+	vals := vector.Pick(vector.Deunion(m.Values), valIndexes)
+	if len(errs) > 0 {
+		return vector.Combine(vals, errs, vector.NewMissing(sctx, uint32(len(errs))))
+	}
+	return vals
 }

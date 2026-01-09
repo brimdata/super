@@ -28,6 +28,12 @@ input: |
   {val:{a:"foo",b:"bar"},idx:-1}
   {val:{a:"foo",b:"bar"},idx:1.}
   {val:{a:"bar",b:"baz"},idx:"doesnotexist"}
+  // map
+  {val:|{"foo":1,1:2}|,idx:"foo"}
+  {val:|{"foo":1,1:2}|,idx:1}
+  {val:|{"foo":1,1:2,"foo":2}|,idx:"foo"}
+  {val:|{"foo":1,1:2}|,idx:"bar"}
+  {val:|{"foo":1,"bar":127.0.0.1}|,idx:"bar"}
 
 output: |
   "foo"
@@ -52,3 +58,55 @@ output: |
   "bar"
   error({message:"invalid value for record index",on:1.})
   error("missing")
+  1
+  2
+  1
+  error("missing")
+  127.0.0.1
+
+---
+
+spq: |
+  fn returnArray(): ([1])
+  values returnArray()[0],
+    cast(["1"],<[int64]>)[0],
+    [1][0],
+    |[1]|[0],
+    |{1:1}|[1],
+    {x:1}["x"]
+
+vector: true
+
+input: |
+  null
+  
+output: |
+  1
+  1
+  1
+  1
+  1
+  1
+
+---
+
+# Test index on named values.
+spq: values this[1],this["x"]
+
+vector: true
+
+input: |
+  [1,2,3]::=foo
+  |[4,5,6]|::=bar
+  |{1:"foo"}|::=baz
+  {"x":123}::=bap
+  
+output: |
+  2
+  error("missing")
+  5
+  error("missing")
+  "foo"
+  error("missing")
+  error("missing")
+  123
