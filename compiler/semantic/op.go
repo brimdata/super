@@ -627,15 +627,6 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 		}
 		aggs := t.assignments(o.Aggs)
 		t.checkStaticAssignment(o.Aggs, aggs)
-		// Note: InputSortDir is copied in here but it's not meaningful
-		// coming from a parser AST, only from a worker using the DAG,
-		// which is another reason why we need separate AST and sem.
-		// Said another way, we don't want to do semantic analysis on a worker AST
-		// as we presume that work had already been done and we just need
-		// to execute it.  For now, the worker only uses a filter expression
-		// so this code path isn't hit yet, but it uses this same entry point
-		// and it will soon do other stuff so we need to put in place the
-		// separation... see issue #2163.
 		return append(seq, &sem.AggregateOp{
 			Node:  o,
 			Limit: o.Limit,
