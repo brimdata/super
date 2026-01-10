@@ -222,7 +222,7 @@ func (t *translator) emitProjection(columns []column, grouped bool, seq sem.Seq)
 func (t *translator) anonRecord(columns []string) *super.TypeRecord {
 	var fields []super.Field
 	for _, c := range columns {
-		fields = append(fields, super.Field{Name: c, Type: t.checker.unknown})
+		fields = append(fields, super.NewField(c, t.checker.unknown))
 	}
 	return t.sctx.MustLookupTypeRecord(fields)
 }
@@ -391,7 +391,7 @@ func mapColumns(sctx *super.Context, in *super.TypeRecord, alias *ast.TableAlias
 				Name:  out[k],
 				Value: sem.NewThis(alias.Columns[k], []string{in.Fields[k].Name}),
 			})
-			fields = append(fields, super.Field{Name: out[k], Type: in.Fields[k].Type})
+			fields = append(fields, super.NewField(out[k], in.Fields[k].Type))
 		}
 		seq = valuesExpr(&sem.RecordExpr{
 			Node:  alias,
