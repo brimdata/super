@@ -3,7 +3,6 @@ package semantic
 import (
 	"errors"
 	"fmt"
-	"slices"
 	"strings"
 
 	"github.com/araddon/dateparse"
@@ -125,13 +124,7 @@ func (t *translator) expr(e ast.Expr) sem.Expr {
 			Expr:    sem.NewThis(e, nil),
 		}
 	case *ast.IDExpr:
-		id := t.idExpr(e, false)
-		if t.scope.sql != nil {
-			if this, ok := id.(*sem.ThisExpr); ok {
-				return t.scope.resolve(t, e, this.Path)
-			}
-		}
-		return id
+		return t.idExpr(e, false)
 	case *ast.IndexExpr:
 		expr := t.expr(e.Expr)
 		index := t.expr(e.Index)
@@ -374,12 +367,69 @@ func (t *translator) expr(e ast.Expr) sem.Expr {
 	panic(e)
 }
 
+func (t *translator) dot(e *ast.BinaryExpr) sem.Expr {
+	id, ok := e.RHS.(*ast.IDExpr)
+	if !ok {
+		t.error(e, errors.New("RHS of dot operator is not an identifier"))
+		return badExpr
+	}
+	if lhs, ok := e.LHS.(*ast.IDExpr); ok {
+		// Check for plain-ID this (not double quoted) and resolve accordingly.
+		if lhs.Name == "this" && t.scope.sql != nil {
+			return t.deref(e, t.scope.resolveThis(t, lhs), id)
+		}
+		return t.dottedBaseCase(e, lhs, id)
+	}
+	// Handle SQL double-quoted IDs without checking for this.
+	if lhs, ok := e.LHS.(*ast.DoubleQuoteExpr); ok && t.scope.sql != nil {
+		lhsID := &ast.IDExpr{ID: ast.ID{Name: lhs.Text, Loc: lhs.Loc}}
+		return t.dottedBaseCase(e, lhsID, id)
+	}
+	return t.deref(e, t.expr(e.LHS), id)
+}
+
+func (t *translator) dottedBaseCase(loc ast.Node, lhs *ast.IDExpr, rhs *ast.IDExpr) sem.Expr {
+	if e := t.idExpand(lhs, false); e != nil {
+		return t.deref(loc, e, rhs)
+	}
+	if t.scope.sql != nil {
+		return t.scope.resolve(t, loc, []string{lhs.Name, rhs.Name})
+	}
+	return t.deref(loc, t.idExpr(lhs, false), rhs)
+}
+
+func (t *translator) deref(loc ast.Node, lhs sem.Expr, id *ast.IDExpr) sem.Expr {
+	if lhs, ok := lhs.(*sem.ThisExpr); ok {
+		lhs.Path = append(lhs.Path, id.Name)
+		lhs.Node = loc
+		return lhs
+	}
+	return &sem.DotExpr{
+		Node: loc,
+		LHS:  lhs,
+		RHS:  id.Name,
+	}
+}
+
 func (t *translator) idExpr(id *ast.IDExpr, lval bool) sem.Expr {
-	// We use static scoping here to see if an identifier is
-	// a "var" reference to the name or a field access
-	// and transform the AST node appropriately.  The resulting
-	// sem tree doesn't have Identifiers as they are resolved here
-	// one way or the other.
+	if e := t.idExpand(id, lval); e != nil {
+		return e
+	}
+	if t.scope.sql != nil {
+		if id.Name == "this" {
+			return t.scope.resolveThis(t, id)
+		}
+		return t.scope.resolve(t, id, []string{id.Name})
+	}
+	var path []string
+	if id.Name != "this" {
+		path = []string{id.Name}
+	}
+	return sem.NewThis(id, path)
+}
+
+// idExpand checks if an identifier binds to something in the symbol table.
+func (t *translator) idExpand(id *ast.IDExpr, lval bool) sem.Expr {
 	if subquery := t.maybeSubquery(id, id.Name); subquery != nil {
 		return subquery
 	}
@@ -392,14 +442,8 @@ func (t *translator) idExpr(id *ast.IDExpr, lval bool) sem.Expr {
 			return badExpr
 		}
 	}
-	if ref := t.scope.lookupExpr(t, id.Name); ref != nil {
-		return ref
-	}
-	var path []string
-	if id.Name != "this" {
-		path = []string{id.Name}
-	}
-	return sem.NewThis(id, path)
+	// Check for user op params which are in the symbol table as sem.Expr.
+	return t.scope.lookupExpr(t, id.Name)
 }
 
 func (t *translator) doubleQuoteExpr(d *ast.DoubleQuoteExpr) sem.Expr {
@@ -408,6 +452,7 @@ func (t *translator) doubleQuoteExpr(d *ast.DoubleQuoteExpr) sem.Expr {
 	// sophisticated to handle pipes inside SQL subqueries.
 	if t.scope.sql != nil {
 		if d.Text == "this" {
+			// Resolve directly here as column so it's not interpreted as this.
 			return t.scope.resolve(t, d, []string{"this"})
 		}
 		return t.expr(&ast.IDExpr{Kind: "IDExpr", ID: ast.ID{Name: d.Text, Loc: d.Loc}})
@@ -470,32 +515,12 @@ func (t *translator) regexp(b *ast.BinaryExpr) sem.Expr {
 }
 
 func (t *translator) binaryExpr(e *ast.BinaryExpr) sem.Expr {
-	if path := t.dottedPath(e); path != nil {
-		if t.scope.sql != nil {
-			return t.scope.resolve(t, e, path)
-		}
-		return sem.NewThis(e, path)
-	}
 	if e := t.regexp(e); e != nil {
 		return e
 	}
 	op := strings.ToLower(e.Op)
 	if op == "." {
-		lhs := t.expr(e.LHS)
-		id, ok := e.RHS.(*ast.IDExpr)
-		if !ok {
-			t.error(e, errors.New("RHS of dot operator is not an identifier"))
-			return badExpr
-		}
-		if lhs, ok := lhs.(*sem.ThisExpr); ok {
-			lhs.Path = append(lhs.Path, id.Name)
-			return lhs
-		}
-		return &sem.DotExpr{
-			Node: e,
-			LHS:  lhs,
-			RHS:  id.Name,
-		}
+		return t.dot(e)
 	}
 	lhs := t.expr(e.LHS)
 	rhs := t.expr(e.RHS)
@@ -568,30 +593,6 @@ func (t *translator) exprNullable(e ast.Expr) sem.Expr {
 		return nil
 	}
 	return t.expr(e)
-}
-
-func (t *translator) dottedPath(e *ast.BinaryExpr) []string {
-	if e.Op != "." {
-		return nil
-	}
-	rhs, ok := e.RHS.(*ast.IDExpr)
-	if !ok {
-		return nil
-	}
-	switch lhs := e.LHS.(type) {
-	case *ast.IDExpr:
-		switch e := t.idExpr(lhs, false).(type) {
-		case *sem.ThisExpr:
-			return append(slices.Clone(e.Path), rhs.Name)
-		default:
-			return nil
-		}
-	case *ast.BinaryExpr:
-		if path := t.dottedPath(lhs); path != nil {
-			return append(path, rhs.Name)
-		}
-	}
-	return nil
 }
 
 func (t *translator) semCaseExpr(c *ast.CaseExpr) sem.Expr {

@@ -122,6 +122,14 @@ func (s *Scope) lookupFuncParamLambda(name string) (string, bool) {
 	return "", false
 }
 
+func (s *Scope) resolveThis(t *translator, n ast.Node) sem.Expr {
+	if e := s.sql.this(n, nil); e != nil {
+		return e
+	}
+	t.error(n, errors.New("cannot reference 'this' in this context"))
+	return badExpr
+}
+
 // resolve paths based on SQL semantics in order of precedence
 // and replace with dag path with schemafied semantics.
 // In the case of unqualified col ref, check that it is not ambiguous
@@ -132,15 +140,8 @@ func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) sem.Expr {
 	// rules to transform the abstract path to the dataflow path
 	// implied by the relational scope.
 	scope := s.sql
-	if scope == nil {
-		return sem.NewThis(n, path)
-	}
-	if len(path) == 0 {
-		if e := scope.this(n, nil); e != nil {
-			return e
-		}
-		t.error(n, errors.New("cannot reference 'this' in this context"))
-		return badExpr
+	if scope == nil || len(path) == 0 {
+		panic(s)
 	}
 	var inputFirst bool
 	if pg := s.lookupPragma("pg"); pg != nil {
