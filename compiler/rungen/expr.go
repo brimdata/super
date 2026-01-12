@@ -64,16 +64,16 @@ func (b *Builder) compileExpr(e dag.Expr) (expr.Evaluator, error) {
 		return b.compileIndexExpr(e)
 	case *dag.IsNullExpr:
 		return b.compileIsNullExpr(e)
-	case *dag.LiteralExpr:
+	case *dag.MapCallExpr:
+		return b.compileMapCall(e)
+	case *dag.MapExpr:
+		return b.compileMapExpr(e)
+	case *dag.PrimitiveExpr:
 		val, err := sup.ParseValue(b.sctx(), e.Value)
 		if err != nil {
 			return nil, err
 		}
 		return expr.NewLiteral(val), nil
-	case *dag.MapCallExpr:
-		return b.compileMapCall(e)
-	case *dag.MapExpr:
-		return b.compileMapExpr(e)
 	case *dag.RegexpMatchExpr:
 		return b.compileRegexpMatch(e)
 	case *dag.RegexpSearchExpr:

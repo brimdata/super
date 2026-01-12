@@ -35,14 +35,14 @@ func (b *Builder) compileVamExpr(e dag.Expr) (vamexpr.Evaluator, error) {
 		return b.compileVamIndexExpr(e)
 	case *dag.IsNullExpr:
 		return b.compileVamIsNullExpr(e)
-	case *dag.LiteralExpr:
+	case *dag.MapExpr:
+		return b.compileVamMapExpr(e)
+	case *dag.PrimitiveExpr:
 		val, err := sup.ParseValue(b.sctx(), e.Value)
 		if err != nil {
 			return nil, err
 		}
 		return vamexpr.NewLiteral(val), nil
-	case *dag.MapExpr:
-		return b.compileVamMapExpr(e)
 	case *dag.RecordExpr:
 		return b.compileVamRecordExpr(e)
 	case *dag.RegexpMatchExpr:

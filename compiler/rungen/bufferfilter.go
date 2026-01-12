@@ -81,8 +81,10 @@ func CompileBufferFilter(sctx *super.Context, e dag.Expr) (*expr.BufferFilter, e
 }
 
 func isFieldEqualOrIn(sctx *super.Context, e *dag.BinaryExpr) (*super.Value, error) {
+	// XXX This could work for complex literal but we need to walk the
+	// expression and compute a super.Value or call eval.
 	if _, ok := e.LHS.(*dag.ThisExpr); ok && e.Op == "==" {
-		if literal, ok := e.RHS.(*dag.LiteralExpr); ok {
+		if literal, ok := e.RHS.(*dag.PrimitiveExpr); ok {
 			val, err := sup.ParseValue(sctx, literal.Value)
 			if err != nil {
 				return nil, err
@@ -90,7 +92,7 @@ func isFieldEqualOrIn(sctx *super.Context, e *dag.BinaryExpr) (*super.Value, err
 			return &val, nil
 		}
 	} else if _, ok := e.RHS.(*dag.ThisExpr); ok && e.Op == "in" {
-		if literal, ok := e.LHS.(*dag.LiteralExpr); ok {
+		if literal, ok := e.LHS.(*dag.PrimitiveExpr); ok {
 			val, err := sup.ParseValue(sctx, literal.Value)
 			if err != nil {
 				return nil, err

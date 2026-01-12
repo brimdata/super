@@ -75,10 +75,6 @@ type (
 		Kind string `json:"kind" unpack:""`
 		Expr Expr   `json:"expr"`
 	}
-	LiteralExpr struct {
-		Kind  string `json:"kind" unpack:""`
-		Value string `json:"value"`
-	}
 	MapCallExpr struct {
 		Kind   string    `json:"kind" unpack:""`
 		Expr   Expr      `json:"expr"`
@@ -87,6 +83,10 @@ type (
 	MapExpr struct {
 		Kind    string  `json:"kind" unpack:""`
 		Entries []Entry `json:"entries"`
+	}
+	PrimitiveExpr struct {
+		Kind  string `json:"kind" unpack:""`
+		Value string `json:"value"`
 	}
 	RecordExpr struct {
 		Kind  string       `json:"kind" unpack:""`
@@ -149,9 +149,9 @@ func (*CondExpr) exprNode()         {}
 func (*DotExpr) exprNode()          {}
 func (*IndexExpr) exprNode()        {}
 func (*IsNullExpr) exprNode()       {}
-func (*LiteralExpr) exprNode()      {}
 func (*MapCallExpr) exprNode()      {}
 func (*MapExpr) exprNode()          {}
+func (*PrimitiveExpr) exprNode()    {}
 func (*RecordExpr) exprNode()       {}
 func (*RegexpMatchExpr) exprNode()  {}
 func (*RegexpSearchExpr) exprNode() {}

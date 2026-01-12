@@ -111,7 +111,7 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 	case *dag.IsNullExpr:
 		c.expr(e.Expr, "")
 		c.write(" IS NULL")
-	case *dag.LiteralExpr:
+	case *dag.PrimitiveExpr:
 		c.write("%s", e.Value)
 	case *dag.MapExpr:
 		c.write("|{")

@@ -74,7 +74,7 @@ func (t *translator) expr(e ast.Expr) sem.Expr {
 		if e.Else != nil {
 			elseExpr = t.expr(e.Else)
 		} else {
-			elseExpr = &sem.LiteralExpr{Node: e, Value: `error("missing")`}
+			elseExpr = sem.NewStringError(e, "missing")
 		}
 		return &sem.CondExpr{
 			Node: e,
@@ -89,8 +89,8 @@ func (t *translator) expr(e ast.Expr) sem.Expr {
 		if _, ok := e.Type.(*ast.DateTypeHack); ok {
 			// cast to time then bucket by 1d as a workaround for not currently
 			// supporting a "date" type.
-			cast := sem.NewCall(e, "cast", []sem.Expr{expr, &sem.LiteralExpr{Node: e, Value: "<time>"}})
-			return sem.NewCall(e, "bucket", []sem.Expr{cast, &sem.LiteralExpr{Node: e, Value: "1d"}})
+			cast := sem.NewCast(e.Expr, expr, super.TypeTime)
+			return sem.NewCall(e, "bucket", []sem.Expr{cast, &sem.PrimitiveExpr{Node: e, Value: "1d"}})
 		}
 		typ := t.expr(&ast.TypeValue{
 			Kind:  "TypeValue",
@@ -168,7 +168,7 @@ func (t *translator) expr(e ast.Expr) sem.Expr {
 			t.error(e, err)
 			return badExpr
 		}
-		return &sem.LiteralExpr{
+		return &sem.PrimitiveExpr{
 			Node:  e,
 			Value: sup.FormatValue(val),
 		}
@@ -255,7 +255,7 @@ func (t *translator) expr(e ast.Expr) sem.Expr {
 		if e.Type == "date" {
 			ts = ts.Trunc(nano.Day)
 		}
-		return &sem.LiteralExpr{Node: e, Value: sup.FormatValue(super.NewTime(ts))}
+		return sem.NewLiteral(e, super.NewTime(ts))
 	case *ast.SearchTermExpr:
 		var val string
 		switch term := e.Value.(type) {
@@ -296,7 +296,7 @@ func (t *translator) expr(e ast.Expr) sem.Expr {
 			return badExpr
 		}
 		// XXX type checker should remove this check when it finds it redundant
-		is := sem.NewCall(e, "is", []sem.Expr{expr, &sem.LiteralExpr{Node: e.Expr, Value: "<string>"}})
+		is := sem.NewCall(e, "is", []sem.Expr{expr, &sem.PrimitiveExpr{Node: e.Expr, Value: "<string>"}})
 		indexBase := t.scope.indexBase()
 		slice := &sem.SliceExpr{
 			Node:  e,
@@ -309,7 +309,7 @@ func (t *translator) expr(e ast.Expr) sem.Expr {
 			if slice.From != nil {
 				slice.To = sem.NewBinaryExpr(e, "+", slice.From, to)
 			} else {
-				slice.To = sem.NewBinaryExpr(e, "+", to, &sem.LiteralExpr{Node: e, Value: sup.FormatValue(super.NewInt64(int64(indexBase)))})
+				slice.To = sem.NewBinaryExpr(e, "+", to, sem.NewLiteral(e, super.NewInt64(int64(indexBase))))
 			}
 		}
 		serr := sem.NewStructuredError(e, "SUBSTRING: string value required", expr)
@@ -351,7 +351,7 @@ func (t *translator) expr(e ast.Expr) sem.Expr {
 			t.error(e, err)
 			return badExpr
 		}
-		return &sem.LiteralExpr{
+		return &sem.PrimitiveExpr{
 			Node:  e,
 			Value: "<" + typ + ">",
 		}
@@ -469,7 +469,7 @@ func (t *translator) existsExpr(e *ast.ExistsExpr) sem.Expr {
 	q := t.subqueryExpr(e, true, e.Body)
 	return sem.NewBinaryExpr(e, ">",
 		sem.NewCall(e, "len", []sem.Expr{q}),
-		&sem.LiteralExpr{Node: e, Value: "0"})
+		sem.NewLiteral(e, super.NewInt64(0)))
 }
 
 func semDynamicType(n ast.Node, tv ast.Type) *sem.CallExpr {
@@ -485,10 +485,7 @@ func dynamicTypeName(n ast.Node, name string) *sem.CallExpr {
 		"typename",
 		[]sem.Expr{
 			// SUP string literal of type name
-			&sem.LiteralExpr{
-				Node:  n,
-				Value: `"` + name + `"`,
-			},
+			sem.NewLiteral(n, super.NewString(name)),
 		},
 	)
 }
@@ -601,7 +598,7 @@ func (t *translator) semCaseExpr(c *ast.CaseExpr) sem.Expr {
 	if c.Else != nil {
 		out = t.expr(c.Else)
 	} else if t.scope.sql != nil {
-		out = &sem.LiteralExpr{Node: c, Value: "null"}
+		out = &sem.PrimitiveExpr{Node: c, Value: "null"}
 	} else if e != nil {
 		out = sem.NewStructuredError(c, "case: no clause matched and no else provided", e)
 	} else {
@@ -812,7 +809,7 @@ func (t *translator) semExtractExpr(e, partExpr, argExpr ast.Expr) sem.Expr {
 	return sem.NewCall(e,
 		"date_part",
 		[]sem.Expr{
-			&sem.LiteralExpr{Node: partExpr, Value: sup.QuotedString(strings.ToLower(partstr))},
+			sem.NewLiteral(partExpr, super.NewString(strings.ToLower(partstr))),
 			t.expr(argExpr),
 		},
 	)
@@ -1096,7 +1093,7 @@ func (t *translator) arrayElems(elems []ast.ArrayElem) []sem.ArrayElem {
 
 func (t *translator) fstringExpr(f *ast.FStringExpr) sem.Expr {
 	if len(f.Elems) == 0 {
-		return &sem.LiteralExpr{Node: f, Value: `""`}
+		return sem.NewLiteral(f, super.NewString(""))
 	}
 	var out sem.Expr
 	for _, elem := range f.Elems {
@@ -1104,11 +1101,9 @@ func (t *translator) fstringExpr(f *ast.FStringExpr) sem.Expr {
 		switch elem := elem.(type) {
 		case *ast.FStringExprElem:
 			e = t.expr(elem.Expr)
-			e = sem.NewCall(f,
-				"cast",
-				[]sem.Expr{e, &sem.LiteralExpr{Value: "<string>"}})
+			e = sem.NewCast(f, e, super.TypeString)
 		case *ast.FStringTextElem:
-			e = &sem.LiteralExpr{Value: sup.QuotedString(elem.Text)}
+			e = sem.NewLiteral(elem, super.NewString(elem.Text))
 		default:
 			panic(elem)
 		}
@@ -1170,12 +1165,12 @@ func scalarSubqueryCheck(n ast.Node) *sem.ValuesOp {
 		Node: n,
 		Op:   "==",
 		LHS:  lenCall,
-		RHS:  &sem.LiteralExpr{Node: n, Value: "1"},
+		RHS:  sem.NewLiteral(n, super.NewInt64(1)),
 	}
 	indexExpr := &sem.IndexExpr{
 		Node:  n,
 		Expr:  sem.NewThis(n, nil),
-		Index: &sem.LiteralExpr{Node: n, Value: "0"},
+		Index: sem.NewLiteral(n, super.NewInt64(0)),
 	}
 	innerCond := &sem.CondExpr{
 		Node: n,

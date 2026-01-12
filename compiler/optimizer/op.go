@@ -222,7 +222,7 @@ func FieldsOf(e dag.Expr) (field.List, bool) {
 		return nil, false
 	}
 	switch e := e.(type) {
-	case *dag.SearchExpr, *dag.LiteralExpr:
+	case *dag.SearchExpr, *dag.PrimitiveExpr:
 		return nil, true
 	case *dag.ThisExpr:
 		return field.List{e.Path}, true

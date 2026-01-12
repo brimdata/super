@@ -94,7 +94,7 @@ func (c *checker) op(typ super.Type, op sem.Op) super.Type {
 		}
 		elems = append(elems, &sem.FieldElem{
 			Name:  op.Alias,
-			Value: &sem.LiteralExpr{Value: "0(uint64)"},
+			Value: sem.NewLiteral(op, super.NewUint64(0)),
 		})
 		return c.recordElems(typ, elems)
 	case *sem.CutOp:
@@ -346,11 +346,6 @@ func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
 	case *sem.IsNullExpr:
 		c.expr(typ, e.Expr)
 		return super.TypeBool
-	case *sem.LiteralExpr:
-		if val, err := sup.ParseValue(c.t.sctx, e.Value); err == nil {
-			return val.Type()
-		}
-		return c.unknown
 	case *sem.MapCallExpr:
 		containerType := c.expr(typ, e.Expr)
 		elemType, ok := c.isContainer(containerType)
@@ -374,6 +369,14 @@ func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
 			valTypes = append(valTypes, c.expr(typ, entry.Value))
 		}
 		return c.t.sctx.LookupTypeMap(c.fuse(keyTypes), c.fuse(valTypes))
+	case *sem.PrimitiveExpr:
+		if val, err := sup.ParseValue(c.t.sctx, e.Value); err == nil {
+			if !super.IsPrimitiveType(val.Type()) {
+				panic(e)
+			}
+			return val.Type()
+		}
+		return c.unknown
 	case *sem.RecordExpr:
 		return c.recordElems(typ, e.Elems)
 	case *sem.RegexpMatchExpr:

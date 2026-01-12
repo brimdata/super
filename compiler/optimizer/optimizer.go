@@ -608,7 +608,7 @@ func pullupExpr(alias string, expr dag.Expr) (dag.Expr, bool) {
 
 func isConst(e dag.Expr) bool {
 	switch e := e.(type) {
-	case *dag.LiteralExpr:
+	case *dag.PrimitiveExpr:
 		return true
 	case *dag.RecordExpr:
 		for _, elem := range e.Elems {
@@ -660,7 +660,7 @@ func liftFilterOps(seq dag.Seq) dag.Seq {
 				e1, ok := fields[this.Path[0]]
 				if !ok {
 					if spread == nil {
-						return &dag.LiteralExpr{Kind: "LiteralExpr", Value: `error("missing")`}
+						return newErrorMissing()
 					}
 					// Copy spread so f and y don't share dag.Exprs.
 					e, liftOK = addPathToExpr(dag.CopyExpr(spread), this.Path)
@@ -706,7 +706,7 @@ func mergeValuesOps(seq dag.Seq) dag.Seq {
 				v1Expr, ok := v1TopLevelFields[this.Path[0]]
 				if !ok {
 					if v1TopLevelSpread == nil {
-						return &dag.LiteralExpr{Kind: "LiteralExpr", Value: `error("missing")`}
+						return newErrorMissing()
 					}
 					e, mergeOK = addPathToExpr(v1TopLevelSpread, this.Path)
 					return e
@@ -921,4 +921,8 @@ func setPushdownUnordered(seq dag.Seq, unordered bool) bool {
 		}
 	}
 	return unordered
+}
+
+func newErrorMissing() dag.Expr {
+	return dag.NewCall("error", []dag.Expr{&dag.PrimitiveExpr{Kind: "PrimitiveExpr", Value: `"missing"`}})
 }

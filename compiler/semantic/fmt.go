@@ -174,8 +174,6 @@ func clrExpr(expr sem.Expr) {
 	case *sem.IsNullExpr:
 		expr.Node = nil
 		clrExpr(expr.Expr)
-	case *sem.LiteralExpr:
-		expr.Node = nil
 	case *sem.MapCallExpr:
 		expr.Node = nil
 		clrExpr(expr.Expr)
@@ -186,6 +184,8 @@ func clrExpr(expr sem.Expr) {
 			clrExpr(entry.Key)
 			clrExpr(entry.Value)
 		}
+	case *sem.PrimitiveExpr:
+		expr.Node = nil
 	case *sem.RecordExpr:
 		expr.Node = nil
 		clrRecordElems(expr.Elems)

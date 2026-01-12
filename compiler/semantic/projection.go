@@ -81,12 +81,12 @@ func exprWalk(e sem.Expr, visit exprVisitor) sem.Expr {
 		e.Index = exprWalk(e.Index, visit)
 	case *sem.IsNullExpr:
 		e.Expr = exprWalk(e.Expr, visit)
-	case *sem.LiteralExpr:
 	case *sem.MapExpr:
 		for _, ent := range e.Entries {
 			ent.Key = exprWalk(ent.Key, visit)
 			ent.Value = exprWalk(ent.Value, visit)
 		}
+	case *sem.PrimitiveExpr:
 	case *sem.RecordExpr:
 		var out []sem.RecordElem
 		for _, elem := range e.Elems {

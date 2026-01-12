@@ -169,7 +169,7 @@ func demandForExpr(expr dag.Expr) demand.Demand {
 		return demand.Union(demandForExpr(expr.Expr), demandForExpr(expr.Index))
 	case *dag.IsNullExpr:
 		return demandForExpr(expr.Expr)
-	case *dag.LiteralExpr:
+	case *dag.PrimitiveExpr:
 		return demand.None()
 	case *dag.MapCallExpr:
 		return demandForExpr(expr.Expr)

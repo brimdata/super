@@ -463,7 +463,7 @@ func (t *translator) sqlQueryBody(query ast.SQLQueryBody, demand []ast.Expr, seq
 					Name: col.Name,
 					Value: &sem.IndexExpr{
 						Expr:  sem.NewThis(nil, nil),
-						Index: &sem.LiteralExpr{Value: strconv.Itoa(i)},
+						Index: sem.NewLiteral(nil, super.NewInt64(int64(i))),
 					},
 				})
 			}

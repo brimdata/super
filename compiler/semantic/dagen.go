@@ -396,9 +396,9 @@ func (d *dagen) expr(e sem.Expr) dag.Expr {
 			Kind: "IsNullExpr",
 			Expr: d.expr(e.Expr),
 		}
-	case *sem.LiteralExpr:
-		return &dag.LiteralExpr{
-			Kind:  "LiteralExpr",
+	case *sem.PrimitiveExpr:
+		return &dag.PrimitiveExpr{
+			Kind:  "PrimitiveExpr",
 			Value: e.Value,
 		}
 	case *sem.MapCallExpr:

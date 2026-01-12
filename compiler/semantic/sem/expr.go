@@ -5,6 +5,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sup"
 )
 
@@ -66,10 +67,6 @@ type (
 		ast.Node
 		Expr Expr
 	}
-	LiteralExpr struct {
-		ast.Node
-		Value string
-	}
 	MapCallExpr struct {
 		ast.Node
 		Expr   Expr
@@ -78,6 +75,10 @@ type (
 	MapExpr struct {
 		ast.Node
 		Entries []Entry
+	}
+	PrimitiveExpr struct {
+		ast.Node
+		Value string
 	}
 	RecordExpr struct {
 		ast.Node
@@ -179,9 +180,9 @@ func (*CallExpr) exprNode()         {}
 func (*DotExpr) exprNode()          {}
 func (*IndexExpr) exprNode()        {}
 func (*IsNullExpr) exprNode()       {}
-func (*LiteralExpr) exprNode()      {}
 func (*MapCallExpr) exprNode()      {}
 func (*MapExpr) exprNode()          {}
+func (*PrimitiveExpr) exprNode()    {}
 func (*RecordExpr) exprNode()       {}
 func (*RegexpMatchExpr) exprNode()  {}
 func (*RegexpSearchExpr) exprNode() {}
@@ -241,7 +242,7 @@ func NewStructuredError(n ast.Node, message string, on Expr) Expr {
 		Elems: []RecordElem{
 			&FieldElem{
 				Name:  "message",
-				Value: &LiteralExpr{Node: n, Value: sup.FormatValue(super.NewString(message))},
+				Value: NewLiteral(n, super.NewString(message)),
 			},
 			&FieldElem{
 				Name:  "on",
@@ -257,13 +258,14 @@ func NewStructuredError(n ast.Node, message string, on Expr) Expr {
 }
 
 func NewStringError(n ast.Node, message string) Expr {
-	return &CallExpr{
-		Node: n,
-		Tag:  "error",
-		Args: []Expr{
-			&LiteralExpr{Node: n, Value: sup.FormatValue(super.NewString(message))},
-		},
+	return NewCall(n, "error", []Expr{NewLiteral(n, super.NewString(message))})
+}
+
+func NewLiteral(n ast.Node, val super.Value) Expr {
+	if super.IsPrimitiveType(val.Type()) {
+		return &PrimitiveExpr{Node: n, Value: sup.FormatValue(val)}
 	}
+	return valueToExpr(n, val.Type(), val.Bytes())
 }
 
 func CopyExpr(e Expr) Expr {
@@ -323,11 +325,6 @@ func CopyExpr(e Expr) Expr {
 			Node: e.Node,
 			Expr: CopyExpr(e.Expr),
 		}
-	case *LiteralExpr:
-		return &LiteralExpr{
-			Node:  e.Node,
-			Value: e.Value,
-		}
 	case *MapCallExpr:
 		return &MapCallExpr{
 			Node:   e.Node,
@@ -345,6 +342,11 @@ func CopyExpr(e Expr) Expr {
 		return &MapExpr{
 			Node:    e.Node,
 			Entries: entries,
+		}
+	case *PrimitiveExpr:
+		return &PrimitiveExpr{
+			Node:  e.Node,
+			Value: e.Value,
 		}
 	case *RecordExpr:
 		var elems []RecordElem
@@ -451,4 +453,121 @@ func copyArrayElems(elems []ArrayElem) []ArrayElem {
 		}
 	}
 	return out
+}
+
+func valueToExpr(loc ast.Node, typ super.Type, bytes scode.Bytes) Expr {
+	if super.IsPrimitiveType(typ) {
+		return &PrimitiveExpr{
+			Node:  loc,
+			Value: sup.FormatValue(super.NewValue(typ, bytes)),
+		}
+	}
+	switch typ := typ.(type) {
+	case *super.TypeNamed:
+		return NewCast(loc, valueToExpr(loc, typ.Type, bytes), typ)
+	case *super.TypeRecord:
+		return recordToExpr(loc, typ, bytes)
+	case *super.TypeArray:
+		return arrayToExpr(loc, typ, bytes)
+	case *super.TypeSet:
+		return setToExpr(loc, typ, bytes)
+	case *super.TypeUnion:
+		return unionToExpr(loc, typ, bytes)
+	case *super.TypeMap:
+		return mapToExpr(loc, typ, bytes)
+	case *super.TypeError:
+		args := []Expr{valueToExpr(loc, typ.Type, bytes)}
+		return NewCall(loc, "error", args)
+	default:
+		panic(typ)
+	}
+}
+
+func recordToExpr(loc ast.Node, typ *super.TypeRecord, bytes scode.Bytes) Expr {
+	if bytes == nil {
+		return NewCast(loc, valueToExpr(loc, super.TypeNull, nil), typ)
+	}
+	var elems []RecordElem
+	it := bytes.Iter()
+	for k, f := range typ.Fields {
+		if it.Done() {
+			panic(it)
+		}
+		elem := &FieldElem{Node: loc, Name: typ.Fields[k].Name, Value: valueToExpr(loc, f.Type, it.Next())}
+		elems = append(elems, elem)
+	}
+	return &RecordExpr{
+		Node:  loc,
+		Elems: elems,
+	}
+}
+
+func arrayToExpr(loc ast.Node, typ *super.TypeArray, bytes scode.Bytes) Expr {
+	if bytes == nil {
+		return NewCast(loc, valueToExpr(loc, super.TypeNull, nil), typ)
+	}
+	var elems []ArrayElem
+	inner := super.InnerType(typ)
+	it := bytes.Iter()
+	for !it.Done() {
+		elems = append(elems, &ExprElem{Node: loc, Expr: valueToExpr(loc, inner, it.Next())})
+	}
+	return &ArrayExpr{
+		Node:  loc,
+		Elems: elems,
+	}
+}
+
+func setToExpr(loc ast.Node, typ *super.TypeSet, bytes scode.Bytes) Expr {
+	if bytes == nil {
+		return NewCast(loc, valueToExpr(loc, super.TypeNull, nil), typ)
+	}
+	var elems []ArrayElem
+	inner := super.InnerType(typ)
+	it := bytes.Iter()
+	for !it.Done() {
+		elems = append(elems, &ExprElem{Node: loc, Expr: valueToExpr(loc, inner, it.Next())})
+	}
+	return &SetExpr{
+		Node:  loc,
+		Elems: elems,
+	}
+}
+
+func unionToExpr(loc ast.Node, typ *super.TypeUnion, bytes scode.Bytes) Expr {
+	if bytes == nil {
+		return NewCast(loc, valueToExpr(loc, super.TypeNull, nil), typ)
+	}
+	it := bytes.Iter()
+	tag := super.DecodeInt(it.Next())
+	inner, err := typ.Type(int(tag))
+	if err != nil {
+		panic(err)
+	}
+	return NewCast(loc, valueToExpr(loc, inner, it.Next()), typ)
+}
+
+func mapToExpr(loc ast.Node, typ *super.TypeMap, bytes scode.Bytes) Expr {
+	if bytes == nil {
+		return NewCast(loc, valueToExpr(loc, super.TypeNull, nil), typ)
+	}
+	keyType := super.TypeUnder(typ.KeyType)
+	valType := super.TypeUnder(typ.ValType)
+	it := bytes.Iter()
+	var entries []Entry
+	for !it.Done() {
+		key := valueToExpr(loc, keyType, it.Next())
+		val := valueToExpr(loc, valType, it.Next())
+		entries = append(entries, Entry{Key: key, Value: val})
+
+	}
+	return &MapExpr{
+		Node:    loc,
+		Entries: entries,
+	}
+}
+
+func NewCast(loc ast.Node, e Expr, typ super.Type) Expr {
+	args := []Expr{e, NewLiteral(loc, super.NewTypeValue(typ))}
+	return NewCall(loc, "cast", args)
 }

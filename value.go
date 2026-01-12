@@ -89,7 +89,7 @@ func NewBytes(b []byte) Value           { return NewValue(TypeBytes, b) }
 func NewString(s string) Value          { return Value{TypeString, nonNilUnsafeStringData(s), uint64(len(s))} }
 func NewIP(a netip.Addr) Value          { return NewValue(TypeIP, EncodeIP(a)) }
 func NewNet(p netip.Prefix) Value       { return NewValue(TypeNet, EncodeNet(p)) }
-func NewTypeValue(t Type) Value         { return NewValue(TypeNet, EncodeTypeValue(t)) }
+func NewTypeValue(t Type) Value         { return NewValue(TypeType, EncodeTypeValue(t)) }
 
 func boolToUint64(b bool) uint64 {
 	if b {

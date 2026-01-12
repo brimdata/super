@@ -233,9 +233,6 @@ func eqExpr(aexpr, bexpr sem.Expr) bool {
 	case *sem.IsNullExpr:
 		b, ok := bexpr.(*sem.IsNullExpr)
 		return ok && eqExpr(a.Expr, b.Expr)
-	case *sem.LiteralExpr:
-		b, ok := bexpr.(*sem.LiteralExpr)
-		return ok && a.Value == b.Value
 	case *sem.MapCallExpr:
 		b, ok := bexpr.(*sem.MapCallExpr)
 		return ok && eqExpr(a.Expr, b.Expr) && eqExpr(a.Lambda, b.Lambda)
@@ -250,6 +247,9 @@ func eqExpr(aexpr, bexpr sem.Expr) bool {
 			}
 		}
 		return true
+	case *sem.PrimitiveExpr:
+		b, ok := bexpr.(*sem.PrimitiveExpr)
+		return ok && a.Value == b.Value
 	case *sem.RecordExpr:
 		b, ok := bexpr.(*sem.RecordExpr)
 		return ok && eqRecordElems(a.Elems, b.Elems)

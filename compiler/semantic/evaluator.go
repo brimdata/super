@@ -39,7 +39,7 @@ func (e *evaluator) mustEval(sctx *super.Context, expr sem.Expr) (super.Value, b
 }
 
 func (e *evaluator) maybeEval(sctx *super.Context, expr sem.Expr) (super.Value, bool) {
-	if literal, ok := expr.(*sem.LiteralExpr); ok {
+	if literal, ok := expr.(*sem.PrimitiveExpr); ok {
 		val, err := sup.ParseValue(sctx, literal.Value)
 		if err != nil {
 			e.errs.error(literal.Node, err)
@@ -234,8 +234,6 @@ func (e *evaluator) expr(expr sem.Expr) bool {
 		return e.expr(expr.Expr) && e.expr(expr.Index)
 	case *sem.IsNullExpr:
 		return e.expr(expr.Expr)
-	case *sem.LiteralExpr:
-		return true
 	case *sem.MapCallExpr:
 		return e.expr(expr.Expr) && e.expr(expr.Lambda)
 	case *sem.MapExpr:
@@ -246,6 +244,8 @@ func (e *evaluator) expr(expr sem.Expr) bool {
 			}
 		}
 		return isConst
+	case *sem.PrimitiveExpr:
+		return true
 	case *sem.RecordExpr:
 		return e.recordElems(expr.Elems)
 	case *sem.RegexpMatchExpr:

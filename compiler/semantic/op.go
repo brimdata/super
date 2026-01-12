@@ -624,10 +624,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			} else if o.Expr == nil {
 				// c.Expr == nil indicates the default case,
 				// whose handling depends on p.Expr.
-				e = &sem.LiteralExpr{
-					Node:  o,
-					Value: "true",
-				}
+				e = sem.NewLiteral(o, super.True)
 			}
 			path := t.seq(c.Path)
 			cases = append(cases, sem.Case{Expr: e, Path: path})
@@ -959,12 +956,12 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 							&sem.FieldElem{
 								Node:  o.Expr,
 								Name:  "message",
-								Value: &sem.LiteralExpr{Node: o, Value: `"assertion failed"`},
+								Value: sem.NewLiteral(o, super.NewString("assertion failed")),
 							},
 							&sem.FieldElem{
 								Node:  o.Expr,
 								Name:  "expr",
-								Value: &sem.LiteralExpr{Node: o, Value: sup.QuotedString(o.Text)},
+								Value: sem.NewLiteral(o, super.NewString(o.Text)),
 							},
 							&sem.FieldElem{
 								Node:  o.Expr,
@@ -1146,7 +1143,7 @@ func (t *translator) typeDecl(d *ast.TypeDecl) {
 		t.error(d.Type, err)
 		typ = "null"
 	}
-	e := &sem.LiteralExpr{
+	e := &sem.PrimitiveExpr{
 		Node:  d.Name,
 		Value: fmt.Sprintf("<%s=%s>", sup.QuotedName(d.Name.Name), typ),
 	}
@@ -1283,7 +1280,7 @@ func (t *translator) exprOp(e ast.Expr, seq sem.Seq) sem.Seq {
 
 func (t *translator) isBool(e sem.Expr) bool {
 	switch e := e.(type) {
-	case *sem.LiteralExpr:
+	case *sem.PrimitiveExpr:
 		return e.Value == "true" || e.Value == "false"
 	case *sem.UnaryExpr:
 		return t.isBool(e.Operand)
@@ -1304,7 +1301,7 @@ func (t *translator) isBool(e sem.Expr) bool {
 			if len(e.Args) != 2 {
 				return false
 			}
-			if typval, ok := e.Args[1].(*sem.LiteralExpr); ok {
+			if typval, ok := e.Args[1].(*sem.PrimitiveExpr); ok {
 				return typval.Value == "bool"
 			}
 			return false
@@ -1534,10 +1531,7 @@ func (t *translator) mustEvalConst(e sem.Expr) sem.Expr {
 	if !ok {
 		return badExpr
 	}
-	return &sem.LiteralExpr{
-		Node:  e,
-		Value: sup.FormatValue(val),
-	}
+	return sem.NewLiteral(e, val)
 }
 
 // mustEval leaves errors on the reporter and returns a bool as to whether
