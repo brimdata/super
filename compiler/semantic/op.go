@@ -18,7 +18,6 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/plural"
 	"github.com/brimdata/super/pkg/reglob"
-	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/sio"
@@ -277,36 +276,7 @@ func (t *translator) fileType(path, format string) (super.Type, error) {
 	if engine == nil {
 		return nil, nil
 	}
-	uri, err := storage.ParseURI(path)
-	if err != nil {
-		return nil, err
-	}
-	r, err := engine.Get(t.ctx, uri)
-	if err != nil {
-		return nil, err
-	}
-	defer r.Close()
-	var b [1]byte
-	if _, err := r.ReadAt(b[:], 0); err != nil {
-		// r can't seek so it's a fifo or pipe.
-		return nil, nil
-	}
-	f, err := anyio.NewFile(t.sctx, r, path, anyio.ReaderOpts{Format: format})
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-	if typer, ok := f.Reader.(interface{ Type() super.Type }); ok {
-		return typer.Type(), nil
-	}
-	fuser := t.checker.newFuser()
-	for {
-		val, err := f.Read()
-		if val == nil || err != nil {
-			return fuser.Type(), err
-		}
-		fuser.fuse(val.Type())
-	}
+	return anyio.FileType(t.ctx, t.sctx, engine, path, anyio.ReaderOpts{Format: format})
 }
 
 func (t *translator) fromFileGlob(globLoc ast.Node, pattern string, args []ast.OpArg) sem.Op {
