@@ -100,10 +100,6 @@ func (h *HasError) Call(args []super.Value) super.Value {
 }
 
 func (h *HasError) hasError(t super.Type, b scode.Bytes) (bool, bool) {
-	typ := super.TypeUnder(t)
-	if _, ok := typ.(*super.TypeError); ok {
-		return true, false
-	}
 	// If a value is null we can skip since an null error is not an error.
 	if b == nil {
 		return false, false
@@ -113,7 +109,7 @@ func (h *HasError) hasError(t super.Type, b scode.Bytes) (bool, bool) {
 	}
 	var hasErr bool
 	canCache := true
-	switch typ := typ.(type) {
+	switch typ := super.TypeUnder(t).(type) {
 	case *super.TypeRecord:
 		it := b.Iter()
 		for _, f := range typ.Fields {
@@ -148,6 +144,8 @@ func (h *HasError) hasError(t super.Type, b scode.Bytes) (bool, bool) {
 			hasErr, cc = h.hasError(typ, b)
 			canCache = !canCache || cc
 		}
+	case *super.TypeError:
+		hasErr = true
 	}
 	// We cannot cache a type if the type or one of its children has a union
 	// with an error member.

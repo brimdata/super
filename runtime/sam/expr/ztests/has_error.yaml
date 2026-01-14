@@ -6,6 +6,10 @@ input: |
   {f1:127.0.0.1,f2:error("error")}
   [1,2]::[int64|error(string)]
   |{"key":error(0)::(int64|error(int64))}|
+  <error(int64)>
+  <{x:error(int64)}>
+  null::error(int64)
+  null::{x:error(string)}
 
 output: |
   false
@@ -13,3 +17,7 @@ output: |
   true
   false
   true
+  false
+  false
+  false
+  false
