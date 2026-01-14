@@ -1,0 +1,15 @@
+spq: values is_error(this)
+
+input: |
+  error(0)
+  [error(0)]
+  {error:error(0)}
+  <error(int64)>
+  null::error(int64)
+
+output: |
+  true
+  false
+  false
+  false
+  false
