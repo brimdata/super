@@ -370,13 +370,14 @@ func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
 		}
 		return c.t.sctx.LookupTypeMap(c.fuse(keyTypes), c.fuse(valTypes))
 	case *sem.PrimitiveExpr:
-		if val, err := sup.ParseValue(c.t.sctx, e.Value); err == nil {
-			if !super.IsPrimitiveType(val.Type()) {
-				panic(e)
-			}
-			return val.Type()
+		val, err := sup.ParseValue(c.t.sctx, e.Value)
+		if err != nil {
+			return c.unknown
 		}
-		return c.unknown
+		if !super.IsPrimitiveType(val.Type()) {
+			panic(e)
+		}
+		return val.Type()
 	case *sem.RecordExpr:
 		return c.recordElems(typ, e.Elems)
 	case *sem.RegexpMatchExpr:

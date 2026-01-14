@@ -489,11 +489,11 @@ func recordToExpr(loc ast.Node, typ *super.TypeRecord, bytes scode.Bytes) Expr {
 	}
 	var elems []RecordElem
 	it := bytes.Iter()
-	for k, f := range typ.Fields {
+	for _, f := range typ.Fields {
 		if it.Done() {
 			panic(it)
 		}
-		elem := &FieldElem{Node: loc, Name: typ.Fields[k].Name, Value: valueToExpr(loc, f.Type, it.Next())}
+		elem := &FieldElem{Node: loc, Name: f.Name, Value: valueToExpr(loc, f.Type, it.Next())}
 		elems = append(elems, elem)
 	}
 	return &RecordExpr{
@@ -508,8 +508,7 @@ func arrayToExpr(loc ast.Node, typ *super.TypeArray, bytes scode.Bytes) Expr {
 	}
 	var elems []ArrayElem
 	inner := super.InnerType(typ)
-	it := bytes.Iter()
-	for !it.Done() {
+	for it := bytes.Iter(); !it.Done(); {
 		elems = append(elems, &ExprElem{Node: loc, Expr: valueToExpr(loc, inner, it.Next())})
 	}
 	return &ArrayExpr{
@@ -524,8 +523,8 @@ func setToExpr(loc ast.Node, typ *super.TypeSet, bytes scode.Bytes) Expr {
 	}
 	var elems []ArrayElem
 	inner := super.InnerType(typ)
-	it := bytes.Iter()
-	for !it.Done() {
+
+	for it := bytes.Iter(); !it.Done(); {
 		elems = append(elems, &ExprElem{Node: loc, Expr: valueToExpr(loc, inner, it.Next())})
 	}
 	return &SetExpr{
@@ -553,9 +552,8 @@ func mapToExpr(loc ast.Node, typ *super.TypeMap, bytes scode.Bytes) Expr {
 	}
 	keyType := super.TypeUnder(typ.KeyType)
 	valType := super.TypeUnder(typ.ValType)
-	it := bytes.Iter()
 	var entries []Entry
-	for !it.Done() {
+	for it := bytes.Iter(); !it.Done(); {
 		key := valueToExpr(loc, keyType, it.Next())
 		val := valueToExpr(loc, valType, it.Next())
 		entries = append(entries, Entry{Key: key, Value: val})

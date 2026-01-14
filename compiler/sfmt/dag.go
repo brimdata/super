@@ -111,8 +111,6 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 	case *dag.IsNullExpr:
 		c.expr(e.Expr, "")
 		c.write(" IS NULL")
-	case *dag.PrimitiveExpr:
-		c.write("%s", e.Value)
 	case *dag.MapExpr:
 		c.write("|{")
 		for k, e := range e.Entries {
@@ -124,6 +122,8 @@ func (c *canonDAG) expr(e dag.Expr, parent string) {
 			c.expr(e.Value, "")
 		}
 		c.write("}|")
+	case *dag.PrimitiveExpr:
+		c.write("%s", e.Value)
 	case *dag.RecordExpr:
 		c.write("{")
 		c.recordElems(e.Elems)
