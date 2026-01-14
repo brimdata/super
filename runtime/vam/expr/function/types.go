@@ -36,6 +36,20 @@ func (i *Is) Call(args ...vector.Any) vector.Any {
 	return out
 }
 
+type IsErr struct{}
+
+func (IsErr) Call(args ...vector.Any) vector.Any {
+	vec := vector.Under(args[0])
+	if vector.KindOf(vec) != vector.KindError {
+		return vector.NewConst(super.False, vec.Len(), bitvec.Zero)
+	}
+	nulls := vector.NullsOf(vec)
+	if nulls.IsZero() {
+		return vector.NewConst(super.True, vec.Len(), bitvec.Zero)
+	}
+	return vector.NewBool(bitvec.Not(nulls), bitvec.Zero)
+}
+
 type NameOf struct {
 	sctx *super.Context
 }

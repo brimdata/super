@@ -1,7 +1,11 @@
 spq: values is_error(this)
 
+vector: true
+
 input: |
   error(0)
+  error(0)::(int64|error(int64))
+  1::(int64|error(int64))
   [error(0)]
   {error:error(0)}
   <error(int64)>
@@ -9,6 +13,8 @@ input: |
 
 output: |
   true
+  true
+  false
   false
   false
   false

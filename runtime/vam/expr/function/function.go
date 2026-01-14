@@ -69,6 +69,8 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		argmin = 2
 		argmax = 2
 		f = &Is{sctx: sctx}
+	case "is_error":
+		f = IsErr{}
 	case "join":
 		argmax = 2
 		f = &Join{sctx: sctx}
