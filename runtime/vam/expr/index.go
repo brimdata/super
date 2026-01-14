@@ -155,6 +155,9 @@ func indexRecord(sctx *super.Context, vec, indexVec vector.Any, base1 bool) vect
 
 func indexMap(sctx *super.Context, vec, indexVec vector.Any) vector.Any {
 	// XXX At some point we'll want to optimize having a const indexVec.
+	if _, ok := indexVec.(*vector.Error); ok {
+		return indexVec
+	}
 	n := vec.Len()
 	var index []uint32
 	if view, ok := vec.(*vector.View); ok {
