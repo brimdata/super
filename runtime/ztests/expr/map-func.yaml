@@ -1,0 +1,32 @@
+spq: values map(this,&upper)
+
+vector: true
+
+input: |
+  ["foo","bar",null::string]
+  null::[string]
+  |["foo","bar",null::string]|
+  null::|[string]|
+  "invalid"
+
+output: |
+  ["FOO","BAR",null::string]
+  null::[string]
+  |[null::string,"BAR","FOO"]|
+  null::|[string]|
+  error({message:"map: expected array or set value",on:"invalid"})
+  
+---
+
+# Test UDF.
+spq: |
+  fn castInt(v): (v::int64)
+  values map(this, &castInt)
+
+vector: true
+
+input: | 
+  ["1","2","foo"]
+
+output: |
+  [1,2,error({message:"cannot cast to int64",on:"foo"})]

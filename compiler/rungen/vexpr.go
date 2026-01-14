@@ -35,6 +35,8 @@ func (b *Builder) compileVamExpr(e dag.Expr) (vamexpr.Evaluator, error) {
 		return b.compileVamIndexExpr(e)
 	case *dag.IsNullExpr:
 		return b.compileVamIsNullExpr(e)
+	case *dag.MapCallExpr:
+		return b.compileVamMapCallExpr(e)
 	case *dag.MapExpr:
 		return b.compileVamMapExpr(e)
 	case *dag.PrimitiveExpr:
@@ -61,8 +63,6 @@ func (b *Builder) compileVamExpr(e dag.Expr) (vamexpr.Evaluator, error) {
 		return vamexpr.NewDottedExpr(b.sctx(), field.Path(e.Path)), nil
 	case *dag.UnaryExpr:
 		return b.compileVamUnary(*e)
-	//case *dag.MapCallExpr:
-	//	return b.compileVamMapCall(e)
 	default:
 		return nil, fmt.Errorf("vector expression type %T: not supported", e)
 	}
@@ -246,6 +246,18 @@ func (b *Builder) compileVamCast(args []dag.Expr) (vamexpr.Evaluator, error) {
 		return nil, err
 	}
 	return vamexpr.NewSamExpr(e), nil
+}
+
+func (b *Builder) compileVamMapCallExpr(m *dag.MapCallExpr) (vamexpr.Evaluator, error) {
+	e, err := b.compileVamExpr(m.Expr)
+	if err != nil {
+		return nil, err
+	}
+	lambda, err := b.compileVamExpr(m.Lambda)
+	if err != nil {
+		return nil, err
+	}
+	return vamexpr.NewMapCall(b.sctx(), e, lambda), nil
 }
 
 func (b *Builder) compileVamMapExpr(m *dag.MapExpr) (vamexpr.Evaluator, error) {
