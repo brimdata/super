@@ -20,3 +20,13 @@ output: |
   [|{"key":"k1"}|,null::|{string:string}|,|{"key":"k3"}|]
   ["foo",1,127.0.0.1]
   ["bar",2,127.0.0.2]
+
+---
+
+# Test empty array expression.
+spq: values []
+
+vector: true
+
+output: |
+  []

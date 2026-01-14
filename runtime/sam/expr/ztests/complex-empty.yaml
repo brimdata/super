@@ -1,7 +1,0 @@
-spq: put a:=[],s:=|[]|,m:=|{}|
-
-input: |
-  {}
-
-output: |
-  {a:[]::[null],s:|[]|::|[null]|,m:|{}|::|{null:null}|}

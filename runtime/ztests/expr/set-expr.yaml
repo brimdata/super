@@ -1,0 +1,18 @@
+# Test set expression as const.
+spq: const s = |[ 192.168.2.0/24, 192.168.1.0/24, 192.168.2.0/24 ]| values s
+
+vector: true
+
+output: |
+  |[192.168.1.0/24,192.168.2.0/24]|
+
+---
+
+# Test empty set expression.
+spq: |
+  values |[]|
+
+vector: true
+
+output: |
+  |[]|

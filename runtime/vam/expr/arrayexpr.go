@@ -25,6 +25,12 @@ func NewArrayExpr(sctx *super.Context, elems []ListElem) *ArrayExpr {
 }
 
 func (a *ArrayExpr) Eval(this vector.Any) vector.Any {
+	if len(a.elems) == 0 {
+		typ := a.sctx.LookupTypeArray(super.TypeNull)
+		offsets := make([]uint32, this.Len()+1)
+		c := vector.NewConst(super.Null, 0, bitvec.Zero)
+		return vector.NewArray(typ, offsets, c, bitvec.Zero)
+	}
 	var vecs []vector.Any
 	for _, e := range a.elems {
 		if e.Spread != nil {
