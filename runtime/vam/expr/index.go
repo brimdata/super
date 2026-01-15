@@ -178,7 +178,7 @@ func indexMap(sctx *super.Context, vec, indexVec vector.Any) vector.Any {
 	var valIndexes, errs []uint32
 	cmp := NewCompare(sctx, "==", nil, nil).eval
 	hits := vector.Apply(true, cmp, vector.Pick(indexVec, pick), m.Keys)
-	bits := toBool(hits).Bits
+	bits := FlattenBool(hits).Bits
 	for idx := range n {
 		i := idx
 		if index != nil {

@@ -1,9 +1,13 @@
 spq: "values has_error(this)"
 
+vector: true
+
 input: |
   null
   error(0)
+  {}
   {f1:127.0.0.1,f2:error("error")}
+  []
   [1,2]::[int64|error(string)]
   [1,2,error(0)]
   |[1,2,error(0)]|
@@ -17,7 +21,9 @@ input: |
 output: |
   false
   true
+  false
   true
+  false
   false
   true
   true

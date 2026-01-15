@@ -76,7 +76,7 @@ func (c *Compare) eval(vecs ...vector.Any) vector.Any {
 		// Having a null true value can cause incorrect results when and'ing
 		// and or'ing with other boolean values. Flip true values to false if
 		// they are null.
-		bits := bitvec.And(toBool(out).Bits, bitvec.Not(nulls))
+		bits := bitvec.And(FlattenBool(out).Bits, bitvec.Not(nulls))
 		out = vector.NewBool(bits, nulls)
 	}
 	return out

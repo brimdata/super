@@ -1,10 +1,85 @@
 package function
 
 import (
+	"slices"
+
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/bitvec"
 )
+
+type HasError struct{}
+
+func (h HasError) Call(args ...vector.Any) vector.Any {
+	return h.hasError(args[0])
+}
+
+func (h HasError) hasError(in vector.Any) vector.Any {
+	var index []uint32
+	vec := vector.Under(in)
+	if view, ok := in.(*vector.View); ok {
+		index = view.Index
+		vec = view.Any
+	}
+	switch vec := vec.(type) {
+	case *vector.Record:
+		var result vector.Any
+		for _, f := range vec.Fields {
+			if index != nil {
+				f = vector.Pick(f, index)
+			}
+			if result == nil {
+				result = h.hasError(f)
+				continue
+			}
+			result = expr.EvalOr(nil, result, h.hasError(f))
+		}
+		if result == nil {
+			return vector.NewFalse(vec.Len())
+		}
+		return result
+	case *vector.Array:
+		return listHasError(h.hasError(vec.Values), index, vec.Offsets)
+	case *vector.Set:
+		return listHasError(h.hasError(vec.Values), index, vec.Offsets)
+	case *vector.Map:
+		keys := listHasError(h.hasError(vec.Keys), index, vec.Offsets)
+		vals := listHasError(h.hasError(vec.Values), index, vec.Offsets)
+		return expr.EvalOr(nil, keys, vals)
+	default:
+		return vector.Apply(true, IsErr{}.Call, in)
+	}
+}
+
+func listHasError(inner vector.Any, index, offsets []uint32) vector.Any {
+	// XXX This is basically the same logic in search.evalForList we should
+	// probably centralize this functionality.
+	var index2 []uint32
+	out := vector.NewFalse(uint32(len(offsets) - 1))
+	for i := range out.Len() {
+		idx := i
+		if index != nil {
+			idx = index[i]
+		}
+		start, end := offsets[idx], offsets[idx+1]
+		n := end - start
+		if n == 0 {
+			continue
+		}
+		// Reusing index2 across calls here is safe because view does not
+		// escape this loop body.
+		index2 = slices.Grow(index2[:0], int(n))[:n]
+		for k := range n {
+			index2[k] = k + start
+		}
+		view := vector.Pick(inner, index2)
+		if expr.FlattenBool(view).Bits.TrueCount() > 0 {
+			out.Set(i)
+		}
+	}
+	return out
+}
 
 type Is struct {
 	sctx *super.Context
