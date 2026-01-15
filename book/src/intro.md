@@ -3,6 +3,11 @@
 SuperDB is a new type of analytics database that promises an easier approach
 to modern data because it unifies relational tables and eclectic JSON in a
 powerful, new data model called [_super-structured data_](formats/model.md).
+SuperDB's query language is a
+[pipe SQL](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/)
+adapted for super-structured data called [_SuperSQL_](super-sql/intro.md),
+which is aspirationally backward-compatible with
+[PostgreSQL](https://www.postgresql.org/).
 
 > [!NOTE]
 > The SuperDB implementation is open source and available as a
@@ -12,8 +17,8 @@ powerful, new data model called [_super-structured data_](formats/model.md).
 
 Super-structured data is
 * _dynamic_ so that data collections can vary by type and are not handcuffed by schemas,
-* _strongly typed_ ensuring that all the benefits of a comprehensive type system
-  apply to dynamic data, and
+* _strongly typed_ allowing static type checking and type-based query
+optimizations to apply to dynamic data,
 * _self-describing_ thus obviating the need to define schemas up front.
 
 SuperDB has taken many of the best ideas of current data systems and adapted them
@@ -36,8 +41,8 @@ into relational columns.
 Putting JSON into a relational table &mdash; whether adding a JSON or variant
 column to a relational table or performing schema inference that does not
 always work &mdash; is like putting a square peg in a round hole.
-SuperDB turns this status quo _upside down_ where JSON and
-schema-constrained relational tables are simply special cases of
+SuperDB turns this status quo _upside down_ where both JSON _and_
+relational tables are simply special cases of
 the more general and holistic super-structured data model.
 
 This leads to ergonomics for SuperDB that are far better for the query language
@@ -47,6 +52,9 @@ relational tables and eclectic JSON data are treated in a uniform way
 from the ground up.  For example, there's no need for a set of Parquet input files
 to all be schema-compatible and it's easy to mix and match Parquet with
 JSON across queries.
+
+_It's time for the relational model to become a special case of
+an easier and broader approach for modern data._
 
 ## Super-structured Data
 
@@ -140,14 +148,11 @@ consider this simple line of JSON data is in a file called `example.json`:
 > an API returning an array of JSON objects with varying shape.
 
 Surprisingly, this simple JSON input causes unpredictable schema inference
-across different SQL systems.
-ClickHouse converts the JSON number `1` to a string:
-```sh
-$ clickhouse -q "SELECT * FROM 'example.json'"
-['1','foo']
-```
-DuckDB does only partial schema inference and leaves the contents
-of the array as type JSON:
+with some popular SQL systems.
+
+For example, DuckDB performs only a partial schema inference &mdash; determining a
+relational column called `a` is an array &mdash; but leaves the contents
+of the array as the non-inferred type JSON:
 ```sh
 $ duckdb -c "SELECT * FROM 'example.json'"
 ┌──────────────┐
@@ -157,39 +162,34 @@ $ duckdb -c "SELECT * FROM 'example.json'"
 │ [1, '"foo"'] │
 └──────────────┘
 ```
-And DataFusion fails with an error:
+DataFusion simply fails with an error:
 ```sh
 $ datafusion-cli -c "SELECT * FROM 'example.json'"
-DataFusion CLI v46.0.1
+DataFusion CLI v52.1.0
 Error: Arrow error: Json error: whilst decoding field 'a': expected string got 1
 ```
 It turns out there's no easy way to represent this straightforward
 literal array value `[1,'foo']` in these SQLs, e.g., simply including this
 value in a SQL expression results in errors:
 ```sh
-$ clickhouse -q "SELECT [1,'foo']"
-Code: 386. DB::Exception: There is no supertype for types UInt8, String because some of them are String/FixedString/Enum and some of them are not. (NO_COMMON_TYPE)
-
 $ duckdb -c "SELECT [1,'foo']"
 Conversion Error:
 Could not convert string 'foo' to INT32
 
 LINE 1: SELECT [1,'foo']
                   ^
-
 $ datafusion-cli -c "SELECT [1,'foo']"
-DataFusion CLI v46.0.1
-Error: Arrow error: Cast error: Cannot cast string 'foo' to value of Int64 type
+DataFusion CLI v52.1.0
+Error: Optimizer rule 'simplify_expressions' failed
+caused by
+Arrow error: Cast error: Cannot cast string 'foo' to value of Int64 type
 ```
-
 The more recent innovation of an open variant type
 is more general than JSON but suffers from similar problems.
 In both these cases, the JSON type and the variant
 type are not individual types but rather entire type systems that differ
 from the base relational type system and so are shoehorned into the relational model
 as a parallel type system masquerading as a specialized type to make it all work.
-
-Maybe there is a better way?
 
 ## Enter Algebraic Types
 
@@ -210,16 +210,74 @@ a product type &mdash; it unfortunately did not anticipate sum types.
 >
 > But sum types were notably absent.
 
-Armed with both sum and product types, super-structured data provides a
-comprehensive algebraic type system that can represent any
+Armed with both sum and product types, a
+comprehensive algebraic type system can represent any
 [JSON value as a concrete type](https://www.researchgate.net/publication/221325979_Union_Types_for_Semistructured_Data).
 And since relations are simply product types
 as originally envisioned by Codd, any relational table can be represented
 also as a super-structured product type.  Thus, JSON and relational tables
 are cleanly unified with an algebraic type system.
 
-In this way, SuperDB "just works" when it comes to processing the JSON example
-from above:
+The relational database industry is just beginning to recognize this
+and ClickHouse, in partiicular, recently introduced sum types into their
+type system so that mixed-type arrays now work, e.g., the query
+from above seems to work
+```sh
+$ clickhouse -q "SELECT a FROM 'example.json'"
+[1,'foo']
+```
+Interestingly, if we use ClickHouse's type-of function `toTypeName()`
+we can see the resulting type relies upon another new type
+called `Dynamic`:
+```sh
+$ clickhouse -q "SELECT toTypeName(a) FROM 'example.json'"
+Array(Dynamic)
+```
+This result rhymes with the DuckDB type `[]JSON` but
+ClickHouse provides a secondary type function `dynamicType()`
+to get at the underlying type,
+but we can't use that function on the top-level value
+```sh
+$ clickhouse -q "SELECT dynamicType(*) FROM 'example.json'"
+Code: 43. DB::Exception: First argument for function dynamicType must be Dynamic, got Array(Dynamic) instead: In scope SELECT toTypeName(*), dynamicType(*) FROM `example.json`. (ILLEGAL_TYPE_OF_ARGUMENT)
+```
+Instead we must ask for the type of the array element
+```sh
+$ clickhouse -q "SELECT dynamicType(a[1]), dynamicType(a[2]) FROM 'example.json'"
+Int64   String
+```
+While ClickHouse successfully inferred the types of the mixed-type array,
+this feels clunky.  Moreover, with a slightly more complicated example,
+ClickHouse fails to convert the input to its `Dynamic` representation:
+```sh
+$ cat example2.json
+{"a":[1,"foo"]}
+{"a":1}
+$ clickhouse -q "SELECT a FROM 'example2.json'"
+Code: 636. DB::Exception: The table structure cannot be extracted from a JSON format file. Error:
+Code: 53. DB::Exception: Automatically defined type Int64 for column 'a' in row 1 differs from type defined by previous rows: Array(String). You can specify the type for this column using setting schema_inference_hints. (TYPE_MISMATCH) (version 26.1.1.912 (official build)).
+...
+```
+No doubt, this will be fixed this in the future.  But there's a
+fundamental dissonance here in an
+approach that adapts the statically-typed relational model to a new
+model based on dynamic data without clearly defining what the new
+foundation might be.
+
+The result is user-facing ergonomics that are unappealing.
+
+While this is truly impressive engineering, maybe there's a better way?
+
+### Types Not Tables
+
+Instead of adapting dynamic data to the relational model, SuperDB's approach is to
+redefine the foundation around algebraic _types_ instead of _tables_, where a relational
+table is simply a special case of an algebraic type.
+
+This is the essence of super-structured data.
+
+With this foundational shift, SuperDB "just works" when it comes to processing the
+JSON example from above:
 ```sh
 $ super -c "SELECT * FROM 'example.json'"
 {a:[1,"foo"]}
@@ -235,6 +293,14 @@ $ super -c "SELECT typeof(a) as type FROM (SELECT [1,'foo'] AS a)"
 In this super-structured representation, the `type` field is a first-class
 [type value](super-sql/types/type.md)
 representing an array type of elements having a sum type of `int64` and `string`.
+
+And the input that foiled ClickHouse is naturally and easily
+handled by super-structured data:
+```sh
+; super -c "SELECT a, typeof(a) as type FROM 'example2.json'"
+{a:[1,"foo"],type:<[int64|string]>}
+{a:1,type:<int64>}
+```
 
 ## SuperSQL
 
@@ -393,6 +459,9 @@ The jury is out as to whether a Pipe SQL for super-structured data is the
 right approach for curing SQL's ills, but it certainly provides a framework
 for exploring entirely new language abstractions while maintaining complete
 backward compatibility with SQL all in the same query language.
+
+_It's time for the relational model to become a special case of
+an easier and broader approach for modern data._
 
 > [!NOTE]
 > If SuperDB or super-structured data has piqued your interest,
