@@ -5,10 +5,13 @@ input: |
   error(0)
   {f1:127.0.0.1,f2:error("error")}
   [1,2]::[int64|error(string)]
-  |{"key":error(0)::(int64|error(int64))}|
+  [1,2,error(0)]
+  |[1,2,error(0)]|
+  |{"k2":1,"k1":error(0)}|
   <error(int64)>
   <{x:error(int64)}>
   null::error(int64)
+  null::(int64|error(int64))
   null::{x:error(string)}
 
 output: |
@@ -17,6 +20,9 @@ output: |
   true
   false
   true
+  true
+  true
+  false
   false
   false
   false

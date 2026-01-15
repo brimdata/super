@@ -186,8 +186,7 @@ func (t *translator) fromFString(entity *ast.FromEval, args []ast.OpArg, seq sem
 }
 
 func hasError(val super.Value) bool {
-	has := function.NewHasError()
-	result := has.Call([]super.Value{val})
+	result := function.HasError{}.Call([]super.Value{val})
 	return result.AsBool()
 }
 

@@ -1,6 +1,8 @@
 package function
 
 import (
+	"slices"
+
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
 )
@@ -83,76 +85,45 @@ func (i *Is) Call(args []super.Value) super.Value {
 	return super.NewBool(err == nil && typ == zvSubject.Type())
 }
 
-type HasError struct {
-	cached map[int]bool
+type HasError struct{}
+
+func (h HasError) Call(args []super.Value) super.Value {
+	return super.NewBool(h.hasError(args[0].Type(), args[0].Bytes()))
 }
 
-func NewHasError() *HasError {
-	return &HasError{
-		cached: make(map[int]bool),
-	}
-}
-
-func (h *HasError) Call(args []super.Value) super.Value {
-	val := args[0]
-	hasError, _ := h.hasError(val.Type(), val.Bytes())
-	return super.NewBool(hasError)
-}
-
-func (h *HasError) hasError(t super.Type, b scode.Bytes) (bool, bool) {
+func (h HasError) hasError(t super.Type, b scode.Bytes) bool {
 	// If a value is null we can skip since an null error is not an error.
 	if b == nil {
-		return false, false
+		return false
 	}
-	if hasErr, ok := h.cached[t.ID()]; ok {
-		return hasErr, true
-	}
-	var hasErr bool
-	canCache := true
 	switch typ := super.TypeUnder(t).(type) {
 	case *super.TypeRecord:
 		it := b.Iter()
-		for _, f := range typ.Fields {
-			e, c := h.hasError(f.Type, it.Next())
-			hasErr = hasErr || e
-			canCache = !canCache || c
-		}
+		return slices.ContainsFunc(typ.Fields, func(f super.Field) bool {
+			return h.hasError(f.Type, it.Next())
+		})
 	case *super.TypeArray, *super.TypeSet:
 		inner := super.InnerType(typ)
 		for it := b.Iter(); !it.Done(); {
-			e, c := h.hasError(inner, it.Next())
-			hasErr = hasErr || e
-			canCache = !canCache || c
+			if h.hasError(inner, it.Next()) {
+				return true
+			}
 		}
+		return false
 	case *super.TypeMap:
 		for it := b.Iter(); !it.Done(); {
-			e, c := h.hasError(typ.KeyType, it.Next())
-			hasErr = hasErr || e
-			canCache = !canCache || c
-			e, c = h.hasError(typ.ValType, it.Next())
-			hasErr = hasErr || e
-			canCache = !canCache || c
+			if h.hasError(typ.KeyType, it.Next()) || h.hasError(typ.ValType, it.Next()) {
+				return true
+			}
 		}
+		return false
 	case *super.TypeUnion:
-		for _, typ := range typ.Types {
-			_, isErr := super.TypeUnder(typ).(*super.TypeError)
-			canCache = !canCache || isErr
-		}
-		if typ, b := typ.Untag(b); b != nil {
-			// Check mb is not nil to avoid infinite recursion.
-			var cc bool
-			hasErr, cc = h.hasError(typ, b)
-			canCache = !canCache || cc
-		}
+		return h.hasError(typ.Untag(b))
 	case *super.TypeError:
-		hasErr = true
+		return true
+	default:
+		return false
 	}
-	// We cannot cache a type if the type or one of its children has a union
-	// with an error member.
-	if canCache {
-		h.cached[t.ID()] = hasErr
-	}
-	return hasErr, canCache
 }
 
 type Quiet struct {
