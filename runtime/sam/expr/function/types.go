@@ -64,7 +64,7 @@ func (e *Error) Call(args []super.Value) super.Value {
 type IsErr struct{}
 
 func (*IsErr) Call(args []super.Value) super.Value {
-	return super.NewBool(!args[0].IsNull() && args[0].IsError())
+	return super.NewBool(args[0].IsError() && !args[0].IsNull())
 }
 
 type Is struct {
