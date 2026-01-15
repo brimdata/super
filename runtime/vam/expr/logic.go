@@ -50,16 +50,6 @@ func NewLogicalAnd(sctx *super.Context, lhs, rhs Evaluator) *And {
 	return &And{sctx, lhs, rhs}
 }
 
-type Or struct {
-	sctx *super.Context
-	lhs  Evaluator
-	rhs  Evaluator
-}
-
-func NewLogicalOr(sctx *super.Context, lhs, rhs Evaluator) *Or {
-	return &Or{sctx, lhs, rhs}
-}
-
 func (a *And) Eval(val vector.Any) vector.Any {
 	return evalBool(a.sctx, a.eval, a.lhs.Eval(val), a.rhs.Eval(val))
 }
@@ -75,7 +65,7 @@ func (a *And) eval(vecs ...vector.Any) vector.Any {
 	if _, ok := rhs.(*vector.Error); ok {
 		return a.andError(rhs, lhs)
 	}
-	blhs, brhs := toBool(lhs), toBool(rhs)
+	blhs, brhs := FlattenBool(lhs), FlattenBool(rhs)
 	and := bitvec.And(blhs.Bits, brhs.Bits)
 	if blhs.Nulls.IsZero() && brhs.Nulls.IsZero() {
 		return vector.NewBool(and, bitvec.Zero)
@@ -91,7 +81,7 @@ func (a *And) andError(err vector.Any, vec vector.Any) vector.Any {
 	if _, ok := vec.(*vector.Error); ok {
 		return err
 	}
-	b := toBool(vec)
+	b := FlattenBool(vec)
 	// anything and FALSE = FALSE
 	isError := bitvec.Or(b.Bits, b.Nulls)
 	var index []uint32
@@ -107,29 +97,41 @@ func (a *And) andError(err vector.Any, vec vector.Any) vector.Any {
 	return vec
 }
 
+type Or struct {
+	sctx *super.Context
+	lhs  Evaluator
+	rhs  Evaluator
+}
+
+func NewLogicalOr(sctx *super.Context, lhs, rhs Evaluator) *Or {
+	return &Or{sctx, lhs, rhs}
+}
+
 func (o *Or) Eval(val vector.Any) vector.Any {
-	return evalBool(o.sctx, o.eval, o.lhs.Eval(val), o.rhs.Eval(val))
+	return EvalOr(o.sctx, o.lhs.Eval(val), o.rhs.Eval(val))
 }
 
-func (o *Or) eval(vecs ...vector.Any) vector.Any {
-	if vecs[0].Len() == 0 {
-		return vecs[0]
-	}
-	lhs, rhs := vector.Under(vecs[0]), vector.Under(vecs[1])
-	if _, ok := lhs.(*vector.Error); ok {
-		return o.orError(lhs, rhs)
-	}
-	if _, ok := rhs.(*vector.Error); ok {
-		return o.orError(rhs, lhs)
-	}
-	return vector.Or(toBool(lhs), toBool(rhs))
+func EvalOr(sctx *super.Context, lhs, rhs vector.Any) vector.Any {
+	return evalBool(sctx, func(vecs ...vector.Any) vector.Any {
+		if vecs[0].Len() == 0 {
+			return vecs[0]
+		}
+		lhs, rhs := vector.Under(vecs[0]), vector.Under(vecs[1])
+		if _, ok := lhs.(*vector.Error); ok {
+			return orError(lhs, rhs)
+		}
+		if _, ok := rhs.(*vector.Error); ok {
+			return orError(rhs, lhs)
+		}
+		return vector.Or(FlattenBool(lhs), FlattenBool(rhs))
+	}, lhs, rhs)
 }
 
-func (o *Or) orError(err, vec vector.Any) vector.Any {
+func orError(err, vec vector.Any) vector.Any {
 	if _, ok := vec.(*vector.Error); ok {
 		return err
 	}
-	b := toBool(vec)
+	b := FlattenBool(vec)
 	// not error if true or null
 	notError := bitvec.Or(b.Bits, b.Nulls)
 	var index []uint32
@@ -162,7 +164,7 @@ func evalBool(sctx *super.Context, fn func(...vector.Any) vector.Any, vecs ...ve
 	}, vecs...)
 }
 
-func toBool(vec vector.Any) *vector.Bool {
+func FlattenBool(vec vector.Any) *vector.Bool {
 	switch vec := vec.(type) {
 	case *vector.Const:
 		val := vec.Value()
@@ -260,7 +262,7 @@ func (p *PredicateWalk) Eval(vecs ...vector.Any) vector.Any {
 			if index != nil {
 				f = vector.Pick(f, index)
 			}
-			out = vector.Or(out, toBool(p.Eval(lhs, f)))
+			out = vector.Or(out, FlattenBool(p.Eval(lhs, f)))
 		}
 		return out
 	case *vector.Array:
@@ -307,7 +309,7 @@ func (p *PredicateWalk) evalForList(lhs, rhs vector.Any, offsets, index []uint32
 		}
 		lhsView := vector.Pick(lhs, lhsIndex)
 		rhsView := vector.Pick(rhs, rhsIndex)
-		b := toBool(p.Eval(lhsView, rhsView))
+		b := FlattenBool(p.Eval(lhsView, rhsView))
 		if b.Bits.TrueCount() > 0 {
 			out.Set(j)
 		} else if b.Nulls.TrueCount() > 0 {
