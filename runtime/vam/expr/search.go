@@ -80,7 +80,7 @@ func (s *search) eval(vecs ...vector.Any) vector.Any {
 			if index != nil {
 				f = vector.Pick(f, index)
 			}
-			out = vector.Or(out, toBool(s.eval(f)))
+			out = vector.Or(out, FlattenBool(s.eval(f)))
 		}
 		return out
 	case *vector.Array:
@@ -115,7 +115,7 @@ func (s *search) evalForList(vec vector.Any, offsets, index []uint32, length uin
 			index2[k] = k + start
 		}
 		view := vector.Pick(vec, index2)
-		if toBool(s.eval(view)).Bits.TrueCount() > 0 {
+		if FlattenBool(s.eval(view)).Bits.TrueCount() > 0 {
 			out.Set(j)
 		}
 	}
