@@ -2,13 +2,13 @@
 
 The `FROM` clause of a [SELECT](select.md) has the form
 ```
-FROM <table-expr> [ , <table-expr> ... ]
+FROM <table-expr> [ <as> ] [ , <table-expr> [ <as> ]... ]
 ```
 where `<table-expr>` is a table expression having one of the forms:
 ```
-<entity> [ ( <options> ) ] [ <as> ]
-( <pipe-query> ) [ <as> ]
-<named-query> [ <as> ]
+<entity> [ ( <options> ) ]
+( <pipe-query> )
+<named-query>
 ```
 
 `<entity>` is defined as in the pipe form of [from](../operators/from.md), namely one of
@@ -23,7 +23,9 @@ where `<table-expr>` is a table expression having one of the forms:
 `<pipe-query>` is any [query](../queries.md) inclusive of
 [SQL pipe operators](intro.md###sql-pipe-operators).
 
-`<named-query>` is the name of a [declared query](../declarations/queries.md).
+`<named-query>` is the name of a common-table expression (CTE)
+defined in a [WITH](with.md) clause or a
+[declared query](../declarations/queries.md).
 
 All of the table expressions above may be bound to a table alias
 with the option `<as>` clause of the form
@@ -43,12 +45,12 @@ column names of that table.
 
 A `FROM` clause is a component of [SELECT](select.md) that
 identifies the query's input data and creates a namespace for the
-input comprised of table and column [references](intro.md#indentifier-resolution)
+input comprised of table and column [references](intro.md#identifier-resolution)
 that may then in the various expressions appearing throughout the query.
 
 The input data is indicated by one or more table expressions.
 When there are multiple table expressions, the tables are combined
-with relational joins into an single output table that is referenced
+with a relational cross join into an single output table that is referenced
 by the consistuent table and column names.
 
 
