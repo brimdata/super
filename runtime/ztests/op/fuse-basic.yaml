@@ -1,0 +1,70 @@
+spq: fuse
+
+vector: true
+
+input: |
+  {a:"hello",b:"world"}
+  {b:"goodnight",c:"gracie"}
+  {a:"goodnight",b:123::int32}
+
+output: |
+  {a:"hello",b:"world"::(int32|string),c:null::string}
+  {a:null::string,b:"goodnight"::(int32|string),c:"gracie"}
+  {a:"goodnight",b:123::int32::(int32|string),c:null::string}
+
+---
+
+# Test fuse on an array of records.
+spq: fuse
+
+vector: true
+
+input: |
+  [{a:1}]
+  [{b:2}]
+  [{a:3},{b:3}]
+  [{a:3,b:3}]
+
+output: |
+  [{a:1,b:null::int64}]
+  [{a:null::int64,b:2}]
+  [{a:3,b:null::int64},{a:null::int64,b:3}]
+  [{a:3,b:3}]
+
+---
+
+# Test fuse on mix of complex and primitive values.
+spq: fuse
+
+vector: true
+
+input: |
+  {a:1}
+  {a:"s"}
+  1
+  "s"
+  [1]
+  ["s"]
+
+# XXX The first two output values should be shaped to the union type but
+# are not.
+output: |
+  {a:1}
+  {a:"s"}
+  1::(int64|string|{a:int64|string}|[int64]|[string])
+  "s"::(int64|string|{a:int64|string}|[int64]|[string])
+  [1]::(int64|string|{a:int64|string}|[int64]|[string])
+  ["s"]::(int64|string|{a:int64|string}|[int64]|[string])
+
+---
+
+# Test fuse on nested records.
+spq: fuse
+
+input: |
+  {a:"hello",r:{x:1::int32,y:2::int32}}
+  {r:{y:4::int32,z:5::int32},s:"world",r2:{x:6::int32}}
+
+output: |
+  {a:"hello",r:{x:1::int32,y:2::int32,z:null::int32},s:null::string,r2:null::{x:int32}}
+  {a:null::string,r:{x:null::int32,y:4::int32,z:5::int32},s:"world",r2:{x:6::int32}}
