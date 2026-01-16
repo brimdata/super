@@ -10,6 +10,10 @@ the query takes its input from the parent operator.
 If there is no parent operator and `FROM` is omitted, then the
 default input is a single `null` value.
 
+A `FROM` clause may also take input from its parent when using
+an [f-string](../expressions/f-strings.md) as its input table.
+In this case, the input table is dynamically typed.
+
 ## Query Envelope
 
 A SQL pipe operator is a query having the form of a `<query-envelope>` defined as

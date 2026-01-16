@@ -48,11 +48,19 @@ identifies the query's input data and creates a namespace for the
 input comprised of table and column [references](intro.md#identifier-resolution)
 that may then in the various expressions appearing throughout the query.
 
-The input data is indicated by one or more table expressions.
-When there are multiple table expressions, the tables are combined
-with a relational cross join into an single output table that is referenced
-by the consistuent table and column names.
+This namespace is called a _relational scope_ and the `FROM` clause
+creats the _input scope_ for `SELECT`.
 
+The name space consists of the table names and aliases (and their
+constituent columns) created by the initial `FROM` clause and
+any [JOIN](join.md) clauses that appear.  Any tables that are defined
+in table subqueries in the `FROM` clause are not part of the
+input scope.
+
+When there are multiple common-separated table expressions,
+the tables are combined with a relational cross join into a
+single output table that is referenced by the consistuent
+table and column names.
 
 >[!NOTE]
 > The SQL `FROM` clause is similar to the pipe form of the
@@ -92,7 +100,7 @@ super -s -c 'SELECT this as line FROM hello.json (format line)'
 
 _Source data from a URL_
 ```
-super -s -c "SELECT name FROM https://raw.githubusercontent.com/brimdata/super/main/package.json"
+super -s -c "SELECT name FROM https://api.github.com/repos/brimdata/super"
 ```
 ```
 {name:"super"}
@@ -216,13 +224,13 @@ _Read from dynamically defined files and add a column_
 echo '{a:1}{a:2}' > a.sup
 echo '{b:3}{b:4}' > b.sup
 echo '"a.sup" "b.sup"' | super -s -c "
-SELECT *, coalesce(a,b)+1 AS c
+SELECT this, coalesce(a,b)+1 AS c
 FROM f'{this}'
 " -
 ```
 ```mdtest-output
-{a:1,c:2}
-{a:2,c:3}
-{b:3,c:4}
-{b:4,c:5}
+{that:{a:1},c:2}
+{that:{a:2},c:3}
+{that:{b:3},c:4}
+{that:{b:4},c:5}
 ```

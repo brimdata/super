@@ -363,9 +363,14 @@ giving the same result
 {s:21}
 ```
 
-## Strong Typing
+## Type Checking
 
 Data in SuperSQL is always strongly typed.
+
+
+* strict,
+* soft, or
+* dynamic.
 
 Like relational SQL, SuperSQL data sequences
 can conform to a static schema that is type-checked at compile time.

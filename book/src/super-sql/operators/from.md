@@ -18,7 +18,7 @@ where `<entity>` has the form of
 `<options>` is an optional concatenation of named [options](#options); and,
 
 `<named-query>` is an identifier referencing a
-[declared query](../declarations/query.md).
+[declared query](../declarations/queries.md).
 
 ### Description
 
@@ -251,8 +251,7 @@ super -s -c 'from hello.sup (format line)'
 
 _Source data from a URL_
 ```
-super -s -c 'from https://raw.githubusercontent.com/brimdata/super/main/package.json
-       | values name'
+super -s -c 'from https://api.github.com/repos/brimdata/super | values name'
 ```
 ```
 "super"
