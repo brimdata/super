@@ -3,6 +3,11 @@
 SuperDB is a new type of analytics database that promises an easier approach
 to modern data because it unifies relational tables and eclectic JSON in a
 powerful, new data model called [_super-structured data_](formats/model.md).
+SuperDB's query language is a
+[pipe SQL](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/)
+adapted for super-structured data called [_SuperSQL_](super-sql/intro.md),
+which is aspirationally backward-compatible with
+[PostgreSQL](https://www.postgresql.org/).
 
 > [!NOTE]
 > The SuperDB implementation is open source and available as a
@@ -12,8 +17,8 @@ powerful, new data model called [_super-structured data_](formats/model.md).
 
 Super-structured data is
 * _dynamic_ so that data collections can vary by type and are not handcuffed by schemas,
-* _strongly typed_ ensuring that all the benefits of a comprehensive type system
-  apply to dynamic data, and
+* _strongly typed_ allowing static type checking and type-based query
+optimizations to apply to dynamic data,
 * _self-describing_ thus obviating the need to define schemas up front.
 
 SuperDB has taken many of the best ideas of current data systems and adapted them

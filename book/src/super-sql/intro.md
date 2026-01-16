@@ -331,12 +331,12 @@ The array subquery produces an array value so it is often desirable to
 [unnest](operators/unnest.md) this array with respect to the outer
 values as in
 ```
-from f1.json | unnest {outer:this,inner:[from f2.json | ...]} into ( <scope> )
+from f1.json | unnest {outer:this,inner:[from f2.json | ...]} into ( <query> )
 ```
-where `<scope>` can be an arbitrary pipe query that processes each
+where `<query>` is an arbitrary pipe query that processes each
 collection of unnested values separately as a unit for each outer value.
-The `into ( <scope> )` body is an optional component of `unnest`, and if absent,
-the unnested collection boundaries are ignored and all of the unnested data is output.
+The `into ( <query> )` body is an optional component of `unnest`, and if absent,
+the unnested collection boundaries are ignored and all of the unnested data is output as a combined sequence.
 
 With the `unnest` operator, we can now consider how a [correlated subquery](https://en.wikipedia.org/wiki/Correlated_subquery) from
 SQL can be implemented purely as a pipe query with pipe scoping.
