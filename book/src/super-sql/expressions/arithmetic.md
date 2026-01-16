@@ -14,7 +14,7 @@ and
 ```
 + <expr>
 ```
-where `<expr>` is any [expression](intro.md) that results in a number type.
+where `<expr>` is any [expression](intro.md) that results in a [number](../types/numbers.md) type.
 
 ### Example
 

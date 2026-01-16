@@ -25,7 +25,7 @@ If errors are encountered, then some or all of the resulting value
 will be embedded with structured errors and the result does not have
 the target type.
 
-The target type cannot contain an error type.  The [`error`](../types/error.md) function
+The target type cannot contain an error type.  The [error](../functions/errors/error.md) function
 should instead be used to create error values.
 
 ### Primitive Values
@@ -41,27 +41,27 @@ The casting rules for primitives are as follows:
   * another [number](../types/numbers.md) type as long as the numeric value
     is not outside the scope of the target type,
     which results in a structured error,
-  * type [`string`](../types/string.md),
-  * type [`bool`](../types/bool.md) where zero is `false` and non-zero is `true`,
-  * type [`duration`](../types/time.md) where the number is presumed to be nanoseconds,
-  * type [`time`](../types/time.md) where the number is presumed to be nanoseconds since epoch, or
+  * type [string](../types/string.md),
+  * type [bool](../types/bool.md) where zero is `false` and non-zero is `true`,
+  * type [duration](../types/time.md) where the number is presumed to be nanoseconds,
+  * type [time](../types/time.md) where the number is presumed to be nanoseconds since epoch, or
   * a [union](#union-types) or [named type](#named-types).
 * A [string](../types/string.md) may be cast to any other primitive type as long as
 the string corresponds to a valid SuperSQL primitive literal.  Time strings
 in particular may represent typical timestamp formats.  When cast to the
-[`bytes`](../types/bytes.md) type,
+[bytes](../types/bytes.md) type,
 the result is the byte encoding of the UTF-8 string.  A string may also be cast to
 a [union](#union-types) or [named](#named-types) type.
 To parse a literal
 string that is in the SUP or JSON format without having to specify the target type, use
-the [`parse_sup`](../functions/parsing/parse_sup.md) function.
+the [parse_sup](../functions/parsing/parse_sup.md) function.
 * A [bool](../types/bool.md) may be cast to
   * a number type where `false` is zero and `true` is `1`,
-  * type [`string`](../types/string.md), or
+  * type [string](../types/string.md), or
   * a [union](#union-types) or [named type](#named-types).
 * A [time](../types/time.md) value may be cast to
-  * a number type where the numeric value is nanoseconds since epoch
-  * type [`string`](../types/string.md), or
+  * a [number](../types/numbers.md) type where the numeric value is nanoseconds since epoch,
+  * type [string](../types/string.md), or
   * a [union](#union-types) or [named type](#named-types).
 
 A null value of type [null](../types/null.md) may be cast to any type.
@@ -98,7 +98,7 @@ The casting rules for complex values are as follows:
     recursively cast to the element type of the target array type,
   * a [set](../types/set.md) type where the elements of the input value are
     recursively cast to the element type of the target set type and any duplicate
-    values are automatically removed, or
+    values are automatically removed,
   * a [string](../types/string.md) type where the string is the input value
     serialized in the [SUP](../../formats/sup.md) format, or
   * a [union](#union-types) or [named type](#named-types).
@@ -106,19 +106,19 @@ The casting rules for complex values are as follows:
   * a [set](../types/set.md) type where the elements of the input value are
     recursively cast to the element type of the target set type,
   * an [array](../types/array.md) type where the elements of the input value are
-    recursively cast to the element type of the target array type, or
+    recursively cast to the element type of the target array type,
   * a [string](../types/string.md) type where the string is the input value
     serialized in the [SUP](../../formats/sup.md) format, or
   * a [union](#union-types) or [named type](#named-types).
 * A [map](../types/map.md) may be cast to
   * a [map](../types/map.md) type where the keys and values of the input value are
-    recursively cast to the key and value type of the target map type, or
+    recursively cast to the key and value type of the target map type,
   * a [string](../types/string.md) type where the string is the input value
     serialized in the [SUP](../../formats/sup.md) format, or
   * a [union](#union-types) or [named type](#named-types).
 * An [enum](../types/enum.md) may be cast to
   * an [enum](../types/enum.md) type where the target type includes the symbol
-    of the value being cast, or
+    of the value being cast,
   * a [string](../types/string.md) type where the string is the input value
     serialized in the [SUP](../../formats/sup.md) format, or
   * a [union](#union-types) or [named type](#named-types).
@@ -135,7 +135,7 @@ Otherwise, the best fit is determined from the input type as follows:
 
 >[!NOTE]
 > A future version of this documentation will provide detailed documentation for
-> best-fit selection algorithm.
+> the best-fit selection algorithm.
 
 ### Named Types
 
@@ -144,7 +144,7 @@ then the named type is reattached to the result.
 
 ### Errors
 
-Casts attempted between a value and a type that are not defined
+Casts attempted between a value and a type that are not permitted
 result in a structured error of the form of:
 ```
 {message:"cannot cast to <target>", on:<val>}
@@ -154,15 +154,16 @@ value may not be wrapped in a structured error and the problematic portions
 of the cast can be debugged by inspecting the result for precisely where
 the errors arose.
 
-For example, this function call
-```
+For example, notice the error returned by the following function call.
+```mdtest-spq {data-layout='no-labels'} {style='margin:auto;width:85%'}
+# spq
 cast({a:"1",b:2}, <{a:int64,b:ip}>)
-```
-returns
-```
+# input
+
+# expected output
 {a:1,b:error({message:"cannot cast to ip",on:2})}
 ```
-That is the value for `a` was successfully cast from string `"1`" to integer `1` but
+That is, the value for `a` was successfully cast from string `"1`" to integer `1` but
 the value for `b` could not be cast to an IP address so a structured error is
 instead embedded as the value for `b`.
 
