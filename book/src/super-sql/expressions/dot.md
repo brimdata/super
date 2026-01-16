@@ -5,18 +5,18 @@ as is customary in other languages.  The syntax is
 ```
 <expr> . <id>
 ```
-where `<expr>` is an [expresson](intro.md) resulting in a dereferenceable value
+where `<expr>` is an [expression](intro.md) resulting in a dereferenceable value
 and `<id>` is an [identifier](../queries.md#identifiers) representing the
 field name of a record or a string key of a map.
 
 Dereferenceable values include [records](../types/record.md),
-[maps](../types/map.md) with keys of type string, and
-[type values](../types/type.md) that are of type record.
+[maps](../types/map.md) with keys of type `string`, and
+[type values](../types/type.md) that are of type `record`.
 
 The result of a dot expression is
-* the value of the indicated field for a record type,
-* the value of the indicated entry for a map with string keys, or
-* the type value of the indicated field for a record type value.
+* the value of the indicated field for a `record` type,
+* the value of the indicated entry for a `map` with `string` keys, or
+* the `type` value of the indicated field for a `record` type value.
 
 When a field or key is referenced in a dereferenceable type but that
 field or key is not present, then `error("missing")` is the result.
@@ -41,14 +41,14 @@ x["a b"]
 If a field name is not representable as an identifier,
 then [indexing](index.md)
 may be used with a quoted string to represent any valid field name.
-Such field names can be accessed using `this`
+Such field names can be accessed using [this](../intro.md#pipe-scoping)
 with an index-style reference, e.g., `this["field with spaces"]`.
 
 ### Examples
 
 ---
 
-_Derefence a map, a record, and a record type_
+_Dereference a map, a record, and a record type_
 
 ```mdtest-spq
 # spq
@@ -65,7 +65,7 @@ values this.x.y
 
 ---
 
-_Use backtick quotes for identifiers with special characters_
+_Use backtick quotes or index syntax for identifiers with special characters_
 
 ```mdtest-spq
 # spq

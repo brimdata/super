@@ -1,6 +1,6 @@
 ## Exists
 
-The `exists` operator is Boolean-valued function that tests whether
+The [Boolean](../types/bool.md) predicate `exists` tests whether
 a subquery has a non-empty result and has the form
 ```
 exists ( <query> )
@@ -29,7 +29,7 @@ true
 
 ---
 
-_EXISTS is typically used with correlated subqueries but they are not yet supported_
+_EXISTS is typically used with [correlated subqueries](subqueries.md#correlated-subqueries) but they are not yet supported_
 
 ```mdtest-spq
 # spq

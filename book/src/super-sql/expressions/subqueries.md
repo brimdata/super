@@ -14,11 +14,11 @@ where `<query>` is any query, e.g., the query
 ```
 values {s:(values "hello, world" | upper(this))}
 ```
-results in in the value `{s:"HELLO, WORLD"}`.
+results in the value `{s:"HELLO, WORLD"}`.
 
 Except for subqueries appearing as the right-hand side of
 an [in](containment.md) operator, the result of a subquery must be a single value.
-When multiple values are generated, an error is produced.
+When multiple values are generated, an [error](../types/error.md) is produced.
 
 For the [in](containment.md) operator, any subquery on the right-hand side is
 always treated as an [array subquery](#array-subqueries), thus
@@ -53,7 +53,7 @@ values {a:(values 1,2,3 | values this+1 | collect(this))}
 A subquery that depends on its input as described above is called a _dependent subquery_.
 
 When the subquery ignores its input value, e.g., when it begins with
-a [from](../operators/from.md) operator, then they query is called an _independent subquery_.
+a [from](../operators/from.md) operator, then the query is called an _independent subquery_.
 
 For efficiency, the system materializes independent subqueries so that they are evaluated
 just once.
@@ -74,7 +74,7 @@ Then, for each input value `3` and `4`, the result is emitted, e.g.,
 ### Correlated Subqueries
 
 When a subquery appears within a [SQL operator](../sql/intro.md),
-relational scope is active and references to table aliases and columns
+[relational scope](../intro.md#relational-scoping) is active and references to table aliases and columns
 may reach a scope that is outside of the subquery.
 In this case, the subquery is a
 [correlated subquery](https://en.wikipedia.org/wiki/Correlated_subquery).
@@ -103,7 +103,7 @@ values q+1
 outputs the value `4`.
 
 When a named query is expected to return multiple values, it should be referenced
-as an array subquery, e.g.,
+as an [array subquery](#array-subqueries), e.g.,
 ```
 let q = (values 1,2,3)
 values [q]
@@ -112,7 +112,7 @@ outputs the value `[1,2,3]`.
 
 ### Recursive Subqueries
 
-When subqueries are combined with recursive invocation of the function they
+When subqueries are combined with recursive invocation of the [function](../declarations/functions.md) they
 appear in, some powerful patterns can be constructed.
 
 For example, the [visitor-walk pattern](https://en.wikipedia.org/wiki/Visitor_pattern)
