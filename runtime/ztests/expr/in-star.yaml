@@ -2,6 +2,8 @@ skip: disabled until we add "over/into"-style predicates
 
 spq: 2 in *
 
+vector: true
+
 input: |
   {a:[1::uint32,2::uint32]}
   {a:[1::uint32]}

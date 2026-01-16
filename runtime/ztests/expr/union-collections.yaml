@@ -1,5 +1,7 @@
 spq: "values [v], |[v]|, |{k:v}|"
 
+vector: true
+
 input: |
   {k:1,v:"foo"::(int64|string)}
 
