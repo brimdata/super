@@ -1,0 +1,13 @@
+spq: where this
+
+vector: true
+
+input: |
+  1
+  null::bool
+  true
+  error("divide by zero")
+  error("missing")
+
+output: |
+  true
