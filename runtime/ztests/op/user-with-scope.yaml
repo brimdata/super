@@ -8,6 +8,8 @@ spq: |
   )
   keys this
 
+vector: true
+
 input: |
   {x:"foo",y:"bar"}
 
