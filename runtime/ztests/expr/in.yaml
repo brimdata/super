@@ -30,3 +30,26 @@ output: |
   [true,false,null::bool]
   [true,false,null::bool]
   [error(0),error(0),null]::[bool|error(int64)]
+
+---
+
+# Test in expressions on a map constant.
+spq: |
+  const m = |{"a":1,"b":2}|
+  values {b1: x in m,b2: "a" in a}
+
+vector: true
+
+input: |
+  {x:"a"}
+  {x:1}
+  {x:10}
+  {y:1}
+  {a:|{"a":"hello"}|}
+
+output: |
+  {b1:true,b2:error("missing")}
+  {b1:true,b2:error("missing")}
+  {b1:false,b2:error("missing")}
+  {b1:error("missing"),b2:error("missing")}
+  {b1:error("missing"),b2:true}
