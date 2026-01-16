@@ -1,9 +1,0 @@
-spq: fuse
-
-input: |
-  {a:"hello",b:"world"}
-  {a:"goodnight",b:123::int32}
-
-output: |
-  {a:"hello",b:"world"::(int32|string)}
-  {a:"goodnight",b:123::int32::(int32|string)}

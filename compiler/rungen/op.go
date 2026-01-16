@@ -298,7 +298,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 		}
 		return op.NewApplier(b.rctx, parent, expr.NewFilterApplier(b.sctx(), f)), nil
 	case *dag.FuseOp:
-		return fuse.New(b.rctx, parent)
+		return fuse.New(b.rctx, parent), nil
 	case *dag.HashJoinOp, *dag.JoinOp:
 		return nil, ErrJoinParents
 	case *dag.MergeOp:

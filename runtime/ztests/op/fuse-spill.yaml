@@ -2,6 +2,8 @@
 script: |
   super -s -fusemem 13B -c fuse in.sup
 
+vector: true
+
 inputs:
   - name: in.sup
     data: |
