@@ -3,7 +3,7 @@
 Functions compute a result from zero or more input arguments that
 are passed by value as positional arguments.
 
-A function call is an expression having the form
+A function call is an [expression](intro.md) having the form
 ```
 <entity> ( [ <arg> [ , <arg> ... ]] )
 ```
@@ -11,7 +11,7 @@ where the `<entity>` is either an [identifier](../queries.md#identifiers) or
 a [lambda expression](#lambda-expressions).  When the `<entity>` is
 an identifier, it is one of
 * the name of [built-in function](../functions/intro.md),
-* the name of a [declared function](../declarations/functions.md) that is in scope, or
+* the name of a [declared function](../declarations/functions.md) that is in [scope](../queries.md#scope), or
 * a parameter name that resolves to a [function reference](#function-references)
   where the entity called is inside of a
   [declared function](../declarations/functions.md).
@@ -22,12 +22,12 @@ and passed as a value, or
 * a [function reference](#function-references).
 
 Functions are not first-class values and cannot be assigned to super-structured values
-as there are no function values in the super-structured data model.
+as there are no function values in the super-structured [data model](../../formats/model.md).
 Instead, functions may only be called or passed as a reference to another function.
 
 ### Lambda Expressions
 
-A lambda expression is an anonymous function having the form
+A lambda expression is an [anonymous function](https://en.wikipedia.org/wiki/Anonymous_function) having the form
 ```
 lambda [ <param> [ , <param> ... ]] : <expr>
 ```
@@ -63,7 +63,7 @@ The syntax for referencing a function by name is
 ```
 where `<name>` is an [identifier](../queries.md#identifiers) corresponding to
 either a [built-in function](../functions/intro.md)
-or a [declared function](../declarations/functions.md) that is in scope.
+or a [declared function](../declarations/functions.md) that is in [scope](../queries.md#scope).
 
 >[!NOTE]
 > Many languages form function references simply by referring to their name
