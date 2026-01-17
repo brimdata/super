@@ -34,8 +34,11 @@ a `SELECT` query may be used anywhere a pipe operator may appear.
 ## Input
 
 * input scope
-* projection scope
+* grouping scope
+* aggregate scope
 * output scope
+
+## Input Scope
 
 The input to `SELECT` is a specified by its optional [FROM](from.md) clause,
 which may combine inputs from multiple with [JOIN](join.md) clauses.
