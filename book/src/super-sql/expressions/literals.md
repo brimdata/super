@@ -1,7 +1,7 @@
 ## Literals
 
-Literal values represent specific instances of a type embedded directly
-into an expression like the integer `1`, the record `{x:1.5,y:-4.0}`,
+Literal values represent specific instances of a [type](../types/intro.md) embedded directly
+into an [expression](intro.md) like the integer `1`, the record `{x:1.5,y:-4.0}`,
 or the mixed-type array `[1,"foo"]`.
 
 Any valid [SUP](../../formats/sup.md) serialized text is a valid literal in SuperSQL.
