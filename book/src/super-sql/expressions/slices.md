@@ -1,12 +1,12 @@
 ## Slices
 
-A slice expression is a variation of an index [index](index.md) expression
+A slice expression is a variation of an [index](index.md) expression
 that returns a range of values instead of a single value and can be applied
 to sliceable data types.  A slice has the form
 ```
 <entity> [ <from> : <to> ]
 ```
-where `<entity>` is an expression that returns an sliceable value
+where `<entity>` is an [expression](intro.md) that returns an sliceable value
 and `<from>` and `<to>` are expressions that are coercible to integers.
 
 Sliceable entities include
