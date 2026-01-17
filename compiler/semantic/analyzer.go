@@ -71,6 +71,7 @@ func newTranslator(ctx context.Context, r reporter, env *exec.Environment) *tran
 		scope:    NewScope(nil),
 		sctx:     super.NewContext(),
 	}
+	badTable.typ = t.sctx.MustLookupTypeRecord([]super.Field{})
 	t.checker = newChecker(t)
 	t.resolver = newResolver(t)
 	return t
