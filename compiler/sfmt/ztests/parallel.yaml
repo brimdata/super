@@ -1,5 +1,5 @@
 script: |
-  super compile -dag -C 'from /dev/null | ?foo | fork ( count() by x:=this["@foo"] ) ( sum(x) ) ( put a:=b*c ) | cut cake | sort -r x'
+  super compile -dag -C 'from /dev/null | ?foo | fork ( count() by x:=this["@foo"] ) ( sum(x) ) ( put a:=b*c ) | cut cake,x | sort -r x'
 
 outputs:
   - name: stdout
@@ -19,6 +19,6 @@ outputs:
         (
           put a:=b*c
         )
-      | cut cake:=cake
+      | cut cake:=cake,x:=x
       | sort x desc nulls last
       | output main

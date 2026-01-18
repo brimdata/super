@@ -1,0 +1,4 @@
+spq: select 1 from (values (1),(2)) having count() > 1
+
+output: |
+  {"1":1}

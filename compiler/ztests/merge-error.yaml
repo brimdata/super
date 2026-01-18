@@ -1,6 +1,6 @@
-spq: search foo | merge x
+spq: values {x:1} | search foo | merge x
 
 error: |
-  merge operator must follow fork or switch at line 1, column 14:
-  search foo | merge x
-               ~~~~~~~
+  merge operator must follow fork or switch at line 1, column 29:
+  values {x:1} | search foo | merge x
+                              ~~~~~~~

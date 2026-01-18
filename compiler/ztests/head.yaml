@@ -24,6 +24,9 @@ outputs:
       expected integer at line 1, column 6:
       head "1"
            ~~~
-      cannot reference 'x' in constant expression at line 1, column 6:
+      expected integer at line 1, column 6:
+      head x
+           ~
+      no such field "x" at line 1, column 6:
       head x
            ~

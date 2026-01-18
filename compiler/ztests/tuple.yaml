@@ -14,6 +14,9 @@ input: |
   {x:2}
 
 error: |
-  SQL VALUES clause currently supports only constant expressions at line 1, column 8:
+  no such field "x" at line 1, column 22:
   values (1,2,(3,4),{x:x*x})
-         ~~~~~~~~~~~~~~~~~~~
+                       ~
+  no such field "x" at line 1, column 24:
+  values (1,2,(3,4),{x:x*x})
+                         ~

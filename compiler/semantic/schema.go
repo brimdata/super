@@ -15,7 +15,7 @@ import (
 // relTable is a dynamic input or static relational table
 type relTable interface {
 	relScope
-	superType() super.Type
+	relTableType()
 }
 
 // tableScope is the entity used by the SQL query body logic
@@ -34,12 +34,12 @@ type relScope interface {
 	resolveTable(n ast.Node, table string, path []string) (sem.Expr, bool, error)
 	star(n ast.Node, table string, path field.Path) ([]*sem.ThisExpr, error)
 	this(n ast.Node, path []string) sem.Expr
+	superType(sctx *super.Context, unknown *super.TypeError) super.Type
 }
 
 type (
 	dynamicTable struct {
 		table string
-		typ   *super.TypeError
 	}
 
 	joinScope struct {
@@ -75,7 +75,8 @@ type (
 
 		// aggs is the set of agg functions computed in a grouped table
 		// inclusive of agg functions used subsequently in an order by
-		aggs []*sem.AggFunc
+		aggs     []*sem.AggFunc
+		aggTypes []super.Type
 
 		// groupings holds the grouping expressions which are needed to do
 		// expression matching for having, order by, and the projection.
@@ -117,10 +118,12 @@ func newTableFromType(typ super.Type, unknown *super.TypeError) relTable {
 	if typ == badType {
 		return badTable
 	}
-	if recType := recordOf(typ); recType != nil {
-		return &staticTable{typ: recType}
+	if typ != nil {
+		if recType := recordOf(typ); recType != nil {
+			return &staticTable{typ: recType}
+		}
 	}
-	return &dynamicTable{typ: unknown}
+	return &dynamicTable{}
 }
 
 func recordOf(typ super.Type) *super.TypeRecord {
@@ -154,7 +157,9 @@ func newJoinUsingScope(j *joinScope, columns []string) *joinUsingScope {
 	}
 }
 
-func (s *staticTable) superType() super.Type {
+func (*staticTable) relTableType() {}
+
+func (s *staticTable) superType(*super.Context, *super.TypeError) super.Type {
 	return s.typ
 }
 
@@ -169,8 +174,10 @@ func (s *selectScope) isGrouped() bool {
 	return len(s.aggs) != 0 || len(s.groupings) != 0
 }
 
-func (d *dynamicTable) superType() super.Type {
-	return d.typ
+func (*dynamicTable) relTableType() {}
+
+func (d *dynamicTable) superType(sctx *super.Context, unknown *super.TypeError) super.Type {
+	return unknown
 }
 
 func (d *dynamicTable) resolveQualified(table, col string) (field.Path, error) {
@@ -540,6 +547,48 @@ func fieldsToNames(columns []super.Field) []string {
 
 func (s *subqueryScope) String() string {
 	return fmt.Sprintf("subquery:\n  outer: %s\n  inner: %s", s.outer, s.inner)
+}
+
+func (j *joinScope) superType(sctx *super.Context, unknown *super.TypeError) super.Type {
+	return sctx.MustLookupTypeRecord([]super.Field{
+		super.NewField("left", j.left.superType(sctx, unknown)),
+		super.NewField("right", j.right.superType(sctx, unknown)),
+	})
+}
+
+func (s *selectScope) superType(sctx *super.Context, unknown *super.TypeError) super.Type {
+	fields := []super.Field{super.NewField("in", s.in.superType(sctx, unknown))}
+	if s.isGrouped() {
+		fields = append(fields, super.NewField("g", s.gType(sctx)))
+	}
+	if s.out != nil {
+		fields = append(fields, super.NewField("out", s.out.superType(sctx, unknown)))
+	}
+	return sctx.MustLookupTypeRecord(fields)
+}
+
+func (s *selectScope) gType(sctx *super.Context) super.Type {
+	var fields []super.Field
+	for k, e := range s.groupings {
+		fields = append(fields, super.NewField(groupTmp(k), e.typ))
+	}
+	for k := range s.aggs {
+		fields = append(fields, super.NewField(aggTmp(k), s.aggTypes[k]))
+	}
+	return sctx.MustLookupTypeRecord(fields)
+}
+
+func (s *subqueryScope) superType(sctx *super.Context, unknown *super.TypeError) super.Type {
+	// We are currently treating a subquery like the select body and
+	// not wrapping inner/outer paths etc. so for proper type checking
+	// we just use the inner type for now without any prefix.
+	// When we add support for correlated subqueries, the logic will be
+	// as commented out below.
+	return s.inner.superType(sctx, unknown)
+	//return sctx.MustLookupTypeRecord([]super.Field{
+	//	super.NewField("inner", s.inner.superType(sctx, unknown)),
+	//	super.NewField("outer", s.outer.superType(sctx, unknown)),
+	//})
 }
 
 func addTableAlias(t relTable, table string) relTable {

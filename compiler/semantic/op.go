@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"slices"
 	"strings"
@@ -26,57 +27,86 @@ import (
 	"github.com/segmentio/ksuid"
 )
 
-func (t *translator) seq(seq ast.Seq) sem.Seq {
-	var converted sem.Seq
-	for _, op := range seq {
-		converted = t.semOp(op, converted)
+func (t *translator) seq(in ast.Seq, typ super.Type) (sem.Seq, super.Type) {
+	var seq sem.Seq
+	for len(in) > 0 {
+		if len(in) >= 2 {
+			if s, t := t.parentJoin(in, seq, typ); s != nil {
+				seq = s
+				typ = t
+				in = in[2:]
+				continue
+			}
+		}
+		seq, typ = t.semOp(in[0], seq, typ)
+		in = in[1:]
 	}
-	return converted
+	return seq, typ
+}
+
+func (t *translator) parentJoin(in ast.Seq, seq sem.Seq, inType super.Type) (sem.Seq, super.Type) {
+	join, ok := in[1].(*ast.JoinOp)
+	if !ok {
+		return nil, nil
+	}
+	var types []super.Type
+	switch op := in[0].(type) {
+	case *ast.ForkOp:
+		seq, types = t.forkOp(op, seq, inType)
+	case *ast.SwitchOp:
+		seq, types = t.switchOp(op, seq, inType)
+	default:
+		return nil, nil
+	}
+	return t.joinOp(join, seq, types)
 }
 
 func (t *translator) fromSource(entity ast.FromSource, args []ast.OpArg, seq sem.Seq) (sem.Seq, super.Type, string) {
 	switch entity := entity.(type) {
 	case *ast.GlobExpr:
 		if bad := t.hasFromParent(entity, seq); bad != nil {
-			return bad, nil, ""
+			return bad, badType, ""
 		}
 		if t.env.IsAttached() {
 			// XXX need to get fused type from pool
 			return t.fromPoolRegexp(entity, reglob.Reglob(entity.Pattern), entity.Pattern, "glob", args), nil, ""
 		}
-		// XXX should fuse the types across the glob
-		return sem.Seq{t.fromFileGlob(entity, entity.Pattern, args)}, nil, ""
+		// XXX should fuse the types across the glob instead of unknown
+		return sem.Seq{t.fromFileGlob(entity, entity.Pattern, args)}, t.checker.unknown, ""
 	case *ast.RegexpExpr:
 		if bad := t.hasFromParent(entity, seq); bad != nil {
-			return bad, nil, ""
+			return bad, badType, ""
 		}
 		if !t.env.IsAttached() {
 			t.error(entity, errors.New("cannot use regular expression with from operator on local file system"))
-			return seq, nil, ""
+			return seq, badType, ""
 		}
 		// XXX need to get fused type from pool
-		return t.fromPoolRegexp(entity, entity.Pattern, entity.Pattern, "regexp", args), nil, ""
+		return t.fromPoolRegexp(entity, entity.Pattern, entity.Pattern, "regexp", args), t.checker.unknown, ""
 	case *ast.Text:
 		if bad := t.hasFromParent(entity, seq); bad != nil {
-			return bad, nil, ""
+			return bad, badType, ""
 		}
-		if seq := t.scope.lookupQuery(t, entity.Text); seq != nil {
-			// XXX call type checker on to compute type of query?
-			return seq, nil, entity.Text
+		if seq, typ := t.scope.lookupQuery(t, entity.Text); seq != nil {
+			return seq, typ, entity.Text
 		}
 		op, def := t.fromName(entity, entity.Text, args)
 		if op, ok := op.(*sem.FileScan); ok {
-			return sem.Seq{op}, op.Type, def
+			typ := op.Type
+			if typ == nil {
+				typ = t.checker.unknown
+			}
+			return sem.Seq{op}, typ, def
 		}
-		return sem.Seq{op}, nil, def
+		return sem.Seq{op}, t.checker.unknown, def
 	case *ast.FromEval:
 		seq, def := t.fromFString(entity, args, seq)
-		return seq, nil, def
+		return seq, t.checker.unknown, def
 	case *ast.DBMeta:
 		if bad := t.hasFromParent(entity, seq); bad != nil {
-			return bad, nil, ""
+			return bad, badType, ""
 		}
-		return sem.Seq{t.dbMeta(entity)}, nil, ""
+		return sem.Seq{t.dbMeta(entity)}, t.checker.unknown, ""
 	default:
 		panic(entity)
 	}
@@ -127,7 +157,7 @@ func (t *translator) sqlTableExpr(e ast.SQLTableExpr, seq sem.Seq) (sem.Seq, rel
 			}
 			return seq, table
 		case *ast.SQLPipe:
-			seq, sch := t.sqlPipe(input, seq)
+			seq, sch := t.sqlFromPipe(input, seq)
 			seq, sch, err := applyAlias(t.sctx, alias, sch, seq)
 			if err != nil {
 				t.error(alias, err)
@@ -163,12 +193,12 @@ func (t *translator) fromCTE(node ast.Node, c *ast.SQLCTE) (sem.Seq, relTable) {
 	defer func() {
 		t.cteStack = t.cteStack[:len(t.cteStack)-1]
 	}()
-	seq, scope := t.sqlQueryBody(c.Body, nil, nil)
+	seq, scope := t.sqlQueryBody(c.Body, nil, nil, nil)
 	return scope.endScope(node, seq)
 }
 
 func (t *translator) fromFString(entity *ast.FromEval, args []ast.OpArg, seq sem.Seq) (sem.Seq, string) {
-	expr := t.fstringExpr(entity.Expr)
+	expr, _ := t.fstringExpr(entity.Expr, t.checker.unknown)
 	val, ok := t.maybeEval(expr)
 	if ok && !hasError(val) {
 		if bad := t.hasFromParent(entity, seq); bad != nil {
@@ -269,11 +299,11 @@ func (t *translator) file(n ast.Node, name string, args []ast.OpArg) sem.Op {
 
 func (t *translator) fileType(path, format string) (super.Type, error) {
 	if t.env.Dynamic {
-		return nil, nil
+		return t.checker.unknown, nil
 	}
 	engine := t.env.Engine()
 	if engine == nil {
-		return nil, nil
+		return t.checker.unknown, nil
 	}
 	return anyio.FileType(t.ctx, t.sctx, engine, path, anyio.ReaderOpts{Format: format})
 }
@@ -367,18 +397,18 @@ func (t *translator) fromPoolRegexp(node ast.Node, re, orig, which string, args 
 	return sem.Seq{&sem.ForkOp{Paths: paths}}
 }
 
-func (t *translator) sortExpr(sch relScope, s ast.SortExpr, reverse bool) sem.SortExpr {
+func (t *translator) sortExpr(sch relScope, s ast.SortExpr, reverse bool, inType super.Type) sem.SortExpr {
 	var e sem.Expr
 	if ts, ok := sch.(tableScope); ok && ts != nil {
 		if colno, ok := isOrdinal(s.Expr); ok {
 			e = t.resolveOrdinalOuter(ts, s.Expr, "", colno)
 		} else if sel, ok := ts.(*selectScope); ok {
-			e = t.groupedExpr(sel, s.Expr)
+			e, _ = t.groupedExpr(sel, s.Expr, inType)
 		} else {
-			e = t.expr(s.Expr)
+			e, _ = t.expr(s.Expr, inType)
 		}
 	} else {
-		e = t.expr(s.Expr)
+		e, _ = t.expr(s.Expr, inType)
 	}
 	o := order.Asc
 	if s.Order != nil {
@@ -524,11 +554,11 @@ func (t *translator) matchPools(pattern, origPattern, patternDesc string) ([]str
 	return matches, nil
 }
 
-func (t *translator) scopeOp(op *ast.ScopeOp) sem.Seq {
+func (t *translator) scopeOp(op *ast.ScopeOp, inType super.Type) (sem.Seq, super.Type) {
 	t.scope = NewScope(t.scope)
 	defer t.exitScope()
 	t.decls(op.Decls)
-	return t.seq(op.Body)
+	return t.seq(op.Body, inType)
 }
 
 // semOp does a semantic analysis on a flowgraph to an
@@ -536,12 +566,12 @@ func (t *translator) scopeOp(op *ast.ScopeOp) sem.Seq {
 // object.  Currently, it only replaces the aggregate duration with
 // a bucket call on the ts and replaces FunctionCalls in op context
 // with either an aggregate or filter op based on the function's name.
-func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
+func (t *translator) semOp(o ast.Op, seq sem.Seq, inType super.Type) (sem.Seq, super.Type) {
 	switch o := o.(type) {
 	case *ast.SQLOp:
-		seq, sch := t.sqlQueryBody(o.Body, nil, seq)
-		seq, _ = sch.endScope(o.Body, seq)
-		return seq
+		seq, sch := t.sqlQueryBody(o.Body, nil, seq, inType)
+		seq, scope := sch.endScope(o.Body, seq)
+		return seq, scope.typ
 	case *ast.FileScan:
 		format := t.env.ReaderOpts.Format
 		fuser := t.checker.newFuser()
@@ -561,7 +591,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			}
 			fuser.fuse(typ)
 		}
-		var typ super.Type
+		typ := super.Type(t.checker.unknown)
 		if fuser != nil {
 			typ = fuser.Type()
 		}
@@ -570,72 +600,51 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			Type:   typ,
 			Paths:  paths,
 			Format: format,
-		})
+		}), typ
 	case *ast.FromOp:
-		seq, _, _ = t.fromSource(o.Item.Source, o.Item.Args, seq)
-		return seq
+		seq, typ, _ := t.fromSource(o.Item.Source, o.Item.Args, seq)
+		return seq, typ
 	case *ast.DefaultScan:
-		return append(seq, &sem.DefaultScan{Node: o})
+		return append(seq, &sem.DefaultScan{Node: o}), t.checker.unknown
 	case *ast.Delete:
 		if len(seq) > 0 {
 			panic("analyzer.SemOp: delete scan cannot have parent in AST")
 		}
-		return sem.Seq{t.deleteScan(o)}
+		return sem.Seq{t.deleteScan(o)}, t.checker.unknown
 	case *ast.AggregateOp:
-		keys := t.assignments(o.Keys)
+		keys, keyPaths := t.assignments(o.Keys, inType)
 		t.checkStaticAssignment(o.Keys, keys)
 		if len(keys) == 0 && len(o.Aggs) == 1 {
-			if seq := t.singletonAgg(&o.Aggs[0], seq); seq != nil {
-				return seq
+			if seq, typ := t.singletonAgg(&o.Aggs[0], seq, inType); seq != nil {
+				return seq, typ
 			}
 		}
 		if len(keys) == 1 && len(o.Aggs) == 0 {
-			if seq := t.singletonKey(o.Keys[0], seq); seq != nil {
-				return seq
+			if seq, typ := t.singletonKey(o.Keys[0], seq, inType); seq != nil {
+				return seq, typ
 			}
 		}
-		aggs := t.assignments(o.Aggs)
+		aggs, aggPaths := t.assignments(o.Aggs, inType)
 		t.checkStaticAssignment(o.Aggs, aggs)
 		return append(seq, &sem.AggregateOp{
 			Node:  o,
 			Limit: o.Limit,
 			Keys:  keys,
 			Aggs:  aggs,
-		})
+		}), t.checker.pathsToType(append(keyPaths, aggPaths...))
 	case *ast.ForkOp:
-		var paths []sem.Seq
-		for _, seq := range o.Paths {
-			paths = append(paths, t.seq(seq))
-		}
-		return append(seq, &sem.ForkOp{Paths: paths})
+		seq, types := t.forkOp(o, seq, inType)
+		return seq, t.checker.fuse(types)
 	case *ast.ScopeOp:
-		return append(seq, t.scopeOp(o)...)
+		ops, typ := t.scopeOp(o, inType)
+		return append(seq, ops...), typ
 	case *ast.SwitchOp:
-		var expr sem.Expr
-		if o.Expr != nil {
-			expr = t.expr(o.Expr)
-		}
-		var cases []sem.Case
-		for _, c := range o.Cases {
-			var e sem.Expr
-			if c.Expr != nil {
-				e = t.expr(c.Expr)
-			} else if o.Expr == nil {
-				// c.Expr == nil indicates the default case,
-				// whose handling depends on p.Expr.
-				e = sem.NewLiteral(o, super.True)
-			}
-			path := t.seq(c.Path)
-			cases = append(cases, sem.Case{Expr: e, Path: path})
-		}
-		return append(seq, &sem.SwitchOp{
-			Node:  o,
-			Expr:  expr,
-			Cases: cases,
-		})
+		seq, types := t.switchOp(o, seq, inType)
+		return seq, t.checker.fuse(types)
 	case *ast.CountOp:
 		var alias string
 		var expr sem.Expr
+		var fields []super.Field
 		if o.Expr == nil {
 			alias = "count"
 			expr = &sem.RecordExpr{
@@ -643,11 +652,12 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 					&sem.FieldElem{Name: "that", Value: sem.NewThis(nil, nil)},
 				},
 			}
+			fields = []super.Field{{Name: "that", Type: inType}}
 		} else {
 			n := len(o.Expr.Elems)
 			if n == 0 {
 				t.error(o.Expr, errors.New("count record expression must not be empty"))
-				return append(seq, badOp)
+				return append(seq, badOp), t.checker.unknown
 			}
 			last := o.Expr.Elems[n-1]
 			if exprElem, ok := last.(*ast.ExprElem); ok {
@@ -657,21 +667,41 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			}
 			if alias == "" {
 				t.error(last, errors.New("last element in record expression for count must be an identifier"))
-				return append(seq, badOp)
+				return append(seq, badOp), t.checker.unknown
 			}
-			if len(o.Expr.Elems) > 1 {
-				expr = t.expr(&ast.RecordExpr{
+			if n > 1 {
+				e, typ := t.expr(&ast.RecordExpr{
 					Kind:  "RecordExpr",
 					Elems: o.Expr.Elems[:n-1],
 					Loc:   o.Expr.Loc,
-				})
+				}, inType)
+				var ok bool
+				expr, ok = e.(*sem.RecordExpr)
+				if !ok {
+					return append(seq, badOp), t.checker.unknown
+				}
+				// Check that typ is a legit TypeRecord and not unknown.
+				// If unknown then there are unknowns in the spread so just
+				// propagate the unknown.
+				recType, ok := typ.(*super.TypeRecord)
+				if !ok {
+					// We don't know the type of the non-count fields so
+					// just propagate unknown.
+					return append(seq, &sem.CountOp{
+						Node:  o,
+						Alias: alias,
+						Expr:  expr,
+					}), t.checker.unknown
+				}
+				fields = slices.Clone(recType.Fields)
 			}
 		}
+		fields = append(fields, super.Field{Name: alias, Type: super.TypeInt64})
 		return append(seq, &sem.CountOp{
 			Node:  o,
 			Alias: alias,
 			Expr:  expr,
-		})
+		}), t.sctx.MustLookupTypeRecord(fields)
 	case *ast.CutOp:
 		//XXX When cutting an lval with no LHS, promote the lval to the LHS so
 		// it is not auto-inferred.  We will change cut to use paths in a future PR.
@@ -680,13 +710,13 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 		// anyway, but we don't want to change cut until we're ready to do that work.
 		for k, arg := range o.Args {
 			if arg.LHS == nil {
-				rhs := t.expr(arg.RHS)
-				if isLval(rhs) {
+				rhs, _ := t.expr(arg.RHS, inType)
+				if _, ok := isLval(rhs); ok {
 					o.Args[k].LHS = arg.RHS
 				}
 			}
 		}
-		assignments := t.assignments(o.Args)
+		assignments, paths := t.assignments(o.Args, inType)
 		// Collect static paths so we can check on what is available.
 		var fields field.List
 		for _, a := range assignments {
@@ -696,45 +726,55 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 		}
 		if _, err := super.NewRecordBuilder(t.sctx, fields); err != nil {
 			t.error(o.Args, err)
-			return append(seq, badOp)
+			return append(seq, badOp), t.checker.unknown
 		}
 		return append(seq, &sem.CutOp{
 			Node: o,
 			Args: assignments,
-		})
+		}), t.checker.pathsToType(paths)
 	case *ast.DebugOp:
-		e := t.exprNullable(o.Expr)
+		e, _ := t.exprNullable(o.Expr, inType)
 		if e == nil {
 			e = sem.NewThis(o.Expr, nil)
 		}
 		return append(seq, &sem.DebugOp{
 			Node: o,
 			Expr: e,
-		})
+		}), inType
 	case *ast.DistinctOp:
+		e, _ := t.expr(o.Expr, inType)
 		return append(seq, &sem.DistinctOp{
 			Node: o,
-			Expr: t.expr(o.Expr),
-		})
+			Expr: e,
+		}), inType
 	case *ast.DropOp:
-		args := t.fields(o.Args)
+		args, _ := t.fields(o.Args, inType)
 		if len(args) == 0 {
 			t.error(o, errors.New("no fields given"))
+			return append(seq, badOp), t.checker.unknown
 		}
+		drops := t.checker.lvalsToPaths(args)
+		if drops == nil {
+			panic(drops)
+		}
+		// Ignore errors in dropPaths since t.fields will get them.
+		t.checker.pushErrs()
+		typ := t.checker.dropPaths(inType, drops)
+		t.checker.popErrs()
 		return append(seq, &sem.DropOp{
 			Node: o,
 			Args: args,
-		})
+		}), typ
 	case *ast.SortOp:
 		var sortExprs []sem.SortExpr
 		for _, e := range o.Exprs {
-			sortExprs = append(sortExprs, t.sortExpr(nil, e, o.Reverse))
+			sortExprs = append(sortExprs, t.sortExpr(nil, e, o.Reverse, inType))
 		}
 		return append(seq, &sem.SortOp{
 			Node:    o,
 			Exprs:   sortExprs,
 			Reverse: o.Reverse && len(sortExprs) == 0,
-		})
+		}), inType
 	case *ast.HeadOp:
 		count := 1
 		if o.Count != nil {
@@ -743,7 +783,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 		return append(seq, &sem.HeadOp{
 			Node:  o,
 			Count: count,
-		})
+		}), inType
 	case *ast.TailOp:
 		count := 1
 		if o.Count != nil {
@@ -752,56 +792,66 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 		return append(seq, &sem.TailOp{
 			Node:  o,
 			Count: count,
-		})
+		}), inType
 	case *ast.SkipOp:
 		return append(seq, &sem.SkipOp{
 			Node:  o,
 			Count: t.mustEvalPositiveInteger(o.Count),
-		})
+		}), inType
 	case *ast.UniqOp:
+		typ := inType
+		if o.Cflag {
+			// Don't bother type checking this.  We can fix this later
+			// if we want.
+			typ = t.checker.unknown
+		}
 		return append(seq, &sem.UniqOp{
 			Node:  o,
 			Cflag: o.Cflag,
-		})
+		}), typ
 	case *ast.PassOp:
-		return append(seq, &sem.PassOp{Node: o})
+		return append(seq, &sem.PassOp{Node: o}), inType
 	case *ast.ExprOp:
-		return t.exprOp(o.Expr, seq)
+		return t.exprOp(o.Expr, seq, inType)
 	case *ast.CallOp:
-		return t.callOp(o, seq)
+		return t.callOp(o, seq, inType)
 	case *ast.SearchOp:
-		return append(seq, &sem.FilterOp{Node: o, Expr: t.expr(o.Expr)})
+		e, typ := t.expr(o.Expr, inType)
+		t.checker.boolean(o.Expr, typ)
+		return append(seq, &sem.FilterOp{Node: o, Expr: e}), inType
 	case *ast.WhereOp:
-		return append(seq, &sem.FilterOp{Node: o, Expr: t.expr(o.Expr)})
+		e, typ := t.expr(o.Expr, inType)
+		t.checker.boolean(o.Expr, typ)
+		return append(seq, &sem.FilterOp{Node: o, Expr: e}), inType
 	case *ast.TopOp:
 		limit := 1
 		if o.Limit != nil {
-			l := t.expr(o.Limit)
+			l, _ := t.expr(o.Limit, inType)
 			val, ok := t.mustEval(l)
 			if !ok {
-				return append(seq, badOp)
+				return append(seq, badOp), t.checker.unknown
 			}
 			if !super.IsSigned(val.Type().ID()) {
 				t.error(o.Limit, errors.New("limit argument must be an integer"))
-				return append(seq, badOp)
+				return append(seq, badOp), t.checker.unknown
 			}
 			if limit = int(val.Int()); limit < 1 {
 				t.error(o.Limit, errors.New("limit argument value must be greater than 0"))
-				return append(seq, badOp)
+				return append(seq, badOp), t.checker.unknown
 			}
 		}
 		var exprs []sem.SortExpr
 		for _, e := range o.Exprs {
-			exprs = append(exprs, t.sortExpr(nil, e, o.Reverse))
+			exprs = append(exprs, t.sortExpr(nil, e, o.Reverse, inType))
 		}
 		return append(seq, &sem.TopOp{
 			Node:    o,
 			Limit:   limit,
 			Exprs:   exprs,
 			Reverse: o.Reverse && len(exprs) == 0,
-		})
+		}), inType
 	case *ast.PutOp:
-		assignments := t.assignments(o.Args)
+		assignments, paths := t.assignments(o.Args, inType)
 		// We can do collision checking on static paths, so check what we can.
 		var fields field.List
 		for _, a := range assignments {
@@ -815,14 +865,17 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 		return append(seq, &sem.PutOp{
 			Node: o,
 			Args: assignments,
-		})
+		}), t.checker.putPaths(inType, paths)
 	case *ast.AssignmentOp:
-		return append(seq, t.assignmentOp(o))
+		op, typ := t.assignmentOp(o, inType)
+		return append(seq, op), typ
 	case *ast.RenameOp:
 		var assignments []sem.Assignment
+		var paths []pathType
 		for _, fa := range o.Args {
-			assign := t.assignment(&fa)
-			if !isLval(assign.RHS) {
+			assign, path := t.assignment(&fa, inType)
+			_, ok := isLval(assign.RHS)
+			if !ok {
 				t.error(fa.RHS, fmt.Errorf("illegal right-hand side of assignment"))
 			}
 			// If both paths are static validate them. Otherwise this will be
@@ -835,51 +888,17 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 				}
 			}
 			assignments = append(assignments, assign)
+			paths = append(paths, path)
 		}
+		// Type checking for rename TBD.  Return unknown here.
 		return append(seq, &sem.RenameOp{
 			Node: o,
 			Args: assignments,
-		})
+		}), t.checker.unknown
 	case *ast.FuseOp:
-		return append(seq, &sem.FuseOp{Node: o})
+		return append(seq, &sem.FuseOp{Node: o}), inType
 	case *ast.JoinOp:
-		leftAlias, rightAlias := "left", "right"
-		if o.Alias != nil {
-			leftAlias = o.Alias.Left.Name
-			rightAlias = o.Alias.Right.Name
-		}
-		if leftAlias == rightAlias {
-			t.error(o.Alias, errors.New("left and right join aliases cannot be the same"))
-			return append(seq, badOp)
-		}
-		var cond sem.Expr
-		if o.Cond != nil {
-			cond = t.pipeJoinCond(o.Cond, leftAlias, rightAlias)
-		}
-		style := o.Style
-		if style == "" {
-			style = "inner"
-		}
-		join := &sem.JoinOp{
-			Node:       o,
-			Style:      style,
-			LeftAlias:  leftAlias,
-			RightAlias: rightAlias,
-			Cond:       cond,
-		}
-		if o.RightInput == nil {
-			return append(seq, join)
-		}
-		if len(seq) == 0 {
-			seq = append(seq, &sem.PassOp{Node: join})
-		}
-		fork := &sem.ForkOp{
-			Paths: []sem.Seq{
-				seq,
-				t.seq(o.RightInput),
-			},
-		}
-		return sem.Seq{fork, join}
+		return t.joinOp(o, seq, []super.Type{inType})
 	case *ast.MergeOp:
 		var ok bool
 		if len(seq) > 0 {
@@ -893,26 +912,27 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 		}
 		var exprs []sem.SortExpr
 		for _, e := range o.Exprs {
-			exprs = append(exprs, t.sortExpr(nil, e, false))
+			exprs = append(exprs, t.sortExpr(nil, e, false, inType))
 		}
-		return append(seq, &sem.MergeOp{Node: o, Exprs: exprs})
+		return append(seq, &sem.MergeOp{Node: o, Exprs: exprs}), inType
 	case *ast.UnnestOp:
-		e := t.expr(o.Expr)
+		e, typ := t.expr(o.Expr, inType)
 		t.enterScope()
 		defer t.exitScope()
+		typ = t.checker.unnest(o.Expr, typ)
 		var body sem.Seq
 		if o.Body != nil {
-			body = t.seq(o.Body)
+			body, typ = t.seq(o.Body, typ)
 		}
 		return append(seq, &sem.UnnestOp{
 			Node: o,
 			Expr: e,
 			Body: body,
-		})
-	case *ast.ShapesOp: // XXX move to std library?
+		}), typ
+	case *ast.ShapesOp:
 		e := sem.Expr(sem.NewThis(o, nil))
 		if o.Expr != nil {
-			e = t.expr(o.Expr)
+			e, _ = t.expr(o.Expr, inType)
 		}
 		seq = append(seq, &sem.FilterOp{
 			Node: o,
@@ -935,12 +955,19 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 				},
 			},
 		})
-		return append(seq, sem.NewValues(o, sem.NewThis(o, []string{"sample"})))
+		return append(seq, sem.NewValues(o, sem.NewThis(o, []string{"sample"}))), t.checker.unknown
 	case *ast.AssertOp:
-		cond := t.expr(o.Expr)
+		cond, _ := t.expr(o.Expr, inType)
 		// 'assert EXPR' is equivalent to
 		// 'values EXPR ? this : error({message: "assertion failed", "expr": EXPR_text, "on": this}'
 		// where EXPR_text is the literal text of EXPR.
+		fields := []super.Field{
+			super.NewField("message", super.TypeString),
+			super.NewField("expr", super.TypeString),
+			super.NewField("on", inType),
+		}
+		errType := t.sctx.LookupTypeError(t.sctx.MustLookupTypeRecord(fields))
+		outType := t.checker.fuse([]super.Type{inType, errType})
 		return append(seq, sem.NewValues(o,
 			&sem.CondExpr{
 				Node: o.Expr,
@@ -970,20 +997,21 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 						},
 					}},
 				),
-			}))
+			})), outType
 	case *ast.ValuesOp:
-		return append(seq, sem.NewValues(o, t.exprs(o.Exprs)...))
+		exprs, types := t.exprs(o.Exprs, inType)
+		return append(seq, sem.NewValues(o, exprs...)), t.checker.fuse(types)
 	case *ast.LoadOp:
 		if !t.env.IsAttached() {
 			t.error(o, errors.New("load operator cannot be used without an attached database"))
-			return sem.Seq{badOp}
+			return sem.Seq{badOp}, badType
 		}
 		poolID, err := dbid.ParseID(o.Pool.Text)
 		if err != nil {
 			poolID, err = t.env.PoolID(t.ctx, o.Pool.Text)
 			if err != nil {
 				t.error(o, err)
-				return append(seq, badOp)
+				return append(seq, badOp), badType
 			}
 		}
 		opArgs := t.opArgs(o.Args, "commit", "author", "message", "meta")
@@ -998,39 +1026,165 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq) sem.Seq {
 			Author:  author,
 			Message: message,
 			Meta:    meta,
-		})
+		}), t.checker.unknown
 	case *ast.OutputOp:
-		return append(seq, &sem.OutputOp{Node: o, Name: o.Name.Name})
+		return append(seq, &sem.OutputOp{Node: o, Name: o.Name.Name}), t.checker.unknown
 	}
 	panic(o)
 }
 
-func (t *translator) singletonAgg(assignment *ast.Assignment, seq sem.Seq) sem.Seq {
-	if assignment.LHS != nil {
-		return nil
+func (t *translator) forkOp(op *ast.ForkOp, seq sem.Seq, inType super.Type) (sem.Seq, []super.Type) {
+	var paths []sem.Seq
+	var types []super.Type
+	for _, seq := range op.Paths {
+		seq, typ := t.seq(seq, inType)
+		paths = append(paths, seq)
+		types = append(types, typ)
 	}
-	out := t.assignment(assignment)
+	return append(seq, &sem.ForkOp{Paths: paths}), types
+}
+
+func (t *translator) joinOp(op *ast.JoinOp, parent sem.Seq, inTypes []super.Type) (sem.Seq, super.Type) {
+	var subquery sem.Seq
+	var rightType super.Type
+	leftType := inTypes[0]
+	if op.RightInput != nil {
+		// With a subquery, we need exactly one parent.
+		if len(inTypes) != 1 {
+			t.error(op, errors.New("join with subquery requires a single pipe parent"))
+			return append(parent, badOp), badType
+		}
+		subquery, rightType = t.seq(op.RightInput, super.TypeNull)
+	} else {
+		// When there's no subquery, we need two parents.
+		if len(inTypes) != 2 {
+			t.error(op, errors.New("join without subquery requires two pipe parents"))
+			return append(parent, badOp), badType
+		}
+		rightType = inTypes[1]
+	}
+	leftAlias, rightAlias := "left", "right"
+	if op.Alias != nil {
+		leftAlias = op.Alias.Left.Name
+		rightAlias = op.Alias.Right.Name
+	}
+	if leftAlias == rightAlias {
+		t.error(op.Alias, errors.New("left and right join aliases cannot be the same"))
+		return append(parent, badOp), t.checker.unknown
+	}
+	typ := t.sctx.MustLookupTypeRecord([]super.Field{
+		super.NewField(leftAlias, leftType),
+		super.NewField(rightAlias, rightType),
+	})
+	var cond sem.Expr
+	if op.Cond != nil {
+		cond = t.pipeJoinCond(op.Cond, leftAlias, rightAlias, typ)
+	}
+	style := op.Style
+	if style == "" {
+		style = "inner"
+	}
+	join := &sem.JoinOp{
+		Node:       op,
+		Style:      style,
+		LeftAlias:  leftAlias,
+		RightAlias: rightAlias,
+		Cond:       cond,
+	}
+	if subquery == nil {
+		return append(parent, join), typ
+	}
+	if len(parent) == 0 {
+		parent = append(parent, &sem.PassOp{Node: join})
+	}
+	fork := &sem.ForkOp{
+		Paths: []sem.Seq{parent, subquery},
+	}
+	return sem.Seq{fork, join}, typ
+}
+
+func (t *translator) pipeJoinCond(cond ast.JoinCond, leftAlias, rightAlias string, inType super.Type) sem.Expr {
+	switch cond := cond.(type) {
+	case *ast.JoinOnCond:
+		e, typ := t.expr(cond.Expr, inType)
+		t.checker.boolean(cond.Expr, typ)
+		// hack: e is wrapped in []sem.Expr to work around CanSet() model in WalkT
+		dag.WalkT(reflect.ValueOf([]sem.Expr{e}), func(e *sem.ThisExpr) *sem.ThisExpr {
+			if len(e.Path) == 0 {
+				t.error(cond.Expr, errors.New(`join expression cannot refer to "this"`))
+			}
+			return e
+		})
+		return e
+	case *ast.JoinUsingCond:
+		var exprs []sem.Expr
+		for _, id := range cond.Fields {
+			lhs := sem.NewThis(id, []string{leftAlias, id.Name})
+			rhs := sem.NewThis(id, []string{rightAlias, id.Name})
+			exprs = append(exprs, sem.NewBinaryExpr(id, "==", lhs, rhs))
+		}
+		return andUsingExprs(cond, exprs)
+	default:
+		panic(cond)
+	}
+}
+
+func (t *translator) switchOp(op *ast.SwitchOp, seq sem.Seq, inType super.Type) (sem.Seq, []super.Type) {
+	var types []super.Type
+	var expr sem.Expr
+	if op.Expr != nil {
+		expr, _ = t.expr(op.Expr, inType)
+	}
+	var cases []sem.Case
+	for _, c := range op.Cases {
+		var e sem.Expr
+		if c.Expr != nil {
+			e, _ = t.expr(c.Expr, inType)
+		} else if op.Expr == nil {
+			// c.Expr == nil indicates the default case,
+			// whose handling depends on p.Expr.
+			e = sem.NewLiteral(op, super.True)
+		}
+		path, typ := t.seq(c.Path, inType)
+		types = append(types, typ)
+		cases = append(cases, sem.Case{Expr: e, Path: path})
+	}
+	return append(seq, &sem.SwitchOp{
+		Node:  op,
+		Expr:  expr,
+		Cases: cases,
+	}), types
+}
+
+func (t *translator) singletonAgg(assignment *ast.Assignment, seq sem.Seq, inType super.Type) (sem.Seq, super.Type) {
+	if assignment.LHS != nil {
+		return nil, nil
+	}
+	out, path := t.assignment(assignment, inType)
 	this, ok := out.LHS.(*sem.ThisExpr)
 	if !ok || len(this.Path) != 1 {
-		return nil
+		return nil, nil
 	}
+	// The return type is simply pulled out of the path since the
+	// single column of the record is emitted, e.g., a singleton
+	// count() yields an int64 not a {count:int64}.
 	return append(seq,
 		&sem.AggregateOp{
 			Node: assignment,
 			Aggs: []sem.Assignment{out},
 		},
 		sem.NewValues(assignment, this),
-	)
+	), path.typ
 }
 
-func (t *translator) singletonKey(agg ast.Assignment, seq sem.Seq) sem.Seq {
+func (t *translator) singletonKey(agg ast.Assignment, seq sem.Seq, inType super.Type) (sem.Seq, super.Type) {
 	if agg.LHS != nil {
-		return nil
+		return nil, nil
 	}
-	out := t.assignment(&agg)
+	out, path := t.assignment(&agg, inType)
 	this, ok := out.LHS.(*sem.ThisExpr)
 	if !ok || len(this.Path) != 1 {
-		return nil
+		return nil, nil
 	}
 	return append(seq,
 		&sem.AggregateOp{
@@ -1038,7 +1192,7 @@ func (t *translator) singletonKey(agg ast.Assignment, seq sem.Seq) sem.Seq {
 			Keys: []sem.Assignment{out},
 		},
 		sem.NewValues(out.Node, this),
-	)
+	), path.typ
 }
 
 // semDecls enters a block of declarations into the current scope.  We do late binding
@@ -1081,7 +1235,8 @@ func (c *constDecl) resolve(t *translator) sem.Expr {
 				c.pending = false
 				t.scope = save
 			}()
-			c.expr = t.mustEvalConst(t.expr(c.decl.Expr))
+			e, _ := t.expr(c.decl.Expr, super.TypeNull)
+			c.expr = t.mustEvalConst(e)
 		} else {
 			t.error(c.decl.Name, fmt.Errorf("const %q involved in cyclic dependency", c.decl.Name.Name))
 			c.expr = badExpr
@@ -1103,11 +1258,12 @@ func (t *translator) constDecl(c *ast.ConstDecl) {
 type queryDecl struct {
 	decl    *ast.QueryDecl
 	body    sem.Seq
+	typ     super.Type
 	scope   *Scope
 	pending bool
 }
 
-func (q *queryDecl) resolve(t *translator) sem.Seq {
+func (q *queryDecl) resolve(t *translator) (sem.Seq, super.Type) {
 	if q.body == nil {
 		if !q.pending {
 			save := t.scope
@@ -1117,13 +1273,13 @@ func (q *queryDecl) resolve(t *translator) sem.Seq {
 				q.pending = false
 				t.scope = save
 			}()
-			q.body = t.seq(q.decl.Body)
+			q.body, q.typ = t.seq(q.decl.Body, super.TypeNull)
 		} else {
 			t.error(q.decl.Name, fmt.Errorf("named query %q involved in cyclic dependency", q.decl.Name.Name))
 			q.body = sem.Seq{badOp}
 		}
 	}
-	return q.body
+	return q.body, q.typ
 }
 
 func (t *translator) queryDecl(q *ast.QueryDecl) {
@@ -1209,11 +1365,12 @@ func (t *translator) pragmaDecl(d *ast.PragmaDecl) {
 	}
 }
 
-func (t *translator) assignmentOp(p *ast.AssignmentOp) sem.Op {
+func (t *translator) assignmentOp(p *ast.AssignmentOp, inType super.Type) (sem.Op, super.Type) {
 	var aggs, puts []sem.Assignment
+	var paths []pathType
 	for _, astAssign := range p.Assignments {
 		// Parition assignments into agg vs. puts.
-		assign := t.assignment(&astAssign)
+		assign, path := t.assignment(&astAssign, inType)
 		if _, ok := assign.RHS.(*sem.AggFunc); ok {
 			if _, ok := assign.LHS.(*sem.ThisExpr); !ok {
 				t.error(astAssign.LHS, errors.New("aggregate output field must be static"))
@@ -1222,21 +1379,22 @@ func (t *translator) assignmentOp(p *ast.AssignmentOp) sem.Op {
 		} else {
 			puts = append(puts, assign)
 		}
+		paths = append(paths, path)
 	}
 	if len(puts) > 0 && len(aggs) > 0 {
 		t.error(p, errors.New("mix of aggregations and non-aggregations in assignment list"))
-		return badOp
+		return badOp, badType
 	}
 	if len(puts) > 0 {
 		return &sem.PutOp{
 			Node: p,
 			Args: puts,
-		}
+		}, t.checker.putPaths(inType, paths)
 	}
 	return &sem.AggregateOp{
 		Node: p,
 		Aggs: aggs,
-	}
+	}, t.checker.pathsToType(paths)
 }
 
 func (t *translator) checkStaticAssignment(asts []ast.Assignment, assignments []sem.Assignment) bool {
@@ -1252,29 +1410,30 @@ func (t *translator) checkStaticAssignment(asts []ast.Assignment, assignments []
 	return false
 }
 
-func (t *translator) exprOp(e ast.Expr, seq sem.Seq) sem.Seq {
+func (t *translator) exprOp(e ast.Expr, seq sem.Seq, inType super.Type) (sem.Seq, super.Type) {
 	if call, ok := e.(*ast.CallExpr); ok {
-		if seq := t.maybeCallShortcut(call, seq); seq != nil {
-			return seq
+		if seq, typ := t.maybeCallShortcut(call, seq, inType); seq != nil {
+			return seq, typ
 		}
 	} else if agg, ok := e.(*ast.AggFuncExpr); ok {
-		return t.aggFuncShortcut(agg, seq)
+		return t.aggFuncShortcut(agg, seq, inType)
 	}
 	// For stand-alone identifiers with no arguments, see if it's a user op
 	// or a named query.
 	if id, ok := e.(*ast.IDExpr); ok {
 		if decl, err := t.scope.lookupOp(id.Name); err == nil {
-			return append(seq, t.userOp(id.Loc, decl, nil)...)
+			op, typ := t.userOp(id.Loc, decl, nil, inType)
+			return append(seq, op...), typ
 		}
-		if querySeq := t.scope.lookupQuery(t, id.Name); querySeq != nil {
-			return append(seq, querySeq...)
+		if querySeq, typ := t.scope.lookupQuery(t, id.Name); querySeq != nil {
+			return append(seq, querySeq...), typ
 		}
 	}
-	out := t.expr(e)
+	out, typ := t.expr(e, inType)
 	if t.isBool(out) {
-		return append(seq, &sem.FilterOp{Node: e, Expr: out})
+		return append(seq, &sem.FilterOp{Node: e, Expr: out}), inType
 	}
-	return append(seq, sem.NewValues(e, out))
+	return append(seq, sem.NewValues(e, out)), typ
 }
 
 func (t *translator) isBool(e sem.Expr) bool {
@@ -1315,13 +1474,13 @@ func (t *translator) isBool(e sem.Expr) bool {
 	}
 }
 
-func (t *translator) maybeCallShortcut(call *ast.CallExpr, seq sem.Seq) sem.Seq {
+func (t *translator) maybeCallShortcut(call *ast.CallExpr, seq sem.Seq, inType super.Type) (sem.Seq, super.Type) {
 	f, ok := call.Func.(*ast.FuncNameExpr)
 	if !ok {
-		return nil
+		return nil, nil
 	}
 	name := f.Name
-	if agg := t.maybeConvertAgg(call); agg != nil {
+	if agg, typ := t.maybeConvertAgg(call, inType); agg != nil {
 		aggregate := &sem.AggregateOp{
 			Node: call,
 			Aggs: []sem.Assignment{
@@ -1333,17 +1492,20 @@ func (t *translator) maybeCallShortcut(call *ast.CallExpr, seq sem.Seq) sem.Seq 
 			},
 		}
 		values := sem.NewValues(call, sem.NewThis(call, []string{name}))
-		return append(append(seq, aggregate), values)
+		return append(append(seq, aggregate), values), typ
 	}
 	if !function.HasBoolResult(strings.ToLower(name)) {
-		return nil
+		return nil, nil
 	}
-	return append(seq, &sem.FilterOp{Node: call, Expr: t.semCall(call)})
+	expr, _ := t.semCall(call, inType)
+	// At some point, maybe we use this instead of HasBoolResult?
+	//t.checker.boolean(call, typ)
+	return append(seq, &sem.FilterOp{Node: call, Expr: expr}), inType
 }
 
-func (t *translator) aggFuncShortcut(agg *ast.AggFuncExpr, seq sem.Seq) sem.Seq {
+func (t *translator) aggFuncShortcut(agg *ast.AggFuncExpr, seq sem.Seq, inType super.Type) (sem.Seq, super.Type) {
 	name := agg.Name
-	aggFunc := t.aggFunc(agg, name, agg.Expr, agg.Filter, agg.Distinct)
+	aggFunc, typ := t.aggFunc(agg, name, agg.Expr, agg.Filter, agg.Distinct, inType)
 	aggregate := &sem.AggregateOp{
 		Node: agg,
 		Aggs: []sem.Assignment{
@@ -1355,26 +1517,42 @@ func (t *translator) aggFuncShortcut(agg *ast.AggFuncExpr, seq sem.Seq) sem.Seq 
 		},
 	}
 	values := sem.NewValues(agg, sem.NewThis(agg, []string{name}))
-	return append(seq, aggregate, values)
+	return append(seq, aggregate, values), typ
 }
 
-func (t *translator) callOp(call *ast.CallOp, seq sem.Seq) sem.Seq {
+func (t *translator) callOp(call *ast.CallOp, seq sem.Seq, inType super.Type) (sem.Seq, super.Type) {
 	decl, err := t.scope.lookupOp(call.Name.Name)
 	if err != nil {
 		t.error(call, err)
-		return sem.Seq{badOp}
+		return sem.Seq{badOp}, badType
 	}
 	if decl == nil {
 		t.error(call, fmt.Errorf("no such user operator: %q", call.Name.Name))
-		return sem.Seq{badOp}
+		return sem.Seq{badOp}, badType
 	}
 	if decl.bad {
-		return sem.Seq{badOp}
+		return sem.Seq{badOp}, badType
 	}
-	return append(seq, t.userOp(call.Loc, decl, call.Args)...)
+	ops, typ := t.userOp(call.Loc, decl, call.Args, inType)
+	return append(seq, ops...), typ
 }
 
-func (t *translator) userOp(loc ast.Loc, decl *opDecl, args []ast.Expr) sem.Seq {
+type thunk struct {
+	name  string
+	expr  ast.Expr
+	scope *Scope
+}
+
+func (t *translator) resolveThunk(th thunk, inType super.Type) (sem.Expr, super.Type) {
+	save := t.scope
+	t.scope = th.scope
+	defer func() {
+		t.scope = save
+	}()
+	return t.expr(th.expr, inType)
+}
+
+func (t *translator) userOp(loc ast.Loc, decl *opDecl, args []ast.Expr, inType super.Type) (sem.Seq, super.Type) {
 	// We've found a user op bound to the name being invoked, so we pull out the
 	// AST elements that were stashed from the definition of the user op and subsitute
 	// them into the call site here.  This is essentially a thunk... each use of the
@@ -1383,30 +1561,35 @@ func (t *translator) userOp(loc ast.Loc, decl *opDecl, args []ast.Expr) sem.Seq 
 	params := decl.ast.Params
 	if len(params) != len(args) {
 		t.error(loc, fmt.Errorf("%d arg%s provided when operator expects %d arg%s", len(args), plural.Slice(args, "s"), len(params), plural.Slice(params, "s")))
-		return sem.Seq{badOp}
+		return sem.Seq{badOp}, badType
 	}
-	exprs := make([]sem.Expr, 0, len(args))
-	for _, arg := range args {
-		exprs = append(exprs, t.expr(arg))
+	// https://en.wikipedia.org/wiki/42_(number)
+	if t.opCnt[decl.ast] >= 42 {
+		t.error(loc, opCycleError(append(t.opStack, "etc...")))
+		return sem.Seq{badOp}, badType
 	}
-	if slices.Contains(t.opStack, decl.ast) {
-		t.error(loc, opCycleError(append(t.opStack, decl.ast)))
-		return sem.Seq{badOp}
+	t.opCnt[decl.ast]++
+	var opStackChanged bool
+	if len(t.opStack) < 4 {
+		opStackChanged = true
+		t.opStack = append(t.opStack, decl.ast.Name.Name)
 	}
-	t.opStack = append(t.opStack, decl.ast)
 	oldscope := t.scope
 	t.scope = NewScope(decl.scope)
 	defer func() {
-		t.opStack = t.opStack[:len(t.opStack)-1]
+		t.opCnt[decl.ast]--
 		t.scope = oldscope
+		if opStackChanged {
+			t.opStack = t.opStack[:len(t.opStack)-1]
+		}
 	}()
 	for i, param := range params {
-		if err := t.scope.BindSymbol(param.Name, exprs[i]); err != nil {
+		if err := t.scope.BindSymbol(param.Name, thunk{param.Name, args[i], oldscope}); err != nil {
 			t.error(loc, err)
-			return sem.Seq{badOp}
+			return sem.Seq{badOp}, badType
 		}
 	}
-	return t.seq(decl.ast.Body)
+	return t.seq(decl.ast.Body, inType)
 }
 
 func (t *translator) opArgs(args []ast.OpArg, allowed ...string) opArgs {
@@ -1442,7 +1625,8 @@ func (t *translator) opArgsAny(args []ast.OpArg, allowed map[string]struct{}) op
 				t.error(arg, fmt.Errorf("unknown argument %q", arg.Key))
 				continue
 			}
-			opArgs[key] = argExpr{arg: arg, expr: t.expr(arg.Value)}
+			e, _ := t.expr(arg.Value, super.TypeNull)
+			opArgs[key] = argExpr{arg: arg, expr: e}
 		default:
 			panic(fmt.Sprintf("unknown arg type %T", arg))
 		}
@@ -1488,7 +1672,8 @@ func (t *translator) mustEvalString(e sem.Expr) (field string, ok bool) {
 }
 
 func (t *translator) mustEvalBool(in ast.Expr) (bool, bool) {
-	val, ok := t.mustEval(t.expr(in))
+	e, _ := t.expr(in, super.TypeNull)
+	val, ok := t.mustEval(e)
 	if ok {
 		if super.TypeUnder(val.Type()) != super.TypeBool {
 			t.error(in, errors.New("expected type bool"))
@@ -1508,7 +1693,7 @@ func (t *translator) maybeEvalString(e sem.Expr) (field string, ok bool) {
 }
 
 func (t *translator) mustEvalPositiveInteger(ae ast.Expr) int {
-	e := t.expr(ae)
+	e, _ := t.expr(ae, super.TypeNull)
 	val, ok := t.mustEval(e)
 	if !ok {
 		return 0

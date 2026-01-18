@@ -11,6 +11,6 @@ inputs:
 outputs:
   - name: stderr
     data: |
-      join requires two inputs at line 1, column 1:
+      join without subquery requires two pipe parents at line 1, column 1:
       join on left.a=right.b
       ~~~~~~~~~~~~~~~~~~~~~~

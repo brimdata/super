@@ -34,7 +34,7 @@ inputs:
       )
   - name: agg-sort.spq
     data: |
-      from test1 | sum(this) by foo | sort x
+      from test1 | sum(this) by foo | sort foo
   - name: scope.spq
     data: |
       type port = uint16
@@ -175,7 +175,7 @@ outputs:
               {
                 "order": "asc",
                 "key": [
-                  "x"
+                  "foo"
                 ]
               }
             ]

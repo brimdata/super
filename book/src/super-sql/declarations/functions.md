@@ -77,7 +77,7 @@ values apply([1,2,3], 1)
 # input
 
 # expected output
-"val" no such field at line 3, column 18:
+no such field "val" at line 3, column 18:
   | collect(this+val)
                  ~~~
 ```
@@ -189,7 +189,7 @@ values apply([1,2,3], 1)
 # input
 
 # expected output
-"val" no such field at line 3, column 18:
+no such field "val" at line 3, column 18:
   | collect(this+val)
                  ~~~
 ```

@@ -6,6 +6,6 @@ input: |
   {}
 
 error: |
-  type mismatch at line 1, column 16:
+  type mismatch: int64 + string at line 1, column 16:
   values {x:'a'+(1+'b')}
                  ~~~~~

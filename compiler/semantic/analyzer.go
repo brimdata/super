@@ -23,7 +23,10 @@ func Analyze(ctx context.Context, p *parser.AST, env *exec.Environment, extInput
 	if extInput {
 		astseq.Prepend(&ast.DefaultScan{Kind: "DefaultScan"})
 	}
-	seq := t.seq(astseq)
+	t.checker.pushErrs()
+	seq, _ := t.seq(astseq, super.TypeNull)
+	errs := t.checker.popErrs()
+	errs.flushErrs(t.reporter)
 	if err := t.Error(); err != nil {
 		return nil, err
 	}
@@ -39,10 +42,6 @@ func Analyze(ctx context.Context, p *parser.AST, env *exec.Environment, extInput
 			seq.Prepend(&sem.NullScan{})
 		}
 	}
-	t.checker.check(t.reporter, seq)
-	if err := t.Error(); err != nil {
-		return nil, err
-	}
 	main := newDagen(t.reporter).assemble(seq, t.resolver.funcs)
 	return main, t.Error()
 }
@@ -56,7 +55,8 @@ type translator struct {
 	ctx      context.Context
 	resolver *resolver
 	checker  *checker
-	opStack  []*ast.OpDecl
+	opCnt    map[*ast.OpDecl]int
+	opStack  []string
 	cteStack []*ast.SQLCTE
 	env      *exec.Environment
 	scope    *Scope
@@ -67,6 +67,7 @@ func newTranslator(ctx context.Context, r reporter, env *exec.Environment) *tran
 	t := &translator{
 		reporter: r,
 		ctx:      ctx,
+		opCnt:    make(map[*ast.OpDecl]int),
 		env:      env,
 		scope:    NewScope(nil),
 		sctx:     super.NewContext(),
@@ -112,7 +113,7 @@ type opDecl struct {
 	bad   bool
 }
 
-type opCycleError []*ast.OpDecl
+type opCycleError []string
 
 func (e opCycleError) Error() string {
 	b := "operator cycle found: "
@@ -120,7 +121,7 @@ func (e opCycleError) Error() string {
 		if i > 0 {
 			b += " -> "
 		}
-		b += op.Name.Name
+		b += op
 	}
 	return b
 }

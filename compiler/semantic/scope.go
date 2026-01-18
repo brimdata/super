@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/semantic/sem"
 	"github.com/brimdata/super/pkg/field"
@@ -50,13 +51,13 @@ func (s *Scope) lookupOp(name string) (*opDecl, error) {
 	return nil, nil
 }
 
-func (s *Scope) lookupQuery(t *translator, name string) sem.Seq {
+func (s *Scope) lookupQuery(t *translator, name string) (sem.Seq, super.Type) {
 	if entry := s.lookupEntry(name); entry != nil {
 		if decl, ok := entry.ref.(*queryDecl); ok {
 			return decl.resolve(t)
 		}
 	}
-	return nil
+	return nil, nil
 }
 
 func (s *Scope) lookupEntry(name string) *entry {
@@ -77,19 +78,35 @@ func (s *Scope) lookupPragma(name string) any {
 	return nil
 }
 
-func (s *Scope) lookupExpr(t *translator, name string) sem.Expr {
+func (s *Scope) lookupExpr(t *translator, loc ast.Node, name string, inType super.Type) (sem.Expr, super.Type) {
 	if entry := s.lookupEntry(name); entry != nil {
 		// function parameters hide exteral definitions as you don't
 		// want the this.param ref to be overriden by a const etc.
 		switch entry := entry.ref.(type) {
-		case *funcDecl, *ast.FuncNameExpr, *funcParamLambda, funcParamValue, *opDecl:
-			return nil
+		case *funcDecl, *ast.FuncNameExpr, funcParamValue, *opDecl:
+			return nil, nil
+		case *funcParamLambda:
+			// When we're inside a function body and we bind an ID to a
+			// function parameter, we can't resolve it here (because the resolver
+			// needs to unfurl it using the mix of lamba/actuals).  The only
+			// allowed use here is as a call reference (but that will be caught
+			// by semCall before ever getting here) or it can be passed as
+			// an arg to another function (which does get here).  In this case,
+			// we return a sem.FuncRef that the resolver will recognize to
+			// properly unfurl the function call.  Otherwise, we could have
+			// a random reference to a sem.FuncRef in an expression that otherwise
+			// escapes type checking, but dagen will see it and report the error.
+			return &sem.FuncRef{Node: loc, ID: entry.id}, t.checker.unknown
 		case *constDecl:
-			return entry.resolve(t)
+			e := entry.resolve(t)
+			return e, t.checker.expr(inType, e)
+		case thunk:
+			return t.resolveThunk(entry, inType)
 		}
-		return entry.ref.(sem.Expr)
+		e := entry.ref.(sem.Expr)
+		return e, t.checker.expr(inType, e)
 	}
-	return nil
+	return nil, nil
 }
 
 // Returns the decl ID of a function declared with the given name in
@@ -109,32 +126,19 @@ func (s *Scope) lookupFuncDeclOrParam(name string) (string, error) {
 	return "", fmt.Errorf("%q is not bound to a function", name)
 }
 
-// See if there's a function value passed as a lambda of a formal parameter
-// and if so, return the underlying decl ID of that lambda argument.
-func (s *Scope) lookupFuncParamLambda(name string) (string, bool) {
-	entry := s.lookupEntry(name)
-	if entry == nil {
-		return "", false
-	}
-	if ref, ok := entry.ref.(*funcParamLambda); ok {
-		return ref.id, true
-	}
-	return "", false
-}
-
-func (s *Scope) resolveThis(t *translator, n ast.Node) sem.Expr {
+func (s *Scope) resolveThis(t *translator, n ast.Node, inType super.Type) (sem.Expr, super.Type) {
 	if e := s.sql.this(n, nil); e != nil {
-		return e
+		return e, t.checker.expr(inType, e)
 	}
 	t.error(n, errors.New("cannot reference 'this' in this context"))
-	return badExpr
+	return badExpr, badType
 }
 
 // resolve paths based on SQL semantics in order of precedence
 // and replace with dag path with schemafied semantics.
 // In the case of unqualified col ref, check that it is not ambiguous
 // when there are multiple tables (i.e., from joins).
-func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) sem.Expr {
+func (s *Scope) resolve(t *translator, n ast.Node, path field.Path, inType super.Type) (sem.Expr, super.Type) {
 	// If there's no relational scope, we're not in a SQL context so we just
 	// return the path unmodified.  Otherwise, we apply SQL scoping
 	// rules to transform the abstract path to the dataflow path
@@ -160,7 +164,8 @@ func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) sem.Expr {
 	if sch, ok := scope.(*selectScope); ok && sch.out != nil && sch.isGrouped() {
 		for _, c := range sch.columns {
 			if c.name == path[0] {
-				return extend(n, c.semExpr, path[1:])
+				e := extend(n, c.semExpr, path[1:])
+				return e, t.checker.expr(inType, e)
 			}
 		}
 	}
@@ -174,29 +179,32 @@ func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) sem.Expr {
 	// the binding of identifiers changes and query results can change.  By
 	// resolving lateral aliases first, we avoid this problem.  This can
 	// be overridden with "pragma pg" to favor PostgreSQL precedence.
-	if sel, ok := scope.(*selectScope); ok && sel.lateral && !inputFirst {
-		if e := resolveLateralColumn(t, sel, path[0]); e != nil {
-			return extend(n, e, path[1:])
+	if scope, ok := scope.(*selectScope); ok && scope.lateral && !inputFirst {
+		if e, _ := resolveLateralColumn(t, scope, path[0], inType); e != nil {
+			e := extend(n, e, path[1:])
+			return e, t.checker.expr(inType, e)
 		}
 	}
 	out, dyn, err := scope.resolveUnqualified(path[0])
 	if err != nil {
 		t.error(n, err)
-		return badExpr
+		return badExpr, t.checker.unknown
 	}
 	if out != nil {
 		if dyn {
 			// Make sure there's not a table with the same name as the column name.
 			if _, tdyn, err := scope.resolveTable(n, path[0], nil); err != nil && tdyn {
 				t.error(n, fmt.Errorf("cannot use unqualified reference %q when table of same name is in scope (consider qualified reference)", path[0]))
-				return badExpr
+				return badExpr, t.checker.unknown
 			}
 		}
-		return sem.NewThis(n, append(out, path[1:]...))
+		this := sem.NewThis(n, append(out, path[1:]...))
+		return this, t.checker.this(n, this, inType)
 	}
-	if sch, ok := scope.(*selectScope); ok && sch.lateral && inputFirst {
-		if e := resolveLateralColumn(t, sch, path[0]); e != nil {
-			return extend(n, e, path[1:])
+	if scope, ok := scope.(*selectScope); ok && scope.lateral && inputFirst {
+		if e, _ := resolveLateralColumn(t, scope, path[0], inType); e != nil {
+			e := extend(n, e, path[1:])
+			return e, t.checker.expr(inType, e)
 		}
 	}
 	if len(path) == 1 {
@@ -206,28 +214,29 @@ func (s *Scope) resolve(t *translator, n ast.Node, path field.Path) sem.Expr {
 		out, _, err := scope.resolveTable(n, path[0], nil)
 		if err != nil {
 			t.error(n, err)
-			return badExpr
+			return badExpr, t.checker.unknown
 		}
 		if out != nil {
-			return out
+			return out, t.checker.expr(inType, out)
 		}
 	} else {
 		// Look for match of a qualified reference (table.col).
 		out, err := scope.resolveQualified(path[0], path[1])
 		if err != nil {
 			t.error(n, err)
-			return badExpr
+			return badExpr, t.checker.unknown
 		}
 		if out != nil {
-			return sem.NewThis(n, append(out, path[2:]...))
+			this := sem.NewThis(n, append(out, path[2:]...))
+			return this, t.checker.this(n, this, inType)
 		}
 		if p, _, _ := scope.resolveTable(n, path[0], nil); p != nil {
 			t.error(n, fmt.Errorf("column %q does not exist in table %q", path[1], path[0]))
-			return badExpr
+			return badExpr, t.checker.unknown
 		}
 	}
 	t.error(n, fmt.Errorf("%q is not a column or table", path[0]))
-	return badExpr
+	return badExpr, t.checker.unknown
 }
 
 func extend(n ast.Node, e sem.Expr, rest []string) sem.Expr {
@@ -252,23 +261,22 @@ func extend(n ast.Node, e sem.Expr, rest []string) sem.Expr {
 	return out
 }
 
-func resolveLateralColumn(t *translator, scope relScope, col string) sem.Expr {
-	sel, ok := scope.(*selectScope)
-	if !ok || !sel.lateral {
+func resolveLateralColumn(t *translator, scope *selectScope, col string, inType super.Type) (sem.Expr, super.Type) {
+	if !scope.lateral {
 		// lateral columns available only inside select bodies
-		return nil
+		return nil, t.checker.unknown
 	}
-	for k := range len(sel.columns) {
-		c := sel.columns[k]
+	for k := range len(scope.columns) {
+		c := scope.columns[k]
 		if c.lateral && c.name == col {
 			defer func() {
-				sel.lateral = true
+				scope.lateral = true
 			}()
-			sel.lateral = false
-			return t.expr(c.astExpr)
+			scope.lateral = false
+			return t.expr(c.astExpr, inType)
 		}
 	}
-	return nil
+	return nil, t.checker.unknown
 }
 
 func (s *Scope) indexBase() int {

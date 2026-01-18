@@ -1,7 +1,12 @@
 script: |
-  ! super compile -dag 'count() by this[a] := key'
-  ! super compile -dag 'this[a] := count() by key'
-  ! super compile -dag 'this[a] := count()'
+  ! super compile -dag 'count() by this[a] := key' in.sup
+  ! super compile -dag 'this[a] := count() by key' in.sup
+  ! super compile -dag 'this[a] := count()' in.sup
+
+inputs:
+  - name: in.sup
+    data: |
+      {a:0,key:0}
 
 outputs:
   - name: stderr

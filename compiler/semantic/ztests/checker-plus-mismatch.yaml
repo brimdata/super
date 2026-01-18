@@ -3,6 +3,6 @@ spq: |
    | values x+y
 
 error: |
-  type mismatch at line 2, column 10:
+  type mismatch: bool|string + int64 at line 2, column 10:
   | values x+y
            ~~~

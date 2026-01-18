@@ -7,6 +7,6 @@ spq: |
 vector: true
 
 error: |
-  operator cycle found: callA -> callB -> callC -> callA at line 3, column 12:
+  operator cycle found: callA -> callB -> callC -> callA -> etc... at line 3, column 12:
   op callC: (callA)
              ~~~~~

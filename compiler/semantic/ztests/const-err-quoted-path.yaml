@@ -3,6 +3,6 @@ spq: |
   values x
 
 error: |
-  cannot reference '"a b"."c d"' in constant expression at line 1, column 11:
+  no such field "a b" at line 1, column 11:
   const x = `a b`.`c d`
-            ~~~~~~~~~~~
+            ~~~~~

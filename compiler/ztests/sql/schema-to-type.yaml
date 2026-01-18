@@ -1,0 +1,7 @@
+spq: |
+  select * from (select {y:1} as x) | values x.z
+
+error: |
+  no such field "z" at line 1, column 46:
+  select * from (select {y:1} as x) | values x.z
+                                               ~

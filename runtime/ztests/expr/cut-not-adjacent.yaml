@@ -9,7 +9,8 @@ vector: true
 inputs:
   - name: in.sup
     data: |
-      {}
+      {rec:{sub1:0,sub2:0},other:0,rec1:{rec2:{sub1:0,sub2:0},sub2:0}}
+      {t:{rec:{sub1:0,sub2:0},other:0}}
 
 outputs:
   - name: stderr

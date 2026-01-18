@@ -1,11 +1,8 @@
 spq: |
-  let test = ( values this )
+  let test = ( values {that:1} )
   values test.that
 
 vector: true
-
-input: |
-  {that:1}
 
 output: |
   1

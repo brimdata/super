@@ -4,17 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"maps"
-	"reflect"
 	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
-	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/compiler/semantic/sem"
 	"github.com/brimdata/super/pkg/field"
-	"github.com/brimdata/super/runtime/sam/expr/agg"
 )
 
 // Analyze a SQL select expression which may have arbitrary nested subqueries
@@ -25,12 +22,12 @@ import (
 // an OrderBy, it can reach into the "in" part of the select scope (for non-aggregates)
 // and also sort by the out elements.  It's up to the caller to unwrap the in/out
 // record when returning to pipeline context.
-func (t *translator) sqlSelect(sel *ast.SQLSelect, demand []ast.Expr, seq sem.Seq) (sem.Seq, tableScope) {
+func (t *translator) sqlSelect(sel *ast.SQLSelect, demand []ast.Expr, seq sem.Seq, parentType super.Type) (sem.Seq, tableScope) {
 	if len(sel.Selection.Args) == 0 {
 		t.error(sel, errors.New("SELECT clause has no selection"))
 		return seq, badTable
 	}
-	seq, fromScope := t.selectFrom(sel.Loc, sel.From, seq)
+	seq, fromScope := t.selectFrom(sel.Loc, sel.From, seq, parentType)
 	if fromScope == nil || fromScope == badTable {
 		return seq, badTable
 	}
@@ -48,45 +45,78 @@ func (t *translator) sqlSelect(sel *ast.SQLSelect, demand []ast.Expr, seq sem.Se
 	defer func() {
 		t.scope.sql = save
 	}()
-	// Form column slots (and expand *'s) but delay analysis of expressions.
+	// We first form column slots (and expand *'s) but delay analysis of expressions.
 	// This will let us properly resolve lateral column aliases from any
 	// GROUP BY expressions that reference them.
-	scope.columns = t.formProjection(scope, sel.Selection.Args)
-	seq = valuesExpr(wrapThis(sel, "in"), seq)
+	fromType := fromScope.superType(t.sctx, t.checker.unknown)
+	inType := t.sctx.MustLookupTypeRecord([]super.Field{super.NewField("in", fromType)})
+	scope.columns = t.formProjection(scope, sel.Selection.Args, inType)
+	var where sem.Expr
 	if sel.Where != nil {
-		where := t.expr(sel.Where)
-		seq = append(seq, sem.NewFilter(sel.Where, where))
+		var typ super.Type
+		where, typ = t.expr(sel.Where, inType)
+		t.checker.boolean(sel.Where, typ)
 	}
 	scope.lateral = true
-	scope.groupings = t.groupBy(scope, sel.GroupBy)
+	scope.groupings = t.groupBy(scope, sel.GroupBy, inType)
 	scope.aggOk = true
-	// Make sure any aggs needed by ORDER BY and computed.
+	// Make sure any aggs needed by ORDER BY and HAVING computed and
+	// placed into the scope.aggs table.
+	// This is a little tricky because we need to find the agg functions
+	// and type check their args against the input table, but we can't
+	// type check the outer parts of the expression yet because the output
+	// scope is not available.  So we just call expr() here and ignore
+	// any type errors.  This will work out ok because we descend into
+	// expressions before type checking them so all agg funcs will be
+	// encountered and entered into the scope.aggs table and the real
+	// type checking will be handled above by the ORDER BY logic.
+	t.checker.pushErrs()
 	for _, e := range demand {
-		t.expr(e)
+		t.expr(e, inType)
 	}
+	if sel.Having != nil {
+		t.expr(sel.Having, inType)
+	}
+	t.checker.popErrs()
+
 	// Next analyze all the columns so we know if there are aggregate functions
 	// (in particular, we know this when there is no GROUP BY) so after this,
 	// we know for sure if the output is grouped or not.
 	scope.lateral = false
-	t.projection(scope.columns)
+	t.projection(scope.columns, inType)
 	scope.lateral = true
-	// We now stitch together the fragments into pipeline operators depending
-	// on whether the ouput is grouped or not.
-	var having sem.Expr
 	if scope.isGrouped() {
-		if sel.Having != nil {
-			having = t.groupedExpr(scope, sel.Having)
-		}
 		// Match grouping expressions in the projected column expressions.
 		t.replaceGroupings(scope, scope.columns)
-		seq = t.genAggregate(sel.Loc, scope, seq)
-		seq = valuesExpr(wrapThis(sel, "g"), seq)
 	} else if sel.Having != nil {
 		t.error(sel.Having, errors.New("HAVING clause requires aggregation functions and/or a GROUP BY clause"))
 	}
+	// Now we stitch together the fragments into pipeline operators depending
+	// on whether the ouput is grouped or not.
+	seq = valuesExpr(wrapThis(sel, "in"), seq)
+	if where != nil {
+		seq = append(seq, sem.NewFilter(sel.Where, where))
+	}
+	if scope.isGrouped() {
+		seq = t.genAggregate(sel.Loc, scope, seq)
+		seq = valuesExpr(wrapThis(sel, "g"), seq)
+	}
 	seq, scope.out = t.emitProjection(scope.columns, scope.isGrouped(), seq)
-	if having != nil {
-		seq = append(seq, sem.NewFilter(sel.Having, having))
+	if sel.Having != nil {
+		// We build the having expression after the projection but having
+		// name resolution is relative to the before-projection scope while
+		// we need the "out" type in the type-checker type in case "this"
+		// is referenced in the having clause.  So we zero out scope.out
+		// during the expr() traversal but leave it in place for superType().
+		typ := scope.superType(t.sctx, t.checker.unknown)
+		save := scope.out
+		scope.out = nil
+		having, typ := t.groupedExpr(scope, sel.Having, typ)
+		scope.out = save
+		if having != nil {
+			t.checker.boolean(sel.Having, typ)
+			seq = append(seq, sem.NewFilter(sel.Having, having))
+		}
 	}
 	if sel.Distinct {
 		seq = t.genDistinct(sem.NewThis(sel, []string{"out"}), seq)
@@ -98,21 +128,23 @@ func (t *translator) sqlSelect(sel *ast.SQLSelect, demand []ast.Expr, seq sem.Se
 // we translate any matching expression to its aggregate tmp variable and
 // flag an error if we encounter un-matched references to the input table.
 // When the select scope isn't an agg, this is like a normal t.expr().
-func (t *translator) groupedExpr(scope *selectScope, e ast.Expr) sem.Expr {
+func (t *translator) groupedExpr(scope *selectScope, e ast.Expr, inType super.Type) (sem.Expr, super.Type) {
 	if e != nil {
 		if !scope.isGrouped() {
-			return t.expr(e)
+			return t.expr(e, inType)
 		}
 		save := scope.grouped
 		defer func() {
 			scope.grouped = save
 		}()
 		scope.grouped = true
-		if out, ok := replaceGroupings(t, t.expr(e), scope.groupings); ok {
-			return out
+		expr, typ := t.expr(e, inType)
+		if out, ok := replaceGroupings(t, expr, scope.groupings); ok {
+			// Note that the replacements do not change the type here...
+			return out, typ
 		}
 	}
-	return nil
+	return nil, nil
 }
 
 func (t *translator) replaceGroupings(scope *selectScope, columns []column) {
@@ -125,10 +157,11 @@ type column struct {
 	name    string
 	astExpr ast.Expr
 	semExpr sem.Expr
+	typ     super.Type
 	lateral bool
 }
 
-func (t *translator) formProjection(scope *selectScope, in []ast.SQLAsExpr) []column {
+func (t *translator) formProjection(scope *selectScope, in []ast.SQLAsExpr, inType super.Type) []column {
 	var out []column
 	scores := make(map[string]int)
 	for _, as := range in {
@@ -139,7 +172,8 @@ func (t *translator) formProjection(scope *selectScope, in []ast.SQLAsExpr) []co
 				t.error(as, err)
 			}
 			for _, p := range paths {
-				out = append(out, column{name: dedup(scores, t.asName(as.Label, nil, p.Path)), semExpr: p, astExpr: as.Expr})
+				typ := t.checker.this(star, p, inType)
+				out = append(out, column{name: dedup(scores, t.asName(as.Label, nil, p.Path)), semExpr: p, typ: typ, astExpr: as.Expr})
 			}
 			continue
 		}
@@ -166,12 +200,14 @@ func (t *translator) asName(label *ast.ID, expr ast.Expr, path []string) string 
 	return name
 }
 
-func (t *translator) projection(columns []column) {
+func (t *translator) projection(columns []column, inType super.Type) {
 	for k := range columns {
 		// Translates all expressions that weren't already expanded
 		// from * patterns.
 		if columns[k].semExpr == nil {
-			columns[k].semExpr = t.expr(columns[k].astExpr)
+			e, typ := t.expr(columns[k].astExpr, inType)
+			columns[k].semExpr = e
+			columns[k].typ = typ
 		}
 	}
 }
@@ -181,14 +217,14 @@ func (t *translator) emitProjection(columns []column, grouped bool, seq sem.Seq)
 		return seq, nil
 	}
 	var outs []sem.RecordElem
-	var names []string
+	var fields []super.Field
 	for _, c := range columns {
 		outs = append(outs, &sem.FieldElem{
 			Node:  c.astExpr,
 			Name:  c.name,
 			Value: c.semExpr,
 		})
-		names = append(names, c.name)
+		fields = append(fields, super.NewField(c.name, c.typ))
 	}
 	var in string
 	if grouped {
@@ -215,16 +251,8 @@ func (t *translator) emitProjection(columns []column, grouped bool, seq sem.Seq)
 			},
 		},
 	}
-	return append(seq, sem.NewValues(loc, e)), &staticTable{typ: t.anonRecord(names)}
-}
-
-// This will be replaced in a subsequent PR after we glue in type checking here.
-func (t *translator) anonRecord(columns []string) *super.TypeRecord {
-	var fields []super.Field
-	for _, c := range columns {
-		fields = append(fields, super.NewField(c, t.checker.unknown))
-	}
-	return t.sctx.MustLookupTypeRecord(fields)
+	outType := t.sctx.MustLookupTypeRecord(fields)
+	return append(seq, sem.NewValues(loc, e)), &staticTable{typ: outType}
 }
 
 func (t *translator) genAggregate(loc ast.Loc, scope *selectScope, seq sem.Seq) sem.Seq {
@@ -241,7 +269,7 @@ func (t *translator) genAggregate(loc ast.Loc, scope *selectScope, seq sem.Seq) 
 	for k, e := range scope.groupings {
 		keyCols = append(keyCols, sem.Assignment{
 			Node: e.loc,
-			LHS:  sem.NewThis(e.loc, []string{groupTmp(k)}),
+			LHS:  sem.NewThis(loc, []string{groupTmp(k)}),
 			RHS:  e.expr,
 		})
 	}
@@ -260,11 +288,14 @@ func groupTmp(k int) string {
 	return fmt.Sprintf("k%d", k)
 }
 
-func (t *translator) selectFrom(loc ast.Loc, exprs []ast.SQLTableExpr, seq sem.Seq) (sem.Seq, relScope) {
+// selectFrom analyzes the FROM clause which is a cross-joined set of table expressions.
+// inType is immediate pipe parent in a top-level select, nil otherwise
+func (t *translator) selectFrom(loc ast.Loc, exprs []ast.SQLTableExpr, seq sem.Seq, inType super.Type) (sem.Seq, relScope) {
 	if len(exprs) == 0 {
 		// No FROM clause is modeled by a single null value, which we represent
-		//  with dynamic, e.g., so "select this" results in {that:null}.
-		return seq, &dynamicTable{}
+		//  with dynamic, e.g., so "select this" results in {that:null},
+		// or its the parent pipe input.
+		return seq, newTableFromType(inType, t.checker.unknown)
 	}
 	off := len(seq)
 	hasParent := off > 0
@@ -282,7 +313,6 @@ func (t *translator) selectFrom(loc ast.Loc, exprs []ast.SQLTableExpr, seq sem.S
 			return append(seq, badOp), badTable
 		}
 	}
-
 	// Handle comma-separated table expressions in FROM clause.
 	for _, e := range exprs[1:] {
 		seq, scope = t.sqlAppendCrossJoin(e, seq, scope, e)
@@ -290,38 +320,29 @@ func (t *translator) selectFrom(loc ast.Loc, exprs []ast.SQLTableExpr, seq sem.S
 	return seq, scope
 }
 
-func (t *translator) sqlValues(values *ast.SQLValues, seq sem.Seq) (sem.Seq, tableScope) {
+// sqlValues analyzes the values expression which currently cannot depend
+// on the input data (until we add support for lateral joins then a values
+// clause in the FROM can refer to the left relation).
+func (t *translator) sqlValues(values *ast.SQLValues, seq sem.Seq) (sem.Seq, *staticTable) {
 	exprs := make([]sem.Expr, 0, len(values.Exprs))
+	types := make([]super.Type, 0, len(values.Exprs))
 	for _, astExpr := range values.Exprs {
-		e := t.expr(astExpr)
+		e, typ := t.expr(astExpr, super.TypeNull)
 		exprs = append(exprs, e)
+		types = append(types, typ)
 	}
 	seq = append(seq, sem.NewValues(values, exprs...))
-	return seq, t.inferSchema(values, exprs)
+	return seq, t.inferSchema(values, types)
 }
 
-// XXX when we add integrated type checking, the logic here can always
-// infer a staticTable.  For now, we report an error.  Eventually,
-// this will need to support correlated subqueries which have runtime
-// values (but staticTable columns still known).
-func (t *translator) inferSchema(loc ast.Node, exprs []sem.Expr) *staticTable {
-	fuser := agg.NewSchema(t.sctx)
-	for _, e := range exprs {
-		val, ok := t.maybeEval(e)
-		if !ok {
-			t.error(e, errors.New("SQL VALUES clause currently supports only constant expressions"))
-			return badTable
-		}
-		fuser.Mixin(val.Type())
-	}
-	recType, ok := super.TypeUnder(fuser.Type()).(*super.TypeRecord)
+// With type checking integrated into the SQL analysis, the logic here
+// can always infer a staticTable.  Eventually, this will need to support
+// lateral join subqueries which have runtime values (but staticTable columns still known).
+func (t *translator) inferSchema(loc ast.Node, types []super.Type) *staticTable {
+	recType, ok := super.TypeUnder(t.checker.fuse(types)).(*super.TypeRecord)
 	if !ok {
 		t.error(loc, errors.New("VALUES clause must have records or tuples"))
 		return badTable
-	}
-	columns := make([]string, 0, len(recType.Fields))
-	for _, f := range recType.Fields {
-		columns = append(columns, f.Name)
 	}
 	return &staticTable{typ: recType}
 }
@@ -333,22 +354,21 @@ func (t *translator) genDistinct(e sem.Expr, seq sem.Seq) sem.Seq {
 	})
 }
 
-func (t *translator) sqlPipe(pipe *ast.SQLPipe, seq sem.Seq) (sem.Seq, relTable) {
+func (t *translator) sqlFromPipe(pipe *ast.SQLPipe, seq sem.Seq) (sem.Seq, relTable) {
 	if query, ok := maybeSQLQueryBody(pipe); ok {
-		seq, scope := t.sqlQueryBody(query, nil, seq)
+		seq, scope := t.sqlQueryBody(query, nil, seq, nil)
 		return scope.endScope(query, seq)
 	}
 	if len(seq) > 0 {
 		panic("semSQLOp: SQL pipes can't have parents")
 	}
-	seq = t.seq(pipe.Body)
 	// We pass in type null for initial type here since we know a pipe subquery inside
 	// of a sql table expression must always have a data source (i.e., it cannot inherit
-	// data from a parent node somewhere outside of this seq).  XXX this assumption may
-	// change when we add support for correlated subqueries and an embedded pipe may
-	// need access to the incoming type when feeding that type into the unnest scope
-	// that implements the correlated subquery.
-	return seq, newTableFromType(t.checker.seq(super.TypeNull, seq), t.checker.unknown)
+	// data from a parent node somewhere outside of this seq).  XXX support for lateral
+	// join where the input to the pipe might depend on the table-expression to the left
+	// may change how we wire things up here.
+	seq, typ := t.seq(pipe.Body, super.TypeNull)
+	return seq, newTableFromType(typ, t.checker.unknown)
 }
 
 func maybeSQLQueryBody(pipe *ast.SQLPipe) (ast.SQLQueryBody, bool) {
@@ -410,10 +430,10 @@ func idsToStrings(ids []*ast.ID) []string {
 	return out
 }
 
-func (t *translator) sqlQueryBody(query ast.SQLQueryBody, demand []ast.Expr, seq sem.Seq) (sem.Seq, tableScope) {
+func (t *translator) sqlQueryBody(query ast.SQLQueryBody, demand []ast.Expr, seq sem.Seq, pipeType super.Type) (sem.Seq, tableScope) {
 	switch query := query.(type) {
 	case *ast.SQLSelect:
-		return t.sqlSelect(query, demand, seq)
+		return t.sqlSelect(query, demand, seq, pipeType)
 	case *ast.SQLValues:
 		return t.sqlValues(query, seq)
 	case *ast.SQLQuery:
@@ -425,12 +445,12 @@ func (t *translator) sqlQueryBody(query ast.SQLQueryBody, demand []ast.Expr, seq
 		if query.OrderBy != nil {
 			demand = exprsFromSortExprs(query.OrderBy.Exprs)
 		}
-		seq, scope := t.sqlQueryBody(query.Body, demand, seq)
+		seq, scope := t.sqlQueryBody(query.Body, demand, seq, nil)
 		if scope == badTable {
 			return seq, scope
 		}
 		if query.OrderBy != nil {
-			seq = t.orderBy(query.OrderBy, scope, seq)
+			seq = t.orderBy(query.OrderBy, scope, seq, scope.superType(t.sctx, t.checker.unknown))
 		}
 		if limoff := query.Limit; limoff != nil {
 			if limoff.Offset != nil {
@@ -442,9 +462,9 @@ func (t *translator) sqlQueryBody(query ast.SQLQueryBody, demand []ast.Expr, seq
 		}
 		return seq, scope
 	case *ast.SQLUnion:
-		left, leftScope := t.sqlQueryBody(query.Left, nil, seq)
+		left, leftScope := t.sqlQueryBody(query.Left, nil, seq, nil)
 		left, leftTable := leftScope.endScope(query.Left.(ast.Node), left)
-		right, rightScope := t.sqlQueryBody(query.Right, nil, seq)
+		right, rightScope := t.sqlQueryBody(query.Right, nil, seq, nil)
 		right, rightTable := rightScope.endScope(query.Right.(ast.Node), right)
 		if leftTable == badTable || rightTable == badTable {
 			return right, badTable
@@ -494,7 +514,7 @@ func exprsFromSortExprs(in []ast.SortExpr) []ast.Expr {
 	return out
 }
 
-func (t *translator) orderBy(op *ast.SQLOrderBy, scope relScope, seq sem.Seq) sem.Seq {
+func (t *translator) orderBy(op *ast.SQLOrderBy, scope relScope, seq sem.Seq, inType super.Type) sem.Seq {
 	save := t.scope.sql
 	t.scope.sql = scope
 	defer func() {
@@ -502,7 +522,7 @@ func (t *translator) orderBy(op *ast.SQLOrderBy, scope relScope, seq sem.Seq) se
 	}()
 	var exprs []sem.SortExpr
 	for _, e := range op.Exprs {
-		exprs = append(exprs, t.sortExpr(scope, e, false))
+		exprs = append(exprs, t.sortExpr(scope, e, false, inType))
 	}
 	return append(seq, &sem.SortOp{Node: op, Exprs: exprs})
 }
@@ -565,7 +585,7 @@ func (t *translator) sqlJoin(join *ast.SQLJoin, seq sem.Seq) (sem.Seq, relScope)
 	}
 	saved := t.scope.sql
 	t.scope.sql = scope
-	cond := t.sqlJoinCond(join.Cond)
+	cond := t.sqlJoinCond(join.Cond, scope.superType(t.sctx, t.checker.unknown))
 	t.scope.sql = saved
 	style := join.Style
 	if style == "" {
@@ -582,10 +602,12 @@ func (t *translator) sqlJoin(join *ast.SQLJoin, seq sem.Seq) (sem.Seq, relScope)
 	return sem.Seq{par, dagJoin}, scope
 }
 
-func (t *translator) sqlJoinCond(cond ast.JoinCond) sem.Expr {
+func (t *translator) sqlJoinCond(cond ast.JoinCond, typ super.Type) sem.Expr {
 	switch cond := cond.(type) {
 	case *ast.JoinOnCond:
-		return t.expr(cond.Expr)
+		e, typ := t.expr(cond.Expr, typ)
+		t.checker.boolean(cond.Expr, typ)
+		return e
 	case *ast.JoinUsingCond:
 		jsch := t.scope.sql.(*joinUsingScope).joinScope
 		var exprs []sem.Expr
@@ -630,55 +652,31 @@ func andUsingExprs(cond ast.Node, exprs []sem.Expr) sem.Expr {
 	return e
 }
 
-func (t *translator) pipeJoinCond(cond ast.JoinCond, leftAlias, rightAlias string) sem.Expr {
-	switch cond := cond.(type) {
-	case *ast.JoinOnCond:
-		e := t.expr(cond.Expr)
-		// hack: e is wrapped in []sem.Expr to work around CanSet() model in WalkT
-		dag.WalkT(reflect.ValueOf([]sem.Expr{e}), func(e *sem.ThisExpr) *sem.ThisExpr {
-			if len(e.Path) == 0 {
-				t.error(cond.Expr, errors.New(`join expression cannot refer to "this"`))
-			} else if name := e.Path[0]; name != leftAlias && name != rightAlias {
-				t.error(cond.Expr, fmt.Errorf("ambiguous field reference %q", name))
-			}
-			return e
-		})
-		return e
-	case *ast.JoinUsingCond:
-		var exprs []sem.Expr
-		for _, id := range cond.Fields {
-			lhs := sem.NewThis(id, []string{leftAlias, id.Name})
-			rhs := sem.NewThis(id, []string{rightAlias, id.Name})
-			exprs = append(exprs, sem.NewBinaryExpr(id, "==", lhs, rhs))
-		}
-		return andUsingExprs(cond, exprs)
-	default:
-		panic(cond)
-	}
-}
-
 type exprloc struct {
+	loc  ast.Node
 	expr sem.Expr
-	loc  ast.Expr
+	typ  super.Type
 }
 
-func (t *translator) groupBy(sch *selectScope, in []ast.Expr) []exprloc {
+func (t *translator) groupBy(sch *selectScope, in []ast.Expr, inType super.Type) []exprloc {
 	var out []exprloc
 	for _, expr := range in {
+		var typ super.Type
 		var e sem.Expr
 		if colno, ok := isOrdinal(expr); ok {
 			if colno < 1 || colno > len(sch.columns) {
 				t.error(expr, fmt.Errorf("position %d is not in select list", colno))
+				typ = t.checker.unknown
 			} else {
 				save := sch.groupByLoc
 				sch.groupByLoc = expr
-				e = t.expr(sch.columns[colno-1].astExpr)
+				e, typ = t.expr(sch.columns[colno-1].astExpr, inType)
 				sch.groupByLoc = save
 			}
 		} else {
-			e = t.expr(expr)
+			e, typ = t.expr(expr, inType)
 		}
-		out = append(out, exprloc{e, expr})
+		out = append(out, exprloc{expr, e, typ})
 	}
 	return out
 }

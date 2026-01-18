@@ -3,13 +3,18 @@ script: |
   echo ===
   super compile -C -O 'sort | tail'
   echo ===
-  super compile -C -O 'sort -r a, b desc, c nulls first | head 3'
+  super compile -C -O 'sort -r a, b desc, c nulls first | head 3' in.sup
   echo ===
-  super compile -C -O 'sort -r a, b desc, c nulls first | tail 3'
+  super compile -C -O 'sort -r a, b desc, c nulls first | tail 3' in.sup
   echo ===
   super compile -C -O 'sort | head 1048577'
   echo ===
   super compile -C -O 'sort | tail 1048577'
+
+inputs:
+  - name: in.sup
+    data: |
+      {a:1,b:1,c:1}
 
 outputs:
   - name: stdout
@@ -22,11 +27,11 @@ outputs:
       | top -r 1
       | output main
       ===
-      null
+      file in.sup unordered
       | top 3 a desc nulls last, b asc nulls last, c desc nulls first
       | output main
       ===
-      null
+      file in.sup unordered
       | top 3 a asc nulls last, b desc nulls last, c asc nulls first
       | output main
       ===

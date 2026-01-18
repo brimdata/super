@@ -58,19 +58,20 @@ type lambda struct {
 	id    string // declaration ID (or built-in) of the function value
 }
 
-func (r *resolver) resolveCall(n ast.Node, id string, args []sem.Expr) sem.Expr {
+func (r *resolver) resolveCall(n ast.Node, id string, args []sem.Expr, argTypes []super.Type) (sem.Expr, super.Type) {
 	if isBuiltin(id) {
 		// Check argument count here for builtin functions.
 		if _, err := function.New(super.NewContext(), id, len(args)); err != nil {
 			r.t.error(n, err)
-			return badExpr
+			return badExpr, r.t.checker.unknown
 		}
-		return sem.NewCall(n, id, args)
+		// Type checking of functions is TBD.  Return unknown for now.
+		return sem.NewCall(n, id, args), r.t.checker.unknown
 	}
-	return r.mustResolveCall(n, id, args)
+	return r.mustResolveCall(n, id, args, argTypes)
 }
 
-func (r *resolver) mustResolveCall(n ast.Node, id string, args []sem.Expr) sem.Expr {
+func (r *resolver) mustResolveCall(n ast.Node, id string, args []sem.Expr, argTypes []super.Type) (sem.Expr, super.Type) {
 	d, ok := r.decls[id]
 	if !ok {
 		panic(id)
@@ -83,45 +84,39 @@ func (r *resolver) mustResolveCall(n ast.Node, id string, args []sem.Expr) sem.E
 	declParams := d.lambda.Params
 	if len(declParams) != len(args) {
 		r.t.error(n, fmt.Errorf("%q: expected %d params but called with %d", d.name, len(declParams), len(args)))
-		return badExpr
+		return badExpr, r.t.checker.unknown
 	}
 	var lambdas []lambda
+	var fields []super.Field
 	for k, arg := range args {
 		if f, ok := arg.(*sem.FuncRef); ok {
 			lambdas = append(lambdas, lambda{param: declParams[k].Name, pos: k, id: f.ID})
 			continue
 		}
-		if e, ok := arg.(*sem.ThisExpr); ok {
-			if len(e.Path) == 1 {
-				// Propagate a function passed as a function value inside of
-				// a function to another function as the new param name.
-				if id, ok := r.t.scope.lookupFuncParamLambda(e.Path[0]); ok {
-					lambdas = append(lambdas, lambda{param: declParams[k].Name, pos: k, id: id})
-					continue
-				}
-			}
-		}
 		params = append(params, declParams[k].Name)
 		exprs = append(exprs, arg)
+		fields = append(fields, super.NewField(declParams[k].Name, argTypes[k]))
 	}
+	argType := r.t.sctx.MustLookupTypeRecord(fields)
 	if len(declParams) == len(params) {
 		// No need to specialize this call since no function args are being passed.
+		tag, typ := r.lookupFixed(id, argType)
 		return &sem.CallExpr{
 			Node: n,
-			Tag:  r.lookupFixed(id),
+			Tag:  tag,
 			Args: args,
-		}
+		}, typ
 	}
 	// Enter the new function scope and set up the bindings for the
 	// values we retrieved above while evaluating args in the outer scope.
 	return &sem.CallExpr{
 		Node: n,
-		Tag:  r.getVariant(id, params, lambdas).tag,
+		Tag:  r.getVariant(id, params, lambdas, argType).tag,
 		Args: exprs,
-	}
+	}, r.t.checker.unknown
 }
 
-func (r *resolver) resolveVariant(d *funcDecl, variant *funcDef) {
+func (r *resolver) resolveVariant(d *funcDecl, variant *funcDef, inType super.Type) {
 	save := r.t.scope
 	r.t.scope = NewScope(d.scope)
 	defer func() {
@@ -134,11 +129,11 @@ func (r *resolver) resolveVariant(d *funcDecl, variant *funcDef) {
 	for _, param := range variant.params {
 		r.t.scope.BindSymbol(param, funcParamValue{})
 	}
-	variant.body = r.t.expr(d.lambda.Expr)
+	variant.body, _ = r.t.expr(d.lambda.Expr, inType)
 	r.t.exitScope()
 }
 
-func (r *resolver) resolveFixed(d *funcDecl, tag string) *funcDef {
+func (r *resolver) resolveFixed(d *funcDecl, tag string, inType super.Type) *funcDef {
 	save := r.t.scope
 	r.t.scope = NewScope(d.scope)
 	defer func() {
@@ -149,7 +144,7 @@ func (r *resolver) resolveFixed(d *funcDecl, tag string) *funcDef {
 	for _, param := range params {
 		r.t.scope.BindSymbol(param, funcParamValue{})
 	}
-	body := r.t.expr(d.lambda.Expr)
+	body, _ := r.t.expr(d.lambda.Expr, r.t.checker.unknown) //XXX need type
 	r.t.exitScope()
 	return &funcDef{
 		tag:    tag,
@@ -159,16 +154,22 @@ func (r *resolver) resolveFixed(d *funcDecl, tag string) *funcDef {
 	}
 }
 
-func (r *resolver) lookupFixed(id string) string {
+func (r *resolver) lookupFixed(id string, inType super.Type) (string, super.Type) {
 	if tag, ok := r.fixed[id]; ok {
-		return tag
+		if f, ok := r.funcs[tag]; ok {
+			return tag, r.t.checker.expr(inType, f.body)
+		}
+		// This function is recursive so we can't know it's type here.
+		// At some point, we will add function prototypes so type checking
+		// can work more completely on recursive functions.
+		return tag, r.t.checker.unknown
 	}
 	tag := r.nextTag()
 	// Install this binding up front to block recursion.
 	r.fixed[id] = tag
 	decl := r.decls[id]
-	r.funcs[tag] = r.resolveFixed(decl, tag)
-	return tag
+	r.funcs[tag] = r.resolveFixed(decl, tag, inType)
+	return tag, r.t.checker.expr(inType, r.funcs[tag].body)
 }
 
 func (r *resolver) lookupVariant(id string, lambdas []lambda) *funcDef {
@@ -181,7 +182,7 @@ func (r *resolver) lookupVariant(id string, lambdas []lambda) *funcDef {
 	return nil
 }
 
-func (r *resolver) getVariant(id string, params []string, lambdas []lambda) *funcDef {
+func (r *resolver) getVariant(id string, params []string, lambdas []lambda, inType super.Type) *funcDef {
 	if variant := r.lookupVariant(id, lambdas); variant != nil {
 		return variant
 	}
@@ -198,7 +199,7 @@ func (r *resolver) getVariant(id string, params []string, lambdas []lambda) *fun
 	// We put the variant in the decl before resolving the body to stop recursion.
 	d.variants = append(d.variants, variant)
 	// Resolve the body here.
-	r.resolveVariant(d, variant)
+	r.resolveVariant(d, variant, inType)
 	return variant
 }
 

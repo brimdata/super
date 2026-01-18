@@ -2,7 +2,6 @@ package semantic
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/brimdata/super"
@@ -263,7 +262,11 @@ func (e *evaluator) expr(expr sem.Expr) bool {
 		return e.seq(expr.Body)
 	case *sem.ThisExpr:
 		if !e.constThis {
-			e.errs.error(expr, fmt.Errorf("cannot reference '%s' in constant expression", quotedPath(expr.Path)))
+			// XXX The type checker now reports no such field for non constant
+			// exressions so we shouldn't need the constant analysis in this
+			// module anymore.  We will verify this and remove this code in
+			// a future PR (we still need the evaluator for now).
+			//e.errs.error(expr, fmt.Errorf("cannot reference '%s' in constant expression", quotedPath(expr.Path)))
 		}
 		return e.constThis
 	case *sem.UnaryExpr:

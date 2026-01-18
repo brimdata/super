@@ -1,10 +1,10 @@
 script: |
   super compile -dag -C 'fork (values {jkey:1}) (values {kkey:1}) | join as {j,k} on k.kkey=j.jkey'
-  ! super compile -dag -C 'join as {j,j} on key'
+  ! super compile -dag -C 'fork (pass) (pass) | join as {j,j} on key'
   echo // === >&2
-  ! super compile -dag -C 'join on foo.key=left.key'
+  ! super compile -dag -C 'fork (pass) (pass) | join on foo.key=left.key'
   echo // === >&2
-  ! super compile -dag -C 'join on this'
+  ! super compile -dag -C 'fork (pass) (pass) | join on this=1'
   echo // === >&2
   ! super compile -dag -C 'cross join on left.key=1+2'
 
@@ -24,17 +24,20 @@ outputs:
       | output main
   - name: stderr
     data: |
-      left and right join aliases cannot be the same at line 1, column 9:
-      join as {j,j} on key
-              ~~~~~
+      left and right join aliases cannot be the same at line 1, column 30:
+      fork (pass) (pass) | join as {j,j} on key
+                                   ~~~~~
       // ===
-      ambiguous field reference "foo" at line 1, column 9:
-      join on foo.key=left.key
-              ~~~~~~~~~~~~~~~~
+      no such field "foo" at line 1, column 30:
+      fork (pass) (pass) | join on foo.key=left.key
+                                   ~~~
+      no such field "key" at line 1, column 43:
+      fork (pass) (pass) | join on foo.key=left.key
+                                                ~~~
       // ===
-      join expression cannot refer to "this" at line 1, column 9:
-      join on this
-              ~~~~
+      join expression cannot refer to "this" at line 1, column 30:
+      fork (pass) (pass) | join on this=1
+                                   ~~~~~~
       // ===
       parse error at line 1, column 12:
       cross join on left.key=1+2

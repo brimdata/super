@@ -95,7 +95,7 @@ func TestLogPow(t *testing.T) {
 	testSuccessful(t, "log(-1)", "", `error({message:"log: illegal argument",on:-1})`)
 
 	testCompilationError(t, "pow()", function.ErrTooFewArgs)
-	testCompilationError(t, "pow(2, 3, r)", function.ErrTooManyArgs)
+	testCompilationError(t, "pow(2, 3, 4)", function.ErrTooManyArgs)
 	testSuccessful(t, "pow(-1, 0.5)", "", "NaN")
 }
 

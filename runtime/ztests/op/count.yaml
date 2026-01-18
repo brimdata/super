@@ -39,11 +39,11 @@ outputs:
       {val:4,c:2}
   - name: stderr
     data: |
-      type mismatch at line 1, column 32:
+      type mismatch: int64 + string at line 1, column 32:
       values null | count | count := count+"hello"
                                      ~~~~~~~~~~~~~
       // ===
-      type mismatch at line 1, column 47:
+      type mismatch: string + int64 at line 1, column 47:
       values {x:"foo"} | count {...this,row} | x := x+1
                                                     ~~~
       // ===

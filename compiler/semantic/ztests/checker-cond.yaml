@@ -1,5 +1,5 @@
 spq: |
-  values {key:0,val:1}
+  values {key:0,val:1,val2:2}
   | values key=0 ? val : val2
 
 output: |

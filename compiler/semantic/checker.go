@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
@@ -289,6 +290,12 @@ func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
 		// XXX This will be handled in a subsequent PR where we add type signatures
 		// to the package containing the agg func implementatons.
 		return c.unknown
+	case *sem.AggRef:
+		// AggRef's should never appear here but they can show up when
+		// we are traversing the demand exprs in a SQL SELECT where we
+		// do not care about type checking (because ORDER BY will re-do
+		// the type checks with the output scope available).
+		return c.unknown
 	case *sem.ArrayExpr:
 		return c.t.sctx.LookupTypeArray(c.arrayElems(typ, e.Elems))
 	case *sem.BadExpr:
@@ -296,25 +303,7 @@ func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
 	case *sem.BinaryExpr:
 		lhs := c.expr(typ, e.LHS)
 		rhs := c.expr(typ, e.RHS)
-		switch e.Op {
-		case "and", "or":
-			c.logical(e.LHS, e.RHS, lhs, rhs)
-			return super.TypeBool
-		case "in":
-			c.in(e, e.LHS, e.RHS, lhs, rhs)
-			return super.TypeBool
-		case "==", "!=":
-			return c.equality(lhs, rhs)
-		case "<", "<=", ">", ">=":
-			return c.comparison(lhs, rhs)
-		case "+", "-", "*", "/", "%":
-			if e.Op == "+" {
-				return c.plus(e, lhs, rhs)
-			}
-			return c.arithmetic(e.LHS, e.RHS, lhs, rhs)
-		default:
-			panic(e.Op)
-		}
+		return c.binary(e.Op, e, e.LHS, e.RHS, lhs, rhs)
 	case *sem.CallExpr:
 		var types []super.Type
 		for _, e := range e.Args {
@@ -362,8 +351,7 @@ func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
 		return lambdaType
 	case *sem.MapExpr:
 		// fuser could take type at a time instead of array
-		var keyTypes []super.Type
-		var valTypes []super.Type
+		var keyTypes, valTypes []super.Type
 		for _, entry := range e.Entries {
 			keyTypes = append(keyTypes, c.expr(typ, entry.Key))
 			valTypes = append(valTypes, c.expr(typ, entry.Value))
@@ -396,8 +384,12 @@ func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
 	case *sem.SetExpr:
 		return c.t.sctx.LookupTypeArray(c.arrayElems(typ, e.Elems))
 	case *sem.SliceExpr:
-		c.integer(e.From, c.expr(typ, e.From))
-		c.integer(e.To, c.expr(typ, e.To))
+		if e.From != nil {
+			c.integer(e.From, c.expr(typ, e.From))
+		}
+		if e.To != nil {
+			c.integer(e.To, c.expr(typ, e.To))
+		}
 		container := c.expr(typ, e.Expr)
 		c.sliceable(e.Expr, container)
 		return container
@@ -408,10 +400,7 @@ func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
 		}
 		return typ
 	case *sem.ThisExpr:
-		for _, field := range e.Path {
-			typ, _ = c.deref(e.Node, typ, field)
-		}
-		return typ
+		return c.this(e.Node, e, typ)
 	case *sem.UnaryExpr:
 		typ = c.expr(typ, e.Operand)
 		switch e.Op {
@@ -427,6 +416,34 @@ func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
 	default:
 		panic(e)
 	}
+}
+
+func (c *checker) binary(op string, loc, lloc, rloc ast.Node, lhs, rhs super.Type) super.Type {
+	switch strings.ToLower(op) {
+	case "and", "or":
+		c.logical(lloc, rloc, lhs, rhs)
+		return super.TypeBool
+	case "in", "not in":
+		c.in(loc, lloc, rloc, lhs, rhs)
+		return super.TypeBool
+	case "==", "!=", "=", "<>":
+		return c.equality(lhs, rhs)
+	case "<", "<=", ">", ">=":
+		return c.comparison(lhs, rhs)
+	case "+":
+		return c.plus(loc, lhs, rhs)
+	case "-", "*", "/", "%":
+		return c.arithmetic(lloc, rloc, lhs, rhs)
+	default:
+		panic(op)
+	}
+}
+
+func (c *checker) this(loc ast.Node, this *sem.ThisExpr, typ super.Type) super.Type {
+	for _, field := range this.Path {
+		typ, _ = c.deref(loc, typ, field)
+	}
+	return typ
 }
 
 func (c *checker) isContainer(containerType super.Type) (super.Type, bool) {
@@ -480,6 +497,27 @@ func (c *checker) recordElems(typ super.Type, elems []sem.RecordElem) super.Type
 	return fuser.Type()
 }
 
+func (c *checker) fuseRecordElems(elems []sem.RecordElem, types []super.Type) super.Type {
+	fuser := c.newFuser()
+	for k, elem := range elems {
+		typ := types[k]
+		switch elem := elem.(type) {
+		case *sem.SpreadElem:
+			if hasUnknown(typ) {
+				// If we're spreading an unknown type into this record, we don't
+				// know the result at all.  Return unknown for the whole thing.
+				return c.unknown
+			}
+			fuser.fuse(typ)
+		case *sem.FieldElem:
+			fuser.fuse(c.t.sctx.MustLookupTypeRecord([]super.Field{super.NewField(elem.Name, typ)}))
+		default:
+			panic(elem)
+		}
+	}
+	return fuser.Type()
+}
+
 func (c *checker) callBuiltin(call *sem.CallExpr, args []super.Type) super.Type {
 	// XXX This will be handled in a subsequent PR where we add type signatures
 	// to the package containing the built-in function implementatons.
@@ -487,7 +525,10 @@ func (c *checker) callBuiltin(call *sem.CallExpr, args []super.Type) super.Type 
 }
 
 func (c *checker) callFunc(call *sem.CallExpr, args []super.Type) super.Type {
-	f := c.t.resolver.funcs[call.Tag]
+	f, ok := c.t.resolver.funcs[call.Tag]
+	if !ok {
+		return c.unknown
+	}
 	if len(args) != len(f.params) {
 		// The translator has already checked that len(args) is len(params)
 		// but when there's an error, mismatches can still show up here so
@@ -556,7 +597,7 @@ func (c *checker) dropPath(typ super.Type, drop path) super.Type {
 	off, ok := rec.IndexOfField(drop.elems[0])
 	if !ok {
 		if !hasUnknown(typ) {
-			c.error(drop.loc, fmt.Errorf("no such field to drop: %q", drop.elems[0]))
+			c.error(drop.loc, errors.New("expression not present in drop input"))
 		}
 		return c.unknown
 	}
@@ -712,7 +753,7 @@ func (c *checker) deref(loc ast.Node, typ super.Type, field string) (super.Type,
 		}
 		return c.fuse(types), valid
 	}
-	c.error(loc, fmt.Errorf("%q no such field", field))
+	c.error(loc, fmt.Errorf("no such field %q", field))
 	return c.unknown, false
 }
 
@@ -843,7 +884,7 @@ func comparable(a, b super.Type) bool {
 }
 
 func (c *checker) arithmetic(lloc, rloc ast.Node, lhs, rhs super.Type) super.Type {
-	if isUnknown(lhs) || isUnknown(rhs) {
+	if hasUnknown(lhs) || hasUnknown(rhs) {
 		return c.unknown
 	}
 	c.number(lloc, lhs)
@@ -852,13 +893,13 @@ func (c *checker) arithmetic(lloc, rloc ast.Node, lhs, rhs super.Type) super.Typ
 }
 
 func (c *checker) plus(loc ast.Node, lhs, rhs super.Type) super.Type {
-	if isUnknown(lhs) || isUnknown(rhs) {
+	if hasUnknown(lhs) || hasUnknown(rhs) {
 		return c.unknown
 	}
 	if hasNumber(lhs) && hasNumber(rhs) {
 		return c.fuse([]super.Type{lhs, rhs})
 	}
-	c.error(loc, errors.New("type mismatch"))
+	c.error(loc, fmt.Errorf("type mismatch: %s + %s", sup.FormatType(lhs), sup.FormatType(rhs)))
 	return c.unknown
 }
 
@@ -903,6 +944,24 @@ func hasUnknown(typ super.Type) bool {
 		}
 	}
 	return isUnknown(typ)
+}
+
+func (c *checker) hasArray(typ super.Type) (super.Type, bool) {
+	switch typ := super.TypeUnder(typ).(type) {
+	case *super.TypeUnion:
+		for _, t := range typ.Types {
+			if elemType, ok := c.hasArray(t); ok {
+				return elemType, true
+			}
+		}
+	case *super.TypeArray:
+		return typ.Type, true
+	}
+	if isUnknown(typ) {
+		return c.unknown, true
+	}
+	return nil, false
+
 }
 
 func (c *checker) indexOf(cloc, iloc ast.Node, container, index super.Type) (super.Type, bool) {
@@ -1092,4 +1151,10 @@ func (f *fuser) Type() super.Type {
 		return f.typ
 	}
 	return f.unknown
+}
+
+func (c *checker) aggFunc(name string, arg ast.Node, argType super.Type, filter ast.Node, filterType super.Type) super.Type {
+	c.boolean(filter, filterType)
+	//XXX TBD... need to type check args and get return value
+	return c.unknown
 }
