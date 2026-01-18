@@ -1,0 +1,4 @@
+spq: select count() filter (where x=1) from (values {x:1},{x:2})
+
+output: |
+  {count:1}
