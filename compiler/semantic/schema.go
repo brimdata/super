@@ -401,6 +401,9 @@ func (s *selectScope) star(n ast.Node, table string, path field.Path) ([]*sem.Th
 }
 
 func (s *staticTable) star(n ast.Node, table string, path field.Path) ([]*sem.ThisExpr, error) {
+	if s == badTable {
+		return nil, nil
+	}
 	var out []*sem.ThisExpr
 	if table == "" || s.table == table {
 		for _, col := range s.typ.Fields {
