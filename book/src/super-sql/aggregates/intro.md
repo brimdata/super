@@ -3,7 +3,7 @@
 Aggregate functions compute aggregated results from zero or more
 input values and have the form
 ```
-<name> ( [ all | distinct ] <expr> ) [ where <pred> ]
+<name> ( [ all | distinct ] <expr> ) [ filter ( [where] <pred> ) ]
 ```
 where
 * `<name>` is an identifier naming the function,
