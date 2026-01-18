@@ -301,20 +301,6 @@ func (j *joinUsingScope) resolveUnqualified(col string) (field.Path, bool, error
 func (s *selectScope) resolveUnqualified(col string) (field.Path, bool, error) {
 	// This just looks for column in the input table.  The resolve() function
 	// looks at lateral column aliases if this fails.
-	if s.out != nil && !s.isGrouped() {
-		// The output scope is set after the select scope is almost closed so that
-		// ORDER BY can utilize the projected columns, which have precedence
-		// higher than anything else, except when recursively descending
-		// into the argument expression of agg functions, in which case,
-		// s.out is cleared and scalars resolve to input and lateral columns.
-		path, dyn, err := s.out.resolveUnqualified(col)
-		if err != nil {
-			return nil, false, err
-		}
-		if path != nil {
-			return append([]string{"out"}, path...), dyn, nil
-		}
-	}
 	path, dyn, err := s.in.resolveUnqualified(col)
 	if path != nil {
 		return append([]string{"in"}, path...), dyn, nil
