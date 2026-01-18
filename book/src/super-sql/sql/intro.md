@@ -34,7 +34,7 @@ where
 Query envelopes produce relational data in the form of sets of records
 and may appear in several contexts including:
 * the top-level query,
-* as a data-source element of a [FROM](from.md) clause,
+* as a parenthesized data-source element of a [FROM](from.md) clause,
 * as a data-source element of [JOIN](join.md) clause embedded in a [FROM](from.md) clause,
 * as a [subquery](../expressions/subqueries.md) in expressions, and
 * as operands in a [set operation](#set-operators).
