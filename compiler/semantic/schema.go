@@ -159,7 +159,10 @@ func newJoinUsingScope(j *joinScope, columns []string) *joinUsingScope {
 
 func (*staticTable) relTableType() {}
 
-func (s *staticTable) superType(*super.Context, *super.TypeError) super.Type {
+func (s *staticTable) superType(sctx *super.Context, unknown *super.TypeError) super.Type {
+	if s.typ == nil {
+		return unknown
+	}
 	return s.typ
 }
 
