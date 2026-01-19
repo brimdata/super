@@ -266,8 +266,7 @@ func resolveLateralColumn(t *translator, scope *selectScope, col string, inType 
 		// lateral columns available only inside select bodies
 		return nil, t.checker.unknown
 	}
-	for k := range len(scope.columns) {
-		c := scope.columns[k]
+	for _, c := range scope.columns {
 		if c.lateral && c.name == col {
 			defer func() {
 				scope.lateral = true

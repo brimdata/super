@@ -653,7 +653,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq, inType super.Type) (sem.Seq, s
 					&sem.FieldElem{Name: "that", Value: sem.NewThis(nil, nil)},
 				},
 			}
-			fields = []super.Field{{Name: "that", Type: inType}}
+			fields = []super.Field{super.NewField("that", inType)}
 		} else {
 			n := len(o.Expr.Elems)
 			if n == 0 {
@@ -697,7 +697,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq, inType super.Type) (sem.Seq, s
 				fields = slices.Clone(recType.Fields)
 			}
 		}
-		fields = append(fields, super.Field{Name: alias, Type: super.TypeInt64})
+		fields = append(fields, super.NewField(alias, super.TypeInt64))
 		return append(seq, &sem.CountOp{
 			Node:  o,
 			Alias: alias,
@@ -875,8 +875,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq, inType super.Type) (sem.Seq, s
 		var paths []pathType
 		for _, fa := range o.Args {
 			assign, path := t.assignment(&fa, inType)
-			_, ok := isLval(assign.RHS)
-			if !ok {
+			if _, ok := isLval(assign.RHS); !ok {
 				t.error(fa.RHS, fmt.Errorf("illegal right-hand side of assignment"))
 			}
 			// If both paths are static validate them. Otherwise this will be
@@ -1142,8 +1141,6 @@ func (t *translator) switchOp(op *ast.SwitchOp, seq sem.Seq, inType super.Type) 
 		if c.Expr != nil {
 			e, _ = t.expr(c.Expr, inType)
 		} else if op.Expr == nil {
-			// c.Expr == nil indicates the default case,
-			// whose handling depends on p.Expr.
 			e = sem.NewLiteral(op, super.True)
 		}
 		path, typ := t.seq(c.Path, inType)

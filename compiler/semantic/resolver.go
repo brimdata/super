@@ -159,7 +159,7 @@ func (r *resolver) lookupFixed(id string, inType super.Type) (string, super.Type
 		if f, ok := r.funcs[tag]; ok {
 			return tag, r.t.checker.expr(inType, f.body)
 		}
-		// This function is recursive so we can't know it's type here.
+		// This function is recursive so we can't know its type here.
 		// At some point, we will add function prototypes so type checking
 		// can work more completely on recursive functions.
 		return tag, r.t.checker.unknown

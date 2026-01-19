@@ -60,7 +60,7 @@ func (t *translator) sqlSelect(sel *ast.SQLSelect, demand []ast.Expr, seq sem.Se
 	scope.lateral = true
 	scope.groupings = t.groupBy(scope, sel.GroupBy, inType)
 	scope.aggOk = true
-	// Make sure any aggs needed by ORDER BY and HAVING computed and
+	// Make sure any aggs needed by ORDER BY and HAVING are computed and
 	// placed into the scope.aggs table.
 	// This is a little tricky because we need to find the agg functions
 	// and type check their args against the input table, but we can't
@@ -289,12 +289,12 @@ func groupTmp(k int) string {
 }
 
 // selectFrom analyzes the FROM clause which is a cross-joined set of table expressions.
-// inType is immediate pipe parent in a top-level select, nil otherwise
+// inType is from the immediate pipe parent in a top-level select, nil otherwise
 func (t *translator) selectFrom(loc ast.Loc, exprs []ast.SQLTableExpr, seq sem.Seq, inType super.Type) (sem.Seq, relScope) {
 	if len(exprs) == 0 {
 		// No FROM clause is modeled by a single null value, which we represent
-		//  with dynamic, e.g., so "select this" results in {that:null},
-		// or its the parent pipe input.
+		// with dynamic, e.g., so "select this" results in {that:null},
+		// or the parent pipe input.
 		return seq, newTableFromType(inType, t.checker.unknown)
 	}
 	off := len(seq)
@@ -321,7 +321,7 @@ func (t *translator) selectFrom(loc ast.Loc, exprs []ast.SQLTableExpr, seq sem.S
 }
 
 // sqlValues analyzes the values expression which currently cannot depend
-// on the input data (until we add support for lateral joins then a values
+// on the input data (until we add support for lateral joins; then a values
 // clause in the FROM can refer to the left relation).
 func (t *translator) sqlValues(values *ast.SQLValues, seq sem.Seq) (sem.Seq, *staticTable) {
 	exprs := make([]sem.Expr, 0, len(values.Exprs))
@@ -337,7 +337,7 @@ func (t *translator) sqlValues(values *ast.SQLValues, seq sem.Seq) (sem.Seq, *st
 
 // With type checking integrated into the SQL analysis, the logic here
 // can always infer a staticTable.  Eventually, this will need to support
-// lateral join subqueries which have runtime values (but staticTable columns still known).
+// lateral join subqueries which have runtime values (but staticTable columns are still known).
 func (t *translator) inferSchema(loc ast.Node, types []super.Type) *staticTable {
 	recType, ok := super.TypeUnder(t.checker.fuse(types)).(*super.TypeRecord)
 	if !ok {

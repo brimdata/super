@@ -313,7 +313,7 @@ func (s *selectScope) resolveUnqualified(col string) (field.Path, bool, error) {
 		// This isn't a problem when the table has aggregate output (!isGrouped())
 		// (because there is no way to reference the input table values outside
 		// of agg func arguments), and it can't work because expression matching
-		// would be foiled by paths with out.col..
+		// would be foiled by paths with out.col.
 		path, dyn, err := s.out.resolveUnqualified(col)
 		if err != nil {
 			return nil, false, err
