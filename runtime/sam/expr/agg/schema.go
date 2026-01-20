@@ -33,6 +33,9 @@ func (s *Schema) Type() super.Type {
 }
 
 func merge(sctx *super.Context, a, b super.Type) super.Type {
+	if a == b {
+		return a
+	}
 	aUnder := super.TypeUnder(a)
 	if aUnder == super.TypeNull {
 		return b
