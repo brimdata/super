@@ -3,3 +3,11 @@ spq: with t(x) as (values (1),(2)) select * from t
 output: |
   {x:1}
   {x:2}
+
+---
+
+spq: with "a b"(x) as (values (1),(2)) select * from "a b"
+
+output: |
+  {x:1}
+  {x:2}
