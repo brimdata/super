@@ -280,6 +280,11 @@ func CopyExpr(e Expr) Expr {
 			Expr:     CopyExpr(e.Expr),
 			Filter:   CopyExpr(e.Filter),
 		}
+	case *AggRef:
+		return &AggRef{
+			Node:  e.Node,
+			Index: e.Index,
+		}
 	case *ArrayExpr:
 		return &ArrayExpr{
 			Node:  e.Node,
