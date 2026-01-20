@@ -132,7 +132,7 @@ func (t *translator) sqlTableExpr(e ast.SQLTableExpr, seq sem.Seq) (sem.Seq, rel
 					return seq, badTable
 				}
 				if alias == nil {
-					alias = &ast.TableAlias{Name: name, Loc: c.Name.Loc}
+					alias = c.Name
 				}
 				seq, table = t.fromCTE(input, c)
 			} else {

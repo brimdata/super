@@ -1,0 +1,5 @@
+spq: with t(x) as (values (1),(2)) select * from t
+
+output: |
+  {x:1}
+  {x:2}

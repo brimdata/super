@@ -49,7 +49,7 @@ func (*SQLValues) sqlQueryBodyNode() {}
 
 type (
 	SQLCTE struct {
-		Name         *ID          `json:"name"`
+		Name         *TableAlias  `json:"name"`
 		Materialized bool         `json:"materialized"`
 		Body         SQLQueryBody `json:"body"`
 		Loc          `json:"loc"`

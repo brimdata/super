@@ -2145,9 +2145,9 @@ CteList = first:Cte rest:( __ "," __ cte:Cte { return cte, nil} )* {
 }
 
 Cte
-  = name:SQLIdentifier _ AS m:OptMaterialized __ "(" __ s:SQLQueryOrSetExpr __ ")" {
+  = name:TableAlias _ AS m:OptMaterialized __ "(" __ s:SQLQueryOrSetExpr __ ")" {
         return ast.SQLCTE{
-            Name: name.(*ast.ID),
+            Name: name.(*ast.TableAlias),
             Materialized: m.(bool),
             Body: s.(ast.SQLQueryBody),
             Loc: loc(c),
@@ -2250,7 +2250,10 @@ OptAlias
   / ""              { return nil, nil }
 
 AliasClause
- = (AS _)? !SQLGuard name:IdentifierName cols:Columns? {
+ = (AS _)? !SQLGuard alias:TableAlias { return alias, nil }
+
+TableAlias
+ = name:IdentifierName cols:Columns? {
       alias := &ast.TableAlias{Name: name.(string), Loc: loc(c)}
       if cols != nil {
         alias.Columns = cols.([]*ast.ID)
