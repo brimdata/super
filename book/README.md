@@ -43,7 +43,7 @@ The following should be rendered in `fixed width` font:
 
 * Command names (e.g., `super`)
 * SuperSQL query text (e.g., `put`, `SELECT`)
-* Type names (e.g., `int64`, `VARCHAR`)
+* Type names that are language tokens (e.g., `int64`, `VARCHAR`)
 * References to operator/function usage (e.g., "the `<expr>` argument to `eval`)"
 * Input/output/parameter values (e.g., "the value of N defaults to `1`",
   "`values 1 > 0` produces the literal value `true`")
@@ -55,6 +55,8 @@ The following should be rendered in `fixed width` font:
 >   "When the `<predicate>` in a ternary conditional is true..." to avoid
 >   incorrectly giving the impression only the literal value `true` is
 >   intended.
+> * Don't use fixed with for data types that aren't language tokens, e.g.,
+>   "record" or "array"
 
 ### Hyperlinking names of functions/operators/etc.
 

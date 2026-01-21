@@ -1,6 +1,6 @@
 ## F-Strings
 
-A formatted string (or f-string) is a `string` [literal](literals.md) prefixed with `f`
+A formatted string (or f-string) is a string [literal](literals.md) prefixed with `f`
 that includes replacement [expressions](intro.md) delimited by curly braces:
 ```
 f"... { <expr> } ... { <expr> } ..."
@@ -8,7 +8,7 @@ f"... { <expr> } ... { <expr> } ..."
 The text starting with `{` and ending at `}` is substituted
 with the result of the expression `<expr>`.  As shown, multiple such
 expressions may be embedded in an f-string.  If the expression results
-in a value that is not a `string`, then it is implicitly [cast](cast.md) to a `string`.
+in a value that is not a string, then it is implicitly [cast](cast.md) to a string.
 
 F-strings may be nested in that the embedded expressions may contain additional
 f-strings as in

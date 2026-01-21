@@ -10,13 +10,13 @@ and `<id>` is an [identifier](../queries.md#identifiers) representing the
 field name of a record or a string key of a map.
 
 Dereferenceable values include [records](../types/record.md),
-[maps](../types/map.md) with keys of type `string`, and
-[type values](../types/type.md) that are of type `record`.
+[maps](../types/map.md) with keys of type string, and
+[type values](../types/type.md) that are of type record.
 
 The result of a dot expression is
-* the value of the indicated field for a `record` type,
-* the value of the indicated entry for a `map` with `string` keys, or
-* the `type` value of the indicated field for a `record` type value.
+* the value of the indicated field for a record type,
+* the value of the indicated entry for a map with string keys, or
+* the type value of the indicated field for a record type value.
 
 When a field or key is referenced in a dereferenceable type but that
 field or key is not present, then `error("missing")` is the result.
