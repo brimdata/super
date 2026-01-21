@@ -29,11 +29,11 @@ The null comparators have the form
 ```
 <expr> is null
 ```
-and is `true` if `<expr>` is a null value of any type.  Likewise,
+and is true if `<expr>` is a null value of any type.  Likewise,
 ```
 <expr> is not null
 ```
-is `true` if `<expr>` is not a null value of any type.
+is true if `<expr>` is not a null value of any type.
 As with SQL, any comparison of a null value to any other value is a null
 value of type `bool`, i.e., `null::bool`.  This is because comparing an unknown
 value with any other value has an unknown result.
@@ -50,7 +50,7 @@ is a constant expression that results in a string type.
 > Also, the `ilike` operator for case-insensitive matching is not yet supported.
 > These capabilities will be included in a future version of SuperSQL.
 
-The `like` comparator is `true` if the `<pattern>` matches `<expr>` where `<pattern>`
+The `like` comparator is true if the `<pattern>` matches `<expr>` where `<pattern>`
 consists of literal characters, `_` for matching any single letter, and `%` for
 matching any sequence of characters.
 
@@ -58,7 +58,7 @@ The `not like` comparator has the form
 ```
 <expr> not like <pattern>
 ```
-and is `true` when the pattern does not match the expression.
+and is true when the pattern does not match the expression.
 
 String values are compared via byte order in accordance with
 [C/POSIX collation](https://www.postgresql.org/docs/current/collation.html#COLLATION-MANAGING-STANDARD)

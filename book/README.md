@@ -45,10 +45,16 @@ The following should be rendered in `fixed width` font:
 * SuperSQL query text (e.g., `put`, `SELECT`)
 * Type names (e.g., `int64`, `VARCHAR`)
 * References to operator/function usage (e.g., "the `<expr>` argument to `eval`)"
-* Input/output/parameter values (e.g., "the value of N defaults to `1`)
+* Input/output/parameter values (e.g., "the value of N defaults to `1`",
+  "`values 1 > 0` produces the literal value `true`")
 
-> **Exception**: Don't use fixed width when hyperlinking, since rendered
-  hyperlinks already have color/underline emphasis.
+> **Exceptions**:
+> * Don't use fixed width when hyperlinking, since rendered
+>   hyperlinks already have color/underline emphasis.
+> * Don't use fixed width when describing abstract values, e.g., the "true" in
+>   "When the `<predicate>` in a ternary conditional is true..." to avoid
+>   incorrectly giving the impression only the literal value `true` is
+>   intended.
 
 ### Hyperlinking names of functions/operators/etc.
 

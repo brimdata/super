@@ -37,10 +37,10 @@ END
 ```
 Here, each `WHEN` expression must be Boolean-valued and
 `<predicate-1>`, `<predicate-2>`, etc. are evaluated
-in order until a `true` result is encountered,
+in order until a true result is encountered,
 in which case, the corresponding expression `<result-n>` is evaluated for the match,
 and that value becomes the result of the `CASE` expression.
-If there is no `true` result and an `ELSE` clause is present, the result is
+If there is no true result and an `ELSE` clause is present, the result is
 determined by the expression `<else-result>`.  Otherwise, the result is `null`.
 
 If the predicate expressions are not Boolean valued, then an error results.
@@ -56,7 +56,7 @@ The [ternary](https://en.wikipedia.org/wiki/Ternary_conditional_operator) form f
 ```
 where `<predicate>` is a Boolean-valued expression
 and `<true-expr>` and `<false-expr>` are any [expressions](intro.md).
-When `<predicate>` is `true`, then `<true-expr>` is evaluated and becomes
+When `<predicate>` is true, then `<true-expr>` is evaluated and becomes
 the result of the conditional expression; otherwise, `<false-expr>`
 becomes the result.
 

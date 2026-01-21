@@ -7,12 +7,12 @@ a value in another value and has the form
 ```
 where `<item>` and `<target>` are [expressions](intro.md).
 
-The result is [Boolean](../types/bool.md)-valued and is `true`
+The result is [Boolean](../types/bool.md)-valued and is true
 if the `<item>` expression results in a value that
 appears somewhere in the `<target>` expression as an exact match of the item.
 
 In contrast to SQL's `IN` operator, the right-hand side can be _any_ value and when the
-`<item>` and `<target>` are equal, the result of `in` is `true`, e.g.,
+`<item>` and `<target>` are equal, the result of `in` is true, e.g.,
 ```
 1 in 1
 ```
@@ -22,7 +22,7 @@ The inverse of `in` has the syntax
 ```
 <item> not in <target>
 ```
-and is `true` when `<item>` is not contained in the `<target>`.
+and is true when `<item>` is not contained in the `<target>`.
 
 When the `<target>` is a non-array [subquery](subqueries.md), it is coerced to an
 [array subquery](subqueries.md#array-subqueries) and the `in` expression is evaluated
