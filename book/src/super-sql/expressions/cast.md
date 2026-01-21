@@ -144,8 +144,7 @@ then the named type is reattached to the result.
 
 ### Errors
 
-Casts attempted between a value and a type that are not permitted
-result in a structured error of the form of:
+Casting a value to an incompatible type results in a structured error of the form:
 ```
 {message:"cannot cast to <target>", on:<val>}
 ```
