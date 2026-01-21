@@ -292,9 +292,13 @@ func groupTmp(k int) string {
 // inType is from the immediate pipe parent in a top-level select, nil otherwise
 func (t *translator) selectFrom(loc ast.Loc, exprs []ast.SQLTableExpr, seq sem.Seq, inType super.Type) (sem.Seq, relScope) {
 	if len(exprs) == 0 {
-		// No FROM clause is modeled by a single null value, which we represent
-		// with dynamic, e.g., so "select this" results in {that:null},
-		// or the parent pipe input.
+		// No FROM clause means the pipe parent is providing input in which
+		// case inType is the type of that input, or there is no input at all,
+		// in which case we should model an empty table.
+		if inType == nil || inType == super.TypeNull {
+			// Model no or null input as an input table so that column checks fail.
+			return seq, newTableFromType(t.sctx.MustLookupTypeRecord([]super.Field{}), t.checker.unknown)
+		}
 		return seq, newTableFromType(inType, t.checker.unknown)
 	}
 	off := len(seq)
@@ -445,7 +449,7 @@ func (t *translator) sqlQueryBody(query ast.SQLQueryBody, demand []ast.Expr, seq
 		if query.OrderBy != nil {
 			demand = exprsFromSortExprs(query.OrderBy.Exprs)
 		}
-		seq, scope := t.sqlQueryBody(query.Body, demand, seq, nil)
+		seq, scope := t.sqlQueryBody(query.Body, demand, seq, pipeType)
 		if scope == badTable {
 			return seq, scope
 		}
