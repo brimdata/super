@@ -1,9 +1,0 @@
-spq: fuse
-
-input: |
-  {a:"hello",b:"world"}
-  {b:"goodnight",c:"gracie"}
-
-output: |
-  {a:"hello",b:"world",c:null::string}
-  {a:null::string,b:"goodnight",c:"gracie"}

@@ -1,0 +1,4 @@
+spq: SELECT CASE WHEN AVG(2) BETWEEN 1 AND 3 THEN 1 END AS out
+
+output: |
+  {out:1}

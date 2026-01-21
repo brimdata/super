@@ -19,13 +19,13 @@ type Op struct {
 	resultCh chan op.Result
 }
 
-func New(rctx *runtime.Context, parent sbuf.Puller) (*Op, error) {
+func New(rctx *runtime.Context, parent sbuf.Puller) *Op {
 	return &Op{
 		rctx:     rctx,
 		parent:   parent,
 		fuser:    NewFuser(rctx.Sctx, MemMaxBytes),
 		resultCh: make(chan op.Result),
-	}, nil
+	}
 }
 
 func (o *Op) Pull(done bool) (sbuf.Batch, error) {

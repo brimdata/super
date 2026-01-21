@@ -213,12 +213,9 @@ func NewFilterApplier(sctx *super.Context, e Evaluator) Evaluator {
 }
 
 func (f *filterApplier) Eval(this super.Value) super.Value {
-	val := EvalBool(f.sctx, this, f.expr)
-	if val.Type().ID() == super.IDBool {
-		if val.Bool() {
-			return this
-		}
+	val := f.expr.Eval(this)
+	if val.Type().ID() != super.IDBool || !val.Bool() {
 		return f.sctx.Missing()
 	}
-	return val
+	return this
 }

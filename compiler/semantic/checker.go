@@ -1120,37 +1120,24 @@ func (c *checker) error(loc ast.Node, err error) {
 }
 
 func (c *checker) newFuser() *fuser {
-	return &fuser{sctx: c.t.sctx, unknown: c.unknown}
+	return &fuser{agg.NewSchema(c.t.sctx), c.unknown}
 }
 
 type fuser struct {
-	sctx    *super.Context
+	sch     *agg.Schema
 	unknown super.Type
-
-	typ super.Type
-	sch *agg.Schema
 }
 
 func (f *fuser) fuse(typ super.Type) {
-	if f.sch != nil {
-		f.sch.Mixin(typ)
-	} else if f.typ == nil {
-		f.typ = typ
-	} else if f.typ != typ {
-		f.sch = agg.NewSchema(f.sctx)
-		f.sch.Mixin(f.typ)
-		f.sch.Mixin(typ)
-	}
+	f.sch.Mixin(typ)
 }
 
 func (f *fuser) Type() super.Type {
-	if f.sch != nil {
-		return f.sch.Type()
+	typ := f.sch.Type()
+	if typ == nil {
+		return f.unknown
 	}
-	if f.typ != nil {
-		return f.typ
-	}
-	return f.unknown
+	return typ
 }
 
 func (c *checker) aggFunc(name string, arg ast.Node, argType super.Type, filter ast.Node, filterType super.Type) super.Type {

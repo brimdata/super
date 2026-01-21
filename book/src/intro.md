@@ -379,6 +379,10 @@ whereas pipe operators can emit any data type desired in a varying fashion, and
 * [sum types](super-sql/types/union.md) are integral to piped data allowing mix-typed data processing
 and results that need not fit in a uniform table.
 
+> [!NOTE]
+> Case insensitive column names in SQL clauses are not yet supported.
+> ([super#6066](https://github.com/brimdata/super/issues/6066))
+
 With this approach, SuperSQL can be adopted and used for existing use cases
 based on legacy SQL while incrementally expanding and embracing
 the pipe model tied to super-structured data.

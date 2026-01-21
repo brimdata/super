@@ -135,6 +135,9 @@ to be included as the body of the HTTP request.
 
 Currently, the headers expression must evaluate to a compile-time constant though this
 may change to allow dynamic computation in a future version of SuperSQL.
+Each field of this record must either be a string or (to specify a
+header option appearing multiple times with different values)
+an array or set of strings.
 
 #### Expression
 

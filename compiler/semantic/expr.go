@@ -1263,6 +1263,9 @@ func (t *translator) subqueryExpr(astExpr ast.Expr, array bool, body ast.Seq, in
 		// condition with this complex cleanup...
 		e.Body, outType = t.scalarSubqueryCheck(astExpr, e.Body, outType)
 	}
+	if array {
+		outType = t.sctx.LookupTypeArray(outType)
+	}
 	return e, outType
 }
 
