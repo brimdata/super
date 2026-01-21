@@ -368,20 +368,35 @@ func unmarshalHeaders(val super.Value) (map[string][]string, error) {
 	}
 	headers := map[string][]string{}
 	for i, f := range val.Fields() {
-		if inner := super.InnerType(f.Type); inner == nil || inner.ID() != super.IDString {
-			return nil, errors.New("headers field value must be an array or set of strings")
-		}
 		fieldVal := val.DerefByColumn(i)
 		if fieldVal == nil {
 			continue
 		}
-		for it := fieldVal.Iter(); !it.Done(); {
-			if b := it.Next(); b != nil {
-				headers[f.Name] = append(headers[f.Name], super.DecodeString(b))
-			}
+		headerStrings, err := decodeStrings(fieldVal)
+		if err != nil {
+			return nil, err
 		}
+		headers[f.Name] = append(headers[f.Name], headerStrings...)
 	}
 	return headers, nil
+}
+
+func decodeStrings(val *super.Value) ([]string, error) {
+	typ := super.TypeUnder(val.Type())
+	if inner := super.InnerType(typ); inner != nil {
+		if inner.ID() != super.IDString {
+			return nil, errors.New("array elements of header field must be strings")
+		}
+		var out []string
+		for it := val.Iter(); !it.Done(); {
+			out = append(out, super.DecodeString(it.Next()))
+		}
+		return out, nil
+	}
+	if typ != super.TypeString {
+		return nil, errors.New("header field value must be a string or an array or set of strings")
+	}
+	return []string{val.AsString()}, nil
 }
 
 func (t *translator) fromPoolRegexp(node ast.Node, re, orig, which string, args []ast.OpArg) sem.Seq {
@@ -1651,7 +1666,7 @@ func (t *translator) textArg(o opArgs, key string) (string, ast.Loc) {
 
 func (t *translator) exprArg(o opArgs, key string) (sem.Expr, ast.Loc) {
 	if v, ok := o[key]; ok {
-		if arg, ok := v.(*argExpr); ok {
+		if arg, ok := v.(argExpr); ok {
 			return arg.expr, arg.arg.Loc
 		}
 		// The PEG parser currently doesn't allow this but this may change.
