@@ -16,7 +16,7 @@ In contrast to SQL's `IN` operator, the right-hand side can be _any_ value and w
 ```
 1 in 1
 ```
-is semantically valid and results in `true`.
+is semantically valid and results in true.
 
 The inverse of `in` has the syntax
 ```
