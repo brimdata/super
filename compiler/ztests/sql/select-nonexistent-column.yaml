@@ -5,3 +5,20 @@ error: |
   "x" is not a column or table at line 1, column 8:
   SELECT x FROM (SELECT 1)
          ~
+
+---
+
+spq: select x
+
+error: |
+  "x" is not a column or table at line 1, column 8:
+  select x
+         ~
+---
+
+spq: values {a:1} | select x
+
+error: |
+  "x" is not a column or table at line 1, column 23:
+  values {a:1} | select x
+                        ~
