@@ -16,7 +16,7 @@ For example, [values](../operators/values.md), [where](../operators/where.md),
 as part of their semantics.
 
 Likewise, the projected columns of a SQL
-[SELECT](../sql/select.md) come from the very same expression syntax
+[SELECT](../sql/select.md) utilize the very same expression syntax
 used by pipe operators.
 
 While SQL expressions and pipe expressions share an identical syntax,
