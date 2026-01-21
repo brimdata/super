@@ -1,6 +1,6 @@
 ## Exists
 
-The [Boolean](../types/bool.md) predicate `exists` tests whether
+The `exists` operator tests whether
 a subquery has a non-empty result and has the form
 ```
 exists ( <query> )
