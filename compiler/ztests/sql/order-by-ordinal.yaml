@@ -1,9 +1,9 @@
 script: |
-  echo '{i:1} {i:2} {i:3} {i:null::int64}' | super -s -c 'SELECT i, SUM(i) GROUP BY i ORDER BY 1;' -
-  ! super -c 'SELECT a, b ORDER BY 3'
+  super -s -c 'SELECT i, SUM(i) FROM in.sup GROUP BY i ORDER BY 1;'
+  ! super -c 'values {a:1,b:1} | SELECT a, b ORDER BY 3'
 
 inputs:
-  - name: stdin
+  - name: in.sup
     data: |
       {i:1}
       {i:2}
@@ -19,6 +19,6 @@ outputs:
       {i:null::int64,SUM:null::int64}
   - name: stderr
     data: |
-      column 3 is out of range at line 1, column 22:
-      SELECT a, b ORDER BY 3
-                           ~
+      column 3 is out of range at line 1, column 41:
+      values {a:1,b:1} | SELECT a, b ORDER BY 3
+                                              ~

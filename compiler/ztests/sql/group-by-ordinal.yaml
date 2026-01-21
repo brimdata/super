@@ -2,16 +2,16 @@ script: |
   super -s -c 'select a from test.sup group by 1,1'
   echo // ===
   super -s -c 'select 1, b, count() as c from test.sup group by 1, b order by c desc'
-  ! super -s -c 'select a, b, c, d group by 5, 0'
+  ! super -s -c 'select a, b, c, d from test.sup group by 5, 0'
   echo // === >&2
-  ! super -s -c 'select count() as c, a group by 1,2'
+  ! super -s -c 'select count() as c, a from test.sup group by 1,2'
 
 inputs:
   - name: test.sup
     data: |
-      {a:1,b:"foo"}
-      {a:1,b:"foo"}
-      {a:1,b:"bar"}
+      {a:1,b:"foo",c:1,d:1}
+      {a:1,b:"foo",c:1,d:1}
+      {a:1,b:"bar",c:1,d:1}
 
 outputs:
   - name: stdout
@@ -22,28 +22,28 @@ outputs:
       {"1":1,b:"bar",c:1}
   - name: stderr
     data: |
-      position 5 is not in select list at line 1, column 28:
-      select a, b, c, d group by 5, 0
-                                 ~
-      position 0 is not in select list at line 1, column 31:
-      select a, b, c, d group by 5, 0
-                                    ~
+      position 5 is not in select list at line 1, column 42:
+      select a, b, c, d from test.sup group by 5, 0
+                                               ~
+      position 0 is not in select list at line 1, column 45:
+      select a, b, c, d from test.sup group by 5, 0
+                                                  ~
       column "a" must appear in GROUP BY clause at line 1, column 8:
-      select a, b, c, d group by 5, 0
+      select a, b, c, d from test.sup group by 5, 0
              ~
       column "b" must appear in GROUP BY clause at line 1, column 11:
-      select a, b, c, d group by 5, 0
+      select a, b, c, d from test.sup group by 5, 0
                 ~
       column "c" must appear in GROUP BY clause at line 1, column 14:
-      select a, b, c, d group by 5, 0
+      select a, b, c, d from test.sup group by 5, 0
                    ~
       column "d" must appear in GROUP BY clause at line 1, column 17:
-      select a, b, c, d group by 5, 0
+      select a, b, c, d from test.sup group by 5, 0
                       ~
       // ===
-      aggregate function "count" cannot appear in GROUP BY via positional reference at line 1, column 33:
-      select count() as c, a group by 1,2
-                                      ~
+      aggregate function "count" cannot appear in GROUP BY via positional reference at line 1, column 47:
+      select count() as c, a from test.sup group by 1,2
+                                                    ~
 
 output: |
   {c:1}
