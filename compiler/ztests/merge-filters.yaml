@@ -23,9 +23,12 @@ outputs:
       | output main
       ===
       file /dev/null fields a
-      | unnest [a] into (
-        where b and c
-      )
+      | unnest (
+        unnest [a]
+        | where b and c
+        | aggregate
+            collect:=collect(this)
+        | values collect)
       | output main
       ===
       file /dev/null unordered

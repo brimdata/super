@@ -30,7 +30,6 @@ import (
 	"github.com/brimdata/super/runtime/sam/op/meta"
 	"github.com/brimdata/super/runtime/sam/op/mirror"
 	"github.com/brimdata/super/runtime/sam/op/robot"
-	"github.com/brimdata/super/runtime/sam/op/scope"
 	"github.com/brimdata/super/runtime/sam/op/skip"
 	"github.com/brimdata/super/runtime/sam/op/sort"
 	"github.com/brimdata/super/runtime/sam/op/switcher"
@@ -353,7 +352,11 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 	case *dag.UniqOp:
 		return uniq.New(b.rctx, parent, v.Cflag), nil
 	case *dag.UnnestOp:
-		return b.compileUnnest(parent, v)
+		expr, err := b.compileExpr(v.Expr)
+		if err != nil {
+			return nil, err
+		}
+		return unnest.NewUnnest(b.rctx, parent, expr), nil
 	case *dag.ValuesOp:
 		exprs, err := b.compileExprs(v.Exprs)
 		if err != nil {
@@ -365,23 +368,6 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 	default:
 		return nil, fmt.Errorf("unknown DAG operator type: %v", v)
 	}
-}
-
-func (b *Builder) compileUnnest(parent sbuf.Puller, u *dag.UnnestOp) (sbuf.Puller, error) {
-	expr, err := b.compileExpr(u.Expr)
-	if err != nil {
-		return nil, err
-	}
-	unnestOp := unnest.NewUnnest(b.rctx, parent, expr)
-	if u.Body == nil {
-		return unnestOp, nil
-	}
-	scope := scope.NewScope(b.rctx.Context, unnestOp)
-	exits, err := b.compileSeq(u.Body, []sbuf.Puller{scope})
-	if err != nil {
-		return nil, err
-	}
-	return scope.NewExit(b.combine(exits)), nil
 }
 
 func (b *Builder) compileAssignments(assignments []dag.Assignment) ([]expr.Assignment, error) {

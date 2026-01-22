@@ -40,7 +40,7 @@ func New(ctx context.Context, env *exec.Environment) *Optimizer {
 // Note: mergeFilters does not descend into dag.OverExpr.Scope, so it cannot
 // merge filters in "over" expressions like "sum(over a | where b | where c)".
 func mergeFilters(seq dag.Seq) dag.Seq {
-	return walk(seq, true, func(seq dag.Seq) dag.Seq {
+	walkT(reflect.ValueOf(&seq), func(seq dag.Seq) dag.Seq {
 		// Start at the next to last element and work toward the first.
 		for i := len(seq) - 2; i >= 0; i-- {
 			if f1, ok := seq[i].(*dag.FilterOp); ok {
@@ -54,10 +54,11 @@ func mergeFilters(seq dag.Seq) dag.Seq {
 		}
 		return seq
 	})
+	return seq
 }
 
 func removePassOps(seq dag.Seq) dag.Seq {
-	return walk(seq, true, func(seq dag.Seq) dag.Seq {
+	return Walk(seq, func(seq dag.Seq) dag.Seq {
 		for i := 0; i < len(seq); i++ {
 			if _, ok := seq[i].(*dag.PassOp); ok {
 				seq.Delete(i, i+1)
@@ -73,27 +74,19 @@ func removePassOps(seq dag.Seq) dag.Seq {
 }
 
 func Walk(seq dag.Seq, post func(dag.Seq) dag.Seq) dag.Seq {
-	return walk(seq, true, post)
-}
-
-func walk(seq dag.Seq, over bool, post func(dag.Seq) dag.Seq) dag.Seq {
 	for _, op := range seq {
 		switch op := op.(type) {
-		case *dag.UnnestOp:
-			if over && op.Body != nil {
-				op.Body = walk(op.Body, over, post)
-			}
 		case *dag.ForkOp:
 			for k := range op.Paths {
-				op.Paths[k] = walk(op.Paths[k], over, post)
+				op.Paths[k] = Walk(op.Paths[k], post)
 			}
 		case *dag.ScatterOp:
 			for k := range op.Paths {
-				op.Paths[k] = walk(op.Paths[k], over, post)
+				op.Paths[k] = Walk(op.Paths[k], post)
 			}
 		case *dag.MirrorOp:
-			op.Main = walk(op.Main, over, post)
-			op.Mirror = walk(op.Mirror, over, post)
+			op.Main = Walk(op.Main, post)
+			op.Mirror = Walk(op.Mirror, post)
 		}
 	}
 	return post(seq)
@@ -680,7 +673,7 @@ func liftFilterOps(seq dag.Seq) dag.Seq {
 }
 
 func mergeValuesOps(seq dag.Seq) dag.Seq {
-	return walk(seq, true, func(seq dag.Seq) dag.Seq {
+	return Walk(seq, func(seq dag.Seq) dag.Seq {
 		for i := 0; i+1 < len(seq); i++ {
 			v1, ok := seq[i].(*dag.ValuesOp)
 			if !ok || len(v1.Exprs) != 1 || hasThisWithEmptyPath(seq[i+1]) {

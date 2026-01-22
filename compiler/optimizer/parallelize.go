@@ -138,7 +138,7 @@ func parallelizeHead(seq dag.Seq, n int, sortExprs []dag.SortExpr, replicas int)
 }
 
 func (o *Optimizer) optimizeParallels(seq dag.Seq) {
-	walk(seq, false, func(seq dag.Seq) dag.Seq {
+	Walk(seq, func(seq dag.Seq) dag.Seq {
 		for ops := seq; len(ops) >= 2; ops = ops[1:] {
 			o.liftIntoParPaths(ops)
 		}

@@ -615,16 +615,6 @@ func (c *canonDAG) unnest(u *dag.UnnestOp) {
 	c.next()
 	c.write("unnest ")
 	c.expr(u.Expr, "")
-	if u.Body != nil {
-		c.write(" into (")
-		c.open()
-		c.head = true
-		c.seq(u.Body)
-		c.close()
-		c.ret()
-		c.flush()
-		c.write(")")
-	}
 }
 
 func (c *canonDAG) main(main *dag.Main) {

@@ -321,7 +321,11 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		}
 		return vam.NewDematerializer(sbufPuller), nil
 	case *dag.UnnestOp:
-		return b.compileVamUnnest(o, parent)
+		e, err := b.compileVamExpr(o.Expr)
+		if err != nil {
+			return nil, err
+		}
+		return vamop.NewUnnest(b.sctx(), parent, e), nil
 	case *dag.ValuesOp:
 		exprs, err := b.compileVamExprs(o.Exprs)
 		if err != nil {
@@ -371,31 +375,6 @@ func mergeRecordExprWithPath(rec *dag.RecordExpr, path []string) {
 			}
 		}
 	}
-}
-
-func (b *Builder) compileVamUnnest(unnest *dag.UnnestOp, parent vector.Puller) (vector.Puller, error) {
-	e, err := b.compileVamExpr(unnest.Expr)
-	if err != nil {
-		return nil, err
-	}
-	u := vamop.NewUnnest(b.sctx(), parent, e)
-	if unnest.Body == nil {
-		return u, nil
-	}
-	scope := u.NewScope()
-	exits, err := b.compileVamSeq(unnest.Body, []vector.Puller{scope})
-	if err != nil {
-		return nil, err
-	}
-	var exit vector.Puller
-	if len(exits) == 1 {
-		exit = exits[0]
-	} else {
-		// This can happen when output of over body
-		// is a fork or switch.
-		exit = vamop.NewCombine(b.rctx, exits)
-	}
-	return u.NewScopeExit(exit), nil
 }
 
 func (b *Builder) compileVamSeq(seq dag.Seq, parents []vector.Puller) ([]vector.Puller, error) {

@@ -261,11 +261,7 @@ func (d *dagen) op(op sem.Op) dag.Op {
 			Cflag: op.Cflag,
 		}
 	case *sem.UnnestOp:
-		return &dag.UnnestOp{
-			Kind: "UnnestOp",
-			Expr: d.expr(op.Expr),
-			Body: d.seq(op.Body),
-		}
+		return d.unnest(op)
 	case *sem.ValuesOp:
 		return &dag.ValuesOp{
 			Kind:  "ValuesOp",
@@ -273,6 +269,25 @@ func (d *dagen) op(op sem.Op) dag.Op {
 		}
 	}
 	panic(op)
+}
+
+func (d *dagen) unnest(op *sem.UnnestOp) dag.Op {
+	u := &dag.UnnestOp{
+		Kind: "UnnestOp",
+		Expr: d.expr(op.Expr),
+	}
+	if op.Body == nil {
+		return u
+	}
+	body := d.seq(op.Body)
+	body.Prepend(u)
+	body = collectThis(body)
+	s := &dag.SubqueryExpr{
+		Kind:       "SubqueryExpr",
+		Correlated: true,
+		Body:       body,
+	}
+	return &dag.UnnestOp{Kind: "UnnestOp", Expr: s}
 }
 
 func (d *dagen) paths(paths []sem.Seq) []dag.Seq {
@@ -600,8 +615,6 @@ func (d *dagen) checkOutputs(isLeaf bool, seq dag.Seq) dag.Seq {
 			for k := range o.Paths {
 				o.Paths[k] = d.checkOutputs(isLast && isLeaf, o.Paths[k])
 			}
-		case *dag.UnnestOp:
-			o.Body = d.checkOutputs(false, o.Body)
 		case *dag.ForkOp:
 			for k := range o.Paths {
 				o.Paths[k] = d.checkOutputs(isLast && isLeaf, o.Paths[k])

@@ -96,7 +96,11 @@ func (u *Unnest) flatten(vec vector.Any, slot uint32) vector.Any {
 			return vector.NewRecord(typ, vecs, vecs[0].Len(), bitvec.Zero)
 		}, left, right)
 	default:
-		return vector.NewWrappedError(u.sctx, "unnest: encountered non-array value", vec)
+		if vector.NullsOf(vec).IsSet(slot) {
+			return nil
+		}
+		slotVec := vector.Pick(vec, []uint32{slot})
+		return vector.NewWrappedError(u.sctx, "unnest: encountered non-array value", slotVec)
 	}
 }
 
@@ -109,57 +113,4 @@ func flattenArrayOrSet(vec vector.Any, offsets []uint32, slot uint32) vector.Any
 		return nil
 	}
 	return vector.Pick(vector.Deunion(vec), index)
-}
-
-type Scope struct {
-	unnest  *Unnest
-	sendEOS bool
-}
-
-func (u *Unnest) NewScope() *Scope {
-	return &Scope{u, false}
-}
-
-func (s *Scope) Pull(done bool) (vector.Any, error) {
-	if s.sendEOS || done {
-		s.sendEOS = false
-		return nil, nil
-	}
-	vec, err := s.unnest.Pull(false)
-	s.sendEOS = vec != nil
-	return vec, err
-}
-
-type ScopeExit struct {
-	unnest   *Unnest
-	parent   vector.Puller
-	firstEOS bool
-}
-
-func (u *Unnest) NewScopeExit(parent vector.Puller) *ScopeExit {
-	return &ScopeExit{u, parent, false}
-}
-
-func (s *ScopeExit) Pull(done bool) (vector.Any, error) {
-	if done {
-		vec, err := s.parent.Pull(true)
-		if vec == nil || err != nil {
-			return vec, err
-		}
-		return s.unnest.Pull(true)
-	}
-	for {
-		vec, err := s.parent.Pull(false)
-		if err != nil {
-			return nil, err
-		}
-		if vec != nil {
-			s.firstEOS = false
-			return vec, nil
-		}
-		if s.firstEOS {
-			return nil, nil
-		}
-		s.firstEOS = true
-	}
 }

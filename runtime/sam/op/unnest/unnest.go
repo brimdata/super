@@ -98,6 +98,9 @@ func unnest(sctx *super.Context, val super.Value) []super.Value {
 		}
 		return out
 	default:
+		if val.IsNull() {
+			return nil
+		}
 		return []super.Value{sctx.WrapError("unnest: encountered non-array value", val)}
 	}
 }

@@ -180,7 +180,6 @@ type (
 	UnnestOp struct {
 		Kind string `json:"kind" unpack:""`
 		Expr Expr   `json:"exprs"`
-		Body Seq    `json:"body"`
 	}
 	ValuesOp struct {
 		Kind  string `json:"kind" unpack:""`

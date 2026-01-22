@@ -29,7 +29,10 @@ outputs:
         unnest [this]
         | where search("b"))
       | unnest [this]
-      | unnest [this] into (
-        where search("b")
-      )
+      | unnest (
+        unnest [this]
+        | where search("b")
+        | aggregate
+            collect:=collect(this)
+        | values collect)
       | output main
