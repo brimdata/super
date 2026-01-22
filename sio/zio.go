@@ -25,8 +25,6 @@ func Extension(format string) string {
 		return ".sup"
 	case "table":
 		return ".tbl"
-	case "text":
-		return ".txt"
 	case "zeek":
 		return ".log"
 	case "jsup":
@@ -53,7 +51,7 @@ func FormatFromPath(path string) string {
 	case ".sup":
 		return "sup"
 	case ".text", ".txt":
-		return "text"
+		return "line"
 	default:
 		return ""
 	}

@@ -17,7 +17,7 @@ TODO: unify this with super command flags.
 `-bsup.compress` compress Super Binary frames
 `-bsup.framethresh` minimum Super Binary frame size in uncompressed bytes
 `-color` enable/disable color formatting for -S and lake text output
-`-f` format for output data [arrows,bsup,csup,csv,json,lake,line,parquet,sup,table,text,tsv,zeek,zjson]
+`-f` format for output data [arrows,bsup,csup,csv,json,lake,line,parquet,sup,table,tsv,zeek,zjson]
 `-fusemem` maximum memory used by fuse in MiB, MB, etc
 `-I` source file containing Zed query text
 `-J` use formatted JSON output independent of -f option

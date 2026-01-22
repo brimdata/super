@@ -1,9 +1,0 @@
-spq: pass
-
-input: |
-  {a:{b:1}::=record_named}
-
-output-flags: -f text
-
-output: |
-  1

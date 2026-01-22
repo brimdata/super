@@ -17,7 +17,6 @@ import (
 	"github.com/brimdata/super/sio/parquetio"
 	"github.com/brimdata/super/sio/supio"
 	"github.com/brimdata/super/sio/tableio"
-	"github.com/brimdata/super/sio/textio"
 	"github.com/brimdata/super/sio/zeekio"
 )
 
@@ -57,8 +56,6 @@ func NewWriter(w io.WriteCloser, opts WriterOpts) (sio.WriteCloser, error) {
 		return supio.NewWriter(w, opts.SUP), nil
 	case "table":
 		return tableio.NewWriter(w), nil
-	case "text":
-		return textio.NewWriter(w), nil
 	case "tsv":
 		opts.CSV.Delim = '\t'
 		return csvio.NewWriter(w, opts.CSV), nil

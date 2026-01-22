@@ -3,7 +3,7 @@ script: |
   super db init -q
   super db create -use -q POOL
   super db load -q in.sup
-  id=$(super db -f text -c 'from POOL@main:objects | values ksuid(id)')
+  id=$(super db -f line -c 'from POOL@main:objects | values ksuid(id)')
   super db vector add -q $id
   super db -S -c 'from POOL@main:vectors | drop id'
   echo ===

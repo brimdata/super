@@ -633,7 +633,7 @@ That's 10,592 lines.  Ugh, quite a challenge to sift through.
 
 Instead, let's start out by figuring out how many values are in the input, e.g.,
 ```mdtest-command dir=book/src/tutorials
-super -f text -c 'count()' prs.json
+super -s -c 'count()' prs.json
 ```
 produces
 ```mdtest-output

@@ -39,7 +39,7 @@ super db branch -q -use coinflips onlytails
 echo '{flip:1,result:"heads"} {flip:2,result:"tails"}' |
   super db load -q -use coinflips -
 super db -q create -orderby flip:asc bigflips
-super db -f text -c '
+super db -f line -c '
   from :branches
   | values pool.name || "@" || branch.name
   | sort'

@@ -240,7 +240,7 @@ echo '{flip:3,result:"heads"}' | super db load -q -use coinflips@trial -
 super db -q create numbers
 echo '{number:1,word:"one"} {number:2,word:"two"} {number:3,word:"three"}' |
   super db load -q -use numbers -
-super db -f text -c '
+super db -f line -c '
   from :branches
   | values pool.name || "@" || branch.name
   | sort'
@@ -287,7 +287,7 @@ super db -db example -s -c 'from coinflips@trial'
 
 _Count the number of values in the `main` branch of all pools_
 ```mdtest-command
-super db -db example -f text -c 'from * | count()'
+super db -db example -s -c 'from * | count()'
 ```
 =>
 ```mdtest-output
