@@ -12,7 +12,7 @@ import (
 	"github.com/brimdata/super/sbuf"
 )
 
-func (b *Builder) compileAggregate(parent sbuf.Puller, a *dag.AggregateOp) (*aggregate.Op, error) {
+func (b *Builder) compileAggregate(parent sbuf.Puller, a *dag.AggregateOp) (sbuf.Puller, error) {
 	keys, err := b.compileAssignments(a.Keys)
 	if err != nil {
 		return nil, err
@@ -22,6 +22,9 @@ func (b *Builder) compileAggregate(parent sbuf.Puller, a *dag.AggregateOp) (*agg
 		return nil, err
 	}
 	dir := order.Direction(a.InputSortDir)
+	if len(keys) == 0 {
+		return aggregate.NewScalar(b.rctx, parent, names, reducers, a.PartialsIn, a.PartialsOut)
+	}
 	return aggregate.New(b.rctx, parent, keys, names, reducers, a.Limit, dir, a.PartialsIn, a.PartialsOut)
 }
 

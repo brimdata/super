@@ -111,7 +111,7 @@ func NewAggregator(ctx context.Context, sctx *super.Context, keyRefs, keyExprs, 
 	}, nil
 }
 
-func New(rctx *runtime.Context, parent sbuf.Puller, keys []expr.Assignment, aggNames field.List, aggs []*expr.Aggregator, limit int, inputSortDir order.Direction, partialsIn, partialsOut bool) (*Op, error) {
+func New(rctx *runtime.Context, parent sbuf.Puller, keys []expr.Assignment, aggNames field.List, aggs []*expr.Aggregator, limit int, inputSortDir order.Direction, partialsIn, partialsOut bool) (sbuf.Puller, error) {
 	names := make(field.List, 0, len(keys)+len(aggNames))
 	for _, e := range keys {
 		p, ok := e.LHS.Path()

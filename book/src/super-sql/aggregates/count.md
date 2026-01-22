@@ -53,7 +53,7 @@ count() by k | sort
 {k:2,count:1}
 ```
 
-A simple count with no input values returns no output:
+A simple count with no input values returns 0:
 ```mdtest-spq
 # spq
 where grep("bar", this) | count()
@@ -62,6 +62,7 @@ where grep("bar", this) | count()
 "foo"
 10.0.0.1
 # expected output
+0
 ```
 
 Count can return an explicit zero when using a `filter` clause in the aggregation:

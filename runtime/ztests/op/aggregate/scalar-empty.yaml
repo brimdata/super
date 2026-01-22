@@ -1,0 +1,24 @@
+spq: |
+  where false
+  | count(*), sum(this), and(this), or(this), min(this), avg(this), collect(this)
+
+vector: true
+
+output: |
+  {count:0,sum:null,and:null::bool,or:null::bool,min:null,avg:null::float64,collect:null}
+
+---
+
+# Test that scalar aggregations with no inputs work in an unnset subquery.
+spq: |
+  unnest this into ( where false | count(*) )
+
+vector: true
+
+input: |
+  [null]
+  [null]
+
+output: |
+  0
+  0
