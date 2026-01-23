@@ -430,15 +430,8 @@ func (b *Builder) compileSeq(seq dag.Seq, parents []sbuf.Puller) ([]sbuf.Puller,
 
 func (b *Builder) compileFork(par *dag.ForkOp, parents []sbuf.Puller) ([]sbuf.Puller, error) {
 	var f *fork.Op
-	switch len(parents) {
-	case 0:
-		// No parents: no need for a fork since every op gets a nil parent.
-	case 1:
-		// Single parent: insert a fork for n-way fanout.
-		f = fork.New(b.rctx, parents[0])
-	default:
-		// Multiple parents: insert a combine followed by a fork for n-way fanout.
-		f = fork.New(b.rctx, combine.New(b.rctx, parents))
+	if len(parents) > 0 {
+		f = fork.New(b.rctx, b.combine(parents))
 	}
 	var ops []sbuf.Puller
 	for _, seq := range par.Paths {
