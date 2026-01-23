@@ -270,13 +270,15 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 		}
 		return count.New(b.rctx.Sctx, parent, v.Alias, e)
 	case *dag.CutOp:
-		assignments, err := b.compileAssignments(v.Args)
+		rec, err := newRecordExprFromAssignments(v.Args)
 		if err != nil {
 			return nil, err
 		}
-		lhs, rhs := splitAssignments(assignments)
-		cutter := expr.NewCutter(b.sctx(), lhs, rhs)
-		return op.NewApplier(b.rctx, parent, cutter), nil
+		e, err := b.compileRecordExpr(rec)
+		if err != nil {
+			return nil, err
+		}
+		return values.New(parent, []expr.Evaluator{e}), nil
 	case *dag.DropOp:
 		fields := make(field.List, 0, len(v.Args))
 		for _, e := range v.Args {
@@ -312,12 +314,17 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 	case *dag.PassOp:
 		return parent, nil
 	case *dag.PutOp:
-		clauses, err := b.compileAssignments(v.Args)
+		rec, err := newRecordExprFromAssignments(v.Args)
 		if err != nil {
 			return nil, err
 		}
-		putter := expr.NewPutter(b.sctx(), clauses)
-		return op.NewApplier(b.rctx, parent, putter), nil
+		mergeRecordExprWithPath(rec, nil)
+		e, err := b.compileRecordExpr(rec)
+		if err != nil {
+			return nil, err
+		}
+		putter := expr.NewPutter(b.sctx(), e)
+		return values.New(parent, []expr.Evaluator{putter}), nil
 	case *dag.RenameOp:
 		srcs, dsts, err := b.compileAssignmentsToLvals(v.Args)
 		if err != nil {

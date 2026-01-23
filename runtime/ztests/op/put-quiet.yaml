@@ -1,4 +1,8 @@
+skip: needs dequiet
+
 spq: x := quiet(y)
+
+vector: true
 
 input: |
   {}

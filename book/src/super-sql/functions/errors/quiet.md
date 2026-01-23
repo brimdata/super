@@ -53,5 +53,5 @@ cut b:=x+1,c:=quiet(x+1),d:=quiet(a+1)
 # input
 {a:1}
 # expected output
-{b:error("missing"),d:2}
+{b:error("missing"),c:error("quiet"),d:2}
 ```

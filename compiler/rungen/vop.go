@@ -216,7 +216,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		}
 		return vamop.NewCount(b.rctx.Sctx, parent, o.Alias, e), nil
 	case *dag.CutOp:
-		rec, err := vamNewRecordExprFromAssignments(o.Args)
+		rec, err := newRecordExprFromAssignments(o.Args)
 		if err != nil {
 			return nil, err
 		}
@@ -271,7 +271,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 	case *dag.PassOp:
 		return parent, nil
 	case *dag.PutOp:
-		rec, err := vamNewRecordExprFromAssignments(o.Args)
+		rec, err := newRecordExprFromAssignments(o.Args)
 		if err != nil {
 			return nil, err
 		}
@@ -280,7 +280,8 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		if err != nil {
 			return nil, err
 		}
-		return vamop.NewValues(b.sctx(), parent, []vamexpr.Evaluator{vamexpr.NewPutter(b.sctx(), e)}), nil
+		putter := vamexpr.NewPutter(b.sctx(), e)
+		return vamop.NewValues(b.sctx(), parent, []vamexpr.Evaluator{putter}), nil
 	case *dag.RenameOp:
 		srcs, dsts, err := b.compileAssignmentsToLvals(o.Args)
 		if err != nil {
@@ -337,12 +338,12 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 	}
 }
 
-func vamNewRecordExprFromAssignments(assignments []dag.Assignment) (*dag.RecordExpr, error) {
+func newRecordExprFromAssignments(assignments []dag.Assignment) (*dag.RecordExpr, error) {
 	rec := &dag.RecordExpr{Kind: "RecordExpr"}
 	for _, a := range assignments {
 		lhs, ok := a.LHS.(*dag.ThisExpr)
 		if !ok {
-			return nil, fmt.Errorf("internal error: dynamic field name not supported in vector runtime: %#v", a.LHS)
+			return nil, fmt.Errorf("internal error: dynamic field name not supported: %#v", a.LHS)
 		}
 		addPathToRecordExpr(rec, lhs.Path, a.RHS)
 	}

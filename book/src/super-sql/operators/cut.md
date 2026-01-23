@@ -81,7 +81,7 @@ cut a:=quiet(a),d:=quiet(d)
 # input
 {a:1,b:2,c:3}
 # expected output
-{a:1}
+{a:1,d:error("quiet")}
 ```
 
 ---

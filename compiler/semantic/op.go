@@ -874,7 +874,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq, inType super.Type) (sem.Seq, s
 				fields = append(fields, this.Path)
 			}
 		}
-		if err := expr.CheckPutFields(fields); err != nil {
+		if err := checkPutFields(fields); err != nil {
 			t.error(o, err)
 		}
 		return append(seq, &sem.PutOp{
@@ -1045,6 +1045,26 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq, inType super.Type) (sem.Seq, s
 		return append(seq, &sem.OutputOp{Node: o, Name: o.Name.Name}), t.checker.unknown
 	}
 	panic(o)
+}
+
+func checkPutFields(fields field.List) error {
+	for i, f := range fields {
+		if f.IsEmpty() {
+			return fmt.Errorf("left-hand side cannot be 'this' (use 'values' operator)")
+		}
+		for _, c := range fields[i+1:] {
+			if f.Equal(c) {
+				return fmt.Errorf("multiple assignments to %s", f)
+			}
+			if c.HasStrictPrefix(f) {
+				return fmt.Errorf("conflicting nested assignments to %s and %s", f, c)
+			}
+			if f.HasStrictPrefix(c) {
+				return fmt.Errorf("conflicting nested assignments to %s and %s", c, f)
+			}
+		}
+	}
+	return nil
 }
 
 func (t *translator) forkOp(op *ast.ForkOp, seq sem.Seq, inType super.Type) (sem.Seq, []super.Type) {

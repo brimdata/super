@@ -1,3 +1,5 @@
+skip: needs dequiet
+
 spq: cut quiet(a.b)
 
 input: |

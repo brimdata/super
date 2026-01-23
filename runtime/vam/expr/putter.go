@@ -5,23 +5,22 @@ import (
 	"github.com/brimdata/super/vector"
 )
 
-// Putter adapts the behavior of recordExpr (obtained from NewRecordExpr) to
-// match that of the put operator, which emits an error when an input value is
-// not a record.
-type Putter struct {
-	sctx       *super.Context
-	recordExpr Evaluator
+type putter struct {
+	sctx *super.Context
+	e    Evaluator
 }
 
-func NewPutter(sctx *super.Context, recordExpr Evaluator) *Putter {
-	return &Putter{sctx, recordExpr}
+// NewPutter wraps e to implement the behavior of the put operator, which emits
+// an error when an input value is not a record.
+func NewPutter(sctx *super.Context, e Evaluator) Evaluator {
+	return &putter{sctx, e}
 }
 
-func (p *Putter) Eval(vec vector.Any) vector.Any {
+func (p *putter) Eval(vec vector.Any) vector.Any {
 	return vector.Apply(false, p.eval, vec)
 }
 
-func (p *Putter) eval(vecs ...vector.Any) vector.Any {
+func (p *putter) eval(vecs ...vector.Any) vector.Any {
 	vec := vecs[0]
 	if k := vec.Type().Kind(); k != super.RecordKind {
 		if k == super.ErrorKind {
@@ -29,5 +28,5 @@ func (p *Putter) eval(vecs ...vector.Any) vector.Any {
 		}
 		return vector.NewWrappedError(p.sctx, "put: not a record", vec)
 	}
-	return p.recordExpr.Eval(vec)
+	return p.e.Eval(vec)
 }
