@@ -75,7 +75,9 @@ func (t *translator) sqlSelect(sel *ast.SQLSelect, demand []ast.Expr, seq sem.Se
 		t.expr(e, inType)
 	}
 	if sel.Having != nil {
+		scope.lateral = false
 		t.expr(sel.Having, inType)
+		scope.lateral = true
 	}
 	t.checker.popErrs()
 
@@ -111,8 +113,10 @@ func (t *translator) sqlSelect(sel *ast.SQLSelect, demand []ast.Expr, seq sem.Se
 		typ := scope.superType(t.sctx, t.checker.unknown)
 		save := scope.out
 		scope.out = nil
+		scope.lateral = false
 		having, typ := t.groupedExpr(scope, sel.Having, typ)
 		scope.out = save
+		scope.lateral = true
 		if having != nil {
 			t.checker.boolean(sel.Having, typ)
 			seq = append(seq, sem.NewFilter(sel.Having, having))
