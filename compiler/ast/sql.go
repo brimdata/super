@@ -17,13 +17,13 @@ type (
 		Loc     `json:"loc"`
 	}
 	SQLSelect struct {
-		Kind      string         `json:"kind" unpack:""`
-		Distinct  bool           `json:"distinct"`
-		Selection SQLSelection   `json:"selection"`
-		From      []SQLTableExpr `json:"from"`
-		Where     Expr           `json:"where"`
-		GroupBy   []Expr         `json:"group_by"`
-		Having    Expr           `json:"having"`
+		Kind      string       `json:"kind" unpack:""`
+		Distinct  bool         `json:"distinct"`
+		Selection SQLSelection `json:"selection"`
+		From      SQLTableExpr `json:"from"`
+		Where     Expr         `json:"where"`
+		GroupBy   []Expr       `json:"group_by"`
+		Having    Expr         `json:"having"`
 		Loc       `json:"loc"`
 	}
 	SQLUnion struct {

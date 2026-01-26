@@ -290,8 +290,8 @@ func groupTmp(k int) string {
 
 // selectFrom analyzes the FROM clause which is a cross-joined set of table expressions.
 // inType is from the immediate pipe parent in a top-level select, nil otherwise
-func (t *translator) selectFrom(loc ast.Loc, exprs []ast.SQLTableExpr, seq sem.Seq, inType super.Type) (sem.Seq, relScope) {
-	if len(exprs) == 0 {
+func (t *translator) selectFrom(loc ast.Loc, from ast.SQLTableExpr, seq sem.Seq, inType super.Type) (sem.Seq, relScope) {
+	if from == nil {
 		// No FROM clause means the pipe parent is providing input in which
 		// case inType is the type of that input, or there is no input at all,
 		// in which case we should model an empty table.
@@ -303,7 +303,7 @@ func (t *translator) selectFrom(loc ast.Loc, exprs []ast.SQLTableExpr, seq sem.S
 	}
 	off := len(seq)
 	hasParent := off > 0
-	seq, scope := t.sqlTableExpr(exprs[0], seq)
+	seq, scope := t.sqlTableExpr(from, seq)
 	if off >= len(seq) {
 		// The chain didn't get lengthed so semFrom must have encountered
 		// an error...
@@ -316,10 +316,6 @@ func (t *translator) selectFrom(loc ast.Loc, exprs []ast.SQLTableExpr, seq sem.S
 			t.error(loc, errors.New("SELECT cannot have both an embedded FROM clause and input from parents"))
 			return append(seq, badOp), badTable
 		}
-	}
-	// Handle comma-separated table expressions in FROM clause.
-	for _, e := range exprs[1:] {
-		seq, scope = t.sqlAppendCrossJoin(e, seq, scope, e)
 	}
 	return seq, scope
 }

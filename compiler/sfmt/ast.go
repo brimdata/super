@@ -748,7 +748,7 @@ func (c *canon) sqlQueryBody(query ast.SQLQueryBody) {
 			c.head = true
 			c.ret()
 			c.write("from ")
-			c.tableExprs(query.From)
+			c.tableExpr(query.From)
 		}
 		if query.Where != nil {
 			c.ret()
@@ -807,14 +807,6 @@ func (c *canon) ids(ids []*ast.ID) {
 			c.write(", ")
 		}
 		c.write(id.Name)
-	}
-}
-
-func (c *canon) tableExprs(exprs []ast.SQLTableExpr) {
-	c.tableExpr(exprs[0])
-	for _, e := range exprs[1:] {
-		c.write(", ")
-		c.tableExpr(e)
 	}
 }
 

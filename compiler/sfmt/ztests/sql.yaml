@@ -28,7 +28,8 @@ outputs:
       === cross join
       select *
       from a
-      cross join b, c
+      cross join b
+      cross join c
       === join with on condition
       select *
       from a

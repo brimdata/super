@@ -720,11 +720,6 @@ FromOp
       }, nil
   }
 
-SQLTableExprs
-  = first:JoinedTable rest:( __ "," __ t:JoinedTable { return t, nil} )* {
-      return sliceOf[ast.SQLTableExpr](prepend(first, rest)), nil
-    }
-
 JoinedTable
   = first:SQLTableExpr rest:(JoinOperation)* {
       out := first.(ast.SQLTableExpr)
@@ -2038,7 +2033,7 @@ Select
           Loc: loc(c),
       }
       if from != nil {
-        sel.From = from.([]ast.SQLTableExpr)
+        sel.From = from.(ast.SQLTableExpr)
       }
       if where != nil {
         sel.Where = where.(ast.Expr)
@@ -2053,7 +2048,7 @@ Select
     }
 
 FromSelect
-  = FROM _ exprs:SQLTableExprs _ SELECT
+  = FROM _ from:JoinedTable _ SELECT
     distinct:OptDistinct
     //XXX for whitespace in front of target need it only if it begins with
     // an identifier, e.g., select(1); is ok
@@ -2068,8 +2063,10 @@ FromSelect
           Kind: "SQLSelect",
           Distinct: distinct.(bool),
           Selection: selection.(ast.SQLSelection),
-          From: exprs.([]ast.SQLTableExpr),
           Loc: loc(c),
+      }
+      if from != nil {
+        sel.From = from.(ast.SQLTableExpr)
       }
       if where != nil {
         sel.Where = where.(ast.Expr)
@@ -2164,8 +2161,8 @@ OptAllClause
   / ""
 
 OptFromClause
-  = _ FROM _ exprs:SQLTableExprs {
-      return exprs, nil
+  = _ FROM _ expr:JoinedTable {
+      return expr, nil
     }
   / ""                  { return nil, nil }
 
@@ -2195,7 +2192,7 @@ JoinOperation
   / ConditionJoin
 
 CrossJoin
-  = _ CROSS _ JOIN _ right:SQLTableExpr {
+  = (_ CROSS _ JOIN _ / __ "," __) right:SQLTableExpr {
         return &ast.SQLCrossJoin{
             Kind: "SQLCrossJoin",
             Right: right.(ast.SQLTableExpr),
