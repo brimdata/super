@@ -224,6 +224,9 @@ func (s *selectScope) resolveQualified(table, col string) (field.Path, error) {
 }
 
 func (s *staticTable) resolveQualified(table, col string) (field.Path, error) {
+	if s == badTable {
+		return nil, nil
+	}
 	if s.table == table && slices.ContainsFunc(s.typ.Fields, func(f super.Field) bool {
 		return f.Name == col
 	}) {
@@ -333,6 +336,9 @@ func (s *selectScope) resolveUnqualified(col string) (field.Path, bool, error) {
 }
 
 func (s *staticTable) resolveUnqualified(col string) (field.Path, bool, error) {
+	if s == badTable {
+		return nil, false, nil
+	}
 	if slices.ContainsFunc(s.typ.Fields, func(f super.Field) bool {
 		return f.Name == col
 	}) {

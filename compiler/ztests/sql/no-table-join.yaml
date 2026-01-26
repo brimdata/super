@@ -1,0 +1,28 @@
+script: |
+  ! super -I query.sql
+
+inputs:
+  - name: query.sql
+    data: |
+      WITH T(x,y) AS (
+          VALUES (1,2), (3,4), (5,6)
+      ),
+      W(y) AS (
+          VALUES (2), (3)
+      )
+      SELECT U.x
+      FROM T
+      JOIN U USING (y)
+
+outputs:
+  - name: stderr
+    data: |
+      file does not exist in query.sql at line 9, column 6:
+      JOIN U USING (y)
+           ~
+      column "y" in USING clause does not exist in right table in query.sql at line 9, column 15:
+      JOIN U USING (y)
+                    ~
+      "U" is not a column or table in query.sql at line 7, column 8:
+      SELECT U.x
+             ~~~
