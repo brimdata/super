@@ -19,6 +19,10 @@ func NewArray(typ *super.TypeArray, offsets []uint32, values Any, nulls bitvec.B
 	return &Array{Typ: typ, Offsets: offsets, Values: values, Nulls: nulls}
 }
 
+func (*Array) Kind() Kind {
+	return KindArray
+}
+
 func (a *Array) Type() super.Type {
 	return a.Typ
 }

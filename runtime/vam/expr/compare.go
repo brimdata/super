@@ -47,8 +47,8 @@ func (c *Compare) eval(vecs ...vector.Any) vector.Any {
 		return vector.NewConst(super.False, vecs[0].Len(), nulls)
 	}
 	//XXX need to handle overflow (see sam)
-	kind := vector.KindOf(lhs)
-	if kind != vector.KindOf(rhs) {
+	kind := lhs.Kind()
+	if kind != rhs.Kind() {
 		panic("vector kind mismatch after coerce")
 	}
 	switch kind {

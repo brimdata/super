@@ -20,6 +20,10 @@ func NewError(typ *super.TypeError, vals Any, nulls bitvec.Bits) *Error {
 	return &Error{Typ: typ, Vals: vals, Nulls: nulls}
 }
 
+func (*Error) Kind() Kind {
+	return KindError
+}
+
 func (e *Error) Type() super.Type {
 	return e.Typ
 }

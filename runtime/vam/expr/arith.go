@@ -31,18 +31,18 @@ func (a *Arith) Eval(val vector.Any) vector.Any {
 func (a *Arith) eval(vecs ...vector.Any) (out vector.Any) {
 	lhs := enumToIndex(vector.Under(vecs[0]))
 	rhs := enumToIndex(vector.Under(vecs[1]))
-	if k := vector.KindOf(lhs); k == vector.KindNull || k == vector.KindError {
+	if k := lhs.Kind(); k == vector.KindNull || k == vector.KindError {
 		return lhs
 	}
-	if k := vector.KindOf(rhs); k == vector.KindNull || k == vector.KindError {
+	if k := rhs.Kind(); k == vector.KindNull || k == vector.KindError {
 		return rhs
 	}
 	lhs, rhs, errVal := coerceVals(a.sctx, lhs, rhs)
 	if errVal != nil {
 		return errVal
 	}
-	kind := vector.KindOf(lhs)
-	if kind != vector.KindOf(rhs) {
+	kind := lhs.Kind()
+	if kind != rhs.Kind() {
 		panic(fmt.Sprintf("vector kind mismatch after coerce (%#v and %#v)", lhs, rhs))
 	}
 	if kind == vector.KindFloat && a.opCode == vector.ArithMod {

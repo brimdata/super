@@ -1,6 +1,8 @@
 package vector
 
 import (
+	"fmt"
+
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
 	"github.com/brimdata/super/scode"
@@ -20,6 +22,33 @@ func NewConst(val super.Value, len uint32, nulls bitvec.Bits) *Const {
 		nulls = bitvec.NewTrue(len)
 	}
 	return &Const{val: val, len: len, Nulls: nulls}
+}
+
+func (c *Const) Kind() Kind {
+	// c.val must be a primitive.
+	switch id := c.val.Type().ID(); {
+	case super.IsUnsigned(id):
+		return KindUint
+	case super.IsSigned(id):
+		return KindInt
+	case super.IsFloat(id):
+		return KindFloat
+	case id == super.IDBool:
+		return KindBool
+	case id == super.IDBytes:
+		return KindBytes
+	case id == super.IDString:
+		return KindString
+	case id == super.IDIP:
+		return KindIP
+	case id == super.IDNet:
+		return KindNet
+	case id == super.IDType:
+		return KindType
+	case id == super.IDNull:
+		return KindNull
+	}
+	panic(fmt.Sprintf("%#v\n", super.TypeUnder(c.val.Type())))
 }
 
 func (c *Const) Type() super.Type {

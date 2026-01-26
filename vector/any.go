@@ -7,6 +7,7 @@ import (
 
 type Any interface {
 	Type() super.Type
+	Kind() Kind
 	Len() uint32
 	Serialize(*scode.Builder, uint32)
 }

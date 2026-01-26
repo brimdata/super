@@ -154,7 +154,8 @@ func orError(err, vec vector.Any) vector.Any {
 func evalBool(sctx *super.Context, fn func(...vector.Any) vector.Any, vecs ...vector.Any) vector.Any {
 	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
 		for i, vec := range vecs {
-			if vec := vector.Under(vec); vec.Type() == super.TypeBool || vector.KindOf(vec) == vector.KindError {
+			vec := vector.Under(vec)
+			if k := vec.Kind(); k == vector.KindBool || k == vector.KindError {
 				vecs[i] = vec
 			} else {
 				vecs[i] = vector.NewWrappedError(sctx, "not type bool", vec)

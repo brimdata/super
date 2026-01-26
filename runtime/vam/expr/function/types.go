@@ -115,7 +115,7 @@ type IsErr struct{}
 
 func (IsErr) Call(args ...vector.Any) vector.Any {
 	vec := vector.Under(args[0])
-	if vector.KindOf(vec) != vector.KindError {
+	if vec.Kind() != vector.KindError {
 		return vector.NewConst(super.False, vec.Len(), bitvec.Zero)
 	}
 	nulls := vector.NullsOf(vec)

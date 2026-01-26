@@ -35,6 +35,10 @@ func NewTrue(length uint32) *Bool {
 	return NewBool(bitvec.NewTrue(length), bitvec.Zero)
 }
 
+func (*Bool) Kind() Kind {
+	return KindBool
+}
+
 func (b *Bool) Type() super.Type {
 	return super.TypeBool
 }

@@ -25,6 +25,10 @@ func (s *String) Append(v string) {
 	s.table.Append([]byte(v))
 }
 
+func (*String) Kind() Kind {
+	return KindString
+}
+
 func (s *String) Type() super.Type {
 	return super.TypeString
 }

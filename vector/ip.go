@@ -19,6 +19,10 @@ func NewIP(values []netip.Addr, nulls bitvec.Bits) *IP {
 	return &IP{Values: values, Nulls: nulls}
 }
 
+func (*IP) Kind() Kind {
+	return KindIP
+}
+
 func (i *IP) Type() super.Type {
 	return super.TypeIP
 }

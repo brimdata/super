@@ -27,6 +27,10 @@ func (u *Uint) Append(v uint64) {
 	u.Values = append(u.Values, v)
 }
 
+func (*Uint) Kind() Kind {
+	return KindUint
+}
+
 func (u *Uint) Type() super.Type {
 	return u.Typ
 }

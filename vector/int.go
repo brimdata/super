@@ -27,6 +27,10 @@ func (i *Int) Append(v int64) {
 	i.Values = append(i.Values, v)
 }
 
+func (*Int) Kind() Kind {
+	return KindInt
+}
+
 func (i *Int) Type() super.Type {
 	return i.Typ
 }

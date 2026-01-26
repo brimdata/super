@@ -141,7 +141,7 @@ type Log struct {
 func (l *Log) Call(args ...vector.Any) vector.Any {
 	arg := vector.Under(args[0])
 	if !super.IsNumber(arg.Type().ID()) {
-		if vector.KindOf(arg) == vector.KindError {
+		if arg.Kind() == vector.KindError {
 			return arg
 		}
 		return vector.NewWrappedError(l.sctx, "log: not a number", arg)

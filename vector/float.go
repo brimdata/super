@@ -26,6 +26,10 @@ func (f *Float) Append(v float64) {
 	f.Values = append(f.Values, v)
 }
 
+func (*Float) Kind() Kind {
+	return KindFloat
+}
+
 func (f *Float) Type() super.Type {
 	return f.Typ
 }

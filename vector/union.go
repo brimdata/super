@@ -20,6 +20,10 @@ func NewUnion(typ *super.TypeUnion, tags []uint32, vals []Any, nulls bitvec.Bits
 	return &Union{NewDynamic(tags, vals), typ, nulls}
 }
 
+func (*Union) Kind() Kind {
+	return KindUnion
+}
+
 func (u *Union) Type() super.Type {
 	return u.Typ
 }

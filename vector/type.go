@@ -25,6 +25,10 @@ func (t *TypeValue) Append(v []byte) {
 	t.table.Append(v)
 }
 
+func (*TypeValue) Kind() Kind {
+	return KindType
+}
+
 func (t *TypeValue) Type() super.Type {
 	return super.TypeType
 }

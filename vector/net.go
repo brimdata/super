@@ -19,6 +19,10 @@ func NewNet(values []netip.Prefix, nulls bitvec.Bits) *Net {
 	return &Net{Values: values, Nulls: nulls}
 }
 
+func (*Net) Kind() Kind {
+	return KindNet
+}
+
 func (n *Net) Type() super.Type {
 	return super.TypeNet
 }

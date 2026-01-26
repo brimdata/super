@@ -29,6 +29,10 @@ func NewDynamic(tags []uint32, values []Any) *Dynamic {
 	return &Dynamic{Tags: tags, Values: values}
 }
 
+func (*Dynamic) Kind() Kind {
+	return KindInvalid
+}
+
 func (*Dynamic) Type() super.Type {
 	panic("can't call Type() on a vector.Dynamic")
 }

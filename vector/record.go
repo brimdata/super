@@ -19,6 +19,10 @@ func NewRecord(typ *super.TypeRecord, fields []Any, length uint32, nulls bitvec.
 	return &Record{Typ: typ, Fields: fields, len: length, Nulls: nulls}
 }
 
+func (*Record) Kind() Kind {
+	return KindRecord
+}
+
 func (r *Record) Type() super.Type {
 	return r.Typ
 }

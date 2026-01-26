@@ -28,7 +28,7 @@ func (i *Index) eval(args ...vector.Any) vector.Any {
 	this := args[0]
 	container := vector.Under(i.container.Eval(this))
 	index := vector.Under(i.index.Eval(this))
-	switch vector.KindOf(container) {
+	switch container.Kind() {
 	case vector.KindArray, vector.KindSet:
 		return indexArrayOrSet(i.sctx, container, index, i.base1)
 	case vector.KindRecord:

@@ -53,7 +53,7 @@ func (s *sliceExpr) eval(vecs ...vector.Any) vector.Any {
 			return vector.NewStringError(s.sctx, "slice index is not a number", to.Len())
 		}
 	}
-	switch vector.KindOf(container) {
+	switch container.Kind() {
 	case vector.KindArray, vector.KindSet:
 		return s.evalArrayOrSlice(container, from, to, s.base1)
 	case vector.KindBytes, vector.KindString:
@@ -116,7 +116,7 @@ func (s *sliceExpr) evalArrayOrSlice(vec, fromVec, toVec vector.Any, base1 bool)
 	}
 	var out vector.Any
 	inner = vector.Pick(inner, innerIndex)
-	if vector.KindOf(vec) == vector.KindArray {
+	if vec.Kind() == vector.KindArray {
 		out = vector.NewArray(vec.Type().(*super.TypeArray), newOffsets, inner, nullsOut)
 	} else {
 		out = vector.NewSet(vec.Type().(*super.TypeSet), newOffsets, inner, nullsOut)

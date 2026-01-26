@@ -2,8 +2,6 @@ package vector
 
 import (
 	"fmt"
-
-	"github.com/brimdata/super"
 )
 
 type Kind int
@@ -25,6 +23,9 @@ const (
 	KindSet     = 12
 	KindMap     = 13
 	KindRecord  = 14
+	KindBool    = 15
+	KindUnion   = 16
+	KindEnum    = 17
 )
 
 const (
@@ -33,47 +34,6 @@ const (
 	FormView  = 2
 	FormConst = 3
 )
-
-//XXX might not need Kind...
-
-func KindOf(v Any) Kind {
-	switch v := v.(type) {
-	case *Array:
-		return KindArray
-	case *Int:
-		return KindInt
-	case *Uint:
-		return KindUint
-	case *Float:
-		return KindFloat
-	case *Bytes:
-		return KindBytes
-	case *String:
-		return KindString
-	case *Error:
-		return KindError
-	case *IP:
-		return KindIP
-	case *Net:
-		return KindNet
-	case *TypeValue:
-		return KindType
-	case *Map:
-		return KindMap
-	case *Record:
-		return KindRecord
-	case *Set:
-		return KindSet
-	case *Dict:
-		return KindOf(v.Any)
-	case *View:
-		return KindOf(v.Any)
-	case *Const:
-		return KindOfType(v.Value().Type())
-	default:
-		return KindInvalid
-	}
-}
 
 func KindFromString(v string) Kind {
 	switch v {
@@ -100,38 +60,6 @@ func KindFromString(v string) Kind {
 	default:
 		return KindInvalid
 	}
-}
-
-func KindOfType(typ super.Type) Kind {
-	switch super.TypeUnder(typ).(type) {
-	case *super.TypeOfInt16, *super.TypeOfInt32, *super.TypeOfInt64, *super.TypeOfDuration, *super.TypeOfTime:
-		return KindInt
-	case *super.TypeOfUint16, *super.TypeOfUint32, *super.TypeOfUint64:
-		return KindUint
-	case *super.TypeOfFloat16, *super.TypeOfFloat32, *super.TypeOfFloat64:
-		return KindFloat
-	case *super.TypeOfString:
-		return KindString
-	case *super.TypeOfBytes:
-		return KindBytes
-	case *super.TypeOfIP:
-		return KindIP
-	case *super.TypeOfNet:
-		return KindNet
-	case *super.TypeOfType:
-		return KindType
-	case *super.TypeOfNull:
-		return KindNull
-	case *super.TypeArray:
-		return KindArray
-	case *super.TypeSet:
-		return KindSet
-	case *super.TypeMap:
-		return KindMap
-	case *super.TypeRecord:
-		return KindRecord
-	}
-	return KindInvalid
 }
 
 func FormOf(v Any) (Form, bool) {

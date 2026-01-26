@@ -20,6 +20,10 @@ func NewMap(typ *super.TypeMap, offsets []uint32, keys Any, values Any, nulls bi
 	return &Map{Typ: typ, Offsets: offsets, Keys: keys, Values: values, Nulls: nulls}
 }
 
+func (*Map) Kind() Kind {
+	return KindMap
+}
+
 func (m *Map) Type() super.Type {
 	return m.Typ
 }

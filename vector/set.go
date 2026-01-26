@@ -19,6 +19,10 @@ func NewSet(typ *super.TypeSet, offsets []uint32, values Any, nulls bitvec.Bits)
 	return &Set{Typ: typ, Offsets: offsets, Values: values, Nulls: nulls}
 }
 
+func (*Set) Kind() Kind {
+	return KindSet
+}
+
 func (s *Set) Type() super.Type {
 	return s.Typ
 }

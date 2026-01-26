@@ -17,7 +17,7 @@ type Concat struct {
 func (c *Concat) Call(args ...vector.Any) vector.Any {
 	args = underAll(args)
 	for _, arg := range args {
-		switch vector.KindOf(arg) {
+		switch arg.Kind() {
 		case vector.KindError:
 			return arg
 		case vector.KindString:

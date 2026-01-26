@@ -17,4 +17,6 @@ func NewEnum(typ *super.TypeEnum, vals []uint64, nulls bitvec.Bits) *Enum {
 	}
 }
 
+func (*Enum) Kind() Kind { return KindEnum }
+
 func (e *Enum) Type() super.Type { return e.Typ }

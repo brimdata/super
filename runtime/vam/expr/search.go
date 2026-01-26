@@ -29,7 +29,7 @@ func NewSearch(s string, val super.Value, e Evaluator) Evaluator {
 	}
 	eq := NewCompare(super.NewContext() /* XXX */, "==", nil, nil)
 	vectorPred := func(vec vector.Any) vector.Any {
-		if net.IsValid() && vector.KindOf(vec) == vector.KindIP {
+		if net.IsValid() && vec.Kind() == vector.KindIP {
 			out := vector.NewFalse(vec.Len())
 			for i := range vec.Len() {
 				if ip, null := vector.IPValue(vec, i); !null && net.Contains(ip) {
