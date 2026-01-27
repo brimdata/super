@@ -14,7 +14,7 @@ The predicate may not contain any [aggregate functions](../aggregates/intro.md).
 
 As in [PostgreSQL](https://www.postgresql.org/),
 table and column references in the `WHERE` clause bind only to the
-[input scope](select.md#input-scope).
+[input scope](intro.md#input-scope).
 
 ## Examples
 

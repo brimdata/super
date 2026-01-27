@@ -21,7 +21,7 @@ used by pipe operators.
 
 While SQL expressions and pipe expressions share an identical syntax,
 their semantics diverge in some key ways:
-* SQL expressions that reference `this` have [semantics](../sql/intro.md#accessing-this)
+* SQL expressions that reference `this` have [semantics](../sql/intro.md#this)
   that depend on the SQL clause that expression appears in,
 * relational tables and/or columns cannot be referenced using aliases in pipe scoping,
 * double-quoted string [literals](literals.md) may be used in pipe expressions but are interpreted

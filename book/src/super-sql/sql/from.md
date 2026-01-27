@@ -72,7 +72,7 @@ identifies the query's input data to create the _input table_
 for `SELECT`.
 
 The input table is accessed via a namespace comprised of
-table and column [references](intro.md#identifier-resolution)
+table and column [references](intro.md#relational-bindings)
 that may then appear in the various expressions appearing throughout
 the query.
 

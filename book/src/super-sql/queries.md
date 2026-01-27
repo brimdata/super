@@ -96,7 +96,7 @@ character may be included in a backtick string with Unicode escape `\u0060`.
 In SQL expressions, identifiers may also be enclosed in double-quoted strings.
 
 The [special value](intro.md#pipe-scoping) `this` is also available in SQL but has
-[peculiar semantics](sql/intro.md#accessing-this)
+[peculiar semantics](sql/intro.md#this)
 due to SQL scoping rules.  To reference a column called `this`
 in a SQL expression, simply use double quotes, i.e., `"this"`.
 
@@ -148,7 +148,7 @@ regexp(r'\w+(foo|bar)', this)
 But when used outside of expressions where an explicit indication of
 a regular expression is required (e.g., in a
 [search](operators/search.md) or
-[from](operators/from.md#database-operation) operator), the RE2 is instead
+[from](operators/from.md#pools) operator), the RE2 is instead
 prefixed and suffixed with a `/`, e.g.,
 ```
 /foo|bar/

@@ -8,7 +8,7 @@ is always referenced as the special value `this`.
 
 In [relational scoping](../intro.md#relational-scoping), input data
 is referenced by specifying the columns of one or more tables.
-See the [SQL section](../sql/intro.md#input-references) for
+See the [SQL section](../sql/intro.md) for
 details on how columns are [bound](../sql/intro.md#relational-bindings)
 to [identifiers](../queries.md#identifiers), how table references
 are resolved, and how [`this`](../sql/intro.md#this) behaves in a SQL expression.
