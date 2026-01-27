@@ -60,7 +60,7 @@ WHERE y >= (SELECT MAX(z) FROM U)
 ---
 
 _Cannot use aggregate functions in WHERE_
-```mdtest-spq
+```mdtest-spq fails
 # spq
 WITH T(x,y) AS (
     VALUES (1,2), (3,4), (5,6)

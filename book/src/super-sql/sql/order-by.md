@@ -50,9 +50,9 @@ ORDER BY x DESC
 {x:2,y:2}
 {x:3,y:1}
 # expected output
-{x:3,y:1}
-{x:2,y:2}
-{x:1,y:2}
+{x:3}
+{x:2}
+{x:1}
 ```
 
 ---
@@ -67,9 +67,9 @@ ORDER BY y,x
 {x:2,y:2}
 {x:3,y:1}
 # expected output
-{x:3,y:1}
-{x:1,y:2}
-{x:2,y:2}
+{x:3}
+{x:1}
+{x:2}
 ```
 
 ---

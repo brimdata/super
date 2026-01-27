@@ -110,6 +110,7 @@ U(z) AS (
 SELECT *
 FROM T
 LEFT JOIN U ON x=z
+ORDER BY x
 # input
 
 # expected output
@@ -132,12 +133,12 @@ U(z) AS (
 SELECT *
 FROM T
 RIGHT JOIN U ON x=z
+ORDER BY x
 # input
 
 # expected output
-{x:1,y:2,z:error("missing")}
 {x:3,y:4,z:3}
-{x:5,y:6,z:error("missing")}
+{x:error("missing"),y:error("missing"),z:2}
 ```
 
 ---
@@ -154,6 +155,7 @@ U(z) AS (
 SELECT *
 FROM T
 CROSS JOIN U
+ORDER BY z,y
 # input
 
 # expected output

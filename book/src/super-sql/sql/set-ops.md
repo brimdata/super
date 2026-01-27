@@ -115,7 +115,7 @@ ORDER BY x
 
 _Misaligned tables cause a compilation error_
 
-```mdtest-spq
+```mdtest-spq fails
 # spq
 WITH T(x,y) AS (
     VALUES (1,2), (3,4), (5,6)

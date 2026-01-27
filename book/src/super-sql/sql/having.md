@@ -48,7 +48,7 @@ HAVING (x+y)/7=0
 ---
 
 _HAVING clause without a grouped output is an error_
-```mdtest-spq
+```mdtest-spq fails
 # spq
 WITH T(x,y) AS (
     VALUES (1,2), (3,4), (5,6)
