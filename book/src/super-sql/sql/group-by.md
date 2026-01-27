@@ -34,6 +34,7 @@ WITH T(x,y) AS (
 SELECT sum(x),y
 FROM T
 GROUP BY y
+ORDER BY y
 # input
 
 # expected output
@@ -52,6 +53,7 @@ WITH T(x,y) AS (
 SELECT (x+y)/3 as key
 FROM T
 GROUP BY (x+y)/3
+ORDER BY key
 # input
 
 # expected output
@@ -71,6 +73,7 @@ WITH T(x,y) AS (
 SELECT sum(x),y
 FROM T
 GROUP BY 2
+ORDER BY y
 # input
 
 # expected output
