@@ -586,7 +586,13 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq, inType super.Type) (sem.Seq, s
 	case *ast.SQLOp:
 		seq, sch := t.sqlQueryBody(o.Body, nil, seq, inType)
 		seq, scope := sch.endScope(o.Body, seq)
-		return seq, scope.typ
+		var typ super.Type
+		if scope != badTable {
+			typ = scope.typ
+		} else {
+			typ = t.checker.unknown
+		}
+		return seq, typ
 	case *ast.FileScan:
 		format := t.env.ReaderOpts.Format
 		fuser := t.checker.newFuser()

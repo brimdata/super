@@ -1,0 +1,21 @@
+script: |
+  ! super -dynamic -s -I query.spq
+
+inputs:
+  - name: query.spq
+    data: |
+      SELECT *
+      FROM a.sup
+      | fork
+        ( pass )
+        ( SELECT 1 )
+  - name: a.sup
+    data: |
+      {a:1}
+
+outputs:
+  - name: stderr
+    data: |
+      the all-columns (*) pattern cannot be used for dynamic inputs in query.spq at line 1, column 8:
+      SELECT *
+             ~
