@@ -29,7 +29,6 @@ table name.  Typically, a `VALUES` clause is used as a table subquery
 in a [FROM](from.md) clause and assigned table and column names with a
 [table alias](from.md#table-aliases).
 
-
 ## Examples
 
 ---
