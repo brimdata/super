@@ -1,4 +1,4 @@
-spq: quiet(this)
+spq: values quiet(this)
 
 vector: true
 
