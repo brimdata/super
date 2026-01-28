@@ -20,7 +20,7 @@ jobs:
     - run: make test-unit
     - run: make test-system
     - run: make test-heavy
-    - uses: goreleaser/goreleaser-action@v5
+    - uses: goreleaser/goreleaser-action@v6
       with:
         args: release --clean
       env:
