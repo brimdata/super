@@ -1,10 +1,12 @@
-# Zeek Type Compatibility
+# Type System
 
-As the [super data model](../../../formats/model.md) was in many ways inspired by the
+As the [super-structured data model](../../../formats/model.md) was in many ways inspired by the
 [Zeek TSV log format](https://docs.zeek.org/en/master/log-formats.html#zeek-tsv-format-logs),
-SuperDB's rich storage formats ([Super (SUP)](../../../formats/sup.md),
-[Super Binary (BSUP)](../../../formats/bsup.md), etc.) maintain comprehensive interoperability
-with Zeek. When Zeek is configured to output its logs in
+SuperDB's rich storage formats ([SUP](../../../formats/sup.md),
+[CSUP](../../../formats/csup.md), etc.) maintain comprehensive interoperability
+with Zeek.
+
+When Zeek is configured to output its logs in
 JSON format, much of the rich type information is lost in translation, but
 this can be restored by following the guidance for [shaping Zeek JSON](shaping.md).
 On the other hand, Zeek TSV can be converted to Zed storage formats and back to

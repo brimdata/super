@@ -1,20 +1,18 @@
-# Logs
+# TSV Logs
 
 SuperDB can read both of the common Zeek log formats. This section
 provides guidance for what to expect when reading logs of these formats using
-the [`super`](../../../command/super.md) command.
-
-## Zeek TSV
+the [super](../../../command/super.md) command.
 
 [Zeek TSV](https://docs.zeek.org/en/master/log-formats.html#zeek-tsv-format-logs)
 is Zeek's default output format for logs. This format can be read automatically
 (i.e., no `-i` command line flag is necessary to indicate the input format)
-with [`super`](../../../command/super.md).
-
-The following example shows a TSV [`conn.log`](https://docs.zeek.org/en/master/logs/conn.html) being read via `super` and
+with [super](../../../command/super.md).
+s
+The following example shows a TSV [conn.log](https://docs.zeek.org/en/master/logs/conn.html) being read via `super` and
 output as [Super (SUP)](../../../formats/sup.md).
 
-### conn.log
+## conn.log
 
 ```mdtest-input conn.log
 #separator \x09
@@ -28,13 +26,13 @@ output as [Super (SUP)](../../../formats/sup.md).
 1521911721.255387	C8Tful1TvM3Zf5x8fl	10.164.94.120	39681	10.47.3.155	3389	tcp	-	0.004266	97	19	RSTR	-	-	0	ShADTdtr	10	730	6	342	-
 ```
 
-### Example
+## Example
 
 ```mdtest-command
 super -S -c 'head 1' conn.log
 ```
 
-### Output
+## Output
 ```mdtest-output
 {
   _path: "conn",
@@ -70,82 +68,6 @@ once they've been read in as is. The
 [Zeek Type Compatibility](types.md) document
 provides further detail on how the rich data types in Zeek TSV map to the
 equivalent [super-structured types](../../../formats/model.md#1-primitive-types).
-
-## Zeek JSON
-
-As an alternative to the default TSV format, there are two common ways that
-Zeek may instead generate logs in JSON format.
-
-1. Using the [JSON Streaming Logs](https://github.com/corelight/json-streaming-logs)
-   package (recommended for use with `super`)
-2. Using the built-in [ASCII logger](https://docs.zeek.org/en/current/scripts/base/frameworks/logging/writers/ascii.zeek.html)
-   configured with `redef LogAscii::use_json = T;`
-
-In both cases, `super` can read these logs automatically
-as is, but with caveats.
-
-Let's revisit the same `conn` record we just examined from the Zeek TSV
-log, but now as generated using the JSON Streaming Logs package.
-
-### conn.json
-
-```mdtest-input conn.json
-{"_path":"conn","_write_ts":"2018-03-24T17:15:21.400275Z","ts":"2018-03-24T17:15:21.255387Z","uid":"C8Tful1TvM3Zf5x8fl","id.orig_h":"10.164.94.120","id.orig_p":39681,"id.resp_h":"10.47.3.155","id.resp_p":3389,"proto":"tcp","duration":0.004266023635864258,"orig_bytes":97,"resp_bytes":19,"conn_state":"RSTR","missed_bytes":0,"history":"ShADTdtr","orig_pkts":10,"orig_ip_bytes":730,"resp_pkts":6,"resp_ip_bytes":342}
-```
-
-### Example
-
-```mdtest-command
-super -S -c 'head 1' conn.json
-```
-
-### Output
-```mdtest-output
-{
-  _path: "conn",
-  _write_ts: "2018-03-24T17:15:21.400275Z",
-  ts: "2018-03-24T17:15:21.255387Z",
-  uid: "C8Tful1TvM3Zf5x8fl",
-  "id.orig_h": "10.164.94.120",
-  "id.orig_p": 39681,
-  "id.resp_h": "10.47.3.155",
-  "id.resp_p": 3389,
-  proto: "tcp",
-  duration: 0.004266023635864258,
-  orig_bytes: 97,
-  resp_bytes: 19,
-  conn_state: "RSTR",
-  missed_bytes: 0,
-  history: "ShADTdtr",
-  orig_pkts: 10,
-  orig_ip_bytes: 730,
-  resp_pkts: 6,
-  resp_ip_bytes: 342
-}
-```
-
-When we compare this to the TSV example, we notice a few things right away that
-all follow from the records having been previously output as JSON.
-
-1. The timestamps like `_write_ts` and `ts` are printed as strings rather than
-   the  Super `time` type.
-2. The IP addresses such as `id.orig_h` and `id.resp_h` are printed as strings
-   rather than the Super `ip` type.
-3. The connection `duration` is printed as a floating point number rather than
-   the Super `duration` type.
-4. The keys for the null-valued fields in the record read from
-   TSV are not present in the record read from JSON.
-
-If you're familiar with the limitations of the JSON data types, it makes sense
-that Zeek chose to output these values as it did. Furthermore, if
-you were just seeking to do quick searches on the string values or simple math
-on the numbers, these limitations may be acceptable. However, if you intended
-to perform operations like
-[aggregations with time-based grouping](../../../super-sql/functions/time/bucket.md)
-or [CIDR matches](../../../super-sql/functions/network/network_of.md)
-on IP addresses, you would likely want to restore the rich Super data types as
-the records are being read. The document on [shaping Zeek JSON](shaping.md)
-provides details on how this can be done.
 
 ## The Role of `_path`
 

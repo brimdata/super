@@ -1,12 +1,85 @@
-# Shaping Zeek JSON
+# JSON Logs
 
-When [reading Zeek JSON format logs](logs.md#zeek-json),
-much of the rich data typing that was originally present inside Zeek is at risk
-of being lost. This detail can be restored using a
-[shaper](../../../tutorials/shaping.md), such as the
-[reference shaper described below](#reference-shaper-contents).
+Zeek events may be logged to JSON as an alternative to its TSV format
+using two common configurations:
 
-## Zeek Version/Configuration
+* the [JSON Streaming Logs](https://github.com/corelight/json-streaming-logs)
+   package (recommended for use with `super`), or
+* the built-in [ASCII logger](https://docs.zeek.org/en/current/scripts/base/frameworks/logging/writers/ascii.zeek.html)
+   configured with `redef LogAscii::use_json = T;`
+
+When reading these JSON logs,
+much of the rich data typing that was originally present inside Zeek is lost.
+This detail can be restored using SuperSQL scripts
+to restore the type-richness of Zeek data.
+
+In both cases, `super` can read these logs automatically
+as is, but with caveats.
+
+Let's have a look at the [conn record](logs.md#connlog) from TSV example,
+but now as generated using the JSON Streaming Logs package.
+
+### conn.json
+
+```mdtest-input conn.json
+{"_path":"conn","_write_ts":"2018-03-24T17:15:21.400275Z","ts":"2018-03-24T17:15:21.255387Z","uid":"C8Tful1TvM3Zf5x8fl","id.orig_h":"10.164.94.120","id.orig_p":39681,"id.resp_h":"10.47.3.155","id.resp_p":3389,"proto":"tcp","duration":0.004266023635864258,"orig_bytes":97,"resp_bytes":19,"conn_state":"RSTR","missed_bytes":0,"history":"ShADTdtr","orig_pkts":10,"orig_ip_bytes":730,"resp_pkts":6,"resp_ip_bytes":342}
+```
+
+### Example
+
+```mdtest-command
+super -S -c 'head 1' conn.json
+```
+
+### Output
+```mdtest-output
+{
+  _path: "conn",
+  _write_ts: "2018-03-24T17:15:21.400275Z",
+  ts: "2018-03-24T17:15:21.255387Z",
+  uid: "C8Tful1TvM3Zf5x8fl",
+  "id.orig_h": "10.164.94.120",
+  "id.orig_p": 39681,
+  "id.resp_h": "10.47.3.155",
+  "id.resp_p": 3389,
+  proto: "tcp",
+  duration: 0.004266023635864258,
+  orig_bytes: 97,
+  resp_bytes: 19,
+  conn_state: "RSTR",
+  missed_bytes: 0,
+  history: "ShADTdtr",
+  orig_pkts: 10,
+  orig_ip_bytes: 730,
+  resp_pkts: 6,
+  resp_ip_bytes: 342
+}
+```
+
+When we compare this to the TSV example, we notice a few things right away that
+all follow from the records having been previously output as JSON.
+
+1. The timestamps like `_write_ts` and `ts` are printed as strings rather than
+   the  Super `time` type.
+2. The IP addresses such as `id.orig_h` and `id.resp_h` are printed as strings
+   rather than the Super `ip` type.
+3. The connection `duration` is printed as a floating point number rather than
+   the Super `duration` type.
+4. The keys for the null-valued fields in the record read from
+   TSV are not present in the record read from JSON.
+
+If you're familiar with the limitations of the JSON data types, it makes sense
+that Zeek chose to output these values as it did. Furthermore, if
+you were just seeking to do quick searches on the string values or simple math
+on the numbers, these limitations may be acceptable. However, if you intended
+to perform operations like
+[aggregations with time-based grouping](../../../super-sql/functions/time/bucket.md)
+or [CIDR matches](../../../super-sql/functions/network/network_of.md)
+on IP addresses, you would likely want to restore the rich Super data types as
+the records are being read. The document on [shaping Zeek JSON](shaping.md)
+provides details on how this can be done.
+
+## Version Compatibility
 
 The fields and data types in the reference shaper reflect the default
 JSON-format logs output by Zeek releases up to the version number referenced

@@ -1,18 +1,13 @@
 # Go
 
-SuperDB is developed in Go so support for Go clients is
-fairly comprehensive.  Documentation of exported
-package functions is fairly scant though we plan to improve it soon.
-
-Also, our focus for the Go client packages has been on supporting
-the interal APIs in the SuperDB implementation.  We intend to develop
-a Go package that is easier to use for external clients.  In the meantime,
-clients may use the internal Go packages though the APIs are subject to change.
+The original version of SuperDB was developed in Go so Go clients
+can easily access client libraries from the packages that comprise
+the Go implementation.
 
 ## Installation
 
-SuperDB is structured as a standard Go module so it's easy to import into
-other Go projects straight from the GitHub repo.
+SuperDB is currently structured as a standard Go module so it's
+easy to import into other Go projects straight from the GitHub repo.
 
 Some of the key packages are:
 

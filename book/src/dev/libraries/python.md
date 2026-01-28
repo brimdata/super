@@ -3,15 +3,22 @@
 SuperDB includes preliminary support for Python-based interaction
 with a SuperDB database.
 
+>[!NOTE]
+> This Python package is useful for experimentation with SuperDB
+> from Python in low-performance settings.  As part of the Rust port
+> of SuperDB, high performance access from SuperDB will be available
+> into Python using native [Arrow](https://arrow.apache.org/docs/index.html)
+> via
+> [ADBC](https://arrow.apache.org/docs/format/ADBC.html).
+> This will provide a convenient means to access SuperDB in terms of
+> Python and Arrow dataframes but won't offer all the benefits 
+> of super-structured data until there is a native Python library
+> implementation of [CSUP](../../formats/csup.md).  Stay tuned.
+
 The Python package supports loading data into a database as well as
 querying and retrieving results in the [JSUP format](../../formats/jsup.md).
 The Python client interacts with the database via the REST API served by
 [`super db serve`](../../command/db-serve.md).
-
-This approach works adequately when high data throughput is not required.
-We plan to introduce native binary format support for
-Python that should increase performance substantially for more
-data intensive workloads.
 
 ## Installation
 
