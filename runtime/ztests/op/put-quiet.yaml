@@ -1,5 +1,3 @@
-skip: needs dequiet
-
 spq: x := quiet(y)
 
 vector: true
@@ -10,4 +8,4 @@ input: |
 
 output: |
   {}
-  {x:1}
+  {}

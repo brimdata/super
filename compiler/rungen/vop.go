@@ -224,6 +224,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		if err != nil {
 			return nil, err
 		}
+		e = vamexpr.NewDequiet(b.sctx(), e)
 		return vamop.NewValues(b.sctx(), parent, []vamexpr.Evaluator{e}), nil
 	case *dag.DefaultScan:
 		sbufPuller, err := b.compileLeaf(o, nil)
@@ -280,6 +281,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		if err != nil {
 			return nil, err
 		}
+		e = vamexpr.NewDequiet(b.sctx(), e)
 		putter := vamexpr.NewPutter(b.sctx(), e)
 		return vamop.NewValues(b.sctx(), parent, []vamexpr.Evaluator{putter}), nil
 	case *dag.RenameOp:

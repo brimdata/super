@@ -387,7 +387,7 @@ echo '{s:"foo", val:1}{s:"bar"}' | super -s -c 'cut quiet(val)' -
 produces
 ```mdtest-output
 {val:1}
-{val:error("quiet")}
+{}
 ```
 
 ### Union Types

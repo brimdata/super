@@ -1,5 +1,3 @@
-skip: needs dequiet
-
 spq: cut foo:=quiet(foo), bar:=quiet(bar)
 
 vector: true
@@ -18,13 +16,14 @@ output: |
   {bar:"bar2"}
   {bar:"bar3"}
   {foo:"foo4",bar:"bar4"}
+  {}
 
 ---
 
-skip: needs dequiet
-
 # Rename fields.
 spq: cut f:=quiet(foo), b:=quiet(bar)
+
+vector: true
 
 input: |
   {foo:"foo0"}
@@ -40,10 +39,9 @@ output: |
   {b:"bar2"}
   {b:"bar3"}
   {f:"foo4",b:"bar4"}
+  {}
 
 ---
-
-skip: needs dequiet
 
 # Rename nested fields.
 spq: cut ports:=id, resp_p:=quiet(id.resp_p)
