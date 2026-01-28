@@ -49,3 +49,37 @@ values {
 {a:"a",b:error("missing")}
 {a:[2],b:1}
 ```
+
+---
+
+_Use default `GROUP BY` precedence (no `pragma`) to group by the alias "x" that refers to constant 0_
+
+```mdtest-spq
+# spq
+SELECT 0 AS x, COUNT(*) AS n GROUP BY x
+# input
+{x:1}
+{x:2}
+{x:1}
+{x:2}
+# expected output
+{x:0,n:4}
+```
+
+---
+
+_Use PostgreSQL `GROUP BY` precedence to group by the source column "x" (not the alias)_
+
+```mdtest-spq
+# spq
+pragma pg = true
+SELECT 0 AS x, COUNT(*) AS n GROUP BY x
+# input
+{x:1}
+{x:2}
+{x:1}
+{x:2}
+# expected output
+{x:0,n:2}
+{x:0,n:2}
+```
