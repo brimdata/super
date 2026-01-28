@@ -50,8 +50,6 @@ or
 Each operator and function has a section of examples
 with playgrounds where you can edit
 the example queries and inputs to explore how SuperSQL works.
-The [tutorials section](../tutorials/intro.md)
-also has many playground examples.
 
 Here are a few examples to get going.
 

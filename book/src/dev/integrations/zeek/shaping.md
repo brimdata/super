@@ -235,7 +235,7 @@ such a field would be maintained and assigned an inferred type.
 
 * `_error_if_cropped` (default: `true`) - If such a field is cropped, the
 original input record will be
-[wrapped inside an `error` value](../../../tutorials/shaping.md#error-handling)
+wrapped inside an error value
 along with the shaped and cropped variations.
 
 At these default settings, the shaper is well-suited for an iterative workflow

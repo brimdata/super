@@ -397,11 +397,10 @@ backward compatibility with SQL all in the same query language.
 > [!NOTE]
 > If SuperDB or super-structured data has piqued your interest,
 > you can dive deeper by:
-> * exploring the [SuperSQL](super-sql/intro.md) query language,
+> * exploring the [SuperSQL](super-sql/intro.md) query language, or
 > * learning about the
 > [super-structured data model](formats/model.md) and
-  [formats](formats/intro.md) underlying SuperDB, or
-> * browsing the [tutorials](tutorials/intro.md).
+  [formats](formats/intro.md) underlying SuperDB.
 >
 > We'd love your feedback and we hope to build a thriving community around
 > SuperDB so please feel free to reach out to us via
