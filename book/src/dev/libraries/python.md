@@ -11,7 +11,7 @@ with a SuperDB database.
 > via
 > [ADBC](https://arrow.apache.org/docs/format/ADBC.html).
 > This will provide a convenient means to access SuperDB in terms of
-> Python and Arrow dataframes but won't offer all the benefits 
+> Python and Arrow dataframes but won't offer all the benefits
 > of super-structured data until there is a native Python library
 > implementation of [CSUP](../../formats/csup.md).  Stay tuned.
 
