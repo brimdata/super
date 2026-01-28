@@ -1,6 +1,7 @@
 # Playground
 
-If you have `super` installed, a common pattern for experimentation is to
+If you have `super` [installed](install.md),
+a common pattern for experimentation is to
 "echo" some input to the `super -c` command, e.g.,
 ```
 echo <values> | super -c <query> -
@@ -27,7 +28,7 @@ and you should get this alternative output in the RESULT panel above:
 {out:"goodbye"}
 ```
 The input in the playground examples are generally formatted as
-[SUP](../formats/sup.md) but the `super` playground command autodetects
+[SUP](../formats/sup.md) but the `super` playground command auto-detects
 the format, so you can experiment with other text-based formats like CSV or JSON.
 For example, if you change the input above to
 ```

@@ -4,7 +4,7 @@ Skim these one liners to get the gist of what SuperDB can do...
 
 >[!NOTE]
 > JSON inputs can include any concatenation of valid JSON values, e.g.,
-> [newline-deliminted JSON](https://github.com/ndjson/ndjson-spec),
+> [newline-delimited JSON](https://github.com/ndjson/ndjson-spec),
 > though newline delimiters are not required.
 
 ## Query a CSV, JSON, or Parquet file using SuperSQL

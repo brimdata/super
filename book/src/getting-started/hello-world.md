@@ -1,6 +1,6 @@
 # Hello World
 
-To test out the installed `super` binary, try running these
+To test out the [installed](install.md) `super` binary, try running these
 "Hello World" examples.
 
 ## Stdin to Stdout
@@ -16,13 +16,13 @@ You should get:
 ```
 In this simple case,
 there is no query argument specified for `super` (i.e., no `-c` argument), which causes
-`super` to presume an implied [`from` operator](../super-sql/operators/from.md).
+`super` to presume an implied [from](../super-sql/operators/from.md) operator.
 This `from` operator scans each of the command-line arguments
 interpreted as file paths or URLs (or `-` for standard input).
 
 In this case, the input is read from the implied operator, no further query
 is applied, and the results are emitted to standard output.
-This results is the string value `"hello, world"`,
+This results in the string value `"hello, world"`,
 serialized in the default [SUP format](../formats/sup.md),
 which is simply the string literal itself.
 
@@ -36,7 +36,7 @@ which outputs
 ```
 {Message:"hello, world"}
 ```
-This is single row in a table with one column called `Message` of type `string`.
+This is a single row in a table with one column called `Message` of type `string`.
 
 ## SuperDB Database
 
