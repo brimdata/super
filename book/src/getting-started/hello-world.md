@@ -1,8 +1,12 @@
-## Hello World
+# Hello World
 
-To test out the installed `super` binary, try running Hello World!
+To test out the installed `super` binary, try running these
+"Hello World" examples.
 
-First, here is a Unix-y version.  Copy this to your shell and run it:
+## Stdin to Stdout
+
+First, here is a Unix-y version that simply reads from standard input.
+Copy this one liner to your shell and run it:
 ```
 echo '"hello, world"' | super -
 ```
@@ -22,6 +26,8 @@ This results is the string value `"hello, world"`,
 serialized in the default [SUP format](../formats/sup.md),
 which is simply the string literal itself.
 
+## SQL Version
+
 A SQL version of Hello World is:
 ```
 super -c "SELECT 'hello, world' as Message"
@@ -32,7 +38,7 @@ which outputs
 ```
 This is single row in a table with one column called `Message` of type `string`.
 
-### SuperDB Database
+## SuperDB Database
 
 The top-level `super` command runs without any underlying persistent database,
 but you can also run Hello World with a database.
@@ -54,9 +60,9 @@ and you should see
 {Message:"hello, world"}
 ```
 
-### SuperDB Service
+## SuperDB Service
 
-Now that you have a database in the `./scratch` directory, you could also
+With your database in the `./scratch` directory, you can also
 run Hello World as a client talking to a SuperDB server instance.
 Continuing the example above (with the `SUPER_DB` environment pointing to `./scratch`),
 run a service as follows:
