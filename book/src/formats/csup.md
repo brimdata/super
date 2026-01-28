@@ -1,4 +1,4 @@
-## Super Column (CSUP) Format
+# Super Column (CSUP) Format
 
 > _TODO: this is out of date and needs to be updated._
 
@@ -15,7 +15,7 @@ a schema to be declared when writing data to a file.  Instead,
 it exploits the nature of super-structured data: columns of data
 self-organize around their type structure.
 
-### CSUP Files
+## CSUP Files
 
 A CSUP file encodes a bounded, ordered sequence of values.
 To provide for efficient access to subsets of CSUP-encoded data (e.g., columns),
@@ -28,7 +28,7 @@ together as a single CSUP entity.  While the format provides much flexibility
 for how data is laid out, it is left to an implementation to lay out data
 in intelligent ways for efficient sequential read accesses of related data.
 
-### Column Streams
+## Column Streams
 
 The CSUP data abstraction is built around a collection of _column streams_.
 
@@ -47,7 +47,7 @@ its relationship to the various column streams.  For hierarchical records
 (i.e., records inside of records, or records inside of arrays inside of records, etc.),
 the reconstruction process is recursive (as described below).
 
-### The Physical Layout
+## The Physical Layout
 
 The overall layout of a CSUP file is comprised of the following sections,
 in this order:
@@ -68,7 +68,7 @@ in a single pass.
 > additional passes or by writing the output to multiple files then
 > merging them together (or even leaving the CSUP entity as separate files).
 
-#### The Data Section
+### The Data Section
 
 The data section contains raw data values organized into _segments_,
 where a segment is a seek offset and byte length relative to the
@@ -105,7 +105,7 @@ blobs of BSUP data.
 > do two passes where you store segments in separate files then merge them at close
 > according to an optimization plan.
 
-#### The Reassembly Section
+### The Reassembly Section
 
 The reassembly section provides the information needed to reconstruct
 column streams from segments, and in turn, to reconstruct the original values
@@ -127,7 +127,7 @@ which uses an externally described schema
 (via [Thrift](https://thrift.apache.org/)) to describe
 analogous data structures, we simply reuse BSUP here.
 
-##### The Super Types
+#### The Super Types
 
 This reassembly stream encodes 2*N+1 values, where N is equal to the number
 of top-level types that are present in the encoded input.
@@ -146,7 +146,7 @@ The next N+1 records contain reassembly information for each of the N super type
 where each record defines the column streams needed to reconstruct the original
 values.
 
-##### Segment Maps
+#### Segment Maps
 
 The foundation of column reconstruction is based on _segment maps_.
 A segment map is a list of the segments from the data area that are
@@ -167,7 +167,7 @@ shorthand and refer to the concept as a "segmap".
 > a set of byte ranges where data is stored and must be read from *rather than*
 > the data itself.
 
-##### The Super Column
+#### The Super Column
 
 The first of the N+1 reassembly records defines the "super column", where this column
 represents the sequence of [super types](#the-super-types) of each original value, i.e., indicating
@@ -186,7 +186,7 @@ the super column will compress trivially.
 The reassembly map appears as the next value in the reassembly section
 and is of type `<segmap>`.
 
-##### The Reassembly Records
+#### The Reassembly Records
 
 Following the root reassembly map are N reassembly maps, one for each unique super type.
 
@@ -222,7 +222,7 @@ Note that when decoding a column, all type information is known
 from the super type in question so there is no need
 to encode the type information again in the reassembly record.
 
-##### Record Column
+#### Record Column
 
 A `<record_column>` is defined recursively in terms of the column types of
 its fields, i.e., other types that represent arrays, unions, or primitive types
@@ -249,7 +249,7 @@ contains an empty `<segmap>`).  For an empty `<segmap>`, there is no
 corresponding data stored in the data section.  Since a `<segmap>` is an
 array, an empty `<segmap>` is simply the empty array value `[]`.
 
-##### Array Column
+#### Array Column
 
 An `<array_column>` has the form:
 ```
@@ -263,7 +263,7 @@ of each array value.
 
 The `<array_column>` structure is used for both arrays and sets.
 
-##### Map Column
+#### Map Column
 
 A `<map_column>` has the form:
 ```
@@ -273,7 +273,7 @@ where
 * `key` encodes the column of map keys and
 * `value` encodes the column of map values.
 
-##### Union Column
+#### Union Column
 
 A `<union_column>` has the form:
 ```
@@ -290,12 +290,12 @@ the tag of the union type indicating which column the value falls within.
 The number of times each value of `tags` appears must equal the number of values
 in each respective column.
 
-##### Primitive Column
+#### Primitive Column
 
 A `<primitive_column>` is a `<segmap>` that defines a column stream of
 primitive values.
 
-##### Presence Columns
+#### Presence Columns
 
 The presence column is logically a sequence of booleans, one for each position
 in the original column, indicating whether a value is null or present.
@@ -308,7 +308,7 @@ then the number of values present, and so forth.   These runs are then stored
 as `int32` values in the presence column (which may be subject to further
 compression based on segment compression).
 
-#### The Trailer
+### The Trailer
 
 After the reassembly section is a BSUP stream with a single record defining
 the "trailer" of the CSUP file.  The trailer provides a magic field
@@ -326,7 +326,7 @@ The trailer can be efficiently found by scanning backward from the end of the
 CSUP file to find a valid BSUP stream containing a single record value
 conforming to the above type.
 
-### Decoding
+## Decoding
 
 To decode an entire CSUP file into rows, the trailer is read to find the sizes
 of the sections, then the BSUP stream of the reassembly section is read,
@@ -370,9 +370,9 @@ and that value is used to select the corresponding column stream
 `c0`, `c1`, etc.  The value read is then encoded as a BSUP union value
 using the same tag within the union value.
 
-### Examples
+## Examples
 
-#### Hello, world
+### Hello, world
 
 Start with this [Super (SUP)](sup.md) file `hello.sup`:
 ```

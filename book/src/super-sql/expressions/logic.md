@@ -1,4 +1,4 @@
-## Logic
+# Logic
 
 The keywords `and`, `or`, `not`, and `!` perform logic on operands of type [bool](../types/bool.md).
 The binary operators `and` and `or` operate on Boolean values and result in

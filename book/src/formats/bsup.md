@@ -1,6 +1,6 @@
-## Super Binary (BSUP) Format
+# Super Binary (BSUP) Format
 
-### 1. Introduction
+## 1. Introduction
 
 Super Binary (BSUP) is an efficient, sequence-oriented serialization format for
 [super-structured data](model.md).
@@ -38,7 +38,7 @@ input contexts into an output context and adjusting the type reference of
 each value in the output sequence.  The values need not be traversed
 or otherwise rewritten to be merged in this fashion.
 
-### 2. The BSUP Format
+## 2. The BSUP Format
 
 A BSUP stream comprises a sequence of frames where
 each frame contains one of three types of data:
@@ -149,7 +149,7 @@ then interpreted according to the `T` bits of the frame code as a
 * [values frame](#22-values-frame), or
 * [control frame](#23-control-frame).
 
-#### 2.1 Types Frame
+### 2.1 Types Frame
 
 A _types frame_ encodes a sequence of type definitions for complex types
 and establishes a "type ID" for each such definition.
@@ -181,7 +181,7 @@ The typedef codes are defined as follows:
 
 Any references to a type ID in the body of a typedef are encoded as a `uvarint`.
 
-##### 2.1.1 Record Typedef
+#### 2.1.1 Record Typedef
 
 A record typedef creates a new type ID equal to the next stream type ID
 with the following structure:
@@ -217,7 +217,7 @@ string data.
 
 The type ID follows the field name and is encoded as a `uvarint`.
 
-##### 2.1.2 Array Typedef
+#### 2.1.2 Array Typedef
 
 An array type is encoded as simply the type code of the elements of
 the array encoded as a `uvarint`:
@@ -227,7 +227,7 @@ the array encoded as a `uvarint`:
 ----------------
 ```
 
-##### 2.1.3 Set Typedef
+#### 2.1.3 Set Typedef
 
 A set type is encoded as the type ID of the
 elements of the set, encoded as a `uvarint`:
@@ -237,7 +237,7 @@ elements of the set, encoded as a `uvarint`:
 ----------------
 ```
 
-##### 2.1.4 Map Typedef
+#### 2.1.4 Map Typedef
 
 A map type is encoded as the type code of the key
 followed by the type code of the value.
@@ -248,7 +248,7 @@ followed by the type code of the value.
 ```
 Each `<type-id>` is encoded as `uvarint`.
 
-##### 2.1.5 Union Typedef
+#### 2.1.5 Union Typedef
 
 A union typedef creates a new type ID equal to the next stream type ID
 with the following structure:
@@ -266,7 +266,7 @@ The `<ntypes>` and the type IDs are all encoded as `uvarint`.
 
 `<ntypes>` cannot be 0.
 
-##### 2.1.6 Enum Typedef
+#### 2.1.6 Enum Typedef
 
 An enum type is encoded as a `uvarint` representing the number of symbols
 in the enumeration followed by the names of each symbol.
@@ -279,7 +279,7 @@ in the enumeration followed by the names of each symbol.
 The names have the same UTF-8 format as record field names and are encoded
 as counted strings following the same convention as record field names.
 
-##### 2.1.7 Error Typedef
+#### 2.1.7 Error Typedef
 
 An error type is encoded as follows:
 ```
@@ -290,7 +290,7 @@ An error type is encoded as follows:
 which defines a new error type for error values that have the underlying type
 indicated by `<type-id>`.
 
-##### 2.1.8 Named Type Typedef
+#### 2.1.8 Named Type Typedef
 
 A named type defines a new type ID that binds a name to a previously existing type ID.
 
@@ -311,7 +311,7 @@ it is an error to define a type name that has the same name as a primitive type,
 and it is permissible to redefine a previously defined type name with a
 type that differs from the previous definition.
 
-#### 2.2 Values Frame
+### 2.2 Values Frame
 
 A _values frame_ is a sequence of values each encoded as the value's type ID,
 encoded as a `uvarint`, followed by its tag-encoded serialization as described below.
@@ -334,7 +334,7 @@ the underlying values.  This admits an efficient implementation
 for traversing the values, inclusive of recursive traversal of complex values,
 whereby the inner loop need not consult and interpret the type ID of each element.
 
-##### 2.2.1 Tag-Encoding of Values
+#### 2.2.1 Tag-Encoding of Values
 
 Each value is prefixed with a "tag" that defines:
 * whether it is the null value, and
@@ -348,7 +348,7 @@ empty array, the empty record, etc.
 
 The tag itself is encoded as a `uvarint`.
 
-##### 2.2.2 Tag-Encoded Body of Primitive Values
+#### 2.2.2 Tag-Encoded Body of Primitive Values
 
 Following the tag encoding is the value encoded in N bytes as described above.
 A typed value with a `value` of length `N` is interpreted as described in the
@@ -366,7 +366,7 @@ before encoding, are shifted left one bit, and the sign bit stored as bit 0.
 For negative numbers, the remaining bits are negated so that the upper bytes
 tend to be zero-filled for small integers.
 
-##### 2.2.3 Tag-Encoded Body of Complex Values
+#### 2.2.3 Tag-Encoded Body of Complex Values
 
 The body of a length-N container comprises zero or more tag-encoded values,
 where the values are encoded as follows:
@@ -409,7 +409,7 @@ sequence of bytes encoding each tag-counted key (of the key/value pair) is
 lexicographically greater than that of the preceding key (of the preceding
 key/value pair).
 
-#### 2.3 Control Frame
+### 2.3 Control Frame
 
 A _control frame_ contains an application-defined control message.
 
@@ -450,7 +450,7 @@ the base BSUP specification.
 If the encoding type is BSUP, the embedded BSUP data
 starts and ends a single BSUP stream independent of the outer BSUP stream.
 
-#### 2.4 End of Stream
+### 2.4 End of Stream
 
 A BSUP stream must be terminated by an end-of-stream marker.
 A new BSUP stream may begin immediately after an end-of-stream marker.
@@ -486,7 +486,7 @@ previously defined type, the appropriate typedef control code must
 be re-emitted
 (and note that the typedef may now be assigned a different ID).
 
-### 3. Primitive Types
+## 3. Primitive Types
 
 For each BSUP primitive type, the following table describes:
 * its type ID, and
@@ -528,7 +528,7 @@ are serialized in little-endian format.
 | `type`       | 28 | variable | type value byte sequence [as defined below](#4-type-values) |
 | `null`       | 29 |    0     | No value, always represents an undefined value |
 
-### 4. Type Values
+## 4. Type Values
 
 As the super data model supports first-class types and because the BSUP design goals
 require that value serializations cannot change across type contexts, type values
@@ -542,7 +542,7 @@ serialized as a single byte.
 The type value of a complex type is serialized recursively according to the
 complex type it represents as described below.
 
-#### 4.1 Record Type Value
+### 4.1 Record Type Value
 
 A record type value has the form:
 ```
@@ -554,7 +554,7 @@ where `<nfields>` is the number of fields in the record encoded as a `uvarint`,
 `<name1>` etc. are the field names encoded as in the
 record typedef, and each `<typeval>` is a recursive encoding of a type value.
 
-#### 4.2 Array Type Value
+### 4.2 Array Type Value
 
 An array type value has the form:
 ```
@@ -564,7 +564,7 @@ An array type value has the form:
 ```
 where `<typeval>` is a recursive encoding of a type value.
 
-#### 4.3 Set Type Value
+### 4.3 Set Type Value
 
 A set type value has the form:
 ```
@@ -574,7 +574,7 @@ A set type value has the form:
 ```
 where `<typeval>` is a recursive encoding of a type value.
 
-#### 4.4 Map Type Value
+### 4.4 Map Type Value
 
 A map type value has the form:
 ```
@@ -584,7 +584,7 @@ A map type value has the form:
 ```
 where `<key-type>` and `<val-type>` are recursive encodings of type values.
 
-#### 4.5 Union Type Value
+### 4.5 Union Type Value
 
 A union type value has the form:
 ```
@@ -595,7 +595,7 @@ A union type value has the form:
 where `<ntypes>` is the number of types in the union encoded as a `uvarint`
 and each `<typeval>` is a recursive definition of a type value.
 
-#### 4.6 Enum Type Value
+### 4.6 Enum Type Value
 
 An enum type value has the form:
 ```
@@ -605,7 +605,7 @@ An enum type value has the form:
 ```
 where `<nelem>` and each symbol name is encoded as in an enum typedef.
 
-#### 4.7 Error Type Value
+### 4.7 Error Type Value
 
 An error type value has the form:
 ```
@@ -615,7 +615,7 @@ An error type value has the form:
 ```
 where `<type>` is the type value of the error.
 
-#### 4.8 Named Type Type Value
+### 4.8 Named Type Type Value
 
 A named type type value may appear either as a definition or a reference.
 When a named type is referenced, it must have been previously
@@ -644,7 +644,7 @@ An named type reference has the form:
 It is an error for a named type reference to appear in a type value with a name
 that has not been previously defined according to the DFS order.
 
-### 5. Compression Types
+## 5. Compression Types
 
 This section specifies values for the `<format>` byte of a
 [compressed value message block](#2-the-bsup-format)

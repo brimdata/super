@@ -1,4 +1,4 @@
-## Operators
+# Operators
 
 The components of a SuperSQL [pipeline](../intro.md#pipe-queries)
 are called pipe operators.  Each operator is identified by its name
@@ -37,7 +37,7 @@ While the output order of parallel branches is [undefined](../intro.md#data-orde
 order may be reestablished by applying a [`sort`](sort.md) at the merge point of
 the `switch` or `fork`.
 
-### Field Assignment
+## Field Assignment
 
 Several pipe operators manipulate records by modifying fields
 or by creating new records from component expressions.
@@ -85,7 +85,7 @@ aggregate count:=count() by upper:=upper(key)
 put lower:=lower(s), c:=a.b.c, `x+1`:=x+1
 ```
 
-### Call
+## Call
 
 In addition to the built-in operators,
 [new operators can be declared](../declarations/operators.md)
@@ -104,7 +104,7 @@ of parameters appearing in the operator declaration.
 The `call` keyword is optional when the operator name does not
 syntactically conflict with other operator syntax.
 
-### Shortcuts
+## Shortcuts
 
 When interactively composing queries (e.g., within [SuperDB Desktop](https://zui.brimdata.io)),
 it is often convenient to use syntactic shortcuts to quickly craft queries for

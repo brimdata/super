@@ -1,4 +1,4 @@
-### Numbers
+# Numbers
 
 Numbers in SuperSQL follow the customary semantics and syntax
 of SQL and other programming languages and include:
@@ -7,7 +7,7 @@ of SQL and other programming languages and include:
 * [floating point](#floating-point), and
 * [decimal](#decimal).
 
-#### Signed Integers
+## Signed Integers
 
 A 64-bit signed integer literal of type `int64` is formed from
 an optional minus character (`-`) followed by a sequence of one or more decimal digits
@@ -30,7 +30,7 @@ are defined as follows:
 * `INTEGER` maps to `int32`
 * `SMALLINT` maps to `int16`
 
-#### Unsigned Integers
+## Unsigned Integers
 
 A sequence of one or more decimal digits that has a value greater than
 `2^63 - 1` and less than `2^64` exclusively forms an unsigned 64-bit integer literal.
@@ -45,7 +45,7 @@ These unsigned types include:
 >[!NOTE]
 > The `uint128` type is not yet implemented in SuperDB.
 
-#### Floating Point
+## Floating Point
 
 A sequence of one or more decimal digits followed by a decimal point (`.`)
 followed optionally by one or more decimal digits forms
@@ -70,12 +70,12 @@ are defined as follows:
 >[!NOTE]
 > The `FLOAT(n)` SQL types are not yet implemented by SuperSQL.
 
-#### Decimal
+## Decimal
 
 >[!NOTE]
 > The `decimal` type is not yet implemented in SuperSQL.
 
-#### Coercion
+## Coercion
 
 Mixed-type numeric values used in expressions are promoted via an implicit
 cast to the type that is best compatible with an operation or expected input type.
@@ -98,7 +98,7 @@ the input values to `sum()` are coerced to `int64` and the result is
 > Further details of coercion rules are forthcoming in a future
 > version of this documentation.
 
-#### Examples
+## Examples
 
 ---
 

@@ -1,4 +1,4 @@
-## Functions
+# Functions
 
 New functions are declared with the syntax
 ```
@@ -43,7 +43,7 @@ the function returns an [error](../types/error.md) value indicating so.  Recursi
 run for an extended period of time without exceeding the stack depth will simply
 be allowed to run indefinitely and stall the query result.
 
-### Subquery Functions
+## Subquery Functions
 
 Since the body of a function is any expression and an expression may be
 a subquery, function bodies can be defined as [subqueries](../expressions/subqueries.md).
@@ -97,7 +97,7 @@ values apply([1,2,3], 1)
 [2,3,4]
 ```
 
-### Examples
+## Examples
 
 ---
 

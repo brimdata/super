@@ -1,18 +1,19 @@
-### Function
+# is
 
-&emsp; **is** &mdash; test a value's type
+test a value's type
 
-### Synopsis
+## Synopsis
+
 ```
 is(val: any, t: type) -> bool
 ```
 
-### Description
+## Description
 
 The `is` function returns true if the argument `val` is of type `t`.
 The _is_ function is shorthand for `typeof(val)==t`.
 
-### Examples
+## Examples
 
 ---
 

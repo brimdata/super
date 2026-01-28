@@ -1,11 +1,11 @@
-### Booleans
+# Booleans
 
 The `bool` type represents a type that has the values `true`, `false`,
 or `null`.
 
 For backward compatibility with SQL, `BOOLEAN` is a syntactic alias for type `bool`.
 
-#### Examples
+## Examples
 
 ---
 

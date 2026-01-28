@@ -1,14 +1,14 @@
-### Function
+# grep
 
-&emsp; **grep** &mdash; search strings inside of values
+search strings inside of values
 
-### Synopsis
+## Synopsis
 
 ```
 grep(re: string e: any) -> bool
 ```
 
-### Description
+## Description
 
 The `grep` function searches all of the strings in its input value `e`
  using the `re` argument, which is a
@@ -26,7 +26,7 @@ if a complex type,
 * for arrays and sets, each element is traversed or descended if a complex type, and
 * for maps, each key and value is traversed or descended if a complex type.
 
-### Examples
+## Examples
 
 ---
 

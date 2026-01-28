@@ -1,8 +1,9 @@
-### Operator
+# put
 
-[✅](../intro.md#data-order)&emsp; **put** &mdash; add or modify fields of records
+[✅](../intro.md#data-order)&ensp; add or modify fields of records
 
-### Synopsis
+## Synopsis
+
 ```
 [put] <assignment> [, <assignment> ...]
 ```
@@ -11,7 +12,8 @@ having the form:
 ```
 [ <field> := ] <expr>
 ```
-### Description
+
+## Description
 
 The `put` operator modifies its input with
 one or more [field assignments](intro.md#field-assignment).
@@ -51,7 +53,7 @@ using a spread operator of the form:
 values {...this, <field>:<expr> [, <field>:<expr>...]}
 ```
 
-### Examples
+## Examples
 
 ---
 

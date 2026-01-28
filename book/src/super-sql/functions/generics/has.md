@@ -1,14 +1,14 @@
-### Function
+# has
 
-&emsp; **has** &mdash; test existence of values
+test existence of values
 
-### Synopsis
+## Synopsis
 
 ```
 has(val: any [, ... val: any]) -> bool
 ```
 
-### Description
+## Description
 
 The `has` function returns false if any of its arguments are `error("missing")`
 and otherwise returns true.
@@ -27,7 +27,7 @@ switch
   default ( ... )
 ```
 
-### Examples
+## Examples
 
 ---
 

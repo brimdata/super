@@ -1,17 +1,18 @@
-### Aggregate Function
+# or
 
-&emsp; **or** &mdash; logical OR of input values
+logical OR of input values
 
-### Synopsis
+## Synopsis
+
 ```
 or(bool) -> bool
 ```
 
-### Description
+## Description
 
 The _or_ aggregate function computes the logical OR over all of its input.
 
-### Examples
+## Examples
 
 Ored value of simple sequence:
 ```mdtest-spq

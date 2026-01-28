@@ -1,14 +1,14 @@
-### Function
+# network_of
 
-&emsp; **network_of** &mdash; the network of an IP
+the network of an IP
 
-### Synopsis
+## Synopsis
 
 ```
 network_of(val: ip [, mask: ip|int|uint]) -> net
 ```
 
-### Description
+## Description
 
 The `network_of` function returns the network of the IP address given
 by `val` as determined by the optional `mask`.  If `mask` is an integer rather
@@ -16,7 +16,7 @@ than an IP address, it is presumed to be a network prefix of the indicated lengt
 If `mask` is omitted, then a class A (8 bit), B (16 bit), or C (24 bit)
 network is inferred from `val`, which in this case, must be an IPv4 address.
 
-### Examples
+## Examples
 
 ---
 

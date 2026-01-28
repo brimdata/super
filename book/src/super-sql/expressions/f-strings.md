@@ -1,4 +1,4 @@
-## F-Strings
+# F-Strings
 
 A formatted string (or f-string) is a string [literal](literals.md) prefixed with `f`
 that includes replacement [expressions](intro.md) delimited by curly braces:
@@ -21,7 +21,7 @@ first error encountered in left-to-right order.
 To represent a literal `{` character inside an f-string, it must be escaped
 with a backslash as `\{`.  This escape sequence is valid only in f-strings.
 
-### Examples
+## Examples
 ---
 _Some simple arithmetic_
 

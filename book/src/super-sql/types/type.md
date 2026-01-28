@@ -1,4 +1,4 @@
-### Type Values
+# Type Values
 
 Types in SuperSQL are _first class_ and conform
 with the [`type`](../../formats/model.md#1-primitive-types) type in the
@@ -50,7 +50,7 @@ exploratory data and then count the shapes of each type of data as follows:
 search ... | count() by typeof(this)
 ```
 
-#### Examples
+## Examples
 ---
 _Various type examples using f-string and typeof_
 

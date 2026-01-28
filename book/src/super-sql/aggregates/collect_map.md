@@ -1,20 +1,21 @@
-### Aggregate Function
+# collect_map
 
-&emsp; **collect_map** &mdash; aggregate map values into a single map
+aggregate map values into a single map
 
-### Synopsis
+## Synopsis
+
 ```
 collect_map(|{any:any}|) -> |{any:any}|
 ```
 
-### Description
+## Description
 
 The _collect_map_ aggregate function combines map inputs into a single map output.
 If _collect_map_ receives multiple values for the same key, the last value received is
 retained. If the input keys or values vary in type, the return type will be a map
 of union of those types.
 
-### Examples
+## Examples
 
 Combine a sequence of records into a map:
 ```mdtest-spq

@@ -1,4 +1,4 @@
-## Libraries
+# Libraries
 
 SuperDB currently supports a small number of languages
 with client libraries for manipulating super-structured data and interacting

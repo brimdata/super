@@ -1,4 +1,4 @@
-## Operators
+# Operators
 
 New operators are declared with the syntax
 ```
@@ -15,7 +15,7 @@ where
 
 Operator declarations must appear in the declaration section of a [scope](../queries.md#scope).
 
-### Call
+## Call
 
 A declared operator is invoked by its name
 using the [call](../operators/intro.md#call) keyword.
@@ -30,14 +30,14 @@ defines how the input is processed.
 An operator may also source its own data by beginning the query body
 with a [from](../operators/from.md) operator or [SQL statement](../sql/intro.md).
 
-### Nested Calls
+## Nested Calls
 
 Operators do not support recursion.  They cannot call themselves nor can they
 form a mutually recursive dependency loop.
 However, operators can call other operators whose declaration is in scope
 as long as no dependency loop is formed.
 
-### Closure-like Arguments
+## Closure-like Arguments
 
 In contrast to function calls, where the arguments are evaluated at the call site
 and values are passed to the function, operator arguments are instead passed to the
@@ -54,7 +54,7 @@ The [jq](https://github.com/jqlang/jq/wiki/jq-Language-Description#the-jq-langua
 describes its expression semantics as closures as well, though unlike jq,
 the operator expressions here are not generators and do not implement backtracking.
 
-### Examples
+## Examples
 
 ---
 

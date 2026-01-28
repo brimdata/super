@@ -1,20 +1,20 @@
-### Function
+# typeof
 
-&emsp; **typeof** &mdash; the type of a value
+the type of a value
 
-### Synopsis
+## Synopsis
 
 ```
 typeof(val: any) -> type
 ```
 
-### Description
+## Description
 
 The `typeof` function returns the [type](../../types/intro.md) of
 its argument `val`.  Types are first class so the returned type is
 also a value.  The type of a type is type [`type`](../../types/type.md).
 
-### Examples
+## Examples
 
 ---
 

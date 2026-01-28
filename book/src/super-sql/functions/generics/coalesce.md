@@ -1,19 +1,19 @@
-### Function
+# coalesce
 
-&emsp; **coalesce** &mdash; return first value that is not null or an error
+return first value that is not null or an error
 
-### Synopsis
+## Synopsis
 
 ```
 coalesce(val: any [, ... val: any]) -> any
 ```
 
-### Description
+## Description
 
 The `coalesce` function returns the first of its arguments that is not null or
 an error.  It returns null if all its arguments are null or an error.
 
-### Examples
+## Examples
 
 ---
 

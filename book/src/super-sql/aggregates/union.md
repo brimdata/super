@@ -1,20 +1,21 @@
-### Aggregate Function
+# union
 
-&emsp; **union** &mdash; set union of input values
+set union of input values
 
-### Synopsis
+## Synopsis
+
 ```
 union(any) -> |[any]|
 ```
 
-### Description
+## Description
 
 The _union_ aggregate function computes a set union of its input values.
 If the values are of uniform type, then the output is a set of that type.
 If the values are of mixed type, the the output is a set of union of the
 types encountered.
 
-### Examples
+## Examples
 
 Create a set of values from a simple sequence:
 ```mdtest-spq

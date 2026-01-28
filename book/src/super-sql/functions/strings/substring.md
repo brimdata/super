@@ -1,14 +1,14 @@
-### Function
+# substring
 
-&emsp; **substring** &mdash; slice strings with SQL substring function
+slice strings with SQL substring function
 
-### Synopsis
+## Synopsis
 
 ```
 substring(s: string [ FROM start: number ] [ FOR len: number ]) -> string
 ```
 
-### Description
+## Description
 
 The `substring` function returns a slice of a string using
 the anachronistic SQL syntax which includes the `FROM` and `FOR` keywords
@@ -24,7 +24,7 @@ a [pragma](../../declarations/pragmas.md) as with
 > [Slice expressions](../../expressions/slices.md) should be used instead
 > and are best practice.
 
-### Examples
+## Examples
 
 ---
 _Simple substring call from in a SQL operator_

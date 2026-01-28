@@ -1,4 +1,4 @@
-## Concatenation
+# Concatenation
 
 [Strings](../types/string.md) may be concatenated using the concatenation operator having the form
 ```
@@ -9,7 +9,7 @@ where `<expr>` is any [expression](intro.md) that results in a string value.
 It is an error to concatenate non-string values.
 Values may be converted to string using a [cast](cast.md) to type string.
 
-### Examples
+## Examples
 
 ---
 

@@ -1,14 +1,14 @@
-### Function
+# regexp
 
-&emsp; **regexp** &mdash; perform a regular expression search on a string
+perform a regular expression search on a string
 
-### Synopsis
+## Synopsis
 
 ```
 regexp(re: string, s: string) -> any
 ```
 
-### Description
+## Description
 
 The `regexp` function returns an array of strings holding the text
 of the left most match of the regular expression `re`, which is
@@ -16,7 +16,7 @@ a [regular expression](../../queries.md#regular-expression),
 and the matches of each parenthesized subexpression (also known as capturing
 groups) if there are any. A null value indicates no match.
 
-### Examples
+## Examples
 
 ---
 

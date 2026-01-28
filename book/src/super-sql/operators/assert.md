@@ -1,19 +1,19 @@
-### Operator
+# assert
 
-[✅](../intro.md#data-order)&emsp; **assert** &mdash; test a predicate and produce errors on failure
+[✅](../intro.md#data-order)&ensp; test a predicate and produce errors on failure
 
-### Synopsis
+## Synopsis
 
 ```
 assert <expr>
 ```
-### Description
+## Description
 
 The `assert` operator evaluates the Boolean expression `<expr>` for each
 input value, producing its input value if `<expr>` evaluates to true or a
 structured error if it does not.
 
-### Examples
+## Examples
 
 ---
 

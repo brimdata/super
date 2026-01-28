@@ -1,19 +1,19 @@
-### Function
+# nameof
 
-&emsp; **nameof** &mdash; the name of a named type
+the name of a named type
 
-### Synopsis
+## Synopsis
 
 ```
 nameof(val: any) -> string
 ```
 
-### Description
+## Description
 
 The `nameof` function returns the type name of `val` as a string if `val` is a named type.
 Otherwise, it returns `error("missing")`.
 
-### Examples
+## Examples
 
 ---
 

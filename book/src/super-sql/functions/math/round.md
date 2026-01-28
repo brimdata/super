@@ -1,19 +1,19 @@
-### Function
+# round
 
-&emsp; **round** &mdash; round a number
+round a number
 
-### Synopsis
+## Synopsis
 
 ```
 round(val: number) -> number
 ```
 
-### Description
+## Description
 
 The `round` function returns the number `val` rounded to the nearest integer value.
 which must be a numeric type.  The return type retains the type of the argument.
 
-### Examples
+## Examples
 
 ---
 

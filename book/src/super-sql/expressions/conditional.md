@@ -1,4 +1,4 @@
-## Conditionals
+# Conditionals
 
 Conditional expressions compute a result from two or more possibilities
 determined by [Boolean](../types/bool.md) predicates.
@@ -6,7 +6,7 @@ determined by [Boolean](../types/bool.md) predicates.
 Conditionals can be written using SQL-style [CASE syntax](#case-expressions) or C-style
 [ternary expressions](#ternary-conditional).
 
-### Case Expressions
+## Case Expressions
 
 SQL-style `CASE` expressions have two forms.
 
@@ -48,7 +48,7 @@ The error is reported at compile time if possible, but when input is dynamic and
 the type cannot be statically determined, a [structured error](../types/error.md)
 is generated at run time as the result of the conditional expression.
 
-### Ternary Conditional
+## Ternary Conditional
 
 The [ternary](https://en.wikipedia.org/wiki/Ternary_conditional_operator) form follows the C language and has syntax
 ```
@@ -65,7 +65,7 @@ is reported at compile time if possible, but when input is dynamic and
 the type cannot be statically determined, a [structured error](../types/error.md)
 is generated at run time as the result of the conditional expression.
 
-### Examples
+## Examples
 
 ---
 

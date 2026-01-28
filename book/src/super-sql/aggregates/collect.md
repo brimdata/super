@@ -1,19 +1,20 @@
-### Aggregate Function
+# collect
 
-&emsp; **collect** &mdash; aggregate values into array
+aggregate values into array
 
-### Synopsis
+## Synopsis
+
 ```
 collect(any) -> [any]
 ```
 
-### Description
+## Description
 
 The _collect_ aggregate function organizes its input into an array.
 If the input values vary in type, the return type will be an array
 of union of the types encountered.
 
-### Examples
+## Examples
 
 Simple sequence collected into an array:
 ```mdtest-spq

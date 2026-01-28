@@ -1,21 +1,20 @@
-### Function
+# unflatten
 
-&emsp; **unflatten** &mdash; transform an array of key/value records into a
-record
+transform an array of key/value records into a record
 
-### Synopsis
+## Synopsis
 
 ```
 unflatten(val: [{key:string|[string],value:any}]) -> record
 ```
 
-### Description
+## Description
 
 The `unflatten` function converts the key/value records in array `val` into
 a single record. _unflatten_ is the inverse of _flatten_, i.e., `unflatten(flatten(r))`
 will produce a record identical to `r`.
 
-### Examples
+## Examples
 
 ---
 

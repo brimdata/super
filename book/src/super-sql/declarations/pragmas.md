@@ -1,4 +1,4 @@
-## Pragmas
+# Pragmas
 
 Pragmas control various language features and appear in a declaration block
 so their effect is lexically scoped.  They have the form
@@ -14,7 +14,7 @@ If `<expr>` is omitted, it defaults to `true`.
 
 Pragmas must appear in the declaration section of a [scope](../queries.md#scope).
 
-### List of Pragmas
+## List of Pragmas
 
 Currently, there are two supported pragmas.
 
@@ -26,7 +26,7 @@ Currently, there are two supported pragmas.
     * `false` to follow Google SQL semantics of resolving identifiers first from column aliases then from the input table
     * `true` to follow PostgreSQL semantics of resolving identifiers first from the input table then from the column aliases
 
-### Example
+## Example
 
 ---
 

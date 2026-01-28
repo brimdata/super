@@ -1,20 +1,20 @@
-### Function
+# log
 
-&emsp; **log** &mdash; natural logarithm
+natural logarithm
 
-### Synopsis
+## Synopsis
 
 ```
 log(val: number) -> float64
 ```
 
-### Description
+## Description
 
 The `log` function returns the natural logarithm of its argument `val`, which
 takes a [numeric](../../types/numbers.md) type.  The return value is a float64 or an error.
 Negative values result in an error.
 
-### Examples
+## Examples
 
 ---
 

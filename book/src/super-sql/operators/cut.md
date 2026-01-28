@@ -1,8 +1,8 @@
-### Operator
+# cut
 
-[✅](../intro.md#data-order)&emsp; **cut** &mdash; extract subsets of record fields into new records
+[✅](../intro.md#data-order)&ensp; extract subsets of record fields into new records
 
-### Synopsis
+## Synopsis
 
 ```
 cut <assignment> [, <assignment> ...]
@@ -13,7 +13,7 @@ having the form:
 [ <field> := ] <expr>
 ```
 
-### Description
+## Description
 
 The `cut` operator extracts values from each input record in the
 form of one or more [field assignments](intro.md#field-assignment),
@@ -46,7 +46,7 @@ Note that when the field references are all top level,
 values {<field>:<expr> [, <field>:<expr>...]}
 ```
 
-### Examples
+## Examples
 
 ---
 

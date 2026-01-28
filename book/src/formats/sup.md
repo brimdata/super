@@ -1,6 +1,6 @@
-## Super (SUP) Format
+# Super (SUP) Format
 
-### 1. Introduction
+## 1. Introduction
 
 Super (SUP) is the human-readable, text-based serialization format for
 [super-structured data](model.md).
@@ -13,7 +13,7 @@ to establish a concrete type for every value expressed in source text.
 SUP is also a superset of JSON in that all JSON documents are valid
 SUP values.
 
-### 2. The SUP Format
+## 2. The SUP Format
 
 A SUP text is a sequence of UTF-8 characters organized either as a bounded input
 or an unbounded stream.
@@ -27,7 +27,7 @@ All subsequent references to characters and strings in this section refer to
 the Unicode code points that result when the stream is decoded.
 If an input text includes data that is not valid UTF-8, then the text is invalid.
 
-#### 2.1 Names
+### 2.1 Names
 
 SUP _names_ encode record fields, enum symbols, and named types.
 A name is either an _identifier_ or a [quoted string](#231-strings).
@@ -37,7 +37,7 @@ An _identifier_ is case-sensitive and can contain Unicode letters, `$`, `_`,
 and digits `[0-9]`, but may not start with a digit.  An identifier cannot be
 `true`, `false`, or `null`.
 
-#### 2.2 Type Decorators
+### 2.2 Type Decorators
 
 A value may be explicitly typed by tagging it with a type decorator.
 The syntax for a decorator is a double-colon appended type:
@@ -83,7 +83,7 @@ Note that the `=` sigil here disambiguates between the case that a new
 type is defined, which may override a previous definition of a different type with the
 same name, from the case that an existing named type is merely decorating the value.
 
-#### 2.3 Primitive Values
+### 2.3 Primitive Values
 
 The type names and format for
 [primitive values](model.md#1-primitive-types) is as follows:
@@ -174,7 +174,7 @@ A `time` value corresponds to 64-bit Unix epoch nanoseconds and thus
 not all possible RFC 3339 date/time strings are valid.  In addition,
 nanosecond epoch times overflow on April 11, 2262.
 
-##### 2.3.1 Strings
+#### 2.3.1 Strings
 
 Double-quoted `string` syntax is the same as that of JSON as described
 in [RFC 8259](https://tools.ietf.org/html/rfc8259#section-7).  Notably,
@@ -205,7 +205,7 @@ that encounters such invalid sequences in a `string` type is undefined.
 These escaping rules apply also to quoted field names in record values and
 record types as well as enum symbols.
 
-#### 2.4 Complex Values
+### 2.4 Complex Values
 
 Complex values are built from primitive values and/or other complex values
 and conform to the super data model's complex types:
@@ -220,7 +220,7 @@ and conform to the super data model's complex types:
 Complex values have an implied type when their constituent values all have
 implied types.
 
-##### 2.4.1 Record Value
+#### 2.4.1 Record Value
 
 A record value has the form:
 ```
@@ -231,7 +231,7 @@ any optionally-decorated value inclusive of other records.
 Each name/value pair is called a _field_.
 There may be zero or more fields.
 
-##### 2.4.2 Array Value
+#### 2.4.2 Array Value
 
 An array value has the form:
 ```
@@ -243,7 +243,7 @@ the array elements is a union of the types present.
 An array value may be empty.  An empty array value without a type decorator is
 presumed to be an empty array of type `null`.
 
-##### 2.4.3 Set Value
+#### 2.4.3 Set Value
 
 A set value has the form:
 ```
@@ -257,7 +257,7 @@ the set elements is a union of the types present.
 A set value may be empty.  An empty set value without a type decorator is
 presumed to be an empty set of type `null`.
 
-##### 2.4.4 Map Value
+#### 2.4.4 Map Value
 
 A map value has the form:
 ```
@@ -272,13 +272,13 @@ that follows it.
 An empty map value without a type decorator is
 presumed to be an empty map of type `|{null: null}|`.
 
-##### 2.4.5 Union Value
+#### 2.4.5 Union Value
 
 A union value is a value that conforms to one of the types within a union type.
 If the value appears in a context in which the type is unknown or ambiguous,
 then the value must be decorated as [described above](#22-type-decorators).
 
-##### 2.4.6 Enum Value
+#### 2.4.6 Enum Value
 
 An enum type represents a symbol from a finite set of symbols
 referenced by name.
@@ -301,7 +301,7 @@ A sequence of enum values might look like this:
 "HEADS"::flip
 ```
 
-##### 2.4.7 Error Value
+#### 2.4.7 Error Value
 
 An error value has the form:
 ```
@@ -309,12 +309,12 @@ error(<value>)
 ```
 where `<value>` is any value.
 
-#### 2.5 Types
+### 2.5 Types
 
 A primitive type is simply the name of the primitive type, i.e., `string`,
 `uint16`, etc.  Complex types are defined as follows.
 
-##### 2.5.1 Record Type
+#### 2.5.1 Record Type
 
 A _record type_ has the form:
 ```
@@ -326,21 +326,21 @@ where `<name>` is a [SUP name](#21-names) and
 The order of the record fields is significant,
 e.g., type `{a:int32,b:int32}` is distinct from type `{b:int32,a:int32}`.
 
-##### 2.5.2 Array Type
+#### 2.5.2 Array Type
 
 An _array type_ has the form:
 ```
 [ <type> ]
 ```
 
-##### 2.5.3 Set Type
+#### 2.5.3 Set Type
 
 A _set type_ has the form:
 ```
 |[ <type> ]|
 ```
 
-##### 2.5.4 Map Type
+#### 2.5.4 Map Type
 
 A _map type_ has the form:
 ```
@@ -349,7 +349,7 @@ A _map type_ has the form:
 where `<key-type>` is the type of the keys and `<value-type>` is the
 type of the values.
 
-##### 2.5.5 Union Type
+#### 2.5.5 Union Type
 
 A _union type_ has the form:
 ```
@@ -357,7 +357,7 @@ A _union type_ has the form:
 ```
 where there are at least two types in the list.
 
-##### 2.5.6 Enum Type
+#### 2.5.6 Enum Type
 
 An _enum type_ has the form:
 ```
@@ -367,7 +367,7 @@ where `<name>` is a [SUP name](#21-names).
 Each enum name must be unique and the order is significant, e.g.,
 enum type `enum(HEADS,TAILS)` is not equal to type `enum(TAILS,HEADS)`.
 
-##### 2.5.7 Error Type
+#### 2.5.7 Error Type
 
 An _error type_ has the form:
 ```
@@ -375,7 +375,7 @@ error( <type> )
 ```
 where `<type>` is the type of the underlying values wrapped as an error.
 
-##### 2.5.8 Named Type
+#### 2.5.8 Named Type
 
 A named type has the form:
 ```
@@ -401,13 +401,13 @@ resolve to the most recent definition according to
 * sequence order across values, or
 * left-to-right depth-first order within a complex value.
 
-#### 2.6 Null Value
+### 2.6 Null Value
 
 The null value is represented by the string `null`.
 
 A value of any type can be null.
 
-### 3. Examples
+## 3. Examples
 
 The simplest SUP value is a single value, perhaps a string like this:
 ```
@@ -474,7 +474,7 @@ note that the `value` field takes on different types and even a complex record
 type on the last line.  In this case, there is a different top-level
 record type implied by each of the three variations of type of the `value` field.
 
-### 4. Grammar
+## 4. Grammar
 
 Here is a left-recursive pseudo-grammar of SUP.  Note that not all
 acceptable inputs are semantically valid as type mismatches may arise.

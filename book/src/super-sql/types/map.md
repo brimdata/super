@@ -1,4 +1,4 @@
-### Maps
+# Maps
 
 Maps conform to the
 [map type](../../formats/model.md#24-map)
@@ -34,7 +34,7 @@ database data, Parquet values, etc) or by
 constructing instances using [_map expressions_](#map-expressions) or other
 SuperSQL functions that produce maps.
 
-#### Map Expressions
+## Map Expressions
 
 Map values are constructed from a _map expression_ that is comprised of
 zero or more comma-separated key-value pairs contained in pipe braces:
@@ -51,7 +51,7 @@ When the expressions result in values of non-uniform type of either the keys or
 the values, then their types become a sum type of the types present,
 tied together with the corresponding [union type](union.md).
 
-#### Examples
+## Examples
 ---
 ```mdtest-spq
 # spq

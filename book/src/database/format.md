@@ -1,11 +1,11 @@
-## Database Format
+# Database Format
 
 >[!NOTE]
 >This document is a rough draft and work in progress.  We plan to
 >soon bring it up to date with the current implementation and maintain it
 >as we add new capabilities to the system.
 
-### Introduction
+## Introduction
 
 To support the client-facing SuperDB access
 implemented by the [`super db` command](../command/db.md), we are developing
@@ -33,13 +33,13 @@ via a table virtualization layer built on top of the SuperDB model.
 All data and metadata in a database conforms to the super-structured data model, which materially
 simplifies development, test, introspection, and so forth.
 
-### Cloud Object Model
+## Cloud Object Model
 
 Every data element in a database is either of two fundamental object types:
 * a single-writer _immutable object_, or
 * a multi-writer _transaction journal_.
 
-#### Immutable Objects
+### Immutable Objects
 
 All imported data in a data pool is composed of immutable objects, which are organized
 around a primary data object.  Each data object is composed of one or more immutable objects
@@ -63,7 +63,7 @@ such an assumption).
 > local, small-scale deployments for test/debug workflows.  Thus, for simple use cases,
 > the complexity of running an object-store service may be avoided.
 
-##### Data Objects
+#### Data Objects
 
 A data object is created by a single writer using a globally unique name
 with an embedded KSUID.
@@ -104,7 +104,7 @@ processing only a subset of data.
 > and the in-memory CSUP representation supports random access so there is
 > no need to have a seek index for the vector object.
 
-##### Commit History
+#### Commit History
 
 A branch's commit history is the definitive record of the evolution of data in
 that pool in a transactionally consistent fashion.
@@ -136,7 +136,7 @@ This log represents the definitive record of a branch's present
 and historical content, and accessing its complete detail can provide
 insights about data layout, provenance, history, and so forth.
 
-#### Transaction Journal
+### Transaction Journal
 
 State that is mutable is built upon a transaction journal of immutable
 collections of entries.  In this way, there are no objects in the
@@ -179,7 +179,7 @@ alongside the journal entry.  This way, the snapshot at HEAD may be
 efficiently computed by locating the most recent cached snapshot and scanning
 forward to HEAD.
 
-##### Journal Concurrency Control
+#### Journal Concurrency Control
 
 To provide for atomic commits, a writer must be able to atomically update
 the HEAD of the log.  There are three strategies for doing so.
@@ -208,7 +208,7 @@ system and such round trips can be tens of milliseconds, another approach
 is to simply run a lock service as part of a cloud deployment that manages
 a mutex lock for each pool's journal.
 
-##### Configuration State
+#### Configuration State
 
 Configuration state describing a lake or pool is also stored in mutable objects.
 The database uses a commit journal to store configuration like the
@@ -217,7 +217,7 @@ Here, a generic interface to a commit journal manages any configuration
 state simply as a key-value store of snapshots providing time travel over
 the configuration history.
 
-#### Merge on Read
+### Merge on Read
 
 To support _sorted scans_,
 data objects are store in a sorted order defined by the pool's sort key.
@@ -245,7 +245,7 @@ can be produced by executing a sorted scan and rewriting the results back to the
 in a new commit.  In addition, the objects comprising the total order
 do not overlap.  This is just the basic LSM algorithm at work.
 
-#### Object Naming
+### Object Naming
 
 ```
 <lake-path>/

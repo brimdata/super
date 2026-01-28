@@ -1,13 +1,14 @@
-### Operator
+# top
 
-[🔀](../intro.md#data-order)&emsp; **top** &mdash; output the first N sorted values of input sequence
+[🔀](../intro.md#data-order)&ensp; output the first N sorted values of input sequence
 
-### Synopsis
+## Synopsis
 
 ```
 top [-r] [<const-expr> [<expr> [asc|desc] [nulls {first|last}] [, <expr> [asc|desc] [nulls {first|last}] ...]]]
 ```
-### Description
+
+## Description
 
 The `top` operator returns the first N values from a sequence sorted according
 to the provided sort expressions. N is given by `<const-expr>`, a compile-time
@@ -22,7 +23,7 @@ selected using the same heuristic as [`sort`](sort.md).
 intensive because only the first N values are stored in memory (i.e., subsequent
 values are discarded).
 
-### Examples
+## Examples
 
 ---
 

@@ -1,20 +1,20 @@
-### Function
+# kind
 
-&emsp; **kind** &mdash; return a value's type category
+return a value's type category
 
-### Synopsis
+## Synopsis
 
 ```
 kind(val: any) -> string
 ```
 
-### Description
+## Description
 
 The `kind` function returns the category of the type of `v` as a string,
 e.g., "record", "set", "primitive", etc.  If `v` is a type value,
 then the type category of the referenced type is returned.
 
-### Examples
+## Examples
 
 ---
 

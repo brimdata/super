@@ -1,4 +1,4 @@
-### Strings
+# Strings
 
 The `string` type represents any valid
 [UTF-8 string](https://en.wikipedia.org/wiki/UTF-8).
@@ -37,7 +37,7 @@ In single-quote strings, the single-quote character must
 be escaped and in double-quote strings, the double-quote character must be
 escaped.
 
-#### Raw String
+## Raw String
 
 Raw strings or _r-strings_
 are expressed as the character `r` followed by a single- or double-quoted
@@ -52,7 +52,7 @@ r"foo
 bar"
 ```
 
-#### Formatted Strings
+## Formatted Strings
 
 Formatted strings or
 [_f-strings_](../expressions/f-strings.md) are expressed
@@ -60,7 +60,7 @@ as the character `f` followed by a single- or double-quoted
 string and may contain embedded expressions denoted within
 curly braces `{` `}`.
 
-#### Examples
+## Examples
 ---
 _Various strings_
 

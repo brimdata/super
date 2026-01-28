@@ -1,14 +1,14 @@
-### Operator
+# head
 
-[✅](../intro.md#data-order)&emsp; **head** &mdash; copy leading values of input sequence
+[✅](../intro.md#data-order)&ensp; copy leading values of input sequence
 
-### Synopsis
+## Synopsis
 
 ```
 head [ <const-expr> ]
 limit [ <const-expr> ]
 ```
-### Description
+## Description
 
 The `head` operator copies the first N values from its input to its output and ends
 the sequence thereafter. N is given by `<const-expr>`, a compile-time
@@ -18,7 +18,7 @@ is not provided, the value of N defaults to `1`.
 For compatibility with other pipe SQL dialects,
 `limit` is an alias for the `head` operator.
 
-### Examples
+## Examples
 
 ---
 

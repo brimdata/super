@@ -1,4 +1,4 @@
-### Records
+# Records
 
 Records conform to the
 [record type](../../formats/model.md#21-record) in the
@@ -31,7 +31,7 @@ constructing instances using
 [record expressions](#record-expressions) or other
 SuperSQL functions that produce records.
 
-#### Record Expressions
+## Record Expressions
 
 Record values are constructed from a _record expression_ that is comprised of
 zero or more comma-separated elements contained in braces:
@@ -56,7 +56,7 @@ The fields of a record expression are evaluated left to right and when
 field names collide the rightmost instance of the name determines that
 field's value.
 
-#### Derived Field Names
+## Derived Field Names
 
 When an expression is present without a field name,
 the field name is derived from the expression text as follows:
@@ -65,7 +65,7 @@ the field name is derived from the expression text as follows:
 * for `this`, the name is `that`;
 * otherwise, the name is the expression text formatted in a canonical form.
 
-#### Examples
+## Examples
 
 ---
 

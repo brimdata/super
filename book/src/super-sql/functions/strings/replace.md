@@ -1,19 +1,19 @@
-### Function
+# replace
 
-&emsp; **replace** &mdash; replace one string for another
+replace one string for another
 
-### Synopsis
+## Synopsis
 
 ```
 replace(s: string, old: string, new: string) -> string
 ```
 
-### Description
+## Description
 
 The `replace` function substitutes all instances of the string `old`
 that occur in string `s` with the string `new`.
 
-### Example
+## Example
 
 ---
 

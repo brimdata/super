@@ -1,20 +1,20 @@
-### Operator
+# drop
 
-[✅](../intro.md#data-order)&emsp; **drop** &mdash; drop fields from record values
+[✅](../intro.md#data-order)&ensp; drop fields from record values
 
-### Synopsis
+## Synopsis
 
 ```
 drop <field> [, <field> ...]
 ```
-### Description
+## Description
 
 The `drop` operator removes one or more fields from records in the input sequence
 and copies the modified records to its output.  If a field to be dropped
 is not present, then no effect for the field occurs.  In particular,
 non-record values are copied unmodified.
 
-### Examples
+## Examples
 
 ---
 

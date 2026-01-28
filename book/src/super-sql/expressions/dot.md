@@ -1,4 +1,4 @@
-## Dot
+# Dot
 
 Records and maps with string keys are dereferenced with the dot operator `.`
 as is customary in other languages.  The syntax is
@@ -44,7 +44,7 @@ may be used with a quoted string to represent any valid field name.
 Such field names can be accessed using [this](../intro.md#pipe-scoping)
 with an index-style reference, e.g., `this["field with spaces"]`.
 
-### Examples
+## Examples
 
 ---
 

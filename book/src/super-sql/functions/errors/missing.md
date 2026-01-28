@@ -1,14 +1,14 @@
-### Function
+# missing
 
-&emsp; **missing** &mdash; test for the "missing" error
+test for the "missing" error
 
-### Synopsis
+## Synopsis
 
 ```
 missing(val: any) -> bool
 ```
 
-### Description
+## Description
 
 The `missing` function returns true if its argument is `error("missing")`
 and false otherwise.
@@ -26,7 +26,7 @@ switch
   default ( ... )
 ```
 
-### Examples
+## Examples
 
 ---
 

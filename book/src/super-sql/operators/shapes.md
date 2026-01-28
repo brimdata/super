@@ -1,12 +1,14 @@
-### Operator
+# shapes
 
-[🎲](../intro.md#data-order)&emsp; **shapes** &mdash; aggregate sample values by type
+[🎲](../intro.md#data-order)&ensp; aggregate sample values by type
 
-### Synopsis
+## Synopsis
+
 ```
 shapes [ <expr> ]
 ```
-### Description
+
+## Description
 
 The `shapes` operator aggregates the values computed by `<expr>`
 by type and produces an arbitrary sample value for each unique type
@@ -21,7 +23,7 @@ where <expr> is not null
 
 If `<expr>` is not present, then `this` is presumed.
 
-### Examples
+## Examples
 
 ---
 

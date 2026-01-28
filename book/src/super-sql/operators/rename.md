@@ -1,13 +1,14 @@
-### Operator
+# rename
 
-[✅](../intro.md#data-order)&emsp; **rename** &mdash; change the name of record fields
+[✅](../intro.md#data-order)&ensp; change the name of record fields
 
-### Synopsis
+## Synopsis
+
 ```
 rename <newfield>:=<oldfield> [, <newfield>:=<oldfield> ...]
 ```
 
-### Description
+## Description
 
 The `rename` operator changes the names of one or more fields
 in the input records from the right-hand side name to the left-hand side name
@@ -27,7 +28,7 @@ If a rename operation conflicts with an existing field name, then the
 offending record is wrapped in a structured error along with an error message
 and the error is emitted.
 
-### Examples
+## Examples
 
 ---
 

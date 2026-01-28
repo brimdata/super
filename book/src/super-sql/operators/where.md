@@ -1,12 +1,14 @@
-### Operator
+# where
 
-[✅](../intro.md#data-order)&emsp; **where** &mdash; select values based on a Boolean expression
+[✅](../intro.md#data-order)&ensp; select values based on a Boolean expression
 
-### Synopsis
+## Synopsis
+
 ```
 [where] <expr>
 ```
-### Description
+
+## Description
 
 The `where` operator filters its input by applying a Boolean
 [expression](../expressions/intro.md) `<expr>`
@@ -19,7 +21,7 @@ When SuperSQL queries are run interactively, it is highly convenient to be able 
 the "where" keyword, but when `where` filters appear in query source files,
 it is good practice to include the optional keyword.
 
-### Examples
+## Examples
 
 ---
 

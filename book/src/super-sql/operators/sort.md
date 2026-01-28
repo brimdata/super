@@ -1,14 +1,15 @@
-### Operator
+# sort
 
-[🔀](../intro.md#data-order)&emsp; **sort** &mdash; sort values
+[🔀](../intro.md#data-order)&ensp; sort values
 
-### Synopsis
+## Synopsis
 
 ```
 sort [-r] [<expr> [asc|desc] [nulls {first|last}] [, <expr> [asc|desc] [nulls {first|last}] ...]]
 order by [-r] [<expr> [asc|desc] [nulls {first|last}] [, <expr> [asc|desc] [nulls {first|last}] ...]]
 ```
-### Description
+
+## Description
 
 The `sort` operator sorts its input by reading all values until the end of input,
 sorting the values according to the provided sort expression(s), and emitting
@@ -63,7 +64,7 @@ Note that a total order is defined over the space of all values even
 between values of different types so sort order is always well-defined even
 when comparing heterogeneously typed values.
 
-### Examples
+## Examples
 
 ---
 

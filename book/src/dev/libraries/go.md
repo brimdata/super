@@ -1,4 +1,4 @@
-## Go
+# Go
 
 SuperDB is developed in Go so support for Go clients is
 fairly comprehensive.  Documentation of exported

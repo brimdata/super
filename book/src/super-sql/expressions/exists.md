@@ -1,4 +1,4 @@
-## Exists
+# Exists
 
 The `exists` operator tests whether
 a subquery has a non-empty result and has the form
@@ -12,7 +12,7 @@ It is a syntactic shortcut for
 len([<query>]) != 0
 ```
 
-### Examples
+## Examples
 
 ---
 

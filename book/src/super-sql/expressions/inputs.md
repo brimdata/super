@@ -1,4 +1,4 @@
-## Inputs
+# Inputs
 
 Input data is processed by queries through [expressions](intro.md) that contain
 input-data references.
@@ -34,7 +34,7 @@ Otherwise, column references to non-record data in dynamic inputs
 generally cause runtime [errors](../types/error.md)
 like `error("missing")`.
 
-### Examples
+## Examples
 
 ---
 

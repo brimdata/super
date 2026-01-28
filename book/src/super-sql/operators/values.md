@@ -1,13 +1,14 @@
-### Operator
+# values
 
-[✅](../intro.md#data-order)&emsp; **values** &mdash; emit values from expressions
+[✅](../intro.md#data-order)&ensp; emit values from expressions
 
-### Synopsis
+## Synopsis
 
 ```
 [values] <expr> [, <expr>...]
 ```
-### Description
+
+## Description
 
 The `values` operator produces output values by evaluating one or more
 comma-separated
@@ -66,7 +67,7 @@ values {x:2,y:1},{x:4,y:2},{x:6,y:3}
 | values x+y, x-y
 ```
 
-### Examples
+## Examples
 
 ---
 

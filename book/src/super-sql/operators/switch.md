@@ -1,8 +1,8 @@
-### Operator
+# switch
 
-[🎲](../intro.md#data-order)&emsp; **switch** &mdash; route values based on cases
+[🎲](../intro.md#data-order)&ensp; route values based on cases
 
-### Synopsis
+## Synopsis
 
 ```
 switch <expr>
@@ -17,7 +17,8 @@ switch
   ...
   [ default ( <branch> ) ]
 ```
-### Description
+
+## Description
 
 The `switch` operator routes input values to parallel pipe branches
 based on case matching.
@@ -43,7 +44,7 @@ If the downstream operator expects a single input, then the output branches are
 combined without preserving order.  Order may be reestablished by applying a
 [`sort`](sort.md) at the merge point.
 
-### Examples
+## Examples
 
 ---
 

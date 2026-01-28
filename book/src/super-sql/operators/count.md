@@ -1,16 +1,16 @@
-### Operator
+# count
 
-[✅](../intro.md#data-order)&emsp; **count** &mdash; emit records containing a running count of input values
+[✅](../intro.md#data-order)&ensp; emit records containing a running count of input values
 
 >[!TIP]
 > For a final count of all input values, see the [count](../aggregates/count.md) aggregate function.
 
-### Synopsis
+## Synopsis
 
 ```
 count [ <record-expr> ]
 ```
-### Description
+## Description
 
 The `count` operator produces records that include a running count of its input values.
 
@@ -23,7 +23,7 @@ If the optional `<record-expr>` is absent, the output record is created with a
 [derived field name](../types/record.md#derived-field-names) resulting in the
 equivalent of `count {that:this,count}`.
 
-### Examples
+## Examples
 
 ---
 

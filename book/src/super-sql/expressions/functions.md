@@ -1,4 +1,4 @@
-## Function Calls
+# Function Calls
 
 Functions compute a result from zero or more input arguments that
 are passed by value as positional arguments.
@@ -25,7 +25,7 @@ Functions are not first-class values and cannot be assigned to super-structured 
 as there are no function values in the super-structured [data model](../../formats/model.md).
 Instead, functions may only be called or passed as a reference to another function.
 
-### Lambda Expressions
+## Lambda Expressions
 
 A lambda expression is an [anonymous function](https://en.wikipedia.org/wiki/Anonymous_function) having the form
 ```
@@ -55,7 +55,7 @@ f(lambda x:x+1, 2)
 calls the function `f` with the lambda as its first argument and the value `2`
 as its second argument.
 
-### Function References
+## Function References
 
 The syntax for referencing a function by name is
 ```
@@ -76,7 +76,7 @@ For example,
 ```
 is a reference to the built-in function [upper](../functions/strings/upper.md).
 
-### Examples
+## Examples
 
 ---
 

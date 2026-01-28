@@ -1,4 +1,4 @@
-### Named Types
+# Named Types
 
 A named type provides a means to bind a symbolic name to a type
 and conforms to the
@@ -50,7 +50,7 @@ undefined except for the definitions within a single nested value,
 in which case, the most recent binding in depth-first order is used to resolve
 a reference to a type name.
 
-#### Examples
+## Examples
 
 ---
 

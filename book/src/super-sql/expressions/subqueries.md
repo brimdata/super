@@ -1,4 +1,4 @@
-## Subqueries
+# Subqueries
 
 A subquery is a [query](../queries.md) embedded in an [expression](intro.md).
 
@@ -24,7 +24,7 @@ For the [in](containment.md) operator, any subquery on the right-hand side is
 always treated as an [array subquery](#array-subqueries), thus
 providing compatibility with SQL syntax.
 
-### Array Subqueries
+## Array Subqueries
 
 When multiple values are expected, an array subquery can be used to group the
 multi-valued result into a single-valued array.
@@ -48,7 +48,7 @@ e.g., the array subquery above could also be rewritten as
 values {a:(values 1,2,3 | values this+1 | collect(this))}
 ```
 
-### Independent Subqueries
+## Independent Subqueries
 
 A subquery that depends on its input as described above is called a _dependent subquery_.
 
@@ -71,7 +71,7 @@ Then, for each input value `3` and `4`, the result is emitted, e.g.,
 {that:4,count:3}
 ```
 
-### Correlated Subqueries
+## Correlated Subqueries
 
 When a subquery appears within a [SQL operator](../sql/intro.md),
 [relational scope](../intro.md#relational-scoping) is active and references to table aliases and columns
@@ -93,7 +93,7 @@ where `<query>` generates the correlated subquery values, then they can
 be accessed as if the `outer` field is the outer scope and the `inner` field
 is the subquery scope.
 
-### Named Subqueries
+## Named Subqueries
 
 When a previously declared [named query](../declarations/queries.md)
 is referenced in an expression, it is automatically evaluated as a subquery,
@@ -112,7 +112,7 @@ values [q]
 ```
 outputs the value `[1,2,3]`.
 
-### Recursive Subqueries
+## Recursive Subqueries
 
 When subqueries are combined with recursive invocation of the [function](../declarations/functions.md) they
 appear in, some powerful patterns can be constructed.
@@ -150,7 +150,7 @@ fn addOne(node): case typeof(node) when <int64> then node+1 else node end
 then each leaf value of the nested value of type `int64` would be incremented
 while the other leaves would be left alone.  See the example below.
 
-### Examples
+## Examples
 
 ---
 

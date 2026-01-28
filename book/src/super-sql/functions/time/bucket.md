@@ -1,22 +1,22 @@
-### Function
+# bucket
 
-&emsp; **bucket** &mdash; quantize a time or duration value into buckets of equal time spans
+quantize a time or duration value into buckets of equal time spans
 
-### Synopsis
+## Synopsis
 
 ```
 bucket(val: time, span: duration|number) -> time
 bucket(val: duration, span: duration|number) -> duration
 ```
 
-### Description
+## Description
 
 The `bucket` function quantizes a time or duration `val`
 (or value that can be coerced to time) into buckets that
 are equally spaced as specified by `span` where the bucket boundary
 aligns with 0.
 
-### Examples
+## Examples
 
 ---
 

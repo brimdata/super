@@ -1,4 +1,4 @@
-### Enums
+# Enums
 
 The `enum` type represents a set of symbols, e.g., to represent
 categories by name.
@@ -26,7 +26,7 @@ Enum serialization in the SUP format is fairly verbose as the set of
 symbols must be enumerated anywhere the type appears.  In the binary formats
 of BSUP and CSUP, the enum symbols are encoded efficiently just once.
 
-#### Examples
+## Examples
 
 ---
 ```mdtest-spq {data-layout="stacked"}

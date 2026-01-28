@@ -1,18 +1,19 @@
-### Aggregate Function
+# dcount
 
-&emsp; **dcount** &mdash; count distinct input values
+count distinct input values
 
-### Synopsis
+## Synopsis
+
 ```
 dcount(any) -> int64
 ```
 
-### Description
+## Description
 
 The _dcount_ aggregate function uses hyperloglog to estimate distinct values
 of the input in a memory efficient manner.
 
-### Examples
+## Examples
 
 Count of values in a simple sequence:
 ```mdtest-spq

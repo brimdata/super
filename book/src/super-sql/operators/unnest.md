@@ -1,14 +1,14 @@
-### Operator
+# unnest
 
-[✅](../intro.md#data-order)&emsp; **unnest** &mdash; expand nested array as values optionally into a subquery
+[✅](../intro.md#data-order)&ensp; expand nested array as values optionally into a subquery
 
-### Synopsis
+## Synopsis
 
 ```
 unnest <expr> [ into ( <query> ) ]
 ```
 
-### Description
+## Description
 
 The `unnest` operator transforms the given expression
 `<expr>` into a new ordered sequence of derived values.
@@ -66,7 +66,7 @@ For example, if `this` is a record, it can be unnested with `unnest flatten(this
 >[!NOTE]
 > Support for map types in `flatten` is not yet implemented.
 
-### Errors
+## Errors
 
 If a value encountered by `unnest` does not have either of the forms defined
 above, then an error results as follows:
@@ -84,7 +84,7 @@ or
 error({message:"unnest: encountered record without an array/set type for second field",on:<value>})
 ```
 
-### Examples
+## Examples
 
 ---
 

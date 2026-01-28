@@ -14,7 +14,7 @@ with [`super`](../../../command/super.md).
 The following example shows a TSV [`conn.log`](https://docs.zeek.org/en/master/logs/conn.html) being read via `super` and
 output as [Super (SUP)](../../../formats/sup.md).
 
-#### conn.log
+### conn.log
 
 ```mdtest-input conn.log
 #separator \x09
@@ -28,13 +28,13 @@ output as [Super (SUP)](../../../formats/sup.md).
 1521911721.255387	C8Tful1TvM3Zf5x8fl	10.164.94.120	39681	10.47.3.155	3389	tcp	-	0.004266	97	19	RSTR	-	-	0	ShADTdtr	10	730	6	342	-
 ```
 
-#### Example
+### Example
 
 ```mdtest-command
 super -S -c 'head 1' conn.log
 ```
 
-#### Output
+### Output
 ```mdtest-output
 {
   _path: "conn",

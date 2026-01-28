@@ -1,20 +1,21 @@
-### Operator
+# tail
 
-[✅](../intro.md#data-order)&emsp; **tail** &mdash; copy trailing values of input sequence
+[✅](../intro.md#data-order)&ensp; copy trailing values of input sequence
 
-### Synopsis
+## Synopsis
 
 ```
 tail [ <const-expr> ]
 ```
-### Description
+
+## Description
 
 The `tail` operator copies the last N values from its input to its output and ends
 the sequence thereafter. N is given by `<const-expr>`, a compile-time
 constant expression that evaluates to a positive integer. If `<const-expr>`
 is not provided, the value of N defaults to `1`.
 
-### Examples
+## Examples
 
 ---
 

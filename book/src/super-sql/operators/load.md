@@ -1,8 +1,8 @@
-### Operator
+# load
 
-[✅](../intro.md#data-order)&emsp; **load** &mdash; add and commit data to a pool
+[✅](../intro.md#data-order)&ensp; add and commit data to a pool
 
-### Synopsis
+## Synopsis
 
 ```
 load <pool>[@<branch>] [ ( [author <author>] [message <message>] [meta <meta>] ) ]
@@ -13,7 +13,7 @@ load <pool>[@<branch>] [ ( [author <author>] [message <message>] [meta <meta>] )
 >[database](../../command/db.md) and is not available when running
 >[`super`](../../command/super.md) detached from a database.
 
-### Description
+## Description
 
 The `load` operator populates the specified `<pool>` with the values it
 receives as input. Much like how [`super db load`](../../command/db-load.md)
@@ -26,7 +26,7 @@ to an existing branch of that name, otherwise the `main` branch is assumed.
 The `author`, `message`, and `meta` strings may also be provided to further
 describe the committed data, similar to the same `super db load` options.
 
-### Input Data
+## Input Data
 
 Examples below assume the existence of a database created and populated
 by the following commands:
@@ -53,7 +53,7 @@ coinflips@main
 coinflips@onlytails
 ```
 
-### Examples
+## Examples
 
 _Modify some values, load them into the `main` branch of our empty `bigflips` pool, and see what was loaded_
 ```mdtest-command

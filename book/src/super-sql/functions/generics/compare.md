@@ -1,14 +1,14 @@
-### Function
+# compare
 
-&emsp; **compare** &mdash; compare values even when types vary
+compare values even when types vary
 
-### Synopsis
+## Synopsis
 
 ```
 compare(a: any, b: any [, nullsMax: bool]) -> int64
 ```
 
-### Description
+## Description
 
 The `compare` function returns an integer comparing two values. The result will
 be 0 if a is equal to b, +1 if a is greater than b, and -1 if a is less than b.
@@ -26,7 +26,7 @@ as found in other SQL databases such as Postgres.
 `nullsMax` is an optional value (true by default) that determines whether `null`
 is treated as the minimum or maximum value.
 
-### Examples
+## Examples
 
 ---
 

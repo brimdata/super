@@ -1,20 +1,20 @@
-### Function
+# levenshtein
 
-&emsp; **levenshtein** &mdash; Levenshtein distance
+Levenshtein distance
 
-### Synopsis
+## Synopsis
 
 ```
 levenshtein(a: string, b: string) -> int64
 ```
 
-### Description
+## Description
 
 The `levenshtein` function computes the
 [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance)
 between strings `a` and `b`.
 
-### Examples
+## Examples
 
 ---
 

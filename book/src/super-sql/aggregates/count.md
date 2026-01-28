@@ -1,20 +1,21 @@
-### Aggregate Function
+# count
 
-&emsp; **count** &mdash; count all input values
+count all input values
 
 >[!TIP]
 > For a running count as values arrive, see the [count](../operators/count.md) operator.
 
-### Synopsis
+## Synopsis
+
 ```
 count() -> int64
 ```
 
-### Description
+## Description
 
 The _count_ aggregate function computes the number of values in its input.
 
-### Examples
+## Examples
 
 Count of values in a simple sequence:
 ```mdtest-spq

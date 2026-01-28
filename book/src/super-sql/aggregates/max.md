@@ -1,13 +1,14 @@
-### Aggregate Function
+# max
 
-&emsp; **max** &mdash; maximum value of input values
+maximum value of input values
 
-### Synopsis
+## Synopsis
+
 ```
 max(number|string) -> number|string
 ```
 
-### Description
+## Description
 
 The _max_ aggregate function computes the maximum value of its input.
 
@@ -16,7 +17,7 @@ order. This is equivalent to
 [C/POSIX collation](https://www.postgresql.org/docs/current/collation.html#COLLATION-MANAGING-STANDARD)
 as found in other SQL databases such as Postgres.
 
-### Examples
+## Examples
 
 Maximum value of simple numeric sequence:
 ```mdtest-spq

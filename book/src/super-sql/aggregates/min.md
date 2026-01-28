@@ -1,13 +1,14 @@
-### Aggregate Function
+# min
 
-&emsp; **min** &mdash; minimum value of input values
+minimum value of input values
 
-### Synopsis
+## Synopsis
+
 ```
 min(number|string) -> number|string
 ```
 
-### Description
+## Description
 
 The _min_ aggregate function computes the minimum value of its input.
 
@@ -16,7 +17,7 @@ order. This is equivalent to
 [C/POSIX collation](https://www.postgresql.org/docs/current/collation.html#COLLATION-MANAGING-STANDARD)
 as found in other SQL databases such as Postgres.
 
-### Examples
+## Examples
 
 Minimum value of simple numeric sequence:
 ```mdtest-spq

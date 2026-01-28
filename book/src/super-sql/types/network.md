@@ -1,4 +1,4 @@
-### Networks/IPs
+# Networks/IPs
 
 The `ip` type represents an internet address and supports both
 IPv4 and IPv6 variations.  The `net` type represents an `ip` value
@@ -34,7 +34,7 @@ Note that unlike other SQL dialects that require IP addresses and networks to be
 inside quotation marks, SuperSQL treats these data types as first-class elements that
 need not be quoted.
 
-#### Examples
+## Examples
 ---
 ```mdtest-spq
 # spq

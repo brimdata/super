@@ -1,10 +1,10 @@
-## Arithmetic
+# Arithmetic
 
 Arithmetic operations (`*`, `/`, `%`, `+`, `-`) follow customary syntax
 and semantics and are left-associative with multiplication and division having
 precedence over addition and subtraction.  `%` is the modulo operator.
 
-### Unary Sign
+## Unary Sign
 
 Any number may be signed with a unary operator having the form:
 ```
@@ -16,7 +16,7 @@ and
 ```
 where `<expr>` is any [expression](intro.md) that results in a [number](../types/numbers.md) type.
 
-### Example
+## Example
 
 ---
 

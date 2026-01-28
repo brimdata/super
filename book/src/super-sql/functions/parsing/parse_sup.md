@@ -1,20 +1,20 @@
-### Function
+# parse_sup
 
-&emsp; **parse_sup** &mdash; parse SUP or JSON text into a value
+parse SUP or JSON text into a value
 
-### Synopsis
+## Synopsis
 
 ```
 parse_sup(s: string) -> any
 ```
 
-### Description
+## Description
 
 The `parse_sup` function parses the `s` argument that must be in the form
 of [SUP](../../../formats/sup.md) or JSON into a value of any type.
 This is analogous to JavaScript's `JSON.parse()` function.
 
-### Examples
+## Examples
 
 ---
 

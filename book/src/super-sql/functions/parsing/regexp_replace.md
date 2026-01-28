@@ -1,14 +1,14 @@
-### Function
+# regexp_replace
 
-&emsp; **regexp_replace** &mdash; replace regular expression matches in a string
+replace regular expression matches in a string
 
-### Synopsis
+## Synopsis
 
 ```
 regexp_replace(s: string, re: string, new: string) -> string
 ```
 
-### Description
+## Description
 
 The `regexp_replace` function substitutes all characters matching the
 [regular expression](../../queries.md#regular-expression) `re` in string `s` with
@@ -27,7 +27,7 @@ In the `$name` form, `name` is taken to be as long as possible: `$1x` is equival
 
 To insert a literal `$` in the output, use `$$` in the template.
 
-### Examples
+## Examples
 
 ---
 

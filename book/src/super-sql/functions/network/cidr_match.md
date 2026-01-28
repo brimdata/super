@@ -1,21 +1,21 @@
-### Function
+# cidr_match
 
-&emsp; **cidr_match** &mdash; test if IP is in a network
+test if IP is in a network
 
-### Synopsis
+## Synopsis
 
 ```
 cidr_match(network: net, val: any) -> bool
 ```
 
-### Description
+## Description
 
 The `cidr_match` function returns true if `val` contains an IP address that
 falls within the network given by `network`.  When `val` is a complex type, the
 function traverses its nested structure to find any `ip` values.
 If `network` is not type `net`, then an error is returned.
 
-### Examples
+## Examples
 
 ---
 

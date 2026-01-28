@@ -1,4 +1,4 @@
-### Sets
+# Sets
 
 Sets conform to the
 [set type](../../formats/model.md#23-set)
@@ -34,7 +34,7 @@ constructing instances using
 [_set expressions_](#set-expressions) or other
 SuperSQL functions that produce sets.
 
-#### Set Expressions
+## Set Expressions
 
 Set values are constructed from a _set expression_ that is comprised of
 zero or more comma-separated elements contained in pipe brackets:
@@ -62,7 +62,7 @@ When the expressions result in values of non-uniform type, then the types of the
 set elements become a sum type of the types present,
 tied together with the corresponding [union type](union.md).
 
-#### Examples
+## Examples
 ---
 ```mdtest-spq
 # spq

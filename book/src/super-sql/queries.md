@@ -1,4 +1,4 @@
-## Queries
+# Queries
 
 The syntactical structure of a query consists of
 * an optional concatenation of [declarations](declarations/intro.md),
@@ -19,7 +19,7 @@ While operators consume a sequence of values, the expressions embedded
 within an operator are typically evaluated once for each value processed
 by the operator.
 
-### Scope
+## Scope
 
 A scope is formed by enclosing a set of [declarations](declarations/intro.md)
 along with an operator sequence in the parentheses having the structure:
@@ -79,7 +79,7 @@ no such field "PI" at line 5, column 15:
               ~~
 ```
 
-### Identifiers
+## Identifiers
 
 Identifiers are names that arise in many syntactical structures and
 may be any sequence of UTF-8 characters.  When not quoted,
@@ -102,7 +102,7 @@ in a SQL expression, simply use double quotes, i.e., `"this"`.
 
 An unquoted identifier cannot be `true`, `false`, `null`, `NaN`, or `Inf`.
 
-### Patterns
+## Patterns
 
 For ease of use, several operators utilize a syntax for string entities
 outside of expression syntax where quotation marks for such entities
@@ -125,7 +125,7 @@ regular expressions in expressions as in
 where len(regexp(r'\w+(foo|bar)', this)) > 0
 ```
 
-#### Regular Expression
+### Regular Expression
 
 Regular expressions follow the syntax and semantics of the
 [RE2 regular expression library](https://github.com/google/re2),
@@ -155,7 +155,7 @@ prefixed and suffixed with a `/`, e.g.,
 ```
 matches the string `"foo"` or `"bar"`.
 
-#### Glob
+### Glob
 
 Globs provide a convenient short-hand for regular expressions and follow
 the familiar pattern of "file globbing" supported by Unix shells.
@@ -172,7 +172,7 @@ _ . : / % # @ ~ *
 ```
 A glob cannot begin with a digit.
 
-#### Text Entity
+### Text Entity
 
 A text entity represents a string where quotes can be omitted for
 certain common use cases regarding URLs and file paths.
@@ -189,7 +189,7 @@ Specifically, a text entity is one of:
 If a URL does not meet the constraints of the simple URL rule,
 e.g., containing a `:` or `&`, then it must be quoted.
 
-### Comments
+## Comments
 
 Single-line comments are SQL style begin with two dashes `--` and end at the
 subsequent newline.

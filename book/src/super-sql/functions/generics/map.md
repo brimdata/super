@@ -1,14 +1,14 @@
-### Function
+# map
 
-&emsp; **map** &mdash; apply a function to each element of an array or set
+apply a function to each element of an array or set
 
-### Synopsis
+## Synopsis
 
 ```
 map(v: array|set, f: function) -> array|set|error
 ```
 
-### Description
+## Description
 
 The `map` function applies a single-argument function `f`,
 in the form of an existing function or a lambda expression,
@@ -29,7 +29,7 @@ lambda x: <expr>
 ```
 where `<expr>` is any expression depending only on the lambda argument.
 
-### Examples
+## Examples
 
 ---
 

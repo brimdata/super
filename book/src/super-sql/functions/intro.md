@@ -1,4 +1,4 @@
-## Functions
+# Functions
 
 An invocation of a built-in function may appear in any
 [expression](../expressions/intro.md).

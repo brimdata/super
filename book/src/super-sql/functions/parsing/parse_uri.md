@@ -1,14 +1,14 @@
-### Function
+# parse_uri
 
-&emsp; **parse_uri** &mdash; parse a string URI into a structured record
+parse a string URI into a structured record
 
-### Synopsis
+## Synopsis
 
 ```
 parse_uri(uri: string) -> record
 ```
 
-### Description
+## Description
 
 The `parse_uri` function parses the `uri` argument that must have the form of a
 [Universal Resource Identifier](https://en.wikipedia.org/wiki/Uniform_Resource_Identifier)
@@ -28,7 +28,7 @@ with the following type signature:
 }
 ```
 
-### Examples
+## Examples
 
 ---
 

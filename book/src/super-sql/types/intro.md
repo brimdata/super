@@ -1,4 +1,4 @@
-## Types
+# Types
 
 SuperSQL has a comprehensive types system that adheres to the
 [super-structured data model](../../formats/model.md)

@@ -1,19 +1,19 @@
-### Function
+# nullif
 
-&emsp; **nullif** &mdash; returns a null value if values are equal
+returns a null value if values are equal
 
-### Synopsis
+## Synopsis
 
 ```
 nullif(val1: any, val2: any) -> any
 ```
 
-### Description
+## Description
 
 The `nullif` function returns a `null` value if its first argument `val1` is
 equal to its second argument `val2`, otherwise it returns `val1`.
 
-### Examples
+## Examples
 
 ---
 

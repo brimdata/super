@@ -1,4 +1,4 @@
-## Queries
+# Queries
 
 A query may be bound to an identifier as a named query with the syntax
 ```
@@ -32,7 +32,7 @@ then embedding that scalar result in an [expression](../expressions/intro.md).  
 appears syntactically as a subquery in this case, the result is efficient
 because the compiler will materialize the result and reuse it on each invocation.
 
-### Examples
+## Examples
 
 ---
 

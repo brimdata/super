@@ -1,13 +1,15 @@
-### Operator
+# search
 
-[✅](../intro.md#data-order)&emsp; **search** &mdash; select values based on a search expression
+[✅](../intro.md#data-order)&ensp; select values based on a search expression
 
-### Synopsis
+## Synopsis
+
 ```
 search <sexpr>
 ? <sexpr>
 ```
-### Description
+
+## Description
 
 The `search` operator provides a traditional keyword experience to SuperSQL
 along the lines of web search, email search, or log search.
@@ -17,7 +19,7 @@ to each input value and emitting all values that match.
 
 The `search` keyword can be abbreviated as `?`.
 
-#### Search Expressions
+### Search Expressions
 
 The search expression syntax is unique to the search operator and provides
 a hybrid syntax between keyword search and boolean expressions.
@@ -30,7 +32,7 @@ a search term is one of:
 * any [literal](#literal) of a primitive type, or
 * any [expression predicate](#expression-predicate).
 
-##### Regular Expression
+#### Regular Expression
 
 A search term may be a [regular expression](../queries.md#regular-expression).
 
@@ -46,7 +48,7 @@ searches for the string `"foo"` or `"bar"` inside of any string entity while
 ```
 searches for the string `"foo|bar"`.
 
-##### Glob
+#### Glob
 
 A search term may be a [glob](../queries.md#glob).
 
@@ -73,7 +75,7 @@ a*b==c
 ```
 is a Boolean comparison between the product `a*b` and `c`.
 
-##### Keyword
+#### Keyword
 
 Keywords and string literals are equivalent search terms so it is often
 easier to quote a string search term instead of using escapes in a keyword.
@@ -113,7 +115,7 @@ For example, the simplest SuperSQL query is perhaps a single keyword search, e.g
 As above, this query searches the implied input for values that
 contain the string "foo".
 
-##### Literal
+#### Literal
 
 Search terms representing non-string values search for both an exact
 match for the given value as well as a string search for the term exactly
@@ -155,7 +157,7 @@ the [in](../expressions/containment.md) operator, e.g.,
 {s:"foo"} in this
 ```
 
-##### Expression Predicate
+#### Expression Predicate
 
 Any Boolean-valued [function](../functions/intro.md) like
 [`is`](../functions/types/is.md),
@@ -174,7 +176,7 @@ is a valid search expression but
 ```
 is not.
 
-##### Boolean Logic
+#### Boolean Logic
 
 Search terms may be combined into boolean expressions using logical operators
 `and`, `or`, `not`, and `!`.  `and` may be elided; i.e., concatenation of
@@ -202,7 +204,7 @@ means
 grep("foo", this) and (grep("bar", this) or grep("baz", this))
 ```
 
-### Examples
+## Examples
 
 ---
 

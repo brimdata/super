@@ -1,4 +1,4 @@
-### Nulls
+# Nulls
 
 The null type represents a type that has just one value:
 the special value `null`.
@@ -29,7 +29,7 @@ value, which by definition, is always false, i.e., two unknown values cannot
 be known to be equal.  Instead the [`IS NULL`](../expressions/comparisons.md) operator or
 [coalesce](../functions/generics/coalesce.md) function should be used.
 
-#### Examples
+## Examples
 ---
 _The null value_
 

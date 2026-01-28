@@ -1,18 +1,19 @@
-### Aggregate Function
+# avg
 
-&emsp; **avg** &mdash; average (arithmetic mean) value
+average (arithmetic mean) value
 
-### Synopsis
+## Synopsis
+
 ```
 avg(number) -> number
 ```
 
-### Description
+## Description
 
 The _avg_ aggregate function computes the average (arithmetic mean)
 value of its input.
 
-### Examples
+## Examples
 
 Average value of simple sequence:
 ```mdtest-spq

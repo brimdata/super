@@ -1,16 +1,16 @@
-## SuperDB API
+# SuperDB API
 
-### _Status_
+## Status
 
 >[!NOTE]
 > This is a brief sketch of the functionality exposed in the
 > SuperDB API. More detailed documentation of the API will be forthcoming.
 
-### Endpoints
+## Endpoints
 
-#### Pools
+### Pools
 
-##### Create pool
+#### Create pool
 
 Create a new lake pool.
 
@@ -69,7 +69,7 @@ curl -X POST \
 
 ---
 
-##### Rename pool
+#### Rename pool
 
 Change a pool's name.
 
@@ -98,7 +98,7 @@ On success, HTTP 204 is returned with no response payload.
 
 ---
 
-##### Delete pool
+#### Delete pool
 
 Permanently delete a pool.
 
@@ -123,7 +123,7 @@ On success, HTTP 204 is returned with no response payload.
 
 ---
 
-##### Vacuum pool
+#### Vacuum pool
 
 Free storage space by permanently removing underlying data objects that have
 previously been subject to a delete operation.
@@ -156,9 +156,9 @@ curl -X POST \
 
 ---
 
-#### Branches
+### Branches
 
-##### Load Data
+#### Load Data
 
 Add data to a pool and return a reference commit ID.
 
@@ -197,7 +197,7 @@ curl -X POST \
 
 ---
 
-##### Get Branch
+#### Get Branch
 
 Get information about a branch.
 
@@ -229,7 +229,7 @@ curl -X GET \
 
 ---
 
-##### Delete Branch
+#### Delete Branch
 
 Delete a branch.
 
@@ -255,7 +255,7 @@ On success, HTTP 204 is returned with no response payload.
 
 ---
 
-##### Delete Data
+#### Delete Data
 
 Create a commit that reflects the deletion of some data in the branch. The data
 to delete can be specified via a list of object IDs or
@@ -316,7 +316,7 @@ curl -X POST \
 
 ---
 
-##### Merge Branches
+#### Merge Branches
 
 Create a commit with the difference of the child branch added to the selected
 branch.
@@ -350,7 +350,7 @@ curl -X POST \
 
 ---
 
-##### Revert
+#### Revert
 
 Create a revert commit of the specified commit.
 
@@ -383,7 +383,9 @@ curl -X POST \
 
 ---
 
-### Query
+### Queries
+
+#### Query
 
 Execute a Zed query against data in a data lake.
 
@@ -437,7 +439,7 @@ curl -X POST \
 {"type":"QueryStats","value":{"start_time":{"sec":1658193276,"ns":964207000},"update_time":{"sec":1658193276,"ns":964592000},"bytes_read":55,"bytes_matched":55,"records_read":3,"records_matched":3}}
 ```
 
-##### Query Status
+#### Query Status
 
 Retrieve any runtime errors from a specific query. This endpoint only responds
 after the query has exited and is only available for a limited time afterwards.
@@ -468,7 +470,7 @@ curl -X GET \
 
 ---
 
-#### Events
+### Events
 
 Subscribe to an events feed, which returns an event stream in the format of
 [server-sent events](https://html.spec.whatwg.org/multipage/server-sent-events.html).
@@ -509,12 +511,12 @@ data: {"pool_id": "1sMDXpVwqxm36Rc2vfrmgizc3jz"}
 
 ---
 
-### Media Types
+## Media Types
 
 For both request and response payloads, the service supports a variety of
 formats.
 
-#### Request Payloads
+### Request Payloads
 
 When sending request payloads, include the MIME type of the format in the
 request's Content-Type header. If the Content-Type header is not specified, the
@@ -526,7 +528,7 @@ determine the type automatically. The
 [input formats](../command/super.md#supported-formats) table describes which
 formats may be successfully auto-detected.
 
-#### Response Payloads
+### Response Payloads
 
 To receive successful (2xx) responses in a preferred format, include the MIME
 type of the format in the request's Accept HTTP header. If the Accept header is
@@ -537,7 +539,7 @@ different default response format can be specified by invoking the
 For non-2xx responses, the content type of the response will be
 `application/json` or `text/plain`.
 
-#### MIME Types
+### MIME Types
 
 The following table shows the supported MIME types and where they can be used.
 

@@ -1,17 +1,18 @@
-### Aggregate Function
+# sum
 
-&emsp; **sum** &mdash; sum of input values
+sum of input values
 
-### Synopsis
+## Synopsis
+
 ```
 sum(number) -> number
 ```
 
-### Description
+## Description
 
 The _sum_ aggregate function computes the mathematical sum of its input.
 
-### Examples
+## Examples
 
 Sum of simple sequence:
 ```mdtest-spq

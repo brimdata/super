@@ -1,19 +1,19 @@
-### Function
+# floor
 
-&emsp; **floor** &mdash; floor of a number
+floor of a number
 
-### Synopsis
+## Synopsis
 
 ```
 floor(n: number) -> number
 ```
 
-### Description
+## Description
 
 The `floor` function returns the greatest integer less than or equal to its argument `n`,
 which must be a numeric type.  The return type retains the type of the argument.
 
-### Examples
+## Examples
 
 ---
 

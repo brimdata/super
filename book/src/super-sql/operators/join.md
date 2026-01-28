@@ -1,8 +1,8 @@
-### Operator
+# join
 
-[🎲](../intro.md#data-order)&emsp; **join** &mdash; combine data from two inputs using a join predicate
+[🎲](../intro.md#data-order)&ensp; combine data from two inputs using a join predicate
 
-### Synopsis
+## Synopsis
 
 ```
 <left-input>
@@ -21,7 +21,7 @@
 | cross join [as { <left-name>,<right-name> }]
 ```
 
-### Description
+## Description
 
 The `join` operator combines values from two inputs according to the Boolean-valued
 `<predicate>` into two-field records, one field for each side of the join.
@@ -73,7 +73,7 @@ like any other record without complex scoping logic.
 If relational scoping is desired, a SQL [`JOIN`](../sql/join.md) clause
 can be used instead.
 
-### Examples
+## Examples
 
 ---
 

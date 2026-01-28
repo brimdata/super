@@ -1,4 +1,4 @@
-### Bytes
+# Bytes
 
 The `bytes` type represents an arbitrary sequence of 8-bit bytes.
 
@@ -9,7 +9,7 @@ An empty bytes value is simply `0x` followed by no digits.
 
 For backward compatibility with SQL, `BYTEA` is a syntactic alias for type `bytes`.
 
-#### Examples
+## Examples
 ---
 ```mdtest-spq
 # spq

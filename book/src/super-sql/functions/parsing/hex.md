@@ -1,20 +1,20 @@
-### Function
+# hex
 
-&emsp; **hex** &mdash; encode/decode hexadecimal strings
+encode/decode hexadecimal strings
 
-### Synopsis
+## Synopsis
 
 ```
 hex(b: bytes) -> string
 hex(s: string) -> bytes
 ```
 
-### Description
+## Description
 
 The `hex` function encodes a bytes value  `b` as
 a hexadecimal string or decodes a hexadecimal string `s` into a bytes value.
 
-### Examples
+## Examples
 
 ---
 

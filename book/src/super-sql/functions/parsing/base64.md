@@ -1,21 +1,21 @@
-### Function
+# base64
 
-&emsp; **base64** &mdash; encode/decode Base64 strings
+encode/decode Base64 strings
 
-### Synopsis
+## Synopsis
 
 ```
 base64(b: bytes) -> string
 base64(s: string) -> bytes
 ```
 
-### Description
+## Description
 
 The `base64` function encodes a bytes value `b` as
 a [Base64](https://en.wikipedia.org/wiki/Base64) string,
 or decodes a Base64 string `s` into a bytes value.
 
-### Examples
+## Examples
 
 ---
 

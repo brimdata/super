@@ -1,4 +1,4 @@
- ## Type Fusion
+# Type Fusion
 
 [_Type fusion_](https://openproceedings.org/2017/conf/edbt/paper-62.pdf)
 is a process by which a set of input types is merged together
@@ -59,7 +59,7 @@ Unfortunately, when data leaves a super-structured format using
 type fusion to accomplish this, the original data must be altered
 to fit into the rigid structure of these output formats.
 
-### The Mechanism
+## The Mechanism
 
 The foundation of type fusion is to merge record types by their field names
 while other types are generally merged with sum types.
@@ -95,7 +95,7 @@ are fused as
 {a:[int64|string],b:|[string]|}
 ```
 
-### Detailed Algorithm
+## Detailed Algorithm
 
 Type fusion may be formally defined as a function over types:
 ```

@@ -1,4 +1,4 @@
-## Index
+# Index
 
 The index operation is denoted with square brackets and can be applied to
 any indexable data type and has the form:
@@ -45,7 +45,7 @@ representing the byte value at that offset in the bytes sequence.
 >[!NOTE]
 > Indexing of strings and bytes is not yet implemented.
 
-### Index Base
+## Index Base
 
 Indexing in SuperSQL is 0-based meaning the first element is at index `0` and
 the last element is at index `n-1` for an entity of size `n`.
@@ -58,7 +58,7 @@ to specify either 1-based indexing or mixed indexing.  In mixed indexing,
 >[!NOTE]
 > Mixed indexing is not yet implemented.
 
-### Examples
+## Examples
 
 ---
 

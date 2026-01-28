@@ -1,17 +1,18 @@
-### Aggregate Function
+# and
 
-&emsp; **and** &mdash; logical AND of input values
+logical AND of input values
 
-### Synopsis
+## Synopsis
+
 ```
 and(bool) -> bool
 ```
 
-### Description
+## Description
 
 The _and_ aggregate function computes the logical AND over all of its input.
 
-### Examples
+## Examples
 
 Anded value of simple sequence:
 ```mdtest-spq

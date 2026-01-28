@@ -1,13 +1,14 @@
-### Operator
+# fuse
 
-[✅](../intro.md#data-order)&emsp; **fuse** &mdash; coerce all input values into a fused type
+[✅](../intro.md#data-order)&ensp; coerce all input values into a fused type
 
-### Synopsis
+## Synopsis
 
 ```
 fuse
 ```
-### Description
+
+## Description
 
 The `fuse` operator computes a [fused type](../type-fusion.md)
 over all of its input then casts all values in the input to the fused type.
@@ -23,7 +24,7 @@ Because all values of the input must be read to compute the fused type,
 >[!NOTE]
 > Spilling is not yet implemented for the vectorized runtime.
 
-### Examples
+## Examples
 
 ---
 

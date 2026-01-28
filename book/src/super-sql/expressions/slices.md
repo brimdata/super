@@ -1,4 +1,4 @@
-## Slices
+# Slices
 
 A slice expression is a variation of an [index](index.md) expression
 that returns a range of values instead of a single value and can be applied
@@ -33,13 +33,13 @@ consisting of unicode code points comprising the given range.
 If the `<entity>` expression is type `bytes`, then the result is a bytes sequence
 consisting of bytes comprising the given range.
 
-### Index Base
+## Index Base
 
 The index base for slice expressions is determined identically to
 the [index base for indexing](index.md#index-base).
 By default, slice indexes are zero based.
 
-### Examples
+## Examples
 
 ---
 

@@ -1,4 +1,4 @@
-## Literals
+# Literals
 
 Literal values represent specific instances of a [type](../types/intro.md) embedded directly
 into an [expression](intro.md) like the integer `1`, the record `{x:1.5,y:-4.0}`,

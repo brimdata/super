@@ -1,10 +1,10 @@
-## Super-structured Data Model
+# Super-structured Data Model
 
 Super-structured data is a collection of one or more typed data values.
 Each value's type is either a "primitive type", a "complex type", the "type type",
 a "named type", or the "null type".
 
-### 1. Primitive Types
+## 1. Primitive Types
 
 Primitive types include signed and unsigned integers, IEEE binary and decimal
 floating point, string, byte sequence, Boolean, IP address, IP network,
@@ -55,7 +55,7 @@ if and only if their corresponding types are uniquely equal.
 The _null_ type is a primitive type representing only a `null` value.
 A `null` value can have any type.
 
-### 2. Complex Types
+## 2. Complex Types
 
 Complex types are composed of primitive types and/or other complex types.
 The categories of complex types include:
@@ -75,7 +75,7 @@ The type system comprises a total order:
 * The order of complex type categories corresponds to the order above.
 * For complex types of the same category, the order is defined below.
 
-#### 2.1 Record
+### 2.1 Record
 
 A record comprises an ordered set of zero or more named values
 called "fields".  The field names must be unique in a given record
@@ -101,7 +101,7 @@ The type order of two records is as follows:
      * the lexicographic order of the field names from left to right,
      * or if all the field names are the same, the type order of the field types from left to right.
 
-#### 2.2 Array
+### 2.2 Array
 
 An array is an ordered sequence of zero or more values called "elements"
 all conforming to the same type.
@@ -116,7 +116,7 @@ two array element types.
 An array of mixed-type values (such a mixed-type JSON array) is representable
 as an array with elements of type `union`.
 
-#### 2.3 Set
+### 2.3 Set
 
 A set is an unordered sequence of zero or more values called "elements"
 all conforming to the same type.
@@ -131,7 +131,7 @@ A set type is uniquely defined by its single element type.
 The type order of two sets is defined as the type order of the
 two set element types.
 
-#### 2.4 Map
+### 2.4 Map
 
 A map represents a list of zero or more key-value pairs, where the keys
 have a common type and the values have a common type.
@@ -146,7 +146,7 @@ The type order of two map types is as follows:
 * the type order of their key types,
 * or if they are the same, then the order of their value types.
 
-#### 2.5 Union
+### 2.5 Union
 
 A union represents a value that may be any one of a specific enumeration
 of two or more unique data types that comprise its "union type".
@@ -164,7 +164,7 @@ The type order of two union types is as follows:
 * Two union types with the same number of types are ordered according to
 the type order of the constituent types in left to right order.
 
-#### 2.6 Enum
+### 2.6 Enum
 
 An enum represents a symbol from a finite set of one or more unique symbols
 referenced by name.  An enum name may be any UTF-8 string.
@@ -181,13 +181,13 @@ the type order of the constituent types in left to right order.
 The order among enum values correponds to the order of the symbols in the enum type.
 Order among enum values from different types is undefined.
 
-#### 2.7 Error
+### 2.7 Error
 
 An error represents any value designated as an error.
 
 The type order of an error is the type order of the type of its contained value.
 
-### 3. Named Type
+## 3. Named Type
 
 A _named type_ is a name for a specific data type.
 Any value can have a named type and the named type is a distinct type

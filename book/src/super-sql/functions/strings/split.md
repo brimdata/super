@@ -1,20 +1,20 @@
-### Function
+# split
 
-&emsp; **split** &mdash; slice a string into an array of strings
+slice a string into an array of strings
 
-### Synopsis
+## Synopsis
 
 ```
 split(s: string, sep: string) -> [string]
 ```
 
-### Description
+## Description
 
 The `split` function slices string `s` into all substrings separated by the
 string `sep` appearing in `s` and returns an array of the substrings
 spanning those separators.
 
-### Examples
+## Examples
 
 ---
 

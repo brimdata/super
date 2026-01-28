@@ -1,15 +1,15 @@
-### Function
+# cast
 
-&emsp; **cast** &mdash; convert a value to a different type
+convert a value to a different type
 
-### Synopsis
+## Synopsis
 
 ```
 cast(val: any, target: type) -> any
 cast(val: any, name: string) -> any
 ```
 
-### Description
+## Description
 
 The `cast` function implements a [cast](../../expressions/cast.md) where the target
 of the cast is a [type value](../../types/type.md) instead of a type.
@@ -27,7 +27,7 @@ If errors are encountered, then some or all of the resulting value
 will be embedded with structured errors and the result does not have
 the target type.
 
-### Examples
+## Examples
 
 ---
 

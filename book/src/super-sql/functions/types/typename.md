@@ -1,20 +1,20 @@
-### Function
+# typename
 
-&emsp; **typename** &mdash; look up and return a named type
+look up and return a named type
 
-### Synopsis
+## Synopsis
 
 ```
 typename(name: string) -> type
 ```
 
-### Description
+## Description
 
 The `typename` function returns the [type](../../types/intro.md) of the
 [named type](../../types/named.md) given by `name` if it exists.  Otherwise,
 `error("missing")` is returned.
 
-### Examples
+## Examples
 
 ---
 

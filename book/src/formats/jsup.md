@@ -1,6 +1,6 @@
-## Super JSON (JSUP) Format
+# Super JSON (JSUP) Format
 
-### 1. Introduction
+## 1. Introduction
 
 The [super-structured data model](model.md)
 is based on richly typed records with a deterministic field order,
@@ -71,7 +71,7 @@ in general have typing beyond the basics (i.e., strings, floating point numbers,
 objects, arrays, and booleans), SUP and
 its embedded type model is layered on top of regular JSON.
 
-### 2. The Format
+## 2. The Format
 
 The format for representing SUP data in JSON is called JSUP.
 Converting SUP, BSUP, or CSUP to JSUP and back results in a complete and
@@ -87,7 +87,7 @@ represents a value and has the form:
 ```
 The type and value fields are encoded as defined below.
 
-#### 2.1 Type Encoding
+### 2.1 Type Encoding
 
 The type encoding for a primitive type is simply its [type name](model.md#1-primitive-types)
 e.g., "int32" or "string".
@@ -129,7 +129,7 @@ A previously defined complex type may be referred to using a reference of the fo
 }
 ```
 
-##### 2.1.1 Record Type
+#### 2.1.1 Record Type
 
 A record type is a JSON object of the form
 ```
@@ -149,7 +149,7 @@ where each of the fields has the form
 and `<name>` is a string defining the field name and `<type>` is a
 recursively encoded type.
 
-##### 2.1.2 Array Type
+#### 2.1.2 Array Type
 
 An array type is defined by a JSON object having the form
 ```
@@ -161,7 +161,7 @@ An array type is defined by a JSON object having the form
 ```
 where `<type>` is a recursively encoded type.
 
-##### 2.1.3 Set Type
+#### 2.1.3 Set Type
 
 A set type is defined by a JSON object having the form
 ```
@@ -173,7 +173,7 @@ A set type is defined by a JSON object having the form
 ```
 where `<type>` is a recursively encoded type.
 
-##### 2.1.4 Map Type
+#### 2.1.4 Map Type
 
 A map type is defined by a JSON object of the form
 ```
@@ -186,7 +186,7 @@ A map type is defined by a JSON object of the form
 ```
 where each `<type>` is a recursively encoded type.
 
-##### 2.1.5 Union type
+#### 2.1.5 Union type
 
 A union type is defined by a JSON object having the form
 ```
@@ -199,7 +199,7 @@ A union type is defined by a JSON object having the form
 where the list of types comprise the types of the union and
 and each `<type>`is a recursively encoded type.
 
-##### 2.1.6 Enum Type
+#### 2.1.6 Enum Type
 
 An enum type is a JSON object of the form
 ```
@@ -211,7 +211,7 @@ An enum type is a JSON object of the form
 ```
 where the unique `<string>` values define a finite set of symbols.
 
-##### 2.1.7 Error Type
+#### 2.1.7 Error Type
 
 An error type is a JSON object of the form
 ```
@@ -223,7 +223,7 @@ An error type is a JSON object of the form
 ```
 where `<type>` is a recursively encoded type.
 
-##### 2.1.8 Named Type
+#### 2.1.8 Named Type
 
 A named type is encoded as a binding between a name and a type
 and represents a new type so named.  A type definition type has the form
@@ -238,7 +238,7 @@ and represents a new type so named.  A type definition type has the form
 where `<id>` is a JSON string representing the newly defined type name
 and `<type>` is a recursively encoded type.
 
-#### 2.2 Value Encoding
+### 2.2 Value Encoding
 
 The primitive values comprising an arbitrarily complex data value are encoded
 as a JSON array of strings mixed with nested JSON arrays whose structure
@@ -261,14 +261,14 @@ and an array of union of string, and float64 --- might have a value that looks l
 [ "hello, world", ["1","2","3","4"], ["1:foo", "0:10" ] ]
 ```
 
-### 3. Object Framing
+## 3. Object Framing
 
 A JSUP file is composed of JSUP objects formatted as
 [newline delimited JSON (NDJSON)](https://en.wikipedia.org/wiki/JSON_streaming#NDJSON).
 e.g., the [`super`](../command/super.md) CLI command
 writes its JSUP output as lines of NDJSON.
 
-### 4. Example
+## 4. Example
 
 Here is an example that illustrates values of a repeated type,
 nesting, records, array, and union. Consider the file `input.sup`:

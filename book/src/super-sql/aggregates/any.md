@@ -1,18 +1,19 @@
-### Aggregate Function
+# any
 
-&emsp; **any** &mdash; select an arbitrary input value
+select an arbitrary input value
 
-### Synopsis
+## Synopsis
+
 ```
 any(any) -> any
 ```
 
-### Description
+## Description
 
 The _any_ aggregate function returns an arbitrary element from its input.
 The semantics of how the item is selected is not defined.
 
-### Examples
+## Examples
 
 Any picks the first one in this scenario but this behavior is undefined:
 ```mdtest-spq

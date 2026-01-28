@@ -1,14 +1,14 @@
-### Function
+# under
 
-&emsp; **under** &mdash; the underlying value
+the underlying value
 
-### Synopsis
+## Synopsis
 
 ```
 under(val: any) -> any
 ```
 
-### Description
+## Description
 
 The _under_ function returns the value underlying the argument `val`:
 * for [unions](../../types/union.md), it returns the value as its elemental type of the union,
@@ -17,7 +17,7 @@ The _under_ function returns the value underlying the argument `val`:
 * for [type values](../../types/type.md), it removes a named type if one exists; otherwise,
 * it returns `val` unmodified.
 
-### Examples
+## Examples
 
 ---
 

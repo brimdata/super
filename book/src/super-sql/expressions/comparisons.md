@@ -1,4 +1,4 @@
-## Comparisons
+# Comparisons
 
 Comparison expressions follow customary syntax and semantics and
 result in a truth value of type [bool](../types/bool.md) or an [error](../types/error.md).
@@ -74,7 +74,7 @@ different types, consider the [compare](../functions/generics/compare.md) functi
 If either operand to a comparison
 is `error("missing")`, then the result is `error("missing")`.
 
-### Examples
+## Examples
 
 ---
 

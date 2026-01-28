@@ -1,4 +1,4 @@
-## Expressions
+# Expressions
 
 Expressions are the means to carry out calculations and utilize familiar
 query-language elements like literal values, function calls, subqueries,
@@ -27,7 +27,7 @@ their semantics diverge in some key ways:
 * double-quoted string [literals](literals.md) may be used in pipe expressions but are interpreted
   as [identifiers](../queries.md#identifiers) in SQL expressions.
 
-### Expression Syntax
+## Expression Syntax
 
 Expressions are composed from operands and operators over operands.
 
@@ -53,7 +53,7 @@ Operators include
   * [logic](logic.md) to combine predicates using Boolean logic, and
   * [slices](slices.md) to extract subsequences from arrays, sets, strings, and bytes.
 
-### Identifier Resolution
+## Identifier Resolution
 
 An identifier that appears as an operand in an expression is resolved to
 the entity that it represents using lexical [scoping](../queries.md#scope).
@@ -91,7 +91,7 @@ For other instances of identifiers,
 the identifier is presumed to be an [input reference](inputs.md)
 and is resolved as such.
 
-### Precedence
+## Precedence
 
 When multiple operators appear in an unparenthesized sequence,
 ambiguity may arise by the order of evaluation as expressions are
@@ -126,7 +126,7 @@ Some operators like [case expressions](conditional.md#case-expressions)
 do not have any such ambiguity as keywords delineate their sub-expressions
 and thus do not have any inherent precedence.
 
-### Coercion
+## Coercion
 
 >[!NOTE]
 > A forthcoming version of this documentation will describe the coercion

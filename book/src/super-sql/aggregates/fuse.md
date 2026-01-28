@@ -1,13 +1,14 @@
-### Aggregate Function
+# fuse
 
-&emsp; **fuse** &mdash; compute a fused type of input values
+compute a fused type of input values
 
-### Synopsis
+## Synopsis
+
 ```
 fuse(any) -> type
 ```
 
-### Description
+## Description
 
 The _fuse_ aggregate function applies [type fusion](../type-fusion.md)
 to its input and returns the fused type.
@@ -16,7 +17,7 @@ It is useful with grouped aggregation for data exploration and discovery
 when searching for shaping rules to cluster a large number of varied input
 types to a smaller number of fused types each from a set of interrelated types.
 
-### Examples
+## Examples
 
 Fuse two records:
 ```mdtest-spq

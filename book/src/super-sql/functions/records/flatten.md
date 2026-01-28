@@ -1,14 +1,14 @@
-### Function
+# flatten
 
-&emsp; **flatten** &mdash; transform a record into a flattened array
+transform a record into a flattened array
 
-### Synopsis
+## Synopsis
 
 ```
 flatten(val: record) -> [{key:[string],value:<any>}]
 ```
 
-### Description
+## Description
 
 The `flatten` function returns an array of records `[{key:[string],value:<any>}]`
 where `key` is a string array of the path of each record field of `val` and
@@ -21,7 +21,7 @@ inner type is a union of the record types present.
 > where the array-of-strings value of key becomes a more general data structure representing
 > all possible value types that comprise a path.
 
-### Examples
+## Examples
 
 ---
 

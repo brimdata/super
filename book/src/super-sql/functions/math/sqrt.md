@@ -1,19 +1,19 @@
-### Function
+# sqrt
 
-&emsp; **sqrt** &mdash; square root of a number
+square root of a number
 
-### Synopsis
+## Synopsis
 ```
 sqrt(val: number) -> float64
 ```
 
-### Description
+## Description
 
 The `sqrt` function returns the square root of its argument `val`, which
 must be numeric.  The return value is a float64.  Negative values
 result in `NaN`.
 
-### Examples
+## Examples
 
 ---
 

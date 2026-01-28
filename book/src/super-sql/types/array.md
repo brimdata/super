@@ -1,4 +1,4 @@
-### Arrays
+# Arrays
 
 Arrays conform to the
 [array type](../../formats/model.md#22-array)
@@ -34,7 +34,7 @@ constructing instances using
 [_array expressions_](#array-expressions) or other
 SuperSQL functions that produce arrays.
 
-#### Array Expressions
+## Array Expressions
 
 Array values are constructed from an _array expression_ that is comprised of
 zero or more comma-separated elements contained in brackets:
@@ -62,7 +62,7 @@ When the expressions result in values of non-uniform type, then the types of the
 array elements become a sum type of the types present,
 tied together with the corresponding [union type](union.md).
 
-#### Examples
+## Examples
 ---
 ```mdtest-spq
 # spq

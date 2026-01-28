@@ -1,14 +1,14 @@
-### Function
+# date_part
 
-&emsp; **date_part** &mdash; return a specified part of a time value
+return a specified part of a time value
 
-### Synopsis
+## Synopsis
 
 ```
 date_part(part: string, ts: time) -> int64
 ```
 
-### Description
+## Description
 
 The `date_part` function accepts a [`string`](../../types/string.md) argument `part` and a [`time`](../../types/time.md) value `ts` and
 returns an [`int64`](../../types/numbers.md) representing the part of the date requested.
@@ -27,7 +27,7 @@ Valid values for `part` are:
 |`"second"`              |The seconds field (0-59)                                                                                   |
 |`"year"`                |The year field                                                                                             |
 
-### Examples
+## Examples
 
 ---
 

@@ -1,4 +1,4 @@
-## Aggregate Functions
+# Aggregate Functions
 
 Aggregate functions compute aggregated results from zero or more
 input values and have the form

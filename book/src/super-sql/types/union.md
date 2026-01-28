@@ -1,4 +1,4 @@
-### Unions
+# Unions
 
 The union type provides the foundation for
 [sum types](https://en.wikipedia.org/wiki/Tagged_union) in SuperSQL.
@@ -44,7 +44,7 @@ values typeof([1,"foo"])
 ```
 results in `<[int64|string]>`.
 
-#### Union Value Semantics
+## Union Value Semantics
 
 Internally, every union value includes a tag indicating which
 of its member types the value belongs to along with that actual value.
@@ -94,7 +94,7 @@ values typeof(under(1::(int64|string)))
 ```
 results in `<int64>`.
 
-#### Union Dispatch
+## Union Dispatch
 
 Languages with sum types often include a construct to dispatch the
 union to a case for each of its possible types.
@@ -144,7 +144,7 @@ values
     end
 ```
 
-#### Examples
+## Examples
 ---
 _Cast primitive values to a union type_
 ```mdtest-spq

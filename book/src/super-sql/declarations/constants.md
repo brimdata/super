@@ -1,4 +1,4 @@
-## Constants
+# Constants
 
 Constants are declared with the syntax
 ```
@@ -15,7 +15,7 @@ Constant declarations must appear in the declaration section of a
 A constant can be any expression, inclusive of subqueries and function calls, as
 long as the expression evaluates to a compile-time constant.
 
-### Examples
+## Examples
 
 ---
 

@@ -1,8 +1,8 @@
-### Operator
+# fork
 
-[🎲](../intro.md#data-order)&emsp; **fork** &mdash; copy values to parallel pipeline branches
+[🎲](../intro.md#data-order)&ensp; copy values to parallel pipeline branches
 
-### Synopsis
+## Synopsis
 
 ```
 fork
@@ -10,7 +10,8 @@ fork
   ( <branch> )
   ...
 ```
-### Description
+
+## Description
 
 The `fork` operator copies each input value to multiple, parallel branches of
 the pipeline.
@@ -20,7 +21,7 @@ If the downstream operator expects a single input, then the output branches are
 combined without preserving order.  Order may be reestablished by applying a
 [`sort`](sort.md) at the merge point.
 
-### Examples
+## Examples
 
 ---
 

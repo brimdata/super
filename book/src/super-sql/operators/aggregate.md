@@ -1,8 +1,8 @@
-### Operator
+# aggregate
 
-[🎲](../intro.md#data-order)&emsp; **aggregate** &mdash; execute aggregate functions with optional grouping expressions
+[🎲](../intro.md#data-order)&ensp; execute aggregate functions with optional grouping expressions
 
-### Synopsis
+## Synopsis
 
 ```
 [aggregate] <agg> [, <agg> ... ] [ by <grouping> [, <grouping> ... ] ]
@@ -20,7 +20,7 @@ having the form:
 [ <field> := ] <expr>
 ```
 
-### Description
+## Description
 
 The `aggregate` operator applies
 [aggregate functions](../aggregates/intro.md) to
@@ -69,7 +69,7 @@ and the results merged into final results using an external merge sort.
 >[!NOTE]
 > Spilling is not yet implemented for the vectorized runtime.
 
-### Examples
+## Examples
 
 ---
 

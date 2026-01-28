@@ -1,4 +1,4 @@
-## Declarations
+# Declarations
 
 Declarations bind a name in the form of an [identifier](../queries.md#identifiers)
 to various entities and may appear at the beginning of any [scope](../queries.md#scope)

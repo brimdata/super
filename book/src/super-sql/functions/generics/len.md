@@ -1,14 +1,14 @@
-### Function
+# len
 
-&emsp; **len** &mdash; the type-dependent length of a value
+the type-dependent length of a value
 
-### Synopsis
+## Synopsis
 
 ```
 len(val: array|bytes|ip|map|net|null|record|set|string|type) -> int64
 ```
 
-### Description
+## Description
 
 The _len_ function returns the length of its argument `val`.
 The semantics of this length depend on the value's [type](../../types/intro.md).
@@ -42,7 +42,7 @@ underlying type definition of `val` as indicated below.
 |`set`               |`len` of the defined element type              |
 |`union`             |Count of defined member types                  |
 
-### Examples
+## Examples
 
 ---
 

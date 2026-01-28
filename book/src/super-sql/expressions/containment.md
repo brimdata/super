@@ -1,4 +1,4 @@
-## Containment
+# Containment
 
 A containment expression expression tests for the existence of
 a value in another value and has the form
@@ -28,7 +28,7 @@ When the `<target>` is a non-array [subquery](subqueries.md), it is coerced to a
 [array subquery](subqueries.md#array-subqueries) and the `in` expression is evaluated
 on the array result of the subquery.
 
-### Examples
+## Examples
 
 ---
 

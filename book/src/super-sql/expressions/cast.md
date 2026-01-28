@@ -1,4 +1,4 @@
-## Casts
+# Casts
 
 Casting is the process of converting a value from its current data type
 to another type using an explicit expression having the form
@@ -28,7 +28,7 @@ the target type.
 The target type cannot contain an error type.  The [error](../functions/errors/error.md) function
 should instead be used to create error values.
 
-### Primitive Values
+## Primitive Values
 
 Some primitive values can be cast to other primitive types, but not all possibilities are
 permitted and instead result in structured errors.
@@ -70,7 +70,7 @@ A null value of type [null](../types/null.md) may be cast to any type.
 > A future version of this documentation will provide detailed documentation for
 > acceptable date/time strings.
 
-### Complex Values
+## Complex Values
 
 When a complex value has multiple levels of nesting,
 casting is applied recursively into the value hierarchy.
@@ -123,7 +123,7 @@ The casting rules for complex values are as follows:
     serialized in the [SUP](../../formats/sup.md) format, or
   * a [union](#union-types) or [named type](#named-types).
 
-### Union Types
+## Union Types
 
 When casting a value to a union type, the member type of the union is selected
 to find a _best fit_ of the available types.  If no fit exists, a structured
@@ -137,12 +137,12 @@ Otherwise, the best fit is determined from the input type as follows:
 > A future version of this documentation will provide detailed documentation for
 > the best-fit selection algorithm.
 
-### Named Types
+## Named Types
 
 When casting to a named type, the cast is carried out using its underlying type
 then the named type is reattached to the result.
 
-### Errors
+## Errors
 
 Casting a value to an incompatible type results in a structured error of the form:
 ```
@@ -166,7 +166,7 @@ That is, the value for `a` was successfully cast from string `"1`" to integer `1
 the value for `b` could not be cast to an IP address so a structured error is
 instead embedded as the value for `b`.
 
-### Examples
+## Examples
 
 ---
 

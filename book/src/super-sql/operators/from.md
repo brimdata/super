@@ -1,6 +1,6 @@
 # from
 
-[✅](../intro.md#data-order)[🎲](../intro.md#data-order) source data from databases, files, or URLs
+[✅](../intro.md#data-order)[🎲](../intro.md#data-order)&ensp; source data from databases, files, or URLs
 
 ## Synopsis
 

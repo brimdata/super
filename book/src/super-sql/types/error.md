@@ -1,4 +1,4 @@
-### Errors
+# Errors
 
 Errors in SuperSQL are _first class_ and conform
 with the [error type](../../formats/model.md#27-error) in the
@@ -49,7 +49,7 @@ produces
 [1,2,3]
 ```
 
-#### Structured Errors
+## Structured Errors
 
 First-class errors are particularly useful for creating structured errors.
 When a SuperSQL query encounters a problematic condition,
@@ -92,7 +92,7 @@ but having a first-class data type to manage them all while allowing them to
 peacefully coexist with valid production data is a novel and
 useful approach that SuperSQL enables.
 
-### Missing and Quiet
+## Missing and Quiet
 
 SuperDB's heterogeneous data model allows for queries
 that operate over different types of data whose structure and type
@@ -156,7 +156,7 @@ values error("quiet")
 ```
 produces no output.
 
-#### Examples
+## Examples
 
 ---
 
