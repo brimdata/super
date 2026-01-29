@@ -43,6 +43,9 @@ func Analyze(ctx context.Context, p *parser.AST, env *exec.Environment, extInput
 		}
 	}
 	main := newDagen(t.reporter).assemble(seq, t.resolver.funcs)
+	if env.Runtime == exec.RuntimeAuto && t.hasVectorizedInput {
+		env.Runtime = exec.RuntimeVAM
+	}
 	return main, t.Error()
 }
 
@@ -52,15 +55,16 @@ func Analyze(ctx context.Context, p *parser.AST, env *exec.Environment, extInput
 // to dataflow.
 type translator struct {
 	reporter
-	ctx      context.Context
-	resolver *resolver
-	checker  *checker
-	opCnt    map[*ast.OpDecl]int
-	opStack  []string
-	cteStack []*ast.SQLCTE
-	env      *exec.Environment
-	scope    *Scope
-	sctx     *super.Context
+	ctx                context.Context
+	resolver           *resolver
+	checker            *checker
+	hasVectorizedInput bool
+	opCnt              map[*ast.OpDecl]int
+	opStack            []string
+	cteStack           []*ast.SQLCTE
+	env                *exec.Environment
+	scope              *Scope
+	sctx               *super.Context
 }
 
 func newTranslator(ctx context.Context, r reporter, env *exec.Environment) *translator {
