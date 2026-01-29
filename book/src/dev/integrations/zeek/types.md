@@ -9,7 +9,7 @@ with Zeek.
 When Zeek is configured to output its logs in
 JSON format, much of the rich type information is lost in translation, but
 this can be restored by following the guidance for [shaping Zeek JSON](shaping.md).
-On the other hand, Zeek TSV can be converted to Zed storage formats and back to
+On the other hand, Zeek TSV can be converted to super-structured storage formats and back to
 Zeek TSV without any loss of information.
 
 This document describes how the super-structured type system is able to represent each of
@@ -24,29 +24,29 @@ when output as SUP.
 
 ## Equivalent Types
 
-The following table summarizes which Zed data type corresponds to each
+The following table summarizes which super-structured data type corresponds to each
 [Zeek data type](https://docs.zeek.org/en/current/script-reference/types.html)
 that may appear in a Zeek TSV log. While most types have a simple 1-to-1
-mapping from Zeek to Zed and back to Zeek again, the sections linked from the
+mapping from Zeek to super-structured data and back to Zeek again, the sections linked from the
 **Additional Detail** column describe cosmetic differences and other subtleties
 applicable to handling certain types.
 
-| Zeek Type  | Zed Type   | Additional Detail |
+| Zeek Type  | Super-Structured Type   | Additional Detail |
 |------------|------------|-------------------|
-| [`bool`](https://docs.zeek.org/en/current/script-reference/types.html#type-bool)         | [`bool`](../../../formats/model.md#1-primitive-types)     | |
-| [`count`](https://docs.zeek.org/en/current/script-reference/types.html#type-count)       | [`uint64`](../../../formats/model.md#1-primitive-types)   | |
-| [`int`](https://docs.zeek.org/en/current/script-reference/types.html#type-int)           | [`int64`](../../../formats/model.md#1-primitive-types)    | |
-| [`double`](https://docs.zeek.org/en/current/script-reference/types.html#type-double)     | [`float64`](../../../formats/model.md#1-primitive-types)  | See [`double` details](#double) |
-| [`time`](https://docs.zeek.org/en/current/script-reference/types.html#type-time)         | [`time`](../../../formats/model.md#1-primitive-types)     | |
-| [`interval`](https://docs.zeek.org/en/current/script-reference/types.html#type-interval) | [`duration`](../../../formats/model.md#1-primitive-types) | |
-| [`string`](https://docs.zeek.org/en/current/script-reference/types.html#type-string)     | [`string`](../../../formats/model.md#1-primitive-types)   | See [`string` details about escaping](#string) |
-| [`port`](https://docs.zeek.org/en/current/script-reference/types.html#type-port)         | [`uint16`](../../../formats/model.md#1-primitive-types)   | See [`port` details](#port) |
-| [`addr`](https://docs.zeek.org/en/current/script-reference/types.html#type-addr)         | [`ip`](../../../formats/model.md#1-primitive-types)       | |
-| [`subnet`](https://docs.zeek.org/en/current/script-reference/types.html#type-subnet)     | [`net`](../../../formats/model.md#1-primitive-types)      | |
-| [`enum`](https://docs.zeek.org/en/current/script-reference/types.html#type-enum)         | [`string`](../../../formats/model.md#1-primitive-types)   | See [`enum` details](#enum) |
-| [`set`](https://docs.zeek.org/en/current/script-reference/types.html#type-set)           | [`set`](../../../formats/model.md#23-set)                 | See [`set` details](#set) |
-| [`vector`](https://docs.zeek.org/en/current/script-reference/types.html#type-vector)     | [`array`](../../../formats/model.md#22-array)              | |
-| [`record`](https://docs.zeek.org/en/current/script-reference/types.html#type-record)     | [`record`](../../../formats/model.md#21-record)            | See [`record` details](#record) |
+| [bool](https://docs.zeek.org/en/current/script-reference/types.html#type-bool)         | [bool](../../../formats/model.md#1-primitive-types)     | |
+| [count](https://docs.zeek.org/en/current/script-reference/types.html#type-count)       | [uint64](../../../formats/model.md#1-primitive-types)   | |
+| [int](https://docs.zeek.org/en/current/script-reference/types.html#type-int)           | [int64](../../../formats/model.md#1-primitive-types)    | |
+| [double](https://docs.zeek.org/en/current/script-reference/types.html#type-double)     | [float64](../../../formats/model.md#1-primitive-types)  | See [`double` details](#double) |
+| [time](https://docs.zeek.org/en/current/script-reference/types.html#type-time)         | [time](../../../formats/model.md#1-primitive-types)     | |
+| [interval](https://docs.zeek.org/en/current/script-reference/types.html#type-interval) | [duration](../../../formats/model.md#1-primitive-types) | |
+| [string](https://docs.zeek.org/en/current/script-reference/types.html#type-string)     | [string](../../../formats/model.md#1-primitive-types)   | See [`string` details about escaping](#string) |
+| [port](https://docs.zeek.org/en/current/script-reference/types.html#type-port)         | [uint16](../../../formats/model.md#1-primitive-types)   | See [port details](#port) |
+| [addr](https://docs.zeek.org/en/current/script-reference/types.html#type-addr)         | [ip](../../../formats/model.md#1-primitive-types)       | |
+| [subnet](https://docs.zeek.org/en/current/script-reference/types.html#type-subnet)     | [net](../../../formats/model.md#1-primitive-types)      | |
+| [enum](https://docs.zeek.org/en/current/script-reference/types.html#type-enum)         | [string](../../../formats/model.md#1-primitive-types)   | See [enum details](#enum) |
+| [set](https://docs.zeek.org/en/current/script-reference/types.html#type-set)           | [set](../../../formats/model.md#23-set)                 | See [set details](#set) |
+| [vector](https://docs.zeek.org/en/current/script-reference/types.html#type-vector)     | [array](../../../formats/model.md#22-array)              | |
+| [record](https://docs.zeek.org/en/current/script-reference/types.html#type-record)     | [record](../../../formats/model.md#21-record)            | See [record details](#record) |
 
 >[!NOTE]
 > The [Zeek data types](https://docs.zeek.org/en/current/script-reference/types.html)
@@ -144,16 +144,16 @@ T	123	456	123.456	1592502151.123456	123.456000	smile😁smile	\x09\x07\x04	80	12
 As `super` acts as a reference implementation for SuperDB storage formats such as
 SUP and BSUP, it's helpful to understand how it reads the following Zeek data
 types into readable text equivalents in the SUP format, then writes them back
-out again in the Zeek TSV log format. Other implementations of the Zed storage
+out again in the Zeek TSV log format. Other implementations of the super-structured storage
 formats (should they exist) may handle these differently.
 
 Multiple Zeek types discussed below are represented via a
-[type definition](../../../formats/sup.md#22-type-decorators) to one of Zed's
-[primitive types](../../../formats/model.md#1-primitive-types). The Zed type
+[type definition](../../../formats/sup.md#22-type-decorators) to one of the super data model's
+[primitive types](../../../formats/model.md#1-primitive-types). The type
 definitions maintain the history of the field's original Zeek type name
 such that `super` may restore it if the field is later output in
 Zeek TSV format. Knowledge of its original Zeek type may also enable special
-operations in Zed that are unique to values known to have originated as a
+operations in `super` that are unique to values known to have originated as a
 specific Zeek type, though no such operations are currently implemented in
 `super`.
 

@@ -18,7 +18,7 @@ with a SuperDB database.
 The Python package supports loading data into a database as well as
 querying and retrieving results in the [JSUP format](../../formats/jsup.md).
 The Python client interacts with the database via the REST API served by
-[`super db serve`](../../command/db-serve.md).
+[super db serve](../../command/db-serve.md).
 
 ## Installation
 
@@ -46,8 +46,8 @@ and run a query:
 python3 <<EOF
 import superdb
 
-# Connect to the default lake at http://localhost:9867.  To use a
-# different lake, supply its URL via the SUPER_DB environment variable
+# Connect to the default database at http://localhost:9867.  To use a
+# different database, supply its URL via the SUPER_DB environment variable
 # or as an argument here.
 client = superdb.Client()
 

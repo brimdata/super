@@ -1,8 +1,7 @@
 # Go
 
-The original version of SuperDB was developed in Go so Go clients
-can easily access client libraries from the packages that comprise
-the Go implementation.
+Since the original version of SuperDB was developed in Go, Go clients can
+easily access client libraries from the implementation packages.
 
 ## Installation
 
@@ -84,10 +83,10 @@ error("missing")
 ### Local Database Reader
 
 This example interacts with a SuperDB database.  Note that it is straightforward
-to support both direct access to a lake via the file system (or S3 URL) as well
+to support both direct access to a database via the file system (or S3 URL) as well
 as access via a service endpoint.
 
-First, we'll use `super` to create a lake and load the example data:
+First, we'll use `super` to create a database and load the example data:
 ```
 super db init -db scratch
 super db create -db scratch Demo
@@ -147,7 +146,7 @@ func main() {
 	}
 }
 ```
-After a re-run of `go mod tidy`, run this command to interact with the lake via
+After a re-run of `go mod tidy`, run this command to interact with the database via
 the local file system:
 ```
 go run . ./scratch
@@ -160,14 +159,14 @@ error("missing")
 ```
 Note that the order of data has changed because the database stores data
 in a sorted order.  Since we did not specify a "pool key" when we created
-the lake, it ends up sorting the data by `this`.
+the database, it ends up sorting the data by `this`.
 
 ### Database Service Reader
 
-We can use the same code above to talk to a SuperDB servuce.  All we do is
+We can use the same code above to talk to a SuperDB service.  All we do is
 give it the URI of the service, which by default is on port 9867.
 
-To try this out, first run a SuperDB service on the scratch lake we created
+To try this out, first run a SuperDB service on the scratch database we created
 above:
 ```
 super db serve -db ./scratch
