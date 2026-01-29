@@ -4,7 +4,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Values struct {
@@ -63,7 +62,7 @@ func interleave(vals []vector.Any) vector.Any {
 func filterQuiet(vec vector.Any) vector.Any {
 	var filtered bool
 	mask := vector.Apply(true, func(vecs ...vector.Any) vector.Any {
-		mask, hasfiltered := quietMask(vecs[0])
+		mask, hasfiltered := expr.QuietMask(vecs[0])
 		filtered = filtered || hasfiltered
 		return mask
 	}, vec)
@@ -72,32 +71,4 @@ func filterQuiet(vec vector.Any) vector.Any {
 	}
 	masked, _ := applyMask(vec, mask)
 	return masked
-}
-
-func quietMask(vec vector.Any) (vector.Any, bool) {
-	errvec, ok := vec.(*vector.Error)
-	if !ok {
-		return vector.NewConst(super.True, vec.Len(), bitvec.Zero), false
-	}
-	if _, ok := errvec.Vals.Type().(*super.TypeOfString); !ok {
-		return vector.NewConst(super.True, vec.Len(), bitvec.Zero), false
-	}
-	if c, ok := errvec.Vals.(*vector.Const); ok {
-		if s, _ := c.AsString(); s == "quiet" {
-			return vector.NewConst(super.False, vec.Len(), bitvec.Zero), true
-		}
-		return vector.NewConst(super.True, vec.Len(), bitvec.Zero), false
-	}
-	n := vec.Len()
-	mask := vector.NewFalse(n)
-	switch vec := vec.(type) {
-	case *vector.Error:
-		for i := uint32(0); i < n; i++ {
-			if s, _ := vector.StringValue(vec.Vals, i); s == "quiet" {
-				continue
-			}
-			mask.Set(i)
-		}
-	}
-	return mask, true
 }
