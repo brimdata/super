@@ -1,14 +1,10 @@
-### Command
-
-&emsp; **compile** &mdash;  compile a SuperSQL query for inspection and debugging
-
-### Synopsis
+# super compile
 
 ```
 super compile [ options ] query
 ```
 
-### Options
+## Options
 
 * `-C` display DAG or AST as query text (default "false")
 * `-dag` display output as DAG (implied by -O or -P) (default "false")
@@ -16,10 +12,9 @@ super compile [ options ] query
 * `-I` source file containing query text (may be repeated)
 * `-O` display optimized DAG (default "false")
 * `-P` display parallelized DAG (default "0")
+* any relevant [super option](super.md#options)
 
-Additional options of the [super top-level command](super.md#options)
-
-### Description
+## Description
 
 This command parses a [SuperSQL](../super-sql/intro.md) query
 and emits the resulting abstract syntax tree (AST) or
