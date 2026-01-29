@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/dag"
@@ -28,21 +27,39 @@ type VectorConcurrentPuller interface {
 	ConcurrentPull(done bool, id int) (vector.Any, error)
 }
 
+type Runtime int
+
+const (
+	RuntimeAuto Runtime = iota
+	RuntimeSAM
+	RuntimeVAM
+)
+
+func (r Runtime) String() string {
+	switch r {
+	case RuntimeSAM:
+		return "sam"
+	case RuntimeVAM:
+		return "vam"
+	default:
+		return "auto"
+	}
+}
+
 type Environment struct {
 	engine storage.Engine
 	db     *db.Root
-	useVAM bool
 
 	Dynamic          bool
 	IgnoreOpenErrors bool
 	ReaderOpts       anyio.ReaderOpts
+	Runtime          Runtime
 }
 
 func NewEnvironment(engine storage.Engine, d *db.Root) *Environment {
 	return &Environment{
 		engine: engine,
 		db:     d,
-		useVAM: os.Getenv("SUPER_VAM") != "",
 	}
 }
 
@@ -51,11 +68,7 @@ func (e *Environment) Engine() storage.Engine {
 }
 
 func (e *Environment) UseVAM() bool {
-	return e.useVAM
-}
-
-func (e *Environment) SetUseVAM() {
-	e.useVAM = true
+	return e.Runtime == RuntimeVAM
 }
 
 func (e *Environment) IsAttached() bool {

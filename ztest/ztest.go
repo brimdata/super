@@ -508,7 +508,7 @@ func runInternal(ctx context.Context, query string, input *string, outputFlags, 
 	}
 	env := exec.NewEnvironment(nil, nil)
 	if vector {
-		env.SetUseVAM()
+		env.Runtime = exec.RuntimeVAM
 	}
 	q, err := runtime.CompileQuery(ctx, sctx, compiler.NewCompilerWithEnv(env), ast, readers)
 	if err != nil {

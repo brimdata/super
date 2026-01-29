@@ -5,11 +5,13 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"os"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/cli/dbflags"
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/cli/queryflags"
+	"github.com/brimdata/super/cli/runtimeflags"
 	"github.com/brimdata/super/compiler"
 	"github.com/brimdata/super/compiler/describe"
 	"github.com/brimdata/super/compiler/parser"
@@ -25,13 +27,15 @@ import (
 )
 
 type Shared struct {
-	dag         bool
-	dynamic     bool
-	optimize    bool
-	parallel    int
-	query       bool
-	queryFlags  queryflags.QueryTextFlags
-	OutputFlags outputflags.Flags
+	dag          bool
+	dynamic      bool
+	optimize     bool
+	parallel     int
+	query        bool
+	runtime      bool
+	queryFlags   queryflags.QueryTextFlags
+	runtimeFlags runtimeflags.EngineFlags
+	OutputFlags  outputflags.Flags
 }
 
 func (s *Shared) SetFlags(fs *flag.FlagSet) {
@@ -40,11 +44,16 @@ func (s *Shared) SetFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&s.optimize, "O", false, "display optimized DAG")
 	fs.IntVar(&s.parallel, "P", 0, "display parallelized DAG")
 	fs.BoolVar(&s.query, "C", false, "display DAG or AST as query text")
+	fs.BoolVar(&s.runtime, "runtime", false, "print selected runtime to stderr")
 	s.OutputFlags.SetFlags(fs)
 	s.queryFlags.SetFlags(fs)
+	s.runtimeFlags.SetFlags(fs)
 }
 
 func (s *Shared) Run(ctx context.Context, args []string, dbFlags *dbflags.Flags, desc bool) error {
+	if err := s.runtimeFlags.Init(); err != nil {
+		return err
+	}
 	if len(s.queryFlags.Query) == 0 && len(args) == 0 {
 		return errors.New("no query specified")
 	}
@@ -72,6 +81,9 @@ func (s *Shared) Run(ctx context.Context, args []string, dbFlags *dbflags.Flags,
 		s.dag = true
 	}
 	if !s.dag {
+		if s.runtime {
+			defer printRuntime(s.runtimeFlags.Runtime)
+		}
 		if s.query {
 			fmt.Println(sfmt.AST(ast.Parsed()))
 			return nil
@@ -83,10 +95,14 @@ func (s *Shared) Run(ctx context.Context, args []string, dbFlags *dbflags.Flags,
 	}
 	rctx := runtime.DefaultContext()
 	env := exec.NewEnvironment(storage.NewLocalEngine(), root)
+	env.Runtime = s.runtimeFlags.Runtime
 	env.Dynamic = s.dynamic
 	dag, err := compiler.Analyze(rctx, ast, env, false)
 	if err != nil {
 		return err
+	}
+	if s.runtime {
+		defer printRuntime(env.Runtime)
 	}
 	if desc {
 		description, err := describe.AnalyzeDAG(ctx, dag, env)
@@ -121,4 +137,8 @@ func (s *Shared) writeValue(ctx context.Context, v any) error {
 		err = closeErr
 	}
 	return err
+}
+
+func printRuntime(r exec.Runtime) {
+	fmt.Fprintf(os.Stderr, "runtime: %s\n", r)
 }

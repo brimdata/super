@@ -1,0 +1,40 @@
+script: |
+  # Check the environment variable works.
+  SUPER_RUNTIME=vam super compile -dag -C -runtime 'values "foo"'
+  >&2 echo "// ==="
+  # Check the flag overrides environment variable.
+  SUPER_RUNTIME=vam super compile -sam -dag -C -runtime 'values "foo"'
+  >&2 echo "// ==="
+  # A vectorized file runs in vam.
+  super -f parquet -o test.parquet -c 'values {x:1}'
+  super compile -dag -C -runtime 'from test.parquet'
+  >&2 echo "// ==="
+  # Normal file runs in sam.
+  super -f sup -o test.sup -c 'values {y:1}'
+  super compile -dag -C -runtime 'from test.sup'
+  >&2 echo "// ==="
+  # A vectorized and normal file run in vam.
+  super compile -dag -C -runtime 'fork ( from test.parquet ) ( from test.sup )'
+  >&2 echo "// ==="
+  # Check -sam with a vector input still runs in sam.
+  super compile -dag -sam -C -runtime 'from test.parquet'
+  >&2 echo "// ==="
+  # Error if both -sam and -vam are enabled.
+  ! super -vam -sam
+
+outputs:
+  - name: stderr
+    data: |
+      runtime: vam
+      // ===
+      runtime: sam
+      // ===
+      runtime: vam
+      // ===
+      runtime: auto
+      // ===
+      runtime: vam
+      // ===
+      runtime: sam
+      // ===
+      sam and vam flags cannot both be enabled
