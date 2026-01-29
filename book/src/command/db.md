@@ -35,6 +35,18 @@ By default, commands that display database metadata (e.g., [log](#super-db-log) 
 [`ls`](db-ls.md)) use a text format.  However, the `-f` option can be used
 to specify any supported [output format](super.md#supported-formats).
 
+
+## Database Connection
+
+> **TODO: document database location**
+
+## Commitish
+
+> **TODO: document this somewhere maybe not here**
+
+## Sort Key
+
+
 ## Options
 
 * `-configdir` configuration and credentials directory
@@ -48,7 +60,7 @@ s
 * [create](#super-db-create) create a new pool in a database
 * [delete](#super-db-delete) delete data from a pool
 * [drop](#super-db-drop) remove a pool from a database
-* [init](db-init.md)
+* [init](#super-db-init) create and initialize a new database
 * [load](db-load.md)
 * [log](db-log.md)
 * [ls](db-ls.md)
@@ -69,7 +81,7 @@ s
 super db auth login|logout|method|verify
 ```
 
-Command-line options:
+**Options**
 * [super db options](#options)
 
 > **TODO: rename this command. it's really about connecting to a database.
@@ -184,7 +196,6 @@ single filter expression, e.g.:
 super db delete -where 'ts > 2022-10-05T17:20:00Z and ts < 2022-10-05T17:21:00Z'
 ```
 
-
 ## super db drop
 
 ```
@@ -200,12 +211,25 @@ As this is a DANGER ZONE command, you must confirm that you want to delete
 the pool to proceed.  The `-f` option can be used to force the deletion
 without confirmation.
 
-### Database Connection
+## super db init
 
-> **TODO: document database location**
 
-#### Commitish
+### Synopsis
 
-> **TODO: document this somewhere maybe not here**
+```
+super db init [path]
+```
 
-#### Sort Key
+**Options**
+* [super db options](#options)
+
+A new database is created and initialized with the `init` command.
+The `path` argument is a
+[storage path](../database/intro.md#storage-layer)
+and is optional.  If not present, the path
+is [determined automatically](#database-connection).
+
+If the database already exists, `init` reports an error and does nothing.
+
+Otherwise, the `init` command writes the initial cloud objects to the
+storage path to create a new, empty database at the specified path.
