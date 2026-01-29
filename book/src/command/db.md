@@ -31,7 +31,7 @@ for that sub-command.
 * `super db command sub-command -h` displays help for a sub-command of a
 sub-command and so forth.
 
-By default, commands that display lake metadata (e.g., [`log`](db-log.md) or
+By default, commands that display database metadata (e.g., [log](#super-db-log) or
 [`ls`](db-ls.md)) use a text format.  However, the `-f` option can be used
 to specify any supported [output format](super.md#supported-formats).
 
@@ -40,6 +40,28 @@ to specify any supported [output format](super.md#supported-formats).
 * `-configdir` configuration and credentials directory
 * `-db database` location (env SUPER_DB)
 * `-q` quiet mode (default "false")
+
+## Sub-commands XXX
+s
+* [branch](#super-db-branch) xxx
+* [compact](#super-db-compact) xxx
+* [create](#super-db-create) create a new pool in a database
+* [delete](#super-db-delete) delete data from a pool
+* [drop](#super-db-drop) remove a pool from a database
+* [init](db-init.md)
+* [load](db-load.md)
+* [log](db-log.md)
+* [ls](db-ls.md)
+* [manage](db-manage.md)
+* [merge](db-merge.md)
+* [query](db-query.md) **TODO: ref this doc**
+* [rename](db-rename.md)
+* [revert](db-revert.md)
+* [serve](db-serve.md)
+* [use](db-use.md)
+* [vacate](db-vacate.md)
+* [vacuum](db-vacuum.md)
+* [vector](db-vector.md)
 
 ## super db auth
 
@@ -93,31 +115,90 @@ and list the branches as follows:
 super db branch
 ```
 
-* [branch](db-branch.md)
-* [compact](db-compact.md)
-* [create](db-create.md)
-* [delete](db-delete.md)
-* [drop](db-drop.md)
-* [init](db-init.md)
-* [load](db-load.md)
-* [log](db-log.md)
-* [ls](db-ls.md)
-* [manage](db-manage.md)
-* [merge](db-merge.md)
-* [query](db-query.md) **TODO: ref this doc**
-* [rename](db-rename.md)
-* [revert](db-revert.md)
-* [serve](db-serve.md)
-* [use](db-use.md)
-* [vacate](db-vacate.md)
-* [vacuum](db-vacuum.md)
-* [vector](db-vector.md)
+## super db compact
 
-### Options
+```
+super db compact id id [ id... ]
+```
 
-TODO
+The `compact` command takes a list of one or more
+data object IDs, writes the values
+in those objects to a sequence of new, non-overlapping objects, and
+creates a commit on HEAD replacing the old objects with the new ones.
+    
+## super db create
+
+```
+super db create [-orderby key[,key...][:asc|:desc]] <name>
+```
+
+**Options**
+* `-orderby key` pool key with optional :asc or :desc suffix to organize data in pool (cannot be changed) (default "ts:desc")
+* `-S size` target size of pool data objects, as '10MB' or '4GiB', etc. (default "500MiB")
+* `-use pool` set created pool as the current pool (default "false")
+* [super db options](#options)
+
+The `create` command creates a new data pool with the given name,
+which may be any valid UTF-8 string.
+
+The `-orderby` option indicates the [sort key](#sort-key) that is used to sort
+the data in the pool, which may be in ascending or descending order.
+
+If a sort key is not specified, then it defaults to
+the [special value `this`](../super-sql/intro.md#pipe-scoping).
+
+A newly created pool is initialized with a branch called `main`.
+
+> [!NOTE]
+> Pools can be used without thinking about branches.  When referencing a pool without
+> a branch, the tooling presumes the "main" branch as the default, and everything
+> can be done on main without having to think about branching.
+
+## super db delete
+
+```
+super db delete [options] <id> [<id>...]
+super db delete [options] -where <filter>
+```
+
+**Options**
+* `-message text` commit message
+* `-meta value` application metadata
+* `-use commitish` commit to use, i.e., pool, pool@branch, or pool@commit
+* `-user user` user name for commit message
+* `-where predicate` delete by any SuperSQL predicate
+* [super db options](#options)
+
+The `delete` command removes one or more data objects indicated by their ID from a pool.
+This command
+simply removes the data from the branch without actually deleting the
+underlying data objects thereby allowing time travel to work in the face
+of deletes.  Permanent deletion of underlying data objects is handled by the
+separate [`vacuum`](#super-db-vacuum) command.
+
+If the `-where` flag is specified, delete will remove all values for which the
+provided filter expression is true.  The value provided to `-where` must be a
+single filter expression, e.g.:
+
+```
+super db delete -where 'ts > 2022-10-05T17:20:00Z and ts < 2022-10-05T17:21:00Z'
+```
 
 
+## super db drop
+
+```
+super db drop [options] <name>|<id>
+```
+
+**Options**
+* `-f` do not prompt for confirmation
+* [super db options](#options)
+
+The `drop` command deletes a pool and all of its constituent data.
+As this is a DANGER ZONE command, you must confirm that you want to delete
+the pool to proceed.  The `-f` option can be used to force the deletion
+without confirmation.
 
 ### Database Connection
 
