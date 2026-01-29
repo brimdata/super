@@ -259,7 +259,7 @@ On success, HTTP 204 is returned with no response payload.
 
 Create a commit that reflects the deletion of some data in the branch. The data
 to delete can be specified via a list of object IDs or
-as a filter expression (see [limitations](../command/db-delete.md)).
+as a filter expression (see [limitations](../command/db.md#super-db-delete)).
 
 This simply removes the data from the branch without actually removing the
 underlying data objects thereby allowing [time travel](intro.md#time-travel)
@@ -278,7 +278,7 @@ POST /pool/{pool}/branch/{branch}/delete
 | pool | string | path | **Required.** ID of the pool. |
 | branch | string | path | **Required.** Name of branch. |
 | object_ids | [string] | body | Object IDs to be deleted. |
-| where | string | body | Filter expression (see [limitations](../command/db-delete.md)). |
+| where | string | body | Filter expression (see [limitations](../command/db.md#super-db-delete)). |
 | Content-Type | string | header | [MIME type](#mime-types) of the request payload. |
 | Accept | string | header | Preferred [MIME type](#mime-types) of the response. |
 
@@ -525,7 +525,7 @@ service will expect SUP as the payload format.
 An exception to this is when [loading data](#load-data) and Content-Type is not
 specified. In this case the service will attempt to introspect the data and may
 determine the type automatically. The
-[input formats](../command/super.md#supported-formats) table describes which
+[input formats](../command/formats.md) table describes which
 formats may be successfully auto-detected.
 
 ### Response Payloads
