@@ -23,7 +23,7 @@ for super-structured data with the introduction of:
 * several super-structured serialization [formats](formats/intro.md),
 * a SQL-compatible [query language](super-sql/intro.md) adapted for super-structured data,
 * a super-structured [query engine](https://github.com/brimdata/super/tree/main/runtime/vam), and
-* a super-structured [database format](database/format.md) compatible with
+* a super-structured database format compatible with
   cloud object stores.
 
 To achieve high performance for the dynamically typed data that lies at the heart of
@@ -93,7 +93,7 @@ a runtime system that
 * runs directly on any data inputs like files, streams, or APIs, or
 * manipulates and queries data in a persistent
 storage layer &mdash; the
-[SuperDB database](database/intro.md) &mdash; that rhymes in design with the emergent
+[SuperDB database](command/db.md) &mdash; that rhymes in design with the emergent
 [lakehouse pattern](https://www.cidrdb.org/cidr2021/papers/cidr2021_paper17.pdf)
 but is based on super-structured data.
 
@@ -103,7 +103,7 @@ the [db](command/db.md) subcommand and specify an optional query with `-c`:
 super -c "SELECT 'hello, world'"
 ```
 To interact with a SuperDB database, invoke the [db](command/db.md) subcommands
-of `super` and/or program against the [database API](database/api.md).
+of `super` and/or program against the database API.
 
 >[!NOTE]
 > The persistent database layer is still under development and not yet

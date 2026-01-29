@@ -15,7 +15,7 @@ Additional options of the [db sub-command](db.md#options)
 ### Description
 
 The `log` command, like `git log`, displays a history of the
-[commits](../database/intro.md#commit-objects)
+commits
 starting from any commit, expressed as a [commitish](db.md#commitish).  If no argument is
 given, the tip of the working branch is used.
 
@@ -38,7 +38,7 @@ A commit object includes
 an optional author and message, along with a required timestamp,
 that is stored in the commit journal for reference.  These values may
 be specified as options to the [`load`](db-load.md) command, and are also available in the
-database [API](../database/api.md) for automation.
+database API for automation.
 
 >[!NOTE]
 > The branchlog meta-query source is not yet implemented.

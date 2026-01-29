@@ -17,7 +17,7 @@ SuperDB's disaggregation of compute and storage is reflected into the
 design of its command hierarchy: running the top-level `super` command
 runs the compute engine only on inputs like files and URLs, while
 the [`db`](../command/db.md) subcommands of `super` operate upon
-a [persistent database](../database/intro.md).
+a persistent database.
 
 To get online help, run the `super` command or any sub-command with `-h`,
 e.g.,

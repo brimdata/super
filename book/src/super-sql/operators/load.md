@@ -20,7 +20,7 @@ receives as input. Much like how [`super db load`](../../command/db-load.md)
 is used at the command line to populate a pool with data from files, streams,
 and URIs, the `load` operator is used to save query results from your SuperSQL
 query to a pool in the same database. `<pool>` is a string indicating the
-[name or ID](../../database/intro.md#data-pools) of the destination pool.
+name or ID of the destination pool.
 If the optional `@<branch>` string is included then the data will be committed
 to an existing branch of that name, otherwise the `main` branch is assumed.
 The `author`, `message`, and `meta` strings may also be provided to further

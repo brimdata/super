@@ -159,7 +159,7 @@ results in
 When running on the local file system,
 `from` may refer to a file or an HTTP URL
 indicating an API endpoint.
-When connected to a [SuperDB database](../database/intro.md),
+When connected to a [SuperDB database](../command/db.md),
 `from` typically
 refers to a collection of super-structured data called a _pool_ and
 is referenced using the pool's name similar to SQL referencing

@@ -70,7 +70,7 @@ Data added to a pool can arrive in any order with respect to its sort key.
 While each object is sorted before it is written,
 the collection of objects is generally not sorted.
 
-Each load operation creates a single [commit](../database/intro.md#commit-objects),
+Each load operation creates a single commit,
 which includes:
 * an author and message string,
 * a timestamp computed by the server, and
@@ -94,7 +94,7 @@ with the user obtained from the session and a message that is descriptive
 of the action.
 
 The `date` field here is used by the database for
-[time travel](../database/intro.md#time-travel)
+time travel
 through the branch and pool history, allowing you to see the state of
 branches at any time in their commit history.
 
