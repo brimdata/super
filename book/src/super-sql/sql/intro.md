@@ -320,11 +320,15 @@ values 1, 'foo', {x:1}
 {that:{x:1}}
 ```
 
-## Testing Backward Compatibility
+## SQL Compatibility
 
-In addition to tests found within the
-[SuperDB GitHub repository](https://github.com/brimdata/super), backward
-compatibility relative to PostgreSQL is tested using
+With so many [incompatible SQL dialects in existence](https://youtu.be/TBAf5l1RmcA),
+SuperSQL's goal is to be (mostly) compatible with the
+the [PostgreSQL](https://www.postgresql.org/) dialect.
+
+In addition to SQL tests in the
+[SuperDB GitHub repository](https://github.com/brimdata/super),
+PostgreSQL compatibility is tested using
 [sqllogictest](https://sqlite.org/sqllogictest/doc/trunk/about.wiki) queries
 from [SQLite](https://sqlite.org/).
 
