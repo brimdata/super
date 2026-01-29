@@ -17,7 +17,7 @@ Additional options of the [db sub-command](db.md#options)
 ### Description
 
 A new database is created and initialized with the `init` command.  The `path` argument
-is a [storage path](../database/intro.md#storage-layer)
+is a storage path
 and is optional.  If not present, the path
 is [determined automatically](db.md#database-connection).
 

@@ -135,8 +135,7 @@ The only allowed option for a pool is the commit argument having the form
 ```
 commit <commitsh>
 ```
-where `<commitish>` is a
-[commitish](../../database/intro.md#commitish) that specifies a specific
+where `<commitish>` specifies a specific
 commit in the pool's log thereby allowing time travel.
 
 The the commit argument may be abbreviated by appending to the pool name
