@@ -534,7 +534,7 @@ To receive successful (2xx) responses in a preferred format, include the MIME
 type of the format in the request's Accept HTTP header. If the Accept header is
 not specified, the service will return SUP as the default response format. A
 different default response format can be specified by invoking the
-`-defaultfmt` option when running [`super db serve`](../command/db-serve.md).
+`-defaultfmt` option when running [`super db serve`](../command/db.md#super-db-serve).
 
 For non-2xx responses, the content type of the response will be
 `application/json` or `text/plain`.

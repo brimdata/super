@@ -18,7 +18,7 @@ with a SuperDB database.
 The Python package supports loading data into a database as well as
 querying and retrieving results in the [JSUP format](../../formats/jsup.md).
 The Python client interacts with the database via the REST API served by
-[`super db serve`](../../command/db-serve.md).
+[`super db serve`](../../command/db.md#super-db-serve).
 
 ## Installation
 

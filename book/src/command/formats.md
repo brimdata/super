@@ -1,6 +1,6 @@
 # Formats
 
-The supported [input](input.md) and [output](output.mda) formats include the following:
+The supported [input](input.md) and [output](output.md) formats include the following:
 
 |  Option   | Auto | Extension | Specification                            |
 |-----------|------|-----------|------------------------------------------|

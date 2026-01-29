@@ -89,10 +89,10 @@ options apply to every entity matched.
 
 When reading data from files or URLs, the serialization format of the
 input data is determined by the presence of a
-[well-known extension](../../command/super.md#supported-formats)
+[well-known extension](../../command/formats.md)
 (e.g., `.json`, `.sup`, etc.) on the file path or URL,
 or if the extension is not present or unknown, the format is
-[inferred](../../command/super.md#format-detection)
+[inferred](../../command/input.md#format-detection)
 by inspecting the input data.
 
 To manually specify the format of a source and override these heuristics,
@@ -101,7 +101,7 @@ a format argument may be appended as an argument and has the form
 format <fmt>
 ```
 where `<fmt>` is the name of a supported
-[serialization format](../../command/super.md#supported-formats) and is
+[serialization format](../../command/formats.md) and is
 parsed as a [text entity](../queries.md#text-entity).
 
 ### Files

@@ -196,7 +196,7 @@ it's rare to request it explicitly via `-f`.  However, since it's possible for
 `super db` to generate output in any supported format,
 the `db` format is useful to reverse this.
 
-For example, imagine you'd executed a [meta-query](db-query.md#meta-queries) via
+For example, imagine you'd executed a [meta-query](db.md#meta-queries) via
 `super db query -S "from :pools"` and saved the output in this file `pools.sup`.
 
 ```mdtest-input pools.sup
