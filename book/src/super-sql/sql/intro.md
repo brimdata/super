@@ -319,3 +319,29 @@ values 1, 'foo', {x:1}
 {that:"foo"}
 {that:{x:1}}
 ```
+
+## Testing Backward Compatibility
+
+In addition to tests found within the
+[SuperDB GitHub repository](https://github.com/brimdata/super), backward
+compatibility relative to PostgreSQL is tested using
+[sqllogictest](https://sqlite.org/sqllogictest/doc/trunk/about.wiki) queries
+from [SQLite](https://sqlite.org/).
+
+As of the first GA release of SuperDB, 3,615,296 of 3,619,718 eligible queries
+(99.88% success rate) from the SQLite set produce the same result as
+PostgreSQL when run via `super`. The following open issues are known to be a
+cause of one or more of the 0.12% remaining unsuccessful queries and will be
+addressed in future SuperDB releases.
+
+|**Issue**|**Description**|
+|---------|----------------|
+|[super#6549](https://github.com/brimdata/super/issues/6549)|SQL: Correlated subqueries|
+|[super#6033](https://github.com/brimdata/super/issues/6033)|SQL: INTERSECT and EXCEPT|
+|[super#6074](https://github.com/brimdata/super/issues/6074)|SQL: Large cartesian product causes very long query runtime|
+|[super#5984](https://github.com/brimdata/super/issues/5984)|SQL: NULL values absent from JOIN output|
+|[super#6536](https://github.com/brimdata/super/issues/6536)|SQL: Signed zero|
+|[super#6517](https://github.com/brimdata/super/issues/6517)|SQL: Promoting return types to common type of arguments|
+
+Additional details on how the tests are assembled and executed can be found in
+the [sqllogic-ztests repo](https://github.com/brimdata/sqllogic-ztests).
