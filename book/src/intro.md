@@ -4,7 +4,7 @@ SuperDB is a new type of analytics database that promises an easier approach
 to modern data because it unifies relational tables and eclectic JSON in a
 powerful, new data model called [_super-structured data_](formats/model.md).
 SuperDB's query language is a
-[pipe SQL](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/)
+[Pipe SQL](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/)
 adapted for super-structured data called [_SuperSQL_](super-sql/intro.md),
 which is aspirationally backward-compatible with
 [PostgreSQL](https://www.postgresql.org/).
@@ -219,7 +219,7 @@ also as a super-structured product type.  Thus, JSON and relational tables
 are cleanly unified with an algebraic type system.
 
 The relational database industry is just beginning to recognize this
-and ClickHouse, in partiicular, recently introduced sum types into their
+and ClickHouse, in particular, recently introduced sum types into their
 type system so that mixed-type arrays now work, e.g., the query
 from above seems to work
 ```sh
@@ -258,7 +258,7 @@ Code: 636. DB::Exception: The table structure cannot be extracted from a JSON fo
 Code: 53. DB::Exception: Automatically defined type Int64 for column 'a' in row 1 differs from type defined by previous rows: Array(String). You can specify the type for this column using setting schema_inference_hints. (TYPE_MISMATCH) (version 26.1.1.912 (official build)).
 ...
 ```
-No doubt, this will be fixed this in the future.  But there's a
+No doubt, this will be fixed in the future.  But there's a
 fundamental dissonance here in an
 approach that adapts the statically-typed relational model to a new
 model based on dynamic data without clearly defining what the new
