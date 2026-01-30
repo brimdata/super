@@ -7,9 +7,9 @@ SuperDB's new query language for super-structured data.
 
 Several options for installation are available:
 * download and install pre-built binaries via links on the
-  [GitHub Releases page](https://github.com/brimdata/super/releases/tag/v0.1.0),
+  [GitHub Releases page](https://github.com/brimdata/super/releases),
 * automatically install a pre-built binary for a Mac or Linux environment
-  with [HomeBrew](#homebrew), or
+  with [Homebrew](#homebrew), or
 * [build from source code](#building-from-source).
 
 To install the SuperDB Python client, see the
