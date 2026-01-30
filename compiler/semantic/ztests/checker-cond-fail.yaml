@@ -1,0 +1,17 @@
+script: |
+  ! super -s -c "values has(n) ? this+1 : this+2" in.sup
+
+inputs:
+  - name: in.sup
+    data: |
+      {n:1}
+
+outputs:
+  - name: stderr
+    data: |
+      type mismatch: {n:int64} + int64 at line 1, column 17:
+      values has(n) ? this+1 : this+2
+                      ~~~~~~
+      type mismatch: {n:int64} + int64 at line 1, column 26:
+      values has(n) ? this+1 : this+2
+                               ~~~~~~

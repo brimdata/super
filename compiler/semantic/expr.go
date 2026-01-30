@@ -71,17 +71,31 @@ func (t *translator) expr(e ast.Expr, inType super.Type) (sem.Expr, super.Type) 
 	case *ast.CaseExpr:
 		return t.semCaseExpr(e, inType)
 	case *ast.CondExpr:
+		var errlocs [][]errloc
 		cond, condType := t.expr(e.Cond, inType)
+		t.checker.boolean(e.Cond, condType)
+		t.checker.pushErrs()
 		thenExpr, thenType := t.expr(e.Then, inType)
+		if errs := t.checker.popErrs(); len(errs) != 0 {
+			errlocs = append(errlocs, errs)
+		}
 		var elseExpr sem.Expr
 		var elseType super.Type
 		if e.Else != nil {
+			t.checker.pushErrs()
 			elseExpr, elseType = t.expr(e.Else, inType)
+			if errs := t.checker.popErrs(); len(errs) != 0 {
+				errlocs = append(errlocs, errs)
+			}
 		} else {
 			elseExpr = sem.NewStringError(e, "missing")
 			elseType = t.checker.unknown
 		}
-		t.checker.boolean(e.Cond, condType)
+		if len(errlocs) == 2 {
+			for _, errs := range errlocs {
+				t.checker.keepErrs(errs)
+			}
+		}
 		return &sem.CondExpr{
 			Node: e,
 			Cond: cond,
@@ -664,6 +678,7 @@ func (t *translator) semCaseExpr(c *ast.CaseExpr, inType super.Type) (sem.Expr, 
 		elseType = t.checker.unknown
 	}
 	types := []super.Type{elseType}
+	var thenErrs [][]errloc
 	for _, when := range slices.Backward(c.Whens) {
 		cond, condType := t.expr(when.Cond, inType)
 		if e != nil {
@@ -672,6 +687,7 @@ func (t *translator) semCaseExpr(c *ast.CaseExpr, inType super.Type) (sem.Expr, 
 		} else {
 			t.checker.boolean(when.Cond, condType)
 		}
+		t.checker.pushErrs()
 		then, thenType := t.expr(when.Then, inType)
 		out = &sem.CondExpr{
 			Node: c,
@@ -679,7 +695,18 @@ func (t *translator) semCaseExpr(c *ast.CaseExpr, inType super.Type) (sem.Expr, 
 			Then: then,
 			Else: out,
 		}
+		if errs := t.checker.popErrs(); len(errs) != 0 {
+			thenErrs = append(thenErrs, errs)
+		}
 		types = append(types, thenType)
+	}
+	if len(thenErrs) == len(c.Whens) {
+		// All the paths have errors so report them.
+		// If at least one path is ok, then we deem the overall expression valid
+		// an do not report any errors.
+		for _, errs := range thenErrs {
+			t.checker.keepErrs(errs)
+		}
 	}
 	return out, t.checker.fuse(types)
 }
