@@ -388,8 +388,7 @@ super db init [path]
 * [Database](options.md#database)
 
 A new database is created and initialized with the `init` command.
-The `path` argument is a
-[storage path](../database/intro.md#storage-layer)
+The `path` argument is a storage path
 and is optional.  If not present, the path
 is [determined automatically](#database-connection).
 
@@ -463,7 +462,7 @@ Data added to a pool can arrive in any order with respect to its sort key.
 While each object is sorted before it is written,
 the collection of objects is generally not sorted.
 
-Each load operation creates a single [commit](../database/intro.md#commit-objects),
+Each load operation creates a single commit,
 which includes:
 * an author and message string,
 * a timestamp computed by the server, and
@@ -486,8 +485,7 @@ If these fields are not specified, then the system will fill them in
 with the user obtained from the session and a message that is descriptive
 of the action.
 
-The `date` field here is used by the database for
-[time travel](../database/intro.md#time-travel)
+The `date` field here is used by the database for time travel
 through the branch and pool history, allowing you to see the state of
 branches at any time in their commit history.
 
@@ -515,8 +513,7 @@ super db log [options] [commitish]
 * [Database](options.md#database)
 * [Output](options.md#output)
 
-The `log` command, like `git log`, displays a history of the
-[commits](../database/intro.md#commit-objects)
+The `log` command, like `git log`, displays a history of the commits
 starting from any commit, expressed as a [commitish](#commitish).  If no argument is
 given, the tip of the working branch is used.
 
