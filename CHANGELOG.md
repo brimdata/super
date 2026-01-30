@@ -1,12 +1,11 @@
-SuperDB's first GA release is expected in the 2026. Ongoing changes
-will be documented here once that release is made available. To try out
-SuperDB while it's still under development we recommend starting from the
-[`super` command doc](https://superdb.org/command/super.html).
+# Changelog
 
-The SuperDB codebase originates from the [Zed project](https://zed.brimdata.io/)
-which is no longer under active development. While the full Zed commit history
-is still present in this repo, the detailed
-[CHANGELOG of prior Zed releases](https://github.com/brimdata/zed-archive/blob/main/CHANGELOG.md)
-is available in the [zed-archive repo](https://github.com/brimdata/zed-archive/tree/main)
-along with all [prior Zed release tags](https://github.com/brimdata/zed-archive/tags)
-and the [final GA Zed release](https://github.com/brimdata/zed-archive/releases).
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.1.0] - 2026-01-30
+
+### Added
+- Initial release (see the [project documentation](https://superdb.org/intro.html))
