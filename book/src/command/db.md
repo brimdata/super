@@ -287,10 +287,17 @@ Likewise, you can delete a branch with `-d`:
 ```
 super db branch -d staging
 ```
-and list the branches as follows:
+No data is
+deleted by this operation and the deleted branch can be easily recreated by
+running the branch command again with the commit ID desired.
+
+You can list the branches as follows:
 ```
 super db branch
 ```
+
+If no branch is currently checked out, then "-use pool@base" can be
+supplied to specify the desired pool for the new branch.
 
 ### super db compact
 
@@ -668,39 +675,6 @@ data loaded in a reverted commit remains in the database but no longer
 appears in the branch. The new commit may recursively be reverted by an
 additional revert operation.
 
-### super db use
-
-```
-super db use [ <commitish> ]
-```
-* [Global](options.md#global)
-* [Database](options.md#database)
-
-The `use` command sets the working branch to the indicated commitish.
-When run with no argument, it displays the working branch and
-[database connection](#database-connection).
-
-For example,
-```
-super db use logs
-```
-provides a "pool-only" commitish that sets the working branch to `logs@main`.
-
-If a `@branch` or commit ID are given without a pool prefix, then the pool of
-the commitish previously in use is presumed.  For example, if you are on
-`logs@main` then run this command:
-```
-super db use @test
-```
-then the working branch is set to `logs@test`.
-
-To specify a branch in another pool, simply prepend
-the pool name to the desired branch:
-```
-super db use otherpool@otherbranch
-```
-This command stores the working branch in `$HOME/.super_head`.
-
 ### super db serve
 
 ```
@@ -736,6 +710,65 @@ is recommended.
 
 The `-manage` option enables the running of the same maintenance tasks
 normally performed via the [manage](#super-db-manage) sub-command.
+
+### super db use
+
+```
+super db use [ <commitish> ]
+```
+* [Global](options.md#global)
+* [Database](options.md#database)
+
+The `use` command sets the working branch to the indicated commitish.
+When run with no argument, it displays the working branch and
+[database connection](#database-connection).
+
+Setting these values allows commands like load, rebase, merge, etc. to function without
+having to specify the working branch.  The branch specifier may also be
+a commit ID, in which case you enter a headless state and commands
+like load that require a branch will report an error.
+
+The use command is like "git checkout" but there is no local copy of
+the database.  Rather, the local HEAD state influences commands as
+they access the database.
+
+The pool must be the name or ID of an existing pool.  The branch must be
+the name of an existing branch or a commit ID.
+
+Any command that relies upon HEAD can also be run with the `-use` option
+to refer to a different HEAD without executing an explicit `use` command.
+While the use of HEAD is convenient for interactive CLI sessions,
+automation and orchestration tools are better off hard-wiring the
+HEAD references in each database command via `-use`.
+
+The `use` command merely checks that the branch exists and updates the
+file ~/.super_head.  This file simply contains a pointer to the HEAD branch
+and thus provides the default for the `-use` option.  This way, multiple working
+directories can contain different HEAD pointers (along with your local files)
+and you can easily switch between windows without having to continually
+re-specify a new HEAD.  Unlike Git, all the committed pool data remains
+in the database and is not copied to this local directory.
+
+For example,
+```
+super db use logs
+```
+provides a "pool-only" commitish that sets the working branch to `logs@main`.
+
+If an `@branch` or commit ID are given without a pool prefix, then the pool of
+the commitish previously in use is presumed.  For example, if you are on
+`logs@main` then run this command:
+```
+super db use @test
+```
+then the working branch is set to `logs@test`.
+
+To specify a branch in another pool, simply prepend
+the pool name to the desired branch:
+```
+super db use otherpool@otherbranch
+```
+This command stores the working branch in `$HOME/.super_head`.
 
 ### super db vacate
 

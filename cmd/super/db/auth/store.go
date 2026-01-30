@@ -10,10 +10,12 @@ import (
 )
 
 var Store = &charm.Spec{
-	Name:   "store",
-	Usage:  "auth store",
-	Short:  "store raw tokens",
-	Long:   ``,
+	Name:  "store",
+	Usage: "auth store",
+	Short: "store raw tokens",
+	Long: `
+See https://superdb.org/command/db.html#super-db-auth
+`,
 	New:    NewStore,
 	Hidden: true,
 }

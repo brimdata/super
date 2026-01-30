@@ -17,7 +17,7 @@ var spec = &charm.Spec{
 	Usage: "create and initialize a new, empty database",
 	Short: "init [ path ]",
 	Long: `
-"super db init" ...
+See https://superdb.org/command/db.html#super-db-init
 `,
 	New: New,
 }

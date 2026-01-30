@@ -18,19 +18,7 @@ var spec = &charm.Spec{
 	Usage: "create [-orderby key[:asc|:desc]] name",
 	Short: "create a new data pool",
 	Long: `
-The db create command creates new pools.  A pool key may be specified
-as the sort key of the data stored in the pool. The prefix ":asc" or ":desc"
-appearing after the specified key indicates the sort order.  If no sort
-order is given, ascending is assumed.
-
-The single argument specifies the name for the pool.
-
-The db query command can efficiently perform
-range scans with respect to the pool key using the
-"range" parameter to the "from" operator as the data is laid out
-naturally for such scans.
-
-By default, a branch called "main" is initialized in the newly created pool.
+See https://superdb.org/command/db.html#super-db-create
 `,
 	HiddenFlags: "seekstride",
 	New:         New,

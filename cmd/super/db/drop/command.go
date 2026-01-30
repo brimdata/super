@@ -15,11 +15,7 @@ var spec = &charm.Spec{
 	Usage: "drop pool",
 	Short: "delete a data pool from a database",
 	Long: `
-The drop command removes the named pool from the database.
-
-DANGER ZONE.
-When deleting an entire pool, the drop command prompts for confirmation.
-Once the pool is deleted, its data is gone so use this command carefully.
+See https://superdb.org/command/db.html#super-db-drop
 `,
 	New: New,
 }

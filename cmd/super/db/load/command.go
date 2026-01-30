@@ -32,7 +32,7 @@ var spec = &charm.Spec{
 	Usage: "load [options] file|S3-object|- ...",
 	Short: "add and commit data to a branch",
 	Long: `
-The load command adds data to a pool and commits it to a branch.
+See https://superdb.org/command/db.html#super-db-load
 `,
 	New: New,
 }

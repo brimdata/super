@@ -12,8 +12,10 @@ var Logout = &charm.Spec{
 	Name:  "logout",
 	Usage: "auth logout",
 	Short: "remove saved credentials for a database service",
-	Long:  ``,
-	New:   NewLogoutCommand,
+	Long: `
+See https://superdb.org/command/db.html#super-db-auth
+`,
+	New: NewLogoutCommand,
 }
 
 type LogoutCommand struct {

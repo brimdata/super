@@ -17,6 +17,7 @@ var spec = &charm.Spec{
 	Usage: "merge branch",
 	Short: "merge current branch into another",
 	Long: `
+See https://superdb.org/command/db.html#super-db-merge
 `,
 	New: New,
 }

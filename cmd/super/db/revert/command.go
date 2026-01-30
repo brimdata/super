@@ -18,10 +18,7 @@ var spec = &charm.Spec{
 	Usage: "revert commit",
 	Short: "revert reverses an old commit",
 	Long: `
-The revert command reverses the actions in a commit by applying the inverse
-steps in a new commit to the tip of the indicated branch.  Any data loaded
-in a reverted commit remains in the database but no longer appears in the branch.
-The new commit may recursively be reverted by an additional revert operation.
+See https://superdb.org/command/db.html#super-db-revert
 `,
 	New: New,
 }

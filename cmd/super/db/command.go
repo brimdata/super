@@ -22,8 +22,8 @@ var Spec = &charm.Spec{
 	Usage: "db <sub-command> [options] [arguments...]",
 	Short: "run database commands",
 	Long: `
-db is a command-line tool for creating, configuring, ingesting into,
-querying, and orchestrating databases.`,
+See https://superdb.org/command/db.html
+`,
 	New:          New,
 	InternalLeaf: true,
 }

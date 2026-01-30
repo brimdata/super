@@ -22,18 +22,7 @@ var spec = &charm.Spec{
 	Usage: "branch new-branch [base]",
 	Short: "create a new branch",
 	Long: `
-The db branch command creates a new branch with the indicated name.
-If specified, base is either an existing branch name or a commit ID
-and provides the new branch's base.  If not specified, then HEAD is assumed.
-
-The branch command does not check out the new branch.
-
-If the -d option is specified, then the branch is deleted.  No data is
-deleted by this operation and the deleted branch can be easily recreated by
-running the branch command again with the commit ID desired.
-
-If no branch is currently checked out, then "-use pool@base" can be
-supplied to specify the desired pool for the new branch.
+See https://superdb.org/command/db.html#super-db-branch
 `,
 	New: New,
 }

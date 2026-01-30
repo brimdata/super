@@ -30,19 +30,7 @@ var spec = &charm.Spec{
 	Usage: "serve [options]",
 	Short: "service requests to a database",
 	Long: `
-The serve command implements SuperDB's server personality to service
-requests from instances of SuperDB's client personality. It listens
-for database API requests on the interface and port specified by
-the -l option, executes the requests, and returns results.
-
-The -log.level option controls log verbosity. Available levels,
-ordered from most to least verbose, are debug, info (the default),
-warn, error, dpanic, panic, and fatal. If the volume of logging
-output at the default info level seems too excessive for
-production use, warn level is recommended.
-
-The -manage option enables the running of the same maintenance tasks
-normally performed via the separate "super db manage" command.
+See https://superdb.org/command/db.html#super-db-serve
 `,
 	HiddenFlags: "brimfd,portfile",
 	New:         New,
