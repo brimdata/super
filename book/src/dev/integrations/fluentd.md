@@ -58,7 +58,7 @@ After making these changes, Zeek was started by running
 
 The `super`
 executable compatible with our instance was downloaded and unpacked to a
-directory in our `$PATH`, then the [database service](../../command/db-serve.md)
+directory in our `$PATH`, then the [database service](../../command/db.md#super-db-serve)
 was started with a specified storage path.
 
 ```
@@ -336,7 +336,7 @@ which in our test environment produced
 
 ## SuperDB Database Maintenance
 
-The database stores the data for each [`load`](../../command/db-load.md)
+The database stores the data for each [`load`](../../command/db.md#super-db-load)
 operation in a separate commit. If you observe the output of
 `super db log -use zeek-shaped` after several minutes, you will see many
 such commits have accumulated, which is a reflection of Fluentd frequently
@@ -355,7 +355,7 @@ By default, even after compaction is performed, the granular commit history is
 still maintained to allow for [time travel](../../database/intro.md#time-travel)
 use cases. However, if time travel is not functionality you're likely to
 leverage, you can reduce the lake's storage footprint by periodically running
-[`super db vacuum`](../../command/db-vacuum.md). This will delete files from lake
+[`super db vacuum`](../../command/db.md#super-db-vacuum). This will delete files from lake
 storage that contain the granular commits that have already been rolled into
 larger objects by compaction.
 

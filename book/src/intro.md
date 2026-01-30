@@ -23,7 +23,7 @@ for super-structured data with the introduction of:
 * several super-structured serialization [formats](formats/intro.md),
 * a SQL-compatible [query language](super-sql/intro.md) adapted for super-structured data,
 * a super-structured [query engine](https://github.com/brimdata/super/tree/main/runtime/vam), and
-* a super-structured database format compatible with
+* a super-structured [database format](command/db.md#concepts) compatible with
   cloud object stores.
 
 To achieve high performance for the dynamically typed data that lies at the heart of

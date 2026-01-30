@@ -16,7 +16,7 @@ load <pool>[@<branch>] [ ( [author <author>] [message <message>] [meta <meta>] )
 ## Description
 
 The `load` operator populates the specified `<pool>` with the values it
-receives as input. Much like how [`super db load`](../../command/db-load.md)
+receives as input. Much like how [`super db load`](../../command/db.md#super-db-load)
 is used at the command line to populate a pool with data from files, streams,
 and URIs, the `load` operator is used to save query results from your SuperSQL
 query to a pool in the same database. `<pool>` is a string indicating the

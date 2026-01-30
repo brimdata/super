@@ -42,7 +42,7 @@ or other third-party services to interpret the lake data.
 Once copied, a new service can be instantiated by pointing a `super db serve`
 at the copy of the lake.
 
-Functionality like [data compaction](../command/db-manage.md) and retention are all API-driven.
+Functionality like [data compaction](../command/db.md#super-db-manage) and retention are all API-driven.
 
 Bite-sized components are unified by the super-structured data, usually in the BSUP format:
 * All lake meta-data is available via meta-queries.
@@ -174,7 +174,7 @@ lake located at that path.
 * _Client Personality_ - When the lake is an HTTP or HTTPS URL, then the
 lake is presumed to be a service endpoint and the client
 commands are directed to the service managing the lake.
-* _Server Personality_ - When the [`super db serve`](../command/db-serve.md) command is executed, then
+* _Server Personality_ - When the [`super db serve`](../command/db.md#super-db-serve) command is executed, then
 the personality is always the server personality and the lake must be
 a storage path.  This command initiates a continuous server process
 that serves client requests for the lake at the configured storage path.
@@ -227,8 +227,8 @@ A database is made up of _data pools_, which are like "collections" in NoSQL
 document stores.  Pools may have one or more branches and every pool always
 has a branch called `main`.
 
-A pool is created with the [`create` command](../command/db-create.md)
-and a branch of a pool is created with the [`branch` command](../command/db-branch.md).
+A pool is created with the [`create` command](../command/db.md#super-db-create)
+and a branch of a pool is created with the [`branch` command](../command/db.md#super-db-branch).
 
 A pool name can be any valid UTF-8 string and is allocated a unique ID
 when created.  The pool can be referred to by its name or by its ID.
@@ -257,7 +257,7 @@ commit object's parent); if the constraint is violated, then the transaction
 is aborted.
 
 The _working branch_ of a pool may be selected on any command with the `-use` option
-or may be persisted across commands with the [`use` command](../command/db-use.md) so that
+or may be persisted across commands with the [`use` command](../command/db.md#super-db-use) so that
 `-use` does not have to be specified on each command-line.  For interactive
 workflows, the `use` command is convenient but for automated workflows
 in scripts, it is good practice to explicitly specify the branch in each
@@ -277,7 +277,7 @@ A commitish is always relative to the pool and has the form:
 where `<pool>` is a pool name or pool ID, `<id>` is a commit object ID,
 and `<branch>` is a branch name.
 
-In particular, the working branch set by the [`use` command](../command/db-use.md) is a commitish.
+In particular, the working branch set by the [`use` command](../command/db.md#super-db-use) is a commitish.
 
 A commitish may be abbreviated in several ways where the missing detail is
 obtained from the working-branch commitish, e.g.,
@@ -342,7 +342,7 @@ If a writer commits data after or while a reader is scanning, then the reader
 does not see the new data since it's scanning the snapshot that existed
 before these new writes occurred.
 
-Also, arbitrary metadata can be [committed to the log](../command/db-load.md),
+Also, arbitrary metadata can be [committed to the log](../command/db.md#super-db-log),
 e.g., to associate derived analytics to a specific
 journal commit point potentially across different data pools in
 a transactionally consistent fashion.
