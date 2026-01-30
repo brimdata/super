@@ -17,7 +17,7 @@ Instead, your shell is your REPL and the `super` command lets you:
 
 The `super` command is invoked either by itself to run a query:
 ```
-super -c <query> | -I <query-file> [ options ] [ <path> ... ]
+super [ -c <query> | -I <query-file> ] [ options ] [ <path> ... ]
 ```
 or with a [sub-command](sub-commands.md):
 ```
@@ -63,7 +63,7 @@ do not halt execution.  Instead, these error conditions produce
 [first-class errors](../super-sql/types/error.md)
 in the data output stream interleaved with any valid results.
 Such errors are easily queried with the
-[`is_error` function](../super-sql/functions/errors/is_error.md).
+[is_error](../super-sql/functions/errors/is_error.md) function.
 
 This approach provides a robust technique for debugging complex queries,
 where errors can be wrapped in one another providing stack-trace-like debugging
@@ -103,7 +103,7 @@ For example, this query
 ```mdtest-command
 super -C -c 'has(foo)'
 ```
-is an implied [`where` operator](../super-sql/operators/where.md), which matches values
+is an implied [where](../super-sql/operators/where.md) operator, which matches values
 that have a field `foo`, i.e.,
 ```mdtest-output
 where has(foo)
@@ -112,7 +112,7 @@ while this query
 ```mdtest-command
 super -C -c 'a:=x+1'
 ```
-is an implied [`put` operator](../super-sql/operators/put.md), which creates a new field `a`
+is an implied [put](../super-sql/operators/put.md) operator, which creates a new field `a`
 with the value `x+1`, i.e.,
 ```mdtest-output
 put a:=x+1

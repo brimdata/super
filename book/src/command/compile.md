@@ -26,9 +26,11 @@ format desired. Use `-dag` to specify the DAG form; otherwise, the
 AST form is assumed.
 
 The `-C` option causes the output to be shown as query language
-source instead of the AST.  This is particularly helpful to
-see how SQP queries in their abbreviated form are translated
-into the expanded, pedantic form  of piped SQL.  The DAG can
+text instead of the AST.  This is particularly helpful to
+see how [SuperSQL queries](../super-sql/intro.md)
+in their abbreviated form are translated
+into the expanded, pedantic form  of
+[pipe queries](../super-sql/intro.md#pipe-queries).  The DAG can
 also be formatted as query-style text but the resulting text is
 informational only and does not conform to any query syntax.  When
 `-C` is specified, the result is sent to stdout and the `-f` and

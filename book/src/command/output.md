@@ -1,7 +1,7 @@
 # Output
 
-Many commands produce output and output is always super-structured
-and can be serialized into a number of [supported formats](formats.md).
+Many commands produce output, which always originates in super-structured form,
+but can be serialized into a number of [supported formats](formats.md).
 The super-structured formats are generally
 preferred because they retain the full richness of the super-structured
 data model.
@@ -11,8 +11,12 @@ to the indicated file or directory.
 
 When writing to stdout and stdout is a terminal, the default
 output format is [SUP](../formats/sup.md).
-Otherwise, the default format is [CSUP](../formats/csup.md).
+Otherwise, the default format is [BSUP](../formats/bsup.md).
 These defaults may be overridden with `-f`, `-s`, or `-S`.
+
+>[!NOTE]
+> While BSUP is currently default, a forthcoming release will change
+> CSUP to default after CSUP supports streaming.
 
 Since SUP is a common format choice for interactive use,
 the `-s` flag is shorthand for `-f sup`.
@@ -26,8 +30,8 @@ is a shortcut for `-f json` and `-J` is a shortcut for pretty-printing JSON.
 > Having the default output format dependent on the terminal status
 > causes an occasional surprise
 > (e.g., forgetting `-f` or `-s` in a scripted test that works fine on the
-> command line but fails in CI), this avoids problematic performance where a
-> data pipeline deployed to product accidentally uses SUP instead of CSUP.
+> command line but fails in CI).  However, this avoids problematic performance where a
+> data pipeline deployed to production accidentally uses SUP instead of CSUP.
 > Since `super` gracefully handles any input, this would be hard to detect.
 > Alternatively, making CSUP always be default would cause much annoyance when
 > binary data is written to the terminal.
@@ -36,7 +40,7 @@ If no query is specified with `-c`, the inputs are scanned without modification
 and output in the specified format
 providing a convenient means to convert files from one format to another, e.g.,
 ```
-super -f arrows -o  out.arrows file1.json file2.parquet file3.csv
+super -f arrows -o out.arrows file1.json file2.parquet file3.csv
 ```
 
 ## Pretty Printing
@@ -85,7 +89,7 @@ and can be disabled with `-color false`.
 
 ## Pipeline-friendly Formats
 
-Though it's a compressed format, CSUP and BSUP data is self-describing and
+Though they're compressed formats, CSUP and BSUP data are self-describing and
 stream-oriented and thus is pipeline friendly.
 
 Since data is self-describing you can simply take super-structured output

@@ -1,6 +1,6 @@
 # super db
 
-`super db` is a sub-command of [`super`](super.md) to manage and query SuperDB databases.
+`super db` is a sub-command of [super](super.md) to manage and query SuperDB databases.
 
 >[!NOTE]
 > The database portion of SuperDB is early in development.  While previous versions
@@ -10,11 +10,11 @@
 
 The `super db` command is invoked either by itself to run a query:
 ```
-super -c <query> | -I <query-file> [ options ] [ <path> ... ]
+super db -c <query> | -I <query-file> [ options ]
 ```
 or with a [sub-command](#sub-commands):
 ```
-super [ options ] <sub-command> ...
+super db <sub-command> [options]...
 ```
 
 By default, commands that display database metadata
@@ -26,11 +26,11 @@ to specify any supported [output format](formats.md).
 
 A SuperDB database resides in a directory in a storage system located by its path,
 called the _storage path_, which may be either:
-* a local file system defined by the path to the directory containing the database,
+* a local file system defined by the path to the directory containing the database, or
 * cloud storage as defined by a URL indicating the root location of the database.
 
 >[!NOTE]
-> Currently, only S3 is supported for cloud storage.
+> Currently, only [S3](../dev/integrations/s3.md) is supported for cloud storage.
 > Support is very early and little work has been done on optimizing S3 performance.
 
 The contents of the database are entirely defined by the data located
@@ -143,13 +143,13 @@ This example reads every record from the full key range of the `logs` pool
 and sends the results to stdout.
 
 ```
-super db query 'from logs'
+super db -c 'from logs'
 ```
 
 We can narrow the span of the query by specifying a filter on the database
 [sort key](#sort-key):
 ```
-super db query 'from logs | ts >= 2018-03-24T17:36:30.090766Z and ts <= 2018-03-24T17:36:30.090758Z'
+super db -c 'from logs | ts >= 2018-03-24T17:36:30.090766Z and ts <= 2018-03-24T17:36:30.090758Z'
 ```
 Filters on sort keys are efficiently implemented as the data is laid out
 according to the sort key and seek indexes keyed by the sort key
@@ -158,12 +158,12 @@ are computed for each data object.
 When querying data to the [BSUP](../formats/bsup.md) output format,
 output from a pool can be easily piped to other commands like `super`, e.g.,
 ```
-super db query -f bsup 'from logs' | super -f table -c 'count() by field' -
+super db -f bsup -c 'from logs' | super -f table -c 'count() by field' -
 ```
 Of course, it's even more efficient to run the query inside of the pool traversal
 like this:
 ```
-super db query -f table 'from logs | count() by field'
+super db -f table -c 'from logs | count() by field'
 ```
 By default, the `query` command scans pool data in sort-key order though
 the query optimizer may, in general, reorder the scan to optimize searches,
@@ -188,35 +188,35 @@ sources vary based on level.
 For example, a list of pools with configuration data can be obtained
 in the SUP format as follows:
 ```
-super db query -S "from :pools"
+super db -S -c "from :pools"
 ```
 This meta-query produces a list of branches in a pool called `logs`:
 ```
-super db query -S "from logs:branches"
+super db -S -c "from logs:branches"
 ```
 You can filter the results just like any query,
 e.g., to look for particular branch:
 ```
-super db query -S "from logs:branches | branch.name=='main'"
+super db -S -c "from logs:branches | branch.name=='main'"
 ```
 
 This meta-query produces a list of the data objects in the `live` branch
 of pool `logs`:
 ```
-super db query -S "from logs@live:objects"
+super db -S -c "from logs@live:objects"
 ```
 
 You can also pretty-print in human-readable form most of the metadata records
 using the "db" format, e.g.,
 ```
-super db query -f db "from logs@live:objects"
+super db -f db -c "from logs@live:objects"
 ```
 
 The `main` branch is queried by default if an explicit branch is not specified,
 e.g.,
 
 ```
-super db query -f db "from logs:objects"
+super db -f db -c "from logs:objects"
 ```
 
 ## Sub-commands
@@ -234,7 +234,7 @@ super db query -f db "from logs:objects"
 * [manage](#super-db-manage) run regular maintenance on a database
 * [merge](#super-db-merge) merged data from one branch to another
 * [rename](#super-db-rename) rename a database pool
-* [revert](#super-db-revert) revert reverses an old commit
+* [revert](#super-db-revert) reverse an old commit
 * [serve](#super-db-serve)  run a SuperDB service endpoint
 * [use](#super-db-use) set working branch for `db` commands
 * [vacate](#super-db-vacate) compact a pool's commit history by squashing old commit objects
@@ -250,10 +250,10 @@ super db auth login|logout|method|verify
 
 > **TODO: rename this command. it's really about connecting to a database.
 > authenticating is something you do to connect.**
-    login - log in to a database service and save credentials
-    logout - remove saved credentials for a database service
-    method - display authentication method supported by database service
-    verify - verify authentication credentials
+* login - log in to a database service and save credentials
+* logout - remove saved credentials for a database service
+* method - display authentication method supported by database service
+* verify - verify authentication credentials
 
 ### super db branch
 ```
@@ -353,7 +353,7 @@ This command
 simply removes the data from the branch without actually deleting the
 underlying data objects thereby allowing time travel to work in the face
 of deletes.  Permanent deletion of underlying data objects is handled by the
-separate [`vacuum`](#super-db-vacuum) command.
+separate [vacuum](#super-db-vacuum) command.
 
 If the `-where` flag is specified, delete will remove all values for which the
 provided filter expression is true.  The value provided to `-where` must be a
@@ -418,7 +418,7 @@ a "table" as all super-structured data is _self describing_ and can be queried i
 schema-agnostic fashion.  Data of any _shape_ can be stored in any pool
 and arbitrary data _shapes_ can coexist side by side.
 
-As with [`super`](super.md),
+As with [super](super.md),
 the [input arguments](super.md#options) can be in
 any [supported format](formats.md) and
 the input format is auto-detected if `-i` is not provided.  Likewise,
@@ -500,7 +500,7 @@ commit history.
 
 Since commit objects are stored as super-structured data, the metadata can easily be
 queried by running the `log -f bsup` to retrieve the log in BSUP format,
-for example, and using [`super`](super.md) to pull the metadata out
+for example, and using [super](super.md) to pull the metadata out
 as in:
 ```
 super db log -f bsup | super -c 'has(meta) | values {id,meta}' -

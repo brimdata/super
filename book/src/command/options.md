@@ -3,11 +3,11 @@
 Each sub-command typically has a set of command-line options that
 control its behavior but also inherits shared command-line options
 based on the personality of the command, e.g., whether it runs
-a [query](#query), [takes input](#input), [produes output](#output),
+a [query](#query), [takes input](#input), [produces output](#output),
 and so forth.
 
 The shared options are documented here while each sub-command description
-documents it command-specific options.
+documents its command-specific options.
 
 ## Global
 
@@ -74,7 +74,7 @@ in which they occurred.
 Database options available to the `super db` command and
 to all `db` [sub-commands](db.md#sub-commands) include:
 * `-configdir` configuration and credentials directory
-* `-db database` location (defaults to environment SUPER_DB if not specified)
+* `-db database` location (defaults to environment variable SUPER_DB if not specified)
 * `-q` quiet mode to disable displaying status messages for many `super db` subcommands
 
 ## Commit
