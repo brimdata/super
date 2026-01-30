@@ -1,0 +1,42 @@
+script: |
+  super -s -I walk.spq in.sup
+  ! super -s -I fail.spq in.sup
+
+inputs:
+  - name: walk.spq
+    data: |
+      fn walk(node, visit):
+        case kind(node)
+        when "array" then
+          [unnest node | walk(this, visit)]
+        when "record" then
+          unflatten([unnest flatten(node) | {key,value:walk(value, visit)}])
+        when "union" then
+          walk(under(node), visit)
+        else visit(node)
+        end
+      fn addOne(node): case typeof(node) when <int64> then node+1 else node end
+      values walk(this, &addOne)
+  - name: fail.spq
+    data: |
+      values
+        case typeof(this)
+        when <string> then this+1
+        else this+2
+        end
+  - name: in.sup
+    data: |
+      {n:1}
+
+outputs:
+  - name: stdout
+    data: |
+      {n:2}
+  - name: stderr
+    data: |
+      type mismatch: {n:int64} + int64 in fail.spq at line 4, column 8:
+        else this+2
+             ~~~~~~
+      type mismatch: {n:int64} + int64 in fail.spq at line 3, column 22:
+        when <string> then this+1
+                           ~~~~~~
