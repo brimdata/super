@@ -17,12 +17,7 @@ var spec = &charm.Spec{
 	Usage: "vacuum [options]",
 	Short: "clear space by removing unreferenced objects",
 	Long: `
-"super db vacuum" clears up space in a pool by removing objects that are not visible 
-from a pool's branch or commit.
-
-DANGER ZONE:
-Running this command will permanently delete objects referenced in 
-previous commits causing missing data when time traveling to those commits.
+See https://superdb.org/command/db.html#super-db-vacuum
 `,
 	New: New,
 }

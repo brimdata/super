@@ -14,8 +14,7 @@ var spec = &charm.Spec{
 	Usage: "rename old-name new-name",
 	Short: "rename a data pool",
 	Long: `
-The rename command changes the name of the pool given by the -p option to the
-new name provided.
+See https://superdb.org/command/db.html#super-db-rename
 `,
 	New: New,
 }

@@ -15,8 +15,10 @@ var Login = &charm.Spec{
 	Name:  "login",
 	Usage: "auth login",
 	Short: "log in to a database service and save credentials",
-	Long:  ``,
-	New:   NewLoginCommand,
+	Long: `
+See https://superdb.org/command/db.html#super-db-auth
+`,
+	New: NewLoginCommand,
 }
 
 type LoginCommand struct {

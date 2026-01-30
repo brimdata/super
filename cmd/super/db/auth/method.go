@@ -13,8 +13,10 @@ var Method = &charm.Spec{
 	Name:  "method",
 	Usage: "auth method",
 	Short: "display authentication method supported by database service",
-	Long:  ``,
-	New:   NewMethod,
+	Long: `
+See https://superdb.org/command/db.html#super-db-auth
+`,
+	New: NewMethod,
 }
 
 type MethodCommand struct {

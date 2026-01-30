@@ -11,8 +11,10 @@ var spec = &charm.Spec{
 	Name:  "auth",
 	Usage: "auth [subcommand]",
 	Short: "authentication and authorization commands",
-	Long:  ``,
-	New:   New,
+	Long: `
+See https://superdb.org/command/db.html#super-db-auth
+`,
+	New: New,
 }
 
 func init() {

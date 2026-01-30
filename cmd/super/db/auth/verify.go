@@ -13,8 +13,10 @@ var Verify = &charm.Spec{
 	Name:  "verify",
 	Usage: "auth verify",
 	Short: "verify authentication credentials",
-	Long:  ``,
-	New:   NewVerify,
+	Long: `
+See https://superdb.org/command/db.html#super-db-auth
+`,
+	New: NewVerify,
 }
 
 type VerifyCommand struct {

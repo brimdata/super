@@ -16,9 +16,8 @@ var spec = &charm.Spec{
 	Usage: "compact id id [id ...]",
 	Short: "compact data objects on a pool branch",
 	Long: `
-The compact command takes a list of data object IDs, writes the values
-in those objects to a sequence of new, non-overlapping objects, and creates
-a commit on HEAD replacing the old objects with the new ones.`,
+See https://superdb.org/command/db.html#super-db-compact
+`,
 	New: New,
 }
 

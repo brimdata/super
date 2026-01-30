@@ -18,10 +18,7 @@ var spec = &charm.Spec{
 	Usage: "log [options]",
 	Short: "display the commit log history starting at any commit",
 	Long: `
-The log command outputs a commit history of any branch or unnamed commit object
-from a data pool in the format desired.
-By default, the output is in the human-readable "db" format
-but BSUP can be used to easily be pipe a log to super or other tooling for analysis.
+See https://superdb.org/command/db.html#super-db-log
 `,
 	New: New,
 }

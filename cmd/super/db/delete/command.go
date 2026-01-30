@@ -21,22 +21,7 @@ var spec = &charm.Spec{
 	Usage: "delete id [id ...]",
 	Short: "delete data objects from a pool branch",
 	Long: `
-The delete command takes a list of data object IDs and
-deletes references to those object from HEAD by commiting a new
-delete operation to HEAD.
-Once the delete operation completes, the deleted data is no longer seen
-when read data from the pool.
-
-If the -where flag is specified, delete will remove all values for which the
-provided filter expression is true. The value provided to where must be a
-single filter expression, e.g.:
-
-super db delete -where 'ts > 2022-10-05T17:20:00Z and ts < 2022-10-05T17:21:00Z'
-
-No data is actually removed from the database.  Instead, a delete
-operation is an action in the pool's commit journal.  Any delete
-can be "undone" by adding the commits back to the log using
-"super db revert".
+See https://superdb.org/command/db.html#super-db-delete
 `,
 	New: New,
 }
