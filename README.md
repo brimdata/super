@@ -32,7 +32,7 @@ JSON data model in a unified compute engine.
 SuperDB uses SQL as its query language, but it's a SQL that has been extended
 with [pipe syntax](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/)
 and [lots of fun shortcuts](https://superdb.org/super-sql/operators/intro.html#shortcuts).
-This extended SQL is called SuperSQL.
+This extended SQL is called [SuperSQL](https://superdb.org/super-sql/intro.html).
 
 Here's a SuperSQL query that fetches some data from GitHub Archive,
 computes the set of repos touched by each user, ranks them by number of repos,
@@ -70,7 +70,9 @@ most common data formats.
 
 ## Project Status
 
-Our long-term goal for SuperSQL is to be Postgres-compatible and interoperate
+Our long-term goal for SuperSQL is to be
+[Postgres-compatible](https://superdb.org/super-sql/sql/intro.html#sql-compatibility)
+and interoperate
 with existing SQL tooling. In the meantime, SuperSQL is a bit of a moving
 target and we would love [community engagement](#join-the-community) to evolve and fine tune its
 syntax and semantics.
