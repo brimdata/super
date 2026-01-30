@@ -1,12 +1,7 @@
 # SuperDB [![Tests][tests-img]][tests] [![GoPkg][gopkg-img]][gopkg]
 
-> 🔴 **NOTICE OF PROJECT READINESS** 🔴
->
-> SuperDB is still under development so there's not yet a GA release.
-> You're welcome to [try it out](#try-it) in its early form (i.e.,
-> tip-of-`main`) and we'd love to hear your feedback. Read on for more info!
-
-SuperDB is a new analytics database that supports relational tables and JSON
+[SuperDB](https://superdb.org/)
+is a new analytics database that supports relational tables and JSON
 on an equal footing.  It shines when it comes to data wrangling where
 you need to explore or process large eclectic data sets.  It's also pretty
 decent at analytics and
@@ -37,7 +32,7 @@ JSON data model in a unified compute engine.
 SuperDB uses SQL as its query language, but it's a SQL that has been extended
 with [pipe syntax](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/)
 and [lots of fun shortcuts](https://superdb.org/super-sql/operators/intro.html#shortcuts).
-This extended SQL is called SuperSQL.
+This extended SQL is called [SuperSQL](https://superdb.org/super-sql/intro.html).
 
 Here's a SuperSQL query that fetches some data from GitHub Archive,
 computes the set of repos touched by each user, ranks them by number of repos,
@@ -75,7 +70,9 @@ most common data formats.
 
 ## Project Status
 
-Our long-term goal for SuperSQL is to be Postgres-compatible and interoperate
+Our long-term goal for SuperSQL is to be
+[Postgres-compatible](https://superdb.org/super-sql/sql/intro.html#sql-compatibility)
+and interoperate
 with existing SQL tooling. In the meantime, SuperSQL is a bit of a moving
 target and we would love [community engagement](#join-the-community) to evolve and fine tune its
 syntax and semantics.
@@ -89,20 +86,15 @@ Our areas of active development include:
 
 ## Try It
 
-As SuperDB is still under construction, GA releases are not yet available.
-However, you can [install](https://superdb.org/getting-started/install.html) a build of the
-[`super`](https://superdb.org/command/super.html) command-line tool based on
-code that's under active development to start tinkering. Detailed documentation
+SuperDB is embodied in a dependency-free binary that is
+[easy to install](https://superdb.org/getting-started/install.html).
+
+Detailed documentation
 for the SuperDB system and its piped SQL syntax is available on the
 [SuperDB docs site](https://superdb.org).
 
-As the code and docs are evolving, we recommend focusing first on what's in the
-[`super` command doc](https://superdb.org/command/super.html). Feel free to
-explore other docs and try things out, but please don't be shocked if you hit
-speedbumps in the near term, particularly in areas like performance and full
-SQL coverage. We're working on it! :wink:
-
-Once you've tried it out, we'd love to hear your feedback via our
+If you're so inclined,
+we'd love to hear your feedback via our
 [community Slack](https://www.brimdata.io/join-slack/).
 
 >**NOTE:** The SuperDB query engine can run locally without a storage engine by accessing
