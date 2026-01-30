@@ -297,7 +297,7 @@ representing an array type of elements having a sum type of `int64` and `string`
 And the input that foiled ClickHouse is naturally and easily
 handled by super-structured data:
 ```sh
-; super -c "SELECT a, typeof(a) as type FROM 'example2.json'"
+$ super -c "SELECT a, typeof(a) as type FROM 'example2.json'"
 {a:[1,"foo"],type:<[int64|string]>}
 {a:1,type:<int64>}
 ```
