@@ -421,11 +421,11 @@ of pipes for SQL.
 
 SuperSQL takes this approach of backward compatibility further
 and seizes on the opportunity to introduce a language that is both
-SQL compatible but also adapted to super-structured data.
+SQL compatible and also adapted to super-structured data.
 In this way,
 SuperSQL diverges significantly from SQL anachronisms in the pipe portion of
 the language by introducing the concept of
-[pipe scoping](super-sql/intro.md#pipe-scoping) while exploting the
+[pipe scoping](super-sql/intro.md#pipe-scoping) while exploiting the
 static typing of super-structured data
 to simultaneously support [relational scoping](super-sql/intro.md#relational-scoping)
 for SQL tables and columns.
