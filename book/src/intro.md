@@ -395,9 +395,8 @@ the polymorphic algebra of super-structured data implemented by SuperDB.
 ## Evolving SQL
 
 Despite SQL's enduring success,
-it is widely accepted that there are serious flaws in the language and
-a number of authors argue that SQL should be replaced in its entirety.
-Among many such works, here are some noteworthy arguments:
+it is widely accepted that there are serious flaws with the language.
+Here are some noteworthy arguments that build the case:
 
 * [A Critique of the SQL Database Language](https://dl.acm.org/doi/pdf/10.1145/984549.984551)
 a 1983 paper by
@@ -409,25 +408,27 @@ Query Language](https://www.cidrdb.org/cidr2024/papers/p48-neumann.pdf)
 by [Neumann](https://db.in.tum.de/~neumann/)
 and [Leis](https://www.cs.cit.tum.de/dis/team/prof-dr-viktor-leis/).
 
-A very different approach is taken in
-[SQL Has Problems. We Can Fix Them: Pipe Syntax In SQL](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/), which argues that SQL
-should be merely improved upon and not replaced outright.
-Here the authors argue that except for compositional syntax, SQL is
+These publications all argue that SQL is so problematic it should
+be replaced outright. In contrast, the authors of
+[SQL Has Problems. We Can Fix Them: Pipe Syntax In SQL](https://research.google/pubs/sql-has-problems-we-can-fix-them-pipe-syntax-in-sql/) propose that SQL
+should be merely improved upon by creating a superset of SQL.
+Except for compositional syntax, the paper says SQL is
 perfectly reasonable and we should live with its anachronisms (see Section 2.4).
 Thus, their
 [Pipe SQL specification](https://github.com/google/zetasql/blob/master/docs/pipe-syntax.md)
 carries forward SQL eccentricities into their modern adaptation
 of pipes for SQL.
 
-SuperSQL takes a different approach and seizes the opportunity to modernize
-the ergonomics of a SQL-compatible query language.
-While embracing backward compatibility,
+SuperSQL takes this approach of backward compatibility further
+and seizes on the opportunity to introduce a language that is both
+SQL compatible but also adapted to super-structured data.
+In this way,
 SuperSQL diverges significantly from SQL anachronisms in the pipe portion of
-the language by introducing
-[pipe scoping](super-sql/intro.md#pipe-scoping) semantics
-that coexist next to the
-[relational scoping](super-sql/intro.md#relational-scoping) semantics
-of SQL tables and columns.
+the language by introducing the concept of
+[pipe scoping](super-sql/intro.md#pipe-scoping) while exploting the
+static typing of super-structured data
+to simultaneously support [relational scoping](super-sql/intro.md#relational-scoping)
+for SQL tables and columns.
 
 The vision here is that comprehensive backward
 compatibility can reside in the SQL operators while a modernized syntax and
