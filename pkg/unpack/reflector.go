@@ -160,7 +160,7 @@ func (r Reflector) unpackVal(toVal reflect.Value, from any) error {
 	if toVal.Type().NumMethod() != 0 && toVal.CanInterface() {
 		if _, ok := from.(string); ok {
 			if typ := toVal.Type(); typ.Implements(textUnmarshalerType) ||
-				reflect.PtrTo(typ).Implements(textUnmarshalerType) {
+				reflect.PointerTo(typ).Implements(textUnmarshalerType) {
 				return nil
 			}
 		}
@@ -182,7 +182,7 @@ func (r Reflector) unpackVal(toVal reflect.Value, from any) error {
 		if err := assign(toVal, reflect.ValueOf(child)); err != nil {
 			return err
 		}
-	case reflect.Ptr:
+	case reflect.Pointer:
 		var elem reflect.Value
 		if toVal.IsNil() {
 			elem = reflect.New(toVal.Type().Elem())
