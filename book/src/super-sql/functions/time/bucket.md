@@ -5,16 +5,15 @@ quantize a time or duration value into buckets of equal time spans
 ## Synopsis
 
 ```
-bucket(val: time, span: duration|number) -> time
-bucket(val: duration, span: duration|number) -> duration
+bucket(val: time, span: duration) -> time
+bucket(val: duration, span: duration) -> duration
 ```
 
 ## Description
 
 The `bucket` function quantizes a time or duration `val`
-(or value that can be coerced to time) into buckets that
-are equally spaced as specified by `span` where the bucket boundary
-aligns with 0.
+into buckets that are equally spaced as specified by `span`
+where the bucket boundary aligns with 0.
 
 ## Examples
 
