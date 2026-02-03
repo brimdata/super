@@ -238,8 +238,8 @@ ClickHouse provides a secondary type function `dynamicType()`
 to get at the underlying type,
 but we can't use that function on the top-level value
 ```sh
-$ clickhouse -q "SELECT dynamicType(*) FROM 'example.json'"
-Code: 43. DB::Exception: First argument for function dynamicType must be Dynamic, got Array(Dynamic) instead: In scope SELECT toTypeName(*), dynamicType(*) FROM `example.json`. (ILLEGAL_TYPE_OF_ARGUMENT)
+$ clickhouse -q "SELECT dynamicType(a) FROM 'example.json'"
+Code: 43. DB::Exception: First argument for function dynamicType must be Dynamic, got Array(Dynamic) instead: In scope SELECT dynamicType(a) FROM `example.json`. (ILLEGAL_TYPE_OF_ARGUMENT)
 ```
 Instead we must ask for the type of the array element
 ```sh
