@@ -1,5 +1,4 @@
 script: |
-  export SUPER_VAM=1
   echo === -P 2
   super compile -C -P 2 -dynamic 'fork ( from a.csup | sort b ) ( from c.csup | sort d )'
   echo === -P 5
