@@ -132,18 +132,15 @@ func (f *Formatter) formatValueAndDecorate(typ super.Type, bytes scode.Bytes) {
 	known := f.hasName(typ)
 	implied := f.isImplied(typ)
 	f.formatValue(0, typ, bytes, known, implied, false)
-	f.decorate(typ, false, bytes == nil)
+	f.decorate(typ, bytes == nil)
 }
 
 func (f *Formatter) formatValue(indent int, typ super.Type, bytes scode.Bytes, parentKnown, parentImplied, decorate bool) {
 	known := parentKnown || f.hasName(typ)
 	if bytes == nil {
 		f.build("null")
-		if parentImplied {
-			parentKnown = false
-		}
-		if decorate {
-			f.decorate(typ, parentKnown, true)
+		if decorate && (parentImplied || !parentKnown) {
+			f.decorate(typ, true)
 		}
 		return
 	}
@@ -183,8 +180,8 @@ func (f *Formatter) formatValue(indent int, typ super.Type, bytes scode.Bytes, p
 		f.build(">")
 		f.endColor()
 	}
-	if decorate {
-		f.decorate(typ, parentKnown, null)
+	if decorate && !parentKnown {
+		f.decorate(typ, null)
 	}
 }
 
@@ -371,8 +368,8 @@ func (f *Formatter) truncTypeValueErr() {
 	f.build("<ERR truncated type value>")
 }
 
-func (f *Formatter) decorate(typ super.Type, known, null bool) {
-	if known || (!(null && typ != super.TypeNull) && f.isImplied(typ)) {
+func (f *Formatter) decorate(typ super.Type, null bool) {
+	if typ == super.TypeNull || !null && f.isImplied(typ) {
 		return
 	}
 	f.startColor(color.Gray(200))
@@ -441,7 +438,7 @@ func (f *Formatter) formatVector(indent int, open, close string, inner super.Typ
 	if elems.needsDecoration() {
 		// If we haven't seen all the types in the union, print the decorator
 		// so the fullness of the union is persevered.
-		f.decorate(val.Type(), false, true)
+		f.decorate(val.Type(), true)
 	}
 	return false
 }
@@ -526,7 +523,7 @@ func (f *Formatter) formatMap(indent int, typ *super.TypeMap, bytes scode.Bytes,
 	f.build(f.newline)
 	f.indent(indent-f.tab, "}|")
 	if keyElems.needsDecoration() || valElems.needsDecoration() {
-		f.decorate(typ, false, true)
+		f.decorate(typ, true)
 	}
 	return empty
 }
