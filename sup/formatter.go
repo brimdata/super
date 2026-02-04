@@ -101,19 +101,7 @@ func (f *Formatter) Format(val super.Value) string {
 }
 
 func (f *Formatter) hasName(typ super.Type) bool {
-	named, ok := typ.(*super.TypeNamed)
-	if !ok {
-		return false
-	}
-	if _, ok := f.typedefs[named.Name]; ok {
-		return true
-	}
-	if f.permanent != nil {
-		if _, ok = f.permanent[named.Name]; ok {
-			return true
-		}
-	}
-	return false
+	return f.nameOf(typ) != ""
 }
 
 func (f *Formatter) nameOf(typ super.Type) string {
