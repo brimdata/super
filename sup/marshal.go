@@ -330,7 +330,7 @@ func (m *MarshalBSUPContext) encodeAny(v reflect.Value) (super.Type, error) {
 			return super.TypeIP, nil
 		}
 		return m.encodeRecord(v)
-	case reflect.Ptr:
+	case reflect.Pointer:
 		if v.IsNil() {
 			return m.encodeNil(v.Type())
 		}
@@ -427,7 +427,7 @@ func (m *MarshalBSUPContext) encodeRecord(sval reflect.Value) (super.Type, error
 		isUnexported := sf.PkgPath != ""
 		if sf.Anonymous {
 			t := sf.Type
-			if t.Kind() == reflect.Ptr {
+			if t.Kind() == reflect.Pointer {
 				t = t.Elem()
 			}
 			if isUnexported && t.Kind() != reflect.Struct {
@@ -541,7 +541,7 @@ func (m *MarshalBSUPContext) lookupType(t reflect.Type) (super.Type, error) {
 		if err != nil {
 			return nil, err
 		}
-	case reflect.Ptr:
+	case reflect.Pointer:
 		var err error
 		typ, err = m.lookupType(t.Elem())
 		if err != nil {
@@ -870,7 +870,7 @@ func indirect(v reflect.Value, val super.Value) (BSUPUnmarshaler, reflect.Value)
 
 func (u *UnmarshalBSUPContext) decodeNull(val super.Value, v reflect.Value) error {
 	inner := v
-	for inner.Kind() == reflect.Ptr {
+	for inner.Kind() == reflect.Pointer {
 		if inner.IsNil() {
 			// Set nil elements so we can find the actual type of the underlying
 			// value. This is not so we can set the type since the outer value
@@ -1093,7 +1093,7 @@ func typeOfTemplate(template any) (reflect.Type, error) {
 	if !v.IsValid() {
 		return nil, errors.New("invalid template")
 	}
-	for v.Kind() == reflect.Ptr {
+	for v.Kind() == reflect.Pointer {
 		v = v.Elem()
 	}
 	return v.Type(), nil
