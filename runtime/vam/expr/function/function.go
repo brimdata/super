@@ -94,6 +94,9 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 	case "missing":
 		argmax = -1
 		f = &Missing{}
+	case "named":
+		argmin, argmax = 2, 2
+		f = &Named{sctx: sctx}
 	case "nameof":
 		f = &NameOf{sctx: sctx}
 	case "nest_dotted":

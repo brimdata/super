@@ -5,6 +5,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/bitvec"
 )
@@ -123,6 +124,67 @@ func (IsErr) Call(args ...vector.Any) vector.Any {
 		return vector.NewConst(super.True, vec.Len(), bitvec.Zero)
 	}
 	return vector.NewBool(bitvec.Not(nulls), bitvec.Zero)
+}
+
+type Named struct {
+	sctx *super.Context
+}
+
+func (n *Named) Call(args ...vector.Any) vector.Any {
+	vec := vector.Under(args[0])
+	if vec.Kind() == vector.KindError || vec.Kind() == vector.KindNull {
+		return args[0]
+	}
+	nameVec := vector.Under(args[1])
+	if nameVec.Kind() == vector.KindError || nameVec.Kind() == vector.KindNull {
+		return args[1]
+	}
+	if args[1].Kind() != vector.KindString {
+		return vector.NewWrappedError(n.sctx, "expected string argument", args[1])
+	}
+	nulls := vector.NullsOf(vec)
+	if c, ok := args[1].(*vector.Const); ok && c.Nulls.IsZero() && nulls.IsZero() {
+		return n.wrap(c.Value().Ptr().AsString(), args[0])
+	}
+	b := vector.NewDynamicBuilder()
+	var buf scode.Builder
+	var errs []uint32
+	var errMsgs []string
+	for i := range vec.Len() {
+		s, isnull := vector.StringValue(nameVec, i)
+		if isnull || nulls.IsSet(i) {
+			b.Write(super.Null)
+			continue
+		}
+		named, err := n.sctx.LookupTypeNamed(s, vec.Type())
+		if err != nil {
+			errs = append(errs, i)
+			errMsgs = append(errMsgs, err.Error())
+			continue
+		}
+		buf.Truncate()
+		vec.Serialize(&buf, i)
+		b.Write(super.NewValue(named, buf.Bytes().Body()))
+	}
+	out := b.Build()
+	if len(errs) > 0 {
+		errVec := vector.NewStringEmpty(0, bitvec.Zero)
+		for _, msg := range errMsgs {
+			errVec.Append(msg)
+		}
+		combiner := vector.NewCombiner(out)
+		combiner.Add(errs, vector.NewVecWrappedError(n.sctx, errVec, vector.Pick(nameVec, errs)))
+		return combiner.Result()
+	}
+	return out
+}
+
+func (n *Named) wrap(name string, vec vector.Any) vector.Any {
+	named, err := n.sctx.LookupTypeNamed(name, vec.Type())
+	if err != nil {
+		return vector.NewStringError(n.sctx, err.Error(), vec.Len())
+	}
+	return vector.NewNamed(named, vec)
 }
 
 type NameOf struct {

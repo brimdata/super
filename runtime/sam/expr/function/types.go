@@ -15,6 +15,32 @@ func (t *TypeOf) Call(args []super.Value) super.Value {
 	return t.sctx.LookupTypeValue(args[0].Type())
 }
 
+type Named struct {
+	sctx *super.Context
+}
+
+func (n *Named) Call(args []super.Value) super.Value {
+	val := args[0].Under()
+	nameVal := args[1].Under()
+	if val.IsNull() || nameVal.IsNull() {
+		return super.Null
+	}
+	if val.IsError() {
+		return args[0]
+	}
+	if !nameVal.IsString() {
+		if nameVal.IsError() {
+			return args[1]
+		}
+		return n.sctx.WrapError("expected string argument", args[1])
+	}
+	typ, err := n.sctx.LookupTypeNamed(nameVal.AsString(), val.Type())
+	if err != nil {
+		return n.sctx.WrapError(err.Error(), args[1])
+	}
+	return super.NewValue(typ, val.Bytes())
+}
+
 type NameOf struct {
 	sctx *super.Context
 }

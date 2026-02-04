@@ -20,12 +20,6 @@ func (c *cast) Call(args []super.Value) super.Value {
 		return from
 	}
 	switch toUnder := to.Under(); toUnder.Type().ID() {
-	case super.IDString:
-		typ, err := c.sctx.LookupTypeNamed(toUnder.AsString(), super.TypeUnder(from.Type()))
-		if err != nil {
-			return c.sctx.WrapError("cannot cast to named type: "+err.Error(), from)
-		}
-		return super.NewValue(typ, from.Bytes())
 	case super.IDType:
 		typ, err := c.sctx.LookupByValue(toUnder.Bytes())
 		if err != nil {
@@ -33,7 +27,7 @@ func (c *cast) Call(args []super.Value) super.Value {
 		}
 		return c.cast(from, typ)
 	}
-	return c.sctx.WrapError("cast target must be a type or type name", to)
+	return c.sctx.WrapError("cast target must be a type", to)
 }
 
 func (c *cast) cast(from super.Value, to super.Type) super.Value {

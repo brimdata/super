@@ -156,6 +156,7 @@
             - [cast](super-sql/functions/types/cast.md)
             - [is](super-sql/functions/types/is.md)
             - [kind](super-sql/functions/types/kind.md)
+            - [named](super-sql/functions/types/named.md)
             - [nameof](super-sql/functions/types/nameof.md)
             - [typename](super-sql/functions/types/typename.md)
             - [typeof](super-sql/functions/types/typeof.md)

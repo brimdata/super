@@ -1,0 +1,48 @@
+# Basic named type wrapping with constant name
+spq: named(this, "named")
+
+vector: true
+
+input: |
+  {x:1}
+  {x:2}
+  "foo"
+  "bar"
+  "baz"::=a
+  error("missing")
+  error("foo")
+  null
+
+output: |
+  {x:1}::=named
+  {x:2}::=named
+  "foo"::=named
+  "bar"::=named
+  "baz"::=named
+  error("missing")
+  error("foo")
+  null
+
+---
+
+spq: named(this.val, this.name)
+
+vector: true
+
+input: |
+  {val:1,name:"foo"}
+  {val:1,name:"bar"}
+  {val:1,name:"foo"}
+  {val:1,name:2}
+  {val:1,name:error("bad")}
+  {val:1,name:null}
+  {val:1,name:"uint64"}
+
+output: |
+  1::=foo
+  1::=bar
+  1::=foo
+  error({message:"expected string argument",on:2})
+  error("bad")
+  null
+  error({message:"bad type name \"uint64\": primitive type name",on:"uint64"})

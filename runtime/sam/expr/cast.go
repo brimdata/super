@@ -242,24 +242,6 @@ func (c *casterBytes) Eval(val super.Value) super.Value {
 	return super.NewBytes(val.Bytes())
 }
 
-type casterNamedType struct {
-	sctx *super.Context
-	expr Evaluator
-	name string
-}
-
-func (c *casterNamedType) Eval(this super.Value) super.Value {
-	val := c.expr.Eval(this)
-	if val.IsError() {
-		return val
-	}
-	typ, err := c.sctx.LookupTypeNamed(c.name, super.TypeUnder(val.Type()))
-	if err != nil {
-		return c.sctx.NewError(err)
-	}
-	return super.NewValue(typ, val.Bytes())
-}
-
 type casterType struct {
 	sctx *super.Context
 }

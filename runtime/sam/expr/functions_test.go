@@ -138,22 +138,12 @@ func TestLen(t *testing.T) {
 func TestCast(t *testing.T) {
 	// Constant type argument
 	testSuccessful(t, "cast(1, <uint64>)", "", "1::uint64")
-	testSuccessful(t, "cast(1, 2)", "", `error({message:"cast target must be a type or type name",on:2})`)
-
-	// Constant name argument
-	testSuccessful(t, `cast(1, "my_int64")`, "", "1::=my_int64")
-	testSuccessful(t, `cast(1, "uint64")`, "",
-		`error({message:"cannot cast to named type: bad type name \"uint64\": primitive type name",on:1})`)
+	testSuccessful(t, "cast(1, 2)", "", `error({message:"cast target must be a type",on:2})`)
 
 	// Variable type argument
 	testSuccessful(t, "cast(1, type)", "{type:<uint64>}", "1::uint64")
 	testSuccessful(t, "cast(1, type)", "{type:2}",
-		`error({message:"cast target must be a type or type name",on:2})`)
-
-	// Variable name argument
-	testSuccessful(t, "cast(1, name)", `{name:"my_int64"}`, "1::=my_int64")
-	testSuccessful(t, "cast(1, name)", `{name:"uint64"}`,
-		`error({message:"cannot cast to named type: bad type name \"uint64\": primitive type name",on:1})`)
+		`error({message:"cast target must be a type",on:2})`)
 	testCompilationError(t, "cast()", function.ErrTooFewArgs)
 	testCompilationError(t, "cast(1, 2, 3)", function.ErrTooManyArgs)
 }
