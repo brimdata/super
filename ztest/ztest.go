@@ -355,7 +355,7 @@ func (z *ZTest) RunScript(ctx context.Context, shellPath, testDir string, tempDi
 	if serr != nil {
 		serr = fmt.Errorf("=== sequence ===\n%w", serr)
 	}
-	verr := runsh(ctx, shellPath, testDir, tempDir(), z, "SUPER_VAM=1")
+	verr := runsh(ctx, shellPath, testDir, tempDir(), z, "SUPER_RUNTIME=vam")
 	if verr != nil {
 		verr = fmt.Errorf("=== vector ===\n%w", verr)
 	}

@@ -532,7 +532,7 @@ Benchmark 1: super -s -I /mnt/tmpdir/tmp.pDeSZCTa2V
 
 About to execute
 ================
-SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.AYZIh6yi2s
+super -s -I /mnt/tmpdir/tmp.AYZIh6yi2s
 
 With query
 ==========
@@ -540,8 +540,8 @@ SELECT count()
 FROM '/mnt/gha.parquet'
 WHERE grep('in case you have any feedback 😊', payload.pull_request.body)
 
-+ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.AYZIh6yi2s'
-Benchmark 1: SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.AYZIh6yi2s
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'super -s -I /mnt/tmpdir/tmp.AYZIh6yi2s'
+Benchmark 1: super -s -I /mnt/tmpdir/tmp.AYZIh6yi2s
 {count:2}
   Time (abs ≡):        40.838 s               [User: 292.674 s, System: 18.797 s]
 ```
@@ -678,7 +678,7 @@ Benchmark 1: super -s -I /mnt/tmpdir/tmp.jJSibCjp8r
 
 About to execute
 ================
-SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.evXq1mxkI0
+super -s -I /mnt/tmpdir/tmp.evXq1mxkI0
 
 With query
 ==========
@@ -686,8 +686,8 @@ SELECT count()
 FROM '/mnt/gha.parquet'
 WHERE grep('in case you have any feedback 😊')
 
-+ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.evXq1mxkI0'
-Benchmark 1: SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.evXq1mxkI0
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'super -s -I /mnt/tmpdir/tmp.evXq1mxkI0'
+Benchmark 1: super -s -I /mnt/tmpdir/tmp.evXq1mxkI0
 {count:3}
   Time (abs ≡):        55.081 s               [User: 408.337 s, System: 18.597 s]
 ```
@@ -805,7 +805,7 @@ Benchmark 1: super -s -I /mnt/tmpdir/tmp.AbeKpBbYW8
 
 About to execute
 ================
-SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.5xTnB02WgG
+super -s -I /mnt/tmpdir/tmp.5xTnB02WgG
 
 With query
 ==========
@@ -813,8 +813,8 @@ SELECT count()
 FROM '/mnt/gha.parquet'
 WHERE actor.login='johnbieren'
 
-+ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.5xTnB02WgG'
-Benchmark 1: SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.5xTnB02WgG
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'super -s -I /mnt/tmpdir/tmp.5xTnB02WgG'
+Benchmark 1: super -s -I /mnt/tmpdir/tmp.5xTnB02WgG
 {count:879}
   Time (abs ≡):         0.303 s               [User: 0.792 s, System: 0.240 s]
 ```
@@ -981,7 +981,7 @@ Benchmark 1: super -s -I /mnt/tmpdir/tmp.QMhaBvUi2y
 
 About to execute
 ================
-SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.yfAdMeskPR
+super -s -I /mnt/tmpdir/tmp.yfAdMeskPR
 
 With query
 ==========
@@ -990,8 +990,8 @@ FROM '/mnt/gha.parquet'
 WHERE repo.name='duckdb/duckdb'
 GROUP BY type
 
-+ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.yfAdMeskPR'
-Benchmark 1: SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.yfAdMeskPR
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'super -s -I /mnt/tmpdir/tmp.yfAdMeskPR'
+Benchmark 1: super -s -I /mnt/tmpdir/tmp.yfAdMeskPR
 {type:"PushEvent",count:15}
 {type:"IssuesEvent",count:9}
 {type:"WatchEvent",count:29}
@@ -1166,7 +1166,7 @@ Benchmark 1: super -s -I /mnt/tmpdir/tmp.JzRx6IABuv
 
 About to execute
 ================
-SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.djiUKncZ0T
+super -s -I /mnt/tmpdir/tmp.djiUKncZ0T
 
 With query
 ==========
@@ -1177,8 +1177,8 @@ FROM '/mnt/gha.parquet'
 | ORDER BY count DESC
 | LIMIT 5
 
-+ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.djiUKncZ0T'
-Benchmark 1: SUPER_VAM=1 super -s -I /mnt/tmpdir/tmp.djiUKncZ0T
++ hyperfine --show-output --warmup 1 --runs 1 --time-unit second 'super -s -I /mnt/tmpdir/tmp.djiUKncZ0T'
+Benchmark 1: super -s -I /mnt/tmpdir/tmp.djiUKncZ0T
 {assignee:"poad",count:1966}
 {assignee:"vinayakkulkarni",count:508}
 {assignee:"tmtmtmtm",count:356}

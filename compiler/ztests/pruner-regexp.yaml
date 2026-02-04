@@ -1,5 +1,4 @@
 script: |
-  export SUPER_VAM=1
   super compile -C -O -dynamic 'from test.csup | where x LIKE "cslab%"'
   echo // ===
   super compile -C -O -dynamic 'from test.csup | where grep("^csla[bB].*", x)'
