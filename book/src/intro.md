@@ -155,12 +155,12 @@ relational column called `a` is an array &mdash; but leaves the contents
 of the array as the non-inferred type JSON:
 ```sh
 $ duckdb -c "SELECT * FROM 'example.json'"
-┌──────────────┐
-│      a       │
-│    json[]    │
-├──────────────┤
-│ [1, '"foo"'] │
-└──────────────┘
+┌────────────┐
+│     a      │
+│   json[]   │
+├────────────┤
+│ [1, "foo"] │
+└────────────┘
 ```
 DataFusion simply fails with an error:
 ```sh
