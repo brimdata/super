@@ -78,7 +78,7 @@ func castConst(sctx *super.Context, vec *vector.Const, typ super.Type) vector.An
 	if vec.Type().ID() == super.IDNull {
 		return vector.NewConst(super.NewValue(typ, nil), vec.Len(), bitvec.Zero)
 	}
-	val := samexpr.LookupPrimitiveCaster(sctx, typ).Eval(vec.Value())
+	val := samexpr.LookupPrimitiveCaster(sctx, super.TypeUnder(typ)).Eval(vec.Value())
 	if val.IsError() {
 		if !vec.Nulls.IsZero() {
 			var trueCount uint32
@@ -95,7 +95,11 @@ func castConst(sctx *super.Context, vec *vector.Const, typ super.Type) vector.An
 		}
 		return errCastFailed(sctx, vec, typ, "")
 	}
-	return vector.NewConst(val, vec.Len(), vec.Nulls)
+	out := vector.Any(vector.NewConst(val, vec.Len(), vec.Nulls))
+	if named, ok := typ.(*super.TypeNamed); ok {
+		out = vector.NewNamed(named, out)
+	}
+	return out
 }
 
 func errCastFailed(sctx *super.Context, vec vector.Any, typ super.Type, msgSuffix string) vector.Any {

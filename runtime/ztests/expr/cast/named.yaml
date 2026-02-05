@@ -19,3 +19,14 @@ output: |
   "baz"::=named
   error("missing")
   error("foo")
+
+---
+
+# Tests issue in vector runtime that caused panic when casting to a named
+# primitive.
+spq: cast(80, <port=uint16>)
+
+vector: true
+
+output: |
+  80::(port=uint16)
