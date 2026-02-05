@@ -47,8 +47,8 @@ func (d *DotExpr) Eval(this super.Value) super.Value {
 		if !ok {
 			return d.sctx.Missing()
 		}
-		bytes, idx := getNthFromContainer(val.Bytes(), i)
-		if idx < 0 {
+		bytes, ok := getNthFromFields(val.Bytes(), i, typ.Fields)
+		if !ok {
 			return d.sctx.Missing()
 		}
 		return super.NewValue(typ.Fields[i].Type, bytes)

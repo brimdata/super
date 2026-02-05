@@ -434,7 +434,13 @@ func (c *Context) DecodeTypeValue(tv scode.Bytes) (Type, scode.Bytes) {
 			return nil, nil
 		}
 		fields := make([]Field, 0, n)
-		for range n {
+		optlen := (n + 7) >> 3
+		if optlen > len(tv) {
+			return nil, nil
+		}
+		opts := tv[:optlen]
+		tv = tv[optlen:]
+		for k := range n {
 			var name string
 			name, tv = DecodeName(tv)
 			if tv == nil {
@@ -445,7 +451,7 @@ func (c *Context) DecodeTypeValue(tv scode.Bytes) (Type, scode.Bytes) {
 			if tv == nil {
 				return nil, nil
 			}
-			fields = append(fields, Field{name, typ})
+			fields = append(fields, Field{name, typ, testbit(opts, k)})
 		}
 		typ, err := c.LookupTypeRecord(fields)
 		if err != nil {
@@ -495,6 +501,9 @@ func (c *Context) DecodeTypeValue(tv scode.Bytes) (Type, scode.Bytes) {
 		for range n {
 			var typ Type
 			typ, tv = c.DecodeTypeValue(tv)
+			if typ == nil {
+				panic(tv)
+			}
 			types = append(types, typ)
 		}
 		typ := c.LookupTypeUnion(types)
@@ -540,6 +549,10 @@ func (c *Context) DecodeTypeValue(tv scode.Bytes) (Type, scode.Bytes) {
 	}
 }
 
+func testbit(b []byte, pos int) bool {
+	return (b[pos>>3] & (1 << (pos & 7))) != 0
+}
+
 func DecodeName(tv scode.Bytes) (string, scode.Bytes) {
 	namelen, tv := DecodeLength(tv)
 	if tv == nil || namelen > len(tv) {
@@ -583,8 +596,8 @@ func (c *Context) StringTypeError() *TypeError {
 
 func (c *Context) WrapError(msg string, val Value) Value {
 	recType := c.MustLookupTypeRecord([]Field{
-		{"message", TypeString},
-		{"on", val.Type()},
+		{"message", TypeString, false},
+		{"on", val.Type(), false},
 	})
 	errType := c.LookupTypeError(recType)
 	var b scode.Builder

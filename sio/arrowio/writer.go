@@ -97,9 +97,11 @@ func (w *Writer) Write(val super.Value) error {
 	} else if w.typ != recType {
 		return fmt.Errorf("%w: %s and %s", ErrMultipleTypes, sup.FormatType(w.typ), sup.FormatType(recType))
 	}
-	it := val.Iter()
+	it := scode.NewRecordIter(val.Bytes())
 	for i, builder := range w.builder.Fields() {
-		w.buildArrowValue(builder, recType.Fields[i].Type, it.Next())
+		//XXX something fishy here
+		b, _ := it.Next(recType.Fields[i].Opt)
+		w.buildArrowValue(builder, recType.Fields[i].Type, b)
 	}
 	return w.flush(recordBatchSize)
 }

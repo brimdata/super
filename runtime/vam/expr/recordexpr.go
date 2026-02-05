@@ -62,7 +62,8 @@ func (r *recordExpr) addOrUpdateField(name string, vec vector.Any) {
 		return
 	}
 	r.fieldIndexes[name] = len(r.fields)
-	r.fields = append(r.fields, super.NewField(name, vec.Type()))
+	//XXX need opt
+	r.fields = append(r.fields, super.NewField(name, vec.Type(), false))
 	r.fieldVecs = append(r.fieldVecs, vec)
 }
 

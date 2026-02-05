@@ -77,7 +77,7 @@ func (d *Dropper) drop(vec vector.Any, fm fieldsMap) (vector.Any, bool) {
 						continue
 					}
 					// Substitute modified field.
-					newFields = append(newFields, super.NewField(f.Name, vec2.Type()))
+					newFields = append(newFields, super.NewField(f.Name, vec2.Type(), f.Opt))
 					newVecs = append(newVecs, vec2)
 					continue
 				}

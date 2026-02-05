@@ -82,10 +82,11 @@ func (w *Writer) Write(rec super.Value) error {
 	}
 	w.strings = w.strings[:0]
 	fields := rec.Fields()
-	for i, it := 0, rec.Bytes().Iter(); i < len(fields) && !it.Done(); i++ {
+	for i, it := 0, scode.NewRecordIter(rec.Bytes()); i < len(fields) && !it.Done(); i++ {
 		var s string
-		if zb := it.Next(); zb != nil {
-			val := super.NewValue(fields[i].Type, zb).Under()
+		elem, none := it.Next(fields[i].Opt)
+		if elem != nil && !none {
+			val := super.NewValue(fields[i].Type, elem).Under()
 			switch id := val.Type().ID(); {
 			case id == super.IDBytes && len(val.Bytes()) == 0:
 				// We want "" instead of "0x" for a zero-length value.

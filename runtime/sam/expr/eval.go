@@ -645,6 +645,23 @@ func getNthFromContainer(container scode.Bytes, idx int) (scode.Bytes, int) {
 	return nil, -1
 }
 
+func getNthFromFields(container scode.Bytes, idx int, fields []super.Field) (scode.Bytes, bool) {
+	if idx < 0 {
+		idx += len(fields)
+		if idx < 0 || idx >= len(fields) {
+			return nil, false
+		}
+	}
+	it := scode.NewRecordIter(container)
+	for i := 0; !it.Done(); i++ {
+		elem, none := it.Next(fields[i].Opt)
+		if i == idx {
+			return elem, !none
+		}
+	}
+	return nil, false
+}
+
 func lookupKey(mapBytes, target scode.Bytes) (scode.Bytes, bool) {
 	for it := mapBytes.Iter(); !it.Done(); {
 		key := it.Next()

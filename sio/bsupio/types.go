@@ -92,7 +92,7 @@ func (e *Encoder) encodeTypeRecord(ext *super.TypeRecord) (super.Type, error) {
 		if err != nil {
 			return nil, err
 		}
-		fields = append(fields, super.NewField(f.Name, child))
+		fields = append(fields, super.NewField(f.Name, child, f.Opt))
 	}
 	typ, err := e.sctx.LookupTypeRecord(fields)
 	if err != nil {
@@ -282,7 +282,8 @@ func (d *Decoder) readField(b *buffer) (super.Field, error) {
 	if err != nil {
 		return super.Field{}, err
 	}
-	return super.NewField(name, typ), nil
+	//XXX need to change bsup to encode the field opt flags
+	return super.NewField(name, typ, false), nil
 }
 
 func (d *Decoder) readTypeArray(b *buffer) error {

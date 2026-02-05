@@ -115,11 +115,13 @@ func NewRecordBuilder(sctx *Context, fields field.List) (*RecordBuilder, error) 
 		fieldInfos[len(fieldInfos)-1].containerEnds = len(currentRecord)
 	}
 
-	return &RecordBuilder{
+	r := &RecordBuilder{
 		fields:  fieldInfos,
 		builder: scode.NewBuilder(),
 		sctx:    sctx,
-	}, nil
+	}
+	r.Reset()
+	return r, nil
 }
 
 // check if fieldname is "in" one of the fields in fis, or if
@@ -148,6 +150,7 @@ func isIn(fieldname field.Path, fis []fieldInfo) bool {
 
 func (r *RecordBuilder) Reset() {
 	r.builder.Reset()
+	r.builder.Append(nil)
 	r.curField = 0
 }
 
@@ -156,6 +159,8 @@ func (r *RecordBuilder) Append(leaf []byte) {
 	r.curField++
 	for range field.containerBegins {
 		r.builder.BeginContainer()
+		// empty field options
+		r.builder.Append(nil)
 	}
 	r.builder.Append(leaf)
 	for range field.containerEnds {
@@ -189,14 +194,14 @@ func (r *RecordBuilder) Type(types []Type) *TypeRecord {
 			stack = append(stack, current)
 		}
 
-		current.fields = append(current.fields, Field{fi.field.Leaf(), types[i]})
+		current.fields = append(current.fields, Field{fi.field.Leaf(), types[i], false})
 
 		for range fi.containerEnds {
 			recType := r.sctx.MustLookupTypeRecord(current.fields)
 			slen := len(stack)
 			stack = stack[:slen-1]
 			cur := stack[slen-2]
-			cur.fields = append(cur.fields, Field{current.name, recType})
+			cur.fields = append(cur.fields, Field{current.name, recType, false})
 			current = cur
 		}
 	}

@@ -188,7 +188,7 @@ func shaperFields(sctx *super.Context, tf ShaperTransform, in, out *super.TypeRe
 			if err != nil {
 				return nil, err
 			}
-			fields = append(fields, super.NewField(outField.Name, t))
+			fields = append(fields, super.NewField(outField.Name, t, false))
 		} else if fill {
 			fields = append(fields, outField)
 		}
@@ -461,6 +461,7 @@ func (s *step) buildRecord(sctx *super.Context, in scode.Bytes, b *scode.Builder
 		// reordering) would be make direct use of a
 		// scode.Iter along with keeping track of our
 		// position.
+		//XXX handle field options?
 		bytes, _ := getNthFromContainer(in, child.fromIndex)
 		typ := child.build(sctx, bytes, b)
 		if super.TypeUnder(typ) == super.TypeUnder(child.toType) {

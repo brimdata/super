@@ -220,6 +220,7 @@ func (t *translator) expr(e ast.Expr, inType super.Type) (sem.Expr, super.Type) 
 					Node:  elem,
 					Name:  elem.Name.Text,
 					Value: e,
+					Opt:   elem.Opt,
 				})
 				types = append(types, typ)
 			case *ast.SpreadElem:
@@ -378,7 +379,7 @@ func (t *translator) expr(e ast.Expr, inType super.Type) (sem.Expr, super.Type) 
 				Name:  name,
 				Value: e,
 			})
-			fields = append(fields, super.NewField(name, typ))
+			fields = append(fields, super.NewField(name, typ, false))
 		}
 		return &sem.RecordExpr{
 			Node:  e,

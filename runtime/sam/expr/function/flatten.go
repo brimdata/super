@@ -46,9 +46,12 @@ func (n *Flatten) innerTypeOf(b scode.Bytes, fields []super.Field) super.Type {
 }
 
 func (n *Flatten) appendTypes(types []super.Type, b scode.Bytes, fields []super.Field) []super.Type {
-	it := b.Iter()
+	it := scode.NewRecordIter(b)
 	for _, f := range fields {
-		val := it.Next()
+		val, none := it.Next(f.Opt)
+		if none {
+			continue
+		}
 		if typ := super.TypeRecordOf(f.Type); typ != nil && val != nil {
 			types = n.appendTypes(types, val, typ.Fields)
 			continue
@@ -56,8 +59,8 @@ func (n *Flatten) appendTypes(types []super.Type, b scode.Bytes, fields []super.
 		typ, ok := n.entryTypes[f.Type]
 		if !ok {
 			typ = n.sctx.MustLookupTypeRecord([]super.Field{
-				super.NewField("key", n.keyType),
-				super.NewField("value", f.Type),
+				super.NewField("key", n.keyType, false),
+				super.NewField("value", f.Type, false),
 			})
 			n.entryTypes[f.Type] = typ
 		}
@@ -67,9 +70,12 @@ func (n *Flatten) appendTypes(types []super.Type, b scode.Bytes, fields []super.
 }
 
 func (n *Flatten) encode(fields []super.Field, inner super.Type, base field.Path, b scode.Bytes) {
-	it := b.Iter()
+	it := scode.NewRecordIter(b)
 	for _, f := range fields {
-		val := it.Next()
+		val, none := it.Next(f.Opt)
+		if none {
+			continue
+		}
 		key := append(base, f.Name)
 		if typ := super.TypeRecordOf(f.Type); typ != nil && val != nil {
 			n.encode(typ.Fields, inner, key, val)

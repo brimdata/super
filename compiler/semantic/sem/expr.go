@@ -154,6 +154,12 @@ type (
 		ast.Node
 		Name  string
 		Value Expr
+		Opt   bool
+	}
+	NoneElem struct {
+		ast.Node
+		Name string
+		Type super.Type
 	}
 	SpreadElem struct {
 		ast.Node
@@ -167,6 +173,7 @@ type (
 
 func (*ExprElem) arrayElemNode()    {}
 func (*FieldElem) recordElemNode()  {}
+func (*NoneElem) recordElemNode()   {}
 func (*SpreadElem) arrayElemNode()  {}
 func (*SpreadElem) recordElemNode() {}
 
@@ -362,6 +369,7 @@ func CopyExpr(e Expr) Expr {
 					Node:  elem.Node,
 					Name:  elem.Name,
 					Value: CopyExpr(elem.Value),
+					Opt:   elem.Opt,
 				})
 			case *SpreadElem:
 				elems = append(elems, &SpreadElem{
@@ -490,12 +498,18 @@ func valueToExpr(loc ast.Node, typ super.Type, bytes scode.Bytes) Expr {
 
 func recordToExpr(loc ast.Node, typ *super.TypeRecord, bytes scode.Bytes) Expr {
 	var elems []RecordElem
-	it := bytes.Iter()
+	it := scode.NewRecordIter(bytes)
 	for _, f := range typ.Fields {
 		if it.Done() {
 			panic(it)
 		}
-		elem := &FieldElem{Node: loc, Name: f.Name, Value: valueToExpr(loc, f.Type, it.Next())}
+		val, none := it.Next(f.Opt)
+		var elem RecordElem
+		if none {
+			elem = &NoneElem{Node: loc, Name: f.Name, Type: f.Type}
+		} else {
+			elem = &FieldElem{Node: loc, Name: f.Name, Value: valueToExpr(loc, f.Type, val), Opt: f.Opt}
+		}
 		elems = append(elems, elem)
 	}
 	return &RecordExpr{

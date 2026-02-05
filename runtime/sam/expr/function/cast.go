@@ -77,6 +77,9 @@ func (c *cast) toRecord(from super.Value, to *super.TypeRecord) super.Value {
 	}
 	var b scode.Builder
 	var fields []super.Field
+	// Add the none bits.  XXX Need to compute these from the "to" type
+	// and see what nones are present in the "from" value.
+	b.Append(nil)
 	for i, f := range to.Fields {
 		var val2 super.Value
 		if fieldVal := from.Deref(f.Name); fieldVal != nil {
