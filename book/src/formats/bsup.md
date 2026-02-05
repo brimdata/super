@@ -398,7 +398,9 @@ The field order of optional fields determines their position
 in the bit vector with bit numbers 0-7 (least significat to most significant)
 in the first byte, number 8-15 in the second byte, and so forth.
 Note that when there are no optional fields, there are no bytes comprising
-the options bit vector.
+the options bit vector.  Following the option bits is a concatenation
+of elements comprising the mandatory values and the optional values that are present
+all in field order.
 
 A union value is encoded as a container with two elements. The first
 element, called the tag, is the `uvarint` encoding of the
