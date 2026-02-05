@@ -1,12 +1,15 @@
-spq: values a == b
+spq: values a > b
 
 vector: true
 
 input: |
-  {a:"1",b:1::uint8}
-  {a:127.0.0.1,b:<string>}
+  {a:1,b:{x:1}}
+  {a:null,b:{x:1}}
+  {a:{x:1},b:1}
+  {a:{x:1},b:null}
 
 output: |
-  false
-  false
-
+  error({message:"type incompatible with > operator",on:{x:1}})
+  null::bool
+  error({message:"type incompatible with > operator",on:{x:1}})
+  null::bool

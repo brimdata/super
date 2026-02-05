@@ -62,6 +62,15 @@ func KindFromString(v string) Kind {
 	}
 }
 
+func IsContainer(vec Any) bool {
+	switch vec.Kind() {
+	case KindArray, KindSet, KindMap, KindRecord, KindUnion:
+		return true
+	default:
+		return false
+	}
+}
+
 func FormOf(v Any) (Form, bool) {
 	switch v.(type) {
 	case *Int, *Uint, *Float, *Bytes, *String, *TypeValue: //XXX IP, Net

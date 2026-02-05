@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"fmt"
 
+	"github.com/RoaringBitmap/roaring/v2"
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
 	"github.com/brimdata/super/vector"
@@ -39,6 +40,9 @@ func (c *Compare) eval(vecs ...vector.Any) vector.Any {
 	}
 	if _, ok := rhs.(*vector.Error); ok {
 		return vecs[1]
+	}
+	if vector.IsContainer(lhs) || vector.IsContainer(rhs) {
+		return c.evalContainer(lhs, rhs)
 	}
 	nulls := bitvec.Or(vector.NullsOf(lhs), vector.NullsOf(rhs))
 	lhs, rhs, errVal := coerceVals(c.sctx, lhs, rhs)
@@ -80,6 +84,27 @@ func (c *Compare) eval(vecs ...vector.Any) vector.Any {
 		out = vector.NewBool(bits, nulls)
 	}
 	return out
+}
+
+func (c *Compare) evalContainer(lhs, rhs vector.Any) vector.Any {
+	if c.opCode != vector.CompEQ && c.opCode != vector.CompNE {
+		bad := lhs
+		if vector.IsContainer(rhs) {
+			bad = rhs
+		}
+		msg := fmt.Sprintf("type incompatible with %s operator", vector.CompareOpToString(c.opCode))
+		err := vector.NewWrappedError(c.sctx, msg, bad)
+		nulls := bitvec.Or(vector.NullsOf(lhs), vector.NullsOf(rhs))
+		if nulls.IsZero() {
+			return err
+		}
+		index := roaring.FromDense(nulls.GetBits(), false).ToArray()
+		outNull := vector.NewConst(super.NullBool, uint32(len(index)), bitvec.NewTrue(uint32(len(index))))
+		return vector.Combine(vector.ReversePick(err, index), index, outNull)
+	}
+	// XXX Equality compare isn't working for containers we'll get back to this
+	// in a future pr.
+	return vector.NewFalse(lhs.Len())
 }
 
 func (c *Compare) compareIPs(lhs, rhs vector.Any, nulls bitvec.Bits) vector.Any {

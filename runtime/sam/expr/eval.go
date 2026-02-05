@@ -322,6 +322,12 @@ func (c *Compare) Eval(this super.Value) super.Value {
 	if lhs.IsNull() || rhs.IsNull() {
 		return super.NullBool
 	}
+	if super.IsContainerType(lhs.Type()) {
+		return c.sctx.WrapError(fmt.Sprintf("type incompatible with %s operator", c.operator), lhs)
+	}
+	if super.IsContainerType(rhs.Type()) {
+		return c.sctx.WrapError(fmt.Sprintf("type incompatible with %s operator", c.operator), rhs)
+	}
 	switch lid, rid := lhs.Type().ID(), rhs.Type().ID(); {
 	case super.IsNumber(lid) && super.IsNumber(rid):
 		return c.result(compareNumbers(lhs, rhs, lid, rid))
