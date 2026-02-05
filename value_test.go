@@ -28,7 +28,7 @@ func BenchmarkValueUnder(b *testing.B) {
 
 func TestValueValidate(t *testing.T) {
 	recType := super.NewTypeRecord(0, []super.Field{
-		super.NewField("f", super.NewTypeSet(0, super.TypeString)),
+		super.NewField("f", super.NewTypeSet(0, super.TypeString), false),
 	})
 	t.Run("set/error/duplicate-element", func(t *testing.T) {
 		var b scode.Builder
@@ -76,8 +76,8 @@ func TestValueValidate(t *testing.T) {
 		r := super.NewValue(
 			super.NewTypeRecord(0, []super.Field{
 				super.NewField("f", super.NewTypeSet(0, super.NewTypeRecord(0, []super.Field{
-					super.NewField("g", super.TypeString),
-				}))),
+					super.NewField("g", super.TypeString, false),
+				})), false),
 			}),
 			b.Bytes())
 		assert.NoError(t, r.Validate())

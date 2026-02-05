@@ -17,7 +17,7 @@ script: |
     inner join (values {y:1}) on x = y
     union all
     select * from (values {y:2,z:2})
-    | sort this"
+    | sort x"
   ! super -s -c "
     select * from (
       select 1 as x

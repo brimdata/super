@@ -34,6 +34,7 @@ func (u *UDF) Call(args []super.Value) super.Value {
 		return u.Body.Eval(super.Null)
 	}
 	u.builder.Reset()
+	//u.builder.Append(nil) // no optional fields in args
 	for i, a := range args {
 		u.fields[i].Type = a.Type()
 		u.builder.Append(a.Bytes())

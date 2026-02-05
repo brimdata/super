@@ -638,6 +638,26 @@ func getNthFromContainer(container scode.Bytes, idx int) (scode.Bytes, int) {
 	return nil, -1
 }
 
+func getNthFromRecord(container scode.Bytes, idx int, typ *super.TypeRecord) (scode.Bytes, int) {
+	if idx < 0 {
+		idx += len(typ.Fields)
+		if idx < 0 || idx >= len(typ.Fields) {
+			return nil, -1
+		}
+	}
+	it := scode.NewRecordIter(container, typ.Opts)
+	for i := 0; !it.Done(); i++ {
+		elem, none := it.Next(typ.Fields[i].Opt)
+		if i == idx {
+			if none {
+				return nil, -1
+			}
+			return elem, idx
+		}
+	}
+	return nil, -1
+}
+
 func lookupKey(mapBytes, target scode.Bytes) (scode.Bytes, bool) {
 	for it := mapBytes.Iter(); !it.Done(); {
 		key := it.Next()
@@ -727,7 +747,7 @@ func indexArrayOrSet(sctx *super.Context, inner super.Type, vector scode.Bytes, 
 }
 
 func indexRecordByIndex(sctx *super.Context, typ *super.TypeRecord, record scode.Bytes, idx int) super.Value {
-	bytes, idx := getNthFromContainer(record, idx)
+	bytes, idx := getNthFromRecord(record, idx, typ)
 	if idx < 0 {
 		return sctx.Missing()
 	}

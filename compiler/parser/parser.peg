@@ -1587,13 +1587,18 @@ TypeFieldList
 TypeFieldListTail = __ "," __ typ:TypeField { return typ, nil }
 
 TypeField
-  = name:Name __ ":" __ typ:Type {
+  = name:Name opt:OptToken __ ":" __ typ:Type {
       return ast.TypeField{
           Name: name.(*ast.Text).Text,
           Type: typ.(ast.Type),
+          Opt: opt.(bool),
           Loc: loc(c),
       }, nil
     }
+
+OptToken
+  = "?" { return true, nil }
+  / "" { return false, nil }
 
 Name
  = s:(IdentifierName / DoubleQuotedString / SingleQuotedString) {

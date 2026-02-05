@@ -16,7 +16,7 @@ func TestJSUPWriter(t *testing.T) {
 	const record = `{x:1}`
 	const expected = `
 {"type":"QueryChannelSet","value":{"channel":"main"}}
-{"type":{"kind":"record","id":30,"fields":[{"name":"x","type":{"kind":"primitive","name":"int64"}}]},"value":["1"]}
+{"type":{"kind":"record","id":30,"fields":[{"name":"x","type":{"kind":"primitive","name":"int64"},"opt":false}]},"value":["1"]}
 {"type":"QueryChannelEnd","value":{"channel":"main"}}
 {"type":"QueryError","value":{"error":"test.err"}}
 `

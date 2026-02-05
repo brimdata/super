@@ -54,6 +54,7 @@ func (u *Unflatten) Call(args []super.Value) super.Value {
 		u.values = append(u.values, vb)
 	}
 	u.builder.Reset()
+	//u.builder.Append(nil) // optional fields not yet supported
 	types, values := u.types, u.values
 	typ, err := root.build(u.sctx, &u.builder, func() (super.Type, scode.Bytes) {
 		typ, value := types[0], values[0]
@@ -83,8 +84,9 @@ func (u *Unflatten) parseElem(inner super.Type, vb scode.Bytes) (field.Path, sup
 	if !ok {
 		return nil, nil, nil, nil
 	}
-	it := vb.Iter()
-	kbytes, vbytes := it.Next(), it.Next()
+	it := scode.NewRecordIter(vb, 0)
+	kbytes, _ := it.Next(false)
+	vbytes, _ := it.Next(false)
 	if nkey == 1 {
 		kbytes, vbytes = vbytes, kbytes
 	}
@@ -138,7 +140,7 @@ func (r *record) addPath(c *recordCache, p []string) (removed int) {
 	}
 	at := len(r.fields) - 1
 	if len(r.fields) == 0 || r.fields[at].Name != p[0] {
-		r.fields = append(r.fields, super.NewField(p[0], nil))
+		r.fields = append(r.fields, super.NewField(p[0], nil, false))
 		var rec *record
 		if len(p) > 1 {
 			rec = c.new()
@@ -178,6 +180,10 @@ func (r *record) build(sctx *super.Context, b *scode.Builder, next func() (super
 			continue
 		}
 		b.BeginContainer()
+		// XXX optional fields are not yet supported.  We will add support for this
+		// when we extend unflatten to handle paths for other data types like arrays,
+		// sets, maps, etc.
+		//b.Append(nil)
 		var err error
 		r.fields[i].Type, err = rec.build(sctx, b, next)
 		if err != nil {

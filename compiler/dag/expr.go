@@ -173,6 +173,7 @@ type (
 		Kind  string `json:"kind" unpack:""`
 		Name  string `json:"name"`
 		Value Expr   `json:"value"`
+		Opt   bool   `json:"opt"`
 	}
 	Spread struct {
 		Kind string `json:"kind" unpack:""`

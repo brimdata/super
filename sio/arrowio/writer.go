@@ -97,9 +97,11 @@ func (w *Writer) Write(val super.Value) error {
 	} else if w.typ != recType {
 		return fmt.Errorf("%w: %s and %s", ErrMultipleTypes, sup.FormatType(w.typ), sup.FormatType(recType))
 	}
-	it := val.Iter()
+	it := scode.NewRecordIter(val.Bytes(), recType.Opts)
 	for i, builder := range w.builder.Fields() {
-		w.buildArrowValue(builder, recType.Fields[i].Type, it.Next())
+		// We don't check for none since b will be nil and none is the
+		b, none := it.Next(recType.Fields[i].Opt)
+		w.buildArrowValue(builder, recType.Fields[i].Type, b, none)
 	}
 	return w.flush(recordBatchSize)
 }
@@ -209,14 +211,23 @@ func (w *Writer) newArrowDataType(typ super.Type) (arrow.DataType, error) {
 		}
 		switch name {
 		case "arrow_day_time_interval":
+			if typ.Opts != 0 {
+				return nil, fmt.Errorf("%w: arrow_day_time_interval cannot have optional fields", ErrUnsupportedType)
+			}
 			if slices.Equal(typ.Fields, dayTimeIntervalFields) {
 				return arrow.FixedWidthTypes.DayTimeInterval, nil
 			}
 		case "arrow_decimal128":
+			if typ.Opts != 0 {
+				return nil, fmt.Errorf("%w: arrow_decimal128 cannot have optional fields", ErrUnsupportedType)
+			}
 			if slices.Equal(typ.Fields, decimal128Fields) {
 				return &arrow.Decimal128Type{}, nil
 			}
 		case "arrow_month_day_nano_interval":
+			if typ.Opts != 0 {
+				return nil, fmt.Errorf("%w: arrow_month_day_nano_interval cannot have optional fields", ErrUnsupportedType)
+			}
 			if slices.Equal(typ.Fields, monthDayNanoIntervalFields) {
 				return arrow.FixedWidthTypes.MonthDayNanoInterval, nil
 			}
@@ -310,7 +321,12 @@ func (w *Writer) newArrowField(name string, typ super.Type) (arrow.Field, error)
 	return arrow.Field{Name: name, Type: dt, Nullable: nullable}, nil
 }
 
-func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes scode.Bytes) {
+func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes scode.Bytes, none bool) {
+	if none {
+		// This is a None from an optional field.
+		b.AppendNull()
+		return
+	}
 	if u, ok := nullableUnion(typ); ok {
 		typ, bytes = u.Untag(bytes)
 		if typ == super.TypeNull {
@@ -411,16 +427,18 @@ func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes scode.By
 	case *array.MonthIntervalBuilder:
 		b.Append(arrow.MonthInterval(super.DecodeInt(bytes)))
 	case *array.DayTimeIntervalBuilder:
-		it := bytes.Iter()
+		it := scode.NewRecordIter(bytes, 0)
+		days, _ := it.Next(false)
+		ms, _ := it.Next(false)
 		b.Append(arrow.DayTimeInterval{
-			Days:         int32(super.DecodeInt(it.Next())),
-			Milliseconds: int32(super.DecodeInt(it.Next())),
+			Days:         int32(super.DecodeInt(days)),
+			Milliseconds: int32(super.DecodeInt(ms)),
 		})
 	case *array.Decimal128Builder:
-		it := bytes.Iter()
-		high := super.DecodeInt(it.Next())
-		low := super.DecodeUint(it.Next())
-		b.Append(decimal128.New(high, low))
+		it := scode.NewRecordIter(bytes, 0)
+		high, _ := it.Next(false)
+		low, _ := it.Next(false)
+		b.Append(decimal128.New(super.DecodeInt(high), super.DecodeUint(low)))
 	case *array.Decimal256Builder:
 		it := bytes.Iter()
 		x4 := super.DecodeUint(it.Next())
@@ -432,22 +450,24 @@ func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes scode.By
 		w.buildArrowListValue(b, typ, bytes)
 	case *array.StructBuilder:
 		b.Append(true)
-		it := bytes.Iter()
-		for i, field := range super.TypeRecordOf(typ).Fields {
-			w.buildArrowValue(b.FieldBuilder(i), field.Type, it.Next())
+		recType := super.TypeRecordOf(typ)
+		it := scode.NewRecordIter(bytes, recType.Opts)
+		for i, field := range recType.Fields {
+			elem, none := it.Next(field.Opt)
+			w.buildArrowValue(b.FieldBuilder(i), field.Type, elem, none)
 		}
 	case *array.DenseUnionBuilder:
 		it := bytes.Iter()
 		tag := super.DecodeInt(it.Next())
 		typeCode := w.unionTagMappings[typ][tag]
 		b.Append(arrow.UnionTypeCode(typeCode))
-		w.buildArrowValue(b.Child(typeCode), typ.(*super.TypeUnion).Types[tag], it.Next())
+		w.buildArrowValue(b.Child(typeCode), typ.(*super.TypeUnion).Types[tag], it.Next(), false)
 	case *array.MapBuilder:
 		b.Append(true)
 		typ := super.TypeUnder(typ).(*super.TypeMap)
 		for it := bytes.Iter(); !it.Done(); {
-			w.buildArrowValue(b.KeyBuilder(), typ.KeyType, it.Next())
-			w.buildArrowValue(b.ItemBuilder(), typ.ValType, it.Next())
+			w.buildArrowValue(b.KeyBuilder(), typ.KeyType, it.Next(), false)
+			w.buildArrowValue(b.ItemBuilder(), typ.ValType, it.Next(), false)
 		}
 	case *array.FixedSizeListBuilder:
 		w.buildArrowListValue(b, typ, bytes)
@@ -467,11 +487,14 @@ func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes scode.By
 	case *array.LargeListBuilder:
 		w.buildArrowListValue(b, typ, bytes)
 	case *array.MonthDayNanoIntervalBuilder:
-		it := bytes.Iter()
+		it := scode.NewRecordIter(bytes, 0)
+		months, _ := it.Next(false)
+		days, _ := it.Next(false)
+		nanos, _ := it.Next(false)
 		b.Append(arrow.MonthDayNanoInterval{
-			Months:      int32(super.DecodeInt(it.Next())),
-			Days:        int32(super.DecodeInt(it.Next())),
-			Nanoseconds: super.DecodeInt(it.Next()),
+			Months:      int32(super.DecodeInt(months)),
+			Days:        int32(super.DecodeInt(days)),
+			Nanoseconds: super.DecodeInt(nanos),
 		})
 	default:
 		panic(fmt.Sprintf("unknown builder type %T", b))
@@ -481,7 +504,7 @@ func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes scode.By
 func (w *Writer) buildArrowListValue(b array.ListLikeBuilder, typ super.Type, bytes scode.Bytes) {
 	b.Append(true)
 	for it := bytes.Iter(); !it.Done(); {
-		w.buildArrowValue(b.ValueBuilder(), super.InnerType(typ), it.Next())
+		w.buildArrowValue(b.ValueBuilder(), super.InnerType(typ), it.Next(), false)
 	}
 }
 

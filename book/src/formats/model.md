@@ -86,12 +86,10 @@ A field name is any UTF-8 string.
 
 A field value is a value of any type.
 
-In contrast to many schema-oriented data formats, the super data model has no way to specify
-a field as "optional" since any field value can be a null value.
-
-If an instance of a record value omits a value
-by dropping the field altogether rather than using a null, then that record
-value corresponds to a different record type that elides the field in question.
+A field is either mandatory or optional as indicated by its optionality.
+The optionalities of fields in two records must be the same for those
+record types to be equivlanet, e.g., type `{a:string,b?:string}` is distinct
+from `{a:string,b:string}`.
 
 A record type is uniquely defined by its ordered list of field-type pairs.
 
@@ -99,7 +97,8 @@ The type order of two records is as follows:
 * Record with fewer columns than other is ordered before the other.
 * Records with the same number of columns are ordered as follows according to:
      * the lexicographic order of the field names from left to right,
-     * or if all the field names are the same, the type order of the field types from left to right.
+     * secondarily the optionality of a field name for two names that are the same,
+     * or if all the field names and optionalities are the same, the type order of the field types from left to right.
 
 ### 2.2 Array
 

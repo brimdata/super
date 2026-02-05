@@ -2,7 +2,7 @@
 script: |
   super -s -fusemem 13B -c fuse in.sup
 
-vector: true
+vector: false
 
 inputs:
   - name: in.sup
@@ -16,6 +16,6 @@ outputs:
     data: ""
   - name: stdout
     data: |
-      {a:"hello"::(string|null),b:"world"::(string|null),c:null::(string|null)}
-      {a:null::(string|null),b:"goodnight"::(string|null),c:"gracie"::(string|null)}
-      {a:null::(string|null),b:null::(string|null),c:null::(string|null)}
+      {a?:"hello"::(string|null),b:"world"::(string|null),c?:_::(string|null)}
+      {a?:_::(string|null),b:"goodnight"::(string|null),c?:"gracie"::(string|null)}
+      {a?:null::(string|null),b:null::(string|null),c?:null::(string|null)}

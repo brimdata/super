@@ -125,9 +125,13 @@ func newRecordBuilder(typ *super.TypeRecord) Builder {
 
 func (r *recordBuilder) Write(bytes scode.Bytes) {
 	r.len++
-	it := bytes.Iter()
-	for _, v := range r.values {
-		v.Write(it.Next())
+	it := scode.NewRecordIter(bytes, r.typ.Opts)
+	for k, v := range r.values {
+		elem, none := it.Next(r.typ.Fields[k].Opt)
+		if none { //XXX TBD: this is where Nones vector gets filled in?
+			panic(r)
+		}
+		v.Write(elem)
 	}
 }
 

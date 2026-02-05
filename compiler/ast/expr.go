@@ -232,6 +232,7 @@ type (
 		Kind  string `json:"kind" unpack:""`
 		Name  *Text  `json:"name"`
 		Value Expr   `json:"value"`
+		Opt   bool   `json:"opt"`
 		Loc   `json:"loc"`
 	}
 	SpreadElem struct {

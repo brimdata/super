@@ -391,7 +391,7 @@ func decodeStrings(val *super.Value) ([]string, error) {
 			return nil, errors.New("array elements of header field must be strings")
 		}
 		var out []string
-		for it := val.Iter(); !it.Done(); {
+		for it := val.ContainerIter(); !it.Done(); {
 			out = append(out, super.DecodeString(it.Next()))
 		}
 		return out, nil
@@ -676,7 +676,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq, inType super.Type) (sem.Seq, s
 					&sem.FieldElem{Name: "that", Value: sem.NewThis(nil, nil)},
 				},
 			}
-			fields = []super.Field{super.NewField("that", inType)}
+			fields = []super.Field{super.NewField("that", inType, false)}
 		} else {
 			n := len(o.Expr.Elems)
 			if n == 0 {
@@ -720,7 +720,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq, inType super.Type) (sem.Seq, s
 				fields = slices.Clone(recType.Fields)
 			}
 		}
-		fields = append(fields, super.NewField(alias, super.TypeInt64))
+		fields = append(fields, super.NewField(alias, super.TypeInt64, false))
 		return append(seq, &sem.CountOp{
 			Node:  o,
 			Alias: alias,
@@ -985,9 +985,9 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq, inType super.Type) (sem.Seq, s
 		// 'values EXPR ? this : error({message: "assertion failed", "expr": EXPR_text, "on": this}'
 		// where EXPR_text is the literal text of EXPR.
 		fields := []super.Field{
-			super.NewField("message", super.TypeString),
-			super.NewField("expr", super.TypeString),
-			super.NewField("on", inType),
+			super.NewField("message", super.TypeString, false),
+			super.NewField("expr", super.TypeString, false),
+			super.NewField("on", inType, false),
 		}
 		errType := t.sctx.LookupTypeError(t.sctx.MustLookupTypeRecord(fields))
 		outType := t.checker.fuse([]super.Type{inType, errType})
@@ -1116,8 +1116,8 @@ func (t *translator) joinOp(op *ast.JoinOp, parent sem.Seq, inTypes []super.Type
 		return append(parent, badOp), t.checker.unknown
 	}
 	typ := t.sctx.MustLookupTypeRecord([]super.Field{
-		super.NewField(leftAlias, leftType),
-		super.NewField(rightAlias, rightType),
+		super.NewField(leftAlias, leftType, false),
+		super.NewField(rightAlias, rightType, false),
 	})
 	var cond sem.Expr
 	if op.Cond != nil {

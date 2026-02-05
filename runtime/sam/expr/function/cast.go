@@ -85,6 +85,10 @@ func (c *cast) toRecord(from super.Value, to *super.TypeRecord) super.Value {
 	}
 	var b scode.Builder
 	var fields []super.Field
+	// Add the none bits.  XXX Need to compute these from the "to" type
+	// and see what nones are present in the "from" value.
+	// see upcast logic
+	//b.Append(nil)
 	for i, f := range to.Fields {
 		var val2 super.Value
 		if fieldVal := from.Deref(f.Name); fieldVal != nil {
@@ -117,7 +121,7 @@ func (c *cast) toArrayOrSet(from super.Value, to super.Type) super.Value {
 	}
 	types := map[super.Type]struct{}{}
 	var vals []super.Value
-	for it := from.Iter(); !it.Done(); {
+	for it := from.ContainerIter(); !it.Done(); {
 		val := c.castNext(&it, fromInner, toInner)
 		types[val.Type()] = struct{}{}
 		vals = append(vals, val)
@@ -169,7 +173,7 @@ func (c *cast) toMap(from super.Value, to *super.TypeMap) super.Value {
 	keyTypes := map[super.Type]struct{}{}
 	valTypes := map[super.Type]struct{}{}
 	var keyVals, valVals []super.Value
-	for it := from.Iter(); !it.Done(); {
+	for it := from.ContainerIter(); !it.Done(); {
 		keyVal := c.castNext(&it, fromType.KeyType, to.KeyType)
 		keyVals = append(keyVals, keyVal)
 		keyTypes[keyVal.Type()] = struct{}{}
@@ -285,22 +289,35 @@ func (u *upcast) toRecord(from super.Value, to *super.TypeRecord) (super.Value, 
 	}
 	var b scode.Builder
 	var fields []super.Field
+	var nones []int
+	var optOff int
+	b.BeginContainer()
 	for i, f := range to.Fields {
 		var val2 super.Value
 		if fieldVal := from.Deref(f.Name); fieldVal != nil {
 			val2 = u.Cast(*fieldVal, f.Type)
+			if f.Opt {
+				optOff++
+			}
 		} else {
-			// The field is present in the top but not the value.
-			// If the type is nullable, encode this as null (XXX this will
-			// change to None in an optional field) in the optional-fields PR.
-			if union, tag := super.NullableUnion(f.Type); union != nil {
+			// The field is present in the supertype but not the value.
+			// If the field is optional, preserve the optionality and
+			// code it as a none.  Otherwise, if the type is nullable,
+			// code is as a null.  Otherwise, it's an error.
+			if f.Opt {
+				nones = append(nones, optOff)
+				optOff++
+				continue
+			} else if union, tag := super.NullableUnion(f.Type); union != nil {
 				super.BuildUnion(&b, tag, nil)
-				if fields == nil {
-					fields = slices.Clone(to.Fields)
-				}
-				fields[i].Type = union
+				//if fields == nil {
+				//	fields = slices.Clone(to.Fields)
+				//}
+				//fields[i].Type = union
 				continue
 			} else {
+				// XXX we're using error("missing") but we should have
+				//  a better structured error.
 				val2 = u.sctx.Missing()
 			}
 		}
@@ -315,7 +332,8 @@ func (u *upcast) toRecord(from super.Value, to *super.TypeRecord) (super.Value, 
 	if fields != nil {
 		to = u.sctx.MustLookupTypeRecord(fields)
 	}
-	return super.NewValue(to, b.Bytes()), true
+	b.EndContainerWithNones(to.Opts, nones)
+	return super.NewValue(to, b.Bytes().Body()), true
 }
 
 func (u *upcast) toArrayOrSet(from super.Value, to super.Type) super.Value {
@@ -329,7 +347,7 @@ func (u *upcast) toArrayOrSet(from super.Value, to super.Type) super.Value {
 	}
 	types := map[super.Type]struct{}{}
 	var vals []super.Value
-	for it := from.Iter(); !it.Done(); {
+	for it := from.ContainerIter(); !it.Done(); {
 		val := u.castNext(&it, fromInner, toInner)
 		types[val.Type()] = struct{}{}
 		vals = append(vals, val)
@@ -381,7 +399,7 @@ func (u *upcast) toMap(from super.Value, to *super.TypeMap) super.Value {
 	keyTypes := map[super.Type]struct{}{}
 	valTypes := map[super.Type]struct{}{}
 	var keyVals, valVals []super.Value
-	for it := from.Iter(); !it.Done(); {
+	for it := from.ContainerIter(); !it.Done(); {
 		keyVal := u.castNext(&it, fromType.KeyType, to.KeyType)
 		keyVals = append(keyVals, keyVal)
 		keyTypes[keyVal.Type()] = struct{}{}

@@ -95,9 +95,10 @@ func (h HasError) Call(args []super.Value) super.Value {
 func (h HasError) hasError(t super.Type, b scode.Bytes) bool {
 	switch typ := super.TypeUnder(t).(type) {
 	case *super.TypeRecord:
-		it := b.Iter()
+		it := scode.NewRecordIter(b, typ.Opts)
 		return slices.ContainsFunc(typ.Fields, func(f super.Field) bool {
-			return h.hasError(f.Type, it.Next())
+			elem, none := it.Next(f.Opt)
+			return !none && h.hasError(f.Type, elem)
 		})
 	case *super.TypeArray, *super.TypeSet:
 		inner := super.InnerType(typ)

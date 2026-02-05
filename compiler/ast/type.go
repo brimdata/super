@@ -19,6 +19,7 @@ type (
 	TypeField struct {
 		Name string `json:"name"`
 		Type Type   `json:"type"`
+		Opt  bool   `json:"opt"`
 		Loc  `json:"loc"`
 	}
 	TypeArray struct {

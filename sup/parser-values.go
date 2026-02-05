@@ -240,6 +240,33 @@ func (p *Parser) matchString() (string, bool, error) {
 	return s, true, nil
 }
 
+func (p *Parser) matchNone() (*ast.None, error) {
+	l := p.lexer
+	if ok, err := l.match('_'); !ok || err != nil {
+		return nil, noEOF(err)
+	}
+	if ok, err := l.match(':'); !ok || err != nil {
+		if err == nil {
+			err = p.error("none value (_) must include type decorator")
+		}
+		return nil, err
+	}
+	if ok, err := l.match(':'); !ok || err != nil {
+		if err == nil {
+			err = p.error("none value (_) followed by malformed type decorator")
+		}
+		return nil, err
+	}
+	typ, err := p.matchTypeComponent()
+	if err != nil {
+		return nil, err
+	}
+	return &ast.None{
+		Kind: "None",
+		Type: typ,
+	}, nil
+}
+
 func (p *Parser) matchRecord() (*ast.Record, error) {
 	l := p.lexer
 	if ok, err := l.match('{'); !ok || err != nil {
@@ -298,6 +325,11 @@ func (p *Parser) matchField() (*ast.Field, error) {
 	if !ok {
 		return nil, nil
 	}
+	var opt bool
+	opt, err = l.match('?')
+	if err != nil {
+		return nil, err
+	}
 	ok, err = l.match(':')
 	if err != nil {
 		return nil, err
@@ -305,13 +337,26 @@ func (p *Parser) matchField() (*ast.Field, error) {
 	if !ok {
 		return nil, p.errorf("no type name found for field %q", name)
 	}
-	val, err := p.ParseValue()
+	var val ast.Value
+	none, err := p.matchNone()
 	if err != nil {
 		return nil, err
+	}
+	if none != nil {
+		val = none
+		if !opt {
+			return nil, p.errorf("_ cannot appear in non-optional field %q", name)
+		}
+	} else {
+		val, err = p.ParseValue()
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &ast.Field{
 		Name:  name,
 		Value: val,
+		Opt:   opt,
 	}, nil
 }
 

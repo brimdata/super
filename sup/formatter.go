@@ -233,7 +233,14 @@ func (f *Formatter) formatTypeValue(indent int, tv scode.Bytes, isComponentType 
 		}
 		sep := f.newline
 		indent += f.tab
-		for range n {
+		optlen := (n + 7) >> 3
+		if optlen > len(tv) {
+			f.truncTypeValueErr()
+			return nil
+		}
+		opts := tv[:optlen]
+		tv = tv[optlen:]
+		for k := range n {
 			f.build(sep)
 			var name string
 			name, tv = super.DecodeName(tv)
@@ -242,6 +249,9 @@ func (f *Formatter) formatTypeValue(indent int, tv scode.Bytes, isComponentType 
 				return nil
 			}
 			f.indent(indent, QuotedName(name))
+			if bitset(opts, k) {
+				f.build("?")
+			}
 			f.build(":")
 			if f.tab > 0 {
 				f.build(" ")
@@ -341,6 +351,10 @@ func (f *Formatter) formatTypeValue(indent int, tv scode.Bytes, isComponentType 
 	return tv
 }
 
+func bitset(b []byte, off int) bool {
+	return (b[off>>3] & (1 << (off & 7))) != 0
+}
+
 func (f *Formatter) formatVectorTypeValue(indent int, open, close string, tv scode.Bytes) scode.Bytes {
 	f.build(open)
 	if n, _ := super.DecodeLength(tv); n < super.IDTypeComplex {
@@ -388,17 +402,26 @@ func (f *Formatter) formatRecord(indent int, typ *super.TypeRecord, bytes scode.
 	}
 	indent += f.tab
 	sep := f.newline
-	it := bytes.Iter()
+	it := scode.NewRecordIter(bytes, typ.Opts)
 	for _, field := range typ.Fields {
 		f.build(sep)
 		f.startColor(color.Blue)
 		f.indent(indent, QuotedName(field.Name))
+		if field.Opt {
+			f.build("?")
+		}
 		f.endColor()
 		f.build(":")
 		if f.tab > 0 {
 			f.build(" ")
 		}
-		f.formatValue(indent, field.Type, it.Next(), known, parentImplied, true)
+		elem, none := it.Next(field.Opt)
+		if none {
+			f.build("_::")
+			f.formatType(field.Type, true)
+		} else {
+			f.formatValue(indent, field.Type, elem, known, parentImplied, true)
+		}
 		sep = "," + f.newline
 	}
 	f.build(f.newline)
@@ -417,7 +440,7 @@ func (f *Formatter) formatVector(indent int, open, close string, inner super.Typ
 	}
 	indent += f.tab
 	sep := f.newline
-	it := val.Iter()
+	it := val.ContainerIter()
 	elems := newElemBuilder(inner)
 	for !it.Done() {
 		f.build(sep)
@@ -614,6 +637,9 @@ func (f *Formatter) formatTypeRecord(typ *super.TypeRecord) {
 			f.build(",")
 		}
 		f.build(QuotedName(field.Name))
+		if field.Opt {
+			f.build("?")
+		}
 		f.build(":")
 		f.formatType(field.Type, false)
 	}
@@ -710,6 +736,9 @@ func formatType(b *strings.Builder, typedefs map[string]*super.TypeNamed, typ su
 				b.WriteByte(',')
 			}
 			b.WriteString(QuotedName(f.Name))
+			if f.Opt {
+				b.WriteString("?")
+			}
 			b.WriteString(":")
 			formatType(b, typedefs, f.Type, false)
 		}

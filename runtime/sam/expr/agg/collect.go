@@ -72,7 +72,7 @@ func (c *Collect) ConsumeAsPartial(val super.Value) {
 		panic(fmt.Errorf("collect partial: partial not an array type: %s", sup.FormatValue(val)))
 	}
 	typ := arrayType.Type
-	for it := val.Iter(); !it.Done(); {
+	for it := val.ContainerIter(); !it.Done(); {
 		c.Consume(super.NewValue(typ, it.Next()))
 	}
 }

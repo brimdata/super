@@ -9,10 +9,10 @@ input: |
   {a:null,b:null,c:null}
 
 output: |
-  {a:"hello"::(string|null),b:"world"::(int32|string|null),c:null::(string|null)}
-  {a:null::(string|null),b:"goodnight"::(int32|string|null),c:"gracie"::(string|null)}
-  {a:"goodnight"::(string|null),b:123::int32::(int32|string|null),c:null::(string|null)}
-  {a:null::(string|null),b:null::(int32|string|null),c:null::(string|null)}
+  {a?:"hello"::(string|null),b:"world"::(int32|string|null),c?:_::(string|null)}
+  {a?:_::(string|null),b:"goodnight"::(int32|string|null),c?:"gracie"::(string|null)}
+  {a?:"goodnight"::(string|null),b:123::int32::(int32|string|null),c?:_::(string|null)}
+  {a?:null::(string|null),b:null::(int32|string|null),c?:null::(string|null)}
 
 ---
 
@@ -29,11 +29,11 @@ input: |
   [{a:null,b:null}]
 
 output: |
-  [{a:1::(int64|null),b:null::(int64|null)}]
-  [{a:null::(int64|null),b:2::(int64|null)}]
-  [{a:3::(int64|null),b:null::(int64|null)},{a:null::(int64|null),b:3::(int64|null)}]
-  [{a:3::(int64|null),b:3::(int64|null)}]
-  [{a:null::(int64|null),b:null::(int64|null)}]
+  [{a?:1::(int64|null),b?:_::(int64|null)}]
+  [{a?:_::(int64|null),b?:2::(int64|null)}]
+  [{a?:3::(int64|null),b?:_::(int64|null)},{a?:_::(int64|null),b?:3::(int64|null)}]
+  [{a?:3::(int64|null),b?:3::(int64|null)}]
+  [{a?:null::(int64|null),b?:null::(int64|null)}]
 
 ---
 
@@ -69,9 +69,9 @@ input: |
   {a:null,r:{x:null,y:null,z:null},s:null,r2:null}
 
 output: |
-  {a:"hello"::(string|null),r:{x:1::int32::(int32|null),y:2::int32::(int32|null),z:null::(int32|null)},s:null::(string|null),r2:null::(null|{x:int32})}
-  {a:null::(string|null),r:{x:null::(int32|null),y:4::int32::(int32|null),z:5::int32::(int32|null)},s:"world"::(string|null),r2:{x:6::int32}::(null|{x:int32})}
-  {a:null::(string|null),r:{x:null::(int32|null),y:null::(int32|null),z:null::(int32|null)},s:null::(string|null),r2:null::(null|{x:int32})}
+  {a?:"hello"::(string|null),r:{x?:1::int32::(int32|null),y:2::int32::(int32|null),z?:_::(int32|null)},s?:_::(string|null),r2?:_::(null|{x:int32})}
+  {a?:_::(string|null),r:{x?:_::(int32|null),y:4::int32::(int32|null),z?:5::int32::(int32|null)},s?:"world"::(string|null),r2?:{x:6::int32}::(null|{x:int32})}
+  {a?:null::(string|null),r:{x?:null::(int32|null),y:null::(int32|null),z?:null::(int32|null)},s?:null::(string|null),r2?:null::(null|{x:int32})}
 
 ---
 

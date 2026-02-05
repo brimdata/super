@@ -110,6 +110,8 @@ func (r *Reader) Read() (*super.Value, error) {
 		}
 	}
 	r.builder.Truncate()
+	// No optional fields.
+	//r.builder.Append(nil)
 	for j, array := range r.rec.Columns() {
 		typ := r.topLevelType.Fields[j].Type
 		nullable := r.topLevelFields[j].Nullable
@@ -220,7 +222,7 @@ func (r *Reader) newTypeFromDataType(dt arrow.DataType) (super.Type, error) {
 			if err != nil {
 				return nil, err
 			}
-			fields = append(fields, super.NewField(f.Name, typ))
+			fields = append(fields, super.NewField(f.Name, typ, false))
 		}
 		UniquifyFieldNames(fields)
 		return r.sctx.LookupTypeRecord(fields)
@@ -395,12 +397,14 @@ func (r *Reader) buildScode(typ super.Type, a arrow.Array, i int) error {
 	case arrow.INTERVAL_DAY_TIME:
 		v := array.NewDayTimeIntervalData(data).Value(i)
 		b.BeginContainer()
+		//b.Append(nil) // no optional fields
 		b.Append(super.EncodeInt(int64(v.Days)))
 		b.Append(super.EncodeInt(int64(v.Milliseconds)))
 		b.EndContainer()
 	case arrow.DECIMAL128:
 		v := array.NewDecimal128Data(data).Value(i)
 		b.BeginContainer()
+		//b.Append(nil) // no optional fields
 		b.Append(super.EncodeInt(v.HighBits()))
 		b.Append(super.EncodeUint(v.LowBits()))
 		b.EndContainer()
@@ -419,6 +423,8 @@ func (r *Reader) buildScode(typ super.Type, a arrow.Array, i int) error {
 		arrowStructType := dt.(*arrow.StructType)
 		superFields := typ.(*super.TypeRecord).Fields
 		b.BeginContainer()
+		// No optional fields.
+		//b.Append(nil)
 		for j := range v.NumField() {
 			typ := superFields[j].Type
 			nullable := arrowStructType.Field(j).Nullable
@@ -476,6 +482,7 @@ func (r *Reader) buildScode(typ super.Type, a arrow.Array, i int) error {
 	case arrow.INTERVAL_MONTH_DAY_NANO:
 		v := array.NewMonthDayNanoIntervalData(data).Value(i)
 		b.BeginContainer()
+		//b.Append(nil) // no optional fields
 		b.Append(super.EncodeInt(int64(v.Months)))
 		b.Append(super.EncodeInt(int64(v.Days)))
 		b.Append(super.EncodeInt(v.Nanoseconds))

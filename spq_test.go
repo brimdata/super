@@ -184,4 +184,28 @@ func runOneBoomerang(t *testing.T, format, data string) {
 	require.NoError(t, boomerangWriter.Close())
 
 	require.Equal(t, baseline.String(), boomerang.String(), "baseline and boomerang differ")
+
+	if false {
+		// Redo diff as SUP files...
+		var baselineSUP, boomerangSUP bytes.Buffer
+		baselineSUPWriter, err := anyio.NewWriter(sio.NopCloser(&baselineSUP), anyio.WriterOpts{Format: "sup"})
+		require.NoError(t, err)
+		baselineReader, err = anyio.NewReaderWithOpts(super.NewContext(), bytes.NewReader(baseline.Bytes()), anyio.ReaderOpts{
+			Format: format,
+			BSUP: bsupio.ReaderOpts{
+				Validate: true,
+			},
+		})
+		require.NoError(t, err)
+		defer baselineReader.Close()
+		assert.NoError(t, sio.Copy(baselineSUPWriter, baselineReader))
+		// Create a reader for baseline.
+		boomerangReader, err := anyio.NewReaderWithOpts(super.NewContext(), bytes.NewReader(boomerang.Bytes()), anyio.ReaderOpts{
+			Format: format,
+		})
+		boomerangSUPWriter, err := anyio.NewWriter(sio.NopCloser(&boomerangSUP), anyio.WriterOpts{Format: "sup"})
+		require.NoError(t, err)
+		assert.NoError(t, sio.Copy(boomerangSUPWriter, boomerangReader))
+		require.Equal(t, baselineSUP.String(), boomerangSUP.String(), "baseline and boomerang differ")
+	}
 }

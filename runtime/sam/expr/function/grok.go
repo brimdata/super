@@ -53,10 +53,11 @@ func (g *Grok) Call(args []super.Value) super.Value {
 	}
 	g.fields = g.fields[:0]
 	for _, key := range keys {
-		g.fields = append(g.fields, super.NewField(key, super.TypeString))
+		g.fields = append(g.fields, super.NewField(key, super.TypeString, false))
 	}
 	typ := g.sctx.MustLookupTypeRecord(g.fields)
 	g.builder.Reset()
+	//g.builder.Append(nil) // no optional fields
 	if len(vals) == 0 {
 		// If we have a match but no key/vals return empty record.
 		g.builder.Append(nil)

@@ -91,7 +91,7 @@ func (u *Union) ConsumeAsPartial(val super.Value) {
 	if !ok {
 		panic("union: partial not a set type")
 	}
-	for it := val.Iter(); !it.Done(); {
+	for it := val.ContainerIter(); !it.Done(); {
 		typ := styp.Type
 		b := it.Next()
 		if union, ok := super.TypeUnder(typ).(*super.TypeUnion); ok {

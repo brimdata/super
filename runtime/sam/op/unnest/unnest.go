@@ -90,6 +90,7 @@ func unnest(sctx *super.Context, val super.Value) []super.Value {
 		var b scode.Builder
 		for _, right := range unnest(sctx, *val.DerefByColumn(1)) {
 			b.Reset()
+			//b.Append(nil) // no optional fields
 			b.Append(left.Bytes())
 			b.Append(right.Bytes())
 			fields[1].Type = right.Type()

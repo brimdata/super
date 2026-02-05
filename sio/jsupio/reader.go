@@ -113,19 +113,53 @@ func (r *Reader) decodeRecord(b *scode.Builder, typ *super.TypeRecord, v any) er
 		return errors.New("JSUP record value must be a JSON array")
 	}
 	fields := typ.Fields
+	var nones []int
+	if typ.Opts != 0 {
+		var err error
+		nones, err = r.decodeNones(typ, values[0])
+		if err != nil {
+			return err
+		}
+		values = values[1:]
+		if len(nones)+len(values) != len(typ.Fields) {
+			return errors.New("JSUP record value has mismatched number of field values")
+		}
+	}
 	b.BeginContainer()
 	for k, val := range values {
 		if k >= len(fields) {
-			return errors.New("record with extra field")
-
+			return errors.New("JSUP record value has extra field value")
 		}
 		// Each field is either a string value or an array of string values.
 		if err := r.decodeValue(b, fields[k].Type, val); err != nil {
 			return err
 		}
 	}
-	b.EndContainer()
+	b.EndContainerWithNones(typ.Opts, nones)
 	return nil
+}
+
+func (r *Reader) decodeNones(typ *super.TypeRecord, in any) ([]int, error) {
+	if in == nil {
+		return nil, nil
+	}
+	anyNones, ok := in.([]any)
+	if !ok {
+		return nil, errors.New("JSUP record with optional fields must include array of None positions")
+	}
+	var nones []int
+	for _, elem := range anyNones {
+		f, ok := elem.(float64)
+		if !ok {
+			return nil, fmt.Errorf("JSUP record offset arrays must be array of numbers (encountered %T)", elem)
+		}
+		off := int(f)
+		if off < 0 || off >= typ.Opts {
+			return nil, fmt.Errorf("JSUP record has none offset (%d) outside of range (%d)", off, typ.Opts)
+		}
+		nones = append(nones, off)
+	}
+	return nones, nil
 }
 
 func (r *Reader) decodePrimitive(builder *scode.Builder, typ super.Type, v any) error {
