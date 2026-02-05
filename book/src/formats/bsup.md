@@ -558,11 +558,12 @@ complex type it represents as described below.
 
 A record type value has the form:
 ```
---------------------------------------------------
-|30|<nfields>|<name1><typeval><name2><typeval>...|
---------------------------------------------------
+---------------------------------------------------------
+|30|<nfields>|<opts>|<name1><typeval><name2><typeval>...|
+---------------------------------------------------------
 ```
 where `<nfields>` is the number of fields in the record encoded as a `uvarint`,
+`<opts>` is a bit vector of length `<nfields>` indicating which fields are optional,
 `<name1>` etc. are the field names encoded as in the
 record typedef, and each `<typeval>` is a recursive encoding of a type value.
 
