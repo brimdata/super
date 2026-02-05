@@ -294,7 +294,7 @@ echo '"a.sup" "b.sup"' | super -s -c "from f'{this}' | c:=coalesce(a,b)+1" -
 The remaining examples below assume the existence of the SuperDB database
 created and populated by the following commands:
 
-```mdtest-command
+```mdtest-command runtime=sam
 export SUPER_DB=example
 super db -q init
 super db -q create -orderby flip:desc coinflips

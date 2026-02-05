@@ -20,17 +20,38 @@ type Test struct {
 	Head      bool
 	Line      int
 	GoExample string
+	Runtime   string // "sam", "vam", or "" for both
 
 	// For SPQ tests
 	Input string
 	SPQ   string
 }
 
-// Run runs the test, returning nil on success.
+// Run runs the test in both the sequential and vector runtimes, returning nil
+// on success.  GoExample tests are run only once.  If Runtime is set, only
+// that runtime is used.
 func (t *Test) Run() error {
 	if t.GoExample != "" {
 		return t.vetGoExample()
 	}
+	var serr, verr error
+	if t.Runtime != "vam" {
+		serr = t.run([]string{"SUPER_RUNTIME=sam"})
+		if serr != nil {
+			serr = fmt.Errorf("=== sequence ===\n%w", serr)
+		}
+	}
+	if t.Runtime != "sam" {
+		verr = t.run([]string{"SUPER_RUNTIME=vam"})
+		if verr != nil {
+			verr = fmt.Errorf("=== vector ===\n%w", verr)
+		}
+	}
+	return errors.Join(serr, verr)
+}
+
+// run executes the test with optional extra environment variables.
+func (t *Test) run(extraEnv []string) error {
 	var c *exec.Cmd
 	if t.SPQ != "" {
 		c = exec.Command("super", "-s", "-c", t.SPQ)
@@ -42,6 +63,9 @@ func (t *Test) Run() error {
 		c = exec.Command("bash", "-e", "-o", "pipefail")
 		c.Dir = t.Dir
 		c.Stdin = strings.NewReader(t.Command)
+	}
+	if len(extraEnv) > 0 {
+		c.Env = append(os.Environ(), extraEnv...)
 	}
 	outBytes, err := c.CombinedOutput()
 	out := string(outBytes)
