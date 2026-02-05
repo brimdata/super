@@ -248,13 +248,13 @@ func metadataValue(cctx *Context, sctx *super.Context, b *scode.Builder, id ID, 
 		if len(projection) == 0 {
 			for _, f := range m.Fields {
 				typ := metadataValue(cctx, sctx, b, f.Values, nil)
-				fields = append(fields, super.NewField(f.Name, typ))
+				fields = append(fields, super.NewField(f.Name, typ, false))
 			}
 		} else {
 			for _, node := range projection {
 				if k := indexOfField(node.Name, m.Fields); k >= 0 {
 					typ := metadataValue(cctx, sctx, b, m.Fields[k].Values, node.Proj)
-					fields = append(fields, super.NewField(node.Name, typ))
+					fields = append(fields, super.NewField(node.Name, typ, false))
 				}
 			}
 		}

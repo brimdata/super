@@ -10,6 +10,7 @@ import (
 type FieldEncoder struct {
 	name   string
 	values Encoder
+	opt    bool
 }
 
 func (f *FieldEncoder) write(body scode.Bytes) {

@@ -21,6 +21,7 @@ func NewRecordEncoder(typ *super.TypeRecord) *RecordEncoder {
 		fields = append(fields, &FieldEncoder{
 			name:   f.Name,
 			values: NewEncoder(f.Type),
+			opt:    f.Opt,
 		})
 	}
 	return &RecordEncoder{fields: fields}
@@ -28,9 +29,11 @@ func NewRecordEncoder(typ *super.TypeRecord) *RecordEncoder {
 
 func (r *RecordEncoder) Write(body scode.Bytes) {
 	r.count++
-	it := body.Iter()
+	it := scode.NewRecordIter(body)
 	for _, f := range r.fields {
-		f.write(it.Next())
+		// XXX handle nones
+		elem, _ := it.Next(f.opt)
+		f.write(elem)
 	}
 }
 

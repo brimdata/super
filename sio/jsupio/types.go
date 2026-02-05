@@ -245,7 +245,7 @@ func (d decoder) decodeTypeRecord(sctx *super.Context, typ *zRecord) (*super.Typ
 		if err != nil {
 			return nil, err
 		}
-		fields = append(fields, super.NewField(field.Name, typ))
+		fields = append(fields, super.NewField(field.Name, typ, false))
 	}
 	return sctx.LookupTypeRecord(fields)
 }

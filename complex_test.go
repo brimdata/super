@@ -95,8 +95,8 @@ func TestDuplicates(t *testing.T) {
 	ctx := super.NewContext()
 	setType := ctx.LookupTypeSet(super.TypeInt32)
 	typ1, err := ctx.LookupTypeRecord([]super.Field{
-		{"a", super.TypeString},
-		{"b", setType},
+		{"a", super.TypeString, false},
+		{"b", setType, false},
 	})
 	require.NoError(t, err)
 	typ2, err := sup.ParseType(ctx, "{a:string,b:|[int32]|}")
@@ -126,7 +126,7 @@ func TestTranslateNamed(t *testing.T) {
 
 func TestCopyMutateFields(t *testing.T) {
 	c := super.NewContext()
-	fields := []super.Field{{"foo", super.TypeString}, {"bar", super.TypeInt64}}
+	fields := []super.Field{{"foo", super.TypeString, false}, {"bar", super.TypeInt64, false}}
 	typ, err := c.LookupTypeRecord(fields)
 	require.NoError(t, err)
 	fields[0].Type = nil

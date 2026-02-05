@@ -214,7 +214,11 @@ func (r *Reader) newType(dt arrow.DataType) (super.Type, error) {
 			if err != nil {
 				return nil, err
 			}
-			fields = append(fields, super.NewField(f.Name, typ))
+			// Nullability of an arbitrary field doesn't apply to super data,
+			// but it makes sense as optionality so we translate arrow nulls
+			// in fields to an optional type with missings.  XXX We need to code
+			// the null values as the missings wherever that happens.
+			fields = append(fields, super.NewField(f.Name, typ, f.Nullable))
 		}
 		UniquifyFieldNames(fields)
 		return r.sctx.LookupTypeRecord(fields)

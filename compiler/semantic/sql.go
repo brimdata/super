@@ -49,7 +49,7 @@ func (t *translator) sqlSelect(sel *ast.SQLSelect, demand []ast.Expr, seq sem.Se
 	// This will let us properly resolve lateral column aliases from any
 	// GROUP BY expressions that reference them.
 	fromType := fromScope.superType(t.sctx, t.checker.unknown)
-	inType := t.sctx.MustLookupTypeRecord([]super.Field{super.NewField("in", fromType)})
+	inType := t.sctx.MustLookupTypeRecord([]super.Field{super.NewField("in", fromType, false)})
 	scope.columns = t.formProjection(scope, sel.Selection.Args, inType)
 	var where sem.Expr
 	if sel.Where != nil {
@@ -228,7 +228,7 @@ func (t *translator) emitProjection(columns []column, grouped bool, seq sem.Seq)
 			Name:  c.name,
 			Value: c.semExpr,
 		})
-		fields = append(fields, super.NewField(c.name, c.typ))
+		fields = append(fields, super.NewField(c.name, c.typ, false))
 	}
 	var in string
 	if grouped {
@@ -415,7 +415,7 @@ func mapColumns(sctx *super.Context, in *super.TypeRecord, alias *ast.TableAlias
 				Name:  out[k],
 				Value: sem.NewThis(alias.Columns[k], []string{in.Fields[k].Name}),
 			})
-			fields = append(fields, super.NewField(out[k], in.Fields[k].Type))
+			fields = append(fields, super.NewField(out[k], in.Fields[k].Type, false))
 		}
 		seq = valuesExpr(&sem.RecordExpr{
 			Node:  alias,

@@ -21,9 +21,15 @@ type CastValue struct {
 	Type Type   `json:"type"`
 }
 
+type None struct {
+	Kind string `json:"kind" unpack:""`
+	Type Type   `json:"type"`
+}
+
 func (*ImpliedValue) valueNode() {}
 func (*DefValue) valueNode()     {}
 func (*CastValue) valueNode()    {}
+func (*None) valueNode()         {}
 
 type Any interface {
 	anyNode()
@@ -47,6 +53,7 @@ type (
 	Field struct {
 		Name  string `json:"name"`
 		Value Value  `json:"value"`
+		Opt   bool   `json:"opt"`
 	}
 	Array struct {
 		Kind     string  `json:"kind" unpack:""`
@@ -87,6 +94,7 @@ func (*Enum) anyNode()            {}
 func (*Map) anyNode()             {}
 func (*TypeValue) anyNode()       {}
 func (*Error) anyNode()           {}
+func (*None) anyNode()            {}
 func (*DoubleQuoteExpr) anyNode() {}
 
 func (*Primitive) ExprAST() {}
