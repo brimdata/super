@@ -445,7 +445,9 @@ func (c *Context) DecodeTypeValue(tv scode.Bytes) (Type, scode.Bytes) {
 			if tv == nil {
 				return nil, nil
 			}
-			fields = append(fields, Field{name, typ})
+			//XXX type val needs to encode opt
+			opt := false
+			fields = append(fields, Field{name, typ, opt})
 		}
 		typ, err := c.LookupTypeRecord(fields)
 		if err != nil {
@@ -583,8 +585,8 @@ func (c *Context) StringTypeError() *TypeError {
 
 func (c *Context) WrapError(msg string, val Value) Value {
 	recType := c.MustLookupTypeRecord([]Field{
-		{"message", TypeString},
-		{"on", val.Type()},
+		{"message", TypeString, false},
+		{"on", val.Type(), false},
 	})
 	errType := c.LookupTypeError(recType)
 	var b scode.Builder

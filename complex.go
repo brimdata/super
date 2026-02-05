@@ -187,10 +187,11 @@ func TypeUnder(typ Type) Type {
 type Field struct {
 	Name string
 	Type Type
+	Opt  bool
 }
 
 func NewField(name string, typ Type) Field {
-	return Field{name, typ}
+	return Field{name, typ, false}
 }
 
 type TypeRecord struct {
