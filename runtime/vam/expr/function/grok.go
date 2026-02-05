@@ -73,7 +73,7 @@ func (g *Grok) Call(args ...vector.Any) vector.Any {
 		}
 		g.fields = g.fields[:0]
 		for _, key := range keys {
-			g.fields = append(g.fields, super.NewField(key, super.TypeString))
+			g.fields = append(g.fields, super.NewField(key, super.TypeString, false))
 		}
 		typ := g.sctx.MustLookupTypeRecord(g.fields)
 		g.builder.Reset()

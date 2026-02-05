@@ -368,6 +368,7 @@ func addPathToRecordExpr(rec *dag.RecordExpr, path []string, expr dag.Expr) {
 	addPathToRecordExpr(rec.Elems[i].(*dag.Field).Value.(*dag.RecordExpr), path[1:], expr)
 }
 
+// XXX this should go in semantic?
 func mergeRecordExprWithPath(rec *dag.RecordExpr, path []string) {
 	spread := &dag.Spread{Kind: "Spread", Expr: dag.NewThis(path)}
 	rec.Elems = append([]dag.RecordElem{spread}, rec.Elems...)

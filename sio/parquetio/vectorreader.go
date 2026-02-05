@@ -341,7 +341,7 @@ func (v *vectorBuilder) build(a arrow.Array) (vector.Any, error) {
 		if !ok {
 			fields := make([]super.Field, arr.NumField())
 			for i, vec := range fieldVecs {
-				fields[i] = super.NewField(dt.(*arrow.StructType).Field(i).Name, vec.Type())
+				fields[i] = super.NewField(dt.(*arrow.StructType).Field(i).Name, vec.Type(), false)
 			}
 			arrowio.UniquifyFieldNames(fields)
 			var err error

@@ -166,9 +166,13 @@ func (r *recordBuilder) Write(bytes scode.Bytes) {
 		}
 		return
 	}
-	it := bytes.Iter()
-	for _, v := range r.values {
-		v.Write(it.Next())
+	it := scode.NewRecordIter(bytes)
+	for k, v := range r.values {
+		elem, none := it.Next(r.typ.Fields[k].Opt)
+		if none { //XXX
+			panic(r)
+		}
+		v.Write(elem)
 	}
 }
 

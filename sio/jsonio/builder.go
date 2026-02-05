@@ -123,7 +123,7 @@ func (b *builder) endRecord() {
 	for {
 		b.fields = b.fields[:0]
 		for _, item := range itemptrs {
-			b.fields = append(b.fields, super.NewField(item.fieldName, item.typ))
+			b.fields = append(b.fields, super.NewField(item.fieldName, item.typ, false))
 		}
 		var err error
 		container.typ, err = b.sctx.LookupTypeRecord(b.fields)
@@ -139,6 +139,8 @@ func (b *builder) endRecord() {
 		itemptrs = removeDuplicateItems(itemptrs, dferr.Name)
 	}
 	container.zb.BeginContainer()
+	// Add empty optional fields.  JSON data never has optional fields.
+	container.zb.Append(nil)
 	for _, item := range itemptrs {
 		container.zb.Append(item.zb.Bytes().Body())
 	}

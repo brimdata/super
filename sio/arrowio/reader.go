@@ -106,6 +106,8 @@ func (r *Reader) Read() (*super.Value, error) {
 		}
 	}
 	r.builder.Truncate()
+	// No optional fields.
+	r.builder.Append(nil)
 	for _, array := range r.rec.Columns() {
 		if err := r.buildScode(array, r.i); err != nil {
 			return nil, err
@@ -214,7 +216,11 @@ func (r *Reader) newType(dt arrow.DataType) (super.Type, error) {
 			if err != nil {
 				return nil, err
 			}
-			fields = append(fields, super.NewField(f.Name, typ))
+			// Nullability of an arbitrary field doesn't apply to super data,
+			// but it makes sense as optionality so we translate arrow nulls
+			// in fields to an optional type with missings.  XXX We need to code
+			// the null values as the missings wherever that happens.
+			fields = append(fields, super.NewField(f.Name, typ, f.Nullable))
 		}
 		UniquifyFieldNames(fields)
 		return r.sctx.LookupTypeRecord(fields)
@@ -351,12 +357,14 @@ func (r *Reader) buildScode(a arrow.Array, i int) error {
 	case arrow.INTERVAL_DAY_TIME:
 		v := array.NewDayTimeIntervalData(data).Value(i)
 		b.BeginContainer()
+		b.Append(nil) // no optional fields
 		b.Append(super.EncodeInt(int64(v.Days)))
 		b.Append(super.EncodeInt(int64(v.Milliseconds)))
 		b.EndContainer()
 	case arrow.DECIMAL128:
 		v := array.NewDecimal128Data(data).Value(i)
 		b.BeginContainer()
+		b.Append(nil) // no optional fields
 		b.Append(super.EncodeInt(v.HighBits()))
 		b.Append(super.EncodeUint(v.LowBits()))
 		b.EndContainer()
@@ -373,6 +381,8 @@ func (r *Reader) buildScode(a arrow.Array, i int) error {
 	case arrow.STRUCT:
 		v := array.NewStructData(data)
 		b.BeginContainer()
+		// No optional fields.
+		b.Append(nil)
 		for j := range v.NumField() {
 			if err := r.buildScode(v.Field(j), i); err != nil {
 				return err
@@ -425,6 +435,7 @@ func (r *Reader) buildScode(a arrow.Array, i int) error {
 	case arrow.INTERVAL_MONTH_DAY_NANO:
 		v := array.NewMonthDayNanoIntervalData(data).Value(i)
 		b.BeginContainer()
+		b.Append(nil) // no optional fields
 		b.Append(super.EncodeInt(int64(v.Months)))
 		b.Append(super.EncodeInt(int64(v.Days)))
 		b.Append(super.EncodeInt(v.Nanoseconds))

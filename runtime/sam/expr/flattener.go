@@ -38,7 +38,7 @@ func recode(dst scode.Bytes, typ *super.TypeRecord, in scode.Bytes) (scode.Bytes
 		}
 		return dst, nil
 	}
-	it := in.Iter()
+	it := in.Iter() //XXX TBD
 	fieldno := 0
 	for !it.Done() {
 		val := it.Next()

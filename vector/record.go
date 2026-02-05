@@ -37,6 +37,7 @@ func (r *Record) Serialize(b *scode.Builder, slot uint32) {
 		return
 	}
 	b.BeginContainer()
+	b.Append(nil) //XXX no optional fields... need to do this differently
 	for _, f := range r.Fields {
 		f.Serialize(b, slot)
 	}

@@ -38,15 +38,18 @@ func (d *Dequiet) rec(builder *scode.Builder, typ super.Type, b scode.Bytes) sup
 	var changed bool
 	builder.BeginContainer()
 	var fields []super.Field
-	it := b.Iter()
+	it := scode.NewRecordIter(b)
 	for _, f := range rtyp.Fields {
-		fbytes := it.Next()
+		//XXX need to handle none, which is never quiet
+		// (need to update the none bits which may move due to dequieting
+		// and put them at the front)
+		fbytes, _ := it.Next(f.Opt)
 		ftyp := d.dequiet(builder, f.Type, fbytes)
 		if ftyp == nil {
 			changed = true
 			continue
 		}
-		fields = append(fields, super.NewField(f.Name, ftyp))
+		fields = append(fields, super.NewField(f.Name, ftyp, f.Opt))
 	}
 	builder.EndContainer()
 	if !changed {

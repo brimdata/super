@@ -33,8 +33,8 @@ func (o *Op) wrap(t *super.Value) super.Value {
 		o.builder.Append(t.Bytes())
 		o.builder.Append(super.EncodeInt(o.count))
 		typ := o.rctx.Sctx.MustLookupTypeRecord([]super.Field{
-			super.NewField("value", t.Type()),
-			super.NewField("count", super.TypeInt64),
+			super.NewField("value", t.Type(), false),
+			super.NewField("count", super.TypeInt64, false),
 		})
 		return super.NewValue(typ, o.builder.Bytes()).Copy()
 	}

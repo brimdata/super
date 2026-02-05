@@ -147,6 +147,8 @@ func (m *MarshalBSUPContext) MarshalCustom(names []string, vals []any) (super.Va
 		return super.Null, errors.New("names and vals have different lengths")
 	}
 	m.Builder.Reset()
+	// No optional fields are allowed here.
+	m.Builder.Append(nil)
 	var fields []super.Field
 	for k, v := range vals {
 		typ, err := m.encodeValue(reflect.ValueOf(v))
@@ -420,6 +422,7 @@ func (m *MarshalBSUPContext) encodeNil(t reflect.Type) (super.Type, error) {
 
 func (m *MarshalBSUPContext) encodeRecord(sval reflect.Value) (super.Type, error) {
 	m.Builder.BeginContainer()
+	m.Builder.Append(nil) //XXX no optional fields
 	var fields []super.Field
 	stype := sval.Type()
 	for i := range stype.NumField() {
@@ -948,11 +951,14 @@ func (u *UnmarshalBSUPContext) decodeRecord(val super.Value, sval reflect.Value)
 		name := fieldName(field)
 		nameToField[name] = i
 	}
-	for i, it := 0, val.Iter(); !it.Done(); i++ {
+	for i, it := 0, scode.NewRecordIter(val.Bytes()); !it.Done(); i++ {
 		if i >= len(recType.Fields) {
 			return errors.New("malformed super value")
 		}
-		itzv := it.Next()
+		itzv, none := it.Next(recType.Fields[i].Opt)
+		if none { //XXX
+			panic(recType)
+		}
 		name := recType.Fields[i].Name
 		if fieldIdx, ok := nameToField[name]; ok {
 			typ := recType.Fields[i].Type

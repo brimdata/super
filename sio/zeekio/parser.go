@@ -237,7 +237,7 @@ func Unflatten(sctx *super.Context, fields []super.Field, addPath bool) ([]super
 
 	var needpath bool
 	if addPath && !hasPath {
-		out = append([]super.Field{super.NewField("_path", super.TypeString)}, out...)
+		out = append([]super.Field{super.NewField("_path", super.TypeString, false)}, out...)
 		needpath = true
 	}
 	return out, needpath, nil
@@ -259,7 +259,7 @@ func unflattenRecord(sctx *super.Context, fields []super.Field) ([]super.Field, 
 				break
 			}
 			trimmed := strings.TrimPrefix(fields[i].Name, prefix+".")
-			ret = append(ret, super.NewField(trimmed, fields[i].Type))
+			ret = append(ret, super.NewField(trimmed, fields[i].Type, false))
 		}
 		return prefix, ret
 	}
@@ -282,7 +282,7 @@ func unflattenRecord(sctx *super.Context, fields []super.Field) ([]super.Field, 
 		if err != nil {
 			return nil, err
 		}
-		out = append(out, super.NewField(prefix, recType))
+		out = append(out, super.NewField(prefix, recType, false))
 		i += len(nestedFields)
 	}
 	return out, nil

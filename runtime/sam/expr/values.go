@@ -28,7 +28,8 @@ func newRecordExpr(sctx *super.Context, elems []RecordElem) *recordExpr {
 	fields := make([]super.Field, 0, len(elems))
 	exprs := make([]Evaluator, 0, len(elems))
 	for _, elem := range elems {
-		fields = append(fields, super.NewField(elem.Name, nil))
+		//XXX should get Opt from RecordElem
+		fields = append(fields, super.NewField(elem.Name, nil, false))
 		exprs = append(exprs, elem.Field)
 	}
 	var typ *super.TypeRecord
@@ -48,6 +49,7 @@ func (r *recordExpr) Eval(this super.Value) super.Value {
 	var changed bool
 	b := r.builder
 	b.Reset()
+	b.Append(nil) //XXX need support for optional fields
 	for k, e := range r.exprs {
 		val := e.Eval(this)
 		if r.fields[k].Type != val.Type() {
@@ -91,6 +93,7 @@ func newRecordSpreadExpr(sctx *super.Context, elems []RecordElem) (*recordSpread
 
 type fieldValue struct {
 	index int
+	opt   bool
 	value super.Value
 }
 
@@ -107,13 +110,21 @@ func (r *recordSpreadExpr) Eval(this super.Value) super.Value {
 				// Treat non-record spread values like missing.
 				continue
 			}
-			it := rec.Iter()
+			it := scode.NewRecordIter(rec.Bytes())
 			for _, f := range typ.Fields {
+				if f.Opt {
+					// XXX need support for optional fields and putting None bits up front
+					panic(f)
+				}
 				fv, ok := object[f.Name]
 				if !ok {
-					fv = fieldValue{index: len(object)}
+					fv = fieldValue{index: len(object), opt: f.Opt}
 				}
-				fv.value = super.NewValue(f.Type, it.Next())
+				elem, none := it.Next(f.Opt)
+				if none {
+					panic(typ)
+				}
+				fv.value = super.NewValue(f.Type, elem)
 				object[f.Name] = fv
 			}
 		} else {
@@ -133,6 +144,7 @@ func (r *recordSpreadExpr) Eval(this super.Value) super.Value {
 	r.update(object)
 	b := r.builder
 	b.Reset()
+	b.Append(nil) //XXX need support for optional fields
 	for _, bytes := range r.bytes {
 		b.Append(bytes)
 	}
@@ -148,7 +160,8 @@ func (r *recordSpreadExpr) update(object map[string]fieldValue) {
 		return
 	}
 	for name, field := range object {
-		if r.fields[field.index] != super.NewField(name, field.value.Type()) {
+		//XXX field opt
+		if r.fields[field.index] != super.NewField(name, field.value.Type(), false) {
 			r.invalidate(object)
 			return
 		}
@@ -161,7 +174,7 @@ func (r *recordSpreadExpr) invalidate(object map[string]fieldValue) {
 	r.fields = slices.Grow(r.fields[:0], n)[:n]
 	r.bytes = slices.Grow(r.bytes[:0], n)[:n]
 	for name, field := range object {
-		r.fields[field.index] = super.NewField(name, field.value.Type())
+		r.fields[field.index] = super.NewField(name, field.value.Type(), field.opt)
 		r.bytes[field.index] = field.value.Bytes()
 	}
 	r.cache = r.sctx.MustLookupTypeRecord(r.fields)
