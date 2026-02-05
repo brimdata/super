@@ -62,7 +62,8 @@ func (r *recordExpr) addOrUpdateField(name string, vec vector.Any) {
 		return
 	}
 	r.fieldIndexes[name] = len(r.fields)
-	r.fields = append(r.fields, super.NewField(name, vec.Type()))
+	//XXX TBD: add support for optional fields
+	r.fields = append(r.fields, super.NewField(name, vec.Type(), false))
 	r.fieldVecs = append(r.fieldVecs, vec)
 }
 
@@ -70,13 +71,15 @@ func (r *recordExpr) spread(vec vector.Any) {
 	// Ignore non-record values.
 	switch vec := vector.Under(vec).(type) {
 	case *vector.Record:
+		fields := vec.Fields(r.sctx)
 		for k, f := range super.TypeRecordOf(vec.Type()).Fields {
-			r.addOrUpdateField(f.Name, vec.Fields[k])
+			r.addOrUpdateField(f.Name, fields[k])
 		}
 	case *vector.View:
 		if rec, ok := vec.Any.(*vector.Record); ok {
+			fields := rec.Fields(r.sctx)
 			for k, f := range super.TypeRecordOf(rec.Type()).Fields {
-				r.addOrUpdateField(f.Name, vector.Pick(rec.Fields[k], vec.Index))
+				r.addOrUpdateField(f.Name, vector.Pick(fields[k], vec.Index))
 			}
 		}
 	}

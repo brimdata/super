@@ -25,7 +25,7 @@ func (g *Grep) Call(args ...vector.Any) vector.Any {
 		pattern, _ := c.AsString()
 		if g.grep == nil || g.pattern != pattern {
 			pattern = norm.NFC.String(pattern)
-			g.grep = expr.NewSearchString(pattern, &expr.This{})
+			g.grep = expr.NewSearchString(g.sctx, pattern, &expr.This{})
 			g.pattern = pattern
 		}
 		return g.grep.Eval(inputVec)
@@ -35,7 +35,7 @@ func (g *Grep) Call(args ...vector.Any) vector.Any {
 	for i := range patternVec.Len() {
 		pattern := vector.StringValue(patternVec, i)
 		pattern = norm.NFC.String(pattern)
-		search := expr.NewSearchString(pattern, &expr.This{})
+		search := expr.NewSearchString(g.sctx, pattern, &expr.This{})
 		index[0] = i
 		if vector.BoolValue(search.Eval(vector.Pick(inputVec, index[:])), 0) {
 			out.Set(i)

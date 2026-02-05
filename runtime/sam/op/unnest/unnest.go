@@ -84,7 +84,7 @@ func unnest(sctx *super.Context, val super.Value) []super.Value {
 		if super.InnerType(typ.Fields[1].Type) == nil {
 			return []super.Value{sctx.WrapError("unnest: encountered record without an array/set type for second field", val)}
 		}
-		left := *val.DerefByColumn(0)
+		left := val.DerefByColumn(0)
 		fields := slices.Clone(typ.Fields)
 		var out []super.Value
 		var b scode.Builder

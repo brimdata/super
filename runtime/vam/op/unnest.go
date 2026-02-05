@@ -59,15 +59,16 @@ func (u *Unnest) flatten(vec vector.Any, slot uint32) vector.Any {
 	case *vector.Set:
 		return flattenArrayOrSet(vec.Values, vec.Offsets, slot)
 	case *vector.Record:
-		if len(vec.Fields) != 2 {
+		fields := vec.Fields(u.sctx)
+		if len(fields) != 2 {
 			return vector.NewWrappedError(u.sctx, "unnest: encountered record without two fields", vec)
 		}
-		if super.InnerType(vec.Fields[1].Type()) == nil {
+		if super.InnerType(fields[1].Type()) == nil {
 			return vector.NewWrappedError(u.sctx, "unnest: encountered record without an array/set type for second field", vec)
 		}
-		right := u.flatten(vec.Fields[1], slot)
+		right := u.flatten(fields[1], slot)
 		lindex := make([]uint32, right.Len())
-		left := vector.NewView(vector.Pick(vec.Fields[0], []uint32{slot}), lindex)
+		left := vector.NewView(vector.Pick(fields[0], []uint32{slot}), lindex)
 		return vector.Apply(true, func(vecs ...vector.Any) vector.Any {
 			fields := slices.Clone(vec.Typ.Fields)
 			fields[1].Type = vecs[1].Type()

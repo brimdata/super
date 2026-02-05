@@ -329,7 +329,7 @@ func (v *vectorBuilder) build(a arrow.Array, nullable bool) (vector.Any, error) 
 				if arrowField.Nullable {
 					typ = v.sctx.LookupTypeUnion([]super.Type{typ, super.TypeNull})
 				}
-				fields[i] = super.NewField(arrowField.Name, typ)
+				fields[i] = super.NewField(arrowField.Name, typ, false)
 			}
 			arrowio.UniquifyFieldNames(fields)
 			var err error

@@ -1,0 +1,44 @@
+spq: distinct b
+
+vector: true
+
+input: |
+  {a:1,b?:"foo"}
+  {a:1,b?:_::string}
+  {a:1,b:"foo"}
+
+output: |
+  {a:1,b?:"foo"}
+  {a:1,b?:_::string}
+
+---
+
+spq: drop a
+
+vector: true
+
+input: |
+  {a:1,b?:"foo"}
+  {a:1,b?:_::string}
+  {a:1,b:"foo"}
+
+output: |
+  {b?:"foo"}
+  {b?:_::string}
+  {b:"foo"}
+
+---
+
+spq: rename c:=b
+
+vector: true
+
+input: |
+  {a:1,b?:"foo"}
+  {a:1,b?:_::string}
+  {a?:1,b:"foo"}
+
+output: |
+  {a:1,c?:"foo"}
+  {a:1,c?:_::string}
+  {a?:1,c:"foo"}

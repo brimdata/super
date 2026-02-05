@@ -14,7 +14,7 @@ inputs:
       80
   # {src_port:81::(port=uint16)}
   - name: b.bsup
-    data: !!binary AwEHBHBvcnQBAAEIc3JjX3BvcnQeFAAfAwJR/w==
+    data: !!binary BAEHBHBvcnQBAAEIc3JjX3BvcnQeABQAHwMCUf8=
 
 outputs:
   - name: stdout

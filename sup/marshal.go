@@ -902,7 +902,7 @@ func (u *UnmarshalBSUPContext) decodeMap(val super.Value, mapVal reflect.Value) 
 	}
 	keyType := mapVal.Type().Key()
 	valType := mapVal.Type().Elem()
-	for it := val.Iter(); !it.Done(); {
+	for it := val.ContainerIter(); !it.Done(); {
 		key := reflect.New(keyType).Elem()
 		if err := u.decodeAny(super.NewValue(typ.KeyType, it.Next()), key); err != nil {
 			return err
@@ -928,11 +928,14 @@ func (u *UnmarshalBSUPContext) decodeRecord(val super.Value, sval reflect.Value)
 		name := fieldName(field)
 		nameToField[name] = i
 	}
-	for i, it := 0, val.Iter(); !it.Done(); i++ {
+	for i, it := 0, scode.NewRecordIter(val.Bytes(), recType.Opts); !it.Done(); i++ {
 		if i >= len(recType.Fields) {
 			return errors.New("malformed super value")
 		}
-		itzv := it.Next()
+		itzv, none := it.Next(recType.Fields[i].Opt)
+		if none {
+			continue
+		}
 		name := recType.Fields[i].Name
 		if fieldIdx, ok := nameToField[name]; ok {
 			typ := recType.Fields[i].Type
@@ -963,7 +966,7 @@ func (u *UnmarshalBSUPContext) decodeArray(val super.Value, arrVal reflect.Value
 		return fmt.Errorf("unmarshaling type %q: not an array", String(typ))
 	}
 	i := 0
-	for it := val.Iter(); !it.Done(); i++ {
+	for it := val.ContainerIter(); !it.Done(); i++ {
 		itzv := it.Next()
 		if i >= arrVal.Cap() {
 			newcap := max(arrVal.Cap()+arrVal.Cap()/2, 4)

@@ -1,8 +1,6 @@
 package expr
 
 import (
-	"slices"
-
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/vector"
@@ -33,15 +31,5 @@ func (r *Renamer) eval(vecs ...vector.Any) vector.Any {
 	if err != nil {
 		return vector.NewWrappedError(r.sctx, err.Error(), vec)
 	}
-	return changeRecordType(recVec, val.Type().(*super.TypeRecord))
-}
-
-func changeRecordType(vec *vector.Record, typ *super.TypeRecord) *vector.Record {
-	fields := slices.Clone(vec.Fields)
-	for i, f := range typ.Fields {
-		if rtyp, ok := f.Type.(*super.TypeRecord); ok {
-			fields[i] = changeRecordType(vec.Fields[i].(*vector.Record), rtyp)
-		}
-	}
-	return vector.NewRecord(typ, fields, vec.Len())
+	return recVec.ChangeType(val.Type().(*super.TypeRecord))
 }

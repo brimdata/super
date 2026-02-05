@@ -24,6 +24,7 @@ type (
 	zField struct {
 		Name string `json:"name"`
 		Type zType  `json:"type"`
+		Opt  bool   `json:"opt"`
 	}
 	zArray struct {
 		Kind string `json:"kind" unpack:"array"`
@@ -114,6 +115,7 @@ func (e encoder) newType(typ super.Type) zType {
 			fields = append(fields, zField{
 				Name: f.Name,
 				Type: e.encodeType(f.Type),
+				Opt:  f.Opt,
 			})
 		}
 		return &zRecord{
@@ -245,7 +247,7 @@ func (d decoder) decodeTypeRecord(sctx *super.Context, typ *zRecord) (*super.Typ
 		if err != nil {
 			return nil, err
 		}
-		fields = append(fields, super.NewField(field.Name, typ))
+		fields = append(fields, super.NewField(field.Name, typ, field.Opt))
 	}
 	return sctx.LookupTypeRecord(fields)
 }

@@ -83,8 +83,9 @@ func (u *Unflatten) parseElem(inner super.Type, vb scode.Bytes) (field.Path, sup
 	if !ok {
 		return nil, nil, nil, nil
 	}
-	it := vb.Iter()
-	kbytes, vbytes := it.Next(), it.Next()
+	it := scode.NewRecordIter(vb, 0)
+	kbytes, _ := it.Next(false)
+	vbytes, _ := it.Next(false)
 	if nkey == 1 {
 		kbytes, vbytes = vbytes, kbytes
 	}
@@ -138,7 +139,7 @@ func (r *record) addPath(c *recordCache, p []string) (removed int) {
 	}
 	at := len(r.fields) - 1
 	if len(r.fields) == 0 || r.fields[at].Name != p[0] {
-		r.fields = append(r.fields, super.NewField(p[0], nil))
+		r.fields = append(r.fields, super.NewField(p[0], nil, false))
 		var rec *record
 		if len(p) > 1 {
 			rec = c.new()

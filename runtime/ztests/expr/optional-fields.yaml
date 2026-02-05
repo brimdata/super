@@ -1,0 +1,164 @@
+spq: values a,b
+
+vector: true
+
+input: |
+  {a:1,b?:"foo"}
+  {a:1,b?:_::string}
+  {a:1,b:1}
+
+output: |
+  1
+  "foo"
+  1
+  error("missing")
+  1
+  1
+
+---
+
+spq: values quiet(b)
+
+vector: true
+
+input: |
+  {a:1,b?:"foo"}
+  {a:1,b?:_::string}
+  {a:1,b:1}
+  {a:1,c:1}
+
+output: |
+  "foo"
+  1
+
+---
+
+spq: values flatten(this)
+
+vector: true
+
+input: |
+  {a:1,b?:"foo"}
+  {a:1,b?:_::string}
+  {a:1,b:1}
+
+output: |
+  [{key:["a"],value:1},{key:["b"],value:"foo"}]
+  [{key:["a"],value:1}]
+  [{key:["a"],value:1},{key:["b"],value:1}]
+
+---
+
+spq: collect(this)
+
+vector: true
+
+input: |
+  {a:1,b?:"foo"}
+  {a:1,b?:_::string}
+  {a:1,b:1}
+
+output: |
+  [{a:1,b?:"foo"},{a:1,b?:_::string},{a:1,b:1}]
+
+---
+
+spq: avg(b)
+
+vector: true
+
+input: |
+  {a:1,b?:"foo"}
+  {a:1,b?:_::string}
+  {a:1,b:1}
+
+output: |
+  1.
+
+---
+
+spq: values cast(this, <{a:string,b?:string}>)
+
+vector: true
+
+input: |
+  {a:1,b?:"foo"}
+  {a:1,b?:_::string}
+  {a:1,b:2}
+
+output: |
+  {a:"1",b?:"foo"}
+  {a:"1",b?:_::string}
+  {a:"1",b?:"2"}
+
+---
+
+spq: values this[2]
+
+vector: true
+
+input: |
+  {a:1,b?:"foo",c:1}
+  {a:1,b?:_::string,c:2}
+  {a:1,b:2,c:3}
+  {a:1,b:2,c?:"foo"}
+  {a:1,b:2,c?:_::string}
+
+output: |
+  1
+  2
+  3
+  "foo"
+  error("missing")
+
+---
+
+spq: values b
+
+vector: true
+
+input: |
+  {b?:"foo"}
+  {b?:_::string}
+
+output: |
+  "foo"
+  error("missing")
+
+---
+
+spq: values b
+
+vector: true
+
+input: |
+  {b?:_::string}
+
+output: |
+  error("missing")
+
+---
+
+spq: values b
+
+vector: true
+
+input: |
+  {b?:_::string}
+  {b?:_::string}
+
+output: |
+  error("missing")
+  error("missing")
+
+---
+
+spq: values b
+
+vector: true
+
+input: |
+  {b?:"foo"}
+
+output: |
+  "foo"

@@ -61,6 +61,9 @@ type (
 		Type  super.Type
 		Value Value
 	}
+	None struct {
+		Type super.Type
+	}
 )
 
 func (p *Primitive) TypeOf() super.Type { return p.Type }
@@ -73,6 +76,7 @@ func (m *Map) TypeOf() super.Type       { return m.Type }
 func (n *Null) TypeOf() super.Type      { return n.Type }
 func (t *TypeValue) TypeOf() super.Type { return t.Type }
 func (e *Error) TypeOf() super.Type     { return e.Type }
+func (n *None) TypeOf() super.Type      { return n.Type }
 
 func (p *Primitive) SetType(t super.Type) { p.Type = t }
 func (r *Record) SetType(t super.Type)    { r.Type = t }
@@ -84,6 +88,7 @@ func (m *Map) SetType(t super.Type)       { m.Type = t }
 func (n *Null) SetType(t super.Type)      { n.Type = t }
 func (t *TypeValue) SetType(T super.Type) { t.Type = T }
 func (e *Error) SetType(t super.Type)     { e.Type = t }
+func (n *None) SetType(t super.Type)      { n.Type = t }
 
 // An Analyzer transforms an ast.Value (which has decentralized type decorators)
 // to a typed Value, where every component of a nested Value is explicitly typed.
@@ -159,6 +164,12 @@ func (a Analyzer) convertValue(sctx *super.Context, val ast.Value, parent super.
 			v, err = a.convertUnion(v, union, parent)
 		}
 		return v, err
+	case *ast.None:
+		typ, err := a.convertType(sctx, val.Type)
+		if err != nil {
+			return nil, err
+		}
+		return &None{Type: typ}, nil
 	}
 	return nil, fmt.Errorf("unknown value ast type: %T", val)
 }
@@ -326,7 +337,7 @@ func (a Analyzer) convertFields(sctx *super.Context, in []ast.Field, fields []su
 func lookupRecordType(sctx *super.Context, in []ast.Field, vals []Value) (*super.TypeRecord, error) {
 	fields := make([]super.Field, 0, len(in))
 	for k, f := range in {
-		fields = append(fields, super.Field{Name: f.Name, Type: vals[k].TypeOf()})
+		fields = append(fields, super.NewField(f.Name, vals[k].TypeOf(), f.Opt))
 	}
 	return sctx.LookupTypeRecord(fields)
 }
@@ -634,7 +645,7 @@ func (a Analyzer) convertTypeRecord(sctx *super.Context, typ *ast.TypeRecord) (*
 		if err != nil {
 			return nil, err
 		}
-		fields = append(fields, super.Field{Name: f.Name, Type: typ})
+		fields = append(fields, super.NewField(f.Name, typ, f.Opt))
 	}
 	return sctx.LookupTypeRecord(fields)
 }

@@ -123,6 +123,11 @@ func (c *Context) LookupTypeRecord(fields []Field) (*TypeRecord, error) {
 		bytes = binary.LittleEndian.AppendUint32(bytes, uint32(len(field.Name)))
 		bytes = append(bytes, field.Name...)
 		bytes = binary.LittleEndian.AppendUint32(bytes, uint32(TypeID(field.Type)))
+		var opt byte
+		if field.Opt {
+			opt = 1
+		}
+		bytes = append(bytes, opt)
 	}
 	*key = bytes
 	c.mu.Lock()
@@ -434,7 +439,13 @@ func (c *Context) DecodeTypeValue(tv scode.Bytes) (Type, scode.Bytes) {
 			return nil, nil
 		}
 		fields := make([]Field, 0, n)
-		for range n {
+		optlen := (n + 7) >> 3
+		if optlen > len(tv) {
+			return nil, nil
+		}
+		opts := tv[:optlen]
+		tv = tv[optlen:]
+		for k := range n {
 			var name string
 			name, tv = DecodeName(tv)
 			if tv == nil {
@@ -445,7 +456,7 @@ func (c *Context) DecodeTypeValue(tv scode.Bytes) (Type, scode.Bytes) {
 			if tv == nil {
 				return nil, nil
 			}
-			fields = append(fields, Field{name, typ})
+			fields = append(fields, Field{name, typ, scode.Testbit(opts, k)})
 		}
 		typ, err := c.LookupTypeRecord(fields)
 		if err != nil {
@@ -495,6 +506,9 @@ func (c *Context) DecodeTypeValue(tv scode.Bytes) (Type, scode.Bytes) {
 		for range n {
 			var typ Type
 			typ, tv = c.DecodeTypeValue(tv)
+			if typ == nil {
+				panic(tv)
+			}
 			types = append(types, typ)
 		}
 		typ := c.LookupTypeUnion(types)
@@ -583,8 +597,8 @@ func (c *Context) StringTypeError() *TypeError {
 
 func (c *Context) WrapError(msg string, val Value) Value {
 	recType := c.MustLookupTypeRecord([]Field{
-		{"message", TypeString},
-		{"on", val.Type()},
+		{"message", TypeString, false},
+		{"on", val.Type(), false},
 	})
 	errType := c.LookupTypeError(recType)
 	var b scode.Builder

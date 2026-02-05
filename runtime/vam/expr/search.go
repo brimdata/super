@@ -12,13 +12,14 @@ import (
 )
 
 type search struct {
+	sctx       *super.Context
 	e          Evaluator
 	vectorPred func(vector.Any) vector.Any
 	stringPred func([]byte) bool
 	fnm        *expr.FieldNameMatcher
 }
 
-func NewSearch(s string, val super.Value, e Evaluator) Evaluator {
+func NewSearch(sctx *super.Context, s string, val super.Value, e Evaluator) Evaluator {
 	stringPred := func(b []byte) bool {
 		return expr.StringContainsFold(string(b), s)
 	}
@@ -39,18 +40,18 @@ func NewSearch(s string, val super.Value, e Evaluator) Evaluator {
 		}
 		return eq.eval(vec, vector.NewConst(val, vec.Len()))
 	}
-	return &search{e, vectorPred, stringPred, nil}
+	return &search{sctx, e, vectorPred, stringPred, nil}
 }
 
-func NewSearchRegexp(re *regexp.Regexp, e Evaluator) Evaluator {
-	return &search{e, nil, re.Match, expr.NewFieldNameMatcher(re.Match)}
+func NewSearchRegexp(sctx *super.Context, re *regexp.Regexp, e Evaluator) Evaluator {
+	return &search{sctx, e, nil, re.Match, expr.NewFieldNameMatcher(re.Match)}
 }
 
-func NewSearchString(s string, e Evaluator) Evaluator {
+func NewSearchString(sctx *super.Context, s string, e Evaluator) Evaluator {
 	pred := func(b []byte) bool {
 		return expr.StringContainsFold(string(b), s)
 	}
-	return &search{e, nil, pred, expr.NewFieldNameMatcher(pred)}
+	return &search{sctx, e, nil, pred, expr.NewFieldNameMatcher(pred)}
 }
 
 func (s *search) Eval(this vector.Any) vector.Any {
@@ -75,7 +76,7 @@ func (s *search) eval(vecs ...vector.Any) vector.Any {
 	switch vec := vec.(type) {
 	case *vector.Record:
 		out := vector.NewFalse(n)
-		for _, f := range vec.Fields {
+		for _, f := range vec.Fields(s.sctx) {
 			if index != nil {
 				f = vector.Pick(f, index)
 			}

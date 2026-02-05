@@ -30,7 +30,7 @@ func (n *NestDotted) Call(args ...vector.Any) vector.Any {
 	if b == nil {
 		return args[len(args)-1]
 	}
-	out := vector.Any(b.New(record.Fields))
+	out := vector.Any(b.New(record.Fields(n.sctx)))
 	if view != nil {
 		out = vector.Pick(out, view.Index)
 	}

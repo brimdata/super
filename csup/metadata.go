@@ -44,6 +44,8 @@ func under(cctx *Context, meta Metadata) Metadata {
 type Field struct {
 	Name   string
 	Values ID
+	Opt    bool
+	Nones  Segment
 }
 
 type Array struct {
@@ -236,13 +238,13 @@ func metadataValue(cctx *Context, sctx *super.Context, b *scode.Builder, id ID, 
 		if len(projection) == 0 {
 			for _, f := range m.Fields {
 				typ := metadataValue(cctx, sctx, b, f.Values, nil)
-				fields = append(fields, super.NewField(f.Name, typ))
+				fields = append(fields, super.NewField(f.Name, typ, f.Opt))
 			}
 		} else {
 			for _, node := range projection {
 				if k := indexOfField(node.Name, m.Fields); k >= 0 {
 					typ := metadataValue(cctx, sctx, b, m.Fields[k].Values, node.Proj)
-					fields = append(fields, super.NewField(node.Name, typ))
+					fields = append(fields, super.NewField(node.Name, typ, m.Fields[k].Opt))
 				}
 			}
 		}
@@ -275,12 +277,13 @@ func metadataValue(cctx *Context, sctx *super.Context, b *scode.Builder, id ID, 
 
 func metadataLeaf(sctx *super.Context, b *scode.Builder, min, max super.Value) super.Type {
 	b.BeginContainer()
+	b.Append(nil) // no optional fields here
 	b.Append(min.Bytes())
 	b.Append(max.Bytes())
 	b.EndContainer()
 	return sctx.MustLookupTypeRecord([]super.Field{
-		{Name: "min", Type: min.Type()},
-		{Name: "max", Type: max.Type()},
+		super.NewField("min", min.Type(), false),
+		super.NewField("max", max.Type(), false),
 	})
 }
 

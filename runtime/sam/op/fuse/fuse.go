@@ -119,7 +119,7 @@ func newValueFuser(sctx *super.Context, memMaxBytes int) *valueFuser {
 	return &valueFuser{
 		sctx:        sctx,
 		memMaxBytes: memMaxBytes,
-		fuser:       agg.NewFuserWithMissingFieldsAsNullable(sctx),
+		fuser:       agg.NewFuser(sctx),
 		caster:      function.NewUpCaster(sctx),
 	}
 }

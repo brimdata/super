@@ -118,7 +118,7 @@ func (b *builder) endRecord() {
 	for {
 		b.fields = b.fields[:0]
 		for _, item := range itemptrs {
-			b.fields = append(b.fields, super.NewField(item.fieldName, item.typ))
+			b.fields = append(b.fields, super.NewField(item.fieldName, item.typ, false))
 		}
 		var err error
 		container.typ, err = b.sctx.LookupTypeRecord(b.fields)

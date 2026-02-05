@@ -570,18 +570,18 @@ func (s *subqueryScope) String() string {
 
 func (j *joinScope) superType(sctx *super.Context, unknown *super.TypeError) super.Type {
 	return sctx.MustLookupTypeRecord([]super.Field{
-		super.NewField("left", j.left.superType(sctx, unknown)),
-		super.NewField("right", j.right.superType(sctx, unknown)),
+		super.NewField("left", j.left.superType(sctx, unknown), false),
+		super.NewField("right", j.right.superType(sctx, unknown), false),
 	})
 }
 
 func (s *selectScope) superType(sctx *super.Context, unknown *super.TypeError) super.Type {
-	fields := []super.Field{super.NewField("in", s.in.superType(sctx, unknown))}
+	fields := []super.Field{super.NewField("in", s.in.superType(sctx, unknown), false)}
 	if s.isGrouped() {
-		fields = append(fields, super.NewField("g", s.gType(sctx)))
+		fields = append(fields, super.NewField("g", s.gType(sctx), false))
 	}
 	if s.out != nil {
-		fields = append(fields, super.NewField("out", s.out.superType(sctx, unknown)))
+		fields = append(fields, super.NewField("out", s.out.superType(sctx, unknown), false))
 	}
 	return sctx.MustLookupTypeRecord(fields)
 }
@@ -589,10 +589,10 @@ func (s *selectScope) superType(sctx *super.Context, unknown *super.TypeError) s
 func (s *selectScope) gType(sctx *super.Context) super.Type {
 	var fields []super.Field
 	for k, e := range s.groupings {
-		fields = append(fields, super.NewField(groupTmp(k), e.typ))
+		fields = append(fields, super.NewField(groupTmp(k), e.typ, false))
 	}
 	for k := range s.aggs {
-		fields = append(fields, super.NewField(aggTmp(k), s.aggTypes[k]))
+		fields = append(fields, super.NewField(aggTmp(k), s.aggTypes[k], false))
 	}
 	return sctx.MustLookupTypeRecord(fields)
 }

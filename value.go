@@ -168,8 +168,12 @@ func (v Value) Encode(dst scode.Bytes) scode.Bytes {
 	return scode.Append(dst, v.Bytes())
 }
 
-func (v Value) Iter() scode.Iter {
+func (v Value) ContainerIter() scode.Iter {
 	return v.Bytes().Iter()
+}
+
+func (v Value) RecordIter(opts int) scode.RecordIter {
+	return scode.NewRecordIter(v.Bytes(), opts)
 }
 
 // If the passed-in element is an array, attempt to get the idx'th
@@ -184,7 +188,7 @@ func (v Value) ArrayIndex(idx int64) (Value, error) {
 	if idx < 0 {
 		return Null, ErrIndex
 	}
-	for i, it := 0, v.Iter(); !it.Done(); i++ {
+	for i, it := 0, v.ContainerIter(); !it.Done(); i++ {
 		bytes := it.Next()
 		if i == int(idx) {
 			return NewValue(vec.Type, bytes), nil
@@ -201,7 +205,7 @@ func (v Value) Elements() ([]Value, error) {
 		return nil, ErrNotContainer
 	}
 	var elements []Value
-	for it := v.Iter(); !it.Done(); {
+	for it := v.ContainerIter(); !it.Done(); {
 		elements = append(elements, NewValue(innerType, it.Next()))
 	}
 	return elements, nil
@@ -214,7 +218,7 @@ func (v Value) ContainerLength() (int, error) {
 			return 0, nil
 		}
 		var n int
-		for it := v.Iter(); !it.Done(); {
+		for it := v.ContainerIter(); !it.Done(); {
 			it.Next()
 			n++
 		}
@@ -224,7 +228,7 @@ func (v Value) ContainerLength() (int, error) {
 			return 0, nil
 		}
 		var n int
-		for it := v.Iter(); !it.Done(); {
+		for it := v.ContainerIter(); !it.Done(); {
 			it.Next()
 			it.Next()
 			n++
@@ -313,6 +317,20 @@ func (r Value) Walk(rv Visitor) error {
 }
 
 func (r Value) nth(n int) (scode.Bytes, bool) {
+	if typ := TypeRecordOf(r.typ); typ != nil {
+		var elem scode.Bytes
+		var none bool
+		for i, it := 0, scode.NewRecordIter(r.Bytes(), typ.Opts); i <= n; i++ {
+			if it.Done() {
+				return nil, false
+			}
+			elem, none = it.Next(typ.Fields[i].Opt)
+		}
+		if none {
+			elem = nil
+		}
+		return elem, true
+	}
 	var zv scode.Bytes
 	for i, it := 0, r.Bytes().Iter(); i <= n; i++ {
 		if it.Done() {

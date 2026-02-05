@@ -144,6 +144,11 @@ func (p *Parser) matchTypeField() (*ast.TypeField, error) {
 	if !ok {
 		return nil, nil
 	}
+	var opt bool
+	opt, err = l.match('?')
+	if err != nil {
+		return nil, err
+	}
 	ok, err = l.match(':')
 	if err != nil {
 		return nil, err
@@ -158,6 +163,7 @@ func (p *Parser) matchTypeField() (*ast.TypeField, error) {
 	return &ast.TypeField{
 		Name: symbol,
 		Type: typ,
+		Opt:  opt,
 	}, nil
 }
 

@@ -144,7 +144,7 @@ func indexRecord(sctx *super.Context, vec, indexVec vector.Any, base1 bool) vect
 	}
 	out := make([]vector.Any, n+1)
 	out[n] = vector.NewMissing(sctx, errcnt)
-	for i, field := range rec.Fields {
+	for i, field := range rec.Fields(sctx) {
 		out[i] = vector.Pick(field, viewIndexes[i])
 	}
 	return vector.NewDynamic(tags, out)

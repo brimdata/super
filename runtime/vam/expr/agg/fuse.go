@@ -38,7 +38,7 @@ func (f *fuse) Result(sctx *super.Context) super.Value {
 	if len(f.types)+len(f.partials) == 0 {
 		return super.Null
 	}
-	fuser := samagg.NewFuserWithMissingFieldsAsNullable(sctx)
+	fuser := samagg.NewFuser(sctx)
 	for _, p := range f.partials {
 		typ, err := sctx.LookupByValue(p.Bytes())
 		if err != nil {

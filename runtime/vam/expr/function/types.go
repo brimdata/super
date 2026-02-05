@@ -8,7 +8,9 @@ import (
 	"github.com/brimdata/super/vector"
 )
 
-type HasError struct{}
+type HasError struct {
+	sctx *super.Context
+}
 
 func (h HasError) Call(args ...vector.Any) vector.Any {
 	return h.hasError(args[0])
@@ -24,7 +26,7 @@ func (h HasError) hasError(in vector.Any) vector.Any {
 	switch vec := vec.(type) {
 	case *vector.Record:
 		var result vector.Any
-		for _, f := range vec.Fields {
+		for _, f := range vec.Fields(h.sctx) {
 			if index != nil {
 				f = vector.Pick(f, index)
 			}

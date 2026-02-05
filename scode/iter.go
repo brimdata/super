@@ -50,3 +50,40 @@ func (i *Iter) NextTagAndBody() Bytes {
 	*i = (*i)[n:]
 	return Bytes(val)
 }
+
+type RecordIter struct {
+	off   int
+	nopts int
+	nones []byte
+	elems Iter
+}
+
+func NewRecordIter(bytes Bytes, nopts int) RecordIter {
+	it := Iter(bytes)
+	var nones []byte
+	if nopts != 0 {
+		nones = it.Next()
+	}
+	return RecordIter{nones: nones, elems: it, nopts: nopts}
+}
+
+// Next returns the next element of the record and false if its
+// present; otherwise, nil and true for None.
+func (r *RecordIter) Next(opt bool) (Bytes, bool) {
+	if opt {
+		off := r.off
+		r.off++
+		if Testbit(r.nones, off) {
+			return nil, true
+		}
+	}
+	return r.elems.Next(), false
+}
+
+func Testbit(b []byte, off int) bool {
+	return b[off>>3]&(1<<(off&7)) != 0
+}
+
+func (r *RecordIter) Done() bool {
+	return r.elems.Done() && r.off >= r.nopts
+}

@@ -111,32 +111,58 @@ func (n *namedBuilder) Build() Any {
 
 type recordBuilder struct {
 	typ    *super.TypeRecord
-	values []Builder
+	fields []fieldBuilder
 	len    uint32
 }
 
 func newRecordBuilder(typ *super.TypeRecord) Builder {
-	var values []Builder
+	var fields []fieldBuilder
 	for _, f := range typ.Fields {
-		values = append(values, NewBuilder(f.Type))
+		fields = append(fields, fieldBuilder{opt: f.Opt, val: NewBuilder(f.Type)})
 	}
-	return &recordBuilder{typ: typ, values: values}
+	return &recordBuilder{typ: typ, fields: fields}
 }
 
 func (r *recordBuilder) Write(bytes scode.Bytes) {
+	off := r.len
 	r.len++
-	it := bytes.Iter()
-	for _, v := range r.values {
-		v.Write(it.Next())
+	it := scode.NewRecordIter(bytes, r.typ.Opts)
+	for k := range r.fields {
+		elem, none := it.Next(r.typ.Fields[k].Opt)
+		// The none condition is captured by RLE.
+		if !none {
+			r.fields[k].write(elem, off)
+		}
 	}
 }
 
 func (r *recordBuilder) Build() Any {
-	var vecs []Any
-	for _, v := range r.values {
-		vecs = append(vecs, v.Build())
+	var fields []Field
+	for k := range r.fields {
+		fields = r.fields[k].build(fields, r.len)
 	}
-	return NewRecord(r.typ, vecs, r.len)
+	return NewRecordFromFields(r.typ, fields, r.len)
+}
+
+type fieldBuilder struct {
+	opt  bool
+	val  Builder
+	runs RLE
+}
+
+func (f *fieldBuilder) write(bytes scode.Bytes, off uint32) {
+	if f.opt {
+		f.runs.Touch(off)
+	}
+	f.val.Write(bytes)
+}
+
+func (f *fieldBuilder) build(fields []Field, n uint32) []Field {
+	var runs []uint32
+	if f.opt {
+		runs = f.runs.End(n)
+	}
+	return append(fields, Field{Val: f.val.Build(), Runs: runs, Len: n})
 }
 
 type errorBuilder struct {

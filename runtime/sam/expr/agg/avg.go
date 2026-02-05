@@ -59,12 +59,12 @@ func (a *Avg) ConsumeAsPartial(partial super.Value) {
 }
 
 func (a *Avg) ResultAsPartial(sctx *super.Context) super.Value {
-	var zv scode.Bytes
-	zv = super.NewFloat64(a.sum).Encode(zv)
-	zv = super.NewUint64(a.count).Encode(zv)
+	var b scode.Builder
+	b.Append(super.EncodeFloat64(a.sum))
+	b.Append(super.EncodeUint(a.count))
 	typ := sctx.MustLookupTypeRecord([]super.Field{
-		super.NewField(sumName, super.TypeFloat64),
-		super.NewField(countName, super.TypeUint64),
+		super.NewField(sumName, super.TypeFloat64, false),
+		super.NewField(countName, super.TypeUint64, false),
 	})
-	return super.NewValue(typ, zv)
+	return super.NewValue(typ, b.Bytes())
 }

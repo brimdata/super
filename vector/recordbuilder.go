@@ -66,7 +66,7 @@ func (r *rec) build(sctx *super.Context, leafs []Any) (*Record, []Any) {
 		} else {
 			vec, leafs = leafs[0], leafs[1:]
 		}
-		fields = append(fields, super.NewField(name, vec.Type()))
+		fields = append(fields, super.NewField(name, vec.Type(), false))
 		out = append(out, vec)
 	}
 	typ := sctx.MustLookupTypeRecord(fields)

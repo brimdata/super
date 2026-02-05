@@ -190,8 +190,8 @@ func (c *checker) join(types []super.Type, op *sem.JoinOp) super.Type {
 		c.error(op, errors.New("join requires two query inputs"))
 	}
 	typ := c.t.sctx.MustLookupTypeRecord([]super.Field{
-		super.NewField(op.LeftAlias, types[0]),
-		super.NewField(op.RightAlias, types[1]),
+		super.NewField(op.LeftAlias, types[0], false),
+		super.NewField(op.RightAlias, types[1], false),
 	})
 	c.expr(typ, op.Cond)
 	return typ
@@ -510,7 +510,7 @@ func (c *checker) fuseRecordElems(elems []sem.RecordElem, types []super.Type) su
 			}
 			fuser.fuse(typ)
 		case *sem.FieldElem:
-			fuser.fuse(c.t.sctx.MustLookupTypeRecord([]super.Field{super.NewField(elem.Name, typ)}))
+			fuser.fuse(c.t.sctx.MustLookupTypeRecord([]super.Field{super.NewField(elem.Name, typ, false)}))
 		default:
 			panic(elem)
 		}
