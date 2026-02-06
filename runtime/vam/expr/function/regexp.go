@@ -56,7 +56,9 @@ func (r *Regexp) Call(args ...vector.Any) vector.Any {
 		}
 		out.Offsets = append(out.Offsets, inner.Len())
 	}
-	out.Nulls.Shorten(out.Len())
+	if !out.Nulls.IsZero() {
+		out.Nulls.Shorten(out.Len())
+	}
 	if len(errs) > 0 {
 		return vector.Combine(out, errs, vector.NewVecWrappedError(r.sctx, errMsg, vector.Pick(regVec, errs)))
 	}
