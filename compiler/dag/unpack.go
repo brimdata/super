@@ -22,6 +22,7 @@ var unpacker = unpack.New(
 	DefaultScan{},
 	DeleterScan{},
 	DeleteScan{},
+	DistinctOp{},
 	DotExpr{},
 	DropOp{},
 	Field{},
