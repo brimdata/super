@@ -10,6 +10,7 @@ input: |
   -1.5e12
   1::=named
   1e+19
+  error("bad")
 
 output: |
   10d
@@ -19,3 +20,4 @@ output: |
   -25m
   1ns
   error({message:"cannot cast to duration",on:1e+19})
+  error("bad")

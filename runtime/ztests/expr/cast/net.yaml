@@ -10,6 +10,7 @@ input: |
   10.0.0.0/8::=named
   -35
   34
+  error("bad")
 
 output: |
   192.168.1.0/24
@@ -19,3 +20,4 @@ output: |
   10.0.0.0/8
   error({message:"cannot cast to net",on:-35})
   error({message:"cannot cast to net",on:34})
+  error("bad")

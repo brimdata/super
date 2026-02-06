@@ -11,6 +11,7 @@ input: |
   1.1.1.2::=named
   34
   35
+  error("bad")
 
 output: |
   error({message:"cannot cast to ip",on:"foo"})
@@ -21,3 +22,4 @@ output: |
   1.1.1.2
   error({message:"cannot cast to ip",on:34})
   error({message:"cannot cast to ip",on:35})
+  error("bad")

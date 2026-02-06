@@ -10,6 +10,9 @@ import (
 
 func To(sctx *super.Context, vec vector.Any, typ super.Type) vector.Any {
 	vec = vector.Under(vec)
+	if vec.Kind() == vector.KindError {
+		return vec
+	}
 	var c caster
 	id := typ.ID()
 	if super.IsNumber(id) {

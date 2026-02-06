@@ -11,6 +11,7 @@ input: |
   2::=named
   false
   true
+  error("bad")
 
 output: |
   1.5::float16
@@ -37,3 +38,6 @@ output: |
   1.::float16
   1.::float32
   1.
+  error("bad")
+  error("bad")
+  error("bad")

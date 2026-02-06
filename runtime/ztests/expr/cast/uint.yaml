@@ -6,6 +6,7 @@ vector: true
 input: |
   false
   true
+  error("bad")
 
 output: |
   0::uint8
@@ -16,3 +17,7 @@ output: |
   1::uint16
   1::uint32
   1::uint64
+  error("bad")
+  error("bad")
+  error("bad")
+  error("bad")
