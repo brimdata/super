@@ -14,6 +14,7 @@ input: |
   1e8
   false
   true
+  error("bad")
 
 output: |
   -1::int8
@@ -56,3 +57,7 @@ output: |
   1::int16
   1::int32
   1
+  error("bad")
+  error("bad")
+  error("bad")
+  error("bad")

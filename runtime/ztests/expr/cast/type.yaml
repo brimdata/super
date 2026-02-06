@@ -9,6 +9,7 @@ input: |
   "{x:\"foo\"}"
   "<int>"
   1
+  error("bad")
 
 output: |
   <int64>
@@ -17,3 +18,4 @@ output: |
   error({message:"cannot cast to type",on:"{x:\"foo\"}"})
   error({message:"cannot cast to type",on:"<int>"})
   error({message:"cannot cast to type",on:1})
+  error("bad")
