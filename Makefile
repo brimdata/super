@@ -4,6 +4,10 @@ VERSION = $(shell git describe --tags --dirty --always)
 LDFLAGS = -s -X github.com/brimdata/super/cli.version=$(VERSION)
 BUILD_COMMANDS = ./cmd/super
 
+ifeq ($(GO),$(shell command -v go 2>/dev/null))
+  $(error Go is not installed or not in PATH)
+endif
+
 ifeq "$(filter-out 386 arm mips mipsle, $(shell go env GOARCH))" ""
 $(error 32-bit architectures are unsupported; see https://github.com/brimdata/super/issues/4044)
 endif
