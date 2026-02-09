@@ -61,6 +61,10 @@ func NewPattern(op string, distinct, hasarg bool) (Pattern, error) {
 		pattern = func() Func {
 			return &collect{}
 		}
+	case "collect_map":
+		pattern = func() Func {
+			return newCollectMap()
+		}
 	case "and":
 		pattern = func() Func {
 			return &and{}
