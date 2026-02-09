@@ -9,6 +9,9 @@ import (
 )
 
 func To(sctx *super.Context, vec vector.Any, typ super.Type) vector.Any {
+	if named, ok := typ.(*super.TypeNamed); ok {
+		return castNamed(sctx, vec, named)
+	}
 	vec = vector.Under(vec)
 	if vec.Kind() == vector.KindError {
 		return vec
@@ -99,6 +102,16 @@ func castConst(sctx *super.Context, vec *vector.Const, typ super.Type) vector.An
 		return errCastFailed(sctx, vec, typ, "")
 	}
 	return vector.NewConst(val, vec.Len(), vec.Nulls)
+}
+
+func castNamed(sctx *super.Context, vec vector.Any, named *super.TypeNamed) vector.Any {
+	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
+		vec := vecs[0]
+		if vec.Kind() == vector.KindError {
+			return vec
+		}
+		return vector.NewNamed(named, vec)
+	}, To(sctx, vec, named.Type))
 }
 
 func errCastFailed(sctx *super.Context, vec vector.Any, typ super.Type, msgSuffix string) vector.Any {
