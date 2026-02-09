@@ -147,7 +147,7 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 	case "typeof":
 		f = &TypeOf{sctx}
 	case "under":
-		f = &Under{sctx}
+		f = newUnder(sctx)
 	case "unflatten":
 		f = newUnflatten(sctx)
 	case "upper":
