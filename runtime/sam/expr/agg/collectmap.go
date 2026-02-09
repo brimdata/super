@@ -12,7 +12,7 @@ type CollectMap struct {
 	scratch []byte
 }
 
-func newCollectMap() *CollectMap {
+func NewCollectMap() *CollectMap {
 	return &CollectMap{entries: make(map[string]mapEntry)}
 }
 

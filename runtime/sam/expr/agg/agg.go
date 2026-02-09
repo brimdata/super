@@ -55,7 +55,7 @@ func NewPattern(op string, distinct, hasarg bool) (Pattern, error) {
 		}
 	case "collect_map":
 		pattern = func() Function {
-			return newCollectMap()
+			return NewCollectMap()
 		}
 	case "min":
 		pattern = func() Function {
