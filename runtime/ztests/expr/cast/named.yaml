@@ -19,3 +19,13 @@ output: |
   "baz"::=named
   error("missing")
   error("foo")
+
+---
+
+# Test casting a const to a named type keeps named type.
+spq: values 80::(port2=port=uint16)
+
+vector: true
+
+output: |
+  80::(port2=port=uint16)

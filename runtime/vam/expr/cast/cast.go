@@ -1,6 +1,8 @@
 package cast
 
 import (
+	"slices"
+
 	"github.com/brimdata/super"
 	samexpr "github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sup"
@@ -81,6 +83,15 @@ func castConst(sctx *super.Context, vec *vector.Const, typ super.Type) vector.An
 	if vec.Type().ID() == super.IDNull {
 		return vector.NewConst(super.NewValue(typ, nil), vec.Len(), bitvec.Zero)
 	}
+	var names []string
+	for {
+		named, ok := typ.(*super.TypeNamed)
+		if !ok {
+			break
+		}
+		names = append(names, named.Name)
+		typ = named.Type
+	}
 	val := samexpr.LookupPrimitiveCaster(sctx, typ).Eval(vec.Value())
 	if val.IsError() {
 		if !vec.Nulls.IsZero() {
@@ -98,7 +109,16 @@ func castConst(sctx *super.Context, vec *vector.Const, typ super.Type) vector.An
 		}
 		return errCastFailed(sctx, vec, typ, "")
 	}
-	return vector.NewConst(val, vec.Len(), vec.Nulls)
+	out := vector.Any(vector.NewConst(val, vec.Len(), vec.Nulls))
+	slices.Reverse(names)
+	for _, name := range names {
+		named, err := sctx.LookupTypeNamed(name, out.Type())
+		if err != nil {
+			panic(err)
+		}
+		out = vector.NewNamed(named, out)
+	}
+	return out
 }
 
 func errCastFailed(sctx *super.Context, vec vector.Any, typ super.Type, msgSuffix string) vector.Any {
