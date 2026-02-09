@@ -17,10 +17,10 @@ type consumer interface {
 }
 
 type mathReducer struct {
-	function  *mathFunc
-	hasval    bool
-	math      consumer
-	stringErr bool
+	function      *mathFunc
+	hasval        bool
+	math          consumer
+	mixedTypesErr bool
 }
 
 func newMathReducer(f *mathFunc) *mathReducer {
@@ -30,7 +30,7 @@ func newMathReducer(f *mathFunc) *mathReducer {
 var _ Func = (*mathReducer)(nil)
 
 func (m *mathReducer) Result(sctx *super.Context) super.Value {
-	if m.stringErr {
+	if m.mixedTypesErr {
 		return sctx.NewErrorf("mixture of string and numeric values")
 	}
 	if !m.hasval {
@@ -43,15 +43,40 @@ func (m *mathReducer) Result(sctx *super.Context) super.Value {
 }
 
 func (m *mathReducer) Consume(vec vector.Any) {
-	if m.stringErr {
+	if m.mixedTypesErr {
 		return
 	}
 	vec = vector.Under(vec)
 	typ := vec.Type()
-	if typ == super.TypeString || (m.math != nil && m.math.typ() == super.TypeString) {
+	switch {
+	case typ == super.TypeString:
 		m.consumeString(vec)
+	case super.IsNumber(typ.ID()):
+		m.consumeNumeric(vec)
+	}
+}
+
+func (m *mathReducer) consumeString(vec vector.Any) {
+	if m.math == nil {
+		m.math = newReduceString(m.function)
+	}
+	if m.math.typ() != super.TypeString {
+		m.mixedTypesErr = true
 		return
 	}
+	if vec = trimNulls(vec); vec.Len() == 0 {
+		return
+	}
+	m.hasval = true
+	m.math.consume(vec)
+}
+
+func (m *mathReducer) consumeNumeric(vec vector.Any) {
+	if m.math != nil && !super.IsNumber(m.math.typ().ID()) {
+		m.mixedTypesErr = true
+		return
+	}
+	typ := vec.Type()
 	var id int
 	if m.math != nil {
 		var err error
@@ -80,8 +105,7 @@ func (m *mathReducer) Consume(vec vector.Any) {
 		case super.IDFloat16, super.IDFloat32, super.IDFloat64:
 			m.math = newReduceFloat64(m.function, state)
 		default:
-			// Ignore types we can't handle.
-			return
+			panic(id)
 		}
 	}
 	if vec = trimNulls(vec); vec.Len() == 0 {
@@ -89,23 +113,6 @@ func (m *mathReducer) Consume(vec vector.Any) {
 	}
 	m.hasval = true
 	m.math.consume(vec)
-}
-
-func (m *mathReducer) consumeString(vec vector.Any) {
-	if m.math == nil {
-		m.math = newReduceString(m.function)
-	}
-	aid := vec.Type().ID()
-	bid := m.math.typ().ID()
-	if aid == super.IDString && bid == super.IDString {
-		if vec = trimNulls(vec); vec.Len() == 0 {
-			return
-		}
-		m.hasval = true
-		m.math.consume(vec)
-	} else if super.IsNumber(aid) || super.IsNumber(bid) {
-		m.stringErr = true
-	}
 }
 
 func (m *mathReducer) ConsumeAsPartial(vec vector.Any) {
