@@ -8,6 +8,10 @@ type Under struct {
 	sctx *super.Context
 }
 
+func NewUnder(sctx *super.Context) *Under {
+	return &Under{sctx}
+}
+
 func (u *Under) Call(args []super.Value) super.Value {
 	val := args[0]
 	switch typ := args[0].Type().(type) {

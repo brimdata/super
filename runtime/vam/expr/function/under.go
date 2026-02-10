@@ -2,11 +2,17 @@ package function
 
 import (
 	"github.com/brimdata/super"
+	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/vector"
 )
 
 type Under struct {
-	sctx *super.Context
+	sctx     *super.Context
+	samunder *samfunc.Under
+}
+
+func newUnder(sctx *super.Context) *Under {
+	return &Under{sctx, samfunc.NewUnder(sctx)}
 }
 
 func (u *Under) Call(args ...vector.Any) vector.Any {
@@ -17,6 +23,9 @@ func (u *Under) Call(args ...vector.Any) vector.Any {
 	}
 	var out vector.Any
 	switch vec := vec.(type) {
+	case *vector.Const:
+		val := u.samunder.Call([]super.Value{vec.Value()})
+		out = vector.NewConst(val, vec.Len(), vec.Nulls)
 	case *vector.Named:
 		out = vec.Any
 	case *vector.Error:
