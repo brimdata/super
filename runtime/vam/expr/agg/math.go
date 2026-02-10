@@ -1,6 +1,7 @@
 package agg
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/brimdata/super"
@@ -9,6 +10,8 @@ import (
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/bitvec"
 )
+
+var mathMixTypesErr = errors.New("mixture of string and numeric values")
 
 type consumer interface {
 	result() super.Value
@@ -31,7 +34,7 @@ var _ Func = (*mathReducer)(nil)
 
 func (m *mathReducer) Result(sctx *super.Context) super.Value {
 	if m.mixedTypesErr {
-		return sctx.NewErrorf("mixture of string and numeric values")
+		return sctx.NewError(mathMixTypesErr)
 	}
 	if !m.hasval {
 		if m.math == nil {
@@ -116,6 +119,16 @@ func (m *mathReducer) consumeNumeric(vec vector.Any) {
 }
 
 func (m *mathReducer) ConsumeAsPartial(vec vector.Any) {
+	if vec.Len() != 1 {
+		panic("invalid length for partial")
+	}
+	if errvec, ok := vec.(*vector.Error); ok && errvec.Vals.Kind() == vector.KindString {
+		s, _ := vector.StringValue(errvec.Vals, 0)
+		if s == mathMixTypesErr.Error() {
+			m.mixedTypesErr = true
+		}
+		return
+	}
 	m.Consume(vec)
 }
 
