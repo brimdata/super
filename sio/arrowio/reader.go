@@ -10,16 +10,21 @@ import (
 	"github.com/apache/arrow-go/v18/arrow"
 	"github.com/apache/arrow-go/v18/arrow/array"
 	"github.com/apache/arrow-go/v18/arrow/ipc"
-	"github.com/apache/arrow-go/v18/parquet/pqarrow"
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/scode"
 )
 
+type RecordReader interface {
+	Read() (arrow.RecordBatch, error)
+	Release()
+	Schema() *arrow.Schema
+}
+
 // Reader is a sio.Reader for the Arrow IPC stream format.
 type Reader struct {
 	sctx *super.Context
-	rr   pqarrow.RecordReader
+	rr   RecordReader
 
 	typ              super.Type
 	unionTagMappings map[string][]int
@@ -44,7 +49,7 @@ func NewReader(sctx *super.Context, r io.Reader) (*Reader, error) {
 	return ar, nil
 }
 
-func NewReaderFromRecordReader(sctx *super.Context, rr pqarrow.RecordReader) (*Reader, error) {
+func NewReaderFromRecordReader(sctx *super.Context, rr RecordReader) (*Reader, error) {
 	r := &Reader{
 		sctx:             sctx,
 		rr:               rr,
