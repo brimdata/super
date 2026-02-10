@@ -11,3 +11,16 @@ output: |
   {net:{src:10.164.94.120,orig_p:39681::(port=uint16),dst:10.47.3.155,resp_p:3389::port}}
   {net:{src:10.164.94.121,orig_p:39681::(port=uint16),dst:10.47.3.155,resp_p:3390::port}}
   {net:{orig_p:39681::(port=uint16),resp_p:3389::port}}
+
+---
+
+# Test nested renamed records in vector runtime are deeply renamed.
+spq: rename x.x:=x.y | values x
+
+vector: true
+
+input: |
+  {x:{y:1}}
+
+output: |
+  {x:1}
