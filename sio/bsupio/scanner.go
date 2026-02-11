@@ -78,7 +78,10 @@ func (s *scanner) Pull(done bool) (sbuf.Batch, error) {
 	}
 	for {
 		select {
-		case ch := <-s.resultChCh:
+		case ch, ok := <-s.resultChCh:
+			if !ok {
+				return nil, s.ctx.Err()
+			}
 			result, ok := <-ch
 			if !ok {
 				continue
