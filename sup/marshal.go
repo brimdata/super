@@ -948,11 +948,14 @@ func (u *UnmarshalBSUPContext) decodeRecord(val super.Value, sval reflect.Value)
 		name := fieldName(field)
 		nameToField[name] = i
 	}
-	for i, it := 0, val.Iter(); !it.Done(); i++ {
+	for i, it := 0, scode.NewRecordIter(val.Bytes()); !it.Done(); i++ {
 		if i >= len(recType.Fields) {
 			return errors.New("malformed super value")
 		}
-		itzv := it.Next()
+		itzv, none := it.Next(recType.Fields[i].Opt)
+		if none { //XXX
+			panic(recType)
+		}
 		name := recType.Fields[i].Name
 		if fieldIdx, ok := nameToField[name]; ok {
 			typ := recType.Fields[i].Type
