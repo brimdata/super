@@ -109,13 +109,17 @@ func (r *recordSpreadExpr) Eval(this super.Value) super.Value {
 				// Treat non-record spread values like missing.
 				continue
 			}
-			it := rec.Iter()
+			it := scode.NewRecordIter(rec.Bytes())
 			for _, f := range typ.Fields {
 				fv, ok := object[f.Name]
 				if !ok {
 					fv = fieldValue{index: len(object), opt: f.Opt}
 				}
-				fv.value = super.NewValue(f.Type, it.Next())
+				elem, none := it.Next(f.Opt)
+				if none {
+					panic(typ)
+				}
+				fv.value = super.NewValue(f.Type, elem)
 				object[f.Name] = fv
 			}
 		} else {

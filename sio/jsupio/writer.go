@@ -125,8 +125,9 @@ func (w *Writer) encodeRecord(sctx *super.Context, typ *super.TypeRecord, val sc
 	// We start out with a slice that contains nothing instead of nil
 	// so that an empty container encodes as a JSON empty array [].
 	out := []any{}
-	for k, it := 0, val.Iter(); !it.Done(); k++ {
-		v, err := w.encodeValue(sctx, typ.Fields[k].Type, it.Next())
+	for k, it := 0, scode.NewRecordIter(val); !it.Done(); k++ {
+		elem, _ := it.Next(typ.Fields[k].Opt)
+		v, err := w.encodeValue(sctx, typ.Fields[k].Type, elem)
 		if err != nil {
 			return nil, err
 		}
