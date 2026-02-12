@@ -5,7 +5,7 @@ perform a regular expression search on a string
 ## Synopsis
 
 ```
-regexp(re: string, s: string) -> any
+regexp(re: string, s: string) -> [string]
 ```
 
 ## Description
