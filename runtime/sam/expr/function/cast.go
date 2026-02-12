@@ -10,8 +10,16 @@ import (
 	"github.com/brimdata/super/sup"
 )
 
+type Caster interface {
+	Cast(from super.Value, to super.Type) super.Value
+}
+
 type cast struct {
 	sctx *super.Context
+}
+
+func NewCaster(sctx *super.Context) *cast {
+	return &cast{sctx: sctx}
 }
 
 func (c *cast) Call(args []super.Value) super.Value {
@@ -31,12 +39,12 @@ func (c *cast) Call(args []super.Value) super.Value {
 		if err != nil {
 			panic(err)
 		}
-		return c.cast(from, typ)
+		return c.Cast(from, typ)
 	}
 	return c.sctx.WrapError("cast target must be a type or type name", to)
 }
 
-func (c *cast) cast(from super.Value, to super.Type) super.Value {
+func (c *cast) Cast(from super.Value, to super.Type) super.Value {
 	if from.IsNull() {
 		return super.NewValue(to, nil)
 	}
@@ -86,7 +94,7 @@ func (c *cast) toRecord(from super.Value, to *super.TypeRecord) super.Value {
 	for i, f := range to.Fields {
 		var val2 super.Value
 		if fieldVal := from.Deref(f.Name); fieldVal != nil {
-			val2 = c.cast(*fieldVal, f.Type)
+			val2 = c.Cast(*fieldVal, f.Type)
 		} else {
 			val2 = super.NewValue(f.Type, nil)
 		}
@@ -143,7 +151,7 @@ func (c *cast) toArrayOrSet(from super.Value, to super.Type) super.Value {
 
 func (c *cast) castNext(it *scode.Iter, from, to super.Type) super.Value {
 	val := super.NewValue(from, it.Next())
-	return c.cast(val, to)
+	return c.Cast(val, to)
 }
 
 func (c *cast) maybeConvertToUnion(vals []super.Value, types map[super.Type]struct{}) super.Type {
@@ -209,7 +217,7 @@ func (c *cast) toUnion(from super.Value, to *super.TypeUnion) super.Value {
 }
 
 func (c *cast) toError(from super.Value, to *super.TypeError) super.Value {
-	from = c.cast(from, to.Type)
+	from = c.Cast(from, to.Type)
 	if from.Type() != to.Type {
 		return from
 	}
@@ -217,7 +225,7 @@ func (c *cast) toError(from super.Value, to *super.TypeError) super.Value {
 }
 
 func (c *cast) toNamed(from super.Value, to *super.TypeNamed) super.Value {
-	from = c.cast(from, to.Type)
+	from = c.Cast(from, to.Type)
 	if from.Type() != to.Type {
 		return from
 	}

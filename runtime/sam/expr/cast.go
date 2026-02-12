@@ -296,3 +296,35 @@ func (c *casterEnum) Eval(val super.Value) super.Value {
 	}
 	return super.NewValue(c.enum, super.EncodeUint(uint64(selector)))
 }
+
+// BestUnionTag tries to return the most specific union tag for in
+// within out.  It returns -1 if out is not a union or contains no type
+// compatible with in.  (Types are compatible if they have the same underlying
+// type.)  If out contains in, BestUnionTag returns its tag.
+// Otherwise, if out contains in's underlying type, BestUnionTag returns
+// its tag.  Finally, BestUnionTag returns the smallest tag in
+// out whose type is compatible with in.
+func BestUnionTag(in, out super.Type) int {
+	outUnion, ok := super.TypeUnder(out).(*super.TypeUnion)
+	if !ok {
+		return -1
+	}
+	typeUnderIn := super.TypeUnder(in)
+	underlying := -1
+	compatible := -1
+	for i, t := range outUnion.Types {
+		if t == in {
+			return i
+		}
+		if t == typeUnderIn && underlying == -1 {
+			underlying = i
+		}
+		if super.TypeUnder(t) == typeUnderIn && compatible == -1 {
+			compatible = i
+		}
+	}
+	if underlying != -1 {
+		return underlying
+	}
+	return compatible
+}
