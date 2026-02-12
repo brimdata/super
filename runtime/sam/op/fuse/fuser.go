@@ -2,8 +2,8 @@ package fuse
 
 import (
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/expr/agg"
+	"github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/runtime/sam/op/spill"
 )
 
@@ -20,7 +20,8 @@ type Fuser struct {
 
 	types      map[super.Type]struct{}
 	uberSchema *agg.Schema
-	shaper     *expr.ConstShaper
+	caster     function.Caster
+	typ        super.Type
 }
 
 // NewFuser returns a new Fuser.  The Fuser buffers records in memory until
@@ -45,7 +46,7 @@ func (f *Fuser) Close() error {
 
 // Write buffers rec. If called after Read, Write panics.
 func (f *Fuser) Write(rec super.Value) error {
-	if f.shaper != nil {
+	if f.typ != nil {
 		panic("fuser: write after read")
 	}
 	if _, ok := f.types[rec.Type()]; !ok {
@@ -81,9 +82,9 @@ func (f *Fuser) stash(rec super.Value) error {
 // Read returns the next buffered record after transforming it to the unified
 // schema.
 func (f *Fuser) Read() (*super.Value, error) {
-	if f.shaper == nil {
-		t := f.uberSchema.Type()
-		f.shaper = expr.NewConstShaper(f.sctx, &expr.This{}, t, expr.Cast|expr.Fill|expr.Order)
+	if f.caster == nil {
+		f.typ = f.uberSchema.Type()
+		f.caster = function.NewUpCaster(f.sctx)
 		if f.spiller != nil {
 			if err := f.spiller.Rewind(f.sctx); err != nil {
 				return nil, err
@@ -94,7 +95,7 @@ func (f *Fuser) Read() (*super.Value, error) {
 	if rec == nil || err != nil {
 		return nil, err
 	}
-	return f.shaper.Eval(*rec).Ptr(), nil
+	return f.caster.Cast(*rec, f.typ).Ptr(), nil
 }
 
 func (f *Fuser) next() (*super.Value, error) {
