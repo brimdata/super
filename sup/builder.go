@@ -201,16 +201,6 @@ func buildRecord(b *scode.Builder, val *Record) error {
 	return nil
 }
 
-func countOpts(fields []super.Field) int {
-	var n int
-	for _, f := range fields {
-		if f.Opt {
-			n++
-		}
-	}
-	return n
-}
-
 func buildArray(b *scode.Builder, array *Array) error {
 	b.BeginContainer()
 	for _, v := range array.Elements {

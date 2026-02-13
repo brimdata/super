@@ -139,6 +139,8 @@ func (b *builder) endRecord() {
 		itemptrs = removeDuplicateItems(itemptrs, dferr.Name)
 	}
 	container.zb.BeginContainer()
+	// Add empty optional fields.  JSON data never has optional fields.
+	container.zb.Append(nil)
 	for _, item := range itemptrs {
 		container.zb.Append(item.zb.Bytes().Body())
 	}

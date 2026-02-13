@@ -118,6 +118,8 @@ func (r *Reader) decodeRecord(b *scode.Builder, typ *super.TypeRecord, v any) er
 	}
 	fields := typ.Fields
 	b.BeginContainer()
+	//XXX we need to decode Nones
+	b.Append(nil)
 	for k, val := range values {
 		if k >= len(fields) {
 			return errors.New("record with extra field")

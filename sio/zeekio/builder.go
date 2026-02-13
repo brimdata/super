@@ -103,6 +103,8 @@ func (b *builder) appendFields(fields []super.Field, values [][]byte) ([][]byte,
 			b.EndContainer()
 		case *super.TypeRecord:
 			b.BeginContainer()
+			// Add empty optional fields.
+			b.Append(nil)
 			var err error
 			if values, err = b.appendFields(typ.Fields, values); err != nil {
 				return nil, err
