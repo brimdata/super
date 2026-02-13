@@ -49,6 +49,7 @@ func (r *recordExpr) Eval(this super.Value) super.Value {
 	var changed bool
 	b := r.builder
 	b.Reset()
+	b.Append(nil) //XXX need support for optional fields
 	for k, e := range r.exprs {
 		val := e.Eval(this)
 		if r.fields[k].Type != val.Type() {
@@ -111,6 +112,10 @@ func (r *recordSpreadExpr) Eval(this super.Value) super.Value {
 			}
 			it := scode.NewRecordIter(rec.Bytes())
 			for _, f := range typ.Fields {
+				if f.Opt {
+					// XXX need support for optional fields and putting None bits up front
+					panic(f)
+				}
 				fv, ok := object[f.Name]
 				if !ok {
 					fv = fieldValue{index: len(object), opt: f.Opt}
@@ -139,6 +144,7 @@ func (r *recordSpreadExpr) Eval(this super.Value) super.Value {
 	r.update(object)
 	b := r.builder
 	b.Reset()
+	b.Append(nil) //XXX need support for optional fields
 	for _, bytes := range r.bytes {
 		b.Append(bytes)
 	}
