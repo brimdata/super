@@ -1,0 +1,36 @@
+# Test parse errors with unescaped quotes.
+spq: pass
+
+input: |
+  {id:1,text:"valid record before the bad one"}
+  {id:2,text:"this has "unescaped quotes" inside it"}
+  {id:3,text:"valid record after the bad one"}
+
+error: |
+  line 2: parse error: mismatched braces while parsing record type
+
+---
+
+# Unclosed object.
+spq: pass
+
+input: |
+  {x:1}
+  {x:2}
+  {x:3
+  {x:4}
+
+error: |
+  line 4: parse error: mismatched braces while parsing record type
+
+---
+
+spq: pass
+
+input-flags: -i sup
+
+input: |
+  {x}
+
+error: |
+  line 1: parse error: no type name found for field "x"
