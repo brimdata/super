@@ -83,23 +83,23 @@ func TestParseValueErrors(t *testing.T) {
 		in            string
 		expectedError string
 	}{
-		{" \"\n\" ", `parse error: string literal: unescaped line break`},
-		{` "`, `parse error: string literal: EOF`},
-		{` "\`, `parse error: string literal: no end quote`},
-		{` "\u`, `parse error: string literal: EOF`},
-		{` "\u" `, `parse error: string literal: short \u escape`},
-		{` "\u0" `, `parse error: string literal: short \u escape`},
-		{` "\u00" `, `parse error: string literal: short \u escape`},
-		{` "\u000" `, `parse error: string literal: short \u escape`},
-		{` "\u000g" `, `parse error: string literal: invalid hex digits in \u escape`},
+		{" \"\n\" ", `line 2: parse error: string literal: unescaped line break`},
+		{` "`, `line 1: parse error: string literal: EOF`},
+		{` "\`, `line 1: parse error: string literal: no end quote`},
+		{` "\u`, `line 1: parse error: string literal: EOF`},
+		{` "\u" `, `line 1: parse error: string literal: short \u escape`},
+		{` "\u0" `, `line 1: parse error: string literal: short \u escape`},
+		{` "\u00" `, `line 1: parse error: string literal: short \u escape`},
+		{` "\u000" `, `line 1: parse error: string literal: short \u escape`},
+		{` "\u000g" `, `line 1: parse error: string literal: invalid hex digits in \u escape`},
 		// Go's \UXXXXXXXX is not recognized.
-		{` "\U00000000" `, `parse error: string literal: illegal escape (\U)`},
+		{` "\U00000000" `, `line 1: parse error: string literal: illegal escape (\U)`},
 		// Go's \xXX is not recognized.
-		{` "\x00" `, `parse error: string literal: illegal escape (\x)`},
+		{` "\x00" `, `line 1: parse error: string literal: illegal escape (\x)`},
 		// Go's \a is not recognized.
-		{` "\a" `, `parse error: string literal: illegal escape (\a)`},
+		{` "\a" `, `line 1: parse error: string literal: illegal escape (\a)`},
 		// Go's \v is not recognized.
-		{` "\v" `, `parse error: string literal: illegal escape (\v)`},
+		{` "\v" `, `line 1: parse error: string literal: illegal escape (\v)`},
 	}
 	for _, c := range cases {
 		_, err := sup.ParseValue(super.NewContext(), c.in)
