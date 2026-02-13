@@ -420,6 +420,7 @@ func (m *MarshalBSUPContext) encodeNil(t reflect.Type) (super.Type, error) {
 
 func (m *MarshalBSUPContext) encodeRecord(sval reflect.Value) (super.Type, error) {
 	m.Builder.BeginContainer()
+	m.Builder.Append(nil) //XXX no optional fields
 	var fields []super.Field
 	stype := sval.Type()
 	for i := range stype.NumField() {
