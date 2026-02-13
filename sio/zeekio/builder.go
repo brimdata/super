@@ -24,6 +24,8 @@ type builder struct {
 func (b *builder) build(typ *super.TypeRecord, sourceFields []int, path []byte, data []byte) (*super.Value, error) {
 	b.Truncate()
 	b.Grow(len(data))
+	// Add empty optional fields.
+	b.Append(nil)
 	fields := typ.Fields
 	if path != nil {
 		if fields[0].Name != "_path" {
