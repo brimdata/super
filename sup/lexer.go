@@ -25,6 +25,7 @@ type Lexer struct {
 	primitive   *regexp.Regexp
 	indentation *regexp.Regexp
 	ip6follow   *regexp.Regexp
+	line        int
 }
 
 const (
@@ -43,6 +44,7 @@ func NewLexer(r io.Reader) *Lexer {
 		primitive:   primitive,
 		indentation: indentation,
 		ip6follow:   regexp.MustCompile(ip6followRE),
+		line:        1,
 	}
 }
 
@@ -90,6 +92,7 @@ func (l *Lexer) skip(n int) error {
 	if err := l.check(n); err != nil {
 		return err
 	}
+	l.line += bytes.Count(l.cursor[:n], []byte{'\n'})
 	l.cursor = l.cursor[n:]
 	return nil
 }
@@ -170,6 +173,9 @@ func (l *Lexer) readByte() (byte, error) {
 	}
 	b := l.cursor[0]
 	l.cursor = l.cursor[1:]
+	if b == '\n' {
+		l.line++
+	}
 	return b, nil
 }
 
