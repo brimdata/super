@@ -115,11 +115,13 @@ func NewRecordBuilder(sctx *Context, fields field.List) (*RecordBuilder, error) 
 		fieldInfos[len(fieldInfos)-1].containerEnds = len(currentRecord)
 	}
 
-	return &RecordBuilder{
+	r := &RecordBuilder{
 		fields:  fieldInfos,
 		builder: scode.NewBuilder(),
 		sctx:    sctx,
-	}, nil
+	}
+	r.Reset()
+	return r, nil
 }
 
 // check if fieldname is "in" one of the fields in fis, or if
@@ -148,6 +150,7 @@ func isIn(fieldname field.Path, fis []fieldInfo) bool {
 
 func (r *RecordBuilder) Reset() {
 	r.builder.Reset()
+	r.builder.Append(nil)
 	r.curField = 0
 }
 
@@ -156,6 +159,8 @@ func (r *RecordBuilder) Append(leaf []byte) {
 	r.curField++
 	for range field.containerBegins {
 		r.builder.BeginContainer()
+		// empty field options
+		r.builder.Append(nil)
 	}
 	r.builder.Append(leaf)
 	for range field.containerEnds {
