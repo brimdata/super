@@ -18,7 +18,5 @@ func (p *Parser) errorf(msg string, args ...any) error {
 }
 
 func (p *Parser) error(msg string) error {
-	// format a message based on the contents in the scanner buffer
-	// (could also track column and line number)
-	return fmt.Errorf("parse error: %s", msg)
+	return fmt.Errorf("line %d: parse error: %s", p.lexer.line, msg)
 }
