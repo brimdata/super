@@ -147,6 +147,8 @@ func (m *MarshalBSUPContext) MarshalCustom(names []string, vals []any) (super.Va
 		return super.Null, errors.New("names and vals have different lengths")
 	}
 	m.Builder.Reset()
+	// No optional fields are allowed here.
+	m.Builder.Append(nil)
 	var fields []super.Field
 	for k, v := range vals {
 		typ, err := m.encodeValue(reflect.ValueOf(v))
