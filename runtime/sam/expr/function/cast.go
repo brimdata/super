@@ -195,11 +195,9 @@ func (c *cast) toUnion(from super.Value, to *super.TypeUnion) super.Value {
 		}
 		from = from2
 	}
-	bytes := from.Bytes()
-	if bytes != nil {
-		bytes = scode.Append(scode.Append(nil, super.EncodeInt(int64(tag))), bytes)
-	}
-	return super.NewValue(to, bytes)
+	var b scode.Builder
+	super.BuildUnion(&b, tag, from.Bytes())
+	return super.NewValue(to, b.Bytes().Body())
 }
 
 func (c *cast) toError(from super.Value, to *super.TypeError) super.Value {
