@@ -313,6 +313,20 @@ func (r Value) Walk(rv Visitor) error {
 }
 
 func (r Value) nth(n int) (scode.Bytes, bool) {
+	if typ := TypeRecordOf(r.typ); typ != nil {
+		var elem scode.Bytes
+		var none bool
+		for i, it := 0, scode.NewRecordIter(r.Bytes()); i <= n; i++ {
+			if it.Done() {
+				return nil, false
+			}
+			elem, none = it.Next(typ.Fields[i].Opt)
+		}
+		if none {
+			elem = nil
+		}
+		return elem, true
+	}
 	var zv scode.Bytes
 	for i, it := 0, r.Bytes().Iter(); i <= n; i++ {
 		if it.Done() {
