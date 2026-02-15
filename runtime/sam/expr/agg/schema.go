@@ -53,7 +53,7 @@ func (s *Schema) merge(a, b super.Type) super.Type {
 					i, ok := indexOfField(fields, f.Name)
 					if !ok {
 						i = len(fields)
-						fields = append(fields, super.NewField(f.Name, super.TypeNull))
+						fields = append(fields, super.NewField(f.Name, super.TypeNull, f.Opt))
 					}
 					fields[i].Type = s.merge(fields[i].Type, f.Type)
 				}
