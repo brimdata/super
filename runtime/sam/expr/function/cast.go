@@ -112,7 +112,7 @@ func (c *cast) toArrayOrSet(from super.Value, to super.Type) super.Value {
 	}
 	types := map[super.Type]struct{}{}
 	var vals []super.Value
-	for it := from.Iter(); !it.Done(); {
+	for it := from.ContainerIter(); !it.Done(); {
 		val := c.castNext(&it, fromInner, toInner)
 		types[val.Type()] = struct{}{}
 		vals = append(vals, val)
@@ -164,7 +164,7 @@ func (c *cast) toMap(from super.Value, to *super.TypeMap) super.Value {
 	keyTypes := map[super.Type]struct{}{}
 	valTypes := map[super.Type]struct{}{}
 	var keyVals, valVals []super.Value
-	for it := from.Iter(); !it.Done(); {
+	for it := from.ContainerIter(); !it.Done(); {
 		keyVal := c.castNext(&it, fromType.KeyType, to.KeyType)
 		keyVals = append(keyVals, keyVal)
 		keyTypes[keyVal.Type()] = struct{}{}

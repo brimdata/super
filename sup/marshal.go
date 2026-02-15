@@ -905,7 +905,7 @@ func (u *UnmarshalBSUPContext) decodeMap(val super.Value, mapVal reflect.Value) 
 	}
 	keyType := mapVal.Type().Key()
 	valType := mapVal.Type().Elem()
-	for it := val.Iter(); !it.Done(); {
+	for it := val.ContainerIter(); !it.Done(); {
 		key := reflect.New(keyType).Elem()
 		if err := u.decodeAny(super.NewValue(typ.KeyType, it.Next()), key); err != nil {
 			return err
@@ -969,7 +969,7 @@ func (u *UnmarshalBSUPContext) decodeArray(val super.Value, arrVal reflect.Value
 		return fmt.Errorf("unmarshaling type %q: not an array", String(typ))
 	}
 	i := 0
-	for it := val.Iter(); !it.Done(); i++ {
+	for it := val.ContainerIter(); !it.Done(); i++ {
 		itzv := it.Next()
 		if i >= arrVal.Cap() {
 			newcap := max(arrVal.Cap()+arrVal.Cap()/2, 4)

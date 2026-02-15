@@ -440,7 +440,7 @@ func (f *Formatter) formatVector(indent int, open, close string, inner super.Typ
 	}
 	indent += f.tab
 	sep := f.newline
-	it := val.Iter()
+	it := val.ContainerIter()
 	elems := newElemBuilder(inner)
 	for !it.Done() {
 		f.build(sep)

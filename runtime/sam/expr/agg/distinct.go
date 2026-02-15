@@ -37,7 +37,7 @@ func (d *distinct) ConsumeAsPartial(val super.Value) {
 		panic(fmt.Errorf("distinct partial is not an array: %s", sup.FormatValue(val)))
 	}
 	typ := arrayType.Type
-	for it := val.Iter(); !it.Done(); {
+	for it := val.ContainerIter(); !it.Done(); {
 		d.Consume(super.NewValue(typ, it.Next()))
 	}
 }
