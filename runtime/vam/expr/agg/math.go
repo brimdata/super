@@ -7,7 +7,6 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type consumer interface {
@@ -34,10 +33,7 @@ func (m *mathReducer) Result(sctx *super.Context) super.Value {
 		return sctx.NewErrorf("mixture of string and numeric values")
 	}
 	if !m.hasval {
-		if m.math == nil {
-			return super.Null
-		}
-		return super.NewValue(m.math.typ(), nil)
+		return super.Null
 	}
 	return m.math.result()
 }
@@ -62,9 +58,6 @@ func (m *mathReducer) consumeString(vec vector.Any) {
 	}
 	if m.math.typ() != super.TypeString {
 		m.mixedTypesErr = true
-		return
-	}
-	if vec = trimNulls(vec); vec.Len() == 0 {
 		return
 	}
 	m.hasval = true
@@ -108,9 +101,6 @@ func (m *mathReducer) consumeNumeric(vec vector.Any) {
 			panic(id)
 		}
 	}
-	if vec = trimNulls(vec); vec.Len() == 0 {
-		return
-	}
 	m.hasval = true
 	m.math.consume(vec)
 }
@@ -121,30 +111,6 @@ func (m *mathReducer) ConsumeAsPartial(vec vector.Any) {
 
 func (m *mathReducer) ResultAsPartial(sctx *super.Context) super.Value {
 	return m.Result(sctx)
-}
-
-func trimNulls(vec vector.Any) vector.Any {
-	if c, ok := vec.(*vector.Const); ok && c.Value().IsNull() {
-		return vector.NewConst(super.Null, 0, bitvec.Zero)
-	}
-	nulls := vector.NullsOf(vec)
-	if nulls.IsZero() {
-		return vec
-	}
-	var index []uint32
-	for i := range nulls.Len() {
-		if nulls.IsSet(i) {
-			index = append(index, i)
-		}
-	}
-	switch uint32(len(index)) {
-	case vec.Len():
-		return vector.NewConst(super.Null, 0, bitvec.Zero)
-	case 0:
-		return vec
-	default:
-		return vector.ReversePick(vec, index)
-	}
 }
 
 type reduceFloat64 struct {
@@ -261,7 +227,7 @@ func (s *reduceString) consume(vec vector.Any) {
 		return
 	}
 	if !s.hasval {
-		s.state, _ = vector.StringValue(vec, 0)
+		s.state = vector.StringValue(vec, 0)
 		s.hasval = true
 	}
 	s.state = s.function(s.state, vec)

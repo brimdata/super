@@ -44,9 +44,6 @@ func Walk(typ Type, body scode.Bytes, visit Visitor) error {
 }
 
 func walkRecord(typ *TypeRecord, body scode.Bytes, visit Visitor) error {
-	if body == nil {
-		return nil
-	}
 	it := body.Iter()
 	for _, f := range typ.Fields {
 		if it.Done() {
@@ -60,9 +57,6 @@ func walkRecord(typ *TypeRecord, body scode.Bytes, visit Visitor) error {
 }
 
 func walkArray(typ *TypeArray, body scode.Bytes, visit Visitor) error {
-	if body == nil {
-		return nil
-	}
 	inner := InnerType(typ)
 	it := body.Iter()
 	for !it.Done() {
@@ -74,9 +68,6 @@ func walkArray(typ *TypeArray, body scode.Bytes, visit Visitor) error {
 }
 
 func walkUnion(typ *TypeUnion, body scode.Bytes, visit Visitor) error {
-	if body == nil {
-		return nil
-	}
 	if len(body) == 0 {
 		return errors.New("union has empty body")
 	}
@@ -94,9 +85,6 @@ func walkUnion(typ *TypeUnion, body scode.Bytes, visit Visitor) error {
 }
 
 func walkSet(typ *TypeSet, body scode.Bytes, visit Visitor) error {
-	if body == nil {
-		return nil
-	}
 	inner := TypeUnder(InnerType(typ))
 	it := body.Iter()
 	for !it.Done() {
@@ -108,9 +96,6 @@ func walkSet(typ *TypeSet, body scode.Bytes, visit Visitor) error {
 }
 
 func walkMap(typ *TypeMap, body scode.Bytes, visit Visitor) error {
-	if body == nil {
-		return nil
-	}
 	keyType := TypeUnder(typ.KeyType)
 	valType := TypeUnder(typ.ValType)
 	it := body.Iter()

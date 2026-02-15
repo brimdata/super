@@ -5,14 +5,12 @@ vector: true
 input: |
   "68656c6c6f20776f726c64"::(string|int64)
   0x68656c6c6f20776f726c64::(bytes|int64)
-  null::string
   "foo"
-  null::bytes
+  null
 
 output: |
   0x68656c6c6f20776f726c64
   "68656c6c6f20776f726c64"
-  null::bytes
   error({message:"hex: string argument is not hexidecimal",on:"foo"})
-  error("hex: illegal null argument")
+  null
 

@@ -6,6 +6,8 @@ vector: true
 input: |
   false
   true
+  -1
+  null
   error("bad")
 
 output: |
@@ -17,6 +19,14 @@ output: |
   1::uint16
   1::uint32
   1::uint64
+  error({message:"cannot cast to uint8",on:-1})
+  error({message:"cannot cast to uint16",on:-1})
+  error({message:"cannot cast to uint32",on:-1})
+  error({message:"cannot cast to uint64",on:-1})
+  error({message:"cannot cast to uint8",on:null})
+  error({message:"cannot cast to uint16",on:null})
+  error({message:"cannot cast to uint32",on:null})
+  error({message:"cannot cast to uint64",on:null})
   error("bad")
   error("bad")
   error("bad")

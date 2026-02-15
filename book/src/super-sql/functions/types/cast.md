@@ -59,7 +59,7 @@ cast(this, <{b:string}>)
 {b:4}
 # expected output
 {b:"2"}
-{b:null::string}
+{b:error("missing")}
 {b:"4"}
 ```
 

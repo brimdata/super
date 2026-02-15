@@ -7,47 +7,42 @@ import (
 	"github.com/brimdata/super/pkg/byteconv"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type float struct {
 	mu   sync.Mutex
 	meta *csup.Float
-	count
-	vals  []float64
-	nulls *nulls
+	len  uint32
+	vals []float64
 }
 
-func newFloat(cctx *csup.Context, meta *csup.Float, nulls *nulls) *float {
-	return &float{
-		meta:  meta,
-		nulls: nulls,
-		count: count{meta.Len(cctx), nulls.count()},
-	}
+func newFloat(cctx *csup.Context, meta *csup.Float) *float {
+	return &float{meta: meta, len: meta.Len(cctx)}
+}
+
+func (f *float) length() uint32 {
+	return f.len
 }
 
 func (*float) unmarshal(*csup.Context, field.Projection) {}
 
-func (i *float) project(loader *loader, projection field.Projection) vector.Any {
+func (f *float) project(loader *loader, projection field.Projection) vector.Any {
 	if len(projection) > 0 {
-		return vector.NewMissing(loader.sctx, i.length())
+		return vector.NewMissing(loader.sctx, f.length())
 	}
-	vals, nulls := i.load(loader)
-	return vector.NewFloat(i.meta.Typ, vals, nulls)
+	return vector.NewFloat(f.meta.Typ, f.load(loader))
 }
 
-func (i *float) load(loader *loader) ([]float64, bitvec.Bits) {
-	nulls := i.nulls.get(loader)
-	i.mu.Lock()
-	defer i.mu.Unlock()
-	if i.vals != nil {
-		return i.vals, nulls
+func (f *float) load(loader *loader) []float64 {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.vals != nil {
+		return f.vals
 	}
-	bytes := make([]byte, i.meta.Location.MemLength)
-	if err := i.meta.Location.Read(loader.r, bytes); err != nil {
+	bytes := make([]byte, f.meta.Location.MemLength)
+	if err := f.meta.Location.Read(loader.r, bytes); err != nil {
 		panic(err)
 	}
-	vals := byteconv.ReinterpretSlice[float64](bytes)
-	i.vals = extendForNulls(vals, nulls, i.count)
-	return i.vals, nulls
+	f.vals = byteconv.ReinterpretSlice[float64](bytes)
+	return f.vals
 }

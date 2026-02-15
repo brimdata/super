@@ -16,23 +16,19 @@ func (k *KSUIDToString) Call(args []super.Value) super.Value {
 	val := args[0]
 	switch val.Type().ID() {
 	case super.IDBytes:
-		if val.IsNull() {
-			return super.NullString
-		}
 		id, err := ksuid.FromBytes(val.Bytes())
 		if err != nil {
 			return k.sctx.WrapError("ksuid: invalid ksuid value", val)
 		}
 		return super.NewString(id.String())
 	case super.IDString:
-		if val.IsNull() {
-			return super.NullBytes
-		}
 		id, err := ksuid.Parse(string(val.Bytes()))
 		if err != nil {
 			return k.sctx.WrapError("ksuid: invalid ksuid value", val)
 		}
 		return super.NewBytes(id.Bytes())
+	case super.IDNull:
+		return super.Null
 	default:
 		return k.sctx.WrapError("ksuid: argument must a bytes or string type", val)
 	}

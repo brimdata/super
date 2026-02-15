@@ -34,20 +34,20 @@ case *vector.View:
 		v := inner.Values[idx]
 		out[i] = %[1]s
 	}
-	return vector.NewInt(super.TypeInt64, out, inner.Nulls.Pick(index))
+	return vector.NewInt(super.TypeInt64, out)
 case *vector.Const:
 	v := vec.Value().Int()
 	val := super.NewInt64(%[1]s)
-	return vector.NewConst(val, vec.Len(), vec.Nulls)
+	return vector.NewConst(val, vec.Len())
 case *vector.Dict:
 	out := %[2]s(vec.Any).(*vector.Int)
-	return vector.NewDict(out, vec.Index, vec.Counts, vec.Nulls)
+	return vector.NewDict(out, vec.Index, vec.Counts)
 case *vector.Int:
 	out := make([]int64, vec.Len())
 	for i, v := range vec.Values {
 		out[i] = %[1]s
 	}
-	return vector.NewInt(super.TypeInt64, out, vec.Nulls)
+	return vector.NewInt(super.TypeInt64, out)
 default:
 	panic(vec)
 }

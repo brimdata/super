@@ -8,8 +8,8 @@ input: |
   error("missing")
   error("missing")::=foo
   error("missing"::=bar)
-  null::error(string)
-  error(null::string)
+  null
+  error(null)
   error("quiet")
   error({x:"missing"})
 
@@ -18,6 +18,6 @@ output: |
   [3,2,1,0]
   error("missing")::=foo
   error("missing")::error(bar=string)
-  null::error(string)
-  null::error(string)
+  null
+  error(null)
   error({x:"missing"})

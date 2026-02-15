@@ -73,7 +73,11 @@ inputs:
           month: 1::int32,
           day: 2::int32,
           nanoseconds: 3
-        }::=arrow_month_day_nano_interval
+        }::=arrow_month_day_nano_interval,
+        nullable: {
+          bool1: true::(bool|null),
+          bool2: null::(bool|null)
+        }
       }
 
 outputs:

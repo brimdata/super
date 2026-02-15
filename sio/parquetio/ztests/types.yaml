@@ -2,6 +2,8 @@ script: |
   super -f parquet -o f.parquet -
   super -S f.parquet
 
+vector: true
+
 inputs:
   - name: stdin
     data: |
@@ -25,32 +27,13 @@ inputs:
         ip: 1.2.3.4,
         net: 5.6.7.0/24,
         typ: <int8>,
+        nul: null,
         err: error("err"),
         rec: {a:1},
-      }::=0
-      {
-        u8: null,
-        u16: null,
-        u32: null,
-        u64: null,
-        i8: null,
-        i16: null,
-        i32: null,
-        i64: null,
-        tim: null,
-        f16: null,
-        f32: null,
-        f64: null,
-        boo: null,
-        byt: null,
-        str: null,
-        ip: null,
-        net: null,
-        typ: null,
-        err: null,
-        rec: null,
-      }::0
-
+        lst: [1,null],
+        set: |[1,null]|,
+        map: |{1:"one",2:null}|,
+      }
 
 outputs:
   - name: stdout
@@ -74,30 +57,21 @@ outputs:
         ip: "1.2.3.4",
         net: "5.6.7.0/24",
         typ: "int8",
+        nul: null,
         err: "error(\"err\")",
         rec: {
           a: 1
-        }
-      }
-      {
-        u8: null::uint8,
-        u16: null::uint16,
-        u32: null::uint32,
-        u64: null::int64,
-        i8: null::int8,
-        i16: null::int16,
-        i32: null::int32,
-        i64: null::int64,
-        tim: null::time,
-        f16: null::float16,
-        f32: null::float32,
-        f64: null::float64,
-        boo: null::bool,
-        byt: null::bytes,
-        str: null::string,
-        ip: null::string,
-        net: null::string,
-        typ: null::string,
-        err: null::string,
-        rec: null::{a:int64}
+        },
+        lst: [
+          1,
+          null
+        ],
+        set: [
+          1,
+          null
+        ],
+        map: |{
+          1: "one",
+          2: null
+        }|
       }

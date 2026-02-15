@@ -4,7 +4,6 @@ import (
 	"github.com/RoaringBitmap/roaring/v2"
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type conditional struct {
@@ -90,33 +89,13 @@ func boolMaskRidx(ridx []uint32, bools, other *roaring.Bitmap, vec vector.Any) {
 		if !vec.Value().Ptr().AsBool() {
 			return
 		}
-		if !vec.Nulls.IsZero() {
-			if ridx != nil {
-				for i, idx := range ridx {
-					if !vec.Nulls.IsSet(uint32(i)) {
-						bools.Add(idx)
-					}
-				}
-			} else {
-				for i := range vec.Len() {
-					if !vec.Nulls.IsSet(i) {
-						bools.Add(i)
-					}
-				}
-			}
+		if ridx != nil {
+			bools.AddMany(ridx)
 		} else {
-			if ridx != nil {
-				bools.AddMany(ridx)
-			} else {
-				bools.AddRange(0, uint64(vec.Len()))
-			}
+			bools.AddRange(0, uint64(vec.Len()))
 		}
 	case *vector.Bool:
 		trues := vec.Bits
-		if !vec.Nulls.IsZero() {
-			// if null and true set to false
-			trues = bitvec.And(trues, bitvec.Not(vec.Nulls))
-		}
 		if ridx != nil {
 			for i, idx := range ridx {
 				if trues.IsSetDirect(uint32(i)) {

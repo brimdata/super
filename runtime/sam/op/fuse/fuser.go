@@ -31,7 +31,7 @@ func NewFuser(sctx *super.Context, memMaxBytes int) *Fuser {
 		sctx:        sctx,
 		memMaxBytes: memMaxBytes,
 		types:       make(map[super.Type]struct{}),
-		uberSchema:  agg.NewSchema(sctx),
+		uberSchema:  agg.NewSchemaWithMissingFieldsAsNullable(sctx),
 	}
 }
 

@@ -1,12 +1,10 @@
 spq: pass
 
 input: |
-  {type:null::type}
   {type:<{a:int64}>}
 
 output-flags: -f csv
 
 output: |
   type
-
   <{a:int64}>

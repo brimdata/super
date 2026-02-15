@@ -54,7 +54,7 @@ func TestMarshalBSUP(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.NotNil(t, rec)
-	assert.Equal(t, `{Field1:"value1",Sub1:{f2:"value2",Field3:-1},PField1:null::bool}`, sup.FormatValue(rec))
+	assert.Equal(t, `{Field1:"value1",Sub1:{f2:"value2",Field3:-1},PField1:null}`, sup.FormatValue(rec))
 }
 
 func TestMarshalMap(t *testing.T) {
@@ -106,7 +106,7 @@ func TestMarshalSlice(t *testing.T) {
 	rec3, err := m.Marshal(BSUPThings{nil})
 	require.NoError(t, err)
 	require.NotNil(t, rec3)
-	assert.Equal(t, "{Things:null::[BSUPThing={a:string,B:int64}]}::=BSUPThings", sup.FormatValue(rec3))
+	assert.Equal(t, "{Things:null}::=BSUPThings", sup.FormatValue(rec3))
 
 }
 
@@ -206,33 +206,30 @@ func TestUnmarshalNull(t *testing.T) {
 		require.NoError(t, sup.UnmarshalBSUP(super.Null, &slice))
 		assert.Nil(t, slice)
 		slice = []int{1}
-		assert.EqualError(t, sup.UnmarshalBSUP(super.NullInt64, &slice), `unmarshaling type "int64": not an array`)
-		slice = []int{1}
-		v := sup.MustParseValue(super.NewContext(), "null::[int64]")
-		require.NoError(t, sup.UnmarshalBSUP(v, &slice))
+		val := sup.MustParseValue(super.NewContext(), "null::(null|[int64])")
+		require.NoError(t, sup.UnmarshalBSUP(val, &slice))
 		assert.Nil(t, slice)
-		v = sup.MustParseValue(super.NewContext(), "null::bytes")
 		buf := []byte("testing")
-		require.NoError(t, sup.UnmarshalBSUP(v, &buf))
+		require.NoError(t, sup.UnmarshalBSUP(super.Null, &buf))
+		assert.Nil(t, buf)
+		buf = []byte("testing")
+		val = sup.MustParseValue(super.NewContext(), "null::(null|bytes)")
+		require.NoError(t, sup.UnmarshalBSUP(val, &buf))
 		assert.Nil(t, buf)
 	})
 	t.Run("primitive", func(t *testing.T) {
 		integer := -1
-		require.NoError(t, sup.UnmarshalBSUP(super.Null, &integer))
-		assert.Equal(t, integer, 0)
+		assert.EqualError(t, sup.UnmarshalBSUP(super.Null, &integer), "incompatible type translation: Super type null, Go type int, Go kind int")
 		intptr := &integer
-		require.NoError(t, sup.UnmarshalBSUP(super.Null, &intptr))
+		assert.NoError(t, sup.UnmarshalBSUP(super.Null, &intptr))
 		assert.Nil(t, intptr)
-		assert.EqualError(t, sup.UnmarshalBSUP(super.NullIP, &intptr), "incompatible type translation: Super type ip, Go type int, Go kind int")
 	})
 	t.Run("map", func(t *testing.T) {
 		m := map[string]string{"key": "value"}
 		require.NoError(t, sup.UnmarshalBSUP(super.Null, &m))
 		assert.Nil(t, m)
-		val := sup.MustParseValue(super.NewContext(), "null::{foo:int64}")
-		require.EqualError(t, sup.UnmarshalBSUP(val, &m), "not a map")
 		m = map[string]string{"key": "value"}
-		val = sup.MustParseValue(super.NewContext(), "null::|{string:string}|")
+		val := sup.MustParseValue(super.NewContext(), "null::(null||{string:string}|)")
 		require.NoError(t, sup.UnmarshalBSUP(val, &m))
 		assert.Nil(t, m)
 	})
@@ -243,11 +240,9 @@ func TestUnmarshalNull(t *testing.T) {
 		var obj struct {
 			Test *testobj `super:"test"`
 		}
-		val := sup.MustParseValue(super.NewContext(), "{test:null::{Val:int64}}")
+		val := sup.MustParseValue(super.NewContext(), "{test:null::(null|{Val:int64})}")
 		require.NoError(t, sup.UnmarshalBSUP(val, &obj))
 		require.Nil(t, obj.Test)
-		val = sup.MustParseValue(super.NewContext(), "{test:null::ip}")
-		require.EqualError(t, sup.UnmarshalBSUP(val, &obj), `cannot unmarshal value "null::ip" into Go struct`)
 		var slice struct {
 			Test []string `super:"test"`
 		}
@@ -342,7 +337,7 @@ func TestMarshalArray(t *testing.T) {
 	rec, err := sup.NewBSUPMarshaler().Marshal(r1)
 	require.NoError(t, err)
 	require.NotNil(t, rec)
-	const expected = `{A1:[1::int8,2::int8],A2:["foo","bar"],A3:null::[bytes]}`
+	const expected = `{A1:[1::int8,2::int8],A2:["foo","bar"],A3:null}`
 	assert.Equal(t, expected, sup.FormatValue(rec))
 
 	var r2 rectype
@@ -626,7 +621,7 @@ func TestSuperValues(t *testing.T) {
 	}
 	t.Run("pointer", func(t *testing.T) {
 		test(t, "string", "{value:\"foo\"}", &testptr)
-		test(t, "typed-null", "{value:null::time}", &testptr)
+		test(t, "typed-null", "{value:null}", &testptr)
 		test(t, "null", "{value:null}", &testptr)
 		test(t, "record", "{value:{foo:1,bar:\"baz\"}}", &testptr)
 	})
@@ -635,7 +630,7 @@ func TestSuperValues(t *testing.T) {
 	}
 	t.Run("struct", func(t *testing.T) {
 		test(t, "string", "{value:\"foo\"}", &teststruct)
-		test(t, "typed-null", "{value:null::time}", &teststruct)
+		test(t, "typed-null", "{value:null}", &teststruct)
 		test(t, "null", "{value:null}", &teststruct)
 		test(t, "record", "{value:{foo:1,bar:\"baz\"}}", &teststruct)
 	})

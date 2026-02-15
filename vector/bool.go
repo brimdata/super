@@ -1,8 +1,6 @@
 package vector
 
 import (
-	"fmt"
-
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector/bitvec"
@@ -10,29 +8,18 @@ import (
 
 type Bool struct {
 	bitvec.Bits
-	Nulls bitvec.Bits
 }
 
-var _ Any = (*Bool)(nil)
-
-func NewBool(bits bitvec.Bits, nulls bitvec.Bits) *Bool {
-	return &Bool{Bits: bits, Nulls: nulls}
-}
-
-func NewBoolEmpty(length uint32, nulls bitvec.Bits) *Bool {
-	return &Bool{Bits: bitvec.NewFalse(length), Nulls: nulls}
-}
-
-func NewBoolEmpty3(length uint32, nulls bitvec.Bits) *Bool {
-	return &Bool{Bits: bitvec.NewFalse(length), Nulls: nulls}
+func NewBool(bits bitvec.Bits) *Bool {
+	return &Bool{bits}
 }
 
 func NewFalse(length uint32) *Bool {
-	return NewBoolEmpty(length, bitvec.Zero)
+	return NewBool(bitvec.NewFalse(length))
 }
 
 func NewTrue(length uint32) *Bool {
-	return NewBool(bitvec.NewTrue(length), bitvec.Zero)
+	return NewBool(bitvec.NewTrue(length))
 }
 
 func (*Bool) Kind() Kind {
@@ -50,46 +37,25 @@ func (b *Bool) CopyWithBits(bits bitvec.Bits) *Bool {
 }
 
 func (b *Bool) Serialize(builder *scode.Builder, slot uint32) {
-	if b.Nulls.IsSet(slot) {
-		builder.Append(nil)
-	} else {
-		builder.Append(super.EncodeBool(b.IsSet(slot)))
-	}
+	builder.Append(super.EncodeBool(b.IsSet(slot)))
 }
 
 func Or(a, b *Bool) *Bool {
-	bits := bitvec.Or(a.Bits, b.Bits)
-	if a.Nulls.IsZero() && b.Nulls.IsZero() {
-		// Fast path involves no nulls.
-		return NewBool(bits, bitvec.Zero)
-	}
-	nulls := bitvec.Or(a.Nulls, b.Nulls)
-	nulls = bitvec.And(bitvec.Not(bits), nulls)
-	return NewBool(bits, nulls)
+	return NewBool(bitvec.Or(a.Bits, b.Bits))
 }
 
 func Not(vec *Bool) *Bool {
-	bits := bitvec.Not(vec.Bits)
-	if vec.Nulls.IsZero() {
-		return NewBool(bits, bitvec.Zero)
-	}
-	// Flip true/null values to false/null.
-	bits = bitvec.And(bits, bitvec.Not(vec.Nulls))
-	return NewBool(bits, vec.Nulls)
+	return NewBool(bitvec.Not(vec.Bits))
 }
 
-// BoolValue returns the value of slot in vec if the value is a Boolean.  It
-// returns false otherwise.
-func BoolValue(vec Any, slot uint32) (bool, bool) {
+// BoolValue returns the value of slot in vec as a Boolean.
+func BoolValue(vec Any, slot uint32) bool {
 	switch vec := Under(vec).(type) {
 	case *Bool:
-		return vec.Bits.IsSet(slot), vec.Nulls.IsSet(slot)
+		return vec.Bits.IsSet(slot)
 	case *Const:
-		return vec.Value().Ptr().AsBool(), vec.Nulls.IsSet(slot)
+		return vec.Value().Ptr().AsBool()
 	case *Dict:
-		if vec.Nulls.IsSet(slot) {
-			return false, true
-		}
 		return BoolValue(vec.Any, uint32(vec.Index[slot]))
 	case *Dynamic:
 		tag := vec.Tags[slot]
@@ -97,145 +63,5 @@ func BoolValue(vec Any, slot uint32) (bool, bool) {
 	case *View:
 		return BoolValue(vec.Any, vec.Index[slot])
 	}
-	panic(fmt.Sprintf("%#v", vec))
-}
-
-func NullsOf(v Any) bitvec.Bits {
-	switch v := v.(type) {
-	case *Array:
-		return v.Nulls
-	case *Bytes:
-		return v.Nulls
-	case *Bool:
-		return v.Nulls
-	case *Const:
-		if v.Value().IsNull() {
-			return bitvec.NewTrue(v.Len())
-		}
-		return v.Nulls
-	case *Dict:
-		return v.Nulls
-	case *Enum:
-		return v.Nulls
-	case *Error:
-		return bitvec.Or(v.Nulls, NullsOf(v.Vals))
-	case *Float:
-		return v.Nulls
-	case *Int:
-		return v.Nulls
-	case *IP:
-		return v.Nulls
-	case *Map:
-		return v.Nulls
-	case *Named:
-		return NullsOf(v.Any)
-	case *Net:
-		return v.Nulls
-	case *Record:
-		return v.Nulls
-	case *Set:
-		return v.Nulls
-	case *String:
-		return v.Nulls
-	case *TypeValue:
-		return v.Nulls
-	case *Uint:
-		return v.Nulls
-	case *Union:
-		return v.Nulls
-	case *View:
-		return NullsOf(v.Any).Pick(v.Index)
-	}
-	panic(v)
-}
-
-func CopyAndSetNulls(v Any, nulls bitvec.Bits) Any {
-	switch v := v.(type) {
-	case *Array:
-		copy := *v
-		copy.Nulls = nulls
-		return &copy
-	case *Bytes:
-		copy := *v
-		copy.Nulls = nulls
-		return &copy
-	case *Bool:
-		copy := *v
-		copy.Nulls = nulls
-		return &copy
-	case *Const:
-		copy := *v
-		copy.Nulls = nulls
-		return &copy
-	case *Dict:
-		copy := *v
-		copy.Nulls = nulls
-		return &copy
-	case *Enum:
-		return &Enum{
-			Typ:  v.Typ,
-			Uint: CopyAndSetNulls(v.Uint, nulls).(*Uint),
-		}
-	case *Error:
-		copy := *v
-		copy.Nulls = nulls
-		return &copy
-	case *Float:
-		copy := *v
-		copy.Nulls = nulls
-		return &copy
-	case *Int:
-		copy := *v
-		copy.Nulls = nulls
-		return &copy
-	case *IP:
-		copy := *v
-		copy.Nulls = nulls
-		return &copy
-	case *Map:
-		copy := *v
-		copy.Nulls = nulls
-		return &copy
-	case *Named:
-		return &Named{
-			Typ: v.Typ,
-			Any: CopyAndSetNulls(v.Any, nulls),
-		}
-	case *Net:
-		copy := *v
-		copy.Nulls = nulls
-		return &copy
-	case *Record:
-		copy := *v
-		copy.Nulls = nulls
-		return &copy
-	case *Set:
-		copy := *v
-		copy.Nulls = nulls
-		return &copy
-	case *String:
-		copy := *v
-		copy.Nulls = nulls
-		return &copy
-	case *TypeValue:
-		copy := *v
-		copy.Nulls = nulls
-		return &copy
-	case *Uint:
-		copy := *v
-		copy.Nulls = nulls
-		return &copy
-	case *Union:
-		return NewUnion(v.Typ, v.Tags, v.Values, nulls)
-	case *View:
-		newNulls := bitvec.NewFalse(uint32(len(v.Index)))
-		for i, idx := range v.Index {
-			if nulls.IsSet(uint32(i)) {
-				newNulls.Set(idx)
-			}
-		}
-		return NewView(CopyAndSetNulls(v.Any, newNulls), v.Index)
-	default:
-		panic(v)
-	}
+	panic(vec)
 }

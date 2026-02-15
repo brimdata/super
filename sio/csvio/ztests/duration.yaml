@@ -1,7 +1,6 @@
 spq: pass
 
 input: |
-  {duration:null::duration}
   {duration:0s}
   {duration:-292y171d23h47m16.854775808s}
   {duration:292y171d23h47m16.854775807s}
@@ -10,7 +9,6 @@ output-flags: -f csv
 
 output: |
   duration
-
   0s
   -292y171d23h47m16.854775808s
   292y171d23h47m16.854775807s

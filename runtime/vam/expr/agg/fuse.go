@@ -27,7 +27,7 @@ func (f *fuse) Consume(vec vector.Any) {
 
 func (f *fuse) Result(sctx *super.Context) super.Value {
 	if len(f.shapes)+len(f.partials) == 0 {
-		return super.NullType
+		return super.Null
 	}
 	schema := samagg.NewSchema(sctx)
 	for _, p := range f.partials {
@@ -52,10 +52,7 @@ func (f *fuse) ConsumeAsPartial(partial vector.Any) {
 		panic("fuse: partial not a type value")
 	}
 	for i := range partial.Len() {
-		b, null := vector.TypeValueValue(partial, i)
-		if null {
-			continue
-		}
+		b := vector.TypeValueValue(partial, i)
 		f.partials = append(f.partials, super.NewValue(super.TypeType, b))
 	}
 }

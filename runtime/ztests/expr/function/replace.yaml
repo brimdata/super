@@ -3,15 +3,17 @@ spq: replace(s, old, new)
 vector: true
 
 input: |
-  {s:"oink oink oink", old:"oink",new: "moo"}
-  {s:"oink oink oink", old:"oink"::(string|int64),new: "moo"}
-  {s:"oink oink oink", old:null::string,new: "moo"}
-  {s:"oink oink oink", old:"oink",new: null::string}
-  {s:1., old:"oink",new: "moo"}
+  {s:"oink oink oink", old:"oink", new: "moo"}
+  {s:"oink oink oink", old:"oink"::(string|int64), new: "moo"}
+  {s:null, old:"oink", new: "moo"}
+  {s:"oink oink oink", old:null, new: "moo"}
+  {s:"oink oink oink", old:"oink", new: null}
+  {s:1., old:"oink", new: "moo"}
 
 output: |
   "moo moo moo"
   "moo moo moo"
-  error("replace: an input arg is null")
-  error("replace: an input arg is null")
+  null
+  null
+  null
   error({message:"replace: string arg required",on:1.})

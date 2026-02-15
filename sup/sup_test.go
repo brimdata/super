@@ -59,8 +59,9 @@ func TestSUPBuilder(t *testing.T) {
 	assert.Equal(t, `["1","2","3"]`, sup.String(a))
 }
 
-func TestFormatPrimitiveNull(t *testing.T) {
-	assert.Equal(t, "null", sup.FormatPrimitive(super.TypeString, nil))
+func TestFormatPrimitiveLengthZero(t *testing.T) {
+	assert.Equal(t, `""`, sup.FormatPrimitive(super.TypeString, nil))
+	assert.Equal(t, `""`, sup.FormatPrimitive(super.TypeString, []byte{}))
 }
 
 func TestParseValueStringEscapeSequences(t *testing.T) {

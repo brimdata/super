@@ -59,12 +59,7 @@ func (r *recordExpr) Eval(this super.Value) super.Value {
 	if changed {
 		r.typ = r.sctx.MustLookupTypeRecord(r.fields)
 	}
-	bytes := b.Bytes()
-	if bytes == nil {
-		// Return empty record instead of null record.
-		bytes = []byte{}
-	}
-	return super.NewValue(r.typ, bytes)
+	return super.NewValue(r.typ, b.Bytes())
 }
 
 type RecordElem struct {
@@ -359,15 +354,10 @@ func (c *collectionIter) done() bool {
 }
 
 func unionOf(sctx *super.Context, types []super.Type) super.Type {
-	unique := types[:0]
-	for _, t := range super.UniqueTypes(types) {
-		if t != super.TypeNull {
-			unique = append(unique, t)
-		}
-	}
-	if len(unique) == 0 {
+	if len(types) == 0 {
 		return super.TypeNull
 	}
+	unique := super.UniqueTypes(types)
 	if len(unique) == 1 {
 		return unique[0]
 	}

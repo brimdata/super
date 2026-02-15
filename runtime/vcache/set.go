@@ -6,31 +6,29 @@ import (
 	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type set struct {
-	mu   sync.Mutex
-	meta *csup.Set
-	count
+	mu     sync.Mutex
+	meta   *csup.Set
+	len    uint32
 	offs   []uint32
 	values shadow
-	nulls  *nulls
 }
 
-func newSet(cctx *csup.Context, meta *csup.Set, nulls *nulls) *set {
-	return &set{
-		meta:  meta,
-		nulls: nulls,
-		count: count{meta.Len(cctx), nulls.count()},
-	}
+func newSet(cctx *csup.Context, meta *csup.Set) *set {
+	return &set{meta: meta, len: meta.Len(cctx)}
+}
+
+func (s *set) length() uint32 {
+	return s.len
 }
 
 func (s *set) unmarshal(cctx *csup.Context, projection field.Projection) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.values == nil {
-		s.values = newShadow(cctx, s.meta.Values, nil)
+		s.values = newShadow(cctx, s.meta.Values)
 	}
 	s.values.unmarshal(cctx, projection)
 }
@@ -38,20 +36,20 @@ func (s *set) unmarshal(cctx *csup.Context, projection field.Projection) {
 func (s *set) project(loader *loader, projection field.Projection) vector.Any {
 	vec := s.values.project(loader, nil)
 	typ := loader.sctx.LookupTypeSet(vec.Type())
-	offs, nulls := s.load(loader)
-	return vector.NewSet(typ, offs, vec, nulls)
+	offs := s.load(loader)
+	return vector.NewSet(typ, offs, vec)
 }
 
-func (s *set) load(loader *loader) ([]uint32, bitvec.Bits) {
-	nulls := s.nulls.get(loader)
+func (s *set) load(loader *loader) []uint32 {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if s.offs == nil {
-		offs, err := loadOffsets(loader.r, s.meta.Lengths, s.count, nulls)
-		if err != nil {
-			panic(err)
-		}
-		s.offs = offs
+	if s.offs != nil {
+		return s.offs
 	}
-	return s.offs, nulls
+	offs, err := csup.ReadUint32s(s.meta.Lengths, loader.r)
+	if err != nil {
+		panic(err)
+	}
+	s.offs = offs
+	return offs
 }

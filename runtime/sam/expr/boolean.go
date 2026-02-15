@@ -37,7 +37,7 @@ func CompareBool(op string, pattern bool) (Boolean, error) {
 	return func(val super.Value) super.Value {
 		val = val.Under()
 		if val.IsNull() {
-			return super.NullBool
+			return super.Null
 		}
 		if val.IsError() {
 			return val
@@ -79,7 +79,7 @@ func CompareInt64(op string, pattern int64) (Boolean, error) {
 	return func(val super.Value) super.Value {
 		val = val.Under()
 		if val.IsNull() {
-			return super.NullBool
+			return super.Null
 		}
 		if val.IsError() {
 			return val
@@ -120,7 +120,7 @@ func CompareIP(op string, pattern netip.Addr) (Boolean, error) {
 	return func(val super.Value) super.Value {
 		val = val.Under()
 		if val.IsNull() {
-			return super.NullBool
+			return super.Null
 		}
 		if val.IsError() {
 			return val
@@ -144,7 +144,7 @@ func CompareFloat64(op string, pattern float64) (Boolean, error) {
 	return func(val super.Value) super.Value {
 		val = val.Under()
 		if val.IsNull() {
-			return super.NullBool
+			return super.Null
 		}
 		if val.IsError() {
 			return val
@@ -185,7 +185,7 @@ func CompareString(op string, pattern []byte) (Boolean, error) {
 	return func(val super.Value) super.Value {
 		val = val.Under()
 		if val.IsNull() {
-			return super.NullBool
+			return super.Null
 		}
 		if val.IsError() {
 			return val
@@ -214,7 +214,7 @@ func CompareBytes(op string, pattern []byte) (Boolean, error) {
 	return func(val super.Value) super.Value {
 		val = val.Under()
 		if val.IsNull() {
-			return super.NullBool
+			return super.Null
 		}
 		if val.IsError() {
 			return val
@@ -244,7 +244,7 @@ func CompileRegexp(pattern string) (*regexp.Regexp, error) {
 func NewRegexpBoolean(re *regexp.Regexp) Boolean {
 	return func(val super.Value) super.Value {
 		if val.IsNull() {
-			return super.NullBool
+			return super.Null
 		}
 		v := false
 		if val.IsString() {
@@ -259,7 +259,7 @@ func CompareNull(op string) (Boolean, error) {
 		if val.IsError() {
 			return val
 		}
-		return super.NullBool
+		return super.Null
 	}, nil
 }
 

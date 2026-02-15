@@ -6,22 +6,15 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Const struct {
-	val   super.Value
-	len   uint32
-	Nulls bitvec.Bits
+	val super.Value
+	len uint32
 }
 
-var _ Any = (*Const)(nil)
-
-func NewConst(val super.Value, len uint32, nulls bitvec.Bits) *Const {
-	if val.IsNull() {
-		nulls = bitvec.NewTrue(len)
-	}
-	return &Const{val: val, len: len, Nulls: nulls}
+func NewConst(val super.Value, len uint32) *Const {
+	return &Const{val, len}
 }
 
 func (c *Const) Kind() Kind {
@@ -71,11 +64,7 @@ func (c *Const) Value() super.Value {
 }
 
 func (c *Const) Serialize(b *scode.Builder, slot uint32) {
-	if c.Nulls.IsSet(slot) {
-		b.Append(nil)
-	} else {
-		b.Append(c.val.Bytes())
-	}
+	b.Append(c.val.Bytes())
 }
 
 func (c *Const) AsBytes() ([]byte, bool) {

@@ -1,12 +1,10 @@
 spq: pass
 
 input: |
-  {ip:null::ip}
   {ip:1.2.3.4}
 
 output-flags: -f csv
 
 output: |
   ip
-
   1.2.3.4

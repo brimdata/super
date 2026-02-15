@@ -49,8 +49,6 @@ func (b Bits) GetBits() []uint64 {
 }
 
 func (b Bits) IsSet(slot uint32) bool {
-	// Because Bits is used to store nulls for many vectors and it is often
-	// nil check to see if receiver is nil and return false.
 	return !b.IsZero() && b.IsSetDirect(slot)
 }
 

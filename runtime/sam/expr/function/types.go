@@ -26,7 +26,7 @@ func (n *NameOf) Call(args []super.Value) super.Value {
 	}
 	if typ.ID() == super.IDType {
 		if args[0].IsNull() {
-			return super.NullString
+			return super.Null
 		}
 		var err error
 		if typ, err = n.sctx.LookupByValue(args[0].Bytes()); err != nil {

@@ -5,7 +5,7 @@ inputs:
     data: &stdin |
       {a:"asdfasdf"::(int64|string)}
       {a:1::(int64|string)}
-      {a:null::(int64|string)}
+      {a:null::(int64|null)}
 
 outputs:
   - name: stdout

@@ -3,19 +3,14 @@ spq: cut foo
 vector: true
 
 input: |
-  #separator \x09
-  #set_separator	,
-  #empty_field	(empty)
-  #unset_field	-
-  #path	conn
-  #fields	foo	bar
-  #types	string	string
-  key1 value1	key2 value1
-  key1 value2	key2 value2
-
-output-flags: -f table
+  {foo:1,bar:"one"}
+  {foo:2,bar:"two"}
+  {bar:"three"}
+  null
 
 output: |
-  foo
-  key1 value1
-  key1 value2
+  {foo:1}
+  {foo:2}
+  {foo:error("missing")}
+  {foo:error("missing")}
+

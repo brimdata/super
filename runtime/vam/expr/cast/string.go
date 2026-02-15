@@ -13,10 +13,6 @@ import (
 )
 
 func castToString(vec vector.Any, index []uint32) (vector.Any, []uint32, string, bool) {
-	nulls := vector.NullsOf(vec)
-	if index != nil {
-		nulls = nulls.Pick(index)
-	}
 	n := lengthOf(vec, index)
 	var bytes []byte
 	offs := []uint32{0}
@@ -78,7 +74,7 @@ func castToString(vec vector.Any, index []uint32) (vector.Any, []uint32, string,
 		if len(errs) == int(n) {
 			return nil, nil, errMsg, false
 		}
-		out := vector.Any(vector.NewString(vec.Table(), vec.Nulls))
+		out := vector.Any(vector.NewString(vec.Table()))
 		if index != nil {
 			out = vector.Pick(out, index)
 		}
@@ -110,10 +106,8 @@ func castToString(vec vector.Any, index []uint32) (vector.Any, []uint32, string,
 			if index != nil {
 				idx = index[i]
 			}
-			if !nulls.IsSet(i) {
-				val := vec.Uint.Values[idx]
-				bytes = append(bytes, vec.Typ.Symbols[val]...)
-			}
+			val := vec.Uint.Values[idx]
+			bytes = append(bytes, vec.Typ.Symbols[val]...)
 			offs = append(offs, uint32(len(bytes)))
 		}
 	default:
@@ -130,7 +124,7 @@ func castToString(vec vector.Any, index []uint32) (vector.Any, []uint32, string,
 			offs = append(offs, uint32(len(bytes)))
 		}
 	}
-	return vector.NewString(vector.NewBytesTable(offs, bytes), nulls), nil, "", true
+	return vector.NewString(vector.NewBytesTable(offs, bytes)), nil, "", true
 }
 
 func timeToString(vec *vector.Int, index []uint32, n uint32) ([]uint32, []byte) {

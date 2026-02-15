@@ -18,16 +18,16 @@ input: |
   [error(0), error(1)]
 
 output: |
-  null::int64
-  null::int64
-  null::int32
+  null
+  null
+  null
   1
   1
   1
   error(0)
-  null::int64
   null
-  null::error(int64)
+  null
+  null
   error(0)
   error(0)
   error(0)

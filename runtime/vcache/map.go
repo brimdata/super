@@ -6,33 +6,31 @@ import (
 	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type map_ struct {
-	mu   sync.Mutex
-	meta *csup.Map
-	count
+	mu     sync.Mutex
+	meta   *csup.Map
+	len    uint32
 	offs   []uint32
 	keys   shadow
 	values shadow
-	nulls  *nulls
 }
 
-func newMap(cctx *csup.Context, meta *csup.Map, nulls *nulls) *map_ {
-	return &map_{
-		meta:  meta,
-		nulls: nulls,
-		count: count{meta.Len(cctx), nulls.count()},
-	}
+func newMap(cctx *csup.Context, meta *csup.Map) *map_ {
+	return &map_{meta: meta, len: meta.Len(cctx)}
+}
+
+func (m *map_) length() uint32 {
+	return m.len
 }
 
 func (m *map_) unmarshal(cctx *csup.Context, projection field.Projection) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if m.keys == nil {
-		m.keys = newShadow(cctx, m.meta.Keys, nil)
-		m.values = newShadow(cctx, m.meta.Values, nil)
+		m.keys = newShadow(cctx, m.meta.Keys)
+		m.values = newShadow(cctx, m.meta.Values)
 	}
 	m.keys.unmarshal(cctx, projection)
 	m.values.unmarshal(cctx, projection)
@@ -42,20 +40,20 @@ func (m *map_) project(loader *loader, projection field.Projection) vector.Any {
 	keys := m.keys.project(loader, nil)
 	vals := m.values.project(loader, nil)
 	typ := loader.sctx.LookupTypeMap(keys.Type(), vals.Type())
-	offs, nulls := m.load(loader)
-	return vector.NewMap(typ, offs, keys, vals, nulls)
+	offs := m.load(loader)
+	return vector.NewMap(typ, offs, keys, vals)
 }
 
-func (m *map_) load(loader *loader) ([]uint32, bitvec.Bits) {
-	nulls := m.nulls.get(loader)
+func (m *map_) load(loader *loader) []uint32 {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	if m.offs == nil {
-		offs, err := loadOffsets(loader.r, m.meta.Lengths, m.count, nulls)
-		if err != nil {
-			panic(err)
-		}
-		m.offs = offs
+	if m.offs != nil {
+		return m.offs
 	}
-	return m.offs, nulls
+	offs, err := csup.ReadUint32s(m.meta.Lengths, loader.r)
+	if err != nil {
+		panic(err)
+	}
+	m.offs = offs
+	return offs
 }

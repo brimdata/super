@@ -9,8 +9,6 @@ type View struct {
 	Index []uint32
 }
 
-var _ Any = (*View)(nil)
-
 func NewView(vec Any, index []uint32) *View {
 	return &View{vec, index}
 }

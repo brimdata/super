@@ -14,7 +14,6 @@ input: |
   |{::1/128:::1/128,2::/16:2::/16,3.3.3.0/24:3.3.3.0/24}|
   |{<int8>:<int8>}|
   |{null:null}|
-  |{null:null,null::int64:null::int64,null::string:null::string}|
   |{"a":"foo"::(named=int64|string),"b":1::(named=int64|string)}|
   |{"a"::(int64|string):"foo","b"::(int64|string):"bar"}|
   {a:|{}|}
@@ -46,7 +45,6 @@ output: |
   |{3.3.3.0/24:3.3.3.0/24,::1/128:::1/128,2::/16:2::/16}|
   |{<int8>:<int8>}|
   |{null:null}|
-  |{null:null,null::int64:null::int64,null::string:null::string}|
   |{"a":"foo","b":1}|::|{string:(named=int64|string)}|
   |{"a":"foo","b":"bar"}|::|{int64|string:string}|
   {a:|{}|::|{null:null}|}

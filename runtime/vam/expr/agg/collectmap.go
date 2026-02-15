@@ -16,16 +16,12 @@ func newCollectMap() *collectMap {
 }
 
 func (c *collectMap) Consume(vec vector.Any) {
-	if vec.Kind() == vector.KindError {
+	if k := vec.Kind(); k == vector.KindError || k == vector.KindNull {
 		return
 	}
 	typ := vec.Type()
-	nulls := vector.NullsOf(vec)
 	var b scode.Builder
 	for i := range vec.Len() {
-		if nulls.IsSet(i) {
-			continue
-		}
 		b.Truncate()
 		vec.Serialize(&b, i)
 		c.samCollectMap.Consume(super.NewValue(typ, b.Bytes().Body()))

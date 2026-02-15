@@ -3,22 +3,18 @@ package vector
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type TypeValue struct {
 	table BytesTable
-	Nulls bitvec.Bits
 }
 
-var _ Any = (*TypeValue)(nil)
-
-func NewTypeValue(table BytesTable, nulls bitvec.Bits) *TypeValue {
-	return &TypeValue{table: table, Nulls: nulls}
+func NewTypeValue(table BytesTable) *TypeValue {
+	return &TypeValue{table}
 }
 
-func NewTypeValueEmpty(cap uint32, nulls bitvec.Bits) *TypeValue {
-	return NewTypeValue(NewBytesTableEmpty(cap), nulls)
+func NewTypeValueEmpty(cap uint32) *TypeValue {
+	return NewTypeValue(NewBytesTableEmpty(cap))
 }
 
 func (t *TypeValue) Append(v []byte) {
@@ -46,29 +42,19 @@ func (t *TypeValue) Table() BytesTable {
 }
 
 func (t *TypeValue) Serialize(b *scode.Builder, slot uint32) {
-	if t.Nulls.IsSet(slot) {
-		b.Append(nil)
-	} else {
-		b.Append(t.Value(slot))
-	}
+	b.Append(t.Value(slot))
 }
 
-func TypeValueValue(val Any, slot uint32) ([]byte, bool) {
+func TypeValueValue(val Any, slot uint32) []byte {
 	switch val := val.(type) {
 	case *TypeValue:
-		return val.Value(slot), val.Nulls.IsSet(slot)
+		return val.Value(slot)
 	case *Const:
-		if val.Nulls.IsSet(slot) {
-			return nil, true
-		}
 		s, _ := val.AsBytes()
-		return s, false
+		return s
 	case *Dict:
-		if val.Nulls.IsSet(slot) {
-			return nil, true
-		}
 		slot = uint32(val.Index[slot])
-		return val.Any.(*TypeValue).Value(slot), false
+		return val.Any.(*TypeValue).Value(slot)
 	case *View:
 		slot = val.Index[slot]
 		return TypeValueValue(val.Any, slot)

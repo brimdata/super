@@ -3,9 +3,7 @@ spq: type foo = {x:int64}  values cast(this, <foo>)
 vector: true
 
 input: |
-  null
   {x:123}
 
 output: |
-  null::(foo={x:int64})
   {x:123}::=foo

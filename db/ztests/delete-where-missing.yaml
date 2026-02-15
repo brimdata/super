@@ -12,7 +12,7 @@ inputs:
   - name: in.sup
     data: |
       {ts:0,uid:"C3UeSqaSOFRReHD68"}
-      {ts:1,uid:null::string}
+      {ts:1,uid:null}
       {ts:2}
 
 outputs:

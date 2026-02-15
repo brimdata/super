@@ -7,9 +7,13 @@ input: |
   {re:"foo(.?) (\\w+) fr.*",in: "seafood fool friend"}
   {re:"foo(.?",in: "seafood fool"}
   {re:"doesnotmatch",in:"hello"}
+  {re:null,in:"not null"}
+  {re:"not null",in:null}
 
 output: |
   ["abc"]
   ["food fool friend","d","fool"]
   error({message:"regexp: invalid regular expression: missing closing )",on:"foo(.?"})
-  null::[string]
+  null
+  null
+  null

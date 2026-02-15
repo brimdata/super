@@ -6,7 +6,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr/function"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Len struct {
@@ -15,56 +14,44 @@ type Len struct {
 
 func (l *Len) Call(args ...vector.Any) vector.Any {
 	val := vector.Under(args[0])
-	out := vector.NewIntEmpty(super.TypeInt64, val.Len(), bitvec.Zero)
+	out := vector.NewIntEmpty(super.TypeInt64, val.Len())
 	switch typ := val.Type().(type) {
 	case *super.TypeOfNull:
-		return vector.NewConst(super.NewInt64(0), val.Len(), bitvec.Zero)
+		return vector.NewConst(super.NewInt64(0), val.Len())
 	case *super.TypeRecord:
 		length := int64(len(typ.Fields))
-		return vector.NewConst(super.NewInt64(length), val.Len(), bitvec.Zero)
+		return vector.NewConst(super.NewInt64(length), val.Len())
 	case *super.TypeArray, *super.TypeSet, *super.TypeMap:
 		for i := uint32(0); i < val.Len(); i++ {
-			start, end, _ := vector.ContainerOffset(val, i)
+			start, end := vector.ContainerOffset(val, i)
 			out.Append(int64(end) - int64(start))
 		}
 	case *super.TypeOfString:
 		for i := uint32(0); i < val.Len(); i++ {
-			s, _ := vector.StringValue(val, i)
+			s := vector.StringValue(val, i)
 			out.Append(int64(utf8.RuneCountInString(s)))
 		}
 	case *super.TypeOfBytes:
 		for i := uint32(0); i < val.Len(); i++ {
-			s, _ := vector.BytesValue(val, i)
-			out.Append(int64(len(s)))
+			b := vector.BytesValue(val, i)
+			out.Append(int64(len(b)))
 		}
 	case *super.TypeOfIP:
 		for i := uint32(0); i < val.Len(); i++ {
-			ip, null := vector.IPValue(val, i)
-			if null {
-				out.Append(0)
-				continue
-			}
+			ip := vector.IPValue(val, i)
 			out.Append(int64(len(ip.AsSlice())))
 		}
 	case *super.TypeOfNet:
 		for i := uint32(0); i < val.Len(); i++ {
-			n, null := vector.NetValue(val, i)
-			if null {
-				out.Append(0)
-				continue
-			}
-			out.Append(int64(len(super.AppendNet(nil, n))))
+			net := vector.NetValue(val, i)
+			out.Append(int64(len(super.AppendNet(nil, net))))
 		}
 	case *super.TypeError:
 		return vector.NewWrappedError(l.sctx, "len()", val)
 	case *super.TypeOfType:
 		for i := uint32(0); i < val.Len(); i++ {
-			v, null := vector.TypeValueValue(val, i)
-			if null {
-				out.Append(0)
-				continue
-			}
-			t, err := l.sctx.LookupByValue(v)
+			b := vector.TypeValueValue(val, i)
+			t, err := l.sctx.LookupByValue(b)
 			if err != nil {
 				panic(err)
 			}

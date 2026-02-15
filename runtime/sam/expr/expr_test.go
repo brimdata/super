@@ -380,14 +380,14 @@ func TestArithmetic(t *testing.T) {
 	testSuccessful(t, "this % 3", val, "1")
 
 	// Test arithmetic with null values
-	testSuccessful(t, "null + 1", "", "null::int64")
-	testSuccessful(t, "(1)::uint64 + null", "", "null::uint64")
-	testSuccessful(t, "null + 1.0", "", "null::float64")
-	testSuccessful(t, "1. - null", "", "null::float64")
-	testSuccessful(t, "(1)::uint64 * null", "", "null::uint64")
-	testSuccessful(t, "null / 1.", "", "null::float64")
-	testSuccessful(t, "1 / (null)::uint64", "", "null::int64")
-	testSuccessful(t, "null % 1", "", "null::int64")
+	testSuccessful(t, "null + 1", "", "null")
+	testSuccessful(t, "(1)::uint64 + null", "", "null")
+	testSuccessful(t, "null + 1.0", "", "null")
+	testSuccessful(t, "1. - null", "", "null")
+	testSuccessful(t, "(1)::uint64 * null", "", "null")
+	testSuccessful(t, "null / 1.", "", "null")
+	testSuccessful(t, "1 / null", "", "null")
+	testSuccessful(t, "null % 1", "", "null")
 
 	// Difference of two times is a duration
 	testSuccessful(t, "a - b", "{a:2022-09-22T00:00:01Z,b:2022-09-22T00:00:00Z}", "1s")

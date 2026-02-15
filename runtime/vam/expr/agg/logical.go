@@ -14,21 +14,17 @@ func (a *and) Consume(vec vector.Any) {
 		return
 	}
 	for i := range vec.Len() {
-		v, isnull := vector.BoolValue(vec, i)
-		if isnull {
-			continue
-		}
 		if a.val == nil {
 			b := true
 			a.val = &b
 		}
-		*a.val = *a.val && v
+		*a.val = *a.val && vector.BoolValue(vec, i)
 	}
 }
 
 func (a *and) Result(*super.Context) super.Value {
 	if a.val == nil {
-		return super.NullBool
+		return super.Null
 	}
 	return super.NewBool(*a.val)
 }
@@ -53,21 +49,17 @@ func (o *or) Consume(vec vector.Any) {
 		return
 	}
 	for i := range vec.Len() {
-		v, isnull := vector.BoolValue(vec, i)
-		if isnull {
-			continue
-		}
 		if o.val == nil {
-			b := false
+			var b bool
 			o.val = &b
 		}
-		*o.val = *o.val || v
+		*o.val = *o.val || vector.BoolValue(vec, i)
 	}
 }
 
 func (o *or) Result(*super.Context) super.Value {
 	if o.val == nil {
-		return super.NullBool
+		return super.Null
 	}
 	return super.NewBool(*o.val)
 }

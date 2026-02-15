@@ -6,7 +6,6 @@ import (
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/runtime/vam/expr/agg"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type scalarAggregate struct {
@@ -61,7 +60,7 @@ func (s *scalarAggregate) Pull(done bool) (vector.Any, error) {
 				vals = append(vals, e.Eval(vec))
 			}
 		}
-		vector.Apply(false, func(vecs ...vector.Any) vector.Any {
+		vector.Apply(true, func(vecs ...vector.Any) vector.Any {
 			for i, vec := range vecs {
 				if s.partialsIn {
 					s.funcs[i].ConsumeAsPartial(vec)
@@ -69,7 +68,7 @@ func (s *scalarAggregate) Pull(done bool) (vector.Any, error) {
 					s.funcs[i].Consume(vec)
 				}
 			}
-			return vector.NewConst(super.Null, vecs[0].Len(), bitvec.Zero)
+			return vector.NewConst(super.Null, vecs[0].Len())
 		}, vals...)
 	}
 }
@@ -94,5 +93,5 @@ func (s *scalarAggregate) result() vector.Any {
 		vecs = append(vecs, b.Build())
 	}
 	s.funcs = nil
-	return s.builder.New(vecs, bitvec.Zero)
+	return s.builder.New(vecs)
 }

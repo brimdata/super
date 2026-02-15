@@ -36,29 +36,29 @@ super -S -c 'head 1' conn.log
 ```mdtest-output
 {
   _path: "conn",
-  ts: 2018-03-24T17:15:21.255387Z,
-  uid: "C8Tful1TvM3Zf5x8fl",
+  ts: 2018-03-24T17:15:21.255387Z::(time|null),
+  uid: "C8Tful1TvM3Zf5x8fl"::(string|null),
   id: {
-    orig_h: 10.164.94.120,
-    orig_p: 39681::(port=uint16),
-    resp_h: 10.47.3.155,
-    resp_p: 3389::port
+    orig_h: 10.164.94.120::(ip|null),
+    orig_p: 39681::(port=uint16)::(port|null),
+    resp_h: 10.47.3.155::(ip|null),
+    resp_p: 3389::port::(port|null)
   },
-  proto: "tcp"::=zenum,
-  service: null::string,
-  duration: 4.266ms,
-  orig_bytes: 97::uint64,
-  resp_bytes: 19::uint64,
-  conn_state: "RSTR",
-  local_orig: null::bool,
-  local_resp: null::bool,
-  missed_bytes: 0::uint64,
-  history: "ShADTdtr",
-  orig_pkts: 10::uint64,
-  orig_ip_bytes: 730::uint64,
-  resp_pkts: 6::uint64,
-  resp_ip_bytes: 342::uint64,
-  tunnel_parents: null::|[string]|
+  proto: "tcp"::=zenum::(zenum|null),
+  service: null::(string|null),
+  duration: 4.266ms::(duration|null),
+  orig_bytes: 97::uint64::(uint64|null),
+  resp_bytes: 19::uint64::(uint64|null),
+  conn_state: "RSTR"::(string|null),
+  local_orig: null::(bool|null),
+  local_resp: null::(bool|null),
+  missed_bytes: 0::uint64::(uint64|null),
+  history: "ShADTdtr"::(string|null),
+  orig_pkts: 10::uint64::(uint64|null),
+  orig_ip_bytes: 730::uint64::(uint64|null),
+  resp_pkts: 6::uint64::(uint64|null),
+  resp_ip_bytes: 342::uint64::(uint64|null),
+  tunnel_parents: null::(null||[string|null]|)
 }
 ```
 

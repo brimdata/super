@@ -3,7 +3,6 @@ package vector
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Map struct {
@@ -11,13 +10,10 @@ type Map struct {
 	Offsets []uint32
 	Keys    Any
 	Values  Any
-	Nulls   bitvec.Bits
 }
 
-var _ Any = (*Map)(nil)
-
-func NewMap(typ *super.TypeMap, offsets []uint32, keys Any, values Any, nulls bitvec.Bits) *Map {
-	return &Map{Typ: typ, Offsets: offsets, Keys: keys, Values: values, Nulls: nulls}
+func NewMap(typ *super.TypeMap, offsets []uint32, keys Any, values Any) *Map {
+	return &Map{typ, offsets, keys, values}
 }
 
 func (*Map) Kind() Kind {
@@ -33,10 +29,6 @@ func (m *Map) Len() uint32 {
 }
 
 func (m *Map) Serialize(b *scode.Builder, slot uint32) {
-	if m.Nulls.IsSet(slot) {
-		b.Append(nil)
-		return
-	}
 	off := m.Offsets[slot]
 	b.BeginContainer()
 	for end := m.Offsets[slot+1]; off < end; off++ {

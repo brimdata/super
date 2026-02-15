@@ -10,13 +10,10 @@ type count struct {
 }
 
 func (a *count) Consume(vec vector.Any) {
-	if c, ok := vec.(*vector.Const); ok && c.Value().IsNull() {
+	if k := vec.Kind(); k == vector.KindNull || k == vector.KindError {
 		return
 	}
-	if _, ok := vector.Under(vec).Type().(*super.TypeError); ok {
-		return
-	}
-	a.count += int64((vec.Len()) - vector.NullsOf(vec).TrueCount())
+	a.count += int64(vec.Len())
 }
 
 func (a *count) Result(*super.Context) super.Value {
@@ -27,8 +24,7 @@ func (a *count) ConsumeAsPartial(partial vector.Any) {
 	if partial.Len() != 1 || partial.Type() != super.TypeInt64 {
 		panic("count: bad partial")
 	}
-	count, _ := vector.IntValue(partial, 0)
-	a.count += count
+	a.count += vector.IntValue(partial, 0)
 }
 
 func (a *count) ResultAsPartial(*super.Context) super.Value {

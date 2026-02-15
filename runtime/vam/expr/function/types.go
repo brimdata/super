@@ -6,7 +6,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type HasError struct{}
@@ -97,12 +96,12 @@ func (i *Is) Call(args ...vector.Any) vector.Any {
 	}
 	if c, ok := typeVal.(*vector.Const); ok {
 		typ, err := i.sctx.LookupByValue(c.Value().Bytes())
-		return vector.NewConst(super.NewBool(err == nil && typ == vec.Type()), vec.Len(), bitvec.Zero)
+		return vector.NewConst(super.NewBool(err == nil && typ == vec.Type()), vec.Len())
 	}
 	inTyp := vec.Type()
-	out := vector.NewBoolEmpty(vec.Len(), bitvec.Zero)
+	out := vector.NewFalse(vec.Len())
 	for k := range vec.Len() {
-		b, _ := vector.TypeValueValue(typeVal, k)
+		b := vector.TypeValueValue(typeVal, k)
 		typ, err := i.sctx.LookupByValue(b)
 		if err == nil && typ == inTyp {
 			out.Set(k)
@@ -114,15 +113,8 @@ func (i *Is) Call(args ...vector.Any) vector.Any {
 type IsErr struct{}
 
 func (IsErr) Call(args ...vector.Any) vector.Any {
-	vec := vector.Under(args[0])
-	if vec.Kind() != vector.KindError {
-		return vector.NewConst(super.False, vec.Len(), bitvec.Zero)
-	}
-	nulls := vector.NullsOf(vec)
-	if nulls.IsZero() {
-		return vector.NewConst(super.True, vec.Len(), bitvec.Zero)
-	}
-	return vector.NewBool(bitvec.Not(nulls), bitvec.Zero)
+	val := super.NewBool(args[0].Kind() == vector.KindError)
+	return vector.NewConst(val, args[0].Len())
 }
 
 type NameOf struct {
@@ -133,20 +125,15 @@ func (n *NameOf) Call(args ...vector.Any) vector.Any {
 	vec := args[0]
 	typ := vec.Type()
 	if named, ok := typ.(*super.TypeNamed); ok {
-		return vector.NewConst(super.NewString(named.Name), vec.Len(), bitvec.Zero)
+		return vector.NewConst(super.NewString(named.Name), vec.Len())
 	}
 	if typ.ID() != super.IDType {
 		return vector.NewMissing(n.sctx, vec.Len())
 	}
-	nulls := vector.NullsOf(vec)
-	out := vector.NewStringEmpty(vec.Len(), nulls)
+	out := vector.NewStringEmpty(vec.Len())
 	var errs []uint32
 	for i := range vec.Len() {
-		b, null := vector.TypeValueValue(vec, i)
-		if null {
-			out.Append("")
-			continue
-		}
+		b := vector.TypeValueValue(vec, i)
 		var err error
 		if typ, err = n.sctx.LookupByValue(b); err != nil {
 			panic(err)
@@ -158,7 +145,6 @@ func (n *NameOf) Call(args ...vector.Any) vector.Any {
 		}
 	}
 	if len(errs) > 0 {
-		out.Nulls = out.Nulls.ReversePick(errs)
 		return vector.Combine(out, errs, vector.NewMissing(n.sctx, uint32(len(errs))))
 	}
 	return out
@@ -170,7 +156,7 @@ type TypeOf struct {
 
 func (t *TypeOf) Call(args ...vector.Any) vector.Any {
 	val := t.sctx.LookupTypeValue(args[0].Type())
-	return vector.NewConst(val, args[0].Len(), bitvec.Zero)
+	return vector.NewConst(val, args[0].Len())
 }
 
 type TypeName struct {
@@ -183,26 +169,14 @@ func (t *TypeName) Call(args ...vector.Any) vector.Any {
 		return vector.NewWrappedError(t.sctx, "typename: argument must be a string", args[0])
 	}
 	var errs []uint32
-	out := vector.NewTypeValueEmpty(0, bitvec.Zero)
+	out := vector.NewTypeValueEmpty(0)
 	for i := range vec.Len() {
-		s, isnull := vector.StringValue(vec, i)
-		if isnull {
-			if out.Nulls.IsZero() {
-				out.Nulls = bitvec.NewFalse(vec.Len())
-			}
-			out.Nulls.Set(out.Len())
-			out.Append(nil)
-			continue
-		}
-
+		s := vector.StringValue(vec, i)
 		if typ := t.sctx.LookupTypeDef(s); typ == nil {
 			errs = append(errs, i)
 		} else {
 			out.Append(t.sctx.LookupTypeValue(typ).Bytes())
 		}
-	}
-	if !out.Nulls.IsZero() {
-		out.Nulls.Shorten(out.Len())
 	}
 	if len(errs) > 0 {
 		return vector.Combine(out, errs, vector.NewMissing(t.sctx, uint32(len(errs))))
@@ -216,7 +190,7 @@ type Error struct {
 
 func (e *Error) Call(args ...vector.Any) vector.Any {
 	vec := args[0]
-	return vector.NewError(e.sctx.LookupTypeError(vec.Type()), vec, bitvec.Zero)
+	return vector.NewError(e.sctx.LookupTypeError(vec.Type()), vec)
 }
 
 type Kind struct {
@@ -231,19 +205,16 @@ func (k *Kind) Call(args ...vector.Any) vector.Any {
 	vec := vector.Under(args[0])
 	if typ := vec.Type(); typ.ID() != super.IDType {
 		s := typ.Kind().String()
-		return vector.NewConst(super.NewString(s), vec.Len(), bitvec.Zero)
+		return vector.NewConst(super.NewString(s), vec.Len())
 	}
-	out := vector.NewStringEmpty(vec.Len(), bitvec.Zero)
+	out := vector.NewStringEmpty(vec.Len())
 	for i, n := uint32(0), vec.Len(); i < n; i++ {
-		var s string
-		if bytes, null := vector.TypeValueValue(vec, i); !null {
-			typ, err := k.sctx.LookupByValue(bytes)
-			if err != nil {
-				panic(err)
-			}
-			s = typ.Kind().String()
+		bytes := vector.TypeValueValue(vec, i)
+		typ, err := k.sctx.LookupByValue(bytes)
+		if err != nil {
+			panic(err)
 		}
-		out.Append(s)
+		out.Append(typ.Kind().String())
 	}
 	return out
 }

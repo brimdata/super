@@ -11,4 +11,4 @@ input: |
   conn	yes
 
 output: |
-  {_path:"conn",foo:"yes"}
+  {_path:"conn"::(string|null),foo:"yes"::(string|null)}

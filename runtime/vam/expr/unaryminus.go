@@ -6,7 +6,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr/cast"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type unaryMinus struct {
@@ -72,7 +71,7 @@ func (u *unaryMinus) convert(vec vector.Any) (vector.Any, bool) {
 			}
 			val = super.NewInt(vec.Type(), -vec.Value().Int())
 		}
-		return vector.NewConst(val, vec.Len(), vec.Nulls), true
+		return vector.NewConst(val, vec.Len()), true
 	case *vector.Dict:
 		out, ok := u.convert(vec.Any)
 		if !ok {
@@ -82,7 +81,6 @@ func (u *unaryMinus) convert(vec vector.Any) (vector.Any, bool) {
 			Any:    out,
 			Index:  vec.Index,
 			Counts: vec.Counts,
-			Nulls:  vec.Nulls,
 		}, true
 	case *vector.View:
 		out, ok := u.convert(vec.Any)
@@ -99,43 +97,31 @@ func (u *unaryMinus) convert(vec vector.Any) (vector.Any, bool) {
 			}
 			out[i] = -vec.Values[i]
 		}
-		return vector.NewInt(vec.Typ, out, vec.Nulls), true
+		return vector.NewInt(vec.Typ, out), true
 	case *vector.Float:
 		out := make([]float64, vec.Len())
 		for i := range vec.Len() {
 			out[i] = -vec.Values[i]
 		}
-		return vector.NewFloat(vec.Typ, out, vec.Nulls), true
+		return vector.NewFloat(vec.Typ, out), true
 	default:
 		panic(vec)
 	}
 }
 
 func (u *unaryMinus) slowPath(vec vector.Any) vector.Any {
-	var nulls bitvec.Bits
 	var ints []int64
 	var errs []uint32
 	minval := minInt(vec.Type())
 	for i := range vec.Len() {
-		v, isnull := vector.IntValue(vec, i)
-		if isnull {
-			if nulls.IsZero() {
-				nulls = bitvec.NewFalse(vec.Len())
-			}
-			nulls.Set(uint32(len(ints)))
-			ints = append(ints, 0)
-			continue
-		}
+		v := vector.IntValue(vec, i)
 		if v == minval {
 			errs = append(errs, i)
 		} else {
 			ints = append(ints, -v)
 		}
 	}
-	if !nulls.IsZero() {
-		nulls.Shorten(uint32(len(ints)))
-	}
-	out := vector.NewInt(vec.Type(), ints, nulls)
+	out := vector.NewInt(vec.Type(), ints)
 	err := vector.NewWrappedError(u.sctx, "unary '-' underflow", vector.Pick(vec, errs))
 	return vector.Combine(out, errs, err)
 }

@@ -23,7 +23,7 @@ nullif(1, 1)
 # input
 
 # expected output
-null::int64
+null
 ```
 
 ---

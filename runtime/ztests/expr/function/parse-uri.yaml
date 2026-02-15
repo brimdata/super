@@ -3,11 +3,11 @@ spq: uri := parse_uri(s)
 vector: true
 
 input: |
+  {s:null}
   {s:""}
   {s:"scheme://user:password@host:12345/path?a=1&a=2&b=3&c=#fragment"}
   {s:"scheme:opaque"}
   {s:1}
-  {s:null::string}
   {s:":no-scheme"}
   {s:"scheme://bad-port:1234567"}
 
@@ -15,24 +15,28 @@ output-flags: -pretty=2
 
 output: |
   {
+    s: null,
+    uri: null
+  }
+  {
     s: "",
     uri: {
-      scheme: null::string,
-      opaque: null::string,
-      user: null::string,
-      password: null::string,
-      host: null::string,
-      port: null::uint16,
-      path: null::string,
-      query: null::|{string:[string]}|,
-      fragment: null::string
+      scheme: null,
+      opaque: null,
+      user: null,
+      password: null,
+      host: null,
+      port: null,
+      path: null,
+      query: null,
+      fragment: null
     }
   }
   {
     s: "scheme://user:password@host:12345/path?a=1&a=2&b=3&c=#fragment",
     uri: {
       scheme: "scheme",
-      opaque: null::string,
+      opaque: null,
       user: "user",
       password: "password",
       host: "host",
@@ -58,13 +62,13 @@ output: |
     uri: {
       scheme: "scheme",
       opaque: "opaque",
-      user: null::string,
-      password: null::string,
-      host: null::string,
-      port: null::uint16,
-      path: null::string,
-      query: null::|{string:[string]}|,
-      fragment: null::string
+      user: null,
+      password: null,
+      host: null,
+      port: null,
+      path: null,
+      query: null,
+      fragment: null
     }
   }
   {
@@ -73,10 +77,6 @@ output: |
       message: "parse_uri: string arg required",
       on: 1
     })
-  }
-  {
-    s: null::string,
-    uri: null::{scheme:string,opaque:string,user:string,password:string,host:string,port:uint16,path:string,query:|{string:[string]}|,fragment:string}
   }
   {
     s: ":no-scheme",

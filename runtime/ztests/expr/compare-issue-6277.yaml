@@ -7,4 +7,4 @@ input: |
   {a:1,b:null}
 
 output: |
-  null::bool
+  null

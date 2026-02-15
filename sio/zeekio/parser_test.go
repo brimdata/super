@@ -93,7 +93,7 @@ func TestLegacyZeekValid(t *testing.T) {
 
 	expectedTs, err := parseTime([]byte(timestamp))
 	require.NoError(t, err)
-	x := record.Deref("ts").AsTime()
+	x := record.Deref("ts").Under().Ptr().AsTime()
 	assert.Equal(t, expectedTs, x, "Timestamp is correct")
 
 	// Test the #path header
@@ -151,26 +151,26 @@ func TestNestedRecords(t *testing.T) {
 	assert.Equal(t, "z", nest3Type.Fields[0].Name, "field in nest3 is z")
 
 	// Now check the actual values
-	assert.Equal(t, 1, int(record.Deref("a").AsInt()), "Field a has value 1")
+	assert.Equal(t, 1, int(record.Deref("a").Under().Ptr().AsInt()), "Field a has value 1")
 
 	e := record.Deref("nest1")
 	assert.Equal(t, nest1Type, e.Type(), "Got right type for field nest1")
-	assert.Equal(t, 2, int(e.Deref("a").AsInt()), "nest1.a")
-	assert.Equal(t, 3, int(e.Deref("b").AsInt()), "nest1.b")
+	assert.Equal(t, 2, int(e.Deref("a").Under().Ptr().AsInt()), "nest1.a")
+	assert.Equal(t, 3, int(e.Deref("b").Under().Ptr().AsInt()), "nest1.b")
 
 	e = e.Deref("nestnest")
 	assert.Equal(t, nestnestType, e.Type(), "Got right type for field nest1.nestnest")
-	assert.Equal(t, 6, int(e.Deref("c").AsInt()), "nest1.nestnest.c")
+	assert.Equal(t, 6, int(e.Deref("c").Under().Ptr().AsInt()), "nest1.nestnest.c")
 
-	assert.Equal(t, 4, int(record.Deref("b").AsInt()), "Field b has value 4")
+	assert.Equal(t, 4, int(record.Deref("b").Under().Ptr().AsInt()), "Field b has value 4")
 
 	e = record.Deref("nest2")
 	assert.Equal(t, nest2Type, e.Type(), "Got right type for field nest2")
-	assert.Equal(t, 5, int(e.Deref("y").AsInt()), "nest2.y")
+	assert.Equal(t, 5, int(e.Deref("y").Under().Ptr().AsInt()), "nest2.y")
 
 	e = record.Deref("nest3")
 	assert.Equal(t, nest3Type, e.Type(), "Got right type for field nest3")
-	assert.Equal(t, 7, int(e.Deref("z").AsInt()), "nest3.z")
+	assert.Equal(t, 7, int(e.Deref("z").Under().Ptr().AsInt()), "nest3.z")
 }
 
 // Test things related to legacy zeek records that should cause the

@@ -4,7 +4,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type setExpr struct {
@@ -20,8 +19,8 @@ func (s *setExpr) Eval(this vector.Any) vector.Any {
 	if len(s.elems) == 0 {
 		typ := s.sctx.LookupTypeSet(super.TypeNull)
 		offsets := make([]uint32, this.Len()+1)
-		c := vector.NewConst(super.Null, 0, bitvec.Zero)
-		return vector.NewSet(typ, offsets, c, bitvec.Zero)
+		c := vector.NewConst(super.Null, 0)
+		return vector.NewSet(typ, offsets, c)
 	}
 	var vecs []vector.Any
 	for _, e := range s.elems {
@@ -46,5 +45,5 @@ func (a *setExpr) eval(in ...vector.Any) vector.Any {
 		}
 		vb.Write(super.NormalizeSet(b.Bytes()))
 	}
-	return vb.Build(bitvec.Zero)
+	return vb.Build()
 }

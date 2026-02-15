@@ -12,6 +12,6 @@ input: |
   😁
 
 output: |
-  {foo:"😁"}
-  {_path:"magic",foo:"😁"}
-  {foo:"😁"}
+  {foo:"😁"::(string|null)}
+  {_path:"magic",foo:"😁"::(string|null)}
+  {foo:"😁"::(string|null)}

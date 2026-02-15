@@ -9,7 +9,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Compare struct {
@@ -32,19 +31,19 @@ func (c *Compare) Eval(val vector.Any) vector.Any {
 }
 
 func (c *Compare) eval(vecs ...vector.Any) vector.Any {
-	lhs := vector.Under(vecs[0])
-	rhs := vector.Under(vecs[1])
-	if _, ok := lhs.(*vector.Error); ok {
-		return vecs[0]
+	lhs, rhs := vecs[0], vecs[1]
+	if k := lhs.Kind(); k == vector.KindNull || k == vector.KindError {
+		return lhs
 	}
-	if _, ok := rhs.(*vector.Error); ok {
-		return vecs[1]
+	if k := rhs.Kind(); k == vector.KindNull || k == vector.KindError {
+		return rhs
 	}
-	nulls := bitvec.Or(vector.NullsOf(lhs), vector.NullsOf(rhs))
+	lhs = vector.Under(lhs)
+	rhs = vector.Under(rhs)
 	lhs, rhs, errVal := coerceVals(c.sctx, lhs, rhs)
 	if errVal != nil {
 		// if incompatible types return false
-		return vector.NewConst(super.False, vecs[0].Len(), nulls)
+		return vector.NewConst(super.False, vecs[0].Len())
 	}
 	//XXX need to handle overflow (see sam)
 	kind := lhs.Kind()
@@ -53,9 +52,9 @@ func (c *Compare) eval(vecs ...vector.Any) vector.Any {
 	}
 	switch kind {
 	case vector.KindIP:
-		return c.compareIPs(lhs, rhs, nulls)
+		return c.compareIPs(lhs, rhs)
 	case vector.KindNet:
-		return c.compareNets(lhs, rhs, nulls)
+		return c.compareNets(lhs, rhs)
 	case vector.KindType:
 		return c.compareTypeVals(lhs, rhs)
 	}
@@ -69,30 +68,16 @@ func (c *Compare) eval(vecs ...vector.Any) vector.Any {
 	}
 	f, ok := compareFuncs[vector.FuncCode(c.opCode, kind, lform, rform)]
 	if !ok {
-		return vector.NewConst(super.False, lhs.Len(), nulls)
+		return vector.NewConst(super.False, lhs.Len())
 	}
-	out := f(lhs, rhs)
-	if !nulls.IsZero() {
-		// Having a null true value can cause incorrect results when and'ing
-		// and or'ing with other boolean values. Flip true values to false if
-		// they are null.
-		bits := bitvec.And(FlattenBool(out).Bits, bitvec.Not(nulls))
-		out = vector.NewBool(bits, nulls)
-	}
-	return out
+	return f(lhs, rhs)
 }
 
-func (c *Compare) compareIPs(lhs, rhs vector.Any, nulls bitvec.Bits) vector.Any {
-	out := vector.NewBoolEmpty(lhs.Len(), nulls)
+func (c *Compare) compareIPs(lhs, rhs vector.Any) vector.Any {
+	out := vector.NewFalse(lhs.Len())
 	for i := range lhs.Len() {
-		l, null := vector.IPValue(lhs, i)
-		if null {
-			continue
-		}
-		r, null := vector.IPValue(rhs, i)
-		if null {
-			continue
-		}
+		l := vector.IPValue(lhs, i)
+		r := vector.IPValue(rhs, i)
 		if isCompareOpSatisfied(c.opCode, l.Compare(r)) {
 			out.Set(i)
 		}
@@ -100,21 +85,15 @@ func (c *Compare) compareIPs(lhs, rhs vector.Any, nulls bitvec.Bits) vector.Any 
 	return out
 }
 
-func (c *Compare) compareNets(lhs, rhs vector.Any, nulls bitvec.Bits) vector.Any {
+func (c *Compare) compareNets(lhs, rhs vector.Any) vector.Any {
 	if c.opCode != vector.CompEQ && c.opCode != vector.CompNE {
 		s := fmt.Sprintf("type net incompatible with '%s' operator", vector.CompareOpToString(c.opCode))
 		return vector.NewStringError(c.sctx, s, lhs.Len())
 	}
-	out := vector.NewBoolEmpty(lhs.Len(), nulls)
+	out := vector.NewFalse(lhs.Len())
 	for i := range lhs.Len() {
-		l, null := vector.NetValue(lhs, i)
-		if null {
-			continue
-		}
-		r, null := vector.NetValue(rhs, i)
-		if null {
-			continue
-		}
+		l := vector.NetValue(lhs, i)
+		r := vector.NetValue(rhs, i)
 		set := l == r
 		if c.opCode == vector.CompNE {
 			set = !set
@@ -146,12 +125,12 @@ func isCompareOpSatisfied(opCode, i int) bool {
 
 func (c *Compare) compareTypeVals(lhs, rhs vector.Any) vector.Any {
 	if c.opCode == vector.CompLT || c.opCode == vector.CompGT {
-		return vector.NewConst(super.False, lhs.Len(), bitvec.Zero)
+		return vector.NewConst(super.False, lhs.Len())
 	}
 	out := vector.NewFalse(lhs.Len())
 	for i := range lhs.Len() {
-		l, _ := vector.TypeValueValue(lhs, i)
-		r, _ := vector.TypeValueValue(rhs, i)
+		l := vector.TypeValueValue(lhs, i)
+		r := vector.TypeValueValue(rhs, i)
 		v := bytes.Equal(l, r)
 		if c.opCode == vector.CompNE {
 			v = !v
@@ -176,15 +155,11 @@ func (i *isNull) Eval(this vector.Any) vector.Any {
 }
 
 func (i *isNull) eval(vecs ...vector.Any) vector.Any {
-	vec := vector.Under(vecs[0])
-	if _, ok := vec.(*vector.Error); ok {
+	vec := vecs[0]
+	k := vec.Kind()
+	if k == vector.KindError {
 		return vec
 	}
-	if c, ok := vec.(*vector.Const); ok && c.Value().IsNull() {
-		return vector.NewConst(super.True, vec.Len(), bitvec.Zero)
-	}
-	if nulls := vector.NullsOf(vec); !nulls.IsZero() {
-		return vector.NewBool(nulls, bitvec.Zero)
-	}
-	return vector.NewConst(super.False, vec.Len(), bitvec.Zero)
+	val := super.NewBool(k == vector.KindNull)
+	return vector.NewConst(val, vec.Len())
 }

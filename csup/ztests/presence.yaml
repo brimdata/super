@@ -11,32 +11,32 @@ script: |
 inputs:
   - name: p1.sup
     data: |
-      {s:null::string}
+      {s:null::(string|null)}
   - name: p2.sup
     data: |
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
       {s:"x"}
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
   - name: p3.sup
     data: |
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
       {s:"x"}
   - name: p4.sup
     data: |
@@ -50,37 +50,37 @@ inputs:
       {s:"x"}
       {s:"x"}
       {s:"x"}
-      {s:null::string}
+      {s:null::(string|null)}
 
 outputs:
   - name: o1.sup
     data: |
-      {s:null::string}
+      {s:null::(string|null)}
   - name: o2.sup
     data: |
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
       {s:"x"}
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
   - name: o3.sup
     data: |
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
-      {s:null::string}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
+      {s:null::(string|null)}
       {s:"x"}
   - name: o4.sup
     data: |
@@ -94,4 +94,4 @@ outputs:
       {s:"x"}
       {s:"x"}
       {s:"x"}
-      {s:null::string}
+      {s:null::(string|null)}

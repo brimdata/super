@@ -9,7 +9,6 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type nestedLoopJoin struct {
@@ -166,7 +165,7 @@ func (n *nestedLoopJoin) makeResult(vecs ...vector.Any) vector.Any {
 		super.NewField(n.leftAlias, left.Type()),
 		super.NewField(n.rightAlias, right.Type()),
 	})
-	return vector.NewRecord(typ, []vector.Any{left, right}, left.Len(), bitvec.Zero)
+	return vector.NewRecord(typ, []vector.Any{left, right}, left.Len())
 }
 
 func (n *nestedLoopJoin) makeHitsResult(vec vector.Any, hits *roaring.Bitmap) (vector.Any, bool) {
@@ -185,6 +184,6 @@ func (n *nestedLoopJoin) makeHitsResult(vec vector.Any, hits *roaring.Bitmap) (v
 		typ := n.rctx.Sctx.MustLookupTypeRecord([]super.Field{
 			super.NewField(fieldName, vecs[0].Type()),
 		})
-		return vector.NewRecord(typ, vecs, vecs[0].Len(), bitvec.Zero)
+		return vector.NewRecord(typ, vecs, vecs[0].Len())
 	}, missVec), true
 }

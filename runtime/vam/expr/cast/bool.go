@@ -3,18 +3,16 @@ package cast
 import (
 	"github.com/brimdata/super/pkg/byteconv"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 func castToBool(vec vector.Any, index []uint32) (vector.Any, []uint32, string, bool) {
-	var out *vector.Bool
 	switch vec := vec.(type) {
 	case *vector.Int:
-		out = numberToBool(vec.Values, index)
+		return numberToBool(vec.Values, index), nil, "", true
 	case *vector.Uint:
-		out = numberToBool(vec.Values, index)
+		return numberToBool(vec.Values, index), nil, "", true
 	case *vector.Float:
-		out = numberToBool(vec.Values, index)
+		return numberToBool(vec.Values, index), nil, "", true
 	case *vector.Bool:
 		out := vector.Any(vec)
 		if index != nil {
@@ -27,13 +25,6 @@ func castToBool(vec vector.Any, index []uint32) (vector.Any, []uint32, string, b
 	default:
 		return nil, nil, "", false
 	}
-	nulls := vector.NullsOf(vec)
-	if index == nil {
-		out.Nulls = nulls
-	} else {
-		out.Nulls = nulls.Pick(index)
-	}
-	return out, nil, "", true
 }
 
 func numberToBool[E numeric](s []E, index []uint32) *vector.Bool {
@@ -57,20 +48,12 @@ func numberToBool[E numeric](s []E, index []uint32) *vector.Bool {
 func stringToBool(vec *vector.String, index []uint32) (vector.Any, []uint32) {
 	n := lengthOf(vec, index)
 	bools := vector.NewFalse(n)
-	if !vec.Nulls.IsZero() {
-		bools.Nulls = bitvec.NewFalse(n)
-	}
 	var errs []uint32
 	var boollen uint32
 	for i := range n {
 		idx := i
 		if index != nil {
 			idx = index[i]
-		}
-		if vec.Nulls.IsSet(idx) {
-			bools.Nulls.Set(boollen)
-			boollen++
-			continue
 		}
 		b, err := byteconv.ParseBool(vec.Table().Bytes(idx))
 		if err != nil {
@@ -83,8 +66,5 @@ func stringToBool(vec *vector.String, index []uint32) (vector.Any, []uint32) {
 		boollen++
 	}
 	bools.Bits.Shorten(boollen)
-	if !bools.Nulls.IsZero() {
-		bools.Nulls.Shorten(boollen)
-	}
 	return bools, errs
 }

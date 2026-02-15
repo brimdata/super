@@ -89,6 +89,6 @@ func isErrorMissing(vec vector.Any, i uint32) bool {
 	if errVec.Vals.Type().ID() != super.IDString {
 		return false
 	}
-	s, null := vector.StringValue(errVec.Vals, i)
-	return !null && s == string(super.Missing)
+	s := vector.StringValue(errVec.Vals, i)
+	return s == string(super.Missing)
 }

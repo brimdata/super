@@ -24,12 +24,15 @@ func newGrok(sctx *super.Context) *Grok {
 }
 
 func (g *Grok) Call(args []super.Value) super.Value {
-	patternArg, inputArg, defArg := args[0], args[1], super.NullString
+	patternArg, inputArg, defArg := args[0], args[1], super.Null
 	if len(args) == 3 {
 		defArg = args[2]
 	}
+	if patternArg.IsNull() || inputArg.IsNull() {
+		return super.Null
+	}
 	switch {
-	case super.TypeUnder(defArg.Type()) != super.TypeString:
+	case super.TypeUnder(defArg.Type()) != super.TypeString && !defArg.IsNull():
 		return g.error("definitions argument must be a string", defArg)
 	case super.TypeUnder(patternArg.Type()) != super.TypeString:
 		return g.error("pattern argument must be a string", patternArg)
@@ -39,9 +42,6 @@ func (g *Grok) Call(args []super.Value) super.Value {
 	h, err := g.getHost(defArg.AsString())
 	if err != nil {
 		return g.error(err.Error(), defArg)
-	}
-	if patternArg.IsNull() || inputArg.IsNull() {
-		return super.NewValue(g.sctx.MustLookupTypeRecord(nil), nil)
 	}
 	p, err := h.getPattern(patternArg.AsString())
 	if err != nil {

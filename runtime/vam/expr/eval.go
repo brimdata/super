@@ -12,6 +12,15 @@ type Function interface {
 	Call(...vector.Any) vector.Any
 }
 
+func CheckNulls(vecs []vector.Any) (vector.Any, bool) {
+	for _, vec := range vecs {
+		if vec.Kind() == vector.KindNull {
+			return vec, true
+		}
+	}
+	return nil, false
+}
+
 type Call struct {
 	fn        Function
 	exprs     []Evaluator

@@ -9,8 +9,6 @@ type Named struct {
 	Any
 }
 
-var _ Any = (*Named)(nil)
-
 func NewNamed(typ *super.TypeNamed, v Any) Any {
 	return &Named{Typ: typ, Any: v}
 }

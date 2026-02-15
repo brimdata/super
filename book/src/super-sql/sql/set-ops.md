@@ -183,10 +183,10 @@ fork
 # input
 
 # expected output
-{x:1,y:2,z:null::int64}
-{x:3,y:4,z:null::int64}
-{x:5,y:6,z:null::int64}
-{x:null::int64,y:null::int64,z:2}
-{x:null::int64,y:null::int64,z:3}
+{x:1::(int64|null),y:2::(int64|null),z:null::(int64|null)}
+{x:3::(int64|null),y:4::(int64|null),z:null::(int64|null)}
+{x:5::(int64|null),y:6::(int64|null),z:null::(int64|null)}
+{x:null::(int64|null),y:null::(int64|null),z:2::(int64|null)}
+{x:null::(int64|null),y:null::(int64|null),z:3::(int64|null)}
 ```
 ---

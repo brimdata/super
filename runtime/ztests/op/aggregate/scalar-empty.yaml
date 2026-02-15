@@ -5,7 +5,7 @@ spq: |
 vector: true
 
 output: |
-  {count:0,sum:null,and:null::bool,or:null::bool,min:null,avg:null::float64,collect:null}
+  {count:0,sum:null,and:null,or:null,min:null,avg:null,collect:null}
 
 ---
 

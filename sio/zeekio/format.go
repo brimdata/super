@@ -15,7 +15,12 @@ import (
 	"github.com/brimdata/super/sup"
 )
 
+func FormatValue(val super.Value) string {
+	return formatAny(val, false)
+}
+
 func formatAny(val super.Value, inContainer bool) string {
+	val = val.Under()
 	switch t := val.Type().(type) {
 	case *super.TypeArray:
 		return formatArray(t, val.Bytes())
@@ -56,8 +61,6 @@ func formatAny(val super.Value, inContainer bool) string {
 		return formatString(val.Bytes(), inContainer)
 	case *super.TypeOfType:
 		return sup.String(val)
-	case *super.TypeUnion:
-		return formatUnion(t, val.Bytes())
 	case *super.TypeError:
 		if super.TypeUnder(t.Type) == super.TypeString {
 			return string(val.Bytes())
@@ -84,11 +87,7 @@ func formatArray(t *super.TypeArray, zv scode.Bytes) string {
 		} else {
 			b.WriteByte(separator)
 		}
-		if val := it.Next(); val == nil {
-			b.WriteByte('-')
-		} else {
-			b.WriteString(formatAny(super.NewValue(t.Type, val), true))
-		}
+		b.WriteString(formatAny(super.NewValue(t.Type, it.Next()), true))
 	}
 	return b.String()
 }
@@ -116,11 +115,7 @@ func formatRecord(t *super.TypeRecord, zv scode.Bytes) string {
 		} else {
 			b.WriteByte(separator)
 		}
-		if val := it.Next(); val == nil {
-			b.WriteByte('-')
-		} else {
-			b.WriteString(formatAny(super.NewValue(f.Type, val), false))
-		}
+		b.WriteString(formatAny(super.NewValue(f.Type, it.Next()), false))
 	}
 	return b.String()
 }
@@ -187,20 +182,4 @@ func unescape(r rune) []byte {
 		b.WriteString(code[k : k+2])
 	}
 	return b.Bytes()
-}
-
-func formatUnion(t *super.TypeUnion, zv scode.Bytes) string {
-	if zv == nil {
-		return FormatValue(super.Null)
-	}
-	typ, iv := t.Untag(zv)
-	s := strconv.FormatInt(int64(t.TagOf(typ)), 10) + ":"
-	return s + formatAny(super.NewValue(typ, iv), false)
-}
-
-func FormatValue(v super.Value) string {
-	if v.IsNull() {
-		return "-"
-	}
-	return formatAny(v, false)
 }

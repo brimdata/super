@@ -13,6 +13,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/sup"
 )
 
 type RecordReader interface {
@@ -26,8 +27,9 @@ type Reader struct {
 	sctx *super.Context
 	rr   RecordReader
 
-	typ              super.Type
-	unionTagMappings map[string][]int
+	topLevelFields   []arrow.Field
+	topLevelType     *super.TypeRecord
+	unionTagMappings map[*super.TypeUnion][]int
 
 	rec arrow.Record
 	i   int
@@ -50,21 +52,23 @@ func NewReader(sctx *super.Context, r io.Reader) (*Reader, error) {
 }
 
 func NewReaderFromRecordReader(sctx *super.Context, rr RecordReader) (*Reader, error) {
+	fields := rr.Schema().Fields()
 	r := &Reader{
 		sctx:             sctx,
 		rr:               rr,
-		unionTagMappings: map[string][]int{},
+		topLevelFields:   fields,
+		unionTagMappings: map[*super.TypeUnion][]int{},
 	}
-	typ, err := r.newType(arrow.StructOf(rr.Schema().Fields()...))
+	typ, err := r.newTypeFromDataType(arrow.StructOf(fields...))
 	if err != nil {
 		return nil, err
 	}
-	r.typ = typ
+	r.topLevelType = typ.(*super.TypeRecord)
 	return r, nil
 }
 
 func (r *Reader) Type() super.Type {
-	return r.typ
+	return r.topLevelType
 }
 
 func UniquifyFieldNames(fields []super.Field) {
@@ -106,12 +110,14 @@ func (r *Reader) Read() (*super.Value, error) {
 		}
 	}
 	r.builder.Truncate()
-	for _, array := range r.rec.Columns() {
-		if err := r.buildScode(array, r.i); err != nil {
+	for j, array := range r.rec.Columns() {
+		typ := r.topLevelType.Fields[j].Type
+		nullable := r.topLevelFields[j].Nullable
+		if err := r.buildScodeWithNullable(typ, array, r.i, nullable); err != nil {
 			return nil, err
 		}
 	}
-	r.val = super.NewValue(r.typ, r.builder.Bytes())
+	r.val = super.NewValue(r.topLevelType, r.builder.Bytes())
 	r.i++
 	if r.i >= int(r.rec.NumRows()) {
 		r.rec.Release()
@@ -134,7 +140,7 @@ var monthDayNanoIntervalFields = []super.Field{
 	{Name: "nanoseconds", Type: super.TypeInt64},
 }
 
-func (r *Reader) newType(dt arrow.DataType) (super.Type, error) {
+func (r *Reader) newTypeFromDataType(dt arrow.DataType) (super.Type, error) {
 	// Order here follows that of the arrow.Time constants.
 	switch dt.ID() {
 	case arrow.NULL:
@@ -202,7 +208,7 @@ func (r *Reader) newType(dt arrow.DataType) (super.Type, error) {
 	case arrow.DECIMAL256:
 		return r.sctx.LookupTypeNamed("arrow_decimal256", r.sctx.LookupTypeArray(super.TypeUint64))
 	case arrow.LIST:
-		typ, err := r.newType(dt.(*arrow.ListType).Elem())
+		typ, err := r.newTypeFromField(dt.(*arrow.ListType).ElemField())
 		if err != nil {
 			return nil, err
 		}
@@ -210,7 +216,7 @@ func (r *Reader) newType(dt arrow.DataType) (super.Type, error) {
 	case arrow.STRUCT:
 		var fields []super.Field
 		for _, f := range dt.(*arrow.StructType).Fields() {
-			typ, err := r.newType(f.Type)
+			typ, err := r.newTypeFromField(f)
 			if err != nil {
 				return nil, err
 			}
@@ -219,21 +225,21 @@ func (r *Reader) newType(dt arrow.DataType) (super.Type, error) {
 		UniquifyFieldNames(fields)
 		return r.sctx.LookupTypeRecord(fields)
 	case arrow.SPARSE_UNION, arrow.DENSE_UNION:
-		return r.newUnionType(dt.(arrow.UnionType), dt.Fingerprint())
+		return r.newUnionType(dt.(arrow.UnionType))
 	case arrow.DICTIONARY:
-		return r.newType(dt.(*arrow.DictionaryType).ValueType)
+		return r.newTypeFromDataType(dt.(*arrow.DictionaryType).ValueType)
 	case arrow.MAP:
-		keyType, err := r.newType(dt.(*arrow.MapType).KeyType())
+		keyType, err := r.newTypeFromField(dt.(*arrow.MapType).KeyField())
 		if err != nil {
 			return nil, err
 		}
-		itemType, err := r.newType(dt.(*arrow.MapType).ItemType())
+		itemType, err := r.newTypeFromField(dt.(*arrow.MapType).ItemField())
 		if err != nil {
 			return nil, err
 		}
 		return r.sctx.LookupTypeMap(keyType, itemType), nil
 	case arrow.FIXED_SIZE_LIST:
-		typ, err := r.newType(dt.(*arrow.FixedSizeListType).Elem())
+		typ, err := r.newTypeFromField(dt.(*arrow.FixedSizeListType).ElemField())
 		if err != nil {
 			return nil, err
 		}
@@ -249,7 +255,7 @@ func (r *Reader) newType(dt arrow.DataType) (super.Type, error) {
 	case arrow.LARGE_BINARY:
 		return r.sctx.LookupTypeNamed("arrow_large_binary", super.TypeBytes)
 	case arrow.LARGE_LIST:
-		typ, err := r.newType(dt.(*arrow.LargeListType).Elem())
+		typ, err := r.newTypeFromField(dt.(*arrow.LargeListType).ElemField())
 		if err != nil {
 			return nil, err
 		}
@@ -265,10 +271,21 @@ func (r *Reader) newType(dt arrow.DataType) (super.Type, error) {
 	}
 }
 
-func (r *Reader) newUnionType(union arrow.UnionType, fingerprint string) (super.Type, error) {
+func (r *Reader) newTypeFromField(f arrow.Field) (super.Type, error) {
+	typ, err := r.newTypeFromDataType(f.Type)
+	if err != nil {
+		return nil, err
+	}
+	if f.Nullable && typ != super.TypeNull {
+		typ = r.sctx.LookupTypeUnion([]super.Type{typ, super.TypeNull})
+	}
+	return typ, nil
+}
+
+func (r *Reader) newUnionType(union arrow.UnionType) (super.Type, error) {
 	var types []super.Type
 	for _, f := range union.Fields() {
-		typ, err := r.newType(f.Type)
+		typ, err := r.newTypeFromDataType(f.Type)
 		if err != nil {
 			return nil, err
 		}
@@ -285,22 +302,49 @@ Loop:
 			}
 		}
 	}
-	r.unionTagMappings[fingerprint] = x
-	return r.sctx.LookupTypeUnion(uniqueTypes), nil
+	superUnion := r.sctx.LookupTypeUnion(uniqueTypes)
+	r.unionTagMappings[superUnion] = x
+	return superUnion, nil
 }
 
-func (r *Reader) buildScode(a arrow.Array, i int) error {
-	b := &r.builder
-	if a.IsNull(i) {
-		b.Append(nil)
-		return nil
+func (r *Reader) buildScodeWithNullable(typ super.Type, a arrow.Array, i int, nullable bool) error {
+	if !nullable || typ == super.TypeNull {
+		return r.buildScode(typ, a, i)
 	}
+	nullTag, nonNullTag, nonNullType := NullableUnionTagsAndType(typ.(*super.TypeUnion))
+	if a.IsNull(i) {
+		super.BuildUnion(&r.builder, nullTag, nil)
+	} else {
+		super.BeginUnion(&r.builder, nonNullTag)
+		if err := r.buildScode(nonNullType, a, i); err != nil {
+			return err
+		}
+		r.builder.EndContainer()
+	}
+	return nil
+}
+
+func NullableUnionTagsAndType(union *super.TypeUnion) (nullTag, nonNullTag int, nonNullType super.Type) {
+	if len(union.Types) != 2 {
+		panic(sup.FormatType(union))
+	}
+	if union.Types[0] == super.TypeNull {
+		nullTag, nonNullTag = 0, 1
+	} else {
+		nullTag, nonNullTag = 1, 0
+	}
+	return nullTag, nonNullTag, union.Types[nonNullTag]
+}
+
+func (r *Reader) buildScode(typ super.Type, a arrow.Array, i int) error {
+	b := &r.builder
 	data := a.Data()
+	dt := a.DataType()
 	// XXX Calling array.New*Data once per value (rather than once
 	// per arrow.Array) is slow.
 	//
-	// Order here follows that of the arrow.Time constants.
-	switch a.DataType().ID() {
+	// Order here follows that of the arrow.Type constants.
+	switch dt.ID() {
 	case arrow.NULL:
 		b.Append(nil)
 	case arrow.BOOL:
@@ -338,13 +382,13 @@ func (r *Reader) buildScode(a arrow.Array, i int) error {
 	case arrow.DATE64:
 		b.Append(super.EncodeTime(nano.TimeToTs(array.NewDate64Data(data).Value(i).ToTime())))
 	case arrow.TIMESTAMP:
-		unit := a.DataType().(*arrow.TimestampType).Unit
+		unit := dt.(*arrow.TimestampType).Unit
 		b.Append(super.EncodeTime(nano.TimeToTs(array.NewTimestampData(data).Value(i).ToTime(unit))))
 	case arrow.TIME32:
-		unit := a.DataType().(*arrow.Time32Type).Unit
+		unit := dt.(*arrow.Time32Type).Unit
 		b.Append(super.EncodeTime(nano.TimeToTs(array.NewTime32Data(data).Value(i).ToTime(unit))))
 	case arrow.TIME64:
-		unit := a.DataType().(*arrow.Time64Type).Unit
+		unit := dt.(*arrow.Time64Type).Unit
 		b.Append(super.EncodeTime(nano.TimeToTs(array.NewTime64Data(data).Value(i).ToTime(unit))))
 	case arrow.INTERVAL_MONTHS:
 		b.Append(super.EncodeInt(int64(array.NewMonthIntervalData(data).Value(i))))
@@ -369,32 +413,39 @@ func (r *Reader) buildScode(a arrow.Array, i int) error {
 	case arrow.LIST:
 		v := array.NewListData(data)
 		start, end := v.ValueOffsets(i)
-		return r.buildScodeList(v.ListValues(), int(start), int(end))
+		return r.buildScodeList(typ, v, int(start), int(end))
 	case arrow.STRUCT:
 		v := array.NewStructData(data)
+		arrowStructType := dt.(*arrow.StructType)
+		superFields := typ.(*super.TypeRecord).Fields
 		b.BeginContainer()
 		for j := range v.NumField() {
-			if err := r.buildScode(v.Field(j), i); err != nil {
+			typ := superFields[j].Type
+			nullable := arrowStructType.Field(j).Nullable
+			if err := r.buildScodeWithNullable(typ, v.Field(j), i, nullable); err != nil {
 				return err
 			}
 		}
 		b.EndContainer()
 	case arrow.SPARSE_UNION:
-		return r.buildScodeUnion(array.NewSparseUnionData(data), data.DataType(), i)
+		return r.buildScodeUnion(typ, array.NewSparseUnionData(data), i)
 	case arrow.DENSE_UNION:
-		return r.buildScodeUnion(array.NewDenseUnionData(data), data.DataType(), i)
+		return r.buildScodeUnion(typ, array.NewDenseUnionData(data), i)
 	case arrow.DICTIONARY:
 		v := array.NewDictionaryData(data)
-		return r.buildScode(v.Dictionary(), v.GetValueIndex(i))
+		return r.buildScode(typ, v.Dictionary(), v.GetValueIndex(i))
 	case arrow.MAP:
 		v := array.NewMapData(data)
 		keys, items := v.Keys(), v.Items()
+		mapType := typ.(*super.TypeMap)
+		keyType, itemType := mapType.KeyType, mapType.ValType
+		itemNullable := dt.(*arrow.MapType).ItemField().Nullable
 		b.BeginContainer()
 		for j, end := v.ValueOffsets(i); j < end; j++ {
-			if err := r.buildScode(keys, int(j)); err != nil {
+			if err := r.buildScode(keyType, keys, int(j)); err != nil {
 				return err
 			}
-			if err := r.buildScode(items, int(j)); err != nil {
+			if err := r.buildScodeWithNullable(itemType, items, int(j), itemNullable); err != nil {
 				return err
 			}
 		}
@@ -402,7 +453,7 @@ func (r *Reader) buildScode(a arrow.Array, i int) error {
 		b.EndContainer()
 	case arrow.FIXED_SIZE_LIST:
 		v := array.NewFixedSizeListData(data)
-		return r.buildScodeList(v.ListValues(), 0, v.Len())
+		return r.buildScodeList(typ, v, 0, v.Len())
 	case arrow.DURATION:
 		d := nano.Duration(array.NewDurationData(data).Value(i))
 		switch a.DataType().(*arrow.DurationType).Unit {
@@ -421,7 +472,7 @@ func (r *Reader) buildScode(a arrow.Array, i int) error {
 	case arrow.LARGE_LIST:
 		v := array.NewLargeListData(data)
 		start, end := v.ValueOffsets(i)
-		return r.buildScodeList(v.ListValues(), int(start), int(end))
+		return r.buildScodeList(typ, v, int(start), int(end))
 	case arrow.INTERVAL_MONTH_DAY_NANO:
 		v := array.NewMonthDayNanoIntervalData(data).Value(i)
 		b.BeginContainer()
@@ -435,10 +486,13 @@ func (r *Reader) buildScode(a arrow.Array, i int) error {
 	return nil
 }
 
-func (r *Reader) buildScodeList(a arrow.Array, start, end int) error {
+func (r *Reader) buildScodeList(typ super.Type, a arrow.Array, start, end int) error {
+	innerType := super.InnerType(typ)
+	listValues := a.(array.ListLike).ListValues()
+	nullable := a.DataType().(arrow.ListLikeType).ElemField().Nullable
 	r.builder.BeginContainer()
 	for i := start; i < end; i++ {
-		if err := r.buildScode(a, i); err != nil {
+		if err := r.buildScodeWithNullable(innerType, listValues, i, nullable); err != nil {
 			return err
 		}
 	}
@@ -446,22 +500,16 @@ func (r *Reader) buildScodeList(a arrow.Array, start, end int) error {
 	return nil
 }
 
-func (r *Reader) buildScodeUnion(u array.Union, dt arrow.DataType, i int) error {
+func (r *Reader) buildScodeUnion(typ super.Type, u array.Union, i int) error {
 	childID := u.ChildID(i)
+	unionType := typ.(*super.TypeUnion)
+	tag := r.unionTagMappings[unionType][childID]
 	if u, ok := u.(*array.DenseUnion); ok {
 		i = int(u.ValueOffset(i))
 	}
-	b := &r.builder
-	if field := u.Field(childID); field.IsNull(i) {
-		b.Append(nil)
-	} else {
-		b.BeginContainer()
-		b.Append(super.EncodeInt(int64(r.unionTagMappings[dt.Fingerprint()][childID])))
-		if err := r.buildScode(field, i); err != nil {
-			return err
-		}
-		b.EndContainer()
-	}
+	super.BeginUnion(&r.builder, tag)
+	r.buildScode(unionType.Types[tag], u.Field(childID), i)
+	r.builder.EndContainer()
 	return nil
 }
 

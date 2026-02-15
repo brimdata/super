@@ -16,14 +16,14 @@ func newNullIf() *NullIf {
 
 func (n *NullIf) Call(args []super.Value) super.Value {
 	val0, val1 := args[0].Under(), args[1].Under()
-	if val0.IsError() {
+	if val0.IsNull() || val0.IsError() {
 		return val0
 	}
 	if val1.IsError() {
 		return val1
 	}
 	if n.compareFn(val0, val1) == 0 {
-		return super.NewValue(val0.Type(), nil)
+		return super.Null
 	}
 	return val0
 }

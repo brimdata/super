@@ -5,19 +5,19 @@ vector: true
 input: |
   "192.168.1.0/24"
   "2001:db8::/32"
-  null::string
   10.0.0.0/8
   10.0.0.0/8::=named
   -35
   34
+  null
   error("bad")
 
 output: |
   192.168.1.0/24
   2001:db8::/32
-  null::net
   10.0.0.0/8
   10.0.0.0/8
   error({message:"cannot cast to net",on:-35})
   error({message:"cannot cast to net",on:34})
+  error({message:"cannot cast to net",on:null})
   error("bad")

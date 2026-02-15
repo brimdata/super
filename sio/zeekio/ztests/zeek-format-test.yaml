@@ -1,8 +1,8 @@
 spq: pass
 
 input: |
+  {s:null::(string|null)}
   {s:"foo"}
-  {s:null::string}
   {s:"-"}
   {s:"--"}
   {s:""}
@@ -13,13 +13,13 @@ input: |
   {s:"[hello"}
   {s:"hello["}
   {s:";"}
-  {s:null::|[string]|}
+  {s:null::(|[string]||null)}
   {s:|[]|::|[string]|}
   {s:|[""]|}
   {s:|["(empty)"]|}
   {s:|["abc","xyz"]|}
   {s:|["a,b"]|}
-  {s:null::[string]}
+  {s:null::([string]|null)}
   {s:[]::[string]}
   {s:[""]}
   {s:["(empty)"]}
@@ -35,8 +35,10 @@ output: |
   #unset_field	-
   #fields	s
   #types	string
-  foo
   -
+  #fields	s
+  #types	string
+  foo
   \x2d
   --
   
@@ -50,6 +52,8 @@ output: |
   #fields	s
   #types	set[string]
   -
+  #fields	s
+  #types	set[string]
   (empty)
   
   \x28empty)
@@ -58,6 +62,8 @@ output: |
   #fields	s
   #types	vector[string]
   -
+  #fields	s
+  #types	vector[string]
   (empty)
   
   \x28empty)

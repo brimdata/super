@@ -34,6 +34,9 @@ func buildPath(typ *super.TypeRecord, b *scode.Builder, prefix []string) {
 
 func (f *Fields) Call(args []super.Value) super.Value {
 	subjectVal := args[0].Under()
+	if subjectVal.IsNull() {
+		return super.Null
+	}
 	typ := f.recordType(subjectVal)
 	if typ == nil {
 		return f.sctx.Missing()

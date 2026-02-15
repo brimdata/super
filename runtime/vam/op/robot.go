@@ -106,14 +106,9 @@ func (o *Robot) nextPuller() (vector.Puller, error) {
 	if vec.Type().ID() != super.IDString {
 		return o.errOnVal(vec), nil
 	}
-	for {
-		s, null := vector.StringValue(vec, o.off)
-		o.off++
-		if null {
-			continue
-		}
-		return o.open(s)
-	}
+	s := vector.StringValue(vec, o.off)
+	o.off++
+	return o.open(s)
 }
 
 func (o *Robot) errOnVal(vec vector.Any) vector.Puller {

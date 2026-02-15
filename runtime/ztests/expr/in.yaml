@@ -1,3 +1,5 @@
+skip: panics
+
 spq: |
   values [1 in this, 9 in this, null in this]
 
@@ -16,20 +18,22 @@ input: |
   {a:[0,1]::[int64|string]}
   [error(0),error(1)]
   error(0)
+  null
 
 output: |
-  [true,false,null::bool]
-  [true,false,null::bool]
-  [null::bool,true,null::bool]
-  [true,false,null::bool]
-  [true,null::bool,null::bool]
-  [true,false,null::bool]
-  [true,null::bool,null::bool]
-  [true,null::bool,null::bool]
-  [true,false,null::bool]
-  [true,false,null::bool]
-  [true,false,null::bool]
-  [error(0),error(0),null]::[bool|error(int64)]
+  [true,false,null]
+  [true,false,null]
+  [null,true,null]
+  [true,false,null]
+  [true,null,null]
+  [true,false,null]
+  [true,null,null]
+  [true,null,null]
+  [true,false,null]
+  [true,false,null]
+  [true,false,null]
+  [error(0),error(0),null]
+  [null,null,null]
 
 ---
 

@@ -1,17 +1,19 @@
-# not for vam needs does not properly handle Const bools and errors. Re-enable 
-# the IS NOT NULL test once this works.
-spq: values this IS NULL #, this IS NOT NULL
+spq: values [this IS NULL, this IS NOT NULL]
 
 vector: true
 
 input: |
   "foo"
-  null::string
+  "foo"::(string|null)
+  null
+  null::(int64|null)
   error("missing")
   error("foo")
 
 output: |
-  false
-  true
-  error("missing")
-  error("foo")
+  [false,true]
+  [false,true]
+  [true,false]
+  [false,true]
+  [error("missing"),error("missing")]
+  [error("foo"),error("foo")]

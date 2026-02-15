@@ -4,7 +4,6 @@ vector: true
 
 input: |
   null
-  null::bytes
   0x1234
   error(null)
   error("foo")
@@ -22,9 +21,8 @@ input: |
 
 output: |
   {val:null,kind:"primitive"}
-  {val:null::bytes,kind:"primitive"}
   {val:0x1234,kind:"primitive"}
-  {val:null::error(null),kind:"error"}
+  {val:error(null),kind:"error"}
   {val:error("foo"),kind:"error"}
   {val:{},kind:"record"}
   {val:[1,2,3],kind:"array"}

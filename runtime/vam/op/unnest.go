@@ -6,7 +6,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Unnest struct {
@@ -77,9 +76,6 @@ func (u *Unnest) flatten(vec vector.Any, slot uint32) vector.Any {
 	case *vector.Set:
 		return flattenArrayOrSet(vec.Values, vec.Offsets, slot)
 	case *vector.Record:
-		if vec.Nulls.IsSet(slot) {
-			return nil
-		}
 		if len(vec.Fields) != 2 {
 			return vector.NewWrappedError(u.sctx, "unnest: encountered record without two fields", vec)
 		}
@@ -93,10 +89,12 @@ func (u *Unnest) flatten(vec vector.Any, slot uint32) vector.Any {
 			fields := slices.Clone(vec.Typ.Fields)
 			fields[1].Type = vecs[1].Type()
 			typ := u.sctx.MustLookupTypeRecord(fields)
-			return vector.NewRecord(typ, vecs, vecs[0].Len(), bitvec.Zero)
+			return vector.NewRecord(typ, vecs, vecs[0].Len())
 		}, left, right)
+	case *vector.Union:
+		return u.flatten(vec.Dynamic, slot)
 	default:
-		if vector.NullsOf(vec).IsSet(slot) {
+		if vec.Kind() == vector.KindNull {
 			return nil
 		}
 		slotVec := vector.Pick(vec, []uint32{slot})

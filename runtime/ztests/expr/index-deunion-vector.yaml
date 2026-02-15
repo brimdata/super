@@ -3,13 +3,13 @@ spq: values this[0], this[1], this[2]
 vector: true
 
 input: |
-  [0::(int64|string),"hi"::(int64|string),null]
-  |[0::(int64|string),"hi"::(int64|string),null]|
+  [0,"hi",null]
+  |[0,"hi",null]|
 
 output: |
   0
   "hi"
-  null::(int64|string)
-  null::(int64|string)
+  null
   0
+  null
   "hi"

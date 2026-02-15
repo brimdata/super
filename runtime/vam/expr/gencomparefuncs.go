@@ -30,7 +30,6 @@ func main() {
 	fmt.Fprintln(&buf, "import (")
 	fmt.Fprintln(&buf, `"github.com/brimdata/super"`)
 	fmt.Fprintln(&buf, `"github.com/brimdata/super/vector"`)
-	fmt.Fprintln(&buf, `"github.com/brimdata/super/vector/bitvec"`)
 	fmt.Fprintln(&buf, ")")
 
 	var ents strings.Builder
@@ -76,11 +75,11 @@ func genFunc(name, op, typ string, lhs, rhs vector.Form) string {
 		rexpr = "string(" + rexpr + ")"
 	}
 	if lhs == vector.FormConst && rhs == vector.FormConst {
-		s += fmt.Sprintf("return vector.NewConst(super.NewBool(%s %s %s), lhs.Len(), bitvec.Zero)\n", lexpr, op, rexpr)
+		s += fmt.Sprintf("return vector.NewConst(super.NewBool(%s %s %s), lhs.Len())\n", lexpr, op, rexpr)
 	} else {
 		s += "n := lhs.Len()\n"
-		s += "out := vector.NewBoolEmpty(n, bitvec.Zero)\n"
-		s += fmt.Sprintf("for k := uint32(0); k < n; k++ { if %s %s %s { out.Set(k) }}\n", lexpr, op, rexpr)
+		s += "out := vector.NewFalse(n)\n"
+		s += fmt.Sprintf("for k := range n { if %s %s %s { out.Set(k) }}\n", lexpr, op, rexpr)
 		s += "return out\n"
 	}
 	s += "}\n"

@@ -41,9 +41,6 @@ func (p *ScodeEncoder) Write(body scode.Bytes) {
 
 func (p *ScodeEncoder) update(body scode.Bytes) {
 	p.count++
-	if body == nil {
-		panic("PrimitiveWriter should not be called with null")
-	}
 	val := super.NewValue(p.typ, body)
 	if p.min == nil || p.cmp(val, *p.min) < 0 {
 		p.min = val.Copy().Ptr()

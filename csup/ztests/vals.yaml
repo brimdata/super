@@ -18,13 +18,8 @@ inputs:
       |[1,2,3]|
       |{1:"a",2:"b"}|
       error("missing")
-      null::int64
-      null::string
-      null::type
-      null::[int64]
-      null::|[int64]|
-      null::|{int64:string}|
-      null::error(string)
+      null
+      null::(string|null)
 
 outputs:
   - name: stdout

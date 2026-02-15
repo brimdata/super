@@ -4,7 +4,6 @@ vector: true
 
 input: |
   null
-  null::bytes
   0x1234
   error(null)
   error("foo")
@@ -18,7 +17,6 @@ input: |
 
 output: |
   null
-  null::bytes
   0x1234
   null
   "foo"

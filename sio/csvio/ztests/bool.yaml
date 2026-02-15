@@ -1,7 +1,6 @@
 spq: pass
 
 input: |
-  {bool:null::bool}
   {bool:false}
   {bool:true}
 
@@ -9,6 +8,5 @@ output-flags: -f csv
 
 output: |
   bool
-
   false
   true

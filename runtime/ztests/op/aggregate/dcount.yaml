@@ -4,7 +4,7 @@ vector: true
 
 input: |
   null
-  null::{x:int64}
+  null::(null|{x:int64})
   {x:1}
   {x:1::int8}
   1

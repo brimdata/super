@@ -3,20 +3,16 @@ package vector
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Array struct {
 	Typ     *super.TypeArray
 	Offsets []uint32
 	Values  Any
-	Nulls   bitvec.Bits
 }
 
-var _ Any = (*Array)(nil)
-
-func NewArray(typ *super.TypeArray, offsets []uint32, values Any, nulls bitvec.Bits) *Array {
-	return &Array{Typ: typ, Offsets: offsets, Values: values, Nulls: nulls}
+func NewArray(typ *super.TypeArray, offsets []uint32, values Any) *Array {
+	return &Array{typ, offsets, values}
 }
 
 func (*Array) Kind() Kind {
@@ -32,10 +28,6 @@ func (a *Array) Len() uint32 {
 }
 
 func (a *Array) Serialize(b *scode.Builder, slot uint32) {
-	if a.Nulls.IsSet(slot) {
-		b.Append(nil)
-		return
-	}
 	off := a.Offsets[slot]
 	b.BeginContainer()
 	for end := a.Offsets[slot+1]; off < end; off++ {
@@ -44,14 +36,14 @@ func (a *Array) Serialize(b *scode.Builder, slot uint32) {
 	b.EndContainer()
 }
 
-func ContainerOffset(val Any, slot uint32) (uint32, uint32, bool) {
+func ContainerOffset(val Any, slot uint32) (uint32, uint32) {
 	switch val := val.(type) {
 	case *Array:
-		return val.Offsets[slot], val.Offsets[slot+1], val.Nulls.IsSet(slot)
+		return val.Offsets[slot], val.Offsets[slot+1]
 	case *Set:
-		return val.Offsets[slot], val.Offsets[slot+1], val.Nulls.IsSet(slot)
+		return val.Offsets[slot], val.Offsets[slot+1]
 	case *Map:
-		return val.Offsets[slot], val.Offsets[slot+1], val.Nulls.IsSet(slot)
+		return val.Offsets[slot], val.Offsets[slot+1]
 	case *View:
 		slot = val.Index[slot]
 		return ContainerOffset(val.Any, slot)

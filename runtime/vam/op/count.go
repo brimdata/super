@@ -4,7 +4,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Count struct {
@@ -44,5 +43,5 @@ func (o *Count) evalCount(in vector.Any) vector.Any {
 		o.count++
 		counts[i] = o.count
 	}
-	return vector.NewInt(super.TypeInt64, counts, bitvec.Zero)
+	return vector.NewInt(super.TypeInt64, counts)
 }

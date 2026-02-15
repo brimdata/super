@@ -9,7 +9,6 @@ input: |
   {a:{b:1}}::(int64|{a:{b:int64}})
   {a:1}
   {}
-  null::{}
   null
 
 output: |
@@ -17,7 +16,6 @@ output: |
   1::(int64|string)
   1
   1
-  error("missing")
   error("missing")
   error("missing")
   error("missing")

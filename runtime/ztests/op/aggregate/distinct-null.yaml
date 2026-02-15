@@ -4,7 +4,7 @@ spq: |
 vector: true
 
 input: |
-  null::float64
+  null
 
 output: |
-  {avg:null::float64,count:0,collect:null,sum:null::float64}
+  {avg:null,count:0,collect:null,sum:null}

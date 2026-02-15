@@ -8,6 +8,7 @@ input: |
   "foo"
   "bar"
   "baz"::=a
+  null
   error("missing")
   error("foo")
 
@@ -17,5 +18,6 @@ output: |
   "foo"::=named
   "bar"::=named
   "baz"::=named
+  null::=named
   error("missing")
   error("foo")

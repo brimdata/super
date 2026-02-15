@@ -4,7 +4,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr/agg"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Aggregator struct {
@@ -42,18 +41,17 @@ func (a *Aggregator) Eval(this vector.Any) vector.Any {
 	return vector.Apply(true, a.apply, vec, a.Where.Eval(this))
 }
 
-func (a *Aggregator) apply(args ...vector.Any) vector.Any {
+func (*Aggregator) apply(args ...vector.Any) vector.Any {
 	vec, where := args[0], args[1]
 	bools, _ := BoolMask(where)
 	if bools.IsEmpty() {
 		// everything is filtered.
-		return vector.NewConst(super.NewValue(vec.Type(), nil), vec.Len(), bitvec.Zero)
+		return vector.NewConst(super.Null, vec.Len())
 	}
-	bools.Flip(0, uint64(vec.Len()))
-	if !bools.IsEmpty() {
-		nulls := bitvec.NewFalse(vec.Len())
-		bools.WriteDenseTo(nulls.GetBits())
-		vec = vector.CopyAndSetNulls(vec, bitvec.Or(nulls, vector.NullsOf(vec)))
+	if bools.GetCardinality() < uint64(vec.Len()) {
+		index := bools.ToArray()
+		nulls := vector.NewConst(super.Null, vec.Len()-uint32(len(index)))
+		return vector.Combine(nulls, index, vector.Pick(vec, index))
 	}
 	return vec
 }

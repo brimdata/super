@@ -7,23 +7,21 @@ import (
 	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type bytes struct {
-	mu   sync.Mutex
-	meta *csup.Bytes
-	count
-	nulls *nulls
+	mu    sync.Mutex
+	meta  *csup.Bytes
+	len   uint32
 	table *vector.BytesTable
 }
 
-func newBytes(cctx *csup.Context, meta *csup.Bytes, nulls *nulls) *bytes {
-	return &bytes{
-		meta:  meta,
-		count: count{meta.Count, nulls.count()},
-		nulls: nulls,
-	}
+func newBytes(cctx *csup.Context, meta *csup.Bytes) *bytes {
+	return &bytes{meta: meta, len: meta.Len(cctx)}
+}
+
+func (b *bytes) length() uint32 {
+	return b.len
 }
 
 func (*bytes) unmarshal(*csup.Context, field.Projection) {}
@@ -32,27 +30,26 @@ func (b *bytes) project(loader *loader, projection field.Projection) vector.Any 
 	if len(projection) > 0 {
 		return vector.NewMissing(loader.sctx, b.length())
 	}
-	table, nulls := b.load(loader)
+	table := b.load(loader)
 	switch b.meta.Typ.ID() {
 	case super.IDString:
-		return vector.NewString(table, nulls)
+		return vector.NewString(table)
 	case super.IDBytes:
-		return vector.NewBytes(table, nulls)
+		return vector.NewBytes(table)
 	case super.IDType:
-		return vector.NewTypeValue(table, nulls)
+		return vector.NewTypeValue(table)
 	default:
 		panic(b.meta.Typ)
 	}
 }
 
-func (b *bytes) load(loader *loader) (vector.BytesTable, bitvec.Bits) {
-	nulls := b.nulls.get(loader)
+func (b *bytes) load(loader *loader) vector.BytesTable {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	if b.table != nil {
-		return *b.table, nulls
+		return *b.table
 	}
-	offsets, err := loadOffsets(loader.r, b.meta.Offsets, b.count, nulls)
+	offs, err := csup.ReadUint32s(b.meta.Offsets, loader.r)
 	if err != nil {
 		panic(err)
 	}
@@ -60,7 +57,7 @@ func (b *bytes) load(loader *loader) (vector.BytesTable, bitvec.Bits) {
 	if err := b.meta.Bytes.Read(loader.r, bytes); err != nil {
 		panic(err)
 	}
-	table := vector.NewBytesTable(offsets, bytes)
+	table := vector.NewBytesTable(offs, bytes)
 	b.table = &table
-	return table, nulls
+	return table
 }

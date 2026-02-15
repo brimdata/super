@@ -10,6 +10,7 @@ import (
 	"github.com/brimdata/super/pkg/byteconv"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/sio/arrowio"
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -71,56 +72,57 @@ func (b *builder) appendFields(fields []super.Field, values [][]byte) ([][]byte,
 		if len(values) == 0 {
 			return nil, errors.New("too few values")
 		}
-		switch typ := f.Type.(type) {
-		case *super.TypeArray, *super.TypeSet:
-			val := values[0]
-			values = values[1:]
-			if string(val) == "-" {
-				b.Append(nil)
-				continue
-			}
-			b.BeginContainer()
-			if bytes.Equal(val, []byte(emptyContainer)) {
-				b.EndContainer()
-				continue
-			}
-			inner := super.InnerType(typ)
-			var cstart int
-			for i, ch := range val {
-				if ch == setSeparator {
-					if err := b.appendPrimitive(inner, val[cstart:i]); err != nil {
-						return nil, err
-					}
-					cstart = i + 1
-				}
-			}
-			if err := b.appendPrimitive(inner, val[cstart:]); err != nil {
-				return nil, err
-			}
-			if _, ok := typ.(*super.TypeSet); ok {
-				b.TransformContainer(super.NormalizeSet)
-			}
-			b.EndContainer()
-		case *super.TypeRecord:
+		if r, ok := f.Type.(*super.TypeRecord); ok {
 			b.BeginContainer()
 			var err error
-			if values, err = b.appendFields(typ.Fields, values); err != nil {
+			if values, err = b.appendFields(r.Fields, values); err != nil {
 				return nil, err
 			}
 			b.EndContainer()
+			continue
+		}
+		val := values[0]
+		values = values[1:]
+		nullTag, nonNullTag, typ := arrowio.NullableUnionTagsAndType(f.Type.(*super.TypeUnion))
+		switch typ := typ.(type) {
+		case *super.TypeArray, *super.TypeSet:
+			if string(val) == "-" {
+				super.BuildUnion(&b.Builder, nullTag, nil)
+				continue
+			}
+			super.BeginUnion(&b.Builder, nonNullTag)
+			b.BeginContainer()
+			if string(val) != emptyContainer {
+				inner := super.InnerType(typ)
+				for {
+					elem, rest, ok := bytes.Cut(val, []byte{setSeparator})
+					if err := b.appendPrimitive(inner, elem); err != nil {
+						return nil, err
+					}
+					if !ok {
+						break
+					}
+					val = rest
+				}
+				if _, ok := typ.(*super.TypeSet); ok {
+					b.TransformContainer(super.NormalizeSet)
+				}
+			}
+			b.EndContainer()
+			b.EndContainer()
 		default:
-			if err := b.appendPrimitive(f.Type, values[0]); err != nil {
+			if err := b.appendPrimitive(f.Type, val); err != nil {
 				return nil, err
 			}
-			values = values[1:]
 		}
 	}
 	return values, nil
 }
 
 func (b *builder) appendPrimitive(typ super.Type, val []byte) error {
+	nullTag, nonNullTag, typ := arrowio.NullableUnionTagsAndType(typ.(*super.TypeUnion))
 	if string(val) == "-" {
-		b.Append(nil)
+		super.BuildUnion(&b.Builder, nullTag, nil)
 		return nil
 	}
 	switch typ.ID() {
@@ -192,8 +194,7 @@ func (b *builder) appendPrimitive(typ super.Type, val []byte) error {
 			// important, we will let this be.
 			val = EscapeZeekHex(val)
 		}
-		b.Append(norm.NFC.Bytes(val))
-		return nil
+		b.buf = norm.NFC.Append(b.buf[:0], val...)
 	case super.IDIP:
 		v, err := byteconv.ParseIP(val)
 		if err != nil {
@@ -209,6 +210,6 @@ func (b *builder) appendPrimitive(typ super.Type, val []byte) error {
 	default:
 		panic(typ)
 	}
-	b.Append(b.buf)
+	super.BuildUnion(&b.Builder, nonNullTag, b.buf)
 	return nil
 }

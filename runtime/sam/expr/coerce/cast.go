@@ -84,6 +84,8 @@ func ToFloat(val super.Value, typ super.Type) (float64, bool) {
 		if v, err = byteconv.ParseFloat64(val.Bytes()); err != nil {
 			return v, false
 		}
+	default:
+		return 0, false
 	}
 	switch typ.ID() {
 	case super.IDFloat16:

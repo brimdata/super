@@ -10,7 +10,6 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Arith struct {
@@ -29,14 +28,15 @@ func (a *Arith) Eval(val vector.Any) vector.Any {
 }
 
 func (a *Arith) eval(vecs ...vector.Any) (out vector.Any) {
-	lhs := enumToIndex(vector.Under(vecs[0]))
-	rhs := enumToIndex(vector.Under(vecs[1]))
+	lhs, rhs := vecs[0], vecs[1]
 	if k := lhs.Kind(); k == vector.KindNull || k == vector.KindError {
 		return lhs
 	}
 	if k := rhs.Kind(); k == vector.KindNull || k == vector.KindError {
 		return rhs
 	}
+	lhs = enumToIndex(vector.Under(lhs))
+	rhs = enumToIndex(vector.Under(rhs))
 	lhs, rhs, errVal := coerceVals(a.sctx, lhs, rhs)
 	if errVal != nil {
 		return errVal
@@ -72,8 +72,7 @@ func (a *Arith) eval(vecs ...vector.Any) (out vector.Any) {
 			}
 		}()
 	}
-	out = f(lhs, rhs)
-	return vector.CopyAndSetNulls(out, bitvec.Or(vector.NullsOf(lhs), vector.NullsOf(rhs)))
+	return f(lhs, rhs)
 }
 
 func enumToIndex(vec vector.Any) vector.Any {
@@ -94,50 +93,36 @@ func (a *Arith) evalDivideByZero(kind vector.Kind, lhs, rhs vector.Any) vector.A
 	switch kind {
 	case vector.KindInt:
 		var ints []int64
-		nulls := bitvec.NewFalse(lhs.Len())
 		for i := range lhs.Len() {
-			l, lnull := vector.IntValue(lhs, i)
-			r, rnull := vector.IntValue(rhs, i)
-			if lnull || rnull {
-				nulls.Set(uint32(len(ints)))
-				ints = append(ints, 0)
-				continue
-			}
+			r := vector.IntValue(rhs, i)
 			if r == 0 {
 				errs = append(errs, i)
 				continue
 			}
+			l := vector.IntValue(lhs, i)
 			if a.opCode == vector.ArithDiv {
 				ints = append(ints, l/r)
 			} else {
 				ints = append(ints, l%r)
 			}
 		}
-		nulls.Shorten(uint32(len(ints)))
-		out = vector.NewInt(super.TypeInt64, ints, nulls)
+		out = vector.NewInt(super.TypeInt64, ints)
 	case vector.KindUint:
 		var uints []uint64
-		nulls := bitvec.NewFalse(lhs.Len())
 		for i := range lhs.Len() {
-			l, lnull := vector.UintValue(lhs, i)
-			r, rnull := vector.UintValue(rhs, i)
-			if lnull || rnull {
-				nulls.Set(uint32(len(uints)))
-				uints = append(uints, 0)
-				continue
-			}
+			r := vector.UintValue(rhs, i)
 			if r == 0 {
 				errs = append(errs, i)
 				continue
 			}
+			l := vector.UintValue(lhs, i)
 			if a.opCode == vector.ArithDiv {
 				uints = append(uints, l/r)
 			} else {
 				uints = append(uints, l%r)
 			}
 		}
-		nulls.Shorten(uint32(len(uints)))
-		out = vector.NewUint(super.TypeUint64, uints, nulls)
+		out = vector.NewUint(super.TypeUint64, uints)
 	default:
 		panic(kind)
 	}

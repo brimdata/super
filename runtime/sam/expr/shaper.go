@@ -59,10 +59,6 @@ func (c *ConstShaper) Eval(this super.Value) super.Value {
 	if val.IsError() {
 		return val
 	}
-	if val.IsNull() {
-		// Null values can be shaped to any type.
-		return super.NewValue(c.shapeTo, nil)
-	}
 	id, shapeToID := val.Type().ID(), c.shapeTo.ID()
 	if id == shapeToID {
 		// Same underlying types but one or both are named.
@@ -109,7 +105,7 @@ func newShaper(sctx *super.Context, tf ShaperTransform, in, out super.Type) (*sh
 func shaperType(sctx *super.Context, tf ShaperTransform, in, out super.Type) (super.Type, error) {
 	inUnder, outUnder := super.TypeUnder(in), super.TypeUnder(out)
 	if tf&Cast != 0 {
-		if inUnder == outUnder || inUnder == super.TypeNull {
+		if inUnder == outUnder {
 			return out, nil
 		}
 		if isMap(outUnder) {
@@ -291,8 +287,6 @@ type step struct {
 func newStep(sctx *super.Context, in, out super.Type) (step, error) {
 Switch:
 	switch {
-	case in.ID() == super.IDNull:
-		return step{op: null, toType: out}, nil
 	case in.ID() == out.ID():
 		return step{op: copyOp, toType: out}, nil
 	case super.IsRecordType(in) && super.IsRecordType(out):
@@ -335,6 +329,9 @@ func newRecordStep(sctx *super.Context, in *super.TypeRecord, out super.Type) (s
 	for _, outField := range super.TypeRecordOf(out).Fields {
 		ind, ok := in.IndexOfField(outField.Name)
 		if !ok {
+			if super.TypeUnder(outField.Type) != super.TypeNull && !isNullableUnion(outField.Type) {
+				return step{}, fmt.Errorf("missing field %q is not nullable", outField.Name)
+			}
 			children = append(children, step{op: null, toType: outField.Type})
 			continue
 		}
@@ -346,6 +343,11 @@ func newRecordStep(sctx *super.Context, in *super.TypeRecord, out super.Type) (s
 		children = append(children, child)
 	}
 	return step{op: record, toType: out, children: children}, nil
+}
+
+func isNullableUnion(typ super.Type) bool {
+	u, ok := super.TypeUnder(typ).(*super.TypeUnion)
+	return ok && len(u.Types) == 2 && (u.Types[0] == super.TypeNull || u.Types[1] == super.TypeNull)
 }
 
 func newArrayOrSetStep(sctx *super.Context, op op, inInner, out super.Type) (step, error) {
@@ -360,11 +362,10 @@ func newArrayOrSetStep(sctx *super.Context, op op, inInner, out super.Type) (ste
 // to b, and returns the resulting type.  The type is usually s.toType but can
 // differ if a primitive cast fails.
 func (s *step) build(sctx *super.Context, in scode.Bytes, b *scode.Builder) super.Type {
-	if in == nil || s.op == copyOp {
+	switch s.op {
+	case copyOp:
 		b.Append(in)
 		return s.toType
-	}
-	switch s.op {
 	case castPrimitive:
 		// For a successful cast, v.Type == super.TypeUnder(s.toType).
 		// For a failed cast, v.Type is a super.TypeError.
@@ -439,7 +440,18 @@ func (s *step) buildRecord(sctx *super.Context, in scode.Bytes, b *scode.Builder
 	var needNewRecordType bool
 	for _, child := range s.children {
 		if child.op == null {
-			b.Append(nil)
+			switch typ := super.TypeUnder(child.toType).(type) {
+			case *super.TypeOfNull:
+				b.Append(nil)
+			case *super.TypeUnion:
+				tag := typ.TagOf(super.TypeNull)
+				if tag < 0 {
+					panic(fmt.Sprintf("non-nullable union type %s", sup.FormatType(child.toType)))
+				}
+				super.BuildUnion(b, tag, nil)
+			default:
+				panic(sup.FormatType(child.toType))
+			}
 			s.types = append(s.types, child.toType)
 			continue
 		}

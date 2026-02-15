@@ -9,7 +9,6 @@ import (
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 	"golang.org/x/exp/constraints"
 )
 
@@ -22,29 +21,16 @@ func castToNumber(vec vector.Any, typ super.Type, index []uint32) (vector.Any, [
 		out, errs := castStringToNumber(vec, typ, index)
 		return out, errs, "", true
 	}
-	nulls := vector.NullsOf(vec)
-	if index != nil {
-		nulls = nulls.Pick(index)
-	}
 	switch id := typ.ID(); {
 	case super.IsSigned(id):
 		vals, errs := toNumeric[int64](vec, typ, index)
-		if len(errs) > 0 {
-			nulls = nulls.Pick(inverseIndex(errs, nulls.Len()))
-		}
-		return vector.NewInt(typ, vals, nulls), errs, "", true
+		return vector.NewInt(typ, vals), errs, "", true
 	case super.IsUnsigned(id):
 		vals, errs := toNumeric[uint64](vec, typ, index)
-		if len(errs) > 0 {
-			nulls = nulls.Pick(inverseIndex(errs, nulls.Len()))
-		}
-		return vector.NewUint(typ, vals, nulls), errs, "", true
+		return vector.NewUint(typ, vals), errs, "", true
 	case super.IsFloat(id):
 		vals, errs := toNumeric[float64](vec, typ, index)
-		if errs != nil {
-			nulls = nulls.Pick(inverseIndex(errs, nulls.Len()))
-		}
-		return vector.NewFloat(typ, vals, nulls), errs, "", true
+		return vector.NewFloat(typ, vals), errs, "", true
 	default:
 		return nil, nil, "", false
 	}
@@ -162,7 +148,6 @@ func castStringToNumber(vec vector.Any, typ super.Type, index []uint32) (vector.
 
 func stringToInt(vec *vector.String, typ super.Type, index []uint32) (vector.Any, []uint32) {
 	bits := coerce.IntBits(typ)
-	var nulls bitvec.Bits
 	var ints []int64
 	var errs []uint32
 	n := lengthOf(vec, index)
@@ -171,14 +156,6 @@ func stringToInt(vec *vector.String, typ super.Type, index []uint32) (vector.Any
 		if index != nil {
 			idx = index[i]
 		}
-		if vec.Nulls.IsSet(idx) {
-			if nulls.IsZero() {
-				nulls = bitvec.NewFalse(n)
-			}
-			nulls.Set(uint32(len(ints)))
-			ints = append(ints, 0)
-			continue
-		}
 		v, err := strconv.ParseInt(vec.Table().UnsafeString(idx), 10, bits)
 		if err != nil {
 			errs = append(errs, i)
@@ -186,28 +163,16 @@ func stringToInt(vec *vector.String, typ super.Type, index []uint32) (vector.Any
 		}
 		ints = append(ints, v)
 	}
-	if !nulls.IsZero() {
-		nulls.Shorten(uint32(len(ints)))
-	}
-	return vector.NewInt(typ, ints, nulls), errs
+	return vector.NewInt(typ, ints), errs
 }
 
 func stringToDuration(vec *vector.String, index []uint32) (vector.Any, []uint32) {
-	var nulls bitvec.Bits
 	var durs []int64
 	var errs []uint32
 	for i := range lengthOf(vec, index) {
 		idx := i
 		if index != nil {
 			idx = index[i]
-		}
-		if vec.Nulls.IsSet(idx) {
-			if nulls.IsZero() {
-				nulls = bitvec.NewFalse(vec.Len())
-			}
-			nulls.Set(uint32(len(durs)))
-			durs = append(durs, 0)
-			continue
 		}
 		b := vec.Table().Bytes(idx)
 		d, err := nano.ParseDuration(byteconv.UnsafeString(b))
@@ -221,28 +186,16 @@ func stringToDuration(vec *vector.String, index []uint32) (vector.Any, []uint32)
 		}
 		durs = append(durs, int64(d))
 	}
-	if !nulls.IsZero() {
-		nulls.Shorten(uint32(len(durs)))
-	}
-	return vector.NewInt(super.TypeDuration, durs, nulls), errs
+	return vector.NewInt(super.TypeDuration, durs), errs
 }
 
 func stringToTime(vec *vector.String, index []uint32) (vector.Any, []uint32) {
-	var nulls bitvec.Bits
 	var ts []int64
 	var errs []uint32
 	for i := range lengthOf(vec, index) {
 		idx := i
 		if index != nil {
 			idx = index[i]
-		}
-		if vec.Nulls.IsSet(idx) {
-			if nulls.IsZero() {
-				nulls = bitvec.NewFalse(vec.Len())
-			}
-			nulls.Set(uint32(len(ts)))
-			ts = append(ts, 0)
-			continue
 		}
 		b := vec.Table().Bytes(idx)
 		if gotime, err := dateparse.ParseAny(byteconv.UnsafeString(b)); err != nil {
@@ -256,29 +209,17 @@ func stringToTime(vec *vector.String, index []uint32) (vector.Any, []uint32) {
 			ts = append(ts, gotime.UnixNano())
 		}
 	}
-	if !nulls.IsZero() {
-		nulls.Shorten(uint32(len(ts)))
-	}
-	return vector.NewInt(super.TypeTime, ts, nulls), errs
+	return vector.NewInt(super.TypeTime, ts), errs
 }
 
 func stringToUint(vec *vector.String, typ super.Type, index []uint32) (vector.Any, []uint32) {
 	bits := coerce.UintBits(typ)
-	var nulls bitvec.Bits
 	var ints []uint64
 	var errs []uint32
 	for i := range lengthOf(vec, index) {
 		idx := i
 		if index != nil {
 			idx = index[i]
-		}
-		if vec.Nulls.IsSet(idx) {
-			if nulls.IsZero() {
-				nulls = bitvec.NewFalse(vec.Len())
-			}
-			nulls.Set(uint32(len(ints)))
-			ints = append(ints, 0)
-			continue
 		}
 		v, err := strconv.ParseUint(vec.Table().UnsafeString(idx), 10, bits)
 		if err != nil {
@@ -287,28 +228,16 @@ func stringToUint(vec *vector.String, typ super.Type, index []uint32) (vector.An
 		}
 		ints = append(ints, v)
 	}
-	if !nulls.IsZero() {
-		nulls.Shorten(uint32(len(ints)))
-	}
-	return vector.NewUint(typ, ints, nulls), errs
+	return vector.NewUint(typ, ints), errs
 }
 
 func stringToFloat(vec *vector.String, typ super.Type, index []uint32) (vector.Any, []uint32) {
-	var nulls bitvec.Bits
 	var floats []float64
 	var errs []uint32
 	for i := range lengthOf(vec, index) {
 		idx := i
 		if index != nil {
 			idx = index[i]
-		}
-		if vec.Nulls.IsSet(idx) {
-			if nulls.IsZero() {
-				nulls = bitvec.NewFalse(vec.Len())
-			}
-			nulls.Set(uint32(len(floats)))
-			floats = append(floats, 0)
-			continue
 		}
 		v, err := byteconv.ParseFloat64(vec.Table().Bytes(idx))
 		if err != nil {
@@ -317,8 +246,5 @@ func stringToFloat(vec *vector.String, typ super.Type, index []uint32) (vector.A
 		}
 		floats = append(floats, v)
 	}
-	if !nulls.IsZero() {
-		nulls.Shorten(uint32(len(floats)))
-	}
-	return vector.NewFloat(typ, floats, nulls), errs
+	return vector.NewFloat(typ, floats), errs
 }

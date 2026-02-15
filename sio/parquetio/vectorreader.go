@@ -20,7 +20,6 @@ import (
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio/arrowio"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 	"golang.org/x/exp/constraints"
 )
 
@@ -34,9 +33,10 @@ type VectorReader struct {
 	colIndexToField    map[int]*pqarrow.SchemaField
 	metadataColIndexes []int
 	metadataFilters    []expr.Evaluator
-	nextRowGroup       *atomic.Int64
-	rrs                []pqarrow.RecordReader
-	vbs                []vectorBuilder
+
+	nextRowGroup *atomic.Int64
+	rrs          []pqarrow.RecordReader
+	vbs          []vectorBuilder
 }
 
 func NewVectorReader(ctx context.Context, sctx *super.Context, r io.Reader, p sbuf.Pushdown, concurrentReaders int) (*VectorReader, error) {
@@ -146,7 +146,7 @@ func (p *VectorReader) ConcurrentPull(done bool, id int) (vector.Any, error) {
 			}
 			return nil, err
 		}
-		return p.vbs[id].build(array.RecordToStructArray(rec))
+		return p.vbs[id].build(array.RecordToStructArray(rec), false)
 	}
 }
 
@@ -155,80 +155,67 @@ type vectorBuilder struct {
 	types map[arrow.DataType]super.Type
 }
 
-func (v *vectorBuilder) build(a arrow.Array) (vector.Any, error) {
+func (v *vectorBuilder) build(a arrow.Array, nullable bool) (vector.Any, error) {
 	dt := a.DataType()
 	length := uint32(a.Len())
-	// For Boolean and numeric types, the runtime requires that null vector
-	// slots contain the zero value.  This isn't always true for Arrow
-	// vectors coming from pqarrow, so the code below must enforce it.
-	nulls := makeNulls(a)
+	var out vector.Any
 	// Order here follows that of the arrow.Type constants.
 	switch dt.ID() {
 	case arrow.NULL:
-		bits := make([]uint64, (length+7)/8)
-		for i := range bits {
-			bits[i] = ^uint64(0)
-		}
-		nulls := bitvec.New(bits, length)
-		return vector.NewConst(super.Null, length, nulls), nil
+		return vector.NewConst(super.Null, length), nil
 	case arrow.BOOL:
-		vec := vector.NewBoolEmpty(length, nulls)
+		vec := vector.NewFalse(length)
 		arr := a.(*array.Boolean)
 		for i := range length {
-			if arr.Value(int(i)) && !nulls.IsSet(i) {
+			if arr.Value(int(i)) {
 				vec.Set(i)
 			}
 		}
-		return vec, nil
+		out = vec
 	case arrow.UINT8:
-		values := convertSlice[uint64](a.(*array.Uint8).Uint8Values(), nulls)
-		return vector.NewUint(super.TypeUint8, values, nulls), nil
+		values := convertSlice[uint64](a.(*array.Uint8).Uint8Values())
+		out = vector.NewUint(super.TypeUint8, values)
 	case arrow.INT8:
-		values := convertSlice[int64](a.(*array.Int8).Int8Values(), nulls)
-		return vector.NewInt(super.TypeInt8, values, nulls), nil
+		values := convertSlice[int64](a.(*array.Int8).Int8Values())
+		out = vector.NewInt(super.TypeInt8, values)
 	case arrow.UINT16:
-		values := convertSlice[uint64](a.(*array.Uint16).Uint16Values(), nulls)
-		return vector.NewUint(super.TypeUint16, values, nulls), nil
+		values := convertSlice[uint64](a.(*array.Uint16).Uint16Values())
+		out = vector.NewUint(super.TypeUint16, values)
 	case arrow.INT16:
-		values := convertSlice[int64](a.(*array.Int16).Int16Values(), nulls)
-		return vector.NewInt(super.TypeInt16, values, nulls), nil
+		values := convertSlice[int64](a.(*array.Int16).Int16Values())
+		out = vector.NewInt(super.TypeInt16, values)
 	case arrow.UINT32:
-		values := convertSlice[uint64](a.(*array.Uint32).Uint32Values(), nulls)
-		return vector.NewUint(super.TypeUint32, values, nulls), nil
+		values := convertSlice[uint64](a.(*array.Uint32).Uint32Values())
+		out = vector.NewUint(super.TypeUint32, values)
 	case arrow.INT32:
-		values := convertSlice[int64](a.(*array.Int32).Int32Values(), nulls)
-		return vector.NewInt(super.TypeInt32, values, nulls), nil
+		values := convertSlice[int64](a.(*array.Int32).Int32Values())
+		out = vector.NewInt(super.TypeInt32, values)
 	case arrow.UINT64:
 		values := a.(*array.Uint64).Uint64Values()
-		zeroNulls(values, nulls)
-		return vector.NewUint(super.TypeUint64, values, nulls), nil
+		out = vector.NewUint(super.TypeUint64, values)
 	case arrow.INT64:
 		values := a.(*array.Int64).Int64Values()
-		zeroNulls(values, nulls)
-		return vector.NewInt(super.TypeInt64, values, nulls), nil
+		out = vector.NewInt(super.TypeInt64, values)
 	case arrow.FLOAT16:
 		values := make([]float64, length)
 		for i, v := range a.(*array.Float16).Values() {
-			if !nulls.IsSet(uint32(i)) {
-				values[i] = float64(v.Float32())
-			}
+			values[i] = float64(v.Float32())
 		}
-		return vector.NewFloat(super.TypeFloat16, values, nulls), nil
+		out = vector.NewFloat(super.TypeFloat16, values)
 	case arrow.FLOAT32:
-		values := convertSlice[float64](a.(*array.Float32).Float32Values(), nulls)
-		return vector.NewFloat(super.TypeFloat32, values, nulls), nil
+		values := convertSlice[float64](a.(*array.Float32).Float32Values())
+		out = vector.NewFloat(super.TypeFloat32, values)
 	case arrow.FLOAT64:
 		values := a.(*array.Float64).Float64Values()
-		zeroNulls(values, nulls)
-		return vector.NewFloat(super.TypeFloat64, values, nulls), nil
+		out = vector.NewFloat(super.TypeFloat64, values)
 	case arrow.STRING:
 		arr := a.(*array.String)
 		offsets := byteconv.ReinterpretSlice[uint32](arr.ValueOffsets())
-		return vector.NewString(vector.NewBytesTable(offsets, arr.ValueBytes()), nulls), nil
+		out = vector.NewString(vector.NewBytesTable(offsets, arr.ValueBytes()))
 	case arrow.BINARY:
 		arr := a.(*array.Binary)
 		offsets := byteconv.ReinterpretSlice[uint32](arr.ValueOffsets())
-		return vector.NewBytes(vector.NewBytesTable(offsets, arr.ValueBytes()), nulls), nil
+		out = vector.NewBytes(vector.NewBytesTable(offsets, arr.ValueBytes()))
 	case arrow.FIXED_SIZE_BINARY:
 		value0 := a.(*array.FixedSizeBinary).Value(0)
 		bytes := value0[:int(length)*len(value0)]
@@ -236,15 +223,13 @@ func (v *vectorBuilder) build(a arrow.Array) (vector.Any, error) {
 		for i := range offsets {
 			offsets[i] = uint32(i * len(value0))
 		}
-		return vector.NewBytes(vector.NewBytesTable(offsets, bytes), nulls), nil
+		out = vector.NewBytes(vector.NewBytesTable(offsets, bytes))
 	case arrow.DATE32:
 		values := make([]int64, length)
 		for i, v := range a.(*array.Date32).Date32Values() {
-			if !nulls.IsSet(uint32(i)) {
-				values[i] = int64(v) * int64(24*time.Hour)
-			}
+			values[i] = int64(v) * int64(24*time.Hour)
 		}
-		return vector.NewInt(super.TypeTime, values, nulls), nil
+		out = vector.NewInt(super.TypeTime, values)
 	case arrow.TIMESTAMP:
 		multiplier := dt.(*arrow.TimestampType).TimeUnit().Multiplier()
 		values := byteconv.ReinterpretSlice[int64](a.(*array.Timestamp).TimestampValues())
@@ -253,17 +238,14 @@ func (v *vectorBuilder) build(a arrow.Array) (vector.Any, error) {
 				values[i] *= int64(multiplier)
 			}
 		}
-		zeroNulls(values, nulls)
-		return vector.NewInt(super.TypeTime, values, nulls), nil
+		out = vector.NewInt(super.TypeTime, values)
 	case arrow.TIME32:
 		multiplier := dt.(*arrow.Time32Type).TimeUnit().Multiplier()
 		values := make([]int64, length)
 		for i, v := range a.(*array.Time32).Time32Values() {
-			if !nulls.IsSet(uint32(i)) {
-				values[i] = int64(v) * int64(multiplier)
-			}
+			values[i] = int64(v) * int64(multiplier)
 		}
-		return vector.NewInt(super.TypeTime, values, nulls), nil
+		out = vector.NewInt(super.TypeTime, values)
 	case arrow.TIME64:
 		multiplier := dt.(*arrow.Time64Type).TimeUnit().Multiplier()
 		values := byteconv.ReinterpretSlice[int64](a.(*array.Time64).Time64Values())
@@ -272,8 +254,7 @@ func (v *vectorBuilder) build(a arrow.Array) (vector.Any, error) {
 				values[i] *= int64(multiplier)
 			}
 		}
-		zeroNulls(values, nulls)
-		return vector.NewInt(super.TypeTime, values, nulls), nil
+		out = vector.NewInt(super.TypeTime, values)
 	case arrow.DECIMAL128:
 		typ, ok := v.types[dt]
 		if !ok {
@@ -289,11 +270,9 @@ func (v *vectorBuilder) build(a arrow.Array) (vector.Any, error) {
 		scale := dt.(arrow.DecimalType).GetScale()
 		values := make([]float64, length)
 		for i, v := range a.(*array.Decimal128).Values() {
-			if !nulls.IsSet(uint32(i)) {
-				values[i] = v.ToFloat64(scale)
-			}
+			values[i] = v.ToFloat64(scale)
 		}
-		return vector.NewFloat(typ, values, nulls), nil
+		out = vector.NewFloat(typ, values)
 	case arrow.DECIMAL256:
 		typ, ok := v.types[dt]
 		if !ok {
@@ -309,29 +288,33 @@ func (v *vectorBuilder) build(a arrow.Array) (vector.Any, error) {
 		scale := dt.(arrow.DecimalType).GetScale()
 		values := make([]float64, length)
 		for i, v := range a.(*array.Decimal256).Values() {
-			if !nulls.IsSet(uint32(i)) {
-				values[i] = v.ToFloat64(scale)
-			}
+			values[i] = v.ToFloat64(scale)
 		}
-		return vector.NewFloat(typ, values, nulls), nil
+		out = vector.NewFloat(typ, values)
 	case arrow.LIST:
 		arr := a.(*array.List)
-		values, err := v.build(arr.ListValues())
+		nullable := dt.(*arrow.ListType).ElemField().Nullable
+		values, err := v.build(arr.ListValues(), nullable)
 		if err != nil {
 			return nil, err
 		}
 		offsets := byteconv.ReinterpretSlice[uint32](arr.Offsets())
 		typ, ok := v.types[dt]
 		if !ok {
-			typ = v.sctx.LookupTypeArray(values.Type())
+			inner := values.Type()
+			if nullable {
+				inner = v.sctx.LookupTypeUnion([]super.Type{inner, super.TypeNull})
+			}
+			typ = v.sctx.LookupTypeArray(inner)
 			v.types[dt] = typ
 		}
-		return vector.NewArray(typ.(*super.TypeArray), offsets, values, nulls), nil
+		out = vector.NewArray(typ.(*super.TypeArray), offsets, values)
 	case arrow.STRUCT:
 		arr := a.(*array.Struct)
+		arrowStructType := dt.(*arrow.StructType)
 		fieldVecs := make([]vector.Any, arr.NumField())
 		for i := range arr.NumField() {
-			vec, err := v.build(arr.Field(i))
+			vec, err := v.build(arr.Field(i), arrowStructType.Field(i).Nullable)
 			if err != nil {
 				return nil, err
 			}
@@ -341,7 +324,12 @@ func (v *vectorBuilder) build(a arrow.Array) (vector.Any, error) {
 		if !ok {
 			fields := make([]super.Field, arr.NumField())
 			for i, vec := range fieldVecs {
-				fields[i] = super.NewField(dt.(*arrow.StructType).Field(i).Name, vec.Type())
+				arrowField := arrowStructType.Field(i)
+				typ := vec.Type()
+				if arrowField.Nullable {
+					typ = v.sctx.LookupTypeUnion([]super.Type{typ, super.TypeNull})
+				}
+				fields[i] = super.NewField(arrowField.Name, typ)
 			}
 			arrowio.UniquifyFieldNames(fields)
 			var err error
@@ -351,11 +339,12 @@ func (v *vectorBuilder) build(a arrow.Array) (vector.Any, error) {
 			}
 			v.types[dt] = typ
 		}
-		return vector.NewRecord(typ.(*super.TypeRecord), fieldVecs, length, nulls), nil
+		out = vector.NewRecord(typ.(*super.TypeRecord), fieldVecs, length)
 	// case arrow.MAP: TODO
 	case arrow.FIXED_SIZE_LIST:
 		arr := a.(*array.FixedSizeList)
-		values, err := v.build(arr.ListValues())
+		nullable := dt.(*arrow.FixedSizeListType).ElemField().Nullable
+		values, err := v.build(arr.ListValues(), nullable)
 		if err != nil {
 			return nil, err
 		}
@@ -366,55 +355,55 @@ func (v *vectorBuilder) build(a arrow.Array) (vector.Any, error) {
 		}
 		typ, ok := v.types[dt]
 		if !ok {
-			typ = v.sctx.LookupTypeArray(values.Type())
+			inner := values.Type()
+			if nullable {
+				inner = v.sctx.LookupTypeUnion([]super.Type{inner, super.TypeNull})
+			}
+			typ = v.sctx.LookupTypeArray(inner)
 			v.types[dt] = typ
 		}
-		return vector.NewArray(typ.(*super.TypeArray), offsets, values, nulls), nil
+		out = vector.NewArray(typ.(*super.TypeArray), offsets, values)
 	case arrow.LARGE_STRING:
 		arr := a.(*array.LargeString)
-		offsets := convertSlice[uint32](arr.ValueOffsets(), bitvec.Zero)
+		offsets := convertSlice[uint32](arr.ValueOffsets())
 		for i, o := range arr.ValueOffsets() {
 			if int64(offsets[i]) != o {
 				return nil, fmt.Errorf("string offset exceeds uint32 range")
 			}
 		}
-		return vector.NewString(vector.NewBytesTable(offsets, arr.ValueBytes()), nulls), nil
-
+		out = vector.NewString(vector.NewBytesTable(offsets, arr.ValueBytes()))
+	default:
+		return nil, fmt.Errorf("unimplemented Parquet type %q", dt.Name())
 	}
-	return nil, fmt.Errorf("unimplemented Parquet type %q", dt.Name())
+	if nullable {
+		return v.buildNullableUnion(out, a), nil
+	}
+	return out, nil
 }
 
-func makeNulls(a arrow.Array) bitvec.Bits {
-	bytes := a.NullBitmapBytes()
-	if len(bytes) == 0 {
-		return bitvec.Zero
+func (v *vectorBuilder) buildNullableUnion(vec vector.Any, a arrow.Array) vector.Any {
+	unionType := v.sctx.LookupTypeUnion([]super.Type{vec.Type(), super.TypeNull})
+	nullTag, vecTag, _ := arrowio.NullableUnionTagsAndType(unionType)
+	tags := make([]uint32, vec.Len())
+	var vecIndex []uint32
+	for i := range vec.Len() {
+		if a.IsNull(int(i)) {
+			tags[i] = uint32(nullTag)
+		} else {
+			tags[i] = uint32(vecTag)
+			vecIndex = append(vecIndex, i)
+		}
 	}
-	n := a.Len()
-	bits := make([]uint64, (n+63)/64)
-	bitsAsBytes := byteconv.ReinterpretSlice[byte](bits)
-	copy(bitsAsBytes, bytes)
-	for i := range bits {
-		// Flip bits
-		bits[i] ^= ^uint64(0)
-	}
-	return bitvec.New(bits, uint32(n))
+	var vecs [2]vector.Any
+	vecs[nullTag] = vector.NewConst(super.Null, vec.Len()-uint32(len(vecIndex)))
+	vecs[vecTag] = vector.Pick(vec, vecIndex)
+	return vector.NewUnion(unionType, tags, vecs[:])
 }
 
-func convertSlice[Out, In constraints.Float | constraints.Integer](in []In, nulls bitvec.Bits) []Out {
+func convertSlice[Out, In constraints.Float | constraints.Integer](in []In) []Out {
 	out := make([]Out, len(in))
 	for i, v := range in {
-		if !nulls.IsSet(uint32(i)) {
-			out[i] = Out(v)
-		}
+		out[i] = Out(v)
 	}
 	return out
-}
-
-func zeroNulls[T any](s []T, nulls bitvec.Bits) {
-	var zero T
-	for i := range s {
-		if nulls.IsSet(uint32(i)) {
-			s[i] = zero
-		}
-	}
 }

@@ -37,9 +37,6 @@ func (c *cast) Call(args []super.Value) super.Value {
 }
 
 func (c *cast) cast(from super.Value, to super.Type) super.Value {
-	if from.IsNull() {
-		return super.NewValue(to, nil)
-	}
 	switch fromType := from.Type(); {
 	case fromType == to:
 		return from
@@ -61,9 +58,6 @@ func (c *cast) cast(from super.Value, to super.Type) super.Value {
 		return c.toNamed(from, to)
 	default:
 		from = from.Under()
-		if from.IsNull() {
-			return super.NewValue(to, nil)
-		}
 		caster := expr.LookupPrimitiveCaster(c.sctx, to)
 		if caster == nil {
 			return c.error(from, to)
@@ -88,7 +82,7 @@ func (c *cast) toRecord(from super.Value, to *super.TypeRecord) super.Value {
 		if fieldVal := from.Deref(f.Name); fieldVal != nil {
 			val2 = c.cast(*fieldVal, f.Type)
 		} else {
-			val2 = super.NewValue(f.Type, nil)
+			val2 = c.sctx.Missing()
 		}
 		if t := val2.Type(); t != f.Type {
 			if fields == nil {

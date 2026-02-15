@@ -3,8 +3,8 @@ spq: count() by key1 | sort key1
 vector: true
 
 input: |
-  {key1:null::string,key2:null::string,n:3::int32}
-  {key1:null::string,key2:null::string,n:4::int32}
+  {key1:null,key2:null,n:3::int32}
+  {key1:null,key2:null,n:4::int32}
   {key1:"a",key2:"x",n:1::int32}
   {key1:"a",key2:"y",n:2::int32}
   {key1:"b",key2:"z",n:1::int32}
@@ -12,4 +12,4 @@ input: |
 output: |
   {key1:"a",count:2}
   {key1:"b",count:1}
-  {key1:null::string,count:2}
+  {key1:null,count:2}

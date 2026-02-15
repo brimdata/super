@@ -41,53 +41,40 @@ type shadow interface {
 	project(*loader, field.Projection) vector.Any
 }
 
-type count struct {
-	vals  uint32
-	nulls uint32
-}
-
-func (c count) length() uint32 {
-	return c.nulls + c.vals
-}
-
 // newShadow decodes the CSUP metadata structure to the appropriate shadow object.
-// It also unfurls null metadata and links together parent pointers so that nulls
-// can be properly flattened but only as needed on demand.
-// No vector data or null data is actually loaded here.
-func newShadow(cctx *csup.Context, id csup.ID, nulls *nulls) shadow {
+// No vector data data is actually loaded here.
+func newShadow(cctx *csup.Context, id csup.ID) shadow {
 	switch meta := cctx.Lookup(id).(type) {
 	case *csup.Dynamic:
 		return newDynamic(meta)
-	case *csup.Nulls:
-		return newShadow(cctx, meta.Values, newNulls(meta, nulls))
 	case *csup.Error:
-		return newError(cctx, meta, nulls)
+		return newError(cctx, meta)
 	case *csup.Named:
-		return newNamed(meta, newShadow(cctx, meta.Values, nulls))
+		return newNamed(meta, newShadow(cctx, meta.Values))
 	case *csup.Record:
-		return newRecord(cctx, meta, nulls)
+		return newRecord(cctx, meta)
 	case *csup.Array:
-		return newArray(cctx, meta, nulls)
+		return newArray(cctx, meta)
 	case *csup.Set:
-		return newSet(cctx, meta, nulls)
+		return newSet(cctx, meta)
 	case *csup.Map:
-		return newMap(cctx, meta, nulls)
+		return newMap(cctx, meta)
 	case *csup.Union:
-		return newUnion(cctx, meta, nulls)
+		return newUnion(cctx, meta)
 	case *csup.Dict:
-		return newDict(cctx, meta, nulls)
+		return newDict(cctx, meta)
 	case *csup.Int:
-		return newInt(cctx, meta, nulls)
+		return newInt(cctx, meta)
 	case *csup.Uint:
-		return newUint(cctx, meta, nulls)
+		return newUint(cctx, meta)
 	case *csup.Float:
-		return newFloat(cctx, meta, nulls)
+		return newFloat(cctx, meta)
 	case *csup.Bytes:
-		return newBytes(cctx, meta, nulls)
+		return newBytes(cctx, meta)
 	case *csup.Primitive:
-		return newPrimitive(cctx, meta, nulls)
+		return newPrimitive(cctx, meta)
 	case *csup.Const:
-		return newConst(cctx, meta, nulls)
+		return newConst(cctx, meta)
 	default:
 		panic(fmt.Sprintf("vector cache: type %T not supported", meta))
 	}

@@ -5,6 +5,7 @@ import (
 	"regexp/syntax"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/scode"
 )
 
@@ -18,6 +19,9 @@ type Regexp struct {
 }
 
 func (r *Regexp) Call(args []super.Value) super.Value {
+	if expr.CheckNulls(args) {
+		return super.Null
+	}
 	if !args[0].IsString() {
 		return r.sctx.WrapError("regexp: string required for first arg", args[0])
 	}
@@ -40,6 +44,9 @@ func (r *Regexp) Call(args []super.Value) super.Value {
 	for _, b := range r.re.FindSubmatch(args[1].Bytes()) {
 		r.builder.Append(b)
 	}
+	if len(r.builder.Bytes()) == 0 {
+		return super.Null
+	}
 	if r.typ == nil {
 		r.typ = r.sctx.LookupTypeArray(super.TypeString)
 	}
@@ -54,6 +61,9 @@ type RegexpReplace struct {
 }
 
 func (r *RegexpReplace) Call(args []super.Value) super.Value {
+	if expr.CheckNulls(args) {
+		return super.Null
+	}
 	sVal := args[0].Under()
 	reVal := args[1].Under()
 	newVal := args[2].Under()
@@ -61,9 +71,6 @@ func (r *RegexpReplace) Call(args []super.Value) super.Value {
 		if !args[i].IsString() {
 			return r.sctx.WrapError("regexp_replace: string arg required", args[i])
 		}
-	}
-	if sVal.IsNull() || reVal.IsNull() || newVal.IsNull() {
-		return super.NullString
 	}
 	if re := super.DecodeString(reVal.Bytes()); r.restr != re {
 		r.restr = re

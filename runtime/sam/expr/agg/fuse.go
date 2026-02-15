@@ -27,7 +27,7 @@ func (f *fuse) Consume(val super.Value) {
 
 func (f *fuse) Result(sctx *super.Context) super.Value {
 	if len(f.shapes)+len(f.partials) == 0 {
-		return super.NullType
+		return super.Null
 	}
 	schema := NewSchema(sctx)
 	for _, p := range f.partials {

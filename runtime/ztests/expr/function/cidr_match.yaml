@@ -12,12 +12,9 @@ input: |
   [1.1.0.0/16, 2.2.2.2]
   [1.1.0.0/16, {a:2.2.2.2,b:3.3.3.3}]
   [1.1.0.0/16, [2.2.2.2,3.3.3.3]]
-  [1.1.0.0/16, null::ip]
   [1.1.0.0/16, null]
-  [1.1.0.0/16, null::string]
-  [null::net, 1.1.1.1]
+  [null, 1.1.1.1]
   [null, null]
-  [null::string, 1.1.1.1]
   [1.1.0.0/16, "s"]
   ["s", 1.1.1.1]
 
@@ -30,11 +27,8 @@ output: |
   false
   false
   false
-  null::bool
-  null::bool
-  null::bool
-  null::bool
-  null::bool
-  null::error({message:string,on:string})
+  null
+  null
+  null
   false
   error({message:"cidr_match: not a net",on:"s"})

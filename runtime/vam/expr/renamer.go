@@ -43,5 +43,5 @@ func changeRecordType(vec *vector.Record, typ *super.TypeRecord) *vector.Record 
 			fields[i] = changeRecordType(vec.Fields[i].(*vector.Record), rtyp)
 		}
 	}
-	return vector.NewRecord(typ, fields, vec.Len(), vec.Nulls)
+	return vector.NewRecord(typ, fields, vec.Len())
 }

@@ -70,9 +70,6 @@ func (p *Parser) parseTypes(types []string) error {
 		if err != nil {
 			return err
 		}
-		if !isValidInputType(typ) {
-			return ErrIncompatibleZeekType
-		}
 		p.fields[k].Type = typ
 	}
 	p.needtypes = false
@@ -80,28 +77,15 @@ func (p *Parser) parseTypes(types []string) error {
 	return nil
 }
 
-func isValidInputType(typ super.Type) bool {
-	switch t := typ.(type) {
-	case *super.TypeRecord, *super.TypeUnion:
-		return false
-	case *super.TypeSet:
-		return isValidInputType(t.Type)
-	case *super.TypeArray:
-		return isValidInputType(t.Type)
-	default:
-		return true
-	}
-}
-
 func (p *Parser) parseType(in string) (super.Type, error) {
 	in = strings.TrimSpace(in)
 	if words := strings.SplitN(in, "[", 2); len(words) == 2 && strings.HasSuffix(words[1], "]") {
 		if typ, err := p.parsePrimitiveType(strings.TrimSuffix(words[1], "]")); err == nil {
 			if words[0] == "set" {
-				return p.sctx.LookupTypeSet(typ), nil
+				return p.makeNullableType(p.sctx.LookupTypeSet(typ)), nil
 			}
 			if words[0] == "vector" {
-				return p.sctx.LookupTypeArray(typ), nil
+				return p.makeNullableType(p.sctx.LookupTypeArray(typ)), nil
 			}
 		}
 	}
@@ -110,31 +94,42 @@ func (p *Parser) parseType(in string) (super.Type, error) {
 
 func (p *Parser) parsePrimitiveType(in string) (super.Type, error) {
 	in = strings.TrimSpace(in)
+	var typ super.Type
+	var err error
 	switch in {
 	case "addr":
-		return super.TypeIP, nil
+		typ = super.TypeIP
 	case "bool":
-		return super.TypeBool, nil
+		typ = super.TypeBool
 	case "count":
-		return super.TypeUint64, nil
+		typ = super.TypeUint64
 	case "double":
-		return super.TypeFloat64, nil
+		typ = super.TypeFloat64
 	case "enum":
-		return p.sctx.LookupTypeNamed("zenum", super.TypeString)
+		typ, err = p.sctx.LookupTypeNamed("zenum", super.TypeString)
 	case "int":
-		return super.TypeInt64, nil
+		typ = super.TypeInt64
 	case "interval":
-		return super.TypeDuration, nil
+		typ = super.TypeDuration
 	case "port":
-		return p.sctx.LookupTypeNamed("port", super.TypeUint16)
+		typ, err = p.sctx.LookupTypeNamed("port", super.TypeUint16)
 	case "string":
-		return super.TypeString, nil
+		typ = super.TypeString
 	case "subnet":
-		return super.TypeNet, nil
+		typ = super.TypeNet
 	case "time":
-		return super.TypeTime, nil
+		typ = super.TypeTime
+	default:
+		return nil, fmt.Errorf("unknown type: %s", in)
 	}
-	return nil, fmt.Errorf("unknown type: %s", in)
+	if err != nil {
+		return nil, err
+	}
+	return p.makeNullableType(typ), nil
+}
+
+func (p *Parser) makeNullableType(typ super.Type) super.Type {
+	return p.sctx.LookupTypeUnion([]super.Type{typ, super.TypeNull})
 }
 
 func (p *Parser) ParseDirective(line []byte) error {

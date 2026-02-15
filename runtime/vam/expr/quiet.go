@@ -3,21 +3,15 @@ package expr
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 func QuietMask(vec vector.Any) (vector.Any, bool) {
 	errvec, ok := vector.Under(vec).(*vector.Error)
 	if !ok || errvec.Vals.Kind() != vector.KindString {
-		return vector.NewConst(super.True, vec.Len(), bitvec.Zero), false
+		return vector.NewConst(super.True, vec.Len()), false
 	}
-	lhs := vector.NewConst(super.NewString("quiet"), vec.Len(), bitvec.Zero)
+	lhs := vector.NewConst(super.NewString("quiet"), vec.Len())
 	out := NewCompare(nil, "!=", nil, nil).Compare(lhs, errvec.Vals)
-	if nulls := vector.NullsOf(out); !nulls.IsZero() {
-		// Flip nulls to true since a null result is not error("quiet").
-		b := FlattenBool(out)
-		return vector.NewBool(bitvec.Or(b.Bits, nulls), bitvec.Zero), true
-	}
 	return out, true
 }
 
@@ -63,16 +57,7 @@ func (d *Dequiet) rec(vec vector.Any) vector.Any {
 		}
 		vecs = append(vecs, d.dequiet(vec))
 	}
-	if !rec.Nulls.IsZero() {
-		// Keep track of incoming nulls
-		vecs = append(vecs, vector.NewBool(rec.Nulls, bitvec.Zero))
-	}
 	return vector.Apply(true, func(vecs ...vector.Any) vector.Any {
-		var nulls bitvec.Bits
-		if !rec.Nulls.IsZero() {
-			nulls = vecs[len(vecs)-1].(*vector.Bool).Bits
-			vecs = vecs[:len(vecs)-1]
-		}
 		var fields []super.Field
 		var vals []vector.Any
 		for i, vec := range vecs {
@@ -84,7 +69,7 @@ func (d *Dequiet) rec(vec vector.Any) vector.Any {
 			vals = append(vals, vec)
 		}
 		rtyp := d.sctx.MustLookupTypeRecord(fields)
-		return vector.NewRecord(rtyp, vals, vecs[0].Len(), nulls)
+		return vector.NewRecord(rtyp, vals, vecs[0].Len())
 	}, vecs...)
 }
 
@@ -109,9 +94,9 @@ func (d *Dequiet) dequiet(vec vector.Any) vector.Any {
 	vec = vector.ReversePick(vec, index)
 	out := vector.Combine(vec, index, quiet).(*vector.Dynamic)
 	utyp := d.sctx.LookupTypeUnion([]super.Type{vec.Type(), quiet.Type()})
-	return vector.NewUnion(utyp, out.Tags, out.Values, bitvec.Zero)
+	return vector.NewUnion(utyp, out.Tags, out.Values)
 }
 
 func (d *Dequiet) quietTmp(n uint32) vector.Any {
-	return vector.NewError(d.rmtyp, vector.NewConst(super.Null, n, bitvec.Zero), bitvec.Zero)
+	return vector.NewError(d.rmtyp, vector.NewConst(super.Null, n))
 }

@@ -2,7 +2,6 @@ package vector
 
 import (
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Enum struct {
@@ -10,13 +9,14 @@ type Enum struct {
 	Typ *super.TypeEnum
 }
 
-func NewEnum(typ *super.TypeEnum, vals []uint64, nulls bitvec.Bits) *Enum {
-	return &Enum{
-		Typ:  typ,
-		Uint: NewUint(super.TypeUint64, vals, nulls),
-	}
+func NewEnum(typ *super.TypeEnum, vals []uint64) *Enum {
+	return &Enum{NewUint(super.TypeUint64, vals), typ}
 }
 
-func (*Enum) Kind() Kind { return KindEnum }
+func (*Enum) Kind() Kind {
+	return KindEnum
+}
 
-func (e *Enum) Type() super.Type { return e.Typ }
+func (e *Enum) Type() super.Type {
+	return e.Typ
+}

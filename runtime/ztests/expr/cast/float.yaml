@@ -11,6 +11,7 @@ input: |
   2::=named
   false
   true
+  null
   error("bad")
 
 output: |
@@ -38,6 +39,9 @@ output: |
   1.::float16
   1.::float32
   1.
+  error({message:"cannot cast to float16",on:null})
+  error({message:"cannot cast to float32",on:null})
+  error({message:"cannot cast to float64",on:null})
   error("bad")
   error("bad")
   error("bad")

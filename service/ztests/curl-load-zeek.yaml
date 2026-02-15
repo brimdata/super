@@ -24,4 +24,4 @@ outputs:
     data: |
       {commit:0,warnings:[]::[string]}
       //
-      {x:1}
+      {x:1::(int64|null)}

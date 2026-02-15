@@ -55,7 +55,7 @@ func indexArrayOrSet(sctx *super.Context, vec, indexVec vector.Any, base1 bool) 
 	if view, ok := vec.(*vector.View); ok {
 		vec, index = view.Any, view.Index
 	}
-	offsets, vals, nulls := arrayOrSetContents(vec)
+	offsets, vals := arrayOrSetContents(vec)
 	var errs []uint32
 	var viewIndexes []uint32
 	for i := range indexVec.Len() {
@@ -63,23 +63,21 @@ func indexArrayOrSet(sctx *super.Context, vec, indexVec vector.Any, base1 bool) 
 		if index != nil {
 			idx = index[i]
 		}
-		idxVal, isnull := vector.IntValue(indexVec, uint32(i))
-		if !nulls.IsSet(idx) && !isnull {
-			start := offsets[idx]
-			len := int64(offsets[idx+1]) - int64(start)
-			if idxVal < 0 {
-				idxVal = len + idxVal
-			} else if base1 {
-				idxVal--
-			}
-			if idxVal >= 0 && idxVal < len {
-				viewIndexes = append(viewIndexes, start+uint32(idxVal))
-				continue
-			}
+		idxVal := vector.IntValue(indexVec, uint32(i))
+		start := offsets[idx]
+		len := int64(offsets[idx+1]) - int64(start)
+		if idxVal < 0 {
+			idxVal = len + idxVal
+		} else if base1 {
+			idxVal--
+		}
+		if idxVal >= 0 && idxVal < len {
+			viewIndexes = append(viewIndexes, start+uint32(idxVal))
+			continue
 		}
 		errs = append(errs, i)
 	}
-	out := vector.Deunion(vector.Pick(vals, viewIndexes))
+	out := vector.Pick(vector.Deunion(vals), viewIndexes)
 	if len(errs) > 0 {
 		return vector.Combine(out, errs, vector.NewMissing(sctx, uint32(len(errs))))
 	}
@@ -119,15 +117,14 @@ func indexRecord(sctx *super.Context, vec, indexVec vector.Any, base1 bool) vect
 	for i := range vec.Len() {
 		var k int
 		if isint {
-			idx, _ := vector.IntValue(indexVec, i)
-			k = int(idx)
+			k = int(vector.IntValue(indexVec, i))
 			if k < 0 {
 				k = n + k
 			} else if base1 {
 				k--
 			}
 		} else {
-			field, _ := vector.StringValue(indexVec, i)
+			field := vector.StringValue(indexVec, i)
 			var ok bool
 			if k, ok = rec.Typ.IndexOfField(field); !ok {
 				k = -1

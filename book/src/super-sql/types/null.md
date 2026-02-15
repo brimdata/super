@@ -6,10 +6,6 @@ the special value `null`.
 A value of type `null` is formed simply from the keyword `null`
 representing the null value, which by default, is type `null`.
 
-While all types include a null value, e.g., `null::int64` is the
-null value whose type is `int64`, the null type has no other values
-besides the null value.
-
 In relational SQL, a null typically indicates an unknown value.
 Unfortunately, this concept is overloaded as unknown values may arise
 from runtime errors, missing data, or an intentional value of null.
@@ -56,8 +52,8 @@ values
 # input
 
 # expected output
-null::bool
-null::bool
+null
+null
 true
 false
 ```
@@ -97,25 +93,4 @@ null
 3
 4
 100
-```
-
----
-
-_All types have a null value_
-
-```mdtest-spq
-# spq
-values cast(null, this)
-# input
-<int64>
-<string>
-<int64|string>
-<{x:int64,s:string}>
-<[string]>
-# expected output
-null::int64
-null::string
-null::(int64|string)
-null::{x:int64,s:string}
-null::[string]
 ```

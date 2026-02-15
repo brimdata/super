@@ -15,19 +15,12 @@ func NewAny() *Any {
 }
 
 func (a *Any) Consume(vec vector.Any) {
-	isnull := a.val.IsNull()
-	if !isnull {
+	if !a.val.IsNull() || vec.Kind() == vector.KindNull {
 		return
 	}
-	nulls := vector.NullsOf(vec)
-	for i := range vec.Len() {
-		if a.val == super.Null || (isnull && !nulls.IsSet(i)) {
-			var b scode.Builder
-			vec.Serialize(&b, i)
-			a.val = super.NewValue(vec.Type(), b.Bytes().Body())
-			isnull = a.val.IsNull()
-		}
-	}
+	var b scode.Builder
+	vec.Serialize(&b, 0)
+	a.val = super.NewValue(vec.Type(), b.Bytes().Body())
 }
 
 func (a *Any) ConsumeAsPartial(vec vector.Any) {

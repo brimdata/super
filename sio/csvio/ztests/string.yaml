@@ -1,7 +1,6 @@
 spq: pass
 
 input: |
-  {string:null::string}
   {string:""}
   {string:"\""}
   {string:","}
@@ -12,7 +11,6 @@ output-flags: -f csv
 
 output: |
   string
-
 
   """"
   ","

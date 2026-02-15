@@ -476,9 +476,9 @@ fuse
 {y:"foo"}
 {x:2,y:"bar"}
 # expected output
-{x:1,y:null::string}
-{x:null::int64,y:"foo"}
-{x:2,y:"bar"}
+{x:1::(int64|null),y:null::(string|null)}
+{x:null::(int64|null),y:"foo"::(string|null)}
+{x:2::(int64|null),y:"bar"::(string|null)}
 ```
 
 Whereas a type union for field `x` is produced in the following:

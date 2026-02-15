@@ -1,9 +1,9 @@
 spq: pass
 
 input: |
-  {ja3s:null::int32}
+  {ja3s:null}
 
 output-flags: -f jsup
 
 output: |
-  {"type":{"kind":"record","id":30,"fields":[{"name":"ja3s","type":{"kind":"primitive","name":"int32"}}]},"value":[null]}
+  {"type":{"kind":"record","id":30,"fields":[{"name":"ja3s","type":{"kind":"primitive","name":"null"}}]},"value":[null]}

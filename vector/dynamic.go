@@ -23,8 +23,6 @@ type Dynamic struct {
 	reverseTagMap atomic.Pointer[[][]uint32]
 }
 
-var _ Any = (*Dynamic)(nil)
-
 func NewDynamic(tags []uint32, values []Any) *Dynamic {
 	return &Dynamic{Tags: tags, Values: values}
 }

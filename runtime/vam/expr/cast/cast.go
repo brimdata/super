@@ -5,12 +5,14 @@ import (
 	samexpr "github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 func To(sctx *super.Context, vec vector.Any, typ super.Type) vector.Any {
 	vec = vector.Under(vec)
-	if vec.Kind() == vector.KindError {
+	switch vec.Kind() {
+	case vector.KindNull:
+		return errCastFailed(sctx, vec, typ, "")
+	case vector.KindError:
 		return vec
 	}
 	var c caster
@@ -58,11 +60,11 @@ func assemble(sctx *super.Context, vec vector.Any, typ super.Type, fn caster) ve
 		out, errs, errMsg, ok = fn(vec.Any, nil)
 		if ok {
 			if len(errs) > 0 {
-				index, counts, nulls, nerrs := vec.RebuildDropTags(errs...)
+				index, counts, nerrs := vec.RebuildDropTags(errs...)
 				errs = nerrs
-				out = vector.NewDict(out, index, counts, nulls)
+				out = vector.NewDict(out, index, counts)
 			} else {
-				out = vector.NewDict(out, vec.Index, vec.Counts, vec.Nulls)
+				out = vector.NewDict(out, vec.Index, vec.Counts)
 			}
 		}
 	default:
@@ -78,27 +80,11 @@ func assemble(sctx *super.Context, vec vector.Any, typ super.Type, fn caster) ve
 }
 
 func castConst(sctx *super.Context, vec *vector.Const, typ super.Type) vector.Any {
-	if vec.Type().ID() == super.IDNull {
-		return vector.NewConst(super.NewValue(typ, nil), vec.Len(), bitvec.Zero)
-	}
 	val := samexpr.LookupPrimitiveCaster(sctx, typ).Eval(vec.Value())
 	if val.IsError() {
-		if !vec.Nulls.IsZero() {
-			var trueCount uint32
-			index := make([]uint32, vec.Nulls.Len())
-			for i := range vec.Len() {
-				if vec.Nulls.IsSet(i) {
-					index[i] = 1
-					trueCount++
-				}
-			}
-			err := errCastFailed(sctx, vector.NewConst(vec.Value(), vec.Len()-trueCount, bitvec.Zero), typ, "")
-			nulls := vector.NewConst(super.NewValue(typ, nil), trueCount, bitvec.Zero)
-			return vector.NewDynamic(index, []vector.Any{err, nulls})
-		}
 		return errCastFailed(sctx, vec, typ, "")
 	}
-	return vector.NewConst(val, vec.Len(), vec.Nulls)
+	return vector.NewConst(val, vec.Len())
 }
 
 func errCastFailed(sctx *super.Context, vec vector.Any, typ super.Type, msgSuffix string) vector.Any {

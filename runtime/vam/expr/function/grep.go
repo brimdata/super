@@ -4,7 +4,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -32,17 +31,13 @@ func (g *Grep) Call(args ...vector.Any) vector.Any {
 		return g.grep.Eval(inputVec)
 	}
 	var index [1]uint32
-	nulls := bitvec.Or(vector.NullsOf(patternVec), vector.NullsOf(inputVec))
-	out := vector.NewBoolEmpty(patternVec.Len(), nulls)
+	out := vector.NewFalse(patternVec.Len())
 	for i := range patternVec.Len() {
-		if nulls.IsSet(i) {
-			continue
-		}
-		pattern, _ := vector.StringValue(patternVec, i)
+		pattern := vector.StringValue(patternVec, i)
 		pattern = norm.NFC.String(pattern)
 		search := expr.NewSearchString(pattern, &expr.This{})
 		index[0] = i
-		if match, _ := vector.BoolValue(search.Eval(vector.Pick(inputVec, index[:])), 0); match {
+		if vector.BoolValue(search.Eval(vector.Pick(inputVec, index[:])), 0) {
 			out.Set(i)
 		}
 	}

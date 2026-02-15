@@ -18,18 +18,15 @@ func (a *avg) Consume(vec vector.Any) {
 	if !super.IsNumber(vec.Type().ID()) {
 		return
 	}
-	ncount := vector.NullsOf(vec).TrueCount()
-	if ncount != vec.Len() {
-		a.count += uint64(vec.Len() - ncount)
-		a.sum = sum(a.sum, vec)
-	}
+	a.count += uint64(vec.Len())
+	a.sum = sum(a.sum, vec)
 }
 
 func (a *avg) Result(*super.Context) super.Value {
 	if a.count > 0 {
 		return super.NewFloat64(a.sum / float64(a.count))
 	}
-	return super.NullFloat64
+	return super.Null
 }
 
 const (
@@ -60,10 +57,8 @@ func (a *avg) ConsumeAsPartial(partial vector.Any) {
 	if sumVal.Type() != super.TypeFloat64 || countVal.Type() != super.TypeUint64 {
 		panic("avg: invalid partial")
 	}
-	sum, _ := vector.FloatValue(sumVal, idx)
-	count, _ := vector.UintValue(countVal, idx)
-	a.sum += sum
-	a.count += count
+	a.sum += vector.FloatValue(sumVal, idx)
+	a.count += vector.UintValue(countVal, idx)
 }
 
 func (a *avg) ResultAsPartial(sctx *super.Context) super.Value {

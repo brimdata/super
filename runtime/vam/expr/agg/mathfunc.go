@@ -51,7 +51,7 @@ func sum[T numeric](state T, vec vector.Any) T {
 	switch vec := vec.(type) {
 	case *vector.Const:
 		v := constToNumeric[T](vec)
-		return state + v*T(vec.Len()-vec.Nulls.TrueCount())
+		return state + v*T(vec.Len())
 	case *vector.Dict:
 		return sumFlat(state, vec.Any, nil, vec.Counts)
 	case *vector.View:
@@ -188,8 +188,7 @@ func minString(state string, vec vector.Any) string {
 		return min(state, vec.Value().Ptr().AsString())
 	}
 	for i := range vec.Len() {
-		v, _ := vector.StringValue(vec, i)
-		state = min(state, v)
+		state = min(state, vector.StringValue(vec, i))
 	}
 	return state
 }
@@ -200,8 +199,7 @@ func maxString(state string, vec vector.Any) string {
 		return max(state, vec.Value().Ptr().AsString())
 	default:
 		for i := range vec.Len() {
-			v, _ := vector.StringValue(vec, i)
-			state = max(state, v)
+			state = max(state, vector.StringValue(vec, i))
 		}
 		return state
 	}

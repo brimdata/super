@@ -4,4 +4,4 @@ spq: pass
 input: "#separator \\x09\n#set_separator\t,\n#empty_field\t(empty)\n#unset_field\t-\n#path\tunknown_mime_type_discovery\n#open\t2020-04-10-18-15-32\n#fields\tts\tfid\tbof\n#types\ttime\tstring\tstring\n1425634708.454143\tFTBt2P3wJBdHGKpZwc\t \n"
 
 output: |
-  {_path:"unknown_mime_type_discovery",ts:2015-03-06T09:38:28.454143Z,fid:"FTBt2P3wJBdHGKpZwc",bof:" "}
+  {_path:"unknown_mime_type_discovery",ts:2015-03-06T09:38:28.454143Z::(time|null),fid:"FTBt2P3wJBdHGKpZwc"::(string|null),bof:" "::(string|null)}

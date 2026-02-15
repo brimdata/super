@@ -313,12 +313,14 @@ func (m *MarshalBSUPContext) encodeAny(v reflect.Value) (super.Type, error) {
 		return m.encodeArray(v)
 	case reflect.Map:
 		if v.IsNil() {
-			return m.encodeNil(v.Type())
+			m.Builder.Append(nil)
+			return super.TypeNull, nil
 		}
 		return m.encodeMap(v)
 	case reflect.Slice:
 		if v.IsNil() {
-			return m.encodeNil(v.Type())
+			m.Builder.Append(nil)
+			return super.TypeNull, nil
 		}
 		if v.Type().Elem().Kind() == reflect.Uint8 {
 			return m.encodeSliceBytes(v)
@@ -330,14 +332,10 @@ func (m *MarshalBSUPContext) encodeAny(v reflect.Value) (super.Type, error) {
 			return super.TypeIP, nil
 		}
 		return m.encodeRecord(v)
-	case reflect.Pointer:
+	case reflect.Interface, reflect.Pointer:
 		if v.IsNil() {
-			return m.encodeNil(v.Type())
-		}
-		return m.encodeValue(v.Elem())
-	case reflect.Interface:
-		if v.IsNil() {
-			return m.encodeNil(v.Type())
+			m.Builder.Append(nil)
+			return super.TypeNull, nil
 		}
 		return m.encodeValue(v.Elem())
 	case reflect.String:
@@ -407,15 +405,6 @@ func (m *MarshalBSUPContext) encodeMap(v reflect.Value) (super.Type, error) {
 		}
 	}
 	return m.Context.LookupTypeMap(lastKeyType, lastValType), nil
-}
-
-func (m *MarshalBSUPContext) encodeNil(t reflect.Type) (super.Type, error) {
-	typ, err := m.lookupType(t)
-	if err != nil {
-		return nil, err
-	}
-	m.Builder.Append(nil)
-	return typ, nil
 }
 
 func (m *MarshalBSUPContext) encodeRecord(sval reflect.Value) (super.Type, error) {
@@ -695,6 +684,7 @@ func (u *UnmarshalBSUPContext) decodeAny(val super.Value, v reflect.Value) (x er
 	if !v.IsValid() {
 		return errors.New("cannot unmarshal into value provided")
 	}
+	val = val.Deunion()
 	m, v := indirect(v, val)
 	if m != nil {
 		return m.UnmarshalBSUP(u, val)
@@ -718,14 +708,9 @@ func (u *UnmarshalBSUPContext) decodeAny(val super.Value, v reflect.Value) (x er
 		v.Set(reflect.ValueOf(val.Copy()))
 		return nil
 	}
-	if super.TypeUnder(val.Type()) == super.TypeNull {
-		// A null value should successfully unmarshal to any go type. Typed
-		// nulls however need to be type checked.
+	if v.Kind() == reflect.Pointer && val.IsNull() {
 		v.Set(reflect.Zero(v.Type()))
 		return nil
-	}
-	if v.Kind() == reflect.Pointer && val.IsNull() {
-		return u.decodeNull(val, v)
 	}
 	switch v.Kind() {
 	case reflect.Array:
@@ -904,14 +889,13 @@ func (u *UnmarshalBSUPContext) decodeNetIP(val super.Value, v reflect.Value) err
 }
 
 func (u *UnmarshalBSUPContext) decodeMap(val super.Value, mapVal reflect.Value) error {
+	if val.IsNull() {
+		mapVal.Set(reflect.Zero(mapVal.Type()))
+		return nil
+	}
 	typ, ok := super.TypeUnder(val.Type()).(*super.TypeMap)
 	if !ok {
 		return errors.New("not a map")
-	}
-	if val.IsNull() {
-		// XXX The inner types of the null should be checked.
-		mapVal.Set(reflect.Zero(mapVal.Type()))
-		return nil
 	}
 	if mapVal.IsNil() {
 		mapVal.Set(reflect.MakeMap(mapVal.Type()))
@@ -933,10 +917,6 @@ func (u *UnmarshalBSUPContext) decodeMap(val super.Value, mapVal reflect.Value) 
 }
 
 func (u *UnmarshalBSUPContext) decodeRecord(val super.Value, sval reflect.Value) error {
-	if union, ok := val.Type().(*super.TypeUnion); ok {
-		typ, bytes := union.Untag(val.Bytes())
-		val = super.NewValue(typ, bytes)
-	}
 	recType, ok := super.TypeUnder(val.Type()).(*super.TypeRecord)
 	if !ok {
 		return fmt.Errorf("cannot unmarshal value %q into Go struct", String(val))
@@ -965,12 +945,12 @@ func (u *UnmarshalBSUPContext) decodeRecord(val super.Value, sval reflect.Value)
 }
 
 func (u *UnmarshalBSUPContext) decodeArray(val super.Value, arrVal reflect.Value) error {
+	if val.IsNull() {
+		arrVal.Set(reflect.Zero(arrVal.Type()))
+		return nil
+	}
 	typ := super.TypeUnder(val.Type())
 	if typ == super.TypeBytes && arrVal.Type().Elem().Kind() == reflect.Uint8 {
-		if val.IsNull() {
-			arrVal.Set(reflect.Zero(arrVal.Type()))
-			return nil
-		}
 		if arrVal.Kind() == reflect.Array {
 			return u.decodeArrayBytes(val, arrVal)
 		}
@@ -981,11 +961,6 @@ func (u *UnmarshalBSUPContext) decodeArray(val super.Value, arrVal reflect.Value
 	arrType, ok := typ.(*super.TypeArray)
 	if !ok {
 		return fmt.Errorf("unmarshaling type %q: not an array", String(typ))
-	}
-	if val.IsNull() {
-		// XXX The inner type of the null should be checked.
-		arrVal.Set(reflect.Zero(arrVal.Type()))
-		return nil
 	}
 	i := 0
 	for it := val.Iter(); !it.Done(); i++ {
