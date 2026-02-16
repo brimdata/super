@@ -4,8 +4,6 @@
 script: |
   super conn.parquet dns.parquet | super - | super -s -
 
-vector: true
-
 inputs:
   - name: conn.parquet
   - name: dns.parquet

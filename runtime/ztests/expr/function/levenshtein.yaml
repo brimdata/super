@@ -5,13 +5,13 @@ vector: true
 input: |
   {a: "kitten", b: "sitting"}
   {a: "kitten", b: ""::(int64|string)}
-  {a: 1, b: "kitten"}
   {a: "", b: null}
   {a: null, b: ""}
+  {a: 1, b: "kitten"}
 
 output: |
   3
   6
+  null
+  null
   error({message:"levenshtein: string args required",on:1})
-  null
-  null

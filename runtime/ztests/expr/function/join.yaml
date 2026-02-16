@@ -4,20 +4,20 @@ spq: |
 vector: true
 
 input: |
-  null
-  [null]
   ["foo","bar","baz"]
   ["foo"]
+  null
+  [null]
   []::[string]
   [""]
   "not an array"
 
 
 output: |
-  null
-  error({message:"join: array of string arg required",on:[null]})
   "foo->bar->baz"
   "foo"
+  null
+  error({message:"join: array of string arg required",on:[null]})
   ""
   ""
   error({message:"join: array of string arg required",on:"not an array"})

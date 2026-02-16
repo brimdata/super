@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"math"
 	"regexp"
-	"slices"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
@@ -21,12 +20,6 @@ type Evaluator interface {
 
 type Function interface {
 	Call([]super.Value) super.Value
-}
-
-func CheckNulls(vals []super.Value) bool {
-	return slices.ContainsFunc(vals, func(val super.Value) bool {
-		return val.IsNull()
-	})
 }
 
 type Not struct {
@@ -154,7 +147,7 @@ func (i *In) Eval(this super.Value) super.Value {
 	}
 	var hasnull bool
 	err := container.Walk(func(typ super.Type, body scode.Bytes) error {
-		if body == nil {
+		if super.TypeUnder(typ) == super.TypeNull {
 			hasnull = true
 		}
 		if coerce.Equal(elem, super.NewValue(typ, body)) {
@@ -254,9 +247,6 @@ func (n *numeric) evalAndPromote(this super.Value) (super.Value, super.Value, su
 	if errVal != nil {
 		return super.Null, super.Null, nil, errVal
 	}
-	if lhsVal.IsNull() || rhsVal.IsNull() {
-		return super.Null, super.Null, nil, super.Null.Ptr()
-	}
 	id, err := coerce.Promote(lhsVal, rhsVal)
 	if err != nil {
 		return super.Null, super.Null, nil, n.sctx.NewError(err).Ptr()
@@ -269,18 +259,21 @@ func (n *numeric) evalAndPromote(this super.Value) (super.Value, super.Value, su
 }
 
 func (n *numeric) eval(this super.Value) (super.Value, super.Value, *super.Value) {
-	lhs := n.lhs.Eval(this)
-	if lhs.IsError() {
-		return super.Null, super.Null, &lhs
+	lhs := n.lhs.Eval(this).Under()
+	if lhs.IsNull() {
+		return super.Null, super.Null, &super.Null
 	}
-	rhs := n.rhs.Eval(this)
-	if rhs.IsError() {
-		return super.Null, super.Null, &rhs
-	}
+	rhs := n.rhs.Eval(this).Under()
 	if lhs.IsNull() || rhs.IsNull() {
 		return super.Null, super.Null, &super.Null
 	}
-	return enumToIndex(lhs.Under()), enumToIndex(rhs.Under()), nil
+	if lhs.IsError() {
+		return super.Null, super.Null, &lhs
+	}
+	if rhs.IsError() {
+		return super.Null, super.Null, &rhs
+	}
+	return enumToIndex(lhs), enumToIndex(rhs), nil
 }
 
 // enumToIndex converts an enum to its index value.

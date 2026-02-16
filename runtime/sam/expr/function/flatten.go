@@ -30,14 +30,14 @@ func (n *Flatten) Call(args []super.Value) super.Value {
 	if typ == nil {
 		return val
 	}
-	inner := n.innerTypeOf(val.Bytes(), typ.Fields)
+	inner := n.innerTypeOf(typ.Fields)
 	n.Reset()
 	n.encode(typ.Fields, inner, field.Path{}, val.Bytes())
 	return super.NewValue(n.sctx.LookupTypeArray(inner), n.Bytes())
 }
 
-func (n *Flatten) innerTypeOf(b scode.Bytes, fields []super.Field) super.Type {
-	n.types = n.appendTypes(n.types[:0], b, fields)
+func (n *Flatten) innerTypeOf(fields []super.Field) super.Type {
+	n.types = n.appendTypes(n.types[:0], fields)
 	unique := super.UniqueTypes(n.types)
 	if len(unique) == 1 {
 		return unique[0]
@@ -45,12 +45,10 @@ func (n *Flatten) innerTypeOf(b scode.Bytes, fields []super.Field) super.Type {
 	return n.sctx.LookupTypeUnion(unique)
 }
 
-func (n *Flatten) appendTypes(types []super.Type, b scode.Bytes, fields []super.Field) []super.Type {
-	it := b.Iter()
+func (n *Flatten) appendTypes(types []super.Type, fields []super.Field) []super.Type {
 	for _, f := range fields {
-		val := it.Next()
-		if typ := super.TypeRecordOf(f.Type); typ != nil && val != nil {
-			types = n.appendTypes(types, val, typ.Fields)
+		if typ := super.TypeRecordOf(f.Type); typ != nil {
+			types = n.appendTypes(types, typ.Fields)
 			continue
 		}
 		typ, ok := n.entryTypes[f.Type]
@@ -71,7 +69,7 @@ func (n *Flatten) encode(fields []super.Field, inner super.Type, base field.Path
 	for _, f := range fields {
 		val := it.Next()
 		key := append(base, f.Name)
-		if typ := super.TypeRecordOf(f.Type); typ != nil && val != nil {
+		if typ := super.TypeRecordOf(f.Type); typ != nil {
 			n.encode(typ.Fields, inner, key, val)
 			continue
 		}

@@ -3,18 +3,14 @@
 The null type represents a type that has just one value:
 the special value `null`.
 
-A value of type `null` is formed simply from the keyword `null`
-representing the null value, which by default, is type `null`.
-
 In relational SQL, a null typically indicates an unknown value.
 Unfortunately, this concept is overloaded as unknown values may arise
 from runtime errors, missing data, or an intentional value of null.
 
 Because SuperSQL has [_first-class errors_](error.md) (obviating the need to
-serialize error conditions as fixed-type nulls)
-and [_sum types_](union.md) (obviating the need to flatten sum types into columns and
-occupy the absent component types with nulls), the use of null values is
-discouraged.
+serialize error conditions as nulls) and [_sum types_](union.md) (obviating
+the need to flatten sum types into columns and occupy the absent component
+types with nulls), the use of null values is discouraged.
 
 That said, SuperSQL supports the null value for backward compatibility with
 their pervasive use in SQL, database systems, programming languages, and serialization

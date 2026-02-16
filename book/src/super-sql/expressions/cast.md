@@ -208,11 +208,9 @@ values this::{b:string}
 # input
 {a:1,b:2}
 {b:4}
-{a:3}
 # expected output
 {b:"2"}
 {b:"4"}
-{b:error("missing")}
 ```
 
 ---

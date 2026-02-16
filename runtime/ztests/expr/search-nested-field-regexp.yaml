@@ -6,9 +6,9 @@ input: |
   {a:[{bar:"foo"}]}
   {a:[{car:"foo"}]}
   {a:[{c:"foo"},{b:1}]}
+  null
   {a:[]::[{bar:null}]}
   {a:[]::[{b:null}]}
-  null
 
 output: |
   {a:[{bar:"foo"}]}

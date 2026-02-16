@@ -12,13 +12,19 @@ type Function interface {
 	Call(...vector.Any) vector.Any
 }
 
-func CheckNulls(vecs []vector.Any) (vector.Any, bool) {
+// CheckForNullThenError returns the first element of vecs with the null
+// type. If no element has the null type, it returns the first element with an
+// error type.
+func CheckForNullThenError(vecs []vector.Any) (vector.Any, bool) {
+	var errVec vector.Any
 	for _, vec := range vecs {
-		if vec.Kind() == vector.KindNull {
+		if k := vec.Kind(); k == vector.KindNull {
 			return vec, true
+		} else if k == vector.KindError && errVec == nil {
+			errVec = vec
 		}
 	}
-	return nil, false
+	return errVec, errVec != nil
 }
 
 type Call struct {

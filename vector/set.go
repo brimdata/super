@@ -11,6 +11,8 @@ type Set struct {
 	Values  Any
 }
 
+var _ Any = (*TypeValue)(nil)
+
 func NewSet(typ *super.TypeSet, offsets []uint32, values Any) *Set {
 	return &Set{typ, offsets, values}
 }

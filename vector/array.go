@@ -11,6 +11,8 @@ type Array struct {
 	Values  Any
 }
 
+var _ Any = (*Array)(nil)
+
 func NewArray(typ *super.TypeArray, offsets []uint32, values Any) *Array {
 	return &Array{typ, offsets, values}
 }

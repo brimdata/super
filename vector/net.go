@@ -11,6 +11,8 @@ type Net struct {
 	Values []netip.Prefix
 }
 
+var _ Any = (*Net)(nil)
+
 func NewNet(values []netip.Prefix) *Net {
 	return &Net{values}
 }

@@ -344,14 +344,14 @@ func (t *TypeUnion) Kind() Kind {
 	return UnionKind
 }
 
-func BeginUnion(b *scode.Builder, tag int) {
-	b.BeginContainer()
-	b.Append(EncodeInt(int64(tag)))
-}
-
 // BuildUnion appends to b a union described by tag and val.
 func BuildUnion(b *scode.Builder, tag int, val scode.Bytes) {
 	BeginUnion(b, tag)
 	b.Append(val)
 	b.EndContainer()
+}
+
+func BeginUnion(b *scode.Builder, tag int) {
+	b.BeginContainer()
+	b.Append(EncodeInt(int64(tag)))
 }

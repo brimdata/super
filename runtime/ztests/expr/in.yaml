@@ -5,9 +5,6 @@ vector: true
 
 input: |
   1
-  null
-  error(0)
-  1::(int64|string)
   {a:1}
   {c0:null,c1:9}
   [0,1,2]
@@ -17,14 +14,14 @@ input: |
   |[0,1,2]|
   |{1:null}|
   |{null:1}|
+  1::(int64|string)
   {a:[0,1]::[int64|string]}
+  null
+  error(0)
   [error(0),error(1)]
   [error(0),null]
 
 output: |
-  [true,false,null]
-  [null,null,null]
-  [error(0),error(0),null]
   [true,false,null]
   [true,false,null]
   [null,true,null]
@@ -36,6 +33,9 @@ output: |
   [true,null,null]
   [true,null,null]
   [true,false,null]
+  [true,false,null]
+  [null,null,null]
+  [error(0),error(0),null]
   [true,false,null]
   [null,null,null]
 

@@ -7,8 +7,8 @@ input: |
   "foo"
   "bar"::=named
   ""
-  {x:"foo"}
   null
+  {x:"foo"}
   error("bad")
 
 output: |
@@ -16,6 +16,6 @@ output: |
   0x666f6f
   0x626172
   0x
-  error({message:"cannot cast to bytes",on:{x:"foo"}})
   error({message:"cannot cast to bytes",on:null})
+  error({message:"cannot cast to bytes",on:{x:"foo"}})
   error("bad")

@@ -5,6 +5,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/grok"
+	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
 )
@@ -25,19 +26,16 @@ func newGrok(sctx *super.Context) *Grok {
 }
 
 func (g *Grok) Call(args ...vector.Any) vector.Any {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
+		return vec
+	}
 	patternArg, inputArg := args[0], args[1]
-	if patternArg.Kind() == vector.KindNull {
-		return patternArg
-	}
-	if inputArg.Kind() == vector.KindNull {
-		return inputArg
-	}
-	defArg := vector.Any(vector.NewConst(super.Null, args[0].Len()))
+	defArg := vector.Any(vector.NewConst(super.NewString(""), args[0].Len()))
 	if len(args) == 3 {
 		defArg = args[2]
 	}
 	switch {
-	case super.TypeUnder(defArg.Type()) != super.TypeString && defArg.Kind() != vector.KindNull:
+	case super.TypeUnder(defArg.Type()) != super.TypeString:
 		return g.error("definitions argument must be a string", defArg)
 	case super.TypeUnder(patternArg.Type()) != super.TypeString:
 		return g.error("pattern argument must be a string", patternArg)

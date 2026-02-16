@@ -10,6 +10,8 @@ type Int struct {
 	Values []int64
 }
 
+var _ Any = (*Int)(nil)
+
 func NewInt(typ super.Type, values []int64) *Int {
 	return &Int{typ, values}
 }

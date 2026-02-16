@@ -10,6 +10,9 @@ type Uint struct {
 	Values []uint64
 }
 
+var _ Any = (*Uint)(nil)
+var _ Promotable = (*Uint)(nil)
+
 func NewUint(typ super.Type, values []uint64) *Uint {
 	return &Uint{typ, values}
 }

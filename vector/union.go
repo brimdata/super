@@ -10,6 +10,8 @@ type Union struct {
 	Typ *super.TypeUnion
 }
 
+var _ Any = (*Union)(nil)
+
 func NewUnion(typ *super.TypeUnion, tags []uint32, vals []Any) *Union {
 	return &Union{NewDynamic(tags, vals), typ}
 }

@@ -2,6 +2,7 @@ spq: pass
 
 input: |
   {error:error(null)}
+  {error:error(1)}
   {error:error("")}
   {error:error("\"")}
   {error:error(",")}
@@ -12,7 +13,8 @@ output-flags: -f csv
 
 output: |
   error
-
+  error(null)
+  error(1)
   "error("""")"
   "error(""\"""")"
   "error("","")"

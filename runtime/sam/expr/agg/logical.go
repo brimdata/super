@@ -53,8 +53,7 @@ func (o *Or) Consume(val super.Value) {
 		return
 	}
 	if o.val == nil {
-		b := false
-		o.val = &b
+		o.val = new(bool)
 	}
 	*o.val = *o.val || val.Bool()
 }

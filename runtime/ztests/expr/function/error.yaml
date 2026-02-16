@@ -3,13 +3,13 @@ spq: error(this)
 vector: true
 
 input: |
-  null
   1
   "s"
   {a:1}
+  null
 
 output: |
-  error(null)
   error(1)
   error("s")
   error({a:1})
+  error(null)

@@ -18,10 +18,10 @@ type Regexp struct {
 }
 
 func (r *Regexp) Call(args ...vector.Any) vector.Any {
-	args = underAll(args)
-	if vec, ok := expr.CheckNulls(args); ok {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
 		return vec
 	}
+	args = underAll(args)
 	regVec, inputVec := args[0], args[1]
 	if regVec.Type().ID() != super.IDString {
 		return vector.NewWrappedError(r.sctx, "regexp: string required for first arg", args[0])
@@ -30,7 +30,7 @@ func (r *Regexp) Call(args ...vector.Any) vector.Any {
 		return vector.NewWrappedError(r.sctx, "regexp: string required for second arg", args[1])
 	}
 	errMsg := vector.NewStringEmpty(0)
-	var errs, nulls []uint32
+	var errs []uint32
 	inner := vector.NewStringEmpty(0)
 	out := vector.NewArray(r.sctx.LookupTypeArray(super.TypeString), []uint32{0}, inner)
 	for i := range regVec.Len() {
@@ -46,10 +46,6 @@ func (r *Regexp) Call(args ...vector.Any) vector.Any {
 		}
 		s := vector.StringValue(inputVec, i)
 		match := r.re.FindStringSubmatch(s)
-		if match == nil {
-			nulls = append(nulls, i)
-			continue
-		}
 		for _, b := range match {
 			inner.Append(b)
 		}
@@ -58,9 +54,6 @@ func (r *Regexp) Call(args ...vector.Any) vector.Any {
 	c := vector.NewCombiner(out)
 	if len(errs) > 0 {
 		c.Add(errs, vector.NewVecWrappedError(r.sctx, errMsg, vector.Pick(regVec, errs)))
-	}
-	if len(nulls) > 0 {
-		c.Add(nulls, vector.NewConst(super.Null, uint32(len(nulls))))
 	}
 	return c.Result()
 }
@@ -73,10 +66,10 @@ type RegexpReplace struct {
 }
 
 func (r *RegexpReplace) Call(args ...vector.Any) vector.Any {
-	args = underAll(args)
-	if vec, ok := expr.CheckNulls(args); ok {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
 		return vec
 	}
+	args = underAll(args)
 	for _, vec := range args {
 		if vec.Type().ID() != super.IDString {
 			return vector.NewWrappedError(r.sctx, "regexp_replace: string arg required", vec)

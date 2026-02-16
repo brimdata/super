@@ -13,6 +13,8 @@ type Const struct {
 	len uint32
 }
 
+var _ Any = (*Const)(nil)
+
 func NewConst(val super.Value, len uint32) *Const {
 	return &Const{val, len}
 }

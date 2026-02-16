@@ -16,8 +16,8 @@ input: |
   "F"
   "false"
   "blah"
-  "1"
   null
+  "1"
   error("bad")
 
 output: |
@@ -34,6 +34,6 @@ output: |
   false
   false
   error({message:"cannot cast to bool",on:"blah"})
-  true
   error({message:"cannot cast to bool",on:null})
+  true
   error("bad")

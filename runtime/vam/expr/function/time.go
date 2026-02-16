@@ -15,10 +15,10 @@ type Bucket struct {
 }
 
 func (b *Bucket) Call(args ...vector.Any) vector.Any {
-	args = underAll(args)
-	if vec, ok := expr.CheckNulls(args); ok {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
 		return vec
 	}
+	args = underAll(args)
 	tsArg, binArg := args[0], args[1]
 	tsID, binID := tsArg.Type().ID(), binArg.Type().ID()
 	if tsID != super.IDDuration && tsID != super.IDTime {
@@ -31,13 +31,10 @@ func (b *Bucket) Call(args ...vector.Any) vector.Any {
 }
 
 func (b *Bucket) call(args ...vector.Any) vector.Any {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
+		return vec
+	}
 	tsArg, binArg := args[0], args[1]
-	if tsArg.Type().Kind() == super.ErrorKind {
-		return tsArg
-	}
-	if binArg.Type().Kind() == super.ErrorKind {
-		return binArg
-	}
 	if constBin, ok := binArg.(*vector.Const); ok {
 		// Optimize case where the bin argument is static.
 		bin, _ := constBin.AsInt()
@@ -107,10 +104,10 @@ type Strftime struct {
 }
 
 func (s *Strftime) Call(args ...vector.Any) vector.Any {
-	args = underAll(args)
-	if vec, ok := expr.CheckNulls(args); ok {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
 		return vec
 	}
+	args = underAll(args)
 	formatVec, timeVec := args[0], args[1]
 	if formatVec.Type().ID() != super.IDString {
 		return vector.NewWrappedError(s.sctx, "strftime: string value required for format arg", formatVec)

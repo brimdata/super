@@ -9,6 +9,8 @@ type TypeValue struct {
 	table BytesTable
 }
 
+var _ Any = (*TypeValue)(nil)
+
 func NewTypeValue(table BytesTable) *TypeValue {
 	return &TypeValue{table}
 }

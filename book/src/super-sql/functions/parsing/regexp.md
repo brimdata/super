@@ -14,7 +14,7 @@ The `regexp` function returns an array of strings holding the text
 of the left most match of the regular expression `re`, which is
 a [regular expression](../../queries.md#regular-expression),
 and the matches of each parenthesized subexpression (also known as capturing
-groups) if there are any. A null value indicates no match.
+groups) if there are any. An empty array indicates no match.
 
 ## Examples
 
@@ -33,7 +33,7 @@ values regexp(r'foo(.?) (\w+) fr.*', this)
 
 ---
 
-_A null is returned if there is no match_
+_An empty array is returned if there is no match_
 
 ```mdtest-spq
 # spq
@@ -41,5 +41,5 @@ values regexp("bar", this)
 # input
 "foo"
 # expected output
-null
+[]
 ```

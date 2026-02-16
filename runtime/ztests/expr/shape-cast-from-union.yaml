@@ -4,6 +4,8 @@ spq: |
 vector: true
 
 input: |
+  {from:null::(string|null),to:<null>}
+  {from:null::(string|null),to:<string>}
   {from:1::(int64|string),to:<string>}
   {from:1::int64_named=int64::(union_named=int64_named|string),to:<string>}
   {from:1::int8::(int8|string),to:<int64|string>}
@@ -14,10 +16,10 @@ input: |
   {from:[1,"one"],to:<[int8|int16]>}
   {from:{a:[1,"one"]},to:<{a:[string]}>}
   {from:{a:[1,"one"]},to:<{a:[int8|string]}>}
-  {from:null::(string|null),to:<null>}
-  {from:null::(string|null),to:<string>}
 
 output: |
+  null
+  error({message:"cannot cast to string",on:null})
   "1"
   "1"
   error({message:"cannot cast to int64|string",on:1::int8::(int8|string)})::error({message:string,on:int8|string})
@@ -28,5 +30,3 @@ output: |
   [error({message:"cannot cast to int8|int16",on:1::(int64|string)})::error({message:string,on:int64|string}),error({message:"cannot cast to int8|int16",on:"one"::(int64|string)})::error({message:string,on:int64|string})]
   {a:["1","one"]}
   {a:[error({message:"cannot cast to int8|string",on:1::(int64|string)})::error({message:string,on:int64|string}),"one"::(int8|string)]}
-  null
-  error({message:"cannot cast to string",on:null})

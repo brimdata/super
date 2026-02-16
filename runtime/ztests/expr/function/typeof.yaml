@@ -25,6 +25,7 @@ input: |
           port: 19801
       }::socket
   }::=conn
+  null
   {
       info: "Access List Example",
       nets: [
@@ -59,6 +60,7 @@ input: |
 output: |
   <conn={info:string,src:socket={addr:ip,port:uint16},dst:socket}>
   <conn={info:string,src:socket={addr:ip,port:uint16},dst:socket}>
+  <null>
   <access_list={info:string,nets:[net]}>
   <{metric:string,ts:time,value:int64}>
   <{metric:string,ts:time,value:float64}>

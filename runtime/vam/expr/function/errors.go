@@ -26,7 +26,7 @@ func (q *Quiet) Call(args ...vector.Any) vector.Any {
 	}
 	n := arg.Len()
 	vec := vector.NewStringEmpty(n)
-	for i := range n {
+	for i := uint32(0); i < n; i++ {
 		s := vector.StringValue(arg.Vals, i)
 		if s == "missing" {
 			s = "quiet"

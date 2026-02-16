@@ -22,17 +22,11 @@ func (u *unaryMinus) Eval(this vector.Any) vector.Any {
 }
 
 func (u *unaryMinus) eval(vecs ...vector.Any) vector.Any {
+	if vec, ok := CheckForNullThenError(vecs); ok {
+		return vec
+	}
 	vec := vector.Under(vecs[0])
-	if vec.Len() == 0 {
-		return vec
-	}
-	if _, ok := vec.(*vector.Error); ok {
-		return vec
-	}
 	id := vec.Type().ID()
-	if id == super.IDNull {
-		return vec
-	}
 	if !super.IsNumber(id) {
 		return vector.NewWrappedError(u.sctx, "type incompatible with unary '-' operator", vecs[0])
 	}

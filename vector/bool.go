@@ -10,6 +10,8 @@ type Bool struct {
 	bitvec.Bits
 }
 
+var _ Any = (*Bool)(nil)
+
 func NewBool(bits bitvec.Bits) *Bool {
 	return &Bool{bits}
 }

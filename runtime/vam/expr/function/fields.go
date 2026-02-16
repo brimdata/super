@@ -2,6 +2,7 @@ package function
 
 import (
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
 )
 
@@ -21,10 +22,10 @@ func NewFields(sctx *super.Context) *Fields {
 }
 
 func (f *Fields) Call(args ...vector.Any) vector.Any {
-	val := vector.Under(args[0])
-	if val.Kind() == vector.KindNull {
-		return val
+	if vec, ok := expr.CheckForNullThenError(args); ok {
+		return vec
 	}
+	val := vector.Under(args[0])
 	switch typ := val.Type().(type) {
 	case *super.TypeRecord:
 		paths := buildPath(typ, nil)

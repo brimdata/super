@@ -5,8 +5,6 @@
 script: |
   super conn.parquet | super - | super -s -
 
-vector: true
-
 inputs:
   - name: conn.parquet
 

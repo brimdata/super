@@ -28,15 +28,11 @@ func (a *Arith) Eval(val vector.Any) vector.Any {
 }
 
 func (a *Arith) eval(vecs ...vector.Any) (out vector.Any) {
-	lhs, rhs := vecs[0], vecs[1]
-	if k := lhs.Kind(); k == vector.KindNull || k == vector.KindError {
-		return lhs
+	if vec, ok := CheckForNullThenError(vecs); ok {
+		return vec
 	}
-	if k := rhs.Kind(); k == vector.KindNull || k == vector.KindError {
-		return rhs
-	}
-	lhs = enumToIndex(vector.Under(lhs))
-	rhs = enumToIndex(vector.Under(rhs))
+	lhs := enumToIndex(vector.Under(vecs[0]))
+	rhs := enumToIndex(vector.Under(vecs[1]))
 	lhs, rhs, errVal := coerceVals(a.sctx, lhs, rhs)
 	if errVal != nil {
 		return errVal

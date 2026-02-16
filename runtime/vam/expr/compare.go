@@ -31,15 +31,11 @@ func (c *Compare) Eval(val vector.Any) vector.Any {
 }
 
 func (c *Compare) eval(vecs ...vector.Any) vector.Any {
-	lhs, rhs := vecs[0], vecs[1]
-	if k := lhs.Kind(); k == vector.KindNull || k == vector.KindError {
-		return lhs
+	if vec, ok := CheckForNullThenError(vecs); ok {
+		return vec
 	}
-	if k := rhs.Kind(); k == vector.KindNull || k == vector.KindError {
-		return rhs
-	}
-	lhs = vector.Under(lhs)
-	rhs = vector.Under(rhs)
+	lhs := vector.Under(vecs[0])
+	rhs := vector.Under(vecs[1])
 	lhs, rhs, errVal := coerceVals(c.sctx, lhs, rhs)
 	if errVal != nil {
 		// if incompatible types return false

@@ -12,6 +12,8 @@ type Map struct {
 	Values  Any
 }
 
+var _ Any = (*Map)(nil)
+
 func NewMap(typ *super.TypeMap, offsets []uint32, keys Any, values Any) *Map {
 	return &Map{typ, offsets, keys, values}
 }

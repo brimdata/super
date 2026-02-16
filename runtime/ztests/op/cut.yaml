@@ -13,4 +13,3 @@ output: |
   {foo:2}
   {foo:error("missing")}
   {foo:error("missing")}
-

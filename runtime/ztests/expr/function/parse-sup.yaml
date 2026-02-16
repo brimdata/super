@@ -3,13 +3,13 @@ spq: parse_sup(this)
 vector: true
 
 input: |
-  null
   "{a:1}"
+  null
   {}
   "!"
 
 output: |
-  null
   {a:1}
+  null
   error({message:"parse_sup: string arg required",on:{}})
   error({message:"parse_sup: SUP syntax error",on:"!"})

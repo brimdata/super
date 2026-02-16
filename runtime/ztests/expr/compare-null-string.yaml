@@ -10,4 +10,4 @@ input: |
 output: |
   {a:"s",b:null,eq:null,ne:null}
   {a:"s",eq:error("missing"),ne:error("missing")}
-  {b:null,eq:error("missing"),ne:error("missing")}
+  {b:null,eq:null,ne:null}

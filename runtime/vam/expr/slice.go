@@ -36,15 +36,12 @@ func (s *sliceExpr) Eval(vec vector.Any) vector.Any {
 }
 
 func (s *sliceExpr) eval(vecs ...vector.Any) vector.Any {
-	if vec, ok := CheckNulls(vecs); ok {
+	if vec, ok := CheckForNullThenError(vecs); ok {
 		return vec
 	}
 	container := vecs[0]
-	if container.Kind() == vector.KindError {
-		return container
-	}
-	var from, to vector.Any
 	vecs = vecs[1:]
+	var from, to vector.Any
 	if s.fromEval != nil {
 		from = vecs[0]
 		if !super.IsSigned(from.Type().ID()) {

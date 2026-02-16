@@ -22,10 +22,10 @@ func (m *mapCall) Eval(in vector.Any) vector.Any {
 }
 
 func (m *mapCall) eval(vecs ...vector.Any) vector.Any {
-	vec := vector.Under(vecs[0])
-	if k := vec.Kind(); k == vector.KindNull || k == vector.KindError {
+	if vec, ok := CheckForNullThenError(vecs); ok {
 		return vec
 	}
+	vec := vector.Under(vecs[0])
 	var index []uint32
 	if view, ok := vec.(*vector.View); ok {
 		index = view.Index

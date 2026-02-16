@@ -10,6 +10,8 @@ type Bytes struct {
 	table BytesTable
 }
 
+var _ Any = (*Bytes)(nil)
+
 func NewBytes(table BytesTable) *Bytes {
 	return &Bytes{table}
 }

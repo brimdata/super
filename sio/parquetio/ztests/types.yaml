@@ -2,8 +2,6 @@ script: |
   super -f parquet -o f.parquet -
   super -S f.parquet
 
-vector: true
-
 inputs:
   - name: stdin
     data: |

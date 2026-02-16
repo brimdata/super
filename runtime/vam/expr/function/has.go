@@ -23,8 +23,10 @@ func (h *Has) Call(args ...vector.Any) vector.Any {
 type Missing struct{}
 
 func (m *Missing) Call(args ...vector.Any) vector.Any {
-	if vec, ok := expr.CheckNulls(args); ok {
-		return vec
+	for _, vec := range args {
+		if vec.Kind() == vector.KindNull {
+			return vec
+		}
 	}
 	n := args[0].Len()
 	for _, vec := range args {

@@ -10,6 +10,8 @@ type Error struct {
 	Vals Any
 }
 
+var _ Any = (*Error)(nil)
+
 // XXX we shouldn't create empty fields... this was the old design, now
 // we create the entire vector structure and page in leaves, offsets, etc on demand
 func NewError(typ *super.TypeError, vals Any) *Error {

@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
 )
 
@@ -13,10 +14,10 @@ type Base64 struct {
 }
 
 func (b *Base64) Call(args ...vector.Any) vector.Any {
-	val := vector.Under(args[0])
-	if val.Kind() == vector.KindNull {
-		return val
+	if vec, ok := expr.CheckForNullThenError(args); ok {
+		return vec
 	}
+	val := vector.Under(args[0])
 	switch val.Type().ID() {
 	case super.IDBytes:
 		out := vector.NewStringEmpty(0)
@@ -51,10 +52,10 @@ type Hex struct {
 }
 
 func (h *Hex) Call(args ...vector.Any) vector.Any {
-	val := vector.Under(args[0])
-	if val.Kind() == vector.KindNull {
-		return val
+	if vec, ok := expr.CheckForNullThenError(args); ok {
+		return vec
 	}
+	val := vector.Under(args[0])
 	switch val.Type().ID() {
 	case super.IDBytes:
 		out := vector.NewStringEmpty(val.Len())

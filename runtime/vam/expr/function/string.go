@@ -15,16 +15,12 @@ type Concat struct {
 }
 
 func (c *Concat) Call(args ...vector.Any) vector.Any {
-	args = underAll(args)
-	if vec, ok := expr.CheckNulls(args); ok {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
 		return vec
 	}
+	args = underAll(args)
 	for _, arg := range args {
-		switch arg.Kind() {
-		case vector.KindError:
-			return arg
-		case vector.KindString:
-		default:
+		if arg.Kind() != vector.KindString {
 			return vector.NewWrappedError(c.sctx, "concat: string arg required", arg)
 		}
 	}
@@ -47,10 +43,10 @@ type Join struct {
 }
 
 func (j *Join) Call(args ...vector.Any) vector.Any {
-	args = underAll(args)
-	if vec, ok := expr.CheckNulls(args); ok {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
 		return vec
 	}
+	args = underAll(args)
 	splitsVal := args[0]
 	typ, ok := splitsVal.Type().(*super.TypeArray)
 	if !ok || typ.Type.ID() != super.IDString {
@@ -88,10 +84,10 @@ type Levenshtein struct {
 }
 
 func (l *Levenshtein) Call(args ...vector.Any) vector.Any {
-	args = underAll(args)
-	if vec, ok := expr.CheckNulls(args); ok {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
 		return vec
 	}
+	args = underAll(args)
 	for _, a := range args {
 		if a.Type() != super.TypeString {
 			return vector.NewWrappedError(l.sctx, "levenshtein: string args required", a)
@@ -112,10 +108,10 @@ type Position struct {
 }
 
 func (p *Position) Call(args ...vector.Any) vector.Any {
-	args = underAll(args)
-	if vec, ok := expr.CheckNulls(args); ok {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
 		return vec
 	}
+	args = underAll(args)
 	vec, subVec := args[0], args[1]
 	if vec.Type().ID() != super.IDString {
 		return vector.NewWrappedError(p.sctx, "position: string arguments required", vec)
@@ -137,10 +133,10 @@ type Replace struct {
 }
 
 func (r *Replace) Call(args ...vector.Any) vector.Any {
-	args = underAll(args)
-	if vec, ok := expr.CheckNulls(args); ok {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
 		return vec
 	}
+	args = underAll(args)
 	for _, arg := range args {
 		if arg.Type() != super.TypeString {
 			return vector.NewWrappedError(r.sctx, "replace: string arg required", arg)
@@ -162,10 +158,10 @@ type Split struct {
 }
 
 func (s *Split) Call(args ...vector.Any) vector.Any {
-	args = underAll(args)
-	if vec, ok := expr.CheckNulls(args); ok {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
 		return vec
 	}
+	args = underAll(args)
 	for i := range args {
 		if args[i].Type() != super.TypeString {
 			return vector.NewWrappedError(s.sctx, "split: string arg required", args[i])
@@ -194,10 +190,10 @@ type ToLower struct {
 }
 
 func (t *ToLower) Call(args ...vector.Any) vector.Any {
-	v := vector.Under(args[0])
-	if v.Kind() == vector.KindNull {
-		return v
+	if vec, ok := expr.CheckForNullThenError(args); ok {
+		return vec
 	}
+	v := vector.Under(args[0])
 	if v.Type() != super.TypeString {
 		return vector.NewWrappedError(t.sctx, "lower: string arg required", v)
 	}
@@ -214,10 +210,10 @@ type ToUpper struct {
 }
 
 func (t *ToUpper) Call(args ...vector.Any) vector.Any {
-	v := vector.Under(args[0])
-	if v.Kind() == vector.KindNull {
-		return v
+	if vec, ok := expr.CheckForNullThenError(args); ok {
+		return vec
 	}
+	v := vector.Under(args[0])
 	if v.Type() != super.TypeString {
 		return vector.NewWrappedError(t.sctx, "upper: string arg required", v)
 	}
@@ -234,10 +230,10 @@ type Trim struct {
 }
 
 func (t *Trim) Call(args ...vector.Any) vector.Any {
-	val := vector.Under(args[0])
-	if val.Kind() == vector.KindNull {
-		return val
+	if vec, ok := expr.CheckForNullThenError(args); ok {
+		return vec
 	}
+	val := vector.Under(args[0])
 	if val.Type() != super.TypeString {
 		return vector.NewWrappedError(t.sctx, "trim: string arg required", val)
 	}

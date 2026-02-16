@@ -16,16 +16,16 @@ func NewCIDRMatch(sctx *super.Context) *CIDRMatch {
 }
 
 func (c *CIDRMatch) Call(args ...vector.Any) vector.Any {
-	if id := args[0].Type().ID(); id != super.IDNet && id != super.IDNull {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
+		return vec
+	}
+	if args[0].Type().ID() != super.IDNet {
 		return vector.NewWrappedError(c.sctx, "cidr_match: not a net", args[0])
 	}
 	return c.pw.Eval(args...)
 }
 
 func cidrMatch(vec ...vector.Any) vector.Any {
-	if vec, ok := expr.CheckNulls(vec); ok {
-		return vec
-	}
 	netVec, valVec := vec[0], vec[1]
 	if id := valVec.Type().ID(); id != super.IDIP {
 		return vector.NewConst(super.False, valVec.Len())

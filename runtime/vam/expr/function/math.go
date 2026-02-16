@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/runtime/vam/expr/cast"
 	"github.com/brimdata/super/vector"
 )
@@ -13,14 +14,15 @@ type Abs struct {
 }
 
 func (a *Abs) Call(args ...vector.Any) vector.Any {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
+		return vec
+	}
 	vec := vector.Under(args[0])
 	switch id := vec.Type().ID(); {
 	case super.IsUnsigned(id):
 		return vec
 	case super.IsSigned(id) || super.IsFloat(id):
 		return a.abs(vec)
-	case id == super.IDNull:
-		return vec
 	}
 	return vector.NewWrappedError(a.sctx, "abs: not a number", vec)
 }
@@ -68,13 +70,14 @@ type Ceil struct {
 }
 
 func (c *Ceil) Call(args ...vector.Any) vector.Any {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
+		return vec
+	}
 	vec := vector.Under(args[0])
 	switch id := vec.Type().ID(); {
 	case super.IsFloat(id):
 		return c.ceil(vec)
 	case super.IsNumber(id):
-		return vec
-	case id == super.IDNull:
 		return vec
 	}
 	return vector.NewWrappedError(c.sctx, "ceil: not a number", vec)
@@ -105,13 +108,14 @@ type Floor struct {
 }
 
 func (f *Floor) Call(args ...vector.Any) vector.Any {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
+		return vec
+	}
 	vec := vector.Under(args[0])
 	switch id := vec.Type().ID(); {
 	case super.IsFloat(id):
 		return f.floor(vec)
 	case super.IsNumber(id):
-		return vec
-	case id == super.IDNull:
 		return vec
 	}
 	return vector.NewWrappedError(f.sctx, "floor: not a number", vec)
@@ -142,11 +146,11 @@ type Log struct {
 }
 
 func (l *Log) Call(args ...vector.Any) vector.Any {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
+		return vec
+	}
 	arg := vector.Under(args[0])
 	if !super.IsNumber(arg.Type().ID()) {
-		if k := arg.Kind(); k == vector.KindNull || k == vector.KindError {
-			return arg
-		}
 		return vector.NewWrappedError(l.sctx, "log: not a number", arg)
 	}
 	// No error casting number to float so no need to Apply.
@@ -174,15 +178,14 @@ type Pow struct {
 }
 
 func (p *Pow) Call(args ...vector.Any) vector.Any {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
+		return vec
+	}
 	a, b := vector.Under(args[0]), vector.Under(args[1])
-	switch aid, bid := a.Type().ID(), b.Type().ID(); {
-	case aid == super.IDNull:
-		return a
-	case bid == super.IDNull:
-		return b
-	case !super.IsNumber(aid):
+	if !super.IsNumber(a.Type().ID()) {
 		return vector.NewWrappedError(p.sctx, "pow: not a number", args[0])
-	case !super.IsNumber(bid):
+	}
+	if !super.IsNumber(b.Type().ID()) {
 		return vector.NewWrappedError(p.sctx, "pow: not a number", args[1])
 	}
 	a = cast.To(p.sctx, a, super.TypeFloat64)
@@ -201,10 +204,11 @@ type Round struct {
 }
 
 func (r *Round) Call(args ...vector.Any) vector.Any {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
+		return vec
+	}
 	vec := args[0]
 	switch id := vec.Type().ID(); {
-	case super.IsUnsigned(id) || super.IsSigned(id):
-		return vec
 	case super.IsFloat(id):
 		vals := make([]float64, vec.Len())
 		for i := range vec.Len() {
@@ -212,7 +216,7 @@ func (r *Round) Call(args ...vector.Any) vector.Any {
 			vals[i] = math.Round(v)
 		}
 		return vector.NewFloat(vec.Type(), vals)
-	case id == super.IDNull:
+	case super.IsNumber(id):
 		return vec
 	}
 	return vector.NewWrappedError(r.sctx, "round: not a number", vec)
@@ -223,10 +227,11 @@ type Sqrt struct {
 }
 
 func (s *Sqrt) Call(args ...vector.Any) vector.Any {
-	vec := vector.Under(args[0])
-	if id := vec.Type().ID(); id == super.IDNull {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
 		return vec
-	} else if !super.IsNumber(id) {
+	}
+	vec := vector.Under(args[0])
+	if !super.IsNumber(vec.Type().ID()) {
 		return vector.NewWrappedError(s.sctx, "sqrt: number argument required", vec)
 	}
 	vec = cast.To(s.sctx, vec, super.TypeFloat64)

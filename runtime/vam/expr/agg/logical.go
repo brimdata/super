@@ -50,8 +50,7 @@ func (o *or) Consume(vec vector.Any) {
 	}
 	for i := range vec.Len() {
 		if o.val == nil {
-			var b bool
-			o.val = &b
+			o.val = new(bool)
 		}
 		*o.val = *o.val || vector.BoolValue(vec, i)
 	}

@@ -3,6 +3,7 @@ spq: "cut a1:=a[1:-1],a2:=a[1:],a3:=a[:1],a4:=a[:-1],a5:=a[:-100],a6:=a[-1:],a7:
 vector: true
 
 input: |
+  {a:null}
   {a:0x}
   {a:""}
   {a:[]::[int32]}
@@ -12,16 +13,15 @@ input: |
   {a:"\u2070\u2071\u2072\u2073"}
   {a:[10::int32,11::int32,12::int32,13::int32]}
   {a:|[10::int32,11::int32,12::int32,13::int32]|}
-  {a:null}
 
 output: |
+  {a1:null,a2:null,a3:null,a4:null,a5:null,a6:null,a7:null,a8:null}
   {a1:0x,a2:0x,a3:0x,a4:0x,a5:0x,a6:0x,a7:0x,a8:null}
   {a1:"",a2:"",a3:"",a4:"",a5:"",a6:"",a7:"",a8:null}
   {a1:[]::[int32],a2:[]::[int32],a3:[]::[int32],a4:[]::[int32],a5:[]::[int32],a6:[]::[int32],a7:[]::[int32],a8:null}
-  {a1:0x1122,a2:0x112233,a3:0x00,a4:0x001122,a5:0x,a6:0x33,a7:0x22,a8:error("slice index is not a number")}
-  {a1:"12",a2:"123",a3:"0",a4:"012",a5:"",a6:"3",a7:"2",a8:error("slice index is not a number")}
-  {a1:"ⁱ⁲",a2:"ⁱ⁲3",a3:"0",a4:"0ⁱ⁲",a5:"",a6:"3",a7:"⁲",a8:error("slice index is not a number")}
-  {a1:"ⁱ⁲",a2:"ⁱ⁲⁳",a3:"⁰",a4:"⁰ⁱ⁲",a5:"",a6:"⁳",a7:"⁲",a8:error("slice index is not a number")}
+  {a1:0x1122,a2:0x112233,a3:0x00,a4:0x001122,a5:0x,a6:0x33,a7:0x22,a8:error("missing")}
+  {a1:"12",a2:"123",a3:"0",a4:"012",a5:"",a6:"3",a7:"2",a8:error("missing")}
+  {a1:"ⁱ⁲",a2:"ⁱ⁲3",a3:"0",a4:"0ⁱ⁲",a5:"",a6:"3",a7:"⁲",a8:error("missing")}
+  {a1:"ⁱ⁲",a2:"ⁱ⁲⁳",a3:"⁰",a4:"⁰ⁱ⁲",a5:"",a6:"⁳",a7:"⁲",a8:error("missing")}
   {a1:[11::int32,12::int32],a2:[11::int32,12::int32,13::int32],a3:[10::int32],a4:[10::int32,11::int32,12::int32],a5:[]::[int32],a6:[13::int32],a7:[12::int32],a8:[10::int32,11::int32]}
   {a1:|[11::int32,12::int32]|,a2:|[11::int32,12::int32,13::int32]|,a3:|[10::int32]|,a4:|[10::int32,11::int32,12::int32]|,a5:|[]|::|[int32]|,a6:|[13::int32]|,a7:|[12::int32]|,a8:|[10::int32,11::int32]|}
-  {a1:null,a2:null,a3:null,a4:null,a5:null,a6:null,a7:null,a8:null}

@@ -11,6 +11,8 @@ type Record struct {
 	len    uint32
 }
 
+var _ Any = (*Record)(nil)
+
 func NewRecord(typ *super.TypeRecord, fields []Any, length uint32) *Record {
 	return &Record{typ, fields, length}
 }

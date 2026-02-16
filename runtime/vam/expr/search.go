@@ -157,11 +157,11 @@ func (r *regexpMatch) Eval(this vector.Any) vector.Any {
 }
 
 func (r *regexpMatch) eval(vecs ...vector.Any) vector.Any {
+	if vec, ok := CheckForNullThenError(vecs); ok {
+		return vec
+	}
 	vec := vector.Under(vecs[0])
-	if k := vec.Kind(); k != vector.KindString {
-		if k == vector.KindNull {
-			return vector.NewConst(super.Null, vec.Len())
-		}
+	if vec.Kind() != vector.KindString {
 		return vector.NewConst(super.False, vec.Len())
 	}
 	out := vector.NewFalse(vec.Len())

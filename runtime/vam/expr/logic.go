@@ -24,17 +24,16 @@ func (n *Not) Eval(val vector.Any) vector.Any {
 	return evalBool(n.sctx, n.eval, n.expr.Eval(val))
 }
 
-func (n *Not) eval(vecs ...vector.Any) vector.Any {
-	if vecs[0].Kind() == vector.KindNull {
-		return vecs[0]
+func (*Not) eval(vecs ...vector.Any) vector.Any {
+	if vec, ok := CheckForNullThenError(vecs); ok {
+		return vec
 	}
 	switch vec := vecs[0].(type) {
 	case *vector.Bool:
 		return vector.Not(vec)
 	case *vector.Const:
-		return vector.NewConst(super.NewBool(!vec.Value().Bool()), vec.Len())
-	case *vector.Error:
-		return vec
+		v := !vec.Value().Bool()
+		return vector.NewConst(super.NewBool(v), vec.Len())
 	default:
 		panic(vec)
 	}
@@ -51,10 +50,10 @@ func NewLogicalAnd(sctx *super.Context, lhs, rhs Evaluator) *And {
 }
 
 func (a *And) Eval(val vector.Any) vector.Any {
-	return evalBool(a.sctx, and, a.lhs.Eval(val), a.rhs.Eval(val))
+	return evalBool(a.sctx, a.eval, a.lhs.Eval(val), a.rhs.Eval(val))
 }
 
-func and(vecs ...vector.Any) vector.Any {
+func (a *And) eval(vecs ...vector.Any) vector.Any {
 	lhs, rhs := vecs[0], vecs[1]
 	lhsKind, rhsKind := lhs.Kind(), rhs.Kind()
 	switch {
@@ -65,26 +64,26 @@ func and(vecs ...vector.Any) vector.Any {
 		if rhsKind == vector.KindError {
 			return rhs
 		}
-		return andErrorOrNull(rhs, lhs)
+		return a.evalWithNullOrError(rhs, lhs)
 	case rhsKind == vector.KindNull:
 		if lhsKind == vector.KindError {
 			return lhs
 		}
-		return andErrorOrNull(lhs, rhs)
+		return a.evalWithNullOrError(lhs, rhs)
 	case lhsKind == vector.KindError:
 		if rhsKind == vector.KindError {
 			return lhs
 		}
-		return andErrorOrNull(rhs, lhs)
+		return a.evalWithNullOrError(rhs, lhs)
 	case rhsKind == vector.KindError:
-		return andErrorOrNull(lhs, rhs)
+		return a.evalWithNullOrError(lhs, rhs)
 	}
 	blhs, brhs := FlattenBool(lhs), FlattenBool(rhs)
 	return vector.NewBool(bitvec.And(blhs.Bits, brhs.Bits))
 }
 
-func andErrorOrNull(boolVec, errorOrNullVec vector.Any) vector.Any {
-	// true and errorOrNull = errorOrNull
+func (*And) evalWithNullOrError(boolVec, nullOrErrorVec vector.Any) vector.Any {
+	// true and nullOrError = nullOrError
 	// false and any = false
 	var index []uint32
 	for i := range boolVec.Len() {
@@ -92,19 +91,23 @@ func andErrorOrNull(boolVec, errorOrNullVec vector.Any) vector.Any {
 			index = append(index, i)
 		}
 	}
-	return combine(boolVec, errorOrNullVec, index)
+	return combine(boolVec, nullOrErrorVec, index)
 }
 
-func combine(baseVec, vec vector.Any, index []uint32) vector.Any {
+func combine(baseVec, overlayVec vector.Any, index []uint32) vector.Any {
 	if len(index) == 0 {
 		return baseVec
 	}
-	if len(index) == int(vec.Len()) {
-		return vec
+	if len(index) == int(overlayVec.Len()) {
+		return overlayVec
 	}
 	baseVec = vector.ReversePick(baseVec, index)
-	vec = vector.Pick(vec, index)
-	return vector.Combine(baseVec, index, vec)
+	overlayVec = vector.Pick(overlayVec, index)
+	return vector.Combine(baseVec, index, overlayVec)
+}
+
+func EvalOr(sctx *super.Context, lhs, rhs vector.Any) vector.Any {
+	return evalBool(sctx, (*Or)(nil).eval, lhs, rhs)
 }
 
 type Or struct {
@@ -118,39 +121,35 @@ func NewLogicalOr(sctx *super.Context, lhs, rhs Evaluator) *Or {
 }
 
 func (o *Or) Eval(val vector.Any) vector.Any {
-	return EvalOr(o.sctx, o.lhs.Eval(val), o.rhs.Eval(val))
+	return evalBool(o.sctx, o.eval, o.lhs.Eval(val), o.rhs.Eval(val))
 }
 
-func EvalOr(sctx *super.Context, lhs, rhs vector.Any) vector.Any {
-	return evalBool(sctx, or, lhs, rhs)
-}
-
-func or(vecs ...vector.Any) vector.Any {
+func (o *Or) eval(vecs ...vector.Any) vector.Any {
 	lhs, rhs := vecs[0], vecs[1]
 	switch lhsKind, rhsKind := lhs.Kind(), rhs.Kind(); {
 	case lhsKind == vector.KindNull:
 		if rhsKind == vector.KindNull || rhsKind == vector.KindError {
 			return lhs
 		}
-		return orErrorOrNull(rhs, lhs)
+		return o.evalWithNullOrError(rhs, lhs)
 	case rhsKind == vector.KindNull:
 		if lhsKind == vector.KindError {
 			return rhs
 		}
-		return orErrorOrNull(lhs, rhs)
+		return o.evalWithNullOrError(lhs, rhs)
 	case lhsKind == vector.KindError:
 		if rhsKind == vector.KindError {
 			return lhs
 		}
-		return orErrorOrNull(rhs, lhs)
+		return o.evalWithNullOrError(rhs, lhs)
 	case rhsKind == vector.KindError:
-		return orErrorOrNull(lhs, rhs)
+		return o.evalWithNullOrError(lhs, rhs)
 	}
 	return vector.Or(FlattenBool(lhs), FlattenBool(rhs))
 }
 
-func orErrorOrNull(boolVec, errorOrNullVec vector.Any) vector.Any {
-	// false or errorOrNull = errorOrNull
+func (*Or) evalWithNullOrError(boolVec, nullOrErrorVec vector.Any) vector.Any {
+	// false or nullOrError = nullOrError
 	// true or any = true
 	var index []uint32
 	for i := range boolVec.Len() {
@@ -158,7 +157,7 @@ func orErrorOrNull(boolVec, errorOrNullVec vector.Any) vector.Any {
 			index = append(index, i)
 		}
 	}
-	return combine(boolVec, errorOrNullVec, index)
+	return combine(boolVec, nullOrErrorVec, index)
 }
 
 // evalBool evaluates e using val to computs a boolean result.  For elements
@@ -218,14 +217,10 @@ func (i *In) Eval(this vector.Any) vector.Any {
 }
 
 func (i *In) eval(vecs ...vector.Any) vector.Any {
-	lhs, rhs := vecs[0], vecs[1]
-	if k := lhs.Kind(); k == vector.KindNull || k == vector.KindError {
-		return lhs
+	if vec, ok := CheckForNullThenError(vecs); ok {
+		return vec
 	}
-	if rhs.Type().Kind() == super.ErrorKind {
-		return rhs
-	}
-	return i.pw.Eval(lhs, rhs)
+	return i.pw.Eval(vecs[0], vecs[1])
 }
 
 type PredicateWalk struct {

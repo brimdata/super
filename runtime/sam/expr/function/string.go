@@ -139,6 +139,12 @@ func (s *Split) Call(args []super.Value) super.Value {
 	if sVal.IsNull() || sepVal.IsNull() {
 		return super.Null
 	}
+	if sVal.Type().Kind() == super.ErrorKind {
+		return sVal
+	}
+	if sepVal.Type().Kind() == super.ErrorKind {
+		return sVal
+	}
 	for i := range args {
 		if !args[i].IsString() {
 			return s.sctx.WrapError("split: string arg required", args[i])

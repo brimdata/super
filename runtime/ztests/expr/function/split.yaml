@@ -20,4 +20,4 @@ output: |
   null
   null
   error({message:"split: string arg required",on:1.})
-  error({message:"split: string arg required",on:error("missing")})
+  error("missing")

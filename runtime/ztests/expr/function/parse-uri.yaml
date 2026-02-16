@@ -3,21 +3,17 @@ spq: uri := parse_uri(s)
 vector: true
 
 input: |
-  {s:null}
   {s:""}
   {s:"scheme://user:password@host:12345/path?a=1&a=2&b=3&c=#fragment"}
   {s:"scheme:opaque"}
   {s:1}
+  {s:null}
   {s:":no-scheme"}
   {s:"scheme://bad-port:1234567"}
 
 output-flags: -pretty=2
 
 output: |
-  {
-    s: null,
-    uri: null
-  }
   {
     s: "",
     uri: {
@@ -77,6 +73,10 @@ output: |
       message: "parse_uri: string arg required",
       on: 1
     })
+  }
+  {
+    s: null,
+    uri: null
   }
   {
     s: ":no-scheme",
