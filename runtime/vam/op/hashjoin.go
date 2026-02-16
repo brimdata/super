@@ -279,6 +279,8 @@ func (j *hashJoin) wrap(l, r *super.Value) super.Value {
 		l, r = r, l
 	}
 	j.builder.Reset()
+	// left/right fields of join are never optional fields
+	j.builder.Append(nil)
 	var fields []super.Field
 	if l != nil {
 		left := l.Under()
