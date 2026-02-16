@@ -434,9 +434,14 @@ func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes scode.By
 		w.buildArrowListValue(b, typ, bytes)
 	case *array.StructBuilder:
 		b.Append(true)
-		it := bytes.Iter()
+		it := scode.NewRecordIter(bytes)
 		for i, field := range super.TypeRecordOf(typ).Fields {
-			w.buildArrowValue(b.FieldBuilder(i), field.Type, it.Next())
+			elem, none := it.Next(field.Opt)
+			if none {
+				b.AppendNull()
+				continue
+			}
+			w.buildArrowValue(b.FieldBuilder(i), field.Type, elem)
 		}
 	case *array.DenseUnionBuilder:
 		it := bytes.Iter()
