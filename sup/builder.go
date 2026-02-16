@@ -169,7 +169,7 @@ func BuildPrimitive(b *scode.Builder, val Primitive) error {
 func buildRecord(b *scode.Builder, val *Record) error {
 	b.BeginContainer()
 	typ := super.TypeUnder(val.Type).(*super.TypeRecord)
-	if nopts := typ.Optionals(); nopts != 0 {
+	if nopts := typ.Opts; nopts != 0 {
 		// Set the none bit for each optional field.
 		// We assume the invariant that None occurs only in
 		// optional fields and panic otherwise.

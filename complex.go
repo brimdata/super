@@ -198,6 +198,7 @@ type TypeRecord struct {
 	id     int
 	Fields []Field
 	LUT    map[string]int
+	Opts   int
 }
 
 func NewTypeRecord(id int, fields []Field) *TypeRecord {
@@ -209,18 +210,12 @@ func NewTypeRecord(id int, fields []Field) *TypeRecord {
 		Fields: fields,
 	}
 	r.createLUT()
-	return r
-}
-
-// XXX
-func (t *TypeRecord) Optionals() int {
-	var cnt int
-	for _, f := range t.Fields {
+	for _, f := range fields {
 		if f.Opt {
-			cnt++
+			r.Opts++
 		}
 	}
-	return cnt
+	return r
 }
 
 func (t *TypeRecord) ID() int {
