@@ -3,6 +3,7 @@ package expr
 import (
 	"slices"
 
+	"github.com/RoaringBitmap/roaring/v2"
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/bitvec"
@@ -209,7 +210,7 @@ type In struct {
 }
 
 func NewIn(sctx *super.Context, lhs, rhs Evaluator) *In {
-	return &In{sctx, lhs, rhs, NewPredicateWalk(NewCompare(sctx, "==", nil, nil).eval)}
+	return &In{sctx, lhs, rhs, NewPredicateWalk(sctx, NewCompare(sctx, "==", nil, nil).eval)}
 }
 
 func (i *In) Eval(this vector.Any) vector.Any {
@@ -228,14 +229,19 @@ func (i *In) eval(vecs ...vector.Any) vector.Any {
 }
 
 type PredicateWalk struct {
+	sctx *super.Context
 	pred func(...vector.Any) vector.Any
 }
 
-func NewPredicateWalk(pred func(...vector.Any) vector.Any) *PredicateWalk {
-	return &PredicateWalk{pred}
+func NewPredicateWalk(sctx *super.Context, pred func(...vector.Any) vector.Any) *PredicateWalk {
+	return &PredicateWalk{sctx, pred}
 }
 
 func (p *PredicateWalk) Eval(vecs ...vector.Any) vector.Any {
+	return vector.Apply(true, p.eval, vecs...)
+}
+
+func (p *PredicateWalk) eval(vecs ...vector.Any) vector.Any {
 	lhs, rhs := vecs[0], vecs[1]
 	rhs = vector.Under(rhs)
 	rhsOrig := rhs
@@ -246,12 +252,15 @@ func (p *PredicateWalk) Eval(vecs ...vector.Any) vector.Any {
 	}
 	switch rhs := rhs.(type) {
 	case *vector.Record:
-		out := vector.NewFalse(lhs.Len())
-		for _, f := range rhs.Fields {
+		if len(rhs.Fields) == 0 {
+			vector.NewFalse(rhs.Len())
+		}
+		out := p.Eval(lhs, rhs.Fields[0])
+		for _, vec := range rhs.Fields[1:] {
 			if index != nil {
-				f = vector.Pick(f, index)
+				vec = vector.Pick(vec, index)
 			}
-			out = vector.Or(out, FlattenBool(p.Eval(lhs, f)))
+			out = EvalOr(p.sctx, out, p.Eval(lhs, vec))
 		}
 		return out
 	case *vector.Array:
@@ -259,7 +268,7 @@ func (p *PredicateWalk) Eval(vecs ...vector.Any) vector.Any {
 	case *vector.Set:
 		return p.evalForList(lhs, rhs.Values, rhs.Offsets, index)
 	case *vector.Map:
-		return vector.Or(p.evalForList(lhs, rhs.Keys, rhs.Offsets, index),
+		return EvalOr(p.sctx, p.evalForList(lhs, rhs.Keys, rhs.Offsets, index),
 			p.evalForList(lhs, rhs.Values, rhs.Offsets, index))
 	case *vector.Union:
 		if index != nil {
@@ -276,10 +285,11 @@ func (p *PredicateWalk) Eval(vecs ...vector.Any) vector.Any {
 	}
 }
 
-func (p *PredicateWalk) evalForList(lhs, rhs vector.Any, offsets, index []uint32) *vector.Bool {
-	out := vector.NewFalse(lhs.Len())
+func (p *PredicateWalk) evalForList(lhs, rhs vector.Any, offsets, index []uint32) vector.Any {
+	n := lhs.Len()
+	var nulls, trues roaring.Bitmap
 	var lhsIndex, rhsIndex []uint32
-	for j := range lhs.Len() {
+	for j := range n {
 		idx := j
 		if index != nil {
 			idx = index[j]
@@ -297,10 +307,41 @@ func (p *PredicateWalk) evalForList(lhs, rhs vector.Any, offsets, index []uint32
 		}
 		lhsView := vector.Pick(lhs, lhsIndex)
 		rhsView := vector.Pick(rhs, rhsIndex)
-		b := FlattenBool(p.Eval(lhsView, rhsView))
-		if b.Bits.TrueCount() > 0 {
-			out.Set(j)
+		vec := p.Eval(lhsView, rhsView)
+		if hasTrue(vec) {
+			trues.Add(j)
+		} else if hasNull(vec) {
+			nulls.Add(j)
 		}
 	}
-	return out
+	truesVec := vector.NewFalse(n)
+	trues.WriteDenseTo(truesVec.GetBits())
+	nullsVec := vector.NewConst(super.Null, n)
+	return combine(truesVec, nullsVec, nulls.ToArray())
+}
+
+func hasNull(vec vector.Any) bool {
+	var hasNull bool
+	vector.Apply(true, func(vecs ...vector.Any) vector.Any {
+		hasNull = hasNull || vecs[0].Kind() == vector.KindNull
+		return vecs[0]
+	}, vec)
+	return hasNull
+}
+
+func hasTrue(vec vector.Any) bool {
+	var hasTrue bool
+	vector.Apply(true, func(vecs ...vector.Any) vector.Any {
+		vec := vecs[0]
+		if !hasTrue {
+			for i := range vec.Len() {
+				if vector.BoolValue(vec, i) {
+					hasTrue = true
+					break
+				}
+			}
+		}
+		return vec
+	}, vec)
+	return hasTrue
 }

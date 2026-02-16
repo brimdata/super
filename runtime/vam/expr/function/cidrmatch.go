@@ -12,7 +12,7 @@ type CIDRMatch struct {
 }
 
 func NewCIDRMatch(sctx *super.Context) *CIDRMatch {
-	return &CIDRMatch{sctx, expr.NewPredicateWalk(cidrMatch)}
+	return &CIDRMatch{sctx, expr.NewPredicateWalk(sctx, cidrMatch)}
 }
 
 func (c *CIDRMatch) Call(args ...vector.Any) vector.Any {
