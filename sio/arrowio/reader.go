@@ -222,11 +222,7 @@ func (r *Reader) newTypeFromDataType(dt arrow.DataType) (super.Type, error) {
 			if err != nil {
 				return nil, err
 			}
-			// Nullability of an arbitrary field doesn't apply to super data,
-			// but it makes sense as optionality so we translate arrow nulls
-			// in fields to an optional type with missings.  XXX We need to code
-			// the null values as the missings wherever that happens.
-			fields = append(fields, super.NewField(f.Name, typ, f.Nullable))
+			fields = append(fields, super.NewField(f.Name, typ, false))
 		}
 		UniquifyFieldNames(fields)
 		return r.sctx.LookupTypeRecord(fields)
@@ -414,6 +410,7 @@ func (r *Reader) buildScode(typ super.Type, a arrow.Array, i int) error {
 		b.EndContainer()
 	case arrow.DECIMAL256:
 		b.BeginContainer()
+		b.Append(nil) // no optional fields
 		for _, u := range array.NewDecimal256Data(data).Value(i).Array() {
 			b.Append(super.EncodeUint(u))
 		}
