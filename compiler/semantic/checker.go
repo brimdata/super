@@ -1124,16 +1124,16 @@ func (c *checker) newFuser() *fuser {
 }
 
 type fuser struct {
-	sch     *agg.Fuser
+	fuser   *agg.Fuser
 	unknown super.Type
 }
 
 func (f *fuser) fuse(typ super.Type) {
-	f.sch.Fuse(typ)
+	f.fuser.Fuse(typ)
 }
 
 func (f *fuser) Type() super.Type {
-	typ := f.sch.Type()
+	typ := f.fuser.Type()
 	if typ == nil {
 		return f.unknown
 	}
