@@ -511,7 +511,7 @@ fuse(this)
 {x:"foo",y:"foo"}
 {x:2,y:"bar"}
 # expected output
-<{x:int64|string,y:string}>
+<{x:int64|string,y:string|null}>
 ```
 
 Since the `fuse` here is an aggregate function, it can also be used with

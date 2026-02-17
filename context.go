@@ -593,6 +593,32 @@ func (c *Context) WrapError(msg string, val Value) Value {
 	return NewValue(errType, b.Bytes())
 }
 
+func (c *Context) Nullable(typ Type) Type {
+	var types []Type
+	if union, ok := TypeUnder(typ).(*TypeUnion); ok {
+		for _, t := range union.Types {
+			if t == TypeNull {
+				return typ
+			}
+		}
+		types = slices.Clone(union.Types)
+	} else {
+		types = []Type{typ}
+	}
+	return c.LookupTypeUnion(append(types, TypeNull))
+}
+
+func NullableUnion(typ Type) (*TypeUnion, int) {
+	if union, ok := typ.(*TypeUnion); ok {
+		for tag, typ := range union.Types {
+			if typ == TypeNull {
+				return union, tag
+			}
+		}
+	}
+	return nil, 0
+}
+
 // TypeCache wraps a TypeFetcher with an unsynchronized cache for its LookupType
 // method.  Cache hits incur none of the synchronization overhead of
 // the underlying shared type context.

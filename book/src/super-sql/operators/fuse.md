@@ -1,6 +1,6 @@
 # fuse
 
-[✅](../intro.md#data-order)&ensp; coerce all input values into a fused type
+[✅](../intro.md#data-order)&ensp; upcast all input values into a fused type
 
 ## Synopsis
 
@@ -11,11 +11,11 @@ fuse
 ## Description
 
 The `fuse` operator computes a [fused type](../type-fusion.md)
-over all of its input then casts all values in the input to the fused type.
+over all of its input then upcasts all values in the input to the fused type.
 
 This is logically equivalent to:
 ```
-from input | values cast(this, (from input | aggregate fuse(this)))
+from input | values upcast(this, (from input | aggregate fuse(this)))
 ```
 
 Because all values of the input must be read to compute the fused type,

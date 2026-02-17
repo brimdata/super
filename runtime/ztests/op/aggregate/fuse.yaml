@@ -11,8 +11,8 @@ output: |
 
 ---
 
-# Test partials.
-spq: fuse(this) by key with -limit 1 | sort key
+# Test partials (spill limit set by TestAggregateZtestsSpill)
+spq: fuse(this) by key | sort key
 
 vector: true
 
@@ -25,6 +25,6 @@ input: |
   {r:{y:4::int32,z:5::int32},s:"world",r2:{x:6::int32},key:"c"}
 
 output: |
-  {key:"a",fuse:<{a:string,r:{x:int32,y:int32,z:int32},key:string,s:string,r2:{x:int32}}>}
-  {key:"b",fuse:<{a:string,r:{x:int32,y:int32,z:int32},key:string,s:string,r2:{x:int32}}>}
-  {key:"c",fuse:<{a:string,r:{x:int32,y:int32,z:int32},key:string,s:string,r2:{x:int32}}>}
+  {key:"a",fuse:<{a:string|null,r:{x:int32|null,y:int32,z:int32|null},key:string,s:string|null,r2:null|{x:int32}}>}
+  {key:"b",fuse:<{a:string|null,r:{x:int32|null,y:int32,z:int32|null},key:string,s:string|null,r2:null|{x:int32}}>}
+  {key:"c",fuse:<{a:string|null,r:{x:int32|null,y:int32,z:int32|null},key:string,s:string|null,r2:null|{x:int32}}>}
