@@ -29,20 +29,20 @@ func (f *fuse) Result(sctx *super.Context) super.Value {
 	if len(f.shapes)+len(f.partials) == 0 {
 		return super.Null
 	}
-	schema := NewSchemaWithMissingFieldsAsNullable(sctx)
+	schema := NewFuserWithMissingFieldsAsNullable(sctx)
 	for _, p := range f.partials {
 		typ, err := sctx.LookupByValue(p.Bytes())
 		if err != nil {
 			panic(fmt.Errorf("fuse: invalid partial value: %w", err))
 		}
-		schema.Mixin(typ)
+		schema.Fuse(typ)
 	}
 	shapes := make([]super.Type, len(f.shapes))
 	for typ, i := range f.shapes {
 		shapes[i] = typ
 	}
 	for _, typ := range shapes {
-		schema.Mixin(typ)
+		schema.Fuse(typ)
 	}
 	return sctx.LookupTypeValue(schema.Type())
 }

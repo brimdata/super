@@ -14,7 +14,7 @@ type Op struct {
 	rctx   *runtime.Context
 	parent sbuf.Puller
 
-	fuser    *Fuser
+	fuser    *valueFuser
 	once     sync.Once
 	resultCh chan op.Result
 }
@@ -23,7 +23,7 @@ func New(rctx *runtime.Context, parent sbuf.Puller) *Op {
 	return &Op{
 		rctx:     rctx,
 		parent:   parent,
-		fuser:    NewFuser(rctx.Sctx, MemMaxBytes),
+		fuser:    newValueFuser(rctx.Sctx, MemMaxBytes),
 		resultCh: make(chan op.Result),
 	}
 }

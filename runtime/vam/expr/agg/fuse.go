@@ -9,42 +9,38 @@ import (
 )
 
 type fuse struct {
-	shapes   map[super.Type]int
+	types    map[super.Type]struct{}
 	partials []super.Value
 }
 
 func newFuse() *fuse {
 	return &fuse{
-		shapes: make(map[super.Type]int),
+		types: make(map[super.Type]struct{}),
 	}
 }
 
 func (f *fuse) Consume(vec vector.Any) {
-	if _, ok := f.shapes[vec.Type()]; !ok {
-		f.shapes[vec.Type()] = len(f.shapes)
+	if _, ok := f.types[vec.Type()]; !ok {
+		f.types[vec.Type()] = struct{}{}
 	}
 }
 
 func (f *fuse) Result(sctx *super.Context) super.Value {
-	if len(f.shapes)+len(f.partials) == 0 {
+	if len(f.types)+len(f.partials) == 0 {
 		return super.Null
 	}
-	schema := samagg.NewSchemaWithMissingFieldsAsNullable(sctx)
+	fuser := samagg.NewFuserWithMissingFieldsAsNullable(sctx)
 	for _, p := range f.partials {
 		typ, err := sctx.LookupByValue(p.Bytes())
 		if err != nil {
 			panic(fmt.Errorf("fuse: invalid partial value: %w", err))
 		}
-		schema.Mixin(typ)
+		fuser.Fuse(typ)
 	}
-	shapes := make([]super.Type, len(f.shapes))
-	for typ, i := range f.shapes {
-		shapes[i] = typ
+	for typ := range f.types {
+		fuser.Fuse(typ)
 	}
-	for _, typ := range shapes {
-		schema.Mixin(typ)
-	}
-	return sctx.LookupTypeValue(schema.Type())
+	return sctx.LookupTypeValue(fuser.Type())
 }
 
 func (f *fuse) ConsumeAsPartial(partial vector.Any) {

@@ -7,11 +7,11 @@ import (
 	"github.com/brimdata/super/sup"
 )
 
-func TestSchemaSamePrimitiveTypeTwice(t *testing.T) {
-	s := NewSchema(super.NewContext())
+func TestFuserSamePrimitiveTypeTwice(t *testing.T) {
+	s := NewFuser(super.NewContext())
 	typ := super.TypeInt64
-	s.Mixin(typ)
-	s.Mixin(typ)
+	s.Fuse(typ)
+	s.Fuse(typ)
 	if sType := s.Type(); sType != typ {
 		t.Fatalf("expected %s, got %s", sup.FormatType(typ), sup.FormatType(sType))
 	}

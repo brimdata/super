@@ -7,10 +7,9 @@ import (
 	"github.com/brimdata/super/runtime/sam/op/spill"
 )
 
-// Fuser buffers records written to it, assembling from them a unified schema of
-// fields and types.  Fuser then transforms those records to the unified schema
-// as they are read back from it.
-type Fuser struct {
+// valueFuser buffers values, computes a supertype over all the values,
+// then upcasts the values to the computed supertype as the values are read.
+type valueFuser struct {
 	sctx        *super.Context
 	memMaxBytes int
 
@@ -18,95 +17,88 @@ type Fuser struct {
 	vals    []super.Value
 	spiller *spill.File
 
-	types      map[super.Type]struct{}
-	uberSchema *agg.Schema
-	caster     function.Caster
-	typ        super.Type
+	fuser  *agg.Fuser
+	caster function.Caster
+	typ    super.Type
 }
 
-// NewFuser returns a new Fuser.  The Fuser buffers records in memory until
+// newValueFuser returns a new valueFuser that buffers values in memory until
 // their cumulative size (measured in scode.Bytes length) exceeds memMaxBytes,
 // at which point it buffers them in a temporary file.
-func NewFuser(sctx *super.Context, memMaxBytes int) *Fuser {
-	return &Fuser{
+func newValueFuser(sctx *super.Context, memMaxBytes int) *valueFuser {
+	return &valueFuser{
 		sctx:        sctx,
 		memMaxBytes: memMaxBytes,
-		types:       make(map[super.Type]struct{}),
-		uberSchema:  agg.NewSchemaWithMissingFieldsAsNullable(sctx),
+		fuser:       agg.NewFuserWithMissingFieldsAsNullable(sctx),
 		caster:      function.NewUpCaster(sctx),
 	}
 }
 
 // Close removes the receiver's temporary file if it created one.
-func (f *Fuser) Close() error {
-	if f.spiller != nil {
-		return f.spiller.CloseAndRemove()
+func (v *valueFuser) Close() error {
+	if v.spiller != nil {
+		return v.spiller.CloseAndRemove()
 	}
 	return nil
 }
 
 // Write buffers rec. If called after Read, Write panics.
-func (f *Fuser) Write(rec super.Value) error {
-	if f.typ != nil {
+func (v *valueFuser) Write(val super.Value) error {
+	if v.typ != nil {
 		panic("fuser: write after read")
 	}
-	if _, ok := f.types[rec.Type()]; !ok {
-		f.types[rec.Type()] = struct{}{}
-		f.uberSchema.Mixin(rec.Type())
+	v.fuser.Fuse(val.Type())
+	if v.spiller != nil {
+		return v.spiller.Write(val)
 	}
-	if f.spiller != nil {
-		return f.spiller.Write(rec)
-	}
-	return f.stash(rec)
+	return v.stash(val)
 }
 
-func (f *Fuser) stash(rec super.Value) error {
-	f.nbytes += len(rec.Bytes())
-	if f.nbytes >= f.memMaxBytes {
+func (v *valueFuser) stash(val super.Value) error {
+	v.nbytes += len(val.Bytes())
+	if v.nbytes >= v.memMaxBytes {
 		var err error
-		f.spiller, err = spill.NewTempFile()
+		v.spiller, err = spill.NewTempFile()
 		if err != nil {
 			return err
 		}
-		for _, rec := range f.vals {
-			if err := f.spiller.Write(rec); err != nil {
+		for _, val := range v.vals {
+			if err := v.spiller.Write(val); err != nil {
 				return err
 			}
 		}
-		f.vals = nil
-		return f.spiller.Write(rec)
+		v.vals = nil
+		return v.spiller.Write(val)
 	}
-	f.vals = append(f.vals, rec.Copy())
+	v.vals = append(v.vals, val.Copy())
 	return nil
 }
 
-// Read returns the next buffered record after transforming it to the unified
-// schema.
-func (f *Fuser) Read() (*super.Value, error) {
-	if f.typ == nil {
-		f.typ = f.uberSchema.Type()
-		if f.spiller != nil {
-			if err := f.spiller.Rewind(f.sctx); err != nil {
+// Read returns the next buffered value after upcasting to the supertype.
+func (v *valueFuser) Read() (*super.Value, error) {
+	if v.typ == nil {
+		v.typ = v.fuser.Type()
+		if v.spiller != nil {
+			if err := v.spiller.Rewind(v.sctx); err != nil {
 				return nil, err
 			}
 		}
 	}
-	rec, err := f.next()
-	if rec == nil || err != nil {
+	val, err := v.next()
+	if val == nil || err != nil {
 		return nil, err
 	}
-	return f.caster.Cast(*rec, f.typ).Ptr(), nil
+	return v.caster.Cast(*val, v.typ).Ptr(), nil
 }
 
-func (f *Fuser) next() (*super.Value, error) {
-	if f.spiller != nil {
-		return f.spiller.Read()
+func (v *valueFuser) next() (*super.Value, error) {
+	if v.spiller != nil {
+		return v.spiller.Read()
 	}
-	var rec *super.Value
-	if len(f.vals) > 0 {
-		rec = &f.vals[0]
-		f.vals = f.vals[1:]
+	var val *super.Value
+	if len(v.vals) > 0 {
+		val = &v.vals[0]
+		v.vals = v.vals[1:]
 	}
-	return rec, nil
-
+	return val, nil
 }
