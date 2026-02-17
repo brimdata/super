@@ -24,17 +24,16 @@ func (n *Not) Eval(val vector.Any) vector.Any {
 	return evalBool(n.sctx, n.eval, n.expr.Eval(val))
 }
 
-func (n *Not) eval(vecs ...vector.Any) vector.Any {
+func (*Not) eval(vecs ...vector.Any) vector.Any {
+	if vec, ok := CheckForNullThenError(vecs); ok {
+		return vec
+	}
 	switch vec := vecs[0].(type) {
 	case *vector.Bool:
 		return vector.Not(vec)
 	case *vector.Const:
-		if vec.Value().IsNull() {
-			return vec
-		}
-		return vector.NewConst(super.NewBool(!vec.Value().Bool()), vec.Len(), vec.Nulls)
-	case *vector.Error:
-		return vec
+		v := !vec.Value().Bool()
+		return vector.NewConst(super.NewBool(v), vec.Len())
 	default:
 		panic(vec)
 	}
@@ -55,46 +54,60 @@ func (a *And) Eval(val vector.Any) vector.Any {
 }
 
 func (a *And) eval(vecs ...vector.Any) vector.Any {
-	if vecs[0].Len() == 0 {
-		return vecs[0]
-	}
-	lhs, rhs := vector.Under(vecs[0]), vector.Under(vecs[1])
-	if _, ok := lhs.(*vector.Error); ok {
-		return a.andError(lhs, rhs)
-	}
-	if _, ok := rhs.(*vector.Error); ok {
-		return a.andError(rhs, lhs)
+	lhs, rhs := vecs[0], vecs[1]
+	lhsKind, rhsKind := lhs.Kind(), rhs.Kind()
+	switch {
+	case lhsKind == vector.KindNull:
+		if rhsKind == vector.KindNull {
+			return lhs
+		}
+		if rhsKind == vector.KindError {
+			return rhs
+		}
+		return a.evalWithNullOrError(rhs, lhs)
+	case rhsKind == vector.KindNull:
+		if lhsKind == vector.KindError {
+			return lhs
+		}
+		return a.evalWithNullOrError(lhs, rhs)
+	case lhsKind == vector.KindError:
+		if rhsKind == vector.KindError {
+			return lhs
+		}
+		return a.evalWithNullOrError(rhs, lhs)
+	case rhsKind == vector.KindError:
+		return a.evalWithNullOrError(lhs, rhs)
 	}
 	blhs, brhs := FlattenBool(lhs), FlattenBool(rhs)
-	and := bitvec.And(blhs.Bits, brhs.Bits)
-	if blhs.Nulls.IsZero() && brhs.Nulls.IsZero() {
-		return vector.NewBool(and, bitvec.Zero)
-	}
-	// any and false = false
-	// null and true = null
-	notfalse := bitvec.And(bitvec.Or(blhs.Bits, blhs.Nulls), bitvec.Or(brhs.Bits, brhs.Nulls))
-	nulls := bitvec.And(notfalse, bitvec.Or(blhs.Nulls, brhs.Nulls))
-	return vector.NewBool(and, nulls)
+	return vector.NewBool(bitvec.And(blhs.Bits, brhs.Bits))
 }
 
-func (a *And) andError(err vector.Any, vec vector.Any) vector.Any {
-	if _, ok := vec.(*vector.Error); ok {
-		return err
-	}
-	b := FlattenBool(vec)
-	// anything and FALSE = FALSE
-	isError := bitvec.Or(b.Bits, b.Nulls)
+func (*And) evalWithNullOrError(boolVec, nullOrErrorVec vector.Any) vector.Any {
+	// true and nullOrError = nullOrError
+	// false and any = false
 	var index []uint32
-	for i := range err.Len() {
-		if isError.IsSetDirect(i) {
+	for i := range boolVec.Len() {
+		if vector.BoolValue(boolVec, i) {
 			index = append(index, i)
 		}
 	}
-	if len(index) > 0 {
-		base := vector.ReversePick(vec, index)
-		return vector.Combine(base, index, vector.Pick(err, index))
+	return combine(boolVec, nullOrErrorVec, index)
+}
+
+func combine(baseVec, overlayVec vector.Any, index []uint32) vector.Any {
+	if len(index) == 0 {
+		return baseVec
 	}
-	return vec
+	if len(index) == int(overlayVec.Len()) {
+		return overlayVec
+	}
+	baseVec = vector.ReversePick(baseVec, index)
+	overlayVec = vector.Pick(overlayVec, index)
+	return vector.Combine(baseVec, index, overlayVec)
+}
+
+func EvalOr(sctx *super.Context, lhs, rhs vector.Any) vector.Any {
+	return evalBool(sctx, (*Or)(nil).eval, lhs, rhs)
 }
 
 type Or struct {
@@ -108,43 +121,43 @@ func NewLogicalOr(sctx *super.Context, lhs, rhs Evaluator) *Or {
 }
 
 func (o *Or) Eval(val vector.Any) vector.Any {
-	return EvalOr(o.sctx, o.lhs.Eval(val), o.rhs.Eval(val))
+	return evalBool(o.sctx, o.eval, o.lhs.Eval(val), o.rhs.Eval(val))
 }
 
-func EvalOr(sctx *super.Context, lhs, rhs vector.Any) vector.Any {
-	return evalBool(sctx, func(vecs ...vector.Any) vector.Any {
-		if vecs[0].Len() == 0 {
-			return vecs[0]
+func (o *Or) eval(vecs ...vector.Any) vector.Any {
+	lhs, rhs := vecs[0], vecs[1]
+	switch lhsKind, rhsKind := lhs.Kind(), rhs.Kind(); {
+	case lhsKind == vector.KindNull:
+		if rhsKind == vector.KindNull || rhsKind == vector.KindError {
+			return lhs
 		}
-		lhs, rhs := vector.Under(vecs[0]), vector.Under(vecs[1])
-		if _, ok := lhs.(*vector.Error); ok {
-			return orError(lhs, rhs)
+		return o.evalWithNullOrError(rhs, lhs)
+	case rhsKind == vector.KindNull:
+		if lhsKind == vector.KindError {
+			return rhs
 		}
-		if _, ok := rhs.(*vector.Error); ok {
-			return orError(rhs, lhs)
+		return o.evalWithNullOrError(lhs, rhs)
+	case lhsKind == vector.KindError:
+		if rhsKind == vector.KindError {
+			return lhs
 		}
-		return vector.Or(FlattenBool(lhs), FlattenBool(rhs))
-	}, lhs, rhs)
-}
-
-func orError(err, vec vector.Any) vector.Any {
-	if _, ok := vec.(*vector.Error); ok {
-		return err
+		return o.evalWithNullOrError(rhs, lhs)
+	case rhsKind == vector.KindError:
+		return o.evalWithNullOrError(lhs, rhs)
 	}
-	b := FlattenBool(vec)
-	// not error if true or null
-	notError := bitvec.Or(b.Bits, b.Nulls)
+	return vector.Or(FlattenBool(lhs), FlattenBool(rhs))
+}
+
+func (*Or) evalWithNullOrError(boolVec, nullOrErrorVec vector.Any) vector.Any {
+	// false or nullOrError = nullOrError
+	// true or any = true
 	var index []uint32
-	for i := range b.Len() {
-		if !notError.IsSetDirect(i) {
+	for i := range boolVec.Len() {
+		if !vector.BoolValue(boolVec, i) {
 			index = append(index, i)
 		}
 	}
-	if len(index) > 0 {
-		base := vector.ReversePick(vec, index)
-		return vector.Combine(base, index, vector.Pick(err, index))
-	}
-	return vec
+	return combine(boolVec, nullOrErrorVec, index)
 }
 
 // evalBool evaluates e using val to computs a boolean result.  For elements
@@ -155,7 +168,7 @@ func evalBool(sctx *super.Context, fn func(...vector.Any) vector.Any, vecs ...ve
 	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
 		for i, vec := range vecs {
 			vec := vector.Under(vec)
-			if k := vec.Kind(); k == vector.KindBool || k == vector.KindError {
+			if k := vec.Kind(); k == vector.KindBool || k == vector.KindNull || k == vector.KindError {
 				vecs[i] = vec
 			} else {
 				vecs[i] = vector.NewWrappedError(sctx, "not type bool", vec)
@@ -170,25 +183,13 @@ func FlattenBool(vec vector.Any) *vector.Bool {
 	case *vector.Const:
 		val := vec.Value()
 		if val.Bool() {
-			var bits bitvec.Bits
-			if vec.Nulls.IsZero() {
-				bits = bitvec.NewTrue(vec.Len())
-			} else {
-				bits = bitvec.Not(vec.Nulls)
-			}
-			return vector.NewBool(bits, vec.Nulls)
-		} else if val.IsNull() {
-			return vector.NewBoolEmpty(vec.Len(), bitvec.NewTrue(vec.Len()))
+			return vector.NewTrue(vec.Len())
 		}
-		return vector.NewBoolEmpty(vec.Len(), vec.Nulls)
+		return vector.NewFalse(vec.Len())
 	case *vector.Dynamic:
-		nulls := bitvec.NewFalse(vec.Len())
-		out := vector.NewBoolEmpty(vec.Len(), nulls)
+		out := vector.NewFalse(vec.Len())
 		for i := range vec.Len() {
-			v, null := vector.BoolValue(vec, i)
-			if null {
-				nulls.Set(i)
-			} else if v {
+			if vector.BoolValue(vec, i) {
 				out.Set(i)
 			}
 		}
@@ -208,7 +209,7 @@ type In struct {
 }
 
 func NewIn(sctx *super.Context, lhs, rhs Evaluator) *In {
-	return &In{sctx, lhs, rhs, NewPredicateWalk(NewCompare(sctx, "==", nil, nil).eval)}
+	return &In{sctx, lhs, rhs, NewPredicateWalk(sctx, NewCompare(sctx, "==", nil, nil).eval)}
 }
 
 func (i *In) Eval(this vector.Any) vector.Any {
@@ -216,38 +217,26 @@ func (i *In) Eval(this vector.Any) vector.Any {
 }
 
 func (i *In) eval(vecs ...vector.Any) vector.Any {
-	lhs, rhs := vecs[0], vecs[1]
-	if lhs.Type().Kind() == super.ErrorKind {
-		return lhs
+	if vec, ok := CheckForNullThenError(vecs); ok {
+		return vec
 	}
-	if rhs.Type().Kind() == super.ErrorKind {
-		if nulls := vector.NullsOf(lhs); !nulls.IsZero() {
-			// Nulls in LHS should still be null.
-			var nullTags []uint32
-			for i := range rhs.Len() {
-				if nulls.IsSetDirect(i) {
-					nullTags = append(nullTags, i)
-				}
-			}
-			length := uint32(len(nullTags))
-			out := vector.NewConst(super.NullBool, length, bitvec.NewTrue(length))
-			rhs = vector.ReversePick(rhs, nullTags)
-			return vector.Combine(rhs, nullTags, out)
-		}
-		return rhs
-	}
-	return i.pw.Eval(lhs, rhs)
+	return i.pw.Eval(vecs[0], vecs[1])
 }
 
 type PredicateWalk struct {
+	sctx *super.Context
 	pred func(...vector.Any) vector.Any
 }
 
-func NewPredicateWalk(pred func(...vector.Any) vector.Any) *PredicateWalk {
-	return &PredicateWalk{pred}
+func NewPredicateWalk(sctx *super.Context, pred func(...vector.Any) vector.Any) *PredicateWalk {
+	return &PredicateWalk{sctx, pred}
 }
 
 func (p *PredicateWalk) Eval(vecs ...vector.Any) vector.Any {
+	return vector.Apply(true, p.eval, vecs...)
+}
+
+func (p *PredicateWalk) eval(vecs ...vector.Any) vector.Any {
 	lhs, rhs := vecs[0], vecs[1]
 	rhs = vector.Under(rhs)
 	rhsOrig := rhs
@@ -258,12 +247,15 @@ func (p *PredicateWalk) Eval(vecs ...vector.Any) vector.Any {
 	}
 	switch rhs := rhs.(type) {
 	case *vector.Record:
-		out := vector.NewFalse(lhs.Len())
-		for _, f := range rhs.Fields {
+		if len(rhs.Fields) == 0 {
+			vector.NewFalse(rhs.Len())
+		}
+		out := p.Eval(lhs, rhs.Fields[0])
+		for _, vec := range rhs.Fields[1:] {
 			if index != nil {
-				f = vector.Pick(f, index)
+				vec = vector.Pick(vec, index)
 			}
-			out = vector.Or(out, FlattenBool(p.Eval(lhs, f)))
+			out = EvalOr(p.sctx, out, p.Eval(lhs, vec))
 		}
 		return out
 	case *vector.Array:
@@ -271,7 +263,7 @@ func (p *PredicateWalk) Eval(vecs ...vector.Any) vector.Any {
 	case *vector.Set:
 		return p.evalForList(lhs, rhs.Values, rhs.Offsets, index)
 	case *vector.Map:
-		return vector.Or(p.evalForList(lhs, rhs.Keys, rhs.Offsets, index),
+		return EvalOr(p.sctx, p.evalForList(lhs, rhs.Keys, rhs.Offsets, index),
 			p.evalForList(lhs, rhs.Values, rhs.Offsets, index))
 	case *vector.Union:
 		if index != nil {
@@ -288,11 +280,11 @@ func (p *PredicateWalk) Eval(vecs ...vector.Any) vector.Any {
 	}
 }
 
-func (p *PredicateWalk) evalForList(lhs, rhs vector.Any, offsets, index []uint32) *vector.Bool {
-	out := vector.NewFalse(lhs.Len())
-	nulls := roaring.New()
+func (p *PredicateWalk) evalForList(lhs, rhs vector.Any, offsets, index []uint32) vector.Any {
+	n := lhs.Len()
+	var nulls, trues roaring.Bitmap
 	var lhsIndex, rhsIndex []uint32
-	for j := range lhs.Len() {
+	for j := range n {
 		idx := j
 		if index != nil {
 			idx = index[j]
@@ -310,15 +302,41 @@ func (p *PredicateWalk) evalForList(lhs, rhs vector.Any, offsets, index []uint32
 		}
 		lhsView := vector.Pick(lhs, lhsIndex)
 		rhsView := vector.Pick(rhs, rhsIndex)
-		b := FlattenBool(p.Eval(lhsView, rhsView))
-		if b.Bits.TrueCount() > 0 {
-			out.Set(j)
-		} else if b.Nulls.TrueCount() > 0 {
+		vec := p.Eval(lhsView, rhsView)
+		if hasTrue(vec) {
+			trues.Add(j)
+		} else if hasNull(vec) {
 			nulls.Add(j)
 		}
 	}
-	if nulls.GetCardinality() > 0 {
-		out.Nulls = bitvec.New(nulls.ToDense(), lhs.Len())
-	}
-	return out
+	truesVec := vector.NewFalse(n)
+	trues.WriteDenseTo(truesVec.GetBits())
+	nullsVec := vector.NewConst(super.Null, n)
+	return combine(truesVec, nullsVec, nulls.ToArray())
+}
+
+func hasNull(vec vector.Any) bool {
+	var hasNull bool
+	vector.Apply(true, func(vecs ...vector.Any) vector.Any {
+		hasNull = hasNull || vecs[0].Kind() == vector.KindNull
+		return vecs[0]
+	}, vec)
+	return hasNull
+}
+
+func hasTrue(vec vector.Any) bool {
+	var hasTrue bool
+	vector.Apply(true, func(vecs ...vector.Any) vector.Any {
+		vec := vecs[0]
+		if !hasTrue {
+			for i := range vec.Len() {
+				if vector.BoolValue(vec, i) {
+					hasTrue = true
+					break
+				}
+			}
+		}
+		return vec
+	}, vec)
+	return hasTrue
 }

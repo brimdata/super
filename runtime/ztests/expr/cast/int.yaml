@@ -6,7 +6,7 @@ vector: true
 input: |
   "-1"
   "65535"
-  null::string
+  null
   1::uint64
   10000000000000000000::uint64
   -1.
@@ -25,10 +25,10 @@ output: |
   error({message:"cannot cast to int16",on:"65535"})
   65535::int32
   65535
-  null::int8
-  null::int16
-  null::int32
-  null::int64
+  error({message:"cannot cast to int8",on:null})
+  error({message:"cannot cast to int16",on:null})
+  error({message:"cannot cast to int32",on:null})
+  error({message:"cannot cast to int64",on:null})
   1::int8
   1::int16
   1::int32

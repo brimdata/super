@@ -388,9 +388,10 @@ func TestFilters(t *testing.T) {
 		{"?c.s", true},
 	})
 
-	// Test searching for a field name of an null record
-	runCases(t, "{rec:null::{str:string}}", []testcase{
-		{"?rec.str", true},
+	// Test searching a null field
+	runCases(t, "{rec:null}", []testcase{
+		{"?rec", true},
+		{"?rec.str", false},
 	})
 
 	// Test searching an empty top-level record

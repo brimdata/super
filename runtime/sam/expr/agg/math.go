@@ -34,10 +34,7 @@ func (m *mathReducer) Result(sctx *super.Context) super.Value {
 		return sctx.NewErrorf("mixture of string and numeric values")
 	}
 	if !m.hasval {
-		if m.math == nil {
-			return super.Null
-		}
-		return super.NewValue(m.math.typ(), nil)
+		return super.Null
 	}
 	return m.math.result()
 }

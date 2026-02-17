@@ -4,7 +4,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type ListElem struct {
@@ -28,8 +27,8 @@ func (a *ArrayExpr) Eval(this vector.Any) vector.Any {
 	if len(a.elems) == 0 {
 		typ := a.sctx.LookupTypeArray(super.TypeNull)
 		offsets := make([]uint32, this.Len()+1)
-		c := vector.NewConst(super.Null, 0, bitvec.Zero)
-		return vector.NewArray(typ, offsets, c, bitvec.Zero)
+		nullVec := vector.NewConst(super.Null, 0)
+		return vector.NewArray(typ, offsets, nullVec)
 	}
 	var vecs []vector.Any
 	for _, e := range a.elems {
@@ -44,7 +43,7 @@ func (a *ArrayExpr) Eval(this vector.Any) vector.Any {
 
 func (a *ArrayExpr) eval(in ...vector.Any) vector.Any {
 	offsets, inner := buildList(a.sctx, a.elems, in)
-	return vector.NewArray(a.sctx.LookupTypeArray(inner.Type()), offsets, inner, bitvec.Zero)
+	return vector.NewArray(a.sctx.LookupTypeArray(inner.Type()), offsets, inner)
 }
 
 func buildList(sctx *super.Context, elems []ListElem, in []vector.Any) ([]uint32, vector.Any) {
@@ -115,8 +114,7 @@ func buildList(sctx *super.Context, elems []ListElem, in []vector.Any) ([]uint32
 	if len(types) == 1 {
 		return offsets, mergeSameTypeVecs(types[0], tags, vecs)
 	}
-	nulls := unionNulls(tags, vecs)
-	return offsets, vector.NewUnion(sctx.LookupTypeUnion(types), tags, vecs, nulls)
+	return offsets, vector.NewUnion(sctx.LookupTypeUnion(types), tags, vecs)
 }
 
 func unwrapSpread(vec vector.Any) (vector.Any, []uint32, []uint32) {
@@ -132,23 +130,6 @@ func unwrapSpread(vec vector.Any) (vector.Any, []uint32, []uint32) {
 	return nil, nil, nil
 }
 
-func unionNulls(tags []uint32, vecs []vector.Any) bitvec.Bits {
-	for i, vec := range vecs {
-		if !vector.NullsOf(vec).IsZero() {
-			nulls := bitvec.NewFalse(uint32(len(tags)))
-			offs := make([]uint32, len(vecs))
-			for j, t := range tags {
-				if t >= uint32(i) && vector.NullsOf(vecs[t]).IsSet(offs[t]) {
-					nulls.Set(uint32(j))
-				}
-				offs[t]++
-			}
-			return nulls
-		}
-	}
-	return bitvec.Zero
-}
-
 func mergeSameTypeVecs(typ super.Type, tags []uint32, vecs []vector.Any) vector.Any {
 	// XXX This is going to be slow. At some point would nice to write a native
 	// merge of same type vectors.
@@ -161,5 +142,5 @@ func mergeSameTypeVecs(typ super.Type, tags []uint32, vecs []vector.Any) vector.
 		vb.Write(b.Bytes().Body())
 		counts[tag]++
 	}
-	return vb.Build(bitvec.Zero)
+	return vb.Build()
 }

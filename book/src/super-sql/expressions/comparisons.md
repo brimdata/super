@@ -124,13 +124,11 @@ values f"{this} like '%abc_e': {this like '%abc_e'}"
 "xabcde"
 "abcdex"
 "abcdd"
-null
 error("missing")
 # expected output
 "abcde like '%abc_e': true"
 "xabcde like '%abc_e': true"
 "abcdex like '%abc_e': false"
 "abcdd like '%abc_e': false"
-null::string
 error("missing")
 ```

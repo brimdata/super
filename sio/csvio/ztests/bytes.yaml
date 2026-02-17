@@ -1,7 +1,6 @@
 spq: pass
 
 input: |
-  {bytes:null::bytes}
   {bytes:0x}
   {bytes:0x68656c6c6f0a}
 
@@ -9,6 +8,5 @@ output-flags: -f csv
 
 output: |
   bytes
-
 
   0x68656c6c6f0a

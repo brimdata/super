@@ -18,7 +18,7 @@ func (g *Grep) Call(vals []super.Value) super.Value {
 		return g.sctx.WrapError("grep: pattern argument must be a string", patternVal)
 	}
 	if patternVal.IsNull() {
-		return super.NullBool
+		return super.Null
 	}
 	if p := patternVal.AsString(); g.grep == nil || g.pattern != p {
 		g.pattern = p

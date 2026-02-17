@@ -3,7 +3,6 @@ package function
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Quiet struct {
@@ -26,16 +25,13 @@ func (q *Quiet) Call(args ...vector.Any) vector.Any {
 		return args[0]
 	}
 	n := arg.Len()
-	vec := vector.NewStringEmpty(n, bitvec.NewFalse(n))
+	vec := vector.NewStringEmpty(n)
 	for i := uint32(0); i < n; i++ {
-		s, null := vector.StringValue(arg.Vals, i)
-		if null {
-			vec.Nulls.Set(i)
-		}
+		s := vector.StringValue(arg.Vals, i)
 		if s == "missing" {
 			s = "quiet"
 		}
 		vec.Append(s)
 	}
-	return vector.NewError(arg.Typ, vec, arg.Nulls)
+	return vector.NewError(arg.Typ, vec)
 }

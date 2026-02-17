@@ -5,7 +5,7 @@ input: |
   {_path:"conn",ts:2015-03-05T14:25:14.4199391Z,ts2:1970-01-01T00:00:01Z}
   {_path:"conn",ts:2015-03-05T14:25:14.419939Z,ts2:1970-01-01T00:00:01Z}
   {_path:"conn",ts:1924-10-29T09:34:45.580061Z,ts2:1970-01-01T00:00:01Z}
-  {_path:"conn",ts:null::time,ts2:null::time}
+  {_path:"conn",ts:null::(time|null),ts2:null::(time|null)}
 
 output-flags: -f zeek
 
@@ -21,4 +21,6 @@ output: |
   1425565514.419939100	1.000000
   1425565514.419939	1.000000
   -1425565514.419939	1.000000
+  #fields	ts	ts2
+  #types	time	time
   -	-

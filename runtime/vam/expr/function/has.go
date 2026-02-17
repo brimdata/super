@@ -5,7 +5,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Has struct {
@@ -24,38 +23,29 @@ func (h *Has) Call(args ...vector.Any) vector.Any {
 type Missing struct{}
 
 func (m *Missing) Call(args ...vector.Any) vector.Any {
-	n := args[0].Len()
-	var nbm roaring.Bitmap
 	for _, vec := range args {
-		if nulls := vector.NullsOf(vec); !nulls.IsZero() {
-			nbm.Or(roaring.FromDense(nulls.GetBits(), false))
+		if vec.Kind() == vector.KindNull {
+			return vec
 		}
+	}
+	n := args[0].Len()
+	for _, vec := range args {
 		if err, ok := vec.(*vector.Error); ok {
 			b := missingOrQuiet(err)
 			if b.IsEmpty() {
 				return err
 			}
 			if b.GetCardinality() == uint64(n) {
-				return vector.NewConst(super.True, vec.Len(), bitmapToBitvec(&nbm, n))
+				return vector.NewConst(super.True, vec.Len())
 			}
 			// Mix of errors and trues.
 			index := b.ToArray()
 			errIndex := roaring.Flip(b, 0, uint64(n)).ToArray()
-			trueVec := vector.NewConst(super.True, uint32(len(index)), bitvec.Zero)
-			if !nbm.IsEmpty() {
-				trueVec.Nulls = bitmapToBitvec(&nbm, n).Pick(index)
-			}
+			trueVec := vector.NewConst(super.True, uint32(len(index)))
 			return vector.Combine(trueVec, errIndex, vector.Pick(err, errIndex))
 		}
 	}
-	return vector.NewConst(super.False, args[0].Len(), bitmapToBitvec(&nbm, n))
-}
-
-func bitmapToBitvec(b *roaring.Bitmap, len uint32) bitvec.Bits {
-	if b.IsEmpty() {
-		return bitvec.Zero
-	}
-	return bitvec.New(b.ToDense(), len)
+	return vector.NewConst(super.False, args[0].Len())
 }
 
 func missingOrQuiet(verr *vector.Error) *roaring.Bitmap {

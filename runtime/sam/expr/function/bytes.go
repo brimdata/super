@@ -13,16 +13,13 @@ type Base64 struct {
 
 func (b *Base64) Call(args []super.Value) super.Value {
 	val := args[0].Under()
+	if val.IsNull() {
+		return super.Null
+	}
 	switch val.Type().ID() {
 	case super.IDBytes:
-		if val.IsNull() {
-			return b.sctx.NewErrorf("base64: illegal null argument")
-		}
 		return super.NewString(base64.StdEncoding.EncodeToString(val.Bytes()))
 	case super.IDString:
-		if val.IsNull() {
-			return super.NullBytes
-		}
 		bytes, err := base64.StdEncoding.DecodeString(super.DecodeString(val.Bytes()))
 		if err != nil {
 			return b.sctx.WrapError("base64: string argument is not base64", val)
@@ -39,16 +36,13 @@ type Hex struct {
 
 func (h *Hex) Call(args []super.Value) super.Value {
 	val := args[0].Under()
+	if val.IsNull() {
+		return super.Null
+	}
 	switch val.Type().ID() {
 	case super.IDBytes:
-		if val.IsNull() {
-			return h.sctx.NewErrorf("hex: illegal null argument")
-		}
 		return super.NewString(hex.EncodeToString(val.Bytes()))
 	case super.IDString:
-		if val.IsNull() {
-			return super.NullBytes
-		}
 		b, err := hex.DecodeString(super.DecodeString(val.Bytes()))
 		if err != nil {
 			return h.sctx.WrapError("hex: string argument is not hexidecimal", val)

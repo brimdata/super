@@ -6,8 +6,8 @@ import (
 	"regexp/syntax"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Regexp struct {
@@ -18,6 +18,9 @@ type Regexp struct {
 }
 
 func (r *Regexp) Call(args ...vector.Any) vector.Any {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
+		return vec
+	}
 	args = underAll(args)
 	regVec, inputVec := args[0], args[1]
 	if regVec.Type().ID() != super.IDString {
@@ -26,12 +29,12 @@ func (r *Regexp) Call(args ...vector.Any) vector.Any {
 	if inputVec.Type().ID() != super.IDString {
 		return vector.NewWrappedError(r.sctx, "regexp: string required for second arg", args[1])
 	}
-	errMsg := vector.NewStringEmpty(0, bitvec.Zero)
+	errMsg := vector.NewStringEmpty(0)
 	var errs []uint32
-	inner := vector.NewStringEmpty(0, bitvec.Zero)
-	out := vector.NewArray(r.sctx.LookupTypeArray(super.TypeString), []uint32{0}, inner, bitvec.Zero)
+	inner := vector.NewStringEmpty(0)
+	out := vector.NewArray(r.sctx.LookupTypeArray(super.TypeString), []uint32{0}, inner)
 	for i := range regVec.Len() {
-		re, _ := vector.StringValue(regVec, i)
+		re := vector.StringValue(regVec, i)
 		if r.restr != re {
 			r.restr = re
 			r.re, r.err = regexp.Compile(r.restr)
@@ -41,28 +44,18 @@ func (r *Regexp) Call(args ...vector.Any) vector.Any {
 			errs = append(errs, i)
 			continue
 		}
-		s, _ := vector.StringValue(inputVec, i)
+		s := vector.StringValue(inputVec, i)
 		match := r.re.FindStringSubmatch(s)
-		if match == nil {
-			if out.Nulls.IsZero() {
-				out.Nulls = bitvec.NewFalse(regVec.Len())
-			}
-			out.Nulls.Set(out.Len())
-			out.Offsets = append(out.Offsets, inner.Len())
-			continue
-		}
 		for _, b := range match {
 			inner.Append(b)
 		}
 		out.Offsets = append(out.Offsets, inner.Len())
 	}
-	if !out.Nulls.IsZero() {
-		out.Nulls.Shorten(out.Len())
-	}
+	c := vector.NewCombiner(out)
 	if len(errs) > 0 {
-		return vector.Combine(out, errs, vector.NewVecWrappedError(r.sctx, errMsg, vector.Pick(regVec, errs)))
+		c.Add(errs, vector.NewVecWrappedError(r.sctx, errMsg, vector.Pick(regVec, errs)))
 	}
-	return out
+	return c.Result()
 }
 
 type RegexpReplace struct {
@@ -73,35 +66,25 @@ type RegexpReplace struct {
 }
 
 func (r *RegexpReplace) Call(args ...vector.Any) vector.Any {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
+		return vec
+	}
 	args = underAll(args)
-	for i := range args {
-		if args[i].Type().ID() != super.IDString {
-			return vector.NewWrappedError(r.sctx, "regexp_replace: string arg required", args[i])
+	for _, vec := range args {
+		if vec.Type().ID() != super.IDString {
+			return vector.NewWrappedError(r.sctx, "regexp_replace: string arg required", vec)
 		}
 	}
 	sVec := args[0]
 	reVec := args[1]
 	replaceVec := args[2]
-	errMsg := vector.NewStringEmpty(0, bitvec.Zero)
+	errMsg := vector.NewStringEmpty(0)
 	var errs []uint32
-	nulls := bitvec.Or(bitvec.Or(vector.NullsOf(sVec), vector.NullsOf(reVec)), vector.NullsOf(replaceVec))
-	out := vector.NewStringEmpty(0, nulls)
+	out := vector.NewStringEmpty(0)
 	for i := range sVec.Len() {
-		s, null := vector.StringValue(sVec, i)
-		if null {
-			out.Append("")
-			continue
-		}
-		re, null := vector.StringValue(reVec, i)
-		if null {
-			out.Append("")
-			continue
-		}
-		replace, null := vector.StringValue(replaceVec, i)
-		if null {
-			out.Append("")
-			continue
-		}
+		s := vector.StringValue(sVec, i)
+		re := vector.StringValue(reVec, i)
+		replace := vector.StringValue(replaceVec, i)
 		if r.restr != re {
 			r.restr = re
 			r.re, r.err = regexp.Compile(re)
@@ -114,7 +97,6 @@ func (r *RegexpReplace) Call(args ...vector.Any) vector.Any {
 		out.Append(r.re.ReplaceAllString(s, replace))
 	}
 	if len(errs) > 0 {
-		out.Nulls = out.Nulls.ReversePick(errs)
 		return vector.Combine(out, errs, vector.NewVecWrappedError(r.sctx, errMsg, vector.Pick(args[1], errs)))
 	}
 	return out

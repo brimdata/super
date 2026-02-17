@@ -19,21 +19,14 @@ func (u *union) Consume(vec vector.Any) {
 	switch vec := vec.(type) {
 	case *vector.Const:
 		val := vec.Value()
-		if val.IsNull() {
-			return
-		}
-		u.samunion.Update(vec.Type(), val.Bytes())
+		u.samunion.Update(val.Type(), val.Bytes())
 	case *vector.Dict:
 		u.Consume(vec.Any)
 	case *vector.Error: // ignore
 	default:
-		nulls := vector.NullsOf(vec)
 		typ := vec.Type()
 		var b scode.Builder
 		for i := range vec.Len() {
-			if nulls.IsSet(i) {
-				continue
-			}
 			b.Truncate()
 			vec.Serialize(&b, i)
 			u.samunion.Update(typ, b.Bytes().Body())
@@ -46,7 +39,7 @@ func (u *union) Result(sctx *super.Context) super.Value {
 }
 
 func (u *union) ConsumeAsPartial(partial vector.Any) {
-	if c, ok := partial.(*vector.Const); ok && c.Value().IsNull() {
+	if partial.Kind() == vector.KindNull {
 		return
 	}
 	n := partial.Len()

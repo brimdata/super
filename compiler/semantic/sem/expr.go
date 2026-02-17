@@ -489,9 +489,6 @@ func valueToExpr(loc ast.Node, typ super.Type, bytes scode.Bytes) Expr {
 }
 
 func recordToExpr(loc ast.Node, typ *super.TypeRecord, bytes scode.Bytes) Expr {
-	if bytes == nil {
-		return NewCast(loc, valueToExpr(loc, super.TypeNull, nil), typ)
-	}
 	var elems []RecordElem
 	it := bytes.Iter()
 	for _, f := range typ.Fields {
@@ -508,9 +505,6 @@ func recordToExpr(loc ast.Node, typ *super.TypeRecord, bytes scode.Bytes) Expr {
 }
 
 func arrayToExpr(loc ast.Node, typ *super.TypeArray, bytes scode.Bytes) Expr {
-	if bytes == nil {
-		return NewCast(loc, valueToExpr(loc, super.TypeNull, nil), typ)
-	}
 	var elems []ArrayElem
 	inner := super.InnerType(typ)
 	for it := bytes.Iter(); !it.Done(); {
@@ -523,9 +517,6 @@ func arrayToExpr(loc ast.Node, typ *super.TypeArray, bytes scode.Bytes) Expr {
 }
 
 func setToExpr(loc ast.Node, typ *super.TypeSet, bytes scode.Bytes) Expr {
-	if bytes == nil {
-		return NewCast(loc, valueToExpr(loc, super.TypeNull, nil), typ)
-	}
 	var elems []ArrayElem
 	inner := super.InnerType(typ)
 
@@ -539,9 +530,6 @@ func setToExpr(loc ast.Node, typ *super.TypeSet, bytes scode.Bytes) Expr {
 }
 
 func unionToExpr(loc ast.Node, typ *super.TypeUnion, bytes scode.Bytes) Expr {
-	if bytes == nil {
-		return NewCast(loc, valueToExpr(loc, super.TypeNull, nil), typ)
-	}
 	it := bytes.Iter()
 	tag := super.DecodeInt(it.Next())
 	inner, err := typ.Type(int(tag))
@@ -552,9 +540,6 @@ func unionToExpr(loc ast.Node, typ *super.TypeUnion, bytes scode.Bytes) Expr {
 }
 
 func mapToExpr(loc ast.Node, typ *super.TypeMap, bytes scode.Bytes) Expr {
-	if bytes == nil {
-		return NewCast(loc, valueToExpr(loc, super.TypeNull, nil), typ)
-	}
 	keyType := super.TypeUnder(typ.KeyType)
 	valType := super.TypeUnder(typ.ValType)
 	var entries []Entry

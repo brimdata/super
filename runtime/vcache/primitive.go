@@ -9,7 +9,6 @@ import (
 	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/bitvec"
 )
@@ -17,17 +16,16 @@ import (
 type primitive struct {
 	mu   sync.Mutex
 	meta *csup.Primitive
-	count
-	nulls *nulls
-	any   any
+	len  uint32
+	any  any
 }
 
-func newPrimitive(cctx *csup.Context, meta *csup.Primitive, nulls *nulls) *primitive {
-	return &primitive{
-		meta:  meta,
-		nulls: nulls,
-		count: count{meta.Len(cctx), nulls.count()},
-	}
+func newPrimitive(cctx *csup.Context, meta *csup.Primitive) *primitive {
+	return &primitive{meta: meta, len: meta.Len(cctx)}
+}
+
+func (p *primitive) length() uint32 {
+	return p.len
 }
 
 func (*primitive) unmarshal(*csup.Context, field.Projection) {}
@@ -40,128 +38,67 @@ func (p *primitive) project(loader *loader, projection field.Projection) vector.
 }
 
 func (p *primitive) load(loader *loader) any {
-	nulls := p.nulls.get(loader)
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if p.any == nil {
-		p.any = p.loadAnyWithLock(loader, nulls)
+		p.any = p.loadAnyWithLock(loader)
 	}
 	return p.any
 }
 
-func (p *primitive) loadAnyWithLock(loader *loader, nulls bitvec.Bits) any {
-	if p.count.vals == 0 {
-		// no vals, just nulls
-		return empty(p.meta.Typ, p.length())
-	}
+func (p *primitive) loadAnyWithLock(loader *loader) any {
 	bytes := make([]byte, p.meta.Location.MemLength)
 	if err := p.meta.Location.Read(loader.r, bytes); err != nil {
 		panic(err)
 	}
 	length := p.length()
-	if !nulls.IsZero() && nulls.Len() != length {
-		panic(fmt.Sprintf("BAD NULLS LEN nulls %d %d (cnt.vals %d cnt.null %d) %s", nulls.Len(), length, p.count.vals, p.count.nulls, sup.String(p.meta.Typ)))
-	}
 	it := scode.Iter(bytes)
 	switch p.meta.Typ.(type) {
-	case *super.TypeOfUint8, *super.TypeOfUint16, *super.TypeOfUint32, *super.TypeOfUint64:
-		values := make([]uint64, length)
-		for slot := uint32(0); slot < length; slot++ {
-			if !nulls.IsSet(slot) {
-				values[slot] = super.DecodeUint(it.Next())
-			}
+	case *super.TypeOfUint8, *super.TypeOfUint16, *super.TypeOfUint32, *super.TypeOfUint64, *super.TypeEnum:
+		values := make([]uint64, 0, length)
+		for range length {
+			values = append(values, super.DecodeUint(it.Next()))
 		}
 		return values
 	case *super.TypeOfInt8, *super.TypeOfInt16, *super.TypeOfInt32, *super.TypeOfInt64, *super.TypeOfDuration, *super.TypeOfTime:
-		values := make([]int64, length)
-		for slot := uint32(0); slot < length; slot++ {
-			if !nulls.IsSet(slot) {
-				values[slot] = super.DecodeInt(it.Next())
-			}
+		values := make([]int64, 0, length)
+		for range length {
+			values = append(values, super.DecodeInt(it.Next()))
 		}
 		return values
 	case *super.TypeOfFloat16, *super.TypeOfFloat32, *super.TypeOfFloat64:
-		values := make([]float64, length)
-		for slot := uint32(0); slot < length; slot++ {
-			if !nulls.IsSet(slot) {
-				values[slot] = super.DecodeFloat(it.Next())
-			}
+		values := make([]float64, 0, length)
+		for range length {
+			values = append(values, super.DecodeFloat(it.Next()))
 		}
 		return values
 	case *super.TypeOfBool:
 		bits := bitvec.NewFalse(length)
-		for slot := uint32(0); slot < length; slot++ {
-			if !nulls.IsSet(slot) {
-				if super.DecodeBool(it.Next()) {
-					bits.Set(slot)
-				}
+		for slot := range length {
+			if super.DecodeBool(it.Next()) {
+				bits.Set(slot)
 			}
 		}
 		return bits
-	case *super.TypeOfBytes:
-		bytes := []byte{}
-		offs := make([]uint32, length+1)
-		var off uint32
-		for slot := uint32(0); slot < length; slot++ {
-			offs[slot] = off
-			if !nulls.IsSet(slot) {
-				b := super.DecodeBytes(it.Next())
-				bytes = append(bytes, b...)
-				off += uint32(len(b))
-			}
-		}
-		offs[length] = off
-		return vector.NewBytesTable(offs, bytes)
-	case *super.TypeOfString:
+	case *super.TypeOfBytes, *super.TypeOfString, *super.TypeOfType:
 		var bytes []byte
-		offs := make([]uint32, length+1)
-		var off uint32
-		for slot := uint32(0); slot < length; slot++ {
-			offs[slot] = off
-			if !nulls.IsSet(slot) {
-				s := super.DecodeString(it.Next())
-				bytes = append(bytes, []byte(s)...)
-				off += uint32(len(s))
-			}
+		// First offset is always zero.
+		offs := make([]uint32, 1, length+1)
+		for range length {
+			bytes = append(bytes, it.Next()...)
+			offs = append(offs, uint32(len(bytes)))
 		}
-		offs[length] = off
 		return vector.NewBytesTable(offs, bytes)
 	case *super.TypeOfIP:
-		values := make([]netip.Addr, length)
-		for slot := uint32(0); slot < length; slot++ {
-			if !nulls.IsSet(slot) {
-				values[slot] = super.DecodeIP(it.Next())
-			}
+		values := make([]netip.Addr, 0, length)
+		for range length {
+			values = append(values, super.DecodeIP(it.Next()))
 		}
 		return values
 	case *super.TypeOfNet:
-		values := make([]netip.Prefix, length)
-		for slot := uint32(0); slot < length; slot++ {
-			if !nulls.IsSet(slot) {
-				values[slot] = super.DecodeNet(it.Next())
-			}
-		}
-		return values
-	case *super.TypeOfType:
-		var bytes []byte
-		offs := make([]uint32, length+1)
-		var off uint32
-		for slot := uint32(0); slot < length; slot++ {
-			offs[slot] = off
-			if !nulls.IsSet(slot) {
-				tv := it.Next()
-				bytes = append(bytes, tv...)
-				off += uint32(len(tv))
-			}
-		}
-		offs[length] = off
-		return vector.NewBytesTable(offs, bytes)
-	case *super.TypeEnum:
-		values := make([]uint64, length)
-		for slot := range length {
-			if !nulls.IsSet(slot) {
-				values[slot] = super.DecodeUint(it.Next())
-			}
+		values := make([]netip.Prefix, 0, length)
+		for range length {
+			values = append(values, super.DecodeNet(it.Next()))
 		}
 		return values
 	case *super.TypeOfNull:
@@ -171,72 +108,29 @@ func (p *primitive) loadAnyWithLock(loader *loader, nulls bitvec.Bits) any {
 }
 
 func (p *primitive) newVector(loader *loader) vector.Any {
-	nulls := p.nulls.get(loader)
 	switch typ := p.meta.Typ.(type) {
 	case *super.TypeOfUint8, *super.TypeOfUint16, *super.TypeOfUint32, *super.TypeOfUint64:
-		return vector.NewUint(typ, p.load(loader).([]uint64), nulls)
+		return vector.NewUint(typ, p.load(loader).([]uint64))
 	case *super.TypeOfInt8, *super.TypeOfInt16, *super.TypeOfInt32, *super.TypeOfInt64, *super.TypeOfDuration, *super.TypeOfTime:
-		return vector.NewInt(typ, p.load(loader).([]int64), nulls)
+		return vector.NewInt(typ, p.load(loader).([]int64))
 	case *super.TypeOfFloat16, *super.TypeOfFloat32, *super.TypeOfFloat64:
-		return vector.NewFloat(typ, p.load(loader).([]float64), nulls)
+		return vector.NewFloat(typ, p.load(loader).([]float64))
 	case *super.TypeOfBool:
-		return vector.NewBool(p.load(loader).(bitvec.Bits), nulls)
+		return vector.NewBool(p.load(loader).(bitvec.Bits))
 	case *super.TypeOfBytes:
-		return vector.NewBytes(p.load(loader).(vector.BytesTable), nulls)
+		return vector.NewBytes(p.load(loader).(vector.BytesTable))
 	case *super.TypeOfString:
-		return vector.NewString(p.load(loader).(vector.BytesTable), nulls)
+		return vector.NewString(p.load(loader).(vector.BytesTable))
 	case *super.TypeOfIP:
-		return vector.NewIP(p.load(loader).([]netip.Addr), nulls)
+		return vector.NewIP(p.load(loader).([]netip.Addr))
 	case *super.TypeOfNet:
-		return vector.NewNet(p.load(loader).([]netip.Prefix), nulls)
+		return vector.NewNet(p.load(loader).([]netip.Prefix))
 	case *super.TypeOfType:
-		return vector.NewTypeValue(p.load(loader).(vector.BytesTable), nulls)
+		return vector.NewTypeValue(p.load(loader).(vector.BytesTable))
 	case *super.TypeEnum:
-		return vector.NewEnum(typ, p.load(loader).([]uint64), nulls)
+		return vector.NewEnum(typ, p.load(loader).([]uint64))
 	case *super.TypeOfNull:
-		return vector.NewConst(super.Null, p.length(), bitvec.Zero)
+		return vector.NewConst(super.Null, p.length())
 	}
 	panic(fmt.Errorf("internal error: vcache.loadPrimitive got unknown type %#v", p.meta.Typ))
-}
-
-func empty(typ super.Type, length uint32) any {
-	switch typ := typ.(type) {
-	case *super.TypeOfUint8, *super.TypeOfUint16, *super.TypeOfUint32, *super.TypeOfUint64:
-		return make([]uint64, length)
-	case *super.TypeOfInt8, *super.TypeOfInt16, *super.TypeOfInt32, *super.TypeOfInt64, *super.TypeOfDuration, *super.TypeOfTime:
-		return make([]int64, length)
-	case *super.TypeOfFloat16, *super.TypeOfFloat32, *super.TypeOfFloat64:
-		return make([]float64, length)
-	case *super.TypeOfBool:
-		return bitvec.NewFalse(length)
-	case *super.TypeOfBytes:
-		return vector.NewBytesTable(make([]uint32, length+1), nil)
-	case *super.TypeOfString:
-		return vector.NewBytesTable(make([]uint32, length+1), nil)
-	case *super.TypeOfIP:
-		return make([]netip.Addr, length)
-	case *super.TypeOfNet:
-		return make([]netip.Prefix, length)
-	case *super.TypeOfType:
-		return vector.NewBytesTable(make([]uint32, length+1), nil)
-	case *super.TypeOfNull:
-		return nil
-	default:
-		panic(fmt.Sprintf("vcache.empty: unknown type encountered: %T", typ))
-	}
-}
-
-func extendForNulls[T any](in []T, nulls bitvec.Bits, count count) []T {
-	if count.nulls == 0 {
-		return in
-	}
-	out := make([]T, count.length())
-	var off int
-	for i := range count.length() {
-		if !nulls.IsSet(i) {
-			out[i] = in[off]
-			off++
-		}
-	}
-	return out
 }

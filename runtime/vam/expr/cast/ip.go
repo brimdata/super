@@ -5,7 +5,6 @@ import (
 
 	"github.com/brimdata/super/pkg/byteconv"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 func castToIP(vec vector.Any, index []uint32) (vector.Any, []uint32, string, bool) {
@@ -14,21 +13,12 @@ func castToIP(vec vector.Any, index []uint32) (vector.Any, []uint32, string, boo
 		return vec, nil, "", true
 	case *vector.String:
 		n := lengthOf(vec, index)
-		var nulls bitvec.Bits
 		var ips []netip.Addr
 		var errs []uint32
 		for i := range n {
 			idx := i
 			if index != nil {
 				idx = index[i]
-			}
-			if vec.Nulls.IsSet(idx) {
-				if nulls.IsZero() {
-					nulls = bitvec.NewFalse(n)
-				}
-				nulls.Set(i)
-				ips = append(ips, netip.Addr{})
-				continue
 			}
 			ip, err := byteconv.ParseIP(vec.Table().Bytes(idx))
 			if err != nil {
@@ -37,7 +27,7 @@ func castToIP(vec vector.Any, index []uint32) (vector.Any, []uint32, string, boo
 			}
 			ips = append(ips, ip)
 		}
-		return vector.NewIP(ips, nulls), errs, "", true
+		return vector.NewIP(ips), errs, "", true
 	default:
 		return nil, nil, "", false
 	}
@@ -49,21 +39,12 @@ func castToNet(vec vector.Any, index []uint32) (vector.Any, []uint32, string, bo
 		return vec, nil, "", true
 	case *vector.String:
 		n := lengthOf(vec, index)
-		var nulls bitvec.Bits
 		var nets []netip.Prefix
 		var errs []uint32
 		for i := range n {
 			idx := i
 			if index != nil {
 				idx = index[i]
-			}
-			if vec.Nulls.IsSet(idx) {
-				if nulls.IsZero() {
-					nulls = bitvec.NewFalse(n)
-				}
-				nulls.Set(i)
-				nets = append(nets, netip.Prefix{})
-				continue
 			}
 			net, err := netip.ParsePrefix(vec.Value(idx))
 			if err != nil {
@@ -72,7 +53,7 @@ func castToNet(vec vector.Any, index []uint32) (vector.Any, []uint32, string, bo
 			}
 			nets = append(nets, net)
 		}
-		return vector.NewNet(nets, nulls), errs, "", true
+		return vector.NewNet(nets), errs, "", true
 	default:
 		return nil, nil, "", false
 	}

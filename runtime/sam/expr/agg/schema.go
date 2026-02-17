@@ -12,10 +12,17 @@ type Schema struct {
 	sctx *super.Context
 
 	typ super.Type
+
+	missingFieldsNullable bool
 }
 
 func NewSchema(sctx *super.Context) *Schema {
 	return &Schema{sctx: sctx}
+}
+
+// XXX Remove this when optional fields land.
+func NewSchemaWithMissingFieldsAsNullable(sctx *super.Context) *Schema {
+	return &Schema{sctx: sctx, missingFieldsNullable: true}
 }
 
 // Mixin mixes t into the fused type.
@@ -23,7 +30,7 @@ func (s *Schema) Mixin(t super.Type) {
 	if s.typ == nil {
 		s.typ = t
 	} else {
-		s.typ = merge(s.sctx, s.typ, t)
+		s.typ = s.merge(s.typ, t)
 	}
 }
 
@@ -32,52 +39,62 @@ func (s *Schema) Type() super.Type {
 	return s.typ
 }
 
-func merge(sctx *super.Context, a, b super.Type) super.Type {
+func (s *Schema) merge(a, b super.Type) super.Type {
 	if a == b {
 		return a
 	}
 	aUnder := super.TypeUnder(a)
-	if aUnder == super.TypeNull {
-		return b
-	}
 	bUnder := super.TypeUnder(b)
-	if bUnder == super.TypeNull {
-		return a
-	}
 	if a, ok := aUnder.(*super.TypeRecord); ok {
 		if b, ok := bUnder.(*super.TypeRecord); ok {
 			fields := slices.Clone(a.Fields)
+			if s.missingFieldsNullable {
+				for _, f := range b.Fields {
+					i, ok := indexOfField(fields, f.Name)
+					if !ok {
+						i = len(fields)
+						fields = append(fields, super.NewField(f.Name, super.TypeNull))
+					}
+					fields[i].Type = s.merge(fields[i].Type, f.Type)
+				}
+				for i, f := range fields {
+					if _, ok := indexOfField(b.Fields, f.Name); !ok {
+						fields[i].Type = s.merge(fields[i].Type, super.TypeNull)
+					}
+				}
+				return s.sctx.MustLookupTypeRecord(fields)
+			}
 			for _, f := range b.Fields {
 				if i, ok := indexOfField(fields, f.Name); !ok {
 					fields = append(fields, f)
 				} else if fields[i] != f {
-					fields[i].Type = merge(sctx, fields[i].Type, f.Type)
+					fields[i].Type = s.merge(fields[i].Type, f.Type)
 				}
 			}
-			return sctx.MustLookupTypeRecord(fields)
+			return s.sctx.MustLookupTypeRecord(fields)
 		}
 	}
 	if a, ok := aUnder.(*super.TypeArray); ok {
 		if b, ok := bUnder.(*super.TypeArray); ok {
-			return sctx.LookupTypeArray(merge(sctx, a.Type, b.Type))
+			return s.sctx.LookupTypeArray(s.merge(a.Type, b.Type))
 		}
 		if b, ok := bUnder.(*super.TypeSet); ok {
-			return sctx.LookupTypeArray(merge(sctx, a.Type, b.Type))
+			return s.sctx.LookupTypeArray(s.merge(a.Type, b.Type))
 		}
 	}
 	if a, ok := aUnder.(*super.TypeSet); ok {
 		if b, ok := bUnder.(*super.TypeArray); ok {
-			return sctx.LookupTypeArray(merge(sctx, a.Type, b.Type))
+			return s.sctx.LookupTypeArray(s.merge(a.Type, b.Type))
 		}
 		if b, ok := bUnder.(*super.TypeSet); ok {
-			return sctx.LookupTypeSet(merge(sctx, a.Type, b.Type))
+			return s.sctx.LookupTypeSet(s.merge(a.Type, b.Type))
 		}
 	}
 	if a, ok := aUnder.(*super.TypeMap); ok {
 		if b, ok := bUnder.(*super.TypeMap); ok {
-			keyType := merge(sctx, a.KeyType, b.KeyType)
-			valType := merge(sctx, a.ValType, b.ValType)
-			return sctx.LookupTypeMap(keyType, valType)
+			keyType := s.merge(a.KeyType, b.KeyType)
+			valType := s.merge(a.ValType, b.ValType)
+			return s.sctx.LookupTypeMap(keyType, valType)
 		}
 	}
 	if a, ok := aUnder.(*super.TypeUnion); ok {
@@ -89,17 +106,17 @@ func merge(sctx *super.Context, a, b super.Type) super.Type {
 		} else {
 			types = appendIfAbsent(types, b)
 		}
-		types = mergeAllRecords(sctx, types)
+		types = s.mergeAllRecords(types)
 		if len(types) == 1 {
 			return types[0]
 		}
-		return sctx.LookupTypeUnion(types)
+		return s.sctx.LookupTypeUnion(types)
 	}
 	if _, ok := bUnder.(*super.TypeUnion); ok {
-		return merge(sctx, b, a)
+		return s.merge(b, a)
 	}
 	// XXX Merge enums?
-	return sctx.LookupTypeUnion([]super.Type{a, b})
+	return s.sctx.LookupTypeUnion([]super.Type{a, b})
 }
 
 func appendIfAbsent(types []super.Type, typ super.Type) []super.Type {
@@ -118,7 +135,7 @@ func indexOfField(fields []super.Field, name string) (int, bool) {
 	return -1, false
 }
 
-func mergeAllRecords(sctx *super.Context, types []super.Type) []super.Type {
+func (s *Schema) mergeAllRecords(types []super.Type) []super.Type {
 	out := types[:0]
 	recIndex := -1
 	for _, t := range types {
@@ -126,7 +143,7 @@ func mergeAllRecords(sctx *super.Context, types []super.Type) []super.Type {
 			if recIndex < 0 {
 				recIndex = len(out)
 			} else {
-				out[recIndex] = merge(sctx, out[recIndex], t)
+				out[recIndex] = s.merge(out[recIndex], t)
 				continue
 			}
 		}

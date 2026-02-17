@@ -5,10 +5,10 @@ import (
 
 	"github.com/brimdata/super"
 	samfunc "github.com/brimdata/super/runtime/sam/expr/function"
+	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sio/supio"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type ParseURI struct {
@@ -21,6 +21,9 @@ func newParseURI(sctx *super.Context) *ParseURI {
 }
 
 func (p *ParseURI) Call(args ...vector.Any) vector.Any {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
+		return vec
+	}
 	vec := vector.Under(args[0])
 	if vec.Type().ID() != super.IDString {
 		return vector.NewWrappedError(p.sctx, "parse_uri: string arg required", args[0])
@@ -48,19 +51,18 @@ func newParseSUP(sctx *super.Context) *ParseSUP {
 }
 
 func (p *ParseSUP) Call(args ...vector.Any) vector.Any {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
+		return vec
+	}
 	vec := vector.Under(args[0])
 	if vec.Type().ID() != super.IDString {
 		return vector.NewWrappedError(p.sctx, "parse_sup: string arg required", args[0])
 	}
 	var errs []uint32
-	errMsgs := vector.NewStringEmpty(0, bitvec.Zero)
+	errMsgs := vector.NewStringEmpty(0)
 	builder := vector.NewDynamicBuilder()
 	for i := range vec.Len() {
-		s, null := vector.StringValue(vec, i)
-		if null {
-			builder.Write(super.Null)
-			continue
-		}
+		s := vector.StringValue(vec, i)
 		p.sr.Reset(s)
 		val, err := p.zr.Read()
 		if err != nil {

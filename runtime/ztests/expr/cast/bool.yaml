@@ -5,43 +5,35 @@ vector: true
 input: |
   true
   false
-  null::bool
-  null
   1
   0
   24::uint8
   0::uint8
-  null::uint8
   1.5
   0.
-  null::float64
   "T"::=named
   "true"
   "F"
   "false"
   "blah"
-  null::string
+  null
   "1"
   error("bad")
 
 output: |
   true
   false
-  null::bool
-  null::bool
   true
   false
   true
   false
-  null::bool
   true
   false
-  null::bool
   true
   true
   false
   false
   error({message:"cannot cast to bool",on:"blah"})
-  null::bool
+  error({message:"cannot cast to bool",on:null})
   true
   error("bad")

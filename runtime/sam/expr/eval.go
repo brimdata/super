@@ -65,7 +65,7 @@ func NewLogicalOr(sctx *super.Context, lhs, rhs Evaluator) *Or {
 // Otherwise, EvalBool returns an error.
 func EvalBool(sctx *super.Context, this super.Value, e Evaluator) super.Value {
 	val := e.Eval(this)
-	if super.TypeUnder(val.Type()) == super.TypeBool || val.IsError() {
+	if super.TypeUnder(val.Type()) == super.TypeBool || val.IsNull() || val.IsError() {
 		return val
 	}
 	return sctx.WrapError("not type bool", val)
@@ -88,7 +88,7 @@ func (a *And) Eval(this super.Value) super.Value {
 	}
 	if lhs.IsNull() || rhs.IsNull() {
 		// NULL AND TRUE = NULL
-		return super.NullBool
+		return super.Null
 	}
 	return super.True
 }
@@ -107,7 +107,7 @@ func (o *Or) Eval(this super.Value) super.Value {
 	if lhs.IsNull() || rhs.IsNull() {
 		// NULL OR FALSE = NULL
 		// NULL OR ERROR = NULL
-		return super.NullBool
+		return super.Null
 	}
 	// ERROR OR FALSE = ERROR
 	if lhs.IsError() {
@@ -139,7 +139,7 @@ func (i *In) Eval(this super.Value) super.Value {
 		return elem
 	}
 	if elem.IsNull() {
-		return super.NullBool
+		return super.Null
 	}
 	container := i.container.Eval(this)
 	if container.IsError() {
@@ -147,7 +147,7 @@ func (i *In) Eval(this super.Value) super.Value {
 	}
 	var hasnull bool
 	err := container.Walk(func(typ super.Type, body scode.Bytes) error {
-		if body == nil {
+		if super.TypeUnder(typ) == super.TypeNull {
 			hasnull = true
 		}
 		if coerce.Equal(elem, super.NewValue(typ, body)) {
@@ -160,7 +160,7 @@ func (i *In) Eval(this super.Value) super.Value {
 		return super.True
 	case nil:
 		if hasnull {
-			return super.NullBool
+			return super.Null
 		}
 		return super.False
 	default:
@@ -191,7 +191,7 @@ func (e *Equal) Eval(this super.Value) super.Value {
 		return *errVal
 	}
 	if lhsVal.IsNull() || rhsVal.IsNull() {
-		return super.NullBool
+		return super.Null
 	}
 	result := coerce.Equal(lhsVal, rhsVal)
 	if !e.equality {
@@ -217,13 +217,13 @@ func (r *RegexpMatch) Eval(this super.Value) super.Value {
 	switch id := val.Type().ID(); id {
 	case super.IDString:
 		if val.IsNull() {
-			return super.NullBool
+			return super.Null
 		}
 		if r.re.Match(val.Bytes()) {
 			return super.True
 		}
 	case super.IDNull:
-		return super.NullBool
+		return super.Null
 	}
 	return super.False
 }
@@ -255,22 +255,25 @@ func (n *numeric) evalAndPromote(this super.Value) (super.Value, super.Value, su
 	if err != nil {
 		return super.Null, super.Null, nil, n.sctx.NewError(err).Ptr()
 	}
-	if lhsVal.IsNull() || rhsVal.IsNull() {
-		return super.Null, super.Null, nil, super.NewValue(typ, nil).Ptr()
-	}
 	return lhsVal, rhsVal, typ, nil
 }
 
 func (n *numeric) eval(this super.Value) (super.Value, super.Value, *super.Value) {
-	lhs := n.lhs.Eval(this)
+	lhs := n.lhs.Eval(this).Under()
+	if lhs.IsNull() {
+		return super.Null, super.Null, &super.Null
+	}
+	rhs := n.rhs.Eval(this).Under()
+	if lhs.IsNull() || rhs.IsNull() {
+		return super.Null, super.Null, &super.Null
+	}
 	if lhs.IsError() {
 		return super.Null, super.Null, &lhs
 	}
-	rhs := n.rhs.Eval(this)
 	if rhs.IsError() {
 		return super.Null, super.Null, &rhs
 	}
-	return enumToIndex(lhs.Under()), enumToIndex(rhs.Under()), nil
+	return enumToIndex(lhs), enumToIndex(rhs), nil
 }
 
 // enumToIndex converts an enum to its index value.
@@ -320,7 +323,7 @@ func (c *Compare) Eval(this super.Value) super.Value {
 	}
 	lhs, rhs = lhs.Under(), rhs.Under()
 	if lhs.IsNull() || rhs.IsNull() {
-		return super.NullBool
+		return super.Null
 	}
 	switch lid, rid := lhs.Type().ID(), rhs.Type().ID(); {
 	case super.IsNumber(lid) && super.IsNumber(rid):
@@ -577,7 +580,7 @@ func (u *UnaryMinus) Eval(this super.Value) super.Value {
 			return u.sctx.WrapError("cannot cast to "+sup.FormatType(typ), val)
 		}
 		if val.IsNull() {
-			return super.NewValue(typ, nil)
+			return super.Null
 		}
 		val = super.NewInt(typ, v)
 	}

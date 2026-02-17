@@ -7,36 +7,23 @@ import "github.com/brimdata/super/vector/bitvec"
 func Pick(val Any, index []uint32) Any {
 	switch val := val.(type) {
 	case *Bool:
-		return NewBool(val.Bits.Pick(index), val.Nulls.Pick(index))
+		return NewBool(val.Bits.Pick(index))
 	case *Const:
-		return NewConst(val.val, uint32(len(index)), val.Nulls.Pick(index))
+		return NewConst(val.val, uint32(len(index)))
 	case *Dict:
 		index2 := make([]byte, len(index))
 		counts := make([]uint32, val.Any.Len())
-		var nulls bitvec.Bits
-		if !val.Nulls.IsZero() {
-			nulls = bitvec.NewFalse(uint32(len(index)))
-			for k, idx := range index {
-				if val.Nulls.IsSet(idx) {
-					nulls.Set(uint32(k))
-				}
-				v := val.Index[idx]
-				index2[k] = v
-				counts[v]++
-			}
-		} else {
-			for k, idx := range index {
-				v := val.Index[idx]
-				index2[k] = v
-				counts[v]++
-			}
+		for k, idx := range index {
+			v := val.Index[idx]
+			index2[k] = v
+			counts[v]++
 		}
-		return NewDict(val.Any, index2, counts, nulls)
+		return NewDict(val.Any, index2, counts)
 	case *Error:
-		return NewError(val.Typ, Pick(val.Vals, index), val.Nulls.Pick(index))
+		return NewError(val.Typ, Pick(val.Vals, index))
 	case *Union:
 		tags, values := viewForUnionOrDynamic(index, val.Tags, val.ForwardTagMap(), val.Values)
-		return NewUnion(val.Typ, tags, values, val.Nulls.Pick(index))
+		return NewUnion(val.Typ, tags, values)
 	case *Dynamic:
 		return NewDynamic(viewForUnionOrDynamic(index, val.Tags, val.ForwardTagMap(), val.Values))
 	case *View:

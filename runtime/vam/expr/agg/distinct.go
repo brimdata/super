@@ -38,9 +38,6 @@ func (d *distinct) ConsumeAsPartial(vec vector.Any) {
 	if vec.Len() != 1 {
 		panic("distinct: invalid partial")
 	}
-	if vector.NullsOf(vec).IsSet(0) {
-		return
-	}
 	var slot uint32
 	if view, ok := vec.(*vector.View); ok {
 		vec = view.Any
@@ -50,10 +47,7 @@ func (d *distinct) ConsumeAsPartial(vec vector.Any) {
 	if !ok {
 		panic("distinct: invalid partial")
 	}
-	start, end, null := vector.ContainerOffset(array, slot)
-	if null {
-		return
-	}
+	start, end := vector.ContainerOffset(array, slot)
 	values := array.Values
 	if start > 0 || end < vec.Len() {
 		index := make([]uint32, end-start)

@@ -3,23 +3,21 @@ package vector
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Float struct {
 	Typ    super.Type
 	Values []float64
-	Nulls  bitvec.Bits
 }
 
 var _ Any = (*Float)(nil)
 
-func NewFloat(typ super.Type, values []float64, nulls bitvec.Bits) *Float {
-	return &Float{Typ: typ, Values: values, Nulls: nulls}
+func NewFloat(typ super.Type, values []float64) *Float {
+	return &Float{typ, values}
 }
 
-func NewFloatEmpty(typ super.Type, length uint32, nulls bitvec.Bits) *Float {
-	return NewFloat(typ, make([]float64, 0, length), nulls)
+func NewFloatEmpty(typ super.Type, length uint32) *Float {
+	return NewFloat(typ, make([]float64, 0, length))
 }
 
 func (f *Float) Append(v float64) {
@@ -43,10 +41,6 @@ func (f *Float) Value(slot uint32) float64 {
 }
 
 func (f *Float) Serialize(b *scode.Builder, slot uint32) {
-	if f.Nulls.IsSet(slot) {
-		b.Append(nil)
-		return
-	}
 	switch f.Typ.ID() {
 	case super.IDFloat16:
 		b.Append(super.EncodeFloat16(float32(f.Values[slot])))
@@ -59,16 +53,13 @@ func (f *Float) Serialize(b *scode.Builder, slot uint32) {
 	}
 }
 
-func FloatValue(vec Any, slot uint32) (float64, bool) {
+func FloatValue(vec Any, slot uint32) float64 {
 	switch vec := Under(vec).(type) {
 	case *Float:
-		return vec.Value(slot), vec.Nulls.IsSet(slot)
+		return vec.Value(slot)
 	case *Const:
-		return vec.Value().Ptr().Float(), vec.Nulls.IsSet(slot)
+		return vec.Value().Ptr().Float()
 	case *Dict:
-		if vec.Nulls.IsSet(slot) {
-			return 0, true
-		}
 		return FloatValue(vec.Any, uint32(vec.Index[slot]))
 	case *Dynamic:
 		tag := vec.Tags[slot]

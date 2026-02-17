@@ -150,8 +150,8 @@ super -s out.parquet
 ```
 which produces
 ```mdtest-output
-{x:1,s:null::string}
-{x:null::int64,s:"hello"}
+{x:1::(int64|null),s:null::(string|null)}
+{x:null::(int64|null),s:"hello"::(string|null)}
 ```
 The downside of this approach is that the data must be changed (by inserting nulls)
 to conform to a single type.

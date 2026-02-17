@@ -9,11 +9,13 @@ inputs:
     data: |
       {a:"hello",b:"world"}
       {b:"goodnight",c:"gracie"}
+      {a:null,b:null,c:null}
 
 outputs:
   - name: stderr
     data: ""
   - name: stdout
     data: |
-      {a:"hello",b:"world",c:null::string}
-      {a:null::string,b:"goodnight",c:"gracie"}
+      {a:"hello"::(string|null),b:"world"::(string|null),c:null::(string|null)}
+      {a:null::(string|null),b:"goodnight"::(string|null),c:"gracie"::(string|null)}
+      {a:null::(string|null),b:null::(string|null),c:null::(string|null)}

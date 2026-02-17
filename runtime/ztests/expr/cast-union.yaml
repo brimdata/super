@@ -1,23 +1,23 @@
-spq: cast(this, <int64|string>)
+spq: cast(this, <int64|string|null>)
 
 vector: true
 
 input: |
   null
-  null::int64
-  null::string
-  null::(int64|string)
-  1::(int64|string)
   1
-  "a"::(int64|string)
+  2::(int64|string|null)
+  3::(int64|bool)
   "a"
+  "b"::(int64|string|null)
+  "c"::(bool|string)
+  true
 
 output: |
-  null::(int64|string)
-  null::(int64|string)
-  null::(int64|string)
-  null::(int64|string)
-  1::(int64|string)
-  1::(int64|string)
-  "a"::(int64|string)
-  "a"::(int64|string)
+  null::(int64|string|null)
+  1::(int64|string|null)
+  2::(int64|string|null)
+  3::(int64|string|null)
+  "a"::(int64|string|null)
+  "b"::(int64|string|null)
+  "c"::(int64|string|null)
+  error({message:"cannot cast to int64|string|null",on:true})

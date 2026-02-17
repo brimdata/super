@@ -3,7 +3,6 @@ package expr
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Literal struct {
@@ -17,5 +16,5 @@ func NewLiteral(val super.Value) *Literal {
 }
 
 func (l Literal) Eval(val vector.Any) vector.Any {
-	return vector.NewConst(l.val, val.Len(), bitvec.Zero)
+	return vector.NewConst(l.val, val.Len())
 }

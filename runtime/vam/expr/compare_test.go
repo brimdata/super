@@ -5,7 +5,6 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,15 +19,15 @@ func (t *testEval) Eval(_ vector.Any) vector.Any {
 // Test that Compare.Eval handles all ops for all vector forms.
 func TestCompareOpsAndForms(t *testing.T) {
 	// These are all [0, 1, 2].
-	lhsFlat := vector.NewUint(super.TypeUint64, []uint64{0, 1, 2}, bitvec.Zero)
-	lhsDict := vector.NewDict(lhsFlat, []byte{0, 1, 2}, nil, bitvec.Zero)
+	lhsFlat := vector.NewUint(super.TypeUint64, []uint64{0, 1, 2})
+	lhsDict := vector.NewDict(lhsFlat, []byte{0, 1, 2}, nil)
 	lhsView := vector.Pick(lhsFlat, []uint32{0, 1, 2})
 
 	// These are all [1, 1, 1].
-	rhsFlat := vector.NewUint(super.TypeUint64, []uint64{1, 1, 1}, bitvec.Zero)
-	rhsDict := vector.NewDict(rhsFlat, []byte{0, 0, 0}, nil, bitvec.Zero)
+	rhsFlat := vector.NewUint(super.TypeUint64, []uint64{1, 1, 1})
+	rhsDict := vector.NewDict(rhsFlat, []byte{0, 0, 0}, nil)
 	rhsView := vector.Pick(rhsFlat, []uint32{0, 1, 2})
-	Const := vector.NewConst(super.NewUint64(1), 3, bitvec.Zero)
+	Const := vector.NewConst(super.NewUint64(1), 3)
 
 	cases := []struct {
 		op, expected, expectedForConstLHS string

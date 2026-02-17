@@ -3,20 +3,18 @@ package vector
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Record struct {
 	Typ    *super.TypeRecord
 	Fields []Any
 	len    uint32
-	Nulls  bitvec.Bits
 }
 
 var _ Any = (*Record)(nil)
 
-func NewRecord(typ *super.TypeRecord, fields []Any, length uint32, nulls bitvec.Bits) *Record {
-	return &Record{Typ: typ, Fields: fields, len: length, Nulls: nulls}
+func NewRecord(typ *super.TypeRecord, fields []Any, length uint32) *Record {
+	return &Record{typ, fields, length}
 }
 
 func (*Record) Kind() Kind {
@@ -32,10 +30,6 @@ func (r *Record) Len() uint32 {
 }
 
 func (r *Record) Serialize(b *scode.Builder, slot uint32) {
-	if r.Nulls.IsSet(slot) {
-		b.Append(nil)
-		return
-	}
 	b.BeginContainer()
 	for _, f := range r.Fields {
 		f.Serialize(b, slot)

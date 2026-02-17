@@ -36,8 +36,8 @@ fuse
 {a:1}
 {b:2}
 # expected output
-{a:1,b:null::int64}
-{a:null::int64,b:2}
+{a:1::(int64|null),b:null::(int64|null)}
+{a:null::(int64|null),b:2::(int64|null)}
 ```
 
 ---
@@ -64,6 +64,6 @@ fuse
 {a:[1,2]}
 {a:["foo","bar"],b:10.0.0.1}
 # expected output
-{a:[1,2]::[int64|string],b:null::ip}
-{a:["foo","bar"]::[int64|string],b:10.0.0.1}
+{a:[1,2]::[int64|string],b:null::(ip|null)}
+{a:["foo","bar"]::[int64|string],b:10.0.0.1::(ip|null)}
 ```

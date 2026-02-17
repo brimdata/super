@@ -5,7 +5,6 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type NetworkOf struct {
@@ -34,12 +33,12 @@ func (n *NetworkOf) Call(args ...vector.Any) vector.Any {
 
 func (n *NetworkOf) singleIP(vec vector.Any) vector.Any {
 	if c, ok := vec.(*vector.Const); ok {
-		ip, _ := vector.IPValue(vec, 0)
+		ip := vector.IPValue(vec, 0)
 		if !ip.Is4() {
 			return errNotIP4(n.sctx, vec)
 		}
 		net := netip.PrefixFrom(ip, bitsFromIP(ip.As4())).Masked()
-		return vector.NewConst(super.NewNet(net), c.Len(), c.Nulls)
+		return vector.NewConst(super.NewNet(net), c.Len())
 	}
 	var errs []uint32
 	var nets vector.Any
@@ -50,11 +49,11 @@ func (n *NetworkOf) singleIP(vec vector.Any) vector.Any {
 		nets, errs = n.singleIPLoop(vec.Any.(*vector.IP), vec.Index)
 	case *vector.Dict:
 		netVals, derrs := n.singleIPLoop(vec.Any.(*vector.IP), nil)
-		index, counts, nulls := vec.Index, vec.Counts, vec.Nulls
+		index, counts := vec.Index, vec.Counts
 		if len(derrs) > 0 {
-			index, counts, nulls, errs = vec.RebuildDropTags(derrs...)
+			index, counts, errs = vec.RebuildDropTags(derrs...)
 		}
-		nets = vector.NewDict(netVals, index, counts, nulls)
+		nets = vector.NewDict(netVals, index, counts)
 	}
 	if len(errs) > 0 {
 		return vector.Combine(nets, errs, errNotIP4(n.sctx, vector.Pick(vec, errs)))
@@ -77,7 +76,7 @@ func (n *NetworkOf) singleIPLoop(vec *vector.IP, index []uint32) (*vector.Net, [
 		}
 		nets = append(nets, netip.PrefixFrom(ip, bitsFromIP(ip.As4())).Masked())
 	}
-	return vector.NewNet(nets, bitvec.Zero), errs
+	return vector.NewNet(nets), errs
 }
 
 // inlined
@@ -96,8 +95,8 @@ func (n *NetworkOf) ipMask(ipvec, maskvec vector.Any) vector.Any {
 	var nets []netip.Prefix
 	var errsLen, errsCont []uint32
 	for i := range ipvec.Len() {
-		ip, _ := vector.IPValue(ipvec, i)
-		mask, _ := vector.IPValue(maskvec, i)
+		ip := vector.IPValue(ipvec, i)
+		mask := vector.IPValue(maskvec, i)
 		if mask.BitLen() != ip.BitLen() {
 			errsLen = append(errsLen, i)
 			continue
@@ -109,7 +108,7 @@ func (n *NetworkOf) ipMask(ipvec, maskvec vector.Any) vector.Any {
 		}
 		nets = append(nets, netip.PrefixFrom(ip, bits).Masked())
 	}
-	b := vector.NewCombiner(vector.NewNet(nets, bitvec.Zero))
+	b := vector.NewCombiner(vector.NewNet(nets))
 	m := addressAndMask(n.sctx, ipvec, maskvec)
 	b.WrappedError(n.sctx, errsLen, "network_of: address and mask have different lengths", m)
 	b.WrappedError(n.sctx, errsCont, "network_of: mask is non-contiguous", maskvec)
@@ -122,12 +121,12 @@ func (n *NetworkOf) intMask(ipvec, maskvec vector.Any) vector.Any {
 	if c, ok := maskvec.(*vector.Const); ok {
 		bits, _ := c.AsInt()
 		if _, ok := ipvec.(*vector.Const); ok {
-			ip, _ := vector.IPValue(ipvec, 0)
+			ip := vector.IPValue(ipvec, 0)
 			net := netip.PrefixFrom(ip, int(bits))
 			if net.Bits() < 0 {
 				return errCIDRRange(n.sctx, ipvec, maskvec)
 			}
-			return vector.NewConst(super.NewNet(net.Masked()), ipvec.Len(), bitvec.Zero)
+			return vector.NewConst(super.NewNet(net.Masked()), ipvec.Len())
 		}
 		out, errs = n.intMaskFast(ipvec, int(bits))
 	} else {
@@ -136,13 +135,11 @@ func (n *NetworkOf) intMask(ipvec, maskvec vector.Any) vector.Any {
 		for i := range ipvec.Len() {
 			var bits int
 			if super.IsSigned(id) {
-				b, _ := vector.IntValue(maskvec, i)
-				bits = int(b)
+				bits = int(vector.IntValue(maskvec, i))
 			} else {
-				b, _ := vector.UintValue(maskvec, i)
-				bits = int(b)
+				bits = int(vector.UintValue(maskvec, i))
 			}
-			ip, _ := vector.IPValue(ipvec, i)
+			ip := vector.IPValue(ipvec, i)
 			net := netip.PrefixFrom(ip, bits)
 			if net.Bits() < 0 {
 				errs = append(errs, i)
@@ -150,7 +147,7 @@ func (n *NetworkOf) intMask(ipvec, maskvec vector.Any) vector.Any {
 			}
 			nets = append(nets, netip.PrefixFrom(ip, bits).Masked())
 		}
-		out = vector.NewNet(nets, bitvec.Zero)
+		out = vector.NewNet(nets)
 	}
 	if len(errs) > 0 {
 		m := vector.Pick(addressAndMask(n.sctx, ipvec, maskvec), errs)
@@ -168,12 +165,12 @@ func (n *NetworkOf) intMaskFast(vec vector.Any, bits int) (vector.Any, []uint32)
 		return n.intMaskFastLoop(vec.Any.(*vector.IP), vec.Index, bits)
 	case *vector.Dict:
 		nets, derrs := n.intMaskFastLoop(vec.Any.(*vector.IP), nil, bits)
-		index, counts, nulls := vec.Index, vec.Counts, vec.Nulls
+		index, counts := vec.Index, vec.Counts
 		var errs []uint32
 		if len(derrs) > 0 {
-			index, counts, nulls, errs = vec.RebuildDropTags(derrs...)
+			index, counts, errs = vec.RebuildDropTags(derrs...)
 		}
-		return vector.NewDict(nets, index, counts, nulls), errs
+		return vector.NewDict(nets, index, counts), errs
 	default:
 		panic(vec)
 	}
@@ -195,7 +192,7 @@ func (n *NetworkOf) intMaskFastLoop(vec *vector.IP, index []uint32, bits int) (v
 		}
 		nets = append(nets, net.Masked())
 	}
-	return vector.NewNet(nets, bitvec.Zero), errs
+	return vector.NewNet(nets), errs
 }
 
 func errCIDRRange(sctx *super.Context, ipvec, maskvec vector.Any) vector.Any {
@@ -212,5 +209,5 @@ func addressAndMask(sctx *super.Context, address, mask vector.Any) vector.Any {
 		{Name: "address", Type: address.Type()},
 		{Name: "mask", Type: mask.Type()},
 	})
-	return vector.NewRecord(typ, []vector.Any{address, mask}, address.Len(), bitvec.Zero)
+	return vector.NewRecord(typ, []vector.Any{address, mask}, address.Len())
 }

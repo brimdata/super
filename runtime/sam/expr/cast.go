@@ -41,6 +41,8 @@ func LookupPrimitiveCaster(sctx *super.Context, typ super.Type) Evaluator {
 		return &casterBytes{sctx}
 	case super.TypeType:
 		return &casterType{sctx}
+	case super.TypeNull:
+		return &casterNull{sctx}
 	default:
 		return nil
 	}
@@ -170,8 +172,6 @@ func (c *casterTime) Eval(val super.Value) super.Value {
 	switch {
 	case id == super.IDTime:
 		return val
-	case val.IsNull():
-		// Do nothing. Any nil value is cast to a zero time.
 	case id == super.IDString:
 		gotime, err := dateparse.ParseAny(byteconv.UnsafeString(val.Bytes()))
 		if err != nil {
@@ -217,6 +217,8 @@ func (c *casterString) Eval(val super.Value) super.Value {
 		return super.NewString(strconv.FormatUint(val.Uint(), 10))
 	case super.IDFloat16, super.IDFloat32, super.IDFloat64:
 		return super.NewString(strconv.FormatFloat(val.Float(), 'g', -1, 64))
+	case super.IDNull:
+		return c.sctx.WrapError("cannot cast to string", val)
 	}
 	if enum, ok := val.Type().(*super.TypeEnum); ok {
 		selector := super.DecodeUint(val.Bytes())
@@ -295,4 +297,15 @@ func (c *casterEnum) Eval(val super.Value) super.Value {
 		return c.sctx.WrapError(fmt.Sprintf("no such symbol in %s", sup.String(c.enum)), val)
 	}
 	return super.NewValue(c.enum, super.EncodeUint(uint64(selector)))
+}
+
+type casterNull struct {
+	sctx *super.Context
+}
+
+func (c *casterNull) Eval(val super.Value) super.Value {
+	if val.Type().ID() != super.IDNull {
+		return c.sctx.WrapError("cannot cast to null", val)
+	}
+	return val
 }

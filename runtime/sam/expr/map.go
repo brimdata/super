@@ -23,7 +23,7 @@ func NewMapCall(sctx *super.Context, e, lambda Evaluator) Evaluator {
 
 func (a *mapCall) Eval(in super.Value) super.Value {
 	val := a.eval.Eval(in)
-	if val.IsError() {
+	if val.IsNull() || val.IsError() {
 		return val
 	}
 	elems, err := val.Elements()

@@ -4,7 +4,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type NullIf struct {
@@ -16,24 +15,28 @@ func newNullIf(sctx *super.Context) *NullIf {
 }
 
 func (n *NullIf) Call(vecs ...vector.Any) vector.Any {
-	if vecs[0].Type().Kind() == super.ErrorKind {
+	if k := vecs[0].Kind(); k == vector.KindNull || k == vector.KindError {
 		return vecs[0]
 	}
-	if vecs[1].Type().Kind() == super.ErrorKind {
+	if vecs[1].Kind() == vector.KindError {
 		return vecs[1]
 	}
 	result := n.compare.Compare(vecs[0], vecs[1])
 	if result.Type().Kind() == super.ErrorKind {
 		return vecs[0]
 	}
-	nulls := vector.NullsOf(vecs[0]).Clone()
+	var index []uint32
 	for i := range result.Len() {
-		if b, _ := vector.BoolValue(result, i); b {
-			if nulls.IsZero() {
-				nulls = bitvec.NewFalse(vecs[0].Len())
-			}
-			nulls.Set(i)
+		if vector.BoolValue(result, i) {
+			index = append(index, i)
 		}
 	}
-	return vector.CopyAndSetNulls(vecs[0], nulls)
+	if len(index) == 0 {
+		return vecs[0]
+	}
+	nullsVec := vector.NewConst(super.Null, uint32(len(index)))
+	if len(index) == int(vecs[0].Len()) {
+		return nullsVec
+	}
+	return vector.Combine(vector.ReversePick(vecs[0], index), index, nullsVec)
 }

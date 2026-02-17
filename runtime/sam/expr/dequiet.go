@@ -26,10 +26,6 @@ func (d *Dequiet) Eval(this super.Value) super.Value {
 }
 
 func (d *Dequiet) rec(builder *scode.Builder, typ super.Type, b scode.Bytes) super.Type {
-	if b == nil {
-		builder.Append(nil)
-		return typ
-	}
 	rtyp := super.TypeRecordOf(typ)
 	if rtyp == nil {
 		builder.Append(nil)

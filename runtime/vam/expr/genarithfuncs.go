@@ -29,7 +29,6 @@ func main() {
 	fmt.Fprintln(&buf, "import (")
 	fmt.Fprintln(&buf, `"github.com/brimdata/super"`)
 	fmt.Fprintln(&buf, `"github.com/brimdata/super/vector"`)
-	fmt.Fprintln(&buf, `"github.com/brimdata/super/vector/bitvec"`)
 	fmt.Fprintln(&buf, ")")
 
 	var ents strings.Builder
@@ -73,10 +72,10 @@ func genFunc(name, op, typ string, lhs, rhs vector.Form) string {
 	s += genVarInit("r", typ, rhs)
 	if lhs == vector.FormConst && rhs == vector.FormConst {
 		s += fmt.Sprintf("val := super.New%s(lhs.Type(), lconst %s rconst)\n", typ, op)
-		s += "return vector.NewConst(val, lhs.Len(), bitvec.Zero)\n"
+		s += "return vector.NewConst(val, lhs.Len())\n"
 	} else {
 		s += "n := lhs.Len()\n"
-		s += fmt.Sprintf("out := vector.New%sEmpty(lhs.Type(), n, bitvec.Zero)\n", typ)
+		s += fmt.Sprintf("out := vector.New%sEmpty(lhs.Type(), n)\n", typ)
 		s += genLoop(op, lhs, rhs)
 		s += "return out\n"
 	}
@@ -105,7 +104,7 @@ func genVarInit(which, typ string, form vector.Form) string {
 func genLoop(op string, lform, rform vector.Form) string {
 	lexpr := genExpr("l", lform)
 	rexpr := genExpr("r", rform)
-	return fmt.Sprintf("for k := uint32(0); k < n; k++ { out.Append(%s %s %s) }\n", lexpr, op, rexpr)
+	return fmt.Sprintf("for k := range n { out.Append(%s %s %s) }\n", lexpr, op, rexpr)
 }
 
 func genExpr(which string, form vector.Form) string {

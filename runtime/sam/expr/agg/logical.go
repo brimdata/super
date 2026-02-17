@@ -11,7 +11,7 @@ type And struct {
 var _ Function = (*And)(nil)
 
 func (a *And) Consume(val super.Value) {
-	if val.IsNull() || super.TypeUnder(val.Type()) != super.TypeBool {
+	if super.TypeUnder(val.Type()) != super.TypeBool {
 		return
 	}
 	if a.val == nil {
@@ -23,12 +23,15 @@ func (a *And) Consume(val super.Value) {
 
 func (a *And) Result(*super.Context) super.Value {
 	if a.val == nil {
-		return super.NullBool
+		return super.Null
 	}
 	return super.NewBool(*a.val)
 }
 
 func (a *And) ConsumeAsPartial(val super.Value) {
+	if val.IsNull() {
+		return
+	}
 	if val.Type() != super.TypeBool {
 		panic("and: partial not a bool")
 	}
@@ -46,24 +49,26 @@ type Or struct {
 var _ Function = (*Or)(nil)
 
 func (o *Or) Consume(val super.Value) {
-	if val.IsNull() || super.TypeUnder(val.Type()) != super.TypeBool {
+	if super.TypeUnder(val.Type()) != super.TypeBool {
 		return
 	}
 	if o.val == nil {
-		b := false
-		o.val = &b
+		o.val = new(bool)
 	}
 	*o.val = *o.val || val.Bool()
 }
 
 func (o *Or) Result(*super.Context) super.Value {
 	if o.val == nil {
-		return super.NullBool
+		return super.Null
 	}
 	return super.NewBool(*o.val)
 }
 
 func (o *Or) ConsumeAsPartial(val super.Value) {
+	if val.IsNull() {
+		return
+	}
 	if val.Type() != super.TypeBool {
 		panic("or: partial not a bool")
 	}

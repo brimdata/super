@@ -59,7 +59,7 @@ func (o *Object) Close() error {
 func (o *Object) Fetch(sctx *super.Context, projection field.Projection) (vector.Any, error) {
 	cctx := o.object.Context()
 	loader := &loader{cctx, sctx, o.object.DataReader()}
-	o.root = newShadow(cctx, o.object.Root(), nil)
+	o.root = newShadow(cctx, o.object.Root())
 	o.root.unmarshal(cctx, projection)
 	return loader.load(projection, o.root)
 }
@@ -69,7 +69,7 @@ func (o *Object) Fetch(sctx *super.Context, projection field.Projection) (vector
 // vector.Dynamic.
 func (o *Object) FetchUnordered(vecs []vector.Any, sctx *super.Context, projection field.Projection) ([]vector.Any, error) {
 	cctx := o.object.Context()
-	o.root = newShadow(cctx, o.object.Root(), nil)
+	o.root = newShadow(cctx, o.object.Root())
 	o.root.unmarshal(cctx, projection)
 	loader := &loader{cctx: cctx, sctx: sctx, r: o.object.DataReader()}
 	if d, ok := o.root.(*dynamic); ok {

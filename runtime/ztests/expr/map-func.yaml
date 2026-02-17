@@ -3,18 +3,16 @@ spq: values map(this,&upper)
 vector: true
 
 input: |
-  ["foo","bar",null::string]
-  null::[string]
-  |["foo","bar",null::string]|
-  null::|[string]|
+  ["foo","bar",null]
+  |["foo","bar",null]|
   "invalid"
+  null
 
 output: |
-  ["FOO","BAR",null::string]
-  null::[string]
-  |[null::string,"BAR","FOO"]|
-  null::|[string]|
+  ["FOO","BAR",null]
+  |[null,"BAR","FOO"]|
   error({message:"map: expected array or set value",on:"invalid"})
+  null
   
 ---
 

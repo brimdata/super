@@ -17,8 +17,7 @@ values
   0x0102beef,
   'hello, world'::bytes,
   len(0x010203),
-  0x,
-  null::bytes
+  0x
 # input
 
 # expected output
@@ -26,5 +25,4 @@ values
 0x68656c6c6f2c20776f726c64
 3
 0x
-null::bytes
 ```

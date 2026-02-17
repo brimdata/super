@@ -16,10 +16,7 @@ inputs:
       "foo"::(int64|string)
       <int64>
       |[1,2,3]|
-      null::int64
-      null::string
-      null::type
-      null::{}
+      null
 
 outputs:
   - name: stdout

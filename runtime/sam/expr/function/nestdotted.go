@@ -55,8 +55,8 @@ func (n *NestDotted) lookupBuilderAndType(in *super.TypeRecord) (*super.RecordBu
 }
 
 func (n *NestDotted) Call(args []super.Value) super.Value {
-	val := args[len(args)-1]
-	if val.Type().ID() == super.IDNull {
+	val := args[0]
+	if val.IsNull() {
 		return val
 	}
 	rtyp := super.TypeRecordOf(val.Type())
@@ -69,9 +69,6 @@ func (n *NestDotted) Call(args []super.Value) super.Value {
 	}
 	if b == nil {
 		return val
-	}
-	if val.IsNull() {
-		return super.NewValue(typ, nil)
 	}
 	b.Reset()
 	for it := val.Bytes().Iter(); !it.Done(); {

@@ -83,16 +83,11 @@ var errMatch = errors.New("match")
 
 func (c *CIDRMatch) Call(args []super.Value) super.Value {
 	maskVal := args[0].Under()
-	if id := maskVal.Type().ID(); id != super.IDNet && id != super.IDNull {
-		val := c.sctx.WrapError("cidr_match: not a net", maskVal)
-		if maskVal.IsNull() {
-			val = super.NewValue(val.Type(), nil)
-		}
-		return val
-
-	}
 	if maskVal.IsNull() || args[1].IsNull() {
-		return super.NewValue(super.TypeBool, nil)
+		return super.Null
+	}
+	if maskVal.Type() != super.TypeNet {
+		return c.sctx.WrapError("cidr_match: not a net", maskVal)
 	}
 	prefix := super.DecodeNet(maskVal.Bytes())
 	err := args[1].Walk(func(typ super.Type, body scode.Bytes) error {

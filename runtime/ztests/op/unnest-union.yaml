@@ -7,6 +7,7 @@ input: |
   [1, "foo"]::[int64|string]
   [3, 4]::([int64]|ip)
   "bar"::(int64|string)
+  null::(int64|null)
 
 output: |
   1

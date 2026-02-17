@@ -33,15 +33,11 @@ func (p *ParseURI) Call(args []super.Value) super.Value {
 		Fragment *string    `super:"fragment"`
 	}
 	in := args[0]
+	if in.IsNull() {
+		return super.Null
+	}
 	if !in.IsString() {
 		return p.sctx.WrapError("parse_uri: string arg required", in)
-	}
-	if in.IsNull() {
-		out, err := p.marshaler.Marshal((*uri)(nil))
-		if err != nil {
-			panic(err)
-		}
-		return out
 	}
 	s := super.DecodeString(in.Bytes())
 	u, err := url.Parse(s)
@@ -101,11 +97,11 @@ func newParseSUP(sctx *super.Context) *ParseSUP {
 
 func (p *ParseSUP) Call(args []super.Value) super.Value {
 	in := args[0].Under()
-	if !in.IsString() {
-		return p.sctx.WrapError("parse_sup: string arg required", args[0])
-	}
 	if in.IsNull() {
 		return super.Null
+	}
+	if !in.IsString() {
+		return p.sctx.WrapError("parse_sup: string arg required", args[0])
 	}
 	p.sr.Reset(super.DecodeString(in.Bytes()))
 	val, err := p.zr.Read()

@@ -7,7 +7,6 @@ script: |
   echo ===
   super -s -c 'values {s,match:RegEXP_REPLACE(s, "(f|B).*", "smash")}' in.sup
 
-
 inputs:
   - name: in.sup
     data: |
@@ -28,9 +27,9 @@ outputs:
       ===
       {s:"foo",match:["foo","f"]}
       {s:"Bar",match:["Bar","B"]}
-      {s:"baz",match:null::[string]}
-      {s:"Gar",match:null::[string]}
-      {s:"goo",match:null::[string]}
+      {s:"baz",match:[]::[string]}
+      {s:"Gar",match:[]::[string]}
+      {s:"goo",match:[]::[string]}
       ===
       {s:"foo",match:"smash"}
       {s:"Bar",match:"smash"}

@@ -3,9 +3,9 @@ package function
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/nano"
+	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/runtime/vam/expr/cast"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 	"github.com/lestrrat-go/strftime"
 )
 
@@ -15,6 +15,9 @@ type Bucket struct {
 }
 
 func (b *Bucket) Call(args ...vector.Any) vector.Any {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
+		return vec
+	}
 	args = underAll(args)
 	tsArg, binArg := args[0], args[1]
 	tsID, binID := tsArg.Type().ID(), binArg.Type().ID()
@@ -28,13 +31,10 @@ func (b *Bucket) Call(args ...vector.Any) vector.Any {
 }
 
 func (b *Bucket) call(args ...vector.Any) vector.Any {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
+		return vec
+	}
 	tsArg, binArg := args[0], args[1]
-	if tsArg.Type().Kind() == super.ErrorKind {
-		return tsArg
-	}
-	if binArg.Type().Kind() == super.ErrorKind {
-		return binArg
-	}
 	if constBin, ok := binArg.(*vector.Const); ok {
 		// Optimize case where the bin argument is static.
 		bin, _ := constBin.AsInt()
@@ -42,16 +42,15 @@ func (b *Bucket) call(args ...vector.Any) vector.Any {
 	}
 	var ints []int64
 	for i := range tsArg.Len() {
-		dur, _ := vector.IntValue(tsArg, i)
-		bin, _ := vector.IntValue(binArg, i)
+		dur := vector.IntValue(tsArg, i)
+		bin := vector.IntValue(binArg, i)
 		if bin == 0 {
 			ints = append(ints, dur)
 		} else {
 			ints = append(ints, int64(nano.Ts(dur).Trunc(nano.Duration(bin))))
 		}
 	}
-	nulls := bitvec.Or(vector.NullsOf(tsArg), vector.NullsOf(binArg))
-	return vector.NewInt(b.resultType(tsArg), ints, nulls)
+	return vector.NewInt(b.resultType(tsArg), ints)
 }
 
 func (b *Bucket) constBin(tsVec vector.Any, bin nano.Duration) vector.Any {
@@ -62,11 +61,11 @@ func (b *Bucket) constBin(tsVec vector.Any, bin nano.Duration) vector.Any {
 	case *vector.Const:
 		ts, _ := tsVec.AsInt()
 		val := super.NewInt(b.resultType(tsVec), int64(nano.Ts(ts).Trunc(bin)))
-		return vector.NewConst(val, tsVec.Len(), tsVec.Nulls)
+		return vector.NewConst(val, tsVec.Len())
 	case *vector.View:
 		return vector.NewView(b.constBinFlat(tsVec.Any, bin), tsVec.Index)
 	case *vector.Dict:
-		return vector.NewDict(b.constBinFlat(tsVec.Any, bin), tsVec.Index, tsVec.Counts, tsVec.Nulls)
+		return vector.NewDict(b.constBinFlat(tsVec.Any, bin), tsVec.Index, tsVec.Counts)
 	default:
 		return b.constBinFlat(tsVec, bin)
 	}
@@ -82,7 +81,7 @@ func (b *Bucket) constBinFlat(tsVecFlat vector.Any, bin nano.Duration) *vector.I
 			ints[i] = int64(nano.Ts(tsVec.Values[i]).Trunc(bin))
 		}
 	}
-	return vector.NewInt(b.resultType(tsVec), ints, tsVec.Nulls)
+	return vector.NewInt(b.resultType(tsVec), ints)
 }
 
 func (b *Bucket) resultType(tsVec vector.Any) super.Type {
@@ -97,7 +96,7 @@ type Now struct{}
 func (*Now) needsInput() {}
 
 func (n *Now) Call(args ...vector.Any) vector.Any {
-	return vector.NewConst(super.NewTime(nano.Now()), args[0].Len(), bitvec.Zero)
+	return vector.NewConst(super.NewTime(nano.Now()), args[0].Len())
 }
 
 type Strftime struct {
@@ -105,6 +104,9 @@ type Strftime struct {
 }
 
 func (s *Strftime) Call(args ...vector.Any) vector.Any {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
+		return vec
+	}
 	args = underAll(args)
 	formatVec, timeVec := args[0], args[1]
 	if formatVec.Type().ID() != super.IDString {
@@ -132,11 +134,11 @@ func (s *Strftime) fastPath(fvec *vector.Const, tvec vector.Any) vector.Any {
 		return s.fastPathLoop(f, tvec.Any.(*vector.Int), tvec.Index)
 	case *vector.Dict:
 		vec := s.fastPathLoop(f, tvec.Any.(*vector.Int), nil)
-		return vector.NewDict(vec, tvec.Index, tvec.Counts, tvec.Nulls)
+		return vector.NewDict(vec, tvec.Index, tvec.Counts)
 	case *vector.Const:
 		t, _ := tvec.AsInt()
 		s := f.FormatString(nano.Ts(t).Time())
-		return vector.NewConst(super.NewString(s), tvec.Len(), tvec.Nulls)
+		return vector.NewConst(super.NewString(s), tvec.Len())
 	default:
 		panic(tvec)
 	}
@@ -144,14 +146,14 @@ func (s *Strftime) fastPath(fvec *vector.Const, tvec vector.Any) vector.Any {
 
 func (s *Strftime) fastPathLoop(f *strftime.Strftime, vec *vector.Int, index []uint32) *vector.String {
 	if index != nil {
-		out := vector.NewStringEmpty(uint32(len(index)), vec.Nulls.Pick(index))
+		out := vector.NewStringEmpty(uint32(len(index)))
 		for _, i := range index {
 			s := f.FormatString(nano.Ts(vec.Values[i]).Time())
 			out.Append(s)
 		}
 		return out
 	}
-	out := vector.NewStringEmpty(vec.Len(), vec.Nulls)
+	out := vector.NewStringEmpty(vec.Len())
 	for i := range vec.Len() {
 		s := f.FormatString(nano.Ts(vec.Values[i]).Time())
 		out.Append(s)
@@ -162,10 +164,10 @@ func (s *Strftime) fastPathLoop(f *strftime.Strftime, vec *vector.Int, index []u
 func (s *Strftime) slowPath(fvec vector.Any, tvec vector.Any) vector.Any {
 	var f *strftime.Strftime
 	var errIndex []uint32
-	errMsgs := vector.NewStringEmpty(0, bitvec.Zero)
-	out := vector.NewStringEmpty(0, bitvec.NewFalse(tvec.Len()))
+	errMsgs := vector.NewStringEmpty(0)
+	out := vector.NewStringEmpty(0)
 	for i := range fvec.Len() {
-		format, _ := vector.StringValue(fvec, i)
+		format := vector.StringValue(fvec, i)
 		if f == nil || f.Pattern() != format {
 			var err error
 			f, err = strftime.New(format)
@@ -175,12 +177,7 @@ func (s *Strftime) slowPath(fvec vector.Any, tvec vector.Any) vector.Any {
 				continue
 			}
 		}
-		t, isnull := vector.IntValue(tvec, i)
-		if isnull {
-			out.Nulls.Set(out.Len())
-			out.Append("")
-			continue
-		}
+		t := vector.IntValue(tvec, i)
 		out.Append(f.FormatString(nano.Ts(t).Time()))
 	}
 	if len(errIndex) > 0 {

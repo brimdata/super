@@ -55,12 +55,12 @@ _Cast a record to a different record type_
 cast(this, <{b:string}>)
 # input
 {a:1,b:2}
-{a:3}
 {b:4}
+{a:3}
 # expected output
 {b:"2"}
-{b:null::string}
 {b:"4"}
+{b:error("missing")}
 ```
 
 ---

@@ -27,12 +27,9 @@ func NewSlice(sctx *super.Context, elem, from, to Evaluator, base1 bool) *Slice 
 	}
 }
 
-var ErrSliceIndex = errors.New("slice index is not a number")
-var ErrSliceIndexEmpty = errors.New("slice index is empty")
-
 func (s *Slice) Eval(this super.Value) super.Value {
 	elem := s.elem.Eval(this)
-	if elem.IsError() {
+	if elem.IsNull() || elem.IsError() {
 		return elem
 	}
 	var length int
@@ -50,19 +47,20 @@ func (s *Slice) Eval(this super.Value) super.Value {
 	default:
 		return s.sctx.WrapError("sliced value is not array, set, bytes, or string", elem)
 	}
-	if elem.IsNull() {
-		return elem
-	}
-	from, err := sliceIndex(this, s.from, length, s.base1)
-	if err != nil && err != ErrSliceIndexEmpty {
-		return s.sctx.NewError(err)
-	}
-	to, err := sliceIndex(this, s.to, length, s.base1)
-	if err != nil {
-		if err != ErrSliceIndexEmpty {
-			return s.sctx.NewError(err)
+	from, to := 0, length
+	if s.from != nil {
+		val := s.sliceIndex(s.from.Eval(this), length, s.base1)
+		if val.IsNull() || val.IsError() {
+			return val
 		}
-		to = length
+		from = int(val.Int())
+	}
+	if s.to != nil {
+		val := s.sliceIndex(s.to.Eval(this), length, s.base1)
+		if val.IsNull() || val.IsError() {
+			return val
+		}
+		to = int(val.Int())
 	}
 	from, to = FixSliceBounds(from, to, length)
 	bytes := elem.Bytes()
@@ -87,24 +85,21 @@ func (s *Slice) Eval(this super.Value) super.Value {
 	return super.NewValue(elem.Type(), bytes)
 }
 
-func sliceIndex(this super.Value, slot Evaluator, length int, base1 bool) (int, error) {
-	if slot == nil {
-		//XXX
-		return 0, ErrSliceIndexEmpty
+func (s *Slice) sliceIndex(val super.Value, length int, base1 bool) super.Value {
+	if val.IsNull() || val.IsError() {
+		return val
 	}
-	val := slot.Eval(this)
-	v, ok := coerce.ToInt(val, super.TypeInt64)
+	index, ok := coerce.ToInt(val, super.TypeInt64)
 	if !ok {
-		return 0, ErrSliceIndex
+		return s.sctx.NewError(errors.New("slice index is not a number"))
 	}
-	index := int(v)
 	if base1 && index > 0 {
 		index--
 	}
 	if index < 0 {
-		index += length
+		index += int64(length)
 	}
-	return index, nil
+	return super.NewInt64(index)
 }
 
 func FixSliceBounds(start, end, size int) (int, int) {

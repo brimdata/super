@@ -1,9 +1,9 @@
 spq: pass
 
 input: |
-  {"type":{"kind":"record","id":32,"fields":[{"name":"a","type":{"kind":"array","id":31,"type":{"kind":"union","id":30,"types":[{"kind":"primitive","name":"int32"},{"kind":"primitive","name":"string"}]}}}]},"value":[[["1","asdfasdf"],null,["0","100"]]]}
-  {"type":{"kind":"ref","id":32},"value":[null]}
+  {"type":{"kind":"record","id":33,"fields":[{"name":"a","type":{"kind":"union","id":32,"types":[{"kind":"primitive","name":"null"},{"kind":"array","id":31,"type":{"kind":"union","id":30,"types":[{"kind":"primitive","name":"int32"},{"kind":"primitive","name":"string"},{"kind":"primitive","name":"null"}]}}]}}]},"value":[["1",[["1","asdfasdf"],["2",null],["0","100"]]]]}
+  {"type":{"kind":"ref","id":33},"value":[["0",null]]}
 
 output: |
-  {a:["asdfasdf",null,100::int32]}
-  {a:null::[int32|string]}
+  {a:["asdfasdf",null,100::int32]::(null|[int32|string|null])}
+  {a:null::(null|[int32|string|null])}

@@ -135,14 +135,14 @@ func TestBytes(t *testing.T) {
 	rec, err = m.Marshal(b2)
 	require.NoError(t, err)
 	require.NotNil(t, rec)
-	assert.Equal(t, "{B:null::bytes}", sup.FormatValue(rec))
+	assert.Equal(t, "{B:null}", sup.FormatValue(rec))
 
 	s := SliceRecord{S: nil}
 	m = sup.NewBSUPMarshaler()
 	rec, err = m.Marshal(s)
 	require.NoError(t, err)
 	require.NotNil(t, rec)
-	assert.Equal(t, "{S:null::[bytes]}", sup.FormatValue(rec))
+	assert.Equal(t, "{S:null}", sup.FormatValue(rec))
 }
 
 type RecordWithInterfaceSlice struct {
@@ -471,5 +471,5 @@ func TestEmbeddedNilInterface(t *testing.T) {
 	}
 	val, err := sup.Marshal(in)
 	require.NoError(t, err)
-	assert.Equal(t, `{Fields:null::[{Name:string,Values:null}]}`, val)
+	assert.Equal(t, `{Fields:null}`, val)
 }

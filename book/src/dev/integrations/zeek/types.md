@@ -92,32 +92,32 @@ super -S zeek_types.log | tee zeek_types.sup
 
 ```mdtest-output
 {
-  my_bool: true,
-  my_count: 123::uint64,
-  my_int: 456,
-  my_double: 123.456,
-  my_time: 2020-06-18T17:42:31.123456Z,
-  my_interval: 2m3.456s,
-  my_printable_string: "smile😁smile",
-  my_bytes_string: "\t\u0007\u0004",
-  my_port: 80::(port=uint16),
-  my_addr: 127.0.0.1,
-  my_subnet: 10.0.0.0/8,
-  my_enum: "tcp"::=zenum,
+  my_bool: true::(bool|null),
+  my_count: 123::uint64::(uint64|null),
+  my_int: 456::(int64|null),
+  my_double: 123.456::(float64|null),
+  my_time: 2020-06-18T17:42:31.123456Z::(time|null),
+  my_interval: 2m3.456s::(duration|null),
+  my_printable_string: "smile😁smile"::(string|null),
+  my_bytes_string: "\t\u0007\u0004"::(string|null),
+  my_port: 80::(port=uint16)::(port|null),
+  my_addr: 127.0.0.1::(ip|null),
+  my_subnet: 10.0.0.0/8::(net|null),
+  my_enum: "tcp"::=zenum::(zenum|null),
   my_set: |[
     "a",
     "in",
     "set",
     "things"
-  ]|,
+  ]|::|[string|null]|::(null||[string|null]|),
   my_vector: [
     "order",
     "is",
     "important"
-  ],
+  ]::[string|null]::(null|[string|null]),
   my_record: {
-    name: "Jeanne",
-    age: 122::uint64
+    name: "Jeanne"::(string|null),
+    age: 122::uint64::(uint64|null)
   }
 }
 ```

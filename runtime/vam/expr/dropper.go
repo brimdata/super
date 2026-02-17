@@ -95,10 +95,10 @@ func (d *Dropper) drop(vec vector.Any, fm fieldsMap) (vector.Any, bool) {
 			return nil, true
 		}
 		newRecType := d.sctx.MustLookupTypeRecord(newFields)
-		return vector.NewRecord(newRecType, newVecs, vec.Len(), vec.Nulls), true
+		return vector.NewRecord(newRecType, newVecs, vec.Len()), true
 	case *vector.Dict:
 		if newVec, ok := d.drop(vec.Any, fm); ok {
-			return vector.NewDict(newVec, vec.Index, vec.Counts, vec.Nulls), true
+			return vector.NewDict(newVec, vec.Index, vec.Counts), true
 		}
 	case *vector.View:
 		if newVec, ok := d.drop(vec.Any, fm); ok {

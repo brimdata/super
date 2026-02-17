@@ -4,9 +4,8 @@ spq: |
 vector: true
 
 input: |
-  {from:null::(int64|string),to:<string>}
-  {from:null::int64::(int64|string),to:<string>}
-  {from:null::int64_named=int64::(union_named=int64_named|string),to:<string>}
+  {from:null::(string|null),to:<null>}
+  {from:null::(string|null),to:<string>}
   {from:1::(int64|string),to:<string>}
   {from:1::int64_named=int64::(union_named=int64_named|string),to:<string>}
   {from:1::int8::(int8|string),to:<int64|string>}
@@ -19,9 +18,8 @@ input: |
   {from:{a:[1,"one"]},to:<{a:[int8|string]}>}
 
 output: |
-  null::string
-  null::string
-  null::string
+  null
+  error({message:"cannot cast to string",on:null})
   "1"
   "1"
   error({message:"cannot cast to int64|string",on:1::int8::(int8|string)})::error({message:string,on:int8|string})

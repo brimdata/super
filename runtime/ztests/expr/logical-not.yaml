@@ -5,14 +5,14 @@ vector: true
 input: |
   true
   false
-  null::bool
+  null
   error("missing")
   error("foo")
 
 output: |
   false
   true
-  null::bool
+  null
   error("missing")
   error("foo")
 
@@ -27,9 +27,9 @@ vector: true
 input: |
   true
   false
-  null::bool
+  null
 
 output: |
   false
   true
-  null::bool
+  null

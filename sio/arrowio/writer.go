@@ -97,13 +97,9 @@ func (w *Writer) Write(val super.Value) error {
 	} else if w.typ != recType {
 		return fmt.Errorf("%w: %s and %s", ErrMultipleTypes, sup.FormatType(w.typ), sup.FormatType(recType))
 	}
-	it := val.Bytes().Iter()
+	it := val.Iter()
 	for i, builder := range w.builder.Fields() {
-		var b scode.Bytes
-		if it != nil {
-			b = it.Next()
-		}
-		w.buildArrowValue(builder, recType.Fields[i].Type, b)
+		w.buildArrowValue(builder, recType.Fields[i].Type, it.Next())
 	}
 	return w.flush(recordBatchSize)
 }
@@ -226,47 +222,44 @@ func (w *Writer) newArrowDataType(typ super.Type) (arrow.DataType, error) {
 			}
 		}
 		var fields []arrow.Field
-		for _, field := range typ.Fields {
-			dt, err := w.newArrowDataType(field.Type)
+		for _, f := range typ.Fields {
+			field, err := w.newArrowField(f.Name, f.Type)
 			if err != nil {
 				return nil, err
 			}
-			fields = append(fields, arrow.Field{
-				Name:     field.Name,
-				Type:     dt,
-				Nullable: true,
-			})
+			fields = append(fields, field)
 		}
 		return arrow.StructOf(fields...), nil
 	case *super.TypeArray, *super.TypeSet:
-		dt, err := w.newArrowDataType(super.InnerType(typ))
+		innerType := super.InnerType(typ)
+		if name == "arrow_decimal256" && innerType == super.TypeUint64 {
+			return &arrow.Decimal256Type{}, nil
+		}
+		field, err := w.newArrowField("", innerType)
 		if err != nil {
 			return nil, err
 		}
-		const prefix = "arrow_fixed_size_list_"
-		switch {
-		case strings.HasPrefix(name, prefix):
-			if n, err := strconv.Atoi(strings.TrimPrefix(name, prefix)); err == nil {
-				return arrow.FixedSizeListOf(int32(n), dt), nil
+		if s, ok := strings.CutPrefix(name, "arrow_fixed_size_list_"); ok {
+			if n, err := strconv.Atoi(s); err == nil {
+				return arrow.FixedSizeListOfField(int32(n), field), nil
 			}
-		case name == "arrow_decimal256":
-			if inner := super.InnerType(typ); inner == super.TypeUint64 {
-				return &arrow.Decimal256Type{}, nil
-			}
-		case name == "arrow_large_list":
-			return arrow.LargeListOf(dt), nil
 		}
-		return arrow.ListOf(dt), nil
+		if name == "arrow_large_list" {
+			return arrow.LargeListOfField(field), nil
+		}
+		return arrow.ListOfField(field), nil
 	case *super.TypeMap:
+		// Don't use newArrowField since Arrow map keys cannot be nullable.
 		keyDT, err := w.newArrowDataType(typ.KeyType)
 		if err != nil {
 			return nil, err
 		}
-		valDT, err := w.newArrowDataType(typ.ValType)
+		keyField := arrow.Field{Type: keyDT}
+		itemField, err := w.newArrowField("", typ.ValType)
 		if err != nil {
 			return nil, err
 		}
-		return arrow.MapOf(keyDT, valDT), nil
+		return arrow.MapOfFields(keyField, itemField), nil
 	case *super.TypeUnion:
 		if len(typ.Types) > math.MaxUint8 {
 			return nil, fmt.Errorf("%w: union with more than %d fields", ErrUnsupportedType, math.MaxUint8)
@@ -275,18 +268,15 @@ func (w *Writer) newArrowDataType(typ super.Type) (arrow.DataType, error) {
 		var typeCodes []arrow.UnionTypeCode
 		var mapping []int
 		for _, typ := range typ.Types {
-			dt, err := w.newArrowDataType(typ)
+			f, err := w.newArrowField("", typ)
 			if err != nil {
 				return nil, err
 			}
-			if j := slices.IndexFunc(fields, func(f arrow.Field) bool { return arrow.TypeEqual(f.Type, dt) }); j > -1 {
+			if j := slices.IndexFunc(fields, func(ff arrow.Field) bool { return ff.Equal(f) }); j > -1 {
 				mapping = append(mapping, j)
 				continue
 			}
-			fields = append(fields, arrow.Field{
-				Type:     dt,
-				Nullable: true,
-			})
+			fields = append(fields, f)
 			typeCode := len(typeCodes)
 			typeCodes = append(typeCodes, arrow.UnionTypeCode(typeCode))
 			mapping = append(mapping, typeCode)
@@ -300,10 +290,33 @@ func (w *Writer) newArrowDataType(typ super.Type) (arrow.DataType, error) {
 	}
 }
 
+func (w *Writer) newArrowField(name string, typ super.Type) (arrow.Field, error) {
+	var nullable bool
+	if u, ok := nullableUnion(typ); ok {
+		nullable = true
+		if u.Types[0] != super.TypeNull {
+			typ = u.Types[0]
+		} else {
+			typ = u.Types[1]
+		}
+	} else {
+		// pqarrow requires that an arrow.NULL field be nullable.
+		nullable = typ == super.TypeNull
+	}
+	dt, err := w.newArrowDataType(typ)
+	if err != nil {
+		return arrow.Field{}, err
+	}
+	return arrow.Field{Name: name, Type: dt, Nullable: nullable}, nil
+}
+
 func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes scode.Bytes) {
-	if bytes == nil {
-		b.AppendNull()
-		return
+	if u, ok := nullableUnion(typ); ok {
+		typ, bytes = u.Untag(bytes)
+		if typ == super.TypeNull {
+			b.AppendNull()
+			return
+		}
 	}
 	var name string
 	if n, ok := typ.(*super.TypeNamed); ok {
@@ -470,4 +483,9 @@ func (w *Writer) buildArrowListValue(b array.ListLikeBuilder, typ super.Type, by
 	for it := bytes.Iter(); !it.Done(); {
 		w.buildArrowValue(b.ValueBuilder(), super.InnerType(typ), it.Next())
 	}
+}
+
+func nullableUnion(typ super.Type) (*super.TypeUnion, bool) {
+	u, ok := typ.(*super.TypeUnion)
+	return u, ok && len(u.Types) == 2 && (u.Types[0] == super.TypeNull || u.Types[1] == super.TypeNull)
 }

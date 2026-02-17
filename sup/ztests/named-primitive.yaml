@@ -20,7 +20,7 @@ input: &input |
   0.0.0.0::=myip
   0.0.0.0/0::=mynet
   error("")::=myerror
-  null::(mynull=null)
+  null::=mynull
   {
     u8: 0::(myuint8=uint8),
     u16: 0::(myuint16=uint16),
@@ -42,7 +42,7 @@ input: &input |
     net: 0.0.0.0/0::=mynet,
     typ: <{}>::=mytype,
     err: error("")::=myerror,
-    nul: null::(mynull=null)
+    nul: null::=mynull
   }
 
 output-flags: -pretty=2

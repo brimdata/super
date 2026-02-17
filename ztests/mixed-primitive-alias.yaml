@@ -19,5 +19,5 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {_path:"conn",orig_p:80::(port=uint16)}
+      {_path:"conn",orig_p:80::(port=uint16)::(port|null)}
       {src_port:81::(port=uint16)}

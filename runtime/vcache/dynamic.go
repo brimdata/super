@@ -30,7 +30,7 @@ func (d *dynamic) unmarshal(cctx *csup.Context, projection field.Projection) {
 	defer d.mu.Unlock()
 	for k := range d.values {
 		if d.values[k] == nil {
-			d.values[k] = newShadow(cctx, d.meta.Values[k], nil)
+			d.values[k] = newShadow(cctx, d.meta.Values[k])
 		}
 		d.values[k].unmarshal(cctx, projection)
 	}

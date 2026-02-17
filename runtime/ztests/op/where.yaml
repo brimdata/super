@@ -4,7 +4,7 @@ vector: true
 
 input: |
   1
-  null::bool
+  null
   true
   error("divide by zero")
   error("missing")

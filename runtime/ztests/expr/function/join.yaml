@@ -6,7 +6,8 @@ vector: true
 input: |
   ["foo","bar","baz"]
   ["foo"]
-  null::[string]
+  null
+  [null]
   []::[string]
   [""]
   "not an array"
@@ -15,7 +16,8 @@ input: |
 output: |
   "foo->bar->baz"
   "foo"
-  null::string
+  null
+  error({message:"join: array of string arg required",on:[null]})
   ""
   ""
   error({message:"join: array of string arg required",on:"not an array"})
@@ -37,9 +39,14 @@ output: |
 ---
 
 # Bad separator arg
-spq: join(["foo","bar"], 1)
+spq: join(["foo","bar"], this)
 
 vector: true
 
+input: |
+  null
+  1
+
 output: |
+  null
   error({message:"join: separator must be string",on:1})

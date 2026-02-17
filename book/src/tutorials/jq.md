@@ -567,8 +567,8 @@ echo '{a:1,b:null}{a:null,b:[2,3,4]}' | super -s -c fuse -
 ```
 produces this transformed and comprehensively-typed SUP output:
 ```mdtest-output
-{a:1,b:null::[int64]}
-{a:null::int64,b:[2,3,4]}
+{a:1::(int64|null),b:null::(null|[int64])}
+{a:null::(int64|null),b:[2,3,4]::(null|[int64])}
 ```
 Now you can see all the detail.
 
@@ -580,8 +580,8 @@ echo '{a:1,b:null}{a:null,b:[2,3,4]}' | super -S -c 'fuse | shapes' -
 produces a comprehensively-typed shape:
 ```mdtest-output
 {
-  a: 1,
-  b: null::[int64]
+  a: 1::(int64|null),
+  b: null::(null|[int64])
 }
 ```
 As you explore data in this fashion, you will often type various searches

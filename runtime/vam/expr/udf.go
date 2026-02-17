@@ -7,7 +7,6 @@ import (
 	"github.com/brimdata/super"
 	samexpr "github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type UDF struct {
@@ -33,13 +32,13 @@ func (u *UDF) Call(args ...vector.Any) vector.Any {
 	}
 	defer func() { u.stackDepth-- }()
 	if len(u.fields) == 0 {
-		return u.Body.Eval(vector.NewConst(super.Null, args[0].Len(), bitvec.Zero))
+		return u.Body.Eval(vector.NewConst(super.Null, args[0].Len()))
 	}
 	fields := slices.Clone(u.fields)
 	for i := range args {
 		fields[i].Type = args[i].Type()
 	}
 	typ := u.sctx.MustLookupTypeRecord(fields)
-	vec := vector.NewRecord(typ, slices.Clone(args), args[0].Len(), bitvec.Zero)
+	vec := vector.NewRecord(typ, slices.Clone(args), args[0].Len())
 	return u.Body.Eval(vec)
 }

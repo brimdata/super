@@ -6,31 +6,29 @@ import (
 	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type array struct {
-	mu   sync.Mutex
-	meta *csup.Array
-	count
+	mu     sync.Mutex
+	meta   *csup.Array
+	len    uint32
 	offs   []uint32
 	values shadow
-	nulls  *nulls
 }
 
-func newArray(cctx *csup.Context, meta *csup.Array, nulls *nulls) *array {
-	return &array{
-		meta:  meta,
-		nulls: nulls,
-		count: count{meta.Len(cctx), nulls.count()},
-	}
+func newArray(cctx *csup.Context, meta *csup.Array) *array {
+	return &array{meta: meta, len: meta.Len(cctx)}
+}
+
+func (a *array) length() uint32 {
+	return a.len
 }
 
 func (a *array) unmarshal(cctx *csup.Context, projection field.Projection) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	if a.values == nil {
-		a.values = newShadow(cctx, a.meta.Values, nil)
+		a.values = newShadow(cctx, a.meta.Values)
 	}
 	a.values.unmarshal(cctx, projection)
 }
@@ -38,20 +36,20 @@ func (a *array) unmarshal(cctx *csup.Context, projection field.Projection) {
 func (a *array) project(loader *loader, projection field.Projection) vector.Any {
 	vec := a.values.project(loader, nil)
 	typ := loader.sctx.LookupTypeArray(vec.Type())
-	offs, nulls := a.load(loader)
-	return vector.NewArray(typ, offs, vec, nulls)
+	offs := a.load(loader)
+	return vector.NewArray(typ, offs, vec)
 }
 
-func (a *array) load(loader *loader) ([]uint32, bitvec.Bits) {
-	nulls := a.nulls.get(loader)
+func (a *array) load(loader *loader) []uint32 {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	if a.offs == nil {
-		offs, err := loadOffsets(loader.r, a.meta.Lengths, a.count, nulls)
-		if err != nil {
-			panic(err)
-		}
-		a.offs = offs
+	if a.offs != nil {
+		return a.offs
 	}
-	return a.offs, nulls
+	offs, err := csup.ReadUint32s(a.meta.Lengths, loader.r)
+	if err != nil {
+		panic(err)
+	}
+	a.offs = offs
+	return offs
 }

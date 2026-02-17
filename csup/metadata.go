@@ -261,7 +261,7 @@ func metadataValue(cctx *Context, sctx *super.Context, b *scode.Builder, id ID, 
 		b.EndContainer()
 		return sctx.MustLookupTypeRecord(fields)
 	case *Primitive:
-		min, max := super.NewValue(m.Typ, nil), super.NewValue(m.Typ, nil)
+		min, max := super.Null, super.Null
 		if m.Min != nil {
 			min = *m.Min
 		}

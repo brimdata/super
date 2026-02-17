@@ -8,7 +8,7 @@ inputs:
       {i:1}
       {i:2}
       {i:3}
-      {i:null::int64}
+      {i:null}
     
 outputs:
   - name: stdout
@@ -16,7 +16,7 @@ outputs:
       {i:1,SUM:1}
       {i:2,SUM:2}
       {i:3,SUM:3}
-      {i:null::int64,SUM:null::int64}
+      {i:null,SUM:null}
   - name: stderr
     data: |
       column 3 is out of range at line 1, column 41:

@@ -4,12 +4,12 @@ vector: true
 
 input: |
   {a:"hello",b:" ",c:"world"}
-  {a:"test",b:null::string,c:"end"}
+  {a:"test",b:null,c:"end"}
   {a:123,b:"test",c:"fail"}
 
 output: |
   "hello world"
-  null::string
+  null
   error({message:"concat: string arg required",on:123})
 
 ---

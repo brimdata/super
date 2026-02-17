@@ -5,8 +5,8 @@ import (
 	"encoding/hex"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Base64 struct {
@@ -14,32 +14,24 @@ type Base64 struct {
 }
 
 func (b *Base64) Call(args ...vector.Any) vector.Any {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
+		return vec
+	}
 	val := vector.Under(args[0])
 	switch val.Type().ID() {
 	case super.IDBytes:
-		var errcnt uint32
-		tags := make([]uint32, val.Len())
-		out := vector.NewStringEmpty(0, bitvec.Zero)
+		out := vector.NewStringEmpty(0)
 		for i := uint32(0); i < val.Len(); i++ {
-			bytes, null := vector.BytesValue(val, i)
-			if null {
-				errcnt++
-				tags[i] = 1
-				continue
-			}
+			bytes := vector.BytesValue(val, i)
 			out.Append(base64.StdEncoding.EncodeToString(bytes))
 		}
-		err := vector.NewStringError(b.sctx, "base64: illegal null argument", errcnt)
-		return vector.NewDynamic(tags, []vector.Any{out, err})
+		return out
 	case super.IDString:
-		errvals := vector.NewStringEmpty(0, bitvec.Zero)
+		errvals := vector.NewStringEmpty(0)
 		tags := make([]uint32, val.Len())
-		out := vector.NewBytesEmpty(0, bitvec.NewFalse(val.Len()))
+		out := vector.NewBytesEmpty(0)
 		for i := uint32(0); i < val.Len(); i++ {
-			s, null := vector.StringValue(val, i)
-			if null {
-				out.Nulls.Set(i)
-			}
+			s := vector.StringValue(val, i)
 			bytes, err := base64.StdEncoding.DecodeString(s)
 			if err != nil {
 				errvals.Append(s)
@@ -60,32 +52,24 @@ type Hex struct {
 }
 
 func (h *Hex) Call(args ...vector.Any) vector.Any {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
+		return vec
+	}
 	val := vector.Under(args[0])
 	switch val.Type().ID() {
 	case super.IDBytes:
-		var errcnt uint32
-		tags := make([]uint32, val.Len())
-		out := vector.NewStringEmpty(val.Len(), bitvec.Zero)
+		out := vector.NewStringEmpty(val.Len())
 		for i := uint32(0); i < val.Len(); i++ {
-			bytes, null := vector.BytesValue(val, i)
-			if null {
-				errcnt++
-				tags[i] = 1
-				continue
-			}
+			bytes := vector.BytesValue(val, i)
 			out.Append(hex.EncodeToString(bytes))
 		}
-		err := vector.NewStringError(h.sctx, "hex: illegal null argument", errcnt)
-		return vector.NewDynamic(tags, []vector.Any{out, err})
+		return out
 	case super.IDString:
-		errvals := vector.NewStringEmpty(0, bitvec.Zero)
+		errvals := vector.NewStringEmpty(0)
 		tags := make([]uint32, val.Len())
-		out := vector.NewBytesEmpty(0, bitvec.NewFalse(val.Len()))
+		out := vector.NewBytesEmpty(0)
 		for i := uint32(0); i < val.Len(); i++ {
-			s, null := vector.StringValue(val, i)
-			if null {
-				out.Nulls.Set(i)
-			}
+			s := vector.StringValue(val, i)
 			bytes, err := hex.DecodeString(s)
 			if err != nil {
 				errvals.Append(s)

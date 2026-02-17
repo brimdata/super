@@ -84,18 +84,17 @@ func (w *Writer) Write(rec super.Value) error {
 	fields := rec.Fields()
 	for i, it := 0, rec.Bytes().Iter(); i < len(fields) && !it.Done(); i++ {
 		var s string
-		if zb := it.Next(); zb != nil {
-			val := super.NewValue(fields[i].Type, zb).Under()
-			switch id := val.Type().ID(); {
-			case id == super.IDBytes && len(val.Bytes()) == 0:
-				// We want "" instead of "0x" for a zero-length value.
-			case id == super.IDString:
-				s = string(val.Bytes())
-			default:
-				s = formatValue(val.Type(), val.Bytes())
-				if super.IsFloat(id) && strings.HasSuffix(s, ".") {
-					s = strings.TrimSuffix(s, ".")
-				}
+		val := super.NewValue(fields[i].Type, it.Next()).Under()
+		switch id := val.Type().ID(); {
+		case id == super.IDBytes && len(val.Bytes()) == 0:
+			// We want "" instead of "0x" for a zero-length value.
+		case id == super.IDString:
+			s = string(val.Bytes())
+		case id == super.IDNull:
+		default:
+			s = formatValue(val.Type(), val.Bytes())
+			if super.IsFloat(id) && strings.HasSuffix(s, ".") {
+				s = strings.TrimSuffix(s, ".")
 			}
 		}
 		w.strings = append(w.strings, s)

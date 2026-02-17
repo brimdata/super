@@ -331,9 +331,6 @@ func (t *TypeUnion) TagOf(typ Type) int {
 // as its type and bytes by removing the tag and determining that tag's
 // type from the union.  Untag panics if the tag is invalid.
 func (t *TypeUnion) Untag(bytes scode.Bytes) (Type, scode.Bytes) {
-	if bytes == nil {
-		return t, nil
-	}
 	it := bytes.Iter()
 	tag := DecodeInt(it.Next())
 	inner, err := t.Type(int(tag))
@@ -349,12 +346,12 @@ func (t *TypeUnion) Kind() Kind {
 
 // BuildUnion appends to b a union described by tag and val.
 func BuildUnion(b *scode.Builder, tag int, val scode.Bytes) {
-	if val == nil {
-		b.Append(nil)
-		return
-	}
-	b.BeginContainer()
-	b.Append(EncodeInt(int64(tag)))
+	BeginUnion(b, tag)
 	b.Append(val)
 	b.EndContainer()
+}
+
+func BeginUnion(b *scode.Builder, tag int) {
+	b.BeginContainer()
+	b.Append(EncodeInt(int64(tag)))
 }

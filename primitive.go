@@ -27,7 +27,7 @@ func EncodeBool(b bool) scode.Bytes {
 }
 
 func DecodeBool(zv scode.Bytes) bool {
-	return zv != nil && zv[0] != 0
+	return zv[0] != 0
 }
 
 func (t *TypeOfBool) ID() int {
@@ -83,9 +83,6 @@ func (t *TypeOfDuration) Kind() Kind {
 }
 
 func DecodeFloat(zb scode.Bytes) float64 {
-	if zb == nil {
-		return 0
-	}
 	switch len(zb) {
 	case 2:
 		bits := binary.LittleEndian.Uint16(zb)
@@ -114,9 +111,6 @@ func EncodeFloat16(d float32) scode.Bytes {
 }
 
 func DecodeFloat16(zb scode.Bytes) float32 {
-	if zb == nil {
-		return 0
-	}
 	return float16.Frombits(binary.LittleEndian.Uint16(zb)).Float32()
 }
 
@@ -140,9 +134,6 @@ func EncodeFloat32(d float32) scode.Bytes {
 }
 
 func DecodeFloat32(zb scode.Bytes) float32 {
-	if zb == nil {
-		return 0
-	}
 	return math.Float32frombits(binary.LittleEndian.Uint32(zb))
 }
 
@@ -166,9 +157,6 @@ func EncodeFloat64(d float64) scode.Bytes {
 }
 
 func DecodeFloat64(zv scode.Bytes) float64 {
-	if zv == nil {
-		return 0
-	}
 	return math.Float64frombits(binary.LittleEndian.Uint64(zv))
 }
 
@@ -336,9 +324,6 @@ func EncodeNet(p netip.Prefix) scode.Bytes {
 }
 
 func DecodeNet(zv scode.Bytes) netip.Prefix {
-	if zv == nil {
-		return netip.Prefix{}
-	}
 	a, ok := netip.AddrFromSlice(zv[:len(zv)/2])
 	if !ok {
 		panic("failure trying to decode IP subnet that is not 8 or 32 bytes long")

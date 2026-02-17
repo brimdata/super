@@ -68,9 +68,7 @@ func (b *builder) endArray() {
 
 	b.types = b.types[:0]
 	for i := range items {
-		if items[i].typ != super.TypeNull {
-			b.types = append(b.types, items[i].typ)
-		}
+		b.types = append(b.types, items[i].typ)
 	}
 	sort.Slice(b.types, func(i, j int) bool { return b.types[i].ID() < b.types[j].ID() })
 	dedupedTypes := b.types[:0]
@@ -102,12 +100,9 @@ func (b *builder) endArray() {
 		union := b.sctx.LookupTypeUnion(b.types)
 		container.typ = b.sctx.LookupTypeArray(union)
 		for i := range items {
-			if bytes := items[i].zb.Bytes().Body(); bytes == nil {
-				container.zb.Append(nil)
-			} else {
-				tag := union.TagOf(items[i].typ)
-				super.BuildUnion(&container.zb, tag, bytes)
-			}
+			tag := union.TagOf(items[i].typ)
+			bytes := items[i].zb.Bytes().Body()
+			super.BuildUnion(&container.zb, tag, bytes)
 		}
 	}
 	container.zb.EndContainer()

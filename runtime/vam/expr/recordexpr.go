@@ -3,7 +3,6 @@ package expr
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type RecordElem struct {
@@ -32,7 +31,7 @@ type recordExpr struct {
 func (r *recordExpr) Eval(this vector.Any) vector.Any {
 	if len(r.elems) == 0 {
 		typ := r.sctx.MustLookupTypeRecord(nil)
-		return vector.NewRecord(typ, nil, this.Len(), bitvec.Zero)
+		return vector.NewRecord(typ, nil, this.Len())
 	}
 	r.elemVecs = r.elemVecs[:0]
 	for _, elem := range r.elems {
@@ -53,7 +52,7 @@ func (r *recordExpr) eval(vecs ...vector.Any) vector.Any {
 		}
 	}
 	typ := r.sctx.MustLookupTypeRecord(r.fields)
-	return vector.NewRecord(typ, r.fieldVecs, r.fieldVecs[0].Len(), bitvec.Zero)
+	return vector.NewRecord(typ, r.fieldVecs, r.fieldVecs[0].Len())
 }
 
 func (r *recordExpr) addOrUpdateField(name string, vec vector.Any) {

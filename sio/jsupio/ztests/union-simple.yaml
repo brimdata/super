@@ -1,11 +1,11 @@
 spq: pass
 
 input: |
-  {"type":{"kind":"record","id":31,"fields":[{"name":"a","type":{"kind":"union","id":30,"types":[{"kind":"primitive","name":"int32"},{"kind":"primitive","name":"string"}]}}]},"value":[["1","asdfasdf"]]}
+  {"type":{"kind":"record","id":31,"fields":[{"name":"a","type":{"kind":"union","id":30,"types":[{"kind":"primitive","name":"int32"},{"kind":"primitive","name":"string"},{"kind":"primitive","name":"null"}]}}]},"value":[["1","asdfasdf"]]}
   {"type":{"kind":"ref","id":31},"value":[["0","1"]]}
-  {"type":{"kind":"ref","id":31},"value":[null]}
+  {"type":{"kind":"ref","id":31},"value":[["2",null]]}
 
 output: |
-  {a:"asdfasdf"::(int32|string)}
-  {a:1::int32::(int32|string)}
-  {a:null::(int32|string)}
+  {a:"asdfasdf"::(int32|string|null)}
+  {a:1::int32::(int32|string|null)}
+  {a:null::(int32|string|null)}

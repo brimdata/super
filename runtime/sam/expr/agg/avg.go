@@ -31,7 +31,7 @@ func (a *Avg) Result(*super.Context) super.Value {
 	if a.count > 0 {
 		return super.NewFloat64(a.sum / float64(a.count))
 	}
-	return super.NullFloat64
+	return super.Null
 }
 
 const (

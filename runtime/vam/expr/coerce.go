@@ -5,7 +5,6 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
 	"github.com/brimdata/super/runtime/vam/expr/cast"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 // coerceVals checks if a and b are type compatible for comparison
@@ -22,14 +21,6 @@ func coerceVals(sctx *super.Context, a, b vector.Any) (vector.Any, vector.Any, v
 		// for things like {a:10}<{a:123} or [1,2]+[3,4]
 		// sam doesn't support this yet.
 		return a, b, nil
-	}
-	if aid == super.IDNull {
-		a = vector.NewConst(super.NewValue(b.Type(), nil), b.Len(), bitvec.Zero)
-		return a, b, nil //XXX
-	}
-	if bid == super.IDNull {
-		b = vector.NewConst(super.NewValue(a.Type(), nil), a.Len(), bitvec.Zero)
-		return a, b, nil //XXX
 	}
 	if !super.IsNumber(aid) || !super.IsNumber(bid) {
 		return nil, nil, vector.NewStringError(sctx, coerce.ErrIncompatibleTypes.Error(), a.Len())

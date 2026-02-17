@@ -11,4 +11,4 @@ input: |
   co\\m
 
 output: |
-  {_path:"Backslash",my_str:"co\\m"}
+  {_path:"Backslash",my_str:"co\\m"::(string|null)}

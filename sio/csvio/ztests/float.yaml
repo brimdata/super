@@ -4,7 +4,6 @@ spq: pass
 # 3.4028235e+38 and 1.7976931348623157e+308 are the maximum float32 and
 # float64.
 input: |
-  {f16:null::float16,f32:null::float32,f64:null::float64}
   {f16:+Inf::float16,f32:+Inf::float32,f64:+Inf}
   {f16:-Inf::float16,f32:-Inf::float32,f64:-Inf}
   {f16:NaN::float16,f32:NaN::float32,f64:NaN}
@@ -22,7 +21,6 @@ output-flags: -f csv
 
 output: |
   f16,f32,f64
-  ,,
   +Inf,+Inf,+Inf
   -Inf,-Inf,-Inf
   NaN,NaN,NaN

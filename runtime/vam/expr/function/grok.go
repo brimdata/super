@@ -5,9 +5,9 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/grok"
+	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Grok struct {
@@ -26,8 +26,11 @@ func newGrok(sctx *super.Context) *Grok {
 }
 
 func (g *Grok) Call(args ...vector.Any) vector.Any {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
+		return vec
+	}
 	patternArg, inputArg := args[0], args[1]
-	defArg := vector.Any(vector.NewConst(super.NullString, args[0].Len(), bitvec.Zero))
+	defArg := vector.Any(vector.NewConst(super.NewString(""), args[0].Len()))
 	if len(args) == 3 {
 		defArg = args[2]
 	}
@@ -43,29 +46,21 @@ func (g *Grok) Call(args ...vector.Any) vector.Any {
 	var defErrs, patErrs []string
 	var defErrsIdx, patErrsIdx, inErrsIdx []uint32
 	for i := range patternArg.Len() {
-		def, _ := vector.StringValue(defArg, i)
+		def := vector.StringValue(defArg, i)
 		h, err := g.getHost(def)
 		if err != nil {
 			defErrs = append(defErrs, err.Error())
 			defErrsIdx = append(defErrsIdx, i)
 			continue
 		}
-		pat, isnull := vector.StringValue(patternArg, i)
-		if isnull {
-			builder.Write(super.NewValue(g.sctx.MustLookupTypeRecord(nil), nil))
-			continue
-		}
+		pat := vector.StringValue(patternArg, i)
 		p, err := h.getPattern(pat)
 		if err != nil {
 			patErrs = append(patErrs, err.Error())
 			patErrsIdx = append(patErrsIdx, i)
 			continue
 		}
-		in, isnull := vector.StringValue(inputArg, i)
-		if isnull {
-			builder.Write(super.NewValue(g.sctx.MustLookupTypeRecord(nil), nil))
-			continue
-		}
+		in := vector.StringValue(inputArg, i)
 		keys, vals, match := p.ParseKeyValues(in)
 		if !match {
 			inErrsIdx = append(inErrsIdx, i)
@@ -101,7 +96,7 @@ func (g *Grok) Call(args ...vector.Any) vector.Any {
 }
 
 func (g *Grok) errorVec(msgs []string, index []uint32, vec vector.Any) vector.Any {
-	s := vector.NewStringEmpty(0, bitvec.Zero)
+	s := vector.NewStringEmpty(0)
 	for _, m := range msgs {
 		s.Append("grok: " + m)
 	}

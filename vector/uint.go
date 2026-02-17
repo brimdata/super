@@ -3,24 +3,22 @@ package vector
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Uint struct {
 	Typ    super.Type
 	Values []uint64
-	Nulls  bitvec.Bits
 }
 
 var _ Any = (*Uint)(nil)
 var _ Promotable = (*Uint)(nil)
 
-func NewUint(typ super.Type, values []uint64, nulls bitvec.Bits) *Uint {
-	return &Uint{Typ: typ, Values: values, Nulls: nulls}
+func NewUint(typ super.Type, values []uint64) *Uint {
+	return &Uint{typ, values}
 }
 
-func NewUintEmpty(typ super.Type, length uint32, nulls bitvec.Bits) *Uint {
-	return NewUint(typ, make([]uint64, 0, length), nulls)
+func NewUintEmpty(typ super.Type, length uint32) *Uint {
+	return NewUint(typ, make([]uint64, 0, length))
 }
 
 func (u *Uint) Append(v uint64) {
@@ -44,27 +42,20 @@ func (u *Uint) Value(slot uint32) uint64 {
 }
 
 func (u *Uint) Serialize(b *scode.Builder, slot uint32) {
-	if u.Nulls.IsSet(slot) {
-		b.Append(nil)
-	} else {
-		b.Append(super.EncodeUint(u.Values[slot]))
-	}
+	b.Append(super.EncodeUint(u.Values[slot]))
 }
 
 func (u *Uint) Promote(typ super.Type) Promotable {
-	return &Uint{typ, u.Values, u.Nulls}
+	return &Uint{typ, u.Values}
 }
 
-func UintValue(vec Any, slot uint32) (uint64, bool) {
+func UintValue(vec Any, slot uint32) uint64 {
 	switch vec := Under(vec).(type) {
 	case *Uint:
-		return vec.Value(slot), vec.Nulls.IsSet(slot)
+		return vec.Value(slot)
 	case *Const:
-		return vec.Value().Ptr().Uint(), vec.Nulls.IsSet(slot)
+		return vec.Value().Ptr().Uint()
 	case *Dict:
-		if vec.Nulls.IsSet(slot) {
-			return 0, true
-		}
 		return UintValue(vec.Any, uint32(vec.Index[slot]))
 	case *Dynamic:
 		tag := vec.Tags[slot]

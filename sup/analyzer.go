@@ -271,7 +271,7 @@ func stringToEnum(val *ast.Primitive, cast super.Type) Value {
 
 func castType(typ, cast super.Type) (super.Type, error) {
 	typID, castID := typ.ID(), cast.ID()
-	if typID == castID || typID == super.IDNull ||
+	if typID == castID ||
 		super.IsInteger(typID) && (super.IsInteger(castID) || super.IsFloat(castID)) ||
 		super.IsFloat(typID) && super.IsFloat(castID) {
 		return cast, nil
@@ -381,12 +381,7 @@ func (a Analyzer) normalizeElems(sctx *super.Context, vals []Value) ([]Value, su
 	for i, val := range vals {
 		types[i] = val.TypeOf()
 	}
-	unique := types[:0]
-	for _, typ := range super.UniqueTypes(types) {
-		if typ != super.TypeNull {
-			unique = append(unique, typ)
-		}
-	}
+	unique := super.UniqueTypes(types)
 	if len(unique) == 1 {
 		return vals, unique[0], nil
 	}
@@ -443,14 +438,6 @@ func (a Analyzer) convertSet(sctx *super.Context, set *ast.Set, cast super.Type)
 
 func (a Analyzer) convertUnion(v Value, union *super.TypeUnion, cast super.Type) (Value, error) {
 	valType := v.TypeOf()
-	if valType == super.TypeNull {
-		// Set tag to -1 to signal to the builder to encode a null.
-		return &Union{
-			Type:  cast,
-			Tag:   -1,
-			Value: v,
-		}, nil
-	}
 	for k, typ := range union.Types {
 		if valType == typ {
 			return &Union{

@@ -89,7 +89,7 @@ func (s *superTable) newRow(keys []vector.Any, index []uint32) aggRow {
 
 func (s *superTable) materialize() vector.Any {
 	if len(s.rows) == 0 {
-		return vector.NewConst(super.Null, 0, bitvec.Zero)
+		return vector.NewConst(super.Null, 0)
 	}
 	var vecs []vector.Any
 	for i := range s.rows[0].keys {
@@ -100,7 +100,7 @@ func (s *superTable) materialize() vector.Any {
 	}
 	// Since aggs can return dynamic values need to do apply to create record.
 	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
-		return s.builder.New(vecs, bitvec.Zero)
+		return s.builder.New(vecs)
 	}, vecs...)
 }
 
@@ -109,7 +109,7 @@ func (s *superTable) materializeKey(i int) vector.Any {
 	for _, row := range s.rows {
 		b.Write(row.keys[i].Bytes())
 	}
-	return b.Build(bitvec.Zero)
+	return b.Build()
 }
 
 func (s *superTable) materializeAgg(i int) vector.Any {
@@ -148,7 +148,7 @@ func (c *countByString) update(keys, vals []vector.Any) {
 	case *vector.String:
 		c.count(val)
 	case *vector.Dict:
-		c.countDict(val.Any.(*vector.String), val.Counts, val.Nulls)
+		c.countDict(val.Any.(*vector.String), val.Counts)
 	case *vector.Const:
 		c.countFixed(val)
 	case *vector.View:
@@ -164,55 +164,32 @@ func (c *countByString) updatePartial(keyvec, valvec vector.Any) {
 	if !ok1 || !ok2 {
 		panic("count by string: invalid partials in")
 	}
-	if !key.Nulls.IsZero() {
-		for i := range key.Len() {
-			if key.Nulls.IsSet(i) {
-				c.nulls += val.Values[i]
-			} else {
-				c.table[key.Value(i)] += val.Values[i]
-			}
-		}
-	} else {
-		for i := range key.Len() {
-			c.table[key.Value(i)] += val.Values[i]
-		}
+	for i := range key.Len() {
+		c.table[key.Value(i)] += val.Values[i]
 	}
 }
 
 func (c *countByString) count(vec *vector.String) {
 	offs, bytes := vec.Table().Slices()
-	if vec.Nulls.IsZero() {
-		for k := range vec.Len() {
-			c.table[string(bytes[offs[k]:offs[k+1]])]++
-		}
-	} else {
-		for k := range vec.Len() {
-			if vec.Nulls.IsSet(k) {
-				c.nulls++
-			} else {
-				c.table[string(bytes[offs[k]:offs[k+1]])]++
-			}
-		}
+	for k := range vec.Len() {
+		c.table[string(bytes[offs[k]:offs[k+1]])]++
 	}
 }
 
-func (c *countByString) countDict(vec *vector.String, counts []uint32, nulls bitvec.Bits) {
+func (c *countByString) countDict(vec *vector.String, counts []uint32) {
 	offs, bytes := vec.Table().Slices()
 	for k := range vec.Len() {
 		if counts[k] > 0 {
 			c.table[string(bytes[offs[k]:offs[k+1]])] += int64(counts[k])
 		}
 	}
-	c.nulls += int64(nulls.TrueCount())
 }
 
 func (c *countByString) countFixed(vec *vector.Const) {
 	val := vec.Value()
 	switch val.Type().ID() {
 	case super.IDString:
-		nulls := int64(vec.Nulls.TrueCount())
-		c.nulls += nulls
-		c.table[super.DecodeString(val.Bytes())] += int64(vec.Len()) - nulls
+		c.table[super.DecodeString(val.Bytes())] += int64(vec.Len())
 	case super.IDNull:
 		c.nulls += int64(vec.Len())
 	}
@@ -220,18 +197,8 @@ func (c *countByString) countFixed(vec *vector.Const) {
 
 func (c *countByString) countView(vec *vector.View) {
 	strVec := vec.Any.(*vector.String)
-	if strVec.Nulls.IsZero() {
-		for _, slot := range vec.Index {
-			c.table[strVec.Value(slot)]++
-		}
-	} else {
-		for _, slot := range vec.Index {
-			if strVec.Nulls.IsSet(slot) {
-				c.nulls++
-			} else {
-				c.table[strVec.Value(slot)]++
-			}
-		}
+	for _, slot := range vec.Index {
+		c.table[strVec.Value(slot)]++
 	}
 }
 
@@ -256,7 +223,7 @@ func (c *countByString) materialize() vector.Any {
 		nulls = bitvec.NewFalse(uint32(length))
 		nulls.Set(uint32(length - 1))
 	}
-	keyVec := vector.NewString(vector.NewBytesTable(offs, bytes), nulls)
-	countVec := vector.NewInt(super.TypeInt64, counts, bitvec.Zero)
-	return c.builder.New([]vector.Any{keyVec, countVec}, bitvec.Zero)
+	keyVec := vector.NewString(vector.NewBytesTable(offs, bytes))
+	countVec := vector.NewInt(super.TypeInt64, counts)
+	return c.builder.New([]vector.Any{keyVec, countVec})
 }

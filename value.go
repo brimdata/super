@@ -20,26 +20,7 @@ var (
 )
 
 var (
-	NullUint8    = Value{typ: TypeUint8}
-	NullUint16   = Value{typ: TypeUint16}
-	NullUint32   = Value{typ: TypeUint32}
-	NullUint64   = Value{typ: TypeUint64}
-	NullInt8     = Value{typ: TypeInt8}
-	NullInt16    = Value{typ: TypeInt16}
-	NullInt32    = Value{typ: TypeInt32}
-	NullInt64    = Value{typ: TypeInt64}
-	NullDuration = Value{typ: TypeDuration}
-	NullTime     = Value{typ: TypeTime}
-	NullFloat16  = Value{typ: TypeFloat16}
-	NullFloat32  = Value{typ: TypeFloat32}
-	NullFloat64  = Value{typ: TypeFloat64}
-	NullBool     = Value{typ: TypeBool}
-	NullBytes    = Value{typ: TypeBytes}
-	NullString   = Value{typ: TypeString}
-	NullIP       = Value{typ: TypeIP}
-	NullNet      = Value{typ: TypeNet}
-	NullType     = Value{typ: TypeType}
-	Null         = Value{typ: TypeNull}
+	Null = Value{typ: TypeNull}
 
 	False = NewBool(false)
 	True  = NewBool(true)
@@ -86,7 +67,7 @@ func NewFloat32(f float32) Value        { return newNativeValue(TypeFloat32, mat
 func NewFloat64(f float64) Value        { return newNativeValue(TypeFloat64, math.Float64bits(f)) }
 func NewBool(b bool) Value              { return newNativeValue(TypeBool, boolToUint64(b)) }
 func NewBytes(b []byte) Value           { return NewValue(TypeBytes, b) }
-func NewString(s string) Value          { return Value{TypeString, nonNilUnsafeStringData(s), uint64(len(s))} }
+func NewString(s string) Value          { return Value{TypeString, unsafe.StringData(s), uint64(len(s))} }
 func NewIP(a netip.Addr) Value          { return NewValue(TypeIP, EncodeIP(a)) }
 func NewNet(p netip.Prefix) Value       { return NewValue(TypeNet, EncodeNet(p)) }
 func NewTypeValue(t Type) Value         { return NewValue(TypeType, EncodeTypeValue(t)) }
@@ -96,14 +77,6 @@ func boolToUint64(b bool) uint64 {
 		return 1
 	}
 	return 0
-}
-
-// nonNilUsafeStringData is like unsafe.StringData but never returns nil.
-func nonNilUnsafeStringData(s string) *byte {
-	if d := unsafe.StringData(s); d != nil {
-		return d
-	}
-	return unsafe.SliceData([]byte{})
 }
 
 // Uint returns v's underlying value.  It panics if v's underlying type is not
@@ -262,9 +235,9 @@ func (v Value) ContainerLength() (int, error) {
 	}
 }
 
-// IsNull returns true if and only if v is a null value of any type.
+// IsNull returns true when v's underlying type is TypeNull.
 func (v Value) IsNull() bool {
-	return v.base == nil
+	return v.Type().ID() == IDNull
 }
 
 // Copy returns a copy of v that shares no storage.
@@ -277,9 +250,11 @@ func (v Value) Copy() Value {
 
 // CopyFrom copies from into v, reusing v's storage if possible.
 func (v *Value) CopyFrom(from Value) {
-	if _, ok := from.native(); ok || from.IsNull() {
+	if from.IsNull() {
+		v.typ = from.typ
+	} else if _, ok := from.native(); ok {
 		*v = from
-	} else if _, ok := v.native(); ok || v.IsNull() || v.len < from.len {
+	} else if _, ok := v.native(); ok {
 		*v = NewValue(from.Type(), bytes.Clone(from.bytes()))
 	} else {
 		*v = NewValue(from.Type(), append(v.bytes()[:0], from.bytes()...))
@@ -431,8 +406,12 @@ func (v *Value) MissingAsNull() Value {
 
 func (v Value) Deunion() Value {
 	for {
-		union, ok := v.Type().(*TypeUnion)
-		if !ok || v.IsNull() {
+		typ := v.Type()
+		if named, ok := typ.(*TypeNamed); ok {
+			typ = named.Type
+		}
+		union, ok := typ.(*TypeUnion)
+		if !ok {
 			return v
 		}
 		v = NewValue(union.Untag(v.bytes()))
@@ -456,7 +435,7 @@ func (v Value) under() Value {
 	for {
 		typ = TypeUnder(typ)
 		union, ok := typ.(*TypeUnion)
-		if !ok || bytes == nil {
+		if !ok {
 			return NewValue(typ, bytes)
 		}
 		typ, bytes = union.Untag(bytes)
@@ -490,9 +469,6 @@ func (v Value) Validate() (err error) {
 }
 
 func checkSet(body scode.Bytes) error {
-	if body == nil {
-		return nil
-	}
 	it := body.Iter()
 	var prev scode.Bytes
 	for !it.Done() {
@@ -511,9 +487,6 @@ func checkSet(body scode.Bytes) error {
 }
 
 func checkEnum(typ *TypeEnum, body scode.Bytes) error {
-	if body == nil {
-		return nil
-	}
 	if selector := DecodeUint(body); int(selector) >= len(typ.Symbols) {
 		return errors.New("enum selector out of range")
 	}

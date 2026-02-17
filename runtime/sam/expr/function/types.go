@@ -26,7 +26,7 @@ func (n *NameOf) Call(args []super.Value) super.Value {
 	}
 	if typ.ID() == super.IDType {
 		if args[0].IsNull() {
-			return super.NullString
+			return super.Null
 		}
 		var err error
 		if typ, err = n.sctx.LookupByValue(args[0].Bytes()); err != nil {
@@ -93,10 +93,6 @@ func (h HasError) Call(args []super.Value) super.Value {
 }
 
 func (h HasError) hasError(t super.Type, b scode.Bytes) bool {
-	// If a value is null we can skip since an null error is not an error.
-	if b == nil {
-		return false
-	}
 	switch typ := super.TypeUnder(t).(type) {
 	case *super.TypeRecord:
 		it := b.Iter()

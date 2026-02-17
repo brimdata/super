@@ -35,6 +35,15 @@ func superTypeToZeek(typ super.Type) (string, error) {
 		return "subnet", nil
 	case *super.TypeOfDuration:
 		return "interval", nil
+	case *super.TypeUnion:
+		if len(typ.Types) == 2 {
+			if typ.Types[0] == super.TypeNull {
+				return superTypeToZeek(typ.Types[1])
+			}
+			if typ.Types[1] == super.TypeNull {
+				return superTypeToZeek(typ.Types[0])
+			}
+		}
 	case *super.TypeNamed:
 		if typ.Name == "zenum" {
 			return "enum", nil
@@ -45,7 +54,6 @@ func superTypeToZeek(typ super.Type) (string, error) {
 		return superTypeToZeek(typ.Type)
 	case *super.TypeOfBool, *super.TypeOfString, *super.TypeOfTime:
 		return super.PrimitiveName(typ), nil
-	default:
-		return "", fmt.Errorf("type %s: %w", typ, ErrIncompatibleZeekType)
 	}
+	return "", fmt.Errorf("type %s: %w", typ, ErrIncompatibleZeekType)
 }

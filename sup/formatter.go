@@ -132,19 +132,12 @@ func (f *Formatter) formatValueAndDecorate(typ super.Type, bytes scode.Bytes) {
 	known := f.hasName(typ)
 	implied := f.isImplied(typ)
 	f.formatValue(0, typ, bytes, known, implied, false)
-	f.decorate(typ, bytes == nil)
+	f.decorate(typ, false)
 }
 
 func (f *Formatter) formatValue(indent int, typ super.Type, bytes scode.Bytes, parentKnown, parentImplied, decorate bool) {
 	known := parentKnown || f.hasName(typ)
-	if bytes == nil {
-		f.build("null")
-		if decorate && (parentImplied || !parentKnown) {
-			f.decorate(typ, true)
-		}
-		return
-	}
-	var null bool
+	var empty bool
 	switch t := typ.(type) {
 	default:
 		f.startColorPrimitive(typ)
@@ -155,13 +148,13 @@ func (f *Formatter) formatValue(indent int, typ super.Type, bytes scode.Bytes, p
 	case *super.TypeRecord:
 		f.formatRecord(indent, t, bytes, known, parentImplied)
 	case *super.TypeArray:
-		null = f.formatVector(indent, "[", "]", t.Type, super.NewValue(t, bytes), known, parentImplied)
+		empty = f.formatVector(indent, "[", "]", t.Type, super.NewValue(t, bytes), known, parentImplied)
 	case *super.TypeSet:
-		null = f.formatVector(indent, "|[", "]|", t.Type, super.NewValue(t, bytes), known, parentImplied)
+		empty = f.formatVector(indent, "|[", "]|", t.Type, super.NewValue(t, bytes), known, parentImplied)
 	case *super.TypeUnion:
 		f.formatUnion(indent, t, bytes)
 	case *super.TypeMap:
-		null = f.formatMap(indent, t, bytes, known, parentImplied)
+		empty = f.formatMap(indent, t, bytes, known, parentImplied)
 	case *super.TypeEnum:
 		f.build("\"")
 		f.build(t.Symbols[super.DecodeUint(bytes)])
@@ -181,7 +174,7 @@ func (f *Formatter) formatValue(indent int, typ super.Type, bytes scode.Bytes, p
 		f.endColor()
 	}
 	if decorate && !parentKnown {
-		f.decorate(typ, null)
+		f.decorate(typ, empty)
 	}
 }
 
@@ -368,15 +361,15 @@ func (f *Formatter) truncTypeValueErr() {
 	f.build("<ERR truncated type value>")
 }
 
-func (f *Formatter) decorate(typ super.Type, null bool) {
-	if typ == super.TypeNull || !null && f.isImplied(typ) {
+func (f *Formatter) decorate(typ super.Type, empty bool) {
+	if !empty && f.isImplied(typ) {
 		return
 	}
 	f.startColor(color.Gray(200))
 	defer f.endColor()
 	if name := f.nameOf(typ); name != "" {
 		f.buildf("::%s", quoteHexyString(QuotedTypeName(name)))
-	} else if SelfDescribing(typ) && !null {
+	} else if !empty && SelfDescribing(typ) {
 		if typ, ok := typ.(*super.TypeNamed); ok {
 			f.saveType(typ)
 			f.buildf("::=%s", QuotedTypeName(typ.Name))
@@ -457,13 +450,6 @@ func newElemBuilder(typ super.Type) *elemHelper {
 func (e *elemHelper) add(b scode.Bytes) (super.Type, scode.Bytes) {
 	if e.union == nil {
 		return e.typ, b
-	}
-	if b == nil {
-		// The type returned from union.SplitBSUP for a null value will
-		// be the union type. While this is the correct type, for
-		// display purposes we do not want to see the decorator so just
-		// set the type to null.
-		return super.TypeNull, b
 	}
 	typ, b := e.union.Untag(b)
 	if _, ok := e.seen[typ]; !ok {
@@ -780,10 +766,6 @@ func FormatPrimitive(typ super.Type, bytes scode.Bytes) string {
 }
 
 func formatPrimitive(b *strings.Builder, typ super.Type, bytes scode.Bytes) {
-	if bytes == nil {
-		b.WriteString("null")
-		return
-	}
 	switch typ := typ.(type) {
 	case *super.TypeOfUint8, *super.TypeOfUint16, *super.TypeOfUint32, *super.TypeOfUint64:
 		b.WriteString(strconv.FormatUint(super.DecodeUint(bytes), 10))
@@ -833,8 +815,10 @@ func formatPrimitive(b *strings.Builder, typ super.Type, bytes scode.Bytes) {
 		b.WriteByte('<')
 		b.WriteString(FormatTypeValue(bytes))
 		b.WriteByte('>')
+	case *super.TypeOfNull:
+		b.WriteString("null")
 	default:
-		b.WriteString(fmt.Sprintf("<SUP unknown primitive: %T>", typ))
+		panic(fmt.Sprintf("%#v\n", typ))
 	}
 }
 

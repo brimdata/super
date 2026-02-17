@@ -28,6 +28,7 @@ func (v valRow) apply(sctx *super.Context, aggs []*expr.Aggregator, this super.V
 func (v valRow) consumeAsPartial(rec super.Value, exprs []expr.Evaluator) {
 	for k, r := range v {
 		val := exprs[k].Eval(rec)
+		val = val.Deunion()
 		if val.IsError() {
 			panic(fmt.Errorf("consumeAsPartial: encountered error: %s", sup.FormatValue(val)))
 		}

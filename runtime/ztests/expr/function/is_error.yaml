@@ -9,7 +9,7 @@ input: |
   [error(0)]
   {error:error(0)}
   <error(int64)>
-  null::error(int64)
+  null
 
 output: |
   true

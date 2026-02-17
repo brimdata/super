@@ -20,11 +20,11 @@ func (c *Concat) Call(args []super.Value) super.Value {
 		if arg.IsError() {
 			return arg
 		}
+		if arg.IsNull() {
+			return super.Null
+		}
 		if !arg.IsString() {
 			return c.sctx.WrapError("concat: string arg required", arg)
-		}
-		if arg.IsNull() {
-			return super.NullString
 		}
 		c.builder.WriteString(super.DecodeString(arg.Bytes()))
 	}
@@ -37,14 +37,14 @@ type Position struct {
 
 func (p *Position) Call(args []super.Value) super.Value {
 	val, subVal := args[0], args[1]
+	if val.IsNull() || subVal.IsNull() {
+		return super.Null
+	}
 	if !val.IsString() {
 		return p.sctx.WrapError("position: string arguments required", val)
 	}
 	if !subVal.IsString() {
 		return p.sctx.WrapError("position: string arguments required", subVal)
-	}
-	if val.IsNull() || subVal.IsNull() {
-		return super.NullInt64
 	}
 	i := strings.Index(val.AsString(), subVal.AsString())
 	return super.NewInt64(int64(i + 1))
@@ -59,16 +59,13 @@ func (r *Replace) Call(args []super.Value) super.Value {
 	sVal := args[0]
 	oldVal := args[1]
 	newVal := args[2]
+	if sVal.IsNull() || oldVal.IsNull() || newVal.IsNull() {
+		return super.Null
+	}
 	for i := range args {
 		if !args[i].IsString() {
 			return r.sctx.WrapError("replace: string arg required", args[i])
 		}
-	}
-	if sVal.IsNull() {
-		return super.Null
-	}
-	if oldVal.IsNull() || newVal.IsNull() {
-		return r.sctx.NewErrorf("replace: an input arg is null")
 	}
 	s := super.DecodeString(sVal.Bytes())
 	old := super.DecodeString(oldVal.Bytes())
@@ -82,11 +79,11 @@ type ToLower struct {
 
 func (t *ToLower) Call(args []super.Value) super.Value {
 	val := args[0].Under()
+	if val.IsNull() {
+		return super.Null
+	}
 	if !val.IsString() {
 		return t.sctx.WrapError("lower: string arg required", val)
-	}
-	if val.IsNull() {
-		return super.NullString
 	}
 	s := super.DecodeString(val.Bytes())
 	return super.NewString(strings.ToLower(s))
@@ -98,11 +95,11 @@ type ToUpper struct {
 
 func (t *ToUpper) Call(args []super.Value) super.Value {
 	val := args[0].Under()
+	if val.IsNull() {
+		return super.Null
+	}
 	if !val.IsString() {
 		return t.sctx.WrapError("upper: string arg required", val)
-	}
-	if val.IsNull() {
-		return super.NullString
 	}
 	s := super.DecodeString(val.Bytes())
 	return super.NewString(strings.ToUpper(s))
@@ -114,11 +111,11 @@ type Trim struct {
 
 func (t *Trim) Call(args []super.Value) super.Value {
 	val := args[0].Under()
+	if val.IsNull() {
+		return super.Null
+	}
 	if !val.IsString() {
 		return t.sctx.WrapError("trim: string arg required", val)
-	}
-	if val.IsNull() {
-		return super.NullString
 	}
 	s := super.DecodeString(val.Bytes())
 	return super.NewString(strings.TrimSpace(s))
@@ -138,14 +135,20 @@ func newSplit(sctx *super.Context) *Split {
 
 func (s *Split) Call(args []super.Value) super.Value {
 	args = underAll(args)
+	sVal, sepVal := args[0], args[1]
+	if sVal.IsNull() || sepVal.IsNull() {
+		return super.Null
+	}
+	if sVal.Type().Kind() == super.ErrorKind {
+		return sVal
+	}
+	if sepVal.Type().Kind() == super.ErrorKind {
+		return sVal
+	}
 	for i := range args {
 		if !args[i].IsString() {
 			return s.sctx.WrapError("split: string arg required", args[i])
 		}
-	}
-	sVal, sepVal := args[0], args[1]
-	if sVal.IsNull() || sepVal.IsNull() {
-		return super.NewValue(s.typ, nil)
 	}
 	str := super.DecodeString(sVal.Bytes())
 	sep := super.DecodeString(sepVal.Bytes())
@@ -164,13 +167,15 @@ type Join struct {
 
 func (j *Join) Call(args []super.Value) super.Value {
 	args = underAll(args)
+	for _, val := range args {
+		if val.IsNull() {
+			return super.Null
+		}
+	}
 	splitsVal := args[0]
 	typ, ok := super.TypeUnder(splitsVal.Type()).(*super.TypeArray)
 	if !ok || typ.Type.ID() != super.IDString {
 		return j.sctx.WrapError("join: array of string arg required", splitsVal)
-	}
-	if splitsVal.IsNull() {
-		return super.NullString
 	}
 	var separator string
 	if len(args) == 2 {
@@ -199,6 +204,9 @@ type Levenshtein struct {
 func (l *Levenshtein) Call(args []super.Value) super.Value {
 	args = underAll(args)
 	a, b := args[0], args[1]
+	if a.IsNull() || b.IsNull() {
+		return super.Null
+	}
 	if !a.IsString() {
 		return l.sctx.WrapError("levenshtein: string args required", a)
 	}

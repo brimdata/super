@@ -43,9 +43,8 @@ const sortedStrings = `
 {foo:"zzz"}
 `
 
-// A point that can be included with unsortedInts
-const nullInt = `
-{foo:null::int64}
+const null = `
+{foo:null}
 `
 
 // Some records that don't include the field "foo".  These are combined
@@ -149,7 +148,7 @@ func TestSort(t *testing.T) {
 	runTest(t, "sort foo", unsortedStrings, sortedStrings)
 
 	// Test that null values are sorted to the end
-	runTest(t, "sort foo", unsortedInts+trim(nullInt), ascendingInts+trim(nullInt))
+	runTest(t, "sort foo", unsortedInts+trim(null), ascendingInts+trim(null))
 
 	// Test sorting records that don't all have the requested field.
 	missingFields := cat(nofoo, unsortedStrings)

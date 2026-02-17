@@ -2,8 +2,8 @@ package function
 
 import (
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Fields struct {
@@ -22,23 +22,26 @@ func NewFields(sctx *super.Context) *Fields {
 }
 
 func (f *Fields) Call(args ...vector.Any) vector.Any {
+	if vec, ok := expr.CheckForNullThenError(args); ok {
+		return vec
+	}
 	val := vector.Under(args[0])
 	switch typ := val.Type().(type) {
 	case *super.TypeRecord:
 		paths := buildPath(typ, nil)
-		s := vector.NewStringEmpty(val.Len(), bitvec.Zero)
+		s := vector.NewStringEmpty(val.Len())
 		inOffs, outOffs := []uint32{0}, []uint32{0}
 		for i := uint32(0); i < val.Len(); i++ {
 			inOffs, outOffs = appendPaths(paths, s, inOffs, outOffs)
 		}
-		inner := vector.NewArray(f.innerTyp, inOffs, s, bitvec.Zero)
-		return vector.NewArray(f.outerTyp, outOffs, inner, bitvec.Zero)
+		inner := vector.NewArray(f.innerTyp, inOffs, s)
+		return vector.NewArray(f.outerTyp, outOffs, inner)
 	case *super.TypeOfType:
 		var errs []uint32
-		s := vector.NewStringEmpty(val.Len(), bitvec.Zero)
+		s := vector.NewStringEmpty(val.Len())
 		inOffs, outOffs := []uint32{0}, []uint32{0}
 		for i := uint32(0); i < val.Len(); i++ {
-			b, _ := vector.TypeValueValue(val, i)
+			b := vector.TypeValueValue(val, i)
 			rtyp := f.recordType(b)
 			if rtyp == nil {
 				errs = append(errs, i)
@@ -46,8 +49,8 @@ func (f *Fields) Call(args ...vector.Any) vector.Any {
 			}
 			inOffs, outOffs = appendPaths(buildPath(rtyp, nil), s, inOffs, outOffs)
 		}
-		inner := vector.NewArray(f.innerTyp, inOffs, s, bitvec.Zero)
-		out := vector.NewArray(f.outerTyp, outOffs, inner, bitvec.Zero)
+		inner := vector.NewArray(f.innerTyp, inOffs, s)
+		out := vector.NewArray(f.outerTyp, outOffs, inner)
 		if len(errs) > 0 {
 			return vector.Combine(out, errs, vector.NewStringError(f.sctx, "missing", uint32(len(errs))))
 		}

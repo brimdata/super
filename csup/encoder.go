@@ -41,24 +41,24 @@ func NewEncoder(typ super.Type) Encoder {
 	case *super.TypeError:
 		return &ErrorEncoder{NewEncoder(typ.Type)}
 	case *super.TypeRecord:
-		return NewNullsEncoder(NewRecordEncoder(typ))
+		return NewRecordEncoder(typ)
 	case *super.TypeArray:
-		return NewNullsEncoder(NewArrayEncoder(typ))
+		return NewArrayEncoder(typ)
 	case *super.TypeSet:
 		// Sets encode the same way as arrays but behave
 		// differently semantically, and we don't care here.
-		return NewNullsEncoder(NewSetEncoder(typ))
+		return NewSetEncoder(typ)
 	case *super.TypeMap:
-		return NewNullsEncoder(NewMapEncoder(typ))
+		return NewMapEncoder(typ)
 	case *super.TypeUnion:
-		return NewNullsEncoder(NewUnionEncoder(typ))
+		return NewUnionEncoder(typ)
 	case *super.TypeEnum:
-		return NewNullsEncoder(NewPrimitiveEncoder(typ))
+		return NewPrimitiveEncoder(typ)
 	default:
 		if !super.IsPrimitiveType(typ) {
 			panic(fmt.Sprintf("unsupported type in CSUP file: %T", typ))
 		}
-		return NewNullsEncoder(NewDictEncoder(typ, NewPrimitiveEncoder(typ)))
+		return NewDictEncoder(typ, NewPrimitiveEncoder(typ))
 	}
 }
 

@@ -4,7 +4,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type Entry struct {
@@ -28,8 +27,8 @@ func (m *MapExpr) Eval(this vector.Any) vector.Any {
 	if len(m.entries) == 0 {
 		mtyp := m.sctx.LookupTypeMap(super.TypeNull, super.TypeNull)
 		offsets := make([]uint32, this.Len()+1)
-		c := vector.NewConst(super.Null, 0, bitvec.Zero)
-		return vector.NewMap(mtyp, offsets, c, c, bitvec.Zero)
+		c := vector.NewConst(super.Null, 0)
+		return vector.NewMap(mtyp, offsets, c, c)
 	}
 	var vecs []vector.Any
 	for _, entry := range m.entries {
@@ -51,7 +50,7 @@ func (m *MapExpr) eval(vecs ...vector.Any) vector.Any {
 		offsets = append(offsets, off)
 	}
 	mtyp := m.sctx.LookupTypeMap(key.Type(), val.Type())
-	return vector.NewMap(mtyp, offsets, key, val, bitvec.Zero)
+	return vector.NewMap(mtyp, offsets, key, val)
 }
 
 func (m *MapExpr) build(vecs []vector.Any) vector.Any {

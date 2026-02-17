@@ -4,7 +4,6 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type mapCall struct {
@@ -23,16 +22,16 @@ func (m *mapCall) Eval(in vector.Any) vector.Any {
 }
 
 func (m *mapCall) eval(vecs ...vector.Any) vector.Any {
-	vec := vector.Under(vecs[0])
-	if _, ok := vec.(*vector.Error); ok {
+	if vec, ok := CheckForNullThenError(vecs); ok {
 		return vec
 	}
+	vec := vector.Under(vecs[0])
 	var index []uint32
 	if view, ok := vec.(*vector.View); ok {
 		index = view.Index
 		vec = view.Any
 	}
-	inner, offsets, nulls, ok := elements(vec)
+	inner, offsets, ok := elements(vec)
 	if !ok {
 		return vector.NewWrappedError(m.sctx, "map: expected array or set value", vecs[0])
 	}
@@ -43,16 +42,16 @@ func (m *mapCall) eval(vecs ...vector.Any) vector.Any {
 			typs = append(typs, vec.Type())
 		}
 		utyp := m.sctx.LookupTypeUnion(super.UniqueTypes(typs))
-		inner = vector.NewUnion(utyp, d.Tags, d.Values, bitvec.Zero)
+		inner = vector.NewUnion(utyp, d.Tags, d.Values)
 	}
 	var out vector.Any
 	switch vec := vec.(type) {
 	case *vector.Array:
 		typ := m.sctx.LookupTypeArray(inner.Type())
-		out = vector.NewArray(typ, offsets, inner, nulls)
+		out = vector.NewArray(typ, offsets, inner)
 	case *vector.Set:
 		typ := m.sctx.LookupTypeSet(inner.Type())
-		out = vector.NewSet(typ, offsets, inner, nulls)
+		out = vector.NewSet(typ, offsets, inner)
 	default:
 		panic(vec)
 	}
@@ -62,13 +61,13 @@ func (m *mapCall) eval(vecs ...vector.Any) vector.Any {
 	return out
 }
 
-func elements(vec vector.Any) (vector.Any, []uint32, bitvec.Bits, bool) {
+func elements(vec vector.Any) (vector.Any, []uint32, bool) {
 	switch vec := vec.(type) {
 	case *vector.Array:
-		return vec.Values, vec.Offsets, vec.Nulls, true
+		return vec.Values, vec.Offsets, true
 	case *vector.Set:
-		return vec.Values, vec.Offsets, vec.Nulls, true
+		return vec.Values, vec.Offsets, true
 	default:
-		return nil, nil, bitvec.Zero, false
+		return nil, nil, false
 	}
 }

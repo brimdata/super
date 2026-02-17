@@ -69,10 +69,6 @@ func (r *Reader) Read() (*super.Value, error) {
 }
 
 func (r *Reader) decodeValue(b *scode.Builder, typ super.Type, body any) error {
-	if body == nil {
-		b.Append(nil)
-		return nil
-	}
 	switch typ := typ.(type) {
 	case *super.TypeNamed:
 		return r.decodeValue(b, typ.Type, body)
@@ -136,14 +132,17 @@ func (r *Reader) decodePrimitive(builder *scode.Builder, typ super.Type, v any) 
 	if super.IsContainerType(typ) && !super.IsUnionType(typ) {
 		return errors.New("expected primitive type, got container")
 	}
-	text, ok := v.(string)
-	if !ok {
-		return errors.New("JSUP primitive value is not a JSON string")
+	switch v := v.(type) {
+	case nil:
+		builder.Append(nil)
+		return nil
+	case string:
+		return sup.BuildPrimitive(builder, sup.Primitive{
+			Type: typ,
+			Text: v,
+		})
 	}
-	return sup.BuildPrimitive(builder, sup.Primitive{
-		Type: typ,
-		Text: text,
-	})
+	return fmt.Errorf("JSUP primitive value %q is not a JSON null or string", v)
 }
 
 func (r *Reader) decodeContainerBody(b *scode.Builder, typ super.Type, body any, which string) error {

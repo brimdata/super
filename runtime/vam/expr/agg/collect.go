@@ -16,12 +16,8 @@ func (c *collect) Consume(vec vector.Any) {
 		return
 	}
 	typ := vec.Type()
-	nulls := vector.NullsOf(vec)
 	var b scode.Builder
 	for i := range vec.Len() {
-		if nulls.IsSet(i) {
-			continue
-		}
 		b.Truncate()
 		vec.Serialize(&b, i)
 		c.samcollect.Consume(super.NewValue(typ, b.Bytes().Body()))
@@ -33,7 +29,7 @@ func (c *collect) Result(sctx *super.Context) super.Value {
 }
 
 func (c *collect) ConsumeAsPartial(partial vector.Any) {
-	if c, ok := partial.(*vector.Const); ok && c.Value().IsNull() {
+	if partial.Kind() == vector.KindNull {
 		return
 	}
 	n := partial.Len()

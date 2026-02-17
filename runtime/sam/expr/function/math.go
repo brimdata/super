@@ -70,12 +70,12 @@ func (l *Log) Call(args []super.Value) super.Value {
 	if args[0].IsError() {
 		return args[0]
 	}
+	if args[0].IsNull() {
+		return super.Null
+	}
 	x, ok := coerce.ToFloat(args[0], super.TypeFloat64)
 	if !ok {
 		return l.sctx.WrapError("log: not a number", args[0])
-	}
-	if args[0].IsNull() {
-		return super.NullFloat64
 	}
 	if x <= 0 {
 		return l.sctx.WrapError("log: illegal argument", args[0])
@@ -156,14 +156,14 @@ type Pow struct {
 
 func (p *Pow) Call(args []super.Value) super.Value {
 	a, b := args[0].Under(), args[1].Under()
+	if a.IsNull() || b.IsNull() {
+		return super.Null
+	}
 	if !super.IsNumber(a.Type().ID()) {
 		return p.sctx.WrapError("pow: not a number", args[0])
 	}
 	if !super.IsNumber(b.Type().ID()) {
 		return p.sctx.WrapError("pow: not a number", args[1])
-	}
-	if a.IsNull() || b.IsNull() {
-		return super.NullFloat64
 	}
 	x, _ := coerce.ToFloat(a, super.TypeFloat64)
 	y, _ := coerce.ToFloat(b, super.TypeFloat64)
@@ -176,13 +176,11 @@ type Sqrt struct {
 
 func (s *Sqrt) Call(args []super.Value) super.Value {
 	val := args[0].Under()
-	if id := val.Type().ID(); id == super.IDNull {
-		return val
-	} else if !super.IsNumber(id) {
-		return s.sctx.WrapError("sqrt: number argument required", val)
-	}
 	if val.IsNull() {
-		return super.NullFloat64
+		return super.Null
+	}
+	if !super.IsNumber(val.Type().ID()) {
+		return s.sctx.WrapError("sqrt: number argument required", val)
 	}
 	x, ok := coerce.ToFloat(val, super.TypeFloat64)
 	if !ok {

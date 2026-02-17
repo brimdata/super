@@ -7,8 +7,10 @@ type Has struct{}
 func (h *Has) Call(args []super.Value) super.Value {
 	for _, val := range args {
 		if val.IsNull() {
-			return super.NullBool
+			return super.Null
 		}
+	}
+	for _, val := range args {
 		if val.IsError() {
 			if val.IsMissing() || val.IsQuiet() {
 				return super.False

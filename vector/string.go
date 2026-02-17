@@ -3,22 +3,18 @@ package vector
 import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 type String struct {
 	table BytesTable
-	Nulls bitvec.Bits
 }
 
-var _ Any = (*String)(nil)
-
-func NewString(table BytesTable, nulls bitvec.Bits) *String {
-	return &String{table: table, Nulls: nulls}
+func NewString(table BytesTable) *String {
+	return &String{table}
 }
 
-func NewStringEmpty(cap uint32, nulls bitvec.Bits) *String {
-	return NewString(NewBytesTableEmpty(cap), nulls)
+func NewStringEmpty(cap uint32) *String {
+	return NewString(NewBytesTableEmpty(cap))
 }
 
 func (s *String) Append(v string) {
@@ -46,30 +42,17 @@ func (s *String) Table() BytesTable {
 }
 
 func (s *String) Serialize(b *scode.Builder, slot uint32) {
-	if s.Nulls.IsSet(slot) {
-		b.Append(nil)
-	} else {
-		b.Append(s.table.Bytes(slot))
-	}
+	b.Append(s.table.Bytes(slot))
 }
 
-func StringValue(val Any, slot uint32) (string, bool) {
+func StringValue(val Any, slot uint32) string {
 	switch val := val.(type) {
 	case *String:
-		if val.Nulls.IsSet(slot) {
-			return "", true
-		}
-		return val.Value(slot), false
+		return val.Value(slot)
 	case *Const:
-		if val.Nulls.IsSet(slot) {
-			return "", true
-		}
 		s, _ := val.AsString()
-		return s, false
+		return s
 	case *Dict:
-		if val.Nulls.IsSet(slot) {
-			return "", true
-		}
 		return StringValue(val.Any, uint32(val.Index[slot]))
 	case *View:
 		return StringValue(val.Any, val.Index[slot])

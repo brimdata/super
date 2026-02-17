@@ -21,18 +21,15 @@ func (b *Bucket) Call(args []super.Value) super.Value {
 	args = underAll(args)
 	tsArg := args[0]
 	binArg := args[1]
+	if tsArg.IsNull() || binArg.IsNull() {
+		return super.Null
+	}
 	tsArgID := tsArg.Type().ID()
 	if tsArgID != super.IDDuration && tsArgID != super.IDTime {
 		return b.sctx.WrapError(b.name+": first argument is not a time or duration", tsArg)
 	}
 	if binArg.Type().ID() != super.IDDuration {
 		return b.sctx.WrapError(b.name+": second argument is not a duration", binArg)
-	}
-	if tsArg.IsNull() || binArg.IsNull() {
-		if tsArgID == super.IDDuration {
-			return super.NullDuration
-		}
-		return super.NullTime
 	}
 	bin := nano.Duration(binArg.Int())
 	if tsArgID == super.IDDuration {
@@ -56,6 +53,9 @@ type Strftime struct {
 
 func (s *Strftime) Call(args []super.Value) super.Value {
 	formatArg, timeArg := args[0], args[1]
+	if formatArg.IsNull() || timeArg.IsNull() {
+		return super.Null
+	}
 	if !formatArg.IsString() {
 		return s.sctx.WrapError("strftime: string value required for format arg", formatArg)
 	}
@@ -68,9 +68,6 @@ func (s *Strftime) Call(args []super.Value) super.Value {
 		if s.formatter, err = strftime.New(format); err != nil {
 			return s.sctx.WrapError("strftime: "+err.Error(), formatArg)
 		}
-	}
-	if timeArg.IsNull() {
-		return super.NullString
 	}
 	out := s.formatter.FormatString(timeArg.AsTime().Time())
 	return super.NewString(out)

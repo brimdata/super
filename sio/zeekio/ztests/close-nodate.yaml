@@ -12,4 +12,4 @@ input: |
   #close
 
 output: |
-  {_path:"a",ts:1970-01-01T00:00:10Z,d:1.}
+  {_path:"a",ts:1970-01-01T00:00:10Z::(time|null),d:1.::(float64|null)}
