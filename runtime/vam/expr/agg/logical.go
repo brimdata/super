@@ -30,7 +30,7 @@ func (a *and) Result(*super.Context) super.Value {
 }
 
 func (a *and) ConsumeAsPartial(partial vector.Any) {
-	if partial.Len() != 1 || partial.Type().ID() != super.IDBool {
+	if kind := partial.Kind(); partial.Len() != 1 || (kind != vector.KindBool && kind != vector.KindNull) {
 		panic("and: bad partial")
 	}
 	a.Consume(partial)
