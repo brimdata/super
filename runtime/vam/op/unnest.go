@@ -13,8 +13,8 @@ type Unnest struct {
 	parent vector.Puller
 	expr   expr.Evaluator
 
-	vecs []vector.Any
-	idx  uint32
+	vec vector.Any
+	idx uint32
 }
 
 func NewUnnest(sctx *super.Context, parent vector.Puller, expr expr.Evaluator) *Unnest {
@@ -27,36 +27,19 @@ func NewUnnest(sctx *super.Context, parent vector.Puller, expr expr.Evaluator) *
 
 func (u *Unnest) Pull(done bool) (vector.Any, error) {
 	if done {
-		u.vecs = nil
+		u.vec = nil
 		return u.parent.Pull(true)
 	}
 	for {
-		if len(u.vecs) == 0 || u.idx >= u.vecs[0].Len() {
+		if u.vec == nil || u.idx >= u.vec.Len() {
 			vec, err := u.parent.Pull(done)
 			if vec == nil || err != nil {
 				return nil, err
 			}
-			u.vecs = u.vecs[:0]
-			vec2 := u.expr.Eval(vec)
-			vec2 = vector.Apply(true, func(vecs ...vector.Any) vector.Any { return vecs[0] }, vec2)
-			u.vecs = append(u.vecs, vec2)
+			u.vec = u.expr.Eval(vec)
 			u.idx = 0
 		}
-		var out vector.Any
-		if len(u.vecs) == 1 {
-			out = u.flatten(u.vecs[0], u.idx)
-		} else {
-			var tags []uint32
-			var vecs []vector.Any
-			for i, vec := range u.vecs {
-				vec := u.flatten(vec, u.idx)
-				for range vec.Len() {
-					tags = append(tags, uint32(i))
-				}
-				vecs = append(vecs, vec)
-			}
-			out = vector.NewDynamic(tags, vecs)
-		}
+		out := u.flatten(u.vec, u.idx)
 		u.idx++
 		if out != nil {
 			return out, nil
