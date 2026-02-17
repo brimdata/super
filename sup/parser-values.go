@@ -2,7 +2,6 @@ package sup
 
 import (
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"io"
 	"net/netip"
@@ -21,8 +20,11 @@ func (p *Parser) ParseValue() (ast.Value, error) {
 		err = nil
 	}
 	if v == nil && err == nil {
-		if err := p.lexer.check(1); (err != nil && err != io.EOF) || len(p.lexer.cursor) > 0 {
-			return nil, errors.New("SUP syntax error")
+		if err := p.lexer.check(1); err != nil && err != io.EOF {
+			return nil, fmt.Errorf("line %d: %w", p.lexer.line, err)
+		}
+		if len(p.lexer.cursor) > 0 {
+			return nil, fmt.Errorf("line %d: syntax error", p.lexer.line)
 		}
 	}
 	return v, err
