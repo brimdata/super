@@ -53,7 +53,11 @@ func (f *fuse) Result(sctx *super.Context) super.Value {
 }
 
 func (f *fuse) ConsumeAsPartial(partial vector.Any) {
-	if partial.Type() != super.TypeType {
+	kind := partial.Kind()
+	if kind == vector.KindNull {
+		return
+	}
+	if kind != vector.KindType {
 		panic("fuse: partial not a type value")
 	}
 	for i := range partial.Len() {
