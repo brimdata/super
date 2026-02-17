@@ -9,42 +9,47 @@ import (
 )
 
 type fuse struct {
-	shapes   map[super.Type]int
+	// XXX This convulated data structure of seen/types is here to preserve the
+	// order of the types encountered since some tests rely upon this
+	// and fusion gives different field order for records based on the
+	// input order.  This can happen anyway due to spilling so it's not a
+	// complete solution.  We should decide what to do here.  Maybe the
+	// non-deterministic output is ok.
+	seen     map[super.Type]struct{}
+	types    []super.Type
 	partials []super.Value
 }
 
 func newFuse() *fuse {
 	return &fuse{
-		shapes: make(map[super.Type]int),
+		seen: make(map[super.Type]struct{}),
 	}
 }
 
 func (f *fuse) Consume(vec vector.Any) {
-	if _, ok := f.shapes[vec.Type()]; !ok {
-		f.shapes[vec.Type()] = len(f.shapes)
+	typ := vec.Type()
+	if _, ok := f.seen[typ]; !ok {
+		f.seen[typ] = struct{}{}
 	}
+	f.types = append(f.types, typ)
 }
 
 func (f *fuse) Result(sctx *super.Context) super.Value {
-	if len(f.shapes)+len(f.partials) == 0 {
+	if len(f.types)+len(f.partials) == 0 {
 		return super.Null
 	}
-	schema := samagg.NewSchemaWithMissingFieldsAsNullable(sctx)
+	fuser := samagg.NewFuserWithMissingFieldsAsNullable(sctx)
 	for _, p := range f.partials {
 		typ, err := sctx.LookupByValue(p.Bytes())
 		if err != nil {
 			panic(fmt.Errorf("fuse: invalid partial value: %w", err))
 		}
-		schema.Mixin(typ)
+		fuser.Fuse(typ)
 	}
-	shapes := make([]super.Type, len(f.shapes))
-	for typ, i := range f.shapes {
-		shapes[i] = typ
+	for _, typ := range f.types {
+		fuser.Fuse(typ)
 	}
-	for _, typ := range shapes {
-		schema.Mixin(typ)
-	}
-	return sctx.LookupTypeValue(schema.Type())
+	return sctx.LookupTypeValue(fuser.Type())
 }
 
 func (f *fuse) ConsumeAsPartial(partial vector.Any) {

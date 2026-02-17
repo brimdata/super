@@ -1120,20 +1120,20 @@ func (c *checker) error(loc ast.Node, err error) {
 }
 
 func (c *checker) newFuser() *fuser {
-	return &fuser{agg.NewSchema(c.t.sctx), c.unknown}
+	return &fuser{agg.NewFuser(c.t.sctx), c.unknown}
 }
 
 type fuser struct {
-	sch     *agg.Schema
+	fuser   *agg.Fuser
 	unknown super.Type
 }
 
 func (f *fuser) fuse(typ super.Type) {
-	f.sch.Mixin(typ)
+	f.fuser.Fuse(typ)
 }
 
 func (f *fuser) Type() super.Type {
-	typ := f.sch.Type()
+	typ := f.fuser.Type()
 	if typ == nil {
 		return f.unknown
 	}

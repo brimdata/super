@@ -81,12 +81,14 @@ func FileType(ctx context.Context, sctx *super.Context, engine storage.Engine, p
 	case *arrowio.Reader:
 		return r.Type(), nil
 	}
-	s := agg.NewSchema(sctx)
+	// XXX reminder: we need to put a limit in here for RINCON to avoid
+	// compilation delays for large inputs.
+	fuser := agg.NewFuser(sctx)
 	for {
 		val, err := f.Read()
 		if val == nil || err != nil {
-			return s.Type(), err
+			return fuser.Type(), err
 		}
-		s.Mixin(val.Type())
+		fuser.Fuse(val.Type())
 	}
 }
