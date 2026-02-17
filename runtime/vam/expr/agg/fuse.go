@@ -9,20 +9,29 @@ import (
 )
 
 type fuse struct {
-	types    map[super.Type]struct{}
+	// XXX This convulated data structure of seen/types is here to preserve the
+	// order of the types encountered since some tests rely upon this
+	// and fusion gives different field order for records based on the
+	// input order.  This can happen anyway due to spilling so it's not a
+	// complete solution.  We should decide what to do here.  Maybe the
+	// non-deterministic output is ok.
+	seen     map[super.Type]struct{}
+	types    []super.Type
 	partials []super.Value
 }
 
 func newFuse() *fuse {
 	return &fuse{
-		types: make(map[super.Type]struct{}),
+		seen: make(map[super.Type]struct{}),
 	}
 }
 
 func (f *fuse) Consume(vec vector.Any) {
-	if _, ok := f.types[vec.Type()]; !ok {
-		f.types[vec.Type()] = struct{}{}
+	typ := vec.Type()
+	if _, ok := f.seen[typ]; !ok {
+		f.seen[typ] = struct{}{}
 	}
+	f.types = append(f.types, typ)
 }
 
 func (f *fuse) Result(sctx *super.Context) super.Value {
@@ -37,7 +46,7 @@ func (f *fuse) Result(sctx *super.Context) super.Value {
 		}
 		fuser.Fuse(typ)
 	}
-	for typ := range f.types {
+	for _, typ := range f.types {
 		fuser.Fuse(typ)
 	}
 	return sctx.LookupTypeValue(fuser.Type())
