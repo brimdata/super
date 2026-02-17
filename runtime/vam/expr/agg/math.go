@@ -106,6 +106,13 @@ func (m *mathReducer) consumeNumeric(vec vector.Any) {
 }
 
 func (m *mathReducer) ConsumeAsPartial(vec vector.Any) {
+	if vec.Len() != 1 {
+		panic("invalid length for partial")
+	}
+	if vec.Kind() == vector.KindError {
+		m.mixedTypesErr = true
+		return
+	}
 	m.Consume(vec)
 }
 
