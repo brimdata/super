@@ -202,14 +202,13 @@ func FlattenBool(vec vector.Any) *vector.Bool {
 }
 
 type In struct {
-	sctx *super.Context
-	lhs  Evaluator
-	rhs  Evaluator
-	pw   *PredicateWalk
+	lhs Evaluator
+	rhs Evaluator
+	pw  *PredicateWalk
 }
 
 func NewIn(sctx *super.Context, lhs, rhs Evaluator) *In {
-	return &In{sctx, lhs, rhs, NewPredicateWalk(sctx, NewCompare(sctx, "==", nil, nil).eval)}
+	return &In{lhs, rhs, NewPredicateWalk(sctx, NewCompare(sctx, "==", nil, nil).eval)}
 }
 
 func (i *In) Eval(this vector.Any) vector.Any {
