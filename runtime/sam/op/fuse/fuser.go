@@ -33,6 +33,7 @@ func NewFuser(sctx *super.Context, memMaxBytes int) *Fuser {
 		memMaxBytes: memMaxBytes,
 		types:       make(map[super.Type]struct{}),
 		uberSchema:  agg.NewSchemaWithMissingFieldsAsNullable(sctx),
+		caster:      function.NewUpCaster(sctx),
 	}
 }
 
@@ -82,9 +83,8 @@ func (f *Fuser) stash(rec super.Value) error {
 // Read returns the next buffered record after transforming it to the unified
 // schema.
 func (f *Fuser) Read() (*super.Value, error) {
-	if f.caster == nil {
+	if f.typ == nil {
 		f.typ = f.uberSchema.Type()
-		f.caster = function.NewUpCaster(f.sctx)
 		if f.spiller != nil {
 			if err := f.spiller.Rewind(f.sctx); err != nil {
 				return nil, err

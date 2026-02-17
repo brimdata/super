@@ -18,7 +18,7 @@ type cast struct {
 	sctx *super.Context
 }
 
-func NewCaster(sctx *super.Context) *cast {
+func NewCaster(sctx *super.Context) Caster {
 	return &cast{sctx: sctx}
 }
 
@@ -228,7 +228,7 @@ type upcast struct {
 	sctx *super.Context
 }
 
-func NewUpCaster(sctx *super.Context) *upcast {
+func NewUpCaster(sctx *super.Context) Caster {
 	return &upcast{sctx: sctx}
 }
 
@@ -238,8 +238,7 @@ func (u *upcast) Call(args []super.Value) super.Value {
 		//XXX wrap?
 		return from
 	}
-	_, ok := super.TypeUnder(to.Type()).(*super.TypeOfType)
-	if !ok {
+	if _, ok := super.TypeUnder(to.Type()).(*super.TypeOfType); !ok {
 		return u.sctx.WrapError("upcast target must be a type", to)
 	}
 	typ, err := u.sctx.LookupByValue(to.Bytes())
@@ -271,7 +270,7 @@ func (u *upcast) Cast(from super.Value, to super.Type) super.Value {
 	case *super.TypeNamed:
 		return u.toNamed(from, to)
 	default:
-		return u.sctx.WrapError("cannot upcast to "+sup.FormatType(to), from)
+		return u.error(from, to)
 	}
 }
 
@@ -415,7 +414,7 @@ func (u *upcast) toUnion(from super.Value, to *super.TypeUnion) super.Value {
 			// For a record, try to find a record in the union that we can
 			// upcast into.  XXX we should do a similar search for other
 			// complex types.
-			val, recTag, ok := u.maybeRecordUpcast(from, to)
+			val, recTag, ok := u.maybeUpcastRecord(from, to)
 			if !ok {
 				return u.error(from, to)
 			}
@@ -430,7 +429,7 @@ func (u *upcast) toUnion(from super.Value, to *super.TypeUnion) super.Value {
 	return super.NewValue(to, b.Bytes().Body())
 }
 
-func (u *upcast) maybeRecordUpcast(from super.Value, to *super.TypeUnion) (super.Value, int, bool) {
+func (u *upcast) maybeUpcastRecord(from super.Value, to *super.TypeUnion) (super.Value, int, bool) {
 	if typ := super.TypeRecordOf(from.Type()); typ == nil {
 		return super.Value{}, 0, false
 	}
