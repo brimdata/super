@@ -64,7 +64,7 @@ func (o *or) Result(*super.Context) super.Value {
 }
 
 func (o *or) ConsumeAsPartial(partial vector.Any) {
-	if partial.Len() != 1 || partial.Type().ID() != super.IDBool {
+	if kind := partial.Kind(); partial.Len() != 1 || (kind != vector.KindBool && kind != vector.KindNull) {
 		panic("or: bad partial")
 	}
 	o.Consume(partial)
