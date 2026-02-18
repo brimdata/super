@@ -64,7 +64,7 @@ func buildList(sctx *super.Context, elems []ListElem, in []vector.Any) ([]uint32
 			}
 		}
 		vecTags = append(vecTags, uint32(len(vecs)))
-		if union, ok := vec.(*vector.Union); ok {
+		if union, ok := vec.(*vector.Union); ok && elem.Spread != nil {
 			vecs = append(vecs, union.Values...)
 			unionTags[i] = union.Tags
 		} else {
