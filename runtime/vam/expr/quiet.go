@@ -57,7 +57,7 @@ func (d *Dequiet) rec(vec vector.Any) vector.Any {
 		}
 		vecs = append(vecs, d.dequiet(vec))
 	}
-	return vector.Apply(true, func(vecs ...vector.Any) vector.Any {
+	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
 		var fields []super.Field
 		var vals []vector.Any
 		for i, vec := range vecs {

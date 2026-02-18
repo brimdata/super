@@ -55,3 +55,16 @@ input: |
 output: |
   {ports:{orig_p:1::(port=uint16),resp_p:2::port},resp_p:2::port}
   {ports:[3::(port=uint16),4::port]}
+
+---
+
+# Test dequiet keeps unions.
+spq: cut x,quiet(y)
+
+vector: true
+
+input: |
+  {x:1::(int64|null)}
+
+output: |
+  {x:1::(int64|null)}
