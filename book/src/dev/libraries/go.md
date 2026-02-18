@@ -20,7 +20,7 @@ Some of the key packages are:
 
 To install in your local Go project, simply run:
 ```
-go get github.com/brimdata/super
+go get github.com/brimdata/super@main
 ```
 
 ## Examples
@@ -68,6 +68,7 @@ cd example
 go mod init example
 cat > main.go
 # [paste from above]
+go get github.com/brimdata/super@main
 go mod tidy
 ```
 To run type:
