@@ -16,6 +16,9 @@ func newUnion() *union {
 }
 
 func (u *union) Consume(vec vector.Any) {
+	if vec.Kind() == vector.KindNull {
+		return
+	}
 	switch vec := vec.(type) {
 	case *vector.Const:
 		val := vec.Value()
