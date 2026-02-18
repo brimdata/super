@@ -11,6 +11,7 @@ input: |
   // heterogenous
   {a:"foo",b:1,c:127.0.0.1}
   {a:"bar",b:2,c:127.0.0.2}
+  {a:0,b:"1"::(int64|string),c:null::(int64|string|null)}
 
 output: |
   [error("missing"),error("quiet"),null]
@@ -20,6 +21,7 @@ output: |
   [|{"key":"k1"}|,null,|{"key":"k3"}|]
   ["foo",1,127.0.0.1]
   ["bar",2,127.0.0.2]
+  [0,"1"::(int64|string),null::(int64|string|null)]
 
 ---
 
