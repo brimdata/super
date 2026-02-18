@@ -21,3 +21,20 @@ output: |
   null::=named
   error("missing")
   error("foo")
+
+---
+
+# Test casting to a named type keeps the named type.
+spq: |
+  type foo=string
+  values {str:cast(this, "foo"), named:cast(this, foo)}
+
+vector: true
+
+input: |
+  1
+  2
+
+output: |
+  {str:1::=foo,named:"1"::=foo}
+  {str:2::=foo,named:"2"::=foo}
