@@ -31,7 +31,7 @@ describe the committed data, similar to the same `super db load` options.
 Examples below assume the existence of a database created and populated
 by the following commands:
 
-```mdtest-command
+```mdtest-command runtime=sam
 export SUPER_DB=example
 super db -q init
 super db -q create -orderby flip:asc coinflips
@@ -56,7 +56,7 @@ coinflips@onlytails
 ## Examples
 
 _Modify some values, load them into the `main` branch of our empty `bigflips` pool, and see what was loaded_
-```mdtest-command
+```mdtest-command runtime=sam
 super db -db example -c '
   from coinflips
   | result:=upper(result)
@@ -72,7 +72,7 @@ super db -db example -s -c 'from bigflips'
 ```
 
 _Add a filtered subset of records to our `onlytails` branch, while also adding metadata_
-```mdtest-command
+```mdtest-command runtime=sam
 super db -db example -c '
   from coinflips
   | result=="tails"

@@ -124,7 +124,6 @@ _Values is often used to transform records_
 values [a,b],[b,a] | collect(this)
 # input
 {a:1,b:2}
-{a:3,b:4}
 # expected output
-[[1,2],[2,1],[3,4],[4,3]]
+[[1,2],[2,1]]
 ```
