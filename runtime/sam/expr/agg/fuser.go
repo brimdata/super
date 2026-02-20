@@ -45,14 +45,17 @@ func (f *Fuser) Type() super.Type {
 	return f.typ
 }
 
-func (f *Fuser) fuse(a, b super.Type) super.Type {
+func (f *Fuser) fuse(a, b super.Type) (x super.Type) {
 	if a == b {
 		return a
 	}
-	aUnder := super.TypeUnder(a)
-	bUnder := super.TypeUnder(b)
-	if a, ok := aUnder.(*super.TypeRecord); ok {
-		if b, ok := bUnder.(*super.TypeRecord); ok {
+	a, b = super.TypeUnder(a), super.TypeUnder(b)
+	if a == b {
+		return a
+	}
+	switch a := a.(type) {
+	case *super.TypeRecord:
+		if b, ok := b.(*super.TypeRecord); ok {
 			fields := slices.Clone(a.Fields)
 			if f.missingFieldsNullable {
 				for _, field := range b.Fields {
@@ -71,63 +74,83 @@ func (f *Fuser) fuse(a, b super.Type) super.Type {
 				return f.sctx.MustLookupTypeRecord(fields)
 			}
 			for _, field := range b.Fields {
-				if i, ok := indexOfField(fields, field.Name); !ok {
-					fields = append(fields, field)
-				} else if fields[i] != field {
+				if i, ok := indexOfField(fields, field.Name); ok {
 					fields[i].Type = f.fuse(fields[i].Type, field.Type)
+				} else {
+					fields = append(fields, field)
 				}
 			}
 			return f.sctx.MustLookupTypeRecord(fields)
 		}
-	}
-	if a, ok := aUnder.(*super.TypeArray); ok {
-		if b, ok := bUnder.(*super.TypeArray); ok {
-			return f.sctx.LookupTypeArray(f.fuse(a.Type, b.Type))
+	case *super.TypeArray:
+		if b, ok := b.(*super.TypeArray); ok {
+			x := f.fuse(a.Type, b.Type)
+			return f.sctx.LookupTypeArray(x)
 		}
-		if b, ok := bUnder.(*super.TypeSet); ok {
-			return f.sctx.LookupTypeArray(f.fuse(a.Type, b.Type))
-		}
-	}
-	if a, ok := aUnder.(*super.TypeSet); ok {
-		if b, ok := bUnder.(*super.TypeArray); ok {
-			return f.sctx.LookupTypeArray(f.fuse(a.Type, b.Type))
-		}
-		if b, ok := bUnder.(*super.TypeSet); ok {
+	case *super.TypeSet:
+		if b, ok := b.(*super.TypeSet); ok {
 			return f.sctx.LookupTypeSet(f.fuse(a.Type, b.Type))
 		}
-	}
-	if a, ok := aUnder.(*super.TypeMap); ok {
-		if b, ok := bUnder.(*super.TypeMap); ok {
+	case *super.TypeMap:
+		if b, ok := b.(*super.TypeMap); ok {
 			keyType := f.fuse(a.KeyType, b.KeyType)
 			valType := f.fuse(a.ValType, b.ValType)
 			return f.sctx.LookupTypeMap(keyType, valType)
 		}
-	}
-	if a, ok := aUnder.(*super.TypeUnion); ok {
-		types := slices.Clone(a.Types)
-		if bUnion, ok := bUnder.(*super.TypeUnion); ok {
-			for _, t := range bUnion.Types {
-				types = appendIfAbsent(types, t)
-			}
-		} else {
-			types = appendIfAbsent(types, b)
-		}
-		types = f.fuseAllRecords(types)
+	case *super.TypeUnion:
+		types := f.fuseIntoUnionTypes(nil, a)
+		types = f.fuseIntoUnionTypes(types, b)
 		if len(types) == 1 {
 			return types[0]
 		}
 		return f.sctx.LookupTypeUnion(types)
+	case *super.TypeEnum:
+		if b, ok := b.(*super.TypeEnum); ok {
+			var newSymbols []string
+			for _, s := range b.Symbols {
+				if !slices.Contains(a.Symbols, s) {
+					newSymbols = append(newSymbols, s)
+				}
+			}
+			if len(newSymbols) == 0 {
+				return a
+			}
+			symbols := append(slices.Clone(a.Symbols), newSymbols...)
+			return f.sctx.LookupTypeEnum(symbols)
+		}
+	case *super.TypeError:
+		if b, ok := b.(*super.TypeError); ok {
+			return f.sctx.LookupTypeError(f.fuse(a.Type, b.Type))
+		}
 	}
-	if _, ok := bUnder.(*super.TypeUnion); ok {
+	if _, ok := b.(*super.TypeUnion); ok {
 		return f.fuse(b, a)
 	}
-	// XXX Merge enums?
 	return f.sctx.LookupTypeUnion([]super.Type{a, b})
 }
 
-func appendIfAbsent(types []super.Type, typ super.Type) []super.Type {
-	if slices.Contains(types, typ) {
+// fuseIntoUnionTypes fuses typ into types while maintaining the invariant that
+// types contains at most one type of each complex kind but no unions.
+func (f *Fuser) fuseIntoUnionTypes(types []super.Type, typ super.Type) []super.Type {
+	typUnder := super.TypeUnder(typ)
+	if u, ok := typUnder.(*super.TypeUnion); ok {
+		for _, t := range u.Types {
+			types = f.fuseIntoUnionTypes(types, t)
+		}
 		return types
+	}
+	typKind := typ.Kind()
+	for i, t := range types {
+		switch {
+		case t == typ:
+			return types
+		case super.TypeUnder(t) == typUnder:
+			types[i] = typUnder
+			return types
+		case typKind != super.PrimitiveKind && typKind == t.Kind():
+			types[i] = f.fuse(t, typ)
+			return types
+		}
 	}
 	return append(types, typ)
 }
@@ -139,25 +162,4 @@ func indexOfField(fields []super.Field, name string) (int, bool) {
 		}
 	}
 	return -1, false
-}
-
-// fuseAllRecords preserves the invariant that any union has a single
-// fused record.  It looks through the types argument and for all record types
-// fuses them into a common type leaving the single fused record type
-// in the returned slice along with all non-record types unchanged.
-func (f *Fuser) fuseAllRecords(types []super.Type) []super.Type {
-	out := types[:0]
-	recIndex := -1
-	for _, t := range types {
-		if super.IsRecordType(t) {
-			if recIndex < 0 {
-				recIndex = len(out)
-			} else {
-				out[recIndex] = f.fuse(out[recIndex], t)
-				continue
-			}
-		}
-		out = append(out, t)
-	}
-	return out
 }

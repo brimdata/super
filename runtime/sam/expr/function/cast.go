@@ -406,44 +406,34 @@ func (u *upcast) toMap(from super.Value, to *super.TypeMap) super.Value {
 }
 
 func (u *upcast) toUnion(from super.Value, to *super.TypeUnion) super.Value {
-	tag := bestUnionTag(from.Type(), to)
+	from = from.Deunion()
+	tag := upcastUnionTag(to.Types, from.Type())
 	if tag < 0 {
-		from2 := from.Deunion()
-		tag = bestUnionTag(from2.Type(), to)
-		if tag < 0 {
-			// For a record, try to find a record in the union that we can
-			// upcast into.  XXX we should do a similar search for other
-			// complex types.
-			val, recTag, ok := u.maybeUpcastRecord(from, to)
-			if !ok {
-				return u.error(from, to)
-			}
-			from = val
-			tag = recTag
-		} else {
-			from = from2
-		}
+		return u.error(from, to)
+	}
+	tagType := to.Types[tag]
+	from = u.Cast(from, tagType)
+	if from.Type() != tagType {
+		return from
 	}
 	var b scode.Builder
 	super.BuildUnion(&b, tag, from.Bytes())
 	return super.NewValue(to, b.Bytes().Body())
 }
 
-func (u *upcast) maybeUpcastRecord(from super.Value, to *super.TypeUnion) (super.Value, int, bool) {
-	if typ := super.TypeRecordOf(from.Type()); typ == nil {
-		return super.Value{}, 0, false
+func upcastUnionTag(types []super.Type, out super.Type) int {
+	k := out.Kind()
+	if k == super.PrimitiveKind {
+		id := out.ID()
+		return slices.IndexFunc(types, func(t super.Type) bool { return t.ID() == id })
 	}
-	for tag, t := range to.Types {
-		if typ := super.TypeRecordOf(t); typ != nil {
-			if val, ok := u.toRecord(from, typ); ok {
-				return val, tag, true
-			}
-		}
-	}
-	return super.Value{}, 0, false
+	return slices.IndexFunc(types, func(t super.Type) bool { return t.Kind() == k })
 }
 
 func (u *upcast) toError(from super.Value, to *super.TypeError) super.Value {
+	if e, ok := from.Type().(*super.TypeError); ok {
+		from = super.NewValue(e.Type, from.Bytes())
+	}
 	from = u.Cast(from, to.Type)
 	if from.Type() != to.Type {
 		return from
