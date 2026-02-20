@@ -45,7 +45,7 @@ func (f *Fuser) Type() super.Type {
 	return f.typ
 }
 
-func (f *Fuser) fuse(a, b super.Type) (x super.Type) {
+func (f *Fuser) fuse(a, b super.Type) super.Type {
 	if a == b {
 		return a
 	}
