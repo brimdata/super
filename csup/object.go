@@ -6,22 +6,14 @@
 // for each node in the type tree.  The top-level BSUP body is written via a call
 // to Write.  Each vector buffers its data in memory until the object is encoded.
 //
-// After all of the data is written, a metadata section is written consisting
-// of a single super value describing the layout of all the vector data obtained by
-// calling the Metadata method on the Encoder interface.
+// After all of the data is written, a metadata section is written describing
+// the layout of all the vector data obtained by calling the Metadata method
+// on the Encoder interface.
 //
-// Nulls are encoded by a special Nulls object.  Each type is wrapped by a NullsEncoder,
-// which run-length encodes alternating sequences of nulls and values.  If no nulls
-// are encountered, then the Nulls object is omitted from the metadata.
-//
-// Data is read from a CSUP object by reading the metadata and creating vector Builders
-// for each type by calling NewBuilder with the metadata, which recusirvely creates
-// Builders.  An io.ReaderAt is passed to NewBuilder so each vector reader can access
-// the underlying storage object and read its vector data effciently in large vector segments.
-//
-// Once the metadata is assembled in memory, the recontructed sequence data can be
-// read from the vector segments by calling the Build method on the top-level
-// Builder and passing in a scode.Builder to reconstruct the super value.
+// Data is read from a CSUP object by reading the metadata and materializing any
+// needed vectors for a query.  This is handled by vcache and no reading is implemented
+// in this package.
+
 package csup
 
 import (

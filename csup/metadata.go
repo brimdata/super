@@ -35,8 +35,6 @@ func under(cctx *Context, meta Metadata) Metadata {
 		switch inner := meta.(type) {
 		case *Named:
 			meta = cctx.Lookup(inner.Values)
-		case *Nulls:
-			meta = cctx.Lookup(inner.Values)
 		default:
 			return meta
 		}
@@ -183,16 +181,6 @@ func (p *Primitive) Len(*Context) uint32 {
 	return p.Count
 }
 
-type Nulls struct {
-	Runs   Segment
-	Values ID
-	Count  uint32 // Count of nulls
-}
-
-func (n *Nulls) Len(cctx *Context) uint32 {
-	return n.Count + cctx.Lookup(n.Values).Len(cctx)
-}
-
 type Const struct {
 	Value super.Value // this value lives in local context and needs to be translated by shadow
 	Count uint32
@@ -315,7 +303,6 @@ var Template = []any{
 	Primitive{},
 	Named{},
 	Error{},
-	Nulls{},
 	Const{},
 	Dict{},
 	Dynamic{},
