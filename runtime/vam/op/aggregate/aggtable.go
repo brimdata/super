@@ -8,7 +8,6 @@ import (
 	"github.com/brimdata/super/runtime/vam/expr/agg"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
-	"github.com/brimdata/super/vector/bitvec"
 )
 
 // XXX use super.Value for slow path stuff, e.g., when the grouping key is
@@ -215,13 +214,10 @@ func (c *countByString) materialize() vector.Any {
 		k++
 	}
 	offs[k] = uint32(len(bytes))
-	var nulls bitvec.Bits
 	if c.nulls > 0 {
 		length++
 		counts = append(counts, c.nulls)
 		offs = append(offs, uint32(len(bytes)))
-		nulls = bitvec.NewFalse(uint32(length))
-		nulls.Set(uint32(length - 1))
 	}
 	keyVec := vector.NewString(vector.NewBytesTable(offs, bytes))
 	countVec := vector.NewInt(super.TypeInt64, counts)
