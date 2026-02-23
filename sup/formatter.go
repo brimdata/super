@@ -164,7 +164,7 @@ func (f *Formatter) formatValue(indent int, typ super.Type, bytes scode.Bytes, p
 		f.build("error")
 		f.endColor()
 		f.build("(")
-		f.formatValue(indent, t.Type, bytes, known, parentImplied, false)
+		f.formatValue(indent, t.Type, bytes, known, parentImplied, true)
 		f.build(")")
 	case *super.TypeOfType:
 		f.startColor(color.Gray(200))

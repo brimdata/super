@@ -49,7 +49,7 @@ func SelfDescribing(typ super.Type) bool {
 		return true
 	}
 	switch typ := typ.(type) {
-	case *super.TypeRecord, *super.TypeArray, *super.TypeSet, *super.TypeMap:
+	case *super.TypeRecord, *super.TypeArray, *super.TypeSet, *super.TypeMap, *super.TypeError:
 		return true
 	case *super.TypeNamed:
 		return SelfDescribing(typ.Type)
