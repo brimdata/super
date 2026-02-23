@@ -10,4 +10,4 @@ input: |
 output: |
   {a:1}
   error({message:"assertion failed",expr:"a==1",on:{a:2}})
-  error({message:"?-operator: bool predicate required",on:error("missing")})
+  error("missing")

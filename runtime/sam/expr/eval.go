@@ -792,14 +792,19 @@ func NewConditional(sctx *super.Context, predicate, thenExpr, elseExpr Evaluator
 }
 
 func (c *Conditional) Eval(this super.Value) super.Value {
-	val := c.predicate.Eval(this)
-	if val.Type().ID() != super.IDBool {
-		return c.sctx.WrapError("?-operator: bool predicate required", val)
+	val := c.predicate.Eval(this).Deunion()
+	switch typ := val.Type(); {
+	case typ.ID() == super.IDBool:
+		if val.Bool() {
+			return c.thenExpr.Eval(this)
+		}
+		return c.elseExpr.Eval(this)
+	case typ.ID() == super.IDNull:
+		return c.elseExpr.Eval(this)
+	case typ.Kind() == super.ErrorKind:
+		return val
 	}
-	if val.Bool() {
-		return c.thenExpr.Eval(this)
-	}
-	return c.elseExpr.Eval(this)
+	return c.sctx.WrapError("?-operator: bool predicate required", val)
 }
 
 type Call struct {

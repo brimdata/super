@@ -15,4 +15,4 @@ output: |
   "foo"
   "bar"
   {y:12}
-  error({message:"?-operator: bool predicate required",on:error("missing")})
+  error("missing")

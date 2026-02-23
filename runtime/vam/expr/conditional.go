@@ -23,42 +23,52 @@ func NewConditional(sctx *super.Context, predicate, thenExpr, elseExpr Evaluator
 }
 
 func (c *conditional) Eval(this vector.Any) vector.Any {
-	predVec := c.predicate.Eval(this)
-	boolsMap, otherMap := BoolMask(predVec)
-	if otherMap.GetCardinality() == uint64(this.Len()) {
-		return c.predicateError(predVec)
-	}
-	if boolsMap.GetCardinality() == uint64(this.Len()) {
-		return c.thenExpr.Eval(this)
-	}
-	if boolsMap.IsEmpty() && otherMap.IsEmpty() {
-		return c.elseExpr.Eval(this)
-	}
-	thenVec := c.thenExpr.Eval(vector.Pick(this, boolsMap.ToArray()))
-	// elseMap is the difference between boolsMap or errsMap
-	elseMap := roaring.Or(boolsMap, otherMap)
-	elseMap.Flip(0, uint64(this.Len()))
-	elseIndex := elseMap.ToArray()
-	elseVec := c.elseExpr.Eval(vector.Pick(this, elseIndex))
-	tags := make([]uint32, this.Len())
-	for _, idx := range elseIndex {
-		tags[idx] = 1
-	}
-	vecs := []vector.Any{thenVec, elseVec}
-	if !otherMap.IsEmpty() {
-		otherIndex := otherMap.ToArray()
-		for _, idx := range otherIndex {
-			tags[idx] = 2
-		}
-		vecs = append(vecs, c.predicateError(vector.Pick(predVec, otherIndex)))
-	}
-	return vector.NewDynamic(tags, vecs)
+	return vector.Apply(true, c.eval, c.predicate.Eval(this), this)
 }
 
-func (c *conditional) predicateError(vec vector.Any) vector.Any {
-	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
-		return vector.NewWrappedError(c.sctx, "?-operator: bool predicate required", vecs[0])
-	}, vec)
+func (c *conditional) eval(vecs ...vector.Any) vector.Any {
+	predVec, thisVec := vecs[0], vecs[1]
+	switch predVec.Kind() {
+	case vector.KindBool:
+	case vector.KindNull:
+		return c.elseExpr.Eval(thisVec)
+	case vector.KindError:
+		return predVec
+	default:
+		return vector.NewWrappedError(c.sctx, "?-operator: bool predicate required", predVec)
+	}
+	var elseIndex []uint32
+	switch predVec := vector.Under(predVec).(type) {
+	case *vector.Const:
+		if predVec.Value().Bool() {
+			return c.thenExpr.Eval(thisVec)
+		}
+		return c.elseExpr.Eval(thisVec)
+	case *vector.Bool:
+		if predVec.IsZero() {
+			return c.elseExpr.Eval(thisVec)
+		}
+		for i := range predVec.Len() {
+			if !predVec.IsSet(i) {
+				elseIndex = append(elseIndex, i)
+			}
+		}
+	default:
+		for i := range predVec.Len() {
+			if !vector.BoolValue(predVec, i) {
+				elseIndex = append(elseIndex, i)
+			}
+		}
+	}
+	if len(elseIndex) == 0 {
+		return c.thenExpr.Eval(thisVec)
+	}
+	elseVec := c.elseExpr.Eval(thisVec)
+	if len(elseIndex) == int(elseVec.Len()) {
+		return elseVec
+	}
+	thenVec := c.thenExpr.Eval(thisVec)
+	return combine(thenVec, elseVec, elseIndex)
 }
 
 func BoolMask(mask vector.Any) (*roaring.Bitmap, *roaring.Bitmap) {
