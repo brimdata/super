@@ -22,10 +22,14 @@ input: |
   1.::float16
   1.::float32
   1.
+  1::(int64|null)
   "foo"
   10.0.0.1
   [1,2,3]
+  error(1)
+  error(1)::(null|error(int64))
   null
+  null::(int64|null)
 
 output: |
   -1::int8
@@ -47,7 +51,11 @@ output: |
   -1.::float16
   -1.::float32
   -1.
+  -1
   error({message:"type incompatible with unary '-' operator",on:"foo"})
   error({message:"type incompatible with unary '-' operator",on:10.0.0.1})
   error({message:"type incompatible with unary '-' operator",on:[1,2,3]})
+  error(1)
+  error(1)
+  null
   null

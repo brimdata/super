@@ -562,7 +562,10 @@ func NewUnaryMinus(sctx *super.Context, e Evaluator) *UnaryMinus {
 }
 
 func (u *UnaryMinus) Eval(this super.Value) super.Value {
-	val := u.expr.Eval(this)
+	val := u.expr.Eval(this).Deunion()
+	if val.IsNull() || val.IsError() {
+		return val
+	}
 	typ := val.Type()
 	if super.IsUnsigned(typ.ID()) {
 		switch typ.ID() {
@@ -583,9 +586,6 @@ func (u *UnaryMinus) Eval(this super.Value) super.Value {
 			return super.Null
 		}
 		val = super.NewInt(typ, v)
-	}
-	if val.IsNull() && (super.IsNumber(typ.ID()) || typ.ID() == super.IDNull) {
-		return val
 	}
 	switch typ.ID() {
 	case super.IDFloat16, super.IDFloat32, super.IDFloat64:
