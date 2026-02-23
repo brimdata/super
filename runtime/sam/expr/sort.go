@@ -144,6 +144,8 @@ func (c *Comparator) Compare(a, b super.Value) int {
 }
 
 func compareValues(a, b super.Value, nullsMax bool) int {
+	a = a.Under()
+	b = b.Under()
 	// Handle nulls according to nullsMax
 	nullA := a.IsNull()
 	nullB := b.IsNull()
