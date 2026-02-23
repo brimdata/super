@@ -1,0 +1,11 @@
+spq: pass
+
+input: &input |
+  error(null)
+  error({})
+  error(1::(int64|string))
+  error(2::=named)
+  error(3)::=named
+  error({a:1::=named,b:2::named})
+
+output: *input

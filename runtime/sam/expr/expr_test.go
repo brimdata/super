@@ -526,7 +526,7 @@ func TestCasts(t *testing.T) {
 	testSuccessful(t, `("foo")::uint32`, "", `error({message:"cannot cast to uint32",on:"foo"})`)
 
 	// Test cast to int64
-	testSuccessful(t, "(this)::int64", "10000000000000000000::uint64", `error({message:"cannot cast to int64",on:10000000000000000000::uint64})::error({message:string,on:uint64})`)
+	testSuccessful(t, "(this)::int64", "10000000000000000000::uint64", `error({message:"cannot cast to int64",on:10000000000000000000::uint64})`)
 	testSuccessful(t, "(this)::int64", "1e+19", `error({message:"cannot cast to int64",on:1e+19})`)
 	testSuccessful(t, `("10000000000000000000")::int64`, "", `error({message:"cannot cast to int64",on:"10000000000000000000"})`)
 

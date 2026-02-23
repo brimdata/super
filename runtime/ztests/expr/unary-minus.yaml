@@ -35,15 +35,15 @@ output: |
   -1::int8
   1::int8
   -1::int8
-  error({message:"unary '-' underflow",on:-128::int8})::error({message:string,on:int8})
+  error({message:"unary '-' underflow",on:-128::int8})
   -1::int16
   1::int16
   -1::int16
-  error({message:"unary '-' underflow",on:-32768::int16})::error({message:string,on:int16})
+  error({message:"unary '-' underflow",on:-32768::int16})
   -1::int32
   1::int32
   -1::int32
-  error({message:"unary '-' underflow",on:-2147483648::int32})::error({message:string,on:int32})
+  error({message:"unary '-' underflow",on:-2147483648::int32})
   -1
   1
   -1
