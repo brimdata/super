@@ -390,7 +390,7 @@ func NewIsNullExpr(e Evaluator) Evaluator {
 }
 
 func (i *isNullExpr) Eval(this super.Value) super.Value {
-	val := i.eval.Eval(this)
+	val := i.eval.Eval(this).Deunion()
 	if val.IsError() {
 		return val
 	}
