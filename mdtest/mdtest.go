@@ -9,7 +9,7 @@
 //	```mdtest-input file.txt
 //	hello
 //	```
-//	```mdtest-command [dir=...] [fails]
+//	```mdtest-command [dir=...] [fails] [runtime=sam|vam]
 //	cat file.txt
 //	```
 //	```mdtest-output [head]
@@ -60,7 +60,7 @@
 // contains the word "fails", in which case the exit status must indicate
 // failure (i.e. be nonzero).
 //
-//	```mdtest-spq [fails]
+//	```mdtest-spq [fails] [runtime=sam|vam]
 //	# spq
 //	values a
 //	# input
@@ -194,12 +194,17 @@ func parseMarkdown(source []byte) (map[string]string, []*Test, error) {
 			}
 			var commandDir string
 			var commandFails bool
+			var commandRuntime string
 			for _, s := range fcbInfoWords(commandFCB, source)[1:] {
 				switch {
 				case strings.HasPrefix(s, "dir="):
 					commandDir = strings.TrimPrefix(s, "dir=")
 				case s == "fails":
 					commandFails = true
+				case s == "runtime=sam":
+					commandRuntime = "sam"
+				case s == "runtime=vam":
+					commandRuntime = "vam"
 				default:
 					msg := fmt.Sprintf("unknown word in mdtest-command info string: %q", s)
 					return ast.WalkStop, fcbError(commandFCB, source, msg)
@@ -218,6 +223,7 @@ func parseMarkdown(source []byte) (map[string]string, []*Test, error) {
 				Fails:    commandFails,
 				Head:     head,
 				Line:     fcbLineNumber(commandFCB, source),
+				Runtime:  commandRuntime,
 			})
 			commandFCB = nil
 		case "mdtest-go-example":
@@ -227,9 +233,17 @@ func parseMarkdown(source []byte) (map[string]string, []*Test, error) {
 			})
 		case "mdtest-spq":
 			var fails bool
+			var runtime string
 			for _, word := range fcbInfoWords(fcb, source)[1:] {
-				if word == "fails" {
+				switch {
+				case word == "fails":
 					fails = true
+				case strings.HasPrefix(word, "runtime="):
+					runtime = strings.TrimPrefix(word, "runtime=")
+					if runtime != "vam" && runtime != "sam" {
+						msg := fmt.Sprintf("mdtest-spq invalid runtime value: %q", runtime)
+						return ast.WalkStop, fcbError(fcb, source, msg)
+					}
 				}
 			}
 			lines := fcbLines(fcb, source)
@@ -248,6 +262,7 @@ func parseMarkdown(source []byte) (map[string]string, []*Test, error) {
 				Line:     fcbLineNumber(fcb, source),
 				Input:    sections[2],
 				SPQ:      sections[1],
+				Runtime:  runtime,
 			})
 		}
 		return ast.WalkContinue, nil

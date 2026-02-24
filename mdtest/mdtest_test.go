@@ -163,6 +163,46 @@ block 2
 			},
 		},
 		{
+			name: "mdtest-command with runtime=sam",
+			markdown: `
+~~~mdtest-command dir=d runtime=sam
+block 1
+~~~
+~~~mdtest-output
+block 2
+~~~
+`,
+			tests: []*Test{
+				{Command: "block 1\n", Dir: "d", Expected: "block 2\n", Line: 2, Runtime: "sam"},
+			},
+		},
+		{
+			name: "mdtest-command with runtime=vam",
+			markdown: `
+~~~mdtest-command dir=d runtime=vam
+block 1
+~~~
+~~~mdtest-output
+block 2
+~~~
+`,
+			tests: []*Test{
+				{Command: "block 1\n", Dir: "d", Expected: "block 2\n", Line: 2, Runtime: "vam"},
+			},
+		},
+		{
+			name: "mdtest-command with unknown runtime",
+			markdown: `
+~~~mdtest-command runtime=bad
+block 1
+~~~
+~~~mdtest-output
+block 2
+~~~
+`,
+			strerror: `line 2: unknown word in mdtest-command info string: "runtime=bad"`,
+		},
+		{
 			name: "mdtest-spq",
 			markdown: `
 ~~~mdtest-spq
@@ -195,6 +235,52 @@ expected
 			tests: []*Test{
 				{Expected: "expected\n", Fails: true, Line: 2, Input: "input\n", SPQ: "spq\n"},
 			},
+		},
+		{
+			name: "mdtest-spq with runtime=sam",
+			markdown: `
+~~~mdtest-spq runtime=sam
+#
+spq
+#
+input
+#
+expected
+~~~
+`,
+			tests: []*Test{
+				{Expected: "expected\n", Line: 2, Input: "input\n", SPQ: "spq\n", Runtime: "sam"},
+			},
+		},
+		{
+			name: "mdtest-spq with runtime=vam",
+			markdown: `
+~~~mdtest-spq runtime=vam
+#
+spq
+#
+input
+#
+expected
+~~~
+`,
+			tests: []*Test{
+				{Expected: "expected\n", Line: 2, Input: "input\n", SPQ: "spq\n", Runtime: "vam"},
+			},
+		},
+		{
+			name: "mdtest-spq with unknown runtime",
+			markdown: `
+~~~mdtest-spq runtime=bad
+#
+spq
+#
+input
+#
+expected
+~~~
+`,
+			strerror: `line 2: mdtest-spq invalid runtime value: "bad"`,
 		},
 		{
 			name: "mdtest-spq with leading garbage",
