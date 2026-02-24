@@ -74,16 +74,15 @@ func (n *Flatten) encode(fields []super.Field, inner super.Type, base field.Path
 			continue
 		}
 		typ := n.entryTypes[f.Type]
-		union, _ := inner.(*super.TypeUnion)
-		if union != nil {
-			n.BeginContainer()
-			n.Append(super.EncodeInt(int64(union.TagOf(typ))))
+		union, ok := inner.(*super.TypeUnion)
+		if ok {
+			super.BeginUnion(&n.Builder, union.TagOf(typ))
 		}
 		n.BeginContainer()
 		n.encodeKey(key)
 		n.Append(val)
 		n.EndContainer()
-		if union != nil {
+		if ok {
 			n.EndContainer()
 		}
 	}

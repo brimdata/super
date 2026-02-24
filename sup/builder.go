@@ -216,16 +216,11 @@ func buildMap(b *scode.Builder, m *Map) error {
 }
 
 func buildUnion(b *scode.Builder, union *Union) error {
-	if tag := union.Tag; tag >= 0 {
-		b.BeginContainer()
-		b.Append(super.EncodeInt(int64(tag)))
-		if err := buildValue(b, union.Value); err != nil {
-			return err
-		}
-		b.EndContainer()
-	} else {
-		b.Append(nil)
+	super.BeginUnion(b, union.Tag)
+	if err := buildValue(b, union.Value); err != nil {
+		return err
 	}
+	b.EndContainer()
 	return nil
 }
 

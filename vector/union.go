@@ -25,9 +25,8 @@ func (u *Union) Type() super.Type {
 }
 
 func (u *Union) Serialize(b *scode.Builder, slot uint32) {
-	b.BeginContainer()
 	tag := u.Typ.TagOf(u.TypeOf(slot))
-	b.Append(super.EncodeInt(int64(tag)))
+	super.BeginUnion(b, tag)
 	u.Dynamic.Serialize(b, slot)
 	b.EndContainer()
 }
