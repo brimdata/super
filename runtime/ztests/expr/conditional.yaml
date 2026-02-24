@@ -1,0 +1,50 @@
+spq: |
+  values [this ? 1 : 0, this]
+
+vector: true
+
+input: |
+  false
+  false::(int64|bool|null)
+  false::=named
+  false::(named=int64|bool|null)
+  true
+  true::=named
+  true::(bool|null)
+  true::(named=bool|null)
+  2
+  2::=named
+  2::(int64|bool)
+  2::(named=int64|bool)
+  {x:1}
+  null
+  null::(int64|null)
+  null::=named
+  null::(named=int64|null)
+  error(1)
+  error(1)::(int64|error(int64))
+  error(1)::=named
+  error(1)::(named=int64|error(int64))
+
+output: |
+  [0,false]
+  [0,false::(int64|bool|null)]
+  [0,false::=named]
+  [0,false::(named=int64|bool|null)]
+  [1,true]
+  [1,true::=named]
+  [1,true::(bool|null)]
+  [1,true::(named=bool|null)]
+  [error({message:"?-operator: bool predicate required",on:2}),2]
+  [error({message:"?-operator: bool predicate required",on:2::=named}),2::named]
+  [error({message:"?-operator: bool predicate required",on:2}),2::(int64|bool)]
+  [error({message:"?-operator: bool predicate required",on:2}),2::(named=int64|bool)]
+  [error({message:"?-operator: bool predicate required",on:{x:1}}),{x:1}]
+  [0,null]
+  [0,null::(int64|null)]
+  [0,null::=named]
+  [0,null::(named=int64|null)]
+  [error(1),error(1)]
+  [error(1),error(1)::(int64|error(int64))]
+  [error(1)::=named,error(1)::named]
+  [error(1),error(1)::(named=int64|error(int64))]
