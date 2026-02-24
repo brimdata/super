@@ -134,7 +134,7 @@ func NewIn(sctx *super.Context, elem, container Evaluator) *In {
 }
 
 func (i *In) Eval(this super.Value) super.Value {
-	elem := i.elem.Eval(this)
+	elem := i.elem.Eval(this).Deunion()
 	if elem.IsError() {
 		return elem
 	}
