@@ -14,7 +14,6 @@ input: |
   1e8
   false
   true
-  error("bad")
 
 output: |
   -1::int8
@@ -57,7 +56,25 @@ output: |
   1::int16
   1::int32
   1
+
+---
+
+spq: cast(this, <int64>)
+
+vector: true
+
+input: |
+  null
   error("bad")
+  {x:1}
+  [1,2]
+  |[1,2]|
+  |{"x":1}|
+
+output: |
+  error({message:"cannot cast to int64",on:null})
   error("bad")
-  error("bad")
-  error("bad")
+  error({message:"cannot cast to int64",on:{x:1}})
+  error({message:"cannot cast to int64",on:[1,2]})
+  error({message:"cannot cast to int64",on:|[1,2]|})
+  error({message:"cannot cast to int64",on:|{"x":1}|})

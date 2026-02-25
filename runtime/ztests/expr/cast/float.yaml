@@ -11,8 +11,6 @@ input: |
   2::=named
   false
   true
-  null
-  error("bad")
 
 output: |
   1.5::float16
@@ -39,9 +37,25 @@ output: |
   1.::float16
   1.::float32
   1.
-  error({message:"cannot cast to float16",on:null})
-  error({message:"cannot cast to float32",on:null})
+
+---
+
+spq: cast(this, <float64>)
+
+vector: true
+
+input: |
+  null
+  error("bad")
+  {x:1}
+  [1,2]
+  |[1,2]|
+  |{"x":1}|
+
+output: |
   error({message:"cannot cast to float64",on:null})
   error("bad")
-  error("bad")
-  error("bad")
+  error({message:"cannot cast to float64",on:{x:1}})
+  error({message:"cannot cast to float64",on:[1,2]})
+  error({message:"cannot cast to float64",on:|[1,2]|})
+  error({message:"cannot cast to float64",on:|{"x":1}|})

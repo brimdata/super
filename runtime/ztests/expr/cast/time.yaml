@@ -15,6 +15,10 @@ input: |
   null
   1e200
   error("bad")
+  {x:1}
+  [1,2]
+  |[1,2]|
+  |{"x":1}|
 
 output: |
   2023-10-19T23:11:20.999803Z
@@ -29,3 +33,7 @@ output: |
   error({message:"cannot cast to time",on:null})
   error({message:"cannot cast to time",on:1e+200})
   error("bad")
+  error({message:"cannot cast to time",on:{x:1}})
+  error({message:"cannot cast to time",on:[1,2]})
+  error({message:"cannot cast to time",on:|[1,2]|})
+  error({message:"cannot cast to time",on:|{"x":1}|})
