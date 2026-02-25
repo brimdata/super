@@ -530,13 +530,8 @@ func setToExpr(loc ast.Node, typ *super.TypeSet, bytes scode.Bytes) Expr {
 }
 
 func unionToExpr(loc ast.Node, typ *super.TypeUnion, bytes scode.Bytes) Expr {
-	it := bytes.Iter()
-	tag := super.DecodeInt(it.Next())
-	inner, err := typ.Type(int(tag))
-	if err != nil {
-		panic(err)
-	}
-	return NewCast(loc, valueToExpr(loc, inner, it.Next()), typ)
+	innerType, innerBytes := typ.Untag(bytes)
+	return NewCast(loc, valueToExpr(loc, innerType, innerBytes), typ)
 }
 
 func mapToExpr(loc ast.Node, typ *super.TypeMap, bytes scode.Bytes) Expr {

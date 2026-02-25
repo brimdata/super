@@ -72,7 +72,7 @@ func walkUnion(typ *TypeUnion, body scode.Bytes, visit Visitor) error {
 		return errors.New("union has empty body")
 	}
 	it := body.Iter()
-	tag := DecodeInt(it.Next())
+	tag := DecodeUint(it.Next())
 	inner, err := typ.Type(int(tag))
 	if err != nil {
 		return err

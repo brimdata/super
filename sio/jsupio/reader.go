@@ -185,8 +185,7 @@ func (r *Reader) decodeUnion(builder *scode.Builder, typ *super.TypeUnion, body 
 	if err != nil {
 		return fmt.Errorf("bad tag for JSUP union value: %w", err)
 	}
-	builder.BeginContainer()
-	builder.Append(super.EncodeInt(int64(tag)))
+	super.BeginUnion(builder, tag)
 	if err := r.decodeValue(builder, inner, tuple[1]); err != nil {
 		return err
 	}

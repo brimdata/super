@@ -438,7 +438,7 @@ func (w *Writer) buildArrowValue(b array.Builder, typ super.Type, bytes scode.By
 		}
 	case *array.DenseUnionBuilder:
 		it := bytes.Iter()
-		tag := super.DecodeInt(it.Next())
+		tag := super.DecodeUint(it.Next())
 		typeCode := w.unionTagMappings[typ][tag]
 		b.Append(arrow.UnionTypeCode(typeCode))
 		w.buildArrowValue(b.Child(typeCode), typ.(*super.TypeUnion).Types[tag], it.Next())

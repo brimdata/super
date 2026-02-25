@@ -252,8 +252,7 @@ func GenValue(b *bytes.Reader, context *super.Context, typ super.Type, builder *
 			builder.EndContainer()
 		case *super.TypeUnion:
 			tag := binary.LittleEndian.Uint64(GenBytes(b, 8)) % uint64(len(typ.Types))
-			builder.BeginContainer()
-			builder.Append(super.EncodeInt(int64(tag)))
+			super.BeginUnion(builder, int(tag))
 			GenValue(b, context, typ.Types[tag], builder)
 			builder.EndContainer()
 		default:
