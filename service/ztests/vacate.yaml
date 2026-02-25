@@ -1,0 +1,67 @@
+script: |
+  source service.sh
+  super db create -use -q test
+  echo {x:1} | super db load -message 'commit1' -q -
+  echo {x:2} | super db load -message 'commit2' -q -
+  echo {x:3} | super db load -message 'commit3' -q -
+  echo {x:4} | super db load -message 'commit4' -q -
+  super db vacate -dryrun
+  echo // ===
+  super db vacate -f
+  echo // === 
+  super db -s -c 'from test:log | has(message) | values message'
+  echo // === 
+  super db -s -c 'from test'
+  ! super db vacate -f
+  echo {x:5} | super db load -message 'commit5' -q -
+  echo // === 
+  super db vacate -f
+  echo // === 
+  super db -s -c 'from test:log | has(message) | values message'
+
+inputs:
+  - name: service.sh
+
+outputs:
+  - name: stdout
+    data: |
+      would vacate 3 commits
+      // ===
+      vacated 3 commits
+      // ===
+      "commit4"
+      // ===
+      {x:4}
+      {x:3}
+      {x:2}
+      {x:1}
+      // ===
+      vacated 1 commit
+      // ===
+      "commit5"
+  - name: stderr
+    data: |
+      status code 500: specified commit is already at base
+
+---
+
+# Test that vacate fails when trying to vacate while existing branch is
+# branched from earlier commit.
+script: |
+  source service.sh
+  super db create -use -q test
+  echo {x:1} | super db load -q -
+  super db branch -q branch1
+  super db branch -q branch2
+  echo {x:1} | super db load -q -use test@branch1 -
+  echo {x:1} | super db load -q -use test@branch2 -
+  echo {x:2} | super db load -q -
+  ! super db vacate -f
+
+inputs:
+  - name: service.sh
+
+outputs:
+  - name: stderr
+    data: |
+      status code 500: cannot vacate at selected commit: branches diverge from commits in the deletion path: branch1, branch2

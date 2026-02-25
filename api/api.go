@@ -122,6 +122,10 @@ type QueryWarning struct {
 	Warning string `json:"warning" super:"warning"`
 }
 
+type VacateResponse struct {
+	CommitIDs []ksuid.KSUID `super:"commit_ids"`
+}
+
 type VacuumResponse struct {
 	ObjectIDs []ksuid.KSUID `super:"object_ids"`
 }

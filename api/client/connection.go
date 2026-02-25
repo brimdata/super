@@ -373,6 +373,17 @@ func (c *Connection) delete(ctx context.Context, poolID ksuid.KSUID, branchName 
 	return commit, err
 }
 
+func (c *Connection) Vacate(ctx context.Context, pool, revision string, dryrun bool) (api.VacateResponse, error) {
+	path := urlPath("pool", pool, "revision", revision, "vacate")
+	if dryrun {
+		path += "?dryrun=true"
+	}
+	req := c.NewRequest(ctx, http.MethodPost, path, nil)
+	var res api.VacateResponse
+	err := c.doAndUnmarshal(req, &res)
+	return res, err
+}
+
 func (c *Connection) Vacuum(ctx context.Context, pool, revision string, dryrun bool) (api.VacuumResponse, error) {
 	path := urlPath("pool", pool, "revision", revision, "vacuum")
 	if dryrun {

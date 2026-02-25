@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io/fs"
 	"runtime"
+	"slices"
+	"strings"
 	"sync"
 
 	"github.com/brimdata/super"
@@ -209,6 +211,48 @@ func (p *Pool) BatchifyBranchTips(ctx context.Context, sctx *super.Context, f ex
 // XXX this is inefficient but is only meant for interactive queries...?
 func (p *Pool) ObjectExists(ctx context.Context, id ksuid.KSUID) (bool, error) {
 	return p.engine.Exists(ctx, data.SequenceURI(p.DataPath, id))
+}
+
+func (p *Pool) Vacate(ctx context.Context, commit ksuid.KSUID, dryrun bool) ([]ksuid.KSUID, error) {
+	branches, err := p.branches.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var conflicts []string
+	for _, b := range branches {
+		// Find any branches whose history does not include commit and if any
+		// are found fail.
+		path, err := p.commits.Path(ctx, b.Commit)
+		if err != nil {
+			return nil, err
+		}
+		if !slices.Contains(path, commit) {
+			conflicts = append(conflicts, b.Name)
+		}
+	}
+	if len(conflicts) > 0 {
+		slices.Sort(conflicts)
+		v := "branch diverges from commit"
+		if len(conflicts) > 1 {
+			v = "branches diverge from commits"
+		}
+		return nil, fmt.Errorf("cannot vacate at selected commit: %s in the deletion path: %s", v, strings.Join(conflicts, ", "))
+	}
+	path, err := p.commits.Path(ctx, commit)
+	if err != nil {
+		return nil, err
+	}
+	drop := path[1:]
+	if len(drop) == 0 {
+		return nil, errors.New("specified commit is already at base")
+	}
+	if dryrun {
+		return drop, nil
+	}
+	if _, err = p.commits.SetBase(ctx, commit); err != nil {
+		return nil, err
+	}
+	return drop, p.commits.DeleteCommits(ctx, drop)
 }
 
 func (p *Pool) Vacuum(ctx context.Context, commit ksuid.KSUID, dryrun bool) ([]ksuid.KSUID, error) {

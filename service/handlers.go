@@ -595,6 +595,28 @@ func handleDelete(c *Core, w *ResponseWriter, r *Request) {
 	})
 }
 
+func handleVacate(c *Core, w *ResponseWriter, r *Request) {
+	pool, ok := r.StringFromPath(w, "pool")
+	if !ok {
+		return
+	}
+	revision, ok := r.StringFromPath(w, "revision")
+	if !ok {
+		return
+	}
+	dryrun, ok := r.BoolFromQuery(w, "dryrun")
+	if !ok {
+		return
+	}
+	db := dbapi.FromRoot(c.root)
+	cids, err := db.Vacate(r.Context(), pool, revision, dryrun)
+	if err != nil {
+		w.Error(err)
+		return
+	}
+	w.Respond(http.StatusOK, api.VacateResponse{CommitIDs: cids})
+}
+
 func handleVacuum(c *Core, w *ResponseWriter, r *Request) {
 	pool, ok := r.StringFromPath(w, "pool")
 	if !ok {
