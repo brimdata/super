@@ -41,6 +41,27 @@ output: |
 
 ---
 
+spq: |
+  values this in [1,2::(int64|null),null,error(0)]
+
+vector: true
+
+input: |
+  1::(int64|null)
+  2
+  null
+  null::(int64|null)
+  error(0)
+
+output: |
+  true
+  true
+  null
+  null
+  error(0)
+
+---
+
 # Test in expressions on a map constant.
 spq: |
   const m = |{"a":1,"b":2}|
