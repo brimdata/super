@@ -1,0 +1,40 @@
+script: |
+  echo === 0
+  super -samplesize 0 -s -c 'values {a,b,c}' in.sup
+  echo === 1 >&2
+  ! super -samplesize 1 -s -c 'values {a,b,c}' in.sup
+  echo === 2 >&2
+  ! super -samplesize 2 -s -c 'values {a,b,c}' in.sup
+  echo === -1 >&2
+  ! super -samplesize -1 -s -c 'values {a,b,c}' in.sup
+
+inputs:
+  - name: in.sup
+    data: |
+      {a:1}
+      {b:2}
+
+outputs:
+  - name: stdout
+    data: |
+      === 0
+      {a:1,b:error("missing"),c:error("missing")}
+      {a:error("missing"),b:2,c:error("missing")}
+
+  - name: stderr
+    data: |
+      === 1
+      no such field "b" at line 1, column 11:
+      values {a,b,c}
+                ~
+      no such field "c" at line 1, column 13:
+      values {a,b,c}
+                  ~
+      === 2
+      no such field "c" at line 1, column 13:
+      values {a,b,c}
+                  ~
+      === -1
+      no such field "c" at line 1, column 13:
+      values {a,b,c}
+                  ~

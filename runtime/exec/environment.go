@@ -54,12 +54,14 @@ type Environment struct {
 	IgnoreOpenErrors bool
 	ReaderOpts       anyio.ReaderOpts
 	Runtime          Runtime
+	SampleSize       int
 }
 
 func NewEnvironment(engine storage.Engine, d *db.Root) *Environment {
 	return &Environment{
-		engine: engine,
-		db:     d,
+		engine:     engine,
+		db:         d,
+		SampleSize: -1,
 	}
 }
 
