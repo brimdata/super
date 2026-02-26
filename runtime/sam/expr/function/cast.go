@@ -50,6 +50,11 @@ func (c *cast) Cast(from super.Value, to super.Type) super.Value {
 		return from
 	case fromType.ID() == to.ID():
 		return super.NewValue(to, from.Bytes())
+	case fromType == super.TypeNull:
+		union := c.sctx.Nullable(to)
+		var b scode.Builder
+		super.BuildUnion(&b, union.TagOf(super.TypeNull), nil)
+		return super.NewValue(union, b.Bytes().Body())
 	}
 	switch to := to.(type) {
 	case *super.TypeRecord:

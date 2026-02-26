@@ -11,9 +11,9 @@ input: |
   |[1,2]|
 
 output: |
-  error({message:"cannot cast to [string]",on:null})
-  [error({message:"cannot cast to string",on:null})]
-  [error({message:"cannot cast to string",on:null})]
+  null::(null|[string])
+  [null]::[string|null]
+  [null]::[string|null]
   ["1","2"]
   ["1","2"]
   ["1","2"]

@@ -34,7 +34,7 @@ output: |
   "1"
   "2"
   "3"
-  error({message:"cannot cast to string",on:null})
+  null::(string|null)
   "1"
   "2"
   "3.5"

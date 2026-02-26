@@ -19,5 +19,5 @@ output: |
   error({message:"cannot cast to type",on:"{x:\"foo\"}"})
   error({message:"cannot cast to type",on:"<int>"})
   error({message:"cannot cast to type",on:1})
-  error({message:"cannot cast to type",on:null})
+  null::(type|null)
   error("bad")

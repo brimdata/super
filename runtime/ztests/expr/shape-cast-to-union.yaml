@@ -12,7 +12,7 @@ input: |
   {a:"goodbye"::=string_named}
 
 output: |
-  {a:error({message:"cannot cast to int64|string|string_named=string",on:null})}
+  {a:null::(int64|string|(string_named=string)|null)}
   {a:1::(union=int64|string|(string_named=string))}
   {a:"hello"::(union=int64|string|(string_named=string))}
   {a:"goodbye"::=string_named::(union=int64|string|string_named)}
