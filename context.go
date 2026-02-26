@@ -593,12 +593,12 @@ func (c *Context) WrapError(msg string, val Value) Value {
 	return NewValue(errType, b.Bytes())
 }
 
-func (c *Context) Nullable(typ Type) Type {
+func (c *Context) Nullable(typ Type) *TypeUnion {
 	var types []Type
 	if union, ok := TypeUnder(typ).(*TypeUnion); ok {
 		for _, t := range union.Types {
 			if t == TypeNull {
-				return typ
+				return union
 			}
 		}
 		types = slices.Clone(union.Types)

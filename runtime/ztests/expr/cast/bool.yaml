@@ -38,7 +38,7 @@ output: |
   false
   false
   error({message:"cannot cast to bool",on:"blah"})
-  error({message:"cannot cast to bool",on:null})
+  null::(bool|null)
   true
   error("bad")
   error({message:"cannot cast to bool",on:{x:1}})

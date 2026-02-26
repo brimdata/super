@@ -17,7 +17,7 @@ output: |
   error({message:"cannot cast to ip",on:"foo"})
   127.0.0.1
   2001:0:130f::9c0:876a:130b
-  error({message:"cannot cast to ip",on:null})
+  null::(ip|null)
   1.1.1.1
   1.1.1.2
   error({message:"cannot cast to ip",on:34})

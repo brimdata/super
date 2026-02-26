@@ -25,7 +25,7 @@ output: |
   -25m
   1ns
   error({message:"cannot cast to duration",on:1e+19})
-  error({message:"cannot cast to duration",on:null})
+  null::(duration|null)
   error("bad")
   error({message:"cannot cast to duration",on:{x:1}})
   error({message:"cannot cast to duration",on:[1,2]})

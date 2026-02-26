@@ -409,7 +409,9 @@ func (z *ZTest) Run(t *testing.T, path, filename string) {
 		err = z.RunInternal(t.Context())
 	}
 	if err != nil {
-		t.Fatalf("%s:%d: %s", filename, z.Line, err)
+		// Lead with newline so line-numbered errors are
+		// navigable in editors.
+		t.Fatalf("\n%s:%d: %s", filename, z.Line, err)
 	}
 }
 

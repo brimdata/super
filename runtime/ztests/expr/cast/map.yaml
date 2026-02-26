@@ -13,6 +13,6 @@ input: |
 output: |
   |{}|
   |{1:|{"2":3,"4":5}|,7:error({message:"cannot cast to |{string:int64}|",on:8}),9:|{"10":error({message:"cannot cast to int64",on:[]::[null]}),"[]":11,error({message:"cannot cast to string",on:null}):error({message:"cannot cast to int64",on:null})}|}|
-  error({message:"cannot cast to |{int64:|{string:int64}|}|",on:null})
+  null::(null||{int64:|{string:int64}|}|)
   error({message:"cannot cast to |{int64:|{string:int64}|}|",on:1})
   error("bad")
