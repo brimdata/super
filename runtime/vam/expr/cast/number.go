@@ -17,9 +17,12 @@ type numeric interface {
 }
 
 func castToNumber(vec vector.Any, typ super.Type, index []uint32) (vector.Any, []uint32, string, bool) {
-	if vec.Type().ID() == super.IDString {
+	switch id := vec.Type().ID(); {
+	case id == super.IDString:
 		out, errs := castStringToNumber(vec, typ, index)
 		return out, errs, "", true
+	case !super.IsNumber(id) && id != super.IDBool:
+		return nil, nil, "", false
 	}
 	switch id := typ.ID(); {
 	case super.IsSigned(id):

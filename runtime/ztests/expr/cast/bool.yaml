@@ -19,6 +19,10 @@ input: |
   null
   "1"
   error("bad")
+  {x:1}
+  [1,2]
+  |[1,2]|
+  |{"x":1}|
 
 output: |
   true
@@ -37,3 +41,7 @@ output: |
   error({message:"cannot cast to bool",on:null})
   true
   error("bad")
+  error({message:"cannot cast to bool",on:{x:1}})
+  error({message:"cannot cast to bool",on:[1,2]})
+  error({message:"cannot cast to bool",on:|[1,2]|})
+  error({message:"cannot cast to bool",on:|{"x":1}|})

@@ -31,3 +31,25 @@ output: |
   error("bad")
   error("bad")
   error("bad")
+
+---
+
+spq: cast(this, <uint64>)
+
+vector: true
+
+input: |
+  null
+  error("bad")
+  {x:1}
+  [1,2]
+  |[1,2]|
+  |{"x":1}|
+
+output: |
+  error({message:"cannot cast to uint64",on:null})
+  error("bad")
+  error({message:"cannot cast to uint64",on:{x:1}})
+  error({message:"cannot cast to uint64",on:[1,2]})
+  error({message:"cannot cast to uint64",on:|[1,2]|})
+  error({message:"cannot cast to uint64",on:|{"x":1}|})
