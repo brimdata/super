@@ -15,7 +15,14 @@ The global options are shared by all commands and include:
 * `-h` display help
 * `-help` display help
 * `-hidden` show hidden options
+* `-signals` catch `SIGINT`, `SIGTERM`, and `SIGPIPE` and exit gracefully
 * `-version` print version and exit
+
+The `-signals` option is off by default except for `super db serve`, which always enables
+the catching of `SIGINT` and `SIGTERM` (but not `SIGPIPE`).  When `-signals` is enabled,
+the `super` command is interrupted but continues to a natural stopping point (e.g., flushing partial output files, removing spill file from temp).  In the current implementation,
+this can be unpredictably long so the default is to exit immediately,
+potentially leaving behind corrupt outputs etc.
 
 ## Query
 
