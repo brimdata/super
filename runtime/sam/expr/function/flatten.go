@@ -30,13 +30,13 @@ func (n *Flatten) Call(args []super.Value) super.Value {
 	if typ == nil {
 		return val
 	}
-	inner := n.innerTypeOf(val.Bytes(), typ)
+	inner := n.innerTypeOf(typ, val.Bytes())
 	n.Reset()
 	n.encode(typ, inner, field.Path{}, val.Bytes())
 	return super.NewValue(n.sctx.LookupTypeArray(inner), n.Bytes())
 }
 
-func (n *Flatten) innerTypeOf(b scode.Bytes, typ *super.TypeRecord) super.Type {
+func (n *Flatten) innerTypeOf(typ *super.TypeRecord, b scode.Bytes) super.Type {
 	n.types = n.appendTypes(n.types[:0], b, typ)
 	unique := super.UniqueTypes(n.types)
 	if len(unique) == 1 {
@@ -87,7 +87,6 @@ func (n *Flatten) encode(typ *super.TypeRecord, inner super.Type, base field.Pat
 			super.BeginUnion(&n.Builder, union.TagOf(typ))
 		}
 		n.BeginContainer()
-		//n.Append(nil) // Fields aren't optional
 		n.encodeKey(key)
 		n.Append(val)
 		n.EndContainer()

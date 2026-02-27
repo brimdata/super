@@ -33,13 +33,13 @@ func NewRecordEncoder(typ *super.TypeRecord) *RecordEncoder {
 }
 
 func (r *RecordEncoder) Write(body scode.Bytes) {
-	index := r.count
+	slot := r.count
 	r.count++
 	it := scode.NewRecordIter(body, r.nopt)
 	for _, f := range r.fields {
 		elem, none := it.Next(f.opt)
 		if !none {
-			f.write(elem, index)
+			f.write(elem, slot)
 		}
 	}
 }

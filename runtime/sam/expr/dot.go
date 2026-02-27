@@ -47,7 +47,7 @@ func (d *DotExpr) Eval(this super.Value) super.Value {
 		if !ok {
 			return d.sctx.Missing()
 		}
-		bytes, idx := getNthFromRecord(val.Bytes(), i, typ)
+		bytes, idx := getNthFromRecord(typ, val.Bytes(), i)
 		if idx < 0 {
 			return d.sctx.Missing()
 		}

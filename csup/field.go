@@ -9,24 +9,24 @@ import (
 )
 
 type FieldEncoder struct {
-	name    string
-	values  Encoder
-	opt     bool
-	rle     vector.RLE
-	encoder *Uint32Encoder
+	name   string
+	values Encoder
+	opt    bool
+	rle    vector.RLE
+	nones  *Uint32Encoder
 }
 
-func (f *FieldEncoder) write(body scode.Bytes, index uint32) {
+func (f *FieldEncoder) write(body scode.Bytes, slot uint32) {
 	f.values.Write(body)
 	if f.opt {
-		f.rle.Touch(index)
+		f.rle.Touch(slot)
 	}
 }
 
 func (f *FieldEncoder) Metadata(cctx *Context, off uint64) (uint64, Field) {
 	var nones Segment
-	if f.encoder != nil {
-		off, nones = f.encoder.Segment(off)
+	if f.nones != nil {
+		off, nones = f.nones.Segment(off)
 	}
 	var id ID
 	off, id = f.values.Metadata(cctx, off)
@@ -41,15 +41,15 @@ func (f *FieldEncoder) Metadata(cctx *Context, off uint64) (uint64, Field) {
 func (f *FieldEncoder) Encode(group *errgroup.Group, count uint32) {
 	if f.opt {
 		runs := f.rle.End(count)
-		f.encoder = &Uint32Encoder{vals: runs}
-		f.encoder.Encode(group)
+		f.nones = &Uint32Encoder{vals: runs}
+		f.nones.Encode(group)
 	}
 	f.values.Encode(group)
 }
 
 func (f *FieldEncoder) Emit(w io.Writer) error {
-	if f.encoder != nil {
-		if err := f.encoder.Emit(w); err != nil {
+	if f.nones != nil {
+		if err := f.nones.Emit(w); err != nil {
 			return err
 		}
 	}

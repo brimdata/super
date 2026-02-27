@@ -40,7 +40,7 @@ func (d *Dequiet) rec(builder *scode.Builder, typ super.Type, b scode.Bytes) sup
 	it := scode.NewRecordIter(b, rtyp.Opts)
 	// For building the output record, we don't how many optional fields there
 	// will be until after we make the type.  So we call EndContainerWithBits
-	// to get deal with.
+	// to deal with.
 	var nones []int
 	var optOff int
 	for _, f := range rtyp.Fields {

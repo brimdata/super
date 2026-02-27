@@ -23,7 +23,7 @@ func NewDropper(sctx *super.Context, fields field.List) *Dropper {
 		sctx:      sctx,
 		dropMap:   dropMap,
 		dropType:  make(map[super.Type]super.Type),
-		emptyType: sctx.MustLookupTypeRecord([]super.Field{}),
+		emptyType: sctx.MustLookupTypeRecord(nil),
 	}
 }
 

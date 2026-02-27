@@ -506,9 +506,6 @@ func (c *Context) DecodeTypeValue(tv scode.Bytes) (Type, scode.Bytes) {
 		for range n {
 			var typ Type
 			typ, tv = c.DecodeTypeValue(tv)
-			if typ == nil {
-				panic(tv)
-			}
 			types = append(types, typ)
 		}
 		typ := c.LookupTypeUnion(types)
