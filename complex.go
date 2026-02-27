@@ -187,16 +187,22 @@ func TypeUnder(typ Type) Type {
 type Field struct {
 	Name string
 	Type Type
+	Opt  bool
 }
 
 func NewField(name string, typ Type) Field {
-	return Field{name, typ}
+	return Field{name, typ, false}
+}
+
+func NewFieldWithOpt(name string, typ Type, opt bool) Field {
+	return Field{name, typ, opt}
 }
 
 type TypeRecord struct {
 	id     int
 	Fields []Field
 	LUT    map[string]int
+	Opts   int
 }
 
 func NewTypeRecord(id int, fields []Field) *TypeRecord {
@@ -208,6 +214,11 @@ func NewTypeRecord(id int, fields []Field) *TypeRecord {
 		Fields: fields,
 	}
 	r.createLUT()
+	for _, f := range fields {
+		if f.Opt {
+			r.Opts++
+		}
+	}
 	return r
 }
 

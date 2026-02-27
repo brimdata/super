@@ -186,9 +186,9 @@ Any references to a type ID in the body of a typedef are encoded as a `uvarint`.
 A record typedef creates a new type ID equal to the next stream type ID
 with the following structure:
 ```
---------------------------------------------------------
-|0x00|<nfields>|<name1><type-id-1><name2><type-id-2>...|
---------------------------------------------------------
+----------------------------------------------------------------------
+|0x00|<nfields>|<name1><opt-1><type-id-1><name2><opt-2><type-id-2>...|
+----------------------------------------------------------------------
 ```
 Record types consist of an ordered set of fields where each field consists of
 a name and its type.  Unlike JSON, the ordering of the fields is significant
@@ -196,7 +196,8 @@ and must be preserved through any APIs that consume, process, and emit BSUP reco
 
 A record type is encoded as a count of fields, i.e., `<nfields>` from above,
 followed by the field definitions,
-where a field definition is a field name followed by a type ID, i.e.,
+where a field definition is a field name, followed by its optionality coded
+as a single byte, followed by a type ID, i.e.,
 `<name1>` followed by `<type-id-1>` etc. as indicated above.
 
 The field names in a record must be unique.
@@ -214,6 +215,9 @@ string data.
 > objects can be indexed with arbitrary string keys (via index operator)
 > even if the field names available to the dot operator are restricted
 > by language syntax for identifiers.
+
+The optionality byte indicates "optional" for the value 1 and mandatory for
+the value 0.
 
 The type ID follows the field name and is encoded as a `uvarint`.
 
@@ -336,14 +340,10 @@ whereby the inner loop need not consult and interpret the type ID of each elemen
 
 #### 2.2.1 Tag-Encoding of Values
 
-Each value is prefixed with a "tag" that defines:
-* whether it is the null value, and
-* its encoded length in bytes.
+Each value is prefixed with a length "tag" indicating its encoded length in bytes.
 
-The tag is 0 for the null value and `length+1` for non-null values where
-`length` is the encoded length of the value.  Note that this encoding
-differentiates between a null value and a zero-length value.  Many data types
-have a meaningful interpretation of a zero-length value, for example, an
+Zero-length values are possible as many data types
+have a meaningful empty interpretation, for example, an
 empty array, the empty record, etc.
 
 The tag itself is encoded as a `uvarint`.
@@ -368,18 +368,19 @@ tend to be zero-filled for small integers.
 
 #### 2.2.3 Tag-Encoded Body of Complex Values
 
-The body of a length-N container comprises zero or more tag-encoded values,
+The body of a length-N container for a complex value
+comprises zero or more tag-encoded values,
 where the values are encoded as follows:
 
-| Type     |          Value                          |
-|----------|-----------------------------------------|
-| `array`  | concatenation of elements               |
-| `set`    | normalized concatenation of elements    |
-| `record` | concatenation of elements               |
-| `map`    | concatenation of key and value elements |
-| `union`  | concatenation of tag and value     |
-| `enum`   | position of enum element                |
-| `error`  | wrapped element                         |
+| Type     |          Value                            |
+|----------|-------------------------------------------|
+| `array`  | concatenation of elements                 |
+| `set`    | normalized concatenation of elements      |
+| `record` | option bits and concatenation of elements |
+| `map`    | concatenation of key and value elements   |
+| `union`  | concatenation of tag and value            |
+| `enum`   | position of enum element                  |
+| `error`  | wrapped element                           |
 
 Since N, the byte length of any of these container values, is known,
 there is no need to encode a count of the
@@ -389,6 +390,17 @@ of any complex type, each value is encoded without its type ID.
 For sets, the concatenation of elements must be normalized so that the
 sequence of bytes encoding each element's tag-counted value is
 lexicographically greater than that of the preceding element.
+
+For records, when its type has optional fields,
+a bit vector of length NF is encoded as a tag-encoded value of
+floor((NF+7)/8) bytes to indicate the omission of an optional value
+where NF is the number of optional fields in the record.
+The field order of optional fields determines their position
+in the bit vector with bit numbers 0-7 (least significant to most significant)
+in the first byte, number 8-15 in the second byte, and so forth.
+Following the option bits is a concatenation
+of elements comprising the mandatory values and the optional values that are present
+all in field order.
 
 A union value is encoded as a container with two elements. The first
 element, called the tag, is the `uvarint` encoding of the
@@ -546,11 +558,12 @@ complex type it represents as described below.
 
 A record type value has the form:
 ```
---------------------------------------------------
-|30|<nfields>|<name1><typeval><name2><typeval>...|
---------------------------------------------------
+---------------------------------------------------------
+|30|<nfields>|<opts>|<name1><typeval><name2><typeval>...|
+---------------------------------------------------------
 ```
 where `<nfields>` is the number of fields in the record encoded as a `uvarint`,
+`<opts>` is a bit vector of length `<nfields>` indicating which fields are optional,
 `<name1>` etc. are the field names encoded as in the
 record typedef, and each `<typeval>` is a recursive encoding of a type value.
 

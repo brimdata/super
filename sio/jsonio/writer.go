@@ -95,12 +95,13 @@ func (w *Writer) writeRecord(tab int, typ *super.TypeRecord, bytes scode.Bytes) 
 		w.punc('}')
 		return
 	}
-	it := bytes.Iter()
+	it := scode.NewRecordIter(bytes, typ.Opts)
 	for i, f := range typ.Fields {
 		if i != 0 {
 			w.punc(',')
 		}
-		w.writeEntry(tab, f.Name, super.NewValue(f.Type, it.Next()))
+		elem, _ := it.Next(f.Opt)
+		w.writeEntry(tab, f.Name, super.NewValue(f.Type, elem))
 	}
 	w.newline()
 	w.indent(tab - w.tab)

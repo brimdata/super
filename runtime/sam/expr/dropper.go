@@ -1,114 +1,127 @@
 package expr
 
 import (
-	"slices"
-
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
+	"github.com/brimdata/super/scode"
 )
 
-type dropper struct {
-	typ       super.Type
-	builder   *super.RecordBuilder
-	fieldRefs []Evaluator
-}
-
-func (d *dropper) drop(in super.Value) super.Value {
-	if d.typ == in.Type() {
-		return in
-	}
-	b := d.builder
-	b.Reset()
-	for _, e := range d.fieldRefs {
-		val := e.Eval(in)
-		b.Append(val.Bytes())
-	}
-	val, err := b.Encode()
-	if err != nil {
-		panic(err)
-	}
-	return super.NewValue(d.typ, val)
-}
-
 type Dropper struct {
-	sctx     *super.Context
-	fields   field.List
-	droppers map[int]*dropper
+	sctx      *super.Context
+	dropMap   fieldsMap
+	dropType  map[super.Type]super.Type
+	emptyType super.Type
+	builder   scode.Builder
 }
 
 func NewDropper(sctx *super.Context, fields field.List) *Dropper {
-	return &Dropper{
-		sctx:     sctx,
-		fields:   fields,
-		droppers: make(map[int]*dropper),
-	}
-}
-
-func (d *Dropper) newDropper(sctx *super.Context, r super.Value) *dropper {
-	fields, fieldTypes, match := complementFields(d.fields, nil, super.TypeRecordOf(r.Type()))
-	if !match {
-		// r.Type contains no fields matching d.fields, so we set
-		// dropper.typ to r.Type to indicate that records of this type
-		// should not be modified.
-		return &dropper{typ: r.Type()}
-	}
-	// If the set of dropped fields is equal to the all of record's
-	// fields, then there is no output for this input type.
-	// We return nil to block this input type.
-	if len(fieldTypes) == 0 {
-		return nil
-	}
-	var fieldRefs []Evaluator
+	dropMap := fieldsMap{}
 	for _, f := range fields {
-		fieldRefs = append(fieldRefs, NewDottedExpr(sctx, f))
+		dropMap.Add(f)
 	}
-	builder, err := super.NewRecordBuilder(d.sctx, fields)
-	if err != nil {
-		panic(err)
+	return &Dropper{
+		sctx:      sctx,
+		dropMap:   dropMap,
+		dropType:  make(map[super.Type]super.Type),
+		emptyType: sctx.MustLookupTypeRecord(nil),
 	}
-	typ := builder.Type(fieldTypes)
-	return &dropper{typ, builder, fieldRefs}
 }
 
-// complementFields returns the slice of fields and associated types that make
-// up the complement of the set of fields in drops along with a boolean that is
-// true if typ contains any the fields in drops.
-func complementFields(drops field.List, prefix field.Path, typ *super.TypeRecord) (field.List, []super.Type, bool) {
-	var fields field.List
-	var types []super.Type
-	var match bool
-	for _, f := range typ.Fields {
-		fld := append(prefix, f.Name)
-		if drops.Has(fld) {
-			match = true
-			continue
-		}
-		if typ, ok := super.TypeUnder(f.Type).(*super.TypeRecord); ok {
-			if fs, ts, m := complementFields(drops, fld, typ); m {
-				fields = append(fields, fs...)
-				types = append(types, ts...)
-				match = true
+func (d *Dropper) recode(b *scode.Builder, typ super.Type, bytes scode.Bytes, dropMap fieldsMap) {
+	recType := super.TypeRecordOf(typ)
+	if recType == nil {
+		b.Append(bytes)
+		return
+	}
+	b.BeginContainer()
+	it := scode.NewRecordIter(bytes, recType.Opts)
+	var optOff int
+	var nones []int
+	for _, f := range recType.Fields {
+		elem, none := it.Next(f.Opt)
+		dropMapChild, ok := dropMap[f.Name]
+		if ok {
+			if dropMapChild == nil {
 				continue
 			}
+			if none {
+				nones = append(nones, optOff)
+				optOff++
+				continue
+			}
+			d.recode(b, f.Type, elem, dropMapChild)
+		} else if none {
+			nones = append(nones, optOff)
+		} else {
+			b.Append(elem)
 		}
-		fields = append(fields, slices.Clone(fld))
-		types = append(types, f.Type)
+		if f.Opt {
+			optOff++
+		}
 	}
-	return fields, types, match
+	b.EndContainerWithNones(recType.Opts, nones)
 }
 
 func (d *Dropper) Eval(in super.Value) super.Value {
-	if !super.IsRecordType(in.Type()) {
+	typ := in.Type()
+	dropType, ok := d.dropType[typ]
+	if !ok {
+		dropType = d.dropMap.dropType(d.sctx, typ)
+		d.dropType[typ] = dropType
+	}
+	if dropType == typ {
 		return in
 	}
-	id := in.Type().ID()
-	dropper, ok := d.droppers[id]
-	if !ok {
-		dropper = d.newDropper(d.sctx, in)
-		d.droppers[id] = dropper
-	}
-	if dropper == nil {
+	if dropType == d.emptyType {
 		return d.sctx.Quiet()
 	}
-	return dropper.drop(in)
+	b := &d.builder
+	b.Reset()
+	d.recode(b, typ, in.Bytes(), d.dropMap)
+	return super.NewValue(dropType, b.Bytes().Body())
+}
+
+type fieldsMap map[string]fieldsMap
+
+func (f fieldsMap) Add(path field.Path) {
+	if len(path) == 1 {
+		f[path[0]] = nil
+	} else if len(path) > 1 {
+		ff, ok := f[path[0]]
+		if ff == nil {
+			if ok {
+				return
+			}
+			ff = fieldsMap{}
+			f[path[0]] = ff
+		}
+		ff.Add(path[1:])
+	}
+}
+
+func (f fieldsMap) dropType(sctx *super.Context, typ super.Type) super.Type {
+	if named, ok := typ.(*super.TypeNamed); ok {
+		inner := f.dropType(sctx, named.Type)
+		if inner == named.Type {
+			return typ
+		}
+		return inner
+	}
+	recType := super.TypeRecordOf(typ)
+	if recType == nil {
+		return typ
+	}
+	var out []super.Field
+	for _, field := range recType.Fields {
+		typ := field.Type
+		ff, ok := f[field.Name]
+		if ok {
+			if ff == nil {
+				continue
+			}
+			typ = ff.dropType(sctx, typ)
+		}
+		out = append(out, super.NewFieldWithOpt(field.Name, typ, field.Opt))
+	}
+	return sctx.MustLookupTypeRecord(out)
 }

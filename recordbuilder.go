@@ -55,7 +55,8 @@ type RecordBuilder struct {
 // built from an array of input field selectors expressed as field.Path.
 // Append should be called to enter field values in the left to right order
 // of the provided fields and Encode is called to retrieve the nested scode.Bytes
-// value.  Reset should be called before encoding the next record.
+// value.  Reset should be called before encoding the next record.  This mechanism
+// never builds records with optional fields.
 func NewRecordBuilder(sctx *Context, fields field.List) (*RecordBuilder, error) {
 	seenRecords := make(map[string]bool)
 	fieldInfos := make([]fieldInfo, 0, len(fields))
@@ -189,14 +190,14 @@ func (r *RecordBuilder) Type(types []Type) *TypeRecord {
 			stack = append(stack, current)
 		}
 
-		current.fields = append(current.fields, Field{fi.field.Leaf(), types[i]})
+		current.fields = append(current.fields, Field{fi.field.Leaf(), types[i], false})
 
 		for range fi.containerEnds {
 			recType := r.sctx.MustLookupTypeRecord(current.fields)
 			slen := len(stack)
 			stack = stack[:slen-1]
 			cur := stack[slen-2]
-			cur.fields = append(cur.fields, Field{current.name, recType})
+			cur.fields = append(cur.fields, Field{current.name, recType, false})
 			current = cur
 		}
 	}

@@ -21,13 +21,6 @@ func NewFuser(sctx *super.Context) *Fuser {
 	return &Fuser{sctx: sctx, types: make(map[super.Type]struct{})}
 }
 
-// XXX Remove this when optional fields land.
-func NewFuserWithMissingFieldsAsNullable(sctx *super.Context) *Fuser {
-	f := NewFuser(sctx)
-	f.missingFieldsNullable = true
-	return f
-}
-
 func (f *Fuser) Fuse(t super.Type) {
 	if _, ok := f.types[t]; ok {
 		return
@@ -57,27 +50,23 @@ func (f *Fuser) fuse(a, b super.Type) super.Type {
 	case *super.TypeRecord:
 		if b, ok := b.(*super.TypeRecord); ok {
 			fields := slices.Clone(a.Fields)
-			if f.missingFieldsNullable {
-				for _, field := range b.Fields {
-					i, ok := indexOfField(fields, field.Name)
-					if !ok {
-						i = len(fields)
-						fields = append(fields, super.NewField(field.Name, super.TypeNull))
-					}
-					fields[i].Type = f.fuse(fields[i].Type, field.Type)
+			// First change all fields to optional that are in "a" but not in "b".
+			for k, field := range fields {
+				if _, ok := indexOfField(b.Fields, field.Name); !ok {
+					fields[k].Opt = true
 				}
-				for i, field := range fields {
-					if _, ok := indexOfField(b.Fields, field.Name); !ok {
-						fields[i].Type = f.fuse(fields[i].Type, super.TypeNull)
-					}
-				}
-				return f.sctx.MustLookupTypeRecord(fields)
 			}
+			// Now fuse all the fields in "b" that are also in "a" and add the fields
+			// that are in "b" but not in "a" as they appear in "b".
 			for _, field := range b.Fields {
-				if i, ok := indexOfField(fields, field.Name); ok {
+				i, ok := indexOfField(fields, field.Name)
+				if ok {
 					fields[i].Type = f.fuse(fields[i].Type, field.Type)
+					if field.Opt {
+						fields[i].Opt = true
+					}
 				} else {
-					fields = append(fields, field)
+					fields = append(fields, super.NewFieldWithOpt(field.Name, field.Type, true))
 				}
 			}
 			return f.sctx.MustLookupTypeRecord(fields)

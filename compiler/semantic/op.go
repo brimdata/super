@@ -391,7 +391,7 @@ func decodeStrings(val *super.Value) ([]string, error) {
 			return nil, errors.New("array elements of header field must be strings")
 		}
 		var out []string
-		for it := val.Iter(); !it.Done(); {
+		for it := val.ContainerIter(); !it.Done(); {
 			out = append(out, super.DecodeString(it.Next()))
 		}
 		return out, nil

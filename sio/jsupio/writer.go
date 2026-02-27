@@ -125,12 +125,27 @@ func (w *Writer) encodeRecord(sctx *super.Context, typ *super.TypeRecord, val sc
 	// We start out with a slice that contains nothing instead of nil
 	// so that an empty container encodes as a JSON empty array [].
 	out := []any{}
-	for k, it := 0, val.Iter(); !it.Done(); k++ {
-		v, err := w.encodeValue(sctx, typ.Fields[k].Type, it.Next())
+	var optOff int
+	var nones []any
+	for k, it := 0, scode.NewRecordIter(val, typ.Opts); !it.Done(); k++ {
+		elem, none := it.Next(typ.Fields[k].Opt)
+		if none {
+			nones = append(nones, optOff)
+			optOff++
+			continue
+		}
+		if typ.Fields[k].Opt {
+			optOff++
+		}
+		v, err := w.encodeValue(sctx, typ.Fields[k].Type, elem)
 		if err != nil {
 			return nil, err
 		}
 		out = append(out, v)
+	}
+	if typ.Opts != 0 {
+		// If there are optional fields, include the nones array (which may be empty).
+		out = append([]any{nones}, out...)
 	}
 	return out, nil
 }

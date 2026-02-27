@@ -14,9 +14,9 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {type:"types",offset:0,block:{type:"uncompressed",length:5}}
-      {type:"values",offset:7,block:{type:"uncompressed",length:4}}
-      {type:"EOS",offset:13,block:null}
-      {type:"types",offset:14,block:{type:"uncompressed",length:5}}
-      {type:"values",offset:21,block:{type:"uncompressed",length:4}}
-      {type:"EOS",offset:27,block:null}
+      {type:"types",offset:0,block:{type:"uncompressed",length:6}}
+      {type:"values",offset:8,block:{type:"uncompressed",length:4}}
+      {type:"EOS",offset:14,block:null}
+      {type:"types",offset:15,block:{type:"uncompressed",length:6}}
+      {type:"values",offset:23,block:{type:"uncompressed",length:4}}
+      {type:"EOS",offset:29,block:null}

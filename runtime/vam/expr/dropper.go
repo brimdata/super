@@ -1,8 +1,6 @@
 package expr
 
 import (
-	"slices"
-
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/vector"
@@ -47,65 +45,54 @@ func (d *Dropper) eval(vecs ...vector.Any) vector.Any {
 // drop drops the fields in fm from vec.  It returns nil, false if vec is not a
 // record or no fields were dropped; nil, true if all fields were dropped; and
 // non-nil, true if some fields were dropped or modified.
-func (d *Dropper) drop(vec vector.Any, fm fieldsMap) (vector.Any, bool) {
-	switch vec := vector.Under(vec).(type) {
+func (d *Dropper) drop(val vector.Any, fm fieldsMap) (vector.Any, bool) {
+	switch val := vector.Under(val).(type) {
 	case *vector.Record:
-		fields := super.TypeRecordOf(vec.Type()).Fields
+		var valFields []*vector.Field
+		var typFields []super.Field
 		var changed bool
-		var newFields []super.Field
-		var newVecs []vector.Any
-		for i, f := range fields {
+		for i, f := range super.TypeRecordOf(val.Type()).Fields {
+			valField := val.Field(i)
 			if ff, ok := fm[f.Name]; ok {
 				if ff == nil {
 					// Drop field.
-					if !changed {
-						newFields = slices.Clone(fields[:i])
-						newVecs = slices.Clone(vec.Fields[:i])
-						changed = true
-					}
+					changed = true
 					continue
 				}
-				if vec2, ok := d.drop(vec.Fields[i], ff); ok {
-					// Field changed.
-					if !changed {
-						newFields = slices.Clone(fields[:i])
-						newVecs = slices.Clone(vec.Fields[:i])
-						changed = true
-					}
-					if vec2 == nil {
+				if val, ok := d.drop(valField.Val, ff); ok {
+					changed = true
+					if val == nil {
 						// Drop field since we dropped all its subfields.
 						continue
 					}
 					// Substitute modified field.
-					newFields = append(newFields, super.NewField(f.Name, vec2.Type()))
-					newVecs = append(newVecs, vec2)
+					valFields = append(valFields, &vector.Field{Val: val, Len: valField.Len, Runs: valField.Runs})
+					typFields = append(typFields, super.NewFieldWithOpt(f.Name, val.Type(), f.Opt))
 					continue
 				}
 			}
 			// Keep field.
-			if changed {
-				newFields = append(newFields, f)
-				newVecs = append(newVecs, vec.Fields[i])
-			}
+			valFields = append(valFields, valField)
+			typFields = append(typFields, super.NewFieldWithOpt(f.Name, valField.Val.Type(), f.Opt))
 		}
 		if !changed {
 			return nil, false
 		}
-		if len(newFields) == 0 {
+		if len(valFields) == 0 {
 			return nil, true
 		}
-		newRecType := d.sctx.MustLookupTypeRecord(newFields)
-		return vector.NewRecord(newRecType, newVecs, vec.Len()), true
+		typ := d.sctx.MustLookupTypeRecord(typFields)
+		return vector.NewRecordFromFields(typ, valFields, val.Len()), true
 	case *vector.Dict:
-		if newVec, ok := d.drop(vec.Any, fm); ok {
-			return vector.NewDict(newVec, vec.Index, vec.Counts), true
+		if newVec, ok := d.drop(val.Any, fm); ok {
+			return vector.NewDict(newVec, val.Index, val.Counts), true
 		}
 	case *vector.View:
-		if newVec, ok := d.drop(vec.Any, fm); ok {
-			return vector.Pick(newVec, vec.Index), true
+		if newVec, ok := d.drop(val.Any, fm); ok {
+			return vector.Pick(newVec, val.Index), true
 		}
 	}
-	return vec, false
+	return val, false
 }
 
 type fieldsMap map[string]fieldsMap

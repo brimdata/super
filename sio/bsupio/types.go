@@ -92,7 +92,7 @@ func (e *Encoder) encodeTypeRecord(ext *super.TypeRecord) (super.Type, error) {
 		if err != nil {
 			return nil, err
 		}
-		fields = append(fields, super.NewField(f.Name, child))
+		fields = append(fields, super.NewFieldWithOpt(f.Name, child, f.Opt))
 	}
 	typ, err := e.sctx.LookupTypeRecord(fields)
 	if err != nil {
@@ -104,6 +104,11 @@ func (e *Encoder) encodeTypeRecord(ext *super.TypeRecord) (super.Type, error) {
 		e.bytes = binary.AppendUvarint(e.bytes, uint64(len(f.Name)))
 		e.bytes = append(e.bytes, f.Name...)
 		e.bytes = binary.AppendUvarint(e.bytes, uint64(super.TypeID(f.Type)))
+		var opt byte
+		if f.Opt {
+			opt = 1
+		}
+		e.bytes = append(e.bytes, opt)
 	}
 	return typ, nil
 }
@@ -282,7 +287,11 @@ func (d *Decoder) readField(b *buffer) (super.Field, error) {
 	if err != nil {
 		return super.Field{}, err
 	}
-	return super.NewField(name, typ), nil
+	optByte, err := b.ReadByte()
+	if err != nil {
+		return super.Field{}, err
+	}
+	return super.NewFieldWithOpt(name, typ, optByte != 0), nil
 }
 
 func (d *Decoder) readTypeArray(b *buffer) error {

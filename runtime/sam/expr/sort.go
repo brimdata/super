@@ -195,7 +195,7 @@ func compareValues(a, b super.Value, nullsMax bool) int {
 	// XXX record support easy to add here if we moved the creation of the
 	// field resolvers into this package.
 	if innerType := super.InnerType(a.Type()); innerType != nil {
-		ait, bit := a.Iter(), b.Iter()
+		ait, bit := a.ContainerIter(), b.ContainerIter()
 		for {
 			if ait.Done() {
 				if bit.Done() {

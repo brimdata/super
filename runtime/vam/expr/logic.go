@@ -246,11 +246,12 @@ func (p *PredicateWalk) eval(vecs ...vector.Any) vector.Any {
 	}
 	switch rhs := rhs.(type) {
 	case *vector.Record:
-		if len(rhs.Fields) == 0 {
+		fields := rhs.Fields(p.sctx)
+		if len(fields) == 0 {
 			vector.NewFalse(rhs.Len())
 		}
-		out := p.Eval(lhs, rhs.Fields[0])
-		for _, vec := range rhs.Fields[1:] {
+		out := p.Eval(lhs, fields[0])
+		for _, vec := range fields[1:] {
 			if index != nil {
 				vec = vector.Pick(vec, index)
 			}

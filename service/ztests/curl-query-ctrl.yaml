@@ -18,10 +18,10 @@ outputs:
     data: |
       // control messages enabled
       {"type":"QueryChannelSet","value":{"channel":"main"}}
-      {"type":{"kind":"record","id":30,"fields":[{"name":"ts","type":{"kind":"primitive","name":"int64"}}]},"value":["0"]}
+      {"type":{"kind":"record","id":30,"fields":[{"name":"ts","type":{"kind":"primitive","name":"int64"},"opt":false}]},"value":["0"]}
       {"type":"QueryChannelEnd","value":{"channel":"main"}}
       {"type":"QueryStats","value":{"start_time":{"sec":xxx,"ns":xxx},"update_time":{"sec":xxx,"ns":xxx},"bytes_read":1,"bytes_matched":1,"records_read":1,"records_matched":1}}
       // control messages disabled
-      {"type":{"kind":"record","id":30,"fields":[{"name":"ts","type":{"kind":"primitive","name":"int64"}}]},"value":["0"]}
+      {"type":{"kind":"record","id":30,"fields":[{"name":"ts","type":{"kind":"primitive","name":"int64"},"opt":false}]},"value":["0"]}
       // invalid ctrl value
       {"type":"Error","kind":"invalid operation","error":"invalid query param \"Foo\": strconv.ParseBool: parsing \"Foo\": invalid syntax"}

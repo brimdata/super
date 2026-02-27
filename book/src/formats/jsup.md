@@ -298,7 +298,8 @@ super -f jsup input.sup | jq .
         "type": {
           "kind": "primitive",
           "name": "string"
-        }
+        },
+        "opt": false
       },
       {
         "name": "r",
@@ -311,17 +312,20 @@ super -f jsup input.sup | jq .
               "type": {
                 "kind": "primitive",
                 "name": "int64"
-              }
+              },
+              "opt": false
             },
             {
               "name": "b",
               "type": {
                 "kind": "primitive",
                 "name": "int64"
-              }
+              },
+              "opt": false
             }
           ]
-        }
+        },
+        "opt": false
       }
     ]
   },
@@ -356,7 +360,8 @@ super -f jsup input.sup | jq .
         "type": {
           "kind": "primitive",
           "name": "string"
-        }
+        },
+        "opt": false
       },
       {
         "name": "r",
@@ -373,10 +378,12 @@ super -f jsup input.sup | jq .
                   "kind": "primitive",
                   "name": "int64"
                 }
-              }
+              },
+              "opt": false
             }
           ]
-        }
+        },
+        "opt": false
       }
     ]
   },
@@ -401,7 +408,8 @@ super -f jsup input.sup | jq .
         "type": {
           "kind": "primitive",
           "name": "string"
-        }
+        },
+        "opt": false
       },
       {
         "name": "r",
@@ -430,13 +438,16 @@ super -f jsup input.sup | jq .
                           "name": "string"
                         }
                       ]
-                    }
+                    },
+                    "opt": false
                   }
                 ]
-              }
+              },
+              "opt": false
             }
           ]
-        }
+        },
+        "opt": false
       }
     ]
   },

@@ -64,7 +64,7 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		argmax = -1
 		f = newHas(sctx)
 	case "has_error":
-		f = HasError{}
+		f = HasError{sctx}
 	case "hex":
 		f = &Hex{sctx}
 	case "is":

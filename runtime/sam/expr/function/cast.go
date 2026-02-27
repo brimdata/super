@@ -85,17 +85,30 @@ func (c *cast) error(from super.Value, to super.Type) super.Value {
 
 func (c *cast) toRecord(from super.Value, to *super.TypeRecord) super.Value {
 	from = from.Under()
-	if !super.IsRecordType(from.Type()) {
+	fromRecType := super.TypeRecordOf(from.Type())
+	if fromRecType == nil {
 		return c.error(from, to)
 	}
 	var b scode.Builder
 	var fields []super.Field
+	var nones []int
+	var optOff int
+	b.BeginContainer()
 	for i, f := range to.Fields {
 		var val2 super.Value
-		if fieldVal := from.Deref(f.Name); fieldVal != nil {
-			val2 = c.Cast(*fieldVal, f.Type)
-		} else {
+		fieldVal, ok, none := derefWithNone(fromRecType, from.Bytes(), f.Name)
+		if !ok || none {
+			if f.Opt {
+				nones = append(nones, optOff)
+				optOff++
+				continue
+			}
 			val2 = c.sctx.Missing()
+		} else {
+			val2 = c.Cast(fieldVal, f.Type)
+			if f.Opt {
+				optOff++
+			}
 		}
 		if t := val2.Type(); t != f.Type {
 			if fields == nil {
@@ -108,7 +121,24 @@ func (c *cast) toRecord(from super.Value, to *super.TypeRecord) super.Value {
 	if fields != nil {
 		to = c.sctx.MustLookupTypeRecord(fields)
 	}
-	return super.NewValue(to, b.Bytes())
+	b.EndContainerWithNones(to.Opts, nones)
+	return super.NewValue(to, b.Bytes().Body())
+}
+
+func derefWithNone(typ *super.TypeRecord, bytes scode.Bytes, name string) (super.Value, bool, bool) {
+	n, ok := typ.IndexOfField(name)
+	if !ok {
+		return super.Value{}, false, false
+	}
+	var elem scode.Bytes
+	var none bool
+	for i, it := 0, scode.NewRecordIter(bytes, typ.Opts); i <= n; i++ {
+		elem, none = it.Next(typ.Fields[i].Opt)
+	}
+	if none {
+		return super.Value{}, true, true
+	}
+	return super.NewValue(typ.Fields[n].Type, elem), true, false
 }
 
 func (c *cast) toArrayOrSet(from super.Value, to super.Type) super.Value {
@@ -122,7 +152,7 @@ func (c *cast) toArrayOrSet(from super.Value, to super.Type) super.Value {
 	}
 	types := map[super.Type]struct{}{}
 	var vals []super.Value
-	for it := from.Iter(); !it.Done(); {
+	for it := from.ContainerIter(); !it.Done(); {
 		val := c.castNext(&it, fromInner, toInner)
 		types[val.Type()] = struct{}{}
 		vals = append(vals, val)
@@ -174,7 +204,7 @@ func (c *cast) toMap(from super.Value, to *super.TypeMap) super.Value {
 	keyTypes := map[super.Type]struct{}{}
 	valTypes := map[super.Type]struct{}{}
 	var keyVals, valVals []super.Value
-	for it := from.Iter(); !it.Done(); {
+	for it := from.ContainerIter(); !it.Done(); {
 		keyVal := c.castNext(&it, fromType.KeyType, to.KeyType)
 		keyVals = append(keyVals, keyVal)
 		keyTypes[keyVal.Type()] = struct{}{}
@@ -290,22 +320,30 @@ func (u *upcast) toRecord(from super.Value, to *super.TypeRecord) (super.Value, 
 	}
 	var b scode.Builder
 	var fields []super.Field
+	var nones []int
+	var optOff int
+	b.BeginContainer()
 	for i, f := range to.Fields {
 		var val2 super.Value
 		if fieldVal := from.Deref(f.Name); fieldVal != nil {
 			val2 = u.Cast(*fieldVal, f.Type)
+			if f.Opt {
+				optOff++
+			}
 		} else {
-			// The field is present in the top but not the value.
-			// If the type is nullable, encode this as null (XXX this will
-			// change to None in an optional field) in the optional-fields PR.
-			if union, tag := super.NullableUnion(f.Type); union != nil {
+			// The field is present in the supertype but not the value.
+			// If the field is optional, preserve the optionality and
+			// code it as a none.  Otherwise, if the type is nullable,
+			// code is as a null.  Otherwise, it's an error.
+			if f.Opt {
+				nones = append(nones, optOff)
+				optOff++
+				continue
+			} else if union, tag := super.NullableUnion(f.Type); union != nil {
 				super.BuildUnion(&b, tag, nil)
-				if fields == nil {
-					fields = slices.Clone(to.Fields)
-				}
-				fields[i].Type = union
 				continue
 			} else {
+				// XXX TBD have a structured error here
 				val2 = u.sctx.Missing()
 			}
 		}
@@ -320,7 +358,8 @@ func (u *upcast) toRecord(from super.Value, to *super.TypeRecord) (super.Value, 
 	if fields != nil {
 		to = u.sctx.MustLookupTypeRecord(fields)
 	}
-	return super.NewValue(to, b.Bytes()), true
+	b.EndContainerWithNones(to.Opts, nones)
+	return super.NewValue(to, b.Bytes().Body()), true
 }
 
 func (u *upcast) toArrayOrSet(from super.Value, to super.Type) super.Value {
@@ -334,7 +373,7 @@ func (u *upcast) toArrayOrSet(from super.Value, to super.Type) super.Value {
 	}
 	types := map[super.Type]struct{}{}
 	var vals []super.Value
-	for it := from.Iter(); !it.Done(); {
+	for it := from.ContainerIter(); !it.Done(); {
 		val := u.castNext(&it, fromInner, toInner)
 		types[val.Type()] = struct{}{}
 		vals = append(vals, val)
@@ -386,7 +425,7 @@ func (u *upcast) toMap(from super.Value, to *super.TypeMap) super.Value {
 	keyTypes := map[super.Type]struct{}{}
 	valTypes := map[super.Type]struct{}{}
 	var keyVals, valVals []super.Value
-	for it := from.Iter(); !it.Done(); {
+	for it := from.ContainerIter(); !it.Done(); {
 		keyVal := u.castNext(&it, fromType.KeyType, to.KeyType)
 		keyVals = append(keyVals, keyVal)
 		keyTypes[keyVal.Type()] = struct{}{}

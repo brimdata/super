@@ -63,8 +63,9 @@ func (w *Writer) Write(rec super.Value) error {
 	if err != nil {
 		return err
 	}
+	recType := super.TypeRecordOf(rec.Type())
 	if w.first == nil {
-		w.first = super.TypeRecordOf(rec.Type())
+		w.first = recType
 		var hdr []string
 		if w.header {
 			for _, f := range rec.Fields() {
@@ -81,20 +82,23 @@ func (w *Writer) Write(rec super.Value) error {
 		w.types[rec.Type().ID()] = struct{}{}
 	}
 	w.strings = w.strings[:0]
-	fields := rec.Fields()
-	for i, it := 0, rec.Bytes().Iter(); i < len(fields) && !it.Done(); i++ {
+	fields := recType.Fields
+	for i, it := 0, scode.NewRecordIter(rec.Bytes(), recType.Opts); i < len(fields) && !it.Done(); i++ {
 		var s string
-		val := super.NewValue(fields[i].Type, it.Next()).Under()
-		switch id := val.Type().ID(); {
-		case id == super.IDBytes && len(val.Bytes()) == 0:
-			// We want "" instead of "0x" for a zero-length value.
-		case id == super.IDString:
-			s = string(val.Bytes())
-		case id == super.IDNull:
-		default:
-			s = formatValue(val.Type(), val.Bytes())
-			if super.IsFloat(id) && strings.HasSuffix(s, ".") {
-				s = strings.TrimSuffix(s, ".")
+		elem, none := it.Next(fields[i].Opt)
+		if !none {
+			val := super.NewValue(fields[i].Type, elem).Under()
+			switch id := val.Type().ID(); {
+			case id == super.IDBytes && len(val.Bytes()) == 0:
+				// We want "" instead of "0x" for a zero-length value.
+			case id == super.IDString:
+				s = string(val.Bytes())
+			case id == super.IDNull:
+			default:
+				s = formatValue(val.Type(), val.Bytes())
+				if super.IsFloat(id) && strings.HasSuffix(s, ".") {
+					s = strings.TrimSuffix(s, ".")
+				}
 			}
 		}
 		w.strings = append(w.strings, s)

@@ -220,6 +220,7 @@ func (t *translator) expr(e ast.Expr, inType super.Type) (sem.Expr, super.Type) 
 					Node:  elem,
 					Name:  elem.Name.Text,
 					Value: e,
+					Opt:   elem.Opt,
 				})
 				types = append(types, typ)
 			case *ast.SpreadElem:

@@ -332,7 +332,7 @@ func (b *Builder) compileVamRegexpSearch(search *dag.RegexpSearchExpr) (vamexpr.
 	if err != nil {
 		return nil, err
 	}
-	return vamexpr.NewSearchRegexp(re, e), nil
+	return vamexpr.NewSearchRegexp(b.sctx(), re, e), nil
 }
 
 func (b *Builder) compileVamSearch(search *dag.SearchExpr) (vamexpr.Evaluator, error) {
@@ -348,9 +348,9 @@ func (b *Builder) compileVamSearch(search *dag.SearchExpr) (vamexpr.Evaluator, e
 		// Do a grep-style substring search instead of an
 		// exact match on each value.
 		term := norm.NFC.Bytes(val.Bytes())
-		return vamexpr.NewSearchString(string(term), e), nil
+		return vamexpr.NewSearchString(b.sctx(), string(term), e), nil
 	}
-	return vamexpr.NewSearch(search.Text, val, e), nil
+	return vamexpr.NewSearch(b.sctx(), search.Text, val, e), nil
 }
 
 func (b *Builder) compileVamSliceExpr(slice *dag.SliceExpr) (vamexpr.Evaluator, error) {

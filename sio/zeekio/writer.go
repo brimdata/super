@@ -7,6 +7,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr"
+	"github.com/brimdata/super/scode"
 )
 
 type Writer struct {
@@ -43,9 +44,9 @@ func (w *Writer) Write(r super.Value) error {
 	}
 	w.buf.Reset()
 	var needSeparator bool
-	it := r.Bytes().Iter()
+	it := scode.NewRecordIter(r.Bytes(), w.typ.Opts)
 	for _, f := range super.TypeRecordOf(r.Type()).Fields {
-		bytes := it.Next()
+		bytes, _ := it.Next(f.Opt)
 		if f.Name == "_path" {
 			continue
 		}

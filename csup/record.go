@@ -11,32 +11,42 @@ import (
 type RecordEncoder struct {
 	fields []*FieldEncoder
 	count  uint32
+	nopt   int
 }
 
 var _ Encoder = (*RecordEncoder)(nil)
 
 func NewRecordEncoder(typ *super.TypeRecord) *RecordEncoder {
 	fields := make([]*FieldEncoder, 0, len(typ.Fields))
+	var nopt int
 	for _, f := range typ.Fields {
 		fields = append(fields, &FieldEncoder{
 			name:   f.Name,
 			values: NewEncoder(f.Type),
+			opt:    f.Opt,
 		})
+		if f.Opt {
+			nopt++
+		}
 	}
-	return &RecordEncoder{fields: fields}
+	return &RecordEncoder{fields: fields, nopt: nopt}
 }
 
 func (r *RecordEncoder) Write(body scode.Bytes) {
+	slot := r.count
 	r.count++
-	it := body.Iter()
+	it := scode.NewRecordIter(body, r.nopt)
 	for _, f := range r.fields {
-		f.write(it.Next())
+		elem, none := it.Next(f.opt)
+		if !none {
+			f.write(elem, slot)
+		}
 	}
 }
 
 func (r *RecordEncoder) Encode(group *errgroup.Group) {
 	for _, f := range r.fields {
-		f.Encode(group)
+		f.Encode(group, r.count)
 	}
 }
 

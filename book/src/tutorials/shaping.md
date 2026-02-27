@@ -476,9 +476,9 @@ fuse
 {y:"foo"}
 {x:2,y:"bar"}
 # expected output
-{x:1::(int64|null),y:null::(string|null)}
-{x:null::(int64|null),y:"foo"::(string|null)}
-{x:2::(int64|null),y:"bar"::(string|null)}
+{x?:1,y?:_::string}
+{x?:_::int64,y?:"foo"}
+{x?:2,y?:"bar"}
 ```
 
 Whereas a type union for field `x` is produced in the following:
@@ -511,7 +511,7 @@ fuse(this)
 {x:"foo",y:"foo"}
 {x:2,y:"bar"}
 # expected output
-<{x:int64|string,y:string|null}>
+<{x:int64|string,y?:string}>
 ```
 
 Since the `fuse` here is an aggregate function, it can also be used with
