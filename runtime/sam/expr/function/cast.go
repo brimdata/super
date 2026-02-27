@@ -45,6 +45,7 @@ func (c *cast) Call(args []super.Value) super.Value {
 }
 
 func (c *cast) Cast(from super.Value, to super.Type) super.Value {
+	from = from.Deunion()
 	switch fromType := from.Type(); {
 	case fromType == to:
 		return from
@@ -70,7 +71,6 @@ func (c *cast) Cast(from super.Value, to super.Type) super.Value {
 	case *super.TypeNamed:
 		return c.toNamed(from, to)
 	default:
-		from = from.Under()
 		caster := expr.LookupPrimitiveCaster(c.sctx, to)
 		if caster == nil {
 			return c.error(from, to)
@@ -84,7 +84,6 @@ func (c *cast) error(from super.Value, to super.Type) super.Value {
 }
 
 func (c *cast) toRecord(from super.Value, to *super.TypeRecord) super.Value {
-	from = from.Under()
 	fromRecType := super.TypeRecordOf(from.Type())
 	if fromRecType == nil {
 		return c.error(from, to)
@@ -142,7 +141,6 @@ func derefWithNone(typ *super.TypeRecord, bytes scode.Bytes, name string) (super
 }
 
 func (c *cast) toArrayOrSet(from super.Value, to super.Type) super.Value {
-	from = from.Under()
 	fromInner := super.InnerType(from.Type())
 	toInner := super.InnerType(to)
 	if fromInner == nil {
@@ -196,7 +194,6 @@ func (c *cast) maybeConvertToUnion(vals []super.Value, types map[super.Type]stru
 }
 
 func (c *cast) toMap(from super.Value, to *super.TypeMap) super.Value {
-	from = from.Under()
 	fromType, ok := from.Type().(*super.TypeMap)
 	if !ok {
 		return c.error(from, to)

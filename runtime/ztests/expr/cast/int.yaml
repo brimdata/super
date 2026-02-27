@@ -14,6 +14,7 @@ input: |
   false
   true
   null
+  null::({}|null)
 
 output: |
   -1::int8
@@ -52,6 +53,10 @@ output: |
   1::int16
   1::int32
   1
+  null::(int8|null)
+  null::(int16|null)
+  null::(int32|null)
+  null::(int64|null)
   null::(int8|null)
   null::(int16|null)
   null::(int32|null)

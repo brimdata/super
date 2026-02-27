@@ -14,5 +14,5 @@ output: |
   {a:null::(null||[ip]|),b:null::(null||[{b:ip}]|)}
   {a:|[]|::|[ip]|,b:|[]|::|[{b:ip}]|}
   {a:|[1.1.1.1,2.2.2.2]|,b:|[{b:1.1.1.1},{b:2.2.2.2}]|}
-  {a:|[1.1.1.1,error({message:"cannot cast to ip",on:null})]|,b:|[{b:2.2.2.2},{b:null::(ip|null)},error({message:"cannot cast to {b:ip}",on:null})]|}
-  {a:|[1.1.1.1,error({message:"cannot cast to ip",on:null}),error({message:"cannot cast to ip",on:"2"})]|,b:|[{b:1.1.1.1},{b:null::(ip|null)},{b:error({message:"cannot cast to ip",on:"2"})},error({message:"cannot cast to {b:ip}",on:null})]|}
+  {a:|[1.1.1.1,null::(ip|null)]|,b:|[null::(null|{b:ip}),{b:2.2.2.2},{b:null::(ip|null)}]|}
+  {a:|[1.1.1.1,null::(ip|null),error({message:"cannot cast to ip",on:"2"})]|,b:|[null::(null|{b:ip}),{b:1.1.1.1},{b:null::(ip|null)},{b:error({message:"cannot cast to ip",on:"2"})}]|}

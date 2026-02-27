@@ -19,14 +19,14 @@ input: |
 
 output: |
   null
-  error({message:"cannot cast to string",on:null})
+  null::(string|null)
   "1"
   "1"
-  error({message:"cannot cast to int64|string",on:1::int8::(int8|string)})
-  error({message:"cannot cast to int8|string",on:1::(int64|string)})
+  error({message:"cannot cast to int64|string",on:1::int8})
+  error({message:"cannot cast to int8|string",on:1})
   "one"
   ["1","one"]
-  [error({message:"cannot cast to int8|string",on:1::(int64|string)}),"one"::(int8|string)]
-  [error({message:"cannot cast to int8|int16",on:1::(int64|string)}),error({message:"cannot cast to int8|int16",on:"one"::(int64|string)})]
+  [error({message:"cannot cast to int8|string",on:1}),"one"::(int8|string)]
+  [error({message:"cannot cast to int8|int16",on:1}),error({message:"cannot cast to int8|int16",on:"one"})]
   {a:["1","one"]}
-  {a:[error({message:"cannot cast to int8|string",on:1::(int64|string)}),"one"::(int8|string)]}
+  {a:[error({message:"cannot cast to int8|string",on:1}),"one"::(int8|string)]}
