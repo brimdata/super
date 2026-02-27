@@ -281,6 +281,7 @@ func (u *upcast) Call(args []super.Value) super.Value {
 }
 
 func (u *upcast) Cast(from super.Value, to super.Type) super.Value {
+	from = from.Deunion()
 	switch fromType := from.Type(); {
 	case fromType == to:
 		return from
@@ -311,7 +312,6 @@ func (u *upcast) error(from super.Value, to super.Type) super.Value {
 }
 
 func (u *upcast) toRecord(from super.Value, to *super.TypeRecord) (super.Value, bool) {
-	from = from.Under()
 	if !super.IsRecordType(from.Type()) {
 		return u.error(from, to), false
 	}
@@ -360,7 +360,6 @@ func (u *upcast) toRecord(from super.Value, to *super.TypeRecord) (super.Value, 
 }
 
 func (u *upcast) toArrayOrSet(from super.Value, to super.Type) super.Value {
-	from = from.Under()
 	fromInner := super.InnerType(from.Type())
 	toInner := super.InnerType(to)
 	if fromInner == nil {
@@ -414,7 +413,6 @@ func (u *upcast) maybeConvertToUnion(vals []super.Value, types map[super.Type]st
 }
 
 func (u *upcast) toMap(from super.Value, to *super.TypeMap) super.Value {
-	from = from.Under()
 	fromType, ok := from.Type().(*super.TypeMap)
 	if !ok {
 		return u.error(from, to)
@@ -447,7 +445,6 @@ func (u *upcast) toMap(from super.Value, to *super.TypeMap) super.Value {
 }
 
 func (u *upcast) toUnion(from super.Value, to *super.TypeUnion) super.Value {
-	from = from.Deunion()
 	tag := upcastUnionTag(to.Types, from.Type())
 	if tag < 0 {
 		return u.error(from, to)
