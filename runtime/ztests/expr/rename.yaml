@@ -6,7 +6,7 @@ vector: true
 # {s:"a"}
 # {s:"b"}
 # {s:"a"}
-input: !!binary BgAAAQFzGQAcAB4DAmEeAwJiHgMCYf8=
+input: !!binary gQYAAAEBcxkAgRwAHgMCYR4DAmIeAwJh/w==
 
 output: |
   {s2:"a",count:2}

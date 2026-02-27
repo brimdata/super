@@ -15,6 +15,7 @@ import (
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
 )
 
@@ -123,17 +124,22 @@ func (m *metaReader) Read() (*super.Value, error) {
 func (m *metaReader) nextFrame() (any, error) {
 	r := m.reader
 	pos := r.pos
+	version, err := r.ReadByte()
+	if err != nil {
+		return nil, noEOF(err)
+	}
+	if version == 0xff {
+		return &Frame{Type: "EOS", Offset: pos}, nil
+
+	}
+	if err := bsupio.CheckVersion(version); err != nil {
+		return nil, err
+	}
 	code, err := r.ReadByte()
 	if err != nil {
 		return nil, noEOF(err)
 	}
-	if code == 0xff {
-		return &Frame{Type: "EOS", Offset: pos}, nil
 
-	}
-	if (code & 0x80) != 0 {
-		return nil, errors.New("encountered wrong version bit in BSUP framing")
-	}
 	var block any
 	if (code & 0x40) != 0 {
 		block, err = r.readComp(code)

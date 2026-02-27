@@ -15,8 +15,8 @@ outputs:
   - name: stdout
     data: |
       {type:"types",offset:0,block:{type:"uncompressed",length:6}}
-      {type:"values",offset:8,block:{type:"uncompressed",length:4}}
-      {type:"EOS",offset:14,block:null}
-      {type:"types",offset:15,block:{type:"uncompressed",length:6}}
-      {type:"values",offset:23,block:{type:"uncompressed",length:4}}
-      {type:"EOS",offset:29,block:null}
+      {type:"values",offset:9,block:{type:"uncompressed",length:4}}
+      {type:"EOS",offset:16,block:null}
+      {type:"types",offset:17,block:{type:"uncompressed",length:6}}
+      {type:"values",offset:26,block:{type:"uncompressed",length:4}}
+      {type:"EOS",offset:33,block:null}

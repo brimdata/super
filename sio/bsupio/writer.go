@@ -166,16 +166,20 @@ func (w *Writer) writeBlock(blockType int, b []byte) error {
 }
 
 func (w *Writer) writeHeader(blockType, size int) error {
+	version := BSUPVersion | 0x80
 	code := blockType<<4 | (size & 0xf)
-	w.header = append(w.header[:0], byte(code))
+	w.header = append(w.header[:0], byte(version))
+	w.header = append(w.header, byte(code))
 	w.header = binary.AppendUvarint(w.header, uint64(size>>4))
 	return w.write(w.header)
 }
 
 func (w *Writer) writeCompHeader(blockType, size, zlen int) error {
 	zlen += 1 + scode.SizeOfUvarint(uint64(size))
+	version := BSUPVersion | 0x80
 	code := (blockType << 4) | (zlen & 0xf) | 0x40
-	w.header = append(w.header[:0], byte(code))
+	w.header = append(w.header[:0], byte(version))
+	w.header = append(w.header, byte(code))
 	w.header = binary.AppendUvarint(w.header, uint64(zlen>>4))
 	w.header = append(w.header, byte(CompressionFormatLZ4))
 	w.header = binary.AppendUvarint(w.header, uint64(size))

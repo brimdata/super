@@ -5,14 +5,13 @@ inputs:
   - name: stdin
     # Generated with `bash -c 'super -f csup -o f.csup - <<<"[1,2]" && base64 -b 70 f.csup'`.
     data: !!binary |
-      AgQCAgIEAQUFAAIGT2Zmc2V0CQZMZW5ndGgIBwdTZWdtZW50HgEfAAIEVHlwZRwGU2VnbW
-      FwIAcJUHJpbWl0aXZlIQACB0xlbmd0aHMgBlZhbHVlcyIHBUFycmF5IxcBIAYFAgwCAiQP
-      BQQBAgQJAgkGBQIEAgj/SAYAaPQKAQkAAgtza2V3X3RocmVzaAkOc2VnbWVudBAA8DgHDH
-      pzdC5GaWxlTWV0YR8ABQVtYWdpYxkEdHlwZRkHdmVyc2lvbgkIc2VjdGlvbnMeBG1ldGEg
-      Bw16bmdpby5UcmFpbGVyIRMCIiIMWk5HIFRyYWlsZXIEenN0AgYFAg4C4goFAAAgAwQAAK
-      D/
+      Vk5HAA0AAAC7AAAAAAAAACgAAAAAAAAAAQAAAIFGCQCXAfQJAAQGT2Zmc2V0AwAGTGVuZ3
+      RoAwAJTWVtDADyRRFDb21wcmVzc2lvbkZvcm1hdAAABwdTZWdtZW50HgAFBFR5cGUcAAhM
+      b2NhdGlvbh8AA01pbgkAA01heAkABUNvdW50AgAHA0ludCAHAklEAgADBlwA8A4CAAdMZW
+      5ndGhzHwAGVmFsdWVzIgAHBUFycmF5I4EeASERAgkIAhACEAIYAQICAgQCAiQLAgEHAQII
+      AhABAf8CAAAAAwAAAICAAgADAAAAAgAAAAIAAACAgICAgIABAQIAAAAAAAAA
 
 outputs:
   - name: stderr
     data: |
-      stdio:stdin: primitive type ID 4 not implemented
+      stdio:stdin: BSUP version mismatch: expected 1, found 0

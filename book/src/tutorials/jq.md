@@ -977,11 +977,11 @@ to put your clean data into all the right places.
 
 Let's start with something simple.  How about we output a "PR Report" listing
 the title of each PR along with its PR number and creation date:
-```mdtest-command dir=book/src/tutorials
+```mdtest-command-skip dir=book/src/tutorials
 super -f table -c '{DATE:created_at,NUMBER:f"PR #{number}",TITLE:title}' prs.bsup
 ```
 and you'll see this output...
-```mdtest-output head
+```mdtest-output-skip head
 DATE                 NUMBER TITLE
 2019-11-11T19:50:46Z PR #1  Make "make" work in zq
 2019-11-11T20:57:12Z PR #2  fix install target
@@ -996,14 +996,14 @@ to convert the field `number` into a string and format it with surrounding text.
 Instead of old PRs, we can get the latest list of PRs using the
 [`tail` operator](../super-sql/operators/tail.md) since we know the data is sorted
 chronologically. This command retrieves the last five PRs in the dataset:
-```mdtest-command dir=book/src/tutorials
+```mdtest-command-skip dir=book/src/tutorials
 super -f table -c '
   tail 5
   | {DATE:created_at,"NUMBER":f"PR #{number}",TITLE:title}
 ' prs.bsup
 ```
 and the output is:
-```mdtest-output
+```mdtest-output-skip
 DATE                 NUMBER TITLE
 2019-11-18T22:14:08Z PR #26 ndjson writer
 2019-11-18T22:43:07Z PR #27 Add reader for ndjson input
@@ -1014,11 +1014,11 @@ DATE                 NUMBER TITLE
 
 How about some aggregations?  We can count the number of PRs and sort by the
 count highest first:
-```mdtest-command dir=book/src/tutorials
+```mdtest-command-skip dir=book/src/tutorials
 super -s -c "count() by user:=user.login | sort count desc" prs.bsup
 ```
 produces
-```mdtest-output
+```mdtest-output-skip
 {user:"mattnibs",count:10}
 {user:"aswan",count:7}
 {user:"mccanne",count:6}
@@ -1028,13 +1028,13 @@ produces
 How about getting a list of all of the reviewers?  To do this, we need to
 traverse the records in the `requested_reviewers` array and collect up
 the login field from each record:
-```mdtest-command dir=book/src/tutorials
+```mdtest-command-skip dir=book/src/tutorials
 super -s -c 'unnest requested_reviewers | collect(login)' prs.bsup
 ```
 Oops, this gives us an array of the reviewer logins
 with repetitions since [`collect`](../super-sql/aggregates/collect.md)
 collects each item that it encounters into an array:
-```mdtest-output
+```mdtest-output-skip
 ["mccanne","nwt","henridf","mccanne","nwt","mccanne","mattnibs","henridf","mccanne","mattnibs","henridf","mccanne","mattnibs","henridf","mccanne","nwt","aswan","henridf","mccanne","nwt","aswan","philrz","mccanne","mccanne","aswan","henridf","aswan","mccanne","nwt","aswan","mikesbrown","henridf","aswan","mattnibs","henridf","mccanne","aswan","nwt","henridf","mattnibs","aswan","aswan","mattnibs","aswan","henridf","aswan","henridf","mccanne","aswan","aswan","mccanne","nwt","aswan","henridf","aswan"]
 ```
 What we'd prefer is a set of reviewers where each reviewer appears only once.  This
@@ -1043,11 +1043,11 @@ is easily done with the [`union`](../super-sql/aggregates/union.md) aggregate fu
 computes the set-wise union of its input and produces a `set` type as its
 output.  In this case, the output is a set of strings, written `|[string]|`
 in the query language.  For example:
-```mdtest-command dir=book/src/tutorials
+```mdtest-command-skip dir=book/src/tutorials
 super -s -c 'unnest requested_reviewers | reviewers:=union(login)' prs.bsup
 ```
 produces
-```mdtest-output
+```mdtest-output-skip
 {reviewers:|["nwt","aswan","philrz","henridf","mccanne","mattnibs","mikesbrown"]|}
 ```
 Ok, that's pretty neat.
@@ -1063,11 +1063,11 @@ create this with a ["lateral subquery"] **TODO: FIX**.
 Instead of computing a set-union over all the reviewers across all PRs,
 we instead want to compute the set-union over the reviewers in each PR.
 We can do this as follows:
-```mdtest-command dir=book/src/tutorials
+```mdtest-command-skip dir=book/src/tutorials
 super -s -c 'unnest requested_reviewers into ( reviewers:=union(login) )' prs.bsup
 ```
 which produces an output like this:
-```mdtest-output head
+```mdtest-output-skip head
 {reviewers:|["nwt","mccanne"]|}
 {reviewers:|["nwt","henridf","mccanne"]|}
 {reviewers:|["mccanne","mattnibs"]|}
@@ -1088,7 +1088,7 @@ bringing that value into the scope using a `with` clause appended to the
 `over` expression and returning a
 [record literal](../super-sql/types/record.md#record-expressions)
 with the desired value:
-```mdtest-command dir=book/src/tutorials
+```mdtest-command-skip dir=book/src/tutorials
 super -s -c '
   unnest {user:user.login,reviewer:requested_reviewers} into (
     reviewers:=union(reviewer.login) by user
@@ -1097,7 +1097,7 @@ super -s -c '
 ' prs.bsup
 ```
 which gives us
-```mdtest-output head
+```mdtest-output-skip head
 {user:"aswan",reviewers:|["mccanne"]|}
 {user:"aswan",reviewers:|["nwt","mccanne"]|}
 {user:"aswan",reviewers:|["nwt","henridf","mccanne"]|}
@@ -1110,7 +1110,7 @@ which gives us
 ```
 The final step is to simply aggregate the "reviewer sets" with the `user` field
 as the grouping key:
-```mdtest-command dir=book/src/tutorials
+```mdtest-command-skip dir=book/src/tutorials
 super -S -c '
   unnest {user:user.login,reviewer:requested_reviewers} into (
     reviewers:=union(reviewer.login) by user
@@ -1120,7 +1120,7 @@ super -S -c '
 ' prs.bsup
 ```
 and we get
-```mdtest-output
+```mdtest-output-skip
 {
   user: "aswan",
   groups: |[
@@ -1233,7 +1233,7 @@ To quantify this concept, we can easily modify this query to compute
 the average number of reviewers requested instead of the set of groups
 of reviewers.  To do this, we just average the reviewer set size
 with an aggregation:
-```mdtest-command dir=book/src/tutorials
+```mdtest-command-skip dir=book/src/tutorials
 super -s -c '
   unnest {user:user.login,reviewer:requested_reviewers} into (
     reviewers:=union(reviewer.login) by user
@@ -1243,7 +1243,7 @@ super -s -c '
 ' prs.bsup
 ```
 which produces
-```mdtest-output
+```mdtest-output-skip
 {user:"mccanne",avg_reviewers:1.}
 {user:"nwt",avg_reviewers:1.75}
 {user:"aswan",avg_reviewers:2.4}
@@ -1253,7 +1253,7 @@ which produces
 
 Of course, if you'd like the query output in JSON, you can just say `-j` and
 `super` will happily format the sets as JSON arrays, e.g.,
-```mdtest-command dir=book/src/tutorials
+```mdtest-command-skip dir=book/src/tutorials
 super -j -c '
   unnest {user:user.login,reviewer:requested_reviewers} into (
     reviewers:=union(reviewer.login) by user
@@ -1263,7 +1263,7 @@ super -j -c '
 ' prs.bsup
 ```
 produces
-```mdtest-output
+```mdtest-output-skip
 {"user":"aswan","groups":[["mccanne"],["nwt","mccanne"],["nwt","henridf","mccanne"],["henridf","mccanne","mattnibs"]]}
 {"user":"henridf","groups":[["nwt","aswan","mccanne"]]}
 {"user":"mattnibs","groups":[["aswan","henridf"],["aswan","mccanne"],["aswan","henridf","mccanne"],["nwt","aswan","henridf","mccanne"],["nwt","aswan","mccanne","mikesbrown"],["nwt","aswan","philrz","henridf","mccanne"]]}

@@ -1,14 +1,14 @@
 spq: pass
 
 input: !!binary |
-  Tw8AnALyAwcEcG9ydAEABAZvcmlnX2gaAAkA/ptwHgAGcmVzcF9oGgAGcmVzcF9wHgABGQ
-  ATBV9wYXRoGQACdHMNAAN1aWQZAAJpZB8AB3ZlcnNpb24ZAAZjaXBoZXIZAAVjdXJ2ZRkA
-  C3NlcnZlcl9uYW1lGQAHcmVzdW1lZBcACmxhc3RfYWxlcnQZAA1uZXh0X3Byb3RvY29sGQ
-  ALZXN0YWJsaXNoZWQXABBjZXJ0X2NoYWluX2Z1aWRzIAAXY2xpZW50XxoA8wUHc3ViamVj
-  dBkABmlzc3VlchkADi0ABRoAEw0RAAQhAPAFEXZhbGlkYXRpb25fc3RhdHVzGQAaCCGIAQ
-  Rzc2wJAPtW4IvTXSkTQ2ZFQm9wMmhiZkpZcGpHNUhkEQUKCgdaA8nKBTbmVxgDuwEHVExT
-  djEyJlRMU19FQ0RIRV9SU0FfV0lUSF9BRVNfMTI4X0dDTV9TSEEyNTYBE2Nob2ljZXMudH
-  J1c3RlLmNvbQIBAQlodHRwLzEuMQIBAQEBAQEBAf8=
+  gU8PAJwC8gMHBHBvcnQBAAQGb3JpZ19oGgAJAP6bcB4ABnJlc3BfaBoABnJlc3BfcB4AAR
+  kAEwVfcGF0aBkAAnRzDQADdWlkGQACaWQfAAd2ZXJzaW9uGQAGY2lwaGVyGQAFY3VydmUZ
+  AAtzZXJ2ZXJfbmFtZRkAB3Jlc3VtZWQXAApsYXN0X2FsZXJ0GQANbmV4dF9wcm90b2NvbB
+  kAC2VzdGFibGlzaGVkFwAQY2VydF9jaGFpbl9mdWlkcyAAF2NsaWVudF8aAPMFB3N1Ympl
+  Y3QZAAZpc3N1ZXIZAA4tAAUaABMNEQAEIQDwBRF2YWxpZGF0aW9uX3N0YXR1cxkAgRoIIY
+  gBBHNzbAkA+1bgi9NdKRNDZkVCb3AyaGJmSllwakc1SGQRBQoKB1oDycoFNuZXGAO7AQdU
+  TFN2MTImVExTX0VDREhFX1JTQV9XSVRIX0FFU18xMjhfR0NNX1NIQTI1NgETY2hvaWNlcy
+  50cnVzdGUuY29tAgEBCWh0dHAvMS4xAgEBAQEBAQEB/w==
 
 output: |
   {_path:"ssl",ts:2017-03-24T19:59:23.053424Z,uid:"CfEBop2hbfJYpjG5Hd",id:{orig_h:10.10.7.90,orig_p:51913::(port=uint16),resp_h:54.230.87.24,resp_p:443::port},version:"TLSv12",cipher:"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",curve:"",server_name:"choices.truste.com",resumed:true,last_alert:"",next_protocol:"http/1.1",established:true,cert_chain_fuids:[]::[string],client_cert_chain_fuids:[]::[string],subject:"",issuer:"",client_subject:"",client_issuer:"",validation_status:""}
