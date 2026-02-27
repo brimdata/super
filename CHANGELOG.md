@@ -25,9 +25,9 @@ on [community Slack](https://www.brimdata.io/join-slack/) or
 ### Changed
 
 - Upgrade to `github.com/apache/arrow-go/v18@v18.5.1` (#6625)
-- Type fusion now ensures fused types never contain unions, have at most one instance of each kind of non-union complex type, and have at most one type with a given type ID (#6651)
+- Type fusion now ensures that unions in fused types never contain unions, have at most one instance of each kind of non-union complex type, and have at most one type with a given type ID (#6651)
 - Type decoration for self-describing error values in SUP are now omitted (#6656)
-- By default, `super` now reads the first 1000 values when reading from an input file to compute a fused type, and the `-samplesize` flag can be used to adjust this (#6667)
+- By default, `super` now reads the first 1000 values when reading from an input file to infer type information used to type check the query. This can cause type errors when data being referenced occurs later in the input. The `-samplesize` flag can be used to adjust this (#6667)
 - The BSUP format has been advanced to version 1 (#6674)
 
 ### Removed
