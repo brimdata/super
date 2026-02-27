@@ -6,7 +6,7 @@ outputs:
     data: |
       /dev/zero: format detection error
       	arrows: arrow/ipc: could not read message schema: EOF
-      	bsup: bsupio: frame length (0) too small
+      	bsup: BSUP version mismatch: expected 1 found 0
       	csup: invalid CSUP header
       	csv: line 1: bufio: buffer full
       	json: invalid character '\x00' looking for beginning of value

@@ -49,16 +49,23 @@ A stream is punctuated by the end-of-stream value `0xff`.
 Each frame header includes a length field
 allowing an implementation to easily skip from frame to frame.
 
-Each frame begins with a single-byte "frame code":
+Each frame begins with a single-byte version number followed by
+a single byte "frame code":
 ```
     7 6 5 4 3 2 1 0
    +-+-+-+-+-+-+-+-+
-   |V|C|  T|      L|
+   |1|  VERSION    |
+   +-+-+-+-+-+-+-+-+
+   |X|C|  T|      L|
    +-+-+-+-+-+-+-+-+
 
-   V: 1 bit
+   VERSION: 7 bits
 
-     Version number.  Must be zero.
+     The BSUP version number.  The upper bit of the version byte must be 1.
+
+   X: 1 bit
+
+     Unused.
 
    C: 1 bit
 
@@ -71,20 +78,12 @@ Each frame begins with a single-byte "frame code":
        00: Types
        01: Values
        10: Control
-       11: End of stream
+       11: undefined
 
    L: 4 bits
 
      Low-order bits of frame length.
 ```
-
-Bit 7 of the frame code must be zero as it defines version 0
-of the BSUP stream format.  If a future version of BSUP
-arises, bit 7 of future BSUP frames will be 1.
-BSUP version 0 readers must ignore and skip over such frames using the
-`len` field, which must survive future versions.
-Any future versions of BSUP must be able to integrate version 0 frames
-for backward compatibility.
 
 Following the frame code is its encoded length followed by a "frame payload"
 of bytes of said length:

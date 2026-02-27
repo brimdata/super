@@ -21,13 +21,27 @@ type parser struct {
 	maxSize int
 }
 
+const BSUP_VERSION = 1
+const BSUP_MAGIC = "BSUP"
+
+func CheckVersion(code byte) error {
+	var version int
+	if (code & 0x80) != 0 {
+		version = int(code & 0x7f)
+	}
+	if version != BSUP_VERSION {
+		return fmt.Errorf("BSUP version mismatch: expected %d found %d", BSUP_VERSION, version)
+	}
+	return nil
+}
+
 func (p *parser) read() (frame, error) {
 	for {
-		code, err := p.peeker.ReadByte()
+		version, err := p.peeker.ReadByte()
 		if err != nil {
 			return frame{}, err
 		}
-		if code == EOS {
+		if version == EOS {
 			// At EOS, we create a new Decoder which clears out the types slice
 			// mapping the local type IDs to the shared-context types.  Any data
 			// batches concurrently being decoded by a worker will still point
@@ -37,8 +51,12 @@ func (p *parser) read() (frame, error) {
 			p.types = NewDecoder(p.types.sctx)
 			continue
 		}
-		if (code & 0x80) != 0 {
-			return frame{}, errors.New("bsupio: encountered wrong version bit in framing")
+		if err := CheckVersion(version); err != nil {
+			return frame{}, err
+		}
+		code, err := p.peeker.ReadByte()
+		if err != nil {
+			return frame{}, err
 		}
 		switch typ := (code >> 4) & 3; typ {
 		case TypesFrame:

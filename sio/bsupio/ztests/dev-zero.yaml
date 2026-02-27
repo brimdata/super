@@ -4,4 +4,4 @@ script: |
 outputs:
   - name: stderr
     data: |
-      /dev/zero: bsupio: frame length (0) too small
+      /dev/zero: BSUP version mismatch: expected 1 found 0
