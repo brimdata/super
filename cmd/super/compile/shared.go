@@ -46,7 +46,7 @@ func (s *Shared) SetFlags(fs *flag.FlagSet) {
 	fs.IntVar(&s.parallel, "P", 0, "display parallelized DAG")
 	fs.BoolVar(&s.query, "C", false, "display DAG or AST as query text")
 	fs.BoolVar(&s.runtime, "runtime", false, "print selected runtime to stderr")
-	fs.IntVar(&s.sampleSize, "samplesize", 20480, "values to read per input file to determine type (<0 for all)")
+	fs.IntVar(&s.sampleSize, "samplesize", 1000, "values to read per input file to determine type (<1 for all)")
 	s.OutputFlags.SetFlags(fs)
 	s.queryFlags.SetFlags(fs)
 	s.runtimeFlags.SetFlags(fs)

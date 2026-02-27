@@ -59,9 +59,8 @@ type Environment struct {
 
 func NewEnvironment(engine storage.Engine, d *db.Root) *Environment {
 	return &Environment{
-		engine:     engine,
-		db:         d,
-		SampleSize: -1,
+		engine: engine,
+		db:     d,
 	}
 }
 
