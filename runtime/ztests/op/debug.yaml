@@ -1,0 +1,13 @@
+script: |
+  super -s -c 'values "foo", "bar" | debug f"debug: {this}" | values f"{this}2" | head 1'
+
+vector: true
+
+outputs:
+  - name: stdout
+    data: |
+      "foo2"
+  - name: stderr
+    data: |
+      "debug: foo"
+      "debug: bar"
