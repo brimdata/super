@@ -40,7 +40,7 @@ included in the output.
 If the `DISTINCT` keyword is present, then only unique rows are included
 in the output.
 
-If neither the `ALL` nor `DISTINCT` keywords are is present, then `DISTINCT`
+If neither the `ALL` nor `DISTINCT` keywords are present, then `DISTINCT`
 is presumed.
 
 ## Non-relational Data
