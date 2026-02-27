@@ -220,7 +220,7 @@ func (r *Reader) newTypeFromDataType(dt arrow.DataType) (super.Type, error) {
 			if err != nil {
 				return nil, err
 			}
-			fields = append(fields, super.NewField(f.Name, typ, false))
+			fields = append(fields, super.NewField(f.Name, typ))
 		}
 		UniquifyFieldNames(fields)
 		return r.sctx.LookupTypeRecord(fields)

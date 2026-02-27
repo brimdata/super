@@ -456,7 +456,7 @@ func (c *Context) DecodeTypeValue(tv scode.Bytes) (Type, scode.Bytes) {
 			if tv == nil {
 				return nil, nil
 			}
-			fields = append(fields, Field{name, typ, scode.Testbit(opts, k)})
+			fields = append(fields, Field{name, typ, scode.TestBit(opts, k)})
 		}
 		typ, err := c.LookupTypeRecord(fields)
 		if err != nil {

@@ -47,7 +47,7 @@ func (d *Dequiet) rec(builder *scode.Builder, typ super.Type, b scode.Bytes) sup
 		fbytes, none := it.Next(f.Opt)
 		if none {
 			nones = append(nones, optOff)
-			fields = append(fields, super.NewField(f.Name, f.Type, f.Opt))
+			fields = append(fields, super.NewFieldWithOpt(f.Name, f.Type, f.Opt))
 			optOff++
 			continue
 		}
@@ -56,7 +56,7 @@ func (d *Dequiet) rec(builder *scode.Builder, typ super.Type, b scode.Bytes) sup
 			changed = true
 			continue
 		}
-		fields = append(fields, super.NewField(f.Name, ftyp, f.Opt))
+		fields = append(fields, super.NewFieldWithOpt(f.Name, ftyp, f.Opt))
 		if f.Opt {
 			optOff++
 		}

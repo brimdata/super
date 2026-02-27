@@ -95,7 +95,7 @@ func (r *resolver) mustResolveCall(n ast.Node, id string, args []sem.Expr, argTy
 		}
 		params = append(params, declParams[k].Name)
 		exprs = append(exprs, arg)
-		fields = append(fields, super.NewField(declParams[k].Name, argTypes[k], false))
+		fields = append(fields, super.NewField(declParams[k].Name, argTypes[k]))
 	}
 	argType := r.t.sctx.MustLookupTypeRecord(fields)
 	if len(declParams) == len(params) {

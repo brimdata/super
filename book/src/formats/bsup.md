@@ -396,7 +396,7 @@ a bit vector of length NF is encoded as a tag-encoded value of
 floor((NF+7)/8) bytes to indicate the omission of an optional value
 where NF is the number of optional fields in the record.
 The field order of optional fields determines their position
-in the bit vector with bit numbers 0-7 (least significat to most significant)
+in the bit vector with bit numbers 0-7 (least significant to most significant)
 in the first byte, number 8-15 in the second byte, and so forth.
 Following the option bits is a concatenation
 of elements comprising the mandatory values and the optional values that are present

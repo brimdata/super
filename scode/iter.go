@@ -73,14 +73,14 @@ func (r *RecordIter) Next(opt bool) (Bytes, bool) {
 	if opt {
 		off := r.off
 		r.off++
-		if Testbit(r.nones, off) {
+		if TestBit(r.nones, off) {
 			return nil, true
 		}
 	}
 	return r.elems.Next(), false
 }
 
-func Testbit(b []byte, off int) bool {
+func TestBit(b []byte, off int) bool {
 	return b[off>>3]&(1<<(off&7)) != 0
 }
 

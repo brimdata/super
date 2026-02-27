@@ -73,7 +73,7 @@ func (r *record) project(loader *loader, projection field.Projection) vector.Any
 		for k := range r.fields {
 			if r.fields[k].values != nil {
 				valFields = r.fields[k].project(valFields, loader, nil)
-				types = append(types, super.NewField(r.meta.Fields[k].Name, valFields[k].Val.Type(), r.meta.Fields[k].Opt))
+				types = append(types, super.NewFieldWithOpt(r.meta.Fields[k].Name, valFields[k].Val.Type(), r.meta.Fields[k].Opt))
 			}
 		}
 		return vector.NewRecordFromFields(loader.sctx.MustLookupTypeRecord(types), valFields, r.length())
@@ -91,7 +91,7 @@ func (r *record) project(loader *loader, projection field.Projection) vector.Any
 			})
 		}
 		typ := valFields[len(valFields)-1].Val.Type()
-		fields = append(fields, super.NewField(node.Name, typ, opt))
+		fields = append(fields, super.NewFieldWithOpt(node.Name, typ, opt))
 	}
 	return vector.NewRecordFromFields(loader.sctx.MustLookupTypeRecord(fields), valFields, r.length())
 }

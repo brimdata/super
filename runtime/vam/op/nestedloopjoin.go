@@ -162,8 +162,8 @@ func (n *nestedLoopJoin) pickSlot(vec vector.Any, slot, length uint32) vector.An
 func (n *nestedLoopJoin) makeResult(vecs ...vector.Any) vector.Any {
 	left, right := vecs[0], vecs[1]
 	typ := n.rctx.Sctx.MustLookupTypeRecord([]super.Field{
-		super.NewField(n.leftAlias, left.Type(), false),
-		super.NewField(n.rightAlias, right.Type(), false),
+		super.NewField(n.leftAlias, left.Type()),
+		super.NewField(n.rightAlias, right.Type()),
 	})
 	return vector.NewRecord(typ, []vector.Any{left, right}, left.Len())
 }
@@ -182,7 +182,7 @@ func (n *nestedLoopJoin) makeHitsResult(vec vector.Any, hits *roaring.Bitmap) (v
 	}
 	return vector.Apply(false, func(vecs ...vector.Any) vector.Any {
 		typ := n.rctx.Sctx.MustLookupTypeRecord([]super.Field{
-			super.NewField(fieldName, vecs[0].Type(), false),
+			super.NewField(fieldName, vecs[0].Type()),
 		})
 		return vector.NewRecord(typ, vecs, vecs[0].Len())
 	}, missVec), true

@@ -126,7 +126,7 @@ func (r *Renamer) dstType(typ *super.TypeRecord, src, dst field.Path) (*super.Ty
 		innerType = typ.Fields[i].Type
 	}
 	fields := slices.Clone(typ.Fields)
-	fields[i] = super.NewField(dst[0], innerType, fields[i].Opt)
+	fields[i] = super.NewFieldWithOpt(dst[0], innerType, fields[i].Opt)
 	typ, err := r.sctx.LookupTypeRecord(fields)
 	if err != nil {
 		var dferr *super.DuplicateFieldError

@@ -190,7 +190,11 @@ type Field struct {
 	Opt  bool
 }
 
-func NewField(name string, typ Type, opt bool) Field {
+func NewField(name string, typ Type) Field {
+	return Field{name, typ, false}
+}
+
+func NewFieldWithOpt(name string, typ Type, opt bool) Field {
 	return Field{name, typ, opt}
 }
 

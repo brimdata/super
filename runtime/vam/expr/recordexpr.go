@@ -63,7 +63,7 @@ func (r *recordExpr) addOrUpdateField(name string, vec vector.Any) {
 	}
 	r.fieldIndexes[name] = len(r.fields)
 	//XXX TBD: add support for optional fields
-	r.fields = append(r.fields, super.NewField(name, vec.Type(), false))
+	r.fields = append(r.fields, super.NewField(name, vec.Type()))
 	r.fieldVecs = append(r.fieldVecs, vec)
 }
 

@@ -66,7 +66,7 @@ func (f *Fuser) fuse(a, b super.Type) super.Type {
 						fields[i].Opt = true
 					}
 				} else {
-					fields = append(fields, super.NewField(field.Name, field.Type, true))
+					fields = append(fields, super.NewFieldWithOpt(field.Name, field.Type, true))
 				}
 			}
 			return f.sctx.MustLookupTypeRecord(fields)

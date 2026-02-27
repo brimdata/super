@@ -63,8 +63,8 @@ func (a *Avg) ResultAsPartial(sctx *super.Context) super.Value {
 	b.Append(super.EncodeFloat64(a.sum))
 	b.Append(super.EncodeUint(a.count))
 	typ := sctx.MustLookupTypeRecord([]super.Field{
-		super.NewField(sumName, super.TypeFloat64, false),
-		super.NewField(countName, super.TypeUint64, false),
+		super.NewField(sumName, super.TypeFloat64),
+		super.NewField(countName, super.TypeUint64),
 	})
 	return super.NewValue(typ, b.Bytes())
 }

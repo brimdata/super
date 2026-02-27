@@ -379,7 +379,7 @@ func (t *translator) expr(e ast.Expr, inType super.Type) (sem.Expr, super.Type) 
 				Name:  name,
 				Value: e,
 			})
-			fields = append(fields, super.NewField(name, typ, false))
+			fields = append(fields, super.NewField(name, typ))
 		}
 		return &sem.RecordExpr{
 			Node:  e,

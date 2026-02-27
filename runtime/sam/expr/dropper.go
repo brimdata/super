@@ -121,7 +121,7 @@ func (f fieldsMap) dropType(sctx *super.Context, typ super.Type) super.Type {
 			}
 			typ = ff.dropType(sctx, typ)
 		}
-		out = append(out, super.NewField(field.Name, typ, field.Opt))
+		out = append(out, super.NewFieldWithOpt(field.Name, typ, field.Opt))
 	}
 	return sctx.MustLookupTypeRecord(out)
 }

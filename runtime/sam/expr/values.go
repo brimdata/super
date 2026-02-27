@@ -29,7 +29,7 @@ func newRecordExpr(sctx *super.Context, elems []RecordElem) *recordExpr {
 	exprs := make([]Evaluator, 0, len(elems))
 	for _, elem := range elems {
 		//XXX TBD: add support for optional fields in record expressions.
-		fields = append(fields, super.NewField(elem.Name, nil, false))
+		fields = append(fields, super.NewField(elem.Name, nil))
 		exprs = append(exprs, elem.Field)
 	}
 	var typ *super.TypeRecord
@@ -152,7 +152,7 @@ func (r *recordSpreadExpr) update(object map[string]fieldValue) {
 	}
 	for name, field := range object {
 		//XXX TBD: support for optional fields
-		if r.fields[field.index] != super.NewField(name, field.value.Type(), false) {
+		if r.fields[field.index] != super.NewField(name, field.value.Type()) {
 			r.invalidate(object)
 			return
 		}
@@ -165,7 +165,7 @@ func (r *recordSpreadExpr) invalidate(object map[string]fieldValue) {
 	r.fields = slices.Grow(r.fields[:0], n)[:n]
 	r.bytes = slices.Grow(r.bytes[:0], n)[:n]
 	for name, field := range object {
-		r.fields[field.index] = super.NewField(name, field.value.Type(), field.opt)
+		r.fields[field.index] = super.NewFieldWithOpt(name, field.value.Type(), field.opt)
 		r.bytes[field.index] = field.value.Bytes()
 	}
 	r.cache = r.sctx.MustLookupTypeRecord(r.fields)

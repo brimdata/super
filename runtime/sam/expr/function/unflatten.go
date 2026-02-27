@@ -139,7 +139,7 @@ func (r *record) addPath(c *recordCache, p []string) (removed int) {
 	}
 	at := len(r.fields) - 1
 	if len(r.fields) == 0 || r.fields[at].Name != p[0] {
-		r.fields = append(r.fields, super.NewField(p[0], nil, false))
+		r.fields = append(r.fields, super.NewField(p[0], nil))
 		var rec *record
 		if len(p) > 1 {
 			rec = c.new()

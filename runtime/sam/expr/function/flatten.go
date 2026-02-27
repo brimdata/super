@@ -59,8 +59,8 @@ func (n *Flatten) appendTypes(types []super.Type, b scode.Bytes, typ *super.Type
 		typ, ok := n.entryTypes[f.Type]
 		if !ok {
 			typ = n.sctx.MustLookupTypeRecord([]super.Field{
-				super.NewField("key", n.keyType, false),
-				super.NewField("value", f.Type, false),
+				super.NewField("key", n.keyType),
+				super.NewField("value", f.Type),
 			})
 			n.entryTypes[f.Type] = typ
 		}

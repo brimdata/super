@@ -337,7 +337,7 @@ func (a Analyzer) convertFields(sctx *super.Context, in []ast.Field, fields []su
 func lookupRecordType(sctx *super.Context, in []ast.Field, vals []Value) (*super.TypeRecord, error) {
 	fields := make([]super.Field, 0, len(in))
 	for k, f := range in {
-		fields = append(fields, super.NewField(f.Name, vals[k].TypeOf(), f.Opt))
+		fields = append(fields, super.NewFieldWithOpt(f.Name, vals[k].TypeOf(), f.Opt))
 	}
 	return sctx.LookupTypeRecord(fields)
 }
@@ -645,7 +645,7 @@ func (a Analyzer) convertTypeRecord(sctx *super.Context, typ *ast.TypeRecord) (*
 		if err != nil {
 			return nil, err
 		}
-		fields = append(fields, super.NewField(f.Name, typ, f.Opt))
+		fields = append(fields, super.NewFieldWithOpt(f.Name, typ, f.Opt))
 	}
 	return sctx.LookupTypeRecord(fields)
 }

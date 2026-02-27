@@ -99,7 +99,6 @@ func (w *Writer) Write(val super.Value) error {
 	}
 	it := scode.NewRecordIter(val.Bytes(), recType.Opts)
 	for i, builder := range w.builder.Fields() {
-		// We don't check for none since b will be nil and none is the
 		b, none := it.Next(recType.Fields[i].Opt)
 		w.buildArrowValue(builder, recType.Fields[i].Type, b, none)
 	}

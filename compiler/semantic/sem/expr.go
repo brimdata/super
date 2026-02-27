@@ -503,9 +503,8 @@ func recordToExpr(loc ast.Node, typ *super.TypeRecord, bytes scode.Bytes) Expr {
 		if it.Done() {
 			panic(it)
 		}
-		val, none := it.Next(f.Opt)
 		var elem RecordElem
-		if none {
+		if val, none := it.Next(f.Opt); none {
 			elem = &NoneElem{Node: loc, Name: f.Name, Type: f.Type}
 		} else {
 			elem = &FieldElem{Node: loc, Name: f.Name, Value: valueToExpr(loc, f.Type, val), Opt: f.Opt}

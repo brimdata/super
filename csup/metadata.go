@@ -238,13 +238,13 @@ func metadataValue(cctx *Context, sctx *super.Context, b *scode.Builder, id ID, 
 		if len(projection) == 0 {
 			for _, f := range m.Fields {
 				typ := metadataValue(cctx, sctx, b, f.Values, nil)
-				fields = append(fields, super.NewField(f.Name, typ, f.Opt))
+				fields = append(fields, super.NewFieldWithOpt(f.Name, typ, f.Opt))
 			}
 		} else {
 			for _, node := range projection {
 				if k := indexOfField(node.Name, m.Fields); k >= 0 {
 					typ := metadataValue(cctx, sctx, b, m.Fields[k].Values, node.Proj)
-					fields = append(fields, super.NewField(node.Name, typ, m.Fields[k].Opt))
+					fields = append(fields, super.NewFieldWithOpt(node.Name, typ, m.Fields[k].Opt))
 				}
 			}
 		}
@@ -282,8 +282,8 @@ func metadataLeaf(sctx *super.Context, b *scode.Builder, min, max super.Value) s
 	b.Append(max.Bytes())
 	b.EndContainer()
 	return sctx.MustLookupTypeRecord([]super.Field{
-		super.NewField("min", min.Type(), false),
-		super.NewField("max", max.Type(), false),
+		super.NewField("min", min.Type()),
+		super.NewField("max", max.Type()),
 	})
 }
 

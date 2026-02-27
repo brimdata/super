@@ -249,7 +249,7 @@ func (f *Formatter) formatTypeValue(indent int, tv scode.Bytes, isComponentType 
 				return nil
 			}
 			f.indent(indent, QuotedName(name))
-			if scode.Testbit(opts, k) {
+			if scode.TestBit(opts, k) {
 				f.build("?")
 			}
 			f.build(":")
