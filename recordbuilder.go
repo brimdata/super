@@ -116,13 +116,11 @@ func NewRecordBuilder(sctx *Context, fields field.List) (*RecordBuilder, error) 
 		fieldInfos[len(fieldInfos)-1].containerEnds = len(currentRecord)
 	}
 
-	r := &RecordBuilder{
+	return &RecordBuilder{
 		fields:  fieldInfos,
 		builder: scode.NewBuilder(),
 		sctx:    sctx,
-	}
-	r.Reset()
-	return r, nil
+	}, nil
 }
 
 // check if fieldname is "in" one of the fields in fis, or if

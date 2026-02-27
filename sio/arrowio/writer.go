@@ -210,23 +210,14 @@ func (w *Writer) newArrowDataType(typ super.Type) (arrow.DataType, error) {
 		}
 		switch name {
 		case "arrow_day_time_interval":
-			if typ.Opts != 0 {
-				return nil, fmt.Errorf("%w: arrow_day_time_interval cannot have optional fields", ErrUnsupportedType)
-			}
 			if slices.Equal(typ.Fields, dayTimeIntervalFields) {
 				return arrow.FixedWidthTypes.DayTimeInterval, nil
 			}
 		case "arrow_decimal128":
-			if typ.Opts != 0 {
-				return nil, fmt.Errorf("%w: arrow_decimal128 cannot have optional fields", ErrUnsupportedType)
-			}
 			if slices.Equal(typ.Fields, decimal128Fields) {
 				return &arrow.Decimal128Type{}, nil
 			}
 		case "arrow_month_day_nano_interval":
-			if typ.Opts != 0 {
-				return nil, fmt.Errorf("%w: arrow_month_day_nano_interval cannot have optional fields", ErrUnsupportedType)
-			}
 			if slices.Equal(typ.Fields, monthDayNanoIntervalFields) {
 				return arrow.FixedWidthTypes.MonthDayNanoInterval, nil
 			}

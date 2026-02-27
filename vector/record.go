@@ -10,25 +10,21 @@ import (
 
 type Record struct {
 	Typ    *super.TypeRecord
-	fields []Field
+	fields []*Field
 	len    uint32
-}
-
-func (r *Record) RawFields() []Field {
-	return r.fields
 }
 
 var _ Any = (*Record)(nil)
 
 func NewRecord(typ *super.TypeRecord, fields []Any, length uint32) *Record {
-	wrapper := make([]Field, 0, len(fields))
+	wrapper := make([]*Field, 0, len(fields))
 	for _, f := range fields {
-		wrapper = append(wrapper, Field{Val: f, Len: length})
+		wrapper = append(wrapper, &Field{Val: f, Len: length})
 	}
 	return &Record{typ, wrapper, length}
 }
 
-func NewRecordFromFields(typ *super.TypeRecord, fields []Field, length uint32) *Record {
+func NewRecordFromFields(typ *super.TypeRecord, fields []*Field, length uint32) *Record {
 	return &Record{typ, fields, length}
 }
 
@@ -57,10 +53,10 @@ func (r *Record) Fields(sctx *super.Context) []Any {
 }
 
 func (r *Record) Field(i int) *Field {
-	return &r.fields[i]
+	return r.fields[i]
 }
 
-func (r *Record) Slice(from, to int) []Field {
+func (r *Record) Slice(from, to int) []*Field {
 	return r.fields[from:to]
 }
 
@@ -115,16 +111,6 @@ type Field struct {
 	mu    sync.Mutex
 	slots []int32 // map record slot to field slot (-1 for none) (from Nones or builder)
 	dyn   Any
-}
-
-func (f *Field) Copy() Field {
-	return Field{
-		Val:   f.Val,
-		Len:   f.Len,
-		Runs:  f.Runs,
-		slots: f.slots,
-		dyn:   f.dyn,
-	}
 }
 
 func (f *Field) Deref(sctx *super.Context) Any {

@@ -65,7 +65,7 @@ func (r *record) unmarshal(cctx *csup.Context, projection field.Projection) {
 }
 
 func (r *record) project(loader *loader, projection field.Projection) vector.Any {
-	valFields := make([]vector.Field, 0, len(r.fields))
+	valFields := make([]*vector.Field, 0, len(r.fields))
 	types := make([]super.Field, 0, len(r.fields))
 	if len(projection) == 0 {
 		// Build the whole record.  We're either loading all on demand (nil paths)
@@ -85,7 +85,7 @@ func (r *record) project(loader *loader, projection field.Projection) vector.Any
 			valFields = r.fields[k].project(valFields, loader, node.Proj)
 			opt = r.meta.Fields[k].Opt
 		} else {
-			valFields = append(valFields, vector.Field{
+			valFields = append(valFields, &vector.Field{
 				Val: vector.NewMissing(loader.sctx, r.length()),
 				Len: r.length(),
 			})
@@ -110,7 +110,7 @@ func (f *field_) unmarshal(cctx *csup.Context, projection field.Projection) {
 	f.values.unmarshal(cctx, projection)
 }
 
-func (f *field_) project(fields []vector.Field, loader *loader, projection field.Projection) []vector.Field {
+func (f *field_) project(fields []*vector.Field, loader *loader, projection field.Projection) []*vector.Field {
 	if f.meta.Opt {
 		f.mu.Lock()
 		if !f.loaded {
@@ -123,7 +123,7 @@ func (f *field_) project(fields []vector.Field, loader *loader, projection field
 		}
 		f.mu.Unlock()
 	}
-	return append(fields, vector.Field{
+	return append(fields, &vector.Field{
 		Val:  f.values.project(loader, projection),
 		Runs: f.nones,
 		Len:  f.len,

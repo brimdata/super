@@ -48,7 +48,7 @@ func (d *Dropper) eval(vecs ...vector.Any) vector.Any {
 func (d *Dropper) drop(val vector.Any, fm fieldsMap) (vector.Any, bool) {
 	switch val := vector.Under(val).(type) {
 	case *vector.Record:
-		var valFields []vector.Field
+		var valFields []*vector.Field
 		var typFields []super.Field
 		var changed bool
 		for i, f := range super.TypeRecordOf(val.Type()).Fields {
@@ -66,13 +66,13 @@ func (d *Dropper) drop(val vector.Any, fm fieldsMap) (vector.Any, bool) {
 						continue
 					}
 					// Substitute modified field.
-					valFields = append(valFields, vector.Field{Val: val, Len: valField.Len, Runs: valField.Runs})
+					valFields = append(valFields, &vector.Field{Val: val, Len: valField.Len, Runs: valField.Runs})
 					typFields = append(typFields, super.NewFieldWithOpt(f.Name, val.Type(), f.Opt))
 					continue
 				}
 			}
 			// Keep field.
-			valFields = append(valFields, valField.Copy())
+			valFields = append(valFields, valField)
 			typFields = append(typFields, super.NewFieldWithOpt(f.Name, valField.Val.Type(), f.Opt))
 		}
 		if !changed {

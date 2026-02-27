@@ -137,9 +137,9 @@ func (r *recordBuilder) Write(bytes scode.Bytes) {
 }
 
 func (r *recordBuilder) Build() Any {
-	var fields []Field
+	var fields []*Field
 	for k := range r.fields {
-		fields = r.fields[k].build(fields, r.len)
+		fields = append(fields, r.fields[k].build(r.len))
 	}
 	return NewRecordFromFields(r.typ, fields, r.len)
 }
@@ -157,12 +157,12 @@ func (f *fieldBuilder) write(bytes scode.Bytes, off uint32) {
 	f.val.Write(bytes)
 }
 
-func (f *fieldBuilder) build(fields []Field, n uint32) []Field {
+func (f *fieldBuilder) build(n uint32) *Field {
 	var runs []uint32
 	if f.opt {
 		runs = f.runs.End(n)
 	}
-	return append(fields, Field{Val: f.val.Build(), Runs: runs, Len: n})
+	return &Field{Val: f.val.Build(), Runs: runs, Len: n}
 }
 
 type errorBuilder struct {
