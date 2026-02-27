@@ -33,6 +33,7 @@ type Shared struct {
 	parallel     int
 	query        bool
 	runtime      bool
+	sampleSize   int
 	queryFlags   queryflags.QueryTextFlags
 	runtimeFlags runtimeflags.EngineFlags
 	OutputFlags  outputflags.Flags
@@ -45,6 +46,7 @@ func (s *Shared) SetFlags(fs *flag.FlagSet) {
 	fs.IntVar(&s.parallel, "P", 0, "display parallelized DAG")
 	fs.BoolVar(&s.query, "C", false, "display DAG or AST as query text")
 	fs.BoolVar(&s.runtime, "runtime", false, "print selected runtime to stderr")
+	fs.IntVar(&s.sampleSize, "samplesize", 1000, "values to read per input file to determine type (<1 for all)")
 	s.OutputFlags.SetFlags(fs)
 	s.queryFlags.SetFlags(fs)
 	s.runtimeFlags.SetFlags(fs)
@@ -95,8 +97,9 @@ func (s *Shared) Run(ctx context.Context, args []string, dbFlags *dbflags.Flags,
 	}
 	rctx := runtime.DefaultContext()
 	env := exec.NewEnvironment(storage.NewLocalEngine(), root)
-	env.Runtime = s.runtimeFlags.Runtime
 	env.Dynamic = s.dynamic
+	env.Runtime = s.runtimeFlags.Runtime
+	env.SampleSize = s.sampleSize
 	dag, err := compiler.Analyze(rctx, ast, env, false)
 	if err != nil {
 		return err
