@@ -14,7 +14,7 @@ outputs:
     data: |
       stdio:stdin: format detection error
       	arrows: schema message length exceeds 1 MiB
-      	bsup: BSUP version mismatch: expected 1 found 0
+      	bsup: BSUP version mismatch: expected 1, found 0
       	csup: auto-detection requires seekable input
       	csv: line 1: delimiter ',' not found
       	json: invalid character 'T' looking for beginning of value

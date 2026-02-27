@@ -21,16 +21,15 @@ type parser struct {
 	maxSize int
 }
 
-const BSUP_VERSION = 1
-const BSUP_MAGIC = "BSUP"
+const BSUPVersion = 1
 
 func CheckVersion(code byte) error {
 	var version int
 	if (code & 0x80) != 0 {
 		version = int(code & 0x7f)
 	}
-	if version != BSUP_VERSION {
-		return fmt.Errorf("BSUP version mismatch: expected %d found %d", BSUP_VERSION, version)
+	if version != BSUPVersion {
+		return fmt.Errorf("BSUP version mismatch: expected %d, found %d", BSUPVersion, version)
 	}
 	return nil
 }

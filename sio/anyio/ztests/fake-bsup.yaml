@@ -9,4 +9,4 @@ inputs:
 outputs:
   - name: stderr
     data: |
-      stdio:stdin: BSUP version mismatch: expected 1 found 0
+      stdio:stdin: BSUP version mismatch: expected 1, found 0

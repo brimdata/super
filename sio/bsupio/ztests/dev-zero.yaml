@@ -4,4 +4,4 @@ script: |
 outputs:
   - name: stderr
     data: |
-      /dev/zero: BSUP version mismatch: expected 1 found 0
+      /dev/zero: BSUP version mismatch: expected 1, found 0
