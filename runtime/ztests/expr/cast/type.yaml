@@ -10,6 +10,7 @@ input: |
   "<int>"
   1
   null
+  null::({}|null)
   error("bad")
 
 output: |
@@ -19,5 +20,6 @@ output: |
   error({message:"cannot cast to type",on:"{x:\"foo\"}"})
   error({message:"cannot cast to type",on:"<int>"})
   error({message:"cannot cast to type",on:1})
+  null::(type|null)
   null::(type|null)
   error("bad")

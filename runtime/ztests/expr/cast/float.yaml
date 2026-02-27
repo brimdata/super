@@ -12,6 +12,7 @@ input: |
   false
   true
   null
+  null::({}|null)
 
 output: |
   1.5::float16
@@ -38,6 +39,9 @@ output: |
   1.::float16
   1.::float32
   1.
+  null::(float16|null)
+  null::(float32|null)
+  null::(float64|null)
   null::(float16|null)
   null::(float32|null)
   null::(float64|null)

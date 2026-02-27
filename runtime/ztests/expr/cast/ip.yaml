@@ -7,6 +7,7 @@ input: |
   "127.0.0.1"
   "2001:0000:130F:0000:0000:09C0:876A:130B"
   null
+  null::({}|null)
   1.1.1.1
   1.1.1.2::=named
   34
@@ -17,6 +18,7 @@ output: |
   error({message:"cannot cast to ip",on:"foo"})
   127.0.0.1
   2001:0:130f::9c0:876a:130b
+  null::(ip|null)
   null::(ip|null)
   1.1.1.1
   1.1.1.2

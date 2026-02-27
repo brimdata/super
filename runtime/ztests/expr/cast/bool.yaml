@@ -17,6 +17,7 @@ input: |
   "false"
   "blah"
   null
+  null::({}|null)
   "1"
   error("bad")
   {x:1}
@@ -38,6 +39,7 @@ output: |
   false
   false
   error({message:"cannot cast to bool",on:"blah"})
+  null::(bool|null)
   null::(bool|null)
   true
   error("bad")

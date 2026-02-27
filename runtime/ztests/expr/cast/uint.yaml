@@ -8,6 +8,7 @@ input: |
   true
   -1
   null
+  null::({}|null)
   error("bad")
 
 output: |
@@ -23,6 +24,10 @@ output: |
   error({message:"cannot cast to uint16",on:-1})
   error({message:"cannot cast to uint32",on:-1})
   error({message:"cannot cast to uint64",on:-1})
+  null::(uint8|null)
+  null::(uint16|null)
+  null::(uint32|null)
+  null::(uint64|null)
   null::(uint8|null)
   null::(uint16|null)
   null::(uint32|null)

@@ -7,12 +7,14 @@ input: |
   |{}|
   |{1:|{"2":3,4:"5"}|,"7":8,"9":|{10:[],[]:11,null:null}|}|
   null
+  null::({}|null)
   1
   error("bad")
 
 output: |
   |{}|
-  |{1:|{"2":3,"4":5}|,7:error({message:"cannot cast to |{string:int64}|",on:8}),9:|{"10":error({message:"cannot cast to int64",on:[]::[null]}),"[]":11,error({message:"cannot cast to string",on:null}):error({message:"cannot cast to int64",on:null})}|}|
+  |{1:|{"2":3,"4":5}|,7:error({message:"cannot cast to |{string:int64}|",on:8}),9:|{"10":error({message:"cannot cast to int64",on:[]::[null]}),"[]":11,null::(string|null):null::(int64|null)}|}|
+  null::(null||{int64:|{string:int64}|}|)
   null::(null||{int64:|{string:int64}|}|)
   error({message:"cannot cast to |{int64:|{string:int64}|}|",on:1})
   error("bad")
