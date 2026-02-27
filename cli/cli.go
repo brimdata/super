@@ -70,10 +70,18 @@ func (f *Flags) InitWithSignals(all []Initializer, signals ...os.Signal) (contex
 		}
 		trace.Start(f.traceFile)
 	}
-	ctx, cancel := signalContext(context.Background(), signals...)
-	cleanup := func() {
-		cancel()
-		f.cleanup()
+	var ctx context.Context
+	var cleanup context.CancelFunc
+	if len(signals) == 0 {
+		ctx = context.Background()
+		cleanup = func() {}
+	} else {
+		var cancel context.CancelFunc
+		ctx, cancel = signalContext(context.Background(), signals...)
+		cleanup = func() {
+			cancel()
+			f.cleanup()
+		}
 	}
 	return ctx, cleanup, nil
 }
