@@ -7,7 +7,7 @@
     - [Installation](getting-started/install.md)
     - [Hello World](getting-started/hello-world.md)
     - [Playground](getting-started/playground.md)
-- [super](command/super.md)
+- [CLI](command/super.md)
     - [Sub-commands](command/sub-commands.md)
         - [super compile](command/compile.md)
         - [super db](command/db.md)

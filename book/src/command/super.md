@@ -1,4 +1,4 @@
-# super
+# Command Line Interface (CLI)
 
 `super` is the command-line tool for interacting with and managing SuperDB.
 The command is organized as a hierarchy of sub-commands similar to
