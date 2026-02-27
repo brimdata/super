@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	Version     = 13
+	Version     = 14
 	HeaderSize  = 28
 	MaxMetaSize = 100 * 1024 * 1024
 	MaxDataSize = 2 * 1024 * 1024 * 1024
@@ -23,9 +23,10 @@ type Header struct {
 
 func (h Header) Serialize() []byte {
 	var bytes [HeaderSize]byte
-	bytes[0] = 'V'
-	bytes[1] = 'N'
-	bytes[2] = 'G'
+	bytes[0] = 'C'
+	bytes[1] = 'S'
+	bytes[2] = 'U'
+	bytes[3] = 'P'
 	binary.LittleEndian.PutUint32(bytes[4:], h.Version)
 	binary.LittleEndian.PutUint64(bytes[8:], h.MetaSize)
 	binary.LittleEndian.PutUint64(bytes[16:], h.DataSize)
@@ -34,7 +35,7 @@ func (h Header) Serialize() []byte {
 }
 
 func (h *Header) Deserialize(bytes []byte) error {
-	if len(bytes) != HeaderSize || bytes[0] != 'V' || bytes[1] != 'N' || bytes[2] != 'G' || bytes[3] != 0 {
+	if len(bytes) != HeaderSize || bytes[0] != 'C' || bytes[1] != 'S' || bytes[2] != 'U' || bytes[3] != 'P' {
 		return errors.New("invalid CSUP header")
 	}
 	h.Version = binary.LittleEndian.Uint32(bytes[4:])
@@ -42,7 +43,7 @@ func (h *Header) Deserialize(bytes []byte) error {
 	h.DataSize = binary.LittleEndian.Uint64(bytes[16:])
 	h.Root = binary.LittleEndian.Uint32(bytes[24:])
 	if h.Version != Version {
-		return fmt.Errorf("unsupport CSUP version %d: expected version %d", h.Version, Version)
+		return fmt.Errorf("CSUP version mismatch: expected %d, found %d", Version, h.Version)
 	}
 	if h.MetaSize > MaxMetaSize {
 		return fmt.Errorf("CSUP metadata section too big: %d bytes", h.MetaSize)

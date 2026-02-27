@@ -12,5 +12,5 @@ inputs:
 outputs:
   - name: stdout
     data: |
-      {Version:13::uint32,MetaSize:39::uint64,DataSize:0::uint64,Root:0::uint32}
+      {Version:14::uint32,MetaSize:39::uint64,DataSize:0::uint64,Root:0::uint32}
       {Value:1,Count:3::uint32}::=Const
