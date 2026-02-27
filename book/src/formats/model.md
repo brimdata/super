@@ -88,7 +88,7 @@ A field value is a value of any type.
 
 A field is either mandatory or optional as indicated by its optionality.
 The optionalities of fields in two records must be the same for those
-record types to be equivlanet, e.g., type `{a:string,b?:string}` is distinct
+record types to be equivalent, e.g., type `{a:string,b?:string}` is distinct
 from `{a:string,b:string}`.
 
 A record type is uniquely defined by its ordered list of field-type pairs.
@@ -177,7 +177,7 @@ The type order of two enum types is as follows:
 * Two enum types with the same number of symbols are ordered according to
 the type order of the constituent types in left to right order.
 
-The order among enum values correponds to the order of the symbols in the enum type.
+The order among enum values corresponds to the order of the symbols in the enum type.
 Order among enum values from different types is undefined.
 
 ### 2.7 Error
