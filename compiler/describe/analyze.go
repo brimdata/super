@@ -174,9 +174,6 @@ func describeOpAggs(op dag.Op, parents []field.List) []field.List {
 			aggs = append(aggs, describeAggs(p, []field.List{nil})...)
 		}
 		return aggs
-	case *dag.MirrorOp:
-		aggs := describeAggs(op.Main, []field.List{nil})
-		return append(aggs, describeAggs(op.Mirror, []field.List{nil})...)
 	case *dag.ScatterOp:
 		var aggs []field.List
 		for _, p := range op.Paths {

@@ -43,22 +43,22 @@ func Optimize(ctx context.Context, main *dag.Main, env *exec.Environment, parall
 	return nil
 }
 
-func Build(rctx *runtime.Context, main *dag.Main, env *exec.Environment, readers []sio.Reader) (map[string]sbuf.Puller, sbuf.Meter, error) {
+func Build(rctx *runtime.Context, main *dag.Main, env *exec.Environment, readers []sio.Reader) (map[string]sbuf.Puller, []<-chan sbuf.Batch, sbuf.Meter, error) {
 	b := rungen.NewBuilder(rctx, env)
-	outputs, err := b.Build(main, readers...)
+	outputs, debugs, err := b.Build(main, readers...)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
-	return outputs, b.Meter(), nil
+	return outputs, debugs, b.Meter(), nil
 }
 
-func BuildWithBuilder(rctx *runtime.Context, main *dag.Main, env *exec.Environment, readers []sio.Reader) (map[string]sbuf.Puller, *rungen.Builder, error) {
+func BuildWithBuilder(rctx *runtime.Context, main *dag.Main, env *exec.Environment, readers []sio.Reader) (map[string]sbuf.Puller, []<-chan sbuf.Batch, *rungen.Builder, error) {
 	b := rungen.NewBuilder(rctx, env)
-	outputs, err := b.Build(main, readers...)
+	outputs, debugs, err := b.Build(main, readers...)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
-	return outputs, b, nil
+	return outputs, debugs, b, nil
 }
 
 func CompileWithAST(rctx *runtime.Context, ast *parser.AST, env *exec.Environment, optimize bool, parallel int, readers []sio.Reader) (*exec.Query, error) {
@@ -72,11 +72,11 @@ func CompileWithAST(rctx *runtime.Context, ast *parser.AST, env *exec.Environmen
 			return nil, err
 		}
 	}
-	outputs, meter, err := Build(rctx, main, env, readers)
+	outputs, debugs, meter, err := Build(rctx, main, env, readers)
 	if err != nil {
 		return nil, err
 	}
-	return exec.NewQuery(rctx, bundleOutputs(rctx, outputs), meter), nil
+	return exec.NewQuery(rctx, bundleOutputs(rctx, outputs, debugs), meter), nil
 }
 
 func Compile(rctx *runtime.Context, env *exec.Environment, optimize bool, parallel int, readers []sio.Reader, inputs []srcfiles.Input) (*exec.Query, error) {
@@ -87,8 +87,8 @@ func Compile(rctx *runtime.Context, env *exec.Environment, optimize bool, parall
 	return CompileWithAST(rctx, ast, env, optimize, parallel, readers)
 }
 
-func bundleOutputs(rctx *runtime.Context, outputs map[string]sbuf.Puller) sbuf.Puller {
-	switch len(outputs) {
+func bundleOutputs(rctx *runtime.Context, outputs map[string]sbuf.Puller, debugs []<-chan sbuf.Batch) sbuf.Puller {
+	switch len(outputs) + len(debugs) {
 	case 0:
 		return nil
 	case 1:
@@ -98,7 +98,7 @@ func bundleOutputs(rctx *runtime.Context, outputs map[string]sbuf.Puller) sbuf.P
 		}
 		return puller
 	default:
-		return op.NewMux(rctx, outputs)
+		return op.NewMux(rctx, outputs, debugs)
 	}
 }
 
@@ -155,9 +155,9 @@ func CompileWithSortKey(rctx *runtime.Context, ast *parser.AST, r sio.Reader, so
 	if err := Optimize(rctx, main, env, 0); err != nil {
 		return nil, err
 	}
-	outputs, meter, err := Build(rctx, main, env, []sio.Reader{r})
+	outputs, debugs, meter, err := Build(rctx, main, env, []sio.Reader{r})
 	if err != nil {
 		return nil, err
 	}
-	return exec.NewQuery(rctx, bundleOutputs(rctx, outputs), meter), nil
+	return exec.NewQuery(rctx, bundleOutputs(rctx, outputs, debugs), meter), nil
 }

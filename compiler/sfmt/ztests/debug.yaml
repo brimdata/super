@@ -8,12 +8,6 @@ outputs:
       debug f"debug: {this}"
       | head 1
       null
-      | mirror
-        (
-          values concat("debug: ", cast(this, <string>))
-          | output debug
-        )
-        (
-          head 1
-          | output main
-        )
+      | debug concat("debug: ", cast(this, <string>))
+      | head 1
+      | output main

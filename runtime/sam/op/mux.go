@@ -22,6 +22,7 @@ type Mux struct {
 	ch       <-chan result
 	parents  []*puller
 	nparents int
+	debugger *debugger
 }
 
 type result struct {
@@ -50,8 +51,8 @@ func (p *puller) run(ctx context.Context) {
 	}
 }
 
-func NewMux(rctx *runtime.Context, parents map[string]sbuf.Puller) *Mux {
-	if len(parents) <= 1 {
+func NewMux(rctx *runtime.Context, parents map[string]sbuf.Puller, debugs []<-chan sbuf.Batch) *Mux {
+	if len(parents)+len(debugs) <= 1 {
 		panic("mux.New() must be called with two or more parents")
 	}
 	ch := make(chan result)
@@ -59,19 +60,32 @@ func NewMux(rctx *runtime.Context, parents map[string]sbuf.Puller) *Mux {
 	for label, parent := range parents {
 		pullers = append(pullers, &puller{NewCatcher(parent), ch, label})
 	}
+	var debugger *debugger
+	if len(debugs) != 0 {
+		debugger = newDebugger(debugs)
+	}
 	return &Mux{
 		rctx:     rctx,
 		ch:       ch,
 		parents:  pullers,
 		nparents: len(parents),
+		debugger: debugger,
 	}
 }
 
 // Pull implements the merge logic for returning data from the upstreams.
 func (m *Mux) Pull(bool) (sbuf.Batch, error) {
 	if m.nparents == 0 {
-		// When we get to EOS, we make sure all the flowgraph
-		// goroutines terminate by canceling the proc context.
+		if m.debugger.active() {
+			res := m.debugger.pull(m.rctx.Context)
+			batch, _, err := labelBatch(res)
+			if err != nil {
+				m.rctx.Cancel()
+			}
+			return batch, err
+		}
+		// When we get to EOS and all debugs are done, we make sure all
+		// the flowgraph goroutines terminate by canceling the global context.
 		m.rctx.Cancel()
 		return nil, nil
 	}
@@ -79,28 +93,53 @@ func (m *Mux) Pull(bool) (sbuf.Batch, error) {
 		for _, puller := range m.parents {
 			go puller.run(m.rctx.Context)
 		}
+		if m.debugger != nil {
+			m.debugger.run()
+		}
 	})
 	for {
 		select {
 		case res := <-m.ch:
-			batch := res.batch
-			err := res.err
+			batch, eoc, err := labelBatch(res)
 			if err != nil {
 				m.rctx.Cancel()
 				return nil, err
 			}
-			if batch != nil {
-				batch = sbuf.Label(res.label, batch)
-			} else {
-				eoc := sbuf.EndOfChannel(res.label)
-				batch = &eoc
+			if eoc {
 				m.nparents--
+				if m.nparents == 0 {
+					m.debugger.shutdown()
+				}
+			}
+			return batch, err
+		case res := <-m.debugger.channel():
+			m.debugger.check(res)
+			batch, _, err := labelBatch(res)
+			if err != nil {
+				m.rctx.Cancel()
+				return nil, err
 			}
 			return batch, err
 		case <-m.rctx.Context.Done():
 			return nil, m.rctx.Context.Err()
 		}
 	}
+}
+
+func labelBatch(r result) (sbuf.Batch, bool, error) {
+	if r.err != nil {
+		return nil, false, r.err
+	}
+	var end bool
+	batch := r.batch
+	if batch != nil {
+		batch = sbuf.Label(r.label, batch)
+	} else {
+		eoc := sbuf.EndOfChannel(r.label)
+		batch = &eoc
+		end = true
+	}
+	return batch, end, nil
 }
 
 type Single struct {

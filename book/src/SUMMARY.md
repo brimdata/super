@@ -64,6 +64,7 @@
         - [assert](super-sql/operators/assert.md)
         - [count](super-sql/operators/count.md)
         - [cut](super-sql/operators/cut.md)
+        - [debug](super-sql/operators/debug.md)
         - [drop](super-sql/operators/drop.md)
         - [fork](super-sql/operators/fork.md)
         - [from](super-sql/operators/from.md)

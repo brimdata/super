@@ -60,11 +60,11 @@ func (l *compiler) NewDeleteQuery(rctx *runtime.Context, ast *parser.AST, head *
 	if err = optimizer.New(rctx, l.env).OptimizeDeleter(main, Parallelism); err != nil {
 		return nil, err
 	}
-	outputs, b, err := BuildWithBuilder(rctx, main, l.env, nil)
+	outputs, debugs, b, err := BuildWithBuilder(rctx, main, l.env, nil)
 	if err != nil {
 		return nil, err
 	}
-	return exec.NewDeleteQuery(rctx, bundleOutputs(rctx, outputs), b.Deletes()), nil
+	return exec.NewDeleteQuery(rctx, bundleOutputs(rctx, outputs, debugs), b.Deletes()), nil
 }
 
 type InvalidDeleteWhereQuery struct{}
