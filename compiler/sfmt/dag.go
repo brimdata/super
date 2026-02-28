@@ -421,6 +421,10 @@ func (c *canonDAG) op(p dag.Op) {
 		c.next()
 		c.write("cut ")
 		c.assignments(p.Args)
+	case *dag.DebugOp:
+		c.next()
+		c.write("debug ")
+		c.expr(p.Expr, "")
 	case *dag.DistinctOp:
 		c.next()
 		c.write("distinct ")
@@ -489,21 +493,6 @@ func (c *canonDAG) op(p dag.Op) {
 		c.next()
 		c.write("merge")
 		c.sortExprs(p.Exprs)
-	case *dag.MirrorOp:
-		c.next()
-		c.open("mirror")
-		for _, seq := range []dag.Seq{p.Mirror, p.Main} {
-			c.ret()
-			c.write("(")
-			c.open()
-			c.head = true
-			c.seq(seq)
-			c.close()
-			c.ret()
-			c.write(")")
-		}
-		c.close()
-		c.flush()
 	case *dag.OutputOp:
 		c.next()
 		c.write("output %s", p.Name)

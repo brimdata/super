@@ -19,6 +19,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/op"
 	"github.com/brimdata/super/runtime/sam/op/combine"
 	"github.com/brimdata/super/runtime/sam/op/count"
+	"github.com/brimdata/super/runtime/sam/op/debug"
 	"github.com/brimdata/super/runtime/sam/op/distinct"
 	"github.com/brimdata/super/runtime/sam/op/exprswitch"
 	"github.com/brimdata/super/runtime/sam/op/filescan"
@@ -28,7 +29,6 @@ import (
 	"github.com/brimdata/super/runtime/sam/op/load"
 	"github.com/brimdata/super/runtime/sam/op/merge"
 	"github.com/brimdata/super/runtime/sam/op/meta"
-	"github.com/brimdata/super/runtime/sam/op/mirror"
 	"github.com/brimdata/super/runtime/sam/op/robot"
 	"github.com/brimdata/super/runtime/sam/op/skip"
 	"github.com/brimdata/super/runtime/sam/op/sort"
@@ -56,6 +56,7 @@ type Builder struct {
 	readers         []sio.Reader
 	progress        *sbuf.Progress
 	channels        map[string][]sbuf.Puller
+	debugs          []*debug.Op
 	deletes         *sync.Map
 	funcs           map[string]*dag.FuncDef
 	compiledUDFs    map[string]*expr.UDF
@@ -82,25 +83,25 @@ func NewBuilder(rctx *runtime.Context, env *exec.Environment) *Builder {
 
 // Build builds a flowgraph for main.  If main contains a dag.DefaultSource, it
 // will read from readers.
-func (b *Builder) Build(main *dag.Main, readers ...sio.Reader) (map[string]sbuf.Puller, error) {
+func (b *Builder) Build(main *dag.Main, readers ...sio.Reader) (map[string]sbuf.Puller, []*debug.Op, error) {
 	if !isEntry(main.Body) {
-		return nil, errors.New("internal error: DAG entry point is not a data source")
+		return nil, nil, errors.New("internal error: DAG entry point is not a data source")
 	}
 	b.readers = readers
 	if b.env.UseVAM() {
 		if _, err := b.compileVamMain(main, nil); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	} else {
 		if _, err := b.compileMain(main, nil); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 	channels := make(map[string]sbuf.Puller)
 	for key, pullers := range b.channels {
 		channels[key] = b.combine(pullers)
 	}
-	return channels, nil
+	return channels, b.debugs, nil
 }
 
 func (b *Builder) BuildWithPuller(seq dag.Seq, parent vector.Puller) ([]vector.Puller, error) {
@@ -287,6 +288,14 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 		}
 		dropper := expr.NewDropper(b.sctx(), fields)
 		return op.NewApplier(b.rctx, parent, dropper), nil
+	case *dag.DebugOp:
+		e, err := b.compileExpr(v.Expr)
+		if err != nil {
+			return nil, err
+		}
+		op := debug.New(b.rctx, e, parent)
+		b.debugs = append(b.debugs, op)
+		return op, nil
 	case *dag.DistinctOp:
 		e, err := b.compileExpr(v.Expr)
 		if err != nil {
@@ -465,19 +474,6 @@ func (b *Builder) compileScatter(par *dag.ScatterOp, parents []sbuf.Puller) ([]s
 	return ops, nil
 }
 
-func (b *Builder) compileMirror(m *dag.MirrorOp, parents []sbuf.Puller) ([]sbuf.Puller, error) {
-	o := mirror.New(b.rctx, b.combine(parents))
-	main, err := b.compileSeq(m.Main, []sbuf.Puller{o})
-	if err != nil {
-		return nil, err
-	}
-	mirrored, err := b.compileSeq(m.Mirror, []sbuf.Puller{o.Mirrored()})
-	if err != nil {
-		return nil, err
-	}
-	return append(main, mirrored...), nil
-}
-
 func (b *Builder) compileExprSwitch(swtch *dag.SwitchOp, parents []sbuf.Puller) ([]sbuf.Puller, error) {
 	e, err := b.compileExpr(swtch.Expr)
 	if err != nil {
@@ -535,8 +531,6 @@ func (b *Builder) compile(o dag.Op, parents []sbuf.Puller) ([]sbuf.Puller, error
 		return b.compileFork(o, parents)
 	case *dag.ScatterOp:
 		return b.compileScatter(o, parents)
-	case *dag.MirrorOp:
-		return b.compileMirror(o, parents)
 	case *dag.SwitchOp:
 		if o.Expr != nil {
 			return b.compileExprSwitch(o, parents)

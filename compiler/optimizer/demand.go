@@ -1,8 +1,6 @@
 package optimizer
 
 import (
-	"slices"
-
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/compiler/optimizer/demand"
 )
@@ -35,10 +33,6 @@ func demandForOp(op dag.Op, downstreams []demand.Demand) []demand.Demand {
 		left := demand.GetKey(d, op.LeftAlias)
 		right := demand.GetKey(d, op.RightAlias)
 		return []demand.Demand{left, right}
-	case *dag.MirrorOp:
-		main := DemandForSeq(op.Main, downstreams...)
-		mirror := DemandForSeq(op.Mirror, demand.All())
-		return []demand.Demand{demand.Union(slices.Concat(main, mirror)...)}
 	case *dag.ScatterOp:
 		d := demand.None()
 		for i, p := range op.Paths {
@@ -76,6 +70,8 @@ func demandForSimpleOp(op dag.Op, downstream demand.Demand) demand.Demand {
 		return demand.Union(downstream, demandForExpr(op.Expr))
 	case *dag.CutOp:
 		return demandForAssignments(op.Args, demand.None())
+	case *dag.DebugOp:
+		return demand.Union(downstream, demandForExpr(op.Expr))
 	case *dag.DistinctOp:
 		return demand.Union(downstream, demandForExpr(op.Expr))
 	case *dag.DropOp:

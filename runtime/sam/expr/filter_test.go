@@ -63,7 +63,7 @@ func runCasesHelper(t *testing.T, record string, cases []testcase, expectBufferF
 			require.NoError(t, err, "filter: %q", c.filter)
 			err = compiler.Optimize(rctx, main, env, 0)
 			require.NoError(t, err, "filter: %q", c.filter)
-			_, builder, err := compiler.BuildWithBuilder(rctx, main, env, nil)
+			_, _, builder, err := compiler.BuildWithBuilder(rctx, main, env, nil)
 			require.NoError(t, err, "filter: %q", c.filter)
 			scan, ok := main.Body[0].(*dag.DefaultScan)
 			require.True(t, ok)

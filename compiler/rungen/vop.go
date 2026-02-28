@@ -61,17 +61,19 @@ func (b *Builder) compileVam(o dag.Op, parents []vector.Puller) ([]vector.Puller
 		}
 		cmp := expr.NewComparator(exprs...).WithMissingAsNull()
 		return []vector.Puller{vamop.NewMerge(b.rctx, parents, cmp.Compare)}, nil
-	case *dag.MirrorOp:
-		m := vamop.NewMirror(b.rctx.Context, b.combineVam(parents))
-		main, err := b.compileVamSeq(o.Main, []vector.Puller{m})
-		if err != nil {
-			return nil, err
-		}
-		mirrored, err := b.compileVamSeq(o.Mirror, []vector.Puller{m.Mirrored()})
-		if err != nil {
-			return nil, err
-		}
-		return append(main, mirrored...), nil
+		/* XXX TBD
+		case *dag.MirrorOp:
+			m := vamop.NewMirror(b.rctx.Context, b.combineVam(parents))
+			main, err := b.compileVamSeq(o.Main, []vector.Puller{m})
+			if err != nil {
+				return nil, err
+			}
+			mirrored, err := b.compileVamSeq(o.Mirror, []vector.Puller{m.Mirrored()})
+			if err != nil {
+				return nil, err
+			}
+			return append(main, mirrored...), nil
+		*/
 	case *dag.ScatterOp:
 		return b.compileVamScatter(o, parents)
 	case *dag.SwitchOp:
