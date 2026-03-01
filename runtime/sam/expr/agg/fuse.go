@@ -48,6 +48,9 @@ func (f *fuse) Result(sctx *super.Context) super.Value {
 }
 
 func (f *fuse) ConsumeAsPartial(partial super.Value) {
+	if partial.IsNull() {
+		return
+	}
 	if partial.Type() != super.TypeType {
 		panic("fuse: partial not a type value")
 	}
