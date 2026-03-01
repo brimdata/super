@@ -63,8 +63,7 @@ func newArray(sctx *super.Context, vals []super.Value) super.Value {
 }
 
 func (c *Collect) ConsumeAsPartial(val super.Value) {
-	//XXX These should not be passed in here. See issue #3175
-	if len(val.Bytes()) == 0 {
+	if val.IsNull() {
 		return
 	}
 	arrayType, ok := val.Type().(*super.TypeArray)
