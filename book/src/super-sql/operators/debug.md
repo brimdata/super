@@ -18,7 +18,7 @@ If `<expr>` is omitted, then each input value is passed unmodified to the
 debugging output.
 
 When running a query with the [super](../../command/super.md) command,
-then the debugging output is printed to standard error.
+the debugging output is printed to standard error.
 In this case, debugging output is displayed in the [SUP](../../formats/sup.md) format
 independent of the `-f` flag.
 

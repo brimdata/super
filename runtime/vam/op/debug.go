@@ -1,7 +1,8 @@
 package op
 
 import (
-	"github.com/brimdata/super/runtime"
+	"context"
+
 	"github.com/brimdata/super/runtime/vam"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/sbuf"
@@ -10,16 +11,16 @@ import (
 
 type Debug struct {
 	parent vector.Puller
-	rctx   *runtime.Context
+	ctx    context.Context
 	expr   expr.Evaluator
 	ch     chan sbuf.Batch
 }
 
-func NewDebug(rctx *runtime.Context, expr expr.Evaluator, parent vector.Puller) (*Debug, <-chan sbuf.Batch) {
+func NewDebug(ctx context.Context, expr expr.Evaluator, parent vector.Puller) (*Debug, <-chan sbuf.Batch) {
 	ch := make(chan sbuf.Batch)
 	return &Debug{
 		parent: parent,
-		rctx:   rctx,
+		ctx:    ctx,
 		expr:   expr,
 		ch:     ch,
 	}, ch
@@ -33,8 +34,8 @@ func (d *Debug) Pull(done bool) (vector.Any, error) {
 	if debug := vam.Materialize(d.expr.Eval(val)); len(debug.Values()) != 0 {
 		select {
 		case d.ch <- debug:
-		case <-d.rctx.Done():
-			return nil, d.rctx.Err()
+		case <-d.ctx.Done():
+			return nil, d.ctx.Err()
 		}
 	}
 	return val, err

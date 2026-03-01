@@ -585,7 +585,7 @@ func (d *dagen) checkOutputs(isLeaf bool, seq dag.Seq) dag.Seq {
 		switch o := o.(type) {
 		case *dag.OutputOp:
 			if !isLast || !isLeaf {
-				d.error(d.outputs[o], errors.New("output operator must be at flowgraph leaf"))
+				d.error(d.outputs[o], errors.New("output operator must be a flowgraph leaf"))
 			}
 		case *dag.ScatterOp:
 			for k := range o.Paths {
