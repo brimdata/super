@@ -1,5 +1,3 @@
-skip: Enable after creating first Git release tag.
-
 script: |
   source service.sh
   super -version
