@@ -27,6 +27,10 @@ func (m *Materializer) Pull(done bool) (sbuf.Batch, error) {
 	if vec == nil || err != nil {
 		return nil, err
 	}
+	return Materialize(vec), nil
+}
+
+func Materialize(vec vector.Any) sbuf.Batch {
 	d, _ := vec.(*vector.Dynamic)
 	var typ super.Type
 	if d == nil {
@@ -44,7 +48,7 @@ func (m *Materializer) Pull(done bool) (sbuf.Batch, error) {
 		vals = append(vals, val)
 		builder.Reset()
 	}
-	return sbuf.NewArray(vals), nil
+	return sbuf.NewArray(vals)
 }
 
 type Dematerializer struct {

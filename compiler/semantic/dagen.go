@@ -5,21 +5,22 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/brimdata/super/compiler/ast"
 	"github.com/brimdata/super/compiler/dag"
 	"github.com/brimdata/super/compiler/semantic/sem"
 )
 
 type dagen struct {
 	reporter
-	outputs map[*dag.OutputOp]*sem.DebugOp
 	funcs   map[string]*dag.FuncDef
+	outputs map[*dag.OutputOp]ast.Node
 }
 
 func newDagen(r reporter) *dagen {
 	return &dagen{
 		reporter: r,
-		outputs:  make(map[*dag.OutputOp]*sem.DebugOp),
 		funcs:    make(map[string]*dag.FuncDef),
+		outputs:  make(map[*dag.OutputOp]ast.Node),
 	}
 }
 
@@ -48,16 +49,7 @@ func (d *dagen) assembleExpr(e sem.Expr, funcs map[string]*funcDef) *dag.MainExp
 
 func (d *dagen) seq(seq sem.Seq) dag.Seq {
 	var out dag.Seq
-	for k, op := range seq {
-		// XXX This way of handilng DebugOp doesn't seem right.  It might be cleaner
-		// to have a runtime output entity that concurrently pulls from all
-		// the debug channels (guaranteeing no deadlock) and pulls until
-		// all become blocked and main DAG is done.  If you know the main DAG
-		// is done and the DebugOps are all blocked, then you know there will be
-		// no more debug values coming.
-		if debugOp, ok := op.(*sem.DebugOp); ok {
-			return d.debugOp(debugOp, seq[k+1:], out)
-		}
+	for _, op := range seq {
 		out = append(out, d.op(op))
 	}
 	return out
@@ -153,6 +145,11 @@ func (d *dagen) op(op sem.Op) dag.Op {
 			Kind: "CutOp",
 			Args: d.assignments(op.Args),
 		}
+	case *sem.DebugOp:
+		return &dag.DebugOp{
+			Kind: "DebugOp",
+			Expr: d.expr(op.Expr),
+		}
 	case *sem.DistinctOp:
 		return &dag.DistinctOp{
 			Kind: "DistinctOp",
@@ -208,10 +205,12 @@ func (d *dagen) op(op sem.Op) dag.Op {
 			Exprs: d.sortExprs(op.Exprs),
 		}
 	case *sem.OutputOp:
-		return &dag.OutputOp{
+		o := &dag.OutputOp{
 			Kind: "OutputOp",
 			Name: op.Name,
 		}
+		d.outputs[o] = op
+		return o
 	case *sem.PassOp:
 		return &dag.PassOp{
 			Kind: "PassOp",
@@ -574,25 +573,6 @@ func (d *dagen) fn(f *funcDef) *dag.FuncDef {
 	}
 }
 
-func (d *dagen) debugOp(o *sem.DebugOp, branch sem.Seq, seq dag.Seq) dag.Seq {
-	output := &dag.OutputOp{Kind: "OutputOp", Name: "debug"}
-	d.outputs[output] = o
-	e := d.expr(o.Expr)
-	if e == nil {
-		e = dag.NewThis(nil)
-	}
-	y := &dag.ValuesOp{Kind: "ValuesOp", Exprs: []dag.Expr{e}}
-	main := d.seq(branch)
-	if len(main) == 0 {
-		main.Append(&dag.PassOp{Kind: "PassOp"})
-	}
-	return append(seq, &dag.MirrorOp{
-		Kind:   "MirrorOp",
-		Main:   main,
-		Mirror: dag.Seq{y, output},
-	})
-}
-
 func (d *dagen) checkOutputs(isLeaf bool, seq dag.Seq) dag.Seq {
 	if len(seq) == 0 {
 		return seq
@@ -605,11 +585,7 @@ func (d *dagen) checkOutputs(isLeaf bool, seq dag.Seq) dag.Seq {
 		switch o := o.(type) {
 		case *dag.OutputOp:
 			if !isLast || !isLeaf {
-				n, ok := d.outputs[o]
-				if !ok {
-					panic("system error: untracked user output")
-				}
-				d.error(n, errors.New("output operator must be at flowgraph leaf"))
+				d.error(d.outputs[o], errors.New("output operator must be a flowgraph leaf"))
 			}
 		case *dag.ScatterOp:
 			for k := range o.Paths {
@@ -623,13 +599,10 @@ func (d *dagen) checkOutputs(isLeaf bool, seq dag.Seq) dag.Seq {
 			for k := range o.Cases {
 				o.Cases[k].Path = d.checkOutputs(isLast && isLeaf, o.Cases[k].Path)
 			}
-		case *dag.MirrorOp:
-			o.Main = d.checkOutputs(isLast && isLeaf, o.Main)
-			o.Mirror = d.checkOutputs(isLast && isLeaf, o.Mirror)
 		}
 	}
 	switch seq[lastN].(type) {
-	case *dag.ForkOp, *dag.MirrorOp, *dag.OutputOp, *dag.ScatterOp, *dag.SwitchOp:
+	case *dag.ForkOp, *dag.OutputOp, *dag.ScatterOp, *dag.SwitchOp:
 	default:
 		if isLeaf {
 			return append(seq, &dag.OutputOp{Kind: "OutputOp", Name: "main"})

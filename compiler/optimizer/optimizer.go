@@ -84,9 +84,6 @@ func Walk(seq dag.Seq, post func(dag.Seq) dag.Seq) dag.Seq {
 			for k := range op.Paths {
 				op.Paths[k] = Walk(op.Paths[k], post)
 			}
-		case *dag.MirrorOp:
-			op.Main = Walk(op.Main, post)
-			op.Mirror = Walk(op.Mirror, post)
 		}
 	}
 	return post(seq)
@@ -110,14 +107,6 @@ func walkEntries(seq dag.Seq, post func(dag.Seq) (dag.Seq, error)) (dag.Seq, err
 					return nil, err
 				}
 				op.Paths[k] = seq
-			}
-		case *dag.MirrorOp:
-			var err error
-			if op.Main, err = walkEntries(op.Main, post); err != nil {
-				return nil, err
-			}
-			if op.Mirror, err = walkEntries(op.Mirror, post); err != nil {
-				return nil, err
 			}
 		}
 	}
@@ -380,16 +369,6 @@ func (o *Optimizer) propagateSortKeyOp(op dag.Op, parents []order.SortKeys) ([]o
 	case *dag.ScatterOp:
 		var keys []order.SortKeys
 		for _, seq := range op.Paths {
-			out, err := o.propagateSortKey(seq, []order.SortKeys{parent})
-			if err != nil {
-				return nil, err
-			}
-			keys = append(keys, out...)
-		}
-		return keys, nil
-	case *dag.MirrorOp:
-		var keys []order.SortKeys
-		for _, seq := range []dag.Seq{op.Main, op.Mirror} {
 			out, err := o.propagateSortKey(seq, []order.SortKeys{parent})
 			if err != nil {
 				return nil, err
@@ -899,8 +878,6 @@ func setPushdownUnordered(seq dag.Seq, unordered bool) bool {
 			unordered = true
 		case *dag.MergeOp:
 			unordered = false
-		case *dag.MirrorOp:
-			unordered = setPushdownUnordered(op.Main, unordered)
 		case *dag.ScatterOp:
 			for _, p := range op.Paths {
 				setPushdownUnordered(p, true)

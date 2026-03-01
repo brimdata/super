@@ -72,6 +72,10 @@ type (
 		Kind string       `json:"kind" unpack:""`
 		Args []Assignment `json:"args"`
 	}
+	DebugOp struct {
+		Kind string `json:"kind" unpack:""`
+		Expr Expr   `json:"expr"`
+	}
 	DistinctOp struct {
 		Kind string `json:"kind" unpack:""`
 		Expr Expr   `json:"expr"`
@@ -121,11 +125,6 @@ type (
 	MergeOp struct {
 		Kind  string     `json:"kind" unpack:""`
 		Exprs []SortExpr `json:"exprs"`
-	}
-	MirrorOp struct {
-		Kind   string `json:"kind" unpack:""`
-		Main   Seq    `json:"main"`
-		Mirror Seq    `json:"mirror"`
 	}
 	OutputOp struct {
 		Kind string `json:"kind" unpack:""`
@@ -205,6 +204,7 @@ func (*AggregateOp) opNode() {}
 func (*CombineOp) opNode()   {}
 func (*CountOp) opNode()     {}
 func (*CutOp) opNode()       {}
+func (*DebugOp) opNode()     {}
 func (*DistinctOp) opNode()  {}
 func (*DropOp) opNode()      {}
 func (*FilterOp) opNode()    {}
@@ -215,7 +215,6 @@ func (*HeadOp) opNode()      {}
 func (*JoinOp) opNode()      {}
 func (*LoadOp) opNode()      {}
 func (*MergeOp) opNode()     {}
-func (*MirrorOp) opNode()    {}
 func (*OutputOp) opNode()    {}
 func (*PassOp) opNode()      {}
 func (*PutOp) opNode()       {}

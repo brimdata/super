@@ -38,15 +38,9 @@ outputs:
     data: |
       === debug
       file /dev/null fields a,b
-      | mirror
-        (
-          values a
-          | output debug
-        )
-        (
-          values b
-          | output main
-        )
+      | debug a
+      | values b
+      | output main
       === distinct
       file /dev/null unordered fields a,b
       | distinct a
