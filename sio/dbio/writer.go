@@ -29,7 +29,6 @@ type Writer struct {
 	sup      *sup.Formatter
 	commits  table
 	branches map[ksuid.KSUID][]string
-	rulename string
 	width    int
 	colors   color.Stack
 	headID   ksuid.KSUID
@@ -215,27 +214,4 @@ func (t table) formatCommit(b *bytes.Buffer, commit *commits.Commit, branches []
 		s = strings.TrimRight(s, " \n") + "\n\n"
 		b.WriteString(s)
 	}
-}
-
-func (t table) formatActions(b *bytes.Buffer, id ksuid.KSUID) {
-	for _, action := range t[id] {
-		switch action := action.(type) {
-		case *commits.Add:
-			formatAdd(b, 4, action)
-		case *commits.Delete:
-			formatDelete(b, 4, action)
-		}
-	}
-	b.WriteString("\n")
-}
-
-func formatDelete(b *bytes.Buffer, indent int, delete *commits.Delete) {
-	tab(b, indent)
-	b.WriteString("Delete ")
-	b.WriteString(delete.ID.String())
-	b.WriteByte('\n')
-}
-
-func formatAdd(b *bytes.Buffer, indent int, add *commits.Add) {
-	formatDataObject(b, &add.Object, "Add", indent)
 }

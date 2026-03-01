@@ -2,15 +2,13 @@ package expr
 
 import (
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
 )
 
 type mapCall struct {
-	sctx    *super.Context
-	builder scode.Builder
-	expr    Evaluator
-	lambda  Evaluator
+	sctx   *super.Context
+	expr   Evaluator
+	lambda Evaluator
 }
 
 func NewMapCall(sctx *super.Context, e, lambda Evaluator) Evaluator {

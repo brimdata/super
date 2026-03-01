@@ -2,7 +2,6 @@ package semantic
 
 import (
 	"errors"
-	"strings"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
@@ -274,17 +273,6 @@ func (e *evaluator) expr(expr sem.Expr) bool {
 	default:
 		panic(e)
 	}
-}
-
-func quotedPath(path []string) string {
-	if len(path) == 0 {
-		return "this"
-	}
-	var elems []string
-	for _, s := range path {
-		elems = append(elems, sup.QuotedName(s))
-	}
-	return strings.Join(elems, ".")
 }
 
 func (e *evaluator) arrayElems(elems []sem.ArrayElem) bool {

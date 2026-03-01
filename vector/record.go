@@ -197,7 +197,6 @@ func buildTags(nones []uint32, n uint32) ([]uint32, uint32) {
 // the first, which may be zero when the first value is non-none.
 type RLE struct {
 	runs       []uint32
-	running    bool
 	prediction uint32
 	last       uint32
 }

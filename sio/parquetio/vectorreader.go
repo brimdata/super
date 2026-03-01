@@ -24,9 +24,8 @@ import (
 )
 
 type VectorReader struct {
-	ctx      context.Context
-	sctx     *super.Context
-	pushdown sbuf.Pushdown
+	ctx  context.Context
+	sctx *super.Context
 
 	fr                 *pqarrow.FileReader
 	colIndexes         []int

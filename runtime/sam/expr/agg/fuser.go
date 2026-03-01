@@ -12,8 +12,6 @@ type Fuser struct {
 
 	typ   super.Type
 	types map[super.Type]struct{}
-
-	missingFieldsNullable bool
 }
 
 // XXX this is used by type checker but I think we can use the other one

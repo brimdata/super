@@ -39,18 +39,6 @@ func castToNumber(vec vector.Any, typ super.Type, index []uint32) (vector.Any, [
 	}
 }
 
-func inverseIndex(index []uint32, n uint32) []uint32 {
-	var inverse []uint32
-	for i := range n {
-		if len(index) > 0 && index[0] == i {
-			index = index[1:]
-			continue
-		}
-		inverse = append(inverse, i)
-	}
-	return inverse
-}
-
 func toNumeric[T numeric](vec vector.Any, typ super.Type, index []uint32) ([]T, []uint32) {
 	switch vec := vec.(type) {
 	case *vector.Uint:
