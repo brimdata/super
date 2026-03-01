@@ -1,5 +1,3 @@
-skip: Enable after creating first Git release tag.
-
 script: |
   super -version
 
