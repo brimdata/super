@@ -23,9 +23,9 @@ import (
 func (b *Builder) compileVam(o dag.Op, parents []vector.Puller) ([]vector.Puller, error) {
 	switch o := o.(type) {
 	case *dag.CombineOp:
-		return []vector.Puller{vamop.NewCombine(b.rctx, parents)}, nil
+		return []vector.Puller{b.combineVam(parents)}, nil
 	case *dag.ForkOp:
-		return b.compileVamFork(o, parents)
+		return b.compileVamFork(o, b.combineVam(parents))
 	case *dag.HashJoinOp:
 		if len(parents) != 2 {
 			return nil, ErrJoinParents
@@ -75,18 +75,13 @@ func (b *Builder) compileVam(o dag.Op, parents []vector.Puller) ([]vector.Puller
 	case *dag.ScatterOp:
 		return b.compileVamScatter(o, parents)
 	case *dag.SwitchOp:
+		parent := b.combineVam(parents)
 		if o.Expr != nil {
-			return b.compileVamExprSwitch(o, parents)
+			return b.compileVamExprSwitch(o, parent)
 		}
-		return b.compileVamSwitch(o, parents)
+		return b.compileVamSwitch(o, parent)
 	default:
-		var parent vector.Puller
-		if len(parents) == 1 {
-			parent = parents[0]
-		} else if len(parents) > 1 {
-			parent = vamop.NewCombine(b.rctx, parents)
-		}
-		p, err := b.compileVamLeaf(o, parent)
+		p, err := b.compileVamLeaf(o, b.combineVam(parents))
 		if err != nil {
 			return nil, err
 		}
@@ -113,17 +108,10 @@ func (b *Builder) compileVamScan(scan *dag.SeqScan, parent sbuf.Puller) (vector.
 	return vamop.NewScanner(b.rctx, b.env.DB().VectorCache(), parent, pool, scan.Fields, nil, nil), nil
 }
 
-func (b *Builder) compileVamFork(fork *dag.ForkOp, parents []vector.Puller) ([]vector.Puller, error) {
+func (b *Builder) compileVamFork(fork *dag.ForkOp, parent vector.Puller) ([]vector.Puller, error) {
 	var f *vamop.Fork
-	switch len(parents) {
-	case 0:
-		// No parents: no need for a fork since every op gets a nil parent.
-	case 1:
-		// Single parent: insert a fork for n-way fanout.
-		f = vamop.NewFork(b.rctx, parents[0])
-	default:
-		// Multiple parents: insert a combine followed by a fork for n-way fanout.
-		f = vamop.NewFork(b.rctx, vamop.NewCombine(b.rctx, parents))
+	if parent != nil {
+		f = vamop.NewFork(b.rctx, parent)
 	}
 	var exits []vector.Puller
 	for _, seq := range fork.Paths {
@@ -163,11 +151,7 @@ func (b *Builder) compileVamScatter(scatter *dag.ScatterOp, parents []vector.Pul
 	return ops, nil
 }
 
-func (b *Builder) compileVamExprSwitch(swtch *dag.SwitchOp, parents []vector.Puller) ([]vector.Puller, error) {
-	parent := parents[0]
-	if len(parents) > 1 {
-		parent = vamop.NewCombine(b.rctx, parents)
-	}
+func (b *Builder) compileVamExprSwitch(swtch *dag.SwitchOp, parent vector.Puller) ([]vector.Puller, error) {
 	e, err := b.compileVamExpr(swtch.Expr)
 	if err != nil {
 		return nil, err
@@ -195,11 +179,7 @@ func (b *Builder) compileVamExprSwitch(swtch *dag.SwitchOp, parents []vector.Pul
 	return exits, nil
 }
 
-func (b *Builder) compileVamSwitch(swtch *dag.SwitchOp, parents []vector.Puller) ([]vector.Puller, error) {
-	parent := parents[0]
-	if len(parents) > 1 {
-		parent = vamop.NewCombine(b.rctx, parents)
-	}
+func (b *Builder) compileVamSwitch(swtch *dag.SwitchOp, parent vector.Puller) ([]vector.Puller, error) {
 	s := vamop.NewSwitch(b.rctx, parent)
 	var exits []vector.Puller
 	for _, c := range swtch.Cases {
