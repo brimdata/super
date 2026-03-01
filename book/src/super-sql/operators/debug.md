@@ -11,7 +11,7 @@ debug [ <expr> ]
 ## Description
 
 The `debug` operator passes its input unmodified to its output and for
-each value in the input, evalutes the optional
+each value in the input, evaluates the optional
 [expression](../expressions/intro.md) `<expr>`,
 and transmits each result to a _debugging output_.
 If `<expr>` is omitted, then each input value is passed unmodified to the
