@@ -18,6 +18,7 @@ type Flags struct {
 	cpuprofile     string
 	memprofile     string
 	trace          string
+	signals        bool
 	cpuProfileFile *os.File
 	traceFile      *os.File
 }
@@ -27,6 +28,7 @@ func (f *Flags) SetFlags(fs *flag.FlagSet) {
 	fs.StringVar(&f.cpuprofile, "cpuprofile", "", "write cpu profile to given file name")
 	fs.StringVar(&f.memprofile, "memprofile", "", "write memory profile to given file name")
 	fs.StringVar(&f.trace, "trace", "", "write trace to given file name")
+	fs.BoolVar(&f.signals, "signals", false, "catch SIGINT, SIGPIPE, and SIGTERM and exit gracefully")
 }
 
 type Initializer interface {
@@ -35,7 +37,10 @@ type Initializer interface {
 
 // Init is equivalent to InitWithSignals with SIGINT, SIGPIPE, and SIGTERM.
 func (f *Flags) Init(all ...Initializer) (context.Context, context.CancelFunc, error) {
-	return f.InitWithSignals(all, syscall.SIGINT, syscall.SIGPIPE, syscall.SIGTERM)
+	if f.signals {
+		return f.InitWithSignals(all, syscall.SIGINT, syscall.SIGPIPE, syscall.SIGTERM)
+	}
+	return f.InitWithSignals(all)
 }
 
 // InitWithSignals handles the flags defined in SetFlags, calls the Init method
@@ -65,10 +70,18 @@ func (f *Flags) InitWithSignals(all []Initializer, signals ...os.Signal) (contex
 		}
 		trace.Start(f.traceFile)
 	}
-	ctx, cancel := signalContext(context.Background(), signals...)
-	cleanup := func() {
-		cancel()
-		f.cleanup()
+	var ctx context.Context
+	var cleanup context.CancelFunc
+	if len(signals) == 0 {
+		ctx = context.Background()
+		cleanup = func() {}
+	} else {
+		var cancel context.CancelFunc
+		ctx, cancel = signalContext(context.Background(), signals...)
+		cleanup = func() {
+			cancel()
+			f.cleanup()
+		}
 	}
 	return ctx, cleanup, nil
 }
