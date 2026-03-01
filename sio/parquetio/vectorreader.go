@@ -138,7 +138,7 @@ func (p *VectorReader) ConcurrentPull(done bool, id int) (vector.Any, error) {
 			}
 			p.rrs[id] = rr
 		}
-		rec, err := p.rrs[id].Read()
+		batch, err := p.rrs[id].Read()
 		if err != nil {
 			if err == io.EOF {
 				p.rrs[id] = nil
@@ -146,7 +146,7 @@ func (p *VectorReader) ConcurrentPull(done bool, id int) (vector.Any, error) {
 			}
 			return nil, err
 		}
-		return p.vbs[id].build(array.RecordToStructArray(rec), false)
+		return p.vbs[id].build(array.RecordToStructArray(batch), false)
 	}
 }
 

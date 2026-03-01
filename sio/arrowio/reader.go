@@ -16,7 +16,7 @@ import (
 	"github.com/brimdata/super/sup"
 )
 
-type RecordReader interface {
+type RecordBatchReader interface {
 	Read() (arrow.RecordBatch, error)
 	Release()
 	Schema() *arrow.Schema
@@ -25,14 +25,14 @@ type RecordReader interface {
 // Reader is a sio.Reader for the Arrow IPC stream format.
 type Reader struct {
 	sctx *super.Context
-	rr   RecordReader
+	rbr  RecordBatchReader
 
 	topLevelFields   []arrow.Field
 	topLevelType     *super.TypeRecord
 	unionTagMappings map[*super.TypeUnion][]int
 
-	rec arrow.Record
-	i   int
+	batch arrow.RecordBatch
+	i     int
 
 	builder scode.Builder
 	val     super.Value
@@ -51,11 +51,11 @@ func NewReader(sctx *super.Context, r io.Reader) (*Reader, error) {
 	return ar, nil
 }
 
-func NewReaderFromRecordReader(sctx *super.Context, rr RecordReader) (*Reader, error) {
-	fields := rr.Schema().Fields()
+func NewReaderFromRecordReader(sctx *super.Context, rbr RecordBatchReader) (*Reader, error) {
+	fields := rbr.Schema().Fields()
 	r := &Reader{
 		sctx:             sctx,
-		rr:               rr,
+		rbr:              rbr,
 		topLevelFields:   fields,
 		unionTagMappings: map[*super.TypeUnion][]int{},
 	}
@@ -82,35 +82,35 @@ func UniquifyFieldNames(fields []super.Field) {
 }
 
 func (r *Reader) Close() error {
-	if r.rr != nil {
-		r.rr.Release()
-		r.rr = nil
+	if r.rbr != nil {
+		r.rbr.Release()
+		r.rbr = nil
 	}
-	if r.rec != nil {
-		r.rec.Release()
-		r.rec = nil
+	if r.batch != nil {
+		r.batch.Release()
+		r.batch = nil
 	}
 	return nil
 }
 
 func (r *Reader) Read() (*super.Value, error) {
-	for r.rec == nil {
-		rec, err := r.rr.Read()
+	for r.batch == nil {
+		batch, err := r.rbr.Read()
 		if err != nil {
 			if err == io.EOF {
 				return nil, nil
 			}
 			return nil, err
 		}
-		if rec.NumRows() > 0 {
-			r.rec = rec
+		if batch.NumRows() > 0 {
+			r.batch = batch
 			r.i = 0
 		} else {
-			rec.Release()
+			batch.Release()
 		}
 	}
 	r.builder.Truncate()
-	for j, array := range r.rec.Columns() {
+	for j, array := range r.batch.Columns() {
 		typ := r.topLevelType.Fields[j].Type
 		nullable := r.topLevelFields[j].Nullable
 		if err := r.buildScodeWithNullable(typ, array, r.i, nullable); err != nil {
@@ -119,9 +119,9 @@ func (r *Reader) Read() (*super.Value, error) {
 	}
 	r.val = super.NewValue(r.topLevelType, r.builder.Bytes())
 	r.i++
-	if r.i >= int(r.rec.NumRows()) {
-		r.rec.Release()
-		r.rec = nil
+	if r.i >= int(r.batch.NumRows()) {
+		r.batch.Release()
+		r.batch = nil
 	}
 	return &r.val, nil
 }
