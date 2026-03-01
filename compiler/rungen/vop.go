@@ -88,15 +88,6 @@ func (b *Builder) combineVam(pullers []vector.Puller) vector.Puller {
 	return vamop.NewCombine(b.rctx, pullers)
 }
 
-func (b *Builder) compileVamScan(scan *dag.SeqScan, parent sbuf.Puller) (vector.Puller, error) {
-	pool, err := b.lookupPool(scan.Pool)
-	if err != nil {
-		return nil, err
-	}
-	//XXX check VectorCache not nil
-	return vamop.NewScanner(b.rctx, b.env.DB().VectorCache(), parent, pool, scan.Fields, nil, nil), nil
-}
-
 func (b *Builder) compileVamFork(fork *dag.ForkOp, parent vector.Puller) ([]vector.Puller, error) {
 	var f *vamop.Fork
 	if parent != nil {

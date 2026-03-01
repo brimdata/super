@@ -26,7 +26,6 @@ type Flags struct {
 	forceBinary   bool
 	jsonPretty    bool
 	jsonShortcut  bool
-	noHeader      bool
 	outputFile    string
 	pretty        int
 	split         string

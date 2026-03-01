@@ -28,13 +28,6 @@ func newChecker(t *translator) *checker {
 	}
 }
 
-func (c *checker) check(r reporter, seq sem.Seq) {
-	c.pushErrs()
-	c.seq(c.unknown, seq)
-	errs := c.popErrs()
-	errs.flushErrs(r)
-}
-
 func (c *checker) seq(typ super.Type, seq sem.Seq) super.Type {
 	for len(seq) > 0 {
 		if fork, ok := seq[0].(*sem.ForkOp); ok && len(seq) >= 2 {

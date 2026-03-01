@@ -417,17 +417,6 @@ func (b *Builder) compileAssignmentsToLvals(assignments []dag.Assignment) ([]*ex
 	return srcs, dsts, nil
 }
 
-func splitAssignments(assignments []expr.Assignment) ([]*expr.Lval, []expr.Evaluator) {
-	n := len(assignments)
-	lhs := make([]*expr.Lval, 0, n)
-	rhs := make([]expr.Evaluator, 0, n)
-	for _, a := range assignments {
-		lhs = append(lhs, a.LHS)
-		rhs = append(rhs, a.RHS)
-	}
-	return lhs, rhs
-}
-
 func (b *Builder) compileSeq(seq dag.Seq, parents []sbuf.Puller) ([]sbuf.Puller, error) {
 	for _, o := range seq {
 		var err error

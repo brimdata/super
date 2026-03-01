@@ -131,13 +131,6 @@ func (l *Lexer) matchTight(b byte) (bool, error) {
 	return false, nil
 }
 
-func (l *Lexer) matchBytes(b []byte) (bool, error) {
-	if err := l.skipSpace(); err != nil {
-		return false, err
-	}
-	return l.matchBytesTight(b)
-}
-
 func (l *Lexer) matchBytesTight(b []byte) (bool, error) {
 	n := len(b)
 	if err := l.check(n); err != nil {
@@ -148,23 +141,6 @@ func (l *Lexer) matchBytesTight(b []byte) (bool, error) {
 		l.skip(n)
 	}
 	return ok, nil
-}
-
-func (l *Lexer) scanTo(b byte) ([]byte, error) {
-	var out []byte
-	for {
-		next, err := l.readByte()
-		if err != nil {
-			return nil, err
-		}
-		if next == b {
-			return out, nil
-		}
-		out = append(out, next)
-		if len(out) > MaxSize {
-			return nil, ErrBufferOverflow
-		}
-	}
 }
 
 func (l *Lexer) readByte() (byte, error) {

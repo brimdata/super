@@ -853,25 +853,6 @@ func indirect(v reflect.Value, val super.Value) (BSUPUnmarshaler, reflect.Value)
 	return nil, v
 }
 
-func (u *UnmarshalBSUPContext) decodeNull(val super.Value, v reflect.Value) error {
-	inner := v
-	for inner.Kind() == reflect.Pointer {
-		if inner.IsNil() {
-			// Set nil elements so we can find the actual type of the underlying
-			// value. This is not so we can set the type since the outer value
-			// will eventually get set to nil- but rather so we can type check
-			// the null (i.e., you cannot marshal a int64 to null(ip), etc.).
-			v.Set(reflect.New(v.Type().Elem()))
-		}
-		inner = inner.Elem()
-	}
-	if err := u.decodeAny(val, inner); err != nil {
-		return err
-	}
-	v.Set(reflect.Zero(v.Type()))
-	return nil
-}
-
 func (u *UnmarshalBSUPContext) decodeNetipAddr(val super.Value, v reflect.Value) error {
 	if super.TypeUnder(val.Type()) != super.TypeIP {
 		return incompatTypeError(val.Type(), v)
