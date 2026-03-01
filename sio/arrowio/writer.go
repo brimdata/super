@@ -44,7 +44,7 @@ type Writer struct {
 }
 
 type WriteCloser interface {
-	Write(rec arrow.Record) error
+	Write(arrow.RecordBatch) error
 	Close() error
 }
 
@@ -109,10 +109,10 @@ func (w *Writer) flush(min int) error {
 	if w.builder.Field(0).Len() < min {
 		return nil
 	}
-	rec := w.builder.NewRecord()
-	defer rec.Release()
+	batch := w.builder.NewRecordBatch()
+	defer batch.Release()
 	w.builder.Reserve(recordBatchSize)
-	return w.writer.Write(rec)
+	return w.writer.Write(batch)
 }
 
 func (w *Writer) newArrowDataType(typ super.Type) (arrow.DataType, error) {
