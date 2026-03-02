@@ -230,12 +230,12 @@ func (c *checker) unnestCheck(loc ast.Node, typ super.Type) (super.Type, bool) {
 		if isUnknown(arrayField.Type) {
 			return typ, true
 		}
-		arrayType, ok := super.TypeUnder(arrayField.Type).(*super.TypeArray)
+		arrayElemType, ok := c.hasArray(arrayField.Type)
 		if !ok {
 			c.error(loc, errors.New("unnested record must have array for second field"))
 			return c.unknown, false
 		}
-		fields := []super.Field{typ.Fields[0], {Name: arrayField.Name, Type: arrayType.Type}}
+		fields := []super.Field{typ.Fields[0], {Name: arrayField.Name, Type: arrayElemType}}
 		return c.t.sctx.MustLookupTypeRecord(fields), true
 	default:
 		c.error(loc, errors.New("unnest value must be array or record"))

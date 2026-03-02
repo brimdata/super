@@ -15,3 +15,23 @@ output: |
   3
   4
   error({message:"unnest: encountered non-array value",on:"bar"})
+
+---
+
+spq: |
+  unnest {m:"foo",a:[{m:"bar",n:{m:"baz",b:[2]}}]}
+
+vector: true
+
+output: |
+  {m:"foo",a:{m:"bar",n:{m:"baz",b:[2]}}}
+
+---
+
+spq: |
+  unnest {query:"foo"::(string|null),answer:["bar"]::[string|null]::(null|[string|null])}
+
+vector: true
+
+output: |
+  {query:"foo"::(string|null),answer:"bar"}

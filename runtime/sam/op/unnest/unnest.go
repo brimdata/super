@@ -54,7 +54,7 @@ func (u *Unnest) Pull(done bool) (sbuf.Batch, error) {
 }
 
 func (u *Unnest) unnest(this super.Value) sbuf.Batch {
-	val := u.expr.Eval(this)
+	val := u.expr.Eval(this).Deunion()
 	// Propagate errors but skip missing values.
 	var vals []super.Value
 	if !val.IsMissing() {
@@ -70,29 +70,28 @@ func unnest(sctx *super.Context, val super.Value) []super.Value {
 	val = val.Under()
 	switch typ := super.TypeUnder(val.Type()).(type) {
 	case *super.TypeArray, *super.TypeSet:
-		var vals []super.Value
-		typ = super.InnerType(typ)
-		for it := val.Bytes().Iter(); !it.Done(); {
-			val := super.NewValue(typ, it.Next()).Under()
-			vals = append(vals, val.Copy())
-		}
-		return vals
+		return unnestArrayOrSet(sctx, val)
 	case *super.TypeRecord:
 		if len(typ.Fields) != 2 {
 			return []super.Value{sctx.WrapError("unnest: encountered record without two fields", val)}
 		}
-		if super.InnerType(typ.Fields[1].Type) == nil {
-			return []super.Value{sctx.WrapError("unnest: encountered record without an array/set type for second field", val)}
+		it := scode.NewRecordIter(val.Bytes(), typ.Opts)
+		left, none := it.Next(typ.Fields[0].Opt)
+		if none {
+			return nil
 		}
-		left := val.DerefByColumn(0)
+		right, none := it.Next(typ.Fields[1].Opt)
+		if none {
+			return nil
+		}
 		fields := slices.Clone(typ.Fields)
 		var out []super.Value
 		var b scode.Builder
-		for _, right := range unnest(sctx, *val.DerefByColumn(1)) {
+		for _, elem := range unnestArrayOrSet(sctx, super.NewValue(typ.Fields[1].Type, right).Under()) {
 			b.Reset()
-			b.Append(left.Bytes())
-			b.Append(right.Bytes())
-			fields[1].Type = right.Type()
+			b.Append(left)
+			b.Append(elem.Bytes())
+			fields[1].Type = elem.Type()
 			rtyp := sctx.MustLookupTypeRecord(fields)
 			out = append(out, super.NewValue(rtyp, b.Bytes()))
 		}
@@ -103,4 +102,17 @@ func unnest(sctx *super.Context, val super.Value) []super.Value {
 		}
 		return []super.Value{sctx.WrapError("unnest: encountered non-array value", val)}
 	}
+}
+
+func unnestArrayOrSet(sctx *super.Context, val super.Value) []super.Value {
+	elemType := super.InnerType(val.Type())
+	if elemType == nil {
+		return []super.Value{sctx.WrapError("unnest: encountered record without an array/set type for second field", val)}
+	}
+	var vals []super.Value
+	for it := val.Bytes().Iter(); !it.Done(); {
+		val := super.NewValue(elemType, it.Next()).Under()
+		vals = append(vals, val.Copy())
+	}
+	return vals
 }
