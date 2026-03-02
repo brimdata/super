@@ -206,6 +206,22 @@ func (l *local) DeleteVectors(ctx context.Context, pool, revision string, ids []
 	return branch.DeleteVectors(ctx, ids, message.Author, message.Body)
 }
 
+func (l *local) Vacate(ctx context.Context, pool, revision string, dryrun bool) ([]ksuid.KSUID, error) {
+	poolID, err := l.PoolID(ctx, pool)
+	if err != nil {
+		return nil, err
+	}
+	p, err := l.db.OpenPool(ctx, poolID)
+	if err != nil {
+		return nil, err
+	}
+	commit, err := p.ResolveRevision(ctx, revision)
+	if err != nil {
+		return nil, err
+	}
+	return p.Vacate(ctx, commit, dryrun)
+}
+
 func (l *local) Vacuum(ctx context.Context, pool, revision string, dryrun bool) ([]ksuid.KSUID, error) {
 	poolID, err := l.PoolID(ctx, pool)
 	if err != nil {

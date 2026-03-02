@@ -148,6 +148,11 @@ func (r *remote) DeleteVectors(ctx context.Context, pool, revision string, ids [
 	return res.Commit, err
 }
 
+func (r *remote) Vacate(ctx context.Context, pool, revision string, dryrun bool) ([]ksuid.KSUID, error) {
+	res, err := r.conn.Vacate(ctx, pool, revision, dryrun)
+	return res.CommitIDs, err
+}
+
 func (r *remote) Vacuum(ctx context.Context, pool, revision string, dryrun bool) ([]ksuid.KSUID, error) {
 	res, err := r.conn.Vacuum(ctx, pool, revision, dryrun)
 	return res.ObjectIDs, err

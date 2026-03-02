@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"runtime"
 	"sync"
 
 	"github.com/brimdata/super"
@@ -18,6 +19,7 @@ import (
 	arc "github.com/hashicorp/golang-lru/arc/v2"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 )
 
 var (
@@ -98,6 +100,35 @@ func (s *Store) Remove(ctx context.Context, o *Object) error {
 	return s.engine.Delete(ctx, s.pathOf(o.Commit))
 }
 
+// DANGER ZONE - commits should only be removed once a new base has been
+// established.
+func (s *Store) DeleteCommits(ctx context.Context, commits []ksuid.KSUID) error {
+	deleteIfExists := func(path *storage.URI) error {
+		err := s.engine.Delete(ctx, path)
+		if errors.Is(err, fs.ErrNotExist) {
+			err = nil
+		}
+		return err
+	}
+	group, ctx := errgroup.WithContext(ctx)
+	group.SetLimit(runtime.GOMAXPROCS(0))
+	for i, c := range commits {
+		group.Go(func() error {
+			return deleteIfExists(s.pathOf(c))
+		})
+		group.Go(func() error {
+			return deleteIfExists(s.snapshotPathOf(c))
+		})
+		if i > 0 {
+			// Do not delete base if on first commit.
+			group.Go(func() error {
+				return deleteIfExists(s.basePathOf(c))
+			})
+		}
+	}
+	return group.Wait()
+}
+
 func (s *Store) Snapshot(ctx context.Context, leaf ksuid.KSUID) (*Snapshot, error) {
 	if snap, ok := s.snapshots.Get(leaf); ok {
 		return snap, nil
@@ -108,6 +139,18 @@ func (s *Store) Snapshot(ctx context.Context, leaf ksuid.KSUID) (*Snapshot, erro
 		s.snapshots.Add(leaf, snap)
 		return snap, nil
 	}
+	snap, err := s.buildSnapshot(ctx, leaf)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.putSnapshot(ctx, leaf, snap); err != nil {
+		s.logger.Error("Storing snapshot", zap.Error(err))
+	}
+	s.snapshots.Add(leaf, snap)
+	return snap, nil
+}
+
+func (s *Store) buildSnapshot(ctx context.Context, leaf ksuid.KSUID) (*Snapshot, error) {
 	var objects []*Object
 	var base *Snapshot
 	for at := leaf; at != ksuid.Nil; {
@@ -135,6 +178,17 @@ func (s *Store) Snapshot(ctx context.Context, leaf ksuid.KSUID) (*Snapshot, erro
 		// No snapshot found, so wait for data object.
 		wg.Wait()
 		if oErr != nil {
+			if errors.Is(oErr, fs.ErrNotExist) {
+				// If object get error is not exists then perhaps commits have
+				// been vacated at this point, check if previous is a base
+				// commit.
+				snap, err := s.getBase(ctx, at)
+				if err != nil {
+					return nil, fmt.Errorf("system error: error fetching base: %w", err)
+				}
+				base = snap
+				break
+			}
 			return nil, oErr
 		}
 		objects = append(objects, o)
@@ -153,10 +207,6 @@ func (s *Store) Snapshot(ctx context.Context, leaf ksuid.KSUID) (*Snapshot, erro
 			}
 		}
 	}
-	if err := s.putSnapshot(ctx, leaf, snap); err != nil {
-		s.logger.Error("Storing snapshot", zap.Error(err))
-	}
-	s.snapshots.Add(leaf, snap)
 	return snap, nil
 }
 
@@ -179,6 +229,27 @@ func (s *Store) putSnapshot(ctx context.Context, commit ksuid.KSUID, snap *Snaps
 
 func (s *Store) snapshotPathOf(commit ksuid.KSUID) *storage.URI {
 	return s.path.JoinPath(commit.String() + ".snap.bsup")
+}
+
+func (s *Store) getBase(ctx context.Context, commit ksuid.KSUID) (*Snapshot, error) {
+	r, err := s.engine.Get(ctx, s.basePathOf(commit))
+	if err != nil {
+		return nil, err
+	}
+	defer r.Close()
+	return decodeSnapshot(r)
+}
+
+func (s *Store) putBase(ctx context.Context, snap *Snapshot, commit ksuid.KSUID) error {
+	b, err := snap.serialize()
+	if err != nil {
+		return err
+	}
+	return storage.Put(ctx, s.engine, s.basePathOf(commit), bytes.NewReader(b))
+}
+
+func (s *Store) basePathOf(commit ksuid.KSUID) *storage.URI {
+	return s.path.JoinPath(commit.String() + ".base.bsup")
 }
 
 // Path return the entire path from the commit object to the root
@@ -210,11 +281,16 @@ func (s *Store) PathRange(ctx context.Context, from, to ksuid.KSUID) ([]ksuid.KS
 			}
 			break
 		}
-		path = append(path, at)
 		o, err := s.Get(ctx, at)
 		if err != nil {
+			// If we get fs.ErrNotExist it means we have vacated and so we can
+			// just return the path at this point.
+			if errors.Is(err, fs.ErrNotExist) && to.IsNil() {
+				break
+			}
 			return nil, err
 		}
+		path = append(path, at)
 		if at == to {
 			break
 		}
@@ -247,6 +323,9 @@ func (s *Store) ReadAll(ctx context.Context, commit, stop ksuid.KSUID) ([]byte, 
 	for commit != ksuid.Nil && commit != stop {
 		b, commitObject, err := s.GetBytes(ctx, commit)
 		if err != nil {
+			if errors.Is(err, fs.ErrNotExist) {
+				break
+			}
 			return nil, err
 		}
 		size += len(b)
@@ -339,6 +418,31 @@ func (s *Store) PatchOfPath(ctx context.Context, base *Snapshot, baseID, commit 
 		}
 	}
 	return patch, nil
+}
+
+// SetBase establishes a new base (snapshot) at the provided commit and resets
+// the attached caches. The caller is responsible for deleting prior commits.
+func (s *Store) SetBase(ctx context.Context, commit ksuid.KSUID) (*Snapshot, error) {
+	path, err := s.Path(ctx, commit)
+	if err != nil {
+		return nil, err
+	}
+	if len(path) <= 1 {
+		return nil, errors.New("cannot set base on earliest commit")
+	}
+	// Create snapshot of previous commit.
+	snap, err := s.buildSnapshot(ctx, path[1])
+	if err != nil {
+		return nil, err
+	}
+	if err := s.putBase(ctx, snap, path[1]); err != nil {
+		return nil, err
+	}
+	s.cache.Purge()
+	s.paths.Purge()
+	s.snapshots.Purge()
+	s.snapshots.Add(path[1], snap)
+	return snap, nil
 }
 
 // Vacuumable returns the set of data.Objects in the path of leaf that are not referenced
