@@ -35,3 +35,25 @@ vector: true
 
 output: |
   {query:"foo"::(string|null),answer:"bar"}
+
+---
+
+spq: |
+  unnest {a:0,b}
+
+vector: true
+
+input: |
+  {b:[1]}
+  {b:[2,22::(int64|null)]}
+  {b:[3,33::(int64|null)::(string|(int64|null))]}
+  {b:[4,44::(int64|null)::(string|(int64|null))::(bool|(string|(int64|null)))]}
+
+output: |
+  {a:0,b:1}
+  {a:0,b:2}
+  {a:0,b:22}
+  {a:0,b:3}
+  {a:0,b:33}
+  {a:0,b:4}
+  {a:0,b:44}

@@ -63,7 +63,7 @@ func (u *Unnest) flatten(vec vector.Any, slot uint32) vector.Any {
 		if len(fields) != 2 {
 			return vector.NewWrappedError(u.sctx, "unnest: encountered record without two fields", vec)
 		}
-		if super.InnerType(fields[1].Type()) == nil {
+		if super.InnerType(deunionTypeOf(fields[1], slot)) == nil {
 			return vector.NewWrappedError(u.sctx, "unnest: encountered record without an array/set type for second field", vec)
 		}
 		right := u.flatten(fields[1], slot)
@@ -95,4 +95,16 @@ func flattenArrayOrSet(vec vector.Any, offsets []uint32, slot uint32) vector.Any
 		return nil
 	}
 	return vector.Pick(vector.Deunion(vec), index)
+}
+
+// deunionTypeOf returns the type of the value beneath any unions at slot in
+// vec.  deunionTypeOf never returns a union type.
+func deunionTypeOf(vec vector.Any, slot uint32) super.Type {
+	switch vec := vector.Under(vec).(type) {
+	case *vector.Union:
+		return deunionTypeOf(vec.Dynamic, slot)
+	case *vector.Dynamic:
+		return deunionTypeOf(vec.Values[vec.Tags[slot]], vec.ForwardTagMap()[slot])
+	}
+	return vec.Type()
 }
