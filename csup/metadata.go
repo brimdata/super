@@ -277,7 +277,6 @@ func metadataValue(cctx *Context, sctx *super.Context, b *scode.Builder, id ID, 
 
 func metadataLeaf(sctx *super.Context, b *scode.Builder, min, max super.Value) super.Type {
 	b.BeginContainer()
-	b.Append(nil) // no optional fields here
 	b.Append(min.Bytes())
 	b.Append(max.Bytes())
 	b.EndContainer()
