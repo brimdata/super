@@ -1,6 +1,7 @@
 # This test exercises the partials paths in the reducers by doing an aggregate
 # with a single-row limit.  We also make sure the partials consumer can handle
-# an empty input by including a record for key "a" with no value field.
+# an empty input by including a record for key "a" with error("quiet") in the
+# value field.
 script: |
   super -s -c "union(x) by key with -limit 1 | sort key" in.sup > union.sup
   super -s -c "collect(x) by key with -limit 1 | sort key" in.sup > collect.sup
@@ -16,9 +17,9 @@ inputs:
       {key:"b",x:1::int32}
       {key:"a",x:8::int32}
       {key:"b",x:1::int32}
-      {key:"a"}
-      {key:"a"}
-      {key:"a"}
+      {key:"a",x:error("quiet")}
+      {key:"a",x:error("quiet")}
+      {key:"a",x:error("quiet")}
 
 outputs:
   - name: union.sup

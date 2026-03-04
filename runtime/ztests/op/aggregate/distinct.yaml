@@ -21,8 +21,10 @@ input: |
   {key:"a",n:2,b:false}
   {key:"b",n:1,b:true}
   {key:"b",n:0,b:true}
-  {key:"a",n:1,b:false}
+  {key:"c",n:error("missing"),b:error("missing")}
+  {key:"c",n:error("quiet"),b:error("quiet")}
 
 output: |
   {key:"a",and:false,any:1,avg:1.5,collect:["a"],count:2,dcount:2,max:2,min:1,or:true,sum:3,union:|[1,2]|}
   {key:"b",and:true,any:1,avg:0.5,collect:["b"],count:2,dcount:2,max:1,min:0,or:true,sum:1,union:|[0,1]|}
+  {key:"c",and:null,any:error("missing"),avg:null,collect:["c"],count:1,dcount:1,max:null,min:null,or:null,sum:null,union:|[error("missing")]|}

@@ -63,6 +63,10 @@ func (s *superTable) update(keys []vector.Any, args []vector.Any) {
 			if len(m) > 1 {
 				arg = vector.Pick(arg, index)
 			}
+			arg, ok := removeQuiet(arg)
+			if !ok {
+				continue
+			}
 			if s.partialsIn {
 				row.funcs[i].ConsumeAsPartial(arg)
 			} else {
@@ -70,6 +74,19 @@ func (s *superTable) update(keys []vector.Any, args []vector.Any) {
 			}
 		}
 	}
+}
+
+// removeQuiet removes any error("quiet") values from vec.  It returns false if
+// all values are error("quiet").
+func removeQuiet(vec vector.Any) (vector.Any, bool) {
+	if index, ok := notQuietIndex(vec); ok {
+		if len(index) == 0 {
+			// Every slot is error("quiet").
+			return nil, false
+		}
+		return vector.Pick(vec, index), true
+	}
+	return vec, true
 }
 
 func (s *superTable) newRow(keys []vector.Any, index []uint32) aggRow {

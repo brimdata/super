@@ -12,9 +12,6 @@ type collect struct {
 }
 
 func (c *collect) Consume(vec vector.Any) {
-	if _, ok := vec.(*vector.Error); ok {
-		return
-	}
 	typ := vec.Type()
 	var b scode.Builder
 	for i := range vec.Len() {

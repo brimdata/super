@@ -8,6 +8,8 @@ input: |
   {x:1}
   {x:1::int8}
   1
+  error("missing")
+  error("quiet")
 
 output: |
-  {dcount:3}
+  {dcount:4}

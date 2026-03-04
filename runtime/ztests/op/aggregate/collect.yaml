@@ -7,6 +7,8 @@ input: |
   {a:2}
   null
   {b:1.5}
+  error("missing")
+  error("quiet")
 
 output: |
-  [{a:1},{a:2},{b:1.5}]
+  [{a:1},{a:2},{b:1.5},error("missing")]

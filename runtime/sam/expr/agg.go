@@ -41,7 +41,7 @@ func (a *Aggregator) Apply(sctx *super.Context, f agg.Function, this super.Value
 	}
 	v := a.expr.Eval(this)
 	v = v.Deunion()
-	if !v.IsMissing() {
+	if !v.IsQuiet() {
 		f.Consume(v)
 	}
 }

@@ -13,9 +13,8 @@ input: |
   {_path:"conn",foo:"8"}
   {_path:"conn",foo:"9"}
   {_path:"conn",foo:"10"}
-
-output-flags: -f table
+  error("missing")
+  error("quiet")
 
 output: |
-  count
-  10
+  {count:12}

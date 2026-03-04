@@ -25,7 +25,6 @@ func (u *union) Consume(vec vector.Any) {
 		u.samunion.Update(val.Type(), val.Bytes())
 	case *vector.Dict:
 		u.Consume(vec.Any)
-	case *vector.Error: // ignore
 	default:
 		typ := vec.Type()
 		var b scode.Builder

@@ -90,7 +90,7 @@ func (a *Aggregate) Pull(done bool) (vector.Any, error) {
 }
 
 func (a *Aggregate) consume(keys []vector.Any, vals []vector.Any) {
-	keys, vals, ok := filterQuiet(keys, vals)
+	keys, vals, ok := removeQuietRows(keys, vals)
 	if !ok {
 		return
 	}
@@ -107,42 +107,67 @@ func (a *Aggregate) consume(keys []vector.Any, vals []vector.Any) {
 	table.update(keys, vals)
 }
 
-func filterQuiet(keys []vector.Any, vals []vector.Any) ([]vector.Any, []vector.Any, bool) {
+// removeQuietRows removes rows in which any key is error("quiet").  It returns
+// false if all rows are removed.
+func removeQuietRows(keys, vals []vector.Any) ([]vector.Any, []vector.Any, bool) {
+	if index, ok := notQuietIndex(keys...); ok {
+		if len(index) == 0 {
+			// All slots are quiet.
+			return nil, nil, false
+		}
+		for i, k := range keys {
+			keys[i] = vector.Pick(k, index)
+		}
+		for i, v := range vals {
+			vals[i] = vector.Pick(v, index)
+		}
+	}
+	return keys, vals, true
+}
+
+// notQuietIndex returns the slots that are not quiet across vecs (i.e., the
+// slot's value is not error("quiet") in any of vecs).  It returns nil, true if
+// all slots are quiet and false if no slots are quiet.
+func notQuietIndex(vecs ...vector.Any) ([]uint32, bool) {
+	rb := quietBitmap(vecs...)
+	if rb.IsEmpty() {
+		// No slots are quiet.
+		return nil, false
+	}
+	len := uint64(vecs[0].Len())
+	if rb.GetCardinality() == len {
+		// All slots are quiet.
+		return nil, true
+	}
+	rb.Flip(0, len)
+	return rb.ToArray(), true
+}
+
+// quietBitmap returns a bitmap in which the bit for each slot is set if the
+// slot's value is error("quiet") in any of vecs.
+func quietBitmap(vecs ...vector.Any) *roaring.Bitmap {
 	var rb roaring.Bitmap
-	for _, k := range keys {
-		errVec, ok := k.(*vector.Error)
+	for _, vec := range vecs {
+		errVec, ok := vec.(*vector.Error)
 		if !ok || errVec.Vals.Kind() != vector.KindString {
 			continue
 		}
-		vec := errVec.Vals
-		if c, ok := vec.(*vector.Const); ok {
+		valsVec := errVec.Vals
+		if c, ok := valsVec.(*vector.Const); ok {
 			if string(c.Value().Bytes()) == string(super.Quiet) {
-				// Every slot in this key is error("quiet").
-				return nil, nil, false
+				// Every slot is error("quiet").
+				rb.AddRange(0, uint64(valsVec.Len()))
+				return &rb
 			}
 			continue
 		}
-		for i := range vec.Len() {
-			if vector.StringValue(vec, i) == string(super.Quiet) {
+		for i := range valsVec.Len() {
+			if vector.StringValue(valsVec, i) == string(super.Quiet) {
 				rb.Add(i)
 			}
 		}
 	}
-	if rb.IsEmpty() {
-		return keys, vals, true
-	}
-	if rb.GetCardinality() == uint64(keys[0].Len()) {
-		// Every slot is error("quiet") in some key.
-		return nil, nil, false
-	}
-	index := rb.ToArray()
-	for i, k := range keys {
-		keys[i] = vector.Pick(k, index)
-	}
-	for i, v := range vals {
-		vals[i] = vector.Pick(v, index)
-	}
-	return keys, vals, true
+	return &rb
 }
 
 func (a *Aggregate) newAggTable(keyTypes []super.Type) aggTable {

@@ -5,6 +5,21 @@ vector: true
 input: |
   {a:"hello",b:"world"}
   {a:"goodnight",b:123::int32}
+  error("missing")
+
+output: |
+  <{a:string,b:int32|string}|error(string)>
+
+---
+
+spq: fuse(this)
+
+vector: true
+
+input: |
+  {a:"hello",b:"world"}
+  {a:"goodnight",b:123::int32}
+  error("quiet")
 
 output: |
   <{a:string,b:int32|string}>

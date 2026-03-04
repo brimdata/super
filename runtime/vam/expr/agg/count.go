@@ -10,7 +10,7 @@ type count struct {
 }
 
 func (a *count) Consume(vec vector.Any) {
-	if k := vec.Kind(); k == vector.KindNull || k == vector.KindError {
+	if vec.Kind() == vector.KindNull {
 		return
 	}
 	a.count += int64(vec.Len())

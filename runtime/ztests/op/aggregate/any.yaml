@@ -6,7 +6,11 @@ input: |
   {k:"k1",v:null}
   {k:"k1",v:1}
   {k:"k2",v:null}
+  {k:"k3",v:error("missing")}
+  {k:"k4",v:error("quiet")}
 
 output: |
   {k:"k1",any:1}
   {k:"k2",any:null}
+  {k:"k3",any:error("missing")}
+  {k:"k4",any:null}
