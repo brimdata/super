@@ -45,6 +45,8 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		argmin = 2
 		argmax = 2
 		f = &DatePart{sctx}
+	case "defuse":
+		f = &samFunc{function.NewDefuse(sctx)}
 	case "error":
 		f = &Error{sctx}
 	case "fields":

@@ -1,0 +1,53 @@
+# defuse
+
+undo the effects of fuse
+
+## Synopsis
+
+```
+defuse(val any) -> any
+```
+
+## Description
+
+The `defuse` function converts a value `val` from a fused representation
+to a plain representation by
+* replacing any value nested within `val` that is a union type with its
+  underlying non-union value, and
+* eliminating all optional fields from record types within `val` by
+  replacing each optional field with value with its non-optional equivalent
+  and eliminating entirely any optional fields without a value.
+
+## Examples
+
+---
+
+_Remove union types_
+
+```mdtest-spq {data-layout="stacked"}
+# spq
+defuse(this)
+# input
+{a:1::(int64|string)}
+{a:"foo"::(int64|string)}
+# expected output
+{a:1}
+{a:"foo"}
+```
+
+---
+
+_Remove union types_
+
+```mdtest-spq {data-layout="stacked"}
+# spq
+fuse | defuse(this)
+# input
+{x:1}
+{x:2,y:3}
+{x:4,z?:_::int64}
+# expected output
+{x:1}
+{x:2,y:3}
+{x:4}
+```

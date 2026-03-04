@@ -1,0 +1,21 @@
+spq: defuse(this)
+
+vector: true
+
+input: |
+  [1,2,"foo"]::[null|int64|string]
+  {x:[1,2]::[null|int64],y?:_::string,z:1::(int64|string)}
+
+output: |
+  [1,2,"foo"]
+  {x:[1,2],z:1}
+---
+
+spq: fuse | defuse(this)
+
+input: &input |
+  {x:1}
+  {x:2,y:3}
+
+output: *input
+

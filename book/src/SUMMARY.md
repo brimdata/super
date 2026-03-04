@@ -155,6 +155,7 @@
             - [strftime](super-sql/functions/time/strftime.md)
         - [Types](super-sql/functions/types/intro.md)
             - [cast](super-sql/functions/types/cast.md)
+            - [defuse](super-sql/functions/types/defuse.md)
             - [is](super-sql/functions/types/is.md)
             - [kind](super-sql/functions/types/kind.md)
             - [nameof](super-sql/functions/types/nameof.md)
