@@ -71,9 +71,10 @@ type (
 		Loc  `json:"loc"`
 	}
 	DebugOp struct {
-		Kind string `json:"kind" unpack:""`
-		Expr Expr   `json:"expr"`
-		Loc  `json:"loc"`
+		Kind   string `json:"kind" unpack:""`
+		Expr   Expr   `json:"expr"`
+		Filter Expr   `json:"filter"`
+		Loc    `json:"loc"`
 	}
 	DistinctOp struct {
 		Kind string `json:"kind" unpack:""`

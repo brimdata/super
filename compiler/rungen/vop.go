@@ -212,7 +212,11 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		if err != nil {
 			return nil, err
 		}
-		d, ch := vamop.NewDebug(b.rctx, e, parent)
+		filter, err := b.compileVamExprWithEmpty(o.Filter)
+		if err != nil {
+			return nil, err
+		}
+		d, ch := vamop.NewDebug(b.rctx, e, filter, parent)
 		b.debugs = append(b.debugs, ch)
 		return d, nil
 	case *dag.DefaultScan:

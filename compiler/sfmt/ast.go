@@ -686,6 +686,11 @@ func (c *canon) op(p ast.Op) {
 			c.write(" ")
 			c.expr(p.Expr, "")
 		}
+		if p.Filter != nil {
+			c.write(" filter (")
+			c.expr(p.Filter, "")
+			c.write(")")
+		}
 	default:
 		panic(p)
 	}

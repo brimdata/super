@@ -73,8 +73,9 @@ type (
 		Args []Assignment `json:"args"`
 	}
 	DebugOp struct {
-		Kind string `json:"kind" unpack:""`
-		Expr Expr   `json:"expr"`
+		Kind   string `json:"kind" unpack:""`
+		Expr   Expr   `json:"expr"`
+		Filter Expr   `json:"filter"`
 	}
 	DistinctOp struct {
 		Kind string `json:"kind" unpack:""`

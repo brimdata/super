@@ -425,6 +425,11 @@ func (c *canonDAG) op(p dag.Op) {
 		c.next()
 		c.write("debug ")
 		c.expr(p.Expr, "")
+		if p.Filter != nil {
+			c.write(" filter (")
+			c.expr(p.Filter, "filter")
+			c.write(")")
+		}
 	case *dag.DistinctOp:
 		c.next()
 		c.write("distinct ")

@@ -293,7 +293,11 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 		if err != nil {
 			return nil, err
 		}
-		op, ch := debug.New(b.rctx, e, parent)
+		filter, err := b.compileExprWithEmpty(v.Filter)
+		if err != nil {
+			return nil, err
+		}
+		op, ch := debug.New(b.rctx, e, filter, parent)
 		b.debugs = append(b.debugs, ch)
 		return op, nil
 	case *dag.DistinctOp:

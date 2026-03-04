@@ -700,13 +700,16 @@ OutputOp
     }
 
 DebugOp
-  = DEBUG expr:(_ e:Expr { return e, nil })? {
+  = DEBUG expr:(!FilterClause _ e:Expr { return e, nil })? filter:FilterClause? {
       d := &ast.DebugOp{
         Kind: "DebugOp",
         Loc: loc(c),
       }
       if expr != nil {
         d.Expr = expr.(ast.Expr)
+      }
+      if filter != nil {
+        d.Filter = filter.(ast.Expr)
       }
       return d, nil
     }

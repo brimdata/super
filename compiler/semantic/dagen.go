@@ -147,8 +147,9 @@ func (d *dagen) op(op sem.Op) dag.Op {
 		}
 	case *sem.DebugOp:
 		return &dag.DebugOp{
-			Kind: "DebugOp",
-			Expr: d.expr(op.Expr),
+			Kind:   "DebugOp",
+			Expr:   d.expr(op.Expr),
+			Filter: d.expr(op.Filter),
 		}
 	case *sem.DistinctOp:
 		return &dag.DistinctOp{

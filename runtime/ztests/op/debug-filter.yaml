@@ -1,0 +1,17 @@
+script: |
+  super -s -c 'values {x:1,y:2},{x:3,y:4} | debug {debug:y} filter (x=1)'
+  super -s -c 'values {x:1,y:2},{x:3,y:4} | debug filter (x=1)'
+
+vector: true
+
+outputs:
+  - name: stdout
+    data: |
+      {x:1,y:2}
+      {x:3,y:4}
+      {x:1,y:2}
+      {x:3,y:4}
+  - name: stderr
+    data: |
+      {debug:2}
+      {x:1,y:2}

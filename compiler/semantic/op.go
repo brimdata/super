@@ -761,9 +761,16 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq, inType super.Type) (sem.Seq, s
 		if e == nil {
 			e = sem.NewThis(o.Expr, nil)
 		}
+		var f sem.Expr
+		if o.Filter != nil {
+			var typ super.Type
+			f, typ = t.exprNullable(o.Filter, inType)
+			t.checker.boolean(o.Filter, typ)
+		}
 		return append(seq, &sem.DebugOp{
-			Node: o,
-			Expr: e,
+			Node:   o,
+			Expr:   e,
+			Filter: f,
 		}), inType
 	case *ast.DistinctOp:
 		e, _ := t.expr(o.Expr, inType)

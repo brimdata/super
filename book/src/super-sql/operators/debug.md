@@ -5,7 +5,7 @@
 ## Synopsis
 
 ```
-debug [ <expr> ]
+debug [ <expr> ] [ filter ( <pred> ) ]
 ```
 
 ## Description
@@ -16,6 +16,12 @@ each value in the input, evaluates the optional
 and transmits each result to a _debugging output_.
 If `<expr>` is omitted, then each input value is passed unmodified to the
 debugging output.
+
+An optional filter may be applied to the values sent to the debugging output,
+which is specified with Boolean-valued expression `<pred>`.
+In this case, `<pred>` is applied to each input value to debug operator
+and only the values for which `<pred>` is true are emitted as `<expr>`
+to the debugging output.
 
 When running a query with the [super](../../command/super.md) command,
 the debugging output is printed to standard error.
@@ -43,4 +49,16 @@ values "hello, world" | debug {debug:this} | where false
 
 # expected output
 {debug:"hello, world"}
+```
+
+---
+
+_Apply a filter to debug trace_
+```mdtest-spq
+# spq
+values {x:1,y:2},{x:3,y:4} | debug y filter (x=1) | where false
+# input
+
+# expected output
+2
 ```

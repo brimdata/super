@@ -120,7 +120,8 @@ type (
 	}
 	DebugOp struct {
 		ast.Node
-		Expr Expr
+		Expr   Expr
+		Filter Expr
 	}
 	DistinctOp struct {
 		ast.Node
