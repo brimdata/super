@@ -19,7 +19,7 @@ debugging output.
 
 An optional filter may be applied to the values sent to the debugging output,
 which is specified with Boolean-valued expression `<pred>`.
-In this case, `<pred>` is applied to each input value to debug operator
+In this case, `<pred>` is applied to each input value of the debug operator
 and only the values for which `<pred>` is true are emitted as `<expr>`
 to the debugging output.
 
