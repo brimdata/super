@@ -29,6 +29,22 @@ output: |
 
 ---
 
+spq: drop b
+
+vector: true
+
+input: |
+  {a:1,b?:"foo"}
+  {a:1,b?:_::string}
+  {a:1,b:"foo"}
+
+output: |
+  {a:1}
+  {a:1}
+  {a:1}
+
+---
+
 spq: rename c:=b
 
 vector: true

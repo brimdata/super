@@ -27,12 +27,14 @@ func NewDropper(sctx *super.Context, fields field.List) *Dropper {
 	}
 }
 
-func (d *Dropper) recode(b *scode.Builder, typ super.Type, bytes scode.Bytes, dropMap fieldsMap) {
+func (d *Dropper) recode(b *scode.Builder, typ super.Type, bytes scode.Bytes, outType super.Type, dropMap fieldsMap) {
 	recType := super.TypeRecordOf(typ)
 	if recType == nil {
 		b.Append(bytes)
 		return
 	}
+	outRecType := super.TypeUnder(outType).(*super.TypeRecord)
+	var outOff int
 	b.BeginContainer()
 	it := scode.NewRecordIter(bytes, recType.Opts)
 	var optOff int
@@ -49,7 +51,7 @@ func (d *Dropper) recode(b *scode.Builder, typ super.Type, bytes scode.Bytes, dr
 				optOff++
 				continue
 			}
-			d.recode(b, f.Type, elem, dropMapChild)
+			d.recode(b, f.Type, elem, outRecType.Fields[outOff].Type, dropMapChild)
 		} else if none {
 			nones = append(nones, optOff)
 		} else {
@@ -58,8 +60,9 @@ func (d *Dropper) recode(b *scode.Builder, typ super.Type, bytes scode.Bytes, dr
 		if f.Opt {
 			optOff++
 		}
+		outOff++
 	}
-	b.EndContainerWithNones(recType.Opts, nones)
+	b.EndContainerWithNones(outRecType.Opts, nones)
 }
 
 func (d *Dropper) Eval(in super.Value) super.Value {
@@ -77,7 +80,7 @@ func (d *Dropper) Eval(in super.Value) super.Value {
 	}
 	b := &d.builder
 	b.Reset()
-	d.recode(b, typ, in.Bytes(), d.dropMap)
+	d.recode(b, typ, in.Bytes(), dropType, d.dropMap)
 	return super.NewValue(dropType, b.Bytes().Body())
 }
 
