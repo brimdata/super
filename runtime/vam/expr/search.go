@@ -76,7 +76,7 @@ func (s *search) eval(vecs ...vector.Any) vector.Any {
 	switch vec := vec.(type) {
 	case *vector.Record:
 		out := vector.NewFalse(n)
-		for _, f := range vec.Fields(s.sctx) {
+		for _, f := range vec.Fields {
 			if index != nil {
 				f = vector.Pick(f, index)
 			}

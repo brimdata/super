@@ -36,7 +36,7 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 	case "compare":
 		argmin = 2
 		argmax = 3
-		f = &samFunc{function.NewCompare(sctx)}
+		f = &samFunc{sctx, function.NewCompare(sctx)}
 	case "concat":
 		argmin = 1
 		argmax = -1
@@ -46,7 +46,7 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		argmax = 2
 		f = &DatePart{sctx}
 	case "defuse":
-		f = &samFunc{function.NewDefuse(sctx)}
+		f = &samFunc{sctx, function.NewDefuse(sctx)}
 	case "error":
 		f = &Error{sctx}
 	case "fields":
@@ -176,7 +176,8 @@ func underAll(args []vector.Any) []vector.Any {
 }
 
 type samFunc struct {
-	fn samexpr.Function
+	sctx *super.Context
+	fn   samexpr.Function
 }
 
 func (f *samFunc) Call(args ...vector.Any) vector.Any {
@@ -192,5 +193,5 @@ func (f *samFunc) Call(args ...vector.Any) vector.Any {
 		}
 		b.Write(f.fn.Call(vals))
 	}
-	return b.Build()
+	return b.Build(f.sctx)
 }

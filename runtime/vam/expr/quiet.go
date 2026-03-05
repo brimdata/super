@@ -47,11 +47,10 @@ func (d *Dequiet) rec(vec vector.Any) vector.Any {
 	}
 	var vecs []vector.Any
 	rec := vector.Under(vec).(*vector.Record)
-	fields := rec.Fields(d.sctx)
-	if len(fields) == 0 {
+	if len(rec.Fields) == 0 {
 		return vec
 	}
-	for _, field := range fields {
+	for _, field := range rec.Fields {
 		vec := field
 		if index != nil {
 			vec = vector.Pick(field, index)

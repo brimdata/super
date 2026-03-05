@@ -108,7 +108,7 @@ func (s *superTable) materializeKey(i int) vector.Any {
 	for _, row := range s.rows {
 		b.Write(row.keys[i].Bytes())
 	}
-	return b.Build()
+	return b.Build(s.sctx)
 }
 
 func (s *superTable) materializeAgg(i int) vector.Any {
@@ -120,7 +120,7 @@ func (s *superTable) materializeAgg(i int) vector.Any {
 			b.Write(row.funcs[i].Result(s.sctx))
 		}
 	}
-	return b.Build()
+	return b.Build(s.sctx)
 }
 
 type countByString struct {

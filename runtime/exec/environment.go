@@ -191,7 +191,7 @@ func (e *Environment) VectorOpen(ctx context.Context, sctx *super.Context, path,
 	default:
 		var sbufPuller sbuf.Puller
 		sbufPuller, err = e.Open(ctx, sctx, path, format, p)
-		puller = vam.NewDematerializer(sbufPuller)
+		puller = vam.NewDematerializer(sctx, sbufPuller)
 	}
 	if err != nil {
 		reader.Close()

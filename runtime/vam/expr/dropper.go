@@ -48,32 +48,32 @@ func (d *Dropper) eval(vecs ...vector.Any) vector.Any {
 func (d *Dropper) drop(val vector.Any, fm fieldsMap) (vector.Any, bool) {
 	switch val := vector.Under(val).(type) {
 	case *vector.Record:
-		var valFields []*vector.Field
+		var valFields []vector.Any
 		var typFields []super.Field
 		var changed bool
 		for i, f := range super.TypeRecordOf(val.Type()).Fields {
-			valField := val.Field(i)
+			valField := val.Fields[i]
 			if ff, ok := fm[f.Name]; ok {
 				if ff == nil {
 					// Drop field.
 					changed = true
 					continue
 				}
-				if val, ok := d.drop(valField.Val, ff); ok {
+				if val, ok := d.drop(valField, ff); ok {
 					changed = true
 					if val == nil {
 						// Drop field since we dropped all its subfields.
 						continue
 					}
 					// Substitute modified field.
-					valFields = append(valFields, &vector.Field{Val: val, Len: valField.Len, Runs: valField.Runs})
+					valFields = append(valFields, val)
 					typFields = append(typFields, super.NewFieldWithOpt(f.Name, val.Type(), f.Opt))
 					continue
 				}
 			}
 			// Keep field.
 			valFields = append(valFields, valField)
-			typFields = append(typFields, super.NewFieldWithOpt(f.Name, valField.Val.Type(), f.Opt))
+			typFields = append(typFields, super.NewFieldWithOpt(f.Name, valField.Type(), f.Opt))
 		}
 		if !changed {
 			return nil, false
@@ -82,7 +82,7 @@ func (d *Dropper) drop(val vector.Any, fm fieldsMap) (vector.Any, bool) {
 			return nil, true
 		}
 		typ := d.sctx.MustLookupTypeRecord(typFields)
-		return vector.NewRecordFromFields(typ, valFields, val.Len()), true
+		return vector.NewRecord(typ, valFields, val.Len()), true
 	case *vector.Dict:
 		if newVec, ok := d.drop(val.Any, fm); ok {
 			return vector.NewDict(newVec, val.Index, val.Counts), true

@@ -52,7 +52,7 @@ func (a *avg) ConsumeAsPartial(partial vector.Any) {
 	if !ok1 || !ok2 {
 		panic("avg: invalid partial")
 	}
-	fields := rec.Fields(nil)
+	fields := rec.Fields
 	sumVal := fields[si]
 	countVal := fields[ci]
 	if sumVal.Type() != super.TypeFloat64 || countVal.Type() != super.TypeUint64 {

@@ -534,8 +534,8 @@ func (b *Builder) compile(o dag.Op, parents []sbuf.Puller) ([]sbuf.Puller, error
 			return nil, ErrJoinParents
 		}
 		vectorParents := []vector.Puller{
-			vam.NewDematerializer(parents[0]),
-			vam.NewDematerializer(parents[1]),
+			vam.NewDematerializer(b.sctx(), parents[0]),
+			vam.NewDematerializer(b.sctx(), parents[1]),
 		}
 		vectorPuller, err := b.compileVam(o, vectorParents)
 		if err != nil {

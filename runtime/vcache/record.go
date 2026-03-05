@@ -65,35 +65,34 @@ func (r *record) unmarshal(cctx *csup.Context, projection field.Projection) {
 }
 
 func (r *record) project(loader *loader, projection field.Projection) vector.Any {
-	valFields := make([]*vector.Field, 0, len(r.fields))
+	valFields := make([]vector.Any, 0, len(r.fields))
 	types := make([]super.Field, 0, len(r.fields))
 	if len(projection) == 0 {
 		// Build the whole record.  We're either loading all on demand (nil paths)
 		// or loading this record because it's referenced at the end of a projected path.
 		for k := range r.fields {
 			if r.fields[k].values != nil {
-				valFields = r.fields[k].project(valFields, loader, nil)
-				types = append(types, super.NewFieldWithOpt(r.meta.Fields[k].Name, valFields[k].Val.Type(), r.meta.Fields[k].Opt))
+				val := r.fields[k].project(loader, nil)
+				valFields = append(valFields, val)
+				types = append(types, super.NewFieldWithOpt(r.meta.Fields[k].Name, val.Type(), r.meta.Fields[k].Opt))
 			}
 		}
-		return vector.NewRecordFromFields(loader.sctx.MustLookupTypeRecord(types), valFields, r.length())
+		return vector.NewRecord(loader.sctx.MustLookupTypeRecord(types), valFields, r.length())
 	}
 	fields := make([]super.Field, 0, len(r.fields))
 	for _, node := range projection {
 		var opt bool
+		var val vector.Any
 		if k := indexOfField(node.Name, r.meta); k >= 0 && r.fields[k].values != nil {
-			valFields = r.fields[k].project(valFields, loader, node.Proj)
+			val = r.fields[k].project(loader, node.Proj)
 			opt = r.meta.Fields[k].Opt
 		} else {
-			valFields = append(valFields, &vector.Field{
-				Val: vector.NewMissing(loader.sctx, r.length()),
-				Len: r.length(),
-			})
+			val = vector.NewMissing(loader.sctx, r.length())
 		}
-		typ := valFields[len(valFields)-1].Val.Type()
-		fields = append(fields, super.NewFieldWithOpt(node.Name, typ, opt))
+		valFields = append(valFields, val)
+		fields = append(fields, super.NewFieldWithOpt(node.Name, val.Type(), opt))
 	}
-	return vector.NewRecordFromFields(loader.sctx.MustLookupTypeRecord(fields), valFields, r.length())
+	return vector.NewRecord(loader.sctx.MustLookupTypeRecord(fields), valFields, r.length())
 }
 
 func indexOfField(name string, r *csup.Record) int {
@@ -110,7 +109,7 @@ func (f *field_) unmarshal(cctx *csup.Context, projection field.Projection) {
 	f.values.unmarshal(cctx, projection)
 }
 
-func (f *field_) project(fields []*vector.Field, loader *loader, projection field.Projection) []*vector.Field {
+func (f *field_) project(loader *loader, projection field.Projection) vector.Any {
 	if f.meta.Opt {
 		f.mu.Lock()
 		if !f.loaded {
@@ -123,9 +122,5 @@ func (f *field_) project(fields []*vector.Field, loader *loader, projection fiel
 		}
 		f.mu.Unlock()
 	}
-	return append(fields, &vector.Field{
-		Val:  f.values.project(loader, projection),
-		Runs: f.nones,
-		Len:  f.len,
-	})
+	return vector.NewFieldFromRLE(loader.sctx, f.values.project(loader, projection), f.len, f.nones)
 }

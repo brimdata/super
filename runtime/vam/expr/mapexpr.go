@@ -67,7 +67,7 @@ func (m *MapExpr) build(vecs []vector.Any) vector.Any {
 			vb.Write(super.NewValue(typs[k], b.Bytes().Body()))
 		}
 	}
-	out := vb.Build()
+	out := vb.Build(m.sctx)
 	if d, ok := out.(*vector.Dynamic); ok {
 		utyp := m.sctx.LookupTypeUnion(super.UniqueTypes(typs))
 		out = &vector.Union{Typ: utyp, Dynamic: d}

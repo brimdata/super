@@ -82,7 +82,7 @@ func (g *Grok) Call(args ...vector.Any) vector.Any {
 		}
 		builder.Write(super.NewValue(typ, g.builder.Bytes()))
 	}
-	combiner := vector.NewCombiner(builder.Build())
+	combiner := vector.NewCombiner(builder.Build(g.sctx))
 	if len(defErrsIdx) > 0 {
 		combiner.Add(defErrsIdx, g.errorVec(defErrs, defErrsIdx, defArg))
 	}

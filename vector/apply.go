@@ -32,6 +32,9 @@ func findDynamic(vecs []Any) (*Dynamic, bool) {
 		if d, ok := vec.(*Dynamic); ok {
 			return d, true
 		}
+		if o, ok := vec.(*Optional); ok {
+			return o.Dynamic, true
+		}
 	}
 	return nil, false
 }
@@ -65,6 +68,9 @@ func stitch(tags []uint32, vecs []Any) Any {
 		if d, ok := vec.(*Dynamic); ok {
 			foundDynamic = true
 			newVecsLen += len(d.Values)
+		} else if o, ok := vec.(*Optional); ok {
+			foundDynamic = true
+			newVecsLen += len(o.Dynamic.Values)
 		} else {
 			newVecsLen++
 		}
@@ -82,6 +88,10 @@ func stitch(tags []uint32, vecs []Any) Any {
 			newVecs = append(newVecs, d.Values...)
 			nestedTags[i] = d.Tags
 			lastShift += uint32(len(d.Values)) - 1
+		} else if o, ok := vec.(*Optional); ok {
+			newVecs = append(newVecs, o.Dynamic.Values...)
+			nestedTags[i] = o.Dynamic.Tags
+			lastShift += uint32(len(o.Dynamic.Values)) - 1
 		} else {
 			newVecs = append(newVecs, vec)
 		}

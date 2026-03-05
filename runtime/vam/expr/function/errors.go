@@ -10,7 +10,7 @@ type Quiet struct {
 }
 
 func (q *Quiet) Call(args ...vector.Any) vector.Any {
-	arg, ok := args[0].(*vector.Error)
+	arg, ok := vector.This(args[0]).(*vector.Error)
 	if !ok {
 		return args[0]
 	}

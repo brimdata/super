@@ -28,5 +28,5 @@ func (s *Sort) Pull(done bool) (vector.Any, error) {
 	for _, val := range batch.Values() {
 		b.Write(val)
 	}
-	return b.Build(), nil
+	return b.Build(s.rctx.Sctx), nil
 }

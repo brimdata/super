@@ -2,7 +2,6 @@ package vector
 
 import (
 	"slices"
-	"sync"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
@@ -10,21 +9,13 @@ import (
 
 type Record struct {
 	Typ    *super.TypeRecord
-	fields []*Field
+	Fields []Any
 	len    uint32
 }
 
 var _ Any = (*Record)(nil)
 
 func NewRecord(typ *super.TypeRecord, fields []Any, length uint32) *Record {
-	wrapper := make([]*Field, 0, len(fields))
-	for _, f := range fields {
-		wrapper = append(wrapper, &Field{Val: f, Len: length})
-	}
-	return &Record{typ, wrapper, length}
-}
-
-func NewRecordFromFields(typ *super.TypeRecord, fields []*Field, length uint32) *Record {
 	return &Record{typ, fields, length}
 }
 
@@ -40,31 +31,11 @@ func (r *Record) Len() uint32 {
 	return r.len
 }
 
-func (r *Record) Fields(sctx *super.Context) []Any {
-	val := make([]Any, 0, len(r.fields))
-	for k := range r.fields {
-		if len(r.fields[k].Runs) != 0 {
-			val = append(val, r.fields[k].Deref(sctx))
-		} else {
-			val = append(val, r.fields[k].Val)
-		}
-	}
-	return val
-}
-
-func (r *Record) Field(i int) *Field {
-	return r.fields[i]
-}
-
-func (r *Record) Slice(from, to int) []*Field {
-	return r.fields[from:to]
-}
-
 func (r *Record) ChangeType(typ *super.TypeRecord) *Record {
-	fields := slices.Clone(r.fields)
+	fields := slices.Clone(r.Fields)
 	for i, f := range typ.Fields {
 		if rtyp, ok := f.Type.(*super.TypeRecord); ok {
-			fields[i].Val = r.fields[i].Val.(*Record).ChangeType(rtyp)
+			fields[i] = r.Fields[i].(*Record).ChangeType(rtyp)
 		}
 	}
 	return &Record{typ, fields, r.len}
@@ -76,98 +47,24 @@ func (r *Record) Serialize(b *scode.Builder, slot uint32) {
 		// XXX TBD: improve performance of this in summit
 		var nones []int
 		var optOff int
-		for k := range r.fields {
-			fslot := int32(slot)
+		for k := range r.Fields {
 			if r.Typ.Fields[k].Opt {
-				if slotmap := r.fields[k].slotmap(); len(slotmap) > 0 {
-					fslot = slotmap[slot]
-				}
-				if fslot < 0 {
+				if isNone(r.Fields[k], slot) {
 					nones = append(nones, optOff)
 					optOff++
 					continue
 				}
 				optOff++
 			}
-			r.fields[k].Val.Serialize(b, uint32(fslot))
+			r.Fields[k].Serialize(b, uint32(slot))
 		}
 		b.EndContainerWithNones(r.Typ.Opts, nones)
 		return
 	}
-	for k := range r.fields {
-		r.fields[k].Val.Serialize(b, slot)
+	for _, f := range r.Fields {
+		f.Serialize(b, slot)
 	}
 	b.EndContainer()
-}
-
-type Field struct {
-	Val Any
-	Len uint32
-	// Runs encode the run-lengths of alternating nones and values.
-	// Runs is always non-empty for an optional field since all nones is a single value
-	// and all values is a single 0 followed by number of values.  This means we can
-	// test len(Run) for optional or not.
-	Runs  []uint32
-	mu    sync.Mutex
-	slots []int32 // map record slot to field slot (-1 for none) (from Nones or builder)
-	dyn   Any
-}
-
-func (f *Field) Deref(sctx *super.Context) Any {
-	if len(f.Runs) == 0 {
-		return f.Val
-	}
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	if f.dyn == nil {
-		if f.Val.Len() == 0 {
-			// No values... all nones.
-			return NewMissing(sctx, f.Len)
-		}
-		tags, noneLen := buildTags(f.Runs, f.Len)
-		if noneLen == 0 {
-			// This field is optional but everything is here in this instance.
-			f.dyn = f.Val
-		}
-		errs := NewMissing(sctx, f.Len-noneLen)
-		f.dyn = NewDynamic(tags, []Any{f.Val, errs})
-	}
-	return f.dyn
-}
-
-func (f *Field) slotmap() []int32 {
-	if len(f.Runs) == 0 {
-		return nil
-	}
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	if f.slots == nil {
-		f.slots = make([]int32, f.Len)
-		var noneLen uint32
-		var off uint32
-		var valOff uint32
-		for in := 0; in < len(f.Runs); {
-			noneRun := f.Runs[in]
-			in++
-			for k := range noneRun {
-				f.slots[off+k] = -1
-			}
-			off += noneRun
-			noneLen += noneRun
-			if in >= len(f.Runs) {
-				break
-			}
-			// skip over values (leaving bits 0)
-			valRun := f.Runs[in]
-			for k := range valRun {
-				f.slots[off+k] = int32(valOff + uint32(k))
-			}
-			valOff += valRun
-			off += valRun
-			in++
-		}
-	}
-	return f.slots
 }
 
 func buildTags(nones []uint32, n uint32) ([]uint32, uint32) {
@@ -243,4 +140,57 @@ func (r *RLE) End(off uint32) []uint32 {
 
 func (r *RLE) emit(run uint32) {
 	r.runs = append(r.runs, run)
+}
+
+// A None vector arises from values not present in an optional field.
+// In a future version of the runtime, we will have operators
+// that handle noneness (?? and ?.) but for now the only
+// thing you can do with none is assign it to a optional
+// record field or express it as missing.  None wraps Error as
+// an error("missing") so it expresses this when not assigned to
+// a field.
+type None struct {
+	*Error
+}
+
+func isNone(val Any, slot uint32) bool {
+	if _, ok := val.(*None); ok {
+		return true
+	}
+	if o, ok := val.(*Optional); ok {
+		return o.Dynamic.Tags[slot] == 1
+	}
+	return false
+}
+
+func NewFieldFromRLE(sctx *super.Context, val Any, length uint32, nones []uint32) Any {
+	if len(nones) == 0 {
+		return val
+	}
+	tags, noneLen := buildTags(nones, length)
+	if noneLen == 0 {
+		// This field is optional but everything is here in this instance.
+		return val
+	}
+	return &Optional{NewDynamic(tags, []Any{val, &None{NewMissing(sctx, noneLen)}})}
+}
+
+// An Optional value is a special Dynamic that has two tags comprosing the
+// values present and the Nones.
+type Optional struct {
+	*Dynamic
+}
+
+func (o *Optional) Type() super.Type {
+	return o.Dynamic.Values[0].Type()
+}
+
+func This(v Any) Any {
+	switch v := v.(type) {
+	case *Optional:
+		return v.Dynamic
+	case *None:
+		return v.Error
+	}
+	return v
 }

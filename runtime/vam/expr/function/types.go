@@ -26,7 +26,7 @@ func (h HasError) hasError(in vector.Any) vector.Any {
 	switch vec := vec.(type) {
 	case *vector.Record:
 		var result vector.Any
-		for _, f := range vec.Fields(h.sctx) {
+		for _, f := range vec.Fields {
 			if index != nil {
 				f = vector.Pick(f, index)
 			}

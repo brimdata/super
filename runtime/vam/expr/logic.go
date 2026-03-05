@@ -246,7 +246,7 @@ func (p *PredicateWalk) eval(vecs ...vector.Any) vector.Any {
 	}
 	switch rhs := rhs.(type) {
 	case *vector.Record:
-		fields := rhs.Fields(p.sctx)
+		fields := rhs.Fields
 		if len(fields) == 0 {
 			vector.NewFalse(rhs.Len())
 		}

@@ -52,12 +52,13 @@ func Materialize(vec vector.Any) sbuf.Batch {
 }
 
 type Dematerializer struct {
+	sctx   *super.Context
 	mu     sync.Mutex
 	parent sbuf.Puller
 }
 
-func NewDematerializer(p sbuf.Puller) *Dematerializer {
-	return &Dematerializer{parent: p}
+func NewDematerializer(sctx *super.Context, p sbuf.Puller) *Dematerializer {
+	return &Dematerializer{sctx: sctx, parent: p}
 }
 
 func (d *Dematerializer) Pull(done bool) (vector.Any, error) {
@@ -76,5 +77,5 @@ func (d *Dematerializer) ConcurrentPull(done bool, _ int) (vector.Any, error) {
 	for _, val := range batch.Values() {
 		builder.Write(val)
 	}
-	return builder.Build(), nil
+	return builder.Build(d.sctx), nil
 }

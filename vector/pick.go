@@ -21,10 +21,14 @@ func Pick(val Any, index []uint32) Any {
 		return NewDict(val.Any, index2, counts)
 	case *Error:
 		return NewError(val.Typ, Pick(val.Vals, index))
+	case *None:
+		return &None{NewError(val.Typ, Pick(val.Vals, index))}
 	case *Union:
 		tags, values := viewForUnionOrDynamic(index, val.Tags, val.ForwardTagMap(), val.Values)
 		return NewUnion(val.Typ, tags, values)
 	case *Dynamic:
+		return NewDynamic(viewForUnionOrDynamic(index, val.Tags, val.ForwardTagMap(), val.Values))
+	case *Optional:
 		return NewDynamic(viewForUnionOrDynamic(index, val.Tags, val.ForwardTagMap(), val.Values))
 	case *View:
 		index2 := make([]uint32, len(index))

@@ -11,7 +11,7 @@ import (
 
 type Builder interface {
 	Write(scode.Bytes)
-	Build() Any
+	Build(sctx *super.Context) Any
 }
 
 type DynamicBuilder struct {
@@ -38,10 +38,10 @@ func (d *DynamicBuilder) Write(val super.Value) {
 	d.values[tag].Write(val.Bytes())
 }
 
-func (d *DynamicBuilder) Build() Any {
+func (d *DynamicBuilder) Build(sctx *super.Context) Any {
 	var vecs []Any
 	for _, b := range d.values {
-		vecs = append(vecs, b.Build())
+		vecs = append(vecs, b.Build(sctx))
 	}
 	if len(vecs) == 1 {
 		return vecs[0]
@@ -105,8 +105,8 @@ type namedBuilder struct {
 	typ *super.TypeNamed
 }
 
-func (n *namedBuilder) Build() Any {
-	return NewNamed(n.typ, n.Builder.Build())
+func (n *namedBuilder) Build(sctx *super.Context) Any {
+	return NewNamed(n.typ, n.Builder.Build(sctx))
 }
 
 type recordBuilder struct {
@@ -136,12 +136,12 @@ func (r *recordBuilder) Write(bytes scode.Bytes) {
 	}
 }
 
-func (r *recordBuilder) Build() Any {
-	var fields []*Field
+func (r *recordBuilder) Build(sctx *super.Context) Any {
+	var fields []Any
 	for k := range r.fields {
-		fields = append(fields, r.fields[k].build(r.len))
+		fields = append(fields, r.fields[k].build(sctx, r.len))
 	}
-	return NewRecordFromFields(r.typ, fields, r.len)
+	return NewRecord(r.typ, fields, r.len)
 }
 
 type fieldBuilder struct {
@@ -157,12 +157,12 @@ func (f *fieldBuilder) write(bytes scode.Bytes, off uint32) {
 	f.val.Write(bytes)
 }
 
-func (f *fieldBuilder) build(n uint32) *Field {
+func (f *fieldBuilder) build(sctx *super.Context, n uint32) Any {
 	var runs []uint32
 	if f.opt {
 		runs = f.runs.End(n)
 	}
-	return &Field{Val: f.val.Build(), Runs: runs, Len: n}
+	return NewFieldFromRLE(sctx, f.val.Build(sctx), n, runs)
 }
 
 type errorBuilder struct {
@@ -170,8 +170,8 @@ type errorBuilder struct {
 	Builder
 }
 
-func (e *errorBuilder) Build() Any {
-	return NewError(e.typ, e.Builder.Build())
+func (e *errorBuilder) Build(sctx *super.Context) Any {
+	return NewError(e.typ, e.Builder.Build(sctx))
 }
 
 type arraySetBuilder struct {
@@ -193,11 +193,11 @@ func (a *arraySetBuilder) Write(bytes scode.Bytes) {
 	a.offsets = append(a.offsets, off)
 }
 
-func (a *arraySetBuilder) Build() Any {
+func (a *arraySetBuilder) Build(sctx *super.Context) Any {
 	if typ, ok := a.typ.(*super.TypeArray); ok {
-		return NewArray(typ, a.offsets, a.values.Build())
+		return NewArray(typ, a.offsets, a.values.Build(sctx))
 	}
-	return NewSet(a.typ.(*super.TypeSet), a.offsets, a.values.Build())
+	return NewSet(a.typ.(*super.TypeSet), a.offsets, a.values.Build(sctx))
 }
 
 type mapBuilder struct {
@@ -226,8 +226,8 @@ func (m *mapBuilder) Write(bytes scode.Bytes) {
 	m.offsets = append(m.offsets, off)
 }
 
-func (m *mapBuilder) Build() Any {
-	return NewMap(m.typ, m.offsets, m.keys.Build(), m.values.Build())
+func (m *mapBuilder) Build(sctx *super.Context) Any {
+	return NewMap(m.typ, m.offsets, m.keys.Build(sctx), m.values.Build(sctx))
 }
 
 type unionBuilder struct {
@@ -252,10 +252,10 @@ func (u *unionBuilder) Write(bytes scode.Bytes) {
 	u.tags = append(u.tags, uint32(tag))
 }
 
-func (u *unionBuilder) Build() Any {
+func (u *unionBuilder) Build(sctx *super.Context) Any {
 	var vecs []Any
 	for _, v := range u.values {
-		vecs = append(vecs, v.Build())
+		vecs = append(vecs, v.Build(sctx))
 	}
 	return NewUnion(u.typ, u.tags, vecs)
 }
@@ -269,7 +269,7 @@ func (e *enumBuilder) Write(bytes scode.Bytes) {
 	e.values = append(e.values, super.DecodeUint(bytes))
 }
 
-func (e *enumBuilder) Build() Any {
+func (e *enumBuilder) Build(sctx *super.Context) Any {
 	return NewEnum(e.typ, e.values)
 }
 
@@ -282,7 +282,7 @@ func (i *intBuilder) Write(bytes scode.Bytes) {
 	i.values = append(i.values, super.DecodeInt(bytes))
 }
 
-func (i *intBuilder) Build() Any {
+func (i *intBuilder) Build(sctx *super.Context) Any {
 	return NewInt(i.typ, i.values)
 }
 
@@ -295,7 +295,7 @@ func (u *uintBuilder) Write(bytes scode.Bytes) {
 	u.values = append(u.values, super.DecodeUint(bytes))
 }
 
-func (u *uintBuilder) Build() Any {
+func (u *uintBuilder) Build(sctx *super.Context) Any {
 	return NewUint(u.typ, u.values)
 }
 
@@ -308,7 +308,7 @@ func (f *floatBuilder) Write(bytes scode.Bytes) {
 	f.values = append(f.values, super.DecodeFloat(bytes))
 }
 
-func (f *floatBuilder) Build() Any {
+func (f *floatBuilder) Build(sctx *super.Context) Any {
 	return NewFloat(f.typ, f.values)
 }
 
@@ -328,7 +328,7 @@ func (b *boolBuilder) Write(bytes scode.Bytes) {
 	b.n++
 }
 
-func (b *boolBuilder) Build() Any {
+func (b *boolBuilder) Build(sctx *super.Context) Any {
 	bits := make([]uint64, (b.n+63)/64)
 	b.values.WriteDenseTo(bits)
 	return NewBool(bitvec.New(bits, b.n))
@@ -349,7 +349,7 @@ func (b *bytesStringTypeBuilder) Write(bytes scode.Bytes) {
 	b.offs = append(b.offs, uint32(len(b.bytes)))
 }
 
-func (b *bytesStringTypeBuilder) Build() Any {
+func (b *bytesStringTypeBuilder) Build(sctx *super.Context) Any {
 	switch b.typ.ID() {
 	case super.IDString:
 		return NewString(NewBytesTable(b.offs, b.bytes))
@@ -368,7 +368,7 @@ func (i *ipBuilder) Write(bytes scode.Bytes) {
 	i.values = append(i.values, super.DecodeIP(bytes))
 }
 
-func (i *ipBuilder) Build() Any {
+func (i *ipBuilder) Build(sctx *super.Context) Any {
 	return NewIP(i.values)
 }
 
@@ -380,7 +380,7 @@ func (n *netBuilder) Write(bytes scode.Bytes) {
 	n.values = append(n.values, super.DecodeNet(bytes))
 }
 
-func (n *netBuilder) Build() Any {
+func (n *netBuilder) Build(sctx *super.Context) Any {
 	return NewNet(n.values)
 }
 
@@ -392,6 +392,6 @@ func (c *nullBuilder) Write(bytes scode.Bytes) {
 	c.n++
 }
 
-func (c *nullBuilder) Build() Any {
+func (c *nullBuilder) Build(sctx *super.Context) Any {
 	return NewConst(super.Null, c.n)
 }

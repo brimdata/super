@@ -45,5 +45,5 @@ func (a *setExpr) eval(in ...vector.Any) vector.Any {
 		}
 		vb.Write(super.NormalizeSet(b.Bytes()))
 	}
-	return vb.Build()
+	return vb.Build(a.sctx)
 }

@@ -36,7 +36,7 @@ func (p *ParseURI) Call(args ...vector.Any) vector.Any {
 		val := super.NewValue(super.TypeString, b.Bytes().Body())
 		db.Write(p.samfn.Call([]super.Value{val}))
 	}
-	return db.Build()
+	return db.Build(p.sctx)
 }
 
 type ParseSUP struct {
@@ -76,7 +76,7 @@ func (p *ParseSUP) Call(args ...vector.Any) vector.Any {
 			builder.Write(*val)
 		}
 	}
-	out := builder.Build()
+	out := builder.Build(p.sctx)
 	if len(errs) > 0 {
 		return vector.Combine(out, errs, vector.NewVecWrappedError(p.sctx, errMsgs, vector.Pick(args[0], errs)))
 	}

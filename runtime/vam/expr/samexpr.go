@@ -8,11 +8,12 @@ import (
 )
 
 type samExpr struct {
+	sctx    *super.Context
 	samEval samexpr.Evaluator
 }
 
-func NewSamExpr(sameval samexpr.Evaluator) Evaluator {
-	return &samExpr{samEval: sameval}
+func NewSamExpr(sctx *super.Context, sameval samexpr.Evaluator) Evaluator {
+	return &samExpr{sctx: sctx, samEval: sameval}
 }
 
 func (s *samExpr) Eval(this vector.Any) vector.Any {
@@ -32,5 +33,5 @@ func (s *samExpr) Eval(this vector.Any) vector.Any {
 		out := s.samEval.Eval(super.NewValue(typ, b.Bytes().Body()))
 		vb.Write(out)
 	}
-	return vb.Build()
+	return vb.Build(s.sctx)
 }

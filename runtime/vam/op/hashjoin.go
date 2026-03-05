@@ -211,7 +211,7 @@ func (j *hashJoin) probeLeft() (vector.Any, error) {
 				b.Write(j.wrap(leftVal.Ptr(), rightVal.Ptr()))
 			}
 		}
-		out := b.Build()
+		out := b.Build(j.sctx)
 		if out.Len() > 0 {
 			return out, nil
 		}
@@ -253,7 +253,7 @@ func (j *hashJoin) probeRight() (vector.Any, error) {
 				b.Write(j.wrap(leftVal.Ptr(), rightVal.Ptr()))
 			}
 		}
-		out := b.Build()
+		out := b.Build(j.sctx)
 		if out.Len() > 0 {
 			return out, nil
 		}
@@ -271,7 +271,7 @@ func (j *hashJoin) drainLeftTable() vector.Any {
 		}
 	}
 	j.hits = nil
-	return b.Build()
+	return b.Build(j.sctx)
 }
 
 func (j *hashJoin) wrap(l, r *super.Value) super.Value {

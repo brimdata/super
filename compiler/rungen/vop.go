@@ -224,7 +224,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		if err != nil {
 			return nil, err
 		}
-		return vam.NewDematerializer(sbufPuller), nil
+		return vam.NewDematerializer(b.sctx(), sbufPuller), nil
 	case *dag.DistinctOp:
 		e, err := b.compileVamExpr(o.Expr)
 		if err != nil {
@@ -254,11 +254,11 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		}
 		return vamop.NewFilter(b.sctx(), parent, e), nil
 	case *dag.FuseOp:
-		return vam.NewDematerializer(fuse.New(b.rctx, vam.NewMaterializer(parent))), nil
+		return vam.NewDematerializer(b.sctx(), fuse.New(b.rctx, vam.NewMaterializer(parent))), nil
 	case *dag.HeadOp:
 		return vamop.NewHead(parent, o.Count), nil
 	case *dag.NullScan:
-		return vam.NewDematerializer(sbuf.NewPuller(sbuf.NewArray([]super.Value{super.Null}))), nil
+		return vam.NewDematerializer(b.sctx(), sbuf.NewPuller(sbuf.NewArray([]super.Value{super.Null}))), nil
 	case *dag.OutputOp:
 		b.channels[o.Name] = append(b.channels[o.Name], vam.NewMaterializer(parent))
 		return parent, nil
@@ -297,7 +297,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		if err != nil {
 			return nil, err
 		}
-		return vam.NewDematerializer(sbufPuller), nil
+		return vam.NewDematerializer(b.sctx(), sbufPuller), nil
 	case *dag.SortOp:
 		var sortExprs []expr.SortExpr
 		for _, e := range o.Exprs {
@@ -315,7 +315,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		if err != nil {
 			return nil, err
 		}
-		return vam.NewDematerializer(sbufPuller), nil
+		return vam.NewDematerializer(b.sctx(), sbufPuller), nil
 	case *dag.UnnestOp:
 		e, err := b.compileVamExpr(o.Expr)
 		if err != nil {

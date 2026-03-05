@@ -8,11 +8,12 @@ import (
 )
 
 type flatten struct {
-	fn *samfunc.Flatten
+	sctx *super.Context
+	fn   *samfunc.Flatten
 }
 
 func newFlatten(sctx *super.Context) *flatten {
-	return &flatten{samfunc.NewFlatten(sctx)}
+	return &flatten{sctx, samfunc.NewFlatten(sctx)}
 }
 
 func (f *flatten) Call(args ...vector.Any) vector.Any {
@@ -29,15 +30,16 @@ func (f *flatten) Call(args ...vector.Any) vector.Any {
 		val := f.fn.Call([]super.Value{super.NewValue(rtyp, b.Bytes().Body())})
 		builder.Write(val)
 	}
-	return builder.Build()
+	return builder.Build(f.sctx)
 }
 
 type unflatten struct {
-	fn *samfunc.Unflatten
+	sctx *super.Context
+	fn   *samfunc.Unflatten
 }
 
 func newUnflatten(sctx *super.Context) *unflatten {
-	return &unflatten{samfunc.NewUnflatten(sctx)}
+	return &unflatten{sctx, samfunc.NewUnflatten(sctx)}
 }
 
 func (u *unflatten) Call(args ...vector.Any) vector.Any {
@@ -51,5 +53,5 @@ func (u *unflatten) Call(args ...vector.Any) vector.Any {
 		val := u.fn.Call([]super.Value{super.NewValue(typ, b.Bytes().Body())})
 		builder.Write(val)
 	}
-	return builder.Build()
+	return builder.Build(u.sctx)
 }

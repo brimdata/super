@@ -112,7 +112,7 @@ func buildList(sctx *super.Context, elems []ListElem, in []vector.Any) ([]uint32
 	}
 	types := super.UniqueTypes(all)
 	if len(types) == 1 {
-		return offsets, mergeSameTypeVecs(types[0], tags, vecs)
+		return offsets, mergeSameTypeVecs(sctx, types[0], tags, vecs)
 	}
 	return offsets, vector.NewUnion(sctx.LookupTypeUnion(types), tags, vecs)
 }
@@ -130,7 +130,7 @@ func unwrapSpread(vec vector.Any) (vector.Any, []uint32, []uint32) {
 	return nil, nil, nil
 }
 
-func mergeSameTypeVecs(typ super.Type, tags []uint32, vecs []vector.Any) vector.Any {
+func mergeSameTypeVecs(sctx *super.Context, typ super.Type, tags []uint32, vecs []vector.Any) vector.Any {
 	// XXX This is going to be slow. At some point would nice to write a native
 	// merge of same type vectors.
 	counts := make([]uint32, len(vecs))
@@ -142,5 +142,5 @@ func mergeSameTypeVecs(typ super.Type, tags []uint32, vecs []vector.Any) vector.
 		vb.Write(b.Bytes().Body())
 		counts[tag]++
 	}
-	return vb.Build()
+	return vb.Build(sctx)
 }

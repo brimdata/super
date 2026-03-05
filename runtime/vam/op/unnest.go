@@ -59,7 +59,7 @@ func (u *Unnest) flatten(vec vector.Any, slot uint32) vector.Any {
 	case *vector.Set:
 		return flattenArrayOrSet(vec.Values, vec.Offsets, slot)
 	case *vector.Record:
-		fields := vec.Fields(u.sctx)
+		fields := vec.Fields
 		if len(fields) != 2 {
 			return vector.NewWrappedError(u.sctx, "unnest: encountered record without two fields", vec)
 		}

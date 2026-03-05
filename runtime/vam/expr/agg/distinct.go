@@ -66,14 +66,14 @@ func (d *distinct) Result(sctx *super.Context) super.Value {
 		b.Write(samagg.NewValueFromDistinctKey(sctx, key))
 		count++
 		if count == 1024 {
-			d.fun.Consume(b.Build())
+			d.fun.Consume(b.Build(sctx))
 			b = vector.NewDynamicBuilder()
 			count = 0
 		}
 		delete(d.seen, key)
 	}
 	if count > 0 {
-		d.fun.Consume(b.Build())
+		d.fun.Consume(b.Build(sctx))
 	}
 	return d.fun.Result(sctx)
 }

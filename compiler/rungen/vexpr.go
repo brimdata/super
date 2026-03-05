@@ -245,7 +245,7 @@ func (b *Builder) compileVamCast(args []dag.Expr) (vamexpr.Evaluator, error) {
 	if err != nil {
 		return nil, err
 	}
-	return vamexpr.NewSamExpr(e), nil
+	return vamexpr.NewSamExpr(b.sctx(), e), nil
 }
 
 func (b *Builder) compileVamMapCallExpr(m *dag.MapCallExpr) (vamexpr.Evaluator, error) {
@@ -308,7 +308,7 @@ func (b *Builder) compileVamSubquery(query *dag.SubqueryExpr) (vamexpr.Evaluator
 	if err != nil {
 		return nil, err
 	}
-	return vamexpr.NewSamExpr(e), nil
+	return vamexpr.NewSamExpr(b.sctx(), e), nil
 }
 
 func (b *Builder) compileVamRegexpMatch(match *dag.RegexpMatchExpr) (vamexpr.Evaluator, error) {

@@ -45,5 +45,5 @@ func (d *DatePart) slow(partArg, timeArg vector.Any) vector.Any {
 		timeVal := super.NewValue(super.TypeTime, b.Bytes().Body())
 		vb.Write(fn.Call([]super.Value{partVal, timeVal}))
 	}
-	return vb.Build()
+	return vb.Build(d.sctx)
 }
