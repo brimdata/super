@@ -159,7 +159,7 @@ type (
 	NoneElem struct {
 		ast.Node
 		Name string
-		Type super.Type
+		Type Expr
 	}
 	SpreadElem struct {
 		ast.Node
@@ -371,6 +371,12 @@ func CopyExpr(e Expr) Expr {
 					Value: CopyExpr(elem.Value),
 					Opt:   elem.Opt,
 				})
+			case *NoneElem:
+				elems = append(elems, &NoneElem{
+					Node: elem.Node,
+					Name: elem.Name,
+					Type: elem.Type,
+				})
 			case *SpreadElem:
 				elems = append(elems, &SpreadElem{
 					Node: elem.Node,
@@ -505,7 +511,7 @@ func recordToExpr(loc ast.Node, typ *super.TypeRecord, bytes scode.Bytes) Expr {
 		}
 		var elem RecordElem
 		if val, none := it.Next(f.Opt); none {
-			elem = &NoneElem{Node: loc, Name: f.Name, Type: f.Type}
+			elem = &NoneElem{Node: loc, Name: f.Name, Type: NewLiteral(loc, super.NewTypeValue(typ))}
 		} else {
 			elem = &FieldElem{Node: loc, Name: f.Name, Value: valueToExpr(loc, f.Type, val), Opt: f.Opt}
 		}

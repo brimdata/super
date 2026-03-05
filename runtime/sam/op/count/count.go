@@ -17,12 +17,11 @@ func New(sctx *super.Context, parent sbuf.Puller, alias string, in expr.Evaluato
 	o := &Op{parent: parent, alias: alias}
 	var elems []expr.RecordElem
 	if in != nil {
-		elems = append(elems, expr.RecordElem{Spread: in})
+		elems = append(elems, &expr.SpreadElem{Expr: in})
 	}
-	elems = append(elems, expr.RecordElem{Name: alias, Field: evalfunc(o.evalCount)})
-	var err error
-	o.expr, err = expr.NewRecordExpr(sctx, elems)
-	return o, err
+	elems = append(elems, &expr.FieldElem{Name: alias, Expr: evalfunc(o.evalCount)})
+	o.expr = expr.NewRecordExpr(sctx, elems)
+	return o, nil
 }
 
 func (o *Op) Pull(done bool) (sbuf.Batch, error) {

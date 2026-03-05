@@ -183,6 +183,7 @@ func demandForExpr(expr dag.Expr) demand.Demand {
 			switch e := e.(type) {
 			case *dag.Field:
 				d = demand.Union(d, demandForExpr(e.Value))
+			case *dag.None:
 			case *dag.Spread:
 				d = demand.Union(d, demandForExpr(e.Expr))
 			default:

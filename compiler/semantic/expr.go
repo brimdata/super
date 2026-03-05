@@ -223,6 +223,20 @@ func (t *translator) expr(e ast.Expr, inType super.Type) (sem.Expr, super.Type) 
 					Opt:   elem.Opt,
 				})
 				types = append(types, typ)
+			case *ast.NoneElem:
+				name := elem.Name.Text
+				if _, ok := fields[name]; ok {
+					t.error(elem, fmt.Errorf("record expression: %w", &super.DuplicateFieldError{Name: name}))
+					continue
+				}
+				fields[name] = struct{}{}
+				e, typ := t.expr(elem.Type, inType)
+				out = append(out, &sem.NoneElem{
+					Node: elem,
+					Name: elem.Name.Text,
+					Type: e,
+				})
+				types = append(types, typ)
 			case *ast.SpreadElem:
 				e, typ := t.expr(elem.Expr, inType)
 				out = append(out, &sem.SpreadElem{
@@ -241,6 +255,7 @@ func (t *translator) expr(e ast.Expr, inType super.Type) (sem.Expr, super.Type) 
 				out = append(out, &sem.FieldElem{
 					Name:  name,
 					Value: e,
+					Opt:   elem.Opt,
 				})
 				types = append(types, typ)
 			default:

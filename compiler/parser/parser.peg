@@ -1244,7 +1244,7 @@ RecordElems
 
 RecordElemTail = __ "," __ elem:RecordElem { return elem, nil }
 
-RecordElem = SpreadElem / FieldElem / ExprElem
+RecordElem = SpreadElem / NoneElem / FieldElem / ExprElem
 
 SpreadElem
   = "..." __ expr:Expr {
@@ -1252,18 +1252,29 @@ SpreadElem
     }
 
 FieldElem
-  = name:Name __ ":" __ value:Expr {
+  = name:Name __ opt:OptToken __ ":" __ value:Expr {
       return &ast.FieldElem{
         Kind: "FieldElem",
         Name: name.(*ast.Text),
         Value: value.(ast.Expr),
+        Opt: opt.(bool),
+        Loc: loc(c),
+      }, nil
+    }
+
+NoneElem
+  = name:Name __ "?" __ ":" __ "_" __ "::" __ typ:TypeAsValue {
+      return &ast.NoneElem{
+        Kind: "NoneElem",
+        Name: name.(*ast.Text),
+        Type: typ.(ast.Expr),
         Loc: loc(c),
       }, nil
     }
 
 ExprElem
-  = expr:Expr {
-      return &ast.ExprElem{Kind: "ExprElem", Expr: expr.(ast.Expr), Loc: loc(c)}, nil
+  = opt:OptToken __ expr:Expr {
+      return &ast.ExprElem{Kind: "ExprElem", Expr: expr.(ast.Expr), Opt: opt.(bool), Loc: loc(c)}, nil
     }
 
 Array

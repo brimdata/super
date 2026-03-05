@@ -13,35 +13,50 @@ type recordExpr struct {
 	builder *scode.Builder
 	fields  []super.Field
 	exprs   []Evaluator
+	nones   []int
 }
 
-func NewRecordExpr(sctx *super.Context, elems []RecordElem) (Evaluator, error) {
-	for _, e := range elems {
-		if e.Spread != nil {
-			return newRecordSpreadExpr(sctx, elems)
-		}
+func NewRecordExpr(sctx *super.Context, elems []RecordElem) Evaluator {
+	if evaluator := newRecordExpr(sctx, elems); evaluator != nil {
+		return evaluator
 	}
-	return newRecordExpr(sctx, elems), nil
+	return newRecordSpreadExpr(sctx, elems)
 }
 
 func newRecordExpr(sctx *super.Context, elems []RecordElem) *recordExpr {
 	fields := make([]super.Field, 0, len(elems))
 	exprs := make([]Evaluator, 0, len(elems))
+	var optOff int
+	var nones []int
 	for _, elem := range elems {
-		//XXX TBD: add support for optional fields in record expressions.
-		fields = append(fields, super.NewField(elem.Name, nil))
-		exprs = append(exprs, elem.Field)
-	}
-	var typ *super.TypeRecord
-	if len(exprs) == 0 {
-		typ = sctx.MustLookupTypeRecord([]super.Field{})
+		var name string
+		var opt bool
+		var typ super.Type
+		switch elem := elem.(type) {
+		case *NoneElem:
+			name = elem.Name
+			typ = elem.Type
+			exprs = append(exprs, nil)
+			nones = append(nones, optOff)
+			opt = true
+		case *FieldElem:
+			name = elem.Name
+			opt = elem.Opt
+			exprs = append(exprs, elem.Expr)
+		case *SpreadElem:
+			return nil
+		}
+		fields = append(fields, super.NewFieldWithOpt(name, typ, opt))
+		if opt {
+			optOff++
+		}
 	}
 	return &recordExpr{
 		sctx:    sctx,
-		typ:     typ,
 		builder: scode.NewBuilder(),
 		fields:  fields,
 		exprs:   exprs,
+		nones:   nones,
 	}
 }
 
@@ -49,7 +64,11 @@ func (r *recordExpr) Eval(this super.Value) super.Value {
 	var changed bool
 	b := r.builder
 	b.Reset()
+	b.BeginContainer()
 	for k, e := range r.exprs {
+		if e == nil {
+			continue
+		}
 		val := e.Eval(this)
 		if r.fields[k].Type != val.Type() {
 			r.fields[k].Type = val.Type()
@@ -57,116 +76,169 @@ func (r *recordExpr) Eval(this super.Value) super.Value {
 		}
 		b.Append(val.Bytes())
 	}
-	if changed {
+	if changed || r.typ == nil {
 		r.typ = r.sctx.MustLookupTypeRecord(r.fields)
 	}
-	return super.NewValue(r.typ, b.Bytes())
+	b.EndContainerWithNones(r.typ.Opts, r.nones)
+	return super.NewValue(r.typ, b.Bytes().Body())
 }
 
-type RecordElem struct {
-	Name   string
-	Field  Evaluator
-	Spread Evaluator
+type RecordElem interface {
+	recordElemSum()
 }
+
+type SpreadElem struct {
+	Expr Evaluator
+}
+
+type FieldElem struct {
+	Name string
+	Expr Evaluator
+	Opt  bool
+}
+
+type NoneElem struct {
+	Name string
+	Type super.Type
+}
+
+func (*SpreadElem) recordElemSum() {}
+func (*FieldElem) recordElemSum()  {}
+func (*NoneElem) recordElemSum()   {}
 
 type recordSpreadExpr struct {
 	sctx    *super.Context
 	elems   []RecordElem
 	builder scode.Builder
 	fields  []super.Field
-	bytes   []scode.Bytes
+	vals    []fieldValue
 	cache   *super.TypeRecord
 }
 
-func newRecordSpreadExpr(sctx *super.Context, elems []RecordElem) (*recordSpreadExpr, error) {
+func newRecordSpreadExpr(sctx *super.Context, elems []RecordElem) *recordSpreadExpr {
 	return &recordSpreadExpr{
 		sctx:  sctx,
 		elems: elems,
-	}, nil
+	}
 }
 
 type fieldValue struct {
 	index int
 	opt   bool
 	value super.Value
+	none  super.Type
+}
+
+func get(rec map[string]fieldValue, name string) fieldValue {
+	fv, ok := rec[name]
+	if !ok {
+		fv = fieldValue{index: len(rec)}
+		rec[name] = fv
+	}
+	return fv
 }
 
 func (r *recordSpreadExpr) Eval(this super.Value) super.Value {
-	object := make(map[string]fieldValue)
+	rec := make(map[string]fieldValue)
 	for _, elem := range r.elems {
-		if elem.Spread != nil {
-			rec := elem.Spread.Eval(this)
-			if rec.IsMissing() {
+		switch elem := elem.(type) {
+		case *SpreadElem:
+			val := elem.Expr.Eval(this)
+			if val.IsMissing() {
 				continue
 			}
-			typ := super.TypeRecordOf(rec.Type())
+			typ := super.TypeRecordOf(val.Type())
 			if typ == nil {
 				// Treat non-record spread values like missing.
 				continue
 			}
-			it := scode.NewRecordIter(rec.Bytes(), typ.Opts)
+			it := scode.NewRecordIter(val.Bytes(), typ.Opts)
 			for _, f := range typ.Fields {
-				fv, ok := object[f.Name]
-				if !ok {
-					// XXX TBD: currently we smash optionals to mandatories and skip nones
-					fv = fieldValue{index: len(object), opt: false}
-					//fv = fieldValue{index: len(object), opt: f.Opt}
-				}
+				fv := get(rec, f.Name)
 				elem, none := it.Next(f.Opt)
 				if none {
-					continue
+					fv.none = f.Type
+					fv.opt = true
+				} else {
+					fv.value = super.NewValue(f.Type, elem)
+					fv.opt = f.Opt
+					fv.none = nil
 				}
-				fv.value = super.NewValue(f.Type, elem)
-				object[f.Name] = fv
+				rec[f.Name] = fv
 			}
-		} else {
-			val := elem.Field.Eval(this)
-			fv, ok := object[elem.Name]
-			if ok {
-				fv.value = val
-			} else {
-				fv = fieldValue{index: len(object), value: val}
-			}
-			object[elem.Name] = fv
+		case *FieldElem:
+			val := elem.Expr.Eval(this)
+			fv := get(rec, elem.Name)
+			fv.value = val
+			fv.none = nil
+			fv.opt = elem.Opt
+			rec[elem.Name] = fv
+		case *NoneElem:
+			// None
+			fv := get(rec, elem.Name)
+			fv.none = elem.Type
+			fv.opt = true
+			rec[elem.Name] = fv
+		default:
+			panic(elem)
 		}
 	}
-	if len(object) == 0 {
+	if len(rec) == 0 {
 		return super.NewValue(r.sctx.MustLookupTypeRecord([]super.Field{}), []byte{})
 	}
-	r.update(object)
+	r.update(rec)
 	b := r.builder
 	b.Reset()
-	for _, bytes := range r.bytes {
-		b.Append(bytes)
+	b.BeginContainer()
+	var optOff int
+	var nones []int
+	for k, fv := range r.vals {
+		if fv.none != nil {
+			nones = append(nones, optOff)
+			optOff++
+			continue
+		}
+		b.Append(fv.value.Bytes())
+		if r.cache.Fields[k].Opt {
+			optOff++
+		}
 	}
-	return super.NewValue(r.cache, b.Bytes())
+	b.EndContainerWithNones(r.cache.Opts, nones)
+	return super.NewValue(r.cache, b.Bytes().Body())
 }
 
 // update maps the object into the receiver's vals slice while also
 // seeing if we can reuse the cached record type.  If not we look up
 // a new type, cache it, and save the field for the cache check.
-func (r *recordSpreadExpr) update(object map[string]fieldValue) {
-	if len(r.fields) != len(object) {
-		r.invalidate(object)
+func (r *recordSpreadExpr) update(rec map[string]fieldValue) {
+	if len(r.fields) != len(rec) {
+		r.invalidate(rec)
 		return
 	}
-	for name, field := range object {
-		//XXX TBD: support for optional fields
-		if r.fields[field.index] != super.NewField(name, field.value.Type()) {
-			r.invalidate(object)
+	for name, fv := range rec {
+		typ := fv.none
+		if typ == nil {
+			typ = fv.value.Type()
+		}
+		if r.fields[fv.index] != super.NewFieldWithOpt(name, typ, fv.opt) {
+			r.invalidate(rec)
 			return
 		}
-		r.bytes[field.index] = field.value.Bytes()
+		r.vals[fv.index] = fv
 	}
 }
 
-func (r *recordSpreadExpr) invalidate(object map[string]fieldValue) {
-	n := len(object)
+func (r *recordSpreadExpr) invalidate(rec map[string]fieldValue) {
+	n := len(rec)
 	r.fields = slices.Grow(r.fields[:0], n)[:n]
-	r.bytes = slices.Grow(r.bytes[:0], n)[:n]
-	for name, field := range object {
-		r.fields[field.index] = super.NewFieldWithOpt(name, field.value.Type(), field.opt)
-		r.bytes[field.index] = field.value.Bytes()
+	r.vals = slices.Grow(r.vals[:0], n)[:n]
+	for name, fv := range rec {
+		typ := fv.none
+		if typ == nil {
+			typ = fv.value.Type()
+		}
+		r.fields[fv.index] = super.NewFieldWithOpt(name, typ, fv.opt)
+		r.vals[fv.index] = fv
 	}
 	r.cache = r.sctx.MustLookupTypeRecord(r.fields)
 }

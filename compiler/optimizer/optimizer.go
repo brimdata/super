@@ -790,6 +790,9 @@ func recordElemsFieldsAndSpread(elems []dag.RecordElem) (map[string]dag.Expr, da
 				return nil, nil, false
 			}
 			spread = e.Expr
+		case *dag.None:
+			// This doesn't work right.  Just don't optimize these for now.
+			return nil, nil, false
 		default:
 			panic(e)
 		}

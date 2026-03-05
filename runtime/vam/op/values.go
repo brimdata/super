@@ -32,7 +32,7 @@ func (v *Values) Pull(done bool) (vector.Any, error) {
 		for _, e := range v.exprs {
 			v := filterQuiet(e.Eval(val))
 			if v != nil {
-				vals = append(vals, vector.This(v))
+				vals = append(vals, vector.Opt(v))
 			}
 		}
 		if len(vals) == 1 {

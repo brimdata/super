@@ -17,9 +17,9 @@ func NewCount(sctx *super.Context, parent vector.Puller, alias string, in expr.E
 	o := &Count{parent: parent, alias: alias}
 	var elems []expr.RecordElem
 	if in != nil {
-		elems = append(elems, expr.RecordElem{Expr: in})
+		elems = append(elems, &expr.SpreadElem{Expr: in})
 	}
-	elems = append(elems, expr.RecordElem{Name: alias, Expr: evalfunc(o.evalCount)})
+	elems = append(elems, &expr.FieldElem{Name: alias, Expr: evalfunc(o.evalCount)})
 	o.expr = expr.NewRecordExpr(sctx, elems)
 	return o
 }

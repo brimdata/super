@@ -1,0 +1,71 @@
+spq: values {x?:1}
+
+vector: true
+
+output: |
+  {x?:1}
+
+---
+
+spq: values {x?:_::string}
+
+vector: true
+
+output: |
+  {x?:_::string}
+
+---
+
+spq: values {x?:1,y?:_::string}
+
+vector: true
+
+output: |
+  {x?:1,y?:_::string}
+
+
+---
+
+spq: values {x?:1,y?:_::string,z:1}
+
+vector: true
+
+output: |
+  {x?:1,y?:_::string,z:1}
+
+---
+
+spq: values {x?:1,y?:_::string,z:1} | values {...this}
+
+vector: true
+
+output: |
+  {x?:1,y?:_::string,z:1}
+
+---
+
+spq: values {x?:1,y?:_::string,z:1} | values {a:1,...this,b:1}
+
+vector: true
+
+output: |
+  {a:1,x?:1,y?:_::string,z:1,b:1}
+
+---
+
+spq: values {x?:1,y?:_::string,z:1} | values {a?:1,...this,b?:1}
+
+vector: true
+
+output: |
+  {a?:1,x?:1,y?:_::string,z:1,b?:1}
+
+---
+
+spq: values {x?:1,y:{x?:_::string},z:1} | values {a?:1,...y,b?:1}
+
+vector: true
+
+output: |
+  {a?:1,x?:_::string,b?:1}
+

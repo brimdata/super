@@ -175,6 +175,11 @@ type (
 		Value Expr   `json:"value"`
 		Opt   bool   `json:"opt"`
 	}
+	None struct {
+		Kind string `json:"kind" unpack:""`
+		Name string `json:"name"`
+		Type Expr   `json:"type"`
+	}
 	Spread struct {
 		Kind string `json:"kind" unpack:""`
 		Expr Expr   `json:"expr"`
@@ -186,6 +191,7 @@ type (
 )
 
 func (*Field) recordElemNode()       {}
+func (*None) recordElemNode()        {}
 func (*Spread) recordElemNode()      {}
 func (*Spread) vectorElemNode()      {}
 func (*VectorValue) vectorElemNode() {}

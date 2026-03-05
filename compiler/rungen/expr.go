@@ -392,19 +392,48 @@ func (b *Builder) compileRecordExpr(record *dag.RecordExpr) (expr.Evaluator, err
 			if err != nil {
 				return nil, err
 			}
-			elems = append(elems, expr.RecordElem{
-				Name:  elem.Name,
-				Field: e,
+			elems = append(elems, &expr.FieldElem{
+				Name: elem.Name,
+				Expr: e,
+				Opt:  elem.Opt,
+			})
+		case *dag.None:
+			noneType, err := b.noneType(elem.Type)
+			if err != nil {
+				return nil, err
+			}
+			elems = append(elems, &expr.NoneElem{
+				Name: elem.Name,
+				Type: noneType,
 			})
 		case *dag.Spread:
 			e, err := b.compileExpr(elem.Expr)
 			if err != nil {
 				return nil, err
 			}
-			elems = append(elems, expr.RecordElem{Spread: e})
+			elems = append(elems, &expr.SpreadElem{Expr: e})
 		}
 	}
-	return expr.NewRecordExpr(b.sctx(), elems)
+	return expr.NewRecordExpr(b.sctx(), elems), nil
+}
+
+func (b *Builder) noneType(in dag.Expr) (super.Type, error) {
+	e, ok := in.(*dag.PrimitiveExpr)
+	if !ok {
+		return nil, errors.New("DAG none type is not a type value")
+	}
+	val, err := sup.ParseValue(b.sctx(), e.Value)
+	if err != nil {
+		return nil, err
+	}
+	if _, ok := val.Type().(*super.TypeOfType); !ok {
+		return nil, errors.New("DAG none type is not a type value")
+	}
+	typ, err := b.sctx().LookupByValue(val.Bytes())
+	if err != nil {
+		panic(err)
+	}
+	return typ, nil
 }
 
 func (b *Builder) compileArrayExpr(array *dag.ArrayExpr) (expr.Evaluator, error) {

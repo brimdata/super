@@ -279,26 +279,35 @@ func (b *Builder) compileVamMapExpr(m *dag.MapExpr) (vamexpr.Evaluator, error) {
 func (b *Builder) compileVamRecordExpr(e *dag.RecordExpr) (vamexpr.Evaluator, error) {
 	var elems []vamexpr.RecordElem
 	for _, elem := range e.Elems {
-		var name string
-		var dagExpr dag.Expr
 		switch elem := elem.(type) {
 		case *dag.Field:
-			name = elem.Name
-			dagExpr = elem.Value
+			expr, err := b.compileVamExpr(elem.Value)
+			if err != nil {
+				return nil, err
+			}
+			elems = append(elems, &vamexpr.FieldElem{
+				Name: elem.Name,
+				Opt:  elem.Opt,
+				Expr: expr,
+			})
+		case *dag.None:
+			noneType, err := b.noneType(elem.Type)
+			if err != nil {
+				return nil, err
+			}
+			elems = append(elems, &vamexpr.NoneElem{
+				Name: elem.Name,
+				Type: noneType,
+			})
 		case *dag.Spread:
-			name = ""
-			dagExpr = elem.Expr
+			expr, err := b.compileVamExpr(elem.Expr)
+			if err != nil {
+				return nil, err
+			}
+			elems = append(elems, &vamexpr.SpreadElem{Expr: expr})
 		default:
 			panic(elem)
 		}
-		expr, err := b.compileVamExpr(dagExpr)
-		if err != nil {
-			return nil, err
-		}
-		elems = append(elems, vamexpr.RecordElem{
-			Name: name,
-			Expr: expr,
-		})
 	}
 	return vamexpr.NewRecordExpr(b.sctx(), elems), nil
 }

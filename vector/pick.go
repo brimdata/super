@@ -1,6 +1,8 @@
 package vector
 
-import "github.com/brimdata/super/vector/bitvec"
+import (
+	"github.com/brimdata/super/vector/bitvec"
+)
 
 // Pick takes any vector vec and an index and returns a new vector consisting of the
 // elements in the index.
@@ -22,7 +24,7 @@ func Pick(val Any, index []uint32) Any {
 	case *Error:
 		return NewError(val.Typ, Pick(val.Vals, index))
 	case *None:
-		return &None{NewError(val.Typ, Pick(val.Vals, index))}
+		return NewNoneWithError(OptType(val), NewError(val.Typ, Pick(val.Vals, index)))
 	case *Union:
 		tags, values := viewForUnionOrDynamic(index, val.Tags, val.ForwardTagMap(), val.Values)
 		return NewUnion(val.Typ, tags, values)
