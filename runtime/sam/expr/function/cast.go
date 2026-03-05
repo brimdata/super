@@ -322,7 +322,13 @@ func (u *upcast) toRecord(from super.Value, to *super.TypeRecord) (super.Value, 
 	b.BeginContainer()
 	for i, f := range to.Fields {
 		var val2 super.Value
-		if fieldVal := from.Deref(f.Name); fieldVal != nil {
+		fieldVal, none := from.DerefWithNone(f.Name)
+		if none {
+			nones = append(nones, optOff)
+			optOff++
+			continue
+		}
+		if fieldVal != nil {
 			val2 = u.Cast(*fieldVal, f.Type)
 			if f.Opt {
 				optOff++

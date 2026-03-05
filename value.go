@@ -316,42 +316,42 @@ func (r Value) Walk(rv Visitor) error {
 	return Walk(r.Type(), r.Bytes(), rv)
 }
 
-func (r Value) nth(n int) (scode.Bytes, bool) {
+func (r Value) nth(n int) (scode.Bytes, bool, bool) {
 	if typ := TypeRecordOf(r.typ); typ != nil {
 		var elem scode.Bytes
 		var none bool
 		for i, it := 0, scode.NewRecordIter(r.Bytes(), typ.Opts); i <= n; i++ {
 			if it.Done() {
-				return nil, false
+				return nil, false, false
 			}
 			elem, none = it.Next(typ.Fields[i].Opt)
 		}
-		if none {
-			elem = nil
-		}
-		return elem, true
+		return elem, none, true
 	}
 	var zv scode.Bytes
 	for i, it := 0, r.Bytes().Iter(); i <= n; i++ {
 		if it.Done() {
-			return nil, false
+			return nil, false, false
 		}
 		zv = it.Next()
 	}
-	return zv, true
+	return zv, false, true
 }
 
 func (r Value) Fields() []Field {
 	return TypeRecordOf(r.Type()).Fields
 }
 
-func (v *Value) DerefByColumn(col int) *Value {
+func (v *Value) DerefByColumn(col int) (*Value, bool) {
 	if v != nil {
-		if bytes, ok := v.nth(col); ok {
-			return NewValue(v.Fields()[col].Type, bytes).Ptr()
+		if bytes, none, ok := v.nth(col); ok {
+			if none {
+				return nil, true
+			}
+			return NewValue(v.Fields()[col].Type, bytes).Ptr(), false
 		}
 	}
-	return nil
+	return nil, false
 }
 
 func (v Value) IndexOfField(field string) (int, bool) {
@@ -368,6 +368,18 @@ func (v *Value) Deref(field string) *Value {
 	i, ok := v.IndexOfField(field)
 	if !ok {
 		return nil
+	}
+	val, _ := v.DerefByColumn(i)
+	return val
+}
+
+func (v *Value) DerefWithNone(field string) (*Value, bool) {
+	if v == nil {
+		return nil, false
+	}
+	i, ok := v.IndexOfField(field)
+	if !ok {
+		return nil, false
 	}
 	return v.DerefByColumn(i)
 }

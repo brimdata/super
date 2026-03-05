@@ -6,3 +6,13 @@ input: |
 
 output: |
   [error({message:"cannot upcast to int8|string",on:1}),"a"::(int8|string)]
+
+---
+
+spq: upcast(this, <{y?:int64,z?:int64}>)
+
+input: |
+  {z?:_::int64}
+
+output: |
+  {y?:_::int64,z?:_::int64}
