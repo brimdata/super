@@ -43,7 +43,6 @@ are output unmodified.
 The operator may be reorder values as they are collected into a sample and analyzed.
 Thus, the order of output is undefined.
 
-
 ## Examples
 
 ---
@@ -110,4 +109,3 @@ infer | sort this
 {y:"foo"}
 ```
 ---
-
