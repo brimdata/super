@@ -175,7 +175,7 @@ func NewFieldFromRLE(sctx *super.Context, vec Any, length uint32, nones []uint32
 	return &Optional{NewDynamic(tags, []Any{vec, &None{NewMissing(sctx, noneLen)}})}
 }
 
-// An Optional value is a special Dynamic that has two tags comprosing the
+// An Optional value is a special Dynamic that has two tags comprising the
 // values present and the Nones.
 type Optional struct {
 	*Dynamic
