@@ -125,11 +125,28 @@ func (r *Reader) decodeRecord(b *scode.Builder, typ *super.TypeRecord, v any) er
 			return errors.New("JSUP record value has mismatched number of field values")
 		}
 	}
+	var optOff int
+	skip := make([]bool, typ.Opts)
+	for _, at := range nones {
+		if at >= len(skip) {
+			return errors.New("JSUP record value has out-of-range none index")
+		}
+		skip[at] = true
+	}
 	b.BeginContainer()
-	for k, val := range values {
+	for k, f := range typ.Fields {
 		if k >= len(fields) {
 			return errors.New("JSUP record value has extra field value")
 		}
+		if f.Opt {
+			if skip[optOff] {
+				optOff++
+				continue
+			}
+			optOff++
+		}
+		val := values[0]
+		values = values[1:]
 		// Each field is either a string value or an array of string values.
 		if err := r.decodeValue(b, fields[k].Type, val); err != nil {
 			return err

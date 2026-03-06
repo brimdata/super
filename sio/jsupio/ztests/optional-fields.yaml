@@ -1,0 +1,11 @@
+script: |
+  super -f jsup in.sup | super -i jsup -s -
+
+inputs:
+  - name: in.sup
+    data: &in |
+      {x?:1,y?:_::string,z:1}
+
+outputs:
+  - name: stdout
+    data: *in
