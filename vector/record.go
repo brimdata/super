@@ -153,26 +153,26 @@ type None struct {
 	*Error
 }
 
-func isNone(val Any, slot uint32) bool {
-	if _, ok := val.(*None); ok {
+func isNone(vec Any, slot uint32) bool {
+	if _, ok := vec.(*None); ok {
 		return true
 	}
-	if o, ok := val.(*Optional); ok {
+	if o, ok := vec.(*Optional); ok {
 		return o.Dynamic.Tags[slot] == 1
 	}
 	return false
 }
 
-func NewFieldFromRLE(sctx *super.Context, val Any, length uint32, nones []uint32) Any {
+func NewFieldFromRLE(sctx *super.Context, vec Any, length uint32, nones []uint32) Any {
 	if len(nones) == 0 {
-		return val
+		return vec
 	}
 	tags, noneLen := buildTags(nones, length)
 	if noneLen == 0 {
 		// This field is optional but everything is here in this instance.
-		return val
+		return vec
 	}
-	return &Optional{NewDynamic(tags, []Any{val, &None{NewMissing(sctx, noneLen)}})}
+	return &Optional{NewDynamic(tags, []Any{vec, &None{NewMissing(sctx, noneLen)}})}
 }
 
 // An Optional value is a special Dynamic that has two tags comprosing the
@@ -185,12 +185,12 @@ func (o *Optional) Type() super.Type {
 	return o.Dynamic.Values[0].Type()
 }
 
-func This(v Any) Any {
-	switch v := v.(type) {
+func This(vec Any) Any {
+	switch vec := vec.(type) {
 	case *Optional:
-		return v.Dynamic
+		return vec.Dynamic
 	case *None:
-		return v.Error
+		return vec.Error
 	}
-	return v
+	return vec
 }
