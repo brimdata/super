@@ -180,6 +180,11 @@ func (d *dagen) op(op sem.Op) dag.Op {
 			Kind:  "HeadOp",
 			Count: op.Count,
 		}
+	case *sem.InferOp:
+		return &dag.InferOp{
+			Kind:  "InferOp",
+			Limit: op.Limit,
+		}
 	case *sem.JoinOp:
 		return &dag.JoinOp{
 			Kind:       "JoinOp",

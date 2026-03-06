@@ -52,6 +52,7 @@ var unpacker = unpack.New(
 	GlobExpr{},
 	HeadOp{},
 	IDExpr{},
+	InferOp{},
 	ImpliedValue{},
 	IndexExpr{},
 	IsNullExpr{},

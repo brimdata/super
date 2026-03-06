@@ -1,0 +1,112 @@
+spq: values [1,"2"] | infer 
+
+output: |
+  [1,2]
+
+---
+
+spq: values [1,"foo"] | infer 
+
+output: |
+  [1,"foo"]
+
+---
+
+spq: |
+  infer 2
+
+input: |
+  {y:"2"}
+  {y:"3"}
+  {y:"foo"}
+
+# the error below will be replaced in a subsequent PR when we fix 
+# cast to return a status so we can easily revert to the original value here
+
+output: |
+  {y:2}
+  {y:3}
+  {y:error({message:"cannot cast to int64",on:"foo"})}
+
+---
+
+spq: infer | sort this
+
+input: |
+  {x:"1"}
+  {y:"2"}
+  {ts:"Jun 1, 2025"}
+  {a:["true","false"]}
+  {b:["1","2"]}
+  {ts:"Jun 2, 2025"}
+  {y:"foo"}
+
+output: |
+  {a:[true,false]}
+  {b:[1,2]}
+  {ts:2025-06-02T00:00:00Z}
+  {ts:2025-06-01T00:00:00Z}
+  {x:1}
+  {y:"2"}
+  {y:"foo"}
+
+---
+
+spq: unnest this into ( infer | sort this )
+
+input: |
+  ["1","2"]
+  ["192.168.1.1","10.0.0.1"]
+  ["1",2]
+
+output: |
+  1
+  2
+  10.0.0.1
+  192.168.1.1
+  1
+  2
+
+---
+
+spq: fuse | infer | sort this
+
+input: |
+  {x:"1"}
+  {y:"2"}
+  {ts:"Jun 1, 2025"}
+  {a:["true","false"]}
+  {b:["1","2"]}
+  {ts:"Jun 2, 2025"}
+  {y:"foo"}
+
+output: |
+  {x?:_::int64,y?:_::string,ts?:_::time,a?:_::[bool],b?:[1,2]}
+  {x?:_::int64,y?:_::string,ts?:_::time,a?:[true,false],b?:_::[int64]}
+  {x?:_::int64,y?:_::string,ts?:2025-06-02T00:00:00Z,a?:_::[bool],b?:_::[int64]}
+  {x?:_::int64,y?:_::string,ts?:2025-06-01T00:00:00Z,a?:_::[bool],b?:_::[int64]}
+  {x?:_::int64,y?:"2",ts?:_::time,a?:_::[bool],b?:_::[int64]}
+  {x?:_::int64,y?:"foo",ts?:_::time,a?:_::[bool],b?:_::[int64]}
+  {x?:1,y?:_::string,ts?:_::time,a?:_::[bool],b?:_::[int64]}
+
+---
+
+spq: infer | sort this
+
+input: |
+  {x:"192.168.1.1"::(string|int64|ip)}
+  {x:1}
+  {x:"192.168.1.2"::(string|int64|ip)}
+  {x:3::(string|int64|ip)}
+  {x:"foo"}
+  {x:10.0.0.1::(string|int64|ip)}
+
+# errors below are a bug in cast... we should fix
+
+output: |
+  {x:1}
+  {x:"foo"}
+  {x:3::(int64|ip)}
+  {x:10.0.0.1::(int64|ip)}
+  {x:error({message:"cannot cast to int64|ip",on:"192.168.1.1"})}
+  {x:error({message:"cannot cast to int64|ip",on:"192.168.1.2"})}

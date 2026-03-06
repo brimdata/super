@@ -300,7 +300,7 @@ func (o *Optimizer) concurrentPath(seq dag.Seq, sortKeys order.SortKeys) (length
 			// request a merge and set the Load operator to do a sorted write.
 			return k, nil, false, nil
 		case *dag.ForkOp, *dag.ScatterOp, *dag.HeadOp, *dag.TailOp, *dag.UniqOp, *dag.FuseOp,
-			*dag.HashJoinOp, *dag.JoinOp, *dag.OutputOp:
+			*dag.HashJoinOp, *dag.InferOp, *dag.JoinOp, *dag.OutputOp:
 			return k, sortExprsForSortKeys(sortKeys), true, nil
 		default:
 			next, err := o.analyzeSortKeys(op, sortKeys)

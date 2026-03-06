@@ -371,6 +371,7 @@ Operator
   / LoadOp
   / OutputOp
   / DebugOp
+  / InferOp
 
  ForkOp =
    FORK paths:( __ path:ScopeBody { return path, nil })+ {
@@ -712,6 +713,18 @@ DebugOp
         d.Filter = filter.(ast.Expr)
       }
       return d, nil
+    }
+
+InferOp
+  = INFER limit:(_ e:Expr { return e, nil })? {
+      op := &ast.InferOp{
+        Kind: "InferOp",
+        Loc: loc(c),
+      }
+      if limit != nil {
+        op.Limit = limit.(ast.Expr)
+      }
+      return op, nil
     }
 
 FromOp
@@ -2460,6 +2473,7 @@ GROUP      = "GROUP"i           !IdentifierRest
 HAVING     = "HAVING"i          !IdentifierRest
 HEAD       = "HEAD"i            !IdentifierRest
 IN         = "IN"i              !IdentifierRest
+INFER      = "INFER"i           !IdentifierRest
 INNER      = "INNER"i           !IdentifierRest
 IS         = "IS"i              !IdentifierRest
 JOIN       = "JOIN"i            !IdentifierRest

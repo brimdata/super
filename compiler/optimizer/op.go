@@ -40,7 +40,7 @@ func (o *Optimizer) analyzeSortKeys(op dag.Op, in order.SortKeys) (order.SortKey
 	case *dag.ListerScan:
 		// This shouldn't happen.
 		return nil, errors.New("internal error: dag.Lister encountered in anaylzeSortKeys")
-	case *dag.FilterOp, *dag.HeadOp, *dag.PassOp, *dag.UniqOp, *dag.TailOp, *dag.FuseOp, *dag.OutputOp:
+	case *dag.FilterOp, *dag.HeadOp, *dag.InferOp, *dag.PassOp, *dag.UniqOp, *dag.TailOp, *dag.FuseOp, *dag.OutputOp:
 		return in, nil
 	case *dag.CutOp:
 		return analyzeCuts(op.Args, in), nil

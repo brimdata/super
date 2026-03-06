@@ -146,6 +146,10 @@ type (
 		ast.Node
 		Count int
 	}
+	InferOp struct {
+		ast.Node
+		Limit int
+	}
 	JoinOp struct {
 		ast.Node
 		Style      string
@@ -250,6 +254,7 @@ func (*FilterOp) opNode()    {}
 func (*ForkOp) opNode()      {}
 func (*FuseOp) opNode()      {}
 func (*HeadOp) opNode()      {}
+func (*InferOp) opNode()     {}
 func (*JoinOp) opNode()      {}
 func (*LoadOp) opNode()      {}
 func (*MergeOp) opNode()     {}

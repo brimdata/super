@@ -36,6 +36,7 @@ var unpacker = unpack.New(
 	HeadOp{},
 	HTTPScan{},
 	IndexExpr{},
+	InferOp{},
 	IsNullExpr{},
 	JoinOp{},
 	DBMetaScan{},

@@ -36,8 +36,8 @@ _schema inference_ in other systems.
 >[!NOTE]
 > Schema inference also involves the inference of particular primitive data types from
 > string data when the strings represent dates, times, IP addresses, etc.
-> This step is orthogonal to type fusion and can be applied to the input
-> types of any type fusion algorithm.
+> The [infer](operators/infer.md) operator performs this function and can be easily applied to the
+> output of type fusion.
 
 A fused type computed over heterogeneous data represents a typical
 design pattern of a data warehouse, where a relational table
