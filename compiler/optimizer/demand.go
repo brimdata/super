@@ -81,7 +81,7 @@ func demandForSimpleOp(op dag.Op, downstream demand.Demand) demand.Demand {
 		return demand.Union(downstream, demandForExpr(op.Expr))
 	case *dag.FuseOp:
 		return demand.All()
-	case *dag.HeadOp:
+	case *dag.HeadOp, *dag.InferOp:
 		return downstream
 	case *dag.LoadOp:
 		return demand.All()

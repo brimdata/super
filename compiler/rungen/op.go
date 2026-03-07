@@ -26,6 +26,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/op/fork"
 	"github.com/brimdata/super/runtime/sam/op/fuse"
 	"github.com/brimdata/super/runtime/sam/op/head"
+	"github.com/brimdata/super/runtime/sam/op/infer"
 	"github.com/brimdata/super/runtime/sam/op/load"
 	"github.com/brimdata/super/runtime/sam/op/merge"
 	"github.com/brimdata/super/runtime/sam/op/meta"
@@ -320,6 +321,8 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 		return nil, errors.New("merge: multiple upstream paths required")
 	case *dag.HeadOp:
 		return head.New(parent, v.Count), nil
+	case *dag.InferOp:
+		return infer.New(b.rctx, parent, v.Limit), nil
 	case *dag.LoadOp:
 		return load.New(b.rctx, b.env.DB(), parent, v.Pool, v.Branch, v.Author, v.Message, v.Meta), nil
 	case *dag.OutputOp:

@@ -10,6 +10,7 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/op/fuse"
+	"github.com/brimdata/super/runtime/sam/op/infer"
 	"github.com/brimdata/super/runtime/vam"
 	vamexpr "github.com/brimdata/super/runtime/vam/expr"
 	vamop "github.com/brimdata/super/runtime/vam/op"
@@ -257,6 +258,8 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		return vam.NewDematerializer(b.sctx(), fuse.New(b.rctx, vam.NewMaterializer(parent))), nil
 	case *dag.HeadOp:
 		return vamop.NewHead(parent, o.Count), nil
+	case *dag.InferOp:
+		return vam.NewDematerializer(b.sctx(), infer.New(b.rctx, vam.NewMaterializer(parent), o.Limit)), nil
 	case *dag.NullScan:
 		return vam.NewDematerializer(b.sctx(), sbuf.NewPuller(sbuf.NewArray([]super.Value{super.Null}))), nil
 	case *dag.OutputOp:

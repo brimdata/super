@@ -815,6 +815,15 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq, inType super.Type) (sem.Seq, s
 			Node:  o,
 			Count: count,
 		}), inType
+	case *ast.InferOp:
+		limit := 100
+		if o.Limit != nil {
+			limit = t.mustEvalPositiveInteger(o.Limit)
+		}
+		return append(seq, &sem.InferOp{
+			Node:  o,
+			Limit: limit,
+		}), inType
 	case *ast.TailOp:
 		count := 1
 		if o.Count != nil {

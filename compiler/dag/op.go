@@ -108,6 +108,10 @@ type (
 		Kind  string `json:"kind" unpack:""`
 		Count int    `json:"count"`
 	}
+	InferOp struct {
+		Kind  string `json:"kind" unpack:""`
+		Limit int    `json:"limit"`
+	}
 	JoinOp struct {
 		Kind       string `json:"kind" unpack:""`
 		Style      string `json:"style"`
@@ -213,6 +217,7 @@ func (*ForkOp) opNode()      {}
 func (*FuseOp) opNode()      {}
 func (*HashJoinOp) opNode()  {}
 func (*HeadOp) opNode()      {}
+func (*InferOp) opNode()     {}
 func (*JoinOp) opNode()      {}
 func (*LoadOp) opNode()      {}
 func (*MergeOp) opNode()     {}

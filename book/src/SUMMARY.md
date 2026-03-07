@@ -70,6 +70,7 @@
         - [from](super-sql/operators/from.md)
         - [fuse](super-sql/operators/fuse.md)
         - [head](super-sql/operators/head.md)
+        - [infer](super-sql/operators/infer.md)
         - [join](super-sql/operators/join.md)
         - [load](super-sql/operators/load.md)
         - [pass](super-sql/operators/pass.md)
