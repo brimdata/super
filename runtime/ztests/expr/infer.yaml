@@ -16,8 +16,7 @@ output: |
 
 ---
 
-spq: |
-  infer 2
+spq: infer 2 | sort this
 
 vector: true
 
@@ -32,7 +31,7 @@ input: |
 output: |
   {y:2}
   {y:3}
-  {y:error({message:"cannot cast to int64",on:"foo"})}
+  error({message:"inference cast failed (try larger sample size)",on:{y:"foo"}})
 
 ---
 
@@ -122,8 +121,8 @@ output: |
   {x:"foo"}
   {x:3::(int64|ip)}
   {x:10.0.0.1::(int64|ip)}
-  {x:error({message:"cannot cast to int64|ip",on:"192.168.1.1"})}
-  {x:error({message:"cannot cast to int64|ip",on:"192.168.1.2"})}
+  error({message:"inference cast failed (try larger sample size)",on:{x:"192.168.1.1"::(int64|string|ip)}})
+  error({message:"inference cast failed (try larger sample size)",on:{x:"192.168.1.2"::(int64|string|ip)}})
 
 ---
 
