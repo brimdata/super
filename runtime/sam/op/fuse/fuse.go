@@ -10,6 +10,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/op"
 	"github.com/brimdata/super/runtime/sam/op/spill"
 	"github.com/brimdata/super/sbuf"
+	"github.com/brimdata/super/sup"
 )
 
 var MemMaxBytes = 128 * 1024 * 1024
@@ -178,7 +179,11 @@ func (v *valueFuser) Read() (*super.Value, error) {
 	if val == nil || err != nil {
 		return nil, err
 	}
-	return v.caster.Cast(*val, v.typ).Ptr(), nil
+	sval, ok := v.caster.Cast(*val, v.typ)
+	if !ok {
+		return v.sctx.WrapError("cannot upcast to "+sup.FormatType(v.typ), *val).Ptr(), nil
+	}
+	return sval.Ptr(), nil
 }
 
 func (v *valueFuser) next() (*super.Value, error) {

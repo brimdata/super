@@ -129,7 +129,10 @@ func (c *converter) drain(out *sbuf.Array, force bool) error {
 func (c *converter) convert(val super.Value) (super.Value, bool) {
 	if to, ok := c.target[val.Type()]; ok {
 		if to != nil {
-			val = c.caster.Cast(val, to)
+			if converted, ok := c.caster.Cast(val, to); ok {
+				return converted, true
+			}
+			return c.rctx.Sctx.WrapError("inference cast failed (try larger sample size)", val), true
 		}
 		return val, true
 	}
