@@ -40,15 +40,24 @@ func newInferer(typ super.Type) infer {
 			return &inferNode{fields}
 		}
 	case *super.TypeArray:
-		return &inferNode{[]infer{newInferer(typ.Type)}}
+		child := newInferer(typ.Type)
+		if child == nil {
+			return nil
+		}
+		return &inferNode{[]infer{child}}
 	case *super.TypeOfString:
 		return &inferString{}
 	case *super.TypeUnion:
 		var children []infer
+		var n int
 		for _, typ := range typ.Types {
-			children = append(children, newInferer(typ))
+			child := newInferer(typ)
+			children = append(children, child)
+			if child != nil {
+				n++
+			}
 		}
-		if len(children) >= 0 {
+		if n >= 0 {
 			return &inferNode{children}
 		}
 	}
@@ -68,7 +77,9 @@ func (i *inferNode) load(typ super.Type, bytes scode.Bytes) {
 			if none {
 				continue
 			}
-			i.children[k].load(f.Type, elem)
+			if child := i.children[k]; child != nil {
+				child.load(f.Type, elem)
+			}
 		}
 	case *super.TypeArray:
 		inner := typ.Type
@@ -97,7 +108,11 @@ func (i *inferNode) typeof(sctx *super.Context, typ super.Type) super.Type {
 	case *super.TypeRecord:
 		var fields []super.Field
 		for k, f := range typ.Fields {
-			fields = append(fields, super.NewFieldWithOpt(f.Name, i.children[k].typeof(sctx, f.Type), f.Opt))
+			typ := f.Type
+			if child := i.children[k]; child != nil {
+				typ = child.typeof(sctx, f.Type)
+			}
+			fields = append(fields, super.NewFieldWithOpt(f.Name, typ, f.Opt))
 		}
 		return sctx.MustLookupTypeRecord(fields)
 	case *super.TypeArray:
@@ -106,14 +121,9 @@ func (i *inferNode) typeof(sctx *super.Context, typ super.Type) super.Type {
 		types := make(map[super.Type]struct{})
 		for k, typ := range typ.Types {
 			if child := i.children[k]; child != nil {
-				if typ := child.typeof(sctx, typ); typ != nil {
-					types[typ] = struct{}{}
-				} else {
-					types[typ] = struct{}{}
-				}
-			} else {
-				types[typ] = struct{}{}
+				typ = child.typeof(sctx, typ)
 			}
+			types[typ] = struct{}{}
 		}
 		out := make([]super.Type, 0, len(types))
 		for typ := range types {

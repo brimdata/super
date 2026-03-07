@@ -22,7 +22,7 @@ The sampling process collects at least `<limit>` input values for each input typ
 then computes an inferred type for the sample, where the inferred type is identical
 to the input type except for any embedded string types inferred to be of a candidate type.
 Such inference occurs when all of the values contained by that string type
-are uniformly coercable to the candidate type, which may be one of:
+are uniformly coercible to the candidate type, which may be one of:
 * [int64](../types/numbers.md#signed-integers),
 * [float64](../types/numbers.md#floating-point),
 * [ip](../types/network.md),
@@ -30,17 +30,17 @@ are uniformly coercable to the candidate type, which may be one of:
 * [time](../types/time.md), or
 * [bool](../types/bool.md).
 
-`int64` inference takes precedence over `float64.  All of the other candidate types
+`int64` inference takes precedence over `float64`.  All of the other candidate types
 are unambiguous with one another.
 
 If end of input is reached before collecting the desired sample size, then
-the inferences is conducted on the available values.
+the inference is conducted on the available values.
 
 Once a type is inferred for a given sample, the values are cast to that type
-and output by the operator.  If the inferred type is unchanged, then then the values
+and output by the operator.  If the inferred type is unchanged, then the values
 are output unmodified.
 
-The operator may be reorder values as they are collected into a sample and analyzed.
+The operator may reorder values as they are collected into a sample and analyzed.
 Thus, the order of output is undefined.
 
 ## Examples

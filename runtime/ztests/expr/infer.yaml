@@ -110,3 +110,16 @@ output: |
   {x:10.0.0.1::(int64|ip)}
   {x:error({message:"cannot cast to int64|ip",on:"192.168.1.1"})}
   {x:error({message:"cannot cast to int64|ip",on:"192.168.1.2"})}
+
+---
+
+spq: infer
+
+input: |
+  log_time,client_ip,request,status_code,object_size
+  2012-01-01 00:00:00,25.152.171.147,/books/Six_Easy_Pieces.html,404,271
+  2012-01-01 00:00:03,243.180.100.114,/slideshow/1.jpg,304,0
+
+output: |
+  {log_time:2012-01-01T00:00:00Z,client_ip:25.152.171.147,request:"/books/Six_Easy_Pieces.html",status_code:404.,object_size:271.}
+  {log_time:2012-01-01T00:00:03Z,client_ip:243.180.100.114,request:"/slideshow/1.jpg",status_code:304.,object_size:0.}
