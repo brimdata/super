@@ -1,21 +1,37 @@
-spq: defuse(this)
+spq: fuse -complete
 
 vector: true
 
 input: |
-  [1,2,"foo"]::[null|int64|string]
-  {x:[1,2]::[null|int64],y?:_::string,z:1::(int64|string)}
+  [1,2]
+  ["foo"]
+  [null]
 
 output: |
-  [1,2,"foo"]
-  {x:[1,2],z:1}
+  fusion([fusion(1::(int64|string|null),<int64>),fusion(2::(int64|string|null),<int64>)],<[int64]>)
+  fusion([fusion("foo"::(int64|string|null),<string>)],<[string]>)
+  fusion([fusion(null::(int64|string|null),<null>)],<[null]>)
+
 ---
 
-spq: fuse | defuse(this)
+spq: fuse -complete | defuse(this)
+
+vector: true
+
+input: &input |
+  [1,2]
+  ["foo"]
+  [null]
+
+output: *input
+
+---
+
+spq: fuse -complete | defuse(this)
 
 input: &input |
   {x:1}
-  {x:2,y:3}
+  {x:2,y?:3}
 
 output: *input
 

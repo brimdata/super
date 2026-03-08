@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	Version     = 14
+	Version     = 15
 	HeaderSize  = 28
 	MaxMetaSize = 100 * 1024 * 1024
 	MaxDataSize = 2 * 1024 * 1024 * 1024

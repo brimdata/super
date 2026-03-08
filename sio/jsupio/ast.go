@@ -15,6 +15,7 @@ func init() {
 	unpacker.AddAs(zUnion{}, "union")
 	unpacker.AddAs(zEnum{}, "enum")
 	unpacker.AddAs(zError{}, "error")
+	unpacker.AddAs(zFusion{}, "fusion")
 	unpacker.AddAs(zNamed{}, "named")
 	unpacker.AddAs(zRef{}, "ref")
 }

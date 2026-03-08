@@ -24,11 +24,11 @@ type Op struct {
 	resultCh chan op.Result
 }
 
-func New(rctx *runtime.Context, parent sbuf.Puller) *Op {
+func New(rctx *runtime.Context, sup bool, parent sbuf.Puller) *Op {
 	return &Op{
 		rctx:     rctx,
 		parent:   parent,
-		fuser:    newValueFuser(rctx.Sctx, MemMaxBytes),
+		fuser:    newValueFuser(rctx.Sctx, MemMaxBytes, sup),
 		resultCh: make(chan op.Result),
 	}
 }
@@ -116,11 +116,11 @@ type valueFuser struct {
 // newValueFuser returns a new valueFuser that buffers values in memory until
 // their cumulative size (measured in scode.Bytes length) exceeds memMaxBytes,
 // at which point it buffers them in a temporary file.
-func newValueFuser(sctx *super.Context, memMaxBytes int) *valueFuser {
+func newValueFuser(sctx *super.Context, memMaxBytes int, sup bool) *valueFuser {
 	return &valueFuser{
 		sctx:        sctx,
 		memMaxBytes: memMaxBytes,
-		fuser:       agg.NewFuser(sctx),
+		fuser:       agg.NewFuser(sctx, sup),
 		caster:      function.NewUpCaster(sctx),
 	}
 }

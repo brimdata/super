@@ -57,6 +57,11 @@ type (
 		ID   int    `json:"id"`
 		Type zType  `json:"type"`
 	}
+	zFusion struct {
+		Kind string `json:"kind" unpack:"fusion"`
+		ID   int    `json:"id"`
+		Type zType  `json:"type"`
+	}
 	zNamed struct {
 		Kind string `json:"kind" unpack:"named"`
 		ID   int    `json:"id"`
@@ -77,6 +82,7 @@ func (*zMap) typeNode()       {}
 func (*zUnion) typeNode()     {}
 func (*zEnum) typeNode()      {}
 func (*zError) typeNode()     {}
+func (*zFusion) typeNode()    {}
 func (*zNamed) typeNode()     {}
 func (*zRef) typeNode()       {}
 
@@ -164,6 +170,12 @@ func (e encoder) newType(typ super.Type) zType {
 			ID:   super.TypeID(typ),
 			Type: e.encodeType(typ.Type),
 		}
+	case *super.TypeFusion:
+		return &zFusion{
+			Kind: "fusion",
+			ID:   super.TypeID(typ),
+			Type: e.encodeType(typ.Type),
+		}
 	default:
 		return &zPrimitive{
 			Kind: "primitive",
@@ -222,6 +234,14 @@ func (d decoder) decodeType(sctx *super.Context, t zType) (super.Type, error) {
 			return nil, err
 		}
 		typ := sctx.LookupTypeError(inner)
+		d[t.ID] = typ
+		return typ, nil
+	case *zFusion:
+		inner, err := d.decodeType(sctx, t.Type)
+		if err != nil {
+			return nil, err
+		}
+		typ := sctx.LookupTypeFusion(inner)
 		d[t.ID] = typ
 		return typ, nil
 	case *zPrimitive:

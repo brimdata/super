@@ -52,6 +52,7 @@ const (
 	UnionKind
 	EnumKind
 	ErrorKind
+	FusionKind
 )
 
 func (k Kind) String() string {
@@ -99,6 +100,7 @@ var (
 	TypeNet    = &TypeOfNet{}
 	TypeType   = &TypeOfType{}
 	TypeNull   = &TypeOfNull{}
+	//XXX add empty
 )
 
 // Primary Type IDs
@@ -134,22 +136,24 @@ const (
 	IDNet         = 27
 	IDType        = 28
 	IDNull        = 29
-	IDTypeComplex = 30
+	IDNone        = 30
+	IDTypeComplex = 31
 )
 
 // Encodings for complex type values.
 
 const (
-	TypeValueRecord  = 30
-	TypeValueArray   = 31
-	TypeValueSet     = 32
-	TypeValueMap     = 33
-	TypeValueUnion   = 34
-	TypeValueEnum    = 35
-	TypeValueError   = 36
-	TypeValueNameDef = 37
-	TypeValueNameRef = 38
-	TypeValueMax     = TypeValueNameRef
+	TypeValueRecord  = 31
+	TypeValueArray   = 32
+	TypeValueSet     = 33
+	TypeValueMap     = 34
+	TypeValueUnion   = 35
+	TypeValueEnum    = 36
+	TypeValueError   = 37
+	TypeValueNameDef = 38
+	TypeValueNameRef = 39
+	TypeValueFusion  = 40
+	TypeValueMax     = TypeValueFusion
 )
 
 // True iff the type id is encoded as a BSUP signed or unsigened integer scode.Bytes.
@@ -562,6 +566,9 @@ func appendTypeValue(b scode.Bytes, t Type, typedefs *map[string]Type) scode.Byt
 		return appendTypeValue(b, t.ValType, typedefs)
 	case *TypeError:
 		b = append(b, TypeValueError)
+		return appendTypeValue(b, t.Type, typedefs)
+	case *TypeFusion:
+		b = append(b, TypeValueFusion)
 		return appendTypeValue(b, t.Type, typedefs)
 	default:
 		// Primitive type

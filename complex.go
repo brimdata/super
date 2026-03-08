@@ -298,6 +298,46 @@ func NormalizeSet(zv scode.Bytes) scode.Bytes {
 	return norm
 }
 
+type TypeFusion struct {
+	id   int
+	Type Type
+}
+
+func NewTypeFusion(id int, typ Type) *TypeFusion {
+	return &TypeFusion{id: id, Type: typ}
+}
+
+func (t *TypeFusion) ID() int {
+	return t.id
+}
+
+func (t *TypeFusion) Kind() Kind {
+	return FusionKind
+}
+
+// Decode the supertype value bytes and the subtype from a fusion type.
+func (t *TypeFusion) Deref(sctx *Context, bytes scode.Bytes) (scode.Bytes, Type) {
+	it := bytes.Iter()
+	superBytes := it.Next()
+	subType, err := sctx.LookupByValue(it.Next())
+	if err != nil {
+		panic(err)
+	}
+	return superBytes, subType
+}
+
+func (t *TypeFusion) DerefFusion(bytes scode.Bytes) (Type, scode.Bytes) {
+	it := bytes.Iter()
+	return t.Type, it.Next()
+}
+
+func BuildFusion(b *scode.Builder, superVal scode.Bytes, subType scode.Bytes) {
+	b.BeginContainer()
+	b.Append(superVal)
+	b.Append(subType)
+	b.EndContainer()
+}
+
 type TypeUnion struct {
 	id    int
 	Types []Type

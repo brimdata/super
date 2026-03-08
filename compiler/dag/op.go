@@ -94,7 +94,8 @@ type (
 		Paths []Seq  `json:"paths"`
 	}
 	FuseOp struct {
-		Kind string `json:"kind" unpack:""`
+		Kind     string `json:"kind" unpack:""`
+		Complete bool   `json:"complete"`
 	}
 	HashJoinOp struct {
 		Kind       string `json:"kind" unpack:""`

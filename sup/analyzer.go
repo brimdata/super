@@ -7,6 +7,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/ast"
+	"github.com/brimdata/super/scode"
 )
 
 type Value interface {
@@ -61,6 +62,11 @@ type (
 		Type  super.Type
 		Value Value
 	}
+	Fusion struct {
+		Type    super.Type
+		Value   Value
+		SubType scode.Bytes
+	}
 	None struct {
 		Type super.Type
 	}
@@ -76,6 +82,7 @@ func (m *Map) TypeOf() super.Type       { return m.Type }
 func (n *Null) TypeOf() super.Type      { return n.Type }
 func (t *TypeValue) TypeOf() super.Type { return t.Type }
 func (e *Error) TypeOf() super.Type     { return e.Type }
+func (f *Fusion) TypeOf() super.Type    { return f.Type }
 func (n *None) TypeOf() super.Type      { return n.Type }
 
 func (p *Primitive) SetType(t super.Type) { p.Type = t }
@@ -88,6 +95,7 @@ func (m *Map) SetType(t super.Type)       { m.Type = t }
 func (n *Null) SetType(t super.Type)      { n.Type = t }
 func (t *TypeValue) SetType(T super.Type) { t.Type = T }
 func (e *Error) SetType(t super.Type)     { e.Type = t }
+func (f *Fusion) SetType(t super.Type)    { f.Type = t }
 func (n *None) SetType(t super.Type)      { n.Type = t }
 
 // An Analyzer transforms an ast.Value (which has decentralized type decorators)
@@ -240,6 +248,8 @@ func (a Analyzer) convertAny(sctx *super.Context, val ast.Any, cast super.Type) 
 		return a.convertTypeValue(sctx, val, cast)
 	case *ast.Error:
 		return a.convertError(sctx, val, cast)
+	case *ast.Fusion:
+		return a.convertFusion(sctx, val, cast)
 	}
 	return nil, fmt.Errorf("internal error: unknown ast type in Analyzer.convertAny: %T", val)
 }
@@ -573,6 +583,26 @@ func (a Analyzer) convertError(sctx *super.Context, val *ast.Error, cast super.T
 	}, nil
 }
 
+func (a Analyzer) convertFusion(sctx *super.Context, val *ast.Fusion, cast super.Type) (Value, error) {
+	var inner super.Type
+	if cast != nil {
+		return nil, errors.New("fusion value cannot be decorated")
+	}
+	superVal, err := a.convertValue(sctx, val.Value, inner)
+	if err != nil {
+		return nil, err
+	}
+	subType, err := a.convertTypeValue(sctx, val.Type, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &Fusion{
+		Value:   superVal,
+		Type:    sctx.LookupTypeFusion(superVal.TypeOf()),
+		SubType: sctx.LookupTypeValue(subType.(*TypeValue).Value).Bytes(),
+	}, nil
+}
+
 func (a Analyzer) convertType(sctx *super.Context, typ ast.Type) (super.Type, error) {
 	switch t := typ.(type) {
 	case *ast.TypePrimitive:
@@ -634,6 +664,12 @@ func (a Analyzer) convertType(sctx *super.Context, typ ast.Type) (super.Type, er
 			typ = named
 		}
 		return typ, nil
+	case *ast.TypeFusion:
+		typ, err := a.convertType(sctx, t.Type)
+		if err != nil {
+			return nil, err
+		}
+		return sctx.LookupTypeFusion(typ), nil
 	}
 	return nil, fmt.Errorf("unknown type in Analyzer.convertType: %T", typ)
 }

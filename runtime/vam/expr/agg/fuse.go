@@ -9,20 +9,16 @@ import (
 )
 
 type fuse struct {
-	// XXX This convulated data structure of seen/types is here to preserve the
-	// order of the types encountered since some tests rely upon this
-	// and fusion gives different field order for records based on the
-	// input order.  This can happen anyway due to spilling so it's not a
-	// complete solution.  We should decide what to do here.  Maybe the
-	// non-deterministic output is ok.
+	super    bool
 	seen     map[super.Type]struct{}
 	types    []super.Type
 	partials []super.Value
 }
 
-func newFuse() *fuse {
+func newFuse(sup bool) *fuse {
 	return &fuse{
-		seen: make(map[super.Type]struct{}),
+		super: sup,
+		seen:  make(map[super.Type]struct{}),
 	}
 }
 
@@ -30,15 +26,15 @@ func (f *fuse) Consume(vec vector.Any) {
 	typ := vec.Type()
 	if _, ok := f.seen[typ]; !ok {
 		f.seen[typ] = struct{}{}
+		f.types = append(f.types, typ)
 	}
-	f.types = append(f.types, typ)
 }
 
 func (f *fuse) Result(sctx *super.Context) super.Value {
 	if len(f.types)+len(f.partials) == 0 {
 		return super.Null
 	}
-	fuser := samagg.NewFuser(sctx)
+	fuser := samagg.NewFuser(sctx, f.super)
 	for _, p := range f.partials {
 		typ, err := sctx.LookupByValue(p.Bytes())
 		if err != nil {

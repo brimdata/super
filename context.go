@@ -42,6 +42,7 @@ type Context struct {
 	enums     map[string]*TypeEnum
 	nameds    map[string]*TypeNamed
 	errors    map[Type]*TypeError
+	fusions   map[Type]*TypeFusion
 	toValue   map[Type]scode.Bytes
 	toType    map[string]Type
 }
@@ -68,6 +69,7 @@ func (c *Context) Reset() {
 	c.enums = nil
 	c.nameds = nil
 	c.errors = nil
+	c.fusions = nil
 	c.typedefs = nil
 }
 
@@ -348,6 +350,21 @@ func (c *Context) LookupTypeError(inner Type) *TypeError {
 	return typ
 }
 
+func (c *Context) LookupTypeFusion(inner Type) *TypeFusion {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.fusions == nil {
+		c.fusions = make(map[Type]*TypeFusion)
+	}
+	if typ, ok := c.fusions[inner]; ok {
+		return typ
+	}
+	typ := NewTypeFusion(c.nextIDWithLock(), inner)
+	c.enterWithLock(typ)
+	c.fusions[inner] = typ
+	return typ
+}
+
 // LookupByValue returns the Type indicated by a binary-serialized type value.
 // This provides a means to translate a type-context-independent serialized
 // encoding for an arbitrary type into the reciever Context.
@@ -538,6 +555,16 @@ func (c *Context) DecodeTypeValue(tv scode.Bytes) (Type, scode.Bytes) {
 			return nil, nil
 		}
 		typ := c.LookupTypeError(inner)
+		if typ == nil {
+			return nil, nil
+		}
+		return typ, tv
+	case TypeValueFusion:
+		inner, tv := c.DecodeTypeValue(tv)
+		if tv == nil {
+			return nil, nil
+		}
+		typ := c.LookupTypeFusion(inner)
 		if typ == nil {
 			return nil, nil
 		}

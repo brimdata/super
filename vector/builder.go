@@ -90,6 +90,8 @@ func NewBuilder(typ super.Type) Builder {
 		return newMapBuilder(typ)
 	case *super.TypeUnion:
 		return newUnionBuilder(typ)
+	case *super.TypeFusion:
+		return newFusionBuilder(typ)
 	case *super.TypeEnum:
 		return &enumBuilder{typ, nil}
 	case *super.TypeError:
@@ -258,6 +260,27 @@ func (u *unionBuilder) Build(sctx *super.Context) Any {
 		vecs = append(vecs, v.Build(sctx))
 	}
 	return NewUnion(u.typ, u.tags, vecs)
+}
+
+type fusionBuilder struct {
+	typ    *super.TypeFusion
+	values Builder
+	//XXX this will change
+	subTypes Builder
+}
+
+func newFusionBuilder(typ *super.TypeFusion) Builder {
+	return &fusionBuilder{typ: typ, values: NewBuilder(typ.Type), subTypes: newBytesStringTypeBuilder(super.TypeType)}
+}
+
+func (f *fusionBuilder) Write(bytes scode.Bytes) {
+	it := bytes.Iter()
+	f.values.Write(it.Next())
+	f.subTypes.Write(it.Next())
+}
+
+func (f *fusionBuilder) Build(sctx *super.Context) Any {
+	return NewFusion(f.typ, f.values.Build(sctx), f.subTypes.Build(sctx).(*TypeValue))
 }
 
 type enumBuilder struct {

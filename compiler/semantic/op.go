@@ -935,7 +935,7 @@ func (t *translator) semOp(o ast.Op, seq sem.Seq, inType super.Type) (sem.Seq, s
 			Args: assignments,
 		}), t.checker.unknown
 	case *ast.FuseOp:
-		return append(seq, &sem.FuseOp{Node: o}), inType
+		return append(seq, &sem.FuseOp{Node: o, Complete: o.Complete}), inType
 	case *ast.JoinOp:
 		return t.joinOp(o, seq, []super.Type{inType})
 	case *ast.MergeOp:

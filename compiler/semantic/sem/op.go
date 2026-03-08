@@ -141,6 +141,7 @@ type (
 	}
 	FuseOp struct {
 		ast.Node
+		Complete bool
 	}
 	HeadOp struct {
 		ast.Node
@@ -402,7 +403,8 @@ func CopyOp(op Op) Op {
 		}
 	case *FuseOp:
 		return &FuseOp{
-			Node: op.Node,
+			Node:     op.Node,
+			Complete: op.Complete,
 		}
 	case *HeadOp:
 		return &HeadOp{

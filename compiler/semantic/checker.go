@@ -30,6 +30,7 @@ func newChecker(t *translator) *checker {
 
 func (c *checker) seq(typ super.Type, seq sem.Seq) super.Type {
 	for len(seq) > 0 {
+		typ = defuse(typ)
 		if fork, ok := seq[0].(*sem.ForkOp); ok && len(seq) >= 2 {
 			if join, ok := seq[1].(*sem.JoinOp); ok {
 				typ = c.join(c.fork(typ, fork), join)
@@ -274,6 +275,13 @@ func (c *checker) exprs(typ super.Type, exprs []sem.Expr) []super.Type {
 }
 
 func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
+	//XXX for now, just deref any super types.  A project is to make
+	// a mixed-static/super type checker that understands supers
+	// are summary types and regular types are exact types.
+	// question is to make mixed-type branches (e.g., case branches)
+	// a super or a union.  Latter would impact the design of type-safety
+	// semantics of dereferencing such values and should case allow None?
+	typ = defuse(typ)
 	switch e := e.(type) {
 	case nil:
 		return c.unknown
@@ -411,6 +419,13 @@ func (c *checker) expr(typ super.Type, e sem.Expr) super.Type {
 	}
 }
 
+func defuse(typ super.Type) super.Type {
+	if typ, ok := typ.(*super.TypeFusion); ok {
+		return typ.Type
+	}
+	return typ
+}
+
 func (c *checker) binary(op string, loc, lloc, rloc ast.Node, lhs, rhs super.Type) super.Type {
 	switch strings.ToLower(op) {
 	case "and", "or":
@@ -442,9 +457,9 @@ func (c *checker) this(loc ast.Node, this *sem.ThisExpr, typ super.Type) super.T
 func (c *checker) isContainer(containerType super.Type) (super.Type, bool) {
 	switch typ := super.TypeUnder(containerType).(type) {
 	case *super.TypeArray:
-		return typ.Type, true
+		return defuse(typ.Type), true
 	case *super.TypeSet:
-		return typ.Type, true
+		return defuse(typ.Type), true
 	case *super.TypeError:
 		if isUnknown(typ) {
 			return c.unknown, true
@@ -465,7 +480,7 @@ func (c *checker) arrayElems(typ super.Type, elems []sem.ArrayElem) super.Type {
 			panic(elem)
 		}
 	}
-	return fuser.Type()
+	return defuse(fuser.Type())
 }
 
 func (c *checker) recordElems(typ super.Type, elems []sem.RecordElem) super.Type {
@@ -490,7 +505,7 @@ func (c *checker) recordElems(typ super.Type, elems []sem.RecordElem) super.Type
 			panic(elem)
 		}
 	}
-	return fuser.Type()
+	return defuse(fuser.Type())
 }
 
 func (c *checker) fuseRecordElems(elems []sem.RecordElem, types []super.Type) super.Type {
@@ -513,7 +528,7 @@ func (c *checker) fuseRecordElems(elems []sem.RecordElem, types []super.Type) su
 			panic(elem)
 		}
 	}
-	return fuser.Type()
+	return defuse(fuser.Type())
 }
 
 func (c *checker) callBuiltin(call *sem.CallExpr, args []super.Type) super.Type {
@@ -562,7 +577,7 @@ func (c *checker) pathsToType(paths []pathType) super.Type {
 	for _, path := range paths {
 		fuser.fuse(c.pathToRec(path.typ, path.elems))
 	}
-	return fuser.Type()
+	return defuse(fuser.Type())
 }
 
 func (c *checker) pathToRec(typ super.Type, elems []string) super.Type {
@@ -666,7 +681,7 @@ func (c *checker) fuse(types []super.Type) super.Type {
 	for _, typ := range types {
 		fuser.fuse(typ)
 	}
-	return fuser.Type()
+	return defuse(fuser.Type())
 }
 
 func (c *checker) boolean(loc ast.Node, typ super.Type) bool {
@@ -716,7 +731,7 @@ func (c *checker) number(loc ast.Node, typ super.Type) bool {
 }
 
 func (c *checker) deref(loc ast.Node, typ super.Type, field string) (super.Type, bool) {
-	switch typ := super.TypeUnder(typ).(type) {
+	switch typ := defuse(super.TypeUnder(typ)).(type) {
 	case *super.TypeError:
 		if isUnknown(typ) {
 			return typ, true
@@ -1118,7 +1133,9 @@ func (c *checker) error(loc ast.Node, err error) {
 }
 
 func (c *checker) newFuser() *fuser {
-	return &fuser{agg.NewFuser(c.t.sctx), c.unknown}
+	//XXX "complete" option will be true when we have dual support for fusion
+	// and static types
+	return &fuser{agg.NewFuser(c.t.sctx, false), c.unknown}
 }
 
 type fuser struct {

@@ -8,15 +8,16 @@ import (
 
 // Fuser constructs a fused supertype for all the types passed to Fuse.
 type Fuser struct {
-	sctx *super.Context
+	sctx     *super.Context
+	complete bool
 
 	typ   super.Type
 	types map[super.Type]struct{}
 }
 
 // XXX this is used by type checker but I think we can use the other one
-func NewFuser(sctx *super.Context) *Fuser {
-	return &Fuser{sctx: sctx, types: make(map[super.Type]struct{})}
+func NewFuser(sctx *super.Context, complete bool) *Fuser {
+	return &Fuser{sctx: sctx, complete: complete, types: make(map[super.Type]struct{})}
 }
 
 func (f *Fuser) Fuse(t super.Type) {
@@ -25,7 +26,7 @@ func (f *Fuser) Fuse(t super.Type) {
 	}
 	f.types[t] = struct{}{}
 	if f.typ == nil {
-		f.typ = t
+		f.typ = f.fuseMono(t)
 	} else {
 		f.typ = f.fuse(f.typ, t)
 	}
@@ -37,12 +38,15 @@ func (f *Fuser) Type() super.Type {
 }
 
 func (f *Fuser) fuse(a, b super.Type) super.Type {
-	if a == b {
-		return a
-	}
 	a, b = super.TypeUnder(a), super.TypeUnder(b)
 	if a == b {
 		return a
+	}
+	if typ, ok := a.(*super.TypeFusion); ok {
+		return f.fusion(f.fuse(typ.Type, b))
+	}
+	if typ, ok := b.(*super.TypeFusion); ok {
+		return f.fusion(f.fuse(a, typ.Type))
 	}
 	switch a := a.(type) {
 	case *super.TypeRecord:
@@ -67,22 +71,21 @@ func (f *Fuser) fuse(a, b super.Type) super.Type {
 					fields = append(fields, super.NewFieldWithOpt(field.Name, field.Type, true))
 				}
 			}
-			return f.sctx.MustLookupTypeRecord(fields)
+			return f.fusion(f.sctx.MustLookupTypeRecord(fields))
 		}
 	case *super.TypeArray:
 		if b, ok := b.(*super.TypeArray); ok {
-			x := f.fuse(a.Type, b.Type)
-			return f.sctx.LookupTypeArray(x)
+			return f.fusion(f.sctx.LookupTypeArray(f.fuse(a.Type, b.Type)))
 		}
 	case *super.TypeSet:
 		if b, ok := b.(*super.TypeSet); ok {
-			return f.sctx.LookupTypeSet(f.fuse(a.Type, b.Type))
+			return f.fusion(f.sctx.LookupTypeSet(f.fuse(a.Type, b.Type)))
 		}
 	case *super.TypeMap:
 		if b, ok := b.(*super.TypeMap); ok {
 			keyType := f.fuse(a.KeyType, b.KeyType)
 			valType := f.fuse(a.ValType, b.ValType)
-			return f.sctx.LookupTypeMap(keyType, valType)
+			return f.fusion(f.sctx.LookupTypeMap(keyType, valType))
 		}
 	case *super.TypeUnion:
 		types := f.fuseIntoUnionTypes(nil, a)
@@ -90,7 +93,7 @@ func (f *Fuser) fuse(a, b super.Type) super.Type {
 		if len(types) == 1 {
 			return types[0]
 		}
-		return f.sctx.LookupTypeUnion(types)
+		return f.fusion(f.sctx.LookupTypeUnion(types))
 	case *super.TypeEnum:
 		if b, ok := b.(*super.TypeEnum); ok {
 			var newSymbols []string
@@ -103,17 +106,62 @@ func (f *Fuser) fuse(a, b super.Type) super.Type {
 				return a
 			}
 			symbols := append(slices.Clone(a.Symbols), newSymbols...)
-			return f.sctx.LookupTypeEnum(symbols)
+			return f.fusion(f.sctx.LookupTypeEnum(symbols))
 		}
 	case *super.TypeError:
 		if b, ok := b.(*super.TypeError); ok {
-			return f.sctx.LookupTypeError(f.fuse(a.Type, b.Type))
+			return f.fusion(f.sctx.LookupTypeError(f.fuse(a.Type, b.Type)))
 		}
 	}
 	if _, ok := b.(*super.TypeUnion); ok {
 		return f.fuse(b, a)
 	}
-	return f.sctx.LookupTypeUnion([]super.Type{a, b})
+	return f.fusion(f.sctx.LookupTypeUnion([]super.Type{a, b}))
+}
+
+func (f *Fuser) fuseMono(typ super.Type) super.Type {
+	typ = super.TypeUnder(typ)
+	if typ, ok := typ.(*super.TypeFusion); ok {
+		return f.fusion(f.fuseMono(typ.Type))
+	}
+	var out super.Type
+	switch typ := typ.(type) {
+	case *super.TypeRecord:
+		fields := slices.Clone(typ.Fields)
+		for _, field := range fields {
+			field.Type = f.fuseMono(field.Type)
+		}
+		out = super.Type(f.sctx.MustLookupTypeRecord(fields))
+	case *super.TypeArray:
+		out = f.sctx.LookupTypeArray(f.fuseMono(typ.Type))
+	case *super.TypeSet:
+		out = f.sctx.LookupTypeSet(f.fuseMono(typ.Type))
+	case *super.TypeMap:
+		out = f.fusion(f.sctx.LookupTypeMap(f.fuseMono(typ.KeyType), f.fuseMono(typ.ValType)))
+	case *super.TypeUnion:
+		types := f.fuseIntoUnionTypes(nil, typ)
+		if len(types) == 1 {
+			out = types[0]
+		} else {
+			out = f.sctx.LookupTypeUnion(types)
+		}
+	case *super.TypeEnum:
+		return typ
+	case *super.TypeError:
+		out = f.sctx.LookupTypeError(f.fuseMono(typ.Type))
+	case *super.TypeNamed:
+		inner := f.fuseMono(typ.Type)
+		if inner != typ.Type {
+			// If type changed, drop the name.
+			out = inner
+		}
+	default:
+		out = typ
+	}
+	if out != typ {
+		out = f.fusion(out)
+	}
+	return out
 }
 
 // fuseIntoUnionTypes fuses typ into types while maintaining the invariant that
@@ -126,20 +174,39 @@ func (f *Fuser) fuseIntoUnionTypes(types []super.Type, typ super.Type) []super.T
 		}
 		return types
 	}
+	if s, ok := typUnder.(*super.TypeFusion); ok {
+		return f.fuseIntoUnionTypes(types, s.Type)
+	}
 	typKind := typ.Kind()
 	for i, t := range types {
 		switch {
 		case t == typ:
+			// This is already in the union.
 			return types
+
 		case super.TypeUnder(t) == typUnder:
 			types[i] = typUnder
 			return types
 		case typKind != super.PrimitiveKind && typKind == t.Kind():
-			types[i] = f.fuse(t, typ)
+			typ := f.fuse(t, typ)
+			if s, ok := typ.(*super.TypeFusion); ok {
+				typ = s.Type
+			}
+			types[i] = typ
 			return types
 		}
 	}
 	return append(types, typ)
+}
+
+func (f *Fuser) fusion(typ super.Type) super.Type {
+	if !f.complete {
+		return typ
+	}
+	if typ, ok := typ.(*super.TypeFusion); ok {
+		return typ
+	}
+	return f.sctx.LookupTypeFusion(typ)
 }
 
 func indexOfField(fields []super.Field, name string) (int, bool) {

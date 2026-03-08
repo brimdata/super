@@ -7,14 +7,16 @@ import (
 )
 
 type fuse struct {
+	super    bool
 	shapes   map[super.Type]int
 	partials []super.Value
 }
 
 var _ Function = (*fuse)(nil)
 
-func newFuse() *fuse {
+func newFuse(sup bool) *fuse {
 	return &fuse{
+		super:  sup,
 		shapes: make(map[super.Type]int),
 	}
 }
@@ -29,7 +31,7 @@ func (f *fuse) Result(sctx *super.Context) super.Value {
 	if len(f.shapes)+len(f.partials) == 0 {
 		return super.Null
 	}
-	fuser := NewFuser(sctx)
+	fuser := NewFuser(sctx, f.super)
 	for _, p := range f.partials {
 		typ, err := sctx.LookupByValue(p.Bytes())
 		if err != nil {

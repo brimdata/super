@@ -18,7 +18,8 @@ func NewUpCaster(sctx *super.Context) Caster {
 
 func (u *upcast) Call(args []super.Value) super.Value {
 	from, to := args[0], args[1]
-	if _, ok := super.TypeUnder(to.Type()).(*super.TypeOfType); !ok {
+	_, ok := to.Type().(*super.TypeOfType)
+	if !ok {
 		return u.sctx.WrapError("upcast type argument not a type", to)
 	}
 	typ, err := u.sctx.LookupByValue(to.Bytes())
@@ -56,6 +57,8 @@ func (u *upcast) build(b *scode.Builder, typ super.Type, bytes scode.Bytes, to s
 		return u.toError(b, typ, bytes, to)
 	case *super.TypeNamed:
 		return u.toNamed(b, typ, bytes, to)
+	case *super.TypeFusion:
+		return u.toFusion(b, typ, bytes, to)
 	default:
 		if typ == to {
 			b.Append(bytes)
@@ -178,6 +181,17 @@ func (u *upcast) toUnion(b *scode.Builder, typ super.Type, bytes scode.Bytes, to
 	if ok := u.build(b, typ, bytes, to.Types[tag]); !ok {
 		return false
 	}
+	b.EndContainer()
+	return true
+}
+
+func (u *upcast) toFusion(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeFusion) bool {
+	b.BeginContainer()
+	if ok := u.build(b, typ, bytes, to.Type); !ok {
+		return false
+	}
+	subType := u.sctx.LookupTypeValue(typ)
+	b.Append(subType.Bytes())
 	b.EndContainer()
 	return true
 }

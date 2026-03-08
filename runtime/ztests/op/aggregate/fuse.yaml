@@ -27,7 +27,7 @@ output: |
 ---
 
 # Test partials (spill limit set by TestAggregateZtestsSpill)
-spq: fuse(this) by key | sort key
+spq: supertype:=fusecomp(this) by key | sort key
 
 vector: true
 
@@ -40,6 +40,6 @@ input: |
   {r:{y:4::int32,z:5::int32},s:"world",r2:{x:6::int32},key:"c"}
 
 output: |
-  {key:"a",fuse:<{a?:string,r:{x?:int32,y:int32,z?:int32},key:string,s?:string,r2?:{x:int32}}>}
-  {key:"b",fuse:<{a?:string,r:{x?:int32,y:int32,z?:int32},key:string,s?:string,r2?:{x:int32}}>}
-  {key:"c",fuse:<{a?:string,r:{x?:int32,y:int32,z?:int32},key:string,s?:string,r2?:{x:int32}}>}
+  {key:"a",supertype:<fusion({a?:string,r:fusion({x?:int32,y:int32,z?:int32}),key:string,s?:string,r2?:{x:int32}})>}
+  {key:"b",supertype:<fusion({a?:string,r:fusion({x?:int32,y:int32,z?:int32}),key:string,s?:string,r2?:{x:int32}})>}
+  {key:"c",supertype:<fusion({a?:string,r:fusion({x?:int32,y:int32,z?:int32}),key:string,s?:string,r2?:{x:int32}})>}

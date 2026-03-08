@@ -255,7 +255,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		}
 		return vamop.NewFilter(b.sctx(), parent, e), nil
 	case *dag.FuseOp:
-		return vam.NewDematerializer(b.sctx(), fuse.New(b.rctx, vam.NewMaterializer(parent))), nil
+		return vam.NewDematerializer(b.sctx(), fuse.New(b.rctx, o.Complete, vam.NewMaterializer(parent))), nil
 	case *dag.HeadOp:
 		return vamop.NewHead(parent, o.Count), nil
 	case *dag.InferOp:

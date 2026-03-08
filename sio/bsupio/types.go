@@ -18,6 +18,7 @@ const (
 	TypeDefEnum   = 5
 	TypeDefError  = 6
 	TypeDefName   = 7
+	TypeDefFusion = 8
 )
 
 type Encoder struct {
@@ -80,6 +81,8 @@ func (e *Encoder) encode(ext super.Type) (super.Type, error) {
 		return e.encodeTypeName(ext)
 	case *super.TypeError:
 		return e.encodeTypeError(ext)
+	case *super.TypeFusion:
+		return e.encodeTypeFusion(ext)
 	default:
 		return ext, nil
 	}
@@ -208,6 +211,17 @@ func (e *Encoder) encodeTypeError(ext *super.TypeError) (*super.TypeError, error
 	return typ, nil
 }
 
+func (e *Encoder) encodeTypeFusion(ext *super.TypeFusion) (*super.TypeFusion, error) {
+	inner, err := e.Encode(ext.Type)
+	if err != nil {
+		return nil, err
+	}
+	typ := e.sctx.LookupTypeFusion(inner)
+	e.bytes = append(e.bytes, TypeDefFusion)
+	e.bytes = binary.AppendUvarint(e.bytes, uint64(super.TypeID(typ.Type)))
+	return typ, nil
+}
+
 type Decoder struct {
 	// shared/output context
 	sctx *super.Context
@@ -247,6 +261,8 @@ func (d *Decoder) decode(b *buffer) error {
 			err = d.readTypeName(b)
 		case TypeDefError:
 			err = d.readTypeError(b)
+		case TypeDefFusion:
+			err = d.readTypeFusion(b)
 		default:
 			return fmt.Errorf("unknown BSUP typedef code: %d", code)
 		}
@@ -405,6 +421,15 @@ func (d *Decoder) readTypeError(b *buffer) error {
 		return err
 	}
 	d.enter(d.sctx.LookupTypeError(inner))
+	return nil
+}
+
+func (d *Decoder) readTypeFusion(b *buffer) error {
+	inner, err := d.readType(b)
+	if err != nil {
+		return err
+	}
+	d.enter(d.sctx.LookupTypeFusion(inner))
 	return nil
 }
 

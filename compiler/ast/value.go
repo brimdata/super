@@ -84,6 +84,11 @@ type (
 		Kind  string `json:"kind" unpack:""`
 		Value Value  `json:"value"`
 	}
+	Fusion struct {
+		Kind  string     `json:"kind" unpack:""`
+		Value Value      `json:"value"`
+		Type  *TypeValue `json:"type"`
+	}
 )
 
 func (*Primitive) anyNode()       {}
@@ -94,6 +99,7 @@ func (*Enum) anyNode()            {}
 func (*Map) anyNode()             {}
 func (*TypeValue) anyNode()       {}
 func (*Error) anyNode()           {}
+func (*Fusion) anyNode()          {}
 func (*None) anyNode()            {}
 func (*DoubleQuoteExpr) anyNode() {}
 

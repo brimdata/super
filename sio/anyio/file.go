@@ -87,7 +87,8 @@ func FileType(ctx context.Context, sctx *super.Context, engine storage.Engine, p
 	if sampleSize < 1 {
 		sampleSize = math.MaxInt
 	}
-	fuser := agg.NewFuser(sctx)
+	// XXX this should pass super true when type checker can handle it
+	fuser := agg.NewFuser(sctx, false)
 	for range sampleSize {
 		val, err := f.Read()
 		if val == nil || err != nil {

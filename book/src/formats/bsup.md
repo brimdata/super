@@ -177,6 +177,7 @@ The typedef codes are defined as follows:
 |   5  |  enum type definition    |
 |   6  |  error type definition   |
 |   7  |  named type definition   |
+|   8  |  fusion type definition  |
 
 Any references to a type ID in the body of a typedef are encoded as a `uvarint`.
 
@@ -314,6 +315,17 @@ it is an error to define a type name that has the same name as a primitive type,
 and it is permissible to redefine a previously defined type name with a
 type that differs from the previous definition.
 
+#### 2.1.8 Fusion Typedef
+
+A fusion type is encoded as follows:
+```
+----------------
+|0x08|<type-id>|
+----------------
+```
+which defines a new fusion type for fusion values that have the underlying type
+indicated by `<type-id>`.
+
 ### 2.2 Values Frame
 
 A _values frame_ is a sequence of values each encoded as the value's type ID,
@@ -380,6 +392,7 @@ where the values are encoded as follows:
 | `union`  | concatenation of tag and value            |
 | `enum`   | position of enum element                  |
 | `error`  | wrapped element                           |
+| `fusion` | element followed by subtype value         |
 
 Since N, the byte length of any of these container values, is known,
 there is no need to encode a count of the
@@ -538,6 +551,7 @@ are serialized in little-endian format.
 | `net`        | 27 | 8 or 32  | 8 or 32 bytes of IP prefix and subnet mask     |
 | `type`       | 28 | variable | type value byte sequence [as defined below](#4-type-values) |
 | `null`       | 29 |    0     | No value, always represents an undefined value |
+| `none`       | 30 |    0     | None type appears in empty sets/arrays/maps    |
 
 ## 4. Type Values
 
@@ -655,6 +669,16 @@ An named type reference has the form:
 ```
 It is an error for a named type reference to appear in a type value with a name
 that has not been previously defined according to the DFS order.
+
+### 4.9 Fusion Type Value
+
+A fusion type value has the form:
+```
+-----------
+|39|<type>|
+-----------
+```
+where `<type>` is the type value of the fusion supertype.
 
 ## 5. Compression Types
 

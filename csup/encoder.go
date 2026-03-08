@@ -52,6 +52,8 @@ func NewEncoder(typ super.Type) Encoder {
 		return NewMapEncoder(typ)
 	case *super.TypeUnion:
 		return NewUnionEncoder(typ)
+	case *super.TypeFusion:
+		return NewFusionEncoder(typ)
 	case *super.TypeEnum:
 		return NewPrimitiveEncoder(typ)
 	default:

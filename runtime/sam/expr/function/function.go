@@ -54,7 +54,11 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		argmax = 2
 		f = &DatePart{sctx}
 	case "defuse":
-		f = &defuse{sctx: sctx}
+		_, f = newDowncastDefuser(sctx)
+	case "downcast":
+		argmin = 2
+		argmax = 2
+		f, _ = newDowncastDefuser(sctx)
 	case "error":
 		f = &Error{sctx: sctx}
 	case "fields":
@@ -63,6 +67,10 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		f = NewFlatten(sctx)
 	case "floor":
 		f = &Floor{sctx: sctx}
+	case "fusion":
+		argmin = 2
+		argmax = 2
+		f = newFusion(sctx)
 	case "grep":
 		argmin = 2
 		argmax = 2
@@ -165,7 +173,7 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 	case "typeof":
 		f = &TypeOf{sctx: sctx}
 	case "under":
-		f = &Under{sctx: sctx}
+		f = NewUnder(sctx)
 	case "unflatten":
 		f = NewUnflatten(sctx)
 	case "upcast":

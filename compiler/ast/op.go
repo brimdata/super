@@ -92,8 +92,9 @@ type (
 		Loc  `json:"loc"`
 	}
 	FuseOp struct {
-		Kind string `json:"kind" unpack:""`
-		Loc  `json:"loc"`
+		Kind     string `json:"kind" unpack:""`
+		Complete bool   `json:"complete"`
+		Loc      `json:"loc"`
 	}
 	// An ExprOp operator is an expression that appears as an operator
 	// and requires semantic analysis to determine if it is a filter, a values

@@ -39,7 +39,11 @@ func NewPattern(op string, distinct, hasarg bool) (Pattern, error) {
 		}
 	case "fuse":
 		pattern = func() Func {
-			return newFuse()
+			return newFuse(false)
+		}
+	case "fusecomp":
+		pattern = func() Func {
+			return newFuse(true)
 		}
 	case "sum":
 		pattern = func() Func {

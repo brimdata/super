@@ -173,7 +173,8 @@ func (d *dagen) op(op sem.Op) dag.Op {
 		}
 	case *sem.FuseOp:
 		return &dag.FuseOp{
-			Kind: "FuseOp",
+			Kind:     "FuseOp",
+			Complete: op.Complete,
 		}
 	case *sem.HeadOp:
 		return &dag.HeadOp{

@@ -53,6 +53,11 @@ type (
 		Type Type   `json:"type"`
 		Loc  `json:"loc"`
 	}
+	TypeFusion struct {
+		Kind string `json:"kind" unpack:""`
+		Type Type   `json:"type"`
+		Loc  `json:"loc"`
+	}
 	TypeName struct {
 		Kind string `json:"kind" unpack:""`
 		Name string `json:"name"`
@@ -74,6 +79,7 @@ func (*TypeUnion) typeNode()     {}
 func (*TypeEnum) typeNode()      {}
 func (*TypeMap) typeNode()       {}
 func (*TypeError) typeNode()     {}
+func (*TypeFusion) typeNode()    {}
 func (*TypeName) typeNode()      {}
 func (*TypeDef) typeNode()       {}
 

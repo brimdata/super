@@ -5,7 +5,7 @@
 ## Synopsis
 
 ```
-fuse
+fuse [ -complete ]
 ```
 
 ## Description
@@ -23,6 +23,15 @@ Because all values of the input must be read to compute the fused type,
 
 >[!NOTE]
 > Spilling is not yet implemented for the vectorized runtime.
+
+When run with the `-complete` option, the fused type includes fusion types
+at locations in the type hierarchy where data varies by type across the
+fused values.
+
+This is logically equivalent to:
+```
+from input | values upcast(this, (from input | aggregate fusecomp(this)))
+```
 
 ## Examples
 

@@ -55,7 +55,14 @@ func (p *Parser) matchValue() (ast.Value, error) {
 	if val, err := p.matchPrimitive(); val != nil || err != nil {
 		return p.decorate(val, err)
 	}
-	if val, err := p.matchError(); val != nil || err != nil {
+	name, err := p.matchIdentifier()
+	if err != nil {
+		return nil, noEOF(err)
+	}
+	if val, err := p.matchFusion(name); val != nil || err != nil {
+		return p.decorate(val, err)
+	}
+	if val, err := p.matchError(name); val != nil || err != nil {
 		return p.decorate(val, err)
 	}
 	return nil, nil
@@ -533,12 +540,9 @@ func (p *Parser) parseEntry() (*ast.Entry, error) {
 	}, nil
 }
 
-func (p *Parser) matchError() (*ast.Error, error) {
-	// We only detect identifier-style enum values even though they can
-	// also be strings but we don't know that until the semantic check.
-	name, err := p.matchIdentifier()
-	if err != nil || name != "error" {
-		return nil, noEOF(err)
+func (p *Parser) matchError(name string) (*ast.Error, error) {
+	if name != "error" {
+		return nil, nil
 	}
 	l := p.lexer
 	if ok, err := l.match('('); !ok || err != nil {
@@ -554,6 +558,35 @@ func (p *Parser) matchError() (*ast.Error, error) {
 	return &ast.Error{
 		Kind:  "Error",
 		Value: val,
+	}, nil
+}
+
+func (p *Parser) matchFusion(name string) (*ast.Fusion, error) {
+	if name != "fusion" {
+		return nil, nil
+	}
+	l := p.lexer
+	if ok, err := l.match('('); !ok || err != nil {
+		return nil, noEOF(err)
+	}
+	val, err := p.matchValue()
+	if err != nil {
+		return nil, noEOF(err)
+	}
+	if ok, err := l.match(','); !ok || err != nil {
+		return nil, noEOF(err)
+	}
+	tv, err := p.matchTypeValue()
+	if err != nil {
+		return nil, noEOF(err)
+	}
+	if ok, err := l.match(')'); !ok || err != nil {
+		return nil, noEOF(err)
+	}
+	return &ast.Fusion{
+		Kind:  "Fusion",
+		Value: val,
+		Type:  tv,
 	}, nil
 }
 

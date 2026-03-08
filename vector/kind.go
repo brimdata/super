@@ -26,7 +26,8 @@ const (
 	KindBool    = 15
 	KindUnion   = 16
 	KindEnum    = 17
-	KindNone    = 18
+	KindFusion  = 19
+	KindNone    = 20
 )
 
 const (

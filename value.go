@@ -452,7 +452,7 @@ func (v Value) Deunion() Value {
 // guaranteed to have neither a named type nor a union type.
 func (v Value) Under() Value {
 	switch v.Type().(type) {
-	case *TypeUnion, *TypeNamed:
+	case *TypeUnion, *TypeNamed, *TypeFusion:
 		return v.under()
 	}
 	// This is the common case; make sure the compiler can inline it.
@@ -463,12 +463,14 @@ func (v Value) Under() Value {
 func (v Value) under() Value {
 	typ, bytes := v.Type(), v.Bytes()
 	for {
-		typ = TypeUnder(typ)
-		union, ok := typ.(*TypeUnion)
-		if !ok {
-			return NewValue(typ, bytes)
+		switch under := TypeUnder(typ).(type) {
+		case *TypeUnion:
+			typ, bytes = under.Untag(bytes)
+		case *TypeFusion:
+			typ, bytes = under.DerefFusion(bytes)
+		default:
+			return NewValue(under, bytes)
 		}
-		typ, bytes = union.Untag(bytes)
 	}
 }
 

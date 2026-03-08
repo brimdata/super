@@ -172,6 +172,7 @@
         - [count](super-sql/aggregates/count.md)
         - [dcount](super-sql/aggregates/dcount.md)
         - [fuse](super-sql/aggregates/fuse.md)
+        - [fusecomp](super-sql/aggregates/fusecomp.md)
         - [max](super-sql/aggregates/max.md)
         - [min](super-sql/aggregates/min.md)
         - [or](super-sql/aggregates/or.md)

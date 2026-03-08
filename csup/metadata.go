@@ -102,6 +102,18 @@ func (e *Error) Len(cctx *Context) uint32 {
 	return cctx.Lookup(e.Values).Len(cctx)
 }
 
+type Fusion struct {
+	Values ID
+	// XXX SubTypes is currently a primitive holding typevals.
+	// This will change to a Segment that directly encodes TypeIDs after
+	// we get this all limping along.
+	SubTypes ID
+}
+
+func (f *Fusion) Len(cctx *Context) uint32 {
+	return cctx.Lookup(f.Values).Len(cctx)
+}
+
 type Int struct {
 	Typ      super.Type `super:"Type"`
 	Location Segment
@@ -308,4 +320,5 @@ var Template = []any{
 	Const{},
 	Dict{},
 	Dynamic{},
+	Fusion{},
 }

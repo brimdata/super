@@ -61,6 +61,8 @@ func newShadow(cctx *csup.Context, id csup.ID) shadow {
 		return newMap(cctx, meta)
 	case *csup.Union:
 		return newUnion(cctx, meta)
+	case *csup.Fusion:
+		return newFusion(cctx, meta)
 	case *csup.Dict:
 		return newDict(cctx, meta)
 	case *csup.Int:

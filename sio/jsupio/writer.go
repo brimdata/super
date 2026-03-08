@@ -108,6 +108,8 @@ func (w *Writer) encodeValue(sctx *super.Context, typ super.Type, val scode.Byte
 		return w.encodePrimitive(sctx, super.TypeUint64, val)
 	case *super.TypeError:
 		return w.encodeValue(sctx, typ.Type, val)
+	case *super.TypeFusion:
+		return w.encodeFusion(sctx, typ, val)
 	case *super.TypeNamed:
 		return w.encodeValue(sctx, typ.Type, val)
 	case *super.TypeOfType:
@@ -191,6 +193,20 @@ func (w *Writer) encodeUnion(sctx *super.Context, union *super.TypeUnion, bytes 
 		return nil, err
 	}
 	return []any{strconv.Itoa(union.TagOf(inner)), val}, nil
+}
+
+func (w *Writer) encodeFusion(sctx *super.Context, fusion *super.TypeFusion, bytes scode.Bytes) (any, error) {
+	it := bytes.Iter()
+	val, err := w.encodeValue(sctx, fusion.Type, it.Next())
+	if err != nil {
+		return nil, err
+	}
+	subType, err := w.sctx.LookupByValue(it.Next())
+	if err != nil {
+		return nil, err
+	}
+	subTypeVal := w.encoder.encodeType(subType)
+	return []any{val, subTypeVal}, nil
 }
 
 func (w *Writer) encodePrimitive(sctx *super.Context, typ super.Type, v scode.Bytes) (any, error) {

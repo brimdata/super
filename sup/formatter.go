@@ -165,6 +165,18 @@ func (f *Formatter) formatValue(indent int, typ super.Type, bytes scode.Bytes, p
 		f.build("(")
 		f.formatValue(indent, t.Type, bytes, known, true)
 		f.build(")")
+	case *super.TypeFusion:
+		f.startColor(color.Green)
+		f.build("fusion")
+		f.endColor()
+		f.build("(")
+		it := bytes.Iter()
+		f.formatValue(indent, t.Type, it.Next(), known, true)
+		f.build(",<")
+		f.formatTypeValue(indent, it.Next(), false)
+		f.build(">)")
+		// We don't need to decorate a super because it's type is always implied by it's value.
+		return
 	case *super.TypeOfType:
 		f.startColor(color.Gray(200))
 		f.build("<")
@@ -342,6 +354,13 @@ func (f *Formatter) formatTypeValue(indent int, tv scode.Bytes, isComponentType 
 	case super.TypeValueError:
 		f.startColor(color.Red)
 		f.build("error")
+		f.endColor()
+		f.build("(")
+		tv = f.formatTypeValue(indent, tv, false)
+		f.build(")")
+	case super.TypeValueFusion:
+		f.startColor(color.Green)
+		f.build("fusion")
 		f.endColor()
 		f.build("(")
 		tv = f.formatTypeValue(indent, tv, false)
@@ -620,6 +639,10 @@ func (f *Formatter) formatTypeBody(typ super.Type, isComponentType bool) {
 		f.build("error(")
 		formatType(&f.builder, make(map[string]*super.TypeNamed), typ.Type, false)
 		f.build(")")
+	case *super.TypeFusion:
+		f.build("fusion(")
+		formatType(&f.builder, make(map[string]*super.TypeNamed), typ.Type, false)
+		f.build(")")
 	case *super.TypeOfType:
 		formatType(&f.builder, make(map[string]*super.TypeNamed), typ, false)
 	default:
@@ -778,6 +801,10 @@ func formatType(b *strings.Builder, typedefs map[string]*super.TypeNamed, typ su
 		b.WriteByte(')')
 	case *super.TypeError:
 		b.WriteString("error(")
+		formatType(b, typedefs, t.Type, false)
+		b.WriteByte(')')
+	case *super.TypeFusion:
+		b.WriteString("fusion(")
 		formatType(b, typedefs, t.Type, false)
 		b.WriteByte(')')
 	default:

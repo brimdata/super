@@ -1,6 +1,8 @@
 package vector
 
-import "iter"
+import (
+	"iter"
+)
 
 // Apply applies eval to vecs. If any element of vecs is a Dynamic, Apply rips
 // vecs accordingly, applies eval to the ripped vectors, and stitches the
@@ -16,7 +18,7 @@ func Apply(ripUnions bool, eval func(...Any) Any, vecs ...Any) Any {
 	}
 	d, ok := findDynamic(vecs)
 	if !ok {
-		return eval(vecs...)
+		return eval(defuse(vecs)...)
 	}
 	results := make([]Any, len(d.Values))
 	for i, ripped := range rip(vecs, d) {
@@ -37,6 +39,28 @@ func findDynamic(vecs []Any) (*Dynamic, bool) {
 		}
 	}
 	return nil, false
+}
+
+// XXX this is just a temporary hook to always (and very inefficiently)
+// expand vector.Fusion to Dynamic so it can be processed by the old vam logic.
+// The task is to figure out where we need to turn Fusion into Dynamic
+// (e.g., record spreads, typeof) and do it only when needed and other wise
+// just deref the Fusion throughout the vam into it's fused value.
+// Once we have this move (and we change typevals to typeIDs in vector.Fusion), then
+// performance will be genuinely columnar.
+// XXX hmm actually we can't make the Dynamic so we deref the Fusion as a singly-typed
+// Dynamic.  This is because we don't have the sctx
+// to turn the typevals (or in the future typeIDs) into super.Type.  We will need
+// to rework things to
+func defuse(vecs []Any) []Any {
+	var out []Any
+	for _, v := range vecs {
+		if f, ok := v.(*Fusion); ok {
+			v = f.Values
+		}
+		out = append(out, v)
+	}
+	return out
 }
 
 func rip(vecs []Any, d *Dynamic) iter.Seq2[int, []Any] {

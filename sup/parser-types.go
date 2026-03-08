@@ -77,6 +77,9 @@ func (p *Parser) matchTypeName() (ast.Type, error) {
 	if name == "error" {
 		return p.matchTypeErrorBody()
 	}
+	if name == "fusion" {
+		return p.matchTypeFusionBody()
+	}
 	if name == "enum" {
 		return p.matchTypeEnumBody()
 	}
@@ -291,6 +294,29 @@ func (p *Parser) matchTypeParens() (ast.Type, error) {
 	return typ, nil
 }
 
+func (p *Parser) matchTypeBody(which string) (ast.Type, error) {
+	l := p.lexer
+	ok, err := l.match('(')
+	if !ok {
+		return nil, p.errorf("no opening parenthesis in %s type", which)
+	}
+	if err != nil {
+		return nil, err
+	}
+	typ, err := p.matchType()
+	if err != nil {
+		return nil, err
+	}
+	ok, err = l.match(')')
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, p.errorf("mismatched parentheses while parsing %s type", which)
+	}
+	return typ, nil
+}
+
 func (p *Parser) matchTypeUnion(first ast.Type) (*ast.TypeUnion, error) {
 	l := p.lexer
 	var types []ast.Type
@@ -372,23 +398,24 @@ func (p *Parser) matchEnumSymbols() ([]*ast.Text, error) {
 }
 
 func (p *Parser) matchTypeErrorBody() (*ast.TypeError, error) {
-	l := p.lexer
-	if ok, err := l.match('('); !ok || err != nil {
-		return nil, errors.New("no opening parenthesis in error type")
-	}
-	inner, err := p.matchType()
+	typ, err := p.matchTypeBody("error")
 	if err != nil {
 		return nil, err
-	}
-	ok, err := l.match(')')
-	if err != nil {
-		return nil, err
-	}
-	if !ok {
-		return nil, p.error("mismatched parentheses while parsing error type")
 	}
 	return &ast.TypeError{
 		Kind: "TypeError",
-		Type: inner,
+		Type: typ,
 	}, nil
+}
+
+func (p *Parser) matchTypeFusionBody() (*ast.TypeFusion, error) {
+	typ, err := p.matchTypeBody("fusion")
+	if err != nil {
+		return nil, err
+	}
+	v := &ast.TypeFusion{
+		Kind: "TypeFusion",
+		Type: typ,
+	}
+	return v, nil
 }

@@ -90,6 +90,8 @@ func (r *Reader) decodeValue(b *scode.Builder, typ super.Type, body any) error {
 		return err
 	case *super.TypeError:
 		return r.decodeValue(b, typ.Type, body)
+	case *super.TypeFusion:
+		return r.decodeFusion(b, typ, body)
 	case *super.TypeOfType:
 		var t zType
 		if err := unpacker.UnmarshalObject(body, &t); err != nil {
@@ -263,6 +265,25 @@ func (r *Reader) decodeMap(b *scode.Builder, typ *super.TypeMap, body any) error
 		}
 	}
 	b.EndContainer()
+	return nil
+}
+
+func (r *Reader) decodeFusion(builder *scode.Builder, typ *super.TypeFusion, body any) error {
+	tuple, ok := body.([]any)
+	if !ok {
+		return errors.New("bad JSON for JSUP fusion value")
+	}
+	if len(tuple) != 2 {
+		return errors.New("JSUP fusion value not an array of two elements")
+	}
+	builder.BeginContainer()
+	if err := r.decodeValue(builder, typ.Type, tuple[0]); err != nil {
+		return err
+	}
+	if err := r.decodeValue(builder, super.TypeType, tuple[1]); err != nil {
+		return err
+	}
+	builder.EndContainer()
 	return nil
 }
 
