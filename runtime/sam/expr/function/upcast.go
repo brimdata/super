@@ -27,7 +27,7 @@ func (u *upcast) Call(args []super.Value) super.Value {
 	}
 	val, ok := u.Cast(from, typ)
 	if !ok {
-		return u.sctx.WrapError("upcast value not a subtype of "+sup.FormatType(typ), from)
+		return u.sctx.WrapError("upcast: value not a subtype of "+sup.FormatType(typ), from)
 	}
 	return val
 }

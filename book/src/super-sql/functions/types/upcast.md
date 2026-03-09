@@ -24,7 +24,7 @@ Upcasting is used by the [fuse](../../operators/fuse.md) operator.
 
 When an upcast is successful, the return value of `cast` always has the target type.
 
-If errors is encountered, the offending value and target type are returned
+If an error is encountered, the offending value and target type are returned
 in a structured error.
 
 ## Examples
