@@ -6,7 +6,7 @@ input: |
   [[1::int8,"a"],<[int8|string]>]
 
 output: |
-  error({message:"upcast value not a subtype of [int8|string]",on:[1,"a"]})
+  error({message:"upcast: value not a subtype of [int8|string]",on:[1,"a"]})
   [1::int8,"a"]
 ---
 
