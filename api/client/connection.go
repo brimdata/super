@@ -19,6 +19,7 @@ import (
 	"github.com/brimdata/super/compiler/srcfiles"
 	"github.com/brimdata/super/db"
 	"github.com/brimdata/super/db/branches"
+	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
@@ -371,6 +372,20 @@ func (c *Connection) delete(ctx context.Context, poolID ksuid.KSUID, branchName 
 	var commit api.CommitResponse
 	err := c.doAndUnmarshal(req, &commit)
 	return commit, err
+}
+
+func (c *Connection) Vacate(ctx context.Context, pool string, ts nano.Ts, dryrun bool) (api.VacateResponse, error) {
+	path := urlPath("pool", pool, "vacate")
+	vals := make(url.Values)
+	vals.Add("ts", ts.Time().Format(time.RFC3339Nano))
+	if dryrun {
+		vals.Add("dryrun", "true")
+	}
+	path += "?" + vals.Encode()
+	req := c.NewRequest(ctx, http.MethodPost, path, nil)
+	var res api.VacateResponse
+	err := c.doAndUnmarshal(req, &res)
+	return res, err
 }
 
 func (c *Connection) Vacuum(ctx context.Context, pool, revision string, dryrun bool) (api.VacuumResponse, error) {

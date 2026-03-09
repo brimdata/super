@@ -11,8 +11,11 @@ import (
 	"github.com/brimdata/super/api/client"
 	"github.com/brimdata/super/compiler/srcfiles"
 	"github.com/brimdata/super/db"
+	"github.com/brimdata/super/db/commits"
 	"github.com/brimdata/super/db/pools"
+	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/order"
+	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sup"
@@ -38,6 +41,7 @@ type Interface interface {
 	Revert(ctx context.Context, poolID ksuid.KSUID, branch string, commitID ksuid.KSUID, commit api.CommitMessage) (ksuid.KSUID, error)
 	AddVectors(ctx context.Context, pool, revision string, objects []ksuid.KSUID, message api.CommitMessage) (ksuid.KSUID, error)
 	DeleteVectors(ctx context.Context, pool, revision string, objects []ksuid.KSUID, message api.CommitMessage) (ksuid.KSUID, error)
+	Vacate(ctx context.Context, pool string, time nano.Ts, dryrun bool) ([]ksuid.KSUID, error)
 	Vacuum(ctx context.Context, pool, revision string, dryrun bool) ([]ksuid.KSUID, error)
 }
 
@@ -166,6 +170,42 @@ func LookupBranchByID(ctx context.Context, api Interface, id ksuid.KSUID) (*db.B
 		return branch, nil
 	default:
 		return nil, fmt.Errorf("internal error: multiple branches found with same id: %s", id)
+	}
+}
+
+func GetCommit(ctx context.Context, api Interface, pool, revision string) (*commits.Commit, error) {
+	poolID, err := api.PoolID(ctx, pool)
+	if err != nil {
+		return nil, err
+	}
+	commit, err := dbid.ParseID(revision)
+	if err != nil {
+		// LookupBranchByName(ctx
+		if commit, err = api.CommitObject(ctx, poolID, revision); err != nil {
+			return nil, err
+		}
+	}
+	b := newBuffer(commits.Commit{})
+	query := fmt.Sprintf("from %q:log | where id == 0x%s", poolID, idToHex(commit))
+	q, err := api.Query(ctx, srcfiles.Plain(query))
+	if err != nil {
+		return nil, err
+	}
+	defer q.Pull(true)
+	if err := sbuf.CopyPuller(b, q); err != nil {
+		return nil, err
+	}
+	switch len(b.results) {
+	case 0:
+		return nil, fmt.Errorf("%s: commit not found", commit)
+	case 1:
+		commit, ok := b.results[0].(*commits.Commit)
+		if !ok {
+			return nil, fmt.Errorf("internal error: branch record has wrong type: %T", b.results[0])
+		}
+		return commit, nil
+	default:
+		return nil, fmt.Errorf("internal error: multiple commits found with same id: %s", commit)
 	}
 }
 

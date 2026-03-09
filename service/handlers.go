@@ -20,6 +20,7 @@ import (
 	"github.com/brimdata/super/db/journal"
 	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/order"
+	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
@@ -593,6 +594,34 @@ func handleDelete(c *Core, w *ResponseWriter, r *Request) {
 		PoolID:   pool.ID,
 		Branch:   branchName,
 	})
+}
+
+func handleVacate(c *Core, w *ResponseWriter, r *Request) {
+	pool, ok := r.StringFromPath(w, "pool")
+	if !ok {
+		return
+	}
+	dryrun, ok := r.BoolFromQuery(w, "dryrun")
+	if !ok {
+		return
+	}
+	s := r.URL.Query().Get("ts")
+	if s == "" {
+		w.Error(srverr.ErrInvalid("missing required query param: ts"))
+		return
+	}
+	ts, err := nano.ParseRFC3339Nano([]byte(s))
+	if err != nil {
+		w.Error(srverr.ErrInvalid("invalid timestamp value %q: %w", s, err))
+		return
+	}
+	db := dbapi.FromRoot(c.root)
+	cids, err := db.Vacate(r.Context(), pool, ts, dryrun)
+	if err != nil {
+		w.Error(err)
+		return
+	}
+	w.Respond(http.StatusOK, api.VacateResponse{CommitIDs: cids})
 }
 
 func handleVacuum(c *Core, w *ResponseWriter, r *Request) {

@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io/fs"
 	"runtime"
+	"slices"
+	"strings"
 	"sync"
 
 	"github.com/brimdata/super"
@@ -14,6 +16,7 @@ import (
 	"github.com/brimdata/super/db/data"
 	"github.com/brimdata/super/db/pools"
 	"github.com/brimdata/super/dbid"
+	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sio"
@@ -209,6 +212,74 @@ func (p *Pool) BatchifyBranchTips(ctx context.Context, sctx *super.Context, f ex
 // XXX this is inefficient but is only meant for interactive queries...?
 func (p *Pool) ObjectExists(ctx context.Context, id ksuid.KSUID) (bool, error) {
 	return p.engine.Exists(ctx, data.SequenceURI(p.DataPath, id))
+}
+
+func (p *Pool) Vacate(ctx context.Context, ts nano.Ts, dryrun bool) ([]ksuid.KSUID, error) {
+	if !dryrun {
+		if err := p.vacateBranchStore(ctx, ts, dryrun); err != nil {
+			return nil, err
+		}
+	}
+	return p.vacateCommits(ctx, ts, dryrun)
+}
+
+func (p *Pool) vacateCommits(ctx context.Context, ts nano.Ts, dryrun bool) ([]ksuid.KSUID, error) {
+	main, err := p.Main(ctx)
+	if err != nil {
+		return nil, err
+	}
+	commit, err := p.commits.FindNearestToTs(ctx, main.Branch.Commit, ts)
+	if err != nil {
+		return nil, err
+	}
+	branches, err := p.branches.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var conflicts []string
+	for _, b := range branches {
+		// Find any branches whose history does not include commit and if any
+		// are found fail.
+		path, err := p.commits.Path(ctx, b.Commit)
+		if err != nil {
+			return nil, err
+		}
+		if !slices.Contains(path, commit) {
+			conflicts = append(conflicts, b.Name)
+		}
+	}
+	if len(conflicts) > 0 {
+		slices.Sort(conflicts)
+		v := "branch does not include commit nearest timestamp"
+		if len(conflicts) > 1 {
+			v = "branches do not include commit nearest timestamp"
+		}
+		return nil, fmt.Errorf("cannot vacate at selected time: %s in the deletion path: %s", v, strings.Join(conflicts, ", "))
+	}
+	if dryrun {
+		path, err := p.commits.Path(ctx, commit)
+		if err != nil {
+			return nil, err
+		}
+		return path[1:], nil
+	}
+	return p.commits.SetBase(ctx, commit)
+}
+
+func (p *Pool) vacateBranchStore(ctx context.Context, ts nano.Ts, dryrun bool) error {
+	var werr error
+	at, err := p.branches.EntryWhere(ctx, func(config *branches.Config) bool {
+		if config.Commit.IsNil() {
+			return false
+		}
+		var c *commits.Commit
+		_, c, werr = p.commits.GetBytes(ctx, config.Commit)
+		return werr != nil || ts >= c.Date
+	})
+	if err = errors.Join(err, werr); err != nil {
+		return err
+	}
+	return p.branches.TruncateHistory(ctx, at)
 }
 
 func (p *Pool) Vacuum(ctx context.Context, commit ksuid.KSUID, dryrun bool) ([]ksuid.KSUID, error) {

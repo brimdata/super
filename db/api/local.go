@@ -12,6 +12,7 @@ import (
 	"github.com/brimdata/super/db"
 	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/order"
+	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
@@ -204,6 +205,18 @@ func (l *local) DeleteVectors(ctx context.Context, pool, revision string, ids []
 		return ksuid.Nil, err
 	}
 	return branch.DeleteVectors(ctx, ids, message.Author, message.Body)
+}
+
+func (l *local) Vacate(ctx context.Context, pool string, ts nano.Ts, dryrun bool) ([]ksuid.KSUID, error) {
+	poolID, err := l.PoolID(ctx, pool)
+	if err != nil {
+		return nil, err
+	}
+	p, err := l.db.OpenPool(ctx, poolID)
+	if err != nil {
+		return nil, err
+	}
+	return p.Vacate(ctx, ts, dryrun)
 }
 
 func (l *local) Vacuum(ctx context.Context, pool, revision string, dryrun bool) ([]ksuid.KSUID, error) {

@@ -92,3 +92,23 @@ func (s *Store) Remove(ctx context.Context, config Config) error {
 	}
 	return nil
 }
+
+func (s *Store) TruncateHistory(ctx context.Context, at journal.ID) error {
+	return s.store.MoveTail(ctx, at)
+}
+
+// EntryWhere returns the ID of the first journal entry satisfying f(entry), or
+// Nil if none do.
+func (s *Store) EntryWhere(ctx context.Context, f func(*Config) bool) (journal.ID, error) {
+	var at journal.ID
+	err := s.store.WalkEntries(ctx, func(id journal.ID, entries []journal.Entry) bool {
+		at = id
+		for _, e := range entries {
+			if f(e.(*Config)) {
+				return true
+			}
+		}
+		return false
+	})
+	return at, err
+}

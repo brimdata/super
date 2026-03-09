@@ -14,6 +14,7 @@ import (
 	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
+	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
@@ -146,6 +147,11 @@ func (r *remote) AddVectors(ctx context.Context, pool, revision string, objects 
 func (r *remote) DeleteVectors(ctx context.Context, pool, revision string, ids []ksuid.KSUID, message api.CommitMessage) (ksuid.KSUID, error) {
 	res, err := r.conn.DeleteVectors(ctx, pool, revision, ids, message)
 	return res.Commit, err
+}
+
+func (r *remote) Vacate(ctx context.Context, pool string, ts nano.Ts, dryrun bool) ([]ksuid.KSUID, error) {
+	res, err := r.conn.Vacate(ctx, pool, ts, dryrun)
+	return res.CommitIDs, err
 }
 
 func (r *remote) Vacuum(ctx context.Context, pool, revision string, dryrun bool) ([]ksuid.KSUID, error) {

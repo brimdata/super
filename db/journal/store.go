@@ -1,6 +1,7 @@
 package journal
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -92,11 +93,21 @@ func (s *Store) load(ctx context.Context) error {
 	if head == current {
 		return nil
 	}
-	unmarshaler := sup.NewBSUPUnmarshaler()
-	unmarshaler.Bind(s.keyTypes...)
+	unmarshaler := s.newUnmarshaler()
 	at, table, err := s.getSnapshot(ctx, unmarshaler)
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		s.logger.Error("Loading snapshot", zap.Error(err))
+	}
+	if at == Nil {
+		// Load base if it exists.
+		tail, base, err := s.journal.ReadTail(ctx)
+		if err != nil {
+			return err
+		}
+		if table, err = s.loadBase(ctx, base, unmarshaler); err != nil {
+			return err
+		}
+		at = tail
 	}
 	r, err := s.journal.OpenAsBSUP(ctx, super.NewContext(), head, at)
 	if err != nil {
@@ -128,21 +139,31 @@ func (s *Store) load(ctx context.Context) error {
 		if err := unmarshaler.Unmarshal(*val, &e); err != nil {
 			return err
 		}
-		switch e := e.(type) {
-		case *Add:
-			table[e.Entry.Key()] = e.Entry
-		case *Update:
-			key := e.Key()
-			if _, ok := table[key]; !ok {
-				return fmt.Errorf("update to non-existent key in journal store: %T", key)
-			}
-			table[key] = e.Entry
-		case *Delete:
-			delete(table, e.EntryKey)
-		default:
-			return fmt.Errorf("unknown type in journal store: %T", e)
-		}
+		updateTable(table, e)
 	}
+}
+
+func updateTable(table map[string]Entry, e Entry) {
+	switch e := e.(type) {
+	case *Add:
+		table[e.Entry.Key()] = e.Entry
+	case *Update:
+		key := e.Key()
+		if _, ok := table[key]; !ok {
+			panic(fmt.Errorf("update to non-existent key in journal store: %T", key))
+		}
+		table[key] = e.Entry
+	case *Delete:
+		delete(table, e.EntryKey)
+	default:
+		panic(fmt.Errorf("unknown type in journal store: %T", e))
+	}
+}
+
+func (s *Store) newUnmarshaler() *sup.UnmarshalBSUPContext {
+	unmarshaler := sup.NewBSUPUnmarshaler()
+	unmarshaler.Bind(s.keyTypes...)
+	return unmarshaler
 }
 
 func (s *Store) getSnapshot(ctx context.Context, unmarshaler *sup.UnmarshalBSUPContext) (ID, map[string]Entry, error) {
@@ -162,14 +183,20 @@ func (s *Store) getSnapshot(ctx context.Context, unmarshaler *sup.UnmarshalBSUPC
 		return Nil, table, errors.New("corrupted journal snapshot")
 	}
 	at := ID(val.Uint())
+	table, err = s.readSnapshot(zr, unmarshaler)
+	return at, table, err
+}
+
+func (s *Store) readSnapshot(r *bsupio.Reader, unmarshaler *sup.UnmarshalBSUPContext) (map[string]Entry, error) {
+	table := make(map[string]Entry)
 	for {
-		val, err := zr.Read()
+		val, err := r.Read()
 		if val == nil || err != nil {
-			return at, table, err
+			return table, err
 		}
 		var e Entry
 		if err := unmarshaler.Unmarshal(*val, &e); err != nil {
-			return at, nil, err
+			return nil, err
 		}
 		table[e.Key()] = e
 	}
@@ -186,6 +213,10 @@ func (s *Store) putSnapshot(ctx context.Context, at ID, table map[string]Entry) 
 	if err := zw.Write(super.NewUint64(uint64(at))); err != nil {
 		return err
 	}
+	return s.writeTable(zw, table)
+}
+
+func (s *Store) writeTable(w *bsupio.Writer, table map[string]Entry) error {
 	marshaler := sup.NewBSUPMarshaler()
 	marshaler.Decorate(sup.StylePackage)
 	for _, entry := range table {
@@ -193,7 +224,7 @@ func (s *Store) putSnapshot(ctx context.Context, at ID, table map[string]Entry) 
 		if err != nil {
 			return err
 		}
-		if err := zw.Write(val); err != nil {
+		if err := w.Write(val); err != nil {
 			return err
 		}
 	}
@@ -360,4 +391,141 @@ func (s *Store) commit(ctx context.Context, fn func() error, entries ...Entry) e
 		return nil
 	}
 	return ErrRetriesExceeded
+}
+
+func (s *Store) MoveTail(ctx context.Context, newTail ID) error {
+	head, tail, base, err := s.journal.Boundaries(ctx)
+	if err != nil {
+		return err
+	}
+	if newTail == tail {
+		// newTail is at tail so we are done here.
+		return nil
+	}
+	if newTail > head {
+		return fmt.Errorf("new tail %d must not be greater than head %d", newTail, head)
+	}
+	if newTail <= tail {
+		return fmt.Errorf("new tail %d must be greater than current tail %d", newTail, tail)
+	}
+	if err := s.journal.putTailLockFile(ctx); err != nil {
+		return err
+	}
+	defer s.journal.deleteTailLockFile()
+	newBase := newTail - 1
+	// Ensure base exists.
+	if _, err := s.journal.Load(ctx, newBase); err != nil {
+		return err
+	}
+	// Clear snapshot
+	if err := s.journal.engine.Delete(ctx, s.snapshotURI()); err != nil && !errors.Is(err, fs.ErrNotExist) {
+		return err
+	}
+	if err := s.putBase(ctx, newBase, tail, base); err != nil {
+		return err
+	}
+	if err := s.journal.MoveTail(ctx, newTail, newBase); err != nil {
+		return err
+	}
+	// Reset cache.
+	s.mu.Lock()
+	s.at = Nil
+	s.mu.Unlock()
+	// Delete old base and old commits.
+	s.journal.engine.Delete(ctx, s.baseURI(base))
+	for at := newBase; at >= tail; at-- {
+		s.journal.DeleteCommit(ctx, at)
+	}
+	return nil
+}
+
+func (s *Store) putBase(ctx context.Context, newBase, tail, oldBase ID) error {
+	u := s.newUnmarshaler()
+	table, err := s.loadBase(ctx, oldBase, u)
+	if err != nil {
+		return err
+	}
+	r, err := s.journal.OpenAsBSUP(ctx, super.NewContext(), newBase, tail)
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+	for {
+		val, err := r.Read()
+		if err != nil {
+			return err
+		}
+		if val == nil {
+			break
+		}
+		var e Entry
+		if err := u.Unmarshal(*val, &e); err != nil {
+			return err
+		}
+		updateTable(table, e)
+	}
+	w, err := s.journal.engine.Put(ctx, s.baseURI(newBase))
+	if err != nil {
+		return err
+	}
+	zw := bsupio.NewWriter(w)
+	defer zw.Close()
+	return s.writeTable(zw, table)
+}
+
+func (s *Store) loadBase(ctx context.Context, base ID, unmarshaler *sup.UnmarshalBSUPContext) (map[string]Entry, error) {
+	r, err := s.journal.engine.Get(ctx, s.baseURI(base))
+	if err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			err = nil
+		}
+		return make(map[string]Entry), err
+	}
+	defer r.Close()
+	zr := bsupio.NewReader(super.NewContext(), r)
+	defer zr.Close()
+	return s.readSnapshot(zr, unmarshaler)
+}
+
+func (s *Store) baseURI(base ID) *storage.URI {
+	return s.journal.path.JoinPath(fmt.Sprintf("%d.base.%s", base, ext))
+}
+
+func (s *Store) WalkEntries(ctx context.Context, c func(ID, []Entry) bool) error {
+	head, tail, _, err := s.journal.Boundaries(ctx)
+	if err != nil {
+		return err
+	}
+	at := head
+	for at >= tail {
+		b, err := s.journal.Load(ctx, at)
+		if err != nil {
+			return err
+		}
+		if c(at, s.readEntries(b)) {
+			break
+		}
+		at--
+	}
+	return nil
+}
+
+func (s *Store) readEntries(b []byte) []Entry {
+	var entries []Entry
+	reader := bsupbytes.NewDeserializer(bytes.NewReader(b), s.keyTypes)
+	for {
+		o, err := reader.Read()
+		if err != nil {
+			panic(err)
+		}
+		if o == nil {
+			return entries
+		}
+		switch e := o.(Entry).(type) {
+		case *Add:
+			entries = append(entries, e.Entry)
+		case *Update:
+			entries = append(entries, e.Entry)
+		}
+	}
 }
