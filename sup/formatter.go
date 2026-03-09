@@ -130,12 +130,11 @@ func (f *Formatter) saveType(named *super.TypeNamed) {
 
 func (f *Formatter) formatValueAndDecorate(typ super.Type, bytes scode.Bytes) {
 	known := f.hasName(typ)
-	implied := f.isImplied(typ)
-	f.formatValue(0, typ, bytes, known, implied, false)
+	f.formatValue(0, typ, bytes, known, false)
 	f.decorate(typ, false)
 }
 
-func (f *Formatter) formatValue(indent int, typ super.Type, bytes scode.Bytes, parentKnown, parentImplied, decorate bool) {
+func (f *Formatter) formatValue(indent int, typ super.Type, bytes scode.Bytes, parentKnown, decorate bool) {
 	known := parentKnown || f.hasName(typ)
 	var empty bool
 	switch t := typ.(type) {
@@ -144,17 +143,17 @@ func (f *Formatter) formatValue(indent int, typ super.Type, bytes scode.Bytes, p
 		formatPrimitive(&f.builder, typ, bytes)
 		f.endColor()
 	case *super.TypeNamed:
-		f.formatValue(indent, t.Type, bytes, known, parentImplied, false)
+		f.formatValue(indent, t.Type, bytes, known, false)
 	case *super.TypeRecord:
-		f.formatRecord(indent, t, bytes, known, parentImplied)
+		f.formatRecord(indent, t, bytes, known)
 	case *super.TypeArray:
-		empty = f.formatVector(indent, "[", "]", t.Type, super.NewValue(t, bytes), known, parentImplied)
+		empty = f.formatVector(indent, "[", "]", t.Type, super.NewValue(t, bytes), known)
 	case *super.TypeSet:
-		empty = f.formatVector(indent, "|[", "]|", t.Type, super.NewValue(t, bytes), known, parentImplied)
+		empty = f.formatVector(indent, "|[", "]|", t.Type, super.NewValue(t, bytes), known)
 	case *super.TypeUnion:
 		f.formatUnion(indent, t, bytes)
 	case *super.TypeMap:
-		empty = f.formatMap(indent, t, bytes, known, parentImplied)
+		empty = f.formatMap(indent, t, bytes, known)
 	case *super.TypeEnum:
 		f.build("\"")
 		f.build(t.Symbols[super.DecodeUint(bytes)])
@@ -164,7 +163,7 @@ func (f *Formatter) formatValue(indent int, typ super.Type, bytes scode.Bytes, p
 		f.build("error")
 		f.endColor()
 		f.build("(")
-		f.formatValue(indent, t.Type, bytes, known, parentImplied, true)
+		f.formatValue(indent, t.Type, bytes, known, true)
 		f.build(")")
 	case *super.TypeOfType:
 		f.startColor(color.Gray(200))
@@ -390,7 +389,7 @@ func (f *Formatter) decorate(typ super.Type, empty bool) {
 	}
 }
 
-func (f *Formatter) formatRecord(indent int, typ *super.TypeRecord, bytes scode.Bytes, known, parentImplied bool) {
+func (f *Formatter) formatRecord(indent int, typ *super.TypeRecord, bytes scode.Bytes, known bool) {
 	f.build("{")
 	if len(typ.Fields) == 0 {
 		f.build("}")
@@ -419,7 +418,7 @@ func (f *Formatter) formatRecord(indent int, typ *super.TypeRecord, bytes scode.
 			f.formatType(field.Type, true)
 			f.endColor()
 		} else {
-			f.formatValue(indent, field.Type, elem, known, parentImplied, true)
+			f.formatValue(indent, field.Type, elem, known, true)
 		}
 		sep = "," + f.newline
 	}
@@ -427,7 +426,7 @@ func (f *Formatter) formatRecord(indent int, typ *super.TypeRecord, bytes scode.
 	f.indent(indent-f.tab, "}")
 }
 
-func (f *Formatter) formatVector(indent int, open, close string, inner super.Type, val super.Value, known, parentImplied bool) bool {
+func (f *Formatter) formatVector(indent int, open, close string, inner super.Type, val super.Value, known bool) bool {
 	f.build(open)
 	n, err := val.ContainerLength()
 	if err != nil {
@@ -445,7 +444,7 @@ func (f *Formatter) formatVector(indent int, open, close string, inner super.Typ
 		f.build(sep)
 		f.indent(indent, "")
 		typ, b := elems.add(it.Next())
-		f.formatValue(indent, typ, b, known, parentImplied, true)
+		f.formatValue(indent, typ, b, known, true)
 		sep = "," + f.newline
 	}
 	f.build(f.newline)
@@ -496,11 +495,10 @@ func (f *Formatter) formatUnion(indent int, union *super.TypeUnion, bytes scode.
 	// In other words, just because we known the union's type doesn't mean
 	// we know the type of a particular value of that union.
 	const known = false
-	const parentImplied = true
-	f.formatValue(indent, typ, bytes, known, parentImplied, true)
+	f.formatValue(indent, typ, bytes, known, true)
 }
 
-func (f *Formatter) formatMap(indent int, typ *super.TypeMap, bytes scode.Bytes, known, parentImplied bool) bool {
+func (f *Formatter) formatMap(indent int, typ *super.TypeMap, bytes scode.Bytes, known bool) bool {
 	empty := true
 	f.build("|{")
 	indent += f.tab
@@ -514,7 +512,7 @@ func (f *Formatter) formatMap(indent int, typ *super.TypeMap, bytes scode.Bytes,
 		f.indent(indent, "")
 		var keyType super.Type
 		keyType, keyBytes = keyElems.add(keyBytes)
-		f.formatValue(indent, keyType, keyBytes, known, parentImplied, true)
+		f.formatValue(indent, keyType, keyBytes, known, true)
 		if super.TypeUnder(keyType) == super.TypeIP && len(keyBytes) == 16 {
 			// To avoid ambiguity, whitespace must separate an IPv6
 			// map key from the colon that follows it.
@@ -525,7 +523,7 @@ func (f *Formatter) formatMap(indent int, typ *super.TypeMap, bytes scode.Bytes,
 			f.build(" ")
 		}
 		valType, valBytes := valElems.add(it.Next())
-		f.formatValue(indent, valType, valBytes, known, parentImplied, true)
+		f.formatValue(indent, valType, valBytes, known, true)
 		sep = "," + f.newline
 	}
 	f.build(f.newline)
