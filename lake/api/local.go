@@ -11,6 +11,7 @@ import (
 	"github.com/brimdata/zed/lake"
 	"github.com/brimdata/zed/lakeparse"
 	"github.com/brimdata/zed/order"
+	"github.com/brimdata/zed/pkg/nano"
 	"github.com/brimdata/zed/pkg/storage"
 	"github.com/brimdata/zed/runtime"
 	"github.com/brimdata/zed/runtime/exec"
@@ -207,6 +208,18 @@ func (l *local) DeleteVectors(ctx context.Context, pool, revision string, ids []
 		return ksuid.Nil, err
 	}
 	return branch.DeleteVectors(ctx, ids, message.Author, message.Body)
+}
+
+func (l *local) Vacate(ctx context.Context, pool string, ts nano.Ts, dryrun bool) ([]ksuid.KSUID, error) {
+	poolID, err := l.PoolID(ctx, pool)
+	if err != nil {
+		return nil, err
+	}
+	p, err := l.root.OpenPool(ctx, poolID)
+	if err != nil {
+		return nil, err
+	}
+	return p.Vacate(ctx, ts, dryrun)
 }
 
 func (l *local) Vacuum(ctx context.Context, pool, revision string, dryrun bool) ([]ksuid.KSUID, error) {

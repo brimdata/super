@@ -30,18 +30,20 @@ const Nil ID = 0
 const MaxReadRetry = 10
 
 type Queue struct {
-	engine   storage.Engine
-	path     *storage.URI
-	headPath *storage.URI
-	tailPath *storage.URI
+	engine       storage.Engine
+	path         *storage.URI
+	headPath     *storage.URI
+	tailPath     *storage.URI
+	tailLockPath *storage.URI
 }
 
 func New(engine storage.Engine, path *storage.URI) *Queue {
 	return &Queue{
-		engine:   engine,
-		path:     path,
-		headPath: path.JoinPath("HEAD"),
-		tailPath: path.JoinPath("TAIL"),
+		engine:       engine,
+		path:         path,
+		headPath:     path.JoinPath("HEAD"),
+		tailPath:     path.JoinPath("TAIL"),
+		tailLockPath: path.JoinPath("TAIL.lock"),
 	}
 }
 
@@ -79,16 +81,16 @@ func (q *Queue) MoveTail(ctx context.Context, id, base ID) error {
 	return q.writeTail(ctx, id, base)
 }
 
-func (q *Queue) Boundaries(ctx context.Context) (ID, ID, error) {
+func (q *Queue) Boundaries(ctx context.Context) (ID, ID, ID, error) {
 	head, err := q.ReadHead(ctx)
 	if err != nil {
-		return Nil, Nil, err
+		return Nil, Nil, Nil, err
 	}
-	tail, _, err := q.ReadTail(ctx)
+	tail, base, err := q.ReadTail(ctx)
 	if err != nil {
-		return Nil, Nil, err
+		return Nil, Nil, Nil, err
 	}
-	return head, tail, nil
+	return head, tail, base, nil
 }
 
 // XXX This needs concurrency work. See issue #2546.
@@ -147,6 +149,10 @@ func (q *Queue) Load(ctx context.Context, id ID) ([]byte, error) {
 	return storage.Get(ctx, q.engine, q.uri(id))
 }
 
+func (q *Queue) DeleteCommit(ctx context.Context, id ID) error {
+	return q.engine.Delete(ctx, q.uri(id))
+}
+
 func (q *Queue) Open(ctx context.Context, head, tail ID) (io.Reader, error) {
 	if head == Nil {
 		var err error
@@ -178,6 +184,14 @@ func (q *Queue) OpenAsZNG(ctx context.Context, zctx *zed.Context, head, tail ID)
 		return nil, err
 	}
 	return zngio.NewReader(zctx, r), nil
+}
+
+func (q *Queue) putTailLockFile(ctx context.Context) error {
+	return q.engine.PutIfNotExists(ctx, q.tailLockPath, nil)
+}
+
+func (q *Queue) deleteTailLockFile() error {
+	return q.engine.Delete(context.Background(), q.tailLockPath)
 }
 
 func writeID(ctx context.Context, engine storage.Engine, u *storage.URI, id ID) error {

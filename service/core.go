@@ -186,6 +186,7 @@ func (c *Core) addAPIServerRoutes() {
 	c.authhandle("/pool/{pool}/revision/{revision}/vector", handleVectorPost).Methods("POST")
 	c.authhandle("/pool/{pool}/revision/{revision}/vector", handleVectorDelete).Methods("DELETE")
 	c.authhandle("/pool/{pool}/stats", handlePoolStats).Methods("GET")
+	c.authhandle("/pool/{pool}/vacate", handleVacate).Methods("POST")
 	c.authhandle("/query", handleQuery).Methods("OPTIONS", "POST")
 	c.authhandle("/query/describe", handleQueryDescribe).Methods("OPTIONS", "POST")
 	c.authhandle("/query/status/{requestID}", handleQueryStatus).Methods("GET")

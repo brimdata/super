@@ -1,0 +1,44 @@
+script: |
+  source service.sh
+  zed create -use -q test
+  echo {x:1} | zed load -message 'commit1' -q -
+  echo {x:2} | zed load -message 'commit2' -q -
+  echo {x:3} | zed load -message 'commit3' -q -
+  echo {x:4} | zed load -message 'commit4' -q -
+  zed vacate -dryrun
+  echo // ===
+  zed vacate -f
+  echo // === 
+  zed query -z 'from test:log | has(message) | yield message'
+  echo // === 
+  zed query -z 'from test'
+  ! zed vacate -f
+  echo {x:5} | zed load -message 'commit5' -q -
+  echo // === 
+  zed vacate -f
+  echo // === 
+  zed query -z 'from test:log | has(message) | yield message'
+
+inputs:
+  - name: service.sh
+
+outputs:
+  - name: stdout
+    data: |
+      would vacate 3 commits
+      // ===
+      vacated 3 commits
+      // ===
+      "commit4"
+      // ===
+      {x:4}
+      {x:3}
+      {x:2}
+      {x:1}
+      // ===
+      vacated 1 commit
+      // ===
+      "commit5"
+  - name: stderr
+    data: |
+      status code 500: cannot set base on earliest commit

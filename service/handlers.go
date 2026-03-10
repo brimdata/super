@@ -22,6 +22,7 @@ import (
 	"github.com/brimdata/zed/lake/journal"
 	"github.com/brimdata/zed/lakeparse"
 	"github.com/brimdata/zed/order"
+	"github.com/brimdata/zed/pkg/nano"
 	"github.com/brimdata/zed/pkg/storage"
 	"github.com/brimdata/zed/runtime"
 	"github.com/brimdata/zed/runtime/exec"
@@ -601,6 +602,34 @@ func handleDelete(c *Core, w *ResponseWriter, r *Request) {
 		PoolID:   pool.ID,
 		Branch:   branchName,
 	})
+}
+
+func handleVacate(c *Core, w *ResponseWriter, r *Request) {
+	pool, ok := r.StringFromPath(w, "pool")
+	if !ok {
+		return
+	}
+	dryrun, ok := r.BoolFromQuery(w, "dryrun")
+	if !ok {
+		return
+	}
+	s := r.URL.Query().Get("ts")
+	if s == "" {
+		w.Error(srverr.ErrInvalid("missing required query param: ts"))
+		return
+	}
+	ts, err := nano.ParseRFC3339Nano([]byte(s))
+	if err != nil {
+		w.Error(srverr.ErrInvalid("invalid timestamp value %q: %w", s, err))
+		return
+	}
+	db := lakeapi.FromRoot(c.root)
+	cids, err := db.Vacate(r.Context(), pool, ts, dryrun)
+	if err != nil {
+		w.Error(err)
+		return
+	}
+	w.Respond(http.StatusOK, api.VacateResponse{CommitIDs: cids})
 }
 
 func handleVacuum(c *Core, w *ResponseWriter, r *Request) {

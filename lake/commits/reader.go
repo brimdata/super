@@ -2,6 +2,8 @@ package commits
 
 import (
 	"context"
+	"errors"
+	"io/fs"
 
 	"github.com/brimdata/zed"
 	"github.com/brimdata/zed/zio"
@@ -37,6 +39,10 @@ func (r *LogReader) Read() (*zed.Value, error) {
 	}
 	_, commitObject, err := r.store.GetBytes(r.ctx, r.cursor)
 	if err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			r.cursor = ksuid.Nil
+			err = nil
+		}
 		return nil, err
 	}
 	next := commitObject.Parent

@@ -13,6 +13,7 @@ import (
 	"github.com/brimdata/zed/lakeparse"
 	"github.com/brimdata/zed/order"
 	"github.com/brimdata/zed/pkg/field"
+	"github.com/brimdata/zed/pkg/nano"
 	"github.com/brimdata/zed/zbuf"
 	"github.com/brimdata/zed/zio"
 	"github.com/brimdata/zed/zio/zngio"
@@ -145,6 +146,11 @@ func (r *remote) AddVectors(ctx context.Context, pool, revision string, objects 
 func (r *remote) DeleteVectors(ctx context.Context, pool, revision string, ids []ksuid.KSUID, message api.CommitMessage) (ksuid.KSUID, error) {
 	res, err := r.conn.DeleteVectors(ctx, pool, revision, ids, message)
 	return res.Commit, err
+}
+
+func (r *remote) Vacate(ctx context.Context, pool string, ts nano.Ts, dryrun bool) ([]ksuid.KSUID, error) {
+	res, err := r.conn.Vacate(ctx, pool, ts, dryrun)
+	return res.CommitIDs, err
 }
 
 func (r *remote) Vacuum(ctx context.Context, pool, revision string, dryrun bool) ([]ksuid.KSUID, error) {
