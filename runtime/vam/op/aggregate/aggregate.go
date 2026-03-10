@@ -1,6 +1,7 @@
 package aggregate
 
 import (
+	"github.com/RoaringBitmap/roaring/v2"
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/vam/expr"
@@ -89,6 +90,10 @@ func (a *Aggregate) Pull(done bool) (vector.Any, error) {
 }
 
 func (a *Aggregate) consume(keys []vector.Any, vals []vector.Any) {
+	keys, vals, ok := filterQuiet(keys, vals)
+	if !ok {
+		return
+	}
 	var keyTypes []super.Type
 	for _, k := range keys {
 		keyTypes = append(keyTypes, k.Type())
@@ -100,6 +105,44 @@ func (a *Aggregate) consume(keys []vector.Any, vals []vector.Any) {
 		a.tables[tableID] = table
 	}
 	table.update(keys, vals)
+}
+
+func filterQuiet(keys []vector.Any, vals []vector.Any) ([]vector.Any, []vector.Any, bool) {
+	var rb roaring.Bitmap
+	for _, k := range keys {
+		errVec, ok := k.(*vector.Error)
+		if !ok || errVec.Vals.Kind() != vector.KindString {
+			continue
+		}
+		vec := errVec.Vals
+		if c, ok := vec.(*vector.Const); ok {
+			if string(c.Value().Bytes()) == string(super.Quiet) {
+				// Every slot in this key is error("quiet").
+				return nil, nil, false
+			}
+			continue
+		}
+		for i := range vec.Len() {
+			if vector.StringValue(vec, i) == string(super.Quiet) {
+				rb.Add(i)
+			}
+		}
+	}
+	if rb.IsEmpty() {
+		return keys, vals, true
+	}
+	if rb.GetCardinality() == uint64(keys[0].Len()) {
+		// Every slot is error("quiet") in some key.
+		return nil, nil, false
+	}
+	index := rb.ToArray()
+	for i, k := range keys {
+		keys[i] = vector.Pick(k, index)
+	}
+	for i, v := range vals {
+		vals[i] = vector.Pick(v, index)
+	}
+	return keys, vals, true
 }
 
 func (a *Aggregate) newAggTable(keyTypes []super.Type) aggTable {
