@@ -18,3 +18,21 @@ output: |
   7
   8
   9
+
+---
+
+spq: unnest {a,b} | values a+b
+
+vector: true
+
+input: |
+  {a:1,b:[1,2,3]}
+  {a:2,b:[10,20,30]}
+
+output: |
+  2
+  3
+  4
+  12
+  22
+  32
