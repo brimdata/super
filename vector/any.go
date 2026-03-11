@@ -12,11 +12,6 @@ type Any interface {
 	Serialize(*scode.Builder, uint32)
 }
 
-type Promotable interface {
-	Any
-	Promote(super.Type) Promotable
-}
-
 type Puller interface {
 	Pull(done bool) (Any, error)
 }

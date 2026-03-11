@@ -11,7 +11,6 @@ type Uint struct {
 }
 
 var _ Any = (*Uint)(nil)
-var _ Promotable = (*Uint)(nil)
 
 func NewUint(typ super.Type, values []uint64) *Uint {
 	return &Uint{typ, values}
@@ -43,10 +42,6 @@ func (u *Uint) Value(slot uint32) uint64 {
 
 func (u *Uint) Serialize(b *scode.Builder, slot uint32) {
 	b.Append(super.EncodeUint(u.Values[slot]))
-}
-
-func (u *Uint) Promote(typ super.Type) Promotable {
-	return &Uint{typ, u.Values}
 }
 
 func UintValue(vec Any, slot uint32) uint64 {

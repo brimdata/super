@@ -44,10 +44,6 @@ func (i *Int) Serialize(b *scode.Builder, slot uint32) {
 	b.Append(super.EncodeInt(i.Values[slot]))
 }
 
-func (i *Int) Promote(typ super.Type) Promotable {
-	return &Int{typ, i.Values}
-}
-
 func IntValue(vec Any, slot uint32) int64 {
 	switch vec := Under(vec).(type) {
 	case *Int:
