@@ -3,11 +3,11 @@ package op
 import (
 	"fmt"
 
-	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/sbuf"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
 )
 
@@ -18,7 +18,6 @@ type Robot struct {
 	expr     expr.Evaluator
 	pushdown sbuf.Pushdown
 	format   string
-	vecs     []vector.Any
 	vec      vector.Any
 	off      uint32
 	src      vector.Puller
@@ -39,7 +38,6 @@ func (o *Robot) Pull(done bool) (vector.Any, error) {
 	if done {
 		o.off = 0
 		o.vec = nil
-		o.vecs = nil
 		src := o.src
 		o.src = nil
 		var err error
@@ -103,12 +101,14 @@ func (o *Robot) nextPuller() (vector.Puller, error) {
 			return nil, nil
 		}
 	}
-	if vec.Type().ID() != super.IDString {
-		return o.errOnVal(vec), nil
-	}
-	s := vector.StringValue(vec, o.off)
+	off := o.off
 	o.off++
-	return o.open(s)
+	var b scode.Builder
+	val := vector.ValueAt(&b, vec, off)
+	if !val.IsString() {
+		return o.errOnVal(vector.Pick(vec, []uint32{off})), nil
+	}
+	return o.open(val.AsString())
 }
 
 func (o *Robot) errOnVal(vec vector.Any) vector.Puller {
@@ -117,30 +117,18 @@ func (o *Robot) errOnVal(vec vector.Any) vector.Puller {
 }
 
 func (o *Robot) nextVec() (vector.Any, error) {
-	if len(o.vecs) == 0 {
-	again:
-		in, err := o.parent.Pull(false)
-		if err != nil {
-			return nil, err
-		}
-		if in == nil {
-			o.vec = nil
-			o.off = 0
-			return nil, nil
-		}
-		if in.Len() == 0 {
-			goto again
-		}
-		in = o.expr.Eval(in)
-		o.vecs = []vector.Any{in}
-		if d, ok := in.(*vector.Dynamic); ok {
-			o.vecs = d.Values
-		}
+	vec, err := o.parent.Pull(false)
+	if err != nil {
+		return nil, err
 	}
-	vec := o.vecs[0]
+	if vec == nil {
+		o.vec = nil
+		o.off = 0
+		return nil, nil
+	}
+	vec = o.expr.Eval(vec)
 	o.vec = vec
 	o.off = 0
-	o.vecs = o.vecs[1:]
 	return vec, nil
 }
 

@@ -1,7 +1,6 @@
 script: super -s -I query.spq
 
-# Re-enable when vam robot operator end-of-stream bug is fixed.
-vector: false
+vector: true
 
 inputs:
   - name: query.spq

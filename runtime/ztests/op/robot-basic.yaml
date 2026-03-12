@@ -20,3 +20,26 @@ outputs:
     data: |
       {s:"hello"}
       {s:"world"}
+
+---
+
+script: |
+  super -s -c 'values "a", "b" | ( from f"{this}.sup" | head 1 )'
+
+vector: true
+
+inputs:
+  - name: a.sup
+    data: |
+      {a:1}
+      {a:2}
+  - name: b.sup
+    data: |
+      {b:1}
+      {b:2}
+
+outputs:
+  - name: stdout
+    data: |
+      {a:1}
+      {b:1}
