@@ -10,8 +10,7 @@ import (
 )
 
 type Concat struct {
-	sctx    *super.Context
-	builder strings.Builder
+	sctx *super.Context
 }
 
 func (c *Concat) Call(args ...vector.Any) vector.Any {
@@ -24,22 +23,20 @@ func (c *Concat) Call(args ...vector.Any) vector.Any {
 			return vector.NewWrappedError(c.sctx, "concat: string arg required", arg)
 		}
 	}
-	n := args[0].Len()
 	out := vector.NewStringEmpty(0)
-	for i := range n {
-		c.builder.Reset()
+	for i := range args[0].Len() {
+		var b strings.Builder
 		for _, arg := range args {
 			s := vector.StringValue(arg, i)
-			c.builder.WriteString(s)
+			b.WriteString(s)
 		}
-		out.Append(c.builder.String())
+		out.Append(b.String())
 	}
 	return out
 }
 
 type Join struct {
-	sctx    *super.Context
-	builder strings.Builder
+	sctx *super.Context
 }
 
 func (j *Join) Call(args ...vector.Any) vector.Any {
@@ -66,15 +63,15 @@ func (j *Join) Call(args ...vector.Any) vector.Any {
 			seperator = vector.StringValue(sepVal, i)
 		}
 		off, end := vector.ContainerOffset(splitsVal, i)
-		j.builder.Reset()
+		var b strings.Builder
 		var sep string
 		for ; off < end; off++ {
 			s := vector.StringValue(inner, off)
-			j.builder.WriteString(sep)
-			j.builder.WriteString(s)
+			b.WriteString(sep)
+			b.WriteString(s)
 			sep = seperator
 		}
-		out.Append(j.builder.String())
+		out.Append(b.String())
 	}
 	return out
 }

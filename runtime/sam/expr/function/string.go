@@ -9,13 +9,12 @@ import (
 )
 
 type Concat struct {
-	sctx    *super.Context
-	builder strings.Builder
+	sctx *super.Context
 }
 
 func (c *Concat) Call(args []super.Value) super.Value {
 	args = underAll(args)
-	c.builder.Reset()
+	var b strings.Builder
 	for _, arg := range args {
 		if arg.IsError() {
 			return arg
@@ -26,9 +25,9 @@ func (c *Concat) Call(args []super.Value) super.Value {
 		if !arg.IsString() {
 			return c.sctx.WrapError("concat: string arg required", arg)
 		}
-		c.builder.WriteString(super.DecodeString(arg.Bytes()))
+		b.WriteString(super.DecodeString(arg.Bytes()))
 	}
-	return super.NewString(c.builder.String())
+	return super.NewString(b.String())
 }
 
 type Position struct {
@@ -161,8 +160,7 @@ func (s *Split) Call(args []super.Value) super.Value {
 }
 
 type Join struct {
-	sctx    *super.Context
-	builder strings.Builder
+	sctx *super.Context
 }
 
 func (j *Join) Call(args []super.Value) super.Value {
@@ -185,10 +183,9 @@ func (j *Join) Call(args []super.Value) super.Value {
 		}
 		separator = super.DecodeString(sepVal.Bytes())
 	}
-	b := j.builder
-	b.Reset()
-	it := splitsVal.Bytes().Iter()
+	var b strings.Builder
 	var sep string
+	it := splitsVal.Bytes().Iter()
 	for !it.Done() {
 		b.WriteString(sep)
 		b.WriteString(super.DecodeString(it.Next()))
