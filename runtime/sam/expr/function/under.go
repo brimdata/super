@@ -2,6 +2,7 @@ package function
 
 import (
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sup"
 )
 
 type Under struct {
@@ -34,7 +35,7 @@ func (u *Under) Call(args []super.Value) super.Value {
 		if !ok {
 			// The runtime should never allow creation of a super value that
 			// doesn't follow the subtype invariant.
-			panic(val)
+			panic(sup.FormatValue(val))
 		}
 		return out
 	case *super.TypeUnion:

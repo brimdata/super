@@ -102,4 +102,3 @@ output: |
   fusion([fusion(1::(int64|string|null),<int64>),fusion(2::(int64|string|null),<int64>)],<[int64]>)
   fusion([fusion("foo"::(int64|string|null),<string>)],<[string]>)
   fusion([fusion(null::(int64|string|null),<null>)],<[null]>)
-

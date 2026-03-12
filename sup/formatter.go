@@ -175,7 +175,8 @@ func (f *Formatter) formatValue(indent int, typ super.Type, bytes scode.Bytes, p
 		f.build(",<")
 		f.formatTypeValue(indent, it.Next(), false)
 		f.build(">)")
-		// We don't need to decorate a super because it's type is always implied by it's value.
+		// We don't need to decorate a fusion value because
+		// its type is always implied by its value.
 		return
 	case *super.TypeOfType:
 		f.startColor(color.Gray(200))

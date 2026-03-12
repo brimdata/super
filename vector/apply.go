@@ -41,7 +41,7 @@ func findDynamic(vecs []Any) (*Dynamic, bool) {
 	return nil, false
 }
 
-// XXX this is just a temporary hook to always (and very inefficiently)
+// XXX this is just a temporary hack to always (and very inefficiently)
 // expand vector.Fusion to Dynamic so it can be processed by the old vam logic.
 // The task is to figure out where we need to turn Fusion into Dynamic
 // (e.g., record spreads, typeof) and do it only when needed and other wise
@@ -53,14 +53,12 @@ func findDynamic(vecs []Any) (*Dynamic, bool) {
 // to turn the typevals (or in the future typeIDs) into super.Type.  We will need
 // to rework things to
 func defuse(vecs []Any) []Any {
-	var out []Any
-	for _, v := range vecs {
-		if f, ok := v.(*Fusion); ok {
-			v = f.Values
+	for i, vec := range vecs {
+		if f, ok := vec.(*Fusion); ok {
+			vecs[i] = f.Values
 		}
-		out = append(out, v)
 	}
-	return out
+	return vecs
 }
 
 func rip(vecs []Any, d *Dynamic) iter.Seq2[int, []Any] {

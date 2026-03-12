@@ -100,7 +100,7 @@ var (
 	TypeNet    = &TypeOfNet{}
 	TypeType   = &TypeOfType{}
 	TypeNull   = &TypeOfNull{}
-	//XXX add empty
+	//XXX add TypeNone
 )
 
 // Primary Type IDs

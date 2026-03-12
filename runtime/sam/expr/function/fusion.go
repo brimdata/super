@@ -21,14 +21,14 @@ func newFusion(sctx *super.Context) *fusion {
 func (f *fusion) Call(args []super.Value) super.Value {
 	superVal, subTypeVal := args[0], args[1]
 	if _, ok := super.TypeUnder(subTypeVal.Type()).(*super.TypeOfType); !ok {
-		return f.sctx.WrapError("super type argument not a type", subTypeVal)
+		return f.sctx.WrapError("fusion: super type argument not a type", subTypeVal)
 	}
 	subType, err := f.sctx.LookupByValue(subTypeVal.Bytes())
 	if err != nil {
 		panic(err)
 	}
 	if _, ok := f.downcast.Cast(superVal, subType); !ok {
-		return f.sctx.WrapError("value not a supertype of subtype arg: "+sup.FormatType(subType), superVal)
+		return f.sctx.WrapError("fusion: value not a supertype of subtype arg: "+sup.FormatType(subType), superVal)
 	}
 	typ := f.sctx.LookupTypeFusion(superVal.Type())
 	var b scode.Builder

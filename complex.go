@@ -315,7 +315,7 @@ func (t *TypeFusion) Kind() Kind {
 	return FusionKind
 }
 
-// Decode the supertype value bytes and the subtype from a fusion type.
+// Deref decodes the supertype value bytes and the subtype from a fusion type.
 func (t *TypeFusion) Deref(sctx *Context, bytes scode.Bytes) (scode.Bytes, Type) {
 	it := bytes.Iter()
 	superBytes := it.Next()
