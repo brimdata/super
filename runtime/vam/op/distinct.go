@@ -27,12 +27,11 @@ func (d *Distinct) Pull(done bool) (vector.Any, error) {
 			clear(d.blocked)
 			return nil, err
 		}
-		var b scode.Builder
+		var sb scode.Builder
 		var index []uint32
 		keyVec := d.expr.Eval(vec)
 		for i := range keyVec.Len() {
-			b.Truncate()
-			keyVal := vectorValue(&b, keyVec, i)
+			keyVal := vector.ValueAt(&sb, keyVec, i)
 			d.key = binary.LittleEndian.AppendUint32(d.key[:0], uint32(keyVal.Type().ID()))
 			d.key = append(d.key, keyVal.Bytes()...)
 			if _, ok := d.blocked[string(d.key)]; !ok {

@@ -10,6 +10,7 @@ import (
 type samExpr struct {
 	sctx    *super.Context
 	samEval samexpr.Evaluator
+	sb      scode.Builder
 }
 
 func NewSamExpr(sctx *super.Context, sameval samexpr.Evaluator) Evaluator {
@@ -17,21 +18,10 @@ func NewSamExpr(sctx *super.Context, sameval samexpr.Evaluator) Evaluator {
 }
 
 func (s *samExpr) Eval(this vector.Any) vector.Any {
-	var typ super.Type
-	dynamic, ok := this.(*vector.Dynamic)
-	if !ok {
-		typ = this.Type()
-	}
-	var b scode.Builder
 	vb := vector.NewDynamicBuilder()
 	for i := range this.Len() {
-		b.Truncate()
-		this.Serialize(&b, i)
-		if dynamic != nil {
-			typ = dynamic.TypeOf(i)
-		}
-		out := s.samEval.Eval(super.NewValue(typ, b.Bytes().Body()))
-		vb.Write(out)
+		val := vector.ValueAt(&s.sb, this, i)
+		vb.Write(s.samEval.Eval(val))
 	}
 	return vb.Build(s.sctx)
 }

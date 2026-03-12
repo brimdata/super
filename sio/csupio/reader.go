@@ -1,7 +1,6 @@
 package csupio
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"io"
@@ -21,8 +20,10 @@ type reader struct {
 	stream     *stream
 	projection field.Projection
 	readerAt   io.ReaderAt
-	vals       []super.Value
 	cancel     context.CancelFunc
+
+	sb   scode.Builder
+	vals []super.Value
 }
 
 func NewReader(sctx *super.Context, r io.Reader, fields []field.Path) (sio.Reader, error) {
@@ -69,21 +70,8 @@ again:
 
 func (r *reader) materializeVector(vec vector.Any) {
 	r.vals = r.vals[:0]
-	d, _ := vec.(*vector.Dynamic)
-	var typ super.Type
-	if d == nil {
-		typ = vec.Type()
-	}
-	builder := scode.NewBuilder()
-	n := vec.Len()
-	for slot := uint32(0); slot < n; slot++ {
-		vec.Serialize(builder, slot)
-		if d != nil {
-			typ = d.TypeOf(slot)
-		}
-		val := super.NewValue(typ, bytes.Clone(builder.Bytes().Body()))
-		r.vals = append(r.vals, val)
-		builder.Truncate()
+	for i := range vec.Len() {
+		r.vals = append(r.vals, vector.ValueAt(&r.sb, vec, i).Copy())
 	}
 }
 

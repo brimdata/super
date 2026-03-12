@@ -1,7 +1,6 @@
 package vam
 
 import (
-	"bytes"
 	"sync"
 
 	"github.com/brimdata/super"
@@ -31,22 +30,10 @@ func (m *Materializer) Pull(done bool) (sbuf.Batch, error) {
 }
 
 func Materialize(vec vector.Any) sbuf.Batch {
-	d, _ := vec.(*vector.Dynamic)
-	var typ super.Type
-	if d == nil {
-		typ = vec.Type()
-	}
-	builder := scode.NewBuilder()
-	var vals []super.Value
-	n := vec.Len()
-	for slot := uint32(0); slot < n; slot++ {
-		vec.Serialize(builder, slot)
-		if d != nil {
-			typ = d.TypeOf(slot)
-		}
-		val := super.NewValue(typ, bytes.Clone(builder.Bytes().Body()))
-		vals = append(vals, val)
-		builder.Reset()
+	var sb scode.Builder
+	vals := make([]super.Value, vec.Len())
+	for i := range vec.Len() {
+		vals[i] = vector.ValueAt(&sb, vec, i).Copy()
 	}
 	return sbuf.NewArray(vals)
 }

@@ -156,7 +156,7 @@ type mergeParent struct {
 	vec     vector.Any
 	off     uint32
 	lastOff uint32
-	builder scode.Builder
+	sb      scode.Builder
 	val     super.Value
 }
 
@@ -199,13 +199,5 @@ func (m *mergeParent) replenish() (bool, error) {
 }
 
 func (m *mergeParent) updateVal() {
-	var typ super.Type
-	if dynVec, ok := m.vec.(*vector.Dynamic); ok {
-		typ = dynVec.TypeOf(m.off)
-	} else {
-		typ = m.vec.Type()
-	}
-	m.builder.Truncate()
-	m.vec.Serialize(&m.builder, m.off)
-	m.val = super.NewValue(typ, m.builder.Bytes().Body())
+	m.val = vector.ValueAt(&m.sb, m.vec, m.off)
 }

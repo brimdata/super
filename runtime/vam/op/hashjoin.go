@@ -100,8 +100,8 @@ func (h *HashJoin) tableInit() error {
 }
 
 func buildTable(p vector.Puller, key expr.Evaluator) map[string][]super.Value {
+	var sb scode.Builder
 	table := map[string][]super.Value{}
-	var keyBuilder, valBuilder scode.Builder
 	for {
 		vec, _ := p.Pull(false)
 		if vec == nil {
@@ -109,14 +109,12 @@ func buildTable(p vector.Puller, key expr.Evaluator) map[string][]super.Value {
 		}
 		rightKeyVec := key.Eval(vec)
 		for i := range vec.Len() {
-			keyBuilder.Truncate()
-			keyVal := vectorValue(&keyBuilder, rightKeyVec, i)
+			keyVal := vector.ValueAt(&sb, rightKeyVec, i)
 			if keyVal.IsMissing() {
 				continue
 			}
 			key := hashKey(keyVal)
-			valBuilder.Reset()
-			table[key] = append(table[key], vectorValue(&valBuilder, vec, i))
+			table[key] = append(table[key], vector.ValueAt(&sb, vec, i).Copy())
 		}
 	}
 	return table
@@ -180,23 +178,21 @@ func (j *hashJoin) Pull() (vector.Any, error) {
 }
 
 func (j *hashJoin) probeLeft() (vector.Any, error) {
+	var sb scode.Builder
 	for {
 		vec, err := j.left.Pull(false)
 		if vec == nil || err != nil {
 			return nil, err
 		}
 		leftKeyVec := j.leftKey.Eval(vec)
-		var keyBuilder, valBuilder scode.Builder
 		b := vector.NewDynamicBuilder()
 		for i := range vec.Len() {
-			keyBuilder.Truncate()
-			keyVal := vectorValue(&keyBuilder, leftKeyVec, i)
+			keyVal := vector.ValueAt(&sb, leftKeyVec, i)
 			if keyVal.IsMissing() {
 				continue
 			}
 			key := hashKey(keyVal)
-			valBuilder.Truncate()
-			leftVal := vectorValue(&valBuilder, vec, i)
+			leftVal := vector.ValueAt(&sb, vec, i)
 			rightVals, ok := j.table[key]
 			if !ok {
 				if j.style != "inner" {
@@ -219,6 +215,7 @@ func (j *hashJoin) probeLeft() (vector.Any, error) {
 }
 
 func (j *hashJoin) probeRight() (vector.Any, error) {
+	var sb scode.Builder
 	for {
 		vec, err := j.right.Pull(false)
 		if err != nil {
@@ -231,16 +228,13 @@ func (j *hashJoin) probeRight() (vector.Any, error) {
 			return nil, nil
 		}
 		rightKeyVec := j.rightKey.Eval(vec)
-		var keyBuilder, valBuilder scode.Builder
 		b := vector.NewDynamicBuilder()
 		for i := range vec.Len() {
-			keyBuilder.Truncate()
-			keyVal := vectorValue(&keyBuilder, rightKeyVec, i)
+			keyVal := vector.ValueAt(&sb, rightKeyVec, i)
 			if keyVal.IsMissing() {
 				continue
 			}
 			key := hashKey(keyVal)
-			valBuilder.Truncate()
 			leftVals, ok := j.table[key]
 			if ok {
 				j.hits[key] = true
@@ -248,7 +242,7 @@ func (j *hashJoin) probeRight() (vector.Any, error) {
 			if j.style == "anti" {
 				continue
 			}
-			rightVal := vectorValue(&valBuilder, vec, i)
+			rightVal := vector.ValueAt(&sb, vec, i)
 			for _, leftVal := range leftVals {
 				b.Write(j.wrap(leftVal.Ptr(), rightVal.Ptr()))
 			}
@@ -332,13 +326,4 @@ func (b *bufPuller) pull(done bool) (vector.Any, error) {
 
 func hashKey(val super.Value) string {
 	return string(binary.LittleEndian.AppendUint32(val.Bytes(), uint32(val.Type().ID())))
-}
-
-func vectorValue(b *scode.Builder, vec vector.Any, slot uint32) super.Value {
-	vec.Serialize(b, slot)
-	bytes := b.Bytes().Body()
-	if dynVec, ok := vec.(*vector.Dynamic); ok {
-		return super.NewValue(dynVec.TypeOf(slot), bytes)
-	}
-	return super.NewValue(vec.Type(), bytes)
 }
