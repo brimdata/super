@@ -19,7 +19,7 @@ func NewDowncast(sctx *super.Context) Caster {
 func (d *downcast) Call(args []super.Value) super.Value {
 	from, to := args[0], args[1]
 	if _, ok := super.TypeUnder(to.Type()).(*super.TypeOfType); !ok {
-		return d.sctx.WrapError("downcast type argument not a type", to)
+		return d.sctx.WrapError("downcast: type argument not a type", to)
 	}
 	typ, err := d.sctx.LookupByValue(to.Bytes())
 	if err != nil {
@@ -27,7 +27,7 @@ func (d *downcast) Call(args []super.Value) super.Value {
 	}
 	val, ok := d.Cast(from, typ)
 	if !ok {
-		return d.sctx.WrapError("downcast value not a supertype of "+sup.FormatType(typ), from)
+		return d.sctx.WrapError("downcast: value not a supertype of "+sup.FormatType(typ), from)
 	}
 	return val
 }
@@ -87,7 +87,6 @@ func (d *downcast) toRecord(b *scode.Builder, typ super.Type, bytes scode.Bytes,
 			// The super value must have all the fields of the subtype cast.
 			// It's missing a field, so fail.
 			return false
-
 		}
 		if none {
 			if !toField.Opt {

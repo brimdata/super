@@ -18,8 +18,7 @@ func NewUpCaster(sctx *super.Context) Caster {
 
 func (u *upcast) Call(args []super.Value) super.Value {
 	from, to := args[0], args[1]
-	_, ok := to.Type().(*super.TypeOfType)
-	if !ok {
+	if _, ok := to.Type().(*super.TypeOfType); !ok {
 		return u.sctx.WrapError("upcast type argument not a type", to)
 	}
 	typ, err := u.sctx.LookupByValue(to.Bytes())

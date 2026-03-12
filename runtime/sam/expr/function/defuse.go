@@ -1,6 +1,8 @@
 package function
 
 import (
+	"slices"
+
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
 )
@@ -169,12 +171,7 @@ func (d *defuse) hasFusion(typ super.Type) bool {
 	var has bool
 	switch typ := typ.(type) {
 	case *super.TypeRecord:
-		for _, f := range typ.Fields {
-			if d.hasFusion(f.Type) {
-				has = true
-				break
-			}
-		}
+		has = slices.ContainsFunc(typ.Fields, func(f super.Field) bool { return d.hasFusion(f.Type) })
 	case *super.TypeArray:
 		has = d.hasFusion(typ.Type)
 	case *super.TypeSet:

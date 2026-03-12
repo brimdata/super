@@ -131,7 +131,7 @@ func (f *Fuser) fuseMono(typ super.Type) super.Type {
 		for _, field := range fields {
 			field.Type = f.fuseMono(field.Type)
 		}
-		out = super.Type(f.sctx.MustLookupTypeRecord(fields))
+		out = f.sctx.MustLookupTypeRecord(fields)
 	case *super.TypeArray:
 		out = f.sctx.LookupTypeArray(f.fuseMono(typ.Type))
 	case *super.TypeSet:
@@ -150,8 +150,7 @@ func (f *Fuser) fuseMono(typ super.Type) super.Type {
 	case *super.TypeError:
 		out = f.sctx.LookupTypeError(f.fuseMono(typ.Type))
 	case *super.TypeNamed:
-		inner := f.fuseMono(typ.Type)
-		if inner != typ.Type {
+		if inner := f.fuseMono(typ.Type); inner != typ.Type {
 			// If type changed, drop the name.
 			out = inner
 		}

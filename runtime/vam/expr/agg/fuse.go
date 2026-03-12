@@ -9,16 +9,16 @@ import (
 )
 
 type fuse struct {
-	super    bool
+	complete bool
 	seen     map[super.Type]struct{}
 	types    []super.Type
 	partials []super.Value
 }
 
-func newFuse(sup bool) *fuse {
+func newFuse(complete bool) *fuse {
 	return &fuse{
-		super: sup,
-		seen:  make(map[super.Type]struct{}),
+		complete: complete,
+		seen:     make(map[super.Type]struct{}),
 	}
 }
 
@@ -34,7 +34,7 @@ func (f *fuse) Result(sctx *super.Context) super.Value {
 	if len(f.types)+len(f.partials) == 0 {
 		return super.Null
 	}
-	fuser := samagg.NewFuser(sctx, f.super)
+	fuser := samagg.NewFuser(sctx, f.complete)
 	for _, p := range f.partials {
 		typ, err := sctx.LookupByValue(p.Bytes())
 		if err != nil {
