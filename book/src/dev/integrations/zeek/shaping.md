@@ -105,7 +105,7 @@ fields or keep them while assigning inferred types.
 ## Reference Shaper Contents
 
 The following reference `shaper.spq` may seem large, but ultimately it follows a
-fairly simple pattern that repeats across the many [Zeek log types](https://docs.zeek.org/en/master/script-reference/log-files.html).
+fairly simple pattern that repeats across the many [Zeek log types](https://docs.zeek.org/en/current/script-reference/log-files.html).
 
 ```mdtest-input shaper.spq
 -- This reference shaper for Zeek JSON logs was most recently tested with

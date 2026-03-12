@@ -1,7 +1,7 @@
 # Type System
 
 As the [super-structured data model](../../../formats/model.md) was in many ways inspired by the
-[Zeek TSV log format](https://docs.zeek.org/en/master/log-formats.html#zeek-tsv-format-logs),
+[Zeek TSV log format](https://docs.zeek.org/en/current/log-formats.html#zeek-tsv-format-logs),
 SuperDB's rich storage formats ([SUP](../../../formats/sup.md),
 [CSUP](../../../formats/csup.md), etc.) maintain comprehensive interoperability
 with Zeek.
@@ -51,7 +51,7 @@ applicable to handling certain types.
 >[!NOTE]
 > The [Zeek data types](https://docs.zeek.org/en/current/script-reference/types.html)
 > page describes the types in the context of the
-> [Zeek scripting language](https://docs.zeek.org/en/master/scripting/index.html).
+> [Zeek scripting language](https://docs.zeek.org/en/current/scripting/index.html).
 > The Zeek types available in scripting are a superset of the data types that
 > may appear in Zeek log files. The encodings of the types also differ in some
 > ways between the two contexts. However, we link to this reference because
