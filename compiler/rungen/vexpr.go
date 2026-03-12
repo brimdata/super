@@ -12,7 +12,9 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr/function"
 	vamexpr "github.com/brimdata/super/runtime/vam/expr"
 	vamfunction "github.com/brimdata/super/runtime/vam/expr/function"
+	vamop "github.com/brimdata/super/runtime/vam/op"
 	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/vector"
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -313,11 +315,25 @@ func (b *Builder) compileVamRecordExpr(e *dag.RecordExpr) (vamexpr.Evaluator, er
 }
 
 func (b *Builder) compileVamSubquery(query *dag.SubqueryExpr) (vamexpr.Evaluator, error) {
-	e, err := b.compileSubquery(query)
-	if err != nil {
-		return nil, err
+	if !query.Correlated {
+		exits, err := b.compileVamSeq(query.Body, nil)
+		if err != nil {
+			return nil, err
+		}
+		body := b.combineVam(exits)
+		return vamop.NewCachedSubquery(b.sctx(), body), nil
 	}
-	return vamexpr.NewSamExpr(b.sctx(), e), nil
+	var create func() *vamop.Subquery
+	create = func() *vamop.Subquery {
+		subquery := vamop.NewSubquery(b.rctx.Context, b.sctx(), create)
+		exits, err := b.compileVamSeq(query.Body, []vector.Puller{subquery})
+		if err != nil {
+			panic(err)
+		}
+		subquery.SetBody(b.combineVam(exits))
+		return subquery
+	}
+	return create(), nil
 }
 
 func (b *Builder) compileVamRegexpMatch(match *dag.RegexpMatchExpr) (vamexpr.Evaluator, error) {

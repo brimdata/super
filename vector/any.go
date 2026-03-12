@@ -16,6 +16,25 @@ type Puller interface {
 	Pull(done bool) (Any, error)
 }
 
+// ValueAt returns the value in vec at slot.  If b is not nil, ValueAt calls b's
+// Truncate method and builds the value in it.  To safely reuse b while the
+// value is live, call b's Reset method or the value's Copy method.
+func ValueAt(b *scode.Builder, vec Any, slot uint32) super.Value {
+	var typ super.Type
+	if d, ok := vec.(*Dynamic); ok {
+		typ = d.TypeOf(slot)
+	} else {
+		typ = vec.Type()
+	}
+	if b == nil {
+		b = scode.NewBuilder()
+	} else {
+		b.Truncate()
+	}
+	vec.Serialize(b, slot)
+	return super.NewValue(typ, b.Bytes().Body())
+}
+
 func NewPuller(vecs ...Any) Puller {
 	return &puller{vecs}
 }

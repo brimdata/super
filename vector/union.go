@@ -16,6 +16,14 @@ func NewUnion(typ *super.TypeUnion, tags []uint32, vals []Any) *Union {
 	return &Union{NewDynamic(tags, vals), typ}
 }
 
+func NewUnionFromDynamic(sctx *super.Context, d *Dynamic) *Union {
+	types := make([]super.Type, 0, len(d.Values))
+	for _, vec := range d.Values {
+		types = append(types, vec.Type())
+	}
+	return &Union{d, sctx.LookupTypeUnion(types)}
+}
+
 func (*Union) Kind() Kind {
 	return KindUnion
 }
