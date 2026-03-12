@@ -20,6 +20,16 @@ func (p *Parser) matchType() (ast.Type, error) {
 	if err != nil {
 		return nil, err
 	}
+	if ok, _ := p.lexer.match('*'); ok {
+		if _, ok := typ.(*ast.TypeUnion); ok {
+			return nil, errors.New("union type cannot be followed by *")
+		}
+		null := &ast.TypePrimitive{Kind: "TypePrimitive", Name: "null"}
+		return &ast.TypeUnion{
+			Kind:  "TypeUnion",
+			Types: []ast.Type{typ, null},
+		}, nil
+	}
 	if ok, _ := p.lexer.match('|'); ok {
 		return p.matchTypeUnion(typ)
 	}

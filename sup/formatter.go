@@ -644,6 +644,11 @@ func (f *Formatter) formatTypeRecord(typ *super.TypeRecord) {
 }
 
 func (f *Formatter) formatTypeUnion(typ *super.TypeUnion, isComponentType bool) {
+	if typ, ok := typ.IsNullable(); ok && !isComponentType {
+		f.formatType(typ, isComponentType) // pass down isComponentType?
+		f.build("*")
+		return
+	}
 	if isComponentType {
 		f.build("(")
 	}

@@ -355,6 +355,18 @@ func (t *TypeUnion) Kind() Kind {
 	return UnionKind
 }
 
+func (t *TypeUnion) IsNullable() (Type, bool) {
+	if len(t.Types) == 2 {
+		if t.Types[0] == TypeNull {
+			return t.Types[1], true
+		}
+		if t.Types[1] == TypeNull {
+			return t.Types[0], true
+		}
+	}
+	return nil, false
+}
+
 // BuildUnion appends to b a union described by tag and val.
 func BuildUnion(b *scode.Builder, tag int, val scode.Bytes) {
 	BeginUnion(b, tag)
