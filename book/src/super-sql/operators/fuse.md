@@ -24,7 +24,6 @@ Because all values of the input must be read to compute the fused type,
 >[!NOTE]
 > Spilling is not yet implemented for the vectorized runtime.
 
-
 ## Examples
 
 ---
