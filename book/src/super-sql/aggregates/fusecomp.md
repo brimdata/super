@@ -13,7 +13,7 @@ fusecomp(any) -> type
 The _fusecomp_ aggregate function applies [type fusion](../type-fusion.md)
 to its input and returns the complete fused type.  A complete fused type differs
 from the regular fused type as it includes fusion types in the nested type hierarchy
-whever the mixed-type representation were required in the type fusion process.
+whereever type mixtures were utilized to blend types in the type fusion process.
 
 ## Examples
 

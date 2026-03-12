@@ -551,7 +551,7 @@ are serialized in little-endian format.
 | `net`        | 27 | 8 or 32  | 8 or 32 bytes of IP prefix and subnet mask     |
 | `type`       | 28 | variable | type value byte sequence [as defined below](#4-type-values) |
 | `null`       | 29 |    0     | No value, always represents an undefined value |
-| `none`       | 30 |    0     | None type appears in empty sets/arrays/maps    |
+| `none`       | 30 |    0     | Appears in empty sets/arrays/maps              |
 
 ## 4. Type Values
 
