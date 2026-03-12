@@ -1,0 +1,8 @@
+skip: merging type-fusion PR as is and will fix this soon
+
+spq: fuse -complete | defuse(this)
+
+input: &input |
+  [{x:1},{y:1}]
+
+output: *input

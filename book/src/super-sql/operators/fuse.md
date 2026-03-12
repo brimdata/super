@@ -5,12 +5,12 @@
 ## Synopsis
 
 ```
-fuse [ -complete ]
+fuse
 ```
 
 ## Description
 
-The `fuse` operator computes a [fused type](../type-fusion.md)
+The `fuse` operator computes a [fused type](../aggregates/fuse.md)
 over all of its input then upcasts all values in the input to the fused type.
 
 This is logically equivalent to:
@@ -24,14 +24,6 @@ Because all values of the input must be read to compute the fused type,
 >[!NOTE]
 > Spilling is not yet implemented for the vectorized runtime.
 
-When run with the `-complete` option, the fused type includes fusion types
-at locations in the type hierarchy where data varies by type across the
-fused values.
-
-This is logically equivalent to:
-```
-from input | values upcast(this, (from input | aggregate fusecomp(this)))
-```
 
 ## Examples
 
@@ -45,8 +37,8 @@ fuse
 {a:1}
 {b:2}
 # expected output
-{a?:1,b?:_::int64}
-{a?:_::int64,b?:2}
+fusion({a?:1,b?:_::int64},<{a:int64}>)
+fusion({a?:_::int64,b?:2},<{b:int64}>)
 ```
 
 ---
@@ -59,8 +51,8 @@ fuse
 {a:1}
 {a:"foo"}
 # expected output
-{a:1::(int64|string)}
-{a:"foo"::(int64|string)}
+fusion({a:fusion(1::(int64|string),<int64>)},<{a:int64}>)
+fusion({a:fusion("foo"::(int64|string),<string>)},<{a:string}>)
 ```
 
 ---
@@ -73,6 +65,6 @@ fuse
 {a:[1,2]}
 {a:["foo","bar"],b:10.0.0.1}
 # expected output
-{a:[1,2]::[int64|string],b?:_::ip}
-{a:["foo","bar"]::[int64|string],b?:10.0.0.1}
+fusion({a:fusion([fusion(1::(int64|string),<int64>),fusion(2::(int64|string),<int64>)],<[int64]>),b?:_::ip},<{a:[int64]}>)
+fusion({a:fusion([fusion("foo"::(int64|string),<string>),fusion("bar"::(int64|string),<string>)],<[string]>),b?:10.0.0.1},<{a:[string],b:ip}>)
 ```

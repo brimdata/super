@@ -1,4 +1,4 @@
-spq: fuse
+spq: blend
 
 vector: true
 
@@ -17,7 +17,7 @@ output: |
 ---
 
 # Test fuse on an array of records.
-spq: fuse
+spq: blend
 
 vector: true
 
@@ -38,7 +38,7 @@ output: |
 ---
 
 # Test fuse on mix of complex and primitive values.
-spq: fuse
+spq: blend
 
 vector: true
 
@@ -60,8 +60,8 @@ output: |
 
 ---
 
-# Test fuse on nested records.
-spq: fuse
+# Test blend on nested records.
+spq: blend
 
 input: |
   {a:"hello",r:{x:1::int32,y:2::int32}}
@@ -75,7 +75,7 @@ output: |
 
 ---
 
-spq: fuse
+spq: blend
 
 vector: true
 
@@ -89,7 +89,7 @@ output: |
 
 ---
 
-spq: fuse -complete
+spq: fuse
 
 vector: true
 

@@ -141,11 +141,11 @@ a separate output file for each output type.
 
 ## Fused Data
 
-The [fuse](../super-sql/operators/fuse.md) operator uses
+The [blend](../super-sql/operators/fuse.md) operator uses
 [type fusion](../super-sql/type-fusion.md) to merge different record
 types into a blended type, e.g.,
 ```mdtest-command
-echo '{x:1}{s:"hello"}' | super -o out.parquet -f parquet -c fuse -
+echo '{x:1}{s:"hello"}' | super -o out.parquet -f parquet -c blend -
 super -s out.parquet
 ```
 which produces

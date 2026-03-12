@@ -41,15 +41,15 @@ func NewPattern(op string, distinct, hasarg bool) (Pattern, error) {
 		pattern = func() Function {
 			return &Avg{}
 		}
+	case "blend":
+		pattern = func() Function {
+			return newFuse(false)
+		}
 	case "dcount":
 		pattern = func() Function {
 			return NewDCount()
 		}
 	case "fuse":
-		pattern = func() Function {
-			return newFuse(false)
-		}
-	case "fusecomp":
 		pattern = func() Function {
 			return newFuse(true)
 		}

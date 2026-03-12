@@ -1,4 +1,4 @@
-spq: fuse -complete | defuse(this)
+spq: fuse | defuse(this)
 
 vector: true
 
@@ -11,7 +11,7 @@ output: *input
 
 ---
 
-spq: fuse -complete | defuse(this)
+spq: fuse | defuse(this)
 
 input: &input |
   {x:1}

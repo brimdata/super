@@ -1,6 +1,6 @@
 # fuse
 
-compute a fused type of input values
+compute a complete fused type of input values
 
 ## Synopsis
 
@@ -11,11 +11,9 @@ fuse(any) -> type
 ## Description
 
 The _fuse_ aggregate function applies [type fusion](../type-fusion.md)
-to its input and returns the fused type.
-
-It is useful with grouped aggregation for data exploration and discovery
-when searching for shaping rules to cluster a large number of varied input
-types to a smaller number of fused types each from a set of interrelated types.
+to its input and returns the fused type.  A fused type differs
+from a [blended type](blend.md) as it includes fusion types in the nested type hierarchy
+whereever type changes were made to combine types in the type fusion process.
 
 ## Examples
 
@@ -27,18 +25,5 @@ fuse(this)
 {a:1,b:2}
 {a:2,b:"foo"}
 # expected output
-<{a:int64,b:int64|string}>
-```
-
-Fuse records with a grouping key:
-```mdtest-spq {data-layout="stacked"}
-# spq
-fuse(this) by b | sort
-# input
-{a:1,b:"bar"}
-{a:2.1,b:"foo"}
-{a:3,b:"bar"}
-# expected output
-{b:"bar",fuse:<{a:int64,b:string}>}
-{b:"foo",fuse:<{a:float64,b:string}>}
+<fusion({a:int64,b:fusion(int64|string)})>
 ```

@@ -149,10 +149,10 @@ a:=a::int64
 
 ---
 
-**_Make a schema-rigid Parquet file using fuse, then output the Parquet file
+**_Make a schema-rigid Parquet file using blend, then output the Parquet file
 as [SUP](../formats/sup.md)_**
 ```mdtest-command
-echo '{a:1}{a:2}{b:3}' | super -f parquet -o tmp.parquet -c fuse -
+echo '{a:1}{a:2}{b:3}' | super -f parquet -o tmp.parquet -c blend -
 super -s tmp.parquet
 ```
 produces

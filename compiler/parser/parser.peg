@@ -599,8 +599,11 @@ RenameOp
     }
 
 FuseOp
-  = FUSE complete:(_ "-complete")? &EndOfOp {
-      return &ast.FuseOp{Kind: "FuseOp", Complete: complete != nil, Loc: loc(c)}, nil
+  = FUSE &EndOfOp {
+      return &ast.FuseOp{Kind: "FuseOp", Complete: true, Loc: loc(c)}, nil
+    }
+  / BLEND &EndOfOp {
+      return &ast.FuseOp{Kind: "FuseOp", Loc: loc(c)}, nil
     }
 
 JoinOp
@@ -2447,6 +2450,7 @@ ASC        = "ASC"i             !IdentifierRest { return "asc", nil }
 ASSERT     = "ASSERT"i          !IdentifierRest
 AT         = "AT"i              !IdentifierRest
 BETWEEN    = "BETWEEN"i         !IdentifierRest
+BLEND      = "BLEND"i           !IdentifierRest
 BY         = "BY"i              !IdentifierRest
 CALL       = "CALL"i            !IdentifierRest
 CASE       = "CASE"i            !IdentifierRest

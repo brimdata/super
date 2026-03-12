@@ -50,7 +50,8 @@ of union can be achieved by simply combining pipe queries using
 [fork](../operators/fork.md).
 
 When it is desirable to have a homogenous output for such data,
-data can be fused into one type with the [fuse](../operators/fuse.md) operator,
+data can be fused into one type with the [fuse](../operators/fuse.md) or
+[blend](../operators/blend.md) operators,
 which resembles the _union-by-name_ variation available in some SQL dialects.
 
 ## Examples
@@ -161,7 +162,7 @@ ORDER BY x,y
 ```
 ---
 
-_Fuse data as an alternative to a SQL UNION_
+_Blend data as an alternative to a SQL UNION_
 
 ```mdtest-spq
 # spq
@@ -179,7 +180,7 @@ fork
     SELECT * FROM U
   )
 | sort x,z
-| fuse
+| blend
 # input
 
 # expected output

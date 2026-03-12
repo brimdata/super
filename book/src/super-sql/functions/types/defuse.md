@@ -37,7 +37,7 @@ _Retain optional fields using complete fusion_
 
 ```mdtest-spq {data-layout="stacked"} runtime=sam
 # spq
-fuse -complete | defuse(this)
+fuse | defuse(this)
 # input
 {x:1}
 {x:2,y:3}

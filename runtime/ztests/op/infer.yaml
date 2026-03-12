@@ -78,7 +78,7 @@ output: |
 
 ---
 
-spq: fuse | infer | sort this
+spq: blend | infer | sort this
 
 vector: true
 

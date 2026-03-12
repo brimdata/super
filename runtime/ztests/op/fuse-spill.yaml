@@ -1,6 +1,6 @@
 # 13B is enough to buffer the first record in memory but not the second.
 script: |
-  super -s -fusemem 13B -c fuse in.sup
+  super -s -fusemem 13B -c blend in.sup
 
 vector: true
 
