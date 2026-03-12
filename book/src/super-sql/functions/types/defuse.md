@@ -11,7 +11,7 @@ defuse(val any) -> any
 ## Description
 
 The `defuse` function converts a value `val` containing any fusion types
-into its original type by downcasting all instances of fusion values with their
+into its original type by downcasting all instances of fusion values to their
 subtype equivalent.
 
 ## Examples

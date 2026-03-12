@@ -167,17 +167,17 @@ position in the sequence and is not explicitly encoded.
 
 The typedef codes are defined as follows:
 
-| Code | Complex Type             |
-|------|--------------------------|
-|   0  |  record type definition  |
-|   1  |  array type definition   |
-|   2  |  set type definition     |
-|   3  |  map type definition     |
-|   4  |  union type definition   |
-|   5  |  enum type definition    |
-|   6  |  error type definition   |
-|   7  |  named type definition   |
-|   8  |  fusion type definition  |
+| Code | Complex Type |
+|------|--------------|
+|   0  |  record      |
+|   1  |  array       |
+|   2  |  set         |
+|   3  |  map         |
+|   4  |  union       |
+|   5  |  enum        |
+|   6  |  error       |
+|   7  |  named type  |
+|   8  |  fusion type |
 
 Any references to a type ID in the body of a typedef are encoded as a `uvarint`.
 
@@ -550,8 +550,8 @@ are serialized in little-endian format.
 | `ip`         | 26 | 4 or 16  | 4 or 16 bytes of IP address                    |
 | `net`        | 27 | 8 or 32  | 8 or 32 bytes of IP prefix and subnet mask     |
 | `type`       | 28 | variable | type value byte sequence [as defined below](#4-type-values) |
-| `null`       | 29 |    0     | No value, always represents an undefined value |
-| `none`       | 30 |    0     | Appears in empty sets/arrays/maps              |
+| `null`       | 29 |    0     | no value, always represents an undefined value |
+| `none`       | 30 |    0     | appears in empty sets/arrays/maps              |
 
 ## 4. Type Values
 

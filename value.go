@@ -449,7 +449,7 @@ func (v Value) Deunion() Value {
 }
 
 // Under resolves named types and untags unions repeatedly, returning a value
-// guaranteed to have neither a named type nor a union type.
+// guaranteed not to have a fusion type, named type or union type.
 func (v Value) Under() Value {
 	switch v.Type().(type) {
 	case *TypeUnion, *TypeNamed, *TypeFusion:
