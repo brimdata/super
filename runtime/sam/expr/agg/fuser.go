@@ -167,14 +167,14 @@ func (f *Fuser) fuseMono(typ super.Type) super.Type {
 // types contains at most one type of each complex kind but no unions.
 func (f *Fuser) fuseIntoUnionTypes(types []super.Type, typ super.Type) []super.Type {
 	typUnder := super.TypeUnder(typ)
-	if u, ok := typUnder.(*super.TypeUnion); ok {
-		for _, t := range u.Types {
+	switch typ := typUnder.(type) {
+	case *super.TypeUnion:
+		for _, t := range typ.Types {
 			types = f.fuseIntoUnionTypes(types, t)
 		}
 		return types
-	}
-	if s, ok := typUnder.(*super.TypeFusion); ok {
-		return f.fuseIntoUnionTypes(types, s.Type)
+	case *super.TypeFusion:
+		return f.fuseIntoUnionTypes(types, typ.Type)
 	}
 	typKind := typ.Kind()
 	for i, t := range types {
