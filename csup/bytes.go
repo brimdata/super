@@ -3,6 +3,7 @@ package csup
 import (
 	"bytes"
 	"io"
+	"math"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
@@ -14,8 +15,7 @@ type BytesEncoder struct {
 	typ      super.Type
 	min, max []byte
 	bytes    scode.Bytes
-	offsets  *Uint32Encoder
-	offs     []uint32
+	offsets  *offsetsEncoder
 
 	// These values are used for the Encode pass.
 	bytesFmt uint8
@@ -25,28 +25,33 @@ type BytesEncoder struct {
 
 func NewBytesEncoder(typ super.Type) *BytesEncoder {
 	return &BytesEncoder{
-		typ:   typ,
-		bytes: scode.Bytes{},
+		typ:     typ,
+		bytes:   scode.Bytes{},
+		offsets: newOffsetsEncoder(),
 	}
 }
 
 func (b *BytesEncoder) Write(vec vector.Any) {
+	if vec.Len() == 0 {
+		return
+	}
 	vb := vec.(*vector.Bytes)
+	if len(b.bytes) == 0 {
+		val := vb.Value(0)
+		b.min = append(b.min[:0], val...)
+		b.max = append(b.max[:0], val...)
+	}
 	for slot := range vec.Len() {
 		val := vb.Value(slot)
-		if len(b.bytes) == 0 || bytes.Compare(val, b.min) < 0 {
+		if bytes.Compare(val, b.min) < 0 {
 			b.min = append(b.min[:0], val...)
 		}
-		if len(b.bytes) == 0 || bytes.Compare(val, b.max) > 0 {
+		if bytes.Compare(val, b.max) > 0 {
 			b.max = append(b.max[:0], val...)
 		}
 	}
 	b.bytes = append(b.bytes, vb.Table().RawBytes()...)
-	//XXX appended offsets need to be adjusted to account for previous table
-	if len(b.offs) != 0 {
-		panic("TBD")
-	}
-	b.offs = append(b.offs, vb.Table().RawOffsets()...)
+	b.offsets.write(vb.Table().RawOffsets())
 }
 
 func (b *BytesEncoder) Encode(group *errgroup.Group) {
@@ -96,30 +101,28 @@ func (b *BytesEncoder) value(slot uint32) []byte {
 }
 
 func (b *BytesEncoder) Dict() (PrimitiveEncoder, []byte, []uint32) {
-	//XXX TBD put back after going to pure native encoding
-	return nil, nil, nil
-	/*
-		m := make(map[string]byte)
-		var counts []uint32
-		index := make([]byte, len(b.offsets.vals)-1)
-		entries := NewBytesEncoder(b.typ)
-		for k := range uint32(len(index)) {
-			tag, ok := m[string(b.value(k))]
-			if !ok {
-				tag = byte(len(counts))
-				v := b.value(k)
-				m[string(v)] = tag
-				entries.Write(v)
-				counts = append(counts, 0)
-				if len(counts) > math.MaxUint8 {
-					return nil, nil, nil
-				}
+	m := make(map[string]byte)
+	var counts []uint32
+	index := make([]byte, len(b.offsets.vals)-1)
+	table := vector.NewBytesTableEmpty(256)
+	for k := range uint32(len(index)) {
+		tag, ok := m[string(b.value(k))]
+		if !ok {
+			tag = byte(len(counts))
+			v := b.value(k)
+			m[string(v)] = tag
+			table.Append(v)
+			counts = append(counts, 0)
+			if len(counts) > math.MaxUint8 {
+				return nil, nil, nil
 			}
-			index[k] = tag
-			counts[tag]++
 		}
-		return entries, index, counts
-	*/
+		index[k] = tag
+		counts[tag]++
+	}
+	encoder := NewBytesEncoder(b.typ)
+	encoder.Write(vector.NewBytes(table))
+	return encoder, index, counts
 }
 
 func (b *BytesEncoder) ConstValue() super.Value {

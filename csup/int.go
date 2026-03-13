@@ -220,9 +220,7 @@ type offsetsEncoder struct {
 }
 
 func newOffsetsEncoder() *offsetsEncoder {
-	return &offsetsEncoder{
-		Uint32Encoder{vals: []uint32{0}},
-	}
+	return &offsetsEncoder{}
 }
 
 func (o *offsetsEncoder) write(offsets []uint32) {
@@ -230,7 +228,6 @@ func (o *offsetsEncoder) write(offsets []uint32) {
 		o.vals = offsets
 	} else {
 		base := o.vals[len(o.vals)-1]
-		//XXX does this have off by one?
 		for _, off := range offsets {
 			o.vals = append(o.vals, base+off)
 		}

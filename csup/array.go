@@ -12,7 +12,6 @@ type ArrayEncoder struct {
 	typ     super.Type
 	values  Encoder
 	offsets *offsetsEncoder
-	offs    []uint32
 	count   uint32
 }
 
