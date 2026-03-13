@@ -1,7 +1,6 @@
 package csup
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/brimdata/super"
@@ -43,7 +42,6 @@ func (d *DictEncoder) Encode(group *errgroup.Group) {
 			return nil
 		}
 		if !isValidDict(len(index), len(counts)) {
-			fmt.Println("NOT VALID", len(index), len(counts))
 			d.PrimitiveEncoder.Encode(group)
 			return nil
 		}
