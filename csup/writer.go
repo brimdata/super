@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/brimdata/super"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
@@ -84,4 +85,33 @@ func (w *Writer) finalizeObject() error {
 	// Set new dynamic so we can write the next object.
 	w.dynamic = NewDynamicEncoder()
 	return nil
+}
+
+type ValWriter struct {
+	sctx    *super.Context
+	writer  *Writer
+	builder *vector.DynamicBuilder
+}
+
+var _ sio.Writer = (*ValWriter)(nil)
+
+func NewValWriter(w io.WriteCloser) *ValWriter {
+	return &ValWriter{
+		sctx:    super.NewContext(), //XXX
+		writer:  NewWriter(w),
+		builder: vector.NewDynamicBuilder(),
+	}
+}
+
+func (v *ValWriter) Write(val super.Value) error {
+	v.builder.Write(val)
+	return nil
+}
+
+func (v *ValWriter) Close() error {
+	err := v.writer.Write(v.builder.Build(v.sctx))
+	if closeErr := v.writer.Close(); err == nil {
+		err = closeErr
+	}
+	return err
 }
