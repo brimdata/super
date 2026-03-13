@@ -2,6 +2,7 @@ package csup
 
 import (
 	"io"
+	"math"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/order"
@@ -34,6 +35,8 @@ func NewScodeEncoder(typ super.Type) *ScodeEncoder {
 	}
 }
 
+// XXX TBD: change all the scode primitives to be native and get rid of
+// this slow path here.
 func (p *ScodeEncoder) Write(vec vector.Any) {
 	var b scode.Builder
 	for slot := range vec.Len() {
@@ -43,6 +46,10 @@ func (p *ScodeEncoder) Write(vec vector.Any) {
 		p.update(body)
 		p.bytes = scode.Append(p.bytes, body)
 	}
+}
+
+func (p *ScodeEncoder) WriteBytes(bytes scode.Bytes) {
+	p.bytes = scode.Append(p.bytes, bytes)
 }
 
 func (p *ScodeEncoder) update(body scode.Bytes) {
@@ -96,33 +103,29 @@ func (p *ScodeEncoder) Emit(w io.Writer) error {
 }
 
 func (p *ScodeEncoder) Dict() (PrimitiveEncoder, []byte, []uint32) {
-	//XXX TBD... put back after moving to pure native
-	return nil, nil, nil
-	/*
-		m := make(map[string]byte)
-		var counts []uint32
-		index := make([]byte, p.count)
-		entries := NewScodeEncoder(p.typ)
-		var k uint32
-		it := p.bytes.Iter()
-		for !it.Done() {
-			v := it.Next()
-			tag, ok := m[string(v)]
-			if !ok {
-				tag = byte(len(counts))
-				m[string(v)] = tag
-				counts = append(counts, 0)
-				entries.Write(v)
-				if len(counts) > math.MaxUint8 {
-					return nil, nil, nil
-				}
+	m := make(map[string]byte)
+	var counts []uint32
+	index := make([]byte, p.count)
+	entries := NewScodeEncoder(p.typ)
+	var k uint32
+	it := p.bytes.Iter()
+	for !it.Done() {
+		v := it.Next()
+		tag, ok := m[string(v)]
+		if !ok {
+			tag = byte(len(counts))
+			m[string(v)] = tag
+			counts = append(counts, 0)
+			entries.WriteBytes(v)
+			if len(counts) > math.MaxUint8 {
+				return nil, nil, nil
 			}
-			index[k] = tag
-			counts[tag]++
-			k++
 		}
-		return entries, index, counts
-	*/
+		index[k] = tag
+		counts[tag]++
+		k++
+	}
+	return entries, index, counts
 }
 
 func (p *ScodeEncoder) ConstValue() super.Value {
