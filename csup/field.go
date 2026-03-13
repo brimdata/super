@@ -11,14 +11,19 @@ type FieldEncoder struct {
 	name   string
 	values Encoder
 	opt    bool
-	rle    vector.RLE
+	rle    []uint32
 	nones  *Uint32Encoder
 }
 
 func (f *FieldEncoder) write(vec vector.Any) {
 	if opt, ok := vec.(*vector.Optional); ok {
-		// here we would append the RLEs to the existing RLE
-		panic(opt)
+		// RLEs have the nice property that you can just concatenate them
+		// to append two vectors.
+		// XXX We currently compute the RLE from the Dynamic but Optional needs
+		// to be updated to keep the RLEs around and materialize the Dynamic on demand.
+		f.rle = append(f.rle, opt.RLE()...)
+		vec = opt.Values[0]
+
 	}
 	f.values.Write(vec)
 }
@@ -40,8 +45,7 @@ func (f *FieldEncoder) Metadata(cctx *Context, off uint64) (uint64, Field) {
 
 func (f *FieldEncoder) Encode(group *errgroup.Group, count uint32) {
 	if f.opt {
-		runs := f.rle.End(count)
-		f.nones = &Uint32Encoder{vals: runs}
+		f.nones = &Uint32Encoder{vals: f.rle}
 		f.nones.Encode(group)
 	}
 	f.values.Encode(group)
