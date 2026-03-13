@@ -16,7 +16,6 @@ func FuzzQuery(f *testing.F) {
 	f.Add([]byte("f1 == null\x00"))
 	f.Add([]byte("f1 == null | values f2\x00"))
 	f.Fuzz(func(t *testing.T, b []byte) {
-		/* XXX
 		bytesReader := bytes.NewReader(b)
 		querySource := fuzz.GenAscii(bytesReader)
 		context := super.NewContext()
@@ -33,12 +32,11 @@ func FuzzQuery(f *testing.F) {
 		fuzz.WriteBSUP(t, values, &bsupBuf)
 		resultBSUP := fuzz.RunQueryBSUP(t, &bsupBuf, querySource)
 
-		//var csupBuf bytes.Buffer
-		//fuzz.WriteCSUP(t, values, &csupBuf)
-		//resultCSUP := fuzz.RunQueryCSUP(t, &csupBuf, querySource)
+		var csupBuf bytes.Buffer
+		fuzz.WriteCSUP(t, values, &csupBuf)
+		resultCSUP := fuzz.RunQueryCSUP(t, &csupBuf, querySource)
 
-		//fuzz.CompareValues(t, resultBSUP, resultCSUP)
-		*/
+		fuzz.CompareValues(t, resultBSUP, resultCSUP)
 	})
 }
 
