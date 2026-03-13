@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/fuzz"
 )
 
@@ -63,7 +64,6 @@ func BenchmarkReadBSUP(b *testing.B) {
 	}
 }
 
-/*
 func BenchmarkReadCSUP(b *testing.B) {
 	rand := rand.New(rand.NewSource(42))
 	valuesIn := make([]super.Value, N)
@@ -87,7 +87,6 @@ func BenchmarkReadCSUP(b *testing.B) {
 		//}
 	}
 }
-*/
 
 func BenchmarkReadVarint(b *testing.B) {
 	rand := rand.New(rand.NewSource(42))
