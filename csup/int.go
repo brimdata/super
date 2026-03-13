@@ -24,9 +24,6 @@ func NewIntEncoder(typ super.Type) *IntEncoder {
 }
 
 func (i *IntEncoder) Write(vec vector.Any) {
-	if vec.Len() == 0 {
-		return
-	}
 	iv := vec.(*vector.Int)
 	if len(i.vals) == 0 {
 		i.min = iv.Values[0]
@@ -105,9 +102,6 @@ func NewUintEncoder(typ super.Type) *UintEncoder {
 }
 
 func (u *UintEncoder) Write(vec vector.Any) {
-	if vec.Len() == 0 {
-		return
-	}
 	uv := vec.(*vector.Uint)
 	if len(u.vals) == 0 {
 		u.min = uv.Values[0]

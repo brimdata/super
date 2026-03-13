@@ -24,9 +24,6 @@ func NewFloatEncoder(typ super.Type) *FloatEncoder {
 }
 
 func (f *FloatEncoder) Write(vec vector.Any) {
-	if vec.Len() == 0 {
-		return
-	}
 	fv := vec.(*vector.Float)
 	if len(f.vals) == 0 {
 		f.min = fv.Values[0]

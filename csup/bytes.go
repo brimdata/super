@@ -32,9 +32,6 @@ func NewBytesEncoder(typ super.Type) *BytesEncoder {
 }
 
 func (b *BytesEncoder) Write(vec vector.Any) {
-	if vec.Len() == 0 {
-		return
-	}
 	vb := vec.(*vector.Bytes)
 	if len(b.bytes) == 0 {
 		val := vb.Value(0)

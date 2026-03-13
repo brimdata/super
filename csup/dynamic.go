@@ -29,6 +29,9 @@ func NewDynamicEncoder() *DynamicEncoder {
 // We track the types seen first-come, first-served and the
 // CSUP metadata structure follows accordingly.
 func (d *DynamicEncoder) Write(vec vector.Any) {
+	if vec.Len() == 0 {
+		return
+	}
 	if dynamic, ok := vec.(*vector.Dynamic); ok {
 		d.appendDynamic(dynamic)
 	} else {
