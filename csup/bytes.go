@@ -32,14 +32,26 @@ func NewBytesEncoder(typ super.Type) *BytesEncoder {
 }
 
 func (b *BytesEncoder) Write(vec vector.Any) {
-	vb := vec.(*vector.Bytes)
+	switch vec := vec.(type) {
+	case *vector.Bytes:
+		b.writeTable(vec.Table())
+	case *vector.String:
+		b.writeTable(vec.Table())
+	case *vector.TypeValue:
+		b.writeTable(vec.Table())
+	default:
+		panic(vec)
+	}
+}
+
+func (b *BytesEncoder) writeTable(table vector.BytesTable) {
 	if len(b.bytes) == 0 {
-		val := vb.Value(0)
+		val := table.Bytes(0)
 		b.min = append(b.min[:0], val...)
 		b.max = append(b.max[:0], val...)
 	}
-	for slot := range vec.Len() {
-		val := vb.Value(slot)
+	for slot := range table.Len() {
+		val := table.Bytes(slot)
 		if bytes.Compare(val, b.min) < 0 {
 			b.min = append(b.min[:0], val...)
 		}
@@ -47,8 +59,8 @@ func (b *BytesEncoder) Write(vec vector.Any) {
 			b.max = append(b.max[:0], val...)
 		}
 	}
-	b.bytes = append(b.bytes, vb.Table().RawBytes()...)
-	b.offsets.write(vb.Table().RawOffsets())
+	b.bytes = append(b.bytes, table.RawBytes()...)
+	b.offsets.write(table.RawOffsets())
 }
 
 func (b *BytesEncoder) Encode(group *errgroup.Group) {
