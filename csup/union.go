@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/vector"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -28,12 +28,16 @@ func NewUnionEncoder(typ *super.TypeUnion) *UnionEncoder {
 	}
 }
 
-func (u *UnionEncoder) Write(body scode.Bytes) {
-	u.count++
-	typ, zv := u.typ.Untag(body)
-	tag := u.typ.TagOf(typ)
-	u.tags.Write(uint32(tag))
-	u.values[tag].Write(zv)
+func (u *UnionEncoder) Write(vec vector.Any) {
+	if vec.Len() == 0 {
+		return
+	}
+	union := vec.(*vector.Union)
+	u.count += vec.Len()
+	u.tags.Append(union.Tags)
+	for tag := range u.values {
+		u.values[tag].Write(union.Values[tag])
+	}
 }
 
 func (u *UnionEncoder) Emit(w io.Writer) error {

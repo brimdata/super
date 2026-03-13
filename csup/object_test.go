@@ -9,6 +9,7 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/vector"
 	"github.com/stretchr/testify/require"
 )
 
@@ -21,9 +22,11 @@ func TestObjectProjectMetadata(t *testing.T) {
 		"{a:2,b:{c:5,d:0.8}}",
 		"{a:3,b:{c:6,d:0.9}}",
 	}
+	builder := vector.NewDynamicBuilder()
 	for _, s := range supValues {
-		require.NoError(t, w.Write(sup.MustParseValue(sctx, s)))
+		builder.Write(sup.MustParseValue(sctx, s))
 	}
+	require.NoError(t, w.Write(builder.Build(sctx)))
 	require.NoError(t, w.Close())
 	csupBytes := b.Bytes()
 

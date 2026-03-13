@@ -9,18 +9,19 @@ import (
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/vector"
 )
 
 var maxObjectSize uint32 = 120_000
 
-// Writer implements the sio.Writer interface. A Writer creates a vector
-// CSUP object from a stream of super.Records.
+// Writer implements the vector.Writer interface. A Writer creates a vector
+// CSUP object from a stream of vector.Any.
 type Writer struct {
 	writer  io.WriteCloser
 	dynamic *DynamicEncoder
 }
 
-var _ sio.Writer = (*Writer)(nil)
+var _ vector.Writer = (*Writer)(nil)
 
 func NewWriter(w io.WriteCloser) *Writer {
 	return &Writer{
@@ -37,10 +38,12 @@ func (w *Writer) Close() error {
 	return firstErr
 }
 
-func (w *Writer) Write(val super.Value) error {
-	w.dynamic.Write(val)
-	if w.dynamic.len >= maxObjectSize {
-		return w.finalizeObject()
+func (w *Writer) Write(vec vector.Any) error {
+	if vec.Len() != 0 {
+		w.dynamic.Write(vec)
+		if w.dynamic.len >= maxObjectSize {
+			return w.finalizeObject()
+		}
 	}
 	return nil
 }
@@ -84,4 +87,35 @@ func (w *Writer) finalizeObject() error {
 	// Set new dynamic so we can write the next object.
 	w.dynamic = NewDynamicEncoder()
 	return nil
+}
+
+// XXX ValWriter provides a temporary interface to support writing super.Values
+// to CSUP.  We should remove this at some point in factor of vector-only writes.
+type ValWriter struct {
+	sctx    *super.Context
+	writer  *Writer
+	builder *vector.DynamicBuilder
+}
+
+var _ sio.Writer = (*ValWriter)(nil)
+
+func NewValWriter(w io.WriteCloser) *ValWriter {
+	return &ValWriter{
+		sctx:    super.NewContext(), //XXX
+		writer:  NewWriter(w),
+		builder: vector.NewDynamicBuilder(),
+	}
+}
+
+func (v *ValWriter) Write(val super.Value) error {
+	v.builder.Write(val)
+	return nil
+}
+
+func (v *ValWriter) Close() error {
+	err := v.writer.Write(v.builder.Build(v.sctx))
+	if closeErr := v.writer.Close(); err == nil {
+		err = closeErr
+	}
+	return err
 }

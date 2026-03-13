@@ -67,23 +67,23 @@ func (r *Record) Serialize(b *scode.Builder, slot uint32) {
 	b.EndContainer()
 }
 
-func buildTags(nones []uint32, n uint32) ([]uint32, uint32) {
+func buildTags(runlens []uint32, n uint32) ([]uint32, uint32) {
 	tags := make([]uint32, n)
 	off := 0
 	var noneLen uint32
-	for in := 0; in < len(nones); {
-		noneRun := nones[in]
+	for in := 0; in < len(runlens); {
+		noneRun := runlens[in]
 		in++
 		for k := range int(noneRun) {
 			tags[off+k] = 1
 		}
 		off += int(noneRun)
 		noneLen += noneRun
-		if in >= len(nones) {
+		if in >= len(runlens) {
 			break
 		}
 		// skip over values (leaving tags 0)
-		off += int(nones[in])
+		off += int(runlens[in])
 		in++
 	}
 	return tags, noneLen
@@ -176,11 +176,11 @@ func isNone(vec Any, slot uint32) bool {
 	return false
 }
 
-func NewFieldFromRLE(sctx *super.Context, vec Any, length uint32, nones []uint32) Any {
-	if len(nones) == 0 {
+func NewFieldFromRLE(sctx *super.Context, vec Any, length uint32, runlens []uint32) Any {
+	if len(runlens) == 0 {
 		return vec
 	}
-	tags, noneLen := buildTags(nones, length)
+	tags, noneLen := buildTags(runlens, length)
 	if noneLen == 0 {
 		// This field is optional but everything is here in this instance.
 		return vec
@@ -196,6 +196,17 @@ type Optional struct {
 
 func (o *Optional) Type() super.Type {
 	return o.Dynamic.Values[0].Type()
+}
+
+func (f *Optional) RLE() []uint32 {
+	var rle RLE
+	for slot := range f.Len() {
+		// Touch all the values
+		if f.Tags[slot] == 0 {
+			rle.Touch(slot)
+		}
+	}
+	return rle.End(f.Len())
 }
 
 func Opt(vec Any) Any {

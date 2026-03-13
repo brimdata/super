@@ -7,6 +7,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/vector"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -14,7 +15,7 @@ type BytesEncoder struct {
 	typ      super.Type
 	min, max []byte
 	bytes    scode.Bytes
-	offsets  Uint32Encoder
+	offsets  *offsetsEncoder
 
 	// These values are used for the Encode pass.
 	bytesFmt uint8
@@ -26,19 +27,43 @@ func NewBytesEncoder(typ super.Type) *BytesEncoder {
 	return &BytesEncoder{
 		typ:     typ,
 		bytes:   scode.Bytes{},
-		offsets: Uint32Encoder{vals: []uint32{0}},
+		offsets: newOffsetsEncoder(),
 	}
 }
 
-func (b *BytesEncoder) Write(vb scode.Bytes) {
-	if len(b.bytes) == 0 || bytes.Compare(vb, b.min) < 0 {
-		b.min = append(b.min[:0], vb...)
+func (b *BytesEncoder) Write(vec vector.Any) {
+	if vec.Len() == 0 {
+		return
 	}
-	if len(b.bytes) == 0 || bytes.Compare(vb, b.max) > 0 {
-		b.max = append(b.max[:0], vb...)
+	switch vec := vec.(type) {
+	case *vector.Bytes:
+		b.writeTable(vec.Table())
+	case *vector.String:
+		b.writeTable(vec.Table())
+	case *vector.TypeValue:
+		b.writeTable(vec.Table())
+	default:
+		panic(vec)
 	}
-	b.bytes = append(b.bytes, vb...)
-	b.offsets.Write(uint32(len(b.bytes)))
+}
+
+func (b *BytesEncoder) writeTable(table vector.BytesTable) {
+	if len(b.bytes) == 0 {
+		val := table.Bytes(0)
+		b.min = append(b.min[:0], val...)
+		b.max = append(b.max[:0], val...)
+	}
+	for slot := range table.Len() {
+		val := table.Bytes(slot)
+		if bytes.Compare(val, b.min) < 0 {
+			b.min = append(b.min[:0], val...)
+		}
+		if bytes.Compare(val, b.max) > 0 {
+			b.max = append(b.max[:0], val...)
+		}
+	}
+	b.bytes = append(b.bytes, table.RawBytes()...)
+	b.offsets.write(table.RawOffsets())
 }
 
 func (b *BytesEncoder) Encode(group *errgroup.Group) {
@@ -88,17 +113,20 @@ func (b *BytesEncoder) value(slot uint32) []byte {
 }
 
 func (b *BytesEncoder) Dict() (PrimitiveEncoder, []byte, []uint32) {
+	if len(b.bytes) == 0 {
+		return nil, nil, nil
+	}
 	m := make(map[string]byte)
 	var counts []uint32
 	index := make([]byte, len(b.offsets.vals)-1)
-	entries := NewBytesEncoder(b.typ)
+	table := vector.NewBytesTableEmpty(256)
 	for k := range uint32(len(index)) {
 		tag, ok := m[string(b.value(k))]
 		if !ok {
 			tag = byte(len(counts))
 			v := b.value(k)
 			m[string(v)] = tag
-			entries.Write(v)
+			table.Append(v)
 			counts = append(counts, 0)
 			if len(counts) > math.MaxUint8 {
 				return nil, nil, nil
@@ -107,7 +135,9 @@ func (b *BytesEncoder) Dict() (PrimitiveEncoder, []byte, []uint32) {
 		index[k] = tag
 		counts[tag]++
 	}
-	return entries, index, counts
+	encoder := NewBytesEncoder(b.typ)
+	encoder.Write(vector.NewBytes(table))
+	return encoder, index, counts
 }
 
 func (b *BytesEncoder) ConstValue() super.Value {

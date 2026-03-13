@@ -7,7 +7,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/byteconv"
-	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/vector"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -23,15 +23,24 @@ func NewFloatEncoder(typ super.Type) *FloatEncoder {
 	return &FloatEncoder{typ: typ}
 }
 
-func (f *FloatEncoder) Write(bytes scode.Bytes) {
-	v := super.DecodeFloat(bytes)
-	if len(f.vals) == 0 || v < f.min {
-		f.min = v
+func (f *FloatEncoder) Write(vec vector.Any) {
+	if vec.Len() == 0 {
+		return
 	}
-	if len(f.vals) == 0 || v > f.max {
-		f.max = v
+	fv := vec.(*vector.Float)
+	if len(f.vals) == 0 {
+		f.min = fv.Values[0]
+		f.max = fv.Values[0]
 	}
-	f.vals = append(f.vals, v)
+	for _, v := range fv.Values {
+		if v < f.min {
+			f.min = v
+		}
+		if v > f.max {
+			f.max = v
+		}
+	}
+	f.vals = append(f.vals, fv.Values...)
 }
 
 func (f *FloatEncoder) Encode(group *errgroup.Group) {

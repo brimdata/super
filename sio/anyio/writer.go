@@ -5,10 +5,10 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/arrowio"
 	"github.com/brimdata/super/sio/bsupio"
-	"github.com/brimdata/super/sio/csupio"
 	"github.com/brimdata/super/sio/csvio"
 	"github.com/brimdata/super/sio/dbio"
 	"github.com/brimdata/super/sio/jsonio"
@@ -39,7 +39,7 @@ func NewWriter(w io.WriteCloser, opts WriterOpts) (sio.WriteCloser, error) {
 		}
 		return bsupio.NewWriterWithOpts(w, *opts.BSUP), nil
 	case "csup":
-		return csupio.NewWriter(w), nil
+		return csup.NewValWriter(w), nil
 	case "csv":
 		return csvio.NewWriter(w, opts.CSV), nil
 	case "db":

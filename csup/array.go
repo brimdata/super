@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/vector"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -25,15 +25,22 @@ func NewArrayEncoder(typ *super.TypeArray) *ArrayEncoder {
 	}
 }
 
-func (a *ArrayEncoder) Write(body scode.Bytes) {
-	a.count++
-	it := body.Iter()
-	var len uint32
-	for !it.Done() {
-		a.values.Write(it.Next())
-		len++
+func (a *ArrayEncoder) Write(vec vector.Any) {
+	if vec.Len() == 0 {
+		return
 	}
-	a.offsets.writeLen(len)
+	switch vec := vec.(type) {
+	case *vector.Array:
+		a.count += vec.Len()
+		a.values.Write(vec.Values)
+		a.offsets.write(vec.Offsets)
+	case *vector.Set:
+		a.count += vec.Len()
+		a.values.Write(vec.Values)
+		a.offsets.write(vec.Offsets)
+	default:
+		panic(vec)
+	}
 }
 
 func (a *ArrayEncoder) Encode(group *errgroup.Group) {

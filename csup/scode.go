@@ -8,6 +8,7 @@ import (
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/vector"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -34,9 +35,25 @@ func NewScodeEncoder(typ super.Type) *ScodeEncoder {
 	}
 }
 
-func (p *ScodeEncoder) Write(body scode.Bytes) {
-	p.update(body)
-	p.bytes = scode.Append(p.bytes, body)
+// XXX TBD: change all the scode primitives to be native and get rid of
+// this slow path here.
+func (p *ScodeEncoder) Write(vec vector.Any) {
+	if vec.Len() == 0 {
+		return
+	}
+	var b scode.Builder
+	for slot := range vec.Len() {
+		b.Reset()
+		vec.Serialize(&b, slot)
+		body := b.Bytes().Body()
+		p.update(body)
+		p.bytes = scode.Append(p.bytes, body)
+	}
+}
+
+func (p *ScodeEncoder) WriteBytes(bytes scode.Bytes) {
+	p.update(bytes)
+	p.bytes = scode.Append(p.bytes, bytes)
 }
 
 func (p *ScodeEncoder) update(body scode.Bytes) {
@@ -103,7 +120,7 @@ func (p *ScodeEncoder) Dict() (PrimitiveEncoder, []byte, []uint32) {
 			tag = byte(len(counts))
 			m[string(v)] = tag
 			counts = append(counts, 0)
-			entries.Write(v)
+			entries.WriteBytes(v)
 			if len(counts) > math.MaxUint8 {
 				return nil, nil, nil
 			}

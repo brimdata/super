@@ -5,13 +5,13 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/vector"
 	"golang.org/x/sync/errgroup"
 )
 
 type Encoder interface {
 	// Write collects up values to be encoded into memory.
-	Write(scode.Bytes)
+	Write(vector.Any)
 	// Encode encodes all in-memory vector data into its storage-ready serialized format.
 	// Vectors may be encoded concurrently and errgroup.Group is used to sync
 	// and return errors.
@@ -89,6 +89,10 @@ func (n *NamedEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
 	return off, cctx.enter(&Named{n.name, id})
 }
 
+func (n *NamedEncoder) Write(vec vector.Any) {
+	n.Encoder.Write(vec.(*vector.Named).Any)
+}
+
 type ErrorEncoder struct {
 	Encoder
 }
@@ -96,4 +100,8 @@ type ErrorEncoder struct {
 func (e *ErrorEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
 	off, id := e.Encoder.Metadata(cctx, off)
 	return off, cctx.enter(&Error{id})
+}
+
+func (e *ErrorEncoder) Write(vec vector.Any) {
+	e.Encoder.Write(vec.(*vector.Error).Vals)
 }

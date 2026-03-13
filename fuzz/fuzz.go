@@ -16,6 +16,7 @@ import (
 	"github.com/brimdata/super/compiler/optimizer/demand"
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/compiler/semantic"
+	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/pkg/storage/mock"
@@ -67,7 +68,7 @@ func WriteBSUP(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
 }
 
 func WriteCSUP(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
-	writer := csupio.NewWriter(sio.NopCloser(buf))
+	writer := csup.NewValWriter(sio.NopCloser(buf))
 	require.NoError(t, sio.Copy(writer, sbuf.NewArray(valuesIn)))
 	require.NoError(t, writer.Close())
 }

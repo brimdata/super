@@ -10,6 +10,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/vector"
 	"github.com/segmentio/ksuid"
 	"golang.org/x/sync/errgroup"
 )
@@ -164,6 +165,7 @@ func (w *Writer) Stats() ImportStats {
 type SortedWriter struct {
 	comparator    *expr.Comparator
 	ctx           context.Context
+	sctx          *super.Context
 	pool          *Pool
 	sortKey       order.SortKey
 	lastKey       super.Value
@@ -177,6 +179,7 @@ func NewSortedWriter(ctx context.Context, sctx *super.Context, pool *Pool, vecto
 	return &SortedWriter{
 		comparator:    ImportComparator(sctx, pool),
 		ctx:           ctx,
+		sctx:          sctx,
 		sortKey:       pool.SortKeys.Primary(),
 		pool:          pool,
 		vectorEnabled: vectorEnabled,
@@ -205,8 +208,14 @@ again:
 		w.Abort()
 		return err
 	}
+
 	if w.vectorWriter != nil {
-		if err := w.vectorWriter.Write(val); err != nil {
+		// XXX TBD: this is slow and creates a vector per value when writing vectors
+		// to a database.  This will change when we convert the database from
+		// mixed BSUP/CSUP to CSUP only.
+		builder := vector.NewBuilder(val.Type())
+		builder.Write(val.Bytes())
+		if err := w.vectorWriter.Write(builder.Build(w.sctx)); err != nil {
 			w.Abort()
 			return err
 		}

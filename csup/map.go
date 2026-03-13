@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/vector"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -23,16 +23,15 @@ func NewMapEncoder(typ *super.TypeMap) *MapEncoder {
 	}
 }
 
-func (m *MapEncoder) Write(body scode.Bytes) {
-	m.count++
-	var len uint32
-	it := body.Iter()
-	for !it.Done() {
-		m.keys.Write(it.Next())
-		m.values.Write(it.Next())
-		len++
+func (m *MapEncoder) Write(vec vector.Any) {
+	if vec.Len() == 0 {
+		return
 	}
-	m.offsets.writeLen(len)
+	mapVec := vec.(*vector.Map)
+	m.count += vec.Len()
+	m.keys.Write(mapVec.Keys)
+	m.values.Write(mapVec.Values)
+	m.offsets.write(mapVec.Offsets)
 }
 
 func (m *MapEncoder) Emit(w io.Writer) error {

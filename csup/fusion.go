@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/vector"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -24,10 +24,13 @@ func NewFusionEncoder(typ *super.TypeFusion) *FusionEncoder {
 	}
 }
 
-func (f *FusionEncoder) Write(body scode.Bytes) {
-	it := body.Iter()
-	f.values.Write(it.Next())
-	f.subTypes.Write(it.Next())
+func (f *FusionEncoder) Write(vec vector.Any) {
+	if vec.Len() == 0 {
+		return
+	}
+	fusion := vec.(*vector.Fusion)
+	f.values.Write(fusion.Values)
+	f.subTypes.Write(fusion.SubTypes)
 }
 
 func (f *FusionEncoder) Emit(w io.Writer) error {
