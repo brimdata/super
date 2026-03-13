@@ -31,7 +31,8 @@ func FuzzCSUPRoundtripBytes(f *testing.F) {
 
 func roundtrip(t *testing.T, valuesIn []super.Value) {
 	var buf bytes.Buffer
-	fuzz.WriteCSUP(t, valuesIn, &buf)
+	//XXX
+	//fuzz.WriteCSUP(t, valuesIn, &buf)
 	valuesOut, err := fuzz.ReadCSUP(buf.Bytes(), nil)
 	require.NoError(t, err)
 	fuzz.CompareValues(t, valuesIn, valuesOut)

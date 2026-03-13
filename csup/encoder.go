@@ -5,13 +5,13 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/vector"
 	"golang.org/x/sync/errgroup"
 )
 
 type Encoder interface {
 	// Write collects up values to be encoded into memory.
-	Write(scode.Bytes)
+	Write(vector.Any)
 	// Encode encodes all in-memory vector data into its storage-ready serialized format.
 	// Vectors may be encoded concurrently and errgroup.Group is used to sync
 	// and return errors.

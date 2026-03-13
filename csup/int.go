@@ -5,7 +5,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/byteconv"
-	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/vector"
 	"github.com/ronanh/intcomp"
 	"golang.org/x/sync/errgroup"
 )
@@ -23,15 +23,24 @@ func NewIntEncoder(typ super.Type) *IntEncoder {
 	}
 }
 
-func (i *IntEncoder) Write(bytes scode.Bytes) {
-	v := super.DecodeInt(bytes)
-	if len(i.vals) == 0 || v < i.min {
-		i.min = v
+func (i *IntEncoder) Write(vec vector.Any) {
+	if vec.Len() == 0 {
+		return
 	}
-	if len(i.vals) == 0 || v > i.max {
-		i.max = v
+	iv := vec.(*vector.Int)
+	if len(i.vals) == 0 {
+		i.min = iv.Values[0]
+		i.max = iv.Values[0]
 	}
-	i.vals = append(i.vals, v)
+	for _, v := range iv.Values {
+		if v < i.min {
+			i.min = v
+		}
+		if v > i.max {
+			i.max = v
+		}
+	}
+	i.vals = append(i.vals, iv.Values...)
 }
 
 func (i *IntEncoder) Encode(group *errgroup.Group) {
@@ -95,15 +104,24 @@ func NewUintEncoder(typ super.Type) *UintEncoder {
 	return &UintEncoder{typ: typ}
 }
 
-func (u *UintEncoder) Write(bytes scode.Bytes) {
-	v := super.DecodeUint(bytes)
-	if len(u.vals) == 0 || v < u.min {
-		u.min = v
+func (u *UintEncoder) Write(vec vector.Any) {
+	if vec.Len() == 0 {
+		return
 	}
-	if len(u.vals) == 0 || v > u.max {
-		u.max = v
+	uv := vec.(*vector.Uint)
+	if len(u.vals) == 0 {
+		u.min = uv.Values[0]
+		u.max = uv.Values[0]
 	}
-	u.vals = append(u.vals, v)
+	for _, v := range uv.Values {
+		if v < u.min {
+			u.min = v
+		}
+		if v > u.max {
+			u.max = v
+		}
+	}
+	u.vals = append(u.vals, uv.Values...)
 }
 
 func (u *UintEncoder) Encode(group *errgroup.Group) {
@@ -166,6 +184,10 @@ func (u *Uint32Encoder) Write(v uint32) {
 	u.vals = append(u.vals, v)
 }
 
+func (u *Uint32Encoder) Append(vals []uint32) {
+	u.vals = append(u.vals, vals...)
+}
+
 func (u *Uint32Encoder) Encode(group *errgroup.Group) {
 	group.Go(func() error {
 		u.bytesLen = uint64(len(u.vals) * 4)
@@ -203,8 +225,15 @@ func newOffsetsEncoder() *offsetsEncoder {
 	}
 }
 
-func (o *offsetsEncoder) writeLen(size uint32) {
-	o.vals = append(o.vals, o.vals[len(o.vals)-1]+size)
+func (o *offsetsEncoder) write(offsets []uint32) {
+	var base uint32
+	if len(o.vals) != 0 {
+		base = o.vals[len(o.vals)-1]
+	}
+	//XXX does this have off by one?
+	for _, off := range offsets {
+		o.vals = append(o.vals, base+off)
+	}
 }
 
 func ReadUint32s(loc Segment, r io.ReaderAt) ([]uint32, error) {

@@ -2,12 +2,12 @@ package csup
 
 import (
 	"io"
-	"math"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/vector"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -34,9 +34,15 @@ func NewScodeEncoder(typ super.Type) *ScodeEncoder {
 	}
 }
 
-func (p *ScodeEncoder) Write(body scode.Bytes) {
-	p.update(body)
-	p.bytes = scode.Append(p.bytes, body)
+func (p *ScodeEncoder) Write(vec vector.Any) {
+	var b scode.Builder
+	for slot := range vec.Len() {
+		b.Reset()
+		vec.Serialize(&b, slot)
+		body := b.Bytes().Body()
+		p.update(body)
+		p.bytes = scode.Append(p.bytes, body)
+	}
 }
 
 func (p *ScodeEncoder) update(body scode.Bytes) {
@@ -90,29 +96,33 @@ func (p *ScodeEncoder) Emit(w io.Writer) error {
 }
 
 func (p *ScodeEncoder) Dict() (PrimitiveEncoder, []byte, []uint32) {
-	m := make(map[string]byte)
-	var counts []uint32
-	index := make([]byte, p.count)
-	entries := NewScodeEncoder(p.typ)
-	var k uint32
-	it := p.bytes.Iter()
-	for !it.Done() {
-		v := it.Next()
-		tag, ok := m[string(v)]
-		if !ok {
-			tag = byte(len(counts))
-			m[string(v)] = tag
-			counts = append(counts, 0)
-			entries.Write(v)
-			if len(counts) > math.MaxUint8 {
-				return nil, nil, nil
+	//XXX TBD... put back after moving to pure native
+	return nil, nil, nil
+	/*
+		m := make(map[string]byte)
+		var counts []uint32
+		index := make([]byte, p.count)
+		entries := NewScodeEncoder(p.typ)
+		var k uint32
+		it := p.bytes.Iter()
+		for !it.Done() {
+			v := it.Next()
+			tag, ok := m[string(v)]
+			if !ok {
+				tag = byte(len(counts))
+				m[string(v)] = tag
+				counts = append(counts, 0)
+				entries.Write(v)
+				if len(counts) > math.MaxUint8 {
+					return nil, nil, nil
+				}
 			}
+			index[k] = tag
+			counts[tag]++
+			k++
 		}
-		index[k] = tag
-		counts[tag]++
-		k++
-	}
-	return entries, index, counts
+		return entries, index, counts
+	*/
 }
 
 func (p *ScodeEncoder) ConstValue() super.Value {

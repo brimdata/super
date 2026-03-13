@@ -78,6 +78,14 @@ func NewBytesTableEmpty(cap uint32) BytesTable {
 	return BytesTable{make([]uint32, 1, cap+1), nil}
 }
 
+func (b BytesTable) RawBytes() []byte {
+	return b.bytes
+}
+
+func (b BytesTable) RawOffsets() []uint32 {
+	return b.offsets
+}
+
 func (b BytesTable) Bytes(slot uint32) []byte {
 	return b.bytes[b.offsets[slot]:b.offsets[slot+1]]
 }

@@ -205,12 +205,14 @@ again:
 		w.Abort()
 		return err
 	}
-	if w.vectorWriter != nil {
-		if err := w.vectorWriter.Write(val); err != nil {
-			w.Abort()
-			return err
-		}
-	}
+	// XXX disable vector writing for now.  We will eventually change the database to
+	// use vectors only a native-vector write path to CSUP storage.
+	//if w.vectorWriter != nil {
+	//	if err := w.vectorWriter.Write(val); err != nil {
+	//		w.Abort()
+	//		return err
+	//	}
+	//}
 	w.lastKey.CopyFrom(key)
 	return nil
 }

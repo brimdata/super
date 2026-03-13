@@ -16,6 +16,10 @@ type Puller interface {
 	Pull(done bool) (Any, error)
 }
 
+type Writer interface {
+	Write(Any) error
+}
+
 // ValueAt returns the value in vec at slot.  If b is not nil, ValueAt calls b's
 // Truncate method and builds the value in it.  To safely reuse b while the
 // value is live, call b's Reset method or the value's Copy method.

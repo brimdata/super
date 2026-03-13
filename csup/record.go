@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/vector"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -32,15 +32,10 @@ func NewRecordEncoder(typ *super.TypeRecord) *RecordEncoder {
 	return &RecordEncoder{fields: fields, nopt: nopt}
 }
 
-func (r *RecordEncoder) Write(body scode.Bytes) {
-	slot := r.count
-	r.count++
-	it := scode.NewRecordIter(body, r.nopt)
-	for _, f := range r.fields {
-		elem, none := it.Next(f.opt)
-		if !none {
-			f.write(elem, slot)
-		}
+func (r *RecordEncoder) Write(vec vector.Any) {
+	rec := vec.(*vector.Record)
+	for k, f := range r.fields {
+		f.write(rec.Fields[k])
 	}
 }
 

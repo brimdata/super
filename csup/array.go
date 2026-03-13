@@ -4,14 +4,15 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/vector"
 	"golang.org/x/sync/errgroup"
 )
 
 type ArrayEncoder struct {
 	typ     super.Type
 	values  Encoder
-	offsets *offsetsEncoder
+	offsets *Uint32Encoder
+	offs    []uint32
 	count   uint32
 }
 
@@ -19,24 +20,25 @@ var _ Encoder = (*ArrayEncoder)(nil)
 
 func NewArrayEncoder(typ *super.TypeArray) *ArrayEncoder {
 	return &ArrayEncoder{
-		typ:     typ.Type,
-		values:  NewEncoder(typ.Type),
-		offsets: newOffsetsEncoder(),
+		typ:    typ.Type,
+		values: NewEncoder(typ.Type),
 	}
 }
 
-func (a *ArrayEncoder) Write(body scode.Bytes) {
-	a.count++
-	it := body.Iter()
-	var len uint32
-	for !it.Done() {
-		a.values.Write(it.Next())
-		len++
+func (a *ArrayEncoder) Write(vec vector.Any) {
+	array := vec.(*vector.Array)
+	a.count += vec.Len()
+	a.values.Write(array.Values)
+	//XXX we need to adjust the appended offsets by the current lengths
+	// XXX for now just get one vector working
+	if len(a.offs) > 0 {
+		panic("TBD")
 	}
-	a.offsets.writeLen(len)
+	a.offs = append(a.offs, array.Offsets...)
 }
 
 func (a *ArrayEncoder) Encode(group *errgroup.Group) {
+	a.offsets = &Uint32Encoder{vals: a.offs}
 	a.offsets.Encode(group)
 	a.values.Encode(group)
 }
@@ -65,9 +67,8 @@ type SetEncoder struct {
 func NewSetEncoder(typ *super.TypeSet) *SetEncoder {
 	return &SetEncoder{
 		ArrayEncoder{
-			typ:     typ.Type,
-			values:  NewEncoder(typ.Type),
-			offsets: newOffsetsEncoder(),
+			typ:    typ.Type,
+			values: NewEncoder(typ.Type),
 		},
 	}
 }

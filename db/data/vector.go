@@ -10,9 +10,11 @@ import (
 	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/bufwriter"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/runtime/vam"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/csupio"
+	"github.com/brimdata/super/vector"
 	"github.com/segmentio/ksuid"
 )
 
@@ -33,8 +35,20 @@ func CreateVector(ctx context.Context, engine storage.Engine, path *storage.URI,
 	}
 	// Note here that writer.Close closes the Put but reader.Close does not
 	// close the Get.
-	reader := bsupio.NewReader(super.NewContext(), get)
-	err = sio.Copy(w, reader)
+	sctx := super.NewContext()
+	reader := bsupio.NewReader(sctx, get)
+	puller := vam.NewDematerializer(sctx, sbuf.NewPuller(reader))
+	for {
+		var vec vector.Any
+		vec, err = puller.Pull(false)
+		if vec == nil || err != nil {
+			break
+		}
+		err = w.Write(vec)
+		if err != nil {
+			break
+		}
+	}
 	if closeErr := w.Close(); err == nil {
 		err = closeErr
 	}

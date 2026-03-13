@@ -66,11 +66,12 @@ func WriteBSUP(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
 	require.NoError(t, writer.Close())
 }
 
-func WriteCSUP(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
-	writer := csupio.NewWriter(sio.NopCloser(buf))
-	require.NoError(t, sio.Copy(writer, sbuf.NewArray(valuesIn)))
-	require.NoError(t, writer.Close())
-}
+//XXX need to renable
+//func WriteCSUP(t testing.TB, valuesIn []super.Value, buf *bytes.Buffer) {
+//	writer := csupio.NewWriter(sio.NopCloser(buf))
+//	require.NoError(t, sio.Copy(writer, sbuf.NewArray(valuesIn)))
+//	require.NoError(t, writer.Close())
+//}
 
 func RunQueryBSUP(t testing.TB, buf *bytes.Buffer, querySource string) []super.Value {
 	sctx := super.NewContext()

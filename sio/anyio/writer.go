@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/runtime/vam"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/arrowio"
 	"github.com/brimdata/super/sio/bsupio"
@@ -39,6 +40,7 @@ func NewWriter(w io.WriteCloser, opts WriterOpts) (sio.WriteCloser, error) {
 		}
 		return bsupio.NewWriterWithOpts(w, *opts.BSUP), nil
 	case "csup":
+		m := vam.NewDematerializer()
 		return csupio.NewWriter(w), nil
 	case "csv":
 		return csvio.NewWriter(w, opts.CSV), nil

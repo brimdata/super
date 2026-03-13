@@ -3,7 +3,6 @@ package csup
 import (
 	"io"
 
-	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
 	"golang.org/x/sync/errgroup"
 )
@@ -16,11 +15,12 @@ type FieldEncoder struct {
 	nones  *Uint32Encoder
 }
 
-func (f *FieldEncoder) write(body scode.Bytes, slot uint32) {
-	f.values.Write(body)
-	if f.opt {
-		f.rle.Touch(slot)
+func (f *FieldEncoder) write(vec vector.Any) {
+	if opt, ok := vec.(*vector.Optional); ok {
+		// here we would append the RLEs to the existing RLE
+		panic(opt)
 	}
+	f.values.Write(vec)
 }
 
 func (f *FieldEncoder) Metadata(cctx *Context, off uint64) (uint64, Field) {

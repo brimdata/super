@@ -5,22 +5,22 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/brimdata/super"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/vector"
 )
 
 var maxObjectSize uint32 = 120_000
 
-// Writer implements the sio.Writer interface. A Writer creates a vector
-// CSUP object from a stream of super.Records.
+// Writer implements the vector.Writer interface. A Writer creates a vector
+// CSUP object from a stream of vector.Any.
 type Writer struct {
 	writer  io.WriteCloser
 	dynamic *DynamicEncoder
 }
 
-var _ sio.Writer = (*Writer)(nil)
+var _ vector.Writer = (*Writer)(nil)
 
 func NewWriter(w io.WriteCloser) *Writer {
 	return &Writer{
@@ -37,8 +37,8 @@ func (w *Writer) Close() error {
 	return firstErr
 }
 
-func (w *Writer) Write(val super.Value) error {
-	w.dynamic.Write(val)
+func (w *Writer) Write(vec vector.Any) error {
+	w.dynamic.Write(vec)
 	if w.dynamic.len >= maxObjectSize {
 		return w.finalizeObject()
 	}
