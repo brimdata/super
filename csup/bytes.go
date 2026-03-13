@@ -32,6 +32,9 @@ func NewBytesEncoder(typ super.Type) *BytesEncoder {
 }
 
 func (b *BytesEncoder) Write(vec vector.Any) {
+	if vec.Len() == 0 {
+		return
+	}
 	switch vec := vec.(type) {
 	case *vector.Bytes:
 		b.writeTable(vec.Table())
@@ -110,6 +113,9 @@ func (b *BytesEncoder) value(slot uint32) []byte {
 }
 
 func (b *BytesEncoder) Dict() (PrimitiveEncoder, []byte, []uint32) {
+	if len(b.bytes) == 0 {
+		return nil, nil, nil
+	}
 	m := make(map[string]byte)
 	var counts []uint32
 	index := make([]byte, len(b.offsets.vals)-1)

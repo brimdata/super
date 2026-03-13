@@ -38,6 +38,9 @@ func NewScodeEncoder(typ super.Type) *ScodeEncoder {
 // XXX TBD: change all the scode primitives to be native and get rid of
 // this slow path here.
 func (p *ScodeEncoder) Write(vec vector.Any) {
+	if vec.Len() == 0 {
+		return
+	}
 	var b scode.Builder
 	for slot := range vec.Len() {
 		b.Reset()
@@ -49,6 +52,7 @@ func (p *ScodeEncoder) Write(vec vector.Any) {
 }
 
 func (p *ScodeEncoder) WriteBytes(bytes scode.Bytes) {
+	p.update(bytes)
 	p.bytes = scode.Append(p.bytes, bytes)
 }
 

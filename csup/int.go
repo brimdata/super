@@ -24,6 +24,9 @@ func NewIntEncoder(typ super.Type) *IntEncoder {
 }
 
 func (i *IntEncoder) Write(vec vector.Any) {
+	if vec.Len() == 0 {
+		return
+	}
 	iv := vec.(*vector.Int)
 	if len(i.vals) == 0 {
 		i.min = iv.Values[0]
@@ -102,6 +105,9 @@ func NewUintEncoder(typ super.Type) *UintEncoder {
 }
 
 func (u *UintEncoder) Write(vec vector.Any) {
+	if vec.Len() == 0 {
+		return
+	}
 	uv := vec.(*vector.Uint)
 	if len(u.vals) == 0 {
 		u.min = uv.Values[0]
@@ -183,12 +189,14 @@ func (u *Uint32Encoder) Append(vals []uint32) {
 }
 
 func (u *Uint32Encoder) Encode(group *errgroup.Group) {
-	group.Go(func() error {
-		u.bytesLen = uint64(len(u.vals) * 4)
-		compressed := intcomp.CompressUint32(u.vals, nil)
-		u.out = byteconv.ReinterpretSlice[byte](compressed)
-		return nil
-	})
+	if len(u.vals) != 0 {
+		group.Go(func() error {
+			u.bytesLen = uint64(len(u.vals) * 4)
+			compressed := intcomp.CompressUint32(u.vals, nil)
+			u.out = byteconv.ReinterpretSlice[byte](compressed)
+			return nil
+		})
+	}
 }
 
 func (u *Uint32Encoder) Emit(w io.Writer) error {

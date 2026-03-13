@@ -25,6 +25,9 @@ func NewFusionEncoder(typ *super.TypeFusion) *FusionEncoder {
 }
 
 func (f *FusionEncoder) Write(vec vector.Any) {
+	if vec.Len() == 0 {
+		return
+	}
 	fusion := vec.(*vector.Fusion)
 	f.values.Write(fusion.Values)
 	f.subTypes.Write(fusion.SubTypes)

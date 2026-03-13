@@ -89,6 +89,10 @@ func (n *NamedEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
 	return off, cctx.enter(&Named{n.name, id})
 }
 
+func (n *NamedEncoder) Write(vec vector.Any) {
+	n.Encoder.Write(vec.(*vector.Named).Any)
+}
+
 type ErrorEncoder struct {
 	Encoder
 }
@@ -96,4 +100,8 @@ type ErrorEncoder struct {
 func (e *ErrorEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
 	off, id := e.Encoder.Metadata(cctx, off)
 	return off, cctx.enter(&Error{id})
+}
+
+func (e *ErrorEncoder) Write(vec vector.Any) {
+	e.Encoder.Write(vec.(*vector.Error).Vals)
 }

@@ -39,9 +39,11 @@ func (w *Writer) Close() error {
 }
 
 func (w *Writer) Write(vec vector.Any) error {
-	w.dynamic.Write(vec)
-	if w.dynamic.len >= maxObjectSize {
-		return w.finalizeObject()
+	if vec.Len() != 0 {
+		w.dynamic.Write(vec)
+		if w.dynamic.len >= maxObjectSize {
+			return w.finalizeObject()
+		}
 	}
 	return nil
 }

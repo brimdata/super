@@ -33,6 +33,9 @@ func NewRecordEncoder(typ *super.TypeRecord) *RecordEncoder {
 }
 
 func (r *RecordEncoder) Write(vec vector.Any) {
+	if vec.Len() == 0 {
+		return
+	}
 	rec := vec.(*vector.Record)
 	r.count += rec.Len()
 	for k, f := range r.fields {

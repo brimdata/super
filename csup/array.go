@@ -26,10 +26,21 @@ func NewArrayEncoder(typ *super.TypeArray) *ArrayEncoder {
 }
 
 func (a *ArrayEncoder) Write(vec vector.Any) {
-	array := vec.(*vector.Array)
-	a.count += vec.Len()
-	a.values.Write(array.Values)
-	a.offsets.write(array.Offsets)
+	if vec.Len() == 0 {
+		return
+	}
+	switch vec := vec.(type) {
+	case *vector.Array:
+		a.count += vec.Len()
+		a.values.Write(vec.Values)
+		a.offsets.write(vec.Offsets)
+	case *vector.Set:
+		a.count += vec.Len()
+		a.values.Write(vec.Values)
+		a.offsets.write(vec.Offsets)
+	default:
+		panic(vec)
+	}
 }
 
 func (a *ArrayEncoder) Encode(group *errgroup.Group) {
@@ -61,8 +72,9 @@ type SetEncoder struct {
 func NewSetEncoder(typ *super.TypeSet) *SetEncoder {
 	return &SetEncoder{
 		ArrayEncoder{
-			typ:    typ.Type,
-			values: NewEncoder(typ.Type),
+			typ:     typ.Type,
+			values:  NewEncoder(typ.Type),
+			offsets: newOffsetsEncoder(),
 		},
 	}
 }

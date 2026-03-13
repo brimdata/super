@@ -29,6 +29,9 @@ func NewUnionEncoder(typ *super.TypeUnion) *UnionEncoder {
 }
 
 func (u *UnionEncoder) Write(vec vector.Any) {
+	if vec.Len() == 0 {
+		return
+	}
 	union := vec.(*vector.Union)
 	u.count += vec.Len()
 	u.tags.Append(union.Tags)

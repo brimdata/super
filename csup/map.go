@@ -24,6 +24,9 @@ func NewMapEncoder(typ *super.TypeMap) *MapEncoder {
 }
 
 func (m *MapEncoder) Write(vec vector.Any) {
+	if vec.Len() == 0 {
+		return
+	}
 	mapVec := vec.(*vector.Map)
 	m.count += vec.Len()
 	m.keys.Write(mapVec.Keys)
