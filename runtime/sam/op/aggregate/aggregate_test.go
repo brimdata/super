@@ -17,9 +17,11 @@ import (
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/op/aggregate"
+	"github.com/brimdata/super/runtime/vam"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/supio"
+	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/ztest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -43,7 +45,7 @@ func (c *countReader) NewScanner(context.Context, sbuf.Pushdown) (sbuf.Scanner, 
 	return c, nil
 }
 
-func (*countReader) Progress() sbuf.Progress {
+func (*countReader) Progress() vector.Progress {
 	panic("unused")
 }
 
@@ -131,7 +133,7 @@ func TestAggregateStreamingSpill(t *testing.T) {
 		query, err := newQueryOnOrderedReader(t.Context(), sctx, ast, cr, sortKey)
 		require.NoError(t, err)
 		defer query.Pull(true)
-		err = sbuf.CopyPuller(checker, query)
+		err = vam.CopyPuller(checker, query)
 		require.NoError(t, err)
 		outData := strings.Split(outbuf.String(), "\n")
 		sort.Strings(outData)

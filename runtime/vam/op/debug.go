@@ -2,10 +2,9 @@ package op
 
 import (
 	"context"
+	"sync"
 
-	"github.com/brimdata/super/runtime/vam"
 	"github.com/brimdata/super/runtime/vam/expr"
-	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/vector"
 )
 
@@ -14,21 +13,40 @@ type Debug struct {
 	ctx    context.Context
 	expr   expr.Evaluator
 	filter expr.Evaluator
-	ch     chan sbuf.Batch
+	ch     chan vector.Any
+	eos    <-chan struct{}
+	once   sync.Once
 }
 
-func NewDebug(ctx context.Context, expr expr.Evaluator, filter expr.Evaluator, parent vector.Puller) (*Debug, <-chan sbuf.Batch) {
-	ch := make(chan sbuf.Batch)
+func NewDebug(ctx context.Context, expr expr.Evaluator, filter expr.Evaluator, chans *DebugChans, parent vector.Puller) *Debug {
 	return &Debug{
 		parent: parent,
 		ctx:    ctx,
 		expr:   expr,
 		filter: filter,
-		ch:     ch,
-	}, ch
+		ch:     chans.Next(),
+		eos:    chans.EOS,
+	}
 }
 
 func (d *Debug) Pull(done bool) (vector.Any, error) {
+	local := make(chan vector.Any)
+	d.once.Do(func() {
+		go func() {
+			for {
+				select {
+				case vec := <-local:
+					d.ch <- vec
+				case <-d.eos:
+					// send eos ack
+					d.ch <- nil
+					return
+				case <-d.ctx.Done():
+					return
+				}
+			}
+		}()
+	})
 	val, err := d.parent.Pull(done)
 	if val == nil {
 		return nil, err
@@ -37,9 +55,9 @@ func (d *Debug) Pull(done bool) (vector.Any, error) {
 	if d.filter != nil {
 		filtered, _ = applyMask(val, d.filter.Eval(filtered))
 	}
-	if debug := vam.Materialize(d.expr.Eval(filtered)); len(debug.Values()) != 0 {
+	if e := d.expr.Eval(filtered); e.Len() != 0 {
 		select {
-		case d.ch <- debug:
+		case local <- e:
 		case <-d.ctx.Done():
 			return nil, d.ctx.Err()
 		}

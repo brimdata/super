@@ -8,12 +8,13 @@ import (
 	"github.com/brimdata/super/pkg/peeker"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sbuf"
+	"github.com/brimdata/super/vector"
 )
 
 type scannerSync struct {
 	ctx      context.Context
 	cancel   context.CancelFunc
-	progress sbuf.Progress
+	progress vector.Progress
 	worker   *worker
 	parser   parser
 	err      error
@@ -77,6 +78,6 @@ again:
 	return b, err
 }
 
-func (s *scannerSync) Progress() sbuf.Progress {
+func (s *scannerSync) Progress() vector.Progress {
 	return s.progress.Copy()
 }

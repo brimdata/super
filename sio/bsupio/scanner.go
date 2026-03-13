@@ -13,13 +13,14 @@ import (
 	"github.com/brimdata/super/runtime/sam/op"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/vector"
 )
 
 type scanner struct {
 	ctx        context.Context
 	cancel     context.CancelFunc
 	parser     parser
-	progress   sbuf.Progress
+	progress   vector.Progress
 	validate   bool
 	once       sync.Once
 	workers    []*worker
@@ -172,7 +173,7 @@ func (s *scanner) sendControl(err error) bool {
 	}
 }
 
-func (s *scanner) Progress() sbuf.Progress {
+func (s *scanner) Progress() vector.Progress {
 	return s.progress.Copy()
 }
 
@@ -181,7 +182,7 @@ func (s *scanner) Progress() sbuf.Progress {
 // be safely used without any channel involvement.
 type worker struct {
 	ctx          context.Context
-	progress     *sbuf.Progress
+	progress     *vector.Progress
 	workCh       chan work
 	bufferFilter *expr.BufferFilter
 	filter       expr.Evaluator
@@ -201,7 +202,7 @@ type work struct {
 	resultCh chan op.Result
 }
 
-func newWorker(ctx context.Context, p *sbuf.Progress, bf *expr.BufferFilter, f expr.Evaluator, validate bool) *worker {
+func newWorker(ctx context.Context, p *vector.Progress, bf *expr.BufferFilter, f expr.Evaluator, validate bool) *worker {
 	return &worker{
 		ctx:          ctx,
 		progress:     p,
@@ -266,7 +267,7 @@ func (w *worker) scanBatch(buf *buffer, types super.TypeFetcher) (sbuf.Batch, er
 	// Otherwise, build a batch by reading all values in the buffer.
 	w.typeCache.Reset(types)
 	w.vals = w.vals[:0]
-	var progress sbuf.Progress
+	var progress vector.Progress
 	for buf.length() > 0 {
 		var val super.Value
 		if err := w.decodeVal(buf, &val); err != nil {
@@ -319,7 +320,7 @@ func (w *worker) decodeVal(buf *buffer, valRef *super.Value) error {
 	return nil
 }
 
-func (w *worker) wantValue(val super.Value, progress *sbuf.Progress) bool {
+func (w *worker) wantValue(val super.Value, progress *vector.Progress) bool {
 	progress.BytesRead += int64(len(val.Bytes()))
 	progress.RecordsRead++
 	// It's tempting to call w.bufferFilter.Eval on rec.Bytes here, but that

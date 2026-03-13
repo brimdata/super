@@ -12,9 +12,10 @@ import (
 	"github.com/brimdata/super/cmd/super/root"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/sbuf"
+	"github.com/brimdata/super/runtime/vam"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/supio"
+	"github.com/brimdata/super/vector"
 )
 
 var Spec = &charm.Spec{
@@ -78,11 +79,11 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	defer query.Pull(true)
-	out := map[string]sio.WriteCloser{
-		"main":  w,
-		"debug": supio.NewWriter(sio.NopCloser(os.Stderr), supio.WriterOpts{}),
+	out := map[string]vector.Writer{
+		"main":  vam.NewSioWriter(w),
+		"debug": vam.NewSioWriter(supio.NewWriter(sio.NopCloser(os.Stderr), supio.WriterOpts{})),
 	}
-	err = sbuf.CopyMux(out, query)
+	err = vam.CopyMux(out, query)
 	if closeErr := w.Close(); err == nil {
 		err = closeErr
 	}

@@ -217,8 +217,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 		if err != nil {
 			return nil, err
 		}
-		d, ch := vamop.NewDebug(b.rctx, e, filter, parent)
-		b.debugs = append(b.debugs, ch)
+		d := vamop.NewDebug(b.rctx, e, filter, b.debugs, parent)
 		return d, nil
 	case *dag.DefaultScan:
 		sbufPuller, err := b.compileLeaf(o, nil)
@@ -263,7 +262,7 @@ func (b *Builder) compileVamLeaf(o dag.Op, parent vector.Puller) (vector.Puller,
 	case *dag.NullScan:
 		return vam.NewDematerializer(b.sctx(), sbuf.NewPuller(sbuf.NewArray([]super.Value{super.Null}))), nil
 	case *dag.OutputOp:
-		b.channels[o.Name] = append(b.channels[o.Name], vam.NewMaterializer(parent))
+		b.channels[o.Name] = append(b.channels[o.Name], parent)
 		return parent, nil
 	case *dag.PassOp:
 		return parent, nil

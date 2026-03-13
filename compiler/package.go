@@ -15,9 +15,10 @@ import (
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
-	"github.com/brimdata/super/runtime/sam/op"
+	vamop "github.com/brimdata/super/runtime/vam/op"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/vector"
 )
 
 func Analyze(ctx context.Context, ast *parser.AST, env *exec.Environment, extInput bool) (*dag.Main, error) {
@@ -43,7 +44,7 @@ func Optimize(ctx context.Context, main *dag.Main, env *exec.Environment, parall
 	return nil
 }
 
-func Build(rctx *runtime.Context, main *dag.Main, env *exec.Environment, readers []sio.Reader) (map[string]sbuf.Puller, []<-chan sbuf.Batch, sbuf.Meter, error) {
+func Build(rctx *runtime.Context, main *dag.Main, env *exec.Environment, readers []sio.Reader) (map[string]vector.Puller, *vamop.DebugChans, vector.Meter, error) {
 	b := rungen.NewBuilder(rctx, env)
 	outputs, debugs, err := b.Build(main, readers...)
 	if err != nil {
@@ -52,7 +53,7 @@ func Build(rctx *runtime.Context, main *dag.Main, env *exec.Environment, readers
 	return outputs, debugs, b.Meter(), nil
 }
 
-func BuildWithBuilder(rctx *runtime.Context, main *dag.Main, env *exec.Environment, readers []sio.Reader) (map[string]sbuf.Puller, []<-chan sbuf.Batch, *rungen.Builder, error) {
+func BuildWithBuilder(rctx *runtime.Context, main *dag.Main, env *exec.Environment, readers []sio.Reader) (map[string]vector.Puller, *vamop.DebugChans, *rungen.Builder, error) {
 	b := rungen.NewBuilder(rctx, env)
 	outputs, debugs, err := b.Build(main, readers...)
 	if err != nil {
@@ -87,18 +88,18 @@ func Compile(rctx *runtime.Context, env *exec.Environment, optimize bool, parall
 	return CompileWithAST(rctx, ast, env, optimize, parallel, readers)
 }
 
-func bundleOutputs(rctx *runtime.Context, outputs map[string]sbuf.Puller, debugs []<-chan sbuf.Batch) sbuf.Puller {
-	switch len(outputs) + len(debugs) {
+func bundleOutputs(rctx *runtime.Context, outputs map[string]vector.Puller, chans *vamop.DebugChans) vector.Puller {
+	switch len(outputs) + len(chans.Debug) {
 	case 0:
 		return nil
 	case 1:
-		var puller sbuf.Puller
+		var puller vector.Puller
 		for k, p := range outputs {
-			puller = op.NewCatcher(op.NewSingle(k, p))
+			puller = vamop.NewCatcher(vamop.NewSingle(k, p))
 		}
 		return puller
 	default:
-		return op.NewMux(rctx, outputs, debugs)
+		return vamop.NewMux(rctx, outputs, chans)
 	}
 }
 

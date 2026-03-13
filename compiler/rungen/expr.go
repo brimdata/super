@@ -355,7 +355,7 @@ func (b *Builder) compileSeqAndCombine(seq dag.Seq, parents []sbuf.Puller) (sbuf
 	if err != nil {
 		return nil, err
 	}
-	return b.combine(exits), nil
+	return b.seqCombine(exits), nil
 }
 
 func (b *Builder) compileRegexpMatch(match *dag.RegexpMatchExpr) (expr.Evaluator, error) {

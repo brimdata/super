@@ -13,6 +13,7 @@ import (
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/expr/extent"
+	"github.com/brimdata/super/runtime/vam"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sup"
@@ -80,9 +81,10 @@ func newObjectIterator(ctx context.Context, db api.Interface, head *dbid.Commiti
 	if err != nil {
 		return nil, err
 	}
+	puller := vam.NewMaterializer(q)
 	return &objectIterator{
-		reader:      sbuf.PullerReader(q),
-		puller:      q,
+		reader:      sbuf.PullerReader(puller),
+		puller:      puller,
 		unmarshaler: sup.NewBSUPUnmarshaler(),
 	}, nil
 }

@@ -55,9 +55,9 @@ type Builder struct {
 	mctx            *super.Context
 	env             *exec.Environment
 	readers         []sio.Reader
-	progress        *sbuf.Progress
-	channels        map[string][]sbuf.Puller
-	debugs          []<-chan sbuf.Batch
+	progress        *vector.Progress
+	debugs          *vamop.DebugChans
+	channels        map[string][]vector.Puller
 	deletes         *sync.Map
 	funcs           map[string]*dag.FuncDef
 	compiledUDFs    map[string]*expr.UDF
@@ -69,13 +69,14 @@ func NewBuilder(rctx *runtime.Context, env *exec.Environment) *Builder {
 		rctx: rctx,
 		mctx: super.NewContext(),
 		env:  env,
-		progress: &sbuf.Progress{
+		progress: &vector.Progress{
 			BytesRead:      0,
 			BytesMatched:   0,
 			RecordsRead:    0,
 			RecordsMatched: 0,
 		},
-		channels:        make(map[string][]sbuf.Puller),
+		debugs:          vamop.NewDebugChans(),
+		channels:        make(map[string][]vector.Puller),
 		funcs:           make(map[string]*dag.FuncDef),
 		compiledUDFs:    make(map[string]*expr.UDF),
 		compiledVamUDFs: make(map[string]*vamexpr.UDF),
@@ -84,7 +85,7 @@ func NewBuilder(rctx *runtime.Context, env *exec.Environment) *Builder {
 
 // Build builds a flowgraph for main.  If main contains a dag.DefaultSource, it
 // will read from readers.
-func (b *Builder) Build(main *dag.Main, readers ...sio.Reader) (map[string]sbuf.Puller, []<-chan sbuf.Batch, error) {
+func (b *Builder) Build(main *dag.Main, readers ...sio.Reader) (map[string]vector.Puller, *vamop.DebugChans, error) {
 	if !isEntry(main.Body) {
 		return nil, nil, errors.New("internal error: DAG entry point is not a data source")
 	}
@@ -98,7 +99,7 @@ func (b *Builder) Build(main *dag.Main, readers ...sio.Reader) (map[string]sbuf.
 			return nil, nil, err
 		}
 	}
-	channels := make(map[string]sbuf.Puller)
+	channels := make(map[string]vector.Puller)
 	for key, pullers := range b.channels {
 		channels[key] = b.combine(pullers)
 	}
@@ -135,7 +136,7 @@ func (b *Builder) sctx() *super.Context {
 	return b.rctx.Sctx
 }
 
-func (b *Builder) Meter() sbuf.Meter {
+func (b *Builder) Meter() vector.Meter {
 	return b.progress
 }
 
@@ -298,8 +299,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 		if err != nil {
 			return nil, err
 		}
-		op, ch := debug.New(b.rctx, e, filter, parent)
-		b.debugs = append(b.debugs, ch)
+		op := debug.New(b.rctx, e, filter, b.debugs, parent)
 		return op, nil
 	case *dag.DistinctOp:
 		e, err := b.compileExpr(v.Expr)
@@ -326,7 +326,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 	case *dag.LoadOp:
 		return load.New(b.rctx, b.env.DB(), parent, v.Pool, v.Branch, v.Author, v.Message, v.Meta), nil
 	case *dag.OutputOp:
-		b.channels[v.Name] = append(b.channels[v.Name], parent)
+		b.channels[v.Name] = append(b.channels[v.Name], vam.NewDematerializer(b.rctx.Sctx, parent))
 		return parent, nil
 	case *dag.PassOp:
 		return parent, nil
@@ -438,7 +438,7 @@ func (b *Builder) compileSeq(seq dag.Seq, parents []sbuf.Puller) ([]sbuf.Puller,
 func (b *Builder) compileFork(par *dag.ForkOp, parents []sbuf.Puller) ([]sbuf.Puller, error) {
 	var f *fork.Op
 	if len(parents) > 0 {
-		f = fork.New(b.rctx, b.combine(parents))
+		f = fork.New(b.rctx, b.seqCombine(parents))
 	}
 	var ops []sbuf.Puller
 	for _, seq := range par.Paths {
@@ -475,7 +475,7 @@ func (b *Builder) compileExprSwitch(swtch *dag.SwitchOp, parents []sbuf.Puller) 
 	if err != nil {
 		return nil, err
 	}
-	s := exprswitch.New(b.rctx, b.combine(parents), e)
+	s := exprswitch.New(b.rctx, b.seqCombine(parents), e)
 	var exits []sbuf.Puller
 	for _, c := range swtch.Cases {
 		var val *super.Value
@@ -507,7 +507,7 @@ func (b *Builder) compileSwitch(swtch *dag.SwitchOp, parents []sbuf.Puller) ([]s
 		}
 		exprs = append(exprs, e)
 	}
-	switcher := switcher.New(b.rctx, b.combine(parents))
+	switcher := switcher.New(b.rctx, b.seqCombine(parents))
 	var ops []sbuf.Puller
 	for i, e := range exprs {
 		o, err := b.compileSeq(swtch.Cases[i].Path, []sbuf.Puller{switcher.AddCase(e)})
@@ -555,7 +555,7 @@ func (b *Builder) compile(o dag.Op, parents []sbuf.Puller) ([]sbuf.Puller, error
 	case *dag.CombineOp:
 		return []sbuf.Puller{combine.New(b.rctx, parents)}, nil
 	default:
-		p, err := b.compileLeaf(o, b.combine(parents))
+		p, err := b.compileLeaf(o, b.seqCombine(parents))
 		if err != nil {
 			return nil, err
 		}
@@ -612,7 +612,18 @@ func (b *Builder) lookupPool(id ksuid.KSUID) (*db.Pool, error) {
 	return b.env.DB().OpenPool(b.rctx.Context, id)
 }
 
-func (b *Builder) combine(pullers []sbuf.Puller) sbuf.Puller {
+func (b *Builder) combine(pullers []vector.Puller) vector.Puller {
+	switch len(pullers) {
+	case 0:
+		return nil
+	case 1:
+		return pullers[0]
+	default:
+		return vamop.NewCombine(b.rctx, pullers)
+	}
+}
+
+func (b *Builder) seqCombine(pullers []sbuf.Puller) sbuf.Puller {
 	switch len(pullers) {
 	case 0:
 		return nil

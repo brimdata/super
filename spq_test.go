@@ -14,6 +14,7 @@ import (
 	"github.com/brimdata/super/compiler"
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/runtime"
+	"github.com/brimdata/super/runtime/vam"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
@@ -146,7 +147,7 @@ func runOneBoomerang(t *testing.T, format, data string) {
 		q, err := compiler.NewCompiler(nil).NewQuery(rctx, ast, []sio.Reader{dataReadCloser}, 0)
 		require.NoError(t, err)
 		defer q.Pull(true)
-		dataReader = sbuf.PullerReader(q)
+		dataReader = sbuf.PullerReader(vam.NewMaterializer(q))
 	}
 
 	// Copy from dataReader to baseline as format.

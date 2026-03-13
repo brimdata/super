@@ -2,22 +2,24 @@ package exec
 
 import (
 	"github.com/brimdata/super/runtime"
+	"github.com/brimdata/super/runtime/vam"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/vector"
 )
 
 // Query runs a flowgraph as a sbuf.Puller and implements a Close() method
 // that gracefully tears down the flowgraph.  Its AsReader() and AsProgressReader()
 // methods provide a convenient means to run a flowgraph as sio.Reader.
 type Query struct {
-	sbuf.Puller
+	vector.Puller
 	rctx  *runtime.Context
-	meter sbuf.Meter
+	meter vector.Meter
 }
 
 var _ runtime.Query = (*Query)(nil)
 
-func NewQuery(rctx *runtime.Context, puller sbuf.Puller, meter sbuf.Meter) *Query {
+func NewQuery(rctx *runtime.Context, puller vector.Puller, meter vector.Meter) *Query {
 	return &Query{
 		Puller: puller,
 		rctx:   rctx,
@@ -26,14 +28,18 @@ func NewQuery(rctx *runtime.Context, puller sbuf.Puller, meter sbuf.Meter) *Quer
 }
 
 func (q *Query) AsReader() sio.Reader {
-	return sbuf.PullerReader(q)
+	return sbuf.PullerReader(vam.NewMaterializer(q.Puller))
 }
 
-func (q *Query) Progress() sbuf.Progress {
+func (q *Query) AsPuller() sbuf.Puller {
+	return vam.NewMaterializer(q.Puller)
+}
+
+func (q *Query) Progress() vector.Progress {
 	return q.meter.Progress()
 }
 
-func (q *Query) Meter() sbuf.Meter {
+func (q *Query) Meter() vector.Meter {
 	return q.meter
 }
 
@@ -42,7 +48,7 @@ func (q *Query) Close() error {
 	return nil
 }
 
-func (q *Query) Pull(done bool) (sbuf.Batch, error) {
+func (q *Query) Pull(done bool) (vector.Any, error) {
 	if done {
 		q.rctx.Cancel()
 	}

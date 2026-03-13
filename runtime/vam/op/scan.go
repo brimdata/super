@@ -25,14 +25,14 @@ type Scanner struct {
 	once       sync.Once
 	projection field.Projection
 	cache      *vcache.Cache
-	progress   *sbuf.Progress
+	progress   *vector.Progress
 	resultCh   chan result
 	doneCh     chan struct{}
 }
 
 var _ vector.Puller = (*Scanner)(nil)
 
-func NewScanner(rctx *runtime.Context, cache *vcache.Cache, parent sbuf.Puller, pool *db.Pool, paths []field.Path, pruner expr.Evaluator, progress *sbuf.Progress) *Scanner {
+func NewScanner(rctx *runtime.Context, cache *vcache.Cache, parent sbuf.Puller, pool *db.Pool, paths []field.Path, pruner expr.Evaluator, progress *vector.Progress) *Scanner {
 	return &Scanner{
 		cache:      cache,
 		rctx:       rctx,

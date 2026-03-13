@@ -9,6 +9,7 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/vector"
 )
 
 type Pushdown interface {
@@ -26,51 +27,10 @@ type ScannerAble interface {
 	NewScanner(context.Context, Pushdown) (Scanner, error)
 }
 
-// A Meter provides Progress statistics.
-type Meter interface {
-	Progress() Progress
-}
-
 // A Scanner is a Batch source that also provides progress updates.
 type Scanner interface {
-	Meter
+	vector.Meter
 	Puller
-}
-
-// Progress represents progress statistics from a Scanner.
-type Progress struct {
-	BytesRead      int64 `super:"bytes_read" json:"bytes_read"`
-	BytesMatched   int64 `super:"bytes_matched" json:"bytes_matched"`
-	RecordsRead    int64 `super:"records_read" json:"records_read"`
-	RecordsMatched int64 `super:"records_matched" json:"records_matched"`
-}
-
-var _ Meter = (*Progress)(nil)
-
-// Add updates its receiver by adding to it the values in ss.
-func (p *Progress) Add(in Progress) {
-	if p != nil {
-		atomic.AddInt64(&p.BytesRead, in.BytesRead)
-		atomic.AddInt64(&p.BytesMatched, in.BytesMatched)
-		atomic.AddInt64(&p.RecordsRead, in.RecordsRead)
-		atomic.AddInt64(&p.RecordsMatched, in.RecordsMatched)
-	}
-}
-
-func (p *Progress) Copy() Progress {
-	if p == nil {
-		return Progress{}
-	}
-	return Progress{
-		BytesRead:      atomic.LoadInt64(&p.BytesRead),
-		BytesMatched:   atomic.LoadInt64(&p.BytesMatched),
-		RecordsRead:    atomic.LoadInt64(&p.RecordsRead),
-		RecordsMatched: atomic.LoadInt64(&p.RecordsMatched),
-	}
-}
-
-func (p *Progress) Progress() Progress {
-	return p.Copy()
 }
 
 // NewScanner returns a Scanner for r that filters records by filterExpr and s.
@@ -114,10 +74,10 @@ type scanner struct {
 	reader   sio.Reader
 	filter   expr.Evaluator
 	ctx      context.Context
-	progress Progress
+	progress vector.Progress
 }
 
-func (s *scanner) Progress() Progress {
+func (s *scanner) Progress() vector.Progress {
 	return s.progress.Copy()
 }
 
@@ -147,8 +107,8 @@ func (s *scanner) Read() (*super.Value, error) {
 
 type MultiStats []Scanner
 
-func (m MultiStats) Progress() Progress {
-	var ss Progress
+func (m MultiStats) Progress() vector.Progress {
+	var ss vector.Progress
 	for _, s := range m {
 		ss.Add(s.Progress())
 	}
@@ -181,7 +141,7 @@ func MultiScanner(scanners ...Scanner) Scanner {
 
 type multiScanner struct {
 	scanners []Scanner
-	progress Progress
+	progress vector.Progress
 }
 
 func (m *multiScanner) Pull(done bool) (Batch, error) {
@@ -196,6 +156,6 @@ func (m *multiScanner) Pull(done bool) (Batch, error) {
 	return nil, nil
 }
 
-func (m *multiScanner) Progress() Progress {
+func (m *multiScanner) Progress() vector.Progress {
 	return m.progress.Copy()
 }

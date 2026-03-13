@@ -8,39 +8,44 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/api"
+	"github.com/brimdata/super/runtime/vam"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/vector"
 )
 
 type scanner struct {
+	sctx     *super.Context
 	channel  string
 	scanner  sbuf.Scanner
 	closer   io.Closer
-	progress sbuf.Progress
+	progress vector.Progress
 }
 
-func NewScanner(ctx context.Context, rc io.ReadCloser) (sbuf.Scanner, error) {
-	s, err := bsupio.NewReader(super.NewContext(), rc).NewScanner(ctx, nil)
+func NewScanner(ctx context.Context, rc io.ReadCloser) (vector.Scanner, error) {
+	sctx := super.NewContext()
+	s, err := bsupio.NewReader(sctx, rc).NewScanner(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	return &scanner{
+		sctx:    sctx,
 		scanner: s,
 		closer:  rc,
 	}, nil
 }
 
-func (s *scanner) Progress() sbuf.Progress {
+func (s *scanner) Progress() vector.Progress {
 	return s.progress
 }
 
-func (s *scanner) Pull(done bool) (sbuf.Batch, error) {
+func (s *scanner) Pull(done bool) (vector.Any, error) {
 again:
 	batch, err := s.scanner.Pull(done)
 	if err == nil {
 		if batch != nil {
-			return sbuf.Label(s.channel, batch), nil
+			return &vector.Labeled{Any: vam.Dematerialize(s.sctx, batch), Label: s.channel}, nil
 		}
 		return nil, s.closer.Close()
 	}
@@ -57,8 +62,7 @@ again:
 		s.channel = ctrl.Channel
 		goto again
 	case *api.QueryChannelEnd:
-		eoc := sbuf.EndOfChannel(ctrl.Channel)
-		return &eoc, nil
+		return &vector.Labeled{Label: ctrl.Channel}, nil
 	case *api.QueryStats:
 		s.progress.Add(ctrl.Progress)
 		goto again

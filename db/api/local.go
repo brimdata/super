@@ -16,8 +16,8 @@ import (
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
-	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/vector"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 )
@@ -107,7 +107,7 @@ func (l *local) Compact(ctx context.Context, poolID ksuid.KSUID, branchName stri
 	return exec.Compact(ctx, l.db, pool, branchName, objects, writeVectors, commit.Author, commit.Body, commit.Meta)
 }
 
-func (l *local) Query(ctx context.Context, inputs []srcfiles.Input) (sbuf.Scanner, error) {
+func (l *local) Query(ctx context.Context, inputs []srcfiles.Input) (vector.Scanner, error) {
 	ast, err := parser.ParseFiles(inputs)
 	if err != nil {
 		return nil, err
