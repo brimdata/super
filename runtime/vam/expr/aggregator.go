@@ -46,12 +46,12 @@ func (*Aggregator) apply(args ...vector.Any) vector.Any {
 	bools, _ := BoolMask(where)
 	if bools.IsEmpty() {
 		// everything is filtered.
-		return vector.NewConst(super.Null, vec.Len())
+		return vector.NewNull(vec.Len())
 	}
 	if bools.GetCardinality() == uint64(vec.Len()) {
 		return vec
 	}
 	index := bools.ToArray()
-	nulls := vector.NewConst(super.Null, vec.Len()-uint32(len(index)))
+	nulls := vector.NewNull(vec.Len() - uint32(len(index)))
 	return vector.Combine(nulls, index, vector.Pick(vec, index))
 }

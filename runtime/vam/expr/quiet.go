@@ -98,5 +98,5 @@ func (d *Dequiet) dequiet(vec vector.Any) vector.Any {
 }
 
 func (d *Dequiet) quietTmp(n uint32) vector.Any {
-	return vector.NewError(d.rmtyp, vector.NewConst(super.Null, n))
+	return vector.NewError(d.rmtyp, vector.NewNull(n))
 }

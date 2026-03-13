@@ -411,10 +411,10 @@ type nullBuilder struct {
 	n uint32
 }
 
-func (c *nullBuilder) Write(bytes scode.Bytes) {
+func (c *nullBuilder) Write(scode.Bytes) {
 	c.n++
 }
 
-func (c *nullBuilder) Build(sctx *super.Context) Any {
-	return NewConst(super.Null, c.n)
+func (c *nullBuilder) Build(*super.Context) Any {
+	return NewNull(c.n)
 }

@@ -16,6 +16,9 @@ type Const struct {
 var _ Any = (*Const)(nil)
 
 func NewConst(val super.Value, len uint32) *Const {
+	if val.IsNull() {
+		panic("null val")
+	}
 	return &Const{val, len}
 }
 
@@ -40,8 +43,6 @@ func (c *Const) Kind() Kind {
 		return KindNet
 	case id == super.IDType:
 		return KindType
-	case id == super.IDNull:
-		return KindNull
 	}
 	panic(fmt.Sprintf("%#v\n", super.TypeUnder(c.val.Type())))
 }

@@ -27,7 +27,7 @@ func (a *ArrayExpr) Eval(this vector.Any) vector.Any {
 	if len(a.elems) == 0 {
 		typ := a.sctx.LookupTypeArray(super.TypeNull)
 		offsets := make([]uint32, this.Len()+1)
-		nullVec := vector.NewConst(super.Null, 0)
+		nullVec := vector.NewNull(0)
 		return vector.NewArray(typ, offsets, nullVec)
 	}
 	var vecs []vector.Any

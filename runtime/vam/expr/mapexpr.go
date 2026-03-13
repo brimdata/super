@@ -27,7 +27,7 @@ func (m *MapExpr) Eval(this vector.Any) vector.Any {
 	if len(m.entries) == 0 {
 		mtyp := m.sctx.LookupTypeMap(super.TypeNull, super.TypeNull)
 		offsets := make([]uint32, this.Len()+1)
-		c := vector.NewConst(super.Null, 0)
+		c := vector.NewNull(0)
 		return vector.NewMap(mtyp, offsets, c, c)
 	}
 	var vecs []vector.Any

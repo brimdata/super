@@ -311,7 +311,7 @@ func (p *PredicateWalk) evalForList(lhs, rhs vector.Any, offsets, index []uint32
 	}
 	truesVec := vector.NewFalse(n)
 	trues.WriteDenseTo(truesVec.GetBits())
-	nullsVec := vector.NewConst(super.Null, n)
+	nullsVec := vector.NewNull(n)
 	return combine(truesVec, nullsVec, nulls.ToArray())
 }
 
@@ -328,7 +328,7 @@ func hasTrue(vec vector.Any) bool {
 	var hasTrue bool
 	vector.Apply(true, func(vecs ...vector.Any) vector.Any {
 		vec := vecs[0]
-		if !hasTrue {
+		if !hasTrue && vec.Kind() == vector.KindBool {
 			for i := range vec.Len() {
 				if vector.BoolValue(vec, i) {
 					hasTrue = true

@@ -32,7 +32,7 @@ func (u *UDF) Call(args ...vector.Any) vector.Any {
 	}
 	defer func() { u.stackDepth-- }()
 	if len(u.fields) == 0 {
-		return u.Body.Eval(vector.NewConst(super.Null, args[0].Len()))
+		return u.Body.Eval(vector.NewNull(args[0].Len()))
 	}
 	fields := slices.Clone(u.fields)
 	for i := range args {

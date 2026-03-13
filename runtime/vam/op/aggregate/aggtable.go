@@ -105,7 +105,7 @@ func (s *superTable) newRow(keys []vector.Any, index []uint32) aggRow {
 
 func (s *superTable) materialize() vector.Any {
 	if len(s.rows) == 0 {
-		return vector.NewConst(super.Null, 0)
+		return vector.NewNull(0)
 	}
 	var vecs []vector.Any
 	for i := range s.rows[0].keys {

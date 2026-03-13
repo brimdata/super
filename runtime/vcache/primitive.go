@@ -130,7 +130,7 @@ func (p *primitive) newVector(loader *loader) vector.Any {
 	case *super.TypeEnum:
 		return vector.NewEnum(typ, p.load(loader).([]uint64))
 	case *super.TypeOfNull:
-		return vector.NewConst(super.Null, p.length())
+		return vector.NewNull(p.length())
 	}
 	panic(fmt.Errorf("internal error: vcache.loadPrimitive got unknown type %#v", p.meta.Typ))
 }

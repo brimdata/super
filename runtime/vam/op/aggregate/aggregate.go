@@ -84,7 +84,7 @@ func (a *Aggregate) Pull(done bool) (vector.Any, error) {
 			a.consume(args[:len(keys)], args[len(keys):])
 			// XXX Perhaps there should be a "consume" version of Apply where
 			// no return value is expected.
-			return vector.NewConst(super.Null, args[0].Len())
+			return vector.NewNull(args[0].Len())
 		}, append(keys, vals...)...)
 	}
 }

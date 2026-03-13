@@ -19,7 +19,7 @@ func (s *setExpr) Eval(this vector.Any) vector.Any {
 	if len(s.elems) == 0 {
 		typ := s.sctx.LookupTypeSet(super.TypeNull)
 		offsets := make([]uint32, this.Len()+1)
-		c := vector.NewConst(super.Null, 0)
+		c := vector.NewNull(0)
 		return vector.NewSet(typ, offsets, c)
 	}
 	var vecs []vector.Any

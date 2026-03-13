@@ -38,6 +38,9 @@ func NewSearch(sctx *super.Context, s string, val super.Value, e Evaluator) Eval
 			}
 			return out
 		}
+		if val.IsNull() {
+			return vector.NewNull(vec.Len())
+		}
 		return eq.eval(vec, vector.NewConst(val, vec.Len()))
 	}
 	return &search{sctx, e, vectorPred, stringPred, nil}

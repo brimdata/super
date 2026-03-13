@@ -39,7 +39,7 @@ func (c *cachedSubquery) exec() vector.Any {
 		vecs = append(vecs, vec)
 	}
 	if len(vecs) == 0 {
-		return vector.NewConst(super.Null, 1)
+		return vector.NewNull(1)
 	}
 	if len(vecs) == 1 && vecs[0].Len() == 1 {
 		return vecs[0]

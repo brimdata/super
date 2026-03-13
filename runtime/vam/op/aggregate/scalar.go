@@ -76,7 +76,7 @@ func (s *scalarAggregate) consume(vecs ...vector.Any) vector.Any {
 			s.funcs[i].Consume(vec)
 		}
 	}
-	return vector.NewConst(super.Null, vecs[0].Len())
+	return vector.NewNull(vecs[0].Len())
 }
 
 func newFuncs(aggs []*expr.Aggregator) []agg.Func {

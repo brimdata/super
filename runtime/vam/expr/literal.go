@@ -16,5 +16,8 @@ func NewLiteral(val super.Value) *Literal {
 }
 
 func (l Literal) Eval(val vector.Any) vector.Any {
+	if l.val.IsNull() {
+		return vector.NewNull(val.Len())
+	}
 	return vector.NewConst(l.val, val.Len())
 }

@@ -1,7 +1,6 @@
 package function
 
 import (
-	"github.com/brimdata/super"
 	"github.com/brimdata/super/vector"
 )
 
@@ -15,5 +14,5 @@ func (c *Coalesce) Call(vecs ...vector.Any) vector.Any {
 			return vec
 		}
 	}
-	return vector.NewConst(super.Null, vecs[0].Len())
+	return vector.NewNull(vecs[0].Len())
 }

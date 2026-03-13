@@ -161,7 +161,7 @@ func (v *vectorBuilder) build(a arrow.Array, nullable bool) (vector.Any, error) 
 	// Order here follows that of the arrow.Type constants.
 	switch dt.ID() {
 	case arrow.NULL:
-		return vector.NewConst(super.Null, length), nil
+		return vector.NewNull(length), nil
 	case arrow.BOOL:
 		vec := vector.NewFalse(length)
 		arr := a.(*array.Boolean)
@@ -394,7 +394,7 @@ func (v *vectorBuilder) buildNullableUnion(vec vector.Any, a arrow.Array) vector
 		}
 	}
 	var vecs [2]vector.Any
-	vecs[nullTag] = vector.NewConst(super.Null, vec.Len()-uint32(len(vecIndex)))
+	vecs[nullTag] = vector.NewNull(vec.Len() - uint32(len(vecIndex)))
 	vecs[vecTag] = vector.Pick(vec, vecIndex)
 	return vector.NewUnion(unionType, tags, vecs[:])
 }

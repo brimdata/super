@@ -22,7 +22,7 @@ func (n *NullIf) Call(vecs ...vector.Any) vector.Any {
 		return vecs[1]
 	}
 	result := n.compare.Compare(vecs[0], vecs[1])
-	if result.Type().Kind() == super.ErrorKind {
+	if k := result.Kind(); k == vector.KindNull || k == vector.KindError {
 		return vecs[0]
 	}
 	var index []uint32
@@ -34,7 +34,7 @@ func (n *NullIf) Call(vecs ...vector.Any) vector.Any {
 	if len(index) == 0 {
 		return vecs[0]
 	}
-	nullsVec := vector.NewConst(super.Null, uint32(len(index)))
+	nullsVec := vector.NewNull(uint32(len(index)))
 	if len(index) == int(vecs[0].Len()) {
 		return nullsVec
 	}

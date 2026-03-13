@@ -21,7 +21,7 @@ func To(sctx *super.Context, vec vector.Any, typ super.Type) vector.Any {
 			tags[i] = uint32(tag)
 		}
 		vecs := make([]vector.Any, len(union.Types))
-		vecs[tag] = vector.NewConst(super.Null, vec.Len())
+		vecs[tag] = vector.NewNull(vec.Len())
 		return vector.NewUnion(union, tags, vecs)
 	case vector.KindError:
 		return vec
