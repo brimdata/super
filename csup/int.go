@@ -226,13 +226,14 @@ func newOffsetsEncoder() *offsetsEncoder {
 }
 
 func (o *offsetsEncoder) write(offsets []uint32) {
-	var base uint32
-	if len(o.vals) != 0 {
-		base = o.vals[len(o.vals)-1]
-	}
-	//XXX does this have off by one?
-	for _, off := range offsets {
-		o.vals = append(o.vals, base+off)
+	if len(o.vals) == 0 {
+		o.vals = offsets
+	} else {
+		base := o.vals[len(o.vals)-1]
+		//XXX does this have off by one?
+		for _, off := range offsets {
+			o.vals = append(o.vals, base+off)
+		}
 	}
 }
 

@@ -11,7 +11,7 @@ import (
 type ArrayEncoder struct {
 	typ     super.Type
 	values  Encoder
-	offsets *Uint32Encoder
+	offsets *offsetsEncoder
 	offs    []uint32
 	count   uint32
 }
@@ -20,8 +20,9 @@ var _ Encoder = (*ArrayEncoder)(nil)
 
 func NewArrayEncoder(typ *super.TypeArray) *ArrayEncoder {
 	return &ArrayEncoder{
-		typ:    typ.Type,
-		values: NewEncoder(typ.Type),
+		typ:     typ.Type,
+		values:  NewEncoder(typ.Type),
+		offsets: newOffsetsEncoder(),
 	}
 }
 
@@ -29,16 +30,10 @@ func (a *ArrayEncoder) Write(vec vector.Any) {
 	array := vec.(*vector.Array)
 	a.count += vec.Len()
 	a.values.Write(array.Values)
-	//XXX we need to adjust the appended offsets by the current lengths
-	// XXX for now just get one vector working
-	if len(a.offs) > 0 {
-		panic("TBD")
-	}
-	a.offs = append(a.offs, array.Offsets...)
+	a.offsets.write(array.Offsets)
 }
 
 func (a *ArrayEncoder) Encode(group *errgroup.Group) {
-	a.offsets = &Uint32Encoder{vals: a.offs}
 	a.offsets.Encode(group)
 	a.values.Encode(group)
 }
