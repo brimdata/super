@@ -1,3 +1,4 @@
+version: 2
 builds:
   - main: ./cmd/zed
     id: zed
@@ -70,5 +71,3 @@ checksum:
   name_template: 'zed-checksums.txt'
 snapshot:
   name_template: "{{ incpatch .Version }}-{{ .ShortCommit }}"
-changelog:
-  skip: true
