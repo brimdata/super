@@ -12,7 +12,7 @@ type DynamicEncoder struct {
 	cctx   *Context
 	tags   []uint32
 	tagEnc *Uint32Encoder
-	values []Encoder //XXX one per tag (when appending dyn, we map the input tags to these tags)
+	values []Encoder
 	which  map[super.Type]uint32
 	len    uint32
 }
@@ -75,7 +75,7 @@ func (d *DynamicEncoder) lookupType(typ super.Type) uint32 {
 
 func (d *DynamicEncoder) Encode() (ID, uint64, error) {
 	var group errgroup.Group
-	d.tagEnc = &Uint32Encoder{vals: d.tags} //XXX don't need this if there is no dynamic
+	d.tagEnc = &Uint32Encoder{vals: d.tags}
 	if len(d.values) > 1 {
 		d.tagEnc.Encode(&group)
 	}
