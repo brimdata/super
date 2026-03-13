@@ -54,11 +54,11 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		argmax = 2
 		f = &DatePart{sctx}
 	case "defuse":
-		_, f = newDowncastDefuser(sctx)
+		f = NewDefuse(sctx)
 	case "downcast":
 		argmin = 2
 		argmax = 2
-		f, _ = newDowncastDefuser(sctx)
+		f = &downcast{sctx}
 	case "error":
 		f = &Error{sctx: sctx}
 	case "fields":

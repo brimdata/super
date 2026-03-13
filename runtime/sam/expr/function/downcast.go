@@ -7,13 +7,11 @@ import (
 )
 
 type downcast struct {
-	sctx    *super.Context
-	defuser *defuse
+	sctx *super.Context
 }
 
 func NewDowncast(sctx *super.Context) Caster {
-	d, _ := newDowncastDefuser(sctx)
-	return d
+	return &downcast{sctx}
 }
 
 func (d *downcast) Call(args []super.Value) super.Value {
@@ -154,12 +152,15 @@ func (d *downcast) toMap(b *scode.Builder, typ super.Type, bytes scode.Bytes, to
 }
 
 func (d *downcast) toUnion(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeUnion) bool {
-	val := d.defuser.eval(super.NewValue(typ, bytes))
-	tag := to.TagOf(val.Type())
+	tag := d.subTypeOf(typ, bytes, to.Types)
 	if tag < 0 {
 		return false
 	}
-	super.BuildUnion(b, tag, val.Bytes())
+	super.BeginUnion(b, tag)
+	if ok := d.downcast(b, typ, bytes, to.Types[tag]); !ok {
+		return false
+	}
+	b.EndContainer()
 	return true
 }
 
@@ -175,4 +176,17 @@ func (d *downcast) toNamed(b *scode.Builder, typ super.Type, bytes scode.Bytes, 
 		return d.downcast(b, namedType.Type, bytes, to.Type)
 	}
 	return false
+}
+
+func (d *downcast) subTypeOf(typ super.Type, bytes scode.Bytes, types []super.Type) int {
+	// XXX TBD we should make a subtype() function that returns true if a type is
+	// a subtype of another and use that here and expose it to the language.
+	var dummy scode.Builder
+	for k, t := range types {
+		if ok := d.downcast(&dummy, typ, bytes, t); ok {
+			return k
+		}
+		dummy.Reset()
+	}
+	return -1
 }
