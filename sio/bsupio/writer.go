@@ -6,7 +6,9 @@ import (
 	"slices"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/vector"
 	"github.com/pierrec/lz4/v4"
 )
 
@@ -53,6 +55,15 @@ func NewWriterWithOpts(w io.WriteCloser, opts WriterOpts) *Writer {
 		opts:       opts,
 		types:      NewEncoder(),
 	}
+}
+
+func (w *Writer) Push(vec vector.Any) error {
+	for _, val := range sbuf.Materialize(vec).Values() {
+		if err := w.Write(val); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (w *Writer) DisableCompression() {

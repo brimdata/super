@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
 )
@@ -26,7 +27,7 @@ func (e *eventStreamWriter) writeEvent(ev event) error {
 	if err != nil {
 		return err
 	}
-	if err := w.Write(ev.value); err != nil {
+	if err := w.Push(sbuf.ValToVec(super.NewContext(), ev.value)); err != nil {
 		return err
 	}
 	if err := w.Close(); err != nil {

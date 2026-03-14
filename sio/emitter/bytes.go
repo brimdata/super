@@ -5,10 +5,11 @@ import (
 
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type Bytes struct {
-	sio.Writer
+	vio.Pusher
 	buf bytes.Buffer
 }
 
@@ -22,6 +23,6 @@ func NewBytes(opts anyio.WriterOpts) (*Bytes, error) {
 	if err != nil {
 		return nil, err
 	}
-	b.Writer = w
+	b.Pusher = w
 	return b, nil
 }

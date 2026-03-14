@@ -16,7 +16,9 @@ import (
 	"github.com/brimdata/super/pkg/terminal/color"
 	"github.com/brimdata/super/pkg/units"
 	"github.com/brimdata/super/runtime/sam/op/meta"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/vector"
 	"github.com/segmentio/ksuid"
 )
 
@@ -54,6 +56,14 @@ func NewWriter(w io.WriteCloser, opts WriterOpts) *Writer {
 	return writer
 }
 
+func (w *Writer) Push(vec vector.Any) error {
+	for _, val := range sbuf.Materialize(vec).Values() {
+		if err := w.Write(val); err != nil {
+			return err
+		}
+	}
+	return nil
+}
 func (w *Writer) Write(rec super.Value) error {
 	var v any
 	if err := unmarshaler.Unmarshal(rec, &v); err != nil {

@@ -20,6 +20,7 @@ import (
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/supio"
+	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vio"
 	"github.com/brimdata/super/ztest"
 	"github.com/stretchr/testify/assert"
@@ -66,6 +67,15 @@ type testAggregateWriter struct {
 	n      int
 	writer sio.Writer
 	cb     func(n int)
+}
+
+func (w *testAggregateWriter) Push(vec vector.Any) error {
+	for _, val := range sbuf.Materialize(vec).Values() {
+		if err := w.Write(val); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (w *testAggregateWriter) Write(val super.Value) error {
@@ -132,7 +142,7 @@ func TestAggregateStreamingSpill(t *testing.T) {
 		query, err := newQueryOnOrderedReader(t.Context(), sctx, ast, cr, sortKey)
 		require.NoError(t, err)
 		defer query.Pull(true)
-		err = sbuf.CopyVioPuller(checker, query)
+		err = vio.Copy(checker, query)
 		require.NoError(t, err)
 		outData := strings.Split(outbuf.String(), "\n")
 		sort.Strings(outData)

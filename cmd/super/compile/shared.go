@@ -22,8 +22,8 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type Shared struct {
@@ -135,7 +135,7 @@ func (s *Shared) writeValue(ctx context.Context, v any) error {
 	if err != nil {
 		return err
 	}
-	err = sio.CopyWithContext(ctx, writer, sbuf.NewArray([]super.Value{val}))
+	err = vio.CopyWithContext(ctx, writer, sbuf.ValToPuller(super.NewContext(), val))
 	if closeErr := writer.Close(); err == nil {
 		err = closeErr
 	}

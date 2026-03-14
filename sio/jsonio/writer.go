@@ -12,8 +12,10 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/pkg/terminal/color"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/vector"
 )
 
 var (
@@ -50,6 +52,15 @@ func NewWriter(writer io.WriteCloser, opts WriterOpts) *Writer {
 	w.primEnc = json.NewEncoder(&w.primBuf)
 	w.primEnc.SetEscapeHTML(false)
 	return w
+}
+
+func (w *Writer) Push(vec vector.Any) error {
+	for _, val := range sbuf.Materialize(vec).Values() {
+		if err := w.Write(val); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (w *Writer) Write(val super.Value) error {

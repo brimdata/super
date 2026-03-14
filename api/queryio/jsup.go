@@ -5,9 +5,9 @@ import (
 	"io"
 	"reflect"
 
-	"github.com/brimdata/super"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/jsupio"
+	"github.com/brimdata/super/vector"
 )
 
 type JSUPWriter struct {
@@ -24,8 +24,8 @@ func NewJSUPWriter(w io.Writer) *JSUPWriter {
 	}
 }
 
-func (w *JSUPWriter) Write(rec super.Value) error {
-	return w.writer.Write(rec)
+func (w *JSUPWriter) Push(vec vector.Any) error {
+	return w.writer.Push(vec)
 }
 
 type describe struct {

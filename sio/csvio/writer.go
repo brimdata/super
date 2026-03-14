@@ -10,8 +10,10 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/vector"
 )
 
 var ErrNotDataFrame = errors.New("CSV output requires uniform records but multiple types encountered (consider 'fuse')")
@@ -53,6 +55,15 @@ func (w *Writer) Close() error {
 func (w *Writer) Flush() error {
 	w.encoder.Flush()
 	return w.encoder.Error()
+}
+
+func (w *Writer) Push(vec vector.Any) error {
+	for _, val := range sbuf.Materialize(vec).Values() {
+		if err := w.Write(val); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (w *Writer) Write(rec super.Value) error {

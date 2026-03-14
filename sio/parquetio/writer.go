@@ -8,8 +8,10 @@ import (
 	"github.com/apache/arrow-go/v18/arrow"
 	"github.com/apache/arrow-go/v18/parquet/pqarrow"
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/arrowio"
+	"github.com/brimdata/super/vector"
 )
 
 type Writer struct {
@@ -26,6 +28,15 @@ func NewWriter(wc io.WriteCloser) *Writer {
 		return fw, nil
 	}
 	return &Writer{w}
+}
+
+func (w *Writer) Push(vec vector.Any) error {
+	for _, val := range sbuf.Materialize(vec).Values() {
+		if err := w.Write(val); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (w *Writer) Write(val super.Value) error {

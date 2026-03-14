@@ -8,14 +8,17 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/storage"
 	storagemock "github.com/brimdata/super/pkg/storage/mock"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
 	"github.com/brimdata/super/sio/supio"
+	"github.com/brimdata/super/vector/vio"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
 
 func TestDirS3Source(t *testing.T) {
+	t.Skip("split by _path no longer supported")
 	path := "s3://testbucket/dir"
 	const input = `
 {_path:"conn",foo:"1"}
@@ -32,9 +35,10 @@ func TestDirS3Source(t *testing.T) {
 	engine.EXPECT().Put(t.Context(), uri.JoinPath("http.sup")).
 		Return(sio.NopCloser(bytes.NewBuffer(nil)), nil)
 
-	r := supio.NewReader(super.NewContext(), strings.NewReader(input))
+	sctx := super.NewContext()
+	r := supio.NewReader(sctx, strings.NewReader(input))
 	require.NoError(t, err)
 	w, err := NewSplit(t.Context(), engine, uri, "", false, anyio.WriterOpts{Format: "sup"})
 	require.NoError(t, err)
-	require.NoError(t, sio.Copy(w, r))
+	require.NoError(t, vio.Copy(w, sbuf.NewDematerializer(sctx, sbuf.NewPuller(r))))
 }

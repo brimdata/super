@@ -19,6 +19,7 @@ import (
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vio"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
@@ -65,7 +66,7 @@ func LookupPoolByName(ctx context.Context, api Interface, name string) (*pools.C
 		return nil, err
 	}
 	defer q.Pull(true)
-	if err := sbuf.CopyVioPuller(b, q); err != nil {
+	if err := vio.CopyWithContext(ctx, b, q); err != nil {
 		return nil, err
 	}
 	switch len(b.results) {
@@ -89,7 +90,7 @@ func GetPools(ctx context.Context, api Interface) ([]*pools.Config, error) {
 		return nil, err
 	}
 	defer q.Pull(true)
-	if err := sbuf.CopyVioPuller(b, q); err != nil {
+	if err := vio.CopyWithContext(ctx, b, q); err != nil {
 		return nil, err
 	}
 	var pls []*pools.Config
@@ -107,7 +108,7 @@ func LookupPoolByID(ctx context.Context, api Interface, id ksuid.KSUID) (*pools.
 		return nil, err
 	}
 	defer q.Pull(true)
-	if err := sbuf.CopyVioPuller(b, q); err != nil {
+	if err := vio.CopyWithContext(ctx, b, q); err != nil {
 		return nil, err
 	}
 	switch len(b.results) {
@@ -132,7 +133,7 @@ func LookupBranchByName(ctx context.Context, api Interface, poolName, branchName
 		return nil, err
 	}
 	defer q.Pull(true)
-	if err := sbuf.CopyVioPuller(b, q); err != nil {
+	if err := vio.CopyWithContext(ctx, b, q); err != nil {
 		return nil, err
 	}
 	switch len(b.results) {
@@ -157,7 +158,7 @@ func LookupBranchByID(ctx context.Context, api Interface, id ksuid.KSUID) (*db.B
 		return nil, err
 	}
 	defer q.Pull(true)
-	if err := sbuf.CopyVioPuller(b, q); err != nil {
+	if err := vio.CopyWithContext(ctx, b, q); err != nil {
 		return nil, err
 	}
 	switch len(b.results) {
@@ -193,7 +194,7 @@ func GetCommit(ctx context.Context, api Interface, pool, revision string) (*comm
 		return nil, err
 	}
 	defer q.Pull(true)
-	if err := sbuf.CopyVioPuller(b, q); err != nil {
+	if err := vio.CopyWithContext(ctx, b, q); err != nil {
 		return nil, err
 	}
 	switch len(b.results) {
@@ -225,6 +226,15 @@ func newBuffer(types ...any) *buffer {
 	u := sup.NewBSUPUnmarshaler()
 	u.Bind(types...)
 	return &buffer{unmarshaler: u}
+}
+
+func (b *buffer) Push(vec vector.Any) error {
+	for _, val := range sbuf.Materialize(vec).Values() {
+		if err := b.Write(val); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (b *buffer) Write(val super.Value) error {

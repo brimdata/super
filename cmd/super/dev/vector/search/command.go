@@ -15,6 +15,7 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/sbuf"
+	"github.com/brimdata/super/vector/vio"
 )
 
 var spec = &charm.Spec{
@@ -65,7 +66,8 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	text := args[0]
-	rctx := runtime.NewContext(ctx, super.NewContext())
+	sctx := super.NewContext()
+	rctx := runtime.NewContext(ctx, sctx)
 	puller, err := compiler.VectorFilterCompile(rctx, text, exec.NewEnvironment(nil, root), head)
 	if err != nil {
 		return err
@@ -74,7 +76,7 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	if err := sbuf.CopyPuller(writer, puller); err != nil {
+	if err := vio.CopyWithContext(ctx, writer, sbuf.NewDematerializer(sctx, puller)); err != nil {
 		writer.Close()
 		return err
 	}

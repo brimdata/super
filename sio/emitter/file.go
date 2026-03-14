@@ -10,9 +10,10 @@ import (
 	"github.com/brimdata/super/pkg/terminal"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
+	"github.com/brimdata/super/vector/vio"
 )
 
-func NewFileFromPath(ctx context.Context, engine storage.Engine, path string, unbuffered bool, opts anyio.WriterOpts) (sio.WriteCloser, error) {
+func NewFileFromPath(ctx context.Context, engine storage.Engine, path string, unbuffered bool, opts anyio.WriterOpts) (vio.PushCloser, error) {
 	if path == "" {
 		path = "stdio:stdout"
 	}
@@ -28,7 +29,7 @@ func IsTerminal(w io.Writer) bool {
 	return ok && terminal.IsTerminalFile(f)
 }
 
-func NewFileFromURI(ctx context.Context, engine storage.Engine, path *storage.URI, unbuffered bool, opts anyio.WriterOpts) (sio.WriteCloser, error) {
+func NewFileFromURI(ctx context.Context, engine storage.Engine, path *storage.URI, unbuffered bool, opts anyio.WriterOpts) (vio.PushCloser, error) {
 	f, err := engine.Put(ctx, path)
 	if err != nil {
 		return nil, err

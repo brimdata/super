@@ -20,10 +20,12 @@ import (
 	"github.com/brimdata/super/db/journal"
 	"github.com/brimdata/super/db/pools"
 	"github.com/brimdata/super/dbid"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/service/srverr"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
 	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/vector/vio"
 	"github.com/gorilla/mux"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
@@ -216,7 +218,7 @@ type ResponseWriter struct {
 	http.ResponseWriter
 	Format    string
 	Logger    *zap.Logger
-	zw        sio.WriteCloser
+	zw        vio.PushCloser
 	marshaler *sup.MarshalBSUPContext
 	request   *Request
 	written   int32
@@ -226,7 +228,7 @@ func (w *ResponseWriter) ContentType() string {
 	return w.Header().Get("Content-Type")
 }
 
-func (w *ResponseWriter) ZioWriter() sio.WriteCloser {
+func (w *ResponseWriter) ZioWriter() vio.PushCloser {
 	if w.zw == nil {
 		typ, err := api.FormatToMediaType(w.Format)
 		if err != nil {
@@ -280,7 +282,7 @@ func (w *ResponseWriter) Error(err error) {
 }
 
 func (w *ResponseWriter) Marshal(body any) bool {
-	rec, err := w.marshaler.Marshal(body)
+	val, err := w.marshaler.Marshal(body)
 	if err != nil {
 		// XXX If status header has not been sent this should send error.
 		w.Error(err)
@@ -290,7 +292,7 @@ func (w *ResponseWriter) Marshal(body any) bool {
 	if zw == nil {
 		return false
 	}
-	if err := zw.Write(rec); err != nil {
+	if err := zw.Push(sbuf.ValToVec(super.NewContext(), val)); err != nil {
 		w.Error(err)
 		return false
 	}

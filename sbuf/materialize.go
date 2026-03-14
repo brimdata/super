@@ -5,7 +5,6 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
-	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vio"
 )
@@ -60,6 +59,28 @@ func Dematerialize(sctx *super.Context, batch Batch) vector.Any {
 	return builder.Build(sctx)
 }
 
+func ValToVec(sctx *super.Context, val super.Value) vector.Any {
+	builder := vector.NewDynamicBuilder()
+	builder.Write(val)
+	return builder.Build(sctx)
+}
+
+func ValToPuller(sctx *super.Context, val super.Value) vio.Puller {
+	builder := vector.NewDynamicBuilder()
+	builder.Write(val)
+	return &vecPuller{builder.Build(sctx)}
+}
+
+type vecPuller struct {
+	vec vector.Any
+}
+
+func (v *vecPuller) Pull(bool) (vector.Any, error) {
+	vec := v.vec
+	v.vec = nil
+	return vec, nil
+}
+
 type Dematerializer struct {
 	sctx   *super.Context
 	mu     sync.Mutex
@@ -87,56 +108,4 @@ func (d *Dematerializer) ConcurrentPull(done bool, _ int) (vector.Any, error) {
 		builder.Write(val)
 	}
 	return builder.Build(d.sctx), nil
-}
-
-func CopyVioPuller(w sio.Writer, p vio.Puller) error {
-	puller := NewMaterializer(p)
-	for {
-		b, err := puller.Pull(false)
-		if b == nil || err != nil {
-			return err
-		}
-		if err := WriteBatch(w, b); err != nil {
-			return err
-		}
-		b.Unref()
-	}
-}
-
-func CopyMux(outputs map[string]vio.Pusher, parent vio.Puller) error {
-	for {
-		vec, err := parent.Pull(false)
-		if vec == nil || err != nil {
-			return err
-		}
-		var label string
-		vec, label = vector.Unlabel(vec)
-		if vec == nil {
-			continue
-		}
-		if w, ok := outputs[label]; ok {
-			if err := w.Push(vec); err != nil {
-				return err
-			}
-		}
-	}
-}
-
-type siopusher struct {
-	sio.Writer
-}
-
-func NewSioPusher(w sio.Writer) vio.Pusher {
-	return &siopusher{w}
-}
-
-func (s *siopusher) Push(vec vector.Any) error {
-	for i := range vec.Len() {
-		var sb scode.Builder
-		if err := s.Writer.Write(vector.ValueAt(&sb, vec, i).Copy()); err != nil {
-			return err
-		}
-		sb.Reset()
-	}
-	return nil
 }

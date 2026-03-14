@@ -10,7 +10,7 @@ import (
 	"github.com/brimdata/super/compiler/srcfiles"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/sbuf"
+	"github.com/brimdata/super/vector/vio"
 )
 
 var spec = &charm.Spec{
@@ -75,7 +75,7 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	defer q.Pull(true)
-	err = sbuf.CopyVioPuller(w, q)
+	err = vio.CopyWithContext(ctx, w, q)
 	if closeErr := w.Close(); err == nil {
 		err = closeErr
 	}

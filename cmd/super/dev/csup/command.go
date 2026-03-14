@@ -10,6 +10,8 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/cli/outputflags"
 	"github.com/brimdata/super/cmd/super/dev"
+	"github.com/brimdata/super/sbuf"
+	"github.com/brimdata/super/vector/vio"
 
 	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/charm"
@@ -67,7 +69,7 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	meta := newReader(r)
-	err = sio.CopyWithContext(ctx, writer, meta)
+	err = vio.CopyWithContext(ctx, writer, sbuf.NewDematerializer(meta.sctx, sbuf.NewPuller(meta)))
 	if err2 := writer.Close(); err == nil {
 		err = err2
 	}

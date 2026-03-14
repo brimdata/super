@@ -13,8 +13,9 @@ import (
 	"github.com/brimdata/super/cmd/super/dev/dig"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio/bsupio"
+	"github.com/brimdata/super/vector/vio"
 )
 
 var spec = &charm.Spec{
@@ -76,13 +77,14 @@ func (c *Command) Run(args []string) error {
 	if from > to {
 		return errors.New("slice start cannot be after the end")
 	}
-	reader := bsupio.NewReader(super.NewContext(), io.NewSectionReader(r, int64(from), int64(to-from)))
+	sctx := super.NewContext()
+	reader := bsupio.NewReader(sctx, io.NewSectionReader(r, int64(from), int64(to-from)))
 	defer reader.Close()
 	writer, err := c.outputFlags.Open(ctx, engine)
 	if err != nil {
 		return err
 	}
-	if err := sio.Copy(writer, reader); err != nil {
+	if err := vio.CopyWithContext(ctx, writer, sbuf.NewDematerializer(sctx, sbuf.NewPuller(reader))); err != nil {
 		return err
 	}
 	return writer.Close()

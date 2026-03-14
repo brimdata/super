@@ -6,11 +6,12 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/bufwriter"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
+	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type sizeSplitter struct {
@@ -25,7 +26,7 @@ type sizeSplitter struct {
 	cwc countingWriteCloser
 	ext string
 	seq int
-	zwc sio.WriteCloser
+	zwc vio.PushCloser
 }
 
 // NewSizeSplitter returns a sio.WriteCloser that writes to sequentially
@@ -34,7 +35,7 @@ type sizeSplitter struct {
 // exceed size substantially due to buffering in the underlying writer as
 // determined by opts.Format.
 func NewSizeSplitter(ctx context.Context, engine storage.Engine, dir *storage.URI, prefix string, unbuffered bool,
-	opts anyio.WriterOpts, size int64) (sio.WriteCloser, error) {
+	opts anyio.WriterOpts, size int64) (vio.PushCloser, error) {
 	ext := sio.Extension(opts.Format)
 	if ext == "" {
 		return nil, fmt.Errorf("unknown format: %s", opts.Format)
@@ -61,13 +62,13 @@ func (s *sizeSplitter) Close() error {
 	return s.zwc.Close()
 }
 
-func (s *sizeSplitter) Write(val super.Value) error {
+func (s *sizeSplitter) Push(vec vector.Any) error {
 	if s.zwc == nil {
 		if err := s.nextFile(); err != nil {
 			return err
 		}
 	}
-	if err := s.zwc.Write(val); err != nil {
+	if err := s.zwc.Push(vec); err != nil {
 		return err
 	}
 	if s.cwc.n >= s.size {

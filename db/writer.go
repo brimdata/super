@@ -73,6 +73,15 @@ func (w *Writer) newObject() *data.Object {
 	return &w.objects[len(w.objects)-1]
 }
 
+func (w *Writer) Push(vec vector.Any) error {
+	for _, val := range sbuf.Materialize(vec).Values() {
+		if err := w.Write(val); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (w *Writer) Write(rec super.Value) error {
 	if w.ctx.Err() != nil {
 		if err := w.errgroup.Wait(); err != nil {

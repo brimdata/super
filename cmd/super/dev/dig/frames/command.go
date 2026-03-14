@@ -13,10 +13,12 @@ import (
 	"github.com/brimdata/super/cmd/super/dev/dig"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/vector/vio"
 )
 
 var Frames = &charm.Spec{
@@ -68,8 +70,9 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	meta := newMetaReader(r)
-	if err := sio.Copy(writer, meta); err != nil {
+	sctx := super.NewContext()
+	meta := newMetaReader(sctx, r)
+	if err := vio.CopyWithContext(ctx, writer, sbuf.NewDematerializer(sctx, sbuf.NewPuller(meta))); err != nil {
 		return err
 	}
 	return writer.Close()
@@ -82,10 +85,10 @@ type metaReader struct {
 
 var _ sio.Reader = (*metaReader)(nil)
 
-func newMetaReader(r io.Reader) *metaReader {
+func newMetaReader(sctx *super.Context, r io.Reader) *metaReader {
 	return &metaReader{
 		reader:    &reader{reader: bufio.NewReader(r)},
-		marshaler: sup.NewBSUPMarshaler(),
+		marshaler: sup.NewBSUPMarshalerWithContext(sctx),
 	}
 }
 

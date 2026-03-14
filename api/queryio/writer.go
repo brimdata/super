@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/brimdata/super"
 	"github.com/brimdata/super/api"
 	"github.com/brimdata/super/pkg/nano"
 	"github.com/brimdata/super/sbuf"
@@ -14,20 +15,21 @@ import (
 )
 
 type controlWriter interface {
-	sio.WriteCloser
 	WriteControl(any) error
 }
 
 type Writer struct {
+	sctx    *super.Context
 	channel string
 	start   nano.Ts
-	writer  sio.WriteCloser
+	writer  vio.PushCloser
 	ctrl    bool
 	flusher http.Flusher
 }
 
-func NewWriter(w io.WriteCloser, format string, flusher http.Flusher, ctrl bool) (*Writer, error) {
+func NewWriter(sctx *super.Context, w io.WriteCloser, format string, flusher http.Flusher, ctrl bool) (*Writer, error) {
 	d := &Writer{
+		sctx:    sctx,
 		ctrl:    ctrl,
 		start:   nano.Now(),
 		flusher: flusher,
@@ -59,7 +61,7 @@ func (w *Writer) WriteBatch(channel string, batch sbuf.Batch) error {
 		}
 	}
 	defer batch.Unref()
-	return sbuf.WriteBatch(w.writer, batch)
+	return w.writer.Push(sbuf.Dematerialize(w.sctx, batch))
 }
 
 func (w *Writer) WhiteChannelEnd(channel string) error {

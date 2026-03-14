@@ -9,6 +9,8 @@ import (
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
+	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type Split struct {
@@ -18,12 +20,12 @@ type Split struct {
 	unbuffered bool
 	ext        string
 	opts       anyio.WriterOpts
-	writers    map[super.Type]sio.WriteCloser
+	writers    map[super.Type]vio.PushCloser
 	seen       map[string]struct{}
 	engine     storage.Engine
 }
 
-var _ sio.Writer = (*Split)(nil)
+var _ vio.Pusher = (*Split)(nil)
 
 func NewSplit(ctx context.Context, engine storage.Engine, dir *storage.URI, prefix string, unbuffered bool, opts anyio.WriterOpts) (*Split, error) {
 	e := sio.Extension(opts.Format)
@@ -40,27 +42,34 @@ func NewSplit(ctx context.Context, engine storage.Engine, dir *storage.URI, pref
 		unbuffered: unbuffered,
 		ext:        e,
 		opts:       opts,
-		writers:    make(map[super.Type]sio.WriteCloser),
+		writers:    make(map[super.Type]vio.PushCloser),
 		seen:       make(map[string]struct{}),
 		engine:     engine,
 	}, nil
 }
 
-func (s *Split) Write(r super.Value) error {
-	out, err := s.lookupOutput(r)
+func (s *Split) Push(vec vector.Any) error {
+	if vec, ok := vec.(*vector.Dynamic); ok {
+		for _, v := range vec.Values {
+			if err := s.Push(v); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	out, err := s.lookupOutput(vec.Type())
 	if err != nil {
 		return err
 	}
-	return out.Write(r)
+	return out.Push(vec)
 }
 
-func (s *Split) lookupOutput(val super.Value) (sio.WriteCloser, error) {
-	typ := val.Type()
+func (s *Split) lookupOutput(typ super.Type) (vio.PushCloser, error) {
 	w, ok := s.writers[typ]
 	if ok {
 		return w, nil
 	}
-	w, err := NewFileFromURI(s.ctx, s.engine, s.path(val), s.unbuffered, s.opts)
+	w, err := NewFileFromURI(s.ctx, s.engine, s.path(), s.unbuffered, s.opts)
 	if err != nil {
 		return nil, err
 	}
@@ -69,19 +78,9 @@ func (s *Split) lookupOutput(val super.Value) (sio.WriteCloser, error) {
 }
 
 // path returns the storage URI given the prefix combined with a unique ID
-// to make a unique path for each type.  If the _path field is present,
-// we use that for the unique ID, but if the _path string appears with
-// different types, then we prepend it to the unique ID.
-func (s *Split) path(r super.Value) *storage.URI {
+// to make a unique path for each type.
+func (s *Split) path() *storage.URI {
 	uniq := strconv.Itoa(len(s.writers))
-	if _path := r.Deref("_path").AsString(); _path != "" {
-		if _, ok := s.seen[_path]; ok {
-			uniq = _path + "-" + uniq
-		} else {
-			uniq = _path
-			s.seen[_path] = struct{}{}
-		}
-	}
 	return s.dir.JoinPath(s.prefix + uniq + s.ext)
 }
 

@@ -61,13 +61,14 @@ func handleQuery(c *Core, w *ResponseWriter, r *Request) {
 		w.Error(srverr.ErrInvalid(err))
 		return
 	}
-	flowgraph, err := runtime.CompileQueryForDB(r.Context(), super.NewContext(), c.compiler, ast)
+	sctx := super.NewContext()
+	flowgraph, err := runtime.CompileQueryForDB(r.Context(), sctx, c.compiler, ast)
 	if err != nil {
 		w.Error(srverr.ErrInvalid(err))
 		return
 	}
 	flusher, _ := w.ResponseWriter.(http.Flusher)
-	writer, err := queryio.NewWriter(sio.NopCloser(w), w.Format, flusher, ctrl)
+	writer, err := queryio.NewWriter(sctx, sio.NopCloser(w), w.Format, flusher, ctrl)
 	if err != nil {
 		w.Error(srverr.ErrInvalid(err))
 		return

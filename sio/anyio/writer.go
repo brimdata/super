@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/brimdata/super"
 	"github.com/brimdata/super/csup"
-	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/arrowio"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/csvio"
@@ -18,6 +16,8 @@ import (
 	"github.com/brimdata/super/sio/supio"
 	"github.com/brimdata/super/sio/tableio"
 	"github.com/brimdata/super/sio/zeekio"
+	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type WriterOpts struct {
@@ -29,7 +29,7 @@ type WriterOpts struct {
 	SUP    supio.WriterOpts
 }
 
-func NewWriter(w io.WriteCloser, opts WriterOpts) (sio.WriteCloser, error) {
+func NewWriter(w io.WriteCloser, opts WriterOpts) (vio.PushCloser, error) {
 	switch opts.Format {
 	case "arrows":
 		return arrowio.NewWriter(w), nil
@@ -39,7 +39,7 @@ func NewWriter(w io.WriteCloser, opts WriterOpts) (sio.WriteCloser, error) {
 		}
 		return bsupio.NewWriterWithOpts(w, *opts.BSUP), nil
 	case "csup":
-		return csup.NewValWriter(w), nil
+		return csup.NewSerializer(w), nil
 	case "csv":
 		return csvio.NewWriter(w, opts.CSV), nil
 	case "db":
@@ -70,7 +70,7 @@ func NewWriter(w io.WriteCloser, opts WriterOpts) (sio.WriteCloser, error) {
 
 type nullWriter struct{}
 
-func (*nullWriter) Write(super.Value) error {
+func (*nullWriter) Push(vector.Any) error {
 	return nil
 }
 

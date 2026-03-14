@@ -1,3 +1,5 @@
+skip: we don't support splitting by _path anymore
+
 script: super -f zeek -split out -
 
 inputs:

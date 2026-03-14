@@ -19,6 +19,7 @@ import (
 	"github.com/brimdata/super/sio/anyio"
 	"github.com/brimdata/super/sio/arrowio"
 	"github.com/brimdata/super/sio/bsupio"
+	"github.com/brimdata/super/vector/vio"
 	"github.com/brimdata/super/ztest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -154,7 +155,7 @@ func runOneBoomerang(t *testing.T, format, data string) {
 	writerOpts := anyio.WriterOpts{Format: format}
 	baselineWriter, err := anyio.NewWriter(sio.NopCloser(&baseline), writerOpts)
 	if err == nil {
-		err = sio.Copy(baselineWriter, dataReader)
+		err = vio.Copy(baselineWriter, sbuf.NewDematerializer(sctx, sbuf.NewPuller(dataReader)))
 		require.NoError(t, baselineWriter.Close())
 	}
 	if err != nil {
@@ -180,7 +181,7 @@ func runOneBoomerang(t *testing.T, format, data string) {
 	var boomerang bytes.Buffer
 	boomerangWriter, err := anyio.NewWriter(sio.NopCloser(&boomerang), writerOpts)
 	require.NoError(t, err)
-	assert.NoError(t, sio.Copy(boomerangWriter, baselineReader))
+	assert.NoError(t, vio.Copy(boomerangWriter, sbuf.NewDematerializer(sctx, sbuf.NewPuller(baselineReader))))
 	require.NoError(t, boomerangWriter.Close())
 
 	require.Equal(t, baseline.String(), boomerang.String(), "baseline and boomerang differ")

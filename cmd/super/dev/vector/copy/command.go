@@ -12,6 +12,7 @@ import (
 	"github.com/brimdata/super/runtime/vam"
 	"github.com/brimdata/super/runtime/vcache"
 	"github.com/brimdata/super/sbuf"
+	"github.com/brimdata/super/vector/vio"
 )
 
 var spec = &charm.Spec{
@@ -66,8 +67,9 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	puller := vam.NewProjection(super.NewContext(), object, nil)
-	if err := sbuf.CopyPuller(writer, puller); err != nil {
+	sctx := super.NewContext()
+	puller := vam.NewProjection(sctx, object, nil)
+	if err := vio.CopyWithContext(ctx, writer, sbuf.NewDematerializer(sctx, puller)); err != nil {
 		writer.Close()
 		return err
 	}

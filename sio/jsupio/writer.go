@@ -8,8 +8,10 @@ import (
 	"strconv"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sup"
+	"github.com/brimdata/super/vector"
 )
 
 type Object struct {
@@ -41,6 +43,14 @@ func NewWriter(w io.WriteCloser) *Writer {
 	}
 }
 
+func (w *Writer) Push(vec vector.Any) error {
+	for _, val := range sbuf.Materialize(vec).Values() {
+		if err := w.Write(val); err != nil {
+			return err
+		}
+	}
+	return nil
+}
 func (w *Writer) Close() error {
 	return w.writer.Close()
 }

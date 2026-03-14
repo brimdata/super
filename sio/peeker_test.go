@@ -1,4 +1,4 @@
-package sio
+package sio_test
 
 import (
 	"bytes"
@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/supio"
 )
 
@@ -19,7 +20,7 @@ func TestPeeker(t *testing.T) {
 {key:"key6",value:"value6"}
 `
 	stream := supio.NewReader(super.NewContext(), strings.NewReader(input))
-	peeker := NewPeeker(stream)
+	peeker := sio.NewPeeker(stream)
 	rec1, err := peeker.Peek()
 	if err != nil {
 		t.Error(err)

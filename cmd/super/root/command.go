@@ -19,7 +19,6 @@ import (
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
-	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/supio"
 	"github.com/brimdata/super/vector/vio"
@@ -104,10 +103,10 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	out := map[string]vio.Pusher{
-		"main":  sbuf.NewSioPusher(writer),
-		"debug": sbuf.NewSioPusher(supio.NewWriter(sio.NopCloser(os.Stderr), supio.WriterOpts{})),
+		"main":  writer,
+		"debug": supio.NewWriter(sio.NopCloser(os.Stderr), supio.WriterOpts{}),
 	}
-	err = sbuf.CopyMux(out, query)
+	err = vio.CopyMuxWithContext(ctx, out, query)
 	if closeErr := writer.Close(); err == nil {
 		err = closeErr
 	}

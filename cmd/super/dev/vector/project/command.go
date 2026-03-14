@@ -13,6 +13,7 @@ import (
 	"github.com/brimdata/super/runtime/vam"
 	"github.com/brimdata/super/runtime/vcache"
 	"github.com/brimdata/super/sbuf"
+	"github.com/brimdata/super/vector/vio"
 	"github.com/segmentio/ksuid"
 )
 
@@ -70,12 +71,13 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	defer object.Close()
-	projection := vam.NewProjection(super.NewContext(), object, paths)
+	sctx := super.NewContext()
+	projection := vam.NewProjection(sctx, object, paths)
 	writer, err := c.outputFlags.Open(ctx, local)
 	if err != nil {
 		return err
 	}
-	if err := sbuf.CopyPuller(writer, projection); err != nil {
+	if err := vio.CopyWithContext(ctx, writer, sbuf.NewDematerializer(sctx, projection)); err != nil {
 		writer.Close()
 		return err
 	}

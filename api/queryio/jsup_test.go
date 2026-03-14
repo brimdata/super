@@ -7,6 +7,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/api"
 	"github.com/brimdata/super/api/queryio"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sup"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -24,7 +25,9 @@ func TestJSUPWriter(t *testing.T) {
 	w := queryio.NewJSUPWriter(&buf)
 	err := w.WriteControl(api.QueryChannelSet{Channel: "main"})
 	require.NoError(t, err)
-	err = w.Write(sup.MustParseValue(super.NewContext(), record))
+	sctx := super.NewContext()
+	vals := sbuf.NewArray([]super.Value{sup.MustParseValue(sctx, record)})
+	err = w.Push(sbuf.Dematerialize(sctx, vals))
 	require.NoError(t, err)
 	err = w.WriteControl(api.QueryChannelEnd{Channel: "main"})
 	require.NoError(t, err)

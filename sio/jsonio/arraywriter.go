@@ -5,7 +5,9 @@ import (
 	"io"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
+	"github.com/brimdata/super/vector"
 )
 
 type ArrayWriter struct {
@@ -33,6 +35,15 @@ func (a *ArrayWriter) Close() error {
 		return err
 	}
 	return a.wc.Close()
+}
+
+func (a *ArrayWriter) Push(vec vector.Any) error {
+	for _, val := range sbuf.Materialize(vec).Values() {
+		if err := a.Write(val); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (a *ArrayWriter) Write(val super.Value) error {
