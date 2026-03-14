@@ -30,17 +30,16 @@ func (a *Abs) Call(args ...vector.Any) vector.Any {
 func (a *Abs) abs(vec vector.Any) vector.Any {
 	switch vec := vec.(type) {
 	case *vector.Const:
-		var val super.Value
-		if super.IsFloat(vec.Type().ID()) {
-			val = super.NewFloat(vec.Type(), math.Abs(vec.Value().Float()))
-		} else {
-			v := vec.Value().Int()
-			if v < 0 {
-				v = -v
-			}
-			val = super.NewInt(vec.Type(), v)
+		typ := vec.Type()
+		if super.IsFloat(typ.ID()) {
+			v := math.Abs(vector.FloatValue(vec, 0))
+			return vector.NewConstFloat(typ, v, vec.Len())
 		}
-		return vector.NewConst(val, vec.Len())
+		v := vector.IntValue(vec, 0)
+		if v < 0 {
+			v = -v
+		}
+		return vector.NewConstInt(typ, v, vec.Len())
 	case *vector.View:
 		return vector.Pick(a.abs(vec.Any), vec.Index)
 	case *vector.Dict:
@@ -86,8 +85,8 @@ func (c *Ceil) Call(args ...vector.Any) vector.Any {
 func (c *Ceil) ceil(vec vector.Any) vector.Any {
 	switch vec := vec.(type) {
 	case *vector.Const:
-		val := super.NewFloat(vec.Type(), math.Ceil(vec.Value().Float()))
-		return vector.NewConst(val, vec.Len())
+		v := math.Ceil(vector.FloatValue(vec, 0))
+		return vector.NewConstFloat(vec.Type(), v, vec.Len())
 	case *vector.View:
 		return vector.Pick(c.ceil(vec.Any), vec.Index)
 	case *vector.Dict:
@@ -124,8 +123,8 @@ func (f *Floor) Call(args ...vector.Any) vector.Any {
 func (f *Floor) floor(vec vector.Any) vector.Any {
 	switch vec := vec.(type) {
 	case *vector.Const:
-		val := super.NewFloat(vec.Type(), math.Floor(vec.Value().Float()))
-		return vector.NewConst(val, vec.Len())
+		v := math.Floor(vector.FloatValue(vec, 0))
+		return vector.NewConstFloat(vec.Type(), v, vec.Len())
 	case *vector.View:
 		return vector.Pick(f.floor(vec.Any), vec.Index)
 	case *vector.Dict:

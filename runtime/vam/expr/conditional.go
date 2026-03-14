@@ -40,7 +40,7 @@ func (c *conditional) eval(vecs ...vector.Any) vector.Any {
 	var elseIndex []uint32
 	switch predVec := vector.Under(predVec).(type) {
 	case *vector.Const:
-		if predVec.Value().Bool() {
+		if vector.BoolValue(predVec, 0) {
 			return c.thenExpr.Eval(thisVec)
 		}
 		return c.elseExpr.Eval(thisVec)
@@ -96,7 +96,7 @@ func boolMaskRidx(ridx []uint32, bools, other *roaring.Bitmap, vec vector.Any) {
 			}
 			return
 		}
-		if !vec.Value().Ptr().AsBool() {
+		if !vector.BoolValue(vec, 0) {
 			return
 		}
 		if ridx != nil {

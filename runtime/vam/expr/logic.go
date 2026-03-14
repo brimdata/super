@@ -32,8 +32,8 @@ func (*Not) eval(vecs ...vector.Any) vector.Any {
 	case *vector.Bool:
 		return vector.Not(vec)
 	case *vector.Const:
-		v := !vec.Value().Bool()
-		return vector.NewConst(super.NewBool(v), vec.Len())
+		v := !vector.BoolValue(vec, 0)
+		return vector.NewConstBool(v, vec.Len())
 	default:
 		panic(vec)
 	}
@@ -181,8 +181,7 @@ func evalBool(sctx *super.Context, fn func(...vector.Any) vector.Any, vecs ...ve
 func FlattenBool(vec vector.Any) *vector.Bool {
 	switch vec := vec.(type) {
 	case *vector.Const:
-		val := vec.Value()
-		if val.Bool() {
+		if vector.BoolValue(vec, 0) {
 			return vector.NewTrue(vec.Len())
 		}
 		return vector.NewFalse(vec.Len())

@@ -36,16 +36,16 @@ func (m *Missing) Call(args ...vector.Any) vector.Any {
 				return err
 			}
 			if b.GetCardinality() == uint64(n) {
-				return vector.NewConst(super.True, vec.Len())
+				return vector.NewConstBool(true, vec.Len())
 			}
 			// Mix of errors and trues.
 			index := b.ToArray()
 			errIndex := roaring.Flip(b, 0, uint64(n)).ToArray()
-			trueVec := vector.NewConst(super.True, uint32(len(index)))
+			trueVec := vector.NewConstBool(true, uint32(len(index)))
 			return vector.Combine(trueVec, errIndex, vector.Pick(err, errIndex))
 		}
 	}
-	return vector.NewConst(super.False, args[0].Len())
+	return vector.NewConstBool(false, args[0].Len())
 }
 
 func missingOrQuiet(verr *vector.Error) *roaring.Bitmap {
@@ -56,7 +56,7 @@ func missingOrQuiet(verr *vector.Error) *roaring.Bitmap {
 	}
 	switch inner := inner.(type) {
 	case *vector.Const:
-		s, _ := inner.AsString()
+		s := vector.StringValue(inner, 0)
 		if s == "missing" || s == "quiet" {
 			b.AddRange(0, uint64(inner.Len()))
 		}

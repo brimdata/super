@@ -38,8 +38,7 @@ func NetValue(val Any, slot uint32) netip.Prefix {
 	case *Net:
 		return val.Values[slot]
 	case *Const:
-		s, _ := val.AsBytes()
-		return super.DecodeNet(s)
+		return NetValue(val.Any, 0)
 	case *Dict:
 		slot = uint32(val.Index[slot])
 		return val.Any.(*Net).Values[slot]

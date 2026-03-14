@@ -2,7 +2,6 @@ package cast
 
 import (
 	"github.com/brimdata/super"
-	samexpr "github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
 )
@@ -64,7 +63,11 @@ func assemble(sctx *super.Context, vec vector.Any, typ super.Type, fn caster) ve
 	var ok bool
 	switch vec := vec.(type) {
 	case *vector.Const:
-		return castConst(sctx, vec, typ)
+		out, errs, errMsg, ok = fn(vec.Any, nil)
+		if !ok || len(errs) > 0 {
+			return errCastFailed(sctx, vec, typ, errMsg)
+		}
+		return vector.NewConst(out, vec.Len())
 	case *vector.View:
 		out, errs, errMsg, ok = fn(vec.Any, vec.Index)
 	case *vector.Dict:
@@ -88,14 +91,6 @@ func assemble(sctx *super.Context, vec vector.Any, typ super.Type, fn caster) ve
 		return vector.Combine(out, errs, errCastFailed(sctx, vector.Pick(vec, errs), typ, errMsg))
 	}
 	return out
-}
-
-func castConst(sctx *super.Context, vec *vector.Const, typ super.Type) vector.Any {
-	val := samexpr.LookupPrimitiveCaster(sctx, typ).Eval(vec.Value())
-	if val.IsError() {
-		return errCastFailed(sctx, vec, typ, "")
-	}
-	return vector.NewConst(val, vec.Len())
 }
 
 func castNamed(sctx *super.Context, vec vector.Any, named *super.TypeNamed) vector.Any {

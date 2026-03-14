@@ -58,7 +58,7 @@ func FloatValue(vec Any, slot uint32) float64 {
 	case *Float:
 		return vec.Value(slot)
 	case *Const:
-		return vec.Value().Ptr().Float()
+		return FloatValue(vec.Any, 0)
 	case *Dict:
 		return FloatValue(vec.Any, uint32(vec.Index[slot]))
 	case *Dynamic:

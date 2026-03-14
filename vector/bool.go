@@ -56,7 +56,7 @@ func BoolValue(vec Any, slot uint32) bool {
 	case *Bool:
 		return vec.Bits.IsSet(slot)
 	case *Const:
-		return vec.Value().Ptr().AsBool()
+		return BoolValue(vec.Any, 0)
 	case *Dict:
 		return BoolValue(vec.Any, uint32(vec.Index[slot]))
 	case *Dynamic:

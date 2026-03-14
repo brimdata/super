@@ -28,7 +28,7 @@ func (c *CIDRMatch) Call(args ...vector.Any) vector.Any {
 func cidrMatch(vec ...vector.Any) vector.Any {
 	netVec, valVec := vec[0], vec[1]
 	if id := valVec.Type().ID(); id != super.IDIP {
-		return vector.NewConst(super.False, valVec.Len())
+		return vector.NewConstBool(false, valVec.Len())
 	}
 	out := vector.NewFalse(valVec.Len())
 	for i := range netVec.Len() {

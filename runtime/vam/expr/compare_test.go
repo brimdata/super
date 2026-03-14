@@ -27,7 +27,7 @@ func TestCompareOpsAndForms(t *testing.T) {
 	rhsFlat := vector.NewUint(super.TypeUint64, []uint64{1, 1, 1})
 	rhsDict := vector.NewDict(rhsFlat, []byte{0, 0, 0}, nil)
 	rhsView := vector.Pick(rhsFlat, []uint32{0, 1, 2})
-	Const := vector.NewConst(super.NewUint64(1), 3)
+	Const := vector.NewConstUint(super.TypeUint64, 1, 3)
 
 	cases := []struct {
 		op, expected, expectedForConstLHS string
@@ -69,7 +69,7 @@ func TestCompareOpsAndForms(t *testing.T) {
 		cmp := NewCompare(super.NewContext(), c.op, &testEval{Const}, &testEval{Const})
 		val := cmp.Eval(nil).(*vector.Const)
 		assert.Equal(t, uint32(3), val.Len(), "op: %s", c.op)
-		expected := super.NewBool(c.expectedForConstLHS == "111")
-		assert.Equal(t, expected, val.Value(), "op: %s", c.op)
+		expected := c.expectedForConstLHS == "111"
+		assert.Equal(t, expected, vector.BoolValue(val, 0), "op: %s", c.op)
 	}
 }

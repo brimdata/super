@@ -30,9 +30,11 @@ func (g *Grok) Call(args ...vector.Any) vector.Any {
 		return vec
 	}
 	patternArg, inputArg := args[0], args[1]
-	defArg := vector.Any(vector.NewConst(super.NewString(""), args[0].Len()))
-	if len(args) == 3 {
+	var defArg vector.Any
+	if len(args) > 2 {
 		defArg = args[2]
+	} else {
+		defArg = vector.NewConstString("", args[0].Len())
 	}
 	switch {
 	case super.TypeUnder(defArg.Type()) != super.TypeString:

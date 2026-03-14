@@ -36,8 +36,7 @@ func IPValue(val Any, slot uint32) netip.Addr {
 	case *IP:
 		return val.Values[slot]
 	case *Const:
-		b, _ := val.AsBytes()
-		return super.DecodeIP(b)
+		return IPValue(val.Any, 0)
 	case *Dict:
 		slot = uint32(val.Index[slot])
 		return val.Any.(*IP).Values[slot]

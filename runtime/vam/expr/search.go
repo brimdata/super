@@ -41,7 +41,7 @@ func NewSearch(sctx *super.Context, s string, val super.Value, e Evaluator) Eval
 		if val.IsNull() {
 			return vector.NewNull(vec.Len())
 		}
-		return eq.eval(vec, vector.NewConst(val, vec.Len()))
+		return eq.eval(vec, vector.NewConstFromValue(val, vec.Len()))
 	}
 	return &search{sctx, e, vectorPred, stringPred, nil}
 }
@@ -65,7 +65,7 @@ func (s *search) eval(vecs ...vector.Any) vector.Any {
 	vec := vector.Under(vecs[0])
 	typ := vec.Type()
 	if s.fnm != nil && s.fnm.Match(typ) {
-		return vector.NewConst(super.True, vec.Len())
+		return vector.NewConstBool(true, vec.Len())
 	}
 	if typ.Kind() == super.PrimitiveKind {
 		return s.match(vec)
@@ -144,7 +144,7 @@ func (s *search) match(vec vector.Any) vector.Any {
 	if s.vectorPred != nil {
 		return s.vectorPred(vec)
 	}
-	return vector.NewConst(super.False, vec.Len())
+	return vector.NewConstBool(false, vec.Len())
 }
 
 type regexpMatch struct {
@@ -166,7 +166,7 @@ func (r *regexpMatch) eval(vecs ...vector.Any) vector.Any {
 	}
 	vec := vector.Under(vecs[0])
 	if vec.Kind() != vector.KindString {
-		return vector.NewConst(super.False, vec.Len())
+		return vector.NewConstBool(false, vec.Len())
 	}
 	out := vector.NewFalse(vec.Len())
 	for i := range vec.Len() {

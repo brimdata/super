@@ -21,11 +21,10 @@ func (d *DatePart) Call(args ...vector.Any) vector.Any {
 		return vector.NewWrappedError(d.sctx, "date_part: time value required for time argument", args[1])
 	}
 	partArg, timeArg := vector.Under(args[0]), vector.Under(args[1])
-	c, ok := partArg.(*vector.Const)
-	if !ok {
+	if _, ok := partArg.(*vector.Const); !ok {
 		return d.slow(partArg, timeArg)
 	}
-	fn := datePartFuncs[c.Value().Ptr().AsString()]
+	fn := datePartFuncs[vector.StringValue(partArg, 0)]
 	if fn == nil {
 		return vector.NewWrappedError(d.sctx, "date_part: unknown part name", args[0])
 	}

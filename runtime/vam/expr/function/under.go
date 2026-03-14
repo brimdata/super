@@ -24,8 +24,9 @@ func (u *Under) Call(args ...vector.Any) vector.Any {
 	var out vector.Any
 	switch vec := vec.(type) {
 	case *vector.Const:
-		val := u.samunder.Call([]super.Value{vec.Value()})
-		out = vector.NewConst(val, vec.Len())
+		val := vector.ValueAt(nil, vec, 0)
+		val = u.samunder.Call([]super.Value{val})
+		out = vector.NewConstFromValue(val, vec.Len())
 	case *vector.Named:
 		out = vec.Any
 	case *vector.Error:

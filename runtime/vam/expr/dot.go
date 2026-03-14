@@ -64,8 +64,8 @@ func (d *DotExpr) eval(vecs ...vector.Any) vector.Any {
 		}
 		return typvals
 	case *vector.Map:
-		index := vector.NewConst(super.NewString(d.field), val.Len())
-		return indexMap(d.sctx, val, index)
+		keyVec := vector.NewConstString(d.field, val.Len())
+		return indexMap(d.sctx, val, keyVec)
 	case *vector.View:
 		return vector.Pick(d.eval(val.Any), val.Index)
 	default:

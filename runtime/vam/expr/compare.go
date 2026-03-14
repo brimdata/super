@@ -39,7 +39,7 @@ func (c *Compare) eval(vecs ...vector.Any) vector.Any {
 	lhs, rhs, errVal := coerceVals(c.sctx, lhs, rhs)
 	if errVal != nil {
 		// if incompatible types return false
-		return vector.NewConst(super.False, vecs[0].Len())
+		return vector.NewConstBool(false, vecs[0].Len())
 	}
 	//XXX need to handle overflow (see sam)
 	kind := lhs.Kind()
@@ -64,7 +64,7 @@ func (c *Compare) eval(vecs ...vector.Any) vector.Any {
 	}
 	f, ok := compareFuncs[vector.FuncCode(c.opCode, kind, lform, rform)]
 	if !ok {
-		return vector.NewConst(super.False, lhs.Len())
+		return vector.NewConstBool(false, lhs.Len())
 	}
 	return f(lhs, rhs)
 }
@@ -121,7 +121,7 @@ func isCompareOpSatisfied(opCode, i int) bool {
 
 func (c *Compare) compareTypeVals(lhs, rhs vector.Any) vector.Any {
 	if c.opCode == vector.CompLT || c.opCode == vector.CompGT {
-		return vector.NewConst(super.False, lhs.Len())
+		return vector.NewConstBool(false, lhs.Len())
 	}
 	out := vector.NewFalse(lhs.Len())
 	for i := range lhs.Len() {
@@ -151,11 +151,9 @@ func (i *isNull) Eval(this vector.Any) vector.Any {
 }
 
 func (i *isNull) eval(vecs ...vector.Any) vector.Any {
-	vec := vecs[0]
-	k := vec.Kind()
+	k := vecs[0].Kind()
 	if k == vector.KindError {
-		return vec
+		return vecs[0]
 	}
-	val := super.NewBool(k == vector.KindNull)
-	return vector.NewConst(val, vec.Len())
+	return vector.NewConstBool(k == vector.KindNull, vecs[0].Len())
 }

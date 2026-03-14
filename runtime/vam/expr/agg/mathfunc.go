@@ -172,20 +172,19 @@ func maxOf[T numeric, E numeric](state T, vals []E, index []uint32) T {
 }
 
 func constToNumeric[T numeric](vec *vector.Const) T {
-	val := vec.Value()
 	switch id := vec.Type().ID(); {
 	case super.IsUnsigned(id):
-		return T(val.Uint())
+		return T(vector.UintValue(vec, 0))
 	case super.IsSigned(id):
-		return T(val.Int())
+		return T(vector.IntValue(vec, 0))
 	default:
-		return T(val.Float())
+		return T(vector.FloatValue(vec, 0))
 	}
 }
 
 func minString(state string, vec vector.Any) string {
 	if vec, ok := vec.(*vector.Const); ok {
-		return min(state, vec.Value().Ptr().AsString())
+		return min(state, vector.StringValue(vec, 0))
 	}
 	for i := range vec.Len() {
 		state = min(state, vector.StringValue(vec, i))
@@ -196,7 +195,7 @@ func minString(state string, vec vector.Any) string {
 func maxString(state string, vec vector.Any) string {
 	switch vec := vec.(type) {
 	case *vector.Const:
-		return max(state, vec.Value().Ptr().AsString())
+		return max(state, vector.StringValue(vec, 0))
 	default:
 		for i := range vec.Len() {
 			state = max(state, vector.StringValue(vec, i))

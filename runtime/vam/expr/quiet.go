@@ -8,9 +8,9 @@ import (
 func QuietMask(vec vector.Any) (vector.Any, bool) {
 	errvec, ok := vector.Under(vec).(*vector.Error)
 	if !ok || errvec.Vals.Kind() != vector.KindString {
-		return vector.NewConst(super.True, vec.Len()), false
+		return vector.NewConstBool(true, vec.Len()), false
 	}
-	lhs := vector.NewConst(super.NewString("quiet"), vec.Len())
+	lhs := vector.NewConstString("quiet", vec.Len())
 	out := NewCompare(nil, "!=", nil, nil).Compare(lhs, errvec.Vals)
 	return out, true
 }

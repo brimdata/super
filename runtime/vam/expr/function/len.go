@@ -17,10 +17,10 @@ func (l *Len) Call(args ...vector.Any) vector.Any {
 	out := vector.NewIntEmpty(super.TypeInt64, val.Len())
 	switch typ := val.Type().(type) {
 	case *super.TypeOfNull:
-		return vector.NewConst(super.NewInt64(0), val.Len())
+		return vector.NewConstInt(super.TypeInt64, 0, val.Len())
 	case *super.TypeRecord:
 		length := int64(len(typ.Fields))
-		return vector.NewConst(super.NewInt64(length), val.Len())
+		return vector.NewConstInt(super.TypeInt64, length, val.Len())
 	case *super.TypeArray, *super.TypeSet, *super.TypeMap:
 		for i := uint32(0); i < val.Len(); i++ {
 			start, end := vector.ContainerOffset(val, i)

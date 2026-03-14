@@ -96,9 +96,11 @@ func (i *Is) Call(args ...vector.Any) vector.Any {
 	if typeVal.Type().ID() != super.IDType {
 		return vector.NewWrappedError(i.sctx, "is: type value argument expected", typeVal)
 	}
-	if c, ok := typeVal.(*vector.Const); ok {
-		typ, err := i.sctx.LookupByValue(c.Value().Bytes())
-		return vector.NewConst(super.NewBool(err == nil && typ == vec.Type()), vec.Len())
+	if _, ok := typeVal.(*vector.Const); ok {
+		b := vector.TypeValueValue(typeVal, 0)
+		typ, err := i.sctx.LookupByValue(b)
+		v := err == nil && typ == vec.Type()
+		return vector.NewConstBool(v, vec.Len())
 	}
 	inTyp := vec.Type()
 	out := vector.NewFalse(vec.Len())
@@ -115,8 +117,8 @@ func (i *Is) Call(args ...vector.Any) vector.Any {
 type IsErr struct{}
 
 func (IsErr) Call(args ...vector.Any) vector.Any {
-	val := super.NewBool(args[0].Kind() == vector.KindError)
-	return vector.NewConst(val, args[0].Len())
+	v := args[0].Kind() == vector.KindError
+	return vector.NewConstBool(v, args[0].Len())
 }
 
 type NameOf struct {
@@ -127,7 +129,7 @@ func (n *NameOf) Call(args ...vector.Any) vector.Any {
 	vec := args[0]
 	typ := vec.Type()
 	if named, ok := typ.(*super.TypeNamed); ok {
-		return vector.NewConst(super.NewString(named.Name), vec.Len())
+		return vector.NewConstString(named.Name, vec.Len())
 	}
 	if typ.ID() != super.IDType {
 		return vector.NewMissing(n.sctx, vec.Len())
@@ -158,7 +160,7 @@ type TypeOf struct {
 
 func (t *TypeOf) Call(args ...vector.Any) vector.Any {
 	val := t.sctx.LookupTypeValue(args[0].Type())
-	return vector.NewConst(val, args[0].Len())
+	return vector.NewConstType(val.Bytes(), args[0].Len())
 }
 
 type TypeName struct {
@@ -207,7 +209,7 @@ func (k *Kind) Call(args ...vector.Any) vector.Any {
 	vec := vector.Under(args[0])
 	if typ := vec.Type(); typ.ID() != super.IDType {
 		s := typ.Kind().String()
-		return vector.NewConst(super.NewString(s), vec.Len())
+		return vector.NewConstString(s, vec.Len())
 	}
 	out := vector.NewStringEmpty(vec.Len())
 	for i, n := uint32(0), vec.Len(); i < n; i++ {

@@ -17,10 +17,10 @@ func (q *Quiet) Call(args ...vector.Any) vector.Any {
 	if _, ok := arg.Vals.Type().(*super.TypeOfString); !ok {
 		return args[0]
 	}
-	if c, ok := arg.Vals.(*vector.Const); ok {
+	if _, ok := arg.Vals.(*vector.Const); ok {
 		// Fast path
-		if s, _ := c.AsString(); s == "missing" {
-			return vector.NewStringError(q.sctx, "quiet", c.Len())
+		if vector.StringValue(arg.Vals, 0) == "missing" {
+			return vector.NewStringError(q.sctx, "quiet", arg.Len())
 		}
 		return args[0]
 	}

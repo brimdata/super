@@ -55,17 +55,16 @@ func (u *unaryMinus) eval(vecs ...vector.Any) vector.Any {
 func (u *unaryMinus) convert(vec vector.Any) (vector.Any, bool) {
 	switch vec := vec.(type) {
 	case *vector.Const:
-		var val super.Value
-		if super.IsFloat(vec.Type().ID()) {
-			val = super.NewFloat(vec.Type(), -vec.Value().Float())
-		} else {
-			v := vec.Value().Int()
-			if v == minInt(vec.Type()) {
-				return nil, false
-			}
-			val = super.NewInt(vec.Type(), -vec.Value().Int())
+		typ := vec.Type()
+		if super.IsFloat(typ.ID()) {
+			v := vector.FloatValue(vec, 0)
+			return vector.NewConstFloat(typ, -v, vec.Len()), true
 		}
-		return vector.NewConst(val, vec.Len()), true
+		v := vector.IntValue(vec, 0)
+		if v == minInt(typ) {
+			return nil, false
+		}
+		return vector.NewConstInt(typ, -v, vec.Len()), true
 	case *vector.Dict:
 		out, ok := u.convert(vec.Any)
 		if !ok {

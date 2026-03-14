@@ -153,8 +153,8 @@ func quietBitmap(vecs ...vector.Any) *roaring.Bitmap {
 			continue
 		}
 		valsVec := errVec.Vals
-		if c, ok := valsVec.(*vector.Const); ok {
-			if string(c.Value().Bytes()) == string(super.Quiet) {
+		if _, ok := valsVec.(*vector.Const); ok {
+			if vector.StringValue(valsVec, 0) == string(super.Quiet) {
 				// Every slot is error("quiet").
 				rb.AddRange(0, uint64(valsVec.Len()))
 				return &rb

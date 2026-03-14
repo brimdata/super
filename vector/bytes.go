@@ -53,8 +53,7 @@ func BytesValue(val Any, slot uint32) []byte {
 	case *Bytes:
 		return val.Value(slot)
 	case *Const:
-		s, _ := val.AsBytes()
-		return s
+		return BytesValue(val.Any, 0)
 	case *Dict:
 		slot = uint32(val.Index[slot])
 		return val.Any.(*Bytes).Value(slot)

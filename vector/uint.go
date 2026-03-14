@@ -49,7 +49,7 @@ func UintValue(vec Any, slot uint32) uint64 {
 	case *Uint:
 		return vec.Value(slot)
 	case *Const:
-		return vec.Value().Ptr().Uint()
+		return UintValue(vec.Any, 0)
 	case *Dict:
 		return UintValue(vec.Any, uint32(vec.Index[slot]))
 	case *Dynamic:

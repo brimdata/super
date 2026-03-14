@@ -50,8 +50,7 @@ func StringValue(val Any, slot uint32) string {
 	case *String:
 		return val.Value(slot)
 	case *Const:
-		s, _ := val.AsString()
-		return s
+		return StringValue(val.Any, 0)
 	case *Dict:
 		return StringValue(val.Any, uint32(val.Index[slot]))
 	case *View:

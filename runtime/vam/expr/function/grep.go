@@ -21,8 +21,8 @@ func (g *Grep) Call(args ...vector.Any) vector.Any {
 	if inputVec.Len() == 0 {
 		return vector.NewFalse(0)
 	}
-	if c, ok := vector.Under(patternVec).(*vector.Const); ok {
-		pattern, _ := c.AsString()
+	if _, ok := vector.Under(patternVec).(*vector.Const); ok {
+		pattern := vector.StringValue(patternVec, 0)
 		if g.grep == nil || g.pattern != pattern {
 			pattern = norm.NFC.String(pattern)
 			g.grep = expr.NewSearchString(g.sctx, pattern, &expr.This{})

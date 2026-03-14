@@ -32,19 +32,18 @@ func (n *NetworkOf) Call(args ...vector.Any) vector.Any {
 }
 
 func (n *NetworkOf) singleIP(vec vector.Any) vector.Any {
-	if c, ok := vec.(*vector.Const); ok {
-		ip := vector.IPValue(vec, 0)
-		if !ip.Is4() {
-			return errNotIP4(n.sctx, vec)
-		}
-		net := netip.PrefixFrom(ip, bitsFromIP(ip.As4())).Masked()
-		return vector.NewConst(super.NewNet(net), c.Len())
-	}
 	var errs []uint32
 	var nets vector.Any
 	switch vec := vec.(type) {
 	case *vector.IP:
 		nets, errs = n.singleIPLoop(vec, nil)
+	case *vector.Const:
+		ip := vector.IPValue(vec, 0)
+		if !ip.Is4() {
+			return errNotIP4(n.sctx, vec)
+		}
+		net := netip.PrefixFrom(ip, bitsFromIP(ip.As4())).Masked()
+		return vector.NewConstNet(net, vec.Len())
 	case *vector.View:
 		nets, errs = n.singleIPLoop(vec.Any.(*vector.IP), vec.Index)
 	case *vector.Dict:
@@ -118,15 +117,15 @@ func (n *NetworkOf) ipMask(ipvec, maskvec vector.Any) vector.Any {
 func (n *NetworkOf) intMask(ipvec, maskvec vector.Any) vector.Any {
 	var errs []uint32
 	var out vector.Any
-	if c, ok := maskvec.(*vector.Const); ok {
-		bits, _ := c.AsInt()
+	if _, ok := maskvec.(*vector.Const); ok {
+		bits := vector.IntValue(maskvec, 0)
 		if _, ok := ipvec.(*vector.Const); ok {
 			ip := vector.IPValue(ipvec, 0)
 			net := netip.PrefixFrom(ip, int(bits))
 			if net.Bits() < 0 {
 				return errCIDRRange(n.sctx, ipvec, maskvec)
 			}
-			return vector.NewConst(super.NewNet(net.Masked()), ipvec.Len())
+			return vector.NewConstNet(net.Masked(), ipvec.Len())
 		}
 		out, errs = n.intMaskFast(ipvec, int(bits))
 	} else {

@@ -19,7 +19,7 @@ func TestArithOpsAndForms(t *testing.T) {
 	rhsFlat := vector.NewInt(super.TypeInt64, []int64{1, 1, 1})
 	rhsDict := vector.NewDict(rhsFlat, []byte{0, 0, 0}, nil)
 	rhsView := vector.Pick(rhsFlat, []uint32{0, 1, 2})
-	Const := vector.NewConst(super.NewInt64(1), 3)
+	Const := vector.NewConstInt(super.TypeInt64, 1, 3)
 
 	cases := []struct {
 		op                            string
@@ -61,8 +61,8 @@ func TestArithOpsAndForms(t *testing.T) {
 		cmp := NewArith(super.NewContext(), c.op, &testEval{Const}, &testEval{Const})
 		val := cmp.Eval(nil).(*vector.Const)
 		assert.Equal(t, uint32(3), val.Len(), "op: %s", c.op)
-		expected := super.NewInt64(c.expectedForConstLHS[0])
-		assert.Equal(t, expected, val.Value(), "op: %s", c.op)
+		expected := c.expectedForConstLHS[0]
+		assert.Equal(t, expected, vector.IntValue(val, 0), "op: %s", c.op)
 	}
 
 }

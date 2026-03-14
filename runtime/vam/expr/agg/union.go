@@ -21,7 +21,7 @@ func (u *union) Consume(vec vector.Any) {
 	}
 	switch vec := vec.(type) {
 	case *vector.Const:
-		val := vec.Value()
+		val := vector.ValueAt(nil, vec, 0)
 		u.samunion.Update(val.Type(), val.Bytes())
 	case *vector.Dict:
 		u.Consume(vec.Any)

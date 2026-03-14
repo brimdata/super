@@ -35,9 +35,8 @@ func (b *Bucket) call(args ...vector.Any) vector.Any {
 		return vec
 	}
 	tsArg, binArg := args[0], args[1]
-	if constBin, ok := binArg.(*vector.Const); ok {
-		// Optimize case where the bin argument is static.
-		bin, _ := constBin.AsInt()
+	if _, ok := binArg.(*vector.Const); ok {
+		bin := vector.IntValue(binArg, 0)
 		return b.constBin(tsArg, nano.Duration(bin))
 	}
 	var ints []int64
@@ -59,9 +58,9 @@ func (b *Bucket) constBin(tsVec vector.Any, bin nano.Duration) vector.Any {
 	}
 	switch tsVec := tsVec.(type) {
 	case *vector.Const:
-		ts, _ := tsVec.AsInt()
-		val := super.NewInt(b.resultType(tsVec), int64(nano.Ts(ts).Trunc(bin)))
-		return vector.NewConst(val, tsVec.Len())
+		typ := b.resultType(tsVec)
+		ts := vector.IntValue(tsVec, 0)
+		return vector.NewConstInt(typ, ts, tsVec.Len())
 	case *vector.View:
 		return vector.NewView(b.constBinFlat(tsVec.Any, bin), tsVec.Index)
 	case *vector.Dict:
@@ -96,7 +95,8 @@ type Now struct{}
 func (*Now) needsInput() {}
 
 func (n *Now) Call(args ...vector.Any) vector.Any {
-	return vector.NewConst(super.NewTime(nano.Now()), args[0].Len())
+	v := int64(nano.Now())
+	return vector.NewConstInt(super.TypeTime, v, args[0].Len())
 }
 
 type Strftime struct {
@@ -115,14 +115,14 @@ func (s *Strftime) Call(args ...vector.Any) vector.Any {
 	if timeVec.Type().ID() != super.IDTime {
 		return vector.NewWrappedError(s.sctx, "strftime: time value required for time arg", args[1])
 	}
-	if cnst, ok := formatVec.(*vector.Const); ok {
-		return s.fastPath(cnst, timeVec)
+	if _, ok := formatVec.(*vector.Const); ok {
+		return s.fastPath(formatVec, timeVec)
 	}
 	return s.slowPath(formatVec, timeVec)
 }
 
-func (s *Strftime) fastPath(fvec *vector.Const, tvec vector.Any) vector.Any {
-	format, _ := fvec.AsString()
+func (s *Strftime) fastPath(fvec vector.Any, tvec vector.Any) vector.Any {
+	format := vector.StringValue(fvec, 0)
 	f, err := strftime.New(format)
 	if err != nil {
 		return vector.NewWrappedError(s.sctx, "strftime: "+err.Error(), fvec)
@@ -130,15 +130,15 @@ func (s *Strftime) fastPath(fvec *vector.Const, tvec vector.Any) vector.Any {
 	switch tvec := tvec.(type) {
 	case *vector.Int:
 		return s.fastPathLoop(f, tvec, nil)
+	case *vector.Const:
+		t := vector.IntValue(tvec, 0)
+		s := f.FormatString(nano.Ts(t).Time())
+		return vector.NewConstString(s, tvec.Len())
 	case *vector.View:
 		return s.fastPathLoop(f, tvec.Any.(*vector.Int), tvec.Index)
 	case *vector.Dict:
 		vec := s.fastPathLoop(f, tvec.Any.(*vector.Int), nil)
 		return vector.NewDict(vec, tvec.Index, tvec.Counts)
-	case *vector.Const:
-		t, _ := tvec.AsInt()
-		s := f.FormatString(nano.Ts(t).Time())
-		return vector.NewConst(super.NewString(s), tvec.Len())
 	default:
 		panic(tvec)
 	}

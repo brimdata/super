@@ -145,7 +145,7 @@ func (s *sliceExpr) evalStringOrBytes(vec, fromVec, toVec vector.Any, base1 bool
 func (s *sliceExpr) evalStringOrBytesFast(vec vector.Any, from, to int, base1 bool) (vector.Any, bool) {
 	switch vec := vec.(type) {
 	case *vector.Const:
-		slice := vec.Value().Bytes()
+		slice := s.bytesAt(vec, 0)
 		id := vec.Type().ID()
 		size := lengthOfBytesOrString(id, slice)
 		start, end := 0, size
@@ -157,7 +157,10 @@ func (s *sliceExpr) evalStringOrBytesFast(vec vector.Any, from, to int, base1 bo
 		}
 		start, end = expr.FixSliceBounds(start, end, size)
 		slice = sliceBytesOrString(slice, id, start, end)
-		return vector.NewConst(super.NewValue(vec.Type(), slice), vec.Len()), true
+		if id == super.IDBytes {
+			return vector.NewConstBytes(slice, vec.Len()), true
+		}
+		return vector.NewConstString(string(slice), vec.Len()), true
 	case *vector.View:
 		out, ok := s.evalStringOrBytesFast(vec.Any, from, to, base1)
 		if !ok {
@@ -206,18 +209,11 @@ func (s *sliceExpr) bytesOrStringVec(typ super.Type, offsets []uint32, bytes []b
 }
 
 func (s *sliceExpr) bytesAt(val vector.Any, slot uint32) []byte {
-	switch val := val.(type) {
-	case *vector.String:
-		return val.Table().Bytes(slot)
-	case *vector.Bytes:
-		return val.Value(slot)
-	case *vector.Const:
-		s, _ := val.AsBytes()
-		return s
-	case *vector.Dict:
-		return s.bytesAt(val.Any, uint32(val.Index[slot]))
-	case *vector.View:
-		return s.bytesAt(val.Any, val.Index[slot])
+	switch val.Kind() {
+	case vector.KindBytes:
+		return vector.BytesValue(val, slot)
+	case vector.KindString:
+		return []byte(vector.StringValue(val, slot))
 	}
 	panic(val)
 }
@@ -233,8 +229,8 @@ func sliceIsConstIndex(vec vector.Any) (int, bool) {
 	if vec == nil {
 		return 0, true
 	}
-	if c, ok := vec.(*vector.Const); ok {
-		return int(c.Value().Int()), true
+	if _, ok := vec.(*vector.Const); ok {
+		return int(vector.IntValue(vec, 0)), true
 	}
 	return 0, false
 }

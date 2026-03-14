@@ -35,7 +35,7 @@ func (e *Error) Serialize(b *scode.Builder, slot uint32) {
 }
 
 func NewStringError(sctx *super.Context, msg string, len uint32) *Error {
-	vals := NewConst(super.NewString(msg), len)
+	vals := NewConstString(msg, len)
 	return &Error{Typ: sctx.LookupTypeError(super.TypeString), Vals: vals}
 }
 
@@ -44,7 +44,7 @@ func NewMissing(sctx *super.Context, len uint32) *Error {
 }
 
 func NewWrappedError(sctx *super.Context, msg string, val Any) *Error {
-	msgVec := NewConst(super.NewString(msg), val.Len())
+	msgVec := NewConstString(msg, val.Len())
 	return NewVecWrappedError(sctx, msgVec, val)
 }
 

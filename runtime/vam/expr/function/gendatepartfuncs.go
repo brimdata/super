@@ -36,9 +36,8 @@ case *vector.View:
 	}
 	return vector.NewInt(super.TypeInt64, out)
 case *vector.Const:
-	v := vec.Value().Int()
-	val := super.NewInt64(%[1]s)
-	return vector.NewConst(val, vec.Len())
+	v := vector.IntValue(vec, 0)
+	return vector.NewConstInt(super.TypeInt64, %[1]s, vec.Len())
 case *vector.Dict:
 	out := %[2]s(vec.Any).(*vector.Int)
 	return vector.NewDict(out, vec.Index, vec.Counts)

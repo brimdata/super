@@ -2,10 +2,7 @@
 
 package expr
 
-import (
-	"github.com/brimdata/super"
-	"github.com/brimdata/super/vector"
-)
+import "github.com/brimdata/super/vector"
 
 func compareEQIntFlatFlat(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Int)
@@ -52,7 +49,7 @@ func compareEQIntFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareEQIntFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Int)
-	rconst, _ := rhs.(*vector.Const).AsInt()
+	rconst := vector.IntValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -116,7 +113,7 @@ func compareEQIntDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Int)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsInt()
+	rconst := vector.IntValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -180,7 +177,7 @@ func compareEQIntViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Int)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsInt()
+	rconst := vector.IntValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -192,7 +189,7 @@ func compareEQIntViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareEQIntConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsInt()
+	lconst := vector.IntValue(lhs, 0)
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -205,7 +202,7 @@ func compareEQIntConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareEQIntConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsInt()
+	lconst := vector.IntValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
@@ -220,7 +217,7 @@ func compareEQIntConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareEQIntConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsInt()
+	lconst := vector.IntValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
@@ -235,9 +232,9 @@ func compareEQIntConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareEQIntConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsInt()
-	rconst, _ := rhs.(*vector.Const).AsInt()
-	return vector.NewConst(super.NewBool(lconst == rconst), lhs.Len())
+	lconst := vector.IntValue(lhs, 0)
+	rconst := vector.IntValue(rhs, 0)
+	return vector.NewConstBool(lconst == rconst, lhs.Len())
 }
 
 func compareEQUintFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -285,7 +282,7 @@ func compareEQUintFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareEQUintFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Uint)
-	rconst, _ := rhs.(*vector.Const).AsUint()
+	rconst := vector.UintValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -349,7 +346,7 @@ func compareEQUintDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Uint)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsUint()
+	rconst := vector.UintValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -413,7 +410,7 @@ func compareEQUintViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Uint)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsUint()
+	rconst := vector.UintValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -425,7 +422,7 @@ func compareEQUintViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareEQUintConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsUint()
+	lconst := vector.UintValue(lhs, 0)
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -438,7 +435,7 @@ func compareEQUintConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareEQUintConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsUint()
+	lconst := vector.UintValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
@@ -453,7 +450,7 @@ func compareEQUintConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareEQUintConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsUint()
+	lconst := vector.UintValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
@@ -468,9 +465,9 @@ func compareEQUintConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareEQUintConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsUint()
-	rconst, _ := rhs.(*vector.Const).AsUint()
-	return vector.NewConst(super.NewBool(lconst == rconst), lhs.Len())
+	lconst := vector.UintValue(lhs, 0)
+	rconst := vector.UintValue(rhs, 0)
+	return vector.NewConstBool(lconst == rconst, lhs.Len())
 }
 
 func compareEQFloatFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -518,7 +515,7 @@ func compareEQFloatFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareEQFloatFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Float)
-	rconst, _ := rhs.(*vector.Const).AsFloat()
+	rconst := vector.FloatValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -582,7 +579,7 @@ func compareEQFloatDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Float)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsFloat()
+	rconst := vector.FloatValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -646,7 +643,7 @@ func compareEQFloatViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Float)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsFloat()
+	rconst := vector.FloatValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -658,7 +655,7 @@ func compareEQFloatViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareEQFloatConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsFloat()
+	lconst := vector.FloatValue(lhs, 0)
 	r := rhs.(*vector.Float)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -671,7 +668,7 @@ func compareEQFloatConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareEQFloatConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsFloat()
+	lconst := vector.FloatValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
@@ -686,7 +683,7 @@ func compareEQFloatConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareEQFloatConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsFloat()
+	lconst := vector.FloatValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
@@ -701,9 +698,9 @@ func compareEQFloatConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareEQFloatConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsFloat()
-	rconst, _ := rhs.(*vector.Const).AsFloat()
-	return vector.NewConst(super.NewBool(lconst == rconst), lhs.Len())
+	lconst := vector.FloatValue(lhs, 0)
+	rconst := vector.FloatValue(rhs, 0)
+	return vector.NewConstBool(lconst == rconst, lhs.Len())
 }
 
 func compareEQStringFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -751,7 +748,7 @@ func compareEQStringFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareEQStringFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.String)
-	rconst, _ := rhs.(*vector.Const).AsString()
+	rconst := vector.StringValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -815,7 +812,7 @@ func compareEQStringDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.String)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsString()
+	rconst := vector.StringValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -879,7 +876,7 @@ func compareEQStringViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.String)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsString()
+	rconst := vector.StringValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -891,7 +888,7 @@ func compareEQStringViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareEQStringConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsString()
+	lconst := vector.StringValue(lhs, 0)
 	r := rhs.(*vector.String)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -904,7 +901,7 @@ func compareEQStringConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareEQStringConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsString()
+	lconst := vector.StringValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.String)
 	rx := rd.Index
@@ -919,7 +916,7 @@ func compareEQStringConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareEQStringConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsString()
+	lconst := vector.StringValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.String)
 	rx := rd.Index
@@ -934,9 +931,9 @@ func compareEQStringConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareEQStringConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsString()
-	rconst, _ := rhs.(*vector.Const).AsString()
-	return vector.NewConst(super.NewBool(lconst == rconst), lhs.Len())
+	lconst := vector.StringValue(lhs, 0)
+	rconst := vector.StringValue(rhs, 0)
+	return vector.NewConstBool(lconst == rconst, lhs.Len())
 }
 
 func compareEQBytesFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -984,7 +981,7 @@ func compareEQBytesFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareEQBytesFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Bytes)
-	rconst, _ := rhs.(*vector.Const).AsBytes()
+	rconst := vector.BytesValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -1048,7 +1045,7 @@ func compareEQBytesDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Bytes)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsBytes()
+	rconst := vector.BytesValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -1112,7 +1109,7 @@ func compareEQBytesViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Bytes)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsBytes()
+	rconst := vector.BytesValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -1124,7 +1121,7 @@ func compareEQBytesViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareEQBytesConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsBytes()
+	lconst := vector.BytesValue(lhs, 0)
 	r := rhs.(*vector.Bytes)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -1137,7 +1134,7 @@ func compareEQBytesConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareEQBytesConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsBytes()
+	lconst := vector.BytesValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Bytes)
 	rx := rd.Index
@@ -1152,7 +1149,7 @@ func compareEQBytesConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareEQBytesConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsBytes()
+	lconst := vector.BytesValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Bytes)
 	rx := rd.Index
@@ -1167,9 +1164,9 @@ func compareEQBytesConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareEQBytesConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsBytes()
-	rconst, _ := rhs.(*vector.Const).AsBytes()
-	return vector.NewConst(super.NewBool(string(lconst) == string(rconst)), lhs.Len())
+	lconst := vector.BytesValue(lhs, 0)
+	rconst := vector.BytesValue(rhs, 0)
+	return vector.NewConstBool(string(lconst) == string(rconst), lhs.Len())
 }
 
 func compareNEIntFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -1217,7 +1214,7 @@ func compareNEIntFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareNEIntFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Int)
-	rconst, _ := rhs.(*vector.Const).AsInt()
+	rconst := vector.IntValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -1281,7 +1278,7 @@ func compareNEIntDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Int)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsInt()
+	rconst := vector.IntValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -1345,7 +1342,7 @@ func compareNEIntViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Int)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsInt()
+	rconst := vector.IntValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -1357,7 +1354,7 @@ func compareNEIntViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareNEIntConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsInt()
+	lconst := vector.IntValue(lhs, 0)
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -1370,7 +1367,7 @@ func compareNEIntConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareNEIntConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsInt()
+	lconst := vector.IntValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
@@ -1385,7 +1382,7 @@ func compareNEIntConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareNEIntConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsInt()
+	lconst := vector.IntValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
@@ -1400,9 +1397,9 @@ func compareNEIntConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareNEIntConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsInt()
-	rconst, _ := rhs.(*vector.Const).AsInt()
-	return vector.NewConst(super.NewBool(lconst != rconst), lhs.Len())
+	lconst := vector.IntValue(lhs, 0)
+	rconst := vector.IntValue(rhs, 0)
+	return vector.NewConstBool(lconst != rconst, lhs.Len())
 }
 
 func compareNEUintFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -1450,7 +1447,7 @@ func compareNEUintFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareNEUintFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Uint)
-	rconst, _ := rhs.(*vector.Const).AsUint()
+	rconst := vector.UintValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -1514,7 +1511,7 @@ func compareNEUintDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Uint)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsUint()
+	rconst := vector.UintValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -1578,7 +1575,7 @@ func compareNEUintViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Uint)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsUint()
+	rconst := vector.UintValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -1590,7 +1587,7 @@ func compareNEUintViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareNEUintConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsUint()
+	lconst := vector.UintValue(lhs, 0)
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -1603,7 +1600,7 @@ func compareNEUintConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareNEUintConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsUint()
+	lconst := vector.UintValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
@@ -1618,7 +1615,7 @@ func compareNEUintConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareNEUintConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsUint()
+	lconst := vector.UintValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
@@ -1633,9 +1630,9 @@ func compareNEUintConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareNEUintConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsUint()
-	rconst, _ := rhs.(*vector.Const).AsUint()
-	return vector.NewConst(super.NewBool(lconst != rconst), lhs.Len())
+	lconst := vector.UintValue(lhs, 0)
+	rconst := vector.UintValue(rhs, 0)
+	return vector.NewConstBool(lconst != rconst, lhs.Len())
 }
 
 func compareNEFloatFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -1683,7 +1680,7 @@ func compareNEFloatFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareNEFloatFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Float)
-	rconst, _ := rhs.(*vector.Const).AsFloat()
+	rconst := vector.FloatValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -1747,7 +1744,7 @@ func compareNEFloatDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Float)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsFloat()
+	rconst := vector.FloatValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -1811,7 +1808,7 @@ func compareNEFloatViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Float)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsFloat()
+	rconst := vector.FloatValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -1823,7 +1820,7 @@ func compareNEFloatViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareNEFloatConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsFloat()
+	lconst := vector.FloatValue(lhs, 0)
 	r := rhs.(*vector.Float)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -1836,7 +1833,7 @@ func compareNEFloatConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareNEFloatConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsFloat()
+	lconst := vector.FloatValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
@@ -1851,7 +1848,7 @@ func compareNEFloatConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareNEFloatConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsFloat()
+	lconst := vector.FloatValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
@@ -1866,9 +1863,9 @@ func compareNEFloatConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareNEFloatConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsFloat()
-	rconst, _ := rhs.(*vector.Const).AsFloat()
-	return vector.NewConst(super.NewBool(lconst != rconst), lhs.Len())
+	lconst := vector.FloatValue(lhs, 0)
+	rconst := vector.FloatValue(rhs, 0)
+	return vector.NewConstBool(lconst != rconst, lhs.Len())
 }
 
 func compareNEStringFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -1916,7 +1913,7 @@ func compareNEStringFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareNEStringFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.String)
-	rconst, _ := rhs.(*vector.Const).AsString()
+	rconst := vector.StringValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -1980,7 +1977,7 @@ func compareNEStringDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.String)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsString()
+	rconst := vector.StringValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -2044,7 +2041,7 @@ func compareNEStringViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.String)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsString()
+	rconst := vector.StringValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -2056,7 +2053,7 @@ func compareNEStringViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareNEStringConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsString()
+	lconst := vector.StringValue(lhs, 0)
 	r := rhs.(*vector.String)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -2069,7 +2066,7 @@ func compareNEStringConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareNEStringConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsString()
+	lconst := vector.StringValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.String)
 	rx := rd.Index
@@ -2084,7 +2081,7 @@ func compareNEStringConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareNEStringConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsString()
+	lconst := vector.StringValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.String)
 	rx := rd.Index
@@ -2099,9 +2096,9 @@ func compareNEStringConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareNEStringConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsString()
-	rconst, _ := rhs.(*vector.Const).AsString()
-	return vector.NewConst(super.NewBool(lconst != rconst), lhs.Len())
+	lconst := vector.StringValue(lhs, 0)
+	rconst := vector.StringValue(rhs, 0)
+	return vector.NewConstBool(lconst != rconst, lhs.Len())
 }
 
 func compareNEBytesFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -2149,7 +2146,7 @@ func compareNEBytesFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareNEBytesFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Bytes)
-	rconst, _ := rhs.(*vector.Const).AsBytes()
+	rconst := vector.BytesValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -2213,7 +2210,7 @@ func compareNEBytesDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Bytes)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsBytes()
+	rconst := vector.BytesValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -2277,7 +2274,7 @@ func compareNEBytesViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Bytes)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsBytes()
+	rconst := vector.BytesValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -2289,7 +2286,7 @@ func compareNEBytesViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareNEBytesConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsBytes()
+	lconst := vector.BytesValue(lhs, 0)
 	r := rhs.(*vector.Bytes)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -2302,7 +2299,7 @@ func compareNEBytesConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareNEBytesConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsBytes()
+	lconst := vector.BytesValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Bytes)
 	rx := rd.Index
@@ -2317,7 +2314,7 @@ func compareNEBytesConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareNEBytesConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsBytes()
+	lconst := vector.BytesValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Bytes)
 	rx := rd.Index
@@ -2332,9 +2329,9 @@ func compareNEBytesConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareNEBytesConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsBytes()
-	rconst, _ := rhs.(*vector.Const).AsBytes()
-	return vector.NewConst(super.NewBool(string(lconst) != string(rconst)), lhs.Len())
+	lconst := vector.BytesValue(lhs, 0)
+	rconst := vector.BytesValue(rhs, 0)
+	return vector.NewConstBool(string(lconst) != string(rconst), lhs.Len())
 }
 
 func compareLTIntFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -2382,7 +2379,7 @@ func compareLTIntFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareLTIntFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Int)
-	rconst, _ := rhs.(*vector.Const).AsInt()
+	rconst := vector.IntValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -2446,7 +2443,7 @@ func compareLTIntDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Int)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsInt()
+	rconst := vector.IntValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -2510,7 +2507,7 @@ func compareLTIntViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Int)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsInt()
+	rconst := vector.IntValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -2522,7 +2519,7 @@ func compareLTIntViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLTIntConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsInt()
+	lconst := vector.IntValue(lhs, 0)
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -2535,7 +2532,7 @@ func compareLTIntConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLTIntConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsInt()
+	lconst := vector.IntValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
@@ -2550,7 +2547,7 @@ func compareLTIntConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLTIntConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsInt()
+	lconst := vector.IntValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
@@ -2565,9 +2562,9 @@ func compareLTIntConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLTIntConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsInt()
-	rconst, _ := rhs.(*vector.Const).AsInt()
-	return vector.NewConst(super.NewBool(lconst < rconst), lhs.Len())
+	lconst := vector.IntValue(lhs, 0)
+	rconst := vector.IntValue(rhs, 0)
+	return vector.NewConstBool(lconst < rconst, lhs.Len())
 }
 
 func compareLTUintFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -2615,7 +2612,7 @@ func compareLTUintFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareLTUintFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Uint)
-	rconst, _ := rhs.(*vector.Const).AsUint()
+	rconst := vector.UintValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -2679,7 +2676,7 @@ func compareLTUintDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Uint)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsUint()
+	rconst := vector.UintValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -2743,7 +2740,7 @@ func compareLTUintViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Uint)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsUint()
+	rconst := vector.UintValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -2755,7 +2752,7 @@ func compareLTUintViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLTUintConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsUint()
+	lconst := vector.UintValue(lhs, 0)
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -2768,7 +2765,7 @@ func compareLTUintConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLTUintConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsUint()
+	lconst := vector.UintValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
@@ -2783,7 +2780,7 @@ func compareLTUintConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLTUintConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsUint()
+	lconst := vector.UintValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
@@ -2798,9 +2795,9 @@ func compareLTUintConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLTUintConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsUint()
-	rconst, _ := rhs.(*vector.Const).AsUint()
-	return vector.NewConst(super.NewBool(lconst < rconst), lhs.Len())
+	lconst := vector.UintValue(lhs, 0)
+	rconst := vector.UintValue(rhs, 0)
+	return vector.NewConstBool(lconst < rconst, lhs.Len())
 }
 
 func compareLTFloatFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -2848,7 +2845,7 @@ func compareLTFloatFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareLTFloatFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Float)
-	rconst, _ := rhs.(*vector.Const).AsFloat()
+	rconst := vector.FloatValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -2912,7 +2909,7 @@ func compareLTFloatDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Float)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsFloat()
+	rconst := vector.FloatValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -2976,7 +2973,7 @@ func compareLTFloatViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Float)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsFloat()
+	rconst := vector.FloatValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -2988,7 +2985,7 @@ func compareLTFloatViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLTFloatConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsFloat()
+	lconst := vector.FloatValue(lhs, 0)
 	r := rhs.(*vector.Float)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -3001,7 +2998,7 @@ func compareLTFloatConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLTFloatConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsFloat()
+	lconst := vector.FloatValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
@@ -3016,7 +3013,7 @@ func compareLTFloatConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLTFloatConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsFloat()
+	lconst := vector.FloatValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
@@ -3031,9 +3028,9 @@ func compareLTFloatConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLTFloatConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsFloat()
-	rconst, _ := rhs.(*vector.Const).AsFloat()
-	return vector.NewConst(super.NewBool(lconst < rconst), lhs.Len())
+	lconst := vector.FloatValue(lhs, 0)
+	rconst := vector.FloatValue(rhs, 0)
+	return vector.NewConstBool(lconst < rconst, lhs.Len())
 }
 
 func compareLTStringFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -3081,7 +3078,7 @@ func compareLTStringFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareLTStringFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.String)
-	rconst, _ := rhs.(*vector.Const).AsString()
+	rconst := vector.StringValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -3145,7 +3142,7 @@ func compareLTStringDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.String)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsString()
+	rconst := vector.StringValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -3209,7 +3206,7 @@ func compareLTStringViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.String)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsString()
+	rconst := vector.StringValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -3221,7 +3218,7 @@ func compareLTStringViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLTStringConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsString()
+	lconst := vector.StringValue(lhs, 0)
 	r := rhs.(*vector.String)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -3234,7 +3231,7 @@ func compareLTStringConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLTStringConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsString()
+	lconst := vector.StringValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.String)
 	rx := rd.Index
@@ -3249,7 +3246,7 @@ func compareLTStringConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLTStringConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsString()
+	lconst := vector.StringValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.String)
 	rx := rd.Index
@@ -3264,9 +3261,9 @@ func compareLTStringConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLTStringConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsString()
-	rconst, _ := rhs.(*vector.Const).AsString()
-	return vector.NewConst(super.NewBool(lconst < rconst), lhs.Len())
+	lconst := vector.StringValue(lhs, 0)
+	rconst := vector.StringValue(rhs, 0)
+	return vector.NewConstBool(lconst < rconst, lhs.Len())
 }
 
 func compareLTBytesFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -3314,7 +3311,7 @@ func compareLTBytesFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareLTBytesFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Bytes)
-	rconst, _ := rhs.(*vector.Const).AsBytes()
+	rconst := vector.BytesValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -3378,7 +3375,7 @@ func compareLTBytesDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Bytes)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsBytes()
+	rconst := vector.BytesValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -3442,7 +3439,7 @@ func compareLTBytesViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Bytes)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsBytes()
+	rconst := vector.BytesValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -3454,7 +3451,7 @@ func compareLTBytesViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLTBytesConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsBytes()
+	lconst := vector.BytesValue(lhs, 0)
 	r := rhs.(*vector.Bytes)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -3467,7 +3464,7 @@ func compareLTBytesConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLTBytesConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsBytes()
+	lconst := vector.BytesValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Bytes)
 	rx := rd.Index
@@ -3482,7 +3479,7 @@ func compareLTBytesConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLTBytesConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsBytes()
+	lconst := vector.BytesValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Bytes)
 	rx := rd.Index
@@ -3497,9 +3494,9 @@ func compareLTBytesConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLTBytesConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsBytes()
-	rconst, _ := rhs.(*vector.Const).AsBytes()
-	return vector.NewConst(super.NewBool(string(lconst) < string(rconst)), lhs.Len())
+	lconst := vector.BytesValue(lhs, 0)
+	rconst := vector.BytesValue(rhs, 0)
+	return vector.NewConstBool(string(lconst) < string(rconst), lhs.Len())
 }
 
 func compareLEIntFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -3547,7 +3544,7 @@ func compareLEIntFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareLEIntFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Int)
-	rconst, _ := rhs.(*vector.Const).AsInt()
+	rconst := vector.IntValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -3611,7 +3608,7 @@ func compareLEIntDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Int)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsInt()
+	rconst := vector.IntValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -3675,7 +3672,7 @@ func compareLEIntViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Int)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsInt()
+	rconst := vector.IntValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -3687,7 +3684,7 @@ func compareLEIntViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLEIntConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsInt()
+	lconst := vector.IntValue(lhs, 0)
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -3700,7 +3697,7 @@ func compareLEIntConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLEIntConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsInt()
+	lconst := vector.IntValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
@@ -3715,7 +3712,7 @@ func compareLEIntConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLEIntConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsInt()
+	lconst := vector.IntValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
@@ -3730,9 +3727,9 @@ func compareLEIntConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLEIntConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsInt()
-	rconst, _ := rhs.(*vector.Const).AsInt()
-	return vector.NewConst(super.NewBool(lconst <= rconst), lhs.Len())
+	lconst := vector.IntValue(lhs, 0)
+	rconst := vector.IntValue(rhs, 0)
+	return vector.NewConstBool(lconst <= rconst, lhs.Len())
 }
 
 func compareLEUintFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -3780,7 +3777,7 @@ func compareLEUintFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareLEUintFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Uint)
-	rconst, _ := rhs.(*vector.Const).AsUint()
+	rconst := vector.UintValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -3844,7 +3841,7 @@ func compareLEUintDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Uint)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsUint()
+	rconst := vector.UintValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -3908,7 +3905,7 @@ func compareLEUintViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Uint)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsUint()
+	rconst := vector.UintValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -3920,7 +3917,7 @@ func compareLEUintViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLEUintConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsUint()
+	lconst := vector.UintValue(lhs, 0)
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -3933,7 +3930,7 @@ func compareLEUintConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLEUintConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsUint()
+	lconst := vector.UintValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
@@ -3948,7 +3945,7 @@ func compareLEUintConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLEUintConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsUint()
+	lconst := vector.UintValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
@@ -3963,9 +3960,9 @@ func compareLEUintConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLEUintConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsUint()
-	rconst, _ := rhs.(*vector.Const).AsUint()
-	return vector.NewConst(super.NewBool(lconst <= rconst), lhs.Len())
+	lconst := vector.UintValue(lhs, 0)
+	rconst := vector.UintValue(rhs, 0)
+	return vector.NewConstBool(lconst <= rconst, lhs.Len())
 }
 
 func compareLEFloatFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -4013,7 +4010,7 @@ func compareLEFloatFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareLEFloatFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Float)
-	rconst, _ := rhs.(*vector.Const).AsFloat()
+	rconst := vector.FloatValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -4077,7 +4074,7 @@ func compareLEFloatDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Float)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsFloat()
+	rconst := vector.FloatValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -4141,7 +4138,7 @@ func compareLEFloatViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Float)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsFloat()
+	rconst := vector.FloatValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -4153,7 +4150,7 @@ func compareLEFloatViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLEFloatConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsFloat()
+	lconst := vector.FloatValue(lhs, 0)
 	r := rhs.(*vector.Float)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -4166,7 +4163,7 @@ func compareLEFloatConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLEFloatConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsFloat()
+	lconst := vector.FloatValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
@@ -4181,7 +4178,7 @@ func compareLEFloatConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLEFloatConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsFloat()
+	lconst := vector.FloatValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
@@ -4196,9 +4193,9 @@ func compareLEFloatConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLEFloatConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsFloat()
-	rconst, _ := rhs.(*vector.Const).AsFloat()
-	return vector.NewConst(super.NewBool(lconst <= rconst), lhs.Len())
+	lconst := vector.FloatValue(lhs, 0)
+	rconst := vector.FloatValue(rhs, 0)
+	return vector.NewConstBool(lconst <= rconst, lhs.Len())
 }
 
 func compareLEStringFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -4246,7 +4243,7 @@ func compareLEStringFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareLEStringFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.String)
-	rconst, _ := rhs.(*vector.Const).AsString()
+	rconst := vector.StringValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -4310,7 +4307,7 @@ func compareLEStringDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.String)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsString()
+	rconst := vector.StringValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -4374,7 +4371,7 @@ func compareLEStringViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.String)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsString()
+	rconst := vector.StringValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -4386,7 +4383,7 @@ func compareLEStringViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLEStringConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsString()
+	lconst := vector.StringValue(lhs, 0)
 	r := rhs.(*vector.String)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -4399,7 +4396,7 @@ func compareLEStringConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLEStringConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsString()
+	lconst := vector.StringValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.String)
 	rx := rd.Index
@@ -4414,7 +4411,7 @@ func compareLEStringConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLEStringConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsString()
+	lconst := vector.StringValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.String)
 	rx := rd.Index
@@ -4429,9 +4426,9 @@ func compareLEStringConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLEStringConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsString()
-	rconst, _ := rhs.(*vector.Const).AsString()
-	return vector.NewConst(super.NewBool(lconst <= rconst), lhs.Len())
+	lconst := vector.StringValue(lhs, 0)
+	rconst := vector.StringValue(rhs, 0)
+	return vector.NewConstBool(lconst <= rconst, lhs.Len())
 }
 
 func compareLEBytesFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -4479,7 +4476,7 @@ func compareLEBytesFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareLEBytesFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Bytes)
-	rconst, _ := rhs.(*vector.Const).AsBytes()
+	rconst := vector.BytesValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -4543,7 +4540,7 @@ func compareLEBytesDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Bytes)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsBytes()
+	rconst := vector.BytesValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -4607,7 +4604,7 @@ func compareLEBytesViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Bytes)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsBytes()
+	rconst := vector.BytesValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -4619,7 +4616,7 @@ func compareLEBytesViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLEBytesConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsBytes()
+	lconst := vector.BytesValue(lhs, 0)
 	r := rhs.(*vector.Bytes)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -4632,7 +4629,7 @@ func compareLEBytesConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLEBytesConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsBytes()
+	lconst := vector.BytesValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Bytes)
 	rx := rd.Index
@@ -4647,7 +4644,7 @@ func compareLEBytesConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLEBytesConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsBytes()
+	lconst := vector.BytesValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Bytes)
 	rx := rd.Index
@@ -4662,9 +4659,9 @@ func compareLEBytesConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareLEBytesConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsBytes()
-	rconst, _ := rhs.(*vector.Const).AsBytes()
-	return vector.NewConst(super.NewBool(string(lconst) <= string(rconst)), lhs.Len())
+	lconst := vector.BytesValue(lhs, 0)
+	rconst := vector.BytesValue(rhs, 0)
+	return vector.NewConstBool(string(lconst) <= string(rconst), lhs.Len())
 }
 
 func compareGTIntFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -4712,7 +4709,7 @@ func compareGTIntFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareGTIntFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Int)
-	rconst, _ := rhs.(*vector.Const).AsInt()
+	rconst := vector.IntValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -4776,7 +4773,7 @@ func compareGTIntDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Int)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsInt()
+	rconst := vector.IntValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -4840,7 +4837,7 @@ func compareGTIntViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Int)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsInt()
+	rconst := vector.IntValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -4852,7 +4849,7 @@ func compareGTIntViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGTIntConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsInt()
+	lconst := vector.IntValue(lhs, 0)
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -4865,7 +4862,7 @@ func compareGTIntConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGTIntConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsInt()
+	lconst := vector.IntValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
@@ -4880,7 +4877,7 @@ func compareGTIntConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGTIntConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsInt()
+	lconst := vector.IntValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
@@ -4895,9 +4892,9 @@ func compareGTIntConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGTIntConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsInt()
-	rconst, _ := rhs.(*vector.Const).AsInt()
-	return vector.NewConst(super.NewBool(lconst > rconst), lhs.Len())
+	lconst := vector.IntValue(lhs, 0)
+	rconst := vector.IntValue(rhs, 0)
+	return vector.NewConstBool(lconst > rconst, lhs.Len())
 }
 
 func compareGTUintFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -4945,7 +4942,7 @@ func compareGTUintFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareGTUintFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Uint)
-	rconst, _ := rhs.(*vector.Const).AsUint()
+	rconst := vector.UintValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -5009,7 +5006,7 @@ func compareGTUintDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Uint)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsUint()
+	rconst := vector.UintValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -5073,7 +5070,7 @@ func compareGTUintViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Uint)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsUint()
+	rconst := vector.UintValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -5085,7 +5082,7 @@ func compareGTUintViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGTUintConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsUint()
+	lconst := vector.UintValue(lhs, 0)
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -5098,7 +5095,7 @@ func compareGTUintConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGTUintConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsUint()
+	lconst := vector.UintValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
@@ -5113,7 +5110,7 @@ func compareGTUintConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGTUintConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsUint()
+	lconst := vector.UintValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
@@ -5128,9 +5125,9 @@ func compareGTUintConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGTUintConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsUint()
-	rconst, _ := rhs.(*vector.Const).AsUint()
-	return vector.NewConst(super.NewBool(lconst > rconst), lhs.Len())
+	lconst := vector.UintValue(lhs, 0)
+	rconst := vector.UintValue(rhs, 0)
+	return vector.NewConstBool(lconst > rconst, lhs.Len())
 }
 
 func compareGTFloatFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -5178,7 +5175,7 @@ func compareGTFloatFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareGTFloatFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Float)
-	rconst, _ := rhs.(*vector.Const).AsFloat()
+	rconst := vector.FloatValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -5242,7 +5239,7 @@ func compareGTFloatDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Float)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsFloat()
+	rconst := vector.FloatValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -5306,7 +5303,7 @@ func compareGTFloatViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Float)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsFloat()
+	rconst := vector.FloatValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -5318,7 +5315,7 @@ func compareGTFloatViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGTFloatConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsFloat()
+	lconst := vector.FloatValue(lhs, 0)
 	r := rhs.(*vector.Float)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -5331,7 +5328,7 @@ func compareGTFloatConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGTFloatConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsFloat()
+	lconst := vector.FloatValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
@@ -5346,7 +5343,7 @@ func compareGTFloatConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGTFloatConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsFloat()
+	lconst := vector.FloatValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
@@ -5361,9 +5358,9 @@ func compareGTFloatConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGTFloatConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsFloat()
-	rconst, _ := rhs.(*vector.Const).AsFloat()
-	return vector.NewConst(super.NewBool(lconst > rconst), lhs.Len())
+	lconst := vector.FloatValue(lhs, 0)
+	rconst := vector.FloatValue(rhs, 0)
+	return vector.NewConstBool(lconst > rconst, lhs.Len())
 }
 
 func compareGTStringFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -5411,7 +5408,7 @@ func compareGTStringFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareGTStringFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.String)
-	rconst, _ := rhs.(*vector.Const).AsString()
+	rconst := vector.StringValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -5475,7 +5472,7 @@ func compareGTStringDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.String)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsString()
+	rconst := vector.StringValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -5539,7 +5536,7 @@ func compareGTStringViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.String)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsString()
+	rconst := vector.StringValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -5551,7 +5548,7 @@ func compareGTStringViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGTStringConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsString()
+	lconst := vector.StringValue(lhs, 0)
 	r := rhs.(*vector.String)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -5564,7 +5561,7 @@ func compareGTStringConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGTStringConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsString()
+	lconst := vector.StringValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.String)
 	rx := rd.Index
@@ -5579,7 +5576,7 @@ func compareGTStringConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGTStringConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsString()
+	lconst := vector.StringValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.String)
 	rx := rd.Index
@@ -5594,9 +5591,9 @@ func compareGTStringConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGTStringConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsString()
-	rconst, _ := rhs.(*vector.Const).AsString()
-	return vector.NewConst(super.NewBool(lconst > rconst), lhs.Len())
+	lconst := vector.StringValue(lhs, 0)
+	rconst := vector.StringValue(rhs, 0)
+	return vector.NewConstBool(lconst > rconst, lhs.Len())
 }
 
 func compareGTBytesFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -5644,7 +5641,7 @@ func compareGTBytesFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareGTBytesFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Bytes)
-	rconst, _ := rhs.(*vector.Const).AsBytes()
+	rconst := vector.BytesValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -5708,7 +5705,7 @@ func compareGTBytesDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Bytes)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsBytes()
+	rconst := vector.BytesValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -5772,7 +5769,7 @@ func compareGTBytesViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Bytes)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsBytes()
+	rconst := vector.BytesValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -5784,7 +5781,7 @@ func compareGTBytesViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGTBytesConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsBytes()
+	lconst := vector.BytesValue(lhs, 0)
 	r := rhs.(*vector.Bytes)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -5797,7 +5794,7 @@ func compareGTBytesConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGTBytesConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsBytes()
+	lconst := vector.BytesValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Bytes)
 	rx := rd.Index
@@ -5812,7 +5809,7 @@ func compareGTBytesConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGTBytesConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsBytes()
+	lconst := vector.BytesValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Bytes)
 	rx := rd.Index
@@ -5827,9 +5824,9 @@ func compareGTBytesConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGTBytesConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsBytes()
-	rconst, _ := rhs.(*vector.Const).AsBytes()
-	return vector.NewConst(super.NewBool(string(lconst) > string(rconst)), lhs.Len())
+	lconst := vector.BytesValue(lhs, 0)
+	rconst := vector.BytesValue(rhs, 0)
+	return vector.NewConstBool(string(lconst) > string(rconst), lhs.Len())
 }
 
 func compareGEIntFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -5877,7 +5874,7 @@ func compareGEIntFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareGEIntFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Int)
-	rconst, _ := rhs.(*vector.Const).AsInt()
+	rconst := vector.IntValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -5941,7 +5938,7 @@ func compareGEIntDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Int)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsInt()
+	rconst := vector.IntValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -6005,7 +6002,7 @@ func compareGEIntViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Int)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsInt()
+	rconst := vector.IntValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -6017,7 +6014,7 @@ func compareGEIntViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGEIntConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsInt()
+	lconst := vector.IntValue(lhs, 0)
 	r := rhs.(*vector.Int)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -6030,7 +6027,7 @@ func compareGEIntConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGEIntConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsInt()
+	lconst := vector.IntValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
@@ -6045,7 +6042,7 @@ func compareGEIntConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGEIntConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsInt()
+	lconst := vector.IntValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Int)
 	rx := rd.Index
@@ -6060,9 +6057,9 @@ func compareGEIntConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGEIntConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsInt()
-	rconst, _ := rhs.(*vector.Const).AsInt()
-	return vector.NewConst(super.NewBool(lconst >= rconst), lhs.Len())
+	lconst := vector.IntValue(lhs, 0)
+	rconst := vector.IntValue(rhs, 0)
+	return vector.NewConstBool(lconst >= rconst, lhs.Len())
 }
 
 func compareGEUintFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -6110,7 +6107,7 @@ func compareGEUintFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareGEUintFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Uint)
-	rconst, _ := rhs.(*vector.Const).AsUint()
+	rconst := vector.UintValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -6174,7 +6171,7 @@ func compareGEUintDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Uint)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsUint()
+	rconst := vector.UintValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -6238,7 +6235,7 @@ func compareGEUintViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Uint)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsUint()
+	rconst := vector.UintValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -6250,7 +6247,7 @@ func compareGEUintViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGEUintConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsUint()
+	lconst := vector.UintValue(lhs, 0)
 	r := rhs.(*vector.Uint)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -6263,7 +6260,7 @@ func compareGEUintConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGEUintConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsUint()
+	lconst := vector.UintValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
@@ -6278,7 +6275,7 @@ func compareGEUintConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGEUintConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsUint()
+	lconst := vector.UintValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Uint)
 	rx := rd.Index
@@ -6293,9 +6290,9 @@ func compareGEUintConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGEUintConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsUint()
-	rconst, _ := rhs.(*vector.Const).AsUint()
-	return vector.NewConst(super.NewBool(lconst >= rconst), lhs.Len())
+	lconst := vector.UintValue(lhs, 0)
+	rconst := vector.UintValue(rhs, 0)
+	return vector.NewConstBool(lconst >= rconst, lhs.Len())
 }
 
 func compareGEFloatFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -6343,7 +6340,7 @@ func compareGEFloatFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareGEFloatFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Float)
-	rconst, _ := rhs.(*vector.Const).AsFloat()
+	rconst := vector.FloatValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -6407,7 +6404,7 @@ func compareGEFloatDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Float)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsFloat()
+	rconst := vector.FloatValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -6471,7 +6468,7 @@ func compareGEFloatViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Float)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsFloat()
+	rconst := vector.FloatValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -6483,7 +6480,7 @@ func compareGEFloatViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGEFloatConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsFloat()
+	lconst := vector.FloatValue(lhs, 0)
 	r := rhs.(*vector.Float)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -6496,7 +6493,7 @@ func compareGEFloatConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGEFloatConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsFloat()
+	lconst := vector.FloatValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
@@ -6511,7 +6508,7 @@ func compareGEFloatConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGEFloatConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsFloat()
+	lconst := vector.FloatValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Float)
 	rx := rd.Index
@@ -6526,9 +6523,9 @@ func compareGEFloatConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGEFloatConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsFloat()
-	rconst, _ := rhs.(*vector.Const).AsFloat()
-	return vector.NewConst(super.NewBool(lconst >= rconst), lhs.Len())
+	lconst := vector.FloatValue(lhs, 0)
+	rconst := vector.FloatValue(rhs, 0)
+	return vector.NewConstBool(lconst >= rconst, lhs.Len())
 }
 
 func compareGEStringFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -6576,7 +6573,7 @@ func compareGEStringFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareGEStringFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.String)
-	rconst, _ := rhs.(*vector.Const).AsString()
+	rconst := vector.StringValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -6640,7 +6637,7 @@ func compareGEStringDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.String)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsString()
+	rconst := vector.StringValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -6704,7 +6701,7 @@ func compareGEStringViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.String)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsString()
+	rconst := vector.StringValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -6716,7 +6713,7 @@ func compareGEStringViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGEStringConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsString()
+	lconst := vector.StringValue(lhs, 0)
 	r := rhs.(*vector.String)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -6729,7 +6726,7 @@ func compareGEStringConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGEStringConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsString()
+	lconst := vector.StringValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.String)
 	rx := rd.Index
@@ -6744,7 +6741,7 @@ func compareGEStringConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGEStringConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsString()
+	lconst := vector.StringValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.String)
 	rx := rd.Index
@@ -6759,9 +6756,9 @@ func compareGEStringConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGEStringConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsString()
-	rconst, _ := rhs.(*vector.Const).AsString()
-	return vector.NewConst(super.NewBool(lconst >= rconst), lhs.Len())
+	lconst := vector.StringValue(lhs, 0)
+	rconst := vector.StringValue(rhs, 0)
+	return vector.NewConstBool(lconst >= rconst, lhs.Len())
 }
 
 func compareGEBytesFlatFlat(lhs, rhs vector.Any) vector.Any {
@@ -6809,7 +6806,7 @@ func compareGEBytesFlatView(lhs, rhs vector.Any) vector.Any {
 
 func compareGEBytesFlatConst(lhs, rhs vector.Any) vector.Any {
 	l := lhs.(*vector.Bytes)
-	rconst, _ := rhs.(*vector.Const).AsBytes()
+	rconst := vector.BytesValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -6873,7 +6870,7 @@ func compareGEBytesDictConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.Dict)
 	l := ld.Any.(*vector.Bytes)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsBytes()
+	rconst := vector.BytesValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -6937,7 +6934,7 @@ func compareGEBytesViewConst(lhs, rhs vector.Any) vector.Any {
 	ld := lhs.(*vector.View)
 	l := ld.Any.(*vector.Bytes)
 	lx := ld.Index
-	rconst, _ := rhs.(*vector.Const).AsBytes()
+	rconst := vector.BytesValue(rhs, 0)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
 	for k := range n {
@@ -6949,7 +6946,7 @@ func compareGEBytesViewConst(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGEBytesConstFlat(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsBytes()
+	lconst := vector.BytesValue(lhs, 0)
 	r := rhs.(*vector.Bytes)
 	n := lhs.Len()
 	out := vector.NewFalse(n)
@@ -6962,7 +6959,7 @@ func compareGEBytesConstFlat(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGEBytesConstDict(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsBytes()
+	lconst := vector.BytesValue(lhs, 0)
 	rd := rhs.(*vector.Dict)
 	r := rd.Any.(*vector.Bytes)
 	rx := rd.Index
@@ -6977,7 +6974,7 @@ func compareGEBytesConstDict(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGEBytesConstView(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsBytes()
+	lconst := vector.BytesValue(lhs, 0)
 	rd := rhs.(*vector.View)
 	r := rd.Any.(*vector.Bytes)
 	rx := rd.Index
@@ -6992,9 +6989,9 @@ func compareGEBytesConstView(lhs, rhs vector.Any) vector.Any {
 }
 
 func compareGEBytesConstConst(lhs, rhs vector.Any) vector.Any {
-	lconst, _ := lhs.(*vector.Const).AsBytes()
-	rconst, _ := rhs.(*vector.Const).AsBytes()
-	return vector.NewConst(super.NewBool(string(lconst) >= string(rconst)), lhs.Len())
+	lconst := vector.BytesValue(lhs, 0)
+	rconst := vector.BytesValue(rhs, 0)
+	return vector.NewConstBool(string(lconst) >= string(rconst), lhs.Len())
 }
 
 var compareFuncs = map[int]func(vector.Any, vector.Any) vector.Any{

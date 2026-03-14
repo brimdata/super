@@ -202,10 +202,9 @@ func (c *countByString) countDict(vec *vector.String, counts []uint32) {
 }
 
 func (c *countByString) countFixed(vec *vector.Const) {
-	val := vec.Value()
-	switch val.Type().ID() {
+	switch vec.Type().ID() {
 	case super.IDString:
-		c.table[super.DecodeString(val.Bytes())] += int64(vec.Len())
+		c.table[vector.StringValue(vec, 0)] += int64(vec.Len())
 	case super.IDNull:
 		c.nulls += int64(vec.Len())
 	}
