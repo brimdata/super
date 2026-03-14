@@ -117,3 +117,8 @@ with the value `x+1`, i.e.,
 ```mdtest-output
 put a:=x+1
 ```
+
+You can also insert a [debug](../super-sql/operators/debug.md) operator anywhere in your
+query, which lets you tap a complex query, filter the values, and trace the computation using
+an arbitrary expression.  When running on the command-line, `super` displays debug
+output on standard error.
