@@ -101,7 +101,7 @@ func (b *Builder) Build(main *dag.Main, readers ...sio.Reader) (map[string]vecto
 	}
 	channels := make(map[string]vector.Puller)
 	for key, pullers := range b.channels {
-		channels[key] = b.combine(pullers)
+		channels[key] = b.combineVam(pullers)
 	}
 	return channels, b.debugs, nil
 }
@@ -438,7 +438,7 @@ func (b *Builder) compileSeq(seq dag.Seq, parents []sbuf.Puller) ([]sbuf.Puller,
 func (b *Builder) compileFork(par *dag.ForkOp, parents []sbuf.Puller) ([]sbuf.Puller, error) {
 	var f *fork.Op
 	if len(parents) > 0 {
-		f = fork.New(b.rctx, b.seqCombine(parents))
+		f = fork.New(b.rctx, b.combineSam(parents))
 	}
 	var ops []sbuf.Puller
 	for _, seq := range par.Paths {
@@ -475,7 +475,7 @@ func (b *Builder) compileExprSwitch(swtch *dag.SwitchOp, parents []sbuf.Puller) 
 	if err != nil {
 		return nil, err
 	}
-	s := exprswitch.New(b.rctx, b.seqCombine(parents), e)
+	s := exprswitch.New(b.rctx, b.combineSam(parents), e)
 	var exits []sbuf.Puller
 	for _, c := range swtch.Cases {
 		var val *super.Value
@@ -507,7 +507,7 @@ func (b *Builder) compileSwitch(swtch *dag.SwitchOp, parents []sbuf.Puller) ([]s
 		}
 		exprs = append(exprs, e)
 	}
-	switcher := switcher.New(b.rctx, b.seqCombine(parents))
+	switcher := switcher.New(b.rctx, b.combineSam(parents))
 	var ops []sbuf.Puller
 	for i, e := range exprs {
 		o, err := b.compileSeq(swtch.Cases[i].Path, []sbuf.Puller{switcher.AddCase(e)})
@@ -555,7 +555,7 @@ func (b *Builder) compile(o dag.Op, parents []sbuf.Puller) ([]sbuf.Puller, error
 	case *dag.CombineOp:
 		return []sbuf.Puller{combine.New(b.rctx, parents)}, nil
 	default:
-		p, err := b.compileLeaf(o, b.seqCombine(parents))
+		p, err := b.compileLeaf(o, b.combineSam(parents))
 		if err != nil {
 			return nil, err
 		}
@@ -612,18 +612,7 @@ func (b *Builder) lookupPool(id ksuid.KSUID) (*db.Pool, error) {
 	return b.env.DB().OpenPool(b.rctx.Context, id)
 }
 
-func (b *Builder) combine(pullers []vector.Puller) vector.Puller {
-	switch len(pullers) {
-	case 0:
-		return nil
-	case 1:
-		return pullers[0]
-	default:
-		return vamop.NewCombine(b.rctx, pullers)
-	}
-}
-
-func (b *Builder) seqCombine(pullers []sbuf.Puller) sbuf.Puller {
+func (b *Builder) combineSam(pullers []sbuf.Puller) sbuf.Puller {
 	switch len(pullers) {
 	case 0:
 		return nil

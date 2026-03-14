@@ -48,7 +48,6 @@ func Materialize(vec vector.Any) sbuf.Batch {
 	vals := make([]super.Value, vec.Len())
 	for i := range vec.Len() {
 		vals[i] = vector.ValueAt(&sb, vec, i).Copy()
-		sb.Reset()
 	}
 	out := sbuf.NewArray(vals)
 	if label != "" {

@@ -15,7 +15,7 @@ import (
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
-	vamop "github.com/brimdata/super/runtime/vam/op"
+	"github.com/brimdata/super/runtime/vam/op"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/vector"
@@ -44,7 +44,7 @@ func Optimize(ctx context.Context, main *dag.Main, env *exec.Environment, parall
 	return nil
 }
 
-func Build(rctx *runtime.Context, main *dag.Main, env *exec.Environment, readers []sio.Reader) (map[string]vector.Puller, *vamop.DebugChans, vector.Meter, error) {
+func Build(rctx *runtime.Context, main *dag.Main, env *exec.Environment, readers []sio.Reader) (map[string]vector.Puller, *op.DebugChans, vector.Meter, error) {
 	b := rungen.NewBuilder(rctx, env)
 	outputs, debugs, err := b.Build(main, readers...)
 	if err != nil {
@@ -53,7 +53,7 @@ func Build(rctx *runtime.Context, main *dag.Main, env *exec.Environment, readers
 	return outputs, debugs, b.Meter(), nil
 }
 
-func BuildWithBuilder(rctx *runtime.Context, main *dag.Main, env *exec.Environment, readers []sio.Reader) (map[string]vector.Puller, *vamop.DebugChans, *rungen.Builder, error) {
+func BuildWithBuilder(rctx *runtime.Context, main *dag.Main, env *exec.Environment, readers []sio.Reader) (map[string]vector.Puller, *op.DebugChans, *rungen.Builder, error) {
 	b := rungen.NewBuilder(rctx, env)
 	outputs, debugs, err := b.Build(main, readers...)
 	if err != nil {
@@ -88,18 +88,18 @@ func Compile(rctx *runtime.Context, env *exec.Environment, optimize bool, parall
 	return CompileWithAST(rctx, ast, env, optimize, parallel, readers)
 }
 
-func bundleOutputs(rctx *runtime.Context, outputs map[string]vector.Puller, chans *vamop.DebugChans) vector.Puller {
+func bundleOutputs(rctx *runtime.Context, outputs map[string]vector.Puller, chans *op.DebugChans) vector.Puller {
 	switch len(outputs) + len(chans.Debug) {
 	case 0:
 		return nil
 	case 1:
 		var puller vector.Puller
 		for k, p := range outputs {
-			puller = vamop.NewCatcher(vamop.NewSingle(k, p))
+			puller = op.NewCatcher(op.NewSingle(k, p))
 		}
 		return puller
 	default:
-		return vamop.NewMux(rctx, outputs, chans)
+		return op.NewMux(rctx, outputs, chans)
 	}
 }
 
