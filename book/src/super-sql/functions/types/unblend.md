@@ -1,4 +1,4 @@
-# defuse
+# unblend
 
 undo the effects of unblend
 
