@@ -1,6 +1,6 @@
 # unblend
 
-undo the effects of unblend
+undo the effects of blend
 
 ## Synopsis
 
