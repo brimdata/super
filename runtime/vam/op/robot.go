@@ -9,10 +9,11 @@ import (
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type Robot struct {
-	parent   vector.Puller
+	parent   vio.Puller
 	rctx     *runtime.Context
 	env      *exec.Environment
 	expr     expr.Evaluator
@@ -20,10 +21,10 @@ type Robot struct {
 	format   string
 	vec      vector.Any
 	off      uint32
-	src      vector.Puller
+	src      vio.Puller
 }
 
-func NewRobot(rctx *runtime.Context, env *exec.Environment, parent vector.Puller, e expr.Evaluator, format string, p sbuf.Pushdown) *Robot {
+func NewRobot(rctx *runtime.Context, env *exec.Environment, parent vio.Puller, e expr.Evaluator, format string, p sbuf.Pushdown) *Robot {
 	return &Robot{
 		parent:   parent,
 		rctx:     rctx,
@@ -77,13 +78,13 @@ func (o *Robot) pullNext() (vector.Any, error) {
 	}
 }
 
-func (o *Robot) getPuller() (vector.Puller, error) {
+func (o *Robot) getPuller() (vio.Puller, error) {
 	src, err := o.nextPuller()
 	o.src = src
 	return src, err
 }
 
-func (o *Robot) nextPuller() (vector.Puller, error) {
+func (o *Robot) nextPuller() (vio.Puller, error) {
 	vec := o.vec
 	if vec != nil && o.off >= vec.Len() {
 		o.off = 0
@@ -111,9 +112,9 @@ func (o *Robot) nextPuller() (vector.Puller, error) {
 	return o.open(val.AsString())
 }
 
-func (o *Robot) errOnVal(vec vector.Any) vector.Puller {
+func (o *Robot) errOnVal(vec vector.Any) vio.Puller {
 	out := vector.NewWrappedError(o.rctx.Sctx, "from ecountered non-string input", vec)
-	return vector.NewPuller(out)
+	return vio.NewPuller(out)
 }
 
 func (o *Robot) nextVec() (vector.Any, error) {
@@ -132,7 +133,7 @@ func (o *Robot) nextVec() (vector.Any, error) {
 	return vec, nil
 }
 
-func (o *Robot) open(path string) (vector.Puller, error) {
+func (o *Robot) open(path string) (vio.Puller, error) {
 	// This check for attached database will be removed when we add support for pools here.
 	if o.env.IsAttached() {
 		return nil, fmt.Errorf("%s: cannot open in a database environment", path)

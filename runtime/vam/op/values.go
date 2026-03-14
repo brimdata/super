@@ -4,17 +4,18 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type Values struct {
 	sctx   *super.Context
-	parent vector.Puller
+	parent vio.Puller
 	exprs  []expr.Evaluator
 }
 
-var _ vector.Puller = (*Values)(nil)
+var _ vio.Puller = (*Values)(nil)
 
-func NewValues(sctx *super.Context, parent vector.Puller, exprs []expr.Evaluator) *Values {
+func NewValues(sctx *super.Context, parent vio.Puller, exprs []expr.Evaluator) *Values {
 	return &Values{
 		sctx:   sctx,
 		parent: parent,

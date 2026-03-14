@@ -39,12 +39,11 @@ import (
 	"github.com/brimdata/super/runtime/sam/op/uniq"
 	"github.com/brimdata/super/runtime/sam/op/unnest"
 	"github.com/brimdata/super/runtime/sam/op/values"
-	"github.com/brimdata/super/runtime/vam"
 	vamexpr "github.com/brimdata/super/runtime/vam/expr"
 	vamop "github.com/brimdata/super/runtime/vam/op"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 	"github.com/segmentio/ksuid"
 )
 
@@ -55,9 +54,9 @@ type Builder struct {
 	mctx            *super.Context
 	env             *exec.Environment
 	readers         []sio.Reader
-	progress        *vector.Progress
+	progress        *vio.Progress
 	debugs          *vamop.DebugChans
-	channels        map[string][]vector.Puller
+	channels        map[string][]vio.Puller
 	deletes         *sync.Map
 	funcs           map[string]*dag.FuncDef
 	compiledUDFs    map[string]*expr.UDF
@@ -69,14 +68,14 @@ func NewBuilder(rctx *runtime.Context, env *exec.Environment) *Builder {
 		rctx: rctx,
 		mctx: super.NewContext(),
 		env:  env,
-		progress: &vector.Progress{
+		progress: &vio.Progress{
 			BytesRead:      0,
 			BytesMatched:   0,
 			RecordsRead:    0,
 			RecordsMatched: 0,
 		},
 		debugs:          vamop.NewDebugChans(),
-		channels:        make(map[string][]vector.Puller),
+		channels:        make(map[string][]vio.Puller),
 		funcs:           make(map[string]*dag.FuncDef),
 		compiledUDFs:    make(map[string]*expr.UDF),
 		compiledVamUDFs: make(map[string]*vamexpr.UDF),
@@ -85,7 +84,7 @@ func NewBuilder(rctx *runtime.Context, env *exec.Environment) *Builder {
 
 // Build builds a flowgraph for main.  If main contains a dag.DefaultSource, it
 // will read from readers.
-func (b *Builder) Build(main *dag.Main, readers ...sio.Reader) (map[string]vector.Puller, *vamop.DebugChans, error) {
+func (b *Builder) Build(main *dag.Main, readers ...sio.Reader) (map[string]vio.Puller, *vamop.DebugChans, error) {
 	if !isEntry(main.Body) {
 		return nil, nil, errors.New("internal error: DAG entry point is not a data source")
 	}
@@ -99,15 +98,15 @@ func (b *Builder) Build(main *dag.Main, readers ...sio.Reader) (map[string]vecto
 			return nil, nil, err
 		}
 	}
-	channels := make(map[string]vector.Puller)
+	channels := make(map[string]vio.Puller)
 	for key, pullers := range b.channels {
 		channels[key] = b.combineVam(pullers)
 	}
 	return channels, b.debugs, nil
 }
 
-func (b *Builder) BuildWithPuller(seq dag.Seq, parent vector.Puller) ([]vector.Puller, error) {
-	return b.compileVamSeq(seq, []vector.Puller{parent})
+func (b *Builder) BuildWithPuller(seq dag.Seq, parent vio.Puller) ([]vio.Puller, error) {
+	return b.compileVamSeq(seq, []vio.Puller{parent})
 }
 
 func (b *Builder) BuildVamToSeqFilter(filter dag.Expr, poolID, commitID ksuid.KSUID) (sbuf.Puller, error) {
@@ -136,7 +135,7 @@ func (b *Builder) sctx() *super.Context {
 	return b.rctx.Sctx
 }
 
-func (b *Builder) Meter() vector.Meter {
+func (b *Builder) Meter() vio.Meter {
 	return b.progress
 }
 
@@ -326,7 +325,7 @@ func (b *Builder) compileLeaf(o dag.Op, parent sbuf.Puller) (sbuf.Puller, error)
 	case *dag.LoadOp:
 		return load.New(b.rctx, b.env.DB(), parent, v.Pool, v.Branch, v.Author, v.Message, v.Meta), nil
 	case *dag.OutputOp:
-		b.channels[v.Name] = append(b.channels[v.Name], vam.NewDematerializer(b.rctx.Sctx, parent))
+		b.channels[v.Name] = append(b.channels[v.Name], sbuf.NewDematerializer(b.rctx.Sctx, parent))
 		return parent, nil
 	case *dag.PassOp:
 		return parent, nil
@@ -536,15 +535,15 @@ func (b *Builder) compile(o dag.Op, parents []sbuf.Puller) ([]sbuf.Puller, error
 		if len(parents) != 2 {
 			return nil, ErrJoinParents
 		}
-		vectorParents := []vector.Puller{
-			vam.NewDematerializer(b.sctx(), parents[0]),
-			vam.NewDematerializer(b.sctx(), parents[1]),
+		vectorParents := []vio.Puller{
+			sbuf.NewDematerializer(b.sctx(), parents[0]),
+			sbuf.NewDematerializer(b.sctx(), parents[1]),
 		}
 		vectorPuller, err := b.compileVam(o, vectorParents)
 		if err != nil {
 			return nil, err
 		}
-		return []sbuf.Puller{vam.NewMaterializer(vectorPuller[0])}, nil
+		return []sbuf.Puller{sbuf.NewMaterializer(vectorPuller[0])}, nil
 	case *dag.MergeOp:
 		exprs, err := b.compileSortExprs(o.Exprs)
 		if err != nil {

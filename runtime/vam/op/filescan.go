@@ -9,6 +9,7 @@ import (
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type FileScan struct {
@@ -22,7 +23,7 @@ type FileScan struct {
 	current exec.VectorConcurrentPuller
 	next    int
 	numDone int
-	puller  vector.Puller
+	puller  vio.Puller
 	pullers []*concurrentPuller
 }
 
@@ -46,14 +47,14 @@ func (f *FileScan) Pull(done bool) (vector.Any, error) {
 	return f.puller.Pull(done)
 }
 
-func (f *FileScan) NewConcurrentPullers(n int) []vector.Puller {
+func (f *FileScan) NewConcurrentPullers(n int) []vio.Puller {
 	if n < 1 {
 		panic(n)
 	}
 	if len(f.pullers) > 0 {
 		panic("ConcurrentPullers called after Pull or called twice")
 	}
-	var out []vector.Puller
+	var out []vio.Puller
 	for i := range n {
 		p := newPuller(f, i)
 		f.pullers = append(f.pullers, p)

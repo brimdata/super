@@ -8,11 +8,11 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/api"
-	"github.com/brimdata/super/runtime/vam"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type scanner struct {
@@ -20,10 +20,10 @@ type scanner struct {
 	channel  string
 	scanner  sbuf.Scanner
 	closer   io.Closer
-	progress vector.Progress
+	progress vio.Progress
 }
 
-func NewScanner(ctx context.Context, rc io.ReadCloser) (vector.Scanner, error) {
+func NewScanner(ctx context.Context, rc io.ReadCloser) (vio.Scanner, error) {
 	sctx := super.NewContext()
 	s, err := bsupio.NewReader(sctx, rc).NewScanner(ctx, nil)
 	if err != nil {
@@ -36,7 +36,7 @@ func NewScanner(ctx context.Context, rc io.ReadCloser) (vector.Scanner, error) {
 	}, nil
 }
 
-func (s *scanner) Progress() vector.Progress {
+func (s *scanner) Progress() vio.Progress {
 	return s.progress
 }
 
@@ -45,7 +45,7 @@ again:
 	batch, err := s.scanner.Pull(done)
 	if err == nil {
 		if batch != nil {
-			return &vector.Labeled{Any: vam.Dematerialize(s.sctx, batch), Label: s.channel}, nil
+			return &vector.Labeled{Any: sbuf.Dematerialize(s.sctx, batch), Label: s.channel}, nil
 		}
 		return nil, s.closer.Close()
 	}

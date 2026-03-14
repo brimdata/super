@@ -15,6 +15,7 @@ import (
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type Scanner struct {
@@ -25,14 +26,14 @@ type Scanner struct {
 	once       sync.Once
 	projection field.Projection
 	cache      *vcache.Cache
-	progress   *vector.Progress
+	progress   *vio.Progress
 	resultCh   chan result
 	doneCh     chan struct{}
 }
 
-var _ vector.Puller = (*Scanner)(nil)
+var _ vio.Puller = (*Scanner)(nil)
 
-func NewScanner(rctx *runtime.Context, cache *vcache.Cache, parent sbuf.Puller, pool *db.Pool, paths []field.Path, pruner expr.Evaluator, progress *vector.Progress) *Scanner {
+func NewScanner(rctx *runtime.Context, cache *vcache.Cache, parent sbuf.Puller, pool *db.Pool, paths []field.Path, pruner expr.Evaluator, progress *vio.Progress) *Scanner {
 	return &Scanner{
 		cache:      cache,
 		rctx:       rctx,

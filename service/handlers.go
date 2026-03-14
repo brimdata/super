@@ -25,7 +25,6 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/runtime/sam/op"
-	"github.com/brimdata/super/runtime/vam"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/service/auth"
 	"github.com/brimdata/super/service/srverr"
@@ -90,7 +89,7 @@ func handleQuery(c *Core, w *ResponseWriter, r *Request) {
 	go func() {
 		for {
 			vec, err := flowgraph.Pull(false)
-			results <- op.Result{Batch: vam.Materialize(vec), Err: err}
+			results <- op.Result{Batch: sbuf.Materialize(vec), Err: err}
 			if vec == nil || err != nil {
 				return
 			}

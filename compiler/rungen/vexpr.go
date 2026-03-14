@@ -14,7 +14,7 @@ import (
 	vamfunction "github.com/brimdata/super/runtime/vam/expr/function"
 	vamop "github.com/brimdata/super/runtime/vam/op"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -326,7 +326,7 @@ func (b *Builder) compileVamSubquery(query *dag.SubqueryExpr) (vamexpr.Evaluator
 	var create func() *vamop.Subquery
 	create = func() *vamop.Subquery {
 		subquery := vamop.NewSubquery(b.rctx.Context, b.sctx(), create)
-		exits, err := b.compileVamSeq(query.Body, []vector.Puller{subquery})
+		exits, err := b.compileVamSeq(query.Body, []vio.Puller{subquery})
 		if err != nil {
 			panic(err)
 		}

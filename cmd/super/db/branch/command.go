@@ -14,7 +14,7 @@ import (
 	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/runtime/vam"
+	"github.com/brimdata/super/sbuf"
 )
 
 var spec = &charm.Spec{
@@ -127,7 +127,7 @@ func (c *Command) list(ctx context.Context, db api.Interface) error {
 		return err
 	}
 	defer q.Pull(true)
-	err = vam.CopyPuller(w, q)
+	err = sbuf.CopyVioPuller(w, q)
 	if closeErr := w.Close(); err == nil {
 		err = closeErr
 	}

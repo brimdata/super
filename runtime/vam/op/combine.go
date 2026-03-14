@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type Combine struct {
@@ -16,7 +17,7 @@ type Combine struct {
 	resultCh chan result
 }
 
-func NewCombine(ctx context.Context, parents []vector.Puller) *Combine {
+func NewCombine(ctx context.Context, parents []vio.Puller) *Combine {
 	resultCh := make(chan result, len(parents))
 	var combineParents []*combineParent
 	for _, p := range parents {
@@ -97,7 +98,7 @@ func (c *Combine) signal(ch chan<- struct{}) error {
 
 type combineParent struct {
 	ctx      context.Context
-	parent   vector.Puller
+	parent   vio.Puller
 	resultCh chan result
 	doneCh   chan struct{}
 	resumeCh chan struct{}

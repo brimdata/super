@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type forwarder interface {
@@ -14,14 +15,14 @@ type forwarder interface {
 type router struct {
 	ctx       context.Context
 	forwarder forwarder
-	parent    vector.Puller
+	parent    vio.Puller
 
 	routes   []*route
 	nblocked int
 	once     sync.Once
 }
 
-func newRouter(ctx context.Context, f forwarder, parent vector.Puller) *router {
+func newRouter(ctx context.Context, f forwarder, parent vio.Puller) *router {
 	return &router{ctx: ctx, forwarder: f, parent: parent}
 }
 

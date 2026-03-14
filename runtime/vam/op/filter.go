@@ -4,15 +4,16 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type Filter struct {
 	sctx   *super.Context
-	parent vector.Puller
+	parent vio.Puller
 	expr   expr.Evaluator
 }
 
-func NewFilter(sctx *super.Context, parent vector.Puller, expr expr.Evaluator) *Filter {
+func NewFilter(sctx *super.Context, parent vio.Puller, expr expr.Evaluator) *Filter {
 	return &Filter{sctx, parent, expr}
 }
 

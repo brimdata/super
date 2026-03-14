@@ -5,15 +5,16 @@ import (
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type cachedSubquery struct {
 	sctx   *super.Context
-	body   vector.Puller
+	body   vio.Puller
 	cached vector.Any
 }
 
-func NewCachedSubquery(sctx *super.Context, body vector.Puller) expr.Evaluator {
+func NewCachedSubquery(sctx *super.Context, body vio.Puller) expr.Evaluator {
 	return &cachedSubquery{sctx: sctx, body: body}
 }
 

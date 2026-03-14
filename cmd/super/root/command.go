@@ -19,10 +19,10 @@ import (
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
-	"github.com/brimdata/super/runtime/vam"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/supio"
-	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 var Super = &charm.Spec{
@@ -103,11 +103,11 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	out := map[string]vector.Writer{
-		"main":  vam.NewSioWriter(writer),
-		"debug": vam.NewSioWriter(supio.NewWriter(sio.NopCloser(os.Stderr), supio.WriterOpts{})),
+	out := map[string]vio.Pusher{
+		"main":  sbuf.NewSioPusher(writer),
+		"debug": sbuf.NewSioPusher(supio.NewWriter(sio.NopCloser(os.Stderr), supio.WriterOpts{})),
 	}
-	err = vam.CopyMux(out, query)
+	err = sbuf.CopyMux(out, query)
 	if closeErr := writer.Close(); err == nil {
 		err = closeErr
 	}

@@ -10,7 +10,6 @@ import (
 	"github.com/brimdata/super/csup"
 	"github.com/brimdata/super/pkg/bufwriter"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/runtime/vam"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/csupio"
@@ -28,7 +27,7 @@ func CreateVector(ctx context.Context, engine storage.Engine, path *storage.URI,
 		}
 		return err
 	}
-	w, err := NewVectorWriter(ctx, engine, path, id)
+	w, err := NewVectorWriter(ctx, engine, path, id) //Pusher
 	if err != nil {
 		get.Close()
 		return err
@@ -37,14 +36,14 @@ func CreateVector(ctx context.Context, engine storage.Engine, path *storage.URI,
 	// close the Get.
 	sctx := super.NewContext()
 	reader := bsupio.NewReader(sctx, get)
-	puller := vam.NewDematerializer(sctx, sbuf.NewPuller(reader))
+	puller := sbuf.NewDematerializer(sctx, sbuf.NewPuller(reader))
 	for {
 		var vec vector.Any
 		vec, err = puller.Pull(false)
 		if vec == nil || err != nil {
 			break
 		}
-		err = w.Write(vec)
+		err = w.Push(vec)
 		if err != nil {
 			break
 		}
@@ -65,7 +64,7 @@ func CreateVector(ctx context.Context, engine storage.Engine, path *storage.URI,
 }
 
 type VectorWriter struct {
-	*csup.Writer
+	*csup.Serializer
 	delete func()
 }
 
@@ -82,8 +81,8 @@ func NewVectorWriter(ctx context.Context, engine storage.Engine, path *storage.U
 		DeleteVector(context.Background(), engine, path, id)
 	}
 	return &VectorWriter{
-		Writer: csupio.NewWriter(bufwriter.New(put)),
-		delete: delete,
+		Serializer: csupio.NewSerializer(bufwriter.New(put)),
+		delete:     delete,
 	}, nil
 }
 

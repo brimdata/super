@@ -6,7 +6,7 @@ import (
 	"github.com/brimdata/super/csup"
 )
 
-// NewWriter returns a writer to w.
-func NewWriter(w io.WriteCloser) *csup.Writer {
-	return csup.NewWriter(w)
+// NewSerializer returns a new CSUP serialized that outputs to w.
+func NewSerializer(w io.WriteCloser) *csup.Serializer {
+	return csup.NewSerializer(w)
 }

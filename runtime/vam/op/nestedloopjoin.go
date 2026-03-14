@@ -9,12 +9,13 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type nestedLoopJoin struct {
 	rctx       *runtime.Context
-	left       vector.Puller
-	right      vector.Puller
+	left       vio.Puller
+	right      vio.Puller
 	style      string
 	leftAlias  string
 	rightAlias string
@@ -26,7 +27,7 @@ type nestedLoopJoin struct {
 	pickSlotIndexes [][]uint32
 }
 
-func NewNestedLoopJoin(rctx *runtime.Context, left, right vector.Puller, style string, leftAlias, rightAlias string, cond expr.Evaluator) vector.Puller {
+func NewNestedLoopJoin(rctx *runtime.Context, left, right vio.Puller, style string, leftAlias, rightAlias string, cond expr.Evaluator) vio.Puller {
 	return &nestedLoopJoin{
 		rctx:       rctx,
 		left:       left,

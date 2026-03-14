@@ -215,7 +215,7 @@ again:
 		// mixed BSUP/CSUP to CSUP only.
 		builder := vector.NewBuilder(val.Type())
 		builder.Write(val.Bytes())
-		if err := w.vectorWriter.Write(builder.Build(w.sctx)); err != nil {
+		if err := w.vectorWriter.Push(builder.Build(w.sctx)); err != nil {
 			w.Abort()
 			return err
 		}

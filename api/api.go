@@ -7,7 +7,7 @@ import (
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 	"github.com/segmentio/ksuid"
 )
 
@@ -115,7 +115,7 @@ type QueryError struct {
 type QueryStats struct {
 	StartTime  nano.Ts `json:"start_time" super:"start_time"`
 	UpdateTime nano.Ts `json:"update_time" super:"update_time"`
-	vector.Progress
+	vio.Progress
 }
 
 type QueryWarning struct {

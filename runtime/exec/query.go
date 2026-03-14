@@ -2,24 +2,24 @@ package exec
 
 import (
 	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/runtime/vam"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 // Query runs a flowgraph as a sbuf.Puller and implements a Close() method
 // that gracefully tears down the flowgraph.  Its AsReader() and AsProgressReader()
 // methods provide a convenient means to run a flowgraph as sio.Reader.
 type Query struct {
-	vector.Puller
+	vio.Puller
 	rctx  *runtime.Context
-	meter vector.Meter
+	meter vio.Meter
 }
 
 var _ runtime.Query = (*Query)(nil)
 
-func NewQuery(rctx *runtime.Context, puller vector.Puller, meter vector.Meter) *Query {
+func NewQuery(rctx *runtime.Context, puller vio.Puller, meter vio.Meter) *Query {
 	return &Query{
 		Puller: puller,
 		rctx:   rctx,
@@ -28,18 +28,18 @@ func NewQuery(rctx *runtime.Context, puller vector.Puller, meter vector.Meter) *
 }
 
 func (q *Query) AsReader() sio.Reader {
-	return sbuf.PullerReader(vam.NewMaterializer(q.Puller))
+	return sbuf.PullerReader(sbuf.NewMaterializer(q.Puller))
 }
 
 func (q *Query) AsPuller() sbuf.Puller {
-	return vam.NewMaterializer(q.Puller)
+	return sbuf.NewMaterializer(q.Puller)
 }
 
-func (q *Query) Progress() vector.Progress {
+func (q *Query) Progress() vio.Progress {
 	return q.meter.Progress()
 }
 
-func (q *Query) Meter() vector.Meter {
+func (q *Query) Meter() vio.Meter {
 	return q.meter
 }
 

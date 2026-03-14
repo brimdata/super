@@ -10,7 +10,7 @@ import (
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
 	"github.com/brimdata/super/sio/jsonio"
-	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type controlWriter interface {
@@ -66,7 +66,7 @@ func (w *Writer) WhiteChannelEnd(channel string) error {
 	return w.WriteControl(api.QueryChannelEnd{Channel: channel})
 }
 
-func (w *Writer) WriteProgress(stats vector.Progress) error {
+func (w *Writer) WriteProgress(stats vio.Progress) error {
 	v := api.QueryStats{
 		StartTime:  w.start,
 		UpdateTime: nano.Now(),

@@ -139,7 +139,7 @@ import (
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
-	"github.com/brimdata/super/runtime/vam"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
 	"github.com/goccy/go-yaml"
@@ -522,7 +522,7 @@ func runInternal(ctx context.Context, query string, input *string, outputFlags, 
 	if err != nil {
 		return "", err
 	}
-	err = vam.CopyPuller(zw, q)
+	err = sbuf.CopyVioPuller(zw, q)
 	if err2 := zw.Close(); err == nil {
 		err = err2
 	}

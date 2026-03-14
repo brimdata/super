@@ -10,7 +10,7 @@ import (
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 	"github.com/segmentio/ksuid"
 )
 
@@ -21,14 +21,14 @@ type Deleter struct {
 	pruner      expr.Evaluator
 	rctx        *runtime.Context
 	pool        *db.Pool
-	progress    *vector.Progress
+	progress    *vio.Progress
 	unmarshaler *sup.UnmarshalBSUPContext
 	done        bool
 	err         error
 	deletes     *sync.Map
 }
 
-func NewDeleter(rctx *runtime.Context, parent sbuf.Puller, pool *db.Pool, pushdown sbuf.Pushdown, pruner expr.Evaluator, progress *vector.Progress, deletes *sync.Map) *Deleter {
+func NewDeleter(rctx *runtime.Context, parent sbuf.Puller, pool *db.Pool, pushdown sbuf.Pushdown, pruner expr.Evaluator, progress *vio.Progress, deletes *sync.Map) *Deleter {
 	return &Deleter{
 		parent:      parent,
 		pushdown:    pushdown,
@@ -94,7 +94,7 @@ func (d *Deleter) nextDeletion() (sbuf.Puller, error) {
 			continue
 		}
 		// Use a no-op progress so stats are not inflated.
-		var progress vector.Progress
+		var progress vio.Progress
 		scanner, object, err := newScanner(d.rctx.Context, d.rctx.Sctx, d.pool, d.unmarshaler, d.pruner, d.pushdown, &progress, vals[0])
 		if err != nil {
 			return nil, err

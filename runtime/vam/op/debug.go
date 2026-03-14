@@ -6,10 +6,11 @@ import (
 
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type Debug struct {
-	parent vector.Puller
+	parent vio.Puller
 	ctx    context.Context
 	expr   expr.Evaluator
 	filter expr.Evaluator
@@ -18,7 +19,7 @@ type Debug struct {
 	once   sync.Once
 }
 
-func NewDebug(ctx context.Context, expr expr.Evaluator, filter expr.Evaluator, chans *DebugChans, parent vector.Puller) *Debug {
+func NewDebug(ctx context.Context, expr expr.Evaluator, filter expr.Evaluator, chans *DebugChans, parent vio.Puller) *Debug {
 	return &Debug{
 		parent: parent,
 		ctx:    ctx,

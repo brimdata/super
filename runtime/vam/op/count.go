@@ -4,16 +4,17 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type Count struct {
-	parent vector.Puller
+	parent vio.Puller
 	alias  string
 	expr   expr.Evaluator
 	count  int64
 }
 
-func NewCount(sctx *super.Context, parent vector.Puller, alias string, in expr.Evaluator) *Count {
+func NewCount(sctx *super.Context, parent vio.Puller, alias string, in expr.Evaluator) *Count {
 	o := &Count{parent: parent, alias: alias}
 	var elems []expr.RecordElem
 	if in != nil {

@@ -10,7 +10,7 @@ import (
 	"github.com/brimdata/super/compiler/srcfiles"
 	"github.com/brimdata/super/pkg/charm"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/runtime/vam"
+	"github.com/brimdata/super/sbuf"
 )
 
 var spec = &charm.Spec{
@@ -75,7 +75,7 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	defer q.Pull(true)
-	err = vam.CopyPuller(w, q)
+	err = sbuf.CopyVioPuller(w, q)
 	if closeErr := w.Close(); err == nil {
 		err = closeErr
 	}

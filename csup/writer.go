@@ -10,27 +10,28 @@ import (
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 var maxObjectSize uint32 = 120_000
 
-// Writer implements the vector.Writer interface. A Writer creates a vector
+// Serializer implements the vio.Pusher interface. A Pusher creates a vector
 // CSUP object from a stream of vector.Any.
-type Writer struct {
+type Serializer struct {
 	writer  io.WriteCloser
 	dynamic *DynamicEncoder
 }
 
-var _ vector.Writer = (*Writer)(nil)
+var _ vio.Pusher = (*Serializer)(nil)
 
-func NewWriter(w io.WriteCloser) *Writer {
-	return &Writer{
+func NewSerializer(w io.WriteCloser) *Serializer {
+	return &Serializer{
 		writer:  w,
 		dynamic: NewDynamicEncoder(),
 	}
 }
 
-func (w *Writer) Close() error {
+func (w *Serializer) Close() error {
 	firstErr := w.finalizeObject()
 	if err := w.writer.Close(); err != nil && firstErr == nil {
 		firstErr = err
@@ -38,7 +39,7 @@ func (w *Writer) Close() error {
 	return firstErr
 }
 
-func (w *Writer) Write(vec vector.Any) error {
+func (w *Serializer) Push(vec vector.Any) error {
 	if vec.Len() != 0 {
 		w.dynamic.Write(vec)
 		if w.dynamic.len >= maxObjectSize {
@@ -48,7 +49,7 @@ func (w *Writer) Write(vec vector.Any) error {
 	return nil
 }
 
-func (w *Writer) finalizeObject() error {
+func (w *Serializer) finalizeObject() error {
 	root, dataSize, err := w.dynamic.Encode()
 	if err != nil {
 		return fmt.Errorf("system error: could not encode CSUP metadata: %w", err)
@@ -92,18 +93,18 @@ func (w *Writer) finalizeObject() error {
 // XXX ValWriter provides a temporary interface to support writing super.Values
 // to CSUP.  We should remove this at some point in factor of vector-only writes.
 type ValWriter struct {
-	sctx    *super.Context
-	writer  *Writer
-	builder *vector.DynamicBuilder
+	sctx       *super.Context
+	serializer *Serializer
+	builder    *vector.DynamicBuilder
 }
 
 var _ sio.Writer = (*ValWriter)(nil)
 
 func NewValWriter(w io.WriteCloser) *ValWriter {
 	return &ValWriter{
-		sctx:    super.NewContext(), //XXX
-		writer:  NewWriter(w),
-		builder: vector.NewDynamicBuilder(),
+		sctx:       super.NewContext(), //XXX
+		serializer: NewSerializer(w),
+		builder:    vector.NewDynamicBuilder(),
 	}
 }
 
@@ -113,8 +114,8 @@ func (v *ValWriter) Write(val super.Value) error {
 }
 
 func (v *ValWriter) Close() error {
-	err := v.writer.Write(v.builder.Build(v.sctx))
-	if closeErr := v.writer.Close(); err == nil {
+	err := v.serializer.Push(v.builder.Build(v.sctx))
+	if closeErr := v.serializer.Close(); err == nil {
 		err = closeErr
 	}
 	return err

@@ -9,7 +9,7 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type Pushdown interface {
@@ -29,7 +29,7 @@ type ScannerAble interface {
 
 // A Scanner is a Batch source that also provides progress updates.
 type Scanner interface {
-	vector.Meter
+	vio.Meter
 	Puller
 }
 
@@ -74,10 +74,10 @@ type scanner struct {
 	reader   sio.Reader
 	filter   expr.Evaluator
 	ctx      context.Context
-	progress vector.Progress
+	progress vio.Progress
 }
 
-func (s *scanner) Progress() vector.Progress {
+func (s *scanner) Progress() vio.Progress {
 	return s.progress.Copy()
 }
 
@@ -107,8 +107,8 @@ func (s *scanner) Read() (*super.Value, error) {
 
 type MultiStats []Scanner
 
-func (m MultiStats) Progress() vector.Progress {
-	var ss vector.Progress
+func (m MultiStats) Progress() vio.Progress {
+	var ss vio.Progress
 	for _, s := range m {
 		ss.Add(s.Progress())
 	}
@@ -141,7 +141,7 @@ func MultiScanner(scanners ...Scanner) Scanner {
 
 type multiScanner struct {
 	scanners []Scanner
-	progress vector.Progress
+	progress vio.Progress
 }
 
 func (m *multiScanner) Pull(done bool) (Batch, error) {
@@ -156,6 +156,6 @@ func (m *multiScanner) Pull(done bool) (Batch, error) {
 	return nil, nil
 }
 
-func (m *multiScanner) Progress() vector.Progress {
+func (m *multiScanner) Progress() vio.Progress {
 	return m.progress.Copy()
 }

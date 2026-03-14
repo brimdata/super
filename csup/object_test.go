@@ -15,7 +15,7 @@ import (
 
 func TestObjectProjectMetadata(t *testing.T) {
 	var b bytes.Buffer
-	w := csup.NewWriter(sio.NopCloser(&b))
+	w := csup.NewSerializer(sio.NopCloser(&b))
 	sctx := super.NewContext()
 	supValues := []string{
 		"{a:1,b:{c:4,d:0.7}}",
@@ -26,7 +26,7 @@ func TestObjectProjectMetadata(t *testing.T) {
 	for _, s := range supValues {
 		builder.Write(sup.MustParseValue(sctx, s))
 	}
-	require.NoError(t, w.Write(builder.Build(sctx)))
+	require.NoError(t, w.Push(builder.Build(sctx)))
 	require.NoError(t, w.Close())
 	csupBytes := b.Bytes()
 

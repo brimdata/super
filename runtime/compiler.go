@@ -8,7 +8,7 @@ import (
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/sio"
-	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 	"github.com/segmentio/ksuid"
 )
 
@@ -18,10 +18,10 @@ type Compiler interface {
 }
 
 type Query interface {
-	vector.Puller
+	vio.Puller
 	io.Closer
-	Progress() vector.Progress
-	Meter() vector.Meter
+	Progress() vio.Progress
+	Meter() vio.Meter
 }
 
 type DeleteQuery interface {

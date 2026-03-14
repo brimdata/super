@@ -7,6 +7,7 @@ import (
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type ExprSwitch struct {
@@ -19,13 +20,13 @@ type ExprSwitch struct {
 	defaultRoute *route
 }
 
-func NewExprSwitch(ctx context.Context, parent vector.Puller, e expr.Evaluator) *ExprSwitch {
+func NewExprSwitch(ctx context.Context, parent vio.Puller, e expr.Evaluator) *ExprSwitch {
 	s := &ExprSwitch{expr: e, cases: map[string]*route{}, caseIndexes: map[*route][]uint32{}}
 	s.router = newRouter(ctx, s, parent)
 	return s
 }
 
-func (s *ExprSwitch) AddCase(val *super.Value) vector.Puller {
+func (s *ExprSwitch) AddCase(val *super.Value) vio.Puller {
 	r := s.router.addRoute()
 	if val == nil {
 		s.defaultRoute = r

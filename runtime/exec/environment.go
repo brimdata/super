@@ -13,17 +13,17 @@ import (
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/pkg/storage"
-	"github.com/brimdata/super/runtime/vam"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio/anyio"
 	"github.com/brimdata/super/sio/csupio"
 	"github.com/brimdata/super/sio/parquetio"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 	"github.com/segmentio/ksuid"
 )
 
 type VectorConcurrentPuller interface {
-	vector.Puller
+	vio.Puller
 	ConcurrentPull(done bool, id int) (vector.Any, error)
 }
 
@@ -191,7 +191,7 @@ func (e *Environment) VectorOpen(ctx context.Context, sctx *super.Context, path,
 	default:
 		var sbufPuller sbuf.Puller
 		sbufPuller, err = e.Open(ctx, sctx, path, format, p)
-		puller = vam.NewDematerializer(sctx, sbufPuller)
+		puller = sbuf.NewDematerializer(sctx, sbufPuller)
 	}
 	if err != nil {
 		reader.Close()

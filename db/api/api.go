@@ -16,17 +16,17 @@ import (
 	"github.com/brimdata/super/dbid"
 	"github.com/brimdata/super/order"
 	"github.com/brimdata/super/pkg/nano"
-	"github.com/brimdata/super/runtime/vam"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sup"
-	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 )
 
 type Interface interface {
 	Root() *db.Root
-	Query(ctx context.Context, query []srcfiles.Input) (vector.Scanner, error)
+	Query(ctx context.Context, query []srcfiles.Input) (vio.Scanner, error)
 	PoolID(ctx context.Context, poolName string) (ksuid.KSUID, error)
 	CommitObject(ctx context.Context, poolID ksuid.KSUID, branchName string) (ksuid.KSUID, error)
 	CreatePool(context.Context, string, order.SortKeys, int, int64) (ksuid.KSUID, error)
@@ -65,7 +65,7 @@ func LookupPoolByName(ctx context.Context, api Interface, name string) (*pools.C
 		return nil, err
 	}
 	defer q.Pull(true)
-	if err := vam.CopyPuller(b, q); err != nil {
+	if err := sbuf.CopyVioPuller(b, q); err != nil {
 		return nil, err
 	}
 	switch len(b.results) {
@@ -89,7 +89,7 @@ func GetPools(ctx context.Context, api Interface) ([]*pools.Config, error) {
 		return nil, err
 	}
 	defer q.Pull(true)
-	if err := vam.CopyPuller(b, q); err != nil {
+	if err := sbuf.CopyVioPuller(b, q); err != nil {
 		return nil, err
 	}
 	var pls []*pools.Config
@@ -107,7 +107,7 @@ func LookupPoolByID(ctx context.Context, api Interface, id ksuid.KSUID) (*pools.
 		return nil, err
 	}
 	defer q.Pull(true)
-	if err := vam.CopyPuller(b, q); err != nil {
+	if err := sbuf.CopyVioPuller(b, q); err != nil {
 		return nil, err
 	}
 	switch len(b.results) {
@@ -132,7 +132,7 @@ func LookupBranchByName(ctx context.Context, api Interface, poolName, branchName
 		return nil, err
 	}
 	defer q.Pull(true)
-	if err := vam.CopyPuller(b, q); err != nil {
+	if err := sbuf.CopyVioPuller(b, q); err != nil {
 		return nil, err
 	}
 	switch len(b.results) {
@@ -157,7 +157,7 @@ func LookupBranchByID(ctx context.Context, api Interface, id ksuid.KSUID) (*db.B
 		return nil, err
 	}
 	defer q.Pull(true)
-	if err := vam.CopyPuller(b, q); err != nil {
+	if err := sbuf.CopyVioPuller(b, q); err != nil {
 		return nil, err
 	}
 	switch len(b.results) {
@@ -193,7 +193,7 @@ func GetCommit(ctx context.Context, api Interface, pool, revision string) (*comm
 		return nil, err
 	}
 	defer q.Pull(true)
-	if err := vam.CopyPuller(b, q); err != nil {
+	if err := sbuf.CopyVioPuller(b, q); err != nil {
 		return nil, err
 	}
 	switch len(b.results) {

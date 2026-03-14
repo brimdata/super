@@ -7,6 +7,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type Switch struct {
@@ -14,13 +15,13 @@ type Switch struct {
 	cases  []expr.Evaluator
 }
 
-func NewSwitch(ctx context.Context, parent vector.Puller) *Switch {
+func NewSwitch(ctx context.Context, parent vio.Puller) *Switch {
 	s := &Switch{}
 	s.router = newRouter(ctx, s, parent)
 	return s
 }
 
-func (s *Switch) AddCase(e expr.Evaluator) vector.Puller {
+func (s *Switch) AddCase(e expr.Evaluator) vio.Puller {
 	s.cases = append(s.cases, e)
 	return s.router.addRoute()
 }

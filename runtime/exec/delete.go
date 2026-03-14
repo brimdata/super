@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 	"github.com/segmentio/ksuid"
 )
 
@@ -15,7 +15,7 @@ type DeleteQuery struct {
 
 var _ runtime.DeleteQuery = (*DeleteQuery)(nil)
 
-func NewDeleteQuery(rctx *runtime.Context, puller vector.Puller, deletes *sync.Map) *DeleteQuery {
+func NewDeleteQuery(rctx *runtime.Context, puller vio.Puller, deletes *sync.Map) *DeleteQuery {
 	return &DeleteQuery{
 		Query:   NewQuery(rctx, puller, nil),
 		deletes: deletes,

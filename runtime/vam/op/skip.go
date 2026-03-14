@@ -2,15 +2,16 @@ package op
 
 import (
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type Skip struct {
-	parent vector.Puller
+	parent vio.Puller
 	offset int
 	count  int
 }
 
-func NewSkip(parent vector.Puller, offset int) *Skip {
+func NewSkip(parent vio.Puller, offset int) *Skip {
 	return &Skip{
 		parent: parent,
 		offset: offset,

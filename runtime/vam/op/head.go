@@ -2,14 +2,15 @@ package op
 
 import (
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type Head struct {
-	parent       vector.Puller
+	parent       vio.Puller
 	limit, count int
 }
 
-func NewHead(parent vector.Puller, limit int) *Head {
+func NewHead(parent vio.Puller, limit int) *Head {
 	return &Head{
 		parent: parent,
 		limit:  limit,

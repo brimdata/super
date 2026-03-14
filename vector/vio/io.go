@@ -1,12 +1,14 @@
-package vector
+package vio
 
 import (
 	"io"
 	"sync/atomic"
+
+	"github.com/brimdata/super/vector"
 )
 
 type Puller interface {
-	Pull(done bool) (Any, error)
+	Pull(done bool) (vector.Any, error)
 }
 
 // A Scanner is a Puller that also provides progress updates.
@@ -15,42 +17,30 @@ type Scanner interface {
 	Puller
 }
 
-type Writer interface {
-	Write(Any) error
+type Pusher interface {
+	Push(vector.Any) error
 }
 
-type WriteCloser interface {
-	Writer
+type PushCloser interface {
+	Pusher
 	io.Closer
 }
 
-func NewPuller(vecs ...Any) Puller {
+func NewPuller(vecs ...vector.Any) Puller {
 	return &puller{vecs}
 }
 
 type puller struct {
-	vecs []Any
+	vecs []vector.Any
 }
 
-func (p *puller) Pull(done bool) (Any, error) {
+func (p *puller) Pull(done bool) (vector.Any, error) {
 	if len(p.vecs) == 0 {
 		return nil, nil
 	}
 	vec := p.vecs[0]
 	p.vecs = p.vecs[1:]
 	return vec, nil
-}
-
-type Labeled struct {
-	Any
-	Label string
-}
-
-func Unlabel(vec Any) (Any, string) {
-	if vec, ok := vec.(*Labeled); ok {
-		return vec.Any, vec.Label
-	}
-	return vec, ""
 }
 
 // A Meter provides Progress statistics.

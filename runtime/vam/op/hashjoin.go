@@ -10,14 +10,15 @@ import (
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 	"golang.org/x/sync/errgroup"
 )
 
 type HashJoin struct {
 	rctx       *runtime.Context
 	style      string
-	left       vector.Puller
-	right      vector.Puller
+	left       vio.Puller
+	right      vio.Puller
 	leftKey    expr.Evaluator
 	rightKey   expr.Evaluator
 	leftAlias  string
@@ -26,7 +27,7 @@ type HashJoin struct {
 	hashJoin *hashJoin
 }
 
-func NewHashJoin(rctx *runtime.Context, style string, left, right vector.Puller,
+func NewHashJoin(rctx *runtime.Context, style string, left, right vio.Puller,
 	leftKey, rightKey expr.Evaluator, leftAlias, rightAlias string) *HashJoin {
 	if style == "right" {
 		leftKey, rightKey = rightKey, leftKey
@@ -76,7 +77,7 @@ func (h *HashJoin) tableInit() error {
 		return err
 	}
 	var table map[string][]super.Value
-	var left, right vector.Puller
+	var left, right vio.Puller
 	if rightBuf.EOS {
 		table = buildTable(rightBuf, h.rightKey)
 		left = leftBuf
@@ -99,7 +100,7 @@ func (h *HashJoin) tableInit() error {
 	return nil
 }
 
-func buildTable(p vector.Puller, key expr.Evaluator) map[string][]super.Value {
+func buildTable(p vio.Puller, key expr.Evaluator) map[string][]super.Value {
 	var sb scode.Builder
 	table := map[string][]super.Value{}
 	for {
@@ -122,7 +123,7 @@ func buildTable(p vector.Puller, key expr.Evaluator) map[string][]super.Value {
 
 // pullRace pulls from a and b concurrently until one reaches EOS.  It returns
 // bufPullers for a and b containing the vectors pulled from each.
-func pullRace(ctx context.Context, a, b vector.Puller) (*bufPuller, *bufPuller, error) {
+func pullRace(ctx context.Context, a, b vio.Puller) (*bufPuller, *bufPuller, error) {
 	var aBuf, bBuf *bufPuller
 	var done atomic.Bool
 	group, ctx := errgroup.WithContext(ctx)
@@ -140,7 +141,7 @@ func pullRace(ctx context.Context, a, b vector.Puller) (*bufPuller, *bufPuller, 
 	return aBuf, bBuf, err
 }
 
-func pullUntilEOSOrDone(ctx context.Context, done *atomic.Bool, parent vector.Puller) (*bufPuller, error) {
+func pullUntilEOSOrDone(ctx context.Context, done *atomic.Bool, parent vio.Puller) (*bufPuller, error) {
 	b := &bufPuller{puller: parent}
 	for ctx.Err() == nil && !done.Load() {
 		vec, err := parent.Pull(false)
@@ -158,8 +159,8 @@ type hashJoin struct {
 	sctx       *super.Context
 	style      string
 	table      map[string][]super.Value
-	left       vector.Puller
-	right      vector.Puller
+	left       vio.Puller
+	right      vio.Puller
 	leftAlias  string
 	rightAlias string
 	leftKey    expr.Evaluator
@@ -291,7 +292,7 @@ func (j *hashJoin) wrap(l, r *super.Value) super.Value {
 type bufPuller struct {
 	vecs   []vector.Any
 	EOS    bool
-	puller vector.Puller
+	puller vio.Puller
 	done   bool
 }
 

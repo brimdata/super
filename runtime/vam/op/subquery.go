@@ -6,6 +6,7 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 // Subquery is a subquery mechanism with an Eval method to act as an expression
@@ -19,7 +20,7 @@ type Subquery struct {
 	sctx   *super.Context
 	create func() *Subquery
 
-	body vector.Puller
+	body vio.Puller
 	ch   chan vector.Any
 	eos  bool
 
@@ -39,7 +40,7 @@ func NewSubquery(ctx context.Context, sctx *super.Context, create func() *Subque
 	}
 }
 
-func (s *Subquery) SetBody(body vector.Puller) {
+func (s *Subquery) SetBody(body vio.Puller) {
 	s.body = body
 }
 

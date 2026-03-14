@@ -6,10 +6,11 @@ import (
 	"github.com/brimdata/super/pkg/field"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type Aggregate struct {
-	parent vector.Puller
+	parent vio.Puller
 	sctx   *super.Context
 	// XX Abstract this runtime into a generic table computation.
 	// Then the generic interface can execute fast paths for simple scenarios.
@@ -26,7 +27,7 @@ type Aggregate struct {
 	results []aggTable
 }
 
-func New(parent vector.Puller, sctx *super.Context, aggNames []field.Path, aggExprs []expr.Evaluator, aggs []*expr.Aggregator, keyNames []field.Path, keyExprs []expr.Evaluator, partialsIn, partialsOut bool) (*Aggregate, error) {
+func New(parent vio.Puller, sctx *super.Context, aggNames []field.Path, aggExprs []expr.Evaluator, aggs []*expr.Aggregator, keyNames []field.Path, keyExprs []expr.Evaluator, partialsIn, partialsOut bool) (*Aggregate, error) {
 	builder, err := vector.NewRecordBuilder(sctx, append(keyNames, aggNames...))
 	if err != nil {
 		return nil, err

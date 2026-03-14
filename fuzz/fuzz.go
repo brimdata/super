@@ -22,7 +22,6 @@ import (
 	"github.com/brimdata/super/pkg/storage/mock"
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/exec"
-	"github.com/brimdata/super/runtime/vam"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sio"
@@ -124,7 +123,7 @@ func RunQuery(t testing.TB, sctx *super.Context, readers []sio.Reader, querySour
 		if vec == nil {
 			break
 		}
-		for _, value := range vam.Materialize(vec).Values() {
+		for _, value := range sbuf.Materialize(vec).Values() {
 			valuesOut = append(valuesOut, value.Copy())
 		}
 	}

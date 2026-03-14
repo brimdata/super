@@ -4,17 +4,18 @@ import (
 	"slices"
 
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type Tail struct {
-	parent vector.Puller
+	parent vio.Puller
 	limit  int
 
 	vecs []vector.Any
 	eos  bool
 }
 
-func NewTail(parent vector.Puller, limit int) *Tail {
+func NewTail(parent vio.Puller, limit int) *Tail {
 	return &Tail{
 		parent: parent,
 		limit:  limit,

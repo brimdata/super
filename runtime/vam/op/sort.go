@@ -4,8 +4,9 @@ import (
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/runtime/sam/op/sort"
-	"github.com/brimdata/super/runtime/vam"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type Sort struct {
@@ -13,8 +14,8 @@ type Sort struct {
 	samsort *sort.Op
 }
 
-func NewSort(rctx *runtime.Context, parent vector.Puller, fields []expr.SortExpr, guessReverse bool) *Sort {
-	materializer := vam.NewMaterializer(parent)
+func NewSort(rctx *runtime.Context, parent vio.Puller, fields []expr.SortExpr, guessReverse bool) *Sort {
+	materializer := sbuf.NewMaterializer(parent)
 	s := sort.New(rctx, materializer, fields, guessReverse)
 	return &Sort{rctx: rctx, samsort: s}
 }

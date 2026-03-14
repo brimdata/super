@@ -8,14 +8,15 @@ import (
 
 	"github.com/brimdata/super/runtime"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 // Catcher wraps an Puller that recovers panics and turns them into errors.
 type Catcher struct {
-	parent vector.Puller
+	parent vio.Puller
 }
 
-func NewCatcher(parent vector.Puller) *Catcher {
+func NewCatcher(parent vio.Puller) *Catcher {
 	return &Catcher{parent}
 }
 
@@ -72,7 +73,7 @@ func (m muxresult) vector() *vector.Labeled {
 }
 
 type puller struct {
-	vector.Puller
+	vio.Puller
 	ch    chan<- muxresult
 	label string
 }
@@ -91,7 +92,7 @@ func (p *puller) run(ctx context.Context) {
 	}
 }
 
-func NewMux(rctx *runtime.Context, parents map[string]vector.Puller, chans *DebugChans) *Mux {
+func NewMux(rctx *runtime.Context, parents map[string]vio.Puller, chans *DebugChans) *Mux {
 	if len(parents)+len(chans.Debug) <= 1 {
 		panic("NewMux must be called with two or more parents")
 	}
@@ -156,12 +157,12 @@ func (m *Mux) Pull(bool) (vector.Any, error) {
 }
 
 type Single struct {
-	vector.Puller
+	vio.Puller
 	label string
 	eos   bool
 }
 
-func NewSingle(label string, parent vector.Puller) *Single {
+func NewSingle(label string, parent vio.Puller) *Single {
 	return &Single{Puller: parent, label: label}
 }
 

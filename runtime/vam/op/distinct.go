@@ -6,17 +6,18 @@ import (
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type Distinct struct {
-	parent vector.Puller
+	parent vio.Puller
 	expr   expr.Evaluator
 
 	blocked map[string]struct{}
 	key     []byte
 }
 
-func NewDistinct(parent vector.Puller, expr expr.Evaluator) *Distinct {
+func NewDistinct(parent vio.Puller, expr expr.Evaluator) *Distinct {
 	return &Distinct{parent, expr, map[string]struct{}{}, nil}
 }
 

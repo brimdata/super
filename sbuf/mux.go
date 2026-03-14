@@ -2,7 +2,6 @@ package sbuf
 
 import (
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/sio"
 )
 
 func Label(label string, batch Batch) Batch {
@@ -34,6 +33,7 @@ func (*EndOfChannel) Ref()                  {}
 func (*EndOfChannel) Unref()                {}
 func (*EndOfChannel) Values() []super.Value { return nil }
 
+/*
 func CopyMux(outputs map[string]sio.WriteCloser, parent Puller) error {
 	for {
 		batch, err := parent.Pull(false)
@@ -55,3 +55,4 @@ func CopyMux(outputs map[string]sio.WriteCloser, parent Puller) error {
 		batch.Unref()
 	}
 }
+*/

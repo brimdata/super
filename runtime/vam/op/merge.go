@@ -9,6 +9,7 @@ import (
 	samexpr "github.com/brimdata/super/runtime/sam/expr"
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type Merge struct {
@@ -21,7 +22,7 @@ type Merge struct {
 	parents []*mergeParent
 }
 
-func NewMerge(ctx context.Context, parents []vector.Puller, cmp samexpr.CompareFn) *Merge {
+func NewMerge(ctx context.Context, parents []vio.Puller, cmp samexpr.CompareFn) *Merge {
 	var mergeParents []*mergeParent
 	for i, p := range parents {
 		mergeParents = append(mergeParents, &mergeParent{
@@ -148,7 +149,7 @@ func (m *Merge) Pop() any {
 
 type mergeParent struct {
 	ctx      context.Context
-	parent   vector.Puller
+	parent   vio.Puller
 	resultCh chan result
 	doneCh   chan struct{}
 	tag      uint32

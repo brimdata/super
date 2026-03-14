@@ -6,6 +6,7 @@ import (
 	"github.com/brimdata/super/runtime/vcache"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type Projection struct {
@@ -15,14 +16,14 @@ type Projection struct {
 }
 
 func NewProjection(sctx *super.Context, o *vcache.Object, paths []field.Path) sbuf.Puller {
-	return NewMaterializer(&Projection{
+	return sbuf.NewMaterializer(&Projection{
 		sctx:       sctx,
 		object:     o,
 		projection: field.NewProjection(paths),
 	})
 }
 
-func NewVectorProjection(sctx *super.Context, o *vcache.Object, paths []field.Path) vector.Puller {
+func NewVectorProjection(sctx *super.Context, o *vcache.Object, paths []field.Path) vio.Puller {
 	return &Projection{
 		sctx:       sctx,
 		object:     o,

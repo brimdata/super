@@ -6,18 +6,19 @@ import (
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type Unnest struct {
 	sctx   *super.Context
-	parent vector.Puller
+	parent vio.Puller
 	expr   expr.Evaluator
 
 	vec vector.Any
 	idx uint32
 }
 
-func NewUnnest(sctx *super.Context, parent vector.Puller, expr expr.Evaluator) *Unnest {
+func NewUnnest(sctx *super.Context, parent vio.Puller, expr expr.Evaluator) *Unnest {
 	return &Unnest{
 		sctx:   sctx,
 		parent: parent,

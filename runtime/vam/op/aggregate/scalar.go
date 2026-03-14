@@ -6,10 +6,11 @@ import (
 	"github.com/brimdata/super/runtime/vam/expr"
 	"github.com/brimdata/super/runtime/vam/expr/agg"
 	"github.com/brimdata/super/vector"
+	"github.com/brimdata/super/vector/vio"
 )
 
 type scalarAggregate struct {
-	parent      vector.Puller
+	parent      vio.Puller
 	sctx        *super.Context
 	aggExprs    []expr.Evaluator
 	aggs        []*expr.Aggregator
@@ -20,7 +21,7 @@ type scalarAggregate struct {
 	funcs []agg.Func
 }
 
-func NewScalar(parent vector.Puller, sctx *super.Context, aggs []*expr.Aggregator, aggNames []field.Path, aggExprs []expr.Evaluator, partialsIn, partialsOut bool) (vector.Puller, error) {
+func NewScalar(parent vio.Puller, sctx *super.Context, aggs []*expr.Aggregator, aggNames []field.Path, aggExprs []expr.Evaluator, partialsIn, partialsOut bool) (vio.Puller, error) {
 	builder, err := vector.NewRecordBuilder(sctx, aggNames)
 	if err != nil {
 		return nil, err
