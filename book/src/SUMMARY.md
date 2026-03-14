@@ -163,6 +163,7 @@
             - [nameof](super-sql/functions/types/nameof.md)
             - [typename](super-sql/functions/types/typename.md)
             - [typeof](super-sql/functions/types/typeof.md)
+            - [unblend](super-sql/functions/types/unblend.md)
             - [upcast](super-sql/functions/types/upcast.md)
     - [Aggregate Functions](super-sql/aggregates/intro.md)
         - [and](super-sql/aggregates/and.md)

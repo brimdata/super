@@ -148,6 +148,8 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 		f = &TypeName{sctx: sctx}
 	case "typeof":
 		f = &TypeOf{sctx}
+	case "unblend":
+		f = &samFunc{sctx, function.NewUnblend(sctx)}
 	case "under":
 		f = newUnder(sctx)
 	case "unflatten":
