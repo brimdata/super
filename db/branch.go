@@ -155,7 +155,7 @@ func (b *Branch) DeleteWhere(ctx context.Context, c runtime.Compiler, ast *parse
 		if err != nil {
 			return nil, err
 		}
-		err = vio.CopyWithContext(ctx, w, query)
+		err = vio.Copy(w, query)
 		if closeErr := w.Close(); err == nil {
 			err = closeErr
 		}

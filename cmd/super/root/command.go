@@ -106,7 +106,7 @@ func (c *Command) Run(args []string) error {
 		"main":  writer,
 		"debug": supio.NewWriter(sio.NopCloser(os.Stderr), supio.WriterOpts{}),
 	}
-	err = vio.CopyMuxWithContext(ctx, out, query)
+	err = vio.CopyMux(out, query)
 	if closeErr := writer.Close(); err == nil {
 		err = closeErr
 	}

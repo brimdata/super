@@ -127,7 +127,7 @@ func (c *Command) list(ctx context.Context, db api.Interface) error {
 		return err
 	}
 	defer q.Pull(true)
-	err = vio.CopyWithContext(ctx, w, q)
+	err = vio.Copy(w, q)
 	if closeErr := w.Close(); err == nil {
 		err = closeErr
 	}

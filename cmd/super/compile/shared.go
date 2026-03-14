@@ -135,7 +135,7 @@ func (s *Shared) writeValue(ctx context.Context, v any) error {
 	if err != nil {
 		return err
 	}
-	err = vio.CopyWithContext(ctx, writer, sbuf.ValToPuller(super.NewContext(), val))
+	err = vio.Copy(writer, sbuf.ValToPuller(super.NewContext(), val))
 	if closeErr := writer.Close(); err == nil {
 		err = closeErr
 	}

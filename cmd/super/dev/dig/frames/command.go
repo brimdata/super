@@ -72,7 +72,7 @@ func (c *Command) Run(args []string) error {
 	}
 	sctx := super.NewContext()
 	meta := newMetaReader(sctx, r)
-	if err := vio.CopyWithContext(ctx, writer, sbuf.NewDematerializer(sctx, sbuf.NewPuller(meta))); err != nil {
+	if err := vio.Copy(writer, sbuf.NewDematerializer(sctx, sbuf.NewPuller(meta))); err != nil {
 		return err
 	}
 	return writer.Close()

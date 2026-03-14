@@ -84,7 +84,7 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	if err := vio.CopyWithContext(ctx, writer, sbuf.NewDematerializer(sctx, sbuf.NewPuller(reader))); err != nil {
+	if err := vio.Copy(writer, sbuf.NewDematerializer(sctx, sbuf.NewPuller(reader))); err != nil {
 		return err
 	}
 	return writer.Close()

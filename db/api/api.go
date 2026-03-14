@@ -66,7 +66,7 @@ func LookupPoolByName(ctx context.Context, api Interface, name string) (*pools.C
 		return nil, err
 	}
 	defer q.Pull(true)
-	if err := vio.CopyWithContext(ctx, b, q); err != nil {
+	if err := vio.Copy(b, q); err != nil {
 		return nil, err
 	}
 	switch len(b.results) {
@@ -90,7 +90,7 @@ func GetPools(ctx context.Context, api Interface) ([]*pools.Config, error) {
 		return nil, err
 	}
 	defer q.Pull(true)
-	if err := vio.CopyWithContext(ctx, b, q); err != nil {
+	if err := vio.Copy(b, q); err != nil {
 		return nil, err
 	}
 	var pls []*pools.Config
@@ -108,7 +108,7 @@ func LookupPoolByID(ctx context.Context, api Interface, id ksuid.KSUID) (*pools.
 		return nil, err
 	}
 	defer q.Pull(true)
-	if err := vio.CopyWithContext(ctx, b, q); err != nil {
+	if err := vio.Copy(b, q); err != nil {
 		return nil, err
 	}
 	switch len(b.results) {
@@ -133,7 +133,7 @@ func LookupBranchByName(ctx context.Context, api Interface, poolName, branchName
 		return nil, err
 	}
 	defer q.Pull(true)
-	if err := vio.CopyWithContext(ctx, b, q); err != nil {
+	if err := vio.Copy(b, q); err != nil {
 		return nil, err
 	}
 	switch len(b.results) {
@@ -158,7 +158,7 @@ func LookupBranchByID(ctx context.Context, api Interface, id ksuid.KSUID) (*db.B
 		return nil, err
 	}
 	defer q.Pull(true)
-	if err := vio.CopyWithContext(ctx, b, q); err != nil {
+	if err := vio.Copy(b, q); err != nil {
 		return nil, err
 	}
 	switch len(b.results) {
@@ -194,7 +194,7 @@ func GetCommit(ctx context.Context, api Interface, pool, revision string) (*comm
 		return nil, err
 	}
 	defer q.Pull(true)
-	if err := vio.CopyWithContext(ctx, b, q); err != nil {
+	if err := vio.Copy(b, q); err != nil {
 		return nil, err
 	}
 	switch len(b.results) {

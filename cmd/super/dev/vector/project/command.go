@@ -77,7 +77,7 @@ func (c *Command) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	if err := vio.CopyWithContext(ctx, writer, sbuf.NewDematerializer(sctx, projection)); err != nil {
+	if err := vio.Copy(writer, sbuf.NewDematerializer(sctx, projection)); err != nil {
 		writer.Close()
 		return err
 	}

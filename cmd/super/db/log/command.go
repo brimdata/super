@@ -75,7 +75,7 @@ func (c *Command) Run(args []string) error {
 		return err
 	}
 	defer q.Pull(true)
-	err = vio.CopyWithContext(ctx, w, q)
+	err = vio.Copy(w, q)
 	if closeErr := w.Close(); err == nil {
 		err = closeErr
 	}

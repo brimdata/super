@@ -1,7 +1,6 @@
 package vio
 
 import (
-	"context"
 	"io"
 	"sync/atomic"
 
@@ -86,14 +85,7 @@ func (p *Progress) Progress() Progress {
 }
 
 func Copy(dst Pusher, src Puller) error {
-	return CopyWithContext(context.Background(), dst, src)
-}
-
-func CopyWithContext(ctx context.Context, dst Pusher, src Puller) error {
 	for {
-		if err := ctx.Err(); err != nil {
-			return err
-		}
 		vec, err := src.Pull(false)
 		if err != nil || vec == nil {
 			return err
@@ -104,11 +96,8 @@ func CopyWithContext(ctx context.Context, dst Pusher, src Puller) error {
 	}
 }
 
-func CopyMuxWithContext(ctx context.Context, outputs map[string]Pusher, parent Puller) error {
+func CopyMux(outputs map[string]Pusher, parent Puller) error {
 	for {
-		if err := ctx.Err(); err != nil {
-			return err
-		}
 		vec, err := parent.Pull(false)
 		if vec == nil || err != nil {
 			return err

@@ -69,7 +69,7 @@ func (c *Command) Run(args []string) error {
 	}
 	sctx := super.NewContext()
 	puller := vam.NewProjection(sctx, object, nil)
-	if err := vio.CopyWithContext(ctx, writer, sbuf.NewDematerializer(sctx, puller)); err != nil {
+	if err := vio.Copy(writer, sbuf.NewDematerializer(sctx, puller)); err != nil {
 		writer.Close()
 		return err
 	}
