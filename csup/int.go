@@ -230,7 +230,7 @@ func (o *offsetsEncoder) write(offsets []uint32) {
 		o.vals = offsets
 	} else {
 		base := o.vals[len(o.vals)-1]
-		for _, off := range offsets {
+		for _, off := range offsets[1:] {
 			o.vals = append(o.vals, base+off)
 		}
 	}
