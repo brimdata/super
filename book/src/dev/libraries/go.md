@@ -108,6 +108,7 @@ import (
 	"github.com/brimdata/super/compiler/srcfiles"
 	"github.com/brimdata/super/db/api"
 	"github.com/brimdata/super/pkg/storage"
+    "github.com/brimdata/super/runtime/vam"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/sbuf"
 )
@@ -130,7 +131,7 @@ func main() {
 		log.Fatalln(err)
 	}
 	defer q.Pull(true)
-	reader := sbuf.PullerReader(q)
+	reader := sbuf.PullerReader(vam.NewMaterializer(q))
 	sctx := super.NewContext()
 	for {
 		val, err := reader.Read()
