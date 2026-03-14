@@ -10,6 +10,7 @@ import (
 	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/sup"
 	"github.com/brimdata/super/vector"
+	"github.com/x448/float16"
 )
 
 func castToString(vec vector.Any, index []uint32) (vector.Any, []uint32, string, bool) {
@@ -48,7 +49,17 @@ func castToString(vec vector.Any, index []uint32) (vector.Any, []uint32, string,
 			if index != nil {
 				idx = index[i]
 			}
-			bytes = strconv.AppendFloat(bytes, vec.Values[idx], 'g', -1, 64)
+			v := vec.Values[idx]
+			bitSize := 64
+			switch vec.Type().ID() {
+			case super.IDFloat16:
+				// Discard extra precision.
+				v = float64(float16.Fromfloat32(float32(v)).Float32())
+				bitSize = 32
+			case super.IDFloat32:
+				bitSize = 32
+			}
+			bytes = strconv.AppendFloat(bytes, v, 'g', -1, bitSize)
 			offs = append(offs, uint32(len(bytes)))
 		}
 	case *vector.String:

@@ -215,7 +215,9 @@ func (c *casterString) Eval(val super.Value) super.Value {
 		return super.NewString(strconv.FormatInt(val.Int(), 10))
 	case super.IDUint8, super.IDUint16, super.IDUint32, super.IDUint64:
 		return super.NewString(strconv.FormatUint(val.Uint(), 10))
-	case super.IDFloat16, super.IDFloat32, super.IDFloat64:
+	case super.IDFloat16, super.IDFloat32:
+		return super.NewString(strconv.FormatFloat(val.Float(), 'g', -1, 32))
+	case super.IDFloat64:
 		return super.NewString(strconv.FormatFloat(val.Float(), 'g', -1, 64))
 	case super.IDNull:
 		return c.sctx.WrapError("cannot cast to string", val)
