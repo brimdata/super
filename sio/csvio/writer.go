@@ -58,12 +58,7 @@ func (w *Writer) Flush() error {
 }
 
 func (w *Writer) Push(vec vector.Any) error {
-	for _, val := range sbuf.Materialize(vec).Values() {
-		if err := w.Write(val); err != nil {
-			return err
-		}
-	}
-	return nil
+	return sbuf.WriteVec(w, vec)
 }
 
 func (w *Writer) Write(rec super.Value) error {

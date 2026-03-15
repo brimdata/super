@@ -5,6 +5,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
+	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vio"
 )
@@ -108,4 +109,13 @@ func (d *Dematerializer) ConcurrentPull(done bool, _ int) (vector.Any, error) {
 		builder.Write(val)
 	}
 	return builder.Build(d.sctx), nil
+}
+
+func WriteVec(w sio.Writer, vec vector.Any) error {
+	for _, val := range Materialize(vec).Values() {
+		if err := w.Write(val); err != nil {
+			return err
+		}
+	}
+	return nil
 }

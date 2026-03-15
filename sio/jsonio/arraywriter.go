@@ -38,12 +38,7 @@ func (a *ArrayWriter) Close() error {
 }
 
 func (a *ArrayWriter) Push(vec vector.Any) error {
-	for _, val := range sbuf.Materialize(vec).Values() {
-		if err := a.Write(val); err != nil {
-			return err
-		}
-	}
-	return nil
+	return sbuf.WriteVec(a, vec)
 }
 
 func (a *ArrayWriter) Write(val super.Value) error {

@@ -29,12 +29,7 @@ func NewWriter(w io.WriteCloser, opts WriterOpts) *Writer {
 }
 
 func (w *Writer) Push(vec vector.Any) error {
-	for _, val := range sbuf.Materialize(vec).Values() {
-		if err := w.Write(val); err != nil {
-			return err
-		}
-	}
-	return nil
+	return sbuf.WriteVec(w, vec)
 }
 
 func (w *Writer) Close() error {

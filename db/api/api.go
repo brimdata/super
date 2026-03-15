@@ -229,12 +229,7 @@ func newBuffer(types ...any) *buffer {
 }
 
 func (b *buffer) Push(vec vector.Any) error {
-	for _, val := range sbuf.Materialize(vec).Values() {
-		if err := b.Write(val); err != nil {
-			return err
-		}
-	}
-	return nil
+	return sbuf.WriteVec(b, vec)
 }
 
 func (b *buffer) Write(val super.Value) error {
