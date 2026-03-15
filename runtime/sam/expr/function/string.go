@@ -20,7 +20,7 @@ func (c *Concat) Call(args []super.Value) super.Value {
 			return arg
 		}
 		if arg.IsNull() {
-			return super.Null
+			continue
 		}
 		if !arg.IsString() {
 			return c.sctx.WrapError("concat: string arg required", arg)

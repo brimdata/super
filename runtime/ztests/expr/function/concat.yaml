@@ -4,25 +4,35 @@ vector: true
 
 input: |
   {a:"hello",b:" ",c:"world"}
-  {a:"test",b:null,c:"end"}
-  {a:123,b:"test",c:"fail"}
+  {a:null,b:null,c:null}
+  {a:null,b:"b",c:null}
+  {a:"a",b:null,c:"c"}
+  {a:"a",b:2,c:error("quiet")}
+  {a:"a",b:error("quiet"),c:3}
 
 output: |
   "hello world"
-  null
-  error({message:"concat: string arg required",on:123})
+  ""
+  "b"
+  "ac"
+  error({message:"concat: string arg required",on:2})
 
 ---
 
-spq: concat(a)
+spq: concat(this)
 
 vector: true
 
 input: |
-  {a:"single"}
+  "single"
+  null
+  1
+  error("quiet")
 
 output: |
   "single"
+  ""
+  error({message:"concat: string arg required",on:1})
 
 ---
 

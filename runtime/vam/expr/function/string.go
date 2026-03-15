@@ -14,20 +14,28 @@ type Concat struct {
 }
 
 func (c *Concat) Call(args ...vector.Any) vector.Any {
-	if vec, ok := expr.CheckForNullThenError(args); ok {
-		return vec
-	}
-	args = underAll(args)
-	for _, arg := range args {
-		if arg.Kind() != vector.KindString {
-			return vector.NewWrappedError(c.sctx, "concat: string arg required", arg)
+	n := args[0].Len()
+	vecs := args[:0]
+	for _, vec := range args {
+		switch vec.Kind() {
+		case vector.KindString:
+			vecs = append(vecs, vec)
+		case vector.KindNull:
+			// Ignored.
+		case vector.KindError:
+			return vec
+		default:
+			return vector.NewWrappedError(c.sctx, "concat: string arg required", vec)
 		}
 	}
+	if len(vecs) == 0 {
+		return vector.NewConstString("", n)
+	}
 	out := vector.NewStringEmpty(0)
-	for i := range args[0].Len() {
+	for i := range n {
 		var b strings.Builder
-		for _, arg := range args {
-			s := vector.StringValue(arg, i)
+		for _, vec := range vecs {
+			s := vector.StringValue(vec, i)
 			b.WriteString(s)
 		}
 		out.Append(b.String())
