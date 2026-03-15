@@ -16,9 +16,9 @@ import (
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/pkg/storage"
 	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
+	"github.com/brimdata/super/vector/vio"
 	"github.com/teamortix/golang-wasm/wasm"
 )
 
@@ -87,7 +87,7 @@ func run(opts opts) wasm.Promise {
 			return "", err
 		}
 		defer query.Pull(true)
-		if err := sbuf.CopyPuller(zwc, query); err != nil {
+		if err := vio.Copy(zwc, query); err != nil {
 			return "", err
 		}
 		if err := zwc.Close(); err != nil {
