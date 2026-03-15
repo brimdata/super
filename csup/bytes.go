@@ -63,7 +63,7 @@ func (b *BytesEncoder) writeTable(table vector.BytesTable) {
 		}
 	}
 	b.bytes = append(b.bytes, table.RawBytes()...)
-	b.offsets.write(table.RawOffsets()) //XXX
+	b.offsets.write(table.RawOffsets())
 }
 
 func (b *BytesEncoder) Encode(group *errgroup.Group) {
