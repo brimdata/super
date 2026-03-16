@@ -80,7 +80,7 @@ func (h Host) compileExternal(expr string) (*Pattern, error) {
 	spl := patternRegexp.Split(expr, -1)
 	msi := make(map[string]int)
 	order := 1 // semantic order
-	var res string
+	var b strings.Builder
 	for i := range len(spl) - 1 {
 		splPart := spl[i]
 		order += capCount(splPart)
@@ -97,7 +97,7 @@ func (h Host) compileExternal(expr string) (*Pattern, error) {
 		if subSem != "" {
 			msi[subSem] = order
 		}
-		res += splPart + sub
+		b.WriteString(splPart + sub)
 		// add sub semantics to this semantics
 		for k, v := range p.s {
 			if _, ok := ts[k]; !ok {
@@ -106,8 +106,8 @@ func (h Host) compileExternal(expr string) (*Pattern, error) {
 		}
 		order += subNumSubexp
 	}
-	res += spl[len(spl)-1]
-	r, err := regexp.Compile(res)
+	b.WriteString(spl[len(spl)-1])
+	r, err := regexp.Compile(b.String())
 	if err != nil {
 		return nil, err
 	}

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/pkg/field"
@@ -188,11 +189,12 @@ func isCSVStream(track *Track, delim rune, name string) error {
 }
 
 func joinErrs(errs []error) error {
-	s := "format detection error"
+	var b strings.Builder
+	b.WriteString("format detection error")
 	for _, e := range errs {
-		s += "\n\t" + e.Error()
+		b.WriteString("\n\t" + e.Error())
 	}
-	return errors.New(s)
+	return errors.New(b.String())
 }
 
 func match(r sio.Reader, name string, want int) error {

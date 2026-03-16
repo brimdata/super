@@ -122,11 +122,11 @@ func trim(s string) string {
 }
 
 func cat(ss ...string) string {
-	var out string
+	var b strings.Builder
 	for _, s := range ss {
-		out += trim(s)
+		b.WriteString(trim(s))
 	}
-	return out
+	return b.String()
 }
 
 func runTest(t *testing.T, cmd, input, output string) {

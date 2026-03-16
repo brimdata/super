@@ -120,14 +120,15 @@ type opDecl struct {
 type opCycleError []string
 
 func (e opCycleError) Error() string {
-	b := "operator cycle found: "
+	var b strings.Builder
+	b.WriteString("operator cycle found: ")
 	for i, op := range e {
 		if i > 0 {
-			b += " -> "
+			b.WriteString(" -> ")
 		}
-		b += op
+		b.WriteString(op)
 	}
-	return b
+	return b.String()
 }
 
 var (

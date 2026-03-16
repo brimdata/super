@@ -2,6 +2,7 @@ package color
 
 import (
 	"fmt"
+	"strings"
 )
 
 var Enabled = false
@@ -60,14 +61,14 @@ func Gray(level int) Code {
 }
 
 func Palette() string {
-	var out string
+	var b strings.Builder
 	for i := range 16 {
 		for j := range 16 {
 			code := i*16 + j
-			out += Code(code).String()
-			out += fmt.Sprintf(" %d", code)
+			b.WriteString(Code(code).String())
+			b.WriteString(fmt.Sprintf(" %d", code))
 		}
 	}
-	out += Reset.String()
-	return out
+	b.WriteString(Reset.String())
+	return b.String()
 }

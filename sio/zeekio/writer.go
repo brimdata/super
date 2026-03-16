@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr"
@@ -69,40 +70,40 @@ func (w *Writer) Write(r super.Value) error {
 
 func (w *Writer) writeHeader(r super.Value, path string) error {
 	d := r.Type()
-	var s string
+	var b strings.Builder
 	if w.separator != "\\x90" {
 		w.separator = "\\x90"
-		s += "#separator \\x09\n"
+		b.WriteString("#separator \\x09\n")
 	}
 	if w.setSeparator != "," {
 		w.setSeparator = ","
-		s += "#set_separator\t,\n"
+		b.WriteString("#set_separator\t,\n")
 	}
 	if w.emptyField != "(empty)" {
 		w.emptyField = "(empty)"
-		s += "#empty_field\t(empty)\n"
+		b.WriteString("#empty_field\t(empty)\n")
 	}
 	if w.unsetField != "-" {
 		w.unsetField = "-"
-		s += "#unset_field\t-\n"
+		b.WriteString("#unset_field\t-\n")
 	}
 	if path != w.Path {
 		w.Path = path
 		if path == "" {
 			path = "-"
 		}
-		s += fmt.Sprintf("#path\t%s\n", path)
+		b.WriteString(fmt.Sprintf("#path\t%s\n", path))
 	}
 	if d != w.typ {
-		s += "#fields"
+		b.WriteString("#fields")
 		for _, f := range super.TypeRecordOf(d).Fields {
 			if f.Name == "_path" {
 				continue
 			}
-			s += fmt.Sprintf("\t%s", f.Name)
+			b.WriteString(fmt.Sprintf("\t%s", f.Name))
 		}
-		s += "\n"
-		s += "#types"
+		b.WriteString("\n")
+		b.WriteString("#types")
 		for _, f := range super.TypeRecordOf(d).Fields {
 			if f.Name == "_path" {
 				continue
@@ -111,10 +112,10 @@ func (w *Writer) writeHeader(r super.Value, path string) error {
 			if err != nil {
 				return err
 			}
-			s += fmt.Sprintf("\t%s", t)
+			b.WriteString(fmt.Sprintf("\t%s", t))
 		}
-		s += "\n"
+		b.WriteString("\n")
 	}
-	_, err := w.writer.Write([]byte(s))
+	_, err := w.writer.Write([]byte(b.String()))
 	return err
 }

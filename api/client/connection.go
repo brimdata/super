@@ -486,9 +486,9 @@ func (e *ErrorResponse) Error() string {
 }
 
 func urlPath(elem ...string) string {
-	var s string
+	var b strings.Builder
 	for _, e := range elem {
-		s += "/" + url.PathEscape(e)
+		b.WriteString("/" + url.PathEscape(e))
 	}
-	return path.Clean(s)
+	return path.Clean(b.String())
 }
