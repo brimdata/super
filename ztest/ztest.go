@@ -193,7 +193,6 @@ func Run(t *testing.T, dirname string) {
 	}
 	for _, b := range bundles {
 		name := filepath.Base(b.FileName)
-		name = strings.TrimSuffix(name, ".yaml")
 		if z := b.Test; z != nil {
 			name = fmt.Sprintf("%s/%d", name, z.Line)
 		}
