@@ -23,7 +23,8 @@ endif
 #PEG_DEP=peg
 
 vet:
-	@go vet ./...
+	go vet ./...
+	$(MAKE) -C book $@
 
 fmt:
 	gofmt -s -w .

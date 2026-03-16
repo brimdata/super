@@ -11,3 +11,6 @@ super-example/wasm_exec.js:
 
 node_modules:
 	npm install
+
+vet:
+	GOOS=js GOARCH=wasm go vet super-example/main.go
