@@ -1,6 +1,8 @@
 spq: |
   upcast(this[0], this[1])
 
+vector: true
+
 input: |
   [[1,"a"],<[int8|string]>]
   [[1::int8,"a"],<[int8|string]>]
@@ -8,9 +10,12 @@ input: |
 output: |
   error({message:"upcast: value not a subtype of [int8|string]",on:[1,"a"]})
   [1::int8,"a"]
+
 ---
 
 spq: upcast(this, <{y?:int64,z?:int64}>)
+
+vector: true
 
 input: |
   {z?:_::int64}

@@ -8,15 +8,15 @@ import (
 	"github.com/brimdata/super/sup"
 )
 
-type upcast struct {
+type Upcast struct {
 	sctx *super.Context
 }
 
-func NewUpCaster(sctx *super.Context) Caster {
-	return &upcast{sctx: sctx}
+func NewUpcast(sctx *super.Context) *Upcast {
+	return &Upcast{sctx}
 }
 
-func (u *upcast) Call(args []super.Value) super.Value {
+func (u *Upcast) Call(args []super.Value) super.Value {
 	from, to := args[0], args[1]
 	if _, ok := to.Type().(*super.TypeOfType); !ok {
 		return u.sctx.WrapError("upcast: type argument not a type", to)
@@ -32,7 +32,7 @@ func (u *upcast) Call(args []super.Value) super.Value {
 	return val
 }
 
-func (u *upcast) Cast(from super.Value, to super.Type) (super.Value, bool) {
+func (u *Upcast) Cast(from super.Value, to super.Type) (super.Value, bool) {
 	var b scode.Builder
 	if ok := u.build(&b, from.Type(), from.Bytes(), to); ok {
 		return super.NewValue(to, b.Bytes().Body()), true
@@ -40,7 +40,7 @@ func (u *upcast) Cast(from super.Value, to super.Type) (super.Value, bool) {
 	return super.Value{}, false
 }
 
-func (u *upcast) build(b *scode.Builder, typ super.Type, bytes scode.Bytes, to super.Type) bool {
+func (u *Upcast) build(b *scode.Builder, typ super.Type, bytes scode.Bytes, to super.Type) bool {
 	switch to := to.(type) {
 	case *super.TypeRecord:
 		return u.toRecord(b, typ, bytes, to)
@@ -67,7 +67,7 @@ func (u *upcast) build(b *scode.Builder, typ super.Type, bytes scode.Bytes, to s
 	}
 }
 
-func (u *upcast) toRecord(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeRecord) bool {
+func (u *Upcast) toRecord(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeRecord) bool {
 	recType, ok := typ.(*super.TypeRecord)
 	if !ok {
 		return false
@@ -123,14 +123,14 @@ func derefWithNoneAndOk(typ *super.TypeRecord, bytes scode.Bytes, name string) (
 
 }
 
-func (u *upcast) toArray(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeArray) bool {
+func (u *Upcast) toArray(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeArray) bool {
 	if arrayType, ok := typ.(*super.TypeArray); ok {
 		return u.toContainer(b, arrayType.Type, bytes, to.Type)
 	}
 	return false
 }
 
-func (u *upcast) toSet(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeSet) bool {
+func (u *Upcast) toSet(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeSet) bool {
 	if setType, ok := typ.(*super.TypeSet); ok {
 		// XXX normalize set contents? can reach into body here blah
 		return u.toContainer(b, setType.Type, bytes, to.Type)
@@ -138,7 +138,7 @@ func (u *upcast) toSet(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *
 	return false
 }
 
-func (u *upcast) toContainer(b *scode.Builder, typ super.Type, bytes scode.Bytes, to super.Type) bool {
+func (u *Upcast) toContainer(b *scode.Builder, typ super.Type, bytes scode.Bytes, to super.Type) bool {
 	b.BeginContainer()
 	for it := bytes.Iter(); !it.Done(); {
 		typ, bytes := deunion(typ, it.Next())
@@ -150,7 +150,7 @@ func (u *upcast) toContainer(b *scode.Builder, typ super.Type, bytes scode.Bytes
 	return true
 }
 
-func (u *upcast) toMap(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeMap) bool {
+func (u *Upcast) toMap(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeMap) bool {
 	mapType, ok := typ.(*super.TypeMap)
 	if !ok {
 		return false
@@ -168,7 +168,7 @@ func (u *upcast) toMap(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *
 	return true
 }
 
-func (u *upcast) toUnion(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeUnion) bool {
+func (u *Upcast) toUnion(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeUnion) bool {
 	// Take the value out of the union (if it is union), then look for it
 	// in the target union.
 	typ, bytes = deunion(typ, bytes)
@@ -184,7 +184,7 @@ func (u *upcast) toUnion(b *scode.Builder, typ super.Type, bytes scode.Bytes, to
 	return true
 }
 
-func (u *upcast) toFusion(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeFusion) bool {
+func (u *Upcast) toFusion(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeFusion) bool {
 	b.BeginContainer()
 	if ok := u.build(b, typ, bytes, to.Type); !ok {
 		return false
@@ -211,14 +211,14 @@ func upcastUnionTag(types []super.Type, out super.Type) int {
 	return slices.IndexFunc(types, func(t super.Type) bool { return t.Kind() == k })
 }
 
-func (u *upcast) toError(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeError) bool {
+func (u *Upcast) toError(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeError) bool {
 	if errorType, ok := typ.(*super.TypeError); ok {
 		return u.build(b, errorType.Type, bytes, to.Type)
 	}
 	return false
 }
 
-func (u *upcast) toNamed(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeNamed) bool {
+func (u *Upcast) toNamed(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeNamed) bool {
 	if namedType, ok := typ.(*super.TypeNamed); ok {
 		return u.build(b, namedType.Type, bytes, to.Type)
 	}
