@@ -6,7 +6,6 @@ import (
 	"math"
 
 	"github.com/brimdata/super"
-	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
 	"golang.org/x/sync/errgroup"
 )
@@ -14,7 +13,7 @@ import (
 type BytesEncoder struct {
 	typ      super.Type
 	min, max []byte
-	bytes    scode.Bytes
+	bytes    []byte
 	offsets  *offsetsEncoder
 
 	// These values are used for the Encode pass.
@@ -26,7 +25,6 @@ type BytesEncoder struct {
 func NewBytesEncoder(typ super.Type) *BytesEncoder {
 	return &BytesEncoder{
 		typ:     typ,
-		bytes:   scode.Bytes{},
 		offsets: newOffsetsEncoder(),
 	}
 }
