@@ -48,7 +48,7 @@ func NewFile(sctx *super.Context, rc io.ReadCloser, path string, opts ReaderOpts
 	if err != nil {
 		return nil, err
 	}
-	zr, err := NewReaderWithOpts(sctx, r, opts)
+	zr, err := NewReader(sctx, r, opts)
 	if err != nil {
 		return nil, err
 	}

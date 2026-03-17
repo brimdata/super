@@ -175,7 +175,7 @@ func (r *Request) Unmarshal(w *ResponseWriter, body any, templates ...any) bool 
 	if !ok {
 		return false
 	}
-	zrc, err := anyio.NewReaderWithOpts(super.NewContext(), r.Body, anyio.ReaderOpts{Format: format})
+	zrc, err := anyio.NewReader(super.NewContext(), r.Body, anyio.ReaderOpts{Format: format})
 	if err != nil {
 		w.Error(srverr.ErrInvalid(err))
 		return false

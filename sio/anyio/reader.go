@@ -30,11 +30,7 @@ type ReaderOpts struct {
 	CSV    csvio.ReaderOpts
 }
 
-func NewReader(sctx *super.Context, r io.Reader) (sio.ReadCloser, error) {
-	return NewReaderWithOpts(sctx, r, ReaderOpts{})
-}
-
-func NewReaderWithOpts(sctx *super.Context, r io.Reader, opts ReaderOpts) (sio.ReadCloser, error) {
+func NewReader(sctx *super.Context, r io.Reader, opts ReaderOpts) (sio.ReadCloser, error) {
 	if opts.Format != "" && opts.Format != "auto" {
 		return lookupReader(sctx, r, opts)
 	}

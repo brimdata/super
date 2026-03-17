@@ -457,7 +457,7 @@ func handleBranchLoad(c *Core, w *ResponseWriter, r *Request) {
 		BSUP: bsupio.ReaderOpts{Validate: true},
 	}
 	sctx := super.NewContext()
-	zrc, err := anyio.NewReaderWithOpts(sctx, reader, opts)
+	zrc, err := anyio.NewReader(sctx, reader, opts)
 	if err != nil {
 		w.Error(srverr.ErrInvalid(err))
 		return

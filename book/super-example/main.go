@@ -67,7 +67,7 @@ func run(opts opts) wasm.Promise {
 		zctx := super.NewContext()
 		var readers []sio.Reader
 		if r != nil {
-			rc, err := anyio.NewReaderWithOpts(zctx, r, anyio.ReaderOpts{Format: opts.InputFormat})
+			rc, err := anyio.NewReader(zctx, r, anyio.ReaderOpts{Format: opts.InputFormat})
 			if err != nil {
 				return "", err
 			}
