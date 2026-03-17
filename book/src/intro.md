@@ -10,7 +10,7 @@ which is aspirationally backward-compatible with
 [PostgreSQL](https://www.postgresql.org/).
 
 > [!NOTE]
-> The SuperDB implementation is open source and available as a
+> The SuperDB source is available as a
 > [GitHub repository](https://github.com/brimdata/super).  Pre-built binaries
 > may be [downloaded and installed](getting-started/install.md)
 > via customary mechanisms.
