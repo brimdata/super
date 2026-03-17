@@ -164,7 +164,7 @@ func (c *converter) enq(val super.Value) bool {
 		}
 		c.queues[typ] = make([]super.Value, 0, c.limit)
 	}
-	c.queues[typ] = append(q, val)
+	c.queues[typ] = append(q, val.Copy())
 	return false
 }
 
