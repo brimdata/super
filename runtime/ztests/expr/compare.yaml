@@ -1,0 +1,127 @@
+spq: values [a==b, a!=b, a<b, a<=b, a>=b, a>b]
+
+vector: true
+
+input: |
+  {a:{aa:1},b:{aa:1}}
+  {a:{aa:1},b:{aa:2}}
+  {a:{aa:1},b:{aa:"1"}}
+  {a:{aa:1},b:{aa:null}}
+  {a:{aa:1},b:{aa:error(0)}}
+  {a:{aa:1},b:{bb:1}}
+  {a:{aa:1},b:1}
+  {a:{aa:1},b:null}
+  {a:{aa:1},b:error(0)}
+
+output: |
+  [true,false,false,true,true,false]
+  [false,true,false,false,false,false]
+  [false,true,false,false,false,false]
+  [false,true,false,false,false,false]
+  [false,true,false,false,false,false]
+  [false,true,false,false,false,false]
+  [false,true,false,false,false,false]
+  [null,null,null,null,null,null]
+  [error(0),error(0),error(0),error(0),error(0),error(0)]
+
+---
+
+spq: values [a==b, a!=b, a<b, a<=b, a>=b, a>b]
+
+vector: true
+
+input: |
+  {a:[1],b:[1]}
+  {a:[1],b:[2]}
+  {a:[1],b:["2"]}
+  {a:[1],b:[null]}
+  {a:[1],b:[error(0)]}
+  {a:[1],b:1}
+  {a:[1],b:null}
+  {a:[1],b:error(0)}
+
+output: |
+  [true,false,false,true,true,false]
+  [false,true,false,false,false,false]
+  [false,true,false,false,false,false]
+  [false,true,false,false,false,false]
+  [false,true,false,false,false,false]
+  [false,true,false,false,false,false]
+  [null,null,null,null,null,null]
+  [error(0),error(0),error(0),error(0),error(0),error(0)]
+
+---
+
+spq: values [a==b, a!=b, a<b, a<=b, a>=b, a>b]
+
+vector: true
+
+input: |
+  {a:|[1]|,b:|[1]|}
+  {a:|[1]|,b:|[2]|}
+  {a:|[1]|,b:|["2"]|}
+  {a:|[1]|,b:|[null]|}
+  {a:|[1]|,b:|[error(0)]|}
+  {a:[1],b:1}
+  {a:|[1]|,b:null}
+  {a:|[1]|,b:error(0)}
+
+output: |
+  [true,false,false,true,true,false]
+  [false,true,false,false,false,false]
+  [false,true,false,false,false,false]
+  [false,true,false,false,false,false]
+  [false,true,false,false,false,false]
+  [false,true,false,false,false,false]
+  [null,null,null,null,null,null]
+  [error(0),error(0),error(0),error(0),error(0),error(0)]
+
+---
+
+spq: values [a==b, a!=b, a<b, a<=b, a>=b, a>b]
+
+vector: true
+
+input: |
+  {a:|{"aa":1}|,b:|{"aa":1}|}
+  {a:|{"aa":1}|,b:|{"aa":2}|}
+  {a:|{"aa":1}|,b:|{"aa":"2"}|}
+  {a:|{"aa":1}|,b:|{"aa":null}|}
+  {a:|{"aa":1}|,b:|{"aa":error(0)}|}
+  {a:|{"aa":1}|,b:|{"bb":1}|}
+  {a:|{"aa":1}|,b:1}
+  {a:|{"aa":1}|,b:null}
+  {a:|{"aa":1}|,b:error(0)}
+
+output: |
+  [true,false,false,true,true,false]
+  [false,true,false,false,false,false]
+  [false,true,false,false,false,false]
+  [false,true,false,false,false,false]
+  [false,true,false,false,false,false]
+  [false,true,false,false,false,false]
+  [false,true,false,false,false,false]
+  [null,null,null,null,null,null]
+  [error(0),error(0),error(0),error(0),error(0),error(0)]
+
+---
+
+spq: values [a==b, a!=b, a<b, a<=b, a>=b, a>b]
+
+vector: true
+
+input: |
+  {a:"aa"::enum(aa,bb),b:"aa"::enum(aa,bb)}
+  {a:"aa"::enum(aa,bb),b:"bb"::enum(aa,bb)}
+  {a:"aa"::enum(aa,bb),b:"aa"::enum(aa,zz)}
+  {a:"aa"::enum(aa,bb),b:"aa"}
+  {a:"aa"::enum(aa,bb),b:null}
+  {a:"aa"::enum(aa,bb),b:error(0)}
+
+output: |
+  [true,false,false,true,true,false]
+  [false,true,false,false,false,false]
+  [false,true,false,false,false,false]
+  [false,true,false,false,false,false]
+  [null,null,null,null,null,null]
+  [error(0),error(0),error(0),error(0),error(0),error(0)]

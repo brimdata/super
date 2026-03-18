@@ -8,6 +8,7 @@ import (
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/runtime/sam/expr/coerce"
+	"github.com/brimdata/super/scode"
 	"github.com/brimdata/super/vector"
 )
 
@@ -38,8 +39,8 @@ func (c *Compare) eval(vecs ...vector.Any) vector.Any {
 	rhs := vector.Under(vecs[1])
 	lhs, rhs, errVal := coerceVals(c.sctx, lhs, rhs)
 	if errVal != nil {
-		// if incompatible types return false
-		return vector.NewConstBool(false, vecs[0].Len())
+		// Incompatible types so return true for != and false otherwise.
+		return vector.NewConstBool(c.opCode == vector.CompNE, errVal.Len())
 	}
 	//XXX need to handle overflow (see sam)
 	kind := lhs.Kind()
@@ -53,6 +54,12 @@ func (c *Compare) eval(vecs ...vector.Any) vector.Any {
 		return c.compareNets(lhs, rhs)
 	case vector.KindType:
 		return c.compareTypeVals(lhs, rhs)
+	case vector.KindRecord,
+		vector.KindArray,
+		vector.KindSet,
+		vector.KindMap,
+		vector.KindEnum:
+		return c.compareComplex(lhs, rhs)
 	}
 	lform, ok := vector.FormOf(lhs)
 	if !ok {
@@ -128,6 +135,27 @@ func (c *Compare) compareTypeVals(lhs, rhs vector.Any) vector.Any {
 		l := vector.TypeValueValue(lhs, i)
 		r := vector.TypeValueValue(rhs, i)
 		v := bytes.Equal(l, r)
+		if c.opCode == vector.CompNE {
+			v = !v
+		}
+		if v {
+			out.Set(i)
+		}
+	}
+	return out
+}
+
+func (c *Compare) compareComplex(lhs, rhs vector.Any) vector.Any {
+	if c.opCode == vector.CompLT || c.opCode == vector.CompGT ||
+		lhs.Type().ID() != rhs.Type().ID() {
+		return vector.NewConstBool(false, lhs.Len())
+	}
+	var lb, rb scode.Builder
+	out := vector.NewFalse(lhs.Len())
+	for i := range lhs.Len() {
+		l := vector.ValueAt(&lb, lhs, i).Bytes()
+		r := vector.ValueAt(&rb, rhs, i).Bytes()
+		v := string(l) == string(r)
 		if c.opCode == vector.CompNE {
 			v = !v
 		}
