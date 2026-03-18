@@ -237,7 +237,7 @@ super db -f db -c "from logs:objects"
 * [revert](#super-db-revert) reverse an old commit
 * [serve](#super-db-serve)  run a SuperDB service endpoint
 * [use](#super-db-use) set working branch for `db` commands
-* [vacate](#super-db-vacate) compact a pool's commit history by squashing old commit objects
+* [vacate](#super-db-vacate) truncate a pool's commit history by removing old commit objects
 * [vacuum](#super-db-vacuum) vacuum deleted storage in database
 
 ### super db auth
@@ -773,7 +773,7 @@ This command stores the working branch in `$HOME/.super_head`.
 ### super db vacate
 
 ```
-super db vacate [ options ] commit
+super db vacate [options] [timestamp]
 ```
 **Options**
 * `-use <commitish>` commit to use, i.e., pool, pool@branch, or pool@commit
@@ -782,19 +782,19 @@ super db vacate [ options ] commit
 * [Output](options.md#output)
 * [Commit](options.md#commit)
 
-The `vacate` command compacts the commit history by squashing all of the
-commit objects in the history up to the indicated commit and removing
-the old commits. No other commit objects in the pool may point at any
-of the squashed commits. In particular, no branch may point to any
-commit that would be deleted.
+The `vacate` command truncates a pool's commit history by removing old commit
+objects.
 
-The branch history may contain pointers to old commit objects, but any
-attempt to access them will fail as the underlying commit history will
-be no longer available.
+If `-use` is specified, all commit objects timestamped older than that of the
+given commitish will be deleted. If the optional `timestamp` argument is
+supplied, all commit objects older than that timestamp will be deleted. If
+neither `-use` nor `timestamp` is given, only the most recent commit in the
+history will be kept and all others deleted.
 
-**DANGER ZONE.** There is no prompting or second chances here so use
-carefully. Once the pool's commit history has been squashed and old
-commits are deleted, they cannot be recovered.
+**DANGER ZONE.** You must confirm that you want to remove
+the objects to proceed.  The `-f` option can be used to force removal
+without confirmation.  The `-dryrun` option may also be used to see a summary
+of how many objects would be removed by a `vacate` but without removing them.
 
 ### super db vacuum
 
