@@ -273,15 +273,7 @@ func (n *numeric) eval(this super.Value) (super.Value, super.Value, *super.Value
 	if rhs.IsError() {
 		return super.Null, super.Null, &rhs
 	}
-	return enumToIndex(lhs), enumToIndex(rhs), nil
-}
-
-// enumToIndex converts an enum to its index value.
-func enumToIndex(val super.Value) super.Value {
-	if _, ok := val.Type().(*super.TypeEnum); ok {
-		return super.NewValue(super.TypeUint64, val.Bytes())
-	}
-	return val
+	return lhs, rhs, nil
 }
 
 type Compare struct {

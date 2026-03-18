@@ -9,6 +9,7 @@ input: |
   null
   null::({}|null)
   1
+  "e2"::enum(e1,e2)
   error("bad")
 
 output: |
@@ -17,4 +18,5 @@ output: |
   null::(null||{int64:|{string:int64}|}|)
   null::(null||{int64:|{string:int64}|}|)
   error({message:"cannot cast to |{int64:|{string:int64}|}|",on:1})
+  error({message:"cannot cast to |{int64:|{string:int64}|}|",on:"e2"::enum(e1,e2)})
   error("bad")

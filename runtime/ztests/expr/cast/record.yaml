@@ -12,6 +12,7 @@ input: |
   null
   null::({}|null)
   1
+  "e2"::enum(e1,e2)
   error("bad")
 
 output: |
@@ -23,4 +24,5 @@ output: |
   null::(null|{a:int64,b:string,c:{},d:[{e:string,f:int64}]})
   null::(null|{a:int64,b:string,c:{},d:[{e:string,f:int64}]})
   error({message:"cannot cast to {a:int64,b:string,c:{},d:[{e:string,f:int64}]}",on:1})
+  error({message:"cannot cast to {a:int64,b:string,c:{},d:[{e:string,f:int64}]}",on:"e2"::enum(e1,e2)})
   error("bad")

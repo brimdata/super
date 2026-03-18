@@ -10,6 +10,7 @@ input: |
   null
   null::({}|null)
   {x:"foo"}
+  "e2"::enum(e1,e2)
   error("bad")
 
 output: |
@@ -20,4 +21,5 @@ output: |
   null::(bytes|null)
   null::(bytes|null)
   error({message:"cannot cast to bytes",on:{x:"foo"}})
+  error({message:"cannot cast to bytes",on:"e2"::enum(e1,e2)})
   error("bad")

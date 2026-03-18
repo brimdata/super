@@ -31,8 +31,8 @@ func (a *Arith) eval(vecs ...vector.Any) (out vector.Any) {
 	if vec, ok := CheckForNullThenError(vecs); ok {
 		return vec
 	}
-	lhs := enumToIndex(vector.Under(vecs[0]))
-	rhs := enumToIndex(vector.Under(vecs[1]))
+	lhs := vector.Under(vecs[0])
+	rhs := vector.Under(vecs[1])
 	lhs, rhs, errVal := coerceVals(a.sctx, lhs, rhs)
 	if errVal != nil {
 		return errVal
@@ -69,18 +69,6 @@ func (a *Arith) eval(vecs ...vector.Any) (out vector.Any) {
 		}()
 	}
 	return f(lhs, rhs)
-}
-
-func enumToIndex(vec vector.Any) vector.Any {
-	switch vec := vec.(type) {
-	case *vector.View:
-		if enum, ok := vec.Any.(*vector.Enum); ok {
-			return vector.Pick(enum.Uint, vec.Index)
-		}
-	case *vector.Enum:
-		return vec.Uint
-	}
-	return vec
 }
 
 func (a *Arith) evalDivideByZero(kind vector.Kind, lhs, rhs vector.Any) vector.Any {

@@ -9,6 +9,7 @@ input: |
   "{x:\"foo\"}"
   "<int>"
   1
+  "e2"::enum(e1,e2)
   null
   null::({}|null)
   error("bad")
@@ -20,6 +21,7 @@ output: |
   error({message:"cannot cast to type",on:"{x:\"foo\"}"})
   error({message:"cannot cast to type",on:"<int>"})
   error({message:"cannot cast to type",on:1})
+  error({message:"cannot cast to type",on:"e2"::enum(e1,e2)})
   null::(type|null)
   null::(type|null)
   error("bad")
