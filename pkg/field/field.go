@@ -57,7 +57,7 @@ func Dotted(s string) Path {
 
 func DottedList(s string) List {
 	var fields List
-	for _, path := range strings.Split(s, ",") {
+	for path := range strings.SplitSeq(s, ",") {
 		fields = append(fields, Dotted(path))
 	}
 	return fields

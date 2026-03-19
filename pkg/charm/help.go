@@ -11,7 +11,7 @@ import (
 // splitFlags is like strings.Split with a comma and also trims whitespace
 func splitFlags(flags string) []string {
 	var out []string
-	for _, flag := range strings.Split(flags, ",") {
+	for flag := range strings.SplitSeq(flags, ",") {
 		out = append(out, strings.TrimSpace(flag))
 	}
 	return out

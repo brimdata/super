@@ -252,8 +252,8 @@ func (m *MarshalBSUPContext) NamedBindings(bindings []Binding) error {
 	return nil
 }
 
-var nanoTsType = reflect.TypeOf(nano.Ts(0))
-var superValueType = reflect.TypeOf(super.Value{})
+var nanoTsType = reflect.TypeFor[nano.Ts]()
+var superValueType = reflect.TypeFor[super.Value]()
 
 func (m *MarshalBSUPContext) encodeValue(v reflect.Value) (super.Type, error) {
 	typ, err := m.encodeAny(v)
@@ -677,8 +677,8 @@ func (u *UnmarshalBSUPContext) NamedBindings(bindings []Binding) error {
 	return nil
 }
 
-var netipAddrType = reflect.TypeOf(netip.Addr{})
-var netIPType = reflect.TypeOf(net.IP{})
+var netipAddrType = reflect.TypeFor[netip.Addr]()
+var netIPType = reflect.TypeFor[net.IP]()
 
 func (u *UnmarshalBSUPContext) decodeAny(val super.Value, v reflect.Value) (x error) {
 	if !v.IsValid() {

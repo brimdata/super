@@ -148,7 +148,7 @@ func (r Reflector) unpack(from any) (any, error) {
 	return toVal.Interface(), nil
 }
 
-var textUnmarshalerType = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
+var textUnmarshalerType = reflect.TypeFor[encoding.TextUnmarshaler]()
 
 func (r Reflector) unpackVal(toVal reflect.Value, from any) error {
 	if from == nil {
