@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -77,20 +78,21 @@ func loadZTestInputsAndOutputs(ztestDirs map[string]struct{}) (map[string]string
 			if b.Test == nil {
 				continue
 			}
+			testName := b.FileName + "/" + strconv.Itoa(b.Test.Line)
 			if i := b.Test.Input; i != nil && isValid(*i) {
-				out[b.FileName+"/input"] = *i
+				out[testName+"/input"] = *i
 			}
 			if o := b.Test.Output; isValid(o) {
-				out[b.FileName+"/output"] = o
+				out[testName+"/output"] = o
 			}
 			for _, i := range b.Test.Inputs {
 				if i.Data != nil && isValid(*i.Data) {
-					out[b.FileName+"/inputs/"+i.Name] = *i.Data
+					out[testName+"/inputs/"+i.Name] = *i.Data
 				}
 			}
 			for _, o := range b.Test.Outputs {
 				if o.Data != nil && isValid(*o.Data) {
-					out[b.FileName+"/outputs/"+o.Name] = *o.Data
+					out[testName+"/outputs/"+o.Name] = *o.Data
 				}
 			}
 		}
