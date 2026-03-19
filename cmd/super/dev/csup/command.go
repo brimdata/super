@@ -81,6 +81,7 @@ type reader struct {
 	reader    *bufio.Reader
 	meta      *bsupio.Reader
 	marshaler *sup.MarshalBSUPContext
+	typeSize  int
 	dataSize  int
 }
 
@@ -106,7 +107,7 @@ func (r *reader) Read() (*super.Value, error) {
 				return nil, err
 			}
 			r.meta = bsupio.NewReader(r.sctx, io.LimitReader(r.reader, int64(hdr.MetaSize)))
-			r.dataSize = int(hdr.DataSize)
+			r.dataSize = int(hdr.DataSize) + int(hdr.TypeSize) //XXX should read types
 			val, err := r.marshaler.Marshal(hdr)
 			return val.Ptr(), err
 		}

@@ -17,10 +17,10 @@ type ArrayEncoder struct {
 
 var _ Encoder = (*ArrayEncoder)(nil)
 
-func NewArrayEncoder(typ *super.TypeArray) *ArrayEncoder {
+func NewArrayEncoder(cctx *Context, typ *super.TypeArray) *ArrayEncoder {
 	return &ArrayEncoder{
 		typ:     typ.Type,
-		values:  NewEncoder(typ.Type),
+		values:  NewEncoder(cctx, typ.Type),
 		offsets: newOffsetsEncoder(),
 	}
 }
@@ -69,11 +69,11 @@ type SetEncoder struct {
 	ArrayEncoder
 }
 
-func NewSetEncoder(typ *super.TypeSet) *SetEncoder {
+func NewSetEncoder(cctx *Context, typ *super.TypeSet) *SetEncoder {
 	return &SetEncoder{
 		ArrayEncoder{
 			typ:     typ.Type,
-			values:  NewEncoder(typ.Type),
+			values:  NewEncoder(cctx, typ.Type),
 			offsets: newOffsetsEncoder(),
 		},
 	}

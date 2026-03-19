@@ -1,27 +1,38 @@
 package vector
 
 import (
+	"sync"
+
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/scode"
 )
 
 type Fusion struct {
+	Sctx   *super.Context
 	Typ    *super.TypeFusion
 	Values Any
-	// XXX
-	// For now, we materilize the entire type values of
-	// every value in every super anywhere in the value.
-	// This has huge crazy overhead but we're just trying
-	// to get the semantics worked out right now.
-	// This will be replaced by a single column of typeID
-	// ints and lazy loading of these types.
-	SubTypes *TypeValue
+	// We materialize the the subtypes of the supertype
+	// only when needed to build a Dynamic from the fused type.
+	// This is typically not required for many operations, in which
+	// case the type IDs are never read from storage and the types
+	// are never built and entered into the context.
+	mu       sync.Mutex
+	loader   TypeLoader
+	subtypes []super.Type
+}
+
+type TypeLoader interface {
+	Load() []super.Type
 }
 
 var _ Any = (*Union)(nil)
 
-func NewFusion(typ *super.TypeFusion, vals Any, subTypes *TypeValue) *Fusion {
-	return &Fusion{Typ: typ, Values: vals, SubTypes: subTypes}
+func NewFusion(sctx *super.Context, typ *super.TypeFusion, vals Any, subtypes []super.Type) *Fusion {
+	return &Fusion{Sctx: sctx, Typ: typ, Values: vals, subtypes: subtypes}
+}
+
+func NewFusionWithLoader(sctx *super.Context, typ *super.TypeFusion, loader TypeLoader, vals Any) *Fusion {
+	return &Fusion{Sctx: sctx, Typ: typ, loader: loader, Values: vals}
 }
 
 func (*Fusion) Kind() Kind {
@@ -39,13 +50,17 @@ func (f *Fusion) Len() uint32 {
 func (f *Fusion) Serialize(b *scode.Builder, slot uint32) {
 	b.BeginContainer()
 	f.Values.Serialize(b, slot)
-	f.SubTypes.Serialize(b, slot)
+	// XXX this is a slow path
+	typeVal := f.Sctx.LookupTypeValue(f.Subtypes()[slot])
+	b.Append(typeVal.Bytes())
 	b.EndContainer()
 }
 
-func (f *Fusion) Dynamic() *Dynamic {
-	// XXX we need a way to make a Dynamic from a Super but we can only
-	// do this with an sctx but the current vam design doesn't have sctx's
-	// when building vector so it can't be easily added with a bit of refactoring.
-	panic("TBD")
+func (f *Fusion) Subtypes() []super.Type {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.subtypes == nil {
+		f.subtypes = f.loader.Load()
+	}
+	return f.subtypes
 }

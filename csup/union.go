@@ -17,10 +17,10 @@ type UnionEncoder struct {
 
 var _ Encoder = (*UnionEncoder)(nil)
 
-func NewUnionEncoder(typ *super.TypeUnion) *UnionEncoder {
+func NewUnionEncoder(cctx *Context, typ *super.TypeUnion) *UnionEncoder {
 	var values []Encoder
 	for _, typ := range typ.Types {
-		values = append(values, NewEncoder(typ))
+		values = append(values, NewEncoder(cctx, typ))
 	}
 	return &UnionEncoder{
 		typ:    typ,

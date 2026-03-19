@@ -34,26 +34,26 @@ type PrimitiveEncoder interface {
 	ConstValue() super.Value
 }
 
-func NewEncoder(typ super.Type) Encoder {
+func NewEncoder(cctx *Context, typ super.Type) Encoder {
 	switch typ := typ.(type) {
 	case *super.TypeNamed:
-		return &NamedEncoder{NewEncoder(typ.Type), typ.Name}
+		return &NamedEncoder{NewEncoder(cctx, typ.Type), typ.Name}
 	case *super.TypeError:
-		return &ErrorEncoder{NewEncoder(typ.Type)}
+		return &ErrorEncoder{NewEncoder(cctx, typ.Type)}
 	case *super.TypeRecord:
-		return NewRecordEncoder(typ)
+		return NewRecordEncoder(cctx, typ)
 	case *super.TypeArray:
-		return NewArrayEncoder(typ)
+		return NewArrayEncoder(cctx, typ)
 	case *super.TypeSet:
 		// Sets encode the same way as arrays but behave
 		// differently semantically, and we don't care here.
-		return NewSetEncoder(typ)
+		return NewSetEncoder(cctx, typ)
 	case *super.TypeMap:
-		return NewMapEncoder(typ)
+		return NewMapEncoder(cctx, typ)
 	case *super.TypeUnion:
-		return NewUnionEncoder(typ)
+		return NewUnionEncoder(cctx, typ)
 	case *super.TypeFusion:
-		return NewFusionEncoder(typ)
+		return NewFusionEncoder(cctx, typ)
 	case *super.TypeEnum:
 		return NewPrimitiveEncoder(typ)
 	default:

@@ -104,10 +104,10 @@ func (e *Error) Len(cctx *Context) uint32 {
 
 type Fusion struct {
 	Values ID
-	// XXX SubTypes is currently a primitive holding typevals.
-	// This will change to a Segment that directly encodes TypeIDs after
-	// we get this all limping along.
-	SubTypes ID
+	// Subtypes are stored as type IDs in the local context of
+	// the CSUP object in which the type appears.  vcache translates
+	// these local types to the query sctx.
+	Subtypes Segment
 }
 
 func (f *Fusion) Len(cctx *Context) uint32 {

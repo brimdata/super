@@ -16,13 +16,13 @@ type RecordEncoder struct {
 
 var _ Encoder = (*RecordEncoder)(nil)
 
-func NewRecordEncoder(typ *super.TypeRecord) *RecordEncoder {
+func NewRecordEncoder(cctx *Context, typ *super.TypeRecord) *RecordEncoder {
 	fields := make([]*FieldEncoder, 0, len(typ.Fields))
 	var nopt int
 	for _, f := range typ.Fields {
 		fields = append(fields, &FieldEncoder{
 			name:   f.Name,
-			values: NewEncoder(f.Type),
+			values: NewEncoder(cctx, f.Type),
 			opt:    f.Opt,
 		})
 		if f.Opt {

@@ -47,9 +47,10 @@ func NewObjectFromHeader(r io.ReaderAt, hdr Header) (*Object, error) {
 	if hdr.Root >= uint32(len(cctx.values)) {
 		return nil, fmt.Errorf("CSUP root ID %d larger than values table (len %d)", hdr.Root, len(cctx.values))
 	}
+	cctx.subtypesReader = io.NewSectionReader(r, int64(HeaderSize+hdr.MetaSize), int64(hdr.TypeSize))
 	return &Object{
 		cctx:     cctx,
-		readerAt: io.NewSectionReader(r, int64(HeaderSize+hdr.MetaSize), int64(hdr.DataSize)),
+		readerAt: io.NewSectionReader(r, int64(HeaderSize+hdr.MetaSize+hdr.TypeSize), int64(hdr.DataSize)),
 		header:   hdr,
 	}, nil
 }

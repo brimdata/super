@@ -67,7 +67,7 @@ func (d *DynamicEncoder) lookupType(typ super.Type) uint32 {
 	tag, ok := d.which[typ]
 	if !ok {
 		tag = uint32(len(d.values))
-		d.values = append(d.values, NewEncoder(typ))
+		d.values = append(d.values, NewEncoder(d.cctx, typ))
 		d.which[typ] = tag
 	}
 	return tag

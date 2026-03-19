@@ -15,10 +15,10 @@ type MapEncoder struct {
 	count   uint32
 }
 
-func NewMapEncoder(typ *super.TypeMap) *MapEncoder {
+func NewMapEncoder(cctx *Context, typ *super.TypeMap) *MapEncoder {
 	return &MapEncoder{
-		keys:    NewEncoder(typ.KeyType),
-		values:  NewEncoder(typ.ValType),
+		keys:    NewEncoder(cctx, typ.KeyType),
+		values:  NewEncoder(cctx, typ.ValType),
 		offsets: newOffsetsEncoder(),
 	}
 }

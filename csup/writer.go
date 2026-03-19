@@ -73,8 +73,16 @@ func (w *Serializer) finalizeObject() error {
 	}
 	zw.EndStream()
 	metaSize := zw.Position()
+	for _, val := range cctx.types() {
+		if err := zw.Write(val); err != nil {
+			return fmt.Errorf("could not write CSUP metadata: %w", err)
+		}
+	}
+	zw.EndStream()
+	typeSize := zw.Position() - metaSize
+
 	// Header
-	if _, err := w.writer.Write(Header{Version, uint64(metaSize), dataSize, uint32(root)}.Serialize()); err != nil {
+	if _, err := w.writer.Write(Header{Version, uint64(metaSize), uint64(typeSize), dataSize, uint32(root)}.Serialize()); err != nil {
 		return fmt.Errorf("system error: could not write CSUP header: %w", err)
 	}
 	// Metadata section
@@ -101,8 +109,9 @@ type ValWriter struct {
 var _ sio.Writer = (*ValWriter)(nil)
 
 func NewValWriter(w io.WriteCloser) *ValWriter {
+	sctx := super.NewContext()
 	return &ValWriter{
-		sctx:       super.NewContext(), //XXX
+		sctx:       sctx,
 		serializer: NewSerializer(w),
 		builder:    vector.NewDynamicBuilder(),
 	}
