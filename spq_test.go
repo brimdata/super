@@ -2,6 +2,7 @@ package super_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -15,11 +16,13 @@ import (
 	"github.com/brimdata/super/compiler"
 	"github.com/brimdata/super/compiler/parser"
 	"github.com/brimdata/super/runtime"
+	"github.com/brimdata/super/runtime/exec"
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/anyio"
 	"github.com/brimdata/super/sio/arrowio"
 	"github.com/brimdata/super/sio/bsupio"
+	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vio"
 	"github.com/brimdata/super/ztest"
 	"github.com/stretchr/testify/assert"
@@ -41,6 +44,17 @@ func TestSPQ(t *testing.T) {
 		runAllBoomerangs(t, "parquet", data)
 		runAllBoomerangs(t, "sup", data)
 		runAllBoomerangs(t, "jsup", data)
+	})
+
+	t.Run("fusion", func(t *testing.T) {
+		t.Parallel()
+		data, err := loadZTestInputsAndOutputs(dirs)
+		require.NoError(t, err)
+		runAll(t, "arrows", data, fusion)
+		runAll(t, "csup", data, fusion)
+		runAll(t, "parquet", data, fusion)
+		runAll(t, "sup", data, fusion)
+		runAll(t, "jsup", data, fusion)
 	})
 
 	for d := range dirs {
@@ -127,7 +141,19 @@ func runAllBoomerangs(t *testing.T, format string, data map[string]string) {
 		for name, data := range data {
 			t.Run(name, func(t *testing.T) {
 				t.Parallel()
-				runOneBoomerang(t, format, data)
+				fusion(t, format, data)
+			})
+		}
+	})
+}
+
+func runAll(t *testing.T, format string, data map[string]string, f func(t *testing.T, format, data string)) {
+	t.Run(format, func(t *testing.T) {
+		t.Parallel()
+		for name, data := range data {
+			t.Run(name, func(t *testing.T) {
+				t.Parallel()
+				f(t, format, data)
 			})
 		}
 	})
@@ -143,10 +169,7 @@ func runOneBoomerang(t *testing.T, format, data string) {
 	dataReader := sio.Reader(dataReadCloser)
 	if format == "parquet" {
 		// Fuse for formats that require uniform values.
-		ast, err := parser.ParseText("fuse")
-		require.NoError(t, err)
-		rctx := runtime.NewContext(t.Context(), sctx)
-		q, err := compiler.NewCompiler(nil).NewQuery(rctx, ast, []sio.Reader{dataReadCloser}, 0)
+		q, err := query(t.Context(), sctx, "fuse", dataReadCloser)
 		require.NoError(t, err)
 		defer q.Pull(true)
 		dataReader = sbuf.PullerReader(sbuf.NewMaterializer(q))
@@ -187,4 +210,77 @@ func runOneBoomerang(t *testing.T, format, data string) {
 	require.NoError(t, boomerangWriter.Close())
 
 	require.Equal(t, baseline.String(), boomerang.String(), "baseline and boomerang differ")
+}
+
+func fusion(t *testing.T, format, data string) {
+	// Create an auto-detecting reader for data.
+	sctx := super.NewContext()
+	dataReader, err := anyio.NewReader(sctx, strings.NewReader(data), anyio.ReaderOpts{})
+	require.NoError(t, err)
+	defer dataReader.Close()
+
+	// Write data to baseline as format.
+	baseline, err := readAll(sbuf.NewDematerializer(sctx, sbuf.NewPuller(dataReader)), format)
+	if err != nil {
+		if errors.Is(err, arrowio.ErrMultipleTypes) ||
+			errors.Is(err, arrowio.ErrNotRecord) ||
+			errors.Is(err, arrowio.ErrUnsupportedType) {
+			t.Skipf("skipping due to expected error: %s", err)
+		}
+		t.Fatalf("unexpected error writing %s baseline: %s", format, err)
+	}
+
+	// Write data to fusion as format after fusing and defusing.
+	dataReader, err = anyio.NewReader(sctx, strings.NewReader(data), anyio.ReaderOpts{})
+	require.NoError(t, err)
+	defer dataReader.Close()
+
+	q, err := query(t.Context(), sctx, "fuse | defuse(this)", dataReader)
+	require.NoError(t, err)
+	defer q.Pull(true)
+	fusion, err := readAll(q, format)
+	require.NoError(t, err)
+
+	require.Equal(t, string(baseline), string(fusion), "baseline and fusion differ")
+}
+
+func query(ctx context.Context, sctx *super.Context, spq string, r sio.Reader) (vio.Puller, error) {
+	ast, err := parser.ParseText(spq)
+	if err != nil {
+		return nil, err
+	}
+	e := exec.NewEnvironment(nil, nil)
+	//e.Runtime = exec.RuntimeVAM
+	rctx := runtime.NewContext(ctx, sctx)
+	q, err := compiler.NewCompilerWithEnv(e).NewQuery(rctx, ast, []sio.Reader{r}, 0)
+	if err != nil {
+		return nil, err
+	}
+	return q, nil
+}
+
+func readAll(src vio.Puller, outputFormat string) ([]byte, error) {
+	var b bytes.Buffer
+	w, err := anyio.NewWriter(sio.NopCloser(&b), anyio.WriterOpts{Format: outputFormat})
+	if err != nil {
+		return nil, err
+	}
+	for {
+		var vec vector.Any
+		vec, err = src.Pull(false)
+		if l, ok := vec.(*vector.Labeled); ok {
+			vec = l.Any
+		}
+		if vec == nil || err != nil {
+			break
+		}
+		err = w.Push(vec)
+		if err != nil {
+			break
+		}
+
+	}
+	//err = vio.Copy(w, src)
+	err2 := w.Close()
+	return b.Bytes(), errors.Join(err, err2)
 }
