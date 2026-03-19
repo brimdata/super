@@ -236,8 +236,8 @@ func (p *PredicateWalk) Eval(vecs ...vector.Any) vector.Any {
 
 func (p *PredicateWalk) eval(vecs ...vector.Any) vector.Any {
 	lhs, rhs := vecs[0], vecs[1]
+	out := p.pred(lhs, rhs)
 	rhs = vector.Under(rhs)
-	rhsOrig := rhs
 	var index []uint32
 	if view, ok := rhs.(*vector.View); ok {
 		rhs = view.Any
@@ -245,12 +245,7 @@ func (p *PredicateWalk) eval(vecs ...vector.Any) vector.Any {
 	}
 	switch rhs := rhs.(type) {
 	case *vector.Record:
-		fields := rhs.Fields
-		if len(fields) == 0 {
-			vector.NewFalse(rhs.Len())
-		}
-		out := p.Eval(lhs, fields[0])
-		for _, vec := range fields[1:] {
+		for _, vec := range rhs.Fields {
 			if index != nil {
 				vec = vector.Pick(vec, index)
 			}
@@ -258,24 +253,24 @@ func (p *PredicateWalk) eval(vecs ...vector.Any) vector.Any {
 		}
 		return out
 	case *vector.Array:
-		return p.evalForList(lhs, rhs.Values, rhs.Offsets, index)
+		return EvalOr(p.sctx, out, p.evalForList(lhs, rhs.Values, rhs.Offsets, index))
 	case *vector.Set:
-		return p.evalForList(lhs, rhs.Values, rhs.Offsets, index)
+		return EvalOr(p.sctx, out, p.evalForList(lhs, rhs.Values, rhs.Offsets, index))
 	case *vector.Map:
-		return EvalOr(p.sctx, p.evalForList(lhs, rhs.Keys, rhs.Offsets, index),
-			p.evalForList(lhs, rhs.Values, rhs.Offsets, index))
+		out = EvalOr(p.sctx, out, p.evalForList(lhs, rhs.Keys, rhs.Offsets, index))
+		return EvalOr(p.sctx, out, p.evalForList(lhs, rhs.Values, rhs.Offsets, index))
 	case *vector.Union:
 		if index != nil {
 			panic("vector.Union unexpected in vector.View")
 		}
-		return vector.Apply(true, p.Eval, lhs, rhs)
+		return EvalOr(p.sctx, out, vector.Apply(true, p.Eval, lhs, rhs))
 	case *vector.Error:
 		if index != nil {
 			panic("vector.Error unexpected in vector.View")
 		}
-		return p.Eval(lhs, rhs.Vals)
+		return EvalOr(p.sctx, out, p.Eval(lhs, rhs.Vals))
 	default:
-		return p.pred(lhs, rhsOrig)
+		return out
 	}
 }
 

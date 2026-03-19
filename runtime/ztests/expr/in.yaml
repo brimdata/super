@@ -62,6 +62,39 @@ output: |
 
 ---
 
+spq: |
+  values this in [{a:1},[2],|[3]|,|{4:4}|,"b"::enum(b,c)]
+
+vector: true
+
+input: |
+  {a:1}
+  {a:2}
+  [2]
+  [3]
+  |[3]|
+  |[4]|
+  |{4:4}|
+  |{4:5}|
+  "b"::enum(b,c)
+  "b"::enum(b,d)
+  [{a:1},[2],|[3]|,|{4:4}|,"b"::enum(b,c)]
+
+output: |
+  true
+  false
+  true
+  false
+  true
+  false
+  true
+  false
+  true
+  false
+  true
+
+---
+
 # Test in expressions on a map constant.
 spq: |
   const m = |{"a":1,"b":2}|

@@ -64,8 +64,7 @@ unnest accounts | where id in [1,2]
 
 _Complex values are recursively searched for containment_
 
-<!-- Remove runtime=sam tag when #6609 is resolved -->
-```mdtest-spq runtime=sam
+```mdtest-spq
 # spq
 where {s:"foo"} in this
 # input
