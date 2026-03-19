@@ -2,7 +2,6 @@ package runtime
 
 import (
 	"context"
-	"io"
 
 	"github.com/brimdata/super"
 	"github.com/brimdata/super/compiler/parser"
@@ -19,7 +18,6 @@ type Compiler interface {
 
 type Query interface {
 	vio.Puller
-	io.Closer
 	Progress() vio.Progress
 	Meter() vio.Meter
 }

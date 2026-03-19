@@ -2,8 +2,6 @@ package exec
 
 import (
 	"github.com/brimdata/super/runtime"
-	"github.com/brimdata/super/sbuf"
-	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vio"
 )
@@ -27,25 +25,12 @@ func NewQuery(rctx *runtime.Context, puller vio.Puller, meter vio.Meter) *Query 
 	}
 }
 
-func (q *Query) AsReader() sio.Reader {
-	return sbuf.PullerReader(sbuf.NewMaterializer(q.Puller))
-}
-
-func (q *Query) AsPuller() sbuf.Puller {
-	return sbuf.NewMaterializer(q.Puller)
-}
-
 func (q *Query) Progress() vio.Progress {
 	return q.meter.Progress()
 }
 
 func (q *Query) Meter() vio.Meter {
 	return q.meter
-}
-
-func (q *Query) Close() error {
-	q.rctx.Cancel()
-	return nil
 }
 
 func (q *Query) Pull(done bool) (vector.Any, error) {
