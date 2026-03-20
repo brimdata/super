@@ -1,4 +1,4 @@
-# [SuperDB Source Available License version 1.0](https://github.com/brimdata/super/blob/main/LICENSE.md)
+# [SuperDB Source Available License version 1.0](https://github.com/brimdata/super/blob/9343c50f2cdaf39ecfb3f90a458c552d3d0f8681/LICENSE.md)
 
 ## Acceptance
 
