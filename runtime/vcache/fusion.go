@@ -84,7 +84,7 @@ var _ vector.TypeLoader = (*subtypesLoader)(nil)
 
 func (s *subtypesLoader) Load() []super.Type {
 	ids := s.subtypes.loadIDs(s.loader.r)
-	s.cctx.LoadSubTypes()
+	s.cctx.LoadSubtypes()
 	subtypes := make([]super.Type, 0, len(ids))
 	sctx := s.loader.sctx
 	for _, id := range ids {

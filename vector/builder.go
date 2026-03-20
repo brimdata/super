@@ -265,7 +265,7 @@ func (u *unionBuilder) Build(sctx *super.Context) Any {
 type fusionBuilder struct {
 	typ      *super.TypeFusion
 	values   Builder
-	subTypes []scode.Bytes
+	subtypes []scode.Bytes
 }
 
 func newFusionBuilder(typ *super.TypeFusion) Builder {
@@ -275,12 +275,12 @@ func newFusionBuilder(typ *super.TypeFusion) Builder {
 func (f *fusionBuilder) Write(bytes scode.Bytes) {
 	it := bytes.Iter()
 	f.values.Write(it.Next())
-	f.subTypes = append(f.subTypes, it.Next())
+	f.subtypes = append(f.subtypes, it.Next())
 }
 
 func (f *fusionBuilder) Build(sctx *super.Context) Any {
-	types := make([]super.Type, 0, len(f.subTypes))
-	for _, tv := range f.subTypes {
+	types := make([]super.Type, 0, len(f.subtypes))
+	for _, tv := range f.subtypes {
 		t, err := sctx.LookupByValue(tv)
 		if err != nil {
 			panic(err)

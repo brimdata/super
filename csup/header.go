@@ -53,7 +53,7 @@ func (h *Header) Deserialize(bytes []byte) error {
 		return fmt.Errorf("CSUP metadata section too big: %d bytes", h.MetaSize)
 	}
 	if h.MetaSize > MaxTypeSize {
-		return fmt.Errorf("CSUP metadata section too big: %d bytes", h.TypeSize)
+		return fmt.Errorf("CSUP type section too big: %d bytes", h.TypeSize)
 	}
 	if h.DataSize > MaxDataSize {
 		return fmt.Errorf("CSUP data section too big: %d bytes", h.DataSize)

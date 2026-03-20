@@ -12,8 +12,8 @@ type FusionEncoder struct {
 	cctx        *Context
 	typ         *super.TypeFusion
 	values      Encoder
-	subTypes    []uint32
-	subTypesEnc *Uint32Encoder
+	subtypes    []uint32
+	subtypesEnc *Uint32Encoder
 }
 
 var _ Encoder = (*FusionEncoder)(nil)
@@ -37,7 +37,7 @@ func (f *FusionEncoder) Write(vec vector.Any) {
 	// as a slice and lookup the interned CSUP type table and copy
 	// what is needed.
 	for _, typ := range fusion.Subtypes() {
-		f.subTypes = append(f.subTypes, f.cctx.lookupTypeID(fusion.Sctx, typ))
+		f.subtypes = append(f.subtypes, f.cctx.lookupTypeID(fusion.Sctx, typ))
 	}
 }
 
@@ -45,18 +45,18 @@ func (f *FusionEncoder) Emit(w io.Writer) error {
 	if err := f.values.Emit(w); err != nil {
 		return err
 	}
-	return f.subTypesEnc.Emit(w)
+	return f.subtypesEnc.Emit(w)
 }
 
 func (f *FusionEncoder) Encode(group *errgroup.Group) {
 	f.values.Encode(group)
-	f.subTypesEnc = &Uint32Encoder{vals: f.subTypes}
-	f.subTypesEnc.Encode(group)
+	f.subtypesEnc = &Uint32Encoder{vals: f.subtypes}
+	f.subtypesEnc.Encode(group)
 }
 
 func (f *FusionEncoder) Metadata(cctx *Context, off uint64) (uint64, ID) {
 	off, values := f.values.Metadata(cctx, off)
-	off, subtypes := f.subTypesEnc.Segment(off)
+	off, subtypes := f.subtypesEnc.Segment(off)
 	return off, cctx.enter(&Fusion{
 		Values:   values,
 		Subtypes: subtypes,

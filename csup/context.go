@@ -91,7 +91,7 @@ func (c *Context) lookupTypeID(sctx *super.Context, typ super.Type) uint32 {
 	return id
 }
 
-// LookupTypeVal callable only from vcache after LoadSubTypes is called.
+// LookupTypeVal callable only from vcache after LoadSubtypes is called.
 func (c *Context) LookupTypeVal(id uint32) scode.Bytes {
 	return c.subtypes[id]
 }
@@ -133,13 +133,15 @@ func (c *Context) readMeta(r io.Reader) error {
 	}
 }
 
-// LoadSubTypes is called to load the subtypes table on demand,
+// LoadSubtypes is called to load the subtypes table on demand,
 // only when needed.  It must be called before calling LookupTypeVal.
-func (c *Context) LoadSubTypes() {
+func (c *Context) LoadSubtypes() {
 	c.smu.Lock()
 	defer c.smu.Unlock()
 	if c.subtypesReader != nil {
 		if err := c.readTypes(c.subtypesReader); err != nil {
+			// Panic for now but we should handle this more gracefully
+			// when an IO error causes failure of a running query.
 			panic(err)
 		}
 		c.subtypesReader = nil
