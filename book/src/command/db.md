@@ -790,10 +790,12 @@ supplied, all commits older than that timestamp will be deleted. If
 neither `-use` nor `timestamp` is given, only the most recent commit in the
 history will be kept and all others deleted.
 
-**DANGER ZONE.** You must confirm that you want to remove
-the objects to proceed.  The `-f` option can be used to force removal
-without confirmation.  The `-dryrun` option may also be used to see a summary
-of how many objects would be removed by a `vacate` but without removing them.
+**DANGER ZONE.** Once the pool's commit history has been truncated and old
+commits are deleted, they cannot be recovered.  You must confirm that you want
+to remove the commits to proceed.  The `-f` option can be used to force
+removal without confirmation.  The `-dryrun` option may also be used to see a
+summary of how many commits would be removed by a `vacate` but without
+removing them.
 
 ### super db vacuum
 
