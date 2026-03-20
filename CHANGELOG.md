@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-03-20
+
+### **BREAKING CHANGE**
+
+With the advance of the BSUP format to v2, `super` will no longer read BSUP v1
+format as input. There is currently no backward compatibility in `super` for
+reading BSUP v1 inputs. If you have valuable saved BSUP v1 files that you
+cannot easily regenerate into v2 from their original sources, please speak up
+on [community Slack](https://www.brimdata.io/join-slack/) or
+[open an issue](https://github.com/brimdata/super/issues) for assistance.
+
+### Added
+
+- New `debug` operator (#6685, #6694, #6680, #6691, #6726)
+- New `infer` operator (#6704)
+- New `defuse` function (#6698)
+- New `unblend` function (#6725)
+- New `db vacate` command (#6706, #6747)
+- Fusion types (#6713)
+- Named types in `upcast` function (#6752)
+- Optional fields in record expressions (#6702)
+
+### Changed
+
+- Change license to [SuperDB Source Available License v1.0](https://github.com/brimdata/super/blob/9343c50f2cdaf39ecfb3f90a458c552d3d0f8681/LICENSE.md) (#6755)
+- In `collect` and `union` aggregate functions, `error("quiet")` values are now dropped and `error("missing")` values are preserved (#6710)
+- `null` values are now ignored in `concat` function and f-strings (#6730)
+- macOS `super` release artifacts are now signed and notarized (#6703)
+- The BSUP format has been advanced to version 2 (#6713)
+
+### Fixed
+
+- Fix `unnest` bug when to-be-unnested array is in a union (#6692)
+- Fix precision bug when casting from float16 or float32 to string (#6722)
+
 ## [0.2.0] - 2026-02-27
 
 ### **BREAKING CHANGE**
