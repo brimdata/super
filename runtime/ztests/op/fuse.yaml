@@ -1,0 +1,104 @@
+spq: fuse
+
+vector: true
+
+input: |
+  {a:"hello",b:"world"}
+  {b:"goodnight",c:"gracie"}
+  {a:"goodnight",b:123::int32}
+  {a:null,b:null,c:null}
+
+output: |
+  fusion({a?:fusion("hello"::(string|null),<string>),b:fusion("world"::(int32|string|null),<string>),c?:_::fusion(string|null)},<{a:string,b:string}>)
+  fusion({a?:_::fusion(string|null),b:fusion("goodnight"::(int32|string|null),<string>),c?:fusion("gracie"::(string|null),<string>)},<{b:string,c:string}>)
+  fusion({a?:fusion("goodnight"::(string|null),<string>),b:fusion(123::int32::(int32|string|null),<int32>),c?:_::fusion(string|null)},<{a:string,b:int32}>)
+  fusion({a?:fusion(null::(string|null),<null>),b:fusion(null::(int32|string|null),<null>),c?:fusion(null::(string|null),<null>)},<{a:null,b:null,c:null}>)
+
+---
+
+# Test fuse on an array of records.
+spq: fuse
+
+vector: true
+
+input: |
+  [{a:1}]
+  [{b:2}]
+  [{a:3},{b:3}]
+  [{a:3,b:3}]
+  [{a:null,b:null}]
+
+output: |
+  fusion([fusion({a?:fusion(1::(int64|null),<int64>),b?:_::fusion(int64|null)},<{a:int64}>)],<[{a:int64}]>)
+  fusion([fusion({a?:_::fusion(int64|null),b?:fusion(2::(int64|null),<int64>)},<{b:int64}>)],<[{b:int64}]>)
+  fusion([fusion({a?:fusion(3::(int64|null),<int64>),b?:_::fusion(int64|null)},<{a:int64}>),fusion({a?:_::fusion(int64|null),b?:fusion(3::(int64|null),<int64>)},<{b:int64}>)],<[{a:int64}|{b:int64}]>)
+  fusion([fusion({a?:fusion(3::(int64|null),<int64>),b?:fusion(3::(int64|null),<int64>)},<{a:int64,b:int64}>)],<[{a:int64,b:int64}]>)
+  fusion([fusion({a?:fusion(null::(int64|null),<null>),b?:fusion(null::(int64|null),<null>)},<{a:null,b:null}>)],<[{a:null,b:null}]>)
+
+---
+
+# Test fuse on mix of complex and primitive values.
+spq: fuse
+
+vector: true
+
+input: |
+  {a:1}
+  {a:"s"}
+  1
+  "s"
+  [1]
+  ["s"]
+
+output: |
+  fusion({a:fusion(1::(int64|string),<int64>)}::(int64|string|{a:fusion(int64|string)}|[fusion(int64|string)]),<{a:int64}>)
+  fusion({a:fusion("s"::(int64|string),<string>)}::(int64|string|{a:fusion(int64|string)}|[fusion(int64|string)]),<{a:string}>)
+  fusion(1::(int64|string|{a:fusion(int64|string)}|[fusion(int64|string)]),<int64>)
+  fusion("s"::(int64|string|{a:fusion(int64|string)}|[fusion(int64|string)]),<string>)
+  fusion([fusion(1::(int64|string),<int64>)]::(int64|string|{a:fusion(int64|string)}|[fusion(int64|string)]),<[int64]>)
+  fusion([fusion("s"::(int64|string),<string>)]::(int64|string|{a:fusion(int64|string)}|[fusion(int64|string)]),<[string]>)
+
+---
+
+# Test fuse on nested records.
+spq: fuse
+
+input: |
+  {a:"hello",r:{x:1::int32,y:2::int32}}
+  {r:{y:4::int32,z:5::int32},s:"world",r2:{x:6::int32}}
+  {a:null,r:{x:null,y:null,z:null},s:null,r2:null}
+
+output: |
+  fusion({a?:fusion("hello"::(string|null),<string>),r:fusion({x?:fusion(1::int32::(int32|null),<int32>),y:fusion(2::int32::(int32|null),<int32>),z?:_::fusion(int32|null)},<{x:int32,y:int32}>),s?:_::fusion(string|null),r2?:_::fusion(null|{x:int32})},<{a:string,r:{x:int32,y:int32}}>)
+  fusion({a?:_::fusion(string|null),r:fusion({x?:_::fusion(int32|null),y:fusion(4::int32::(int32|null),<int32>),z?:fusion(5::int32::(int32|null),<int32>)},<{y:int32,z:int32}>),s?:fusion("world"::(string|null),<string>),r2?:fusion({x:6::int32}::(null|{x:int32}),<{x:int32}>)},<{r:{y:int32,z:int32},s:string,r2:{x:int32}}>)
+  fusion({a?:fusion(null::(string|null),<null>),r:fusion({x?:fusion(null::(int32|null),<null>),y:fusion(null::(int32|null),<null>),z?:fusion(null::(int32|null),<null>)},<{x:null,y:null,z:null}>),s?:fusion(null::(string|null),<null>),r2?:fusion(null::(null|{x:int32}),<null>)},<{a:null,r:{x:null,y:null,z:null},s:null,r2:null}>)
+
+---
+
+spq: fuse
+
+vector: true
+
+input: |
+  error(1)
+  error("s")
+
+output: |
+  fusion(error(fusion(1::(int64|string),<int64>)),<error(int64)>)
+  fusion(error(fusion("s"::(int64|string),<string>)),<error(string)>)
+
+---
+
+spq: fuse
+
+vector: true
+
+input: |
+  [1,2]
+  ["foo"]
+  [null]
+
+output: |
+  fusion([fusion(1::(int64|string|null),<int64>),fusion(2::(int64|string|null),<int64>)],<[int64]>)
+  fusion([fusion("foo"::(int64|string|null),<string>)],<[string]>)
+  fusion([fusion(null::(int64|string|null),<null>)],<[null]>)

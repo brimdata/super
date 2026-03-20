@@ -16,7 +16,7 @@ output: |
 
 ---
 
-# Test fuse on an array of records.
+# Test blend on an array of records.
 spq: blend
 
 vector: true
@@ -37,7 +37,7 @@ output: |
 
 ---
 
-# Test fuse on mix of complex and primitive values.
+# Test blend on mix of complex and primitive values.
 spq: blend
 
 vector: true
@@ -89,7 +89,7 @@ output: |
 
 ---
 
-spq: fuse
+spq: blend
 
 vector: true
 
@@ -99,6 +99,6 @@ input: |
   [null]
 
 output: |
-  fusion([fusion(1::(int64|string|null),<int64>),fusion(2::(int64|string|null),<int64>)],<[int64]>)
-  fusion([fusion("foo"::(int64|string|null),<string>)],<[string]>)
-  fusion([fusion(null::(int64|string|null),<null>)],<[null]>)
+  [1,2]::[int64|string|null]
+  ["foo"]::[int64|string|null]
+  [null]::[int64|string|null]
