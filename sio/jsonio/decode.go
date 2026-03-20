@@ -2,7 +2,7 @@
 // https://github.com/golang/go/blob/master/src/encoding/json/decode.go
 // and is covered by the copyright reproduced below.
 //
-// Any changes are covered by the copyright and license in the LICENSE.txt file
+// Any changes are covered by the copyright and license in the LICENSE.md file
 // in the root directory of this repository.
 
 // Copyright 2010 The Go Authors. All rights reserved.

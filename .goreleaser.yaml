@@ -34,7 +34,7 @@ archives:
       - goos: windows
         formats: [ "zip" ]
     files:
-      - LICENSE.txt
+      - LICENSE.md
       - acknowledgments.txt
 release:
   header: |
