@@ -19,7 +19,7 @@ import (
 var spec = &charm.Spec{
 	Name:  "vacate",
 	Usage: "vacate [options] [timestamp]",
-	Short: "truncate a pool's commit history by removing old commit objects",
+	Short: "truncate a pool's commit history by removing old commits",
 	Long: `
 See https://superdb.org/command/db.html#super-db-vacate
 `,

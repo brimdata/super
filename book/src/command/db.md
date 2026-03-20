@@ -237,7 +237,7 @@ super db -f db -c "from logs:objects"
 * [revert](#super-db-revert) reverse an old commit
 * [serve](#super-db-serve)  run a SuperDB service endpoint
 * [use](#super-db-use) set working branch for `db` commands
-* [vacate](#super-db-vacate) truncate a pool's commit history by removing old commit objects
+* [vacate](#super-db-vacate) truncate a pool's commit history by removing old commits
 * [vacuum](#super-db-vacuum) vacuum deleted storage in database
 
 ### super db auth
@@ -782,12 +782,11 @@ super db vacate [options] [timestamp]
 * [Output](options.md#output)
 * [Commit](options.md#commit)
 
-The `vacate` command truncates a pool's commit history by removing old commit
-objects.
+The `vacate` command truncates a pool's commit history by removing old commits.
 
-If `-use` is specified, all commit objects timestamped older than that of the
+If `-use` is specified, all commits timestamped older than that of the
 given commitish will be deleted. If the optional `timestamp` argument is
-supplied, all commit objects older than that timestamp will be deleted. If
+supplied, all commits older than that timestamp will be deleted. If
 neither `-use` nor `timestamp` is given, only the most recent commit in the
 history will be kept and all others deleted.
 
