@@ -14,3 +14,17 @@ output: |
   {key:"a",supertype:<fusion({a?:string,r:fusion({x?:int32,y:int32,z?:int32}),key:string,s?:string,r2?:{x:int32}})>}
   {key:"b",supertype:<fusion({a?:string,r:fusion({x?:int32,y:int32,z?:int32}),key:string,s?:string,r2?:{x:int32}})>}
   {key:"c",supertype:<fusion({a?:string,r:fusion({x?:int32,y:int32,z?:int32}),key:string,s?:string,r2?:{x:int32}})>}
+
+---
+
+spq: fuse(this)
+
+input: |
+  {fixed:{x:1},var:{s:"foo"}}
+  {fixed:{x:2},var:{s:"bar",a:[1,2]}}
+  {fixed:{x:3},var:{s:"bar",a:[3]}}
+  {fixed:{x:4},var:{s:"foo",t:123}}
+  {fixed:{x:5},var:{s:"foo",t:{x:1}}}
+
+output: |
+  <{fixed:{x:int64},var:fusion({s:string,a?:[int64],t?:fusion(int64|{x:int64})})}>
