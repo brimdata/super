@@ -6,21 +6,18 @@ import (
 )
 
 type TypeValue struct {
-	table BytesTable
+	sctx   *super.Context
+	Values []super.Type
 }
 
 var _ Any = (*TypeValue)(nil)
 
-func NewTypeValue(table BytesTable) *TypeValue {
-	return &TypeValue{table}
+func NewTypeValue(sctx *super.Context, vals []super.Type) *TypeValue {
+	return &TypeValue{Values: vals}
 }
 
-func NewTypeValueEmpty(cap uint32) *TypeValue {
-	return NewTypeValue(NewBytesTableEmpty(cap))
-}
-
-func (t *TypeValue) Append(v []byte) {
-	t.table.Append(v)
+func (t *TypeValue) Append(typ super.Type) {
+	t.Values = append(t.Values, typ)
 }
 
 func (*TypeValue) Kind() Kind {
@@ -32,21 +29,27 @@ func (t *TypeValue) Type() super.Type {
 }
 
 func (t *TypeValue) Len() uint32 {
-	return t.table.Len()
+	return uint32(len(t.Values))
 }
 
-func (t *TypeValue) Value(slot uint32) []byte {
-	return t.table.Bytes(slot)
-}
-
-func (t *TypeValue) Table() BytesTable {
-	return t.table
+func (t *TypeValue) Value(slot uint32) super.Type {
+	return t.Values[slot]
 }
 
 func (t *TypeValue) Serialize(b *scode.Builder, slot uint32) {
-	b.Append(t.Value(slot))
+	b.Append(t.sctx.LookupTypeValue(t.Values[slot]).Bytes())
 }
 
+// XXX temporary until we can switch over to typedef table in CSUP
+func (t *TypeValue) Table() BytesTable {
+	table := NewBytesTableEmpty(t.Len())
+	for slot := range t.Len() {
+		table.Append(t.sctx.LookupTypeValue(t.Values[slot]).Bytes())
+	}
+	return table
+}
+
+/* XXX
 func TypeValueValue(val Any, slot uint32) []byte {
 	switch val := val.(type) {
 	case *TypeValue:
@@ -62,3 +65,4 @@ func TypeValueValue(val Any, slot uint32) []byte {
 	}
 	panic(val)
 }
+*/

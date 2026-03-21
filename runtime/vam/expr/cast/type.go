@@ -12,7 +12,7 @@ func castToType(sctx *super.Context, vec vector.Any, index []uint32) (vector.Any
 		return vec, nil, "", true
 	case *vector.String:
 		n := lengthOf(vec, index)
-		out := vector.NewTypeValueEmpty(0)
+		out := vector.NewTypeValue(sctx, nil)
 		var errs []uint32
 		for i := range n {
 			idx := i
@@ -25,7 +25,12 @@ func castToType(sctx *super.Context, vec vector.Any, index []uint32) (vector.Any
 				errs = append(errs, i)
 				continue
 			}
-			out.Append(val.Bytes())
+			typ, err := sctx.LookupByValue(val.Bytes())
+			if err != nil {
+				errs = append(errs, i)
+				continue
+			}
+			out.Append(typ)
 		}
 		return out, errs, "", true
 	default:
