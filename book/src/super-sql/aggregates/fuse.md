@@ -25,5 +25,5 @@ fuse(this)
 {a:1,b:2}
 {a:2,b:"foo"}
 # expected output
-<fusion({a:int64,b:fusion(int64|string)})>
+<{a:int64,b:fusion(int64|string)}>
 ```
