@@ -90,7 +90,7 @@ and can be disabled with `-color false`.
 ## Pipeline-friendly Formats
 
 Though they're compressed formats, CSUP and BSUP data are self-describing and
-stream-oriented and thus is pipeline friendly.
+stream-oriented and thus are pipeline friendly.
 
 Since data is self-describing you can simply take super-structured output
 of one command and pipe it to the input of another.  It doesn't matter if the value
@@ -141,7 +141,7 @@ a separate output file for each output type.
 
 ## Fused Data
 
-The [blend](../super-sql/operators/fuse.md) operator uses
+The [blend](../super-sql/operators/blend.md) operator uses
 [type fusion](../super-sql/type-fusion.md) to merge different record
 types into a blended type, e.g.,
 ```mdtest-command
@@ -158,7 +158,7 @@ to conform to a single type.
 
 Also, data fusion can sometimes involve sum types that are not
 representable in a format like Parquet.  While a bit cumbersome,
-you could write a query that adjusts the output be renaming columns
+you could write a query that adjusts the output by renaming columns
 so that heterogenous data column types are avoided.   This modified
 data could then be fused without sum types and output to Parquet.
 
