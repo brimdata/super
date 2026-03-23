@@ -47,8 +47,7 @@ homebrew_casks:
       name: brim-bot
       email: bot@brimdata.io
     homepage: https://github.com/brimdata/super
-    description: |
-      An analytics database that fuses structured and semi-structured data
+    description: An analytics database that fuses structured and semi-structured data
 checksum:
   name_template: 'super-checksums.txt'
 snapshot:
