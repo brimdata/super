@@ -79,7 +79,14 @@ func (f *Fuser) fuse(a, b super.Type) super.Type {
 		}
 	case *super.TypeArray:
 		if b, ok := b.(*super.TypeArray); ok {
-			return f.fusion(f.sctx.LookupTypeArray(f.fuse(a.Type, b.Type)))
+			// A wrapped fusion is only needed when either of the outer
+			// arrays end up differently typed than the inner arrays.
+			inner := f.fuse(a.Type, b.Type)
+			out := f.sctx.LookupTypeArray(inner)
+			if a.Type == inner && b.Type == inner {
+				return out
+			}
+			return f.fusion(out)
 		}
 	case *super.TypeSet:
 		if b, ok := b.(*super.TypeSet); ok {
