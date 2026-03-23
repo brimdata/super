@@ -1,0 +1,84 @@
+spq: pass
+
+input-flags: '-i fjson'
+output-flags: '-f json'
+
+input: &input |
+  {"a":1,"b":2}
+  {"a":3,"b":4}
+  {"a":5,"b":6}
+
+output: *input
+
+---
+
+# Test fusion on record leaves.
+spq: pass
+
+input-flags: '-i fjson'
+output-flags: '-f json'
+
+input: &input |
+  {"x":1}
+  {"x":"foo"}
+
+output: *input
+
+---
+
+spq: pass
+
+input-flags: '-i fjson'
+output-flags: '-f json'
+
+input: &input |
+  {"a":1}
+  {"a":2,"b":"foo"}
+  {"a":3}
+
+output: *input
+
+---
+
+# Test order is preserved in record with same column names but different order.
+spq: pass
+
+input-flags: '-i fjson'
+output-flags: '-f json'
+
+input: &input |
+  {"a":1,"b":2}
+  {"b":1,"a":2}
+
+output: *input
+
+---
+
+# Test nested record
+spq: pass
+
+input-flags: '-i fjson'
+output-flags: '-f json'
+
+input: &input |
+  {"a":{"b":"foo"}}
+  {"a":{"b":2.5}}
+  {"a":{"b":"bar"}}
+
+output: *input
+
+---
+
+# Test empty record
+spq: pass
+
+input-flags: '-i fjson'
+output-flags: '-f json'
+
+input: |
+  {}
+  {}
+
+output: |
+  {}
+  {}

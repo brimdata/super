@@ -1,0 +1,39 @@
+# Test simple array
+spq: pass
+
+input-flags: '-i fjson'
+output-flags: '-f json'
+
+input: &input |
+  {"a":[1,2,3]}
+  {"a":[4,5]}
+  {"a":[6]}
+
+output: *input
+
+---
+
+# Test array union
+spq: pass
+
+input-flags: '-i fjson'
+output-flags: '-f json'
+
+input: &input |
+  {"a":[1,2]}
+  {"a":[{"x":1},{"x":2}]}
+
+output: *input
+
+---
+
+# Test empty array
+spq: pass
+
+input-flags: '-i fjson'
+
+input: &input |
+  []
+  []
+
+output: *input

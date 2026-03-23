@@ -1,0 +1,15 @@
+spq: pass
+
+input-flags: '-i fjson'
+output-flags: '-f json'
+
+input: &input |
+  1
+  2
+  {"x":1}
+  {"x":2}
+  true
+  false
+  null
+
+output: *input

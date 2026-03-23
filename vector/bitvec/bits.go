@@ -62,6 +62,15 @@ func (b Bits) Set(slot uint32) {
 	b.bits[slot>>6] |= (1 << (slot & 0x3f))
 }
 
+func (b *Bits) Append(v bool) {
+	b.length++
+	n := int(b.length>>6) + 1
+	b.bits = slices.Grow(b.bits, n)[:n]
+	if v {
+		b.Set(b.length - 1)
+	}
+}
+
 // Shorten may be called to shorten the length of an allocated vector.
 // This is useful when you know that a vector has a limit but you're not
 // sure how large it might be.  Create the vector with max length, write
