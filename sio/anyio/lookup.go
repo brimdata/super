@@ -1,15 +1,18 @@
 package anyio
 
 import (
+	"context"
 	"fmt"
 	"io"
 
 	"github.com/brimdata/super"
+	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio"
 	"github.com/brimdata/super/sio/arrowio"
 	"github.com/brimdata/super/sio/bsupio"
 	"github.com/brimdata/super/sio/csupio"
 	"github.com/brimdata/super/sio/csvio"
+	"github.com/brimdata/super/sio/fjsonio"
 	"github.com/brimdata/super/sio/jsonio"
 	"github.com/brimdata/super/sio/jsupio"
 	"github.com/brimdata/super/sio/lineio"
@@ -34,6 +37,10 @@ func lookupReader(sctx *super.Context, r io.Reader, opts ReaderOpts) (sio.ReadCl
 		return sio.NopReadCloser(csvio.NewReader(sctx, r, opts.CSV)), nil
 	case "line":
 		return sio.NopReadCloser(lineio.NewReader(r)), nil
+	case "fjson":
+		v := fjsonio.NewVectorReader(context.Background(), sctx, r, nil, 1)
+		puller := sbuf.NewMaterializer(v)
+		return sio.NopReadCloser(sbuf.PullerReader(puller)), nil
 	case "json":
 		return sio.NopReadCloser(jsonio.NewReader(sctx, r)), nil
 	case "parquet":

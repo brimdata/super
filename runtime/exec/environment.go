@@ -16,6 +16,7 @@ import (
 	"github.com/brimdata/super/sbuf"
 	"github.com/brimdata/super/sio/anyio"
 	"github.com/brimdata/super/sio/csupio"
+	"github.com/brimdata/super/sio/fjsonio"
 	"github.com/brimdata/super/sio/parquetio"
 	"github.com/brimdata/super/vector"
 	"github.com/brimdata/super/vector/vio"
@@ -188,6 +189,8 @@ func (e *Environment) VectorOpen(ctx context.Context, sctx *super.Context, path,
 		puller, err = csupio.NewVectorReader(ctx, sctx, reader, p, concurrentReaders)
 	case "parquet":
 		puller, err = parquetio.NewVectorReader(ctx, sctx, reader, p, concurrentReaders)
+	case "fjson":
+		puller = fjsonio.NewVectorReader(ctx, sctx, reader, p, concurrentReaders)
 	default:
 		var sbufPuller sbuf.Puller
 		sbufPuller, err = e.Open(ctx, sctx, path, format, p)

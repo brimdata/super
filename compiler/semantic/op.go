@@ -284,7 +284,7 @@ func (t *translator) file(n ast.Node, name string, args []ast.OpArg) sem.Op {
 	if format == "" {
 		format = sio.FormatFromPath(name)
 	}
-	if format == "csup" || format == "parquet" {
+	if format == "csup" || format == "parquet" || format == "fjson" {
 		t.hasVectorizedInput = true
 	}
 	typ, err := t.fileType(name, format)
