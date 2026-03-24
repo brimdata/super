@@ -102,3 +102,29 @@ output: |
   fusion([fusion(1::(int64|string|null),<int64>),fusion(2::(int64|string|null),<int64>)],<[int64]>)
   fusion([fusion("foo"::(int64|string|null),<string>)],<[string]>)
   fusion([fusion(null::(int64|string|null),<null>)],<[null]>)
+
+---
+
+spq: fuse
+
+vector: true
+
+input: |
+  1::=p1
+  {a:1::=r1}::=r2
+  [1::=a1]::=a2
+  |[1::=s1]|::=s2
+  |{1::=m1:2::=m2}|::=m3
+  "a"::en1=enum(a,b)
+  1::u1=(u2=int64|u3=string)
+  error(1::=er1)::=er2
+
+output: |
+  fusion(1::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64)),<p1=int64>)
+  fusion({a:1::=r1}::(int64|(u3=string)|{a:r1}|[a1=int64]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64)),<r2={a:r1=int64}>)
+  fusion([1::=a1]::(int64|(u3=string)|{a:r1=int64}|[a1]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64)),<a2=[a1=int64]>)
+  fusion(|[1::=s1]|::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64)),<s2=|[s1=int64]|>)
+  fusion(|{1::=m1:2::=m2}|::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1=int64]|||{m1:m2}||enum(a,b)|error(er1=int64)),<m3=|{m1=int64:m2=int64}|>)
+  fusion("a"::enum(a,b)::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64)),<en1=enum(a,b)>)
+  fusion(1::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64)),<u1=u2=int64|(u3=string)>)
+  fusion(error(1::=er1)::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64)),<er2=error(er1=int64)>)

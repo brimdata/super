@@ -41,8 +41,8 @@ func (u *Upcast) Cast(from super.Value, to super.Type) (super.Value, bool) {
 }
 
 func (u *Upcast) build(b *scode.Builder, typ super.Type, bytes scode.Bytes, to super.Type) bool {
+	typOrig := typ
 	typ = super.TypeUnder(typ)
-	to = super.TypeUnder(to)
 	switch to := to.(type) {
 	case *super.TypeRecord:
 		return u.toRecord(b, typ, bytes, to)
@@ -57,9 +57,9 @@ func (u *Upcast) build(b *scode.Builder, typ super.Type, bytes scode.Bytes, to s
 	case *super.TypeError:
 		return u.toError(b, typ, bytes, to)
 	case *super.TypeNamed:
-		return u.toNamed(b, typ, bytes, to)
+		return u.build(b, typ, bytes, to.Type)
 	case *super.TypeFusion:
-		return u.toFusion(b, typ, bytes, to)
+		return u.toFusion(b, typOrig, bytes, to)
 	default:
 		if typ == to {
 			b.Append(bytes)
@@ -216,13 +216,6 @@ func upcastUnionTag(types []super.Type, out super.Type) int {
 func (u *Upcast) toError(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeError) bool {
 	if errorType, ok := typ.(*super.TypeError); ok {
 		return u.build(b, errorType.Type, bytes, to.Type)
-	}
-	return false
-}
-
-func (u *Upcast) toNamed(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeNamed) bool {
-	if namedType, ok := typ.(*super.TypeNamed); ok {
-		return u.build(b, namedType.Type, bytes, to.Type)
 	}
 	return false
 }

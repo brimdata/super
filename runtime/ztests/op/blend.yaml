@@ -102,3 +102,29 @@ output: |
   [1,2]::[int64|string|null]
   ["foo"]::[int64|string|null]
   [null]::[int64|string|null]
+
+---
+
+spq: blend
+
+vector: true
+
+input: |
+  1::=p1
+  {a:1::=r1}::=r2
+  [1::=a1]::=a2
+  |[1::=s1]|::=s2
+  |{1::=m1:2::=m2}|::=m3
+  "a"::en1=enum(a,b)
+  1::u1=(u2=int64|u3=string)
+  error(1::=er1)::=er2
+
+output: |
+  1::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))
+  {a:1::=r1}::(int64|(u3=string)|{a:r1}|[a1=int64]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))
+  [1::=a1]::(int64|(u3=string)|{a:r1=int64}|[a1]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))
+  |[1::=s1]|::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))
+  |{1::=m1:2::=m2}|::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1=int64]|||{m1:m2}||enum(a,b)|error(er1=int64))
+  "a"::enum(a,b)::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))
+  1::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))
+  error(1::=er1)::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))
