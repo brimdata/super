@@ -19,3 +19,18 @@ input: &input |
 
 output: *input
 
+---
+
+spq: fuse | defuse(this)
+
+input: &input |
+  1::=p1
+  {a:{b:1::=r1}::=r2}::=r3
+  [[1::=a1]::=a2]::=a3
+  |[|[1::=s1]|::=s2]|::=s3
+  |{1::=m1:2::=m2}|::=m3
+  "a"::(en1=enum(a,b))
+  1::=n1::(n2=n1|(n3=string))
+  error(1::=er1)::=er2
+
+output: *input

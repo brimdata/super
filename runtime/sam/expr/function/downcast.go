@@ -44,6 +44,7 @@ func (d *downcast) downcast(b *scode.Builder, typ super.Type, bytes scode.Bytes,
 		superBytes, _ := superType.Deref(d.sctx, bytes)
 		return d.downcast(b, superType.Type, superBytes, to)
 	}
+	typ = super.TypeUnder(typ)
 	switch to := to.(type) {
 	case *super.TypeRecord:
 		return d.toRecord(b, typ, bytes, to)
@@ -58,7 +59,7 @@ func (d *downcast) downcast(b *scode.Builder, typ super.Type, bytes scode.Bytes,
 	case *super.TypeError:
 		return d.toError(b, typ, bytes, to)
 	case *super.TypeNamed:
-		return d.toNamed(b, typ, bytes, to)
+		return d.downcast(b, typ, bytes, to.Type)
 	case *super.TypeFusion:
 		// Can't downcast to a super type
 		return false
@@ -167,13 +168,6 @@ func (d *downcast) toUnion(b *scode.Builder, typ super.Type, bytes scode.Bytes, 
 func (d *downcast) toError(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeError) bool {
 	if errorType, ok := typ.(*super.TypeError); ok {
 		return d.downcast(b, errorType.Type, bytes, to.Type)
-	}
-	return false
-}
-
-func (d *downcast) toNamed(b *scode.Builder, typ super.Type, bytes scode.Bytes, to *super.TypeNamed) bool {
-	if namedType, ok := typ.(*super.TypeNamed); ok {
-		return d.downcast(b, namedType.Type, bytes, to.Type)
 	}
 	return false
 }
