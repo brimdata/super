@@ -1,0 +1,9 @@
+spq: pass
+
+input-flags: -i sup
+
+input: |
+  1::n1=(n2=int64)
+
+error: |
+  can't create named type "n1" from existing named type "n2"

@@ -219,6 +219,9 @@ func (c *Context) LookupByName(name string) *TypeNamed {
 // name to that named type.  LookupTypeNamed returns an error if name is not a
 // valid UTF-8 string or is a primitive type name.
 func (c *Context) LookupTypeNamed(name string, inner Type) (*TypeNamed, error) {
+	if n, ok := inner.(*TypeNamed); ok {
+		return nil, fmt.Errorf("can't create named type %q from existing named type %q", name, n.Name)
+	}
 	if !utf8.ValidString(name) {
 		return nil, fmt.Errorf("bad type name %q: invalid UTF-8", name)
 	}

@@ -17,6 +17,12 @@ func TestContextLookupTypeNamedErrors(t *testing.T) {
 
 	_, err = sctx.LookupTypeNamed("null", super.TypeNull)
 	assert.EqualError(t, err, `bad type name "null": primitive type name`)
+
+	typ, err := sctx.LookupTypeNamed("n1", super.TypeNull)
+	require.NoError(t, err)
+	_, err = sctx.LookupTypeNamed("n2", typ)
+	assert.EqualError(t, err, `can't create named type "n2" from existing named type "n1"`)
+
 }
 
 func TestContextLookupTypeNamedAndLookupTypeDef(t *testing.T) {
