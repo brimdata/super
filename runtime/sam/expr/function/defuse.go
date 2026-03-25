@@ -49,7 +49,7 @@ func (d *defuse) eval(in super.Value) super.Value {
 			fields = append(fields, super.NewField(f.Name, val.Type()))
 		}
 		b.EndContainerWithNones(typ.Opts, nones)
-		return super.NewValue(d.sctx.MustLookupTypeRecord(fields), b.Bytes())
+		return super.NewValue(d.sctx.MustLookupTypeRecord(fields), b.Bytes().Body())
 	case *super.TypeArray:
 		elems := d.parseArrayOrSet(typ.Type, in.Bytes())
 		if len(elems) == 0 {

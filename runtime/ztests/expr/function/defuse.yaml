@@ -34,3 +34,13 @@ input: &input |
   error(1::=er1)::=er2
 
 output: *input
+
+---
+
+spq: defuse(this)
+
+input: |
+  {a:fusion(1::(int64|string),<int64>)}
+
+output: |
+  {a:1}
