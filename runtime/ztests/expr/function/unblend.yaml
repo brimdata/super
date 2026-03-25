@@ -1,0 +1,80 @@
+# Test unblend on nested records.
+spq: unblend(this)
+
+input: |
+  {x:{y:2::(int64|bool)},z?:"foo"}
+  {x:{y:true::(int64|bool)},z?:_::string}
+
+output: |
+  {x:{y:2},z:"foo"}
+  {x:{y:true}}
+
+---
+
+# Test unblend on root unions.
+spq: unblend(this)
+
+input: |
+  1::(int64|bool|{x:int64})
+  true::(int64|bool|{x:int64})
+  {x:1}::(int64|bool|{x:int64})
+
+output: |
+  1
+  true
+  {x:1}
+
+---
+
+# Test unblend on arrays.
+spq: unblend(this)
+
+input: |
+  [1::(int64|bool|string),2::(int64|bool|string),"string"::(int64|bool|string)]
+  [1::(int64|bool|string),2::(int64|bool|string),true::(int64|bool|string)]
+  [1::(int64|bool|string),"foo"::(int64|bool|string),false::(int64|bool|string)]
+  ["foo"::(int64|bool|string),"bar"::(int64|bool|string),"baz"::(int64|bool|string)]
+  []::[(int64|bool|string)]
+
+output: |
+  [1,2,"string"]
+  [1,2,true]
+  [1,"foo",false]
+  ["foo","bar","baz"]
+  []
+
+---
+
+# Test unblend on sets.
+spq: unblend(this)
+
+input: |
+  |[1::(int64|bool|string),2::(int64|bool|string),"string"::(int64|bool|string)]|
+  |[1::(int64|bool|string),2::(int64|bool|string),true::(int64|bool|string)]|
+  |[1::(int64|bool|string),"foo"::(int64|bool|string),false::(int64|bool|string)]|
+  |["foo"::(int64|bool|string),"bar"::(int64|bool|string),"baz"::(int64|bool|string)]|
+  |[]|::|[(int64|bool|string)]|
+
+output: |
+  |[1,2,"string"]|
+  |[1,2,true]|
+  |[1,false,"foo"]|
+  |["bar","baz","foo"]|
+  |[]|
+
+---
+
+# Test unblend on maps.
+spq: unblend(this)
+
+input: |
+  |{"k1"::(int64|string):"v1"::(int64|string),"k2"::(int64|string):2::(int64|string)}|
+  |{"k1"::(int64|string):1::(int64|string),"k2"::(int64|string):2::(int64|string)}|
+  |{"k1"::(int64|string):"v1"::(int64|string),2::(int64|string):"v2"::(int64|string)}|
+  |{}|::|{(int64|string):(int64|string)}|
+
+output: |
+  |{"k1":"v1","k2":2}|
+  |{"k1":1,"k2":2}|
+  |{2:"v2","k1":"v1"}|
+  |{}|

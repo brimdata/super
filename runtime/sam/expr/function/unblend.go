@@ -48,7 +48,7 @@ func (u *unblend) eval(in super.Value) super.Value {
 	case *super.TypeSet:
 		elems := u.arrayOrSet(typ.Type, in.Bytes())
 		if len(elems) == 0 {
-			typ := u.sctx.LookupTypeArray(super.TypeNull)
+			typ := u.sctx.LookupTypeSet(super.TypeNull)
 			return super.NewValue(typ, nil)
 		}
 		elemType, bytes := u.unify(elems)
@@ -56,21 +56,21 @@ func (u *unblend) eval(in super.Value) super.Value {
 	case *super.TypeMap:
 		var keys, vals []super.Value
 		for it := in.Bytes().Iter(); !it.Done(); {
-			keys = append(keys, super.NewValue(typ, it.Next()))
-			vals = append(vals, super.NewValue(typ, it.Next()))
+			keys = append(keys, super.NewValue(typ.KeyType, it.Next()).Deunion())
+			vals = append(vals, super.NewValue(typ.ValType, it.Next()).Deunion())
 		}
 		keyType := u.unifyType(keys)
 		valType := u.unifyType(vals)
 		var b scode.Builder
 		for k, key := range keys {
 			if u, ok := keyType.(*super.TypeUnion); ok {
-				super.BuildUnion(&b, u.TagOf(u), key.Bytes())
+				super.BuildUnion(&b, u.TagOf(key.Type()), key.Bytes())
 			} else {
 				b.Append(key.Bytes())
 			}
 			val := vals[k]
 			if u, ok := valType.(*super.TypeUnion); ok {
-				super.BuildUnion(&b, u.TagOf(u), val.Bytes())
+				super.BuildUnion(&b, u.TagOf(val.Type()), val.Bytes())
 			} else {
 				b.Append(val.Bytes())
 			}
