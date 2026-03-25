@@ -110,6 +110,22 @@ spq: blend
 vector: true
 
 input: |
+  {a:[1,2]}
+  {a:["foo"]}
+  {a:[null]}
+
+output: |
+  {a:[1,2]::[int64|string|null]}
+  {a:["foo"]::[int64|string|null]}
+  {a:[null]::[int64|string|null]}
+
+---
+
+spq: blend
+
+vector: true
+
+input: |
   1::=p1
   {a:1::=r1}::=r2
   [1::=a1]::=a2

@@ -132,8 +132,8 @@ func (f *Fuser) fuseMono(typ super.Type) super.Type {
 	switch typ := typ.(type) {
 	case *super.TypeRecord:
 		fields := slices.Clone(typ.Fields)
-		for _, field := range fields {
-			field.Type = f.fuseMono(field.Type)
+		for i, field := range fields {
+			fields[i].Type = f.fuseMono(field.Type)
 		}
 		out = f.sctx.MustLookupTypeRecord(fields)
 	case *super.TypeArray:

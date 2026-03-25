@@ -28,3 +28,17 @@ input: |
 
 output: |
   <{fixed:{x:int64},var:fusion({s:string,a?:[int64],t?:fusion(int64|{x:int64})})}>
+
+---
+
+spq: fuse(this)
+
+vector: true
+
+input: |
+  {a:[1,2]}
+  {a:["foo"]}
+  {a:[null]}
+
+output: |
+  <{a:fusion([fusion(int64|string|null)])}>

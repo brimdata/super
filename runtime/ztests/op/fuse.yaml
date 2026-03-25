@@ -110,6 +110,22 @@ spq: fuse
 vector: true
 
 input: |
+  {a:[1,2]}
+  {a:["foo"]}
+  {a:[null]}
+
+output: |
+  {a:fusion([fusion(1::(int64|string|null),<int64>),fusion(2::(int64|string|null),<int64>)],<[int64]>)}
+  {a:fusion([fusion("foo"::(int64|string|null),<string>)],<[string]>)}
+  {a:fusion([fusion(null::(int64|string|null),<null>)],<[null]>)}
+
+---
+
+spq: fuse
+
+vector: true
+
+input: |
   1::=p1
   {a:1::=r1}::=r2
   [1::=a1]::=a2
