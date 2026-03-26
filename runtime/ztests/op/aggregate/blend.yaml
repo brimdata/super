@@ -1,25 +1,178 @@
+# Flat records
 spq: blend(this)
 
 vector: true
 
 input: |
   {a:"hello",b:"world"}
+  {b:"goodnight",c:"gracie"}
   {a:"goodnight",b:123::int32}
-  error("missing")
+  {a:null,b:null,c:null}
 
 output: |
-  <{a:string,b:int32|string}|error(string)>
+  <{a?:string|null,b:int32|string|null,c?:string|null}>
 
 ---
 
+# Nested records
 spq: blend(this)
 
 vector: true
 
 input: |
-  {a:"hello",b:"world"}
-  {a:"goodnight",b:123::int32}
+  {a:"hello",r:{x:1::int32,y:2::int32}}
+  {r:{y:4::int32,z:5::int32},s:"world",r2:{x:6::int32}}
+  {a:null,r:{x:null,y:null,z:null},s:null,r2:null}
+
+output: |
+  <{a?:string|null,r:{x?:int32|null,y:int32|null,z?:int32|null},s?:string|null,r2?:null|{x:int32}}>
+
+---
+
+# Records with fixed-type field and variable-type field
+spq: blend(this)
+
+vector: true
+
+input: |
+  {fixed:{x:1},var:{s:"foo"}}
+  {fixed:{x:2},var:{s:"bar",a:[1,2]}}
+  {fixed:{x:3},var:{s:"bar",a:[3]}}
+  {fixed:{x:4},var:{s:"foo",t:123}}
+  {fixed:{x:5},var:{s:"foo",t:{x:1}}}
+
+output: |
+  <{fixed:{x:int64},var:{s:string,a?:[int64],t?:int64|{x:int64}}}>
+
+---
+
+# Arrays of records
+spq: blend(this)
+
+vector: true
+
+input: |
+  [{a:1}]
+  [{b:2}]
+  [{a:3},{b:3}]
+  [{a:3,b:3}]
+  [{a:null,b:null}]
+
+output: |
+  <[{a?:int64|null,b?:int64|null}]>
+
+---
+
+# Arrays of primitives
+spq: blend(this)
+
+vector: true
+
+input: |
+  [1,2]
+  ["foo"]
+  [null]
+
+output: |
+  <[int64|string|null]>
+
+---
+
+# Arrays of primitives as record field
+spq: blend(this)
+
+vector: true
+
+input: |
+  {a:[1,2]}
+  {a:["foo"]}
+  {a:[null]}
+
+output: |
+  <{a:[int64|string|null]}>
+
+---
+
+# Errors with error("missing")
+spq: blend(this)
+
+vector: true
+
+input: |
+  error(1)
+  error("missing")
+
+output: |
+  <error(int64|string)>
+
+---
+
+# Errors with error("quiet")
+spq: blend(this)
+
+vector: true
+
+input: |
+  error(1)
   error("quiet")
 
 output: |
-  <{a:string,b:int32|string}>
+  <error(int64)>
+
+---
+
+# Named
+spq: blend(this)
+
+vector: true
+
+input: |
+  1::=p1
+  {a:1::=r1}::=r2
+  [1::=a1]::=a2
+  |[1::=s1]|::=s2
+  |{1::=m1:2::=m2}|::=m3
+  1::=u1::(u2=u1|(u3=string))
+  "a"::(en1=enum(a,b))
+  error(1::=er1)::=er2
+
+output: |
+  <int64|{a:r1=int64}|[a1=int64]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64)>
+
+---
+
+# Mix of complex and primitive
+spq: blend(this)
+
+vector: true
+
+input: |
+  {a:1}
+  {a:"s"}
+  1
+  "s"
+  [1]
+  ["s"]
+
+output: |
+  <int64|string|{a:int64|string}|[int64|string]>
+
+---
+
+# Grouping key
+spq: supertype:=blend(this) by key | sort key
+
+vector: true
+
+input: |
+  {a:"hello",r:{x:1::int32,y:2::int32},key:"a"}
+  {a:"hello",r:{x:1::int32,y:2::int32},key:"b"}
+  {a:"hello",r:{x:1::int32,y:2::int32},key:"c"}
+  {r:{y:4::int32,z:5::int32},s:"world",r2:{x:6::int32},key:"a"}
+  {r:{y:4::int32,z:5::int32},s:"world",r2:{x:6::int32},key:"b"}
+  {r:{y:4::int32,z:5::int32},s:"world",r2:{x:6::int32},key:"c"}
+
+output: |
+  {key:"a",supertype:<{a?:string,r:{x?:int32,y:int32,z?:int32},key:string,s?:string,r2?:{x:int32}}>}
+  {key:"b",supertype:<{a?:string,r:{x?:int32,y:int32,z?:int32},key:string,s?:string,r2?:{x:int32}}>}
+  {key:"c",supertype:<{a?:string,r:{x?:int32,y:int32,z?:int32},key:string,s?:string,r2?:{x:int32}}>}

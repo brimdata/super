@@ -1,3 +1,4 @@
+# Flat records
 spq: blend
 
 vector: true
@@ -16,7 +17,45 @@ output: |
 
 ---
 
-# Test blend on an array of records.
+# Nested records
+spq: blend
+
+vector: true
+
+input: |
+  {a:"hello",r:{x:1::int32,y:2::int32}}
+  {r:{y:4::int32,z:5::int32},s:"world",r2:{x:6::int32}}
+  {a:null,r:{x:null,y:null,z:null},s:null,r2:null}
+
+output: |
+  {a?:"hello"::(string|null),r:{x?:1::int32::(int32|null),y:2::int32::(int32|null),z?:_::(int32|null)},s?:_::(string|null),r2?:_::(null|{x:int32})}
+  {a?:_::(string|null),r:{x?:_::(int32|null),y:4::int32::(int32|null),z?:5::int32::(int32|null)},s?:"world"::(string|null),r2?:{x:6::int32}::(null|{x:int32})}
+  {a?:null::(string|null),r:{x?:null::(int32|null),y:null::(int32|null),z?:null::(int32|null)},s?:null::(string|null),r2?:null::(null|{x:int32})}
+
+---
+
+# Records with fixed-type field and variable-type field
+spq: blend
+
+vector: true
+
+input: |
+  {fixed:{x:1},var:{s:"foo"}}
+  {fixed:{x:2},var:{s:"bar",a:[1,2]}}
+  {fixed:{x:3},var:{s:"bar",a:[3]}}
+  {fixed:{x:4},var:{s:"foo",t:123}}
+  {fixed:{x:5},var:{s:"foo",t:{x:1}}}
+
+output: |
+  {fixed:{x:1},var:{s:"foo",a?:_::[int64],t?:_::(int64|{x:int64})}}
+  {fixed:{x:2},var:{s:"bar",a?:[1,2],t?:_::(int64|{x:int64})}}
+  {fixed:{x:3},var:{s:"bar",a?:[3],t?:_::(int64|{x:int64})}}
+  {fixed:{x:4},var:{s:"foo",a?:_::[int64],t?:123::(int64|{x:int64})}}
+  {fixed:{x:5},var:{s:"foo",a?:_::[int64],t?:{x:1}::(int64|{x:int64})}}
+
+---
+
+# Arrays of records
 spq: blend
 
 vector: true
@@ -37,7 +76,98 @@ output: |
 
 ---
 
-# Test blend on mix of complex and primitive values.
+# Arrays of primitives
+spq: blend
+
+vector: true
+
+input: |
+  [1,2]
+  ["foo"]
+  [null]
+
+output: |
+  [1,2]::[int64|string|null]
+  ["foo"]::[int64|string|null]
+  [null]::[int64|string|null]
+
+---
+
+# Arrays of primitives as record field
+spq: blend
+
+vector: true
+
+input: |
+  {a:[1,2]}
+  {a:["foo"]}
+  {a:[null]}
+
+output: |
+  {a:[1,2]::[int64|string|null]}
+  {a:["foo"]::[int64|string|null]}
+  {a:[null]::[int64|string|null]}
+
+---
+
+# Errors with error("missing")
+spq: blend
+
+vector: true
+
+input: |
+  error(1)
+  error("missing")
+
+output: |
+  error(1::(int64|string))
+  error("missing"::(int64|string))
+
+---
+
+# Errors with error("quiet")
+spq: blend
+
+vector: true
+
+input: |
+  error(1)
+  error("quiet")
+
+output: |
+  error(1::(int64|string))
+  error("quiet"::(int64|string))
+
+---
+
+# Named
+spq: blend
+
+vector: true
+
+input: |
+  1::=p1
+  {a:1::=r1}::=r2
+  [1::=a1]::=a2
+  |[1::=s1]|::=s2
+  |{1::=m1:2::=m2}|::=m3
+  1::=u1::(u2=u1|(u3=string))
+  "a"::(en1=enum(a,b))
+  error(1::=er1)::=er2
+
+output: |
+  1::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))
+  {a:1::=r1}::(int64|(u3=string)|{a:r1}|[a1=int64]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))
+  [1::=a1]::(int64|(u3=string)|{a:r1=int64}|[a1]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))
+  |[1::=s1]|::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))
+  |{1::=m1:2::=m2}|::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1=int64]|||{m1:m2}||enum(a,b)|error(er1=int64))
+  1::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))
+  "a"::enum(a,b)::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))
+  error(1::=er1)::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))
+
+---
+
+# Mix of complex and primitive
 spq: blend
 
 vector: true
@@ -57,90 +187,3 @@ output: |
   "s"::(int64|string|{a:int64|string}|[int64|string])
   [1]::[int64|string]::(int64|string|{a:int64|string}|[int64|string])
   ["s"]::[int64|string]::(int64|string|{a:int64|string}|[int64|string])
-
----
-
-# Test blend on nested records.
-spq: blend
-
-input: |
-  {a:"hello",r:{x:1::int32,y:2::int32}}
-  {r:{y:4::int32,z:5::int32},s:"world",r2:{x:6::int32}}
-  {a:null,r:{x:null,y:null,z:null},s:null,r2:null}
-
-output: |
-  {a?:"hello"::(string|null),r:{x?:1::int32::(int32|null),y:2::int32::(int32|null),z?:_::(int32|null)},s?:_::(string|null),r2?:_::(null|{x:int32})}
-  {a?:_::(string|null),r:{x?:_::(int32|null),y:4::int32::(int32|null),z?:5::int32::(int32|null)},s?:"world"::(string|null),r2?:{x:6::int32}::(null|{x:int32})}
-  {a?:null::(string|null),r:{x?:null::(int32|null),y:null::(int32|null),z?:null::(int32|null)},s?:null::(string|null),r2?:null::(null|{x:int32})}
-
----
-
-spq: blend
-
-vector: true
-
-input: |
-  error(1)
-  error("s")
-
-output: |
-  error(1::(int64|string))
-  error("s"::(int64|string))
-
----
-
-spq: blend
-
-vector: true
-
-input: |
-  [1,2]
-  ["foo"]
-  [null]
-
-output: |
-  [1,2]::[int64|string|null]
-  ["foo"]::[int64|string|null]
-  [null]::[int64|string|null]
-
----
-
-spq: blend
-
-vector: true
-
-input: |
-  {a:[1,2]}
-  {a:["foo"]}
-  {a:[null]}
-
-output: |
-  {a:[1,2]::[int64|string|null]}
-  {a:["foo"]::[int64|string|null]}
-  {a:[null]::[int64|string|null]}
-
----
-
-spq: blend
-
-vector: true
-
-input: |
-  1::=p1
-  {a:1::=r1}::=r2
-  [1::=a1]::=a2
-  |[1::=s1]|::=s2
-  |{1::=m1:2::=m2}|::=m3
-  1::=u1::(u2=(u1|(u3=string)))
-  "a"::en1=enum(a,b)
-  error(1::=er1)::=er2
-
-output: |
-  1::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))
-  {a:1::=r1}::(int64|(u3=string)|{a:r1}|[a1=int64]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))
-  [1::=a1]::(int64|(u3=string)|{a:r1=int64}|[a1]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))
-  |[1::=s1]|::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))
-  |{1::=m1:2::=m2}|::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1=int64]|||{m1:m2}||enum(a,b)|error(er1=int64))
-  1::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))
-  "a"::enum(a,b)::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))
-  error(1::=er1)::(int64|(u3=string)|{a:r1=int64}|[a1=int64]||[s1=int64]|||{m1=int64:m2=int64}||enum(a,b)|error(er1=int64))

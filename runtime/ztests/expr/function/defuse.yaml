@@ -1,3 +1,65 @@
+# Flat records
+spq: fuse | defuse(this)
+
+vector: false
+
+input: &input |
+  {a:"hello",b:"world"}
+  {b:"goodnight",c:"gracie"}
+  {a:"goodnight",b:123::int32}
+  {a:null,b:null,c:null}
+
+output: *input
+
+---
+
+# Nested records
+spq: fuse | defuse(this)
+
+vector: false
+
+input: &input |
+  {a:"hello",r:{x:1::int32,y:2::int32}}
+  {r:{y:4::int32,z:5::int32},s:"world",r2:{x:6::int32}}
+  {a:null,r:{x:null,y:null,z:null},s:null,r2:null}
+
+output: *input
+
+---
+
+# Records with fixed-type field and variable-type field
+spq: fuse | defuse(this)
+
+vector: true
+
+input: &input |
+  {fixed:{x:1},var:{s:"foo"}}
+  {fixed:{x:2},var:{s:"bar",a:[1,2]}}
+  {fixed:{x:3},var:{s:"bar",a:[3]}}
+  {fixed:{x:4},var:{s:"foo",t:123}}
+  {fixed:{x:5},var:{s:"foo",t:{x:1}}}
+
+output: *input
+
+---
+
+# Arrays of records
+spq: fuse | defuse(this)
+
+vector: true
+
+input: &input |
+  [{a:1}]
+  [{b:2}]
+  [{a:3},{b:3}]
+  [{a:3,b:3}]
+  [{a:null,b:null}]
+
+output: *input
+
+---
+
+# Arrays of primitives
 spq: fuse | defuse(this)
 
 vector: true
@@ -11,32 +73,84 @@ output: *input
 
 ---
 
+# Arrays of primitives as record field
 spq: fuse | defuse(this)
 
+vector: true
+
 input: &input |
-  {x:1}
-  {x:2,y?:3}
+  {a:[1,2]}
+  {a:["foo"]}
+  {a:[null]}
 
 output: *input
 
 ---
 
+# Errors with error("missing")
 spq: fuse | defuse(this)
+
+vector: false
+
+input: &input |
+  error(1)
+  error("missing")
+
+output: *input
+
+---
+
+# Errors with error("quiet")
+spq: fuse | defuse(this)
+
+vector: false
+
+input: &input |
+  error(1)
+  error("quiet")
+
+output: |
+  error(1)
+  
+---
+
+# Named
+spq: fuse | defuse(this)
+
+vector: false
 
 input: &input |
   1::=p1
-  {a:{b:1::=r1}::=r2}::=r3
-  [[1::=a1]::=a2]::=a3
-  |[|[1::=s1]|::=s2]|::=s3
+  {a:1::=r1}::=r2
+  [1::=a1]::=a2
+  |[1::=s1]|::=s2
   |{1::=m1:2::=m2}|::=m3
+  1::=u1::(u2=u1|(u3=string))
   "a"::(en1=enum(a,b))
-  1::=n1::(n2=n1|(n3=string))
   error(1::=er1)::=er2
 
 output: *input
 
 ---
 
+# Mix of complex and primitive
+spq: fuse | defuse(this)
+
+vector: false
+
+input: &input |
+  {a:1}
+  {a:"s"}
+  1
+  "s"
+  [1]
+  ["s"]
+
+output: *input
+
+---
+
+# Record with union field
 spq: defuse(this)
 
 input: |
