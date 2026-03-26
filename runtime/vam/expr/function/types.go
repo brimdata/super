@@ -226,3 +226,11 @@ func (k *Kind) Call(args ...vector.Any) vector.Any {
 func (*Kind) RipUnions() bool {
 	return false
 }
+
+type Unblend struct {
+	sctx *super.Context
+}
+
+func (u *Unblend) Call(args ...vector.Any) vector.Any {
+	return expr.Unblend(u.sctx, args[0])
+}

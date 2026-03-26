@@ -1,18 +1,24 @@
-# Test unblend on nested records.
+# Test unblend on records.
 spq: unblend(this)
+
+vector: true
 
 input: |
   {x:{y:2::(int64|bool)},z?:"foo"}
   {x:{y:true::(int64|bool)},z?:_::string}
+  {}
 
 output: |
   {x:{y:2},z:"foo"}
   {x:{y:true}}
+  {}
 
 ---
 
 # Test unblend on root unions.
 spq: unblend(this)
+
+vector: true
 
 input: |
   1::(int64|bool|{x:int64})
@@ -28,6 +34,8 @@ output: |
 
 # Test unblend on arrays.
 spq: unblend(this)
+
+vector: true
 
 input: |
   [1::(int64|bool|string),2::(int64|bool|string),"string"::(int64|bool|string)]
@@ -45,8 +53,40 @@ output: |
 
 ---
 
+# Test unblend on elements in an array.
+spq: unblend(this)
+
+vector: true
+
+input: |
+  [{x:1::(bool|int64|string)},{x:true::(bool|int64|string)},{x:"foo"::(bool|int64|string)}]
+  [{x:2::(bool|int64|string)},{x:3::(bool|int64|string)},{x:"bar"::(bool|int64|string)}]
+  [{x:true::(bool|int64|string)},{x:false::(bool|int64|string)},{x:"bar"::(bool|int64|string)}]
+
+output: |
+  [{x:1},{x:true},{x:"foo"}]
+  [{x:2},{x:3},{x:"bar"}]
+  [{x:true},{x:false},{x:"bar"}]
+
+---
+
+# Test unblend on view of array.
+spq: unblend(this[0])
+
+vector: true
+
+input: |
+  [[0::(int64|string),1::(int64|string)],["foo"::(int64|string),2::(int64|string)]]
+
+output: |
+  [0,1]
+
+---
+
 # Test unblend on sets.
 spq: unblend(this)
+
+vector: true
 
 input: |
   |[1::(int64|bool|string),2::(int64|bool|string),"string"::(int64|bool|string)]|
@@ -64,17 +104,48 @@ output: |
 
 ---
 
+# Test unblend on view of set.
+spq: unblend(this[0])
+
+vector: true
+
+input: |
+  |[|[0::(int64|string),1::(int64|string)]|,|["foo"::(int64|string),2::(int64|string)]|]|
+
+output: |
+  |[0,1]|
+
+---
+
+
 # Test unblend on maps.
 spq: unblend(this)
+
+vector: true
 
 input: |
   |{"k1"::(int64|string):"v1"::(int64|string),"k2"::(int64|string):2::(int64|string)}|
   |{"k1"::(int64|string):1::(int64|string),"k2"::(int64|string):2::(int64|string)}|
   |{"k1"::(int64|string):"v1"::(int64|string),2::(int64|string):"v2"::(int64|string)}|
+  |{"k1":"v1"::(int64|string),"k2":"v2"::(int64|string)}|
   |{}|::|{(int64|string):(int64|string)}|
 
 output: |
   |{"k1":"v1","k2":2}|
   |{"k1":1,"k2":2}|
   |{2:"v2","k1":"v1"}|
+  |{"k1":"v1","k2":"v2"}|
   |{}|
+
+---
+
+# Test unblend on view of map.
+spq: unblend(this[0])
+
+vector: true
+
+input: |
+  |{0:|{"k1"::(int64|string):0}|,1:|{2::(int64|string):3}|}|
+
+output: |
+  |{"k1":0}|
