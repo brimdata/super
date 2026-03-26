@@ -504,7 +504,20 @@ func (w *Writer) buildArrowListValue(b array.ListLikeBuilder, typ super.Type, by
 	}
 }
 
+// nullableUnion returns whether typ is a union representing a nullable Arrow
+// type.  More specifically, it returns whether typ is a union of two types, one
+// of which is null and the other of which is not a union.  (Arrow unions are
+// not nullable.)
 func nullableUnion(typ super.Type) (*super.TypeUnion, bool) {
 	u, ok := typ.(*super.TypeUnion)
-	return u, ok && len(u.Types) == 2 && (u.Types[0] == super.TypeNull || u.Types[1] == super.TypeNull)
+	if !ok || len(u.Types) != 2 || u.Types[0] != super.TypeNull && u.Types[1] != super.TypeNull {
+		return nil, false
+	}
+	if _, ok := u.Types[0].(*super.TypeUnion); ok {
+		return nil, false
+	}
+	if _, ok := u.Types[1].(*super.TypeUnion); ok {
+		return nil, false
+	}
+	return u, true
 }
