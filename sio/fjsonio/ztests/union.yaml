@@ -1,0 +1,21 @@
+spq: pass
+
+input-flags: '-i fjson'
+
+input: |
+  1
+  2
+  {"x":1}
+  {"x":2}
+  true
+  false
+  null
+
+output: |
+  fusion(1::(int64|bool|null|{x:int64}),<int64>)
+  fusion(2::(int64|bool|null|{x:int64}),<int64>)
+  fusion({x:1}::(int64|bool|null|{x:int64}),<{x:int64}>)
+  fusion({x:2}::(int64|bool|null|{x:int64}),<{x:int64}>)
+  fusion(false::(int64|bool|null|{x:int64}),<bool>)
+  fusion(true::(int64|bool|null|{x:int64}),<bool>)
+  fusion(null::(int64|bool|null|{x:int64}),<null>)

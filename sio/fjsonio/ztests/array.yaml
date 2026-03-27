@@ -1,0 +1,42 @@
+# Test simple array
+spq: pass
+
+input-flags: '-i fjson'
+output-flags: '-f json'
+
+input: &input |
+  {"a":[1,2,3]}
+  {"a":[4,5]}
+  {"a":[6]}
+
+output: *input
+
+---
+
+# Test array union
+spq: pass
+
+input-flags: '-i fjson'
+
+input: |
+  {"a":[1,2]}
+  {"a":[{"x":1},{"x":2}]}
+
+output: |
+  {a:[fusion(1::(int64|{x:int64}),<int64>),fusion(2::(int64|{x:int64}),<int64>)]}
+  {a:[fusion({x:1}::(int64|{x:int64}),<{x:int64}>),fusion({x:2}::(int64|{x:int64}),<{x:int64}>)]}
+
+---
+
+# Test empty array
+spq: pass
+
+input-flags: '-i fjson'
+
+input: |
+  []
+  []
+
+output: |
+  []
+  []

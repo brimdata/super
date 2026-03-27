@@ -1,0 +1,90 @@
+spq: pass
+
+input-flags: '-i fjson'
+
+output-flags: '-f json'
+
+input: &input |
+  {"a":1,"b":2}
+  {"a":3,"b":4}
+  {"a":5,"b":6}
+
+output: *input
+
+---
+
+# Test fusion on record leaves.
+spq: pass
+
+input-flags: '-i fjson'
+
+input: |
+  {"x":1}
+  {"x":"foo"}
+
+output: |
+  {x:fusion(1::(int64|string),<int64>)}
+  {x:fusion("foo"::(int64|string),<string>)}
+
+---
+
+spq: pass
+
+input-flags: '-i fjson'
+
+input: |
+  {"a":1}
+  {"a":2,"b":"foo"}
+  {"a":3}
+
+output: |
+  fusion({a:1,b?:_::string},<{a:int64}>)
+  fusion({a:2,b?:"foo"},<{a:int64,b:string}>)
+  fusion({a:3,b?:_::string},<{a:int64}>)
+
+---
+
+# Test order is preserved in record with same column names but different order.
+spq: pass
+
+input-flags: '-i fjson'
+
+input: |
+  {"a":1,"b":2}
+  {"b":1,"a":2}
+
+output: |
+  fusion({a:1,b:2},<{a:int64,b:int64}>)
+  fusion({a:2,b:1},<{b:int64,a:int64}>)
+
+---
+
+# Test nested record
+spq: pass
+
+input-flags: '-i fjson'
+
+input: |
+  {"a":{"b":"foo"}}
+  {"a":{"b":2.5}}
+  {"a":{"b":"bar"}}
+
+output: |
+  {a:{b:fusion("foo"::(float64|string),<string>)}}
+  {a:{b:fusion(2.5::(float64|string),<float64>)}}
+  {a:{b:fusion("bar"::(float64|string),<string>)}}
+
+---
+
+# Test empty record
+spq: pass
+
+input-flags: '-i fjson'
+
+input: |
+  {}
+  {}
+
+output: |
+  {}
+  {}
