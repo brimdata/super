@@ -149,7 +149,9 @@ func New(sctx *super.Context, name string, narg int) (expr.Function, error) {
 	case "typeof":
 		f = &TypeOf{sctx}
 	case "unblend":
-		f = &samFunc{sctx, function.NewUnblend(sctx)}
+		f = &anonFunc{sctx, func(sctx *super.Context, vecs ...vector.Any) vector.Any {
+			return expr.Unblend(sctx, vecs[0])
+		}}
 	case "under":
 		f = newUnder(sctx)
 	case "unflatten":
@@ -199,4 +201,13 @@ func (f *samFunc) Call(args ...vector.Any) vector.Any {
 		b.Write(f.fn.Call(vals))
 	}
 	return b.Build(f.sctx)
+}
+
+type anonFunc struct {
+	sctx *super.Context
+	fn   func(*super.Context, ...vector.Any) vector.Any
+}
+
+func (a *anonFunc) Call(args ...vector.Any) vector.Any {
+	return a.fn(a.sctx, args...)
 }
