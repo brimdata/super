@@ -1,7 +1,6 @@
 package bsupio
 
 import (
-	"encoding/binary"
 	"errors"
 	"fmt"
 	"sync"
@@ -10,6 +9,7 @@ import (
 )
 
 const (
+	//XXX sue super.Equivalents
 	TypeDefRecord = 0
 	TypeDefArray  = 1
 	TypeDefSet    = 2
@@ -22,204 +22,40 @@ const (
 )
 
 type Encoder struct {
-	sctx    *super.Context
-	encoded map[super.Type]super.Type
-	bytes   []byte
+	defs *super.TypeDefs
+	off  int
 }
 
 func NewEncoder() *Encoder {
 	return &Encoder{
-		sctx:    super.NewContext(),
-		encoded: make(map[super.Type]super.Type),
+		defs: super.NewTypeDefs(),
 	}
 }
 
 func (e *Encoder) Reset() {
-	e.bytes = e.bytes[:0]
-	e.encoded = make(map[super.Type]super.Type)
-	e.sctx.Reset()
+	e.defs.Reset()
+	e.off = 0
 }
 
 func (e *Encoder) Flush() {
-	e.bytes = e.bytes[:0]
+	e.off = e.defs.Len()
 }
 
-func (e *Encoder) Lookup(external super.Type) super.Type {
-	return e.encoded[external]
+func (e *Encoder) Len() int {
+	return e.defs.Len() - e.off
+}
+
+func (e *Encoder) nextBuffer() []byte {
+	b := e.defs.BytesFrom(e.off)
+	e.off = e.defs.Len()
+	return b
 }
 
 // Encode takes a type from outside this context and constructs a type from
 // inside this context and emits BSUP typedefs for any type needed to construct
 // the new type into the buffer provided.
-func (e *Encoder) Encode(external super.Type) (super.Type, error) {
-	if typ, ok := e.encoded[external]; ok {
-		return typ, nil
-	}
-	internal, err := e.encode(external)
-	if err != nil {
-		return nil, err
-	}
-	e.encoded[external] = internal
-	return internal, err
-}
-
-func (e *Encoder) encode(ext super.Type) (super.Type, error) {
-	switch ext := ext.(type) {
-	case *super.TypeRecord:
-		return e.encodeTypeRecord(ext)
-	case *super.TypeSet:
-		return e.encodeTypeSet(ext)
-	case *super.TypeArray:
-		return e.encodeTypeArray(ext)
-	case *super.TypeUnion:
-		return e.encodeTypeUnion(ext)
-	case *super.TypeMap:
-		return e.encodeTypeMap(ext)
-	case *super.TypeEnum:
-		return e.encodeTypeEnum(ext)
-	case *super.TypeNamed:
-		return e.encodeTypeName(ext)
-	case *super.TypeError:
-		return e.encodeTypeError(ext)
-	case *super.TypeFusion:
-		return e.encodeTypeFusion(ext)
-	default:
-		return ext, nil
-	}
-}
-
-func (e *Encoder) encodeTypeRecord(ext *super.TypeRecord) (super.Type, error) {
-	var fields []super.Field
-	for _, f := range ext.Fields {
-		child, err := e.Encode(f.Type)
-		if err != nil {
-			return nil, err
-		}
-		fields = append(fields, super.NewFieldWithOpt(f.Name, child, f.Opt))
-	}
-	typ, err := e.sctx.LookupTypeRecord(fields)
-	if err != nil {
-		return nil, err
-	}
-	e.bytes = append(e.bytes, TypeDefRecord)
-	e.bytes = binary.AppendUvarint(e.bytes, uint64(len(fields)))
-	for _, f := range fields {
-		e.bytes = binary.AppendUvarint(e.bytes, uint64(len(f.Name)))
-		e.bytes = append(e.bytes, f.Name...)
-		e.bytes = binary.AppendUvarint(e.bytes, uint64(super.TypeID(f.Type)))
-		var opt byte
-		if f.Opt {
-			opt = 1
-		}
-		e.bytes = append(e.bytes, opt)
-	}
-	return typ, nil
-}
-
-func (e *Encoder) encodeTypeUnion(ext *super.TypeUnion) (super.Type, error) {
-	var types []super.Type
-	for _, t := range ext.Types {
-		t, err := e.Encode(t)
-		if err != nil {
-			return nil, err
-		}
-		types = append(types, t)
-	}
-	typ := e.sctx.LookupTypeUnion(types)
-	e.bytes = append(e.bytes, TypeDefUnion)
-	e.bytes = binary.AppendUvarint(e.bytes, uint64(len(types)))
-	for _, t := range types {
-		e.bytes = binary.AppendUvarint(e.bytes, uint64(super.TypeID(t)))
-	}
-	return typ, nil
-}
-
-func (e *Encoder) encodeTypeSet(ext *super.TypeSet) (*super.TypeSet, error) {
-	inner, err := e.Encode(ext.Type)
-	if err != nil {
-		return nil, err
-	}
-	typ := e.sctx.LookupTypeSet(inner)
-	e.bytes = append(e.bytes, TypeDefSet)
-	e.bytes = binary.AppendUvarint(e.bytes, uint64(super.TypeID(inner)))
-	return typ, nil
-}
-
-func (e *Encoder) encodeTypeArray(ext *super.TypeArray) (*super.TypeArray, error) {
-	inner, err := e.Encode(ext.Type)
-	if err != nil {
-		return nil, err
-	}
-	typ := e.sctx.LookupTypeArray(inner)
-	e.bytes = append(e.bytes, TypeDefArray)
-	e.bytes = binary.AppendUvarint(e.bytes, uint64(super.TypeID(inner)))
-	return typ, nil
-}
-
-func (e *Encoder) encodeTypeEnum(ext *super.TypeEnum) (*super.TypeEnum, error) {
-	symbols := ext.Symbols
-	typ := e.sctx.LookupTypeEnum(symbols)
-	e.bytes = append(e.bytes, TypeDefEnum)
-	e.bytes = binary.AppendUvarint(e.bytes, uint64(len(symbols)))
-	for _, s := range symbols {
-		e.bytes = binary.AppendUvarint(e.bytes, uint64(len(s)))
-		e.bytes = append(e.bytes, s...)
-	}
-	return typ, nil
-}
-
-func (e *Encoder) encodeTypeMap(ext *super.TypeMap) (*super.TypeMap, error) {
-	keyType, err := e.Encode(ext.KeyType)
-	if err != nil {
-		return nil, err
-	}
-	valType, err := e.Encode(ext.ValType)
-	if err != nil {
-		return nil, err
-	}
-	typ := e.sctx.LookupTypeMap(keyType, valType)
-	e.bytes = append(e.bytes, TypeDefMap)
-	e.bytes = binary.AppendUvarint(e.bytes, uint64(super.TypeID(keyType)))
-	e.bytes = binary.AppendUvarint(e.bytes, uint64(super.TypeID(valType)))
-	return typ, nil
-}
-
-func (e *Encoder) encodeTypeName(ext *super.TypeNamed) (*super.TypeNamed, error) {
-	inner, err := e.Encode(ext.Type)
-	if err != nil {
-		return nil, err
-	}
-	typ, err := e.sctx.LookupTypeNamed(ext.Name, inner)
-	if err != nil {
-		return nil, err
-	}
-	e.bytes = append(e.bytes, TypeDefName)
-	e.bytes = binary.AppendUvarint(e.bytes, uint64(len(typ.Name)))
-	e.bytes = append(e.bytes, typ.Name...)
-	e.bytes = binary.AppendUvarint(e.bytes, uint64(super.TypeID(typ.Type)))
-	return typ, nil
-}
-
-func (e *Encoder) encodeTypeError(ext *super.TypeError) (*super.TypeError, error) {
-	inner, err := e.Encode(ext.Type)
-	if err != nil {
-		return nil, err
-	}
-	typ := e.sctx.LookupTypeError(inner)
-	e.bytes = append(e.bytes, TypeDefError)
-	e.bytes = binary.AppendUvarint(e.bytes, uint64(super.TypeID(typ.Type)))
-	return typ, nil
-}
-
-func (e *Encoder) encodeTypeFusion(ext *super.TypeFusion) (*super.TypeFusion, error) {
-	inner, err := e.Encode(ext.Type)
-	if err != nil {
-		return nil, err
-	}
-	typ := e.sctx.LookupTypeFusion(inner)
-	e.bytes = append(e.bytes, TypeDefFusion)
-	e.bytes = binary.AppendUvarint(e.bytes, uint64(super.TypeID(typ.Type)))
-	return typ, nil
+func (e *Encoder) Encode(external super.Type) uint32 {
+	return e.defs.LookupType(external)
 }
 
 type Decoder struct {

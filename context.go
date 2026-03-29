@@ -74,15 +74,6 @@ func (c *Context) LookupType(id int) (Type, error) {
 	return typ, nil
 }
 
-var keyPool = sync.Pool{
-	New: func() any {
-		// Return a pointer to avoid allocation on conversion to
-		// interface.
-		buf := make([]byte, 64)
-		return &buf
-	},
-}
-
 type DuplicateFieldError struct {
 	Name string
 }
@@ -629,6 +620,20 @@ func NewTypeDefs() *TypeDefs {
 		offsets: make([]uint32, 1),
 		lut:     make(map[string]uint32),
 	}
+}
+
+func (t *TypeDefs) Reset() {
+	t.bytes = t.bytes[:0]
+	t.offsets = t.offsets[:1]
+	t.lut = make(map[string]uint32)
+}
+
+func (t *TypeDefs) Len() int {
+	return len(t.bytes)
+}
+
+func (t *TypeDefs) BytesFrom(at int) []byte {
+	return t.bytes[at:]
 }
 
 func (t *TypeDefs) Value(id uint32) []byte {
