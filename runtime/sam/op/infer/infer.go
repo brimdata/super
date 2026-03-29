@@ -118,21 +118,18 @@ func (i *inferNode) typeof(sctx *super.Context, typ super.Type) super.Type {
 	case *super.TypeArray:
 		return sctx.LookupTypeArray(i.children[0].typeof(sctx, typ.Type))
 	case *super.TypeUnion:
-		types := make(map[super.Type]struct{})
+		var types []super.Type
 		for k, typ := range typ.Types {
 			if child := i.children[k]; child != nil {
 				typ = child.typeof(sctx, typ)
 			}
-			types[typ] = struct{}{}
+			types = append(types, typ)
 		}
-		out := make([]super.Type, 0, len(types))
-		for typ := range types {
-			out = append(out, typ)
+		types = super.UniqueTypes(types)
+		if len(types) == 1 {
+			return types[0]
 		}
-		if len(out) == 1 {
-			return out[0]
-		}
-		return sctx.LookupTypeUnion(out)
+		return sctx.LookupTypeUnion(types)
 	default:
 		return typ
 	}
